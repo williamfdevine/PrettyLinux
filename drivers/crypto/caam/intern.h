@@ -14,20 +14,21 @@
 
 /* Kconfig params for interrupt coalescing if selected (else zero) */
 #ifdef CONFIG_CRYPTO_DEV_FSL_CAAM_INTC
-#define JOBR_INTC JRCFG_ICEN
-#define JOBR_INTC_TIME_THLD CONFIG_CRYPTO_DEV_FSL_CAAM_INTC_TIME_THLD
-#define JOBR_INTC_COUNT_THLD CONFIG_CRYPTO_DEV_FSL_CAAM_INTC_COUNT_THLD
+	#define JOBR_INTC JRCFG_ICEN
+	#define JOBR_INTC_TIME_THLD CONFIG_CRYPTO_DEV_FSL_CAAM_INTC_TIME_THLD
+	#define JOBR_INTC_COUNT_THLD CONFIG_CRYPTO_DEV_FSL_CAAM_INTC_COUNT_THLD
 #else
-#define JOBR_INTC 0
-#define JOBR_INTC_TIME_THLD 0
-#define JOBR_INTC_COUNT_THLD 0
+	#define JOBR_INTC 0
+	#define JOBR_INTC_TIME_THLD 0
+	#define JOBR_INTC_COUNT_THLD 0
 #endif
 
 /*
  * Storage for tracking each in-process entry moving across a ring
  * Each entry on an output ring needs one of these
  */
-struct caam_jrentry_info {
+struct caam_jrentry_info
+{
 	void (*callbk)(struct device *dev, u32 *desc, u32 status, void *arg);
 	void *cbkarg;	/* Argument per ring entry */
 	u32 *desc_addr_virt;	/* Stored virt addr for postprocessing */
@@ -36,7 +37,8 @@ struct caam_jrentry_info {
 };
 
 /* Private sub-storage for a single JobR */
-struct caam_drv_private_jr {
+struct caam_drv_private_jr
+{
 	struct list_head	list_node;	/* Job Ring device list */
 	struct device		*dev;
 	int ridx;
@@ -62,7 +64,8 @@ struct caam_drv_private_jr {
 /*
  * Driver-private storage for a single CAAM block instance
  */
-struct caam_drv_private {
+struct caam_drv_private
+{
 
 	struct device *dev;
 	struct platform_device **jrpdev; /* Alloc'ed array per sub-device */

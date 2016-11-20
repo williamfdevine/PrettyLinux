@@ -15,7 +15,8 @@
 
 #include <linux/input.h>
 
-struct adxl34x_platform_data {
+struct adxl34x_platform_data
+{
 
 	/*
 	 * X,Y,Z Axis Offset:

@@ -24,7 +24,7 @@ void brcms_c_stf_detach(struct brcms_c_info *wlc);
 
 void brcms_c_tempsense_upd(struct brcms_c_info *wlc);
 void brcms_c_stf_ss_algo_channel_get(struct brcms_c_info *wlc,
-				     u16 *ss_algo_channel, u16 chanspec);
+									 u16 *ss_algo_channel, u16 chanspec);
 int brcms_c_stf_ss_update(struct brcms_c_info *wlc, struct brcms_band *band);
 void brcms_c_stf_phy_txant_upd(struct brcms_c_info *wlc);
 int brcms_c_stf_txchain_set(struct brcms_c_info *wlc, s32 int_val, bool force);

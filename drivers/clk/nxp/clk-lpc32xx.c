@@ -66,7 +66,8 @@
 #define LPC32XX_USB_CLK_CTRL		0xF4
 #define LPC32XX_USB_CLK_STS		0xF8
 
-static struct regmap_config lpc32xx_scb_regmap_config = {
+static struct regmap_config lpc32xx_scb_regmap_config =
+{
 	.reg_bits = 32,
 	.val_bits = 32,
 	.reg_stride = 4,
@@ -78,14 +79,16 @@ static struct regmap_config lpc32xx_scb_regmap_config = {
 static struct regmap *clk_regmap;
 static void __iomem *usb_clk_vbase;
 
-enum {
+enum
+{
 	LPC32XX_USB_CLK_OTG = LPC32XX_USB_CLK_HOST + 1,
 	LPC32XX_USB_CLK_AHB,
 
 	LPC32XX_USB_CLK_MAX = LPC32XX_USB_CLK_AHB + 1,
 };
 
-enum {
+enum
+{
 	/* Start from the last defined clock in dt bindings */
 	LPC32XX_CLK_ADC_DIV = LPC32XX_CLK_PERIPH + 1,
 	LPC32XX_CLK_ADC_RTC,
@@ -167,20 +170,23 @@ enum {
 };
 
 static struct clk *clk[LPC32XX_CLK_MAX];
-static struct clk_onecell_data clk_data = {
+static struct clk_onecell_data clk_data =
+{
 	.clks = clk,
 	.clk_num = LPC32XX_CLK_MAX,
 };
 
 static struct clk *usb_clk[LPC32XX_USB_CLK_MAX];
-static struct clk_onecell_data usb_clk_data = {
+static struct clk_onecell_data usb_clk_data =
+{
 	.clks = usb_clk,
 	.clk_num = LPC32XX_USB_CLK_MAX,
 };
 
 #define LPC32XX_CLK_PARENTS_MAX			5
 
-struct clk_proto_t {
+struct clk_proto_t
+{
 	const char *name;
 	const u8 parents[LPC32XX_CLK_PARENTS_MAX];
 	u8 num_parents;
@@ -192,53 +198,54 @@ struct clk_proto_t {
 
 #define LPC32XX_CLK_DEFINE(_idx, _name, _flags, ...)		\
 	[CLK_PREFIX(_idx)] = {					\
-		.name = _name,					\
-		.flags = _flags,				\
-		.parents = { __VA_ARGS__ },			\
-		.num_parents = NUMARGS(__VA_ARGS__),		\
-	 }
+											.name = _name,					\
+											.flags = _flags,				\
+											.parents = { __VA_ARGS__ },			\
+											.num_parents = NUMARGS(__VA_ARGS__),		\
+						 }
 
-static const struct clk_proto_t clk_proto[LPC32XX_CLK_CCF_MAX] __initconst = {
+static const struct clk_proto_t clk_proto[LPC32XX_CLK_CCF_MAX] __initconst =
+{
 	LPC32XX_CLK_DEFINE(XTAL, "xtal", 0x0),
 	LPC32XX_CLK_DEFINE(XTAL_32K, "xtal_32k", 0x0),
 
 	LPC32XX_CLK_DEFINE(RTC, "rtc", 0x0, LPC32XX_CLK_XTAL_32K),
 	LPC32XX_CLK_DEFINE(OSC, "osc", CLK_IGNORE_UNUSED, LPC32XX_CLK_XTAL),
 	LPC32XX_CLK_DEFINE(SYS, "sys", CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_OSC, LPC32XX_CLK_PLL397X),
+	LPC32XX_CLK_OSC, LPC32XX_CLK_PLL397X),
 	LPC32XX_CLK_DEFINE(PLL397X, "pll_397x", CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_RTC),
+	LPC32XX_CLK_RTC),
 	LPC32XX_CLK_DEFINE(HCLK_PLL, "hclk_pll", CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_SYS),
+	LPC32XX_CLK_SYS),
 	LPC32XX_CLK_DEFINE(HCLK_DIV_PERIPH, "hclk_div_periph",
-		CLK_IGNORE_UNUSED, LPC32XX_CLK_HCLK_PLL),
+	CLK_IGNORE_UNUSED, LPC32XX_CLK_HCLK_PLL),
 	LPC32XX_CLK_DEFINE(HCLK_DIV, "hclk_div", CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_HCLK_PLL),
+	LPC32XX_CLK_HCLK_PLL),
 	LPC32XX_CLK_DEFINE(HCLK, "hclk", CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_PERIPH_HCLK_MUX),
+	LPC32XX_CLK_PERIPH_HCLK_MUX),
 	LPC32XX_CLK_DEFINE(PERIPH, "pclk", CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_SYSCLK_PERIPH_MUX),
+	LPC32XX_CLK_SYSCLK_PERIPH_MUX),
 	LPC32XX_CLK_DEFINE(ARM, "arm", CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_PERIPH_ARM_MUX),
+	LPC32XX_CLK_PERIPH_ARM_MUX),
 
 	LPC32XX_CLK_DEFINE(PERIPH_HCLK_MUX, "periph_hclk_mux",
-		CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_SYSCLK_HCLK_MUX, LPC32XX_CLK_SYSCLK_PERIPH_MUX),
+	CLK_IGNORE_UNUSED,
+	LPC32XX_CLK_SYSCLK_HCLK_MUX, LPC32XX_CLK_SYSCLK_PERIPH_MUX),
 	LPC32XX_CLK_DEFINE(PERIPH_ARM_MUX, "periph_arm_mux", CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_SYSCLK_ARM_MUX, LPC32XX_CLK_SYSCLK_PERIPH_MUX),
+	LPC32XX_CLK_SYSCLK_ARM_MUX, LPC32XX_CLK_SYSCLK_PERIPH_MUX),
 	LPC32XX_CLK_DEFINE(SYSCLK_PERIPH_MUX, "sysclk_periph_mux",
-		CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_SYS, LPC32XX_CLK_HCLK_DIV_PERIPH),
+	CLK_IGNORE_UNUSED,
+	LPC32XX_CLK_SYS, LPC32XX_CLK_HCLK_DIV_PERIPH),
 	LPC32XX_CLK_DEFINE(SYSCLK_HCLK_MUX, "sysclk_hclk_mux",
-		CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_SYS, LPC32XX_CLK_HCLK_DIV),
+	CLK_IGNORE_UNUSED,
+	LPC32XX_CLK_SYS, LPC32XX_CLK_HCLK_DIV),
 	LPC32XX_CLK_DEFINE(SYSCLK_ARM_MUX, "sysclk_arm_mux", CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_SYS, LPC32XX_CLK_HCLK_PLL),
+	LPC32XX_CLK_SYS, LPC32XX_CLK_HCLK_PLL),
 
 	LPC32XX_CLK_DEFINE(ARM_VFP, "vfp9", CLK_IGNORE_UNUSED,
-		LPC32XX_CLK_ARM),
+	LPC32XX_CLK_ARM),
 	LPC32XX_CLK_DEFINE(USB_PLL, "usb_pll",
-		CLK_SET_RATE_GATE | CLK_SET_RATE_PARENT, LPC32XX_CLK_USB_DIV),
+	CLK_SET_RATE_GATE | CLK_SET_RATE_PARENT, LPC32XX_CLK_USB_DIV),
 	LPC32XX_CLK_DEFINE(USB_DIV, "usb_div", 0x0, LPC32XX_CLK_OSC),
 	LPC32XX_CLK_DEFINE(USB, "usb", 0x0, LPC32XX_CLK_USB_PLL),
 	LPC32XX_CLK_DEFINE(DMA, "dma", 0x0, LPC32XX_CLK_HCLK),
@@ -248,7 +255,7 @@ static const struct clk_proto_t clk_proto[LPC32XX_CLK_CCF_MAX] __initconst = {
 	LPC32XX_CLK_DEFINE(MAC, "mac", 0x0, LPC32XX_CLK_HCLK),
 	LPC32XX_CLK_DEFINE(SD, "sd", 0x0, LPC32XX_CLK_ARM),
 	LPC32XX_CLK_DEFINE(DDRAM, "ddram", CLK_GET_RATE_NOCACHE,
-		LPC32XX_CLK_SYSCLK_ARM_MUX),
+	LPC32XX_CLK_SYSCLK_ARM_MUX),
 	LPC32XX_CLK_DEFINE(SSP0, "ssp0", 0x0, LPC32XX_CLK_HCLK),
 	LPC32XX_CLK_DEFINE(SSP1, "ssp1", 0x0, LPC32XX_CLK_HCLK),
 
@@ -257,13 +264,13 @@ static const struct clk_proto_t clk_proto[LPC32XX_CLK_CCF_MAX] __initconst = {
 	 * divider register does not contain information about selected rate.
 	 */
 	LPC32XX_CLK_DEFINE(UART3, "uart3", CLK_GET_RATE_NOCACHE,
-		LPC32XX_CLK_PERIPH, LPC32XX_CLK_HCLK),
+	LPC32XX_CLK_PERIPH, LPC32XX_CLK_HCLK),
 	LPC32XX_CLK_DEFINE(UART4, "uart4", CLK_GET_RATE_NOCACHE,
-		LPC32XX_CLK_PERIPH, LPC32XX_CLK_HCLK),
+	LPC32XX_CLK_PERIPH, LPC32XX_CLK_HCLK),
 	LPC32XX_CLK_DEFINE(UART5, "uart5", CLK_GET_RATE_NOCACHE,
-		LPC32XX_CLK_PERIPH, LPC32XX_CLK_HCLK),
+	LPC32XX_CLK_PERIPH, LPC32XX_CLK_HCLK),
 	LPC32XX_CLK_DEFINE(UART6, "uart6", CLK_GET_RATE_NOCACHE,
-		LPC32XX_CLK_PERIPH, LPC32XX_CLK_HCLK),
+	LPC32XX_CLK_PERIPH, LPC32XX_CLK_HCLK),
 	LPC32XX_CLK_DEFINE(IRDA, "irda", 0x0, LPC32XX_CLK_PERIPH),
 	LPC32XX_CLK_DEFINE(I2C1, "i2c1", 0x0, LPC32XX_CLK_HCLK),
 	LPC32XX_CLK_DEFINE(I2C2, "i2c2", 0x0, LPC32XX_CLK_HCLK),
@@ -282,18 +289,18 @@ static const struct clk_proto_t clk_proto[LPC32XX_CLK_CCF_MAX] __initconst = {
 	LPC32XX_CLK_DEFINE(HSTIMER, "hstimer", 0x0, LPC32XX_CLK_PERIPH),
 	LPC32XX_CLK_DEFINE(KEY, "key", 0x0, LPC32XX_CLK_RTC),
 	LPC32XX_CLK_DEFINE(PWM1, "pwm1", 0x0,
-		LPC32XX_CLK_RTC, LPC32XX_CLK_PERIPH),
+	LPC32XX_CLK_RTC, LPC32XX_CLK_PERIPH),
 	LPC32XX_CLK_DEFINE(PWM2, "pwm2", 0x0,
-		LPC32XX_CLK_RTC, LPC32XX_CLK_PERIPH),
+	LPC32XX_CLK_RTC, LPC32XX_CLK_PERIPH),
 	LPC32XX_CLK_DEFINE(ADC, "adc", 0x0,
-		LPC32XX_CLK_ADC_RTC, LPC32XX_CLK_ADC_DIV),
+	LPC32XX_CLK_ADC_RTC, LPC32XX_CLK_ADC_DIV),
 	LPC32XX_CLK_DEFINE(ADC_DIV, "adc_div", 0x0, LPC32XX_CLK_PERIPH),
 	LPC32XX_CLK_DEFINE(ADC_RTC, "adc_rtc", 0x0, LPC32XX_CLK_RTC),
 	LPC32XX_CLK_DEFINE(TEST1, "test1", 0x0,
-		LPC32XX_CLK_PERIPH, LPC32XX_CLK_RTC, LPC32XX_CLK_OSC),
+	LPC32XX_CLK_PERIPH, LPC32XX_CLK_RTC, LPC32XX_CLK_OSC),
 	LPC32XX_CLK_DEFINE(TEST2, "test2", 0x0,
-		LPC32XX_CLK_HCLK, LPC32XX_CLK_PERIPH, LPC32XX_CLK_USB,
-		LPC32XX_CLK_OSC, LPC32XX_CLK_PLL397X),
+	LPC32XX_CLK_HCLK, LPC32XX_CLK_PERIPH, LPC32XX_CLK_USB,
+	LPC32XX_CLK_OSC, LPC32XX_CLK_PLL397X),
 
 	/* USB controller clocks */
 	LPC32XX_CLK_DEFINE(USB_AHB, "usb_ahb", 0x0, LPC32XX_CLK_USB),
@@ -303,7 +310,8 @@ static const struct clk_proto_t clk_proto[LPC32XX_CLK_CCF_MAX] __initconst = {
 	LPC32XX_CLK_DEFINE(USB_HOST, "usb_host", 0x0, LPC32XX_CLK_USB_OTG),
 };
 
-struct lpc32xx_clk {
+struct lpc32xx_clk
+{
 	struct clk_hw hw;
 	u32 reg;
 	u32 enable;
@@ -314,7 +322,8 @@ struct lpc32xx_clk {
 	u32 busy_mask;
 };
 
-enum clk_pll_mode {
+enum clk_pll_mode
+{
 	PLL_UNKNOWN,
 	PLL_DIRECT,
 	PLL_BYPASS,
@@ -323,7 +332,8 @@ enum clk_pll_mode {
 	PLL_NON_INTEGER,
 };
 
-struct lpc32xx_pll_clk {
+struct lpc32xx_pll_clk
+{
 	struct clk_hw hw;
 	u32 reg;
 	u32 enable;
@@ -333,7 +343,8 @@ struct lpc32xx_pll_clk {
 	enum clk_pll_mode mode;
 };
 
-struct lpc32xx_usb_clk {
+struct lpc32xx_usb_clk
+{
 	struct clk_hw hw;
 	u32 ctrl_enable;
 	u32 ctrl_disable;
@@ -342,7 +353,8 @@ struct lpc32xx_usb_clk {
 	u32 busy;
 };
 
-struct lpc32xx_clk_mux {
+struct lpc32xx_clk_mux
+{
 	struct clk_hw	hw;
 	u32		reg;
 	u32		mask;
@@ -351,7 +363,8 @@ struct lpc32xx_clk_mux {
 	u8		flags;
 };
 
-struct lpc32xx_clk_div {
+struct lpc32xx_clk_div
+{
 	struct clk_hw	hw;
 	u32		reg;
 	u8		shift;
@@ -360,7 +373,8 @@ struct lpc32xx_clk_div {
 	u8		flags;
 };
 
-struct lpc32xx_clk_gate {
+struct lpc32xx_clk_gate
+{
 	struct clk_hw	hw;
 	u32		reg;
 	u8		bit_idx;
@@ -397,10 +411,12 @@ static int clk_mask_enable(struct clk_hw *hw)
 	regmap_read(clk_regmap, clk->reg, &val);
 
 	if (clk->busy_mask && (val & clk->busy_mask) == clk->busy)
+	{
 		return -EBUSY;
+	}
 
 	return regmap_update_bits(clk_regmap, clk->reg,
-				  clk->enable_mask, clk->enable);
+							  clk->enable_mask, clk->enable);
 }
 
 static void clk_mask_disable(struct clk_hw *hw)
@@ -408,7 +424,7 @@ static void clk_mask_disable(struct clk_hw *hw)
 	struct lpc32xx_clk *clk = to_lpc32xx_clk(hw);
 
 	regmap_update_bits(clk_regmap, clk->reg,
-			   clk->disable_mask, clk->disable);
+					   clk->disable_mask, clk->disable);
 }
 
 static int clk_mask_is_enabled(struct clk_hw *hw)
@@ -421,7 +437,8 @@ static int clk_mask_is_enabled(struct clk_hw *hw)
 	return ((val & clk->enable_mask) == clk->enable);
 }
 
-static const struct clk_ops clk_mask_ops = {
+static const struct clk_ops clk_mask_ops =
+{
 	.enable = clk_mask_enable,
 	.disable = clk_mask_disable,
 	.is_enabled = clk_mask_is_enabled,
@@ -434,14 +451,20 @@ static int clk_pll_enable(struct clk_hw *hw)
 
 	regmap_update_bits(clk_regmap, clk->reg, clk->enable, clk->enable);
 
-	for (count = 0; count < 1000; count++) {
+	for (count = 0; count < 1000; count++)
+	{
 		regmap_read(clk_regmap, clk->reg, &val);
+
 		if (val & PLL_CTRL_LOCK)
+		{
 			break;
+		}
 	}
 
 	if (val & PLL_CTRL_LOCK)
+	{
 		return 0;
+	}
 
 	return -ETIMEDOUT;
 }
@@ -461,20 +484,23 @@ static int clk_pll_is_enabled(struct clk_hw *hw)
 	regmap_read(clk_regmap, clk->reg, &val);
 
 	val &= clk->enable | PLL_CTRL_LOCK;
+
 	if (val == (clk->enable | PLL_CTRL_LOCK))
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
 static unsigned long clk_pll_397x_recalc_rate(struct clk_hw *hw,
-					      unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	return parent_rate * 397;
 }
 
 static unsigned long clk_pll_recalc_rate(struct clk_hw *hw,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct lpc32xx_pll_clk *clk = to_lpc32xx_pll_clk(hw);
 	bool is_direct, is_bypass, is_feedback;
@@ -490,16 +516,21 @@ static unsigned long clk_pll_recalc_rate(struct clk_hw *hw,
 	clk->n_div = ((val & PLL_CTRL_PREDIV) >> 9) + 1;
 	clk->p_div = ((val & PLL_CTRL_POSTDIV) >> 11) + 1;
 
-	if (is_direct && is_bypass) {
+	if (is_direct && is_bypass)
+	{
 		clk->p_div = 0;
 		clk->mode = PLL_DIRECT_BYPASS;
 		return parent_rate;
 	}
-	if (is_bypass) {
+
+	if (is_bypass)
+	{
 		clk->mode = PLL_BYPASS;
 		return parent_rate / (1 << clk->p_div);
 	}
-	if (is_direct) {
+
+	if (is_direct)
+	{
 		clk->p_div = 0;
 		clk->mode = PLL_DIRECT;
 	}
@@ -507,84 +538,96 @@ static unsigned long clk_pll_recalc_rate(struct clk_hw *hw,
 	ref_rate = parent_rate / clk->n_div;
 	rate = cco_rate = ref_rate * clk->m_div;
 
-	if (!is_direct) {
-		if (is_feedback) {
+	if (!is_direct)
+	{
+		if (is_feedback)
+		{
 			cco_rate *= (1 << clk->p_div);
 			clk->mode = PLL_INTEGER;
-		} else {
+		}
+		else
+		{
 			rate /= (1 << clk->p_div);
 			clk->mode = PLL_NON_INTEGER;
 		}
 	}
 
 	pr_debug("%s: %lu: 0x%x: %d/%d/%d, %lu/%lu/%d => %lu\n",
-		 clk_hw_get_name(hw),
-		 parent_rate, val, is_direct, is_bypass, is_feedback,
-		 clk->n_div, clk->m_div, (1 << clk->p_div), rate);
+			 clk_hw_get_name(hw),
+			 parent_rate, val, is_direct, is_bypass, is_feedback,
+			 clk->n_div, clk->m_div, (1 << clk->p_div), rate);
 
 	if (clk_pll_is_enabled(hw) &&
-	    !(pll_is_valid(parent_rate, 1, 1000000, 20000000)
-	      && pll_is_valid(cco_rate, 1, 156000000, 320000000)
-	      && pll_is_valid(ref_rate, 1, 1000000, 27000000)))
+		!(pll_is_valid(parent_rate, 1, 1000000, 20000000)
+		  && pll_is_valid(cco_rate, 1, 156000000, 320000000)
+		  && pll_is_valid(ref_rate, 1, 1000000, 27000000)))
 		pr_err("%s: PLL clocks are not in valid ranges: %lu/%lu/%lu",
-		       clk_hw_get_name(hw),
-		       parent_rate, cco_rate, ref_rate);
+			   clk_hw_get_name(hw),
+			   parent_rate, cco_rate, ref_rate);
 
 	return rate;
 }
 
 static int clk_pll_set_rate(struct clk_hw *hw, unsigned long rate,
-			    unsigned long parent_rate)
+							unsigned long parent_rate)
 {
 	struct lpc32xx_pll_clk *clk = to_lpc32xx_pll_clk(hw);
 	u32 val;
 	unsigned long new_rate;
 
 	/* Validate PLL clock parameters computed on round rate stage */
-	switch (clk->mode) {
-	case PLL_DIRECT:
-		val = PLL_CTRL_DIRECT;
-		val |= (clk->m_div - 1) << 1;
-		val |= (clk->n_div - 1) << 9;
-		new_rate = (parent_rate * clk->m_div) / clk->n_div;
-		break;
-	case PLL_BYPASS:
-		val = PLL_CTRL_BYPASS;
-		val |= (clk->p_div - 1) << 11;
-		new_rate = parent_rate / (1 << (clk->p_div));
-		break;
-	case PLL_DIRECT_BYPASS:
-		val = PLL_CTRL_DIRECT | PLL_CTRL_BYPASS;
-		new_rate = parent_rate;
-		break;
-	case PLL_INTEGER:
-		val = PLL_CTRL_FEEDBACK;
-		val |= (clk->m_div - 1) << 1;
-		val |= (clk->n_div - 1) << 9;
-		val |= (clk->p_div - 1) << 11;
-		new_rate = (parent_rate * clk->m_div) / clk->n_div;
-		break;
-	case PLL_NON_INTEGER:
-		val = 0x0;
-		val |= (clk->m_div - 1) << 1;
-		val |= (clk->n_div - 1) << 9;
-		val |= (clk->p_div - 1) << 11;
-		new_rate = (parent_rate * clk->m_div) /
-				(clk->n_div * (1 << clk->p_div));
-		break;
-	default:
-		return -EINVAL;
+	switch (clk->mode)
+	{
+		case PLL_DIRECT:
+			val = PLL_CTRL_DIRECT;
+			val |= (clk->m_div - 1) << 1;
+			val |= (clk->n_div - 1) << 9;
+			new_rate = (parent_rate * clk->m_div) / clk->n_div;
+			break;
+
+		case PLL_BYPASS:
+			val = PLL_CTRL_BYPASS;
+			val |= (clk->p_div - 1) << 11;
+			new_rate = parent_rate / (1 << (clk->p_div));
+			break;
+
+		case PLL_DIRECT_BYPASS:
+			val = PLL_CTRL_DIRECT | PLL_CTRL_BYPASS;
+			new_rate = parent_rate;
+			break;
+
+		case PLL_INTEGER:
+			val = PLL_CTRL_FEEDBACK;
+			val |= (clk->m_div - 1) << 1;
+			val |= (clk->n_div - 1) << 9;
+			val |= (clk->p_div - 1) << 11;
+			new_rate = (parent_rate * clk->m_div) / clk->n_div;
+			break;
+
+		case PLL_NON_INTEGER:
+			val = 0x0;
+			val |= (clk->m_div - 1) << 1;
+			val |= (clk->n_div - 1) << 9;
+			val |= (clk->p_div - 1) << 11;
+			new_rate = (parent_rate * clk->m_div) /
+					   (clk->n_div * (1 << clk->p_div));
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* Sanity check that round rate is equal to the requested one */
 	if (new_rate != rate)
+	{
 		return -EINVAL;
+	}
 
 	return regmap_update_bits(clk_regmap, clk->reg, 0x1FFFF, val);
 }
 
 static long clk_hclk_pll_round_rate(struct clk_hw *hw, unsigned long rate,
-				    unsigned long *parent_rate)
+									unsigned long *parent_rate)
 {
 	struct lpc32xx_pll_clk *clk = to_lpc32xx_pll_clk(hw);
 	u64 m_i, o = rate, i = *parent_rate, d = (u64)rate << 6;
@@ -594,22 +637,29 @@ static long clk_hclk_pll_round_rate(struct clk_hw *hw, unsigned long rate,
 	pr_debug("%s: %lu/%lu\n", clk_hw_get_name(hw), *parent_rate, rate);
 
 	if (rate > 266500000)
+	{
 		return -EINVAL;
+	}
 
 	/* Have to check all 20 possibilities to find the minimal M */
-	for (p_i = 4; p_i >= 0; p_i--) {
-		for (n_i = 4; n_i > 0; n_i--) {
+	for (p_i = 4; p_i >= 0; p_i--)
+	{
+		for (n_i = 4; n_i > 0; n_i--)
+		{
 			m_i = div64_u64(o * n_i * (1 << p_i), i);
 
 			/* Check for valid PLL parameter constraints */
 			if (!(m_i && m_i <= 256
-			      && pll_is_valid(i, n_i, 1000000, 27000000)
-			      && pll_is_valid(i * m_i * (1 << p_i), n_i,
-					      156000000, 320000000)))
+				  && pll_is_valid(i, n_i, 1000000, 27000000)
+				  && pll_is_valid(i * m_i * (1 << p_i), n_i,
+								  156000000, 320000000)))
+			{
 				continue;
+			}
 
 			/* Store some intermediate valid parameters */
-			if (o * n_i * (1 << p_i) - i * m_i <= d) {
+			if (o * n_i * (1 << p_i) - i * m_i <= d)
+			{
 				m = m_i;
 				n = n_i;
 				p = p_i;
@@ -618,9 +668,10 @@ static long clk_hclk_pll_round_rate(struct clk_hw *hw, unsigned long rate,
 		}
 	}
 
-	if (d == (u64)rate << 6) {
+	if (d == (u64)rate << 6)
+	{
 		pr_err("%s: %lu: no valid PLL parameters are found\n",
-		       clk_hw_get_name(hw), rate);
+			   clk_hw_get_name(hw), rate);
 		return -EINVAL;
 	}
 
@@ -630,24 +681,28 @@ static long clk_hclk_pll_round_rate(struct clk_hw *hw, unsigned long rate,
 
 	/* Set only direct or non-integer mode of PLL */
 	if (!p)
+	{
 		clk->mode = PLL_DIRECT;
+	}
 	else
+	{
 		clk->mode = PLL_NON_INTEGER;
+	}
 
 	o = div64_u64(i * m, n * (1 << p));
 
 	if (!d)
 		pr_debug("%s: %lu: found exact match: %llu/%llu/%llu\n",
-			 clk_hw_get_name(hw), rate, m, n, p);
+				 clk_hw_get_name(hw), rate, m, n, p);
 	else
 		pr_debug("%s: %lu: found closest: %llu/%llu/%llu - %llu\n",
-			 clk_hw_get_name(hw), rate, m, n, p, o);
+				 clk_hw_get_name(hw), rate, m, n, p, o);
 
 	return o;
 }
 
 static long clk_usb_pll_round_rate(struct clk_hw *hw, unsigned long rate,
-				   unsigned long *parent_rate)
+								   unsigned long *parent_rate)
 {
 	struct lpc32xx_pll_clk *clk = to_lpc32xx_pll_clk(hw);
 	struct clk_hw *usb_div_hw, *osc_hw;
@@ -662,28 +717,42 @@ static long clk_usb_pll_round_rate(struct clk_hw *hw, unsigned long rate,
 	 * USB divider, USB PLL N and M parameters.
 	 */
 	if (rate != 48000000)
+	{
 		return -EINVAL;
+	}
 
 	/* USB divider clock */
 	usb_div_hw = clk_hw_get_parent_by_index(hw, 0);
+
 	if (!usb_div_hw)
+	{
 		return -EINVAL;
+	}
 
 	/* Main oscillator clock */
 	osc_hw = clk_hw_get_parent_by_index(usb_div_hw, 0);
+
 	if (!osc_hw)
+	{
 		return -EINVAL;
+	}
+
 	o = clk_hw_get_rate(osc_hw);	/* must be in range 1..20 MHz */
 
 	/* Check if valid USB divider and USB PLL parameters exists */
-	for (d_i = 16; d_i >= 1; d_i--) {
-		for (n_i = 1; n_i <= 4; n_i++) {
+	for (d_i = 16; d_i >= 1; d_i--)
+	{
+		for (n_i = 1; n_i <= 4; n_i++)
+		{
 			m = div64_u64(192000000 * d_i * n_i, o);
+
 			if (!(m && m <= 256
-			      && m * o == 192000000 * d_i * n_i
-			      && pll_is_valid(o, d_i, 1000000, 20000000)
-			      && pll_is_valid(o, d_i * n_i, 1000000, 27000000)))
+				  && m * o == 192000000 * d_i * n_i
+				  && pll_is_valid(o, d_i, 1000000, 20000000)
+				  && pll_is_valid(o, d_i * n_i, 1000000, 27000000)))
+			{
 				continue;
+			}
 
 			clk->n_div = n_i;
 			clk->m_div = m;
@@ -701,18 +770,18 @@ static long clk_usb_pll_round_rate(struct clk_hw *hw, unsigned long rate,
 #define LPC32XX_DEFINE_PLL_OPS(_name, _rc, _sr, _rr)			\
 	static const struct clk_ops clk_ ##_name ## _ops = {		\
 		.enable = clk_pll_enable,				\
-		.disable = clk_pll_disable,				\
-		.is_enabled = clk_pll_is_enabled,			\
-		.recalc_rate = _rc,					\
-		.set_rate = _sr,					\
-		.round_rate = _rr,					\
+				  .disable = clk_pll_disable,				\
+							 .is_enabled = clk_pll_is_enabled,			\
+										   .recalc_rate = _rc,					\
+												   .set_rate = _sr,					\
+														   .round_rate = _rr,					\
 	}
 
 LPC32XX_DEFINE_PLL_OPS(pll_397x, clk_pll_397x_recalc_rate, NULL, NULL);
 LPC32XX_DEFINE_PLL_OPS(hclk_pll, clk_pll_recalc_rate,
-		       clk_pll_set_rate, clk_hclk_pll_round_rate);
+					   clk_pll_set_rate, clk_hclk_pll_round_rate);
 LPC32XX_DEFINE_PLL_OPS(usb_pll,  clk_pll_recalc_rate,
-		       clk_pll_set_rate, clk_usb_pll_round_rate);
+					   clk_pll_set_rate, clk_usb_pll_round_rate);
 
 static int clk_ddram_is_enabled(struct clk_hw *hw)
 {
@@ -723,7 +792,7 @@ static int clk_ddram_is_enabled(struct clk_hw *hw)
 	val &= clk->enable_mask | clk->busy_mask;
 
 	return (val == (BIT(7) | BIT(0)) ||
-		val == (BIT(8) | BIT(1)));
+			val == (BIT(8) | BIT(1)));
 }
 
 static int clk_ddram_enable(struct clk_hw *hw)
@@ -740,20 +809,24 @@ static int clk_ddram_enable(struct clk_hw *hw)
 	 * if HCLK clock rate is equal to ARM clock rate
 	 */
 	if (hclk_div == 0x0 || hclk_div == (BIT(1) | BIT(0)))
+	{
 		return -EINVAL;
+	}
 
 	return regmap_update_bits(clk_regmap, clk->reg,
-				  clk->enable_mask, hclk_div << 7);
+							  clk->enable_mask, hclk_div << 7);
 }
 
 static unsigned long clk_ddram_recalc_rate(struct clk_hw *hw,
-					   unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct lpc32xx_clk *clk = to_lpc32xx_clk(hw);
 	u32 val;
 
 	if (!clk_ddram_is_enabled(hw))
+	{
 		return 0;
+	}
 
 	regmap_read(clk_regmap, clk->reg, &val);
 	val &= clk->enable_mask;
@@ -761,7 +834,8 @@ static unsigned long clk_ddram_recalc_rate(struct clk_hw *hw,
 	return parent_rate / (val >> 7);
 }
 
-static const struct clk_ops clk_ddram_ops = {
+static const struct clk_ops clk_ddram_ops =
+{
 	.enable = clk_ddram_enable,
 	.disable = clk_mask_disable,
 	.is_enabled = clk_ddram_is_enabled,
@@ -769,7 +843,7 @@ static const struct clk_ops clk_ddram_ops = {
 };
 
 static unsigned long lpc32xx_clk_uart_recalc_rate(struct clk_hw *hw,
-						  unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct lpc32xx_clk *clk = to_lpc32xx_clk(hw);
 	u32 val, x, y;
@@ -779,16 +853,22 @@ static unsigned long lpc32xx_clk_uart_recalc_rate(struct clk_hw *hw,
 	y = val & 0xFF;
 
 	if (x && y)
+	{
 		return (parent_rate * x) / y;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
-static const struct clk_ops lpc32xx_uart_div_ops = {
+static const struct clk_ops lpc32xx_uart_div_ops =
+{
 	.recalc_rate = lpc32xx_clk_uart_recalc_rate,
 };
 
-static const struct clk_div_table clk_hclk_div_table[] = {
+static const struct clk_div_table clk_hclk_div_table[] =
+{
 	{ .val = 0, .div = 1 },
 	{ .val = 1, .div = 2 },
 	{ .val = 2, .div = 4 },
@@ -805,34 +885,46 @@ static int clk_usb_enable(struct clk_hw *hw)
 
 	pr_debug("%s: 0x%x\n", clk_hw_get_name(hw), clk->enable);
 
-	if (clk->ctrl_mask) {
+	if (clk->ctrl_mask)
+	{
 		regmap_read(clk_regmap, LPC32XX_CLKPWR_USB_CTRL, &ctrl_val);
 		regmap_update_bits(clk_regmap, LPC32XX_CLKPWR_USB_CTRL,
-				   clk->ctrl_mask, clk->ctrl_enable);
+						   clk->ctrl_mask, clk->ctrl_enable);
 	}
 
 	val = lpc32xx_usb_clk_read(clk);
-	if (clk->busy && (val & clk->busy) == clk->busy) {
+
+	if (clk->busy && (val & clk->busy) == clk->busy)
+	{
 		if (clk->ctrl_mask)
 			regmap_write(clk_regmap, LPC32XX_CLKPWR_USB_CTRL,
-				     ctrl_val);
+						 ctrl_val);
+
 		return -EBUSY;
 	}
 
 	val |= clk->enable;
 	lpc32xx_usb_clk_write(clk, val);
 
-	for (count = 0; count < 1000; count++) {
+	for (count = 0; count < 1000; count++)
+	{
 		val = lpc32xx_usb_clk_read(clk);
+
 		if ((val & clk->enable) == clk->enable)
+		{
 			break;
+		}
 	}
 
 	if ((val & clk->enable) == clk->enable)
+	{
 		return 0;
+	}
 
 	if (clk->ctrl_mask)
+	{
 		regmap_write(clk_regmap, LPC32XX_CLKPWR_USB_CTRL, ctrl_val);
+	}
 
 	return -ETIMEDOUT;
 }
@@ -847,7 +939,7 @@ static void clk_usb_disable(struct clk_hw *hw)
 
 	if (clk->ctrl_mask)
 		regmap_update_bits(clk_regmap, LPC32XX_CLKPWR_USB_CTRL,
-				   clk->ctrl_mask, clk->ctrl_disable);
+						   clk->ctrl_mask, clk->ctrl_disable);
 }
 
 static int clk_usb_is_enabled(struct clk_hw *hw)
@@ -855,10 +947,14 @@ static int clk_usb_is_enabled(struct clk_hw *hw)
 	struct lpc32xx_usb_clk *clk = to_lpc32xx_usb_clk(hw);
 	u32 ctrl_val, val;
 
-	if (clk->ctrl_mask) {
+	if (clk->ctrl_mask)
+	{
 		regmap_read(clk_regmap, LPC32XX_CLKPWR_USB_CTRL, &ctrl_val);
+
 		if ((ctrl_val & clk->ctrl_mask) != clk->ctrl_enable)
+		{
 			return 0;
+		}
 	}
 
 	val = lpc32xx_usb_clk_read(clk);
@@ -867,18 +963,20 @@ static int clk_usb_is_enabled(struct clk_hw *hw)
 }
 
 static unsigned long clk_usb_i2c_recalc_rate(struct clk_hw *hw,
-					     unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	return clk_get_rate(clk[LPC32XX_CLK_PERIPH]);
 }
 
-static const struct clk_ops clk_usb_ops = {
+static const struct clk_ops clk_usb_ops =
+{
 	.enable = clk_usb_enable,
 	.disable = clk_usb_disable,
 	.is_enabled = clk_usb_is_enabled,
 };
 
-static const struct clk_ops clk_usb_i2c_ops = {
+static const struct clk_ops clk_usb_i2c_ops =
+{
 	.enable = clk_usb_enable,
 	.disable = clk_usb_disable,
 	.is_enabled = clk_usb_is_enabled,
@@ -915,7 +1013,8 @@ static int clk_gate_is_enabled(struct clk_hw *hw)
 	return (clk->flags & CLK_GATE_SET_TO_DISABLE ? !is_set : is_set);
 }
 
-static const struct clk_ops lpc32xx_clk_gate_ops = {
+static const struct clk_ops lpc32xx_clk_gate_ops =
+{
 	.enable = clk_gate_enable,
 	.disable = clk_gate_disable,
 	.is_enabled = clk_gate_is_enabled,
@@ -924,23 +1023,32 @@ static const struct clk_ops lpc32xx_clk_gate_ops = {
 #define div_mask(width)	((1 << (width)) - 1)
 
 static unsigned int _get_table_div(const struct clk_div_table *table,
-							unsigned int val)
+								   unsigned int val)
 {
 	const struct clk_div_table *clkt;
 
 	for (clkt = table; clkt->div; clkt++)
 		if (clkt->val == val)
+		{
 			return clkt->div;
+		}
+
 	return 0;
 }
 
 static unsigned int _get_div(const struct clk_div_table *table,
-			     unsigned int val, unsigned long flags, u8 width)
+							 unsigned int val, unsigned long flags, u8 width)
 {
 	if (flags & CLK_DIVIDER_ONE_BASED)
+	{
 		return val;
+	}
+
 	if (table)
+	{
 		return _get_table_div(table, val);
+	}
+
 	return val + 1;
 }
 
@@ -956,44 +1064,46 @@ static unsigned long clk_divider_recalc_rate(struct clk_hw *hw,
 	val &= div_mask(divider->width);
 
 	return divider_recalc_rate(hw, parent_rate, val, divider->table,
-				   divider->flags);
+							   divider->flags);
 }
 
 static long clk_divider_round_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long *prate)
+								   unsigned long *prate)
 {
 	struct lpc32xx_clk_div *divider = to_lpc32xx_div(hw);
 	unsigned int bestdiv;
 
 	/* if read only, just return current value */
-	if (divider->flags & CLK_DIVIDER_READ_ONLY) {
+	if (divider->flags & CLK_DIVIDER_READ_ONLY)
+	{
 		regmap_read(clk_regmap, divider->reg, &bestdiv);
 		bestdiv >>= divider->shift;
 		bestdiv &= div_mask(divider->width);
 		bestdiv = _get_div(divider->table, bestdiv, divider->flags,
-			divider->width);
+						   divider->width);
 		return DIV_ROUND_UP(*prate, bestdiv);
 	}
 
 	return divider_round_rate(hw, rate, prate, divider->table,
-				  divider->width, divider->flags);
+							  divider->width, divider->flags);
 }
 
 static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long parent_rate)
+								unsigned long parent_rate)
 {
 	struct lpc32xx_clk_div *divider = to_lpc32xx_div(hw);
 	unsigned int value;
 
 	value = divider_get_val(rate, parent_rate, divider->table,
-				divider->width, divider->flags);
+							divider->width, divider->flags);
 
 	return regmap_update_bits(clk_regmap, divider->reg,
-				  div_mask(divider->width) << divider->shift,
-				  value << divider->shift);
+							  div_mask(divider->width) << divider->shift,
+							  value << divider->shift);
 }
 
-static const struct clk_ops lpc32xx_clk_divider_ops = {
+static const struct clk_ops lpc32xx_clk_divider_ops =
+{
 	.recalc_rate = clk_divider_recalc_rate,
 	.round_rate = clk_divider_round_rate,
 	.set_rate = clk_divider_set_rate,
@@ -1009,17 +1119,23 @@ static u8 clk_mux_get_parent(struct clk_hw *hw)
 	val >>= mux->shift;
 	val &= mux->mask;
 
-	if (mux->table) {
+	if (mux->table)
+	{
 		u32 i;
 
 		for (i = 0; i < num_parents; i++)
 			if (mux->table[i] == val)
+			{
 				return i;
+			}
+
 		return -EINVAL;
 	}
 
 	if (val >= num_parents)
+	{
 		return -EINVAL;
+	}
 
 	return val;
 }
@@ -1029,23 +1145,28 @@ static int clk_mux_set_parent(struct clk_hw *hw, u8 index)
 	struct lpc32xx_clk_mux *mux = to_lpc32xx_mux(hw);
 
 	if (mux->table)
+	{
 		index = mux->table[index];
+	}
 
 	return regmap_update_bits(clk_regmap, mux->reg,
-			  mux->mask << mux->shift, index << mux->shift);
+							  mux->mask << mux->shift, index << mux->shift);
 }
 
-static const struct clk_ops lpc32xx_clk_mux_ro_ops = {
+static const struct clk_ops lpc32xx_clk_mux_ro_ops =
+{
 	.get_parent = clk_mux_get_parent,
 };
 
-static const struct clk_ops lpc32xx_clk_mux_ops = {
+static const struct clk_ops lpc32xx_clk_mux_ops =
+{
 	.get_parent = clk_mux_get_parent,
 	.set_parent = clk_mux_set_parent,
 	.determine_rate = __clk_mux_determine_rate,
 };
 
-enum lpc32xx_clk_type {
+enum lpc32xx_clk_type
+{
 	CLK_FIXED,
 	CLK_MUX,
 	CLK_DIV,
@@ -1056,9 +1177,11 @@ enum lpc32xx_clk_type {
 	CLK_LPC32XX_USB,
 };
 
-struct clk_hw_proto0 {
+struct clk_hw_proto0
+{
 	const struct clk_ops *ops;
-	union {
+	union
+	{
 		struct lpc32xx_pll_clk pll;
 		struct lpc32xx_clk clk;
 		struct lpc32xx_usb_clk usb_clk;
@@ -1068,16 +1191,19 @@ struct clk_hw_proto0 {
 	};
 };
 
-struct clk_hw_proto1 {
+struct clk_hw_proto1
+{
 	struct clk_hw_proto0 *mux;
 	struct clk_hw_proto0 *div;
 	struct clk_hw_proto0 *gate;
 };
 
-struct clk_hw_proto {
+struct clk_hw_proto
+{
 	enum lpc32xx_clk_type type;
 
-	union {
+	union
+	{
 		struct clk_fixed_rate f;
 		struct clk_hw_proto0 hw0;
 		struct clk_hw_proto1 hw1;
@@ -1085,145 +1211,146 @@ struct clk_hw_proto {
 };
 
 #define LPC32XX_DEFINE_FIXED(_idx, _rate, _flags)			\
-[CLK_PREFIX(_idx)] = {							\
-	.type = CLK_FIXED,						\
-	{								\
-		.f = {							\
-			.fixed_rate = (_rate),				\
-			.flags = (_flags),				\
-		},							\
-	},								\
-}
+	[CLK_PREFIX(_idx)] = {							\
+													.type = CLK_FIXED,						\
+													{								\
+																					.f = {							\
+																													.fixed_rate = (_rate),				\
+																													.flags = (_flags),				\
+																						 },							\
+													},								\
+						 }
 
 #define LPC32XX_DEFINE_PLL(_idx, _name, _reg, _enable)			\
-[CLK_PREFIX(_idx)] = {							\
-	.type = CLK_LPC32XX_PLL,					\
-	{								\
-		.hw0 = {						\
-			.ops = &clk_ ##_name ## _ops,			\
-			{						\
-				.pll = {				\
-					.reg = LPC32XX_CLKPWR_ ## _reg,	\
-					.enable = (_enable),		\
-				},					\
-			},						\
-		},							\
-	},								\
-}
+	[CLK_PREFIX(_idx)] = {							\
+													.type = CLK_LPC32XX_PLL,					\
+													{								\
+																					.hw0 = {						\
+																													.ops = &clk_ ##_name ## _ops,			\
+																													{						\
+																															.pll = {				\
+																																					.reg = LPC32XX_CLKPWR_ ## _reg,	\
+																																					.enable = (_enable),		\
+																																   },					\
+																													},						\
+																						   },							\
+													},								\
+						 }
 
 #define LPC32XX_DEFINE_MUX(_idx, _reg, _shift, _mask, _table, _flags)	\
-[CLK_PREFIX(_idx)] = {							\
-	.type = CLK_MUX,						\
-	{								\
-		.hw0 = {						\
-			.ops = (_flags & CLK_MUX_READ_ONLY ?		\
-				&lpc32xx_clk_mux_ro_ops :		\
-				&lpc32xx_clk_mux_ops),			\
-			{						\
-				.mux = {				\
-					.reg = LPC32XX_CLKPWR_ ## _reg,	\
-					.mask = (_mask),		\
-					.shift = (_shift),		\
-					.table = (_table),		\
-					.flags = (_flags),		\
-				},					\
-			},						\
-		},							\
-	},								\
-}
+	[CLK_PREFIX(_idx)] = {							\
+													.type = CLK_MUX,						\
+													{								\
+																					.hw0 = {						\
+																													.ops = (_flags & CLK_MUX_READ_ONLY ?		\
+																															&lpc32xx_clk_mux_ro_ops :		\
+																															&lpc32xx_clk_mux_ops),			\
+																													{						\
+																															.mux = {				\
+																																					.reg = LPC32XX_CLKPWR_ ## _reg,	\
+																																					.mask = (_mask),		\
+																																					.shift = (_shift),		\
+																																					.table = (_table),		\
+																																					.flags = (_flags),		\
+																																   },					\
+																													},						\
+																						   },							\
+													},								\
+						 }
 
 #define LPC32XX_DEFINE_DIV(_idx, _reg, _shift, _width, _table, _flags)	\
-[CLK_PREFIX(_idx)] = {							\
-	.type = CLK_DIV,						\
-	{								\
-		.hw0 = {						\
-			.ops = &lpc32xx_clk_divider_ops,		\
-			{						\
-				.div = {				\
-					.reg = LPC32XX_CLKPWR_ ## _reg,	\
-					.shift = (_shift),		\
-					.width = (_width),		\
-					.table = (_table),		\
-					.flags = (_flags),		\
-				 },					\
-			},						\
-		 },							\
-	},								\
-}
+	[CLK_PREFIX(_idx)] = {							\
+													.type = CLK_DIV,						\
+													{								\
+																					.hw0 = {						\
+																													.ops = &lpc32xx_clk_divider_ops,		\
+																													{						\
+																															.div = {				\
+																																					.reg = LPC32XX_CLKPWR_ ## _reg,	\
+																																					.shift = (_shift),		\
+																																					.width = (_width),		\
+																																					.table = (_table),		\
+																																					.flags = (_flags),		\
+																																   },					\
+																													},						\
+																						   },							\
+													},								\
+						 }
 
 #define LPC32XX_DEFINE_GATE(_idx, _reg, _bit, _flags)			\
-[CLK_PREFIX(_idx)] = {							\
-	.type = CLK_GATE,						\
-	{								\
-		.hw0 = {						\
-			.ops = &lpc32xx_clk_gate_ops,			\
-			{						\
-				.gate = {				\
-					.reg = LPC32XX_CLKPWR_ ## _reg,	\
-					.bit_idx = (_bit),		\
-					.flags = (_flags),		\
-				},					\
-			},						\
-		},							\
-	},								\
-}
+	[CLK_PREFIX(_idx)] = {							\
+													.type = CLK_GATE,						\
+													{								\
+																					.hw0 = {						\
+																													.ops = &lpc32xx_clk_gate_ops,			\
+																													{						\
+																															.gate = {				\
+																																					.reg = LPC32XX_CLKPWR_ ## _reg,	\
+																																					.bit_idx = (_bit),		\
+																																					.flags = (_flags),		\
+																																	},					\
+																													},						\
+																						   },							\
+													},								\
+						 }
 
 #define LPC32XX_DEFINE_CLK(_idx, _reg, _e, _em, _d, _dm, _b, _bm, _ops)	\
-[CLK_PREFIX(_idx)] = {							\
-	.type = CLK_LPC32XX,						\
-	{								\
-		.hw0 = {						\
-			.ops = &(_ops),					\
-			{						\
-				.clk = {				\
-					.reg = LPC32XX_CLKPWR_ ## _reg,	\
-					.enable = (_e),			\
-					.enable_mask = (_em),		\
-					.disable = (_d),		\
-					.disable_mask = (_dm),		\
-					.busy = (_b),			\
-					.busy_mask = (_bm),		\
-				},					\
-			},						\
-		},							\
-	},								\
-}
+	[CLK_PREFIX(_idx)] = {							\
+													.type = CLK_LPC32XX,						\
+													{								\
+																					.hw0 = {						\
+																													.ops = &(_ops),					\
+																													{						\
+																															.clk = {				\
+																																					.reg = LPC32XX_CLKPWR_ ## _reg,	\
+																																					.enable = (_e),			\
+																																					.enable_mask = (_em),		\
+																																					.disable = (_d),		\
+																																					.disable_mask = (_dm),		\
+																																					.busy = (_b),			\
+																																					.busy_mask = (_bm),		\
+																																   },					\
+																													},						\
+																						   },							\
+													},								\
+						 }
 
 #define LPC32XX_DEFINE_USB(_idx, _ce, _cd, _cm, _e, _b, _ops)		\
-[CLK_PREFIX(_idx)] = {							\
-	.type = CLK_LPC32XX_USB,					\
-	{								\
-		.hw0 = {						\
-			.ops = &(_ops),					\
-			{						\
-				.usb_clk = {				\
-					.ctrl_enable = (_ce),		\
-					.ctrl_disable = (_cd),		\
-					.ctrl_mask = (_cm),		\
-					.enable = (_e),			\
-					.busy = (_b),			\
-				}					\
-			},						\
-		}							\
-	},								\
-}
+	[CLK_PREFIX(_idx)] = {							\
+													.type = CLK_LPC32XX_USB,					\
+													{								\
+																					.hw0 = {						\
+																													.ops = &(_ops),					\
+																													{						\
+																															.usb_clk = {				\
+																																						.ctrl_enable = (_ce),		\
+																																						.ctrl_disable = (_cd),		\
+																																						.ctrl_mask = (_cm),		\
+																																						.enable = (_e),			\
+																																						.busy = (_b),			\
+																																	   }					\
+																													},						\
+																						   }							\
+													},								\
+						 }
 
 #define LPC32XX_DEFINE_COMPOSITE(_idx, _mux, _div, _gate)		\
-[CLK_PREFIX(_idx)] = {							\
-	.type = CLK_COMPOSITE,						\
-	{								\
-		.hw1 = {						\
-		.mux = (CLK_PREFIX(_mux) == LPC32XX_CLK__NULL ? NULL :	\
-			&clk_hw_proto[CLK_PREFIX(_mux)].hw0),		\
-		.div = (CLK_PREFIX(_div) == LPC32XX_CLK__NULL ? NULL :	\
-			&clk_hw_proto[CLK_PREFIX(_div)].hw0),		\
-		.gate = (CLK_PREFIX(_gate) == LPC32XX_CLK__NULL ? NULL :\
-			 &clk_hw_proto[CLK_PREFIX(_gate)].hw0),		\
-		},							\
-	},								\
-}
+	[CLK_PREFIX(_idx)] = {							\
+													.type = CLK_COMPOSITE,						\
+													{								\
+																					.hw1 = {						\
+																													.mux = (CLK_PREFIX(_mux) == LPC32XX_CLK__NULL ? NULL :	\
+																															&clk_hw_proto[CLK_PREFIX(_mux)].hw0),		\
+																													.div = (CLK_PREFIX(_div) == LPC32XX_CLK__NULL ? NULL :	\
+																															&clk_hw_proto[CLK_PREFIX(_div)].hw0),		\
+																													.gate = (CLK_PREFIX(_gate) == LPC32XX_CLK__NULL ? NULL :\
+																															&clk_hw_proto[CLK_PREFIX(_gate)].hw0),		\
+																						   },							\
+													},								\
+						 }
 
-static struct clk_hw_proto clk_hw_proto[LPC32XX_CLK_HW_MAX] = {
+static struct clk_hw_proto clk_hw_proto[LPC32XX_CLK_HW_MAX] =
+{
 	LPC32XX_DEFINE_FIXED(RTC, 32768, 0),
 	LPC32XX_DEFINE_PLL(PLL397X, pll_397x, HCLKPLL_CTRL, BIT(1)),
 	LPC32XX_DEFINE_PLL(HCLK_PLL, hclk_pll, HCLKPLL_CTRL, PLL_CTRL_ENABLE),
@@ -1232,22 +1359,22 @@ static struct clk_hw_proto clk_hw_proto[LPC32XX_CLK_HW_MAX] = {
 	LPC32XX_DEFINE_GATE(USB, USB_CTRL, 18, 0),
 
 	LPC32XX_DEFINE_DIV(HCLK_DIV_PERIPH, HCLKDIV_CTRL, 2, 5, NULL,
-			   CLK_DIVIDER_READ_ONLY),
+	CLK_DIVIDER_READ_ONLY),
 	LPC32XX_DEFINE_DIV(HCLK_DIV, HCLKDIV_CTRL, 0, 2, clk_hclk_div_table,
-			   CLK_DIVIDER_READ_ONLY),
+	CLK_DIVIDER_READ_ONLY),
 
 	/* Register 3 read-only muxes with a single control PWR_CTRL[2] */
 	LPC32XX_DEFINE_MUX(SYSCLK_PERIPH_MUX, PWR_CTRL, 2, 0x1, NULL,
-			   CLK_MUX_READ_ONLY),
+	CLK_MUX_READ_ONLY),
 	LPC32XX_DEFINE_MUX(SYSCLK_HCLK_MUX, PWR_CTRL, 2, 0x1, NULL,
-			   CLK_MUX_READ_ONLY),
+	CLK_MUX_READ_ONLY),
 	LPC32XX_DEFINE_MUX(SYSCLK_ARM_MUX, PWR_CTRL, 2, 0x1, NULL,
-			   CLK_MUX_READ_ONLY),
+	CLK_MUX_READ_ONLY),
 	/* Register 2 read-only muxes with a single control PWR_CTRL[10] */
 	LPC32XX_DEFINE_MUX(PERIPH_HCLK_MUX, PWR_CTRL, 10, 0x1, NULL,
-			   CLK_MUX_READ_ONLY),
+	CLK_MUX_READ_ONLY),
 	LPC32XX_DEFINE_MUX(PERIPH_ARM_MUX, PWR_CTRL, 10, 0x1, NULL,
-			   CLK_MUX_READ_ONLY),
+	CLK_MUX_READ_ONLY),
 
 	/* 3 always on gates with a single control PWR_CTRL[0] same as OSC */
 	LPC32XX_DEFINE_GATE(PERIPH, PWR_CTRL, 0, CLK_GATE_SET_TO_DISABLE),
@@ -1257,7 +1384,7 @@ static struct clk_hw_proto clk_hw_proto[LPC32XX_CLK_HW_MAX] = {
 	LPC32XX_DEFINE_GATE(ARM_VFP, DEBUG_CTRL, 4, 0),
 	LPC32XX_DEFINE_GATE(DMA, DMA_CLK_CTRL, 0, 0),
 	LPC32XX_DEFINE_CLK(DDRAM, HCLKDIV_CTRL, 0x0, BIT(8) | BIT(7),
-		   0x0, BIT(8) | BIT(7), 0x0, BIT(1) | BIT(0), clk_ddram_ops),
+	0x0, BIT(8) | BIT(7), 0x0, BIT(1) | BIT(0), clk_ddram_ops),
 
 	LPC32XX_DEFINE_GATE(TIMER0, TIMCLK_CTRL1, 2, 0),
 	LPC32XX_DEFINE_GATE(TIMER1, TIMCLK_CTRL1, 3, 0),
@@ -1282,50 +1409,50 @@ static struct clk_hw_proto clk_hw_proto[LPC32XX_CLK_HW_MAX] = {
 
 	LPC32XX_DEFINE_MUX(PWM1_MUX, PWMCLK_CTRL, 1, 0x1, NULL, 0),
 	LPC32XX_DEFINE_DIV(PWM1_DIV, PWMCLK_CTRL, 4, 4, NULL,
-			   CLK_DIVIDER_ONE_BASED | CLK_DIVIDER_ALLOW_ZERO),
+	CLK_DIVIDER_ONE_BASED | CLK_DIVIDER_ALLOW_ZERO),
 	LPC32XX_DEFINE_GATE(PWM1_GATE, PWMCLK_CTRL, 0, 0),
 	LPC32XX_DEFINE_COMPOSITE(PWM1, PWM1_MUX, PWM1_DIV, PWM1_GATE),
 
 	LPC32XX_DEFINE_MUX(PWM2_MUX, PWMCLK_CTRL, 3, 0x1, NULL, 0),
 	LPC32XX_DEFINE_DIV(PWM2_DIV, PWMCLK_CTRL, 8, 4, NULL,
-			   CLK_DIVIDER_ONE_BASED | CLK_DIVIDER_ALLOW_ZERO),
+	CLK_DIVIDER_ONE_BASED | CLK_DIVIDER_ALLOW_ZERO),
 	LPC32XX_DEFINE_GATE(PWM2_GATE, PWMCLK_CTRL, 2, 0),
 	LPC32XX_DEFINE_COMPOSITE(PWM2, PWM2_MUX, PWM2_DIV, PWM2_GATE),
 
 	LPC32XX_DEFINE_MUX(UART3_MUX, UART3_CLK_CTRL, 16, 0x1, NULL, 0),
 	LPC32XX_DEFINE_CLK(UART3_DIV, UART3_CLK_CTRL,
-			   0, 0, 0, 0, 0, 0, lpc32xx_uart_div_ops),
+	0, 0, 0, 0, 0, 0, lpc32xx_uart_div_ops),
 	LPC32XX_DEFINE_GATE(UART3_GATE, UART_CLK_CTRL, 0, 0),
 	LPC32XX_DEFINE_COMPOSITE(UART3, UART3_MUX, UART3_DIV, UART3_GATE),
 
 	LPC32XX_DEFINE_MUX(UART4_MUX, UART4_CLK_CTRL, 16, 0x1, NULL, 0),
 	LPC32XX_DEFINE_CLK(UART4_DIV, UART4_CLK_CTRL,
-			   0, 0, 0, 0, 0, 0, lpc32xx_uart_div_ops),
+	0, 0, 0, 0, 0, 0, lpc32xx_uart_div_ops),
 	LPC32XX_DEFINE_GATE(UART4_GATE, UART_CLK_CTRL, 1, 0),
 	LPC32XX_DEFINE_COMPOSITE(UART4, UART4_MUX, UART4_DIV, UART4_GATE),
 
 	LPC32XX_DEFINE_MUX(UART5_MUX, UART5_CLK_CTRL, 16, 0x1, NULL, 0),
 	LPC32XX_DEFINE_CLK(UART5_DIV, UART5_CLK_CTRL,
-			   0, 0, 0, 0, 0, 0, lpc32xx_uart_div_ops),
+	0, 0, 0, 0, 0, 0, lpc32xx_uart_div_ops),
 	LPC32XX_DEFINE_GATE(UART5_GATE, UART_CLK_CTRL, 2, 0),
 	LPC32XX_DEFINE_COMPOSITE(UART5, UART5_MUX, UART5_DIV, UART5_GATE),
 
 	LPC32XX_DEFINE_MUX(UART6_MUX, UART6_CLK_CTRL, 16, 0x1, NULL, 0),
 	LPC32XX_DEFINE_CLK(UART6_DIV, UART6_CLK_CTRL,
-			   0, 0, 0, 0, 0, 0, lpc32xx_uart_div_ops),
+	0, 0, 0, 0, 0, 0, lpc32xx_uart_div_ops),
 	LPC32XX_DEFINE_GATE(UART6_GATE, UART_CLK_CTRL, 3, 0),
 	LPC32XX_DEFINE_COMPOSITE(UART6, UART6_MUX, UART6_DIV, UART6_GATE),
 
 	LPC32XX_DEFINE_CLK(IRDA, IRDA_CLK_CTRL,
-			   0, 0, 0, 0, 0, 0, lpc32xx_uart_div_ops),
+	0, 0, 0, 0, 0, 0, lpc32xx_uart_div_ops),
 
 	LPC32XX_DEFINE_MUX(TEST1_MUX, TEST_CLK_CTRL, 5, 0x3,
-			   test1_mux_table, 0),
+	test1_mux_table, 0),
 	LPC32XX_DEFINE_GATE(TEST1_GATE, TEST_CLK_CTRL, 4, 0),
 	LPC32XX_DEFINE_COMPOSITE(TEST1, TEST1_MUX, _NULL, TEST1_GATE),
 
 	LPC32XX_DEFINE_MUX(TEST2_MUX, TEST_CLK_CTRL, 1, 0x7,
-			   test2_mux_table, 0),
+	test2_mux_table, 0),
 	LPC32XX_DEFINE_GATE(TEST2_GATE, TEST_CLK_CTRL, 0, 0),
 	LPC32XX_DEFINE_COMPOSITE(TEST2, TEST2_MUX, _NULL, TEST2_GATE),
 
@@ -1336,9 +1463,9 @@ static struct clk_hw_proto clk_hw_proto[LPC32XX_CLK_HW_MAX] = {
 	LPC32XX_DEFINE_COMPOSITE(USB_DIV, _NULL, USB_DIV_DIV, USB_DIV_GATE),
 
 	LPC32XX_DEFINE_DIV(SD_DIV, MS_CTRL, 0, 4, NULL,
-			   CLK_DIVIDER_ONE_BASED | CLK_DIVIDER_ALLOW_ZERO),
+	CLK_DIVIDER_ONE_BASED | CLK_DIVIDER_ALLOW_ZERO),
 	LPC32XX_DEFINE_CLK(SD_GATE, MS_CTRL, BIT(5) | BIT(9), BIT(5) | BIT(9),
-			   0x0, BIT(5) | BIT(9), 0x0, 0x0, clk_mask_ops),
+	0x0, BIT(5) | BIT(9), 0x0, 0x0, clk_mask_ops),
 	LPC32XX_DEFINE_COMPOSITE(SD, _NULL, SD_DIV, SD_GATE),
 
 	LPC32XX_DEFINE_DIV(LCD_DIV, LCDCLK_CTRL, 0, 5, NULL, 0),
@@ -1346,15 +1473,15 @@ static struct clk_hw_proto clk_hw_proto[LPC32XX_CLK_HW_MAX] = {
 	LPC32XX_DEFINE_COMPOSITE(LCD, _NULL, LCD_DIV, LCD_GATE),
 
 	LPC32XX_DEFINE_CLK(MAC, MACCLK_CTRL,
-			   BIT(2) | BIT(1) | BIT(0), BIT(2) | BIT(1) | BIT(0),
-			   BIT(2) | BIT(1) | BIT(0), BIT(2) | BIT(1) | BIT(0),
-			   0x0, 0x0, clk_mask_ops),
+	BIT(2) | BIT(1) | BIT(0), BIT(2) | BIT(1) | BIT(0),
+	BIT(2) | BIT(1) | BIT(0), BIT(2) | BIT(1) | BIT(0),
+	0x0, 0x0, clk_mask_ops),
 	LPC32XX_DEFINE_CLK(SLC, FLASHCLK_CTRL,
-			   BIT(2) | BIT(0), BIT(2) | BIT(0), 0x0,
-			   BIT(0), BIT(1), BIT(2) | BIT(1), clk_mask_ops),
+	BIT(2) | BIT(0), BIT(2) | BIT(0), 0x0,
+	BIT(0), BIT(1), BIT(2) | BIT(1), clk_mask_ops),
 	LPC32XX_DEFINE_CLK(MLC, FLASHCLK_CTRL,
-			   BIT(1), BIT(2) | BIT(1), 0x0, BIT(1),
-			   BIT(2) | BIT(0), BIT(2) | BIT(0), clk_mask_ops),
+	BIT(1), BIT(2) | BIT(1), 0x0, BIT(1),
+	BIT(2) | BIT(0), BIT(2) | BIT(0), clk_mask_ops),
 	/*
 	 * ADC/TS clock unfortunately cannot be registered as a composite one
 	 * due to a different connection of gate, div and mux, e.g. gating it
@@ -1374,18 +1501,18 @@ static struct clk_hw_proto clk_hw_proto[LPC32XX_CLK_HW_MAX] = {
 
 	/* USB controller clocks */
 	LPC32XX_DEFINE_USB(USB_AHB,
-			   BIT(24), 0x0, BIT(24), BIT(4), 0, clk_usb_ops),
+	BIT(24), 0x0, BIT(24), BIT(4), 0, clk_usb_ops),
 	LPC32XX_DEFINE_USB(USB_OTG,
-			   0x0, 0x0, 0x0, BIT(3), 0, clk_usb_ops),
+	0x0, 0x0, 0x0, BIT(3), 0, clk_usb_ops),
 	LPC32XX_DEFINE_USB(USB_I2C,
-			   0x0, BIT(23), BIT(23), BIT(2), 0, clk_usb_i2c_ops),
+	0x0, BIT(23), BIT(23), BIT(2), 0, clk_usb_i2c_ops),
 	LPC32XX_DEFINE_USB(USB_DEV,
-			   BIT(22), 0x0, BIT(22), BIT(1), BIT(0), clk_usb_ops),
+	BIT(22), 0x0, BIT(22), BIT(1), BIT(0), clk_usb_ops),
 	LPC32XX_DEFINE_USB(USB_HOST,
-			   BIT(21), 0x0, BIT(21), BIT(0), BIT(1), clk_usb_ops),
+	BIT(21), 0x0, BIT(21), BIT(0), BIT(1), clk_usb_ops),
 };
 
-static struct clk * __init lpc32xx_clk_register(u32 id)
+static struct clk *__init lpc32xx_clk_register(u32 id)
 {
 	const struct clk_proto_t *lpc32xx_clk = &clk_proto[id];
 	struct clk_hw_proto *clk_hw = &clk_hw_proto[id];
@@ -1394,85 +1521,112 @@ static struct clk * __init lpc32xx_clk_register(u32 id)
 	unsigned int i;
 
 	for (i = 0; i < lpc32xx_clk->num_parents; i++)
+	{
 		parents[i] = clk_proto[lpc32xx_clk->parents[i]].name;
+	}
 
 	pr_debug("%s: derived from '%s', clock type %d\n", lpc32xx_clk->name,
-		 parents[0], clk_hw->type);
+			 parents[0], clk_hw->type);
 
-	switch (clk_hw->type) {
-	case CLK_LPC32XX:
-	case CLK_LPC32XX_PLL:
-	case CLK_LPC32XX_USB:
-	case CLK_MUX:
-	case CLK_DIV:
-	case CLK_GATE:
+	switch (clk_hw->type)
 	{
-		struct clk_init_data clk_init = {
-			.name = lpc32xx_clk->name,
-			.parent_names = parents,
-			.num_parents = lpc32xx_clk->num_parents,
-			.flags = lpc32xx_clk->flags,
-			.ops = clk_hw->hw0.ops,
-		};
-		struct clk_hw *hw;
+		case CLK_LPC32XX:
+		case CLK_LPC32XX_PLL:
+		case CLK_LPC32XX_USB:
+		case CLK_MUX:
+		case CLK_DIV:
+		case CLK_GATE:
+			{
+				struct clk_init_data clk_init =
+				{
+					.name = lpc32xx_clk->name,
+					.parent_names = parents,
+					.num_parents = lpc32xx_clk->num_parents,
+					.flags = lpc32xx_clk->flags,
+					.ops = clk_hw->hw0.ops,
+				};
+				struct clk_hw *hw;
 
-		if (clk_hw->type == CLK_LPC32XX)
-			hw = &clk_hw->hw0.clk.hw;
-		else if (clk_hw->type == CLK_LPC32XX_PLL)
-			hw = &clk_hw->hw0.pll.hw;
-		else if (clk_hw->type == CLK_LPC32XX_USB)
-			hw = &clk_hw->hw0.usb_clk.hw;
-		else if (clk_hw->type == CLK_MUX)
-			hw = &clk_hw->hw0.mux.hw;
-		else if (clk_hw->type == CLK_DIV)
-			hw = &clk_hw->hw0.div.hw;
-		else if (clk_hw->type == CLK_GATE)
-			hw = &clk_hw->hw0.gate.hw;
-		else
-			return ERR_PTR(-EINVAL);
+				if (clk_hw->type == CLK_LPC32XX)
+				{
+					hw = &clk_hw->hw0.clk.hw;
+				}
+				else if (clk_hw->type == CLK_LPC32XX_PLL)
+				{
+					hw = &clk_hw->hw0.pll.hw;
+				}
+				else if (clk_hw->type == CLK_LPC32XX_USB)
+				{
+					hw = &clk_hw->hw0.usb_clk.hw;
+				}
+				else if (clk_hw->type == CLK_MUX)
+				{
+					hw = &clk_hw->hw0.mux.hw;
+				}
+				else if (clk_hw->type == CLK_DIV)
+				{
+					hw = &clk_hw->hw0.div.hw;
+				}
+				else if (clk_hw->type == CLK_GATE)
+				{
+					hw = &clk_hw->hw0.gate.hw;
+				}
+				else
+				{
+					return ERR_PTR(-EINVAL);
+				}
 
-		hw->init = &clk_init;
-		clk = clk_register(NULL, hw);
-		break;
-	}
-	case CLK_COMPOSITE:
-	{
-		struct clk_hw *mux_hw = NULL, *div_hw = NULL, *gate_hw = NULL;
-		const struct clk_ops *mops = NULL, *dops = NULL, *gops = NULL;
-		struct clk_hw_proto0 *mux0, *div0, *gate0;
+				hw->init = &clk_init;
+				clk = clk_register(NULL, hw);
+				break;
+			}
 
-		mux0 = clk_hw->hw1.mux;
-		div0 = clk_hw->hw1.div;
-		gate0 = clk_hw->hw1.gate;
-		if (mux0) {
-			mops = mux0->ops;
-			mux_hw = &mux0->clk.hw;
-		}
-		if (div0) {
-			dops = div0->ops;
-			div_hw = &div0->clk.hw;
-		}
-		if (gate0) {
-			gops = gate0->ops;
-			gate_hw = &gate0->clk.hw;
-		}
+		case CLK_COMPOSITE:
+			{
+				struct clk_hw *mux_hw = NULL, *div_hw = NULL, *gate_hw = NULL;
+				const struct clk_ops *mops = NULL, *dops = NULL, *gops = NULL;
+				struct clk_hw_proto0 *mux0, *div0, *gate0;
 
-		clk = clk_register_composite(NULL, lpc32xx_clk->name,
-				parents, lpc32xx_clk->num_parents,
-				mux_hw, mops, div_hw, dops,
-				gate_hw, gops, lpc32xx_clk->flags);
-		break;
-	}
-	case CLK_FIXED:
-	{
-		struct clk_fixed_rate *fixed = &clk_hw->f;
+				mux0 = clk_hw->hw1.mux;
+				div0 = clk_hw->hw1.div;
+				gate0 = clk_hw->hw1.gate;
 
-		clk = clk_register_fixed_rate(NULL, lpc32xx_clk->name,
-			parents[0], fixed->flags, fixed->fixed_rate);
-		break;
-	}
-	default:
-		clk = ERR_PTR(-EINVAL);
+				if (mux0)
+				{
+					mops = mux0->ops;
+					mux_hw = &mux0->clk.hw;
+				}
+
+				if (div0)
+				{
+					dops = div0->ops;
+					div_hw = &div0->clk.hw;
+				}
+
+				if (gate0)
+				{
+					gops = gate0->ops;
+					gate_hw = &gate0->clk.hw;
+				}
+
+				clk = clk_register_composite(NULL, lpc32xx_clk->name,
+											 parents, lpc32xx_clk->num_parents,
+											 mux_hw, mops, div_hw, dops,
+											 gate_hw, gops, lpc32xx_clk->flags);
+				break;
+			}
+
+		case CLK_FIXED:
+			{
+				struct clk_fixed_rate *fixed = &clk_hw->f;
+
+				clk = clk_register_fixed_rate(NULL, lpc32xx_clk->name,
+											  parents[0], fixed->flags, fixed->fixed_rate);
+				break;
+			}
+
+		default:
+			clk = ERR_PTR(-EINVAL);
 	}
 
 	return clk;
@@ -1486,42 +1640,55 @@ static void __init lpc32xx_clk_init(struct device_node *np)
 
 	/* Ensure that parent clocks are available and valid */
 	clk_32k = of_clk_get_by_name(np, clk_proto[LPC32XX_CLK_XTAL_32K].name);
-	if (IS_ERR(clk_32k)) {
+
+	if (IS_ERR(clk_32k))
+	{
 		pr_err("failed to find external 32KHz clock: %ld\n",
-		       PTR_ERR(clk_32k));
+			   PTR_ERR(clk_32k));
 		return;
 	}
-	if (clk_get_rate(clk_32k) != 32768) {
+
+	if (clk_get_rate(clk_32k) != 32768)
+	{
 		pr_err("invalid clock rate of external 32KHz oscillator");
 		return;
 	}
 
 	clk_osc = of_clk_get_by_name(np, clk_proto[LPC32XX_CLK_XTAL].name);
-	if (IS_ERR(clk_osc)) {
+
+	if (IS_ERR(clk_osc))
+	{
 		pr_err("failed to find external main oscillator clock: %ld\n",
-		       PTR_ERR(clk_osc));
+			   PTR_ERR(clk_osc));
 		return;
 	}
 
 	base = of_iomap(np, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		pr_err("failed to map system control block registers\n");
 		return;
 	}
 
 	clk_regmap = regmap_init_mmio(NULL, base, &lpc32xx_scb_regmap_config);
-	if (IS_ERR(clk_regmap)) {
+
+	if (IS_ERR(clk_regmap))
+	{
 		pr_err("failed to regmap system control block: %ld\n",
-			PTR_ERR(clk_regmap));
+			   PTR_ERR(clk_regmap));
 		iounmap(base);
 		return;
 	}
 
-	for (i = 1; i < LPC32XX_CLK_MAX; i++) {
+	for (i = 1; i < LPC32XX_CLK_MAX; i++)
+	{
 		clk[i] = lpc32xx_clk_register(i);
-		if (IS_ERR(clk[i])) {
+
+		if (IS_ERR(clk[i]))
+		{
 			pr_err("failed to register %s clock: %ld\n",
-				clk_proto[i].name, PTR_ERR(clk[i]));
+				   clk_proto[i].name, PTR_ERR(clk[i]));
 			clk[i] = NULL;
 		}
 	}
@@ -1549,16 +1716,21 @@ static void __init lpc32xx_usb_clk_init(struct device_node *np)
 	unsigned int i;
 
 	usb_clk_vbase = of_iomap(np, 0);
-	if (!usb_clk_vbase) {
+
+	if (!usb_clk_vbase)
+	{
 		pr_err("failed to map address range\n");
 		return;
 	}
 
-	for (i = 1; i < LPC32XX_USB_CLK_MAX; i++) {
+	for (i = 1; i < LPC32XX_USB_CLK_MAX; i++)
+	{
 		usb_clk[i] = lpc32xx_clk_register(i + LPC32XX_CLK_USB_OFFSET);
-		if (IS_ERR(usb_clk[i])) {
+
+		if (IS_ERR(usb_clk[i]))
+		{
 			pr_err("failed to register %s clock: %ld\n",
-				clk_proto[i].name, PTR_ERR(usb_clk[i]));
+				   clk_proto[i].name, PTR_ERR(usb_clk[i]));
 			usb_clk[i] = NULL;
 		}
 	}

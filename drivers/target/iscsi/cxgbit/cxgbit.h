@@ -46,7 +46,8 @@ struct cxgbit_np;
 
 struct cxgbit_sock;
 
-struct cxgbit_cmd {
+struct cxgbit_cmd
+{
 	struct scatterlist sg;
 	struct cxgbi_task_tag_info ttinfo;
 	bool setup_ddp;
@@ -56,41 +57,49 @@ struct cxgbit_cmd {
 #define CXGBIT_MAX_ISO_PAYLOAD	\
 	min_t(u32, MAX_SKB_FRAGS * PAGE_SIZE, 65535)
 
-struct cxgbit_iso_info {
+struct cxgbit_iso_info
+{
 	u8 flags;
 	u32 mpdu;
 	u32 len;
 	u32 burst_len;
 };
 
-enum cxgbit_skcb_flags {
+enum cxgbit_skcb_flags
+{
 	SKCBF_TX_NEED_HDR	= (1 << 0), /* packet needs a header */
 	SKCBF_TX_FLAG_COMPL	= (1 << 1), /* wr completion flag */
 	SKCBF_TX_ISO		= (1 << 2), /* iso cpl in tx skb */
 	SKCBF_RX_LRO		= (1 << 3), /* lro skb */
 };
 
-struct cxgbit_skb_rx_cb {
+struct cxgbit_skb_rx_cb
+{
 	u8 opcode;
 	void *pdu_cb;
 	void (*backlog_fn)(struct cxgbit_sock *, struct sk_buff *);
 };
 
-struct cxgbit_skb_tx_cb {
+struct cxgbit_skb_tx_cb
+{
 	u8 submode;
 	u32 extra_len;
 };
 
-union cxgbit_skb_cb {
-	struct {
+union cxgbit_skb_cb
+{
+	struct
+	{
 		u8 flags;
-		union {
+		union
+		{
 			struct cxgbit_skb_tx_cb tx;
 			struct cxgbit_skb_rx_cb rx;
 		};
 	};
 
-	struct {
+	struct
+	{
 		/* This member must be first. */
 		struct l2t_skb_cb l2t;
 		struct sk_buff *wr_next;
@@ -111,7 +120,8 @@ static inline void *cplhdr(struct sk_buff *skb)
 	return skb->data;
 }
 
-enum cxgbit_cdev_flags {
+enum cxgbit_cdev_flags
+{
 	CDEV_STATE_UP = 0,
 	CDEV_ISO_ENABLE,
 	CDEV_DDP_ENABLE,
@@ -119,19 +129,22 @@ enum cxgbit_cdev_flags {
 
 #define NP_INFO_HASH_SIZE 32
 
-struct np_info {
+struct np_info
+{
 	struct np_info *next;
 	struct cxgbit_np *cnp;
 	unsigned int stid;
 };
 
-struct cxgbit_list_head {
+struct cxgbit_list_head
+{
 	struct list_head list;
 	/* device lock */
 	spinlock_t lock;
 };
 
-struct cxgbit_device {
+struct cxgbit_device
+{
 	struct list_head list;
 	struct cxgb4_lld_info lldi;
 	struct np_info *np_hash_tab[NP_INFO_HASH_SIZE];
@@ -144,12 +157,14 @@ struct cxgbit_device {
 	unsigned long flags;
 };
 
-struct cxgbit_wr_wait {
+struct cxgbit_wr_wait
+{
 	struct completion completion;
 	int ret;
 };
 
-enum cxgbit_csk_state {
+enum cxgbit_csk_state
+{
 	CSK_STATE_IDLE = 0,
 	CSK_STATE_LISTEN,
 	CSK_STATE_CONNECTING,
@@ -160,14 +175,16 @@ enum cxgbit_csk_state {
 	CSK_STATE_DEAD,
 };
 
-enum cxgbit_csk_flags {
+enum cxgbit_csk_flags
+{
 	CSK_TX_DATA_SENT = 0,
 	CSK_LOGIN_PDU_DONE,
 	CSK_LOGIN_DONE,
 	CSK_DDP_ENABLE,
 };
 
-struct cxgbit_sock_common {
+struct cxgbit_sock_common
+{
 	struct cxgbit_device *cdev;
 	struct sockaddr_storage local_addr;
 	struct sockaddr_storage remote_addr;
@@ -176,7 +193,8 @@ struct cxgbit_sock_common {
 	unsigned long flags;
 };
 
-struct cxgbit_np {
+struct cxgbit_np
+{
 	struct cxgbit_sock_common com;
 	wait_queue_head_t accept_wait;
 	struct iscsi_np *np;
@@ -188,7 +206,8 @@ struct cxgbit_np {
 	unsigned int stid;
 };
 
-struct cxgbit_sock {
+struct cxgbit_sock
+{
 	struct cxgbit_sock_common com;
 	struct cxgbit_np *cnp;
 	struct iscsi_conn *conn;
@@ -297,9 +316,14 @@ cxgbit_sock_enqueue_wr(struct cxgbit_sock *csk, struct sk_buff *skb)
 	skb_get(skb);
 
 	if (!csk->wr_pending_head)
+	{
 		csk->wr_pending_head = skb;
+	}
 	else
+	{
 		cxgbit_skcb_tx_wr_next(csk->wr_pending_tail) = skb;
+	}
+
 	csk->wr_pending_tail = skb;
 }
 
@@ -307,15 +331,17 @@ static inline struct sk_buff *cxgbit_sock_dequeue_wr(struct cxgbit_sock *csk)
 {
 	struct sk_buff *skb = csk->wr_pending_head;
 
-	if (likely(skb)) {
+	if (likely(skb))
+	{
 		csk->wr_pending_head = cxgbit_skcb_tx_wr_next(skb);
 		cxgbit_skcb_tx_wr_next(skb) = NULL;
 	}
+
 	return skb;
 }
 
 typedef void (*cxgbit_cplhandler_func)(struct cxgbit_device *,
-				       struct sk_buff *);
+									   struct sk_buff *);
 
 int cxgbit_setup_np(struct iscsi_np *, struct sockaddr_storage *);
 int cxgbit_setup_conn_digest(struct cxgbit_sock *);
@@ -326,13 +352,13 @@ extern cxgbit_cplhandler_func cxgbit_cplhandlers[NUM_CPL_CMDS];
 int cxgbit_get_login_rx(struct iscsi_conn *, struct iscsi_login *);
 int cxgbit_rx_data_ack(struct cxgbit_sock *);
 int cxgbit_l2t_send(struct cxgbit_device *, struct sk_buff *,
-		    struct l2t_entry *);
+					struct l2t_entry *);
 void cxgbit_push_tx_frames(struct cxgbit_sock *);
 int cxgbit_put_login_tx(struct iscsi_conn *, struct iscsi_login *, u32);
 int cxgbit_xmit_pdu(struct iscsi_conn *, struct iscsi_cmd *,
-		    struct iscsi_datain_req *, const void *, u32);
+					struct iscsi_datain_req *, const void *, u32);
 void cxgbit_get_r2t_ttt(struct iscsi_conn *, struct iscsi_cmd *,
-			struct iscsi_r2t *);
+						struct iscsi_r2t *);
 u32 cxgbit_send_tx_flowc_wr(struct cxgbit_sock *);
 int cxgbit_ofld_send(struct cxgbit_device *, struct sk_buff *);
 void cxgbit_get_rx_pdu(struct iscsi_conn *);

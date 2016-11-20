@@ -66,10 +66,11 @@ static int qat_dev_cfg_show(struct seq_file *sfile, void *v)
 {
 	struct list_head *list;
 	struct adf_cfg_section *sec =
-				list_entry(v, struct adf_cfg_section, list);
+		list_entry(v, struct adf_cfg_section, list);
 
 	seq_printf(sfile, "[%s]\n", sec->name);
-	list_for_each(list, &sec->param_head) {
+	list_for_each(list, &sec->param_head)
+	{
 		struct adf_cfg_key_val *ptr =
 			list_entry(list, struct adf_cfg_key_val, list);
 		seq_printf(sfile, "%s = %s\n", ptr->key, ptr->val);
@@ -89,7 +90,8 @@ static void qat_dev_cfg_stop(struct seq_file *sfile, void *v)
 	mutex_unlock(&qat_cfg_read_lock);
 }
 
-static const struct seq_operations qat_dev_cfg_sops = {
+static const struct seq_operations qat_dev_cfg_sops =
+{
 	.start = qat_dev_cfg_start,
 	.next = qat_dev_cfg_next,
 	.stop = qat_dev_cfg_stop,
@@ -100,15 +102,18 @@ static int qat_dev_cfg_open(struct inode *inode, struct file *file)
 {
 	int ret = seq_open(file, &qat_dev_cfg_sops);
 
-	if (!ret) {
+	if (!ret)
+	{
 		struct seq_file *seq_f = file->private_data;
 
 		seq_f->private = inode->i_private;
 	}
+
 	return ret;
 }
 
-static const struct file_operations qat_dev_cfg_fops = {
+static const struct file_operations qat_dev_cfg_fops =
+{
 	.open = qat_dev_cfg_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
@@ -130,8 +135,12 @@ int adf_cfg_dev_add(struct adf_accel_dev *accel_dev)
 	struct adf_cfg_device_data *dev_cfg_data;
 
 	dev_cfg_data = kzalloc(sizeof(*dev_cfg_data), GFP_KERNEL);
+
 	if (!dev_cfg_data)
+	{
 		return -ENOMEM;
+	}
+
 	INIT_LIST_HEAD(&dev_cfg_data->sec_list);
 	init_rwsem(&dev_cfg_data->lock);
 	accel_dev->cfg = dev_cfg_data;
@@ -141,13 +150,16 @@ int adf_cfg_dev_add(struct adf_accel_dev *accel_dev)
 						  accel_dev->debugfs_dir,
 						  dev_cfg_data,
 						  &qat_dev_cfg_fops);
-	if (!dev_cfg_data->debug) {
+
+	if (!dev_cfg_data->debug)
+	{
 		dev_err(&GET_DEV(accel_dev),
-			"Failed to create qat cfg debugfs entry.\n");
+				"Failed to create qat cfg debugfs entry.\n");
 		kfree(dev_cfg_data);
 		accel_dev->cfg = NULL;
 		return -EFAULT;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(adf_cfg_dev_add);
@@ -179,7 +191,9 @@ void adf_cfg_dev_remove(struct adf_accel_dev *accel_dev)
 	struct adf_cfg_device_data *dev_cfg_data = accel_dev->cfg;
 
 	if (!dev_cfg_data)
+	{
 		return;
+	}
 
 	down_write(&dev_cfg_data->lock);
 	adf_cfg_section_del_all(&dev_cfg_data->sec_list);
@@ -191,7 +205,7 @@ void adf_cfg_dev_remove(struct adf_accel_dev *accel_dev)
 EXPORT_SYMBOL_GPL(adf_cfg_dev_remove);
 
 static void adf_cfg_keyval_add(struct adf_cfg_key_val *new,
-			       struct adf_cfg_section *sec)
+							   struct adf_cfg_section *sec)
 {
 	list_add_tail(&new->list, &sec->param_head);
 }
@@ -200,7 +214,8 @@ static void adf_cfg_keyval_del_all(struct list_head *head)
 {
 	struct list_head *list_ptr, *tmp;
 
-	list_for_each_prev_safe(list_ptr, tmp, head) {
+	list_for_each_prev_safe(list_ptr, tmp, head)
+	{
 		struct adf_cfg_key_val *ptr =
 			list_entry(list_ptr, struct adf_cfg_key_val, list);
 		list_del(list_ptr);
@@ -213,7 +228,8 @@ static void adf_cfg_section_del_all(struct list_head *head)
 	struct adf_cfg_section *ptr;
 	struct list_head *list, *tmp;
 
-	list_for_each_prev_safe(list, tmp, head) {
+	list_for_each_prev_safe(list, tmp, head)
+	{
 		ptr = list_entry(list, struct adf_cfg_section, list);
 		adf_cfg_keyval_del_all(&ptr->param_head);
 		list_del(list);
@@ -222,48 +238,61 @@ static void adf_cfg_section_del_all(struct list_head *head)
 }
 
 static struct adf_cfg_key_val *adf_cfg_key_value_find(struct adf_cfg_section *s,
-						      const char *key)
+		const char *key)
 {
 	struct list_head *list;
 
-	list_for_each(list, &s->param_head) {
+	list_for_each(list, &s->param_head)
+	{
 		struct adf_cfg_key_val *ptr =
 			list_entry(list, struct adf_cfg_key_val, list);
+
 		if (!strcmp(ptr->key, key))
+		{
 			return ptr;
+		}
 	}
 	return NULL;
 }
 
 static struct adf_cfg_section *adf_cfg_sec_find(struct adf_accel_dev *accel_dev,
-						const char *sec_name)
+		const char *sec_name)
 {
 	struct adf_cfg_device_data *cfg = accel_dev->cfg;
 	struct list_head *list;
 
-	list_for_each(list, &cfg->sec_list) {
+	list_for_each(list, &cfg->sec_list)
+	{
 		struct adf_cfg_section *ptr =
 			list_entry(list, struct adf_cfg_section, list);
+
 		if (!strcmp(ptr->name, sec_name))
+		{
 			return ptr;
+		}
 	}
 	return NULL;
 }
 
 static int adf_cfg_key_val_get(struct adf_accel_dev *accel_dev,
-			       const char *sec_name,
-			       const char *key_name,
-			       char *val)
+							   const char *sec_name,
+							   const char *key_name,
+							   char *val)
 {
 	struct adf_cfg_section *sec = adf_cfg_sec_find(accel_dev, sec_name);
 	struct adf_cfg_key_val *keyval = NULL;
 
 	if (sec)
+	{
 		keyval = adf_cfg_key_value_find(sec, key_name);
-	if (keyval) {
+	}
+
+	if (keyval)
+	{
 		memcpy(val, keyval->val, ADF_CFG_MAX_VAL_LEN_IN_BYTES);
 		return 0;
 	}
+
 	return -1;
 }
 
@@ -282,37 +311,51 @@ static int adf_cfg_key_val_get(struct adf_accel_dev *accel_dev,
  * Return: 0 on success, error code otherwise.
  */
 int adf_cfg_add_key_value_param(struct adf_accel_dev *accel_dev,
-				const char *section_name,
-				const char *key, const void *val,
-				enum adf_cfg_val_type type)
+								const char *section_name,
+								const char *key, const void *val,
+								enum adf_cfg_val_type type)
 {
 	struct adf_cfg_device_data *cfg = accel_dev->cfg;
 	struct adf_cfg_key_val *key_val;
 	struct adf_cfg_section *section = adf_cfg_sec_find(accel_dev,
-							   section_name);
+									  section_name);
+
 	if (!section)
+	{
 		return -EFAULT;
+	}
 
 	key_val = kzalloc(sizeof(*key_val), GFP_KERNEL);
+
 	if (!key_val)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&key_val->list);
 	strlcpy(key_val->key, key, sizeof(key_val->key));
 
-	if (type == ADF_DEC) {
+	if (type == ADF_DEC)
+	{
 		snprintf(key_val->val, ADF_CFG_MAX_VAL_LEN_IN_BYTES,
-			 "%ld", (*((long *)val)));
-	} else if (type == ADF_STR) {
+				 "%ld", (*((long *)val)));
+	}
+	else if (type == ADF_STR)
+	{
 		strlcpy(key_val->val, (char *)val, sizeof(key_val->val));
-	} else if (type == ADF_HEX) {
+	}
+	else if (type == ADF_HEX)
+	{
 		snprintf(key_val->val, ADF_CFG_MAX_VAL_LEN_IN_BYTES,
-			 "0x%lx", (unsigned long)val);
-	} else {
+				 "0x%lx", (unsigned long)val);
+	}
+	else
+	{
 		dev_err(&GET_DEV(accel_dev), "Unknown type given.\n");
 		kfree(key_val);
 		return -1;
 	}
+
 	key_val->type = type;
 	down_write(&cfg->lock);
 	adf_cfg_keyval_add(key_val, section);
@@ -338,11 +381,16 @@ int adf_cfg_section_add(struct adf_accel_dev *accel_dev, const char *name)
 	struct adf_cfg_section *sec = adf_cfg_sec_find(accel_dev, name);
 
 	if (sec)
+	{
 		return 0;
+	}
 
 	sec = kzalloc(sizeof(*sec), GFP_KERNEL);
+
 	if (!sec)
+	{
 		return -ENOMEM;
+	}
 
 	strlcpy(sec->name, name, sizeof(sec->name));
 	INIT_LIST_HEAD(&sec->param_head);
@@ -354,8 +402,8 @@ int adf_cfg_section_add(struct adf_accel_dev *accel_dev, const char *name)
 EXPORT_SYMBOL_GPL(adf_cfg_section_add);
 
 int adf_cfg_get_param_value(struct adf_accel_dev *accel_dev,
-			    const char *section, const char *name,
-			    char *value)
+							const char *section, const char *name,
+							char *value)
 {
 	struct adf_cfg_device_data *cfg = accel_dev->cfg;
 	int ret;

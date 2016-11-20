@@ -16,27 +16,30 @@
 #include <nd.h>
 
 long pmem_direct_access(struct block_device *bdev, sector_t sector,
-		void **kaddr, pfn_t *pfn, long size)
+						void **kaddr, pfn_t *pfn, long size)
 {
 	struct pmem_device *pmem = bdev->bd_queue->queuedata;
 	resource_size_t offset = sector * 512 + pmem->data_offset;
 
 	if (unlikely(is_bad_pmem(&pmem->bb, sector, size)))
+	{
 		return -EIO;
+	}
 
 	/*
 	 * Limit dax to a single page at a time given vmalloc()-backed
 	 * in the nfit_test case.
 	 */
-	if (get_nfit_res(pmem->phys_addr + offset)) {
+	if (get_nfit_res(pmem->phys_addr + offset))
+	{
 		struct page *page;
 
 		*kaddr = pmem->virt_addr + offset;
 		page = vmalloc_to_page(pmem->virt_addr + offset);
 		*pfn = page_to_pfn_t(page);
 		dev_dbg_ratelimited(disk_to_dev(bdev->bd_disk)->parent,
-				"%s: sector: %#llx pfn: %#lx\n", __func__,
-				(unsigned long long) sector, page_to_pfn(page));
+							"%s: sector: %#llx pfn: %#lx\n", __func__,
+							(unsigned long long) sector, page_to_pfn(page));
 
 		return PAGE_SIZE;
 	}
@@ -49,6 +52,9 @@ long pmem_direct_access(struct block_device *bdev, sector_t sector,
 	 * requested range.
 	 */
 	if (unlikely(pmem->bb.count))
+	{
 		return size;
+	}
+
 	return pmem->size - pmem->pfn_pad - offset;
 }

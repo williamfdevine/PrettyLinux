@@ -122,7 +122,7 @@
 /* debugging */
 extern int ivtv_debug;
 #ifdef CONFIG_VIDEO_ADV_DEBUG
-extern int ivtv_fw_debug;
+	extern int ivtv_fw_debug;
 #endif
 
 #define IVTV_DBGFLG_WARN    (1 << 0)
@@ -187,7 +187,8 @@ extern int ivtv_fw_debug;
 /* Default I2C SCL period in microseconds */
 #define IVTV_DEFAULT_I2C_CLOCK_PERIOD	20
 
-struct ivtv_options {
+struct ivtv_options
+{
 	int kilobytes[IVTV_MAX_STREAMS];        /* size in kilobytes of each stream */
 	int cardtype;				/* force card type on load */
 	int tuner;				/* set tuner on load */
@@ -197,7 +198,8 @@ struct ivtv_options {
 };
 
 /* ivtv-specific mailbox template */
-struct ivtv_mailbox {
+struct ivtv_mailbox
+{
 	u32 flags;
 	u32 cmd;
 	u32 retval;
@@ -205,12 +207,14 @@ struct ivtv_mailbox {
 	u32 data[CX2341X_MBOX_MAX_DATA];
 };
 
-struct ivtv_api_cache {
+struct ivtv_api_cache
+{
 	unsigned long last_jiffies;		/* when last command was issued */
 	u32 data[CX2341X_MBOX_MAX_DATA];	/* last sent api data */
 };
 
-struct ivtv_mailbox_data {
+struct ivtv_mailbox_data
+{
 	volatile struct ivtv_mailbox __iomem *mbox;
 	/* Bits 0-2 are for the encoder mailboxes, 0-1 are for the decoder mailboxes.
 	   If the bit is set, then the corresponding mailbox is in use by the driver. */
@@ -268,19 +272,22 @@ struct ivtv_mailbox_data {
 #define IVTV_F_I_EV_VSYNC_ENABLED  31 	/* VSYNC event enabled */
 
 /* Scatter-Gather array element, used in DMA transfers */
-struct ivtv_sg_element {
+struct ivtv_sg_element
+{
 	__le32 src;
 	__le32 dst;
 	__le32 size;
 };
 
-struct ivtv_sg_host_element {
+struct ivtv_sg_host_element
+{
 	u32 src;
 	u32 dst;
 	u32 size;
 };
 
-struct ivtv_user_dma {
+struct ivtv_user_dma
+{
 	struct mutex lock;
 	int page_count;
 	struct page *map[IVTV_DMA_SG_OSD_ENT];
@@ -296,7 +303,8 @@ struct ivtv_user_dma {
 	struct scatterlist SGlist[IVTV_DMA_SG_OSD_ENT];
 };
 
-struct ivtv_dma_page_info {
+struct ivtv_dma_page_info
+{
 	unsigned long uaddr;
 	unsigned long first;
 	unsigned long last;
@@ -305,7 +313,8 @@ struct ivtv_dma_page_info {
 	int page_count;
 };
 
-struct ivtv_buffer {
+struct ivtv_buffer
+{
 	struct list_head list;
 	dma_addr_t dma_handle;
 	unsigned short b_flags;
@@ -315,7 +324,8 @@ struct ivtv_buffer {
 	u32 readpos;
 };
 
-struct ivtv_queue {
+struct ivtv_queue
+{
 	struct list_head list;          /* the list of buffers in this queue */
 	u32 buffers;                    /* number of buffers in this queue */
 	u32 length;                     /* total number of bytes of available buffer space */
@@ -324,7 +334,8 @@ struct ivtv_queue {
 
 struct ivtv;				/* forward reference */
 
-struct ivtv_stream {
+struct ivtv_stream
+{
 	/* These first four fields are always set, even if the stream
 	   is not actually created. */
 	struct video_device vdev;	/* vdev.v4l2_dev is NULL if there is no device */
@@ -378,7 +389,8 @@ struct ivtv_stream {
 	struct scatterlist *SGlist;
 };
 
-struct ivtv_open_id {
+struct ivtv_open_id
+{
 	struct v4l2_fh fh;
 	int type;                       /* stream type */
 	int yuv_frames;                 /* 1: started OUT_UDMA_YUV output mode */
@@ -527,16 +539,19 @@ struct yuv_playback_info
 #define IVTV_VBI_FRAMES 32
 
 /* VBI data */
-struct vbi_cc {
+struct vbi_cc
+{
 	u8 odd[2];	/* two-byte payload of odd field */
 	u8 even[2];	/* two-byte payload of even field */;
 };
 
-struct vbi_vps {
+struct vbi_vps
+{
 	u8 data[5];	/* five-byte VPS payload */
 };
 
-struct vbi_info {
+struct vbi_info
+{
 	/* VBI general data, does not change during streaming */
 
 	u32 raw_decoder_line_size;              /* raw VBI line size from digitizer */
@@ -607,7 +622,8 @@ struct vbi_info {
 struct ivtv_card;
 
 /* Struct to hold info about ivtv cards */
-struct ivtv {
+struct ivtv
+{
 	/* General fixed card data */
 	struct pci_dev *pdev;		/* PCI device */
 	const struct ivtv_card *card;	/* card information */
@@ -631,12 +647,14 @@ struct ivtv {
 
 	struct v4l2_device v4l2_dev;
 	struct cx2341x_handler cxhdl;
-	struct {
+	struct
+	{
 		/* PTS/Frame count control cluster */
 		struct v4l2_ctrl *ctrl_pts;
 		struct v4l2_ctrl *ctrl_frame;
 	};
-	struct {
+	struct
+	{
 		/* Audio Playback control cluster */
 		struct v4l2_ctrl *ctrl_audio_playback;
 		struct v4l2_ctrl *ctrl_audio_multilingual_playback;
@@ -673,7 +691,7 @@ struct ivtv {
 	/* ALSA interface for PCM capture stream */
 	struct snd_ivtv_card *alsa;
 	void (*pcm_announce_callback)(struct snd_ivtv_card *card, u8 *pcm_data,
-				      size_t num_bytes);
+								  size_t num_bytes);
 
 	/* Used for ivtv-alsa module loading */
 	struct work_struct request_module_wk;

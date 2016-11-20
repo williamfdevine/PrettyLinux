@@ -15,7 +15,8 @@
 
 #include "common.h"
 
-struct sfire_chip {
+struct sfire_chip
+{
 	struct usb_device *dev;
 	struct snd_card *card;
 	int intf_count; /* number of registered interfaces */

@@ -59,7 +59,9 @@ EXPORT_SYMBOL(panic_blink);
 void __weak panic_smp_self_stop(void)
 {
 	while (1)
+	{
 		cpu_relax();
+	}
 }
 
 /*
@@ -86,7 +88,9 @@ void __weak crash_smp_send_stop(void)
 	 * we execute this only once.
 	 */
 	if (cpus_stopped)
+	{
 		return;
+	}
 
 	/*
 	 * Note smp_send_stop is the usual smp shutdown function, which
@@ -113,9 +117,13 @@ void nmi_panic(struct pt_regs *regs, const char *msg)
 	old_cpu = atomic_cmpxchg(&panic_cpu, PANIC_CPU_INVALID, cpu);
 
 	if (old_cpu == PANIC_CPU_INVALID)
+	{
 		panic("%s", msg);
+	}
 	else if (old_cpu != cpu)
+	{
 		nmi_panic_self_stop(regs);
+	}
 }
 EXPORT_SYMBOL(nmi_panic);
 
@@ -163,7 +171,9 @@ void panic(const char *fmt, ...)
 	old_cpu  = atomic_cmpxchg(&panic_cpu, PANIC_CPU_INVALID, this_cpu);
 
 	if (old_cpu != PANIC_CPU_INVALID && old_cpu != this_cpu)
+	{
 		panic_smp_self_stop();
+	}
 
 	console_verbose();
 	bust_spinlocks(1);
@@ -172,11 +182,15 @@ void panic(const char *fmt, ...)
 	va_end(args);
 	pr_emerg("Kernel panic - not syncing: %s\n", buf);
 #ifdef CONFIG_DEBUG_BUGVERBOSE
+
 	/*
 	 * Avoid nested stack-dumping if a panic occurs during oops processing
 	 */
 	if (!test_taint(TAINT_DIE) && oops_in_progress <= 1)
+	{
 		dump_stack();
+	}
+
 #endif
 
 	/*
@@ -187,7 +201,8 @@ void panic(const char *fmt, ...)
 	 *
 	 * Bypass the panic_cpu check and call __crash_kexec directly.
 	 */
-	if (!_crash_kexec_post_notifiers) {
+	if (!_crash_kexec_post_notifiers)
+	{
 		printk_nmi_flush_on_panic();
 		__crash_kexec(NULL);
 
@@ -197,7 +212,9 @@ void panic(const char *fmt, ...)
 		 * panic situation.
 		 */
 		smp_send_stop();
-	} else {
+	}
+	else
+	{
 		/*
 		 * If we want to do crash dump after notifier calls and
 		 * kmsg_dump, we will need architecture dependent extra
@@ -226,7 +243,9 @@ void panic(const char *fmt, ...)
 	 * Bypass the panic_cpu check and call __crash_kexec directly.
 	 */
 	if (_crash_kexec_post_notifiers)
+	{
 		__crash_kexec(NULL);
+	}
 
 	bust_spinlocks(0);
 
@@ -242,25 +261,34 @@ void panic(const char *fmt, ...)
 	console_flush_on_panic();
 
 	if (!panic_blink)
+	{
 		panic_blink = no_blink;
+	}
 
-	if (panic_timeout > 0) {
+	if (panic_timeout > 0)
+	{
 		/*
 		 * Delay timeout seconds before rebooting the machine.
 		 * We can't use the "normal" timers since we just panicked.
 		 */
 		pr_emerg("Rebooting in %d seconds..", panic_timeout);
 
-		for (i = 0; i < panic_timeout * 1000; i += PANIC_TIMER_STEP) {
+		for (i = 0; i < panic_timeout * 1000; i += PANIC_TIMER_STEP)
+		{
 			touch_nmi_watchdog();
-			if (i >= i_next) {
+
+			if (i >= i_next)
+			{
 				i += panic_blink(state ^= 1);
 				i_next = i + 3600 / PANIC_BLINK_SPD;
 			}
+
 			mdelay(PANIC_TIMER_STEP);
 		}
 	}
-	if (panic_timeout != 0) {
+
+	if (panic_timeout != 0)
+	{
 		/*
 		 * This will not be a clean reboot, with everything
 		 * shutting down.  But if there is a chance of
@@ -268,6 +296,7 @@ void panic(const char *fmt, ...)
 		 */
 		emergency_restart();
 	}
+
 #ifdef __sparc__
 	{
 		extern int stop_a_enabled;
@@ -286,12 +315,17 @@ void panic(const char *fmt, ...)
 #endif
 	pr_emerg("---[ end Kernel panic - not syncing: %s\n", buf);
 	local_irq_enable();
-	for (i = 0; ; i += PANIC_TIMER_STEP) {
+
+	for (i = 0; ; i += PANIC_TIMER_STEP)
+	{
 		touch_softlockup_watchdog();
-		if (i >= i_next) {
+
+		if (i >= i_next)
+		{
 			i += panic_blink(state ^= 1);
 			i_next = i + 3600 / PANIC_BLINK_SPD;
 		}
+
 		mdelay(PANIC_TIMER_STEP);
 	}
 }
@@ -299,13 +333,15 @@ void panic(const char *fmt, ...)
 EXPORT_SYMBOL(panic);
 
 
-struct tnt {
+struct tnt
+{
 	u8	bit;
 	char	true;
 	char	false;
 };
 
-static const struct tnt tnts[] = {
+static const struct tnt tnts[] =
+{
 	{ TAINT_PROPRIETARY_MODULE,	'P', 'G' },
 	{ TAINT_FORCED_MODULE,		'F', ' ' },
 	{ TAINT_CPU_OUT_OF_SPEC,	'S', ' ' },
@@ -350,19 +386,26 @@ const char *print_tainted(void)
 {
 	static char buf[ARRAY_SIZE(tnts) + sizeof("Tainted: ")];
 
-	if (tainted_mask) {
+	if (tainted_mask)
+	{
 		char *s;
 		int i;
 
 		s = buf + sprintf(buf, "Tainted: ");
-		for (i = 0; i < ARRAY_SIZE(tnts); i++) {
+
+		for (i = 0; i < ARRAY_SIZE(tnts); i++)
+		{
 			const struct tnt *t = &tnts[i];
 			*s++ = test_bit(t->bit, &tainted_mask) ?
-					t->true : t->false;
+				   t->true : t->false;
 		}
+
 		*s = 0;
-	} else
+	}
+	else
+	{
 		snprintf(buf, sizeof(buf), "Not tainted");
+	}
 
 	return buf;
 }
@@ -389,7 +432,9 @@ unsigned long get_taint(void)
 void add_taint(unsigned flag, enum lockdep_ok lockdep_ok)
 {
 	if (lockdep_ok == LOCKDEP_NOW_UNRELIABLE && __debug_locks_off())
+	{
 		pr_warn("Disabling lock debugging due to kernel taint\n");
+	}
 
 	set_bit(flag, &tainted_mask);
 }
@@ -399,7 +444,8 @@ static void spin_msec(int msecs)
 {
 	int i;
 
-	for (i = 0; i < msecs; i++) {
+	for (i = 0; i < msecs; i++)
+	{
 		touch_nmi_watchdog();
 		mdelay(1);
 	}
@@ -415,32 +461,47 @@ static void do_oops_enter_exit(void)
 	static int spin_counter;
 
 	if (!pause_on_oops)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&pause_on_oops_lock, flags);
-	if (pause_on_oops_flag == 0) {
+
+	if (pause_on_oops_flag == 0)
+	{
 		/* This CPU may now print the oops message */
 		pause_on_oops_flag = 1;
-	} else {
+	}
+	else
+	{
 		/* We need to stall this CPU */
-		if (!spin_counter) {
+		if (!spin_counter)
+		{
 			/* This CPU gets to do the counting */
 			spin_counter = pause_on_oops;
-			do {
+
+			do
+			{
 				spin_unlock(&pause_on_oops_lock);
 				spin_msec(MSEC_PER_SEC);
 				spin_lock(&pause_on_oops_lock);
-			} while (--spin_counter);
+			}
+			while (--spin_counter);
+
 			pause_on_oops_flag = 0;
-		} else {
+		}
+		else
+		{
 			/* This CPU waits for a different one */
-			while (spin_counter) {
+			while (spin_counter)
+			{
 				spin_unlock(&pause_on_oops_lock);
 				spin_msec(1);
 				spin_lock(&pause_on_oops_lock);
 			}
 		}
 	}
+
 	spin_unlock_irqrestore(&pause_on_oops_lock, flags);
 }
 
@@ -483,9 +544,13 @@ static u64 oops_id;
 static int init_oops_id(void)
 {
 	if (!oops_id)
+	{
 		get_random_bytes(&oops_id, sizeof(oops_id));
+	}
 	else
+	{
 		oops_id++;
+	}
 
 	return 0;
 }
@@ -508,13 +573,14 @@ void oops_exit(void)
 	kmsg_dump(KMSG_DUMP_OOPS);
 }
 
-struct warn_args {
+struct warn_args
+{
 	const char *fmt;
 	va_list args;
 };
 
 void __warn(const char *file, int line, void *caller, unsigned taint,
-	    struct pt_regs *regs, struct warn_args *args)
+			struct pt_regs *regs, struct warn_args *args)
 {
 	disable_trace_on_warning();
 
@@ -522,16 +588,19 @@ void __warn(const char *file, int line, void *caller, unsigned taint,
 
 	if (file)
 		pr_warn("WARNING: CPU: %d PID: %d at %s:%d %pS\n",
-			raw_smp_processor_id(), current->pid, file, line,
-			caller);
+				raw_smp_processor_id(), current->pid, file, line,
+				caller);
 	else
 		pr_warn("WARNING: CPU: %d PID: %d at %pS\n",
-			raw_smp_processor_id(), current->pid, caller);
+				raw_smp_processor_id(), current->pid, caller);
 
 	if (args)
+	{
 		vprintk(args->fmt, args->args);
+	}
 
-	if (panic_on_warn) {
+	if (panic_on_warn)
+	{
 		/*
 		 * This thread may hit another WARN() in the panic path.
 		 * Resetting this prevents additional WARN() from panicking the
@@ -545,9 +614,13 @@ void __warn(const char *file, int line, void *caller, unsigned taint,
 	print_modules();
 
 	if (regs)
+	{
 		show_regs(regs);
+	}
 	else
+	{
 		dump_stack();
+	}
 
 	print_oops_end_marker();
 
@@ -563,13 +636,13 @@ void warn_slowpath_fmt(const char *file, int line, const char *fmt, ...)
 	args.fmt = fmt;
 	va_start(args.args, fmt);
 	__warn(file, line, __builtin_return_address(0), TAINT_WARN, NULL,
-	       &args);
+		   &args);
 	va_end(args.args);
 }
 EXPORT_SYMBOL(warn_slowpath_fmt);
 
 void warn_slowpath_fmt_taint(const char *file, int line,
-			     unsigned taint, const char *fmt, ...)
+							 unsigned taint, const char *fmt, ...)
 {
 	struct warn_args args;
 
@@ -596,7 +669,7 @@ EXPORT_SYMBOL(warn_slowpath_null);
 __visible void __stack_chk_fail(void)
 {
 	panic("stack-protector: Kernel stack is corrupted in: %p\n",
-		__builtin_return_address(0));
+		  __builtin_return_address(0));
 }
 EXPORT_SYMBOL(__stack_chk_fail);
 
@@ -610,9 +683,15 @@ core_param(crash_kexec_post_notifiers, crash_kexec_post_notifiers, bool, 0644);
 static int __init oops_setup(char *s)
 {
 	if (!s)
+	{
 		return -EINVAL;
+	}
+
 	if (!strcmp(s, "panic"))
+	{
 		panic_on_oops = 1;
+	}
+
 	return 0;
 }
 early_param("oops", oops_setup);

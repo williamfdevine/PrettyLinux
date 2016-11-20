@@ -23,7 +23,8 @@
  * @vp_errorgain:	Error gain value for the voltage processor. This
  *			field also differs according to the voltage/opp.
  */
-struct omap_volt_data {
+struct omap_volt_data
+{
 	u32	volt_nominal;
 	u32	sr_efuse_offs;
 	u8	sr_errminlimit;

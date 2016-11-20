@@ -25,7 +25,8 @@
 #include "fuc/gk208.fuc5.h"
 
 static const struct nvkm_pmu_func
-gk208_pmu = {
+	gk208_pmu =
+{
 	.code.data = gk208_pmu_code,
 	.code.size = sizeof(gk208_pmu_code),
 	.data.data = gk208_pmu_data,

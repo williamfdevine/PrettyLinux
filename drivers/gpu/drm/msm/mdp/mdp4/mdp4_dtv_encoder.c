@@ -21,7 +21,8 @@
 #include "drm_crtc_helper.h"
 
 
-struct mdp4_dtv_encoder {
+struct mdp4_dtv_encoder
+{
 	struct drm_encoder base;
 	struct clk *hdmi_clk;
 	struct clk *mdp_clk;
@@ -45,24 +46,30 @@ static void bs_init(struct mdp4_dtv_encoder *mdp4_dtv_encoder)
 	struct drm_device *dev = mdp4_dtv_encoder->base.dev;
 	struct lcdc_platform_data *dtv_pdata = mdp4_find_pdata("dtv.0");
 
-	if (!dtv_pdata) {
+	if (!dtv_pdata)
+	{
 		dev_err(dev->dev, "could not find dtv pdata\n");
 		return;
 	}
 
-	if (dtv_pdata->bus_scale_table) {
+	if (dtv_pdata->bus_scale_table)
+	{
 		mdp4_dtv_encoder->bsc = msm_bus_scale_register_client(
-				dtv_pdata->bus_scale_table);
+									dtv_pdata->bus_scale_table);
 		DBG("bus scale client: %08x", mdp4_dtv_encoder->bsc);
 		DBG("lcdc_power_save: %p", dtv_pdata->lcdc_power_save);
+
 		if (dtv_pdata->lcdc_power_save)
+		{
 			dtv_pdata->lcdc_power_save(1);
+		}
 	}
 }
 
 static void bs_fini(struct mdp4_dtv_encoder *mdp4_dtv_encoder)
 {
-	if (mdp4_dtv_encoder->bsc) {
+	if (mdp4_dtv_encoder->bsc)
+	{
 		msm_bus_scale_unregister_client(mdp4_dtv_encoder->bsc);
 		mdp4_dtv_encoder->bsc = 0;
 	}
@@ -70,7 +77,8 @@ static void bs_fini(struct mdp4_dtv_encoder *mdp4_dtv_encoder)
 
 static void bs_set(struct mdp4_dtv_encoder *mdp4_dtv_encoder, int idx)
 {
-	if (mdp4_dtv_encoder->bsc) {
+	if (mdp4_dtv_encoder->bsc)
+	{
 		DBG("set bus scaling: %d", idx);
 		msm_bus_scale_client_update_request(mdp4_dtv_encoder->bsc, idx);
 	}
@@ -89,13 +97,14 @@ static void mdp4_dtv_encoder_destroy(struct drm_encoder *encoder)
 	kfree(mdp4_dtv_encoder);
 }
 
-static const struct drm_encoder_funcs mdp4_dtv_encoder_funcs = {
+static const struct drm_encoder_funcs mdp4_dtv_encoder_funcs =
+{
 	.destroy = mdp4_dtv_encoder_destroy,
 };
 
 static void mdp4_dtv_encoder_mode_set(struct drm_encoder *encoder,
-		struct drm_display_mode *mode,
-		struct drm_display_mode *adjusted_mode)
+									  struct drm_display_mode *mode,
+									  struct drm_display_mode *adjusted_mode)
 {
 	struct mdp4_dtv_encoder *mdp4_dtv_encoder = to_mdp4_dtv_encoder(encoder);
 	struct mdp4_kms *mdp4_kms = get_kms(encoder);
@@ -106,23 +115,30 @@ static void mdp4_dtv_encoder_mode_set(struct drm_encoder *encoder,
 	mode = adjusted_mode;
 
 	DBG("set mode: %d:\"%s\" %d %d %d %d %d %d %d %d %d %d 0x%x 0x%x",
-			mode->base.id, mode->name,
-			mode->vrefresh, mode->clock,
-			mode->hdisplay, mode->hsync_start,
-			mode->hsync_end, mode->htotal,
-			mode->vdisplay, mode->vsync_start,
-			mode->vsync_end, mode->vtotal,
-			mode->type, mode->flags);
+		mode->base.id, mode->name,
+		mode->vrefresh, mode->clock,
+		mode->hdisplay, mode->hsync_start,
+		mode->hsync_end, mode->htotal,
+		mode->vdisplay, mode->vsync_start,
+		mode->vsync_end, mode->vtotal,
+		mode->type, mode->flags);
 
 	mdp4_dtv_encoder->pixclock = mode->clock * 1000;
 
 	DBG("pixclock=%lu", mdp4_dtv_encoder->pixclock);
 
 	ctrl_pol = 0;
+
 	if (mode->flags & DRM_MODE_FLAG_NHSYNC)
+	{
 		ctrl_pol |= MDP4_DTV_CTRL_POLARITY_HSYNC_LOW;
+	}
+
 	if (mode->flags & DRM_MODE_FLAG_NVSYNC)
+	{
 		ctrl_pol |= MDP4_DTV_CTRL_POLARITY_VSYNC_LOW;
+	}
+
 	/* probably need to get DATA_EN polarity from panel.. */
 
 	dtv_hsync_skew = 0;  /* get this from panel? */
@@ -136,24 +152,24 @@ static void mdp4_dtv_encoder_mode_set(struct drm_encoder *encoder,
 	display_v_end = vsync_period - ((mode->vsync_start - mode->vdisplay) * mode->htotal) + dtv_hsync_skew - 1;
 
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_HSYNC_CTRL,
-			MDP4_DTV_HSYNC_CTRL_PULSEW(mode->hsync_end - mode->hsync_start) |
-			MDP4_DTV_HSYNC_CTRL_PERIOD(mode->htotal));
+			   MDP4_DTV_HSYNC_CTRL_PULSEW(mode->hsync_end - mode->hsync_start) |
+			   MDP4_DTV_HSYNC_CTRL_PERIOD(mode->htotal));
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_VSYNC_PERIOD, vsync_period);
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_VSYNC_LEN, vsync_len);
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_DISPLAY_HCTRL,
-			MDP4_DTV_DISPLAY_HCTRL_START(hsync_start_x) |
-			MDP4_DTV_DISPLAY_HCTRL_END(hsync_end_x));
+			   MDP4_DTV_DISPLAY_HCTRL_START(hsync_start_x) |
+			   MDP4_DTV_DISPLAY_HCTRL_END(hsync_end_x));
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_DISPLAY_VSTART, display_v_start);
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_DISPLAY_VEND, display_v_end);
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_BORDER_CLR, 0);
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_UNDERFLOW_CLR,
-			MDP4_DTV_UNDERFLOW_CLR_ENABLE_RECOVERY |
-			MDP4_DTV_UNDERFLOW_CLR_COLOR(0xff));
+			   MDP4_DTV_UNDERFLOW_CLR_ENABLE_RECOVERY |
+			   MDP4_DTV_UNDERFLOW_CLR_COLOR(0xff));
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_HSYNC_SKEW, dtv_hsync_skew);
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_CTRL_POLARITY, ctrl_pol);
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_ACTIVE_HCTL,
-			MDP4_DTV_ACTIVE_HCTL_START(0) |
-			MDP4_DTV_ACTIVE_HCTL_END(0));
+			   MDP4_DTV_ACTIVE_HCTL_START(0) |
+			   MDP4_DTV_ACTIVE_HCTL_END(0));
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_ACTIVE_VSTART, 0);
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_ACTIVE_VEND, 0);
 }
@@ -164,7 +180,9 @@ static void mdp4_dtv_encoder_disable(struct drm_encoder *encoder)
 	struct mdp4_kms *mdp4_kms = get_kms(encoder);
 
 	if (WARN_ON(!mdp4_dtv_encoder->enabled))
+	{
 		return;
+	}
 
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_ENABLE, 0);
 
@@ -195,13 +213,15 @@ static void mdp4_dtv_encoder_enable(struct drm_encoder *encoder)
 	int ret;
 
 	if (WARN_ON(mdp4_dtv_encoder->enabled))
+	{
 		return;
+	}
 
 	mdp4_crtc_set_config(encoder->crtc,
-			MDP4_DMA_CONFIG_R_BPC(BPC8) |
-			MDP4_DMA_CONFIG_G_BPC(BPC8) |
-			MDP4_DMA_CONFIG_B_BPC(BPC8) |
-			MDP4_DMA_CONFIG_PACK(0x21));
+						 MDP4_DMA_CONFIG_R_BPC(BPC8) |
+						 MDP4_DMA_CONFIG_G_BPC(BPC8) |
+						 MDP4_DMA_CONFIG_B_BPC(BPC8) |
+						 MDP4_DMA_CONFIG_PACK(0x21));
 	mdp4_crtc_set_intf(encoder->crtc, INTF_LCDC_DTV, 1);
 
 	bs_set(mdp4_dtv_encoder, 1);
@@ -209,24 +229,32 @@ static void mdp4_dtv_encoder_enable(struct drm_encoder *encoder)
 	DBG("setting mdp_clk=%lu", pc);
 
 	ret = clk_set_rate(mdp4_dtv_encoder->mdp_clk, pc);
+
 	if (ret)
 		dev_err(dev->dev, "failed to set mdp_clk to %lu: %d\n",
-			pc, ret);
+				pc, ret);
 
 	ret = clk_prepare_enable(mdp4_dtv_encoder->mdp_clk);
+
 	if (ret)
+	{
 		dev_err(dev->dev, "failed to enabled mdp_clk: %d\n", ret);
+	}
 
 	ret = clk_prepare_enable(mdp4_dtv_encoder->hdmi_clk);
+
 	if (ret)
+	{
 		dev_err(dev->dev, "failed to enable hdmi_clk: %d\n", ret);
+	}
 
 	mdp4_write(mdp4_kms, REG_MDP4_DTV_ENABLE, 1);
 
 	mdp4_dtv_encoder->enabled = true;
 }
 
-static const struct drm_encoder_helper_funcs mdp4_dtv_encoder_helper_funcs = {
+static const struct drm_encoder_helper_funcs mdp4_dtv_encoder_helper_funcs =
+{
 	.mode_set = mdp4_dtv_encoder_mode_set,
 	.enable = mdp4_dtv_encoder_enable,
 	.disable = mdp4_dtv_encoder_disable,
@@ -246,7 +274,9 @@ struct drm_encoder *mdp4_dtv_encoder_init(struct drm_device *dev)
 	int ret;
 
 	mdp4_dtv_encoder = kzalloc(sizeof(*mdp4_dtv_encoder), GFP_KERNEL);
-	if (!mdp4_dtv_encoder) {
+
+	if (!mdp4_dtv_encoder)
+	{
 		ret = -ENOMEM;
 		goto fail;
 	}
@@ -254,18 +284,22 @@ struct drm_encoder *mdp4_dtv_encoder_init(struct drm_device *dev)
 	encoder = &mdp4_dtv_encoder->base;
 
 	drm_encoder_init(dev, encoder, &mdp4_dtv_encoder_funcs,
-			 DRM_MODE_ENCODER_TMDS, NULL);
+					 DRM_MODE_ENCODER_TMDS, NULL);
 	drm_encoder_helper_add(encoder, &mdp4_dtv_encoder_helper_funcs);
 
 	mdp4_dtv_encoder->hdmi_clk = devm_clk_get(dev->dev, "hdmi_clk");
-	if (IS_ERR(mdp4_dtv_encoder->hdmi_clk)) {
+
+	if (IS_ERR(mdp4_dtv_encoder->hdmi_clk))
+	{
 		dev_err(dev->dev, "failed to get hdmi_clk\n");
 		ret = PTR_ERR(mdp4_dtv_encoder->hdmi_clk);
 		goto fail;
 	}
 
 	mdp4_dtv_encoder->mdp_clk = devm_clk_get(dev->dev, "tv_clk");
-	if (IS_ERR(mdp4_dtv_encoder->mdp_clk)) {
+
+	if (IS_ERR(mdp4_dtv_encoder->mdp_clk))
+	{
 		dev_err(dev->dev, "failed to get tv_clk\n");
 		ret = PTR_ERR(mdp4_dtv_encoder->mdp_clk);
 		goto fail;
@@ -276,8 +310,11 @@ struct drm_encoder *mdp4_dtv_encoder_init(struct drm_device *dev)
 	return encoder;
 
 fail:
+
 	if (encoder)
+	{
 		mdp4_dtv_encoder_destroy(encoder);
+	}
 
 	return ERR_PTR(ret);
 }

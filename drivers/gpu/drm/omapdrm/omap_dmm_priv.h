@@ -60,11 +60,11 @@
 #define DMM_IRQSTAT_ERR_LUT_MISS	(1<<7)
 
 #define DMM_IRQSTAT_ERR_MASK	(DMM_IRQ_STAT_ERR_INV_DSC | \
-				DMM_IRQ_STAT_ERR_INV_DATA | \
-				DMM_IRQ_STAT_ERR_UPD_AREA | \
-				DMM_IRQ_STAT_ERR_UPD_CTRL | \
-				DMM_IRQ_STAT_ERR_UPD_DATA | \
-				DMM_IRQ_STAT_ERR_LUT_MISS)
+								 DMM_IRQ_STAT_ERR_INV_DATA | \
+								 DMM_IRQ_STAT_ERR_UPD_AREA | \
+								 DMM_IRQ_STAT_ERR_UPD_CTRL | \
+								 DMM_IRQ_STAT_ERR_UPD_DATA | \
+								 DMM_IRQ_STAT_ERR_LUT_MISS)
 
 #define DMM_PATSTATUS_READY		(1<<0)
 #define DMM_PATSTATUS_VALID		(1<<1)
@@ -81,27 +81,30 @@
 
 /* note: don't treat DMM_PATSTATUS_ERR_ACCESS as an error */
 #define DMM_PATSTATUS_ERR	(DMM_PATSTATUS_ERR_INV_DESCR | \
-				DMM_PATSTATUS_ERR_INV_DATA | \
-				DMM_PATSTATUS_ERR_UPD_AREA | \
-				DMM_PATSTATUS_ERR_UPD_CTRL | \
-				DMM_PATSTATUS_ERR_UPD_DATA)
+							 DMM_PATSTATUS_ERR_INV_DATA | \
+							 DMM_PATSTATUS_ERR_UPD_AREA | \
+							 DMM_PATSTATUS_ERR_UPD_CTRL | \
+							 DMM_PATSTATUS_ERR_UPD_DATA)
 
 
 
-enum {
+enum
+{
 	PAT_STATUS,
 	PAT_DESCR
 };
 
-struct pat_ctrl {
-	u32 start:4;
-	u32 dir:4;
-	u32 lut_id:8;
-	u32 sync:12;
-	u32 ini:4;
+struct pat_ctrl
+{
+	u32 start: 4;
+	u32 dir: 4;
+	u32 lut_id: 8;
+	u32 sync: 12;
+	u32 ini: 4;
 };
 
-struct pat {
+struct pat
+{
 	uint32_t next_pa;
 	struct pat_area area;
 	struct pat_ctrl ctrl;
@@ -125,7 +128,8 @@ struct pat {
 
 struct dmm;
 
-struct dmm_txn {
+struct dmm_txn
+{
 	void *engine_handle;
 	struct tcm *tcm;
 
@@ -135,7 +139,8 @@ struct dmm_txn {
 	struct pat *last_pat;
 };
 
-struct refill_engine {
+struct refill_engine
+{
 	int id;
 	struct dmm *dmm;
 	struct tcm *tcm;
@@ -153,11 +158,13 @@ struct refill_engine {
 	struct list_head idle_node;
 };
 
-struct dmm_platform_data {
+struct dmm_platform_data
+{
 	uint32_t cpu_cache_flags;
 };
 
-struct dmm {
+struct dmm
+{
 	struct device *dev;
 	void __iomem *base;
 	int irq;

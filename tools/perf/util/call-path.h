@@ -34,7 +34,8 @@
  * In combination with the call_return structure, the call_path structure
  * defines a context-sensitve call-graph.
  */
-struct call_path {
+struct call_path
+{
 	struct call_path *parent;
 	struct symbol *sym;
 	u64 ip;
@@ -48,7 +49,8 @@ struct call_path {
 #define CALL_PATH_BLOCK_SIZE (1 << CALL_PATH_BLOCK_SHIFT)
 #define CALL_PATH_BLOCK_MASK (CALL_PATH_BLOCK_SIZE - 1)
 
-struct call_path_block {
+struct call_path_block
+{
 	struct call_path cp[CALL_PATH_BLOCK_SIZE];
 	struct list_head node;
 };
@@ -60,7 +62,8 @@ struct call_path_block {
  * @next: next free space
  * @sz: number of spaces
  */
-struct call_path_root {
+struct call_path_root
+{
 	struct call_path call_path;
 	struct list_head blocks;
 	size_t next;
@@ -71,7 +74,7 @@ struct call_path_root *call_path_root__new(void);
 void call_path_root__free(struct call_path_root *cpr);
 
 struct call_path *call_path__findnew(struct call_path_root *cpr,
-				     struct call_path *parent,
-				     struct symbol *sym, u64 ip, u64 ks);
+									 struct call_path *parent,
+									 struct symbol *sym, u64 ip, u64 ks);
 
 #endif

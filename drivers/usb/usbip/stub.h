@@ -32,7 +32,8 @@
 #define STUB_BUSID_ADDED 2
 #define STUB_BUSID_ALLOC 3
 
-struct stub_device {
+struct stub_device
+{
 	struct usb_device *udev;
 
 	struct usbip_device ud;
@@ -62,7 +63,8 @@ struct stub_device {
 };
 
 /* private data into urb->priv */
-struct stub_priv {
+struct stub_priv
+{
 	unsigned long seqnum;
 	struct list_head list;
 	struct stub_device *sdev;
@@ -71,7 +73,8 @@ struct stub_priv {
 	int unlinking;
 };
 
-struct stub_unlink {
+struct stub_unlink
+{
 	unsigned long seqnum;
 	struct list_head list;
 	__u32 status;
@@ -80,7 +83,8 @@ struct stub_unlink {
 /* same as SYSFS_BUS_ID_SIZE */
 #define BUSID_SIZE 32
 
-struct bus_id_priv {
+struct bus_id_priv
+{
 	char name[BUSID_SIZE];
 	char status;
 	int interf_count;
@@ -105,7 +109,7 @@ int stub_rx_loop(void *data);
 
 /* stub_tx.c */
 void stub_enqueue_ret_unlink(struct stub_device *sdev, __u32 seqnum,
-			     __u32 status);
+							 __u32 status);
 void stub_complete(struct urb *urb);
 int stub_tx_loop(void *data);
 

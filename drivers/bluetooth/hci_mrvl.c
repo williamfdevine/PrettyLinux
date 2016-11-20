@@ -40,12 +40,14 @@
 #define MRVL_NAK 0xBF
 #define MRVL_RAW_DATA 0x1F
 
-enum {
+enum
+{
 	STATE_CHIP_VER_PENDING,
 	STATE_FW_REQ_PENDING,
 };
 
-struct mrvl_data {
+struct mrvl_data
+{
 	struct sk_buff *rx_skb;
 	struct sk_buff_head txq;
 	struct sk_buff_head rawq;
@@ -54,7 +56,8 @@ struct mrvl_data {
 	u8 id, rev;
 };
 
-struct hci_mrvl_pkt {
+struct hci_mrvl_pkt
+{
 	__le16 lhs;
 	__le16 rhs;
 } __packed;
@@ -67,8 +70,11 @@ static int mrvl_open(struct hci_uart *hu)
 	BT_DBG("hu %p", hu);
 
 	mrvl = kzalloc(sizeof(*mrvl), GFP_KERNEL);
+
 	if (!mrvl)
+	{
 		return -ENOMEM;
+	}
 
 	skb_queue_head_init(&mrvl->txq);
 	skb_queue_head_init(&mrvl->rawq);
@@ -112,10 +118,14 @@ static struct sk_buff *mrvl_dequeue(struct hci_uart *hu)
 	struct sk_buff *skb;
 
 	skb = skb_dequeue(&mrvl->txq);
-	if (!skb) {
+
+	if (!skb)
+	{
 		/* Any raw data ? */
 		skb = skb_dequeue(&mrvl->rawq);
-	} else {
+	}
+	else
+	{
 		/* Prepend skb with frame type */
 		memcpy(skb_push(skb, 1), &bt_cb(skb)->pkt_type, 1);
 	}
@@ -138,10 +148,13 @@ static void mrvl_send_ack(struct hci_uart *hu, unsigned char type)
 
 	/* No H4 payload, only 1 byte header */
 	skb = bt_skb_alloc(0, GFP_ATOMIC);
-	if (!skb) {
+
+	if (!skb)
+	{
 		bt_dev_err(hu->hdev, "Unable to alloc ack/nak packet");
 		return;
 	}
+
 	hci_skb_pkt_type(skb) = type;
 
 	skb_queue_tail(&mrvl->txq, skb);
@@ -155,15 +168,18 @@ static int mrvl_recv_fw_req(struct hci_dev *hdev, struct sk_buff *skb)
 	struct mrvl_data *mrvl = hu->priv;
 	int ret = 0;
 
-	if ((pkt->lhs ^ pkt->rhs) != 0xffff) {
+	if ((pkt->lhs ^ pkt->rhs) != 0xffff)
+	{
 		bt_dev_err(hdev, "Corrupted mrvl header");
 		mrvl_send_ack(hu, MRVL_NAK);
 		ret = -EINVAL;
 		goto done;
 	}
+
 	mrvl_send_ack(hu, MRVL_ACK);
 
-	if (!test_bit(STATE_FW_REQ_PENDING, &mrvl->flags)) {
+	if (!test_bit(STATE_FW_REQ_PENDING, &mrvl->flags))
+	{
 		bt_dev_err(hdev, "Received unexpected firmware request");
 		ret = -EINVAL;
 		goto done;
@@ -188,15 +204,18 @@ static int mrvl_recv_chip_ver(struct hci_dev *hdev, struct sk_buff *skb)
 	u16 version = le16_to_cpu(pkt->lhs);
 	int ret = 0;
 
-	if ((pkt->lhs ^ pkt->rhs) != 0xffff) {
+	if ((pkt->lhs ^ pkt->rhs) != 0xffff)
+	{
 		bt_dev_err(hdev, "Corrupted mrvl header");
 		mrvl_send_ack(hu, MRVL_NAK);
 		ret = -EINVAL;
 		goto done;
 	}
+
 	mrvl_send_ack(hu, MRVL_ACK);
 
-	if (!test_bit(STATE_CHIP_VER_PENDING, &mrvl->flags)) {
+	if (!test_bit(STATE_CHIP_VER_PENDING, &mrvl->flags))
+	{
 		bt_dev_err(hdev, "Received unexpected chip version");
 		goto done;
 	}
@@ -217,19 +236,20 @@ done:
 
 #define HCI_RECV_CHIP_VER \
 	.type = HCI_CHIP_VER_PKT, \
-	.hlen = HCI_MRVL_PKT_SIZE, \
-	.loff = 0, \
-	.lsize = 0, \
-	.maxlen = HCI_MRVL_PKT_SIZE
+			.hlen = HCI_MRVL_PKT_SIZE, \
+					.loff = 0, \
+							.lsize = 0, \
+									 .maxlen = HCI_MRVL_PKT_SIZE
 
 #define HCI_RECV_FW_REQ \
 	.type = HCI_FW_REQ_PKT, \
-	.hlen = HCI_MRVL_PKT_SIZE, \
-	.loff = 0, \
-	.lsize = 0, \
-	.maxlen = HCI_MRVL_PKT_SIZE
+			.hlen = HCI_MRVL_PKT_SIZE, \
+					.loff = 0, \
+							.lsize = 0, \
+									 .maxlen = HCI_MRVL_PKT_SIZE
 
-static const struct h4_recv_pkt mrvl_recv_pkts[] = {
+static const struct h4_recv_pkt mrvl_recv_pkts[] =
+{
 	{ H4_RECV_ACL,       .recv = hci_recv_frame     },
 	{ H4_RECV_SCO,       .recv = hci_recv_frame     },
 	{ H4_RECV_EVENT,     .recv = hci_recv_frame     },
@@ -242,12 +262,16 @@ static int mrvl_recv(struct hci_uart *hu, const void *data, int count)
 	struct mrvl_data *mrvl = hu->priv;
 
 	if (!test_bit(HCI_UART_REGISTERED, &hu->flags))
+	{
 		return -EUNATCH;
+	}
 
 	mrvl->rx_skb = h4_recv_buf(hu->hdev, mrvl->rx_skb, data, count,
-				    mrvl_recv_pkts,
-				    ARRAY_SIZE(mrvl_recv_pkts));
-	if (IS_ERR(mrvl->rx_skb)) {
+							   mrvl_recv_pkts,
+							   ARRAY_SIZE(mrvl_recv_pkts));
+
+	if (IS_ERR(mrvl->rx_skb))
+	{
 		int err = PTR_ERR(mrvl->rx_skb);
 		bt_dev_err(hu->hdev, "Frame reassembly failed (%d)", err);
 		mrvl->rx_skb = NULL;
@@ -266,7 +290,9 @@ static int mrvl_load_firmware(struct hci_dev *hdev, const char *name)
 	int err;
 
 	err = request_firmware(&fw, name, &hdev->dev);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		bt_dev_err(hdev, "Failed to load firmware file %s", name);
 		return err;
 	}
@@ -278,54 +304,68 @@ static int mrvl_load_firmware(struct hci_dev *hdev, const char *name)
 
 	set_bit(STATE_FW_REQ_PENDING, &mrvl->flags);
 
-	while (fw_ptr <= fw_max) {
+	while (fw_ptr <= fw_max)
+	{
 		struct sk_buff *skb;
 
 		/* Controller drives the firmware load by sending firmware
 		 * request packets containing the expected fragment size.
 		 */
 		err = wait_on_bit_timeout(&mrvl->flags, STATE_FW_REQ_PENDING,
-					  TASK_INTERRUPTIBLE,
-					  msecs_to_jiffies(2000));
-		if (err == 1) {
+								  TASK_INTERRUPTIBLE,
+								  msecs_to_jiffies(2000));
+
+		if (err == 1)
+		{
 			bt_dev_err(hdev, "Firmware load interrupted");
 			err = -EINTR;
 			break;
-		} else if (err) {
+		}
+		else if (err)
+		{
 			bt_dev_err(hdev, "Firmware request timeout");
 			err = -ETIMEDOUT;
 			break;
 		}
 
 		bt_dev_dbg(hdev, "Firmware request, expecting %d bytes",
-			   mrvl->tx_len);
+				   mrvl->tx_len);
 
-		if (fw_ptr == fw_max) {
+		if (fw_ptr == fw_max)
+		{
 			/* Controller requests a null size once firmware is
 			 * fully loaded. If controller expects more data, there
 			 * is an issue.
 			 */
-			if (!mrvl->tx_len) {
+			if (!mrvl->tx_len)
+			{
 				bt_dev_info(hdev, "Firmware loading complete");
-			} else {
+			}
+			else
+			{
 				bt_dev_err(hdev, "Firmware loading failure");
 				err = -EINVAL;
 			}
+
 			break;
 		}
 
-		if (fw_ptr + mrvl->tx_len > fw_max) {
+		if (fw_ptr + mrvl->tx_len > fw_max)
+		{
 			mrvl->tx_len = fw_max - fw_ptr;
 			bt_dev_dbg(hdev, "Adjusting tx_len to %d",
-				   mrvl->tx_len);
+					   mrvl->tx_len);
 		}
 
 		skb = bt_skb_alloc(mrvl->tx_len, GFP_KERNEL);
-		if (!skb) {
+
+		if (!skb)
+		{
 			bt_dev_err(hdev, "Failed to alloc mem for FW packet");
 			err = -ENOMEM;
 			break;
 		}
+
 		bt_cb(skb)->pkt_type = MRVL_RAW_DATA;
 
 		memcpy(skb_put(skb, mrvl->tx_len), fw_ptr, mrvl->tx_len);
@@ -348,7 +388,9 @@ static int mrvl_setup(struct hci_uart *hu)
 	hci_uart_set_flow_control(hu, true);
 
 	err = mrvl_load_firmware(hu->hdev, "mrvl/helper_uart_3000000.bin");
-	if (err) {
+
+	if (err)
+	{
 		bt_dev_err(hu->hdev, "Unable to download firmware helper");
 		return -EINVAL;
 	}
@@ -357,13 +399,17 @@ static int mrvl_setup(struct hci_uart *hu)
 	hci_uart_set_flow_control(hu, false);
 
 	err = mrvl_load_firmware(hu->hdev, "mrvl/uart8897_bt.bin");
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
 
-static const struct hci_uart_proto mrvl_proto = {
+static const struct hci_uart_proto mrvl_proto =
+{
 	.id		= HCI_UART_MRVL,
 	.name		= "Marvell",
 	.init_speed	= 115200,

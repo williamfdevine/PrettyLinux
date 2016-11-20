@@ -17,31 +17,36 @@
 #define REG_FIRMWARE_VERSION	0x40
 #define REG_CALIBRATE		0xcc
 
-struct finger {
+struct finger
+{
 	u8 x_low;
 	u8 x_high;
 	u8 y_low;
 	u8 y_high;
 } __packed;
 
-struct touchdata {
+struct touchdata
+{
 	u8 status;
 	struct finger finger[MAX_TOUCHES];
 } __packed;
 
-struct panel_info {
+struct panel_info
+{
 	struct finger finger_max;
 	u8 xchannel_num;
 	u8 ychannel_num;
 } __packed;
 
-struct firmware_version {
+struct firmware_version
+{
 	u8 id;
 	u8 major;
 	u8 minor;
 } __packed;
 
-struct ili210x {
+struct ili210x
+{
 	struct i2c_client *client;
 	struct input_dev *input;
 	bool (*get_pendown_state)(void);
@@ -50,9 +55,10 @@ struct ili210x {
 };
 
 static int ili210x_read_reg(struct i2c_client *client, u8 reg, void *buf,
-			    size_t len)
+							size_t len)
 {
-	struct i2c_msg msg[2] = {
+	struct i2c_msg msg[2] =
+	{
 		{
 			.addr	= client->addr,
 			.flags	= 0,
@@ -67,7 +73,8 @@ static int ili210x_read_reg(struct i2c_client *client, u8 reg, void *buf,
 		}
 	};
 
-	if (i2c_transfer(client->adapter, msg, 2) != 2) {
+	if (i2c_transfer(client->adapter, msg, 2) != 2)
+	{
 		dev_err(&client->dev, "i2c transfer failed\n");
 		return -EIO;
 	}
@@ -76,21 +83,24 @@ static int ili210x_read_reg(struct i2c_client *client, u8 reg, void *buf,
 }
 
 static void ili210x_report_events(struct input_dev *input,
-				  const struct touchdata *touchdata)
+								  const struct touchdata *touchdata)
 {
 	int i;
 	bool touch;
 	unsigned int x, y;
 	const struct finger *finger;
 
-	for (i = 0; i < MAX_TOUCHES; i++) {
+	for (i = 0; i < MAX_TOUCHES; i++)
+	{
 		input_mt_slot(input, i);
 
 		finger = &touchdata->finger[i];
 
 		touch = touchdata->status & (1 << i);
 		input_mt_report_slot_state(input, MT_TOOL_FINGER, touch);
-		if (touch) {
+
+		if (touch)
+		{
 			x = finger->x_low | (finger->x_high << 8);
 			y = finger->y_low | (finger->y_high << 8);
 
@@ -108,7 +118,9 @@ static bool get_pendown_state(const struct ili210x *priv)
 	bool state = false;
 
 	if (priv->get_pendown_state)
+	{
 		state = priv->get_pendown_state();
+	}
 
 	return state;
 }
@@ -116,16 +128,18 @@ static bool get_pendown_state(const struct ili210x *priv)
 static void ili210x_work(struct work_struct *work)
 {
 	struct ili210x *priv = container_of(work, struct ili210x,
-					    dwork.work);
+										dwork.work);
 	struct i2c_client *client = priv->client;
 	struct touchdata touchdata;
 	int error;
 
 	error = ili210x_read_reg(client, REG_TOUCHDATA,
-				 &touchdata, sizeof(touchdata));
-	if (error) {
+							 &touchdata, sizeof(touchdata));
+
+	if (error)
+	{
 		dev_err(&client->dev,
-			"Unable to get touchdata, err = %d\n", error);
+				"Unable to get touchdata, err = %d\n", error);
 		return;
 	}
 
@@ -133,7 +147,7 @@ static void ili210x_work(struct work_struct *work)
 
 	if ((touchdata.status & 0xf3) || get_pendown_state(priv))
 		schedule_delayed_work(&priv->dwork,
-				      msecs_to_jiffies(priv->poll_period));
+							  msecs_to_jiffies(priv->poll_period));
 }
 
 static irqreturn_t ili210x_irq(int irq, void *irq_data)
@@ -146,8 +160,8 @@ static irqreturn_t ili210x_irq(int irq, void *irq_data)
 }
 
 static ssize_t ili210x_calibrate(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
+								 struct device_attribute *attr,
+								 const char *buf, size_t count)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct ili210x *priv = i2c_get_clientdata(client);
@@ -156,32 +170,42 @@ static ssize_t ili210x_calibrate(struct device *dev,
 	u8 cmd = REG_CALIBRATE;
 
 	if (kstrtoul(buf, 10, &calibrate))
+	{
 		return -EINVAL;
+	}
 
 	if (calibrate > 1)
+	{
 		return -EINVAL;
+	}
 
-	if (calibrate) {
+	if (calibrate)
+	{
 		rc = i2c_master_send(priv->client, &cmd, sizeof(cmd));
+
 		if (rc != sizeof(cmd))
+		{
 			return -EIO;
+		}
 	}
 
 	return count;
 }
 static DEVICE_ATTR(calibrate, S_IWUSR, NULL, ili210x_calibrate);
 
-static struct attribute *ili210x_attributes[] = {
+static struct attribute *ili210x_attributes[] =
+{
 	&dev_attr_calibrate.attr,
 	NULL,
 };
 
-static const struct attribute_group ili210x_attr_group = {
+static const struct attribute_group ili210x_attr_group =
+{
 	.attrs = ili210x_attributes,
 };
 
 static int ili210x_i2c_probe(struct i2c_client *client,
-				       const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	const struct ili210x_platform_data *pdata = dev_get_platdata(dev);
@@ -194,30 +218,36 @@ static int ili210x_i2c_probe(struct i2c_client *client,
 
 	dev_dbg(dev, "Probing for ILI210X I2C Touschreen driver");
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(dev, "No platform data!\n");
 		return -EINVAL;
 	}
 
-	if (client->irq <= 0) {
+	if (client->irq <= 0)
+	{
 		dev_err(dev, "No IRQ!\n");
 		return -EINVAL;
 	}
 
 	/* Get firmware version */
 	error = ili210x_read_reg(client, REG_FIRMWARE_VERSION,
-				 &firmware, sizeof(firmware));
-	if (error) {
+							 &firmware, sizeof(firmware));
+
+	if (error)
+	{
 		dev_err(dev, "Failed to get firmware version, err: %d\n",
-			error);
+				error);
 		return error;
 	}
 
 	/* get panel info */
 	error = ili210x_read_reg(client, REG_PANEL_INFO, &panel, sizeof(panel));
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "Failed to get panel information, err: %d\n",
-			error);
+				error);
 		return error;
 	}
 
@@ -226,7 +256,9 @@ static int ili210x_i2c_probe(struct i2c_client *client,
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
 	input = input_allocate_device();
-	if (!priv || !input) {
+
+	if (!priv || !input)
+	{
 		error = -ENOMEM;
 		goto err_free_mem;
 	}
@@ -260,22 +292,28 @@ static int ili210x_i2c_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, priv);
 
 	error = request_irq(client->irq, ili210x_irq, pdata->irq_flags,
-			    client->name, priv);
-	if (error) {
+						client->name, priv);
+
+	if (error)
+	{
 		dev_err(dev, "Unable to request touchscreen IRQ, err: %d\n",
-			error);
+				error);
 		goto err_free_mem;
 	}
 
 	error = sysfs_create_group(&dev->kobj, &ili210x_attr_group);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "Unable to create sysfs attributes, err: %d\n",
-			error);
+				error);
 		goto err_free_irq;
 	}
 
 	error = input_register_device(priv->input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "Cannot register input device, err: %d\n", error);
 		goto err_remove_sysfs;
 	}
@@ -283,8 +321,8 @@ static int ili210x_i2c_probe(struct i2c_client *client,
 	device_init_wakeup(&client->dev, 1);
 
 	dev_dbg(dev,
-		"ILI210x initialized (IRQ: %d), firmware version %d.%d.%d",
-		client->irq, firmware.id, firmware.major, firmware.minor);
+			"ILI210x initialized (IRQ: %d), firmware version %d.%d.%d",
+			client->irq, firmware.id, firmware.major, firmware.minor);
 
 	return 0;
 
@@ -316,7 +354,9 @@ static int __maybe_unused ili210x_i2c_suspend(struct device *dev)
 	struct i2c_client *client = to_i2c_client(dev);
 
 	if (device_may_wakeup(&client->dev))
+	{
 		enable_irq_wake(client->irq);
+	}
 
 	return 0;
 }
@@ -326,21 +366,25 @@ static int __maybe_unused ili210x_i2c_resume(struct device *dev)
 	struct i2c_client *client = to_i2c_client(dev);
 
 	if (device_may_wakeup(&client->dev))
+	{
 		disable_irq_wake(client->irq);
+	}
 
 	return 0;
 }
 
 static SIMPLE_DEV_PM_OPS(ili210x_i2c_pm,
-			 ili210x_i2c_suspend, ili210x_i2c_resume);
+						 ili210x_i2c_suspend, ili210x_i2c_resume);
 
-static const struct i2c_device_id ili210x_i2c_id[] = {
+static const struct i2c_device_id ili210x_i2c_id[] =
+{
 	{ "ili210x", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ili210x_i2c_id);
 
-static struct i2c_driver ili210x_ts_driver = {
+static struct i2c_driver ili210x_ts_driver =
+{
 	.driver = {
 		.name = "ili210x_i2c",
 		.pm = &ili210x_i2c_pm,

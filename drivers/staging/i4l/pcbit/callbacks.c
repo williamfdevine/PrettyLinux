@@ -40,7 +40,7 @@ ushort last_ref_num = 1;
  */
 
 void cb_out_1(struct pcbit_dev *dev, struct pcbit_chan *chan,
-	      struct callb_data *cbdata)
+			  struct callb_data *cbdata)
 {
 	struct sk_buff *skb;
 	int len;
@@ -49,7 +49,7 @@ void cb_out_1(struct pcbit_dev *dev, struct pcbit_chan *chan,
 
 #ifdef DEBUG
 	printk(KERN_DEBUG "Called Party Number: %s\n",
-	       cbdata->data.setup.CalledPN);
+		   cbdata->data.setup.CalledPN);
 #endif
 	/*
 	 * hdr - kmalloc in capi_conn_req
@@ -57,7 +57,7 @@ void cb_out_1(struct pcbit_dev *dev, struct pcbit_chan *chan,
 	 */
 
 	if ((len = capi_conn_req(cbdata->data.setup.CalledPN, &skb,
-				 chan->proto)) < 0)
+							 chan->proto)) < 0)
 	{
 		printk("capi_conn_req failed\n");
 		return;
@@ -82,7 +82,7 @@ void cb_out_1(struct pcbit_dev *dev, struct pcbit_chan *chan,
  */
 
 void cb_out_2(struct pcbit_dev *dev, struct pcbit_chan *chan,
-	      struct callb_data *data)
+			  struct callb_data *data)
 {
 	isdn_ctrl ictl;
 	struct sk_buff *skb;
@@ -110,7 +110,8 @@ void cb_out_2(struct pcbit_dev *dev, struct pcbit_chan *chan,
 
 	/* Select protocol  */
 
-	if ((len = capi_select_proto_req(chan, &skb, 1 /*outgoing*/)) < 0) {
+	if ((len = capi_select_proto_req(chan, &skb, 1 /*outgoing*/)) < 0)
+	{
 		printk("capi_select_proto_req failed\n");
 		return;
 	}
@@ -128,7 +129,7 @@ void cb_out_2(struct pcbit_dev *dev, struct pcbit_chan *chan,
  */
 
 void cb_in_1(struct pcbit_dev *dev, struct pcbit_chan *chan,
-	     struct callb_data *cbdata)
+			 struct callb_data *cbdata)
 {
 	isdn_ctrl ictl;
 	unsigned short refnum;
@@ -144,20 +145,26 @@ void cb_in_1(struct pcbit_dev *dev, struct pcbit_chan *chan,
 	 *  ictl.num >= strlen() + strlen() + 5
 	 */
 
-	if (cbdata->data.setup.CallingPN == NULL) {
+	if (cbdata->data.setup.CallingPN == NULL)
+	{
 		printk(KERN_DEBUG "NULL CallingPN to phone; using 0\n");
 		strcpy(ictl.parm.setup.phone, "0");
 	}
-	else {
+	else
+	{
 		strcpy(ictl.parm.setup.phone, cbdata->data.setup.CallingPN);
 	}
-	if (cbdata->data.setup.CalledPN == NULL) {
+
+	if (cbdata->data.setup.CalledPN == NULL)
+	{
 		printk(KERN_DEBUG "NULL CalledPN to eazmsn; using 0\n");
 		strcpy(ictl.parm.setup.eazmsn, "0");
 	}
-	else {
+	else
+	{
 		strcpy(ictl.parm.setup.eazmsn, cbdata->data.setup.CalledPN);
 	}
+
 	ictl.parm.setup.si1 = 7;
 	ictl.parm.setup.si2 = 0;
 	ictl.parm.setup.plan = 0;
@@ -170,7 +177,8 @@ void cb_in_1(struct pcbit_dev *dev, struct pcbit_chan *chan,
 	dev->dev_if->statcallb(&ictl);
 
 
-	if ((len = capi_conn_resp(chan, &skb)) < 0) {
+	if ((len = capi_conn_resp(chan, &skb)) < 0)
+	{
 		printk(KERN_DEBUG "capi_conn_resp failed\n");
 		return;
 	}
@@ -188,13 +196,14 @@ void cb_in_1(struct pcbit_dev *dev, struct pcbit_chan *chan,
  */
 
 void cb_in_2(struct pcbit_dev *dev, struct pcbit_chan *chan,
-	     struct callb_data *data)
+			 struct callb_data *data)
 {
 	unsigned short refnum;
 	struct sk_buff *skb;
 	int len;
 
-	if ((len = capi_conn_active_req(chan, &skb)) < 0) {
+	if ((len = capi_conn_active_req(chan, &skb)) < 0)
+	{
 		printk(KERN_DEBUG "capi_conn_active_req failed\n");
 		return;
 	}
@@ -214,7 +223,7 @@ void cb_in_2(struct pcbit_dev *dev, struct pcbit_chan *chan,
  */
 
 void cb_in_3(struct pcbit_dev *dev, struct pcbit_chan *chan,
-	     struct callb_data *data)
+			 struct callb_data *data)
 {
 	unsigned short refnum;
 	struct sk_buff *skb;
@@ -240,14 +249,15 @@ void cb_in_3(struct pcbit_dev *dev, struct pcbit_chan *chan,
  * send msg to user
  */
 void cb_disc_1(struct pcbit_dev *dev, struct pcbit_chan *chan,
-	       struct callb_data *data)
+			   struct callb_data *data)
 {
 	struct sk_buff *skb;
 	int len;
 	ushort refnum;
 	isdn_ctrl ictl;
 
-	if ((len = capi_disc_resp(chan, &skb)) < 0) {
+	if ((len = capi_disc_resp(chan, &skb)) < 0)
+	{
 		printk("capi_disc_resp failed\n");
 		return;
 	}
@@ -269,7 +279,7 @@ void cb_disc_1(struct pcbit_dev *dev, struct pcbit_chan *chan,
  *  send disc.req
  */
 void cb_disc_2(struct pcbit_dev *dev, struct pcbit_chan *chan,
-	       struct callb_data *data)
+			   struct callb_data *data)
 {
 	struct sk_buff *skb;
 	int len;
@@ -293,7 +303,7 @@ void cb_disc_2(struct pcbit_dev *dev, struct pcbit_chan *chan,
  *           LL receives BHUP
  */
 void cb_disc_3(struct pcbit_dev *dev, struct pcbit_chan *chan,
-	       struct callb_data *data)
+			   struct callb_data *data)
 {
 	isdn_ctrl ictl;
 
@@ -304,7 +314,7 @@ void cb_disc_3(struct pcbit_dev *dev, struct pcbit_chan *chan,
 }
 
 void cb_notdone(struct pcbit_dev *dev, struct pcbit_chan *chan,
-		struct callb_data *data)
+				struct callb_data *data)
 {
 }
 
@@ -312,7 +322,7 @@ void cb_notdone(struct pcbit_dev *dev, struct pcbit_chan *chan,
  * send activate b-chan protocol
  */
 void cb_selp_1(struct pcbit_dev *dev, struct pcbit_chan *chan,
-	       struct callb_data *data)
+			   struct callb_data *data)
 {
 	struct sk_buff *skb;
 	int len;
@@ -334,7 +344,7 @@ void cb_selp_1(struct pcbit_dev *dev, struct pcbit_chan *chan,
  *  Inform User that the B-channel is available
  */
 void cb_open(struct pcbit_dev *dev, struct pcbit_chan *chan,
-	     struct callb_data *data)
+			 struct callb_data *data)
 {
 	isdn_ctrl ictl;
 

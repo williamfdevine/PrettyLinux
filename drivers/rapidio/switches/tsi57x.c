@@ -44,18 +44,21 @@
 
 static int
 tsi57x_route_add_entry(struct rio_mport *mport, u16 destid, u8 hopcount,
-		       u16 table, u16 route_destid, u8 route_port)
+					   u16 table, u16 route_destid, u8 route_port)
 {
-	if (table == RIO_GLOBAL_TABLE) {
+	if (table == RIO_GLOBAL_TABLE)
+	{
 		rio_mport_write_config_32(mport, destid, hopcount,
-					  SPBC_ROUTE_CFG_DESTID, route_destid);
+								  SPBC_ROUTE_CFG_DESTID, route_destid);
 		rio_mport_write_config_32(mport, destid, hopcount,
-					  SPBC_ROUTE_CFG_PORT, route_port);
-	} else {
+								  SPBC_ROUTE_CFG_PORT, route_port);
+	}
+	else
+	{
 		rio_mport_write_config_32(mport, destid, hopcount,
-				SPP_ROUTE_CFG_DESTID(table), route_destid);
+								  SPP_ROUTE_CFG_DESTID(table), route_destid);
 		rio_mport_write_config_32(mport, destid, hopcount,
-				SPP_ROUTE_CFG_PORT(table), route_port);
+								  SPP_ROUTE_CFG_PORT(table), route_port);
 	}
 
 	udelay(10);
@@ -65,53 +68,62 @@ tsi57x_route_add_entry(struct rio_mport *mport, u16 destid, u8 hopcount,
 
 static int
 tsi57x_route_get_entry(struct rio_mport *mport, u16 destid, u8 hopcount,
-		       u16 table, u16 route_destid, u8 *route_port)
+					   u16 table, u16 route_destid, u8 *route_port)
 {
 	int ret = 0;
 	u32 result;
 
-	if (table == RIO_GLOBAL_TABLE) {
+	if (table == RIO_GLOBAL_TABLE)
+	{
 		/* Use local RT of the ingress port to avoid possible
 		   race condition */
 		rio_mport_read_config_32(mport, destid, hopcount,
-			RIO_SWP_INFO_CAR, &result);
+								 RIO_SWP_INFO_CAR, &result);
 		table = (result & RIO_SWP_INFO_PORT_NUM_MASK);
 	}
 
 	rio_mport_write_config_32(mport, destid, hopcount,
-				SPP_ROUTE_CFG_DESTID(table), route_destid);
+							  SPP_ROUTE_CFG_DESTID(table), route_destid);
 	rio_mport_read_config_32(mport, destid, hopcount,
-				SPP_ROUTE_CFG_PORT(table), &result);
+							 SPP_ROUTE_CFG_PORT(table), &result);
 
 	*route_port = (u8)result;
+
 	if (*route_port > 15)
+	{
 		ret = -1;
+	}
 
 	return ret;
 }
 
 static int
 tsi57x_route_clr_table(struct rio_mport *mport, u16 destid, u8 hopcount,
-		       u16 table)
+					   u16 table)
 {
 	u32 route_idx;
 	u32 lut_size;
 
 	lut_size = (mport->sys_size) ? 0x1ff : 0xff;
 
-	if (table == RIO_GLOBAL_TABLE) {
+	if (table == RIO_GLOBAL_TABLE)
+	{
 		rio_mport_write_config_32(mport, destid, hopcount,
-					  SPBC_ROUTE_CFG_DESTID, 0x80000000);
+								  SPBC_ROUTE_CFG_DESTID, 0x80000000);
+
 		for (route_idx = 0; route_idx <= lut_size; route_idx++)
 			rio_mport_write_config_32(mport, destid, hopcount,
-						  SPBC_ROUTE_CFG_PORT,
-						  RIO_INVALID_ROUTE);
-	} else {
+									  SPBC_ROUTE_CFG_PORT,
+									  RIO_INVALID_ROUTE);
+	}
+	else
+	{
 		rio_mport_write_config_32(mport, destid, hopcount,
-				SPP_ROUTE_CFG_DESTID(table), 0x80000000);
+								  SPP_ROUTE_CFG_DESTID(table), 0x80000000);
+
 		for (route_idx = 0; route_idx <= lut_size; route_idx++)
 			rio_mport_write_config_32(mport, destid, hopcount,
-				SPP_ROUTE_CFG_PORT(table) , RIO_INVALID_ROUTE);
+									  SPP_ROUTE_CFG_PORT(table) , RIO_INVALID_ROUTE);
 	}
 
 	return 0;
@@ -119,7 +131,7 @@ tsi57x_route_clr_table(struct rio_mport *mport, u16 destid, u8 hopcount,
 
 static int
 tsi57x_set_domain(struct rio_mport *mport, u16 destid, u8 hopcount,
-		       u8 sw_domain)
+				  u8 sw_domain)
 {
 	u32 regval;
 
@@ -129,19 +141,19 @@ tsi57x_set_domain(struct rio_mport *mport, u16 destid, u8 hopcount,
 
 	/* Turn off flat (LUT_512) mode */
 	rio_mport_read_config_32(mport, destid, hopcount,
-				 TSI578_SP_MODE_GLBL, &regval);
+							 TSI578_SP_MODE_GLBL, &regval);
 	rio_mport_write_config_32(mport, destid, hopcount, TSI578_SP_MODE_GLBL,
-				  regval & ~TSI578_SP_MODE_LUT_512);
+							  regval & ~TSI578_SP_MODE_LUT_512);
 	/* Set switch domain base */
 	rio_mport_write_config_32(mport, destid, hopcount,
-				  TSI578_GLBL_ROUTE_BASE,
-				  (u32)(sw_domain << 24));
+							  TSI578_GLBL_ROUTE_BASE,
+							  (u32)(sw_domain << 24));
 	return 0;
 }
 
 static int
 tsi57x_get_domain(struct rio_mport *mport, u16 destid, u8 hopcount,
-		       u8 *sw_domain)
+				  u8 *sw_domain)
 {
 	u32 regval;
 
@@ -149,7 +161,7 @@ tsi57x_get_domain(struct rio_mport *mport, u16 destid, u8 hopcount,
 	 * Switch domain configuration operates only at global level
 	 */
 	rio_mport_read_config_32(mport, destid, hopcount,
-				TSI578_GLBL_ROUTE_BASE, &regval);
+							 TSI578_GLBL_ROUTE_BASE, &regval);
 
 	*sw_domain = (u8)(regval >> 24);
 
@@ -165,46 +177,50 @@ tsi57x_em_init(struct rio_dev *rdev)
 	pr_debug("TSI578 %s [%d:%d]\n", __func__, rdev->destid, rdev->hopcount);
 
 	for (portnum = 0;
-	     portnum < RIO_GET_TOTAL_PORTS(rdev->swpinfo); portnum++) {
+		 portnum < RIO_GET_TOTAL_PORTS(rdev->swpinfo); portnum++)
+	{
 		/* Make sure that Port-Writes are enabled (for all ports) */
 		rio_read_config_32(rdev,
-				TSI578_SP_MODE(portnum), &regval);
+						   TSI578_SP_MODE(portnum), &regval);
 		rio_write_config_32(rdev,
-				TSI578_SP_MODE(portnum),
-				regval & ~TSI578_SP_MODE_PW_DIS);
+							TSI578_SP_MODE(portnum),
+							regval & ~TSI578_SP_MODE_PW_DIS);
 
 		/* Clear all pending interrupts */
 		rio_read_config_32(rdev,
-				RIO_DEV_PORT_N_ERR_STS_CSR(rdev, portnum),
-				&regval);
+						   RIO_DEV_PORT_N_ERR_STS_CSR(rdev, portnum),
+						   &regval);
 		rio_write_config_32(rdev,
-				RIO_DEV_PORT_N_ERR_STS_CSR(rdev, portnum),
-				regval & 0x07120214);
+							RIO_DEV_PORT_N_ERR_STS_CSR(rdev, portnum),
+							regval & 0x07120214);
 
 		rio_read_config_32(rdev,
-				TSI578_SP_INT_STATUS(portnum), &regval);
+						   TSI578_SP_INT_STATUS(portnum), &regval);
 		rio_write_config_32(rdev,
-				TSI578_SP_INT_STATUS(portnum),
-				regval & 0x000700bd);
+							TSI578_SP_INT_STATUS(portnum),
+							regval & 0x000700bd);
 
 		/* Enable all interrupts to allow ports to send a port-write */
 		rio_read_config_32(rdev,
-				TSI578_SP_CTL_INDEP(portnum), &regval);
+						   TSI578_SP_CTL_INDEP(portnum), &regval);
 		rio_write_config_32(rdev,
-				TSI578_SP_CTL_INDEP(portnum),
-				regval | 0x000b0000);
+							TSI578_SP_CTL_INDEP(portnum),
+							regval | 0x000b0000);
 
 		/* Skip next (odd) port if the current port is in x4 mode */
 		rio_read_config_32(rdev,
-				RIO_DEV_PORT_N_CTL_CSR(rdev, portnum),
-				&regval);
+						   RIO_DEV_PORT_N_CTL_CSR(rdev, portnum),
+						   &regval);
+
 		if ((regval & RIO_PORT_N_CTL_PWIDTH) == RIO_PORT_N_CTL_PWIDTH_4)
+		{
 			portnum++;
+		}
 	}
 
 	/* set TVAL = ~50us */
 	rio_write_config_32(rdev,
-		rdev->phys_efptr + RIO_PORT_LINKTO_CTL_CSR, 0x9a << 8);
+						rdev->phys_efptr + RIO_PORT_LINKTO_CTL_CSR, 0x9a << 8);
 
 	return 0;
 }
@@ -219,49 +235,59 @@ tsi57x_em_handler(struct rio_dev *rdev, u8 portnum)
 	u32 regval;
 
 	rio_read_config_32(rdev,
-			RIO_DEV_PORT_N_ERR_STS_CSR(rdev, portnum),
-			&err_status);
+					   RIO_DEV_PORT_N_ERR_STS_CSR(rdev, portnum),
+					   &err_status);
 
 	if ((err_status & RIO_PORT_N_ERR_STS_PORT_OK) &&
-	    (err_status & (RIO_PORT_N_ERR_STS_OUT_ES |
-			  RIO_PORT_N_ERR_STS_INP_ES))) {
+		(err_status & (RIO_PORT_N_ERR_STS_OUT_ES |
+					   RIO_PORT_N_ERR_STS_INP_ES)))
+	{
 		/* Remove any queued packets by locking/unlocking port */
 		rio_read_config_32(rdev,
-			RIO_DEV_PORT_N_CTL_CSR(rdev, portnum),
-			&regval);
-		if (!(regval & RIO_PORT_N_CTL_LOCKOUT)) {
+						   RIO_DEV_PORT_N_CTL_CSR(rdev, portnum),
+						   &regval);
+
+		if (!(regval & RIO_PORT_N_CTL_LOCKOUT))
+		{
 			rio_write_config_32(rdev,
-				RIO_DEV_PORT_N_CTL_CSR(rdev, portnum),
-				regval | RIO_PORT_N_CTL_LOCKOUT);
+								RIO_DEV_PORT_N_CTL_CSR(rdev, portnum),
+								regval | RIO_PORT_N_CTL_LOCKOUT);
 			udelay(50);
 			rio_write_config_32(rdev,
-				RIO_DEV_PORT_N_CTL_CSR(rdev, portnum),
-				regval);
+								RIO_DEV_PORT_N_CTL_CSR(rdev, portnum),
+								regval);
 		}
 
 		/* Read from link maintenance response register to clear
 		 * valid bit
 		 */
 		rio_read_config_32(rdev,
-			RIO_DEV_PORT_N_MNT_RSP_CSR(rdev, portnum),
-			&regval);
+						   RIO_DEV_PORT_N_MNT_RSP_CSR(rdev, portnum),
+						   &regval);
 
 		/* Send a Packet-Not-Accepted/Link-Request-Input-Status control
 		 * symbol to recover from IES/OES
 		 */
 		sendcount = 3;
-		while (sendcount) {
+
+		while (sendcount)
+		{
 			rio_write_config_32(rdev,
-					  TSI578_SP_CS_TX(portnum), 0x40fc8000);
+								TSI578_SP_CS_TX(portnum), 0x40fc8000);
 			checkcount = 3;
-			while (checkcount--) {
+
+			while (checkcount--)
+			{
 				udelay(50);
 				rio_read_config_32(rdev,
-					RIO_DEV_PORT_N_MNT_RSP_CSR(rdev,
-								   portnum),
-					&regval);
+								   RIO_DEV_PORT_N_MNT_RSP_CSR(rdev,
+										   portnum),
+								   &regval);
+
 				if (regval & RIO_PORT_N_MNT_RSP_RVAL)
+				{
 					goto exit_es;
+				}
 			}
 
 			sendcount--;
@@ -272,26 +298,28 @@ exit_es:
 	/* Clear implementation specific error status bits */
 	rio_read_config_32(rdev, TSI578_SP_INT_STATUS(portnum), &intstat);
 	pr_debug("TSI578[%x:%x] SP%d_INT_STATUS=0x%08x\n",
-		 rdev->destid, rdev->hopcount, portnum, intstat);
+			 rdev->destid, rdev->hopcount, portnum, intstat);
 
-	if (intstat & 0x10000) {
+	if (intstat & 0x10000)
+	{
 		rio_read_config_32(rdev,
-				TSI578_SP_LUT_PEINF(portnum), &regval);
+						   TSI578_SP_LUT_PEINF(portnum), &regval);
 		regval = (mport->sys_size) ? (regval >> 16) : (regval >> 24);
 		route_port = rdev->rswitch->route_table[regval];
 		pr_debug("RIO: TSI578[%s] P%d LUT Parity Error (destID=%d)\n",
-			rio_name(rdev), portnum, regval);
+				 rio_name(rdev), portnum, regval);
 		tsi57x_route_add_entry(mport, rdev->destid, rdev->hopcount,
-				RIO_GLOBAL_TABLE, regval, route_port);
+							   RIO_GLOBAL_TABLE, regval, route_port);
 	}
 
 	rio_write_config_32(rdev, TSI578_SP_INT_STATUS(portnum),
-			    intstat & 0x000700bd);
+						intstat & 0x000700bd);
 
 	return 0;
 }
 
-static struct rio_switch_ops tsi57x_switch_ops = {
+static struct rio_switch_ops tsi57x_switch_ops =
+{
 	.owner = THIS_MODULE,
 	.add_entry = tsi57x_route_add_entry,
 	.get_entry = tsi57x_route_get_entry,
@@ -308,16 +336,19 @@ static int tsi57x_probe(struct rio_dev *rdev, const struct rio_device_id *id)
 
 	spin_lock(&rdev->rswitch->lock);
 
-	if (rdev->rswitch->ops) {
+	if (rdev->rswitch->ops)
+	{
 		spin_unlock(&rdev->rswitch->lock);
 		return -EINVAL;
 	}
+
 	rdev->rswitch->ops = &tsi57x_switch_ops;
 
-	if (rdev->do_enum) {
+	if (rdev->do_enum)
+	{
 		/* Ensure that default routing is disabled on startup */
 		rio_write_config_32(rdev, RIO_STD_RTE_DEFAULT_PORT,
-				    RIO_INVALID_ROUTE);
+							RIO_INVALID_ROUTE);
 	}
 
 	spin_unlock(&rdev->rswitch->lock);
@@ -328,15 +359,19 @@ static void tsi57x_remove(struct rio_dev *rdev)
 {
 	pr_debug("RIO: %s for %s\n", __func__, rio_name(rdev));
 	spin_lock(&rdev->rswitch->lock);
-	if (rdev->rswitch->ops != &tsi57x_switch_ops) {
+
+	if (rdev->rswitch->ops != &tsi57x_switch_ops)
+	{
 		spin_unlock(&rdev->rswitch->lock);
 		return;
 	}
+
 	rdev->rswitch->ops = NULL;
 	spin_unlock(&rdev->rswitch->lock);
 }
 
-static struct rio_device_id tsi57x_id_table[] = {
+static struct rio_device_id tsi57x_id_table[] =
+{
 	{RIO_DEVICE(RIO_DID_TSI572, RIO_VID_TUNDRA)},
 	{RIO_DEVICE(RIO_DID_TSI574, RIO_VID_TUNDRA)},
 	{RIO_DEVICE(RIO_DID_TSI577, RIO_VID_TUNDRA)},
@@ -344,7 +379,8 @@ static struct rio_device_id tsi57x_id_table[] = {
 	{ 0, }	/* terminate list */
 };
 
-static struct rio_driver tsi57x_driver = {
+static struct rio_driver tsi57x_driver =
+{
 	.name = "tsi57x",
 	.id_table = tsi57x_id_table,
 	.probe = tsi57x_probe,

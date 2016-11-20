@@ -40,15 +40,18 @@ int btintel_check_bdaddr(struct hci_dev *hdev)
 	struct sk_buff *skb;
 
 	skb = __hci_cmd_sync(hdev, HCI_OP_READ_BD_ADDR, 0, NULL,
-			     HCI_INIT_TIMEOUT);
-	if (IS_ERR(skb)) {
+						 HCI_INIT_TIMEOUT);
+
+	if (IS_ERR(skb))
+	{
 		int err = PTR_ERR(skb);
 		BT_ERR("%s: Reading Intel device address failed (%d)",
-		       hdev->name, err);
+			   hdev->name, err);
 		return err;
 	}
 
-	if (skb->len != sizeof(*bda)) {
+	if (skb->len != sizeof(*bda))
+	{
 		BT_ERR("%s: Intel device address length mismatch", hdev->name);
 		kfree_skb(skb);
 		return -EIO;
@@ -61,9 +64,10 @@ int btintel_check_bdaddr(struct hci_dev *hdev)
 	 * fully operational, but have the danger of duplicate addresses
 	 * and that in turn can cause problems with Bluetooth operation.
 	 */
-	if (!bacmp(&bda->bdaddr, BDADDR_INTEL)) {
+	if (!bacmp(&bda->bdaddr, BDADDR_INTEL))
+	{
 		BT_ERR("%s: Found Intel default device address (%pMR)",
-		       hdev->name, &bda->bdaddr);
+			   hdev->name, &bda->bdaddr);
 		set_bit(HCI_QUIRK_INVALID_BDADDR, &hdev->quirks);
 	}
 
@@ -79,11 +83,14 @@ int btintel_enter_mfg(struct hci_dev *hdev)
 	struct sk_buff *skb;
 
 	skb = __hci_cmd_sync(hdev, 0xfc11, 2, param, HCI_CMD_TIMEOUT);
-	if (IS_ERR(skb)) {
+
+	if (IS_ERR(skb))
+	{
 		bt_dev_err(hdev, "Entering manufacturer mode failed (%ld)",
-			   PTR_ERR(skb));
+				   PTR_ERR(skb));
 		return PTR_ERR(skb);
 	}
+
 	kfree_skb(skb);
 
 	return 0;
@@ -101,14 +108,19 @@ int btintel_exit_mfg(struct hci_dev *hdev, bool reset, bool patched)
 	 * 0x02: Disable manufacturing mode and reset with patches activated.
 	 */
 	if (reset)
+	{
 		param[1] |= patched ? 0x02 : 0x01;
+	}
 
 	skb = __hci_cmd_sync(hdev, 0xfc11, 2, param, HCI_CMD_TIMEOUT);
-	if (IS_ERR(skb)) {
+
+	if (IS_ERR(skb))
+	{
 		bt_dev_err(hdev, "Exiting manufacturer mode failed (%ld)",
-			   PTR_ERR(skb));
+				   PTR_ERR(skb));
 		return PTR_ERR(skb);
 	}
+
 	kfree_skb(skb);
 
 	return 0;
@@ -121,12 +133,15 @@ int btintel_set_bdaddr(struct hci_dev *hdev, const bdaddr_t *bdaddr)
 	int err;
 
 	skb = __hci_cmd_sync(hdev, 0xfc31, 6, bdaddr, HCI_INIT_TIMEOUT);
-	if (IS_ERR(skb)) {
+
+	if (IS_ERR(skb))
+	{
 		err = PTR_ERR(skb);
 		BT_ERR("%s: Changing Intel device address failed (%d)",
-		       hdev->name, err);
+			   hdev->name, err);
 		return err;
 	}
+
 	kfree_skb(skb);
 
 	return 0;
@@ -139,25 +154,35 @@ int btintel_set_diag(struct hci_dev *hdev, bool enable)
 	u8 param[3];
 	int err;
 
-	if (enable) {
+	if (enable)
+	{
 		param[0] = 0x03;
 		param[1] = 0x03;
 		param[2] = 0x03;
-	} else {
+	}
+	else
+	{
 		param[0] = 0x00;
 		param[1] = 0x00;
 		param[2] = 0x00;
 	}
 
 	skb = __hci_cmd_sync(hdev, 0xfc43, 3, param, HCI_INIT_TIMEOUT);
-	if (IS_ERR(skb)) {
+
+	if (IS_ERR(skb))
+	{
 		err = PTR_ERR(skb);
+
 		if (err == -ENODATA)
+		{
 			goto done;
+		}
+
 		BT_ERR("%s: Changing Intel diagnostic mode failed (%d)",
-		       hdev->name, err);
+			   hdev->name, err);
 		return err;
 	}
+
 	kfree_skb(skb);
 
 done:
@@ -171,14 +196,20 @@ int btintel_set_diag_mfg(struct hci_dev *hdev, bool enable)
 	int err, ret;
 
 	err = btintel_enter_mfg(hdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	ret = btintel_set_diag(hdev, enable);
 
 	err = btintel_exit_mfg(hdev, false, false);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return ret;
 }
@@ -192,21 +223,27 @@ void btintel_hw_error(struct hci_dev *hdev, u8 code)
 	BT_ERR("%s: Hardware error 0x%2.2x", hdev->name, code);
 
 	skb = __hci_cmd_sync(hdev, HCI_OP_RESET, 0, NULL, HCI_INIT_TIMEOUT);
-	if (IS_ERR(skb)) {
+
+	if (IS_ERR(skb))
+	{
 		BT_ERR("%s: Reset after hardware error failed (%ld)",
-		       hdev->name, PTR_ERR(skb));
+			   hdev->name, PTR_ERR(skb));
 		return;
 	}
+
 	kfree_skb(skb);
 
 	skb = __hci_cmd_sync(hdev, 0xfc22, 1, &type, HCI_INIT_TIMEOUT);
-	if (IS_ERR(skb)) {
+
+	if (IS_ERR(skb))
+	{
 		BT_ERR("%s: Retrieving Intel exception info failed (%ld)",
-		       hdev->name, PTR_ERR(skb));
+			   hdev->name, PTR_ERR(skb));
 		return;
 	}
 
-	if (skb->len != 13) {
+	if (skb->len != 13)
+	{
 		BT_ERR("%s: Exception info size mismatch", hdev->name);
 		kfree_skb(skb);
 		return;
@@ -222,27 +259,31 @@ void btintel_version_info(struct hci_dev *hdev, struct intel_version *ver)
 {
 	const char *variant;
 
-	switch (ver->fw_variant) {
-	case 0x06:
-		variant = "Bootloader";
-		break;
-	case 0x23:
-		variant = "Firmware";
-		break;
-	default:
-		return;
+	switch (ver->fw_variant)
+	{
+		case 0x06:
+			variant = "Bootloader";
+			break;
+
+		case 0x23:
+			variant = "Firmware";
+			break;
+
+		default:
+			return;
 	}
 
 	BT_INFO("%s: %s revision %u.%u build %u week %u %u", hdev->name,
-		variant, ver->fw_revision >> 4, ver->fw_revision & 0x0f,
-		ver->fw_build_num, ver->fw_build_ww, 2000 + ver->fw_build_yy);
+			variant, ver->fw_revision >> 4, ver->fw_revision & 0x0f,
+			ver->fw_build_num, ver->fw_build_ww, 2000 + ver->fw_build_yy);
 }
 EXPORT_SYMBOL_GPL(btintel_version_info);
 
 int btintel_secure_send(struct hci_dev *hdev, u8 fragment_type, u32 plen,
-			const void *param)
+						const void *param)
 {
-	while (plen > 0) {
+	while (plen > 0)
+	{
 		struct sk_buff *skb;
 		u8 cmd_param[253], fragment_len = (plen > 252) ? 252 : plen;
 
@@ -250,9 +291,12 @@ int btintel_secure_send(struct hci_dev *hdev, u8 fragment_type, u32 plen,
 		memcpy(cmd_param + 1, param, fragment_len);
 
 		skb = __hci_cmd_sync(hdev, 0xfc09, fragment_len + 1,
-				     cmd_param, HCI_INIT_TIMEOUT);
+							 cmd_param, HCI_INIT_TIMEOUT);
+
 		if (IS_ERR(skb))
+		{
 			return PTR_ERR(skb);
+		}
 
 		kfree_skb(skb);
 
@@ -272,9 +316,11 @@ int btintel_load_ddc_config(struct hci_dev *hdev, const char *ddc_name)
 	int err;
 
 	err = request_firmware_direct(&fw, ddc_name, &hdev->dev);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		bt_dev_err(hdev, "Failed to load Intel DDC file %s (%d)",
-			   ddc_name, err);
+				   ddc_name, err);
 		return err;
 	}
 
@@ -285,14 +331,17 @@ int btintel_load_ddc_config(struct hci_dev *hdev, const char *ddc_name)
 	/* DDC file contains one or more DDC structure which has
 	 * Length (1 byte), DDC ID (2 bytes), and DDC value (Length - 2).
 	 */
-	while (fw->size > fw_ptr - fw->data) {
+	while (fw->size > fw_ptr - fw->data)
+	{
 		u8 cmd_plen = fw_ptr[0] + sizeof(u8);
 
 		skb = __hci_cmd_sync(hdev, 0xfc8b, cmd_plen, fw_ptr,
-				     HCI_INIT_TIMEOUT);
-		if (IS_ERR(skb)) {
+							 HCI_INIT_TIMEOUT);
+
+		if (IS_ERR(skb))
+		{
 			bt_dev_err(hdev, "Failed to send Intel_Write_DDC (%ld)",
-				   PTR_ERR(skb));
+					   PTR_ERR(skb));
 			release_firmware(fw);
 			return PTR_ERR(skb);
 		}
@@ -316,15 +365,20 @@ int btintel_set_event_mask(struct hci_dev *hdev, bool debug)
 	int err;
 
 	if (debug)
+	{
 		mask[1] |= 0x62;
+	}
 
 	skb = __hci_cmd_sync(hdev, 0xfc52, 8, mask, HCI_INIT_TIMEOUT);
-	if (IS_ERR(skb)) {
+
+	if (IS_ERR(skb))
+	{
 		err = PTR_ERR(skb);
 		BT_ERR("%s: Setting Intel event mask failed (%d)",
-		       hdev->name, err);
+			   hdev->name, err);
 		return err;
 	}
+
 	kfree_skb(skb);
 
 	return 0;
@@ -336,14 +390,20 @@ int btintel_set_event_mask_mfg(struct hci_dev *hdev, bool debug)
 	int err, ret;
 
 	err = btintel_enter_mfg(hdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	ret = btintel_set_event_mask(hdev, debug);
 
 	err = btintel_exit_mfg(hdev, false, false);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return ret;
 }
@@ -354,13 +414,16 @@ int btintel_read_version(struct hci_dev *hdev, struct intel_version *ver)
 	struct sk_buff *skb;
 
 	skb = __hci_cmd_sync(hdev, 0xfc05, 0, NULL, HCI_CMD_TIMEOUT);
-	if (IS_ERR(skb)) {
+
+	if (IS_ERR(skb))
+	{
 		bt_dev_err(hdev, "Reading Intel version information failed (%ld)",
-			   PTR_ERR(skb));
+				   PTR_ERR(skb));
 		return PTR_ERR(skb);
 	}
 
-	if (skb->len != sizeof(*ver)) {
+	if (skb->len != sizeof(*ver))
+	{
 		bt_dev_err(hdev, "Intel version event size mismatch");
 		kfree_skb(skb);
 		return -EILSEQ;
@@ -380,27 +443,30 @@ EXPORT_SYMBOL_GPL(btintel_read_version);
 #define IBT_REG_MODE_16BIT 0x01
 #define IBT_REG_MODE_32BIT 0x02
 
-struct regmap_ibt_context {
+struct regmap_ibt_context
+{
 	struct hci_dev *hdev;
 	__u16 op_write;
 	__u16 op_read;
 };
 
-struct ibt_cp_reg_access {
+struct ibt_cp_reg_access
+{
 	__le32  addr;
 	__u8    mode;
 	__u8    len;
 	__u8    data[0];
 } __packed;
 
-struct ibt_rp_reg_access {
+struct ibt_rp_reg_access
+{
 	__u8    status;
 	__le32  addr;
 	__u8    data[0];
 } __packed;
 
 static int regmap_ibt_read(void *context, const void *addr, size_t reg_size,
-			   void *val, size_t val_size)
+						   void *val, size_t val_size)
 {
 	struct regmap_ibt_context *ctx = context;
 	struct ibt_cp_reg_access cp;
@@ -409,20 +475,26 @@ static int regmap_ibt_read(void *context, const void *addr, size_t reg_size,
 	int err = 0;
 
 	if (reg_size != sizeof(__le32))
+	{
 		return -EINVAL;
+	}
 
-	switch (val_size) {
-	case 1:
-		cp.mode = IBT_REG_MODE_8BIT;
-		break;
-	case 2:
-		cp.mode = IBT_REG_MODE_16BIT;
-		break;
-	case 4:
-		cp.mode = IBT_REG_MODE_32BIT;
-		break;
-	default:
-		return -EINVAL;
+	switch (val_size)
+	{
+		case 1:
+			cp.mode = IBT_REG_MODE_8BIT;
+			break;
+
+		case 2:
+			cp.mode = IBT_REG_MODE_16BIT;
+			break;
+
+		case 4:
+			cp.mode = IBT_REG_MODE_32BIT;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* regmap provides a little-endian formatted addr */
@@ -432,26 +504,30 @@ static int regmap_ibt_read(void *context, const void *addr, size_t reg_size,
 	bt_dev_dbg(ctx->hdev, "Register (0x%x) read", le32_to_cpu(cp.addr));
 
 	skb = hci_cmd_sync(ctx->hdev, ctx->op_read, sizeof(cp), &cp,
-			   HCI_CMD_TIMEOUT);
-	if (IS_ERR(skb)) {
+					   HCI_CMD_TIMEOUT);
+
+	if (IS_ERR(skb))
+	{
 		err = PTR_ERR(skb);
 		bt_dev_err(ctx->hdev, "regmap: Register (0x%x) read error (%d)",
-			   le32_to_cpu(cp.addr), err);
+				   le32_to_cpu(cp.addr), err);
 		return err;
 	}
 
-	if (skb->len != sizeof(*rp) + val_size) {
+	if (skb->len != sizeof(*rp) + val_size)
+	{
 		bt_dev_err(ctx->hdev, "regmap: Register (0x%x) read error, bad len",
-			   le32_to_cpu(cp.addr));
+				   le32_to_cpu(cp.addr));
 		err = -EINVAL;
 		goto done;
 	}
 
 	rp = (struct ibt_rp_reg_access *)skb->data;
 
-	if (rp->addr != cp.addr) {
+	if (rp->addr != cp.addr)
+	{
 		bt_dev_err(ctx->hdev, "regmap: Register (0x%x) read error, bad addr",
-			   le32_to_cpu(rp->addr));
+				   le32_to_cpu(rp->addr));
 		err = -EINVAL;
 		goto done;
 	}
@@ -464,8 +540,8 @@ done:
 }
 
 static int regmap_ibt_gather_write(void *context,
-				   const void *addr, size_t reg_size,
-				   const void *val, size_t val_size)
+								   const void *addr, size_t reg_size,
+								   const void *val, size_t val_size)
 {
 	struct regmap_ibt_context *ctx = context;
 	struct ibt_cp_reg_access *cp;
@@ -475,25 +551,34 @@ static int regmap_ibt_gather_write(void *context,
 	int err = 0;
 
 	if (reg_size != sizeof(__le32))
-		return -EINVAL;
-
-	switch (val_size) {
-	case 1:
-		mode = IBT_REG_MODE_8BIT;
-		break;
-	case 2:
-		mode = IBT_REG_MODE_16BIT;
-		break;
-	case 4:
-		mode = IBT_REG_MODE_32BIT;
-		break;
-	default:
+	{
 		return -EINVAL;
 	}
 
+	switch (val_size)
+	{
+		case 1:
+			mode = IBT_REG_MODE_8BIT;
+			break;
+
+		case 2:
+			mode = IBT_REG_MODE_16BIT;
+			break;
+
+		case 4:
+			mode = IBT_REG_MODE_32BIT;
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
 	cp = kmalloc(plen, GFP_KERNEL);
+
 	if (!cp)
+	{
 		return -ENOMEM;
+	}
 
 	/* regmap provides a little-endian formatted addr/value */
 	cp->addr = *(__le32 *)addr;
@@ -504,12 +589,15 @@ static int regmap_ibt_gather_write(void *context,
 	bt_dev_dbg(ctx->hdev, "Register (0x%x) write", le32_to_cpu(cp->addr));
 
 	skb = hci_cmd_sync(ctx->hdev, ctx->op_write, plen, cp, HCI_CMD_TIMEOUT);
-	if (IS_ERR(skb)) {
+
+	if (IS_ERR(skb))
+	{
 		err = PTR_ERR(skb);
 		bt_dev_err(ctx->hdev, "regmap: Register (0x%x) write error (%d)",
-			   le32_to_cpu(cp->addr), err);
+				   le32_to_cpu(cp->addr), err);
 		goto done;
 	}
+
 	kfree_skb(skb);
 
 done:
@@ -523,7 +611,9 @@ static int regmap_ibt_write(void *context, const void *data, size_t count)
 	 * minimum data size is 4 bytes.
 	 */
 	if (WARN_ONCE(count < 4, "Invalid register access"))
+	{
 		return -EINVAL;
+	}
 
 	return regmap_ibt_gather_write(context, data, 4, data + 4, count - 4);
 }
@@ -533,7 +623,8 @@ static void regmap_ibt_free_context(void *context)
 	kfree(context);
 }
 
-static struct regmap_bus regmap_ibt = {
+static struct regmap_bus regmap_ibt =
+{
 	.read = regmap_ibt_read,
 	.write = regmap_ibt_write,
 	.gather_write = regmap_ibt_gather_write,
@@ -543,23 +634,27 @@ static struct regmap_bus regmap_ibt = {
 };
 
 /* Config is the same for all register regions */
-static const struct regmap_config regmap_ibt_cfg = {
+static const struct regmap_config regmap_ibt_cfg =
+{
 	.name      = "btintel_regmap",
 	.reg_bits  = 32,
 	.val_bits  = 32,
 };
 
 struct regmap *btintel_regmap_init(struct hci_dev *hdev, u16 opcode_read,
-				   u16 opcode_write)
+								   u16 opcode_write)
 {
 	struct regmap_ibt_context *ctx;
 
 	bt_dev_info(hdev, "regmap: Init R%x-W%x region", opcode_read,
-		    opcode_write);
+				opcode_write);
 
 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	ctx->op_read = opcode_read;
 	ctx->op_write = opcode_write;

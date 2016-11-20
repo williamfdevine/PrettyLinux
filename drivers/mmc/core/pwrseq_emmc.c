@@ -22,7 +22,8 @@
 
 #include "pwrseq.h"
 
-struct mmc_pwrseq_emmc {
+struct mmc_pwrseq_emmc
+{
 	struct mmc_pwrseq pwrseq;
 	struct notifier_block reset_nb;
 	struct gpio_desc *reset_gpio;
@@ -46,16 +47,17 @@ static void mmc_pwrseq_emmc_reset(struct mmc_host *host)
 }
 
 static int mmc_pwrseq_emmc_reset_nb(struct notifier_block *this,
-				    unsigned long mode, void *cmd)
+									unsigned long mode, void *cmd)
 {
 	struct mmc_pwrseq_emmc *pwrseq = container_of(this,
-					struct mmc_pwrseq_emmc, reset_nb);
+									 struct mmc_pwrseq_emmc, reset_nb);
 
 	__mmc_pwrseq_emmc_reset(pwrseq);
 	return NOTIFY_DONE;
 }
 
-static const struct mmc_pwrseq_ops mmc_pwrseq_emmc_ops = {
+static const struct mmc_pwrseq_ops mmc_pwrseq_emmc_ops =
+{
 	.post_power_on = mmc_pwrseq_emmc_reset,
 };
 
@@ -65,12 +67,18 @@ static int mmc_pwrseq_emmc_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 
 	pwrseq = devm_kzalloc(dev, sizeof(*pwrseq), GFP_KERNEL);
+
 	if (!pwrseq)
+	{
 		return -ENOMEM;
+	}
 
 	pwrseq->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
+
 	if (IS_ERR(pwrseq->reset_gpio))
+	{
 		return PTR_ERR(pwrseq->reset_gpio);
+	}
 
 	/*
 	 * register reset handler to ensure emmc reset also from
@@ -99,14 +107,16 @@ static int mmc_pwrseq_emmc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id mmc_pwrseq_emmc_of_match[] = {
+static const struct of_device_id mmc_pwrseq_emmc_of_match[] =
+{
 	{ .compatible = "mmc-pwrseq-emmc",},
 	{/* sentinel */},
 };
 
 MODULE_DEVICE_TABLE(of, mmc_pwrseq_emmc_of_match);
 
-static struct platform_driver mmc_pwrseq_emmc_driver = {
+static struct platform_driver mmc_pwrseq_emmc_driver =
+{
 	.probe = mmc_pwrseq_emmc_probe,
 	.remove = mmc_pwrseq_emmc_remove,
 	.driver = {

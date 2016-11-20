@@ -18,7 +18,8 @@
 #include <osdep_service.h>
 #include <drv_types.h>
 
-struct sreset_priv {
+struct sreset_priv
+{
 	u8	Wifi_Error_Status;
 };
 

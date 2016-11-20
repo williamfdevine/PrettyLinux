@@ -35,7 +35,8 @@
 static int debug = 1;
 module_param(debug, int, 0);
 
-static char *ISACVer[] = {
+static char *ISACVer[] =
+{
 	"2086/2186 V1.1",
 	"2085 B1",
 	"2085 B2",
@@ -166,7 +167,8 @@ MODULE_LICENSE("GPL");
 
 static struct Fsm l1fsm;
 
-enum {
+enum
+{
 	ST_L1_RESET,
 	ST_L1_F3_PDOWN,
 	ST_L1_F3_PUP,
@@ -193,7 +195,8 @@ static char *strL1State[] =
 	"ST_L1_F8",
 };
 
-enum {
+enum
+{
 	EV_PH_DR,           // 0000
 	EV_PH_RES,          // 0001
 	EV_PH_TMA,          // 0010
@@ -251,13 +254,16 @@ static inline void D_L1L2(struct isac *isac, int pr, void *arg)
 static void ph_command(struct isac *isac, unsigned int command)
 {
 	DBG(DBG_L1M, "ph_command %#x", command);
-	switch (isac->type) {
-	case TYPE_ISAC:
-		isac->write_isac(isac, ISAC_CIX0, (command << 2) | 3);
-		break;
-	case TYPE_ISACSX:
-		isac->write_isac(isac, ISACSX_CIX0, (command << 4) | (7 << 1));
-		break;
+
+	switch (isac->type)
+	{
+		case TYPE_ISAC:
+			isac->write_isac(isac, ISAC_CIX0, (command << 2) | 3);
+			break;
+
+		case TYPE_ISACSX:
+			isac->write_isac(isac, ISACSX_CIX0, (command << 4) | (7 << 1));
+			break;
 	}
 }
 
@@ -455,12 +461,14 @@ static void isac_empty_fifo(struct isac *isac, int count)
 
 	DBG(DBG_IRQ, "count %d", count);
 
-	if ((isac->rcvidx + count) >= MAX_DFRAME_LEN_L1) {
+	if ((isac->rcvidx + count) >= MAX_DFRAME_LEN_L1)
+	{
 		DBG(DBG_WARN, "overrun %d", isac->rcvidx + count);
 		isac->write_isac(isac, ISAC_CMDR, ISAC_CMDR_RMC);
 		isac->rcvidx = 0;
 		return;
 	}
+
 	ptr = isac->rcvbuf + isac->rcvidx;
 	isac->rcvidx += count;
 	isac->read_isac_fifo(isac, ptr, count);
@@ -484,10 +492,13 @@ static void isac_fill_fifo(struct isac *isac)
 
 	DBG(DBG_IRQ, "count %d", count);
 
-	if (count > 0x20) {
+	if (count > 0x20)
+	{
 		count = 0x20;
 		cmd = ISAC_CMDR_XTF;
-	} else {
+	}
+	else
+	{
 		cmd = ISAC_CMDR_XTF | ISAC_CMDR_XME;
 	}
 
@@ -501,10 +512,12 @@ static void isac_fill_fifo(struct isac *isac)
 
 static void isac_retransmit(struct isac *isac)
 {
-	if (!isac->tx_skb) {
+	if (!isac->tx_skb)
+	{
 		DBG(DBG_WARN, "no skb");
 		return;
 	}
+
 	skb_push(isac->tx_skb, isac->tx_cnt);
 	isac->tx_cnt = 0;
 }
@@ -516,11 +529,15 @@ static inline void isac_cisq_interrupt(struct isac *isac)
 
 	val = isac->read_isac(isac, ISAC_CIR0);
 	DBG(DBG_IRQ, "CIR0 %#x", val);
-	if (val & ISAC_CIR0_CIC0) {
+
+	if (val & ISAC_CIR0_CIC0)
+	{
 		DBG(DBG_IRQ, "CODR0 %#x", (val >> 2) & 0xf);
 		FsmEvent(&isac->l1m, (val >> 2) & 0xf, NULL);
 	}
-	if (val & ISAC_CIR0_CIC1) {
+
+	if (val & ISAC_CIR0_CIC1)
+	{
 		val = isac->read_isac(isac, ISAC_CIR1);
 		DBG(DBG_WARN, "ISAC CIR1 %#x", val);
 	}
@@ -533,8 +550,10 @@ static inline void isac_rme_interrupt(struct isac *isac)
 	struct sk_buff *skb;
 
 	val = isac->read_isac(isac, ISAC_RSTA);
+
 	if ((val & (ISAC_RSTA_RDO | ISAC_RSTA_CRC | ISAC_RSTA_RAB))
-	    != ISAC_RSTA_CRC) {
+		!= ISAC_RSTA_CRC)
+	{
 		DBG(DBG_WARN, "RSTA %#x, dropped", val);
 		isac->write_isac(isac, ISAC_CMDR, ISAC_CMDR_RMC);
 		goto out;
@@ -542,21 +561,29 @@ static inline void isac_rme_interrupt(struct isac *isac)
 
 	count = isac->read_isac(isac, ISAC_RBCL) & 0x1f;
 	DBG(DBG_IRQ, "RBCL %#x", count);
+
 	if (count == 0)
+	{
 		count = 0x20;
+	}
 
 	isac_empty_fifo(isac, count);
 	count = isac->rcvidx;
-	if (count < 1) {
+
+	if (count < 1)
+	{
 		DBG(DBG_WARN, "count %d < 1", count);
 		goto out;
 	}
 
 	skb = alloc_skb(count, GFP_ATOMIC);
-	if (!skb) {
+
+	if (!skb)
+	{
 		DBG(DBG_WARN, "no memory, dropping\n");
 		goto out;
 	}
+
 	memcpy(skb_put(skb, count), isac->rcvbuf, count);
 	DBG_SKB(DBG_RPACKET, skb);
 	D_L1L2(isac, PH_DATA | INDICATION, skb);
@@ -567,12 +594,16 @@ out:
 static inline void isac_xpr_interrupt(struct isac *isac)
 {
 	if (!isac->tx_skb)
+	{
 		return;
+	}
 
-	if (isac->tx_skb->len > 0) {
+	if (isac->tx_skb->len > 0)
+	{
 		isac_fill_fifo(isac);
 		return;
 	}
+
 	dev_kfree_skb_irq(isac->tx_skb);
 	isac->tx_cnt = 0;
 	isac->tx_skb = NULL;
@@ -586,15 +617,20 @@ static inline void isac_exi_interrupt(struct isac *isac)
 	val = isac->read_isac(isac, ISAC_EXIR);
 	DBG(2, "EXIR %#x", val);
 
-	if (val & ISAC_EXIR_XMR) {
+	if (val & ISAC_EXIR_XMR)
+	{
 		DBG(DBG_WARN, "ISAC XMR");
 		isac_retransmit(isac);
 	}
-	if (val & ISAC_EXIR_XDU) {
+
+	if (val & ISAC_EXIR_XDU)
+	{
 		DBG(DBG_WARN, "ISAC XDU");
 		isac_retransmit(isac);
 	}
-	if (val & ISAC_EXIR_MOS) {  /* MOS */
+
+	if (val & ISAC_EXIR_MOS)    /* MOS */
+	{
 		DBG(DBG_WARN, "MOS");
 		val = isac->read_isac(isac, ISAC_MOSR);
 		DBG(2, "ISAC MOSR %#x", val);
@@ -608,32 +644,46 @@ void isac_irq(struct isac *isac)
 	val = isac->read_isac(isac, ISAC_ISTA);
 	DBG(DBG_IRQ, "ISTA %#x", val);
 
-	if (val & ISAC_ISTA_EXI) {
+	if (val & ISAC_ISTA_EXI)
+	{
 		DBG(DBG_IRQ, "EXI");
 		isac_exi_interrupt(isac);
 	}
-	if (val & ISAC_ISTA_XPR) {
+
+	if (val & ISAC_ISTA_XPR)
+	{
 		DBG(DBG_IRQ, "XPR");
 		isac_xpr_interrupt(isac);
 	}
-	if (val & ISAC_ISTA_RME) {
+
+	if (val & ISAC_ISTA_RME)
+	{
 		DBG(DBG_IRQ, "RME");
 		isac_rme_interrupt(isac);
 	}
-	if (val & ISAC_ISTA_RPF) {
+
+	if (val & ISAC_ISTA_RPF)
+	{
 		DBG(DBG_IRQ, "RPF");
 		isac_empty_fifo(isac, 0x20);
 	}
-	if (val & ISAC_ISTA_CISQ) {
+
+	if (val & ISAC_ISTA_CISQ)
+	{
 		DBG(DBG_IRQ, "CISQ");
 		isac_cisq_interrupt(isac);
 	}
-	if (val & ISAC_ISTA_RSC) {
+
+	if (val & ISAC_ISTA_RSC)
+	{
 		DBG(DBG_WARN, "RSC");
 	}
-	if (val & ISAC_ISTA_SIN) {
+
+	if (val & ISAC_ISTA_SIN)
+	{
 		DBG(DBG_WARN, "SIN");
 	}
+
 	isac->write_isac(isac, ISAC_MASK, 0xff);
 	isac->write_isac(isac, ISAC_MASK, 0x00);
 }
@@ -646,7 +696,9 @@ static inline void isacsx_cic_interrupt(struct isac *isac)
 
 	val = isac->read_isac(isac, ISACSX_CIR0);
 	DBG(DBG_IRQ, "CIR0 %#x", val);
-	if (val & ISACSX_CIR0_CIC0) {
+
+	if (val & ISACSX_CIR0_CIC0)
+	{
 		DBG(DBG_IRQ, "CODR0 %#x", val >> 4);
 		FsmEvent(&isac->l1m, val >> 4, NULL);
 	}
@@ -659,11 +711,13 @@ static inline void isacsx_rme_interrupt(struct isac *isac)
 	unsigned char val;
 
 	val = isac->read_isac(isac, ISACSX_RSTAD);
+
 	if ((val & (ISACSX_RSTAD_VFR |
-		    ISACSX_RSTAD_RDO |
-		    ISACSX_RSTAD_CRC |
-		    ISACSX_RSTAD_RAB))
-	    != (ISACSX_RSTAD_VFR | ISACSX_RSTAD_CRC)) {
+				ISACSX_RSTAD_RDO |
+				ISACSX_RSTAD_CRC |
+				ISACSX_RSTAD_RAB))
+		!= (ISACSX_RSTAD_VFR | ISACSX_RSTAD_CRC))
+	{
 		DBG(DBG_WARN, "RSTAD %#x, dropped", val);
 		isac->write_isac(isac, ISACSX_CMDRD, ISACSX_CMDRD_RMC);
 		goto out;
@@ -671,22 +725,30 @@ static inline void isacsx_rme_interrupt(struct isac *isac)
 
 	count = isac->read_isac(isac, ISACSX_RBCLD) & 0x1f;
 	DBG(DBG_IRQ, "RBCLD %#x", count);
+
 	if (count == 0)
+	{
 		count = 0x20;
+	}
 
 	isac_empty_fifo(isac, count);
 	// strip trailing status byte
 	count = isac->rcvidx - 1;
-	if (count < 1) {
+
+	if (count < 1)
+	{
 		DBG(DBG_WARN, "count %d < 1", count);
 		goto out;
 	}
 
 	skb = dev_alloc_skb(count);
-	if (!skb) {
+
+	if (!skb)
+	{
 		DBG(DBG_WARN, "no memory, dropping");
 		goto out;
 	}
+
 	memcpy(skb_put(skb, count), isac->rcvbuf, count);
 	DBG_SKB(DBG_RPACKET, skb);
 	D_L1L2(isac, PH_DATA | INDICATION, skb);
@@ -697,12 +759,16 @@ out:
 static inline void isacsx_xpr_interrupt(struct isac *isac)
 {
 	if (!isac->tx_skb)
+	{
 		return;
+	}
 
-	if (isac->tx_skb->len > 0) {
+	if (isac->tx_skb->len > 0)
+	{
 		isac_fill_fifo(isac);
 		return;
 	}
+
 	dev_kfree_skb_irq(isac->tx_skb);
 	isac->tx_skb = NULL;
 	isac->tx_cnt = 0;
@@ -715,27 +781,39 @@ static inline void isacsx_icd_interrupt(struct isac *isac)
 
 	val = isac->read_isac(isac, ISACSX_ISTAD);
 	DBG(DBG_IRQ, "ISTAD %#x", val);
-	if (val & ISACSX_ISTAD_XDU) {
+
+	if (val & ISACSX_ISTAD_XDU)
+	{
 		DBG(DBG_WARN, "ISTAD XDU");
 		isac_retransmit(isac);
 	}
-	if (val & ISACSX_ISTAD_XMR) {
+
+	if (val & ISACSX_ISTAD_XMR)
+	{
 		DBG(DBG_WARN, "ISTAD XMR");
 		isac_retransmit(isac);
 	}
-	if (val & ISACSX_ISTAD_XPR) {
+
+	if (val & ISACSX_ISTAD_XPR)
+	{
 		DBG(DBG_IRQ, "ISTAD XPR");
 		isacsx_xpr_interrupt(isac);
 	}
-	if (val & ISACSX_ISTAD_RFO) {
+
+	if (val & ISACSX_ISTAD_RFO)
+	{
 		DBG(DBG_WARN, "ISTAD RFO");
 		isac->write_isac(isac, ISACSX_CMDRD, ISACSX_CMDRD_RMC);
 	}
-	if (val & ISACSX_ISTAD_RME) {
+
+	if (val & ISACSX_ISTAD_RME)
+	{
 		DBG(DBG_IRQ, "ISTAD RME");
 		isacsx_rme_interrupt(isac);
 	}
-	if (val & ISACSX_ISTAD_RPF) {
+
+	if (val & ISACSX_ISTAD_RPF)
+	{
 		DBG(DBG_IRQ, "ISTAD RPF");
 		isac_empty_fifo(isac, 0x20);
 	}
@@ -749,9 +827,14 @@ void isacsx_irq(struct isac *isac)
 	DBG(DBG_IRQ, "ISTA %#x", val);
 
 	if (val & ISACSX_ISTA_ICD)
+	{
 		isacsx_icd_interrupt(isac);
+	}
+
 	if (val & ISACSX_ISTA_CIC)
+	{
 		isacsx_cic_interrupt(isac);
+	}
 }
 
 void isac_init(struct isac *isac)
@@ -780,17 +863,24 @@ void isac_setup(struct isac *isac)
 
 	isac->write_isac(isac, ISAC_MASK, 0xff);
 	isac->mocr = 0xaa;
-	if (test_bit(ISAC_IOM1, &isac->flags)) {
+
+	if (test_bit(ISAC_IOM1, &isac->flags))
+	{
 		/* IOM 1 Mode */
 		isac->write_isac(isac, ISAC_ADF2, 0x0);
 		isac->write_isac(isac, ISAC_SPCR, 0xa);
 		isac->write_isac(isac, ISAC_ADF1, 0x2);
 		isac->write_isac(isac, ISAC_STCR, 0x70);
 		isac->write_isac(isac, ISAC_MODE, 0xc9);
-	} else {
+	}
+	else
+	{
 		/* IOM 2 Mode */
 		if (!isac->adf2)
+		{
 			isac->adf2 = 0x80;
+		}
+
 		isac->write_isac(isac, ISAC_ADF2, isac->adf2);
 		isac->write_isac(isac, ISAC_SQXR, 0x2f);
 		isac->write_isac(isac, ISAC_SPCR, 0x00);
@@ -799,6 +889,7 @@ void isac_setup(struct isac *isac)
 		isac->write_isac(isac, ISAC_TIMR, 0x00);
 		isac->write_isac(isac, ISAC_ADF1, 0x00);
 	}
+
 	val = isac->read_isac(isac, ISAC_STAR);
 	DBG(2, "ISAC STAR %x", val);
 	val = isac->read_isac(isac, ISAC_MODE);
@@ -807,10 +898,13 @@ void isac_setup(struct isac *isac)
 	DBG(2, "ISAC ADF2 %x", val);
 	val = isac->read_isac(isac, ISAC_ISTA);
 	DBG(2, "ISAC ISTA %x", val);
-	if (val & 0x01) {
+
+	if (val & 0x01)
+	{
 		eval = isac->read_isac(isac, ISAC_EXIR);
 		DBG(2, "ISAC EXIR %x", eval);
 	}
+
 	val = isac->read_isac(isac, ISAC_CIR0);
 	DBG(2, "ISAC CIR0 %x", val);
 	FsmEvent(&isac->l1m, (val >> 2) & 0xf, NULL);
@@ -833,7 +927,7 @@ void isacsx_setup(struct isac *isac)
 	isac->write_isac(isac, ISACSX_MASKD,    0x03);
 	// unmask ICD, CID IRQs
 	isac->write_isac(isac, ISACSX_MASK,
-			 ~(ISACSX_ISTA_ICD | ISACSX_ISTA_CIC));
+					 ~(ISACSX_ISTA_ICD | ISACSX_ISTA_CIC));
 }
 
 void isac_d_l2l1(struct hisax_if *hisax_d_if, int pr, void *arg)
@@ -843,26 +937,32 @@ void isac_d_l2l1(struct hisax_if *hisax_d_if, int pr, void *arg)
 
 	DBG(DBG_PR, "pr %#x", pr);
 
-	switch (pr) {
-	case PH_ACTIVATE | REQUEST:
-		FsmEvent(&isac->l1m, EV_PH_ACTIVATE_REQ, NULL);
-		break;
-	case PH_DEACTIVATE | REQUEST:
-		FsmEvent(&isac->l1m, EV_PH_DEACTIVATE_REQ, NULL);
-		break;
-	case PH_DATA | REQUEST:
-		DBG(DBG_PR, "PH_DATA REQUEST len %d", skb->len);
-		DBG_SKB(DBG_XPACKET, skb);
-		if (isac->l1m.state != ST_L1_F7) {
-			DBG(1, "L1 wrong state %d\n", isac->l1m.state);
-			dev_kfree_skb(skb);
+	switch (pr)
+	{
+		case PH_ACTIVATE | REQUEST:
+			FsmEvent(&isac->l1m, EV_PH_ACTIVATE_REQ, NULL);
 			break;
-		}
-		BUG_ON(isac->tx_skb);
 
-		isac->tx_skb = skb;
-		isac_fill_fifo(isac);
-		break;
+		case PH_DEACTIVATE | REQUEST:
+			FsmEvent(&isac->l1m, EV_PH_DEACTIVATE_REQ, NULL);
+			break;
+
+		case PH_DATA | REQUEST:
+			DBG(DBG_PR, "PH_DATA REQUEST len %d", skb->len);
+			DBG_SKB(DBG_XPACKET, skb);
+
+			if (isac->l1m.state != ST_L1_F7)
+			{
+				DBG(1, "L1 wrong state %d\n", isac->l1m.state);
+				dev_kfree_skb(skb);
+				break;
+			}
+
+			BUG_ON(isac->tx_skb);
+
+			isac->tx_skb = skb;
+			isac_fill_fifo(isac);
+			break;
 	}
 }
 

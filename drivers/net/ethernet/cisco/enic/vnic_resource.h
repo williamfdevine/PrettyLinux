@@ -29,7 +29,8 @@
 #define MGMTVNIC_MAC		{ 0x02, 0x00, 0x54, 0x4d, 0x47, 0x4d }
 
 /* vNIC resource types */
-enum vnic_res_type {
+enum vnic_res_type
+{
 	RES_TYPE_EOL,			/* End-of-list */
 	RES_TYPE_WQ,			/* Work queues */
 	RES_TYPE_RQ,			/* Receive queues */
@@ -59,12 +60,14 @@ enum vnic_res_type {
 	RES_TYPE_MAX,			/* Count of resource types */
 };
 
-struct vnic_resource_header {
+struct vnic_resource_header
+{
 	u32 magic;
 	u32 version;
 };
 
-struct mgmt_barmap_hdr {
+struct mgmt_barmap_hdr
+{
 	u32 magic;			/* magic number */
 	u32 version;			/* header format version */
 	u16 lif;			/* loopback lif for mgmt frames */
@@ -72,7 +75,8 @@ struct mgmt_barmap_hdr {
 	char serial[16];		/* card serial number */
 };
 
-struct vnic_resource {
+struct vnic_resource
+{
 	u8 type;
 	u8 bar;
 	u8 pad[2];

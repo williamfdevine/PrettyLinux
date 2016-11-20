@@ -30,14 +30,18 @@ void olpc_analog_input(struct snd_ac97 *ac97, int on)
 	int err;
 
 	if (!machine_is_olpc())
+	{
 		return;
+	}
 
 	/* update the High Pass Filter (via AC97_AD_TEST2) */
 	err = snd_ac97_update_bits(ac97, AC97_AD_TEST2,
-			1 << AC97_AD_HPFD_SHIFT, on << AC97_AD_HPFD_SHIFT);
-	if (err < 0) {
+							   1 << AC97_AD_HPFD_SHIFT, on << AC97_AD_HPFD_SHIFT);
+
+	if (err < 0)
+	{
 		dev_err(ac97->bus->card->dev,
-			"setting High Pass Filter - %d\n", err);
+				"setting High Pass Filter - %d\n", err);
 		return;
 	}
 
@@ -53,17 +57,22 @@ void olpc_mic_bias(struct snd_ac97 *ac97, int on)
 	int err;
 
 	if (!machine_is_olpc())
+	{
 		return;
+	}
 
 	on = on ? 0 : 1;
 	err = snd_ac97_update_bits(ac97, AC97_AD_MISC,
-			1 << AC97_AD_VREFD_SHIFT, on << AC97_AD_VREFD_SHIFT);
+							   1 << AC97_AD_VREFD_SHIFT, on << AC97_AD_VREFD_SHIFT);
+
 	if (err < 0)
+	{
 		dev_err(ac97->bus->card->dev, "setting MIC Bias - %d\n", err);
+	}
 }
 
 static int olpc_dc_info(struct snd_kcontrol *kctl,
-		struct snd_ctl_elem_info *uinfo)
+						struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_BOOLEAN;
 	uinfo->count = 1;
@@ -87,7 +96,7 @@ static int olpc_dc_put(struct snd_kcontrol *kctl, struct snd_ctl_elem_value *v)
 }
 
 static int olpc_mic_info(struct snd_kcontrol *kctl,
-		struct snd_ctl_elem_info *uinfo)
+						 struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_BOOLEAN;
 	uinfo->count = 1;
@@ -115,34 +124,39 @@ static int olpc_mic_put(struct snd_kcontrol *kctl, struct snd_ctl_elem_value *v)
 	return 1;
 }
 
-static struct snd_kcontrol_new olpc_cs5535audio_ctls[] = {
+static struct snd_kcontrol_new olpc_cs5535audio_ctls[] =
 {
-	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-	.name = "DC Mode Enable",
-	.info = olpc_dc_info,
-	.get = olpc_dc_get,
-	.put = olpc_dc_put,
-	.private_value = 0,
-},
-{
-	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-	.name = "MIC Bias Enable",
-	.info = olpc_mic_info,
-	.get = olpc_mic_get,
-	.put = olpc_mic_put,
-	.private_value = 0,
-},
+	{
+		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+		.name = "DC Mode Enable",
+		.info = olpc_dc_info,
+		.get = olpc_dc_get,
+		.put = olpc_dc_put,
+		.private_value = 0,
+	},
+	{
+		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+		.name = "MIC Bias Enable",
+		.info = olpc_mic_info,
+		.get = olpc_mic_get,
+		.put = olpc_mic_put,
+		.private_value = 0,
+	},
 };
 
 void olpc_prequirks(struct snd_card *card,
-		    struct snd_ac97_template *ac97)
+					struct snd_ac97_template *ac97)
 {
 	if (!machine_is_olpc())
+	{
 		return;
+	}
 
 	/* invert EAPD if on an OLPC B3 or higher */
 	if (olpc_board_at_least(olpc_board_pre(0xb3)))
+	{
 		ac97->scaps |= AC97_SCAP_INV_EAPD;
+	}
 }
 
 int olpc_quirks(struct snd_card *card, struct snd_ac97 *ac97)
@@ -151,12 +165,16 @@ int olpc_quirks(struct snd_card *card, struct snd_ac97 *ac97)
 	int i, err;
 
 	if (!machine_is_olpc())
+	{
 		return 0;
+	}
 
-	if (gpio_request(OLPC_GPIO_MIC_AC, DRV_NAME)) {
+	if (gpio_request(OLPC_GPIO_MIC_AC, DRV_NAME))
+	{
 		dev_err(card->dev, "unable to allocate MIC GPIO\n");
 		return -EIO;
 	}
+
 	gpio_direction_output(OLPC_GPIO_MIC_AC, 0);
 
 	/* drop the original AD1888 HPF control */
@@ -172,10 +190,13 @@ int olpc_quirks(struct snd_card *card, struct snd_ac97 *ac97)
 	snd_ctl_remove_id(card, &elem);
 
 	/* add the OLPC-specific controls */
-	for (i = 0; i < ARRAY_SIZE(olpc_cs5535audio_ctls); i++) {
+	for (i = 0; i < ARRAY_SIZE(olpc_cs5535audio_ctls); i++)
+	{
 		err = snd_ctl_add(card, snd_ctl_new1(&olpc_cs5535audio_ctls[i],
-				ac97->private_data));
-		if (err < 0) {
+											 ac97->private_data));
+
+		if (err < 0)
+		{
 			gpio_free(OLPC_GPIO_MIC_AC);
 			return err;
 		}

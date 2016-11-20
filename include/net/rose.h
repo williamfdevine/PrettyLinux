@@ -5,7 +5,7 @@
  */
 
 #ifndef _ROSE_H
-#define _ROSE_H 
+#define _ROSE_H
 
 #include <linux/rose.h>
 #include <net/sock.h>
@@ -46,7 +46,8 @@
 
 /* Define Link State constants. */
 
-enum {
+enum
+{
 	ROSE_STATE_0,			/* Ready */
 	ROSE_STATE_1,			/* Awaiting Call Accepted */
 	ROSE_STATE_2,			/* Awaiting Clear Confirmation */
@@ -87,7 +88,8 @@ enum {
 #define	FAC_CCITT_DEST_NSAP		0xC9
 #define	FAC_CCITT_SRC_NSAP		0xCB
 
-struct rose_neigh {
+struct rose_neigh
+{
 	struct rose_neigh	*next;
 	ax25_address		callsign;
 	ax25_digi		*digipeat;
@@ -104,7 +106,8 @@ struct rose_neigh {
 	struct timer_list	ftimer;
 };
 
-struct rose_node {
+struct rose_node
+{
 	struct rose_node	*next;
 	rose_address		address;
 	unsigned short		mask;
@@ -113,7 +116,8 @@ struct rose_node {
 	struct rose_neigh	*neighbour[3];
 };
 
-struct rose_route {
+struct rose_route
+{
 	struct rose_route	*next;
 	unsigned int		lci1, lci2;
 	rose_address		src_addr, dest_addr;
@@ -122,7 +126,8 @@ struct rose_route {
 	unsigned int		rand;
 };
 
-struct rose_sock {
+struct rose_sock
+{
 	struct sock		sock;
 	rose_address		source_addr,   dest_addr;
 	ax25_address		source_call,   dest_call;
@@ -168,7 +173,7 @@ struct sock *rose_find_socket(unsigned int, struct rose_neigh *);
 void rose_kill_by_neigh(struct rose_neigh *);
 unsigned int rose_new_lci(struct rose_neigh *);
 int rose_rx_call_request(struct sk_buff *, struct net_device *,
-			 struct rose_neigh *, unsigned int);
+						 struct rose_neigh *, unsigned int);
 void rose_destroy_socket(struct sock *);
 
 /* rose_dev.c */
@@ -183,9 +188,9 @@ void rose_stop_ftimer(struct rose_neigh *);
 void rose_stop_t0timer(struct rose_neigh *);
 int rose_ftimer_running(struct rose_neigh *);
 void rose_link_rx_restart(struct sk_buff *, struct rose_neigh *,
-			  unsigned short);
+						  unsigned short);
 void rose_transmit_clear_request(struct rose_neigh *, unsigned int,
-				 unsigned char, unsigned char);
+								 unsigned char, unsigned char);
 void rose_transmit_link(struct sk_buff *, struct rose_neigh *);
 
 /* rose_loopback.c */
@@ -212,7 +217,7 @@ struct net_device *rose_dev_first(void);
 struct net_device *rose_dev_get(rose_address *);
 struct rose_route *rose_route_free_lci(unsigned int, struct rose_neigh *);
 struct rose_neigh *rose_get_neigh(rose_address *, unsigned char *,
-				  unsigned char *, int);
+								  unsigned char *, int);
 int rose_rt_ioctl(unsigned int, void __user *);
 void rose_link_failed(ax25_cb *, int);
 int rose_route_frame(struct sk_buff *, ax25_cb *);
@@ -226,7 +231,7 @@ int rose_validate_nr(struct sock *, unsigned short);
 void rose_write_internal(struct sock *, int);
 int rose_decode(struct sk_buff *, int *, int *, int *, int *, int *);
 int rose_parse_facilities(unsigned char *, unsigned int,
-			  struct rose_facilities_struct *);
+						  struct rose_facilities_struct *);
 void rose_disconnect(struct sock *, int, int, int);
 
 /* rose_timer.c */

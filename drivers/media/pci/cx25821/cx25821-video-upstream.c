@@ -36,16 +36,17 @@ MODULE_AUTHOR("Hiep Huynh <hiep.huynh@conexant.com>");
 MODULE_LICENSE("GPL");
 
 static int _intr_msk = FLD_VID_SRC_RISC1 | FLD_VID_SRC_UF | FLD_VID_SRC_SYNC |
-			FLD_VID_SRC_OPC_ERR;
+					   FLD_VID_SRC_OPC_ERR;
 
 int cx25821_sram_channel_setup_upstream(struct cx25821_dev *dev,
-					const struct sram_channel *ch,
-					unsigned int bpl, u32 risc)
+										const struct sram_channel *ch,
+										unsigned int bpl, u32 risc)
 {
 	unsigned int i, lines;
 	u32 cdt;
 
-	if (ch->cmds_start == 0) {
+	if (ch->cmds_start == 0)
+	{
 		cx_write(ch->ptr1_reg, 0);
 		cx_write(ch->ptr2_reg, 0);
 		cx_write(ch->cnt2_reg, 0);
@@ -58,12 +59,15 @@ int cx25821_sram_channel_setup_upstream(struct cx25821_dev *dev,
 	lines = ch->fifo_size / bpl;
 
 	if (lines > 4)
+	{
 		lines = 4;
+	}
 
 	BUG_ON(lines < 2);
 
 	/* write CDT */
-	for (i = 0; i < lines; i++) {
+	for (i = 0; i < lines; i++)
+	{
 		cx_write(cdt + 16 * i, ch->fifo_start + bpl * i);
 		cx_write(cdt + 16 * i + 4, 0);
 		cx_write(cdt + 16 * i + 8, 0);
@@ -81,7 +85,9 @@ int cx25821_sram_channel_setup_upstream(struct cx25821_dev *dev,
 	cx_write(ch->cmds_start + 20, VID_IQ_SIZE_DW);
 
 	for (i = 24; i < 80; i += 4)
+	{
 		cx_write(ch->cmds_start + i, 0);
+	}
 
 	/* fill registers */
 	cx_write(ch->ptr1_reg, ch->fifo_start);
@@ -93,10 +99,10 @@ int cx25821_sram_channel_setup_upstream(struct cx25821_dev *dev,
 }
 
 static __le32 *cx25821_update_riscprogram(struct cx25821_channel *chan,
-					  __le32 *rp, unsigned int offset,
-					  unsigned int bpl, u32 sync_line,
-					  unsigned int lines, int fifo_enable,
-					  int field_type)
+		__le32 *rp, unsigned int offset,
+		unsigned int bpl, u32 sync_line,
+		unsigned int lines, int fifo_enable,
+		int field_type)
 {
 	struct cx25821_video_out_data *out = chan->out;
 	unsigned int line, i;
@@ -104,19 +110,24 @@ static __le32 *cx25821_update_riscprogram(struct cx25821_channel *chan,
 
 	*(rp++) = cpu_to_le32(RISC_RESYNC | sync_line);
 
-	if (USE_RISC_NOOP_VIDEO) {
+	if (USE_RISC_NOOP_VIDEO)
+	{
 		for (i = 0; i < NUM_NO_OPS; i++)
+		{
 			*(rp++) = cpu_to_le32(RISC_NOOP);
+		}
 	}
 
 	/* scan lines */
-	for (line = 0; line < lines; line++) {
+	for (line = 0; line < lines; line++)
+	{
 		*(rp++) = cpu_to_le32(RISC_READ | RISC_SOL | RISC_EOL | bpl);
 		*(rp++) = cpu_to_le32(out->_data_buf_phys_addr + offset);
 		*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
 
 		if ((lines <= NTSC_FIELD_HEIGHT)
-		    || (line < (NTSC_FIELD_HEIGHT - 1)) || !(out->is_60hz)) {
+			|| (line < (NTSC_FIELD_HEIGHT - 1)) || !(out->is_60hz))
+		{
 			offset += dist_betwn_starts;
 		}
 	}
@@ -125,10 +136,10 @@ static __le32 *cx25821_update_riscprogram(struct cx25821_channel *chan,
 }
 
 static __le32 *cx25821_risc_field_upstream(struct cx25821_channel *chan, __le32 *rp,
-					   dma_addr_t databuf_phys_addr,
-					   unsigned int offset, u32 sync_line,
-					   unsigned int bpl, unsigned int lines,
-					   int fifo_enable, int field_type)
+		dma_addr_t databuf_phys_addr,
+		unsigned int offset, u32 sync_line,
+		unsigned int bpl, unsigned int lines,
+		int fifo_enable, int field_type)
 {
 	struct cx25821_video_out_data *out = chan->out;
 	unsigned int line, i;
@@ -137,28 +148,37 @@ static __le32 *cx25821_risc_field_upstream(struct cx25821_channel *chan, __le32 
 
 	/* sync instruction */
 	if (sync_line != NO_SYNC_LINE)
+	{
 		*(rp++) = cpu_to_le32(RISC_RESYNC | sync_line);
+	}
 
-	if (USE_RISC_NOOP_VIDEO) {
+	if (USE_RISC_NOOP_VIDEO)
+	{
 		for (i = 0; i < NUM_NO_OPS; i++)
+		{
 			*(rp++) = cpu_to_le32(RISC_NOOP);
+		}
 	}
 
 	/* scan lines */
-	for (line = 0; line < lines; line++) {
+	for (line = 0; line < lines; line++)
+	{
 		*(rp++) = cpu_to_le32(RISC_READ | RISC_SOL | RISC_EOL | bpl);
 		*(rp++) = cpu_to_le32(databuf_phys_addr + offset);
 		*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
 
 		if ((lines <= NTSC_FIELD_HEIGHT)
-		    || (line < (NTSC_FIELD_HEIGHT - 1)) || !(out->is_60hz))
+			|| (line < (NTSC_FIELD_HEIGHT - 1)) || !(out->is_60hz))
 			/* to skip the other field line */
+		{
 			offset += dist_betwn_starts;
+		}
 
 		/* check if we need to enable the FIFO after the first 4 lines
 		 * For the upstream video channel, the risc engine will enable
 		 * the FIFO. */
-		if (fifo_enable && line == 3) {
+		if (fifo_enable && line == 3)
+		{
 			*(rp++) = cpu_to_le32(RISC_WRITECR);
 			*(rp++) = cpu_to_le32(sram_ch->dma_ctl);
 			*(rp++) = cpu_to_le32(FLD_VID_FIFO_EN);
@@ -170,9 +190,9 @@ static __le32 *cx25821_risc_field_upstream(struct cx25821_channel *chan, __le32 
 }
 
 static int cx25821_risc_buffer_upstream(struct cx25821_channel *chan,
-					struct pci_dev *pci,
-					unsigned int top_offset,
-					unsigned int bpl, unsigned int lines)
+										struct pci_dev *pci,
+										unsigned int top_offset,
+										unsigned int bpl, unsigned int lines)
 {
 	struct cx25821_video_out_data *out = chan->out;
 	__le32 *rp;
@@ -188,45 +208,53 @@ static int cx25821_risc_buffer_upstream(struct cx25821_channel *chan,
 	unsigned int bottom_offset = bpl;
 	dma_addr_t risc_phys_jump_addr;
 
-	if (out->is_60hz) {
+	if (out->is_60hz)
+	{
 		odd_num_lines = singlefield_lines + 1;
 		risc_program_size = FRAME1_VID_PROG_SIZE;
 		frame_size = (bpl == Y411_LINE_SZ) ?
-			FRAME_SIZE_NTSC_Y411 : FRAME_SIZE_NTSC_Y422;
-	} else {
+					 FRAME_SIZE_NTSC_Y411 : FRAME_SIZE_NTSC_Y422;
+	}
+	else
+	{
 		risc_program_size = PAL_VID_PROG_SIZE;
 		frame_size = (bpl == Y411_LINE_SZ) ?
-			FRAME_SIZE_PAL_Y411 : FRAME_SIZE_PAL_Y422;
+					 FRAME_SIZE_PAL_Y411 : FRAME_SIZE_PAL_Y422;
 	}
 
 	/* Virtual address of Risc buffer program */
 	rp = out->_dma_virt_addr;
 
-	for (frame = 0; frame < NUM_FRAMES; frame++) {
+	for (frame = 0; frame < NUM_FRAMES; frame++)
+	{
 		databuf_offset = frame_size * frame;
 
-		if (UNSET != top_offset) {
+		if (UNSET != top_offset)
+		{
 			fifo_enable = (frame == 0) ? FIFO_ENABLE : FIFO_DISABLE;
 			rp = cx25821_risc_field_upstream(chan, rp,
-					out->_data_buf_phys_addr +
-					databuf_offset, top_offset, 0, bpl,
-					odd_num_lines, fifo_enable, ODD_FIELD);
+											 out->_data_buf_phys_addr +
+											 databuf_offset, top_offset, 0, bpl,
+											 odd_num_lines, fifo_enable, ODD_FIELD);
 		}
 
 		fifo_enable = FIFO_DISABLE;
 
 		/* Even Field */
 		rp = cx25821_risc_field_upstream(chan, rp,
-						 out->_data_buf_phys_addr +
-						 databuf_offset, bottom_offset,
-						 0x200, bpl, singlefield_lines,
-						 fifo_enable, EVEN_FIELD);
+										 out->_data_buf_phys_addr +
+										 databuf_offset, bottom_offset,
+										 0x200, bpl, singlefield_lines,
+										 fifo_enable, EVEN_FIELD);
 
-		if (frame == 0) {
+		if (frame == 0)
+		{
 			risc_flag = RISC_CNT_RESET;
 			risc_phys_jump_addr = out->_dma_phys_start_addr +
-				risc_program_size;
-		} else {
+								  risc_program_size;
+		}
+		else
+		{
 			risc_phys_jump_addr = out->_dma_phys_start_addr;
 			risc_flag = RISC_CNT_INC;
 		}
@@ -249,7 +277,8 @@ void cx25821_stop_upstream_video(struct cx25821_channel *chan)
 	const struct sram_channel *sram_ch = chan->sram_channels;
 	u32 tmp = 0;
 
-	if (!out->_is_running) {
+	if (!out->_is_running)
+	{
 		pr_info("No video file is currently running so return!\n");
 		return;
 	}
@@ -269,7 +298,9 @@ void cx25821_stop_upstream_video(struct cx25821_channel *chan)
 
 	/* Clear data buffer memory */
 	if (out->_data_buf_virt_addr)
+	{
 		memset(out->_data_buf_virt_addr, 0, out->_data_buf_size);
+	}
 
 	out->_is_running = 0;
 	out->_is_first_frame = 0;
@@ -286,66 +317,84 @@ void cx25821_free_mem_upstream(struct cx25821_channel *chan)
 	struct cx25821_dev *dev = chan->dev;
 
 	if (out->_is_running)
+	{
 		cx25821_stop_upstream_video(chan);
+	}
 
-	if (out->_dma_virt_addr) {
+	if (out->_dma_virt_addr)
+	{
 		pci_free_consistent(dev->pci, out->_risc_size,
-				    out->_dma_virt_addr, out->_dma_phys_addr);
+							out->_dma_virt_addr, out->_dma_phys_addr);
 		out->_dma_virt_addr = NULL;
 	}
 
-	if (out->_data_buf_virt_addr) {
+	if (out->_data_buf_virt_addr)
+	{
 		pci_free_consistent(dev->pci, out->_data_buf_size,
-				    out->_data_buf_virt_addr,
-				    out->_data_buf_phys_addr);
+							out->_data_buf_virt_addr,
+							out->_data_buf_phys_addr);
 		out->_data_buf_virt_addr = NULL;
 	}
 }
 
 int cx25821_write_frame(struct cx25821_channel *chan,
-		const char __user *data, size_t count)
+						const char __user *data, size_t count)
 {
 	struct cx25821_video_out_data *out = chan->out;
 	int line_size = (out->_pixel_format == PIXEL_FRMT_411) ?
-		Y411_LINE_SZ : Y422_LINE_SZ;
+					Y411_LINE_SZ : Y422_LINE_SZ;
 	int frame_size = 0;
 	int frame_offset = 0;
 	int curpos = out->curpos;
 
 	if (out->is_60hz)
 		frame_size = (line_size == Y411_LINE_SZ) ?
-			FRAME_SIZE_NTSC_Y411 : FRAME_SIZE_NTSC_Y422;
+					 FRAME_SIZE_NTSC_Y411 : FRAME_SIZE_NTSC_Y422;
 	else
 		frame_size = (line_size == Y411_LINE_SZ) ?
-			FRAME_SIZE_PAL_Y411 : FRAME_SIZE_PAL_Y422;
+					 FRAME_SIZE_PAL_Y411 : FRAME_SIZE_PAL_Y422;
 
-	if (curpos == 0) {
+	if (curpos == 0)
+	{
 		out->cur_frame_index = out->_frame_index;
+
 		if (wait_event_interruptible(out->waitq, out->cur_frame_index != out->_frame_index))
+		{
 			return -EINTR;
+		}
+
 		out->cur_frame_index = out->_frame_index;
 	}
 
 	frame_offset = out->cur_frame_index ? frame_size : 0;
 
 	if (frame_size - curpos < count)
+	{
 		count = frame_size - curpos;
+	}
+
 	if (copy_from_user((__force char *)out->_data_buf_virt_addr + frame_offset + curpos,
-				data, count))
+					   data, count))
+	{
 		return -EFAULT;
+	}
+
 	curpos += count;
-	if (curpos == frame_size) {
+
+	if (curpos == frame_size)
+	{
 		out->_frame_count++;
 		curpos = 0;
 	}
+
 	out->curpos = curpos;
 
 	return count;
 }
 
 static int cx25821_upstream_buffer_prepare(struct cx25821_channel *chan,
-					   const struct sram_channel *sram_ch,
-					   int bpl)
+		const struct sram_channel *sram_ch,
+		int bpl)
 {
 	struct cx25821_video_out_data *out = chan->out;
 	struct cx25821_dev *dev = chan->dev;
@@ -355,16 +404,17 @@ static int cx25821_upstream_buffer_prepare(struct cx25821_channel *chan,
 
 	if (out->_dma_virt_addr != NULL)
 		pci_free_consistent(dev->pci, out->upstream_riscbuf_size,
-				out->_dma_virt_addr, out->_dma_phys_addr);
+							out->_dma_virt_addr, out->_dma_phys_addr);
 
 	out->_dma_virt_addr = pci_alloc_consistent(dev->pci,
-			out->upstream_riscbuf_size, &dma_addr);
+						  out->upstream_riscbuf_size, &dma_addr);
 	out->_dma_virt_start_addr = out->_dma_virt_addr;
 	out->_dma_phys_start_addr = dma_addr;
 	out->_dma_phys_addr = dma_addr;
 	out->_risc_size = out->upstream_riscbuf_size;
 
-	if (!out->_dma_virt_addr) {
+	if (!out->_dma_virt_addr)
+	{
 		pr_err("FAILED to allocate memory for Risc buffer! Returning\n");
 		return -ENOMEM;
 	}
@@ -374,15 +424,17 @@ static int cx25821_upstream_buffer_prepare(struct cx25821_channel *chan,
 
 	if (out->_data_buf_virt_addr != NULL)
 		pci_free_consistent(dev->pci, out->upstream_databuf_size,
-				out->_data_buf_virt_addr,
-				out->_data_buf_phys_addr);
+							out->_data_buf_virt_addr,
+							out->_data_buf_phys_addr);
+
 	/* For Video Data buffer allocation */
 	out->_data_buf_virt_addr = pci_alloc_consistent(dev->pci,
-			out->upstream_databuf_size, &data_dma_addr);
+							   out->upstream_databuf_size, &data_dma_addr);
 	out->_data_buf_phys_addr = data_dma_addr;
 	out->_data_buf_size = out->upstream_databuf_size;
 
-	if (!out->_data_buf_virt_addr) {
+	if (!out->_data_buf_virt_addr)
+	{
 		pr_err("FAILED to allocate memory for data buffer! Returning\n");
 		return -ENOMEM;
 	}
@@ -392,8 +444,10 @@ static int cx25821_upstream_buffer_prepare(struct cx25821_channel *chan,
 
 	/* Create RISC programs */
 	ret = cx25821_risc_buffer_upstream(chan, dev->pci, 0, bpl,
-			out->_lines_count);
-	if (ret < 0) {
+									   out->_lines_count);
+
+	if (ret < 0)
+	{
 		pr_info("Failed creating Video Upstream Risc programs!\n");
 		goto error;
 	}
@@ -416,7 +470,8 @@ static int cx25821_video_upstream_irq(struct cx25821_channel *chan, u32 status)
 	dma_addr_t risc_phys_jump_addr;
 	__le32 *rp;
 
-	if (status & FLD_VID_SRC_RISC1) {
+	if (status & FLD_VID_SRC_RISC1)
+	{
 		/* We should only process one program per call */
 		u32 prog_cnt = cx_read(channel->gpcnt);
 
@@ -432,31 +487,36 @@ static int cx25821_video_upstream_irq(struct cx25821_channel *chan, u32 status)
 
 		out->_frame_index = prog_cnt;
 
-		if (out->_is_first_frame) {
+		if (out->_is_first_frame)
+		{
 			out->_is_first_frame = 0;
 
-			if (out->is_60hz) {
+			if (out->is_60hz)
+			{
 				singlefield_lines += 1;
 				odd_risc_prog_size = ODD_FLD_NTSC_PROG_SIZE;
-			} else {
+			}
+			else
+			{
 				singlefield_lines = PAL_FIELD_HEIGHT;
 				odd_risc_prog_size = ODD_FLD_PAL_PROG_SIZE;
 			}
 
-			if (out->_dma_virt_start_addr != NULL) {
+			if (out->_dma_virt_start_addr != NULL)
+			{
 				line_size_in_bytes =
-				    (out->_pixel_format ==
-				     PIXEL_FRMT_411) ? Y411_LINE_SZ :
-				    Y422_LINE_SZ;
+					(out->_pixel_format ==
+					 PIXEL_FRMT_411) ? Y411_LINE_SZ :
+					Y422_LINE_SZ;
 				risc_phys_jump_addr =
-				    out->_dma_phys_start_addr +
-				    odd_risc_prog_size;
+					out->_dma_phys_start_addr +
+					odd_risc_prog_size;
 
 				rp = cx25821_update_riscprogram(chan,
-					out->_dma_virt_start_addr, TOP_OFFSET,
-					line_size_in_bytes, 0x0,
-					singlefield_lines, FIFO_DISABLE,
-					ODD_FIELD);
+												out->_dma_virt_start_addr, TOP_OFFSET,
+												line_size_in_bytes, 0x0,
+												singlefield_lines, FIFO_DISABLE,
+												ODD_FIELD);
 
 				/* Jump to Even Risc program of 1st Frame */
 				*(rp++) = cpu_to_le32(RISC_JUMP);
@@ -466,24 +526,28 @@ static int cx25821_video_upstream_irq(struct cx25821_channel *chan, u32 status)
 		}
 
 		spin_unlock(&dev->slock);
-	} else {
+	}
+	else
+	{
 		if (status & FLD_VID_SRC_UF)
 			pr_err("%s(): Video Received Underflow Error Interrupt!\n",
-			       __func__);
+				   __func__);
 
 		if (status & FLD_VID_SRC_SYNC)
 			pr_err("%s(): Video Received Sync Error Interrupt!\n",
-			       __func__);
+				   __func__);
 
 		if (status & FLD_VID_SRC_OPC_ERR)
 			pr_err("%s(): Video Received OpCode Error Interrupt!\n",
-			       __func__);
+				   __func__);
 	}
 
-	if (out->_file_status == END_OF_FILE) {
+	if (out->_file_status == END_OF_FILE)
+	{
 		pr_err("EOF Channel 1 Framecount = %d\n", out->_frame_count);
 		return -1;
 	}
+
 	/* ElSE, set the interrupt mask register, re-enable irq. */
 	int_msk_tmp = cx_read(channel->int_msk);
 	cx_write(channel->int_msk, int_msk_tmp |= _intr_msk);
@@ -500,7 +564,9 @@ static irqreturn_t cx25821_upstream_irq(int irq, void *dev_id)
 	const struct sram_channel *sram_ch;
 
 	if (!dev)
+	{
 		return -1;
+	}
 
 	sram_ch = chan->sram_channels;
 
@@ -508,14 +574,16 @@ static irqreturn_t cx25821_upstream_irq(int irq, void *dev_id)
 
 	/* Only deal with our interrupt */
 	if (vid_status)
+	{
 		handled = cx25821_video_upstream_irq(chan, vid_status);
+	}
 
 	return IRQ_RETVAL(handled);
 }
 
 static void cx25821_set_pixelengine(struct cx25821_channel *chan,
-				    const struct sram_channel *ch,
-				    int pix_format)
+									const struct sram_channel *ch,
+									int pix_format)
 {
 	struct cx25821_video_out_data *out = chan->out;
 	struct cx25821_dev *dev = chan->dev;
@@ -538,7 +606,9 @@ static void cx25821_set_pixelengine(struct cx25821_channel *chan,
 	odd_num_lines = num_lines;
 
 	if (out->is_60hz)
+	{
 		odd_num_lines += 1;
+	}
 
 	value = (num_lines << 16) | odd_num_lines;
 
@@ -549,7 +619,7 @@ static void cx25821_set_pixelengine(struct cx25821_channel *chan,
 }
 
 static int cx25821_start_video_dma_upstream(struct cx25821_channel *chan,
-					    const struct sram_channel *sram_ch)
+		const struct sram_channel *sram_ch)
 {
 	struct cx25821_video_out_data *out = chan->out;
 	struct cx25821_dev *dev = chan->dev;
@@ -581,10 +651,12 @@ static int cx25821_start_video_dma_upstream(struct cx25821_channel *chan,
 	cx_write(sram_ch->int_msk, tmp |= _intr_msk);
 
 	err = request_irq(dev->pci->irq, cx25821_upstream_irq,
-			IRQF_SHARED, dev->name, chan);
-	if (err < 0) {
+					  IRQF_SHARED, dev->name, chan);
+
+	if (err < 0)
+	{
 		pr_err("%s: can't get upstream IRQ %d\n",
-		       dev->name, dev->pci->irq);
+			   dev->name, dev->pci->irq);
 		goto fail_irq;
 	}
 
@@ -603,7 +675,7 @@ fail_irq:
 }
 
 int cx25821_vidupstream_init(struct cx25821_channel *chan,
-				 int pixel_format)
+							 int pixel_format)
 {
 	struct cx25821_video_out_data *out = chan->out;
 	struct cx25821_dev *dev = chan->dev;
@@ -613,7 +685,8 @@ int cx25821_vidupstream_init(struct cx25821_channel *chan,
 	int data_frame_size = 0;
 	int risc_buffer_size = 0;
 
-	if (out->_is_running) {
+	if (out->_is_running)
+	{
 		pr_info("Video Channel is still running so return!\n");
 		return 0;
 	}
@@ -634,10 +707,10 @@ int cx25821_vidupstream_init(struct cx25821_channel *chan,
 	out->_lines_count = out->is_60hz ? 480 : 576;
 	out->_pixel_format = pixel_format;
 	out->_line_size = (out->_pixel_format == PIXEL_FRMT_422) ?
-		(WIDTH_D1 * 2) : (WIDTH_D1 * 3) / 2;
+					  (WIDTH_D1 * 2) : (WIDTH_D1 * 3) / 2;
 	data_frame_size = out->is_60hz ? NTSC_DATA_BUF_SZ : PAL_DATA_BUF_SZ;
 	risc_buffer_size = out->is_60hz ?
-		NTSC_RISC_BUF_SIZE : PAL_RISC_BUF_SIZE;
+					   NTSC_RISC_BUF_SIZE : PAL_RISC_BUF_SIZE;
 
 	out->_is_running = 0;
 	out->_frame_count = 0;
@@ -645,7 +718,7 @@ int cx25821_vidupstream_init(struct cx25821_channel *chan,
 	out->_lines_count = out->is_60hz ? 480 : 576;
 	out->_pixel_format = pixel_format;
 	out->_line_size = (out->_pixel_format == PIXEL_FRMT_422) ?
-		(WIDTH_D1 * 2) : (WIDTH_D1 * 3) / 2;
+					  (WIDTH_D1 * 2) : (WIDTH_D1 * 3) / 2;
 	out->curpos = 0;
 	init_waitqueue_head(&out->waitq);
 
@@ -660,9 +733,11 @@ int cx25821_vidupstream_init(struct cx25821_channel *chan,
 
 	/* Allocating buffers and prepare RISC program */
 	err = cx25821_upstream_buffer_prepare(chan, sram_ch, out->_line_size);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_err("%s: Failed to set up Video upstream buffers!\n",
-		       dev->name);
+			   dev->name);
 		goto error;
 	}
 

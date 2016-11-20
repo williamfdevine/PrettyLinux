@@ -25,7 +25,8 @@
  * @init: Initialize hardware specific SMPT information in mic_smpt_hw_info.
  * @set: Set the value for a particular SMPT entry.
  */
-struct mic_smpt_ops {
+struct mic_smpt_ops
+{
 	void (*init)(struct mic_device *mdev);
 	void (*set)(struct mic_device *mdev, dma_addr_t dma_addr, u8 index);
 };
@@ -35,7 +36,8 @@ struct mic_smpt_ops {
  * @dma_addr: Base DMA address for this SMPT entry.
  * @ref_count: Number of active mappings for this SMPT entry in bytes.
  */
-struct mic_smpt {
+struct mic_smpt
+{
 	dma_addr_t dma_addr;
 	s64 ref_count;
 };
@@ -47,7 +49,8 @@ struct mic_smpt {
  * @page_size: System memory page size.
  * @base: System address base.
  */
-struct mic_smpt_hw_info {
+struct mic_smpt_hw_info
+{
 	u8 num_reg;
 	u8 page_shift;
 	u64 page_size;
@@ -63,7 +66,8 @@ struct mic_smpt_hw_info {
  * @map_count: Number of SMPT mappings created (for debug).
  * @unmap_count: Number of SMPT mappings destroyed (for debug).
  */
-struct mic_smpt_info {
+struct mic_smpt_info
+{
 	struct mic_smpt *entry;
 	spinlock_t smpt_lock;
 	struct mic_smpt_hw_info info;
@@ -74,9 +78,9 @@ struct mic_smpt_info {
 
 dma_addr_t mic_map_single(struct mic_device *mdev, void *va, size_t size);
 void mic_unmap_single(struct mic_device *mdev,
-	dma_addr_t mic_addr, size_t size);
+					  dma_addr_t mic_addr, size_t size);
 dma_addr_t mic_map(struct mic_device *mdev,
-	dma_addr_t dma_addr, size_t size);
+				   dma_addr_t dma_addr, size_t size);
 void mic_unmap(struct mic_device *mdev, dma_addr_t mic_addr, size_t size);
 dma_addr_t mic_to_dma_addr(struct mic_device *mdev, dma_addr_t mic_addr);
 

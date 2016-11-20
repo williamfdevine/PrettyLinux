@@ -32,12 +32,14 @@
 
 #define SMC_RAM_END 0x40000
 
-struct polaris10_avfs {
+struct polaris10_avfs
+{
 	enum AVFS_BTC_STATUS avfs_btc_status;
 	uint32_t           avfs_btc_param;
 };
 
-struct polaris10_pt_defaults {
+struct polaris10_pt_defaults
+{
 	uint8_t   SviLoadLineEn;
 	uint8_t   SviLoadLineVddC;
 	uint8_t   TDC_VDDC_ThrottleReleaseLimitPerc;
@@ -53,12 +55,14 @@ struct polaris10_pt_defaults {
 
 
 
-struct polaris10_range_table {
+struct polaris10_range_table
+{
 	uint32_t trans_lower_frequency; /* in 10khz */
 	uint32_t trans_upper_frequency;
 };
 
-struct polaris10_smumgr {
+struct polaris10_smumgr
+{
 	struct smu7_smumgr smu7_data;
 	uint8_t protected_mode;
 	struct polaris10_avfs  avfs;

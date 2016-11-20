@@ -35,7 +35,8 @@
 #define  RCAR_PWMCNT_PH0_MASK	0x000003ff
 #define  RCAR_PWMCNT_PH0_SHIFT	0
 
-struct rcar_pwm_chip {
+struct rcar_pwm_chip
+{
 	struct pwm_chip chip;
 	void __iomem *base;
 	struct clk *clk;
@@ -47,7 +48,7 @@ static inline struct rcar_pwm_chip *to_rcar_pwm_chip(struct pwm_chip *chip)
 }
 
 static void rcar_pwm_write(struct rcar_pwm_chip *rp, u32 data,
-			   unsigned int offset)
+						   unsigned int offset)
 {
 	writel(data, rp->base + offset);
 }
@@ -58,7 +59,7 @@ static u32 rcar_pwm_read(struct rcar_pwm_chip *rp, unsigned int offset)
 }
 
 static void rcar_pwm_update(struct rcar_pwm_chip *rp, u32 mask, u32 data,
-			    unsigned int offset)
+							unsigned int offset)
 {
 	u32 value;
 
@@ -75,21 +76,27 @@ static int rcar_pwm_get_clock_division(struct rcar_pwm_chip *rp, int period_ns)
 	unsigned int div;
 
 	if (clk_rate == 0)
+	{
 		return -EINVAL;
+	}
 
-	for (div = 0; div <= RCAR_PWM_MAX_DIVISION; div++) {
+	for (div = 0; div <= RCAR_PWM_MAX_DIVISION; div++)
+	{
 		max = (unsigned long long)NSEC_PER_SEC * RCAR_PWM_MAX_CYCLE *
-			(1 << div);
+			  (1 << div);
 		do_div(max, clk_rate);
+
 		if (period_ns <= max)
+		{
 			break;
+		}
 	}
 
 	return (div <= RCAR_PWM_MAX_DIVISION) ? div : -ERANGE;
 }
 
 static void rcar_pwm_set_clock_control(struct rcar_pwm_chip *rp,
-				       unsigned int div)
+									   unsigned int div)
 {
 	u32 value;
 
@@ -97,7 +104,9 @@ static void rcar_pwm_set_clock_control(struct rcar_pwm_chip *rp,
 	value &= ~(RCAR_PWMCR_CCMD | RCAR_PWMCR_CC0_MASK);
 
 	if (div & 1)
+	{
 		value |= RCAR_PWMCR_CCMD;
+	}
 
 	div >>= 1;
 
@@ -106,7 +115,7 @@ static void rcar_pwm_set_clock_control(struct rcar_pwm_chip *rp,
 }
 
 static int rcar_pwm_set_counter(struct rcar_pwm_chip *rp, int div, int duty_ns,
-				int period_ns)
+								int period_ns)
 {
 	unsigned long long one_cycle, tmp;	/* 0.01 nanoseconds */
 	unsigned long clk_rate = clk_get_rate(rp->clk);
@@ -125,7 +134,9 @@ static int rcar_pwm_set_counter(struct rcar_pwm_chip *rp, int div, int duty_ns,
 
 	/* Avoid prohibited setting */
 	if (cyc == 0 || ph == 0)
+	{
 		return -EINVAL;
+	}
 
 	rcar_pwm_write(rp, cyc | ph, RCAR_PWMCNT);
 
@@ -147,24 +158,32 @@ static void rcar_pwm_free(struct pwm_chip *chip, struct pwm_device *pwm)
 }
 
 static int rcar_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			   int duty_ns, int period_ns)
+						   int duty_ns, int period_ns)
 {
 	struct rcar_pwm_chip *rp = to_rcar_pwm_chip(chip);
 	int div, ret;
 
 	div = rcar_pwm_get_clock_division(rp, period_ns);
+
 	if (div < 0)
+	{
 		return div;
+	}
 
 	/* Let the core driver set pwm->period if disabled and duty_ns == 0 */
 	if (!pwm_is_enabled(pwm) && !duty_ns)
+	{
 		return 0;
+	}
 
 	rcar_pwm_update(rp, RCAR_PWMCR_SYNC, RCAR_PWMCR_SYNC, RCAR_PWMCR);
 
 	ret = rcar_pwm_set_counter(rp, div, duty_ns, period_ns);
+
 	if (!ret)
+	{
 		rcar_pwm_set_clock_control(rp, div);
+	}
 
 	/* The SYNC should be set to 0 even if rcar_pwm_set_counter failed */
 	rcar_pwm_update(rp, RCAR_PWMCR_SYNC, 0, RCAR_PWMCR);
@@ -179,9 +198,12 @@ static int rcar_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 
 	/* Don't enable the PWM device if CYC0 or PH0 is 0 */
 	value = rcar_pwm_read(rp, RCAR_PWMCNT);
+
 	if ((value & RCAR_PWMCNT_CYC0_MASK) == 0 ||
-	    (value & RCAR_PWMCNT_PH0_MASK) == 0)
+		(value & RCAR_PWMCNT_PH0_MASK) == 0)
+	{
 		return -EINVAL;
+	}
 
 	rcar_pwm_update(rp, RCAR_PWMCR_EN0, RCAR_PWMCR_EN0, RCAR_PWMCR);
 
@@ -195,7 +217,8 @@ static void rcar_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	rcar_pwm_update(rp, RCAR_PWMCR_EN0, 0, RCAR_PWMCR);
 }
 
-static const struct pwm_ops rcar_pwm_ops = {
+static const struct pwm_ops rcar_pwm_ops =
+{
 	.request = rcar_pwm_request,
 	.free = rcar_pwm_free,
 	.config = rcar_pwm_config,
@@ -211,16 +234,24 @@ static int rcar_pwm_probe(struct platform_device *pdev)
 	int ret;
 
 	rcar_pwm = devm_kzalloc(&pdev->dev, sizeof(*rcar_pwm), GFP_KERNEL);
+
 	if (rcar_pwm == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rcar_pwm->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(rcar_pwm->base))
+	{
 		return PTR_ERR(rcar_pwm->base);
+	}
 
 	rcar_pwm->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(rcar_pwm->clk)) {
+
+	if (IS_ERR(rcar_pwm->clk))
+	{
 		dev_err(&pdev->dev, "cannot get clock\n");
 		return PTR_ERR(rcar_pwm->clk);
 	}
@@ -233,7 +264,9 @@ static int rcar_pwm_probe(struct platform_device *pdev)
 	rcar_pwm->chip.npwm = 1;
 
 	ret = pwmchip_add(&rcar_pwm->chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to register PWM chip: %d\n", ret);
 		return ret;
 	}
@@ -252,13 +285,15 @@ static int rcar_pwm_remove(struct platform_device *pdev)
 	return pwmchip_remove(&rcar_pwm->chip);
 }
 
-static const struct of_device_id rcar_pwm_of_table[] = {
+static const struct of_device_id rcar_pwm_of_table[] =
+{
 	{ .compatible = "renesas,pwm-rcar", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, rcar_pwm_of_table);
 
-static struct platform_driver rcar_pwm_driver = {
+static struct platform_driver rcar_pwm_driver =
+{
 	.probe = rcar_pwm_probe,
 	.remove = rcar_pwm_remove,
 	.driver = {

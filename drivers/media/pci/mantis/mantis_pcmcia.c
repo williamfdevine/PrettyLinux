@@ -45,7 +45,8 @@ void mantis_event_cam_plugin(struct mantis_ca *ca)
 
 	u32 gpif_irqcfg;
 
-	if (ca->slot_state == MODULE_XTRACTED) {
+	if (ca->slot_state == MODULE_XTRACTED)
+	{
 		dprintk(MANTIS_DEBUG, 1, "Event: CAM Plugged IN: Adapter(%d) Slot(0)", mantis->num);
 		udelay(50);
 		mmwrite(0xda000000, MANTIS_CARD_RESET);
@@ -56,6 +57,7 @@ void mantis_event_cam_plugin(struct mantis_ca *ca)
 		udelay(500);
 		ca->slot_state = MODULE_INSERTED;
 	}
+
 	udelay(100);
 }
 
@@ -69,7 +71,8 @@ void mantis_event_cam_unplug(struct mantis_ca *ca)
 
 	u32 gpif_irqcfg;
 
-	if (ca->slot_state == MODULE_INSERTED) {
+	if (ca->slot_state == MODULE_INSERTED)
+	{
 		dprintk(MANTIS_DEBUG, 1, "Event: CAM Unplugged: Adapter(%d) Slot(0)", mantis->num);
 		udelay(50);
 		mmwrite(0x00da0000, MANTIS_CARD_RESET);
@@ -80,6 +83,7 @@ void mantis_event_cam_unplug(struct mantis_ca *ca)
 		udelay(500);
 		ca->slot_state = MODULE_XTRACTED;
 	}
+
 	udelay(100);
 }
 
@@ -93,20 +97,23 @@ int mantis_pcmcia_init(struct mantis_ca *ca)
 	gpif_stat = mmread(MANTIS_GPIF_STATUS);
 	card_stat = mmread(MANTIS_GPIF_IRQCFG);
 
-	if (gpif_stat & MANTIS_GPIF_DETSTAT) {
+	if (gpif_stat & MANTIS_GPIF_DETSTAT)
+	{
 		dprintk(MANTIS_DEBUG, 1, "CAM found on Adapter(%d) Slot(0)", mantis->num);
 		mmwrite(card_stat | MANTIS_MASK_PLUGOUT, MANTIS_GPIF_IRQCFG);
 		ca->slot_state = MODULE_INSERTED;
 		dvb_ca_en50221_camchange_irq(&ca->en50221,
-					     0,
-					     DVB_CA_EN50221_CAMCHANGE_INSERTED);
-	} else {
+									 0,
+									 DVB_CA_EN50221_CAMCHANGE_INSERTED);
+	}
+	else
+	{
 		dprintk(MANTIS_DEBUG, 1, "Empty Slot on Adapter(%d) Slot(0)", mantis->num);
 		mmwrite(card_stat | MANTIS_MASK_PLUGIN, MANTIS_GPIF_IRQCFG);
 		ca->slot_state = MODULE_XTRACTED;
 		dvb_ca_en50221_camchange_irq(&ca->en50221,
-					     0,
-					     DVB_CA_EN50221_CAMCHANGE_REMOVED);
+									 0,
+									 DVB_CA_EN50221_CAMCHANGE_REMOVED);
 	}
 
 	return 0;

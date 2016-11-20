@@ -17,5 +17,5 @@
 #define _GEM_H
 
 extern int psb_gem_create(struct drm_file *file, struct drm_device *dev,
-			  u64 size, u32 *handlep, int stolen, u32 align);
+						  u64 size, u32 *handlep, int stolen, u32 align);
 #endif

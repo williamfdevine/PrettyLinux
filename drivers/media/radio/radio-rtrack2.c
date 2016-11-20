@@ -30,13 +30,14 @@ MODULE_LICENSE("GPL");
 MODULE_VERSION("0.1.99");
 
 #ifndef CONFIG_RADIO_RTRACK2_PORT
-#define CONFIG_RADIO_RTRACK2_PORT -1
+	#define CONFIG_RADIO_RTRACK2_PORT -1
 #endif
 
 #define RTRACK2_MAX 2
 
 static int io[RTRACK2_MAX] = { [0] = CONFIG_RADIO_RTRACK2_PORT,
-			      [1 ... (RTRACK2_MAX - 1)] = -1 };
+							   [1 ... (RTRACK2_MAX - 1)] = -1
+							 };
 static int radio_nr[RTRACK2_MAX] = { [0 ... (RTRACK2_MAX - 1)] = -1 };
 
 module_param_array(io, int, NULL, 0444);
@@ -74,13 +75,19 @@ static int rtrack2_s_frequency(struct radio_isa_card *isa, u32 freq)
 	outb_p(0xc9, isa->io);
 
 	for (i = 0; i < 10; i++)
+	{
 		zero(isa);
+	}
 
 	for (i = 14; i >= 0; i--)
 		if (freq & (1 << i))
+		{
 			one(isa);
+		}
 		else
+		{
 			zero(isa);
+		}
 
 	outb_p(0xc8, isa->io);
 	outb_p(v4l2_ctrl_g_ctrl(isa->mute), isa->io);
@@ -99,7 +106,8 @@ static int rtrack2_s_mute_volume(struct radio_isa_card *isa, bool mute, int vol)
 	return 0;
 }
 
-static const struct radio_isa_ops rtrack2_ops = {
+static const struct radio_isa_ops rtrack2_ops =
+{
 	.alloc = rtrack2_alloc,
 	.s_mute_volume = rtrack2_s_mute_volume,
 	.s_frequency = rtrack2_s_frequency,
@@ -108,7 +116,8 @@ static const struct radio_isa_ops rtrack2_ops = {
 
 static const int rtrack2_ioports[] = { 0x20f, 0x30f };
 
-static struct radio_isa_driver rtrack2_driver = {
+static struct radio_isa_driver rtrack2_driver =
+{
 	.driver = {
 		.match		= radio_isa_match,
 		.probe		= radio_isa_probe,

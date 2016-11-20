@@ -47,18 +47,18 @@ typedef u8 enet_addr_t[ETH_ALEN];
 
 #define ENET_ADDR_TO_UINT64(_enet_addr)		\
 	(u64)(((u64)(_enet_addr)[0] << 40) |		\
-	      ((u64)(_enet_addr)[1] << 32) |		\
-	      ((u64)(_enet_addr)[2] << 24) |		\
-	      ((u64)(_enet_addr)[3] << 16) |		\
-	      ((u64)(_enet_addr)[4] << 8) |		\
-	      ((u64)(_enet_addr)[5]))
+		  ((u64)(_enet_addr)[1] << 32) |		\
+		  ((u64)(_enet_addr)[2] << 24) |		\
+		  ((u64)(_enet_addr)[3] << 16) |		\
+		  ((u64)(_enet_addr)[4] << 8) |		\
+		  ((u64)(_enet_addr)[5]))
 
 #define MAKE_ENET_ADDR_FROM_UINT64(_addr64, _enet_addr) \
 	do { \
 		int i; \
 		for (i = 0; i < ETH_ALEN; i++) \
 			(_enet_addr)[i] = \
-			(u8)((_addr64) >> ((5 - i) * 8)); \
+							  (u8)((_addr64) >> ((5 - i) * 8)); \
 	} while (0)
 
 /* defaults */
@@ -78,7 +78,8 @@ typedef u8 enet_addr_t[ETH_ALEN];
 /* Enumeration (bit flags) of communication modes (Transmit,
  * receive or both).
  */
-enum comm_mode {
+enum comm_mode
+{
 	COMM_MODE_NONE = 0,	/* No transmit/receive communication */
 	COMM_MODE_RX = 1,	/* Only receive communication */
 	COMM_MODE_TX = 2,	/* Only transmit communication */
@@ -86,9 +87,10 @@ enum comm_mode {
 };
 
 /* FM MAC Exceptions */
-enum fman_mac_exceptions {
+enum fman_mac_exceptions
+{
 	FM_MAC_EX_10G_MDIO_SCAN_EVENT = 0
-	/* 10GEC MDIO scan event interrupt */
+									/* 10GEC MDIO scan event interrupt */
 	, FM_MAC_EX_10G_MDIO_CMD_CMPL
 	/* 10GEC MDIO command completion interrupt */
 	, FM_MAC_EX_10G_REM_FAULT
@@ -160,19 +162,21 @@ enum fman_mac_exceptions {
 	 * not supported on T4240/B4860 rev1 chips
 	 */
 	, FM_MAC_EX_MAGIC_PACKET_INDICATION = FM_MAC_EX_1G_MAG_PCKT
-	/* mEMAC Magic Packet Indication Interrupt */
+										  /* mEMAC Magic Packet Indication Interrupt */
 };
 
-struct eth_hash_entry {
+struct eth_hash_entry
+{
 	u64 addr;		/* Ethernet Address  */
 	struct list_head node;
 };
 
 typedef void (fman_mac_exception_cb)(void *dev_id,
-				    enum fman_mac_exceptions exceptions);
+									 enum fman_mac_exceptions exceptions);
 
 /* FMan MAC config input */
-struct fman_mac_params {
+struct fman_mac_params
+{
 	/* Base of memory mapped FM MAC registers */
 	void __iomem *base_addr;
 	/* MAC address of device; First octet is sent first */
@@ -204,7 +208,8 @@ struct fman_mac_params {
 	struct device_node *internal_phy_node;
 };
 
-struct eth_hash_t {
+struct eth_hash_t
+{
 	u16 size;
 	struct list_head *lsts;
 };
@@ -214,10 +219,12 @@ static inline struct eth_hash_entry
 {
 	struct eth_hash_entry *hash_entry = NULL;
 
-	if (!list_empty(addr_lst)) {
+	if (!list_empty(addr_lst))
+	{
 		hash_entry = ETH_HASH_ENTRY_OBJ(addr_lst->next);
 		list_del_init(&hash_entry->node);
 	}
+
 	return hash_entry;
 }
 
@@ -226,16 +233,21 @@ static inline void free_hash_table(struct eth_hash_t *hash)
 	struct eth_hash_entry *hash_entry;
 	int i = 0;
 
-	if (hash) {
-		if (hash->lsts) {
-			for (i = 0; i < hash->size; i++) {
+	if (hash)
+	{
+		if (hash->lsts)
+		{
+			for (i = 0; i < hash->size; i++)
+			{
 				hash_entry =
-				dequeue_addr_from_hash_entry(&hash->lsts[i]);
-				while (hash_entry) {
+					dequeue_addr_from_hash_entry(&hash->lsts[i]);
+
+				while (hash_entry)
+				{
 					kfree(hash_entry);
 					hash_entry =
-					dequeue_addr_from_hash_entry(&hash->
-								     lsts[i]);
+						dequeue_addr_from_hash_entry(&hash->
+													 lsts[i]);
 				}
 			}
 
@@ -253,20 +265,27 @@ static inline struct eth_hash_t *alloc_hash_table(u16 size)
 
 	/* Allocate address hash table */
 	hash = kmalloc_array(size, sizeof(struct eth_hash_t *), GFP_KERNEL);
+
 	if (!hash)
+	{
 		return NULL;
+	}
 
 	hash->size = size;
 
 	hash->lsts = kmalloc_array(hash->size, sizeof(struct list_head),
-				   GFP_KERNEL);
-	if (!hash->lsts) {
+							   GFP_KERNEL);
+
+	if (!hash->lsts)
+	{
 		kfree(hash);
 		return NULL;
 	}
 
 	for (i = 0; i < hash->size; i++)
+	{
 		INIT_LIST_HEAD(&hash->lsts[i]);
+	}
 
 	return hash;
 }

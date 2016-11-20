@@ -26,14 +26,16 @@
 
 #define ION_CMA_ALLOCATE_FAILED -1
 
-struct ion_cma_heap {
+struct ion_cma_heap
+{
 	struct ion_heap heap;
 	struct device *dev;
 };
 
 #define to_cma_heap(x) container_of(x, struct ion_cma_heap, heap)
 
-struct ion_cma_buffer_info {
+struct ion_cma_buffer_info
+{
 	void *cpu_addr;
 	dma_addr_t handle;
 	struct sg_table *table;
@@ -42,8 +44,8 @@ struct ion_cma_buffer_info {
 
 /* ION CMA heap operations functions */
 static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
-			    unsigned long len, unsigned long align,
-			    unsigned long flags)
+							unsigned long len, unsigned long align,
+							unsigned long flags)
 {
 	struct ion_cma_heap *cma_heap = to_cma_heap(heap);
 	struct device *dev = cma_heap->dev;
@@ -52,30 +54,44 @@ static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
 	dev_dbg(dev, "Request buffer allocation len %ld\n", len);
 
 	if (buffer->flags & ION_FLAG_CACHED)
+	{
 		return -EINVAL;
+	}
 
 	if (align > PAGE_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	info = kzalloc(sizeof(struct ion_cma_buffer_info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return ION_CMA_ALLOCATE_FAILED;
+	}
 
 	info->cpu_addr = dma_alloc_coherent(dev, len, &(info->handle),
-						GFP_HIGHUSER | __GFP_ZERO);
+										GFP_HIGHUSER | __GFP_ZERO);
 
-	if (!info->cpu_addr) {
+	if (!info->cpu_addr)
+	{
 		dev_err(dev, "Fail to allocate buffer\n");
 		goto err;
 	}
 
 	info->table = kmalloc(sizeof(struct sg_table), GFP_KERNEL);
+
 	if (!info->table)
+	{
 		goto free_mem;
+	}
 
 	if (dma_get_sgtable(dev, info->table, info->cpu_addr, info->handle,
-			    len))
+						len))
+	{
 		goto free_table;
+	}
+
 	/* keep this for memory release */
 	buffer->priv_virt = info;
 	buffer->sg_table = info->table;
@@ -107,18 +123,18 @@ static void ion_cma_free(struct ion_buffer *buffer)
 }
 
 static int ion_cma_mmap(struct ion_heap *mapper, struct ion_buffer *buffer,
-			struct vm_area_struct *vma)
+						struct vm_area_struct *vma)
 {
 	struct ion_cma_heap *cma_heap = to_cma_heap(buffer->heap);
 	struct device *dev = cma_heap->dev;
 	struct ion_cma_buffer_info *info = buffer->priv_virt;
 
 	return dma_mmap_coherent(dev, vma, info->cpu_addr, info->handle,
-				 buffer->size);
+							 buffer->size);
 }
 
 static void *ion_cma_map_kernel(struct ion_heap *heap,
-				struct ion_buffer *buffer)
+								struct ion_buffer *buffer)
 {
 	struct ion_cma_buffer_info *info = buffer->priv_virt;
 	/* kernel memory mapping has been done at allocation time */
@@ -126,11 +142,12 @@ static void *ion_cma_map_kernel(struct ion_heap *heap,
 }
 
 static void ion_cma_unmap_kernel(struct ion_heap *heap,
-				 struct ion_buffer *buffer)
+								 struct ion_buffer *buffer)
 {
 }
 
-static struct ion_heap_ops ion_cma_ops = {
+static struct ion_heap_ops ion_cma_ops =
+{
 	.allocate = ion_cma_allocate,
 	.free = ion_cma_free,
 	.map_user = ion_cma_mmap,
@@ -145,7 +162,9 @@ struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data)
 	cma_heap = kzalloc(sizeof(struct ion_cma_heap), GFP_KERNEL);
 
 	if (!cma_heap)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	cma_heap->heap.ops = &ion_cma_ops;
 	/*

@@ -39,10 +39,11 @@
 #include <linux/wait.h>
 
 #if defined(CONFIG_DEBUG_SLAB) || defined(CONFIG_SLUB_DEBUG_ON)
-#define DMAPOOL_DEBUG 1
+	#define DMAPOOL_DEBUG 1
 #endif
 
-struct dma_pool {		/* the pool */
+struct dma_pool  		/* the pool */
+{
 	struct list_head page_list;
 	spinlock_t lock;
 	size_t size;
@@ -53,7 +54,8 @@ struct dma_pool {		/* the pool */
 	struct list_head pools;
 };
 
-struct dma_page {		/* cacheable header for 'allocation' bytes */
+struct dma_page  		/* cacheable header for 'allocation' bytes */
+{
 	struct list_head page_list;
 	void *vaddr;
 	dma_addr_t dma;
@@ -81,12 +83,14 @@ show_pools(struct device *dev, struct device_attribute *attr, char *buf)
 	next += temp;
 
 	mutex_lock(&pools_lock);
-	list_for_each_entry(pool, &dev->dma_pools, pools) {
+	list_for_each_entry(pool, &dev->dma_pools, pools)
+	{
 		unsigned pages = 0;
 		unsigned blocks = 0;
 
 		spin_lock_irq(&pool->lock);
-		list_for_each_entry(page, &pool->page_list, page_list) {
+		list_for_each_entry(page, &pool->page_list, page_list)
+		{
 			pages++;
 			blocks += page->in_use;
 		}
@@ -94,9 +98,9 @@ show_pools(struct device *dev, struct device_attribute *attr, char *buf)
 
 		/* per-pool info, no real statistics yet */
 		temp = scnprintf(next, size, "%-16s %4u %4Zu %4Zu %2u\n",
-				 pool->name, blocks,
-				 pages * (pool->allocation / pool->size),
-				 pool->size, pages);
+						 pool->name, blocks,
+						 pages * (pool->allocation / pool->size),
+						 pool->size, pages);
 		size -= temp;
 		next += temp;
 	}
@@ -129,35 +133,52 @@ static DEVICE_ATTR(pools, S_IRUGO, show_pools, NULL);
  * boundaries of 4KBytes.
  */
 struct dma_pool *dma_pool_create(const char *name, struct device *dev,
-				 size_t size, size_t align, size_t boundary)
+								 size_t size, size_t align, size_t boundary)
 {
 	struct dma_pool *retval;
 	size_t allocation;
 	bool empty = false;
 
 	if (align == 0)
+	{
 		align = 1;
+	}
 	else if (align & (align - 1))
+	{
 		return NULL;
+	}
 
 	if (size == 0)
+	{
 		return NULL;
+	}
 	else if (size < 4)
+	{
 		size = 4;
+	}
 
 	if ((size % align) != 0)
+	{
 		size = ALIGN(size, align);
+	}
 
 	allocation = max_t(size_t, size, PAGE_SIZE);
 
 	if (!boundary)
+	{
 		boundary = allocation;
+	}
 	else if ((boundary < size) || (boundary & (boundary - 1)))
+	{
 		return NULL;
+	}
 
 	retval = kmalloc_node(sizeof(*retval), GFP_KERNEL, dev_to_node(dev));
+
 	if (!retval)
+	{
 		return retval;
+	}
 
 	strlcpy(retval->name, name, sizeof(retval->name));
 
@@ -181,15 +202,23 @@ struct dma_pool *dma_pool_create(const char *name, struct device *dev,
 	 */
 	mutex_lock(&pools_reg_lock);
 	mutex_lock(&pools_lock);
+
 	if (list_empty(&dev->dma_pools))
+	{
 		empty = true;
+	}
+
 	list_add(&retval->pools, &dev->dma_pools);
 	mutex_unlock(&pools_lock);
-	if (empty) {
+
+	if (empty)
+	{
 		int err;
 
 		err = device_create_file(dev, &dev_attr_pools);
-		if (err) {
+
+		if (err)
+		{
 			mutex_lock(&pools_lock);
 			list_del(&retval->pools);
 			mutex_unlock(&pools_lock);
@@ -198,6 +227,7 @@ struct dma_pool *dma_pool_create(const char *name, struct device *dev,
 			return NULL;
 		}
 	}
+
 	mutex_unlock(&pools_reg_lock);
 	return retval;
 }
@@ -208,15 +238,20 @@ static void pool_initialise_page(struct dma_pool *pool, struct dma_page *page)
 	unsigned int offset = 0;
 	unsigned int next_boundary = pool->boundary;
 
-	do {
+	do
+	{
 		unsigned int next = offset + pool->size;
-		if (unlikely((next + pool->size) >= next_boundary)) {
+
+		if (unlikely((next + pool->size) >= next_boundary))
+		{
 			next = next_boundary;
 			next_boundary += pool->boundary;
 		}
+
 		*(int *)(page->vaddr + offset) = next;
 		offset = next;
-	} while (offset < pool->allocation);
+	}
+	while (offset < pool->allocation);
 }
 
 static struct dma_page *pool_alloc_page(struct dma_pool *pool, gfp_t mem_flags)
@@ -224,21 +259,30 @@ static struct dma_page *pool_alloc_page(struct dma_pool *pool, gfp_t mem_flags)
 	struct dma_page *page;
 
 	page = kmalloc(sizeof(*page), mem_flags);
+
 	if (!page)
+	{
 		return NULL;
+	}
+
 	page->vaddr = dma_alloc_coherent(pool->dev, pool->allocation,
-					 &page->dma, mem_flags);
-	if (page->vaddr) {
+									 &page->dma, mem_flags);
+
+	if (page->vaddr)
+	{
 #ifdef	DMAPOOL_DEBUG
 		memset(page->vaddr, POOL_POISON_FREED, pool->allocation);
 #endif
 		pool_initialise_page(pool, page);
 		page->in_use = 0;
 		page->offset = 0;
-	} else {
+	}
+	else
+	{
 		kfree(page);
 		page = NULL;
 	}
+
 	return page;
 }
 
@@ -272,35 +316,52 @@ void dma_pool_destroy(struct dma_pool *pool)
 	bool empty = false;
 
 	if (unlikely(!pool))
+	{
 		return;
+	}
 
 	mutex_lock(&pools_reg_lock);
 	mutex_lock(&pools_lock);
 	list_del(&pool->pools);
+
 	if (pool->dev && list_empty(&pool->dev->dma_pools))
+	{
 		empty = true;
+	}
+
 	mutex_unlock(&pools_lock);
+
 	if (empty)
+	{
 		device_remove_file(pool->dev, &dev_attr_pools);
+	}
+
 	mutex_unlock(&pools_reg_lock);
 
-	while (!list_empty(&pool->page_list)) {
+	while (!list_empty(&pool->page_list))
+	{
 		struct dma_page *page;
 		page = list_entry(pool->page_list.next,
-				  struct dma_page, page_list);
-		if (is_page_busy(page)) {
+						  struct dma_page, page_list);
+
+		if (is_page_busy(page))
+		{
 			if (pool->dev)
 				dev_err(pool->dev,
-					"dma_pool_destroy %s, %p busy\n",
-					pool->name, page->vaddr);
+						"dma_pool_destroy %s, %p busy\n",
+						pool->name, page->vaddr);
 			else
 				pr_err("dma_pool_destroy %s, %p busy\n",
-				       pool->name, page->vaddr);
+					   pool->name, page->vaddr);
+
 			/* leak the still-in-use consistent memory */
 			list_del(&page->page_list);
 			kfree(page);
-		} else
+		}
+		else
+		{
 			pool_free_page(pool, page);
+		}
 	}
 
 	kfree(pool);
@@ -318,7 +379,7 @@ EXPORT_SYMBOL(dma_pool_destroy);
  * If such a memory block can't be allocated, %NULL is returned.
  */
 void *dma_pool_alloc(struct dma_pool *pool, gfp_t mem_flags,
-		     dma_addr_t *handle)
+					 dma_addr_t *handle)
 {
 	unsigned long flags;
 	struct dma_page *page;
@@ -328,22 +389,28 @@ void *dma_pool_alloc(struct dma_pool *pool, gfp_t mem_flags,
 	might_sleep_if(gfpflags_allow_blocking(mem_flags));
 
 	spin_lock_irqsave(&pool->lock, flags);
-	list_for_each_entry(page, &pool->page_list, page_list) {
+	list_for_each_entry(page, &pool->page_list, page_list)
+	{
 		if (page->offset < pool->allocation)
+		{
 			goto ready;
+		}
 	}
 
 	/* pool_alloc_page() might sleep, so temporarily drop &pool->lock */
 	spin_unlock_irqrestore(&pool->lock, flags);
 
 	page = pool_alloc_page(pool, mem_flags & (~__GFP_ZERO));
+
 	if (!page)
+	{
 		return NULL;
+	}
 
 	spin_lock_irqsave(&pool->lock, flags);
 
 	list_add(&page->page_list, &pool->page_list);
- ready:
+ready:
 	page->in_use++;
 	offset = page->offset;
 	page->offset = *(int *)(page->vaddr + offset);
@@ -353,34 +420,45 @@ void *dma_pool_alloc(struct dma_pool *pool, gfp_t mem_flags,
 	{
 		int i;
 		u8 *data = retval;
+
 		/* page->offset is stored in first 4 bytes */
-		for (i = sizeof(page->offset); i < pool->size; i++) {
+		for (i = sizeof(page->offset); i < pool->size; i++)
+		{
 			if (data[i] == POOL_POISON_FREED)
+			{
 				continue;
+			}
+
 			if (pool->dev)
 				dev_err(pool->dev,
-					"dma_pool_alloc %s, %p (corrupted)\n",
-					pool->name, retval);
+						"dma_pool_alloc %s, %p (corrupted)\n",
+						pool->name, retval);
 			else
 				pr_err("dma_pool_alloc %s, %p (corrupted)\n",
-					pool->name, retval);
+					   pool->name, retval);
 
 			/*
 			 * Dump the first 4 bytes even if they are not
 			 * POOL_POISON_FREED
 			 */
 			print_hex_dump(KERN_ERR, "", DUMP_PREFIX_OFFSET, 16, 1,
-					data, pool->size, 1);
+						   data, pool->size, 1);
 			break;
 		}
 	}
+
 	if (!(mem_flags & __GFP_ZERO))
+	{
 		memset(retval, POOL_POISON_ALLOCATED, pool->size);
+	}
+
 #endif
 	spin_unlock_irqrestore(&pool->lock, flags);
 
 	if (mem_flags & __GFP_ZERO)
+	{
 		memset(retval, 0, pool->size);
+	}
 
 	return retval;
 }
@@ -390,11 +468,17 @@ static struct dma_page *pool_find_page(struct dma_pool *pool, dma_addr_t dma)
 {
 	struct dma_page *page;
 
-	list_for_each_entry(page, &pool->page_list, page_list) {
+	list_for_each_entry(page, &pool->page_list, page_list)
+	{
 		if (dma < page->dma)
+		{
 			continue;
+		}
+
 		if ((dma - page->dma) < pool->allocation)
+		{
 			return page;
+		}
 	}
 	return NULL;
 }
@@ -416,48 +500,64 @@ void dma_pool_free(struct dma_pool *pool, void *vaddr, dma_addr_t dma)
 
 	spin_lock_irqsave(&pool->lock, flags);
 	page = pool_find_page(pool, dma);
-	if (!page) {
+
+	if (!page)
+	{
 		spin_unlock_irqrestore(&pool->lock, flags);
+
 		if (pool->dev)
 			dev_err(pool->dev,
-				"dma_pool_free %s, %p/%lx (bad dma)\n",
-				pool->name, vaddr, (unsigned long)dma);
+					"dma_pool_free %s, %p/%lx (bad dma)\n",
+					pool->name, vaddr, (unsigned long)dma);
 		else
 			pr_err("dma_pool_free %s, %p/%lx (bad dma)\n",
-			       pool->name, vaddr, (unsigned long)dma);
+				   pool->name, vaddr, (unsigned long)dma);
+
 		return;
 	}
 
 	offset = vaddr - page->vaddr;
 #ifdef	DMAPOOL_DEBUG
-	if ((dma - page->dma) != offset) {
+
+	if ((dma - page->dma) != offset)
+	{
 		spin_unlock_irqrestore(&pool->lock, flags);
+
 		if (pool->dev)
 			dev_err(pool->dev,
-				"dma_pool_free %s, %p (bad vaddr)/%Lx\n",
-				pool->name, vaddr, (unsigned long long)dma);
+					"dma_pool_free %s, %p (bad vaddr)/%Lx\n",
+					pool->name, vaddr, (unsigned long long)dma);
 		else
 			pr_err("dma_pool_free %s, %p (bad vaddr)/%Lx\n",
-			       pool->name, vaddr, (unsigned long long)dma);
+				   pool->name, vaddr, (unsigned long long)dma);
+
 		return;
 	}
+
 	{
 		unsigned int chain = page->offset;
-		while (chain < pool->allocation) {
-			if (chain != offset) {
+
+		while (chain < pool->allocation)
+		{
+			if (chain != offset)
+			{
 				chain = *(int *)(page->vaddr + chain);
 				continue;
 			}
+
 			spin_unlock_irqrestore(&pool->lock, flags);
+
 			if (pool->dev)
 				dev_err(pool->dev, "dma_pool_free %s, dma %Lx already free\n",
-					pool->name, (unsigned long long)dma);
+						pool->name, (unsigned long long)dma);
 			else
 				pr_err("dma_pool_free %s, dma %Lx already free\n",
-				       pool->name, (unsigned long long)dma);
+					   pool->name, (unsigned long long)dma);
+
 			return;
 		}
 	}
+
 	memset(vaddr, POOL_POISON_FREED, pool->size);
 #endif
 
@@ -500,19 +600,27 @@ static int dmam_pool_match(struct device *dev, void *res, void *match_data)
  * automatically destroyed on driver detach.
  */
 struct dma_pool *dmam_pool_create(const char *name, struct device *dev,
-				  size_t size, size_t align, size_t allocation)
+								  size_t size, size_t align, size_t allocation)
 {
 	struct dma_pool **ptr, *pool;
 
 	ptr = devres_alloc(dmam_pool_release, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return NULL;
+	}
 
 	pool = *ptr = dma_pool_create(name, dev, size, align, allocation);
+
 	if (pool)
+	{
 		devres_add(dev, ptr);
+	}
 	else
+	{
 		devres_free(ptr);
+	}
 
 	return pool;
 }

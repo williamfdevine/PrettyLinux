@@ -91,14 +91,16 @@
  * @BRCMF_SCAN_STATUS_ABORT: scan being aborted on dongle.
  * @BRCMF_SCAN_STATUS_SUPPRESS: scanning is suppressed in driver.
  */
-enum brcmf_scan_status {
+enum brcmf_scan_status
+{
 	BRCMF_SCAN_STATUS_BUSY,
 	BRCMF_SCAN_STATUS_ABORT,
 	BRCMF_SCAN_STATUS_SUPPRESS,
 };
 
 /* dongle configuration */
-struct brcmf_cfg80211_conf {
+struct brcmf_cfg80211_conf
+{
 	u32 frag_threshold;
 	u32 rts_threshold;
 	u32 retry_short;
@@ -106,7 +108,8 @@ struct brcmf_cfg80211_conf {
 };
 
 /* security information with currently associated ap */
-struct brcmf_cfg80211_security {
+struct brcmf_cfg80211_security
+{
 	u32 wpa_versions;
 	u32 auth_type;
 	u32 cipher_pairwise;
@@ -120,7 +123,8 @@ struct brcmf_cfg80211_security {
  * @sec: security information.
  * @key: key information
  */
-struct brcmf_cfg80211_profile {
+struct brcmf_cfg80211_profile
+{
 	u8 bssid[ETH_ALEN];
 	struct brcmf_cfg80211_security sec;
 	struct brcmf_wsec_key key[BRCMF_MAX_DEFAULT_KEYS];
@@ -135,7 +139,8 @@ struct brcmf_cfg80211_profile {
  * @BRCMF_VIF_STATUS_DISCONNECTING: disconnect/disable in progress.
  * @BRCMF_VIF_STATUS_AP_CREATED: AP operation started.
  */
-enum brcmf_vif_status {
+enum brcmf_vif_status
+{
 	BRCMF_VIF_STATUS_READY,
 	BRCMF_VIF_STATUS_CONNECTING,
 	BRCMF_VIF_STATUS_CONNECTED,
@@ -153,7 +158,8 @@ enum brcmf_vif_status {
  * @probe_res_ie_len: IE info length for probe response.
  * @beacon_ie_len: IE info length for beacon frame.
  */
-struct vif_saved_ie {
+struct vif_saved_ie
+{
 	u8  probe_req_ie[IE_MAX_LEN];
 	u8  probe_res_ie[IE_MAX_LEN];
 	u8  beacon_ie[IE_MAX_LEN];
@@ -175,7 +181,8 @@ struct vif_saved_ie {
  * @mgmt_rx_reg: registered rx mgmt frame types.
  * @mbss: Multiple BSS type, set if not first AP (not relevant for P2P).
  */
-struct brcmf_cfg80211_vif {
+struct brcmf_cfg80211_vif
+{
 	struct brcmf_if *ifp;
 	struct wireless_dev wdev;
 	struct brcmf_cfg80211_profile profile;
@@ -188,7 +195,8 @@ struct brcmf_cfg80211_vif {
 };
 
 /* association inform */
-struct brcmf_cfg80211_connect_info {
+struct brcmf_cfg80211_connect_info
+{
 	u8 *req_ie;
 	s32 req_ie_len;
 	u8 *resp_ie;
@@ -196,24 +204,27 @@ struct brcmf_cfg80211_connect_info {
 };
 
 /* assoc ie length */
-struct brcmf_cfg80211_assoc_ielen_le {
+struct brcmf_cfg80211_assoc_ielen_le
+{
 	__le32 req_len;
 	__le32 resp_len;
 };
 
 /* dongle escan state */
-enum wl_escan_state {
+enum wl_escan_state
+{
 	WL_ESCAN_STATE_IDLE,
 	WL_ESCAN_STATE_SCANNING
 };
 
-struct escan_info {
+struct escan_info
+{
 	u32 escan_state;
 	u8 *escan_buf;
 	struct wiphy *wiphy;
 	struct brcmf_if *ifp;
 	s32 (*run)(struct brcmf_cfg80211_info *cfg, struct brcmf_if *ifp,
-		   struct cfg80211_scan_request *request);
+			   struct cfg80211_scan_request *request);
 };
 
 /**
@@ -225,7 +236,8 @@ struct escan_info {
  * @action: either add, change, or delete.
  * @vif: virtual interface object related to the event.
  */
-struct brcmf_cfg80211_vif_event {
+struct brcmf_cfg80211_vif_event
+{
 	wait_queue_head_t vif_wq;
 	spinlock_t vif_event_lock;
 	u8 action;
@@ -243,7 +255,8 @@ struct brcmf_cfg80211_vif_event {
  * @nd_data_completed: completion for net detect data.
  * @nd_enabled: net detect enabled.
  */
-struct brcmf_cfg80211_wowl {
+struct brcmf_cfg80211_wowl
+{
 	bool active;
 	u32 pre_pmmode;
 	struct cfg80211_wowlan_nd_match *nd;
@@ -288,7 +301,8 @@ struct brcmf_cfg80211_wowl {
  * @vif_event: vif event signalling.
  * @wowl: wowl related information.
  */
-struct brcmf_cfg80211_info {
+struct brcmf_cfg80211_info
+{
 	struct wiphy *wiphy;
 	struct cfg80211_ops *ops;
 	struct brcmf_cfg80211_conf *conf;
@@ -329,7 +343,8 @@ struct brcmf_cfg80211_info {
  * @len: number of bytes in value buffer.
  * @data: value buffer.
  */
-struct brcmf_tlv {
+struct brcmf_tlv
+{
 	u8 id;
 	u8 len;
 	u8 data[1];
@@ -382,34 +397,34 @@ brcmf_cfg80211_connect_info *cfg_to_conn(struct brcmf_cfg80211_info *cfg)
 }
 
 struct brcmf_cfg80211_info *brcmf_cfg80211_attach(struct brcmf_pub *drvr,
-						  struct device *busdev,
-						  bool p2pdev_forced);
+		struct device *busdev,
+		bool p2pdev_forced);
 void brcmf_cfg80211_detach(struct brcmf_cfg80211_info *cfg);
 s32 brcmf_cfg80211_up(struct net_device *ndev);
 s32 brcmf_cfg80211_down(struct net_device *ndev);
 enum nl80211_iftype brcmf_cfg80211_get_iftype(struct brcmf_if *ifp);
 
 struct brcmf_cfg80211_vif *brcmf_alloc_vif(struct brcmf_cfg80211_info *cfg,
-					   enum nl80211_iftype type);
+		enum nl80211_iftype type);
 void brcmf_free_vif(struct brcmf_cfg80211_vif *vif);
 
 s32 brcmf_vif_set_mgmt_ie(struct brcmf_cfg80211_vif *vif, s32 pktflag,
-			  const u8 *vndr_ie_buf, u32 vndr_ie_len);
+						  const u8 *vndr_ie_buf, u32 vndr_ie_len);
 s32 brcmf_vif_clear_mgmt_ies(struct brcmf_cfg80211_vif *vif);
 const struct brcmf_tlv *
 brcmf_parse_tlvs(const void *buf, int buflen, uint key);
 u16 channel_to_chanspec(struct brcmu_d11inf *d11inf,
-			struct ieee80211_channel *ch);
+						struct ieee80211_channel *ch);
 bool brcmf_get_vif_state_any(struct brcmf_cfg80211_info *cfg,
-			     unsigned long state);
+							 unsigned long state);
 void brcmf_cfg80211_arm_vif_event(struct brcmf_cfg80211_info *cfg,
-				  struct brcmf_cfg80211_vif *vif);
+								  struct brcmf_cfg80211_vif *vif);
 bool brcmf_cfg80211_vif_event_armed(struct brcmf_cfg80211_info *cfg);
 int brcmf_cfg80211_wait_vif_event(struct brcmf_cfg80211_info *cfg,
-				  u8 action, ulong timeout);
+								  u8 action, ulong timeout);
 s32 brcmf_notify_escan_complete(struct brcmf_cfg80211_info *cfg,
-				struct brcmf_if *ifp, bool aborted,
-				bool fw_abort);
+								struct brcmf_if *ifp, bool aborted,
+								bool fw_abort);
 void brcmf_set_mpc(struct brcmf_if *ndev, int mpc);
 void brcmf_abort_scanning(struct brcmf_cfg80211_info *cfg);
 void brcmf_cfg80211_free_netdev(struct net_device *ndev);

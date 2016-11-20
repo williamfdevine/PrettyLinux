@@ -86,7 +86,8 @@
  * endian.  Any operation-specific data begins immediately after the
  * header.
  */
-struct gb_operation_msg_hdr {
+struct gb_operation_msg_hdr
+{
 	__le16	size;		/* Size in bytes of header + payload */
 	__le16	operation_id;	/* Operation unique id */
 	__u8	type;		/* E.g GB_I2C_TYPE_* or GB_GPIO_TYPE_* */
@@ -99,7 +100,8 @@ struct gb_operation_msg_hdr {
 #define GB_REQUEST_TYPE_CPORT_SHUTDOWN		0x00
 #define GB_REQUEST_TYPE_INVALID			0x7f
 
-struct gb_cport_shutdown_request {
+struct gb_cport_shutdown_request
+{
 	__u8 phase;
 } __packed;
 
@@ -129,53 +131,63 @@ struct gb_cport_shutdown_request {
 #define GB_CONTROL_TYPE_INTF_DEACTIVATE_PREPARE	0x14
 #define GB_CONTROL_TYPE_INTF_HIBERNATE_ABORT	0x15
 
-struct gb_control_version_request {
+struct gb_control_version_request
+{
 	__u8	major;
 	__u8	minor;
 } __packed;
 
-struct gb_control_version_response {
+struct gb_control_version_response
+{
 	__u8	major;
 	__u8	minor;
 } __packed;
 
-struct gb_control_bundle_version_request {
+struct gb_control_bundle_version_request
+{
 	__u8	bundle_id;
 } __packed;
 
-struct gb_control_bundle_version_response {
+struct gb_control_bundle_version_response
+{
 	__u8	major;
 	__u8	minor;
 } __packed;
 
 /* Control protocol manifest get size request has no payload*/
-struct gb_control_get_manifest_size_response {
+struct gb_control_get_manifest_size_response
+{
 	__le16			size;
 } __packed;
 
 /* Control protocol manifest get request has no payload */
-struct gb_control_get_manifest_response {
+struct gb_control_get_manifest_response
+{
 	__u8			data[0];
 } __packed;
 
 /* Control protocol [dis]connected request */
-struct gb_control_connected_request {
+struct gb_control_connected_request
+{
 	__le16			cport_id;
 } __packed;
 
-struct gb_control_disconnecting_request {
+struct gb_control_disconnecting_request
+{
 	__le16			cport_id;
 } __packed;
 /* disconnecting response has no payload */
 
-struct gb_control_disconnected_request {
+struct gb_control_disconnected_request
+{
 	__le16			cport_id;
 } __packed;
 /* Control protocol [dis]connected response has no payload */
 
 #define GB_TIMESYNC_MAX_STROBES			0x04
 
-struct gb_control_timesync_enable_request {
+struct gb_control_timesync_enable_request
+{
 	__u8	count;
 	__le64	frame_time;
 	__le32	strobe_delay;
@@ -183,13 +195,15 @@ struct gb_control_timesync_enable_request {
 } __packed;
 /* timesync enable response has no payload */
 
-struct gb_control_timesync_authoritative_request {
+struct gb_control_timesync_authoritative_request
+{
 	__le64	frame_time[GB_TIMESYNC_MAX_STROBES];
 } __packed;
 /* timesync authoritative response has no payload */
 
 /* timesync get_last_event_request has no payload */
-struct gb_control_timesync_get_last_event_response {
+struct gb_control_timesync_get_last_event_response
+{
 	__le64	frame_time;
 } __packed;
 
@@ -204,11 +218,13 @@ struct gb_control_timesync_get_last_event_response {
 #define GB_CONTROL_BUNDLE_PM_FAIL	0x03
 #define GB_CONTROL_BUNDLE_PM_NA		0x04
 
-struct gb_control_bundle_pm_request {
+struct gb_control_bundle_pm_request
+{
 	__u8	bundle_id;
 } __packed;
 
-struct gb_control_bundle_pm_response {
+struct gb_control_bundle_pm_response
+{
 	__u8	status;
 } __packed;
 
@@ -222,7 +238,8 @@ struct gb_control_bundle_pm_response {
 #define GB_CONTROL_INTF_PM_BUSY		0x01
 #define GB_CONTROL_INTF_PM_NA		0x02
 
-struct gb_control_intf_pm_response {
+struct gb_control_intf_pm_response
+{
 	__u8	status;
 } __packed;
 
@@ -262,7 +279,8 @@ struct gb_control_intf_pm_response {
 /* ARPC request */
 #define GB_APB_REQUEST_ARPC_RUN			0x12
 
-struct gb_apb_request_cport_flags {
+struct gb_apb_request_cport_flags
+{
 	__le32	flags;
 #define GB_APB_CPORT_FLAG_CONTROL		0x01
 #define GB_APB_CPORT_FLAG_HIGH_PRIO		0x02
@@ -279,28 +297,33 @@ struct gb_apb_request_cport_flags {
 #define GB_FIRMWARE_TAG_MAX_SIZE		10
 
 /* firmware download find firmware request/response */
-struct gb_fw_download_find_firmware_request {
+struct gb_fw_download_find_firmware_request
+{
 	__u8			firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE];
 } __packed;
 
-struct gb_fw_download_find_firmware_response {
+struct gb_fw_download_find_firmware_response
+{
 	__u8			firmware_id;
 	__le32			size;
 } __packed;
 
 /* firmware download fetch firmware request/response */
-struct gb_fw_download_fetch_firmware_request {
+struct gb_fw_download_fetch_firmware_request
+{
 	__u8			firmware_id;
 	__le32			offset;
 	__le32			size;
 } __packed;
 
-struct gb_fw_download_fetch_firmware_response {
+struct gb_fw_download_fetch_firmware_response
+{
 	__u8			data[0];
 } __packed;
 
 /* firmware download release firmware request */
-struct gb_fw_download_release_firmware_request {
+struct gb_fw_download_release_firmware_request
+{
 	__u8			firmware_id;
 } __packed;
 /* firmware download release firmware response has no payload */
@@ -339,14 +362,16 @@ struct gb_fw_download_release_firmware_request {
 #define GB_FW_BACKEND_VERSION_STATUS_FAIL_INT		0x05
 
 /* firmware management interface firmware version request has no payload */
-struct gb_fw_mgmt_interface_fw_version_response {
+struct gb_fw_mgmt_interface_fw_version_response
+{
 	__u8			firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE];
 	__le16			major;
 	__le16			minor;
 } __packed;
 
 /* firmware management load and validate firmware request/response */
-struct gb_fw_mgmt_load_and_validate_fw_request {
+struct gb_fw_mgmt_load_and_validate_fw_request
+{
 	__u8			request_id;
 	__u8			load_method;
 	__u8			firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE];
@@ -354,7 +379,8 @@ struct gb_fw_mgmt_load_and_validate_fw_request {
 /* firmware management load and validate firmware response has no payload*/
 
 /* firmware management loaded firmware request */
-struct gb_fw_mgmt_loaded_fw_request {
+struct gb_fw_mgmt_loaded_fw_request
+{
 	__u8			request_id;
 	__u8			status;
 	__le16			major;
@@ -363,25 +389,29 @@ struct gb_fw_mgmt_loaded_fw_request {
 /* firmware management loaded firmware response has no payload */
 
 /* firmware management backend firmware version request/response */
-struct gb_fw_mgmt_backend_fw_version_request {
+struct gb_fw_mgmt_backend_fw_version_request
+{
 	__u8			firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE];
 } __packed;
 
-struct gb_fw_mgmt_backend_fw_version_response {
+struct gb_fw_mgmt_backend_fw_version_response
+{
 	__le16			major;
 	__le16			minor;
 	__u8			status;
 } __packed;
 
 /* firmware management backend firmware update request */
-struct gb_fw_mgmt_backend_fw_update_request {
+struct gb_fw_mgmt_backend_fw_update_request
+{
 	__u8			request_id;
 	__u8			firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE];
 } __packed;
 /* firmware management backend firmware update response has no payload */
 
 /* firmware management backend firmware updated request */
-struct gb_fw_mgmt_backend_fw_updated_request {
+struct gb_fw_mgmt_backend_fw_updated_request
+{
 	__u8			request_id;
 	__u8			status;
 } __packed;
@@ -396,29 +426,34 @@ struct gb_fw_mgmt_backend_fw_updated_request {
 #define GB_CAP_TYPE_AUTHENTICATE	0x03
 
 /* CAP get endpoint uid request has no payload */
-struct gb_cap_get_endpoint_uid_response {
+struct gb_cap_get_endpoint_uid_response
+{
 	__u8			uid[8];
 } __packed;
 
 /* CAP get endpoint ims certificate request/response */
-struct gb_cap_get_ims_certificate_request {
+struct gb_cap_get_ims_certificate_request
+{
 	__le32			certificate_class;
 	__le32			certificate_id;
 } __packed;
 
-struct gb_cap_get_ims_certificate_response {
+struct gb_cap_get_ims_certificate_response
+{
 	__u8			result_code;
 	__u8			certificate[0];
 } __packed;
 
 /* CAP authenticate request/response */
-struct gb_cap_authenticate_request {
+struct gb_cap_authenticate_request
+{
 	__le32			auth_type;
 	__u8			uid[8];
 	__u8			challenge[32];
 } __packed;
 
-struct gb_cap_authenticate_response {
+struct gb_cap_authenticate_response
+{
 	__u8			result_code;
 	__u8			response[64];
 	__u8			signature[0];
@@ -452,43 +487,51 @@ struct gb_cap_authenticate_response {
 /* Max bootrom data fetch size in bytes */
 #define GB_BOOTROM_FETCH_MAX			2000
 
-struct gb_bootrom_version_request {
+struct gb_bootrom_version_request
+{
 	__u8	major;
 	__u8	minor;
 } __packed;
 
-struct gb_bootrom_version_response {
+struct gb_bootrom_version_response
+{
 	__u8	major;
 	__u8	minor;
 } __packed;
 
 /* Bootrom protocol firmware size request/response */
-struct gb_bootrom_firmware_size_request {
+struct gb_bootrom_firmware_size_request
+{
 	__u8			stage;
 } __packed;
 
-struct gb_bootrom_firmware_size_response {
+struct gb_bootrom_firmware_size_response
+{
 	__le32			size;
 } __packed;
 
 /* Bootrom protocol get firmware request/response */
-struct gb_bootrom_get_firmware_request {
+struct gb_bootrom_get_firmware_request
+{
 	__le32			offset;
 	__le32			size;
 } __packed;
 
-struct gb_bootrom_get_firmware_response {
+struct gb_bootrom_get_firmware_response
+{
 	__u8			data[0];
 } __packed;
 
 /* Bootrom protocol Ready to boot request */
-struct gb_bootrom_ready_to_boot_request {
+struct gb_bootrom_ready_to_boot_request
+{
 	__u8			status;
 } __packed;
 /* Bootrom protocol Ready to boot response has no payload */
 
 /* Bootrom protocol get VID/PID request has no payload */
-struct gb_bootrom_get_vid_pid_response {
+struct gb_bootrom_get_vid_pid_response
+{
 	__le32			vendor_id;
 	__le32			product_id;
 } __packed;
@@ -554,15 +597,18 @@ struct gb_bootrom_get_vid_pid_response {
 #define GB_POWER_SUPPLY_SCOPE_SYSTEM			0x0001
 #define GB_POWER_SUPPLY_SCOPE_DEVICE			0x0002
 
-struct gb_power_supply_get_supplies_response {
+struct gb_power_supply_get_supplies_response
+{
 	__u8	supplies_count;
 } __packed;
 
-struct gb_power_supply_get_description_request {
+struct gb_power_supply_get_description_request
+{
 	__u8	psy_id;
 } __packed;
 
-struct gb_power_supply_get_description_response {
+struct gb_power_supply_get_description_response
+{
 	__u8	manufacturer[32];
 	__u8	model[32];
 	__u8	serial_number[32];
@@ -570,7 +616,8 @@ struct gb_power_supply_get_description_response {
 	__u8	properties_count;
 } __packed;
 
-struct gb_power_supply_props_desc {
+struct gb_power_supply_props_desc
+{
 	__u8	property;
 #define GB_POWER_SUPPLY_PROP_STATUS				0x00
 #define GB_POWER_SUPPLY_PROP_CHARGE_TYPE			0x01
@@ -637,31 +684,37 @@ struct gb_power_supply_props_desc {
 	__u8	is_writeable;
 } __packed;
 
-struct gb_power_supply_get_property_descriptors_request {
+struct gb_power_supply_get_property_descriptors_request
+{
 	__u8	psy_id;
 } __packed;
 
-struct gb_power_supply_get_property_descriptors_response {
+struct gb_power_supply_get_property_descriptors_response
+{
 	__u8	properties_count;
 	struct gb_power_supply_props_desc props[];
 } __packed;
 
-struct gb_power_supply_get_property_request {
+struct gb_power_supply_get_property_request
+{
 	__u8	psy_id;
 	__u8	property;
 } __packed;
 
-struct gb_power_supply_get_property_response {
+struct gb_power_supply_get_property_response
+{
 	__le32	prop_val;
 };
 
-struct gb_power_supply_set_property_request {
+struct gb_power_supply_set_property_request
+{
 	__u8	psy_id;
 	__u8	property;
 	__le32	prop_val;
 } __packed;
 
-struct gb_power_supply_event_request {
+struct gb_power_supply_event_request
+{
 	__u8	psy_id;
 	__u8	event;
 #define GB_POWER_SUPPLY_UPDATE		0x01
@@ -686,7 +739,8 @@ struct gb_power_supply_event_request {
 
 /* Different request/response structures */
 /* HID get descriptor response */
-struct gb_hid_desc_response {
+struct gb_hid_desc_response
+{
 	__u8				bLength;
 	__le16				wReportDescLength;
 	__le16				bcdHID;
@@ -696,20 +750,23 @@ struct gb_hid_desc_response {
 } __packed;
 
 /* HID get report request/response */
-struct gb_hid_get_report_request {
+struct gb_hid_get_report_request
+{
 	__u8				report_type;
 	__u8				report_id;
 } __packed;
 
 /* HID set report request */
-struct gb_hid_set_report_request {
+struct gb_hid_set_report_request
+{
 	__u8				report_type;
 	__u8				report_id;
 	__u8				report[0];
 } __packed;
 
 /* HID input report request, via interrupt pipe */
-struct gb_hid_input_report_request {
+struct gb_hid_input_report_request
+{
 	__u8				report[0];
 } __packed;
 
@@ -721,7 +778,8 @@ struct gb_hid_input_report_request {
 #define GB_I2C_TYPE_TRANSFER		0x05
 
 /* functionality request has no payload */
-struct gb_i2c_functionality_response {
+struct gb_i2c_functionality_response
+{
 	__le32	functionality;
 } __packed;
 
@@ -735,17 +793,20 @@ struct gb_i2c_functionality_response {
  * exactly what was specified in the corresponding op.  Like
  * outgoing data, the incoming data is in order and contiguous.
  */
-struct gb_i2c_transfer_op {
+struct gb_i2c_transfer_op
+{
 	__le16	addr;
 	__le16	flags;
 	__le16	size;
 } __packed;
 
-struct gb_i2c_transfer_request {
+struct gb_i2c_transfer_request
+{
 	__le16				op_count;
 	struct gb_i2c_transfer_op	ops[0];		/* op_count of these */
 } __packed;
-struct gb_i2c_transfer_response {
+struct gb_i2c_transfer_response
+{
 	__u8				data[0];	/* inbound data */
 } __packed;
 
@@ -775,75 +836,90 @@ struct gb_i2c_transfer_response {
 #define GB_GPIO_IRQ_TYPE_LEVEL_LOW	0x08
 
 /* line count request has no payload */
-struct gb_gpio_line_count_response {
+struct gb_gpio_line_count_response
+{
 	__u8	count;
 } __packed;
 
-struct gb_gpio_activate_request {
+struct gb_gpio_activate_request
+{
 	__u8	which;
 } __packed;
 /* activate response has no payload */
 
-struct gb_gpio_deactivate_request {
+struct gb_gpio_deactivate_request
+{
 	__u8	which;
 } __packed;
 /* deactivate response has no payload */
 
-struct gb_gpio_get_direction_request {
+struct gb_gpio_get_direction_request
+{
 	__u8	which;
 } __packed;
-struct gb_gpio_get_direction_response {
+struct gb_gpio_get_direction_response
+{
 	__u8	direction;
 } __packed;
 
-struct gb_gpio_direction_in_request {
+struct gb_gpio_direction_in_request
+{
 	__u8	which;
 } __packed;
 /* direction in response has no payload */
 
-struct gb_gpio_direction_out_request {
+struct gb_gpio_direction_out_request
+{
 	__u8	which;
 	__u8	value;
 } __packed;
 /* direction out response has no payload */
 
-struct gb_gpio_get_value_request {
+struct gb_gpio_get_value_request
+{
 	__u8	which;
 } __packed;
-struct gb_gpio_get_value_response {
+struct gb_gpio_get_value_response
+{
 	__u8	value;
 } __packed;
 
-struct gb_gpio_set_value_request {
+struct gb_gpio_set_value_request
+{
 	__u8	which;
 	__u8	value;
 } __packed;
 /* set value response has no payload */
 
-struct gb_gpio_set_debounce_request {
+struct gb_gpio_set_debounce_request
+{
 	__u8	which;
 	__le16	usec;
 } __packed;
 /* debounce response has no payload */
 
-struct gb_gpio_irq_type_request {
+struct gb_gpio_irq_type_request
+{
 	__u8	which;
 	__u8	type;
 } __packed;
 /* irq type response has no payload */
 
-struct gb_gpio_irq_mask_request {
+struct gb_gpio_irq_mask_request
+{
 	__u8	which;
 } __packed;
 /* irq mask response has no payload */
 
-struct gb_gpio_irq_unmask_request {
+struct gb_gpio_irq_unmask_request
+{
 	__u8	which;
 } __packed;
 /* irq unmask response has no payload */
 
 /* irq event requests originate on another module and are handled on the AP */
-struct gb_gpio_irq_event_request {
+struct gb_gpio_irq_event_request
+{
 	__u8	which;
 } __packed;
 /* irq event has no response */
@@ -861,34 +937,41 @@ struct gb_gpio_irq_event_request {
 #define GB_PWM_TYPE_DISABLE		0x08
 
 /* pwm count request has no payload */
-struct gb_pwm_count_response {
+struct gb_pwm_count_response
+{
 	__u8	count;
 } __packed;
 
-struct gb_pwm_activate_request {
+struct gb_pwm_activate_request
+{
 	__u8	which;
 } __packed;
 
-struct gb_pwm_deactivate_request {
+struct gb_pwm_deactivate_request
+{
 	__u8	which;
 } __packed;
 
-struct gb_pwm_config_request {
+struct gb_pwm_config_request
+{
 	__u8	which;
 	__le32	duty;
 	__le32	period;
 } __packed;
 
-struct gb_pwm_polarity_request {
+struct gb_pwm_polarity_request
+{
 	__u8	which;
 	__u8	polarity;
 } __packed;
 
-struct gb_pwm_enable_request {
+struct gb_pwm_enable_request
+{
 	__u8	which;
 } __packed;
 
-struct gb_pwm_disable_request {
+struct gb_pwm_disable_request
+{
 	__u8	which;
 } __packed;
 
@@ -919,7 +1002,8 @@ struct gb_pwm_disable_request {
 #define GB_SPI_TYPE_TRANSFER		0x04
 
 /* mode request has no payload */
-struct gb_spi_master_config_response {
+struct gb_spi_master_config_response
+{
 	__le32	bits_per_word_mask;
 	__le32	min_speed_hz;
 	__le32	max_speed_hz;
@@ -928,11 +1012,13 @@ struct gb_spi_master_config_response {
 	__u8	num_chipselect;
 } __packed;
 
-struct gb_spi_device_config_request {
+struct gb_spi_device_config_request
+{
 	__u8	chip_select;
 } __packed;
 
-struct gb_spi_device_config_response {
+struct gb_spi_device_config_response
+{
 	__le16	mode;
 	__u8	bits_per_word;
 	__le32	max_speed_hz;
@@ -955,7 +1041,8 @@ struct gb_spi_device_config_response {
  * @bits_per_word: select a bits_per_word other than the device default for this
  *	transfer. If 0 the default (from @spi_device) is used.
  */
-struct gb_spi_transfer {
+struct gb_spi_transfer
+{
 	__le32		speed_hz;
 	__le32		len;
 	__le16		delay_usecs;
@@ -967,14 +1054,16 @@ struct gb_spi_transfer {
 #define GB_SPI_XFER_INPROGRESS	0x04
 } __packed;
 
-struct gb_spi_transfer_request {
+struct gb_spi_transfer_request
+{
 	__u8			chip_select;	/* of the spi device */
 	__u8			mode;		/* of the spi device */
 	__le16			count;
 	struct gb_spi_transfer	transfers[0];	/* count of these */
 } __packed;
 
-struct gb_spi_transfer_response {
+struct gb_spi_transfer_response
+{
 	__u8			data[0];	/* inbound data */
 } __packed;
 
@@ -1037,40 +1126,47 @@ struct gb_spi_transfer_response {
 #define GB_SVC_INTF_OP_TIMEOUT			0x0e
 #define GB_SVC_PWRMON_OP_NOT_PRESENT		0x0f
 
-struct gb_svc_version_request {
+struct gb_svc_version_request
+{
 	__u8	major;
 	__u8	minor;
 } __packed;
 
-struct gb_svc_version_response {
+struct gb_svc_version_response
+{
 	__u8	major;
 	__u8	minor;
 } __packed;
 
 /* SVC protocol hello request */
-struct gb_svc_hello_request {
+struct gb_svc_hello_request
+{
 	__le16			endo_id;
 	__u8			interface_id;
 } __packed;
 /* hello response has no payload */
 
-struct gb_svc_intf_device_id_request {
+struct gb_svc_intf_device_id_request
+{
 	__u8	intf_id;
 	__u8	device_id;
 } __packed;
 /* device id response has no payload */
 
-struct gb_svc_intf_reset_request {
+struct gb_svc_intf_reset_request
+{
 	__u8	intf_id;
 } __packed;
 /* interface reset response has no payload */
 
-struct gb_svc_intf_eject_request {
+struct gb_svc_intf_eject_request
+{
 	__u8	intf_id;
 } __packed;
 /* interface eject response has no payload */
 
-struct gb_svc_conn_create_request {
+struct gb_svc_conn_create_request
+{
 	__u8	intf1_id;
 	__le16	cport1_id;
 	__u8	intf2_id;
@@ -1080,7 +1176,8 @@ struct gb_svc_conn_create_request {
 } __packed;
 /* connection create response has no payload */
 
-struct gb_svc_conn_destroy_request {
+struct gb_svc_conn_destroy_request
+{
 	__u8	intf1_id;
 	__le16	cport1_id;
 	__u8	intf2_id;
@@ -1088,25 +1185,29 @@ struct gb_svc_conn_destroy_request {
 } __packed;
 /* connection destroy response has no payload */
 
-struct gb_svc_dme_peer_get_request {
+struct gb_svc_dme_peer_get_request
+{
 	__u8	intf_id;
 	__le16	attr;
 	__le16	selector;
 } __packed;
 
-struct gb_svc_dme_peer_get_response {
+struct gb_svc_dme_peer_get_response
+{
 	__le16	result_code;
 	__le32	attr_value;
 } __packed;
 
-struct gb_svc_dme_peer_set_request {
+struct gb_svc_dme_peer_set_request
+{
 	__u8	intf_id;
 	__le16	attr;
 	__le16	selector;
 	__le32	value;
 } __packed;
 
-struct gb_svc_dme_peer_set_response {
+struct gb_svc_dme_peer_set_response
+{
 	__le16	result_code;
 } __packed;
 
@@ -1118,7 +1219,8 @@ struct gb_svc_dme_peer_set_response {
 #define GB_INIT_BOOTROM_FALLBACK_UNIPRO_BOOT_STARTED	0x09
 #define GB_INIT_S2_LOADER_BOOT_STARTED			0x0D
 
-struct gb_svc_route_create_request {
+struct gb_svc_route_create_request
+{
 	__u8	intf1_id;
 	__u8	dev1_id;
 	__u8	intf2_id;
@@ -1126,18 +1228,21 @@ struct gb_svc_route_create_request {
 } __packed;
 /* route create response has no payload */
 
-struct gb_svc_route_destroy_request {
+struct gb_svc_route_destroy_request
+{
 	__u8	intf1_id;
 	__u8	intf2_id;
 } __packed;
 /* route destroy response has no payload */
 
 /* used for svc_intf_vsys_{enable,disable} */
-struct gb_svc_intf_vsys_request {
+struct gb_svc_intf_vsys_request
+{
 	__u8	intf_id;
 } __packed;
 
-struct gb_svc_intf_vsys_response {
+struct gb_svc_intf_vsys_response
+{
 	__u8	result_code;
 #define GB_SVC_INTF_VSYS_OK				0x00
 	/* 0x01 is reserved */
@@ -1145,11 +1250,13 @@ struct gb_svc_intf_vsys_response {
 } __packed;
 
 /* used for svc_intf_refclk_{enable,disable} */
-struct gb_svc_intf_refclk_request {
+struct gb_svc_intf_refclk_request
+{
 	__u8	intf_id;
 } __packed;
 
-struct gb_svc_intf_refclk_response {
+struct gb_svc_intf_refclk_response
+{
 	__u8	result_code;
 #define GB_SVC_INTF_REFCLK_OK				0x00
 	/* 0x01 is reserved */
@@ -1157,11 +1264,13 @@ struct gb_svc_intf_refclk_response {
 } __packed;
 
 /* used for svc_intf_unipro_{enable,disable} */
-struct gb_svc_intf_unipro_request {
+struct gb_svc_intf_unipro_request
+{
 	__u8	intf_id;
 } __packed;
 
-struct gb_svc_intf_unipro_response {
+struct gb_svc_intf_unipro_response
+{
 	__u8	result_code;
 #define GB_SVC_INTF_UNIPRO_OK				0x00
 	/* 0x01 is reserved */
@@ -1169,7 +1278,8 @@ struct gb_svc_intf_unipro_response {
 #define GB_SVC_INTF_UNIPRO_NOT_OFF			0x03
 } __packed;
 
-struct gb_svc_timesync_enable_request {
+struct gb_svc_timesync_enable_request
+{
 	__u8	count;
 	__le64	frame_time;
 	__le32	strobe_delay;
@@ -1178,11 +1288,13 @@ struct gb_svc_timesync_enable_request {
 /* timesync enable response has no payload */
 
 /* timesync authoritative request has no payload */
-struct gb_svc_timesync_authoritative_response {
+struct gb_svc_timesync_authoritative_response
+{
 	__le64	frame_time[GB_TIMESYNC_MAX_STROBES];
 };
 
-struct gb_svc_timesync_wake_pins_acquire_request {
+struct gb_svc_timesync_wake_pins_acquire_request
+{
 	__le32	strobe_mask;
 };
 
@@ -1192,7 +1304,8 @@ struct gb_svc_timesync_wake_pins_acquire_request {
 /* timesync wake pins release response has no payload */
 
 /* timesync svc ping request has no payload */
-struct gb_svc_timesync_ping_response {
+struct gb_svc_timesync_ping_response
+{
 	__le64	frame_time;
 } __packed;
 
@@ -1228,7 +1341,8 @@ struct gb_svc_timesync_ping_response {
 #define GB_SVC_SETPWRM_PWR_ERROR_CAP    0x04
 #define GB_SVC_SETPWRM_PWR_FATAL_ERROR  0x05
 
-struct gb_svc_l2_timer_cfg {
+struct gb_svc_l2_timer_cfg
+{
 	__le16 tsb_fc0_protection_timeout;
 	__le16 tsb_tc0_replay_timeout;
 	__le16 tsb_afc0_req_timeout;
@@ -1239,7 +1353,8 @@ struct gb_svc_l2_timer_cfg {
 	__le16 reserved_for_tc3[3];
 } __packed;
 
-struct gb_svc_intf_set_pwrm_request {
+struct gb_svc_intf_set_pwrm_request
+{
 	__u8	intf_id;
 	__u8	hs_series;
 	__u8	tx_mode;
@@ -1255,11 +1370,13 @@ struct gb_svc_intf_set_pwrm_request {
 	struct gb_svc_l2_timer_cfg local_l2timerdata, remote_l2timerdata;
 } __packed;
 
-struct gb_svc_intf_set_pwrm_response {
+struct gb_svc_intf_set_pwrm_response
+{
 	__u8	result_code;
 } __packed;
 
-struct gb_svc_key_event_request {
+struct gb_svc_key_event_request
+{
 	__le16  key_code;
 #define GB_KEYCODE_ARA         0x00
 
@@ -1270,13 +1387,15 @@ struct gb_svc_key_event_request {
 
 #define GB_SVC_PWRMON_MAX_RAIL_COUNT		254
 
-struct gb_svc_pwrmon_rail_count_get_response {
+struct gb_svc_pwrmon_rail_count_get_response
+{
 	__u8	rail_count;
 } __packed;
 
 #define GB_SVC_PWRMON_RAIL_NAME_BUFSIZE		32
 
-struct gb_svc_pwrmon_rail_names_get_response {
+struct gb_svc_pwrmon_rail_names_get_response
+{
 	__u8	status;
 	__u8	name[0][GB_SVC_PWRMON_RAIL_NAME_BUFSIZE];
 } __packed;
@@ -1290,41 +1409,48 @@ struct gb_svc_pwrmon_rail_names_get_response {
 #define GB_SVC_PWRMON_GET_SAMPLE_NOSUPP		0x02
 #define GB_SVC_PWRMON_GET_SAMPLE_HWERR		0x03
 
-struct gb_svc_pwrmon_sample_get_request {
+struct gb_svc_pwrmon_sample_get_request
+{
 	__u8	rail_id;
 	__u8	measurement_type;
 } __packed;
 
-struct gb_svc_pwrmon_sample_get_response {
+struct gb_svc_pwrmon_sample_get_response
+{
 	__u8	result;
 	__le32	measurement;
 } __packed;
 
-struct gb_svc_pwrmon_intf_sample_get_request {
+struct gb_svc_pwrmon_intf_sample_get_request
+{
 	__u8	intf_id;
 	__u8	measurement_type;
 } __packed;
 
-struct gb_svc_pwrmon_intf_sample_get_response {
+struct gb_svc_pwrmon_intf_sample_get_response
+{
 	__u8	result;
 	__le32	measurement;
 } __packed;
 
 #define GB_SVC_MODULE_INSERTED_FLAG_NO_PRIMARY	0x0001
 
-struct gb_svc_module_inserted_request {
+struct gb_svc_module_inserted_request
+{
 	__u8	primary_intf_id;
 	__u8	intf_count;
 	__le16	flags;
 } __packed;
 /* module_inserted response has no payload */
 
-struct gb_svc_module_removed_request {
+struct gb_svc_module_removed_request
+{
 	__u8	primary_intf_id;
 } __packed;
 /* module_removed response has no payload */
 
-struct gb_svc_intf_activate_request {
+struct gb_svc_intf_activate_request
+{
 	__u8	intf_id;
 } __packed;
 
@@ -1333,16 +1459,19 @@ struct gb_svc_intf_activate_request {
 #define GB_SVC_INTF_TYPE_UNIPRO			0x02
 #define GB_SVC_INTF_TYPE_GREYBUS		0x03
 
-struct gb_svc_intf_activate_response {
+struct gb_svc_intf_activate_response
+{
 	__u8	status;
 	__u8	intf_type;
 } __packed;
 
-struct gb_svc_intf_resume_request {
+struct gb_svc_intf_resume_request
+{
 	__u8	intf_id;
 } __packed;
 
-struct gb_svc_intf_resume_response {
+struct gb_svc_intf_resume_response
+{
 	__u8	status;
 } __packed;
 
@@ -1350,14 +1479,16 @@ struct gb_svc_intf_resume_response {
 #define GB_SVC_INTF_MAILBOX_AP			0x01
 #define GB_SVC_INTF_MAILBOX_GREYBUS		0x02
 
-struct gb_svc_intf_mailbox_event_request {
+struct gb_svc_intf_mailbox_event_request
+{
 	__u8	intf_id;
 	__le16	result_code;
 	__le32	mailbox;
 } __packed;
 /* intf_mailbox_event response has no payload */
 
-struct gb_svc_intf_oops_request {
+struct gb_svc_intf_oops_request
+{
 	__u8	intf_id;
 	__u8	reason;
 } __packed;
@@ -1369,7 +1500,8 @@ struct gb_svc_intf_oops_request {
 /* Greybus raw request types */
 #define	GB_RAW_TYPE_SEND			0x02
 
-struct gb_raw_send_request {
+struct gb_raw_send_request
+{
 	__le32	len;
 	__u8	data[0];
 } __packed;
@@ -1388,7 +1520,8 @@ struct gb_raw_send_request {
 #define GB_UART_TYPE_FLUSH_FIFOS		0x09
 
 /* Represents data from AP -> Module */
-struct gb_uart_send_data_request {
+struct gb_uart_send_data_request
+{
 	__le16	size;
 	__u8	data[0];
 } __packed;
@@ -1400,17 +1533,20 @@ struct gb_uart_send_data_request {
 #define GB_UART_RECV_FLAG_BREAK			0x08	/* Break */
 
 /* Represents data from Module -> AP */
-struct gb_uart_recv_data_request {
+struct gb_uart_recv_data_request
+{
 	__le16	size;
 	__u8	flags;
 	__u8	data[0];
 } __packed;
 
-struct gb_uart_receive_credits_request {
+struct gb_uart_receive_credits_request
+{
 	__le16  count;
 } __packed;
 
-struct gb_uart_set_line_coding_request {
+struct gb_uart_set_line_coding_request
+{
 	__le32	rate;
 	__u8	format;
 #define GB_SERIAL_1_STOP_BITS			0
@@ -1434,11 +1570,13 @@ struct gb_uart_set_line_coding_request {
 #define GB_UART_CTRL_DTR			0x01
 #define GB_UART_CTRL_RTS			0x02
 
-struct gb_uart_set_control_line_state_request {
+struct gb_uart_set_control_line_state_request
+{
 	__u8	control;
 } __packed;
 
-struct gb_uart_set_break_request {
+struct gb_uart_set_break_request
+{
 	__u8	state;
 } __packed;
 
@@ -1447,11 +1585,13 @@ struct gb_uart_set_break_request {
 #define GB_UART_CTRL_DSR			0x02
 #define GB_UART_CTRL_RI				0x04
 
-struct gb_uart_serial_state_request {
+struct gb_uart_serial_state_request
+{
 	__u8	control;
 } __packed;
 
-struct gb_uart_serial_flush_request {
+struct gb_uart_serial_flush_request
+{
 	__u8    flags;
 #define GB_SERIAL_FLAG_FLUSH_TRANSMITTER	0x01
 #define GB_SERIAL_FLAG_FLUSH_RECEIVER		0x02
@@ -1468,14 +1608,16 @@ struct gb_uart_serial_flush_request {
  * Loopback request/response header format should be identical
  * to simplify bandwidth and data movement analysis.
  */
-struct gb_loopback_transfer_request {
+struct gb_loopback_transfer_request
+{
 	__le32	len;
 	__le32  reserved0;
 	__le32  reserved1;
 	__u8	data[0];
 } __packed;
 
-struct gb_loopback_transfer_response {
+struct gb_loopback_transfer_response
+{
 	__le32	len;
 	__le32	reserved0;
 	__le32	reserved1;
@@ -1491,7 +1633,8 @@ struct gb_loopback_transfer_response {
 #define GB_SDIO_TYPE_EVENT			0x06
 
 /* get caps response: request has no payload */
-struct gb_sdio_get_caps_response {
+struct gb_sdio_get_caps_response
+{
 	__le32	caps;
 #define GB_SDIO_CAP_NONREMOVABLE	0x00000001
 #define GB_SDIO_CAP_4_BIT_DATA		0x00000002
@@ -1524,7 +1667,8 @@ struct gb_sdio_get_caps_response {
 } __packed;
 
 /* set ios request: response has no payload */
-struct gb_sdio_set_ios_request {
+struct gb_sdio_set_ios_request
+{
 	__le32	clock;
 	__le32	vdd;
 #define GB_SDIO_VDD_165_195	0x00000001
@@ -1586,7 +1730,8 @@ struct gb_sdio_set_ios_request {
 } __packed;
 
 /* command request */
-struct gb_sdio_command_request {
+struct gb_sdio_command_request
+{
 	__u8	cmd;
 	__u8	cmd_flags;
 #define GB_SDIO_RSP_NONE		0x00
@@ -1607,12 +1752,14 @@ struct gb_sdio_command_request {
 	__le16	data_blksz;
 } __packed;
 
-struct gb_sdio_command_response {
+struct gb_sdio_command_response
+{
 	__le32	resp[4];
 } __packed;
 
 /* transfer request */
-struct gb_sdio_transfer_request {
+struct gb_sdio_transfer_request
+{
 	__u8	data_flags;
 #define GB_SDIO_DATA_WRITE	0x01
 #define GB_SDIO_DATA_READ	0x02
@@ -1623,14 +1770,16 @@ struct gb_sdio_transfer_request {
 	__u8	data[0];
 } __packed;
 
-struct gb_sdio_transfer_response {
+struct gb_sdio_transfer_response
+{
 	__le16	data_blocks;
 	__le16	data_blksz;
 	__u8	data[0];
 } __packed;
 
 /* event request: generated by module and is defined as unidirectional */
-struct gb_sdio_event_request {
+struct gb_sdio_event_request
+{
 	__u8	event;
 #define GB_SDIO_CARD_INSERTED	0x01
 #define GB_SDIO_CARD_REMOVED	0x02
@@ -1650,14 +1799,16 @@ struct gb_sdio_event_request {
 #define GB_CAMERA_MAX_SETTINGS_SIZE		8192
 
 /* Greybus Camera Configure Streams request payload */
-struct gb_camera_stream_config_request {
+struct gb_camera_stream_config_request
+{
 	__le16 width;
 	__le16 height;
 	__le16 format;
 	__le16 padding;
 } __packed;
 
-struct gb_camera_configure_streams_request {
+struct gb_camera_configure_streams_request
+{
 	__u8 num_streams;
 	__u8 flags;
 #define GB_CAMERA_CONFIGURE_STREAMS_TEST_ONLY	0x01
@@ -1666,7 +1817,8 @@ struct gb_camera_configure_streams_request {
 } __packed;
 
 /* Greybus Camera Configure Streams response payload */
-struct gb_camera_stream_config_response {
+struct gb_camera_stream_config_response
+{
 	__le16 width;
 	__le16 height;
 	__le16 format;
@@ -1677,7 +1829,8 @@ struct gb_camera_stream_config_response {
 	__le32 max_size;
 } __packed;
 
-struct gb_camera_configure_streams_response {
+struct gb_camera_configure_streams_response
+{
 	__u8 num_streams;
 #define GB_CAMERA_CONFIGURE_STREAMS_ADJUSTED	0x01
 	__u8 flags;
@@ -1687,7 +1840,8 @@ struct gb_camera_configure_streams_response {
 };
 
 /* Greybus Camera Capture request payload - response has no payload */
-struct gb_camera_capture_request {
+struct gb_camera_capture_request
+{
 	__le32 request_id;
 	__u8 streams;
 	__u8 padding;
@@ -1696,12 +1850,14 @@ struct gb_camera_capture_request {
 } __packed;
 
 /* Greybus Camera Flush response payload - request has no payload */
-struct gb_camera_flush_response {
+struct gb_camera_flush_response
+{
 	__le32 request_id;
 } __packed;
 
 /* Greybus Camera Metadata request payload - operation has no response */
-struct gb_camera_metadata_request {
+struct gb_camera_metadata_request
+{
 	__le32 request_id;
 	__le16 frame_number;
 	__u8 stream;
@@ -1755,35 +1911,41 @@ struct gb_camera_metadata_request {
 #define GB_LIGHT_CHANNEL_BLINK		0x00000004
 
 /* get count of lights in module */
-struct gb_lights_get_lights_response {
+struct gb_lights_get_lights_response
+{
 	__u8	lights_count;
 } __packed;
 
 /* light config request payload */
-struct gb_lights_get_light_config_request {
+struct gb_lights_get_light_config_request
+{
 	__u8	id;
 } __packed;
 
 /* light config response payload */
-struct gb_lights_get_light_config_response {
+struct gb_lights_get_light_config_response
+{
 	__u8	channel_count;
 	__u8	name[32];
 } __packed;
 
 /* channel config request payload */
-struct gb_lights_get_channel_config_request {
+struct gb_lights_get_channel_config_request
+{
 	__u8	light_id;
 	__u8	channel_id;
 } __packed;
 
 /* channel flash config request payload */
-struct gb_lights_get_channel_flash_config_request {
+struct gb_lights_get_channel_flash_config_request
+{
 	__u8	light_id;
 	__u8	channel_id;
 } __packed;
 
 /* channel config response payload */
-struct gb_lights_get_channel_config_response {
+struct gb_lights_get_channel_config_response
+{
 	__u8	max_brightness;
 	__le32	flags;
 	__le32	color;
@@ -1793,7 +1955,8 @@ struct gb_lights_get_channel_config_response {
 } __packed;
 
 /* channel flash config response payload */
-struct gb_lights_get_channel_flash_config_response {
+struct gb_lights_get_channel_flash_config_response
+{
 	__le32	intensity_min_uA;
 	__le32	intensity_max_uA;
 	__le32	intensity_step_uA;
@@ -1803,7 +1966,8 @@ struct gb_lights_get_channel_flash_config_response {
 } __packed;
 
 /* blink request payload: response have no payload */
-struct gb_lights_blink_request {
+struct gb_lights_blink_request
+{
 	__u8	light_id;
 	__u8	channel_id;
 	__le16	time_on_ms;
@@ -1811,21 +1975,24 @@ struct gb_lights_blink_request {
 } __packed;
 
 /* set brightness request payload: response have no payload */
-struct gb_lights_set_brightness_request {
+struct gb_lights_set_brightness_request
+{
 	__u8	light_id;
 	__u8	channel_id;
 	__u8	brightness;
 } __packed;
 
 /* set color request payload: response have no payload */
-struct gb_lights_set_color_request {
+struct gb_lights_set_color_request
+{
 	__u8	light_id;
 	__u8	channel_id;
 	__le32	color;
 } __packed;
 
 /* set fade request payload: response have no payload */
-struct gb_lights_set_fade_request {
+struct gb_lights_set_fade_request
+{
 	__u8	light_id;
 	__u8	channel_id;
 	__u8	fade_in;
@@ -1833,41 +2000,47 @@ struct gb_lights_set_fade_request {
 } __packed;
 
 /* event request: generated by module */
-struct gb_lights_event_request {
+struct gb_lights_event_request
+{
 	__u8	light_id;
 	__u8	event;
 #define GB_LIGHTS_LIGHT_CONFIG		0x01
 } __packed;
 
 /* set flash intensity request payload: response have no payload */
-struct gb_lights_set_flash_intensity_request {
+struct gb_lights_set_flash_intensity_request
+{
 	__u8	light_id;
 	__u8	channel_id;
 	__le32	intensity_uA;
 } __packed;
 
 /* set flash strobe state request payload: response have no payload */
-struct gb_lights_set_flash_strobe_request {
+struct gb_lights_set_flash_strobe_request
+{
 	__u8	light_id;
 	__u8	channel_id;
 	__u8	state;
 } __packed;
 
 /* set flash timeout request payload: response have no payload */
-struct gb_lights_set_flash_timeout_request {
+struct gb_lights_set_flash_timeout_request
+{
 	__u8	light_id;
 	__u8	channel_id;
 	__le32	timeout_us;
 } __packed;
 
 /* get flash fault request payload */
-struct gb_lights_get_flash_fault_request {
+struct gb_lights_get_flash_fault_request
+{
 	__u8	light_id;
 	__u8	channel_id;
 } __packed;
 
 /* get flash fault response payload */
-struct gb_lights_get_flash_fault_response {
+struct gb_lights_get_flash_fault_response
+{
 	__le32	fault;
 #define GB_LIGHTS_FLASH_FAULT_OVER_VOLTAGE		0x00000000
 #define GB_LIGHTS_FLASH_FAULT_TIMEOUT			0x00000001
@@ -1891,11 +2064,11 @@ struct gb_lights_get_flash_fault_response {
 #define GB_AUDIO_TYPE_GET_PCM			0x08
 #define GB_AUDIO_TYPE_SET_PCM			0x09
 #define GB_AUDIO_TYPE_SET_TX_DATA_SIZE		0x0a
-						/* 0x0b unused */
+/* 0x0b unused */
 #define GB_AUDIO_TYPE_ACTIVATE_TX		0x0c
 #define GB_AUDIO_TYPE_DEACTIVATE_TX		0x0d
 #define GB_AUDIO_TYPE_SET_RX_DATA_SIZE		0x0e
-						/* 0x0f unused */
+/* 0x0f unused */
 #define GB_AUDIO_TYPE_ACTIVATE_RX		0x10
 #define GB_AUDIO_TYPE_DEACTIVATE_RX		0x11
 #define GB_AUDIO_TYPE_JACK_EVENT		0x12
@@ -2033,26 +2206,27 @@ struct gb_lights_get_flash_fault_response {
 #define GB_AUDIO_JACK_HEADPHONE			0x0000001
 #define GB_AUDIO_JACK_MICROPHONE		0x0000002
 #define GB_AUDIO_JACK_HEADSET			(GB_AUDIO_JACK_HEADPHONE | \
-						 GB_AUDIO_JACK_MICROPHONE)
+		GB_AUDIO_JACK_MICROPHONE)
 #define GB_AUDIO_JACK_LINEOUT			0x0000004
 #define GB_AUDIO_JACK_MECHANICAL		0x0000008
 #define GB_AUDIO_JACK_VIDEOOUT			0x0000010
 #define GB_AUDIO_JACK_AVOUT			(GB_AUDIO_JACK_LINEOUT | \
-						 GB_AUDIO_JACK_VIDEOOUT)
+									 GB_AUDIO_JACK_VIDEOOUT)
 #define GB_AUDIO_JACK_LINEIN			0x0000020
 #define GB_AUDIO_JACK_OC_HPHL			0x0000040
 #define GB_AUDIO_JACK_OC_HPHR			0x0000080
 #define GB_AUDIO_JACK_MICROPHONE2		0x0000200
 #define GB_AUDIO_JACK_ANC_HEADPHONE		(GB_AUDIO_JACK_HEADPHONE | \
-						 GB_AUDIO_JACK_MICROPHONE | \
-						 GB_AUDIO_JACK_MICROPHONE2)
+		GB_AUDIO_JACK_MICROPHONE | \
+		GB_AUDIO_JACK_MICROPHONE2)
 /* Kept separate from switches to facilitate implementation */
 #define GB_AUDIO_JACK_BTN_0			0x4000000
 #define GB_AUDIO_JACK_BTN_1			0x2000000
 #define GB_AUDIO_JACK_BTN_2			0x1000000
 #define GB_AUDIO_JACK_BTN_3			0x0800000
 
-struct gb_audio_pcm {
+struct gb_audio_pcm
+{
 	__u8	stream_name[GB_AUDIO_PCM_NAME_MAX];
 	__le32	formats;	/* GB_AUDIO_PCM_FMT_* */
 	__le32	rates;		/* GB_AUDIO_PCM_RATE_* */
@@ -2061,51 +2235,60 @@ struct gb_audio_pcm {
 	__u8	sig_bits;	/* number of bits of content */
 } __packed;
 
-struct gb_audio_dai {
+struct gb_audio_dai
+{
 	__u8			name[AUDIO_DAI_NAME_MAX];
 	__le16			data_cport;
 	struct gb_audio_pcm	capture;
 	struct gb_audio_pcm	playback;
 } __packed;
 
-struct gb_audio_integer {
+struct gb_audio_integer
+{
 	__le32	min;
 	__le32	max;
 	__le32	step;
 } __packed;
 
-struct gb_audio_integer64 {
+struct gb_audio_integer64
+{
 	__le64	min;
 	__le64	max;
 	__le64	step;
 } __packed;
 
-struct gb_audio_enumerated {
+struct gb_audio_enumerated
+{
 	__le32	items;
 	__le16	names_length;
 	__u8	names[0];
 } __packed;
 
-struct gb_audio_ctl_elem_info { /* See snd_ctl_elem_info in Linux source */
+struct gb_audio_ctl_elem_info   /* See snd_ctl_elem_info in Linux source */
+{
 	__u8		type;		/* GB_AUDIO_CTL_ELEM_TYPE_* */
 	__le16		dimen[4];
-	union {
+	union
+	{
 		struct gb_audio_integer		integer;
 		struct gb_audio_integer64	integer64;
 		struct gb_audio_enumerated	enumerated;
 	} value;
 } __packed;
 
-struct gb_audio_ctl_elem_value { /* See snd_ctl_elem_value in Linux source */
+struct gb_audio_ctl_elem_value   /* See snd_ctl_elem_value in Linux source */
+{
 	__le64				timestamp; /* XXX needed? */
-	union {
+	union
+	{
 		__le32	integer_value[2];	/* consider CTL_DOUBLE_xxx */
 		__le64	integer64_value[2];
 		__le32	enumerated_item[2];
 	} value;
 } __packed;
 
-struct gb_audio_control {
+struct gb_audio_control
+{
 	__u8	name[AUDIO_CONTROL_NAME_MAX];
 	__u8	id;		/* 0-63 */
 	__u8	iface;		/* GB_AUDIO_IFACE_* */
@@ -2116,7 +2299,8 @@ struct gb_audio_control {
 	struct gb_audio_ctl_elem_info	info;
 } __packed;
 
-struct gb_audio_widget {
+struct gb_audio_widget
+{
 	__u8	name[AUDIO_WIDGET_NAME_MAX];
 	__u8	sname[AUDIO_WIDGET_NAME_MAX];
 	__u8	id;
@@ -2126,14 +2310,16 @@ struct gb_audio_widget {
 	struct gb_audio_control	ctl[0];	/* 'ncontrols' entries */
 } __packed;
 
-struct gb_audio_route {
+struct gb_audio_route
+{
 	__u8	source_id;	/* widget id */
 	__u8	destination_id;	/* widget id */
 	__u8	control_id;	/* 0-63 */
 	__u8	index;		/* Selection within the control */
 } __packed;
 
-struct gb_audio_topology {
+struct gb_audio_topology
+{
 	__u8	num_dais;
 	__u8	num_controls;
 	__u8	num_widgets;
@@ -2152,49 +2338,59 @@ struct gb_audio_topology {
 	__u8	data[0];
 } __packed;
 
-struct gb_audio_get_topology_size_response {
+struct gb_audio_get_topology_size_response
+{
 	__le16	size;
 } __packed;
 
-struct gb_audio_get_topology_response {
+struct gb_audio_get_topology_response
+{
 	struct gb_audio_topology	topology;
 } __packed;
 
-struct gb_audio_get_control_request {
+struct gb_audio_get_control_request
+{
 	__u8	control_id;
 	__u8	index;
 } __packed;
 
-struct gb_audio_get_control_response {
+struct gb_audio_get_control_response
+{
 	struct gb_audio_ctl_elem_value	value;
 } __packed;
 
-struct gb_audio_set_control_request {
+struct gb_audio_set_control_request
+{
 	__u8	control_id;
 	__u8	index;
 	struct gb_audio_ctl_elem_value	value;
 } __packed;
 
-struct gb_audio_enable_widget_request {
+struct gb_audio_enable_widget_request
+{
 	__u8	widget_id;
 } __packed;
 
-struct gb_audio_disable_widget_request {
+struct gb_audio_disable_widget_request
+{
 	__u8	widget_id;
 } __packed;
 
-struct gb_audio_get_pcm_request {
+struct gb_audio_get_pcm_request
+{
 	__le16	data_cport;
 } __packed;
 
-struct gb_audio_get_pcm_response {
+struct gb_audio_get_pcm_response
+{
 	__le32	format;
 	__le32	rate;
 	__u8	channels;
 	__u8	sig_bits;
 } __packed;
 
-struct gb_audio_set_pcm_request {
+struct gb_audio_set_pcm_request
+{
 	__le16	data_cport;
 	__le32	format;
 	__le32	rate;
@@ -2202,50 +2398,60 @@ struct gb_audio_set_pcm_request {
 	__u8	sig_bits;
 } __packed;
 
-struct gb_audio_set_tx_data_size_request {
+struct gb_audio_set_tx_data_size_request
+{
 	__le16	data_cport;
 	__le16	size;
 } __packed;
 
-struct gb_audio_activate_tx_request {
+struct gb_audio_activate_tx_request
+{
 	__le16	data_cport;
 } __packed;
 
-struct gb_audio_deactivate_tx_request {
+struct gb_audio_deactivate_tx_request
+{
 	__le16	data_cport;
 } __packed;
 
-struct gb_audio_set_rx_data_size_request {
+struct gb_audio_set_rx_data_size_request
+{
 	__le16	data_cport;
 	__le16	size;
 } __packed;
 
-struct gb_audio_activate_rx_request {
+struct gb_audio_activate_rx_request
+{
 	__le16	data_cport;
 } __packed;
 
-struct gb_audio_deactivate_rx_request {
+struct gb_audio_deactivate_rx_request
+{
 	__le16	data_cport;
 } __packed;
 
-struct gb_audio_jack_event_request {
+struct gb_audio_jack_event_request
+{
 	__u8	widget_id;
 	__u8	jack_attribute;
 	__u8	event;
 } __packed;
 
-struct gb_audio_button_event_request {
+struct gb_audio_button_event_request
+{
 	__u8	widget_id;
 	__u8	button_id;
 	__u8	event;
 } __packed;
 
-struct gb_audio_streaming_event_request {
+struct gb_audio_streaming_event_request
+{
 	__le16	data_cport;
 	__u8	event;
 } __packed;
 
-struct gb_audio_send_data_request {
+struct gb_audio_send_data_request
+{
 	__le64	timestamp;
 	__u8	data[0];
 } __packed;
@@ -2259,7 +2465,8 @@ struct gb_audio_send_data_request {
 /* length */
 #define GB_LOG_MAX_LEN		1024
 
-struct gb_log_send_log_request {
+struct gb_log_send_log_request
+{
 	__le16	len;
 	__u8    msg[0];
 } __packed;

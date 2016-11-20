@@ -29,7 +29,8 @@
 #include <subdev/instmem.h>
 
 static const struct nv04_fifo_ramfc
-nv17_fifo_ramfc[] = {
+	nv17_fifo_ramfc[] =
+{
 	{ 32,  0, 0x00,  0, NV04_PFIFO_CACHE1_DMA_PUT },
 	{ 32,  0, 0x04,  0, NV04_PFIFO_CACHE1_DMA_GET },
 	{ 32,  0, 0x08,  0, NV10_PFIFO_CACHE1_REF_CNT },
@@ -61,11 +62,11 @@ nv17_fifo_init(struct nvkm_fifo *base)
 	nvkm_wr32(device, NV04_PFIFO_DMA_TIMESLICE, 0x0101ffff);
 
 	nvkm_wr32(device, NV03_PFIFO_RAMHT, (0x03 << 24) /* search 128 */ |
-					    ((ramht->bits - 9) << 16) |
-					    (ramht->gpuobj->addr >> 8));
+			  ((ramht->bits - 9) << 16) |
+			  (ramht->gpuobj->addr >> 8));
 	nvkm_wr32(device, NV03_PFIFO_RAMRO, nvkm_memory_addr(ramro) >> 8);
 	nvkm_wr32(device, NV03_PFIFO_RAMFC, nvkm_memory_addr(ramfc) >> 8 |
-					    0x00010000);
+			  0x00010000);
 
 	nvkm_wr32(device, NV03_PFIFO_CACHE1_PUSH1, fifo->base.nr - 1);
 
@@ -78,7 +79,8 @@ nv17_fifo_init(struct nvkm_fifo *base)
 }
 
 static const struct nvkm_fifo_func
-nv17_fifo = {
+	nv17_fifo =
+{
 	.init = nv17_fifo_init,
 	.intr = nv04_fifo_intr,
 	.pause = nv04_fifo_pause,
@@ -93,5 +95,5 @@ int
 nv17_fifo_new(struct nvkm_device *device, int index, struct nvkm_fifo **pfifo)
 {
 	return nv04_fifo_new_(&nv17_fifo, device, index, 32,
-			      nv17_fifo_ramfc, pfifo);
+						  nv17_fifo_ramfc, pfifo);
 }

@@ -4,7 +4,8 @@
 #define CORGI_LCD_MODE_QVGA	1
 #define CORGI_LCD_MODE_VGA	2
 
-struct corgi_lcd_platform_data {
+struct corgi_lcd_platform_data
+{
 	int	init_mode;
 	int	max_intensity;
 	int	default_intensity;

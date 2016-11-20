@@ -48,7 +48,8 @@ struct iwch_cq;
 struct iwch_qp;
 struct iwch_mr;
 
-struct iwch_rnic_attributes {
+struct iwch_rnic_attributes
+{
 	u32 max_qps;
 	u32 max_wrs;				/* Max for any SQ/RQ */
 	u32 max_sge_per_wr;
@@ -101,7 +102,8 @@ struct iwch_rnic_attributes {
 	u32 cq_overflow_detection;
 };
 
-struct iwch_dev {
+struct iwch_dev
+{
 	struct ib_device ibdev;
 	struct cxio_rdev rdev;
 	u32 device_cap_flags;
@@ -150,7 +152,7 @@ static inline struct iwch_mr *get_mhp(struct iwch_dev *rhp, u32 mmid)
 }
 
 static inline int insert_handle(struct iwch_dev *rhp, struct idr *idr,
-				void *handle, u32 id)
+								void *handle, u32 id)
 {
 	int ret;
 

@@ -39,7 +39,8 @@ static int w1_bq27000_read(struct device *dev, unsigned int reg)
 	return val;
 }
 
-static struct bq27xxx_platform_data bq27000_battery_info = {
+static struct bq27xxx_platform_data bq27000_battery_info =
+{
 	.read   = w1_bq27000_read,
 	.name   = "bq27000-battery",
 	.chip   = BQ27000,
@@ -51,20 +52,30 @@ static int w1_bq27000_add_slave(struct w1_slave *sl)
 	struct platform_device *pdev;
 
 	pdev = platform_device_alloc("bq27000-battery", -1);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		ret = -ENOMEM;
 		return ret;
 	}
+
 	ret = platform_device_add_data(pdev,
-				       &bq27000_battery_info,
-				       sizeof(bq27000_battery_info));
+								   &bq27000_battery_info,
+								   sizeof(bq27000_battery_info));
+
 	if (ret)
+	{
 		goto pdev_add_failed;
+	}
+
 	pdev->dev.parent = &sl->dev;
 
 	ret = platform_device_add(pdev);
+
 	if (ret)
+	{
 		goto pdev_add_failed;
+	}
 
 	dev_set_drvdata(&sl->dev, pdev);
 
@@ -83,12 +94,14 @@ static void w1_bq27000_remove_slave(struct w1_slave *sl)
 	platform_device_unregister(pdev);
 }
 
-static struct w1_family_ops w1_bq27000_fops = {
+static struct w1_family_ops w1_bq27000_fops =
+{
 	.add_slave	= w1_bq27000_add_slave,
 	.remove_slave	= w1_bq27000_remove_slave,
 };
 
-static struct w1_family w1_bq27000_family = {
+static struct w1_family w1_bq27000_family =
+{
 	.fid = W1_FAMILY_BQ27000,
 	.fops = &w1_bq27000_fops,
 };
@@ -96,7 +109,9 @@ static struct w1_family w1_bq27000_family = {
 static int __init w1_bq27000_init(void)
 {
 	if (F_ID)
+	{
 		w1_bq27000_family.fid = F_ID;
+	}
 
 	return w1_register_family(&w1_bq27000_family);
 }

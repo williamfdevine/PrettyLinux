@@ -37,12 +37,14 @@
 #include <linux/compiler.h>
 #include <xen/interface/xen.h>
 
-struct privcmd_hypercall {
+struct privcmd_hypercall
+{
 	__u64 op;
 	__u64 arg[5];
 };
 
-struct privcmd_mmap_entry {
+struct privcmd_mmap_entry
+{
 	__u64 va;
 	/*
 	 * This should be a GFN. It's not possible to change the name because
@@ -52,13 +54,15 @@ struct privcmd_mmap_entry {
 	__u64 npages;
 };
 
-struct privcmd_mmap {
+struct privcmd_mmap
+{
 	int num;
 	domid_t dom; /* target domain */
 	struct privcmd_mmap_entry __user *entry;
 };
 
-struct privcmd_mmapbatch {
+struct privcmd_mmapbatch
+{
 	int num;     /* number of pages to populate */
 	domid_t dom; /* target domain */
 	__u64 addr;  /* virtual address */
@@ -69,7 +73,8 @@ struct privcmd_mmapbatch {
 #define PRIVCMD_MMAPBATCH_MFN_ERROR     0xf0000000U
 #define PRIVCMD_MMAPBATCH_PAGED_ERROR   0x80000000U
 
-struct privcmd_mmapbatch_v2 {
+struct privcmd_mmapbatch_v2
+{
 	unsigned int num; /* number of pages to populate */
 	domid_t dom;      /* target domain */
 	__u64 addr;       /* virtual address */

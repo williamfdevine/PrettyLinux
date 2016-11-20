@@ -139,7 +139,7 @@
 
 struct wbsd_host
 {
-	struct mmc_host*	mmc;		/* MMC structure */
+	struct mmc_host	*mmc;		/* MMC structure */
 
 	spinlock_t		lock;		/* Mutex */
 
@@ -148,17 +148,17 @@ struct wbsd_host
 #define WBSD_FCARD_PRESENT	(1<<0)		/* Card is present */
 #define WBSD_FIGNORE_DETECT	(1<<1)		/* Ignore card detection */
 
-	struct mmc_request*	mrq;		/* Current request */
+	struct mmc_request	*mrq;		/* Current request */
 
 	u8			isr;		/* Accumulated ISR */
 
-	struct scatterlist*	cur_sg;		/* Current SG entry */
+	struct scatterlist	*cur_sg;		/* Current SG entry */
 	unsigned int		num_sg;		/* Number of entries left */
 
 	unsigned int		offset;		/* Offset into current entry */
 	unsigned int		remain;		/* Data left in curren entry */
 
-	char*			dma_buffer;	/* ISA DMA buffer */
+	char			*dma_buffer;	/* ISA DMA buffer */
 	dma_addr_t		dma_addr;	/* Physical address for same */
 
 	int			firsterr;	/* See fifo functions */

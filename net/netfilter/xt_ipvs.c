@@ -11,7 +11,7 @@
 #include <linux/spinlock.h>
 #include <linux/skbuff.h>
 #ifdef CONFIG_IP_VS_IPV6
-#include <net/ipv6.h>
+	#include <net/ipv6.h>
 #endif
 #include <linux/ip_vs.h>
 #include <linux/types.h>
@@ -29,19 +29,25 @@ MODULE_ALIAS("ip6t_ipvs");
 
 /* borrowed from xt_conntrack */
 static bool ipvs_mt_addrcmp(const union nf_inet_addr *kaddr,
-			    const union nf_inet_addr *uaddr,
-			    const union nf_inet_addr *umask,
-			    unsigned int l3proto)
+							const union nf_inet_addr *uaddr,
+							const union nf_inet_addr *umask,
+							unsigned int l3proto)
 {
 	if (l3proto == NFPROTO_IPV4)
+	{
 		return ((kaddr->ip ^ uaddr->ip) & umask->ip) == 0;
+	}
+
 #ifdef CONFIG_IP_VS_IPV6
 	else if (l3proto == NFPROTO_IPV6)
 		return ipv6_masked_addr_cmp(&kaddr->in6, &umask->in6,
-		       &uaddr->in6) == 0;
+									&uaddr->in6) == 0;
+
 #endif
 	else
+	{
 		return false;
+	}
 }
 
 static bool
@@ -56,14 +62,16 @@ ipvs_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	struct ip_vs_conn *cp;
 	bool match = true;
 
-	if (data->bitmask == XT_IPVS_IPVS_PROPERTY) {
+	if (data->bitmask == XT_IPVS_IPVS_PROPERTY)
+	{
 		match = skb->ipvs_property ^
-			!!(data->invert & XT_IPVS_IPVS_PROPERTY);
+				!!(data->invert & XT_IPVS_IPVS_PROPERTY);
 		goto out;
 	}
 
 	/* other flags than XT_IPVS_IPVS_PROPERTY are set */
-	if (!skb->ipvs_property) {
+	if (!skb->ipvs_property)
+	{
 		match = false;
 		goto out;
 	}
@@ -72,13 +80,16 @@ ipvs_mt(const struct sk_buff *skb, struct xt_action_param *par)
 
 	if (data->bitmask & XT_IPVS_PROTO)
 		if ((iph.protocol == data->l4proto) ^
-		    !(data->invert & XT_IPVS_PROTO)) {
+			!(data->invert & XT_IPVS_PROTO))
+		{
 			match = false;
 			goto out;
 		}
 
 	pp = ip_vs_proto_get(iph.protocol);
-	if (unlikely(!pp)) {
+
+	if (unlikely(!pp))
+	{
 		match = false;
 		goto out;
 	}
@@ -87,7 +98,9 @@ ipvs_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	 * Check if the packet belongs to an existing entry
 	 */
 	cp = pp->conn_out_get(ipvs, family, skb, &iph);
-	if (unlikely(cp == NULL)) {
+
+	if (unlikely(cp == NULL))
+	{
 		match = false;
 		goto out;
 	}
@@ -99,30 +112,35 @@ ipvs_mt(const struct sk_buff *skb, struct xt_action_param *par)
 
 	if (data->bitmask & XT_IPVS_VPORT)
 		if ((cp->vport == data->vport) ^
-		    !(data->invert & XT_IPVS_VPORT)) {
+			!(data->invert & XT_IPVS_VPORT))
+		{
 			match = false;
 			goto out_put_cp;
 		}
 
 	if (data->bitmask & XT_IPVS_VPORTCTL)
 		if ((cp->control != NULL &&
-		     cp->control->vport == data->vportctl) ^
-		    !(data->invert & XT_IPVS_VPORTCTL)) {
+			 cp->control->vport == data->vportctl) ^
+			!(data->invert & XT_IPVS_VPORTCTL))
+		{
 			match = false;
 			goto out_put_cp;
 		}
 
-	if (data->bitmask & XT_IPVS_DIR) {
+	if (data->bitmask & XT_IPVS_DIR)
+	{
 		enum ip_conntrack_info ctinfo;
 		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
 
-		if (ct == NULL || nf_ct_is_untracked(ct)) {
+		if (ct == NULL || nf_ct_is_untracked(ct))
+		{
 			match = false;
 			goto out_put_cp;
 		}
 
 		if ((ctinfo >= IP_CT_IS_REPLY) ^
-		    !!(data->invert & XT_IPVS_DIR)) {
+			!!(data->invert & XT_IPVS_DIR))
+		{
 			match = false;
 			goto out_put_cp;
 		}
@@ -130,15 +148,18 @@ ipvs_mt(const struct sk_buff *skb, struct xt_action_param *par)
 
 	if (data->bitmask & XT_IPVS_METHOD)
 		if (((cp->flags & IP_VS_CONN_F_FWD_MASK) == data->fwd_method) ^
-		    !(data->invert & XT_IPVS_METHOD)) {
+			!(data->invert & XT_IPVS_METHOD))
+		{
 			match = false;
 			goto out_put_cp;
 		}
 
-	if (data->bitmask & XT_IPVS_VADDR) {
+	if (data->bitmask & XT_IPVS_VADDR)
+	{
 		if (ipvs_mt_addrcmp(&cp->vaddr, &data->vaddr,
-				    &data->vmask, family) ^
-		    !(data->invert & XT_IPVS_VADDR)) {
+							&data->vmask, family) ^
+			!(data->invert & XT_IPVS_VADDR))
+		{
 			match = false;
 			goto out_put_cp;
 		}
@@ -155,9 +176,10 @@ static int ipvs_mt_check(const struct xt_mtchk_param *par)
 {
 	if (par->family != NFPROTO_IPV4
 #ifdef CONFIG_IP_VS_IPV6
-	    && par->family != NFPROTO_IPV6
+		&& par->family != NFPROTO_IPV6
 #endif
-		) {
+	   )
+	{
 		pr_info("protocol family %u not supported\n", par->family);
 		return -EINVAL;
 	}
@@ -165,7 +187,8 @@ static int ipvs_mt_check(const struct xt_mtchk_param *par)
 	return 0;
 }
 
-static struct xt_match xt_ipvs_mt_reg __read_mostly = {
+static struct xt_match xt_ipvs_mt_reg __read_mostly =
+{
 	.name       = "ipvs",
 	.revision   = 0,
 	.family     = NFPROTO_UNSPEC,

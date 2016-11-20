@@ -29,7 +29,8 @@
 
 #include <linux/types.h>
 
-enum virtio_input_config_select {
+enum virtio_input_config_select
+{
 	VIRTIO_INPUT_CFG_UNSET      = 0x00,
 	VIRTIO_INPUT_CFG_ID_NAME    = 0x01,
 	VIRTIO_INPUT_CFG_ID_SERIAL  = 0x02,
@@ -39,7 +40,8 @@ enum virtio_input_config_select {
 	VIRTIO_INPUT_CFG_ABS_INFO   = 0x12,
 };
 
-struct virtio_input_absinfo {
+struct virtio_input_absinfo
+{
 	__u32 min;
 	__u32 max;
 	__u32 fuzz;
@@ -47,19 +49,22 @@ struct virtio_input_absinfo {
 	__u32 res;
 };
 
-struct virtio_input_devids {
+struct virtio_input_devids
+{
 	__u16 bustype;
 	__u16 vendor;
 	__u16 product;
 	__u16 version;
 };
 
-struct virtio_input_config {
+struct virtio_input_config
+{
 	__u8    select;
 	__u8    subsel;
 	__u8    size;
 	__u8    reserved[5];
-	union {
+	union
+	{
 		char string[128];
 		__u8 bitmap[128];
 		struct virtio_input_absinfo abs;
@@ -67,7 +72,8 @@ struct virtio_input_config {
 	} u;
 };
 
-struct virtio_input_event {
+struct virtio_input_event
+{
 	__le16 type;
 	__le16 code;
 	__le32 value;

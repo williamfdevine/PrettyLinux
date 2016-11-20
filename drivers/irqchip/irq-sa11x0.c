@@ -57,7 +57,8 @@ static int sa1100_set_wake(struct irq_data *d, unsigned int on)
 	return sa11x0_sc_set_wake(d->hwirq, on);
 }
 
-static struct irq_chip sa1100_normal_chip = {
+static struct irq_chip sa1100_normal_chip =
+{
 	.name		= "SC",
 	.irq_ack	= sa1100_mask_irq,
 	.irq_mask	= sa1100_mask_irq,
@@ -66,22 +67,24 @@ static struct irq_chip sa1100_normal_chip = {
 };
 
 static int sa1100_normal_irqdomain_map(struct irq_domain *d,
-		unsigned int irq, irq_hw_number_t hwirq)
+									   unsigned int irq, irq_hw_number_t hwirq)
 {
 	irq_set_chip_and_handler(irq, &sa1100_normal_chip,
-				 handle_level_irq);
+							 handle_level_irq);
 
 	return 0;
 }
 
-static const struct irq_domain_ops sa1100_normal_irqdomain_ops = {
+static const struct irq_domain_ops sa1100_normal_irqdomain_ops =
+{
 	.map = sa1100_normal_irqdomain_map,
 	.xlate = irq_domain_xlate_onetwocell,
 };
 
 static struct irq_domain *sa1100_normal_irqdomain;
 
-static struct sa1100irq_state {
+static struct sa1100irq_state
+{
 	unsigned int	saved;
 	unsigned int	icmr;
 	unsigned int	iclr;
@@ -109,7 +112,8 @@ static void sa1100irq_resume(void)
 {
 	struct sa1100irq_state *st = &sa1100irq_state;
 
-	if (st->saved) {
+	if (st->saved)
+	{
 		writel_relaxed(st->iccr, iobase + ICCR);
 		writel_relaxed(st->iclr, iobase + ICLR);
 
@@ -117,7 +121,8 @@ static void sa1100irq_resume(void)
 	}
 }
 
-static struct syscore_ops sa1100irq_syscore_ops = {
+static struct syscore_ops sa1100irq_syscore_ops =
+{
 	.suspend	= sa1100irq_suspend,
 	.resume		= sa1100irq_resume,
 };
@@ -135,24 +140,31 @@ sa1100_handle_irq(struct pt_regs *regs)
 {
 	uint32_t icip, icmr, mask;
 
-	do {
+	do
+	{
 		icip = readl_relaxed(iobase + ICIP);
 		icmr = readl_relaxed(iobase + ICMR);
 		mask = icip & icmr;
 
 		if (mask == 0)
+		{
 			break;
+		}
 
 		handle_domain_irq(sa1100_normal_irqdomain,
-				ffs(mask) - 1, regs);
-	} while (1);
+						  ffs(mask) - 1, regs);
+	}
+	while (1);
 }
 
 void __init sa11x0_init_irq_nodt(int irq_start, resource_size_t io_start)
 {
 	iobase = ioremap(io_start, SZ_64K);
+
 	if (WARN_ON(!iobase))
+	{
 		return;
+	}
 
 	/* disable all IRQs */
 	writel_relaxed(0, iobase + ICMR);
@@ -167,8 +179,8 @@ void __init sa11x0_init_irq_nodt(int irq_start, resource_size_t io_start)
 	writel_relaxed(1, iobase + ICCR);
 
 	sa1100_normal_irqdomain = irq_domain_add_simple(NULL,
-			32, irq_start,
-			&sa1100_normal_irqdomain_ops, NULL);
+							  32, irq_start,
+							  &sa1100_normal_irqdomain_ops, NULL);
 
 	set_handle_irq(sa1100_handle_irq);
 }

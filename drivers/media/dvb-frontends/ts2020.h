@@ -24,14 +24,15 @@
 
 #include <linux/dvb/frontend.h>
 
-struct ts2020_config {
+struct ts2020_config
+{
 	u8 tuner_address;
 	u32 frequency_div;
 
 	/*
 	 * RF loop-through
 	 */
-	bool loop_through:1;
+	bool loop_through: 1;
 
 	/*
 	 * clock output
@@ -39,16 +40,16 @@ struct ts2020_config {
 #define TS2020_CLK_OUT_DISABLED        0
 #define TS2020_CLK_OUT_ENABLED         1
 #define TS2020_CLK_OUT_ENABLED_XTALOUT 2
-	u8 clk_out:2;
+	u8 clk_out: 2;
 
 	/*
 	 * clock output divider
 	 * 1 - 31
 	 */
-	u8 clk_out_div:5;
+	u8 clk_out_div: 5;
 
 	/* Set to true to suppress stat polling */
-	bool dont_poll:1;
+	bool dont_poll: 1;
 
 	/*
 	 * pointer to DVB frontend
@@ -58,7 +59,7 @@ struct ts2020_config {
 	/*
 	 * driver private, do not set value
 	 */
-	u8 attach_in_use:1;
+	u8 attach_in_use: 1;
 
 	/* Operation to be called by the ts2020 driver to get the value of the
 	 * AGC PWM tuner input as theoretically output by the demodulator.

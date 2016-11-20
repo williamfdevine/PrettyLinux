@@ -122,7 +122,8 @@
 
 #define ENA_MMIO_DISABLE_REG_READ	BIT(0)
 
-struct ena_irq {
+struct ena_irq
+{
 	irq_handler_t handler;
 	void *data;
 	int cpu;
@@ -131,14 +132,16 @@ struct ena_irq {
 	char name[ENA_IRQNAME_SIZE];
 };
 
-struct ena_napi {
+struct ena_napi
+{
 	struct napi_struct napi ____cacheline_aligned;
 	struct ena_ring *tx_ring;
 	struct ena_ring *rx_ring;
 	u32 qid;
 };
 
-struct ena_tx_buffer {
+struct ena_tx_buffer
+{
 	struct sk_buff *skb;
 	/* num of ena desc for this specific skb
 	 * (includes data desc and metadata desc)
@@ -151,14 +154,16 @@ struct ena_tx_buffer {
 	struct ena_com_buf bufs[ENA_PKT_MAX_BUFS];
 } ____cacheline_aligned;
 
-struct ena_rx_buffer {
+struct ena_rx_buffer
+{
 	struct sk_buff *skb;
 	struct page *page;
 	u32 page_offset;
 	struct ena_com_buf ena_buf;
 } ____cacheline_aligned;
 
-struct ena_stats_tx {
+struct ena_stats_tx
+{
 	u64 cnt;
 	u64 bytes;
 	u64 queue_stop;
@@ -174,7 +179,8 @@ struct ena_stats_tx {
 	u64 bad_req_id;
 };
 
-struct ena_stats_rx {
+struct ena_stats_rx
+{
 	u64 cnt;
 	u64 bytes;
 	u64 refil_partial;
@@ -186,10 +192,12 @@ struct ena_stats_rx {
 	u64 rx_copybreak_pkt;
 };
 
-struct ena_ring {
+struct ena_ring
+{
 	/* Holds the empty requests for TX out of order completions */
 	u16 *free_tx_ids;
-	union {
+	union
+	{
 		struct ena_tx_buffer *tx_buffer_info;
 		struct ena_rx_buffer *rx_buffer_info;
 	};
@@ -216,7 +224,7 @@ struct ena_ring {
 
 	/* cpu for TPH */
 	int cpu;
-	 /* number of tx/rx_buffer_info's entries */
+	/* number of tx/rx_buffer_info's entries */
 	int ring_size;
 
 	enum ena_admin_placement_policy_type tx_mem_queue_type;
@@ -227,13 +235,15 @@ struct ena_ring {
 	u32  per_napi_bytes;
 	enum ena_intr_moder_level moder_tbl_idx;
 	struct u64_stats_sync syncp;
-	union {
+	union
+	{
 		struct ena_stats_tx tx_stats;
 		struct ena_stats_rx rx_stats;
 	};
 } ____cacheline_aligned;
 
-struct ena_stats_dev {
+struct ena_stats_dev
+{
 	u64 tx_timeout;
 	u64 io_suspend;
 	u64 io_resume;
@@ -243,7 +253,8 @@ struct ena_stats_dev {
 	u64 admin_q_pause;
 };
 
-enum ena_flags_t {
+enum ena_flags_t
+{
 	ENA_FLAG_DEVICE_RUNNING,
 	ENA_FLAG_DEV_UP,
 	ENA_FLAG_LINK_UP,
@@ -252,7 +263,8 @@ enum ena_flags_t {
 };
 
 /* adapter specific private data structure */
-struct ena_adapter {
+struct ena_adapter
+{
 	struct ena_com_dev *ena_dev;
 	/* OS defined structs */
 	struct net_device *netdev;

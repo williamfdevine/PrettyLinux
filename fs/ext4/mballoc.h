@@ -28,12 +28,12 @@
 extern ushort ext4_mballoc_debug;
 
 #define mb_debug(n, fmt, ...)	                                        \
-do {									\
-	if ((n) <= ext4_mballoc_debug) {				\
-		printk(KERN_DEBUG "(%s, %d): %s: " fmt,			\
-		       __FILE__, __LINE__, __func__, ##__VA_ARGS__);	\
-	}								\
-} while (0)
+	do {									\
+		if ((n) <= ext4_mballoc_debug) {				\
+			printk(KERN_DEBUG "(%s, %d): %s: " fmt,			\
+				   __FILE__, __LINE__, __func__, ##__VA_ARGS__);	\
+		}								\
+	} while (0)
 #else
 #define mb_debug(n, fmt, ...)	no_printk(fmt, ##__VA_ARGS__)
 #endif
@@ -77,7 +77,8 @@ do {									\
 #define MB_DEFAULT_GROUP_PREALLOC	512
 
 
-struct ext4_free_data {
+struct ext4_free_data
+{
 	/* MUST be the first member */
 	struct ext4_journal_cb_entry	efd_jce;
 
@@ -97,10 +98,12 @@ struct ext4_free_data {
 	tid_t				efd_tid;
 };
 
-struct ext4_prealloc_space {
+struct ext4_prealloc_space
+{
 	struct list_head	pa_inode_list;
 	struct list_head	pa_group_list;
-	union {
+	union
+	{
 		struct list_head pa_tmp_list;
 		struct rcu_head	pa_rcu;
 	} u;
@@ -116,12 +119,14 @@ struct ext4_prealloc_space {
 	struct inode		*pa_inode;	/* hack, for history only */
 };
 
-enum {
+enum
+{
 	MB_INODE_PA = 0,
 	MB_GROUP_PA = 1
 };
 
-struct ext4_free_extent {
+struct ext4_free_extent
+{
 	ext4_lblk_t fe_logical;
 	ext4_grpblk_t fe_start;	/* In cluster units */
 	ext4_group_t fe_group;
@@ -137,7 +142,8 @@ struct ext4_free_extent {
  *   order value.ie, fls(pa_free)-1;
  */
 #define PREALLOC_TB_SIZE 10
-struct ext4_locality_group {
+struct ext4_locality_group
+{
 	/* for allocator */
 	/* to serialize allocates */
 	struct mutex		lg_mutex;
@@ -146,7 +152,8 @@ struct ext4_locality_group {
 	spinlock_t		lg_prealloc_lock;
 };
 
-struct ext4_allocation_context {
+struct ext4_allocation_context
+{
 	struct inode *ac_inode;
 	struct super_block *ac_sb;
 
@@ -182,7 +189,8 @@ struct ext4_allocation_context {
 #define AC_STATUS_FOUND		2
 #define AC_STATUS_BREAK		3
 
-struct ext4_buddy {
+struct ext4_buddy
+{
 	struct page *bd_buddy_page;
 	void *bd_buddy;
 	struct page *bd_bitmap_page;
@@ -194,9 +202,9 @@ struct ext4_buddy {
 };
 
 static inline ext4_fsblk_t ext4_grp_offs_to_block(struct super_block *sb,
-					struct ext4_free_extent *fex)
+		struct ext4_free_extent *fex)
 {
 	return ext4_group_first_block_no(sb, fex->fe_group) +
-		(fex->fe_start << EXT4_SB(sb)->s_cluster_bits);
+		   (fex->fe_start << EXT4_SB(sb)->s_cluster_bits);
 }
 #endif

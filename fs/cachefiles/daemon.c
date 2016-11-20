@@ -28,11 +28,11 @@
 static int cachefiles_daemon_open(struct inode *, struct file *);
 static int cachefiles_daemon_release(struct inode *, struct file *);
 static ssize_t cachefiles_daemon_read(struct file *, char __user *, size_t,
-				      loff_t *);
+									  loff_t *);
 static ssize_t cachefiles_daemon_write(struct file *, const char __user *,
-				       size_t, loff_t *);
+									   size_t, loff_t *);
 static unsigned int cachefiles_daemon_poll(struct file *,
-					   struct poll_table_struct *);
+		struct poll_table_struct *);
 static int cachefiles_daemon_frun(struct cachefiles_cache *, char *);
 static int cachefiles_daemon_fcull(struct cachefiles_cache *, char *);
 static int cachefiles_daemon_fstop(struct cachefiles_cache *, char *);
@@ -48,7 +48,8 @@ static int cachefiles_daemon_tag(struct cachefiles_cache *, char *);
 
 static unsigned long cachefiles_open;
 
-const struct file_operations cachefiles_daemon_fops = {
+const struct file_operations cachefiles_daemon_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= cachefiles_daemon_open,
 	.release	= cachefiles_daemon_release,
@@ -58,12 +59,14 @@ const struct file_operations cachefiles_daemon_fops = {
 	.llseek		= noop_llseek,
 };
 
-struct cachefiles_daemon_cmd {
+struct cachefiles_daemon_cmd
+{
 	char name[8];
 	int (*handler)(struct cachefiles_cache *cache, char *args);
 };
 
-static const struct cachefiles_daemon_cmd cachefiles_daemon_cmds[] = {
+static const struct cachefiles_daemon_cmd cachefiles_daemon_cmds[] =
+{
 	{ "bind",	cachefiles_daemon_bind		},
 	{ "brun",	cachefiles_daemon_brun		},
 	{ "bcull",	cachefiles_daemon_bcull		},
@@ -92,15 +95,21 @@ static int cachefiles_daemon_open(struct inode *inode, struct file *file)
 
 	/* only the superuser may do this */
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	/* the cachefiles device may only be open once at a time */
 	if (xchg(&cachefiles_open, 1) == 1)
+	{
 		return -EBUSY;
+	}
 
 	/* allocate a cache record */
 	cache = kzalloc(sizeof(struct cachefiles_cache), GFP_KERNEL);
-	if (!cache) {
+
+	if (!cache)
+	{
 		cachefiles_open = 0;
 		return -ENOMEM;
 	}
@@ -159,7 +168,7 @@ static int cachefiles_daemon_release(struct inode *inode, struct file *file)
  * read the cache state
  */
 static ssize_t cachefiles_daemon_read(struct file *file, char __user *_buffer,
-				      size_t buflen, loff_t *pos)
+									  size_t buflen, loff_t *pos)
 {
 	struct cachefiles_cache *cache = file->private_data;
 	unsigned long long b_released;
@@ -170,7 +179,9 @@ static ssize_t cachefiles_daemon_read(struct file *file, char __user *_buffer,
 	//_enter(",,%zu,", buflen);
 
 	if (!test_bit(CACHEFILES_READY, &cache->flags))
+	{
 		return 0;
+	}
 
 	/* check how much space the cache has */
 	cachefiles_has_space(cache, 0, 0);
@@ -181,30 +192,34 @@ static ssize_t cachefiles_daemon_read(struct file *file, char __user *_buffer,
 	clear_bit(CACHEFILES_STATE_CHANGED, &cache->flags);
 
 	n = snprintf(buffer, sizeof(buffer),
-		     "cull=%c"
-		     " frun=%llx"
-		     " fcull=%llx"
-		     " fstop=%llx"
-		     " brun=%llx"
-		     " bcull=%llx"
-		     " bstop=%llx"
-		     " freleased=%x"
-		     " breleased=%llx",
-		     test_bit(CACHEFILES_CULLING, &cache->flags) ? '1' : '0',
-		     (unsigned long long) cache->frun,
-		     (unsigned long long) cache->fcull,
-		     (unsigned long long) cache->fstop,
-		     (unsigned long long) cache->brun,
-		     (unsigned long long) cache->bcull,
-		     (unsigned long long) cache->bstop,
-		     f_released,
-		     b_released);
+				 "cull=%c"
+				 " frun=%llx"
+				 " fcull=%llx"
+				 " fstop=%llx"
+				 " brun=%llx"
+				 " bcull=%llx"
+				 " bstop=%llx"
+				 " freleased=%x"
+				 " breleased=%llx",
+				 test_bit(CACHEFILES_CULLING, &cache->flags) ? '1' : '0',
+				 (unsigned long long) cache->frun,
+				 (unsigned long long) cache->fcull,
+				 (unsigned long long) cache->fstop,
+				 (unsigned long long) cache->brun,
+				 (unsigned long long) cache->bcull,
+				 (unsigned long long) cache->bstop,
+				 f_released,
+				 b_released);
 
 	if (n > buflen)
+	{
 		return -EMSGSIZE;
+	}
 
 	if (copy_to_user(_buffer, buffer, n) != 0)
+	{
 		return -EFAULT;
+	}
 
 	return n;
 }
@@ -213,9 +228,9 @@ static ssize_t cachefiles_daemon_read(struct file *file, char __user *_buffer,
  * command the cache
  */
 static ssize_t cachefiles_daemon_write(struct file *file,
-				       const char __user *_data,
-				       size_t datalen,
-				       loff_t *pos)
+									   const char __user *_data,
+									   size_t datalen,
+									   loff_t *pos)
 {
 	const struct cachefiles_daemon_cmd *cmd;
 	struct cachefiles_cache *cache = file->private_data;
@@ -227,25 +242,39 @@ static ssize_t cachefiles_daemon_write(struct file *file,
 	ASSERT(cache);
 
 	if (test_bit(CACHEFILES_DEAD, &cache->flags))
+	{
 		return -EIO;
+	}
 
 	if (datalen < 0 || datalen > PAGE_SIZE - 1)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/* drag the command string into the kernel so we can parse it */
 	data = memdup_user_nul(_data, datalen);
+
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	ret = -EINVAL;
+
 	if (memchr(data, '\0', datalen))
+	{
 		goto error;
+	}
 
 	/* strip any newline */
 	cp = memchr(data, '\n', datalen);
-	if (cp) {
+
+	if (cp)
+	{
 		if (cp == data)
+		{
 			goto error;
+		}
 
 		*cp = '\0';
 	}
@@ -255,10 +284,17 @@ static ssize_t cachefiles_daemon_write(struct file *file,
 
 	for (args = data; *args; args++)
 		if (isspace(*args))
+		{
 			break;
-	if (*args) {
+		}
+
+	if (*args)
+	{
 		if (args == data)
+		{
 			goto error;
+		}
+
 		*args = '\0';
 		args = skip_spaces(++args);
 	}
@@ -266,7 +302,9 @@ static ssize_t cachefiles_daemon_write(struct file *file,
 	/* run the appropriate command handler */
 	for (cmd = cachefiles_daemon_cmds; cmd->name[0]; cmd++)
 		if (strcmp(cmd->name, data) == 0)
+		{
 			goto found_command;
+		}
 
 error:
 	kfree(data);
@@ -277,13 +315,19 @@ found_command:
 	mutex_lock(&cache->daemon_mutex);
 
 	ret = -EIO;
+
 	if (!test_bit(CACHEFILES_DEAD, &cache->flags))
+	{
 		ret = cmd->handler(cache, args);
+	}
 
 	mutex_unlock(&cache->daemon_mutex);
 
 	if (ret == 0)
+	{
 		ret = datalen;
+	}
+
 	goto error;
 }
 
@@ -292,7 +336,7 @@ found_command:
  * - use POLLOUT to indicate culling state
  */
 static unsigned int cachefiles_daemon_poll(struct file *file,
-					   struct poll_table_struct *poll)
+		struct poll_table_struct *poll)
 {
 	struct cachefiles_cache *cache = file->private_data;
 	unsigned int mask;
@@ -301,10 +345,14 @@ static unsigned int cachefiles_daemon_poll(struct file *file,
 	mask = 0;
 
 	if (test_bit(CACHEFILES_STATE_CHANGED, &cache->flags))
+	{
 		mask |= POLLIN;
+	}
 
 	if (test_bit(CACHEFILES_CULLING, &cache->flags))
+	{
 		mask |= POLLOUT;
+	}
 
 	return mask;
 }
@@ -314,7 +362,7 @@ static unsigned int cachefiles_daemon_poll(struct file *file,
  * - can be tail-called
  */
 static int cachefiles_daemon_range_error(struct cachefiles_cache *cache,
-					 char *args)
+		char *args)
 {
 	pr_err("Free space limits must be in range 0%%<=stop<cull<run<100%%\n");
 
@@ -332,14 +380,21 @@ static int cachefiles_daemon_frun(struct cachefiles_cache *cache, char *args)
 	_enter(",%s", args);
 
 	if (!*args)
+	{
 		return -EINVAL;
+	}
 
 	frun = simple_strtoul(args, &args, 10);
+
 	if (args[0] != '%' || args[1] != '\0')
+	{
 		return -EINVAL;
+	}
 
 	if (frun <= cache->fcull_percent || frun >= 100)
+	{
 		return cachefiles_daemon_range_error(cache, args);
+	}
 
 	cache->frun_percent = frun;
 	return 0;
@@ -356,14 +411,21 @@ static int cachefiles_daemon_fcull(struct cachefiles_cache *cache, char *args)
 	_enter(",%s", args);
 
 	if (!*args)
+	{
 		return -EINVAL;
+	}
 
 	fcull = simple_strtoul(args, &args, 10);
+
 	if (args[0] != '%' || args[1] != '\0')
+	{
 		return -EINVAL;
+	}
 
 	if (fcull <= cache->fstop_percent || fcull >= cache->frun_percent)
+	{
 		return cachefiles_daemon_range_error(cache, args);
+	}
 
 	cache->fcull_percent = fcull;
 	return 0;
@@ -380,14 +442,21 @@ static int cachefiles_daemon_fstop(struct cachefiles_cache *cache, char *args)
 	_enter(",%s", args);
 
 	if (!*args)
+	{
 		return -EINVAL;
+	}
 
 	fstop = simple_strtoul(args, &args, 10);
+
 	if (args[0] != '%' || args[1] != '\0')
+	{
 		return -EINVAL;
+	}
 
 	if (fstop < 0 || fstop >= cache->fcull_percent)
+	{
 		return cachefiles_daemon_range_error(cache, args);
+	}
 
 	cache->fstop_percent = fstop;
 	return 0;
@@ -404,14 +473,21 @@ static int cachefiles_daemon_brun(struct cachefiles_cache *cache, char *args)
 	_enter(",%s", args);
 
 	if (!*args)
+	{
 		return -EINVAL;
+	}
 
 	brun = simple_strtoul(args, &args, 10);
+
 	if (args[0] != '%' || args[1] != '\0')
+	{
 		return -EINVAL;
+	}
 
 	if (brun <= cache->bcull_percent || brun >= 100)
+	{
 		return cachefiles_daemon_range_error(cache, args);
+	}
 
 	cache->brun_percent = brun;
 	return 0;
@@ -428,14 +504,21 @@ static int cachefiles_daemon_bcull(struct cachefiles_cache *cache, char *args)
 	_enter(",%s", args);
 
 	if (!*args)
+	{
 		return -EINVAL;
+	}
 
 	bcull = simple_strtoul(args, &args, 10);
+
 	if (args[0] != '%' || args[1] != '\0')
+	{
 		return -EINVAL;
+	}
 
 	if (bcull <= cache->bstop_percent || bcull >= cache->brun_percent)
+	{
 		return cachefiles_daemon_range_error(cache, args);
+	}
 
 	cache->bcull_percent = bcull;
 	return 0;
@@ -452,14 +535,21 @@ static int cachefiles_daemon_bstop(struct cachefiles_cache *cache, char *args)
 	_enter(",%s", args);
 
 	if (!*args)
+	{
 		return -EINVAL;
+	}
 
 	bstop = simple_strtoul(args, &args, 10);
+
 	if (args[0] != '%' || args[1] != '\0')
+	{
 		return -EINVAL;
+	}
 
 	if (bstop < 0 || bstop >= cache->bcull_percent)
+	{
 		return cachefiles_daemon_range_error(cache, args);
+	}
 
 	cache->bstop_percent = bstop;
 	return 0;
@@ -475,19 +565,24 @@ static int cachefiles_daemon_dir(struct cachefiles_cache *cache, char *args)
 
 	_enter(",%s", args);
 
-	if (!*args) {
+	if (!*args)
+	{
 		pr_err("Empty directory specified\n");
 		return -EINVAL;
 	}
 
-	if (cache->rootdirname) {
+	if (cache->rootdirname)
+	{
 		pr_err("Second cache directory specified\n");
 		return -EEXIST;
 	}
 
 	dir = kstrdup(args, GFP_KERNEL);
+
 	if (!dir)
+	{
 		return -ENOMEM;
+	}
 
 	cache->rootdirname = dir;
 	return 0;
@@ -503,19 +598,24 @@ static int cachefiles_daemon_secctx(struct cachefiles_cache *cache, char *args)
 
 	_enter(",%s", args);
 
-	if (!*args) {
+	if (!*args)
+	{
 		pr_err("Empty security context specified\n");
 		return -EINVAL;
 	}
 
-	if (cache->secctx) {
+	if (cache->secctx)
+	{
 		pr_err("Second security context specified\n");
 		return -EINVAL;
 	}
 
 	secctx = kstrdup(args, GFP_KERNEL);
+
 	if (!secctx)
+	{
 		return -ENOMEM;
+	}
 
 	cache->secctx = secctx;
 	return 0;
@@ -531,17 +631,23 @@ static int cachefiles_daemon_tag(struct cachefiles_cache *cache, char *args)
 
 	_enter(",%s", args);
 
-	if (!*args) {
+	if (!*args)
+	{
 		pr_err("Empty tag specified\n");
 		return -EINVAL;
 	}
 
 	if (cache->tag)
+	{
 		return -EEXIST;
+	}
 
 	tag = kstrdup(args, GFP_KERNEL);
+
 	if (!tag)
+	{
 		return -ENOMEM;
+	}
 
 	cache->tag = tag;
 	return 0;
@@ -560,14 +666,18 @@ static int cachefiles_daemon_cull(struct cachefiles_cache *cache, char *args)
 	_enter(",%s", args);
 
 	if (strchr(args, '/'))
+	{
 		goto inval;
+	}
 
-	if (!test_bit(CACHEFILES_READY, &cache->flags)) {
+	if (!test_bit(CACHEFILES_READY, &cache->flags))
+	{
 		pr_err("cull applied to unready cache\n");
 		return -EIO;
 	}
 
-	if (test_bit(CACHEFILES_DEAD, &cache->flags)) {
+	if (test_bit(CACHEFILES_DEAD, &cache->flags))
+	{
 		pr_err("cull applied to dead cache\n");
 		return -EIO;
 	}
@@ -576,7 +686,9 @@ static int cachefiles_daemon_cull(struct cachefiles_cache *cache, char *args)
 	get_fs_pwd(current->fs, &path);
 
 	if (!d_can_lookup(path.dentry))
+	{
 		goto notdir;
+	}
 
 	cachefiles_begin_secure(cache, &saved_cred);
 	ret = cachefiles_cull(cache, path.dentry, args);
@@ -607,8 +719,11 @@ static int cachefiles_daemon_debug(struct cachefiles_cache *cache, char *args)
 	_enter(",%s", args);
 
 	mask = simple_strtoul(args, &args, 0);
+
 	if (args[0] != '\0')
+	{
 		goto inval;
+	}
 
 	cachefiles_debug = mask;
 	_leave(" = 0");
@@ -632,14 +747,18 @@ static int cachefiles_daemon_inuse(struct cachefiles_cache *cache, char *args)
 	//_enter(",%s", args);
 
 	if (strchr(args, '/'))
+	{
 		goto inval;
+	}
 
-	if (!test_bit(CACHEFILES_READY, &cache->flags)) {
+	if (!test_bit(CACHEFILES_READY, &cache->flags))
+	{
 		pr_err("inuse applied to unready cache\n");
 		return -EIO;
 	}
 
-	if (test_bit(CACHEFILES_DEAD, &cache->flags)) {
+	if (test_bit(CACHEFILES_DEAD, &cache->flags))
+	{
 		pr_err("inuse applied to dead cache\n");
 		return -EIO;
 	}
@@ -648,7 +767,9 @@ static int cachefiles_daemon_inuse(struct cachefiles_cache *cache, char *args)
 	get_fs_pwd(current->fs, &path);
 
 	if (!d_can_lookup(path.dentry))
+	{
 		goto notdir;
+	}
 
 	cachefiles_begin_secure(cache, &saved_cred);
 	ret = cachefiles_check_in_use(cache, path.dentry, args);
@@ -673,10 +794,11 @@ inval:
  * cache
  */
 int cachefiles_has_space(struct cachefiles_cache *cache,
-			 unsigned fnr, unsigned bnr)
+						 unsigned fnr, unsigned bnr)
 {
 	struct kstatfs stats;
-	struct path path = {
+	struct path path =
+	{
 		.mnt	= cache->mnt,
 		.dentry	= cache->mnt->mnt_root,
 	};
@@ -695,9 +817,14 @@ int cachefiles_has_space(struct cachefiles_cache *cache,
 	memset(&stats, 0, sizeof(stats));
 
 	ret = vfs_statfs(&path, &stats);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		if (ret == -EIO)
+		{
 			cachefiles_io_error(cache, "statfs failed");
+		}
+
 		_leave(" = %d", ret);
 		return ret;
 	}
@@ -710,30 +837,45 @@ int cachefiles_has_space(struct cachefiles_cache *cache,
 
 	/* see if there is sufficient space */
 	if (stats.f_ffree > fnr)
+	{
 		stats.f_ffree -= fnr;
+	}
 	else
+	{
 		stats.f_ffree = 0;
+	}
 
 	if (stats.f_bavail > bnr)
+	{
 		stats.f_bavail -= bnr;
+	}
 	else
+	{
 		stats.f_bavail = 0;
+	}
 
 	ret = -ENOBUFS;
+
 	if (stats.f_ffree < cache->fstop ||
-	    stats.f_bavail < cache->bstop)
+		stats.f_bavail < cache->bstop)
+	{
 		goto begin_cull;
+	}
 
 	ret = 0;
+
 	if (stats.f_ffree < cache->fcull ||
-	    stats.f_bavail < cache->bcull)
+		stats.f_bavail < cache->bcull)
+	{
 		goto begin_cull;
+	}
 
 	if (test_bit(CACHEFILES_CULLING, &cache->flags) &&
-	    stats.f_ffree >= cache->frun &&
-	    stats.f_bavail >= cache->brun &&
-	    test_and_clear_bit(CACHEFILES_CULLING, &cache->flags)
-	    ) {
+		stats.f_ffree >= cache->frun &&
+		stats.f_bavail >= cache->brun &&
+		test_and_clear_bit(CACHEFILES_CULLING, &cache->flags)
+	   )
+	{
 		_debug("cease culling");
 		cachefiles_state_changed(cache);
 	}
@@ -742,7 +884,9 @@ int cachefiles_has_space(struct cachefiles_cache *cache,
 	return 0;
 
 begin_cull:
-	if (!test_and_set_bit(CACHEFILES_CULLING, &cache->flags)) {
+
+	if (!test_and_set_bit(CACHEFILES_CULLING, &cache->flags))
+	{
 		_debug("### CULL CACHE ###");
 		cachefiles_state_changed(cache);
 	}

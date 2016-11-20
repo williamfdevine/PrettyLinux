@@ -34,7 +34,8 @@ int cycles(void)
 
 	mtspr(SPRN_PMC1, pmc_sample_period(sample_period));
 
-	while (ebb_state.stats.ebb_count < 10) {
+	while (ebb_state.stats.ebb_count < 10)
+	{
 		FAIL_IF(core_busy_loop());
 		FAIL_IF(ebb_check_mmcr0());
 	}

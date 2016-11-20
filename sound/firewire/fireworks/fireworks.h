@@ -52,12 +52,14 @@
 extern unsigned int snd_efw_resp_buf_size;
 extern bool snd_efw_resp_buf_debug;
 
-struct snd_efw_phys_grp {
+struct snd_efw_phys_grp
+{
 	u8 type;	/* see enum snd_efw_grp_type */
 	u8 count;
 } __packed;
 
-struct snd_efw {
+struct snd_efw
+{
 	struct snd_card *card;
 	struct fw_unit *unit;
 	int card_index;
@@ -111,17 +113,18 @@ struct snd_efw {
 };
 
 int snd_efw_transaction_cmd(struct fw_unit *unit,
-			    const void *cmd, unsigned int size);
+							const void *cmd, unsigned int size);
 int snd_efw_transaction_run(struct fw_unit *unit,
-			    const void *cmd, unsigned int cmd_size,
-			    void *resp, unsigned int resp_size);
+							const void *cmd, unsigned int cmd_size,
+							void *resp, unsigned int resp_size);
 int snd_efw_transaction_register(void);
 void snd_efw_transaction_unregister(void);
 void snd_efw_transaction_bus_reset(struct fw_unit *unit);
 void snd_efw_transaction_add_instance(struct snd_efw *efw);
 void snd_efw_transaction_remove_instance(struct snd_efw *efw);
 
-struct snd_efw_hwinfo {
+struct snd_efw_hwinfo
+{
 	u32 flags;
 	u32 guid_hi;
 	u32 guid_lo;
@@ -153,7 +156,8 @@ struct snd_efw_hwinfo {
 	u32 amdtp_tx_pcm_channels_4x;
 	u32 reserved[16];
 } __packed;
-enum snd_efw_grp_type {
+enum snd_efw_grp_type
+{
 	SND_EFW_CH_TYPE_ANALOG			= 0,
 	SND_EFW_CH_TYPE_SPDIF			= 1,
 	SND_EFW_CH_TYPE_ADAT			= 2,
@@ -166,7 +170,8 @@ enum snd_efw_grp_type {
 	SND_EFW_CH_TYPE_GUITAR_STRING		= 9,
 	SND_EFW_CH_TYPE_DUMMY
 };
-struct snd_efw_phys_meters {
+struct snd_efw_phys_meters
+{
 	u32 status;	/* guitar state/midi signal/clock input detect */
 	u32 reserved0;
 	u32 reserved1;
@@ -178,7 +183,8 @@ struct snd_efw_phys_meters {
 	u32 reserved5;
 	u32 values[0];
 } __packed;
-enum snd_efw_clock_source {
+enum snd_efw_clock_source
+{
 	SND_EFW_CLOCK_SOURCE_INTERNAL	= 0,
 	SND_EFW_CLOCK_SOURCE_SYTMATCH	= 1,
 	SND_EFW_CLOCK_SOURCE_WORDCLOCK	= 2,
@@ -187,21 +193,22 @@ enum snd_efw_clock_source {
 	SND_EFW_CLOCK_SOURCE_ADAT_2	= 5,
 	SND_EFW_CLOCK_SOURCE_CONTINUOUS	= 6	/* internal variable clock */
 };
-enum snd_efw_transport_mode {
+enum snd_efw_transport_mode
+{
 	SND_EFW_TRANSPORT_MODE_WINDOWS	= 0,
 	SND_EFW_TRANSPORT_MODE_IEC61883	= 1,
 };
 int snd_efw_command_set_resp_addr(struct snd_efw *efw,
-				  u16 addr_high, u32 addr_low);
+								  u16 addr_high, u32 addr_low);
 int snd_efw_command_set_tx_mode(struct snd_efw *efw,
-				enum snd_efw_transport_mode mode);
+								enum snd_efw_transport_mode mode);
 int snd_efw_command_get_hwinfo(struct snd_efw *efw,
-			       struct snd_efw_hwinfo *hwinfo);
+							   struct snd_efw_hwinfo *hwinfo);
 int snd_efw_command_get_phys_meters(struct snd_efw *efw,
-				    struct snd_efw_phys_meters *meters,
-				    unsigned int len);
+									struct snd_efw_phys_meters *meters,
+									unsigned int len);
 int snd_efw_command_get_clock_source(struct snd_efw *efw,
-				     enum snd_efw_clock_source *source);
+									 enum snd_efw_clock_source *source);
 int snd_efw_command_get_sampling_rate(struct snd_efw *efw, unsigned int *rate);
 int snd_efw_command_set_sampling_rate(struct snd_efw *efw, unsigned int rate);
 
@@ -224,11 +231,11 @@ int snd_efw_get_multiplier_mode(unsigned int sampling_rate, unsigned int *mode);
 int snd_efw_create_hwdep_device(struct snd_efw *efw);
 
 #define SND_EFW_DEV_ENTRY(vendor, model) \
-{ \
-	.match_flags	= IEEE1394_MATCH_VENDOR_ID | \
-			  IEEE1394_MATCH_MODEL_ID, \
-	.vendor_id	= vendor,\
-	.model_id	= model \
-}
+	{ \
+		.match_flags	= IEEE1394_MATCH_VENDOR_ID | \
+						  IEEE1394_MATCH_MODEL_ID, \
+						  .vendor_id	= vendor,\
+										.model_id	= model \
+	}
 
 #endif

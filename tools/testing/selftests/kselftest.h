@@ -21,7 +21,8 @@
 #define KSFT_SKIP  4
 
 /* counters */
-struct ksft_count {
+struct ksft_count
+{
 	unsigned int ksft_pass;
 	unsigned int ksft_fail;
 	unsigned int ksft_xfail;
@@ -40,9 +41,9 @@ static inline void ksft_inc_xskip_cnt(void) { ksft_cnt.ksft_xskip++; }
 static inline void ksft_print_cnts(void)
 {
 	printf("Pass: %d Fail: %d Xfail: %d Xpass: %d, Xskip: %d\n",
-		ksft_cnt.ksft_pass, ksft_cnt.ksft_fail,
-		ksft_cnt.ksft_xfail, ksft_cnt.ksft_xpass,
-		ksft_cnt.ksft_xskip);
+		   ksft_cnt.ksft_pass, ksft_cnt.ksft_fail,
+		   ksft_cnt.ksft_xfail, ksft_cnt.ksft_xpass,
+		   ksft_cnt.ksft_xskip);
 }
 
 static inline int ksft_exit_pass(void)

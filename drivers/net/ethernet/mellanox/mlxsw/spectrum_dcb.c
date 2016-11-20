@@ -46,13 +46,13 @@ static u8 mlxsw_sp_dcbnl_getdcbx(struct net_device __always_unused *dev)
 }
 
 static u8 mlxsw_sp_dcbnl_setdcbx(struct net_device __always_unused *dev,
-				 u8 mode)
+								 u8 mode)
 {
 	return (mode != (DCB_CAP_DCBX_HOST | DCB_CAP_DCBX_VER_IEEE)) ? 1 : 0;
 }
 
 static int mlxsw_sp_dcbnl_ieee_getets(struct net_device *dev,
-				      struct ieee_ets *ets)
+									  struct ieee_ets *ets)
 {
 	struct mlxsw_sp_port *mlxsw_sp_port = netdev_priv(dev);
 
@@ -62,32 +62,38 @@ static int mlxsw_sp_dcbnl_ieee_getets(struct net_device *dev,
 }
 
 static int mlxsw_sp_port_ets_validate(struct mlxsw_sp_port *mlxsw_sp_port,
-				      struct ieee_ets *ets)
+									  struct ieee_ets *ets)
 {
 	struct net_device *dev = mlxsw_sp_port->dev;
 	bool has_ets_tc = false;
 	int i, tx_bw_sum = 0;
 
-	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++) {
-		switch (ets->tc_tsa[i]) {
-		case IEEE_8021QAZ_TSA_STRICT:
-			break;
-		case IEEE_8021QAZ_TSA_ETS:
-			has_ets_tc = true;
-			tx_bw_sum += ets->tc_tx_bw[i];
-			break;
-		default:
-			netdev_err(dev, "Only strict priority and ETS are supported\n");
-			return -EINVAL;
+	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
+	{
+		switch (ets->tc_tsa[i])
+		{
+			case IEEE_8021QAZ_TSA_STRICT:
+				break;
+
+			case IEEE_8021QAZ_TSA_ETS:
+				has_ets_tc = true;
+				tx_bw_sum += ets->tc_tx_bw[i];
+				break;
+
+			default:
+				netdev_err(dev, "Only strict priority and ETS are supported\n");
+				return -EINVAL;
 		}
 
-		if (ets->prio_tc[i] >= IEEE_8021QAZ_MAX_TCS) {
+		if (ets->prio_tc[i] >= IEEE_8021QAZ_MAX_TCS)
+		{
 			netdev_err(dev, "Invalid TC\n");
 			return -EINVAL;
 		}
 	}
 
-	if (has_ets_tc && tx_bw_sum != 100) {
+	if (has_ets_tc && tx_bw_sum != 100)
+	{
 		netdev_err(dev, "Total ETS bandwidth should equal 100\n");
 		return -EINVAL;
 	}
@@ -96,17 +102,20 @@ static int mlxsw_sp_port_ets_validate(struct mlxsw_sp_port *mlxsw_sp_port,
 }
 
 static int mlxsw_sp_port_pg_prio_map(struct mlxsw_sp_port *mlxsw_sp_port,
-				     u8 *prio_tc)
+									 u8 *prio_tc)
 {
 	char pptb_pl[MLXSW_REG_PPTB_LEN];
 	int i;
 
 	mlxsw_reg_pptb_pack(pptb_pl, mlxsw_sp_port->local_port);
+
 	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
+	{
 		mlxsw_reg_pptb_prio_to_buff_pack(pptb_pl, i, prio_tc[i]);
+	}
 
 	return mlxsw_reg_write(mlxsw_sp_port->mlxsw_sp->core, MLXSW_REG(pptb),
-			       pptb_pl);
+						   pptb_pl);
 }
 
 static bool mlxsw_sp_ets_has_pg(u8 *prio_tc, u8 pg)
@@ -115,12 +124,15 @@ static bool mlxsw_sp_ets_has_pg(u8 *prio_tc, u8 pg)
 
 	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
 		if (prio_tc[i] == pg)
+		{
 			return true;
+		}
+
 	return false;
 }
 
 static int mlxsw_sp_port_pg_destroy(struct mlxsw_sp_port *mlxsw_sp_port,
-				    u8 *old_prio_tc, u8 *new_prio_tc)
+									u8 *old_prio_tc, u8 *new_prio_tc)
 {
 	struct mlxsw_sp *mlxsw_sp = mlxsw_sp_port->mlxsw_sp;
 	char pbmc_pl[MLXSW_REG_PBMC_LEN];
@@ -128,21 +140,27 @@ static int mlxsw_sp_port_pg_destroy(struct mlxsw_sp_port *mlxsw_sp_port,
 
 	mlxsw_reg_pbmc_pack(pbmc_pl, mlxsw_sp_port->local_port, 0, 0);
 	err = mlxsw_reg_query(mlxsw_sp->core, MLXSW_REG(pbmc), pbmc_pl);
-	if (err)
-		return err;
 
-	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++) {
+	if (err)
+	{
+		return err;
+	}
+
+	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
+	{
 		u8 pg = old_prio_tc[i];
 
 		if (!mlxsw_sp_ets_has_pg(new_prio_tc, pg))
+		{
 			mlxsw_reg_pbmc_lossy_buffer_pack(pbmc_pl, pg, 0);
+		}
 	}
 
 	return mlxsw_reg_write(mlxsw_sp->core, MLXSW_REG(pbmc), pbmc_pl);
 }
 
 static int mlxsw_sp_port_headroom_set(struct mlxsw_sp_port *mlxsw_sp_port,
-				      struct ieee_ets *ets)
+									  struct ieee_ets *ets)
 {
 	bool pause_en = mlxsw_sp_port_is_pause_en(mlxsw_sp_port);
 	struct ieee_ets *my_ets = mlxsw_sp_port->dcb.ets;
@@ -153,23 +171,30 @@ static int mlxsw_sp_port_headroom_set(struct mlxsw_sp_port *mlxsw_sp_port,
 	 * traffic is still directed to them.
 	 */
 	err = __mlxsw_sp_port_headroom_set(mlxsw_sp_port, dev->mtu,
-					   ets->prio_tc, pause_en,
-					   mlxsw_sp_port->dcb.pfc);
-	if (err) {
+									   ets->prio_tc, pause_en,
+									   mlxsw_sp_port->dcb.pfc);
+
+	if (err)
+	{
 		netdev_err(dev, "Failed to configure port's headroom\n");
 		return err;
 	}
 
 	err = mlxsw_sp_port_pg_prio_map(mlxsw_sp_port, ets->prio_tc);
-	if (err) {
+
+	if (err)
+	{
 		netdev_err(dev, "Failed to set PG-priority mapping\n");
 		goto err_port_prio_pg_map;
 	}
 
 	err = mlxsw_sp_port_pg_destroy(mlxsw_sp_port, my_ets->prio_tc,
-				       ets->prio_tc);
+								   ets->prio_tc);
+
 	if (err)
+	{
 		netdev_warn(dev, "Failed to remove ununsed PGs\n");
+	}
 
 	return 0;
 
@@ -179,75 +204,97 @@ err_port_prio_pg_map:
 }
 
 static int __mlxsw_sp_dcbnl_ieee_setets(struct mlxsw_sp_port *mlxsw_sp_port,
-					struct ieee_ets *ets)
+										struct ieee_ets *ets)
 {
 	struct ieee_ets *my_ets = mlxsw_sp_port->dcb.ets;
 	struct net_device *dev = mlxsw_sp_port->dev;
 	int i, err;
 
 	/* Egress configuration. */
-	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++) {
+	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
+	{
 		bool dwrr = ets->tc_tsa[i] == IEEE_8021QAZ_TSA_ETS;
 		u8 weight = ets->tc_tx_bw[i];
 
 		err = mlxsw_sp_port_ets_set(mlxsw_sp_port,
-					    MLXSW_REG_QEEC_HIERARCY_SUBGROUP, i,
-					    0, dwrr, weight);
-		if (err) {
+									MLXSW_REG_QEEC_HIERARCY_SUBGROUP, i,
+									0, dwrr, weight);
+
+		if (err)
+		{
 			netdev_err(dev, "Failed to link subgroup ETS element %d to group\n",
-				   i);
+					   i);
 			goto err_port_ets_set;
 		}
 	}
 
-	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++) {
+	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
+	{
 		err = mlxsw_sp_port_prio_tc_set(mlxsw_sp_port, i,
-						ets->prio_tc[i]);
-		if (err) {
+										ets->prio_tc[i]);
+
+		if (err)
+		{
 			netdev_err(dev, "Failed to map prio %d to TC %d\n", i,
-				   ets->prio_tc[i]);
+					   ets->prio_tc[i]);
 			goto err_port_prio_tc_set;
 		}
 	}
 
 	/* Ingress configuration. */
 	err = mlxsw_sp_port_headroom_set(mlxsw_sp_port, ets);
+
 	if (err)
+	{
 		goto err_port_headroom_set;
+	}
 
 	return 0;
 
 err_port_headroom_set:
 	i = IEEE_8021QAZ_MAX_TCS;
 err_port_prio_tc_set:
+
 	for (i--; i >= 0; i--)
+	{
 		mlxsw_sp_port_prio_tc_set(mlxsw_sp_port, i, my_ets->prio_tc[i]);
+	}
+
 	i = IEEE_8021QAZ_MAX_TCS;
 err_port_ets_set:
-	for (i--; i >= 0; i--) {
+
+	for (i--; i >= 0; i--)
+	{
 		bool dwrr = my_ets->tc_tsa[i] == IEEE_8021QAZ_TSA_ETS;
 		u8 weight = my_ets->tc_tx_bw[i];
 
 		err = mlxsw_sp_port_ets_set(mlxsw_sp_port,
-					    MLXSW_REG_QEEC_HIERARCY_SUBGROUP, i,
-					    0, dwrr, weight);
+									MLXSW_REG_QEEC_HIERARCY_SUBGROUP, i,
+									0, dwrr, weight);
 	}
+
 	return err;
 }
 
 static int mlxsw_sp_dcbnl_ieee_setets(struct net_device *dev,
-				      struct ieee_ets *ets)
+									  struct ieee_ets *ets)
 {
 	struct mlxsw_sp_port *mlxsw_sp_port = netdev_priv(dev);
 	int err;
 
 	err = mlxsw_sp_port_ets_validate(mlxsw_sp_port, ets);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = __mlxsw_sp_dcbnl_ieee_setets(mlxsw_sp_port, ets);
+
 	if (err)
+	{
 		return err;
+	}
 
 	memcpy(mlxsw_sp_port->dcb.ets, ets, sizeof(*ets));
 	mlxsw_sp_port->dcb.ets->ets_cap = IEEE_8021QAZ_MAX_TCS;
@@ -256,7 +303,7 @@ static int mlxsw_sp_dcbnl_ieee_setets(struct net_device *dev,
 }
 
 static int mlxsw_sp_dcbnl_ieee_getmaxrate(struct net_device *dev,
-					  struct ieee_maxrate *maxrate)
+		struct ieee_maxrate *maxrate)
 {
 	struct mlxsw_sp_port *mlxsw_sp_port = netdev_priv(dev);
 
@@ -266,18 +313,21 @@ static int mlxsw_sp_dcbnl_ieee_getmaxrate(struct net_device *dev,
 }
 
 static int mlxsw_sp_dcbnl_ieee_setmaxrate(struct net_device *dev,
-					  struct ieee_maxrate *maxrate)
+		struct ieee_maxrate *maxrate)
 {
 	struct mlxsw_sp_port *mlxsw_sp_port = netdev_priv(dev);
 	struct ieee_maxrate *my_maxrate = mlxsw_sp_port->dcb.maxrate;
 	int err, i;
 
-	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++) {
+	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
+	{
 		err = mlxsw_sp_port_ets_maxrate_set(mlxsw_sp_port,
-						    MLXSW_REG_QEEC_HIERARCY_SUBGROUP,
-						    i, 0,
-						    maxrate->tc_maxrate[i]);
-		if (err) {
+											MLXSW_REG_QEEC_HIERARCY_SUBGROUP,
+											i, 0,
+											maxrate->tc_maxrate[i]);
+
+		if (err)
+		{
 			netdev_err(dev, "Failed to set maxrate for TC %d\n", i);
 			goto err_port_ets_maxrate_set;
 		}
@@ -288,15 +338,17 @@ static int mlxsw_sp_dcbnl_ieee_setmaxrate(struct net_device *dev,
 	return 0;
 
 err_port_ets_maxrate_set:
+
 	for (i--; i >= 0; i--)
 		mlxsw_sp_port_ets_maxrate_set(mlxsw_sp_port,
-					      MLXSW_REG_QEEC_HIERARCY_SUBGROUP,
-					      i, 0, my_maxrate->tc_maxrate[i]);
+									  MLXSW_REG_QEEC_HIERARCY_SUBGROUP,
+									  i, 0, my_maxrate->tc_maxrate[i]);
+
 	return err;
 }
 
 static int mlxsw_sp_port_pfc_cnt_get(struct mlxsw_sp_port *mlxsw_sp_port,
-				     u8 prio)
+									 u8 prio)
 {
 	struct mlxsw_sp *mlxsw_sp = mlxsw_sp_port->mlxsw_sp;
 	struct ieee_pfc *my_pfc = mlxsw_sp_port->dcb.pfc;
@@ -304,10 +356,13 @@ static int mlxsw_sp_port_pfc_cnt_get(struct mlxsw_sp_port *mlxsw_sp_port,
 	int err;
 
 	mlxsw_reg_ppcnt_pack(ppcnt_pl, mlxsw_sp_port->local_port,
-			     MLXSW_REG_PPCNT_PRIO_CNT, prio);
+						 MLXSW_REG_PPCNT_PRIO_CNT, prio);
 	err = mlxsw_reg_query(mlxsw_sp->core, MLXSW_REG(ppcnt), ppcnt_pl);
+
 	if (err)
+	{
 		return err;
+	}
 
 	my_pfc->requests[prio] = mlxsw_reg_ppcnt_tx_pause_get(ppcnt_pl);
 	my_pfc->indications[prio] = mlxsw_reg_ppcnt_rx_pause_get(ppcnt_pl);
@@ -316,16 +371,19 @@ static int mlxsw_sp_port_pfc_cnt_get(struct mlxsw_sp_port *mlxsw_sp_port,
 }
 
 static int mlxsw_sp_dcbnl_ieee_getpfc(struct net_device *dev,
-				      struct ieee_pfc *pfc)
+									  struct ieee_pfc *pfc)
 {
 	struct mlxsw_sp_port *mlxsw_sp_port = netdev_priv(dev);
 	int err, i;
 
-	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++) {
+	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
+	{
 		err = mlxsw_sp_port_pfc_cnt_get(mlxsw_sp_port, i);
-		if (err) {
+
+		if (err)
+		{
 			netdev_err(dev, "Failed to get PFC count for priority %d\n",
-				   i);
+					   i);
 			return err;
 		}
 	}
@@ -336,7 +394,7 @@ static int mlxsw_sp_dcbnl_ieee_getpfc(struct net_device *dev,
 }
 
 static int mlxsw_sp_port_pfc_set(struct mlxsw_sp_port *mlxsw_sp_port,
-				 struct ieee_pfc *pfc)
+								 struct ieee_pfc *pfc)
 {
 	char pfcc_pl[MLXSW_REG_PFCC_LEN];
 
@@ -346,31 +404,36 @@ static int mlxsw_sp_port_pfc_set(struct mlxsw_sp_port *mlxsw_sp_port,
 	mlxsw_reg_pfcc_prio_pack(pfcc_pl, pfc->pfc_en);
 
 	return mlxsw_reg_write(mlxsw_sp_port->mlxsw_sp->core, MLXSW_REG(pfcc),
-			       pfcc_pl);
+						   pfcc_pl);
 }
 
 static int mlxsw_sp_dcbnl_ieee_setpfc(struct net_device *dev,
-				      struct ieee_pfc *pfc)
+									  struct ieee_pfc *pfc)
 {
 	struct mlxsw_sp_port *mlxsw_sp_port = netdev_priv(dev);
 	bool pause_en = mlxsw_sp_port_is_pause_en(mlxsw_sp_port);
 	int err;
 
-	if (pause_en && pfc->pfc_en) {
+	if (pause_en && pfc->pfc_en)
+	{
 		netdev_err(dev, "PAUSE frames already enabled on port\n");
 		return -EINVAL;
 	}
 
 	err = __mlxsw_sp_port_headroom_set(mlxsw_sp_port, dev->mtu,
-					   mlxsw_sp_port->dcb.ets->prio_tc,
-					   pause_en, pfc);
-	if (err) {
+									   mlxsw_sp_port->dcb.ets->prio_tc,
+									   pause_en, pfc);
+
+	if (err)
+	{
 		netdev_err(dev, "Failed to configure port's headroom for PFC\n");
 		return err;
 	}
 
 	err = mlxsw_sp_port_pfc_set(mlxsw_sp_port, pfc);
-	if (err) {
+
+	if (err)
+	{
 		netdev_err(dev, "Failed to configure PFC\n");
 		goto err_port_pfc_set;
 	}
@@ -382,12 +445,13 @@ static int mlxsw_sp_dcbnl_ieee_setpfc(struct net_device *dev,
 
 err_port_pfc_set:
 	__mlxsw_sp_port_headroom_set(mlxsw_sp_port, dev->mtu,
-				     mlxsw_sp_port->dcb.ets->prio_tc, pause_en,
-				     mlxsw_sp_port->dcb.pfc);
+								 mlxsw_sp_port->dcb.ets->prio_tc, pause_en,
+								 mlxsw_sp_port->dcb.pfc);
 	return err;
 }
 
-static const struct dcbnl_rtnl_ops mlxsw_sp_dcbnl_ops = {
+static const struct dcbnl_rtnl_ops mlxsw_sp_dcbnl_ops =
+{
 	.ieee_getets		= mlxsw_sp_dcbnl_ieee_getets,
 	.ieee_setets		= mlxsw_sp_dcbnl_ieee_setets,
 	.ieee_getmaxrate	= mlxsw_sp_dcbnl_ieee_getmaxrate,
@@ -402,9 +466,12 @@ static const struct dcbnl_rtnl_ops mlxsw_sp_dcbnl_ops = {
 static int mlxsw_sp_port_ets_init(struct mlxsw_sp_port *mlxsw_sp_port)
 {
 	mlxsw_sp_port->dcb.ets = kzalloc(sizeof(*mlxsw_sp_port->dcb.ets),
-					 GFP_KERNEL);
+									 GFP_KERNEL);
+
 	if (!mlxsw_sp_port->dcb.ets)
+	{
 		return -ENOMEM;
+	}
 
 	mlxsw_sp_port->dcb.ets->ets_cap = IEEE_8021QAZ_MAX_TCS;
 
@@ -421,12 +488,17 @@ static int mlxsw_sp_port_maxrate_init(struct mlxsw_sp_port *mlxsw_sp_port)
 	int i;
 
 	mlxsw_sp_port->dcb.maxrate = kmalloc(sizeof(*mlxsw_sp_port->dcb.maxrate),
-					     GFP_KERNEL);
+										 GFP_KERNEL);
+
 	if (!mlxsw_sp_port->dcb.maxrate)
+	{
 		return -ENOMEM;
+	}
 
 	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
+	{
 		mlxsw_sp_port->dcb.maxrate->tc_maxrate[i] = MLXSW_REG_QEEC_MAS_DIS;
+	}
 
 	return 0;
 }
@@ -439,9 +511,12 @@ static void mlxsw_sp_port_maxrate_fini(struct mlxsw_sp_port *mlxsw_sp_port)
 static int mlxsw_sp_port_pfc_init(struct mlxsw_sp_port *mlxsw_sp_port)
 {
 	mlxsw_sp_port->dcb.pfc = kzalloc(sizeof(*mlxsw_sp_port->dcb.pfc),
-					 GFP_KERNEL);
+									 GFP_KERNEL);
+
 	if (!mlxsw_sp_port->dcb.pfc)
+	{
 		return -ENOMEM;
+	}
 
 	mlxsw_sp_port->dcb.pfc->pfc_cap = IEEE_8021QAZ_MAX_TCS;
 
@@ -458,14 +533,25 @@ int mlxsw_sp_port_dcb_init(struct mlxsw_sp_port *mlxsw_sp_port)
 	int err;
 
 	err = mlxsw_sp_port_ets_init(mlxsw_sp_port);
+
 	if (err)
+	{
 		return err;
+	}
+
 	err = mlxsw_sp_port_maxrate_init(mlxsw_sp_port);
+
 	if (err)
+	{
 		goto err_port_maxrate_init;
+	}
+
 	err = mlxsw_sp_port_pfc_init(mlxsw_sp_port);
+
 	if (err)
+	{
 		goto err_port_pfc_init;
+	}
 
 	mlxsw_sp_port->dev->dcbnl_ops = &mlxsw_sp_dcbnl_ops;
 

@@ -28,10 +28,10 @@
 
 #include <linux/adb.h>
 #ifdef CONFIG_ADB_CUDA
-#include <linux/cuda.h>
+	#include <linux/cuda.h>
 #endif
 #ifdef CONFIG_ADB_PMU
-#include <linux/pmu.h>
+	#include <linux/pmu.h>
 #endif
 #include <linux/nvram.h>
 #include <linux/tty.h>
@@ -49,7 +49,8 @@
 /*
  * DBDMA space
  */
-struct pmac_dbdma {
+struct pmac_dbdma
+{
 	dma_addr_t dma_base;
 	dma_addr_t addr;
 	struct dbdma_cmd __iomem *cmds;
@@ -60,7 +61,8 @@ struct pmac_dbdma {
 /*
  * playback/capture stream
  */
-struct pmac_stream {
+struct pmac_stream
+{
 	int running;	/* boolean */
 
 	int stream;	/* PLAYBACK/CAPTURE */
@@ -83,12 +85,14 @@ struct pmac_stream {
 /*
  */
 
-enum snd_pmac_model {
+enum snd_pmac_model
+{
 	PMAC_AWACS, PMAC_SCREAMER, PMAC_BURGUNDY, PMAC_DACA, PMAC_TUMBLER,
 	PMAC_SNAPPER
 };
 
-struct snd_pmac {
+struct snd_pmac
+{
 	struct snd_card *card;
 
 	/* h/w info */
@@ -178,8 +182,8 @@ void snd_pmac_beep_dma_start(struct snd_pmac *chip, int bytes, unsigned long add
 void snd_pmac_beep_dma_stop(struct snd_pmac *chip);
 
 #ifdef CONFIG_PM
-void snd_pmac_suspend(struct snd_pmac *chip);
-void snd_pmac_resume(struct snd_pmac *chip);
+	void snd_pmac_suspend(struct snd_pmac *chip);
+	void snd_pmac_resume(struct snd_pmac *chip);
 #endif
 
 /* initialize mixer */
@@ -190,7 +194,8 @@ int snd_pmac_tumbler_init(struct snd_pmac *chip);
 int snd_pmac_tumbler_post_init(void);
 
 /* i2c functions */
-struct pmac_keywest {
+struct pmac_keywest
+{
 	int addr;
 	struct i2c_client *client;
 	int id;

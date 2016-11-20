@@ -20,7 +20,7 @@ static void hop_nhid_setup(struct lowpan_nhc *nhc)
 }
 
 LOWPAN_NHC(nhc_hop, "RFC6282 Hop-by-Hop Options", NEXTHDR_HOP, 0,
-	   hop_nhid_setup, LOWPAN_NHC_HOP_IDLEN, NULL, NULL);
+		   hop_nhid_setup, LOWPAN_NHC_HOP_IDLEN, NULL, NULL);
 
 module_lowpan_nhc(nhc_hop);
 MODULE_DESCRIPTION("6LoWPAN next header RFC6282 Hop-by-Hop Options compression");

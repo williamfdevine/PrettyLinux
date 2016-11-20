@@ -15,7 +15,7 @@
 /*
  * Synchronous Bandwidth Allocation (SBA) structs
  */
- 
+
 #ifndef _SBA_
 #define _SBA_
 
@@ -25,7 +25,8 @@
 #ifdef	SBA
 
 /* Timer Cell Template */
-struct timer_cell {
+struct timer_cell
+{
 	struct timer_cell	*next_ptr ;
 	struct timer_cell	*prev_ptr ;
 	u_long			start_time ;
@@ -35,7 +36,8 @@ struct timer_cell {
 /*
  * Node variables
  */
-struct s_sba_node_vars {
+struct s_sba_node_vars
+{
 	u_char			change_resp_flag ;
 	u_char			report_resp_flag ;
 	u_char			change_req_flag ;
@@ -56,7 +58,8 @@ struct s_sba_node_vars {
 /*
  * Session variables
  */
-struct s_sba_sessions {
+struct s_sba_sessions
+{
 	u_long			deallocate_status ;
 	long			session_overhead ;
 	u_long			min_segment_size ;
@@ -71,13 +74,14 @@ struct s_sba_sessions {
 	struct s_sba_sessions	*next_session ;
 } ;
 
-struct s_sba {
+struct s_sba
+{
 
 	struct s_sba_node_vars	node[MAX_NODES] ;
 	struct s_sba_sessions	session[MAX_SESSIONS] ;
 
 	struct s_sba_sessions	*free_session ;	/* points to the first */
-						/* free session */
+	/* free session */
 
 	struct timer_cell	*tail_timer ;	/* points to the last timer cell */
 
@@ -106,7 +110,7 @@ struct s_sba {
 	 * SBA variables
 	 */
 	u_long	sba_t_neg ;		/* holds the last T_NEG */
-	long	sba_max_alloc ;		/* the parsed value of SBAAvailable */	
+	long	sba_max_alloc ;		/* the parsed value of SBAAvailable */
 
 	/*
 	 * SBA state machine variables
@@ -118,10 +122,11 @@ struct s_sba {
 
 #endif	/* SBA */
 
-	/*
-	 * variables for the End Station Support
-	 */
-struct s_ess {
+/*
+ * variables for the End Station Support
+ */
+struct s_ess
+{
 
 	/*
 	 * flags and counters
@@ -132,7 +137,7 @@ struct s_ess {
 	char	timer_count ;		/* counts every timer function call */
 
 	SMbuf	*sba_reply_pend ;	/* local reply for the sba is pending */
-	
+
 	/*
 	 * variables for the ess bandwidth control
 	 */

@@ -62,7 +62,8 @@ static int heartbeat;
  * @clk - source clock of WDT
  * @wdd - hold watchdog device as is in WDT core
  */
-struct davinci_wdt_device {
+struct davinci_wdt_device
+{
 	void __iomem		*base;
 	struct clk		*clk;
 	struct watchdog_device	wdd;
@@ -124,13 +125,18 @@ static unsigned int davinci_wdt_get_timeleft(struct watchdog_device *wdd)
 
 	/* if timeout has occured then return 0 */
 	val = ioread32(davinci_wdt->base + WDTCR);
+
 	if (val & WDFLAG)
+	{
 		return 0;
+	}
 
 	freq = clk_get_rate(davinci_wdt->clk);
 
 	if (!freq)
+	{
 		return 0;
+	}
 
 	timer_counter = ioread32(davinci_wdt->base + TIM12);
 	timer_counter |= ((u64)ioread32(davinci_wdt->base + TIM34) << 32);
@@ -140,12 +146,14 @@ static unsigned int davinci_wdt_get_timeleft(struct watchdog_device *wdd)
 	return wdd->timeout - timer_counter;
 }
 
-static const struct watchdog_info davinci_wdt_info = {
+static const struct watchdog_info davinci_wdt_info =
+{
 	.options = WDIOF_KEEPALIVEPING,
 	.identity = "DaVinci/Keystone Watchdog",
 };
 
-static const struct watchdog_ops davinci_wdt_ops = {
+static const struct watchdog_ops davinci_wdt_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= davinci_wdt_start,
 	.stop		= davinci_wdt_ping,
@@ -162,12 +170,18 @@ static int davinci_wdt_probe(struct platform_device *pdev)
 	struct davinci_wdt_device *davinci_wdt;
 
 	davinci_wdt = devm_kzalloc(dev, sizeof(*davinci_wdt), GFP_KERNEL);
+
 	if (!davinci_wdt)
+	{
 		return -ENOMEM;
+	}
 
 	davinci_wdt->clk = devm_clk_get(dev, NULL);
+
 	if (WARN_ON(IS_ERR(davinci_wdt->clk)))
+	{
 		return PTR_ERR(davinci_wdt->clk);
+	}
 
 	clk_prepare_enable(davinci_wdt->clk);
 
@@ -190,12 +204,18 @@ static int davinci_wdt_probe(struct platform_device *pdev)
 
 	wdt_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	davinci_wdt->base = devm_ioremap_resource(dev, wdt_mem);
+
 	if (IS_ERR(davinci_wdt->base))
+	{
 		return PTR_ERR(davinci_wdt->base);
+	}
 
 	ret = watchdog_register_device(wdd);
+
 	if (ret < 0)
+	{
 		dev_err(dev, "cannot register watchdog device\n");
+	}
 
 	return ret;
 }
@@ -210,13 +230,15 @@ static int davinci_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id davinci_wdt_of_match[] = {
+static const struct of_device_id davinci_wdt_of_match[] =
+{
 	{ .compatible = "ti,davinci-wdt", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, davinci_wdt_of_match);
 
-static struct platform_driver platform_wdt_driver = {
+static struct platform_driver platform_wdt_driver =
+{
 	.driver = {
 		.name = "davinci-wdt",
 		.of_match_table = davinci_wdt_of_match,
@@ -232,9 +254,9 @@ MODULE_DESCRIPTION("DaVinci Watchdog Driver");
 
 module_param(heartbeat, int, 0);
 MODULE_PARM_DESC(heartbeat,
-		 "Watchdog heartbeat period in seconds from 1 to "
-		 __MODULE_STRING(MAX_HEARTBEAT) ", default "
-		 __MODULE_STRING(DEFAULT_HEARTBEAT));
+				 "Watchdog heartbeat period in seconds from 1 to "
+				 __MODULE_STRING(MAX_HEARTBEAT) ", default "
+				 __MODULE_STRING(DEFAULT_HEARTBEAT));
 
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:davinci-wdt");

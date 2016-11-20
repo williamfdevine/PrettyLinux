@@ -32,7 +32,8 @@
 
 #undef DEBUG
 
-struct sdram_params {
+struct sdram_params
+{
 	const char name[20];
 	u_char  rows;		/* bits				 */
 	u_char  cas_latency;	/* cycles			 */
@@ -43,13 +44,15 @@ struct sdram_params {
 	u_short refresh;	/* refresh time for array (us)	 */
 };
 
-struct sdram_info {
+struct sdram_info
+{
 	u_int	mdcnfg;
 	u_int	mdrefr;
 	u_int	mdcas[3];
 };
 
-static struct sdram_params sdram_tbl[] __initdata = {
+static struct sdram_params sdram_tbl[] __initdata =
+{
 	{	/* Toshiba TC59SM716 CL2 */
 		.name		= "TC59SM716-CL2",
 		.rows		= 12,
@@ -144,7 +147,7 @@ static inline void set_mdcas(u_int *mdcas, int delayed, u_int rcd)
 
 static void
 sdram_calculate_timing(struct sdram_info *sd, u_int cpu_khz,
-		       struct sdram_params *sdram)
+					   struct sdram_params *sdram)
 {
 	u_int mem_khz, sd_khz, trp, twr;
 
@@ -159,8 +162,10 @@ sdram_calculate_timing(struct sdram_info *sd, u_int cpu_khz,
 	 * half speed or use delayed read latching (errata 13).
 	 */
 	if ((ns_to_cycles(sdram->tck, sd_khz) > 1) ||
-	    (read_cpuid_revision() < ARM_CPU_REV_SA1110_B2 && sd_khz < 62000))
+		(read_cpuid_revision() < ARM_CPU_REV_SA1110_B2 && sd_khz < 62000))
+	{
 		sd_khz /= 2;
+	}
 
 	sd->mdcnfg = MDCNFG & 0x007f007f;
 
@@ -168,8 +173,11 @@ sdram_calculate_timing(struct sdram_info *sd, u_int cpu_khz,
 
 	/* trp should always be >1 */
 	trp = ns_to_cycles(sdram->trp, mem_khz) - 1;
+
 	if (trp < 1)
+	{
 		trp = 1;
+	}
 
 	sd->mdcnfg |= trp << 8;
 	sd->mdcnfg |= trp << 24;
@@ -182,16 +190,18 @@ sdram_calculate_timing(struct sdram_info *sd, u_int cpu_khz,
 	sd->mdrefr |= 7;
 
 	if (sd_khz != mem_khz)
+	{
 		sd->mdrefr |= MDREFR_K1DB2;
+	}
 
 	/* initial number of '1's in MDCAS + 1 */
 	set_mdcas(sd->mdcas, sd_khz >= 62000,
-		ns_to_cycles(sdram->trcd, mem_khz));
+			  ns_to_cycles(sdram->trcd, mem_khz));
 
 #ifdef DEBUG
 	printk(KERN_DEBUG "MDCNFG: %08x MDREFR: %08x MDCAS0: %08x MDCAS1: %08x MDCAS2: %08x\n",
-		sd->mdcnfg, sd->mdrefr, sd->mdcas[0], sd->mdcas[1],
-		sd->mdcas[2]);
+		   sd->mdcnfg, sd->mdrefr, sd->mdcas[0], sd->mdcas[1],
+		   sd->mdcas[2]);
 #endif
 }
 
@@ -239,18 +249,23 @@ static int sa1110_target(struct cpufreq_policy *policy, unsigned int ppcr)
 	sdram_calculate_timing(&sd, sa11x0_freq_table[ppcr].frequency, sdram);
 
 #if 0
+
 	/*
 	 * These values are wrong according to the SA1110 documentation
 	 * and errata, but they seem to work.  Need to get a storage
 	 * scope on to the SDRAM signals to work out why.
 	 */
-	if (policy->max < 147500) {
+	if (policy->max < 147500)
+	{
 		sd.mdrefr |= MDREFR_K1DB2;
 		sd.mdcas[0] = 0xaaaaaa7f;
-	} else {
+	}
+	else
+	{
 		sd.mdrefr &= ~MDREFR_K1DB2;
 		sd.mdcas[0] = 0xaaaaaa9f;
 	}
+
 	sd.mdcas[1] = 0xaaaaaaaa;
 	sd.mdcas[2] = 0xaaaaaaaa;
 #endif
@@ -262,10 +277,15 @@ static int sa1110_target(struct cpufreq_policy *policy, unsigned int ppcr)
 	 * We wait 20ms to be safe.
 	 */
 	sdram_set_refresh(2);
+
 	if (!irqs_disabled())
+	{
 		msleep(20);
+	}
 	else
+	{
 		mdelay(20);
+	}
 
 	/*
 	 * Reprogram the DRAM timings with interrupts disabled, and
@@ -290,10 +310,10 @@ static int sa1110_target(struct cpufreq_policy *policy, unsigned int ppcr)
 2:		b	1b					\n\
 3:		nop						\n\
 		nop"
-		: "=&r" (unused)
-		: "r" (&MDCNFG), "r" (&PPCR), "0" (sd.mdcnfg),
-		  "r" (sd.mdrefr), "r" (sd.mdcas[0]),
-		  "r" (sd.mdcas[1]), "r" (sd.mdcas[2]), "r" (ppcr));
+						 : "=&r" (unused)
+						 : "r" (&MDCNFG), "r" (&PPCR), "0" (sd.mdcnfg),
+						 "r" (sd.mdrefr), "r" (sd.mdcas[0]),
+						 "r" (sd.mdcas[1]), "r" (sd.mdcas[2]), "r" (ppcr));
 	local_irq_restore(flags);
 
 	/*
@@ -311,7 +331,8 @@ static int __init sa1110_cpu_init(struct cpufreq_policy *policy)
 
 /* sa1110_driver needs __refdata because it must remain after init registers
  * it with cpufreq_register_driver() */
-static struct cpufreq_driver sa1110_driver __refdata = {
+static struct cpufreq_driver sa1110_driver __refdata =
+{
 	.flags		= CPUFREQ_STICKY | CPUFREQ_NEED_INITIAL_FREQ_CHECK,
 	.verify		= cpufreq_generic_frequency_table_verify,
 	.target_index	= sa1110_target,
@@ -325,9 +346,11 @@ static struct sdram_params *sa1110_find_sdram(const char *name)
 	struct sdram_params *sdram;
 
 	for (sdram = sdram_tbl; sdram < sdram_tbl + ARRAY_SIZE(sdram_tbl);
-	     sdram++)
+		 sdram++)
 		if (strcmp(name, sdram->name) == 0)
+		{
 			return sdram;
+		}
 
 	return NULL;
 }
@@ -340,27 +363,46 @@ static int __init sa1110_clk_init(void)
 	const char *name = sdram_name;
 
 	if (!cpu_is_sa1110())
+	{
 		return -ENODEV;
+	}
 
-	if (!name[0]) {
+	if (!name[0])
+	{
 		if (machine_is_assabet())
+		{
 			name = "TC59SM716-CL3";
+		}
+
 		if (machine_is_pt_system3())
+		{
 			name = "K4S641632D";
+		}
+
 		if (machine_is_h3100())
+		{
 			name = "KM416S4030CT";
+		}
+
 		if (machine_is_jornada720() || machine_is_h3600())
+		{
 			name = "K4S281632B-1H";
+		}
+
 		if (machine_is_nanoengine())
+		{
 			name = "MT48LC8M16A2TG-75";
+		}
 	}
 
 	sdram = sa1110_find_sdram(name);
-	if (sdram) {
+
+	if (sdram)
+	{
 		printk(KERN_DEBUG "SDRAM: tck: %d trcd: %d trp: %d"
-			" twr: %d refresh: %d cas_latency: %d\n",
-			sdram->tck, sdram->trcd, sdram->trp,
-			sdram->twr, sdram->refresh, sdram->cas_latency);
+			   " twr: %d refresh: %d cas_latency: %d\n",
+			   sdram->tck, sdram->trcd, sdram->trp,
+			   sdram->twr, sdram->refresh, sdram->cas_latency);
 
 		memcpy(&sdram_params, sdram, sizeof(sdram_params));
 

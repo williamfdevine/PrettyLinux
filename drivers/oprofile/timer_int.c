@@ -35,13 +35,15 @@ static void __oprofile_hrtimer_start(void *unused)
 	struct hrtimer *hrtimer = this_cpu_ptr(&oprofile_hrtimer);
 
 	if (!ctr_running)
+	{
 		return;
+	}
 
 	hrtimer_init(hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	hrtimer->function = oprofile_hrtimer_notify;
 
 	hrtimer_start(hrtimer, ns_to_ktime(TICK_NSEC),
-		      HRTIMER_MODE_REL_PINNED);
+				  HRTIMER_MODE_REL_PINNED);
 }
 
 static int oprofile_hrtimer_start(void)
@@ -58,7 +60,9 @@ static void __oprofile_hrtimer_stop(int cpu)
 	struct hrtimer *hrtimer = &per_cpu(oprofile_hrtimer, cpu);
 
 	if (!ctr_running)
+	{
 		return;
+	}
 
 	hrtimer_cancel(hrtimer);
 }
@@ -69,7 +73,7 @@ static void oprofile_hrtimer_stop(void)
 
 	get_online_cpus();
 	for_each_online_cpu(cpu)
-		__oprofile_hrtimer_stop(cpu);
+	__oprofile_hrtimer_stop(cpu);
 	ctr_running = 0;
 	put_online_cpus();
 }
@@ -95,11 +99,15 @@ static int oprofile_hrtimer_setup(void)
 	int ret;
 
 	ret = cpuhp_setup_state_nocalls(CPUHP_AP_ONLINE_DYN,
-					"oprofile/timer:online",
-					oprofile_timer_online,
-					oprofile_timer_prep_down);
+									"oprofile/timer:online",
+									oprofile_timer_online,
+									oprofile_timer_prep_down);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	hp_online = ret;
 	return 0;
 }

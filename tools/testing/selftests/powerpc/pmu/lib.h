@@ -11,8 +11,10 @@
 #include <string.h>
 #include <unistd.h>
 
-union pipe {
-	struct {
+union pipe
+{
+	struct
+	{
 		int read_fd;
 		int write_fd;
 	};
@@ -29,7 +31,8 @@ extern int notify_parent_of_error(union pipe write_pipe);
 extern pid_t eat_cpu(int (test_function)(void));
 extern bool require_paranoia_below(int level);
 
-struct addr_range {
+struct addr_range
+{
 	uint64_t first, last;
 };
 

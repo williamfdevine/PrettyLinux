@@ -25,7 +25,8 @@
 
 static int write_spi(struct fbtft_par *par, void *buf, size_t len)
 {
-	struct spi_transfer t = {
+	struct spi_transfer t =
+	{
 		.tx_buf = buf,
 		.len = len,
 		.speed_hz = 1000000,
@@ -33,19 +34,23 @@ static int write_spi(struct fbtft_par *par, void *buf, size_t len)
 	struct spi_message m;
 
 	fbtft_par_dbg_hex(DEBUG_WRITE, par, par->info->device, u8, buf, len,
-		"%s(len=%d): ", __func__, len);
+					  "%s(len=%d): ", __func__, len);
 
-	if (!par->spi) {
+	if (!par->spi)
+	{
 		dev_err(par->info->device,
-			"%s: par->spi is unexpectedly NULL\n", __func__);
+				"%s: par->spi is unexpectedly NULL\n", __func__);
 		return -1;
 	}
 
 	spi_message_init(&m);
-	if (par->txbuf.dma && buf == par->txbuf.buf) {
+
+	if (par->txbuf.dma && buf == par->txbuf.buf)
+	{
 		t.tx_dma = par->txbuf.dma;
 		m.is_dma_mapped = 1;
 	}
+
 	spi_message_add_tail(&t, &m);
 	return spi_sync(par->spi, &m);
 }
@@ -55,15 +60,16 @@ static int init_display(struct fbtft_par *par)
 	gpio_set_value(par->gpio.dc, 1);
 
 	fbtft_par_dbg(DEBUG_INIT_DISPLAY, par,
-		"%s()\n", __func__);
+				  "%s()\n", __func__);
 	fbtft_par_dbg(DEBUG_INIT_DISPLAY, par,
-		"display size %dx%d\n",
-		par->info->var.xres,
-		par->info->var.yres);
+				  "display size %dx%d\n",
+				  par->info->var.xres,
+				  par->info->var.yres);
 
 	par->fbtftops.reset(par);
 
-	if ((par->info->var.xres == 320) && (par->info->var.yres == 240)) {
+	if ((par->info->var.xres == 320) && (par->info->var.yres == 240))
+	{
 		/* PLL clock frequency */
 		write_reg(par, 0x88, 0x0A);
 		write_reg(par, 0x89, 0x02);
@@ -87,8 +93,10 @@ static int init_display(struct fbtft_par *par)
 		write_reg(par, 0x1D, 0x0E);
 		write_reg(par, 0x1E, 0x00);
 		write_reg(par, 0x1F, 0x02);
-	} else if ((par->info->var.xres == 480) &&
-		   (par->info->var.yres == 272)) {
+	}
+	else if ((par->info->var.xres == 480) &&
+			 (par->info->var.yres == 272))
+	{
 		/* PLL clock frequency  */
 		write_reg(par, 0x88, 0x0A);
 		write_reg(par, 0x89, 0x02);
@@ -112,8 +120,10 @@ static int init_display(struct fbtft_par *par)
 		write_reg(par, 0x1D, 0x07);
 		write_reg(par, 0x1E, 0x00);
 		write_reg(par, 0x1F, 0x09);
-	} else if ((par->info->var.xres == 640) &&
-		   (par->info->var.yres == 480)) {
+	}
+	else if ((par->info->var.xres == 640) &&
+			 (par->info->var.yres == 480))
+	{
 		/* PLL clock frequency */
 		write_reg(par, 0x88, 0x0B);
 		write_reg(par, 0x89, 0x02);
@@ -137,8 +147,10 @@ static int init_display(struct fbtft_par *par)
 		write_reg(par, 0x1D, 0x0E);
 		write_reg(par, 0x1E, 0x00);
 		write_reg(par, 0x1F, 0x01);
-	} else if ((par->info->var.xres == 800) &&
-		   (par->info->var.yres == 480)) {
+	}
+	else if ((par->info->var.xres == 800) &&
+			 (par->info->var.yres == 480))
+	{
 		/* PLL clock frequency */
 		write_reg(par, 0x88, 0x0B);
 		write_reg(par, 0x89, 0x02);
@@ -162,7 +174,9 @@ static int init_display(struct fbtft_par *par)
 		write_reg(par, 0x1D, 0x06);
 		write_reg(par, 0x1E, 0x00);
 		write_reg(par, 0x1F, 0x01);
-	} else {
+	}
+	else
+	{
 		dev_err(par->info->device, "display size is not supported!!");
 		return -1;
 	}
@@ -209,44 +223,59 @@ static void write_reg8_bus8(struct fbtft_par *par, int len, ...)
 	/* slow down spi-speed for writing registers */
 	par->fbtftops.write = write_spi;
 
-	if (unlikely(par->debug & DEBUG_WRITE_REGISTER)) {
+	if (unlikely(par->debug & DEBUG_WRITE_REGISTER))
+	{
 		va_start(args, len);
+
 		for (i = 0; i < len; i++)
+		{
 			buf[i] = (u8)va_arg(args, unsigned int);
+		}
+
 		va_end(args);
 		fbtft_par_dbg_hex(DEBUG_WRITE_REGISTER, par, par->info->device,
-			u8, buf, len, "%s: ", __func__);
+						  u8, buf, len, "%s: ", __func__);
 	}
 
 	va_start(args, len);
 	*buf++ = 0x80;
 	*buf = (u8)va_arg(args, unsigned int);
 	ret = par->fbtftops.write(par, par->buf, 2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		va_end(args);
 		dev_err(par->info->device, "write() failed and returned %dn",
-			ret);
+				ret);
 		return;
 	}
+
 	len--;
 
 	udelay(100);
 
-	if (len) {
+	if (len)
+	{
 		buf = (u8 *)par->buf;
 		*buf++ = 0x00;
 		i = len;
+
 		while (i--)
+		{
 			*buf++ = (u8)va_arg(args, unsigned int);
+		}
 
 		ret = par->fbtftops.write(par, par->buf, len + 1);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			va_end(args);
 			dev_err(par->info->device,
-				"write() failed and returned %dn", ret);
+					"write() failed and returned %dn", ret);
 			return;
 		}
 	}
+
 	va_end(args);
 
 	/* restore user spi-speed */
@@ -266,36 +295,44 @@ static int write_vmem16_bus8(struct fbtft_par *par, size_t offset, size_t len)
 	size_t startbyte_size = 0;
 
 	fbtft_par_dbg(DEBUG_WRITE_VMEM, par, "%s(offset=%zu, len=%zu)\n",
-		__func__, offset, len);
+				  __func__, offset, len);
 
 	remain = len / 2;
 	vmem16 = (u16 *)(par->info->screen_buffer + offset);
 	tx_array_size = par->txbuf.len / 2;
-		txbuf16 = par->txbuf.buf + 1;
-		tx_array_size -= 2;
-		*(u8 *)(par->txbuf.buf) = 0x00;
-		startbyte_size = 1;
+	txbuf16 = par->txbuf.buf + 1;
+	tx_array_size -= 2;
+	*(u8 *)(par->txbuf.buf) = 0x00;
+	startbyte_size = 1;
 
-	while (remain) {
+	while (remain)
+	{
 		to_copy = min(tx_array_size, remain);
 		dev_dbg(par->info->device, "    to_copy=%zu, remain=%zu\n",
-			to_copy, remain - to_copy);
+				to_copy, remain - to_copy);
 
 		for (i = 0; i < to_copy; i++)
+		{
 			txbuf16[i] = cpu_to_be16(vmem16[i]);
+		}
 
 		vmem16 = vmem16 + to_copy;
 		ret = par->fbtftops.write(par, par->txbuf.buf,
-			startbyte_size + to_copy * 2);
+								  startbyte_size + to_copy * 2);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		remain -= to_copy;
 	}
 
 	return ret;
 }
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.fbtftops = {
 		.init_display = init_display,

@@ -26,12 +26,14 @@ static void armada_drm_unref_work(struct work_struct *work)
 	struct drm_framebuffer *fb;
 
 	while (kfifo_get(&priv->fb_unref, &fb))
+	{
 		drm_framebuffer_unreference(fb);
+	}
 }
 
 /* Must be called with dev->event_lock held */
 void __armada_drm_queue_unref_work(struct drm_device *dev,
-	struct drm_framebuffer *fb)
+								   struct drm_framebuffer *fb)
 {
 	struct armada_private *priv = dev->dev_private;
 
@@ -40,7 +42,7 @@ void __armada_drm_queue_unref_work(struct drm_device *dev,
 }
 
 void armada_drm_queue_unref_work(struct drm_device *dev,
-	struct drm_framebuffer *fb)
+								 struct drm_framebuffer *fb)
 {
 	unsigned long flags;
 
@@ -55,28 +57,42 @@ static int armada_drm_load(struct drm_device *dev, unsigned long flags)
 	struct resource *mem = NULL;
 	int ret, n;
 
-	for (n = 0; ; n++) {
+	for (n = 0; ; n++)
+	{
 		struct resource *r = platform_get_resource(dev->platformdev,
-							   IORESOURCE_MEM, n);
+							 IORESOURCE_MEM, n);
+
 		if (!r)
+		{
 			break;
+		}
 
 		/* Resources above 64K are graphics memory */
 		if (resource_size(r) > SZ_64K)
+		{
 			mem = r;
+		}
 		else
+		{
 			return -EINVAL;
+		}
 	}
 
 	if (!mem)
+	{
 		return -ENXIO;
+	}
 
 	if (!devm_request_mem_region(dev->dev, mem->start,
-			resource_size(mem), "armada-drm"))
+								 resource_size(mem), "armada-drm"))
+	{
 		return -EBUSY;
+	}
 
 	priv = devm_kzalloc(dev->dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		DRM_ERROR("failed to allocate private\n");
 		return -ENOMEM;
 	}
@@ -105,26 +121,35 @@ static int armada_drm_load(struct drm_device *dev, unsigned long flags)
 	mutex_init(&priv->linear_lock);
 
 	ret = component_bind_all(dev->dev, dev);
+
 	if (ret)
+	{
 		goto err_kms;
+	}
 
 	ret = drm_vblank_init(dev, dev->mode_config.num_crtc);
+
 	if (ret)
+	{
 		goto err_comp;
+	}
 
 	dev->irq_enabled = true;
 
 	ret = armada_fbdev_init(dev);
+
 	if (ret)
+	{
 		goto err_comp;
+	}
 
 	drm_kms_helper_poll_init(dev);
 
 	return 0;
 
- err_comp:
+err_comp:
 	component_unbind_all(dev->dev, dev);
- err_kms:
+err_kms:
 	drm_mode_config_cleanup(dev);
 	drm_mm_takedown(&priv->linear);
 	flush_work(&priv->fb_unref_work);
@@ -163,8 +188,9 @@ static void armada_drm_disable_vblank(struct drm_device *dev, unsigned int pipe)
 	armada_drm_crtc_disable_irq(priv->dcrtc[pipe], VSYNC_IRQ_ENA);
 }
 
-static struct drm_ioctl_desc armada_ioctls[] = {
-	DRM_IOCTL_DEF_DRV(ARMADA_GEM_CREATE, armada_gem_create_ioctl,0),
+static struct drm_ioctl_desc armada_ioctls[] =
+{
+	DRM_IOCTL_DEF_DRV(ARMADA_GEM_CREATE, armada_gem_create_ioctl, 0),
 	DRM_IOCTL_DEF_DRV(ARMADA_GEM_MMAP, armada_gem_mmap_ioctl, 0),
 	DRM_IOCTL_DEF_DRV(ARMADA_GEM_PWRITE, armada_gem_pwrite_ioctl, 0),
 };
@@ -174,7 +200,8 @@ static void armada_drm_lastclose(struct drm_device *dev)
 	armada_fbdev_lastclose(dev);
 }
 
-static const struct file_operations armada_drm_fops = {
+static const struct file_operations armada_drm_fops =
+{
 	.owner			= THIS_MODULE,
 	.llseek			= no_llseek,
 	.read			= drm_read,
@@ -185,7 +212,8 @@ static const struct file_operations armada_drm_fops = {
 	.release		= drm_release,
 };
 
-static struct drm_driver armada_drm_driver = {
+static struct drm_driver armada_drm_driver =
+{
 	.load			= armada_drm_load,
 	.lastclose		= armada_drm_lastclose,
 	.unload			= armada_drm_unload,
@@ -211,7 +239,7 @@ static struct drm_driver armada_drm_driver = {
 	.desc			= "Armada SoC DRM",
 	.date			= "20120730",
 	.driver_features	= DRIVER_GEM | DRIVER_MODESET |
-				  DRIVER_PRIME,
+	DRIVER_PRIME,
 	.ioctls			= armada_ioctls,
 	.fops			= &armada_drm_fops,
 };
@@ -238,18 +266,23 @@ static int compare_dev_name(struct device *dev, void *data)
 }
 
 static void armada_add_endpoints(struct device *dev,
-	struct component_match **match, struct device_node *port)
+								 struct component_match **match, struct device_node *port)
 {
 	struct device_node *ep, *remote;
 
-	for_each_child_of_node(port, ep) {
+	for_each_child_of_node(port, ep)
+	{
 		remote = of_graph_get_remote_port_parent(ep);
-		if (!remote || !of_device_is_available(remote)) {
+
+		if (!remote || !of_device_is_available(remote))
+		{
 			of_node_put(remote);
 			continue;
-		} else if (!of_device_is_available(remote->parent)) {
+		}
+		else if (!of_device_is_available(remote->parent))
+		{
 			dev_warn(dev, "parent device of %s is not available\n",
-				 remote->full_name);
+					 remote->full_name);
 			of_node_put(remote);
 			continue;
 		}
@@ -259,7 +292,8 @@ static void armada_add_endpoints(struct device *dev,
 	}
 }
 
-static const struct component_master_ops armada_master_ops = {
+static const struct component_master_ops armada_master_ops =
+{
 	.bind = armada_drm_bind,
 	.unbind = armada_drm_unbind,
 };
@@ -271,10 +305,14 @@ static int armada_drm_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = drm_of_component_probe(dev, compare_dev_name, &armada_master_ops);
-	if (ret != -EINVAL)
-		return ret;
 
-	if (dev->platform_data) {
+	if (ret != -EINVAL)
+	{
+		return ret;
+	}
+
+	if (dev->platform_data)
+	{
 		char **devices = dev->platform_data;
 		struct device_node *port;
 		struct device *d;
@@ -282,26 +320,31 @@ static int armada_drm_probe(struct platform_device *pdev)
 
 		for (i = 0; devices[i]; i++)
 			component_match_add(dev, &match, compare_dev_name,
-					    devices[i]);
+								devices[i]);
 
-		if (i == 0) {
+		if (i == 0)
+		{
 			dev_err(dev, "missing 'ports' property\n");
 			return -ENODEV;
 		}
 
-		for (i = 0; devices[i]; i++) {
+		for (i = 0; devices[i]; i++)
+		{
 			d = bus_find_device_by_name(&platform_bus_type, NULL,
-						    devices[i]);
-			if (d && d->of_node) {
+										devices[i]);
+
+			if (d && d->of_node)
+			{
 				for_each_child_of_node(d->of_node, port)
-					armada_add_endpoints(dev, &match, port);
+				armada_add_endpoints(dev, &match, port);
 			}
+
 			put_device(d);
 		}
 	}
 
 	return component_master_add_with_match(&pdev->dev, &armada_master_ops,
-					       match);
+										   match);
 }
 
 static int armada_drm_remove(struct platform_device *pdev)
@@ -310,7 +353,8 @@ static int armada_drm_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct platform_device_id armada_drm_platform_ids[] = {
+static const struct platform_device_id armada_drm_platform_ids[] =
+{
 	{
 		.name		= "armada-drm",
 	}, {
@@ -320,7 +364,8 @@ static const struct platform_device_id armada_drm_platform_ids[] = {
 };
 MODULE_DEVICE_TABLE(platform, armada_drm_platform_ids);
 
-static struct platform_driver armada_drm_platform_driver = {
+static struct platform_driver armada_drm_platform_driver =
+{
 	.probe	= armada_drm_probe,
 	.remove	= armada_drm_remove,
 	.driver	= {
@@ -336,11 +381,19 @@ static int __init armada_drm_init(void)
 	armada_drm_driver.num_ioctls = ARRAY_SIZE(armada_ioctls);
 
 	ret = platform_driver_register(&armada_lcd_platform_driver);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = platform_driver_register(&armada_drm_platform_driver);
+
 	if (ret)
+	{
 		platform_driver_unregister(&armada_lcd_platform_driver);
+	}
+
 	return ret;
 }
 module_init(armada_drm_init);

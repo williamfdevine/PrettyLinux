@@ -29,14 +29,16 @@ static void udplite_err(struct sk_buff *skb, u32 info)
 	__udp4_lib_err(skb, info, &udplite_table);
 }
 
-static const struct net_protocol udplite_protocol = {
+static const struct net_protocol udplite_protocol =
+{
 	.handler	= udplite_rcv,
 	.err_handler	= udplite_err,
 	.no_policy	= 1,
 	.netns_ok	= 1,
 };
 
-struct proto 	udplite_prot = {
+struct proto 	udplite_prot =
+{
 	.name		   = "UDP-Lite",
 	.owner		   = THIS_MODULE,
 	.close		   = udp_lib_close,
@@ -63,7 +65,8 @@ struct proto 	udplite_prot = {
 };
 EXPORT_SYMBOL(udplite_prot);
 
-static struct inet_protosw udplite4_protosw = {
+static struct inet_protosw udplite4_protosw =
+{
 	.type		=  SOCK_DGRAM,
 	.protocol	=  IPPROTO_UDPLITE,
 	.prot		=  &udplite_prot,
@@ -73,7 +76,8 @@ static struct inet_protosw udplite4_protosw = {
 
 #ifdef CONFIG_PROC_FS
 
-static const struct file_operations udplite_afinfo_seq_fops = {
+static const struct file_operations udplite_afinfo_seq_fops =
+{
 	.owner    = THIS_MODULE,
 	.open     = udp_seq_open,
 	.read     = seq_read,
@@ -81,7 +85,8 @@ static const struct file_operations udplite_afinfo_seq_fops = {
 	.release  = seq_release_net
 };
 
-static struct udp_seq_afinfo udplite4_seq_afinfo = {
+static struct udp_seq_afinfo udplite4_seq_afinfo =
+{
 	.name		= "udplite",
 	.family		= AF_INET,
 	.udp_table 	= &udplite_table,
@@ -101,7 +106,8 @@ static void __net_exit udplite4_proc_exit_net(struct net *net)
 	udp_proc_unregister(net, &udplite4_seq_afinfo);
 }
 
-static struct pernet_operations udplite4_net_ops = {
+static struct pernet_operations udplite4_net_ops =
+{
 	.init = udplite4_proc_init_net,
 	.exit = udplite4_proc_exit_net,
 };
@@ -120,16 +126,24 @@ static inline int udplite4_proc_init(void)
 void __init udplite4_register(void)
 {
 	udp_table_init(&udplite_table, "UDP-Lite");
+
 	if (proto_register(&udplite_prot, 1))
+	{
 		goto out_register_err;
+	}
 
 	if (inet_add_protocol(&udplite_protocol, IPPROTO_UDPLITE) < 0)
+	{
 		goto out_unregister_proto;
+	}
 
 	inet_register_protosw(&udplite4_protosw);
 
 	if (udplite4_proc_init())
+	{
 		pr_err("%s: Cannot register /proc!\n", __func__);
+	}
+
 	return;
 
 out_unregister_proto:

@@ -40,7 +40,8 @@
 #define RESETCON_TIMEOUT_SLEEP	BIT(3)
 #define RESETCON_WDT_TIMEOUT	BIT(4)
 
-struct pic32_wdt {
+struct pic32_wdt
+{
 	void __iomem	*regs;
 	void __iomem	*rst_base;
 	struct clk	*clk;
@@ -82,12 +83,15 @@ static u32 pic32_wdt_get_timeout_secs(struct pic32_wdt *wdt, struct device *dev)
 	rate = clk_get_rate(wdt->clk);
 
 	dev_dbg(dev, "wdt: clk_id %d, clk_rate %lu (prescale)\n",
-		pic32_wdt_get_clk_id(wdt), rate);
+			pic32_wdt_get_clk_id(wdt), rate);
 
 	/* default, prescaler of 32 (i.e. div-by-32) is implicit. */
 	rate >>= 5;
+
 	if (!rate)
+	{
 		return 0;
+	}
 
 	/* calculate terminal count from postscaler. */
 	ps = pic32_wdt_get_post_scaler(wdt);
@@ -96,8 +100,8 @@ static u32 pic32_wdt_get_timeout_secs(struct pic32_wdt *wdt, struct device *dev)
 	/* find time taken (in secs) to reach terminal count */
 	period = terminal / rate;
 	dev_dbg(dev,
-		"wdt: clk_rate %lu (postscale) / terminal %d, timeout %dsec\n",
-		rate, terminal, period);
+			"wdt: clk_rate %lu (postscale) / terminal %d, timeout %dsec\n",
+			rate, terminal, period);
 
 	return period;
 }
@@ -142,25 +146,29 @@ static int pic32_wdt_ping(struct watchdog_device *wdd)
 	return 0;
 }
 
-static const struct watchdog_ops pic32_wdt_fops = {
+static const struct watchdog_ops pic32_wdt_fops =
+{
 	.owner		= THIS_MODULE,
 	.start		= pic32_wdt_start,
 	.stop		= pic32_wdt_stop,
 	.ping		= pic32_wdt_ping,
 };
 
-static const struct watchdog_info pic32_wdt_ident = {
+static const struct watchdog_info pic32_wdt_ident =
+{
 	.options = WDIOF_KEEPALIVEPING |
-			WDIOF_MAGICCLOSE | WDIOF_CARDRESET,
+	WDIOF_MAGICCLOSE | WDIOF_CARDRESET,
 	.identity = "PIC32 Watchdog",
 };
 
-static struct watchdog_device pic32_wdd = {
+static struct watchdog_device pic32_wdd =
+{
 	.info		= &pic32_wdt_ident,
 	.ops		= &pic32_wdt_fops,
 };
 
-static const struct of_device_id pic32_wdt_dt_ids[] = {
+static const struct of_device_id pic32_wdt_dt_ids[] =
+{
 	{ .compatible = "microchip,pic32mzda-wdt", },
 	{ /* sentinel */ }
 };
@@ -174,40 +182,56 @@ static int pic32_wdt_drv_probe(struct platform_device *pdev)
 	struct resource *mem;
 
 	wdt = devm_kzalloc(&pdev->dev, sizeof(*wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	wdt->regs = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(wdt->regs))
+	{
 		return PTR_ERR(wdt->regs);
+	}
 
 	wdt->rst_base = devm_ioremap(&pdev->dev, PIC32_BASE_RESET, 0x10);
+
 	if (!wdt->rst_base)
+	{
 		return -ENOMEM;
+	}
 
 	wdt->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(wdt->clk)) {
+
+	if (IS_ERR(wdt->clk))
+	{
 		dev_err(&pdev->dev, "clk not found\n");
 		return PTR_ERR(wdt->clk);
 	}
 
 	ret = clk_prepare_enable(wdt->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "clk enable failed\n");
 		return ret;
 	}
 
-	if (pic32_wdt_is_win_enabled(wdt)) {
+	if (pic32_wdt_is_win_enabled(wdt))
+	{
 		dev_err(&pdev->dev, "windowed-clear mode is not supported.\n");
 		ret = -ENODEV;
 		goto out_disable_clk;
 	}
 
 	wdd->timeout = pic32_wdt_get_timeout_secs(wdt, &pdev->dev);
-	if (!wdd->timeout) {
+
+	if (!wdd->timeout)
+	{
 		dev_err(&pdev->dev,
-			"failed to read watchdog register timeout\n");
+				"failed to read watchdog register timeout\n");
 		ret = -EINVAL;
 		goto out_disable_clk;
 	}
@@ -220,7 +244,9 @@ static int pic32_wdt_drv_probe(struct platform_device *pdev)
 	watchdog_set_drvdata(wdd, wdt);
 
 	ret = watchdog_register_device(wdd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "watchdog register failed, err %d\n", ret);
 		goto out_disable_clk;
 	}
@@ -246,7 +272,8 @@ static int pic32_wdt_drv_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pic32_wdt_driver = {
+static struct platform_driver pic32_wdt_driver =
+{
 	.probe		= pic32_wdt_drv_probe,
 	.remove		= pic32_wdt_drv_remove,
 	.driver		= {

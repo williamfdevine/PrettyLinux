@@ -33,7 +33,8 @@
 static struct snd_soc_jack hs_jack;
 
 /* Headphones jack detection DAPM pins */
-static struct snd_soc_jack_pin hs_jack_pins[] = {
+static struct snd_soc_jack_pin hs_jack_pins[] =
+{
 	{
 		.pin    = "Headphone Jack",
 		.mask   = SND_JACK_HEADPHONE,
@@ -41,7 +42,8 @@ static struct snd_soc_jack_pin hs_jack_pins[] = {
 };
 
 /* Headphones jack detection gpios */
-static struct snd_soc_jack_gpio hs_jack_gpios[] = {
+static struct snd_soc_jack_gpio hs_jack_gpios[] =
+{
 	[0] = {
 		/* gpio is set on per-platform basis */
 		.name           = "hp-gpio",
@@ -51,14 +53,16 @@ static struct snd_soc_jack_gpio hs_jack_gpios[] = {
 };
 
 /* Palm27x machine dapm widgets */
-static const struct snd_soc_dapm_widget palm27x_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget palm27x_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
 	SND_SOC_DAPM_SPK("Ext. Speaker", NULL),
 	SND_SOC_DAPM_MIC("Ext. Microphone", NULL),
 };
 
 /* PalmTX audio map */
-static const struct snd_soc_dapm_route audio_map[] = {
+static const struct snd_soc_dapm_route audio_map[] =
+{
 	/* headphone connected to HPOUTL, HPOUTR */
 	{"Headphone Jack", NULL, "HPOUTL"},
 	{"Headphone Jack", NULL, "HPOUTR"},
@@ -79,38 +83,43 @@ static int palm27x_ac97_init(struct snd_soc_pcm_runtime *rtd)
 
 	/* Jack detection API stuff */
 	err = snd_soc_card_jack_new(rtd->card, "Headphone Jack",
-				    SND_JACK_HEADPHONE, &hs_jack, hs_jack_pins,
-				    ARRAY_SIZE(hs_jack_pins));
+								SND_JACK_HEADPHONE, &hs_jack, hs_jack_pins,
+								ARRAY_SIZE(hs_jack_pins));
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = snd_soc_jack_add_gpios(&hs_jack, ARRAY_SIZE(hs_jack_gpios),
-				hs_jack_gpios);
+								 hs_jack_gpios);
 
 	return err;
 }
 
-static struct snd_soc_dai_link palm27x_dai[] = {
+static struct snd_soc_dai_link palm27x_dai[] =
 {
-	.name = "AC97 HiFi",
-	.stream_name = "AC97 HiFi",
-	.cpu_dai_name = "pxa2xx-ac97",
-	.codec_dai_name =  "wm9712-hifi",
-	.codec_name = "wm9712-codec",
-	.platform_name = "pxa-pcm-audio",
-	.init = palm27x_ac97_init,
-},
-{
-	.name = "AC97 Aux",
-	.stream_name = "AC97 Aux",
-	.cpu_dai_name = "pxa2xx-ac97-aux",
-	.codec_dai_name = "wm9712-aux",
-	.codec_name = "wm9712-codec",
-	.platform_name = "pxa-pcm-audio",
-},
+	{
+		.name = "AC97 HiFi",
+		.stream_name = "AC97 HiFi",
+		.cpu_dai_name = "pxa2xx-ac97",
+		.codec_dai_name =  "wm9712-hifi",
+		.codec_name = "wm9712-codec",
+		.platform_name = "pxa-pcm-audio",
+		.init = palm27x_ac97_init,
+	},
+	{
+		.name = "AC97 Aux",
+		.stream_name = "AC97 Aux",
+		.cpu_dai_name = "pxa2xx-ac97-aux",
+		.codec_dai_name = "wm9712-aux",
+		.codec_name = "wm9712-codec",
+		.platform_name = "pxa-pcm-audio",
+	},
 };
 
-static struct snd_soc_card palm27x_asoc = {
+static struct snd_soc_card palm27x_asoc =
+{
 	.name = "Palm/PXA27x",
 	.owner = THIS_MODULE,
 	.dai_link = palm27x_dai,
@@ -127,27 +136,33 @@ static int palm27x_asoc_probe(struct platform_device *pdev)
 	int ret;
 
 	if (!(machine_is_palmtx() || machine_is_palmt5() ||
-		machine_is_palmld() || machine_is_palmte2()))
+		  machine_is_palmld() || machine_is_palmte2()))
+	{
 		return -ENODEV;
+	}
 
-	if (!pdev->dev.platform_data) {
+	if (!pdev->dev.platform_data)
+	{
 		dev_err(&pdev->dev, "please supply platform_data\n");
 		return -ENODEV;
 	}
 
 	hs_jack_gpios[0].gpio = ((struct palm27x_asoc_info *)
-			(pdev->dev.platform_data))->jack_gpio;
+							 (pdev->dev.platform_data))->jack_gpio;
 
 	palm27x_asoc.dev = &pdev->dev;
 
 	ret = devm_snd_soc_register_card(&pdev->dev, &palm27x_asoc);
+
 	if (ret)
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-			ret);
+				ret);
+
 	return ret;
 }
 
-static struct platform_driver palm27x_wm9712_driver = {
+static struct platform_driver palm27x_wm9712_driver =
+{
 	.probe		= palm27x_asoc_probe,
 	.driver		= {
 		.name		= "palm27x-asoc",

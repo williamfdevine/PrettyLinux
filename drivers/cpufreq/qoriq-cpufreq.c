@@ -23,7 +23,7 @@
 #include <linux/smp.h>
 
 #if !defined(CONFIG_ARM)
-#include <asm/smp.h>	/* for get_hard_smp_processor_id() in UP configs */
+	#include <asm/smp.h>	/* for get_hard_smp_processor_id() in UP configs */
 #endif
 
 /**
@@ -31,7 +31,8 @@
  * @pclk: the parent clock of cpu
  * @table: frequency table
  */
-struct cpu_data {
+struct cpu_data
+{
 	struct clk **pclk;
 	struct cpufreq_frequency_table *table;
 	struct thermal_cooling_device *cdev;
@@ -42,14 +43,16 @@ struct cpu_data {
  * @freq_mask: mask the disallowed frequencies
  * @flag: unique flags
  */
-struct soc_data {
+struct soc_data
+{
 	u32 freq_mask[4];
 	u32 flag;
 };
 
 #define FREQ_MASK	1
 /* see hardware specification for the allowed frqeuencies */
-static const struct soc_data sdata[] = {
+static const struct soc_data sdata[] =
+{
 	{ /* used by p2041 and p3041 */
 		.freq_mask = {0x8, 0x8, 0x2, 0x2},
 		.flag = FREQ_MASK,
@@ -90,11 +93,16 @@ static u32 get_bus_freq(void)
 	u32 sysfreq;
 
 	soc = of_find_node_by_type(NULL, "soc");
+
 	if (!soc)
+	{
 		return 0;
+	}
 
 	if (of_property_read_u32(soc, "bus-frequency", &sysfreq))
+	{
 		sysfreq = 0;
+	}
 
 	of_node_put(soc);
 
@@ -106,15 +114,23 @@ static struct device_node *cpu_to_clk_node(int cpu)
 	struct device_node *np, *clk_np;
 
 	if (!cpu_present(cpu))
+	{
 		return NULL;
+	}
 
 	np = of_get_cpu_node(cpu, NULL);
+
 	if (!np)
+	{
 		return NULL;
+	}
 
 	clk_np = of_parse_phandle(np, "clocks", 0);
+
 	if (!clk_np)
+	{
 		return NULL;
+	}
 
 	of_node_put(np);
 
@@ -129,16 +145,25 @@ static void set_affected_cpus(struct cpufreq_policy *policy)
 	int i;
 
 	np = cpu_to_clk_node(policy->cpu);
-	if (!np)
-		return;
 
-	for_each_present_cpu(i) {
+	if (!np)
+	{
+		return;
+	}
+
+	for_each_present_cpu(i)
+	{
 		clk_np = cpu_to_clk_node(i);
+
 		if (!clk_np)
+		{
 			continue;
+		}
 
 		if (clk_np == np)
+		{
 			cpumask_set_cpu(i, dstp);
+		}
 
 		of_node_put(clk_np);
 	}
@@ -147,16 +172,20 @@ static void set_affected_cpus(struct cpufreq_policy *policy)
 
 /* reduce the duplicated frequencies in frequency table */
 static void freq_table_redup(struct cpufreq_frequency_table *freq_table,
-		int count)
+							 int count)
 {
 	int i, j;
 
-	for (i = 1; i < count; i++) {
-		for (j = 0; j < i; j++) {
+	for (i = 1; i < count; i++)
+	{
+		for (j = 0; j < i; j++)
+		{
 			if (freq_table[j].frequency == CPUFREQ_ENTRY_INVALID ||
-					freq_table[j].frequency !=
-					freq_table[i].frequency)
+				freq_table[j].frequency !=
+				freq_table[i].frequency)
+			{
 				continue;
+			}
 
 			freq_table[i].frequency = CPUFREQ_ENTRY_INVALID;
 			break;
@@ -166,25 +195,33 @@ static void freq_table_redup(struct cpufreq_frequency_table *freq_table,
 
 /* sort the frequencies in frequency table in descenting order */
 static void freq_table_sort(struct cpufreq_frequency_table *freq_table,
-		int count)
+							int count)
 {
 	int i, j, ind;
 	unsigned int freq, max_freq;
 	struct cpufreq_frequency_table table;
 
-	for (i = 0; i < count - 1; i++) {
+	for (i = 0; i < count - 1; i++)
+	{
 		max_freq = freq_table[i].frequency;
 		ind = i;
-		for (j = i + 1; j < count; j++) {
+
+		for (j = i + 1; j < count; j++)
+		{
 			freq = freq_table[j].frequency;
+
 			if (freq == CPUFREQ_ENTRY_INVALID ||
-					freq <= max_freq)
+				freq <= max_freq)
+			{
 				continue;
+			}
+
 			ind = j;
 			max_freq = freq;
 		}
 
-		if (ind != i) {
+		if (ind != i)
+		{
 			/* exchange the frequencies */
 			table.driver_data = freq_table[i].driver_data;
 			table.frequency = freq_table[i].frequency;
@@ -208,64 +245,92 @@ static int qoriq_cpufreq_cpu_init(struct cpufreq_policy *policy)
 	u64 u64temp;
 
 	np = of_get_cpu_node(cpu, NULL);
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		goto err_np;
+	}
 
 	policy->clk = of_clk_get(np, 0);
-	if (IS_ERR(policy->clk)) {
+
+	if (IS_ERR(policy->clk))
+	{
 		pr_err("%s: no clock information\n", __func__);
 		goto err_nomem2;
 	}
 
 	pnode = of_parse_phandle(np, "clocks", 0);
-	if (!pnode) {
+
+	if (!pnode)
+	{
 		pr_err("%s: could not get clock information\n", __func__);
 		goto err_nomem2;
 	}
 
 	count = of_property_count_strings(pnode, "clock-names");
 	data->pclk = kcalloc(count, sizeof(struct clk *), GFP_KERNEL);
-	if (!data->pclk) {
+
+	if (!data->pclk)
+	{
 		pr_err("%s: no memory\n", __func__);
 		goto err_node;
 	}
 
 	table = kcalloc(count + 1, sizeof(*table), GFP_KERNEL);
-	if (!table) {
+
+	if (!table)
+	{
 		pr_err("%s: no memory\n", __func__);
 		goto err_pclk;
 	}
 
 	if (fmask)
+	{
 		mask = fmask[get_cpu_physical_id(cpu)];
+	}
 	else
+	{
 		mask = 0x0;
+	}
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		clk = of_clk_get(pnode, i);
 		data->pclk[i] = clk;
 		freq = clk_get_rate(clk);
+
 		/*
 		 * the clock is valid if its frequency is not masked
 		 * and large than minimum allowed frequency.
 		 */
 		if (freq < min_cpufreq || (mask & (1 << i)))
+		{
 			table[i].frequency = CPUFREQ_ENTRY_INVALID;
+		}
 		else
+		{
 			table[i].frequency = freq / 1000;
+		}
+
 		table[i].driver_data = i;
 	}
+
 	freq_table_redup(table, count);
 	freq_table_sort(table, count);
 	table[i].frequency = CPUFREQ_TABLE_END;
 
 	/* set the min and max frequency properly */
 	ret = cpufreq_table_validate_and_show(policy, table);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("invalid frequency table: %d\n", ret);
 		goto err_nomem1;
 	}
@@ -315,7 +380,7 @@ static int qoriq_cpufreq_cpu_exit(struct cpufreq_policy *policy)
 }
 
 static int qoriq_cpufreq_target(struct cpufreq_policy *policy,
-		unsigned int index)
+								unsigned int index)
 {
 	struct clk *parent;
 	struct cpu_data *data = policy->driver_data;
@@ -330,13 +395,15 @@ static void qoriq_cpufreq_ready(struct cpufreq_policy *policy)
 	struct cpu_data *cpud = policy->driver_data;
 	struct device_node *np = of_get_cpu_node(policy->cpu, NULL);
 
-	if (of_find_property(np, "#cooling-cells", NULL)) {
+	if (of_find_property(np, "#cooling-cells", NULL))
+	{
 		cpud->cdev = of_cpufreq_cooling_register(np,
-							 policy->related_cpus);
+					 policy->related_cpus);
 
-		if (IS_ERR(cpud->cdev) && PTR_ERR(cpud->cdev) != -ENOSYS) {
+		if (IS_ERR(cpud->cdev) && PTR_ERR(cpud->cdev) != -ENOSYS)
+		{
 			pr_err("cpu%d is not running as cooling device: %ld\n",
-					policy->cpu, PTR_ERR(cpud->cdev));
+				   policy->cpu, PTR_ERR(cpud->cdev));
 
 			cpud->cdev = NULL;
 		}
@@ -345,7 +412,8 @@ static void qoriq_cpufreq_ready(struct cpufreq_policy *policy)
 	of_node_put(np);
 }
 
-static struct cpufreq_driver qoriq_cpufreq_driver = {
+static struct cpufreq_driver qoriq_cpufreq_driver =
+{
 	.name		= "qoriq_cpufreq",
 	.flags		= CPUFREQ_CONST_LOOPS,
 	.init		= qoriq_cpufreq_cpu_init,
@@ -357,7 +425,8 @@ static struct cpufreq_driver qoriq_cpufreq_driver = {
 	.attr		= cpufreq_generic_attr,
 };
 
-static const struct of_device_id node_matches[] __initconst = {
+static const struct of_device_id node_matches[] __initconst =
+{
 	{ .compatible = "fsl,p2041-clockgen", .data = &sdata[0], },
 	{ .compatible = "fsl,p3041-clockgen", .data = &sdata[0], },
 	{ .compatible = "fsl,p5020-clockgen", .data = &sdata[1], },
@@ -375,24 +444,37 @@ static int __init qoriq_cpufreq_init(void)
 	const struct soc_data *data;
 
 	np = of_find_matching_node(NULL, node_matches);
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	match = of_match_node(node_matches, np);
 	data = match->data;
-	if (data) {
+
+	if (data)
+	{
 		if (data->flag)
+		{
 			fmask = data->freq_mask;
+		}
+
 		min_cpufreq = get_bus_freq();
-	} else {
+	}
+	else
+	{
 		min_cpufreq = get_bus_freq() / 2;
 	}
 
 	of_node_put(np);
 
 	ret = cpufreq_register_driver(&qoriq_cpufreq_driver);
+
 	if (!ret)
+	{
 		pr_info("Freescale QorIQ CPU frequency scaling driver\n");
+	}
 
 	return ret;
 }

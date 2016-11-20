@@ -25,7 +25,8 @@
 #include <asm/bug.h>
 #include "dvb_math.h"
 
-static const unsigned short logtable[256] = {
+static const unsigned short logtable[256] =
+{
 	0x0000, 0x0171, 0x02e0, 0x044e, 0x05ba, 0x0725, 0x088e, 0x09f7,
 	0x0b5d, 0x0cc3, 0x0e27, 0x0f8a, 0x10eb, 0x124b, 0x13aa, 0x1508,
 	0x1664, 0x17bf, 0x1919, 0x1a71, 0x1bc8, 0x1d1e, 0x1e73, 0x1fc6,
@@ -71,7 +72,8 @@ unsigned int intlog2(u32 value)
 	unsigned int significand;
 	unsigned int interpolation;
 
-	if (unlikely(value == 0)) {
+	if (unlikely(value == 0))
+	{
 		WARN_ON(1);
 		return 0;
 	}
@@ -112,8 +114,8 @@ unsigned int intlog2(u32 value)
 	 *	logtable_next is 256
 	 */
 	interpolation = ((significand & 0x7fffff) *
-			((logtable[(logentry + 1) & 0xff] -
-			  logtable[logentry]) & 0xffff)) >> 15;
+					 ((logtable[(logentry + 1) & 0xff] -
+					   logtable[logentry]) & 0xffff)) >> 15;
 
 	/* now we return the result */
 	return ((msb << 24) + (logtable[logentry] << 8) + interpolation);
@@ -128,7 +130,8 @@ unsigned int intlog10(u32 value)
 	 */
 	u64 log;
 
-	if (unlikely(value == 0)) {
+	if (unlikely(value == 0))
+	{
 		WARN_ON(1);
 		return 0;
 	}

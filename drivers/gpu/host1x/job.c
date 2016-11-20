@@ -32,8 +32,8 @@
 #include "syncpt.h"
 
 struct host1x_job *host1x_job_alloc(struct host1x_channel *ch,
-				    u32 num_cmdbufs, u32 num_relocs,
-				    u32 num_waitchks)
+									u32 num_cmdbufs, u32 num_relocs,
+									u32 num_waitchks)
 {
 	struct host1x_job *job = NULL;
 	unsigned int num_unpins = num_cmdbufs + num_relocs;
@@ -42,18 +42,24 @@ struct host1x_job *host1x_job_alloc(struct host1x_channel *ch,
 
 	/* Check that we're not going to overflow */
 	total = sizeof(struct host1x_job) +
-		(u64)num_relocs * sizeof(struct host1x_reloc) +
-		(u64)num_unpins * sizeof(struct host1x_job_unpin_data) +
-		(u64)num_waitchks * sizeof(struct host1x_waitchk) +
-		(u64)num_cmdbufs * sizeof(struct host1x_job_gather) +
-		(u64)num_unpins * sizeof(dma_addr_t) +
-		(u64)num_unpins * sizeof(u32 *);
+			(u64)num_relocs * sizeof(struct host1x_reloc) +
+			(u64)num_unpins * sizeof(struct host1x_job_unpin_data) +
+			(u64)num_waitchks * sizeof(struct host1x_waitchk) +
+			(u64)num_cmdbufs * sizeof(struct host1x_job_gather) +
+			(u64)num_unpins * sizeof(dma_addr_t) +
+			(u64)num_unpins * sizeof(u32 *);
+
 	if (total > ULONG_MAX)
+	{
 		return NULL;
+	}
 
 	mem = job = kzalloc(total, GFP_KERNEL);
+
 	if (!job)
+	{
 		return NULL;
+	}
 
 	kref_init(&job->ref);
 	job->channel = ch;
@@ -98,7 +104,7 @@ void host1x_job_put(struct host1x_job *job)
 EXPORT_SYMBOL(host1x_job_put);
 
 void host1x_job_add_gather(struct host1x_job *job, struct host1x_bo *bo,
-			   u32 words, u32 offset)
+						   u32 words, u32 offset)
 {
 	struct host1x_job_gather *cur_gather = &job->gathers[job->num_gathers];
 
@@ -117,18 +123,23 @@ EXPORT_SYMBOL(host1x_job_add_gather);
  * by the host HW.
  */
 static void host1x_syncpt_patch_offset(struct host1x_syncpt *sp,
-				       struct host1x_bo *h, u32 offset)
+									   struct host1x_bo *h, u32 offset)
 {
 	void *patch_addr = NULL;
 
 	/* patch the wait */
 	patch_addr = host1x_bo_kmap(h, offset >> PAGE_SHIFT);
-	if (patch_addr) {
+
+	if (patch_addr)
+	{
 		host1x_syncpt_patch_wait(sp,
-					 patch_addr + (offset & ~PAGE_MASK));
+								 patch_addr + (offset & ~PAGE_MASK));
 		host1x_bo_kunmap(h, offset >> PAGE_SHIFT, patch_addr);
-	} else
+	}
+	else
+	{
 		pr_err("Could not map cmdbuf for wait check\n");
+	}
 }
 
 /*
@@ -137,33 +148,39 @@ static void host1x_syncpt_patch_offset(struct host1x_syncpt *sp,
  * avoid a wrap condition in the HW).
  */
 static int do_waitchks(struct host1x_job *job, struct host1x *host,
-		       struct host1x_bo *patch)
+					   struct host1x_bo *patch)
 {
 	int i;
 
 	/* compare syncpt vs wait threshold */
-	for (i = 0; i < job->num_waitchk; i++) {
+	for (i = 0; i < job->num_waitchk; i++)
+	{
 		struct host1x_waitchk *wait = &job->waitchk[i];
 		struct host1x_syncpt *sp =
 			host1x_syncpt_get(host, wait->syncpt_id);
 
 		/* validate syncpt id */
 		if (wait->syncpt_id > host1x_syncpt_nb_pts(host))
+		{
 			continue;
+		}
 
 		/* skip all other gathers */
 		if (patch != wait->bo)
+		{
 			continue;
+		}
 
 		trace_host1x_syncpt_wait_check(wait->bo, wait->offset,
-					       wait->syncpt_id, wait->thresh,
-					       host1x_syncpt_read_min(sp));
+									   wait->syncpt_id, wait->thresh,
+									   host1x_syncpt_read_min(sp));
 
-		if (host1x_syncpt_is_expired(sp, wait->thresh)) {
+		if (host1x_syncpt_is_expired(sp, wait->thresh))
+		{
 			dev_dbg(host->dev,
-				"drop WAIT id %u (%s) thresh 0x%x, min 0x%x\n",
-				wait->syncpt_id, sp->name, wait->thresh,
-				host1x_syncpt_read_min(sp));
+					"drop WAIT id %u (%s) thresh 0x%x, min 0x%x\n",
+					wait->syncpt_id, sp->name, wait->thresh,
+					host1x_syncpt_read_min(sp));
 
 			host1x_syncpt_patch_offset(sp, patch, wait->offset);
 		}
@@ -180,18 +197,25 @@ static unsigned int pin_job(struct host1x_job *job)
 
 	job->num_unpins = 0;
 
-	for (i = 0; i < job->num_relocs; i++) {
+	for (i = 0; i < job->num_relocs; i++)
+	{
 		struct host1x_reloc *reloc = &job->relocarray[i];
 		struct sg_table *sgt;
 		dma_addr_t phys_addr;
 
 		reloc->target.bo = host1x_bo_get(reloc->target.bo);
+
 		if (!reloc->target.bo)
+		{
 			goto unpin;
+		}
 
 		phys_addr = host1x_bo_pin(reloc->target.bo, &sgt);
+
 		if (!phys_addr)
+		{
 			goto unpin;
+		}
 
 		job->addr_phys[job->num_unpins] = phys_addr;
 		job->unpins[job->num_unpins].bo = reloc->target.bo;
@@ -199,18 +223,25 @@ static unsigned int pin_job(struct host1x_job *job)
 		job->num_unpins++;
 	}
 
-	for (i = 0; i < job->num_gathers; i++) {
+	for (i = 0; i < job->num_gathers; i++)
+	{
 		struct host1x_job_gather *g = &job->gathers[i];
 		struct sg_table *sgt;
 		dma_addr_t phys_addr;
 
 		g->bo = host1x_bo_get(g->bo);
+
 		if (!g->bo)
+		{
 			goto unpin;
+		}
 
 		phys_addr = host1x_bo_pin(g->bo, &sgt);
+
 		if (!phys_addr)
+		{
 			goto unpin;
+		}
 
 		job->addr_phys[job->num_unpins] = phys_addr;
 		job->unpins[job->num_unpins].bo = g->bo;
@@ -232,26 +263,31 @@ static int do_relocs(struct host1x_job *job, struct host1x_bo *cmdbuf)
 	void *cmdbuf_page_addr = NULL;
 
 	/* pin & patch the relocs for one gather */
-	for (i = 0; i < job->num_relocs; i++) {
+	for (i = 0; i < job->num_relocs; i++)
+	{
 		struct host1x_reloc *reloc = &job->relocarray[i];
 		u32 reloc_addr = (job->reloc_addr_phys[i] +
-				  reloc->target.offset) >> reloc->shift;
+						  reloc->target.offset) >> reloc->shift;
 		u32 *target;
 
 		/* skip all other gathers */
 		if (cmdbuf != reloc->cmdbuf.bo)
+		{
 			continue;
+		}
 
-		if (last_page != reloc->cmdbuf.offset >> PAGE_SHIFT) {
+		if (last_page != reloc->cmdbuf.offset >> PAGE_SHIFT)
+		{
 			if (cmdbuf_page_addr)
 				host1x_bo_kunmap(cmdbuf, last_page,
-						 cmdbuf_page_addr);
+								 cmdbuf_page_addr);
 
 			cmdbuf_page_addr = host1x_bo_kmap(cmdbuf,
-					reloc->cmdbuf.offset >> PAGE_SHIFT);
+											  reloc->cmdbuf.offset >> PAGE_SHIFT);
 			last_page = reloc->cmdbuf.offset >> PAGE_SHIFT;
 
-			if (unlikely(!cmdbuf_page_addr)) {
+			if (unlikely(!cmdbuf_page_addr))
+			{
 				pr_err("Could not map cmdbuf for relocation\n");
 				return -ENOMEM;
 			}
@@ -262,23 +298,28 @@ static int do_relocs(struct host1x_job *job, struct host1x_bo *cmdbuf)
 	}
 
 	if (cmdbuf_page_addr)
+	{
 		host1x_bo_kunmap(cmdbuf, last_page, cmdbuf_page_addr);
+	}
 
 	return 0;
 }
 
 static bool check_reloc(struct host1x_reloc *reloc, struct host1x_bo *cmdbuf,
-			unsigned int offset)
+						unsigned int offset)
 {
 	offset *= sizeof(u32);
 
 	if (reloc->cmdbuf.bo != cmdbuf || reloc->cmdbuf.offset != offset)
+	{
 		return false;
+	}
 
 	return true;
 }
 
-struct host1x_firewall {
+struct host1x_firewall
+{
 	struct host1x_job *job;
 	struct device *dev;
 
@@ -297,12 +338,17 @@ struct host1x_firewall {
 
 static int check_register(struct host1x_firewall *fw, unsigned long offset)
 {
-	if (fw->job->is_addr_reg(fw->dev, fw->class, offset)) {
+	if (fw->job->is_addr_reg(fw->dev, fw->class, offset))
+	{
 		if (!fw->num_relocs)
+		{
 			return -EINVAL;
+		}
 
 		if (!check_reloc(fw->reloc, fw->cmdbuf, fw->offset))
+		{
 			return -EINVAL;
+		}
 
 		fw->num_relocs--;
 		fw->reloc++;
@@ -317,18 +363,26 @@ static int check_mask(struct host1x_firewall *fw)
 	u32 reg = fw->reg;
 	int ret;
 
-	while (mask) {
+	while (mask)
+	{
 		if (fw->words == 0)
+		{
 			return -EINVAL;
+		}
 
-		if (mask & 1) {
+		if (mask & 1)
+		{
 			ret = check_register(fw, reg);
+
 			if (ret < 0)
+			{
 				return ret;
+			}
 
 			fw->words--;
 			fw->offset++;
 		}
+
 		mask >>= 1;
 		reg++;
 	}
@@ -342,13 +396,19 @@ static int check_incr(struct host1x_firewall *fw)
 	u32 reg = fw->reg;
 	int ret;
 
-	while (count) {
+	while (count)
+	{
 		if (fw->words == 0)
+		{
 			return -EINVAL;
+		}
 
 		ret = check_register(fw, reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		reg++;
 		fw->words--;
@@ -364,13 +424,19 @@ static int check_nonincr(struct host1x_firewall *fw)
 	u32 count = fw->count;
 	int ret;
 
-	while (count) {
+	while (count)
+	{
 		if (fw->words == 0)
+		{
 			return -EINVAL;
+		}
 
 		ret = check_register(fw, fw->reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		fw->words--;
 		fw->offset++;
@@ -383,17 +449,20 @@ static int check_nonincr(struct host1x_firewall *fw)
 static int validate(struct host1x_firewall *fw, struct host1x_job_gather *g)
 {
 	u32 *cmdbuf_base = (u32 *)fw->job->gather_copy_mapped +
-		(g->offset / sizeof(u32));
+					   (g->offset / sizeof(u32));
 	int err = 0;
 
 	if (!fw->job->is_addr_reg)
+	{
 		return 0;
+	}
 
 	fw->words = g->words;
 	fw->cmdbuf = g->bo;
 	fw->offset = 0;
 
-	while (fw->words && !err) {
+	while (fw->words && !err)
+	{
 		u32 word = cmdbuf_base[fw->offset];
 		u32 opcode = (word & 0xf0000000) >> 28;
 
@@ -403,45 +472,65 @@ static int validate(struct host1x_firewall *fw, struct host1x_job_gather *g)
 		fw->words--;
 		fw->offset++;
 
-		switch (opcode) {
-		case 0:
-			fw->class = word >> 6 & 0x3ff;
-			fw->mask = word & 0x3f;
-			fw->reg = word >> 16 & 0xfff;
-			err = check_mask(fw);
-			if (err)
-				goto out;
-			break;
-		case 1:
-			fw->reg = word >> 16 & 0xfff;
-			fw->count = word & 0xffff;
-			err = check_incr(fw);
-			if (err)
-				goto out;
-			break;
+		switch (opcode)
+		{
+			case 0:
+				fw->class = word >> 6 & 0x3ff;
+				fw->mask = word & 0x3f;
+				fw->reg = word >> 16 & 0xfff;
+				err = check_mask(fw);
 
-		case 2:
-			fw->reg = word >> 16 & 0xfff;
-			fw->count = word & 0xffff;
-			err = check_nonincr(fw);
-			if (err)
-				goto out;
-			break;
+				if (err)
+				{
+					goto out;
+				}
 
-		case 3:
-			fw->mask = word & 0xffff;
-			fw->reg = word >> 16 & 0xfff;
-			err = check_mask(fw);
-			if (err)
-				goto out;
-			break;
-		case 4:
-		case 5:
-		case 14:
-			break;
-		default:
-			err = -EINVAL;
-			break;
+				break;
+
+			case 1:
+				fw->reg = word >> 16 & 0xfff;
+				fw->count = word & 0xffff;
+				err = check_incr(fw);
+
+				if (err)
+				{
+					goto out;
+				}
+
+				break;
+
+			case 2:
+				fw->reg = word >> 16 & 0xfff;
+				fw->count = word & 0xffff;
+				err = check_nonincr(fw);
+
+				if (err)
+				{
+					goto out;
+				}
+
+				break;
+
+			case 3:
+				fw->mask = word & 0xffff;
+				fw->reg = word >> 16 & 0xfff;
+				err = check_mask(fw);
+
+				if (err)
+				{
+					goto out;
+				}
+
+				break;
+
+			case 4:
+			case 5:
+			case 14:
+				break;
+
+			default:
+				err = -EINVAL;
+				break;
 		}
 	}
 
@@ -462,29 +551,33 @@ static inline int copy_gathers(struct host1x_job *job, struct device *dev)
 	fw.num_relocs = job->num_relocs;
 	fw.class = 0;
 
-	for (i = 0; i < job->num_gathers; i++) {
+	for (i = 0; i < job->num_gathers; i++)
+	{
 		struct host1x_job_gather *g = &job->gathers[i];
 
 		size += g->words * sizeof(u32);
 	}
 
 	job->gather_copy_mapped = dma_alloc_wc(dev, size, &job->gather_copy,
-					       GFP_KERNEL);
-	if (!job->gather_copy_mapped) {
+										   GFP_KERNEL);
+
+	if (!job->gather_copy_mapped)
+	{
 		job->gather_copy_mapped = NULL;
 		return -ENOMEM;
 	}
 
 	job->gather_copy_size = size;
 
-	for (i = 0; i < job->num_gathers; i++) {
+	for (i = 0; i < job->num_gathers; i++)
+	{
 		struct host1x_job_gather *g = &job->gathers[i];
 		void *gather;
 
 		/* Copy the gather */
 		gather = host1x_bo_mmap(g->bo);
 		memcpy(job->gather_copy_mapped + offset, gather + g->offset,
-		       g->words * sizeof(u32));
+			   g->words * sizeof(u32));
 		host1x_bo_munmap(g->bo, gather);
 
 		/* Store the location in the buffer */
@@ -493,14 +586,18 @@ static inline int copy_gathers(struct host1x_job *job, struct device *dev)
 
 		/* Validate the job */
 		if (validate(&fw, g))
+		{
 			return -EINVAL;
+		}
 
 		offset += g->words * sizeof(u32);
 	}
 
 	/* No relocs should remain at this point */
 	if (fw.num_relocs)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -513,48 +610,69 @@ int host1x_job_pin(struct host1x_job *job, struct device *dev)
 	DECLARE_BITMAP(waitchk_mask, host1x_syncpt_nb_pts(host));
 
 	bitmap_zero(waitchk_mask, host1x_syncpt_nb_pts(host));
-	for (i = 0; i < job->num_waitchk; i++) {
+
+	for (i = 0; i < job->num_waitchk; i++)
+	{
 		u32 syncpt_id = job->waitchk[i].syncpt_id;
 
 		if (syncpt_id < host1x_syncpt_nb_pts(host))
+		{
 			set_bit(syncpt_id, waitchk_mask);
+		}
 	}
 
 	/* get current syncpt values for waitchk */
 	for_each_set_bit(i, waitchk_mask, host1x_syncpt_nb_pts(host))
-		host1x_syncpt_load(host->syncpt + i);
+	host1x_syncpt_load(host->syncpt + i);
 
 	/* pin memory */
 	err = pin_job(job);
+
 	if (!err)
+	{
 		goto out;
+	}
 
 	/* patch gathers */
-	for (i = 0; i < job->num_gathers; i++) {
+	for (i = 0; i < job->num_gathers; i++)
+	{
 		struct host1x_job_gather *g = &job->gathers[i];
 
 		/* process each gather mem only once */
 		if (g->handled)
+		{
 			continue;
+		}
 
 		g->base = job->gather_addr_phys[i];
 
 		for (j = i + 1; j < job->num_gathers; j++)
 			if (job->gathers[j].bo == g->bo)
+			{
 				job->gathers[j].handled = true;
+			}
 
 		err = do_relocs(job, g->bo);
+
 		if (err)
+		{
 			break;
+		}
 
 		err = do_waitchks(job, host, g->bo);
+
 		if (err)
+		{
 			break;
+		}
 	}
 
-	if (IS_ENABLED(CONFIG_TEGRA_HOST1X_FIREWALL) && !err) {
+	if (IS_ENABLED(CONFIG_TEGRA_HOST1X_FIREWALL) && !err)
+	{
 		err = copy_gathers(job, dev);
-		if (err) {
+
+		if (err)
+		{
 			host1x_job_unpin(job);
 			return err;
 		}
@@ -571,7 +689,8 @@ void host1x_job_unpin(struct host1x_job *job)
 {
 	unsigned int i;
 
-	for (i = 0; i < job->num_unpins; i++) {
+	for (i = 0; i < job->num_unpins; i++)
+	{
 		struct host1x_job_unpin_data *unpin = &job->unpins[i];
 
 		host1x_bo_unpin(unpin->bo, unpin->sgt);
@@ -582,7 +701,7 @@ void host1x_job_unpin(struct host1x_job *job)
 
 	if (job->gather_copy_size)
 		dma_free_wc(job->channel->dev, job->gather_copy_size,
-			    job->gather_copy_mapped, job->gather_copy);
+					job->gather_copy_mapped, job->gather_copy);
 }
 EXPORT_SYMBOL(host1x_job_unpin);
 

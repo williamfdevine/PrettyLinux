@@ -1,4 +1,4 @@
- /***************************************************************************\
+/***************************************************************************\
 |*                                                                           *|
 |*       Copyright 1993-2003 NVIDIA, Corporation.  All rights reserved.      *|
 |*                                                                           *|
@@ -35,7 +35,7 @@
 |*     all U.S. Government End Users  acquire the source code  with only     *|
 |*     those rights set forth herein.                                        *|
 |*                                                                           *|
- \***************************************************************************/
+\***************************************************************************/
 
 /*
  * GPL Licensing Note - According to Mark Vojkovich, author of the Xorg/
@@ -59,12 +59,14 @@
    to solve this problem */
 #define SKIPS  8
 
-static const int NVCopyROP[16] = {
+static const int NVCopyROP[16] =
+{
 	0xCC,			/* copy   */
 	0x55			/* invert */
 };
 
-static const int NVCopyROP_PM[16] = {
+static const int NVCopyROP_PM[16] =
+{
 	0xCA,			/* copy  */
 	0x5A,			/* invert */
 };
@@ -85,7 +87,8 @@ static inline void NVFlush(struct fb_info *info)
 
 	while (--count && READ_GET(par) != par->dmaPut) ;
 
-	if (!count) {
+	if (!count)
+	{
 		printk("nvidiafb: DMA Flush lockup\n");
 		nvidiafb_safe_mode(info);
 	}
@@ -98,7 +101,8 @@ static inline void NVSync(struct fb_info *info)
 
 	while (--count && NV_RD32(par->PGRAPH, 0x0700)) ;
 
-	if (!count) {
+	if (!count)
+	{
 		printk("nvidiafb: DMA Sync lockup\n");
 		nvidiafb_safe_mode(info);
 	}
@@ -106,7 +110,8 @@ static inline void NVSync(struct fb_info *info)
 
 static void NVDmaKickoff(struct nvidia_par *par)
 {
-	if (par->dmaCurrent != par->dmaPut) {
+	if (par->dmaCurrent != par->dmaPut)
+	{
 		par->dmaPut = par->dmaCurrent;
 		WRITE_PUT(par, par->dmaPut);
 	}
@@ -119,41 +124,60 @@ static void NVDmaWait(struct fb_info *info, int size)
 	int count = 1000000000, cnt;
 	size++;
 
-	while (par->dmaFree < size && --count && !par->lockup) {
+	while (par->dmaFree < size && --count && !par->lockup)
+	{
 		dmaGet = READ_GET(par);
 
-		if (par->dmaPut >= dmaGet) {
+		if (par->dmaPut >= dmaGet)
+		{
 			par->dmaFree = par->dmaMax - par->dmaCurrent;
-			if (par->dmaFree < size) {
+
+			if (par->dmaFree < size)
+			{
 				NVDmaNext(par, 0x20000000);
-				if (dmaGet <= SKIPS) {
+
+				if (dmaGet <= SKIPS)
+				{
 					if (par->dmaPut <= SKIPS)
+					{
 						WRITE_PUT(par, SKIPS + 1);
+					}
+
 					cnt = 1000000000;
-					do {
+
+					do
+					{
 						dmaGet = READ_GET(par);
-					} while (--cnt && dmaGet <= SKIPS);
-					if (!cnt) {
+					}
+					while (--cnt && dmaGet <= SKIPS);
+
+					if (!cnt)
+					{
 						printk("DMA Get lockup\n");
 						par->lockup = 1;
 					}
 				}
+
 				WRITE_PUT(par, SKIPS);
 				par->dmaCurrent = par->dmaPut = SKIPS;
 				par->dmaFree = dmaGet - (SKIPS + 1);
 			}
-		} else
+		}
+		else
+		{
 			par->dmaFree = dmaGet - par->dmaCurrent - 1;
+		}
 	}
 
-	if (!count) {
+	if (!count)
+	{
 		printk("nvidiafb: DMA Wait Lockup\n");
 		nvidiafb_safe_mode(info);
 	}
 }
 
 static void NVSetPattern(struct fb_info *info, u32 clr0, u32 clr1,
-			 u32 pat0, u32 pat1)
+						 u32 pat0, u32 pat1)
 {
 	struct nvidia_par *par = info->par;
 
@@ -168,16 +192,24 @@ static void NVSetRopSolid(struct fb_info *info, u32 rop, u32 planemask)
 {
 	struct nvidia_par *par = info->par;
 
-	if (planemask != ~0) {
+	if (planemask != ~0)
+	{
 		NVSetPattern(info, 0, planemask, ~0, ~0);
-		if (par->currentRop != (rop + 32)) {
+
+		if (par->currentRop != (rop + 32))
+		{
 			NVDmaStart(info, par, ROP_SET, 1);
 			NVDmaNext(par, NVCopyROP_PM[rop]);
 			par->currentRop = rop + 32;
 		}
-	} else if (par->currentRop != rop) {
+	}
+	else if (par->currentRop != rop)
+	{
 		if (par->currentRop >= 16)
+		{
 			NVSetPattern(info, ~0, ~0, ~0, ~0);
+		}
+
 		NVDmaStart(info, par, ROP_SET, 1);
 		NVDmaNext(par, NVCopyROP[rop]);
 		par->currentRop = rop;
@@ -185,7 +217,7 @@ static void NVSetRopSolid(struct fb_info *info, u32 rop, u32 planemask)
 }
 
 static void NVSetClippingRectangle(struct fb_info *info, int x1, int y1,
-				   int x2, int y2)
+								   int x2, int y2)
 {
 	struct nvidia_par *par = info->par;
 	int h = y2 - y1 + 1;
@@ -207,7 +239,9 @@ void NVResetGraphics(struct fb_info *info)
 	par->dmaBase = (u32 __iomem *) (&par->FbStart[par->FbUsableSize]);
 
 	for (i = 0; i < SKIPS; i++)
+	{
 		NV_WR32(&par->dmaBase[i], 0, 0x00000000);
+	}
 
 	NV_WR32(&par->dmaBase[0x0 + SKIPS], 0, 0x00040000);
 	NV_WR32(&par->dmaBase[0x1 + SKIPS], 0, 0x80000010);
@@ -231,26 +265,29 @@ void NVResetGraphics(struct fb_info *info)
 	par->dmaMax = 8191;
 	par->dmaFree = par->dmaMax - par->dmaCurrent;
 
-	switch (info->var.bits_per_pixel) {
-	case 32:
-	case 24:
-		surfaceFormat = SURFACE_FORMAT_DEPTH24;
-		patternFormat = PATTERN_FORMAT_DEPTH24;
-		rectFormat = RECT_FORMAT_DEPTH24;
-		lineFormat = LINE_FORMAT_DEPTH24;
-		break;
-	case 16:
-		surfaceFormat = SURFACE_FORMAT_DEPTH16;
-		patternFormat = PATTERN_FORMAT_DEPTH16;
-		rectFormat = RECT_FORMAT_DEPTH16;
-		lineFormat = LINE_FORMAT_DEPTH16;
-		break;
-	default:
-		surfaceFormat = SURFACE_FORMAT_DEPTH8;
-		patternFormat = PATTERN_FORMAT_DEPTH8;
-		rectFormat = RECT_FORMAT_DEPTH8;
-		lineFormat = LINE_FORMAT_DEPTH8;
-		break;
+	switch (info->var.bits_per_pixel)
+	{
+		case 32:
+		case 24:
+			surfaceFormat = SURFACE_FORMAT_DEPTH24;
+			patternFormat = PATTERN_FORMAT_DEPTH24;
+			rectFormat = RECT_FORMAT_DEPTH24;
+			lineFormat = LINE_FORMAT_DEPTH24;
+			break;
+
+		case 16:
+			surfaceFormat = SURFACE_FORMAT_DEPTH16;
+			patternFormat = PATTERN_FORMAT_DEPTH16;
+			rectFormat = RECT_FORMAT_DEPTH16;
+			lineFormat = LINE_FORMAT_DEPTH16;
+			break;
+
+		default:
+			surfaceFormat = SURFACE_FORMAT_DEPTH8;
+			patternFormat = PATTERN_FORMAT_DEPTH8;
+			rectFormat = RECT_FORMAT_DEPTH8;
+			lineFormat = LINE_FORMAT_DEPTH8;
+			break;
 	}
 
 	NVDmaStart(info, par, SURFACE_FORMAT, 4);
@@ -272,7 +309,7 @@ void NVResetGraphics(struct fb_info *info)
 	NVSetRopSolid(info, ROP_COPY, ~0);
 
 	NVSetClippingRectangle(info, 0, 0, info->var.xres_virtual,
-			       info->var.yres_virtual);
+						   info->var.yres_virtual);
 
 	NVDmaKickoff(par);
 }
@@ -282,13 +319,19 @@ int nvidiafb_sync(struct fb_info *info)
 	struct nvidia_par *par = info->par;
 
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return 0;
+	}
 
 	if (!par->lockup)
+	{
 		NVFlush(info);
+	}
 
 	if (!par->lockup)
+	{
 		NVSync(info);
+	}
 
 	return 0;
 }
@@ -298,9 +341,12 @@ void nvidiafb_copyarea(struct fb_info *info, const struct fb_copyarea *region)
 	struct nvidia_par *par = info->par;
 
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return;
+	}
 
-	if (par->lockup) {
+	if (par->lockup)
+	{
 		cfb_copyarea(info, region);
 		return;
 	}
@@ -319,20 +365,29 @@ void nvidiafb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 	u32 color;
 
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return;
+	}
 
-	if (par->lockup) {
+	if (par->lockup)
+	{
 		cfb_fillrect(info, rect);
 		return;
 	}
 
 	if (info->var.bits_per_pixel == 8)
+	{
 		color = rect->color;
+	}
 	else
+	{
 		color = ((u32 *) info->pseudo_palette)[rect->color];
+	}
 
 	if (rect->rop != ROP_COPY)
+	{
 		NVSetRopSolid(info, rect->rop, ~0);
+	}
 
 	NVDmaStart(info, par, RECT_SOLID_COLOR, 1);
 	NVDmaNext(par, color);
@@ -344,11 +399,13 @@ void nvidiafb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 	NVDmaKickoff(par);
 
 	if (rect->rop != ROP_COPY)
+	{
 		NVSetRopSolid(info, ROP_COPY, ~0);
+	}
 }
 
 static void nvidiafb_mono_color_expand(struct fb_info *info,
-				       const struct fb_image *image)
+									   const struct fb_image *image)
 {
 	struct nvidia_par *par = info->par;
 	u32 fg, bg, mask = ~(~0 >> (32 - info->var.bits_per_pixel));
@@ -358,10 +415,13 @@ static void nvidiafb_mono_color_expand(struct fb_info *info,
 	width = (image->width + 31) & ~31;
 	dsize = (width * image->height) >> 5;
 
-	if (info->var.bits_per_pixel == 8) {
+	if (info->var.bits_per_pixel == 8)
+	{
 		fg = image->fg_color | mask;
 		bg = image->bg_color | mask;
-	} else {
+	}
+	else
+	{
 		fg = ((u32 *) info->pseudo_palette)[image->fg_color] | mask;
 		bg = ((u32 *) info->pseudo_palette)[image->bg_color] | mask;
 	}
@@ -369,18 +429,20 @@ static void nvidiafb_mono_color_expand(struct fb_info *info,
 	NVDmaStart(info, par, RECT_EXPAND_TWO_COLOR_CLIP, 7);
 	NVDmaNext(par, (image->dy << 16) | (image->dx & 0xffff));
 	NVDmaNext(par, ((image->dy + image->height) << 16) |
-		  ((image->dx + image->width) & 0xffff));
+			  ((image->dx + image->width) & 0xffff));
 	NVDmaNext(par, bg);
 	NVDmaNext(par, fg);
 	NVDmaNext(par, (image->height << 16) | width);
 	NVDmaNext(par, (image->height << 16) | width);
 	NVDmaNext(par, (image->dy << 16) | (image->dx & 0xffff));
 
-	while (dsize >= RECT_EXPAND_TWO_COLOR_DATA_MAX_DWORDS) {
+	while (dsize >= RECT_EXPAND_TWO_COLOR_DATA_MAX_DWORDS)
+	{
 		NVDmaStart(info, par, RECT_EXPAND_TWO_COLOR_DATA(0),
-			   RECT_EXPAND_TWO_COLOR_DATA_MAX_DWORDS);
+				   RECT_EXPAND_TWO_COLOR_DATA_MAX_DWORDS);
 
-		for (j = RECT_EXPAND_TWO_COLOR_DATA_MAX_DWORDS; j--;) {
+		for (j = RECT_EXPAND_TWO_COLOR_DATA_MAX_DWORDS; j--;)
+		{
 			tmp = data[k++];
 			reverse_order(&tmp);
 			NVDmaNext(par, tmp);
@@ -389,10 +451,12 @@ static void nvidiafb_mono_color_expand(struct fb_info *info,
 		dsize -= RECT_EXPAND_TWO_COLOR_DATA_MAX_DWORDS;
 	}
 
-	if (dsize) {
+	if (dsize)
+	{
 		NVDmaStart(info, par, RECT_EXPAND_TWO_COLOR_DATA(0), dsize);
 
-		for (j = dsize; j--;) {
+		for (j = dsize; j--;)
+		{
 			tmp = data[k++];
 			reverse_order(&tmp);
 			NVDmaNext(par, tmp);
@@ -407,10 +471,16 @@ void nvidiafb_imageblit(struct fb_info *info, const struct fb_image *image)
 	struct nvidia_par *par = info->par;
 
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return;
+	}
 
 	if (image->depth == 1 && !par->lockup)
+	{
 		nvidiafb_mono_color_expand(info, image);
+	}
 	else
+	{
 		cfb_imageblit(info, image);
+	}
 }

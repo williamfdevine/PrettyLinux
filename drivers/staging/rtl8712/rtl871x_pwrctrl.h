@@ -32,7 +32,8 @@
 
 #define CMD_ALIVE	BIT(2)
 
-enum Power_Mgnt {
+enum Power_Mgnt
+{
 	PS_MODE_ACTIVE	= 0,
 	PS_MODE_MIN,
 	PS_MODE_MAX,
@@ -81,13 +82,15 @@ enum Power_Mgnt {
 #define		CLR_PS_STATE(x)	((x) = ((x) & (0xF0)))
 
 
-struct reportpwrstate_parm {
+struct reportpwrstate_parm
+{
 	unsigned char mode;
 	unsigned char state; /* the CPWM value */
 	unsigned short rsvd;
 };
 
-struct	pwrctrl_priv {
+struct	pwrctrl_priv
+{
 	struct mutex mutex_lock;
 	/*volatile*/ u8 rpwm; /* requested power state for fw */
 	/* fw current power state. updated when 1. read from HCPWM or
@@ -119,9 +122,9 @@ void r8712_init_pwrctrl_priv(struct _adapter *adapter);
 sint r8712_register_cmd_alive(struct _adapter *padapter);
 void r8712_unregister_cmd_alive(struct _adapter *padapter);
 void r8712_cpwm_int_hdl(struct _adapter *padapter,
-			struct reportpwrstate_parm *preportpwrstate);
+						struct reportpwrstate_parm *preportpwrstate);
 void r8712_set_ps_mode(struct _adapter *padapter, uint ps_mode,
-			uint smart_ps);
+					   uint smart_ps);
 void r8712_set_rpwm(struct _adapter *padapter, u8 val8);
 
 #endif  /* __RTL871X_PWRCTRL_H_ */

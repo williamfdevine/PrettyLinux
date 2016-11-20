@@ -50,7 +50,8 @@
 #define i40e_flush(a)		readl((a)->hw_addr + I40E_VFGEN_RSTAT)
 
 /* memory allocation tracking */
-struct i40e_dma_mem {
+struct i40e_dma_mem
+{
 	void *va;
 	dma_addr_t pa;
 	u32 size;
@@ -60,7 +61,8 @@ struct i40e_dma_mem {
 	i40evf_allocate_dma_mem_d(h, m, s, a)
 #define i40e_free_dma_mem(h, m) i40evf_free_dma_mem_d(h, m)
 
-struct i40e_virt_mem {
+struct i40e_virt_mem
+{
 	void *va;
 	u32 size;
 } __packed;
@@ -69,7 +71,7 @@ struct i40e_virt_mem {
 
 #define i40e_debug(h, m, s, ...)  i40evf_debug_d(h, m, s, ##__VA_ARGS__)
 extern void i40evf_debug_d(void *hw, u32 mask, char *fmt_str, ...)
-	__attribute__ ((format(gnu_printf, 3, 4)));
+__attribute__ ((format(gnu_printf, 3, 4)));
 
 typedef enum i40e_status_code i40e_status;
 #endif /* _I40E_OSDEP_H_ */

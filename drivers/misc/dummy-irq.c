@@ -25,9 +25,10 @@ static irqreturn_t dummy_interrupt(int irq, void *dev_id)
 {
 	static int count = 0;
 
-	if (count == 0) {
+	if (count == 0)
+	{
 		printk(KERN_INFO "dummy-irq: interrupt occurred on IRQ %d\n",
-				irq);
+			   irq);
 		count++;
 	}
 
@@ -36,14 +37,18 @@ static irqreturn_t dummy_interrupt(int irq, void *dev_id)
 
 static int __init dummy_irq_init(void)
 {
-	if (irq < 0) {
+	if (irq < 0)
+	{
 		printk(KERN_ERR "dummy-irq: no IRQ given.  Use irq=N\n");
 		return -EIO;
 	}
-	if (request_irq(irq, &dummy_interrupt, IRQF_SHARED, "dummy_irq", &irq)) {
+
+	if (request_irq(irq, &dummy_interrupt, IRQF_SHARED, "dummy_irq", &irq))
+	{
 		printk(KERN_ERR "dummy-irq: cannot register IRQ %d\n", irq);
 		return -EIO;
 	}
+
 	printk(KERN_INFO "dummy-irq: registered for IRQ %d\n", irq);
 	return 0;
 }

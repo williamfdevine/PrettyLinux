@@ -18,7 +18,8 @@
 
 #include <media/soc_camera.h>
 
-enum tw9910_mpout_pin {
+enum tw9910_mpout_pin
+{
 	TW9910_MPO_VLOSS,
 	TW9910_MPO_HLOCK,
 	TW9910_MPO_SLOCK,
@@ -29,7 +30,8 @@ enum tw9910_mpout_pin {
 	TW9910_MPO_RTCO,
 };
 
-struct tw9910_video_info {
+struct tw9910_video_info
+{
 	unsigned long		buswidth;
 	enum tw9910_mpout_pin	mpout;
 };

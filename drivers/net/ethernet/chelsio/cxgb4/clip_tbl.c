@@ -31,25 +31,25 @@ static inline unsigned int ipv6_clip_hash(struct clip_tbl *d, const u32 *key)
 	u32 xor = key[0] ^ key[1] ^ key[2] ^ key[3];
 
 	return clipt_size_half +
-		(jhash_1word(xor, 0) % clipt_size_half);
+		   (jhash_1word(xor, 0) % clipt_size_half);
 }
 
 static unsigned int clip_addr_hash(struct clip_tbl *ctbl, const u32 *addr,
-				   u8 v6)
+								   u8 v6)
 {
 	return v6 ? ipv6_clip_hash(ctbl, addr) :
-			ipv4_clip_hash(ctbl, addr);
+		   ipv4_clip_hash(ctbl, addr);
 }
 
 static int clip6_get_mbox(const struct net_device *dev,
-			  const struct in6_addr *lip)
+						  const struct in6_addr *lip)
 {
 	struct adapter *adap = netdev2adap(dev);
 	struct fw_clip_cmd c;
 
 	memset(&c, 0, sizeof(c));
 	c.op_to_write = htonl(FW_CMD_OP_V(FW_CLIP_CMD) |
-			      FW_CMD_REQUEST_F | FW_CMD_WRITE_F);
+						  FW_CMD_REQUEST_F | FW_CMD_WRITE_F);
 	c.alloc_to_len16 = htonl(FW_CLIP_CMD_ALLOC_F | FW_LEN16(c));
 	*(__be64 *)&c.ip_hi = *(__be64 *)(lip->s6_addr);
 	*(__be64 *)&c.ip_lo = *(__be64 *)(lip->s6_addr + 8);
@@ -57,14 +57,14 @@ static int clip6_get_mbox(const struct net_device *dev,
 }
 
 static int clip6_release_mbox(const struct net_device *dev,
-			      const struct in6_addr *lip)
+							  const struct in6_addr *lip)
 {
 	struct adapter *adap = netdev2adap(dev);
 	struct fw_clip_cmd c;
 
 	memset(&c, 0, sizeof(c));
 	c.op_to_write = htonl(FW_CMD_OP_V(FW_CLIP_CMD) |
-			      FW_CMD_REQUEST_F | FW_CMD_READ_F);
+						  FW_CMD_REQUEST_F | FW_CMD_READ_F);
 	c.alloc_to_len16 = htonl(FW_CLIP_CMD_FREE_F | FW_LEN16(c));
 	*(__be64 *)&c.ip_hi = *(__be64 *)(lip->s6_addr);
 	*(__be64 *)&c.ip_lo = *(__be64 *)(lip->s6_addr + 8);
@@ -81,19 +81,24 @@ int cxgb4_clip_get(const struct net_device *dev, const u32 *lip, u8 v6)
 	int ret = -1;
 
 	if (!ctbl)
+	{
 		return 0;
+	}
 
 	hash = clip_addr_hash(ctbl, addr, v6);
 
 	read_lock_bh(&ctbl->lock);
-	list_for_each_entry(cte, &ctbl->hash_list[hash], list) {
+	list_for_each_entry(cte, &ctbl->hash_list[hash], list)
+	{
 		if (cte->addr6.sin6_family == AF_INET6 && v6)
 			ret = memcmp(lip, cte->addr6.sin6_addr.s6_addr,
-				     sizeof(struct in6_addr));
+						 sizeof(struct in6_addr));
 		else if (cte->addr.sin_family == AF_INET && !v6)
 			ret = memcmp(lip, (char *)(&cte->addr.sin_addr),
-				     sizeof(struct in_addr));
-		if (!ret) {
+						 sizeof(struct in_addr));
+
+		if (!ret)
+		{
 			ce = cte;
 			read_unlock_bh(&ctbl->lock);
 			goto found;
@@ -102,41 +107,52 @@ int cxgb4_clip_get(const struct net_device *dev, const u32 *lip, u8 v6)
 	read_unlock_bh(&ctbl->lock);
 
 	write_lock_bh(&ctbl->lock);
-	if (!list_empty(&ctbl->ce_free_head)) {
+
+	if (!list_empty(&ctbl->ce_free_head))
+	{
 		ce = list_first_entry(&ctbl->ce_free_head,
-				      struct clip_entry, list);
+							  struct clip_entry, list);
 		list_del(&ce->list);
 		INIT_LIST_HEAD(&ce->list);
 		spin_lock_init(&ce->lock);
 		atomic_set(&ce->refcnt, 0);
 		atomic_dec(&ctbl->nfree);
 		list_add_tail(&ce->list, &ctbl->hash_list[hash]);
-		if (v6) {
+
+		if (v6)
+		{
 			ce->addr6.sin6_family = AF_INET6;
 			memcpy(ce->addr6.sin6_addr.s6_addr,
-			       lip, sizeof(struct in6_addr));
+				   lip, sizeof(struct in6_addr));
 			ret = clip6_get_mbox(dev, (const struct in6_addr *)lip);
-			if (ret) {
+
+			if (ret)
+			{
 				write_unlock_bh(&ctbl->lock);
 				dev_err(adap->pdev_dev,
-					"CLIP FW cmd failed with error %d, "
-					"Connections using %pI6c wont be "
-					"offloaded",
-					ret, ce->addr6.sin6_addr.s6_addr);
+						"CLIP FW cmd failed with error %d, "
+						"Connections using %pI6c wont be "
+						"offloaded",
+						ret, ce->addr6.sin6_addr.s6_addr);
 				return ret;
 			}
-		} else {
+		}
+		else
+		{
 			ce->addr.sin_family = AF_INET;
 			memcpy((char *)(&ce->addr.sin_addr), lip,
-			       sizeof(struct in_addr));
+				   sizeof(struct in_addr));
 		}
-	} else {
+	}
+	else
+	{
 		write_unlock_bh(&ctbl->lock);
 		dev_info(adap->pdev_dev, "CLIP table overflow, "
-			 "Connections using %pI6c wont be offloaded",
-			 (void *)lip);
+				 "Connections using %pI6c wont be offloaded",
+				 (void *)lip);
 		return -ENOMEM;
 	}
+
 	write_unlock_bh(&ctbl->lock);
 found:
 	atomic_inc(&ce->refcnt);
@@ -155,19 +171,24 @@ void cxgb4_clip_release(const struct net_device *dev, const u32 *lip, u8 v6)
 	int ret = -1;
 
 	if (!ctbl)
+	{
 		return;
+	}
 
 	hash = clip_addr_hash(ctbl, addr, v6);
 
 	read_lock_bh(&ctbl->lock);
-	list_for_each_entry(cte, &ctbl->hash_list[hash], list) {
+	list_for_each_entry(cte, &ctbl->hash_list[hash], list)
+	{
 		if (cte->addr6.sin6_family == AF_INET6 && v6)
 			ret = memcmp(lip, cte->addr6.sin6_addr.s6_addr,
-				     sizeof(struct in6_addr));
+						 sizeof(struct in6_addr));
 		else if (cte->addr.sin_family == AF_INET && !v6)
 			ret = memcmp(lip, (char *)(&cte->addr.sin_addr),
-				     sizeof(struct in_addr));
-		if (!ret) {
+						 sizeof(struct in_addr));
+
+		if (!ret)
+		{
 			ce = cte;
 			read_unlock_bh(&ctbl->lock);
 			goto found;
@@ -179,14 +200,20 @@ void cxgb4_clip_release(const struct net_device *dev, const u32 *lip, u8 v6)
 found:
 	write_lock_bh(&ctbl->lock);
 	spin_lock_bh(&ce->lock);
-	if (atomic_dec_and_test(&ce->refcnt)) {
+
+	if (atomic_dec_and_test(&ce->refcnt))
+	{
 		list_del(&ce->list);
 		INIT_LIST_HEAD(&ce->list);
 		list_add_tail(&ce->list, &ctbl->ce_free_head);
 		atomic_inc(&ctbl->nfree);
+
 		if (v6)
+		{
 			clip6_release_mbox(dev, (const struct in6_addr *)lip);
+		}
 	}
+
 	spin_unlock_bh(&ce->lock);
 	write_unlock_bh(&ctbl->lock);
 }
@@ -197,21 +224,28 @@ EXPORT_SYMBOL(cxgb4_clip_release);
  * The physical device reference is needed to send the actul CLIP command.
  */
 static int cxgb4_update_dev_clip(struct net_device *root_dev,
-				 struct net_device *dev)
+								 struct net_device *dev)
 {
 	struct inet6_dev *idev = NULL;
 	struct inet6_ifaddr *ifa;
 	int ret = 0;
 
 	idev = __in6_dev_get(root_dev);
+
 	if (!idev)
+	{
 		return ret;
+	}
 
 	read_lock_bh(&idev->lock);
-	list_for_each_entry(ifa, &idev->addr_list, if_list) {
+	list_for_each_entry(ifa, &idev->addr_list, if_list)
+	{
 		ret = cxgb4_clip_get(dev, (const u32 *)ifa->addr.s6_addr, 1);
+
 		if (ret < 0)
+		{
 			break;
+		}
 	}
 	read_unlock_bh(&idev->lock);
 
@@ -225,25 +259,40 @@ int cxgb4_update_root_dev_clip(struct net_device *dev)
 
 	/* First populate the real net device's IPv6 addresses */
 	ret = cxgb4_update_dev_clip(dev, dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Parse all bond and vlan devices layered on top of the physical dev */
 	root_dev = netdev_master_upper_dev_get_rcu(dev);
-	if (root_dev) {
+
+	if (root_dev)
+	{
 		ret = cxgb4_update_dev_clip(root_dev, dev);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
-	for (i = 0; i < VLAN_N_VID; i++) {
+	for (i = 0; i < VLAN_N_VID; i++)
+	{
 		root_dev = __vlan_find_dev_deep_rcu(dev, htons(ETH_P_8021Q), i);
+
 		if (!root_dev)
+		{
 			continue;
+		}
 
 		ret = cxgb4_update_dev_clip(root_dev, dev);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 
 	return ret;
@@ -261,14 +310,18 @@ int clip_tbl_show(struct seq_file *seq, void *v)
 	read_lock_bh(&ctbl->lock);
 
 	seq_puts(seq, "IP Address                  Users\n");
-	for (i = 0 ; i < ctbl->clipt_size;  ++i) {
-		list_for_each_entry(ce, &ctbl->hash_list[i], list) {
+
+	for (i = 0 ; i < ctbl->clipt_size;  ++i)
+	{
+		list_for_each_entry(ce, &ctbl->hash_list[i], list)
+		{
 			ip[0] = '\0';
 			sprintf(ip, "%pISc", &ce->addr);
 			seq_printf(seq, "%-25s   %u\n", ip,
-				   atomic_read(&ce->refcnt));
+					   atomic_read(&ce->refcnt));
 		}
 	}
+
 	seq_printf(seq, "Free clip entries : %d\n", atomic_read(&ctbl->nfree));
 
 	read_unlock_bh(&ctbl->lock);
@@ -277,7 +330,7 @@ int clip_tbl_show(struct seq_file *seq, void *v)
 }
 
 struct clip_tbl *t4_init_clip_tbl(unsigned int clipt_start,
-				  unsigned int clipt_end)
+								  unsigned int clipt_end)
 {
 	struct clip_entry *cl_list;
 	struct clip_tbl *ctbl;
@@ -285,15 +338,24 @@ struct clip_tbl *t4_init_clip_tbl(unsigned int clipt_start,
 	int i;
 
 	if (clipt_start >= clipt_end)
+	{
 		return NULL;
+	}
+
 	clipt_size = clipt_end - clipt_start + 1;
+
 	if (clipt_size < CLIPT_MIN_HASH_BUCKETS)
+	{
 		return NULL;
+	}
 
 	ctbl = t4_alloc_mem(sizeof(*ctbl) +
-			    clipt_size*sizeof(struct list_head));
+						clipt_size * sizeof(struct list_head));
+
 	if (!ctbl)
+	{
 		return NULL;
+	}
 
 	ctbl->clipt_start = clipt_start;
 	ctbl->clipt_size = clipt_size;
@@ -303,16 +365,22 @@ struct clip_tbl *t4_init_clip_tbl(unsigned int clipt_start,
 	rwlock_init(&ctbl->lock);
 
 	for (i = 0; i < ctbl->clipt_size; ++i)
+	{
 		INIT_LIST_HEAD(&ctbl->hash_list[i]);
+	}
 
-	cl_list = t4_alloc_mem(clipt_size*sizeof(struct clip_entry));
-	if (!cl_list) {
+	cl_list = t4_alloc_mem(clipt_size * sizeof(struct clip_entry));
+
+	if (!cl_list)
+	{
 		t4_free_mem(ctbl);
 		return NULL;
 	}
+
 	ctbl->cl_list = (void *)cl_list;
 
-	for (i = 0; i < clipt_size; i++) {
+	for (i = 0; i < clipt_size; i++)
+	{
 		INIT_LIST_HEAD(&cl_list[i].list);
 		list_add_tail(&cl_list[i].list, &ctbl->ce_free_head);
 	}
@@ -324,9 +392,13 @@ void t4_cleanup_clip_tbl(struct adapter *adap)
 {
 	struct clip_tbl *ctbl = adap->clipt;
 
-	if (ctbl) {
+	if (ctbl)
+	{
 		if (ctbl->cl_list)
+		{
 			t4_free_mem(ctbl->cl_list);
+		}
+
 		t4_free_mem(ctbl);
 	}
 }

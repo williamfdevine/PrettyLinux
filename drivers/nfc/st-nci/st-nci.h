@@ -38,21 +38,25 @@
 #define ST_NCI_VENDOR_OUI 0x0080E1 /* STMicroelectronics */
 #define ST_NCI_FACTORY_MODE 2
 
-struct nci_mode_set_cmd {
+struct nci_mode_set_cmd
+{
 	u8 cmd_type;
 	u8 mode;
 } __packed;
 
-struct nci_mode_set_rsp {
+struct nci_mode_set_rsp
+{
 	u8 status;
 } __packed;
 
-struct st_nci_se_status {
+struct st_nci_se_status
+{
 	bool is_ese_present;
 	bool is_uicc_present;
 };
 
-struct st_nci_se_info {
+struct st_nci_se_info
+{
 	struct st_nci_se_status *se_status;
 	u8 atr[ST_NCI_ESE_MAX_LENGTH];
 	struct completion req_completion;
@@ -103,7 +107,8 @@ struct st_nci_se_info {
  * @MANUFACTURER_SPECIFIC: Allow to retrieve manufacturer specific data
  *	received during a NCI_CORE_INIT_CMD.
  */
-enum nfc_vendor_cmds {
+enum nfc_vendor_cmds
+{
 	FACTORY_MODE,
 	HCI_CLEAR_ALL_PIPES,
 	HCI_DM_PUT_DATA,
@@ -122,7 +127,8 @@ enum nfc_vendor_cmds {
 	MANUFACTURER_SPECIFIC,
 };
 
-struct st_nci_info {
+struct st_nci_info
+{
 	struct llt_ndlc *ndlc;
 	unsigned long flags;
 
@@ -131,7 +137,7 @@ struct st_nci_info {
 
 void st_nci_remove(struct nci_dev *ndev);
 int st_nci_probe(struct llt_ndlc *ndlc, int phy_headroom,
-		 int phy_tailroom, struct st_nci_se_status *se_status);
+				 int phy_tailroom, struct st_nci_se_status *se_status);
 
 int st_nci_se_init(struct nci_dev *ndev, struct st_nci_se_status *se_status);
 void st_nci_se_deinit(struct nci_dev *ndev);
@@ -140,13 +146,13 @@ int st_nci_discover_se(struct nci_dev *ndev);
 int st_nci_enable_se(struct nci_dev *ndev, u32 se_idx);
 int st_nci_disable_se(struct nci_dev *ndev, u32 se_idx);
 int st_nci_se_io(struct nci_dev *ndev, u32 se_idx,
-				u8 *apdu, size_t apdu_length,
-				se_io_cb_t cb, void *cb_context);
+				 u8 *apdu, size_t apdu_length,
+				 se_io_cb_t cb, void *cb_context);
 int st_nci_hci_load_session(struct nci_dev *ndev);
 void st_nci_hci_event_received(struct nci_dev *ndev, u8 pipe,
-					u8 event, struct sk_buff *skb);
+							   u8 event, struct sk_buff *skb);
 void st_nci_hci_cmd_received(struct nci_dev *ndev, u8 pipe, u8 cmd,
-						struct sk_buff *skb);
+							 struct sk_buff *skb);
 
 int st_nci_vendor_cmds_init(struct nci_dev *ndev);
 

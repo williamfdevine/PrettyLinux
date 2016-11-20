@@ -20,7 +20,8 @@ enum /* settings for comm */
 	COMM_RECEIVER_BUFSIZE = 64,
 };
 
-struct comm_runtime {
+struct comm_runtime
+{
 	struct sfire_chip *chip;
 
 	struct urb receiver;
@@ -29,11 +30,11 @@ struct comm_runtime {
 	u8 serial; /* urb serial */
 
 	void (*init_urb)(struct comm_runtime *rt, struct urb *urb, u8 *buffer,
-			void *context, void(*handler)(struct urb *urb));
+					 void *context, void(*handler)(struct urb *urb));
 	/* writes control data to the device */
 	int (*write8)(struct comm_runtime *rt, u8 request, u8 reg, u8 value);
 	int (*write16)(struct comm_runtime *rt, u8 request, u8 reg,
-			u8 vh, u8 vl);
+				   u8 vh, u8 vl);
 };
 
 int usb6fire_comm_init(struct sfire_chip *chip);

@@ -39,7 +39,8 @@
 
 #define LP3943_NUM_PWMS			2
 
-enum lp3943_pwm_output {
+enum lp3943_pwm_output
+{
 	LP3943_PWM_OUT0,
 	LP3943_PWM_OUT1,
 	LP3943_PWM_OUT2,
@@ -63,7 +64,8 @@ enum lp3943_pwm_output {
  * @output: Output pins which are mapped to each PWM channel
  * @num_outputs: Number of outputs
  */
-struct lp3943_pwm_map {
+struct lp3943_pwm_map
+{
 	enum lp3943_pwm_output *output;
 	int num_outputs;
 };
@@ -72,7 +74,8 @@ struct lp3943_pwm_map {
  * struct lp3943_platform_data
  * @pwms: Output channel definitions for PWM channel 0 and 1
  */
-struct lp3943_platform_data {
+struct lp3943_platform_data
+{
 	struct lp3943_pwm_map *pwms[LP3943_NUM_PWMS];
 };
 
@@ -82,7 +85,8 @@ struct lp3943_platform_data {
  * @mask: Register bit mask to be updated
  * @shift: Register bit shift
  */
-struct lp3943_reg_cfg {
+struct lp3943_reg_cfg
+{
 	u8 reg;
 	u8 mask;
 	u8 shift;
@@ -100,7 +104,8 @@ struct lp3943_reg_cfg {
  *	      Only LSB 16 bits are used, but it is unsigned long type
  *	      for atomic bitwise operations.
  */
-struct lp3943 {
+struct lp3943
+{
 	struct device *dev;
 	struct regmap *regmap;
 	struct lp3943_platform_data *pdata;

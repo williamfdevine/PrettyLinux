@@ -67,7 +67,7 @@
 #define BANK1_HWIRQ		BIT(8)
 #define BANK2_HWIRQ		BIT(9)
 #define BANK0_VALID_MASK	(BANK0_HWIRQ_MASK | BANK1_HWIRQ | BANK2_HWIRQ \
-					| SHORTCUT1_MASK | SHORTCUT2_MASK)
+							 | SHORTCUT1_MASK | SHORTCUT2_MASK)
 
 #define REG_FIQ_CONTROL		0x0c
 
@@ -79,12 +79,14 @@ static const int reg_enable[] __initconst = { 0x18, 0x10, 0x14 };
 static const int reg_disable[] __initconst = { 0x24, 0x1c, 0x20 };
 static const int bank_irqs[] __initconst = { 8, 32, 32 };
 
-static const int shortcuts[] = {
+static const int shortcuts[] =
+{
 	7, 9, 10, 18, 19,		/* Bank 1 */
 	21, 22, 23, 24, 25, 30		/* Bank 2 */
 };
 
-struct armctrl_ic {
+struct armctrl_ic
+{
 	void __iomem *base;
 	void __iomem *pending[NR_BANKS];
 	void __iomem *enable[NR_BANKS];
@@ -107,77 +109,98 @@ static void armctrl_unmask_irq(struct irq_data *d)
 	writel_relaxed(HWIRQ_BIT(d->hwirq), intc.enable[HWIRQ_BANK(d->hwirq)]);
 }
 
-static struct irq_chip armctrl_chip = {
+static struct irq_chip armctrl_chip =
+{
 	.name = "ARMCTRL-level",
 	.irq_mask = armctrl_mask_irq,
 	.irq_unmask = armctrl_unmask_irq
 };
 
 static int armctrl_xlate(struct irq_domain *d, struct device_node *ctrlr,
-	const u32 *intspec, unsigned int intsize,
-	unsigned long *out_hwirq, unsigned int *out_type)
+						 const u32 *intspec, unsigned int intsize,
+						 unsigned long *out_hwirq, unsigned int *out_type)
 {
 	if (WARN_ON(intsize != 2))
+	{
 		return -EINVAL;
+	}
 
 	if (WARN_ON(intspec[0] >= NR_BANKS))
+	{
 		return -EINVAL;
+	}
 
 	if (WARN_ON(intspec[1] >= IRQS_PER_BANK))
+	{
 		return -EINVAL;
+	}
 
 	if (WARN_ON(intspec[0] == 0 && intspec[1] >= NR_IRQS_BANK0))
+	{
 		return -EINVAL;
+	}
 
 	*out_hwirq = MAKE_HWIRQ(intspec[0], intspec[1]);
 	*out_type = IRQ_TYPE_NONE;
 	return 0;
 }
 
-static const struct irq_domain_ops armctrl_ops = {
+static const struct irq_domain_ops armctrl_ops =
+{
 	.xlate = armctrl_xlate
 };
 
 static int __init armctrl_of_init(struct device_node *node,
-				  struct device_node *parent,
-				  bool is_2836)
+								  struct device_node *parent,
+								  bool is_2836)
 {
 	void __iomem *base;
 	int irq, b, i;
 
 	base = of_iomap(node, 0);
+
 	if (!base)
 		panic("%s: unable to map IC registers\n",
-			node->full_name);
+			  node->full_name);
 
 	intc.domain = irq_domain_add_linear(node, MAKE_HWIRQ(NR_BANKS, 0),
-			&armctrl_ops, NULL);
-	if (!intc.domain)
-		panic("%s: unable to create IRQ domain\n", node->full_name);
+										&armctrl_ops, NULL);
 
-	for (b = 0; b < NR_BANKS; b++) {
+	if (!intc.domain)
+	{
+		panic("%s: unable to create IRQ domain\n", node->full_name);
+	}
+
+	for (b = 0; b < NR_BANKS; b++)
+	{
 		intc.pending[b] = base + reg_pending[b];
 		intc.enable[b] = base + reg_enable[b];
 		intc.disable[b] = base + reg_disable[b];
 
-		for (i = 0; i < bank_irqs[b]; i++) {
+		for (i = 0; i < bank_irqs[b]; i++)
+		{
 			irq = irq_create_mapping(intc.domain, MAKE_HWIRQ(b, i));
 			BUG_ON(irq <= 0);
 			irq_set_chip_and_handler(irq, &armctrl_chip,
-				handle_level_irq);
+									 handle_level_irq);
 			irq_set_probe(irq);
 		}
 	}
 
-	if (is_2836) {
+	if (is_2836)
+	{
 		int parent_irq = irq_of_parse_and_map(node, 0);
 
-		if (!parent_irq) {
+		if (!parent_irq)
+		{
 			panic("%s: unable to get parent interrupt.\n",
-			      node->full_name);
+				  node->full_name);
 		}
+
 		irq_set_chained_handler(parent_irq, bcm2836_chained_handle_irq);
-	} else {
+	}
+	else
+	{
 		set_handle_irq(bcm2835_handle_irq);
 	}
 
@@ -185,13 +208,13 @@ static int __init armctrl_of_init(struct device_node *node,
 }
 
 static int __init bcm2835_armctrl_of_init(struct device_node *node,
-					  struct device_node *parent)
+		struct device_node *parent)
 {
 	return armctrl_of_init(node, parent, false);
 }
 
 static int __init bcm2836_armctrl_of_init(struct device_node *node,
-					  struct device_node *parent)
+		struct device_node *parent)
 {
 	return armctrl_of_init(node, parent, true);
 }
@@ -220,19 +243,33 @@ static u32 get_next_armctrl_hwirq(void)
 	u32 stat = readl_relaxed(intc.pending[0]) & BANK0_VALID_MASK;
 
 	if (stat == 0)
+	{
 		return ~0;
+	}
 	else if (stat & BANK0_HWIRQ_MASK)
+	{
 		return MAKE_HWIRQ(0, ffs(stat & BANK0_HWIRQ_MASK) - 1);
+	}
 	else if (stat & SHORTCUT1_MASK)
+	{
 		return armctrl_translate_shortcut(1, stat & SHORTCUT1_MASK);
+	}
 	else if (stat & SHORTCUT2_MASK)
+	{
 		return armctrl_translate_shortcut(2, stat & SHORTCUT2_MASK);
+	}
 	else if (stat & BANK1_HWIRQ)
+	{
 		return armctrl_translate_bank(1);
+	}
 	else if (stat & BANK2_HWIRQ)
+	{
 		return armctrl_translate_bank(2);
+	}
 	else
+	{
 		BUG();
+	}
 }
 
 static void __exception_irq_entry bcm2835_handle_irq(
@@ -241,7 +278,9 @@ static void __exception_irq_entry bcm2835_handle_irq(
 	u32 hwirq;
 
 	while ((hwirq = get_next_armctrl_hwirq()) != ~0)
+	{
 		handle_domain_irq(intc.domain, hwirq, regs);
+	}
 }
 
 static void bcm2836_chained_handle_irq(struct irq_desc *desc)
@@ -249,10 +288,12 @@ static void bcm2836_chained_handle_irq(struct irq_desc *desc)
 	u32 hwirq;
 
 	while ((hwirq = get_next_armctrl_hwirq()) != ~0)
+	{
 		generic_handle_irq(irq_linear_revmap(intc.domain, hwirq));
+	}
 }
 
 IRQCHIP_DECLARE(bcm2835_armctrl_ic, "brcm,bcm2835-armctrl-ic",
-		bcm2835_armctrl_of_init);
+				bcm2835_armctrl_of_init);
 IRQCHIP_DECLARE(bcm2836_armctrl_ic, "brcm,bcm2836-armctrl-ic",
-		bcm2836_armctrl_of_init);
+				bcm2836_armctrl_of_init);

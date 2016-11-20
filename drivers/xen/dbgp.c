@@ -14,19 +14,24 @@ static int xen_dbgp_op(struct usb_hcd *hcd, int op)
 	struct physdev_dbgp_op dbgp;
 
 	if (!xen_initial_domain())
+	{
 		return 0;
+	}
 
 	dbgp.op = op;
 
 #ifdef CONFIG_PCI
-	if (dev_is_pci(ctrlr)) {
+
+	if (dev_is_pci(ctrlr))
+	{
 		const struct pci_dev *pdev = to_pci_dev(ctrlr);
 
 		dbgp.u.pci.seg = pci_domain_nr(pdev->bus);
 		dbgp.u.pci.bus = pdev->bus->number;
 		dbgp.u.pci.devfn = pdev->devfn;
 		dbgp.bus = PHYSDEVOP_DBGP_BUS_PCI;
-	} else
+	}
+	else
 #endif
 		dbgp.bus = PHYSDEVOP_DBGP_BUS_UNKNOWN;
 

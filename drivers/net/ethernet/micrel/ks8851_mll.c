@@ -151,7 +151,7 @@ static u8 KS_DEFAULT_MAC_ADDRESS[] = { 0x00, 0x10, 0xA1, 0x86, 0x95, 0x11 };
 #define RXCR1_RXINVF			(1 << 1)
 #define RXCR1_RXE			(1 << 0)
 #define RXCR1_FILTER_MASK    		(RXCR1_RXINVF | RXCR1_RXAE | \
-					 RXCR1_RXMAFMA | RXCR1_RXPAFMA)
+									 RXCR1_RXMAFMA | RXCR1_RXPAFMA)
 
 #define KS_RXCR2			0x76
 #define RXCR2_SRDBL_MASK		(0x7 << 5)
@@ -184,9 +184,9 @@ static u8 KS_DEFAULT_MAC_ADDRESS[] = { 0x00, 0x10, 0xA1, 0x86, 0x95, 0x11 };
 #define RXFSHR_RXRF			(1 << 1)
 #define RXFSHR_RXCE			(1 << 0)
 #define	RXFSHR_ERR			(RXFSHR_RXCE | RXFSHR_RXRF |\
-					RXFSHR_RXFTL | RXFSHR_RXMR |\
-					RXFSHR_RXICMPFCS | RXFSHR_RXIPFCS |\
-					RXFSHR_RXTCPFCS)
+							 RXFSHR_RXFTL | RXFSHR_RXMR |\
+							 RXFSHR_RXICMPFCS | RXFSHR_RXIPFCS |\
+							 RXFSHR_RXTCPFCS)
 #define KS_RXFHBCR			0x7E
 #define RXFHBCR_CNT_MASK		0x0FFF
 
@@ -377,7 +377,8 @@ static u8 KS_DEFAULT_MAC_ADDRESS[] = { 0x00, 0x10, 0xA1, 0x86, 0x95, 0x11 };
  * access to individual bytes, and to allow 16bit accesses
  * with 16bit alignment.
  */
-union ks_tx_hdr {
+union ks_tx_hdr
+{
 	u8      txb[4];
 	__le16  txw[2];
 };
@@ -424,12 +425,14 @@ union ks_tx_hdr {
  */
 
 /* Receive multiplex framer header info */
-struct type_frame_head {
+struct type_frame_head
+{
 	u16	sts;         /* Frame status */
 	u16	len;         /* Byte count */
 };
 
-struct ks_net {
+struct ks_net
+{
 	struct net_device	*netdev;
 	void __iomem    	*hw_addr;
 	void __iomem    	*hw_addr_cmd;
@@ -548,8 +551,11 @@ static void ks_wrreg16(struct ks_net *ks, int offset, u16 value)
 static inline void ks_inblk(struct ks_net *ks, u16 *wptr, u32 len)
 {
 	len >>= 1;
+
 	while (len--)
+	{
 		*wptr++ = (u16)ioread16(ks->hw_addr);
+	}
 }
 
 /**
@@ -562,8 +568,11 @@ static inline void ks_inblk(struct ks_net *ks, u16 *wptr, u32 len)
 static inline void ks_outblk(struct ks_net *ks, u16 *wptr, u32 len)
 {
 	len >>= 1;
+
 	while (len--)
+	{
 		iowrite16(*wptr++, ks->hw_addr);
+	}
 }
 
 static void ks_disable_int(struct ks_net *ks)
@@ -643,7 +652,7 @@ static void ks_read_config(struct ks_net *ks)
 
 	/* Regardless of bus width, 8 bit read should always work.*/
 	reg_data = ks_rdreg8(ks, KS_CCR) & 0x00FF;
-	reg_data |= ks_rdreg8(ks, KS_CCR+1) << 8;
+	reg_data |= ks_rdreg8(ks, KS_CCR + 1) << 8;
 
 	/* addr/data bus are multiplexed */
 	ks->sharedbus = (reg_data & CCR_SHARED) == CCR_SHARED;
@@ -652,13 +661,18 @@ static void ks_read_config(struct ks_net *ks)
 	depending on bus-width.
 	*/
 
-	if (reg_data & CCR_8BIT) {
+	if (reg_data & CCR_8BIT)
+	{
 		ks->bus_width = ENUM_BUS_8BIT;
 		ks->extra_byte = 1;
-	} else if (reg_data & CCR_16BIT) {
+	}
+	else if (reg_data & CCR_16BIT)
+	{
 		ks->bus_width = ENUM_BUS_16BIT;
 		ks->extra_byte = 2;
-	} else {
+	}
+	else
+	{
 		ks->bus_width = ENUM_BUS_32BIT;
 		ks->extra_byte = 4;
 	}
@@ -757,7 +771,10 @@ static inline void ks_read_qmu(struct ks_net *ks, u16 *buf, u32 len)
 
 	/* use likely(r) for 8 bit access for performance */
 	if (unlikely(r))
+	{
 		ioread8(ks->hw_addr);
+	}
+
 	ks_inblk(ks, buf, w + 2 + 2);
 
 	/* 3. read pkt data */
@@ -785,7 +802,8 @@ static void ks_rcv(struct ks_net *ks, struct net_device *netdev)
 	ks->frame_cnt = ks_rdreg16(ks, KS_RXFCTR) >> 8;
 
 	/* read all header information */
-	for (i = 0; i < ks->frame_cnt; i++) {
+	for (i = 0; i < ks->frame_cnt; i++)
+	{
 		/* Checking Received packet status */
 		frame_hdr->sts = ks_rdreg16(ks, KS_RXFHSR);
 		/* Get packet len from hardware */
@@ -794,24 +812,35 @@ static void ks_rcv(struct ks_net *ks, struct net_device *netdev)
 	}
 
 	frame_hdr = ks->frame_head_info;
-	while (ks->frame_cnt--) {
+
+	while (ks->frame_cnt--)
+	{
 		if (unlikely(!(frame_hdr->sts & RXFSHR_RXFV) ||
-			     frame_hdr->len >= RX_BUF_SIZE ||
-			     frame_hdr->len <= 0)) {
+					 frame_hdr->len >= RX_BUF_SIZE ||
+					 frame_hdr->len <= 0))
+		{
 
 			/* discard an invalid packet */
 			ks_wrreg16(ks, KS_RXQCR, (ks->rc_rxqcr | RXQCR_RRXEF));
 			netdev->stats.rx_dropped++;
+
 			if (!(frame_hdr->sts & RXFSHR_RXFV))
+			{
 				netdev->stats.rx_frame_errors++;
+			}
 			else
+			{
 				netdev->stats.rx_length_errors++;
+			}
+
 			frame_hdr++;
 			continue;
 		}
 
 		skb = netdev_alloc_skb(netdev, frame_hdr->len + 16);
-		if (likely(skb)) {
+
+		if (likely(skb))
+		{
 			skb_reserve(skb, 2);
 			/* read data block including CRC 4 bytes */
 			ks_read_qmu(ks, (u16 *)skb->data, frame_hdr->len);
@@ -821,10 +850,13 @@ static void ks_rcv(struct ks_net *ks, struct net_device *netdev)
 			/* exclude CRC size */
 			netdev->stats.rx_bytes += frame_hdr->len - 4;
 			netdev->stats.rx_packets++;
-		} else {
+		}
+		else
+		{
 			ks_wrreg16(ks, KS_RXQCR, (ks->rc_rxqcr | RXQCR_RRXEF));
 			netdev->stats.rx_dropped++;
 		}
+
 		frame_hdr++;
 	}
 }
@@ -840,15 +872,20 @@ static void ks_update_link_status(struct net_device *netdev, struct ks_net *ks)
 {
 	/* check the status of the link */
 	u32 link_up_status;
-	if (ks_rdreg16(ks, KS_P1SR) & P1SR_LINK_GOOD) {
+
+	if (ks_rdreg16(ks, KS_P1SR) & P1SR_LINK_GOOD)
+	{
 		netif_carrier_on(netdev);
 		link_up_status = true;
-	} else {
+	}
+	else
+	{
 		netif_carrier_off(netdev);
 		link_up_status = false;
 	}
+
 	netif_dbg(ks, link, ks->netdev,
-		  "%s: %s\n", __func__, link_up_status ? "UP" : "DOWN");
+			  "%s: %s\n", __func__, link_up_status ? "UP" : "DOWN");
 }
 
 /**
@@ -872,7 +909,9 @@ static irqreturn_t ks_irq(int irq, void *pw)
 	ks_save_cmd_reg(ks);
 
 	status = ks_rdreg16(ks, KS_ISR);
-	if (unlikely(!status)) {
+
+	if (unlikely(!status))
+	{
 		ks_restore_cmd_reg(ks);
 		return IRQ_NONE;
 	}
@@ -880,15 +919,22 @@ static irqreturn_t ks_irq(int irq, void *pw)
 	ks_wrreg16(ks, KS_ISR, status);
 
 	if (likely(status & IRQ_RXI))
+	{
 		ks_rcv(ks, netdev);
+	}
 
 	if (unlikely(status & IRQ_LCI))
+	{
 		ks_update_link_status(netdev, ks);
+	}
 
 	if (unlikely(status & IRQ_TXI))
+	{
 		netif_wake_queue(netdev);
+	}
 
-	if (unlikely(status & IRQ_LDI)) {
+	if (unlikely(status & IRQ_LDI))
+	{
 
 		u16 pmecr = ks_rdreg16(ks, KS_PMECR);
 		pmecr &= ~PMECR_WKEVT_MASK;
@@ -896,7 +942,10 @@ static irqreturn_t ks_irq(int irq, void *pw)
 	}
 
 	if (unlikely(status & IRQ_RXOI))
+	{
 		ks->netdev->stats.rx_over_errors++;
+	}
+
 	/* this should be the last in IRQ handler*/
 	ks_restore_cmd_reg(ks);
 	return IRQ_HANDLED;
@@ -925,7 +974,8 @@ static int ks_net_open(struct net_device *netdev)
 	/* reset the HW */
 	err = request_irq(netdev->irq, ks_irq, KS_INT_FLAGS, DRV_NAME, netdev);
 
-	if (err) {
+	if (err)
+	{
 		pr_err("Failed to request IRQ: %d: %d\n", netdev->irq, err);
 		return err;
 	}
@@ -1006,6 +1056,7 @@ static void ks_write_qmu(struct ks_net *ks, u8 *pdata, u16 len)
 	ks_wrreg8(ks, KS_RXQCR, ks->rc_rxqcr);
 	/* 5. Enqueue Tx(move the pkt from TX buffer into TXQ) */
 	ks_wrreg16(ks, KS_TXQCR, TXQCR_METFE);
+
 	/* 6. wait until TXQCR_METFE is auto-cleared */
 	while (ks_rdreg16(ks, KS_TXQCR) & TXQCR_METFE)
 		;
@@ -1033,14 +1084,19 @@ static int ks_start_xmit(struct sk_buff *skb, struct net_device *netdev)
 	*  4 byte for alignment, 4 for status/length, 4 for CRC
 	*/
 
-	if (likely(ks_tx_fifo_space(ks) >= skb->len + 12)) {
+	if (likely(ks_tx_fifo_space(ks) >= skb->len + 12))
+	{
 		ks_write_qmu(ks, skb->data, skb->len);
 		/* add tx statistics */
 		netdev->stats.tx_bytes += skb->len;
 		netdev->stats.tx_packets++;
 		dev_kfree_skb(skb);
-	} else
+	}
+	else
+	{
 		retv = NETDEV_TX_BUSY;
+	}
+
 	spin_unlock(&ks->statelock);
 	ks_enable_int(ks);
 	enable_irq(netdev->irq);
@@ -1083,16 +1139,20 @@ static unsigned long const ethernet_polynomial = 0x04c11db7U;
 static unsigned long ether_gen_crc(int length, u8 *data)
 {
 	long crc = -1;
-	while (--length >= 0) {
+
+	while (--length >= 0)
+	{
 		u8 current_octet = *data++;
 		int bit;
 
-		for (bit = 0; bit < 8; bit++, current_octet >>= 1) {
+		for (bit = 0; bit < 8; bit++, current_octet >>= 1)
+		{
 			crc = (crc << 1) ^
-				((crc < 0) ^ (current_octet & 1) ?
-			ethernet_polynomial : 0);
+				  ((crc < 0) ^ (current_octet & 1) ?
+				   ethernet_polynomial : 0);
 		}
 	}
+
 	return (unsigned long)crc;
 }  /* ether_gen_crc */
 
@@ -1108,18 +1168,21 @@ static void ks_set_grpaddr(struct ks_net *ks)
 
 	memset(ks->mcast_bits, 0, sizeof(u8) * HW_MCAST_SIZE);
 
-	for (i = 0; i < ks->mcast_lst_size; i++) {
+	for (i = 0; i < ks->mcast_lst_size; i++)
+	{
 		position = (ether_gen_crc(6, ks->mcast_lst[i]) >> 26) & 0x3f;
 		index = position >> 3;
 		value = 1 << (position & 7);
 		ks->mcast_bits[index] |= (u8)value;
 	}
 
-	for (i  = 0; i < HW_MCAST_SIZE; i++) {
-		if (i & 1) {
+	for (i  = 0; i < HW_MCAST_SIZE; i++)
+	{
+		if (i & 1)
+		{
 			ks_wrreg16(ks, (u16)((KS_MAHTR0 + i) & ~1),
-				(ks->mcast_bits[i] << 8) |
-				ks->mcast_bits[i - 1]);
+					   (ks->mcast_bits[i] << 8) |
+					   ks->mcast_bits[i - 1]);
 		}
 	}
 }  /* ks_set_grpaddr */
@@ -1134,12 +1197,18 @@ static void ks_set_grpaddr(struct ks_net *ks)
 static void ks_clear_mcast(struct ks_net *ks)
 {
 	u16	i, mcast_size;
+
 	for (i = 0; i < HW_MCAST_SIZE; i++)
+	{
 		ks->mcast_bits[i] = 0;
+	}
 
 	mcast_size = HW_MCAST_SIZE >> 2;
+
 	for (i = 0; i < mcast_size; i++)
-		ks_wrreg16(ks, KS_MAHTR0 + (2*i), 0);
+	{
+		ks_wrreg16(ks, KS_MAHTR0 + (2 * i), 0);
+	}
 }
 
 static void ks_set_promis(struct ks_net *ks, u16 promiscuous_mode)
@@ -1150,17 +1219,24 @@ static void ks_set_promis(struct ks_net *ks, u16 promiscuous_mode)
 	cntl = ks_rdreg16(ks, KS_RXCR1);
 
 	cntl &= ~RXCR1_FILTER_MASK;
+
 	if (promiscuous_mode)
 		/* Enable Promiscuous mode */
+	{
 		cntl |= RXCR1_RXAE | RXCR1_RXINVF;
+	}
 	else
 		/* Disable Promiscuous mode (default normal mode) */
+	{
 		cntl |= RXCR1_RXPAFMA;
+	}
 
 	ks_wrreg16(ks, KS_RXCR1, cntl);
 
 	if (ks->enabled)
+	{
 		ks_start_rx(ks);
+	}
 
 }  /* ks_set_promis */
 
@@ -1172,20 +1248,27 @@ static void ks_set_mcast(struct ks_net *ks, u16 mcast)
 	ks_stop_rx(ks);  /* Stop receiving for reconfiguration */
 	cntl = ks_rdreg16(ks, KS_RXCR1);
 	cntl &= ~RXCR1_FILTER_MASK;
+
 	if (mcast)
 		/* Enable "Perfect with Multicast address passed mode" */
+	{
 		cntl |= (RXCR1_RXAE | RXCR1_RXMAFMA | RXCR1_RXPAFMA);
+	}
 	else
 		/**
 		 * Disable "Perfect with Multicast address passed
 		 * mode" (normal mode).
 		 */
+	{
 		cntl |= RXCR1_RXPAFMA;
+	}
 
 	ks_wrreg16(ks, KS_RXCR1, cntl);
 
 	if (ks->enabled)
+	{
 		ks_start_rx(ks);
+	}
 }  /* ks_set_mcast */
 
 static void ks_set_rx_mode(struct net_device *netdev)
@@ -1196,26 +1279,36 @@ static void ks_set_rx_mode(struct net_device *netdev)
 	/* Turn on/off promiscuous mode. */
 	if ((netdev->flags & IFF_PROMISC) == IFF_PROMISC)
 		ks_set_promis(ks,
-			(u16)((netdev->flags & IFF_PROMISC) == IFF_PROMISC));
+					  (u16)((netdev->flags & IFF_PROMISC) == IFF_PROMISC));
 	/* Turn on/off all mcast mode. */
 	else if ((netdev->flags & IFF_ALLMULTI) == IFF_ALLMULTI)
 		ks_set_mcast(ks,
-			(u16)((netdev->flags & IFF_ALLMULTI) == IFF_ALLMULTI));
+					 (u16)((netdev->flags & IFF_ALLMULTI) == IFF_ALLMULTI));
 	else
+	{
 		ks_set_promis(ks, false);
+	}
 
-	if ((netdev->flags & IFF_MULTICAST) && netdev_mc_count(netdev)) {
-		if (netdev_mc_count(netdev) <= MAX_MCAST_LST) {
+	if ((netdev->flags & IFF_MULTICAST) && netdev_mc_count(netdev))
+	{
+		if (netdev_mc_count(netdev) <= MAX_MCAST_LST)
+		{
 			int i = 0;
 
-			netdev_for_each_mc_addr(ha, netdev) {
+			netdev_for_each_mc_addr(ha, netdev)
+			{
 				if (i >= MAX_MCAST_LST)
+				{
 					break;
+				}
+
 				memcpy(ks->mcast_lst[i++], ha->addr, ETH_ALEN);
 			}
 			ks->mcast_lst_size = (u8)i;
 			ks_set_grpaddr(ks);
-		} else {
+		}
+		else
+		{
 			/**
 			 * List too big to support so
 			 * turn on all mcast mode.
@@ -1223,7 +1316,9 @@ static void ks_set_rx_mode(struct net_device *netdev)
 			ks->mcast_lst_size = MAX_MCAST_LST;
 			ks_set_mcast(ks, true);
 		}
-	} else {
+	}
+	else
+	{
 		ks->mcast_lst_size = 0;
 		ks_clear_mcast(ks);
 	}
@@ -1251,7 +1346,9 @@ static void ks_set_mac(struct ks_net *ks, u8 *data)
 	memcpy(ks->mac_addr, data, ETH_ALEN);
 
 	if (ks->enabled)
+	{
 		ks_start_rx(ks);
+	}
 }
 
 static int ks_set_mac_address(struct net_device *netdev, void *paddr)
@@ -1273,12 +1370,15 @@ static int ks_net_ioctl(struct net_device *netdev, struct ifreq *req, int cmd)
 	struct ks_net *ks = netdev_priv(netdev);
 
 	if (!netif_running(netdev))
+	{
 		return -EINVAL;
+	}
 
 	return generic_mii_ioctl(&ks->mii, if_mii(req), cmd, NULL);
 }
 
-static const struct net_device_ops ks_netdev_ops = {
+static const struct net_device_ops ks_netdev_ops =
+{
 	.ndo_open		= ks_net_open,
 	.ndo_stop		= ks_net_stop,
 	.ndo_do_ioctl		= ks_net_ioctl,
@@ -1292,12 +1392,12 @@ static const struct net_device_ops ks_netdev_ops = {
 /* ethtool support */
 
 static void ks_get_drvinfo(struct net_device *netdev,
-			       struct ethtool_drvinfo *di)
+						   struct ethtool_drvinfo *di)
 {
 	strlcpy(di->driver, DRV_NAME, sizeof(di->driver));
 	strlcpy(di->version, "1.00", sizeof(di->version));
 	strlcpy(di->bus_info, dev_name(netdev->dev.parent),
-		sizeof(di->bus_info));
+			sizeof(di->bus_info));
 }
 
 static u32 ks_get_msglevel(struct net_device *netdev)
@@ -1336,7 +1436,8 @@ static int ks_nway_reset(struct net_device *netdev)
 	return mii_nway_restart(&ks->mii);
 }
 
-static const struct ethtool_ops ks_ethtool_ops = {
+static const struct ethtool_ops ks_ethtool_ops =
+{
 	.get_drvinfo	= ks_get_drvinfo,
 	.get_msglevel	= ks_get_msglevel,
 	.set_msglevel	= ks_set_msglevel,
@@ -1358,19 +1459,25 @@ static const struct ethtool_ops ks_ethtool_ops = {
  */
 static int ks_phy_reg(int reg)
 {
-	switch (reg) {
-	case MII_BMCR:
-		return KS_P1MBCR;
-	case MII_BMSR:
-		return KS_P1MBSR;
-	case MII_PHYSID1:
-		return KS_PHY1ILR;
-	case MII_PHYSID2:
-		return KS_PHY1IHR;
-	case MII_ADVERTISE:
-		return KS_P1ANAR;
-	case MII_LPA:
-		return KS_P1ANLPR;
+	switch (reg)
+	{
+		case MII_BMCR:
+			return KS_P1MBCR;
+
+		case MII_BMSR:
+			return KS_P1MBSR;
+
+		case MII_PHYSID1:
+			return KS_PHY1ILR;
+
+		case MII_PHYSID2:
+			return KS_PHY1IHR;
+
+		case MII_ADVERTISE:
+			return KS_P1ANAR;
+
+		case MII_LPA:
+			return KS_P1ANLPR;
 	}
 
 	return 0x0;
@@ -1398,8 +1505,11 @@ static int ks_phy_read(struct net_device *netdev, int phy_addr, int reg)
 	int result;
 
 	ksreg = ks_phy_reg(reg);
+
 	if (!ksreg)
-		return 0x0;	/* no error return allowed, so use zero */
+	{
+		return 0x0;    /* no error return allowed, so use zero */
+	}
 
 	mutex_lock(&ks->lock);
 	result = ks_rdreg16(ks, ksreg);
@@ -1409,13 +1519,15 @@ static int ks_phy_read(struct net_device *netdev, int phy_addr, int reg)
 }
 
 static void ks_phy_write(struct net_device *netdev,
-			     int phy, int reg, int value)
+						 int phy, int reg, int value)
 {
 	struct ks_net *ks = netdev_priv(netdev);
 	int ksreg;
 
 	ksreg = ks_phy_reg(reg);
-	if (ksreg) {
+
+	if (ksreg)
+	{
 		mutex_lock(&ks->lock);
 		ks_wrreg16(ks, ksreg, value);
 		mutex_unlock(&ks->lock);
@@ -1436,17 +1548,20 @@ static int ks_read_selftest(struct ks_net *ks)
 
 	rd = ks_rdreg16(ks, KS_MBIR);
 
-	if ((rd & both_done) != both_done) {
+	if ((rd & both_done) != both_done)
+	{
 		netdev_warn(ks->netdev, "Memory selftest not finished\n");
 		return 0;
 	}
 
-	if (rd & MBIR_TXMBFA) {
+	if (rd & MBIR_TXMBFA)
+	{
 		netdev_err(ks->netdev, "TX memory selftest fails\n");
 		ret |= 1;
 	}
 
-	if (rd & MBIR_RXMBFA) {
+	if (rd & MBIR_RXMBFA)
+	{
 		netdev_err(ks->netdev, "RX memory selftest fails\n");
 		ret |= 2;
 	}
@@ -1492,11 +1607,17 @@ static void ks_setup(struct ks_net *ks)
 	w = RXCR1_RXFCE | RXCR1_RXBE | RXCR1_RXUE | RXCR1_RXME | RXCR1_RXIPFCC;
 
 	if (ks->promiscuous)         /* bPromiscuous */
+	{
 		w |= (RXCR1_RXAE | RXCR1_RXINVF);
+	}
 	else if (ks->all_mcast) /* Multicast address passed mode */
+	{
 		w |= (RXCR1_RXAE | RXCR1_RXMAFMA | RXCR1_RXPAFMA);
+	}
 	else                                   /* Normal mode */
+	{
 		w |= RXCR1_RXPAFMA;
+	}
 
 	ks_wrreg16(ks, KS_RXCR1, w);
 }  /*ks_setup */
@@ -1520,16 +1641,20 @@ static int ks_hw_init(struct ks_net *ks)
 	ks->mcast_lst_size = 0;
 
 	ks->frame_head_info = devm_kmalloc(&ks->pdev->dev, MHEADER_SIZE,
-					   GFP_KERNEL);
+									   GFP_KERNEL);
+
 	if (!ks->frame_head_info)
+	{
 		return false;
+	}
 
 	ks_set_mac(ks, KS_DEFAULT_MAC_ADDRESS);
 	return true;
 }
 
 #if defined(CONFIG_OF)
-static const struct of_device_id ks8851_ml_dt_ids[] = {
+static const struct of_device_id ks8851_ml_dt_ids[] =
+{
 	{ .compatible = "micrel,ks8851-mll" },
 	{ /* sentinel */ }
 };
@@ -1546,8 +1671,11 @@ static int ks8851_probe(struct platform_device *pdev)
 	const char *mac;
 
 	netdev = alloc_etherdev(sizeof(struct ks_net));
+
 	if (!netdev)
+	{
 		return -ENOMEM;
+	}
 
 	SET_NETDEV_DEV(netdev, &pdev->dev);
 
@@ -1556,21 +1684,26 @@ static int ks8851_probe(struct platform_device *pdev)
 
 	io_d = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ks->hw_addr = devm_ioremap_resource(&pdev->dev, io_d);
-	if (IS_ERR(ks->hw_addr)) {
+
+	if (IS_ERR(ks->hw_addr))
+	{
 		err = PTR_ERR(ks->hw_addr);
 		goto err_free;
 	}
 
 	io_c = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	ks->hw_addr_cmd = devm_ioremap_resource(&pdev->dev, io_c);
-	if (IS_ERR(ks->hw_addr_cmd)) {
+
+	if (IS_ERR(ks->hw_addr_cmd))
+	{
 		err = PTR_ERR(ks->hw_addr_cmd);
 		goto err_free;
 	}
 
 	netdev->irq = platform_get_irq(pdev, 0);
 
-	if ((int)netdev->irq < 0) {
+	if ((int)netdev->irq < 0)
+	{
 		err = netdev->irq;
 		goto err_free;
 	}
@@ -1586,7 +1719,7 @@ static int ks8851_probe(struct platform_device *pdev)
 	/* setup mii state */
 	ks->mii.dev             = netdev;
 	ks->mii.phy_id          = 1,
-	ks->mii.phy_id_mask     = 1;
+			ks->mii.phy_id_mask     = 1;
 	ks->mii.reg_num_mask    = 0xf;
 	ks->mii.mdio_read       = ks_phy_read;
 	ks->mii.mdio_write      = ks_phy_write;
@@ -1594,26 +1727,31 @@ static int ks8851_probe(struct platform_device *pdev)
 	netdev_info(netdev, "message enable is %d\n", msg_enable);
 	/* set the default message enable */
 	ks->msg_enable = netif_msg_init(msg_enable, (NETIF_MSG_DRV |
-						     NETIF_MSG_PROBE |
-						     NETIF_MSG_LINK));
+									NETIF_MSG_PROBE |
+									NETIF_MSG_LINK));
 	ks_read_config(ks);
 
 	/* simple check for a valid chip being connected to the bus */
-	if ((ks_rdreg16(ks, KS_CIDER) & ~CIDER_REV_MASK) != CIDER_ID) {
+	if ((ks_rdreg16(ks, KS_CIDER) & ~CIDER_REV_MASK) != CIDER_ID)
+	{
 		netdev_err(netdev, "failed to read device ID\n");
 		err = -ENODEV;
 		goto err_free;
 	}
 
-	if (ks_read_selftest(ks)) {
+	if (ks_read_selftest(ks))
+	{
 		netdev_err(netdev, "failed to read device ID\n");
 		err = -ENODEV;
 		goto err_free;
 	}
 
 	err = register_netdev(netdev);
+
 	if (err)
+	{
 		goto err_free;
+	}
 
 	platform_set_drvdata(pdev, netdev);
 
@@ -1627,26 +1765,38 @@ static int ks8851_probe(struct platform_device *pdev)
 	ks_wrreg16(ks, KS_OBCR, data | OBCR_ODS_16MA);
 
 	/* overwriting the default MAC address */
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		mac = of_get_mac_address(pdev->dev.of_node);
+
 		if (mac)
+		{
 			memcpy(ks->mac_addr, mac, ETH_ALEN);
-	} else {
+		}
+	}
+	else
+	{
 		struct ks8851_mll_platform_data *pdata;
 
 		pdata = dev_get_platdata(&pdev->dev);
-		if (!pdata) {
+
+		if (!pdata)
+		{
 			netdev_err(netdev, "No platform data\n");
 			err = -ENODEV;
 			goto err_pdata;
 		}
+
 		memcpy(ks->mac_addr, pdata->mac_addr, ETH_ALEN);
 	}
-	if (!is_valid_ether_addr(ks->mac_addr)) {
+
+	if (!is_valid_ether_addr(ks->mac_addr))
+	{
 		/* Use random MAC address if none passed */
 		eth_random_addr(ks->mac_addr);
 		netdev_info(netdev, "Using random mac address\n");
 	}
+
 	netdev_info(netdev, "Mac address is: %pM\n", ks->mac_addr);
 
 	memcpy(netdev->dev_addr, ks->mac_addr, ETH_ALEN);
@@ -1656,7 +1806,7 @@ static int ks8851_probe(struct platform_device *pdev)
 	id = ks_rdreg16(ks, KS_CIDER);
 
 	netdev_info(netdev, "Found chip, family: 0x%x, id: 0x%x, rev: 0x%x\n",
-		    (id >> 8) & 0xff, (id >> 4) & 0xf, (id >> 1) & 0x7);
+				(id >> 8) & 0xff, (id >> 4) & 0xf, (id >> 1) & 0x7);
 	return 0;
 
 err_pdata:
@@ -1676,7 +1826,8 @@ static int ks8851_remove(struct platform_device *pdev)
 
 }
 
-static struct platform_driver ks8851_platform_driver = {
+static struct platform_driver ks8851_platform_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 		.of_match_table	= of_match_ptr(ks8851_ml_dt_ids),

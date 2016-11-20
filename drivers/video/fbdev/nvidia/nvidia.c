@@ -22,7 +22,7 @@
 #include <linux/console.h>
 #include <linux/backlight.h>
 #ifdef CONFIG_BOOTX_TEXT
-#include <asm/btext.h>
+	#include <asm/btext.h>
 #endif
 
 #include "nv_local.h"
@@ -31,9 +31,9 @@
 #include "nv_dma.h"
 
 #ifdef CONFIG_FB_NVIDIA_DEBUG
-#define NVTRACE          printk
+	#define NVTRACE          printk
 #else
-#define NVTRACE          if (0) printk
+	#define NVTRACE          if (0) printk
 #endif
 
 #define NVTRACE_ENTER(...)  NVTRACE("%s START\n", __func__)
@@ -42,9 +42,9 @@
 #ifdef CONFIG_FB_NVIDIA_DEBUG
 #define assert(expr) \
 	if (!(expr)) { \
-	printk( "Assertion failed! %s,%s,%s,line=%d\n",\
-	#expr,__FILE__,__func__,__LINE__); \
-	BUG(); \
+		printk( "Assertion failed! %s,%s,%s,line=%d\n",\
+				#expr,__FILE__,__func__,__LINE__); \
+		BUG(); \
 	}
 #else
 #define assert(expr)
@@ -55,9 +55,12 @@
 /* HW cursor parameters */
 #define MAX_CURS		32
 
-static struct pci_device_id nvidiafb_pci_tbl[] = {
-	{PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
-	 PCI_BASE_CLASS_DISPLAY << 16, 0xff0000, 0},
+static struct pci_device_id nvidiafb_pci_tbl[] =
+{
+	{
+		PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
+		PCI_BASE_CLASS_DISPLAY << 16, 0xff0000, 0
+	},
 	{ 0, }
 };
 MODULE_DEVICE_TABLE(pci, nvidiafb_pci_tbl);
@@ -75,20 +78,22 @@ static int bpp = 8;
 static int reverse_i2c;
 static bool nomtrr = false;
 #ifdef CONFIG_PMAC_BACKLIGHT
-static int backlight = 1;
+	static int backlight = 1;
 #else
-static int backlight = 0;
+	static int backlight = 0;
 #endif
 
 static char *mode_option = NULL;
 
-static struct fb_fix_screeninfo nvidiafb_fix = {
+static struct fb_fix_screeninfo nvidiafb_fix =
+{
 	.type = FB_TYPE_PACKED_PIXELS,
 	.xpanstep = 8,
 	.ypanstep = 1,
 };
 
-static struct fb_var_screeninfo nvidiafb_default_var = {
+static struct fb_var_screeninfo nvidiafb_default_var =
+{
 	.xres = 640,
 	.yres = 480,
 	.xres_virtual = 640,
@@ -111,8 +116,8 @@ static struct fb_var_screeninfo nvidiafb_default_var = {
 	.vmode = FB_VMODE_NONINTERLACED
 };
 
-static void nvidiafb_load_cursor_image(struct nvidia_par *par, u8 * data8,
-				       u16 bg, u16 fg, u32 w, u32 h)
+static void nvidiafb_load_cursor_image(struct nvidia_par *par, u8 *data8,
+									   u16 bg, u16 fg, u32 w, u32 h)
 {
 	u32 *data = (u32 *) data8;
 	int i, j, k = 0;
@@ -120,11 +125,13 @@ static void nvidiafb_load_cursor_image(struct nvidia_par *par, u8 * data8,
 
 	w = (w + 1) & ~1;
 
-	for (i = 0; i < h; i++) {
+	for (i = 0; i < h; i++)
+	{
 		b = *data++;
 		reverse_order(&b);
 
-		for (j = 0; j < w / 2; j++) {
+		for (j = 0; j < w / 2; j++)
+		{
 			tmp = 0;
 #if defined (__BIG_ENDIAN)
 			tmp = (b & (1 << 31)) ? fg << 16 : bg << 16;
@@ -139,12 +146,13 @@ static void nvidiafb_load_cursor_image(struct nvidia_par *par, u8 * data8,
 #endif
 			NV_WR32(&par->CURSOR[k++], 0, tmp);
 		}
+
 		k += (MAX_CURS - w) / 2;
 	}
 }
 
 static void nvidia_write_clut(struct nvidia_par *par,
-			      u8 regnum, u8 red, u8 green, u8 blue)
+							  u8 regnum, u8 red, u8 green, u8 blue)
 {
 	NVWriteDacMask(par, 0xff);
 	NVWriteDacWriteAddr(par, regnum);
@@ -154,7 +162,7 @@ static void nvidia_write_clut(struct nvidia_par *par,
 }
 
 static void nvidia_read_clut(struct nvidia_par *par,
-			     u8 regnum, u8 * red, u8 * green, u8 * blue)
+							 u8 regnum, u8 *red, u8 *green, u8 *blue)
 {
 	NVWriteDacMask(par, 0xff);
 	NVWriteDacReadAddr(par, regnum);
@@ -164,38 +172,45 @@ static void nvidia_read_clut(struct nvidia_par *par,
 }
 
 static int nvidia_panel_tweak(struct nvidia_par *par,
-			      struct _riva_hw_state *state)
+							  struct _riva_hw_state *state)
 {
 	int tweak = 0;
 
-   if (par->paneltweak) {
-	   tweak = par->paneltweak;
-   } else {
-	   /* begin flat panel hacks */
-	   /* This is unfortunate, but some chips need this register
-	      tweaked or else you get artifacts where adjacent pixels are
-	      swapped.  There are no hard rules for what to set here so all
-	      we can do is experiment and apply hacks. */
+	if (par->paneltweak)
+	{
+		tweak = par->paneltweak;
+	}
+	else
+	{
+		/* begin flat panel hacks */
+		/* This is unfortunate, but some chips need this register
+		   tweaked or else you get artifacts where adjacent pixels are
+		   swapped.  There are no hard rules for what to set here so all
+		   we can do is experiment and apply hacks. */
 
-	   if(((par->Chipset & 0xffff) == 0x0328) && (state->bpp == 32)) {
-		   /* At least one NV34 laptop needs this workaround. */
-		   tweak = -1;
-	   }
+		if (((par->Chipset & 0xffff) == 0x0328) && (state->bpp == 32))
+		{
+			/* At least one NV34 laptop needs this workaround. */
+			tweak = -1;
+		}
 
-	   if((par->Chipset & 0xfff0) == 0x0310) {
-		   tweak = 1;
-	   }
-	   /* end flat panel hacks */
-   }
+		if ((par->Chipset & 0xfff0) == 0x0310)
+		{
+			tweak = 1;
+		}
 
-   return tweak;
+		/* end flat panel hacks */
+	}
+
+	return tweak;
 }
 
 static void nvidia_screen_off(struct nvidia_par *par, int on)
 {
 	unsigned char tmp;
 
-	if (on) {
+	if (on)
+	{
 		/*
 		 * Turn off screen and disable sequencer.
 		 */
@@ -203,7 +218,9 @@ static void nvidia_screen_off(struct nvidia_par *par, int on)
 
 		NVWriteSeq(par, 0x00, 0x01);		/* Synchronous Reset */
 		NVWriteSeq(par, 0x01, tmp | 0x20);	/* disable the display */
-	} else {
+	}
+	else
+	{
 		/*
 		 * Reenable sequencer, then turn on screen.
 		 */
@@ -216,7 +233,7 @@ static void nvidia_screen_off(struct nvidia_par *par, int on)
 }
 
 static void nvidia_save_vga(struct nvidia_par *par,
-			    struct _riva_hw_state *state)
+							struct _riva_hw_state *state)
 {
 	int i;
 
@@ -228,23 +245,32 @@ static void nvidia_save_vga(struct nvidia_par *par,
 	state->misc_output = NVReadMiscOut(par);
 
 	for (i = 0; i < NUM_CRT_REGS; i++)
+	{
 		state->crtc[i] = NVReadCrtc(par, i);
+	}
 
 	for (i = 0; i < NUM_ATC_REGS; i++)
+	{
 		state->attr[i] = NVReadAttr(par, i);
+	}
 
 	for (i = 0; i < NUM_GRC_REGS; i++)
+	{
 		state->gra[i] = NVReadGr(par, i);
+	}
 
 	for (i = 0; i < NUM_SEQ_REGS; i++)
+	{
 		state->seq[i] = NVReadSeq(par, i);
+	}
+
 	NVTRACE_LEAVE();
 }
 
 #undef DUMP_REG
 
 static void nvidia_write_regs(struct nvidia_par *par,
-			      struct _riva_hw_state *state)
+							  struct _riva_hw_state *state)
 {
 	int i;
 
@@ -254,7 +280,8 @@ static void nvidia_write_regs(struct nvidia_par *par,
 
 	NVWriteMiscOut(par, state->misc_output);
 
-	for (i = 1; i < NUM_SEQ_REGS; i++) {
+	for (i = 1; i < NUM_SEQ_REGS; i++)
+	{
 #ifdef DUMP_REG
 		printk(" SEQ[%02x] = %08x\n", i, state->seq[i]);
 #endif
@@ -264,27 +291,32 @@ static void nvidia_write_regs(struct nvidia_par *par,
 	/* Ensure CRTC registers 0-7 are unlocked by clearing bit 7 of CRTC[17] */
 	NVWriteCrtc(par, 0x11, state->crtc[0x11] & ~0x80);
 
-	for (i = 0; i < NUM_CRT_REGS; i++) {
-		switch (i) {
-		case 0x19:
-		case 0x20 ... 0x40:
-			break;
-		default:
+	for (i = 0; i < NUM_CRT_REGS; i++)
+	{
+		switch (i)
+		{
+			case 0x19:
+			case 0x20 ... 0x40:
+				break;
+
+			default:
 #ifdef DUMP_REG
-			printk("CRTC[%02x] = %08x\n", i, state->crtc[i]);
+				printk("CRTC[%02x] = %08x\n", i, state->crtc[i]);
 #endif
-			NVWriteCrtc(par, i, state->crtc[i]);
+				NVWriteCrtc(par, i, state->crtc[i]);
 		}
 	}
 
-	for (i = 0; i < NUM_GRC_REGS; i++) {
+	for (i = 0; i < NUM_GRC_REGS; i++)
+	{
 #ifdef DUMP_REG
 		printk(" GRA[%02x] = %08x\n", i, state->gra[i]);
 #endif
 		NVWriteGr(par, i, state->gra[i]);
 	}
 
-	for (i = 0; i < NUM_ATC_REGS; i++) {
+	for (i = 0; i < NUM_ATC_REGS; i++)
+	{
 #ifdef DUMP_REG
 		printk("ATTR[%02x] = %08x\n", i, state->attr[i]);
 #endif
@@ -302,17 +334,17 @@ static int nvidia_calc_regs(struct fb_info *info)
 	int h_display = info->var.xres / 8 - 1;
 	int h_start = (info->var.xres + info->var.right_margin) / 8 - 1;
 	int h_end = (info->var.xres + info->var.right_margin +
-		     info->var.hsync_len) / 8 - 1;
+				 info->var.hsync_len) / 8 - 1;
 	int h_total = (info->var.xres + info->var.right_margin +
-		       info->var.hsync_len + info->var.left_margin) / 8 - 5;
+				   info->var.hsync_len + info->var.left_margin) / 8 - 5;
 	int h_blank_s = h_display;
 	int h_blank_e = h_total + 4;
 	int v_display = info->var.yres - 1;
 	int v_start = info->var.yres + info->var.lower_margin - 1;
 	int v_end = (info->var.yres + info->var.lower_margin +
-		     info->var.vsync_len) - 1;
+				 info->var.vsync_len) - 1;
 	int v_total = (info->var.yres + info->var.lower_margin +
-		       info->var.vsync_len + info->var.upper_margin) - 2;
+				   info->var.vsync_len + info->var.upper_margin) - 2;
 	int v_blank_s = v_display;
 	int v_blank_e = v_total + 1;
 
@@ -321,9 +353,12 @@ static int nvidia_calc_regs(struct fb_info *info)
 	 */
 
 	if (info->var.vmode & FB_VMODE_INTERLACED)
+	{
 		v_total |= 1;
+	}
 
-	if (par->FlatPanel == 1) {
+	if (par->FlatPanel == 1)
+	{
 		v_start = v_total - 3;
 		v_end = v_total - 2;
 		v_blank_s = v_start;
@@ -335,57 +370,62 @@ static int nvidia_calc_regs(struct fb_info *info)
 	state->crtc[0x0] = Set8Bits(h_total);
 	state->crtc[0x1] = Set8Bits(h_display);
 	state->crtc[0x2] = Set8Bits(h_blank_s);
-	state->crtc[0x3] = SetBitField(h_blank_e, 4: 0, 4:0)
-		| SetBit(7);
+	state->crtc[0x3] = SetBitField(h_blank_e, 4: 0, 4: 0)
+					   | SetBit(7);
 	state->crtc[0x4] = Set8Bits(h_start);
-	state->crtc[0x5] = SetBitField(h_blank_e, 5: 5, 7:7)
-		| SetBitField(h_end, 4: 0, 4:0);
-	state->crtc[0x6] = SetBitField(v_total, 7: 0, 7:0);
-	state->crtc[0x7] = SetBitField(v_total, 8: 8, 0:0)
-		| SetBitField(v_display, 8: 8, 1:1)
-		| SetBitField(v_start, 8: 8, 2:2)
-		| SetBitField(v_blank_s, 8: 8, 3:3)
-		| SetBit(4)
-		| SetBitField(v_total, 9: 9, 5:5)
-		| SetBitField(v_display, 9: 9, 6:6)
-		| SetBitField(v_start, 9: 9, 7:7);
-	state->crtc[0x9] = SetBitField(v_blank_s, 9: 9, 5:5)
-		| SetBit(6)
-		| ((info->var.vmode & FB_VMODE_DOUBLE) ? 0x80 : 0x00);
+	state->crtc[0x5] = SetBitField(h_blank_e, 5: 5, 7: 7)
+					   | SetBitField(h_end, 4: 0, 4: 0);
+	state->crtc[0x6] = SetBitField(v_total, 7: 0, 7: 0);
+	state->crtc[0x7] = SetBitField(v_total, 8: 8, 0: 0)
+					   | SetBitField(v_display, 8: 8, 1: 1)
+					   | SetBitField(v_start, 8: 8, 2: 2)
+					   | SetBitField(v_blank_s, 8: 8, 3: 3)
+					   | SetBit(4)
+					   | SetBitField(v_total, 9: 9, 5: 5)
+					   | SetBitField(v_display, 9: 9, 6: 6)
+					   | SetBitField(v_start, 9: 9, 7: 7);
+	state->crtc[0x9] = SetBitField(v_blank_s, 9: 9, 5: 5)
+					   | SetBit(6)
+					   | ((info->var.vmode & FB_VMODE_DOUBLE) ? 0x80 : 0x00);
 	state->crtc[0x10] = Set8Bits(v_start);
-	state->crtc[0x11] = SetBitField(v_end, 3: 0, 3:0) | SetBit(5);
+	state->crtc[0x11] = SetBitField(v_end, 3: 0, 3: 0) | SetBit(5);
 	state->crtc[0x12] = Set8Bits(v_display);
 	state->crtc[0x13] = ((info->var.xres_virtual / 8) *
-			     (info->var.bits_per_pixel / 8));
+						 (info->var.bits_per_pixel / 8));
 	state->crtc[0x15] = Set8Bits(v_blank_s);
 	state->crtc[0x16] = Set8Bits(v_blank_e);
 
 	state->attr[0x10] = 0x01;
 
 	if (par->Television)
+	{
 		state->attr[0x11] = 0x00;
+	}
 
-	state->screen = SetBitField(h_blank_e, 6: 6, 4:4)
-		| SetBitField(v_blank_s, 10: 10, 3:3)
-		| SetBitField(v_start, 10: 10, 2:2)
-		| SetBitField(v_display, 10: 10, 1:1)
-		| SetBitField(v_total, 10: 10, 0:0);
+	state->screen = SetBitField(h_blank_e, 6: 6, 4: 4)
+					| SetBitField(v_blank_s, 10: 10, 3: 3)
+					| SetBitField(v_start, 10: 10, 2: 2)
+					| SetBitField(v_display, 10: 10, 1: 1)
+					| SetBitField(v_total, 10: 10, 0: 0);
 
-	state->horiz = SetBitField(h_total, 8: 8, 0:0)
-		| SetBitField(h_display, 8: 8, 1:1)
-		| SetBitField(h_blank_s, 8: 8, 2:2)
-		| SetBitField(h_start, 8: 8, 3:3);
+	state->horiz = SetBitField(h_total, 8: 8, 0: 0)
+				   | SetBitField(h_display, 8: 8, 1: 1)
+				   | SetBitField(h_blank_s, 8: 8, 2: 2)
+				   | SetBitField(h_start, 8: 8, 3: 3);
 
-	state->extra = SetBitField(v_total, 11: 11, 0:0)
-		| SetBitField(v_display, 11: 11, 2:2)
-		| SetBitField(v_start, 11: 11, 4:4)
-		| SetBitField(v_blank_s, 11: 11, 6:6);
+	state->extra = SetBitField(v_total, 11: 11, 0: 0)
+				   | SetBitField(v_display, 11: 11, 2: 2)
+				   | SetBitField(v_start, 11: 11, 4: 4)
+				   | SetBitField(v_blank_s, 11: 11, 6: 6);
 
-	if (info->var.vmode & FB_VMODE_INTERLACED) {
+	if (info->var.vmode & FB_VMODE_INTERLACED)
+	{
 		h_total = (h_total >> 1) & ~1;
 		state->interlace = Set8Bits(h_total);
-		state->horiz |= SetBitField(h_total, 8: 8, 4:4);
-	} else {
+		state->horiz |= SetBitField(h_total, 8: 8, 4: 4);
+	}
+	else
+	{
 		state->interlace = 0xff;	/* interlace off */
 	}
 
@@ -394,37 +434,54 @@ static int nvidia_calc_regs(struct fb_info *info)
 	 */
 
 	if (depth < 24)
+	{
 		i = depth;
+	}
 	else
+	{
 		i = 32;
+	}
 
 	if (par->Architecture >= NV_ARCH_10)
 		par->CURSOR = (volatile u32 __iomem *)(info->screen_base +
-						       par->CursorStart);
+											   par->CursorStart);
 
 	if (info->var.sync & FB_SYNC_HOR_HIGH_ACT)
+	{
 		state->misc_output &= ~0x40;
+	}
 	else
+	{
 		state->misc_output |= 0x40;
+	}
+
 	if (info->var.sync & FB_SYNC_VERT_HIGH_ACT)
+	{
 		state->misc_output &= ~0x80;
+	}
 	else
+	{
 		state->misc_output |= 0x80;
+	}
 
 	NVCalcStateExt(par, state, i, info->var.xres_virtual,
-		       info->var.xres, info->var.yres_virtual,
-		       1000000000 / info->var.pixclock, info->var.vmode);
+				   info->var.xres, info->var.yres_virtual,
+				   1000000000 / info->var.pixclock, info->var.vmode);
 
 	state->scale = NV_RD32(par->PRAMDAC, 0x00000848) & 0xfff000ff;
-	if (par->FlatPanel == 1) {
+
+	if (par->FlatPanel == 1)
+	{
 		state->pixel |= (1 << 7);
 
 		if (!par->fpScaler || (par->fpWidth <= info->var.xres)
-		    || (par->fpHeight <= info->var.yres)) {
+			|| (par->fpHeight <= info->var.yres))
+		{
 			state->scale |= (1 << 8);
 		}
 
-		if (!par->crtcSync_read) {
+		if (!par->crtcSync_read)
+		{
 			state->crtcSync = NV_RD32(par->PRAMDAC, 0x0828);
 			par->crtcSync_read = 1;
 		}
@@ -438,49 +495,79 @@ static int nvidia_calc_regs(struct fb_info *info)
 	state->vpll2B = state->pllB;
 
 	VGA_WR08(par->PCIO, 0x03D4, 0x1C);
-	state->fifo = VGA_RD08(par->PCIO, 0x03D5) & ~(1<<5);
+	state->fifo = VGA_RD08(par->PCIO, 0x03D5) & ~(1 << 5);
 
-	if (par->CRTCnumber) {
+	if (par->CRTCnumber)
+	{
 		state->head = NV_RD32(par->PCRTC0, 0x00000860) & ~0x00001000;
 		state->head2 = NV_RD32(par->PCRTC0, 0x00002860) | 0x00001000;
 		state->crtcOwner = 3;
 		state->pllsel |= 0x20000800;
 		state->vpll = NV_RD32(par->PRAMDAC0, 0x00000508);
+
 		if (par->twoStagePLL)
+		{
 			state->vpllB = NV_RD32(par->PRAMDAC0, 0x00000578);
-	} else if (par->twoHeads) {
+		}
+	}
+	else if (par->twoHeads)
+	{
 		state->head = NV_RD32(par->PCRTC0, 0x00000860) | 0x00001000;
 		state->head2 = NV_RD32(par->PCRTC0, 0x00002860) & ~0x00001000;
 		state->crtcOwner = 0;
 		state->vpll2 = NV_RD32(par->PRAMDAC0, 0x0520);
+
 		if (par->twoStagePLL)
+		{
 			state->vpll2B = NV_RD32(par->PRAMDAC0, 0x057C);
+		}
 	}
 
 	state->cursorConfig = 0x00000100;
 
 	if (info->var.vmode & FB_VMODE_DOUBLE)
+	{
 		state->cursorConfig |= (1 << 4);
+	}
 
-	if (par->alphaCursor) {
+	if (par->alphaCursor)
+	{
 		if ((par->Chipset & 0x0ff0) != 0x0110)
+		{
 			state->cursorConfig |= 0x04011000;
+		}
 		else
+		{
 			state->cursorConfig |= 0x14011000;
-		state->general |= (1 << 29);
-	} else
-		state->cursorConfig |= 0x02000000;
+		}
 
-	if (par->twoHeads) {
-		if ((par->Chipset & 0x0ff0) == 0x0110) {
+		state->general |= (1 << 29);
+	}
+	else
+	{
+		state->cursorConfig |= 0x02000000;
+	}
+
+	if (par->twoHeads)
+	{
+		if ((par->Chipset & 0x0ff0) == 0x0110)
+		{
 			state->dither = NV_RD32(par->PRAMDAC, 0x0528) &
-			    ~0x00010000;
+							~0x00010000;
+
 			if (par->FPDither)
+			{
 				state->dither |= 0x00010000;
-		} else {
+			}
+		}
+		else
+		{
 			state->dither = NV_RD32(par->PRAMDAC, 0x083C) & ~1;
+
 			if (par->FPDither)
+			{
 				state->dither |= 1;
+			}
 		}
 	}
 
@@ -498,7 +585,10 @@ static void nvidia_init_vga(struct fb_info *info)
 	int i;
 
 	for (i = 0; i < 0x10; i++)
+	{
 		state->attr[i] = i;
+	}
+
 	state->attr[0x10] = 0x41;
 	state->attr[0x11] = 0xff;
 	state->attr[0x12] = 0x0f;
@@ -534,19 +624,25 @@ static int nvidiafb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 	u16 fg, bg;
 
 	if (cursor->image.width > MAX_CURS || cursor->image.height > MAX_CURS)
+	{
 		return -ENXIO;
+	}
 
 	NVShowHideCursor(par, 0);
 
-	if (par->cursor_reset) {
+	if (par->cursor_reset)
+	{
 		set = FB_CUR_SETALL;
 		par->cursor_reset = 0;
 	}
 
 	if (set & FB_CUR_SETSIZE)
+	{
 		memset_io(par->CURSOR, 0, MAX_CURS * MAX_CURS * 2);
+	}
 
-	if (set & FB_CUR_SETPOS) {
+	if (set & FB_CUR_SETPOS)
+	{
 		u32 xx, yy, temp;
 
 		yy = cursor->image.dy - info->var.yoffset;
@@ -557,7 +653,8 @@ static int nvidiafb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 		NV_WR32(par->PRAMDAC, 0x0000300, temp);
 	}
 
-	if (set & (FB_CUR_SETSHAPE | FB_CUR_SETCMAP | FB_CUR_SETIMAGE)) {
+	if (set & (FB_CUR_SETSHAPE | FB_CUR_SETCMAP | FB_CUR_SETIMAGE))
+	{
 		u32 bg_idx = cursor->image.bg_color;
 		u32 fg_idx = cursor->image.fg_color;
 		u32 s_pitch = (cursor->image.width + 7) >> 3;
@@ -568,41 +665,52 @@ static int nvidiafb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 
 		src = kmalloc(s_pitch * cursor->image.height, GFP_ATOMIC);
 
-		if (src) {
-			switch (cursor->rop) {
-			case ROP_XOR:
-				for (i = 0; i < s_pitch * cursor->image.height; i++)
-					src[i] = dat[i] ^ msk[i];
-				break;
-			case ROP_COPY:
-			default:
-				for (i = 0; i < s_pitch * cursor->image.height; i++)
-					src[i] = dat[i] & msk[i];
-				break;
+		if (src)
+		{
+			switch (cursor->rop)
+			{
+				case ROP_XOR:
+					for (i = 0; i < s_pitch * cursor->image.height; i++)
+					{
+						src[i] = dat[i] ^ msk[i];
+					}
+
+					break;
+
+				case ROP_COPY:
+				default:
+					for (i = 0; i < s_pitch * cursor->image.height; i++)
+					{
+						src[i] = dat[i] & msk[i];
+					}
+
+					break;
 			}
 
 			fb_pad_aligned_buffer(data, d_pitch, src, s_pitch,
-						cursor->image.height);
+								  cursor->image.height);
 
 			bg = ((info->cmap.red[bg_idx] & 0xf8) << 7) |
-			    ((info->cmap.green[bg_idx] & 0xf8) << 2) |
-			    ((info->cmap.blue[bg_idx] & 0xf8) >> 3) | 1 << 15;
+				 ((info->cmap.green[bg_idx] & 0xf8) << 2) |
+				 ((info->cmap.blue[bg_idx] & 0xf8) >> 3) | 1 << 15;
 
 			fg = ((info->cmap.red[fg_idx] & 0xf8) << 7) |
-			    ((info->cmap.green[fg_idx] & 0xf8) << 2) |
-			    ((info->cmap.blue[fg_idx] & 0xf8) >> 3) | 1 << 15;
+				 ((info->cmap.green[fg_idx] & 0xf8) << 2) |
+				 ((info->cmap.blue[fg_idx] & 0xf8) >> 3) | 1 << 15;
 
 			NVLockUnlock(par, 0);
 
 			nvidiafb_load_cursor_image(par, data, bg, fg,
-						   cursor->image.width,
-						   cursor->image.height);
+									   cursor->image.width,
+									   cursor->image.height);
 			kfree(src);
 		}
 	}
 
 	if (cursor->enable)
+	{
 		NVShowHideCursor(par, 1);
+	}
 
 	return 0;
 }
@@ -614,27 +722,36 @@ static int nvidiafb_set_par(struct fb_info *info)
 	NVTRACE_ENTER();
 
 	NVLockUnlock(par, 1);
-	if (!par->FlatPanel || !par->twoHeads)
-		par->FPDither = 0;
 
-	if (par->FPDither < 0) {
+	if (!par->FlatPanel || !par->twoHeads)
+	{
+		par->FPDither = 0;
+	}
+
+	if (par->FPDither < 0)
+	{
 		if ((par->Chipset & 0x0ff0) == 0x0110)
 			par->FPDither = !!(NV_RD32(par->PRAMDAC, 0x0528)
-					   & 0x00010000);
+							   & 0x00010000);
 		else
+		{
 			par->FPDither = !!(NV_RD32(par->PRAMDAC, 0x083C) & 1);
+		}
+
 		printk(KERN_INFO PFX "Flat panel dithering %s\n",
-		       par->FPDither ? "enabled" : "disabled");
+			   par->FPDither ? "enabled" : "disabled");
 	}
 
 	info->fix.visual = (info->var.bits_per_pixel == 8) ?
-	    FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_DIRECTCOLOR;
+					   FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_DIRECTCOLOR;
 
 	nvidia_init_vga(info);
 	nvidia_calc_regs(info);
 
 	NVLockUnlock(par, 0);
-	if (par->twoHeads) {
+
+	if (par->twoHeads)
+	{
 		VGA_WR08(par->PCIO, 0x03D4, 0x44);
 		VGA_WR08(par->PCIO, 0x03D5, par->ModeReg.crtcOwner);
 		NVLockUnlock(par, 0);
@@ -654,12 +771,14 @@ static int nvidiafb_set_par(struct fb_info *info)
 		tmp = VGA_RD08(par->PCIO, 0x3d5);
 		tmp |= (1 << 7);
 		VGA_WR08(par->PCIO, 0x3d5, tmp);
-    }
+	}
 #endif
 
 	info->fix.line_length = (info->var.xres_virtual *
-				 info->var.bits_per_pixel) >> 3;
-	if (info->var.accel_flags) {
+							 info->var.bits_per_pixel) >> 3;
+
+	if (info->var.accel_flags)
+	{
 		info->fbops->fb_imageblit = nvidiafb_imageblit;
 		info->fbops->fb_fillrect = nvidiafb_fillrect;
 		info->fbops->fb_copyarea = nvidiafb_copyarea;
@@ -668,7 +787,9 @@ static int nvidiafb_set_par(struct fb_info *info)
 		info->flags &= ~FBINFO_HWACCEL_DISABLED;
 		info->flags |= FBINFO_READS_FAST;
 		NVResetGraphics(info);
-	} else {
+	}
+	else
+	{
 		info->fbops->fb_imageblit = cfb_imageblit;
 		info->fbops->fb_fillrect = cfb_fillrect;
 		info->fbops->fb_copyarea = cfb_copyarea;
@@ -685,8 +806,8 @@ static int nvidiafb_set_par(struct fb_info *info)
 #ifdef CONFIG_BOOTX_TEXT
 	/* Update debug text engine */
 	btext_update_display(info->fix.smem_start,
-			     info->var.xres, info->var.yres,
-			     info->var.bits_per_pixel, info->fix.line_length);
+						 info->var.xres, info->var.yres,
+						 info->var.bits_per_pixel, info->fix.line_length);
 #endif
 
 	NVLockUnlock(par, 0);
@@ -695,63 +816,79 @@ static int nvidiafb_set_par(struct fb_info *info)
 }
 
 static int nvidiafb_setcolreg(unsigned regno, unsigned red, unsigned green,
-			      unsigned blue, unsigned transp,
-			      struct fb_info *info)
+							  unsigned blue, unsigned transp,
+							  struct fb_info *info)
 {
 	struct nvidia_par *par = info->par;
 	int i;
 
 	NVTRACE_ENTER();
-	if (regno >= (1 << info->var.green.length))
-		return -EINVAL;
 
-	if (info->var.grayscale) {
+	if (regno >= (1 << info->var.green.length))
+	{
+		return -EINVAL;
+	}
+
+	if (info->var.grayscale)
+	{
 		/* gray = 0.30*R + 0.59*G + 0.11*B */
 		red = green = blue = (red * 77 + green * 151 + blue * 28) >> 8;
 	}
 
-	if (regno < 16 && info->fix.visual == FB_VISUAL_DIRECTCOLOR) {
+	if (regno < 16 && info->fix.visual == FB_VISUAL_DIRECTCOLOR)
+	{
 		((u32 *) info->pseudo_palette)[regno] =
-		    (regno << info->var.red.offset) |
-		    (regno << info->var.green.offset) |
-		    (regno << info->var.blue.offset);
+			(regno << info->var.red.offset) |
+			(regno << info->var.green.offset) |
+			(regno << info->var.blue.offset);
 	}
 
-	switch (info->var.bits_per_pixel) {
-	case 8:
-		/* "transparent" stuff is completely ignored. */
-		nvidia_write_clut(par, regno, red >> 8, green >> 8, blue >> 8);
-		break;
-	case 16:
-		if (info->var.green.length == 5) {
-			for (i = 0; i < 8; i++) {
-				nvidia_write_clut(par, regno * 8 + i, red >> 8,
-						  green >> 8, blue >> 8);
-			}
-		} else {
-			u8 r, g, b;
+	switch (info->var.bits_per_pixel)
+	{
+		case 8:
+			/* "transparent" stuff is completely ignored. */
+			nvidia_write_clut(par, regno, red >> 8, green >> 8, blue >> 8);
+			break;
 
-			if (regno < 32) {
-				for (i = 0; i < 8; i++) {
-					nvidia_write_clut(par, regno * 8 + i,
-							  red >> 8, green >> 8,
-							  blue >> 8);
+		case 16:
+			if (info->var.green.length == 5)
+			{
+				for (i = 0; i < 8; i++)
+				{
+					nvidia_write_clut(par, regno * 8 + i, red >> 8,
+									  green >> 8, blue >> 8);
 				}
 			}
+			else
+			{
+				u8 r, g, b;
 
-			nvidia_read_clut(par, regno * 4, &r, &g, &b);
+				if (regno < 32)
+				{
+					for (i = 0; i < 8; i++)
+					{
+						nvidia_write_clut(par, regno * 8 + i,
+										  red >> 8, green >> 8,
+										  blue >> 8);
+					}
+				}
 
-			for (i = 0; i < 4; i++)
-				nvidia_write_clut(par, regno * 4 + i, r,
-						  green >> 8, b);
-		}
-		break;
-	case 32:
-		nvidia_write_clut(par, regno, red >> 8, green >> 8, blue >> 8);
-		break;
-	default:
-		/* do nothing */
-		break;
+				nvidia_read_clut(par, regno * 4, &r, &g, &b);
+
+				for (i = 0; i < 4; i++)
+					nvidia_write_clut(par, regno * 4 + i, r,
+									  green >> 8, b);
+			}
+
+			break;
+
+		case 32:
+			nvidia_write_clut(par, regno, red >> 8, green >> 8, blue >> 8);
+			break;
+
+		default:
+			/* do nothing */
+			break;
 	}
 
 	NVTRACE_LEAVE();
@@ -759,7 +896,7 @@ static int nvidiafb_setcolreg(unsigned regno, unsigned red, unsigned green,
 }
 
 static int nvidiafb_check_var(struct fb_var_screeninfo *var,
-			      struct fb_info *info)
+							  struct fb_info *info)
 {
 	struct nvidia_par *par = info->par;
 	int memlen, vramlen, mode_valid = 0;
@@ -773,43 +910,52 @@ static int nvidiafb_check_var(struct fb_var_screeninfo *var,
 	var->xres &= ~7;
 
 	if (var->bits_per_pixel <= 8)
+	{
 		var->bits_per_pixel = 8;
+	}
 	else if (var->bits_per_pixel <= 16)
+	{
 		var->bits_per_pixel = 16;
+	}
 	else
+	{
 		var->bits_per_pixel = 32;
+	}
 
-	switch (var->bits_per_pixel) {
-	case 8:
-		var->red.offset = 0;
-		var->red.length = 8;
-		var->green.offset = 0;
-		var->green.length = 8;
-		var->blue.offset = 0;
-		var->blue.length = 8;
-		var->transp.offset = 0;
-		var->transp.length = 0;
-		break;
-	case 16:
-		var->green.length = (var->green.length < 6) ? 5 : 6;
-		var->red.length = 5;
-		var->blue.length = 5;
-		var->transp.length = 6 - var->green.length;
-		var->blue.offset = 0;
-		var->green.offset = 5;
-		var->red.offset = 5 + var->green.length;
-		var->transp.offset = (5 + var->red.offset) & 15;
-		break;
-	case 32:		/* RGBA 8888 */
-		var->red.offset = 16;
-		var->red.length = 8;
-		var->green.offset = 8;
-		var->green.length = 8;
-		var->blue.offset = 0;
-		var->blue.length = 8;
-		var->transp.length = 8;
-		var->transp.offset = 24;
-		break;
+	switch (var->bits_per_pixel)
+	{
+		case 8:
+			var->red.offset = 0;
+			var->red.length = 8;
+			var->green.offset = 0;
+			var->green.length = 8;
+			var->blue.offset = 0;
+			var->blue.length = 8;
+			var->transp.offset = 0;
+			var->transp.length = 0;
+			break;
+
+		case 16:
+			var->green.length = (var->green.length < 6) ? 5 : 6;
+			var->red.length = 5;
+			var->blue.length = 5;
+			var->transp.length = 6 - var->green.length;
+			var->blue.offset = 0;
+			var->green.offset = 5;
+			var->red.offset = 5 + var->green.length;
+			var->transp.offset = (5 + var->red.offset) & 15;
+			break;
+
+		case 32:		/* RGBA 8888 */
+			var->red.offset = 16;
+			var->red.length = 8;
+			var->green.offset = 8;
+			var->green.length = 8;
+			var->blue.offset = 0;
+			var->blue.length = 8;
+			var->transp.length = 8;
+			var->transp.offset = 24;
+			break;
 	}
 
 	var->red.msb_right = 0;
@@ -818,27 +964,37 @@ static int nvidiafb_check_var(struct fb_var_screeninfo *var,
 	var->transp.msb_right = 0;
 
 	if (!info->monspecs.hfmax || !info->monspecs.vfmax ||
-	    !info->monspecs.dclkmax || !fb_validate_mode(var, info))
+		!info->monspecs.dclkmax || !fb_validate_mode(var, info))
+	{
 		mode_valid = 1;
-
-	/* calculate modeline if supported by monitor */
-	if (!mode_valid && info->monspecs.gtf) {
-		if (!fb_get_mode(FB_MAXTIMINGS, 0, var, info))
-			mode_valid = 1;
 	}
 
-	if (!mode_valid) {
+	/* calculate modeline if supported by monitor */
+	if (!mode_valid && info->monspecs.gtf)
+	{
+		if (!fb_get_mode(FB_MAXTIMINGS, 0, var, info))
+		{
+			mode_valid = 1;
+		}
+	}
+
+	if (!mode_valid)
+	{
 		const struct fb_videomode *mode;
 
 		mode = fb_find_best_mode(var, &info->modelist);
-		if (mode) {
+
+		if (mode)
+		{
 			fb_videomode_to_var(var, mode);
 			mode_valid = 1;
 		}
 	}
 
 	if (!mode_valid && info->monspecs.modedb_len)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * If we're on a flat panel, check if the mode is outside of the
@@ -846,16 +1002,19 @@ static int nvidiafb_check_var(struct fb_var_screeninfo *var,
 	 * before bailing out.
 	 */
 	if (par->fpWidth && par->fpHeight && (par->fpWidth < var->xres ||
-					      par->fpHeight < var->yres)) {
+										  par->fpHeight < var->yres))
+	{
 		const struct fb_videomode *mode;
 
 		var->xres = par->fpWidth;
 		var->yres = par->fpHeight;
 
 		mode = fb_find_best_mode(var, &info->modelist);
-		if (!mode) {
+
+		if (!mode)
+		{
 			printk(KERN_ERR PFX "mode out of range of flat "
-			       "panel dimensions\n");
+				   "panel dimensions\n");
 			return -EINVAL;
 		}
 
@@ -863,10 +1022,14 @@ static int nvidiafb_check_var(struct fb_var_screeninfo *var,
 	}
 
 	if (var->yres_virtual < var->yres)
+	{
 		var->yres_virtual = var->yres;
+	}
 
 	if (var->xres_virtual < var->xres)
+	{
 		var->xres_virtual = var->xres;
+	}
 
 	var->xres_virtual = (var->xres_virtual + 63) & ~63;
 
@@ -874,34 +1037,43 @@ static int nvidiafb_check_var(struct fb_var_screeninfo *var,
 	pitch = ((var->xres_virtual * var->bits_per_pixel) + 7) / 8;
 	memlen = pitch * var->yres_virtual;
 
-	if (memlen > vramlen) {
+	if (memlen > vramlen)
+	{
 		var->yres_virtual = vramlen / pitch;
 
-		if (var->yres_virtual < var->yres) {
+		if (var->yres_virtual < var->yres)
+		{
 			var->yres_virtual = var->yres;
 			var->xres_virtual = vramlen / var->yres_virtual;
 			var->xres_virtual /= var->bits_per_pixel / 8;
 			var->xres_virtual &= ~63;
 			pitch = (var->xres_virtual *
-				 var->bits_per_pixel + 7) / 8;
+					 var->bits_per_pixel + 7) / 8;
 			memlen = pitch * var->yres;
 
-			if (var->xres_virtual < var->xres) {
+			if (var->xres_virtual < var->xres)
+			{
 				printk("nvidiafb: required video memory, "
-				       "%d bytes, for %dx%d-%d (virtual) "
-				       "is out of range\n",
-				       memlen, var->xres_virtual,
-				       var->yres_virtual, var->bits_per_pixel);
+					   "%d bytes, for %dx%d-%d (virtual) "
+					   "is out of range\n",
+					   memlen, var->xres_virtual,
+					   var->yres_virtual, var->bits_per_pixel);
 				err = -ENOMEM;
 			}
 		}
 	}
 
-	if (var->accel_flags) {
+	if (var->accel_flags)
+	{
 		if (var->yres_virtual > 0x7fff)
+		{
 			var->yres_virtual = 0x7fff;
+		}
+
 		if (var->xres_virtual > 0x7fff)
+		{
 			var->xres_virtual = 0x7fff;
+		}
 	}
 
 	var->xres_virtual &= ~63;
@@ -912,7 +1084,7 @@ static int nvidiafb_check_var(struct fb_var_screeninfo *var,
 }
 
 static int nvidiafb_pan_display(struct fb_var_screeninfo *var,
-				struct fb_info *info)
+								struct fb_info *info)
 {
 	struct nvidia_par *par = info->par;
 	u32 total;
@@ -935,21 +1107,27 @@ static int nvidiafb_blank(int blank, struct fb_info *info)
 	NVTRACE_ENTER();
 
 	if (blank)
+	{
 		tmp |= 0x20;
+	}
 
-	switch (blank) {
-	case FB_BLANK_UNBLANK:
-	case FB_BLANK_NORMAL:
-		break;
-	case FB_BLANK_VSYNC_SUSPEND:
-		vesa |= 0x80;
-		break;
-	case FB_BLANK_HSYNC_SUSPEND:
-		vesa |= 0x40;
-		break;
-	case FB_BLANK_POWERDOWN:
-		vesa |= 0xc0;
-		break;
+	switch (blank)
+	{
+		case FB_BLANK_UNBLANK:
+		case FB_BLANK_NORMAL:
+			break;
+
+		case FB_BLANK_VSYNC_SUSPEND:
+			vesa |= 0x80;
+			break;
+
+		case FB_BLANK_HSYNC_SUSPEND:
+			vesa |= 0x40;
+			break;
+
+		case FB_BLANK_POWERDOWN:
+			vesa |= 0xc0;
+			break;
 	}
 
 	NVWriteSeq(par, 0x01, tmp);
@@ -969,22 +1147,25 @@ static int nvidiafb_blank(int blank, struct fb_info *info)
 #ifdef CONFIG_X86
 static void save_vga_x86(struct nvidia_par *par)
 {
-	struct resource *res= &par->pci_dev->resource[PCI_ROM_RESOURCE];
+	struct resource *res = &par->pci_dev->resource[PCI_ROM_RESOURCE];
 
-	if (res && res->flags & IORESOURCE_ROM_SHADOW) {
+	if (res && res->flags & IORESOURCE_ROM_SHADOW)
+	{
 		memset(&par->vgastate, 0, sizeof(par->vgastate));
 		par->vgastate.flags = VGA_SAVE_MODE | VGA_SAVE_FONTS |
-			VGA_SAVE_CMAP;
+							  VGA_SAVE_CMAP;
 		save_vga(&par->vgastate);
 	}
 }
 
 static void restore_vga_x86(struct nvidia_par *par)
 {
-	struct resource *res= &par->pci_dev->resource[PCI_ROM_RESOURCE];
+	struct resource *res = &par->pci_dev->resource[PCI_ROM_RESOURCE];
 
 	if (res && res->flags & IORESOURCE_ROM_SHADOW)
+	{
 		restore_vga(&par->vgastate);
+	}
 }
 #else
 #define save_vga_x86(x) do {} while (0)
@@ -995,7 +1176,8 @@ static int nvidiafb_open(struct fb_info *info, int user)
 {
 	struct nvidia_par *par = info->par;
 
-	if (!par->open_count) {
+	if (!par->open_count)
+	{
 		save_vga_x86(par);
 		nvidia_save_vga(par, &par->initial_state);
 	}
@@ -1009,12 +1191,14 @@ static int nvidiafb_release(struct fb_info *info, int user)
 	struct nvidia_par *par = info->par;
 	int err = 0;
 
-	if (!par->open_count) {
+	if (!par->open_count)
+	{
 		err = -EINVAL;
 		goto done;
 	}
 
-	if (par->open_count == 1) {
+	if (par->open_count == 1)
+	{
 		nvidia_write_regs(par, &par->initial_state);
 		restore_vga_x86(par);
 	}
@@ -1024,7 +1208,8 @@ done:
 	return err;
 }
 
-static struct fb_ops nvidia_fb_ops = {
+static struct fb_ops nvidia_fb_ops =
+{
 	.owner          = THIS_MODULE,
 	.fb_open        = nvidiafb_open,
 	.fb_release     = nvidiafb_release,
@@ -1047,11 +1232,15 @@ static int nvidiafb_suspend(struct pci_dev *dev, pm_message_t mesg)
 	struct nvidia_par *par = info->par;
 
 	if (mesg.event == PM_EVENT_PRETHAW)
+	{
 		mesg.event = PM_EVENT_FREEZE;
+	}
+
 	console_lock();
 	par->pm_state = mesg.event;
 
-	if (mesg.event & PM_EVENT_SLEEP) {
+	if (mesg.event & PM_EVENT_SLEEP)
+	{
 		fb_set_suspend(info, 1);
 		nvidiafb_blank(FB_BLANK_POWERDOWN, info);
 		nvidia_write_regs(par, &par->SavedReg);
@@ -1059,6 +1248,7 @@ static int nvidiafb_suspend(struct pci_dev *dev, pm_message_t mesg)
 		pci_disable_device(dev);
 		pci_set_power_state(dev, pci_choose_state(dev, mesg));
 	}
+
 	dev->dev.power.power_state = mesg;
 
 	console_unlock();
@@ -1073,11 +1263,14 @@ static int nvidiafb_resume(struct pci_dev *dev)
 	console_lock();
 	pci_set_power_state(dev, PCI_D0);
 
-	if (par->pm_state != PM_EVENT_FREEZE) {
+	if (par->pm_state != PM_EVENT_FREEZE)
+	{
 		pci_restore_state(dev);
 
 		if (pci_enable_device(dev))
+		{
 			goto fail;
+		}
 
 		pci_set_master(dev);
 	}
@@ -1105,49 +1298,55 @@ static int nvidia_set_fbinfo(struct fb_info *info)
 
 	NVTRACE_ENTER();
 	info->flags = FBINFO_DEFAULT
-	    | FBINFO_HWACCEL_IMAGEBLIT
-	    | FBINFO_HWACCEL_FILLRECT
-	    | FBINFO_HWACCEL_COPYAREA
-	    | FBINFO_HWACCEL_YPAN;
+				  | FBINFO_HWACCEL_IMAGEBLIT
+				  | FBINFO_HWACCEL_FILLRECT
+				  | FBINFO_HWACCEL_COPYAREA
+				  | FBINFO_HWACCEL_YPAN;
 
 	fb_videomode_to_modelist(info->monspecs.modedb,
-				 info->monspecs.modedb_len, &info->modelist);
+							 info->monspecs.modedb_len, &info->modelist);
 	fb_var_to_videomode(&modedb, &nvidiafb_default_var);
 
-	switch (bpp) {
-	case 0 ... 8:
-		bpp = 8;
-		break;
-	case 9 ... 16:
-		bpp = 16;
-		break;
-	default:
-		bpp = 32;
-		break;
+	switch (bpp)
+	{
+		case 0 ... 8:
+			bpp = 8;
+			break;
+
+		case 9 ... 16:
+			bpp = 16;
+			break;
+
+		default:
+			bpp = 32;
+			break;
 	}
 
-	if (specs->modedb != NULL) {
+	if (specs->modedb != NULL)
+	{
 		const struct fb_videomode *mode;
 
 		mode = fb_find_best_display(specs, &info->modelist);
 		fb_videomode_to_var(&nvidiafb_default_var, mode);
 		nvidiafb_default_var.bits_per_pixel = bpp;
-	} else if (par->fpWidth && par->fpHeight) {
+	}
+	else if (par->fpWidth && par->fpHeight)
+	{
 		char buf[16];
 
 		memset(buf, 0, 16);
 		snprintf(buf, 15, "%dx%dMR", par->fpWidth, par->fpHeight);
 		fb_find_mode(&nvidiafb_default_var, info, buf, specs->modedb,
-			     specs->modedb_len, &modedb, bpp);
+					 specs->modedb_len, &modedb, bpp);
 	}
 
 	if (mode_option)
 		fb_find_mode(&nvidiafb_default_var, info, mode_option,
-			     specs->modedb, specs->modedb_len, &modedb, bpp);
+					 specs->modedb, specs->modedb_len, &modedb, bpp);
 
 	info->var = nvidiafb_default_var;
 	info->fix.visual = (info->var.bits_per_pixel == 8) ?
-		FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_DIRECTCOLOR;
+					   FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_DIRECTCOLOR;
 	info->pseudo_palette = par->pseudo_palette;
 	fb_alloc_cmap(&info->cmap, 256, 0);
 	fb_destroy_modedb(info->monspecs.modedb);
@@ -1155,7 +1354,7 @@ static int nvidia_set_fbinfo(struct fb_info *info)
 
 	/* maximize virtual vertical length */
 	lpitch = info->var.xres_virtual *
-		((info->var.bits_per_pixel + 7) >> 3);
+			 ((info->var.bits_per_pixel + 7) >> 3);
 	info->var.yres_virtual = info->screen_size / lpitch;
 
 	info->pixmap.scan_align = 4;
@@ -1165,26 +1364,33 @@ static int nvidia_set_fbinfo(struct fb_info *info)
 	info->pixmap.flags = FB_PIXMAP_SYSTEM;
 
 	if (!hwcur)
-	    info->fbops->fb_cursor = NULL;
+	{
+		info->fbops->fb_cursor = NULL;
+	}
 
 	info->var.accel_flags = (!noaccel);
 
-	switch (par->Architecture) {
-	case NV_ARCH_04:
-		info->fix.accel = FB_ACCEL_NV4;
-		break;
-	case NV_ARCH_10:
-		info->fix.accel = FB_ACCEL_NV_10;
-		break;
-	case NV_ARCH_20:
-		info->fix.accel = FB_ACCEL_NV_20;
-		break;
-	case NV_ARCH_30:
-		info->fix.accel = FB_ACCEL_NV_30;
-		break;
-	case NV_ARCH_40:
-		info->fix.accel = FB_ACCEL_NV_40;
-		break;
+	switch (par->Architecture)
+	{
+		case NV_ARCH_04:
+			info->fix.accel = FB_ACCEL_NV4;
+			break;
+
+		case NV_ARCH_10:
+			info->fix.accel = FB_ACCEL_NV_10;
+			break;
+
+		case NV_ARCH_20:
+			info->fix.accel = FB_ACCEL_NV_20;
+			break;
+
+		case NV_ARCH_30:
+			info->fix.accel = FB_ACCEL_NV_30;
+			break;
+
+		case NV_ARCH_40:
+			info->fix.accel = FB_ACCEL_NV_40;
+			break;
 	}
 
 	NVTRACE_LEAVE();
@@ -1200,15 +1406,19 @@ static u32 nvidia_get_chipset(struct fb_info *info)
 	printk(KERN_INFO PFX "Device ID: %x \n", id);
 
 	if ((id & 0xfff0) == 0x00f0 ||
-	    (id & 0xfff0) == 0x02e0) {
+		(id & 0xfff0) == 0x02e0)
+	{
 		/* pci-e */
 		id = NV_RD32(par->REGS, 0x1800);
 
 		if ((id & 0x0000ffff) == 0x000010DE)
+		{
 			id = 0x10DE0000 | (id >> 16);
+		}
 		else if ((id & 0xffff0000) == 0xDE100000) /* wrong endian */
 			id = 0x10DE0000 | ((id << 8) & 0x0000ff00) |
-                            ((id >> 8) & 0x000000ff);
+				 ((id >> 8) & 0x000000ff);
+
 		printk(KERN_INFO PFX "Subsystem ID: %x \n", id);
 	}
 
@@ -1220,48 +1430,54 @@ static u32 nvidia_get_arch(struct fb_info *info)
 	struct nvidia_par *par = info->par;
 	u32 arch = 0;
 
-	switch (par->Chipset & 0x0ff0) {
-	case 0x0100:		/* GeForce 256 */
-	case 0x0110:		/* GeForce2 MX */
-	case 0x0150:		/* GeForce2 */
-	case 0x0170:		/* GeForce4 MX */
-	case 0x0180:		/* GeForce4 MX (8x AGP) */
-	case 0x01A0:		/* nForce */
-	case 0x01F0:		/* nForce2 */
-		arch = NV_ARCH_10;
-		break;
-	case 0x0200:		/* GeForce3 */
-	case 0x0250:		/* GeForce4 Ti */
-	case 0x0280:		/* GeForce4 Ti (8x AGP) */
-		arch = NV_ARCH_20;
-		break;
-	case 0x0300:		/* GeForceFX 5800 */
-	case 0x0310:		/* GeForceFX 5600 */
-	case 0x0320:		/* GeForceFX 5200 */
-	case 0x0330:		/* GeForceFX 5900 */
-	case 0x0340:		/* GeForceFX 5700 */
-		arch = NV_ARCH_30;
-		break;
-	case 0x0040:		/* GeForce 6800 */
-	case 0x00C0:		/* GeForce 6800 */
-	case 0x0120:		/* GeForce 6800 */
-	case 0x0140:		/* GeForce 6600 */
-	case 0x0160:		/* GeForce 6200 */
-	case 0x01D0:		/* GeForce 7200, 7300, 7400 */
-	case 0x0090:		/* GeForce 7800 */
-	case 0x0210:		/* GeForce 6800 */
-	case 0x0220:		/* GeForce 6200 */
-	case 0x0240:		/* GeForce 6100 */
-	case 0x0290:		/* GeForce 7900 */
-	case 0x0390:		/* GeForce 7600 */
-	case 0x03D0:
-		arch = NV_ARCH_40;
-		break;
-	case 0x0020:		/* TNT, TNT2 */
-		arch = NV_ARCH_04;
-		break;
-	default:		/* unknown architecture */
-		break;
+	switch (par->Chipset & 0x0ff0)
+	{
+		case 0x0100:		/* GeForce 256 */
+		case 0x0110:		/* GeForce2 MX */
+		case 0x0150:		/* GeForce2 */
+		case 0x0170:		/* GeForce4 MX */
+		case 0x0180:		/* GeForce4 MX (8x AGP) */
+		case 0x01A0:		/* nForce */
+		case 0x01F0:		/* nForce2 */
+			arch = NV_ARCH_10;
+			break;
+
+		case 0x0200:		/* GeForce3 */
+		case 0x0250:		/* GeForce4 Ti */
+		case 0x0280:		/* GeForce4 Ti (8x AGP) */
+			arch = NV_ARCH_20;
+			break;
+
+		case 0x0300:		/* GeForceFX 5800 */
+		case 0x0310:		/* GeForceFX 5600 */
+		case 0x0320:		/* GeForceFX 5200 */
+		case 0x0330:		/* GeForceFX 5900 */
+		case 0x0340:		/* GeForceFX 5700 */
+			arch = NV_ARCH_30;
+			break;
+
+		case 0x0040:		/* GeForce 6800 */
+		case 0x00C0:		/* GeForce 6800 */
+		case 0x0120:		/* GeForce 6800 */
+		case 0x0140:		/* GeForce 6600 */
+		case 0x0160:		/* GeForce 6200 */
+		case 0x01D0:		/* GeForce 7200, 7300, 7400 */
+		case 0x0090:		/* GeForce 7800 */
+		case 0x0210:		/* GeForce 6800 */
+		case 0x0220:		/* GeForce 6200 */
+		case 0x0240:		/* GeForce 6100 */
+		case 0x0290:		/* GeForce 7900 */
+		case 0x0390:		/* GeForce 7600 */
+		case 0x03D0:
+			arch = NV_ARCH_40;
+			break;
+
+		case 0x0020:		/* TNT, TNT2 */
+			arch = NV_ARCH_04;
+			break;
+
+		default:		/* unknown architecture */
+			break;
 	}
 
 	return arch;
@@ -1280,28 +1496,38 @@ static int nvidiafb_probe(struct pci_dev *pd, const struct pci_device_id *ent)
 	info = framebuffer_alloc(sizeof(struct nvidia_par), &pd->dev);
 
 	if (!info)
+	{
 		goto err_out;
+	}
 
 	par = info->par;
 	par->pci_dev = pd;
 	info->pixmap.addr = kzalloc(8 * 1024, GFP_KERNEL);
 
 	if (info->pixmap.addr == NULL)
+	{
 		goto err_out_kfree;
+	}
 
-	if (pci_enable_device(pd)) {
+	if (pci_enable_device(pd))
+	{
 		printk(KERN_ERR PFX "cannot enable PCI device\n");
 		goto err_out_enable;
 	}
 
-	if (pci_request_regions(pd, "nvidiafb")) {
+	if (pci_request_regions(pd, "nvidiafb"))
+	{
 		printk(KERN_ERR PFX "cannot request PCI regions\n");
 		goto err_out_enable;
 	}
 
 	par->FlatPanel = flatpanel;
+
 	if (flatpanel == 1)
+	{
 		printk(KERN_INFO PFX "flatpanel support enabled\n");
+	}
+
 	par->FPDither = fpdither;
 
 	par->CRTCnumber = forceCRTC;
@@ -1320,7 +1546,8 @@ static int nvidiafb_probe(struct pci_dev *pd, const struct pci_device_id *ent)
 
 	par->REGS = ioremap(nvidiafb_fix.mmio_start, nvidiafb_fix.mmio_len);
 
-	if (!par->REGS) {
+	if (!par->REGS)
+	{
 		printk(KERN_ERR PFX "cannot ioremap MMIO base\n");
 		goto err_out_free_base0;
 	}
@@ -1328,7 +1555,8 @@ static int nvidiafb_probe(struct pci_dev *pd, const struct pci_device_id *ent)
 	par->Chipset = nvidia_get_chipset(info);
 	par->Architecture = nvidia_get_arch(info);
 
-	if (par->Architecture == 0) {
+	if (par->Architecture == 0)
+	{
 		printk(KERN_ERR PFX "unknown NV_ARCH\n");
 		goto err_out_arch;
 	}
@@ -1336,32 +1564,45 @@ static int nvidiafb_probe(struct pci_dev *pd, const struct pci_device_id *ent)
 	sprintf(nvidiafb_fix.id, "NV%x", (pd->device & 0x0ff0) >> 4);
 
 	if (NVCommonSetup(info))
+	{
 		goto err_out_arch;
+	}
 
 	par->FbAddress = nvidiafb_fix.smem_start;
 	par->FbMapSize = par->RamAmountKBytes * 1024;
+
 	if (vram && vram * 1024 * 1024 < par->FbMapSize)
+	{
 		par->FbMapSize = vram * 1024 * 1024;
+	}
 
 	/* Limit amount of vram to 64 MB */
 	if (par->FbMapSize > 64 * 1024 * 1024)
+	{
 		par->FbMapSize = 64 * 1024 * 1024;
+	}
 
-	if(par->Architecture >= NV_ARCH_40)
-  	        par->FbUsableSize = par->FbMapSize - (560 * 1024);
+	if (par->Architecture >= NV_ARCH_40)
+	{
+		par->FbUsableSize = par->FbMapSize - (560 * 1024);
+	}
 	else
+	{
 		par->FbUsableSize = par->FbMapSize - (128 * 1024);
+	}
+
 	par->ScratchBufferSize = (par->Architecture < NV_ARCH_10) ? 8 * 1024 :
-	    16 * 1024;
+							 16 * 1024;
 	par->ScratchBufferStart = par->FbUsableSize - par->ScratchBufferSize;
 	par->CursorStart = par->FbUsableSize + (32 * 1024);
 
 	info->screen_base = ioremap_wc(nvidiafb_fix.smem_start,
-				       par->FbMapSize);
+								   par->FbMapSize);
 	info->screen_size = par->FbUsableSize;
 	nvidiafb_fix.smem_len = par->RamAmountKBytes * 1024;
 
-	if (!info->screen_base) {
+	if (!info->screen_base)
+	{
 		printk(KERN_ERR PFX "cannot ioremap FB base\n");
 		goto err_out_free_base1;
 	}
@@ -1370,12 +1611,13 @@ static int nvidiafb_probe(struct pci_dev *pd, const struct pci_device_id *ent)
 
 	if (!nomtrr)
 		par->wc_cookie = arch_phys_wc_add(nvidiafb_fix.smem_start,
-						  par->RamAmountKBytes * 1024);
+										  par->RamAmountKBytes * 1024);
 
 	info->fbops = &nvidia_fb_ops;
 	info->fix = nvidiafb_fix;
 
-	if (nvidia_set_fbinfo(info) < 0) {
+	if (nvidia_set_fbinfo(info) < 0)
+	{
 		printk(KERN_ERR PFX "error setting initial video mode\n");
 		goto err_out_iounmap_fb;
 	}
@@ -1385,18 +1627,21 @@ static int nvidiafb_probe(struct pci_dev *pd, const struct pci_device_id *ent)
 	pci_set_drvdata(pd, info);
 
 	if (backlight)
+	{
 		nvidia_bl_init(par);
+	}
 
-	if (register_framebuffer(info) < 0) {
+	if (register_framebuffer(info) < 0)
+	{
 		printk(KERN_ERR PFX "error registering nVidia framebuffer\n");
 		goto err_out_iounmap_fb;
 	}
 
 
 	printk(KERN_INFO PFX
-	       "PCI nVidia %s framebuffer (%dMB @ 0x%lX)\n",
-	       info->fix.id,
-	       par->FbMapSize / (1024 * 1024), info->fix.smem_start);
+		   "PCI nVidia %s framebuffer (%dMB @ 0x%lX)\n",
+		   info->fix.id,
+		   par->FbMapSize / (1024 * 1024), info->fix.smem_start);
 
 	NVTRACE_LEAVE();
 	return 0;
@@ -1408,7 +1653,7 @@ err_out_free_base1:
 	nvidia_delete_i2c_busses(par);
 err_out_arch:
 	iounmap(par->REGS);
- err_out_free_base0:
+err_out_free_base0:
 	pci_release_regions(pd);
 err_out_enable:
 	kfree(info->pixmap.addr);
@@ -1451,50 +1696,89 @@ static int nvidiafb_setup(char *options)
 	char *this_opt;
 
 	NVTRACE_ENTER();
-	if (!options || !*options)
-		return 0;
 
-	while ((this_opt = strsep(&options, ",")) != NULL) {
-		if (!strncmp(this_opt, "forceCRTC", 9)) {
+	if (!options || !*options)
+	{
+		return 0;
+	}
+
+	while ((this_opt = strsep(&options, ",")) != NULL)
+	{
+		if (!strncmp(this_opt, "forceCRTC", 9))
+		{
 			char *p;
 
 			p = this_opt + 9;
+
 			if (!*p || !*(++p))
+			{
 				continue;
+			}
+
 			forceCRTC = *p - '0';
+
 			if (forceCRTC < 0 || forceCRTC > 1)
+			{
 				forceCRTC = -1;
-		} else if (!strncmp(this_opt, "flatpanel", 9)) {
+			}
+		}
+		else if (!strncmp(this_opt, "flatpanel", 9))
+		{
 			flatpanel = 1;
-		} else if (!strncmp(this_opt, "hwcur", 5)) {
+		}
+		else if (!strncmp(this_opt, "hwcur", 5))
+		{
 			hwcur = 1;
-		} else if (!strncmp(this_opt, "noaccel", 6)) {
+		}
+		else if (!strncmp(this_opt, "noaccel", 6))
+		{
 			noaccel = 1;
-		} else if (!strncmp(this_opt, "noscale", 7)) {
+		}
+		else if (!strncmp(this_opt, "noscale", 7))
+		{
 			noscale = 1;
-		} else if (!strncmp(this_opt, "reverse_i2c", 11)) {
+		}
+		else if (!strncmp(this_opt, "reverse_i2c", 11))
+		{
 			reverse_i2c = 1;
-		} else if (!strncmp(this_opt, "paneltweak:", 11)) {
-			paneltweak = simple_strtoul(this_opt+11, NULL, 0);
-		} else if (!strncmp(this_opt, "vram:", 5)) {
-			vram = simple_strtoul(this_opt+5, NULL, 0);
-		} else if (!strncmp(this_opt, "backlight:", 10)) {
-			backlight = simple_strtoul(this_opt+10, NULL, 0);
-		} else if (!strncmp(this_opt, "nomtrr", 6)) {
+		}
+		else if (!strncmp(this_opt, "paneltweak:", 11))
+		{
+			paneltweak = simple_strtoul(this_opt + 11, NULL, 0);
+		}
+		else if (!strncmp(this_opt, "vram:", 5))
+		{
+			vram = simple_strtoul(this_opt + 5, NULL, 0);
+		}
+		else if (!strncmp(this_opt, "backlight:", 10))
+		{
+			backlight = simple_strtoul(this_opt + 10, NULL, 0);
+		}
+		else if (!strncmp(this_opt, "nomtrr", 6))
+		{
 			nomtrr = true;
-		} else if (!strncmp(this_opt, "fpdither:", 9)) {
-			fpdither = simple_strtol(this_opt+9, NULL, 0);
-		} else if (!strncmp(this_opt, "bpp:", 4)) {
-			bpp = simple_strtoul(this_opt+4, NULL, 0);
-		} else
+		}
+		else if (!strncmp(this_opt, "fpdither:", 9))
+		{
+			fpdither = simple_strtol(this_opt + 9, NULL, 0);
+		}
+		else if (!strncmp(this_opt, "bpp:", 4))
+		{
+			bpp = simple_strtoul(this_opt + 4, NULL, 0);
+		}
+		else
+		{
 			mode_option = this_opt;
+		}
 	}
+
 	NVTRACE_LEAVE();
 	return 0;
 }
 #endif				/* !MODULE */
 
-static struct pci_driver nvidiafb_driver = {
+static struct pci_driver nvidiafb_driver =
+{
 	.name = "nvidiafb",
 	.id_table = nvidiafb_pci_tbl,
 	.probe    = nvidiafb_probe,
@@ -1515,7 +1799,10 @@ static int nvidiafb_init(void)
 	char *option = NULL;
 
 	if (fb_get_options("nvidiafb", &option))
+	{
 		return -ENODEV;
+	}
+
 	nvidiafb_setup(option);
 #endif
 	return pci_register_driver(&nvidiafb_driver);
@@ -1532,46 +1819,46 @@ module_exit(nvidiafb_exit);
 
 module_param(flatpanel, int, 0);
 MODULE_PARM_DESC(flatpanel,
-		 "Enables experimental flat panel support for some chipsets. "
-		 "(0=disabled, 1=enabled, -1=autodetect) (default=-1)");
+				 "Enables experimental flat panel support for some chipsets. "
+				 "(0=disabled, 1=enabled, -1=autodetect) (default=-1)");
 module_param(fpdither, int, 0);
 MODULE_PARM_DESC(fpdither,
-		 "Enables dithering of flat panel for 6 bits panels. "
-		 "(0=disabled, 1=enabled, -1=autodetect) (default=-1)");
+				 "Enables dithering of flat panel for 6 bits panels. "
+				 "(0=disabled, 1=enabled, -1=autodetect) (default=-1)");
 module_param(hwcur, int, 0);
 MODULE_PARM_DESC(hwcur,
-		 "Enables hardware cursor implementation. (0 or 1=enabled) "
-		 "(default=0)");
+				 "Enables hardware cursor implementation. (0 or 1=enabled) "
+				 "(default=0)");
 module_param(noaccel, int, 0);
 MODULE_PARM_DESC(noaccel,
-		 "Disables hardware acceleration. (0 or 1=disable) "
-		 "(default=0)");
+				 "Disables hardware acceleration. (0 or 1=disable) "
+				 "(default=0)");
 module_param(noscale, int, 0);
 MODULE_PARM_DESC(noscale,
-		 "Disables screen scaleing. (0 or 1=disable) "
-		 "(default=0, do scaling)");
+				 "Disables screen scaleing. (0 or 1=disable) "
+				 "(default=0, do scaling)");
 module_param(paneltweak, int, 0);
 MODULE_PARM_DESC(paneltweak,
-		 "Tweak display settings for flatpanels. "
-		 "(default=0, no tweaks)");
+				 "Tweak display settings for flatpanels. "
+				 "(default=0, no tweaks)");
 module_param(forceCRTC, int, 0);
 MODULE_PARM_DESC(forceCRTC,
-		 "Forces usage of a particular CRTC in case autodetection "
-		 "fails. (0 or 1) (default=autodetect)");
+				 "Forces usage of a particular CRTC in case autodetection "
+				 "fails. (0 or 1) (default=autodetect)");
 module_param(vram, int, 0);
 MODULE_PARM_DESC(vram,
-		 "amount of framebuffer memory to remap in MiB"
-		 "(default=0 - remap entire memory)");
+				 "amount of framebuffer memory to remap in MiB"
+				 "(default=0 - remap entire memory)");
 module_param(mode_option, charp, 0);
 MODULE_PARM_DESC(mode_option, "Specify initial video mode");
 module_param(bpp, int, 0);
 MODULE_PARM_DESC(bpp, "pixel width in bits"
-		 "(default=8)");
+				 "(default=8)");
 module_param(reverse_i2c, int, 0);
 MODULE_PARM_DESC(reverse_i2c, "reverse port assignment of the i2c bus");
 module_param(nomtrr, bool, false);
 MODULE_PARM_DESC(nomtrr, "Disables MTRR support (0 or 1=disabled) "
-		 "(default=0)");
+				 "(default=0)");
 
 MODULE_AUTHOR("Antonino Daplas");
 MODULE_DESCRIPTION("Framebuffer driver for nVidia graphics chipset");

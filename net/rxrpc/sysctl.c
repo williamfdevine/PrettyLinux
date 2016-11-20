@@ -28,7 +28,8 @@ static const unsigned int n_max_acks = RXRPC_RXTX_BUFF_SIZE - 1;
  * See Documentation/networking/rxrpc.txt and the variable definitions for more
  * information on the individual parameters.
  */
-static struct ctl_table rxrpc_sysctl_table[] = {
+static struct ctl_table rxrpc_sysctl_table[] =
+{
 	/* Values measured in milliseconds */
 	{
 		.procname	= "req_ack_delay",
@@ -36,7 +37,7 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec,
-		.extra1		= (void *)&zero,
+		.extra1		= (void *) &zero,
 	},
 	{
 		.procname	= "soft_ack_delay",
@@ -44,7 +45,7 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec,
-		.extra1		= (void *)&one,
+		.extra1		= (void *) &one,
 	},
 	{
 		.procname	= "idle_ack_delay",
@@ -52,7 +53,7 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec,
-		.extra1		= (void *)&one,
+		.extra1		= (void *) &one,
 	},
 	{
 		.procname	= "resend_timeout",
@@ -60,7 +61,7 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec,
-		.extra1		= (void *)&one,
+		.extra1		= (void *) &one,
 	},
 	{
 		.procname	= "idle_conn_expiry",
@@ -68,7 +69,7 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_ms_jiffies,
-		.extra1		= (void *)&one,
+		.extra1		= (void *) &one,
 	},
 	{
 		.procname	= "idle_conn_fast_expiry",
@@ -76,7 +77,7 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_ms_jiffies,
-		.extra1		= (void *)&one,
+		.extra1		= (void *) &one,
 	},
 
 	/* Values measured in seconds but used in jiffies */
@@ -86,7 +87,7 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec,
-		.extra1		= (void *)&one,
+		.extra1		= (void *) &one,
 	},
 
 	/* Non-time values */
@@ -96,7 +97,7 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= (void *)&rxrpc_reap_client_connections,
+		.extra1		= (void *) &rxrpc_reap_client_connections,
 	},
 	{
 		.procname	= "reap_client_conns",
@@ -104,8 +105,8 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= (void *)&one,
-		.extra2		= (void *)&rxrpc_max_client_connections,
+		.extra1		= (void *) &one,
+		.extra2		= (void *) &rxrpc_max_client_connections,
 	},
 	{
 		.procname	= "max_backlog",
@@ -113,8 +114,8 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= (void *)&four,
-		.extra2		= (void *)&thirtytwo,
+		.extra1		= (void *) &four,
+		.extra2		= (void *) &thirtytwo,
 	},
 	{
 		.procname	= "rx_window_size",
@@ -122,8 +123,8 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= (void *)&one,
-		.extra2		= (void *)&n_max_acks,
+		.extra1		= (void *) &one,
+		.extra2		= (void *) &n_max_acks,
 	},
 	{
 		.procname	= "rx_mtu",
@@ -131,8 +132,8 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= (void *)&one,
-		.extra2		= (void *)&n_65535,
+		.extra1		= (void *) &one,
+		.extra2		= (void *) &n_65535,
 	},
 	{
 		.procname	= "rx_jumbo_max",
@@ -140,8 +141,8 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= (void *)&one,
-		.extra2		= (void *)&four,
+		.extra1		= (void *) &one,
+		.extra2		= (void *) &four,
 	},
 
 	{ }
@@ -150,14 +151,20 @@ static struct ctl_table rxrpc_sysctl_table[] = {
 int __init rxrpc_sysctl_init(void)
 {
 	rxrpc_sysctl_reg_table = register_net_sysctl(&init_net, "net/rxrpc",
-						     rxrpc_sysctl_table);
+							 rxrpc_sysctl_table);
+
 	if (!rxrpc_sysctl_reg_table)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
 void rxrpc_sysctl_exit(void)
 {
 	if (rxrpc_sysctl_reg_table)
+	{
 		unregister_net_sysctl_table(rxrpc_sysctl_reg_table);
+	}
 }

@@ -68,8 +68,8 @@
  * Returns a pointer to the endpoint on success, or NULL on error.
  */
 struct rpmsg_endpoint *rpmsg_create_ept(struct rpmsg_device *rpdev,
-					rpmsg_rx_cb_t cb, void *priv,
-					struct rpmsg_channel_info chinfo)
+										rpmsg_rx_cb_t cb, void *priv,
+										struct rpmsg_channel_info chinfo)
 {
 	return rpdev->ops->create_ept(rpdev, cb, priv, chinfo);
 }
@@ -157,7 +157,7 @@ EXPORT_SYMBOL(rpmsg_sendto);
  * Returns 0 on success and an appropriate error value on failure.
  */
 int rpmsg_send_offchannel(struct rpmsg_endpoint *ept, u32 src, u32 dst,
-			  void *data, int len)
+						  void *data, int len)
 {
 	return ept->ops->send_offchannel(ept, src, dst, data, len);
 }
@@ -229,7 +229,7 @@ EXPORT_SYMBOL(rpmsg_trysendto);
  * Returns 0 on success and an appropriate error value on failure.
  */
 int rpmsg_trysend_offchannel(struct rpmsg_endpoint *ept, u32 src, u32 dst,
-			     void *data, int len)
+							 void *data, int len)
 {
 	return ept->ops->trysend_offchannel(ept, src, dst, data, len);
 }
@@ -246,20 +246,26 @@ static int rpmsg_device_match(struct device *dev, void *data)
 	struct rpmsg_device *rpdev = to_rpmsg_device(dev);
 
 	if (chinfo->src != RPMSG_ADDR_ANY && chinfo->src != rpdev->src)
+	{
 		return 0;
+	}
 
 	if (chinfo->dst != RPMSG_ADDR_ANY && chinfo->dst != rpdev->dst)
+	{
 		return 0;
+	}
 
 	if (strncmp(chinfo->name, rpdev->id.name, RPMSG_NAME_SIZE))
+	{
 		return 0;
+	}
 
 	/* found a match ! */
 	return 1;
 }
 
 struct device *rpmsg_find_device(struct device *parent,
-				 struct rpmsg_channel_info *chinfo)
+								 struct rpmsg_channel_info *chinfo)
 {
 	return device_find_child(parent, chinfo, rpmsg_device_match);
 
@@ -268,14 +274,14 @@ EXPORT_SYMBOL(rpmsg_find_device);
 
 /* sysfs show configuration fields */
 #define rpmsg_show_attr(field, path, format_string)			\
-static ssize_t								\
-field##_show(struct device *dev,					\
-			struct device_attribute *attr, char *buf)	\
-{									\
-	struct rpmsg_device *rpdev = to_rpmsg_device(dev);		\
-									\
-	return sprintf(buf, format_string, rpdev->path);		\
-}
+	static ssize_t								\
+	field##_show(struct device *dev,					\
+				 struct device_attribute *attr, char *buf)	\
+	{									\
+		struct rpmsg_device *rpdev = to_rpmsg_device(dev);		\
+		\
+		return sprintf(buf, format_string, rpdev->path);		\
+	}
 
 /* for more info, see Documentation/ABI/testing/sysfs-bus-rpmsg */
 rpmsg_show_attr(name, id.name, "%s\n");
@@ -284,14 +290,15 @@ rpmsg_show_attr(dst, dst, "0x%x\n");
 rpmsg_show_attr(announce, announce ? "true" : "false", "%s\n");
 
 static ssize_t modalias_show(struct device *dev,
-			     struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	struct rpmsg_device *rpdev = to_rpmsg_device(dev);
 
 	return sprintf(buf, RPMSG_DEVICE_MODALIAS_FMT "\n", rpdev->id.name);
 }
 
-static struct device_attribute rpmsg_dev_attrs[] = {
+static struct device_attribute rpmsg_dev_attrs[] =
+{
 	__ATTR_RO(name),
 	__ATTR_RO(modalias),
 	__ATTR_RO(dst),
@@ -302,7 +309,7 @@ static struct device_attribute rpmsg_dev_attrs[] = {
 
 /* rpmsg devices and drivers are matched using the service name */
 static inline int rpmsg_id_match(const struct rpmsg_device *rpdev,
-				  const struct rpmsg_device_id *id)
+								 const struct rpmsg_device_id *id)
 {
 	return strncmp(id->name, rpdev->id.name, RPMSG_NAME_SIZE) == 0;
 }
@@ -318,7 +325,9 @@ static int rpmsg_dev_match(struct device *dev, struct device_driver *drv)
 	if (ids)
 		for (i = 0; ids[i].name[0]; i++)
 			if (rpmsg_id_match(rpdev, &ids[i]))
+			{
 				return 1;
+			}
 
 	return of_driver_match_device(dev, drv);
 }
@@ -328,7 +337,7 @@ static int rpmsg_uevent(struct device *dev, struct kobj_uevent_env *env)
 	struct rpmsg_device *rpdev = to_rpmsg_device(dev);
 
 	return add_uevent_var(env, "MODALIAS=" RPMSG_DEVICE_MODALIAS_FMT,
-					rpdev->id.name);
+						  rpdev->id.name);
 }
 
 /*
@@ -352,7 +361,9 @@ static int rpmsg_dev_probe(struct device *dev)
 	chinfo.dst = RPMSG_ADDR_ANY;
 
 	ept = rpmsg_create_ept(rpdev, rpdrv->callback, NULL, chinfo);
-	if (!ept) {
+
+	if (!ept)
+	{
 		dev_err(dev, "failed to create endpoint\n");
 		err = -ENOMEM;
 		goto out;
@@ -362,14 +373,19 @@ static int rpmsg_dev_probe(struct device *dev)
 	rpdev->src = ept->addr;
 
 	err = rpdrv->probe(rpdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "%s: failed: %d\n", __func__, err);
 		rpmsg_destroy_ept(ept);
 		goto out;
 	}
 
 	if (rpdev->ops->announce_create)
+	{
 		err = rpdev->ops->announce_create(rpdev);
+	}
+
 out:
 	return err;
 }
@@ -381,7 +397,9 @@ static int rpmsg_dev_remove(struct device *dev)
 	int err = 0;
 
 	if (rpdev->ops->announce_destroy)
+	{
 		err = rpdev->ops->announce_destroy(rpdev);
+	}
 
 	rpdrv->remove(rpdev);
 
@@ -390,7 +408,8 @@ static int rpmsg_dev_remove(struct device *dev)
 	return err;
 }
 
-static struct bus_type rpmsg_bus = {
+static struct bus_type rpmsg_bus =
+{
 	.name		= "rpmsg",
 	.match		= rpmsg_dev_match,
 	.dev_attrs	= rpmsg_dev_attrs,
@@ -412,13 +431,15 @@ int rpmsg_register_device(struct rpmsg_device *rpdev)
 	int ret;
 
 	dev_set_name(&rpdev->dev, "%s:%s",
-		     dev_name(dev->parent), rpdev->id.name);
+				 dev_name(dev->parent), rpdev->id.name);
 
 	rpdev->dev.bus = &rpmsg_bus;
 	rpdev->dev.release = rpmsg_release_device;
 
 	ret = device_register(&rpdev->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "device_register failed: %d\n", ret);
 		put_device(&rpdev->dev);
 	}
@@ -432,13 +453,16 @@ EXPORT_SYMBOL(rpmsg_register_device);
  * and destroy it
  */
 int rpmsg_unregister_device(struct device *parent,
-			    struct rpmsg_channel_info *chinfo)
+							struct rpmsg_channel_info *chinfo)
 {
 	struct device *dev;
 
 	dev = rpmsg_find_device(parent, chinfo);
+
 	if (!dev)
+	{
 		return -EINVAL;
+	}
 
 	device_unregister(dev);
 
@@ -481,8 +505,11 @@ static int __init rpmsg_init(void)
 	int ret;
 
 	ret = bus_register(&rpmsg_bus);
+
 	if (ret)
+	{
 		pr_err("failed to register rpmsg bus: %d\n", ret);
+	}
 
 	return ret;
 }

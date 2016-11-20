@@ -16,7 +16,8 @@
 #include <linux/dmaengine.h>
 
 /* IPU DMA Controller channel definitions. */
-enum ipu_channel {
+enum ipu_channel
+{
 	IDMAC_IC_0 = 0,		/* IC (encoding task) to memory */
 	IDMAC_IC_1 = 1,		/* IC (viewfinder task) to memory */
 	IDMAC_ADC_0 = 1,
@@ -54,7 +55,8 @@ enum ipu_channel {
 };
 
 /* Order significant! */
-enum ipu_channel_status {
+enum ipu_channel_status
+{
 	IPU_CHANNEL_FREE,
 	IPU_CHANNEL_INITIALIZED,
 	IPU_CHANNEL_READY,
@@ -63,7 +65,8 @@ enum ipu_channel_status {
 
 #define IPU_CHANNELS_NUM 32
 
-enum pixel_fmt {
+enum pixel_fmt
+{
 	/* 1 byte */
 	IPU_PIX_FMT_GENERIC,
 	IPU_PIX_FMT_RGB332,
@@ -89,7 +92,8 @@ enum pixel_fmt {
 	IPU_PIX_FMT_RGBA32,
 };
 
-enum ipu_color_space {
+enum ipu_color_space
+{
 	IPU_COLORSPACE_RGB,
 	IPU_COLORSPACE_YCBCR,
 	IPU_COLORSPACE_YUV
@@ -98,7 +102,8 @@ enum ipu_color_space {
 /*
  * Enumeration of IPU rotation modes
  */
-enum ipu_rotate_mode {
+enum ipu_rotate_mode
+{
 	/* Note the enum values correspond to BAM value */
 	IPU_ROTATE_NONE = 0,
 	IPU_ROTATE_VERT_FLIP = 1,
@@ -113,14 +118,16 @@ enum ipu_rotate_mode {
 /*
  * Enumeration of DI ports for ADC.
  */
-enum display_port {
+enum display_port
+{
 	DISP0,
 	DISP1,
 	DISP2,
 	DISP3
 };
 
-struct idmac_video_param {
+struct idmac_video_param
+{
 	unsigned short		in_width;
 	unsigned short		in_height;
 	uint32_t		in_pixel_fmt;
@@ -140,18 +147,21 @@ struct idmac_video_param {
  * Union of initialization parameters for a logical channel. So far only video
  * parameters are used.
  */
-union ipu_channel_param {
+union ipu_channel_param
+{
 	struct idmac_video_param video;
 };
 
-struct idmac_tx_desc {
+struct idmac_tx_desc
+{
 	struct dma_async_tx_descriptor	txd;
 	struct scatterlist		*sg;	/* scatterlist for this */
 	unsigned int			sg_len;	/* tx-descriptor. */
 	struct list_head		list;
 };
 
-struct idmac_channel {
+struct idmac_channel
+{
 	struct dma_chan		dma_chan;
 	dma_cookie_t		completed;	/* last completed cookie	   */
 	union ipu_channel_param	params;

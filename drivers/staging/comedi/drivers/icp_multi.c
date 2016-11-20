@@ -83,7 +83,8 @@
 #define ICP_MULTI_CNTR3		0x16	/* R/W: Counter 3 */
 
 /* analog input and output have the same range options */
-static const struct comedi_lrange icp_multi_ranges = {
+static const struct comedi_lrange icp_multi_ranges =
+{
 	4, {
 		UNI_RANGE(5),
 		UNI_RANGE(10),
@@ -95,22 +96,26 @@ static const struct comedi_lrange icp_multi_ranges = {
 static const char range_codes_analog[] = { 0x00, 0x20, 0x10, 0x30 };
 
 static int icp_multi_ai_eoc(struct comedi_device *dev,
-			    struct comedi_subdevice *s,
-			    struct comedi_insn *insn,
-			    unsigned long context)
+							struct comedi_subdevice *s,
+							struct comedi_insn *insn,
+							unsigned long context)
 {
 	unsigned int status;
 
 	status = readw(dev->mmio + ICP_MULTI_ADC_CSR);
+
 	if ((status & ICP_MULTI_ADC_CSR_BSY) == 0)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int icp_multi_ai_insn_read(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int range = CR_RANGE(insn->chanspec);
@@ -120,26 +125,34 @@ static int icp_multi_ai_insn_read(struct comedi_device *dev,
 	int n;
 
 	/* Set mode and range data for specified channel */
-	if (aref == AREF_DIFF) {
+	if (aref == AREF_DIFF)
+	{
 		adc_csr = ICP_MULTI_ADC_CSR_DI_CHAN(chan) |
-			  ICP_MULTI_ADC_CSR_DI;
-	} else {
+				  ICP_MULTI_ADC_CSR_DI;
+	}
+	else
+	{
 		adc_csr = ICP_MULTI_ADC_CSR_SE_CHAN(chan);
 	}
+
 	adc_csr |= range_codes_analog[range];
 	writew(adc_csr, dev->mmio + ICP_MULTI_ADC_CSR);
 
-	for (n = 0; n < insn->n; n++) {
+	for (n = 0; n < insn->n; n++)
+	{
 		/*  Set start ADC bit */
 		writew(adc_csr | ICP_MULTI_ADC_CSR_ST,
-		       dev->mmio + ICP_MULTI_ADC_CSR);
+			   dev->mmio + ICP_MULTI_ADC_CSR);
 
 		udelay(1);
 
 		/*  Wait for conversion to complete, or get fed up waiting */
 		ret = comedi_timeout(dev, s, insn, icp_multi_ai_eoc, 0);
+
 		if (ret)
+		{
 			break;
+		}
 
 		data[n] = (readw(dev->mmio + ICP_MULTI_AI) >> 4) & 0x0fff;
 	}
@@ -148,22 +161,26 @@ static int icp_multi_ai_insn_read(struct comedi_device *dev,
 }
 
 static int icp_multi_ao_ready(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn,
-			      unsigned long context)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn,
+							  unsigned long context)
 {
 	unsigned int status;
 
 	status = readw(dev->mmio + ICP_MULTI_DAC_CSR);
+
 	if ((status & ICP_MULTI_DAC_CSR_BSY) == 0)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int icp_multi_ao_insn_write(struct comedi_device *dev,
-				   struct comedi_subdevice *s,
-				   struct comedi_insn *insn,
-				   unsigned int *data)
+								   struct comedi_subdevice *s,
+								   struct comedi_insn *insn,
+								   unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int range = CR_RANGE(insn->chanspec);
@@ -175,20 +192,24 @@ static int icp_multi_ao_insn_write(struct comedi_device *dev,
 	dac_csr |= range_codes_analog[range];
 	writew(dac_csr, dev->mmio + ICP_MULTI_DAC_CSR);
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		unsigned int val = data[i];
 		int ret;
 
 		/* Wait for analog output to be ready for new data */
 		ret = comedi_timeout(dev, s, insn, icp_multi_ao_ready, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		writew(val, dev->mmio + ICP_MULTI_AO);
 
 		/* Set start conversion bit to write data to channel */
 		writew(dac_csr | ICP_MULTI_DAC_CSR_ST,
-		       dev->mmio + ICP_MULTI_DAC_CSR);
+			   dev->mmio + ICP_MULTI_DAC_CSR);
 
 		s->readback[chan] = val;
 	}
@@ -197,9 +218,9 @@ static int icp_multi_ao_insn_write(struct comedi_device *dev,
 }
 
 static int icp_multi_di_insn_bits(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	data[1] = readw(dev->mmio + ICP_MULTI_DI);
 
@@ -207,12 +228,14 @@ static int icp_multi_di_insn_bits(struct comedi_device *dev,
 }
 
 static int icp_multi_do_insn_bits(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		writew(s->state, dev->mmio + ICP_MULTI_DO);
+	}
 
 	data[1] = s->state;
 
@@ -228,7 +251,8 @@ static int icp_multi_reset(struct comedi_device *dev)
 	writew(ICP_MULTI_INT_MASK, dev->mmio + ICP_MULTI_INT_STAT);
 
 	/* Reset the analog output channels to 0V */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		unsigned int dac_csr = ICP_MULTI_DAC_CSR_CHAN(i);
 
 		/* Select channel and 0..5V range */
@@ -239,7 +263,7 @@ static int icp_multi_reset(struct comedi_device *dev)
 
 		/* Set start conversion bit to write data to channel */
 		writew(dac_csr | ICP_MULTI_DAC_CSR_ST,
-		       dev->mmio + ICP_MULTI_DAC_CSR);
+			   dev->mmio + ICP_MULTI_DAC_CSR);
 		udelay(1);
 	}
 
@@ -250,23 +274,32 @@ static int icp_multi_reset(struct comedi_device *dev)
 }
 
 static int icp_multi_auto_attach(struct comedi_device *dev,
-				 unsigned long context_unused)
+								 unsigned long context_unused)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev->mmio = pci_ioremap_bar(pcidev, 2);
+
 	if (!dev->mmio)
+	{
 		return -ENOMEM;
+	}
 
 	ret = comedi_alloc_subdevices(dev, 4);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	icp_multi_reset(dev);
 
@@ -289,8 +322,11 @@ static int icp_multi_auto_attach(struct comedi_device *dev,
 	s->insn_write	= icp_multi_ao_insn_write;
 
 	ret = comedi_alloc_subdev_readback(s);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Digital Input subdevice */
 	s = &dev->subdevices[2];
@@ -313,7 +349,8 @@ static int icp_multi_auto_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver icp_multi_driver = {
+static struct comedi_driver icp_multi_driver =
+{
 	.driver_name	= "icp_multi",
 	.module		= THIS_MODULE,
 	.auto_attach	= icp_multi_auto_attach,
@@ -321,18 +358,20 @@ static struct comedi_driver icp_multi_driver = {
 };
 
 static int icp_multi_pci_probe(struct pci_dev *dev,
-			       const struct pci_device_id *id)
+							   const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &icp_multi_driver, id->driver_data);
 }
 
-static const struct pci_device_id icp_multi_pci_table[] = {
+static const struct pci_device_id icp_multi_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_ICP, 0x8000) },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, icp_multi_pci_table);
 
-static struct pci_driver icp_multi_pci_driver = {
+static struct pci_driver icp_multi_pci_driver =
+{
 	.name		= "icp_multi",
 	.id_table	= icp_multi_pci_table,
 	.probe		= icp_multi_pci_probe,

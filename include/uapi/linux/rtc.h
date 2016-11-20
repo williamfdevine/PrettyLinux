@@ -17,7 +17,8 @@
  * source is self contained, allowing cross-compiles, etc. etc.
  */
 
-struct rtc_time {
+struct rtc_time
+{
 	int tm_sec;
 	int tm_min;
 	int tm_hour;
@@ -33,7 +34,8 @@ struct rtc_time {
  * This data structure is inspired by the EFI (v0.92) wakeup
  * alarm API.
  */
-struct rtc_wkalrm {
+struct rtc_wkalrm
+{
 	unsigned char enabled;	/* 0 = alarm disabled, 1 = alarm enabled */
 	unsigned char pending;  /* 0 = alarm not pending, 1 = alarm pending */
 	struct rtc_time time;	/* time the alarm is set to */
@@ -52,7 +54,8 @@ struct rtc_wkalrm {
  *   pll_value*pll_negmult/pll_clock
  */
 
-struct rtc_pll_info {
+struct rtc_pll_info
+{
 	int pll_ctrl;       /* placeholder for fancier control */
 	int pll_value;      /* get/set correction value */
 	int pll_max;        /* max +ve (faster) adjustment value */

@@ -12,16 +12,21 @@ static void setDisplayControl(int ctrl, int disp_state)
 	unsigned long reg, val, reserved;
 	int cnt = 0;
 
-	if (!ctrl) {
+	if (!ctrl)
+	{
 		reg = PANEL_DISPLAY_CTRL;
 		reserved = PANEL_DISPLAY_CTRL_RESERVED_MASK;
-	} else {
+	}
+	else
+	{
 		reg = CRT_DISPLAY_CTRL;
 		reserved = CRT_DISPLAY_CTRL_RESERVED_MASK;
 	}
 
 	val = PEEK32(reg);
-	if (disp_state) {
+
+	if (disp_state)
+	{
 		/*
 		 * Timing should be enabled first before enabling the
 		 * plane because changing at the same time does not
@@ -38,12 +43,17 @@ static void setDisplayControl(int ctrl, int disp_state)
 		 * until a few delay. Need to write and read it a
 		 * couple times
 		 */
-		do {
+		do
+		{
 			cnt++;
 			POKE32(reg, val);
-		} while ((PEEK32(reg) & ~reserved) != (val & ~reserved));
+		}
+		while ((PEEK32(reg) & ~reserved) != (val & ~reserved));
+
 		pr_debug("Set Plane enbit:after tried %d times\n", cnt);
-	} else {
+	}
+	else
+	{
 		/*
 		 * When turning off, there is no rule on the
 		 * programming sequence since whenever the clock is
@@ -65,7 +75,8 @@ static void waitNextVerticalSync(int ctrl, int delay)
 {
 	unsigned int status;
 
-	if (!ctrl) {
+	if (!ctrl)
+	{
 		/* primary controller */
 
 		/*
@@ -73,42 +84,56 @@ static void waitNextVerticalSync(int ctrl, int delay)
 		 * already off. This will prevent the software to wait forever.
 		 */
 		if (!(PEEK32(PANEL_PLL_CTRL) & PLL_CTRL_POWER) ||
-		    !(PEEK32(PANEL_DISPLAY_CTRL) & DISPLAY_CTRL_TIMING)) {
+			!(PEEK32(PANEL_DISPLAY_CTRL) & DISPLAY_CTRL_TIMING))
+		{
 			return;
 		}
 
-		while (delay-- > 0) {
+		while (delay-- > 0)
+		{
 			/* Wait for end of vsync. */
-			do {
+			do
+			{
 				status = PEEK32(SYSTEM_CTRL);
-			} while (status & SYSTEM_CTRL_PANEL_VSYNC_ACTIVE);
+			}
+			while (status & SYSTEM_CTRL_PANEL_VSYNC_ACTIVE);
 
 			/* Wait for start of vsync. */
-			do {
+			do
+			{
 				status = PEEK32(SYSTEM_CTRL);
-			} while (!(status & SYSTEM_CTRL_PANEL_VSYNC_ACTIVE));
+			}
+			while (!(status & SYSTEM_CTRL_PANEL_VSYNC_ACTIVE));
 		}
 
-	} else {
+	}
+	else
+	{
 		/*
 		 * Do not wait when the Primary PLL is off or display control is
 		 * already off. This will prevent the software to wait forever.
 		 */
 		if (!(PEEK32(CRT_PLL_CTRL) & PLL_CTRL_POWER) ||
-		    !(PEEK32(CRT_DISPLAY_CTRL) & DISPLAY_CTRL_TIMING)) {
+			!(PEEK32(CRT_DISPLAY_CTRL) & DISPLAY_CTRL_TIMING))
+		{
 			return;
 		}
 
-		while (delay-- > 0) {
+		while (delay-- > 0)
+		{
 			/* Wait for end of vsync. */
-			do {
+			do
+			{
 				status = PEEK32(SYSTEM_CTRL);
-			} while (status & SYSTEM_CTRL_PANEL_VSYNC_ACTIVE);
+			}
+			while (status & SYSTEM_CTRL_PANEL_VSYNC_ACTIVE);
 
 			/* Wait for start of vsync. */
-			do {
+			do
+			{
 				status = PEEK32(SYSTEM_CTRL);
-			} while (!(status & SYSTEM_CTRL_PANEL_VSYNC_ACTIVE));
+			}
+			while (!(status & SYSTEM_CTRL_PANEL_VSYNC_ACTIVE));
 		}
 	}
 }
@@ -143,44 +168,53 @@ void ddk750_setLogicalDispOut(disp_output_t output)
 {
 	unsigned int reg;
 
-	if (output & PNL_2_USAGE) {
+	if (output & PNL_2_USAGE)
+	{
 		/* set panel path controller select */
 		reg = PEEK32(PANEL_DISPLAY_CTRL);
 		reg &= ~PANEL_DISPLAY_CTRL_SELECT_MASK;
 		reg |= (((output & PNL_2_MASK) >> PNL_2_OFFSET) <<
-			PANEL_DISPLAY_CTRL_SELECT_SHIFT);
+				PANEL_DISPLAY_CTRL_SELECT_SHIFT);
 		POKE32(PANEL_DISPLAY_CTRL, reg);
 	}
 
-	if (output & CRT_2_USAGE) {
+	if (output & CRT_2_USAGE)
+	{
 		/* set crt path controller select */
 		reg = PEEK32(CRT_DISPLAY_CTRL);
 		reg &= ~CRT_DISPLAY_CTRL_SELECT_MASK;
 		reg |= (((output & CRT_2_MASK) >> CRT_2_OFFSET) <<
-			CRT_DISPLAY_CTRL_SELECT_SHIFT);
+				CRT_DISPLAY_CTRL_SELECT_SHIFT);
 		/*se blank off */
 		reg &= ~CRT_DISPLAY_CTRL_BLANK;
 		POKE32(CRT_DISPLAY_CTRL, reg);
 	}
 
-	if (output & PRI_TP_USAGE) {
+	if (output & PRI_TP_USAGE)
+	{
 		/* set primary timing and plane en_bit */
 		setDisplayControl(0, (output & PRI_TP_MASK) >> PRI_TP_OFFSET);
 	}
 
-	if (output & SEC_TP_USAGE) {
+	if (output & SEC_TP_USAGE)
+	{
 		/* set secondary timing and plane en_bit*/
 		setDisplayControl(1, (output & SEC_TP_MASK) >> SEC_TP_OFFSET);
 	}
 
-	if (output & PNL_SEQ_USAGE) {
+	if (output & PNL_SEQ_USAGE)
+	{
 		/* set  panel sequence */
 		swPanelPowerSequence((output & PNL_SEQ_MASK) >> PNL_SEQ_OFFSET, 4);
 	}
 
 	if (output & DAC_USAGE)
+	{
 		setDAC((output & DAC_MASK) >> DAC_OFFSET);
+	}
 
 	if (output & DPMS_USAGE)
+	{
 		ddk750_setDPMS((output & DPMS_MASK) >> DPMS_OFFSET);
+	}
 }

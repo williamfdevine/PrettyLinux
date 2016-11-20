@@ -11,7 +11,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table terratec_cinergy_c_pci[] = {
+static struct rc_map_table terratec_cinergy_c_pci[] =
+{
 	{ 0x3e, KEY_POWER},
 	{ 0x3d, KEY_1},
 	{ 0x3c, KEY_2},
@@ -63,7 +64,8 @@ static struct rc_map_table terratec_cinergy_c_pci[] = {
 
 };
 
-static struct rc_map_list terratec_cinergy_c_pci_map = {
+static struct rc_map_list terratec_cinergy_c_pci_map =
+{
 	.map = {
 		.scan    = terratec_cinergy_c_pci,
 		.size    = ARRAY_SIZE(terratec_cinergy_c_pci),

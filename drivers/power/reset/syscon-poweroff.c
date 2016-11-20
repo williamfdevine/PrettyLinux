@@ -45,26 +45,31 @@ static int syscon_poweroff_probe(struct platform_device *pdev)
 	char symname[KSYM_NAME_LEN];
 
 	map = syscon_regmap_lookup_by_phandle(pdev->dev.of_node, "regmap");
-	if (IS_ERR(map)) {
+
+	if (IS_ERR(map))
+	{
 		dev_err(&pdev->dev, "unable to get syscon");
 		return PTR_ERR(map);
 	}
 
-	if (of_property_read_u32(pdev->dev.of_node, "offset", &offset)) {
+	if (of_property_read_u32(pdev->dev.of_node, "offset", &offset))
+	{
 		dev_err(&pdev->dev, "unable to read 'offset'");
 		return -EINVAL;
 	}
 
-	if (of_property_read_u32(pdev->dev.of_node, "mask", &mask)) {
+	if (of_property_read_u32(pdev->dev.of_node, "mask", &mask))
+	{
 		dev_err(&pdev->dev, "unable to read 'mask'");
 		return -EINVAL;
 	}
 
-	if (pm_power_off) {
+	if (pm_power_off)
+	{
 		lookup_symbol_name((ulong)pm_power_off, symname);
 		dev_err(&pdev->dev,
-		"pm_power_off already claimed %p %s",
-		pm_power_off, symname);
+				"pm_power_off already claimed %p %s",
+				pm_power_off, symname);
 		return -EBUSY;
 	}
 
@@ -76,17 +81,21 @@ static int syscon_poweroff_probe(struct platform_device *pdev)
 static int syscon_poweroff_remove(struct platform_device *pdev)
 {
 	if (pm_power_off == syscon_poweroff)
+	{
 		pm_power_off = NULL;
+	}
 
 	return 0;
 }
 
-static const struct of_device_id syscon_poweroff_of_match[] = {
+static const struct of_device_id syscon_poweroff_of_match[] =
+{
 	{ .compatible = "syscon-poweroff" },
 	{}
 };
 
-static struct platform_driver syscon_poweroff_driver = {
+static struct platform_driver syscon_poweroff_driver =
+{
 	.probe = syscon_poweroff_probe,
 	.remove = syscon_poweroff_remove,
 	.driver = {

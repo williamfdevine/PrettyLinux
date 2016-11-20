@@ -46,7 +46,8 @@ extern "C" {
 #define NOUVEAU_GEM_TILE_ZETA        0x00000004
 #define NOUVEAU_GEM_TILE_NONCONTIG   0x00000008
 
-struct drm_nouveau_gem_info {
+struct drm_nouveau_gem_info
+{
 	__u32 handle;
 	__u32 domain;
 	__u64 size;
@@ -56,20 +57,23 @@ struct drm_nouveau_gem_info {
 	__u32 tile_flags;
 };
 
-struct drm_nouveau_gem_new {
+struct drm_nouveau_gem_new
+{
 	struct drm_nouveau_gem_info info;
 	__u32 channel_hint;
 	__u32 align;
 };
 
 #define NOUVEAU_GEM_MAX_BUFFERS 1024
-struct drm_nouveau_gem_pushbuf_bo_presumed {
+struct drm_nouveau_gem_pushbuf_bo_presumed
+{
 	__u32 valid;
 	__u32 domain;
 	__u64 offset;
 };
 
-struct drm_nouveau_gem_pushbuf_bo {
+struct drm_nouveau_gem_pushbuf_bo
+{
 	__u64 user_priv;
 	__u32 handle;
 	__u32 read_domains;
@@ -82,7 +86,8 @@ struct drm_nouveau_gem_pushbuf_bo {
 #define NOUVEAU_GEM_RELOC_HIGH (1 << 1)
 #define NOUVEAU_GEM_RELOC_OR   (1 << 2)
 #define NOUVEAU_GEM_MAX_RELOCS 1024
-struct drm_nouveau_gem_pushbuf_reloc {
+struct drm_nouveau_gem_pushbuf_reloc
+{
 	__u32 reloc_bo_index;
 	__u32 reloc_bo_offset;
 	__u32 bo_index;
@@ -93,14 +98,16 @@ struct drm_nouveau_gem_pushbuf_reloc {
 };
 
 #define NOUVEAU_GEM_MAX_PUSH 512
-struct drm_nouveau_gem_pushbuf_push {
+struct drm_nouveau_gem_pushbuf_push
+{
 	__u32 bo_index;
 	__u32 pad;
 	__u64 offset;
 	__u64 length;
 };
 
-struct drm_nouveau_gem_pushbuf {
+struct drm_nouveau_gem_pushbuf
+{
 	__u32 channel;
 	__u32 nr_buffers;
 	__u64 buffers;
@@ -116,12 +123,14 @@ struct drm_nouveau_gem_pushbuf {
 
 #define NOUVEAU_GEM_CPU_PREP_NOWAIT                                  0x00000001
 #define NOUVEAU_GEM_CPU_PREP_WRITE                                   0x00000004
-struct drm_nouveau_gem_cpu_prep {
+struct drm_nouveau_gem_cpu_prep
+{
 	__u32 handle;
 	__u32 flags;
 };
 
-struct drm_nouveau_gem_cpu_fini {
+struct drm_nouveau_gem_cpu_fini
+{
 	__u32 handle;
 };
 

@@ -30,11 +30,11 @@
 #define HTC_FW_PATH	"ath9k_htc"
 
 #define HTC_9271_MODULE_FW  HTC_FW_PATH "/htc_9271-" \
-			__stringify(MAJOR_VERSION_REQ) \
-			"." __stringify(FIRMWARE_MINOR_IDX_MAX) ".0.fw"
+	__stringify(MAJOR_VERSION_REQ) \
+	"." __stringify(FIRMWARE_MINOR_IDX_MAX) ".0.fw"
 #define HTC_7010_MODULE_FW  HTC_FW_PATH "/htc_7010-" \
-			__stringify(MAJOR_VERSION_REQ) \
-			"." __stringify(FIRMWARE_MINOR_IDX_MAX) ".0.fw"
+	__stringify(MAJOR_VERSION_REQ) \
+	"." __stringify(FIRMWARE_MINOR_IDX_MAX) ".0.fw"
 
 extern int htc_use_dev_fw;
 
@@ -74,7 +74,8 @@ extern int htc_use_dev_fw;
 #define HIF_USB_MAX_RXPIPES 2
 #define HIF_USB_MAX_TXPIPES 4
 
-struct tx_buf {
+struct tx_buf
+{
 	u8 *buf;
 	u16 len;
 	u16 offset;
@@ -87,7 +88,8 @@ struct tx_buf {
 #define HIF_USB_TX_STOP  BIT(0)
 #define HIF_USB_TX_FLUSH BIT(1)
 
-struct hif_usb_tx {
+struct hif_usb_tx
+{
 	u8 flags;
 	u8 tx_buf_cnt;
 	u16 tx_skb_cnt;
@@ -97,7 +99,8 @@ struct hif_usb_tx {
 	spinlock_t tx_lock;
 };
 
-struct cmd_buf {
+struct cmd_buf
+{
 	struct sk_buff *skb;
 	struct hif_device_usb *hif_dev;
 };
@@ -105,7 +108,8 @@ struct cmd_buf {
 #define HIF_USB_START BIT(0)
 #define HIF_USB_READY BIT(1)
 
-struct hif_device_usb {
+struct hif_device_usb
+{
 	struct usb_device *udev;
 	struct usb_interface *interface;
 	const struct usb_device_id *usb_device_id;

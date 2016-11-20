@@ -79,7 +79,8 @@
 #define BRCMF_MSGBUF_UPDATE_RX_PTR_THRS		48
 
 
-struct msgbuf_common_hdr {
+struct msgbuf_common_hdr
+{
 	u8				msgtype;
 	u8				ifidx;
 	u8				flags;
@@ -87,12 +88,14 @@ struct msgbuf_common_hdr {
 	__le32				request_id;
 };
 
-struct msgbuf_buf_addr {
+struct msgbuf_buf_addr
+{
 	__le32				low_addr;
 	__le32				high_addr;
 };
 
-struct msgbuf_ioctl_req_hdr {
+struct msgbuf_ioctl_req_hdr
+{
 	struct msgbuf_common_hdr	msg;
 	__le32				cmd;
 	__le16				trans_id;
@@ -103,7 +106,8 @@ struct msgbuf_ioctl_req_hdr {
 	__le32				rsvd1[2];
 };
 
-struct msgbuf_tx_msghdr {
+struct msgbuf_tx_msghdr
+{
 	struct msgbuf_common_hdr	msg;
 	u8				txhdr[ETH_HLEN];
 	u8				flags;
@@ -115,7 +119,8 @@ struct msgbuf_tx_msghdr {
 	__le32				rsvd0;
 };
 
-struct msgbuf_rx_bufpost {
+struct msgbuf_rx_bufpost
+{
 	struct msgbuf_common_hdr	msg;
 	__le16				metadata_buf_len;
 	__le16				data_buf_len;
@@ -124,7 +129,8 @@ struct msgbuf_rx_bufpost {
 	struct msgbuf_buf_addr		data_buf_addr;
 };
 
-struct msgbuf_rx_ioctl_resp_or_event {
+struct msgbuf_rx_ioctl_resp_or_event
+{
 	struct msgbuf_common_hdr	msg;
 	__le16				host_buf_len;
 	__le16				rsvd0[3];
@@ -132,12 +138,14 @@ struct msgbuf_rx_ioctl_resp_or_event {
 	__le32				rsvd1[4];
 };
 
-struct msgbuf_completion_hdr {
+struct msgbuf_completion_hdr
+{
 	__le16				status;
 	__le16				flow_ring_id;
 };
 
-struct msgbuf_rx_event {
+struct msgbuf_rx_event
+{
 	struct msgbuf_common_hdr	msg;
 	struct msgbuf_completion_hdr	compl_hdr;
 	__le16				event_data_len;
@@ -145,7 +153,8 @@ struct msgbuf_rx_event {
 	__le16				rsvd0[4];
 };
 
-struct msgbuf_ioctl_resp_hdr {
+struct msgbuf_ioctl_resp_hdr
+{
 	struct msgbuf_common_hdr	msg;
 	struct msgbuf_completion_hdr	compl_hdr;
 	__le16				resp_len;
@@ -154,14 +163,16 @@ struct msgbuf_ioctl_resp_hdr {
 	__le32				rsvd0;
 };
 
-struct msgbuf_tx_status {
+struct msgbuf_tx_status
+{
 	struct msgbuf_common_hdr	msg;
 	struct msgbuf_completion_hdr	compl_hdr;
 	__le16				metadata_len;
 	__le16				tx_status;
 };
 
-struct msgbuf_rx_complete {
+struct msgbuf_rx_complete
+{
 	struct msgbuf_common_hdr	msg;
 	struct msgbuf_completion_hdr	compl_hdr;
 	__le16				metadata_len;
@@ -173,7 +184,8 @@ struct msgbuf_rx_complete {
 	__le32				rsvd0;
 };
 
-struct msgbuf_tx_flowring_create_req {
+struct msgbuf_tx_flowring_create_req
+{
 	struct msgbuf_common_hdr	msg;
 	u8				da[ETH_ALEN];
 	u8				sa[ETH_ALEN];
@@ -188,32 +200,37 @@ struct msgbuf_tx_flowring_create_req {
 	struct msgbuf_buf_addr		flow_ring_addr;
 };
 
-struct msgbuf_tx_flowring_delete_req {
+struct msgbuf_tx_flowring_delete_req
+{
 	struct msgbuf_common_hdr	msg;
 	__le16				flow_ring_id;
 	__le16				reason;
 	__le32				rsvd0[7];
 };
 
-struct msgbuf_flowring_create_resp {
+struct msgbuf_flowring_create_resp
+{
 	struct msgbuf_common_hdr	msg;
 	struct msgbuf_completion_hdr	compl_hdr;
 	__le32				rsvd0[3];
 };
 
-struct msgbuf_flowring_delete_resp {
+struct msgbuf_flowring_delete_resp
+{
 	struct msgbuf_common_hdr	msg;
 	struct msgbuf_completion_hdr	compl_hdr;
 	__le32				rsvd0[3];
 };
 
-struct msgbuf_flowring_flush_resp {
+struct msgbuf_flowring_flush_resp
+{
 	struct msgbuf_common_hdr	msg;
 	struct msgbuf_completion_hdr	compl_hdr;
 	__le32				rsvd0[3];
 };
 
-struct brcmf_msgbuf_work_item {
+struct brcmf_msgbuf_work_item
+{
 	struct list_head queue;
 	u32 flowid;
 	int ifidx;
@@ -221,7 +238,8 @@ struct brcmf_msgbuf_work_item {
 	u8 da[ETH_ALEN];
 };
 
-struct brcmf_msgbuf {
+struct brcmf_msgbuf
+{
 	struct brcmf_pub *drvr;
 
 	struct brcmf_commonring **commonrings;
@@ -267,14 +285,16 @@ struct brcmf_msgbuf {
 	struct list_head work_queue;
 };
 
-struct brcmf_msgbuf_pktid {
+struct brcmf_msgbuf_pktid
+{
 	atomic_t  allocated;
 	u16 data_offset;
 	struct sk_buff *skb;
 	dma_addr_t physaddr;
 };
 
-struct brcmf_msgbuf_pktids {
+struct brcmf_msgbuf_pktids
+{
 	u32 array_size;
 	u32 last_allocated_idx;
 	enum dma_data_direction direction;
@@ -286,20 +306,26 @@ static void brcmf_msgbuf_rxbuf_ioctlresp_post(struct brcmf_msgbuf *msgbuf);
 
 static struct brcmf_msgbuf_pktids *
 brcmf_msgbuf_init_pktids(u32 nr_array_entries,
-			 enum dma_data_direction direction)
+						 enum dma_data_direction direction)
 {
 	struct brcmf_msgbuf_pktid *array;
 	struct brcmf_msgbuf_pktids *pktids;
 
 	array = kcalloc(nr_array_entries, sizeof(*array), GFP_KERNEL);
+
 	if (!array)
+	{
 		return NULL;
+	}
 
 	pktids = kzalloc(sizeof(*pktids), GFP_KERNEL);
-	if (!pktids) {
+
+	if (!pktids)
+	{
 		kfree(array);
 		return NULL;
 	}
+
 	pktids->array = array;
 	pktids->array_size = nr_array_entries;
 
@@ -309,9 +335,9 @@ brcmf_msgbuf_init_pktids(u32 nr_array_entries,
 
 static int
 brcmf_msgbuf_alloc_pktid(struct device *dev,
-			 struct brcmf_msgbuf_pktids *pktids,
-			 struct sk_buff *skb, u16 data_offset,
-			 dma_addr_t *physaddr, u32 *idx)
+						 struct brcmf_msgbuf_pktids *pktids,
+						 struct sk_buff *skb, u16 data_offset,
+						 dma_addr_t *physaddr, u32 *idx)
 {
 	struct brcmf_msgbuf_pktid *array;
 	u32 count;
@@ -319,9 +345,10 @@ brcmf_msgbuf_alloc_pktid(struct device *dev,
 	array = pktids->array;
 
 	*physaddr = dma_map_single(dev, skb->data + data_offset,
-				   skb->len - data_offset, pktids->direction);
+							   skb->len - data_offset, pktids->direction);
 
-	if (dma_mapping_error(dev, *physaddr)) {
+	if (dma_mapping_error(dev, *physaddr))
+	{
 		brcmf_err("dma_map_single failed !!\n");
 		return -ENOMEM;
 	}
@@ -329,18 +356,30 @@ brcmf_msgbuf_alloc_pktid(struct device *dev,
 	*idx = pktids->last_allocated_idx;
 
 	count = 0;
-	do {
+
+	do
+	{
 		(*idx)++;
+
 		if (*idx == pktids->array_size)
+		{
 			*idx = 0;
+		}
+
 		if (array[*idx].allocated.counter == 0)
 			if (atomic_cmpxchg(&array[*idx].allocated, 0, 1) == 0)
+			{
 				break;
+			}
+
 		count++;
-	} while (count < pktids->array_size);
+	}
+	while (count < pktids->array_size);
 
 	if (count == pktids->array_size)
+	{
 		return -ENOMEM;
+	}
 
 	array[*idx].data_offset = data_offset;
 	array[*idx].physaddr = *physaddr;
@@ -354,25 +393,30 @@ brcmf_msgbuf_alloc_pktid(struct device *dev,
 
 static struct sk_buff *
 brcmf_msgbuf_get_pktid(struct device *dev, struct brcmf_msgbuf_pktids *pktids,
-		       u32 idx)
+					   u32 idx)
 {
 	struct brcmf_msgbuf_pktid *pktid;
 	struct sk_buff *skb;
 
-	if (idx >= pktids->array_size) {
+	if (idx >= pktids->array_size)
+	{
 		brcmf_err("Invalid packet id %d (max %d)\n", idx,
-			  pktids->array_size);
+				  pktids->array_size);
 		return NULL;
 	}
-	if (pktids->array[idx].allocated.counter) {
+
+	if (pktids->array[idx].allocated.counter)
+	{
 		pktid = &pktids->array[idx];
 		dma_unmap_single(dev, pktid->physaddr,
-				 pktid->skb->len - pktid->data_offset,
-				 pktids->direction);
+						 pktid->skb->len - pktid->data_offset,
+						 pktids->direction);
 		skb = pktid->skb;
 		pktid->allocated.counter = 0;
 		return skb;
-	} else {
+	}
+	else
+	{
 		brcmf_err("Invalid packet id %d (not in use)\n", idx);
 	}
 
@@ -382,7 +426,7 @@ brcmf_msgbuf_get_pktid(struct device *dev, struct brcmf_msgbuf_pktids *pktids,
 
 static void
 brcmf_msgbuf_release_array(struct device *dev,
-			   struct brcmf_msgbuf_pktids *pktids)
+						   struct brcmf_msgbuf_pktids *pktids)
 {
 	struct brcmf_msgbuf_pktid *array;
 	struct brcmf_msgbuf_pktid *pktid;
@@ -390,16 +434,21 @@ brcmf_msgbuf_release_array(struct device *dev,
 
 	array = pktids->array;
 	count = 0;
-	do {
-		if (array[count].allocated.counter) {
+
+	do
+	{
+		if (array[count].allocated.counter)
+		{
 			pktid = &array[count];
 			dma_unmap_single(dev, pktid->physaddr,
-					 pktid->skb->len - pktid->data_offset,
-					 pktids->direction);
+							 pktid->skb->len - pktid->data_offset,
+							 pktids->direction);
 			brcmu_pkt_buf_free_skb(pktid->skb);
 		}
+
 		count++;
-	} while (count < pktids->array_size);
+	}
+	while (count < pktids->array_size);
 
 	kfree(array);
 	kfree(pktids);
@@ -410,15 +459,16 @@ static void brcmf_msgbuf_release_pktids(struct brcmf_msgbuf *msgbuf)
 {
 	if (msgbuf->rx_pktids)
 		brcmf_msgbuf_release_array(msgbuf->drvr->bus_if->dev,
-					   msgbuf->rx_pktids);
+								   msgbuf->rx_pktids);
+
 	if (msgbuf->tx_pktids)
 		brcmf_msgbuf_release_array(msgbuf->drvr->bus_if->dev,
-					   msgbuf->tx_pktids);
+								   msgbuf->tx_pktids);
 }
 
 
 static int brcmf_msgbuf_tx_ioctl(struct brcmf_pub *drvr, int ifidx,
-				 uint cmd, void *buf, uint len)
+								 uint cmd, void *buf, uint len)
 {
 	struct brcmf_msgbuf *msgbuf = (struct brcmf_msgbuf *)drvr->proto->pd;
 	struct brcmf_commonring *commonring;
@@ -430,7 +480,9 @@ static int brcmf_msgbuf_tx_ioctl(struct brcmf_pub *drvr, int ifidx,
 	commonring = msgbuf->commonrings[BRCMF_H2D_MSGRING_CONTROL_SUBMIT];
 	brcmf_commonring_lock(commonring);
 	ret_ptr = brcmf_commonring_reserve_for_write(commonring);
-	if (!ret_ptr) {
+
+	if (!ret_ptr)
+	{
 		brcmf_err("Failed to reserve space in commonring\n");
 		brcmf_commonring_unlock(commonring);
 		return -ENOMEM;
@@ -451,10 +503,15 @@ static int brcmf_msgbuf_tx_ioctl(struct brcmf_pub *drvr, int ifidx,
 	request->input_buf_len = cpu_to_le16(buf_len);
 	request->req_buf_addr.high_addr = cpu_to_le32(msgbuf->ioctbuf_phys_hi);
 	request->req_buf_addr.low_addr = cpu_to_le32(msgbuf->ioctbuf_phys_lo);
+
 	if (buf)
+	{
 		memcpy(msgbuf->ioctbuf, buf, buf_len);
+	}
 	else
+	{
 		memset(msgbuf->ioctbuf, 0, buf_len);
+	}
 
 	err = brcmf_commonring_write_complete(commonring);
 	brcmf_commonring_unlock(commonring);
@@ -466,8 +523,8 @@ static int brcmf_msgbuf_tx_ioctl(struct brcmf_pub *drvr, int ifidx,
 static int brcmf_msgbuf_ioctl_resp_wait(struct brcmf_msgbuf *msgbuf)
 {
 	return wait_event_timeout(msgbuf->ioctl_resp_wait,
-				  msgbuf->ctl_completed,
-				  MSGBUF_IOCTL_RESP_TIMEOUT);
+							  msgbuf->ctl_completed,
+							  MSGBUF_IOCTL_RESP_TIMEOUT);
 }
 
 
@@ -479,7 +536,7 @@ static void brcmf_msgbuf_ioctl_resp_wake(struct brcmf_msgbuf *msgbuf)
 
 
 static int brcmf_msgbuf_query_dcmd(struct brcmf_pub *drvr, int ifidx,
-				   uint cmd, void *buf, uint len)
+								   uint cmd, void *buf, uint len)
 {
 	struct brcmf_msgbuf *msgbuf = (struct brcmf_msgbuf *)drvr->proto->pd;
 	struct sk_buff *skb = NULL;
@@ -489,25 +546,35 @@ static int brcmf_msgbuf_query_dcmd(struct brcmf_pub *drvr, int ifidx,
 	brcmf_dbg(MSGBUF, "ifidx=%d, cmd=%d, len=%d\n", ifidx, cmd, len);
 	msgbuf->ctl_completed = false;
 	err = brcmf_msgbuf_tx_ioctl(drvr, ifidx, cmd, buf, len);
+
 	if (err)
+	{
 		return err;
+	}
 
 	timeout = brcmf_msgbuf_ioctl_resp_wait(msgbuf);
-	if (!timeout) {
+
+	if (!timeout)
+	{
 		brcmf_err("Timeout on response for query command\n");
 		return -EIO;
 	}
 
 	skb = brcmf_msgbuf_get_pktid(msgbuf->drvr->bus_if->dev,
-				     msgbuf->rx_pktids,
-				     msgbuf->ioctl_resp_pktid);
-	if (msgbuf->ioctl_resp_ret_len != 0) {
+								 msgbuf->rx_pktids,
+								 msgbuf->ioctl_resp_pktid);
+
+	if (msgbuf->ioctl_resp_ret_len != 0)
+	{
 		if (!skb)
+		{
 			return -EBADF;
+		}
 
 		memcpy(buf, skb->data, (len < msgbuf->ioctl_resp_ret_len) ?
-				       len : msgbuf->ioctl_resp_ret_len);
+			   len : msgbuf->ioctl_resp_ret_len);
 	}
+
 	brcmu_pkt_buf_free_skb(skb);
 
 	return msgbuf->ioctl_resp_status;
@@ -515,14 +582,14 @@ static int brcmf_msgbuf_query_dcmd(struct brcmf_pub *drvr, int ifidx,
 
 
 static int brcmf_msgbuf_set_dcmd(struct brcmf_pub *drvr, int ifidx,
-				 uint cmd, void *buf, uint len)
+								 uint cmd, void *buf, uint len)
 {
 	return brcmf_msgbuf_query_dcmd(drvr, ifidx, cmd, buf, len);
 }
 
 
 static int brcmf_msgbuf_hdrpull(struct brcmf_pub *drvr, bool do_fws,
-				struct sk_buff *skb, struct brcmf_if **ifp)
+								struct sk_buff *skb, struct brcmf_if **ifp)
 {
 	return -ENODEV;
 }
@@ -542,7 +609,7 @@ brcmf_msgbuf_remove_flowring(struct brcmf_msgbuf *msgbuf, u16 flowid)
 	dma_sz = BRCMF_H2D_TXFLOWRING_MAX_ITEM * BRCMF_H2D_TXFLOWRING_ITEMSIZE;
 	dma_buf = msgbuf->flowrings[flowid]->buf_addr;
 	dma_free_coherent(msgbuf->drvr->bus_if->dev, dma_sz, dma_buf,
-			  msgbuf->flowring_dma_handle[flowid]);
+					  msgbuf->flowring_dma_handle[flowid]);
 
 	brcmf_flowring_delete(msgbuf->flow, flowid);
 }
@@ -555,11 +622,14 @@ brcmf_msgbuf_dequeue_work(struct brcmf_msgbuf *msgbuf)
 	ulong flags;
 
 	spin_lock_irqsave(&msgbuf->flowring_work_lock, flags);
-	if (!list_empty(&msgbuf->work_queue)) {
+
+	if (!list_empty(&msgbuf->work_queue))
+	{
 		work = list_first_entry(&msgbuf->work_queue,
-					struct brcmf_msgbuf_work_item, queue);
+								struct brcmf_msgbuf_work_item, queue);
 		list_del(&work->queue);
 	}
+
 	spin_unlock_irqrestore(&msgbuf->flowring_work_lock, flags);
 
 	return work;
@@ -568,7 +638,7 @@ brcmf_msgbuf_dequeue_work(struct brcmf_msgbuf *msgbuf)
 
 static u32
 brcmf_msgbuf_flowring_create_worker(struct brcmf_msgbuf *msgbuf,
-				    struct brcmf_msgbuf_work_item *work)
+									struct brcmf_msgbuf_work_item *work)
 {
 	struct msgbuf_tx_flowring_create_req *create;
 	struct brcmf_commonring *commonring;
@@ -582,22 +652,26 @@ brcmf_msgbuf_flowring_create_worker(struct brcmf_msgbuf *msgbuf,
 	flowid = work->flowid;
 	dma_sz = BRCMF_H2D_TXFLOWRING_MAX_ITEM * BRCMF_H2D_TXFLOWRING_ITEMSIZE;
 	dma_buf = dma_alloc_coherent(msgbuf->drvr->bus_if->dev, dma_sz,
-				     &msgbuf->flowring_dma_handle[flowid],
-				     GFP_KERNEL);
-	if (!dma_buf) {
+								 &msgbuf->flowring_dma_handle[flowid],
+								 GFP_KERNEL);
+
+	if (!dma_buf)
+	{
 		brcmf_err("dma_alloc_coherent failed\n");
 		brcmf_flowring_delete(msgbuf->flow, flowid);
 		return BRCMF_FLOWRING_INVALID_ID;
 	}
 
 	brcmf_commonring_config(msgbuf->flowrings[flowid],
-				BRCMF_H2D_TXFLOWRING_MAX_ITEM,
-				BRCMF_H2D_TXFLOWRING_ITEMSIZE, dma_buf);
+							BRCMF_H2D_TXFLOWRING_MAX_ITEM,
+							BRCMF_H2D_TXFLOWRING_ITEMSIZE, dma_buf);
 
 	commonring = msgbuf->commonrings[BRCMF_H2D_MSGRING_CONTROL_SUBMIT];
 	brcmf_commonring_lock(commonring);
 	ret_ptr = brcmf_commonring_reserve_for_write(commonring);
-	if (!ret_ptr) {
+
+	if (!ret_ptr)
+	{
 		brcmf_err("Failed to reserve space in commonring\n");
 		brcmf_commonring_unlock(commonring);
 		brcmf_msgbuf_remove_flowring(msgbuf, flowid);
@@ -610,7 +684,7 @@ brcmf_msgbuf_flowring_create_worker(struct brcmf_msgbuf *msgbuf,
 	create->msg.request_id = 0;
 	create->tid = brcmf_flowring_tid(msgbuf->flow, flowid);
 	create->flow_ring_id = cpu_to_le16(flowid +
-					   BRCMF_NROF_H2D_COMMON_MSGRINGS);
+									   BRCMF_NROF_H2D_COMMON_MSGRINGS);
 	memcpy(create->sa, work->sa, ETH_ALEN);
 	memcpy(create->da, work->da, ETH_ALEN);
 	address = (u64)msgbuf->flowring_dma_handle[flowid];
@@ -620,11 +694,13 @@ brcmf_msgbuf_flowring_create_worker(struct brcmf_msgbuf *msgbuf,
 	create->len_item = cpu_to_le16(BRCMF_H2D_TXFLOWRING_ITEMSIZE);
 
 	brcmf_dbg(MSGBUF, "Send Flow Create Req flow ID %d for peer %pM prio %d ifindex %d\n",
-		  flowid, work->da, create->tid, work->ifidx);
+			  flowid, work->da, create->tid, work->ifidx);
 
 	err = brcmf_commonring_write_complete(commonring);
 	brcmf_commonring_unlock(commonring);
-	if (err) {
+
+	if (err)
+	{
 		brcmf_err("Failed to write commonring\n");
 		brcmf_msgbuf_remove_flowring(msgbuf, flowid);
 		return BRCMF_FLOWRING_INVALID_ID;
@@ -641,7 +717,8 @@ static void brcmf_msgbuf_flowring_worker(struct work_struct *work)
 
 	msgbuf = container_of(work, struct brcmf_msgbuf, flowring_work);
 
-	while ((create = brcmf_msgbuf_dequeue_work(msgbuf))) {
+	while ((create = brcmf_msgbuf_dequeue_work(msgbuf)))
+	{
 		brcmf_msgbuf_flowring_create_worker(msgbuf, create);
 		kfree(create);
 	}
@@ -649,7 +726,7 @@ static void brcmf_msgbuf_flowring_worker(struct work_struct *work)
 
 
 static u32 brcmf_msgbuf_flowring_create(struct brcmf_msgbuf *msgbuf, int ifidx,
-					struct sk_buff *skb)
+										struct sk_buff *skb)
 {
 	struct brcmf_msgbuf_work_item *create;
 	struct ethhdr *eh = (struct ethhdr *)(skb->data);
@@ -657,12 +734,17 @@ static u32 brcmf_msgbuf_flowring_create(struct brcmf_msgbuf *msgbuf, int ifidx,
 	ulong flags;
 
 	create = kzalloc(sizeof(*create), GFP_ATOMIC);
+
 	if (create == NULL)
+	{
 		return BRCMF_FLOWRING_INVALID_ID;
+	}
 
 	flowid = brcmf_flowring_create(msgbuf->flow, eh->h_dest,
-				       skb->priority, ifidx);
-	if (flowid == BRCMF_FLOWRING_INVALID_ID) {
+								   skb->priority, ifidx);
+
+	if (flowid == BRCMF_FLOWRING_INVALID_ID)
+	{
 		kfree(create);
 		return flowid;
 	}
@@ -694,34 +776,48 @@ static void brcmf_msgbuf_txflow(struct brcmf_msgbuf *msgbuf, u16 flowid)
 	u64 address;
 
 	commonring = msgbuf->flowrings[flowid];
+
 	if (!brcmf_commonring_write_available(commonring))
+	{
 		return;
+	}
 
 	brcmf_commonring_lock(commonring);
 
 	count = BRCMF_MSGBUF_TX_FLUSH_CNT2 - BRCMF_MSGBUF_TX_FLUSH_CNT1;
-	while (brcmf_flowring_qlen(flow, flowid)) {
+
+	while (brcmf_flowring_qlen(flow, flowid))
+	{
 		skb = brcmf_flowring_dequeue(flow, flowid);
-		if (skb == NULL) {
+
+		if (skb == NULL)
+		{
 			brcmf_err("No SKB, but qlen %d\n",
-				  brcmf_flowring_qlen(flow, flowid));
+					  brcmf_flowring_qlen(flow, flowid));
 			break;
 		}
+
 		skb_orphan(skb);
+
 		if (brcmf_msgbuf_alloc_pktid(msgbuf->drvr->bus_if->dev,
-					     msgbuf->tx_pktids, skb, ETH_HLEN,
-					     &physaddr, &pktid)) {
+									 msgbuf->tx_pktids, skb, ETH_HLEN,
+									 &physaddr, &pktid))
+		{
 			brcmf_flowring_reinsert(flow, flowid, skb);
 			brcmf_err("No PKTID available !!\n");
 			break;
 		}
+
 		ret_ptr = brcmf_commonring_reserve_for_write(commonring);
-		if (!ret_ptr) {
+
+		if (!ret_ptr)
+		{
 			brcmf_msgbuf_get_pktid(msgbuf->drvr->bus_if->dev,
-					       msgbuf->tx_pktids, pktid);
+								   msgbuf->tx_pktids, pktid);
 			brcmf_flowring_reinsert(flow, flowid, skb);
 			break;
 		}
+
 		count++;
 
 		tx_msghdr = (struct msgbuf_tx_msghdr *)ret_ptr;
@@ -731,7 +827,7 @@ static void brcmf_msgbuf_txflow(struct brcmf_msgbuf *msgbuf, u16 flowid)
 		tx_msghdr->msg.ifidx = brcmf_flowring_ifidx_get(flow, flowid);
 		tx_msghdr->flags = BRCMF_MSGBUF_PKT_FLAGS_FRAME_802_3;
 		tx_msghdr->flags |= (skb->priority & 0x07) <<
-				    BRCMF_MSGBUF_PKT_FLAGS_PRIO_SHIFT;
+							BRCMF_MSGBUF_PKT_FLAGS_PRIO_SHIFT;
 		tx_msghdr->seg_cnt = 1;
 		memcpy(tx_msghdr->txhdr, skb->data, ETH_HLEN);
 		tx_msghdr->data_len = cpu_to_le16(skb->len - ETH_HLEN);
@@ -743,13 +839,19 @@ static void brcmf_msgbuf_txflow(struct brcmf_msgbuf *msgbuf, u16 flowid)
 		tx_msghdr->metadata_buf_addr.high_addr = 0;
 		tx_msghdr->metadata_buf_addr.low_addr = 0;
 		atomic_inc(&commonring->outstanding_tx);
-		if (count >= BRCMF_MSGBUF_TX_FLUSH_CNT2) {
+
+		if (count >= BRCMF_MSGBUF_TX_FLUSH_CNT2)
+		{
 			brcmf_commonring_write_complete(commonring);
 			count = 0;
 		}
 	}
+
 	if (count)
+	{
 		brcmf_commonring_write_complete(commonring);
+	}
+
 	brcmf_commonring_unlock(commonring);
 }
 
@@ -760,7 +862,8 @@ static void brcmf_msgbuf_txflow_worker(struct work_struct *worker)
 	u32 flowid;
 
 	msgbuf = container_of(worker, struct brcmf_msgbuf, txflow_work);
-	for_each_set_bit(flowid, msgbuf->flow_map, msgbuf->nrof_flowrings) {
+	for_each_set_bit(flowid, msgbuf->flow_map, msgbuf->nrof_flowrings)
+	{
 		clear_bit(flowid, msgbuf->flow_map);
 		brcmf_msgbuf_txflow(msgbuf, flowid);
 	}
@@ -768,22 +871,25 @@ static void brcmf_msgbuf_txflow_worker(struct work_struct *worker)
 
 
 static int brcmf_msgbuf_schedule_txdata(struct brcmf_msgbuf *msgbuf, u32 flowid,
-					bool force)
+										bool force)
 {
 	struct brcmf_commonring *commonring;
 
 	set_bit(flowid, msgbuf->flow_map);
 	commonring = msgbuf->flowrings[flowid];
+
 	if ((force) || (atomic_read(&commonring->outstanding_tx) <
-			BRCMF_MSGBUF_DELAY_TXWORKER_THRS))
+					BRCMF_MSGBUF_DELAY_TXWORKER_THRS))
+	{
 		queue_work(msgbuf->txflow_wq, &msgbuf->txflow_work);
+	}
 
 	return 0;
 }
 
 
 static int brcmf_msgbuf_txdata(struct brcmf_pub *drvr, int ifidx,
-			       u8 offset, struct sk_buff *skb)
+							   u8 offset, struct sk_buff *skb)
 {
 	struct brcmf_msgbuf *msgbuf = (struct brcmf_msgbuf *)drvr->proto->pd;
 	struct brcmf_flowring *flow = msgbuf->flow;
@@ -793,11 +899,17 @@ static int brcmf_msgbuf_txdata(struct brcmf_pub *drvr, int ifidx,
 	bool force;
 
 	flowid = brcmf_flowring_lookup(flow, eh->h_dest, skb->priority, ifidx);
-	if (flowid == BRCMF_FLOWRING_INVALID_ID) {
+
+	if (flowid == BRCMF_FLOWRING_INVALID_ID)
+	{
 		flowid = brcmf_msgbuf_flowring_create(msgbuf, ifidx, skb);
+
 		if (flowid == BRCMF_FLOWRING_INVALID_ID)
+		{
 			return -ENOMEM;
+		}
 	}
+
 	queue_count = brcmf_flowring_enqueue(flow, flowid, skb);
 	force = ((queue_count % BRCMF_MSGBUF_TRICKLE_TXWORKER_THRS) == 0);
 	brcmf_msgbuf_schedule_txdata(msgbuf, flowid, force);
@@ -808,7 +920,7 @@ static int brcmf_msgbuf_txdata(struct brcmf_pub *drvr, int ifidx,
 
 static void
 brcmf_msgbuf_configure_addr_mode(struct brcmf_pub *drvr, int ifidx,
-				 enum proto_addr_mode addr_mode)
+								 enum proto_addr_mode addr_mode)
 {
 	struct brcmf_msgbuf *msgbuf = (struct brcmf_msgbuf *)drvr->proto->pd;
 
@@ -842,14 +954,17 @@ brcmf_msgbuf_process_ioctl_complete(struct brcmf_msgbuf *msgbuf, void *buf)
 	ioctl_resp = (struct msgbuf_ioctl_resp_hdr *)buf;
 
 	msgbuf->ioctl_resp_status =
-			(s16)le16_to_cpu(ioctl_resp->compl_hdr.status);
+		(s16)le16_to_cpu(ioctl_resp->compl_hdr.status);
 	msgbuf->ioctl_resp_ret_len = le16_to_cpu(ioctl_resp->resp_len);
 	msgbuf->ioctl_resp_pktid = le32_to_cpu(ioctl_resp->msg.request_id);
 
 	brcmf_msgbuf_ioctl_resp_wake(msgbuf);
 
 	if (msgbuf->cur_ioctlrespbuf)
+	{
 		msgbuf->cur_ioctlrespbuf--;
+	}
+
 	brcmf_msgbuf_rxbuf_ioctlresp_post(msgbuf);
 }
 
@@ -868,16 +983,19 @@ brcmf_msgbuf_process_txstatus(struct brcmf_msgbuf *msgbuf, void *buf)
 	flowid = le16_to_cpu(tx_status->compl_hdr.flow_ring_id);
 	flowid -= BRCMF_NROF_H2D_COMMON_MSGRINGS;
 	skb = brcmf_msgbuf_get_pktid(msgbuf->drvr->bus_if->dev,
-				     msgbuf->tx_pktids, idx);
+								 msgbuf->tx_pktids, idx);
+
 	if (!skb)
+	{
 		return;
+	}
 
 	set_bit(flowid, msgbuf->txstatus_done_map);
 	commonring = msgbuf->flowrings[flowid];
 	atomic_dec(&commonring->outstanding_tx);
 
 	brcmf_txfinalize(brcmf_get_ifp(msgbuf->drvr, tx_status->msg.ifidx),
-			 skb, true);
+					 skb, true);
 }
 
 
@@ -896,36 +1014,43 @@ static u32 brcmf_msgbuf_rxbuf_data_post(struct brcmf_msgbuf *msgbuf, u32 count)
 
 	commonring = msgbuf->commonrings[BRCMF_H2D_MSGRING_RXPOST_SUBMIT];
 	ret_ptr = brcmf_commonring_reserve_for_write_multiple(commonring,
-							      count,
-							      &alloced);
-	if (!ret_ptr) {
+			  count,
+			  &alloced);
+
+	if (!ret_ptr)
+	{
 		brcmf_dbg(MSGBUF, "Failed to reserve space in commonring\n");
 		return 0;
 	}
 
-	for (i = 0; i < alloced; i++) {
+	for (i = 0; i < alloced; i++)
+	{
 		rx_bufpost = (struct msgbuf_rx_bufpost *)ret_ptr;
 		memset(rx_bufpost, 0, sizeof(*rx_bufpost));
 
 		skb = brcmu_pkt_buf_get_skb(BRCMF_MSGBUF_MAX_PKT_SIZE);
 
-		if (skb == NULL) {
+		if (skb == NULL)
+		{
 			brcmf_err("Failed to alloc SKB\n");
 			brcmf_commonring_write_cancel(commonring, alloced - i);
 			break;
 		}
 
 		pktlen = skb->len;
+
 		if (brcmf_msgbuf_alloc_pktid(msgbuf->drvr->bus_if->dev,
-					     msgbuf->rx_pktids, skb, 0,
-					     &physaddr, &pktid)) {
+									 msgbuf->rx_pktids, skb, 0,
+									 &physaddr, &pktid))
+		{
 			dev_kfree_skb_any(skb);
 			brcmf_err("No PKTID available !!\n");
 			brcmf_commonring_write_cancel(commonring, alloced - i);
 			break;
 		}
 
-		if (msgbuf->rx_metadata_offset) {
+		if (msgbuf->rx_metadata_offset)
+		{
 			address = (u64)physaddr;
 			rx_bufpost->metadata_buf_len =
 				cpu_to_le16(msgbuf->rx_metadata_offset);
@@ -938,6 +1063,7 @@ static u32 brcmf_msgbuf_rxbuf_data_post(struct brcmf_msgbuf *msgbuf, u32 count)
 			pktlen = skb->len;
 			physaddr += msgbuf->rx_metadata_offset;
 		}
+
 		rx_bufpost->msg.msgtype = MSGBUF_TYPE_RXBUF_POST;
 		rx_bufpost->msg.request_id = cpu_to_le32(pktid);
 
@@ -952,7 +1078,9 @@ static u32 brcmf_msgbuf_rxbuf_data_post(struct brcmf_msgbuf *msgbuf, u32 count)
 	}
 
 	if (i)
+	{
 		brcmf_commonring_write_complete(commonring);
+	}
 
 	return i;
 }
@@ -966,10 +1094,15 @@ brcmf_msgbuf_rxbuf_data_fill(struct brcmf_msgbuf *msgbuf)
 
 	fillbufs = msgbuf->max_rxbufpost - msgbuf->rxbufpost;
 
-	while (fillbufs) {
+	while (fillbufs)
+	{
 		retcount = brcmf_msgbuf_rxbuf_data_post(msgbuf, fillbufs);
+
 		if (!retcount)
+		{
 			break;
+		}
+
 		msgbuf->rxbufpost += retcount;
 		fillbufs -= retcount;
 	}
@@ -980,15 +1113,18 @@ static void
 brcmf_msgbuf_update_rxbufpost_count(struct brcmf_msgbuf *msgbuf, u16 rxcnt)
 {
 	msgbuf->rxbufpost -= rxcnt;
+
 	if (msgbuf->rxbufpost <= (msgbuf->max_rxbufpost -
-				  BRCMF_MSGBUF_RXBUFPOST_THRESHOLD))
+							  BRCMF_MSGBUF_RXBUFPOST_THRESHOLD))
+	{
 		brcmf_msgbuf_rxbuf_data_fill(msgbuf);
+	}
 }
 
 
 static u32
 brcmf_msgbuf_rxbuf_ctrl_post(struct brcmf_msgbuf *msgbuf, bool event_buf,
-			     u32 count)
+							 u32 count)
 {
 	struct brcmf_commonring *commonring;
 	void *ret_ptr;
@@ -1004,40 +1140,50 @@ brcmf_msgbuf_rxbuf_ctrl_post(struct brcmf_msgbuf *msgbuf, bool event_buf,
 	commonring = msgbuf->commonrings[BRCMF_H2D_MSGRING_CONTROL_SUBMIT];
 	brcmf_commonring_lock(commonring);
 	ret_ptr = brcmf_commonring_reserve_for_write_multiple(commonring,
-							      count,
-							      &alloced);
-	if (!ret_ptr) {
+			  count,
+			  &alloced);
+
+	if (!ret_ptr)
+	{
 		brcmf_err("Failed to reserve space in commonring\n");
 		brcmf_commonring_unlock(commonring);
 		return 0;
 	}
 
-	for (i = 0; i < alloced; i++) {
+	for (i = 0; i < alloced; i++)
+	{
 		rx_bufpost = (struct msgbuf_rx_ioctl_resp_or_event *)ret_ptr;
 		memset(rx_bufpost, 0, sizeof(*rx_bufpost));
 
 		skb = brcmu_pkt_buf_get_skb(BRCMF_MSGBUF_MAX_PKT_SIZE);
 
-		if (skb == NULL) {
+		if (skb == NULL)
+		{
 			brcmf_err("Failed to alloc SKB\n");
 			brcmf_commonring_write_cancel(commonring, alloced - i);
 			break;
 		}
 
 		pktlen = skb->len;
+
 		if (brcmf_msgbuf_alloc_pktid(msgbuf->drvr->bus_if->dev,
-					     msgbuf->rx_pktids, skb, 0,
-					     &physaddr, &pktid)) {
+									 msgbuf->rx_pktids, skb, 0,
+									 &physaddr, &pktid))
+		{
 			dev_kfree_skb_any(skb);
 			brcmf_err("No PKTID available !!\n");
 			brcmf_commonring_write_cancel(commonring, alloced - i);
 			break;
 		}
+
 		if (event_buf)
+		{
 			rx_bufpost->msg.msgtype = MSGBUF_TYPE_EVENT_BUF_POST;
+		}
 		else
 			rx_bufpost->msg.msgtype =
 				MSGBUF_TYPE_IOCTLRESP_BUF_POST;
+
 		rx_bufpost->msg.request_id = cpu_to_le32(pktid);
 
 		address = (u64)physaddr;
@@ -1051,7 +1197,9 @@ brcmf_msgbuf_rxbuf_ctrl_post(struct brcmf_msgbuf *msgbuf, bool event_buf,
 	}
 
 	if (i)
+	{
 		brcmf_commonring_write_complete(commonring);
+	}
 
 	brcmf_commonring_unlock(commonring);
 
@@ -1092,23 +1240,33 @@ static void brcmf_msgbuf_process_event(struct brcmf_msgbuf *msgbuf, void *buf)
 	buflen = le16_to_cpu(event->event_data_len);
 
 	if (msgbuf->cur_eventbuf)
+	{
 		msgbuf->cur_eventbuf--;
+	}
+
 	brcmf_msgbuf_rxbuf_event_post(msgbuf);
 
 	skb = brcmf_msgbuf_get_pktid(msgbuf->drvr->bus_if->dev,
-				     msgbuf->rx_pktids, idx);
+								 msgbuf->rx_pktids, idx);
+
 	if (!skb)
+	{
 		return;
+	}
 
 	if (msgbuf->rx_dataoffset)
+	{
 		skb_pull(skb, msgbuf->rx_dataoffset);
+	}
 
 	skb_trim(skb, buflen);
 
 	ifp = brcmf_get_ifp(msgbuf->drvr, event->msg.ifidx);
-	if (!ifp || !ifp->ndev) {
+
+	if (!ifp || !ifp->ndev)
+	{
 		brcmf_err("Received pkt for invalid ifidx %d\n",
-			  event->msg.ifidx);
+				  event->msg.ifidx);
 		goto exit;
 	}
 
@@ -1139,21 +1297,30 @@ brcmf_msgbuf_process_rx_complete(struct brcmf_msgbuf *msgbuf, void *buf)
 	idx = le32_to_cpu(rx_complete->msg.request_id);
 
 	skb = brcmf_msgbuf_get_pktid(msgbuf->drvr->bus_if->dev,
-				     msgbuf->rx_pktids, idx);
+								 msgbuf->rx_pktids, idx);
+
 	if (!skb)
+	{
 		return;
+	}
 
 	if (data_offset)
+	{
 		skb_pull(skb, data_offset);
+	}
 	else if (msgbuf->rx_dataoffset)
+	{
 		skb_pull(skb, msgbuf->rx_dataoffset);
+	}
 
 	skb_trim(skb, buflen);
 
 	ifp = brcmf_get_ifp(msgbuf->drvr, rx_complete->msg.ifidx);
-	if (!ifp || !ifp->ndev) {
+
+	if (!ifp || !ifp->ndev)
+	{
 		brcmf_err("Received pkt for invalid ifidx %d\n",
-			  rx_complete->msg.ifidx);
+				  rx_complete->msg.ifidx);
 		brcmu_pkt_buf_free_skb(skb);
 		return;
 	}
@@ -1165,7 +1332,7 @@ brcmf_msgbuf_process_rx_complete(struct brcmf_msgbuf *msgbuf, void *buf)
 
 static void
 brcmf_msgbuf_process_flow_ring_create_response(struct brcmf_msgbuf *msgbuf,
-					       void *buf)
+		void *buf)
 {
 	struct msgbuf_flowring_create_resp *flowring_create_resp;
 	u16 status;
@@ -1177,13 +1344,15 @@ brcmf_msgbuf_process_flow_ring_create_response(struct brcmf_msgbuf *msgbuf,
 	flowid -= BRCMF_NROF_H2D_COMMON_MSGRINGS;
 	status =  le16_to_cpu(flowring_create_resp->compl_hdr.status);
 
-	if (status) {
+	if (status)
+	{
 		brcmf_err("Flowring creation failed, code %d\n", status);
 		brcmf_msgbuf_remove_flowring(msgbuf, flowid);
 		return;
 	}
+
 	brcmf_dbg(MSGBUF, "Flowring %d Create response status %d\n", flowid,
-		  status);
+			  status);
 
 	brcmf_flowring_open(msgbuf->flow, flowid);
 
@@ -1193,7 +1362,7 @@ brcmf_msgbuf_process_flow_ring_create_response(struct brcmf_msgbuf *msgbuf,
 
 static void
 brcmf_msgbuf_process_flow_ring_delete_response(struct brcmf_msgbuf *msgbuf,
-					       void *buf)
+		void *buf)
 {
 	struct msgbuf_flowring_delete_resp *flowring_delete_resp;
 	u16 status;
@@ -1205,13 +1374,15 @@ brcmf_msgbuf_process_flow_ring_delete_response(struct brcmf_msgbuf *msgbuf,
 	flowid -= BRCMF_NROF_H2D_COMMON_MSGRINGS;
 	status =  le16_to_cpu(flowring_delete_resp->compl_hdr.status);
 
-	if (status) {
+	if (status)
+	{
 		brcmf_err("Flowring deletion failed, code %d\n", status);
 		brcmf_flowring_delete(msgbuf->flow, flowid);
 		return;
 	}
+
 	brcmf_dbg(MSGBUF, "Flowring %d Delete response status %d\n", flowid,
-		  status);
+			  status);
 
 	brcmf_msgbuf_remove_flowring(msgbuf, flowid);
 }
@@ -1222,43 +1393,52 @@ static void brcmf_msgbuf_process_msgtype(struct brcmf_msgbuf *msgbuf, void *buf)
 	struct msgbuf_common_hdr *msg;
 
 	msg = (struct msgbuf_common_hdr *)buf;
-	switch (msg->msgtype) {
-	case MSGBUF_TYPE_FLOW_RING_CREATE_CMPLT:
-		brcmf_dbg(MSGBUF, "MSGBUF_TYPE_FLOW_RING_CREATE_CMPLT\n");
-		brcmf_msgbuf_process_flow_ring_create_response(msgbuf, buf);
-		break;
-	case MSGBUF_TYPE_FLOW_RING_DELETE_CMPLT:
-		brcmf_dbg(MSGBUF, "MSGBUF_TYPE_FLOW_RING_DELETE_CMPLT\n");
-		brcmf_msgbuf_process_flow_ring_delete_response(msgbuf, buf);
-		break;
-	case MSGBUF_TYPE_IOCTLPTR_REQ_ACK:
-		brcmf_dbg(MSGBUF, "MSGBUF_TYPE_IOCTLPTR_REQ_ACK\n");
-		break;
-	case MSGBUF_TYPE_IOCTL_CMPLT:
-		brcmf_dbg(MSGBUF, "MSGBUF_TYPE_IOCTL_CMPLT\n");
-		brcmf_msgbuf_process_ioctl_complete(msgbuf, buf);
-		break;
-	case MSGBUF_TYPE_WL_EVENT:
-		brcmf_dbg(MSGBUF, "MSGBUF_TYPE_WL_EVENT\n");
-		brcmf_msgbuf_process_event(msgbuf, buf);
-		break;
-	case MSGBUF_TYPE_TX_STATUS:
-		brcmf_dbg(MSGBUF, "MSGBUF_TYPE_TX_STATUS\n");
-		brcmf_msgbuf_process_txstatus(msgbuf, buf);
-		break;
-	case MSGBUF_TYPE_RX_CMPLT:
-		brcmf_dbg(MSGBUF, "MSGBUF_TYPE_RX_CMPLT\n");
-		brcmf_msgbuf_process_rx_complete(msgbuf, buf);
-		break;
-	default:
-		brcmf_err("Unsupported msgtype %d\n", msg->msgtype);
-		break;
+
+	switch (msg->msgtype)
+	{
+		case MSGBUF_TYPE_FLOW_RING_CREATE_CMPLT:
+			brcmf_dbg(MSGBUF, "MSGBUF_TYPE_FLOW_RING_CREATE_CMPLT\n");
+			brcmf_msgbuf_process_flow_ring_create_response(msgbuf, buf);
+			break;
+
+		case MSGBUF_TYPE_FLOW_RING_DELETE_CMPLT:
+			brcmf_dbg(MSGBUF, "MSGBUF_TYPE_FLOW_RING_DELETE_CMPLT\n");
+			brcmf_msgbuf_process_flow_ring_delete_response(msgbuf, buf);
+			break;
+
+		case MSGBUF_TYPE_IOCTLPTR_REQ_ACK:
+			brcmf_dbg(MSGBUF, "MSGBUF_TYPE_IOCTLPTR_REQ_ACK\n");
+			break;
+
+		case MSGBUF_TYPE_IOCTL_CMPLT:
+			brcmf_dbg(MSGBUF, "MSGBUF_TYPE_IOCTL_CMPLT\n");
+			brcmf_msgbuf_process_ioctl_complete(msgbuf, buf);
+			break;
+
+		case MSGBUF_TYPE_WL_EVENT:
+			brcmf_dbg(MSGBUF, "MSGBUF_TYPE_WL_EVENT\n");
+			brcmf_msgbuf_process_event(msgbuf, buf);
+			break;
+
+		case MSGBUF_TYPE_TX_STATUS:
+			brcmf_dbg(MSGBUF, "MSGBUF_TYPE_TX_STATUS\n");
+			brcmf_msgbuf_process_txstatus(msgbuf, buf);
+			break;
+
+		case MSGBUF_TYPE_RX_CMPLT:
+			brcmf_dbg(MSGBUF, "MSGBUF_TYPE_RX_CMPLT\n");
+			brcmf_msgbuf_process_rx_complete(msgbuf, buf);
+			break;
+
+		default:
+			brcmf_err("Unsupported msgtype %d\n", msg->msgtype);
+			break;
 	}
 }
 
 
 static void brcmf_msgbuf_process_rx(struct brcmf_msgbuf *msgbuf,
-				    struct brcmf_commonring *commonring)
+									struct brcmf_commonring *commonring)
 {
 	void *buf;
 	u16 count;
@@ -1266,26 +1446,39 @@ static void brcmf_msgbuf_process_rx(struct brcmf_msgbuf *msgbuf,
 
 again:
 	buf = brcmf_commonring_get_read_ptr(commonring, &count);
+
 	if (buf == NULL)
+	{
 		return;
+	}
 
 	processed = 0;
-	while (count) {
+
+	while (count)
+	{
 		brcmf_msgbuf_process_msgtype(msgbuf,
-					     buf + msgbuf->rx_dataoffset);
+									 buf + msgbuf->rx_dataoffset);
 		buf += brcmf_commonring_len_item(commonring);
 		processed++;
-		if (processed == BRCMF_MSGBUF_UPDATE_RX_PTR_THRS) {
+
+		if (processed == BRCMF_MSGBUF_UPDATE_RX_PTR_THRS)
+		{
 			brcmf_commonring_read_complete(commonring, processed);
 			processed = 0;
 		}
+
 		count--;
 	}
+
 	if (processed)
+	{
 		brcmf_commonring_read_complete(commonring, processed);
+	}
 
 	if (commonring->r_ptr == 0)
+	{
 		goto again;
+	}
 }
 
 
@@ -1307,14 +1500,18 @@ int brcmf_proto_msgbuf_rx_trigger(struct device *dev)
 	brcmf_msgbuf_process_rx(msgbuf, buf);
 
 	for_each_set_bit(flowid, msgbuf->txstatus_done_map,
-			 msgbuf->nrof_flowrings) {
+					 msgbuf->nrof_flowrings)
+	{
 		clear_bit(flowid, msgbuf->txstatus_done_map);
 		commonring = msgbuf->flowrings[flowid];
 		qlen = brcmf_flowring_qlen(msgbuf->flow, flowid);
+
 		if ((qlen > BRCMF_MSGBUF_TRICKLE_TXWORKER_THRS) ||
-		    ((qlen) && (atomic_read(&commonring->outstanding_tx) <
-				BRCMF_MSGBUF_TRICKLE_TXWORKER_THRS)))
+			((qlen) && (atomic_read(&commonring->outstanding_tx) <
+						BRCMF_MSGBUF_TRICKLE_TXWORKER_THRS)))
+		{
 			brcmf_msgbuf_schedule_txdata(msgbuf, flowid, true);
+		}
 	}
 
 	return 0;
@@ -1333,7 +1530,9 @@ void brcmf_msgbuf_delete_flowring(struct brcmf_pub *drvr, u16 flowid)
 	commonring = msgbuf->commonrings[BRCMF_H2D_MSGRING_CONTROL_SUBMIT];
 	brcmf_commonring_lock(commonring);
 	ret_ptr = brcmf_commonring_reserve_for_write(commonring);
-	if (!ret_ptr) {
+
+	if (!ret_ptr)
+	{
 		brcmf_err("FW unaware, flowring will be removed !!\n");
 		brcmf_commonring_unlock(commonring);
 		brcmf_msgbuf_remove_flowring(msgbuf, flowid);
@@ -1349,15 +1548,17 @@ void brcmf_msgbuf_delete_flowring(struct brcmf_pub *drvr, u16 flowid)
 	delete->msg.request_id = 0;
 
 	delete->flow_ring_id = cpu_to_le16(flowid +
-					   BRCMF_NROF_H2D_COMMON_MSGRINGS);
+									   BRCMF_NROF_H2D_COMMON_MSGRINGS);
 	delete->reason = 0;
 
 	brcmf_dbg(MSGBUF, "Send Flow Delete Req flow ID %d, ifindex %d\n",
-		  flowid, ifidx);
+			  flowid, ifidx);
 
 	err = brcmf_commonring_write_complete(commonring);
 	brcmf_commonring_unlock(commonring);
-	if (err) {
+
+	if (err)
+	{
 		brcmf_err("Failed to submit RING_DELETE, flowring will be removed\n");
 		brcmf_msgbuf_remove_flowring(msgbuf, flowid);
 	}
@@ -1376,37 +1577,46 @@ static int brcmf_msgbuf_stats_read(struct seq_file *seq, void *data)
 
 	commonring = msgbuf->commonrings[BRCMF_H2D_MSGRING_CONTROL_SUBMIT];
 	seq_printf(seq, "h2d_ctl_submit: rp %4u, wp %4u, depth %4u\n",
-		   commonring->r_ptr, commonring->w_ptr, commonring->depth);
+			   commonring->r_ptr, commonring->w_ptr, commonring->depth);
 	commonring = msgbuf->commonrings[BRCMF_H2D_MSGRING_RXPOST_SUBMIT];
 	seq_printf(seq, "h2d_rx_submit:  rp %4u, wp %4u, depth %4u\n",
-		   commonring->r_ptr, commonring->w_ptr, commonring->depth);
+			   commonring->r_ptr, commonring->w_ptr, commonring->depth);
 	commonring = msgbuf->commonrings[BRCMF_D2H_MSGRING_CONTROL_COMPLETE];
 	seq_printf(seq, "d2h_ctl_cmplt:  rp %4u, wp %4u, depth %4u\n",
-		   commonring->r_ptr, commonring->w_ptr, commonring->depth);
+			   commonring->r_ptr, commonring->w_ptr, commonring->depth);
 	commonring = msgbuf->commonrings[BRCMF_D2H_MSGRING_TX_COMPLETE];
 	seq_printf(seq, "d2h_tx_cmplt:   rp %4u, wp %4u, depth %4u\n",
-		   commonring->r_ptr, commonring->w_ptr, commonring->depth);
+			   commonring->r_ptr, commonring->w_ptr, commonring->depth);
 	commonring = msgbuf->commonrings[BRCMF_D2H_MSGRING_RX_COMPLETE];
 	seq_printf(seq, "d2h_rx_cmplt:   rp %4u, wp %4u, depth %4u\n",
-		   commonring->r_ptr, commonring->w_ptr, commonring->depth);
+			   commonring->r_ptr, commonring->w_ptr, commonring->depth);
 
 	seq_printf(seq, "\nh2d_flowrings: depth %u\n",
-		   BRCMF_H2D_TXFLOWRING_MAX_ITEM);
+			   BRCMF_H2D_TXFLOWRING_MAX_ITEM);
 	seq_puts(seq, "Active flowrings:\n");
 	hash = msgbuf->flow->hash;
-	for (i = 0; i < msgbuf->flow->nrofrings; i++) {
+
+	for (i = 0; i < msgbuf->flow->nrofrings; i++)
+	{
 		if (!msgbuf->flow->rings[i])
+		{
 			continue;
+		}
+
 		ring = msgbuf->flow->rings[i];
+
 		if (ring->status != RING_OPEN)
+		{
 			continue;
+		}
+
 		commonring = msgbuf->flowrings[i];
 		hash = &msgbuf->flow->hash[ring->hash_id];
 		seq_printf(seq, "id %3u: rp %4u, wp %4u, qlen %4u, blocked %u\n"
-				"        ifidx %u, fifo %u, da %pM\n",
-				i, commonring->r_ptr, commonring->w_ptr,
-				skb_queue_len(&ring->skblist), ring->blocked,
-				hash->ifidx, hash->fifo, hash->mac);
+				   "        ifidx %u, fifo %u, da %pM\n",
+				   i, commonring->r_ptr, commonring->w_ptr,
+				   skb_queue_len(&ring->skblist), ring->blocked,
+				   hash->ifidx, hash->fifo, hash->mac);
 	}
 
 	return 0;
@@ -1427,39 +1637,56 @@ int brcmf_proto_msgbuf_attach(struct brcmf_pub *drvr)
 
 	if_msgbuf = drvr->bus_if->msgbuf;
 
-	if (if_msgbuf->nrof_flowrings >= BRCMF_FLOWRING_HASHSIZE) {
+	if (if_msgbuf->nrof_flowrings >= BRCMF_FLOWRING_HASHSIZE)
+	{
 		brcmf_err("driver not configured for this many flowrings %d\n",
-			  if_msgbuf->nrof_flowrings);
+				  if_msgbuf->nrof_flowrings);
 		if_msgbuf->nrof_flowrings = BRCMF_FLOWRING_HASHSIZE - 1;
 	}
 
 	msgbuf = kzalloc(sizeof(*msgbuf), GFP_KERNEL);
+
 	if (!msgbuf)
+	{
 		goto fail;
+	}
 
 	msgbuf->txflow_wq = create_singlethread_workqueue("msgbuf_txflow");
-	if (msgbuf->txflow_wq == NULL) {
+
+	if (msgbuf->txflow_wq == NULL)
+	{
 		brcmf_err("workqueue creation failed\n");
 		goto fail;
 	}
+
 	INIT_WORK(&msgbuf->txflow_work, brcmf_msgbuf_txflow_worker);
 	count = BITS_TO_LONGS(if_msgbuf->nrof_flowrings);
 	count = count * sizeof(unsigned long);
 	msgbuf->flow_map = kzalloc(count, GFP_KERNEL);
+
 	if (!msgbuf->flow_map)
+	{
 		goto fail;
+	}
 
 	msgbuf->txstatus_done_map = kzalloc(count, GFP_KERNEL);
+
 	if (!msgbuf->txstatus_done_map)
+	{
 		goto fail;
+	}
 
 	msgbuf->drvr = drvr;
 	msgbuf->ioctbuf = dma_alloc_coherent(drvr->bus_if->dev,
-					     BRCMF_TX_IOCTL_MAX_MSG_SIZE,
-					     &msgbuf->ioctbuf_handle,
-					     GFP_KERNEL);
+										 BRCMF_TX_IOCTL_MAX_MSG_SIZE,
+										 &msgbuf->ioctbuf_handle,
+										 GFP_KERNEL);
+
 	if (!msgbuf->ioctbuf)
+	{
 		goto fail;
+	}
+
 	address = (u64)msgbuf->ioctbuf_handle;
 	msgbuf->ioctbuf_phys_hi = address >> 32;
 	msgbuf->ioctbuf_phys_lo = address & 0xffffffff;
@@ -1481,9 +1708,12 @@ int brcmf_proto_msgbuf_attach(struct brcmf_pub *drvr)
 	msgbuf->flowrings = (struct brcmf_commonring **)if_msgbuf->flowrings;
 	msgbuf->nrof_flowrings = if_msgbuf->nrof_flowrings;
 	msgbuf->flowring_dma_handle = kzalloc(msgbuf->nrof_flowrings *
-		sizeof(*msgbuf->flowring_dma_handle), GFP_KERNEL);
+										  sizeof(*msgbuf->flowring_dma_handle), GFP_KERNEL);
+
 	if (!msgbuf->flowring_dma_handle)
+	{
 		goto fail;
+	}
 
 	msgbuf->rx_dataoffset = if_msgbuf->rx_dataoffset;
 	msgbuf->max_rxbufpost = if_msgbuf->max_rxbufpost;
@@ -1492,32 +1722,52 @@ int brcmf_proto_msgbuf_attach(struct brcmf_pub *drvr)
 	msgbuf->max_eventbuf = BRCMF_MSGBUF_MAX_EVENTBUF_POST;
 
 	msgbuf->tx_pktids = brcmf_msgbuf_init_pktids(NR_TX_PKTIDS,
-						     DMA_TO_DEVICE);
+						DMA_TO_DEVICE);
+
 	if (!msgbuf->tx_pktids)
+	{
 		goto fail;
+	}
+
 	msgbuf->rx_pktids = brcmf_msgbuf_init_pktids(NR_RX_PKTIDS,
-						     DMA_FROM_DEVICE);
+						DMA_FROM_DEVICE);
+
 	if (!msgbuf->rx_pktids)
+	{
 		goto fail;
+	}
 
 	msgbuf->flow = brcmf_flowring_attach(drvr->bus_if->dev,
-					     if_msgbuf->nrof_flowrings);
+										 if_msgbuf->nrof_flowrings);
+
 	if (!msgbuf->flow)
+	{
 		goto fail;
+	}
 
 
 	brcmf_dbg(MSGBUF, "Feeding buffers, rx data %d, rx event %d, rx ioctl resp %d\n",
-		  msgbuf->max_rxbufpost, msgbuf->max_eventbuf,
-		  msgbuf->max_ioctlrespbuf);
+			  msgbuf->max_rxbufpost, msgbuf->max_eventbuf,
+			  msgbuf->max_ioctlrespbuf);
 	count = 0;
-	do {
+
+	do
+	{
 		brcmf_msgbuf_rxbuf_data_fill(msgbuf);
+
 		if (msgbuf->max_rxbufpost != msgbuf->rxbufpost)
+		{
 			msleep(10);
+		}
 		else
+		{
 			break;
+		}
+
 		count++;
-	} while (count < 10);
+	}
+	while (count < 10);
+
 	brcmf_msgbuf_rxbuf_event_post(msgbuf);
 	brcmf_msgbuf_rxbuf_ioctlresp_post(msgbuf);
 
@@ -1530,18 +1780,23 @@ int brcmf_proto_msgbuf_attach(struct brcmf_pub *drvr)
 	return 0;
 
 fail:
-	if (msgbuf) {
+
+	if (msgbuf)
+	{
 		kfree(msgbuf->flow_map);
 		kfree(msgbuf->txstatus_done_map);
 		brcmf_msgbuf_release_pktids(msgbuf);
 		kfree(msgbuf->flowring_dma_handle);
+
 		if (msgbuf->ioctbuf)
 			dma_free_coherent(drvr->bus_if->dev,
-					  BRCMF_TX_IOCTL_MAX_MSG_SIZE,
-					  msgbuf->ioctbuf,
-					  msgbuf->ioctbuf_handle);
+							  BRCMF_TX_IOCTL_MAX_MSG_SIZE,
+							  msgbuf->ioctbuf,
+							  msgbuf->ioctbuf_handle);
+
 		kfree(msgbuf);
 	}
+
 	return -ENOMEM;
 }
 
@@ -1552,25 +1807,33 @@ void brcmf_proto_msgbuf_detach(struct brcmf_pub *drvr)
 	struct brcmf_msgbuf_work_item *work;
 
 	brcmf_dbg(TRACE, "Enter\n");
-	if (drvr->proto->pd) {
+
+	if (drvr->proto->pd)
+	{
 		msgbuf = (struct brcmf_msgbuf *)drvr->proto->pd;
 		cancel_work_sync(&msgbuf->flowring_work);
-		while (!list_empty(&msgbuf->work_queue)) {
+
+		while (!list_empty(&msgbuf->work_queue))
+		{
 			work = list_first_entry(&msgbuf->work_queue,
-						struct brcmf_msgbuf_work_item,
-						queue);
+									struct brcmf_msgbuf_work_item,
+									queue);
 			list_del(&work->queue);
 			kfree(work);
 		}
+
 		kfree(msgbuf->flow_map);
 		kfree(msgbuf->txstatus_done_map);
+
 		if (msgbuf->txflow_wq)
+		{
 			destroy_workqueue(msgbuf->txflow_wq);
+		}
 
 		brcmf_flowring_detach(msgbuf->flow);
 		dma_free_coherent(drvr->bus_if->dev,
-				  BRCMF_TX_IOCTL_MAX_MSG_SIZE,
-				  msgbuf->ioctbuf, msgbuf->ioctbuf_handle);
+						  BRCMF_TX_IOCTL_MAX_MSG_SIZE,
+						  msgbuf->ioctbuf, msgbuf->ioctbuf_handle);
 		brcmf_msgbuf_release_pktids(msgbuf);
 		kfree(msgbuf->flowring_dma_handle);
 		kfree(msgbuf);

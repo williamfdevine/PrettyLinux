@@ -60,30 +60,42 @@ static inline int ksft_exit_fail(void)
 
 char *clockstring(int clockid)
 {
-	switch (clockid) {
-	case CLOCK_REALTIME:
-		return "CLOCK_REALTIME";
-	case CLOCK_MONOTONIC:
-		return "CLOCK_MONOTONIC";
-	case CLOCK_PROCESS_CPUTIME_ID:
-		return "CLOCK_PROCESS_CPUTIME_ID";
-	case CLOCK_THREAD_CPUTIME_ID:
-		return "CLOCK_THREAD_CPUTIME_ID";
-	case CLOCK_MONOTONIC_RAW:
-		return "CLOCK_MONOTONIC_RAW";
-	case CLOCK_REALTIME_COARSE:
-		return "CLOCK_REALTIME_COARSE";
-	case CLOCK_MONOTONIC_COARSE:
-		return "CLOCK_MONOTONIC_COARSE";
-	case CLOCK_BOOTTIME:
-		return "CLOCK_BOOTTIME";
-	case CLOCK_REALTIME_ALARM:
-		return "CLOCK_REALTIME_ALARM";
-	case CLOCK_BOOTTIME_ALARM:
-		return "CLOCK_BOOTTIME_ALARM";
-	case CLOCK_TAI:
-		return "CLOCK_TAI";
+	switch (clockid)
+	{
+		case CLOCK_REALTIME:
+			return "CLOCK_REALTIME";
+
+		case CLOCK_MONOTONIC:
+			return "CLOCK_MONOTONIC";
+
+		case CLOCK_PROCESS_CPUTIME_ID:
+			return "CLOCK_PROCESS_CPUTIME_ID";
+
+		case CLOCK_THREAD_CPUTIME_ID:
+			return "CLOCK_THREAD_CPUTIME_ID";
+
+		case CLOCK_MONOTONIC_RAW:
+			return "CLOCK_MONOTONIC_RAW";
+
+		case CLOCK_REALTIME_COARSE:
+			return "CLOCK_REALTIME_COARSE";
+
+		case CLOCK_MONOTONIC_COARSE:
+			return "CLOCK_MONOTONIC_COARSE";
+
+		case CLOCK_BOOTTIME:
+			return "CLOCK_BOOTTIME";
+
+		case CLOCK_REALTIME_ALARM:
+			return "CLOCK_REALTIME_ALARM";
+
+		case CLOCK_BOOTTIME_ALARM:
+			return "CLOCK_BOOTTIME_ALARM";
+
+		case CLOCK_TAI:
+			return "CLOCK_TAI";
 	};
+
 	return "UNKNOWN_CLOCKID";
 }
 
@@ -92,11 +104,20 @@ static inline int in_order(struct timespec a, struct timespec b)
 {
 	/* use unsigned to avoid false positives on 2038 rollover */
 	if ((unsigned long)a.tv_sec < (unsigned long)b.tv_sec)
+	{
 		return 1;
+	}
+
 	if ((unsigned long)a.tv_sec > (unsigned long)b.tv_sec)
+	{
 		return 0;
+	}
+
 	if (a.tv_nsec > b.tv_nsec)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -117,35 +138,50 @@ int consistency_test(int clock_type, unsigned long seconds)
 	t = time(0);
 	start_str = ctime(&t);
 
-	while (seconds == -1 || now - then < seconds) {
+	while (seconds == -1 || now - then < seconds)
+	{
 		inconsistent = 0;
 
 		/* Fill list */
 		for (i = 0; i < CALLS_PER_LOOP; i++)
+		{
 			clock_gettime(clock_type, &list[i]);
+		}
 
 		/* Check for inconsistencies */
 		for (i = 0; i < CALLS_PER_LOOP - 1; i++)
-			if (!in_order(list[i], list[i+1]))
+			if (!in_order(list[i], list[i + 1]))
+			{
 				inconsistent = i;
+			}
 
 		/* display inconsistency */
-		if (inconsistent) {
+		if (inconsistent)
+		{
 			unsigned long long delta;
 
 			printf("\%s\n", start_str);
-			for (i = 0; i < CALLS_PER_LOOP; i++) {
+
+			for (i = 0; i < CALLS_PER_LOOP; i++)
+			{
 				if (i == inconsistent)
+				{
 					printf("--------------------\n");
+				}
+
 				printf("%lu:%lu\n", list[i].tv_sec,
-							list[i].tv_nsec);
+					   list[i].tv_nsec);
+
 				if (i == inconsistent + 1)
+				{
 					printf("--------------------\n");
+				}
 			}
+
 			delta = list[inconsistent].tv_sec * NSEC_PER_SEC;
 			delta += list[inconsistent].tv_nsec;
-			delta -= list[inconsistent+1].tv_sec * NSEC_PER_SEC;
-			delta -= list[inconsistent+1].tv_nsec;
+			delta -= list[inconsistent + 1].tv_sec * NSEC_PER_SEC;
+			delta -= list[inconsistent + 1].tv_nsec;
 			printf("Delta: %llu ns\n", delta);
 			fflush(0);
 			/* timestamp inconsistency*/
@@ -154,8 +190,10 @@ int consistency_test(int clock_type, unsigned long seconds)
 			printf("[FAILED]\n");
 			return -1;
 		}
+
 		now = list[0].tv_sec;
 	}
+
 	printf("[OK]\n");
 	return 0;
 }
@@ -170,35 +208,47 @@ int main(int argc, char *argv[])
 	struct timespec ts;
 
 	/* Process arguments */
-	while ((opt = getopt(argc, argv, "t:c:")) != -1) {
-		switch (opt) {
-		case 't':
-			runtime = atoi(optarg);
-			break;
-		case 'c':
-			userclock = atoi(optarg);
-			maxclocks = userclock + 1;
-			break;
-		default:
-			printf("Usage: %s [-t <secs>] [-c <clockid>]\n", argv[0]);
-			printf("	-t: Number of seconds to run\n");
-			printf("	-c: clockid to use (default, all clockids)\n");
-			exit(-1);
+	while ((opt = getopt(argc, argv, "t:c:")) != -1)
+	{
+		switch (opt)
+		{
+			case 't':
+				runtime = atoi(optarg);
+				break;
+
+			case 'c':
+				userclock = atoi(optarg);
+				maxclocks = userclock + 1;
+				break;
+
+			default:
+				printf("Usage: %s [-t <secs>] [-c <clockid>]\n", argv[0]);
+				printf("	-t: Number of seconds to run\n");
+				printf("	-c: clockid to use (default, all clockids)\n");
+				exit(-1);
 		}
 	}
 
 	setbuf(stdout, NULL);
 
-	for (clockid = userclock; clockid < maxclocks; clockid++) {
+	for (clockid = userclock; clockid < maxclocks; clockid++)
+	{
 
 		if (clockid == CLOCK_HWSPECIFIC)
+		{
 			continue;
+		}
 
-		if (!clock_gettime(clockid, &ts)) {
+		if (!clock_gettime(clockid, &ts))
+		{
 			printf("Consistent %-30s ", clockstring(clockid));
+
 			if (consistency_test(clockid, runtime))
+			{
 				return ksft_exit_fail();
+			}
 		}
 	}
+
 	return ksft_exit_pass();
 }

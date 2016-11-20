@@ -55,7 +55,8 @@
  * the kernel should always mask the indices to avoid accessing
  * memory outside of the data area
  */
-struct rxe_queue_buf {
+struct rxe_queue_buf
+{
 	__u32			log2_elem_size;
 	__u32			index_mask;
 	__u32			pad_1[30];
@@ -66,7 +67,8 @@ struct rxe_queue_buf {
 	__u8			data[0];
 };
 
-struct rxe_queue {
+struct rxe_queue
+{
 	struct rxe_dev		*rxe;
 	struct rxe_queue_buf	*buf;
 	struct rxe_mmap_info	*ip;
@@ -77,28 +79,28 @@ struct rxe_queue {
 };
 
 int do_mmap_info(struct rxe_dev *rxe,
-		 struct ib_udata *udata,
-		 bool is_req,
-		 struct ib_ucontext *context,
-		 struct rxe_queue_buf *buf,
-		 size_t buf_size,
-		 struct rxe_mmap_info **ip_p);
+				 struct ib_udata *udata,
+				 bool is_req,
+				 struct ib_ucontext *context,
+				 struct rxe_queue_buf *buf,
+				 size_t buf_size,
+				 struct rxe_mmap_info **ip_p);
 
 void rxe_queue_reset(struct rxe_queue *q);
 
 struct rxe_queue *rxe_queue_init(struct rxe_dev *rxe,
-				 int *num_elem,
-				 unsigned int elem_size);
+								 int *num_elem,
+								 unsigned int elem_size);
 
 int rxe_queue_resize(struct rxe_queue *q,
-		     unsigned int *num_elem_p,
-		     unsigned int elem_size,
-		     struct ib_ucontext *context,
-		     struct ib_udata *udata,
-		     /* Protect producers while resizing queue */
-		     spinlock_t *producer_lock,
-		     /* Protect consumers while resizing queue */
-		     spinlock_t *consumer_lock);
+					 unsigned int *num_elem_p,
+					 unsigned int elem_size,
+					 struct ib_ucontext *context,
+					 struct ib_udata *udata,
+					 /* Protect producers while resizing queue */
+					 spinlock_t *producer_lock,
+					 /* Protect consumers while resizing queue */
+					 spinlock_t *consumer_lock);
 
 void rxe_queue_cleanup(struct rxe_queue *queue);
 
@@ -122,25 +124,25 @@ static inline int queue_full(struct rxe_queue *q)
 static inline void advance_producer(struct rxe_queue *q)
 {
 	q->buf->producer_index = (q->buf->producer_index + 1)
-			& q->index_mask;
+							 & q->index_mask;
 }
 
 static inline void advance_consumer(struct rxe_queue *q)
 {
 	q->buf->consumer_index = (q->buf->consumer_index + 1)
-			& q->index_mask;
+							 & q->index_mask;
 }
 
 static inline void *producer_addr(struct rxe_queue *q)
 {
 	return q->buf->data + ((q->buf->producer_index & q->index_mask)
-				<< q->log2_elem_size);
+						   << q->log2_elem_size);
 }
 
 static inline void *consumer_addr(struct rxe_queue *q)
 {
 	return q->buf->data + ((q->buf->consumer_index & q->index_mask)
-				<< q->log2_elem_size);
+						   << q->log2_elem_size);
 }
 
 static inline unsigned int producer_index(struct rxe_queue *q)
@@ -156,20 +158,20 @@ static inline unsigned int consumer_index(struct rxe_queue *q)
 static inline void *addr_from_index(struct rxe_queue *q, unsigned int index)
 {
 	return q->buf->data + ((index & q->index_mask)
-				<< q->buf->log2_elem_size);
+						   << q->buf->log2_elem_size);
 }
 
 static inline unsigned int index_from_addr(const struct rxe_queue *q,
-					   const void *addr)
+		const void *addr)
 {
 	return (((u8 *)addr - q->buf->data) >> q->log2_elem_size)
-		& q->index_mask;
+		   & q->index_mask;
 }
 
 static inline unsigned int queue_count(const struct rxe_queue *q)
 {
 	return (q->buf->producer_index - q->buf->consumer_index)
-		& q->index_mask;
+		   & q->index_mask;
 }
 
 static inline void *queue_head(struct rxe_queue *q)

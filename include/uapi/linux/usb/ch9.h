@@ -205,7 +205,8 @@
  * For most devices, interfaces don't coordinate with each other, so
  * such requests may be made at any time.
  */
-struct usb_ctrlrequest {
+struct usb_ctrlrequest
+{
 	__u8 bRequestType;
 	__u8 bRequest;
 	__le16 wValue;
@@ -271,7 +272,8 @@ struct usb_ctrlrequest {
 #define USB_DT_CS_ENDPOINT		(USB_TYPE_CLASS | USB_DT_ENDPOINT)
 
 /* All standard descriptors have these 2 fields at the beginning */
-struct usb_descriptor_header {
+struct usb_descriptor_header
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 } __attribute__ ((packed));
@@ -280,7 +282,8 @@ struct usb_descriptor_header {
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_DEVICE: Device descriptor */
-struct usb_device_descriptor {
+struct usb_device_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -336,7 +339,8 @@ struct usb_device_descriptor {
  * devices with a USB_DT_DEVICE_QUALIFIER have any OTHER_SPEED_CONFIG
  * descriptors.
  */
-struct usb_config_descriptor {
+struct usb_config_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -359,7 +363,8 @@ struct usb_config_descriptor {
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_STRING: String descriptor */
-struct usb_string_descriptor {
+struct usb_string_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -373,7 +378,8 @@ struct usb_string_descriptor {
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_INTERFACE: Interface descriptor */
-struct usb_interface_descriptor {
+struct usb_interface_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -391,7 +397,8 @@ struct usb_interface_descriptor {
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_ENDPOINT: Endpoint descriptor */
-struct usb_endpoint_descriptor {
+struct usb_endpoint_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -482,7 +489,7 @@ static inline int usb_endpoint_dir_in(const struct usb_endpoint_descriptor *epd)
  * Returns true if the endpoint is of type OUT, otherwise it returns false.
  */
 static inline int usb_endpoint_dir_out(
-				const struct usb_endpoint_descriptor *epd)
+	const struct usb_endpoint_descriptor *epd)
 {
 	return ((epd->bEndpointAddress & USB_ENDPOINT_DIR_MASK) == USB_DIR_OUT);
 }
@@ -494,10 +501,10 @@ static inline int usb_endpoint_dir_out(
  * Returns true if the endpoint is of type bulk, otherwise it returns false.
  */
 static inline int usb_endpoint_xfer_bulk(
-				const struct usb_endpoint_descriptor *epd)
+	const struct usb_endpoint_descriptor *epd)
 {
 	return ((epd->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) ==
-		USB_ENDPOINT_XFER_BULK);
+			USB_ENDPOINT_XFER_BULK);
 }
 
 /**
@@ -507,10 +514,10 @@ static inline int usb_endpoint_xfer_bulk(
  * Returns true if the endpoint is of type control, otherwise it returns false.
  */
 static inline int usb_endpoint_xfer_control(
-				const struct usb_endpoint_descriptor *epd)
+	const struct usb_endpoint_descriptor *epd)
 {
 	return ((epd->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) ==
-		USB_ENDPOINT_XFER_CONTROL);
+			USB_ENDPOINT_XFER_CONTROL);
 }
 
 /**
@@ -521,10 +528,10 @@ static inline int usb_endpoint_xfer_control(
  * false.
  */
 static inline int usb_endpoint_xfer_int(
-				const struct usb_endpoint_descriptor *epd)
+	const struct usb_endpoint_descriptor *epd)
 {
 	return ((epd->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) ==
-		USB_ENDPOINT_XFER_INT);
+			USB_ENDPOINT_XFER_INT);
 }
 
 /**
@@ -535,10 +542,10 @@ static inline int usb_endpoint_xfer_int(
  * false.
  */
 static inline int usb_endpoint_xfer_isoc(
-				const struct usb_endpoint_descriptor *epd)
+	const struct usb_endpoint_descriptor *epd)
 {
 	return ((epd->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) ==
-		USB_ENDPOINT_XFER_ISOC);
+			USB_ENDPOINT_XFER_ISOC);
 }
 
 /**
@@ -549,7 +556,7 @@ static inline int usb_endpoint_xfer_isoc(
  * otherwise it returns false.
  */
 static inline int usb_endpoint_is_bulk_in(
-				const struct usb_endpoint_descriptor *epd)
+	const struct usb_endpoint_descriptor *epd)
 {
 	return usb_endpoint_xfer_bulk(epd) && usb_endpoint_dir_in(epd);
 }
@@ -562,7 +569,7 @@ static inline int usb_endpoint_is_bulk_in(
  * otherwise it returns false.
  */
 static inline int usb_endpoint_is_bulk_out(
-				const struct usb_endpoint_descriptor *epd)
+	const struct usb_endpoint_descriptor *epd)
 {
 	return usb_endpoint_xfer_bulk(epd) && usb_endpoint_dir_out(epd);
 }
@@ -575,7 +582,7 @@ static inline int usb_endpoint_is_bulk_out(
  * otherwise it returns false.
  */
 static inline int usb_endpoint_is_int_in(
-				const struct usb_endpoint_descriptor *epd)
+	const struct usb_endpoint_descriptor *epd)
 {
 	return usb_endpoint_xfer_int(epd) && usb_endpoint_dir_in(epd);
 }
@@ -588,7 +595,7 @@ static inline int usb_endpoint_is_int_in(
  * otherwise it returns false.
  */
 static inline int usb_endpoint_is_int_out(
-				const struct usb_endpoint_descriptor *epd)
+	const struct usb_endpoint_descriptor *epd)
 {
 	return usb_endpoint_xfer_int(epd) && usb_endpoint_dir_out(epd);
 }
@@ -601,7 +608,7 @@ static inline int usb_endpoint_is_int_out(
  * otherwise it returns false.
  */
 static inline int usb_endpoint_is_isoc_in(
-				const struct usb_endpoint_descriptor *epd)
+	const struct usb_endpoint_descriptor *epd)
 {
 	return usb_endpoint_xfer_isoc(epd) && usb_endpoint_dir_in(epd);
 }
@@ -614,7 +621,7 @@ static inline int usb_endpoint_is_isoc_in(
  * otherwise it returns false.
  */
 static inline int usb_endpoint_is_isoc_out(
-				const struct usb_endpoint_descriptor *epd)
+	const struct usb_endpoint_descriptor *epd)
 {
 	return usb_endpoint_xfer_isoc(epd) && usb_endpoint_dir_out(epd);
 }
@@ -631,7 +638,7 @@ static inline int usb_endpoint_maxp(const struct usb_endpoint_descriptor *epd)
 }
 
 static inline int usb_endpoint_interrupt_type(
-		const struct usb_endpoint_descriptor *epd)
+	const struct usb_endpoint_descriptor *epd)
 {
 	return epd->bmAttributes & USB_ENDPOINT_INTRTYPE;
 }
@@ -641,7 +648,8 @@ static inline int usb_endpoint_interrupt_type(
 /* USB_DT_SSP_ISOC_ENDPOINT_COMP: SuperSpeedPlus Isochronous Endpoint Companion
  * descriptor
  */
-struct usb_ssp_isoc_ep_comp_descriptor {
+struct usb_ssp_isoc_ep_comp_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 	__le16 wReseved;
@@ -653,7 +661,8 @@ struct usb_ssp_isoc_ep_comp_descriptor {
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_SS_ENDPOINT_COMP: SuperSpeed Endpoint Companion descriptor */
-struct usb_ss_ep_comp_descriptor {
+struct usb_ss_ep_comp_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -671,12 +680,16 @@ usb_ss_max_streams(const struct usb_ss_ep_comp_descriptor *comp)
 	int		max_streams;
 
 	if (!comp)
+	{
 		return 0;
+	}
 
 	max_streams = comp->bmAttributes & 0x1f;
 
 	if (!max_streams)
+	{
 		return 0;
+	}
 
 	max_streams = 1 << max_streams;
 
@@ -691,7 +704,8 @@ usb_ss_max_streams(const struct usb_ss_ep_comp_descriptor *comp)
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_DEVICE_QUALIFIER: Device Qualifier descriptor */
-struct usb_qualifier_descriptor {
+struct usb_qualifier_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -708,7 +722,8 @@ struct usb_qualifier_descriptor {
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_OTG (from OTG 1.0a supplement) */
-struct usb_otg_descriptor {
+struct usb_otg_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -716,7 +731,8 @@ struct usb_otg_descriptor {
 } __attribute__ ((packed));
 
 /* USB_DT_OTG (from OTG 2.0 supplement) */
-struct usb_otg20_descriptor {
+struct usb_otg20_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -735,7 +751,8 @@ struct usb_otg20_descriptor {
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_DEBUG:  for special highspeed devices, replacing serial console */
-struct usb_debug_descriptor {
+struct usb_debug_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -747,7 +764,8 @@ struct usb_debug_descriptor {
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_INTERFACE_ASSOCIATION: groups interfaces */
-struct usb_interface_assoc_descriptor {
+struct usb_interface_assoc_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -765,7 +783,8 @@ struct usb_interface_assoc_descriptor {
 /* USB_DT_SECURITY:  group of wireless security descriptors, including
  * encryption types available for setting up a CC/association.
  */
-struct usb_security_descriptor {
+struct usb_security_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -778,7 +797,8 @@ struct usb_security_descriptor {
 /* USB_DT_KEY:  used with {GET,SET}_SECURITY_DATA; only public keys
  * may be retrieved.
  */
-struct usb_key_descriptor {
+struct usb_key_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -790,7 +810,8 @@ struct usb_key_descriptor {
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_ENCRYPTION_TYPE:  bundled in DT_SECURITY groups */
-struct usb_encryption_descriptor {
+struct usb_encryption_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -807,7 +828,8 @@ struct usb_encryption_descriptor {
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_BOS:  group of device-level capabilities */
-struct usb_bos_descriptor {
+struct usb_bos_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -819,7 +841,8 @@ struct usb_bos_descriptor {
 /*-------------------------------------------------------------------------*/
 
 /* USB_DT_DEVICE_CAPABILITY:  grouped with BOS */
-struct usb_dev_cap_header {
+struct usb_dev_cap_header
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 	__u8  bDevCapabilityType;
@@ -827,7 +850,8 @@ struct usb_dev_cap_header {
 
 #define	USB_CAP_TYPE_WIRELESS_USB	1
 
-struct usb_wireless_cap_descriptor {	/* Ultra Wide Band */
+struct usb_wireless_cap_descriptor  	/* Ultra Wide Band */
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 	__u8  bDevCapabilityType;
@@ -856,7 +880,8 @@ struct usb_wireless_cap_descriptor {	/* Ultra Wide Band */
 /* USB 2.0 Extension descriptor */
 #define	USB_CAP_TYPE_EXT		2
 
-struct usb_ext_cap_descriptor {		/* Link Power Management */
+struct usb_ext_cap_descriptor  		/* Link Power Management */
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 	__u8  bDevCapabilityType;
@@ -876,7 +901,8 @@ struct usb_ext_cap_descriptor {		/* Link Power Management */
  * specific device level capabilities
  */
 #define		USB_SS_CAP_TYPE		3
-struct usb_ss_cap_descriptor {		/* Link Power Management */
+struct usb_ss_cap_descriptor  		/* Link Power Management */
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 	__u8  bDevCapabilityType;
@@ -899,7 +925,8 @@ struct usb_ss_cap_descriptor {		/* Link Power Management */
  * identify the instance across all operating modes
  */
 #define	CONTAINER_ID_TYPE	4
-struct usb_ss_container_id_descriptor {
+struct usb_ss_container_id_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 	__u8  bDevCapabilityType;
@@ -914,7 +941,8 @@ struct usb_ss_container_id_descriptor {
  * SuperSpeed Plus USB specific device level capabilities
  */
 #define	USB_SSP_CAP_TYPE	0xa
-struct usb_ssp_cap_descriptor {
+struct usb_ssp_cap_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 	__u8  bDevCapabilityType;
@@ -949,7 +977,8 @@ struct usb_ssp_cap_descriptor {
 /* The provider characteristics of a Port on the device */
 #define USB_PD_PD_PROVIDER_PORT_CAPABILITY	0x09
 
-struct usb_pd_cap_descriptor {
+struct usb_pd_cap_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 	__u8  bDevCapabilityType; /* set to USB_PD_POWER_DELIVERY_CAPABILITY */
@@ -973,7 +1002,8 @@ struct usb_pd_cap_descriptor {
 	__le16 bcdUSBTypeCVersion;
 } __attribute__((packed));
 
-struct usb_pd_cap_battery_info_descriptor {
+struct usb_pd_cap_battery_info_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDevCapabilityType;
@@ -1000,13 +1030,14 @@ struct usb_pd_cap_battery_info_descriptor {
 	__le32 dwBatteryLastFullchargeCapacity; /* in mWh */
 } __attribute__((packed));
 
-struct usb_pd_cap_consumer_port_descriptor {
+struct usb_pd_cap_consumer_port_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDevCapabilityType;
 	__u8 bReserved;
 	__u8 bmCapabilities;
-/* port will oerate under: */
+	/* port will oerate under: */
 #define USB_PD_CAP_CONSUMER_BC		(1 << 0) /* BC */
 #define USB_PD_CAP_CONSUMER_PD		(1 << 1) /* PD */
 #define USB_PD_CAP_CONSUMER_TYPE_C	(1 << 2) /* USB Type-C Current */
@@ -1019,13 +1050,14 @@ struct usb_pd_cap_consumer_port_descriptor {
 #define USB_PD_CAP_CONSUMER_UNKNOWN_PEAK_POWER_TIME 0xffff
 } __attribute__((packed));
 
-struct usb_pd_cap_provider_port_descriptor {
+struct usb_pd_cap_provider_port_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDevCapabilityType;
 	__u8 bReserved1;
 	__u8 bmCapabilities;
-/* port will oerate under: */
+	/* port will oerate under: */
 #define USB_PD_CAP_PROVIDER_BC		(1 << 0) /* BC */
 #define USB_PD_CAP_PROVIDER_PD		(1 << 1) /* PD */
 #define USB_PD_CAP_PROVIDER_TYPE_C	(1 << 2) /* USB Type-C Current */
@@ -1039,7 +1071,8 @@ struct usb_pd_cap_provider_port_descriptor {
  * hubs that support PTM
  */
 #define	USB_PTM_CAP_TYPE	0xb
-struct usb_ptm_cap_descriptor {
+struct usb_ptm_cap_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 	__u8  bDevCapabilityType;
@@ -1056,7 +1089,8 @@ struct usb_ptm_cap_descriptor {
 /* USB_DT_WIRELESS_ENDPOINT_COMP:  companion descriptor associated with
  * each endpoint descriptor for a wireless device
  */
-struct usb_wireless_ep_comp_descriptor {
+struct usb_wireless_ep_comp_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -1078,7 +1112,8 @@ struct usb_wireless_ep_comp_descriptor {
  * host and a device for connection set up, mutual authentication, and
  * exchanging short lived session keys.  The handshake depends on a CC.
  */
-struct usb_handshake {
+struct usb_handshake
+{
 	__u8 bMessageNumber;
 	__u8 bStatus;
 	__u8 tTKID[3];
@@ -1094,7 +1129,8 @@ struct usb_handshake {
  * A CC may also be set up using non-wireless secure channels (including
  * wired USB!), and some devices may support CCs with multiple hosts.
  */
-struct usb_connection_context {
+struct usb_connection_context
+{
 	__u8 CHID[16];		/* persistent host id */
 	__u8 CDID[16];		/* device id (unique w/in host context) */
 	__u8 CK[16];		/* connection key */
@@ -1104,7 +1140,8 @@ struct usb_connection_context {
 
 /* USB 2.0 defines three speeds, here's how Linux identifies them */
 
-enum usb_device_speed {
+enum usb_device_speed
+{
 	USB_SPEED_UNKNOWN = 0,			/* enumerating */
 	USB_SPEED_LOW, USB_SPEED_FULL,		/* usb 1.1 */
 	USB_SPEED_HIGH,				/* usb 2.0 */
@@ -1114,7 +1151,8 @@ enum usb_device_speed {
 };
 
 
-enum usb_device_state {
+enum usb_device_state
+{
 	/* NOTATTACHED isn't in the USB spec, and this state acts
 	 * the same as ATTACHED ... but it's clearer this way.
 	 */
@@ -1139,7 +1177,8 @@ enum usb_device_state {
 	 */
 };
 
-enum usb3_link_state {
+enum usb3_link_state
+{
 	USB3_LPM_U0 = 0,
 	USB3_LPM_U1,
 	USB3_LPM_U2,
@@ -1169,7 +1208,8 @@ enum usb3_link_state {
 #define USB3_LPM_U2_MAX_TIMEOUT		0xFE
 #define USB3_LPM_DEVICE_INITIATED	0xFF
 
-struct usb_set_sel_req {
+struct usb_set_sel_req
+{
 	__u8	u1_sel;
 	__u8	u1_pel;
 	__le16	u2_sel;

@@ -44,7 +44,8 @@
 struct fman_mac;
 struct mac_priv_s;
 
-struct mac_device {
+struct mac_device
+{
 	struct resource		*res;
 	u8			 addr[ETH_ALEN];
 	struct fman_port	*port[2];
@@ -59,29 +60,30 @@ struct mac_device {
 	bool promisc;
 
 	struct phy_device *(*init_phy)(struct net_device *net_dev,
-				       struct mac_device *mac_dev);
+								   struct mac_device *mac_dev);
 	int (*init)(struct mac_device *mac_dev);
 	int (*start)(struct mac_device *mac_dev);
 	int (*stop)(struct mac_device *mac_dev);
 	int (*set_promisc)(struct fman_mac *mac_dev, bool enable);
 	int (*change_addr)(struct fman_mac *mac_dev, enet_addr_t *enet_addr);
 	int (*set_multi)(struct net_device *net_dev,
-			 struct mac_device *mac_dev);
+					 struct mac_device *mac_dev);
 	int (*set_rx_pause)(struct fman_mac *mac_dev, bool en);
 	int (*set_tx_pause)(struct fman_mac *mac_dev, u8 priority,
-			    u16 pause_time, u16 thresh_time);
+						u16 pause_time, u16 thresh_time);
 	int (*set_exception)(struct fman_mac *mac_dev,
-			     enum fman_mac_exceptions exception, bool enable);
+						 enum fman_mac_exceptions exception, bool enable);
 	int (*add_hash_mac_addr)(struct fman_mac *mac_dev,
-				 enet_addr_t *eth_addr);
+							 enet_addr_t *eth_addr);
 	int (*remove_hash_mac_addr)(struct fman_mac *mac_dev,
-				    enet_addr_t *eth_addr);
+								enet_addr_t *eth_addr);
 
 	struct fman_mac		*fman_mac;
 	struct mac_priv_s	*priv;
 };
 
-struct dpaa_eth_data {
+struct dpaa_eth_data
+{
 	struct device_node *mac_node;
 	struct mac_device *mac_dev;
 	int mac_hw_id;
@@ -93,6 +95,6 @@ extern const char	*mac_driver_description;
 int fman_set_mac_active_pause(struct mac_device *mac_dev, bool rx, bool tx);
 
 void fman_get_pause_cfg(struct mac_device *mac_dev, bool *rx_pause,
-			bool *tx_pause);
+						bool *tx_pause);
 
 #endif	/* __MAC_H */

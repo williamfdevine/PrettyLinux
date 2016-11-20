@@ -75,11 +75,12 @@
 #define MV64X60_PCI_ERR_MRdPerr		0x0040
 
 #define MV64X60_PCI_PE_MASK	(MV64X60_PCI_ERR_SWrPerr | \
-				MV64X60_PCI_ERR_SRdPerr | \
-				MV64X60_PCI_ERR_MWrPerr | \
-				MV64X60_PCI_ERR_MRdPerr)
+							 MV64X60_PCI_ERR_SRdPerr | \
+							 MV64X60_PCI_ERR_MWrPerr | \
+							 MV64X60_PCI_ERR_MRdPerr)
 
-struct mv64x60_pci_pdata {
+struct mv64x60_pci_pdata
+{
 	int pci_hose;
 	void __iomem *pci_vbase;
 	char *name;
@@ -89,7 +90,8 @@ struct mv64x60_pci_pdata {
 
 #endif				/* CONFIG_PCI */
 
-struct mv64x60_mc_pdata {
+struct mv64x60_mc_pdata
+{
 	void __iomem *mc_vbase;
 	int total_mem;
 	char *name;
@@ -97,14 +99,16 @@ struct mv64x60_mc_pdata {
 	int edac_idx;
 };
 
-struct mv64x60_cpu_pdata {
+struct mv64x60_cpu_pdata
+{
 	void __iomem *cpu_vbase[2];
 	char *name;
 	int irq;
 	int edac_idx;
 };
 
-struct mv64x60_sram_pdata {
+struct mv64x60_sram_pdata
+{
 	void __iomem *sram_vbase;
 	char *name;
 	int irq;

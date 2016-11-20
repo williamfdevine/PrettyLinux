@@ -37,7 +37,7 @@
 #define LTQ_WDT_SR_EN		(0x1 << 31)	/* enable bit */
 #define LTQ_WDT_SR_PWD		(0x3 << 26)	/* turn on power */
 #define LTQ_WDT_SR_CLKDIV	(0x3 << 24)	/* turn on clock and set */
-						/* divider to 0x40000 */
+/* divider to 0x40000 */
 #define LTQ_WDT_DIVIDER		0x40000
 #define LTQ_MAX_TIMEOUT		((1 << 16) - 1)	/* the reload field is 16 bit */
 
@@ -55,15 +55,18 @@ static void
 ltq_wdt_enable(void)
 {
 	unsigned long int timeout = ltq_wdt_timeout *
-			(ltq_io_region_clk_rate / LTQ_WDT_DIVIDER) + 0x1000;
+								(ltq_io_region_clk_rate / LTQ_WDT_DIVIDER) + 0x1000;
+
 	if (timeout > LTQ_MAX_TIMEOUT)
+	{
 		timeout = LTQ_MAX_TIMEOUT;
+	}
 
 	/* write the first password magic */
 	ltq_w32(LTQ_WDT_PW1, ltq_wdt_membase + LTQ_WDT_CR);
 	/* write the second magic plus the configuration and new timeout */
 	ltq_w32(LTQ_WDT_SR_EN | LTQ_WDT_SR_PWD | LTQ_WDT_SR_CLKDIV |
-		LTQ_WDT_PW2 | timeout, ltq_wdt_membase + LTQ_WDT_CR);
+			LTQ_WDT_PW2 | timeout, ltq_wdt_membase + LTQ_WDT_CR);
 }
 
 static void
@@ -80,70 +83,89 @@ ltq_wdt_disable(void)
 
 static ssize_t
 ltq_wdt_write(struct file *file, const char __user *data,
-		size_t len, loff_t *ppos)
+			  size_t len, loff_t *ppos)
 {
-	if (len) {
-		if (!nowayout) {
+	if (len)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			ltq_wdt_ok_to_close = 0;
-			for (i = 0; i != len; i++) {
+
+			for (i = 0; i != len; i++)
+			{
 				char c;
 
 				if (get_user(c, data + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					ltq_wdt_ok_to_close = 1;
+				}
 				else
+				{
 					ltq_wdt_ok_to_close = 0;
+				}
 			}
 		}
+
 		ltq_wdt_enable();
 	}
 
 	return len;
 }
 
-static struct watchdog_info ident = {
+static struct watchdog_info ident =
+{
 	.options = WDIOF_MAGICCLOSE | WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING |
-			WDIOF_CARDRESET,
+	WDIOF_CARDRESET,
 	.identity = "ltq_wdt",
 };
 
 static long
 ltq_wdt_ioctl(struct file *file,
-		unsigned int cmd, unsigned long arg)
+			  unsigned int cmd, unsigned long arg)
 {
 	int ret = -ENOTTY;
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		ret = copy_to_user((struct watchdog_info __user *)arg, &ident,
-				sizeof(ident)) ? -EFAULT : 0;
-		break;
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			ret = copy_to_user((struct watchdog_info __user *)arg, &ident,
+							   sizeof(ident)) ? -EFAULT : 0;
+			break;
 
-	case WDIOC_GETBOOTSTATUS:
-		ret = put_user(ltq_wdt_bootstatus, (int __user *)arg);
-		break;
+		case WDIOC_GETBOOTSTATUS:
+			ret = put_user(ltq_wdt_bootstatus, (int __user *)arg);
+			break;
 
-	case WDIOC_GETSTATUS:
-		ret = put_user(0, (int __user *)arg);
-		break;
+		case WDIOC_GETSTATUS:
+			ret = put_user(0, (int __user *)arg);
+			break;
 
-	case WDIOC_SETTIMEOUT:
-		ret = get_user(ltq_wdt_timeout, (int __user *)arg);
-		if (!ret)
-			ltq_wdt_enable();
+		case WDIOC_SETTIMEOUT:
+			ret = get_user(ltq_wdt_timeout, (int __user *)arg);
+
+			if (!ret)
+			{
+				ltq_wdt_enable();
+			}
+
 		/* intentional drop through */
-	case WDIOC_GETTIMEOUT:
-		ret = put_user(ltq_wdt_timeout, (int __user *)arg);
-		break;
+		case WDIOC_GETTIMEOUT:
+			ret = put_user(ltq_wdt_timeout, (int __user *)arg);
+			break;
 
-	case WDIOC_KEEPALIVE:
-		ltq_wdt_enable();
-		ret = 0;
-		break;
+		case WDIOC_KEEPALIVE:
+			ltq_wdt_enable();
+			ret = 0;
+			break;
 	}
+
 	return ret;
 }
 
@@ -151,7 +173,10 @@ static int
 ltq_wdt_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(0, &ltq_wdt_in_use))
+	{
 		return -EBUSY;
+	}
+
 	ltq_wdt_in_use = 1;
 	ltq_wdt_enable();
 
@@ -162,16 +187,22 @@ static int
 ltq_wdt_release(struct inode *inode, struct file *file)
 {
 	if (ltq_wdt_ok_to_close)
+	{
 		ltq_wdt_disable();
+	}
 	else
+	{
 		pr_err("watchdog closed without warning\n");
+	}
+
 	ltq_wdt_ok_to_close = 0;
 	clear_bit(0, &ltq_wdt_in_use);
 
 	return 0;
 }
 
-static const struct file_operations ltq_wdt_fops = {
+static const struct file_operations ltq_wdt_fops =
+{
 	.owner		= THIS_MODULE,
 	.write		= ltq_wdt_write,
 	.unlocked_ioctl	= ltq_wdt_ioctl,
@@ -180,7 +211,8 @@ static const struct file_operations ltq_wdt_fops = {
 	.llseek		= no_llseek,
 };
 
-static struct miscdevice ltq_wdt_miscdev = {
+static struct miscdevice ltq_wdt_miscdev =
+{
 	.minor	= WATCHDOG_MINOR,
 	.name	= "watchdog",
 	.fops	= &ltq_wdt_fops,
@@ -193,21 +225,29 @@ ltq_wdt_probe(struct platform_device *pdev)
 	struct clk *clk;
 
 	ltq_wdt_membase = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(ltq_wdt_membase))
+	{
 		return PTR_ERR(ltq_wdt_membase);
+	}
 
 	/* we do not need to enable the clock as it is always running */
 	clk = clk_get_io();
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "Failed to get clock\n");
 		return -ENOENT;
 	}
+
 	ltq_io_region_clk_rate = clk_get_rate(clk);
 	clk_put(clk);
 
 	/* find out if the watchdog caused the last reboot */
 	if (ltq_reset_cause() == LTQ_RST_CAUSE_WDTRST)
+	{
 		ltq_wdt_bootstatus = WDIOF_CARDRESET;
+	}
 
 	dev_info(&pdev->dev, "Init done\n");
 	return misc_register(&ltq_wdt_miscdev);
@@ -221,13 +261,15 @@ ltq_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id ltq_wdt_match[] = {
+static const struct of_device_id ltq_wdt_match[] =
+{
 	{ .compatible = "lantiq,wdt" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ltq_wdt_match);
 
-static struct platform_driver ltq_wdt_driver = {
+static struct platform_driver ltq_wdt_driver =
+{
 	.probe = ltq_wdt_probe,
 	.remove = ltq_wdt_remove,
 	.driver = {

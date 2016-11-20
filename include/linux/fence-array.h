@@ -27,7 +27,8 @@
  * @cb: fence callback structure for signaling
  * @array: reference to the parent fence array object
  */
-struct fence_array_cb {
+struct fence_array_cb
+{
 	struct fence_cb cb;
 	struct fence_array *array;
 };
@@ -40,7 +41,8 @@ struct fence_array_cb {
  * @num_pending: fences in the array still pending
  * @fences: array of the fences
  */
-struct fence_array {
+struct fence_array
+{
 	struct fence base;
 
 	spinlock_t lock;
@@ -71,13 +73,15 @@ static inline bool fence_is_array(struct fence *fence)
 static inline struct fence_array *to_fence_array(struct fence *fence)
 {
 	if (fence->ops != &fence_array_ops)
+	{
 		return NULL;
+	}
 
 	return container_of(fence, struct fence_array, base);
 }
 
 struct fence_array *fence_array_create(int num_fences, struct fence **fences,
-				       u64 context, unsigned seqno,
-				       bool signal_on_any);
+									   u64 context, unsigned seqno,
+									   bool signal_on_any);
 
 #endif /* __LINUX_FENCE_ARRAY_H */

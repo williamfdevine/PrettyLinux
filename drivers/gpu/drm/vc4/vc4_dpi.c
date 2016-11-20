@@ -89,7 +89,8 @@
 # define DPI_ID_VALUE		0x00647069
 
 /* General DPI hardware state. */
-struct vc4_dpi {
+struct vc4_dpi
+{
 	struct platform_device *pdev;
 
 	struct drm_encoder *encoder;
@@ -106,7 +107,8 @@ struct vc4_dpi {
 #define DPI_WRITE(offset, val) writel(val, dpi->regs + (offset))
 
 /* VC4 DPI encoder KMS struct */
-struct vc4_dpi_encoder {
+struct vc4_dpi_encoder
+{
 	struct vc4_encoder base;
 	struct vc4_dpi *dpi;
 };
@@ -118,7 +120,8 @@ to_vc4_dpi_encoder(struct drm_encoder *encoder)
 }
 
 /* VC4 DPI connector KMS struct */
-struct vc4_dpi_connector {
+struct vc4_dpi_connector
+{
 	struct drm_connector base;
 	struct vc4_dpi *dpi;
 
@@ -136,10 +139,12 @@ to_vc4_dpi_connector(struct drm_connector *connector)
 }
 
 #define DPI_REG(reg) { reg, #reg }
-static const struct {
+static const struct
+{
 	u32 reg;
 	const char *name;
-} dpi_regs[] = {
+} dpi_regs[] =
+{
 	DPI_REG(DPI_C),
 	DPI_REG(DPI_ID),
 };
@@ -148,10 +153,11 @@ static void vc4_dpi_dump_regs(struct vc4_dpi *dpi)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(dpi_regs); i++) {
+	for (i = 0; i < ARRAY_SIZE(dpi_regs); i++)
+	{
 		DRM_INFO("0x%04x (%s): 0x%08x\n",
-			 dpi_regs[i].reg, dpi_regs[i].name,
-			 DPI_READ(dpi_regs[i].reg));
+				 dpi_regs[i].reg, dpi_regs[i].name,
+				 DPI_READ(dpi_regs[i].reg));
 	}
 }
 
@@ -165,12 +171,15 @@ int vc4_dpi_debugfs_regs(struct seq_file *m, void *unused)
 	int i;
 
 	if (!dpi)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(dpi_regs); i++) {
+	for (i = 0; i < ARRAY_SIZE(dpi_regs); i++)
+	{
 		seq_printf(m, "%s (0x%04x): 0x%08x\n",
-			   dpi_regs[i].name, dpi_regs[i].reg,
-			   DPI_READ(dpi_regs[i].reg));
+				   dpi_regs[i].name, dpi_regs[i].reg,
+				   DPI_READ(dpi_regs[i].reg));
 	}
 
 	return 0;
@@ -185,9 +194,11 @@ vc4_dpi_connector_detect(struct drm_connector *connector, bool force)
 	struct vc4_dpi *dpi = vc4_connector->dpi;
 
 	if (dpi->panel)
+	{
 		return connector_status_connected;
+	}
 	else
-		return connector_status_disconnected;
+	{ return connector_status_disconnected; }
 }
 
 static void vc4_dpi_connector_destroy(struct drm_connector *connector)
@@ -203,12 +214,15 @@ static int vc4_dpi_connector_get_modes(struct drm_connector *connector)
 	struct vc4_dpi *dpi = vc4_connector->dpi;
 
 	if (dpi->panel)
+	{
 		return drm_panel_get_modes(dpi->panel);
+	}
 
 	return 0;
 }
 
-static const struct drm_connector_funcs vc4_dpi_connector_funcs = {
+static const struct drm_connector_funcs vc4_dpi_connector_funcs =
+{
 	.dpms = drm_atomic_helper_connector_dpms,
 	.detect = vc4_dpi_connector_detect,
 	.fill_modes = drm_helper_probe_single_connector_modes,
@@ -218,20 +232,24 @@ static const struct drm_connector_funcs vc4_dpi_connector_funcs = {
 	.atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
 };
 
-static const struct drm_connector_helper_funcs vc4_dpi_connector_helper_funcs = {
+static const struct drm_connector_helper_funcs vc4_dpi_connector_helper_funcs =
+{
 	.get_modes = vc4_dpi_connector_get_modes,
 };
 
 static struct drm_connector *vc4_dpi_connector_init(struct drm_device *dev,
-						    struct vc4_dpi *dpi)
+		struct vc4_dpi *dpi)
 {
 	struct drm_connector *connector = NULL;
 	struct vc4_dpi_connector *dpi_connector;
 
 	dpi_connector = devm_kzalloc(dev->dev, sizeof(*dpi_connector),
-				     GFP_KERNEL);
+								 GFP_KERNEL);
+
 	if (!dpi_connector)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	connector = &dpi_connector->base;
 
@@ -239,7 +257,7 @@ static struct drm_connector *vc4_dpi_connector_init(struct drm_device *dev,
 	dpi_connector->dpi = dpi;
 
 	drm_connector_init(dev, connector, &vc4_dpi_connector_funcs,
-			   DRM_MODE_CONNECTOR_DPI);
+					   DRM_MODE_CONNECTOR_DPI);
 	drm_connector_helper_add(connector, &vc4_dpi_connector_helper_funcs);
 
 	connector->polled = 0;
@@ -251,7 +269,8 @@ static struct drm_connector *vc4_dpi_connector_init(struct drm_device *dev,
 	return connector;
 }
 
-static const struct drm_encoder_funcs vc4_dpi_encoder_funcs = {
+static const struct drm_encoder_funcs vc4_dpi_encoder_funcs =
+{
 	.destroy = drm_encoder_cleanup,
 };
 
@@ -276,64 +295,89 @@ static void vc4_dpi_encoder_enable(struct drm_encoder *encoder)
 	int ret;
 
 	ret = drm_panel_prepare(dpi->panel);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("Panel failed to prepare\n");
 		return;
 	}
 
-	if (dpi->connector->display_info.num_bus_formats) {
+	if (dpi->connector->display_info.num_bus_formats)
+	{
 		u32 bus_format = dpi->connector->display_info.bus_formats[0];
 
-		switch (bus_format) {
-		case MEDIA_BUS_FMT_RGB888_1X24:
-			dpi_c |= VC4_SET_FIELD(DPI_FORMAT_24BIT_888_RGB,
-					       DPI_FORMAT);
-			break;
-		case MEDIA_BUS_FMT_BGR888_1X24:
-			dpi_c |= VC4_SET_FIELD(DPI_FORMAT_24BIT_888_RGB,
-					       DPI_FORMAT);
-			dpi_c |= VC4_SET_FIELD(DPI_ORDER_BGR, DPI_ORDER);
-			break;
-		case MEDIA_BUS_FMT_RGB666_1X24_CPADHI:
-			dpi_c |= VC4_SET_FIELD(DPI_FORMAT_18BIT_666_RGB_2,
-					       DPI_FORMAT);
-			break;
-		case MEDIA_BUS_FMT_RGB666_1X18:
-			dpi_c |= VC4_SET_FIELD(DPI_FORMAT_18BIT_666_RGB_1,
-					       DPI_FORMAT);
-			break;
-		case MEDIA_BUS_FMT_RGB565_1X16:
-			dpi_c |= VC4_SET_FIELD(DPI_FORMAT_16BIT_565_RGB_3,
-					       DPI_FORMAT);
-			break;
-		default:
-			DRM_ERROR("Unknown media bus format %d\n", bus_format);
-			break;
+		switch (bus_format)
+		{
+			case MEDIA_BUS_FMT_RGB888_1X24:
+				dpi_c |= VC4_SET_FIELD(DPI_FORMAT_24BIT_888_RGB,
+									   DPI_FORMAT);
+				break;
+
+			case MEDIA_BUS_FMT_BGR888_1X24:
+				dpi_c |= VC4_SET_FIELD(DPI_FORMAT_24BIT_888_RGB,
+									   DPI_FORMAT);
+				dpi_c |= VC4_SET_FIELD(DPI_ORDER_BGR, DPI_ORDER);
+				break;
+
+			case MEDIA_BUS_FMT_RGB666_1X24_CPADHI:
+				dpi_c |= VC4_SET_FIELD(DPI_FORMAT_18BIT_666_RGB_2,
+									   DPI_FORMAT);
+				break;
+
+			case MEDIA_BUS_FMT_RGB666_1X18:
+				dpi_c |= VC4_SET_FIELD(DPI_FORMAT_18BIT_666_RGB_1,
+									   DPI_FORMAT);
+				break;
+
+			case MEDIA_BUS_FMT_RGB565_1X16:
+				dpi_c |= VC4_SET_FIELD(DPI_FORMAT_16BIT_565_RGB_3,
+									   DPI_FORMAT);
+				break;
+
+			default:
+				DRM_ERROR("Unknown media bus format %d\n", bus_format);
+				break;
 		}
 	}
 
 	if (mode->flags & DRM_MODE_FLAG_NHSYNC)
+	{
 		dpi_c |= DPI_HSYNC_INVERT;
+	}
 	else if (!(mode->flags & DRM_MODE_FLAG_PHSYNC))
+	{
 		dpi_c |= DPI_HSYNC_DISABLE;
+	}
 
 	if (mode->flags & DRM_MODE_FLAG_NVSYNC)
+	{
 		dpi_c |= DPI_VSYNC_INVERT;
+	}
 	else if (!(mode->flags & DRM_MODE_FLAG_PVSYNC))
+	{
 		dpi_c |= DPI_VSYNC_DISABLE;
+	}
 
 	DPI_WRITE(DPI_C, dpi_c);
 
 	ret = clk_set_rate(dpi->pixel_clock, mode->clock * 1000);
+
 	if (ret)
+	{
 		DRM_ERROR("Failed to set clock rate: %d\n", ret);
+	}
 
 	ret = clk_prepare_enable(dpi->pixel_clock);
+
 	if (ret)
+	{
 		DRM_ERROR("Failed to set clock rate: %d\n", ret);
+	}
 
 	ret = drm_panel_enable(dpi->panel);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("Panel failed to enable\n");
 		drm_panel_unprepare(dpi->panel);
 		return;
@@ -341,22 +385,26 @@ static void vc4_dpi_encoder_enable(struct drm_encoder *encoder)
 }
 
 static bool vc4_dpi_encoder_mode_fixup(struct drm_encoder *encoder,
-				       const struct drm_display_mode *mode,
-				       struct drm_display_mode *adjusted_mode)
+									   const struct drm_display_mode *mode,
+									   struct drm_display_mode *adjusted_mode)
 {
 	if (adjusted_mode->flags & DRM_MODE_FLAG_INTERLACE)
+	{
 		return false;
+	}
 
 	return true;
 }
 
-static const struct drm_encoder_helper_funcs vc4_dpi_encoder_helper_funcs = {
+static const struct drm_encoder_helper_funcs vc4_dpi_encoder_helper_funcs =
+{
 	.disable = vc4_dpi_encoder_disable,
 	.enable = vc4_dpi_encoder_enable,
 	.mode_fixup = vc4_dpi_encoder_mode_fixup,
 };
 
-static const struct of_device_id vc4_dpi_dt_match[] = {
+static const struct of_device_id vc4_dpi_dt_match[] =
+{
 	{ .compatible = "brcm,bcm2835-dpi", .data = NULL },
 	{}
 };
@@ -371,7 +419,9 @@ static struct drm_panel *vc4_dpi_get_panel(struct device *dev)
 	struct drm_panel *panel;
 
 	endpoint = of_graph_get_next_endpoint(np, NULL);
-	if (!endpoint) {
+
+	if (!endpoint)
+	{
 		dev_err(dev, "no endpoint to fetch DPI panel\n");
 		return NULL;
 	}
@@ -379,7 +429,9 @@ static struct drm_panel *vc4_dpi_get_panel(struct device *dev)
 	/* don't proceed if we have an endpoint but no panel_node tied to it */
 	panel_node = of_graph_get_remote_port_parent(endpoint);
 	of_node_put(endpoint);
-	if (!panel_node) {
+
+	if (!panel_node)
+	{
 		dev_err(dev, "no valid panel node\n");
 		return NULL;
 	}
@@ -400,63 +452,94 @@ static int vc4_dpi_bind(struct device *dev, struct device *master, void *data)
 	int ret;
 
 	dpi = devm_kzalloc(dev, sizeof(*dpi), GFP_KERNEL);
+
 	if (!dpi)
+	{
 		return -ENOMEM;
+	}
 
 	vc4_dpi_encoder = devm_kzalloc(dev, sizeof(*vc4_dpi_encoder),
-				       GFP_KERNEL);
+								   GFP_KERNEL);
+
 	if (!vc4_dpi_encoder)
+	{
 		return -ENOMEM;
+	}
+
 	vc4_dpi_encoder->base.type = VC4_ENCODER_TYPE_DPI;
 	vc4_dpi_encoder->dpi = dpi;
 	dpi->encoder = &vc4_dpi_encoder->base.base;
 
 	dpi->pdev = pdev;
 	dpi->regs = vc4_ioremap_regs(pdev, 0);
+
 	if (IS_ERR(dpi->regs))
+	{
 		return PTR_ERR(dpi->regs);
+	}
 
 	vc4_dpi_dump_regs(dpi);
 
-	if (DPI_READ(DPI_ID) != DPI_ID_VALUE) {
+	if (DPI_READ(DPI_ID) != DPI_ID_VALUE)
+	{
 		dev_err(dev, "Port returned 0x%08x for ID instead of 0x%08x\n",
-			DPI_READ(DPI_ID), DPI_ID_VALUE);
+				DPI_READ(DPI_ID), DPI_ID_VALUE);
 		return -ENODEV;
 	}
 
 	dpi->core_clock = devm_clk_get(dev, "core");
-	if (IS_ERR(dpi->core_clock)) {
+
+	if (IS_ERR(dpi->core_clock))
+	{
 		ret = PTR_ERR(dpi->core_clock);
+
 		if (ret != -EPROBE_DEFER)
+		{
 			DRM_ERROR("Failed to get core clock: %d\n", ret);
+		}
+
 		return ret;
 	}
+
 	dpi->pixel_clock = devm_clk_get(dev, "pixel");
-	if (IS_ERR(dpi->pixel_clock)) {
+
+	if (IS_ERR(dpi->pixel_clock))
+	{
 		ret = PTR_ERR(dpi->pixel_clock);
+
 		if (ret != -EPROBE_DEFER)
+		{
 			DRM_ERROR("Failed to get pixel clock: %d\n", ret);
+		}
+
 		return ret;
 	}
 
 	ret = clk_prepare_enable(dpi->core_clock);
+
 	if (ret)
+	{
 		DRM_ERROR("Failed to turn on core clock: %d\n", ret);
+	}
 
 	dpi->panel = vc4_dpi_get_panel(dev);
 
 	drm_encoder_init(drm, dpi->encoder, &vc4_dpi_encoder_funcs,
-			 DRM_MODE_ENCODER_DPI, NULL);
+					 DRM_MODE_ENCODER_DPI, NULL);
 	drm_encoder_helper_add(dpi->encoder, &vc4_dpi_encoder_helper_funcs);
 
 	dpi->connector = vc4_dpi_connector_init(drm, dpi);
-	if (IS_ERR(dpi->connector)) {
+
+	if (IS_ERR(dpi->connector))
+	{
 		ret = PTR_ERR(dpi->connector);
 		goto err_destroy_encoder;
 	}
 
 	if (dpi->panel)
+	{
 		drm_panel_attach(dpi->panel, dpi->connector);
+	}
 
 	dev_set_drvdata(dev, dpi);
 
@@ -471,14 +554,16 @@ err_destroy_encoder:
 }
 
 static void vc4_dpi_unbind(struct device *dev, struct device *master,
-			   void *data)
+						   void *data)
 {
 	struct drm_device *drm = dev_get_drvdata(master);
 	struct vc4_dev *vc4 = to_vc4_dev(drm);
 	struct vc4_dpi *dpi = dev_get_drvdata(dev);
 
 	if (dpi->panel)
+	{
 		drm_panel_detach(dpi->panel);
+	}
 
 	vc4_dpi_connector_destroy(dpi->connector);
 	drm_encoder_cleanup(dpi->encoder);
@@ -488,7 +573,8 @@ static void vc4_dpi_unbind(struct device *dev, struct device *master,
 	vc4->dpi = NULL;
 }
 
-static const struct component_ops vc4_dpi_ops = {
+static const struct component_ops vc4_dpi_ops =
+{
 	.bind   = vc4_dpi_bind,
 	.unbind = vc4_dpi_unbind,
 };
@@ -504,7 +590,8 @@ static int vc4_dpi_dev_remove(struct platform_device *pdev)
 	return 0;
 }
 
-struct platform_driver vc4_dpi_driver = {
+struct platform_driver vc4_dpi_driver =
+{
 	.probe = vc4_dpi_dev_probe,
 	.remove = vc4_dpi_dev_remove,
 	.driver = {

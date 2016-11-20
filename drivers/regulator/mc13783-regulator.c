@@ -117,7 +117,8 @@
 
 
 /* Voltage Values */
-static const int mc13783_sw1x_val[] = {
+static const int mc13783_sw1x_val[] =
+{
 	900000, 925000, 950000, 975000,
 	1000000, 1025000, 1050000, 1075000,
 	1100000, 1125000, 1150000, 1175000,
@@ -136,7 +137,8 @@ static const int mc13783_sw1x_val[] = {
 	2200000, 2200000, 2200000, 2200000,
 };
 
-static const int mc13783_sw2x_val[] = {
+static const int mc13783_sw2x_val[] =
+{
 	900000, 925000, 950000, 975000,
 	1000000, 1025000, 1050000, 1075000,
 	1100000, 1125000, 1150000, 1175000,
@@ -155,78 +157,96 @@ static const int mc13783_sw2x_val[] = {
 	2200000, 2200000, 2200000, 2200000,
 };
 
-static const unsigned int mc13783_sw3_val[] = {
+static const unsigned int mc13783_sw3_val[] =
+{
 	5000000, 5000000, 5000000, 5500000,
 };
 
-static const unsigned int mc13783_vaudio_val[] = {
+static const unsigned int mc13783_vaudio_val[] =
+{
 	2775000,
 };
 
-static const unsigned int mc13783_viohi_val[] = {
+static const unsigned int mc13783_viohi_val[] =
+{
 	2775000,
 };
 
-static const unsigned int mc13783_violo_val[] = {
+static const unsigned int mc13783_violo_val[] =
+{
 	1200000, 1300000, 1500000, 1800000,
 };
 
-static const unsigned int mc13783_vdig_val[] = {
+static const unsigned int mc13783_vdig_val[] =
+{
 	1200000, 1300000, 1500000, 1800000,
 };
 
-static const unsigned int mc13783_vgen_val[] = {
+static const unsigned int mc13783_vgen_val[] =
+{
 	1200000, 1300000, 1500000, 1800000,
 	1100000, 2000000, 2775000, 2400000,
 };
 
-static const unsigned int mc13783_vrfdig_val[] = {
+static const unsigned int mc13783_vrfdig_val[] =
+{
 	1200000, 1500000, 1800000, 1875000,
 };
 
-static const unsigned int mc13783_vrfref_val[] = {
+static const unsigned int mc13783_vrfref_val[] =
+{
 	2475000, 2600000, 2700000, 2775000,
 };
 
-static const unsigned int mc13783_vrfcp_val[] = {
+static const unsigned int mc13783_vrfcp_val[] =
+{
 	2700000, 2775000,
 };
 
-static const unsigned int mc13783_vsim_val[] = {
+static const unsigned int mc13783_vsim_val[] =
+{
 	1800000, 2900000, 3000000,
 };
 
-static const unsigned int mc13783_vesim_val[] = {
+static const unsigned int mc13783_vesim_val[] =
+{
 	1800000, 2900000,
 };
 
-static const unsigned int mc13783_vcam_val[] = {
+static const unsigned int mc13783_vcam_val[] =
+{
 	1500000, 1800000, 2500000, 2550000,
 	2600000, 2750000, 2800000, 3000000,
 };
 
-static const unsigned int mc13783_vrfbg_val[] = {
+static const unsigned int mc13783_vrfbg_val[] =
+{
 	1250000,
 };
 
-static const unsigned int mc13783_vvib_val[] = {
+static const unsigned int mc13783_vvib_val[] =
+{
 	1300000, 1800000, 2000000, 3000000,
 };
 
-static const unsigned int mc13783_vmmc_val[] = {
+static const unsigned int mc13783_vmmc_val[] =
+{
 	1600000, 1800000, 2000000, 2600000,
 	2700000, 2800000, 2900000, 3000000,
 };
 
-static const unsigned int mc13783_vrf_val[] = {
+static const unsigned int mc13783_vrf_val[] =
+{
 	1500000, 1875000, 2700000, 2775000,
 };
 
-static const unsigned int mc13783_gpo_val[] = {
+static const unsigned int mc13783_gpo_val[] =
+{
 	3100000,
 };
 
-static const unsigned int mc13783_pwgtdrv_val[] = {
+static const unsigned int mc13783_pwgtdrv_val[] =
+{
 	5500000,
 };
 
@@ -234,22 +254,23 @@ static struct regulator_ops mc13783_gpo_regulator_ops;
 
 #define MC13783_DEFINE(prefix, name, reg, vsel_reg, voltages)	\
 	MC13xxx_DEFINE(MC13783_REG_, name, reg, vsel_reg, voltages, \
-			mc13xxx_regulator_ops)
+				   mc13xxx_regulator_ops)
 
 #define MC13783_FIXED_DEFINE(prefix, name, reg, voltages)		\
 	MC13xxx_FIXED_DEFINE(MC13783_REG_, name, reg, voltages, \
-			mc13xxx_fixed_regulator_ops)
+						 mc13xxx_fixed_regulator_ops)
 
 #define MC13783_GPO_DEFINE(prefix, name, reg, voltages)		\
 	MC13xxx_GPO_DEFINE(MC13783_REG_, name, reg, voltages, \
-			mc13783_gpo_regulator_ops)
+					   mc13783_gpo_regulator_ops)
 
 #define MC13783_DEFINE_SW(_name, _reg, _vsel_reg, _voltages)		\
 	MC13783_DEFINE(REG, _name, _reg, _vsel_reg, _voltages)
 #define MC13783_DEFINE_REGU(_name, _reg, _vsel_reg, _voltages)		\
 	MC13783_DEFINE(REG, _name, _reg, _vsel_reg, _voltages)
 
-static struct mc13xxx_regulator mc13783_regulators[] = {
+static struct mc13xxx_regulator mc13783_regulators[] =
+{
 	MC13783_DEFINE_SW(SW1A, SWITCHERS0, SWITCHERS0, mc13783_sw1x_val),
 	MC13783_DEFINE_SW(SW1B, SWITCHERS1, SWITCHERS1, mc13783_sw1x_val),
 	MC13783_DEFINE_SW(SW2A, SWITCHERS2, SWITCHERS2, mc13783_sw2x_val),
@@ -259,34 +280,34 @@ static struct mc13xxx_regulator mc13783_regulators[] = {
 	MC13783_FIXED_DEFINE(REG, VAUDIO, REGULATORMODE0, mc13783_vaudio_val),
 	MC13783_FIXED_DEFINE(REG, VIOHI, REGULATORMODE0, mc13783_viohi_val),
 	MC13783_DEFINE_REGU(VIOLO, REGULATORMODE0, REGULATORSETTING0,
-			    mc13783_violo_val),
+	mc13783_violo_val),
 	MC13783_DEFINE_REGU(VDIG, REGULATORMODE0, REGULATORSETTING0,
-			    mc13783_vdig_val),
+	mc13783_vdig_val),
 	MC13783_DEFINE_REGU(VGEN, REGULATORMODE0, REGULATORSETTING0,
-			    mc13783_vgen_val),
+	mc13783_vgen_val),
 	MC13783_DEFINE_REGU(VRFDIG, REGULATORMODE0, REGULATORSETTING0,
-			    mc13783_vrfdig_val),
+	mc13783_vrfdig_val),
 	MC13783_DEFINE_REGU(VRFREF, REGULATORMODE0, REGULATORSETTING0,
-			    mc13783_vrfref_val),
+	mc13783_vrfref_val),
 	MC13783_DEFINE_REGU(VRFCP, REGULATORMODE0, REGULATORSETTING0,
-			    mc13783_vrfcp_val),
+	mc13783_vrfcp_val),
 	MC13783_DEFINE_REGU(VSIM, REGULATORMODE1, REGULATORSETTING0,
-			    mc13783_vsim_val),
+	mc13783_vsim_val),
 	MC13783_DEFINE_REGU(VESIM, REGULATORMODE1, REGULATORSETTING0,
-			    mc13783_vesim_val),
+	mc13783_vesim_val),
 	MC13783_DEFINE_REGU(VCAM, REGULATORMODE1, REGULATORSETTING0,
-			    mc13783_vcam_val),
+	mc13783_vcam_val),
 	MC13783_FIXED_DEFINE(REG, VRFBG, REGULATORMODE1, mc13783_vrfbg_val),
 	MC13783_DEFINE_REGU(VVIB, REGULATORMODE1, REGULATORSETTING1,
-			    mc13783_vvib_val),
+	mc13783_vvib_val),
 	MC13783_DEFINE_REGU(VRF1, REGULATORMODE1, REGULATORSETTING1,
-			    mc13783_vrf_val),
+	mc13783_vrf_val),
 	MC13783_DEFINE_REGU(VRF2, REGULATORMODE1, REGULATORSETTING1,
-			    mc13783_vrf_val),
+	mc13783_vrf_val),
 	MC13783_DEFINE_REGU(VMMC1, REGULATORMODE1, REGULATORSETTING1,
-			    mc13783_vmmc_val),
+	mc13783_vmmc_val),
 	MC13783_DEFINE_REGU(VMMC2, REGULATORMODE1, REGULATORSETTING1,
-			    mc13783_vmmc_val),
+	mc13783_vmmc_val),
 	MC13783_GPO_DEFINE(REG, GPO1, POWERMISC, mc13783_gpo_val),
 	MC13783_GPO_DEFINE(REG, GPO2, POWERMISC, mc13783_gpo_val),
 	MC13783_GPO_DEFINE(REG, GPO3, POWERMISC, mc13783_gpo_val),
@@ -296,7 +317,7 @@ static struct mc13xxx_regulator mc13783_regulators[] = {
 };
 
 static int mc13783_powermisc_rmw(struct mc13xxx_regulator_priv *priv, u32 mask,
-		u32 val)
+								 u32 val)
 {
 	struct mc13xxx *mc13783 = priv->mc13xxx;
 	int ret;
@@ -306,19 +327,22 @@ static int mc13783_powermisc_rmw(struct mc13xxx_regulator_priv *priv, u32 mask,
 
 	mc13xxx_lock(priv->mc13xxx);
 	ret = mc13xxx_reg_read(mc13783, MC13783_REG_POWERMISC, &valread);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* Update the stored state for Power Gates. */
 	priv->powermisc_pwgt_state =
-				(priv->powermisc_pwgt_state & ~mask) | val;
+		(priv->powermisc_pwgt_state & ~mask) | val;
 	priv->powermisc_pwgt_state &= MC13783_REG_POWERMISC_PWGTSPI_M;
 
 	/* Construct the new register value */
 	valread = (valread & ~mask) | val;
 	/* Overwrite the PWGTxEN with the stored version */
 	valread = (valread & ~MC13783_REG_POWERMISC_PWGTSPI_M) |
-						priv->powermisc_pwgt_state;
+			  priv->powermisc_pwgt_state;
 
 	ret = mc13xxx_reg_write(mc13783, MC13783_REG_POWERMISC, valread);
 out:
@@ -337,11 +361,13 @@ static int mc13783_gpo_regulator_enable(struct regulator_dev *rdev)
 
 	/* Power Gate enable value is 0 */
 	if (id == MC13783_REG_PWGT1SPI ||
-	    id == MC13783_REG_PWGT2SPI)
+		id == MC13783_REG_PWGT2SPI)
+	{
 		en_val = 0;
+	}
 
 	return mc13783_powermisc_rmw(priv, mc13xxx_regulators[id].enable_bit,
-					en_val);
+								 en_val);
 }
 
 static int mc13783_gpo_regulator_disable(struct regulator_dev *rdev)
@@ -355,11 +381,13 @@ static int mc13783_gpo_regulator_disable(struct regulator_dev *rdev)
 
 	/* Power Gate disable value is 1 */
 	if (id == MC13783_REG_PWGT1SPI ||
-	    id == MC13783_REG_PWGT2SPI)
+		id == MC13783_REG_PWGT2SPI)
+	{
 		dis_val = mc13xxx_regulators[id].enable_bit;
+	}
 
 	return mc13783_powermisc_rmw(priv, mc13xxx_regulators[id].enable_bit,
-					dis_val);
+								 dis_val);
 }
 
 static int mc13783_gpo_regulator_is_enabled(struct regulator_dev *rdev)
@@ -374,17 +402,20 @@ static int mc13783_gpo_regulator_is_enabled(struct regulator_dev *rdev)
 	mc13xxx_unlock(priv->mc13xxx);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Power Gates state is stored in powermisc_pwgt_state
 	 * where the meaning of bits is negated */
 	val = (val & ~MC13783_REG_POWERMISC_PWGTSPI_M) |
-	      (priv->powermisc_pwgt_state ^ MC13783_REG_POWERMISC_PWGTSPI_M);
+		  (priv->powermisc_pwgt_state ^ MC13783_REG_POWERMISC_PWGTSPI_M);
 
 	return (val & mc13xxx_regulators[id].enable_bit) != 0;
 }
 
-static struct regulator_ops mc13783_gpo_regulator_ops = {
+static struct regulator_ops mc13783_gpo_regulator_ops =
+{
 	.enable = mc13783_gpo_regulator_enable,
 	.disable = mc13783_gpo_regulator_disable,
 	.is_enabled = mc13783_gpo_regulator_is_enabled,
@@ -405,15 +436,23 @@ static int mc13783_regulator_probe(struct platform_device *pdev)
 	num_regulators = mc13xxx_get_num_regulators_dt(pdev);
 
 	if (num_regulators <= 0 && pdata)
+	{
 		num_regulators = pdata->num_regulators;
+	}
+
 	if (num_regulators <= 0)
+	{
 		return -EINVAL;
+	}
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv) +
-			num_regulators * sizeof(priv->regulators[0]),
-			GFP_KERNEL);
+						num_regulators * sizeof(priv->regulators[0]),
+						GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->num_regulators = num_regulators;
 	priv->mc13xxx_regulators = mc13783_regulators;
@@ -421,22 +460,27 @@ static int mc13783_regulator_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, priv);
 
 	mc13xxx_data = mc13xxx_parse_regulators_dt(pdev, mc13783_regulators,
-					ARRAY_SIZE(mc13783_regulators));
+				   ARRAY_SIZE(mc13783_regulators));
 
-	for (i = 0; i < priv->num_regulators; i++) {
+	for (i = 0; i < priv->num_regulators; i++)
+	{
 		struct regulator_init_data *init_data;
 		struct regulator_desc *desc;
 		struct device_node *node = NULL;
 		int id;
 
-		if (mc13xxx_data) {
+		if (mc13xxx_data)
+		{
 			id = mc13xxx_data[i].id;
 			init_data = mc13xxx_data[i].init_data;
 			node = mc13xxx_data[i].node;
-		} else {
+		}
+		else
+		{
 			id = pdata->regulators[i].id;
 			init_data = pdata->regulators[i].init_data;
 		}
+
 		desc = &mc13783_regulators[id].desc;
 
 		config.dev = &pdev->dev;
@@ -445,10 +489,12 @@ static int mc13783_regulator_probe(struct platform_device *pdev)
 		config.of_node = node;
 
 		priv->regulators[i] = devm_regulator_register(&pdev->dev, desc,
-							      &config);
-		if (IS_ERR(priv->regulators[i])) {
+							  &config);
+
+		if (IS_ERR(priv->regulators[i]))
+		{
 			dev_err(&pdev->dev, "failed to register regulator %s\n",
-				mc13783_regulators[i].desc.name);
+					mc13783_regulators[i].desc.name);
 			return PTR_ERR(priv->regulators[i]);
 		}
 	}
@@ -456,7 +502,8 @@ static int mc13783_regulator_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver mc13783_regulator_driver = {
+static struct platform_driver mc13783_regulator_driver =
+{
 	.driver	= {
 		.name	= "mc13783-regulator",
 	},

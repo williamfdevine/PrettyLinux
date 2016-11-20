@@ -56,23 +56,33 @@
 #include "libfdt_internal.h"
 
 static int _fdt_nodename_eq(const void *fdt, int offset,
-			    const char *s, int len)
+							const char *s, int len)
 {
-	const char *p = fdt_offset_ptr(fdt, offset + FDT_TAGSIZE, len+1);
+	const char *p = fdt_offset_ptr(fdt, offset + FDT_TAGSIZE, len + 1);
 
 	if (! p)
 		/* short match */
+	{
 		return 0;
+	}
 
 	if (memcmp(p, s, len) != 0)
+	{
 		return 0;
+	}
 
 	if (p[len] == '\0')
+	{
 		return 1;
+	}
 	else if (!memchr(s, '@', len) && (p[len] == '@'))
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 const char *fdt_string(const void *fdt, int stroffset)
@@ -81,7 +91,7 @@ const char *fdt_string(const void *fdt, int stroffset)
 }
 
 static int _fdt_string_eq(const void *fdt, int stroffset,
-			  const char *s, int len)
+						  const char *s, int len)
 {
 	const char *p = fdt_string(fdt, stroffset);
 
@@ -101,7 +111,10 @@ int fdt_num_mem_rsv(const void *fdt)
 	int i = 0;
 
 	while (fdt64_to_cpu(_fdt_mem_rsv(fdt, i)->size) != 0)
+	{
 		i++;
+	}
+
 	return i;
 }
 
@@ -110,46 +123,59 @@ static int _nextprop(const void *fdt, int offset)
 	uint32_t tag;
 	int nextoffset;
 
-	do {
+	do
+	{
 		tag = fdt_next_tag(fdt, offset, &nextoffset);
 
-		switch (tag) {
-		case FDT_END:
-			if (nextoffset >= 0)
-				return -FDT_ERR_BADSTRUCTURE;
-			else
-				return nextoffset;
+		switch (tag)
+		{
+			case FDT_END:
+				if (nextoffset >= 0)
+				{
+					return -FDT_ERR_BADSTRUCTURE;
+				}
+				else
+				{
+					return nextoffset;
+				}
 
-		case FDT_PROP:
-			return offset;
+			case FDT_PROP:
+				return offset;
 		}
+
 		offset = nextoffset;
-	} while (tag == FDT_NOP);
+	}
+	while (tag == FDT_NOP);
 
 	return -FDT_ERR_NOTFOUND;
 }
 
 int fdt_subnode_offset_namelen(const void *fdt, int offset,
-			       const char *name, int namelen)
+							   const char *name, int namelen)
 {
 	int depth;
 
 	FDT_CHECK_HEADER(fdt);
 
 	for (depth = 0;
-	     (offset >= 0) && (depth >= 0);
-	     offset = fdt_next_node(fdt, offset, &depth))
+		 (offset >= 0) && (depth >= 0);
+		 offset = fdt_next_node(fdt, offset, &depth))
 		if ((depth == 1)
-		    && _fdt_nodename_eq(fdt, offset, name, namelen))
+			&& _fdt_nodename_eq(fdt, offset, name, namelen))
+		{
 			return offset;
+		}
 
 	if (depth < 0)
+	{
 		return -FDT_ERR_NOTFOUND;
+	}
+
 	return offset; /* error */
 }
 
 int fdt_subnode_offset(const void *fdt, int parentoffset,
-		       const char *name)
+					   const char *name)
 {
 	return fdt_subnode_offset_namelen(fdt, parentoffset, name, strlen(name));
 }
@@ -163,35 +189,54 @@ int fdt_path_offset_namelen(const void *fdt, const char *path, int namelen)
 	FDT_CHECK_HEADER(fdt);
 
 	/* see if we have an alias */
-	if (*path != '/') {
+	if (*path != '/')
+	{
 		const char *q = memchr(path, '/', end - p);
 
 		if (!q)
+		{
 			q = end;
+		}
 
 		p = fdt_get_alias_namelen(fdt, p, q - p);
+
 		if (!p)
+		{
 			return -FDT_ERR_BADPATH;
+		}
+
 		offset = fdt_path_offset(fdt, p);
 
 		p = q;
 	}
 
-	while (p < end) {
+	while (p < end)
+	{
 		const char *q;
 
-		while (*p == '/') {
+		while (*p == '/')
+		{
 			p++;
-			if (p == end)
-				return offset;
-		}
-		q = memchr(p, '/', end - p);
-		if (! q)
-			q = end;
 
-		offset = fdt_subnode_offset_namelen(fdt, offset, p, q-p);
+			if (p == end)
+			{
+				return offset;
+			}
+		}
+
+		q = memchr(p, '/', end - p);
+
+		if (! q)
+		{
+			q = end;
+		}
+
+		offset = fdt_subnode_offset_namelen(fdt, offset, p, q - p);
+
 		if (offset < 0)
+		{
 			return offset;
+		}
 
 		p = q;
 	}
@@ -210,17 +255,25 @@ const char *fdt_get_name(const void *fdt, int nodeoffset, int *len)
 	int err;
 
 	if (((err = fdt_check_header(fdt)) != 0)
-	    || ((err = _fdt_check_node_offset(fdt, nodeoffset)) < 0))
-			goto fail;
+		|| ((err = _fdt_check_node_offset(fdt, nodeoffset)) < 0))
+	{
+		goto fail;
+	}
 
 	if (len)
+	{
 		*len = strlen(nh->name);
+	}
 
 	return nh->name;
 
- fail:
+fail:
+
 	if (len)
+	{
 		*len = err;
+	}
+
 	return NULL;
 }
 
@@ -229,7 +282,9 @@ int fdt_first_property_offset(const void *fdt, int nodeoffset)
 	int offset;
 
 	if ((offset = _fdt_check_node_offset(fdt, nodeoffset)) < 0)
+	{
 		return offset;
+	}
 
 	return _nextprop(fdt, offset);
 }
@@ -237,91 +292,117 @@ int fdt_first_property_offset(const void *fdt, int nodeoffset)
 int fdt_next_property_offset(const void *fdt, int offset)
 {
 	if ((offset = _fdt_check_prop_offset(fdt, offset)) < 0)
+	{
 		return offset;
+	}
 
 	return _nextprop(fdt, offset);
 }
 
 const struct fdt_property *fdt_get_property_by_offset(const void *fdt,
-						      int offset,
-						      int *lenp)
+		int offset,
+		int *lenp)
 {
 	int err;
 	const struct fdt_property *prop;
 
-	if ((err = _fdt_check_prop_offset(fdt, offset)) < 0) {
+	if ((err = _fdt_check_prop_offset(fdt, offset)) < 0)
+	{
 		if (lenp)
+		{
 			*lenp = err;
+		}
+
 		return NULL;
 	}
 
 	prop = _fdt_offset_ptr(fdt, offset);
 
 	if (lenp)
+	{
 		*lenp = fdt32_to_cpu(prop->len);
+	}
 
 	return prop;
 }
 
 const struct fdt_property *fdt_get_property_namelen(const void *fdt,
-						    int offset,
-						    const char *name,
-						    int namelen, int *lenp)
+		int offset,
+		const char *name,
+		int namelen, int *lenp)
 {
 	for (offset = fdt_first_property_offset(fdt, offset);
-	     (offset >= 0);
-	     (offset = fdt_next_property_offset(fdt, offset))) {
+		 (offset >= 0);
+		 (offset = fdt_next_property_offset(fdt, offset)))
+	{
 		const struct fdt_property *prop;
 
-		if (!(prop = fdt_get_property_by_offset(fdt, offset, lenp))) {
+		if (!(prop = fdt_get_property_by_offset(fdt, offset, lenp)))
+		{
 			offset = -FDT_ERR_INTERNAL;
 			break;
 		}
+
 		if (_fdt_string_eq(fdt, fdt32_to_cpu(prop->nameoff),
-				   name, namelen))
+						   name, namelen))
+		{
 			return prop;
+		}
 	}
 
 	if (lenp)
+	{
 		*lenp = offset;
+	}
+
 	return NULL;
 }
 
 const struct fdt_property *fdt_get_property(const void *fdt,
-					    int nodeoffset,
-					    const char *name, int *lenp)
+		int nodeoffset,
+		const char *name, int *lenp)
 {
 	return fdt_get_property_namelen(fdt, nodeoffset, name,
-					strlen(name), lenp);
+									strlen(name), lenp);
 }
 
 const void *fdt_getprop_namelen(const void *fdt, int nodeoffset,
-				const char *name, int namelen, int *lenp)
+								const char *name, int namelen, int *lenp)
 {
 	const struct fdt_property *prop;
 
 	prop = fdt_get_property_namelen(fdt, nodeoffset, name, namelen, lenp);
+
 	if (! prop)
+	{
 		return NULL;
+	}
 
 	return prop->data;
 }
 
 const void *fdt_getprop_by_offset(const void *fdt, int offset,
-				  const char **namep, int *lenp)
+								  const char **namep, int *lenp)
 {
 	const struct fdt_property *prop;
 
 	prop = fdt_get_property_by_offset(fdt, offset, lenp);
+
 	if (!prop)
+	{
 		return NULL;
+	}
+
 	if (namep)
+	{
 		*namep = fdt_string(fdt, fdt32_to_cpu(prop->nameoff));
+	}
+
 	return prop->data;
 }
 
 const void *fdt_getprop(const void *fdt, int nodeoffset,
-			const char *name, int *lenp)
+						const char *name, int *lenp)
 {
 	return fdt_getprop_namelen(fdt, nodeoffset, name, strlen(name), lenp);
 }
@@ -334,23 +415,31 @@ uint32_t fdt_get_phandle(const void *fdt, int nodeoffset)
 	/* FIXME: This is a bit sub-optimal, since we potentially scan
 	 * over all the properties twice. */
 	php = fdt_getprop(fdt, nodeoffset, "phandle", &len);
-	if (!php || (len != sizeof(*php))) {
+
+	if (!php || (len != sizeof(*php)))
+	{
 		php = fdt_getprop(fdt, nodeoffset, "linux,phandle", &len);
+
 		if (!php || (len != sizeof(*php)))
+		{
 			return 0;
+		}
 	}
 
 	return fdt32_to_cpu(*php);
 }
 
 const char *fdt_get_alias_namelen(const void *fdt,
-				  const char *name, int namelen)
+								  const char *name, int namelen)
 {
 	int aliasoffset;
 
 	aliasoffset = fdt_path_offset(fdt, "/aliases");
+
 	if (aliasoffset < 0)
+	{
 		return NULL;
+	}
 
 	return fdt_getprop_namelen(fdt, aliasoffset, name, namelen, NULL);
 }
@@ -369,23 +458,36 @@ int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen)
 	FDT_CHECK_HEADER(fdt);
 
 	if (buflen < 2)
+	{
 		return -FDT_ERR_NOSPACE;
+	}
 
 	for (offset = 0, depth = 0;
-	     (offset >= 0) && (offset <= nodeoffset);
-	     offset = fdt_next_node(fdt, offset, &depth)) {
-		while (pdepth > depth) {
-			do {
+		 (offset >= 0) && (offset <= nodeoffset);
+		 offset = fdt_next_node(fdt, offset, &depth))
+	{
+		while (pdepth > depth)
+		{
+			do
+			{
 				p--;
-			} while (buf[p-1] != '/');
+			}
+			while (buf[p - 1] != '/');
+
 			pdepth--;
 		}
 
-		if (pdepth >= depth) {
+		if (pdepth >= depth)
+		{
 			name = fdt_get_name(fdt, offset, &namelen);
+
 			if (!name)
+			{
 				return namelen;
-			if ((p + namelen + 1) <= buflen) {
+			}
+
+			if ((p + namelen + 1) <= buflen)
+			{
 				memcpy(buf + p, name, namelen);
 				p += namelen;
 				buf[p++] = '/';
@@ -393,27 +495,37 @@ int fdt_get_path(const void *fdt, int nodeoffset, char *buf, int buflen)
 			}
 		}
 
-		if (offset == nodeoffset) {
+		if (offset == nodeoffset)
+		{
 			if (pdepth < (depth + 1))
+			{
 				return -FDT_ERR_NOSPACE;
+			}
 
 			if (p > 1) /* special case so that root path is "/", not "" */
+			{
 				p--;
+			}
+
 			buf[p] = '\0';
 			return 0;
 		}
 	}
 
 	if ((offset == -FDT_ERR_NOTFOUND) || (offset >= 0))
+	{
 		return -FDT_ERR_BADOFFSET;
+	}
 	else if (offset == -FDT_ERR_BADOFFSET)
+	{
 		return -FDT_ERR_BADSTRUCTURE;
+	}
 
 	return offset; /* error from fdt_next_node() */
 }
 
 int fdt_supernode_atdepth_offset(const void *fdt, int nodeoffset,
-				 int supernodedepth, int *nodedepth)
+								 int supernodedepth, int *nodedepth)
 {
 	int offset, depth;
 	int supernodeoffset = -FDT_ERR_INTERNAL;
@@ -421,29 +533,45 @@ int fdt_supernode_atdepth_offset(const void *fdt, int nodeoffset,
 	FDT_CHECK_HEADER(fdt);
 
 	if (supernodedepth < 0)
+	{
 		return -FDT_ERR_NOTFOUND;
+	}
 
 	for (offset = 0, depth = 0;
-	     (offset >= 0) && (offset <= nodeoffset);
-	     offset = fdt_next_node(fdt, offset, &depth)) {
+		 (offset >= 0) && (offset <= nodeoffset);
+		 offset = fdt_next_node(fdt, offset, &depth))
+	{
 		if (depth == supernodedepth)
+		{
 			supernodeoffset = offset;
+		}
 
-		if (offset == nodeoffset) {
+		if (offset == nodeoffset)
+		{
 			if (nodedepth)
+			{
 				*nodedepth = depth;
+			}
 
 			if (supernodedepth > depth)
+			{
 				return -FDT_ERR_NOTFOUND;
+			}
 			else
+			{
 				return supernodeoffset;
+			}
 		}
 	}
 
 	if ((offset == -FDT_ERR_NOTFOUND) || (offset >= 0))
+	{
 		return -FDT_ERR_BADOFFSET;
+	}
 	else if (offset == -FDT_ERR_BADOFFSET)
+	{
 		return -FDT_ERR_BADSTRUCTURE;
+	}
 
 	return offset; /* error from fdt_next_node() */
 }
@@ -454,8 +582,12 @@ int fdt_node_depth(const void *fdt, int nodeoffset)
 	int err;
 
 	err = fdt_supernode_atdepth_offset(fdt, nodeoffset, 0, &nodedepth);
+
 	if (err)
+	{
 		return (err < 0) ? err : -FDT_ERR_INTERNAL;
+	}
+
 	return nodedepth;
 }
 
@@ -464,14 +596,17 @@ int fdt_parent_offset(const void *fdt, int nodeoffset)
 	int nodedepth = fdt_node_depth(fdt, nodeoffset);
 
 	if (nodedepth < 0)
+	{
 		return nodedepth;
+	}
+
 	return fdt_supernode_atdepth_offset(fdt, nodeoffset,
-					    nodedepth - 1, NULL);
+										nodedepth - 1, NULL);
 }
 
 int fdt_node_offset_by_prop_value(const void *fdt, int startoffset,
-				  const char *propname,
-				  const void *propval, int proplen)
+								  const char *propname,
+								  const void *propval, int proplen)
 {
 	int offset;
 	const void *val;
@@ -485,12 +620,16 @@ int fdt_node_offset_by_prop_value(const void *fdt, int startoffset,
 	 * to the next node.  Still it's the easiest to implement
 	 * approach; performance can come later. */
 	for (offset = fdt_next_node(fdt, startoffset, NULL);
-	     offset >= 0;
-	     offset = fdt_next_node(fdt, offset, NULL)) {
+		 offset >= 0;
+		 offset = fdt_next_node(fdt, offset, NULL))
+	{
 		val = fdt_getprop(fdt, offset, propname, &len);
+
 		if (val && (len == proplen)
-		    && (memcmp(val, propval, len) == 0))
+			&& (memcmp(val, propval, len) == 0))
+		{
 			return offset;
+		}
 	}
 
 	return offset; /* error from fdt_next_node() */
@@ -501,7 +640,9 @@ int fdt_node_offset_by_phandle(const void *fdt, uint32_t phandle)
 	int offset;
 
 	if ((phandle == 0) || (phandle == -1))
+	{
 		return -FDT_ERR_BADPHANDLE;
+	}
 
 	FDT_CHECK_HEADER(fdt);
 
@@ -512,10 +653,13 @@ int fdt_node_offset_by_phandle(const void *fdt, uint32_t phandle)
 	 * node.  Still it's the easiest to implement approach;
 	 * performance can come later. */
 	for (offset = fdt_next_node(fdt, -1, NULL);
-	     offset >= 0;
-	     offset = fdt_next_node(fdt, offset, NULL)) {
+		 offset >= 0;
+		 offset = fdt_next_node(fdt, offset, NULL))
+	{
 		if (fdt_get_phandle(fdt, offset) == phandle)
+		{
 			return offset;
+		}
 	}
 
 	return offset; /* error from fdt_next_node() */
@@ -526,15 +670,24 @@ int fdt_stringlist_contains(const char *strlist, int listlen, const char *str)
 	int len = strlen(str);
 	const char *p;
 
-	while (listlen >= len) {
-		if (memcmp(str, strlist, len+1) == 0)
+	while (listlen >= len)
+	{
+		if (memcmp(str, strlist, len + 1) == 0)
+		{
 			return 1;
+		}
+
 		p = memchr(strlist, '\0', listlen);
+
 		if (!p)
-			return 0; /* malformed strlist.. */
-		listlen -= (p-strlist) + 1;
+		{
+			return 0;    /* malformed strlist.. */
+		}
+
+		listlen -= (p - strlist) + 1;
 		strlist = p + 1;
 	}
+
 	return 0;
 }
 
@@ -544,17 +697,23 @@ int fdt_stringlist_count(const void *fdt, int nodeoffset, const char *property)
 	int length, count = 0;
 
 	list = fdt_getprop(fdt, nodeoffset, property, &length);
+
 	if (!list)
+	{
 		return -length;
+	}
 
 	end = list + length;
 
-	while (list < end) {
+	while (list < end)
+	{
 		length = strnlen(list, end - list) + 1;
 
 		/* Abort if the last string isn't properly NUL-terminated. */
 		if (list + length > end)
+		{
 			return -FDT_ERR_BADVALUE;
+		}
 
 		list += length;
 		count++;
@@ -564,27 +723,35 @@ int fdt_stringlist_count(const void *fdt, int nodeoffset, const char *property)
 }
 
 int fdt_stringlist_search(const void *fdt, int nodeoffset, const char *property,
-			  const char *string)
+						  const char *string)
 {
 	int length, len, idx = 0;
 	const char *list, *end;
 
 	list = fdt_getprop(fdt, nodeoffset, property, &length);
+
 	if (!list)
+	{
 		return -length;
+	}
 
 	len = strlen(string) + 1;
 	end = list + length;
 
-	while (list < end) {
+	while (list < end)
+	{
 		length = strnlen(list, end - list) + 1;
 
 		/* Abort if the last string isn't properly NUL-terminated. */
 		if (list + length > end)
+		{
 			return -FDT_ERR_BADVALUE;
+		}
 
 		if (length == len && memcmp(list, string, length) == 0)
+		{
 			return idx;
+		}
 
 		list += length;
 		idx++;
@@ -594,36 +761,47 @@ int fdt_stringlist_search(const void *fdt, int nodeoffset, const char *property,
 }
 
 const char *fdt_stringlist_get(const void *fdt, int nodeoffset,
-			       const char *property, int idx,
-			       int *lenp)
+							   const char *property, int idx,
+							   int *lenp)
 {
 	const char *list, *end;
 	int length;
 
 	list = fdt_getprop(fdt, nodeoffset, property, &length);
-	if (!list) {
+
+	if (!list)
+	{
 		if (lenp)
+		{
 			*lenp = length;
+		}
 
 		return NULL;
 	}
 
 	end = list + length;
 
-	while (list < end) {
+	while (list < end)
+	{
 		length = strnlen(list, end - list) + 1;
 
 		/* Abort if the last string isn't properly NUL-terminated. */
-		if (list + length > end) {
+		if (list + length > end)
+		{
 			if (lenp)
+			{
 				*lenp = -FDT_ERR_BADVALUE;
+			}
 
 			return NULL;
 		}
 
-		if (idx == 0) {
+		if (idx == 0)
+		{
 			if (lenp)
+			{
 				*lenp = length - 1;
+			}
 
 			return list;
 		}
@@ -633,26 +811,31 @@ const char *fdt_stringlist_get(const void *fdt, int nodeoffset,
 	}
 
 	if (lenp)
+	{
 		*lenp = -FDT_ERR_NOTFOUND;
+	}
 
 	return NULL;
 }
 
 int fdt_node_check_compatible(const void *fdt, int nodeoffset,
-			      const char *compatible)
+							  const char *compatible)
 {
 	const void *prop;
 	int len;
 
 	prop = fdt_getprop(fdt, nodeoffset, "compatible", &len);
+
 	if (!prop)
+	{
 		return len;
+	}
 
 	return !fdt_stringlist_contains(prop, len, compatible);
 }
 
 int fdt_node_offset_by_compatible(const void *fdt, int startoffset,
-				  const char *compatible)
+								  const char *compatible)
 {
 	int offset, err;
 
@@ -664,13 +847,19 @@ int fdt_node_offset_by_compatible(const void *fdt, int startoffset,
 	 * making our way to the next node.  Still it's the easiest to
 	 * implement approach; performance can come later. */
 	for (offset = fdt_next_node(fdt, startoffset, NULL);
-	     offset >= 0;
-	     offset = fdt_next_node(fdt, offset, NULL)) {
+		 offset >= 0;
+		 offset = fdt_next_node(fdt, offset, NULL))
+	{
 		err = fdt_node_check_compatible(fdt, offset, compatible);
+
 		if ((err < 0) && (err != -FDT_ERR_NOTFOUND))
+		{
 			return err;
+		}
 		else if (err == 0)
+		{
 			return offset;
+		}
 	}
 
 	return offset; /* error from fdt_next_node() */

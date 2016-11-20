@@ -30,7 +30,7 @@
 
 
 #ifndef PACKED
-#define PACKED __attribute__((packed))
+	#define PACKED __attribute__((packed))
 #endif
 
 /*
@@ -110,7 +110,8 @@
   Define the Driver Message Levels.
 */
 
-enum blogic_msglevel {
+enum blogic_msglevel
+{
 	BLOGIC_ANNOUNCE_LEVEL = 0,
 	BLOGIC_INFO_LEVEL = 1,
 	BLOGIC_NOTICE_LEVEL = 2,
@@ -146,7 +147,8 @@ static char *blogic_msglevelmap[] = { KERN_NOTICE, KERN_NOTICE, KERN_NOTICE, KER
   of I/O Addresses required by each type.
 */
 
-enum blogic_adapter_type {
+enum blogic_adapter_type
+{
 	BLOGIC_MULTIMASTER = 1,
 	BLOGIC_FLASHPOINT = 2
 } PACKED;
@@ -181,7 +183,8 @@ static int blogic_adapter_addr_count[3] = { 0, BLOGIC_MULTIMASTER_ADDR_COUNT, BL
   Define the possible Host Adapter Bus Types.
 */
 
-enum blogic_adapter_bus_type {
+enum blogic_adapter_bus_type
+{
 	BLOGIC_UNKNOWN_BUS = 0,
 	BLOGIC_ISA_BUS = 1,
 	BLOGIC_EISA_BUS = 2,
@@ -192,7 +195,8 @@ enum blogic_adapter_bus_type {
 
 static char *blogic_adapter_busnames[] = { "Unknown", "ISA", "EISA", "PCI", "VESA", "MCA" };
 
-static enum blogic_adapter_bus_type blogic_adater_bus_types[] = {
+static enum blogic_adapter_bus_type blogic_adater_bus_types[] =
+{
 	BLOGIC_VESA_BUS,	/* BT-4xx */
 	BLOGIC_ISA_BUS,		/* BT-5xx */
 	BLOGIC_MCA_BUS,		/* BT-6xx */
@@ -205,7 +209,8 @@ static enum blogic_adapter_bus_type blogic_adater_bus_types[] = {
   Define the possible Host Adapter BIOS Disk Geometry Translations.
 */
 
-enum blogic_bios_diskgeometry {
+enum blogic_bios_diskgeometry
+{
 	BLOGIC_BIOS_NODISK = 0,
 	BLOGIC_BIOS_DISK64x32 = 1,
 	BLOGIC_BIOS_DISK128x32 = 2,
@@ -217,7 +222,8 @@ enum blogic_bios_diskgeometry {
   Define a 10^18 Statistics Byte Counter data type.
 */
 
-struct blogic_byte_count {
+struct blogic_byte_count
+{
 	unsigned int units;
 	unsigned int billions;
 };
@@ -227,7 +233,8 @@ struct blogic_byte_count {
   Define the structure for I/O Address and Bus Probing Information.
 */
 
-struct blogic_probeinfo {
+struct blogic_probeinfo
+{
 	enum blogic_adapter_type adapter_type;
 	enum blogic_adapter_bus_type adapter_bus_type;
 	unsigned long io_addr;
@@ -242,31 +249,33 @@ struct blogic_probeinfo {
   Define the Probe Options.
 */
 
-struct blogic_probe_options {
-	bool noprobe:1;			/* Bit 0 */
-	bool noprobe_isa:1;		/* Bit 1 */
-	bool noprobe_pci:1;		/* Bit 2 */
-	bool nosort_pci:1;		/* Bit 3 */
-	bool multimaster_first:1;	/* Bit 4 */
-	bool flashpoint_first:1;	/* Bit 5 */
-	bool limited_isa:1;		/* Bit 6 */
-	bool probe330:1;		/* Bit 7 */
-	bool probe334:1;		/* Bit 8 */
-	bool probe230:1;		/* Bit 9 */
-	bool probe234:1;		/* Bit 10 */
-	bool probe130:1;		/* Bit 11 */
-	bool probe134:1;		/* Bit 12 */
+struct blogic_probe_options
+{
+	bool noprobe: 1;			/* Bit 0 */
+	bool noprobe_isa: 1;		/* Bit 1 */
+	bool noprobe_pci: 1;		/* Bit 2 */
+	bool nosort_pci: 1;		/* Bit 3 */
+	bool multimaster_first: 1;	/* Bit 4 */
+	bool flashpoint_first: 1;	/* Bit 5 */
+	bool limited_isa: 1;		/* Bit 6 */
+	bool probe330: 1;		/* Bit 7 */
+	bool probe334: 1;		/* Bit 8 */
+	bool probe230: 1;		/* Bit 9 */
+	bool probe234: 1;		/* Bit 10 */
+	bool probe130: 1;		/* Bit 11 */
+	bool probe134: 1;		/* Bit 12 */
 };
 
 /*
   Define the Global Options.
 */
 
-struct blogic_global_options {
-	bool trace_probe:1;	/* Bit 0 */
-	bool trace_hw_reset:1;	/* Bit 1 */
-	bool trace_config:1;	/* Bit 2 */
-	bool trace_err:1;	/* Bit 3 */
+struct blogic_global_options
+{
+	bool trace_probe: 1;	/* Bit 0 */
+	bool trace_hw_reset: 1;	/* Bit 1 */
+	bool trace_config: 1;	/* Bit 2 */
+	bool trace_err: 1;	/* Bit 3 */
 };
 
 /*
@@ -284,14 +293,16 @@ struct blogic_global_options {
   Define the structure of the write-only Control Register.
 */
 
-union blogic_cntrl_reg {
+union blogic_cntrl_reg
+{
 	unsigned char all;
-	struct {
-		unsigned char:4;	/* Bits 0-3 */
-		bool bus_reset:1;	/* Bit 4 */
-		bool int_reset:1;	/* Bit 5 */
-		bool soft_reset:1;	/* Bit 6 */
-		bool hard_reset:1;	/* Bit 7 */
+	struct
+	{
+		unsigned char: 4;	/* Bits 0-3 */
+		bool bus_reset: 1;	/* Bit 4 */
+		bool int_reset: 1;	/* Bit 5 */
+		bool soft_reset: 1;	/* Bit 6 */
+		bool hard_reset: 1;	/* Bit 7 */
 	} cr;
 };
 
@@ -299,17 +310,19 @@ union blogic_cntrl_reg {
   Define the structure of the read-only Status Register.
 */
 
-union blogic_stat_reg {
+union blogic_stat_reg
+{
 	unsigned char all;
-	struct {
-		bool cmd_invalid:1;	/* Bit 0 */
-		bool rsvd:1;		/* Bit 1 */
-		bool datain_ready:1;	/* Bit 2 */
-		bool cmd_param_busy:1;	/* Bit 3 */
-		bool adapter_ready:1;	/* Bit 4 */
-		bool init_reqd:1;	/* Bit 5 */
-		bool diag_failed:1;	/* Bit 6 */
-		bool diag_active:1;	/* Bit 7 */
+	struct
+	{
+		bool cmd_invalid: 1;	/* Bit 0 */
+		bool rsvd: 1;		/* Bit 1 */
+		bool datain_ready: 1;	/* Bit 2 */
+		bool cmd_param_busy: 1;	/* Bit 3 */
+		bool adapter_ready: 1;	/* Bit 4 */
+		bool init_reqd: 1;	/* Bit 5 */
+		bool diag_failed: 1;	/* Bit 6 */
+		bool diag_active: 1;	/* Bit 7 */
 	} sr;
 };
 
@@ -317,15 +330,17 @@ union blogic_stat_reg {
   Define the structure of the read-only Interrupt Register.
 */
 
-union blogic_int_reg {
+union blogic_int_reg
+{
 	unsigned char all;
-	struct {
-		bool mailin_loaded:1;	/* Bit 0 */
-		bool mailout_avail:1;	/* Bit 1 */
-		bool cmd_complete:1;	/* Bit 2 */
-		bool ext_busreset:1;	/* Bit 3 */
-		unsigned char rsvd:3;	/* Bits 4-6 */
-		bool int_valid:1;	/* Bit 7 */
+	struct
+	{
+		bool mailin_loaded: 1;	/* Bit 0 */
+		bool mailout_avail: 1;	/* Bit 1 */
+		bool cmd_complete: 1;	/* Bit 2 */
+		bool ext_busreset: 1;	/* Bit 3 */
+		unsigned char rsvd: 3;	/* Bits 4-6 */
+		bool int_valid: 1;	/* Bit 7 */
 	} ir;
 };
 
@@ -333,21 +348,24 @@ union blogic_int_reg {
   Define the structure of the read-only Geometry Register.
 */
 
-union blogic_geo_reg {
+union blogic_geo_reg
+{
 	unsigned char all;
-	struct {
-		enum blogic_bios_diskgeometry d0_geo:2;	/* Bits 0-1 */
-		enum blogic_bios_diskgeometry d1_geo:2;	/* Bits 2-3 */
-		unsigned char:3;	/* Bits 4-6 */
-		bool ext_trans_enable:1;	/* Bit 7 */
-	} gr;
-};
+	struct
+	{
+		enum blogic_bios_diskgeometry d0_geo : 2;	/* Bits 0-1 */
+			enum blogic_bios_diskgeometry d1_geo : 2;	/* Bits 2-3 */
+			unsigned char: 3;	/* Bits 4-6 */
+			bool ext_trans_enable: 1;	/* Bit 7 */
+		} gr;
+	};
 
-/*
-  Define the BusLogic SCSI Host Adapter Command Register Operation Codes.
-*/
+	/*
+	  Define the BusLogic SCSI Host Adapter Command Register Operation Codes.
+	*/
 
-enum blogic_opcode {
+	enum blogic_opcode
+{
 	BLOGIC_TEST_CMP_COMPLETE = 0x00,
 	BLOGIC_INIT_MBOX = 0x01,
 	BLOGIC_EXEC_MBOX_CMD = 0x02,
@@ -398,7 +416,8 @@ enum blogic_opcode {
   Define the Inquire Board ID reply structure.
 */
 
-struct blogic_board_id {
+struct blogic_board_id
+{
 	unsigned char type;		/* Byte 0 */
 	unsigned char custom_features;	/* Byte 1 */
 	unsigned char fw_ver_digit1;	/* Byte 2 */
@@ -409,37 +428,40 @@ struct blogic_board_id {
   Define the Inquire Configuration reply structure.
 */
 
-struct blogic_config {
-	unsigned char:5;	/* Byte 0 Bits 0-4 */
-	bool dma_ch5:1;		/* Byte 0 Bit 5 */
-	bool dma_ch6:1;		/* Byte 0 Bit 6 */
-	bool dma_ch7:1;		/* Byte 0 Bit 7 */
-	bool irq_ch9:1;		/* Byte 1 Bit 0 */
-	bool irq_ch10:1;	/* Byte 1 Bit 1 */
-	bool irq_ch11:1;	/* Byte 1 Bit 2 */
-	bool irq_ch12:1;	/* Byte 1 Bit 3 */
-	unsigned char:1;	/* Byte 1 Bit 4 */
-	bool irq_ch14:1;	/* Byte 1 Bit 5 */
-	bool irq_ch15:1;	/* Byte 1 Bit 6 */
-	unsigned char:1;	/* Byte 1 Bit 7 */
-	unsigned char id:4;	/* Byte 2 Bits 0-3 */
-	unsigned char:4;	/* Byte 2 Bits 4-7 */
+struct blogic_config
+{
+	unsigned char: 5;	/* Byte 0 Bits 0-4 */
+	bool dma_ch5: 1;		/* Byte 0 Bit 5 */
+	bool dma_ch6: 1;		/* Byte 0 Bit 6 */
+	bool dma_ch7: 1;		/* Byte 0 Bit 7 */
+	bool irq_ch9: 1;		/* Byte 1 Bit 0 */
+	bool irq_ch10: 1;	/* Byte 1 Bit 1 */
+	bool irq_ch11: 1;	/* Byte 1 Bit 2 */
+	bool irq_ch12: 1;	/* Byte 1 Bit 3 */
+	unsigned char: 1;	/* Byte 1 Bit 4 */
+	bool irq_ch14: 1;	/* Byte 1 Bit 5 */
+	bool irq_ch15: 1;	/* Byte 1 Bit 6 */
+	unsigned char: 1;	/* Byte 1 Bit 7 */
+	unsigned char id: 4;	/* Byte 2 Bits 0-3 */
+	unsigned char: 4;	/* Byte 2 Bits 4-7 */
 };
 
 /*
   Define the Inquire Setup Information reply structure.
 */
 
-struct blogic_syncval {
-	unsigned char offset:4;		/* Bits 0-3 */
-	unsigned char tx_period:3;	/* Bits 4-6 */
-	bool sync:1;			/* Bit 7 */
+struct blogic_syncval
+{
+	unsigned char offset: 4;		/* Bits 0-3 */
+	unsigned char tx_period: 3;	/* Bits 4-6 */
+	bool sync: 1;			/* Bit 7 */
 };
 
-struct blogic_setup_info {
-	bool sync:1;				/* Byte 0 Bit 0 */
-	bool parity:1;				/* Byte 0 Bit 1 */
-	unsigned char:6;			/* Byte 0 Bits 2-7 */
+struct blogic_setup_info
+{
+	bool sync: 1;				/* Byte 0 Bit 0 */
+	bool parity: 1;				/* Byte 0 Bit 1 */
+	unsigned char: 6;			/* Byte 0 Bits 2-7 */
 	unsigned char tx_rate;			/* Byte 1 */
 	unsigned char preempt_time;		/* Byte 2 */
 	unsigned char timeoff_bus;		/* Byte 3 */
@@ -454,7 +476,7 @@ struct blogic_setup_info {
 	unsigned char wide_tx_active0to7;	/* Byte 21 */
 	struct blogic_syncval sync8to15[8];	/* Bytes 22-29 */
 	unsigned char disconnect_ok8to15;	/* Byte 30 */
-	unsigned char:8;			/* Byte 31 */
+	unsigned char: 8;			/* Byte 31 */
 	unsigned char wide_tx_ok8to15;		/* Byte 32 */
 	unsigned char wide_tx_active8to15;	/* Byte 33 */
 };
@@ -463,7 +485,8 @@ struct blogic_setup_info {
   Define the Initialize Extended Mailbox request structure.
 */
 
-struct blogic_extmbox_req {
+struct blogic_extmbox_req
+{
 	unsigned char mbox_count;	/* Byte 0 */
 	u32 base_mbox_addr;		/* Bytes 1-4 */
 } PACKED;
@@ -475,7 +498,8 @@ struct blogic_extmbox_req {
   the Modify I/O Address command.
 */
 
-enum blogic_isa_ioport {
+enum blogic_isa_ioport
+{
 	BLOGIC_IO_330 = 0,
 	BLOGIC_IO_334 = 1,
 	BLOGIC_IO_230 = 2,
@@ -486,50 +510,54 @@ enum blogic_isa_ioport {
 	BLOGIC_IO_DISABLE2 = 7
 } PACKED;
 
-struct blogic_adapter_info {
+struct blogic_adapter_info
+{
 	enum blogic_isa_ioport isa_port;	/* Byte 0 */
 	unsigned char irq_ch;		/* Byte 1 */
-	bool low_term:1;		/* Byte 2 Bit 0 */
-	bool high_term:1;		/* Byte 2 Bit 1 */
-	unsigned char:2;		/* Byte 2 Bits 2-3 */
-	bool JP1:1;			/* Byte 2 Bit 4 */
-	bool JP2:1;			/* Byte 2 Bit 5 */
-	bool JP3:1;			/* Byte 2 Bit 6 */
-	bool genericinfo_valid:1;	/* Byte 2 Bit 7 */
-	unsigned char:8;		/* Byte 3 */
+	bool low_term: 1;		/* Byte 2 Bit 0 */
+	bool high_term: 1;		/* Byte 2 Bit 1 */
+	unsigned char: 2;		/* Byte 2 Bits 2-3 */
+	bool JP1: 1;			/* Byte 2 Bit 4 */
+	bool JP2: 1;			/* Byte 2 Bit 5 */
+	bool JP3: 1;			/* Byte 2 Bit 6 */
+	bool genericinfo_valid: 1;	/* Byte 2 Bit 7 */
+	unsigned char: 8;		/* Byte 3 */
 };
 
 /*
   Define the Inquire Extended Setup Information reply structure.
 */
 
-struct blogic_ext_setup {
+struct blogic_ext_setup
+{
 	unsigned char bus_type;		/* Byte 0 */
 	unsigned char bios_addr;	/* Byte 1 */
 	unsigned short sg_limit;	/* Bytes 2-3 */
 	unsigned char mbox_count;	/* Byte 4 */
 	u32 base_mbox_addr;		/* Bytes 5-8 */
-	struct {
-		unsigned char:2;	/* Byte 9 Bits 0-1 */
-		bool fast_on_eisa:1;	/* Byte 9 Bit 2 */
-		unsigned char:3;	/* Byte 9 Bits 3-5 */
-		bool level_int:1;	/* Byte 9 Bit 6 */
-		unsigned char:1;	/* Byte 9 Bit 7 */
+	struct
+	{
+		unsigned char: 2;	/* Byte 9 Bits 0-1 */
+		bool fast_on_eisa: 1;	/* Byte 9 Bit 2 */
+		unsigned char: 3;	/* Byte 9 Bits 3-5 */
+		bool level_int: 1;	/* Byte 9 Bit 6 */
+		unsigned char: 1;	/* Byte 9 Bit 7 */
 	} misc;
 	unsigned char fw_rev[3];	/* Bytes 10-12 */
-	bool wide:1;			/* Byte 13 Bit 0 */
-	bool differential:1;		/* Byte 13 Bit 1 */
-	bool scam:1;			/* Byte 13 Bit 2 */
-	bool ultra:1;			/* Byte 13 Bit 3 */
-	bool smart_term:1;		/* Byte 13 Bit 4 */
-	unsigned char:3;		/* Byte 13 Bits 5-7 */
+	bool wide: 1;			/* Byte 13 Bit 0 */
+	bool differential: 1;		/* Byte 13 Bit 1 */
+	bool scam: 1;			/* Byte 13 Bit 2 */
+	bool ultra: 1;			/* Byte 13 Bit 3 */
+	bool smart_term: 1;		/* Byte 13 Bit 4 */
+	unsigned char: 3;		/* Byte 13 Bits 5-7 */
 } PACKED;
 
 /*
   Define the Enable Strict Round Robin Mode request type.
 */
 
-enum blogic_rr_req {
+enum blogic_rr_req
+{
 	BLOGIC_AGGRESSIVE_RR = 0,
 	BLOGIC_STRICT_RR_MODE = 1
 } PACKED;
@@ -542,7 +570,8 @@ enum blogic_rr_req {
 #define BLOGIC_BIOS_BASE		0
 #define BLOGIC_AUTOSCSI_BASE		64
 
-struct blogic_fetch_localram {
+struct blogic_fetch_localram
+{
 	unsigned char offset;	/* Byte 0 */
 	unsigned char count;	/* Byte 1 */
 };
@@ -551,40 +580,41 @@ struct blogic_fetch_localram {
   Define the Host Adapter Local RAM AutoSCSI structure.
 */
 
-struct blogic_autoscsi {
+struct blogic_autoscsi
+{
 	unsigned char factory_sig[2];		/* Bytes 0-1 */
 	unsigned char info_bytes;		/* Byte 2 */
 	unsigned char adapter_type[6];		/* Bytes 3-8 */
-	unsigned char:8;			/* Byte 9 */
-	bool floppy:1;				/* Byte 10 Bit 0 */
-	bool floppy_sec:1;			/* Byte 10 Bit 1 */
-	bool level_int:1;			/* Byte 10 Bit 2 */
-	unsigned char:2;			/* Byte 10 Bits 3-4 */
-	unsigned char systemram_bios:3;		/* Byte 10 Bits 5-7 */
-	unsigned char dma_ch:7;			/* Byte 11 Bits 0-6 */
-	bool dma_autoconf:1;			/* Byte 11 Bit 7 */
-	unsigned char irq_ch:7;			/* Byte 12 Bits 0-6 */
-	bool irq_autoconf:1;			/* Byte 12 Bit 7 */
+	unsigned char: 8;			/* Byte 9 */
+	bool floppy: 1;				/* Byte 10 Bit 0 */
+	bool floppy_sec: 1;			/* Byte 10 Bit 1 */
+	bool level_int: 1;			/* Byte 10 Bit 2 */
+	unsigned char: 2;			/* Byte 10 Bits 3-4 */
+	unsigned char systemram_bios: 3;		/* Byte 10 Bits 5-7 */
+	unsigned char dma_ch: 7;			/* Byte 11 Bits 0-6 */
+	bool dma_autoconf: 1;			/* Byte 11 Bit 7 */
+	unsigned char irq_ch: 7;			/* Byte 12 Bits 0-6 */
+	bool irq_autoconf: 1;			/* Byte 12 Bit 7 */
 	unsigned char dma_tx_rate;		/* Byte 13 */
 	unsigned char scsi_id;			/* Byte 14 */
-	bool low_term:1;			/* Byte 15 Bit 0 */
-	bool parity:1;				/* Byte 15 Bit 1 */
-	bool high_term:1;			/* Byte 15 Bit 2 */
-	bool noisy_cable:1;			/* Byte 15 Bit 3 */
-	bool fast_sync_neg:1;			/* Byte 15 Bit 4 */
-	bool reset_enabled:1;			/* Byte 15 Bit 5 */
-	bool:1;					/* Byte 15 Bit 6 */
-	bool active_negation:1;			/* Byte 15 Bit 7 */
+	bool low_term: 1;			/* Byte 15 Bit 0 */
+	bool parity: 1;				/* Byte 15 Bit 1 */
+	bool high_term: 1;			/* Byte 15 Bit 2 */
+	bool noisy_cable: 1;			/* Byte 15 Bit 3 */
+	bool fast_sync_neg: 1;			/* Byte 15 Bit 4 */
+	bool reset_enabled: 1;			/* Byte 15 Bit 5 */
+	bool: 1;					/* Byte 15 Bit 6 */
+	bool active_negation: 1;			/* Byte 15 Bit 7 */
 	unsigned char bus_on_delay;		/* Byte 16 */
 	unsigned char bus_off_delay;		/* Byte 17 */
-	bool bios_enabled:1;			/* Byte 18 Bit 0 */
-	bool int19_redir_enabled:1;		/* Byte 18 Bit 1 */
-	bool ext_trans_enable:1;		/* Byte 18 Bit 2 */
-	bool removable_as_fixed:1;		/* Byte 18 Bit 3 */
-	bool:1;					/* Byte 18 Bit 4 */
-	bool morethan2_drives:1;		/* Byte 18 Bit 5 */
-	bool bios_int:1;			/* Byte 18 Bit 6 */
-	bool floptical:1;			/* Byte 19 Bit 7 */
+	bool bios_enabled: 1;			/* Byte 18 Bit 0 */
+	bool int19_redir_enabled: 1;		/* Byte 18 Bit 1 */
+	bool ext_trans_enable: 1;		/* Byte 18 Bit 2 */
+	bool removable_as_fixed: 1;		/* Byte 18 Bit 3 */
+	bool: 1;					/* Byte 18 Bit 4 */
+	bool morethan2_drives: 1;		/* Byte 18 Bit 5 */
+	bool bios_int: 1;			/* Byte 18 Bit 6 */
+	bool floptical: 1;			/* Byte 19 Bit 7 */
 	unsigned short dev_enabled;		/* Bytes 19-20 */
 	unsigned short wide_ok;			/* Bytes 21-22 */
 	unsigned short fast_ok;			/* Bytes 23-24 */
@@ -592,29 +622,29 @@ struct blogic_autoscsi {
 	unsigned short discon_ok;		/* Bytes 27-28 */
 	unsigned short send_start_unit;		/* Bytes 29-30 */
 	unsigned short ignore_bios_scan;	/* Bytes 31-32 */
-	unsigned char pci_int_pin:2;		/* Byte 33 Bits 0-1 */
-	unsigned char adapter_ioport:2;		/* Byte 33 Bits 2-3 */
-	bool strict_rr_enabled:1;		/* Byte 33 Bit 4 */
-	bool vesabus_33mhzplus:1;		/* Byte 33 Bit 5 */
-	bool vesa_burst_write:1;		/* Byte 33 Bit 6 */
-	bool vesa_burst_read:1;			/* Byte 33 Bit 7 */
+	unsigned char pci_int_pin: 2;		/* Byte 33 Bits 0-1 */
+	unsigned char adapter_ioport: 2;		/* Byte 33 Bits 2-3 */
+	bool strict_rr_enabled: 1;		/* Byte 33 Bit 4 */
+	bool vesabus_33mhzplus: 1;		/* Byte 33 Bit 5 */
+	bool vesa_burst_write: 1;		/* Byte 33 Bit 6 */
+	bool vesa_burst_read: 1;			/* Byte 33 Bit 7 */
 	unsigned short ultra_ok;		/* Bytes 34-35 */
-	unsigned int:32;			/* Bytes 36-39 */
-	unsigned char:8;			/* Byte 40 */
+	unsigned int: 32;			/* Bytes 36-39 */
+	unsigned char: 8;			/* Byte 40 */
 	unsigned char autoscsi_maxlun;		/* Byte 41 */
-	bool:1;					/* Byte 42 Bit 0 */
-	bool scam_dominant:1;			/* Byte 42 Bit 1 */
-	bool scam_enabled:1;			/* Byte 42 Bit 2 */
-	bool scam_lev2:1;			/* Byte 42 Bit 3 */
-	unsigned char:4;			/* Byte 42 Bits 4-7 */
-	bool int13_exten:1;			/* Byte 43 Bit 0 */
-	bool:1;					/* Byte 43 Bit 1 */
-	bool cd_boot:1;				/* Byte 43 Bit 2 */
-	unsigned char:5;			/* Byte 43 Bits 3-7 */
-	unsigned char boot_id:4;		/* Byte 44 Bits 0-3 */
-	unsigned char boot_ch:4;		/* Byte 44 Bits 4-7 */
-	unsigned char force_scan_order:1;	/* Byte 45 Bit 0 */
-	unsigned char:7;			/* Byte 45 Bits 1-7 */
+	bool: 1;					/* Byte 42 Bit 0 */
+	bool scam_dominant: 1;			/* Byte 42 Bit 1 */
+	bool scam_enabled: 1;			/* Byte 42 Bit 2 */
+	bool scam_lev2: 1;			/* Byte 42 Bit 3 */
+	unsigned char: 4;			/* Byte 42 Bits 4-7 */
+	bool int13_exten: 1;			/* Byte 43 Bit 0 */
+	bool: 1;					/* Byte 43 Bit 1 */
+	bool cd_boot: 1;				/* Byte 43 Bit 2 */
+	unsigned char: 5;			/* Byte 43 Bits 3-7 */
+	unsigned char boot_id: 4;		/* Byte 44 Bits 0-3 */
+	unsigned char boot_ch: 4;		/* Byte 44 Bits 4-7 */
+	unsigned char force_scan_order: 1;	/* Byte 45 Bit 0 */
+	unsigned char: 7;			/* Byte 45 Bits 1-7 */
 	unsigned short nontagged_to_alt_ok;	/* Bytes 46-47 */
 	unsigned short reneg_sync_on_check;	/* Bytes 48-49 */
 	unsigned char rsvd[10];			/* Bytes 50-59 */
@@ -626,9 +656,10 @@ struct blogic_autoscsi {
   Define the Host Adapter Local RAM Auto SCSI Byte 45 structure.
 */
 
-struct blogic_autoscsi_byte45 {
-	unsigned char force_scan_order:1;	/* Bit 0 */
-	unsigned char:7;	/* Bits 1-7 */
+struct blogic_autoscsi_byte45
+{
+	unsigned char force_scan_order: 1;	/* Bit 0 */
+	unsigned char: 7;	/* Bits 1-7 */
 };
 
 /*
@@ -637,19 +668,21 @@ struct blogic_autoscsi_byte45 {
 
 #define BLOGIC_BIOS_DRVMAP		17
 
-struct blogic_bios_drvmap {
-	unsigned char tgt_idbit3:1;			/* Bit 0 */
-	unsigned char:2;				/* Bits 1-2 */
-	enum blogic_bios_diskgeometry diskgeom:2;	/* Bits 3-4 */
-	unsigned char tgt_id:3;				/* Bits 5-7 */
-};
+struct blogic_bios_drvmap
+{
+	unsigned char tgt_idbit3: 1;			/* Bit 0 */
+	unsigned char: 2;				/* Bits 1-2 */
+	enum blogic_bios_diskgeometry diskgeom : 2;	/* Bits 3-4 */
+		unsigned char tgt_id: 3;				/* Bits 5-7 */
+	};
 
-/*
-  Define the Set CCB Format request type.  Extended LUN Format CCBs are
-  necessary to support more than 8 Logical Units per Target Device.
-*/
+	/*
+	  Define the Set CCB Format request type.  Extended LUN Format CCBs are
+	  necessary to support more than 8 Logical Units per Target Device.
+	*/
 
-enum blogic_setccb_fmt {
+	enum blogic_setccb_fmt
+{
 	BLOGIC_LEGACY_LUN_CCB = 0,
 	BLOGIC_EXT_LUN_CCB = 1
 } PACKED;
@@ -658,7 +691,8 @@ enum blogic_setccb_fmt {
   Define the Outgoing Mailbox Action Codes.
 */
 
-enum blogic_action {
+enum blogic_action
+{
 	BLOGIC_OUTBOX_FREE = 0x00,
 	BLOGIC_MBOX_START = 0x01,
 	BLOGIC_MBOX_ABORT = 0x02
@@ -671,7 +705,8 @@ enum blogic_action {
   completion codes are stored in the CCB; it only uses codes 1, 2, 4, and 5.
 */
 
-enum blogic_cmplt_code {
+enum blogic_cmplt_code
+{
 	BLOGIC_INBOX_FREE = 0x00,
 	BLOGIC_CMD_COMPLETE_GOOD = 0x01,
 	BLOGIC_CMD_ABORT_BY_HOST = 0x02,
@@ -684,7 +719,8 @@ enum blogic_cmplt_code {
   Define the Command Control Block (CCB) Opcodes.
 */
 
-enum blogic_ccb_opcode {
+enum blogic_ccb_opcode
+{
 	BLOGIC_INITIATOR_CCB = 0x00,
 	BLOGIC_TGT_CCB = 0x01,
 	BLOGIC_INITIATOR_CCB_SG = 0x02,
@@ -698,7 +734,8 @@ enum blogic_ccb_opcode {
   Define the CCB Data Direction Codes.
 */
 
-enum blogic_datadir {
+enum blogic_datadir
+{
 	BLOGIC_UNCHECKED_TX = 0,
 	BLOGIC_DATAIN_CHECKED = 1,
 	BLOGIC_DATAOUT_CHECKED = 2,
@@ -711,7 +748,8 @@ enum blogic_datadir {
   return status code 0x0C; it uses 0x12 for both overruns and underruns.
 */
 
-enum blogic_adapter_status {
+enum blogic_adapter_status
+{
 	BLOGIC_CMD_CMPLT_NORMAL = 0x00,
 	BLOGIC_LINK_CMD_CMPLT = 0x0A,
 	BLOGIC_LINK_CMD_CMPLT_FLAG = 0x0B,
@@ -744,7 +782,8 @@ enum blogic_adapter_status {
   Define the SCSI Target Device Status Codes.
 */
 
-enum blogic_tgt_status {
+enum blogic_tgt_status
+{
 	BLOGIC_OP_GOOD = 0x00,
 	BLOGIC_CHECKCONDITION = 0x02,
 	BLOGIC_DEVBUSY = 0x08
@@ -754,7 +793,8 @@ enum blogic_tgt_status {
   Define the Queue Tag Codes.
 */
 
-enum blogic_queuetag {
+enum blogic_queuetag
+{
 	BLOGIC_SIMPLETAG = 0,
 	BLOGIC_HEADTAG = 1,
 	BLOGIC_ORDEREDTAG = 2,
@@ -773,7 +813,8 @@ enum blogic_queuetag {
   Firmware Interface and the FlashPoint SCCB Manager.
 */
 
-struct blogic_sg_seg {
+struct blogic_sg_seg
+{
 	u32 segbytes;	/* Bytes 0-3 */
 	u32 segdata;	/* Bytes 4-7 */
 };
@@ -782,7 +823,8 @@ struct blogic_sg_seg {
   Define the Driver CCB Status Codes.
 */
 
-enum blogic_ccb_status {
+enum blogic_ccb_status
+{
 	BLOGIC_CCB_FREE = 0,
 	BLOGIC_CCB_ACTIVE = 1,
 	BLOGIC_CCB_COMPLETE = 2,
@@ -809,68 +851,70 @@ enum blogic_ccb_status {
   32 Logical Units per Target Device.
 */
 
-struct blogic_ccb {
-	/*
-	   MultiMaster Firmware and FlashPoint SCCB Manager Common Portion.
-	 */
-	enum blogic_ccb_opcode opcode;			/* Byte 0 */
-	unsigned char:3;				/* Byte 1 Bits 0-2 */
-	enum blogic_datadir datadir:2;			/* Byte 1 Bits 3-4 */
-	bool tag_enable:1;				/* Byte 1 Bit 5 */
-	enum blogic_queuetag queuetag:2;		/* Byte 1 Bits 6-7 */
-	unsigned char cdblen;				/* Byte 2 */
-	unsigned char sense_datalen;			/* Byte 3 */
-	u32 datalen;					/* Bytes 4-7 */
-	void *data;					/* Bytes 8-11 */
-	unsigned char:8;				/* Byte 12 */
-	unsigned char:8;				/* Byte 13 */
-	enum blogic_adapter_status adapter_status;	/* Byte 14 */
-	enum blogic_tgt_status tgt_status;		/* Byte 15 */
-	unsigned char tgt_id;				/* Byte 16 */
-	unsigned char lun:5;				/* Byte 17 Bits 0-4 */
-	bool legacytag_enable:1;			/* Byte 17 Bit 5 */
-	enum blogic_queuetag legacy_tag:2;		/* Byte 17 Bits 6-7 */
-	unsigned char cdb[BLOGIC_CDB_MAXLEN];		/* Bytes 18-29 */
-	unsigned char:8;				/* Byte 30 */
-	unsigned char:8;				/* Byte 31 */
-	u32 rsvd_int;					/* Bytes 32-35 */
-	u32 sensedata;					/* Bytes 36-39 */
-	/*
-	   FlashPoint SCCB Manager Defined Portion.
-	 */
-	void (*callback) (struct blogic_ccb *);		/* Bytes 40-43 */
-	u32 base_addr;					/* Bytes 44-47 */
-	enum blogic_cmplt_code comp_code;		/* Byte 48 */
+struct blogic_ccb
+{
+		/*
+		   MultiMaster Firmware and FlashPoint SCCB Manager Common Portion.
+		 */
+		enum blogic_ccb_opcode opcode;			/* Byte 0 */
+		unsigned char: 3;				/* Byte 1 Bits 0-2 */
+		enum blogic_datadir datadir : 2;			/* Byte 1 Bits 3-4 */
+			bool tag_enable: 1;				/* Byte 1 Bit 5 */
+			enum blogic_queuetag queuetag : 2;		/* Byte 1 Bits 6-7 */
+			unsigned char cdblen;				/* Byte 2 */
+			unsigned char sense_datalen;			/* Byte 3 */
+			u32 datalen;					/* Bytes 4-7 */
+			void *data;					/* Bytes 8-11 */
+			unsigned char: 8;				/* Byte 12 */
+			unsigned char: 8;				/* Byte 13 */
+			enum blogic_adapter_status adapter_status;	/* Byte 14 */
+			enum blogic_tgt_status tgt_status;		/* Byte 15 */
+			unsigned char tgt_id;				/* Byte 16 */
+			unsigned char lun: 5;				/* Byte 17 Bits 0-4 */
+			bool legacytag_enable: 1;			/* Byte 17 Bit 5 */
+			enum blogic_queuetag legacy_tag : 2;		/* Byte 17 Bits 6-7 */
+			unsigned char cdb[BLOGIC_CDB_MAXLEN];		/* Bytes 18-29 */
+			unsigned char: 8;				/* Byte 30 */
+			unsigned char: 8;				/* Byte 31 */
+			u32 rsvd_int;					/* Bytes 32-35 */
+			u32 sensedata;					/* Bytes 36-39 */
+			/*
+			   FlashPoint SCCB Manager Defined Portion.
+			 */
+			void (*callback) (struct blogic_ccb *);		/* Bytes 40-43 */
+			u32 base_addr;					/* Bytes 44-47 */
+			enum blogic_cmplt_code comp_code;		/* Byte 48 */
 #ifdef CONFIG_SCSI_FLASHPOINT
-	unsigned char:8;				/* Byte 49 */
-	u16 os_flags;					/* Bytes 50-51 */
-	unsigned char private[24];			/* Bytes 52-99 */
-	void *rsvd1;
-	void *rsvd2;
-	unsigned char private2[16];
+			unsigned char: 8;				/* Byte 49 */
+			u16 os_flags;					/* Bytes 50-51 */
+			unsigned char private[24];			/* Bytes 52-99 */
+			void *rsvd1;
+			void *rsvd2;
+			unsigned char private2[16];
 #endif
+			/*
+			   BusLogic Linux Driver Defined Portion.
+			 */
+			dma_addr_t allocgrp_head;
+			unsigned int allocgrp_size;
+			u32 dma_handle;
+			enum blogic_ccb_status status;
+			unsigned long serial;
+			struct scsi_cmnd *command;
+			struct blogic_adapter *adapter;
+			struct blogic_ccb *next;
+			struct blogic_ccb *next_all;
+			struct blogic_sg_seg sglist[BLOGIC_SG_LIMIT];
+	};
+
 	/*
-	   BusLogic Linux Driver Defined Portion.
-	 */
-	dma_addr_t allocgrp_head;
-	unsigned int allocgrp_size;
-	u32 dma_handle;
-	enum blogic_ccb_status status;
-	unsigned long serial;
-	struct scsi_cmnd *command;
-	struct blogic_adapter *adapter;
-	struct blogic_ccb *next;
-	struct blogic_ccb *next_all;
-	struct blogic_sg_seg sglist[BLOGIC_SG_LIMIT];
-};
+	  Define the 32 Bit Mode Outgoing Mailbox structure.
+	*/
 
-/*
-  Define the 32 Bit Mode Outgoing Mailbox structure.
-*/
-
-struct blogic_outbox {
+	struct blogic_outbox
+{
 	u32 ccb;			/* Bytes 0-3 */
-	u32:24;				/* Bytes 4-6 */
+	u32: 24;				/* Bytes 4-6 */
 	enum blogic_action action;	/* Byte 7 */
 };
 
@@ -878,11 +922,12 @@ struct blogic_outbox {
   Define the 32 Bit Mode Incoming Mailbox structure.
 */
 
-struct blogic_inbox {
+struct blogic_inbox
+{
 	u32 ccb;					/* Bytes 0-3 */
 	enum blogic_adapter_status adapter_status;	/* Byte 4 */
 	enum blogic_tgt_status tgt_status;		/* Byte 5 */
-	unsigned char:8;				/* Byte 6 */
+	unsigned char: 8;				/* Byte 6 */
 	enum blogic_cmplt_code comp_code;		/* Byte 7 */
 };
 
@@ -891,7 +936,8 @@ struct blogic_inbox {
   Define the BusLogic Driver Options structure.
 */
 
-struct blogic_drvr_options {
+struct blogic_drvr_options
+{
 	unsigned short tagq_ok;
 	unsigned short tagq_ok_mask;
 	unsigned short bus_settle_time;
@@ -904,14 +950,15 @@ struct blogic_drvr_options {
   Define the Host Adapter Target Flags structure.
 */
 
-struct blogic_tgt_flags {
-	bool tgt_exists:1;
-	bool tagq_ok:1;
-	bool wide_ok:1;
-	bool tagq_active:1;
-	bool wide_active:1;
-	bool cmd_good:1;
-	bool tgt_info_in:1;
+struct blogic_tgt_flags
+{
+	bool tgt_exists: 1;
+	bool tagq_ok: 1;
+	bool wide_ok: 1;
+	bool tagq_active: 1;
+	bool wide_active: 1;
+	bool cmd_good: 1;
+	bool tgt_info_in: 1;
 };
 
 /*
@@ -920,7 +967,8 @@ struct blogic_tgt_flags {
 
 #define BLOGIC_SZ_BUCKETS			10
 
-struct blogic_tgt_stats {
+struct blogic_tgt_stats
+{
 	unsigned int cmds_tried;
 	unsigned int cmds_complete;
 	unsigned int read_cmds;
@@ -952,7 +1000,8 @@ struct blogic_tgt_stats {
   by the FlashPoint SCCB Manager.
 */
 
-struct fpoint_info {
+struct fpoint_info
+{
 	u32 base_addr;				/* Bytes 0-3 */
 	bool present;				/* Byte 4 */
 	unsigned char irq_ch;			/* Byte 5 */
@@ -964,16 +1013,16 @@ struct fpoint_info {
 	u16 ultra_ok;				/* Bytes 14-15 */
 	u16 discon_ok;				/* Bytes 16-17 */
 	u16 wide_ok;				/* Bytes 18-19 */
-	bool parity:1;				/* Byte 20 Bit 0 */
-	bool wide:1;				/* Byte 20 Bit 1 */
-	bool softreset:1;			/* Byte 20 Bit 2 */
-	bool ext_trans_enable:1;		/* Byte 20 Bit 3 */
-	bool low_term:1;			/* Byte 20 Bit 4 */
-	bool high_term:1;			/* Byte 20 Bit 5 */
-	bool report_underrun:1;			/* Byte 20 Bit 6 */
-	bool scam_enabled:1;			/* Byte 20 Bit 7 */
-	bool scam_lev2:1;			/* Byte 21 Bit 0 */
-	unsigned char:7;			/* Byte 21 Bits 1-7 */
+	bool parity: 1;				/* Byte 20 Bit 0 */
+	bool wide: 1;				/* Byte 20 Bit 1 */
+	bool softreset: 1;			/* Byte 20 Bit 2 */
+	bool ext_trans_enable: 1;		/* Byte 20 Bit 3 */
+	bool low_term: 1;			/* Byte 20 Bit 4 */
+	bool high_term: 1;			/* Byte 20 Bit 5 */
+	bool report_underrun: 1;			/* Byte 20 Bit 6 */
+	bool scam_enabled: 1;			/* Byte 20 Bit 7 */
+	bool scam_lev2: 1;			/* Byte 21 Bit 0 */
+	unsigned char: 7;			/* Byte 21 Bits 1-7 */
 	unsigned char family;			/* Byte 22 */
 	unsigned char bus_type;			/* Byte 23 */
 	unsigned char model[3];			/* Bytes 24-26 */
@@ -989,7 +1038,8 @@ struct fpoint_info {
   Define the BusLogic Driver Host Adapter structure.
 */
 
-struct blogic_adapter {
+struct blogic_adapter
+{
 	struct Scsi_Host *scsi_host;
 	struct pci_dev *pci_device;
 	enum blogic_adapter_type adapter_type;
@@ -1006,27 +1056,27 @@ struct blogic_adapter {
 	unsigned char irq_ch;
 	unsigned char dma_ch;
 	unsigned char scsi_id;
-	bool irq_acquired:1;
-	bool dma_chan_acquired:1;
-	bool ext_trans_enable:1;
-	bool parity:1;
-	bool reset_enabled:1;
-	bool level_int:1;
-	bool wide:1;
-	bool differential:1;
-	bool scam:1;
-	bool ultra:1;
-	bool ext_lun:1;
-	bool terminfo_valid:1;
-	bool low_term:1;
-	bool high_term:1;
-	bool need_bouncebuf:1;
-	bool strict_rr:1;
-	bool scam_enabled:1;
-	bool scam_lev2:1;
-	bool adapter_initd:1;
-	bool adapter_extreset:1;
-	bool adapter_intern_err:1;
+	bool irq_acquired: 1;
+	bool dma_chan_acquired: 1;
+	bool ext_trans_enable: 1;
+	bool parity: 1;
+	bool reset_enabled: 1;
+	bool level_int: 1;
+	bool wide: 1;
+	bool differential: 1;
+	bool scam: 1;
+	bool ultra: 1;
+	bool ext_lun: 1;
+	bool terminfo_valid: 1;
+	bool low_term: 1;
+	bool high_term: 1;
+	bool need_bouncebuf: 1;
+	bool strict_rr: 1;
+	bool scam_enabled: 1;
+	bool scam_lev2: 1;
+	bool adapter_initd: 1;
+	bool adapter_extreset: 1;
+	bool adapter_intern_err: 1;
 	bool processing_ccbs;
 	volatile bool adapter_cmd_complete;
 	unsigned short adapter_sglimit;
@@ -1089,7 +1139,8 @@ struct blogic_adapter {
   Define a structure for the BIOS Disk Parameters.
 */
 
-struct bios_diskparam {
+struct bios_diskparam
+{
 	int heads;
 	int sectors;
 	int cylinders;
@@ -1099,29 +1150,30 @@ struct bios_diskparam {
   Define a structure for the SCSI Inquiry command results.
 */
 
-struct scsi_inquiry {
-	unsigned char devtype:5;	/* Byte 0 Bits 0-4 */
-	unsigned char dev_qual:3;	/* Byte 0 Bits 5-7 */
-	unsigned char dev_modifier:7;	/* Byte 1 Bits 0-6 */
-	bool rmb:1;			/* Byte 1 Bit 7 */
-	unsigned char ansi_ver:3;	/* Byte 2 Bits 0-2 */
-	unsigned char ecma_ver:3;	/* Byte 2 Bits 3-5 */
-	unsigned char iso_ver:2;	/* Byte 2 Bits 6-7 */
-	unsigned char resp_fmt:4;	/* Byte 3 Bits 0-3 */
-	unsigned char:2;		/* Byte 3 Bits 4-5 */
-	bool TrmIOP:1;			/* Byte 3 Bit 6 */
-	bool AENC:1;			/* Byte 3 Bit 7 */
+struct scsi_inquiry
+{
+	unsigned char devtype: 5;	/* Byte 0 Bits 0-4 */
+	unsigned char dev_qual: 3;	/* Byte 0 Bits 5-7 */
+	unsigned char dev_modifier: 7;	/* Byte 1 Bits 0-6 */
+	bool rmb: 1;			/* Byte 1 Bit 7 */
+	unsigned char ansi_ver: 3;	/* Byte 2 Bits 0-2 */
+	unsigned char ecma_ver: 3;	/* Byte 2 Bits 3-5 */
+	unsigned char iso_ver: 2;	/* Byte 2 Bits 6-7 */
+	unsigned char resp_fmt: 4;	/* Byte 3 Bits 0-3 */
+	unsigned char: 2;		/* Byte 3 Bits 4-5 */
+	bool TrmIOP: 1;			/* Byte 3 Bit 6 */
+	bool AENC: 1;			/* Byte 3 Bit 7 */
 	unsigned char addl_len;		/* Byte 4 */
-	unsigned char:8;		/* Byte 5 */
-	unsigned char:8;		/* Byte 6 */
-	bool SftRe:1;			/* Byte 7 Bit 0 */
-	bool CmdQue:1;			/* Byte 7 Bit 1 */
-	bool:1;				/* Byte 7 Bit 2 */
-	bool linked:1;			/* Byte 7 Bit 3 */
-	bool sync:1;			/* Byte 7 Bit 4 */
-	bool WBus16:1;			/* Byte 7 Bit 5 */
-	bool WBus32:1;			/* Byte 7 Bit 6 */
-	bool RelAdr:1;			/* Byte 7 Bit 7 */
+	unsigned char: 8;		/* Byte 5 */
+	unsigned char: 8;		/* Byte 6 */
+	bool SftRe: 1;			/* Byte 7 Bit 0 */
+	bool CmdQue: 1;			/* Byte 7 Bit 1 */
+	bool: 1;				/* Byte 7 Bit 2 */
+	bool linked: 1;			/* Byte 7 Bit 3 */
+	bool sync: 1;			/* Byte 7 Bit 4 */
+	bool WBus16: 1;			/* Byte 7 Bit 5 */
+	bool WBus32: 1;			/* Byte 7 Bit 6 */
+	bool RelAdr: 1;			/* Byte 7 Bit 7 */
 	unsigned char vendor[8];	/* Bytes 8-15 */
 	unsigned char product[16];	/* Bytes 16-31 */
 	unsigned char product_rev[4];	/* Bytes 32-35 */
@@ -1171,7 +1223,7 @@ static inline unsigned char blogic_rdstatus(struct blogic_adapter *adapter)
 }
 
 static inline void blogic_setcmdparam(struct blogic_adapter *adapter,
-					unsigned char value)
+									  unsigned char value)
 {
 	outb(value, adapter->io_addr + BLOGIC_CMD_PARM_REG);
 }
@@ -1230,7 +1282,9 @@ static inline u32 virt_to_32bit_virt(void *virt_addr)
 static inline void blogic_inc_count(unsigned short *count)
 {
 	if (*count < 65535)
+	{
 		(*count)++;
+	}
 }
 
 /*
@@ -1238,10 +1292,12 @@ static inline void blogic_inc_count(unsigned short *count)
 */
 
 static inline void blogic_addcount(struct blogic_byte_count *bytecount,
-					unsigned int amount)
+								   unsigned int amount)
 {
 	bytecount->units += amount;
-	if (bytecount->units > 999999999) {
+
+	if (bytecount->units > 999999999)
+	{
 		bytecount->units -= 1000000000;
 		bytecount->billions++;
 	}
@@ -1252,21 +1308,37 @@ static inline void blogic_addcount(struct blogic_byte_count *bytecount,
 */
 
 static inline void blogic_incszbucket(unsigned int *cmdsz_buckets,
-					unsigned int amount)
+									  unsigned int amount)
 {
 	int index = 0;
-	if (amount < 8 * 1024) {
+
+	if (amount < 8 * 1024)
+	{
 		if (amount < 2 * 1024)
+		{
 			index = (amount < 1 * 1024 ? 0 : 1);
+		}
 		else
+		{
 			index = (amount < 4 * 1024 ? 2 : 3);
-	} else if (amount < 128 * 1024) {
+		}
+	}
+	else if (amount < 128 * 1024)
+	{
 		if (amount < 32 * 1024)
+		{
 			index = (amount < 16 * 1024 ? 4 : 5);
+		}
 		else
+		{
 			index = (amount < 64 * 1024 ? 6 : 7);
-	} else
+		}
+	}
+	else
+	{
 		index = (amount < 256 * 1024 ? 8 : 9);
+	}
+
 	cmdsz_buckets[index]++;
 }
 

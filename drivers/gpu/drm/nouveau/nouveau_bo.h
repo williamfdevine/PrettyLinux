@@ -7,7 +7,8 @@ struct nouveau_channel;
 struct nouveau_fence;
 struct nvkm_vma;
 
-struct nouveau_bo {
+struct nouveau_bo
+{
 	struct ttm_buffer_object bo;
 	struct ttm_placement placement;
 	u32 valid_domains;
@@ -53,11 +54,16 @@ nouveau_bo_ref(struct nouveau_bo *ref, struct nouveau_bo **pnvbo)
 	struct nouveau_bo *prev;
 
 	if (!pnvbo)
+	{
 		return -EINVAL;
+	}
+
 	prev = *pnvbo;
 
 	*pnvbo = ref ? nouveau_bo(ttm_bo_reference(&ref->bo)) : NULL;
-	if (prev) {
+
+	if (prev)
+	{
 		struct ttm_buffer_object *bo = &prev->bo;
 
 		ttm_bo_unref(&bo);
@@ -70,9 +76,9 @@ extern struct ttm_bo_driver nouveau_bo_driver;
 
 void nouveau_bo_move_init(struct nouveau_drm *);
 int  nouveau_bo_new(struct drm_device *, int size, int align, u32 flags,
-		    u32 tile_mode, u32 tile_flags, struct sg_table *sg,
-		    struct reservation_object *robj,
-		    struct nouveau_bo **);
+					u32 tile_mode, u32 tile_flags, struct sg_table *sg,
+					struct reservation_object *robj,
+					struct nouveau_bo **);
 int  nouveau_bo_pin(struct nouveau_bo *, u32 flags, bool contig);
 int  nouveau_bo_unpin(struct nouveau_bo *);
 int  nouveau_bo_map(struct nouveau_bo *);
@@ -83,7 +89,7 @@ u32  nouveau_bo_rd32(struct nouveau_bo *, unsigned index);
 void nouveau_bo_wr32(struct nouveau_bo *, unsigned index, u32 val);
 void nouveau_bo_fence(struct nouveau_bo *, struct nouveau_fence *, bool exclusive);
 int  nouveau_bo_validate(struct nouveau_bo *, bool interruptible,
-			 bool no_wait_gpu);
+						 bool no_wait_gpu);
 void nouveau_bo_sync_for_device(struct nouveau_bo *nvbo);
 void nouveau_bo_sync_for_cpu(struct nouveau_bo *nvbo);
 
@@ -91,7 +97,7 @@ struct nvkm_vma *
 nouveau_bo_vma_find(struct nouveau_bo *, struct nvkm_vm *);
 
 int  nouveau_bo_vma_add(struct nouveau_bo *, struct nvkm_vm *,
-			struct nvkm_vma *);
+						struct nvkm_vma *);
 void nouveau_bo_vma_del(struct nouveau_bo *, struct nvkm_vma *);
 
 /* TODO: submit equivalent to TTM generic API upstream? */
@@ -100,7 +106,7 @@ nvbo_kmap_obj_iovirtual(struct nouveau_bo *nvbo)
 {
 	bool is_iomem;
 	void __iomem *ioptr = (void __force __iomem *)ttm_kmap_obj_virtual(
-						&nvbo->kmap, &is_iomem);
+							  &nvbo->kmap, &is_iomem);
 	WARN_ON_ONCE(ioptr && !is_iomem);
 	return ioptr;
 }

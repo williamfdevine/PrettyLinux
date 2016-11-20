@@ -18,7 +18,8 @@
 #include <linux/reboot.h>
 #include <linux/regmap.h>
 
-struct reset_syscfg {
+struct reset_syscfg
+{
 	struct regmap *regmap;
 	/* syscfg used for reset */
 	unsigned int offset_rst;
@@ -32,7 +33,8 @@ struct reset_syscfg {
 #define STIH407_SYSCFG_4000	0x0
 #define STIH407_SYSCFG_4008	0x20
 
-static struct reset_syscfg stih407_reset = {
+static struct reset_syscfg stih407_reset =
+{
 	.offset_rst = STIH407_SYSCFG_4000,
 	.mask_rst = BIT(0),
 	.offset_rst_msk = STIH407_SYSCFG_4008,
@@ -43,32 +45,34 @@ static struct reset_syscfg stih407_reset = {
 static struct reset_syscfg *st_restart_syscfg;
 
 static int st_restart(struct notifier_block *this, unsigned long mode,
-		      void *cmd)
+					  void *cmd)
 {
 	/* reset syscfg updated */
 	regmap_update_bits(st_restart_syscfg->regmap,
-			   st_restart_syscfg->offset_rst,
-			   st_restart_syscfg->mask_rst,
-			   0);
+					   st_restart_syscfg->offset_rst,
+					   st_restart_syscfg->mask_rst,
+					   0);
 
 	/* unmask the reset */
 	regmap_update_bits(st_restart_syscfg->regmap,
-			   st_restart_syscfg->offset_rst_msk,
-			   st_restart_syscfg->mask_rst_msk,
-			   0);
+					   st_restart_syscfg->offset_rst_msk,
+					   st_restart_syscfg->mask_rst_msk,
+					   0);
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block st_restart_nb = {
+static struct notifier_block st_restart_nb =
+{
 	.notifier_call = st_restart,
 	.priority = 192,
 };
 
-static const struct of_device_id st_reset_of_match[] = {
+static const struct of_device_id st_reset_of_match[] =
+{
 	{
 		.compatible = "st,stih407-restart",
-		.data = (void *)&stih407_reset,
+		.data = (void *) &stih407_reset,
 	},
 	{}
 };
@@ -80,14 +84,19 @@ static int st_reset_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 
 	match = of_match_device(st_reset_of_match, dev);
+
 	if (!match)
+	{
 		return -ENODEV;
+	}
 
 	st_restart_syscfg = (struct reset_syscfg *)match->data;
 
 	st_restart_syscfg->regmap =
 		syscon_regmap_lookup_by_phandle(np, "st,syscfg");
-	if (IS_ERR(st_restart_syscfg->regmap)) {
+
+	if (IS_ERR(st_restart_syscfg->regmap))
+	{
 		dev_err(dev, "No syscfg phandle specified\n");
 		return PTR_ERR(st_restart_syscfg->regmap);
 	}
@@ -95,7 +104,8 @@ static int st_reset_probe(struct platform_device *pdev)
 	return register_restart_handler(&st_restart_nb);
 }
 
-static struct platform_driver st_reset_driver = {
+static struct platform_driver st_reset_driver =
+{
 	.probe = st_reset_probe,
 	.driver = {
 		.name = "st_reset",

@@ -35,11 +35,13 @@
 #include <linux/qed/rdma_common.h>
 
 /* rdma completion notification queue element */
-struct rdma_cnqe {
+struct rdma_cnqe
+{
 	struct regpair	cq_handle;
 };
 
-struct rdma_cqe_responder {
+struct rdma_cqe_responder
+{
 	struct regpair srq_wr_id;
 	struct regpair qp_handle;
 	__le32 imm_data_or_inv_r_Key;
@@ -62,7 +64,8 @@ struct rdma_cqe_responder {
 	u8 status;
 };
 
-struct rdma_cqe_requester {
+struct rdma_cqe_requester
+{
 	__le16 sq_cons;
 	__le16 reserved0;
 	__le32 reserved1;
@@ -80,7 +83,8 @@ struct rdma_cqe_requester {
 	u8 status;
 };
 
-struct rdma_cqe_common {
+struct rdma_cqe_common
+{
 	struct regpair reserved0;
 	struct regpair qp_handle;
 	__le16 reserved1[7];
@@ -95,14 +99,16 @@ struct rdma_cqe_common {
 };
 
 /* rdma completion queue element */
-union rdma_cqe {
+union rdma_cqe
+{
 	struct rdma_cqe_responder resp;
 	struct rdma_cqe_requester req;
 	struct rdma_cqe_common cmn;
 };
 
 /* * CQE requester status enumeration */
-enum rdma_cqe_requester_status_enum {
+enum rdma_cqe_requester_status_enum
+{
 	RDMA_CQE_REQ_STS_OK,
 	RDMA_CQE_REQ_STS_BAD_RESPONSE_ERR,
 	RDMA_CQE_REQ_STS_LOCAL_LENGTH_ERR,
@@ -119,7 +125,8 @@ enum rdma_cqe_requester_status_enum {
 };
 
 /* CQE responder status enumeration */
-enum rdma_cqe_responder_status_enum {
+enum rdma_cqe_responder_status_enum
+{
 	RDMA_CQE_RESP_STS_OK,
 	RDMA_CQE_RESP_STS_LOCAL_ACCESS_ERR,
 	RDMA_CQE_RESP_STS_LOCAL_LENGTH_ERR,
@@ -132,7 +139,8 @@ enum rdma_cqe_responder_status_enum {
 };
 
 /* CQE type enumeration */
-enum rdma_cqe_type {
+enum rdma_cqe_type
+{
 	RDMA_CQE_TYPE_REQUESTER,
 	RDMA_CQE_TYPE_RESPONDER_RQ,
 	RDMA_CQE_TYPE_RESPONDER_SRQ,
@@ -140,13 +148,15 @@ enum rdma_cqe_type {
 	MAX_RDMA_CQE_TYPE
 };
 
-struct rdma_sq_sge {
+struct rdma_sq_sge
+{
 	__le32 length;
 	struct regpair	addr;
 	__le32 l_key;
 };
 
-struct rdma_rq_sge {
+struct rdma_rq_sge
+{
 	struct regpair addr;
 	__le32 length;
 	__le32 flags;
@@ -158,25 +168,29 @@ struct rdma_rq_sge {
 #define RDMA_RQ_SGE_RESERVED0_SHIFT 29
 };
 
-struct rdma_srq_sge {
+struct rdma_srq_sge
+{
 	struct regpair addr;
 	__le32 length;
 	__le32 l_key;
 };
 
 /* Rdma doorbell data for SQ and RQ */
-struct rdma_pwm_val16_data {
+struct rdma_pwm_val16_data
+{
 	__le16 icid;
 	__le16 value;
 };
 
-union rdma_pwm_val16_data_union {
+union rdma_pwm_val16_data_union
+{
 	struct rdma_pwm_val16_data as_struct;
 	__le32 as_dword;
 };
 
 /* Rdma doorbell data for CQ */
-struct rdma_pwm_val32_data {
+struct rdma_pwm_val32_data
+{
 	__le16 icid;
 	u8 agg_flags;
 	u8 params;
@@ -190,21 +204,24 @@ struct rdma_pwm_val32_data {
 };
 
 /* DIF Block size options */
-enum rdma_dif_block_size {
+enum rdma_dif_block_size
+{
 	RDMA_DIF_BLOCK_512 = 0,
 	RDMA_DIF_BLOCK_4096 = 1,
 	MAX_RDMA_DIF_BLOCK_SIZE
 };
 
 /* DIF CRC initial value */
-enum rdma_dif_crc_seed {
+enum rdma_dif_crc_seed
+{
 	RDMA_DIF_CRC_SEED_0000 = 0,
 	RDMA_DIF_CRC_SEED_FFFF = 1,
 	MAX_RDMA_DIF_CRC_SEED
 };
 
 /* RDMA DIF Error Result Structure */
-struct rdma_dif_error_result {
+struct rdma_dif_error_result
+{
 	__le32 error_intervals;
 	__le32 dif_error_1st_interval;
 	u8 flags;
@@ -222,26 +239,30 @@ struct rdma_dif_error_result {
 };
 
 /* DIF IO direction */
-enum rdma_dif_io_direction_flg {
+enum rdma_dif_io_direction_flg
+{
 	RDMA_DIF_DIR_RX = 0,
 	RDMA_DIF_DIR_TX = 1,
 	MAX_RDMA_DIF_IO_DIRECTION_FLG
 };
 
 /* RDMA DIF Runt Result Structure */
-struct rdma_dif_runt_result {
+struct rdma_dif_runt_result
+{
 	__le16 guard_tag;
 	__le16 reserved[3];
 };
 
 /* Memory window type enumeration */
-enum rdma_mw_type {
+enum rdma_mw_type
+{
 	RDMA_MW_TYPE_1,
 	RDMA_MW_TYPE_2A,
 	MAX_RDMA_MW_TYPE
 };
 
-struct rdma_sq_atomic_wqe {
+struct rdma_sq_atomic_wqe
+{
 	__le32 reserved1;
 	__le32 length;
 	__le32 xrc_srq;
@@ -271,7 +292,8 @@ struct rdma_sq_atomic_wqe {
 };
 
 /* First element (16 bytes) of atomic wqe */
-struct rdma_sq_atomic_wqe_1st {
+struct rdma_sq_atomic_wqe_1st
+{
 	__le32 reserved1;
 	__le32 length;
 	__le32 xrc_srq;
@@ -294,19 +316,22 @@ struct rdma_sq_atomic_wqe_1st {
 };
 
 /* Second element (16 bytes) of atomic wqe */
-struct rdma_sq_atomic_wqe_2nd {
+struct rdma_sq_atomic_wqe_2nd
+{
 	struct regpair remote_va;
 	__le32 r_key;
 	__le32 reserved2;
 };
 
 /* Third element (16 bytes) of atomic wqe */
-struct rdma_sq_atomic_wqe_3rd {
+struct rdma_sq_atomic_wqe_3rd
+{
 	struct regpair cmp_data;
 	struct regpair swap_data;
 };
 
-struct rdma_sq_bind_wqe {
+struct rdma_sq_bind_wqe
+{
 	struct regpair addr;
 	__le32 l_key;
 	u8 req_type;
@@ -353,7 +378,8 @@ struct rdma_sq_bind_wqe {
 };
 
 /* First element (16 bytes) of bind wqe */
-struct rdma_sq_bind_wqe_1st {
+struct rdma_sq_bind_wqe_1st
+{
 	struct regpair addr;
 	__le32 l_key;
 	u8 req_type;
@@ -375,7 +401,8 @@ struct rdma_sq_bind_wqe_1st {
 };
 
 /* Second element (16 bytes) of bind wqe */
-struct rdma_sq_bind_wqe_2nd {
+struct rdma_sq_bind_wqe_2nd
+{
 	u8 bind_ctrl;
 #define RDMA_SQ_BIND_WQE_2ND_ZERO_BASED_MASK     0x1
 #define RDMA_SQ_BIND_WQE_2ND_ZERO_BASED_SHIFT    0
@@ -406,7 +433,8 @@ struct rdma_sq_bind_wqe_2nd {
 /* Structure with only the SQ WQE common
  * fields. Size is of one SQ element (16B)
  */
-struct rdma_sq_common_wqe {
+struct rdma_sq_common_wqe
+{
 	__le32 reserved1[3];
 	u8 req_type;
 	u8 flags;
@@ -426,7 +454,8 @@ struct rdma_sq_common_wqe {
 	u8 prev_wqe_size;
 };
 
-struct rdma_sq_fmr_wqe {
+struct rdma_sq_fmr_wqe
+{
 	struct regpair addr;
 	__le32 l_key;
 	u8 req_type;
@@ -498,7 +527,8 @@ struct rdma_sq_fmr_wqe {
 };
 
 /* First element (16 bytes) of fmr wqe */
-struct rdma_sq_fmr_wqe_1st {
+struct rdma_sq_fmr_wqe_1st
+{
 	struct regpair addr;
 	__le32 l_key;
 	u8 req_type;
@@ -522,7 +552,8 @@ struct rdma_sq_fmr_wqe_1st {
 };
 
 /* Second element (16 bytes) of fmr wqe */
-struct rdma_sq_fmr_wqe_2nd {
+struct rdma_sq_fmr_wqe_2nd
+{
 	u8 fmr_ctrl;
 #define RDMA_SQ_FMR_WQE_2ND_PAGE_SIZE_LOG_MASK  0x1F
 #define RDMA_SQ_FMR_WQE_2ND_PAGE_SIZE_LOG_SHIFT 0
@@ -552,7 +583,8 @@ struct rdma_sq_fmr_wqe_2nd {
 };
 
 /* Third element (16 bytes) of fmr wqe */
-struct rdma_sq_fmr_wqe_3rd {
+struct rdma_sq_fmr_wqe_3rd
+{
 	__le32 dif_base_ref_tag;
 	__le16 dif_app_tag;
 	__le16 dif_app_tag_mask;
@@ -577,7 +609,8 @@ struct rdma_sq_fmr_wqe_3rd {
 	__le32 Reserved5;
 };
 
-struct rdma_sq_local_inv_wqe {
+struct rdma_sq_local_inv_wqe
+{
 	struct regpair reserved;
 	__le32 inv_l_key;
 	u8 req_type;
@@ -600,7 +633,8 @@ struct rdma_sq_local_inv_wqe {
 	u8 prev_wqe_size;
 };
 
-struct rdma_sq_rdma_wqe {
+struct rdma_sq_rdma_wqe
+{
 	__le32 imm_data;
 	__le32 length;
 	__le32 xrc_srq;
@@ -637,7 +671,8 @@ struct rdma_sq_rdma_wqe {
 };
 
 /* First element (16 bytes) of rdma wqe */
-struct rdma_sq_rdma_wqe_1st {
+struct rdma_sq_rdma_wqe_1st
+{
 	__le32 imm_data;
 	__le32 length;
 	__le32 xrc_srq;
@@ -662,7 +697,8 @@ struct rdma_sq_rdma_wqe_1st {
 };
 
 /* Second element (16 bytes) of rdma wqe */
-struct rdma_sq_rdma_wqe_2nd {
+struct rdma_sq_rdma_wqe_2nd
+{
 	struct regpair remote_va;
 	__le32 r_key;
 	u8 dif_flags;
@@ -678,7 +714,8 @@ struct rdma_sq_rdma_wqe_2nd {
 };
 
 /* SQ WQE req type enumeration */
-enum rdma_sq_req_type {
+enum rdma_sq_req_type
+{
 	RDMA_SQ_REQ_TYPE_SEND,
 	RDMA_SQ_REQ_TYPE_SEND_WITH_IMM,
 	RDMA_SQ_REQ_TYPE_SEND_WITH_INVALIDATE,
@@ -694,7 +731,8 @@ enum rdma_sq_req_type {
 	MAX_RDMA_SQ_REQ_TYPE
 };
 
-struct rdma_sq_send_wqe {
+struct rdma_sq_send_wqe
+{
 	__le32 inv_key_or_imm_data;
 	__le32 length;
 	__le32 xrc_srq;
@@ -719,7 +757,8 @@ struct rdma_sq_send_wqe {
 	__le32 reserved1[4];
 };
 
-struct rdma_sq_send_wqe_1st {
+struct rdma_sq_send_wqe_1st
+{
 	__le32 inv_key_or_imm_data;
 	__le32 length;
 	__le32 xrc_srq;
@@ -741,7 +780,8 @@ struct rdma_sq_send_wqe_1st {
 	u8 prev_wqe_size;
 };
 
-struct rdma_sq_send_wqe_2st {
+struct rdma_sq_send_wqe_2st
+{
 	__le32 reserved1[4];
 };
 

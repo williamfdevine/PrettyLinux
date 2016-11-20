@@ -58,7 +58,8 @@
  * Note: When specifying vendor_id, be sure to read the Vendor Type and ID
  *   formatting requirements specified in scsi_netlink.h
  */
-struct iscsi_bsg_host_vendor {
+struct iscsi_bsg_host_vendor
+{
 	/*
 	 * Identifies the vendor that the message is formatted for. This
 	 * should be the recipient of the message.
@@ -71,23 +72,27 @@ struct iscsi_bsg_host_vendor {
 
 /* Response:
  */
-struct iscsi_bsg_host_vendor_reply {
+struct iscsi_bsg_host_vendor_reply
+{
 	/* start of vendor response area */
 	uint32_t vendor_rsp[0];
 };
 
 
 /* request (CDB) structure of the sg_io_v4 */
-struct iscsi_bsg_request {
+struct iscsi_bsg_request
+{
 	uint32_t msgcode;
-	union {
+	union
+	{
 		struct iscsi_bsg_host_vendor    h_vendor;
 	} rqst_data;
 } __attribute__((packed));
 
 
 /* response (request sense data) structure of the sg_io_v4 */
-struct iscsi_bsg_reply {
+struct iscsi_bsg_reply
+{
 	/*
 	 * The completion result. Result exists in two forms:
 	 * if negative, it is an -Exxx system errno value. There will
@@ -101,7 +106,8 @@ struct iscsi_bsg_reply {
 	/* If there was reply_payload, how much was recevied ? */
 	uint32_t reply_payload_rcv_len;
 
-	union {
+	union
+	{
 		struct iscsi_bsg_host_vendor_reply      vendor_reply;
 	} reply_data;
 };

@@ -38,7 +38,8 @@
 
 
 
-struct ucb1x00_ts {
+struct ucb1x00_ts
+{
 	struct input_dev	*idev;
 	struct ucb1x00		*ucb;
 
@@ -49,7 +50,7 @@ struct ucb1x00_ts {
 	u16			x_res;
 	u16			y_res;
 
-	unsigned int		adcsync:1;
+	unsigned int		adcsync: 1;
 };
 
 static int adcsync;
@@ -80,9 +81,9 @@ static inline void ucb1x00_ts_event_release(struct ucb1x00_ts *ts)
 static inline void ucb1x00_ts_mode_int(struct ucb1x00_ts *ts)
 {
 	ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
-			UCB_TS_CR_TSMX_POW | UCB_TS_CR_TSPX_POW |
-			UCB_TS_CR_TSMY_GND | UCB_TS_CR_TSPY_GND |
-			UCB_TS_CR_MODE_INT);
+					  UCB_TS_CR_TSMX_POW | UCB_TS_CR_TSPX_POW |
+					  UCB_TS_CR_TSMY_GND | UCB_TS_CR_TSPY_GND |
+					  UCB_TS_CR_MODE_INT);
 }
 
 /*
@@ -91,20 +92,23 @@ static inline void ucb1x00_ts_mode_int(struct ucb1x00_ts *ts)
  */
 static inline unsigned int ucb1x00_ts_read_pressure(struct ucb1x00_ts *ts)
 {
-	if (machine_is_collie()) {
+	if (machine_is_collie())
+	{
 		ucb1x00_io_write(ts->ucb, COLLIE_TC35143_GPIO_TBL_CHK, 0);
 		ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
-				  UCB_TS_CR_TSPX_POW | UCB_TS_CR_TSMX_POW |
-				  UCB_TS_CR_MODE_POS | UCB_TS_CR_BIAS_ENA);
+						  UCB_TS_CR_TSPX_POW | UCB_TS_CR_TSMX_POW |
+						  UCB_TS_CR_MODE_POS | UCB_TS_CR_BIAS_ENA);
 
 		udelay(55);
 
 		return ucb1x00_adc_read(ts->ucb, UCB_ADC_INP_AD2, ts->adcsync);
-	} else {
+	}
+	else
+	{
 		ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
-				  UCB_TS_CR_TSMX_POW | UCB_TS_CR_TSPX_POW |
-				  UCB_TS_CR_TSMY_GND | UCB_TS_CR_TSPY_GND |
-				  UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
+						  UCB_TS_CR_TSMX_POW | UCB_TS_CR_TSPX_POW |
+						  UCB_TS_CR_TSMY_GND | UCB_TS_CR_TSPY_GND |
+						  UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
 
 		return ucb1x00_adc_read(ts->ucb, UCB_ADC_INP_TSPY, ts->adcsync);
 	}
@@ -119,18 +123,22 @@ static inline unsigned int ucb1x00_ts_read_pressure(struct ucb1x00_ts *ts)
 static inline unsigned int ucb1x00_ts_read_xpos(struct ucb1x00_ts *ts)
 {
 	if (machine_is_collie())
+	{
 		ucb1x00_io_write(ts->ucb, 0, COLLIE_TC35143_GPIO_TBL_CHK);
-	else {
-		ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
-				  UCB_TS_CR_TSMX_GND | UCB_TS_CR_TSPX_POW |
-				  UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
-		ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
-				  UCB_TS_CR_TSMX_GND | UCB_TS_CR_TSPX_POW |
-				  UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
 	}
+	else
+	{
+		ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
+						  UCB_TS_CR_TSMX_GND | UCB_TS_CR_TSPX_POW |
+						  UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
+		ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
+						  UCB_TS_CR_TSMX_GND | UCB_TS_CR_TSPX_POW |
+						  UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
+	}
+
 	ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
-			UCB_TS_CR_TSMX_GND | UCB_TS_CR_TSPX_POW |
-			UCB_TS_CR_MODE_POS | UCB_TS_CR_BIAS_ENA);
+					  UCB_TS_CR_TSMX_GND | UCB_TS_CR_TSPX_POW |
+					  UCB_TS_CR_MODE_POS | UCB_TS_CR_BIAS_ENA);
 
 	udelay(55);
 
@@ -146,19 +154,22 @@ static inline unsigned int ucb1x00_ts_read_xpos(struct ucb1x00_ts *ts)
 static inline unsigned int ucb1x00_ts_read_ypos(struct ucb1x00_ts *ts)
 {
 	if (machine_is_collie())
+	{
 		ucb1x00_io_write(ts->ucb, 0, COLLIE_TC35143_GPIO_TBL_CHK);
-	else {
+	}
+	else
+	{
 		ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
-				  UCB_TS_CR_TSMY_GND | UCB_TS_CR_TSPY_POW |
-				  UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
+						  UCB_TS_CR_TSMY_GND | UCB_TS_CR_TSPY_POW |
+						  UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
 		ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
-				  UCB_TS_CR_TSMY_GND | UCB_TS_CR_TSPY_POW |
-				  UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
+						  UCB_TS_CR_TSMY_GND | UCB_TS_CR_TSPY_POW |
+						  UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
 	}
 
 	ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
-			UCB_TS_CR_TSMY_GND | UCB_TS_CR_TSPY_POW |
-			UCB_TS_CR_MODE_POS | UCB_TS_CR_BIAS_ENA);
+					  UCB_TS_CR_TSMY_GND | UCB_TS_CR_TSPY_POW |
+					  UCB_TS_CR_MODE_POS | UCB_TS_CR_BIAS_ENA);
 
 	udelay(55);
 
@@ -172,8 +183,8 @@ static inline unsigned int ucb1x00_ts_read_ypos(struct ucb1x00_ts *ts)
 static inline unsigned int ucb1x00_ts_read_xres(struct ucb1x00_ts *ts)
 {
 	ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
-			UCB_TS_CR_TSMX_GND | UCB_TS_CR_TSPX_POW |
-			UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
+					  UCB_TS_CR_TSMX_GND | UCB_TS_CR_TSPX_POW |
+					  UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
 	return ucb1x00_adc_read(ts->ucb, 0, ts->adcsync);
 }
 
@@ -184,8 +195,8 @@ static inline unsigned int ucb1x00_ts_read_xres(struct ucb1x00_ts *ts)
 static inline unsigned int ucb1x00_ts_read_yres(struct ucb1x00_ts *ts)
 {
 	ucb1x00_reg_write(ts->ucb, UCB_TS_CR,
-			UCB_TS_CR_TSMY_GND | UCB_TS_CR_TSPY_POW |
-			UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
+					  UCB_TS_CR_TSMY_GND | UCB_TS_CR_TSPY_POW |
+					  UCB_TS_CR_MODE_PRES | UCB_TS_CR_BIAS_ENA);
 	return ucb1x00_adc_read(ts->ucb, 0, ts->adcsync);
 }
 
@@ -194,9 +205,13 @@ static inline int ucb1x00_ts_pen_down(struct ucb1x00_ts *ts)
 	unsigned int val = ucb1x00_reg_read(ts->ucb, UCB_TS_CR);
 
 	if (machine_is_collie())
+	{
 		return (!(val & (UCB_TS_CR_TSPX_LOW)));
+	}
 	else
+	{
 		return (val & (UCB_TS_CR_TSPX_LOW | UCB_TS_CR_TSMX_LOW));
+	}
 }
 
 /*
@@ -213,12 +228,16 @@ static int ucb1x00_thread(void *_ts)
 
 	set_freezable();
 	add_wait_queue(&ts->irq_wait, &wait);
-	while (!kthread_freezable_should_stop(&frozen)) {
+
+	while (!kthread_freezable_should_stop(&frozen))
+	{
 		unsigned int x, y, p;
 		signed long timeout;
 
 		if (frozen)
+		{
 			ignore = true;
+		}
 
 		ucb1x00_adc_enable(ts->ucb);
 
@@ -237,14 +256,18 @@ static int ucb1x00_thread(void *_ts)
 		ucb1x00_enable(ts->ucb);
 
 
-		if (ucb1x00_ts_pen_down(ts)) {
+		if (ucb1x00_ts_pen_down(ts))
+		{
 			set_current_state(TASK_INTERRUPTIBLE);
 
 			spin_lock_irq(&ts->irq_lock);
-			if (ts->irq_disabled) {
+
+			if (ts->irq_disabled)
+			{
 				ts->irq_disabled = 0;
 				enable_irq(ts->ucb->irq_base + UCB_IRQ_TSPX);
 			}
+
 			spin_unlock_irq(&ts->irq_lock);
 			ucb1x00_disable(ts->ucb);
 
@@ -252,13 +275,16 @@ static int ucb1x00_thread(void *_ts)
 			 * If we spat out a valid sample set last time,
 			 * spit out a "pen off" sample here.
 			 */
-			if (valid) {
+			if (valid)
+			{
 				ucb1x00_ts_event_release(ts);
 				valid = 0;
 			}
 
 			timeout = MAX_SCHEDULE_TIMEOUT;
-		} else {
+		}
+		else
+		{
 			ucb1x00_disable(ts->ucb);
 
 			/*
@@ -266,7 +292,8 @@ static int ucb1x00_thread(void *_ts)
 			 * space.  We therefore leave it to user space
 			 * to do any filtering they please.
 			 */
-			if (!ignore) {
+			if (!ignore)
+			{
 				ucb1x00_ts_evt_add(ts, p, x, y);
 				valid = 1;
 			}
@@ -310,17 +337,24 @@ static int ucb1x00_ts_open(struct input_dev *idev)
 	BUG_ON(ts->rtask);
 
 	if (machine_is_collie())
+	{
 		flags = IRQF_TRIGGER_RISING;
+	}
 	else
+	{
 		flags = IRQF_TRIGGER_FALLING;
+	}
 
 	ts->irq_disabled = 0;
 
 	init_waitqueue_head(&ts->irq_wait);
 	ret = request_irq(ts->ucb->irq_base + UCB_IRQ_TSPX, ucb1x00_ts_irq,
-			  flags, "ucb1x00-ts", ts);
+					  flags, "ucb1x00-ts", ts);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/*
 	 * If we do this at all, we should allow the user to
@@ -332,15 +366,19 @@ static int ucb1x00_ts_open(struct input_dev *idev)
 	ucb1x00_adc_disable(ts->ucb);
 
 	ts->rtask = kthread_run(ucb1x00_thread, ts, "ktsd");
-	if (!IS_ERR(ts->rtask)) {
+
+	if (!IS_ERR(ts->rtask))
+	{
 		ret = 0;
-	} else {
+	}
+	else
+	{
 		free_irq(ts->ucb->irq_base + UCB_IRQ_TSPX, ts);
 		ts->rtask = NULL;
 		ret = -EFAULT;
 	}
 
- out:
+out:
 	return ret;
 }
 
@@ -352,7 +390,9 @@ static void ucb1x00_ts_close(struct input_dev *idev)
 	struct ucb1x00_ts *ts = input_get_drvdata(idev);
 
 	if (ts->rtask)
+	{
 		kthread_stop(ts->rtask);
+	}
 
 	ucb1x00_enable(ts->ucb);
 	free_irq(ts->ucb->irq_base + UCB_IRQ_TSPX, ts);
@@ -372,7 +412,9 @@ static int ucb1x00_ts_add(struct ucb1x00_dev *dev)
 
 	ts = kzalloc(sizeof(struct ucb1x00_ts), GFP_KERNEL);
 	idev = input_allocate_device();
-	if (!ts || !idev) {
+
+	if (!ts || !idev)
+	{
 		err = -ENOMEM;
 		goto fail;
 	}
@@ -403,14 +445,17 @@ static int ucb1x00_ts_add(struct ucb1x00_dev *dev)
 	input_set_abs_params(idev, ABS_PRESSURE, 0, 0, 0, 0);
 
 	err = input_register_device(idev);
+
 	if (err)
+	{
 		goto fail;
+	}
 
 	dev->priv = ts;
 
 	return 0;
 
- fail:
+fail:
 	input_free_device(idev);
 	kfree(ts);
 	return err;
@@ -424,7 +469,8 @@ static void ucb1x00_ts_remove(struct ucb1x00_dev *dev)
 	kfree(ts);
 }
 
-static struct ucb1x00_driver ucb1x00_ts_driver = {
+static struct ucb1x00_driver ucb1x00_ts_driver =
+{
 	.add		= ucb1x00_ts_add,
 	.remove		= ucb1x00_ts_remove,
 };

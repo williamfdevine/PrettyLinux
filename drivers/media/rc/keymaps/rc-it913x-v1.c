@@ -12,7 +12,8 @@
 #include <linux/module.h>
 
 
-static struct rc_map_table it913x_v1_rc[] = {
+static struct rc_map_table it913x_v1_rc[] =
+{
 	/* Type 1 */
 	{ 0x61d601, KEY_VIDEO },           /* Source */
 	{ 0x61d602, KEY_3 },
@@ -69,7 +70,8 @@ static struct rc_map_table it913x_v1_rc[] = {
 	{ 0x807f0e, KEY_STOP },
 };
 
-static struct rc_map_list it913x_v1_map = {
+static struct rc_map_list it913x_v1_map =
+{
 	.map = {
 		.scan    = it913x_v1_rc,
 		.size    = ARRAY_SIZE(it913x_v1_rc),

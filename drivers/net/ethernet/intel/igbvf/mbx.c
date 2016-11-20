@@ -38,16 +38,22 @@ static s32 e1000_poll_for_msg(struct e1000_hw *hw)
 	int countdown = mbx->timeout;
 
 	if (!mbx->ops.check_for_msg)
+	{
 		goto out;
+	}
 
-	while (countdown && mbx->ops.check_for_msg(hw)) {
+	while (countdown && mbx->ops.check_for_msg(hw))
+	{
 		countdown--;
 		udelay(mbx->usec_delay);
 	}
 
 	/* if we failed, all future posted messages fail until reset */
 	if (!countdown)
+	{
 		mbx->timeout = 0;
+	}
+
 out:
 	return countdown ? E1000_SUCCESS : -E1000_ERR_MBX;
 }
@@ -64,16 +70,22 @@ static s32 e1000_poll_for_ack(struct e1000_hw *hw)
 	int countdown = mbx->timeout;
 
 	if (!mbx->ops.check_for_ack)
+	{
 		goto out;
+	}
 
-	while (countdown && mbx->ops.check_for_ack(hw)) {
+	while (countdown && mbx->ops.check_for_ack(hw))
+	{
 		countdown--;
 		udelay(mbx->usec_delay);
 	}
 
 	/* if we failed, all future posted messages fail until reset */
 	if (!countdown)
+	{
 		mbx->timeout = 0;
+	}
+
 out:
 	return countdown ? E1000_SUCCESS : -E1000_ERR_MBX;
 }
@@ -93,13 +105,18 @@ static s32 e1000_read_posted_mbx(struct e1000_hw *hw, u32 *msg, u16 size)
 	s32 ret_val = -E1000_ERR_MBX;
 
 	if (!mbx->ops.read)
+	{
 		goto out;
+	}
 
 	ret_val = e1000_poll_for_msg(hw);
 
 	/* if ack received read message, otherwise we timed out */
 	if (!ret_val)
+	{
 		ret_val = mbx->ops.read(hw, msg, size);
+	}
+
 out:
 	return ret_val;
 }
@@ -120,14 +137,19 @@ static s32 e1000_write_posted_mbx(struct e1000_hw *hw, u32 *msg, u16 size)
 
 	/* exit if we either can't write or there isn't a defined timeout */
 	if (!mbx->ops.write || !mbx->timeout)
+	{
 		goto out;
+	}
 
 	/* send msg*/
 	ret_val = mbx->ops.write(hw, msg, size);
 
 	/* if msg sent wait until we receive an ack */
 	if (!ret_val)
+	{
 		ret_val = e1000_poll_for_ack(hw);
+	}
+
 out:
 	return ret_val;
 }
@@ -163,7 +185,9 @@ static s32 e1000_check_for_bit_vf(struct e1000_hw *hw, u32 mask)
 	s32 ret_val = -E1000_ERR_MBX;
 
 	if (v2p_mailbox & mask)
+	{
 		ret_val = E1000_SUCCESS;
+	}
 
 	hw->dev_spec.vf.v2p_mailbox &= ~mask;
 
@@ -180,7 +204,8 @@ static s32 e1000_check_for_msg_vf(struct e1000_hw *hw)
 {
 	s32 ret_val = -E1000_ERR_MBX;
 
-	if (!e1000_check_for_bit_vf(hw, E1000_V2PMAILBOX_PFSTS)) {
+	if (!e1000_check_for_bit_vf(hw, E1000_V2PMAILBOX_PFSTS))
+	{
 		ret_val = E1000_SUCCESS;
 		hw->mbx.stats.reqs++;
 	}
@@ -198,7 +223,8 @@ static s32 e1000_check_for_ack_vf(struct e1000_hw *hw)
 {
 	s32 ret_val = -E1000_ERR_MBX;
 
-	if (!e1000_check_for_bit_vf(hw, E1000_V2PMAILBOX_PFACK)) {
+	if (!e1000_check_for_bit_vf(hw, E1000_V2PMAILBOX_PFACK))
+	{
 		ret_val = E1000_SUCCESS;
 		hw->mbx.stats.acks++;
 	}
@@ -217,7 +243,8 @@ static s32 e1000_check_for_rst_vf(struct e1000_hw *hw)
 	s32 ret_val = -E1000_ERR_MBX;
 
 	if (!e1000_check_for_bit_vf(hw, (E1000_V2PMAILBOX_RSTD |
-					 E1000_V2PMAILBOX_RSTI))) {
+									 E1000_V2PMAILBOX_RSTI)))
+	{
 		ret_val = E1000_SUCCESS;
 		hw->mbx.stats.rsts++;
 	}
@@ -236,17 +263,21 @@ static s32 e1000_obtain_mbx_lock_vf(struct e1000_hw *hw)
 	s32 ret_val = -E1000_ERR_MBX;
 	int count = 10;
 
-	do {
+	do
+	{
 		/* Take ownership of the buffer */
 		ew32(V2PMAILBOX(0), E1000_V2PMAILBOX_VFU);
 
 		/* reserve mailbox for VF use */
-		if (e1000_read_v2p_mailbox(hw) & E1000_V2PMAILBOX_VFU) {
+		if (e1000_read_v2p_mailbox(hw) & E1000_V2PMAILBOX_VFU)
+		{
 			ret_val = 0;
 			break;
 		}
+
 		udelay(1000);
-	} while (count-- > 0);
+	}
+	while (count-- > 0);
 
 	return ret_val;
 }
@@ -266,8 +297,11 @@ static s32 e1000_write_mbx_vf(struct e1000_hw *hw, u32 *msg, u16 size)
 
 	/* lock the mailbox to prevent pf/vf race condition */
 	err = e1000_obtain_mbx_lock_vf(hw);
+
 	if (err)
+	{
 		goto out_no_write;
+	}
 
 	/* flush any ack or msg as we are going to overwrite mailbox */
 	e1000_check_for_ack_vf(hw);
@@ -275,7 +309,9 @@ static s32 e1000_write_mbx_vf(struct e1000_hw *hw, u32 *msg, u16 size)
 
 	/* copy the caller specified message to the mailbox memory buffer */
 	for (i = 0; i < size; i++)
+	{
 		array_ew32(VMBMEM(0), i, msg[i]);
+	}
 
 	/* update stats */
 	hw->mbx.stats.msgs_tx++;
@@ -302,12 +338,17 @@ static s32 e1000_read_mbx_vf(struct e1000_hw *hw, u32 *msg, u16 size)
 
 	/* lock the mailbox to prevent pf/vf race condition */
 	err = e1000_obtain_mbx_lock_vf(hw);
+
 	if (err)
+	{
 		goto out_no_read;
+	}
 
 	/* copy the message from the mailbox memory buffer */
 	for (i = 0; i < size; i++)
+	{
 		msg[i] = array_er32(VMBMEM(0), i);
+	}
 
 	/* Acknowledge receipt and release mailbox, then we're done */
 	ew32(V2PMAILBOX(0), E1000_V2PMAILBOX_ACK);

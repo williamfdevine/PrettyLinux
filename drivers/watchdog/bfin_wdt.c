@@ -37,12 +37,12 @@
  * only runs on core A, we'll just work with that one.
  */
 #ifdef BF561_FAMILY
-# define bfin_read_WDOG_CTL()    bfin_read_WDOGA_CTL()
-# define bfin_read_WDOG_CNT()    bfin_read_WDOGA_CNT()
-# define bfin_read_WDOG_STAT()   bfin_read_WDOGA_STAT()
-# define bfin_write_WDOG_CTL(x)  bfin_write_WDOGA_CTL(x)
-# define bfin_write_WDOG_CNT(x)  bfin_write_WDOGA_CNT(x)
-# define bfin_write_WDOG_STAT(x) bfin_write_WDOGA_STAT(x)
+	#define bfin_read_WDOG_CTL()    bfin_read_WDOGA_CTL()
+	#define bfin_read_WDOG_CNT()    bfin_read_WDOGA_CNT()
+	#define bfin_read_WDOG_STAT()   bfin_read_WDOGA_STAT()
+	#define bfin_write_WDOG_CTL(x)  bfin_write_WDOGA_CTL(x)
+	#define bfin_write_WDOG_CNT(x)  bfin_write_WDOGA_CNT(x)
+	#define bfin_write_WDOG_STAT(x) bfin_write_WDOGA_STAT(x)
 #endif
 
 /* some defaults */
@@ -120,7 +120,8 @@ static int bfin_wdt_set_timeout(unsigned long t)
 	cnt = t * sclk;
 	stamp("maxtimeout=%us newtimeout=%lus (cnt=%#x)", max_t, t, cnt);
 
-	if (t > max_t) {
+	if (t > max_t)
+	{
 		pr_warn("timeout value is too large\n");
 		return -EINVAL;
 	}
@@ -130,8 +131,11 @@ static int bfin_wdt_set_timeout(unsigned long t)
 		int run = bfin_wdt_running();
 		bfin_wdt_stop();
 		bfin_write_WDOG_CNT(cnt);
+
 		if (run)
+		{
 			bfin_wdt_start();
+		}
 	}
 	spin_unlock_irqrestore(&bfin_wdt_spinlock, flags);
 
@@ -152,10 +156,14 @@ static int bfin_wdt_open(struct inode *inode, struct file *file)
 	stampit();
 
 	if (test_and_set_bit(0, &open_check))
+	{
 		return -EBUSY;
+	}
 
 	if (nowayout)
+	{
 		__module_get(THIS_MODULE);
+	}
 
 	bfin_wdt_keepalive();
 	bfin_wdt_start();
@@ -175,11 +183,15 @@ static int bfin_wdt_release(struct inode *inode, struct file *file)
 	stampit();
 
 	if (expect_close == 42)
+	{
 		bfin_wdt_stop();
-	else {
+	}
+	else
+	{
 		pr_crit("Unexpected close, not stopping watchdog!\n");
 		bfin_wdt_keepalive();
 	}
+
 	expect_close = 0;
 	clear_bit(0, &open_check);
 	return 0;
@@ -195,25 +207,35 @@ static int bfin_wdt_release(struct inode *inode, struct file *file)
  *	Pings the watchdog on write.
  */
 static ssize_t bfin_wdt_write(struct file *file, const char __user *data,
-						size_t len, loff_t *ppos)
+							  size_t len, loff_t *ppos)
 {
 	stampit();
 
-	if (len) {
-		if (!nowayout) {
+	if (len)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			/* In case it was set long ago */
 			expect_close = 0;
 
-			for (i = 0; i != len; i++) {
+			for (i = 0; i != len; i++)
+			{
 				char c;
+
 				if (get_user(c, data + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					expect_close = 42;
+				}
 			}
 		}
+
 		bfin_wdt_keepalive();
 	}
 
@@ -230,57 +252,82 @@ static ssize_t bfin_wdt_write(struct file *file, const char __user *data,
  *	watchdog API.
  */
 static long bfin_wdt_ioctl(struct file *file,
-				unsigned int cmd, unsigned long arg)
+						   unsigned int cmd, unsigned long arg)
 {
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
 
 	stampit();
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		if (copy_to_user(argp, &bfin_wdt_info, sizeof(bfin_wdt_info)))
-			return -EFAULT;
-		else
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			if (copy_to_user(argp, &bfin_wdt_info, sizeof(bfin_wdt_info)))
+			{
+				return -EFAULT;
+			}
+			else
+			{
+				return 0;
+			}
+
+		case WDIOC_GETSTATUS:
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(!!(_bfin_swrst & SWRST_RESET_WDOG), p);
+
+		case WDIOC_SETOPTIONS:
+			{
+				unsigned long flags;
+				int options, ret = -EINVAL;
+
+				if (get_user(options, p))
+				{
+					return -EFAULT;
+				}
+
+				spin_lock_irqsave(&bfin_wdt_spinlock, flags);
+
+				if (options & WDIOS_DISABLECARD)
+				{
+					bfin_wdt_stop();
+					ret = 0;
+				}
+
+				if (options & WDIOS_ENABLECARD)
+				{
+					bfin_wdt_start();
+					ret = 0;
+				}
+
+				spin_unlock_irqrestore(&bfin_wdt_spinlock, flags);
+				return ret;
+			}
+
+		case WDIOC_KEEPALIVE:
+			bfin_wdt_keepalive();
 			return 0;
-	case WDIOC_GETSTATUS:
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(!!(_bfin_swrst & SWRST_RESET_WDOG), p);
-	case WDIOC_SETOPTIONS: {
-		unsigned long flags;
-		int options, ret = -EINVAL;
 
-		if (get_user(options, p))
-			return -EFAULT;
+		case WDIOC_SETTIMEOUT:
+			{
+				int new_timeout;
 
-		spin_lock_irqsave(&bfin_wdt_spinlock, flags);
-		if (options & WDIOS_DISABLECARD) {
-			bfin_wdt_stop();
-			ret = 0;
-		}
-		if (options & WDIOS_ENABLECARD) {
-			bfin_wdt_start();
-			ret = 0;
-		}
-		spin_unlock_irqrestore(&bfin_wdt_spinlock, flags);
-		return ret;
-	}
-	case WDIOC_KEEPALIVE:
-		bfin_wdt_keepalive();
-		return 0;
-	case WDIOC_SETTIMEOUT: {
-		int new_timeout;
+				if (get_user(new_timeout, p))
+				{
+					return -EFAULT;
+				}
 
-		if (get_user(new_timeout, p))
-			return -EFAULT;
-		if (bfin_wdt_set_timeout(new_timeout))
-			return -EINVAL;
-	}
-	/* Fall */
-	case WDIOC_GETTIMEOUT:
-		return put_user(timeout, p);
-	default:
-		return -ENOTTY;
+				if (bfin_wdt_set_timeout(new_timeout))
+				{
+					return -EINVAL;
+				}
+			}
+
+		/* Fall */
+		case WDIOC_GETTIMEOUT:
+			return put_user(timeout, p);
+
+		default:
+			return -ENOTTY;
 	}
 }
 
@@ -316,7 +363,8 @@ static int bfin_wdt_resume(struct platform_device *pdev)
 {
 	stampit();
 
-	if (state_before_suspend) {
+	if (state_before_suspend)
+	{
 		bfin_wdt_set_timeout(timeout);
 		bfin_wdt_start();
 	}
@@ -328,7 +376,8 @@ static int bfin_wdt_resume(struct platform_device *pdev)
 # define bfin_wdt_resume NULL
 #endif
 
-static const struct file_operations bfin_wdt_fops = {
+static const struct file_operations bfin_wdt_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.write		= bfin_wdt_write,
@@ -337,17 +386,19 @@ static const struct file_operations bfin_wdt_fops = {
 	.release	= bfin_wdt_release,
 };
 
-static struct miscdevice bfin_wdt_miscdev = {
+static struct miscdevice bfin_wdt_miscdev =
+{
 	.minor    = WATCHDOG_MINOR,
 	.name     = "watchdog",
 	.fops     = &bfin_wdt_fops,
 };
 
-static const struct watchdog_info bfin_wdt_info = {
+static const struct watchdog_info bfin_wdt_info =
+{
 	.identity = "Blackfin Watchdog",
 	.options  = WDIOF_SETTIMEOUT |
-		    WDIOF_KEEPALIVEPING |
-		    WDIOF_MAGICCLOSE,
+	WDIOF_KEEPALIVEPING |
+	WDIOF_MAGICCLOSE,
 };
 
 /**
@@ -361,14 +412,16 @@ static int bfin_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = misc_register(&bfin_wdt_miscdev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-		       WATCHDOG_MINOR, ret);
+			   WATCHDOG_MINOR, ret);
 		return ret;
 	}
 
 	pr_info("initialized: timeout=%d sec (nowayout=%d)\n",
-		timeout, nowayout);
+			timeout, nowayout);
 
 	return 0;
 }
@@ -399,7 +452,8 @@ static void bfin_wdt_shutdown(struct platform_device *pdev)
 
 static struct platform_device *bfin_wdt_device;
 
-static struct platform_driver bfin_wdt_driver = {
+static struct platform_driver bfin_wdt_driver =
+{
 	.probe     = bfin_wdt_probe,
 	.remove    = bfin_wdt_remove,
 	.shutdown  = bfin_wdt_shutdown,
@@ -424,20 +478,26 @@ static int __init bfin_wdt_init(void)
 
 	/* Check that the timeout value is within range */
 	if (bfin_wdt_set_timeout(timeout))
+	{
 		return -EINVAL;
+	}
 
 	/* Since this is an on-chip device and needs no board-specific
 	 * resources, we'll handle all the platform device stuff here.
 	 */
 	ret = platform_driver_register(&bfin_wdt_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("unable to register driver\n");
 		return ret;
 	}
 
 	bfin_wdt_device = platform_device_register_simple(WATCHDOG_NAME,
-								-1, NULL, 0);
-	if (IS_ERR(bfin_wdt_device)) {
+					  -1, NULL, 0);
+
+	if (IS_ERR(bfin_wdt_device))
+	{
 		pr_err("unable to register device\n");
 		platform_driver_unregister(&bfin_wdt_driver);
 		return PTR_ERR(bfin_wdt_device);
@@ -467,10 +527,10 @@ MODULE_LICENSE("GPL");
 
 module_param(timeout, uint, 0);
 MODULE_PARM_DESC(timeout,
-	"Watchdog timeout in seconds. (1<=timeout<=((2^32)/SCLK), default="
-		__MODULE_STRING(WATCHDOG_TIMEOUT) ")");
+				 "Watchdog timeout in seconds. (1<=timeout<=((2^32)/SCLK), default="
+				 __MODULE_STRING(WATCHDOG_TIMEOUT) ")");
 
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-	"Watchdog cannot be stopped once started (default="
-		__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");

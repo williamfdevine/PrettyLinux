@@ -33,8 +33,8 @@
 #define BT_SUBSYS_REVISION	22
 
 #ifndef AF_BLUETOOTH
-#define AF_BLUETOOTH	31
-#define PF_BLUETOOTH	AF_BLUETOOTH
+	#define AF_BLUETOOTH	31
+	#define PF_BLUETOOTH	AF_BLUETOOTH
 #endif
 
 /* Bluetooth versions */
@@ -60,7 +60,8 @@
 #define SOL_RFCOMM	18
 
 #define BT_SECURITY	4
-struct bt_security {
+struct bt_security
+{
 	__u8 level;
 	__u8 key_size;
 };
@@ -78,7 +79,8 @@ struct bt_security {
 #define BT_FLUSHABLE_ON		1
 
 #define BT_POWER	9
-struct bt_power {
+struct bt_power
+{
 	__u8 force_active;
 };
 #define BT_POWER_FORCE_ACTIVE_OFF 0
@@ -112,7 +114,8 @@ struct bt_power {
 #define BT_CHANNEL_POLICY_AMP_PREFERRED		2
 
 #define BT_VOICE		11
-struct bt_voice {
+struct bt_voice
+{
 	__u16 setting;
 };
 
@@ -148,7 +151,8 @@ void bt_err_ratelimited(const char *fmt, ...);
 	BT_DBG("%s: " fmt, (hdev)->name, ##__VA_ARGS__)
 
 /* Connection and socket states */
-enum {
+enum
+{
 	BT_CONNECTED = 1, /* Equal to TCP_ESTABLISHED to make net code happy */
 	BT_OPEN,
 	BT_BOUND,
@@ -163,32 +167,42 @@ enum {
 /* If unused will be removed by compiler */
 static inline const char *state_to_string(int state)
 {
-	switch (state) {
-	case BT_CONNECTED:
-		return "BT_CONNECTED";
-	case BT_OPEN:
-		return "BT_OPEN";
-	case BT_BOUND:
-		return "BT_BOUND";
-	case BT_LISTEN:
-		return "BT_LISTEN";
-	case BT_CONNECT:
-		return "BT_CONNECT";
-	case BT_CONNECT2:
-		return "BT_CONNECT2";
-	case BT_CONFIG:
-		return "BT_CONFIG";
-	case BT_DISCONN:
-		return "BT_DISCONN";
-	case BT_CLOSED:
-		return "BT_CLOSED";
+	switch (state)
+	{
+		case BT_CONNECTED:
+			return "BT_CONNECTED";
+
+		case BT_OPEN:
+			return "BT_OPEN";
+
+		case BT_BOUND:
+			return "BT_BOUND";
+
+		case BT_LISTEN:
+			return "BT_LISTEN";
+
+		case BT_CONNECT:
+			return "BT_CONNECT";
+
+		case BT_CONNECT2:
+			return "BT_CONNECT2";
+
+		case BT_CONFIG:
+			return "BT_CONFIG";
+
+		case BT_DISCONN:
+			return "BT_DISCONN";
+
+		case BT_CLOSED:
+			return "BT_CLOSED";
 	}
 
 	return "invalid state";
 }
 
 /* BD Address */
-typedef struct {
+typedef struct
+{
 	__u8 b[6];
 } __packed bdaddr_t;
 
@@ -199,11 +213,12 @@ typedef struct {
 
 static inline bool bdaddr_type_is_valid(__u8 type)
 {
-	switch (type) {
-	case BDADDR_BREDR:
-	case BDADDR_LE_PUBLIC:
-	case BDADDR_LE_RANDOM:
-		return true;
+	switch (type)
+	{
+		case BDADDR_BREDR:
+		case BDADDR_LE_PUBLIC:
+		case BDADDR_LE_RANDOM:
+			return true;
 	}
 
 	return false;
@@ -211,10 +226,11 @@ static inline bool bdaddr_type_is_valid(__u8 type)
 
 static inline bool bdaddr_type_is_le(__u8 type)
 {
-	switch (type) {
-	case BDADDR_LE_PUBLIC:
-	case BDADDR_LE_RANDOM:
-		return true;
+	switch (type)
+	{
+		case BDADDR_LE_PUBLIC:
+		case BDADDR_LE_RANDOM:
+			return true;
 	}
 
 	return false;
@@ -239,7 +255,8 @@ void baswap(bdaddr_t *dst, bdaddr_t *src);
 
 #define bt_sk(__sk) ((struct bt_sock *) __sk)
 
-struct bt_sock {
+struct bt_sock
+{
 	struct sock sk;
 	struct list_head accept_q;
 	struct sock *parent;
@@ -247,16 +264,18 @@ struct bt_sock {
 	void (*skb_msg_name)(struct sk_buff *, void *, int *);
 };
 
-enum {
+enum
+{
 	BT_SK_DEFER_SETUP,
 	BT_SK_SUSPEND,
 };
 
-struct bt_sock_list {
+struct bt_sock_list
+{
 	struct hlist_head head;
 	rwlock_t          lock;
 #ifdef CONFIG_PROC_FS
-        int (* custom_seq_show)(struct seq_file *, void *);
+	int (* custom_seq_show)(struct seq_file *, void *);
 #endif
 };
 
@@ -265,9 +284,9 @@ void bt_sock_unregister(int proto);
 void bt_sock_link(struct bt_sock_list *l, struct sock *s);
 void bt_sock_unlink(struct bt_sock_list *l, struct sock *s);
 int  bt_sock_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
-		     int flags);
+					 int flags);
 int  bt_sock_stream_recvmsg(struct socket *sock, struct msghdr *msg,
-			    size_t len, int flags);
+							size_t len, int flags);
 uint bt_sock_poll(struct file *file, struct socket *sock, poll_table *wait);
 int  bt_sock_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg);
 int  bt_sock_wait_state(struct sock *sk, int state, unsigned long timeo);
@@ -278,13 +297,14 @@ void bt_accept_unlink(struct sock *sk);
 struct sock *bt_accept_dequeue(struct sock *parent, struct socket *newsock);
 
 /* Skb helpers */
-struct l2cap_ctrl {
-	__u8	sframe:1,
-		poll:1,
-		final:1,
-		fcs:1,
-		sar:2,
-		super:2;
+struct l2cap_ctrl
+{
+	__u8	sframe: 1,
+			poll: 1,
+			final: 1,
+			fcs: 1,
+			sar: 2,
+			super: 2;
 	__u16	reqseq;
 	__u16	txseq;
 	__u8	retries;
@@ -297,27 +317,31 @@ struct hci_dev;
 
 typedef void (*hci_req_complete_t)(struct hci_dev *hdev, u8 status, u16 opcode);
 typedef void (*hci_req_complete_skb_t)(struct hci_dev *hdev, u8 status,
-				       u16 opcode, struct sk_buff *skb);
+									   u16 opcode, struct sk_buff *skb);
 
 #define HCI_REQ_START	BIT(0)
 #define HCI_REQ_SKB	BIT(1)
 
-struct hci_ctrl {
+struct hci_ctrl
+{
 	__u16 opcode;
 	u8 req_flags;
 	u8 req_event;
-	union {
+	union
+	{
 		hci_req_complete_t req_complete;
 		hci_req_complete_skb_t req_complete_skb;
 	};
 };
 
-struct bt_skb_cb {
+struct bt_skb_cb
+{
 	__u8 pkt_type;
 	__u8 force_active;
 	__u16 expect;
-	__u8 incoming:1;
-	union {
+	__u8 incoming: 1;
+	union
+	{
 		struct l2cap_ctrl l2cap;
 		struct hci_ctrl hci;
 	};
@@ -333,28 +357,41 @@ static inline struct sk_buff *bt_skb_alloc(unsigned int len, gfp_t how)
 	struct sk_buff *skb;
 
 	skb = alloc_skb(len + BT_SKB_RESERVE, how);
+
 	if (skb)
+	{
 		skb_reserve(skb, BT_SKB_RESERVE);
+	}
+
 	return skb;
 }
 
 static inline struct sk_buff *bt_skb_send_alloc(struct sock *sk,
-					unsigned long len, int nb, int *err)
+		unsigned long len, int nb, int *err)
 {
 	struct sk_buff *skb;
 
 	skb = sock_alloc_send_skb(sk, len + BT_SKB_RESERVE, nb, err);
+
 	if (skb)
+	{
 		skb_reserve(skb, BT_SKB_RESERVE);
+	}
 
 	if (!skb && *err)
+	{
 		return NULL;
+	}
 
 	*err = sock_error(sk);
-	if (*err)
-		goto out;
 
-	if (sk->sk_shutdown) {
+	if (*err)
+	{
+		goto out;
+	}
+
+	if (sk->sk_shutdown)
+	{
 		*err = -ECONNRESET;
 		goto out;
 	}
@@ -381,8 +418,8 @@ int bt_sysfs_init(void);
 void bt_sysfs_cleanup(void);
 
 int bt_procfs_init(struct net *net, const char *name,
-		   struct bt_sock_list *sk_list,
-		   int (*seq_show)(struct seq_file *, void *));
+				   struct bt_sock_list *sk_list,
+				   int (*seq_show)(struct seq_file *, void *));
 void bt_procfs_cleanup(struct net *net, const char *name);
 
 extern struct dentry *bt_debugfs;

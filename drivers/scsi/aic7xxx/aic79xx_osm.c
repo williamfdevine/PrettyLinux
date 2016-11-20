@@ -67,9 +67,9 @@ static struct scsi_transport_template *ahd_linux_transport_template = NULL;
  * delay handling for error recovery actions.
  */
 #ifdef CONFIG_AIC79XX_RESET_DELAY_MS
-#define AIC79XX_RESET_DELAY CONFIG_AIC79XX_RESET_DELAY_MS
+	#define AIC79XX_RESET_DELAY CONFIG_AIC79XX_RESET_DELAY_MS
 #else
-#define AIC79XX_RESET_DELAY 5000
+	#define AIC79XX_RESET_DELAY 5000
 #endif
 
 /*
@@ -83,7 +83,8 @@ static struct scsi_transport_template *ahd_linux_transport_template = NULL;
  * Twin adapters will use indexes 0-7 for channel 0, and indexes 8-15
  * for channel 1.
  */
-typedef struct {
+typedef struct
+{
 	uint16_t tag_commands[16];	/* Allow for wide/twin adapters. */
 } adapter_tag_info_t;
 
@@ -131,21 +132,21 @@ adapter_tag_info_t aic79xx_tag_info[] =
 */
 
 #ifdef CONFIG_AIC79XX_CMDS_PER_DEVICE
-#define AIC79XX_CMDS_PER_DEVICE CONFIG_AIC79XX_CMDS_PER_DEVICE
+	#define AIC79XX_CMDS_PER_DEVICE CONFIG_AIC79XX_CMDS_PER_DEVICE
 #else
-#define AIC79XX_CMDS_PER_DEVICE AHD_MAX_QUEUE
+	#define AIC79XX_CMDS_PER_DEVICE AHD_MAX_QUEUE
 #endif
 
 #define AIC79XX_CONFIGED_TAG_COMMANDS {					\
-	AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
-	AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
-	AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
-	AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
-	AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
-	AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
-	AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
-	AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE		\
-}
+		AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
+		AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
+		AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
+		AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
+		AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
+		AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
+		AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE,		\
+		AIC79XX_CMDS_PER_DEVICE, AIC79XX_CMDS_PER_DEVICE		\
+	}
 
 /*
  * By default, use the number of commands specified by
@@ -186,11 +187,11 @@ struct ahd_linux_iocell_opts
 #define AIC79XX_DEFAULT_SLEWRATE	0xFF
 #define AIC79XX_DEFAULT_AMPLITUDE	0xFF
 #define AIC79XX_DEFAULT_IOOPTS			\
-{						\
-	AIC79XX_DEFAULT_PRECOMP,		\
-	AIC79XX_DEFAULT_SLEWRATE,		\
-	AIC79XX_DEFAULT_AMPLITUDE		\
-}
+	{						\
+		AIC79XX_DEFAULT_PRECOMP,		\
+		AIC79XX_DEFAULT_SLEWRATE,		\
+		AIC79XX_DEFAULT_AMPLITUDE		\
+	}
 #define AIC79XX_PRECOMP_INDEX	0
 #define AIC79XX_SLEWRATE_INDEX	1
 #define AIC79XX_AMPLITUDE_INDEX	2
@@ -224,10 +225,10 @@ void
 ahd_print_path(struct ahd_softc *ahd, struct scb *scb)
 {
 	printk("(scsi%d:%c:%d:%d): ",
-	       ahd->platform_data->host->host_no,
-	       scb != NULL ? SCB_GET_CHANNEL(ahd, scb) : 'X',
-	       scb != NULL ? SCB_GET_TARGET(ahd, scb) : -1,
-	       scb != NULL ? SCB_GET_LUN(scb) : -1);
+		   ahd->platform_data->host->host_no,
+		   scb != NULL ? SCB_GET_CHANNEL(ahd, scb) : 'X',
+		   scb != NULL ? SCB_GET_TARGET(ahd, scb) : -1,
+		   scb != NULL ? SCB_GET_LUN(scb) : -1);
 }
 
 /*
@@ -305,7 +306,7 @@ static uint32_t aic79xx_periodic_otag;
  * SentinelRAID: 2500F R1
  * SentinelRAID: 2500F/1500F
  * SentinelRAID: 150F
- * 
+ *
  * To get around this LSI bug, you can set your board to 160 mode
  * or you can enable the SLOWCRC bit.
  */
@@ -322,46 +323,46 @@ MODULE_LICENSE("Dual BSD/GPL");
 MODULE_VERSION(AIC79XX_DRIVER_VERSION);
 module_param(aic79xx, charp, 0444);
 MODULE_PARM_DESC(aic79xx,
-"period-delimited options string:\n"
-"	verbose			Enable verbose/diagnostic logging\n"
-"	allow_memio		Allow device registers to be memory mapped\n"
-"	debug			Bitmask of debug values to enable\n"
-"	no_reset		Suppress initial bus resets\n"
-"	extended		Enable extended geometry on all controllers\n"
-"	periodic_otag		Send an ordered tagged transaction\n"
-"				periodically to prevent tag starvation.\n"
-"				This may be required by some older disk\n"
-"				or drives/RAID arrays.\n"
-"	tag_info:<tag_str>	Set per-target tag depth\n"
-"	global_tag_depth:<int>	Global tag depth for all targets on all buses\n"
-"	slewrate:<slewrate_list>Set the signal slew rate (0-15).\n"
-"	precomp:<pcomp_list>	Set the signal precompensation (0-7).\n"
-"	amplitude:<int>		Set the signal amplitude (0-7).\n"
-"	seltime:<int>		Selection Timeout:\n"
-"				(0/256ms,1/128ms,2/64ms,3/32ms)\n"
-"	slowcrc			Turn on the SLOWCRC bit (Rev B only)\n"		 
-"\n"
-"	Sample modprobe configuration file:\n"
-"	#	Enable verbose logging\n"
-"	#	Set tag depth on Controller 2/Target 2 to 10 tags\n"
-"	#	Shorten the selection timeout to 128ms\n"
-"\n"
-"	options aic79xx 'aic79xx=verbose.tag_info:{{}.{}.{..10}}.seltime:1'\n"
-);
+				 "period-delimited options string:\n"
+				 "	verbose			Enable verbose/diagnostic logging\n"
+				 "	allow_memio		Allow device registers to be memory mapped\n"
+				 "	debug			Bitmask of debug values to enable\n"
+				 "	no_reset		Suppress initial bus resets\n"
+				 "	extended		Enable extended geometry on all controllers\n"
+				 "	periodic_otag		Send an ordered tagged transaction\n"
+				 "				periodically to prevent tag starvation.\n"
+				 "				This may be required by some older disk\n"
+				 "				or drives/RAID arrays.\n"
+				 "	tag_info:<tag_str>	Set per-target tag depth\n"
+				 "	global_tag_depth:<int>	Global tag depth for all targets on all buses\n"
+				 "	slewrate:<slewrate_list>Set the signal slew rate (0-15).\n"
+				 "	precomp:<pcomp_list>	Set the signal precompensation (0-7).\n"
+				 "	amplitude:<int>		Set the signal amplitude (0-7).\n"
+				 "	seltime:<int>		Selection Timeout:\n"
+				 "				(0/256ms,1/128ms,2/64ms,3/32ms)\n"
+				 "	slowcrc			Turn on the SLOWCRC bit (Rev B only)\n"
+				 "\n"
+				 "	Sample modprobe configuration file:\n"
+				 "	#	Enable verbose logging\n"
+				 "	#	Set tag depth on Controller 2/Target 2 to 10 tags\n"
+				 "	#	Shorten the selection timeout to 128ms\n"
+				 "\n"
+				 "	options aic79xx 'aic79xx=verbose.tag_info:{{}.{}.{..10}}.seltime:1'\n"
+				);
 
 static void ahd_linux_handle_scsi_status(struct ahd_softc *,
-					 struct scsi_device *,
-					 struct scb *);
+		struct scsi_device *,
+		struct scb *);
 static void ahd_linux_queue_cmd_complete(struct ahd_softc *ahd,
-					 struct scsi_cmnd *cmd);
+		struct scsi_cmnd *cmd);
 static int ahd_linux_queue_abort_cmd(struct scsi_cmnd *cmd);
 static void ahd_linux_initialize_scsi_bus(struct ahd_softc *ahd);
 static u_int ahd_linux_user_tagdepth(struct ahd_softc *ahd,
-				     struct ahd_devinfo *devinfo);
+									 struct ahd_devinfo *devinfo);
 static void ahd_linux_device_queue_depth(struct scsi_device *);
-static int ahd_linux_run_command(struct ahd_softc*,
-				 struct ahd_linux_device *,
-				 struct scsi_cmnd *);
+static int ahd_linux_run_command(struct ahd_softc *,
+								 struct ahd_linux_device *,
+								 struct scsi_cmnd *);
 static void ahd_linux_setup_tag_info_global(char *p);
 static int  aic79xx_setup(char *c);
 static void ahd_freeze_simq(struct ahd_softc *ahd);
@@ -380,7 +381,8 @@ ahd_delay(long usec)
 	 * multi-millisecond waits.  Wait at most
 	 * 1024us per call.
 	 */
-	while (usec > 0) {
+	while (usec > 0)
+	{
 		udelay(usec % 1024);
 		usec -= 1024;
 	}
@@ -388,69 +390,85 @@ ahd_delay(long usec)
 
 
 /***************************** Low Level I/O **********************************/
-uint8_t ahd_inb(struct ahd_softc * ahd, long port);
-void ahd_outb(struct ahd_softc * ahd, long port, uint8_t val);
-void ahd_outw_atomic(struct ahd_softc * ahd,
-				     long port, uint16_t val);
-void ahd_outsb(struct ahd_softc * ahd, long port,
-			       uint8_t *, int count);
-void ahd_insb(struct ahd_softc * ahd, long port,
-			       uint8_t *, int count);
+uint8_t ahd_inb(struct ahd_softc *ahd, long port);
+void ahd_outb(struct ahd_softc *ahd, long port, uint8_t val);
+void ahd_outw_atomic(struct ahd_softc *ahd,
+					 long port, uint16_t val);
+void ahd_outsb(struct ahd_softc *ahd, long port,
+			   uint8_t *, int count);
+void ahd_insb(struct ahd_softc *ahd, long port,
+			  uint8_t *, int count);
 
 uint8_t
-ahd_inb(struct ahd_softc * ahd, long port)
+ahd_inb(struct ahd_softc *ahd, long port)
 {
 	uint8_t x;
 
-	if (ahd->tags[0] == BUS_SPACE_MEMIO) {
+	if (ahd->tags[0] == BUS_SPACE_MEMIO)
+	{
 		x = readb(ahd->bshs[0].maddr + port);
-	} else {
+	}
+	else
+	{
 		x = inb(ahd->bshs[(port) >> 8].ioport + ((port) & 0xFF));
 	}
+
 	mb();
 	return (x);
 }
 
 #if 0 /* unused */
 static uint16_t
-ahd_inw_atomic(struct ahd_softc * ahd, long port)
+ahd_inw_atomic(struct ahd_softc *ahd, long port)
 {
 	uint8_t x;
 
-	if (ahd->tags[0] == BUS_SPACE_MEMIO) {
+	if (ahd->tags[0] == BUS_SPACE_MEMIO)
+	{
 		x = readw(ahd->bshs[0].maddr + port);
-	} else {
+	}
+	else
+	{
 		x = inw(ahd->bshs[(port) >> 8].ioport + ((port) & 0xFF));
 	}
+
 	mb();
 	return (x);
 }
 #endif
 
 void
-ahd_outb(struct ahd_softc * ahd, long port, uint8_t val)
+ahd_outb(struct ahd_softc *ahd, long port, uint8_t val)
 {
-	if (ahd->tags[0] == BUS_SPACE_MEMIO) {
+	if (ahd->tags[0] == BUS_SPACE_MEMIO)
+	{
 		writeb(val, ahd->bshs[0].maddr + port);
-	} else {
+	}
+	else
+	{
 		outb(val, ahd->bshs[(port) >> 8].ioport + (port & 0xFF));
 	}
+
 	mb();
 }
 
 void
-ahd_outw_atomic(struct ahd_softc * ahd, long port, uint16_t val)
+ahd_outw_atomic(struct ahd_softc *ahd, long port, uint16_t val)
 {
-	if (ahd->tags[0] == BUS_SPACE_MEMIO) {
+	if (ahd->tags[0] == BUS_SPACE_MEMIO)
+	{
 		writew(val, ahd->bshs[0].maddr + port);
-	} else {
+	}
+	else
+	{
 		outw(val, ahd->bshs[(port) >> 8].ioport + (port & 0xFF));
 	}
+
 	mb();
 }
 
 void
-ahd_outsb(struct ahd_softc * ahd, long port, uint8_t *array, int count)
+ahd_outsb(struct ahd_softc *ahd, long port, uint8_t *array, int count)
 {
 	int i;
 
@@ -460,11 +478,13 @@ ahd_outsb(struct ahd_softc * ahd, long port, uint8_t *array, int count)
 	 * should work.
 	 */
 	for (i = 0; i < count; i++)
+	{
 		ahd_outb(ahd, port, *array++);
+	}
 }
 
 void
-ahd_insb(struct ahd_softc * ahd, long port, uint8_t *array, int count)
+ahd_insb(struct ahd_softc *ahd, long port, uint8_t *array, int count)
 {
 	int i;
 
@@ -474,61 +494,71 @@ ahd_insb(struct ahd_softc * ahd, long port, uint8_t *array, int count)
 	 * should work.
 	 */
 	for (i = 0; i < count; i++)
+	{
 		*array++ = ahd_inb(ahd, port);
+	}
 }
 
 /******************************* PCI Routines *********************************/
 uint32_t
 ahd_pci_read_config(ahd_dev_softc_t pci, int reg, int width)
 {
-	switch (width) {
-	case 1:
+	switch (width)
 	{
-		uint8_t retval;
+		case 1:
+			{
+				uint8_t retval;
 
-		pci_read_config_byte(pci, reg, &retval);
-		return (retval);
-	}
-	case 2:
-	{
-		uint16_t retval;
-		pci_read_config_word(pci, reg, &retval);
-		return (retval);
-	}
-	case 4:
-	{
-		uint32_t retval;
-		pci_read_config_dword(pci, reg, &retval);
-		return (retval);
-	}
-	default:
-		panic("ahd_pci_read_config: Read size too big");
-		/* NOTREACHED */
-		return (0);
+				pci_read_config_byte(pci, reg, &retval);
+				return (retval);
+			}
+
+		case 2:
+			{
+				uint16_t retval;
+				pci_read_config_word(pci, reg, &retval);
+				return (retval);
+			}
+
+		case 4:
+			{
+				uint32_t retval;
+				pci_read_config_dword(pci, reg, &retval);
+				return (retval);
+			}
+
+		default:
+			panic("ahd_pci_read_config: Read size too big");
+			/* NOTREACHED */
+			return (0);
 	}
 }
 
 void
 ahd_pci_write_config(ahd_dev_softc_t pci, int reg, uint32_t value, int width)
 {
-	switch (width) {
-	case 1:
-		pci_write_config_byte(pci, reg, value);
-		break;
-	case 2:
-		pci_write_config_word(pci, reg, value);
-		break;
-	case 4:
-		pci_write_config_dword(pci, reg, value);
-		break;
-	default:
-		panic("ahd_pci_write_config: Write size too big");
-		/* NOTREACHED */
+	switch (width)
+	{
+		case 1:
+			pci_write_config_byte(pci, reg, value);
+			break;
+
+		case 2:
+			pci_write_config_word(pci, reg, value);
+			break;
+
+		case 4:
+			pci_write_config_dword(pci, reg, value);
+			break;
+
+		default:
+			panic("ahd_pci_write_config: Write size too big");
+			/* NOTREACHED */
 	}
 }
 
 /****************************** Inlines ***************************************/
-static void ahd_linux_unmap_scb(struct ahd_softc*, struct scb*);
+static void ahd_linux_unmap_scb(struct ahd_softc *, struct scb *);
 
 static void
 ahd_linux_unmap_scb(struct ahd_softc *ahd, struct scb *scb)
@@ -559,10 +589,10 @@ ahd_linux_info(struct Scsi_Host *host)
 	ahd = *(struct ahd_softc **)host->hostdata;
 	memset(bp, 0, sizeof(buffer));
 	strcpy(bp, "Adaptec AIC79XX PCI-X SCSI HBA DRIVER, Rev " AIC79XX_DRIVER_VERSION "\n"
-			"        <");
+		   "        <");
 	strcat(bp, ahd->description);
 	strcat(bp, ">\n"
-			"        ");
+		   "        ");
 	ahd_controller_info(ahd, ahd_info);
 	strcat(bp, ahd_info);
 
@@ -573,7 +603,7 @@ ahd_linux_info(struct Scsi_Host *host)
  * Queue an SCB to the controller.
  */
 static int
-ahd_linux_queue_lck(struct scsi_cmnd * cmd, void (*scsi_done) (struct scsi_cmnd *))
+ahd_linux_queue_lck(struct scsi_cmnd *cmd, void (*scsi_done) (struct scsi_cmnd *))
 {
 	struct	 ahd_softc *ahd;
 	struct	 ahd_linux_device *dev = scsi_transport_device_data(cmd->device);
@@ -598,8 +628,11 @@ ahd_linux_target_in_softc(struct scsi_target *starget)
 	unsigned int target_offset;
 
 	target_offset = starget->id;
+
 	if (starget->channel != 0)
+	{
 		target_offset += 8;
+	}
 
 	return &ahd->platform_data->starget[target_offset];
 }
@@ -623,22 +656,30 @@ ahd_linux_target_alloc(struct scsi_target *starget)
 
 	*ahd_targp = starget;
 
-	if (sc) {
+	if (sc)
+	{
 		int flags = sc->device_flags[starget->id];
 
 		tinfo = ahd_fetch_transinfo(ahd, 'A', ahd->our_id,
-					    starget->id, &tstate);
+									starget->id, &tstate);
 
-		if ((flags  & CFPACKETIZED) == 0) {
+		if ((flags  & CFPACKETIZED) == 0)
+		{
 			/* don't negotiate packetized (IU) transfers */
 			spi_max_iu(starget) = 0;
-		} else {
+		}
+		else
+		{
 			if ((ahd->features & AHD_RTI) == 0)
+			{
 				spi_rti(starget) = 0;
+			}
 		}
 
 		if ((flags & CFQAS) == 0)
+		{
 			spi_max_qas(starget) = 0;
+		}
 
 		/* Transinfo values have been set to BIOS settings */
 		spi_max_width(starget) = (flags & CFWIDEB) ? 1 : 0;
@@ -647,14 +688,14 @@ ahd_linux_target_alloc(struct scsi_target *starget)
 	}
 
 	tinfo = ahd_fetch_transinfo(ahd, channel, ahd->our_id,
-				    starget->id, &tstate);
+								starget->id, &tstate);
 	ahd_compile_devinfo(&devinfo, ahd->our_id, starget->id,
-			    CAM_LUN_WILDCARD, channel,
-			    ROLE_INITIATOR);
+						CAM_LUN_WILDCARD, channel,
+						ROLE_INITIATOR);
 	ahd_set_syncrate(ahd, &devinfo, 0, 0, 0,
-			 AHD_TRANS_GOAL, /*paused*/FALSE);
+					 AHD_TRANS_GOAL, /*paused*/FALSE);
 	ahd_set_width(ahd, &devinfo, MSG_EXT_WDTR_BUS_8_BIT,
-		      AHD_TRANS_GOAL, /*paused*/FALSE);
+				  AHD_TRANS_GOAL, /*paused*/FALSE);
 	ahd_unlock(ahd, &flags);
 
 	return 0;
@@ -676,7 +717,9 @@ ahd_linux_slave_alloc(struct scsi_device *sdev)
 	struct ahd_linux_device *dev;
 
 	if (bootverbose)
+	{
 		printk("%s: Slave Alloc %d\n", ahd_name(ahd), sdev->id);
+	}
 
 	dev = scsi_transport_device_data(sdev);
 	memset(dev, 0, sizeof(*dev));
@@ -693,7 +736,7 @@ ahd_linux_slave_alloc(struct scsi_device *sdev)
 	 * a tagged queuing capable device.
 	 */
 	dev->maxtags = 0;
-	
+
 	return (0);
 }
 
@@ -703,14 +746,19 @@ ahd_linux_slave_configure(struct scsi_device *sdev)
 	struct	ahd_softc *ahd;
 
 	ahd = *((struct ahd_softc **)sdev->host->hostdata);
+
 	if (bootverbose)
+	{
 		sdev_printk(KERN_INFO, sdev, "Slave Configure\n");
+	}
 
 	ahd_linux_device_queue_depth(sdev);
 
 	/* Initial Domain Validation */
 	if (!spi_initial_dv(sdev->sdev_target))
+	{
 		spi_dv_device(sdev);
+	}
 
 	return 0;
 }
@@ -721,7 +769,7 @@ ahd_linux_slave_configure(struct scsi_device *sdev)
  */
 static int
 ahd_linux_biosparam(struct scsi_device *sdev, struct block_device *bdev,
-		    sector_t capacity, int geom[])
+					sector_t capacity, int geom[])
 {
 	uint8_t *bh;
 	int	 heads;
@@ -734,26 +782,39 @@ ahd_linux_biosparam(struct scsi_device *sdev, struct block_device *bdev,
 	ahd = *((struct ahd_softc **)sdev->host->hostdata);
 
 	bh = scsi_bios_ptable(bdev);
-	if (bh) {
+
+	if (bh)
+	{
 		ret = scsi_partsize(bh, capacity,
-				    &geom[2], &geom[0], &geom[1]);
+							&geom[2], &geom[0], &geom[1]);
 		kfree(bh);
+
 		if (ret != -1)
+		{
 			return (ret);
+		}
 	}
+
 	heads = 64;
 	sectors = 32;
 	cylinders = aic_sector_div(capacity, heads, sectors);
 
 	if (aic79xx_extended != 0)
+	{
 		extended = 1;
+	}
 	else
+	{
 		extended = (ahd->flags & AHD_EXTENDED_TRANS_A) != 0;
-	if (extended && cylinders >= 1024) {
+	}
+
+	if (extended && cylinders >= 1024)
+	{
 		heads = 255;
 		sectors = 63;
 		cylinders = aic_sector_div(capacity, heads, sectors);
 	}
+
 	geom[0] = heads;
 	geom[1] = sectors;
 	geom[2] = cylinders;
@@ -768,7 +829,7 @@ static int
 ahd_linux_abort(struct scsi_cmnd *cmd)
 {
 	int error;
-	
+
 	error = ahd_linux_queue_abort_cmd(cmd);
 
 	return error;
@@ -798,11 +859,15 @@ ahd_linux_dev_reset(struct scsi_cmnd *cmd)
 	ahd = *(struct ahd_softc **)cmd->device->host->hostdata;
 
 	scmd_printk(KERN_INFO, cmd,
-		    "Attempting to queue a TARGET RESET message:");
+				"Attempting to queue a TARGET RESET message:");
 
 	printk("CDB:");
+
 	for (cdb_byte = 0; cdb_byte < cmd->cmd_len; cdb_byte++)
+	{
 		printk(" 0x%x", cmd->cmnd[cdb_byte]);
+	}
+
 	printk("\n");
 
 	/*
@@ -810,7 +875,8 @@ ahd_linux_dev_reset(struct scsi_cmnd *cmd)
 	 */
 	dev = scsi_transport_device_data(cmd->device);
 
-	if (dev == NULL) {
+	if (dev == NULL)
+	{
 		/*
 		 * No target device for this command exists,
 		 * so we must not still own the command.
@@ -823,13 +889,15 @@ ahd_linux_dev_reset(struct scsi_cmnd *cmd)
 	 * Generate us a new SCB
 	 */
 	reset_scb = ahd_get_scb(ahd, AHD_NEVER_COL_IDX);
-	if (!reset_scb) {
+
+	if (!reset_scb)
+	{
 		scmd_printk(KERN_INFO, cmd, "No SCB available\n");
 		return FAILED;
 	}
 
 	tinfo = ahd_fetch_transinfo(ahd, 'A', ahd->our_id,
-				    cmd->device->id, &tstate);
+								cmd->device->id, &tstate);
 	reset_scb->io_ctx = cmd;
 	reset_scb->platform_data->dev = dev;
 	reset_scb->sg_count = 0;
@@ -837,16 +905,21 @@ ahd_linux_dev_reset(struct scsi_cmnd *cmd)
 	ahd_set_sense_residual(reset_scb, 0);
 	reset_scb->platform_data->xfer_len = 0;
 	reset_scb->hscb->control = 0;
-	reset_scb->hscb->scsiid = BUILD_SCSIID(ahd,cmd);
+	reset_scb->hscb->scsiid = BUILD_SCSIID(ahd, cmd);
 	reset_scb->hscb->lun = cmd->device->lun;
 	reset_scb->hscb->cdb_len = 0;
 	reset_scb->hscb->task_management = SIU_TASKMGMT_LUN_RESET;
-	reset_scb->flags |= SCB_DEVICE_RESET|SCB_RECOVERY_SCB|SCB_ACTIVE;
-	if ((tinfo->curr.ppr_options & MSG_EXT_PPR_IU_REQ) != 0) {
+	reset_scb->flags |= SCB_DEVICE_RESET | SCB_RECOVERY_SCB | SCB_ACTIVE;
+
+	if ((tinfo->curr.ppr_options & MSG_EXT_PPR_IU_REQ) != 0)
+	{
 		reset_scb->flags |= SCB_PACKETIZED;
-	} else {
+	}
+	else
+	{
 		reset_scb->hscb->control |= MK_MESSAGE;
 	}
+
 	dev->openings--;
 	dev->active++;
 	dev->commands_issued++;
@@ -860,14 +933,17 @@ ahd_linux_dev_reset(struct scsi_cmnd *cmd)
 	ahd_unlock(ahd, &flags);
 
 	printk("%s: Device reset code sleeping\n", ahd_name(ahd));
-	if (!wait_for_completion_timeout(&done, 5 * HZ)) {
+
+	if (!wait_for_completion_timeout(&done, 5 * HZ))
+	{
 		ahd_lock(ahd, &flags);
 		ahd->platform_data->eh_done = NULL;
 		ahd_unlock(ahd, &flags);
 		printk("%s: Device reset timer expired (active %d)\n",
-		       ahd_name(ahd), dev->active);
+			   ahd_name(ahd), dev->active);
 		retval = FAILED;
 	}
+
 	printk("%s: Device reset returning 0x%x\n", ahd_name(ahd), retval);
 
 	return (retval);
@@ -885,24 +961,27 @@ ahd_linux_bus_reset(struct scsi_cmnd *cmd)
 
 	ahd = *(struct ahd_softc **)cmd->device->host->hostdata;
 #ifdef AHD_DEBUG
+
 	if ((ahd_debug & AHD_SHOW_RECOVERY) != 0)
 		printk("%s: Bus reset called for cmd %p\n",
-		       ahd_name(ahd), cmd);
+			   ahd_name(ahd), cmd);
+
 #endif
 	ahd_lock(ahd, &flags);
 
 	found = ahd_reset_channel(ahd, scmd_channel(cmd) + 'A',
-				  /*initiate reset*/TRUE);
+							  /*initiate reset*/TRUE);
 	ahd_unlock(ahd, &flags);
 
 	if (bootverbose)
 		printk("%s: SCSI bus reset delivered. "
-		       "%d SCBs aborted.\n", ahd_name(ahd), found);
+			   "%d SCBs aborted.\n", ahd_name(ahd), found);
 
 	return (SUCCESS);
 }
 
-struct scsi_host_template aic79xx_driver_template = {
+struct scsi_host_template aic79xx_driver_template =
+{
 	.module			= THIS_MODULE,
 	.name			= "aic79xx",
 	.proc_name		= "aic79xx",
@@ -930,17 +1009,20 @@ struct scsi_host_template aic79xx_driver_template = {
 /******************************** Bus DMA *************************************/
 int
 ahd_dma_tag_create(struct ahd_softc *ahd, bus_dma_tag_t parent,
-		   bus_size_t alignment, bus_size_t boundary,
-		   dma_addr_t lowaddr, dma_addr_t highaddr,
-		   bus_dma_filter_t *filter, void *filterarg,
-		   bus_size_t maxsize, int nsegments,
-		   bus_size_t maxsegsz, int flags, bus_dma_tag_t *ret_tag)
+				   bus_size_t alignment, bus_size_t boundary,
+				   dma_addr_t lowaddr, dma_addr_t highaddr,
+				   bus_dma_filter_t *filter, void *filterarg,
+				   bus_size_t maxsize, int nsegments,
+				   bus_size_t maxsegsz, int flags, bus_dma_tag_t *ret_tag)
 {
 	bus_dma_tag_t dmat;
 
 	dmat = kmalloc(sizeof(*dmat), GFP_ATOMIC);
+
 	if (dmat == NULL)
+	{
 		return (ENOMEM);
+	}
 
 	/*
 	 * Linux is very simplistic about DMA memory.  For now don't
@@ -963,28 +1045,32 @@ ahd_dma_tag_destroy(struct ahd_softc *ahd, bus_dma_tag_t dmat)
 }
 
 int
-ahd_dmamem_alloc(struct ahd_softc *ahd, bus_dma_tag_t dmat, void** vaddr,
-		 int flags, bus_dmamap_t *mapp)
+ahd_dmamem_alloc(struct ahd_softc *ahd, bus_dma_tag_t dmat, void **vaddr,
+				 int flags, bus_dmamap_t *mapp)
 {
 	*vaddr = pci_alloc_consistent(ahd->dev_softc,
-				      dmat->maxsize, mapp);
+								  dmat->maxsize, mapp);
+
 	if (*vaddr == NULL)
+	{
 		return (ENOMEM);
-	return(0);
+	}
+
+	return (0);
 }
 
 void
 ahd_dmamem_free(struct ahd_softc *ahd, bus_dma_tag_t dmat,
-		void* vaddr, bus_dmamap_t map)
+				void *vaddr, bus_dmamap_t map)
 {
 	pci_free_consistent(ahd->dev_softc, dmat->maxsize,
-			    vaddr, map);
+						vaddr, map);
 }
 
 int
 ahd_dmamap_load(struct ahd_softc *ahd, bus_dma_tag_t dmat, bus_dmamap_t map,
-		void *buf, bus_size_t buflen, bus_dmamap_callback_t *cb,
-		void *cb_arg, int flags)
+				void *buf, bus_size_t buflen, bus_dmamap_callback_t *cb,
+				void *cb_arg, int flags)
 {
 	/*
 	 * Assume for now that this will only be used during
@@ -1016,13 +1102,17 @@ ahd_linux_setup_iocell_info(u_long index, int instance, int targ, int32_t value)
 {
 
 	if ((instance >= 0)
-	 && (instance < ARRAY_SIZE(aic79xx_iocell_info))) {
+		&& (instance < ARRAY_SIZE(aic79xx_iocell_info)))
+	{
 		uint8_t *iocell_info;
 
-		iocell_info = (uint8_t*)&aic79xx_iocell_info[instance];
+		iocell_info = (uint8_t *)&aic79xx_iocell_info[instance];
 		iocell_info[index] = value & 0xFFFF;
+
 		if (bootverbose)
+		{
 			printk("iocell[%d:%ld] = %d\n", instance, index, value);
+		}
 	}
 }
 
@@ -1034,8 +1124,10 @@ ahd_linux_setup_tag_info_global(char *p)
 	tags = simple_strtoul(p + 1, NULL, 0) & 0xff;
 	printk("Setting Global Tags= %d\n", tags);
 
-	for (i = 0; i < ARRAY_SIZE(aic79xx_tag_info); i++) {
-		for (j = 0; j < AHD_NUM_TARGETS; j++) {
+	for (i = 0; i < ARRAY_SIZE(aic79xx_tag_info); i++)
+	{
+		for (j = 0; j < AHD_NUM_TARGETS; j++)
+		{
 			aic79xx_tag_info[i].tag_commands[j] = tags;
 		}
 	}
@@ -1046,18 +1138,22 @@ ahd_linux_setup_tag_info(u_long arg, int instance, int targ, int32_t value)
 {
 
 	if ((instance >= 0) && (targ >= 0)
-	 && (instance < ARRAY_SIZE(aic79xx_tag_info))
-	 && (targ < AHD_NUM_TARGETS)) {
+		&& (instance < ARRAY_SIZE(aic79xx_tag_info))
+		&& (targ < AHD_NUM_TARGETS))
+	{
 		aic79xx_tag_info[instance].tag_commands[targ] = value & 0x1FF;
+
 		if (bootverbose)
+		{
 			printk("tag_info[%d:%d] = %d\n", instance, targ, value);
+		}
 	}
 }
 
 static char *
 ahd_parse_brace_option(char *opt_name, char *opt_arg, char *end, int depth,
-		       void (*callback)(u_long, int, int, int32_t),
-		       u_long callback_arg)
+					   void (*callback)(u_long, int, int, int32_t),
+					   u_long callback_arg)
 {
 	char	*tok_end;
 	char	*tok_end2;
@@ -1069,7 +1165,10 @@ ahd_parse_brace_option(char *opt_name, char *opt_arg, char *end, int depth,
 
 	/* All options use a ':' name/arg separator */
 	if (*opt_arg != ':')
+	{
 		return (opt_arg);
+	}
+
 	opt_arg++;
 	instance = -1;
 	targ = -1;
@@ -1079,58 +1178,96 @@ ahd_parse_brace_option(char *opt_name, char *opt_arg, char *end, int depth,
 	 * the middle of our option argument.
 	 */
 	tok_end = strchr(opt_arg, '\0');
+
 	if (tok_end < end)
+	{
 		*tok_end = ',';
-	while (!done) {
-		switch (*opt_arg) {
-		case '{':
-			if (instance == -1) {
-				instance = 0;
-			} else {
-				if (depth > 1) {
-					if (targ == -1)
-						targ = 0;
-				} else {
-					printk("Malformed Option %s\n",
-					       opt_name);
+	}
+
+	while (!done)
+	{
+		switch (*opt_arg)
+		{
+			case '{':
+				if (instance == -1)
+				{
+					instance = 0;
+				}
+				else
+				{
+					if (depth > 1)
+					{
+						if (targ == -1)
+						{
+							targ = 0;
+						}
+					}
+					else
+					{
+						printk("Malformed Option %s\n",
+							   opt_name);
+						done = TRUE;
+					}
+				}
+
+				opt_arg++;
+				break;
+
+			case '}':
+				if (targ != -1)
+				{
+					targ = -1;
+				}
+				else if (instance != -1)
+				{
+					instance = -1;
+				}
+
+				opt_arg++;
+				break;
+
+			case ',':
+			case '.':
+				if (instance == -1)
+				{
 					done = TRUE;
 				}
-			}
-			opt_arg++;
-			break;
-		case '}':
-			if (targ != -1)
-				targ = -1;
-			else if (instance != -1)
-				instance = -1;
-			opt_arg++;
-			break;
-		case ',':
-		case '.':
-			if (instance == -1)
+				else if (targ >= 0)
+				{
+					targ++;
+				}
+				else if (instance >= 0)
+				{
+					instance++;
+				}
+
+				opt_arg++;
+				break;
+
+			case '\0':
 				done = TRUE;
-			else if (targ >= 0)
-				targ++;
-			else if (instance >= 0)
-				instance++;
-			opt_arg++;
-			break;
-		case '\0':
-			done = TRUE;
-			break;
-		default:
-			tok_end = end;
-			for (i = 0; tok_list[i]; i++) {
-				tok_end2 = strchr(opt_arg, tok_list[i]);
-				if ((tok_end2) && (tok_end2 < tok_end))
-					tok_end = tok_end2;
-			}
-			callback(callback_arg, instance, targ,
-				 simple_strtol(opt_arg, NULL, 0));
-			opt_arg = tok_end;
-			break;
+				break;
+
+			default:
+				tok_end = end;
+
+				for (i = 0; tok_list[i]; i++)
+				{
+					tok_end2 = strchr(opt_arg, tok_list[i]);
+
+					if ((tok_end2) && (tok_end2 < tok_end))
+					{
+						tok_end = tok_end2;
+					}
+				}
+
+				callback(callback_arg, instance, targ,
+						 simple_strtol(opt_arg, NULL, 0));
+				opt_arg = tok_end;
+				break;
 		}
 	}
+
 	return (opt_arg);
 }
 
@@ -1146,10 +1283,12 @@ aic79xx_setup(char *s)
 	char   *p;
 	char   *end;
 
-	static const struct {
+	static const struct
+	{
 		const char *name;
 		uint32_t *flag;
-	} options[] = {
+	} options[] =
+	{
 		{ "extended", &aic79xx_extended },
 		{ "no_reset", &aic79xx_no_reset },
 		{ "verbose", &aic79xx_verbose },
@@ -1176,43 +1315,70 @@ aic79xx_setup(char *s)
 	 */
 	n = 0;
 
-	while ((p = strsep(&s, ",.")) != NULL) {
+	while ((p = strsep(&s, ",.")) != NULL)
+	{
 		if (*p == '\0')
+		{
 			continue;
-		for (i = 0; i < ARRAY_SIZE(options); i++) {
+		}
+
+		for (i = 0; i < ARRAY_SIZE(options); i++)
+		{
 
 			n = strlen(options[i].name);
-			if (strncmp(options[i].name, p, n) == 0)
-				break;
-		}
-		if (i == ARRAY_SIZE(options))
-			continue;
 
-		if (strncmp(p, "global_tag_depth", n) == 0) {
+			if (strncmp(options[i].name, p, n) == 0)
+			{
+				break;
+			}
+		}
+
+		if (i == ARRAY_SIZE(options))
+		{
+			continue;
+		}
+
+		if (strncmp(p, "global_tag_depth", n) == 0)
+		{
 			ahd_linux_setup_tag_info_global(p + n);
-		} else if (strncmp(p, "tag_info", n) == 0) {
+		}
+		else if (strncmp(p, "tag_info", n) == 0)
+		{
 			s = ahd_parse_brace_option("tag_info", p + n, end,
-			    2, ahd_linux_setup_tag_info, 0);
-		} else if (strncmp(p, "slewrate", n) == 0) {
+									   2, ahd_linux_setup_tag_info, 0);
+		}
+		else if (strncmp(p, "slewrate", n) == 0)
+		{
 			s = ahd_parse_brace_option("slewrate",
-			    p + n, end, 1, ahd_linux_setup_iocell_info,
-			    AIC79XX_SLEWRATE_INDEX);
-		} else if (strncmp(p, "precomp", n) == 0) {
+									   p + n, end, 1, ahd_linux_setup_iocell_info,
+									   AIC79XX_SLEWRATE_INDEX);
+		}
+		else if (strncmp(p, "precomp", n) == 0)
+		{
 			s = ahd_parse_brace_option("precomp",
-			    p + n, end, 1, ahd_linux_setup_iocell_info,
-			    AIC79XX_PRECOMP_INDEX);
-		} else if (strncmp(p, "amplitude", n) == 0) {
+									   p + n, end, 1, ahd_linux_setup_iocell_info,
+									   AIC79XX_PRECOMP_INDEX);
+		}
+		else if (strncmp(p, "amplitude", n) == 0)
+		{
 			s = ahd_parse_brace_option("amplitude",
-			    p + n, end, 1, ahd_linux_setup_iocell_info,
-			    AIC79XX_AMPLITUDE_INDEX);
-		} else if (p[n] == ':') {
+									   p + n, end, 1, ahd_linux_setup_iocell_info,
+									   AIC79XX_AMPLITUDE_INDEX);
+		}
+		else if (p[n] == ':')
+		{
 			*(options[i].flag) = simple_strtoul(p + n + 1, NULL, 0);
-		} else if (!strncmp(p, "verbose", n)) {
+		}
+		else if (!strncmp(p, "verbose", n))
+		{
 			*(options[i].flag) = 1;
-		} else {
+		}
+		else
+		{
 			*(options[i].flag) ^= 0xFFFFFFFF;
 		}
 	}
+
 	return 1;
 }
 
@@ -1231,8 +1397,11 @@ ahd_linux_register_host(struct ahd_softc *ahd, struct scsi_host_template *templa
 
 	template->name = ahd->description;
 	host = scsi_host_alloc(template, sizeof(struct ahd_softc *));
+
 	if (host == NULL)
+	{
 		return (ENOMEM);
+	}
 
 	*((struct ahd_softc **)host->hostdata) = ahd;
 	ahd->platform_data->host = host;
@@ -1250,10 +1419,13 @@ ahd_linux_register_host(struct ahd_softc *ahd, struct scsi_host_template *templa
 	ahd_unlock(ahd, &s);
 	sprintf(buf, "scsi%d", host->host_no);
 	new_name = kmalloc(strlen(buf) + 1, GFP_ATOMIC);
-	if (new_name != NULL) {
+
+	if (new_name != NULL)
+	{
 		strcpy(new_name, buf);
 		ahd_set_name(ahd, new_name);
 	}
+
 	host->unique_id = ahd->unit;
 	ahd_linux_initialize_scsi_bus(ahd);
 	ahd_intr_enable(ahd, TRUE);
@@ -1261,7 +1433,9 @@ ahd_linux_register_host(struct ahd_softc *ahd, struct scsi_host_template *templa
 	host->transportt = ahd_linux_transport_template;
 
 	retval = scsi_add_host(host, &ahd->dev_softc->dev);
-	if (retval) {
+
+	if (retval)
+	{
 		printk(KERN_WARNING "aic79xx: scsi_add_host failed\n");
 		scsi_host_put(host);
 		return retval;
@@ -1287,12 +1461,18 @@ ahd_linux_initialize_scsi_bus(struct ahd_softc *ahd)
 	numtarg = 0;
 
 	if (aic79xx_no_reset != 0)
+	{
 		ahd->flags &= ~AHD_RESET_BUS_A;
+	}
 
 	if ((ahd->flags & AHD_RESET_BUS_A) != 0)
+	{
 		ahd_reset_channel(ahd, 'A', /*initiate_reset*/TRUE);
+	}
 	else
+	{
 		numtarg = (ahd->features & AHD_WIDE) ? 16 : 8;
+	}
 
 	ahd_lock(ahd, &s);
 
@@ -1300,21 +1480,25 @@ ahd_linux_initialize_scsi_bus(struct ahd_softc *ahd)
 	 * Force negotiation to async for all targets that
 	 * will not see an initial bus reset.
 	 */
-	for (; target_id < numtarg; target_id++) {
+	for (; target_id < numtarg; target_id++)
+	{
 		struct ahd_devinfo devinfo;
 		struct ahd_initiator_tinfo *tinfo;
 		struct ahd_tmode_tstate *tstate;
 
 		tinfo = ahd_fetch_transinfo(ahd, 'A', ahd->our_id,
-					    target_id, &tstate);
+									target_id, &tstate);
 		ahd_compile_devinfo(&devinfo, ahd->our_id, target_id,
-				    CAM_LUN_WILDCARD, 'A', ROLE_INITIATOR);
+							CAM_LUN_WILDCARD, 'A', ROLE_INITIATOR);
 		ahd_update_neg_request(ahd, &devinfo, tstate,
-				       tinfo, AHD_NEG_ALWAYS);
+							   tinfo, AHD_NEG_ALWAYS);
 	}
+
 	ahd_unlock(ahd, &s);
+
 	/* Give the bus some time to recover */
-	if ((ahd->flags & AHD_RESET_BUS_A) != 0) {
+	if ((ahd->flags & AHD_RESET_BUS_A) != 0)
+	{
 		ahd_freeze_simq(ahd);
 		msleep(AIC79XX_RESET_DELAY);
 		ahd_release_simq(ahd);
@@ -1325,9 +1509,13 @@ int
 ahd_platform_alloc(struct ahd_softc *ahd, void *platform_arg)
 {
 	ahd->platform_data =
-	    kzalloc(sizeof(struct ahd_platform_data), GFP_ATOMIC);
+	kzalloc(sizeof(struct ahd_platform_data), GFP_ATOMIC);
+
 	if (ahd->platform_data == NULL)
+	{
 		return (ENOMEM);
+	}
+
 	ahd->platform_data->irq = AHD_LINUX_NOIRQ;
 	ahd_lockinit(ahd);
 	ahd->seltime = (aic79xx_seltime & 0x3) << 4;
@@ -1340,31 +1528,48 @@ ahd_platform_free(struct ahd_softc *ahd)
 	struct scsi_target *starget;
 	int i;
 
-	if (ahd->platform_data != NULL) {
+	if (ahd->platform_data != NULL)
+	{
 		/* destroy all of the device and target objects */
-		for (i = 0; i < AHD_NUM_TARGETS; i++) {
+		for (i = 0; i < AHD_NUM_TARGETS; i++)
+		{
 			starget = ahd->platform_data->starget[i];
-			if (starget != NULL) {
+
+			if (starget != NULL)
+			{
 				ahd->platform_data->starget[i] = NULL;
 			}
 		}
 
 		if (ahd->platform_data->irq != AHD_LINUX_NOIRQ)
+		{
 			free_irq(ahd->platform_data->irq, ahd);
+		}
+
 		if (ahd->tags[0] == BUS_SPACE_PIO
-		 && ahd->bshs[0].ioport != 0)
+			&& ahd->bshs[0].ioport != 0)
+		{
 			release_region(ahd->bshs[0].ioport, 256);
+		}
+
 		if (ahd->tags[1] == BUS_SPACE_PIO
-		 && ahd->bshs[1].ioport != 0)
+			&& ahd->bshs[1].ioport != 0)
+		{
 			release_region(ahd->bshs[1].ioport, 256);
+		}
+
 		if (ahd->tags[0] == BUS_SPACE_MEMIO
-		 && ahd->bshs[0].maddr != NULL) {
+			&& ahd->bshs[0].maddr != NULL)
+		{
 			iounmap(ahd->bshs[0].maddr);
 			release_mem_region(ahd->platform_data->mem_busaddr,
-					   0x1000);
+							   0x1000);
 		}
+
 		if (ahd->platform_data->host)
+		{
 			scsi_host_put(ahd->platform_data->host);
+		}
 
 		kfree(ahd->platform_data);
 	}
@@ -1376,16 +1581,26 @@ ahd_platform_init(struct ahd_softc *ahd)
 	/*
 	 * Lookup and commit any modified IO Cell options.
 	 */
-	if (ahd->unit < ARRAY_SIZE(aic79xx_iocell_info)) {
+	if (ahd->unit < ARRAY_SIZE(aic79xx_iocell_info))
+	{
 		const struct ahd_linux_iocell_opts *iocell_opts;
 
 		iocell_opts = &aic79xx_iocell_info[ahd->unit];
+
 		if (iocell_opts->precomp != AIC79XX_DEFAULT_PRECOMP)
+		{
 			AHD_SET_PRECOMP(ahd, iocell_opts->precomp);
+		}
+
 		if (iocell_opts->slewrate != AIC79XX_DEFAULT_SLEWRATE)
+		{
 			AHD_SET_SLEWRATE(ahd, iocell_opts->slewrate);
+		}
+
 		if (iocell_opts->amplitude != AIC79XX_DEFAULT_AMPLITUDE)
+		{
 			AHD_SET_AMPLITUDE(ahd, iocell_opts->amplitude);
+		}
 	}
 
 }
@@ -1394,52 +1609,67 @@ void
 ahd_platform_freeze_devq(struct ahd_softc *ahd, struct scb *scb)
 {
 	ahd_platform_abort_scbs(ahd, SCB_GET_TARGET(ahd, scb),
-				SCB_GET_CHANNEL(ahd, scb),
-				SCB_GET_LUN(scb), SCB_LIST_NULL,
-				ROLE_UNKNOWN, CAM_REQUEUE_REQ);
+							SCB_GET_CHANNEL(ahd, scb),
+							SCB_GET_LUN(scb), SCB_LIST_NULL,
+							ROLE_UNKNOWN, CAM_REQUEUE_REQ);
 }
 
 void
 ahd_platform_set_tags(struct ahd_softc *ahd, struct scsi_device *sdev,
-		      struct ahd_devinfo *devinfo, ahd_queue_alg alg)
+					  struct ahd_devinfo *devinfo, ahd_queue_alg alg)
 {
 	struct ahd_linux_device *dev;
 	int was_queuing;
 	int now_queuing;
 
 	if (sdev == NULL)
+	{
 		return;
+	}
 
 	dev = scsi_transport_device_data(sdev);
 
 	if (dev == NULL)
+	{
 		return;
-	was_queuing = dev->flags & (AHD_DEV_Q_BASIC|AHD_DEV_Q_TAGGED);
-	switch (alg) {
-	default:
-	case AHD_QUEUE_NONE:
-		now_queuing = 0;
-		break; 
-	case AHD_QUEUE_BASIC:
-		now_queuing = AHD_DEV_Q_BASIC;
-		break;
-	case AHD_QUEUE_TAGGED:
-		now_queuing = AHD_DEV_Q_TAGGED;
-		break;
 	}
+
+	was_queuing = dev->flags & (AHD_DEV_Q_BASIC | AHD_DEV_Q_TAGGED);
+
+	switch (alg)
+	{
+		default:
+		case AHD_QUEUE_NONE:
+			now_queuing = 0;
+			break;
+
+		case AHD_QUEUE_BASIC:
+			now_queuing = AHD_DEV_Q_BASIC;
+			break;
+
+		case AHD_QUEUE_TAGGED:
+			now_queuing = AHD_DEV_Q_TAGGED;
+			break;
+	}
+
 	if ((dev->flags & AHD_DEV_FREEZE_TIL_EMPTY) == 0
-	 && (was_queuing != now_queuing)
-	 && (dev->active != 0)) {
+		&& (was_queuing != now_queuing)
+		&& (dev->active != 0))
+	{
 		dev->flags |= AHD_DEV_FREEZE_TIL_EMPTY;
 		dev->qfrozen++;
 	}
 
-	dev->flags &= ~(AHD_DEV_Q_BASIC|AHD_DEV_Q_TAGGED|AHD_DEV_PERIODIC_OTAG);
-	if (now_queuing) {
+	dev->flags &= ~(AHD_DEV_Q_BASIC | AHD_DEV_Q_TAGGED | AHD_DEV_PERIODIC_OTAG);
+
+	if (now_queuing)
+	{
 		u_int usertags;
 
 		usertags = ahd_linux_user_tagdepth(ahd, devinfo);
-		if (!was_queuing) {
+
+		if (!was_queuing)
+		{
 			/*
 			 * Start out aggressively and allow our
 			 * dynamic queue depth algorithm to take
@@ -1448,44 +1678,58 @@ ahd_platform_set_tags(struct ahd_softc *ahd, struct scsi_device *sdev,
 			dev->maxtags = usertags;
 			dev->openings = dev->maxtags - dev->active;
 		}
-		if (dev->maxtags == 0) {
+
+		if (dev->maxtags == 0)
+		{
 			/*
 			 * Queueing is disabled by the user.
 			 */
 			dev->openings = 1;
-		} else if (alg == AHD_QUEUE_TAGGED) {
+		}
+		else if (alg == AHD_QUEUE_TAGGED)
+		{
 			dev->flags |= AHD_DEV_Q_TAGGED;
+
 			if (aic79xx_periodic_otag != 0)
+			{
 				dev->flags |= AHD_DEV_PERIODIC_OTAG;
-		} else
+			}
+		}
+		else
+		{
 			dev->flags |= AHD_DEV_Q_BASIC;
-	} else {
+		}
+	}
+	else
+	{
 		/* We can only have one opening. */
 		dev->maxtags = 0;
 		dev->openings =  1 - dev->active;
 	}
 
-	switch ((dev->flags & (AHD_DEV_Q_BASIC|AHD_DEV_Q_TAGGED))) {
-	case AHD_DEV_Q_BASIC:
-	case AHD_DEV_Q_TAGGED:
-		scsi_change_queue_depth(sdev,
-				dev->openings + dev->active);
-		break;
-	default:
-		/*
-		 * We allow the OS to queue 2 untagged transactions to
-		 * us at any time even though we can only execute them
-		 * serially on the controller/device.  This should
-		 * remove some latency.
-		 */
-		scsi_change_queue_depth(sdev, 1);
-		break;
+	switch ((dev->flags & (AHD_DEV_Q_BASIC | AHD_DEV_Q_TAGGED)))
+	{
+		case AHD_DEV_Q_BASIC:
+		case AHD_DEV_Q_TAGGED:
+			scsi_change_queue_depth(sdev,
+									dev->openings + dev->active);
+			break;
+
+		default:
+			/*
+			 * We allow the OS to queue 2 untagged transactions to
+			 * us at any time even though we can only execute them
+			 * serially on the controller/device.  This should
+			 * remove some latency.
+			 */
+			scsi_change_queue_depth(sdev, 1);
+			break;
 	}
 }
 
 int
 ahd_platform_abort_scbs(struct ahd_softc *ahd, int target, char channel,
-			int lun, u_int tag, role_t role, uint32_t status)
+						int lun, u_int tag, role_t role, uint32_t status)
 {
 	return 0;
 }
@@ -1497,27 +1741,38 @@ ahd_linux_user_tagdepth(struct ahd_softc *ahd, struct ahd_devinfo *devinfo)
 	u_int tags;
 
 	tags = 0;
-	if ((ahd->user_discenable & devinfo->target_mask) != 0) {
-		if (ahd->unit >= ARRAY_SIZE(aic79xx_tag_info)) {
 
-			if (warned_user == 0) {
+	if ((ahd->user_discenable & devinfo->target_mask) != 0)
+	{
+		if (ahd->unit >= ARRAY_SIZE(aic79xx_tag_info))
+		{
+
+			if (warned_user == 0)
+			{
 				printk(KERN_WARNING
-"aic79xx: WARNING: Insufficient tag_info instances\n"
-"aic79xx: for installed controllers.  Using defaults\n"
-"aic79xx: Please update the aic79xx_tag_info array in\n"
-"aic79xx: the aic79xx_osm.c source file.\n");
+					   "aic79xx: WARNING: Insufficient tag_info instances\n"
+					   "aic79xx: for installed controllers.  Using defaults\n"
+					   "aic79xx: Please update the aic79xx_tag_info array in\n"
+					   "aic79xx: the aic79xx_osm.c source file.\n");
 				warned_user++;
 			}
+
 			tags = AHD_MAX_QUEUE;
-		} else {
+		}
+		else
+		{
 			adapter_tag_info_t *tag_info;
 
 			tag_info = &aic79xx_tag_info[ahd->unit];
 			tags = tag_info->tag_commands[devinfo->target_offset];
+
 			if (tags > AHD_MAX_QUEUE)
+			{
 				tags = AHD_MAX_QUEUE;
+			}
 		}
 	}
+
 	return (tags);
 }
 
@@ -1532,28 +1787,32 @@ ahd_linux_device_queue_depth(struct scsi_device *sdev)
 	struct ahd_softc *ahd = *((struct ahd_softc **)sdev->host->hostdata);
 
 	ahd_compile_devinfo(&devinfo,
-			    ahd->our_id,
-			    sdev->sdev_target->id, sdev->lun,
-			    sdev->sdev_target->channel == 0 ? 'A' : 'B',
-			    ROLE_INITIATOR);
+						ahd->our_id,
+						sdev->sdev_target->id, sdev->lun,
+						sdev->sdev_target->channel == 0 ? 'A' : 'B',
+						ROLE_INITIATOR);
 	tags = ahd_linux_user_tagdepth(ahd, &devinfo);
-	if (tags != 0 && sdev->tagged_supported != 0) {
+
+	if (tags != 0 && sdev->tagged_supported != 0)
+	{
 
 		ahd_platform_set_tags(ahd, sdev, &devinfo, AHD_QUEUE_TAGGED);
 		ahd_send_async(ahd, devinfo.channel, devinfo.target,
-			       devinfo.lun, AC_TRANSFER_NEG);
+					   devinfo.lun, AC_TRANSFER_NEG);
 		ahd_print_devinfo(ahd, &devinfo);
 		printk("Tagged Queuing enabled.  Depth %d\n", tags);
-	} else {
+	}
+	else
+	{
 		ahd_platform_set_tags(ahd, sdev, &devinfo, AHD_QUEUE_NONE);
 		ahd_send_async(ahd, devinfo.channel, devinfo.target,
-			       devinfo.lun, AC_TRANSFER_NEG);
+					   devinfo.lun, AC_TRANSFER_NEG);
 	}
 }
 
 static int
 ahd_linux_run_command(struct ahd_softc *ahd, struct ahd_linux_device *dev,
-		      struct scsi_cmnd *cmd)
+					  struct scsi_cmnd *cmd)
 {
 	struct	 scb *scb;
 	struct	 hardware_scb *hscb;
@@ -1565,8 +1824,11 @@ ahd_linux_run_command(struct ahd_softc *ahd, struct ahd_linux_device *dev,
 	int nseg;
 
 	nseg = scsi_dma_map(cmd);
+
 	if (nseg < 0)
+	{
 		return SCSI_MLQUEUE_HOST_BUSY;
+	}
 
 	ahd_lock(ahd, &flags);
 
@@ -1574,15 +1836,21 @@ ahd_linux_run_command(struct ahd_softc *ahd, struct ahd_linux_device *dev,
 	 * Get an scb to use.
 	 */
 	tinfo = ahd_fetch_transinfo(ahd, 'A', ahd->our_id,
-				    cmd->device->id, &tstate);
-	if ((dev->flags & (AHD_DEV_Q_TAGGED|AHD_DEV_Q_BASIC)) == 0
-	 || (tinfo->curr.ppr_options & MSG_EXT_PPR_IU_REQ) != 0) {
+								cmd->device->id, &tstate);
+
+	if ((dev->flags & (AHD_DEV_Q_TAGGED | AHD_DEV_Q_BASIC)) == 0
+		|| (tinfo->curr.ppr_options & MSG_EXT_PPR_IU_REQ) != 0)
+	{
 		col_idx = AHD_NEVER_COL_IDX;
-	} else {
-		col_idx = AHD_BUILD_COL_IDX(cmd->device->id,
-					    cmd->device->lun);
 	}
-	if ((scb = ahd_get_scb(ahd, col_idx)) == NULL) {
+	else
+	{
+		col_idx = AHD_BUILD_COL_IDX(cmd->device->id,
+									cmd->device->lun);
+	}
+
+	if ((scb = ahd_get_scb(ahd, col_idx)) == NULL)
+	{
 		ahd->flags |= AHD_RESOURCE_SHORTAGE;
 		ahd_unlock(ahd, &flags);
 		scsi_dma_unmap(cmd);
@@ -1604,22 +1872,31 @@ ahd_linux_run_command(struct ahd_softc *ahd, struct ahd_linux_device *dev,
 	mask = SCB_GET_TARGET_MASK(ahd, scb);
 
 	if ((ahd->user_discenable & mask) != 0)
+	{
 		hscb->control |= DISCENB;
+	}
 
 	if ((tinfo->curr.ppr_options & MSG_EXT_PPR_IU_REQ) != 0)
+	{
 		scb->flags |= SCB_PACKETIZED;
+	}
 
-	if ((tstate->auto_negotiate & mask) != 0) {
+	if ((tstate->auto_negotiate & mask) != 0)
+	{
 		scb->flags |= SCB_AUTO_NEGOTIATE;
 		scb->hscb->control |= MK_MESSAGE;
 	}
 
-	if ((dev->flags & (AHD_DEV_Q_TAGGED|AHD_DEV_Q_BASIC)) != 0) {
+	if ((dev->flags & (AHD_DEV_Q_TAGGED | AHD_DEV_Q_BASIC)) != 0)
+	{
 		if (dev->commands_since_idle_or_otag == AHD_OTAG_THRESH
-		 && (dev->flags & AHD_DEV_Q_TAGGED) != 0) {
+			&& (dev->flags & AHD_DEV_Q_TAGGED) != 0)
+		{
 			hscb->control |= MSG_ORDERED_TASK;
 			dev->commands_since_idle_or_otag = 0;
-		} else {
+		}
+		else
+		{
 			hscb->control |= MSG_SIMPLE_TASK;
 		}
 	}
@@ -1632,14 +1909,16 @@ ahd_linux_run_command(struct ahd_softc *ahd, struct ahd_linux_device *dev,
 	ahd_set_sense_residual(scb, 0);
 	scb->sg_count = 0;
 
-	if (nseg > 0) {
+	if (nseg > 0)
+	{
 		void *sg = scb->sg_list;
 		struct scatterlist *cur_seg;
 		int i;
 
 		scb->platform_data->xfer_len = 0;
 
-		scsi_for_each_sg(cmd, cur_seg, nseg, i) {
+		scsi_for_each_sg(cmd, cur_seg, nseg, i)
+		{
 			dma_addr_t addr;
 			bus_size_t len;
 
@@ -1647,7 +1926,7 @@ ahd_linux_run_command(struct ahd_softc *ahd, struct ahd_linux_device *dev,
 			len = sg_dma_len(cur_seg);
 			scb->platform_data->xfer_len += len;
 			sg = ahd_sg_setup(ahd, scb, sg, addr, len,
-					  i == (nseg - 1));
+							  i == (nseg - 1));
 		}
 	}
 
@@ -1657,7 +1936,10 @@ ahd_linux_run_command(struct ahd_softc *ahd, struct ahd_linux_device *dev,
 	dev->commands_issued++;
 
 	if ((dev->flags & AHD_DEV_PERIODIC_OTAG) != 0)
+	{
 		dev->commands_since_idle_or_otag++;
+	}
+
 	scb->flags |= SCB_ACTIVE;
 	ahd_queue_scb(ahd, scb);
 
@@ -1677,7 +1959,7 @@ ahd_linux_isr(int irq, void *dev_id)
 	int	ours;
 
 	ahd = (struct ahd_softc *) dev_id;
-	ahd_lock(ahd, &flags); 
+	ahd_lock(ahd, &flags);
 	ours = ahd_intr(ahd);
 	ahd_unlock(ahd, &flags);
 	return IRQ_RETVAL(ours);
@@ -1685,87 +1967,100 @@ ahd_linux_isr(int irq, void *dev_id)
 
 void
 ahd_send_async(struct ahd_softc *ahd, char channel,
-	       u_int target, u_int lun, ac_code code)
+			   u_int target, u_int lun, ac_code code)
 {
-	switch (code) {
-	case AC_TRANSFER_NEG:
+	switch (code)
 	{
-		struct  scsi_target *starget;
-		struct	ahd_initiator_tinfo *tinfo;
-		struct	ahd_tmode_tstate *tstate;
-		unsigned int target_ppr_options;
+		case AC_TRANSFER_NEG:
+			{
+				struct  scsi_target *starget;
+				struct	ahd_initiator_tinfo *tinfo;
+				struct	ahd_tmode_tstate *tstate;
+				unsigned int target_ppr_options;
 
-		BUG_ON(target == CAM_TARGET_WILDCARD);
+				BUG_ON(target == CAM_TARGET_WILDCARD);
 
-		tinfo = ahd_fetch_transinfo(ahd, channel, ahd->our_id,
-					    target, &tstate);
+				tinfo = ahd_fetch_transinfo(ahd, channel, ahd->our_id,
+											target, &tstate);
 
-		/*
-		 * Don't bother reporting results while
-		 * negotiations are still pending.
-		 */
-		if (tinfo->curr.period != tinfo->goal.period
-		 || tinfo->curr.width != tinfo->goal.width
-		 || tinfo->curr.offset != tinfo->goal.offset
-		 || tinfo->curr.ppr_options != tinfo->goal.ppr_options)
-			if (bootverbose == 0)
+				/*
+				 * Don't bother reporting results while
+				 * negotiations are still pending.
+				 */
+				if (tinfo->curr.period != tinfo->goal.period
+					|| tinfo->curr.width != tinfo->goal.width
+					|| tinfo->curr.offset != tinfo->goal.offset
+					|| tinfo->curr.ppr_options != tinfo->goal.ppr_options)
+					if (bootverbose == 0)
+					{
+						break;
+					}
+
+				/*
+				 * Don't bother reporting results that
+				 * are identical to those last reported.
+				 */
+				starget = ahd->platform_data->starget[target];
+
+				if (starget == NULL)
+				{
+					break;
+				}
+
+				target_ppr_options =
+				(spi_dt(starget) ? MSG_EXT_PPR_DT_REQ : 0)
+				+ (spi_qas(starget) ? MSG_EXT_PPR_QAS_REQ : 0)
+				+ (spi_iu(starget) ?  MSG_EXT_PPR_IU_REQ : 0)
+				+ (spi_rd_strm(starget) ? MSG_EXT_PPR_RD_STRM : 0)
+				+ (spi_pcomp_en(starget) ? MSG_EXT_PPR_PCOMP_EN : 0)
+				+ (spi_rti(starget) ? MSG_EXT_PPR_RTI : 0)
+				+ (spi_wr_flow(starget) ? MSG_EXT_PPR_WR_FLOW : 0)
+				+ (spi_hold_mcs(starget) ? MSG_EXT_PPR_HOLD_MCS : 0);
+
+				if (tinfo->curr.period == spi_period(starget)
+					&& tinfo->curr.width == spi_width(starget)
+					&& tinfo->curr.offset == spi_offset(starget)
+					&& tinfo->curr.ppr_options == target_ppr_options)
+					if (bootverbose == 0)
+					{
+						break;
+					}
+
+				spi_period(starget) = tinfo->curr.period;
+				spi_width(starget) = tinfo->curr.width;
+				spi_offset(starget) = tinfo->curr.offset;
+				spi_dt(starget) = tinfo->curr.ppr_options & MSG_EXT_PPR_DT_REQ ? 1 : 0;
+				spi_qas(starget) = tinfo->curr.ppr_options & MSG_EXT_PPR_QAS_REQ ? 1 : 0;
+				spi_iu(starget) = tinfo->curr.ppr_options & MSG_EXT_PPR_IU_REQ ? 1 : 0;
+				spi_rd_strm(starget) = tinfo->curr.ppr_options & MSG_EXT_PPR_RD_STRM ? 1 : 0;
+				spi_pcomp_en(starget) =  tinfo->curr.ppr_options & MSG_EXT_PPR_PCOMP_EN ? 1 : 0;
+				spi_rti(starget) =  tinfo->curr.ppr_options &  MSG_EXT_PPR_RTI ? 1 : 0;
+				spi_wr_flow(starget) = tinfo->curr.ppr_options & MSG_EXT_PPR_WR_FLOW ? 1 : 0;
+				spi_hold_mcs(starget) = tinfo->curr.ppr_options & MSG_EXT_PPR_HOLD_MCS ? 1 : 0;
+				spi_display_xfer_agreement(starget);
 				break;
+			}
 
-		/*
-		 * Don't bother reporting results that
-		 * are identical to those last reported.
-		 */
-		starget = ahd->platform_data->starget[target];
-		if (starget == NULL)
+		case AC_SENT_BDR:
+			{
+				WARN_ON(lun != CAM_LUN_WILDCARD);
+				scsi_report_device_reset(ahd->platform_data->host,
+										 channel - 'A', target);
+				break;
+			}
+
+		case AC_BUS_RESET:
+			if (ahd->platform_data->host != NULL)
+			{
+				scsi_report_bus_reset(ahd->platform_data->host,
+									  channel - 'A');
+			}
+
 			break;
 
-		target_ppr_options =
-			(spi_dt(starget) ? MSG_EXT_PPR_DT_REQ : 0)
-			+ (spi_qas(starget) ? MSG_EXT_PPR_QAS_REQ : 0)
-			+ (spi_iu(starget) ?  MSG_EXT_PPR_IU_REQ : 0)
-			+ (spi_rd_strm(starget) ? MSG_EXT_PPR_RD_STRM : 0)
-			+ (spi_pcomp_en(starget) ? MSG_EXT_PPR_PCOMP_EN : 0)
-			+ (spi_rti(starget) ? MSG_EXT_PPR_RTI : 0)
-			+ (spi_wr_flow(starget) ? MSG_EXT_PPR_WR_FLOW : 0)
-			+ (spi_hold_mcs(starget) ? MSG_EXT_PPR_HOLD_MCS : 0);
-
-		if (tinfo->curr.period == spi_period(starget)
-		    && tinfo->curr.width == spi_width(starget)
-		    && tinfo->curr.offset == spi_offset(starget)
-		 && tinfo->curr.ppr_options == target_ppr_options)
-			if (bootverbose == 0)
-				break;
-
-		spi_period(starget) = tinfo->curr.period;
-		spi_width(starget) = tinfo->curr.width;
-		spi_offset(starget) = tinfo->curr.offset;
-		spi_dt(starget) = tinfo->curr.ppr_options & MSG_EXT_PPR_DT_REQ ? 1 : 0;
-		spi_qas(starget) = tinfo->curr.ppr_options & MSG_EXT_PPR_QAS_REQ ? 1 : 0;
-		spi_iu(starget) = tinfo->curr.ppr_options & MSG_EXT_PPR_IU_REQ ? 1 : 0;
-		spi_rd_strm(starget) = tinfo->curr.ppr_options & MSG_EXT_PPR_RD_STRM ? 1 : 0;
-		spi_pcomp_en(starget) =  tinfo->curr.ppr_options & MSG_EXT_PPR_PCOMP_EN ? 1 : 0;
-		spi_rti(starget) =  tinfo->curr.ppr_options &  MSG_EXT_PPR_RTI ? 1 : 0;
-		spi_wr_flow(starget) = tinfo->curr.ppr_options & MSG_EXT_PPR_WR_FLOW ? 1 : 0;
-		spi_hold_mcs(starget) = tinfo->curr.ppr_options & MSG_EXT_PPR_HOLD_MCS ? 1 : 0;
-		spi_display_xfer_agreement(starget);
-		break;
+		default:
+			panic("ahd_send_async: Unexpected async event");
 	}
-        case AC_SENT_BDR:
-	{
-		WARN_ON(lun != CAM_LUN_WILDCARD);
-		scsi_report_device_reset(ahd->platform_data->host,
-					 channel - 'A', target);
-		break;
-	}
-        case AC_BUS_RESET:
-		if (ahd->platform_data->host != NULL) {
-			scsi_report_bus_reset(ahd->platform_data->host,
-					      channel - 'A');
-		}
-                break;
-        default:
-                panic("ahd_send_async: Unexpected async event");
-        }
 }
 
 /*
@@ -1777,20 +2072,25 @@ ahd_done(struct ahd_softc *ahd, struct scb *scb)
 	struct scsi_cmnd *cmd;
 	struct	  ahd_linux_device *dev;
 
-	if ((scb->flags & SCB_ACTIVE) == 0) {
+	if ((scb->flags & SCB_ACTIVE) == 0)
+	{
 		printk("SCB %d done'd twice\n", SCB_GET_TAG(scb));
 		ahd_dump_card_state(ahd);
 		panic("Stopping for safety");
 	}
+
 	LIST_REMOVE(scb, pending_links);
 	cmd = scb->io_ctx;
 	dev = scb->platform_data->dev;
 	dev->active--;
 	dev->openings++;
-	if ((cmd->result & (CAM_DEV_QFRZN << 16)) != 0) {
+
+	if ((cmd->result & (CAM_DEV_QFRZN << 16)) != 0)
+	{
 		cmd->result &= ~(CAM_DEV_QFRZN << 16);
 		dev->qfrozen--;
 	}
+
 	ahd_linux_unmap_scb(ahd, scb);
 
 	/*
@@ -1800,55 +2100,75 @@ ahd_done(struct ahd_softc *ahd, struct scb *scb)
 	 * the sense buffer looks "sane".
 	 */
 	cmd->sense_buffer[0] = 0;
-	if (ahd_get_transaction_status(scb) == CAM_REQ_INPROG) {
+
+	if (ahd_get_transaction_status(scb) == CAM_REQ_INPROG)
+	{
 		uint32_t amount_xferred;
 
 		amount_xferred =
-		    ahd_get_transfer_length(scb) - ahd_get_residual(scb);
-		if ((scb->flags & SCB_TRANSMISSION_ERROR) != 0) {
+		ahd_get_transfer_length(scb) - ahd_get_residual(scb);
+
+		if ((scb->flags & SCB_TRANSMISSION_ERROR) != 0)
+		{
 #ifdef AHD_DEBUG
-			if ((ahd_debug & AHD_SHOW_MISC) != 0) {
+
+			if ((ahd_debug & AHD_SHOW_MISC) != 0)
+			{
 				ahd_print_path(ahd, scb);
 				printk("Set CAM_UNCOR_PARITY\n");
 			}
+
 #endif
 			ahd_set_transaction_status(scb, CAM_UNCOR_PARITY);
 #ifdef AHD_REPORT_UNDERFLOWS
-		/*
-		 * This code is disabled by default as some
-		 * clients of the SCSI system do not properly
-		 * initialize the underflow parameter.  This
-		 * results in spurious termination of commands
-		 * that complete as expected (e.g. underflow is
-		 * allowed as command can return variable amounts
-		 * of data.
-		 */
-		} else if (amount_xferred < scb->io_ctx->underflow) {
+			/*
+			 * This code is disabled by default as some
+			 * clients of the SCSI system do not properly
+			 * initialize the underflow parameter.  This
+			 * results in spurious termination of commands
+			 * that complete as expected (e.g. underflow is
+			 * allowed as command can return variable amounts
+			 * of data.
+			 */
+		}
+		else if (amount_xferred < scb->io_ctx->underflow)
+		{
 			u_int i;
 
 			ahd_print_path(ahd, scb);
 			printk("CDB:");
+
 			for (i = 0; i < scb->io_ctx->cmd_len; i++)
+			{
 				printk(" 0x%x", scb->io_ctx->cmnd[i]);
+			}
+
 			printk("\n");
 			ahd_print_path(ahd, scb);
 			printk("Saw underflow (%ld of %ld bytes). "
-			       "Treated as error\n",
-				ahd_get_residual(scb),
-				ahd_get_transfer_length(scb));
+				   "Treated as error\n",
+				   ahd_get_residual(scb),
+				   ahd_get_transfer_length(scb));
 			ahd_set_transaction_status(scb, CAM_DATA_RUN_ERR);
 #endif
-		} else {
+		}
+		else
+		{
 			ahd_set_transaction_status(scb, CAM_REQ_CMP);
 		}
-	} else if (ahd_get_transaction_status(scb) == CAM_SCSI_STATUS_ERROR) {
+	}
+	else if (ahd_get_transaction_status(scb) == CAM_SCSI_STATUS_ERROR)
+	{
 		ahd_linux_handle_scsi_status(ahd, cmd->device, scb);
 	}
 
 	if (dev->openings == 1
-	 && ahd_get_transaction_status(scb) == CAM_REQ_CMP
-	 && ahd_get_scsi_status(scb) != SCSI_STATUS_QUEUE_FULL)
+		&& ahd_get_transaction_status(scb) == CAM_REQ_CMP
+		&& ahd_get_scsi_status(scb) != SCSI_STATUS_QUEUE_FULL)
+	{
 		dev->tag_success_count++;
+	}
+
 	/*
 	 * Some devices deal with temporary internal resource
 	 * shortages by returning queue full.  When the queue
@@ -1856,22 +2176,31 @@ ahd_done(struct ahd_softc *ahd, struct scb *scb)
 	 * back to our previous queue depth.
 	 */
 	if ((dev->openings + dev->active) < dev->maxtags
-	 && dev->tag_success_count > AHD_TAG_SUCCESS_INTERVAL) {
+										&& dev->tag_success_count > AHD_TAG_SUCCESS_INTERVAL)
+	{
 		dev->tag_success_count = 0;
 		dev->openings++;
 	}
 
 	if (dev->active == 0)
+	{
 		dev->commands_since_idle_or_otag = 0;
+	}
 
-	if ((scb->flags & SCB_RECOVERY_SCB) != 0) {
+	if ((scb->flags & SCB_RECOVERY_SCB) != 0)
+	{
 		printk("Recovery SCB completes\n");
+
 		if (ahd_get_transaction_status(scb) == CAM_BDR_SENT
-		 || ahd_get_transaction_status(scb) == CAM_REQ_ABORTED)
+			|| ahd_get_transaction_status(scb) == CAM_REQ_ABORTED)
+		{
 			ahd_set_transaction_status(scb, CAM_CMD_TIMEOUT);
+		}
 
 		if (ahd->platform_data->eh_done)
+		{
 			complete(ahd->platform_data->eh_done);
+		}
 	}
 
 	ahd_free_scb(ahd, scb);
@@ -1880,17 +2209,17 @@ ahd_done(struct ahd_softc *ahd, struct scb *scb)
 
 static void
 ahd_linux_handle_scsi_status(struct ahd_softc *ahd,
-			     struct scsi_device *sdev, struct scb *scb)
+							 struct scsi_device *sdev, struct scb *scb)
 {
 	struct	ahd_devinfo devinfo;
 	struct ahd_linux_device *dev = scsi_transport_device_data(sdev);
 
 	ahd_compile_devinfo(&devinfo,
-			    ahd->our_id,
-			    sdev->sdev_target->id, sdev->lun,
-			    sdev->sdev_target->channel == 0 ? 'A' : 'B',
-			    ROLE_INITIATOR);
-	
+						ahd->our_id,
+						sdev->sdev_target->id, sdev->lun,
+						sdev->sdev_target->channel == 0 ? 'A' : 'B',
+						ROLE_INITIATOR);
+
 	/*
 	 * We don't currently trust the mid-layer to
 	 * properly deal with queue full or busy.  So,
@@ -1901,126 +2230,157 @@ ahd_linux_handle_scsi_status(struct ahd_softc *ahd,
 	 * we don't clobber the device with too many
 	 * commands.
 	 */
-	switch (ahd_get_scsi_status(scb)) {
-	default:
-		break;
-	case SCSI_STATUS_CHECK_COND:
-	case SCSI_STATUS_CMD_TERMINATED:
+	switch (ahd_get_scsi_status(scb))
 	{
-		struct scsi_cmnd *cmd;
-
-		/*
-		 * Copy sense information to the OS's cmd
-		 * structure if it is available.
-		 */
-		cmd = scb->io_ctx;
-		if ((scb->flags & (SCB_SENSE|SCB_PKT_SENSE)) != 0) {
-			struct scsi_status_iu_header *siu;
-			u_int sense_size;
-			u_int sense_offset;
-
-			if (scb->flags & SCB_SENSE) {
-				sense_size = min(sizeof(struct scsi_sense_data)
-					       - ahd_get_sense_residual(scb),
-						 (u_long)SCSI_SENSE_BUFFERSIZE);
-				sense_offset = 0;
-			} else {
-				/*
-				 * Copy only the sense data into the provided
-				 * buffer.
-				 */
-				siu = (struct scsi_status_iu_header *)
-				    scb->sense_data;
-				sense_size = min_t(size_t,
-						scsi_4btoul(siu->sense_length),
-						SCSI_SENSE_BUFFERSIZE);
-				sense_offset = SIU_SENSE_OFFSET(siu);
-			}
-
-			memset(cmd->sense_buffer, 0, SCSI_SENSE_BUFFERSIZE);
-			memcpy(cmd->sense_buffer,
-			       ahd_get_sense_buf(ahd, scb)
-			       + sense_offset, sense_size);
-			cmd->result |= (DRIVER_SENSE << 24);
-
-#ifdef AHD_DEBUG
-			if (ahd_debug & AHD_SHOW_SENSE) {
-				int i;
-
-				printk("Copied %d bytes of sense data at %d:",
-				       sense_size, sense_offset);
-				for (i = 0; i < sense_size; i++) {
-					if ((i & 0xF) == 0)
-						printk("\n");
-					printk("0x%x ", cmd->sense_buffer[i]);
-				}
-				printk("\n");
-			}
-#endif
-		}
-		break;
-	}
-	case SCSI_STATUS_QUEUE_FULL:
-		/*
-		 * By the time the core driver has returned this
-		 * command, all other commands that were queued
-		 * to us but not the device have been returned.
-		 * This ensures that dev->active is equal to
-		 * the number of commands actually queued to
-		 * the device.
-		 */
-		dev->tag_success_count = 0;
-		if (dev->active != 0) {
-			/*
-			 * Drop our opening count to the number
-			 * of commands currently outstanding.
-			 */
-			dev->openings = 0;
-#ifdef AHD_DEBUG
-			if ((ahd_debug & AHD_SHOW_QFULL) != 0) {
-				ahd_print_path(ahd, scb);
-				printk("Dropping tag count to %d\n",
-				       dev->active);
-			}
-#endif
-			if (dev->active == dev->tags_on_last_queuefull) {
-
-				dev->last_queuefull_same_count++;
-				/*
-				 * If we repeatedly see a queue full
-				 * at the same queue depth, this
-				 * device has a fixed number of tag
-				 * slots.  Lock in this tag depth
-				 * so we stop seeing queue fulls from
-				 * this device.
-				 */
-				if (dev->last_queuefull_same_count
-				 == AHD_LOCK_TAGS_COUNT) {
-					dev->maxtags = dev->active;
-					ahd_print_path(ahd, scb);
-					printk("Locking max tag count at %d\n",
-					       dev->active);
-				}
-			} else {
-				dev->tags_on_last_queuefull = dev->active;
-				dev->last_queuefull_same_count = 0;
-			}
-			ahd_set_transaction_status(scb, CAM_REQUEUE_REQ);
-			ahd_set_scsi_status(scb, SCSI_STATUS_OK);
-			ahd_platform_set_tags(ahd, sdev, &devinfo,
-				     (dev->flags & AHD_DEV_Q_BASIC)
-				   ? AHD_QUEUE_BASIC : AHD_QUEUE_TAGGED);
+		default:
 			break;
-		}
-		/*
-		 * Drop down to a single opening, and treat this
-		 * as if the target returned BUSY SCSI status.
-		 */
-		dev->openings = 1;
-		ahd_platform_set_tags(ahd, sdev, &devinfo,
-			     (dev->flags & AHD_DEV_Q_BASIC)
-			   ? AHD_QUEUE_BASIC : AHD_QUEUE_TAGGED);
-		ahd_set_scsi_status(scb, SCSI_STATUS_BUSY);
+
+		case SCSI_STATUS_CHECK_COND:
+		case SCSI_STATUS_CMD_TERMINATED:
+			{
+				struct scsi_cmnd *cmd;
+
+				/*
+				 * Copy sense information to the OS's cmd
+				 * structure if it is available.
+				 */
+				cmd = scb->io_ctx;
+
+				if ((scb->flags & (SCB_SENSE | SCB_PKT_SENSE)) != 0)
+				{
+					struct scsi_status_iu_header *siu;
+					u_int sense_size;
+					u_int sense_offset;
+
+					if (scb->flags & SCB_SENSE)
+					{
+						sense_size = min(sizeof(struct scsi_sense_data)
+										 - ahd_get_sense_residual(scb),
+										 (u_long)SCSI_SENSE_BUFFERSIZE);
+						sense_offset = 0;
+					}
+					else
+					{
+						/*
+						 * Copy only the sense data into the provided
+						 * buffer.
+						 */
+						siu = (struct scsi_status_iu_header *)
+						scb->sense_data;
+						sense_size = min_t(size_t,
+										   scsi_4btoul(siu->sense_length),
+										   SCSI_SENSE_BUFFERSIZE);
+						sense_offset = SIU_SENSE_OFFSET(siu);
+					}
+
+					memset(cmd->sense_buffer, 0, SCSI_SENSE_BUFFERSIZE);
+					memcpy(cmd->sense_buffer,
+						   ahd_get_sense_buf(ahd, scb)
+						   + sense_offset, sense_size);
+					cmd->result |= (DRIVER_SENSE << 24);
+
+#ifdef AHD_DEBUG
+
+					if (ahd_debug & AHD_SHOW_SENSE)
+					{
+						int i;
+
+						printk("Copied %d bytes of sense data at %d:",
+							   sense_size, sense_offset);
+
+						for (i = 0; i < sense_size; i++)
+						{
+							if ((i & 0xF) == 0)
+							{
+								printk("\n");
+							}
+
+							printk("0x%x ", cmd->sense_buffer[i]);
+						}
+
+						printk("\n");
+					}
+
+#endif
+				}
+
+				break;
+			}
+
+		case SCSI_STATUS_QUEUE_FULL:
+			/*
+			 * By the time the core driver has returned this
+			 * command, all other commands that were queued
+			 * to us but not the device have been returned.
+			 * This ensures that dev->active is equal to
+			 * the number of commands actually queued to
+			 * the device.
+			 */
+			dev->tag_success_count = 0;
+
+			if (dev->active != 0)
+			{
+				/*
+				 * Drop our opening count to the number
+				 * of commands currently outstanding.
+				 */
+				dev->openings = 0;
+#ifdef AHD_DEBUG
+
+				if ((ahd_debug & AHD_SHOW_QFULL) != 0)
+				{
+					ahd_print_path(ahd, scb);
+					printk("Dropping tag count to %d\n",
+						   dev->active);
+				}
+
+#endif
+
+				if (dev->active == dev->tags_on_last_queuefull)
+				{
+
+					dev->last_queuefull_same_count++;
+
+					/*
+					 * If we repeatedly see a queue full
+					 * at the same queue depth, this
+					 * device has a fixed number of tag
+					 * slots.  Lock in this tag depth
+					 * so we stop seeing queue fulls from
+					 * this device.
+					 */
+					if (dev->last_queuefull_same_count
+						== AHD_LOCK_TAGS_COUNT)
+					{
+						dev->maxtags = dev->active;
+						ahd_print_path(ahd, scb);
+						printk("Locking max tag count at %d\n",
+							   dev->active);
+					}
+				}
+				else
+				{
+					dev->tags_on_last_queuefull = dev->active;
+					dev->last_queuefull_same_count = 0;
+				}
+
+				ahd_set_transaction_status(scb, CAM_REQUEUE_REQ);
+				ahd_set_scsi_status(scb, SCSI_STATUS_OK);
+				ahd_platform_set_tags(ahd, sdev, &devinfo,
+									  (dev->flags & AHD_DEV_Q_BASIC)
+									  ? AHD_QUEUE_BASIC : AHD_QUEUE_TAGGED);
+				break;
+			}
+
+			/*
+			 * Drop down to a single opening, and treat this
+			 * as if the target returned BUSY SCSI status.
+			 */
+			dev->openings = 1;
+			ahd_platform_set_tags(ahd, sdev, &devinfo,
+								  (dev->flags & AHD_DEV_Q_BASIC)
+								  ? AHD_QUEUE_BASIC : AHD_QUEUE_TAGGED);
+			ahd_set_scsi_status(scb, SCSI_STATUS_BUSY);
 	}
 }
 
@@ -2040,91 +2400,117 @@ ahd_linux_queue_cmd_complete(struct ahd_softc *ahd, struct scsi_cmnd *cmd)
 	 */
 
 	status = ahd_cmd_get_transaction_status(cmd);
-	switch (status) {
-	case CAM_REQ_INPROG:
-	case CAM_REQ_CMP:
-		new_status = DID_OK;
-		break;
-	case CAM_AUTOSENSE_FAIL:
-		new_status = DID_ERROR;
-		/* Fallthrough */
-	case CAM_SCSI_STATUS_ERROR:
-		scsi_status = ahd_cmd_get_scsi_status(cmd);
 
-		switch(scsi_status) {
-		case SCSI_STATUS_CMD_TERMINATED:
-		case SCSI_STATUS_CHECK_COND:
-			if ((cmd->result >> 24) != DRIVER_SENSE) {
-				do_fallback = 1;
-			} else {
-				struct scsi_sense_data *sense;
-				
-				sense = (struct scsi_sense_data *)
-					cmd->sense_buffer;
-				if (sense->extra_len >= 5 &&
-				    (sense->add_sense_code == 0x47
-				     || sense->add_sense_code == 0x48))
-					do_fallback = 1;
+	switch (status)
+	{
+		case CAM_REQ_INPROG:
+		case CAM_REQ_CMP:
+			new_status = DID_OK;
+			break;
+
+		case CAM_AUTOSENSE_FAIL:
+			new_status = DID_ERROR;
+
+		/* Fallthrough */
+		case CAM_SCSI_STATUS_ERROR:
+			scsi_status = ahd_cmd_get_scsi_status(cmd);
+
+			switch (scsi_status)
+			{
+				case SCSI_STATUS_CMD_TERMINATED:
+				case SCSI_STATUS_CHECK_COND:
+					if ((cmd->result >> 24) != DRIVER_SENSE)
+					{
+						do_fallback = 1;
+					}
+					else
+					{
+						struct scsi_sense_data *sense;
+
+						sense = (struct scsi_sense_data *)
+						cmd->sense_buffer;
+
+						if (sense->extra_len >= 5 &&
+							(sense->add_sense_code == 0x47
+							 || sense->add_sense_code == 0x48))
+						{
+							do_fallback = 1;
+						}
+					}
+
+					break;
+
+				default:
+					break;
 			}
+
 			break;
+
+		case CAM_REQ_ABORTED:
+			new_status = DID_ABORT;
+			break;
+
+		case CAM_BUSY:
+			new_status = DID_BUS_BUSY;
+			break;
+
+		case CAM_REQ_INVALID:
+		case CAM_PATH_INVALID:
+			new_status = DID_BAD_TARGET;
+			break;
+
+		case CAM_SEL_TIMEOUT:
+			new_status = DID_NO_CONNECT;
+			break;
+
+		case CAM_SCSI_BUS_RESET:
+		case CAM_BDR_SENT:
+			new_status = DID_RESET;
+			break;
+
+		case CAM_UNCOR_PARITY:
+			new_status = DID_PARITY;
+			do_fallback = 1;
+			break;
+
+		case CAM_CMD_TIMEOUT:
+			new_status = DID_TIME_OUT;
+			do_fallback = 1;
+			break;
+
+		case CAM_REQ_CMP_ERR:
+		case CAM_UNEXP_BUSFREE:
+		case CAM_DATA_RUN_ERR:
+			new_status = DID_ERROR;
+			do_fallback = 1;
+			break;
+
+		case CAM_UA_ABORT:
+		case CAM_NO_HBA:
+		case CAM_SEQUENCE_FAIL:
+		case CAM_CCB_LEN_ERR:
+		case CAM_PROVIDE_FAIL:
+		case CAM_REQ_TERMIO:
+		case CAM_UNREC_HBA_ERROR:
+		case CAM_REQ_TOO_BIG:
+			new_status = DID_ERROR;
+			break;
+
+		case CAM_REQUEUE_REQ:
+			new_status = DID_REQUEUE;
+			break;
+
 		default:
+			/* We should never get here */
+			new_status = DID_ERROR;
 			break;
-		}
-		break;
-	case CAM_REQ_ABORTED:
-		new_status = DID_ABORT;
-		break;
-	case CAM_BUSY:
-		new_status = DID_BUS_BUSY;
-		break;
-	case CAM_REQ_INVALID:
-	case CAM_PATH_INVALID:
-		new_status = DID_BAD_TARGET;
-		break;
-	case CAM_SEL_TIMEOUT:
-		new_status = DID_NO_CONNECT;
-		break;
-	case CAM_SCSI_BUS_RESET:
-	case CAM_BDR_SENT:
-		new_status = DID_RESET;
-		break;
-	case CAM_UNCOR_PARITY:
-		new_status = DID_PARITY;
-		do_fallback = 1;
-		break;
-	case CAM_CMD_TIMEOUT:
-		new_status = DID_TIME_OUT;
-		do_fallback = 1;
-		break;
-	case CAM_REQ_CMP_ERR:
-	case CAM_UNEXP_BUSFREE:
-	case CAM_DATA_RUN_ERR:
-		new_status = DID_ERROR;
-		do_fallback = 1;
-		break;
-	case CAM_UA_ABORT:
-	case CAM_NO_HBA:
-	case CAM_SEQUENCE_FAIL:
-	case CAM_CCB_LEN_ERR:
-	case CAM_PROVIDE_FAIL:
-	case CAM_REQ_TERMIO:
-	case CAM_UNREC_HBA_ERROR:
-	case CAM_REQ_TOO_BIG:
-		new_status = DID_ERROR;
-		break;
-	case CAM_REQUEUE_REQ:
-		new_status = DID_REQUEUE;
-		break;
-	default:
-		/* We should never get here */
-		new_status = DID_ERROR;
-		break;
 	}
 
-	if (do_fallback) {
+	if (do_fallback)
+	{
 		printk("%s: device overrun (status %x) on %d:%d:%d\n",
-		       ahd_name(ahd), status, cmd->device->channel,
-		       cmd->device->id, (u8)cmd->device->lun);
+			   ahd_name(ahd), status, cmd->device->channel,
+			   cmd->device->id, (u8)cmd->device->lun);
 	}
 
 	ahd_cmd_set_transaction_status(cmd, new_status);
@@ -2169,11 +2555,15 @@ ahd_linux_queue_abort_cmd(struct scsi_cmnd *cmd)
 	ahd = *(struct ahd_softc **)cmd->device->host->hostdata;
 
 	scmd_printk(KERN_INFO, cmd,
-		    "Attempting to queue an ABORT message:");
+				"Attempting to queue an ABORT message:");
 
 	printk("CDB:");
+
 	for (cdb_byte = 0; cdb_byte < cmd->cmd_len; cdb_byte++)
+	{
 		printk(" 0x%x", cmd->cmnd[cdb_byte]);
+	}
+
 	printk("\n");
 
 	ahd_lock(ahd, &flags);
@@ -2187,7 +2577,8 @@ ahd_linux_queue_abort_cmd(struct scsi_cmnd *cmd)
 	 */
 	dev = scsi_transport_device_data(cmd->device);
 
-	if (dev == NULL) {
+	if (dev == NULL)
+	{
 		/*
 		 * No target device for this command exists,
 		 * so we must not still own the command.
@@ -2200,17 +2591,22 @@ ahd_linux_queue_abort_cmd(struct scsi_cmnd *cmd)
 	/*
 	 * See if we can find a matching cmd in the pending list.
 	 */
-	LIST_FOREACH(pending_scb, &ahd->pending_scbs, pending_links) {
+	LIST_FOREACH(pending_scb, &ahd->pending_scbs, pending_links)
+	{
 		if (pending_scb->io_ctx == cmd)
+		{
 			break;
+		}
 	}
 
-	if (pending_scb == NULL) {
+	if (pending_scb == NULL)
+	{
 		scmd_printk(KERN_INFO, cmd, "Command not found\n");
 		goto no_cmd;
 	}
 
-	if ((pending_scb->flags & SCB_RECOVERY_SCB) != 0) {
+	if ((pending_scb->flags & SCB_RECOVERY_SCB) != 0)
+	{
 		/*
 		 * We can't queue two recovery actions using the same SCB
 		 */
@@ -2228,25 +2624,28 @@ ahd_linux_queue_abort_cmd(struct scsi_cmnd *cmd)
 	ahd_pause_and_flushwork(ahd);
 	paused = TRUE;
 
-	if ((pending_scb->flags & SCB_ACTIVE) == 0) {
+	if ((pending_scb->flags & SCB_ACTIVE) == 0)
+	{
 		scmd_printk(KERN_INFO, cmd, "Command already completed\n");
 		goto no_cmd;
 	}
 
 	printk("%s: At time of recovery, card was %spaused\n",
-	       ahd_name(ahd), was_paused ? "" : "not ");
+		   ahd_name(ahd), was_paused ? "" : "not ");
 	ahd_dump_card_state(ahd);
 
 	disconnected = TRUE;
-	if (ahd_search_qinfifo(ahd, cmd->device->id, 
-			       cmd->device->channel + 'A',
-			       cmd->device->lun,
-			       pending_scb->hscb->tag,
-			       ROLE_INITIATOR, CAM_REQ_ABORTED,
-			       SEARCH_COMPLETE) > 0) {
+
+	if (ahd_search_qinfifo(ahd, cmd->device->id,
+						   cmd->device->channel + 'A',
+						   cmd->device->lun,
+						   pending_scb->hscb->tag,
+						   ROLE_INITIATOR, CAM_REQ_ABORTED,
+						   SEARCH_COMPLETE) > 0)
+	{
 		printk("%s:%d:%d:%d: Cmd aborted from QINFIFO\n",
-		       ahd_name(ahd), cmd->device->channel, 
-		       cmd->device->id, (u8)cmd->device->lun);
+			   ahd_name(ahd), cmd->device->channel,
+			   cmd->device->id, (u8)cmd->device->lun);
 		retval = SUCCESS;
 		goto done;
 	}
@@ -2256,12 +2655,17 @@ ahd_linux_queue_abort_cmd(struct scsi_cmnd *cmd)
 	last_phase = ahd_inb(ahd, LASTPHASE);
 	saved_scbptr = ahd_get_scbptr(ahd);
 	active_scbptr = saved_scbptr;
-	if (disconnected && (ahd_inb(ahd, SEQ_FLAGS) & NOT_IDENTIFIED) == 0) {
+
+	if (disconnected && (ahd_inb(ahd, SEQ_FLAGS) & NOT_IDENTIFIED) == 0)
+	{
 		struct scb *bus_scb;
 
 		bus_scb = ahd_lookup_scb(ahd, active_scbptr);
+
 		if (bus_scb == pending_scb)
+		{
 			disconnected = FALSE;
+		}
 	}
 
 	/*
@@ -2270,32 +2674,37 @@ ahd_linux_queue_abort_cmd(struct scsi_cmnd *cmd)
 	 * bus or is in the disconnected state.
 	 */
 	saved_scsiid = ahd_inb(ahd, SAVED_SCSIID);
+
 	if (last_phase != P_BUSFREE
-	    && SCB_GET_TAG(pending_scb) == active_scbptr) {
+		&& SCB_GET_TAG(pending_scb) == active_scbptr)
+	{
 
 		/*
 		 * We're active on the bus, so assert ATN
 		 * and hope that the target responds.
 		 */
 		pending_scb = ahd_lookup_scb(ahd, active_scbptr);
-		pending_scb->flags |= SCB_RECOVERY_SCB|SCB_ABORT;
+		pending_scb->flags |= SCB_RECOVERY_SCB | SCB_ABORT;
 		ahd_outb(ahd, MSG_OUT, HOST_MSG);
-		ahd_outb(ahd, SCSISIGO, last_phase|ATNO);
+		ahd_outb(ahd, SCSISIGO, last_phase | ATNO);
 		scmd_printk(KERN_INFO, cmd, "Device is active, asserting ATN\n");
 		wait = TRUE;
-	} else if (disconnected) {
+	}
+	else if (disconnected)
+	{
 
 		/*
 		 * Actually re-queue this SCB in an attempt
 		 * to select the device before it reconnects.
 		 */
-		pending_scb->flags |= SCB_RECOVERY_SCB|SCB_ABORT;
+		pending_scb->flags |= SCB_RECOVERY_SCB | SCB_ABORT;
 		ahd_set_scbptr(ahd, SCB_GET_TAG(pending_scb));
 		pending_scb->hscb->cdb_len = 0;
 		pending_scb->hscb->task_attribute = 0;
 		pending_scb->hscb->task_management = SIU_TASKMGMT_ABORT_TASK;
 
-		if ((pending_scb->flags & SCB_PACKETIZED) != 0) {
+		if ((pending_scb->flags & SCB_PACKETIZED) != 0)
+		{
 			/*
 			 * Mark the SCB has having an outstanding
 			 * task management function.  Should the command
@@ -2304,8 +2713,10 @@ ahd_linux_queue_abort_cmd(struct scsi_cmnd *cmd)
 			 * to abort our requeued SCB.
 			 */
 			ahd_outb(ahd, SCB_TASK_MANAGEMENT,
-				 pending_scb->hscb->task_management);
-		} else {
+					 pending_scb->hscb->task_management);
+		}
+		else
+		{
 			/*
 			 * If non-packetized, set the MK_MESSAGE control
 			 * bit indicating that we desire to send a message.
@@ -2315,7 +2726,7 @@ ahd_linux_queue_abort_cmd(struct scsi_cmnd *cmd)
 			 * sequencer to abort the command thinking an
 			 * unsolicited reselection occurred.
 			 */
-			pending_scb->hscb->control |= MK_MESSAGE|DISCONNECTED;
+			pending_scb->hscb->control |= MK_MESSAGE | DISCONNECTED;
 
 			/*
 			 * The sequencer will never re-reference the
@@ -2324,7 +2735,7 @@ ahd_linux_queue_abort_cmd(struct scsi_cmnd *cmd)
 			 * the card's copy of the SCB.
 			 */
 			ahd_outb(ahd, SCB_CONTROL,
-				 ahd_inb(ahd, SCB_CONTROL)|MK_MESSAGE);
+					 ahd_inb(ahd, SCB_CONTROL) | MK_MESSAGE);
 		}
 
 		/*
@@ -2333,15 +2744,17 @@ ahd_linux_queue_abort_cmd(struct scsi_cmnd *cmd)
 		 * to run.
 		 */
 		ahd_search_qinfifo(ahd, cmd->device->id,
-				   cmd->device->channel + 'A', cmd->device->lun,
-				   SCB_LIST_NULL, ROLE_INITIATOR,
-				   CAM_REQUEUE_REQ, SEARCH_COMPLETE);
+						   cmd->device->channel + 'A', cmd->device->lun,
+						   SCB_LIST_NULL, ROLE_INITIATOR,
+						   CAM_REQUEUE_REQ, SEARCH_COMPLETE);
 		ahd_qinfifo_requeue_tail(ahd, pending_scb);
 		ahd_set_scbptr(ahd, saved_scbptr);
 		ahd_print_path(ahd, pending_scb);
 		printk("Device is disconnected, re-queuing SCB\n");
 		wait = TRUE;
-	} else {
+	}
+	else
+	{
 		scmd_printk(KERN_INFO, cmd, "Unable to deliver message\n");
 		retval = FAILED;
 		goto done;
@@ -2356,30 +2769,41 @@ no_cmd:
 	 */
 	retval = SUCCESS;
 done:
+
 	if (paused)
+	{
 		ahd_unpause(ahd);
-	if (wait) {
+	}
+
+	if (wait)
+	{
 		DECLARE_COMPLETION_ONSTACK(done);
 
 		ahd->platform_data->eh_done = &done;
 		ahd_unlock(ahd, &flags);
 
 		printk("%s: Recovery code sleeping\n", ahd_name(ahd));
-		if (!wait_for_completion_timeout(&done, 5 * HZ)) {
+
+		if (!wait_for_completion_timeout(&done, 5 * HZ))
+		{
 			ahd_lock(ahd, &flags);
 			ahd->platform_data->eh_done = NULL;
 			ahd_unlock(ahd, &flags);
 			printk("%s: Timer Expired (active %d)\n",
-			       ahd_name(ahd), dev->active);
+				   ahd_name(ahd), dev->active);
 			retval = FAILED;
 		}
+
 		printk("Recovery code awake\n");
-	} else
+	}
+	else
+	{
 		ahd_unlock(ahd, &flags);
+	}
 
 	if (retval != SUCCESS)
 		printk("%s: Command abort returning 0x%x\n",
-		       ahd_name(ahd), retval);
+			   ahd_name(ahd), retval);
 
 	return retval;
 }
@@ -2392,7 +2816,7 @@ static void ahd_linux_set_width(struct scsi_target *starget, int width)
 	unsigned long flags;
 
 	ahd_compile_devinfo(&devinfo, shost->this_id, starget->id, 0,
-			    starget->channel + 'A', ROLE_INITIATOR);
+						starget->channel + 'A', ROLE_INITIATOR);
 	ahd_lock(ahd, &flags);
 	ahd_set_width(ahd, &devinfo, width, AHD_TRANS_GOAL, FALSE);
 	ahd_unlock(ahd, &flags);
@@ -2403,10 +2827,10 @@ static void ahd_linux_set_period(struct scsi_target *starget, int period)
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
 	struct ahd_softc *ahd = *((struct ahd_softc **)shost->hostdata);
 	struct ahd_tmode_tstate *tstate;
-	struct ahd_initiator_tinfo *tinfo 
-		= ahd_fetch_transinfo(ahd,
-				      starget->channel + 'A',
-				      shost->this_id, starget->id, &tstate);
+	struct ahd_initiator_tinfo *tinfo
+	= ahd_fetch_transinfo(ahd,
+						  starget->channel + 'A',
+						  shost->this_id, starget->id, &tstate);
 	struct ahd_devinfo devinfo;
 	unsigned int ppr_options = tinfo->goal.ppr_options;
 	unsigned int dt;
@@ -2414,40 +2838,61 @@ static void ahd_linux_set_period(struct scsi_target *starget, int period)
 	unsigned long offset = tinfo->goal.offset;
 
 #ifdef AHD_DEBUG
+
 	if ((ahd_debug & AHD_SHOW_DV) != 0)
+	{
 		printk("%s: set period to %d\n", ahd_name(ahd), period);
+	}
+
 #endif
+
 	if (offset == 0)
+	{
 		offset = MAX_OFFSET;
+	}
 
 	if (period < 8)
+	{
 		period = 8;
-	if (period < 10) {
-		if (spi_max_width(starget)) {
+	}
+
+	if (period < 10)
+	{
+		if (spi_max_width(starget))
+		{
 			ppr_options |= MSG_EXT_PPR_DT_REQ;
+
 			if (period == 8)
+			{
 				ppr_options |= MSG_EXT_PPR_IU_REQ;
-		} else
+			}
+		}
+		else
+		{
 			period = 10;
+		}
 	}
 
 	dt = ppr_options & MSG_EXT_PPR_DT_REQ;
 
 	ahd_compile_devinfo(&devinfo, shost->this_id, starget->id, 0,
-			    starget->channel + 'A', ROLE_INITIATOR);
+						starget->channel + 'A', ROLE_INITIATOR);
 
 	/* all PPR requests apart from QAS require wide transfers */
-	if (ppr_options & ~MSG_EXT_PPR_QAS_REQ) {
+	if (ppr_options & ~MSG_EXT_PPR_QAS_REQ)
+	{
 		if (spi_width(starget) == 0)
+		{
 			ppr_options &= MSG_EXT_PPR_QAS_REQ;
+		}
 	}
 
 	ahd_find_syncrate(ahd, &period, &ppr_options,
-			  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
+					  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
 
 	ahd_lock(ahd, &flags);
 	ahd_set_syncrate(ahd, &devinfo, period, offset,
-			 ppr_options, AHD_TRANS_GOAL, FALSE);
+					 ppr_options, AHD_TRANS_GOAL, FALSE);
 	ahd_unlock(ahd, &flags);
 }
 
@@ -2456,10 +2901,10 @@ static void ahd_linux_set_offset(struct scsi_target *starget, int offset)
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
 	struct ahd_softc *ahd = *((struct ahd_softc **)shost->hostdata);
 	struct ahd_tmode_tstate *tstate;
-	struct ahd_initiator_tinfo *tinfo 
-		= ahd_fetch_transinfo(ahd,
-				      starget->channel + 'A',
-				      shost->this_id, starget->id, &tstate);
+	struct ahd_initiator_tinfo *tinfo
+	= ahd_fetch_transinfo(ahd,
+						  starget->channel + 'A',
+						  shost->this_id, starget->id, &tstate);
 	struct ahd_devinfo devinfo;
 	unsigned int ppr_options = 0;
 	unsigned int period = 0;
@@ -2467,22 +2912,28 @@ static void ahd_linux_set_offset(struct scsi_target *starget, int offset)
 	unsigned long flags;
 
 #ifdef AHD_DEBUG
+
 	if ((ahd_debug & AHD_SHOW_DV) != 0)
+	{
 		printk("%s: set offset to %d\n", ahd_name(ahd), offset);
+	}
+
 #endif
 
 	ahd_compile_devinfo(&devinfo, shost->this_id, starget->id, 0,
-			    starget->channel + 'A', ROLE_INITIATOR);
-	if (offset != 0) {
+						starget->channel + 'A', ROLE_INITIATOR);
+
+	if (offset != 0)
+	{
 		period = tinfo->goal.period;
 		ppr_options = tinfo->goal.ppr_options;
-		ahd_find_syncrate(ahd, &period, &ppr_options, 
-				  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
+		ahd_find_syncrate(ahd, &period, &ppr_options,
+						  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
 	}
 
 	ahd_lock(ahd, &flags);
 	ahd_set_syncrate(ahd, &devinfo, period, offset, ppr_options,
-			 AHD_TRANS_GOAL, FALSE);
+					 AHD_TRANS_GOAL, FALSE);
 	ahd_unlock(ahd, &flags);
 }
 
@@ -2491,40 +2942,53 @@ static void ahd_linux_set_dt(struct scsi_target *starget, int dt)
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
 	struct ahd_softc *ahd = *((struct ahd_softc **)shost->hostdata);
 	struct ahd_tmode_tstate *tstate;
-	struct ahd_initiator_tinfo *tinfo 
-		= ahd_fetch_transinfo(ahd,
-				      starget->channel + 'A',
-				      shost->this_id, starget->id, &tstate);
+	struct ahd_initiator_tinfo *tinfo
+	= ahd_fetch_transinfo(ahd,
+						  starget->channel + 'A',
+						  shost->this_id, starget->id, &tstate);
 	struct ahd_devinfo devinfo;
 	unsigned int ppr_options = tinfo->goal.ppr_options
-		& ~MSG_EXT_PPR_DT_REQ;
+	& ~MSG_EXT_PPR_DT_REQ;
 	unsigned int period = tinfo->goal.period;
 	unsigned int width = tinfo->goal.width;
 	unsigned long flags;
 
 #ifdef AHD_DEBUG
+
 	if ((ahd_debug & AHD_SHOW_DV) != 0)
 		printk("%s: %s DT\n", ahd_name(ahd),
-		       dt ? "enabling" : "disabling");
+			   dt ? "enabling" : "disabling");
+
 #endif
-	if (dt && spi_max_width(starget)) {
+
+	if (dt && spi_max_width(starget))
+	{
 		ppr_options |= MSG_EXT_PPR_DT_REQ;
+
 		if (!width)
+		{
 			ahd_linux_set_width(starget, 1);
-	} else {
+		}
+	}
+	else
+	{
 		if (period <= 9)
-			period = 10; /* If resetting DT, period must be >= 25ns */
+		{
+			period = 10;    /* If resetting DT, period must be >= 25ns */
+		}
+
 		/* IU is invalid without DT set */
 		ppr_options &= ~MSG_EXT_PPR_IU_REQ;
 	}
+
 	ahd_compile_devinfo(&devinfo, shost->this_id, starget->id, 0,
-			    starget->channel + 'A', ROLE_INITIATOR);
+						starget->channel + 'A', ROLE_INITIATOR);
 	ahd_find_syncrate(ahd, &period, &ppr_options,
-			  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
+					  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
 
 	ahd_lock(ahd, &flags);
 	ahd_set_syncrate(ahd, &devinfo, period, tinfo->goal.offset,
-			 ppr_options, AHD_TRANS_GOAL, FALSE);
+					 ppr_options, AHD_TRANS_GOAL, FALSE);
 	ahd_unlock(ahd, &flags);
 }
 
@@ -2533,37 +2997,40 @@ static void ahd_linux_set_qas(struct scsi_target *starget, int qas)
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
 	struct ahd_softc *ahd = *((struct ahd_softc **)shost->hostdata);
 	struct ahd_tmode_tstate *tstate;
-	struct ahd_initiator_tinfo *tinfo 
-		= ahd_fetch_transinfo(ahd,
-				      starget->channel + 'A',
-				      shost->this_id, starget->id, &tstate);
+	struct ahd_initiator_tinfo *tinfo
+	= ahd_fetch_transinfo(ahd,
+						  starget->channel + 'A',
+						  shost->this_id, starget->id, &tstate);
 	struct ahd_devinfo devinfo;
 	unsigned int ppr_options = tinfo->goal.ppr_options
-		& ~MSG_EXT_PPR_QAS_REQ;
+	& ~MSG_EXT_PPR_QAS_REQ;
 	unsigned int period = tinfo->goal.period;
 	unsigned int dt;
 	unsigned long flags;
 
 #ifdef AHD_DEBUG
+
 	if ((ahd_debug & AHD_SHOW_DV) != 0)
 		printk("%s: %s QAS\n", ahd_name(ahd),
-		       qas ? "enabling" : "disabling");
+			   qas ? "enabling" : "disabling");
+
 #endif
 
-	if (qas) {
-		ppr_options |= MSG_EXT_PPR_QAS_REQ; 
+	if (qas)
+	{
+		ppr_options |= MSG_EXT_PPR_QAS_REQ;
 	}
 
 	dt = ppr_options & MSG_EXT_PPR_DT_REQ;
 
 	ahd_compile_devinfo(&devinfo, shost->this_id, starget->id, 0,
-			    starget->channel + 'A', ROLE_INITIATOR);
+						starget->channel + 'A', ROLE_INITIATOR);
 	ahd_find_syncrate(ahd, &period, &ppr_options,
-			  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
+					  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
 
 	ahd_lock(ahd, &flags);
 	ahd_set_syncrate(ahd, &devinfo, period, tinfo->goal.offset,
-			 ppr_options, AHD_TRANS_GOAL, FALSE);
+					 ppr_options, AHD_TRANS_GOAL, FALSE);
 	ahd_unlock(ahd, &flags);
 }
 
@@ -2572,24 +3039,27 @@ static void ahd_linux_set_iu(struct scsi_target *starget, int iu)
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
 	struct ahd_softc *ahd = *((struct ahd_softc **)shost->hostdata);
 	struct ahd_tmode_tstate *tstate;
-	struct ahd_initiator_tinfo *tinfo 
-		= ahd_fetch_transinfo(ahd,
-				      starget->channel + 'A',
-				      shost->this_id, starget->id, &tstate);
+	struct ahd_initiator_tinfo *tinfo
+	= ahd_fetch_transinfo(ahd,
+						  starget->channel + 'A',
+						  shost->this_id, starget->id, &tstate);
 	struct ahd_devinfo devinfo;
 	unsigned int ppr_options = tinfo->goal.ppr_options
-		& ~MSG_EXT_PPR_IU_REQ;
+	& ~MSG_EXT_PPR_IU_REQ;
 	unsigned int period = tinfo->goal.period;
 	unsigned int dt;
 	unsigned long flags;
 
 #ifdef AHD_DEBUG
+
 	if ((ahd_debug & AHD_SHOW_DV) != 0)
 		printk("%s: %s IU\n", ahd_name(ahd),
-		       iu ? "enabling" : "disabling");
+			   iu ? "enabling" : "disabling");
+
 #endif
 
-	if (iu && spi_max_width(starget)) {
+	if (iu && spi_max_width(starget))
+	{
 		ppr_options |= MSG_EXT_PPR_IU_REQ;
 		ppr_options |= MSG_EXT_PPR_DT_REQ; /* IU requires DT */
 	}
@@ -2597,13 +3067,13 @@ static void ahd_linux_set_iu(struct scsi_target *starget, int iu)
 	dt = ppr_options & MSG_EXT_PPR_DT_REQ;
 
 	ahd_compile_devinfo(&devinfo, shost->this_id, starget->id, 0,
-			    starget->channel + 'A', ROLE_INITIATOR);
+						starget->channel + 'A', ROLE_INITIATOR);
 	ahd_find_syncrate(ahd, &period, &ppr_options,
-			  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
+					  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
 
 	ahd_lock(ahd, &flags);
 	ahd_set_syncrate(ahd, &devinfo, period, tinfo->goal.offset,
-			 ppr_options, AHD_TRANS_GOAL, FALSE);
+					 ppr_options, AHD_TRANS_GOAL, FALSE);
 	ahd_unlock(ahd, &flags);
 }
 
@@ -2612,34 +3082,38 @@ static void ahd_linux_set_rd_strm(struct scsi_target *starget, int rdstrm)
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
 	struct ahd_softc *ahd = *((struct ahd_softc **)shost->hostdata);
 	struct ahd_tmode_tstate *tstate;
-	struct ahd_initiator_tinfo *tinfo 
-		= ahd_fetch_transinfo(ahd,
-				      starget->channel + 'A',
-				      shost->this_id, starget->id, &tstate);
+	struct ahd_initiator_tinfo *tinfo
+	= ahd_fetch_transinfo(ahd,
+						  starget->channel + 'A',
+						  shost->this_id, starget->id, &tstate);
 	struct ahd_devinfo devinfo;
 	unsigned int ppr_options = tinfo->goal.ppr_options
-		& ~MSG_EXT_PPR_RD_STRM;
+	& ~MSG_EXT_PPR_RD_STRM;
 	unsigned int period = tinfo->goal.period;
 	unsigned int dt = ppr_options & MSG_EXT_PPR_DT_REQ;
 	unsigned long flags;
 
 #ifdef AHD_DEBUG
+
 	if ((ahd_debug & AHD_SHOW_DV) != 0)
 		printk("%s: %s Read Streaming\n", ahd_name(ahd),
-		       rdstrm  ? "enabling" : "disabling");
+			   rdstrm  ? "enabling" : "disabling");
+
 #endif
 
 	if (rdstrm && spi_max_width(starget))
+	{
 		ppr_options |= MSG_EXT_PPR_RD_STRM;
+	}
 
 	ahd_compile_devinfo(&devinfo, shost->this_id, starget->id, 0,
-			    starget->channel + 'A', ROLE_INITIATOR);
+						starget->channel + 'A', ROLE_INITIATOR);
 	ahd_find_syncrate(ahd, &period, &ppr_options,
-			  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
+					  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
 
 	ahd_lock(ahd, &flags);
 	ahd_set_syncrate(ahd, &devinfo, period, tinfo->goal.offset,
-			 ppr_options, AHD_TRANS_GOAL, FALSE);
+					 ppr_options, AHD_TRANS_GOAL, FALSE);
 	ahd_unlock(ahd, &flags);
 }
 
@@ -2648,34 +3122,38 @@ static void ahd_linux_set_wr_flow(struct scsi_target *starget, int wrflow)
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
 	struct ahd_softc *ahd = *((struct ahd_softc **)shost->hostdata);
 	struct ahd_tmode_tstate *tstate;
-	struct ahd_initiator_tinfo *tinfo 
-		= ahd_fetch_transinfo(ahd,
-				      starget->channel + 'A',
-				      shost->this_id, starget->id, &tstate);
+	struct ahd_initiator_tinfo *tinfo
+	= ahd_fetch_transinfo(ahd,
+						  starget->channel + 'A',
+						  shost->this_id, starget->id, &tstate);
 	struct ahd_devinfo devinfo;
 	unsigned int ppr_options = tinfo->goal.ppr_options
-		& ~MSG_EXT_PPR_WR_FLOW;
+	& ~MSG_EXT_PPR_WR_FLOW;
 	unsigned int period = tinfo->goal.period;
 	unsigned int dt = ppr_options & MSG_EXT_PPR_DT_REQ;
 	unsigned long flags;
 
 #ifdef AHD_DEBUG
+
 	if ((ahd_debug & AHD_SHOW_DV) != 0)
 		printk("%s: %s Write Flow Control\n", ahd_name(ahd),
-		       wrflow ? "enabling" : "disabling");
+			   wrflow ? "enabling" : "disabling");
+
 #endif
 
 	if (wrflow && spi_max_width(starget))
+	{
 		ppr_options |= MSG_EXT_PPR_WR_FLOW;
+	}
 
 	ahd_compile_devinfo(&devinfo, shost->this_id, starget->id, 0,
-			    starget->channel + 'A', ROLE_INITIATOR);
+						starget->channel + 'A', ROLE_INITIATOR);
 	ahd_find_syncrate(ahd, &period, &ppr_options,
-			  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
+					  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
 
 	ahd_lock(ahd, &flags);
 	ahd_set_syncrate(ahd, &devinfo, period, tinfo->goal.offset,
-			 ppr_options, AHD_TRANS_GOAL, FALSE);
+					 ppr_options, AHD_TRANS_GOAL, FALSE);
 	ahd_unlock(ahd, &flags);
 }
 
@@ -2684,42 +3162,51 @@ static void ahd_linux_set_rti(struct scsi_target *starget, int rti)
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
 	struct ahd_softc *ahd = *((struct ahd_softc **)shost->hostdata);
 	struct ahd_tmode_tstate *tstate;
-	struct ahd_initiator_tinfo *tinfo 
-		= ahd_fetch_transinfo(ahd,
-				      starget->channel + 'A',
-				      shost->this_id, starget->id, &tstate);
+	struct ahd_initiator_tinfo *tinfo
+	= ahd_fetch_transinfo(ahd,
+						  starget->channel + 'A',
+						  shost->this_id, starget->id, &tstate);
 	struct ahd_devinfo devinfo;
 	unsigned int ppr_options = tinfo->goal.ppr_options
-		& ~MSG_EXT_PPR_RTI;
+	& ~MSG_EXT_PPR_RTI;
 	unsigned int period = tinfo->goal.period;
 	unsigned int dt = ppr_options & MSG_EXT_PPR_DT_REQ;
 	unsigned long flags;
 
-	if ((ahd->features & AHD_RTI) == 0) {
+	if ((ahd->features & AHD_RTI) == 0)
+	{
 #ifdef AHD_DEBUG
+
 		if ((ahd_debug & AHD_SHOW_DV) != 0)
+		{
 			printk("%s: RTI not available\n", ahd_name(ahd));
+		}
+
 #endif
 		return;
 	}
 
 #ifdef AHD_DEBUG
+
 	if ((ahd_debug & AHD_SHOW_DV) != 0)
 		printk("%s: %s RTI\n", ahd_name(ahd),
-		       rti ? "enabling" : "disabling");
+			   rti ? "enabling" : "disabling");
+
 #endif
 
 	if (rti && spi_max_width(starget))
+	{
 		ppr_options |= MSG_EXT_PPR_RTI;
+	}
 
 	ahd_compile_devinfo(&devinfo, shost->this_id, starget->id, 0,
-			    starget->channel + 'A', ROLE_INITIATOR);
+						starget->channel + 'A', ROLE_INITIATOR);
 	ahd_find_syncrate(ahd, &period, &ppr_options,
-			  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
+					  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
 
 	ahd_lock(ahd, &flags);
 	ahd_set_syncrate(ahd, &devinfo, period, tinfo->goal.offset,
-			 ppr_options, AHD_TRANS_GOAL, FALSE);
+					 ppr_options, AHD_TRANS_GOAL, FALSE);
 	ahd_unlock(ahd, &flags);
 }
 
@@ -2728,48 +3215,57 @@ static void ahd_linux_set_pcomp_en(struct scsi_target *starget, int pcomp)
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
 	struct ahd_softc *ahd = *((struct ahd_softc **)shost->hostdata);
 	struct ahd_tmode_tstate *tstate;
-	struct ahd_initiator_tinfo *tinfo 
-		= ahd_fetch_transinfo(ahd,
-				      starget->channel + 'A',
-				      shost->this_id, starget->id, &tstate);
+	struct ahd_initiator_tinfo *tinfo
+	= ahd_fetch_transinfo(ahd,
+						  starget->channel + 'A',
+						  shost->this_id, starget->id, &tstate);
 	struct ahd_devinfo devinfo;
 	unsigned int ppr_options = tinfo->goal.ppr_options
-		& ~MSG_EXT_PPR_PCOMP_EN;
+	& ~MSG_EXT_PPR_PCOMP_EN;
 	unsigned int period = tinfo->goal.period;
 	unsigned int dt = ppr_options & MSG_EXT_PPR_DT_REQ;
 	unsigned long flags;
 
 #ifdef AHD_DEBUG
+
 	if ((ahd_debug & AHD_SHOW_DV) != 0)
 		printk("%s: %s Precompensation\n", ahd_name(ahd),
-		       pcomp ? "Enable" : "Disable");
+			   pcomp ? "Enable" : "Disable");
+
 #endif
 
-	if (pcomp && spi_max_width(starget)) {
+	if (pcomp && spi_max_width(starget))
+	{
 		uint8_t precomp;
 
-		if (ahd->unit < ARRAY_SIZE(aic79xx_iocell_info)) {
+		if (ahd->unit < ARRAY_SIZE(aic79xx_iocell_info))
+		{
 			const struct ahd_linux_iocell_opts *iocell_opts;
 
 			iocell_opts = &aic79xx_iocell_info[ahd->unit];
 			precomp = iocell_opts->precomp;
-		} else {
+		}
+		else
+		{
 			precomp = AIC79XX_DEFAULT_PRECOMP;
 		}
+
 		ppr_options |= MSG_EXT_PPR_PCOMP_EN;
 		AHD_SET_PRECOMP(ahd, precomp);
-	} else {
+	}
+	else
+	{
 		AHD_SET_PRECOMP(ahd, 0);
 	}
 
 	ahd_compile_devinfo(&devinfo, shost->this_id, starget->id, 0,
-			    starget->channel + 'A', ROLE_INITIATOR);
+						starget->channel + 'A', ROLE_INITIATOR);
 	ahd_find_syncrate(ahd, &period, &ppr_options,
-			  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
+					  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
 
 	ahd_lock(ahd, &flags);
 	ahd_set_syncrate(ahd, &devinfo, period, tinfo->goal.offset,
-			 ppr_options, AHD_TRANS_GOAL, FALSE);
+					 ppr_options, AHD_TRANS_GOAL, FALSE);
 	ahd_unlock(ahd, &flags);
 }
 
@@ -2778,28 +3274,30 @@ static void ahd_linux_set_hold_mcs(struct scsi_target *starget, int hold)
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
 	struct ahd_softc *ahd = *((struct ahd_softc **)shost->hostdata);
 	struct ahd_tmode_tstate *tstate;
-	struct ahd_initiator_tinfo *tinfo 
-		= ahd_fetch_transinfo(ahd,
-				      starget->channel + 'A',
-				      shost->this_id, starget->id, &tstate);
+	struct ahd_initiator_tinfo *tinfo
+	= ahd_fetch_transinfo(ahd,
+						  starget->channel + 'A',
+						  shost->this_id, starget->id, &tstate);
 	struct ahd_devinfo devinfo;
 	unsigned int ppr_options = tinfo->goal.ppr_options
-		& ~MSG_EXT_PPR_HOLD_MCS;
+	& ~MSG_EXT_PPR_HOLD_MCS;
 	unsigned int period = tinfo->goal.period;
 	unsigned int dt = ppr_options & MSG_EXT_PPR_DT_REQ;
 	unsigned long flags;
 
 	if (hold && spi_max_width(starget))
+	{
 		ppr_options |= MSG_EXT_PPR_HOLD_MCS;
+	}
 
 	ahd_compile_devinfo(&devinfo, shost->this_id, starget->id, 0,
-			    starget->channel + 'A', ROLE_INITIATOR);
+						starget->channel + 'A', ROLE_INITIATOR);
 	ahd_find_syncrate(ahd, &period, &ppr_options,
-			  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
+					  dt ? AHD_SYNCRATE_MAX : AHD_SYNCRATE_ULTRA2);
 
 	ahd_lock(ahd, &flags);
 	ahd_set_syncrate(ahd, &devinfo, period, tinfo->goal.offset,
-			 ppr_options, AHD_TRANS_GOAL, FALSE);
+					 ppr_options, AHD_TRANS_GOAL, FALSE);
 	ahd_unlock(ahd, &flags);
 }
 
@@ -2816,14 +3314,21 @@ static void ahd_linux_get_signalling(struct Scsi_Host *shost)
 	ahd_unlock(ahd, &flags);
 
 	if (mode & ENAB40)
+	{
 		spi_signalling(shost) = SPI_SIGNAL_LVD;
+	}
 	else if (mode & ENAB20)
+	{
 		spi_signalling(shost) = SPI_SIGNAL_SE;
+	}
 	else
+	{
 		spi_signalling(shost) = SPI_SIGNAL_UNKNOWN;
+	}
 }
 
-static struct spi_function_template ahd_linux_transport_functions = {
+static struct spi_function_template ahd_linux_transport_functions =
+{
 	.set_offset	= ahd_linux_set_offset,
 	.show_offset	= 1,
 	.set_period	= ahd_linux_set_period,
@@ -2858,19 +3363,28 @@ ahd_linux_init(void)
 	 * If we've been passed any parameters, process them now.
 	 */
 	if (aic79xx)
+	{
 		aic79xx_setup(aic79xx);
+	}
 
 	ahd_linux_transport_template =
-		spi_attach_transport(&ahd_linux_transport_functions);
+	spi_attach_transport(&ahd_linux_transport_functions);
+
 	if (!ahd_linux_transport_template)
+	{
 		return -ENODEV;
+	}
 
 	scsi_transport_reserve_device(ahd_linux_transport_template,
-				      sizeof(struct ahd_linux_device));
+								  sizeof(struct ahd_linux_device));
 
 	error = ahd_linux_pci_init();
+
 	if (error)
+	{
 		spi_release_transport(ahd_linux_transport_template);
+	}
+
 	return error;
 }
 

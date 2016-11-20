@@ -32,7 +32,8 @@ struct mipi_dsi_device;
  * @rx_len: length of @rx_buf
  * @rx_buf: data to be read, or NULL
  */
-struct mipi_dsi_msg {
+struct mipi_dsi_msg
+{
 	u8 channel;
 	u8 type;
 	u16 flags;
@@ -55,7 +56,8 @@ bool mipi_dsi_packet_format_is_long(u8 type);
  * @payload_length: number of bytes in the payload
  * @payload: a pointer to a buffer containing the payload, if any
  */
-struct mipi_dsi_packet {
+struct mipi_dsi_packet
+{
 	size_t size;
 	u8 header[4];
 	size_t payload_length;
@@ -63,7 +65,7 @@ struct mipi_dsi_packet {
 };
 
 int mipi_dsi_create_packet(struct mipi_dsi_packet *packet,
-			   const struct mipi_dsi_msg *msg);
+						   const struct mipi_dsi_msg *msg);
 
 /**
  * struct mipi_dsi_host_ops - DSI bus operations
@@ -83,13 +85,14 @@ int mipi_dsi_create_packet(struct mipi_dsi_packet *packet,
  * function will seldomly return anything other than the number of bytes
  * contained in the transmit buffer on success.
  */
-struct mipi_dsi_host_ops {
+struct mipi_dsi_host_ops
+{
 	int (*attach)(struct mipi_dsi_host *host,
-		      struct mipi_dsi_device *dsi);
+				  struct mipi_dsi_device *dsi);
 	int (*detach)(struct mipi_dsi_host *host,
-		      struct mipi_dsi_device *dsi);
+				  struct mipi_dsi_device *dsi);
 	ssize_t (*transfer)(struct mipi_dsi_host *host,
-			    const struct mipi_dsi_msg *msg);
+						const struct mipi_dsi_msg *msg);
 };
 
 /**
@@ -98,7 +101,8 @@ struct mipi_dsi_host_ops {
  * @ops: DSI host operations
  * @list: list management
  */
-struct mipi_dsi_host {
+struct mipi_dsi_host
+{
 	struct device *dev;
 	const struct mipi_dsi_host_ops *ops;
 	struct list_head list;
@@ -135,7 +139,8 @@ struct mipi_dsi_host *of_find_mipi_dsi_host_by_node(struct device_node *node);
 /* transmit data in low power */
 #define MIPI_DSI_MODE_LPM		BIT(11)
 
-enum mipi_dsi_pixel_format {
+enum mipi_dsi_pixel_format
+{
 	MIPI_DSI_FMT_RGB888,
 	MIPI_DSI_FMT_RGB666,
 	MIPI_DSI_FMT_RGB666_PACKED,
@@ -153,7 +158,8 @@ enum mipi_dsi_pixel_format {
  * This is populated and passed to mipi_dsi_device_new to create a new
  * DSI device
  */
-struct mipi_dsi_device_info {
+struct mipi_dsi_device_info
+{
 	char type[DSI_DEV_NAME_SIZE];
 	u32 channel;
 	struct device_node *node;
@@ -169,7 +175,8 @@ struct mipi_dsi_device_info {
  * @lanes: number of active data lanes
  * @mode_flags: DSI operation mode related flags
  */
-struct mipi_dsi_device {
+struct mipi_dsi_device
+{
 	struct mipi_dsi_host *host;
 	struct device dev;
 
@@ -197,16 +204,17 @@ static inline struct mipi_dsi_device *to_mipi_dsi_device(struct device *dev)
  */
 static inline int mipi_dsi_pixel_format_to_bpp(enum mipi_dsi_pixel_format fmt)
 {
-	switch (fmt) {
-	case MIPI_DSI_FMT_RGB888:
-	case MIPI_DSI_FMT_RGB666:
-		return 24;
+	switch (fmt)
+	{
+		case MIPI_DSI_FMT_RGB888:
+		case MIPI_DSI_FMT_RGB666:
+			return 24;
 
-	case MIPI_DSI_FMT_RGB666_PACKED:
-		return 18;
+		case MIPI_DSI_FMT_RGB666_PACKED:
+			return 18;
 
-	case MIPI_DSI_FMT_RGB565:
-		return 16;
+		case MIPI_DSI_FMT_RGB565:
+			return 16;
 	}
 
 	return -EINVAL;
@@ -214,7 +222,7 @@ static inline int mipi_dsi_pixel_format_to_bpp(enum mipi_dsi_pixel_format fmt)
 
 struct mipi_dsi_device *
 mipi_dsi_device_register_full(struct mipi_dsi_host *host,
-			      const struct mipi_dsi_device_info *info);
+							  const struct mipi_dsi_device_info *info);
 void mipi_dsi_device_unregister(struct mipi_dsi_device *dsi);
 struct mipi_dsi_device *of_find_mipi_dsi_device_by_node(struct device_node *np);
 int mipi_dsi_attach(struct mipi_dsi_device *dsi);
@@ -222,12 +230,12 @@ int mipi_dsi_detach(struct mipi_dsi_device *dsi);
 int mipi_dsi_shutdown_peripheral(struct mipi_dsi_device *dsi);
 int mipi_dsi_turn_on_peripheral(struct mipi_dsi_device *dsi);
 int mipi_dsi_set_maximum_return_packet_size(struct mipi_dsi_device *dsi,
-					    u16 value);
+		u16 value);
 
 ssize_t mipi_dsi_generic_write(struct mipi_dsi_device *dsi, const void *payload,
-			       size_t size);
+							   size_t size);
 ssize_t mipi_dsi_generic_read(struct mipi_dsi_device *dsi, const void *params,
-			      size_t num_params, void *data, size_t size);
+							  size_t num_params, void *data, size_t size);
 
 /**
  * enum mipi_dsi_dcs_tear_mode - Tearing Effect Output Line mode
@@ -236,7 +244,8 @@ ssize_t mipi_dsi_generic_read(struct mipi_dsi_device *dsi, const void *params,
  * @MIPI_DSI_DCS_TEAR_MODE_VHBLANK : the TE output line consists of both
  *    V-Blanking and H-Blanking information
  */
-enum mipi_dsi_dcs_tear_mode {
+enum mipi_dsi_dcs_tear_mode
+{
 	MIPI_DSI_DCS_TEAR_MODE_VBLANK,
 	MIPI_DSI_DCS_TEAR_MODE_VHBLANK,
 };
@@ -248,11 +257,11 @@ enum mipi_dsi_dcs_tear_mode {
 #define MIPI_DSI_DCS_POWER_MODE_IDLE    (1 << 6)
 
 ssize_t mipi_dsi_dcs_write_buffer(struct mipi_dsi_device *dsi,
-				  const void *data, size_t len);
+								  const void *data, size_t len);
 ssize_t mipi_dsi_dcs_write(struct mipi_dsi_device *dsi, u8 cmd,
-			   const void *data, size_t len);
+						   const void *data, size_t len);
 ssize_t mipi_dsi_dcs_read(struct mipi_dsi_device *dsi, u8 cmd, void *data,
-			  size_t len);
+						  size_t len);
 int mipi_dsi_dcs_nop(struct mipi_dsi_device *dsi);
 int mipi_dsi_dcs_soft_reset(struct mipi_dsi_device *dsi);
 int mipi_dsi_dcs_get_power_mode(struct mipi_dsi_device *dsi, u8 *mode);
@@ -262,18 +271,18 @@ int mipi_dsi_dcs_exit_sleep_mode(struct mipi_dsi_device *dsi);
 int mipi_dsi_dcs_set_display_off(struct mipi_dsi_device *dsi);
 int mipi_dsi_dcs_set_display_on(struct mipi_dsi_device *dsi);
 int mipi_dsi_dcs_set_column_address(struct mipi_dsi_device *dsi, u16 start,
-				    u16 end);
+									u16 end);
 int mipi_dsi_dcs_set_page_address(struct mipi_dsi_device *dsi, u16 start,
-				  u16 end);
+								  u16 end);
 int mipi_dsi_dcs_set_tear_off(struct mipi_dsi_device *dsi);
 int mipi_dsi_dcs_set_tear_on(struct mipi_dsi_device *dsi,
-			     enum mipi_dsi_dcs_tear_mode mode);
+							 enum mipi_dsi_dcs_tear_mode mode);
 int mipi_dsi_dcs_set_pixel_format(struct mipi_dsi_device *dsi, u8 format);
 int mipi_dsi_dcs_set_tear_scanline(struct mipi_dsi_device *dsi, u16 scanline);
 int mipi_dsi_dcs_set_display_brightness(struct mipi_dsi_device *dsi,
-					u16 brightness);
+										u16 brightness);
 int mipi_dsi_dcs_get_display_brightness(struct mipi_dsi_device *dsi,
-					u16 *brightness);
+										u16 *brightness);
 
 /**
  * struct mipi_dsi_driver - DSI driver
@@ -282,7 +291,8 @@ int mipi_dsi_dcs_get_display_brightness(struct mipi_dsi_device *dsi,
  * @remove: callback for device unbinding
  * @shutdown: called at shutdown time to quiesce the device
  */
-struct mipi_dsi_driver {
+struct mipi_dsi_driver
+{
 	struct device_driver driver;
 	int(*probe)(struct mipi_dsi_device *dsi);
 	int(*remove)(struct mipi_dsi_device *dsi);
@@ -306,7 +316,7 @@ static inline void mipi_dsi_set_drvdata(struct mipi_dsi_device *dsi, void *data)
 }
 
 int mipi_dsi_driver_register_full(struct mipi_dsi_driver *driver,
-				  struct module *owner);
+								  struct module *owner);
 void mipi_dsi_driver_unregister(struct mipi_dsi_driver *driver);
 
 #define mipi_dsi_driver_register(driver) \
@@ -314,6 +324,6 @@ void mipi_dsi_driver_unregister(struct mipi_dsi_driver *driver);
 
 #define module_mipi_dsi_driver(__mipi_dsi_driver) \
 	module_driver(__mipi_dsi_driver, mipi_dsi_driver_register, \
-			mipi_dsi_driver_unregister)
+				  mipi_dsi_driver_unregister)
 
 #endif /* __DRM_MIPI_DSI__ */

@@ -48,36 +48,36 @@
  */
 
 #define H2_IAR_TYPE_M		0xF000	/* bits 15:12, type of functional */
-					/* block the register resides in */
-					/* 1=DMA Port */
-					/* 9=Global DMA Control */
-					/* 2=Bresenham */
-					/* 3=Unix Timer */
+/* block the register resides in */
+/* 1=DMA Port */
+/* 9=Global DMA Control */
+/* 2=Bresenham */
+/* 3=Unix Timer */
 #define H2_IAR_NUM_M		0x0F00	/* bits 11:8 instance of the */
-					/* blockin which the indirect */
-					/* register resides */
-					/* If IAR_TYPE_M=DMA Port: */
-					/* 1=Synth In */
-					/* 2=AES In */
-					/* 3=AES Out */
-					/* 4=DAC Out */
-					/* 5=ADC Out */
-					/* 6=Synth Control */
-					/* If IAR_TYPE_M=Global DMA Control: */
-					/* 1=Control */
-					/* If IAR_TYPE_M=Bresenham: */
-					/* 1=Bresenham Clock Gen 1 */
-					/* 2=Bresenham Clock Gen 2 */
-					/* 3=Bresenham Clock Gen 3 */
-					/* If IAR_TYPE_M=Unix Timer: */
-					/* 1=Unix Timer */
+/* blockin which the indirect */
+/* register resides */
+/* If IAR_TYPE_M=DMA Port: */
+/* 1=Synth In */
+/* 2=AES In */
+/* 3=AES Out */
+/* 4=DAC Out */
+/* 5=ADC Out */
+/* 6=Synth Control */
+/* If IAR_TYPE_M=Global DMA Control: */
+/* 1=Control */
+/* If IAR_TYPE_M=Bresenham: */
+/* 1=Bresenham Clock Gen 1 */
+/* 2=Bresenham Clock Gen 2 */
+/* 3=Bresenham Clock Gen 3 */
+/* If IAR_TYPE_M=Unix Timer: */
+/* 1=Unix Timer */
 #define H2_IAR_ACCESS_SELECT	0x0080	/* 1=read 0=write */
 #define H2_IAR_PARAM		0x000C	/* Parameter Select */
 #define H2_IAR_RB_INDEX_M	0x0003	/* Read Back Index */
-					/* 00:word0 */
-					/* 01:word1 */
-					/* 10:word2 */
-					/* 11:word3 */
+/* 00:word0 */
+/* 01:word1 */
+/* 10:word2 */
+/* 11:word3 */
 /*
  * HAL2 internal addressing
  *
@@ -115,7 +115,7 @@
 #define H2I_DMA_END_AESTX	0x04		/* AES transmitter DMA port */
 #define H2I_DMA_END_CODECTX	0x08		/* CODEC transmit DMA port */
 #define H2I_DMA_END_CODECR	0x10		/* CODEC receive DMA port */
-						/* 0=b_end 1=l_end */
+/* 0=b_end 1=l_end */
 
 #define H2I_DMA_DRV		0x910C  	/* global PBUS DMA enable */
 
@@ -198,7 +198,8 @@
 #define H2I_UTIME_2_LD		0xffff		/* seconds, LSB's */
 #define H2I_UTIME_3_LD		0xffff		/* seconds, MSB's */
 
-struct hal2_ctl_regs {
+struct hal2_ctl_regs
+{
 	u32 _unused0[4];
 	u32 isr;		/* 0x10 Status Register */
 	u32 _unused1[3];
@@ -215,7 +216,8 @@ struct hal2_ctl_regs {
 	u32 idr3;		/* 0x70 Indirect Data Register 3 */
 };
 
-struct hal2_aes_regs {
+struct hal2_aes_regs
+{
 	u32 rx_stat[2];	/* Status registers */
 	u32 rx_cr[2];		/* Control registers */
 	u32 rx_ud[4];		/* User data window */
@@ -227,12 +229,14 @@ struct hal2_aes_regs {
 	u32 tx_st[24];		/* Channel status data */
 };
 
-struct hal2_vol_regs {
+struct hal2_vol_regs
+{
 	u32 right;		/* Right volume */
 	u32 left;		/* Left volume */
 };
 
-struct hal2_syn_regs {
+struct hal2_syn_regs
+{
 	u32 _unused0[2];
 	u32 page;		/* DOC Page register */
 	u32 regsel;		/* DOC Register selection */

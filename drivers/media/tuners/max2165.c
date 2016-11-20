@@ -52,13 +52,15 @@ static int max2165_write_reg(struct max2165_priv *priv, u8 reg, u8 data)
 	msg.addr = priv->config->i2c_address;
 
 	if (debug >= 2)
+	{
 		dprintk("%s: reg=0x%02X, data=0x%02X\n", __func__, reg, data);
+	}
 
 	ret = i2c_transfer(priv->i2c, &msg, 1);
 
 	if (ret != 1)
 		dprintk("%s: error reg=0x%x, data=0x%x, ret=%i\n",
-			__func__, reg, data, ret);
+				__func__, reg, data, ret);
 
 	return (ret != 1) ? -EIO : 0;
 }
@@ -70,34 +72,43 @@ static int max2165_read_reg(struct max2165_priv *priv, u8 reg, u8 *p_data)
 
 	u8 b0[] = { reg };
 	u8 b1[] = { 0 };
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{ .addr = dev_addr, .flags = 0, .buf = b0, .len = 1 },
 		{ .addr = dev_addr, .flags = I2C_M_RD, .buf = b1, .len = 1 },
 	};
 
 	ret = i2c_transfer(priv->i2c, msg, 2);
-	if (ret != 2) {
+
+	if (ret != 2)
+	{
 		dprintk("%s: error reg=0x%x, ret=%i\n", __func__, reg, ret);
 		return -EIO;
 	}
 
 	*p_data = b1[0];
+
 	if (debug >= 2)
 		dprintk("%s: reg=0x%02X, data=0x%02X\n",
-			__func__, reg, b1[0]);
+				__func__, reg, b1[0]);
+
 	return 0;
 }
 
 static int max2165_mask_write_reg(struct max2165_priv *priv, u8 reg,
-	u8 mask, u8 data)
+								  u8 mask, u8 data)
 {
 	int ret;
 	u8 v;
 
 	data &= mask;
 	ret = max2165_read_reg(priv, reg, &v);
+
 	if (ret != 0)
+	{
 		return ret;
+	}
+
 	v &= ~mask;
 	v |= data;
 	ret = max2165_write_reg(priv, reg, v);
@@ -110,7 +121,8 @@ static int max2165_read_rom_table(struct max2165_priv *priv)
 	u8 dat[3];
 	int i;
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		max2165_write_reg(priv, REG_ROM_TABLE_ADDR, i + 1);
 		max2165_read_reg(priv, REG_ROM_TABLE_DATA, &dat[i]);
 	}
@@ -137,10 +149,15 @@ static int max2165_set_osc(struct max2165_priv *priv, u8 osc /*MHz*/)
 	u8 v;
 
 	v = (osc / 2);
+
 	if (v == 2)
+	{
 		v = 0x7;
+	}
 	else
+	{
 		v -= 8;
+	}
 
 	max2165_mask_write_reg(priv, REG_PLL_CFG, 0x07, v);
 
@@ -152,9 +169,13 @@ static int max2165_set_bandwidth(struct max2165_priv *priv, u32 bw)
 	u8 val;
 
 	if (bw == 8000000)
+	{
 		val = priv->bb_filter_8mhz_cfg;
+	}
 	else
+	{
 		val = priv->bb_filter_7mhz_cfg;
+	}
 
 	max2165_mask_write_reg(priv, REG_BASEBAND_CTRL, 0xF0, val << 4);
 
@@ -168,17 +189,23 @@ static int fixpt_div32(u32 dividend, u32 divisor, u32 *quotient, u32 *fraction)
 	int i;
 
 	if (0 == divisor)
+	{
 		return -EINVAL;
+	}
 
 	q = dividend / divisor;
 	remainder = dividend - q * divisor;
 
-	for (i = 0; i < 31; i++) {
+	for (i = 0; i < 31; i++)
+	{
 		remainder <<= 1;
-		if (remainder >= divisor) {
+
+		if (remainder >= divisor)
+		{
 			f += 1;
 			remainder -= divisor;
 		}
+
 		f <<= 1;
 	}
 
@@ -198,9 +225,12 @@ static int max2165_set_rf(struct max2165_priv *priv, u32 freq)
 
 	/* Set PLL divider according to RF frequency */
 	ret = fixpt_div32(freq / 1000, priv->config->osc_clk * 1000,
-			 &quotient, &fraction);
+					  &quotient, &fraction);
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	/* 20-bit fraction */
 	fraction >>= 12;
@@ -212,12 +242,12 @@ static int max2165_set_rf(struct max2165_priv *priv, u32 freq)
 
 	/* Norch Filter */
 	tf_ntch = (freq < 725000000) ?
-		priv->tf_ntch_low_cfg : priv->tf_ntch_hi_cfg;
+			  priv->tf_ntch_low_cfg : priv->tf_ntch_hi_cfg;
 
 	/* Tracking filter balun */
 	t = priv->tf_balun_low_ref;
 	t += (priv->tf_balun_hi_ref - priv->tf_balun_low_ref)
-		* (freq / 1000 - 470000) / (780000 - 470000);
+		 * (freq / 1000 - 470000) / (780000 - 470000);
 
 	tf = t;
 	dprintk("tf = %X\n", tf);
@@ -252,10 +282,10 @@ static void max2165_debug_status(struct max2165_priv *priv)
 	adc = autotune & 0x7;
 
 	dprintk("auto VCO active: %d, auto VCO success: %d\n",
-		auto_vco_active, auto_vco_success);
+			auto_vco_active, auto_vco_success);
 	dprintk("PLL locked: %d\n", pll_locked);
 	dprintk("DC offset low: %d, DC offset high: %d\n",
-		dc_offset_low, dc_offset_hi);
+			dc_offset_low, dc_offset_hi);
 	dprintk("Signal lvl over threshold: %d\n", signal_lv_over_threshold);
 	dprintk("VCO: %d, VCO Sub-band: %d, ADC: %d\n", vco, vco_sub_band, adc);
 }
@@ -266,30 +296,40 @@ static int max2165_set_params(struct dvb_frontend *fe)
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
 	int ret;
 
-	switch (c->bandwidth_hz) {
-	case 7000000:
-	case 8000000:
-		priv->frequency = c->frequency;
-		break;
-	default:
-		printk(KERN_INFO "MAX2165: bandwidth %d Hz not supported.\n",
-		       c->bandwidth_hz);
-		return -EINVAL;
+	switch (c->bandwidth_hz)
+	{
+		case 7000000:
+		case 8000000:
+			priv->frequency = c->frequency;
+			break;
+
+		default:
+			printk(KERN_INFO "MAX2165: bandwidth %d Hz not supported.\n",
+				   c->bandwidth_hz);
+			return -EINVAL;
 	}
 
 	dprintk("%s() frequency=%d\n", __func__, c->frequency);
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	max2165_set_bandwidth(priv, c->bandwidth_hz);
 	ret = max2165_set_rf(priv, priv->frequency);
 	mdelay(50);
 	max2165_debug_status(priv);
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	if (ret != 0)
+	{
 		return -EREMOTEIO;
+	}
 
 	return 0;
 }
@@ -319,13 +359,17 @@ static int max2165_get_status(struct dvb_frontend *fe, u32 *status)
 	dprintk("%s()\n", __func__);
 
 	if (fe->ops.i2c_gate_ctrl)
-			fe->ops.i2c_gate_ctrl(fe, 1);
+	{
+		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
 	max2165_debug_status(priv);
 	*status = lock_status;
 
 	if (fe->ops.i2c_gate_ctrl)
-			fe->ops.i2c_gate_ctrl(fe, 0);
+	{
+		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	return 0;
 }
@@ -342,7 +386,9 @@ static int max2165_init(struct dvb_frontend *fe)
 	dprintk("%s()\n", __func__);
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
 	/* Setup initial values */
 	/* Fractional Mode on */
@@ -365,7 +411,9 @@ static int max2165_init(struct dvb_frontend *fe)
 	max2165_set_bandwidth(priv, 8000000);
 
 	if (fe->ops.i2c_gate_ctrl)
-			fe->ops.i2c_gate_ctrl(fe, 0);
+	{
+		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	return 0;
 }
@@ -381,7 +429,8 @@ static int max2165_release(struct dvb_frontend *fe)
 	return 0;
 }
 
-static const struct dvb_tuner_ops max2165_tuner_ops = {
+static const struct dvb_tuner_ops max2165_tuner_ops =
+{
 	.info = {
 		.name           = "Maxim MAX2165",
 		.frequency_min  = 470000000,
@@ -401,21 +450,24 @@ static const struct dvb_tuner_ops max2165_tuner_ops = {
 };
 
 struct dvb_frontend *max2165_attach(struct dvb_frontend *fe,
-				   struct i2c_adapter *i2c,
-				   struct max2165_config *cfg)
+									struct i2c_adapter *i2c,
+									struct max2165_config *cfg)
 {
 	struct max2165_priv *priv = NULL;
 
 	dprintk("%s(%d-%04x)\n", __func__,
-		i2c ? i2c_adapter_id(i2c) : -1,
-		cfg ? cfg->i2c_address : -1);
+			i2c ? i2c_adapter_id(i2c) : -1,
+			cfg ? cfg->i2c_address : -1);
 
 	priv = kzalloc(sizeof(struct max2165_priv), GFP_KERNEL);
+
 	if (priv == NULL)
+	{
 		return NULL;
+	}
 
 	memcpy(&fe->ops.tuner_ops, &max2165_tuner_ops,
-		sizeof(struct dvb_tuner_ops));
+		   sizeof(struct dvb_tuner_ops));
 
 	priv->config = cfg;
 	priv->i2c = i2c;

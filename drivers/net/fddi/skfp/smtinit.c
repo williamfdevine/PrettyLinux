@@ -24,21 +24,21 @@
 #include "h/smc.h"
 
 #ifndef	lint
-static const char ID_sccs[] = "@(#)smtinit.c	1.15 97/05/06 (C) SK " ;
+	static const char ID_sccs[] = "@(#)smtinit.c	1.15 97/05/06 (C) SK " ;
 #endif
 
 void init_fddi_driver(struct s_smc *smc, u_char *mac_addr);
 
 /* define global debug variable */
 #if defined(DEBUG) && !defined(DEBUG_BRD)
-struct smt_debug debug;
+	struct smt_debug debug;
 #endif
 
 #ifndef MULT_OEM
-#define OEMID(smc,i)	oem_id[i]
+	#define OEMID(smc,i)	oem_id[i]
 	extern u_char	oem_id[] ;
 #else	/* MULT_OEM */
-#define OEMID(smc,i)	smc->hw.oem_id->oi_mark[i]
+	#define OEMID(smc,i)	smc->hw.oem_id->oi_mark[i]
 	extern struct s_oem_ids	oem_ids[] ;
 #endif	/* MULT_OEM */
 
@@ -57,7 +57,8 @@ static void set_oem_spec_val(struct s_smc *smc)
 	/*
 	 * set IBM specific values
 	 */
-	if (OEMID(smc,0) == 'I') {
+	if (OEMID(smc, 0) == 'I')
+	{
 		mib->fddiSMTConnectionPolicy = POLICY_MM ;
 	}
 }
@@ -88,13 +89,14 @@ int init_smt(struct s_smc *smc, u_char *mac_addr)
 #endif	/* DEBUG && !DEBUG_BRD */
 
 	/* First initialize the ports mib->pointers */
-	for ( p = 0; p < NUMPHYS; p ++ ) {
+	for ( p = 0; p < NUMPHYS; p ++ )
+	{
 		smc->y[p].mib = & smc->mib.p[p] ;
 	}
 
-	set_oem_spec_val(smc) ;	
+	set_oem_spec_val(smc) ;
 	(void) smt_set_mac_opvalues(smc) ;
-	init_fddi_driver(smc,mac_addr) ;	/* HW driver */
+	init_fddi_driver(smc, mac_addr) ;	/* HW driver */
 	smt_fixup_mib(smc) ;		/* update values that depend on s.sas */
 
 	ev_init(smc) ;			/* event queue */
@@ -109,16 +111,18 @@ int init_smt(struct s_smc *smc, u_char *mac_addr)
 	cfm_init(smc) ;			/* CFM state machine */
 	rmt_init(smc) ;			/* RMT state machine */
 
-	for (p = 0 ; p < NUMPHYS ; p++) {
-		pcm(smc,p,0) ;		/* PCM A state machine */
+	for (p = 0 ; p < NUMPHYS ; p++)
+	{
+		pcm(smc, p, 0) ;		/* PCM A state machine */
 	}
-	ecm(smc,0) ;			/* ECM state machine */
-	cfm(smc,0) ;			/* CFM state machine */
-	rmt(smc,0) ;			/* RMT state machine */
+
+	ecm(smc, 0) ;			/* ECM state machine */
+	cfm(smc, 0) ;			/* CFM state machine */
+	rmt(smc, 0) ;			/* RMT state machine */
 
 	smt_agent_task(smc) ;		/* NIF FSM etc */
 
-        PNMI_INIT(smc) ;                /* PNMI initialization */
+	PNMI_INIT(smc) ;                /* PNMI initialization */
 
 	return 0;
 }

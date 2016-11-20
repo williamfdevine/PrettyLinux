@@ -4,7 +4,8 @@
 #ifndef _LINUX_KCORE_H
 #define _LINUX_KCORE_H
 
-enum kcore_type {
+enum kcore_type
+{
 	KCORE_TEXT,
 	KCORE_VMALLOC,
 	KCORE_RAM,
@@ -12,14 +13,16 @@ enum kcore_type {
 	KCORE_OTHER,
 };
 
-struct kcore_list {
+struct kcore_list
+{
 	struct list_head list;
 	unsigned long addr;
 	size_t size;
 	int type;
 };
 
-struct vmcore {
+struct vmcore
+{
 	struct list_head list;
 	unsigned long long paddr;
 	unsigned long long size;

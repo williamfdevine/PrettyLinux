@@ -51,26 +51,30 @@
 #define HD29L2_INTERLEAVER_720 0x00
 #define HD29L2_INTERLEAVER_420 0x01
 
-struct reg_val {
+struct reg_val
+{
 	u8 reg;
 	u8 val;
 };
 
-struct reg_mod_vals {
+struct reg_mod_vals
+{
 	u8 reg;
 	u8 val[5];
 };
 
-struct hd29l2_priv {
+struct hd29l2_priv
+{
 	struct i2c_adapter *i2c;
 	struct dvb_frontend fe;
 	struct hd29l2_config cfg;
-	u8 tuner_i2c_addr_programmed:1;
+	u8 tuner_i2c_addr_programmed: 1;
 
 	enum fe_status fe_status;
 };
 
-static const struct reg_mod_vals reg_mod_vals_tab[] = {
+static const struct reg_mod_vals reg_mod_vals_tab[] =
+{
 	/* REG, QAM4NR, QAM4,QAM16,QAM32,QAM64 */
 	{ 0x01, { 0x10, 0x10, 0x10, 0x10, 0x10 } },
 	{ 0x02, { 0x07, 0x07, 0x07, 0x07, 0x07 } },

@@ -15,13 +15,15 @@
 
 #include "dmaengine.h"
 
-struct virt_dma_desc {
+struct virt_dma_desc
+{
 	struct dma_async_tx_descriptor tx;
 	/* protected by vc.lock */
 	struct list_head node;
 };
 
-struct virt_dma_chan {
+struct virt_dma_chan
+{
 	struct dma_chan	chan;
 	struct tasklet_struct task;
 	void (*desc_free)(struct virt_dma_desc *);
@@ -55,7 +57,7 @@ extern int vchan_tx_desc_free(struct dma_async_tx_descriptor *);
  * @tx_flags: flags argument passed in to prepare function
  */
 static inline struct dma_async_tx_descriptor *vchan_tx_prep(struct virt_dma_chan *vc,
-	struct virt_dma_desc *vd, unsigned long tx_flags)
+		struct virt_dma_desc *vd, unsigned long tx_flags)
 {
 	unsigned long flags;
 
@@ -97,7 +99,7 @@ static inline void vchan_cookie_complete(struct virt_dma_desc *vd)
 	cookie = vd->tx.cookie;
 	dma_cookie_complete(&vd->tx);
 	dev_vdbg(vc->chan.device->dev, "txd %p[%x]: marked complete\n",
-		 vd, cookie);
+			 vd, cookie);
 	list_add_tail(&vd->node, &vc->desc_completed);
 
 	tasklet_schedule(&vc->task);
@@ -124,7 +126,7 @@ static inline void vchan_cyclic_callback(struct virt_dma_desc *vd)
 static inline struct virt_dma_desc *vchan_next_desc(struct virt_dma_chan *vc)
 {
 	return list_first_entry_or_null(&vc->desc_issued,
-					struct virt_dma_desc, node);
+									struct virt_dma_desc, node);
 }
 
 /**
@@ -138,7 +140,7 @@ static inline struct virt_dma_desc *vchan_next_desc(struct virt_dma_chan *vc)
  * provides a list of all descriptors found
  */
 static inline void vchan_get_all_descriptors(struct virt_dma_chan *vc,
-	struct list_head *head)
+		struct list_head *head)
 {
 	list_splice_tail_init(&vc->desc_allocated, head);
 	list_splice_tail_init(&vc->desc_submitted, head);
@@ -155,7 +157,7 @@ static inline void vchan_free_chan_resources(struct virt_dma_chan *vc)
 	spin_lock_irqsave(&vc->lock, flags);
 	vchan_get_all_descriptors(vc, &head);
 	list_for_each_entry(vd, &head, node)
-		dmaengine_desc_clear_reuse(&vd->tx);
+	dmaengine_desc_clear_reuse(&vd->tx);
 	spin_unlock_irqrestore(&vc->lock, flags);
 
 	vchan_dma_desc_free_list(vc, &head);

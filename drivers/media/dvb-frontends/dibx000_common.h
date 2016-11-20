@@ -1,14 +1,16 @@
 #ifndef DIBX000_COMMON_H
 #define DIBX000_COMMON_H
 
-enum dibx000_i2c_interface {
+enum dibx000_i2c_interface
+{
 	DIBX000_I2C_INTERFACE_TUNER = 0,
 	DIBX000_I2C_INTERFACE_GPIO_1_2 = 1,
 	DIBX000_I2C_INTERFACE_GPIO_3_4 = 2,
 	DIBX000_I2C_INTERFACE_GPIO_6_7 = 3
 };
 
-struct dibx000_i2c_master {
+struct dibx000_i2c_master
+{
 #define DIB3000MC 1
 #define DIB7000   2
 #define DIB7000P  11
@@ -18,7 +20,7 @@ struct dibx000_i2c_master {
 
 	enum dibx000_i2c_interface selected_interface;
 
-/*	struct i2c_adapter  tuner_i2c_adap; */
+	/*	struct i2c_adapter  tuner_i2c_adap; */
 	struct i2c_adapter gated_tuner_i2c_adap;
 	struct i2c_adapter master_i2c_adap_gpio12;
 	struct i2c_adapter master_i2c_adap_gpio34;
@@ -37,12 +39,12 @@ struct dibx000_i2c_master {
 };
 
 extern int dibx000_init_i2c_master(struct dibx000_i2c_master *mst,
-					u16 device_rev, struct i2c_adapter *i2c_adap,
-					u8 i2c_addr);
+								   u16 device_rev, struct i2c_adapter *i2c_adap,
+								   u8 i2c_addr);
 extern struct i2c_adapter *dibx000_get_i2c_adapter(struct dibx000_i2c_master
-							*mst,
-							enum dibx000_i2c_interface
-							intf, int gating);
+		*mst,
+		enum dibx000_i2c_interface
+		intf, int gating);
 extern void dibx000_exit_i2c_master(struct dibx000_i2c_master *mst);
 extern void dibx000_reset_i2c_master(struct dibx000_i2c_master *mst);
 extern int dibx000_i2c_set_speed(struct i2c_adapter *i2c_adap, u16 speed);
@@ -57,12 +59,13 @@ extern u32 systime(void);
 #define BAND_CBAND 0x20
 
 #define BAND_OF_FREQUENCY(freq_kHz) ((freq_kHz) <= 170000 ? BAND_CBAND : \
-									(freq_kHz) <= 115000 ? BAND_FM : \
-									(freq_kHz) <= 250000 ? BAND_VHF : \
-									(freq_kHz) <= 863000 ? BAND_UHF : \
-									(freq_kHz) <= 2000000 ? BAND_LBAND : BAND_SBAND )
+									 (freq_kHz) <= 115000 ? BAND_FM : \
+									 (freq_kHz) <= 250000 ? BAND_VHF : \
+									 (freq_kHz) <= 863000 ? BAND_UHF : \
+									 (freq_kHz) <= 2000000 ? BAND_LBAND : BAND_SBAND )
 
-struct dibx000_agc_config {
+struct dibx000_agc_config
+{
 	/* defines the capabilities of this AGC-setting - using the BAND_-defines */
 	u8 band_caps;
 
@@ -105,7 +108,8 @@ struct dibx000_agc_config {
 
 	u8 perform_agc_softsplit;
 
-	struct {
+	struct
+	{
 		u16 min;
 		u16 max;
 		u16 min_thres;
@@ -113,7 +117,8 @@ struct dibx000_agc_config {
 	} split;
 };
 
-struct dibx000_bandwidth_config {
+struct dibx000_bandwidth_config
+{
 	u32 internal;
 	u32 sampling;
 
@@ -137,7 +142,8 @@ struct dibx000_bandwidth_config {
 	u32 xtal_hz;
 };
 
-enum dibx000_adc_states {
+enum dibx000_adc_states
+{
 	DIBX000_SLOW_ADC_ON = 0,
 	DIBX000_SLOW_ADC_OFF,
 	DIBX000_ADC_ON,
@@ -162,7 +168,8 @@ enum dibx000_adc_states {
 #define INPUT_MODE_DIVERSITY          0x12
 #define INPUT_MODE_MPEG               0x13
 
-enum frontend_tune_state {
+enum frontend_tune_state
+{
 	CT_TUNER_START = 10,
 	CT_TUNER_STEP_0,
 	CT_TUNER_STEP_1,
@@ -203,7 +210,8 @@ enum frontend_tune_state {
 
 };
 
-struct dvb_frontend_parametersContext {
+struct dvb_frontend_parametersContext
+{
 #define CHANNEL_STATUS_PARAMETERS_UNKNOWN   0x01
 #define CHANNEL_STATUS_PARAMETERS_SET       0x02
 	u8 status;
@@ -230,7 +238,8 @@ struct dvb_frontend_parametersContext {
 #define DATA_BUS_ACCESS_MODE_16BIT                0x02
 #define DATA_BUS_ACCESS_MODE_NO_ADDRESS_INCREMENT 0x10
 
-struct dibGPIOFunction {
+struct dibGPIOFunction
+{
 #define BOARD_GPIO_COMPONENT_BUS_ADAPTER 1
 #define BOARD_GPIO_COMPONENT_DEMOD       2
 	u8 component;
@@ -243,25 +252,27 @@ struct dibGPIOFunction {
 #define BOARD_GPIO_FUNCTION_SUBBAND_GPIO   6
 	u8 function;
 
-/* mask, direction and value are used specify which GPIO to change GPIO0
- * is LSB and possible GPIO31 is MSB.  The same bit-position as in the
- * mask is used for the direction and the value. Direction == 1 is OUT,
- * 0 == IN. For direction "OUT" value is either 1 or 0, for direction IN
- * value has no meaning.
- *
- * In case of BOARD_GPIO_FUNCTION_PWM mask is giving the GPIO to be
- * used to do the PWM. Direction gives the PWModulator to be used.
- * Value gives the PWM value in device-dependent scale.
- */
+	/* mask, direction and value are used specify which GPIO to change GPIO0
+	 * is LSB and possible GPIO31 is MSB.  The same bit-position as in the
+	 * mask is used for the direction and the value. Direction == 1 is OUT,
+	 * 0 == IN. For direction "OUT" value is either 1 or 0, for direction IN
+	 * value has no meaning.
+	 *
+	 * In case of BOARD_GPIO_FUNCTION_PWM mask is giving the GPIO to be
+	 * used to do the PWM. Direction gives the PWModulator to be used.
+	 * Value gives the PWM value in device-dependent scale.
+	 */
 	u32 mask;
 	u32 direction;
 	u32 value;
 };
 
 #define MAX_NB_SUBBANDS   8
-struct dibSubbandSelection {
+struct dibSubbandSelection
+{
 	u8  size; /* Actual number of subbands. */
-	struct {
+	struct
+	{
 		u16 f_mhz;
 		struct dibGPIOFunction gpio;
 	} subband[MAX_NB_SUBBANDS];

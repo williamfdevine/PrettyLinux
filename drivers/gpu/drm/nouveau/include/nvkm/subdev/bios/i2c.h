@@ -1,6 +1,7 @@
 #ifndef __NVBIOS_I2C_H__
 #define __NVBIOS_I2C_H__
-enum dcb_i2c_type {
+enum dcb_i2c_type
+{
 	/* matches bios type field prior to ccb 4.1 */
 	DCB_I2C_NV04_BIT = 0x00,
 	DCB_I2C_NV4E_BIT = 0x04,
@@ -11,7 +12,8 @@ enum dcb_i2c_type {
 	DCB_I2C_UNUSED   = 0xff
 };
 
-struct dcb_i2c_entry {
+struct dcb_i2c_entry
+{
 	enum dcb_i2c_type type;
 	u8 drive;
 	u8 sense;

@@ -46,8 +46,8 @@
 #include "iscsi_tcp.h"
 
 MODULE_AUTHOR("Mike Christie <michaelc@cs.wisc.edu>, "
-	      "Dmitry Yusupov <dmitry_yus@yahoo.com>, "
-	      "Alex Aizman <itn780@yahoo.com>");
+			  "Dmitry Yusupov <dmitry_yus@yahoo.com>, "
+			  "Alex Aizman <itn780@yahoo.com>");
 MODULE_DESCRIPTION("iSCSI/TCP data-path");
 MODULE_LICENSE("GPL");
 
@@ -60,16 +60,16 @@ module_param_named(max_lun, iscsi_max_lun, uint, S_IRUGO);
 
 static int iscsi_sw_tcp_dbg;
 module_param_named(debug_iscsi_tcp, iscsi_sw_tcp_dbg, int,
-		   S_IRUGO | S_IWUSR);
+				   S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(debug_iscsi_tcp, "Turn on debugging for iscsi_tcp module "
-		 "Set to 1 to turn on, and zero to turn off. Default is off.");
+				 "Set to 1 to turn on, and zero to turn off. Default is off.");
 
 #define ISCSI_SW_TCP_DBG(_conn, dbg_fmt, arg...)		\
 	do {							\
 		if (iscsi_sw_tcp_dbg)				\
 			iscsi_conn_printk(KERN_INFO, _conn,	\
-					     "%s " dbg_fmt,	\
-					     __func__, ##arg);	\
+							  "%s " dbg_fmt,	\
+							  __func__, ##arg);	\
 	} while (0);
 
 
@@ -81,7 +81,7 @@ MODULE_PARM_DESC(debug_iscsi_tcp, "Turn on debugging for iscsi_tcp module "
  * @len: skb->len - offset
  */
 static int iscsi_sw_tcp_recv(read_descriptor_t *rd_desc, struct sk_buff *skb,
-			     unsigned int offset, size_t len)
+							 unsigned int offset, size_t len)
 {
 	struct iscsi_conn *conn = rd_desc->arg.data;
 	unsigned int consumed, total_consumed = 0;
@@ -89,15 +89,17 @@ static int iscsi_sw_tcp_recv(read_descriptor_t *rd_desc, struct sk_buff *skb,
 
 	ISCSI_SW_TCP_DBG(conn, "in %d bytes\n", skb->len - offset);
 
-	do {
+	do
+	{
 		status = 0;
 		consumed = iscsi_tcp_recv_skb(conn, skb, offset, 0, &status);
 		offset += consumed;
 		total_consumed += consumed;
-	} while (consumed != 0 && status != ISCSI_TCP_SKB_DONE);
+	}
+	while (consumed != 0 && status != ISCSI_TCP_SKB_DONE);
 
 	ISCSI_SW_TCP_DBG(conn, "read %d bytes status %d\n",
-			 skb->len - offset, status);
+					 skb->len - offset, status);
 	return total_consumed;
 }
 
@@ -116,12 +118,14 @@ static inline int iscsi_sw_sk_state_check(struct sock *sk)
 	struct iscsi_conn *conn = sk->sk_user_data;
 
 	if ((sk->sk_state == TCP_CLOSE_WAIT || sk->sk_state == TCP_CLOSE) &&
-	    (conn->session->state != ISCSI_STATE_LOGGING_OUT) &&
-	    !atomic_read(&sk->sk_rmem_alloc)) {
+		(conn->session->state != ISCSI_STATE_LOGGING_OUT) &&
+		!atomic_read(&sk->sk_rmem_alloc))
+	{
 		ISCSI_SW_TCP_DBG(conn, "TCP_CLOSE|TCP_CLOSE_WAIT\n");
 		iscsi_conn_failure(conn, ISCSI_ERR_TCP_CONN_CLOSE);
 		return -ECONNRESET;
 	}
+
 	return 0;
 }
 
@@ -133,10 +137,13 @@ static void iscsi_sw_tcp_data_ready(struct sock *sk)
 
 	read_lock_bh(&sk->sk_callback_lock);
 	conn = sk->sk_user_data;
-	if (!conn) {
+
+	if (!conn)
+	{
 		read_unlock_bh(&sk->sk_callback_lock);
 		return;
 	}
+
 	tcp_conn = conn->dd_data;
 
 	/*
@@ -167,10 +174,13 @@ static void iscsi_sw_tcp_state_change(struct sock *sk)
 
 	read_lock_bh(&sk->sk_callback_lock);
 	conn = sk->sk_user_data;
-	if (!conn) {
+
+	if (!conn)
+	{
 		read_unlock_bh(&sk->sk_callback_lock);
 		return;
 	}
+
 	session = conn->session;
 
 	iscsi_sw_sk_state_check(sk);
@@ -197,7 +207,9 @@ static void iscsi_sw_tcp_write_space(struct sock *sk)
 
 	read_lock_bh(&sk->sk_callback_lock);
 	conn = sk->sk_user_data;
-	if (!conn) {
+
+	if (!conn)
+	{
 		read_unlock_bh(&sk->sk_callback_lock);
 		return;
 	}
@@ -262,14 +274,15 @@ iscsi_sw_tcp_conn_restore_callbacks(struct iscsi_conn *conn)
  * it will retrieve the hash value and send it as well.
  */
 static int iscsi_sw_tcp_xmit_segment(struct iscsi_tcp_conn *tcp_conn,
-				     struct iscsi_segment *segment)
+									 struct iscsi_segment *segment)
 {
 	struct iscsi_sw_tcp_conn *tcp_sw_conn = tcp_conn->dd_data;
 	struct socket *sk = tcp_sw_conn->sock;
 	unsigned int copied = 0;
 	int r = 0;
 
-	while (!iscsi_tcp_segment_done(tcp_conn, segment, 0, r)) {
+	while (!iscsi_tcp_segment_done(tcp_conn, segment, 0, r))
+	{
 		struct scatterlist *sg;
 		unsigned int offset, copy;
 		int flags = 0;
@@ -279,17 +292,23 @@ static int iscsi_sw_tcp_xmit_segment(struct iscsi_tcp_conn *tcp_conn,
 		copy = segment->size - offset;
 
 		if (segment->total_copied + segment->size < segment->total_size)
+		{
 			flags |= MSG_MORE;
+		}
 
 		/* Use sendpage if we can; else fall back to sendmsg */
-		if (!segment->data) {
+		if (!segment->data)
+		{
 			sg = segment->sg;
 			offset += segment->sg_offset + sg->offset;
 			r = tcp_sw_conn->sendpage(sk, sg_page(sg), offset,
-						  copy, flags);
-		} else {
+									  copy, flags);
+		}
+		else
+		{
 			struct msghdr msg = { .msg_flags = flags };
-			struct kvec iov = {
+			struct kvec iov =
+			{
 				.iov_base = segment->data + offset,
 				.iov_len = copy
 			};
@@ -297,12 +316,15 @@ static int iscsi_sw_tcp_xmit_segment(struct iscsi_tcp_conn *tcp_conn,
 			r = kernel_sendmsg(sk, &msg, &iov, 1, copy);
 		}
 
-		if (r < 0) {
+		if (r < 0)
+		{
 			iscsi_tcp_segment_unmap(segment);
 			return r;
 		}
+
 		copied += r;
 	}
+
 	return copied;
 }
 
@@ -317,28 +339,41 @@ static int iscsi_sw_tcp_xmit(struct iscsi_conn *conn)
 	unsigned int consumed = 0;
 	int rc = 0;
 
-	while (1) {
+	while (1)
+	{
 		rc = iscsi_sw_tcp_xmit_segment(tcp_conn, segment);
+
 		/*
 		 * We may not have been able to send data because the conn
 		 * is getting stopped. libiscsi will know so propagate err
 		 * for it to do the right thing.
 		 */
 		if (rc == -EAGAIN)
+		{
 			return rc;
-		else if (rc < 0) {
+		}
+		else if (rc < 0)
+		{
 			rc = ISCSI_ERR_XMIT_FAILED;
 			goto error;
-		} else if (rc == 0)
+		}
+		else if (rc == 0)
+		{
 			break;
+		}
 
 		consumed += rc;
 
-		if (segment->total_copied >= segment->total_size) {
-			if (segment->done != NULL) {
+		if (segment->total_copied >= segment->total_size)
+		{
+			if (segment->done != NULL)
+			{
 				rc = segment->done(tcp_conn, segment);
+
 				if (rc != 0)
+				{
 					goto error;
+				}
 			}
 		}
 	}
@@ -376,14 +411,21 @@ static int iscsi_sw_tcp_pdu_xmit(struct iscsi_task *task)
 
 	current->flags |= PF_MEMALLOC;
 
-	while (iscsi_sw_tcp_xmit_qlen(conn)) {
+	while (iscsi_sw_tcp_xmit_qlen(conn))
+	{
 		rc = iscsi_sw_tcp_xmit(conn);
-		if (rc == 0) {
+
+		if (rc == 0)
+		{
 			rc = -EAGAIN;
 			break;
 		}
+
 		if (rc < 0)
+		{
 			break;
+		}
+
 		rc = 0;
 	}
 
@@ -396,40 +438,41 @@ static int iscsi_sw_tcp_pdu_xmit(struct iscsi_task *task)
  * Simply copy the data_segment to the send segment, and return.
  */
 static int iscsi_sw_tcp_send_hdr_done(struct iscsi_tcp_conn *tcp_conn,
-				      struct iscsi_segment *segment)
+									  struct iscsi_segment *segment)
 {
 	struct iscsi_sw_tcp_conn *tcp_sw_conn = tcp_conn->dd_data;
 
 	tcp_sw_conn->out.segment = tcp_sw_conn->out.data_segment;
 	ISCSI_SW_TCP_DBG(tcp_conn->iscsi_conn,
-			 "Header done. Next segment size %u total_size %u\n",
-			 tcp_sw_conn->out.segment.size,
-			 tcp_sw_conn->out.segment.total_size);
+					 "Header done. Next segment size %u total_size %u\n",
+					 tcp_sw_conn->out.segment.size,
+					 tcp_sw_conn->out.segment.total_size);
 	return 0;
 }
 
 static void iscsi_sw_tcp_send_hdr_prep(struct iscsi_conn *conn, void *hdr,
-				       size_t hdrlen)
+									   size_t hdrlen)
 {
 	struct iscsi_tcp_conn *tcp_conn = conn->dd_data;
 	struct iscsi_sw_tcp_conn *tcp_sw_conn = tcp_conn->dd_data;
 
 	ISCSI_SW_TCP_DBG(conn, "%s\n", conn->hdrdgst_en ?
-			 "digest enabled" : "digest disabled");
+					 "digest enabled" : "digest disabled");
 
 	/* Clear the data segment - needs to be filled in by the
 	 * caller using iscsi_tcp_send_data_prep() */
 	memset(&tcp_sw_conn->out.data_segment, 0,
-	       sizeof(struct iscsi_segment));
+		   sizeof(struct iscsi_segment));
 
 	/* If header digest is enabled, compute the CRC and
 	 * place the digest into the same buffer. We make
 	 * sure that both iscsi_tcp_task and mtask have
 	 * sufficient room.
 	 */
-	if (conn->hdrdgst_en) {
+	if (conn->hdrdgst_en)
+	{
 		iscsi_tcp_dgst_header(tcp_sw_conn->tx_hash, hdr, hdrlen,
-				      hdr + hdrlen);
+							  hdr + hdrlen);
 		hdrlen += ISCSI_DIGEST_SIZE;
 	}
 
@@ -439,7 +482,7 @@ static void iscsi_sw_tcp_send_hdr_prep(struct iscsi_conn *conn, void *hdr,
 	tcp_sw_conn->out.hdr = hdr;
 
 	iscsi_segment_init_linear(&tcp_sw_conn->out.segment, hdr, hdrlen,
-				  iscsi_sw_tcp_send_hdr_done, NULL);
+							  iscsi_sw_tcp_send_hdr_done, NULL);
 }
 
 /*
@@ -449,8 +492,8 @@ static void iscsi_sw_tcp_send_hdr_prep(struct iscsi_conn *conn, void *hdr,
  */
 static int
 iscsi_sw_tcp_send_data_prep(struct iscsi_conn *conn, struct scatterlist *sg,
-			    unsigned int count, unsigned int offset,
-			    unsigned int len)
+							unsigned int count, unsigned int offset,
+							unsigned int len)
 {
 	struct iscsi_tcp_conn *tcp_conn = conn->dd_data;
 	struct iscsi_sw_tcp_conn *tcp_sw_conn = tcp_conn->dd_data;
@@ -458,8 +501,8 @@ iscsi_sw_tcp_send_data_prep(struct iscsi_conn *conn, struct scatterlist *sg,
 	unsigned int hdr_spec_len;
 
 	ISCSI_SW_TCP_DBG(conn, "offset=%d, datalen=%d %s\n", offset, len,
-			 conn->datadgst_en ?
-			 "digest enabled" : "digest disabled");
+					 conn->datadgst_en ?
+					 "digest enabled" : "digest disabled");
 
 	/* Make sure the datalen matches what the caller
 	   said he would send. */
@@ -467,16 +510,18 @@ iscsi_sw_tcp_send_data_prep(struct iscsi_conn *conn, struct scatterlist *sg,
 	WARN_ON(iscsi_padded(len) != iscsi_padded(hdr_spec_len));
 
 	if (conn->datadgst_en)
+	{
 		tx_hash = tcp_sw_conn->tx_hash;
+	}
 
 	return iscsi_segment_seek_sg(&tcp_sw_conn->out.data_segment,
-				     sg, count, offset, len,
-				     NULL, tx_hash);
+								 sg, count, offset, len,
+								 NULL, tx_hash);
 }
 
 static void
 iscsi_sw_tcp_send_linear_data_prep(struct iscsi_conn *conn, void *data,
-				   size_t len)
+								   size_t len)
 {
 	struct iscsi_tcp_conn *tcp_conn = conn->dd_data;
 	struct iscsi_sw_tcp_conn *tcp_sw_conn = tcp_conn->dd_data;
@@ -484,7 +529,7 @@ iscsi_sw_tcp_send_linear_data_prep(struct iscsi_conn *conn, void *data,
 	unsigned int hdr_spec_len;
 
 	ISCSI_SW_TCP_DBG(conn, "datalen=%zd %s\n", len, conn->datadgst_en ?
-			 "digest enabled" : "digest disabled");
+					 "digest enabled" : "digest disabled");
 
 	/* Make sure the datalen matches what the caller
 	   said he would send. */
@@ -492,14 +537,16 @@ iscsi_sw_tcp_send_linear_data_prep(struct iscsi_conn *conn, void *data,
 	WARN_ON(iscsi_padded(len) != iscsi_padded(hdr_spec_len));
 
 	if (conn->datadgst_en)
+	{
 		tx_hash = tcp_sw_conn->tx_hash;
+	}
 
 	iscsi_segment_init_linear(&tcp_sw_conn->out.data_segment,
-				data, len, NULL, tx_hash);
+							  data, len, NULL, tx_hash);
 }
 
 static int iscsi_sw_tcp_pdu_init(struct iscsi_task *task,
-				 unsigned int offset, unsigned int count)
+								 unsigned int offset, unsigned int count)
 {
 	struct iscsi_conn *conn = task->conn;
 	int err = 0;
@@ -507,22 +554,29 @@ static int iscsi_sw_tcp_pdu_init(struct iscsi_task *task,
 	iscsi_sw_tcp_send_hdr_prep(conn, task->hdr, task->hdr_len);
 
 	if (!count)
+	{
 		return 0;
+	}
 
 	if (!task->sc)
+	{
 		iscsi_sw_tcp_send_linear_data_prep(conn, task->data, count);
-	else {
+	}
+	else
+	{
 		struct scsi_data_buffer *sdb = scsi_out(task->sc);
 
 		err = iscsi_sw_tcp_send_data_prep(conn, sdb->table.sgl,
-						  sdb->table.nents, offset,
-						  count);
+										  sdb->table.nents, offset,
+										  count);
 	}
 
-	if (err) {
+	if (err)
+	{
 		/* got invalid offset/len */
 		return -EIO;
 	}
+
 	return 0;
 }
 
@@ -537,7 +591,7 @@ static int iscsi_sw_tcp_pdu_alloc(struct iscsi_task *task, uint8_t opcode)
 
 static struct iscsi_cls_conn *
 iscsi_sw_tcp_conn_create(struct iscsi_cls_session *cls_session,
-			 uint32_t conn_idx)
+						 uint32_t conn_idx)
 {
 	struct iscsi_conn *conn;
 	struct iscsi_cls_conn *cls_conn;
@@ -546,25 +600,40 @@ iscsi_sw_tcp_conn_create(struct iscsi_cls_session *cls_session,
 	struct crypto_ahash *tfm;
 
 	cls_conn = iscsi_tcp_conn_setup(cls_session, sizeof(*tcp_sw_conn),
-					conn_idx);
+									conn_idx);
+
 	if (!cls_conn)
+	{
 		return NULL;
+	}
+
 	conn = cls_conn->dd_data;
 	tcp_conn = conn->dd_data;
 	tcp_sw_conn = tcp_conn->dd_data;
 
 	tfm = crypto_alloc_ahash("crc32c", 0, CRYPTO_ALG_ASYNC);
+
 	if (IS_ERR(tfm))
+	{
 		goto free_conn;
+	}
 
 	tcp_sw_conn->tx_hash = ahash_request_alloc(tfm, GFP_KERNEL);
+
 	if (!tcp_sw_conn->tx_hash)
+	{
 		goto free_tfm;
+	}
+
 	ahash_request_set_callback(tcp_sw_conn->tx_hash, 0, NULL, NULL);
 
 	tcp_sw_conn->rx_hash = ahash_request_alloc(tfm, GFP_KERNEL);
+
 	if (!tcp_sw_conn->rx_hash)
+	{
 		goto free_tx_hash;
+	}
+
 	ahash_request_set_callback(tcp_sw_conn->rx_hash, 0, NULL, NULL);
 
 	tcp_conn->rx_hash = tcp_sw_conn->rx_hash;
@@ -577,10 +646,10 @@ free_tfm:
 	crypto_free_ahash(tfm);
 free_conn:
 	iscsi_conn_printk(KERN_ERR, conn,
-			  "Could not create connection due to crc32c "
-			  "loading error. Make sure the crc32c "
-			  "module is built as a module or into the "
-			  "kernel\n");
+					  "Could not create connection due to crc32c "
+					  "loading error. Make sure the crc32c "
+					  "module is built as a module or into the "
+					  "kernel\n");
 	iscsi_tcp_conn_teardown(cls_conn);
 	return NULL;
 }
@@ -593,7 +662,9 @@ static void iscsi_sw_tcp_release_conn(struct iscsi_conn *conn)
 	struct socket *sock = tcp_sw_conn->sock;
 
 	if (!sock)
+	{
 		return;
+	}
 
 	sock_hold(sock->sk);
 	iscsi_sw_tcp_conn_restore_callbacks(conn);
@@ -614,7 +685,9 @@ static void iscsi_sw_tcp_conn_destroy(struct iscsi_cls_conn *cls_conn)
 	iscsi_sw_tcp_release_conn(conn);
 
 	ahash_request_free(tcp_sw_conn->rx_hash);
-	if (tcp_sw_conn->tx_hash) {
+
+	if (tcp_sw_conn->tx_hash)
+	{
 		struct crypto_ahash *tfm;
 
 		tfm = crypto_ahash_reqtfm(tcp_sw_conn->tx_hash);
@@ -634,7 +707,9 @@ static void iscsi_sw_tcp_conn_stop(struct iscsi_cls_conn *cls_conn, int flag)
 
 	/* userspace may have goofed up and not bound us */
 	if (!sock)
+	{
 		return;
+	}
 
 	sock->sk->sk_err = EIO;
 	wake_up_interruptible(sk_sleep(sock->sk));
@@ -650,8 +725,8 @@ static void iscsi_sw_tcp_conn_stop(struct iscsi_cls_conn *cls_conn, int flag)
 
 static int
 iscsi_sw_tcp_conn_bind(struct iscsi_cls_session *cls_session,
-		       struct iscsi_cls_conn *cls_conn, uint64_t transport_eph,
-		       int is_leading)
+					   struct iscsi_cls_conn *cls_conn, uint64_t transport_eph,
+					   int is_leading)
 {
 	struct iscsi_session *session = cls_session->dd_data;
 	struct iscsi_conn *conn = cls_conn->dd_data;
@@ -663,15 +738,20 @@ iscsi_sw_tcp_conn_bind(struct iscsi_cls_session *cls_session,
 
 	/* lookup for existing socket */
 	sock = sockfd_lookup((int)transport_eph, &err);
-	if (!sock) {
+
+	if (!sock)
+	{
 		iscsi_conn_printk(KERN_ERR, conn,
-				  "sockfd_lookup failed %d\n", err);
+						  "sockfd_lookup failed %d\n", err);
 		return -EEXIST;
 	}
 
 	err = iscsi_conn_bind(cls_session, cls_conn, is_leading);
+
 	if (err)
+	{
 		goto free_socket;
+	}
 
 	spin_lock_bh(&session->frwd_lock);
 	/* bind iSCSI connection and socket */
@@ -699,33 +779,37 @@ free_socket:
 }
 
 static int iscsi_sw_tcp_conn_set_param(struct iscsi_cls_conn *cls_conn,
-				       enum iscsi_param param, char *buf,
-				       int buflen)
+									   enum iscsi_param param, char *buf,
+									   int buflen)
 {
 	struct iscsi_conn *conn = cls_conn->dd_data;
 	struct iscsi_tcp_conn *tcp_conn = conn->dd_data;
 	struct iscsi_sw_tcp_conn *tcp_sw_conn = tcp_conn->dd_data;
 
-	switch(param) {
-	case ISCSI_PARAM_HDRDGST_EN:
-		iscsi_set_param(cls_conn, param, buf, buflen);
-		break;
-	case ISCSI_PARAM_DATADGST_EN:
-		iscsi_set_param(cls_conn, param, buf, buflen);
-		tcp_sw_conn->sendpage = conn->datadgst_en ?
-			sock_no_sendpage : tcp_sw_conn->sock->ops->sendpage;
-		break;
-	case ISCSI_PARAM_MAX_R2T:
-		return iscsi_tcp_set_max_r2t(conn, buf);
-	default:
-		return iscsi_set_param(cls_conn, param, buf, buflen);
+	switch (param)
+	{
+		case ISCSI_PARAM_HDRDGST_EN:
+			iscsi_set_param(cls_conn, param, buf, buflen);
+			break;
+
+		case ISCSI_PARAM_DATADGST_EN:
+			iscsi_set_param(cls_conn, param, buf, buflen);
+			tcp_sw_conn->sendpage = conn->datadgst_en ?
+									sock_no_sendpage : tcp_sw_conn->sock->ops->sendpage;
+			break;
+
+		case ISCSI_PARAM_MAX_R2T:
+			return iscsi_tcp_set_max_r2t(conn, buf);
+
+		default:
+			return iscsi_set_param(cls_conn, param, buf, buflen);
 	}
 
 	return 0;
 }
 
 static int iscsi_sw_tcp_conn_get_param(struct iscsi_cls_conn *cls_conn,
-				       enum iscsi_param param, char *buf)
+									   enum iscsi_param param, char *buf)
 {
 	struct iscsi_conn *conn = cls_conn->dd_data;
 	struct iscsi_tcp_conn *tcp_conn = conn->dd_data;
@@ -733,36 +817,45 @@ static int iscsi_sw_tcp_conn_get_param(struct iscsi_cls_conn *cls_conn,
 	struct sockaddr_in6 addr;
 	int rc, len;
 
-	switch(param) {
-	case ISCSI_PARAM_CONN_PORT:
-	case ISCSI_PARAM_CONN_ADDRESS:
-	case ISCSI_PARAM_LOCAL_PORT:
-		spin_lock_bh(&conn->session->frwd_lock);
-		if (!tcp_sw_conn || !tcp_sw_conn->sock) {
-			spin_unlock_bh(&conn->session->frwd_lock);
-			return -ENOTCONN;
-		}
-		if (param == ISCSI_PARAM_LOCAL_PORT)
-			rc = kernel_getsockname(tcp_sw_conn->sock,
-						(struct sockaddr *)&addr, &len);
-		else
-			rc = kernel_getpeername(tcp_sw_conn->sock,
-						(struct sockaddr *)&addr, &len);
-		spin_unlock_bh(&conn->session->frwd_lock);
-		if (rc)
-			return rc;
+	switch (param)
+	{
+		case ISCSI_PARAM_CONN_PORT:
+		case ISCSI_PARAM_CONN_ADDRESS:
+		case ISCSI_PARAM_LOCAL_PORT:
+			spin_lock_bh(&conn->session->frwd_lock);
 
-		return iscsi_conn_get_addr_param((struct sockaddr_storage *)
-						 &addr, param, buf);
-	default:
-		return iscsi_conn_get_param(cls_conn, param, buf);
+			if (!tcp_sw_conn || !tcp_sw_conn->sock)
+			{
+				spin_unlock_bh(&conn->session->frwd_lock);
+				return -ENOTCONN;
+			}
+
+			if (param == ISCSI_PARAM_LOCAL_PORT)
+				rc = kernel_getsockname(tcp_sw_conn->sock,
+										(struct sockaddr *)&addr, &len);
+			else
+				rc = kernel_getpeername(tcp_sw_conn->sock,
+										(struct sockaddr *)&addr, &len);
+
+			spin_unlock_bh(&conn->session->frwd_lock);
+
+			if (rc)
+			{
+				return rc;
+			}
+
+			return iscsi_conn_get_addr_param((struct sockaddr_storage *)
+											 &addr, param, buf);
+
+		default:
+			return iscsi_conn_get_param(cls_conn, param, buf);
 	}
 
 	return 0;
 }
 
 static int iscsi_sw_tcp_host_get_param(struct Scsi_Host *shost,
-				       enum iscsi_host_param param, char *buf)
+									   enum iscsi_host_param param, char *buf)
 {
 	struct iscsi_sw_tcp_host *tcp_sw_host = iscsi_host_priv(shost);
 	struct iscsi_session *session = tcp_sw_host->session;
@@ -772,35 +865,47 @@ static int iscsi_sw_tcp_host_get_param(struct Scsi_Host *shost,
 	struct sockaddr_in6 addr;
 	int rc, len;
 
-	switch (param) {
-	case ISCSI_HOST_PARAM_IPADDRESS:
-		if (!session)
-			return -ENOTCONN;
+	switch (param)
+	{
+		case ISCSI_HOST_PARAM_IPADDRESS:
+			if (!session)
+			{
+				return -ENOTCONN;
+			}
 
-		spin_lock_bh(&session->frwd_lock);
-		conn = session->leadconn;
-		if (!conn) {
+			spin_lock_bh(&session->frwd_lock);
+			conn = session->leadconn;
+
+			if (!conn)
+			{
+				spin_unlock_bh(&session->frwd_lock);
+				return -ENOTCONN;
+			}
+
+			tcp_conn = conn->dd_data;
+
+			tcp_sw_conn = tcp_conn->dd_data;
+
+			if (!tcp_sw_conn->sock)
+			{
+				spin_unlock_bh(&session->frwd_lock);
+				return -ENOTCONN;
+			}
+
+			rc = kernel_getsockname(tcp_sw_conn->sock,
+									(struct sockaddr *)&addr, &len);
 			spin_unlock_bh(&session->frwd_lock);
-			return -ENOTCONN;
-		}
-		tcp_conn = conn->dd_data;
 
-		tcp_sw_conn = tcp_conn->dd_data;
-		if (!tcp_sw_conn->sock) {
-			spin_unlock_bh(&session->frwd_lock);
-			return -ENOTCONN;
-		}
+			if (rc)
+			{
+				return rc;
+			}
 
-		rc = kernel_getsockname(tcp_sw_conn->sock,
-					(struct sockaddr *)&addr, &len);
-		spin_unlock_bh(&session->frwd_lock);
-		if (rc)
-			return rc;
+			return iscsi_conn_get_addr_param((struct sockaddr_storage *)
+											 &addr, param, buf);
 
-		return iscsi_conn_get_addr_param((struct sockaddr_storage *)
-						 &addr, param, buf);
-	default:
-		return iscsi_host_get_param(shost, param, buf);
+		default:
+			return iscsi_host_get_param(shost, param, buf);
 	}
 
 	return 0;
@@ -808,7 +913,7 @@ static int iscsi_sw_tcp_host_get_param(struct Scsi_Host *shost,
 
 static void
 iscsi_sw_tcp_conn_get_stats(struct iscsi_cls_conn *cls_conn,
-			    struct iscsi_stats *stats)
+							struct iscsi_stats *stats)
 {
 	struct iscsi_conn *conn = cls_conn->dd_data;
 	struct iscsi_tcp_conn *tcp_conn = conn->dd_data;
@@ -827,22 +932,27 @@ iscsi_sw_tcp_conn_get_stats(struct iscsi_cls_conn *cls_conn,
 
 static struct iscsi_cls_session *
 iscsi_sw_tcp_session_create(struct iscsi_endpoint *ep, uint16_t cmds_max,
-			    uint16_t qdepth, uint32_t initial_cmdsn)
+							uint16_t qdepth, uint32_t initial_cmdsn)
 {
 	struct iscsi_cls_session *cls_session;
 	struct iscsi_session *session;
 	struct iscsi_sw_tcp_host *tcp_sw_host;
 	struct Scsi_Host *shost;
 
-	if (ep) {
+	if (ep)
+	{
 		printk(KERN_ERR "iscsi_tcp: invalid ep %p.\n", ep);
 		return NULL;
 	}
 
 	shost = iscsi_host_alloc(&iscsi_sw_tcp_sht,
-				 sizeof(struct iscsi_sw_tcp_host), 1);
+							 sizeof(struct iscsi_sw_tcp_host), 1);
+
 	if (!shost)
+	{
 		return NULL;
+	}
+
 	shost->transportt = iscsi_sw_tcp_scsi_transport;
 	shost->cmd_per_lun = qdepth;
 	shost->max_lun = iscsi_max_lun;
@@ -851,22 +961,32 @@ iscsi_sw_tcp_session_create(struct iscsi_endpoint *ep, uint16_t cmds_max,
 	shost->max_cmd_len = SCSI_MAX_VARLEN_CDB_SIZE;
 
 	if (iscsi_host_add(shost, NULL))
+	{
 		goto free_host;
+	}
 
 	cls_session = iscsi_session_setup(&iscsi_sw_tcp_transport, shost,
-					  cmds_max, 0,
-					  sizeof(struct iscsi_tcp_task) +
-					  sizeof(struct iscsi_sw_tcp_hdrbuf),
-					  initial_cmdsn, 0);
+									  cmds_max, 0,
+									  sizeof(struct iscsi_tcp_task) +
+									  sizeof(struct iscsi_sw_tcp_hdrbuf),
+									  initial_cmdsn, 0);
+
 	if (!cls_session)
+	{
 		goto remove_host;
+	}
+
 	session = cls_session->dd_data;
 	tcp_sw_host = iscsi_host_priv(shost);
 	tcp_sw_host->session = session;
 
 	shost->can_queue = session->scsi_cmds_max;
+
 	if (iscsi_tcp_r2tpool_alloc(session))
+	{
 		goto remove_session;
+	}
+
 	return cls_session;
 
 remove_session:
@@ -891,55 +1011,61 @@ static void iscsi_sw_tcp_session_destroy(struct iscsi_cls_session *cls_session)
 
 static umode_t iscsi_sw_tcp_attr_is_visible(int param_type, int param)
 {
-	switch (param_type) {
-	case ISCSI_HOST_PARAM:
-		switch (param) {
-		case ISCSI_HOST_PARAM_NETDEV_NAME:
-		case ISCSI_HOST_PARAM_HWADDRESS:
-		case ISCSI_HOST_PARAM_IPADDRESS:
-		case ISCSI_HOST_PARAM_INITIATOR_NAME:
-			return S_IRUGO;
-		default:
-			return 0;
-		}
-	case ISCSI_PARAM:
-		switch (param) {
-		case ISCSI_PARAM_MAX_RECV_DLENGTH:
-		case ISCSI_PARAM_MAX_XMIT_DLENGTH:
-		case ISCSI_PARAM_HDRDGST_EN:
-		case ISCSI_PARAM_DATADGST_EN:
-		case ISCSI_PARAM_CONN_ADDRESS:
-		case ISCSI_PARAM_CONN_PORT:
-		case ISCSI_PARAM_LOCAL_PORT:
-		case ISCSI_PARAM_EXP_STATSN:
-		case ISCSI_PARAM_PERSISTENT_ADDRESS:
-		case ISCSI_PARAM_PERSISTENT_PORT:
-		case ISCSI_PARAM_PING_TMO:
-		case ISCSI_PARAM_RECV_TMO:
-		case ISCSI_PARAM_INITIAL_R2T_EN:
-		case ISCSI_PARAM_MAX_R2T:
-		case ISCSI_PARAM_IMM_DATA_EN:
-		case ISCSI_PARAM_FIRST_BURST:
-		case ISCSI_PARAM_MAX_BURST:
-		case ISCSI_PARAM_PDU_INORDER_EN:
-		case ISCSI_PARAM_DATASEQ_INORDER_EN:
-		case ISCSI_PARAM_ERL:
-		case ISCSI_PARAM_TARGET_NAME:
-		case ISCSI_PARAM_TPGT:
-		case ISCSI_PARAM_USERNAME:
-		case ISCSI_PARAM_PASSWORD:
-		case ISCSI_PARAM_USERNAME_IN:
-		case ISCSI_PARAM_PASSWORD_IN:
-		case ISCSI_PARAM_FAST_ABORT:
-		case ISCSI_PARAM_ABORT_TMO:
-		case ISCSI_PARAM_LU_RESET_TMO:
-		case ISCSI_PARAM_TGT_RESET_TMO:
-		case ISCSI_PARAM_IFACE_NAME:
-		case ISCSI_PARAM_INITIATOR_NAME:
-			return S_IRUGO;
-		default:
-			return 0;
-		}
+	switch (param_type)
+	{
+		case ISCSI_HOST_PARAM:
+			switch (param)
+			{
+				case ISCSI_HOST_PARAM_NETDEV_NAME:
+				case ISCSI_HOST_PARAM_HWADDRESS:
+				case ISCSI_HOST_PARAM_IPADDRESS:
+				case ISCSI_HOST_PARAM_INITIATOR_NAME:
+					return S_IRUGO;
+
+				default:
+					return 0;
+			}
+
+		case ISCSI_PARAM:
+			switch (param)
+			{
+				case ISCSI_PARAM_MAX_RECV_DLENGTH:
+				case ISCSI_PARAM_MAX_XMIT_DLENGTH:
+				case ISCSI_PARAM_HDRDGST_EN:
+				case ISCSI_PARAM_DATADGST_EN:
+				case ISCSI_PARAM_CONN_ADDRESS:
+				case ISCSI_PARAM_CONN_PORT:
+				case ISCSI_PARAM_LOCAL_PORT:
+				case ISCSI_PARAM_EXP_STATSN:
+				case ISCSI_PARAM_PERSISTENT_ADDRESS:
+				case ISCSI_PARAM_PERSISTENT_PORT:
+				case ISCSI_PARAM_PING_TMO:
+				case ISCSI_PARAM_RECV_TMO:
+				case ISCSI_PARAM_INITIAL_R2T_EN:
+				case ISCSI_PARAM_MAX_R2T:
+				case ISCSI_PARAM_IMM_DATA_EN:
+				case ISCSI_PARAM_FIRST_BURST:
+				case ISCSI_PARAM_MAX_BURST:
+				case ISCSI_PARAM_PDU_INORDER_EN:
+				case ISCSI_PARAM_DATASEQ_INORDER_EN:
+				case ISCSI_PARAM_ERL:
+				case ISCSI_PARAM_TARGET_NAME:
+				case ISCSI_PARAM_TPGT:
+				case ISCSI_PARAM_USERNAME:
+				case ISCSI_PARAM_PASSWORD:
+				case ISCSI_PARAM_USERNAME_IN:
+				case ISCSI_PARAM_PASSWORD_IN:
+				case ISCSI_PARAM_FAST_ABORT:
+				case ISCSI_PARAM_ABORT_TMO:
+				case ISCSI_PARAM_LU_RESET_TMO:
+				case ISCSI_PARAM_TGT_RESET_TMO:
+				case ISCSI_PARAM_IFACE_NAME:
+				case ISCSI_PARAM_INITIATOR_NAME:
+					return S_IRUGO;
+
+				default:
+					return 0;
+			}
 	}
 
 	return 0;
@@ -958,7 +1084,8 @@ static int iscsi_sw_tcp_slave_configure(struct scsi_device *sdev)
 	return 0;
 }
 
-static struct scsi_host_template iscsi_sw_tcp_sht = {
+static struct scsi_host_template iscsi_sw_tcp_sht =
+{
 	.module			= THIS_MODULE,
 	.name			= "iSCSI Initiator over TCP/IP",
 	.queuecommand           = iscsi_queuecommand,
@@ -968,7 +1095,7 @@ static struct scsi_host_template iscsi_sw_tcp_sht = {
 	.max_sectors		= 0xFFFF,
 	.cmd_per_lun		= ISCSI_DEF_CMD_PER_LUN,
 	.eh_abort_handler       = iscsi_eh_abort,
-	.eh_device_reset_handler= iscsi_eh_device_reset,
+	.eh_device_reset_handler = iscsi_eh_device_reset,
 	.eh_target_reset_handler = iscsi_eh_recover_target,
 	.use_clustering         = DISABLE_CLUSTERING,
 	.slave_alloc            = iscsi_sw_tcp_slave_alloc,
@@ -979,11 +1106,12 @@ static struct scsi_host_template iscsi_sw_tcp_sht = {
 	.track_queue_depth	= 1,
 };
 
-static struct iscsi_transport iscsi_sw_tcp_transport = {
+static struct iscsi_transport iscsi_sw_tcp_transport =
+{
 	.owner			= THIS_MODULE,
 	.name			= "tcp",
 	.caps			= CAP_RECOVERY_L0 | CAP_MULTI_R2T | CAP_HDRDGST
-				  | CAP_DATADGST,
+	| CAP_DATADGST,
 	/* session management */
 	.create_session		= iscsi_sw_tcp_session_create,
 	.destroy_session	= iscsi_sw_tcp_session_destroy,
@@ -1017,16 +1145,20 @@ static struct iscsi_transport iscsi_sw_tcp_transport = {
 
 static int __init iscsi_sw_tcp_init(void)
 {
-	if (iscsi_max_lun < 1) {
+	if (iscsi_max_lun < 1)
+	{
 		printk(KERN_ERR "iscsi_tcp: Invalid max_lun value of %u\n",
-		       iscsi_max_lun);
+			   iscsi_max_lun);
 		return -EINVAL;
 	}
 
 	iscsi_sw_tcp_scsi_transport = iscsi_register_transport(
-						&iscsi_sw_tcp_transport);
+									  &iscsi_sw_tcp_transport);
+
 	if (!iscsi_sw_tcp_scsi_transport)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }

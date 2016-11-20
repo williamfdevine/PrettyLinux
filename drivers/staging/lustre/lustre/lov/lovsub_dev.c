@@ -49,7 +49,7 @@
  */
 
 static void lovsub_req_completion(const struct lu_env *env,
-				  const struct cl_req_slice *slice, int ioret)
+								  const struct cl_req_slice *slice, int ioret)
 {
 	struct lovsub_req *lsr;
 
@@ -63,9 +63,9 @@ static void lovsub_req_completion(const struct lu_env *env,
  * field, which is filled there.
  */
 static void lovsub_req_attr_set(const struct lu_env *env,
-				const struct cl_req_slice *slice,
-				const struct cl_object *obj,
-				struct cl_req_attr *attr, u64 flags)
+								const struct cl_req_slice *slice,
+								const struct cl_object *obj,
+								struct cl_req_attr *attr, u64 flags)
 {
 	struct lovsub_object *subobj;
 
@@ -77,7 +77,8 @@ static void lovsub_req_attr_set(const struct lu_env *env,
 	attr->cra_oa->o_stripe_idx = subobj->lso_index;
 }
 
-static const struct cl_req_operations lovsub_req_ops = {
+static const struct cl_req_operations lovsub_req_ops =
+{
 	.cro_attr_set   = lovsub_req_attr_set,
 	.cro_completion = lovsub_req_completion
 };
@@ -89,7 +90,7 @@ static const struct cl_req_operations lovsub_req_ops = {
  */
 
 static int lovsub_device_init(const struct lu_env *env, struct lu_device *d,
-			      const char *name, struct lu_device *next)
+							  const char *name, struct lu_device *next)
 {
 	struct lovsub_device  *lsd = lu2lovsub_dev(d);
 	struct lu_device_type *ldt;
@@ -98,7 +99,9 @@ static int lovsub_device_init(const struct lu_env *env, struct lu_device *d,
 	next->ld_site = d->ld_site;
 	ldt = next->ld_type;
 	rc = ldt->ldt_ops->ldto_device_init(env, next, ldt->ldt_name, NULL);
-	if (rc) {
+
+	if (rc)
+	{
 		next->ld_site = NULL;
 		return rc;
 	}
@@ -110,7 +113,7 @@ static int lovsub_device_init(const struct lu_env *env, struct lu_device *d,
 }
 
 static struct lu_device *lovsub_device_fini(const struct lu_env *env,
-					    struct lu_device *d)
+		struct lu_device *d)
 {
 	struct lu_device *next;
 	struct lovsub_device *lsd;
@@ -123,72 +126,91 @@ static struct lu_device *lovsub_device_fini(const struct lu_env *env,
 }
 
 static struct lu_device *lovsub_device_free(const struct lu_env *env,
-					    struct lu_device *d)
+		struct lu_device *d)
 {
 	struct lovsub_device *lsd  = lu2lovsub_dev(d);
 	struct lu_device     *next = cl2lu_dev(lsd->acid_next);
 
-	if (atomic_read(&d->ld_ref) && d->ld_site) {
+	if (atomic_read(&d->ld_ref) && d->ld_site)
+	{
 		LIBCFS_DEBUG_MSG_DATA_DECL(msgdata, D_ERROR, NULL);
 		lu_site_print(env, d->ld_site, &msgdata, lu_cdebug_printer);
 	}
+
 	cl_device_fini(lu2cl_dev(d));
 	kfree(lsd);
 	return next;
 }
 
 static int lovsub_req_init(const struct lu_env *env, struct cl_device *dev,
-			   struct cl_req *req)
+						   struct cl_req *req)
 {
 	struct lovsub_req *lsr;
 	int result;
 
 	lsr = kmem_cache_zalloc(lovsub_req_kmem, GFP_NOFS);
-	if (lsr) {
+
+	if (lsr)
+	{
 		cl_req_slice_add(req, &lsr->lsrq_cl, dev, &lovsub_req_ops);
 		result = 0;
-	} else {
+	}
+	else
+	{
 		result = -ENOMEM;
 	}
+
 	return result;
 }
 
-static const struct lu_device_operations lovsub_lu_ops = {
+static const struct lu_device_operations lovsub_lu_ops =
+{
 	.ldo_object_alloc      = lovsub_object_alloc,
 	.ldo_process_config    = NULL,
 	.ldo_recovery_complete = NULL
 };
 
-static const struct cl_device_operations lovsub_cl_ops = {
+static const struct cl_device_operations lovsub_cl_ops =
+{
 	.cdo_req_init = lovsub_req_init
 };
 
 static struct lu_device *lovsub_device_alloc(const struct lu_env *env,
-					     struct lu_device_type *t,
-					     struct lustre_cfg *cfg)
+		struct lu_device_type *t,
+		struct lustre_cfg *cfg)
 {
 	struct lu_device     *d;
 	struct lovsub_device *lsd;
 
 	lsd = kzalloc(sizeof(*lsd), GFP_NOFS);
-	if (lsd) {
+
+	if (lsd)
+	{
 		int result;
 
 		result = cl_device_init(&lsd->acid_cl, t);
-		if (result == 0) {
+
+		if (result == 0)
+		{
 			d = lovsub2lu_dev(lsd);
 			d->ld_ops	 = &lovsub_lu_ops;
 			lsd->acid_cl.cd_ops = &lovsub_cl_ops;
-		} else {
+		}
+		else
+		{
 			d = ERR_PTR(result);
 		}
-	} else {
+	}
+	else
+	{
 		d = ERR_PTR(-ENOMEM);
 	}
+
 	return d;
 }
 
-static const struct lu_device_type_operations lovsub_device_type_ops = {
+static const struct lu_device_type_operations lovsub_device_type_ops =
+{
 	.ldto_device_alloc = lovsub_device_alloc,
 	.ldto_device_free  = lovsub_device_free,
 
@@ -198,7 +220,8 @@ static const struct lu_device_type_operations lovsub_device_type_ops = {
 
 #define LUSTRE_LOVSUB_NAME	 "lovsub"
 
-struct lu_device_type lovsub_device_type = {
+struct lu_device_type lovsub_device_type =
+{
 	.ldt_tags     = LU_DEVICE_CL,
 	.ldt_name     = LUSTRE_LOVSUB_NAME,
 	.ldt_ops      = &lovsub_device_type_ops,

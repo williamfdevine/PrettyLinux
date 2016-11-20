@@ -2,16 +2,16 @@
  *  sym53c416.c
  *  Low-level SCSI driver for sym53c416 chip.
  *  Copyright (C) 1998 Lieven Willems (lw_linux@hotmail.com)
- * 
- *  Changes : 
- * 
+ *
+ *  Changes :
+ *
  *  Marcelo Tosatti <marcelo@conectiva.com.br> : Added io_request_lock locking
  *  Alan Cox <alan@lxorguk.ukuu.org.uk> : Cleaned up code formatting
  *				 Fixed an irq locking bug
  *				 Added ISAPnP support
  *  Bjoern A. Zeeb <bzeeb@zabbadoz.net> : Initial irq locking updates
  *					  Added another card with ISAPnP support
- * 
+ *
  *  LILO command line usage: sym53c416=<PORTBASE>[,<IRQ>]
  *
  *  This program is free software; you can redistribute it and/or modify it
@@ -181,15 +181,15 @@
 
 #ifdef MODULE
 
-#define sym53c416_base sym53c416
-#define sym53c416_base_1 sym53c416_1
-#define sym53c416_base_2 sym53c416_2
-#define sym53c416_base_3 sym53c416_3
+	#define sym53c416_base sym53c416
+	#define sym53c416_base_1 sym53c416_1
+	#define sym53c416_base_2 sym53c416_2
+	#define sym53c416_base_3 sym53c416_3
 
-static unsigned int sym53c416_base[2];
-static unsigned int sym53c416_base_1[2];
-static unsigned int sym53c416_base_2[2];
-static unsigned int sym53c416_base_3[2];
+	static unsigned int sym53c416_base[2];
+	static unsigned int sym53c416_base_1[2];
+	static unsigned int sym53c416_base_2[2];
+	static unsigned int sym53c416_base_3[2];
 
 #endif
 
@@ -215,12 +215,13 @@ typedef struct
 	int scsi_id;
 } host;
 
-static host hosts[MAXHOSTS] = {
-                       {0, 0, SYM53C416_SCSI_ID},
-                       {0, 0, SYM53C416_SCSI_ID},
-                       {0, 0, SYM53C416_SCSI_ID},
-                       {0, 0, SYM53C416_SCSI_ID}
-                       };
+static host hosts[MAXHOSTS] =
+{
+	{0, 0, SYM53C416_SCSI_ID},
+	{0, 0, SYM53C416_SCSI_ID},
+	{0, 0, SYM53C416_SCSI_ID},
+	{0, 0, SYM53C416_SCSI_ID}
+};
 
 static int host_index = 0;
 static char info[120];
@@ -250,33 +251,46 @@ static __inline__ unsigned int sym53c416_read(int base, unsigned char *buffer, u
 
 	/* Do transfer */
 	spin_lock_irqsave(&sym53c416_lock, flags);
-	while(len && timeout)
+
+	while (len && timeout)
 	{
 		bytes_left = inb(base + PIO_FIFO_CNT); /* Number of bytes in the PIO FIFO */
-		if(fastpio && bytes_left > 3)
+
+		if (fastpio && bytes_left > 3)
 		{
 			insl(base + PIO_FIFO_1, buffer, bytes_left >> 2);
 			buffer += bytes_left & 0xFC;
 			len -= bytes_left & 0xFC;
 		}
-		else if(bytes_left > 0)
+		else if (bytes_left > 0)
 		{
 			len -= bytes_left;
-			for(; bytes_left > 0; bytes_left--)
+
+			for (; bytes_left > 0; bytes_left--)
+			{
 				*(buffer++) = inb(base + PIO_FIFO_1);
+			}
 		}
 		else
 		{
 			i = jiffies + timeout;
 			spin_unlock_irqrestore(&sym53c416_lock, flags);
-			while(time_before(jiffies, i) && (inb(base + PIO_INT_REG) & EMPTY) && timeout)
-				if(inb(base + PIO_INT_REG) & SCI)
+
+			while (time_before(jiffies, i) && (inb(base + PIO_INT_REG) & EMPTY) && timeout)
+				if (inb(base + PIO_INT_REG) & SCI)
+				{
 					timeout = 0;
+				}
+
 			spin_lock_irqsave(&sym53c416_lock, flags);
-			if(inb(base + PIO_INT_REG) & EMPTY)
+
+			if (inb(base + PIO_INT_REG) & EMPTY)
+			{
 				timeout = 0;
+			}
 		}
 	}
+
 	spin_unlock_irqrestore(&sym53c416_lock, flags);
 	return orig_len - len;
 }
@@ -292,34 +306,48 @@ static __inline__ unsigned int sym53c416_write(int base, unsigned char *buffer, 
 
 	/* Do transfer */
 	spin_lock_irqsave(&sym53c416_lock, flags);
-	while(len && timeout)
+
+	while (len && timeout)
 	{
 		bufferfree = PIO_SIZE - inb(base + PIO_FIFO_CNT);
-		if(bufferfree > len)
+
+		if (bufferfree > len)
+		{
 			bufferfree = len;
-		if(fastpio && bufferfree > 3)
+		}
+
+		if (fastpio && bufferfree > 3)
 		{
 			outsl(base + PIO_FIFO_1, buffer, bufferfree >> 2);
 			buffer += bufferfree & 0xFC;
 			len -= bufferfree & 0xFC;
 		}
-		else if(bufferfree > 0)
+		else if (bufferfree > 0)
 		{
 			len -= bufferfree;
-			for(; bufferfree > 0; bufferfree--)
+
+			for (; bufferfree > 0; bufferfree--)
+			{
 				outb(*(buffer++), base + PIO_FIFO_1);
+			}
 		}
 		else
 		{
 			i = jiffies + timeout;
 			spin_unlock_irqrestore(&sym53c416_lock, flags);
-			while(time_before(jiffies, i) && (inb(base + PIO_INT_REG) & FULL) && timeout)
+
+			while (time_before(jiffies, i) && (inb(base + PIO_INT_REG) & FULL) && timeout)
 				;
+
 			spin_lock_irqsave(&sym53c416_lock, flags);
-			if(inb(base + PIO_INT_REG) & FULL)
+
+			if (inb(base + PIO_INT_REG) & FULL)
+			{
 				timeout = 0;
+			}
 		}
 	}
+
 	spin_unlock_irqrestore(&sym53c416_lock, flags);
 	return orig_len - len;
 }
@@ -334,14 +362,14 @@ static irqreturn_t sym53c416_intr_handle(int irq, void *dev_id)
 	struct scatterlist *sg;
 	unsigned int tot_trans = 0;
 
-	spin_lock_irqsave(dev->host_lock,flags);
+	spin_lock_irqsave(dev->host_lock, flags);
 	status_reg = inb(base + STATUS_REG);
 	pio_int_reg = inb(base + PIO_INT_REG);
 	int_reg = inb(base + INT_REG);
 	spin_unlock_irqrestore(dev->host_lock, flags);
 
 	/* First, we handle error conditions */
-	if(int_reg & SCI)         /* SCSI Reset */
+	if (int_reg & SCI)        /* SCSI Reset */
 	{
 		printk(KERN_DEBUG "sym53c416: Reset received\n");
 		current_command->SCp.phase = idle;
@@ -351,7 +379,8 @@ static irqreturn_t sym53c416_intr_handle(int irq, void *dev_id)
 		spin_unlock_irqrestore(dev->host_lock, flags);
 		goto out;
 	}
-	if(int_reg & ILCMD)       /* Illegal Command */
+
+	if (int_reg & ILCMD)      /* Illegal Command */
 	{
 		printk(KERN_WARNING "sym53c416: Illegal Command: 0x%02x.\n", inb(base + COMMAND_REG));
 		current_command->SCp.phase = idle;
@@ -361,7 +390,8 @@ static irqreturn_t sym53c416_intr_handle(int irq, void *dev_id)
 		spin_unlock_irqrestore(dev->host_lock, flags);
 		goto out;
 	}
-	if(status_reg & GE)         /* Gross Error */
+
+	if (status_reg & GE)        /* Gross Error */
 	{
 		printk(KERN_WARNING "sym53c416: Controller reports gross error.\n");
 		current_command->SCp.phase = idle;
@@ -371,7 +401,8 @@ static irqreturn_t sym53c416_intr_handle(int irq, void *dev_id)
 		spin_unlock_irqrestore(dev->host_lock, flags);
 		goto out;
 	}
-	if(status_reg & PE)         /* Parity Error */
+
+	if (status_reg & PE)        /* Parity Error */
 	{
 		printk(KERN_WARNING "sym53c416:SCSI parity error.\n");
 		current_command->SCp.phase = idle;
@@ -381,7 +412,8 @@ static irqreturn_t sym53c416_intr_handle(int irq, void *dev_id)
 		spin_unlock_irqrestore(dev->host_lock, flags);
 		goto out;
 	}
-	if(pio_int_reg & (CE | OUE))
+
+	if (pio_int_reg & (CE | OUE))
 	{
 		printk(KERN_WARNING "sym53c416: PIO interrupt error.\n");
 		current_command->SCp.phase = idle;
@@ -391,108 +423,133 @@ static irqreturn_t sym53c416_intr_handle(int irq, void *dev_id)
 		spin_unlock_irqrestore(dev->host_lock, flags);
 		goto out;
 	}
-	if(int_reg & DIS)           /* Disconnect */
+
+	if (int_reg & DIS)          /* Disconnect */
 	{
-		if(current_command->SCp.phase != message_in)
+		if (current_command->SCp.phase != message_in)
+		{
 			current_command->result = DID_NO_CONNECT << 16;
+		}
 		else
-			current_command->result = (current_command->SCp.Status & 0xFF) | ((current_command->SCp.Message & 0xFF) << 8) | (DID_OK << 16);
+		{
+			current_command->result = (current_command->SCp.Status & 0xFF) | ((current_command->SCp.Message & 0xFF) << 8) |
+									  (DID_OK << 16);
+		}
+
 		current_command->SCp.phase = idle;
 		spin_lock_irqsave(dev->host_lock, flags);
 		current_command->scsi_done(current_command);
 		spin_unlock_irqrestore(dev->host_lock, flags);
 		goto out;
 	}
+
 	/* Now we handle SCSI phases         */
 
-	switch(status_reg & PHBITS)       /* Filter SCSI phase out of status reg */
+	switch (status_reg & PHBITS)      /* Filter SCSI phase out of status reg */
 	{
 		case PHASE_DATA_OUT:
-		{
-			if(int_reg & BS)
 			{
-				current_command->SCp.phase = data_out;
-				outb(FLUSH_FIFO, base + COMMAND_REG);
-				sym53c416_set_transfer_counter(base,
-							       scsi_bufflen(current_command));
-				outb(TRANSFER_INFORMATION | PIO_MODE, base + COMMAND_REG);
+				if (int_reg & BS)
+				{
+					current_command->SCp.phase = data_out;
+					outb(FLUSH_FIFO, base + COMMAND_REG);
+					sym53c416_set_transfer_counter(base,
+												   scsi_bufflen(current_command));
+					outb(TRANSFER_INFORMATION | PIO_MODE, base + COMMAND_REG);
 
-				scsi_for_each_sg(current_command,
-						 sg, scsi_sg_count(current_command), i) {
-					tot_trans += sym53c416_write(base,
-								     SG_ADDRESS(sg),
-								     sg->length);
+					scsi_for_each_sg(current_command,
+									 sg, scsi_sg_count(current_command), i)
+					{
+						tot_trans += sym53c416_write(base,
+													 SG_ADDRESS(sg),
+													 sg->length);
+					}
+
+					if (tot_trans < current_command->underflow)
+					{
+						printk(KERN_WARNING "sym53c416: Underflow, wrote %d bytes, request for %d bytes.\n", tot_trans,
+							   current_command->underflow);
+					}
 				}
-				if(tot_trans < current_command->underflow)
-					printk(KERN_WARNING "sym53c416: Underflow, wrote %d bytes, request for %d bytes.\n", tot_trans, current_command->underflow);
+
+				break;
 			}
-			break;
-		}
 
 		case PHASE_DATA_IN:
-		{
-			if(int_reg & BS)
 			{
-				current_command->SCp.phase = data_in;
-				outb(FLUSH_FIFO, base + COMMAND_REG);
-				sym53c416_set_transfer_counter(base,
-							       scsi_bufflen(current_command));
+				if (int_reg & BS)
+				{
+					current_command->SCp.phase = data_in;
+					outb(FLUSH_FIFO, base + COMMAND_REG);
+					sym53c416_set_transfer_counter(base,
+												   scsi_bufflen(current_command));
 
-				outb(TRANSFER_INFORMATION | PIO_MODE, base + COMMAND_REG);
+					outb(TRANSFER_INFORMATION | PIO_MODE, base + COMMAND_REG);
 
-				scsi_for_each_sg(current_command,
-						 sg, scsi_sg_count(current_command), i) {
-					tot_trans += sym53c416_read(base,
-								    SG_ADDRESS(sg),
-								    sg->length);
+					scsi_for_each_sg(current_command,
+									 sg, scsi_sg_count(current_command), i)
+					{
+						tot_trans += sym53c416_read(base,
+													SG_ADDRESS(sg),
+													sg->length);
+					}
+
+					if (tot_trans < current_command->underflow)
+					{
+						printk(KERN_WARNING "sym53c416: Underflow, read %d bytes, request for %d bytes.\n", tot_trans,
+							   current_command->underflow);
+					}
 				}
-				if(tot_trans < current_command->underflow)
-					printk(KERN_WARNING "sym53c416: Underflow, read %d bytes, request for %d bytes.\n", tot_trans, current_command->underflow);
+
+				break;
 			}
-			break;
-		}
 
 		case PHASE_COMMAND:
-		{
-			current_command->SCp.phase = command_ph;
-			printk(KERN_ERR "sym53c416: Unknown interrupt in command phase.\n");
-			break;
-		}
+			{
+				current_command->SCp.phase = command_ph;
+				printk(KERN_ERR "sym53c416: Unknown interrupt in command phase.\n");
+				break;
+			}
 
 		case PHASE_STATUS:
-		{
-			current_command->SCp.phase = status_ph;
-			outb(FLUSH_FIFO, base + COMMAND_REG);
-			outb(INIT_COMM_COMPLETE_SEQ, base + COMMAND_REG);
-			break;
-		}
-		
+			{
+				current_command->SCp.phase = status_ph;
+				outb(FLUSH_FIFO, base + COMMAND_REG);
+				outb(INIT_COMM_COMPLETE_SEQ, base + COMMAND_REG);
+				break;
+			}
+
 		case PHASE_RESERVED_1:
 		case PHASE_RESERVED_2:
-		{
-			printk(KERN_ERR "sym53c416: Reserved phase occurred.\n");
-			break;
-		}
+			{
+				printk(KERN_ERR "sym53c416: Reserved phase occurred.\n");
+				break;
+			}
 
 		case PHASE_MESSAGE_OUT:
-		{
-			current_command->SCp.phase = message_out;
-			outb(SET_ATN, base + COMMAND_REG);
-			outb(MSG_ACCEPTED, base + COMMAND_REG);
-			break;
-		}
+			{
+				current_command->SCp.phase = message_out;
+				outb(SET_ATN, base + COMMAND_REG);
+				outb(MSG_ACCEPTED, base + COMMAND_REG);
+				break;
+			}
 
 		case PHASE_MESSAGE_IN:
-		{
-			current_command->SCp.phase = message_in;
-			current_command->SCp.Status = inb(base + SCSI_FIFO);
-			current_command->SCp.Message = inb(base + SCSI_FIFO);
-			if(current_command->SCp.Message == SAVE_POINTERS || current_command->SCp.Message == DISCONNECT)
-				outb(SET_ATN, base + COMMAND_REG);
-			outb(MSG_ACCEPTED, base + COMMAND_REG);
-			break;
-		}
+			{
+				current_command->SCp.phase = message_in;
+				current_command->SCp.Status = inb(base + SCSI_FIFO);
+				current_command->SCp.Message = inb(base + SCSI_FIFO);
+
+				if (current_command->SCp.Message == SAVE_POINTERS || current_command->SCp.Message == DISCONNECT)
+				{
+					outb(SET_ATN, base + COMMAND_REG);
+				}
+
+				outb(MSG_ACCEPTED, base + COMMAND_REG);
+				break;
+			}
 	}
+
 out:
 	return IRQ_HANDLED;
 }
@@ -530,10 +587,17 @@ static int sym53c416_probeirq(int base, int scsi_id)
 	outb(0x00, base + DEST_BUS_ID);
 	/* Wait for interrupt to occur */
 	i = jiffies + 20;
-	while(time_before(jiffies, i) && !(inb(base + STATUS_REG) & SCI))
+
+	while (time_before(jiffies, i) && !(inb(base + STATUS_REG) & SCI))
+	{
 		barrier();
-	if(time_before_eq(i, jiffies))	/* timed out */
+	}
+
+	if (time_before_eq(i, jiffies))	/* timed out */
+	{
 		return 0;
+	}
+
 	/* Get occurred irq */
 	irq = probe_irq_off(irqs);
 	sym53c416_init(base, scsi_id);
@@ -545,25 +609,30 @@ void sym53c416_setup(char *str, int *ints)
 {
 	int i;
 
-	if(host_index >= MAXHOSTS)
+	if (host_index >= MAXHOSTS)
 	{
 		printk(KERN_WARNING "sym53c416: Too many hosts defined\n");
 		return;
 	}
-	if(ints[0] < 1 || ints[0] > 2)
+
+	if (ints[0] < 1 || ints[0] > 2)
 	{
 		printk(KERN_ERR "sym53c416: Wrong number of parameters:\n");
 		printk(KERN_ERR "sym53c416: usage: sym53c416=<base>[,<irq>]\n");
 		return;
 	}
-	for(i = 0; i < host_index && i >= 0; i++)
-	        if(hosts[i].base == ints[1])
-        		i = -2;
-	if(i >= 0)
+
+	for (i = 0; i < host_index && i >= 0; i++)
+		if (hosts[i].base == ints[1])
+		{
+			i = -2;
+		}
+
+	if (i >= 0)
 	{
-        	hosts[host_index].base = ints[1];
-        	hosts[host_index].irq = (ints[0] == 2)? ints[2] : 0;
-        	host_index++;
+		hosts[host_index].base = ints[1];
+		hosts[host_index].irq = (ints[0] == 2) ? ints[2] : 0;
+		host_index++;
 	}
 }
 
@@ -571,21 +640,36 @@ static int sym53c416_test(int base)
 {
 	outb(RESET_CHIP, base + COMMAND_REG);
 	outb(NOOP, base + COMMAND_REG);
-	if(inb(base + COMMAND_REG) != NOOP)
+
+	if (inb(base + COMMAND_REG) != NOOP)
+	{
 		return 0;
-	if(!inb(base + TC_HIGH) || inb(base + TC_HIGH) == 0xFF)
+	}
+
+	if (!inb(base + TC_HIGH) || inb(base + TC_HIGH) == 0xFF)
+	{
 		return 0;
-	if((inb(base + PIO_INT_REG) & (FULL | EMPTY | CE | OUE | FIE | EIE)) != EMPTY)
+	}
+
+	if ((inb(base + PIO_INT_REG) & (FULL | EMPTY | CE | OUE | FIE | EIE)) != EMPTY)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
 
-static struct isapnp_device_id id_table[] = {
-	{	ISAPNP_ANY_ID, ISAPNP_ANY_ID,
-		ISAPNP_VENDOR('S','L','I'), ISAPNP_FUNCTION(0x4161), 0 },
-	{	ISAPNP_ANY_ID, ISAPNP_ANY_ID,
-		ISAPNP_VENDOR('S','L','I'), ISAPNP_FUNCTION(0x4163), 0 },
+static struct isapnp_device_id id_table[] =
+{
+	{
+		ISAPNP_ANY_ID, ISAPNP_ANY_ID,
+		ISAPNP_VENDOR('S', 'L', 'I'), ISAPNP_FUNCTION(0x4161), 0
+	},
+	{
+		ISAPNP_ANY_ID, ISAPNP_ANY_ID,
+		ISAPNP_VENDOR('S', 'L', 'I'), ISAPNP_FUNCTION(0x4163), 0
+	},
 	{	ISAPNP_DEVICE_SINGLE_END }
 };
 
@@ -597,12 +681,17 @@ static void sym53c416_probe(void)
 	int ints[2];
 
 	ints[0] = 1;
-	for(; *base; base++) {
-		if (request_region(*base, IO_RANGE, ID)) {
-			if (sym53c416_test(*base)) {
+
+	for (; *base; base++)
+	{
+		if (request_region(*base, IO_RANGE, ID))
+		{
+			if (sym53c416_test(*base))
+			{
 				ints[1] = *base;
 				sym53c416_setup(NULL, ints);
 			}
+
 			release_region(*base, IO_RANGE);
 		}
 	}
@@ -611,93 +700,117 @@ static void sym53c416_probe(void)
 int __init sym53c416_detect(struct scsi_host_template *tpnt)
 {
 	unsigned long flags;
-	struct Scsi_Host * shpnt = NULL;
+	struct Scsi_Host *shpnt = NULL;
 	int i;
 	int count;
 	struct pnp_dev *idev = NULL;
-	
+
 #ifdef MODULE
 	int ints[3];
 
 	ints[0] = 2;
-	if(sym53c416_base[0])
+
+	if (sym53c416_base[0])
 	{
 		ints[1] = sym53c416_base[0];
 		ints[2] = sym53c416_base[1];
 		sym53c416_setup(NULL, ints);
 	}
-	if(sym53c416_base_1[0])
+
+	if (sym53c416_base_1[0])
 	{
 		ints[1] = sym53c416_base_1[0];
 		ints[2] = sym53c416_base_1[1];
 		sym53c416_setup(NULL, ints);
 	}
-	if(sym53c416_base_2[0])
+
+	if (sym53c416_base_2[0])
 	{
 		ints[1] = sym53c416_base_2[0];
 		ints[2] = sym53c416_base_2[1];
 		sym53c416_setup(NULL, ints);
 	}
-	if(sym53c416_base_3[0])
+
+	if (sym53c416_base_3[0])
 	{
 		ints[1] = sym53c416_base_3[0];
 		ints[2] = sym53c416_base_3[1];
 		sym53c416_setup(NULL, ints);
 	}
+
 #endif
 	printk(KERN_INFO "sym53c416.c: %s\n", VERSION_STRING);
 
-	for (i=0; id_table[i].vendor != 0; i++) {
-		while((idev=pnp_find_dev(NULL, id_table[i].vendor,
-					id_table[i].function, idev))!=NULL)
+	for (i = 0; id_table[i].vendor != 0; i++)
+	{
+		while ((idev = pnp_find_dev(NULL, id_table[i].vendor,
+									id_table[i].function, idev)) != NULL)
 		{
 			int i[3];
 
-			if(pnp_device_attach(idev)<0)
+			if (pnp_device_attach(idev) < 0)
 			{
 				printk(KERN_WARNING "sym53c416: unable to attach PnP device.\n");
 				continue;
 			}
-			if(pnp_activate_dev(idev) < 0)
+
+			if (pnp_activate_dev(idev) < 0)
 			{
 				printk(KERN_WARNING "sym53c416: unable to activate PnP device.\n");
 				pnp_device_detach(idev);
 				continue;
-			
+
 			}
 
 			i[0] = 2;
 			i[1] = pnp_port_start(idev, 0);
- 			i[2] = pnp_irq(idev, 0);
+			i[2] = pnp_irq(idev, 0);
 
 			printk(KERN_INFO "sym53c416: ISAPnP card found and configured at 0x%X, IRQ %d.\n",
-				i[1], i[2]);
- 			sym53c416_setup(NULL, i);
- 		}
+				   i[1], i[2]);
+			sym53c416_setup(NULL, i);
+		}
 	}
+
 	sym53c416_probe();
 
 	/* Now we register and set up each host adapter found... */
-	for(count = 0, i = 0; i < host_index; i++) {
+	for (count = 0, i = 0; i < host_index; i++)
+	{
 		if (!request_region(hosts[i].base, IO_RANGE, ID))
+		{
 			continue;
-		if (!sym53c416_test(hosts[i].base)) {
+		}
+
+		if (!sym53c416_test(hosts[i].base))
+		{
 			printk(KERN_WARNING "No sym53c416 found at address 0x%03x\n", hosts[i].base);
 			goto fail_release_region;
 		}
 
 		/* We don't have an irq yet, so we should probe for one */
 		if (!hosts[i].irq)
+		{
 			hosts[i].irq = sym53c416_probeirq(hosts[i].base, hosts[i].scsi_id);
+		}
+
 		if (!hosts[i].irq)
+		{
 			goto fail_release_region;
-	
+		}
+
 		shpnt = scsi_register(tpnt, 0);
+
 		if (!shpnt)
+		{
 			goto fail_release_region;
+		}
+
 		/* Request for specified IRQ */
 		if (request_irq(hosts[i].irq, sym53c416_intr_handle, 0, ID, shpnt))
+		{
 			goto fail_free_host;
+		}
 
 		spin_lock_irqsave(&sym53c416_lock, flags);
 		shpnt->unique_id = hosts[i].base;
@@ -710,11 +823,12 @@ int __init sym53c416_detect(struct scsi_host_template *tpnt)
 		spin_unlock_irqrestore(&sym53c416_lock, flags);
 		continue;
 
- fail_free_host:
+fail_free_host:
 		scsi_unregister(shpnt);
- fail_release_region:
+fail_release_region:
 		release_region(hosts[i].base, IO_RANGE);
 	}
+
 	return count;
 }
 
@@ -726,10 +840,14 @@ const char *sym53c416_info(struct Scsi_Host *SChost)
 	int scsi_id = 0;
 	int rev = inb(base + TC_HIGH);
 
-	for(i = 0; i < host_index; i++)
-		if(hosts[i].base == base)
+	for (i = 0; i < host_index; i++)
+		if (hosts[i].base == base)
+		{
 			scsi_id = hosts[i].scsi_id;
-	sprintf(info, "Symbios Logic 53c416 (rev. %d) at 0x%03x, irq %d, SCSI-ID %d, %s pio", rev, base, irq, scsi_id, (fastpio)? "fast" : "slow");
+		}
+
+	sprintf(info, "Symbios Logic 53c416 (rev. %d) at 0x%03x, irq %d, SCSI-ID %d, %s pio", rev, base, irq, scsi_id,
+			(fastpio) ? "fast" : "slow");
 	return info;
 }
 
@@ -750,9 +868,13 @@ static int sym53c416_queuecommand_lck(Scsi_Cmnd *SCpnt, void (*done)(Scsi_Cmnd *
 	spin_lock_irqsave(&sym53c416_lock, flags);
 	outb(scmd_id(SCpnt), base + DEST_BUS_ID); /* Set scsi id target        */
 	outb(FLUSH_FIFO, base + COMMAND_REG);    /* Flush SCSI and PIO FIFO's */
+
 	/* Write SCSI command into the SCSI fifo */
-	for(i = 0; i < SCpnt->cmd_len; i++)
+	for (i = 0; i < SCpnt->cmd_len; i++)
+	{
 		outb(SCpnt->cmnd[i], base + SCSI_FIFO);
+	}
+
 	/* Start selection sequence */
 	outb(SEL_WITHOUT_ATN_SEQ, base + COMMAND_REG);
 	/* Now an interrupt will be generated which we will catch in out interrupt routine */
@@ -765,7 +887,7 @@ DEF_SCSI_QCMD(sym53c416_queuecommand)
 static int sym53c416_host_reset(Scsi_Cmnd *SCpnt)
 {
 	int base;
-	int scsi_id = -1;	
+	int scsi_id = -1;
 	int i;
 	unsigned long flags;
 
@@ -773,10 +895,14 @@ static int sym53c416_host_reset(Scsi_Cmnd *SCpnt)
 
 	/* printk("sym53c416_reset\n"); */
 	base = SCpnt->device->host->io_port;
+
 	/* search scsi_id - fixme, we shouldn't need to iterate for this! */
-	for(i = 0; i < host_index && scsi_id == -1; i++)
-		if(hosts[i].base == base)
+	for (i = 0; i < host_index && scsi_id == -1; i++)
+		if (hosts[i].base == base)
+		{
 			scsi_id = hosts[i].scsi_id;
+		}
+
 	outb(RESET_CHIP, base + COMMAND_REG);
 	outb(NOOP | PIO_MODE, base + COMMAND_REG);
 	outb(RESET_SCSI_BUS, base + COMMAND_REG);
@@ -789,50 +915,59 @@ static int sym53c416_host_reset(Scsi_Cmnd *SCpnt)
 static int sym53c416_release(struct Scsi_Host *shost)
 {
 	if (shost->irq)
+	{
 		free_irq(shost->irq, shost);
+	}
+
 	if (shost->io_port && shost->n_io_port)
+	{
 		release_region(shost->io_port, shost->n_io_port);
+	}
+
 	return 0;
 }
 
 static int sym53c416_bios_param(struct scsi_device *sdev,
-		struct block_device *dev,
-		sector_t capacity, int *ip)
+								struct block_device *dev,
+								sector_t capacity, int *ip)
 {
 	int size;
 
 	size = capacity;
 	ip[0] = 64;				/* heads                        */
 	ip[1] = 32;				/* sectors                      */
-	if((ip[2] = size >> 11) > 1024)		/* cylinders, test for big disk */
+
+	if ((ip[2] = size >> 11) > 1024)		/* cylinders, test for big disk */
 	{
 		ip[0] = 255;			/* heads                        */
 		ip[1] = 63;			/* sectors                      */
 		ip[2] = size / (255 * 63);	/* cylinders                    */
 	}
+
 	return 0;
 }
 
 /* Loadable module support */
 #ifdef MODULE
 
-MODULE_AUTHOR("Lieven Willems");
-MODULE_LICENSE("GPL");
+	MODULE_AUTHOR("Lieven Willems");
+	MODULE_LICENSE("GPL");
 
-module_param_array(sym53c416, uint, NULL, 0);
-module_param_array(sym53c416_1, uint, NULL, 0);
-module_param_array(sym53c416_2, uint, NULL, 0);
-module_param_array(sym53c416_3, uint, NULL, 0);
+	module_param_array(sym53c416, uint, NULL, 0);
+	module_param_array(sym53c416_1, uint, NULL, 0);
+	module_param_array(sym53c416_2, uint, NULL, 0);
+	module_param_array(sym53c416_3, uint, NULL, 0);
 
 #endif
 
-static struct scsi_host_template driver_template = {
+static struct scsi_host_template driver_template =
+{
 	.proc_name =		"sym53c416",
 	.name =			"Symbios Logic 53c416",
 	.detect =		sym53c416_detect,
-	.info =			sym53c416_info,	
+	.info =			sym53c416_info,
 	.queuecommand =		sym53c416_queuecommand,
-	.eh_host_reset_handler =sym53c416_host_reset,
+	.eh_host_reset_handler = sym53c416_host_reset,
 	.release = 		sym53c416_release,
 	.bios_param =		sym53c416_bios_param,
 	.can_queue =		1,

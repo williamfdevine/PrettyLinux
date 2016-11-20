@@ -20,15 +20,16 @@
 
 #include <sound/soc.h>
 
-static struct snd_soc_dai_driver pcm5102a_dai = {
+static struct snd_soc_dai_driver pcm5102a_dai =
+{
 	.name = "pcm5102a-hifi",
 	.playback = {
 		.channels_min = 2,
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_8000_192000,
 		.formats = SNDRV_PCM_FMTBIT_S16_LE |
-			   SNDRV_PCM_FMTBIT_S24_LE |
-			   SNDRV_PCM_FMTBIT_S32_LE
+		SNDRV_PCM_FMTBIT_S24_LE |
+		SNDRV_PCM_FMTBIT_S32_LE
 	},
 };
 
@@ -37,7 +38,7 @@ static struct snd_soc_codec_driver soc_codec_dev_pcm5102a;
 static int pcm5102a_probe(struct platform_device *pdev)
 {
 	return snd_soc_register_codec(&pdev->dev, &soc_codec_dev_pcm5102a,
-			&pcm5102a_dai, 1);
+								  &pcm5102a_dai, 1);
 }
 
 static int pcm5102a_remove(struct platform_device *pdev)
@@ -46,13 +47,15 @@ static int pcm5102a_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id pcm5102a_of_match[] = {
+static const struct of_device_id pcm5102a_of_match[] =
+{
 	{ .compatible = "ti,pcm5102a", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, pcm5102a_of_match);
 
-static struct platform_driver pcm5102a_codec_driver = {
+static struct platform_driver pcm5102a_codec_driver =
+{
 	.probe		= pcm5102a_probe,
 	.remove		= pcm5102a_remove,
 	.driver		= {

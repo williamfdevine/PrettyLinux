@@ -3,21 +3,25 @@
 
 #define WD719X_SG 255		/* Scatter/gather size */
 
-struct wd719x_sglist {
+struct wd719x_sglist
+{
 	__le32 ptr;
 	__le32 length;
 } __packed;
 
-enum wd719x_card_type {
+enum wd719x_card_type
+{
 	WD719X_TYPE_UNKNOWN = 0,
 	WD719X_TYPE_7193,
 	WD719X_TYPE_7197,
 	WD719X_TYPE_7296,
 };
 
-union wd719x_regs {
+union wd719x_regs
+{
 	__le32 all;	/* All Status at once */
-	struct {
+	struct
+	{
 		u8 OPC;		/* Opcode register */
 		u8 SCSI;	/* SCSI Errors */
 		u8 SUE;		/* Spider unique Errors */
@@ -26,7 +30,8 @@ union wd719x_regs {
 };
 
 /* Spider Command Block (SCB) */
-struct wd719x_scb {
+struct wd719x_scb
+{
 	__le32 Int_SCB;	/* 00-03 Internal SCB link pointer (must be cleared) */
 	u8 SCB_opcode;	/* 04 SCB Command opcode */
 	u8 CDB_tag;	/* 05 SCSI Tag byte for CDB queues (0 if untagged) */
@@ -60,7 +65,8 @@ struct wd719x_scb {
 	struct wd719x_sglist sg_list[WD719X_SG] __aligned(8); /* SG list */
 } __packed;
 
-struct wd719x {
+struct wd719x
+{
 	struct Scsi_Host *sh;	/* pointer to host structure */
 	struct pci_dev *pdev;
 	void __iomem *base;
@@ -206,7 +212,8 @@ struct wd719x {
 #define WD719X_EE_DO	(1 << 4)
 
 /* EEPROM contents */
-struct wd719x_eeprom_header {
+struct wd719x_eeprom_header
+{
 	u8 sig1;
 	u8 sig2;
 	u8 version;
@@ -229,7 +236,8 @@ struct wd719x_eeprom_header {
 #define WD719X_EE_SCSI_ID_MASK	0xf
 
 /* SPIDER Host Parameters Block (=EEPROM configuration block) */
-struct wd719x_host_param {
+struct wd719x_host_param
+{
 	u8 ch_1_th;	/* FIFO threshold */
 	u8 scsi_conf;	/* SCSI configuration */
 	u8 own_scsi_id;	/* controller SCSI ID */

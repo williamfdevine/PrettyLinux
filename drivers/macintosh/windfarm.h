@@ -25,7 +25,8 @@
 
 struct wf_control;
 
-struct wf_control_ops {
+struct wf_control_ops
+{
 	int			(*set_value)(struct wf_control *ct, s32 val);
 	int			(*get_value)(struct wf_control *ct, s32 *val);
 	s32			(*get_min)(struct wf_control *ct);
@@ -34,7 +35,8 @@ struct wf_control_ops {
 	struct module		*owner;
 };
 
-struct wf_control {
+struct wf_control
+{
 	struct list_head		link;
 	const struct wf_control_ops	*ops;
 	const char			*name;
@@ -97,13 +99,15 @@ static inline s32 wf_control_get_max(struct wf_control *ct)
 
 struct wf_sensor;
 
-struct wf_sensor_ops {
+struct wf_sensor_ops
+{
 	int			(*get_value)(struct wf_sensor *sr, s32 *val);
 	void			(*release)(struct wf_sensor *sr);
 	struct module		*owner;
 };
 
-struct wf_sensor {
+struct wf_sensor
+{
 	struct list_head		link;
 	const struct wf_sensor_ops	*ops;
 	const char			*name;

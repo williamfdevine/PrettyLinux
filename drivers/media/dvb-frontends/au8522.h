@@ -24,13 +24,15 @@
 
 #include <linux/dvb/frontend.h>
 
-enum au8522_if_freq {
+enum au8522_if_freq
+{
 	AU8522_IF_6MHZ = 0,
 	AU8522_IF_4MHZ,
 	AU8522_IF_3_25MHZ,
 };
 
-struct au8522_led_config {
+struct au8522_led_config
+{
 	u16 vsb8_strong;
 	u16 qam64_strong;
 	u16 qam256_strong;
@@ -45,7 +47,8 @@ struct au8522_led_config {
 	unsigned int num_led_states;
 };
 
-struct au8522_config {
+struct au8522_config
+{
 	/* the demodulator's i2c address */
 	u8 demod_address;
 
@@ -62,11 +65,11 @@ struct au8522_config {
 
 #if IS_REACHABLE(CONFIG_DVB_AU8522_DTV)
 extern struct dvb_frontend *au8522_attach(const struct au8522_config *config,
-					  struct i2c_adapter *i2c);
+		struct i2c_adapter *i2c);
 #else
 static inline
 struct dvb_frontend *au8522_attach(const struct au8522_config *config,
-				   struct i2c_adapter *i2c)
+								   struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
@@ -74,7 +77,8 @@ struct dvb_frontend *au8522_attach(const struct au8522_config *config,
 #endif /* CONFIG_DVB_AU8522 */
 
 /* Other modes may need to be added later */
-enum au8522_video_input {
+enum au8522_video_input
+{
 	AU8522_COMPOSITE_CH1 = 1,
 	AU8522_COMPOSITE_CH2,
 	AU8522_COMPOSITE_CH3,
@@ -84,7 +88,8 @@ enum au8522_video_input {
 	AU8522_SVIDEO_CH24,
 };
 
-enum au8522_audio_input {
+enum au8522_audio_input
+{
 	AU8522_AUDIO_NONE,
 	AU8522_AUDIO_SIF,
 };

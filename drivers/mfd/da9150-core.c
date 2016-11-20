@@ -25,7 +25,7 @@
 
 /* Raw device access, used for QIF */
 static int da9150_i2c_read_device(struct i2c_client *client, u8 addr, int count,
-				  u8 *buf)
+								  u8 *buf)
 {
 	struct i2c_msg xfer;
 	int ret;
@@ -42,11 +42,17 @@ static int da9150_i2c_read_device(struct i2c_client *client, u8 addr, int count,
 	xfer.buf = &addr;
 
 	ret = i2c_transfer(client->adapter, &xfer, 1);
-	if (ret != 1) {
+
+	if (ret != 1)
+	{
 		if (ret < 0)
+		{
 			return ret;
+		}
 		else
+		{
 			return -EIO;
+		}
 	}
 
 	/* Read data */
@@ -56,24 +62,34 @@ static int da9150_i2c_read_device(struct i2c_client *client, u8 addr, int count,
 	xfer.buf = buf;
 
 	ret = i2c_transfer(client->adapter, &xfer, 1);
+
 	if (ret == 1)
+	{
 		return 0;
+	}
 	else if (ret < 0)
+	{
 		return ret;
+	}
 	else
+	{
 		return -EIO;
+	}
 }
 
 static int da9150_i2c_write_device(struct i2c_client *client, u8 addr,
-				   int count, const u8 *buf)
+								   int count, const u8 *buf)
 {
 	struct i2c_msg xfer;
 	u8 *reg_data;
 	int ret;
 
 	reg_data = kzalloc(1 + count, GFP_KERNEL);
+
 	if (!reg_data)
+	{
 		return -ENOMEM;
+	}
 
 	reg_data[0] = addr;
 	memcpy(&reg_data[1], buf, count);
@@ -86,75 +102,85 @@ static int da9150_i2c_write_device(struct i2c_client *client, u8 addr,
 
 	ret = i2c_transfer(client->adapter, &xfer, 1);
 	kfree(reg_data);
+
 	if (ret == 1)
+	{
 		return 0;
+	}
 	else if (ret < 0)
+	{
 		return ret;
+	}
 	else
+	{
 		return -EIO;
+	}
 }
 
 static bool da9150_volatile_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case DA9150_PAGE_CON:
-	case DA9150_STATUS_A:
-	case DA9150_STATUS_B:
-	case DA9150_STATUS_C:
-	case DA9150_STATUS_D:
-	case DA9150_STATUS_E:
-	case DA9150_STATUS_F:
-	case DA9150_STATUS_G:
-	case DA9150_STATUS_H:
-	case DA9150_STATUS_I:
-	case DA9150_STATUS_J:
-	case DA9150_STATUS_K:
-	case DA9150_STATUS_L:
-	case DA9150_STATUS_N:
-	case DA9150_FAULT_LOG_A:
-	case DA9150_FAULT_LOG_B:
-	case DA9150_EVENT_E:
-	case DA9150_EVENT_F:
-	case DA9150_EVENT_G:
-	case DA9150_EVENT_H:
-	case DA9150_CONTROL_B:
-	case DA9150_CONTROL_C:
-	case DA9150_GPADC_MAN:
-	case DA9150_GPADC_RES_A:
-	case DA9150_GPADC_RES_B:
-	case DA9150_ADETVB_CFG_C:
-	case DA9150_ADETD_STAT:
-	case DA9150_ADET_CMPSTAT:
-	case DA9150_ADET_CTRL_A:
-	case DA9150_PPR_TCTR_B:
-	case DA9150_COREBTLD_STAT_A:
-	case DA9150_CORE_DATA_A:
-	case DA9150_CORE_DATA_B:
-	case DA9150_CORE_DATA_C:
-	case DA9150_CORE_DATA_D:
-	case DA9150_CORE2WIRE_STAT_A:
-	case DA9150_FW_CTRL_C:
-	case DA9150_FG_CTRL_B:
-	case DA9150_FW_CTRL_B:
-	case DA9150_GPADC_CMAN:
-	case DA9150_GPADC_CRES_A:
-	case DA9150_GPADC_CRES_B:
-	case DA9150_CC_ICHG_RES_A:
-	case DA9150_CC_ICHG_RES_B:
-	case DA9150_CC_IAVG_RES_A:
-	case DA9150_CC_IAVG_RES_B:
-	case DA9150_TAUX_CTRL_A:
-	case DA9150_TAUX_VALUE_H:
-	case DA9150_TAUX_VALUE_L:
-	case DA9150_TBAT_RES_A:
-	case DA9150_TBAT_RES_B:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case DA9150_PAGE_CON:
+		case DA9150_STATUS_A:
+		case DA9150_STATUS_B:
+		case DA9150_STATUS_C:
+		case DA9150_STATUS_D:
+		case DA9150_STATUS_E:
+		case DA9150_STATUS_F:
+		case DA9150_STATUS_G:
+		case DA9150_STATUS_H:
+		case DA9150_STATUS_I:
+		case DA9150_STATUS_J:
+		case DA9150_STATUS_K:
+		case DA9150_STATUS_L:
+		case DA9150_STATUS_N:
+		case DA9150_FAULT_LOG_A:
+		case DA9150_FAULT_LOG_B:
+		case DA9150_EVENT_E:
+		case DA9150_EVENT_F:
+		case DA9150_EVENT_G:
+		case DA9150_EVENT_H:
+		case DA9150_CONTROL_B:
+		case DA9150_CONTROL_C:
+		case DA9150_GPADC_MAN:
+		case DA9150_GPADC_RES_A:
+		case DA9150_GPADC_RES_B:
+		case DA9150_ADETVB_CFG_C:
+		case DA9150_ADETD_STAT:
+		case DA9150_ADET_CMPSTAT:
+		case DA9150_ADET_CTRL_A:
+		case DA9150_PPR_TCTR_B:
+		case DA9150_COREBTLD_STAT_A:
+		case DA9150_CORE_DATA_A:
+		case DA9150_CORE_DATA_B:
+		case DA9150_CORE_DATA_C:
+		case DA9150_CORE_DATA_D:
+		case DA9150_CORE2WIRE_STAT_A:
+		case DA9150_FW_CTRL_C:
+		case DA9150_FG_CTRL_B:
+		case DA9150_FW_CTRL_B:
+		case DA9150_GPADC_CMAN:
+		case DA9150_GPADC_CRES_A:
+		case DA9150_GPADC_CRES_B:
+		case DA9150_CC_ICHG_RES_A:
+		case DA9150_CC_ICHG_RES_B:
+		case DA9150_CC_IAVG_RES_A:
+		case DA9150_CC_IAVG_RES_B:
+		case DA9150_TAUX_CTRL_A:
+		case DA9150_TAUX_VALUE_H:
+		case DA9150_TAUX_VALUE_L:
+		case DA9150_TBAT_RES_A:
+		case DA9150_TBAT_RES_B:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
-static const struct regmap_range_cfg da9150_range_cfg[] = {
+static const struct regmap_range_cfg da9150_range_cfg[] =
+{
 	{
 		.range_min = DA9150_PAGE_CON,
 		.range_max = DA9150_TBAT_RES_B,
@@ -166,7 +192,8 @@ static const struct regmap_range_cfg da9150_range_cfg[] = {
 	},
 };
 
-static const struct regmap_config da9150_regmap_config = {
+static const struct regmap_config da9150_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.ranges = da9150_range_cfg,
@@ -183,9 +210,10 @@ void da9150_read_qif(struct da9150 *da9150, u8 addr, int count, u8 *buf)
 	int ret;
 
 	ret = da9150_i2c_read_device(da9150->core_qif, addr, count, buf);
+
 	if (ret < 0)
 		dev_err(da9150->dev, "Failed to read from QIF 0x%x: %d\n",
-			addr, ret);
+				addr, ret);
 }
 EXPORT_SYMBOL_GPL(da9150_read_qif);
 
@@ -194,9 +222,10 @@ void da9150_write_qif(struct da9150 *da9150, u8 addr, int count, const u8 *buf)
 	int ret;
 
 	ret = da9150_i2c_write_device(da9150->core_qif, addr, count, buf);
+
 	if (ret < 0)
 		dev_err(da9150->dev, "Failed to write to QIF 0x%x: %d\n",
-			addr, ret);
+				addr, ret);
 }
 EXPORT_SYMBOL_GPL(da9150_write_qif);
 
@@ -205,9 +234,10 @@ u8 da9150_reg_read(struct da9150 *da9150, u16 reg)
 	int val, ret;
 
 	ret = regmap_read(da9150->regmap, reg, &val);
+
 	if (ret)
 		dev_err(da9150->dev, "Failed to read from reg 0x%x: %d\n",
-			reg, ret);
+				reg, ret);
 
 	return (u8) val;
 }
@@ -218,9 +248,10 @@ void da9150_reg_write(struct da9150 *da9150, u16 reg, u8 val)
 	int ret;
 
 	ret = regmap_write(da9150->regmap, reg, val);
+
 	if (ret)
 		dev_err(da9150->dev, "Failed to write to reg 0x%x: %d\n",
-			reg, ret);
+				reg, ret);
 }
 EXPORT_SYMBOL_GPL(da9150_reg_write);
 
@@ -229,9 +260,10 @@ void da9150_set_bits(struct da9150 *da9150, u16 reg, u8 mask, u8 val)
 	int ret;
 
 	ret = regmap_update_bits(da9150->regmap, reg, mask, val);
+
 	if (ret)
 		dev_err(da9150->dev, "Failed to set bits in reg 0x%x: %d\n",
-			reg, ret);
+				reg, ret);
 }
 EXPORT_SYMBOL_GPL(da9150_set_bits);
 
@@ -240,9 +272,10 @@ void da9150_bulk_read(struct da9150 *da9150, u16 reg, int count, u8 *buf)
 	int ret;
 
 	ret = regmap_bulk_read(da9150->regmap, reg, buf, count);
+
 	if (ret)
 		dev_err(da9150->dev, "Failed to bulk read from reg 0x%x: %d\n",
-			reg, ret);
+				reg, ret);
 }
 EXPORT_SYMBOL_GPL(da9150_bulk_read);
 
@@ -251,13 +284,15 @@ void da9150_bulk_write(struct da9150 *da9150, u16 reg, int count, const u8 *buf)
 	int ret;
 
 	ret = regmap_raw_write(da9150->regmap, reg, buf, count);
+
 	if (ret)
 		dev_err(da9150->dev, "Failed to bulk write to reg 0x%x %d\n",
-			reg, ret);
+				reg, ret);
 }
 EXPORT_SYMBOL_GPL(da9150_bulk_write);
 
-static const struct regmap_irq da9150_irqs[] = {
+static const struct regmap_irq da9150_irqs[] =
+{
 	[DA9150_IRQ_VBUS] = {
 		.reg_offset = 0,
 		.mask = DA9150_E_VBUS_MASK,
@@ -344,7 +379,8 @@ static const struct regmap_irq da9150_irqs[] = {
 	},
 };
 
-static const struct regmap_irq_chip da9150_regmap_irq_chip = {
+static const struct regmap_irq_chip da9150_regmap_irq_chip =
+{
 	.name = "da9150_irq",
 	.status_base = DA9150_EVENT_E,
 	.mask_base = DA9150_IRQ_MASK_E,
@@ -354,28 +390,33 @@ static const struct regmap_irq_chip da9150_regmap_irq_chip = {
 	.num_irqs = ARRAY_SIZE(da9150_irqs),
 };
 
-static struct resource da9150_gpadc_resources[] = {
+static struct resource da9150_gpadc_resources[] =
+{
 	DEFINE_RES_IRQ_NAMED(DA9150_IRQ_GPADC, "GPADC"),
 };
 
-static struct resource da9150_charger_resources[] = {
+static struct resource da9150_charger_resources[] =
+{
 	DEFINE_RES_IRQ_NAMED(DA9150_IRQ_CHG, "CHG_STATUS"),
 	DEFINE_RES_IRQ_NAMED(DA9150_IRQ_TJUNC, "CHG_TJUNC"),
 	DEFINE_RES_IRQ_NAMED(DA9150_IRQ_VFAULT, "CHG_VFAULT"),
 	DEFINE_RES_IRQ_NAMED(DA9150_IRQ_VBUS, "CHG_VBUS"),
 };
 
-static struct resource da9150_fg_resources[] = {
+static struct resource da9150_fg_resources[] =
+{
 	DEFINE_RES_IRQ_NAMED(DA9150_IRQ_FG, "FG"),
 };
 
-enum da9150_dev_idx {
+enum da9150_dev_idx
+{
 	DA9150_GPADC_IDX = 0,
 	DA9150_CHARGER_IDX,
 	DA9150_FG_IDX,
 };
 
-static struct mfd_cell da9150_devs[] = {
+static struct mfd_cell da9150_devs[] =
+{
 	[DA9150_GPADC_IDX] = {
 		.name = "da9150-gpadc",
 		.of_compatible = "dlg,da9150-gpadc",
@@ -397,7 +438,7 @@ static struct mfd_cell da9150_devs[] = {
 };
 
 static int da9150_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct da9150 *da9150;
 	struct da9150_pdata *pdata = dev_get_platdata(&client->dev);
@@ -405,18 +446,23 @@ static int da9150_probe(struct i2c_client *client,
 	int ret;
 
 	da9150 = devm_kzalloc(&client->dev, sizeof(*da9150), GFP_KERNEL);
+
 	if (!da9150)
+	{
 		return -ENOMEM;
+	}
 
 	da9150->dev = &client->dev;
 	da9150->irq = client->irq;
 	i2c_set_clientdata(client, da9150);
 
 	da9150->regmap = devm_regmap_init_i2c(client, &da9150_regmap_config);
-	if (IS_ERR(da9150->regmap)) {
+
+	if (IS_ERR(da9150->regmap))
+	{
 		ret = PTR_ERR(da9150->regmap);
 		dev_err(da9150->dev, "Failed to allocate register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -425,30 +471,37 @@ static int da9150_probe(struct i2c_client *client,
 	qif_addr = (qif_addr & DA9150_CORE_BASE_ADDR_MASK) >> 1;
 	qif_addr |= DA9150_QIF_I2C_ADDR_LSB;
 	da9150->core_qif = i2c_new_dummy(client->adapter, qif_addr);
-	if (!da9150->core_qif) {
+
+	if (!da9150->core_qif)
+	{
 		dev_err(da9150->dev, "Failed to attach QIF client\n");
 		return -ENODEV;
 	}
 
 	i2c_set_clientdata(da9150->core_qif, da9150);
 
-	if (pdata) {
+	if (pdata)
+	{
 		da9150->irq_base = pdata->irq_base;
 
 		da9150_devs[DA9150_FG_IDX].platform_data = pdata->fg_pdata;
 		da9150_devs[DA9150_FG_IDX].pdata_size =
 			sizeof(struct da9150_fg_pdata);
-	} else {
+	}
+	else
+	{
 		da9150->irq_base = -1;
 	}
 
 	ret = regmap_add_irq_chip(da9150->regmap, da9150->irq,
-				  IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-				  da9150->irq_base, &da9150_regmap_irq_chip,
-				  &da9150->regmap_irq_data);
-	if (ret) {
+							  IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+							  da9150->irq_base, &da9150_regmap_irq_chip,
+							  &da9150->regmap_irq_data);
+
+	if (ret)
+	{
 		dev_err(da9150->dev, "Failed to add regmap irq chip: %d\n",
-			ret);
+				ret);
 		goto regmap_irq_fail;
 	}
 
@@ -458,9 +511,11 @@ static int da9150_probe(struct i2c_client *client,
 	enable_irq_wake(da9150->irq);
 
 	ret = mfd_add_devices(da9150->dev, -1, da9150_devs,
-			      ARRAY_SIZE(da9150_devs), NULL,
-			      da9150->irq_base, NULL);
-	if (ret) {
+						  ARRAY_SIZE(da9150_devs), NULL,
+						  da9150->irq_base, NULL);
+
+	if (ret)
+	{
 		dev_err(da9150->dev, "Failed to add child devices: %d\n", ret);
 		goto mfd_fail;
 	}
@@ -492,27 +547,30 @@ static void da9150_shutdown(struct i2c_client *client)
 
 	/* Make sure we have a wakup source for the device */
 	da9150_set_bits(da9150, DA9150_CONFIG_D,
-			DA9150_WKUP_PM_EN_MASK,
-			DA9150_WKUP_PM_EN_MASK);
+					DA9150_WKUP_PM_EN_MASK,
+					DA9150_WKUP_PM_EN_MASK);
 
 	/* Set device to DISABLED mode */
 	da9150_set_bits(da9150, DA9150_CONTROL_C,
-			DA9150_DISABLE_MASK, DA9150_DISABLE_MASK);
+					DA9150_DISABLE_MASK, DA9150_DISABLE_MASK);
 }
 
-static const struct i2c_device_id da9150_i2c_id[] = {
+static const struct i2c_device_id da9150_i2c_id[] =
+{
 	{ "da9150", },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, da9150_i2c_id);
 
-static const struct of_device_id da9150_of_match[] = {
+static const struct of_device_id da9150_of_match[] =
+{
 	{ .compatible = "dlg,da9150", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, da9150_of_match);
 
-static struct i2c_driver da9150_driver = {
+static struct i2c_driver da9150_driver =
+{
 	.driver	= {
 		.name	= "da9150",
 		.of_match_table = of_match_ptr(da9150_of_match),

@@ -96,7 +96,8 @@
 	  ADP1653_REG_OUT_SEL_HPLED_TORCH_MIN + 1) *	\
 	 ADP1653_FLASH_INTENSITY_STEP)
 
-struct adp1653_platform_data {
+struct adp1653_platform_data
+{
 	int (*power)(struct v4l2_subdev *sd, int on);
 
 	u32 max_flash_timeout;		/* flash light timeout in us */
@@ -109,7 +110,8 @@ struct adp1653_platform_data {
 
 #define to_adp1653_flash(sd)	container_of(sd, struct adp1653_flash, subdev)
 
-struct adp1653_flash {
+struct adp1653_flash
+{
 	struct v4l2_subdev subdev;
 	struct adp1653_platform_data *platform_data;
 

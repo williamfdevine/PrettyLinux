@@ -4,21 +4,21 @@
 
 int vscnprintf(char *buf, size_t size, const char *fmt, va_list args)
 {
-       int i = vsnprintf(buf, size, fmt, args);
-       ssize_t ssize = size;
+	int i = vsnprintf(buf, size, fmt, args);
+	ssize_t ssize = size;
 
-       return (i >= ssize) ? (ssize - 1) : i;
+	return (i >= ssize) ? (ssize - 1) : i;
 }
 
-int scnprintf(char * buf, size_t size, const char * fmt, ...)
+int scnprintf(char *buf, size_t size, const char *fmt, ...)
 {
-       ssize_t ssize = size;
-       va_list args;
-       int i;
+	ssize_t ssize = size;
+	va_list args;
+	int i;
 
-       va_start(args, fmt);
-       i = vsnprintf(buf, size, fmt, args);
-       va_end(args);
+	va_start(args, fmt);
+	i = vsnprintf(buf, size, fmt, args);
+	va_end(args);
 
-       return (i >= ssize) ? (ssize - 1) : i;
+	return (i >= ssize) ? (ssize - 1) : i;
 }

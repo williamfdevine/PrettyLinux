@@ -12,19 +12,20 @@
  * Definitions of magics and versions of current quota files
  */
 #define V2_INITQMAGICS {\
-	0xd9c01f11,	/* USRQUOTA */\
-	0xd9c01927,	/* GRPQUOTA */\
-	0xd9c03f14,	/* PRJQUOTA */\
-}
+		0xd9c01f11,	/* USRQUOTA */\
+		0xd9c01927,	/* GRPQUOTA */\
+		0xd9c03f14,	/* PRJQUOTA */\
+	}
 
 #define V2_INITQVERSIONS {\
-	1,		/* USRQUOTA */\
-	1,		/* GRPQUOTA */\
-	1,		/* PRJQUOTA */\
-}
+		1,		/* USRQUOTA */\
+		1,		/* GRPQUOTA */\
+		1,		/* PRJQUOTA */\
+	}
 
 /* First generic header */
-struct v2_disk_dqheader {
+struct v2_disk_dqheader
+{
 	__le32 dqh_magic;	/* Magic number identifying file */
 	__le32 dqh_version;	/* File version */
 };
@@ -34,7 +35,8 @@ struct v2_disk_dqheader {
  * (as it appears on disk) - the file is a radix tree whose leaves point
  * to blocks of these structures.
  */
-struct v2r0_disk_dqblk {
+struct v2r0_disk_dqblk
+{
 	__le32 dqb_id;		/* id this quota applies to */
 	__le32 dqb_ihardlimit;	/* absolute limit on allocated inodes */
 	__le32 dqb_isoftlimit;	/* preferred inode limit */
@@ -46,7 +48,8 @@ struct v2r0_disk_dqblk {
 	__le64 dqb_itime;	/* time limit for excessive inode use */
 };
 
-struct v2r1_disk_dqblk {
+struct v2r1_disk_dqblk
+{
 	__le32 dqb_id;		/* id this quota applies to */
 	__le32 dqb_pad;
 	__le64 dqb_ihardlimit;	/* absolute limit on allocated inodes */
@@ -60,7 +63,8 @@ struct v2r1_disk_dqblk {
 };
 
 /* Header with type and version specific information */
-struct v2_disk_dqinfo {
+struct v2_disk_dqinfo
+{
 	__le32 dqi_bgrace;	/* Time before block soft limit becomes hard limit */
 	__le32 dqi_igrace;	/* Time before inode soft limit becomes hard limit */
 	__le32 dqi_flags;	/* Flags for quotafile (DQF_*) */

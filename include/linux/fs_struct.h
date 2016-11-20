@@ -5,7 +5,8 @@
 #include <linux/spinlock.h>
 #include <linux/seqlock.h>
 
-struct fs_struct {
+struct fs_struct
+{
 	int users;
 	spinlock_t lock;
 	seqcount_t seq;

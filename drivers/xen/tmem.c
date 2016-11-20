@@ -34,22 +34,22 @@ __setup("tmem", enable_tmem);
 #endif
 
 #ifdef CONFIG_CLEANCACHE
-static bool cleancache __read_mostly = true;
-module_param(cleancache, bool, S_IRUGO);
-static bool selfballooning __read_mostly = true;
-module_param(selfballooning, bool, S_IRUGO);
+	static bool cleancache __read_mostly = true;
+	module_param(cleancache, bool, S_IRUGO);
+	static bool selfballooning __read_mostly = true;
+	module_param(selfballooning, bool, S_IRUGO);
 #endif /* CONFIG_CLEANCACHE */
 
 #ifdef CONFIG_FRONTSWAP
-static bool frontswap __read_mostly = true;
-module_param(frontswap, bool, S_IRUGO);
+	static bool frontswap __read_mostly = true;
+	module_param(frontswap, bool, S_IRUGO);
 #else /* CONFIG_FRONTSWAP */
-#define frontswap (0)
+	#define frontswap (0)
 #endif /* CONFIG_FRONTSWAP */
 
 #ifdef CONFIG_XEN_SELFBALLOONING
-static bool selfshrinking __read_mostly = true;
-module_param(selfshrinking, bool, S_IRUGO);
+	static bool selfshrinking __read_mostly = true;
+	module_param(selfshrinking, bool, S_IRUGO);
 #endif /* CONFIG_XEN_SELFBALLOONING */
 
 #define TMEM_CONTROL               0
@@ -71,12 +71,14 @@ module_param(selfshrinking, bool, S_IRUGO);
 #define TMEM_VERSION_SHIFT        24
 
 
-struct tmem_pool_uuid {
+struct tmem_pool_uuid
+{
 	u64 uuid_lo;
 	u64 uuid_hi;
 };
 
-struct tmem_oid {
+struct tmem_oid
+{
 	u64 oid[3];
 };
 
@@ -89,7 +91,7 @@ struct tmem_oid {
 /* xen tmem foundation ops/hypercalls */
 
 static inline int xen_tmem_op(u32 tmem_cmd, u32 tmem_pool, struct tmem_oid oid,
-	u32 index, unsigned long gmfn, u32 tmem_offset, u32 pfn_offset, u32 len)
+							  u32 index, unsigned long gmfn, u32 tmem_offset, u32 pfn_offset, u32 len)
 {
 	struct tmem_op op;
 	int rc = 0;
@@ -109,13 +111,16 @@ static inline int xen_tmem_op(u32 tmem_cmd, u32 tmem_pool, struct tmem_oid oid,
 }
 
 static int xen_tmem_new_pool(struct tmem_pool_uuid uuid,
-				u32 flags, unsigned long pagesize)
+							 u32 flags, unsigned long pagesize)
 {
 	struct tmem_op op;
 	int rc = 0, pageshift;
 
 	for (pageshift = 0; pagesize != 1; pageshift++)
+	{
 		pagesize >>= 1;
+	}
+
 	flags |= (pageshift - 12) << TMEM_POOL_PAGESIZE_SHIFT;
 	flags |= TMEM_SPEC_VERSION << TMEM_VERSION_SHIFT;
 	op.cmd = TMEM_NEW_POOL;
@@ -129,23 +134,23 @@ static int xen_tmem_new_pool(struct tmem_pool_uuid uuid,
 /* xen generic tmem ops */
 
 static int xen_tmem_put_page(u32 pool_id, struct tmem_oid oid,
-			     u32 index, struct page *page)
+							 u32 index, struct page *page)
 {
 	return xen_tmem_op(TMEM_PUT_PAGE, pool_id, oid, index,
-			   xen_page_to_gfn(page), 0, 0, 0);
+					   xen_page_to_gfn(page), 0, 0, 0);
 }
 
 static int xen_tmem_get_page(u32 pool_id, struct tmem_oid oid,
-			     u32 index, struct page *page)
+							 u32 index, struct page *page)
 {
 	return xen_tmem_op(TMEM_GET_PAGE, pool_id, oid, index,
-			   xen_page_to_gfn(page), 0, 0, 0);
+					   xen_page_to_gfn(page), 0, 0, 0);
 }
 
 static int xen_tmem_flush_page(u32 pool_id, struct tmem_oid oid, u32 index)
 {
 	return xen_tmem_op(TMEM_FLUSH_PAGE, pool_id, oid, index,
-		0, 0, 0, 0);
+					   0, 0, 0, 0);
 }
 
 static int xen_tmem_flush_object(u32 pool_id, struct tmem_oid oid)
@@ -165,21 +170,27 @@ static int xen_tmem_destroy_pool(u32 pool_id)
 /* cleancache ops */
 
 static void tmem_cleancache_put_page(int pool, struct cleancache_filekey key,
-				     pgoff_t index, struct page *page)
+									 pgoff_t index, struct page *page)
 {
 	u32 ind = (u32) index;
 	struct tmem_oid oid = *(struct tmem_oid *)&key;
 
 	if (pool < 0)
+	{
 		return;
+	}
+
 	if (ind != index)
+	{
 		return;
+	}
+
 	mb(); /* ensure page is quiescent; tmem may address it with an alias */
 	(void)xen_tmem_put_page((u32)pool, oid, ind, page);
 }
 
 static int tmem_cleancache_get_page(int pool, struct cleancache_filekey key,
-				    pgoff_t index, struct page *page)
+									pgoff_t index, struct page *page)
 {
 	u32 ind = (u32) index;
 	struct tmem_oid oid = *(struct tmem_oid *)&key;
@@ -187,26 +198,43 @@ static int tmem_cleancache_get_page(int pool, struct cleancache_filekey key,
 
 	/* translate return values to linux semantics */
 	if (pool < 0)
+	{
 		return -1;
+	}
+
 	if (ind != index)
+	{
 		return -1;
+	}
+
 	ret = xen_tmem_get_page((u32)pool, oid, ind, page);
+
 	if (ret == 1)
+	{
 		return 0;
+	}
 	else
+	{
 		return -1;
+	}
 }
 
 static void tmem_cleancache_flush_page(int pool, struct cleancache_filekey key,
-				       pgoff_t index)
+									   pgoff_t index)
 {
 	u32 ind = (u32) index;
 	struct tmem_oid oid = *(struct tmem_oid *)&key;
 
 	if (pool < 0)
+	{
 		return;
+	}
+
 	if (ind != index)
+	{
 		return;
+	}
+
 	(void)xen_tmem_flush_page((u32)pool, oid, ind);
 }
 
@@ -215,14 +243,20 @@ static void tmem_cleancache_flush_inode(int pool, struct cleancache_filekey key)
 	struct tmem_oid oid = *(struct tmem_oid *)&key;
 
 	if (pool < 0)
+	{
 		return;
+	}
+
 	(void)xen_tmem_flush_object((u32)pool, oid);
 }
 
 static void tmem_cleancache_flush_fs(int pool)
 {
 	if (pool < 0)
+	{
 		return;
+	}
+
 	(void)xen_tmem_destroy_pool((u32)pool);
 }
 
@@ -242,7 +276,8 @@ static int tmem_cleancache_init_shared_fs(char *uuid, size_t pagesize)
 	return xen_tmem_new_pool(shared_uuid, TMEM_POOL_SHARED, pagesize);
 }
 
-static const struct cleancache_ops tmem_cleancache_ops = {
+static const struct cleancache_ops tmem_cleancache_ops =
+{
 	.put_page = tmem_cleancache_put_page,
 	.get_page = tmem_cleancache_get_page,
 	.invalidate_page = tmem_cleancache_flush_page,
@@ -277,7 +312,7 @@ static inline struct tmem_oid oswiz(unsigned type, u32 ind)
 
 /* returns 0 if the page was successfully put into frontswap, -1 if not */
 static int tmem_frontswap_store(unsigned type, pgoff_t offset,
-				   struct page *page)
+								struct page *page)
 {
 	u64 ind64 = (u64)offset;
 	u32 ind = (u32)offset;
@@ -285,16 +320,27 @@ static int tmem_frontswap_store(unsigned type, pgoff_t offset,
 	int ret;
 
 	if (pool < 0)
+	{
 		return -1;
+	}
+
 	if (ind64 != ind)
+	{
 		return -1;
+	}
+
 	mb(); /* ensure page is quiescent; tmem may address it with an alias */
 	ret = xen_tmem_put_page(pool, oswiz(type, ind), iswiz(ind), page);
+
 	/* translate Xen tmem return values to linux semantics */
 	if (ret == 1)
+	{
 		return 0;
+	}
 	else
+	{
 		return -1;
+	}
 }
 
 /*
@@ -302,7 +348,7 @@ static int tmem_frontswap_store(unsigned type, pgoff_t offset,
  * was not present (should never happen!)
  */
 static int tmem_frontswap_load(unsigned type, pgoff_t offset,
-				   struct page *page)
+							   struct page *page)
 {
 	u64 ind64 = (u64)offset;
 	u32 ind = (u32)offset;
@@ -310,15 +356,26 @@ static int tmem_frontswap_load(unsigned type, pgoff_t offset,
 	int ret;
 
 	if (pool < 0)
+	{
 		return -1;
+	}
+
 	if (ind64 != ind)
+	{
 		return -1;
+	}
+
 	ret = xen_tmem_get_page(pool, oswiz(type, ind), iswiz(ind), page);
+
 	/* translate Xen tmem return values to linux semantics */
 	if (ret == 1)
+	{
 		return 0;
+	}
 	else
+	{
 		return -1;
+	}
 }
 
 /* flush a single page from frontswap */
@@ -329,9 +386,15 @@ static void tmem_frontswap_flush_page(unsigned type, pgoff_t offset)
 	int pool = tmem_frontswap_poolid;
 
 	if (pool < 0)
+	{
 		return;
+	}
+
 	if (ind64 != ind)
+	{
 		return;
+	}
+
 	(void) xen_tmem_flush_page(pool, oswiz(type, ind), iswiz(ind));
 }
 
@@ -342,9 +405,14 @@ static void tmem_frontswap_flush_area(unsigned type)
 	int ind;
 
 	if (pool < 0)
+	{
 		return;
+	}
+
 	for (ind = SWIZ_MASK; ind >= 0; ind--)
+	{
 		(void)xen_tmem_flush_object(pool, oswiz(type, ind));
+	}
 }
 
 static void tmem_frontswap_init(unsigned ignored)
@@ -354,10 +422,11 @@ static void tmem_frontswap_init(unsigned ignored)
 	/* a single tmem poolid is used for all frontswap "types" (swapfiles) */
 	if (tmem_frontswap_poolid < 0)
 		tmem_frontswap_poolid =
-		    xen_tmem_new_pool(private, TMEM_POOL_PERSIST, PAGE_SIZE);
+			xen_tmem_new_pool(private, TMEM_POOL_PERSIST, PAGE_SIZE);
 }
 
-static struct frontswap_ops tmem_frontswap_ops = {
+static struct frontswap_ops tmem_frontswap_ops =
+{
 	.store = tmem_frontswap_store,
 	.load = tmem_frontswap_load,
 	.invalidate_page = tmem_frontswap_flush_page,
@@ -369,40 +438,53 @@ static struct frontswap_ops tmem_frontswap_ops = {
 static int __init xen_tmem_init(void)
 {
 	if (!xen_domain())
+	{
 		return 0;
+	}
+
 #ifdef CONFIG_FRONTSWAP
-	if (tmem_enabled && frontswap) {
+
+	if (tmem_enabled && frontswap)
+	{
 		char *s = "";
 
 		tmem_frontswap_poolid = -1;
 		frontswap_register_ops(&tmem_frontswap_ops);
 		pr_info("frontswap enabled, RAM provided by Xen Transcendent Memory%s\n",
-			s);
+				s);
 	}
+
 #endif
 #ifdef CONFIG_CLEANCACHE
 	BUILD_BUG_ON(sizeof(struct cleancache_filekey) != sizeof(struct tmem_oid));
-	if (tmem_enabled && cleancache) {
+
+	if (tmem_enabled && cleancache)
+	{
 		int err;
 
 		err = cleancache_register_ops(&tmem_cleancache_ops);
+
 		if (err)
 			pr_warn("xen-tmem: failed to enable cleancache: %d\n",
-				err);
+					err);
 		else
 			pr_info("cleancache enabled, RAM provided by "
-				"Xen Transcendent Memory\n");
+					"Xen Transcendent Memory\n");
 	}
+
 #endif
 #ifdef CONFIG_XEN_SELFBALLOONING
+
 	/*
 	 * There is no point of driving pages to the swap system if they
 	 * aren't going anywhere in tmem universe.
 	 */
-	if (!frontswap) {
+	if (!frontswap)
+	{
 		selfshrinking = false;
 		selfballooning = false;
 	}
+
 	xen_selfballoon_init(selfballooning, selfshrinking);
 #endif
 	return 0;

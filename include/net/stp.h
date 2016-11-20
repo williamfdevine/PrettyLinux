@@ -1,10 +1,11 @@
 #ifndef _NET_STP_H
 #define _NET_STP_H
 
-struct stp_proto {
+struct stp_proto
+{
 	unsigned char	group_address[ETH_ALEN];
 	void		(*rcv)(const struct stp_proto *, struct sk_buff *,
-			       struct net_device *);
+					   struct net_device *);
 	void		*data;
 };
 

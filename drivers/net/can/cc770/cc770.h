@@ -18,7 +18,8 @@
 
 #include <linux/can/dev.h>
 
-struct cc770_msgobj {
+struct cc770_msgobj
+{
 	u8 ctrl0;
 	u8 ctrl1;
 	u8 id[4];
@@ -27,10 +28,13 @@ struct cc770_msgobj {
 	u8 dontuse;		/* padding */
 } __packed;
 
-struct cc770_regs {
-	union {
+struct cc770_regs
+{
+	union
+	{
 		struct cc770_msgobj msgobj[16]; /* Message object 1..15 */
-		struct {
+		struct
+		{
 			u8 control;		/* Control Register */
 			u8 status;		/* Status Register */
 			u8 cpu_interface;	/* CPU Interface Register */
@@ -158,7 +162,8 @@ struct cc770_regs {
 #define CC770_OBJ_FLAG_RTR	0x02
 #define CC770_OBJ_FLAG_EFF	0x04
 
-enum {
+enum
+{
 	CC770_OBJ_RX0 = 0,	/* for receiving normal messages */
 	CC770_OBJ_RX1,		/* for receiving normal messages */
 	CC770_OBJ_RX_RTR0,	/* for receiving remote transmission requests */
@@ -172,7 +177,8 @@ enum {
 /*
  * CC770 private data structure
  */
-struct cc770_priv {
+struct cc770_priv
+{
 	struct can_priv can;	/* must be the first member */
 	struct sk_buff *echo_skb;
 

@@ -17,9 +17,13 @@
 void hwbm_buf_free(struct hwbm_pool *bm_pool, void *buf)
 {
 	if (likely(bm_pool->frag_size <= PAGE_SIZE))
+	{
 		skb_free_frag(buf);
+	}
 	else
+	{
 		kfree(buf);
+	}
 }
 EXPORT_SYMBOL_GPL(hwbm_buf_free);
 
@@ -30,15 +34,22 @@ int hwbm_pool_refill(struct hwbm_pool *bm_pool, gfp_t gfp)
 	void *buf;
 
 	if (likely(frag_size <= PAGE_SIZE))
+	{
 		buf = netdev_alloc_frag(frag_size);
+	}
 	else
+	{
 		buf = kmalloc(frag_size, gfp);
+	}
 
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	if (bm_pool->construct)
-		if (bm_pool->construct(bm_pool, buf)) {
+		if (bm_pool->construct(bm_pool, buf))
+		{
 			hwbm_buf_free(bm_pool, buf);
 			return -ENOMEM;
 		}
@@ -53,30 +64,38 @@ int hwbm_pool_add(struct hwbm_pool *bm_pool, unsigned int buf_num, gfp_t gfp)
 	unsigned long flags;
 
 	spin_lock_irqsave(&bm_pool->lock, flags);
-	if (bm_pool->buf_num == bm_pool->size) {
+
+	if (bm_pool->buf_num == bm_pool->size)
+	{
 		pr_warn("pool already filled\n");
 		spin_unlock_irqrestore(&bm_pool->lock, flags);
 		return bm_pool->buf_num;
 	}
 
-	if (buf_num + bm_pool->buf_num > bm_pool->size) {
+	if (buf_num + bm_pool->buf_num > bm_pool->size)
+	{
 		pr_warn("cannot allocate %d buffers for pool\n",
-			buf_num);
+				buf_num);
 		spin_unlock_irqrestore(&bm_pool->lock, flags);
 		return 0;
 	}
 
-	if ((buf_num + bm_pool->buf_num) < bm_pool->buf_num) {
+	if ((buf_num + bm_pool->buf_num) < bm_pool->buf_num)
+	{
 		pr_warn("Adding %d buffers to the %d current buffers will overflow\n",
-			buf_num,  bm_pool->buf_num);
+				buf_num,  bm_pool->buf_num);
 		spin_unlock_irqrestore(&bm_pool->lock, flags);
 		return 0;
 	}
 
-	for (i = 0; i < buf_num; i++) {
+	for (i = 0; i < buf_num; i++)
+	{
 		err = hwbm_pool_refill(bm_pool, gfp);
+
 		if (err < 0)
+		{
 			break;
+		}
 	}
 
 	/* Update BM driver with number of buffers added to pool */

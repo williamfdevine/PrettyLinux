@@ -24,36 +24,36 @@
 #include <linux/ioctl.h>
 
 #ifdef __KERNEL__
-/* status register - output bits */
-#define SR_RX_DMA_ENA   0x04    /* receiver DMA enable bit */
-#define SR_TX_DMA_ENA   0x08    /* transmitter DMA enable bit */
-#define SR_RST          0x10    /* SRP reset */
-#define SR_USR_INT_ENA  0x20    /* user interrupt enable bit */
-#define SR_TX_INT_ENA   0x40    /* transmitter interrupt enable bit */
-#define SR_RX_INT_ENA   0x80    /* receiver interrupt enable bit */
+	/* status register - output bits */
+	#define SR_RX_DMA_ENA   0x04    /* receiver DMA enable bit */
+	#define SR_TX_DMA_ENA   0x08    /* transmitter DMA enable bit */
+	#define SR_RST          0x10    /* SRP reset */
+	#define SR_USR_INT_ENA  0x20    /* user interrupt enable bit */
+	#define SR_TX_INT_ENA   0x40    /* transmitter interrupt enable bit */
+	#define SR_RX_INT_ENA   0x80    /* receiver interrupt enable bit */
 
-/* status register - input bits */
-#define SR_USR_RQ       0x20    /* user interrupt request pending */
-#define SR_TX_RDY       0x40    /* transmitter empty (ready) */
-#define SR_RX_RDY       0x80    /* receiver data ready */
+	/* status register - input bits */
+	#define SR_USR_RQ       0x20    /* user interrupt request pending */
+	#define SR_TX_RDY       0x40    /* transmitter empty (ready) */
+	#define SR_RX_RDY       0x80    /* receiver data ready */
 
-#define SR_UP_REQUEST   0x02    /* request from SRP to transfer data
-                                   up to PC */
-#define SR_DOWN_REQUEST 0x01    /* SRP is able to transfer data down
-                                   from PC to SRP */
-#define SR_END_OF_TRANSFER      0x03    /* SRP signalize end of
-                                           transfer (up or down) */
+	#define SR_UP_REQUEST   0x02    /* request from SRP to transfer data
+	up to PC */
+	#define SR_DOWN_REQUEST 0x01    /* SRP is able to transfer data down
+	from PC to SRP */
+	#define SR_END_OF_TRANSFER      0x03    /* SRP signalize end of
+	transfer (up or down) */
 
-#define SR_CMD_FROM_SRP_MASK    0x03    /* mask to get SRP command */
+	#define SR_CMD_FROM_SRP_MASK    0x03    /* mask to get SRP command */
 
-/* bits in driver status byte definitions : */
-#define SR_RDY_RCV      0x01    /* ready to receive packet */
-#define SR_RDY_SND      0x02    /* ready to send packet */
-#define SR_CMD_PND      0x04    /* command pending */ /* not currently used */
+	/* bits in driver status byte definitions : */
+	#define SR_RDY_RCV      0x01    /* ready to receive packet */
+	#define SR_RDY_SND      0x02    /* ready to send packet */
+	#define SR_CMD_PND      0x04    /* command pending */ /* not currently used */
 
-/* ???? */
-#define SR_PKT_UP       0x01    /* transfer of packet up in progress */
-#define SR_PKT_DOWN     0x02    /* transfer of packet down in progress */
+	/* ???? */
+	#define SR_PKT_UP       0x01    /* transfer of packet up in progress */
+	#define SR_PKT_DOWN     0x02    /* transfer of packet down in progress */
 
 #endif /* __KERNEL__ */
 
@@ -64,7 +64,8 @@
 #define COSA_MAX_FIRMWARE_SIZE	0x10000
 
 /* ioctls */
-struct cosa_download {
+struct cosa_download
+{
 	int addr, len;
 	char __user *code;
 };
@@ -77,15 +78,15 @@ struct cosa_download {
 
 /* Read the block from the device memory */
 #define COSAIORMEM	_IOWR('C',0xf2, struct cosa_download *)
-	/* actually the struct cosa_download itself; this is to keep
-	 * the ioctl number same as in 2.4 in order to keep the user-space
-	 * utils compatible. */
+/* actually the struct cosa_download itself; this is to keep
+ * the ioctl number same as in 2.4 in order to keep the user-space
+ * utils compatible. */
 
 /* Write the block to the device memory (i.e. download the microcode) */
 #define COSAIODOWNLD	_IOW('C',0xf2, struct cosa_download *)
-	/* actually the struct cosa_download itself; this is to keep
-	 * the ioctl number same as in 2.4 in order to keep the user-space
-	 * utils compatible. */
+/* actually the struct cosa_download itself; this is to keep
+ * the ioctl number same as in 2.4 in order to keep the user-space
+ * utils compatible. */
 
 /* Read the device type (one of "srp", "cosa", and "cosa8" for now) */
 #define COSAIORTYPE	_IOR('C',0xf3, char *)

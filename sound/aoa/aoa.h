@@ -18,7 +18,8 @@
 
 #define MAX_CODEC_NAME_LEN	32
 
-struct aoa_codec {
+struct aoa_codec
+{
 	char	name[MAX_CODEC_NAME_LEN];
 
 	struct module *owner;
@@ -65,7 +66,8 @@ aoa_codec_unregister(struct aoa_codec *codec);
 
 #define MAX_LAYOUT_NAME_LEN	32
 
-struct aoa_fabric {
+struct aoa_fabric
+{
 	char	name[MAX_LAYOUT_NAME_LEN];
 
 	struct module *owner;
@@ -112,14 +114,15 @@ extern void
 aoa_fabric_unlink_codec(struct aoa_codec *codec);
 
 /* alsa help methods */
-struct aoa_card {
+struct aoa_card
+{
 	struct snd_card *alsa_card;
 };
-        
+
 extern int aoa_snd_device_new(enum snd_device_type type,
-	void * device_data, struct snd_device_ops * ops);
+							  void *device_data, struct snd_device_ops *ops);
 extern struct snd_card *aoa_get_card(void);
-extern int aoa_snd_ctl_add(struct snd_kcontrol* control);
+extern int aoa_snd_ctl_add(struct snd_kcontrol *control);
 
 /* GPIO stuff */
 extern struct gpio_methods *pmf_gpio_methods;

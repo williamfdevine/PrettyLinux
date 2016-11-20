@@ -29,7 +29,8 @@
 /*
  * ccdc hw operations
  */
-struct ccdc_hw_ops {
+struct ccdc_hw_ops
+{
 	/* Pointer to initialize function to initialize ccdc device */
 	int (*open) (struct device *dev);
 	/* Pointer to deinitialize function */
@@ -86,7 +87,8 @@ struct ccdc_hw_ops {
 	int (*getfid) (void);
 };
 
-struct ccdc_hw_device {
+struct ccdc_hw_device
+{
 	/* ccdc device name */
 	char name[32];
 	/* module owner */

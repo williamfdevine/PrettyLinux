@@ -17,7 +17,8 @@
 #include <linux/regmap.h>
 #include <linux/atomic.h>
 
-enum {
+enum
+{
 	CHIP_INVALID = 0,
 	CHIP_PM800,
 	CHIP_PM805,
@@ -25,7 +26,8 @@ enum {
 	CHIP_MAX,
 };
 
-enum {
+enum
+{
 	PM800_ID_BUCK1 = 0,
 	PM800_ID_BUCK2,
 	PM800_ID_BUCK3,
@@ -277,12 +279,14 @@ enum {
 #define PM805_EARPHONE_SETTING		(0x29)
 #define PM805_AUTO_SEQ_SETTING		(0x2A)
 
-struct pm80x_rtc_pdata {
+struct pm80x_rtc_pdata
+{
 	int		vrtc;
 	int		rtc_wakeup;
 };
 
-struct pm80x_subchip {
+struct pm80x_subchip
+{
 	struct i2c_client *power_page;	/* chip client for power page */
 	struct i2c_client *gpadc_page;	/* chip client for gpadc page */
 	struct regmap *regmap_power;
@@ -291,7 +295,8 @@ struct pm80x_subchip {
 	unsigned short gpadc_page_addr;	/* gpadc page I2C address */
 };
 
-struct pm80x_chip {
+struct pm80x_chip
+{
 	struct pm80x_subchip *subchip;
 	struct device *dev;
 	struct i2c_client *client;
@@ -306,7 +311,8 @@ struct pm80x_chip {
 	spinlock_t lock;
 };
 
-struct pm80x_platform_data {
+struct pm80x_platform_data
+{
 	struct pm80x_rtc_pdata *rtc;
 	/*
 	 * For the regulator not defined, set regulators[not_defined] to be
@@ -319,26 +325,32 @@ struct pm80x_platform_data {
 	int irq_mode;		/* Clear interrupt by read/write(0/1) */
 	int batt_det;		/* enable/disable */
 	int (*plat_config)(struct pm80x_chip *chip,
-				struct pm80x_platform_data *pdata);
+					   struct pm80x_platform_data *pdata);
 };
 
 extern const struct dev_pm_ops pm80x_pm_ops;
 extern const struct regmap_config pm80x_regmap_config;
 
 static inline int pm80x_request_irq(struct pm80x_chip *pm80x, int irq,
-				     irq_handler_t handler, unsigned long flags,
-				     const char *name, void *data)
+									irq_handler_t handler, unsigned long flags,
+									const char *name, void *data)
 {
 	if (!pm80x->irq_data)
+	{
 		return -EINVAL;
+	}
+
 	return request_threaded_irq(regmap_irq_get_virq(pm80x->irq_data, irq),
-				    NULL, handler, flags, name, data);
+								NULL, handler, flags, name, data);
 }
 
 static inline void pm80x_free_irq(struct pm80x_chip *pm80x, int irq, void *data)
 {
 	if (!pm80x->irq_data)
+	{
 		return;
+	}
+
 	free_irq(regmap_irq_get_virq(pm80x->irq_data, irq), data);
 }
 
@@ -350,7 +362,9 @@ static inline int pm80x_dev_suspend(struct device *dev)
 	int irq = platform_get_irq(pdev, 0);
 
 	if (device_may_wakeup(dev))
+	{
 		set_bit(irq, &chip->wu_flag);
+	}
 
 	return 0;
 }
@@ -362,7 +376,9 @@ static inline int pm80x_dev_resume(struct device *dev)
 	int irq = platform_get_irq(pdev, 0);
 
 	if (device_may_wakeup(dev))
+	{
 		clear_bit(irq, &chip->wu_flag);
+	}
 
 	return 0;
 }

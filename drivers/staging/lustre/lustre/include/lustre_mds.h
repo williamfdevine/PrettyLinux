@@ -50,7 +50,8 @@
 #include "lustre_dlm.h"
 #include "lustre_export.h"
 
-struct mds_group_info {
+struct mds_group_info
+{
 	struct obd_uuid *uuid;
 	int group;
 };

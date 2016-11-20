@@ -11,7 +11,8 @@ struct mpoa_client;
 
 void atm_mpoa_init_cache(struct mpoa_client *mpc);
 
-typedef struct in_cache_entry {
+typedef struct in_cache_entry
+{
 	struct in_cache_entry *next;
 	struct in_cache_entry *prev;
 	struct timeval  tv;
@@ -28,27 +29,29 @@ typedef struct in_cache_entry {
 	atomic_t use;
 } in_cache_entry;
 
-struct in_cache_ops{
+struct in_cache_ops
+{
 	in_cache_entry *(*add_entry)(__be32 dst_ip,
-				      struct mpoa_client *client);
+								 struct mpoa_client *client);
 	in_cache_entry *(*get)(__be32 dst_ip, struct mpoa_client *client);
 	in_cache_entry *(*get_with_mask)(__be32 dst_ip,
-					 struct mpoa_client *client,
-					 __be32 mask);
+									 struct mpoa_client *client,
+									 __be32 mask);
 	in_cache_entry *(*get_by_vcc)(struct atm_vcc *vcc,
-				      struct mpoa_client *client);
+								  struct mpoa_client *client);
 	void            (*put)(in_cache_entry *entry);
 	void            (*remove_entry)(in_cache_entry *delEntry,
-					struct mpoa_client *client );
+									struct mpoa_client *client );
 	int             (*cache_hit)(in_cache_entry *entry,
-				     struct mpoa_client *client);
+								 struct mpoa_client *client);
 	void            (*clear_count)(struct mpoa_client *client);
 	void            (*check_resolving)(struct mpoa_client *client);
 	void            (*refresh)(struct mpoa_client *client);
 	void            (*destroy_cache)(struct mpoa_client *mpc);
 };
 
-typedef struct eg_cache_entry{
+typedef struct eg_cache_entry
+{
 	struct               eg_cache_entry *next;
 	struct               eg_cache_entry *prev;
 	struct               timeval  tv;
@@ -61,7 +64,8 @@ typedef struct eg_cache_entry{
 	atomic_t             use;
 } eg_cache_entry;
 
-struct eg_cache_ops{
+struct eg_cache_ops
+{
 	eg_cache_entry *(*add_entry)(struct k_message *msg, struct mpoa_client *client);
 	eg_cache_entry *(*get_by_cache_id)(__be32 cache_id, struct mpoa_client *client);
 	eg_cache_entry *(*get_by_tag)(__be32 cache_id, struct mpoa_client *client);

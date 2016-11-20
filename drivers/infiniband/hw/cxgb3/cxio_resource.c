@@ -45,10 +45,10 @@ static spinlock_t rhdl_fifo_lock;
 #define RANDOM_SIZE 16
 
 static int __cxio_init_resource_fifo(struct kfifo *fifo,
-				   spinlock_t *fifo_lock,
-				   u32 nr, u32 skip_low,
-				   u32 skip_high,
-				   int random)
+									 spinlock_t *fifo_lock,
+									 u32 nr, u32 skip_low,
+									 u32 skip_high,
+									 int random)
 {
 	u32 i, j, entry = 0, idx;
 	u32 random_bytes;
@@ -56,56 +56,76 @@ static int __cxio_init_resource_fifo(struct kfifo *fifo,
 	spin_lock_init(fifo_lock);
 
 	if (kfifo_alloc(fifo, nr * sizeof(u32), GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	for (i = 0; i < skip_low + skip_high; i++)
+	{
 		kfifo_in(fifo, (unsigned char *) &entry, sizeof(u32));
-	if (random) {
+	}
+
+	if (random)
+	{
 		j = 0;
 		random_bytes = prandom_u32();
+
 		for (i = 0; i < RANDOM_SIZE; i++)
+		{
 			rarray[i] = i + skip_low;
-		for (i = skip_low + RANDOM_SIZE; i < nr - skip_high; i++) {
-			if (j >= RANDOM_SIZE) {
+		}
+
+		for (i = skip_low + RANDOM_SIZE; i < nr - skip_high; i++)
+		{
+			if (j >= RANDOM_SIZE)
+			{
 				j = 0;
 				random_bytes = prandom_u32();
 			}
+
 			idx = (random_bytes >> (j * 2)) & 0xF;
 			kfifo_in(fifo,
-				(unsigned char *) &rarray[idx],
-				sizeof(u32));
+					 (unsigned char *) &rarray[idx],
+					 sizeof(u32));
 			rarray[idx] = i;
 			j++;
 		}
+
 		for (i = 0; i < RANDOM_SIZE; i++)
 			kfifo_in(fifo,
-				(unsigned char *) &rarray[i],
-				sizeof(u32));
-	} else
+					 (unsigned char *) &rarray[i],
+					 sizeof(u32));
+	}
+	else
 		for (i = skip_low; i < nr - skip_high; i++)
+		{
 			kfifo_in(fifo, (unsigned char *) &i, sizeof(u32));
+		}
 
 	for (i = 0; i < skip_low + skip_high; i++)
 		if (kfifo_out_locked(fifo, (unsigned char *) &entry,
-				sizeof(u32), fifo_lock) != sizeof(u32))
-					break;
+							 sizeof(u32), fifo_lock) != sizeof(u32))
+		{
+			break;
+		}
+
 	return 0;
 }
 
-static int cxio_init_resource_fifo(struct kfifo *fifo, spinlock_t * fifo_lock,
-				   u32 nr, u32 skip_low, u32 skip_high)
+static int cxio_init_resource_fifo(struct kfifo *fifo, spinlock_t *fifo_lock,
+								   u32 nr, u32 skip_low, u32 skip_high)
 {
 	return (__cxio_init_resource_fifo(fifo, fifo_lock, nr, skip_low,
-					  skip_high, 0));
+									  skip_high, 0));
 }
 
 static int cxio_init_resource_fifo_random(struct kfifo *fifo,
-				   spinlock_t * fifo_lock,
-				   u32 nr, u32 skip_low, u32 skip_high)
+		spinlock_t *fifo_lock,
+		u32 nr, u32 skip_low, u32 skip_high)
 {
 
 	return (__cxio_init_resource_fifo(fifo, fifo_lock, nr, skip_low,
-					  skip_high, 1));
+									  skip_high, 1));
 }
 
 static int cxio_init_qpid_fifo(struct cxio_rdev *rdev_p)
@@ -115,20 +135,23 @@ static int cxio_init_qpid_fifo(struct cxio_rdev *rdev_p)
 	spin_lock_init(&rdev_p->rscp->qpid_fifo_lock);
 
 	if (kfifo_alloc(&rdev_p->rscp->qpid_fifo, T3_MAX_NUM_QP * sizeof(u32),
-					      GFP_KERNEL))
+					GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	for (i = 16; i < T3_MAX_NUM_QP; i++)
 		if (!(i & rdev_p->qpmask))
 			kfifo_in(&rdev_p->rscp->qpid_fifo,
-				    (unsigned char *) &i, sizeof(u32));
+					 (unsigned char *) &i, sizeof(u32));
+
 	return 0;
 }
 
 int cxio_hal_init_rhdl_resource(u32 nr_rhdl)
 {
 	return cxio_init_resource_fifo(&rhdl_fifo, &rhdl_fifo_lock, nr_rhdl, 1,
-				       0);
+								   0);
 }
 
 void cxio_hal_destroy_rhdl_resource(void)
@@ -138,32 +161,52 @@ void cxio_hal_destroy_rhdl_resource(void)
 
 /* nr_* must be power of 2 */
 int cxio_hal_init_resource(struct cxio_rdev *rdev_p,
-			   u32 nr_tpt, u32 nr_pbl,
-			   u32 nr_rqt, u32 nr_qpid, u32 nr_cqid, u32 nr_pdid)
+						   u32 nr_tpt, u32 nr_pbl,
+						   u32 nr_rqt, u32 nr_qpid, u32 nr_cqid, u32 nr_pdid)
 {
 	int err = 0;
 	struct cxio_hal_resource *rscp;
 
 	rscp = kmalloc(sizeof(*rscp), GFP_KERNEL);
+
 	if (!rscp)
+	{
 		return -ENOMEM;
+	}
+
 	rdev_p->rscp = rscp;
 	err = cxio_init_resource_fifo_random(&rscp->tpt_fifo,
-				      &rscp->tpt_fifo_lock,
-				      nr_tpt, 1, 0);
+										 &rscp->tpt_fifo_lock,
+										 nr_tpt, 1, 0);
+
 	if (err)
+	{
 		goto tpt_err;
+	}
+
 	err = cxio_init_qpid_fifo(rdev_p);
+
 	if (err)
+	{
 		goto qpid_err;
+	}
+
 	err = cxio_init_resource_fifo(&rscp->cqid_fifo, &rscp->cqid_fifo_lock,
-				      nr_cqid, 1, 0);
+								  nr_cqid, 1, 0);
+
 	if (err)
+	{
 		goto cqid_err;
+	}
+
 	err = cxio_init_resource_fifo(&rscp->pdid_fifo, &rscp->pdid_fifo_lock,
-				      nr_pdid, 1, 0);
+								  nr_pdid, 1, 0);
+
 	if (err)
+	{
 		goto pdid_err;
+	}
+
 	return 0;
 pdid_err:
 	kfifo_free(&rscp->cqid_fifo);
@@ -178,21 +221,26 @@ tpt_err:
 /*
  * returns 0 if no resource available
  */
-static u32 cxio_hal_get_resource(struct kfifo *fifo, spinlock_t * lock)
+static u32 cxio_hal_get_resource(struct kfifo *fifo, spinlock_t *lock)
 {
 	u32 entry;
+
 	if (kfifo_out_locked(fifo, (unsigned char *) &entry, sizeof(u32), lock))
+	{
 		return entry;
+	}
 	else
-		return 0;	/* fifo emptry */
+	{
+		return 0;    /* fifo emptry */
+	}
 }
 
-static void cxio_hal_put_resource(struct kfifo *fifo, spinlock_t * lock,
-		u32 entry)
+static void cxio_hal_put_resource(struct kfifo *fifo, spinlock_t *lock,
+								  u32 entry)
 {
 	BUG_ON(
-	kfifo_in_locked(fifo, (unsigned char *) &entry, sizeof(u32), lock)
-	== 0);
+		kfifo_in_locked(fifo, (unsigned char *) &entry, sizeof(u32), lock)
+		== 0);
 }
 
 u32 cxio_hal_get_stag(struct cxio_hal_resource *rscp)
@@ -208,7 +256,7 @@ void cxio_hal_put_stag(struct cxio_hal_resource *rscp, u32 stag)
 u32 cxio_hal_get_qpid(struct cxio_hal_resource *rscp)
 {
 	u32 qpid = cxio_hal_get_resource(&rscp->qpid_fifo,
-			&rscp->qpid_fifo_lock);
+									 &rscp->qpid_fifo_lock);
 	PDBG("%s qpid 0x%x\n", __func__, qpid);
 	return qpid;
 }
@@ -272,27 +320,38 @@ int cxio_hal_pblpool_create(struct cxio_rdev *rdev_p)
 	unsigned pbl_start, pbl_chunk;
 
 	rdev_p->pbl_pool = gen_pool_create(MIN_PBL_SHIFT, -1);
+
 	if (!rdev_p->pbl_pool)
+	{
 		return -ENOMEM;
+	}
 
 	pbl_start = rdev_p->rnic_info.pbl_base;
 	pbl_chunk = rdev_p->rnic_info.pbl_top - pbl_start + 1;
 
-	while (pbl_start < rdev_p->rnic_info.pbl_top) {
+	while (pbl_start < rdev_p->rnic_info.pbl_top)
+	{
 		pbl_chunk = min(rdev_p->rnic_info.pbl_top - pbl_start + 1,
-				pbl_chunk);
-		if (gen_pool_add(rdev_p->pbl_pool, pbl_start, pbl_chunk, -1)) {
+						pbl_chunk);
+
+		if (gen_pool_add(rdev_p->pbl_pool, pbl_start, pbl_chunk, -1))
+		{
 			PDBG("%s failed to add PBL chunk (%x/%x)\n",
-			     __func__, pbl_start, pbl_chunk);
-			if (pbl_chunk <= 1024 << MIN_PBL_SHIFT) {
+				 __func__, pbl_start, pbl_chunk);
+
+			if (pbl_chunk <= 1024 << MIN_PBL_SHIFT)
+			{
 				printk(KERN_WARNING MOD "%s: Failed to add all PBL chunks (%x/%x)\n",
-				       __func__, pbl_start, rdev_p->rnic_info.pbl_top - pbl_start);
+					   __func__, pbl_start, rdev_p->rnic_info.pbl_top - pbl_start);
 				return 0;
 			}
+
 			pbl_chunk >>= 1;
-		} else {
+		}
+		else
+		{
 			PDBG("%s added PBL chunk (%x/%x)\n",
-			     __func__, pbl_start, pbl_chunk);
+				 __func__, pbl_start, pbl_chunk);
 			pbl_start += pbl_chunk;
 		}
 	}
@@ -329,11 +388,15 @@ int cxio_hal_rqtpool_create(struct cxio_rdev *rdev_p)
 {
 	unsigned long i;
 	rdev_p->rqt_pool = gen_pool_create(MIN_RQT_SHIFT, -1);
+
 	if (rdev_p->rqt_pool)
 		for (i = rdev_p->rnic_info.rqt_base;
-		     i <= rdev_p->rnic_info.rqt_top - RQT_CHUNK + 1;
-		     i += RQT_CHUNK)
+			 i <= rdev_p->rnic_info.rqt_top - RQT_CHUNK + 1;
+			 i += RQT_CHUNK)
+		{
 			gen_pool_add(rdev_p->rqt_pool, i, RQT_CHUNK, -1);
+		}
+
 	return rdev_p->rqt_pool ? 0 : -ENOMEM;
 }
 

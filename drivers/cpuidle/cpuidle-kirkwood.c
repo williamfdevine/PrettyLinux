@@ -29,8 +29,8 @@ static void __iomem *ddr_operation_base;
 
 /* Actual code that puts the SoC in different idle states */
 static int kirkwood_enter_idle(struct cpuidle_device *dev,
-			       struct cpuidle_driver *drv,
-			       int index)
+							   struct cpuidle_driver *drv,
+							   int index)
 {
 	writel(0x7, ddr_operation_base);
 	cpu_do_idle();
@@ -38,7 +38,8 @@ static int kirkwood_enter_idle(struct cpuidle_device *dev,
 	return index;
 }
 
-static struct cpuidle_driver kirkwood_idle_driver = {
+static struct cpuidle_driver kirkwood_idle_driver =
+{
 	.name			= "kirkwood_idle",
 	.owner			= THIS_MODULE,
 	.states[0]		= ARM_CPUIDLE_WFI_STATE,
@@ -59,8 +60,11 @@ static int kirkwood_cpuidle_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ddr_operation_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(ddr_operation_base))
+	{
 		return PTR_ERR(ddr_operation_base);
+	}
 
 	return cpuidle_register(&kirkwood_idle_driver, NULL);
 }
@@ -71,12 +75,13 @@ static int kirkwood_cpuidle_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver kirkwood_cpuidle_driver = {
+static struct platform_driver kirkwood_cpuidle_driver =
+{
 	.probe = kirkwood_cpuidle_probe,
 	.remove = kirkwood_cpuidle_remove,
 	.driver = {
-		   .name = "kirkwood_cpuidle",
-		   },
+		.name = "kirkwood_cpuidle",
+	},
 };
 
 module_platform_driver(kirkwood_cpuidle_driver);

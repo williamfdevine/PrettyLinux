@@ -27,7 +27,8 @@ struct file;
 struct soc_camera_desc;
 struct soc_camera_async_client;
 
-struct soc_camera_device {
+struct soc_camera_device
+{
 	struct list_head list;		/* list of all registered devices */
 	struct soc_camera_desc *sdesc;
 	struct device *pdev;		/* Platform device */
@@ -55,7 +56,8 @@ struct soc_camera_device {
 	/* Asynchronous subdevice management */
 	struct soc_camera_async_client *sasc;
 	/* video buffer queue */
-	union {
+	union
+	{
 		struct videobuf_queue vb_vidq;
 		struct vb2_queue vb2_vidq;
 	};
@@ -64,18 +66,21 @@ struct soc_camera_device {
 /* Host supports programmable stride */
 #define SOCAM_HOST_CAP_STRIDE		(1 << 0)
 
-enum soc_camera_subdev_role {
+enum soc_camera_subdev_role
+{
 	SOCAM_SUBDEV_DATA_SOURCE = 1,
 	SOCAM_SUBDEV_DATA_SINK,
 	SOCAM_SUBDEV_DATA_PROCESSOR,
 };
 
-struct soc_camera_async_subdev {
+struct soc_camera_async_subdev
+{
 	struct v4l2_async_subdev asd;
 	enum soc_camera_subdev_role role;
 };
 
-struct soc_camera_host {
+struct soc_camera_host
+{
 	struct v4l2_device v4l2_dev;
 	struct list_head list;
 	struct mutex host_lock;		/* Main synchronisation lock */
@@ -90,7 +95,8 @@ struct soc_camera_host {
 	unsigned int *asd_sizes;	/* 0-terminated array of asd group sizes */
 };
 
-struct soc_camera_host_ops {
+struct soc_camera_host_ops
+{
 	struct module *owner;
 	int (*add)(struct soc_camera_device *);
 	void (*remove)(struct soc_camera_device *);
@@ -103,7 +109,7 @@ struct soc_camera_host_ops {
 	 * failing .get_formats() must then clean up internally.
 	 */
 	int (*get_formats)(struct soc_camera_device *, unsigned int,
-			   struct soc_camera_format_xlate *);
+					   struct soc_camera_format_xlate *);
 	void (*put_formats)(struct soc_camera_device *);
 	int (*get_selection)(struct soc_camera_device *, struct v4l2_selection *);
 	int (*set_selection)(struct soc_camera_device *, struct v4l2_selection *);
@@ -115,9 +121,9 @@ struct soc_camera_host_ops {
 	int (*set_fmt)(struct soc_camera_device *, struct v4l2_format *);
 	int (*try_fmt)(struct soc_camera_device *, struct v4l2_format *);
 	void (*init_videobuf)(struct videobuf_queue *,
-			      struct soc_camera_device *);
+						  struct soc_camera_device *);
 	int (*init_videobuf2)(struct vb2_queue *,
-			      struct soc_camera_device *);
+						  struct soc_camera_device *);
 	int (*reqbufs)(struct soc_camera_device *, struct v4l2_requestbuffers *);
 	int (*querycap)(struct soc_camera_host *, struct v4l2_capability *);
 	int (*set_bus_param)(struct soc_camera_device *);
@@ -136,7 +142,8 @@ struct soc_camera_host_ops {
 struct i2c_board_info;
 struct regulator_bulk_data;
 
-struct soc_camera_subdev_desc {
+struct soc_camera_subdev_desc
+{
 	/* Per camera SOCAM_SENSOR_* bus flags */
 	unsigned long flags;
 
@@ -169,7 +176,8 @@ struct soc_camera_subdev_desc {
 	struct v4l2_subdev_platform_data sd_pdata;
 };
 
-struct soc_camera_host_desc {
+struct soc_camera_host_desc
+{
 	/* Camera bus id, used to match a camera and a bus */
 	int bus_id;
 	int i2c_adapter_id;
@@ -190,13 +198,15 @@ struct soc_camera_host_desc {
  * it is completely replaced by this one, after which we can split it into its
  * two components.
  */
-struct soc_camera_desc {
+struct soc_camera_desc
+{
 	struct soc_camera_subdev_desc subdev_desc;
 	struct soc_camera_host_desc host_desc;
 };
 
 /* Prepare to replace this struct: don't change its layout any more! */
-struct soc_camera_link {
+struct soc_camera_link
+{
 	/*
 	 * Subdevice part - keep at top and compatible to
 	 * struct soc_camera_subdev_desc
@@ -292,7 +302,8 @@ const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
  * generation by implementing get_formats(), and use it for format checks and
  * format setup.
  */
-struct soc_camera_format_xlate {
+struct soc_camera_format_xlate
+{
 	u32 code;
 	const struct soc_mbus_pixelfmt *host_fmt;
 };
@@ -316,7 +327,8 @@ struct soc_camera_format_xlate {
  *			master_clock to calculate the new pixel-clock and
  *			sets this field.
  */
-struct soc_camera_sense {
+struct soc_camera_sense
+{
 	unsigned long flags;
 	unsigned long master_clock;
 	unsigned long pixel_clock_max;
@@ -335,40 +347,48 @@ struct soc_camera_sense {
 #define SOCAM_DATAWIDTH_24	SOCAM_DATAWIDTH(24)
 
 #define SOCAM_DATAWIDTH_MASK (SOCAM_DATAWIDTH_4 | SOCAM_DATAWIDTH_8 | \
-			      SOCAM_DATAWIDTH_9 | SOCAM_DATAWIDTH_10 | \
-			      SOCAM_DATAWIDTH_12 | SOCAM_DATAWIDTH_15 | \
-			      SOCAM_DATAWIDTH_16 | SOCAM_DATAWIDTH_18 | \
-			      SOCAM_DATAWIDTH_24)
+							  SOCAM_DATAWIDTH_9 | SOCAM_DATAWIDTH_10 | \
+							  SOCAM_DATAWIDTH_12 | SOCAM_DATAWIDTH_15 | \
+							  SOCAM_DATAWIDTH_16 | SOCAM_DATAWIDTH_18 | \
+							  SOCAM_DATAWIDTH_24)
 
 static inline void soc_camera_limit_side(int *start, int *length,
 		unsigned int start_min,
 		unsigned int length_min, unsigned int length_max)
 {
 	if (*length < length_min)
+	{
 		*length = length_min;
+	}
 	else if (*length > length_max)
+	{
 		*length = length_max;
+	}
 
 	if (*start < start_min)
+	{
 		*start = start_min;
+	}
 	else if (*start > start_min + length_max - *length)
+	{
 		*start = start_min + length_max - *length;
+	}
 }
 
 unsigned long soc_camera_apply_board_flags(struct soc_camera_subdev_desc *ssdd,
-					   const struct v4l2_mbus_config *cfg);
+		const struct v4l2_mbus_config *cfg);
 
 int soc_camera_power_init(struct device *dev, struct soc_camera_subdev_desc *ssdd);
 int soc_camera_power_on(struct device *dev, struct soc_camera_subdev_desc *ssdd,
-			struct v4l2_clk *clk);
+						struct v4l2_clk *clk);
 int soc_camera_power_off(struct device *dev, struct soc_camera_subdev_desc *ssdd,
-			 struct v4l2_clk *clk);
+						 struct v4l2_clk *clk);
 
 static inline int soc_camera_set_power(struct device *dev,
-		struct soc_camera_subdev_desc *ssdd, struct v4l2_clk *clk, bool on)
+									   struct soc_camera_subdev_desc *ssdd, struct v4l2_clk *clk, bool on)
 {
 	return on ? soc_camera_power_on(dev, ssdd, clk)
-		  : soc_camera_power_off(dev, ssdd, clk);
+		   : soc_camera_power_off(dev, ssdd, clk);
 }
 
 /* This is only temporary here - until v4l2-subdev begins to link to video_device */

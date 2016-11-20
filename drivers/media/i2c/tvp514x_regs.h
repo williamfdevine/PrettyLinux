@@ -278,7 +278,8 @@
  * @reg - Register offset
  * @val - Register Value for TOK_WRITE or delay in ms for TOK_DELAY
  */
-struct tvp514x_reg {
+struct tvp514x_reg
+{
 	u8 token;
 	u8 reg;
 	u32 val;

@@ -34,8 +34,10 @@ nvkm_sw_mthd(struct nvkm_sw *sw, int chid, int subc, u32 mthd, u32 data)
 	unsigned long flags;
 
 	spin_lock_irqsave(&sw->engine.lock, flags);
-	list_for_each_entry(chan, &sw->chan, head) {
-		if (chan->fifo->chid == chid) {
+	list_for_each_entry(chan, &sw->chan, head)
+	{
+		if (chan->fifo->chid == chid)
+		{
 			handled = nvkm_sw_chan_mthd(chan, subc, mthd, data);
 			list_del(&chan->head);
 			list_add(&chan->head, &sw->chan);
@@ -48,7 +50,7 @@ nvkm_sw_mthd(struct nvkm_sw *sw, int chid, int subc, u32 mthd, u32 data)
 
 static int
 nvkm_sw_oclass_new(const struct nvkm_oclass *oclass, void *data, u32 size,
-		   struct nvkm_object **pobject)
+				   struct nvkm_object **pobject)
 {
 	struct nvkm_sw_chan *chan = nvkm_sw_chan(oclass->parent);
 	const struct nvkm_sw_chan_sclass *sclass = oclass->engn;
@@ -61,8 +63,10 @@ nvkm_sw_oclass_get(struct nvkm_oclass *oclass, int index)
 	struct nvkm_sw *sw = nvkm_sw(oclass->engine);
 	int c = 0;
 
-	while (sw->func->sclass[c].ctor) {
-		if (c++ == index) {
+	while (sw->func->sclass[c].ctor)
+	{
+		if (c++ == index)
+		{
 			oclass->engn = &sw->func->sclass[index];
 			oclass->base =  sw->func->sclass[index].base;
 			oclass->base.ctor = nvkm_sw_oclass_new;
@@ -75,8 +79,8 @@ nvkm_sw_oclass_get(struct nvkm_oclass *oclass, int index)
 
 static int
 nvkm_sw_cclass_get(struct nvkm_fifo_chan *fifoch,
-		   const struct nvkm_oclass *oclass,
-		   struct nvkm_object **pobject)
+				   const struct nvkm_oclass *oclass,
+				   struct nvkm_object **pobject)
 {
 	struct nvkm_sw *sw = nvkm_sw(oclass->engine);
 	return sw->func->chan_new(sw, fifoch, oclass, pobject);
@@ -89,7 +93,8 @@ nvkm_sw_dtor(struct nvkm_engine *engine)
 }
 
 static const struct nvkm_engine_func
-nvkm_sw = {
+	nvkm_sw =
+{
 	.dtor = nvkm_sw_dtor,
 	.fifo.cclass = nvkm_sw_cclass_get,
 	.fifo.sclass = nvkm_sw_oclass_get,
@@ -97,12 +102,15 @@ nvkm_sw = {
 
 int
 nvkm_sw_new_(const struct nvkm_sw_func *func, struct nvkm_device *device,
-	     int index, struct nvkm_sw **psw)
+			 int index, struct nvkm_sw **psw)
 {
 	struct nvkm_sw *sw;
 
 	if (!(sw = *psw = kzalloc(sizeof(*sw), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	INIT_LIST_HEAD(&sw->chan);
 	sw->func = func;
 

@@ -29,6 +29,6 @@
 
 extern struct mantis_hwconfig vp1034_config;
 extern int vp1034_set_voltage(struct dvb_frontend *fe,
-			      enum fe_sec_voltage voltage);
+							  enum fe_sec_voltage voltage);
 
 #endif /* __MANTIS_VP1034_H */

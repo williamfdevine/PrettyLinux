@@ -9,7 +9,8 @@ struct file_operations;
 struct inode;
 struct module;
 
-struct cdev {
+struct cdev
+{
 	struct kobject kobj;
 	struct module *owner;
 	const struct file_operations *ops;

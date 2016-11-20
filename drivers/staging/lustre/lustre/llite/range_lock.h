@@ -39,7 +39,8 @@
 #include "../../include/linux/libcfs/libcfs.h"
 #include "../include/interval_tree.h"
 
-struct range_lock {
+struct range_lock
+{
 	struct interval_node	rl_node;
 	/**
 	 * Process to enqueue this lock.
@@ -69,7 +70,8 @@ static inline struct range_lock *node2rangelock(const struct interval_node *n)
 	return container_of(n, struct range_lock, rl_node);
 }
 
-struct range_lock_tree {
+struct range_lock_tree
+{
 	struct interval_node	*rlt_root;
 	spinlock_t		 rlt_lock;	/* protect range lock tree */
 	__u64			 rlt_sequence;

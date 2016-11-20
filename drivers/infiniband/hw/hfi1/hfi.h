@@ -100,7 +100,7 @@ extern unsigned long hfi1_cap_mask;
 #define HFI1_CAP_IS_KSET(cap) (!!HFI1_CAP_KGET(cap))
 #define HFI1_CAP_IS_USET(cap) (!!HFI1_CAP_UGET(cap))
 #define HFI1_MISC_GET() ((hfi1_cap_mask >> HFI1_CAP_MISC_SHIFT) & \
-			HFI1_CAP_MISC_MASK)
+						 HFI1_CAP_MISC_MASK)
 /* Offline Disabled Reason is 4-bits */
 #define HFI1_ODR_MASK(rsn) ((rsn) & OPA_PI_MASK_OFFLINE_REASON)
 
@@ -132,7 +132,8 @@ extern unsigned long hfi1_cap_mask;
  * If members are added or deleted hfi1_statnames[] in debugfs.c must
  * change to match.
  */
-struct hfi1_ib_stats {
+struct hfi1_ib_stats
+{
 	__u64 sps_ints; /* number of interrupts handled */
 	__u64 sps_errints; /* number of error interrupts */
 	__u64 sps_txerrs; /* tx-related packet errors */
@@ -161,33 +162,38 @@ extern const struct pci_error_handlers hfi1_pci_err_handler;
  */
 
 #ifdef CONFIG_DEBUG_FS
-struct hfi1_opcode_stats_perctx;
+	struct hfi1_opcode_stats_perctx;
 #endif
 
-struct ctxt_eager_bufs {
+struct ctxt_eager_bufs
+{
 	ssize_t size;            /* total size of eager buffers */
 	u32 count;               /* size of buffers array */
 	u32 numbufs;             /* number of buffers allocated */
 	u32 alloced;             /* number of rcvarray entries used */
 	u32 rcvtid_size;         /* size of each eager rcv tid */
 	u32 threshold;           /* head update threshold */
-	struct eager_buffer {
+	struct eager_buffer
+	{
 		void *addr;
 		dma_addr_t dma;
 		ssize_t len;
 	} *buffers;
-	struct {
+	struct
+	{
 		void *addr;
 		dma_addr_t dma;
 	} *rcvtids;
 };
 
-struct exp_tid_set {
+struct exp_tid_set
+{
 	struct list_head list;
 	u32 count;
 };
 
-struct hfi1_ctxtdata {
+struct hfi1_ctxtdata
+{
 	/* shadow the ctxt's RcvCtrl register */
 	u64 rcvctrl;
 	/* rcvhdrq base, needs mmap before useful */
@@ -346,7 +352,8 @@ struct hfi1_ctxtdata {
  * here. If it is used multiple times, then store the result of that derivation
  * in here.
  */
-struct hfi1_packet {
+struct hfi1_packet
+{
 	void *ebuf;
 	void *hdr;
 	struct hfi1_ctxtdata *rcd;
@@ -494,18 +501,23 @@ struct rvt_sge_state;
 
 static inline void incr_cntr64(u64 *cntr)
 {
-	if (*cntr < (u64)-1LL)
+	if (*cntr < (u64) - 1LL)
+	{
 		(*cntr)++;
+	}
 }
 
 static inline void incr_cntr32(u32 *cntr)
 {
-	if (*cntr < (u32)-1LL)
+	if (*cntr < (u32) - 1LL)
+	{
 		(*cntr)++;
+	}
 }
 
 #define MAX_NAME_SIZE 64
-struct hfi1_msix_entry {
+struct hfi1_msix_entry
+{
 	enum irq_type type;
 	struct msix_entry msix;
 	void *arg;
@@ -515,14 +527,16 @@ struct hfi1_msix_entry {
 };
 
 /* per-SL CCA information */
-struct cca_timer {
+struct cca_timer
+{
 	struct hrtimer hrtimer;
 	struct hfi1_pportdata *ppd; /* read-only */
 	int sl; /* read-only */
 	u16 ccti; /* read/write - current value of CCTI */
 };
 
-struct link_down_reason {
+struct link_down_reason
+{
 	/*
 	 * SMA-facing value.  Should be set from .latest when
 	 * HLS_UP_* -> HLS_DN_* transition actually occurs.
@@ -531,13 +545,15 @@ struct link_down_reason {
 	u8 latest;
 };
 
-enum {
+enum
+{
 	LO_PRIO_TABLE,
 	HI_PRIO_TABLE,
 	MAX_PRIO_TABLE
 };
 
-struct vl_arb_cache {
+struct vl_arb_cache
+{
 	/* protect vl arb cache */
 	spinlock_t lock;
 	struct ib_vl_weight_elem table[VL_ARB_TABLE_SIZE];
@@ -549,7 +565,8 @@ struct vl_arb_cache {
  * clarifies things a bit. Note that to conform to IB conventions,
  * port-numbers are one-based. The first or only port is port1.
  */
-struct hfi1_pportdata {
+struct hfi1_pportdata
+{
 	struct hfi1_ibport ibport_data;
 
 	struct hfi1_devdata *dd;
@@ -748,13 +765,15 @@ typedef void (*opcode_handler)(struct hfi1_packet *packet);
 #define RHF_RCV_DONE	  1	/* stop, this packet processed */
 #define RHF_RCV_REPROCESS 2	/* stop. retain this packet */
 
-struct rcv_array_data {
+struct rcv_array_data
+{
 	u8 group_size;
 	u16 ngroups;
 	u16 nctxt_extra;
 };
 
-struct per_vl_data {
+struct per_vl_data
+{
 	u16 mtu;
 	struct send_context *sc;
 };
@@ -762,19 +781,22 @@ struct per_vl_data {
 /* 16 to directly index */
 #define PER_VL_SEND_CONTEXTS 16
 
-struct err_info_rcvport {
+struct err_info_rcvport
+{
 	u8 status_and_code;
 	u64 packet_flit1;
 	u64 packet_flit2;
 };
 
-struct err_info_constraint {
+struct err_info_constraint
+{
 	u8 status;
 	u16 pkey;
 	u32 slid;
 };
 
-struct hfi1_temp {
+struct hfi1_temp
+{
 	unsigned int curr;       /* current temperature */
 	unsigned int lo_lim;     /* low temperature limit */
 	unsigned int hi_lim;     /* high temperature limit */
@@ -782,7 +804,8 @@ struct hfi1_temp {
 	u8 triggers;      /* temperature triggers */
 };
 
-struct hfi1_i2c_bus {
+struct hfi1_i2c_bus
+{
 	struct hfi1_devdata *controlling_dd; /* current controlling device */
 	struct i2c_adapter adapter;	/* bus details */
 	struct i2c_algo_bit_data algo;	/* bus algorithm details */
@@ -790,7 +813,8 @@ struct hfi1_i2c_bus {
 };
 
 /* common data between shared ASIC HFIs */
-struct hfi1_asic_data {
+struct hfi1_asic_data
+{
 	struct hfi1_devdata *dds[2];	/* back pointers */
 	struct mutex asic_resource_mutex;
 	struct hfi1_i2c_bus *i2c_bus0;
@@ -807,7 +831,8 @@ struct sdma_vl_map;
 #define SERIAL_MAX 16 /* length of the serial number */
 
 typedef int (*send_routine)(struct rvt_qp *, struct hfi1_pkt_state *, u64);
-struct hfi1_devdata {
+struct hfi1_devdata
+{
 	struct hfi1_ibdev verbs_dev;     /* must be first */
 	struct list_head list;
 	/* pointers to related structs for this device */
@@ -1123,7 +1148,7 @@ struct hfi1_devdata {
 	send_routine process_pio_send;
 	send_routine process_dma_send;
 	void (*pio_inline_send)(struct hfi1_devdata *dd, struct pio_buf *pbuf,
-				u64 pbc, const void *from, size_t count);
+							u64 pbc, const void *from, size_t count);
 
 	/* OUI comes from the HW. Used everywhere as 3 separate bytes. */
 	u8 oui1;
@@ -1175,7 +1200,8 @@ struct mmu_rb_node;
 struct mmu_rb_handler;
 
 /* Private data for file operations */
-struct hfi1_filedata {
+struct hfi1_filedata
+{
 	struct hfi1_ctxtdata *uctxt;
 	unsigned subctxt;
 	struct hfi1_user_sdma_comp_q *cq;
@@ -1216,7 +1242,7 @@ int hfi1_setup_eagerbufs(struct hfi1_ctxtdata *);
 int hfi1_create_ctxts(struct hfi1_devdata *dd);
 struct hfi1_ctxtdata *hfi1_create_ctxtdata(struct hfi1_pportdata *, u32, int);
 void hfi1_init_pportdata(struct pci_dev *, struct hfi1_pportdata *,
-			 struct hfi1_devdata *, u8, u8);
+						 struct hfi1_devdata *, u8, u8);
 void hfi1_free_ctxtdata(struct hfi1_devdata *, struct hfi1_ctxtdata *);
 
 int handle_receive_interrupt(struct hfi1_ctxtdata *, int);
@@ -1251,7 +1277,7 @@ void receive_interrupt_work(struct work_struct *work);
 static inline int hdr2sc(struct ib_header *hdr, u64 rhf)
 {
 	return ((be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf) |
-	       ((!!(rhf_dc_info(rhf))) << 4);
+		   ((!!(rhf_dc_info(rhf))) << 4);
 }
 
 #define HFI1_JKEY_WIDTH       16
@@ -1269,9 +1295,13 @@ static inline u16 generate_jkey(kuid_t uid)
 	u16 jkey = from_kuid(current_user_ns(), uid) & HFI1_JKEY_MASK;
 
 	if (capable(CAP_SYS_ADMIN))
+	{
 		jkey &= HFI1_ADMIN_JKEY_RANGE - 1;
+	}
 	else if (jkey < 64)
+	{
 		jkey |= BIT(HFI1_JKEY_WIDTH - 1);
+	}
 
 	return jkey;
 }
@@ -1288,23 +1318,31 @@ static inline u32 active_egress_rate(struct hfi1_pportdata *ppd)
 	u32 egress_rate;
 
 	if (link_speed == OPA_LINK_SPEED_25G)
+	{
 		egress_rate = 25000;
+	}
 	else /* assume OPA_LINK_SPEED_12_5G */
+	{
 		egress_rate = 12500;
+	}
 
-	switch (link_width) {
-	case OPA_LINK_WIDTH_4X:
-		egress_rate *= 4;
-		break;
-	case OPA_LINK_WIDTH_3X:
-		egress_rate *= 3;
-		break;
-	case OPA_LINK_WIDTH_2X:
-		egress_rate *= 2;
-		break;
-	default:
-		/* assume IB_WIDTH_1X */
-		break;
+	switch (link_width)
+	{
+		case OPA_LINK_WIDTH_4X:
+			egress_rate *= 4;
+			break;
+
+		case OPA_LINK_WIDTH_3X:
+			egress_rate *= 3;
+			break;
+
+		case OPA_LINK_WIDTH_2X:
+			egress_rate *= 2;
+			break;
+
+		default:
+			/* assume IB_WIDTH_1X */
+			break;
 	}
 
 	return egress_rate;
@@ -1339,13 +1377,13 @@ static inline u32 egress_cycles(u32 len, u32 rate)
 
 void set_link_ipg(struct hfi1_pportdata *ppd);
 void process_becn(struct hfi1_pportdata *ppd, u8 sl,  u16 rlid, u32 lqpn,
-		  u32 rqpn, u8 svc_type);
+				  u32 rqpn, u8 svc_type);
 void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
-		u32 pkey, u32 slid, u32 dlid, u8 sc5,
-		const struct ib_grh *old_grh);
+				u32 pkey, u32 slid, u32 dlid, u8 sc5,
+				const struct ib_grh *old_grh);
 #define PKEY_CHECK_INVALID -1
 int egress_pkey_check(struct hfi1_pportdata *ppd, __be16 *lrh, __be32 *bth,
-		      u8 sc5, int8_t s_pkey_index);
+					  u8 sc5, int8_t s_pkey_index);
 
 #define PACKET_EGRESS_TIMEOUT 350
 static inline void pause_for_credit_return(struct hfi1_devdata *dd)
@@ -1367,12 +1405,16 @@ static inline u8 sc_to_vlt(struct hfi1_devdata *dd, u8 sc5)
 	u8 rval;
 
 	if (sc5 >= OPA_MAX_SCS)
+	{
 		return (u8)(0xff);
+	}
 
-	do {
+	do
+	{
 		seq = read_seqbegin(&dd->sc2vl_lock);
 		rval = *(((u8 *)dd->sc2vl) + sc5);
-	} while (read_seqretry(&dd->sc2vl_lock, seq));
+	}
+	while (read_seqretry(&dd->sc2vl_lock, seq));
 
 	return rval;
 }
@@ -1391,16 +1433,21 @@ static inline int ingress_pkey_matches_entry(u16 pkey, u16 ent)
 	u16 mkey = pkey & PKEY_LOW_15_MASK;
 	u16 ment = ent & PKEY_LOW_15_MASK;
 
-	if (mkey == ment) {
+	if (mkey == ment)
+	{
 		/*
 		 * If pkey[15] is clear (limited partition member),
 		 * is bit 15 in the corresponding table element
 		 * clear (limited member)?
 		 */
 		if (!(pkey & PKEY_MEMBER_MASK))
+		{
 			return !!(ent & PKEY_MEMBER_MASK);
+		}
+
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -1413,10 +1460,14 @@ static int ingress_pkey_table_search(struct hfi1_pportdata *ppd, u16 pkey)
 {
 	int i;
 
-	for (i = 0; i < MAX_PKEY_VALUES; i++) {
+	for (i = 0; i < MAX_PKEY_VALUES; i++)
+	{
 		if (ingress_pkey_matches_entry(pkey, ppd->pkeys[i]))
+		{
 			return 0;
+		}
 	}
+
 	return 1;
 }
 
@@ -1426,12 +1477,14 @@ static int ingress_pkey_table_search(struct hfi1_pportdata *ppd, u16 pkey)
  * the 'error info' for this failure.
  */
 static void ingress_pkey_table_fail(struct hfi1_pportdata *ppd, u16 pkey,
-				    u16 slid)
+									u16 slid)
 {
 	struct hfi1_devdata *dd = ppd->dd;
 
 	incr_cntr64(&ppd->port_rcv_constraint_errors);
-	if (!(dd->err_info_rcv_constraint.status & OPA_EI_STATUS_SMASK)) {
+
+	if (!(dd->err_info_rcv_constraint.status & OPA_EI_STATUS_SMASK))
+	{
 		dd->err_info_rcv_constraint.status |= OPA_EI_STATUS_SMASK;
 		dd->err_info_rcv_constraint.slid = slid;
 		dd->err_info_rcv_constraint.pkey = pkey;
@@ -1447,26 +1500,36 @@ static void ingress_pkey_table_fail(struct hfi1_pportdata *ppd, u16 pkey,
  * by HW and rcv_pkey_check function should be called instead.
  */
 static inline int ingress_pkey_check(struct hfi1_pportdata *ppd, u16 pkey,
-				     u8 sc5, u8 idx, u16 slid)
+									 u8 sc5, u8 idx, u16 slid)
 {
 	if (!(ppd->part_enforce & HFI1_PART_ENFORCE_IN))
+	{
 		return 0;
+	}
 
 	/* If SC15, pkey[0:14] must be 0x7fff */
 	if ((sc5 == 0xf) && ((pkey & PKEY_LOW_15_MASK) != PKEY_LOW_15_MASK))
+	{
 		goto bad;
+	}
 
 	/* Is the pkey = 0x0, or 0x8000? */
 	if ((pkey & PKEY_LOW_15_MASK) == 0)
+	{
 		goto bad;
+	}
 
 	/* The most likely matching pkey has index 'idx' */
 	if (ingress_pkey_matches_entry(pkey, ppd->pkeys[idx]))
+	{
 		return 0;
+	}
 
 	/* no match - try the whole table */
 	if (!ingress_pkey_table_search(ppd, pkey))
+	{
 		return 0;
+	}
 
 bad:
 	ingress_pkey_table_fail(ppd, pkey, slid);
@@ -1480,14 +1543,18 @@ bad:
  * as on data path, pkey check is done by HW (except for QP0).
  */
 static inline int rcv_pkey_check(struct hfi1_pportdata *ppd, u16 pkey,
-				 u8 sc5, u16 slid)
+								 u8 sc5, u16 slid)
 {
 	if (!(ppd->part_enforce & HFI1_PART_ENFORCE_IN))
+	{
 		return 0;
+	}
 
 	/* If SC15, pkey[0:14] must be 0x7fff */
 	if ((sc5 == 0xf) && ((pkey & PKEY_LOW_15_MASK) != PKEY_LOW_15_MASK))
+	{
 		goto bad;
+	}
 
 	return 0;
 bad:
@@ -1511,14 +1578,14 @@ u16 enum_to_mtu(int);
 static inline int valid_ib_mtu(unsigned int mtu)
 {
 	return mtu == 256 || mtu == 512 ||
-		mtu == 1024 || mtu == 2048 ||
-		mtu == 4096;
+		   mtu == 1024 || mtu == 2048 ||
+		   mtu == 4096;
 }
 
 static inline int valid_opa_max_mtu(unsigned int mtu)
 {
 	return mtu >= 2048 &&
-		(valid_ib_mtu(mtu) || mtu == 8192 || mtu == 10240);
+		   (valid_ib_mtu(mtu) || mtu == 8192 || mtu == 10240);
 }
 
 int set_mtu(struct hfi1_pportdata *);
@@ -1572,18 +1639,21 @@ static inline struct hfi1_ibport *to_iport(struct ib_device *ibdev, u8 port)
 }
 
 void hfi1_process_ecn_slowpath(struct rvt_qp *qp, struct hfi1_packet *pkt,
-			       bool do_cnp);
+							   bool do_cnp);
 static inline bool process_ecn(struct rvt_qp *qp, struct hfi1_packet *pkt,
-			       bool do_cnp)
+							   bool do_cnp)
 {
 	struct ib_other_headers *ohdr = pkt->ohdr;
 	u32 bth1;
 
 	bth1 = be32_to_cpu(ohdr->bth[1]);
-	if (unlikely(bth1 & (HFI1_BECN_SMASK | HFI1_FECN_SMASK))) {
+
+	if (unlikely(bth1 & (HFI1_BECN_SMASK | HFI1_FECN_SMASK)))
+	{
 		hfi1_process_ecn_slowpath(qp, pkt, do_cnp);
 		return bth1 & HFI1_FECN_SMASK;
 	}
+
 	return false;
 }
 
@@ -1596,9 +1666,13 @@ static inline u16 hfi1_get_pkey(struct hfi1_ibport *ibp, unsigned index)
 	u16 ret;
 
 	if (index >= ARRAY_SIZE(ppd->pkeys))
+	{
 		ret = 0;
+	}
 	else
+	{
 		ret = ppd->pkeys[index];
+	}
 
 	return ret;
 }
@@ -1618,7 +1692,7 @@ static inline
 struct cc_state *get_cc_state_protected(struct hfi1_pportdata *ppd)
 {
 	return rcu_dereference_protected(ppd->cc_state,
-					 lockdep_is_held(&ppd->cc_state_lock));
+									 lockdep_is_held(&ppd->cc_state_lock));
 }
 
 /*
@@ -1635,24 +1709,24 @@ struct cc_state *get_cc_state_protected(struct hfi1_pportdata *ppd)
 #define HFI1_PBC_LENGTH_MASK                     ((1 << 11) - 1)
 
 /* ctxt_flag bit offsets */
-		/* context has been setup */
+/* context has been setup */
 #define HFI1_CTXT_SETUP_DONE 1
-		/* waiting for a packet to arrive */
+/* waiting for a packet to arrive */
 #define HFI1_CTXT_WAITING_RCV   2
-		/* master has not finished initializing */
+/* master has not finished initializing */
 #define HFI1_CTXT_MASTER_UNINIT 4
-		/* waiting for an urgent packet to arrive */
+/* waiting for an urgent packet to arrive */
 #define HFI1_CTXT_WAITING_URG 5
 
 /* free up any allocated data at closes */
 struct hfi1_devdata *hfi1_init_dd(struct pci_dev *,
-				  const struct pci_device_id *);
+								  const struct pci_device_id *);
 void hfi1_free_devdata(struct hfi1_devdata *);
 struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev, size_t extra);
 
 /* LED beaconing functions */
 void hfi1_start_led_override(struct hfi1_pportdata *ppd, unsigned int timeon,
-			     unsigned int timeoff);
+							 unsigned int timeoff);
 void shutdown_led_override(struct hfi1_pportdata *ppd);
 
 #define HFI1_CREDIT_RETURN_RATE (100)
@@ -1696,11 +1770,11 @@ void shutdown_led_override(struct hfi1_pportdata *ppd);
 #define DEFAULT_RCVHDR_ENTSIZE 32
 
 bool hfi1_can_pin_pages(struct hfi1_devdata *dd, struct mm_struct *mm,
-			u32 nlocked, u32 npages);
+						u32 nlocked, u32 npages);
 int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr,
-			    size_t npages, bool writable, struct page **pages);
+							size_t npages, bool writable, struct page **pages);
 void hfi1_release_user_pages(struct mm_struct *mm, struct page **p,
-			     size_t npages, bool dirty);
+							 size_t npages, bool dirty);
 
 static inline void clear_rcvhdrtail(const struct hfi1_ctxtdata *rcd)
 {
@@ -1726,7 +1800,7 @@ int hfi1_device_create(struct hfi1_devdata *);
 void hfi1_device_remove(struct hfi1_devdata *);
 
 int hfi1_create_port_files(struct ib_device *ibdev, u8 port_num,
-			   struct kobject *kobj);
+						   struct kobject *kobj);
 int hfi1_verbs_register_sysfs(struct hfi1_devdata *);
 void hfi1_verbs_unregister_sysfs(struct hfi1_devdata *);
 /* Hook for sysfs read of QSFP */
@@ -1744,9 +1818,9 @@ void restore_pci_variables(struct hfi1_devdata *dd);
 int do_pcie_gen3_transition(struct hfi1_devdata *dd);
 int parse_platform_config(struct hfi1_devdata *dd);
 int get_platform_config_field(struct hfi1_devdata *dd,
-			      enum platform_config_table_type_encoding
-			      table_type, int table_index, int field_index,
-			      u32 *data, u32 len);
+							  enum platform_config_table_type_encoding
+							  table_type, int table_index, int field_index,
+							  u32 *data, u32 len);
 
 const char *get_unit_name(int unit);
 const char *get_card_name(struct rvt_dev_info *rdi);
@@ -1803,48 +1877,56 @@ extern struct mutex hfi1_mutex;
 
 #define HFI1_PKT_USER_SC_INTEGRITY					    \
 	(SEND_CTXT_CHECK_ENABLE_DISALLOW_NON_KDETH_PACKETS_SMASK	    \
-	| SEND_CTXT_CHECK_ENABLE_DISALLOW_KDETH_PACKETS_SMASK		\
-	| SEND_CTXT_CHECK_ENABLE_DISALLOW_BYPASS_SMASK		    \
-	| SEND_CTXT_CHECK_ENABLE_DISALLOW_GRH_SMASK)
+	 | SEND_CTXT_CHECK_ENABLE_DISALLOW_KDETH_PACKETS_SMASK		\
+	 | SEND_CTXT_CHECK_ENABLE_DISALLOW_BYPASS_SMASK		    \
+	 | SEND_CTXT_CHECK_ENABLE_DISALLOW_GRH_SMASK)
 
 #define HFI1_PKT_KERNEL_SC_INTEGRITY					    \
 	(SEND_CTXT_CHECK_ENABLE_DISALLOW_KDETH_PACKETS_SMASK)
 
 static inline u64 hfi1_pkt_default_send_ctxt_mask(struct hfi1_devdata *dd,
-						  u16 ctxt_type)
+		u16 ctxt_type)
 {
 	u64 base_sc_integrity;
 
 	/* No integrity checks if HFI1_CAP_NO_INTEGRITY is set */
 	if (HFI1_CAP_IS_KSET(NO_INTEGRITY))
+	{
 		return 0;
+	}
 
 	base_sc_integrity =
-	SEND_CTXT_CHECK_ENABLE_DISALLOW_BYPASS_BAD_PKT_LEN_SMASK
-	| SEND_CTXT_CHECK_ENABLE_DISALLOW_PBC_STATIC_RATE_CONTROL_SMASK
-	| SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_LONG_BYPASS_PACKETS_SMASK
-	| SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_LONG_IB_PACKETS_SMASK
-	| SEND_CTXT_CHECK_ENABLE_DISALLOW_BAD_PKT_LEN_SMASK
-	| SEND_CTXT_CHECK_ENABLE_DISALLOW_PBC_TEST_SMASK
-	| SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_SMALL_BYPASS_PACKETS_SMASK
-	| SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_SMALL_IB_PACKETS_SMASK
-	| SEND_CTXT_CHECK_ENABLE_DISALLOW_RAW_IPV6_SMASK
-	| SEND_CTXT_CHECK_ENABLE_DISALLOW_RAW_SMASK
-	| SEND_CTXT_CHECK_ENABLE_CHECK_BYPASS_VL_MAPPING_SMASK
-	| SEND_CTXT_CHECK_ENABLE_CHECK_VL_MAPPING_SMASK
-	| SEND_CTXT_CHECK_ENABLE_CHECK_OPCODE_SMASK
-	| SEND_CTXT_CHECK_ENABLE_CHECK_SLID_SMASK
-	| SEND_CTXT_CHECK_ENABLE_CHECK_VL_SMASK
-	| SEND_CTXT_CHECK_ENABLE_CHECK_ENABLE_SMASK;
+		SEND_CTXT_CHECK_ENABLE_DISALLOW_BYPASS_BAD_PKT_LEN_SMASK
+		| SEND_CTXT_CHECK_ENABLE_DISALLOW_PBC_STATIC_RATE_CONTROL_SMASK
+		| SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_LONG_BYPASS_PACKETS_SMASK
+		| SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_LONG_IB_PACKETS_SMASK
+		| SEND_CTXT_CHECK_ENABLE_DISALLOW_BAD_PKT_LEN_SMASK
+		| SEND_CTXT_CHECK_ENABLE_DISALLOW_PBC_TEST_SMASK
+		| SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_SMALL_BYPASS_PACKETS_SMASK
+		| SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_SMALL_IB_PACKETS_SMASK
+		| SEND_CTXT_CHECK_ENABLE_DISALLOW_RAW_IPV6_SMASK
+		| SEND_CTXT_CHECK_ENABLE_DISALLOW_RAW_SMASK
+		| SEND_CTXT_CHECK_ENABLE_CHECK_BYPASS_VL_MAPPING_SMASK
+		| SEND_CTXT_CHECK_ENABLE_CHECK_VL_MAPPING_SMASK
+		| SEND_CTXT_CHECK_ENABLE_CHECK_OPCODE_SMASK
+		| SEND_CTXT_CHECK_ENABLE_CHECK_SLID_SMASK
+		| SEND_CTXT_CHECK_ENABLE_CHECK_VL_SMASK
+		| SEND_CTXT_CHECK_ENABLE_CHECK_ENABLE_SMASK;
 
 	if (ctxt_type == SC_USER)
+	{
 		base_sc_integrity |= HFI1_PKT_USER_SC_INTEGRITY;
+	}
 	else
+	{
 		base_sc_integrity |= HFI1_PKT_KERNEL_SC_INTEGRITY;
+	}
 
 	/* turn on send-side job key checks if !A0 */
 	if (!is_ax(dd))
+	{
 		base_sc_integrity |= SEND_CTXT_CHECK_ENABLE_CHECK_JOB_KEY_SMASK;
+	}
 
 	return base_sc_integrity;
 }
@@ -1855,27 +1937,29 @@ static inline u64 hfi1_pkt_base_sdma_integrity(struct hfi1_devdata *dd)
 
 	/* No integrity checks if HFI1_CAP_NO_INTEGRITY is set */
 	if (HFI1_CAP_IS_KSET(NO_INTEGRITY))
+	{
 		return 0;
+	}
 
 	base_sdma_integrity =
-	SEND_DMA_CHECK_ENABLE_DISALLOW_BYPASS_BAD_PKT_LEN_SMASK
-	| SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_LONG_BYPASS_PACKETS_SMASK
-	| SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_LONG_IB_PACKETS_SMASK
-	| SEND_DMA_CHECK_ENABLE_DISALLOW_BAD_PKT_LEN_SMASK
-	| SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_SMALL_BYPASS_PACKETS_SMASK
-	| SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_SMALL_IB_PACKETS_SMASK
-	| SEND_DMA_CHECK_ENABLE_DISALLOW_RAW_IPV6_SMASK
-	| SEND_DMA_CHECK_ENABLE_DISALLOW_RAW_SMASK
-	| SEND_DMA_CHECK_ENABLE_CHECK_BYPASS_VL_MAPPING_SMASK
-	| SEND_DMA_CHECK_ENABLE_CHECK_VL_MAPPING_SMASK
-	| SEND_DMA_CHECK_ENABLE_CHECK_OPCODE_SMASK
-	| SEND_DMA_CHECK_ENABLE_CHECK_SLID_SMASK
-	| SEND_DMA_CHECK_ENABLE_CHECK_VL_SMASK
-	| SEND_DMA_CHECK_ENABLE_CHECK_ENABLE_SMASK;
+		SEND_DMA_CHECK_ENABLE_DISALLOW_BYPASS_BAD_PKT_LEN_SMASK
+		| SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_LONG_BYPASS_PACKETS_SMASK
+		| SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_LONG_IB_PACKETS_SMASK
+		| SEND_DMA_CHECK_ENABLE_DISALLOW_BAD_PKT_LEN_SMASK
+		| SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_SMALL_BYPASS_PACKETS_SMASK
+		| SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_SMALL_IB_PACKETS_SMASK
+		| SEND_DMA_CHECK_ENABLE_DISALLOW_RAW_IPV6_SMASK
+		| SEND_DMA_CHECK_ENABLE_DISALLOW_RAW_SMASK
+		| SEND_DMA_CHECK_ENABLE_CHECK_BYPASS_VL_MAPPING_SMASK
+		| SEND_DMA_CHECK_ENABLE_CHECK_VL_MAPPING_SMASK
+		| SEND_DMA_CHECK_ENABLE_CHECK_OPCODE_SMASK
+		| SEND_DMA_CHECK_ENABLE_CHECK_SLID_SMASK
+		| SEND_DMA_CHECK_ENABLE_CHECK_VL_SMASK
+		| SEND_DMA_CHECK_ENABLE_CHECK_ENABLE_SMASK;
 
 	if (!HFI1_CAP_IS_KSET(STATIC_RATE_CTRL))
 		base_sdma_integrity |=
-		SEND_DMA_CHECK_ENABLE_DISALLOW_PBC_STATIC_RATE_CONTROL_SMASK;
+			SEND_DMA_CHECK_ENABLE_DISALLOW_PBC_STATIC_RATE_CONTROL_SMASK;
 
 	/* turn on send-side job key checks if !A0 */
 	if (!is_ax(dd))
@@ -1900,25 +1984,25 @@ static inline u64 hfi1_pkt_base_sdma_integrity(struct hfi1_devdata *dd)
 
 #define dd_dev_emerg(dd, fmt, ...) \
 	dev_emerg(&(dd)->pcidev->dev, "%s: " fmt, \
-		  get_unit_name((dd)->unit), ##__VA_ARGS__)
+			  get_unit_name((dd)->unit), ##__VA_ARGS__)
 #define dd_dev_err(dd, fmt, ...) \
 	dev_err(&(dd)->pcidev->dev, "%s: " fmt, \
 			get_unit_name((dd)->unit), ##__VA_ARGS__)
 #define dd_dev_warn(dd, fmt, ...) \
 	dev_warn(&(dd)->pcidev->dev, "%s: " fmt, \
-			get_unit_name((dd)->unit), ##__VA_ARGS__)
+			 get_unit_name((dd)->unit), ##__VA_ARGS__)
 
 #define dd_dev_warn_ratelimited(dd, fmt, ...) \
 	dev_warn_ratelimited(&(dd)->pcidev->dev, "%s: " fmt, \
-			get_unit_name((dd)->unit), ##__VA_ARGS__)
+						 get_unit_name((dd)->unit), ##__VA_ARGS__)
 
 #define dd_dev_info(dd, fmt, ...) \
 	dev_info(&(dd)->pcidev->dev, "%s: " fmt, \
-			get_unit_name((dd)->unit), ##__VA_ARGS__)
+			 get_unit_name((dd)->unit), ##__VA_ARGS__)
 
 #define dd_dev_dbg(dd, fmt, ...) \
 	dev_dbg(&(dd)->pcidev->dev, "%s: " fmt, \
-		get_unit_name((dd)->unit), ##__VA_ARGS__)
+			get_unit_name((dd)->unit), ##__VA_ARGS__)
 
 #define hfi1_dev_porterr(dd, port, fmt, ...) \
 	dev_err(&(dd)->pcidev->dev, "%s: port %u: " fmt, \
@@ -1927,7 +2011,8 @@ static inline u64 hfi1_pkt_base_sdma_integrity(struct hfi1_devdata *dd)
 /*
  * this is used for formatting hw error messages...
  */
-struct hfi1_hwerror_msgs {
+struct hfi1_hwerror_msgs
+{
 	u64 mask;
 	const char *msg;
 	size_t sz;
@@ -1935,8 +2020,8 @@ struct hfi1_hwerror_msgs {
 
 /* in intr.c... */
 void hfi1_format_hwerrors(u64 hwerrs,
-			  const struct hfi1_hwerror_msgs *hwerrmsgs,
-			  size_t nhwerrmsgs, char *msg, size_t lmsg);
+						  const struct hfi1_hwerror_msgs *hwerrmsgs,
+						  size_t nhwerrmsgs, char *msg, size_t lmsg);
 
 #define USER_OPCODE_CHECK_VAL 0xC0
 #define USER_OPCODE_CHECK_MASK 0xC0
@@ -1953,7 +2038,9 @@ static inline void hfi1_reset_cpu_counters(struct hfi1_devdata *dd)
 	dd->z_send_schedule = get_all_cpu_total(dd->send_schedule);
 
 	ppd = (struct hfi1_pportdata *)(dd + 1);
-	for (i = 0; i < dd->num_pports; i++, ppd++) {
+
+	for (i = 0; i < dd->num_pports; i++, ppd++)
+	{
 		ppd->ibport_data.rvp.z_rc_acks =
 			get_all_cpu_total(ppd->ibport_data.rvp.rc_acks);
 		ppd->ibport_data.rvp.z_rc_qacks =
@@ -1965,9 +2052,13 @@ static inline void hfi1_reset_cpu_counters(struct hfi1_devdata *dd)
 static inline void setextled(struct hfi1_devdata *dd, u32 on)
 {
 	if (on)
+	{
 		write_csr(dd, DCC_CFG_LED_CNTRL, 0x1F);
+	}
 	else
+	{
 		write_csr(dd, DCC_CFG_LED_CNTRL, 0x10);
+	}
 }
 
 /* return the i2c resource given the target */
@@ -1989,50 +2080,50 @@ int hfi1_tempsense_rd(struct hfi1_devdata *dd, struct hfi1_temp *temp);
 
 #define packettype_name(etype) { RHF_RCV_TYPE_##etype, #etype }
 #define show_packettype(etype)                  \
-__print_symbolic(etype,                         \
-	packettype_name(EXPECTED),              \
-	packettype_name(EAGER),                 \
-	packettype_name(IB),                    \
-	packettype_name(ERROR),                 \
-	packettype_name(BYPASS))
+	__print_symbolic(etype,                         \
+					 packettype_name(EXPECTED),              \
+					 packettype_name(EAGER),                 \
+					 packettype_name(IB),                    \
+					 packettype_name(ERROR),                 \
+					 packettype_name(BYPASS))
 
 #define ib_opcode_name(opcode) { IB_OPCODE_##opcode, #opcode  }
 #define show_ib_opcode(opcode)                             \
-__print_symbolic(opcode,                                   \
-	ib_opcode_name(RC_SEND_FIRST),                     \
-	ib_opcode_name(RC_SEND_MIDDLE),                    \
-	ib_opcode_name(RC_SEND_LAST),                      \
-	ib_opcode_name(RC_SEND_LAST_WITH_IMMEDIATE),       \
-	ib_opcode_name(RC_SEND_ONLY),                      \
-	ib_opcode_name(RC_SEND_ONLY_WITH_IMMEDIATE),       \
-	ib_opcode_name(RC_RDMA_WRITE_FIRST),               \
-	ib_opcode_name(RC_RDMA_WRITE_MIDDLE),              \
-	ib_opcode_name(RC_RDMA_WRITE_LAST),                \
-	ib_opcode_name(RC_RDMA_WRITE_LAST_WITH_IMMEDIATE), \
-	ib_opcode_name(RC_RDMA_WRITE_ONLY),                \
-	ib_opcode_name(RC_RDMA_WRITE_ONLY_WITH_IMMEDIATE), \
-	ib_opcode_name(RC_RDMA_READ_REQUEST),              \
-	ib_opcode_name(RC_RDMA_READ_RESPONSE_FIRST),       \
-	ib_opcode_name(RC_RDMA_READ_RESPONSE_MIDDLE),      \
-	ib_opcode_name(RC_RDMA_READ_RESPONSE_LAST),        \
-	ib_opcode_name(RC_RDMA_READ_RESPONSE_ONLY),        \
-	ib_opcode_name(RC_ACKNOWLEDGE),                    \
-	ib_opcode_name(RC_ATOMIC_ACKNOWLEDGE),             \
-	ib_opcode_name(RC_COMPARE_SWAP),                   \
-	ib_opcode_name(RC_FETCH_ADD),                      \
-	ib_opcode_name(UC_SEND_FIRST),                     \
-	ib_opcode_name(UC_SEND_MIDDLE),                    \
-	ib_opcode_name(UC_SEND_LAST),                      \
-	ib_opcode_name(UC_SEND_LAST_WITH_IMMEDIATE),       \
-	ib_opcode_name(UC_SEND_ONLY),                      \
-	ib_opcode_name(UC_SEND_ONLY_WITH_IMMEDIATE),       \
-	ib_opcode_name(UC_RDMA_WRITE_FIRST),               \
-	ib_opcode_name(UC_RDMA_WRITE_MIDDLE),              \
-	ib_opcode_name(UC_RDMA_WRITE_LAST),                \
-	ib_opcode_name(UC_RDMA_WRITE_LAST_WITH_IMMEDIATE), \
-	ib_opcode_name(UC_RDMA_WRITE_ONLY),                \
-	ib_opcode_name(UC_RDMA_WRITE_ONLY_WITH_IMMEDIATE), \
-	ib_opcode_name(UD_SEND_ONLY),                      \
-	ib_opcode_name(UD_SEND_ONLY_WITH_IMMEDIATE),       \
-	ib_opcode_name(CNP))
+	__print_symbolic(opcode,                                   \
+					 ib_opcode_name(RC_SEND_FIRST),                     \
+					 ib_opcode_name(RC_SEND_MIDDLE),                    \
+					 ib_opcode_name(RC_SEND_LAST),                      \
+					 ib_opcode_name(RC_SEND_LAST_WITH_IMMEDIATE),       \
+					 ib_opcode_name(RC_SEND_ONLY),                      \
+					 ib_opcode_name(RC_SEND_ONLY_WITH_IMMEDIATE),       \
+					 ib_opcode_name(RC_RDMA_WRITE_FIRST),               \
+					 ib_opcode_name(RC_RDMA_WRITE_MIDDLE),              \
+					 ib_opcode_name(RC_RDMA_WRITE_LAST),                \
+					 ib_opcode_name(RC_RDMA_WRITE_LAST_WITH_IMMEDIATE), \
+					 ib_opcode_name(RC_RDMA_WRITE_ONLY),                \
+					 ib_opcode_name(RC_RDMA_WRITE_ONLY_WITH_IMMEDIATE), \
+					 ib_opcode_name(RC_RDMA_READ_REQUEST),              \
+					 ib_opcode_name(RC_RDMA_READ_RESPONSE_FIRST),       \
+					 ib_opcode_name(RC_RDMA_READ_RESPONSE_MIDDLE),      \
+					 ib_opcode_name(RC_RDMA_READ_RESPONSE_LAST),        \
+					 ib_opcode_name(RC_RDMA_READ_RESPONSE_ONLY),        \
+					 ib_opcode_name(RC_ACKNOWLEDGE),                    \
+					 ib_opcode_name(RC_ATOMIC_ACKNOWLEDGE),             \
+					 ib_opcode_name(RC_COMPARE_SWAP),                   \
+					 ib_opcode_name(RC_FETCH_ADD),                      \
+					 ib_opcode_name(UC_SEND_FIRST),                     \
+					 ib_opcode_name(UC_SEND_MIDDLE),                    \
+					 ib_opcode_name(UC_SEND_LAST),                      \
+					 ib_opcode_name(UC_SEND_LAST_WITH_IMMEDIATE),       \
+					 ib_opcode_name(UC_SEND_ONLY),                      \
+					 ib_opcode_name(UC_SEND_ONLY_WITH_IMMEDIATE),       \
+					 ib_opcode_name(UC_RDMA_WRITE_FIRST),               \
+					 ib_opcode_name(UC_RDMA_WRITE_MIDDLE),              \
+					 ib_opcode_name(UC_RDMA_WRITE_LAST),                \
+					 ib_opcode_name(UC_RDMA_WRITE_LAST_WITH_IMMEDIATE), \
+					 ib_opcode_name(UC_RDMA_WRITE_ONLY),                \
+					 ib_opcode_name(UC_RDMA_WRITE_ONLY_WITH_IMMEDIATE), \
+					 ib_opcode_name(UD_SEND_ONLY),                      \
+					 ib_opcode_name(UD_SEND_ONLY_WITH_IMMEDIATE),       \
+					 ib_opcode_name(CNP))
 #endif                          /* _HFI1_KERNEL_H */

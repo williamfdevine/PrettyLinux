@@ -70,12 +70,13 @@
 #define DMA_AXI_BLEN_128	(1 << 6)
 #define DMA_AXI_BLEN_256	(1 << 7)
 #define DMA_AXI_BLEN_ALL (DMA_AXI_BLEN_4 | DMA_AXI_BLEN_8 | DMA_AXI_BLEN_16 \
-			| DMA_AXI_BLEN_32 | DMA_AXI_BLEN_64 \
-			| DMA_AXI_BLEN_128 | DMA_AXI_BLEN_256)
+						  | DMA_AXI_BLEN_32 | DMA_AXI_BLEN_64 \
+						  | DMA_AXI_BLEN_128 | DMA_AXI_BLEN_256)
 
 /* Platfrom data for platform device structure's platform_data field */
 
-struct stmmac_mdio_bus_data {
+struct stmmac_mdio_bus_data
+{
 	int (*phy_reset)(void *priv);
 	unsigned int phy_mask;
 	int *irqs;
@@ -86,7 +87,8 @@ struct stmmac_mdio_bus_data {
 #endif
 };
 
-struct stmmac_dma_cfg {
+struct stmmac_dma_cfg
+{
 	int pbl;
 	int fixed_burst;
 	int mixed_burst;
@@ -94,7 +96,8 @@ struct stmmac_dma_cfg {
 };
 
 #define AXI_BLEN	7
-struct stmmac_axi {
+struct stmmac_axi
+{
 	bool axi_lpi_en;
 	bool axi_xit_frm;
 	u32 axi_wr_osr_lmt;
@@ -107,7 +110,8 @@ struct stmmac_axi {
 	bool axi_rb;
 };
 
-struct plat_stmmacenet_data {
+struct plat_stmmacenet_data
+{
 	int bus_id;
 	int phy_addr;
 	int interface;

@@ -73,7 +73,7 @@ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
 MODULE_ALIAS("vmwatchdog");
 
 static int __diag288(unsigned int func, unsigned int timeout,
-		     unsigned long action, unsigned int len)
+					 unsigned long action, unsigned int len)
 {
 	register unsigned long __func asm("2") = func;
 	register unsigned long __timeout asm("3") = timeout;
@@ -88,19 +88,19 @@ static int __diag288(unsigned int func, unsigned int timeout,
 		"1:\n"
 		EX_TABLE(0b, 1b)
 		: "+d" (err) : "d"(__func), "d"(__timeout),
-		  "d"(__action), "d"(__len) : "1", "cc");
+		"d"(__action), "d"(__len) : "1", "cc");
 	return err;
 }
 
 static int __diag288_vm(unsigned int  func, unsigned int timeout,
-			char *cmd, size_t len)
+						char *cmd, size_t len)
 {
 	diag_stat_inc(DIAG_STAT_X288);
 	return __diag288(func, timeout, virt_to_phys(cmd), len);
 }
 
 static int __diag288_lpar(unsigned int func, unsigned int timeout,
-			  unsigned long action)
+						  unsigned long action)
 {
 	diag_stat_inc(DIAG_STAT_X288);
 	return __diag288(func, timeout, action, 0);
@@ -118,35 +118,45 @@ static int wdt_start(struct watchdog_device *dev)
 	unsigned int func;
 
 	if (test_and_set_bit(DIAG_WDOG_BUSY, &wdt_status))
+	{
 		return -EBUSY;
+	}
 
 	ret = -ENODEV;
 
-	if (MACHINE_IS_VM) {
+	if (MACHINE_IS_VM)
+	{
 		ebc_cmd = kmalloc(MAX_CMDLEN, GFP_KERNEL);
-		if (!ebc_cmd) {
+
+		if (!ebc_cmd)
+		{
 			clear_bit(DIAG_WDOG_BUSY, &wdt_status);
 			return -ENOMEM;
 		}
+
 		len = strlcpy(ebc_cmd, wdt_cmd, MAX_CMDLEN);
 		ASCEBC(ebc_cmd, MAX_CMDLEN);
 		EBC_TOUPPER(ebc_cmd, MAX_CMDLEN);
 
 		func = conceal_on ? (WDT_FUNC_INIT | WDT_FUNC_CONCEAL)
-			: WDT_FUNC_INIT;
+			   : WDT_FUNC_INIT;
 		ret = __diag288_vm(func, dev->timeout, ebc_cmd, len);
 		WARN_ON(ret != 0);
 		kfree(ebc_cmd);
-	} else {
+	}
+	else
+	{
 		ret = __diag288_lpar(WDT_FUNC_INIT,
-				     dev->timeout, LPARWDT_RESTART);
+							 dev->timeout, LPARWDT_RESTART);
 	}
 
-	if (ret) {
+	if (ret)
+	{
 		pr_err("The watchdog cannot be activated\n");
 		clear_bit(DIAG_WDOG_BUSY, &wdt_status);
 		return ret;
 	}
+
 	return 0;
 }
 
@@ -171,10 +181,15 @@ static int wdt_ping(struct watchdog_device *dev)
 
 	ret = -ENODEV;
 
-	if (MACHINE_IS_VM) {
+	if (MACHINE_IS_VM)
+	{
 		ebc_cmd = kmalloc(MAX_CMDLEN, GFP_KERNEL);
+
 		if (!ebc_cmd)
+		{
 			return -ENOMEM;
+		}
+
 		len = strlcpy(ebc_cmd, wdt_cmd, MAX_CMDLEN);
 		ASCEBC(ebc_cmd, MAX_CMDLEN);
 		EBC_TOUPPER(ebc_cmd, MAX_CMDLEN);
@@ -185,27 +200,33 @@ static int wdt_ping(struct watchdog_device *dev)
 		 * be used when the watchdog is running.
 		 */
 		func = conceal_on ? (WDT_FUNC_INIT | WDT_FUNC_CONCEAL)
-			: WDT_FUNC_INIT;
+			   : WDT_FUNC_INIT;
 
 		ret = __diag288_vm(func, dev->timeout, ebc_cmd, len);
 		WARN_ON(ret != 0);
 		kfree(ebc_cmd);
-	} else {
+	}
+	else
+	{
 		ret = __diag288_lpar(WDT_FUNC_CHANGE, dev->timeout, 0);
 	}
 
 	if (ret)
+	{
 		pr_err("The watchdog timer cannot be started or reset\n");
+	}
+
 	return ret;
 }
 
-static int wdt_set_timeout(struct watchdog_device * dev, unsigned int new_to)
+static int wdt_set_timeout(struct watchdog_device *dev, unsigned int new_to)
 {
 	dev->timeout = new_to;
 	return wdt_ping(dev);
 }
 
-static struct watchdog_ops wdt_ops = {
+static struct watchdog_ops wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = wdt_start,
 	.stop = wdt_stop,
@@ -213,13 +234,15 @@ static struct watchdog_ops wdt_ops = {
 	.set_timeout = wdt_set_timeout,
 };
 
-static struct watchdog_info wdt_info = {
+static struct watchdog_info wdt_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 	.firmware_version = 0,
 	.identity = "z Watchdog",
 };
 
-static struct watchdog_device wdt_dev = {
+static struct watchdog_device wdt_dev =
+{
 	.parent = NULL,
 	.info = &wdt_info,
 	.ops = &wdt_ops,
@@ -236,10 +259,12 @@ static struct watchdog_device wdt_dev = {
  */
 static int wdt_suspend(void)
 {
-	if (test_and_set_bit(DIAG_WDOG_BUSY, &wdt_status)) {
+	if (test_and_set_bit(DIAG_WDOG_BUSY, &wdt_status))
+	{
 		pr_err("Linux cannot be suspended while the watchdog is in use\n");
 		return notifier_from_errno(-EBUSY);
 	}
+
 	return NOTIFY_DONE;
 }
 
@@ -250,58 +275,75 @@ static int wdt_resume(void)
 }
 
 static int wdt_power_event(struct notifier_block *this, unsigned long event,
-			   void *ptr)
+						   void *ptr)
 {
-	switch (event) {
-	case PM_POST_HIBERNATION:
-	case PM_POST_SUSPEND:
-		return wdt_resume();
-	case PM_HIBERNATION_PREPARE:
-	case PM_SUSPEND_PREPARE:
-		return wdt_suspend();
-	default:
-		return NOTIFY_DONE;
+	switch (event)
+	{
+		case PM_POST_HIBERNATION:
+		case PM_POST_SUSPEND:
+			return wdt_resume();
+
+		case PM_HIBERNATION_PREPARE:
+		case PM_SUSPEND_PREPARE:
+			return wdt_suspend();
+
+		default:
+			return NOTIFY_DONE;
 	}
 }
 
-static struct notifier_block wdt_power_notifier = {
+static struct notifier_block wdt_power_notifier =
+{
 	.notifier_call = wdt_power_event,
 };
 
 static int __init diag288_init(void)
 {
 	int ret;
-	char ebc_begin[] = {
+	char ebc_begin[] =
+	{
 		194, 197, 199, 201, 213
 	};
 
 	watchdog_set_nowayout(&wdt_dev, nowayout_info);
 
-	if (MACHINE_IS_VM) {
+	if (MACHINE_IS_VM)
+	{
 		if (__diag288_vm(WDT_FUNC_INIT, 15,
-				 ebc_begin, sizeof(ebc_begin)) != 0) {
+						 ebc_begin, sizeof(ebc_begin)) != 0)
+		{
 			pr_err("The watchdog cannot be initialized\n");
 			return -EINVAL;
 		}
-	} else {
-		if (__diag288_lpar(WDT_FUNC_INIT, 30, LPARWDT_RESTART)) {
+	}
+	else
+	{
+		if (__diag288_lpar(WDT_FUNC_INIT, 30, LPARWDT_RESTART))
+		{
 			pr_err("The watchdog cannot be initialized\n");
 			return -EINVAL;
 		}
 	}
 
-	if (__diag288_lpar(WDT_FUNC_CANCEL, 0, 0)) {
+	if (__diag288_lpar(WDT_FUNC_CANCEL, 0, 0))
+	{
 		pr_err("The watchdog cannot be deactivated\n");
 		return -EINVAL;
 	}
 
 	ret = register_pm_notifier(&wdt_power_notifier);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = watchdog_register_device(&wdt_dev);
+
 	if (ret)
+	{
 		unregister_pm_notifier(&wdt_power_notifier);
+	}
 
 	return ret;
 }

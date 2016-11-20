@@ -6,27 +6,28 @@
 #ifndef __LINUX_USB_ISP1362_H__
 #define __LINUX_USB_ISP1362_H__
 
-struct isp1362_platform_data {
+struct isp1362_platform_data
+{
 	/* Enable internal pulldown resistors on downstream ports */
-	unsigned sel15Kres:1;
+	unsigned sel15Kres: 1;
 	/* Clock cannot be stopped */
-	unsigned clknotstop:1;
+	unsigned clknotstop: 1;
 	/* On-chip overcurrent protection */
-	unsigned oc_enable:1;
+	unsigned oc_enable: 1;
 	/* INT output polarity */
-	unsigned int_act_high:1;
+	unsigned int_act_high: 1;
 	/* INT edge or level triggered */
-	unsigned int_edge_triggered:1;
+	unsigned int_edge_triggered: 1;
 	/* DREQ output polarity */
-	unsigned dreq_act_high:1;
+	unsigned dreq_act_high: 1;
 	/* DACK input polarity */
-	unsigned dack_act_high:1;
+	unsigned dack_act_high: 1;
 	/* chip can be resumed via H_WAKEUP pin */
-	unsigned remote_wakeup_connected:1;
+	unsigned remote_wakeup_connected: 1;
 	/* Switch or not to switch (keep always powered) */
-	unsigned no_power_switching:1;
+	unsigned no_power_switching: 1;
 	/* Ganged port power switching (0) or individual port power switching (1) */
-	unsigned power_switching_mode:1;
+	unsigned power_switching_mode: 1;
 	/* Given port_power, msec/2 after power on till power good */
 	u8 potpg;
 	/* Hardware reset set/clear */

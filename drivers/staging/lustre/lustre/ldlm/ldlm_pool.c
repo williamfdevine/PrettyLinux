@@ -156,7 +156,8 @@ static inline __u64 ldlm_pool_slv_min(__u32 L)
 	return 1;
 }
 
-enum {
+enum
+{
 	LDLM_POOL_FIRST_STAT = 0,
 	LDLM_POOL_GRANTED_STAT = LDLM_POOL_FIRST_STAT,
 	LDLM_POOL_GRANT_STAT,
@@ -199,8 +200,8 @@ static inline int ldlm_pool_t2gsp(unsigned int t)
 	 * plan is reached.
 	 */
 	return LDLM_POOL_MAX_GSP -
-		((LDLM_POOL_MAX_GSP - LDLM_POOL_MIN_GSP) >>
-		 (t >> LDLM_POOL_GSP_STEP_SHIFT));
+		   ((LDLM_POOL_MAX_GSP - LDLM_POOL_MIN_GSP) >>
+			(t >> LDLM_POOL_GSP_STEP_SHIFT));
 }
 
 /**
@@ -217,15 +218,15 @@ static void ldlm_pool_recalc_stats(struct ldlm_pool *pl)
 	int cancel_rate = atomic_read(&pl->pl_cancel_rate);
 
 	lprocfs_counter_add(pl->pl_stats, LDLM_POOL_SLV_STAT,
-			    slv);
+						slv);
 	lprocfs_counter_add(pl->pl_stats, LDLM_POOL_GRANTED_STAT,
-			    granted);
+						granted);
 	lprocfs_counter_add(pl->pl_stats, LDLM_POOL_GRANT_RATE_STAT,
-			    grant_rate);
+						grant_rate);
 	lprocfs_counter_add(pl->pl_stats, LDLM_POOL_GRANT_PLAN_STAT,
-			    grant_plan);
+						grant_plan);
 	lprocfs_counter_add(pl->pl_stats, LDLM_POOL_CANCEL_RATE_STAT,
-			    cancel_rate);
+						cancel_rate);
 }
 
 /**
@@ -241,7 +242,7 @@ static void ldlm_cli_pool_pop_slv(struct ldlm_pool *pl)
 	 * RPCs.
 	 */
 	obd = container_of(pl, struct ldlm_namespace,
-			   ns_pool)->ns_obd;
+					   ns_pool)->ns_obd;
 	read_lock(&obd->obd_pool_lock);
 	pl->pl_server_lock_volume = obd->obd_pool_slv;
 	atomic_set(&pl->pl_limit, obd->obd_pool_limit);
@@ -257,15 +258,20 @@ static int ldlm_cli_pool_recalc(struct ldlm_pool *pl)
 	int ret;
 
 	recalc_interval_sec = ktime_get_real_seconds() - pl->pl_recalc_time;
+
 	if (recalc_interval_sec < pl->pl_recalc_period)
+	{
 		return 0;
+	}
 
 	spin_lock(&pl->pl_lock);
 	/*
 	 * Check if we need to recalc lists now.
 	 */
 	recalc_interval_sec = ktime_get_real_seconds() - pl->pl_recalc_time;
-	if (recalc_interval_sec < pl->pl_recalc_period) {
+
+	if (recalc_interval_sec < pl->pl_recalc_period)
+	{
 		spin_unlock(&pl->pl_lock);
 		return 0;
 	}
@@ -281,7 +287,8 @@ static int ldlm_cli_pool_recalc(struct ldlm_pool *pl)
 	 * Do not cancel locks in case lru resize is disabled for this ns.
 	 */
 	if (!ns_connect_lru_resize(container_of(pl, struct ldlm_namespace,
-						ns_pool))) {
+											ns_pool)))
+	{
 		ret = 0;
 		goto out;
 	}
@@ -293,7 +300,7 @@ static int ldlm_cli_pool_recalc(struct ldlm_pool *pl)
 	 * take into account pl->pl_recalc_time here.
 	 */
 	ret = ldlm_cancel_lru(container_of(pl, struct ldlm_namespace, ns_pool),
-			      0, LCF_ASYNC, LDLM_CANCEL_LRUR);
+						  0, LCF_ASYNC, LDLM_CANCEL_LRUR);
 
 out:
 	spin_lock(&pl->pl_lock);
@@ -303,7 +310,7 @@ out:
 	 */
 	pl->pl_recalc_time = ktime_get_real_seconds();
 	lprocfs_counter_add(pl->pl_stats, LDLM_POOL_TIMING_STAT,
-			    recalc_interval_sec);
+						recalc_interval_sec);
 	spin_unlock(&pl->pl_lock);
 	return ret;
 }
@@ -314,7 +321,7 @@ out:
  * passed \a pl according to \a nr and \a gfp_mask.
  */
 static int ldlm_cli_pool_shrink(struct ldlm_pool *pl,
-				int nr, gfp_t gfp_mask)
+								int nr, gfp_t gfp_mask)
 {
 	struct ldlm_namespace *ns;
 	int unused;
@@ -325,7 +332,9 @@ static int ldlm_cli_pool_shrink(struct ldlm_pool *pl,
 	 * Do not cancel locks in case lru resize is disabled for this ns.
 	 */
 	if (!ns_connect_lru_resize(ns))
+	{
 		return 0;
+	}
 
 	/*
 	 * Make sure that pool knows last SLV and Limit from obd.
@@ -337,12 +346,17 @@ static int ldlm_cli_pool_shrink(struct ldlm_pool *pl,
 	spin_unlock(&ns->ns_lock);
 
 	if (nr == 0)
+	{
 		return (unused / 100) * sysctl_vfs_cache_pressure;
+	}
 	else
+	{
 		return ldlm_cancel_lru(ns, nr, LCF_ASYNC, LDLM_CANCEL_SHRINK);
+	}
 }
 
-static const struct ldlm_pool_ops ldlm_cli_pool_ops = {
+static const struct ldlm_pool_ops ldlm_cli_pool_ops =
+{
 	.po_recalc = ldlm_cli_pool_recalc,
 	.po_shrink = ldlm_cli_pool_shrink
 };
@@ -357,11 +371,14 @@ static int ldlm_pool_recalc(struct ldlm_pool *pl)
 	int count;
 
 	recalc_interval_sec = ktime_get_seconds() - pl->pl_recalc_time;
-	if (recalc_interval_sec > 0) {
+
+	if (recalc_interval_sec > 0)
+	{
 		spin_lock(&pl->pl_lock);
 		recalc_interval_sec = ktime_get_seconds() - pl->pl_recalc_time;
 
-		if (recalc_interval_sec > 0) {
+		if (recalc_interval_sec > 0)
+		{
 			/*
 			 * Update pool statistics every 1s.
 			 */
@@ -373,22 +390,26 @@ static int ldlm_pool_recalc(struct ldlm_pool *pl)
 			atomic_set(&pl->pl_grant_rate, 0);
 			atomic_set(&pl->pl_cancel_rate, 0);
 		}
+
 		spin_unlock(&pl->pl_lock);
 	}
 
-	if (pl->pl_ops->po_recalc) {
+	if (pl->pl_ops->po_recalc)
+	{
 		count = pl->pl_ops->po_recalc(pl);
 		lprocfs_counter_add(pl->pl_stats, LDLM_POOL_RECALC_STAT,
-				    count);
+							count);
 	}
 
 	recalc_interval_sec = pl->pl_recalc_time - ktime_get_seconds() +
-			      pl->pl_recalc_period;
-	if (recalc_interval_sec <= 0) {
+						  pl->pl_recalc_period;
+
+	if (recalc_interval_sec <= 0)
+	{
 		/* DEBUG: should be re-removed after LU-4536 is fixed */
 		CDEBUG(D_DLMTRACE, "%s: Negative interval(%ld), too short period(%ld)\n",
-		       pl->pl_name, (long)recalc_interval_sec,
-		       (long)pl->pl_recalc_period);
+			   pl->pl_name, (long)recalc_interval_sec,
+			   (long)pl->pl_recalc_period);
 
 		/* Prevent too frequent recalculation. */
 		recalc_interval_sec = 1;
@@ -406,19 +427,23 @@ static int ldlm_pool_shrink(struct ldlm_pool *pl, int nr, gfp_t gfp_mask)
 {
 	int cancel = 0;
 
-	if (pl->pl_ops->po_shrink) {
+	if (pl->pl_ops->po_shrink)
+	{
 		cancel = pl->pl_ops->po_shrink(pl, nr, gfp_mask);
-		if (nr > 0) {
+
+		if (nr > 0)
+		{
 			lprocfs_counter_add(pl->pl_stats,
-					    LDLM_POOL_SHRINK_REQTD_STAT,
-					    nr);
+								LDLM_POOL_SHRINK_REQTD_STAT,
+								nr);
 			lprocfs_counter_add(pl->pl_stats,
-					    LDLM_POOL_SHRINK_FREED_STAT,
-					    cancel);
+								LDLM_POOL_SHRINK_FREED_STAT,
+								cancel);
 			CDEBUG(D_DLMTRACE, "%s: request to shrink %d locks, shrunk %d\n",
-			       pl->pl_name, nr, cancel);
+				   pl->pl_name, nr, cancel);
 		}
 	}
+
 	return cancel;
 }
 
@@ -442,15 +467,15 @@ static int lprocfs_pool_state_seq_show(struct seq_file *m, void *unused)
 	spin_unlock(&pl->pl_lock);
 
 	seq_printf(m, "LDLM pool state (%s):\n"
-		      "  SLV: %llu\n"
-		      "  CLV: %llu\n"
-		      "  LVF: %d\n",
-		      pl->pl_name, slv, clv, lvf);
+			   "  SLV: %llu\n"
+			   "  CLV: %llu\n"
+			   "  LVF: %d\n",
+			   pl->pl_name, slv, clv, lvf);
 
 	seq_printf(m, "  GR:  %d\n  CR:  %d\n  GS:  %d\n"
-		      "  G:   %d\n  L:   %d\n",
-		      grant_rate, cancel_rate, grant_speed,
-		      granted, limit);
+			   "  G:   %d\n  L:   %d\n",
+			   grant_rate, cancel_rate, grant_speed,
+			   granted, limit);
 
 	return 0;
 }
@@ -458,17 +483,17 @@ static int lprocfs_pool_state_seq_show(struct seq_file *m, void *unused)
 LPROC_SEQ_FOPS_RO(lprocfs_pool_state);
 
 static ssize_t grant_speed_show(struct kobject *kobj, struct attribute *attr,
-				char *buf)
+								char *buf)
 {
 	struct ldlm_pool *pl = container_of(kobj, struct ldlm_pool,
-					    pl_kobj);
+										pl_kobj);
 
 	int	       grant_speed;
 
 	spin_lock(&pl->pl_lock);
 	/* serialize with ldlm_pool_recalc */
 	grant_speed = atomic_read(&pl->pl_grant_rate) -
-			atomic_read(&pl->pl_cancel_rate);
+				  atomic_read(&pl->pl_cancel_rate);
 	spin_unlock(&pl->pl_lock);
 	return sprintf(buf, "%d\n", grant_speed);
 }
@@ -510,7 +535,8 @@ LUSTRE_RW_ATTR(lock_volume_factor);
 	} while (0)
 
 /* These are for pools in /sys/fs/lustre/ldlm/namespaces/.../pool */
-static struct attribute *ldlm_pl_attrs[] = {
+static struct attribute *ldlm_pl_attrs[] =
+{
 	&lustre_attr_grant_speed.attr,
 	&lustre_attr_grant_plan.attr,
 	&lustre_attr_recalc_period.attr,
@@ -526,11 +552,12 @@ static struct attribute *ldlm_pl_attrs[] = {
 static void ldlm_pl_release(struct kobject *kobj)
 {
 	struct ldlm_pool *pl = container_of(kobj, struct ldlm_pool,
-					    pl_kobj);
+										pl_kobj);
 	complete(&pl->pl_kobj_unregister);
 }
 
-static struct kobj_type ldlm_pl_ktype = {
+static struct kobj_type ldlm_pl_ktype =
+{
 	.default_attrs	= ldlm_pl_attrs,
 	.sysfs_ops	= &lustre_sysfs_ops,
 	.release	= ldlm_pl_release,
@@ -539,12 +566,12 @@ static struct kobj_type ldlm_pl_ktype = {
 static int ldlm_pool_sysfs_init(struct ldlm_pool *pl)
 {
 	struct ldlm_namespace *ns = container_of(pl, struct ldlm_namespace,
-						 ns_pool);
+								ns_pool);
 	int err;
 
 	init_completion(&pl->pl_kobj_unregister);
 	err = kobject_init_and_add(&pl->pl_kobj, &ldlm_pl_ktype, &ns->ns_kobj,
-				   "pool");
+							   "pool");
 
 	return err;
 }
@@ -552,26 +579,34 @@ static int ldlm_pool_sysfs_init(struct ldlm_pool *pl)
 static int ldlm_pool_debugfs_init(struct ldlm_pool *pl)
 {
 	struct ldlm_namespace *ns = container_of(pl, struct ldlm_namespace,
-						 ns_pool);
+								ns_pool);
 	struct dentry *debugfs_ns_parent;
 	struct lprocfs_vars pool_vars[2];
 	char *var_name = NULL;
 	int rc = 0;
 
 	var_name = kzalloc(MAX_STRING_SIZE + 1, GFP_NOFS);
+
 	if (!var_name)
+	{
 		return -ENOMEM;
+	}
 
 	debugfs_ns_parent = ns->ns_debugfs_entry;
-	if (IS_ERR_OR_NULL(debugfs_ns_parent)) {
+
+	if (IS_ERR_OR_NULL(debugfs_ns_parent))
+	{
 		CERROR("%s: debugfs entry is not initialized\n",
-		       ldlm_ns_name(ns));
+			   ldlm_ns_name(ns));
 		rc = -EINVAL;
 		goto out_free_name;
 	}
+
 	pl->pl_debugfs_entry = ldebugfs_register("pool", debugfs_ns_parent,
-						 NULL, NULL);
-	if (IS_ERR(pl->pl_debugfs_entry)) {
+						   NULL, NULL);
+
+	if (IS_ERR(pl->pl_debugfs_entry))
+	{
 		CERROR("LdebugFS failed in ldlm-pool-init\n");
 		rc = PTR_ERR(pl->pl_debugfs_entry);
 		pl->pl_debugfs_entry = NULL;
@@ -585,47 +620,49 @@ static int ldlm_pool_debugfs_init(struct ldlm_pool *pl)
 	LDLM_POOL_ADD_VAR(state, pl, &lprocfs_pool_state_fops);
 
 	pl->pl_stats = lprocfs_alloc_stats(LDLM_POOL_LAST_STAT -
-					   LDLM_POOL_FIRST_STAT, 0);
-	if (!pl->pl_stats) {
+									   LDLM_POOL_FIRST_STAT, 0);
+
+	if (!pl->pl_stats)
+	{
 		rc = -ENOMEM;
 		goto out_free_name;
 	}
 
 	lprocfs_counter_init(pl->pl_stats, LDLM_POOL_GRANTED_STAT,
-			     LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
-			     "granted", "locks");
+						 LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
+						 "granted", "locks");
 	lprocfs_counter_init(pl->pl_stats, LDLM_POOL_GRANT_STAT,
-			     LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
-			     "grant", "locks");
+						 LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
+						 "grant", "locks");
 	lprocfs_counter_init(pl->pl_stats, LDLM_POOL_CANCEL_STAT,
-			     LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
-			     "cancel", "locks");
+						 LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
+						 "cancel", "locks");
 	lprocfs_counter_init(pl->pl_stats, LDLM_POOL_GRANT_RATE_STAT,
-			     LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
-			     "grant_rate", "locks/s");
+						 LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
+						 "grant_rate", "locks/s");
 	lprocfs_counter_init(pl->pl_stats, LDLM_POOL_CANCEL_RATE_STAT,
-			     LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
-			     "cancel_rate", "locks/s");
+						 LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
+						 "cancel_rate", "locks/s");
 	lprocfs_counter_init(pl->pl_stats, LDLM_POOL_GRANT_PLAN_STAT,
-			     LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
-			     "grant_plan", "locks/s");
+						 LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
+						 "grant_plan", "locks/s");
 	lprocfs_counter_init(pl->pl_stats, LDLM_POOL_SLV_STAT,
-			     LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
-			     "slv", "slv");
+						 LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
+						 "slv", "slv");
 	lprocfs_counter_init(pl->pl_stats, LDLM_POOL_SHRINK_REQTD_STAT,
-			     LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
-			     "shrink_request", "locks");
+						 LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
+						 "shrink_request", "locks");
 	lprocfs_counter_init(pl->pl_stats, LDLM_POOL_SHRINK_FREED_STAT,
-			     LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
-			     "shrink_freed", "locks");
+						 LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
+						 "shrink_freed", "locks");
 	lprocfs_counter_init(pl->pl_stats, LDLM_POOL_RECALC_STAT,
-			     LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
-			     "recalc_freed", "locks");
+						 LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
+						 "recalc_freed", "locks");
 	lprocfs_counter_init(pl->pl_stats, LDLM_POOL_TIMING_STAT,
-			     LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
-			     "recalc_timing", "sec");
+						 LPROCFS_CNTR_AVGMINMAX | LPROCFS_CNTR_STDDEV,
+						 "recalc_timing", "sec");
 	rc = ldebugfs_register_stats(pl->pl_debugfs_entry, "stats",
-				     pl->pl_stats);
+								 pl->pl_stats);
 
 out_free_name:
 	kfree(var_name);
@@ -640,18 +677,21 @@ static void ldlm_pool_sysfs_fini(struct ldlm_pool *pl)
 
 static void ldlm_pool_debugfs_fini(struct ldlm_pool *pl)
 {
-	if (pl->pl_stats) {
+	if (pl->pl_stats)
+	{
 		lprocfs_free_stats(&pl->pl_stats);
 		pl->pl_stats = NULL;
 	}
-	if (pl->pl_debugfs_entry) {
+
+	if (pl->pl_debugfs_entry)
+	{
 		ldebugfs_remove(&pl->pl_debugfs_entry);
 		pl->pl_debugfs_entry = NULL;
 	}
 }
 
 int ldlm_pool_init(struct ldlm_pool *pl, struct ldlm_namespace *ns,
-		   int idx, ldlm_side_t client)
+				   int idx, ldlm_side_t client)
 {
 	int rc;
 
@@ -665,7 +705,7 @@ int ldlm_pool_init(struct ldlm_pool *pl, struct ldlm_namespace *ns,
 	pl->pl_grant_plan = LDLM_POOL_GP(LDLM_POOL_HOST_L);
 
 	snprintf(pl->pl_name, sizeof(pl->pl_name), "ldlm-pool-%s-%d",
-		 ldlm_ns_name(ns), idx);
+			 ldlm_ns_name(ns), idx);
 
 	atomic_set(&pl->pl_limit, 1);
 	pl->pl_server_lock_volume = 0;
@@ -673,12 +713,18 @@ int ldlm_pool_init(struct ldlm_pool *pl, struct ldlm_namespace *ns,
 	pl->pl_recalc_period = LDLM_POOL_CLI_DEF_RECALC_PERIOD;
 	pl->pl_client_lock_volume = 0;
 	rc = ldlm_pool_debugfs_init(pl);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = ldlm_pool_sysfs_init(pl);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	CDEBUG(D_DLMTRACE, "Lock pool %s is initialized\n", pl->pl_name);
 
@@ -712,7 +758,9 @@ void ldlm_pool_add(struct ldlm_pool *pl, struct ldlm_lock *lock)
 	 * them anyway.
 	 */
 	if (lock->l_resource->lr_type == LDLM_FLOCK)
+	{
 		return;
+	}
 
 	atomic_inc(&pl->pl_granted);
 	atomic_inc(&pl->pl_grant_rate);
@@ -735,7 +783,9 @@ void ldlm_pool_del(struct ldlm_pool *pl, struct ldlm_lock *lock)
 	 * Filter out FLOCK locks. Read above comment in ldlm_pool_add().
 	 */
 	if (lock->l_resource->lr_type == LDLM_FLOCK)
+	{
 		return;
+	}
 
 	LASSERT(atomic_read(&pl->pl_granted) > 0);
 	atomic_dec(&pl->pl_granted);
@@ -801,10 +851,12 @@ static unsigned long ldlm_pools_count(ldlm_side_t client, gfp_t gfp_mask)
 	void *cookie;
 
 	if (client == LDLM_NAMESPACE_CLIENT && !(gfp_mask & __GFP_FS))
+	{
 		return 0;
+	}
 
 	CDEBUG(D_DLMTRACE, "Request to count %s locks from all pools\n",
-	       client == LDLM_NAMESPACE_CLIENT ? "client" : "server");
+		   client == LDLM_NAMESPACE_CLIENT ? "client" : "server");
 
 	cookie = cl_env_reenter();
 
@@ -812,28 +864,36 @@ static unsigned long ldlm_pools_count(ldlm_side_t client, gfp_t gfp_mask)
 	 * Find out how many resources we may release.
 	 */
 	for (nr_ns = ldlm_namespace_nr_read(client);
-	     nr_ns > 0; nr_ns--) {
+		 nr_ns > 0; nr_ns--)
+	{
 		mutex_lock(ldlm_namespace_lock(client));
-		if (list_empty(ldlm_namespace_list(client))) {
+
+		if (list_empty(ldlm_namespace_list(client)))
+		{
 			mutex_unlock(ldlm_namespace_lock(client));
 			cl_env_reexit(cookie);
 			return 0;
 		}
+
 		ns = ldlm_namespace_first_locked(client);
 
-		if (ns == ns_old) {
+		if (ns == ns_old)
+		{
 			mutex_unlock(ldlm_namespace_lock(client));
 			break;
 		}
 
-		if (ldlm_ns_empty(ns)) {
+		if (ldlm_ns_empty(ns))
+		{
 			ldlm_namespace_move_to_inactive_locked(ns, client);
 			mutex_unlock(ldlm_namespace_lock(client));
 			continue;
 		}
 
 		if (!ns_old)
+		{
 			ns_old = ns;
+		}
 
 		ldlm_namespace_get(ns);
 		ldlm_namespace_move_to_active_locked(ns, client);
@@ -854,7 +914,9 @@ static unsigned long ldlm_pools_scan(ldlm_side_t client, int nr, gfp_t gfp_mask)
 	void *cookie;
 
 	if (client == LDLM_NAMESPACE_CLIENT && !(gfp_mask & __GFP_FS))
+	{
 		return -1;
+	}
 
 	cookie = cl_env_reenter();
 
@@ -862,17 +924,21 @@ static unsigned long ldlm_pools_scan(ldlm_side_t client, int nr, gfp_t gfp_mask)
 	 * Shrink at least ldlm_namespace_nr_read(client) namespaces.
 	 */
 	for (tmp = nr_ns = ldlm_namespace_nr_read(client);
-	     tmp > 0; tmp--) {
+		 tmp > 0; tmp--)
+	{
 		int cancel, nr_locks;
 
 		/*
 		 * Do not call shrink under ldlm_namespace_lock(client)
 		 */
 		mutex_lock(ldlm_namespace_lock(client));
-		if (list_empty(ldlm_namespace_list(client))) {
+
+		if (list_empty(ldlm_namespace_list(client)))
+		{
 			mutex_unlock(ldlm_namespace_lock(client));
 			break;
 		}
+
 		ns = ldlm_namespace_first_locked(client);
 		ldlm_namespace_get(ns);
 		ldlm_namespace_move_to_active_locked(ns, client);
@@ -887,6 +953,7 @@ static unsigned long ldlm_pools_scan(ldlm_side_t client, int nr, gfp_t gfp_mask)
 		freed += ldlm_pool_shrink(&ns->ns_pool, cancel, gfp_mask);
 		ldlm_namespace_put(ns);
 	}
+
 	cl_env_reexit(cookie);
 	/*
 	 * we only decrease the SLV in server pools shrinker, return
@@ -896,16 +963,16 @@ static unsigned long ldlm_pools_scan(ldlm_side_t client, int nr, gfp_t gfp_mask)
 }
 
 static unsigned long ldlm_pools_cli_count(struct shrinker *s,
-					  struct shrink_control *sc)
+		struct shrink_control *sc)
 {
 	return ldlm_pools_count(LDLM_NAMESPACE_CLIENT, sc->gfp_mask);
 }
 
 static unsigned long ldlm_pools_cli_scan(struct shrinker *s,
-					 struct shrink_control *sc)
+		struct shrink_control *sc)
 {
 	return ldlm_pools_scan(LDLM_NAMESPACE_CLIENT, sc->nr_to_scan,
-			       sc->gfp_mask);
+						   sc->gfp_mask);
 }
 
 static int ldlm_pools_recalc(ldlm_side_t client)
@@ -918,7 +985,8 @@ static int ldlm_pools_recalc(ldlm_side_t client)
 	/*
 	 * Recalc at least ldlm_namespace_nr_read(client) namespaces.
 	 */
-	for (nr = ldlm_namespace_nr_read(client); nr > 0; nr--) {
+	for (nr = ldlm_namespace_nr_read(client); nr > 0; nr--)
+	{
 		int     skip;
 		/*
 		 * Lock the list, get first @ns in the list, getref, move it
@@ -928,13 +996,17 @@ static int ldlm_pools_recalc(ldlm_side_t client)
 		 * locks synchronously.
 		 */
 		mutex_lock(ldlm_namespace_lock(client));
-		if (list_empty(ldlm_namespace_list(client))) {
+
+		if (list_empty(ldlm_namespace_list(client)))
+		{
 			mutex_unlock(ldlm_namespace_lock(client));
 			break;
 		}
+
 		ns = ldlm_namespace_first_locked(client);
 
-		if (ns_old == ns) { /* Full pass complete */
+		if (ns_old == ns)   /* Full pass complete */
+		{
 			mutex_unlock(ldlm_namespace_lock(client));
 			break;
 		}
@@ -949,26 +1021,34 @@ static int ldlm_pools_recalc(ldlm_side_t client)
 		 *   it back to active (synchronised by the lock, so no clash
 		 *   there).
 		 */
-		if (ldlm_ns_empty(ns)) {
+		if (ldlm_ns_empty(ns))
+		{
 			ldlm_namespace_move_to_inactive_locked(ns, client);
 			mutex_unlock(ldlm_namespace_lock(client));
 			continue;
 		}
 
 		if (!ns_old)
+		{
 			ns_old = ns;
+		}
 
 		spin_lock(&ns->ns_lock);
+
 		/*
 		 * skip ns which is being freed, and we don't want to increase
 		 * its refcount again, not even temporarily. bz21519 & LU-499.
 		 */
-		if (ns->ns_stopping) {
+		if (ns->ns_stopping)
+		{
 			skip = 1;
-		} else {
+		}
+		else
+		{
 			skip = 0;
 			ldlm_namespace_get(ns);
 		}
+
 		spin_unlock(&ns->ns_lock);
 
 		ldlm_namespace_move_to_active_locked(ns, client);
@@ -977,15 +1057,19 @@ static int ldlm_pools_recalc(ldlm_side_t client)
 		/*
 		 * After setup is done - recalc the pool.
 		 */
-		if (!skip) {
+		if (!skip)
+		{
 			int ttime = ldlm_pool_recalc(&ns->ns_pool);
 
 			if (ttime < time)
+			{
 				time = ttime;
+			}
 
 			ldlm_namespace_put(ns);
 		}
 	}
+
 	return time;
 }
 
@@ -998,9 +1082,10 @@ static int ldlm_pools_thread_main(void *arg)
 	wake_up(&thread->t_ctl_waitq);
 
 	CDEBUG(D_DLMTRACE, "%s: pool thread starting, process %d\n",
-	       "ldlm_poold", current_pid());
+		   "ldlm_poold", current_pid());
 
-	while (1) {
+	while (1)
+	{
 		struct l_wait_info lwi;
 
 		/*
@@ -1013,14 +1098,17 @@ static int ldlm_pools_thread_main(void *arg)
 		 * stopped.
 		 */
 		lwi = LWI_TIMEOUT(cfs_time_seconds(c_time),
-				  NULL, NULL);
+						  NULL, NULL);
 		l_wait_event(thread->t_ctl_waitq,
-			     thread_is_stopping(thread) ||
-			     thread_is_event(thread),
-			     &lwi);
+					 thread_is_stopping(thread) ||
+					 thread_is_event(thread),
+					 &lwi);
 
 		if (thread_test_and_clear_flags(thread, SVC_STOPPING))
+		{
 			break;
+		}
+
 		thread_test_and_clear_flags(thread, SVC_EVENT);
 	}
 
@@ -1028,7 +1116,7 @@ static int ldlm_pools_thread_main(void *arg)
 	wake_up(&thread->t_ctl_waitq);
 
 	CDEBUG(D_DLMTRACE, "%s: pool thread exiting, process %d\n",
-	       "ldlm_poold", current_pid());
+		   "ldlm_poold", current_pid());
 
 	complete_and_exit(&ldlm_pools_comp, 0);
 }
@@ -1039,32 +1127,42 @@ static int ldlm_pools_thread_start(void)
 	struct task_struct *task;
 
 	if (ldlm_pools_thread)
+	{
 		return -EALREADY;
+	}
 
 	ldlm_pools_thread = kzalloc(sizeof(*ldlm_pools_thread), GFP_NOFS);
+
 	if (!ldlm_pools_thread)
+	{
 		return -ENOMEM;
+	}
 
 	init_completion(&ldlm_pools_comp);
 	init_waitqueue_head(&ldlm_pools_thread->t_ctl_waitq);
 
 	task = kthread_run(ldlm_pools_thread_main, ldlm_pools_thread,
-			   "ldlm_poold");
-	if (IS_ERR(task)) {
+					   "ldlm_poold");
+
+	if (IS_ERR(task))
+	{
 		CERROR("Can't start pool thread, error %ld\n", PTR_ERR(task));
 		kfree(ldlm_pools_thread);
 		ldlm_pools_thread = NULL;
 		return PTR_ERR(task);
 	}
+
 	l_wait_event(ldlm_pools_thread->t_ctl_waitq,
-		     thread_is_running(ldlm_pools_thread), &lwi);
+				 thread_is_running(ldlm_pools_thread), &lwi);
 	return 0;
 }
 
 static void ldlm_pools_thread_stop(void)
 {
 	if (!ldlm_pools_thread)
+	{
 		return;
+	}
 
 	thread_set_flags(ldlm_pools_thread, SVC_STOPPING);
 	wake_up(&ldlm_pools_thread->t_ctl_waitq);
@@ -1079,7 +1177,8 @@ static void ldlm_pools_thread_stop(void)
 	ldlm_pools_thread = NULL;
 }
 
-static struct shrinker ldlm_pools_cli_shrinker = {
+static struct shrinker ldlm_pools_cli_shrinker =
+{
 	.count_objects	= ldlm_pools_cli_count,
 	.scan_objects	= ldlm_pools_cli_scan,
 	.seeks		= DEFAULT_SEEKS,
@@ -1090,8 +1189,11 @@ int ldlm_pools_init(void)
 	int rc;
 
 	rc = ldlm_pools_thread_start();
+
 	if (rc == 0)
+	{
 		register_shrinker(&ldlm_pools_cli_shrinker);
+	}
 
 	return rc;
 }
@@ -1100,7 +1202,9 @@ EXPORT_SYMBOL(ldlm_pools_init);
 void ldlm_pools_fini(void)
 {
 	if (ldlm_pools_thread)
+	{
 		unregister_shrinker(&ldlm_pools_cli_shrinker);
+	}
 
 	ldlm_pools_thread_stop();
 }

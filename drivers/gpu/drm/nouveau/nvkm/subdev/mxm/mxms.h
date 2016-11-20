@@ -2,7 +2,8 @@
 #define __NVMXM_MXMS_H__
 #include "priv.h"
 
-struct mxms_odev {
+struct mxms_odev
+{
 	u8 outp_type;
 	u8 conn_type;
 	u8 ddc_port;
@@ -18,5 +19,5 @@ bool mxms_checksum(struct nvkm_mxm *);
 bool mxms_valid(struct nvkm_mxm *);
 
 bool mxms_foreach(struct nvkm_mxm *, u8,
-		  bool (*)(struct nvkm_mxm *, u8 *, void *), void *);
+				  bool (*)(struct nvkm_mxm *, u8 *, void *), void *);
 #endif

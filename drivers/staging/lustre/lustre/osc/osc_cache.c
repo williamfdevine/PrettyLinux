@@ -44,20 +44,20 @@ static int extent_debug; /* set it to be true for more debug */
 
 static void osc_update_pending(struct osc_object *obj, int cmd, int delta);
 static int osc_extent_wait(const struct lu_env *env, struct osc_extent *ext,
-			   enum osc_extent_state state);
+						   enum osc_extent_state state);
 static void osc_ap_completion(const struct lu_env *env, struct client_obd *cli,
-			      struct osc_async_page *oap, int sent, int rc);
+							  struct osc_async_page *oap, int sent, int rc);
 static int osc_make_ready(const struct lu_env *env, struct osc_async_page *oap,
-			  int cmd);
+						  int cmd);
 static int osc_refresh_count(const struct lu_env *env,
-			     struct osc_async_page *oap, int cmd);
+							 struct osc_async_page *oap, int cmd);
 static int osc_io_unplug_async(const struct lu_env *env,
-			       struct client_obd *cli, struct osc_object *osc);
+							   struct client_obd *cli, struct osc_object *osc);
 static void osc_free_grant(struct client_obd *cli, unsigned int nr_pages,
-			   unsigned int lost_grant);
+						   unsigned int lost_grant);
 
 static void osc_extent_tree_dump0(int level, struct osc_object *obj,
-				  const char *func, int line);
+								  const char *func, int line);
 #define osc_extent_tree_dump(lvl, obj) \
 	osc_extent_tree_dump0(lvl, obj, __func__, __LINE__)
 
@@ -70,22 +70,47 @@ static inline char *ext_flags(struct osc_extent *ext, char *flags)
 {
 	char *buf = flags;
 	*buf++ = ext->oe_rw ? 'r' : 'w';
+
 	if (ext->oe_intree)
+	{
 		*buf++ = 'i';
+	}
+
 	if (ext->oe_sync)
+	{
 		*buf++ = 'S';
+	}
+
 	if (ext->oe_srvlock)
+	{
 		*buf++ = 's';
+	}
+
 	if (ext->oe_hp)
+	{
 		*buf++ = 'h';
+	}
+
 	if (ext->oe_urgent)
+	{
 		*buf++ = 'u';
+	}
+
 	if (ext->oe_memalloc)
+	{
 		*buf++ = 'm';
+	}
+
 	if (ext->oe_trunc_pending)
+	{
 		*buf++ = 't';
+	}
+
 	if (ext->oe_fsync_wait)
+	{
 		*buf++ = 'Y';
+	}
+
 	*buf = 0;
 	return flags;
 }
@@ -97,45 +122,47 @@ static inline char list_empty_marker(struct list_head *list)
 
 #define EXTSTR       "[%lu -> %lu/%lu]"
 #define EXTPARA(ext) (ext)->oe_start, (ext)->oe_end, (ext)->oe_max_end
-static const char *oes_strings[] = {
-	"inv", "active", "cache", "locking", "lockdone", "rpc", "trunc", NULL };
+static const char *oes_strings[] =
+{
+	"inv", "active", "cache", "locking", "lockdone", "rpc", "trunc", NULL
+};
 
 #define OSC_EXTENT_DUMP(lvl, extent, fmt, ...) do {			      \
-	struct osc_extent *__ext = (extent);				      \
-	char __buf[16];							      \
-									      \
-	CDEBUG(lvl,							      \
-		"extent %p@{" EXTSTR ", "				      \
-		"[%d|%d|%c|%s|%s|%p], [%d|%d|%c|%c|%p|%u|%p]} " fmt,	      \
-		/* ----- extent part 0 ----- */				      \
-		__ext, EXTPARA(__ext),					      \
-		/* ----- part 1 ----- */				      \
-		atomic_read(&__ext->oe_refc),				      \
-		atomic_read(&__ext->oe_users),				      \
-		list_empty_marker(&__ext->oe_link),			      \
-		oes_strings[__ext->oe_state], ext_flags(__ext, __buf),	      \
-		__ext->oe_obj,						      \
-		/* ----- part 2 ----- */				      \
-		__ext->oe_grants, __ext->oe_nr_pages,			      \
-		list_empty_marker(&__ext->oe_pages),			      \
-		waitqueue_active(&__ext->oe_waitq) ? '+' : '-',		      \
-		__ext->oe_dlmlock, __ext->oe_mppr, __ext->oe_owner,	      \
-		/* ----- part 4 ----- */				      \
-		## __VA_ARGS__);					      \
-	if (lvl == D_ERROR && __ext->oe_dlmlock)			      \
-		LDLM_ERROR(__ext->oe_dlmlock, "extent: %p", __ext);	      \
-	else								      \
-		LDLM_DEBUG(__ext->oe_dlmlock, "extent: %p", __ext);	      \
-} while (0)
+		struct osc_extent *__ext = (extent);				      \
+		char __buf[16];							      \
+		\
+		CDEBUG(lvl,							      \
+			   "extent %p@{" EXTSTR ", "				      \
+			   "[%d|%d|%c|%s|%s|%p], [%d|%d|%c|%c|%p|%u|%p]} " fmt,	      \
+			   /* ----- extent part 0 ----- */				      \
+			   __ext, EXTPARA(__ext),					      \
+			   /* ----- part 1 ----- */				      \
+			   atomic_read(&__ext->oe_refc),				      \
+			   atomic_read(&__ext->oe_users),				      \
+			   list_empty_marker(&__ext->oe_link),			      \
+			   oes_strings[__ext->oe_state], ext_flags(__ext, __buf),	      \
+			   __ext->oe_obj,						      \
+			   /* ----- part 2 ----- */				      \
+			   __ext->oe_grants, __ext->oe_nr_pages,			      \
+			   list_empty_marker(&__ext->oe_pages),			      \
+			   waitqueue_active(&__ext->oe_waitq) ? '+' : '-',		      \
+			   __ext->oe_dlmlock, __ext->oe_mppr, __ext->oe_owner,	      \
+			   /* ----- part 4 ----- */				      \
+			   ## __VA_ARGS__);					      \
+		if (lvl == D_ERROR && __ext->oe_dlmlock)			      \
+			LDLM_ERROR(__ext->oe_dlmlock, "extent: %p", __ext);	      \
+		else								      \
+			LDLM_DEBUG(__ext->oe_dlmlock, "extent: %p", __ext);	      \
+	} while (0)
 
 #undef EASSERTF
 #define EASSERTF(expr, ext, fmt, args...) do {				\
-	if (!(expr)) {							\
-		OSC_EXTENT_DUMP(D_ERROR, (ext), fmt, ##args);		\
-		osc_extent_tree_dump(D_ERROR, (ext)->oe_obj);		\
-		LASSERT(expr);						\
-	}								\
-} while (0)
+		if (!(expr)) {							\
+			OSC_EXTENT_DUMP(D_ERROR, (ext), fmt, ##args);		\
+			osc_extent_tree_dump(D_ERROR, (ext)->oe_obj);		\
+			LASSERT(expr);						\
+		}								\
+	} while (0)
 
 #undef EASSERT
 #define EASSERT(expr, ext) EASSERTF(expr, ext, "\n")
@@ -143,7 +170,9 @@ static const char *oes_strings[] = {
 static inline struct osc_extent *rb_extent(struct rb_node *n)
 {
 	if (!n)
+	{
 		return NULL;
+	}
 
 	return container_of(n, struct osc_extent, oe_node);
 }
@@ -151,7 +180,9 @@ static inline struct osc_extent *rb_extent(struct rb_node *n)
 static inline struct osc_extent *next_extent(struct osc_extent *ext)
 {
 	if (!ext)
+	{
 		return NULL;
+	}
 
 	LASSERT(ext->oe_intree);
 	return rb_extent(rb_next(&ext->oe_node));
@@ -160,7 +191,9 @@ static inline struct osc_extent *next_extent(struct osc_extent *ext)
 static inline struct osc_extent *prev_extent(struct osc_extent *ext)
 {
 	if (!ext)
+	{
 		return NULL;
+	}
 
 	LASSERT(ext->oe_intree);
 	return rb_extent(rb_prev(&ext->oe_node));
@@ -173,97 +206,127 @@ static inline struct osc_extent *first_extent(struct osc_object *obj)
 
 /* object must be locked by caller. */
 static int osc_extent_sanity_check0(struct osc_extent *ext,
-				    const char *func, const int line)
+									const char *func, const int line)
 {
 	struct osc_object *obj = ext->oe_obj;
 	struct osc_async_page *oap;
 	size_t page_count;
 	int rc = 0;
 
-	if (!osc_object_is_locked(obj)) {
+	if (!osc_object_is_locked(obj))
+	{
 		rc = 9;
 		goto out;
 	}
 
-	if (ext->oe_state >= OES_STATE_MAX) {
+	if (ext->oe_state >= OES_STATE_MAX)
+	{
 		rc = 10;
 		goto out;
 	}
 
-	if (atomic_read(&ext->oe_refc) <= 0) {
+	if (atomic_read(&ext->oe_refc) <= 0)
+	{
 		rc = 20;
 		goto out;
 	}
 
-	if (atomic_read(&ext->oe_refc) < atomic_read(&ext->oe_users)) {
+	if (atomic_read(&ext->oe_refc) < atomic_read(&ext->oe_users))
+	{
 		rc = 30;
 		goto out;
 	}
 
-	switch (ext->oe_state) {
-	case OES_INV:
-		if (ext->oe_nr_pages > 0 || !list_empty(&ext->oe_pages))
-			rc = 35;
-		else
-			rc = 0;
-		goto out;
-	case OES_ACTIVE:
-		if (atomic_read(&ext->oe_users) == 0) {
-			rc = 40;
+	switch (ext->oe_state)
+	{
+		case OES_INV:
+			if (ext->oe_nr_pages > 0 || !list_empty(&ext->oe_pages))
+			{
+				rc = 35;
+			}
+			else
+			{
+				rc = 0;
+			}
+
 			goto out;
-		}
-		if (ext->oe_hp) {
-			rc = 50;
-			goto out;
-		}
-		if (ext->oe_fsync_wait && !ext->oe_urgent) {
-			rc = 55;
-			goto out;
-		}
-		break;
-	case OES_CACHE:
-		if (ext->oe_grants == 0) {
-			rc = 60;
-			goto out;
-		}
-		if (ext->oe_fsync_wait && !ext->oe_urgent && !ext->oe_hp) {
-			rc = 65;
-			goto out;
-		}
-	default:
-		if (atomic_read(&ext->oe_users) > 0) {
-			rc = 70;
-			goto out;
-		}
+
+		case OES_ACTIVE:
+			if (atomic_read(&ext->oe_users) == 0)
+			{
+				rc = 40;
+				goto out;
+			}
+
+			if (ext->oe_hp)
+			{
+				rc = 50;
+				goto out;
+			}
+
+			if (ext->oe_fsync_wait && !ext->oe_urgent)
+			{
+				rc = 55;
+				goto out;
+			}
+
+			break;
+
+		case OES_CACHE:
+			if (ext->oe_grants == 0)
+			{
+				rc = 60;
+				goto out;
+			}
+
+			if (ext->oe_fsync_wait && !ext->oe_urgent && !ext->oe_hp)
+			{
+				rc = 65;
+				goto out;
+			}
+
+		default:
+			if (atomic_read(&ext->oe_users) > 0)
+			{
+				rc = 70;
+				goto out;
+			}
 	}
 
-	if (ext->oe_max_end < ext->oe_end || ext->oe_end < ext->oe_start) {
+	if (ext->oe_max_end < ext->oe_end || ext->oe_end < ext->oe_start)
+	{
 		rc = 80;
 		goto out;
 	}
 
-	if (ext->oe_sync && ext->oe_grants > 0) {
+	if (ext->oe_sync && ext->oe_grants > 0)
+	{
 		rc = 90;
 		goto out;
 	}
 
-	if (ext->oe_dlmlock) {
+	if (ext->oe_dlmlock)
+	{
 		struct ldlm_extent *extent;
 
 		extent = &ext->oe_dlmlock->l_policy_data.l_extent;
+
 		if (!(extent->start <= cl_offset(osc2cl(obj), ext->oe_start) &&
-		      extent->end >= cl_offset(osc2cl(obj), ext->oe_max_end))) {
+			  extent->end >= cl_offset(osc2cl(obj), ext->oe_max_end)))
+		{
 			rc = 100;
 			goto out;
 		}
 
-		if (!(ext->oe_dlmlock->l_granted_mode & (LCK_PW | LCK_GROUP))) {
+		if (!(ext->oe_dlmlock->l_granted_mode & (LCK_PW | LCK_GROUP)))
+		{
 			rc = 102;
 			goto out;
 		}
 	}
 
-	if (ext->oe_nr_pages > ext->oe_mppr) {
+	if (ext->oe_nr_pages > ext->oe_mppr)
+	{
 		rc = 105;
 		goto out;
 	}
@@ -271,35 +334,44 @@ static int osc_extent_sanity_check0(struct osc_extent *ext,
 	/* Do not verify page list if extent is in RPC. This is because an
 	 * in-RPC extent is supposed to be exclusively accessible w/o lock.
 	 */
-	if (ext->oe_state > OES_CACHE) {
+	if (ext->oe_state > OES_CACHE)
+	{
 		rc = 0;
 		goto out;
 	}
 
-	if (!extent_debug) {
+	if (!extent_debug)
+	{
 		rc = 0;
 		goto out;
 	}
 
 	page_count = 0;
-	list_for_each_entry(oap, &ext->oe_pages, oap_pending_item) {
+	list_for_each_entry(oap, &ext->oe_pages, oap_pending_item)
+	{
 		pgoff_t index = osc_index(oap2osc(oap));
 		++page_count;
-		if (index > ext->oe_end || index < ext->oe_start) {
+
+		if (index > ext->oe_end || index < ext->oe_start)
+		{
 			rc = 110;
 			goto out;
 		}
 	}
-	if (page_count != ext->oe_nr_pages) {
+
+	if (page_count != ext->oe_nr_pages)
+	{
 		rc = 120;
 		goto out;
 	}
 
 out:
+
 	if (rc != 0)
 		OSC_EXTENT_DUMP(D_ERROR, ext,
-				"%s:%d sanity check %p failed with rc = %d\n",
-				func, line, ext, rc);
+						"%s:%d sanity check %p failed with rc = %d\n",
+						func, line, ext, rc);
+
 	return rc;
 }
 
@@ -307,33 +379,42 @@ out:
 	osc_extent_sanity_check0(ext, __func__, __LINE__)
 
 #define sanity_check(ext) ({						\
-	int __res;							\
-	osc_object_lock((ext)->oe_obj);					\
-	__res = sanity_check_nolock(ext);				\
-	osc_object_unlock((ext)->oe_obj);				\
-	__res;								\
-})
+		int __res;							\
+		osc_object_lock((ext)->oe_obj);					\
+		__res = sanity_check_nolock(ext);				\
+		osc_object_unlock((ext)->oe_obj);				\
+		__res;								\
+	})
 
 /**
  * sanity check - to make sure there is no overlapped extent in the tree.
  */
 static int osc_extent_is_overlapped(struct osc_object *obj,
-				    struct osc_extent *ext)
+									struct osc_extent *ext)
 {
 	struct osc_extent *tmp;
 
 	LASSERT(osc_object_is_locked(obj));
 
 	if (!extent_debug)
+	{
 		return 0;
-
-	for (tmp = first_extent(obj); tmp; tmp = next_extent(tmp)) {
-		if (tmp == ext)
-			continue;
-		if (tmp->oe_end >= ext->oe_start &&
-		    tmp->oe_start <= ext->oe_end)
-			return 1;
 	}
+
+	for (tmp = first_extent(obj); tmp; tmp = next_extent(tmp))
+	{
+		if (tmp == ext)
+		{
+			continue;
+		}
+
+		if (tmp->oe_end >= ext->oe_start &&
+			tmp->oe_start <= ext->oe_end)
+		{
+			return 1;
+		}
+	}
+
 	return 0;
 }
 
@@ -355,8 +436,11 @@ static struct osc_extent *osc_extent_alloc(struct osc_object *obj)
 	struct osc_extent *ext;
 
 	ext = kmem_cache_zalloc(osc_extent_kmem, GFP_NOFS);
+
 	if (!ext)
+	{
 		return NULL;
+	}
 
 	RB_CLEAR_NODE(&ext->oe_node);
 	ext->oe_obj = obj;
@@ -386,18 +470,22 @@ static struct osc_extent *osc_extent_get(struct osc_extent *ext)
 static void osc_extent_put(const struct lu_env *env, struct osc_extent *ext)
 {
 	LASSERT(atomic_read(&ext->oe_refc) > 0);
-	if (atomic_dec_and_test(&ext->oe_refc)) {
+
+	if (atomic_dec_and_test(&ext->oe_refc))
+	{
 		LASSERT(list_empty(&ext->oe_link));
 		LASSERT(atomic_read(&ext->oe_users) == 0);
 		LASSERT(ext->oe_state == OES_INV);
 		LASSERT(!ext->oe_intree);
 
-		if (ext->oe_dlmlock) {
+		if (ext->oe_dlmlock)
+		{
 			lu_ref_add(&ext->oe_dlmlock->l_reference,
-				   "osc_extent", ext);
+					   "osc_extent", ext);
 			LDLM_LOCK_PUT(ext->oe_dlmlock);
 			ext->oe_dlmlock = NULL;
 		}
+
 		osc_extent_free(ext);
 	}
 }
@@ -419,23 +507,32 @@ static void osc_extent_put_trust(struct osc_extent *ext)
  * previous extent in the tree.
  */
 static struct osc_extent *osc_extent_search(struct osc_object *obj,
-					    pgoff_t index)
+		pgoff_t index)
 {
 	struct rb_node *n = obj->oo_root.rb_node;
 	struct osc_extent *tmp, *p = NULL;
 
 	LASSERT(osc_object_is_locked(obj));
-	while (n) {
+
+	while (n)
+	{
 		tmp = rb_extent(n);
-		if (index < tmp->oe_start) {
+
+		if (index < tmp->oe_start)
+		{
 			n = n->rb_left;
-		} else if (index > tmp->oe_end) {
+		}
+		else if (index > tmp->oe_end)
+		{
 			p = rb_extent(n);
 			n = n->rb_right;
-		} else {
+		}
+		else
+		{
 			return tmp;
 		}
 	}
+
 	return p;
 }
 
@@ -444,13 +541,17 @@ static struct osc_extent *osc_extent_search(struct osc_object *obj,
  * caller must have held object lock.
  */
 static struct osc_extent *osc_extent_lookup(struct osc_object *obj,
-					    pgoff_t index)
+		pgoff_t index)
 {
 	struct osc_extent *ext;
 
 	ext = osc_extent_search(obj, index);
+
 	if (ext && ext->oe_start <= index && index <= ext->oe_end)
+	{
 		return osc_extent_get(ext);
+	}
+
 	return NULL;
 }
 
@@ -464,16 +565,23 @@ static void osc_extent_insert(struct osc_object *obj, struct osc_extent *ext)
 	LASSERT(ext->oe_intree == 0);
 	LASSERT(ext->oe_obj == obj);
 	LASSERT(osc_object_is_locked(obj));
-	while (*n) {
+
+	while (*n)
+	{
 		tmp = rb_extent(*n);
 		parent = *n;
 
 		if (ext->oe_end < tmp->oe_start)
+		{
 			n = &(*n)->rb_left;
+		}
 		else if (ext->oe_start > tmp->oe_end)
+		{
 			n = &(*n)->rb_right;
+		}
 		else
-			EASSERTF(0, tmp, EXTSTR"\n", EXTPARA(ext));
+		{
+			EASSERTF(0, tmp, EXTSTR"\n", EXTPARA(ext)); }
 	}
 	rb_link_node(&ext->oe_node, parent, n);
 	rb_insert_color(&ext->oe_node, &obj->oo_root);

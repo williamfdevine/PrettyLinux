@@ -34,7 +34,10 @@ extern bool freezing_slow_path(struct task_struct *p);
 static inline bool freezing(struct task_struct *p)
 {
 	if (likely(!atomic_read(&system_freezing_cnt)))
+	{
 		return false;
+	}
+
 	return freezing_slow_path(p);
 }
 
@@ -54,15 +57,22 @@ extern void thaw_kernel_threads(void);
 static inline bool try_to_freeze_unsafe(void)
 {
 	might_sleep();
+
 	if (likely(!freezing(current)))
+	{
 		return false;
+	}
+
 	return __refrigerator(false);
 }
 
 static inline bool try_to_freeze(void)
 {
 	if (!(current->flags & PF_NOFREEZE))
+	{
 		debug_check_no_locks_held();
+	}
+
 	return try_to_freeze_unsafe();
 }
 
@@ -248,13 +258,13 @@ static inline int freezable_schedule_hrtimeout_range(ktime_t *expires,
 
 /* DO NOT ADD ANY NEW CALLERS OF THIS FUNCTION */
 #define wait_event_freezekillable_unsafe(wq, condition)			\
-({									\
-	int __retval;							\
-	freezer_do_not_count();						\
-	__retval = wait_event_killable(wq, (condition));		\
-	freezer_count_unsafe();						\
-	__retval;							\
-})
+	({									\
+		int __retval;							\
+		freezer_do_not_count();						\
+		__retval = wait_event_killable(wq, (condition));		\
+		freezer_count_unsafe();						\
+		__retval;							\
+	})
 
 #else /* !CONFIG_FREEZER */
 static inline bool frozen(struct task_struct *p) { return false; }
@@ -294,7 +304,7 @@ static inline void set_freezable(void) {}
 	schedule_hrtimeout_range(expires, delta, mode)
 
 #define wait_event_freezekillable_unsafe(wq, condition)			\
-		wait_event_killable(wq, condition)
+	wait_event_killable(wq, condition)
 
 #endif /* !CONFIG_FREEZER */
 

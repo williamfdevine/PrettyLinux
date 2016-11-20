@@ -27,7 +27,8 @@ struct fs_struct;
  * As soon as a single namespace is cloned or unshared, the
  * nsproxy is copied.
  */
-struct nsproxy {
+struct nsproxy
+{
 	atomic_t count;
 	struct uts_namespace *uts_ns;
 	struct ipc_namespace *ipc_ns;
@@ -69,12 +70,13 @@ void exit_task_namespaces(struct task_struct *tsk);
 void switch_task_namespaces(struct task_struct *tsk, struct nsproxy *new);
 void free_nsproxy(struct nsproxy *ns);
 int unshare_nsproxy_namespaces(unsigned long, struct nsproxy **,
-	struct cred *, struct fs_struct *);
+							   struct cred *, struct fs_struct *);
 int __init nsproxy_cache_init(void);
 
 static inline void put_nsproxy(struct nsproxy *ns)
 {
-	if (atomic_dec_and_test(&ns->count)) {
+	if (atomic_dec_and_test(&ns->count))
+	{
 		free_nsproxy(ns);
 	}
 }

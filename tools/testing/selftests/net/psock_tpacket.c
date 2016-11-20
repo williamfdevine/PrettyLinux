@@ -61,45 +61,51 @@
 #include "psock_lib.h"
 
 #ifndef bug_on
-# define bug_on(cond)		assert(!(cond))
+	#define bug_on(cond)		assert(!(cond))
 #endif
 
 #ifndef __aligned_tpacket
-# define __aligned_tpacket	__attribute__((aligned(TPACKET_ALIGNMENT)))
+	#define __aligned_tpacket	__attribute__((aligned(TPACKET_ALIGNMENT)))
 #endif
 
 #ifndef __align_tpacket
-# define __align_tpacket(x)	__attribute__((aligned(TPACKET_ALIGN(x))))
+	#define __align_tpacket(x)	__attribute__((aligned(TPACKET_ALIGN(x))))
 #endif
 
 #define NUM_PACKETS		100
 #define ALIGN_8(x)		(((x) + 8 - 1) & ~(8 - 1))
 
-struct ring {
+struct ring
+{
 	struct iovec *rd;
 	uint8_t *mm_space;
 	size_t mm_len, rd_len;
 	struct sockaddr_ll ll;
 	void (*walk)(int sock, struct ring *ring);
 	int type, rd_num, flen, version;
-	union {
+	union
+	{
 		struct tpacket_req  req;
 		struct tpacket_req3 req3;
 	};
 };
 
-struct block_desc {
+struct block_desc
+{
 	uint32_t version;
 	uint32_t offset_to_priv;
 	struct tpacket_hdr_v1 h1;
 };
 
-union frame_map {
-	struct {
+union frame_map
+{
+	struct
+	{
 		struct tpacket_hdr tp_h __aligned_tpacket;
 		struct sockaddr_ll s_ll __align_tpacket(sizeof(struct tpacket_hdr));
 	} *v1;
-	struct {
+	struct
+	{
 		struct tpacket2_hdr tp_h __aligned_tpacket;
 		struct sockaddr_ll s_ll __align_tpacket(sizeof(struct tpacket2_hdr));
 	} *v2;
@@ -111,13 +117,17 @@ static unsigned int total_packets, total_bytes;
 static int pfsocket(int ver)
 {
 	int ret, sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if (sock == -1) {
+
+	if (sock == -1)
+	{
 		perror("socket");
 		exit(1);
 	}
 
 	ret = setsockopt(sock, SOL_PACKET, PACKET_VERSION, &ver, sizeof(ver));
-	if (ret == -1) {
+
+	if (ret == -1)
+	{
 		perror("setsockopt");
 		exit(1);
 	}
@@ -127,7 +137,8 @@ static int pfsocket(int ver)
 
 static void status_bar_update(void)
 {
-	if (total_packets % 10 == 0) {
+	if (total_packets % 10 == 0)
+	{
 		fprintf(stderr, ".");
 		fflush(stderr);
 	}
@@ -137,15 +148,17 @@ static void test_payload(void *pay, size_t len)
 {
 	struct ethhdr *eth = pay;
 
-	if (len < sizeof(struct ethhdr)) {
+	if (len < sizeof(struct ethhdr))
+	{
 		fprintf(stderr, "test_payload: packet too "
-			"small: %zu bytes!\n", len);
+				"small: %zu bytes!\n", len);
 		exit(1);
 	}
 
-	if (eth->h_proto != htons(ETH_P_IP)) {
+	if (eth->h_proto != htons(ETH_P_IP))
+	{
 		fprintf(stderr, "test_payload: wrong ethernet "
-			"type: 0x%x!\n", ntohs(eth->h_proto));
+				"type: 0x%x!\n", ntohs(eth->h_proto));
 		exit(1);
 	}
 }
@@ -166,20 +179,22 @@ static void create_payload(void *pay, size_t *len)
 	eth->h_proto = htons(ETH_P_IP);
 
 	for (i = 0; i < sizeof(*ip); ++i)
+	{
 		((uint8_t *) pay)[i + sizeof(*eth)] = (uint8_t) rand();
+	}
 
 	ip->ihl = 5;
 	ip->version = 4;
 	ip->protocol = 0x11;
 	ip->frag_off = 0;
 	ip->ttl = 64;
-	ip->tot_len = htons((uint16_t) *len - sizeof(*eth));
+	ip->tot_len = htons((uint16_t) * len - sizeof(*eth));
 
 	ip->saddr = htonl(INADDR_LOOPBACK);
 	ip->daddr = htonl(INADDR_LOOPBACK);
 
 	memset(pay + sizeof(*eth) + sizeof(*ip),
-	       DATA_CHAR, DATA_LEN);
+		   DATA_CHAR, DATA_LEN);
 }
 
 static inline int __v1_rx_kernel_ready(struct tpacket_hdr *hdr)
@@ -206,26 +221,31 @@ static inline void __v2_rx_user_ready(struct tpacket2_hdr *hdr)
 
 static inline int __v1_v2_rx_kernel_ready(void *base, int version)
 {
-	switch (version) {
-	case TPACKET_V1:
-		return __v1_rx_kernel_ready(base);
-	case TPACKET_V2:
-		return __v2_rx_kernel_ready(base);
-	default:
-		bug_on(1);
-		return 0;
+	switch (version)
+	{
+		case TPACKET_V1:
+			return __v1_rx_kernel_ready(base);
+
+		case TPACKET_V2:
+			return __v2_rx_kernel_ready(base);
+
+		default:
+			bug_on(1);
+			return 0;
 	}
 }
 
 static inline void __v1_v2_rx_user_ready(void *base, int version)
 {
-	switch (version) {
-	case TPACKET_V1:
-		__v1_rx_user_ready(base);
-		break;
-	case TPACKET_V2:
-		__v2_rx_user_ready(base);
-		break;
+	switch (version)
+	{
+		case TPACKET_V1:
+			__v1_rx_user_ready(base);
+			break;
+
+		case TPACKET_V2:
+			__v2_rx_user_ready(base);
+			break;
 	}
 }
 
@@ -248,23 +268,26 @@ static void walk_v1_v2_rx(int sock, struct ring *ring)
 
 	pair_udp_send(udp_sock, NUM_PACKETS);
 
-	while (total_packets < NUM_PACKETS * 2) {
+	while (total_packets < NUM_PACKETS * 2)
+	{
 		while (__v1_v2_rx_kernel_ready(ring->rd[frame_num].iov_base,
-					       ring->version)) {
+									   ring->version))
+		{
 			ppd.raw = ring->rd[frame_num].iov_base;
 
-			switch (ring->version) {
-			case TPACKET_V1:
-				test_payload((uint8_t *) ppd.raw + ppd.v1->tp_h.tp_mac,
-					     ppd.v1->tp_h.tp_snaplen);
-				total_bytes += ppd.v1->tp_h.tp_snaplen;
-				break;
+			switch (ring->version)
+			{
+				case TPACKET_V1:
+					test_payload((uint8_t *) ppd.raw + ppd.v1->tp_h.tp_mac,
+								 ppd.v1->tp_h.tp_snaplen);
+					total_bytes += ppd.v1->tp_h.tp_snaplen;
+					break;
 
-			case TPACKET_V2:
-				test_payload((uint8_t *) ppd.raw + ppd.v2->tp_h.tp_mac,
-					     ppd.v2->tp_h.tp_snaplen);
-				total_bytes += ppd.v2->tp_h.tp_snaplen;
-				break;
+				case TPACKET_V2:
+					test_payload((uint8_t *) ppd.raw + ppd.v2->tp_h.tp_mac,
+								 ppd.v2->tp_h.tp_snaplen);
+					total_bytes += ppd.v2->tp_h.tp_snaplen;
+					break;
 			}
 
 			status_bar_update();
@@ -280,9 +303,10 @@ static void walk_v1_v2_rx(int sock, struct ring *ring)
 
 	pair_udp_close(udp_sock);
 
-	if (total_packets != 2 * NUM_PACKETS) {
+	if (total_packets != 2 * NUM_PACKETS)
+	{
 		fprintf(stderr, "walk_v%d_rx: received %u out of %u pkts\n",
-			ring->version, total_packets, NUM_PACKETS);
+				ring->version, total_packets, NUM_PACKETS);
 		exit(1);
 	}
 
@@ -313,26 +337,31 @@ static inline void __v2_tx_user_ready(struct tpacket2_hdr *hdr)
 
 static inline int __v1_v2_tx_kernel_ready(void *base, int version)
 {
-	switch (version) {
-	case TPACKET_V1:
-		return __v1_tx_kernel_ready(base);
-	case TPACKET_V2:
-		return __v2_tx_kernel_ready(base);
-	default:
-		bug_on(1);
-		return 0;
+	switch (version)
+	{
+		case TPACKET_V1:
+			return __v1_tx_kernel_ready(base);
+
+		case TPACKET_V2:
+			return __v2_tx_kernel_ready(base);
+
+		default:
+			bug_on(1);
+			return 0;
 	}
 }
 
 static inline void __v1_v2_tx_user_ready(void *base, int version)
 {
-	switch (version) {
-	case TPACKET_V1:
-		__v1_tx_user_ready(base);
-		break;
-	case TPACKET_V2:
-		__v2_tx_user_ready(base);
-		break;
+	switch (version)
+	{
+		case TPACKET_V1:
+			__v1_tx_user_ready(base);
+			break;
+
+		case TPACKET_V2:
+			__v2_tx_user_ready(base);
+			break;
 	}
 }
 
@@ -341,8 +370,10 @@ static void __v1_v2_set_packet_loss_discard(int sock)
 	int ret, discard = 1;
 
 	ret = setsockopt(sock, SOL_PACKET, PACKET_LOSS, (void *) &discard,
-			 sizeof(discard));
-	if (ret == -1) {
+					 sizeof(discard));
+
+	if (ret == -1)
+	{
 		perror("setsockopt");
 		exit(1);
 	}
@@ -356,7 +387,8 @@ static void walk_v1_v2_tx(int sock, struct ring *ring)
 	union frame_map ppd;
 	char packet[1024];
 	unsigned int frame_num = 0, got = 0;
-	struct sockaddr_ll ll = {
+	struct sockaddr_ll ll =
+	{
 		.sll_family = PF_PACKET,
 		.sll_halen = ETH_ALEN,
 	};
@@ -365,7 +397,9 @@ static void walk_v1_v2_tx(int sock, struct ring *ring)
 	bug_on(ring->rd_num < NUM_PACKETS);
 
 	rcv_sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if (rcv_sock == -1) {
+
+	if (rcv_sock == -1)
+	{
 		perror("socket");
 		exit(1);
 	}
@@ -374,7 +408,9 @@ static void walk_v1_v2_tx(int sock, struct ring *ring)
 
 	ll.sll_ifindex = if_nametoindex("lo");
 	ret = bind(rcv_sock, (struct sockaddr *) &ll, sizeof(ll));
-	if (ret == -1) {
+
+	if (ret == -1)
+	{
 		perror("bind");
 		exit(1);
 	}
@@ -387,32 +423,35 @@ static void walk_v1_v2_tx(int sock, struct ring *ring)
 	total_packets = NUM_PACKETS;
 	create_payload(packet, &packet_len);
 
-	while (total_packets > 0) {
+	while (total_packets > 0)
+	{
 		while (__v1_v2_tx_kernel_ready(ring->rd[frame_num].iov_base,
-					       ring->version) &&
-		       total_packets > 0) {
+									   ring->version) &&
+			   total_packets > 0)
+		{
 			ppd.raw = ring->rd[frame_num].iov_base;
 
-			switch (ring->version) {
-			case TPACKET_V1:
-				ppd.v1->tp_h.tp_snaplen = packet_len;
-				ppd.v1->tp_h.tp_len = packet_len;
+			switch (ring->version)
+			{
+				case TPACKET_V1:
+					ppd.v1->tp_h.tp_snaplen = packet_len;
+					ppd.v1->tp_h.tp_len = packet_len;
 
-				memcpy((uint8_t *) ppd.raw + TPACKET_HDRLEN -
-				       sizeof(struct sockaddr_ll), packet,
-				       packet_len);
-				total_bytes += ppd.v1->tp_h.tp_snaplen;
-				break;
+					memcpy((uint8_t *) ppd.raw + TPACKET_HDRLEN -
+						   sizeof(struct sockaddr_ll), packet,
+						   packet_len);
+					total_bytes += ppd.v1->tp_h.tp_snaplen;
+					break;
 
-			case TPACKET_V2:
-				ppd.v2->tp_h.tp_snaplen = packet_len;
-				ppd.v2->tp_h.tp_len = packet_len;
+				case TPACKET_V2:
+					ppd.v2->tp_h.tp_snaplen = packet_len;
+					ppd.v2->tp_h.tp_len = packet_len;
 
-				memcpy((uint8_t *) ppd.raw + TPACKET2_HDRLEN -
-				       sizeof(struct sockaddr_ll), packet,
-				       packet_len);
-				total_bytes += ppd.v2->tp_h.tp_snaplen;
-				break;
+					memcpy((uint8_t *) ppd.raw + TPACKET2_HDRLEN -
+						   sizeof(struct sockaddr_ll), packet,
+						   packet_len);
+					total_bytes += ppd.v2->tp_h.tp_snaplen;
+					break;
 			}
 
 			status_bar_update();
@@ -429,14 +468,17 @@ static void walk_v1_v2_tx(int sock, struct ring *ring)
 	bug_on(total_packets != 0);
 
 	ret = sendto(sock, NULL, 0, 0, NULL, 0);
-	if (ret == -1) {
+
+	if (ret == -1)
+	{
 		perror("sendto");
 		exit(1);
 	}
 
 	while ((ret = recvfrom(rcv_sock, packet, sizeof(packet),
-			       0, NULL, NULL)) > 0 &&
-	       total_packets < NUM_PACKETS) {
+						   0, NULL, NULL)) > 0 &&
+		   total_packets < NUM_PACKETS)
+	{
 		got += ret;
 		test_payload(packet, ret);
 
@@ -446,9 +488,10 @@ static void walk_v1_v2_tx(int sock, struct ring *ring)
 
 	close(rcv_sock);
 
-	if (total_packets != NUM_PACKETS) {
+	if (total_packets != NUM_PACKETS)
+	{
 		fprintf(stderr, "walk_v%d_rx: received %u out of %u pkts\n",
-			ring->version, total_packets, NUM_PACKETS);
+				ring->version, total_packets, NUM_PACKETS);
 		exit(1);
 	}
 
@@ -458,20 +501,25 @@ static void walk_v1_v2_tx(int sock, struct ring *ring)
 static void walk_v1_v2(int sock, struct ring *ring)
 {
 	if (ring->type == PACKET_RX_RING)
+	{
 		walk_v1_v2_rx(sock, ring);
+	}
 	else
+	{
 		walk_v1_v2_tx(sock, ring);
+	}
 }
 
 static uint64_t __v3_prev_block_seq_num = 0;
 
 void __v3_test_block_seq_num(struct block_desc *pbd)
 {
-	if (__v3_prev_block_seq_num + 1 != pbd->h1.seq_num) {
+	if (__v3_prev_block_seq_num + 1 != pbd->h1.seq_num)
+	{
 		fprintf(stderr, "\nprev_block_seq_num:%"PRIu64", expected "
-			"seq:%"PRIu64" != actual seq:%"PRIu64"\n",
-			__v3_prev_block_seq_num, __v3_prev_block_seq_num + 1,
-			(uint64_t) pbd->h1.seq_num);
+				"seq:%"PRIu64" != actual seq:%"PRIu64"\n",
+				__v3_prev_block_seq_num, __v3_prev_block_seq_num + 1,
+				(uint64_t) pbd->h1.seq_num);
 		exit(1);
 	}
 
@@ -480,17 +528,19 @@ void __v3_test_block_seq_num(struct block_desc *pbd)
 
 static void __v3_test_block_len(struct block_desc *pbd, uint32_t bytes, int block_num)
 {
-	if (pbd->h1.num_pkts && bytes != pbd->h1.blk_len) {
+	if (pbd->h1.num_pkts && bytes != pbd->h1.blk_len)
+	{
 		fprintf(stderr, "\nblock:%u with %upackets, expected "
-			"len:%u != actual len:%u\n", block_num,
-			pbd->h1.num_pkts, bytes, pbd->h1.blk_len);
+				"len:%u != actual len:%u\n", block_num,
+				pbd->h1.num_pkts, bytes, pbd->h1.blk_len);
 		exit(1);
 	}
 }
 
 static void __v3_test_block_header(struct block_desc *pbd, const int block_num)
 {
-	if ((pbd->h1.block_status & TP_STATUS_USER) == 0) {
+	if ((pbd->h1.block_status & TP_STATUS_USER) == 0)
+	{
 		fprintf(stderr, "\nblock %u: not in TP_STATUS_USER\n", block_num);
 		exit(1);
 	}
@@ -507,15 +557,20 @@ static void __v3_walk_block(struct block_desc *pbd, const int block_num)
 	__v3_test_block_header(pbd, block_num);
 
 	ppd = (struct tpacket3_hdr *) ((uint8_t *) pbd +
-				       pbd->h1.offset_to_first_pkt);
+								   pbd->h1.offset_to_first_pkt);
 
-	for (i = 0; i < num_pkts; ++i) {
+	for (i = 0; i < num_pkts; ++i)
+	{
 		bytes += ppd->tp_snaplen;
 
 		if (ppd->tp_next_offset)
+		{
 			bytes_with_padding += ppd->tp_next_offset;
+		}
 		else
+		{
 			bytes_with_padding += ALIGN_8(ppd->tp_snaplen + ppd->tp_mac);
+		}
 
 		test_payload((uint8_t *) ppd + ppd->tp_mac, ppd->tp_snaplen);
 
@@ -555,11 +610,14 @@ static void walk_v3_rx(int sock, struct ring *ring)
 
 	pair_udp_send(udp_sock, NUM_PACKETS);
 
-	while (total_packets < NUM_PACKETS * 2) {
+	while (total_packets < NUM_PACKETS * 2)
+	{
 		pbd = (struct block_desc *) ring->rd[block_num].iov_base;
 
 		while ((pbd->h1.block_status & TP_STATUS_USER) == 0)
+		{
 			poll(&pfd, 1, 1);
+		}
 
 		__v3_walk_block(pbd, block_num);
 		__v3_flush_block(pbd);
@@ -569,9 +627,10 @@ static void walk_v3_rx(int sock, struct ring *ring)
 
 	pair_udp_close(udp_sock);
 
-	if (total_packets != 2 * NUM_PACKETS) {
+	if (total_packets != 2 * NUM_PACKETS)
+	{
 		fprintf(stderr, "walk_v3_rx: received %u out of %u pkts\n",
-			total_packets, NUM_PACKETS);
+				total_packets, NUM_PACKETS);
 		exit(1);
 	}
 
@@ -581,9 +640,13 @@ static void walk_v3_rx(int sock, struct ring *ring)
 static void walk_v3(int sock, struct ring *ring)
 {
 	if (ring->type == PACKET_RX_RING)
+	{
 		walk_v3_rx(sock, ring);
+	}
 	else
+	{
 		bug_on(1);
+	}
 }
 
 static void __v1_v2_fill(struct ring *ring, unsigned int blocks)
@@ -593,8 +656,8 @@ static void __v1_v2_fill(struct ring *ring, unsigned int blocks)
 	ring->req.tp_block_nr = blocks;
 
 	ring->req.tp_frame_nr = ring->req.tp_block_size /
-				ring->req.tp_frame_size *
-				ring->req.tp_block_nr;
+							ring->req.tp_frame_size *
+							ring->req.tp_block_nr;
 
 	ring->mm_len = ring->req.tp_block_size * ring->req.tp_block_nr;
 	ring->walk = walk_v1_v2;
@@ -613,8 +676,8 @@ static void __v3_fill(struct ring *ring, unsigned int blocks)
 	ring->req3.tp_block_nr = blocks;
 
 	ring->req3.tp_frame_nr = ring->req3.tp_block_size /
-				 ring->req3.tp_frame_size *
-				 ring->req3.tp_block_nr;
+							 ring->req3.tp_frame_size *
+							 ring->req3.tp_block_nr;
 
 	ring->mm_len = ring->req3.tp_block_size * ring->req3.tp_block_nr;
 	ring->walk = walk_v3;
@@ -630,31 +693,38 @@ static void setup_ring(int sock, struct ring *ring, int version, int type)
 	ring->type = type;
 	ring->version = version;
 
-	switch (version) {
-	case TPACKET_V1:
-	case TPACKET_V2:
-		if (type == PACKET_TX_RING)
-			__v1_v2_set_packet_loss_discard(sock);
-		__v1_v2_fill(ring, blocks);
-		ret = setsockopt(sock, SOL_PACKET, type, &ring->req,
-				 sizeof(ring->req));
-		break;
+	switch (version)
+	{
+		case TPACKET_V1:
+		case TPACKET_V2:
+			if (type == PACKET_TX_RING)
+			{
+				__v1_v2_set_packet_loss_discard(sock);
+			}
 
-	case TPACKET_V3:
-		__v3_fill(ring, blocks);
-		ret = setsockopt(sock, SOL_PACKET, type, &ring->req3,
-				 sizeof(ring->req3));
-		break;
+			__v1_v2_fill(ring, blocks);
+			ret = setsockopt(sock, SOL_PACKET, type, &ring->req,
+							 sizeof(ring->req));
+			break;
+
+		case TPACKET_V3:
+			__v3_fill(ring, blocks);
+			ret = setsockopt(sock, SOL_PACKET, type, &ring->req3,
+							 sizeof(ring->req3));
+			break;
 	}
 
-	if (ret == -1) {
+	if (ret == -1)
+	{
 		perror("setsockopt");
 		exit(1);
 	}
 
 	ring->rd_len = ring->rd_num * sizeof(*ring->rd);
 	ring->rd = malloc(ring->rd_len);
-	if (ring->rd == NULL) {
+
+	if (ring->rd == NULL)
+	{
 		perror("malloc");
 		exit(1);
 	}
@@ -668,14 +738,18 @@ static void mmap_ring(int sock, struct ring *ring)
 	int i;
 
 	ring->mm_space = mmap(0, ring->mm_len, PROT_READ | PROT_WRITE,
-			      MAP_SHARED | MAP_LOCKED | MAP_POPULATE, sock, 0);
-	if (ring->mm_space == MAP_FAILED) {
+						  MAP_SHARED | MAP_LOCKED | MAP_POPULATE, sock, 0);
+
+	if (ring->mm_space == MAP_FAILED)
+	{
 		perror("mmap");
 		exit(1);
 	}
 
 	memset(ring->rd, 0, ring->rd_len);
-	for (i = 0; i < ring->rd_num; ++i) {
+
+	for (i = 0; i < ring->rd_num; ++i)
+	{
 		ring->rd[i].iov_base = ring->mm_space + (i * ring->flen);
 		ring->rd[i].iov_len = ring->flen;
 	}
@@ -693,7 +767,9 @@ static void bind_ring(int sock, struct ring *ring)
 	ring->ll.sll_halen = 0;
 
 	ret = bind(sock, (struct sockaddr *) &ring->ll, sizeof(ring->ll));
-	if (ret == -1) {
+
+	if (ret == -1)
+	{
 		perror("bind");
 		exit(1);
 	}
@@ -717,13 +793,17 @@ static int test_kernel_bit_width(void)
 	ssize_t ret;
 
 	fd = open("/proc/kallsyms", O_RDONLY);
-	if (fd == -1) {
+
+	if (fd == -1)
+	{
 		perror("open");
 		exit(1);
 	}
 
 	ret = read(fd, in, sizeof(in));
-	if (ret <= 0) {
+
+	if (ret <= 0)
+	{
 		perror("read");
 		exit(1);
 	}
@@ -731,7 +811,9 @@ static int test_kernel_bit_width(void)
 	close(fd);
 
 	ptr = in;
-	while(!isspace(*ptr)) {
+
+	while (!isspace(*ptr))
+	{
 		num++;
 		ptr++;
 	}
@@ -744,13 +826,15 @@ static int test_user_bit_width(void)
 	return __WORDSIZE;
 }
 
-static const char *tpacket_str[] = {
+static const char *tpacket_str[] =
+{
 	[TPACKET_V1] = "TPACKET_V1",
 	[TPACKET_V2] = "TPACKET_V2",
 	[TPACKET_V3] = "TPACKET_V3",
 };
 
-static const char *type_str[] = {
+static const char *type_str[] =
+{
 	[PACKET_RX_RING] = "PACKET_RX_RING",
 	[PACKET_TX_RING] = "PACKET_TX_RING",
 };
@@ -761,14 +845,15 @@ static int test_tpacket(int version, int type)
 	struct ring ring;
 
 	fprintf(stderr, "test: %s with %s ", tpacket_str[version],
-		type_str[type]);
+			type_str[type]);
 	fflush(stderr);
 
 	if (version == TPACKET_V1 &&
-	    test_kernel_bit_width() != test_user_bit_width()) {
+		test_kernel_bit_width() != test_user_bit_width())
+	{
 		fprintf(stderr, "test: skip %s %s since user and kernel "
-			"space have different bit width\n",
-			tpacket_str[version], type_str[type]);
+				"space have different bit width\n",
+				tpacket_str[version], type_str[type]);
 		return 0;
 	}
 
@@ -798,7 +883,9 @@ int main(void)
 	ret |= test_tpacket(TPACKET_V3, PACKET_RX_RING);
 
 	if (ret)
+	{
 		return 1;
+	}
 
 	printf("OK. All tests passed\n");
 	return 0;

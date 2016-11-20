@@ -8,7 +8,8 @@
 /*
  * This structure contains configuration options per IPv6 link.
  */
-struct ipv6_devconf {
+struct ipv6_devconf
+{
 	__s32		forwarding;
 	__s32		hop_limit;
 	__s32		mtu6;
@@ -58,7 +59,8 @@ struct ipv6_devconf {
 	__s32		suppress_frag_ndisc;
 	__s32		accept_ra_mtu;
 	__s32		drop_unsolicited_na;
-	struct ipv6_stable_secret {
+	struct ipv6_stable_secret
+	{
 		bool initialized;
 		struct in6_addr secret;
 	} stable_secret;
@@ -68,7 +70,8 @@ struct ipv6_devconf {
 	struct ctl_table_header *sysctl_header;
 };
 
-struct ipv6_params {
+struct ipv6_params
+{
 	__s32 disable_ipv6;
 	__s32 autoconf;
 };
@@ -94,12 +97,13 @@ static inline struct ipv6hdr *ipipv6_hdr(const struct sk_buff *skb)
 	return (struct ipv6hdr *)skb_transport_header(skb);
 }
 
-/* 
+/*
    This structure contains results of exthdrs parsing
    as offsets from skb->nh.
  */
 
-struct inet6_skb_parm {
+struct inet6_skb_parm
+{
 	int			iif;
 	__be16			ra;
 	__u16			dst0;
@@ -148,14 +152,19 @@ static inline int inet6_iif(const struct sk_buff *skb)
 static inline bool inet6_exact_dif_match(struct net *net, struct sk_buff *skb)
 {
 #if defined(CONFIG_NET_L3_MASTER_DEV)
+
 	if (!net->ipv4.sysctl_tcp_l3mdev_accept &&
-	    skb && ipv6_l3mdev_skb(IP6CB(skb)->flags))
+		skb && ipv6_l3mdev_skb(IP6CB(skb)->flags))
+	{
 		return true;
+	}
+
 #endif
 	return false;
 }
 
-struct tcp6_request_sock {
+struct tcp6_request_sock
+{
 	struct tcp_request_sock	  tcp6rsk_tcp;
 };
 
@@ -163,7 +172,8 @@ struct ipv6_mc_socklist;
 struct ipv6_ac_socklist;
 struct ipv6_fl_socklist;
 
-struct inet6_cork {
+struct inet6_cork
+{
 	struct ipv6_txoptions *opt;
 	u8 hop_limit;
 	u8 tclass;
@@ -177,7 +187,8 @@ struct inet6_cork {
  * is able to calculate its offset from the base struct sock
  * by using the struct proto->slab_obj_size member. -acme
  */
-struct ipv6_pinfo {
+struct ipv6_pinfo
+{
 	struct in6_addr 	saddr;
 	struct in6_pktinfo	sticky_pktinfo;
 	const struct in6_addr		*daddr_cache;
@@ -193,60 +204,62 @@ struct ipv6_pinfo {
 	 * Omit one shift by by putting the signed field at MSB.
 	 */
 #if defined(__BIG_ENDIAN_BITFIELD)
-	__s16			hop_limit:9;
-	__u16			__unused_1:7;
+	__s16			hop_limit: 9;
+	__u16			__unused_1: 7;
 #else
-	__u16			__unused_1:7;
-	__s16			hop_limit:9;
+	__u16			__unused_1: 7;
+	__s16			hop_limit: 9;
 #endif
 
 #if defined(__BIG_ENDIAN_BITFIELD)
 	/* Packed in 16bits. */
-	__s16			mcast_hops:9;
-	__u16			__unused_2:6,
-				mc_loop:1;
+	__s16			mcast_hops: 9;
+	__u16			__unused_2: 6,
+					mc_loop: 1;
 #else
-	__u16			mc_loop:1,
-				__unused_2:6;
-	__s16			mcast_hops:9;
+	__u16			mc_loop: 1,
+					__unused_2: 6;
+	__s16			mcast_hops: 9;
 #endif
 	int			ucast_oif;
 	int			mcast_oif;
 
 	/* pktoption flags */
-	union {
-		struct {
-			__u16	srcrt:1,
-				osrcrt:1,
-			        rxinfo:1,
-			        rxoinfo:1,
-				rxhlim:1,
-				rxohlim:1,
-				hopopts:1,
-				ohopopts:1,
-				dstopts:1,
-				odstopts:1,
-                                rxflow:1,
-				rxtclass:1,
-				rxpmtu:1,
-				rxorigdstaddr:1;
-				/* 2 bits hole */
+	union
+	{
+		struct
+		{
+			__u16	srcrt: 1,
+					osrcrt: 1,
+					rxinfo: 1,
+					rxoinfo: 1,
+					rxhlim: 1,
+					rxohlim: 1,
+					hopopts: 1,
+					ohopopts: 1,
+					dstopts: 1,
+					odstopts: 1,
+					rxflow: 1,
+					rxtclass: 1,
+					rxpmtu: 1,
+					rxorigdstaddr: 1;
+			/* 2 bits hole */
 		} bits;
 		__u16		all;
 	} rxopt;
 
 	/* sockopt flags */
-	__u16			recverr:1,
-	                        sndflow:1,
-				repflow:1,
-				pmtudisc:3,
-				padding:1,	/* 1 bit hole */
-				srcprefs:3,	/* 001: prefer temporary address
+	__u16			recverr: 1,
+					sndflow: 1,
+					repflow: 1,
+					pmtudisc: 3,
+					padding: 1,	/* 1 bit hole */
+					srcprefs: 3,	/* 001: prefer temporary address
 						 * 010: prefer public address
 						 * 100: prefer care-of address
 						 */
-				dontfrag:1,
-				autoflowlabel:1;
+					dontfrag: 1,
+					autoflowlabel: 1;
 	__u8			min_hopcount;
 	__u8			tclass;
 	__be32			rcv_flowinfo;
@@ -265,7 +278,8 @@ struct ipv6_pinfo {
 };
 
 /* WARNING: don't change the layout of the members in {raw,udp,tcp}6_sock! */
-struct raw6_sock {
+struct raw6_sock
+{
 	/* inet_sock has to be the first member of raw6_sock */
 	struct inet_sock	inet;
 	__u32			checksum;	/* perform checksum */
@@ -276,13 +290,15 @@ struct raw6_sock {
 	struct ipv6_pinfo	inet6;
 };
 
-struct udp6_sock {
+struct udp6_sock
+{
 	struct udp_sock	  udp;
 	/* ipv6_pinfo has to be the last member of udp6_sock, see inet6_sk_generic */
 	struct ipv6_pinfo inet6;
 };
 
-struct tcp6_sock {
+struct tcp6_sock
+{
 	struct tcp_sock	  tcp;
 	/* ipv6_pinfo has to be the last member of tcp6_sock, see inet6_sk_generic */
 	struct ipv6_pinfo inet6;
@@ -290,7 +306,8 @@ struct tcp6_sock {
 
 extern int inet6_sk_rebuild_header(struct sock *sk);
 
-struct tcp6_timewait_sock {
+struct tcp6_timewait_sock
+{
 	struct tcp_timewait_sock   tcp6tw_tcp;
 };
 
@@ -308,12 +325,14 @@ static inline struct raw6_sock *raw6_sk(const struct sock *sk)
 }
 
 static inline void inet_sk_copy_descendant(struct sock *sk_to,
-					   const struct sock *sk_from)
+		const struct sock *sk_from)
 {
 	int ancestor_size = sizeof(struct inet_sock);
 
 	if (sk_from->sk_family == PF_INET6)
+	{
 		ancestor_size += sizeof(struct ipv6_pinfo);
+	}
 
 	__inet_sk_copy_descendant(sk_to, sk_from, ancestor_size);
 }
@@ -321,12 +340,15 @@ static inline void inet_sk_copy_descendant(struct sock *sk_to,
 #define __ipv6_only_sock(sk)	(sk->sk_ipv6only)
 #define ipv6_only_sock(sk)	(__ipv6_only_sock(sk))
 #define ipv6_sk_rxinfo(sk)	((sk)->sk_family == PF_INET6 && \
-				 inet6_sk(sk)->rxopt.bits.rxinfo)
+							 inet6_sk(sk)->rxopt.bits.rxinfo)
 
 static inline const struct in6_addr *inet6_rcv_saddr(const struct sock *sk)
 {
 	if (sk->sk_family == AF_INET6)
+	{
 		return &sk->sk_v6_rcv_saddr;
+	}
+
 	return NULL;
 }
 
@@ -345,13 +367,13 @@ static inline bool ipv6_mod_enabled(void)
 	return false;
 }
 
-static inline struct ipv6_pinfo * inet6_sk(const struct sock *__sk)
+static inline struct ipv6_pinfo *inet6_sk(const struct sock *__sk)
 {
 	return NULL;
 }
 
 static inline struct inet6_request_sock *
-			inet6_rsk(const struct request_sock *rsk)
+inet6_rsk(const struct request_sock *rsk)
 {
 	return NULL;
 }

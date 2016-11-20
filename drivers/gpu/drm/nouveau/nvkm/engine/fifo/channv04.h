@@ -4,7 +4,8 @@
 #include "chan.h"
 #include "nv04.h"
 
-struct nv04_fifo_chan {
+struct nv04_fifo_chan
+{
 	struct nvkm_fifo_chan base;
 	struct nv04_fifo *fifo;
 	u32 ramfc;

@@ -14,7 +14,8 @@
 
 #include <asm/types.h>
 
-enum fs_uart_id {
+enum fs_uart_id
+{
 	fsid_smc1_uart,
 	fsid_smc2_uart,
 	fsid_scc1_uart,
@@ -26,26 +27,27 @@ enum fs_uart_id {
 
 static inline int fs_uart_id_scc2fsid(int id)
 {
-    return fsid_scc1_uart + id - 1;
+	return fsid_scc1_uart + id - 1;
 }
 
 static inline int fs_uart_id_fsid2scc(int id)
 {
-    return id - fsid_scc1_uart + 1;
+	return id - fsid_scc1_uart + 1;
 }
 
 static inline int fs_uart_id_smc2fsid(int id)
 {
-    return fsid_smc1_uart + id - 1;
+	return fsid_smc1_uart + id - 1;
 }
 
 static inline int fs_uart_id_fsid2smc(int id)
 {
-    return id - fsid_smc1_uart + 1;
+	return id - fsid_smc1_uart + 1;
 }
 
-struct fs_uart_platform_info {
-        void(*init_ioports)(struct fs_uart_platform_info *);
+struct fs_uart_platform_info
+{
+	void(*init_ioports)(struct fs_uart_platform_info *);
 	/* device specific information */
 	int fs_no;		/* controller index */
 	char fs_type[4];        /* controller type  */
@@ -61,11 +63,17 @@ struct fs_uart_platform_info {
 
 static inline int fs_uart_get_id(struct fs_uart_platform_info *fpi)
 {
-        if(strstr(fpi->fs_type, "SMC"))
-                return fs_uart_id_smc2fsid(fpi->fs_no);
-        if(strstr(fpi->fs_type, "SCC"))
-                return fs_uart_id_scc2fsid(fpi->fs_no);
-        return fpi->fs_no;
+	if (strstr(fpi->fs_type, "SMC"))
+	{
+		return fs_uart_id_smc2fsid(fpi->fs_no);
+	}
+
+	if (strstr(fpi->fs_type, "SCC"))
+	{
+		return fs_uart_id_scc2fsid(fpi->fs_no);
+	}
+
+	return fpi->fs_no;
 }
 
 #endif

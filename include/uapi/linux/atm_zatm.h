@@ -16,21 +16,23 @@
 #include <linux/atmioc.h>
 
 #define ZATM_GETPOOL	_IOW('a',ATMIOC_SARPRV+1,struct atmif_sioc)
-						/* get pool statistics */
+/* get pool statistics */
 #define ZATM_GETPOOLZ	_IOW('a',ATMIOC_SARPRV+2,struct atmif_sioc)
-						/* get statistics and zero */
+/* get statistics and zero */
 #define ZATM_SETPOOL	_IOW('a',ATMIOC_SARPRV+3,struct atmif_sioc)
-						/* set pool parameters */
+/* set pool parameters */
 
-struct zatm_pool_info {
+struct zatm_pool_info
+{
 	int ref_count;			/* free buffer pool usage counters */
-	int low_water,high_water;	/* refill parameters */
-	int rqa_count,rqu_count;	/* queue condition counters */
-	int offset,next_off;		/* alignment optimizations: offset */
-	int next_cnt,next_thres;	/* repetition counter and threshold */
+	int low_water, high_water;	/* refill parameters */
+	int rqa_count, rqu_count;	/* queue condition counters */
+	int offset, next_off;		/* alignment optimizations: offset */
+	int next_cnt, next_thres;	/* repetition counter and threshold */
 };
 
-struct zatm_pool_req {
+struct zatm_pool_req
+{
 	int pool_num;			/* pool number */
 	struct zatm_pool_info info;	/* actual information */
 };

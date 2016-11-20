@@ -11,7 +11,8 @@
 #include <stddef.h>
 #include <dwarf-regs.h>
 
-struct pt_regs_dwarfnum {
+struct pt_regs_dwarfnum
+{
 	const char *name;
 	unsigned int dwarfnum;
 };
@@ -26,7 +27,8 @@ struct pt_regs_dwarfnum {
  * Reference:
  * http://infocenter.arm.com/help/topic/com.arm.doc.ihi0057b/IHI0057B_aadwarf64.pdf
  */
-static const struct pt_regs_dwarfnum regdwarfnum_table[] = {
+static const struct pt_regs_dwarfnum regdwarfnum_table[] =
+{
 	GPR_DWARFNUM_NAME(0),
 	GPR_DWARFNUM_NAME(1),
 	GPR_DWARFNUM_NAME(2),
@@ -73,8 +75,12 @@ static const struct pt_regs_dwarfnum regdwarfnum_table[] = {
 const char *get_arch_regstr(unsigned int n)
 {
 	const struct pt_regs_dwarfnum *roff;
+
 	for (roff = regdwarfnum_table; roff->name != NULL; roff++)
 		if (roff->dwarfnum == n)
+		{
 			return roff->name;
+		}
+
 	return NULL;
 }

@@ -110,11 +110,14 @@
 static inline void __SMC_outw(u16 val, void __iomem *ioaddr, int reg)
 {
 	if ((machine_is_mainstone() || machine_is_stargate2() ||
-	     machine_is_pxa_idp()) && reg & 2) {
+		 machine_is_pxa_idp()) && reg & 2)
+	{
 		unsigned int v = val << 16;
 		v |= readl(ioaddr + (reg & ~2)) & 0xffff;
 		writel(v, ioaddr + (reg & ~2));
-	} else {
+	}
+	else
+	{
 		writew(val, ioaddr + reg);
 	}
 }
@@ -195,15 +198,21 @@ static inline void __SMC_outw(u16 val, void __iomem *ioaddr, int reg)
 static inline void mcf_insw(void *a, unsigned char *p, int l)
 {
 	u16 *wp = (u16 *) p;
+
 	while (l-- > 0)
+	{
 		*wp++ = readw(a);
+	}
 }
 
 static inline void mcf_outsw(void *a, unsigned char *p, int l)
 {
 	u16 *wp = (u16 *) p;
+
 	while (l-- > 0)
+	{
 		writew(*wp++, a);
+	}
 }
 
 #define SMC_inw(a, r)		_swapw(readw((a) + (r)))
@@ -255,7 +264,8 @@ static inline void mcf_outsw(void *a, unsigned char *p, int l)
 
 
 /* store this information for the driver.. */
-struct smc_local {
+struct smc_local
+{
 	/*
 	 * If I have to wait until memory is available to send a
 	 * packet, I will store the skbuff here, until I get the
@@ -336,36 +346,45 @@ smc_pxa_dma_inpump(struct smc_local *lp, u_char *buf, int len)
 
 	dmabuf = dma_map_single(lp->device, buf, len, DMA_FROM_DEVICE);
 	tx = dmaengine_prep_slave_single(lp->dma_chan, dmabuf, len,
-					 DMA_DEV_TO_MEM, 0);
-	if (tx) {
+									 DMA_DEV_TO_MEM, 0);
+
+	if (tx)
+	{
 		cookie = dmaengine_submit(tx);
 		dma_async_issue_pending(lp->dma_chan);
-		do {
+
+		do
+		{
 			status = dmaengine_tx_status(lp->dma_chan, cookie,
-						     &state);
+										 &state);
 			cpu_relax();
-		} while (status != DMA_COMPLETE && status != DMA_ERROR &&
-			 state.residue);
+		}
+		while (status != DMA_COMPLETE && status != DMA_ERROR &&
+			   state.residue);
+
 		dmaengine_terminate_all(lp->dma_chan);
 	}
+
 	dma_unmap_single(lp->device, dmabuf, len, DMA_FROM_DEVICE);
 }
 
 static inline void
 smc_pxa_dma_insl(void __iomem *ioaddr, struct smc_local *lp, int reg, int dma,
-		 u_char *buf, int len)
+				 u_char *buf, int len)
 {
 	struct dma_slave_config	config;
 	int ret;
 
 	/* fallback if no DMA available */
-	if (!lp->dma_chan) {
+	if (!lp->dma_chan)
+	{
 		readsl(ioaddr + reg, buf, len);
 		return;
 	}
 
 	/* 64 bit alignment is required for memory to memory DMA */
-	if ((long)buf & 4) {
+	if ((long)buf & 4)
+	{
 		*((u32 *)buf) = SMC_inl(ioaddr, reg);
 		buf += 4;
 		len--;
@@ -379,9 +398,11 @@ smc_pxa_dma_insl(void __iomem *ioaddr, struct smc_local *lp, int reg, int dma,
 	config.src_maxburst = 32;
 	config.dst_maxburst = 32;
 	ret = dmaengine_slave_config(lp->dma_chan, &config);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(lp->device, "dma channel configuration failed: %d\n",
-			ret);
+				ret);
 		return;
 	}
 
@@ -396,19 +417,21 @@ smc_pxa_dma_insl(void __iomem *ioaddr, struct smc_local *lp, int reg, int dma,
 	smc_pxa_dma_insw(a, lp, r, dev->dma, p, l)
 static inline void
 smc_pxa_dma_insw(void __iomem *ioaddr, struct smc_local *lp, int reg, int dma,
-		 u_char *buf, int len)
+				 u_char *buf, int len)
 {
 	struct dma_slave_config	config;
 	int ret;
 
 	/* fallback if no DMA available */
-	if (!lp->dma_chan) {
+	if (!lp->dma_chan)
+	{
 		readsw(ioaddr + reg, buf, len);
 		return;
 	}
 
 	/* 64 bit alignment is required for memory to memory DMA */
-	while ((long)buf & 6) {
+	while ((long)buf & 6)
+	{
 		*((u16 *)buf) = SMC_inw(ioaddr, reg);
 		buf += 2;
 		len--;
@@ -422,9 +445,11 @@ smc_pxa_dma_insw(void __iomem *ioaddr, struct smc_local *lp, int reg, int dma,
 	config.src_maxburst = 32;
 	config.dst_maxburst = 32;
 	ret = dmaengine_slave_config(lp->dma_chan, &config);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(lp->device, "dma channel configuration failed: %d\n",
-			ret);
+				ret);
 		return;
 	}
 
@@ -444,59 +469,59 @@ smc_pxa_dma_insw(void __iomem *ioaddr, struct smc_local *lp, int reg, int dma,
  */
 
 #if ! SMC_CAN_USE_32BIT
-#define SMC_inl(ioaddr, reg)		({ BUG(); 0; })
-#define SMC_outl(x, ioaddr, reg)	BUG()
-#define SMC_insl(a, r, p, l)		BUG()
-#define SMC_outsl(a, r, p, l)		BUG()
+	#define SMC_inl(ioaddr, reg)		({ BUG(); 0; })
+	#define SMC_outl(x, ioaddr, reg)	BUG()
+	#define SMC_insl(a, r, p, l)		BUG()
+	#define SMC_outsl(a, r, p, l)		BUG()
 #endif
 
 #if !defined(SMC_insl) || !defined(SMC_outsl)
-#define SMC_insl(a, r, p, l)		BUG()
-#define SMC_outsl(a, r, p, l)		BUG()
+	#define SMC_insl(a, r, p, l)		BUG()
+	#define SMC_outsl(a, r, p, l)		BUG()
 #endif
 
 #if ! SMC_CAN_USE_16BIT
 
-#define SMC_outw(x, ioaddr, reg)	SMC_outw_b(x, ioaddr, reg)
-#define SMC_inw(ioaddr, reg)		SMC_inw_b(ioaddr, reg)
-#define SMC_insw(a, r, p, l)		BUG()
-#define SMC_outsw(a, r, p, l)		BUG()
+	#define SMC_outw(x, ioaddr, reg)	SMC_outw_b(x, ioaddr, reg)
+	#define SMC_inw(ioaddr, reg)		SMC_inw_b(ioaddr, reg)
+	#define SMC_insw(a, r, p, l)		BUG()
+	#define SMC_outsw(a, r, p, l)		BUG()
 
 #endif
 
 #if !defined(SMC_insw) || !defined(SMC_outsw)
-#define SMC_insw(a, r, p, l)		BUG()
-#define SMC_outsw(a, r, p, l)		BUG()
+	#define SMC_insw(a, r, p, l)		BUG()
+	#define SMC_outsw(a, r, p, l)		BUG()
 #endif
 
 #if ! SMC_CAN_USE_8BIT
-#undef SMC_inb
-#define SMC_inb(ioaddr, reg)		({ BUG(); 0; })
-#undef SMC_outb
-#define SMC_outb(x, ioaddr, reg)	BUG()
-#define SMC_insb(a, r, p, l)		BUG()
-#define SMC_outsb(a, r, p, l)		BUG()
+	#undef SMC_inb
+	#define SMC_inb(ioaddr, reg)		({ BUG(); 0; })
+	#undef SMC_outb
+	#define SMC_outb(x, ioaddr, reg)	BUG()
+	#define SMC_insb(a, r, p, l)		BUG()
+	#define SMC_outsb(a, r, p, l)		BUG()
 #endif
 
 #if !defined(SMC_insb) || !defined(SMC_outsb)
-#define SMC_insb(a, r, p, l)		BUG()
-#define SMC_outsb(a, r, p, l)		BUG()
+	#define SMC_insb(a, r, p, l)		BUG()
+	#define SMC_outsb(a, r, p, l)		BUG()
 #endif
 
 #ifndef SMC_CAN_USE_DATACS
-#define SMC_CAN_USE_DATACS	0
+	#define SMC_CAN_USE_DATACS	0
 #endif
 
 #ifndef SMC_IO_SHIFT
-#define SMC_IO_SHIFT	0
+	#define SMC_IO_SHIFT	0
 #endif
 
 #ifndef	SMC_IRQ_FLAGS
-#define	SMC_IRQ_FLAGS		IRQF_TRIGGER_RISING
+	#define	SMC_IRQ_FLAGS		IRQF_TRIGGER_RISING
 #endif
 
 #ifndef SMC_INTERRUPT_PREAMBLE
-#define SMC_INTERRUPT_PREAMBLE
+	#define SMC_INTERRUPT_PREAMBLE
 #endif
 
 
@@ -589,10 +614,10 @@ smc_pxa_dma_insw(void __iomem *ioaddr, struct smc_local *lp, int reg, int dma,
 #define RPC_LSXB_SHFT	2	// Bits to get LS2B,LS1B,LS0B to lsb
 
 #ifndef RPC_LSA_DEFAULT
-#define RPC_LSA_DEFAULT	RPC_LED_100
+	#define RPC_LSA_DEFAULT	RPC_LED_100
 #endif
 #ifndef RPC_LSB_DEFAULT
-#define RPC_LSB_DEFAULT RPC_LED_FD
+	#define RPC_LSB_DEFAULT RPC_LED_FD
 #endif
 
 #define RPC_DEFAULT (RPC_ANEG | RPC_SPEED | RPC_DPLX)
@@ -760,7 +785,8 @@ smc_pxa_dma_insw(void __iomem *ioaddr, struct smc_local *lp, int reg, int dma,
 #define CHIP_91100FD	8
 #define CHIP_91111FD	9
 
-static const char * chip_ids[ 16 ] =  {
+static const char *chip_ids[ 16 ] =
+{
 	NULL, NULL, NULL,
 	/* 3 */ "SMC91C90/91C92",
 	/* 4 */ "SMC91C94",
@@ -770,7 +796,8 @@ static const char * chip_ids[ 16 ] =  {
 	/* 8 */ "SMC91C100FD",
 	/* 9 */ "SMC91C11xFD",
 	NULL, NULL, NULL,
-	NULL, NULL, NULL};
+	NULL, NULL, NULL
+};
 
 
 /*
@@ -878,7 +905,7 @@ static const char * chip_ids[ 16 ] =  {
 		int __b = SMC_CURRENT_BANK(lp);			\
 		if (unlikely((__b & ~0xf0) != (0x3300 | bank))) {	\
 			pr_err("%s: bank reg screwed (0x%04x)\n",	\
-			       CARDNAME, __b);				\
+				   CARDNAME, __b);				\
 			BUG();						\
 		}							\
 		reg<<SMC_IO_SHIFT;					\
@@ -900,7 +927,7 @@ static const char * chip_ids[ 16 ] =  {
 
 #define SMC_GET_PN(lp)						\
 	(SMC_8BIT(lp)	? (SMC_inb(ioaddr, PN_REG(lp)))	\
-				: (SMC_inw(ioaddr, PN_REG(lp)) & 0xFF))
+	 : (SMC_inw(ioaddr, PN_REG(lp)) & 0xFF))
 
 #define SMC_SET_PN(lp, x)						\
 	do {								\
@@ -914,19 +941,19 @@ static const char * chip_ids[ 16 ] =  {
 
 #define SMC_GET_AR(lp)						\
 	(SMC_8BIT(lp)	? (SMC_inb(ioaddr, AR_REG(lp)))	\
-				: (SMC_inw(ioaddr, PN_REG(lp)) >> 8))
+	 : (SMC_inw(ioaddr, PN_REG(lp)) >> 8))
 
 #define SMC_GET_TXFIFO(lp)						\
 	(SMC_8BIT(lp)	? (SMC_inb(ioaddr, TXFIFO_REG(lp)))	\
-				: (SMC_inw(ioaddr, TXFIFO_REG(lp)) & 0xFF))
+	 : (SMC_inw(ioaddr, TXFIFO_REG(lp)) & 0xFF))
 
 #define SMC_GET_RXFIFO(lp)						\
 	(SMC_8BIT(lp)	? (SMC_inb(ioaddr, RXFIFO_REG(lp)))	\
-				: (SMC_inw(ioaddr, TXFIFO_REG(lp)) >> 8))
+	 : (SMC_inw(ioaddr, TXFIFO_REG(lp)) >> 8))
 
 #define SMC_GET_INT(lp)						\
 	(SMC_8BIT(lp)	? (SMC_inb(ioaddr, INT_REG(lp)))	\
-				: (SMC_inw(ioaddr, INT_REG(lp)) & 0xFF))
+	 : (SMC_inw(ioaddr, INT_REG(lp)) & 0xFF))
 
 #define SMC_ACK_INT(lp, x)						\
 	do {								\
@@ -944,7 +971,7 @@ static const char * chip_ids[ 16 ] =  {
 
 #define SMC_GET_INT_MASK(lp)						\
 	(SMC_8BIT(lp)	? (SMC_inb(ioaddr, IM_REG(lp)))	\
-				: (SMC_inw(ioaddr, INT_REG(lp)) >> 8))
+	 : (SMC_inw(ioaddr, INT_REG(lp)) >> 8))
 
 #define SMC_SET_INT_MASK(lp, x)					\
 	do {								\
@@ -1067,7 +1094,7 @@ static const char * chip_ids[ 16 ] =  {
 	do {								\
 		if (SMC_32BIT(lp))					\
 			SMC_outl((status) | (length)<<16, ioaddr,	\
-				 DATA_REG(lp));			\
+					 DATA_REG(lp));			\
 		else {							\
 			SMC_outw(status, ioaddr, DATA_REG(lp));	\
 			SMC_outw(length, ioaddr, DATA_REG(lp));	\
@@ -1118,22 +1145,22 @@ static const char * chip_ids[ 16 ] =  {
 			void __iomem *__ioaddr = ioaddr;		\
 			if ((unsigned long)__ptr & 2) {			\
 				/*					\
-				 * We want 32bit alignment here.	\
-				 * Since some buses perform a full	\
-				 * 32bit fetch even for 16bit data	\
-				 * we can't use SMC_inw() here.		\
-				 * Back both source (on-chip) and	\
-				 * destination pointers of 2 bytes.	\
-				 * This is possible since the call to	\
-				 * SMC_GET_PKT_HDR() already advanced	\
-				 * the source pointer of 4 bytes, and	\
-				 * the skb_reserve(skb, 2) advanced	\
-				 * the destination pointer of 2 bytes.	\
-				 */					\
+							 * We want 32bit alignment here.	\
+							 * Since some buses perform a full	\
+							 * 32bit fetch even for 16bit data	\
+							 * we can't use SMC_inw() here.		\
+							 * Back both source (on-chip) and	\
+							 * destination pointers of 2 bytes.	\
+							 * This is possible since the call to	\
+							 * SMC_GET_PKT_HDR() already advanced	\
+							 * the source pointer of 4 bytes, and	\
+							 * the skb_reserve(skb, 2) advanced	\
+							 * the destination pointer of 2 bytes.	\
+							 */					\
 				__ptr -= 2;				\
 				__len += 2;				\
 				SMC_SET_PTR(lp,			\
-					2|PTR_READ|PTR_RCV|PTR_AUTOINC); \
+							2|PTR_READ|PTR_RCV|PTR_AUTOINC); \
 			}						\
 			if (SMC_CAN_USE_DATACS && lp->datacs)		\
 				__ioaddr = lp->datacs;			\

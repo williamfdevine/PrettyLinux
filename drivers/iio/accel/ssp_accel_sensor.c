@@ -26,7 +26,8 @@
 #define SSP_ACCEL_NAME "ssp-accelerometer"
 static const char ssp_accel_device_name[] = SSP_ACCEL_NAME;
 
-enum ssp_accel_3d_channel {
+enum ssp_accel_3d_channel
+{
 	SSP_CHANNEL_SCAN_INDEX_X,
 	SSP_CHANNEL_SCAN_INDEX_Y,
 	SSP_CHANNEL_SCAN_INDEX_Z,
@@ -34,54 +35,63 @@ enum ssp_accel_3d_channel {
 };
 
 static int ssp_accel_read_raw(struct iio_dev *indio_dev,
-			      struct iio_chan_spec const *chan,  int *val,
-			      int *val2, long mask)
+							  struct iio_chan_spec const *chan,  int *val,
+							  int *val2, long mask)
 {
 	u32 t;
 	struct ssp_data *data = dev_get_drvdata(indio_dev->dev.parent->parent);
 
-	switch (mask) {
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		t = ssp_get_sensor_delay(data, SSP_ACCELEROMETER_SENSOR);
-		ssp_convert_to_freq(t, val, val2);
-		return IIO_VAL_INT_PLUS_MICRO;
-	default:
-		break;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			t = ssp_get_sensor_delay(data, SSP_ACCELEROMETER_SENSOR);
+			ssp_convert_to_freq(t, val, val2);
+			return IIO_VAL_INT_PLUS_MICRO;
+
+		default:
+			break;
 	}
 
 	return -EINVAL;
 }
 
 static int ssp_accel_write_raw(struct iio_dev *indio_dev,
-			       struct iio_chan_spec const *chan, int val,
-			       int val2, long mask)
+							   struct iio_chan_spec const *chan, int val,
+							   int val2, long mask)
 {
 	int ret;
 	struct ssp_data *data = dev_get_drvdata(indio_dev->dev.parent->parent);
 
-	switch (mask) {
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		ret = ssp_convert_to_time(val, val2);
-		ret = ssp_change_delay(data, SSP_ACCELEROMETER_SENSOR, ret);
-		if (ret < 0)
-			dev_err(&indio_dev->dev, "accel sensor enable fail\n");
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			ret = ssp_convert_to_time(val, val2);
+			ret = ssp_change_delay(data, SSP_ACCELEROMETER_SENSOR, ret);
 
-		return ret;
-	default:
-		break;
+			if (ret < 0)
+			{
+				dev_err(&indio_dev->dev, "accel sensor enable fail\n");
+			}
+
+			return ret;
+
+		default:
+			break;
 	}
 
 	return -EINVAL;
 }
 
-static const struct iio_info ssp_accel_iio_info = {
+static const struct iio_info ssp_accel_iio_info =
+{
 	.read_raw = &ssp_accel_read_raw,
 	.write_raw = &ssp_accel_write_raw,
 };
 
 static const unsigned long ssp_accel_scan_mask[] = { 0x7, 0, };
 
-static const struct iio_chan_spec ssp_acc_channels[] = {
+static const struct iio_chan_spec ssp_acc_channels[] =
+{
 	SSP_CHANNEL_AG(IIO_ACCEL, IIO_MOD_X, SSP_CHANNEL_SCAN_INDEX_X),
 	SSP_CHANNEL_AG(IIO_ACCEL, IIO_MOD_Y, SSP_CHANNEL_SCAN_INDEX_Y),
 	SSP_CHANNEL_AG(IIO_ACCEL, IIO_MOD_Z, SSP_CHANNEL_SCAN_INDEX_Z),
@@ -89,13 +99,14 @@ static const struct iio_chan_spec ssp_acc_channels[] = {
 };
 
 static int ssp_process_accel_data(struct iio_dev *indio_dev, void *buf,
-				  int64_t timestamp)
+								  int64_t timestamp)
 {
 	return ssp_common_process_data(indio_dev, buf, SSP_ACCELEROMETER_SIZE,
-				       timestamp);
+								   timestamp);
 }
 
-static const struct iio_buffer_setup_ops ssp_accel_buffer_ops = {
+static const struct iio_buffer_setup_ops ssp_accel_buffer_ops =
+{
 	.postenable = &ssp_common_buffer_postenable,
 	.postdisable = &ssp_common_buffer_postdisable,
 };
@@ -108,8 +119,11 @@ static int ssp_accel_probe(struct platform_device *pdev)
 	struct iio_buffer *buffer;
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(*spd));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	spd = iio_priv(indio_dev);
 
@@ -126,8 +140,11 @@ static int ssp_accel_probe(struct platform_device *pdev)
 	indio_dev->available_scan_masks = ssp_accel_scan_mask;
 
 	buffer = devm_iio_kfifo_allocate(&pdev->dev);
+
 	if (!buffer)
+	{
 		return -ENOMEM;
+	}
 
 	iio_device_attach_buffer(indio_dev, buffer);
 
@@ -136,8 +153,11 @@ static int ssp_accel_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, indio_dev);
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* ssp registering should be done after all iio setup */
 	ssp_register_consumer(indio_dev, SSP_ACCELEROMETER_SENSOR);
@@ -154,7 +174,8 @@ static int ssp_accel_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ssp_accel_driver = {
+static struct platform_driver ssp_accel_driver =
+{
 	.driver = {
 		.name = SSP_ACCEL_NAME,
 	},

@@ -34,7 +34,8 @@ struct macvtap_queue;
 #define MACVLAN_MC_FILTER_BITS	8
 #define MACVLAN_MC_FILTER_SZ	(1 << MACVLAN_MC_FILTER_BITS)
 
-struct macvlan_dev {
+struct macvlan_dev
+{
 	struct net_device	*dev;
 	struct list_head	list;
 	struct hlist_node	hlist;
@@ -64,20 +65,27 @@ struct macvlan_dev {
 };
 
 static inline void macvlan_count_rx(const struct macvlan_dev *vlan,
-				    unsigned int len, bool success,
-				    bool multicast)
+									unsigned int len, bool success,
+									bool multicast)
 {
-	if (likely(success)) {
+	if (likely(success))
+	{
 		struct vlan_pcpu_stats *pcpu_stats;
 
 		pcpu_stats = this_cpu_ptr(vlan->pcpu_stats);
 		u64_stats_update_begin(&pcpu_stats->syncp);
 		pcpu_stats->rx_packets++;
 		pcpu_stats->rx_bytes += len;
+
 		if (multicast)
+		{
 			pcpu_stats->rx_multicast++;
+		}
+
 		u64_stats_update_end(&pcpu_stats->syncp);
-	} else {
+	}
+	else
+	{
 		this_cpu_inc(vlan->pcpu_stats->rx_errors);
 	}
 }
@@ -85,11 +93,11 @@ static inline void macvlan_count_rx(const struct macvlan_dev *vlan,
 extern void macvlan_common_setup(struct net_device *dev);
 
 extern int macvlan_common_newlink(struct net *src_net, struct net_device *dev,
-				  struct nlattr *tb[], struct nlattr *data[]);
+								  struct nlattr *tb[], struct nlattr *data[]);
 
 extern void macvlan_count_rx(const struct macvlan_dev *vlan,
-			     unsigned int len, bool success,
-			     bool multicast);
+							 unsigned int len, bool success,
+							 bool multicast);
 
 extern void macvlan_dellink(struct net_device *dev, struct list_head *head);
 

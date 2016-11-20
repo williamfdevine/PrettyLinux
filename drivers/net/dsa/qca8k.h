@@ -37,9 +37,9 @@
 #define QCA8K_REG_PORT6_PAD_CTRL			0x00c
 #define   QCA8K_PORT_PAD_RGMII_EN			BIT(26)
 #define   QCA8K_PORT_PAD_RGMII_TX_DELAY(x)		\
-						((0x8 + (x & 0x3)) << 22)
+	((0x8 + (x & 0x3)) << 22)
 #define   QCA8K_PORT_PAD_RGMII_RX_DELAY(x)		\
-						((0x10 + (x & 0x3)) << 20)
+	((0x10 + (x & 0x3)) << 20)
 #define   QCA8K_PORT_PAD_RGMII_RX_DELAY_EN		BIT(24)
 #define   QCA8K_PORT_PAD_SGMII_EN			BIT(7)
 #define QCA8K_REG_MODULE_EN				0x030
@@ -140,14 +140,16 @@
 #define MII_ATH_MMD_ADDR				0x0d
 #define MII_ATH_MMD_DATA				0x0e
 
-enum {
+enum
+{
 	QCA8K_PORT_SPEED_10M = 0,
 	QCA8K_PORT_SPEED_100M = 1,
 	QCA8K_PORT_SPEED_1000M = 2,
 	QCA8K_PORT_SPEED_ERR = 3,
 };
 
-enum qca8k_fdb_cmd {
+enum qca8k_fdb_cmd
+{
 	QCA8K_FDB_FLUSH	= 1,
 	QCA8K_FDB_LOAD = 2,
 	QCA8K_FDB_PURGE = 3,
@@ -155,13 +157,15 @@ enum qca8k_fdb_cmd {
 	QCA8K_FDB_SEARCH = 7,
 };
 
-struct ar8xxx_port_status {
+struct ar8xxx_port_status
+{
 	struct ethtool_eee eee;
 	struct net_device *bridge_dev;
 	int enabled;
 };
 
-struct qca8k_priv {
+struct qca8k_priv
+{
 	struct regmap *regmap;
 	struct mii_bus *bus;
 	struct ar8xxx_port_status port_sts[QCA8K_NUM_PORTS];
@@ -169,13 +173,15 @@ struct qca8k_priv {
 	struct mutex reg_mutex;
 };
 
-struct qca8k_mib_desc {
+struct qca8k_mib_desc
+{
 	unsigned int size;
 	unsigned int offset;
 	const char *name;
 };
 
-struct qca8k_fdb {
+struct qca8k_fdb
+{
 	u16 vid;
 	u8 port_mask;
 	u8 aging;

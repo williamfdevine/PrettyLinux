@@ -1,11 +1,13 @@
 #ifndef __NVBIOS_THERM_H__
 #define __NVBIOS_THERM_H__
-struct nvbios_therm_threshold {
+struct nvbios_therm_threshold
+{
 	u8 temp;
 	u8 hysteresis;
 };
 
-struct nvbios_therm_sensor {
+struct nvbios_therm_sensor
+{
 	/* diode */
 	s16 slope_mult;
 	s16 slope_div;
@@ -20,7 +22,8 @@ struct nvbios_therm_sensor {
 	struct nvbios_therm_threshold thrs_shutdown;
 };
 
-enum nvbios_therm_fan_type {
+enum nvbios_therm_fan_type
+{
 	NVBIOS_THERM_FAN_UNK = 0,
 	NVBIOS_THERM_FAN_TOGGLE = 1,
 	NVBIOS_THERM_FAN_PWM = 2,
@@ -28,19 +31,22 @@ enum nvbios_therm_fan_type {
 
 /* no vbios have more than 6 */
 #define NVKM_TEMP_FAN_TRIP_MAX 10
-struct nvbios_therm_trip_point {
+struct nvbios_therm_trip_point
+{
 	int fan_duty;
 	int temp;
 	int hysteresis;
 };
 
-enum nvbios_therm_fan_mode {
+enum nvbios_therm_fan_mode
+{
 	NVBIOS_THERM_FAN_TRIP = 0,
 	NVBIOS_THERM_FAN_LINEAR = 1,
 	NVBIOS_THERM_FAN_OTHER = 2,
 };
 
-struct nvbios_therm_fan {
+struct nvbios_therm_fan
+{
 	enum nvbios_therm_fan_type type;
 
 	u32 pwm_freq;
@@ -58,14 +64,15 @@ struct nvbios_therm_fan {
 	u8 linear_max_temp;
 };
 
-enum nvbios_therm_domain {
+enum nvbios_therm_domain
+{
 	NVBIOS_THERM_DOMAIN_CORE,
 	NVBIOS_THERM_DOMAIN_AMBIENT,
 };
 
 int
 nvbios_therm_sensor_parse(struct nvkm_bios *, enum nvbios_therm_domain,
-			  struct nvbios_therm_sensor *);
+						  struct nvbios_therm_sensor *);
 
 int
 nvbios_therm_fan_parse(struct nvkm_bios *, struct nvbios_therm_fan *);

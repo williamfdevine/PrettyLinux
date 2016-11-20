@@ -35,38 +35,47 @@ u32 rv740_get_decoded_reference_divider(u32 encoded_ref)
 {
 	u32 ref = 0;
 
-	switch (encoded_ref) {
-	case 0:
-		ref = 1;
-		break;
-	case 16:
-		ref = 2;
-		break;
-	case 17:
-		ref = 3;
-		break;
-	case 18:
-		ref = 2;
-		break;
-	case 19:
-		ref = 3;
-		break;
-	case 20:
-		ref = 4;
-		break;
-	case 21:
-		ref = 5;
-		break;
-	default:
-		DRM_ERROR("Invalid encoded Reference Divider\n");
-		ref = 0;
-		break;
+	switch (encoded_ref)
+	{
+		case 0:
+			ref = 1;
+			break;
+
+		case 16:
+			ref = 2;
+			break;
+
+		case 17:
+			ref = 3;
+			break;
+
+		case 18:
+			ref = 2;
+			break;
+
+		case 19:
+			ref = 3;
+			break;
+
+		case 20:
+			ref = 4;
+			break;
+
+		case 21:
+			ref = 5;
+			break;
+
+		default:
+			DRM_ERROR("Invalid encoded Reference Divider\n");
+			ref = 0;
+			break;
 	}
 
 	return ref;
 }
 
-struct dll_speed_setting {
+struct dll_speed_setting
+{
 	u16 min;
 	u16 max;
 	u32 dll_speed;
@@ -99,17 +108,25 @@ u32 rv740_get_dll_speed(bool is_gddr5, u32 memory_clock)
 	u16 data_rate;
 
 	if (is_gddr5)
+	{
 		factor = 4;
+	}
 	else
+	{
 		factor = 2;
+	}
 
 	data_rate = (u16)(memory_clock * factor / 1000);
 
-	if (data_rate < dll_speed_table[0].max) {
-		for (i = 0; i < 16; i++) {
+	if (data_rate < dll_speed_table[0].max)
+	{
+		for (i = 0; i < 16; i++)
+		{
 			if (data_rate > dll_speed_table[i].min &&
-			    data_rate <= dll_speed_table[i].max)
+				data_rate <= dll_speed_table[i].max)
+			{
 				return dll_speed_table[i].dll_speed;
+			}
 		}
 	}
 
@@ -119,7 +136,7 @@ u32 rv740_get_dll_speed(bool is_gddr5, u32 memory_clock)
 }
 
 int rv740_populate_sclk_value(struct radeon_device *rdev, u32 engine_clock,
-			      RV770_SMC_SCLK_VALUE *sclk)
+							  RV770_SMC_SCLK_VALUE *sclk)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	struct atom_clock_dividers dividers;
@@ -135,9 +152,12 @@ int rv740_populate_sclk_value(struct radeon_device *rdev, u32 engine_clock,
 	int ret;
 
 	ret = radeon_atom_get_clock_dividers(rdev, COMPUTE_ENGINE_PLL_PARAM,
-					     engine_clock, false, &dividers);
+										 engine_clock, false, &dividers);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	reference_divider = 1 + dividers.ref_div;
 
@@ -156,12 +176,14 @@ int rv740_populate_sclk_value(struct radeon_device *rdev, u32 engine_clock,
 	spll_func_cntl_3 |= SPLL_FB_DIV(fbdiv);
 	spll_func_cntl_3 |= SPLL_DITHEN;
 
-	if (pi->sclk_ss) {
+	if (pi->sclk_ss)
+	{
 		struct radeon_atom_ss ss;
 		u32 vco_freq = engine_clock * dividers.post_div;
 
 		if (radeon_atombios_get_asic_ss_info(rdev, &ss,
-						     ASIC_INTERNAL_ENGINE_SS, vco_freq)) {
+											 ASIC_INTERNAL_ENGINE_SS, vco_freq))
+		{
 			u32 clk_s = reference_clock * 5 / (reference_divider * ss.rate);
 			u32 clk_v = 4 * ss.percentage * fbdiv / (clk_s * 10000);
 
@@ -185,8 +207,8 @@ int rv740_populate_sclk_value(struct radeon_device *rdev, u32 engine_clock,
 }
 
 int rv740_populate_mclk_value(struct radeon_device *rdev,
-			      u32 engine_clock, u32 memory_clock,
-			      RV7XX_SMC_MCLK_VALUE *mclk)
+							  u32 engine_clock, u32 memory_clock,
+							  RV7XX_SMC_MCLK_VALUE *mclk)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	u32 mpll_ad_func_cntl = pi->clk_regs.rv770.mpll_ad_func_cntl;
@@ -203,17 +225,20 @@ int rv740_populate_mclk_value(struct radeon_device *rdev,
 	int ret;
 
 	ret = radeon_atom_get_clock_dividers(rdev, COMPUTE_MEMORY_PLL_PARAM,
-					     memory_clock, false, &dividers);
+										 memory_clock, false, &dividers);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ibias = rv770_map_clkf_to_ibias(rdev, dividers.whole_fb_div);
 
 	mpll_ad_func_cntl &= ~(CLKR_MASK |
-			       YCLK_POST_DIV_MASK |
-			       CLKF_MASK |
-			       CLKFRAC_MASK |
-			       IBIAS_MASK);
+						   YCLK_POST_DIV_MASK |
+						   CLKF_MASK |
+						   CLKFRAC_MASK |
+						   IBIAS_MASK);
 	mpll_ad_func_cntl |= CLKR(dividers.ref_div);
 	mpll_ad_func_cntl |= YCLK_POST_DIV(dividers.post_div);
 	mpll_ad_func_cntl |= CLKF(dividers.whole_fb_div);
@@ -221,16 +246,21 @@ int rv740_populate_mclk_value(struct radeon_device *rdev,
 	mpll_ad_func_cntl |= IBIAS(ibias);
 
 	if (dividers.vco_mode)
+	{
 		mpll_ad_func_cntl_2 |= VCO_MODE;
+	}
 	else
+	{
 		mpll_ad_func_cntl_2 &= ~VCO_MODE;
+	}
 
-	if (pi->mem_gddr5) {
+	if (pi->mem_gddr5)
+	{
 		mpll_dq_func_cntl &= ~(CLKR_MASK |
-				       YCLK_POST_DIV_MASK |
-				       CLKF_MASK |
-				       CLKFRAC_MASK |
-				       IBIAS_MASK);
+							   YCLK_POST_DIV_MASK |
+							   CLKF_MASK |
+							   CLKFRAC_MASK |
+							   IBIAS_MASK);
 		mpll_dq_func_cntl |= CLKR(dividers.ref_div);
 		mpll_dq_func_cntl |= YCLK_POST_DIV(dividers.post_div);
 		mpll_dq_func_cntl |= CLKF(dividers.whole_fb_div);
@@ -238,22 +268,28 @@ int rv740_populate_mclk_value(struct radeon_device *rdev,
 		mpll_dq_func_cntl |= IBIAS(ibias);
 
 		if (dividers.vco_mode)
+		{
 			mpll_dq_func_cntl_2 |= VCO_MODE;
+		}
 		else
+		{
 			mpll_dq_func_cntl_2 &= ~VCO_MODE;
+		}
 	}
 
-	if (pi->mclk_ss) {
+	if (pi->mclk_ss)
+	{
 		struct radeon_atom_ss ss;
 		u32 vco_freq = memory_clock * dividers.post_div;
 
 		if (radeon_atombios_get_asic_ss_info(rdev, &ss,
-						     ASIC_INTERNAL_MEMORY_SS, vco_freq)) {
+											 ASIC_INTERNAL_MEMORY_SS, vco_freq))
+		{
 			u32 reference_clock = rdev->clock.mpll.reference_freq;
 			u32 decoded_ref = rv740_get_decoded_reference_divider(dividers.ref_div);
 			u32 clk_s = reference_clock * 5 / (decoded_ref * ss.rate);
 			u32 clk_v = 0x40000 * ss.percentage *
-				(dividers.whole_fb_div + (dividers.frac_fb_div / 8)) / (clk_s * 10000);
+						(dividers.whole_fb_div + (dividers.frac_fb_div / 8)) / (clk_s * 10000);
 
 			mpll_ss1 &= ~CLKV_MASK;
 			mpll_ss1 |= CLKV(clk_v);
@@ -264,7 +300,7 @@ int rv740_populate_mclk_value(struct radeon_device *rdev,
 	}
 
 	dll_speed = rv740_get_dll_speed(pi->mem_gddr5,
-					memory_clock);
+									memory_clock);
 
 	mclk_pwrmgt_cntl &= ~DLL_SPEED_MASK;
 	mclk_pwrmgt_cntl |= DLL_SPEED(dll_speed);
@@ -313,7 +349,7 @@ void rv740_read_clock_registers(struct radeon_device *rdev)
 }
 
 int rv740_populate_smc_acpi_state(struct radeon_device *rdev,
-				  RV770_SMC_STATETABLE *table)
+								  RV770_SMC_STATETABLE *table)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	u32 mpll_ad_func_cntl = pi->clk_regs.rv770.mpll_ad_func_cntl;
@@ -330,17 +366,20 @@ int rv740_populate_smc_acpi_state(struct radeon_device *rdev,
 
 	table->ACPIState.flags &= ~PPSMC_SWSTATE_FLAG_DC;
 
-	if (pi->acpi_vddc) {
+	if (pi->acpi_vddc)
+	{
 		rv770_populate_vddc_value(rdev, pi->acpi_vddc,
-					  &table->ACPIState.levels[0].vddc);
+								  &table->ACPIState.levels[0].vddc);
 		table->ACPIState.levels[0].gen2PCIE =
 			pi->pcie_gen2 ?
 			pi->acpi_pcie_gen2 : 0;
 		table->ACPIState.levels[0].gen2XSP =
 			pi->acpi_pcie_gen2;
-	} else {
+	}
+	else
+	{
 		rv770_populate_vddc_value(rdev, pi->min_vddc_in_table,
-					  &table->ACPIState.levels[0].vddc);
+								  &table->ACPIState.levels[0].vddc);
 		table->ACPIState.levels[0].gen2PCIE = 0;
 	}
 
@@ -349,22 +388,22 @@ int rv740_populate_smc_acpi_state(struct radeon_device *rdev,
 	mpll_dq_func_cntl_2 |= BYPASS | BIAS_GEN_PDNB | RESET_EN;
 
 	mclk_pwrmgt_cntl |= (MRDCKA0_RESET |
-			     MRDCKA1_RESET |
-			     MRDCKB0_RESET |
-			     MRDCKB1_RESET |
-			     MRDCKC0_RESET |
-			     MRDCKC1_RESET |
-			     MRDCKD0_RESET |
-			     MRDCKD1_RESET);
+						 MRDCKA1_RESET |
+						 MRDCKB0_RESET |
+						 MRDCKB1_RESET |
+						 MRDCKC0_RESET |
+						 MRDCKC1_RESET |
+						 MRDCKD0_RESET |
+						 MRDCKD1_RESET);
 
 	dll_cntl |= (MRDCKA0_BYPASS |
-		     MRDCKA1_BYPASS |
-		     MRDCKB0_BYPASS |
-		     MRDCKB1_BYPASS |
-		     MRDCKC0_BYPASS |
-		     MRDCKC1_BYPASS |
-		     MRDCKD0_BYPASS |
-		     MRDCKD1_BYPASS);
+				 MRDCKA1_BYPASS |
+				 MRDCKB0_BYPASS |
+				 MRDCKB1_BYPASS |
+				 MRDCKC0_BYPASS |
+				 MRDCKC1_BYPASS |
+				 MRDCKD0_BYPASS |
+				 MRDCKD1_BYPASS);
 
 	spll_func_cntl |= SPLL_RESET | SPLL_SLEEP | SPLL_BYPASS_EN;
 
@@ -395,12 +434,16 @@ int rv740_populate_smc_acpi_state(struct radeon_device *rdev,
 }
 
 void rv740_enable_mclk_spread_spectrum(struct radeon_device *rdev,
-				       bool enable)
+									   bool enable)
 {
 	if (enable)
+	{
 		WREG32_P(MPLL_CNTL_MODE, SS_SSEN, ~SS_SSEN);
+	}
 	else
+	{
 		WREG32_P(MPLL_CNTL_MODE, 0, ~SS_SSEN);
+	}
 }
 
 u8 rv740_get_mclk_frequency_ratio(u32 memory_clock)
@@ -408,9 +451,13 @@ u8 rv740_get_mclk_frequency_ratio(u32 memory_clock)
 	u8 mc_para_index;
 
 	if ((memory_clock < 10000) || (memory_clock > 47500))
+	{
 		mc_para_index = 0x00;
+	}
 	else
+	{
 		mc_para_index = (u8)((memory_clock - 10000) / 2500);
+	}
 
 	return mc_para_index;
 }

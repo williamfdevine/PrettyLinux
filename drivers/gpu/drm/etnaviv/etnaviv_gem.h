@@ -23,14 +23,16 @@
 struct etnaviv_gem_ops;
 struct etnaviv_gem_object;
 
-struct etnaviv_gem_userptr {
+struct etnaviv_gem_userptr
+{
 	uintptr_t ptr;
 	struct task_struct *task;
 	struct work_struct *work;
 	bool ro;
 };
 
-struct etnaviv_vram_mapping {
+struct etnaviv_vram_mapping
+{
 	struct list_head obj_node;
 	struct list_head scan_node;
 	struct list_head mmu_node;
@@ -41,7 +43,8 @@ struct etnaviv_vram_mapping {
 	u32 iova;
 };
 
-struct etnaviv_gem_object {
+struct etnaviv_gem_object
+{
 	struct drm_gem_object base;
 	const struct etnaviv_gem_ops *ops;
 	struct mutex lock;
@@ -75,7 +78,8 @@ struct etnaviv_gem_object *to_etnaviv_bo(struct drm_gem_object *obj)
 	return container_of(obj, struct etnaviv_gem_object, base);
 }
 
-struct etnaviv_gem_ops {
+struct etnaviv_gem_ops
+{
 	int (*get_pages)(struct etnaviv_gem_object *);
 	void (*release)(struct etnaviv_gem_object *);
 	void *(*vmap)(struct etnaviv_gem_object *);
@@ -89,7 +93,8 @@ static inline bool is_active(struct etnaviv_gem_object *etnaviv_obj)
 
 #define MAX_CMDS 4
 
-struct etnaviv_gem_submit_bo {
+struct etnaviv_gem_submit_bo
+{
 	u32 flags;
 	struct etnaviv_gem_object *obj;
 	struct etnaviv_vram_mapping *mapping;
@@ -100,7 +105,8 @@ struct etnaviv_gem_submit_bo {
  * make it easier to unwind when things go wrong, etc).  This only
  * lasts for the duration of the submit-ioctl.
  */
-struct etnaviv_gem_submit {
+struct etnaviv_gem_submit
+{
 	struct drm_device *dev;
 	struct etnaviv_gpu *gpu;
 	struct ww_acquire_ctx ticket;
@@ -110,10 +116,10 @@ struct etnaviv_gem_submit {
 };
 
 int etnaviv_gem_wait_bo(struct etnaviv_gpu *gpu, struct drm_gem_object *obj,
-	struct timespec *timeout);
+						struct timespec *timeout);
 int etnaviv_gem_new_private(struct drm_device *dev, size_t size, u32 flags,
-	struct reservation_object *robj, const struct etnaviv_gem_ops *ops,
-	struct etnaviv_gem_object **res);
+							struct reservation_object *robj, const struct etnaviv_gem_ops *ops,
+							struct etnaviv_gem_object **res);
 int etnaviv_gem_obj_add(struct drm_device *dev, struct drm_gem_object *obj);
 struct page **etnaviv_gem_get_pages(struct etnaviv_gem_object *obj);
 void etnaviv_gem_put_pages(struct etnaviv_gem_object *obj);

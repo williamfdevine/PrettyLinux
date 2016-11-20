@@ -46,7 +46,8 @@
 
 #include "../../include/linux/libcfs/libcfs.h"
 
-struct portals_handle_ops {
+struct portals_handle_ops
+{
 	void (*hop_addref)(void *object);
 	void (*hop_free)(void *object, int size);
 };
@@ -63,7 +64,8 @@ struct portals_handle_ops {
  * ldlm_lock.  If it's not at the top, you'll want to use container_of()
  * to compute the start of the structure based on the handle field.
  */
-struct portals_handle {
+struct portals_handle
+{
 	struct list_head			h_link;
 	__u64				h_cookie;
 	const void			*h_owner;
@@ -72,15 +74,15 @@ struct portals_handle {
 	/* newly added fields to handle the RCU issue. -jxiong */
 	struct rcu_head			h_rcu;
 	spinlock_t			h_lock;
-	unsigned int			h_size:31;
-	unsigned int			h_in:1;
+	unsigned int			h_size: 31;
+	unsigned int			h_in: 1;
 };
 
 /* handles.c */
 
 /* Add a handle to the hash table */
 void class_handle_hash(struct portals_handle *,
-		       struct portals_handle_ops *ops);
+					   struct portals_handle_ops *ops);
 void class_handle_unhash(struct portals_handle *);
 void *class_handle2object(__u64 cookie, const void *owner);
 void class_handle_free_cb(struct rcu_head *rcu);

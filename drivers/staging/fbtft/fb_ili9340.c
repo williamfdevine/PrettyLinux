@@ -71,13 +71,13 @@ static int init_display(struct fbtft_par *par)
 
 	/* Positive Gamma Correction */
 	write_reg(par, 0xE0,
-		  0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, 0x4E, 0xF1,
-		  0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00);
+			  0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, 0x4E, 0xF1,
+			  0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00);
 
 	/* Negative Gamma Correction */
 	write_reg(par, 0xE1,
-		  0x00, 0x0E, 0x14, 0x03, 0x11, 0x07, 0x31, 0xC1,
-		  0x48, 0x08, 0x0F, 0x0C, 0x31, 0x36, 0x0F);
+			  0x00, 0x0E, 0x14, 0x03, 0x11, 0x07, 0x31, 0xC1,
+			  0x48, 0x08, 0x0F, 0x0C, 0x31, 0x36, 0x0F);
 
 	write_reg(par, MIPI_DCS_EXIT_SLEEP_MODE);
 
@@ -91,10 +91,10 @@ static int init_display(struct fbtft_par *par)
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
 	write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
-		  xs >> 8, xs & 0xFF, xe >> 8, xe & 0xFF);
+			  xs >> 8, xs & 0xFF, xe >> 8, xe & 0xFF);
 
 	write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
-		  ys >> 8, ys & 0xFF, ye >> 8, ye & 0xFF);
+			  ys >> 8, ys & 0xFF, ye >> 8, ye & 0xFF);
 
 	write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
 }
@@ -106,27 +106,33 @@ static int set_var(struct fbtft_par *par)
 {
 	u8 val;
 
-	switch (par->info->var.rotate) {
-	case 270:
-		val = ILI9340_MADCTL_MV;
-		break;
-	case 180:
-		val = ILI9340_MADCTL_MY;
-		break;
-	case 90:
-		val = ILI9340_MADCTL_MV | ILI9340_MADCTL_MY | ILI9340_MADCTL_MX;
-		break;
-	default:
-		val = ILI9340_MADCTL_MX;
-		break;
+	switch (par->info->var.rotate)
+	{
+		case 270:
+			val = ILI9340_MADCTL_MV;
+			break;
+
+		case 180:
+			val = ILI9340_MADCTL_MY;
+			break;
+
+		case 90:
+			val = ILI9340_MADCTL_MV | ILI9340_MADCTL_MY | ILI9340_MADCTL_MX;
+			break;
+
+		default:
+			val = ILI9340_MADCTL_MX;
+			break;
 	}
+
 	/* Memory Access Control  */
 	write_reg(par, MIPI_DCS_SET_ADDRESS_MODE, val | (par->bgr << 3));
 
 	return 0;
 }
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = WIDTH,
 	.height = HEIGHT,

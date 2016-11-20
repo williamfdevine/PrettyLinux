@@ -30,7 +30,8 @@
 
 #include "aesp8-ppc.h"
 
-struct p8_aes_cbc_ctx {
+struct p8_aes_cbc_ctx
+{
 	struct crypto_blkcipher *fallback;
 	struct aes_key enc_key;
 	struct aes_key dec_key;
@@ -42,21 +43,25 @@ static int p8_aes_cbc_init(struct crypto_tfm *tfm)
 	struct crypto_blkcipher *fallback;
 	struct p8_aes_cbc_ctx *ctx = crypto_tfm_ctx(tfm);
 
-	if (!(alg = crypto_tfm_alg_name(tfm))) {
+	if (!(alg = crypto_tfm_alg_name(tfm)))
+	{
 		printk(KERN_ERR "Failed to get algorithm name.\n");
 		return -ENOENT;
 	}
 
 	fallback =
-	    crypto_alloc_blkcipher(alg, 0, CRYPTO_ALG_NEED_FALLBACK);
-	if (IS_ERR(fallback)) {
+		crypto_alloc_blkcipher(alg, 0, CRYPTO_ALG_NEED_FALLBACK);
+
+	if (IS_ERR(fallback))
+	{
 		printk(KERN_ERR
-		       "Failed to allocate transformation for '%s': %ld\n",
-		       alg, PTR_ERR(fallback));
+			   "Failed to allocate transformation for '%s': %ld\n",
+			   alg, PTR_ERR(fallback));
 		return PTR_ERR(fallback);
 	}
+
 	printk(KERN_INFO "Using '%s' as fallback implementation.\n",
-	       crypto_tfm_alg_driver_name((struct crypto_tfm *) fallback));
+		   crypto_tfm_alg_driver_name((struct crypto_tfm *) fallback));
 
 	crypto_blkcipher_set_flags(
 		fallback,
@@ -70,14 +75,15 @@ static void p8_aes_cbc_exit(struct crypto_tfm *tfm)
 {
 	struct p8_aes_cbc_ctx *ctx = crypto_tfm_ctx(tfm);
 
-	if (ctx->fallback) {
+	if (ctx->fallback)
+	{
 		crypto_free_blkcipher(ctx->fallback);
 		ctx->fallback = NULL;
 	}
 }
 
 static int p8_aes_cbc_setkey(struct crypto_tfm *tfm, const u8 *key,
-			     unsigned int keylen)
+							 unsigned int keylen)
 {
 	int ret;
 	struct p8_aes_cbc_ctx *ctx = crypto_tfm_ctx(tfm);
@@ -96,34 +102,40 @@ static int p8_aes_cbc_setkey(struct crypto_tfm *tfm, const u8 *key,
 }
 
 static int p8_aes_cbc_encrypt(struct blkcipher_desc *desc,
-			      struct scatterlist *dst,
-			      struct scatterlist *src, unsigned int nbytes)
+							  struct scatterlist *dst,
+							  struct scatterlist *src, unsigned int nbytes)
 {
 	int ret;
 	struct blkcipher_walk walk;
 	struct p8_aes_cbc_ctx *ctx =
 		crypto_tfm_ctx(crypto_blkcipher_tfm(desc->tfm));
-	struct blkcipher_desc fallback_desc = {
+	struct blkcipher_desc fallback_desc =
+	{
 		.tfm = ctx->fallback,
 		.info = desc->info,
 		.flags = desc->flags
 	};
 
-	if (in_interrupt()) {
+	if (in_interrupt())
+	{
 		ret = crypto_blkcipher_encrypt(&fallback_desc, dst, src,
-					       nbytes);
-	} else {
+									   nbytes);
+	}
+	else
+	{
 		preempt_disable();
 		pagefault_disable();
 		enable_kernel_vsx();
 
 		blkcipher_walk_init(&walk, dst, src, nbytes);
 		ret = blkcipher_walk_virt(desc, &walk);
-		while ((nbytes = walk.nbytes)) {
+
+		while ((nbytes = walk.nbytes))
+		{
 			aes_p8_cbc_encrypt(walk.src.virt.addr,
-					   walk.dst.virt.addr,
-					   nbytes & AES_BLOCK_MASK,
-					   &ctx->enc_key, walk.iv, 1);
+							   walk.dst.virt.addr,
+							   nbytes & AES_BLOCK_MASK,
+							   &ctx->enc_key, walk.iv, 1);
 			nbytes &= AES_BLOCK_SIZE - 1;
 			ret = blkcipher_walk_done(desc, &walk, nbytes);
 		}
@@ -137,34 +149,40 @@ static int p8_aes_cbc_encrypt(struct blkcipher_desc *desc,
 }
 
 static int p8_aes_cbc_decrypt(struct blkcipher_desc *desc,
-			      struct scatterlist *dst,
-			      struct scatterlist *src, unsigned int nbytes)
+							  struct scatterlist *dst,
+							  struct scatterlist *src, unsigned int nbytes)
 {
 	int ret;
 	struct blkcipher_walk walk;
 	struct p8_aes_cbc_ctx *ctx =
 		crypto_tfm_ctx(crypto_blkcipher_tfm(desc->tfm));
-	struct blkcipher_desc fallback_desc = {
+	struct blkcipher_desc fallback_desc =
+	{
 		.tfm = ctx->fallback,
 		.info = desc->info,
 		.flags = desc->flags
 	};
 
-	if (in_interrupt()) {
+	if (in_interrupt())
+	{
 		ret = crypto_blkcipher_decrypt(&fallback_desc, dst, src,
-					       nbytes);
-	} else {
+									   nbytes);
+	}
+	else
+	{
 		preempt_disable();
 		pagefault_disable();
 		enable_kernel_vsx();
 
 		blkcipher_walk_init(&walk, dst, src, nbytes);
 		ret = blkcipher_walk_virt(desc, &walk);
-		while ((nbytes = walk.nbytes)) {
+
+		while ((nbytes = walk.nbytes))
+		{
 			aes_p8_cbc_encrypt(walk.src.virt.addr,
-					   walk.dst.virt.addr,
-					   nbytes & AES_BLOCK_MASK,
-					   &ctx->dec_key, walk.iv, 0);
+							   walk.dst.virt.addr,
+							   nbytes & AES_BLOCK_MASK,
+							   &ctx->dec_key, walk.iv, 0);
 			nbytes &= AES_BLOCK_SIZE - 1;
 			ret = blkcipher_walk_done(desc, &walk, nbytes);
 		}
@@ -178,7 +196,8 @@ static int p8_aes_cbc_decrypt(struct blkcipher_desc *desc,
 }
 
 
-struct crypto_alg p8_aes_cbc_alg = {
+struct crypto_alg p8_aes_cbc_alg =
+{
 	.cra_name = "cbc(aes)",
 	.cra_driver_name = "p8_aes_cbc",
 	.cra_module = THIS_MODULE,
@@ -191,11 +210,11 @@ struct crypto_alg p8_aes_cbc_alg = {
 	.cra_init = p8_aes_cbc_init,
 	.cra_exit = p8_aes_cbc_exit,
 	.cra_blkcipher = {
-			  .ivsize = AES_BLOCK_SIZE,
-			  .min_keysize = AES_MIN_KEY_SIZE,
-			  .max_keysize = AES_MAX_KEY_SIZE,
-			  .setkey = p8_aes_cbc_setkey,
-			  .encrypt = p8_aes_cbc_encrypt,
-			  .decrypt = p8_aes_cbc_decrypt,
+		.ivsize = AES_BLOCK_SIZE,
+		.min_keysize = AES_MIN_KEY_SIZE,
+		.max_keysize = AES_MAX_KEY_SIZE,
+		.setkey = p8_aes_cbc_setkey,
+		.encrypt = p8_aes_cbc_encrypt,
+		.decrypt = p8_aes_cbc_decrypt,
 	},
 };

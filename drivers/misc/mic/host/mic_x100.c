@@ -44,10 +44,10 @@ static void
 mic_x100_write_spad(struct mic_device *mdev, unsigned int idx, u32 val)
 {
 	dev_dbg(&mdev->pdev->dev, "Writing 0x%x to scratch pad index %d\n",
-		val, idx);
+			val, idx);
 	mic_mmio_write(&mdev->mmio, val,
-		       MIC_X100_SBOX_BASE_ADDRESS +
-		       MIC_X100_SBOX_SPAD0 + idx * 4);
+				   MIC_X100_SBOX_BASE_ADDRESS +
+				   MIC_X100_SBOX_SPAD0 + idx * 4);
 }
 
 /**
@@ -63,11 +63,11 @@ static u32
 mic_x100_read_spad(struct mic_device *mdev, unsigned int idx)
 {
 	u32 val = mic_mmio_read(&mdev->mmio,
-		MIC_X100_SBOX_BASE_ADDRESS +
-		MIC_X100_SBOX_SPAD0 + idx * 4);
+							MIC_X100_SBOX_BASE_ADDRESS +
+							MIC_X100_SBOX_SPAD0 + idx * 4);
 
 	dev_dbg(&mdev->pdev->dev,
-		"Reading 0x%x from scratch pad index %d\n", val, idx);
+			"Reading 0x%x from scratch pad index %d\n", val, idx);
 	return val;
 }
 
@@ -90,10 +90,11 @@ static void mic_x100_enable_interrupts(struct mic_device *mdev)
 	 * Enable auto-clear when enabling interrupts. Applicable only for
 	 * MSI-x. Legacy and MSI mode cannot have auto-clear enabled.
 	 */
-	if (mdev->irq_info.num_vectors > 1) {
+	if (mdev->irq_info.num_vectors > 1)
+	{
 		reg = mic_mmio_read(mw, siac0);
 		reg |= MIC_X100_SBOX_DBR_BITS(0xf) |
-			MIC_X100_SBOX_DMA_BITS(0xff);
+			   MIC_X100_SBOX_DMA_BITS(0xff);
 		mic_mmio_write(mw, reg, siac0);
 	}
 }
@@ -113,10 +114,11 @@ static void mic_x100_disable_interrupts(struct mic_device *mdev)
 	reg = mic_mmio_read(mw, sice0);
 	mic_mmio_write(mw, reg, sicc0);
 
-	if (mdev->irq_info.num_vectors > 1) {
+	if (mdev->irq_info.num_vectors > 1)
+	{
 		reg = mic_mmio_read(mw, siac0);
 		reg &= ~(MIC_X100_SBOX_DBR_BITS(0xf) |
-			MIC_X100_SBOX_DMA_BITS(0xff));
+				 MIC_X100_SBOX_DMA_BITS(0xff));
 		mic_mmio_write(mw, reg, siac0);
 	}
 }
@@ -126,12 +128,12 @@ static void mic_x100_disable_interrupts(struct mic_device *mdev)
  * @mdev: pointer to mic_device instance
  */
 static void mic_x100_send_sbox_intr(struct mic_device *mdev,
-				    int doorbell)
+									int doorbell)
 {
 	struct mic_mw *mw = &mdev->mmio;
 	u64 apic_icr_offset = MIC_X100_SBOX_APICICR0 + doorbell * 8;
 	u32 apicicr_low = mic_mmio_read(mw, MIC_X100_SBOX_BASE_ADDRESS +
-					apic_icr_offset);
+									apic_icr_offset);
 
 	/* for MIC we need to make sure we "hit" the send_icr bit (13) */
 	apicicr_low = (apicicr_low | (1 << 13));
@@ -139,7 +141,7 @@ static void mic_x100_send_sbox_intr(struct mic_device *mdev,
 	/* Ensure that the interrupt is ordered w.r.t. previous stores. */
 	wmb();
 	mic_mmio_write(mw, apicicr_low,
-		       MIC_X100_SBOX_BASE_ADDRESS + apic_icr_offset);
+				   MIC_X100_SBOX_BASE_ADDRESS + apic_icr_offset);
 }
 
 /**
@@ -147,13 +149,13 @@ static void mic_x100_send_sbox_intr(struct mic_device *mdev,
  * @mdev: pointer to mic_device instance
  */
 static void mic_x100_send_rdmasr_intr(struct mic_device *mdev,
-				      int doorbell)
+									  int doorbell)
 {
 	int rdmasr_offset = MIC_X100_SBOX_RDMASR0 + (doorbell << 2);
 	/* Ensure that the interrupt is ordered w.r.t. previous stores. */
 	wmb();
 	mic_mmio_write(&mdev->mmio, 0,
-		       MIC_X100_SBOX_BASE_ADDRESS + rdmasr_offset);
+				   MIC_X100_SBOX_BASE_ADDRESS + rdmasr_offset);
 }
 
 /**
@@ -164,9 +166,13 @@ static void mic_x100_send_rdmasr_intr(struct mic_device *mdev,
 static void mic_x100_send_intr(struct mic_device *mdev, int doorbell)
 {
 	int rdmasr_db;
-	if (doorbell < MIC_X100_NUM_SBOX_IRQ) {
+
+	if (doorbell < MIC_X100_NUM_SBOX_IRQ)
+	{
 		mic_x100_send_sbox_intr(mdev, doorbell);
-	} else {
+	}
+	else
+	{
 		rdmasr_db = doorbell - MIC_X100_NUM_SBOX_IRQ;
 		mic_x100_send_rdmasr_intr(mdev, rdmasr_db);
 	}
@@ -201,10 +207,12 @@ static void mic_x100_intr_workarounds(struct mic_device *mdev)
 	/* Clear pending bit array. */
 	if (MIC_A0_STEP == mdev->stepping)
 		mic_mmio_write(mw, 1, MIC_X100_SBOX_BASE_ADDRESS +
-			MIC_X100_SBOX_MSIXPBACR);
+					   MIC_X100_SBOX_MSIXPBACR);
 
 	if (mdev->stepping >= MIC_B0_STEP)
+	{
 		mdev->intr_ops->enable_interrupts(mdev);
+	}
 }
 
 /**
@@ -230,8 +238,8 @@ static u32
 mic_x100_read_msi_to_src_map(struct mic_device *mdev, int idx)
 {
 	return mic_mmio_read(&mdev->mmio,
-		MIC_X100_SBOX_BASE_ADDRESS +
-		MIC_X100_SBOX_MXAR0 + idx * 4);
+						 MIC_X100_SBOX_BASE_ADDRESS +
+						 MIC_X100_SBOX_MXAR0 + idx * 4);
 }
 
 /**
@@ -246,18 +254,24 @@ mic_x100_read_msi_to_src_map(struct mic_device *mdev, int idx)
  */
 static void
 mic_x100_program_msi_to_src_map(struct mic_device *mdev,
-				int idx, int offset, bool set)
+								int idx, int offset, bool set)
 {
 	unsigned long reg;
 	struct mic_mw *mw = &mdev->mmio;
 	u32 mxar = MIC_X100_SBOX_BASE_ADDRESS +
-		MIC_X100_SBOX_MXAR0 + idx * 4;
+			   MIC_X100_SBOX_MXAR0 + idx * 4;
 
 	reg = mic_mmio_read(mw, mxar);
+
 	if (set)
+	{
 		__set_bit(offset, &reg);
+	}
 	else
+	{
 		__clear_bit(offset, &reg);
+	}
+
 	mic_mmio_write(mw, reg, mxar);
 }
 
@@ -310,12 +324,12 @@ static void mic_x100_send_firmware_intr(struct mic_device *mdev)
 	apicicr_low = (vector | (1 << 13));
 
 	mic_mmio_write(mw, mic_x100_get_apic_id(mdev),
-		       MIC_X100_SBOX_BASE_ADDRESS + apic_icr_offset + 4);
+				   MIC_X100_SBOX_BASE_ADDRESS + apic_icr_offset + 4);
 
 	/* Ensure that the interrupt is ordered w.r.t. previous stores. */
 	wmb();
 	mic_mmio_write(mw, apicicr_low,
-		       MIC_X100_SBOX_BASE_ADDRESS + apic_icr_offset);
+				   MIC_X100_SBOX_BASE_ADDRESS + apic_icr_offset);
 }
 
 /**
@@ -359,14 +373,19 @@ mic_x100_load_command_line(struct mic_device *mdev, const struct firmware *fw)
 
 	boot_mem = mdev->aper.len >> 20;
 	buf = kzalloc(CMDLINE_SIZE, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	len += snprintf(buf, CMDLINE_SIZE - len,
-		" mem=%dM", boot_mem);
+					" mem=%dM", boot_mem);
+
 	if (mdev->cosm_dev->cmdline)
 		snprintf(buf + len, CMDLINE_SIZE - len, " %s",
-			 mdev->cosm_dev->cmdline);
+				 mdev->cosm_dev->cmdline);
+
 	memcpy_toio(cmd_line_va, buf, strlen(buf) + 1);
 	kfree(buf);
 	return 0;
@@ -386,12 +405,15 @@ mic_x100_load_ramdisk(struct mic_device *mdev)
 	struct boot_params __iomem *bp = mdev->aper.va + mdev->bootaddr;
 
 	rc = request_firmware(&fw, mdev->cosm_dev->ramdisk, &mdev->pdev->dev);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dev_err(&mdev->pdev->dev,
-			"ramdisk request_firmware failed: %d %s\n",
-			rc, mdev->cosm_dev->ramdisk);
+				"ramdisk request_firmware failed: %d %s\n",
+				rc, mdev->cosm_dev->ramdisk);
 		goto error;
 	}
+
 	/*
 	 * Typically the bootaddr for card OS is 64M
 	 * so copy over the ramdisk @ 128M.
@@ -422,14 +444,17 @@ mic_x100_get_boot_addr(struct mic_device *mdev)
 	scratch2 = mdev->ops->read_spad(mdev, MIC_X100_DOWNLOAD_INFO);
 	boot_addr = MIC_X100_SPAD2_DOWNLOAD_ADDR(scratch2);
 	dev_dbg(&mdev->pdev->dev, "%s %d boot_addr 0x%x\n",
-		__func__, __LINE__, boot_addr);
-	if (boot_addr > (1 << 31)) {
+			__func__, __LINE__, boot_addr);
+
+	if (boot_addr > (1 << 31))
+	{
 		dev_err(&mdev->pdev->dev,
-			"incorrect bootaddr 0x%x\n",
-			boot_addr);
+				"incorrect bootaddr 0x%x\n",
+				boot_addr);
 		rc = -EINVAL;
 		goto error;
 	}
+
 	mdev->bootaddr = boot_addr;
 error:
 	return rc;
@@ -449,41 +474,59 @@ mic_x100_load_firmware(struct mic_device *mdev, const char *buf)
 	const struct firmware *fw;
 
 	rc = mic_x100_get_boot_addr(mdev);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	/* load OS */
 	rc = request_firmware(&fw, mdev->cosm_dev->firmware, &mdev->pdev->dev);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dev_err(&mdev->pdev->dev,
-			"ramdisk request_firmware failed: %d %s\n",
-			rc, mdev->cosm_dev->firmware);
+				"ramdisk request_firmware failed: %d %s\n",
+				rc, mdev->cosm_dev->firmware);
 		return rc;
 	}
-	if (mdev->bootaddr > mdev->aper.len - fw->size) {
+
+	if (mdev->bootaddr > mdev->aper.len - fw->size)
+	{
 		rc = -EINVAL;
 		dev_err(&mdev->pdev->dev, "%s %d rc %d bootaddr 0x%x\n",
-			__func__, __LINE__, rc, mdev->bootaddr);
+				__func__, __LINE__, rc, mdev->bootaddr);
 		goto error;
 	}
+
 	memcpy_toio(mdev->aper.va + mdev->bootaddr, fw->data, fw->size);
 	mdev->ops->write_spad(mdev, MIC_X100_FW_SIZE, fw->size);
-	if (!strcmp(mdev->cosm_dev->bootmode, "flash")) {
+
+	if (!strcmp(mdev->cosm_dev->bootmode, "flash"))
+	{
 		rc = -EINVAL;
 		dev_err(&mdev->pdev->dev, "%s %d rc %d\n",
-			__func__, __LINE__, rc);
+				__func__, __LINE__, rc);
 		goto error;
 	}
+
 	/* load command line */
 	rc = mic_x100_load_command_line(mdev, fw);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&mdev->pdev->dev, "%s %d rc %d\n",
-			__func__, __LINE__, rc);
+				__func__, __LINE__, rc);
 		goto error;
 	}
+
 	release_firmware(fw);
+
 	/* load ramdisk */
 	if (mdev->cosm_dev->ramdisk)
+	{
 		rc = mic_x100_load_ramdisk(mdev);
+	}
 
 	return rc;
 
@@ -514,20 +557,20 @@ mic_x100_smpt_set(struct mic_device *mdev, dma_addr_t dma_addr, u8 index)
 {
 #define SNOOP_ON	(0 << 0)
 #define SNOOP_OFF	(1 << 0)
-/*
- * Sbox Smpt Reg Bits:
- * Bits	31:2	Host address
- * Bits	1	RSVD
- * Bits	0	No snoop
- */
+	/*
+	 * Sbox Smpt Reg Bits:
+	 * Bits	31:2	Host address
+	 * Bits	1	RSVD
+	 * Bits	0	No snoop
+	 */
 #define BUILD_SMPT(NO_SNOOP, HOST_ADDR)  \
 	(u32)(((HOST_ADDR) << 2) | ((NO_SNOOP) & 0x01))
 
 	uint32_t smpt_reg_val = BUILD_SMPT(SNOOP_ON,
-			dma_addr >> mdev->smpt->info.page_shift);
+									   dma_addr >> mdev->smpt->info.page_shift);
 	mic_mmio_write(&mdev->mmio, smpt_reg_val,
-		       MIC_X100_SBOX_BASE_ADDRESS +
-		       MIC_X100_SBOX_SMPT00 + (4 * index));
+				   MIC_X100_SBOX_BASE_ADDRESS +
+				   MIC_X100_SBOX_SMPT00 + (4 * index));
 }
 
 /**
@@ -546,7 +589,8 @@ static void mic_x100_smpt_hw_init(struct mic_device *mdev)
 	info->base = 0x8000000000ULL;
 }
 
-struct mic_smpt_ops mic_x100_smpt_ops = {
+struct mic_smpt_ops mic_x100_smpt_ops =
+{
 	.init = mic_x100_smpt_hw_init,
 	.set = mic_x100_smpt_set,
 };
@@ -554,11 +598,15 @@ struct mic_smpt_ops mic_x100_smpt_ops = {
 static bool mic_x100_dma_filter(struct dma_chan *chan, void *param)
 {
 	if (chan->device->dev->parent == (struct device *)param)
+	{
 		return true;
+	}
+
 	return false;
 }
 
-struct mic_hw_ops mic_x100_ops = {
+struct mic_hw_ops mic_x100_ops =
+{
 	.aper_bar = MIC_X100_APER_BAR,
 	.mmio_bar = MIC_X100_MMIO_BAR,
 	.read_spad = mic_x100_read_spad,
@@ -575,7 +623,8 @@ struct mic_hw_ops mic_x100_ops = {
 	.dma_filter = mic_x100_dma_filter,
 };
 
-struct mic_hw_intr_ops mic_x100_intr_ops = {
+struct mic_hw_intr_ops mic_x100_intr_ops =
+{
 	.intr_init = mic_x100_hw_intr_init,
 	.enable_interrupts = mic_x100_enable_interrupts,
 	.disable_interrupts = mic_x100_disable_interrupts,

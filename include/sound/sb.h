@@ -27,7 +27,8 @@
 #include <linux/interrupt.h>
 #include <linux/io.h>
 
-enum sb_hw_type {
+enum sb_hw_type
+{
 	SB_HW_AUTO,
 	SB_HW_10,
 	SB_HW_20,
@@ -62,7 +63,8 @@ enum sb_hw_type {
 
 #define SB_MPU_INPUT		1
 
-struct snd_sb {
+struct snd_sb
+{
 	unsigned long port;		/* base port of DSP chip */
 	struct resource *res_port;
 	unsigned long mpu_port;		/* MPU port for SB DSP 4.0+ */
@@ -76,7 +78,7 @@ struct snd_sb {
 	struct pci_dev *pci;		/* ALS4000 */
 
 	unsigned int open;		/* see to SB_OPEN_XXXX for sb8 */
-					/* also SNDRV_SB_CSP_MODE_XXX for sb16_csp */
+	/* also SNDRV_SB_CSP_MODE_XXX for sb16_csp */
 	unsigned int mode;		/* current mode of stream */
 	unsigned int force_mode16;	/* force 16-bit mode of streams */
 	unsigned int locked_rate;	/* sb16 duplex */
@@ -292,19 +294,19 @@ int snd_sbdsp_command(struct snd_sb *chip, unsigned char val);
 int snd_sbdsp_get_byte(struct snd_sb *chip);
 int snd_sbdsp_reset(struct snd_sb *chip);
 int snd_sbdsp_create(struct snd_card *card,
-		     unsigned long port,
-		     int irq,
-		     irq_handler_t irq_handler,
-		     int dma8, int dma16,
-		     unsigned short hardware,
-		     struct snd_sb **r_chip);
+					 unsigned long port,
+					 int irq,
+					 irq_handler_t irq_handler,
+					 int dma8, int dma16,
+					 unsigned short hardware,
+					 struct snd_sb **r_chip);
 /* sb_mixer.c */
 void snd_sbmixer_write(struct snd_sb *chip, unsigned char reg, unsigned char data);
 unsigned char snd_sbmixer_read(struct snd_sb *chip, unsigned char reg);
 int snd_sbmixer_new(struct snd_sb *chip);
 #ifdef CONFIG_PM
-void snd_sbmixer_suspend(struct snd_sb *chip);
-void snd_sbmixer_resume(struct snd_sb *chip);
+	void snd_sbmixer_suspend(struct snd_sb *chip);
+	void snd_sbmixer_resume(struct snd_sb *chip);
 #endif
 
 /* sb8_init.c */
@@ -327,7 +329,8 @@ int snd_sb16dsp_configure(struct snd_sb *chip);
 irqreturn_t snd_sb16dsp_interrupt(int irq, void *dev_id);
 
 /* exported mixer stuffs */
-enum {
+enum
+{
 	SB_MIX_SINGLE,
 	SB_MIX_DOUBLE,
 	SB_MIX_INPUT_SW,
@@ -337,35 +340,36 @@ enum {
 };
 
 #define SB_MIXVAL_DOUBLE(left_reg, right_reg, left_shift, right_shift, mask) \
-  ((left_reg) | ((right_reg) << 8) | ((left_shift) << 16) | ((right_shift) << 19) | ((mask) << 24))
+	((left_reg) | ((right_reg) << 8) | ((left_shift) << 16) | ((right_shift) << 19) | ((mask) << 24))
 #define SB_MIXVAL_SINGLE(reg, shift, mask) \
-  ((reg) | ((shift) << 16) | ((mask) << 24))
+	((reg) | ((shift) << 16) | ((mask) << 24))
 #define SB_MIXVAL_INPUT_SW(reg1, reg2, left_shift, right_shift) \
-  ((reg1) | ((reg2) << 8) | ((left_shift) << 16) | ((right_shift) << 24))
+	((reg1) | ((reg2) << 8) | ((left_shift) << 16) | ((right_shift) << 24))
 
 int snd_sbmixer_add_ctl(struct snd_sb *chip, const char *name, int index, int type, unsigned long value);
 
 /* for ease of use */
-struct sbmix_elem {
+struct sbmix_elem
+{
 	const char *name;
 	int type;
 	unsigned long private_value;
 };
 
 #define SB_SINGLE(xname, reg, shift, mask) \
-{ .name = xname, \
-  .type = SB_MIX_SINGLE, \
-  .private_value = SB_MIXVAL_SINGLE(reg, shift, mask) }
+	{ .name = xname, \
+			  .type = SB_MIX_SINGLE, \
+					  .private_value = SB_MIXVAL_SINGLE(reg, shift, mask) }
 
 #define SB_DOUBLE(xname, left_reg, right_reg, left_shift, right_shift, mask) \
-{ .name = xname, \
-  .type = SB_MIX_DOUBLE, \
-  .private_value = SB_MIXVAL_DOUBLE(left_reg, right_reg, left_shift, right_shift, mask) }
+	{ .name = xname, \
+			  .type = SB_MIX_DOUBLE, \
+					  .private_value = SB_MIXVAL_DOUBLE(left_reg, right_reg, left_shift, right_shift, mask) }
 
 #define SB16_INPUT_SW(xname, reg1, reg2, left_shift, right_shift) \
-{ .name = xname, \
-  .type = SB_MIX_INPUT_SW, \
-  .private_value = SB_MIXVAL_INPUT_SW(reg1, reg2, left_shift, right_shift) }
+	{ .name = xname, \
+			  .type = SB_MIX_INPUT_SW, \
+					  .private_value = SB_MIXVAL_INPUT_SW(reg1, reg2, left_shift, right_shift) }
 
 static inline int snd_sbmixer_add_ctl_elem(struct snd_sb *chip, const struct sbmix_elem *c)
 {

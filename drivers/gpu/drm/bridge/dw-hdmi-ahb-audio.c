@@ -26,7 +26,8 @@
 #define DRIVER_NAME "dw-hdmi-ahb-audio"
 
 /* Provide some bits rather than bit offsets */
-enum {
+enum
+{
 	HDMI_AHB_DMA_CONF0_SW_FIFO_RST = BIT(7),
 	HDMI_AHB_DMA_CONF0_EN_HLOCK = BIT(3),
 	HDMI_AHB_DMA_START_START = BIT(0),
@@ -82,7 +83,8 @@ enum {
 	HDMI_AHB_DMA_BUFFPOL = 0x361a,
 };
 
-struct dw_hdmi_channel_conf {
+struct dw_hdmi_channel_conf
+{
 	u8 conf1;
 	u8 ca;
 };
@@ -110,7 +112,8 @@ struct dw_hdmi_channel_conf {
  * 6							RC:6	=
  * 7							RLC/FRC	RLC/FRC
  */
-static struct dw_hdmi_channel_conf default_hdmi_channel_config[7] = {
+static struct dw_hdmi_channel_conf default_hdmi_channel_config[7] =
+{
 	{ 0x03, 0x00 },	/* FL,FR */
 	{ 0x0b, 0x02 },	/* FL,FR,FC */
 	{ 0x33, 0x08 },	/* FL,FR,RL,RR */
@@ -120,7 +123,8 @@ static struct dw_hdmi_channel_conf default_hdmi_channel_config[7] = {
 	{ 0xff, 0x13 },	/* FL,FR,LFE,FC,RL,RR,[FR]RC,[FR]LC */
 };
 
-struct snd_dw_hdmi {
+struct snd_dw_hdmi
+{
 	struct snd_card *card;
 	struct snd_pcm *pcm;
 	spinlock_t lock;
@@ -158,13 +162,14 @@ static void dw_hdmi_writel(u32 val, void __iomem *ptr)
  * Ideally, we could do with having the data properly formatted in userspace.
  */
 static void dw_hdmi_reformat_iec958(struct snd_dw_hdmi *dw,
-	size_t offset, size_t bytes)
+									size_t offset, size_t bytes)
 {
 	u32 *src = dw->buf_src + offset;
 	u32 *dst = dw->buf_dst + offset;
 	u32 *end = dw->buf_src + offset + bytes;
 
-	do {
+	do
+	{
 		u32 b, sample = *src++;
 
 		b = (sample & 8) << (28 - 3);
@@ -172,7 +177,8 @@ static void dw_hdmi_reformat_iec958(struct snd_dw_hdmi *dw,
 		sample >>= 4;
 
 		*dst++ = sample | b;
-	} while (src < end);
+	}
+	while (src < end);
 }
 
 static u32 parity(u32 sample)
@@ -186,22 +192,28 @@ static u32 parity(u32 sample)
 }
 
 static void dw_hdmi_reformat_s24(struct snd_dw_hdmi *dw,
-	size_t offset, size_t bytes)
+								 size_t offset, size_t bytes)
 {
 	u32 *src = dw->buf_src + offset;
 	u32 *dst = dw->buf_dst + offset;
 	u32 *end = dw->buf_src + offset + bytes;
 
-	do {
+	do
+	{
 		unsigned i;
 		u8 *cs;
 
 		cs = dw->cs[dw->iec_offset++];
+
 		if (dw->iec_offset >= 192)
+		{
 			dw->iec_offset = 0;
+		}
 
 		i = dw->channels;
-		do {
+
+		do
+		{
 			u32 sample = *src++;
 
 			sample &= ~0xff000000;
@@ -209,12 +221,14 @@ static void dw_hdmi_reformat_s24(struct snd_dw_hdmi *dw,
 			sample |= parity(sample & ~0xf8000000);
 
 			*dst++ = sample;
-		} while (--i);
-	} while (src < end);
+		}
+		while (--i);
+	}
+	while (src < end);
 }
 
 static void dw_hdmi_create_cs(struct snd_dw_hdmi *dw,
-	struct snd_pcm_runtime *runtime)
+							  struct snd_pcm_runtime *runtime)
 {
 	u8 cs[4];
 	unsigned ch, i, j;
@@ -223,17 +237,22 @@ static void dw_hdmi_create_cs(struct snd_dw_hdmi *dw,
 
 	memset(dw->cs, 0, sizeof(dw->cs));
 
-	for (ch = 0; ch < 8; ch++) {
+	for (ch = 0; ch < 8; ch++)
+	{
 		cs[2] &= ~IEC958_AES2_CON_CHANNEL;
 		cs[2] |= (ch + 1) << 4;
 
-		for (i = 0; i < ARRAY_SIZE(cs); i++) {
+		for (i = 0; i < ARRAY_SIZE(cs); i++)
+		{
 			unsigned c = cs[i];
 
 			for (j = 0; j < 8; j++, c >>= 1)
+			{
 				dw->cs[i * 8 + j][ch] = (c & 1) << 2;
+			}
 		}
 	}
+
 	dw->cs[0][0] |= BIT(4);
 }
 
@@ -248,7 +267,7 @@ static void dw_hdmi_start_dma(struct snd_dw_hdmi *dw)
 
 	/* Clear all irqs before enabling irqs and starting DMA */
 	writeb_relaxed(HDMI_IH_AHBDMAAUD_STAT0_ALL,
-		       base + HDMI_IH_AHBDMAAUD_STAT0);
+				   base + HDMI_IH_AHBDMAAUD_STAT0);
 
 	start = dw->buf_addr + offset;
 	stop = start + period - 1;
@@ -261,8 +280,12 @@ static void dw_hdmi_start_dma(struct snd_dw_hdmi *dw)
 	writeb(HDMI_AHB_DMA_START_START, base + HDMI_AHB_DMA_START);
 
 	offset += period;
+
 	if (offset >= dw->buf_size)
+	{
 		offset = 0;
+	}
+
 	dw->buf_offset = offset;
 }
 
@@ -280,38 +303,48 @@ static irqreturn_t snd_dw_hdmi_irq(int irq, void *data)
 	unsigned stat;
 
 	stat = readb_relaxed(dw->data.base + HDMI_IH_AHBDMAAUD_STAT0);
+
 	if (!stat)
+	{
 		return IRQ_NONE;
+	}
 
 	writeb_relaxed(stat, dw->data.base + HDMI_IH_AHBDMAAUD_STAT0);
 
 	substream = dw->substream;
-	if (stat & HDMI_IH_AHBDMAAUD_STAT0_DONE && substream) {
+
+	if (stat & HDMI_IH_AHBDMAAUD_STAT0_DONE && substream)
+	{
 		snd_pcm_period_elapsed(substream);
 
 		spin_lock(&dw->lock);
+
 		if (dw->substream)
+		{
 			dw_hdmi_start_dma(dw);
+		}
+
 		spin_unlock(&dw->lock);
 	}
 
 	return IRQ_HANDLED;
 }
 
-static struct snd_pcm_hardware dw_hdmi_hw = {
+static struct snd_pcm_hardware dw_hdmi_hw =
+{
 	.info = SNDRV_PCM_INFO_INTERLEAVED |
-		SNDRV_PCM_INFO_BLOCK_TRANSFER |
-		SNDRV_PCM_INFO_MMAP |
-		SNDRV_PCM_INFO_MMAP_VALID,
+	SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_MMAP |
+	SNDRV_PCM_INFO_MMAP_VALID,
 	.formats = SNDRV_PCM_FMTBIT_IEC958_SUBFRAME_LE |
-		   SNDRV_PCM_FMTBIT_S24_LE,
+	SNDRV_PCM_FMTBIT_S24_LE,
 	.rates = SNDRV_PCM_RATE_32000 |
-		 SNDRV_PCM_RATE_44100 |
-		 SNDRV_PCM_RATE_48000 |
-		 SNDRV_PCM_RATE_88200 |
-		 SNDRV_PCM_RATE_96000 |
-		 SNDRV_PCM_RATE_176400 |
-		 SNDRV_PCM_RATE_192000,
+	SNDRV_PCM_RATE_44100 |
+	SNDRV_PCM_RATE_48000 |
+	SNDRV_PCM_RATE_88200 |
+	SNDRV_PCM_RATE_96000 |
+	SNDRV_PCM_RATE_176400 |
+	SNDRV_PCM_RATE_192000,
 	.channels_min = 2,
 	.channels_max = 8,
 	.buffer_bytes_max = 1024 * 1024,
@@ -332,28 +365,40 @@ static int dw_hdmi_open(struct snd_pcm_substream *substream)
 	runtime->hw = dw_hdmi_hw;
 
 	ret = snd_pcm_hw_constraint_eld(runtime, dw->data.eld);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = snd_pcm_limit_hw_rates(runtime);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = snd_pcm_hw_constraint_integer(runtime,
-					    SNDRV_PCM_HW_PARAM_PERIODS);
+										SNDRV_PCM_HW_PARAM_PERIODS);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Limit the buffer size to the size of the preallocated buffer */
 	ret = snd_pcm_hw_constraint_minmax(runtime,
-					   SNDRV_PCM_HW_PARAM_BUFFER_SIZE,
-					   0, substream->dma_buffer.bytes);
+									   SNDRV_PCM_HW_PARAM_BUFFER_SIZE,
+									   0, substream->dma_buffer.bytes);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Clear FIFO */
 	writeb_relaxed(HDMI_AHB_DMA_CONF0_SW_FIFO_RST,
-		       base + HDMI_AHB_DMA_CONF0);
+				   base + HDMI_AHB_DMA_CONF0);
 
 	/* Configure interrupt polarities */
 	writeb_relaxed(~0, base + HDMI_AHB_DMA_POL);
@@ -364,14 +409,17 @@ static int dw_hdmi_open(struct snd_pcm_substream *substream)
 	writeb_relaxed(~0, base + HDMI_IH_AHBDMAAUD_STAT0);
 
 	ret = request_irq(dw->data.irq, snd_dw_hdmi_irq, IRQF_SHARED,
-			  "dw-hdmi-audio", dw);
+					  "dw-hdmi-audio", dw);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Un-mute done interrupt */
 	writeb_relaxed(HDMI_IH_MUTE_AHBDMAAUD_STAT0_ALL &
-		       ~HDMI_IH_MUTE_AHBDMAAUD_STAT0_DONE,
-		       base + HDMI_IH_MUTE_AHBDMAAUD_STAT0);
+				   ~HDMI_IH_MUTE_AHBDMAAUD_STAT0_DONE,
+				   base + HDMI_IH_MUTE_AHBDMAAUD_STAT0);
 
 	return 0;
 }
@@ -382,7 +430,7 @@ static int dw_hdmi_close(struct snd_pcm_substream *substream)
 
 	/* Mute all interrupts */
 	writeb_relaxed(HDMI_IH_MUTE_AHBDMAAUD_STAT0_ALL,
-		       dw->data.base + HDMI_IH_MUTE_AHBDMAAUD_STAT0);
+				   dw->data.base + HDMI_IH_MUTE_AHBDMAAUD_STAT0);
 
 	free_irq(dw->data.irq, dw);
 
@@ -395,11 +443,11 @@ static int dw_hdmi_hw_free(struct snd_pcm_substream *substream)
 }
 
 static int dw_hdmi_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params)
+							 struct snd_pcm_hw_params *params)
 {
 	/* Allocate the PCM runtime buffer, which is exposed to userspace. */
 	return snd_pcm_lib_alloc_vmalloc_buffer(substream,
-						params_buffer_bytes(params));
+											params_buffer_bytes(params));
 }
 
 static int dw_hdmi_prepare(struct snd_pcm_substream *substream)
@@ -409,23 +457,32 @@ static int dw_hdmi_prepare(struct snd_pcm_substream *substream)
 	u8 threshold, conf0, conf1, layout, ca;
 
 	/* Setup as per 3.0.5 FSL 4.1.0 BSP */
-	switch (dw->revision) {
-	case 0x0a:
-		conf0 = HDMI_AHB_DMA_CONF0_BURST_MODE |
-			HDMI_AHB_DMA_CONF0_INCR4;
-		if (runtime->channels == 2)
-			threshold = 126;
-		else
-			threshold = 124;
-		break;
-	case 0x1a:
-		conf0 = HDMI_AHB_DMA_CONF0_BURST_MODE |
-			HDMI_AHB_DMA_CONF0_INCR8;
-		threshold = 128;
-		break;
-	default:
-		/* NOTREACHED */
-		return -EINVAL;
+	switch (dw->revision)
+	{
+		case 0x0a:
+			conf0 = HDMI_AHB_DMA_CONF0_BURST_MODE |
+					HDMI_AHB_DMA_CONF0_INCR4;
+
+			if (runtime->channels == 2)
+			{
+				threshold = 126;
+			}
+			else
+			{
+				threshold = 124;
+			}
+
+			break;
+
+		case 0x1a:
+			conf0 = HDMI_AHB_DMA_CONF0_BURST_MODE |
+					HDMI_AHB_DMA_CONF0_INCR8;
+			threshold = 128;
+			break;
+
+		default:
+			/* NOTREACHED */
+			return -EINVAL;
 	}
 
 	dw_hdmi_set_sample_rate(dw->data.hdmi, runtime->rate);
@@ -442,9 +499,13 @@ static int dw_hdmi_prepare(struct snd_pcm_substream *substream)
 	 * and set an appropriate channel map.
 	 */
 	if (runtime->channels > 2)
+	{
 		layout = HDMI_FC_AUDSCONF_LAYOUT1;
+	}
 	else
+	{
 		layout = HDMI_FC_AUDSCONF_LAYOUT0;
+	}
 
 	writeb_relaxed(threshold, dw->data.base + HDMI_AHB_DMA_THRSLD);
 	writeb_relaxed(conf0, dw->data.base + HDMI_AHB_DMA_CONF0);
@@ -452,15 +513,18 @@ static int dw_hdmi_prepare(struct snd_pcm_substream *substream)
 	writeb_relaxed(layout, dw->data.base + HDMI_FC_AUDSCONF);
 	writeb_relaxed(ca, dw->data.base + HDMI_FC_AUDICONF2);
 
-	switch (runtime->format) {
-	case SNDRV_PCM_FORMAT_IEC958_SUBFRAME_LE:
-		dw->reformat = dw_hdmi_reformat_iec958;
-		break;
-	case SNDRV_PCM_FORMAT_S24_LE:
-		dw_hdmi_create_cs(dw, runtime);
-		dw->reformat = dw_hdmi_reformat_s24;
-		break;
+	switch (runtime->format)
+	{
+		case SNDRV_PCM_FORMAT_IEC958_SUBFRAME_LE:
+			dw->reformat = dw_hdmi_reformat_iec958;
+			break;
+
+		case SNDRV_PCM_FORMAT_S24_LE:
+			dw_hdmi_create_cs(dw, runtime);
+			dw->reformat = dw_hdmi_reformat_s24;
+			break;
 	}
+
 	dw->iec_offset = 0;
 	dw->channels = runtime->channels;
 	dw->buf_src  = runtime->dma_area;
@@ -478,28 +542,29 @@ static int dw_hdmi_trigger(struct snd_pcm_substream *substream, int cmd)
 	unsigned long flags;
 	int ret = 0;
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-		spin_lock_irqsave(&dw->lock, flags);
-		dw->buf_offset = 0;
-		dw->substream = substream;
-		dw_hdmi_start_dma(dw);
-		dw_hdmi_audio_enable(dw->data.hdmi);
-		spin_unlock_irqrestore(&dw->lock, flags);
-		substream->runtime->delay = substream->runtime->period_size;
-		break;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+			spin_lock_irqsave(&dw->lock, flags);
+			dw->buf_offset = 0;
+			dw->substream = substream;
+			dw_hdmi_start_dma(dw);
+			dw_hdmi_audio_enable(dw->data.hdmi);
+			spin_unlock_irqrestore(&dw->lock, flags);
+			substream->runtime->delay = substream->runtime->period_size;
+			break;
 
-	case SNDRV_PCM_TRIGGER_STOP:
-		spin_lock_irqsave(&dw->lock, flags);
-		dw->substream = NULL;
-		dw_hdmi_stop_dma(dw);
-		dw_hdmi_audio_disable(dw->data.hdmi);
-		spin_unlock_irqrestore(&dw->lock, flags);
-		break;
+		case SNDRV_PCM_TRIGGER_STOP:
+			spin_lock_irqsave(&dw->lock, flags);
+			dw->substream = NULL;
+			dw_hdmi_stop_dma(dw);
+			dw_hdmi_audio_disable(dw->data.hdmi);
+			spin_unlock_irqrestore(&dw->lock, flags);
+			break;
 
-	default:
-		ret = -EINVAL;
-		break;
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	return ret;
@@ -517,7 +582,8 @@ static snd_pcm_uframes_t dw_hdmi_pointer(struct snd_pcm_substream *substream)
 	return bytes_to_frames(runtime, dw->buf_offset);
 }
 
-static struct snd_pcm_ops snd_dw_hdmi_ops = {
+static struct snd_pcm_ops snd_dw_hdmi_ops =
+{
 	.open = dw_hdmi_open,
 	.close = dw_hdmi_close,
 	.ioctl = snd_pcm_lib_ioctl,
@@ -540,24 +606,29 @@ static int snd_dw_hdmi_probe(struct platform_device *pdev)
 	int ret;
 
 	writeb_relaxed(HDMI_IH_MUTE_AHBDMAAUD_STAT0_ALL,
-		       data->base + HDMI_IH_MUTE_AHBDMAAUD_STAT0);
+				   data->base + HDMI_IH_MUTE_AHBDMAAUD_STAT0);
 	revision = readb_relaxed(data->base + HDMI_REVISION_ID);
-	if (revision != 0x0a && revision != 0x1a) {
+
+	if (revision != 0x0a && revision != 0x1a)
+	{
 		dev_err(dev, "dw-hdmi-audio: unknown revision 0x%02x\n",
-			revision);
+				revision);
 		return -ENXIO;
 	}
 
 	ret = snd_card_new(dev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1,
-			      THIS_MODULE, sizeof(struct snd_dw_hdmi), &card);
+					   THIS_MODULE, sizeof(struct snd_dw_hdmi), &card);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	strlcpy(card->driver, DRIVER_NAME, sizeof(card->driver));
 	strlcpy(card->shortname, "DW-HDMI", sizeof(card->shortname));
 	snprintf(card->longname, sizeof(card->longname),
-		 "%s rev 0x%02x, irq %d", card->shortname, revision,
-		 data->irq);
+			 "%s rev 0x%02x, irq %d", card->shortname, revision,
+			 data->irq);
 
 	dw = card->private_data;
 	dw->card = card;
@@ -567,8 +638,11 @@ static int snd_dw_hdmi_probe(struct platform_device *pdev)
 	spin_lock_init(&dw->lock);
 
 	ret = snd_pcm_new(card, "DW HDMI", 0, 1, 0, &pcm);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	dw->pcm = pcm;
 	pcm->private_data = dw;
@@ -580,11 +654,14 @@ static int snd_dw_hdmi_probe(struct platform_device *pdev)
 	 * to satisfy alsa with our restricted period (ERR004323).
 	 */
 	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
-			dev, 128 * 1024, 1024 * 1024);
+										  dev, 128 * 1024, 1024 * 1024);
 
 	ret = snd_card_register(card);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	platform_set_drvdata(pdev, dw);
 
@@ -629,13 +706,14 @@ static int snd_dw_hdmi_resume(struct device *dev)
 }
 
 static SIMPLE_DEV_PM_OPS(snd_dw_hdmi_pm, snd_dw_hdmi_suspend,
-			 snd_dw_hdmi_resume);
+						 snd_dw_hdmi_resume);
 #define PM_OPS &snd_dw_hdmi_pm
 #else
 #define PM_OPS NULL
 #endif
 
-static struct platform_driver snd_dw_hdmi_driver = {
+static struct platform_driver snd_dw_hdmi_driver =
+{
 	.probe	= snd_dw_hdmi_probe,
 	.remove	= snd_dw_hdmi_remove,
 	.driver	= {

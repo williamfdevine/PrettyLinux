@@ -14,20 +14,20 @@
 #include <asm/debug.h>
 
 #ifdef DEBUG
- #define do_debug 1
+	#define do_debug 1
 #else
- #define do_debug 0
+	#define do_debug 0
 #endif
 #ifdef DEBUGCCW
- #define do_debug_ccw 1
- #define DEBUGDATA 1
+	#define do_debug_ccw 1
+	#define DEBUGDATA 1
 #else
- #define do_debug_ccw 0
+	#define do_debug_ccw 0
 #endif
 #ifdef DEBUGDATA
- #define do_debug_data 1
+	#define do_debug_data 1
 #else
- #define do_debug_data 0
+	#define do_debug_data 0
 #endif
 
 /* define dbf debug levels similar to kernel msg levels */
@@ -41,7 +41,8 @@
 #define	CTC_DBF_INFO	5	/* informational			*/
 #define	CTC_DBF_DEBUG	6	/* debug-level messages			*/
 
-enum ctcm_dbf_names {
+enum ctcm_dbf_names
+{
 	CTCM_DBF_SETUP,
 	CTCM_DBF_ERROR,
 	CTCM_DBF_TRACE,
@@ -51,7 +52,8 @@ enum ctcm_dbf_names {
 	CTCM_DBF_INFOS	/* must be last element */
 };
 
-struct ctcm_dbf_info {
+struct ctcm_dbf_info
+{
 	char name[DEBUG_MAX_NAME_LEN];
 	int pages;
 	int areas;
@@ -96,13 +98,13 @@ static inline const char *strtail(const char *s, int n)
 #define CTCM_DBF_DEV_NAME(cat, dev, text) \
 	do { \
 		CTCM_DBF_TEXT_(cat, CTC_DBF_INFO, "%s(%s) :- %s", \
-			CTCM_FUNTAIL, dev->name, text); \
+					   CTCM_FUNTAIL, dev->name, text); \
 	} while (0)
 
 #define MPC_DBF_DEV_NAME(cat, dev, text) \
 	do { \
 		CTCM_DBF_TEXT_(MPC_##cat, CTC_DBF_INFO, "%s(%s) := %s", \
-			CTCM_FUNTAIL, dev->name, text); \
+					   CTCM_FUNTAIL, dev->name, text); \
 	} while (0)
 
 #define CTCMY_DBF_DEV_NAME(cat, dev, text) \
@@ -121,13 +123,13 @@ static inline const char *strtail(const char *s, int n)
 #define CTCM_DBF_DEV(cat, dev, text) \
 	do { \
 		CTCM_DBF_TEXT_(cat, CTC_DBF_INFO, "%s(%p) :-: %s", \
-			CTCM_FUNTAIL, dev, text); \
+					   CTCM_FUNTAIL, dev, text); \
 	} while (0)
 
 #define MPC_DBF_DEV(cat, dev, text) \
 	do { \
 		CTCM_DBF_TEXT_(MPC_##cat, CTC_DBF_INFO, "%s(%p) :=: %s", \
-			CTCM_FUNTAIL, dev, text); \
+					   CTCM_FUNTAIL, dev, text); \
 	} while (0)
 
 #define CTCMY_DBF_DEV(cat, dev, text) \

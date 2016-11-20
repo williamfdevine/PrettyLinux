@@ -8,36 +8,41 @@
 #define DEFAULT_SM750_CHIP_CLOCK	290
 #define DEFAULT_SM750LE_CHIP_CLOCK	333
 #ifndef SM750LE_REVISION_ID
-#define SM750LE_REVISION_ID ((unsigned char)0xfe)
+	#define SM750LE_REVISION_ID ((unsigned char)0xfe)
 #endif
 
-enum sm750_pnltype {
+enum sm750_pnltype
+{
 	sm750_24TFT = 0,	/* 24bit tft */
 	sm750_dualTFT = 2,	/* dual 18 bit tft */
 	sm750_doubleTFT = 1,	/* 36 bit double pixel tft */
 };
 
 /* vga channel is not concerned  */
-enum sm750_dataflow {
+enum sm750_dataflow
+{
 	sm750_simul_pri,	/* primary => all head */
 	sm750_simul_sec,	/* secondary => all head */
 	sm750_dual_normal,	/* primary => panel head and secondary => crt */
 	sm750_dual_swap,	/* primary => crt head and secondary => panel */
 };
 
-enum sm750_channel {
+enum sm750_channel
+{
 	sm750_primary = 0,
 	/* enum value equal to the register filed data */
 	sm750_secondary = 1,
 };
 
-enum sm750_path {
+enum sm750_path
+{
 	sm750_panel = 1,
 	sm750_crt = 2,
 	sm750_pnc = 3,	/* panel and crt */
 };
 
-struct init_status {
+struct init_status
+{
 	ushort powerMode;
 	/* below three clocks are in unit of MHZ*/
 	ushort chip_clk;
@@ -47,7 +52,8 @@ struct init_status {
 	ushort resetMemory;
 };
 
-struct lynx_accel {
+struct lynx_accel
+{
 	/* base virtual address of DPR registers */
 	volatile unsigned char __iomem *dprBase;
 	/* base virtual address of de data port */
@@ -59,19 +65,20 @@ struct lynx_accel {
 	int (*de_wait)(void);/* see if hardware ready to work */
 
 	int (*de_fillrect)(struct lynx_accel *, u32, u32, u32, u32,
-						u32, u32, u32, u32, u32);
+					   u32, u32, u32, u32, u32);
 
 	int (*de_copyarea)(struct lynx_accel *, u32, u32, u32, u32,
+					   u32, u32, u32, u32,
+					   u32, u32, u32, u32);
+
+	int (*de_imageblit)(struct lynx_accel *, const char *, u32, u32, u32, u32,
 						u32, u32, u32, u32,
 						u32, u32, u32, u32);
 
-	int (*de_imageblit)(struct lynx_accel *, const char *, u32, u32, u32, u32,
-							       u32, u32, u32, u32,
-							       u32, u32, u32, u32);
-
 };
 
-struct sm750_dev {
+struct sm750_dev
+{
 	/* common members */
 	u16 devid;
 	u8 revid;
@@ -81,7 +88,8 @@ struct sm750_dev {
 	int accel_off;
 	int fb_count;
 	int mtrr_off;
-	struct{
+	struct
+	{
 		int vram;
 	} mtrr;
 	/* all smi graphic adaptor got below attributes */
@@ -108,7 +116,8 @@ struct sm750_dev {
 	int hwCursor;
 };
 
-struct lynx_cursor {
+struct lynx_cursor
+{
 	/* cursor width ,height and size */
 	int w;
 	int h;
@@ -123,7 +132,8 @@ struct lynx_cursor {
 	volatile char __iomem *mmio;
 };
 
-struct lynxfb_crtc {
+struct lynxfb_crtc
+{
 	unsigned char __iomem *vCursor; /* virtual address of cursor */
 	unsigned char __iomem *vScreen; /* virtual address of on_screen */
 	int oCursor; /* cursor address offset in vidmem */
@@ -143,7 +153,8 @@ struct lynxfb_crtc {
 	struct lynx_cursor cursor;
 };
 
-struct lynxfb_output {
+struct lynxfb_output
+{
 	int dpms;
 	int paths;
 	/* which paths(s) this output stands for,for sm750:
@@ -160,10 +171,11 @@ struct lynxfb_output {
 	 */
 	void *priv;
 
-	int (*proc_setBLANK)(struct lynxfb_output*, int);
+	int (*proc_setBLANK)(struct lynxfb_output *, int);
 };
 
-struct lynxfb_par {
+struct lynxfb_par
+{
 	/* either 0 or 1 for dual head adaptor,0 is the older one registered */
 	int index;
 	unsigned int pseudo_palette[256];
@@ -175,28 +187,28 @@ struct lynxfb_par {
 
 static inline unsigned long ps_to_hz(unsigned int psvalue)
 {
-	unsigned long long numerator = 1000*1000*1000*1000ULL;
+	unsigned long long numerator = 1000 * 1000 * 1000 * 1000ULL;
 	/* 10^12 / picosecond period gives frequency in Hz */
 	do_div(numerator, psvalue);
 	return (unsigned long)numerator;
 }
 
 int hw_sm750_map(struct sm750_dev *sm750_dev, struct pci_dev *pdev);
-int hw_sm750_inithw(struct sm750_dev*, struct pci_dev *);
+int hw_sm750_inithw(struct sm750_dev *, struct pci_dev *);
 void hw_sm750_initAccel(struct sm750_dev *);
 int hw_sm750_deWait(void);
 int hw_sm750le_deWait(void);
 
-int hw_sm750_output_setMode(struct lynxfb_output*, struct fb_var_screeninfo*,
-			    struct fb_fix_screeninfo*);
-int hw_sm750_crtc_checkMode(struct lynxfb_crtc*, struct fb_var_screeninfo*);
-int hw_sm750_crtc_setMode(struct lynxfb_crtc*, struct fb_var_screeninfo*,
-			  struct fb_fix_screeninfo*);
-int hw_sm750_setColReg(struct lynxfb_crtc*, ushort, ushort, ushort, ushort);
-int hw_sm750_setBLANK(struct lynxfb_output*, int);
-int hw_sm750le_setBLANK(struct lynxfb_output*, int);
+int hw_sm750_output_setMode(struct lynxfb_output *, struct fb_var_screeninfo *,
+							struct fb_fix_screeninfo *);
+int hw_sm750_crtc_checkMode(struct lynxfb_crtc *, struct fb_var_screeninfo *);
+int hw_sm750_crtc_setMode(struct lynxfb_crtc *, struct fb_var_screeninfo *,
+						  struct fb_fix_screeninfo *);
+int hw_sm750_setColReg(struct lynxfb_crtc *, ushort, ushort, ushort, ushort);
+int hw_sm750_setBLANK(struct lynxfb_output *, int);
+int hw_sm750le_setBLANK(struct lynxfb_output *, int);
 int hw_sm750_pan_display(struct lynxfb_crtc *crtc,
-			 const struct fb_var_screeninfo *var,
-			 const struct fb_info *info);
+						 const struct fb_var_screeninfo *var,
+						 const struct fb_info *info);
 
 #endif

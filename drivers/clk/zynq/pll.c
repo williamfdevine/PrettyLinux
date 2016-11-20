@@ -32,7 +32,8 @@
  * @lockbit:	Indicates the associated PLL_LOCKED bit in the PLL status
  *		register.
  */
-struct zynq_pll {
+struct zynq_pll
+{
 	struct clk_hw	hw;
 	void __iomem	*pll_ctrl;
 	void __iomem	*pll_status;
@@ -61,15 +62,20 @@ struct zynq_pll {
  * Returns frequency closest to @rate the hardware can generate.
  */
 static long zynq_pll_round_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long *prate)
+								unsigned long *prate)
 {
 	u32 fbdiv;
 
 	fbdiv = DIV_ROUND_CLOSEST(rate, *prate);
+
 	if (fbdiv < PLL_FBDIV_MIN)
+	{
 		fbdiv = PLL_FBDIV_MIN;
+	}
 	else if (fbdiv > PLL_FBDIV_MAX)
+	{
 		fbdiv = PLL_FBDIV_MAX;
+	}
 
 	return *prate * fbdiv;
 }
@@ -131,7 +137,9 @@ static int zynq_pll_enable(struct clk_hw *hw)
 	struct zynq_pll *clk = to_zynq_pll(hw);
 
 	if (zynq_pll_is_enabled(hw))
+	{
 		return 0;
+	}
 
 	pr_info("PLL: enable\n");
 
@@ -141,6 +149,7 @@ static int zynq_pll_enable(struct clk_hw *hw)
 	reg = clk_readl(clk->pll_ctrl);
 	reg &= ~(PLLCTRL_RESET_MASK | PLLCTRL_PWRDWN_MASK);
 	clk_writel(reg, clk->pll_ctrl);
+
 	while (!(clk_readl(clk->pll_status) & (1 << clk->lockbit)))
 		;
 
@@ -161,7 +170,9 @@ static void zynq_pll_disable(struct clk_hw *hw)
 	struct zynq_pll *clk = to_zynq_pll(hw);
 
 	if (!zynq_pll_is_enabled(hw))
+	{
 		return;
+	}
 
 	pr_info("PLL: shutdown\n");
 
@@ -175,7 +186,8 @@ static void zynq_pll_disable(struct clk_hw *hw)
 	spin_unlock_irqrestore(clk->lock, flags);
 }
 
-static const struct clk_ops zynq_pll_ops = {
+static const struct clk_ops zynq_pll_ops =
+{
 	.enable = zynq_pll_enable,
 	.disable = zynq_pll_disable,
 	.is_enabled = zynq_pll_is_enabled,
@@ -194,15 +206,16 @@ static const struct clk_ops zynq_pll_ops = {
  * Returns handle to the registered clock.
  */
 struct clk *clk_register_zynq_pll(const char *name, const char *parent,
-		void __iomem *pll_ctrl, void __iomem *pll_status, u8 lock_index,
-		spinlock_t *lock)
+								  void __iomem *pll_ctrl, void __iomem *pll_status, u8 lock_index,
+								  spinlock_t *lock)
 {
 	struct zynq_pll *pll;
 	struct clk *clk;
 	u32 reg;
 	const char *parent_arr[1] = {parent};
 	unsigned long flags = 0;
-	struct clk_init_data initd = {
+	struct clk_init_data initd =
+	{
 		.name = name,
 		.parent_names = parent_arr,
 		.ops = &zynq_pll_ops,
@@ -211,8 +224,11 @@ struct clk *clk_register_zynq_pll(const char *name, const char *parent,
 	};
 
 	pll = kmalloc(sizeof(*pll), GFP_KERNEL);
+
 	if (!pll)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/* Populate the struct */
 	pll->hw.init = &initd;
@@ -230,8 +246,11 @@ struct clk *clk_register_zynq_pll(const char *name, const char *parent,
 	spin_unlock_irqrestore(pll->lock, flags);
 
 	clk = clk_register(NULL, &pll->hw);
+
 	if (WARN_ON(IS_ERR(clk)))
+	{
 		goto free_pll;
+	}
 
 	return clk;
 

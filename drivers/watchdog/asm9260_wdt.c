@@ -47,13 +47,15 @@
 
 #define ASM9260_WDT_DEFAULT_TIMEOUT	30
 
-enum asm9260_wdt_mode {
+enum asm9260_wdt_mode
+{
 	HW_RESET,
 	SW_RESET,
 	DEBUG,
 };
 
-struct asm9260_wdt_priv {
+struct asm9260_wdt_priv
+{
 	struct device		*dev;
 	struct watchdog_device	wdd;
 	struct clk		*clk;
@@ -105,7 +107,9 @@ static int asm9260_wdt_enable(struct watchdog_device *wdd)
 	u32 mode = 0;
 
 	if (priv->mode == HW_RESET)
+	{
 		mode = BM_MOD_WDRESET;
+	}
 
 	iowrite32(BM_MOD_WDEN | mode, priv->iobase + HW_WDMOD);
 
@@ -159,12 +163,18 @@ static irqreturn_t asm9260_wdt_irq(int irq, void *devid)
 	u32 stat;
 
 	stat = ioread32(priv->iobase + HW_WDMOD);
-	if (!(stat & BM_MOD_WDINT))
-		return IRQ_NONE;
 
-	if (priv->mode == DEBUG) {
+	if (!(stat & BM_MOD_WDINT))
+	{
+		return IRQ_NONE;
+	}
+
+	if (priv->mode == DEBUG)
+	{
 		dev_info(priv->dev, "Watchdog Timeout. Do nothing.\n");
-	} else {
+	}
+	else
+	{
 		dev_info(priv->dev, "Watchdog Timeout. Doing SW Reset.\n");
 		asm9260_wdt_sys_reset(priv);
 	}
@@ -173,7 +183,7 @@ static irqreturn_t asm9260_wdt_irq(int irq, void *devid)
 }
 
 static int asm9260_restart_handler(struct notifier_block *this,
-				   unsigned long mode, void *cmd)
+								   unsigned long mode, void *cmd)
 {
 	struct asm9260_wdt_priv *priv =
 		container_of(this, struct asm9260_wdt_priv, restart_handler);
@@ -183,13 +193,15 @@ static int asm9260_restart_handler(struct notifier_block *this,
 	return NOTIFY_DONE;
 }
 
-static const struct watchdog_info asm9260_wdt_ident = {
+static const struct watchdog_info asm9260_wdt_ident =
+{
 	.options          =     WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING
-				| WDIOF_MAGICCLOSE,
+	| WDIOF_MAGICCLOSE,
 	.identity         =	"Alphascale asm9260 Watchdog",
 };
 
-static struct watchdog_ops asm9260_wdt_ops = {
+static struct watchdog_ops asm9260_wdt_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= asm9260_wdt_enable,
 	.stop		= asm9260_wdt_disable,
@@ -204,33 +216,43 @@ static int asm9260_wdt_get_dt_clks(struct asm9260_wdt_priv *priv)
 	unsigned long clk;
 
 	priv->clk = devm_clk_get(priv->dev, "mod");
-	if (IS_ERR(priv->clk)) {
+
+	if (IS_ERR(priv->clk))
+	{
 		dev_err(priv->dev, "Failed to get \"mod\" clk\n");
 		return PTR_ERR(priv->clk);
 	}
 
 	/* configure AHB clock */
 	priv->clk_ahb = devm_clk_get(priv->dev, "ahb");
-	if (IS_ERR(priv->clk_ahb)) {
+
+	if (IS_ERR(priv->clk_ahb))
+	{
 		dev_err(priv->dev, "Failed to get \"ahb\" clk\n");
 		return PTR_ERR(priv->clk_ahb);
 	}
 
 	err = clk_prepare_enable(priv->clk_ahb);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(priv->dev, "Failed to enable ahb_clk!\n");
 		return err;
 	}
 
 	err = clk_set_rate(priv->clk, CLOCK_FREQ);
-	if (err) {
+
+	if (err)
+	{
 		clk_disable_unprepare(priv->clk_ahb);
 		dev_err(priv->dev, "Failed to set rate!\n");
 		return err;
 	}
 
 	err = clk_prepare_enable(priv->clk);
-	if (err) {
+
+	if (err)
+	{
 		clk_disable_unprepare(priv->clk_ahb);
 		dev_err(priv->dev, "Failed to enable clk!\n");
 		return err;
@@ -238,7 +260,9 @@ static int asm9260_wdt_get_dt_clks(struct asm9260_wdt_priv *priv)
 
 	/* wdt has internal divider */
 	clk = clk_get_rate(priv->clk);
-	if (!clk) {
+
+	if (!clk)
+	{
 		clk_disable_unprepare(priv->clk);
 		clk_disable_unprepare(priv->clk_ahb);
 		dev_err(priv->dev, "Failed, clk is 0!\n");
@@ -259,19 +283,28 @@ static void asm9260_wdt_get_dt_mode(struct asm9260_wdt_priv *priv)
 	priv->mode = HW_RESET;
 
 	ret = of_property_read_string(priv->dev->of_node,
-				      "alphascale,mode", &tmp);
+								  "alphascale,mode", &tmp);
+
 	if (ret < 0)
+	{
 		return;
+	}
 
 	if (!strcmp(tmp, "hw"))
+	{
 		priv->mode = HW_RESET;
+	}
 	else if (!strcmp(tmp, "sw"))
+	{
 		priv->mode = SW_RESET;
+	}
 	else if (!strcmp(tmp, "debug"))
+	{
 		priv->mode = DEBUG;
+	}
 	else
 		dev_warn(priv->dev, "unknown reset-type: %s. Using default \"hw\" mode.",
-			 tmp);
+				 tmp);
 }
 
 static int asm9260_wdt_probe(struct platform_device *pdev)
@@ -280,27 +313,39 @@ static int asm9260_wdt_probe(struct platform_device *pdev)
 	struct watchdog_device *wdd;
 	struct resource *res;
 	int ret;
-	const char * const mode_name[] = { "hw", "sw", "debug", };
+	const char *const mode_name[] = { "hw", "sw", "debug", };
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(struct asm9260_wdt_priv),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->dev = &pdev->dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->iobase = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->iobase))
+	{
 		return PTR_ERR(priv->iobase);
+	}
 
 	ret = asm9260_wdt_get_dt_clks(priv);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	priv->rst = devm_reset_control_get(&pdev->dev, "wdt_rst");
+
 	if (IS_ERR(priv->rst))
+	{
 		return PTR_ERR(priv->rst);
+	}
 
 	wdd = &priv->wdd;
 	wdd->info = &asm9260_wdt_ident;
@@ -322,33 +367,45 @@ static int asm9260_wdt_probe(struct platform_device *pdev)
 	asm9260_wdt_get_dt_mode(priv);
 
 	if (priv->mode != HW_RESET)
+	{
 		priv->irq = platform_get_irq(pdev, 0);
+	}
 
-	if (priv->irq > 0) {
+	if (priv->irq > 0)
+	{
 		/*
 		 * Not all supported platforms specify an interrupt for the
 		 * watchdog, so let's make it optional.
 		 */
 		ret = devm_request_irq(&pdev->dev, priv->irq,
-				       asm9260_wdt_irq, 0, pdev->name, priv);
+							   asm9260_wdt_irq, 0, pdev->name, priv);
+
 		if (ret < 0)
+		{
 			dev_warn(&pdev->dev, "failed to request IRQ\n");
+		}
 	}
 
 	ret = watchdog_register_device(wdd);
+
 	if (ret)
+	{
 		goto clk_off;
+	}
 
 	platform_set_drvdata(pdev, priv);
 
 	priv->restart_handler.notifier_call = asm9260_restart_handler;
 	priv->restart_handler.priority = 128;
 	ret = register_restart_handler(&priv->restart_handler);
+
 	if (ret)
+	{
 		dev_warn(&pdev->dev, "cannot register restart handler\n");
+	}
 
 	dev_info(&pdev->dev, "Watchdog enabled (timeout: %d sec, mode: %s)\n",
-		 wdd->timeout, mode_name[priv->mode]);
+			 wdd->timeout, mode_name[priv->mode]);
 	return 0;
 
 clk_off:
@@ -380,13 +437,15 @@ static int asm9260_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id asm9260_wdt_of_match[] = {
+static const struct of_device_id asm9260_wdt_of_match[] =
+{
 	{ .compatible = "alphascale,asm9260-wdt"},
 	{},
 };
 MODULE_DEVICE_TABLE(of, asm9260_wdt_of_match);
 
-static struct platform_driver asm9260_wdt_driver = {
+static struct platform_driver asm9260_wdt_driver =
+{
 	.driver = {
 		.name = "asm9260-wdt",
 		.of_match_table	= asm9260_wdt_of_match,

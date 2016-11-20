@@ -43,17 +43,19 @@
 #define STG4000_OVRL_MAX_HEIGHT 576
 
 /* Decimation and Scaling */
-static u32 adwDecim8[33] = {
-	    0xffffffff, 0xfffeffff, 0xffdffbff, 0xfefefeff, 0xfdf7efbf,
-	    0xfbdf7bdf, 0xf7bbddef, 0xeeeeeeef, 0xeeddbb77, 0xedb76db7,
-	    0xdb6db6db, 0xdb5b5b5b, 0xdab5ad6b, 0xd5ab55ab, 0xd555aaab,
-	    0xaaaaaaab, 0xaaaa5555, 0xaa952a55, 0xa94a5295, 0xa5252525,
-	    0xa4924925, 0x92491249, 0x91224489, 0x91111111, 0x90884211,
-	    0x88410821, 0x88102041, 0x81010101, 0x80800801, 0x80010001,
-	    0x80000001, 0x00000001, 0x00000000
+static u32 adwDecim8[33] =
+{
+	0xffffffff, 0xfffeffff, 0xffdffbff, 0xfefefeff, 0xfdf7efbf,
+	0xfbdf7bdf, 0xf7bbddef, 0xeeeeeeef, 0xeeddbb77, 0xedb76db7,
+	0xdb6db6db, 0xdb5b5b5b, 0xdab5ad6b, 0xd5ab55ab, 0xd555aaab,
+	0xaaaaaaab, 0xaaaa5555, 0xaa952a55, 0xa94a5295, 0xa5252525,
+	0xa4924925, 0x92491249, 0x91224489, 0x91111111, 0x90884211,
+	0x88410821, 0x88102041, 0x81010101, 0x80800801, 0x80010001,
+	0x80000001, 0x00000001, 0x00000000
 };
 
-typedef struct _OVRL_SRC_DEST {
+typedef struct _OVRL_SRC_DEST
+{
 	/*clipped on-screen pixel position of overlay */
 	u32 ulDstX1;
 	u32 ulDstY1;
@@ -138,34 +140,44 @@ void ResetOverlayRegisters(volatile STG4000REG __iomem *pSTGReg)
 }
 
 int CreateOverlaySurface(volatile STG4000REG __iomem *pSTGReg,
-			 u32 inWidth,
-			 u32 inHeight,
-			 int bLinear,
-			 u32 ulOverlayOffset,
-			 u32 * retStride, u32 * retUVStride)
+						 u32 inWidth,
+						 u32 inHeight,
+						 int bLinear,
+						 u32 ulOverlayOffset,
+						 u32 *retStride, u32 *retUVStride)
 {
 	u32 tmp;
 	u32 ulStride;
 
 	if (inWidth > STG4000_OVRL_MAX_WIDTH ||
-	    inHeight > STG4000_OVRL_MAX_HEIGHT) {
+		inHeight > STG4000_OVRL_MAX_HEIGHT)
+	{
 		return -EINVAL;
 	}
 
 	/* Stride in 16 byte words - 16Bpp */
-	if (bLinear) {
+	if (bLinear)
+	{
 		/* Format is 16bits so num 16 byte words is width/8 */
-		if ((inWidth & 0x7) == 0) {	/* inWidth % 8 */
+		if ((inWidth & 0x7) == 0)  	/* inWidth % 8 */
+		{
 			ulStride = (inWidth / 8);
-		} else {
+		}
+		else
+		{
 			/* Round up to next 16byte boundary */
 			ulStride = ((inWidth + 8) / 8);
 		}
-	} else {
+	}
+	else
+	{
 		/* Y component is 8bits so num 16 byte words is width/16 */
-		if ((inWidth & 0xf) == 0) {	/* inWidth % 16 */
+		if ((inWidth & 0xf) == 0)  	/* inWidth % 16 */
+		{
 			ulStride = (inWidth / 16);
-		} else {
+		}
+		else
+		{
 			/* Round up to next 16byte boundary */
 			ulStride = ((inWidth + 16) / 16);
 		}
@@ -175,9 +187,13 @@ int CreateOverlaySurface(volatile STG4000REG __iomem *pSTGReg,
 	/* Set Overlay address and Format mode */
 	tmp = STG_READ_REG(DACOverlayAddr);
 	CLEAR_BITS_FRM_TO(0, 20);
-	if (bLinear) {
+
+	if (bLinear)
+	{
 		CLEAR_BIT(31);	/* Overlay format to Linear */
-	} else {
+	}
+	else
+	{
 		tmp |= SET_BIT(31);	/* Overlay format to Planer */
 	}
 
@@ -185,23 +201,31 @@ int CreateOverlaySurface(volatile STG4000REG __iomem *pSTGReg,
 	tmp |= (ulOverlayOffset >> 4);
 	STG_WRITE_REG(DACOverlayAddr, tmp);
 
-	if (!bLinear) {
+	if (!bLinear)
+	{
 		u32 uvSize =
-		    (inWidth & 0x1) ? (inWidth + 1 / 2) : (inWidth / 2);
+			(inWidth & 0x1) ? (inWidth + 1 / 2) : (inWidth / 2);
 		u32 uvStride;
 		u32 ulOffset;
+
 		/* Y component is 8bits so num 32 byte words is width/32 */
-		if ((uvSize & 0xf) == 0) {	/* inWidth % 16 */
+		if ((uvSize & 0xf) == 0)  	/* inWidth % 16 */
+		{
 			uvStride = (uvSize / 16);
-		} else {
+		}
+		else
+		{
 			/* Round up to next 32byte boundary */
 			uvStride = ((uvSize + 16) / 16);
 		}
 
 		ulOffset = ulOverlayOffset + (inHeight * (ulStride * 16));
+
 		/* Align U,V data to 32byte boundary */
 		if ((ulOffset & 0x1f) != 0)
+		{
 			ulOffset = (ulOffset + 32L) & 0xffffffE0L;
+		}
 
 		tmp = STG_READ_REG(DACOverlayUAddr);
 		CLEAR_BITS_FRM_TO(0, 20);
@@ -209,9 +233,12 @@ int CreateOverlaySurface(volatile STG4000REG __iomem *pSTGReg,
 		STG_WRITE_REG(DACOverlayUAddr, tmp);
 
 		ulOffset += (inHeight / 2) * (uvStride * 16);
+
 		/* Align U,V data to 32byte boundary */
 		if ((ulOffset & 0x1f) != 0)
+		{
 			ulOffset = (ulOffset + 32L) & 0xffffffE0L;
+		}
 
 		tmp = STG_READ_REG(DACOverlayVAddr);
 		CLEAR_BITS_FRM_TO(0, 20);
@@ -240,8 +267,8 @@ int CreateOverlaySurface(volatile STG4000REG __iomem *pSTGReg,
 }
 
 int SetOverlayBlendMode(volatile STG4000REG __iomem *pSTGReg,
-			OVRL_BLEND_MODE mode,
-			u32 ulAlpha, u32 ulColorKey)
+						OVRL_BLEND_MODE mode,
+						u32 ulAlpha, u32 ulColorKey)
 {
 	u32 tmp;
 
@@ -249,35 +276,36 @@ int SetOverlayBlendMode(volatile STG4000REG __iomem *pSTGReg,
 	CLEAR_BITS_FRM_TO(28, 30);
 	tmp |= (mode << 28);
 
-	switch (mode) {
-	case COLOR_KEY:
-		CLEAR_BITS_FRM_TO(0, 23);
-		tmp |= (ulColorKey & 0x00FFFFFF);
-		break;
+	switch (mode)
+	{
+		case COLOR_KEY:
+			CLEAR_BITS_FRM_TO(0, 23);
+			tmp |= (ulColorKey & 0x00FFFFFF);
+			break;
 
-	case GLOBAL_ALPHA:
-		CLEAR_BITS_FRM_TO(24, 27);
-		tmp |= ((ulAlpha & 0xF) << 24);
-		break;
+		case GLOBAL_ALPHA:
+			CLEAR_BITS_FRM_TO(24, 27);
+			tmp |= ((ulAlpha & 0xF) << 24);
+			break;
 
-	case CK_PIXEL_ALPHA:
-		CLEAR_BITS_FRM_TO(0, 23);
-		tmp |= (ulColorKey & 0x00FFFFFF);
-		break;
+		case CK_PIXEL_ALPHA:
+			CLEAR_BITS_FRM_TO(0, 23);
+			tmp |= (ulColorKey & 0x00FFFFFF);
+			break;
 
-	case CK_GLOBAL_ALPHA:
-		CLEAR_BITS_FRM_TO(0, 23);
-		tmp |= (ulColorKey & 0x00FFFFFF);
-		CLEAR_BITS_FRM_TO(24, 27);
-		tmp |= ((ulAlpha & 0xF) << 24);
-		break;
+		case CK_GLOBAL_ALPHA:
+			CLEAR_BITS_FRM_TO(0, 23);
+			tmp |= (ulColorKey & 0x00FFFFFF);
+			CLEAR_BITS_FRM_TO(24, 27);
+			tmp |= ((ulAlpha & 0xF) << 24);
+			break;
 
-	case GRAPHICS_MODE:
-	case PER_PIXEL_ALPHA:
-		break;
+		case GRAPHICS_MODE:
+		case PER_PIXEL_ALPHA:
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	STG_WRITE_REG(DACBlendCtrl, tmp);
@@ -303,9 +331,13 @@ static u32 Overlap(u32 ulBits, u32 ulPattern)
 {
 	u32 ulCount = 0;
 
-	while (ulBits) {
+	while (ulBits)
+	{
 		if (!(ulPattern & 1))
+		{
 			ulCount++;
+		}
+
 		ulBits--;
 		ulPattern = ulPattern >> 1;
 	}
@@ -315,8 +347,8 @@ static u32 Overlap(u32 ulBits, u32 ulPattern)
 }
 
 int SetOverlayViewPort(volatile STG4000REG __iomem *pSTGReg,
-		       u32 left, u32 top,
-		       u32 right, u32 bottom)
+					   u32 left, u32 top,
+					   u32 right, u32 bottom)
 {
 	OVRL_SRC_DEST srcDest;
 
@@ -358,7 +390,7 @@ int SetOverlayViewPort(volatile STG4000REG __iomem *pSTGReg,
 	srcDest.lDstX2 = srcDest.ulDstX2;
 	srcDest.lDstY2 = srcDest.ulDstY2;
 
-    /************* Vertical decimation/scaling ******************/
+	/************* Vertical decimation/scaling ******************/
 
 	/* Get Src Top and Bottom */
 	ulSrcTop = srcDest.ulSrcY1;
@@ -368,7 +400,9 @@ int SetOverlayViewPort(volatile STG4000REG __iomem *pSTGReg,
 	ulDest = srcDest.lDstY2 - srcDest.lDstY1;	/* on-screen overlay */
 
 	if (ulSrc <= 1)
+	{
 		return -EINVAL;
+	}
 
 	/* First work out the position we are to display as offset from the
 	 * source of the buffer
@@ -384,26 +418,32 @@ int SetOverlayViewPort(volatile STG4000REG __iomem *pSTGReg,
 	ulPattern = adwDecim8[ulBits];
 
 	/* At this point ulSrc represents the input decimator */
-	if (ulSrc > ulDest) {
+	if (ulSrc > ulDest)
+	{
 		ulDecimate = ulSrc - ulDest;
 		ulBits = 0;
 		ulApplied = ulSrc / 32;
 
 		while (((ulBits * ulApplied) +
-			Overlap((ulSrc % 32),
-				adwDecim8[ulBits])) < ulDecimate)
+				Overlap((ulSrc % 32),
+						adwDecim8[ulBits])) < ulDecimate)
+		{
 			ulBits++;
+		}
 
 		ulPattern = adwDecim8[ulBits];
 		ulDecimated =
-		    (ulBits * ulApplied) + Overlap((ulSrc % 32),
-						   ulPattern);
+			(ulBits * ulApplied) + Overlap((ulSrc % 32),
+										   ulPattern);
 		ulSrc = ulSrc - ulDecimated;	/* the number number of lines that will go into the scaler */
 	}
 
-	if (ulBits && (ulBits != 32)) {
+	if (ulBits && (ulBits != 32))
+	{
 		ulVertDecFactor = (63 - ulBits) / (32 - ulBits);	/* vertical decimation factor scaled up to nearest integer */
-	} else {
+	}
+	else
+	{
 		ulVertDecFactor = 1;
 	}
 
@@ -434,20 +474,28 @@ int SetOverlayViewPort(volatile STG4000REG __iomem *pSTGReg,
 	ulLeft = srcDest.ulDstX1;
 	ulRight = srcDest.ulDstX2;
 #else
-	if (srcDest.ulDstX1 > 2) {
+
+	if (srcDest.ulDstX1 > 2)
+	{
 		ulLeft = srcDest.ulDstX1 + 2;
 		ulRight = srcDest.ulDstX2 + 1;
-	} else {
+	}
+	else
+	{
 		ulLeft = srcDest.ulDstX1;
 		ulRight = srcDest.ulDstX2 + 1;
 	}
+
 #endif
 	/* first work out the position we are to display as offset from the source of the buffer */
 	bResult = 1;
 
-	do {
+	do
+	{
 		if (ulDest == 0)
+		{
 			return -EINVAL;
+		}
 
 		/* source pixels per dest pixel <<11 */
 		ulFxScale = ((ulSrc - 1) << 11) / (ulDest);
@@ -476,7 +524,8 @@ int SetOverlayViewPort(volatile STG4000REG __iomem *pSTGReg,
 		ulhDecim = 0;
 		ulScale = (((ulSrcRight - ulSrcLeft) - 1) << (11 - ulhDecim)) / (ulRight - ulLeft + 2);
 
-		while (ulScale > 0x800) {
+		while (ulScale > 0x800)
+		{
 			ulhDecim++;
 			ulScale = (((ulSrcRight - ulSrcLeft) - 1) << (11 - ulhDecim)) / (ulRight - ulLeft + 2);
 		}
@@ -488,7 +537,8 @@ int SetOverlayViewPort(volatile STG4000REG __iomem *pSTGReg,
 		 * we want to check to see if we will need to clip data, if so
 		 * then we should clip our source so that we don't need to
 		 */
-		if (!ovlLinear) {
+		if (!ovlLinear)
+		{
 			ulSrcLeft &= ~0x1f;
 
 			/*
@@ -497,7 +547,9 @@ int SetOverlayViewPort(volatile STG4000REG __iomem *pSTGReg,
 			 * v are 128 bit aligned
 			 */
 			ulSrcRight = (ulSrcRight + 0x1f) & ~0x1f;
-		} else {
+		}
+		else
+		{
 			ulSrcLeft &= ~0x7;
 
 			/*
@@ -518,13 +570,17 @@ int SetOverlayViewPort(volatile STG4000REG __iomem *pSTGReg,
 		ulsVal = ((ulWidth / 8) >> ulhDecim);
 
 		if ((ulWidth != (ulsVal << ulhDecim) * 8))
+		{
 			ulsAdd = 1;
+		}
 
 		/* input pixels to scaler; */
 		ulSrc = ulWidth >> ulhDecim;
 
 		if (ulSrc <= 2)
+		{
 			return -EINVAL;
+		}
 
 		ulExcessPixels = ((((ulScaleLeft - ulSrcLeft)) << (11 - ulhDecim)) / ulScale);
 
@@ -533,10 +589,13 @@ int SetOverlayViewPort(volatile STG4000REG __iomem *pSTGReg,
 		ulClip += ulExcessPixels;
 
 		if (ulClip)
+		{
 			ulClip--;
+		}
 
 		/* We may need to do more here if we really have a HW rev < 5 */
-	} while (!bResult);
+	}
+	while (!bResult);
 
 	ulExtraLines = (1 << ulhDecim) * ulVertDecFactor;
 	ulExtraLines += 64;
@@ -564,14 +623,17 @@ int SetOverlayViewPort(volatile STG4000REG __iomem *pSTGReg,
 	CLEAR_BITS_FRM_TO(0, 10);
 	CLEAR_BITS_FRM_TO(12, 31);
 
-	if (ovlLinear) {
+	if (ovlLinear)
+	{
 		tmp |=
-		    (ovlStride | ((ulHeight + 1) << 12) |
-		     (((ulWidth / 8) - 1) << 23));
-	} else {
+			(ovlStride | ((ulHeight + 1) << 12) |
+			 (((ulWidth / 8) - 1) << 23));
+	}
+	else
+	{
 		tmp |=
-		    (ovlStride | ((ulHeight + 1) << 12) |
-		     (((ulWidth / 32) - 1) << 23));
+			(ovlStride | ((ulHeight + 1) << 12) |
+			 (((ulWidth / 32) - 1) << 23));
 	}
 
 	STG_WRITE_REG(DACOverlaySize, tmp);

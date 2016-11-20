@@ -26,7 +26,8 @@
 #define VPORT_API_VERSION_1	0x01
 
 /* Values returned via lpfc_vport_getinfo() */
-struct vport_info {
+struct vport_info
+{
 
 	uint32_t api_versions;
 	uint8_t linktype;
@@ -52,7 +53,7 @@ struct vport_info {
 
 	struct Scsi_Host *shost;
 
-/* Following values are valid only on physical links */
+	/* Following values are valid only on physical links */
 	uint32_t vports_max;
 	uint32_t vports_inuse;
 	uint32_t rpi_max;
@@ -61,7 +62,8 @@ struct vport_info {
 };
 
 /* data used  in link creation */
-struct vport_data {
+struct vport_data
+{
 	uint32_t api_version;
 
 	uint32_t options;
@@ -70,10 +72,10 @@ struct vport_data {
 	uint8_t node_name[8];	/* WWNN */
 	uint8_t port_name[8];	/* WWPN */
 
-/*
- *  Upon successful creation, vport_shost will point to the new Scsi_Host
- *  structure for the new virtual link.
- */
+	/*
+	 *  Upon successful creation, vport_shost will point to the new Scsi_Host
+	 *  structure for the new virtual link.
+	 */
 	struct Scsi_Host *vport_shost;
 };
 
@@ -102,7 +104,8 @@ int lpfc_alloc_vpi(struct lpfc_hba *phba);
 #define VPORT_CREATE	0x2
 #define VPORT_DELETE	0x4
 
-struct vport_cmd_tag {
+struct vport_cmd_tag
+{
 	uint32_t cmd;
 	struct vport_data cdata;
 	struct vport_info cinfo;
@@ -111,7 +114,7 @@ struct vport_cmd_tag {
 };
 
 void lpfc_vport_set_state(struct lpfc_vport *vport,
-			  enum fc_vport_state new_state);
+						  enum fc_vport_state new_state);
 
 void lpfc_vport_reset_stat_data(struct lpfc_vport *);
 void lpfc_alloc_bucket(struct lpfc_vport *);

@@ -77,7 +77,7 @@
 #define CARD_INT		(XD_INT | MS_INT | SD_INT)
 #define NEED_COMPLETE_INT	(DATA_DONE_INT | TRANS_OK_INT | TRANS_FAIL_INT)
 #define RTSX_INT		(CMD_DONE_INT | NEED_COMPLETE_INT | \
-					CARD_INT | GPIO0_INT | OC_INT)
+						 CARD_INT | GPIO0_INT | OC_INT)
 #define CARD_EXIST		(XD_EXIST | MS_EXIST | SD_EXIST)
 
 #define RTSX_BIER			0x18
@@ -392,9 +392,9 @@
 #define   XD_DRIVE_8mA			(0x01 << 2)
 #define   GPIO_DRIVE_8mA		0x01
 #define RTS5209_CARD_DRIVE_DEFAULT	(MS_DRIVE_8mA | MMC_DRIVE_8mA |\
-					XD_DRIVE_8mA | GPIO_DRIVE_8mA)
+									 XD_DRIVE_8mA | GPIO_DRIVE_8mA)
 #define RTL8411_CARD_DRIVE_DEFAULT	(MS_DRIVE_8mA | MMC_DRIVE_8mA |\
-					XD_DRIVE_8mA)
+									 XD_DRIVE_8mA)
 #define RTSX_CARD_DRIVE_DEFAULT		(MS_DRIVE_8mA | GPIO_DRIVE_8mA)
 
 #define CARD_STOP			0xFD54
@@ -852,11 +852,13 @@
 
 struct rtsx_pcr;
 
-struct pcr_handle {
+struct pcr_handle
+{
 	struct rtsx_pcr			*pcr;
 };
 
-struct pcr_ops {
+struct pcr_ops
+{
 	int (*write_phy)(struct rtsx_pcr *pcr, u8 addr, u16 val);
 	int (*read_phy)(struct rtsx_pcr *pcr, u8 addr, u16 *val);
 	int		(*extra_init_hw)(struct rtsx_pcr *pcr);
@@ -868,7 +870,7 @@ struct pcr_ops {
 	int		(*card_power_on)(struct rtsx_pcr *pcr, int card);
 	int		(*card_power_off)(struct rtsx_pcr *pcr, int card);
 	int		(*switch_output_voltage)(struct rtsx_pcr *pcr,
-						u8 voltage);
+									 u8 voltage);
 	unsigned int	(*cd_deglitch)(struct rtsx_pcr *pcr);
 	int		(*conv_clk_and_div_n)(int clk, int dir);
 	void		(*fetch_vendor_settings)(struct rtsx_pcr *pcr);
@@ -877,7 +879,8 @@ struct pcr_ops {
 
 enum PDEV_STAT  {PDEV_STAT_IDLE, PDEV_STAT_RUN};
 
-struct rtsx_pcr {
+struct rtsx_pcr
+{
 	struct pci_dev			*pci;
 	unsigned int			id;
 	int				pcie_cap;
@@ -977,7 +980,7 @@ struct rtsx_pcr {
 #define SDR50_RX_PHASE(pcr)		SDR50_PHASE((pcr)->rx_initial_phase)
 #define DDR50_RX_PHASE(pcr)		DDR50_PHASE((pcr)->rx_initial_phase)
 #define SET_CLOCK_PHASE(sdr104, sdr50, ddr50)	\
-				(((ddr50) << 16) | ((sdr50) << 8) | (sdr104))
+	(((ddr50) << 16) | ((sdr50) << 8) | (sdr104))
 
 void rtsx_pci_start_run(struct rtsx_pcr *pcr);
 int rtsx_pci_write_register(struct rtsx_pcr *pcr, u16 addr, u8 mask, u8 data);
@@ -986,23 +989,23 @@ int rtsx_pci_write_phy_register(struct rtsx_pcr *pcr, u8 addr, u16 val);
 int rtsx_pci_read_phy_register(struct rtsx_pcr *pcr, u8 addr, u16 *val);
 void rtsx_pci_stop_cmd(struct rtsx_pcr *pcr);
 void rtsx_pci_add_cmd(struct rtsx_pcr *pcr,
-		u8 cmd_type, u16 reg_addr, u8 mask, u8 data);
+					  u8 cmd_type, u16 reg_addr, u8 mask, u8 data);
 void rtsx_pci_send_cmd_no_wait(struct rtsx_pcr *pcr);
 int rtsx_pci_send_cmd(struct rtsx_pcr *pcr, int timeout);
 int rtsx_pci_transfer_data(struct rtsx_pcr *pcr, struct scatterlist *sglist,
-		int num_sg, bool read, int timeout);
+						   int num_sg, bool read, int timeout);
 int rtsx_pci_dma_map_sg(struct rtsx_pcr *pcr, struct scatterlist *sglist,
-		int num_sg, bool read);
+						int num_sg, bool read);
 void rtsx_pci_dma_unmap_sg(struct rtsx_pcr *pcr, struct scatterlist *sglist,
-		int num_sg, bool read);
+						   int num_sg, bool read);
 int rtsx_pci_dma_transfer(struct rtsx_pcr *pcr, struct scatterlist *sglist,
-		int count, bool read, int timeout);
+						  int count, bool read, int timeout);
 int rtsx_pci_read_ppbuf(struct rtsx_pcr *pcr, u8 *buf, int buf_len);
 int rtsx_pci_write_ppbuf(struct rtsx_pcr *pcr, u8 *buf, int buf_len);
 int rtsx_pci_card_pull_ctl_enable(struct rtsx_pcr *pcr, int card);
 int rtsx_pci_card_pull_ctl_disable(struct rtsx_pcr *pcr, int card);
 int rtsx_pci_switch_clock(struct rtsx_pcr *pcr, unsigned int card_clock,
-		u8 ssc_depth, bool initial_mode, bool double_clk, bool vpclk);
+						  u8 ssc_depth, bool initial_mode, bool double_clk, bool vpclk);
 int rtsx_pci_card_power_on(struct rtsx_pcr *pcr, int card);
 int rtsx_pci_card_power_off(struct rtsx_pcr *pcr, int card);
 int rtsx_pci_card_exclusive_check(struct rtsx_pcr *pcr, int card);
@@ -1022,8 +1025,12 @@ static inline int rtsx_pci_update_cfg_byte(struct rtsx_pcr *pcr, int addr,
 	u8 val;
 
 	err = pci_read_config_byte(pcr->pci, addr, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	return pci_write_config_byte(pcr->pci, addr, (val & mask) | append);
 }
 
@@ -1036,14 +1043,17 @@ static inline void rtsx_pci_write_be32(struct rtsx_pcr *pcr, u16 reg, u32 val)
 }
 
 static inline int rtsx_pci_update_phy(struct rtsx_pcr *pcr, u8 addr,
-	u16 mask, u16 append)
+									  u16 mask, u16 append)
 {
 	int err;
 	u16 val;
 
 	err = rtsx_pci_read_phy_register(pcr, addr, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return rtsx_pci_write_phy_register(pcr, addr, (val & mask) | append);
 }

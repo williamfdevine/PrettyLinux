@@ -53,7 +53,8 @@
 
 #define FIFO_SIZE			8
 
-struct spi_st {
+struct spi_st
+{
 	/* SSC SPI Controller */
 	void __iomem		*base;
 	struct clk		*clk;
@@ -75,19 +76,29 @@ static void ssc_write_tx_fifo(struct spi_st *spi_st)
 	uint32_t word = 0;
 
 	if (spi_st->words_remaining > FIFO_SIZE)
+	{
 		count = FIFO_SIZE;
+	}
 	else
+	{
 		count = spi_st->words_remaining;
+	}
 
-	for (i = 0; i < count; i++) {
-		if (spi_st->tx_ptr) {
-			if (spi_st->bytes_per_word == 1) {
+	for (i = 0; i < count; i++)
+	{
+		if (spi_st->tx_ptr)
+		{
+			if (spi_st->bytes_per_word == 1)
+			{
 				word = *spi_st->tx_ptr++;
-			} else {
+			}
+			else
+			{
 				word = *spi_st->tx_ptr++;
 				word = *spi_st->tx_ptr++ | (word << 8);
 			}
 		}
+
 		writel_relaxed(word, spi_st->base + SSC_TBUF);
 	}
 }
@@ -99,27 +110,37 @@ static void ssc_read_rx_fifo(struct spi_st *spi_st)
 	uint32_t word = 0;
 
 	if (spi_st->words_remaining > FIFO_SIZE)
+	{
 		count = FIFO_SIZE;
+	}
 	else
+	{
 		count = spi_st->words_remaining;
+	}
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		word = readl_relaxed(spi_st->base + SSC_RBUF);
 
-		if (spi_st->rx_ptr) {
-			if (spi_st->bytes_per_word == 1) {
+		if (spi_st->rx_ptr)
+		{
+			if (spi_st->bytes_per_word == 1)
+			{
 				*spi_st->rx_ptr++ = (uint8_t)word;
-			} else {
+			}
+			else
+			{
 				*spi_st->rx_ptr++ = (word >> 8);
 				*spi_st->rx_ptr++ = word & 0xff;
 			}
 		}
 	}
+
 	spi_st->words_remaining -= count;
 }
 
 static int spi_st_transfer_one(struct spi_master *master,
-			       struct spi_device *spi, struct spi_transfer *t)
+							   struct spi_device *spi, struct spi_transfer *t)
 {
 	struct spi_st *spi_st = spi_master_get_devdata(master);
 	uint32_t ctl = 0;
@@ -128,7 +149,8 @@ static int spi_st_transfer_one(struct spi_master *master,
 	spi_st->tx_ptr = t->tx_buf;
 	spi_st->rx_ptr = t->rx_buf;
 
-	if (spi->bits_per_word > 8) {
+	if (spi->bits_per_word > 8)
+	{
 		/*
 		 * Anything greater than 8 bits-per-word requires 2
 		 * bytes-per-word in the RX/TX buffers
@@ -136,7 +158,9 @@ static int spi_st_transfer_one(struct spi_master *master,
 		spi_st->bytes_per_word = 2;
 		spi_st->words_remaining = t->len / 2;
 
-	} else if (spi->bits_per_word == 8 && !(t->len & 0x1)) {
+	}
+	else if (spi->bits_per_word == 8 && !(t->len & 0x1))
+	{
 		/*
 		 * If transfer is even-length, and 8 bits-per-word, then
 		 * implement as half-length 16 bits-per-word transfer
@@ -150,7 +174,9 @@ static int spi_st_transfer_one(struct spi_master *master,
 
 		readl_relaxed(spi_st->base + SSC_RBUF);
 
-	} else {
+	}
+	else
+	{
 		spi_st->bytes_per_word = 1;
 		spi_st->words_remaining = t->len;
 	}
@@ -166,7 +192,9 @@ static int spi_st_transfer_one(struct spi_master *master,
 
 	/* Restore SSC_CTL if necessary */
 	if (ctl)
+	{
 		writel_relaxed(ctl, spi_st->base + SSC_CTL);
+	}
 
 	spi_finalize_current_transfer(spi->master);
 
@@ -188,83 +216,111 @@ static int spi_st_setup(struct spi_device *spi)
 	int cs = spi->cs_gpio;
 	int ret;
 
-	if (!hz)  {
+	if (!hz)
+	{
 		dev_err(&spi->dev, "max_speed_hz unspecified\n");
 		return -EINVAL;
 	}
 
-	if (!gpio_is_valid(cs)) {
+	if (!gpio_is_valid(cs))
+	{
 		dev_err(&spi->dev, "%d is not a valid gpio\n", cs);
 		return -EINVAL;
 	}
 
 	ret = gpio_request(cs, dev_name(&spi->dev));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&spi->dev, "could not request gpio:%d\n", cs);
 		return ret;
 	}
 
 	ret = gpio_direction_output(cs, spi->mode & SPI_CS_HIGH);
+
 	if (ret)
+	{
 		goto out_free_gpio;
+	}
 
 	spi_st_clk = clk_get_rate(spi_st->clk);
 
 	/* Set SSC_BRF */
 	sscbrg = spi_st_clk / (2 * hz);
-	if (sscbrg < 0x07 || sscbrg > BIT(16)) {
+
+	if (sscbrg < 0x07 || sscbrg > BIT(16))
+	{
 		dev_err(&spi->dev,
-			"baudrate %d outside valid range %d\n", sscbrg, hz);
+				"baudrate %d outside valid range %d\n", sscbrg, hz);
 		ret = -EINVAL;
 		goto out_free_gpio;
 	}
 
 	spi_st->baud = spi_st_clk / (2 * sscbrg);
+
 	if (sscbrg == BIT(16)) /* 16-bit counter wraps */
+	{
 		sscbrg = 0x0;
+	}
 
 	writel_relaxed(sscbrg, spi_st->base + SSC_BRG);
 
 	dev_dbg(&spi->dev,
-		"setting baudrate:target= %u hz, actual= %u hz, sscbrg= %u\n",
-		hz, spi_st->baud, sscbrg);
+			"setting baudrate:target= %u hz, actual= %u hz, sscbrg= %u\n",
+			hz, spi_st->baud, sscbrg);
 
-	 /* Set SSC_CTL and enable SSC */
-	 var = readl_relaxed(spi_st->base + SSC_CTL);
-	 var |= SSC_CTL_MS;
+	/* Set SSC_CTL and enable SSC */
+	var = readl_relaxed(spi_st->base + SSC_CTL);
+	var |= SSC_CTL_MS;
 
-	 if (spi->mode & SPI_CPOL)
+	if (spi->mode & SPI_CPOL)
+	{
 		var |= SSC_CTL_PO;
-	 else
+	}
+	else
+	{
 		var &= ~SSC_CTL_PO;
+	}
 
-	 if (spi->mode & SPI_CPHA)
+	if (spi->mode & SPI_CPHA)
+	{
 		var |= SSC_CTL_PH;
-	 else
+	}
+	else
+	{
 		var &= ~SSC_CTL_PH;
+	}
 
-	 if ((spi->mode & SPI_LSB_FIRST) == 0)
+	if ((spi->mode & SPI_LSB_FIRST) == 0)
+	{
 		var |= SSC_CTL_HB;
-	 else
+	}
+	else
+	{
 		var &= ~SSC_CTL_HB;
+	}
 
-	 if (spi->mode & SPI_LOOP)
+	if (spi->mode & SPI_LOOP)
+	{
 		var |= SSC_CTL_LPB;
-	 else
+	}
+	else
+	{
 		var &= ~SSC_CTL_LPB;
+	}
 
-	 var &= ~SSC_CTL_DATA_WIDTH_MSK;
-	 var |= (spi->bits_per_word - 1);
+	var &= ~SSC_CTL_DATA_WIDTH_MSK;
+	var |= (spi->bits_per_word - 1);
 
-	 var |= SSC_CTL_EN_TX_FIFO | SSC_CTL_EN_RX_FIFO;
-	 var |= SSC_CTL_EN;
+	var |= SSC_CTL_EN_TX_FIFO | SSC_CTL_EN_RX_FIFO;
+	var |= SSC_CTL_EN;
 
-	 writel_relaxed(var, spi_st->base + SSC_CTL);
+	writel_relaxed(var, spi_st->base + SSC_CTL);
 
-	 /* Clear the status register */
-	 readl_relaxed(spi_st->base + SSC_RBUF);
+	/* Clear the status register */
+	readl_relaxed(spi_st->base + SSC_RBUF);
 
-	 return 0;
+	return 0;
 
 out_free_gpio:
 	gpio_free(cs);
@@ -280,9 +336,12 @@ static irqreturn_t spi_st_irq(int irq, void *dev_id)
 	ssc_read_rx_fifo(spi_st);
 
 	/* Fill TX FIFO */
-	if (spi_st->words_remaining) {
+	if (spi_st->words_remaining)
+	{
 		ssc_write_tx_fifo(spi_st);
-	} else {
+	}
+	else
+	{
 		/* TX/RX complete */
 		writel_relaxed(0x0, spi_st->base + SSC_IEN);
 		/*
@@ -306,8 +365,11 @@ static int spi_st_probe(struct platform_device *pdev)
 	u32 var;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(*spi_st));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	master->dev.of_node		= np;
 	master->mode_bits		= MODEBITS;
@@ -320,22 +382,29 @@ static int spi_st_probe(struct platform_device *pdev)
 	spi_st				= spi_master_get_devdata(master);
 
 	spi_st->clk = devm_clk_get(&pdev->dev, "ssc");
-	if (IS_ERR(spi_st->clk)) {
+
+	if (IS_ERR(spi_st->clk))
+	{
 		dev_err(&pdev->dev, "Unable to request clock\n");
 		ret = PTR_ERR(spi_st->clk);
 		goto put_master;
 	}
 
 	ret = clk_prepare_enable(spi_st->clk);
+
 	if (ret)
+	{
 		goto put_master;
+	}
 
 	init_completion(&spi_st->done);
 
 	/* Get resources */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	spi_st->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(spi_st->base)) {
+
+	if (IS_ERR(spi_st->base))
+	{
 		ret = PTR_ERR(spi_st->base);
 		goto clk_disable;
 	}
@@ -357,15 +426,19 @@ static int spi_st_probe(struct platform_device *pdev)
 	writel_relaxed(var, spi_st->base + SSC_CTL);
 
 	irq = irq_of_parse_and_map(np, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		dev_err(&pdev->dev, "IRQ missing or invalid\n");
 		ret = -EINVAL;
 		goto clk_disable;
 	}
 
 	ret = devm_request_irq(&pdev->dev, irq, spi_st_irq, 0,
-			       pdev->name, spi_st);
-	if (ret) {
+						   pdev->name, spi_st);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to request irq %d\n", irq);
 		goto clk_disable;
 	}
@@ -377,7 +450,9 @@ static int spi_st_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, master);
 
 	ret = devm_spi_register_master(&pdev->dev, master);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to register master\n");
 		goto clk_disable;
 	}
@@ -437,8 +512,11 @@ static int spi_st_suspend(struct device *dev)
 	int ret;
 
 	ret = spi_master_suspend(master);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return pm_runtime_force_suspend(dev);
 }
@@ -449,25 +527,31 @@ static int spi_st_resume(struct device *dev)
 	int ret;
 
 	ret = spi_master_resume(master);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return pm_runtime_force_resume(dev);
 }
 #endif
 
-static const struct dev_pm_ops spi_st_pm = {
+static const struct dev_pm_ops spi_st_pm =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(spi_st_suspend, spi_st_resume)
 	SET_RUNTIME_PM_OPS(spi_st_runtime_suspend, spi_st_runtime_resume, NULL)
 };
 
-static const struct of_device_id stm_spi_match[] = {
+static const struct of_device_id stm_spi_match[] =
+{
 	{ .compatible = "st,comms-ssc4-spi", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, stm_spi_match);
 
-static struct platform_driver spi_st_driver = {
+static struct platform_driver spi_st_driver =
+{
 	.driver = {
 		.name = "spi-st",
 		.pm = &spi_st_pm,

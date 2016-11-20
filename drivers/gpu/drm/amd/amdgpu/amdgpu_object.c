@@ -40,48 +40,59 @@
 
 
 static u64 amdgpu_get_vis_part_size(struct amdgpu_device *adev,
-						struct ttm_mem_reg *mem)
+									struct ttm_mem_reg *mem)
 {
 	if (mem->start << PAGE_SHIFT >= adev->mc.visible_vram_size)
+	{
 		return 0;
+	}
 
 	return ((mem->start << PAGE_SHIFT) + mem->size) >
-		adev->mc.visible_vram_size ?
-		adev->mc.visible_vram_size - (mem->start << PAGE_SHIFT) :
-		mem->size;
+		   adev->mc.visible_vram_size ?
+		   adev->mc.visible_vram_size - (mem->start << PAGE_SHIFT) :
+		   mem->size;
 }
 
 static void amdgpu_update_memory_usage(struct amdgpu_device *adev,
-		       struct ttm_mem_reg *old_mem,
-		       struct ttm_mem_reg *new_mem)
+									   struct ttm_mem_reg *old_mem,
+									   struct ttm_mem_reg *new_mem)
 {
 	u64 vis_size;
-	if (!adev)
-		return;
 
-	if (new_mem) {
-		switch (new_mem->mem_type) {
-		case TTM_PL_TT:
-			atomic64_add(new_mem->size, &adev->gtt_usage);
-			break;
-		case TTM_PL_VRAM:
-			atomic64_add(new_mem->size, &adev->vram_usage);
-			vis_size = amdgpu_get_vis_part_size(adev, new_mem);
-			atomic64_add(vis_size, &adev->vram_vis_usage);
-			break;
+	if (!adev)
+	{
+		return;
+	}
+
+	if (new_mem)
+	{
+		switch (new_mem->mem_type)
+		{
+			case TTM_PL_TT:
+				atomic64_add(new_mem->size, &adev->gtt_usage);
+				break;
+
+			case TTM_PL_VRAM:
+				atomic64_add(new_mem->size, &adev->vram_usage);
+				vis_size = amdgpu_get_vis_part_size(adev, new_mem);
+				atomic64_add(vis_size, &adev->vram_vis_usage);
+				break;
 		}
 	}
 
-	if (old_mem) {
-		switch (old_mem->mem_type) {
-		case TTM_PL_TT:
-			atomic64_sub(old_mem->size, &adev->gtt_usage);
-			break;
-		case TTM_PL_VRAM:
-			atomic64_sub(old_mem->size, &adev->vram_usage);
-			vis_size = amdgpu_get_vis_part_size(adev, old_mem);
-			atomic64_sub(vis_size, &adev->vram_vis_usage);
-			break;
+	if (old_mem)
+	{
+		switch (old_mem->mem_type)
+		{
+			case TTM_PL_TT:
+				atomic64_sub(old_mem->size, &adev->gtt_usage);
+				break;
+
+			case TTM_PL_VRAM:
+				atomic64_sub(old_mem->size, &adev->vram_usage);
+				vis_size = amdgpu_get_vis_part_size(adev, old_mem);
+				atomic64_sub(vis_size, &adev->vram_vis_usage);
+				break;
 		}
 	}
 }
@@ -96,11 +107,14 @@ static void amdgpu_ttm_bo_destroy(struct ttm_buffer_object *tbo)
 
 	drm_gem_object_release(&bo->gem_base);
 	amdgpu_bo_unref(&bo->parent);
-	if (!list_empty(&bo->shadow_list)) {
+
+	if (!list_empty(&bo->shadow_list))
+	{
 		mutex_lock(&bo->adev->shadow_list_lock);
 		list_del_init(&bo->shadow_list);
 		mutex_unlock(&bo->adev->shadow_list_lock);
 	}
+
 	kfree(bo->metadata);
 	kfree(bo);
 }
@@ -108,88 +122,113 @@ static void amdgpu_ttm_bo_destroy(struct ttm_buffer_object *tbo)
 bool amdgpu_ttm_bo_is_amdgpu_bo(struct ttm_buffer_object *bo)
 {
 	if (bo->destroy == &amdgpu_ttm_bo_destroy)
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static void amdgpu_ttm_placement_init(struct amdgpu_device *adev,
-				      struct ttm_placement *placement,
-				      struct ttm_place *places,
-				      u32 domain, u64 flags)
+									  struct ttm_placement *placement,
+									  struct ttm_place *places,
+									  u32 domain, u64 flags)
 {
 	u32 c = 0;
 
-	if (domain & AMDGPU_GEM_DOMAIN_VRAM) {
+	if (domain & AMDGPU_GEM_DOMAIN_VRAM)
+	{
 		unsigned visible_pfn = adev->mc.visible_vram_size >> PAGE_SHIFT;
 
 		if (flags & AMDGPU_GEM_CREATE_NO_CPU_ACCESS &&
-		    !(flags & AMDGPU_GEM_CREATE_CPU_ACCESS_REQUIRED) &&
-		    adev->mc.visible_vram_size < adev->mc.real_vram_size) {
+			!(flags & AMDGPU_GEM_CREATE_CPU_ACCESS_REQUIRED) &&
+			adev->mc.visible_vram_size < adev->mc.real_vram_size)
+		{
 			places[c].fpfn = visible_pfn;
 			places[c].lpfn = 0;
 			places[c].flags = TTM_PL_FLAG_WC |
-				TTM_PL_FLAG_UNCACHED | TTM_PL_FLAG_VRAM |
-				TTM_PL_FLAG_TOPDOWN;
+							  TTM_PL_FLAG_UNCACHED | TTM_PL_FLAG_VRAM |
+							  TTM_PL_FLAG_TOPDOWN;
 			c++;
 		}
 
 		places[c].fpfn = 0;
 		places[c].lpfn = 0;
 		places[c].flags = TTM_PL_FLAG_WC | TTM_PL_FLAG_UNCACHED |
-			TTM_PL_FLAG_VRAM;
+						  TTM_PL_FLAG_VRAM;
+
 		if (flags & AMDGPU_GEM_CREATE_CPU_ACCESS_REQUIRED)
+		{
 			places[c].lpfn = visible_pfn;
+		}
 		else
+		{
 			places[c].flags |= TTM_PL_FLAG_TOPDOWN;
+		}
+
 		c++;
 	}
 
-	if (domain & AMDGPU_GEM_DOMAIN_GTT) {
+	if (domain & AMDGPU_GEM_DOMAIN_GTT)
+	{
 		places[c].fpfn = 0;
 		places[c].lpfn = 0;
 		places[c].flags = TTM_PL_FLAG_TT;
+
 		if (flags & AMDGPU_GEM_CREATE_CPU_GTT_USWC)
 			places[c].flags |= TTM_PL_FLAG_WC |
-				TTM_PL_FLAG_UNCACHED;
+							   TTM_PL_FLAG_UNCACHED;
 		else
+		{
 			places[c].flags |= TTM_PL_FLAG_CACHED;
+		}
+
 		c++;
 	}
 
-	if (domain & AMDGPU_GEM_DOMAIN_CPU) {
+	if (domain & AMDGPU_GEM_DOMAIN_CPU)
+	{
 		places[c].fpfn = 0;
 		places[c].lpfn = 0;
 		places[c].flags = TTM_PL_FLAG_SYSTEM;
+
 		if (flags & AMDGPU_GEM_CREATE_CPU_GTT_USWC)
 			places[c].flags |= TTM_PL_FLAG_WC |
-				TTM_PL_FLAG_UNCACHED;
+							   TTM_PL_FLAG_UNCACHED;
 		else
+		{
 			places[c].flags |= TTM_PL_FLAG_CACHED;
+		}
+
 		c++;
 	}
 
-	if (domain & AMDGPU_GEM_DOMAIN_GDS) {
+	if (domain & AMDGPU_GEM_DOMAIN_GDS)
+	{
 		places[c].fpfn = 0;
 		places[c].lpfn = 0;
 		places[c].flags = TTM_PL_FLAG_UNCACHED | AMDGPU_PL_FLAG_GDS;
 		c++;
 	}
 
-	if (domain & AMDGPU_GEM_DOMAIN_GWS) {
+	if (domain & AMDGPU_GEM_DOMAIN_GWS)
+	{
 		places[c].fpfn = 0;
 		places[c].lpfn = 0;
 		places[c].flags = TTM_PL_FLAG_UNCACHED | AMDGPU_PL_FLAG_GWS;
 		c++;
 	}
 
-	if (domain & AMDGPU_GEM_DOMAIN_OA) {
+	if (domain & AMDGPU_GEM_DOMAIN_OA)
+	{
 		places[c].fpfn = 0;
 		places[c].lpfn = 0;
 		places[c].flags = TTM_PL_FLAG_UNCACHED | AMDGPU_PL_FLAG_OA;
 		c++;
 	}
 
-	if (!c) {
+	if (!c)
+	{
 		places[c].fpfn = 0;
 		places[c].lpfn = 0;
 		places[c].flags = TTM_PL_MASK_CACHING | TTM_PL_FLAG_SYSTEM;
@@ -206,16 +245,16 @@ static void amdgpu_ttm_placement_init(struct amdgpu_device *adev,
 void amdgpu_ttm_placement_from_domain(struct amdgpu_bo *abo, u32 domain)
 {
 	amdgpu_ttm_placement_init(abo->adev, &abo->placement,
-				  abo->placements, domain, abo->flags);
+							  abo->placements, domain, abo->flags);
 }
 
 static void amdgpu_fill_placement_to_bo(struct amdgpu_bo *bo,
-					struct ttm_placement *placement)
+										struct ttm_placement *placement)
 {
 	BUG_ON(placement->num_placement > (AMDGPU_GEM_DOMAIN_MAX + 1));
 
 	memcpy(bo->placements, placement->placement,
-	       placement->num_placement * sizeof(struct ttm_place));
+		   placement->num_placement * sizeof(struct ttm_place));
 	bo->placement.num_placement = placement->num_placement;
 	bo->placement.num_busy_placement = placement->num_busy_placement;
 	bo->placement.placement = bo->placements;
@@ -238,35 +277,44 @@ static void amdgpu_fill_placement_to_bo(struct amdgpu_bo *bo,
  * Returns 0 on success, negative error code otherwise.
  */
 int amdgpu_bo_create_kernel(struct amdgpu_device *adev,
-			    unsigned long size, int align,
-			    u32 domain, struct amdgpu_bo **bo_ptr,
-			    u64 *gpu_addr, void **cpu_addr)
+							unsigned long size, int align,
+							u32 domain, struct amdgpu_bo **bo_ptr,
+							u64 *gpu_addr, void **cpu_addr)
 {
 	int r;
 
 	r = amdgpu_bo_create(adev, size, align, true, domain,
-			     AMDGPU_GEM_CREATE_CPU_ACCESS_REQUIRED,
-			     NULL, NULL, bo_ptr);
-	if (r) {
+						 AMDGPU_GEM_CREATE_CPU_ACCESS_REQUIRED,
+						 NULL, NULL, bo_ptr);
+
+	if (r)
+	{
 		dev_err(adev->dev, "(%d) failed to allocate kernel bo\n", r);
 		return r;
 	}
 
 	r = amdgpu_bo_reserve(*bo_ptr, false);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(adev->dev, "(%d) failed to reserve kernel bo\n", r);
 		goto error_free;
 	}
 
 	r = amdgpu_bo_pin(*bo_ptr, domain, gpu_addr);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(adev->dev, "(%d) kernel bo pin failed\n", r);
 		goto error_unreserve;
 	}
 
-	if (cpu_addr) {
+	if (cpu_addr)
+	{
 		r = amdgpu_bo_kmap(*bo_ptr, cpu_addr);
-		if (r) {
+
+		if (r)
+		{
 			dev_err(adev->dev, "(%d) kernel bo map failed\n", r);
 			goto error_unreserve;
 		}
@@ -293,34 +341,44 @@ error_free:
  * unmaps and unpin a BO for kernel internal use.
  */
 void amdgpu_bo_free_kernel(struct amdgpu_bo **bo, u64 *gpu_addr,
-			   void **cpu_addr)
+						   void **cpu_addr)
 {
 	if (*bo == NULL)
+	{
 		return;
+	}
 
-	if (likely(amdgpu_bo_reserve(*bo, false) == 0)) {
+	if (likely(amdgpu_bo_reserve(*bo, false) == 0))
+	{
 		if (cpu_addr)
+		{
 			amdgpu_bo_kunmap(*bo);
+		}
 
 		amdgpu_bo_unpin(*bo);
 		amdgpu_bo_unreserve(*bo);
 	}
+
 	amdgpu_bo_unref(bo);
 
 	if (gpu_addr)
+	{
 		*gpu_addr = 0;
+	}
 
 	if (cpu_addr)
+	{
 		*cpu_addr = NULL;
+	}
 }
 
 int amdgpu_bo_create_restricted(struct amdgpu_device *adev,
-				unsigned long size, int byte_align,
-				bool kernel, u32 domain, u64 flags,
-				struct sg_table *sg,
-				struct ttm_placement *placement,
-				struct reservation_object *resv,
-				struct amdgpu_bo **bo_ptr)
+								unsigned long size, int byte_align,
+								bool kernel, u32 domain, u64 flags,
+								struct sg_table *sg,
+								struct ttm_placement *placement,
+								struct reservation_object *resv,
+								struct amdgpu_bo **bo_ptr)
 {
 	struct amdgpu_bo *bo;
 	enum ttm_bo_type type;
@@ -331,38 +389,54 @@ int amdgpu_bo_create_restricted(struct amdgpu_device *adev,
 	page_align = roundup(byte_align, PAGE_SIZE) >> PAGE_SHIFT;
 	size = ALIGN(size, PAGE_SIZE);
 
-	if (kernel) {
+	if (kernel)
+	{
 		type = ttm_bo_type_kernel;
-	} else if (sg) {
+	}
+	else if (sg)
+	{
 		type = ttm_bo_type_sg;
-	} else {
+	}
+	else
+	{
 		type = ttm_bo_type_device;
 	}
+
 	*bo_ptr = NULL;
 
 	acc_size = ttm_bo_dma_acc_size(&adev->mman.bdev, size,
-				       sizeof(struct amdgpu_bo));
+								   sizeof(struct amdgpu_bo));
 
 	bo = kzalloc(sizeof(struct amdgpu_bo), GFP_KERNEL);
+
 	if (bo == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	r = drm_gem_object_init(adev->ddev, &bo->gem_base, size);
-	if (unlikely(r)) {
+
+	if (unlikely(r))
+	{
 		kfree(bo);
 		return r;
 	}
+
 	bo->adev = adev;
 	INIT_LIST_HEAD(&bo->shadow_list);
 	INIT_LIST_HEAD(&bo->va);
 	bo->prefered_domains = domain & (AMDGPU_GEM_DOMAIN_VRAM |
-					 AMDGPU_GEM_DOMAIN_GTT |
-					 AMDGPU_GEM_DOMAIN_CPU |
-					 AMDGPU_GEM_DOMAIN_GDS |
-					 AMDGPU_GEM_DOMAIN_GWS |
-					 AMDGPU_GEM_DOMAIN_OA);
+									 AMDGPU_GEM_DOMAIN_GTT |
+									 AMDGPU_GEM_DOMAIN_CPU |
+									 AMDGPU_GEM_DOMAIN_GDS |
+									 AMDGPU_GEM_DOMAIN_GWS |
+									 AMDGPU_GEM_DOMAIN_OA);
 	bo->allowed_domains = bo->prefered_domains;
+
 	if (!kernel && bo->allowed_domains == AMDGPU_GEM_DOMAIN_VRAM)
+	{
 		bo->allowed_domains |= AMDGPU_GEM_DOMAIN_GTT;
+	}
 
 	bo->flags = flags;
 
@@ -370,35 +444,47 @@ int amdgpu_bo_create_restricted(struct amdgpu_device *adev,
 	 * mask out the WC flag from the BO
 	 */
 	if (!drm_arch_can_wc_memory())
+	{
 		bo->flags &= ~AMDGPU_GEM_CREATE_CPU_GTT_USWC;
+	}
 
 	amdgpu_fill_placement_to_bo(bo, placement);
 	/* Kernel allocation are uninterruptible */
 	r = ttm_bo_init(&adev->mman.bdev, &bo->tbo, size, type,
-			&bo->placement, page_align, !kernel, NULL,
-			acc_size, sg, resv, &amdgpu_ttm_bo_destroy);
-	if (unlikely(r != 0)) {
+					&bo->placement, page_align, !kernel, NULL,
+					acc_size, sg, resv, &amdgpu_ttm_bo_destroy);
+
+	if (unlikely(r != 0))
+	{
 		return r;
 	}
 
 	if (flags & AMDGPU_GEM_CREATE_VRAM_CLEARED &&
-	    bo->tbo.mem.placement & TTM_PL_FLAG_VRAM) {
+		bo->tbo.mem.placement & TTM_PL_FLAG_VRAM)
+	{
 		struct fence *fence;
 
 		if (adev->mman.buffer_funcs_ring == NULL ||
-		   !adev->mman.buffer_funcs_ring->ready) {
+			!adev->mman.buffer_funcs_ring->ready)
+		{
 			r = -EBUSY;
 			goto fail_free;
 		}
 
 		r = amdgpu_bo_reserve(bo, false);
+
 		if (unlikely(r != 0))
+		{
 			goto fail_free;
+		}
 
 		amdgpu_ttm_placement_from_domain(bo, AMDGPU_GEM_DOMAIN_VRAM);
 		r = ttm_bo_validate(&bo->tbo, &bo->placement, false, false);
+
 		if (unlikely(r != 0))
+		{
 			goto fail_unreserve;
+		}
 
 		amdgpu_fill_buffer(bo, 0, bo->tbo.resv, &fence);
 		amdgpu_bo_fence(bo, fence, false);
@@ -407,6 +493,7 @@ int amdgpu_bo_create_restricted(struct amdgpu_device *adev,
 		bo->tbo.moving = fence_get(fence);
 		fence_put(fence);
 	}
+
 	*bo_ptr = bo;
 
 	trace_amdgpu_bo_create(bo);
@@ -421,31 +508,35 @@ fail_free:
 }
 
 static int amdgpu_bo_create_shadow(struct amdgpu_device *adev,
-				   unsigned long size, int byte_align,
-				   struct amdgpu_bo *bo)
+								   unsigned long size, int byte_align,
+								   struct amdgpu_bo *bo)
 {
 	struct ttm_placement placement = {0};
 	struct ttm_place placements[AMDGPU_GEM_DOMAIN_MAX + 1];
 	int r;
 
 	if (bo->shadow)
+	{
 		return 0;
+	}
 
 	bo->flags |= AMDGPU_GEM_CREATE_SHADOW;
 	memset(&placements, 0,
-	       (AMDGPU_GEM_DOMAIN_MAX + 1) * sizeof(struct ttm_place));
+		   (AMDGPU_GEM_DOMAIN_MAX + 1) * sizeof(struct ttm_place));
 
 	amdgpu_ttm_placement_init(adev, &placement,
-				  placements, AMDGPU_GEM_DOMAIN_GTT,
-				  AMDGPU_GEM_CREATE_CPU_GTT_USWC);
+							  placements, AMDGPU_GEM_DOMAIN_GTT,
+							  AMDGPU_GEM_CREATE_CPU_GTT_USWC);
 
 	r = amdgpu_bo_create_restricted(adev, size, byte_align, true,
-					AMDGPU_GEM_DOMAIN_GTT,
-					AMDGPU_GEM_CREATE_CPU_GTT_USWC,
-					NULL, &placement,
-					bo->tbo.resv,
-					&bo->shadow);
-	if (!r) {
+									AMDGPU_GEM_DOMAIN_GTT,
+									AMDGPU_GEM_CREATE_CPU_GTT_USWC,
+									NULL, &placement,
+									bo->tbo.resv,
+									&bo->shadow);
+
+	if (!r)
+	{
 		bo->shadow->parent = amdgpu_bo_ref(bo);
 		mutex_lock(&adev->shadow_list_lock);
 		list_add_tail(&bo->shadow_list, &adev->shadow_list);
@@ -456,43 +547,50 @@ static int amdgpu_bo_create_shadow(struct amdgpu_device *adev,
 }
 
 int amdgpu_bo_create(struct amdgpu_device *adev,
-		     unsigned long size, int byte_align,
-		     bool kernel, u32 domain, u64 flags,
-		     struct sg_table *sg,
-		     struct reservation_object *resv,
-		     struct amdgpu_bo **bo_ptr)
+					 unsigned long size, int byte_align,
+					 bool kernel, u32 domain, u64 flags,
+					 struct sg_table *sg,
+					 struct reservation_object *resv,
+					 struct amdgpu_bo **bo_ptr)
 {
 	struct ttm_placement placement = {0};
 	struct ttm_place placements[AMDGPU_GEM_DOMAIN_MAX + 1];
 	int r;
 
 	memset(&placements, 0,
-	       (AMDGPU_GEM_DOMAIN_MAX + 1) * sizeof(struct ttm_place));
+		   (AMDGPU_GEM_DOMAIN_MAX + 1) * sizeof(struct ttm_place));
 
 	amdgpu_ttm_placement_init(adev, &placement,
-				  placements, domain, flags);
+							  placements, domain, flags);
 
 	r = amdgpu_bo_create_restricted(adev, size, byte_align, kernel,
-					domain, flags, sg, &placement,
-					resv, bo_ptr);
-	if (r)
-		return r;
+									domain, flags, sg, &placement,
+									resv, bo_ptr);
 
-	if (amdgpu_need_backup(adev) && (flags & AMDGPU_GEM_CREATE_SHADOW)) {
+	if (r)
+	{
+		return r;
+	}
+
+	if (amdgpu_need_backup(adev) && (flags & AMDGPU_GEM_CREATE_SHADOW))
+	{
 		r = amdgpu_bo_create_shadow(adev, size, byte_align, (*bo_ptr));
+
 		if (r)
+		{
 			amdgpu_bo_unref(bo_ptr);
+		}
 	}
 
 	return r;
 }
 
 int amdgpu_bo_backup_to_shadow(struct amdgpu_device *adev,
-			       struct amdgpu_ring *ring,
-			       struct amdgpu_bo *bo,
-			       struct reservation_object *resv,
-			       struct fence **fence,
-			       bool direct)
+							   struct amdgpu_ring *ring,
+							   struct amdgpu_bo *bo,
+							   struct reservation_object *resv,
+							   struct fence **fence,
+							   bool direct)
 
 {
 	struct amdgpu_bo *shadow = bo->shadow;
@@ -500,31 +598,39 @@ int amdgpu_bo_backup_to_shadow(struct amdgpu_device *adev,
 	int r;
 
 	if (!shadow)
+	{
 		return -EINVAL;
+	}
 
 	bo_addr = amdgpu_bo_gpu_offset(bo);
 	shadow_addr = amdgpu_bo_gpu_offset(bo->shadow);
 
 	r = reservation_object_reserve_shared(bo->tbo.resv);
+
 	if (r)
+	{
 		goto err;
+	}
 
 	r = amdgpu_copy_buffer(ring, bo_addr, shadow_addr,
-			       amdgpu_bo_size(bo), resv, fence,
-			       direct);
+						   amdgpu_bo_size(bo), resv, fence,
+						   direct);
+
 	if (!r)
+	{
 		amdgpu_bo_fence(bo, *fence, true);
+	}
 
 err:
 	return r;
 }
 
 int amdgpu_bo_restore_from_shadow(struct amdgpu_device *adev,
-				  struct amdgpu_ring *ring,
-				  struct amdgpu_bo *bo,
-				  struct reservation_object *resv,
-				  struct fence **fence,
-				  bool direct)
+								  struct amdgpu_ring *ring,
+								  struct amdgpu_bo *bo,
+								  struct reservation_object *resv,
+								  struct fence **fence,
+								  bool direct)
 
 {
 	struct amdgpu_bo *shadow = bo->shadow;
@@ -532,20 +638,28 @@ int amdgpu_bo_restore_from_shadow(struct amdgpu_device *adev,
 	int r;
 
 	if (!shadow)
+	{
 		return -EINVAL;
+	}
 
 	bo_addr = amdgpu_bo_gpu_offset(bo);
 	shadow_addr = amdgpu_bo_gpu_offset(bo->shadow);
 
 	r = reservation_object_reserve_shared(bo->tbo.resv);
+
 	if (r)
+	{
 		goto err;
+	}
 
 	r = amdgpu_copy_buffer(ring, shadow_addr, bo_addr,
-			       amdgpu_bo_size(bo), resv, fence,
-			       direct);
+						   amdgpu_bo_size(bo), resv, fence,
+						   direct);
+
 	if (!r)
+	{
 		amdgpu_bo_fence(bo, *fence, true);
+	}
 
 err:
 	return r;
@@ -557,27 +671,41 @@ int amdgpu_bo_kmap(struct amdgpu_bo *bo, void **ptr)
 	long r;
 
 	if (bo->flags & AMDGPU_GEM_CREATE_NO_CPU_ACCESS)
+	{
 		return -EPERM;
+	}
 
-	if (bo->kptr) {
-		if (ptr) {
+	if (bo->kptr)
+	{
+		if (ptr)
+		{
 			*ptr = bo->kptr;
 		}
+
 		return 0;
 	}
 
 	r = reservation_object_wait_timeout_rcu(bo->tbo.resv, false, false,
-						MAX_SCHEDULE_TIMEOUT);
+											MAX_SCHEDULE_TIMEOUT);
+
 	if (r < 0)
+	{
 		return r;
+	}
 
 	r = ttm_bo_kmap(&bo->tbo, 0, bo->tbo.num_pages, &bo->kmap);
+
 	if (r)
+	{
 		return r;
+	}
 
 	bo->kptr = ttm_kmap_obj_virtual(&bo->kmap, &is_iomem);
+
 	if (ptr)
+	{
 		*ptr = bo->kptr;
+	}
 
 	return 0;
 }
@@ -585,7 +713,10 @@ int amdgpu_bo_kmap(struct amdgpu_bo *bo, void **ptr)
 void amdgpu_bo_kunmap(struct amdgpu_bo *bo)
 {
 	if (bo->kptr == NULL)
+	{
 		return;
+	}
+
 	bo->kptr = NULL;
 	ttm_bo_kunmap(&bo->kmap);
 }
@@ -593,7 +724,9 @@ void amdgpu_bo_kunmap(struct amdgpu_bo *bo)
 struct amdgpu_bo *amdgpu_bo_ref(struct amdgpu_bo *bo)
 {
 	if (bo == NULL)
+	{
 		return NULL;
+	}
 
 	ttm_bo_reference(&bo->tbo);
 	return bo;
@@ -604,88 +737,135 @@ void amdgpu_bo_unref(struct amdgpu_bo **bo)
 	struct ttm_buffer_object *tbo;
 
 	if ((*bo) == NULL)
+	{
 		return;
+	}
 
 	tbo = &((*bo)->tbo);
 	ttm_bo_unref(&tbo);
+
 	if (tbo == NULL)
+	{
 		*bo = NULL;
+	}
 }
 
 int amdgpu_bo_pin_restricted(struct amdgpu_bo *bo, u32 domain,
-			     u64 min_offset, u64 max_offset,
-			     u64 *gpu_addr)
+							 u64 min_offset, u64 max_offset,
+							 u64 *gpu_addr)
 {
 	int r, i;
 	unsigned fpfn, lpfn;
 
 	if (amdgpu_ttm_tt_get_usermm(bo->tbo.ttm))
+	{
 		return -EPERM;
+	}
 
 	if (WARN_ON_ONCE(min_offset > max_offset))
+	{
 		return -EINVAL;
+	}
 
-	if (bo->pin_count) {
+	if (bo->pin_count)
+	{
 		uint32_t mem_type = bo->tbo.mem.mem_type;
 
 		if (domain != amdgpu_mem_type_to_domain(mem_type))
+		{
 			return -EINVAL;
+		}
 
 		bo->pin_count++;
-		if (gpu_addr)
-			*gpu_addr = amdgpu_bo_gpu_offset(bo);
 
-		if (max_offset != 0) {
+		if (gpu_addr)
+		{
+			*gpu_addr = amdgpu_bo_gpu_offset(bo);
+		}
+
+		if (max_offset != 0)
+		{
 			u64 domain_start = bo->tbo.bdev->man[mem_type].gpu_offset;
 			WARN_ON_ONCE(max_offset <
-				     (amdgpu_bo_gpu_offset(bo) - domain_start));
+						 (amdgpu_bo_gpu_offset(bo) - domain_start));
 		}
 
 		return 0;
 	}
+
 	amdgpu_ttm_placement_from_domain(bo, domain);
-	for (i = 0; i < bo->placement.num_placement; i++) {
+
+	for (i = 0; i < bo->placement.num_placement; i++)
+	{
 		/* force to pin into visible video ram */
 		if ((bo->placements[i].flags & TTM_PL_FLAG_VRAM) &&
-		    !(bo->flags & AMDGPU_GEM_CREATE_NO_CPU_ACCESS) &&
-		    (!max_offset || max_offset >
-		     bo->adev->mc.visible_vram_size)) {
+			!(bo->flags & AMDGPU_GEM_CREATE_NO_CPU_ACCESS) &&
+			(!max_offset || max_offset >
+			 bo->adev->mc.visible_vram_size))
+		{
 			if (WARN_ON_ONCE(min_offset >
-					 bo->adev->mc.visible_vram_size))
+							 bo->adev->mc.visible_vram_size))
+			{
 				return -EINVAL;
+			}
+
 			fpfn = min_offset >> PAGE_SHIFT;
 			lpfn = bo->adev->mc.visible_vram_size >> PAGE_SHIFT;
-		} else {
+		}
+		else
+		{
 			fpfn = min_offset >> PAGE_SHIFT;
 			lpfn = max_offset >> PAGE_SHIFT;
 		}
+
 		if (fpfn > bo->placements[i].fpfn)
+		{
 			bo->placements[i].fpfn = fpfn;
+		}
+
 		if (!bo->placements[i].lpfn ||
-		    (lpfn && lpfn < bo->placements[i].lpfn))
+			(lpfn && lpfn < bo->placements[i].lpfn))
+		{
 			bo->placements[i].lpfn = lpfn;
+		}
+
 		bo->placements[i].flags |= TTM_PL_FLAG_NO_EVICT;
 	}
 
 	r = ttm_bo_validate(&bo->tbo, &bo->placement, false, false);
-	if (unlikely(r)) {
+
+	if (unlikely(r))
+	{
 		dev_err(bo->adev->dev, "%p pin failed\n", bo);
 		goto error;
 	}
+
 	r = amdgpu_ttm_bind(&bo->tbo, &bo->tbo.mem);
-	if (unlikely(r)) {
+
+	if (unlikely(r))
+	{
 		dev_err(bo->adev->dev, "%p bind failed\n", bo);
 		goto error;
 	}
 
 	bo->pin_count = 1;
+
 	if (gpu_addr != NULL)
+	{
 		*gpu_addr = amdgpu_bo_gpu_offset(bo);
-	if (domain == AMDGPU_GEM_DOMAIN_VRAM) {
+	}
+
+	if (domain == AMDGPU_GEM_DOMAIN_VRAM)
+	{
 		bo->adev->vram_pin_size += amdgpu_bo_size(bo);
+
 		if (bo->flags & AMDGPU_GEM_CREATE_NO_CPU_ACCESS)
+		{
 			bo->adev->invisible_pin_size += amdgpu_bo_size(bo);
-	} else if (domain == AMDGPU_GEM_DOMAIN_GTT) {
+		}
+	}
+	else if (domain == AMDGPU_GEM_DOMAIN_GTT)
+	{
 		bo->adev->gart_pin_size += amdgpu_bo_size(bo);
 	}
 
@@ -702,28 +882,44 @@ int amdgpu_bo_unpin(struct amdgpu_bo *bo)
 {
 	int r, i;
 
-	if (!bo->pin_count) {
+	if (!bo->pin_count)
+	{
 		dev_warn(bo->adev->dev, "%p unpin not necessary\n", bo);
 		return 0;
 	}
+
 	bo->pin_count--;
+
 	if (bo->pin_count)
+	{
 		return 0;
-	for (i = 0; i < bo->placement.num_placement; i++) {
+	}
+
+	for (i = 0; i < bo->placement.num_placement; i++)
+	{
 		bo->placements[i].lpfn = 0;
 		bo->placements[i].flags &= ~TTM_PL_FLAG_NO_EVICT;
 	}
+
 	r = ttm_bo_validate(&bo->tbo, &bo->placement, false, false);
-	if (unlikely(r)) {
+
+	if (unlikely(r))
+	{
 		dev_err(bo->adev->dev, "%p validate failed for unpin\n", bo);
 		goto error;
 	}
 
-	if (bo->tbo.mem.mem_type == TTM_PL_VRAM) {
+	if (bo->tbo.mem.mem_type == TTM_PL_VRAM)
+	{
 		bo->adev->vram_pin_size -= amdgpu_bo_size(bo);
+
 		if (bo->flags & AMDGPU_GEM_CREATE_NO_CPU_ACCESS)
+		{
 			bo->adev->invisible_pin_size -= amdgpu_bo_size(bo);
-	} else if (bo->tbo.mem.mem_type == TTM_PL_TT) {
+		}
+	}
+	else if (bo->tbo.mem.mem_type == TTM_PL_TT)
+	{
 		bo->adev->gart_pin_size -= amdgpu_bo_size(bo);
 	}
 
@@ -734,14 +930,17 @@ error:
 int amdgpu_bo_evict_vram(struct amdgpu_device *adev)
 {
 	/* late 2.6.33 fix IGP hibernate - we need pm ops to do this correct */
-	if (0 && (adev->flags & AMD_IS_APU)) {
+	if (0 && (adev->flags & AMD_IS_APU))
+	{
 		/* Useless to evict on IGP chips */
 		return 0;
 	}
+
 	return ttm_bo_evict_mm(&adev->mman.bdev, TTM_PL_VRAM);
 }
 
-static const char *amdgpu_vram_names[] = {
+static const char *amdgpu_vram_names[] =
+{
 	"UNKNOWN",
 	"GDDR1",
 	"DDR2",
@@ -756,16 +955,16 @@ int amdgpu_bo_init(struct amdgpu_device *adev)
 {
 	/* reserve PAT memory space to WC for VRAM */
 	arch_io_reserve_memtype_wc(adev->mc.aper_base,
-				   adev->mc.aper_size);
+							   adev->mc.aper_size);
 
 	/* Add an MTRR for the VRAM */
 	adev->mc.vram_mtrr = arch_phys_wc_add(adev->mc.aper_base,
-					      adev->mc.aper_size);
+										  adev->mc.aper_size);
 	DRM_INFO("Detected VRAM RAM=%lluM, BAR=%lluM\n",
-		adev->mc.mc_vram_size >> 20,
-		(unsigned long long)adev->mc.aper_size >> 20);
+			 adev->mc.mc_vram_size >> 20,
+			 (unsigned long long)adev->mc.aper_size >> 20);
 	DRM_INFO("RAM width %dbits %s\n",
-		 adev->mc.vram_width, amdgpu_vram_names[adev->mc.vram_type]);
+			 adev->mc.vram_width, amdgpu_vram_names[adev->mc.vram_type]);
 	return amdgpu_ttm_init(adev);
 }
 
@@ -777,7 +976,7 @@ void amdgpu_bo_fini(struct amdgpu_device *adev)
 }
 
 int amdgpu_bo_fbdev_mmap(struct amdgpu_bo *bo,
-			     struct vm_area_struct *vma)
+						 struct vm_area_struct *vma)
 {
 	return ttm_fbdev_mmap(vma, &bo->tbo);
 }
@@ -785,7 +984,9 @@ int amdgpu_bo_fbdev_mmap(struct amdgpu_bo *bo,
 int amdgpu_bo_set_tiling_flags(struct amdgpu_bo *bo, u64 tiling_flags)
 {
 	if (AMDGPU_TILING_GET(tiling_flags, TILE_SPLIT) > 6)
+	{
 		return -EINVAL;
+	}
 
 	bo->tiling_flags = tiling_flags;
 	return 0;
@@ -796,29 +997,39 @@ void amdgpu_bo_get_tiling_flags(struct amdgpu_bo *bo, u64 *tiling_flags)
 	lockdep_assert_held(&bo->tbo.resv->lock.base);
 
 	if (tiling_flags)
+	{
 		*tiling_flags = bo->tiling_flags;
+	}
 }
 
 int amdgpu_bo_set_metadata (struct amdgpu_bo *bo, void *metadata,
-			    uint32_t metadata_size, uint64_t flags)
+							uint32_t metadata_size, uint64_t flags)
 {
 	void *buffer;
 
-	if (!metadata_size) {
-		if (bo->metadata_size) {
+	if (!metadata_size)
+	{
+		if (bo->metadata_size)
+		{
 			kfree(bo->metadata);
 			bo->metadata = NULL;
 			bo->metadata_size = 0;
 		}
+
 		return 0;
 	}
 
 	if (metadata == NULL)
+	{
 		return -EINVAL;
+	}
 
 	buffer = kmemdup(metadata, metadata_size, GFP_KERNEL);
+
 	if (buffer == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	kfree(bo->metadata);
 	bo->metadata_flags = flags;
@@ -829,43 +1040,59 @@ int amdgpu_bo_set_metadata (struct amdgpu_bo *bo, void *metadata,
 }
 
 int amdgpu_bo_get_metadata(struct amdgpu_bo *bo, void *buffer,
-			   size_t buffer_size, uint32_t *metadata_size,
-			   uint64_t *flags)
+						   size_t buffer_size, uint32_t *metadata_size,
+						   uint64_t *flags)
 {
 	if (!buffer && !metadata_size)
+	{
 		return -EINVAL;
+	}
 
-	if (buffer) {
+	if (buffer)
+	{
 		if (buffer_size < bo->metadata_size)
+		{
 			return -EINVAL;
+		}
 
 		if (bo->metadata_size)
+		{
 			memcpy(buffer, bo->metadata, bo->metadata_size);
+		}
 	}
 
 	if (metadata_size)
+	{
 		*metadata_size = bo->metadata_size;
+	}
+
 	if (flags)
+	{
 		*flags = bo->metadata_flags;
+	}
 
 	return 0;
 }
 
 void amdgpu_bo_move_notify(struct ttm_buffer_object *bo,
-			   struct ttm_mem_reg *new_mem)
+						   struct ttm_mem_reg *new_mem)
 {
 	struct amdgpu_bo *abo;
 	struct ttm_mem_reg *old_mem = &bo->mem;
 
 	if (!amdgpu_ttm_bo_is_amdgpu_bo(bo))
+	{
 		return;
+	}
 
 	abo = container_of(bo, struct amdgpu_bo, tbo);
 	amdgpu_vm_bo_invalidate(abo->adev, abo);
 
 	/* update statistics */
 	if (!new_mem)
+	{
 		return;
+	}
 
 	/* move_notify is called before move happens */
 	amdgpu_update_memory_usage(abo->adev, &bo->mem, new_mem);
@@ -881,44 +1108,66 @@ int amdgpu_bo_fault_reserve_notify(struct ttm_buffer_object *bo)
 	int i, r;
 
 	if (!amdgpu_ttm_bo_is_amdgpu_bo(bo))
+	{
 		return 0;
+	}
 
 	abo = container_of(bo, struct amdgpu_bo, tbo);
 	adev = abo->adev;
+
 	if (bo->mem.mem_type != TTM_PL_VRAM)
+	{
 		return 0;
+	}
 
 	size = bo->mem.num_pages << PAGE_SHIFT;
 	offset = bo->mem.start << PAGE_SHIFT;
+
 	if ((offset + size) <= adev->mc.visible_vram_size)
+	{
 		return 0;
+	}
 
 	/* Can't move a pinned BO to visible VRAM */
 	if (abo->pin_count > 0)
+	{
 		return -EINVAL;
+	}
 
 	/* hurrah the memory is not visible ! */
 	amdgpu_ttm_placement_from_domain(abo, AMDGPU_GEM_DOMAIN_VRAM);
 	lpfn =	adev->mc.visible_vram_size >> PAGE_SHIFT;
-	for (i = 0; i < abo->placement.num_placement; i++) {
+
+	for (i = 0; i < abo->placement.num_placement; i++)
+	{
 		/* Force into visible VRAM */
 		if ((abo->placements[i].flags & TTM_PL_FLAG_VRAM) &&
-		    (!abo->placements[i].lpfn ||
-		     abo->placements[i].lpfn > lpfn))
+			(!abo->placements[i].lpfn ||
+			 abo->placements[i].lpfn > lpfn))
+		{
 			abo->placements[i].lpfn = lpfn;
+		}
 	}
+
 	r = ttm_bo_validate(bo, &abo->placement, false, false);
-	if (unlikely(r == -ENOMEM)) {
+
+	if (unlikely(r == -ENOMEM))
+	{
 		amdgpu_ttm_placement_from_domain(abo, AMDGPU_GEM_DOMAIN_GTT);
 		return ttm_bo_validate(bo, &abo->placement, false, false);
-	} else if (unlikely(r != 0)) {
+	}
+	else if (unlikely(r != 0))
+	{
 		return r;
 	}
 
 	offset = bo->mem.start << PAGE_SHIFT;
+
 	/* this should never happen */
 	if ((offset + size) > adev->mc.visible_vram_size)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -932,14 +1181,18 @@ int amdgpu_bo_fault_reserve_notify(struct ttm_buffer_object *bo)
  *
  */
 void amdgpu_bo_fence(struct amdgpu_bo *bo, struct fence *fence,
-		     bool shared)
+					 bool shared)
 {
 	struct reservation_object *resv = bo->tbo.resv;
 
 	if (shared)
+	{
 		reservation_object_add_shared_fence(resv, fence);
+	}
 	else
+	{
 		reservation_object_add_excl_fence(resv, fence);
+	}
 }
 
 /**
@@ -955,9 +1208,9 @@ u64 amdgpu_bo_gpu_offset(struct amdgpu_bo *bo)
 {
 	WARN_ON_ONCE(bo->tbo.mem.mem_type == TTM_PL_SYSTEM);
 	WARN_ON_ONCE(bo->tbo.mem.mem_type == TTM_PL_TT &&
-		     !amdgpu_ttm_is_bound(bo->tbo.ttm));
+				 !amdgpu_ttm_is_bound(bo->tbo.ttm));
 	WARN_ON_ONCE(!ww_mutex_is_locked(&bo->tbo.resv->lock) &&
-		     !bo->pin_count);
+				 !bo->pin_count);
 	WARN_ON_ONCE(bo->tbo.mem.start == AMDGPU_BO_INVALID_OFFSET);
 
 	return bo->tbo.offset;

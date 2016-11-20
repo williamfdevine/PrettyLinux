@@ -47,7 +47,8 @@
  * @ec: Top level ChromeOS device to use to talk to EC
  * @notifier: interrupt event notifier for transport devices
  */
-struct cros_ec_keyb {
+struct cros_ec_keyb
+{
 	unsigned int rows;
 	unsigned int cols;
 	int row_shift;
@@ -86,13 +87,18 @@ static bool cros_ec_keyb_has_ghosting(struct cros_ec_keyb *ckdev, uint8_t *buf)
 	 * In this case only X, Y, and Z are pressed, but g appears to be
 	 * pressed too (see Wikipedia).
 	 */
-	for (col1 = 0; col1 < ckdev->cols; col1++) {
+	for (col1 = 0; col1 < ckdev->cols; col1++)
+	{
 		buf1 = buf[col1] & valid_keys[col1];
-		for (col2 = col1 + 1; col2 < ckdev->cols; col2++) {
+
+		for (col2 = col1 + 1; col2 < ckdev->cols; col2++)
+		{
 			buf2 = buf[col2] & valid_keys[col2];
-			if (hweight8(buf1 & buf2) > 1) {
+
+			if (hweight8(buf1 & buf2) > 1)
+			{
 				dev_dbg(dev, "ghost found at: B[%02d]:0x%02x & B[%02d]:0x%02x",
-					col1, buf1, col2, buf2);
+						col1, buf1, col2, buf2);
 				return true;
 			}
 		}
@@ -108,7 +114,7 @@ static bool cros_ec_keyb_has_ghosting(struct cros_ec_keyb *ckdev, uint8_t *buf)
  * per column)
  */
 static void cros_ec_keyb_process(struct cros_ec_keyb *ckdev,
-			 uint8_t *kb_state, int len)
+								 uint8_t *kb_state, int len)
 {
 	struct input_dev *idev = ckdev->idev;
 	int col, row;
@@ -118,7 +124,8 @@ static void cros_ec_keyb_process(struct cros_ec_keyb *ckdev,
 
 	num_cols = len;
 
-	if (ckdev->ghost_filter && cros_ec_keyb_has_ghosting(ckdev, kb_state)) {
+	if (ckdev->ghost_filter && cros_ec_keyb_has_ghosting(ckdev, kb_state))
+	{
 		/*
 		 * Simple-minded solution: ignore this state. The obvious
 		 * improvement is to only ignore changes to keys involved in
@@ -128,24 +135,30 @@ static void cros_ec_keyb_process(struct cros_ec_keyb *ckdev,
 		return;
 	}
 
-	for (col = 0; col < ckdev->cols; col++) {
-		for (row = 0; row < ckdev->rows; row++) {
+	for (col = 0; col < ckdev->cols; col++)
+	{
+		for (row = 0; row < ckdev->rows; row++)
+		{
 			int pos = MATRIX_SCAN_CODE(row, col, ckdev->row_shift);
 			const unsigned short *keycodes = idev->keycode;
 
 			new_state = kb_state[col] & (1 << row);
 			old_state = ckdev->old_kb_state[col] & (1 << row);
-			if (new_state != old_state) {
+
+			if (new_state != old_state)
+			{
 				dev_dbg(ckdev->dev,
-					"changed: [r%d c%d]: byte %02x\n",
-					row, col, new_state);
+						"changed: [r%d c%d]: byte %02x\n",
+						row, col, new_state);
 
 				input_report_key(idev, keycodes[pos],
-						 new_state);
+								 new_state);
 			}
 		}
+
 		ckdev->old_kb_state[col] = kb_state[col];
 	}
+
 	input_sync(ckdev->idev);
 }
 
@@ -154,7 +167,7 @@ static int cros_ec_keyb_open(struct input_dev *dev)
 	struct cros_ec_keyb *ckdev = input_get_drvdata(dev);
 
 	return blocking_notifier_chain_register(&ckdev->ec->event_notifier,
-						&ckdev->notifier);
+											&ckdev->notifier);
 }
 
 static void cros_ec_keyb_close(struct input_dev *dev)
@@ -162,30 +175,38 @@ static void cros_ec_keyb_close(struct input_dev *dev)
 	struct cros_ec_keyb *ckdev = input_get_drvdata(dev);
 
 	blocking_notifier_chain_unregister(&ckdev->ec->event_notifier,
-					   &ckdev->notifier);
+									   &ckdev->notifier);
 }
 
 static int cros_ec_keyb_work(struct notifier_block *nb,
-			     unsigned long queued_during_suspend, void *_notify)
+							 unsigned long queued_during_suspend, void *_notify)
 {
 	struct cros_ec_keyb *ckdev = container_of(nb, struct cros_ec_keyb,
-						  notifier);
+								 notifier);
 
 	if (ckdev->ec->event_data.event_type != EC_MKBP_EVENT_KEY_MATRIX)
+	{
 		return NOTIFY_DONE;
+	}
+
 	/*
 	 * If EC is not the wake source, discard key state changes during
 	 * suspend.
 	 */
 	if (queued_during_suspend)
-		return NOTIFY_OK;
-	if (ckdev->ec->event_size != ckdev->cols) {
-		dev_err(ckdev->dev,
-			"Discarded incomplete key matrix event.\n");
+	{
 		return NOTIFY_OK;
 	}
+
+	if (ckdev->ec->event_size != ckdev->cols)
+	{
+		dev_err(ckdev->dev,
+				"Discarded incomplete key matrix event.\n");
+		return NOTIFY_OK;
+	}
+
 	cros_ec_keyb_process(ckdev, ckdev->ec->event_data.data.key_matrix,
-			     ckdev->ec->event_size);
+						 ckdev->ec->event_size);
 	return NOTIFY_OK;
 }
 
@@ -202,14 +223,20 @@ static void cros_ec_keyb_compute_valid_keys(struct cros_ec_keyb *ckdev)
 
 	BUG_ON(ckdev->idev->keycodesize != sizeof(*keymap));
 
-	for (col = 0; col < ckdev->cols; col++) {
-		for (row = 0; row < ckdev->rows; row++) {
+	for (col = 0; col < ckdev->cols; col++)
+	{
+		for (row = 0; row < ckdev->rows; row++)
+		{
 			code = keymap[MATRIX_SCAN_CODE(row, col, row_shift)];
+
 			if (code && (code != KEY_BATTERY))
+			{
 				ckdev->valid_keys[col] |= 1 << row;
+			}
 		}
+
 		dev_dbg(ckdev->dev, "valid_keys[%02d] = 0x%02x\n",
-			col, ckdev->valid_keys[col]);
+				col, ckdev->valid_keys[col]);
 	}
 }
 
@@ -223,27 +250,46 @@ static int cros_ec_keyb_probe(struct platform_device *pdev)
 	int err;
 
 	np = pdev->dev.of_node;
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	ckdev = devm_kzalloc(dev, sizeof(*ckdev), GFP_KERNEL);
+
 	if (!ckdev)
+	{
 		return -ENOMEM;
+	}
+
 	err = matrix_keypad_parse_of_params(dev, &ckdev->rows, &ckdev->cols);
+
 	if (err)
+	{
 		return err;
+	}
 
 	ckdev->valid_keys = devm_kzalloc(dev, ckdev->cols, GFP_KERNEL);
+
 	if (!ckdev->valid_keys)
+	{
 		return -ENOMEM;
+	}
 
 	ckdev->old_kb_state = devm_kzalloc(dev, ckdev->cols, GFP_KERNEL);
+
 	if (!ckdev->old_kb_state)
+	{
 		return -ENOMEM;
+	}
 
 	idev = devm_input_allocate_device(dev);
+
 	if (!idev)
+	{
 		return -ENOMEM;
+	}
 
 	ckdev->ec = ec;
 	ckdev->notifier.notifier_call = cros_ec_keyb_work;
@@ -262,11 +308,13 @@ static int cros_ec_keyb_probe(struct platform_device *pdev)
 	idev->close = cros_ec_keyb_close;
 
 	ckdev->ghost_filter = of_property_read_bool(np,
-					"google,needs-ghost-filter");
+						  "google,needs-ghost-filter");
 
 	err = matrix_keypad_build_keymap(NULL, NULL, ckdev->rows, ckdev->cols,
-					 NULL, idev);
-	if (err) {
+									 NULL, idev);
+
+	if (err)
+	{
 		dev_err(dev, "cannot build key matrix\n");
 		return err;
 	}
@@ -279,7 +327,9 @@ static int cros_ec_keyb_probe(struct platform_device *pdev)
 	cros_ec_keyb_compute_valid_keys(ckdev);
 
 	err = input_register_device(ckdev->idev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "cannot register input device\n");
 		return err;
 	}
@@ -288,14 +338,16 @@ static int cros_ec_keyb_probe(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id cros_ec_keyb_of_match[] = {
+static const struct of_device_id cros_ec_keyb_of_match[] =
+{
 	{ .compatible = "google,cros-ec-keyb" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, cros_ec_keyb_of_match);
 #endif
 
-static struct platform_driver cros_ec_keyb_driver = {
+static struct platform_driver cros_ec_keyb_driver =
+{
 	.probe = cros_ec_keyb_probe,
 	.driver = {
 		.name = "cros-ec-keyb",

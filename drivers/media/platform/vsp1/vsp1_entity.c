@@ -29,16 +29,18 @@ media_entity_to_vsp1_entity(struct media_entity *entity)
 }
 
 void vsp1_entity_route_setup(struct vsp1_entity *source,
-			     struct vsp1_dl_list *dl)
+							 struct vsp1_dl_list *dl)
 {
 	struct vsp1_entity *sink;
 
 	if (source->route->reg == 0)
+	{
 		return;
+	}
 
 	sink = media_entity_to_vsp1_entity(source->sink);
 	vsp1_dl_list_write(dl, source->route->reg,
-			   sink->route->inputs[source->sink_pad]);
+					   sink->route->inputs[source->sink_pad]);
 }
 
 /* -----------------------------------------------------------------------------
@@ -61,15 +63,17 @@ void vsp1_entity_route_setup(struct vsp1_entity *source,
  */
 struct v4l2_subdev_pad_config *
 vsp1_entity_get_pad_config(struct vsp1_entity *entity,
-			   struct v4l2_subdev_pad_config *cfg,
-			   enum v4l2_subdev_format_whence which)
+						   struct v4l2_subdev_pad_config *cfg,
+						   enum v4l2_subdev_format_whence which)
 {
-	switch (which) {
-	case V4L2_SUBDEV_FORMAT_ACTIVE:
-		return entity->config;
-	case V4L2_SUBDEV_FORMAT_TRY:
-	default:
-		return cfg;
+	switch (which)
+	{
+		case V4L2_SUBDEV_FORMAT_ACTIVE:
+			return entity->config;
+
+		case V4L2_SUBDEV_FORMAT_TRY:
+		default:
+			return cfg;
 	}
 }
 
@@ -84,8 +88,8 @@ vsp1_entity_get_pad_config(struct vsp1_entity *entity,
  */
 struct v4l2_mbus_framefmt *
 vsp1_entity_get_pad_format(struct vsp1_entity *entity,
-			   struct v4l2_subdev_pad_config *cfg,
-			   unsigned int pad)
+						   struct v4l2_subdev_pad_config *cfg,
+						   unsigned int pad)
 {
 	return v4l2_subdev_get_try_format(&entity->subdev, cfg, pad);
 }
@@ -103,16 +107,19 @@ vsp1_entity_get_pad_format(struct vsp1_entity *entity,
  */
 struct v4l2_rect *
 vsp1_entity_get_pad_selection(struct vsp1_entity *entity,
-			      struct v4l2_subdev_pad_config *cfg,
-			      unsigned int pad, unsigned int target)
+							  struct v4l2_subdev_pad_config *cfg,
+							  unsigned int pad, unsigned int target)
 {
-	switch (target) {
-	case V4L2_SEL_TGT_COMPOSE:
-		return v4l2_subdev_get_try_compose(&entity->subdev, cfg, pad);
-	case V4L2_SEL_TGT_CROP:
-		return v4l2_subdev_get_try_crop(&entity->subdev, cfg, pad);
-	default:
-		return NULL;
+	switch (target)
+	{
+		case V4L2_SEL_TGT_COMPOSE:
+			return v4l2_subdev_get_try_compose(&entity->subdev, cfg, pad);
+
+		case V4L2_SEL_TGT_CROP:
+			return v4l2_subdev_get_try_crop(&entity->subdev, cfg, pad);
+
+		default:
+			return NULL;
 	}
 }
 
@@ -125,17 +132,18 @@ vsp1_entity_get_pad_selection(struct vsp1_entity *entity,
  * function can be used as a handler for the subdev pad::init_cfg operation.
  */
 int vsp1_entity_init_cfg(struct v4l2_subdev *subdev,
-			 struct v4l2_subdev_pad_config *cfg)
+						 struct v4l2_subdev_pad_config *cfg)
 {
 	struct v4l2_subdev_format format;
 	unsigned int pad;
 
-	for (pad = 0; pad < subdev->entity.num_pads - 1; ++pad) {
+	for (pad = 0; pad < subdev->entity.num_pads - 1; ++pad)
+	{
 		memset(&format, 0, sizeof(format));
 
 		format.pad = pad;
 		format.which = cfg ? V4L2_SUBDEV_FORMAT_TRY
-			     : V4L2_SUBDEV_FORMAT_ACTIVE;
+					   : V4L2_SUBDEV_FORMAT_ACTIVE;
 
 		v4l2_subdev_call(subdev, pad, set_fmt, cfg, &format);
 	}
@@ -153,15 +161,18 @@ int vsp1_entity_init_cfg(struct v4l2_subdev *subdev,
  * a direct drop-in for the operation handler.
  */
 int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
-			       struct v4l2_subdev_pad_config *cfg,
-			       struct v4l2_subdev_format *fmt)
+							   struct v4l2_subdev_pad_config *cfg,
+							   struct v4l2_subdev_format *fmt)
 {
 	struct vsp1_entity *entity = to_vsp1_entity(subdev);
 	struct v4l2_subdev_pad_config *config;
 
 	config = vsp1_entity_get_pad_config(entity, cfg, fmt->which);
+
 	if (!config)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&entity->lock);
 	fmt->format = *vsp1_entity_get_pad_format(entity, config, fmt->pad);
@@ -184,18 +195,23 @@ int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
  * the sink pad.
  */
 int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
-			       struct v4l2_subdev_pad_config *cfg,
-			       struct v4l2_subdev_mbus_code_enum *code,
-			       const unsigned int *codes, unsigned int ncodes)
+							   struct v4l2_subdev_pad_config *cfg,
+							   struct v4l2_subdev_mbus_code_enum *code,
+							   const unsigned int *codes, unsigned int ncodes)
 {
 	struct vsp1_entity *entity = to_vsp1_entity(subdev);
 
-	if (code->pad == 0) {
+	if (code->pad == 0)
+	{
 		if (code->index >= ncodes)
+		{
 			return -EINVAL;
+		}
 
 		code->code = codes[code->index];
-	} else {
+	}
+	else
+	{
 		struct v4l2_subdev_pad_config *config;
 		struct v4l2_mbus_framefmt *format;
 
@@ -203,11 +219,16 @@ int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
 		 * is always identical to the source format.
 		 */
 		if (code->index)
+		{
 			return -EINVAL;
+		}
 
 		config = vsp1_entity_get_pad_config(entity, cfg, code->which);
+
 		if (!config)
+		{
 			return -EINVAL;
+		}
 
 		mutex_lock(&entity->lock);
 		format = vsp1_entity_get_pad_format(entity, config, 0);
@@ -234,10 +255,10 @@ int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
  * source pad size identical to the sink pad.
  */
 int vsp1_subdev_enum_frame_size(struct v4l2_subdev *subdev,
-				struct v4l2_subdev_pad_config *cfg,
-				struct v4l2_subdev_frame_size_enum *fse,
-				unsigned int min_width, unsigned int min_height,
-				unsigned int max_width, unsigned int max_height)
+								struct v4l2_subdev_pad_config *cfg,
+								struct v4l2_subdev_frame_size_enum *fse,
+								unsigned int min_width, unsigned int min_height,
+								unsigned int max_width, unsigned int max_height)
 {
 	struct vsp1_entity *entity = to_vsp1_entity(subdev);
 	struct v4l2_subdev_pad_config *config;
@@ -245,24 +266,31 @@ int vsp1_subdev_enum_frame_size(struct v4l2_subdev *subdev,
 	int ret = 0;
 
 	config = vsp1_entity_get_pad_config(entity, cfg, fse->which);
+
 	if (!config)
+	{
 		return -EINVAL;
+	}
 
 	format = vsp1_entity_get_pad_format(entity, config, fse->pad);
 
 	mutex_lock(&entity->lock);
 
-	if (fse->index || fse->code != format->code) {
+	if (fse->index || fse->code != format->code)
+	{
 		ret = -EINVAL;
 		goto done;
 	}
 
-	if (fse->pad == 0) {
+	if (fse->pad == 0)
+	{
 		fse->min_width = min_width;
 		fse->max_width = max_width;
 		fse->min_height = min_height;
 		fse->max_height = max_height;
-	} else {
+	}
+	else
+	{
 		/* The size on the source pad are fixed and always identical to
 		 * the size on the sink pad.
 		 */
@@ -282,25 +310,35 @@ done:
  */
 
 int vsp1_entity_link_setup(struct media_entity *entity,
-			   const struct media_pad *local,
-			   const struct media_pad *remote, u32 flags)
+						   const struct media_pad *local,
+						   const struct media_pad *remote, u32 flags)
 {
 	struct vsp1_entity *source;
 
 	if (!(local->flags & MEDIA_PAD_FL_SOURCE))
+	{
 		return 0;
+	}
 
 	source = media_entity_to_vsp1_entity(local->entity);
 
 	if (!source->route)
+	{
 		return 0;
+	}
 
-	if (flags & MEDIA_LNK_FL_ENABLED) {
+	if (flags & MEDIA_LNK_FL_ENABLED)
+	{
 		if (source->sink)
+		{
 			return -EBUSY;
+		}
+
 		source->sink = remote->entity;
 		source->sink_pad = remote->index;
-	} else {
+	}
+	else
+	{
 		source->sink = NULL;
 		source->sink_pad = 0;
 	}
@@ -314,25 +352,30 @@ int vsp1_entity_link_setup(struct media_entity *entity,
 
 #define VSP1_ENTITY_ROUTE(ent)						\
 	{ VSP1_ENTITY_##ent, 0, VI6_DPR_##ent##_ROUTE,			\
-	  { VI6_DPR_NODE_##ent }, VI6_DPR_NODE_##ent }
+		{ VI6_DPR_NODE_##ent }, VI6_DPR_NODE_##ent }
 
 #define VSP1_ENTITY_ROUTE_RPF(idx)					\
 	{ VSP1_ENTITY_RPF, idx, VI6_DPR_RPF_ROUTE(idx),			\
-	  { 0, }, VI6_DPR_NODE_RPF(idx) }
+		{ 0, }, VI6_DPR_NODE_RPF(idx) }
 
 #define VSP1_ENTITY_ROUTE_UDS(idx)					\
 	{ VSP1_ENTITY_UDS, idx, VI6_DPR_UDS_ROUTE(idx),			\
-	  { VI6_DPR_NODE_UDS(idx) }, VI6_DPR_NODE_UDS(idx) }
+		{ VI6_DPR_NODE_UDS(idx) }, VI6_DPR_NODE_UDS(idx) }
 
 #define VSP1_ENTITY_ROUTE_WPF(idx)					\
 	{ VSP1_ENTITY_WPF, idx, 0,					\
-	  { VI6_DPR_NODE_WPF(idx) }, VI6_DPR_NODE_WPF(idx) }
+		{ VI6_DPR_NODE_WPF(idx) }, VI6_DPR_NODE_WPF(idx) }
 
-static const struct vsp1_route vsp1_routes[] = {
-	{ VSP1_ENTITY_BRU, 0, VI6_DPR_BRU_ROUTE,
-	  { VI6_DPR_NODE_BRU_IN(0), VI6_DPR_NODE_BRU_IN(1),
-	    VI6_DPR_NODE_BRU_IN(2), VI6_DPR_NODE_BRU_IN(3),
-	    VI6_DPR_NODE_BRU_IN(4) }, VI6_DPR_NODE_BRU_OUT },
+static const struct vsp1_route vsp1_routes[] =
+{
+	{
+		VSP1_ENTITY_BRU, 0, VI6_DPR_BRU_ROUTE,
+		{
+			VI6_DPR_NODE_BRU_IN(0), VI6_DPR_NODE_BRU_IN(1),
+			VI6_DPR_NODE_BRU_IN(2), VI6_DPR_NODE_BRU_IN(3),
+			VI6_DPR_NODE_BRU_IN(4)
+		}, VI6_DPR_NODE_BRU_OUT
+	},
 	VSP1_ENTITY_ROUTE(CLU),
 	VSP1_ENTITY_ROUTE(HSI),
 	VSP1_ENTITY_ROUTE(HST),
@@ -354,23 +397,27 @@ static const struct vsp1_route vsp1_routes[] = {
 };
 
 int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
-		     const char *name, unsigned int num_pads,
-		     const struct v4l2_subdev_ops *ops, u32 function)
+					 const char *name, unsigned int num_pads,
+					 const struct v4l2_subdev_ops *ops, u32 function)
 {
 	struct v4l2_subdev *subdev;
 	unsigned int i;
 	int ret;
 
-	for (i = 0; i < ARRAY_SIZE(vsp1_routes); ++i) {
+	for (i = 0; i < ARRAY_SIZE(vsp1_routes); ++i)
+	{
 		if (vsp1_routes[i].type == entity->type &&
-		    vsp1_routes[i].index == entity->index) {
+			vsp1_routes[i].index == entity->index)
+		{
 			entity->route = &vsp1_routes[i];
 			break;
 		}
 	}
 
 	if (i == ARRAY_SIZE(vsp1_routes))
+	{
 		return -EINVAL;
+	}
 
 	mutex_init(&entity->lock);
 
@@ -379,20 +426,28 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
 
 	/* Allocate and initialize pads. */
 	entity->pads = devm_kzalloc(vsp1->dev, num_pads * sizeof(*entity->pads),
-				    GFP_KERNEL);
+								GFP_KERNEL);
+
 	if (entity->pads == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	for (i = 0; i < num_pads - 1; ++i)
+	{
 		entity->pads[i].flags = MEDIA_PAD_FL_SINK;
+	}
 
 	entity->pads[num_pads - 1].flags = MEDIA_PAD_FL_SOURCE;
 
 	/* Initialize the media entity. */
 	ret = media_entity_pads_init(&entity->subdev.entity, num_pads,
-				     entity->pads);
+								 entity->pads);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Initialize the V4L2 subdev. */
 	subdev = &entity->subdev;
@@ -403,7 +458,7 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
 	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
 
 	snprintf(subdev->name, sizeof(subdev->name), "%s %s",
-		 dev_name(vsp1->dev), name);
+			 dev_name(vsp1->dev), name);
 
 	vsp1_entity_init_cfg(subdev, NULL);
 
@@ -411,7 +466,9 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
 	 * rectangles.
 	 */
 	entity->config = v4l2_subdev_alloc_pad_config(&entity->subdev);
-	if (entity->config == NULL) {
+
+	if (entity->config == NULL)
+	{
 		media_entity_cleanup(&entity->subdev.entity);
 		return -ENOMEM;
 	}
@@ -422,9 +479,15 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
 void vsp1_entity_destroy(struct vsp1_entity *entity)
 {
 	if (entity->ops && entity->ops->destroy)
+	{
 		entity->ops->destroy(entity);
+	}
+
 	if (entity->subdev.ctrl_handler)
+	{
 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
+	}
+
 	v4l2_subdev_free_pad_config(entity->config);
 	media_entity_cleanup(&entity->subdev.entity);
 }

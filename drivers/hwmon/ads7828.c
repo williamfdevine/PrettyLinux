@@ -47,7 +47,8 @@
 enum ads7828_chips { ads7828, ads7830 };
 
 /* Client specific data */
-struct ads7828_data {
+struct ads7828_data
+{
 	struct regmap *regmap;
 	u8 cmd_byte;			/* Command byte without channel bits */
 	unsigned int lsb_resol;		/* Resolution of the ADC sample LSB */
@@ -61,7 +62,7 @@ static inline u8 ads7828_cmd_byte(u8 cmd, int ch)
 
 /* sysfs callback function */
 static ssize_t ads7828_show_in(struct device *dev, struct device_attribute *da,
-			       char *buf)
+							   char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct ads7828_data *data = dev_get_drvdata(dev);
@@ -70,11 +71,14 @@ static ssize_t ads7828_show_in(struct device *dev, struct device_attribute *da,
 	int err;
 
 	err = regmap_read(data->regmap, cmd, &regval);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return sprintf(buf, "%d\n",
-		       DIV_ROUND_CLOSEST(regval * data->lsb_resol, 1000));
+				   DIV_ROUND_CLOSEST(regval * data->lsb_resol, 1000));
 }
 
 static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, ads7828_show_in, NULL, 0);
@@ -86,7 +90,8 @@ static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, ads7828_show_in, NULL, 5);
 static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, ads7828_show_in, NULL, 6);
 static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, ads7828_show_in, NULL, 7);
 
-static struct attribute *ads7828_attrs[] = {
+static struct attribute *ads7828_attrs[] =
+{
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_in1_input.dev_attr.attr,
 	&sensor_dev_attr_in2_input.dev_attr.attr,
@@ -100,18 +105,20 @@ static struct attribute *ads7828_attrs[] = {
 
 ATTRIBUTE_GROUPS(ads7828);
 
-static const struct regmap_config ads2828_regmap_config = {
+static const struct regmap_config ads2828_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 16,
 };
 
-static const struct regmap_config ads2830_regmap_config = {
+static const struct regmap_config ads2830_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 };
 
 static int ads7828_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct ads7828_platform_data *pdata = dev_get_platdata(dev);
@@ -123,37 +130,52 @@ static int ads7828_probe(struct i2c_client *client,
 	unsigned int regval;
 
 	data = devm_kzalloc(dev, sizeof(struct ads7828_data), GFP_KERNEL);
-	if (!data)
-		return -ENOMEM;
 
-	if (pdata) {
+	if (!data)
+	{
+		return -ENOMEM;
+	}
+
+	if (pdata)
+	{
 		diff_input = pdata->diff_input;
 		ext_vref = pdata->ext_vref;
+
 		if (ext_vref && pdata->vref_mv)
+		{
 			vref_mv = pdata->vref_mv;
+		}
 	}
 
 	/* Bound Vref with min/max values */
 	vref_mv = clamp_val(vref_mv, ADS7828_EXT_VREF_MV_MIN,
-			    ADS7828_EXT_VREF_MV_MAX);
+						ADS7828_EXT_VREF_MV_MAX);
 
 	/* ADS7828 uses 12-bit samples, while ADS7830 is 8-bit */
-	if (id->driver_data == ads7828) {
+	if (id->driver_data == ads7828)
+	{
 		data->lsb_resol = DIV_ROUND_CLOSEST(vref_mv * 1000, 4096);
 		data->regmap = devm_regmap_init_i2c(client,
-						    &ads2828_regmap_config);
-	} else {
+											&ads2828_regmap_config);
+	}
+	else
+	{
 		data->lsb_resol = DIV_ROUND_CLOSEST(vref_mv * 1000, 256);
 		data->regmap = devm_regmap_init_i2c(client,
-						    &ads2830_regmap_config);
+											&ads2830_regmap_config);
 	}
 
 	if (IS_ERR(data->regmap))
+	{
 		return PTR_ERR(data->regmap);
+	}
 
 	data->cmd_byte = ext_vref ? ADS7828_CMD_PD1 : ADS7828_CMD_PD3;
+
 	if (!diff_input)
+	{
 		data->cmd_byte |= ADS7828_CMD_SD_SE;
+	}
 
 	/*
 	 * Datasheet specifies internal reference voltage is disabled by
@@ -162,22 +184,26 @@ static int ads7828_probe(struct i2c_client *client,
 	 * dummy read to enable the internal reference voltage.
 	 */
 	if (!ext_vref)
+	{
 		regmap_read(data->regmap, data->cmd_byte, &regval);
+	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   data,
-							   ads7828_groups);
+				data,
+				ads7828_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct i2c_device_id ads7828_device_ids[] = {
+static const struct i2c_device_id ads7828_device_ids[] =
+{
 	{ "ads7828", ads7828 },
 	{ "ads7830", ads7830 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ads7828_device_ids);
 
-static struct i2c_driver ads7828_driver = {
+static struct i2c_driver ads7828_driver =
+{
 	.driver = {
 		.name = "ads7828",
 	},

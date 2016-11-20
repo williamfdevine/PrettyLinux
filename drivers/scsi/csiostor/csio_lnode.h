@@ -54,7 +54,8 @@ extern int csio_fcoe_rnodes;
 extern int csio_fdmi_enable;
 
 /* State machine evets */
-enum csio_ln_ev {
+enum csio_ln_ev
+{
 	CSIO_LNE_NONE = (uint32_t)0,
 	CSIO_LNE_LINKUP,
 	CSIO_LNE_FAB_INIT_DONE,
@@ -66,7 +67,8 @@ enum csio_ln_ev {
 };
 
 
-struct csio_fcf_info {
+struct csio_fcf_info
+{
 	struct list_head	list;
 	uint8_t			priority;
 	uint8_t			mac[6];
@@ -78,11 +80,11 @@ struct csio_fcf_info {
 	uint8_t			fc_map[3];
 	uint32_t		fka_adv;
 	uint32_t		fcfi;
-	uint8_t			get_next:1;
-	uint8_t			link_aff:1;
-	uint8_t			fpma:1;
-	uint8_t			spma:1;
-	uint8_t			login:1;
+	uint8_t			get_next: 1;
+	uint8_t			link_aff: 1;
+	uint8_t			fpma: 1;
+	uint8_t			spma: 1;
+	uint8_t			login: 1;
 	uint8_t			portid;
 	uint8_t			spma_mac[6];
 	struct kref		kref;
@@ -95,7 +97,8 @@ struct csio_fcf_info {
 #define	CSIO_LNF_FDMI_ENABLE		0x00000008	/* FDMI support */
 
 /* Transport events */
-enum csio_ln_fc_evt {
+enum csio_ln_fc_evt
+{
 	CSIO_LN_FC_LINKUP = 1,
 	CSIO_LN_FC_LINKDOWN,
 	CSIO_LN_FC_RSCN,
@@ -103,7 +106,8 @@ enum csio_ln_fc_evt {
 };
 
 /* Lnode stats */
-struct csio_lnode_stats {
+struct csio_lnode_stats
+{
 	uint32_t	n_link_up;	/* Link down */
 	uint32_t	n_link_down;	/* Link up */
 	uint32_t	n_err;		/* error */
@@ -128,13 +132,15 @@ struct csio_lnode_stats {
 };
 
 /* Common Lnode params */
-struct csio_lnode_params {
+struct csio_lnode_params
+{
 	uint32_t	ra_tov;
 	uint32_t	fcfi;
 	uint32_t	log_level;	/* Module level for debugging */
 };
 
-struct csio_service_parms {
+struct csio_service_parms
+{
 	struct fc_els_csp	csp;		/* Common service parms */
 	uint8_t			wwpn[8];	/* WWPN */
 	uint8_t			wwnn[8];	/* WWNN */
@@ -143,7 +149,8 @@ struct csio_service_parms {
 };
 
 /* Lnode */
-struct csio_lnode {
+struct csio_lnode
+{
 	struct csio_sm		sm;		/* State machine + sibling
 						 * lnode list.
 						 */
@@ -215,18 +222,19 @@ struct csio_lnode {
 
 #define csio_ln_dbg(_ln, _fmt, ...)	\
 	csio_dbg(_ln->hwp, "%x:%x "_fmt, CSIO_DEVID_HI(_ln), \
-		 CSIO_DEVID_LO(_ln), ##__VA_ARGS__);
+			 CSIO_DEVID_LO(_ln), ##__VA_ARGS__);
 
 #define csio_ln_err(_ln, _fmt, ...)	\
 	csio_err(_ln->hwp, "%x:%x "_fmt, CSIO_DEVID_HI(_ln), \
-		 CSIO_DEVID_LO(_ln), ##__VA_ARGS__);
+			 CSIO_DEVID_LO(_ln), ##__VA_ARGS__);
 
 #define csio_ln_warn(_ln, _fmt, ...)	\
 	csio_warn(_ln->hwp, "%x:%x "_fmt, CSIO_DEVID_HI(_ln), \
-		 CSIO_DEVID_LO(_ln), ##__VA_ARGS__);
+			  CSIO_DEVID_LO(_ln), ##__VA_ARGS__);
 
 /* HW->Lnode notifications */
-enum csio_ln_notify {
+enum csio_ln_notify
+{
 	CSIO_LN_NOTIFY_HWREADY = 1,
 	CSIO_LN_NOTIFY_HWSTOP,
 	CSIO_LN_NOTIFY_HWREMOVE,
@@ -238,9 +246,9 @@ int csio_is_lnode_ready(struct csio_lnode *);
 void csio_lnode_state_to_str(struct csio_lnode *ln, int8_t *str);
 struct csio_lnode *csio_lnode_lookup_by_wwpn(struct csio_hw *, uint8_t *);
 int csio_get_phy_port_stats(struct csio_hw *, uint8_t ,
-				      struct fw_fcoe_port_stats *);
+							struct fw_fcoe_port_stats *);
 int csio_scan_done(struct csio_lnode *, unsigned long, unsigned long,
-		   unsigned long, unsigned long);
+				   unsigned long, unsigned long);
 void csio_notify_lnodes(struct csio_hw *, enum csio_ln_notify);
 void csio_disable_lnodes(struct csio_hw *, uint8_t, bool);
 void csio_lnode_async_event(struct csio_lnode *, enum csio_ln_fc_evt);
@@ -249,7 +257,7 @@ int csio_lnode_start(struct csio_lnode *);
 void csio_lnode_stop(struct csio_lnode *);
 void csio_lnode_close(struct csio_lnode *);
 int csio_lnode_init(struct csio_lnode *, struct csio_hw *,
-			      struct csio_lnode *);
+					struct csio_lnode *);
 void csio_lnode_exit(struct csio_lnode *);
 
 #endif /* ifndef __CSIO_LNODE_H__ */

@@ -13,7 +13,8 @@
 
 #include <linux/types.h>
 
-struct fiemap_extent {
+struct fiemap_extent
+{
 	__u64 fe_logical;  /* logical offset in bytes for the start of
 			    * the extent from the beginning of the file */
 	__u64 fe_physical; /* physical offset in bytes for the start
@@ -24,7 +25,8 @@ struct fiemap_extent {
 	__u32 fe_reserved[3];
 };
 
-struct fiemap {
+struct fiemap
+{
 	__u64 fm_start;		/* logical offset (inclusive) at
 				 * which to start mapping (in) */
 	__u64 fm_length;	/* logical length of mapping which

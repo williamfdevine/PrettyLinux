@@ -31,18 +31,18 @@
 
 static void snd_cs5535audio_stop_hardware(struct cs5535audio *cs5535au)
 {
-	/* 
+	/*
 	we depend on snd_ac97_suspend to tell the
 	AC97 codec to shutdown. the amd spec suggests
 	that the LNK_SHUTDOWN be done at the same time
 	that the codec power-down is issued. instead,
-	we do it just after rather than at the same 
+	we do it just after rather than at the same
 	time. excluding codec specific build_ops->suspend
 	ac97 powerdown hits:
-	0x8000 EAPD 
-	0x4000 Headphone amplifier 
-	0x0300 ADC & DAC 
-	0x0400 Analog Mixer powerdown (Vref on) 
+	0x8000 EAPD
+	0x4000 Headphone amplifier
+	0x0300 ADC & DAC
+	0x0400 Analog Mixer powerdown (Vref on)
 	I am not sure if this is the best that we can do.
 	The remainder to be investigated are:
 	- analog mixer (vref off) 0x0800
@@ -64,11 +64,17 @@ static int snd_cs5535audio_suspend(struct device *dev)
 	snd_power_change_state(card, SNDRV_CTL_POWER_D3hot);
 	snd_pcm_suspend_all(cs5535au->pcm);
 	snd_ac97_suspend(cs5535au->ac97);
-	for (i = 0; i < NUM_CS5535AUDIO_DMAS; i++) {
+
+	for (i = 0; i < NUM_CS5535AUDIO_DMAS; i++)
+	{
 		struct cs5535audio_dma *dma = &cs5535au->dmas[i];
+
 		if (dma && dma->substream)
+		{
 			dma->saved_prd = dma->ops->read_prd(cs5535au);
+		}
 	}
+
 	/* save important regs, then disable aclink in hw */
 	snd_cs5535audio_stop_hardware(cs5535au);
 	return 0;
@@ -86,20 +92,32 @@ static int snd_cs5535audio_resume(struct device *dev)
 	cs_writel(cs5535au, ACC_CODEC_CNTL, ACC_CODEC_CNTL_LNK_WRM_RST);
 
 	timeout = 50;
-	do {
+
+	do
+	{
 		tmp = cs_readl(cs5535au, ACC_CODEC_STATUS);
+
 		if (tmp & PRM_RDY_STS)
+		{
 			break;
+		}
+
 		udelay(1);
-	} while (--timeout);
+	}
+	while (--timeout);
 
 	if (!timeout)
+	{
 		dev_err(cs5535au->card->dev, "Failure getting AC Link ready\n");
+	}
 
 	/* set up rate regs, dma. actual initiation is done in trig */
-	for (i = 0; i < NUM_CS5535AUDIO_DMAS; i++) {
+	for (i = 0; i < NUM_CS5535AUDIO_DMAS; i++)
+	{
 		struct cs5535audio_dma *dma = &cs5535au->dmas[i];
-		if (dma && dma->substream) {
+
+		if (dma && dma->substream)
+		{
 			dma->substream->ops->prepare(dma->substream);
 			dma->ops->setup_prd(cs5535au, dma->saved_prd);
 		}

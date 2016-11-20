@@ -24,7 +24,8 @@ static int logon_vet_description(const char *desc);
  * user defined keys take an arbitrary string as the description and an
  * arbitrary blob of data as the payload
  */
-struct key_type key_type_user = {
+struct key_type key_type_user =
+{
 	.name			= "user",
 	.preparse		= user_preparse,
 	.free_preparse		= user_free_preparse,
@@ -44,7 +45,8 @@ EXPORT_SYMBOL_GPL(key_type_user);
  * password pairs in the keyring that you do not want to be readable
  * from userspace.
  */
-struct key_type key_type_logon = {
+struct key_type key_type_logon =
+{
 	.name			= "logon",
 	.preparse		= user_preparse,
 	.free_preparse		= user_free_preparse,
@@ -66,11 +68,16 @@ int user_preparse(struct key_preparsed_payload *prep)
 	size_t datalen = prep->datalen;
 
 	if (datalen <= 0 || datalen > 32767 || !prep->data)
+	{
 		return -EINVAL;
+	}
 
 	upayload = kmalloc(sizeof(*upayload) + datalen, GFP_KERNEL);
+
 	if (!upayload)
+	{
 		return -ENOMEM;
+	}
 
 	/* attach the data */
 	prep->quotalen = datalen;
@@ -101,18 +108,28 @@ int user_update(struct key *key, struct key_preparsed_payload *prep)
 
 	/* check the quota and attach the new data */
 	ret = key_payload_reserve(key, prep->datalen);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* attach the new data, displacing the old */
 	key->expiry = prep->expiry;
+
 	if (!test_bit(KEY_FLAG_NEGATIVE, &key->flags))
+	{
 		zap = rcu_dereference_key(key);
+	}
+
 	rcu_assign_keypointer(key, prep->payload.data[0]);
 	prep->payload.data[0] = NULL;
 
 	if (zap)
+	{
 		kfree_rcu(zap, rcu);
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(user_update);
@@ -128,7 +145,8 @@ void user_revoke(struct key *key)
 	/* clear the quota */
 	key_payload_reserve(key, 0);
 
-	if (upayload) {
+	if (upayload)
+	{
 		rcu_assign_keypointer(key, NULL);
 		kfree_rcu(upayload, rcu);
 	}
@@ -154,8 +172,11 @@ EXPORT_SYMBOL_GPL(user_destroy);
 void user_describe(const struct key *key, struct seq_file *m)
 {
 	seq_puts(m, key->description);
+
 	if (key_is_instantiated(key))
+	{
 		seq_printf(m, ": %u", key->datalen);
+	}
 }
 
 EXPORT_SYMBOL_GPL(user_describe);
@@ -173,12 +194,17 @@ long user_read(const struct key *key, char __user *buffer, size_t buflen)
 	ret = upayload->datalen;
 
 	/* we can return the data as is */
-	if (buffer && buflen > 0) {
+	if (buffer && buflen > 0)
+	{
 		if (buflen > upayload->datalen)
+		{
 			buflen = upayload->datalen;
+		}
 
 		if (copy_to_user(buffer, upayload->data, buflen) != 0)
+		{
 			ret = -EFAULT;
+		}
 	}
 
 	return ret;
@@ -193,12 +219,17 @@ static int logon_vet_description(const char *desc)
 
 	/* require a "qualified" description string */
 	p = strchr(desc, ':');
+
 	if (!p)
+	{
 		return -EINVAL;
+	}
 
 	/* also reject description with ':' as first char */
 	if (p == desc)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }

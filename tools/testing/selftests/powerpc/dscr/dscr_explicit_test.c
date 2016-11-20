@@ -27,41 +27,56 @@ int dscr_explicit(void)
 	srand(getpid());
 	set_dscr(dscr);
 
-	for (i = 0; i < COUNT; i++) {
+	for (i = 0; i < COUNT; i++)
+	{
 		unsigned long cur_dscr, cur_dscr_usr;
 		double ret = uniform_deviate(rand());
 
-		if (ret < 0.001) {
+		if (ret < 0.001)
+		{
 			dscr++;
+
 			if (dscr > DSCR_MAX)
+			{
 				dscr = 0;
+			}
 
 			set_dscr(dscr);
 		}
 
 		cur_dscr = get_dscr();
-		if (cur_dscr != dscr) {
+
+		if (cur_dscr != dscr)
+		{
 			fprintf(stderr, "Kernel DSCR should be %ld but "
 					"is %ld\n", dscr, cur_dscr);
 			return 1;
 		}
 
 		ret = uniform_deviate(rand());
-		if (ret < 0.001) {
+
+		if (ret < 0.001)
+		{
 			dscr++;
+
 			if (dscr > DSCR_MAX)
+			{
 				dscr = 0;
+			}
 
 			set_dscr_usr(dscr);
 		}
 
 		cur_dscr_usr = get_dscr_usr();
-		if (cur_dscr_usr != dscr) {
+
+		if (cur_dscr_usr != dscr)
+		{
 			fprintf(stderr, "User DSCR should be %ld but "
 					"is %ld\n", dscr, cur_dscr_usr);
 			return 1;
 		}
 	}
+
 	return 0;
 }
 

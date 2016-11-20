@@ -15,7 +15,8 @@
 #define __LINUX_MFD_S2MPS11_H
 
 /* S2MPS11 registers */
-enum s2mps11_reg {
+enum s2mps11_reg
+{
 	S2MPS11_REG_ID,
 	S2MPS11_REG_INT1,
 	S2MPS11_REG_INT2,
@@ -118,7 +119,8 @@ enum s2mps11_reg {
 };
 
 /* S2MPS11 regulator ids */
-enum s2mps11_regulators {
+enum s2mps11_regulators
+{
 	S2MPS11_LDO1,
 	S2MPS11_LDO2,
 	S2MPS11_LDO3,

@@ -61,7 +61,8 @@
 
 
 /*------------------------------Define structure----------------------------*/
-struct dig_t {
+struct dig_t
+{
 	u8		dig_enable_flag;
 	u8		dig_algorithm;
 	u8		dig_algorithm_switch;
@@ -92,21 +93,24 @@ struct dig_t {
 	long		rssi_val;
 };
 
-enum dm_dig_sta {
+enum dm_dig_sta
+{
 	DM_STA_DIG_OFF = 0,
 	DM_STA_DIG_ON,
 	DM_STA_DIG_MAX
 };
 
 
-enum dm_ratr_sta {
+enum dm_ratr_sta
+{
 	DM_RATR_STA_HIGH = 0,
 	DM_RATR_STA_MIDDLE = 1,
 	DM_RATR_STA_LOW = 2,
 	DM_RATR_STA_MAX
 };
 
-enum dm_dig_alg {
+enum dm_dig_alg
+{
 	DIG_ALGO_BY_FALSE_ALARM = 0,
 	DIG_ALGO_BY_RSSI	= 1,
 	DIG_ALGO_BEFORE_CONNECT_BY_RSSI_AND_ALARM = 2,
@@ -114,7 +118,8 @@ enum dm_dig_alg {
 	DIG_ALGO_MAX
 };
 
-enum dm_dig_connect {
+enum dm_dig_connect
+{
 	DIG_STA_DISCONNECT = 0,
 	DIG_STA_CONNECT = 1,
 	DIG_STA_BEFORE_CONNECT = 2,
@@ -124,20 +129,23 @@ enum dm_dig_connect {
 	DIG_CONNECT_MAX
 };
 
-enum dm_dig_pd_th {
+enum dm_dig_pd_th
+{
 	DIG_PD_AT_LOW_POWER = 0,
 	DIG_PD_AT_NORMAL_POWER = 1,
 	DIG_PD_AT_HIGH_POWER = 2,
 	DIG_PD_MAX
 };
 
-enum dm_dig_cs_ratio {
+enum dm_dig_cs_ratio
+{
 	DIG_CS_RATIO_LOWER = 0,
 	DIG_CS_RATIO_HIGHER = 1,
 	DIG_CS_MAX
 };
 
-struct drx_path_sel {
+struct drx_path_sel
+{
 	u8		Enable;
 	u8		cck_method;
 	u8		cck_Rx_path;
@@ -152,14 +160,16 @@ struct drx_path_sel {
 	long		cck_pwdb_sta[4];
 };
 
-enum dm_cck_rx_path_method {
+enum dm_cck_rx_path_method
+{
 	CCK_Rx_Version_1 = 0,
 	CCK_Rx_Version_2 = 1,
 	CCK_Rx_Version_MAX
 };
 
 
-struct dcmd_txcmd {
+struct dcmd_txcmd
+{
 	u32	Op;
 	u32	Length;
 	u32	Value;

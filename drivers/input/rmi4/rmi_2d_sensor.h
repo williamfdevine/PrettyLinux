@@ -10,7 +10,8 @@
 #ifndef _RMI_2D_SENSOR_H
 #define _RMI_2D_SENSOR_H
 
-enum rmi_2d_sensor_object_type {
+enum rmi_2d_sensor_object_type
+{
 	RMI_2D_OBJECT_NONE,
 	RMI_2D_OBJECT_FINGER,
 	RMI_2D_OBJECT_STYLUS,
@@ -18,7 +19,8 @@ enum rmi_2d_sensor_object_type {
 	RMI_2D_OBJECT_UNCLASSIFIED,
 };
 
-struct rmi_2d_sensor_abs_object {
+struct rmi_2d_sensor_abs_object
+{
 	enum rmi_2d_sensor_object_type type;
 	int mt_tool;
 	u16 x;
@@ -43,7 +45,8 @@ struct rmi_2d_sensor_abs_object {
  * @input - input device for absolute pointing stream
  * @input_phys - buffer for the absolute phys name for this sensor.
  */
-struct rmi_2d_sensor {
+struct rmi_2d_sensor
+{
 	struct rmi_2d_axis_alignment axis_align;
 	struct input_mt_pos *tracking_pos;
 	int *tracking_slots;
@@ -70,18 +73,18 @@ struct rmi_2d_sensor {
 };
 
 int rmi_2d_sensor_of_probe(struct device *dev,
-				struct rmi_2d_sensor_platform_data *pdata);
+						   struct rmi_2d_sensor_platform_data *pdata);
 
 void rmi_2d_sensor_abs_process(struct rmi_2d_sensor *sensor,
-				struct rmi_2d_sensor_abs_object *obj,
-				int slot);
+							   struct rmi_2d_sensor_abs_object *obj,
+							   int slot);
 
 void rmi_2d_sensor_abs_report(struct rmi_2d_sensor *sensor,
-				struct rmi_2d_sensor_abs_object *obj,
-				int slot);
+							  struct rmi_2d_sensor_abs_object *obj,
+							  int slot);
 
 void rmi_2d_sensor_rel_report(struct rmi_2d_sensor *sensor, int x, int y);
 
 int rmi_2d_sensor_configure_input(struct rmi_function *fn,
-					struct rmi_2d_sensor *sensor);
+								  struct rmi_2d_sensor *sensor);
 #endif /* _RMI_2D_SENSOR_H */

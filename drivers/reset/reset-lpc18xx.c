@@ -33,7 +33,8 @@
 #define LPC43XX_RGU_M0SUB_RST	12
 #define LPC43XX_RGU_M0APP_RST	56
 
-struct lpc18xx_rgu_data {
+struct lpc18xx_rgu_data
+{
 	struct reset_controller_dev rcdev;
 	struct notifier_block restart_nb;
 	struct clk *clk_delay;
@@ -46,10 +47,10 @@ struct lpc18xx_rgu_data {
 #define to_rgu_data(p) container_of(p, struct lpc18xx_rgu_data, rcdev)
 
 static int lpc18xx_rgu_restart(struct notifier_block *nb, unsigned long mode,
-			       void *cmd)
+							   void *cmd)
 {
 	struct lpc18xx_rgu_data *rc = container_of(nb, struct lpc18xx_rgu_data,
-						   restart_nb);
+								  restart_nb);
 
 	writel(BIT(LPC18XX_RGU_CORE_RST), rc->base + LPC18XX_RGU_CTRL0);
 	mdelay(2000);
@@ -68,7 +69,7 @@ static int lpc18xx_rgu_restart(struct notifier_block *nb, unsigned long mode,
  * preserve the state.
  */
 static int lpc18xx_rgu_setclear_reset(struct reset_controller_dev *rcdev,
-				      unsigned long id, bool set)
+									  unsigned long id, bool set)
 {
 	struct lpc18xx_rgu_data *rc = to_rgu_data(rcdev);
 	u32 stat_offset = LPC18XX_RGU_ACTIVE_STATUS0;
@@ -82,47 +83,54 @@ static int lpc18xx_rgu_setclear_reset(struct reset_controller_dev *rcdev,
 
 	spin_lock_irqsave(&rc->lock, flags);
 	stat = ~readl(rc->base + stat_offset);
+
 	if (set)
+	{
 		writel(stat | rst_bit, rc->base + ctrl_offset);
+	}
 	else
+	{
 		writel(stat & ~rst_bit, rc->base + ctrl_offset);
+	}
+
 	spin_unlock_irqrestore(&rc->lock, flags);
 
 	return 0;
 }
 
 static int lpc18xx_rgu_assert(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+							  unsigned long id)
 {
 	return lpc18xx_rgu_setclear_reset(rcdev, id, true);
 }
 
 static int lpc18xx_rgu_deassert(struct reset_controller_dev *rcdev,
-				unsigned long id)
+								unsigned long id)
 {
 	return lpc18xx_rgu_setclear_reset(rcdev, id, false);
 }
 
 /* Only M0 cores require explicit reset deassert */
 static int lpc18xx_rgu_reset(struct reset_controller_dev *rcdev,
-			     unsigned long id)
+							 unsigned long id)
 {
 	struct lpc18xx_rgu_data *rc = to_rgu_data(rcdev);
 
 	lpc18xx_rgu_assert(rcdev, id);
 	udelay(rc->delay_us);
 
-	switch (id) {
-	case LPC43XX_RGU_M0SUB_RST:
-	case LPC43XX_RGU_M0APP_RST:
-		lpc18xx_rgu_setclear_reset(rcdev, id, false);
+	switch (id)
+	{
+		case LPC43XX_RGU_M0SUB_RST:
+		case LPC43XX_RGU_M0APP_RST:
+			lpc18xx_rgu_setclear_reset(rcdev, id, false);
 	}
 
 	return 0;
 }
 
 static int lpc18xx_rgu_status(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+							  unsigned long id)
 {
 	struct lpc18xx_rgu_data *rc = to_rgu_data(rcdev);
 	u32 bit, offset = LPC18XX_RGU_ACTIVE_STATUS0;
@@ -133,7 +141,8 @@ static int lpc18xx_rgu_status(struct reset_controller_dev *rcdev,
 	return !(readl(rc->base + offset) & bit);
 }
 
-static const struct reset_control_ops lpc18xx_rgu_ops = {
+static const struct reset_control_ops lpc18xx_rgu_ops =
+{
 	.reset		= lpc18xx_rgu_reset,
 	.assert		= lpc18xx_rgu_assert,
 	.deassert	= lpc18xx_rgu_deassert,
@@ -148,44 +157,63 @@ static int lpc18xx_rgu_probe(struct platform_device *pdev)
 	int ret;
 
 	rc = devm_kzalloc(&pdev->dev, sizeof(*rc), GFP_KERNEL);
+
 	if (!rc)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rc->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(rc->base))
+	{
 		return PTR_ERR(rc->base);
+	}
 
 	rc->clk_reg = devm_clk_get(&pdev->dev, "reg");
-	if (IS_ERR(rc->clk_reg)) {
+
+	if (IS_ERR(rc->clk_reg))
+	{
 		dev_err(&pdev->dev, "reg clock not found\n");
 		return PTR_ERR(rc->clk_reg);
 	}
 
 	rc->clk_delay = devm_clk_get(&pdev->dev, "delay");
-	if (IS_ERR(rc->clk_delay)) {
+
+	if (IS_ERR(rc->clk_delay))
+	{
 		dev_err(&pdev->dev, "delay clock not found\n");
 		return PTR_ERR(rc->clk_delay);
 	}
 
 	ret = clk_prepare_enable(rc->clk_reg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable reg clock\n");
 		return ret;
 	}
 
 	ret = clk_prepare_enable(rc->clk_delay);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable delay clock\n");
 		goto dis_clk_reg;
 	}
 
 	fcclk = clk_get_rate(rc->clk_reg) / USEC_PER_SEC;
 	firc = clk_get_rate(rc->clk_delay) / USEC_PER_SEC;
+
 	if (fcclk == 0 || firc == 0)
+	{
 		rc->delay_us = 2;
+	}
 	else
+	{
 		rc->delay_us = DIV_ROUND_UP(fcclk, firc * firc);
+	}
 
 	spin_lock_init(&rc->lock);
 
@@ -197,16 +225,21 @@ static int lpc18xx_rgu_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, rc);
 
 	ret = reset_controller_register(&rc->rcdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to register device\n");
 		goto dis_clks;
 	}
 
 	rc->restart_nb.priority = 192,
-	rc->restart_nb.notifier_call = lpc18xx_rgu_restart,
-	ret = register_restart_handler(&rc->restart_nb);
+				   rc->restart_nb.notifier_call = lpc18xx_rgu_restart,
+								  ret = register_restart_handler(&rc->restart_nb);
+
 	if (ret)
+	{
 		dev_warn(&pdev->dev, "failed to register restart handler\n");
+	}
 
 	return 0;
 
@@ -224,8 +257,11 @@ static int lpc18xx_rgu_remove(struct platform_device *pdev)
 	int ret;
 
 	ret = unregister_restart_handler(&rc->restart_nb);
+
 	if (ret)
+	{
 		dev_warn(&pdev->dev, "failed to unregister restart handler\n");
+	}
 
 	reset_controller_unregister(&rc->rcdev);
 
@@ -235,13 +271,15 @@ static int lpc18xx_rgu_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id lpc18xx_rgu_match[] = {
+static const struct of_device_id lpc18xx_rgu_match[] =
+{
 	{ .compatible = "nxp,lpc1850-rgu" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, lpc18xx_rgu_match);
 
-static struct platform_driver lpc18xx_rgu_driver = {
+static struct platform_driver lpc18xx_rgu_driver =
+{
 	.probe	= lpc18xx_rgu_probe,
 	.remove	= lpc18xx_rgu_remove,
 	.driver	= {

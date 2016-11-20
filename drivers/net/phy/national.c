@@ -37,8 +37,8 @@
 #define DP83865_INT_ANE_COMPLETED 0x0010
 #define DP83865_INT_LINK_CHANGE	0xe000
 #define DP83865_INT_MASK_DEFAULT (DP83865_INT_REMOTE_FAULT | \
-				DP83865_INT_ANE_COMPLETED | \
-				DP83865_INT_LINK_CHANGE)
+								  DP83865_INT_ANE_COMPLETED | \
+								  DP83865_INT_LINK_CHANGE)
 
 /* Advanced proprietary configuration */
 #define NS_EXP_MEM_CTL	0x16
@@ -51,7 +51,8 @@
 #define AN_FALLBACK_IE 0x0004
 #define ALL_FALLBACK_ON (AN_FALLBACK_AN |  AN_FALLBACK_CRC | AN_FALLBACK_IE)
 
-enum hdx_loopback {
+enum hdx_loopback
+{
 	hdx_loopback_on = 0,
 	hdx_loopback_off = 1,
 };
@@ -74,9 +75,11 @@ static int ns_config_intr(struct phy_device *phydev)
 
 	if (phydev->interrupts == PHY_INTERRUPT_ENABLED)
 		err = phy_write(phydev, DP83865_INT_MASK,
-				DP83865_INT_MASK_DEFAULT);
+						DP83865_INT_MASK_DEFAULT);
 	else
+	{
 		err = phy_write(phydev, DP83865_INT_MASK, 0);
+	}
 
 	return err;
 }
@@ -84,8 +87,11 @@ static int ns_config_intr(struct phy_device *phydev)
 static int ns_ack_interrupt(struct phy_device *phydev)
 {
 	int ret = phy_read(phydev, DP83865_INT_STATUS);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Clear the interrupt status bit by writing a “1”
 	 * to the corresponding bit in INT_CLEAR (2:0 are reserved) */
@@ -111,13 +117,15 @@ static void ns_giga_speed_fallback(struct phy_device *phydev, int mode)
 static void ns_10_base_t_hdx_loopack(struct phy_device *phydev, int disable)
 {
 	if (disable)
+	{
 		ns_exp_write(phydev, 0x1c0, ns_exp_read(phydev, 0x1c0) | 1);
+	}
 	else
 		ns_exp_write(phydev, 0x1c0,
-			     ns_exp_read(phydev, 0x1c0) & 0xfffe);
+					 ns_exp_read(phydev, 0x1c0) & 0xfffe);
 
 	pr_debug("10BASE-T HDX loopback %s\n",
-		 (ns_exp_read(phydev, 0x1c0) & 0x0001) ? "off" : "on");
+			 (ns_exp_read(phydev, 0x1c0) & 0x0001) ? "off" : "on");
 }
 
 static int ns_config_init(struct phy_device *phydev)
@@ -130,17 +138,18 @@ static int ns_config_init(struct phy_device *phydev)
 }
 
 static struct phy_driver dp83865_driver[] = { {
-	.phy_id = DP83865_PHY_ID,
-	.phy_id_mask = 0xfffffff0,
-	.name = "NatSemi DP83865",
-	.features = PHY_GBIT_FEATURES | SUPPORTED_Pause | SUPPORTED_Asym_Pause,
-	.flags = PHY_HAS_INTERRUPT,
-	.config_init = ns_config_init,
-	.config_aneg = genphy_config_aneg,
-	.read_status = genphy_read_status,
-	.ack_interrupt = ns_ack_interrupt,
-	.config_intr = ns_config_intr,
-} };
+		.phy_id = DP83865_PHY_ID,
+		.phy_id_mask = 0xfffffff0,
+		.name = "NatSemi DP83865",
+		.features = PHY_GBIT_FEATURES | SUPPORTED_Pause | SUPPORTED_Asym_Pause,
+		.flags = PHY_HAS_INTERRUPT,
+		.config_init = ns_config_init,
+		.config_aneg = genphy_config_aneg,
+		.read_status = genphy_read_status,
+		.ack_interrupt = ns_ack_interrupt,
+		.config_intr = ns_config_intr,
+	}
+};
 
 module_phy_driver(dp83865_driver);
 
@@ -148,7 +157,8 @@ MODULE_DESCRIPTION("NatSemi PHY driver");
 MODULE_AUTHOR("Stuart Menefy");
 MODULE_LICENSE("GPL");
 
-static struct mdio_device_id __maybe_unused ns_tbl[] = {
+static struct mdio_device_id __maybe_unused ns_tbl[] =
+{
 	{ DP83865_PHY_ID, 0xfffffff0 },
 	{ }
 };

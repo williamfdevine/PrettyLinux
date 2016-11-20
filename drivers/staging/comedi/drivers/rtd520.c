@@ -238,18 +238,18 @@
 
 /* Setup continuous ring of 1/2 FIFO transfers.  See RTD manual p91 */
 #define DMA_MODE_BITS (\
-		       PLX_LOCAL_BUS_16_WIDE_BITS \
-		       | PLX_DMA_EN_READYIN_BIT \
-		       | PLX_DMA_LOCAL_BURST_EN_BIT \
-		       | PLX_EN_CHAIN_BIT \
-		       | PLX_DMA_INTR_PCI_BIT \
-		       | PLX_LOCAL_ADDR_CONST_BIT \
-		       | PLX_DEMAND_MODE_BIT)
+					   PLX_LOCAL_BUS_16_WIDE_BITS \
+					   | PLX_DMA_EN_READYIN_BIT \
+					   | PLX_DMA_LOCAL_BURST_EN_BIT \
+					   | PLX_EN_CHAIN_BIT \
+					   | PLX_DMA_INTR_PCI_BIT \
+					   | PLX_LOCAL_ADDR_CONST_BIT \
+					   | PLX_DEMAND_MODE_BIT)
 
 #define DMA_TRANSFER_BITS (\
-/* descriptors in PCI memory*/  PLX_DESC_IN_PCI_BIT \
-/* interrupt at end of block */ | PLX_INTR_TERM_COUNT \
-/* from board to PCI */		| PLX_XFER_LOCAL_TO_PCI)
+						   /* descriptors in PCI memory*/  PLX_DESC_IN_PCI_BIT \
+						   /* interrupt at end of block */ | PLX_INTR_TERM_COUNT \
+						   /* from board to PCI */		| PLX_XFER_LOCAL_TO_PCI)
 
 /*
  * Comedi specific stuff
@@ -258,7 +258,8 @@
 /*
  * The board has 3 input modes and the gains of 1,2,4,...32 (, 64, 128)
  */
-static const struct comedi_lrange rtd_ai_7520_range = {
+static const struct comedi_lrange rtd_ai_7520_range =
+{
 	18, {
 		/* +-5V input range gain steps */
 		BIP_RANGE(5.0),
@@ -285,7 +286,8 @@ static const struct comedi_lrange rtd_ai_7520_range = {
 };
 
 /* PCI4520 has two more gains (6 more entries) */
-static const struct comedi_lrange rtd_ai_4520_range = {
+static const struct comedi_lrange rtd_ai_4520_range =
+{
 	24, {
 		/* +-5V input range gain steps */
 		BIP_RANGE(5.0),
@@ -318,7 +320,8 @@ static const struct comedi_lrange rtd_ai_4520_range = {
 };
 
 /* Table order matches range values */
-static const struct comedi_lrange rtd_ao_range = {
+static const struct comedi_lrange rtd_ao_range =
+{
 	4, {
 		UNI_RANGE(5),
 		UNI_RANGE(10),
@@ -327,19 +330,22 @@ static const struct comedi_lrange rtd_ao_range = {
 	}
 };
 
-enum rtd_boardid {
+enum rtd_boardid
+{
 	BOARD_DM7520,
 	BOARD_PCI4520,
 };
 
-struct rtd_boardinfo {
+struct rtd_boardinfo
+{
 	const char *name;
 	int range_bip10;	/* start of +-10V range */
 	int range_uni10;	/* start of +10V range */
 	const struct comedi_lrange *ai_range;
 };
 
-static const struct rtd_boardinfo rtd520_boards[] = {
+static const struct rtd_boardinfo rtd520_boards[] =
+{
 	[BOARD_DM7520] = {
 		.name		= "DM7520",
 		.range_bip10	= 6,
@@ -354,7 +360,8 @@ static const struct rtd_boardinfo rtd520_boards[] = {
 	},
 };
 
-struct rtd_private {
+struct rtd_private
+{
 	/* memory mapped board structures */
 	void __iomem *las1;
 	void __iomem *lcfg;
@@ -381,24 +388,30 @@ struct rtd_private {
  * Note: you have to check if the value is larger than the counter range!
  */
 static int rtd_ns_to_timer_base(unsigned int *nanosec,
-				unsigned int flags, int base)
+								unsigned int flags, int base)
 {
 	int divider;
 
-	switch (flags & CMDF_ROUND_MASK) {
-	case CMDF_ROUND_NEAREST:
-	default:
-		divider = DIV_ROUND_CLOSEST(*nanosec, base);
-		break;
-	case CMDF_ROUND_DOWN:
-		divider = (*nanosec) / base;
-		break;
-	case CMDF_ROUND_UP:
-		divider = DIV_ROUND_UP(*nanosec, base);
-		break;
+	switch (flags & CMDF_ROUND_MASK)
+	{
+		case CMDF_ROUND_NEAREST:
+		default:
+			divider = DIV_ROUND_CLOSEST(*nanosec, base);
+			break;
+
+		case CMDF_ROUND_DOWN:
+			divider = (*nanosec) / base;
+			break;
+
+		case CMDF_ROUND_UP:
+			divider = DIV_ROUND_UP(*nanosec, base);
+			break;
 	}
+
 	if (divider < 2)
-		divider = 2;	/* min is divide by 2 */
+	{
+		divider = 2;    /* min is divide by 2 */
+	}
 
 	/*
 	 * Note: we don't check for max, because different timers
@@ -421,7 +434,7 @@ static int rtd_ns_to_timer(unsigned int *ns, unsigned int flags)
 
 /* Convert a single comedi channel-gain entry to a RTD520 table entry */
 static unsigned short rtd_convert_chan_gain(struct comedi_device *dev,
-					    unsigned int chanspec, int index)
+		unsigned int chanspec, int index)
 {
 	const struct rtd_boardinfo *board = dev->board_ptr;
 	unsigned int chan = CR_CHAN(chanspec);
@@ -432,55 +445,67 @@ static unsigned short rtd_convert_chan_gain(struct comedi_device *dev,
 	r |= chan & 0xf;
 
 	/* Note: we also setup the channel list bipolar flag array */
-	if (range < board->range_bip10) {
+	if (range < board->range_bip10)
+	{
 		/* +-5 range */
 		r |= 0x000;
 		r |= (range & 0x7) << 4;
-	} else if (range < board->range_uni10) {
+	}
+	else if (range < board->range_uni10)
+	{
 		/* +-10 range */
 		r |= 0x100;
 		r |= ((range - board->range_bip10) & 0x7) << 4;
-	} else {
+	}
+	else
+	{
 		/* +10 range */
 		r |= 0x200;
 		r |= ((range - board->range_uni10) & 0x7) << 4;
 	}
 
-	switch (aref) {
-	case AREF_GROUND:	/* on-board ground */
-		break;
+	switch (aref)
+	{
+		case AREF_GROUND:	/* on-board ground */
+			break;
 
-	case AREF_COMMON:
-		r |= 0x80;	/* ref external analog common */
-		break;
+		case AREF_COMMON:
+			r |= 0x80;	/* ref external analog common */
+			break;
 
-	case AREF_DIFF:
-		r |= 0x400;	/* differential inputs */
-		break;
+		case AREF_DIFF:
+			r |= 0x400;	/* differential inputs */
+			break;
 
-	case AREF_OTHER:	/* ??? */
-		break;
+		case AREF_OTHER:	/* ??? */
+			break;
 	}
+
 	return r;
 }
 
 /* Setup the channel-gain table from a comedi list */
 static void rtd_load_channelgain_list(struct comedi_device *dev,
-				      unsigned int n_chan, unsigned int *list)
+									  unsigned int n_chan, unsigned int *list)
 {
-	if (n_chan > 1) {	/* setup channel gain table */
+	if (n_chan > 1)  	/* setup channel gain table */
+	{
 		int ii;
 
 		writel(0, dev->mmio + LAS0_CGT_CLEAR);
 		writel(1, dev->mmio + LAS0_CGT_ENABLE);
-		for (ii = 0; ii < n_chan; ii++) {
+
+		for (ii = 0; ii < n_chan; ii++)
+		{
 			writel(rtd_convert_chan_gain(dev, list[ii], ii),
-			       dev->mmio + LAS0_CGT_WRITE);
+				   dev->mmio + LAS0_CGT_WRITE);
 		}
-	} else {		/* just use the channel gain latch */
+	}
+	else  		/* just use the channel gain latch */
+	{
 		writel(0, dev->mmio + LAS0_CGT_ENABLE);
 		writel(rtd_convert_chan_gain(dev, list[0], 0),
-		       dev->mmio + LAS0_CGL_WRITE);
+			   dev->mmio + LAS0_CGL_WRITE);
 	}
 }
 
@@ -499,48 +524,62 @@ static int rtd520_probe_fifo_depth(struct comedi_device *dev)
 	rtd_load_channelgain_list(dev, 1, &chanspec);
 	/* ADC conversion trigger source: SOFTWARE */
 	writel(0, dev->mmio + LAS0_ADC_CONVERSION);
+
 	/* convert  samples */
-	for (i = 0; i < limit; ++i) {
+	for (i = 0; i < limit; ++i)
+	{
 		unsigned int fifo_status;
 		/* trigger conversion */
 		writew(0, dev->mmio + LAS0_ADC);
 		usleep_range(1, 1000);
 		fifo_status = readl(dev->mmio + LAS0_ADC);
-		if ((fifo_status & FS_ADC_HEMPTY) == 0) {
+
+		if ((fifo_status & FS_ADC_HEMPTY) == 0)
+		{
 			fifo_size = 2 * i;
 			break;
 		}
 	}
-	if (i == limit) {
+
+	if (i == limit)
+	{
 		dev_info(dev->class_dev, "failed to probe fifo size.\n");
 		return -EIO;
 	}
+
 	writel(0, dev->mmio + LAS0_ADC_FIFO_CLEAR);
-	if (fifo_size != 0x400 && fifo_size != 0x2000) {
+
+	if (fifo_size != 0x400 && fifo_size != 0x2000)
+	{
 		dev_info(dev->class_dev,
-			 "unexpected fifo size of %i, expected 1024 or 8192.\n",
-			 fifo_size);
+				 "unexpected fifo size of %i, expected 1024 or 8192.\n",
+				 fifo_size);
 		return -EIO;
 	}
+
 	return fifo_size;
 }
 
 static int rtd_ai_eoc(struct comedi_device *dev,
-		      struct comedi_subdevice *s,
-		      struct comedi_insn *insn,
-		      unsigned long context)
+					  struct comedi_subdevice *s,
+					  struct comedi_insn *insn,
+					  unsigned long context)
 {
 	unsigned int status;
 
 	status = readl(dev->mmio + LAS0_ADC);
+
 	if (status & FS_ADC_NOT_EMPTY)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int rtd_ai_rinsn(struct comedi_device *dev,
-			struct comedi_subdevice *s, struct comedi_insn *insn,
-			unsigned int *data)
+						struct comedi_subdevice *s, struct comedi_insn *insn,
+						unsigned int *data)
 {
 	struct rtd_private *devpriv = dev->private;
 	unsigned int range = CR_RANGE(insn->chanspec);
@@ -557,14 +596,18 @@ static int rtd_ai_rinsn(struct comedi_device *dev,
 	writel(0, dev->mmio + LAS0_ADC_CONVERSION);
 
 	/* convert n samples */
-	for (n = 0; n < insn->n; n++) {
+	for (n = 0; n < insn->n; n++)
+	{
 		unsigned short d;
 		/* trigger conversion */
 		writew(0, dev->mmio + LAS0_ADC);
 
 		ret = comedi_timeout(dev, s, insn, rtd_ai_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		/* read data */
 		d = readw(devpriv->las1 + LAS1_ADC_FIFO);
@@ -572,7 +615,9 @@ static int rtd_ai_rinsn(struct comedi_device *dev,
 
 		/* convert bipolar data to comedi unsigned data */
 		if (comedi_range_is_bipolar(s, range))
+		{
 			d = comedi_offset_munge(s, d);
+		}
 
 		data[n] = d & s->maxdata;
 	}
@@ -582,18 +627,20 @@ static int rtd_ai_rinsn(struct comedi_device *dev,
 }
 
 static int ai_read_n(struct comedi_device *dev, struct comedi_subdevice *s,
-		     int count)
+					 int count)
 {
 	struct rtd_private *devpriv = dev->private;
 	struct comedi_async *async = s->async;
 	struct comedi_cmd *cmd = &async->cmd;
 	int ii;
 
-	for (ii = 0; ii < count; ii++) {
+	for (ii = 0; ii < count; ii++)
+	{
 		unsigned int range = CR_RANGE(cmd->chanlist[async->cur_chan]);
 		unsigned short d;
 
-		if (devpriv->ai_count == 0) {	/* done */
+		if (devpriv->ai_count == 0)  	/* done */
+		{
 			d = readw(devpriv->las1 + LAS1_ADC_FIFO);
 			continue;
 		}
@@ -603,15 +650,23 @@ static int ai_read_n(struct comedi_device *dev, struct comedi_subdevice *s,
 
 		/* convert bipolar data to comedi unsigned data */
 		if (comedi_range_is_bipolar(s, range))
+		{
 			d = comedi_offset_munge(s, d);
+		}
+
 		d &= s->maxdata;
 
 		if (!comedi_buf_write_samples(s, &d, 1))
+		{
 			return -1;
+		}
 
 		if (devpriv->ai_count > 0)	/* < 0, means read forever */
+		{
 			devpriv->ai_count--;
+		}
 	}
+
 	return 0;
 }
 
@@ -625,47 +680,71 @@ static irqreturn_t rtd_interrupt(int irq, void *d)
 	u16 fifo_status;
 
 	if (!dev->attached)
+	{
 		return IRQ_NONE;
+	}
 
 	fifo_status = readl(dev->mmio + LAS0_ADC);
+
 	/* check for FIFO full, this automatically halts the ADC! */
 	if (!(fifo_status & FS_ADC_NOT_FULL))	/* 0 -> full */
+	{
 		goto xfer_abort;
+	}
 
 	status = readw(dev->mmio + LAS0_IT);
+
 	/* if interrupt was not caused by our board, or handled above */
 	if (status == 0)
+	{
 		return IRQ_HANDLED;
+	}
 
-	if (status & IRQM_ADC_ABOUT_CNT) {	/* sample count -> read FIFO */
+	if (status & IRQM_ADC_ABOUT_CNT)  	/* sample count -> read FIFO */
+	{
 		/*
 		 * since the priority interrupt controller may have queued
 		 * a sample counter interrupt, even though we have already
 		 * finished, we must handle the possibility that there is
 		 * no data here
 		 */
-		if (!(fifo_status & FS_ADC_HEMPTY)) {
+		if (!(fifo_status & FS_ADC_HEMPTY))
+		{
 			/* FIFO half full */
 			if (ai_read_n(dev, s, devpriv->fifosz / 2) < 0)
+			{
 				goto xfer_abort;
+			}
 
 			if (devpriv->ai_count == 0)
+			{
 				goto xfer_done;
-		} else if (devpriv->xfer_count > 0) {
-			if (fifo_status & FS_ADC_NOT_EMPTY) {
+			}
+		}
+		else if (devpriv->xfer_count > 0)
+		{
+			if (fifo_status & FS_ADC_NOT_EMPTY)
+			{
 				/* FIFO not empty */
 				if (ai_read_n(dev, s, devpriv->xfer_count) < 0)
+				{
 					goto xfer_abort;
+				}
 
 				if (devpriv->ai_count == 0)
+				{
 					goto xfer_done;
+				}
 			}
 		}
 	}
 
 	overrun = readl(dev->mmio + LAS0_OVERRUN) & 0xffff;
+
 	if (overrun)
+	{
 		goto xfer_abort;
+	}
 
 	/* clear the interrupt */
 	writew(status, dev->mmio + LAS0_CLEAR);
@@ -695,7 +774,7 @@ xfer_done:
 }
 
 static int rtd_ai_cmdtest(struct comedi_device *dev,
-			  struct comedi_subdevice *s, struct comedi_cmd *cmd)
+						  struct comedi_subdevice *s, struct comedi_cmd *cmd)
 {
 	int err = 0;
 	unsigned int arg;
@@ -704,14 +783,16 @@ static int rtd_ai_cmdtest(struct comedi_device *dev,
 
 	err |= comedi_check_trigger_src(&cmd->start_src, TRIG_NOW);
 	err |= comedi_check_trigger_src(&cmd->scan_begin_src,
-					TRIG_TIMER | TRIG_EXT);
+									TRIG_TIMER | TRIG_EXT);
 	err |= comedi_check_trigger_src(&cmd->convert_src,
-					TRIG_TIMER | TRIG_EXT);
+									TRIG_TIMER | TRIG_EXT);
 	err |= comedi_check_trigger_src(&cmd->scan_end_src, TRIG_COUNT);
 	err |= comedi_check_trigger_src(&cmd->stop_src, TRIG_COUNT | TRIG_NONE);
 
 	if (err)
+	{
 		return 1;
+	}
 
 	/* Step 2a : make sure trigger sources are unique */
 
@@ -722,116 +803,153 @@ static int rtd_ai_cmdtest(struct comedi_device *dev,
 	/* Step 2b : and mutually compatible */
 
 	if (err)
+	{
 		return 2;
+	}
 
 	/* Step 3: check if arguments are trivially valid */
 
 	err |= comedi_check_trigger_arg_is(&cmd->start_arg, 0);
 
-	if (cmd->scan_begin_src == TRIG_TIMER) {
+	if (cmd->scan_begin_src == TRIG_TIMER)
+	{
 		/* Note: these are time periods, not actual rates */
-		if (cmd->chanlist_len == 1) {	/* no scanning */
+		if (cmd->chanlist_len == 1)  	/* no scanning */
+		{
 			if (comedi_check_trigger_arg_min(&cmd->scan_begin_arg,
-							 RTD_MAX_SPEED_1)) {
+											 RTD_MAX_SPEED_1))
+			{
 				rtd_ns_to_timer(&cmd->scan_begin_arg,
-						CMDF_ROUND_UP);
+								CMDF_ROUND_UP);
 				err |= -EINVAL;
 			}
+
 			if (comedi_check_trigger_arg_max(&cmd->scan_begin_arg,
-							 RTD_MIN_SPEED_1)) {
+											 RTD_MIN_SPEED_1))
+			{
 				rtd_ns_to_timer(&cmd->scan_begin_arg,
-						CMDF_ROUND_DOWN);
-				err |= -EINVAL;
-			}
-		} else {
-			if (comedi_check_trigger_arg_min(&cmd->scan_begin_arg,
-							 RTD_MAX_SPEED)) {
-				rtd_ns_to_timer(&cmd->scan_begin_arg,
-						CMDF_ROUND_UP);
-				err |= -EINVAL;
-			}
-			if (comedi_check_trigger_arg_max(&cmd->scan_begin_arg,
-							 RTD_MIN_SPEED)) {
-				rtd_ns_to_timer(&cmd->scan_begin_arg,
-						CMDF_ROUND_DOWN);
+								CMDF_ROUND_DOWN);
 				err |= -EINVAL;
 			}
 		}
-	} else {
+		else
+		{
+			if (comedi_check_trigger_arg_min(&cmd->scan_begin_arg,
+											 RTD_MAX_SPEED))
+			{
+				rtd_ns_to_timer(&cmd->scan_begin_arg,
+								CMDF_ROUND_UP);
+				err |= -EINVAL;
+			}
+
+			if (comedi_check_trigger_arg_max(&cmd->scan_begin_arg,
+											 RTD_MIN_SPEED))
+			{
+				rtd_ns_to_timer(&cmd->scan_begin_arg,
+								CMDF_ROUND_DOWN);
+				err |= -EINVAL;
+			}
+		}
+	}
+	else
+	{
 		/* external trigger */
 		/* should be level/edge, hi/lo specification here */
 		/* should specify multiple external triggers */
 		err |= comedi_check_trigger_arg_max(&cmd->scan_begin_arg, 9);
 	}
 
-	if (cmd->convert_src == TRIG_TIMER) {
-		if (cmd->chanlist_len == 1) {	/* no scanning */
+	if (cmd->convert_src == TRIG_TIMER)
+	{
+		if (cmd->chanlist_len == 1)  	/* no scanning */
+		{
 			if (comedi_check_trigger_arg_min(&cmd->convert_arg,
-							 RTD_MAX_SPEED_1)) {
+											 RTD_MAX_SPEED_1))
+			{
 				rtd_ns_to_timer(&cmd->convert_arg,
-						CMDF_ROUND_UP);
+								CMDF_ROUND_UP);
 				err |= -EINVAL;
 			}
+
 			if (comedi_check_trigger_arg_max(&cmd->convert_arg,
-							 RTD_MIN_SPEED_1)) {
+											 RTD_MIN_SPEED_1))
+			{
 				rtd_ns_to_timer(&cmd->convert_arg,
-						CMDF_ROUND_DOWN);
-				err |= -EINVAL;
-			}
-		} else {
-			if (comedi_check_trigger_arg_min(&cmd->convert_arg,
-							 RTD_MAX_SPEED)) {
-				rtd_ns_to_timer(&cmd->convert_arg,
-						CMDF_ROUND_UP);
-				err |= -EINVAL;
-			}
-			if (comedi_check_trigger_arg_max(&cmd->convert_arg,
-							 RTD_MIN_SPEED)) {
-				rtd_ns_to_timer(&cmd->convert_arg,
-						CMDF_ROUND_DOWN);
+								CMDF_ROUND_DOWN);
 				err |= -EINVAL;
 			}
 		}
-	} else {
+		else
+		{
+			if (comedi_check_trigger_arg_min(&cmd->convert_arg,
+											 RTD_MAX_SPEED))
+			{
+				rtd_ns_to_timer(&cmd->convert_arg,
+								CMDF_ROUND_UP);
+				err |= -EINVAL;
+			}
+
+			if (comedi_check_trigger_arg_max(&cmd->convert_arg,
+											 RTD_MIN_SPEED))
+			{
+				rtd_ns_to_timer(&cmd->convert_arg,
+								CMDF_ROUND_DOWN);
+				err |= -EINVAL;
+			}
+		}
+	}
+	else
+	{
 		/* external trigger */
 		/* see above */
 		err |= comedi_check_trigger_arg_max(&cmd->convert_arg, 9);
 	}
 
 	err |= comedi_check_trigger_arg_is(&cmd->scan_end_arg,
-					   cmd->chanlist_len);
+									   cmd->chanlist_len);
 
 	if (cmd->stop_src == TRIG_COUNT)
+	{
 		err |= comedi_check_trigger_arg_min(&cmd->stop_arg, 1);
+	}
 	else	/* TRIG_NONE */
+	{
 		err |= comedi_check_trigger_arg_is(&cmd->stop_arg, 0);
+	}
 
 	if (err)
+	{
 		return 3;
+	}
 
 	/* step 4: fix up any arguments */
 
-	if (cmd->scan_begin_src == TRIG_TIMER) {
+	if (cmd->scan_begin_src == TRIG_TIMER)
+	{
 		arg = cmd->scan_begin_arg;
 		rtd_ns_to_timer(&arg, cmd->flags);
 		err |= comedi_check_trigger_arg_is(&cmd->scan_begin_arg, arg);
 	}
 
-	if (cmd->convert_src == TRIG_TIMER) {
+	if (cmd->convert_src == TRIG_TIMER)
+	{
 		arg = cmd->convert_arg;
 		rtd_ns_to_timer(&arg, cmd->flags);
 		err |= comedi_check_trigger_arg_is(&cmd->convert_arg, arg);
 
-		if (cmd->scan_begin_src == TRIG_TIMER) {
+		if (cmd->scan_begin_src == TRIG_TIMER)
+		{
 			arg = cmd->convert_arg * cmd->scan_end_arg;
 			err |= comedi_check_trigger_arg_min(&cmd->
-							    scan_begin_arg,
-							    arg);
+												scan_begin_arg,
+												arg);
 		}
 	}
 
 	if (err)
+	{
 		return 4;
+	}
 
 	return 0;
 }
@@ -856,25 +974,31 @@ static int rtd_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 	rtd_load_channelgain_list(dev, cmd->chanlist_len, cmd->chanlist);
 
 	/* setup the common case and override if needed */
-	if (cmd->chanlist_len > 1) {
+	if (cmd->chanlist_len > 1)
+	{
 		/* pacer start source: SOFTWARE */
 		writel(0, dev->mmio + LAS0_PACER_START);
 		/* burst trigger source: PACER */
 		writel(1, dev->mmio + LAS0_BURST_START);
 		/* ADC conversion trigger source: BURST */
 		writel(2, dev->mmio + LAS0_ADC_CONVERSION);
-	} else {		/* single channel */
+	}
+	else  		/* single channel */
+	{
 		/* pacer start source: SOFTWARE */
 		writel(0, dev->mmio + LAS0_PACER_START);
 		/* ADC conversion trigger source: PACER */
 		writel(1, dev->mmio + LAS0_ADC_CONVERSION);
 	}
+
 	writel((devpriv->fifosz / 2 - 1) & 0xffff, dev->mmio + LAS0_ACNT);
 
-	if (cmd->scan_begin_src == TRIG_TIMER) {
+	if (cmd->scan_begin_src == TRIG_TIMER)
+	{
 		/* scan_begin_arg is in nanoseconds */
 		/* find out how many samples to wait before transferring */
-		if (cmd->flags & CMDF_WAKE_EOS) {
+		if (cmd->flags & CMDF_WAKE_EOS)
+		{
 			/*
 			 * this may generate un-sustainable interrupt rates
 			 * the application is responsible for doing the
@@ -882,35 +1006,49 @@ static int rtd_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 			 */
 			devpriv->xfer_count = cmd->chanlist_len;
 			devpriv->flags |= SEND_EOS;
-		} else {
+		}
+		else
+		{
 			/* arrange to transfer data periodically */
 			devpriv->xfer_count =
-			    (TRANS_TARGET_PERIOD * cmd->chanlist_len) /
-			    cmd->scan_begin_arg;
-			if (devpriv->xfer_count < cmd->chanlist_len) {
+				(TRANS_TARGET_PERIOD * cmd->chanlist_len) /
+				cmd->scan_begin_arg;
+
+			if (devpriv->xfer_count < cmd->chanlist_len)
+			{
 				/* transfer after each scan (and avoid 0) */
 				devpriv->xfer_count = cmd->chanlist_len;
-			} else {	/* make a multiple of scan length */
+			}
+			else  	/* make a multiple of scan length */
+			{
 				devpriv->xfer_count =
-				    DIV_ROUND_UP(devpriv->xfer_count,
-						 cmd->chanlist_len);
+					DIV_ROUND_UP(devpriv->xfer_count,
+								 cmd->chanlist_len);
 				devpriv->xfer_count *= cmd->chanlist_len;
 			}
+
 			devpriv->flags |= SEND_EOS;
 		}
-		if (devpriv->xfer_count >= (devpriv->fifosz / 2)) {
+
+		if (devpriv->xfer_count >= (devpriv->fifosz / 2))
+		{
 			/* out of counter range, use 1/2 fifo instead */
 			devpriv->xfer_count = 0;
 			devpriv->flags &= ~SEND_EOS;
-		} else {
+		}
+		else
+		{
 			/* interrupt for each transfer */
 			writel((devpriv->xfer_count - 1) & 0xffff,
-			       dev->mmio + LAS0_ACNT);
+				   dev->mmio + LAS0_ACNT);
 		}
-	} else {		/* unknown timing, just use 1/2 FIFO */
+	}
+	else  		/* unknown timing, just use 1/2 FIFO */
+	{
 		devpriv->xfer_count = 0;
 		devpriv->flags &= ~SEND_EOS;
 	}
+
 	/* pacer clock source: INTERNAL 8MHz */
 	writel(1, dev->mmio + LAS0_PACER_SELECT);
 	/* just interrupt, don't stop */
@@ -919,54 +1057,62 @@ static int rtd_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 	/* BUG??? these look like enumerated values, but they are bit fields */
 
 	/* First, setup when to stop */
-	switch (cmd->stop_src) {
-	case TRIG_COUNT:	/* stop after N scans */
-		devpriv->ai_count = cmd->stop_arg * cmd->chanlist_len;
-		if ((devpriv->xfer_count > 0) &&
-		    (devpriv->xfer_count > devpriv->ai_count)) {
-			devpriv->xfer_count = devpriv->ai_count;
-		}
-		break;
+	switch (cmd->stop_src)
+	{
+		case TRIG_COUNT:	/* stop after N scans */
+			devpriv->ai_count = cmd->stop_arg * cmd->chanlist_len;
 
-	case TRIG_NONE:	/* stop when cancel is called */
-		devpriv->ai_count = -1;	/* read forever */
-		break;
+			if ((devpriv->xfer_count > 0) &&
+				(devpriv->xfer_count > devpriv->ai_count))
+			{
+				devpriv->xfer_count = devpriv->ai_count;
+			}
+
+			break;
+
+		case TRIG_NONE:	/* stop when cancel is called */
+			devpriv->ai_count = -1;	/* read forever */
+			break;
 	}
 
 	/* Scan timing */
-	switch (cmd->scan_begin_src) {
-	case TRIG_TIMER:	/* periodic scanning */
-		timer = rtd_ns_to_timer(&cmd->scan_begin_arg,
-					CMDF_ROUND_NEAREST);
-		/* set PACER clock */
-		writel(timer & 0xffffff, dev->mmio + LAS0_PCLK);
+	switch (cmd->scan_begin_src)
+	{
+		case TRIG_TIMER:	/* periodic scanning */
+			timer = rtd_ns_to_timer(&cmd->scan_begin_arg,
+									CMDF_ROUND_NEAREST);
+			/* set PACER clock */
+			writel(timer & 0xffffff, dev->mmio + LAS0_PCLK);
 
-		break;
+			break;
 
-	case TRIG_EXT:
-		/* pacer start source: EXTERNAL */
-		writel(1, dev->mmio + LAS0_PACER_START);
-		break;
+		case TRIG_EXT:
+			/* pacer start source: EXTERNAL */
+			writel(1, dev->mmio + LAS0_PACER_START);
+			break;
 	}
 
 	/* Sample timing within a scan */
-	switch (cmd->convert_src) {
-	case TRIG_TIMER:	/* periodic */
-		if (cmd->chanlist_len > 1) {
-			/* only needed for multi-channel */
-			timer = rtd_ns_to_timer(&cmd->convert_arg,
-						CMDF_ROUND_NEAREST);
-			/* setup BURST clock */
-			writel(timer & 0x3ff, dev->mmio + LAS0_BCLK);
-		}
+	switch (cmd->convert_src)
+	{
+		case TRIG_TIMER:	/* periodic */
+			if (cmd->chanlist_len > 1)
+			{
+				/* only needed for multi-channel */
+				timer = rtd_ns_to_timer(&cmd->convert_arg,
+										CMDF_ROUND_NEAREST);
+				/* setup BURST clock */
+				writel(timer & 0x3ff, dev->mmio + LAS0_BCLK);
+			}
 
-		break;
+			break;
 
-	case TRIG_EXT:		/* external */
-		/* burst trigger source: EXTERNAL */
-		writel(2, dev->mmio + LAS0_BURST_START);
-		break;
+		case TRIG_EXT:		/* external */
+			/* burst trigger source: EXTERNAL */
+			writel(2, dev->mmio + LAS0_BURST_START);
+			break;
 	}
+
 	/* end configuration */
 
 	/*
@@ -1001,24 +1147,28 @@ static int rtd_ai_cancel(struct comedi_device *dev, struct comedi_subdevice *s)
 }
 
 static int rtd_ao_eoc(struct comedi_device *dev,
-		      struct comedi_subdevice *s,
-		      struct comedi_insn *insn,
-		      unsigned long context)
+					  struct comedi_subdevice *s,
+					  struct comedi_insn *insn,
+					  unsigned long context)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int bit = (chan == 0) ? FS_DAC1_NOT_EMPTY : FS_DAC2_NOT_EMPTY;
 	unsigned int status;
 
 	status = readl(dev->mmio + LAS0_ADC);
+
 	if (status & bit)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int rtd_ao_insn_write(struct comedi_device *dev,
-			     struct comedi_subdevice *s,
-			     struct comedi_insn *insn,
-			     unsigned int *data)
+							 struct comedi_subdevice *s,
+							 struct comedi_insn *insn,
+							 unsigned int *data)
 {
 	struct rtd_private *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -1029,11 +1179,13 @@ static int rtd_ao_insn_write(struct comedi_device *dev,
 	/* Configure the output range (table index matches the range values) */
 	writew(range & 7, dev->mmio + LAS0_DAC_CTRL(chan));
 
-	for (i = 0; i < insn->n; ++i) {
+	for (i = 0; i < insn->n; ++i)
+	{
 		unsigned int val = data[i];
 
 		/* bipolar uses 2's complement values with an extended sign */
-		if (comedi_range_is_bipolar(s, range)) {
+		if (comedi_range_is_bipolar(s, range))
+		{
 			val = comedi_offset_munge(s, val);
 			val |= (val & ((s->maxdata + 1) >> 1)) << 1;
 		}
@@ -1045,8 +1197,11 @@ static int rtd_ao_insn_write(struct comedi_device *dev,
 		writew(0, dev->mmio + LAS0_UPDATE_DAC(chan));
 
 		ret = comedi_timeout(dev, s, insn, rtd_ao_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		s->readback[chan] = data[i];
 	}
@@ -1055,12 +1210,14 @@ static int rtd_ao_insn_write(struct comedi_device *dev,
 }
 
 static int rtd_dio_insn_bits(struct comedi_device *dev,
-			     struct comedi_subdevice *s,
-			     struct comedi_insn *insn,
-			     unsigned int *data)
+							 struct comedi_subdevice *s,
+							 struct comedi_insn *insn,
+							 unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		writew(s->state & 0xff, dev->mmio + LAS0_DIO0);
+	}
 
 	data[1] = readw(dev->mmio + LAS0_DIO0) & 0xff;
 
@@ -1068,15 +1225,18 @@ static int rtd_dio_insn_bits(struct comedi_device *dev,
 }
 
 static int rtd_dio_insn_config(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	int ret;
 
 	ret = comedi_dio_insn_config(dev, s, insn, data, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* TODO support digital match interrupts and strobes */
 
@@ -1095,75 +1255,91 @@ static int rtd_dio_insn_config(struct comedi_device *dev,
 }
 
 static int rtd_counter_insn_config(struct comedi_device *dev,
-				   struct comedi_subdevice *s,
-				   struct comedi_insn *insn,
-				   unsigned int *data)
+								   struct comedi_subdevice *s,
+								   struct comedi_insn *insn,
+								   unsigned int *data)
 {
 	struct rtd_private *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int max_src;
 	unsigned int src;
 
-	switch (data[0]) {
-	case INSN_CONFIG_SET_GATE_SRC:
-		/*
-		 * 8254 Timer/Counter gate sources:
-		 *
-		 * 0 = Not gated, free running (reset state)
-		 * 1 = Gated, off
-		 * 2 = Ext. TC Gate 1
-		 * 3 = Ext. TC Gate 2
-		 * 4 = Previous TC out (chan 1 and 2 only)
-		 */
-		src = data[2];
-		max_src = (chan == 0) ? 3 : 4;
-		if (src > max_src)
-			return -EINVAL;
+	switch (data[0])
+	{
+		case INSN_CONFIG_SET_GATE_SRC:
+			/*
+			 * 8254 Timer/Counter gate sources:
+			 *
+			 * 0 = Not gated, free running (reset state)
+			 * 1 = Gated, off
+			 * 2 = Ext. TC Gate 1
+			 * 3 = Ext. TC Gate 2
+			 * 4 = Previous TC out (chan 1 and 2 only)
+			 */
+			src = data[2];
+			max_src = (chan == 0) ? 3 : 4;
 
-		devpriv->timer_gate_src[chan] = src;
-		writeb(src, dev->mmio + LAS0_8254_GATE_SEL(chan));
-		break;
-	case INSN_CONFIG_GET_GATE_SRC:
-		data[2] = devpriv->timer_gate_src[chan];
-		break;
-	case INSN_CONFIG_SET_CLOCK_SRC:
-		/*
-		 * 8254 Timer/Counter clock sources:
-		 *
-		 * 0 = 8 MHz (reset state)
-		 * 1 = Ext. TC Clock 1
-		 * 2 = Ext. TX Clock 2
-		 * 3 = Ext. Pacer Clock
-		 * 4 = Previous TC out (chan 1 and 2 only)
-		 * 5 = High-Speed Digital Input Sampling signal (chan 1 only)
-		 */
-		src = data[1];
-		switch (chan) {
-		case 0:
-			max_src = 3;
+			if (src > max_src)
+			{
+				return -EINVAL;
+			}
+
+			devpriv->timer_gate_src[chan] = src;
+			writeb(src, dev->mmio + LAS0_8254_GATE_SEL(chan));
 			break;
-		case 1:
-			max_src = 5;
+
+		case INSN_CONFIG_GET_GATE_SRC:
+			data[2] = devpriv->timer_gate_src[chan];
 			break;
-		case 2:
-			max_src = 4;
+
+		case INSN_CONFIG_SET_CLOCK_SRC:
+			/*
+			 * 8254 Timer/Counter clock sources:
+			 *
+			 * 0 = 8 MHz (reset state)
+			 * 1 = Ext. TC Clock 1
+			 * 2 = Ext. TX Clock 2
+			 * 3 = Ext. Pacer Clock
+			 * 4 = Previous TC out (chan 1 and 2 only)
+			 * 5 = High-Speed Digital Input Sampling signal (chan 1 only)
+			 */
+			src = data[1];
+
+			switch (chan)
+			{
+				case 0:
+					max_src = 3;
+					break;
+
+				case 1:
+					max_src = 5;
+					break;
+
+				case 2:
+					max_src = 4;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
+			if (src > max_src)
+			{
+				return -EINVAL;
+			}
+
+			devpriv->timer_clk_src[chan] = src;
+			writeb(src, dev->mmio + LAS0_8254_CLK_SEL(chan));
 			break;
+
+		case INSN_CONFIG_GET_CLOCK_SRC:
+			src = devpriv->timer_clk_src[chan];
+			data[1] = devpriv->timer_clk_src[chan];
+			data[2] = (src == 0) ? RTD_CLOCK_BASE : 0;
+			break;
+
 		default:
 			return -EINVAL;
-		}
-		if (src > max_src)
-			return -EINVAL;
-
-		devpriv->timer_clk_src[chan] = src;
-		writeb(src, dev->mmio + LAS0_8254_CLK_SEL(chan));
-		break;
-	case INSN_CONFIG_GET_CLOCK_SRC:
-		src = devpriv->timer_clk_src[chan];
-		data[1] = devpriv->timer_clk_src[chan];
-		data[2] = (src == 0) ? RTD_CLOCK_BASE : 0;
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return insn->n;
@@ -1201,21 +1377,23 @@ static void rtd_init_board(struct comedi_device *dev)
 
 /* The RTD driver does this */
 static void rtd_pci_latency_quirk(struct comedi_device *dev,
-				  struct pci_dev *pcidev)
+								  struct pci_dev *pcidev)
 {
 	unsigned char pci_latency;
 
 	pci_read_config_byte(pcidev, PCI_LATENCY_TIMER, &pci_latency);
-	if (pci_latency < 32) {
+
+	if (pci_latency < 32)
+	{
 		dev_info(dev->class_dev,
-			 "PCI latency changed from %d to %d\n",
-			 pci_latency, 32);
+				 "PCI latency changed from %d to %d\n",
+				 pci_latency, 32);
 		pci_write_config_byte(pcidev, PCI_LATENCY_TIMER, 32);
 	}
 }
 
 static int rtd_auto_attach(struct comedi_device *dev,
-			   unsigned long context)
+						   unsigned long context)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	const struct rtd_boardinfo *board = NULL;
@@ -1224,38 +1402,60 @@ static int rtd_auto_attach(struct comedi_device *dev,
 	int ret;
 
 	if (context < ARRAY_SIZE(rtd520_boards))
+	{
 		board = &rtd520_boards[context];
+	}
+
 	if (!board)
+	{
 		return -ENODEV;
+	}
+
 	dev->board_ptr = board;
 	dev->board_name = board->name;
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev->mmio = pci_ioremap_bar(pcidev, 2);
 	devpriv->las1 = pci_ioremap_bar(pcidev, 3);
 	devpriv->lcfg = pci_ioremap_bar(pcidev, 0);
+
 	if (!dev->mmio || !devpriv->las1 || !devpriv->lcfg)
+	{
 		return -ENOMEM;
+	}
 
 	rtd_pci_latency_quirk(dev, pcidev);
 
-	if (pcidev->irq) {
+	if (pcidev->irq)
+	{
 		ret = request_irq(pcidev->irq, rtd_interrupt, IRQF_SHARED,
-				  dev->board_name, dev);
+						  dev->board_name, dev);
+
 		if (ret == 0)
+		{
 			dev->irq = pcidev->irq;
+		}
 	}
 
 	ret = comedi_alloc_subdevices(dev, 4);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[0];
 	/* analog input subdevice */
@@ -1266,7 +1466,9 @@ static int rtd_auto_attach(struct comedi_device *dev,
 	s->range_table	= board->ai_range;
 	s->len_chanlist	= RTD_MAX_CHANLIST;
 	s->insn_read	= rtd_ai_rinsn;
-	if (dev->irq) {
+
+	if (dev->irq)
+	{
 		dev->read_subdev = s;
 		s->subdev_flags	|= SDF_CMD_READ;
 		s->do_cmd	= rtd_ai_cmd;
@@ -1284,8 +1486,11 @@ static int rtd_auto_attach(struct comedi_device *dev,
 	s->insn_write	= rtd_ao_insn_write;
 
 	ret = comedi_alloc_subdev_readback(s);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[2];
 	/* digital i/o subdevice */
@@ -1301,9 +1506,12 @@ static int rtd_auto_attach(struct comedi_device *dev,
 	/* 8254 Timer/Counter subdevice */
 	s = &dev->subdevices[3];
 	dev->pacer = comedi_8254_mm_init(dev->mmio + LAS0_8254_TIMER_BASE,
-					 RTD_CLOCK_BASE, I8254_IO8, 2);
+									 RTD_CLOCK_BASE, I8254_IO8, 2);
+
 	if (!dev->pacer)
+	{
 		return -ENOMEM;
+	}
 
 	comedi_8254_subdevice_init(s, dev->pacer);
 	dev->pacer->insn_config = rtd_counter_insn_config;
@@ -1311,13 +1519,17 @@ static int rtd_auto_attach(struct comedi_device *dev,
 	rtd_init_board(dev);
 
 	ret = rtd520_probe_fifo_depth(dev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	devpriv->fifosz = ret;
 
 	if (dev->irq)
 		writel(PLX_INTCSR_PIEN | PLX_INTCSR_PLIEN,
-		       devpriv->lcfg + PLX_REG_INTCSR);
+			   devpriv->lcfg + PLX_REG_INTCSR);
 
 	return 0;
 }
@@ -1326,23 +1538,40 @@ static void rtd_detach(struct comedi_device *dev)
 {
 	struct rtd_private *devpriv = dev->private;
 
-	if (devpriv) {
+	if (devpriv)
+	{
 		/* Shut down any board ops by resetting it */
 		if (dev->mmio && devpriv->lcfg)
+		{
 			rtd_reset(dev);
+		}
+
 		if (dev->irq)
+		{
 			free_irq(dev->irq, dev);
+		}
+
 		if (dev->mmio)
+		{
 			iounmap(dev->mmio);
+		}
+
 		if (devpriv->las1)
+		{
 			iounmap(devpriv->las1);
+		}
+
 		if (devpriv->lcfg)
+		{
 			iounmap(devpriv->lcfg);
+		}
 	}
+
 	comedi_pci_disable(dev);
 }
 
-static struct comedi_driver rtd520_driver = {
+static struct comedi_driver rtd520_driver =
+{
 	.driver_name	= "rtd520",
 	.module		= THIS_MODULE,
 	.auto_attach	= rtd_auto_attach,
@@ -1350,19 +1579,21 @@ static struct comedi_driver rtd520_driver = {
 };
 
 static int rtd520_pci_probe(struct pci_dev *dev,
-			    const struct pci_device_id *id)
+							const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &rtd520_driver, id->driver_data);
 }
 
-static const struct pci_device_id rtd520_pci_table[] = {
+static const struct pci_device_id rtd520_pci_table[] =
+{
 	{ PCI_VDEVICE(RTD, 0x7520), BOARD_DM7520 },
 	{ PCI_VDEVICE(RTD, 0x4520), BOARD_PCI4520 },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, rtd520_pci_table);
 
-static struct pci_driver rtd520_pci_driver = {
+static struct pci_driver rtd520_pci_driver =
+{
 	.name		= "rtd520",
 	.id_table	= rtd520_pci_table,
 	.probe		= rtd520_pci_probe,

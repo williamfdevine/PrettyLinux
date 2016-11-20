@@ -57,7 +57,8 @@
 #define		EFUSE_MAX_WORD_UNIT			4
 
 /*------------------------------Define structure----------------------------*/
-struct pgpkt {
+struct pgpkt
+{
 	u8 offset;
 	u8 word_en;
 	u8 data[8];
@@ -65,7 +66,8 @@ struct pgpkt {
 };
 
 /*------------------------------Define structure----------------------------*/
-struct efuse_hal {
+struct efuse_hal
+{
 	u8 fakeEfuseBank;
 	u32	fakeEfuseUsedBytes;
 	u8 fakeEfuseContent[EFUSE_MAX_HW_SIZE];
@@ -89,13 +91,13 @@ u8 efuse_OneByteRead(struct adapter *adapter, u16 addr, u8 *data);
 u8 efuse_OneByteWrite(struct adapter *adapter, u16 addr, u8 data);
 
 void efuse_ReadEFuse(struct adapter *Adapter, u8 efuseType, u16 _offset,
-		u16 _size_byte, u8 *pbuf);
+					 u16 _size_byte, u8 *pbuf);
 void Efuse_PowerSwitch(struct adapter *adapt, u8 bWrite, u8  PwrState);
 int Efuse_PgPacketRead(struct adapter *adapt, u8 offset, u8 *data);
 bool Efuse_PgPacketWrite(struct adapter *adapter, u8 offset, u8 word, u8 *data);
 void efuse_WordEnableDataRead(u8 word_en, u8 *sourdata, u8 *targetdata);
 u8 Efuse_WordEnableDataWrite(struct adapter *adapter, u16 efuse_addr,
-			     u8 word_en, u8 *data);
+							 u8 word_en, u8 *data);
 
 void EFUSE_ShadowMapUpdate(struct adapter *adapter, u8 efusetype);
 #endif

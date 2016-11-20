@@ -25,7 +25,7 @@
  */
 
 #ifdef pr_fmt
-#undef pr_fmt
+	#undef pr_fmt
 #endif
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -34,17 +34,18 @@
 #include <linux/list.h>
 #include <linux/spinlock.h>
 
-struct configfs_dirent {
+struct configfs_dirent
+{
 	atomic_t		s_count;
 	int			s_dependent_count;
 	struct list_head	s_sibling;
 	struct list_head	s_children;
 	struct list_head	s_links;
-	void			* s_element;
+	void			 *s_element;
 	int			s_type;
 	umode_t			s_mode;
-	struct dentry		* s_dentry;
-	struct iattr		* s_iattr;
+	struct dentry		 *s_dentry;
+	struct iattr		 *s_iattr;
 #ifdef CONFIG_LOCKDEP
 	int			s_depth;
 #endif
@@ -69,19 +70,19 @@ extern struct kmem_cache *configfs_dir_cachep;
 
 extern int configfs_is_root(struct config_item *item);
 
-extern struct inode * configfs_new_inode(umode_t mode, struct configfs_dirent *, struct super_block *);
+extern struct inode *configfs_new_inode(umode_t mode, struct configfs_dirent *, struct super_block *);
 extern int configfs_create(struct dentry *, umode_t mode, void (*init)(struct inode *));
 
 extern int configfs_create_file(struct config_item *, const struct configfs_attribute *);
 extern int configfs_create_bin_file(struct config_item *,
-				    const struct configfs_bin_attribute *);
+									const struct configfs_bin_attribute *);
 extern int configfs_make_dirent(struct configfs_dirent *,
-				struct dentry *, void *, umode_t, int);
+								struct dentry *, void *, umode_t, int);
 extern int configfs_dirent_is_ready(struct configfs_dirent *);
 
-extern void configfs_hash_and_remove(struct dentry * dir, const char * name);
+extern void configfs_hash_and_remove(struct dentry *dir, const char *name);
 
-extern const unsigned char * configfs_get_name(struct configfs_dirent *sd);
+extern const unsigned char *configfs_get_name(struct configfs_dirent *sd);
 extern void configfs_drop_dentry(struct configfs_dirent *sd, struct dentry *parent);
 extern int configfs_setattr(struct dentry *dentry, struct iattr *iattr);
 
@@ -98,27 +99,28 @@ extern const struct inode_operations configfs_symlink_inode_operations;
 extern const struct dentry_operations configfs_dentry_ops;
 
 extern int configfs_symlink(struct inode *dir, struct dentry *dentry,
-			    const char *symname);
+							const char *symname);
 extern int configfs_unlink(struct inode *dir, struct dentry *dentry);
 
-struct configfs_symlink {
+struct configfs_symlink
+{
 	struct list_head sl_list;
 	struct config_item *sl_target;
 };
 
 extern int configfs_create_link(struct configfs_symlink *sl,
-				struct dentry *parent,
-				struct dentry *dentry);
+								struct dentry *parent,
+								struct dentry *dentry);
 
-static inline struct config_item * to_item(struct dentry * dentry)
+static inline struct config_item *to_item(struct dentry *dentry)
 {
-	struct configfs_dirent * sd = dentry->d_fsdata;
+	struct configfs_dirent *sd = dentry->d_fsdata;
 	return ((struct config_item *) sd->s_element);
 }
 
-static inline struct configfs_attribute * to_attr(struct dentry * dentry)
+static inline struct configfs_attribute *to_attr(struct dentry *dentry)
 {
-	struct configfs_dirent * sd = dentry->d_fsdata;
+	struct configfs_dirent *sd = dentry->d_fsdata;
 	return ((struct configfs_attribute *) sd->s_element);
 }
 
@@ -131,43 +133,57 @@ static inline struct configfs_bin_attribute *to_bin_attr(struct dentry *dentry)
 
 static inline struct config_item *configfs_get_config_item(struct dentry *dentry)
 {
-	struct config_item * item = NULL;
+	struct config_item *item = NULL;
 
 	spin_lock(&dentry->d_lock);
-	if (!d_unhashed(dentry)) {
-		struct configfs_dirent * sd = dentry->d_fsdata;
-		if (sd->s_type & CONFIGFS_ITEM_LINK) {
-			struct configfs_symlink * sl = sd->s_element;
+
+	if (!d_unhashed(dentry))
+	{
+		struct configfs_dirent *sd = dentry->d_fsdata;
+
+		if (sd->s_type & CONFIGFS_ITEM_LINK)
+		{
+			struct configfs_symlink *sl = sd->s_element;
 			item = config_item_get(sl->sl_target);
-		} else
+		}
+		else
+		{
 			item = config_item_get(sd->s_element);
+		}
 	}
+
 	spin_unlock(&dentry->d_lock);
 
 	return item;
 }
 
-static inline void release_configfs_dirent(struct configfs_dirent * sd)
+static inline void release_configfs_dirent(struct configfs_dirent *sd)
 {
-	if (!(sd->s_type & CONFIGFS_ROOT)) {
+	if (!(sd->s_type & CONFIGFS_ROOT))
+	{
 		kfree(sd->s_iattr);
 		kmem_cache_free(configfs_dir_cachep, sd);
 	}
 }
 
-static inline struct configfs_dirent * configfs_get(struct configfs_dirent * sd)
+static inline struct configfs_dirent *configfs_get(struct configfs_dirent *sd)
 {
-	if (sd) {
+	if (sd)
+	{
 		WARN_ON(!atomic_read(&sd->s_count));
 		atomic_inc(&sd->s_count);
 	}
+
 	return sd;
 }
 
-static inline void configfs_put(struct configfs_dirent * sd)
+static inline void configfs_put(struct configfs_dirent *sd)
 {
 	WARN_ON(!atomic_read(&sd->s_count));
+
 	if (atomic_dec_and_test(&sd->s_count))
+	{
 		release_configfs_dirent(sd);
+	}
 }
 

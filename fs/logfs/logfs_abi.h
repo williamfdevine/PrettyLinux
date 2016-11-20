@@ -12,14 +12,14 @@
 
 /* For out-of-kernel compiles */
 #ifndef BUILD_BUG_ON
-#define BUILD_BUG_ON(condition) /**/
+	#define BUILD_BUG_ON(condition) /**/
 #endif
 
 #define SIZE_CHECK(type, size)					\
-static inline void check_##type(void)				\
-{								\
-	BUILD_BUG_ON(sizeof(struct type) != (size));		\
-}
+	static inline void check_##type(void)				\
+	{								\
+		BUILD_BUG_ON(sizeof(struct type) != (size));		\
+	}
 
 /*
  * Throughout the logfs code, we're constantly dealing with blocks at
@@ -164,7 +164,8 @@ static inline void check_##type(void)				\
  * SEG_JOURNAL	- Inode
  * SEG_OSTORE	- Dentry
  */
-enum {
+enum
+{
 	SEG_SUPER	= 0x01,
 	SEG_JOURNAL	= 0x02,
 	SEG_OSTORE	= 0x03,
@@ -181,7 +182,8 @@ enum {
  * @ec:				erase count for this segment
  * @gec:			global erase count at time of writing
  */
-struct logfs_segment_header {
+struct logfs_segment_header
+{
 	__be32	crc;
 	__be16	pad;
 	__u8	type;
@@ -224,7 +226,8 @@ SIZE_CHECK(logfs_segment_header, LOGFS_SEGMENT_HEADERSIZE);
  * Contains only read-only fields.  Read-write fields like the amount of used
  * space is tracked in the dynamic superblock, which is stored in the journal.
  */
-struct logfs_disk_super {
+struct logfs_disk_super
+{
 	struct logfs_segment_header ds_sh;
 	__be64	ds_magic;
 
@@ -264,7 +267,8 @@ SIZE_CHECK(logfs_disk_super, 256);
  * OBJ_INODE	- Inode
  * OBJ_DENTRY	- Dentry
  */
-enum {
+enum
+{
 	OBJ_BLOCK	= 0x04,
 	OBJ_INODE	= 0x05,
 	OBJ_DENTRY	= 0x06,
@@ -281,7 +285,8 @@ enum {
  * @bix:			block index
  * @data_crc:			crc32 of payload
  */
-struct logfs_object_header {
+struct logfs_object_header
+{
 	__be32	crc;
 	__be16	len;
 	__u8	type;
@@ -299,7 +304,8 @@ SIZE_CHECK(logfs_object_header, LOGFS_OBJECT_HEADERSIZE);
  * LOGFS_INO_ROOT	- root directory
  * LOGFS_INO_SEGFILE	- per-segment used bytes and erase count
  */
-enum {
+enum
+{
 	LOGFS_INO_MAPPING	= 0x00,
 	LOGFS_INO_MASTER	= 0x01,
 	LOGFS_INO_ROOT		= 0x02,
@@ -344,7 +350,8 @@ enum {
  * @di_size:			file size
  * @di_data:			data pointers
  */
-struct logfs_disk_inode {
+struct logfs_disk_inode
+{
 	__be16	di_mode;
 	__u8	di_height;
 	__u8	di_pad;
@@ -384,7 +391,8 @@ SIZE_CHECK(logfs_disk_inode, 200);
  * @name:			file name
  */
 /* FIXME: add 6 bytes of padding to remove the __packed */
-struct logfs_disk_dentry {
+struct logfs_disk_dentry
+{
 	__be64	ino;
 	__be16	namelen;
 	__u8	type;
@@ -407,7 +415,8 @@ SIZE_CHECK(logfs_disk_dentry, 266);
  * of valid bytes or RESERVED (-1 again) if the segment is used for either the
  * superblock or the journal, or when the segment is bad.
  */
-struct logfs_segment_entry {
+struct logfs_segment_entry
+{
 	__be32	ec_level;
 	__be32	valid;
 };
@@ -425,7 +434,8 @@ SIZE_CHECK(logfs_segment_entry, 8);
  * @h_compr:			compression type
  * @h_pad:			reserved
  */
-struct logfs_journal_header {
+struct logfs_journal_header
+{
 	__be32	h_crc;
 	__be16	h_len;
 	__be16	h_datalen;
@@ -442,7 +452,8 @@ SIZE_CHECK(logfs_journal_header, 16);
  * VIM_SEGFILE		- for segment file only - very short-living
  * VIM_GC		- GC'd data - likely long-living
  */
-enum logfs_vim {
+enum logfs_vim
+{
 	VIM_DEFAULT	= 0,
 	VIM_SEGFILE	= 1,
 };
@@ -461,7 +472,8 @@ enum logfs_vim {
  * simply be closed.
  * The write buffer immediately follow this header.
  */
-struct logfs_je_area {
+struct logfs_je_area
+{
 	__be32	segno;
 	__be32	used_bytes;
 	__u8	gc_level;
@@ -484,7 +496,8 @@ SIZE_CHECK(logfs_je_area, 10);
  * @ds_victim_ino:		parent inode of victim (see dir.c)
  * @ds_used_bytes:		number of used bytes
  */
-struct logfs_je_dynsb {
+struct logfs_je_dynsb
+{
 	__be64	ds_gec;
 	__be64	ds_sweeper;
 
@@ -509,7 +522,8 @@ SIZE_CHECK(logfs_je_dynsb, 64);
  * @da_used_bytes:		number of bytes used
  * @da_data:			data pointers
  */
-struct logfs_je_anchor {
+struct logfs_je_anchor
+{
 	__be64	da_size;
 	__be64	da_last_ino;
 
@@ -529,7 +543,8 @@ SIZE_CHECK(logfs_je_anchor, 168);
  *
  * Length of the array is given by h_len field in the header.
  */
-struct logfs_je_spillout {
+struct logfs_je_spillout
+{
 	__be64	so_segment[0];
 };
 
@@ -542,7 +557,8 @@ SIZE_CHECK(logfs_je_spillout, 0);
  *
  * Length of the array is given by h_len field in the header.
  */
-struct logfs_je_journal_ec {
+struct logfs_je_journal_ec
+{
 	__be32	ec[0];
 };
 
@@ -551,7 +567,8 @@ SIZE_CHECK(logfs_je_journal_ec, 0);
 /**
  * struct logfs_je_free_segments - list of free segmetns with erase count
  */
-struct logfs_je_free_segments {
+struct logfs_je_free_segments
+{
 	__be32	segno;
 	__be32	ec;
 };
@@ -561,7 +578,8 @@ SIZE_CHECK(logfs_je_free_segments, 8);
 /**
  * struct logfs_seg_alias - list of segment aliases
  */
-struct logfs_seg_alias {
+struct logfs_seg_alias
+{
 	__be32	old_segno;
 	__be32	new_segno;
 };
@@ -571,7 +589,8 @@ SIZE_CHECK(logfs_seg_alias, 8);
 /**
  * struct logfs_obj_alias - list of object aliases
  */
-struct logfs_obj_alias {
+struct logfs_obj_alias
+{
 	__be64	ino;
 	__be64	bix;
 	__be64	val;
@@ -588,7 +607,8 @@ SIZE_CHECK(logfs_obj_alias, 32);
  * COMPR_NONE	- uncompressed
  * COMPR_ZLIB	- compressed with zlib
  */
-enum {
+enum
+{
 	COMPR_NONE	= 0,
 	COMPR_ZLIB	= 1,
 };
@@ -611,7 +631,8 @@ enum {
  *
  * JE_LAST	- largest possible journal entry number
  */
-enum {
+enum
+{
 	JE_FIRST	= 0x01,
 
 	JEG_BASE	= 0x00,

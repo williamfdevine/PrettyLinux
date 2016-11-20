@@ -41,10 +41,11 @@
  * sysfs hook function
  */
 static ssize_t madc_read(struct device *dev,
-			 struct device_attribute *devattr, char *buf)
+						 struct device_attribute *devattr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-	struct twl4030_madc_request req = {
+	struct twl4030_madc_request req =
+	{
 		.channels = 1 << attr->index,
 		.method = TWL4030_MADC_SW2,
 		.type = TWL4030_MADC_WAIT,
@@ -52,8 +53,11 @@ static ssize_t madc_read(struct device *dev,
 	long val;
 
 	val = twl4030_madc_conversion(&req);
+
 	if (val < 0)
+	{
 		return val;
+	}
 
 	return sprintf(buf, "%d\n", req.rbuf[attr->index]);
 }
@@ -74,7 +78,8 @@ static SENSOR_DEVICE_ATTR(in11_input, S_IRUGO, madc_read, NULL, 11);
 static SENSOR_DEVICE_ATTR(in12_input, S_IRUGO, madc_read, NULL, 12);
 static SENSOR_DEVICE_ATTR(in15_input, S_IRUGO, madc_read, NULL, 15);
 
-static struct attribute *twl4030_madc_attrs[] = {
+static struct attribute *twl4030_madc_attrs[] =
+{
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	&sensor_dev_attr_in2_input.dev_attr.attr,
@@ -98,16 +103,17 @@ static int twl4030_madc_hwmon_probe(struct platform_device *pdev)
 	struct device *hwmon;
 
 	hwmon = devm_hwmon_device_register_with_groups(&pdev->dev,
-						       "twl4030_madc", NULL,
-						       twl4030_madc_groups);
+			"twl4030_madc", NULL,
+			twl4030_madc_groups);
 	return PTR_ERR_OR_ZERO(hwmon);
 }
 
-static struct platform_driver twl4030_madc_hwmon_driver = {
+static struct platform_driver twl4030_madc_hwmon_driver =
+{
 	.probe = twl4030_madc_hwmon_probe,
 	.driver = {
-		   .name = "twl4030_madc_hwmon",
-		   },
+		.name = "twl4030_madc_hwmon",
+	},
 };
 
 module_platform_driver(twl4030_madc_hwmon_driver);

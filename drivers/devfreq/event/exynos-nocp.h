@@ -12,7 +12,8 @@
 #ifndef __EXYNOS_NOCP_H__
 #define __EXYNOS_NOCP_H__
 
-enum nocp_reg {
+enum nocp_reg
+{
 	NOCP_ID_REVISION_ID		= 0x04,
 	NOCP_MAIN_CTL			= 0x08,
 	NOCP_CFG_CTL			= 0x0C,

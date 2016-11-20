@@ -24,7 +24,8 @@
 #include "priv.h"
 
 static const struct nvkm_mc_map
-g98_mc_reset[] = {
+	g98_mc_reset[] =
+{
 	{ 0x04008000, NVKM_ENGINE_MSVLD },
 	{ 0x02004000, NVKM_ENGINE_SEC },
 	{ 0x01020000, NVKM_ENGINE_MSPDEC },
@@ -35,7 +36,8 @@ g98_mc_reset[] = {
 };
 
 static const struct nvkm_mc_map
-g98_mc_intr[] = {
+	g98_mc_intr[] =
+{
 	{ 0x04000000, NVKM_ENGINE_DISP },
 	{ 0x00020000, NVKM_ENGINE_MSPDEC },
 	{ 0x00008000, NVKM_ENGINE_MSVLD },
@@ -52,7 +54,8 @@ g98_mc_intr[] = {
 };
 
 static const struct nvkm_mc_func
-g98_mc = {
+	g98_mc =
+{
 	.init = nv50_mc_init,
 	.intr = g98_mc_intr,
 	.intr_unarm = nv04_mc_intr_unarm,

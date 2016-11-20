@@ -54,7 +54,8 @@
 #define FMAN_SP_IC_FROM_INT_SHIFT			8
 
 /* structure for defining internal context copying */
-struct fman_sp_int_context_data_copy {
+struct fman_sp_int_context_data_copy
+{
 	/* < Offset in External buffer to which internal
 	 *  context is copied to (Rx) or taken from (Tx, Op).
 	 */
@@ -68,7 +69,8 @@ struct fman_sp_int_context_data_copy {
 };
 
 /*  struct for defining external buffer margins */
-struct fman_sp_buf_margins {
+struct fman_sp_buf_margins
+{
 	/* Number of bytes to be left at the beginning
 	 * of the external buffer (must be divisible by 16)
 	 */
@@ -79,7 +81,8 @@ struct fman_sp_buf_margins {
 	u16 end_margins;
 };
 
-struct fman_sp_buffer_offsets {
+struct fman_sp_buffer_offsets
+{
 	u32 data_offset;
 	u32 prs_result_offset;
 	u32 time_stamp_offset;
@@ -87,17 +90,17 @@ struct fman_sp_buffer_offsets {
 };
 
 int fman_sp_build_buffer_struct(struct fman_sp_int_context_data_copy
-				*int_context_data_copy,
-				struct fman_buffer_prefix_content
-				*buffer_prefix_content,
-				struct fman_sp_buf_margins *buf_margins,
-				struct fman_sp_buffer_offsets
-				*buffer_offsets,
-				u8 *internal_buf_offset);
+								*int_context_data_copy,
+								struct fman_buffer_prefix_content
+								*buffer_prefix_content,
+								struct fman_sp_buf_margins *buf_margins,
+								struct fman_sp_buffer_offsets
+								*buffer_offsets,
+								u8 *internal_buf_offset);
 
 void fman_sp_set_buf_pools_in_asc_order_of_buf_sizes(struct fman_ext_pools
-						     *fm_ext_pools,
-						     u8 *ordered_array,
-						     u16 *sizes_array);
+		*fm_ext_pools,
+		u8 *ordered_array,
+		u16 *sizes_array);
 
 #endif	/* __FM_SP_H */

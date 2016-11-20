@@ -94,27 +94,32 @@
 /* 0x8000 through 0xffff are OEM defined */
 
 #pragma pack(1)
-struct pnp_dev_node_info {
+struct pnp_dev_node_info
+{
 	__u16 no_nodes;
 	__u16 max_node_size;
 };
-struct pnp_docking_station_info {
+struct pnp_docking_station_info
+{
 	__u32 location_id;
 	__u32 serial;
 	__u16 capabilities;
 };
-struct pnp_isa_config_struc {
+struct pnp_isa_config_struc
+{
 	__u8 revision;
 	__u8 no_csns;
 	__u16 isa_rd_data_port;
 	__u16 reserved;
 };
-struct escd_info_struc {
+struct escd_info_struc
+{
 	__u16 min_escd_write_size;
 	__u16 escd_size;
 	__u32 nv_storage_base;
 };
-struct pnp_bios_node {
+struct pnp_bios_node
+{
 	__u16 size;
 	__u8 handle;
 	__u32 eisa_id;
@@ -129,9 +134,9 @@ extern struct pnp_dev_node_info node_info;
 
 extern int pnp_bios_dev_node_info(struct pnp_dev_node_info *data);
 extern int pnp_bios_get_dev_node(u8 *nodenum, char config,
-				 struct pnp_bios_node *data);
+								 struct pnp_bios_node *data);
 extern int pnp_bios_set_dev_node(u8 nodenum, char config,
-				 struct pnp_bios_node *data);
+								 struct pnp_bios_node *data);
 extern int pnp_bios_get_stat_res(char *info);
 extern int pnp_bios_isapnp_config(struct pnp_isa_config_struc *data);
 extern int pnp_bios_escd_info(struct escd_info_struc *data);
@@ -139,8 +144,10 @@ extern int pnp_bios_read_escd(char *data, u32 nvram_base);
 extern int pnp_bios_dock_station_info(struct pnp_docking_station_info *data);
 
 #pragma pack(1)
-union pnp_bios_install_struct {
-	struct {
+union pnp_bios_install_struct
+{
+	struct
+	{
 		u32 signature;    /* "$PnP" */
 		u8 version;	  /* in BCD */
 		u8 length;	  /* length in bytes, currently 21h */
@@ -163,20 +170,20 @@ union pnp_bios_install_struct {
 extern int pnp_bios_present(void);
 extern int  pnpbios_dont_use_current_config;
 
-extern int pnpbios_parse_data_stream(struct pnp_dev *dev, struct pnp_bios_node * node);
+extern int pnpbios_parse_data_stream(struct pnp_dev *dev, struct pnp_bios_node *node);
 extern int pnpbios_read_resources_from_node(struct pnp_dev *dev, struct pnp_bios_node *node);
 extern int pnpbios_write_resources_to_node(struct pnp_dev *dev, struct pnp_bios_node *node);
 extern void pnpid32_to_pnpid(u32 id, char *str);
 
-extern void pnpbios_print_status(const char * module, u16 status);
-extern void pnpbios_calls_init(union pnp_bios_install_struct * header);
+extern void pnpbios_print_status(const char *module, u16 status);
+extern void pnpbios_calls_init(union pnp_bios_install_struct *header);
 
 #ifdef CONFIG_PNPBIOS_PROC_FS
-extern int pnpbios_interface_attach_device(struct pnp_bios_node * node);
+extern int pnpbios_interface_attach_device(struct pnp_bios_node *node);
 extern int pnpbios_proc_init (void);
 extern void pnpbios_proc_exit (void);
 #else
-static inline int pnpbios_interface_attach_device(struct pnp_bios_node * node) { return 0; }
+static inline int pnpbios_interface_attach_device(struct pnp_bios_node *node) { return 0; }
 static inline int pnpbios_proc_init (void) { return 0; }
 static inline void pnpbios_proc_exit (void) { ; }
 #endif /* CONFIG_PNPBIOS_PROC_FS */

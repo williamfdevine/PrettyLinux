@@ -36,16 +36,17 @@
  */
 struct _OsFileHandle_;
 typedef long (*OsFileIo)(struct _OsFileHandle_ *handle,
-			 void *buffer,
-			 long size);
+						 void *buffer,
+						 long size);
 typedef long (*OsFileSeek)(struct _OsFileHandle_ *handle,
-			   long position,
-			   int mode);
+						   long position,
+						   int mode);
 typedef long (*OsCardLoad)(struct _OsFileHandle_    *handle,
-			   long length,
-			   void **addr);
+						   long length,
+						   void **addr);
 typedef struct _OsFileHandle_
-{ void       *sysFileDesc;
+{
+	void       *sysFileDesc;
 	unsigned long sysFileSize;
 	OsFileIo      sysFileRead;
 	OsFileSeek    sysFileSeek;
@@ -293,9 +294,9 @@ typedef struct tag_dsp_portable_download_desc /* be sure to keep native alignmen
 #define DSP_CONNECTED_OPTION_TRELLIS        0x0001
 /*---------------------------------------------------------------------------*/
 extern char *dsp_read_file(OsFileHandle *fp,
-			   word card_type_number,
-			   word *p_dsp_download_count,
-			   t_dsp_desc *p_dsp_download_table,
-			   t_dsp_portable_desc *p_dsp_portable_download_table);
+						   word card_type_number,
+						   word *p_dsp_download_count,
+						   t_dsp_desc *p_dsp_download_table,
+						   t_dsp_portable_desc *p_dsp_portable_download_table);
 /*---------------------------------------------------------------------------*/
 #endif /* DSP_DEFS_H_ */

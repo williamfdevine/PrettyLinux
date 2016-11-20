@@ -147,21 +147,23 @@
 /*
  * A structure to describe the state of the touchpad hardware (buttons and pad)
  */
-struct synaptics_hw_state {
+struct synaptics_hw_state
+{
 	int x;
 	int y;
 	int z;
 	int w;
-	unsigned int left:1;
-	unsigned int right:1;
-	unsigned int middle:1;
-	unsigned int up:1;
-	unsigned int down:1;
+	unsigned int left: 1;
+	unsigned int right: 1;
+	unsigned int middle: 1;
+	unsigned int up: 1;
+	unsigned int down: 1;
 	unsigned char ext_buttons;
 	signed char scroll;
 };
 
-struct synaptics_data {
+struct synaptics_data
+{
 	/* Data read from the touchpad */
 	unsigned long int model_id;		/* Model-ID */
 	unsigned long int firmware_id;		/* Firmware-ID */

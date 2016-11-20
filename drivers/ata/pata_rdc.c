@@ -35,7 +35,8 @@
 #define DRV_NAME	"pata_rdc"
 #define DRV_VERSION	"0.01"
 
-struct rdc_host_priv {
+struct rdc_host_priv
+{
 	u32 saved_iocfg;
 };
 
@@ -57,8 +58,12 @@ static int rdc_pata_cable_detect(struct ata_port *ap)
 
 	/* check BIOS cable detect results */
 	mask = 0x30 << (2 * ap->port_no);
+
 	if ((hpriv->saved_iocfg & mask) == 0)
+	{
 		return ATA_CBL_PATA40;
+	}
+
 	return ATA_CBL_PATA80;
 }
 
@@ -75,13 +80,17 @@ static int rdc_pata_prereset(struct ata_link *link, unsigned long deadline)
 	struct ata_port *ap = link->ap;
 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
 
-	static const struct pci_bits rdc_enable_bits[] = {
+	static const struct pci_bits rdc_enable_bits[] =
+	{
 		{ 0x41U, 1U, 0x80UL, 0x80UL },	/* port 0 */
 		{ 0x43U, 1U, 0x80UL, 0x80UL },	/* port 1 */
 	};
 
 	if (!pci_test_config_bits(pdev, &rdc_enable_bits[ap->port_no]))
+	{
 		return -ENOENT;
+	}
+
 	return ata_sff_prereset(link, deadline);
 }
 
@@ -104,7 +113,7 @@ static void rdc_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	struct pci_dev *dev	= to_pci_dev(ap->host->dev);
 	unsigned long flags;
 	unsigned int is_slave	= (adev->devno != 0);
-	unsigned int master_port= ap->port_no ? 0x42 : 0x40;
+	unsigned int master_port = ap->port_no ? 0x42 : 0x40;
 	unsigned int slave_port	= 0x44;
 	u16 master_data;
 	u8 slave_data;
@@ -113,18 +122,26 @@ static void rdc_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 	static const	 /* ISP  RTC */
 	u8 timings[][2]	= { { 0, 0 },
-			    { 0, 0 },
-			    { 1, 0 },
-			    { 2, 1 },
-			    { 2, 3 }, };
+		{ 0, 0 },
+		{ 1, 0 },
+		{ 2, 1 },
+		{ 2, 3 },
+	};
 
 	if (pio >= 2)
-		control |= 1;	/* TIME1 enable */
+	{
+		control |= 1;    /* TIME1 enable */
+	}
+
 	if (ata_pio_need_iordy(adev))
-		control |= 2;	/* IE enable */
+	{
+		control |= 2;    /* IE enable */
+	}
 
 	if (adev->class == ATA_DEV_ATA)
-		control |= 4;	/* PPE enable */
+	{
+		control |= 4;    /* PPE enable */
+	}
 
 	spin_lock_irqsave(&rdc_lock, flags);
 
@@ -133,7 +150,9 @@ static void rdc_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	 * after set_piomode if any DMA mode is available.
 	 */
 	pci_read_config_word(dev, master_port, &master_data);
-	if (is_slave) {
+
+	if (is_slave)
+	{
 		/* clear TIME1|IE1|PPE1|DTE1 */
 		master_data &= 0xff0f;
 		/* Enable SITRE (separate slave timing register) */
@@ -144,8 +163,10 @@ static void rdc_set_piomode(struct ata_port *ap, struct ata_device *adev)
 		slave_data &= (ap->port_no ? 0x0f : 0xf0);
 		/* Load the timing nibble for this slave */
 		slave_data |= ((timings[pio][0] << 2) | timings[pio][1])
-						<< (ap->port_no ? 4 : 0);
-	} else {
+					  << (ap->port_no ? 4 : 0);
+	}
+	else
+	{
 		/* clear ISP|RCT|TIME0|IE0|PPE0|DTE0 */
 		master_data &= 0xccf0;
 		/* Enable PPE, IE and TIME as appropriate */
@@ -155,9 +176,13 @@ static void rdc_set_piomode(struct ata_port *ap, struct ata_device *adev)
 			(timings[pio][0] << 12) |
 			(timings[pio][1] << 8);
 	}
+
 	pci_write_config_word(dev, master_port, master_data);
+
 	if (is_slave)
+	{
 		pci_write_config_byte(dev, slave_port, slave_data);
+	}
 
 	/* Ensure the UDMA bit is off - it will be turned back on if
 	   UDMA is selected */
@@ -192,17 +217,19 @@ static void rdc_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 
 	static const	 /* ISP  RTC */
 	u8 timings[][2]	= { { 0, 0 },
-			    { 0, 0 },
-			    { 1, 0 },
-			    { 2, 1 },
-			    { 2, 3 }, };
+		{ 0, 0 },
+		{ 1, 0 },
+		{ 2, 1 },
+		{ 2, 3 },
+	};
 
 	spin_lock_irqsave(&rdc_lock, flags);
 
 	pci_read_config_word(dev, master_port, &master_data);
 	pci_read_config_byte(dev, 0x48, &udma_enable);
 
-	if (speed >= XFER_UDMA_0) {
+	if (speed >= XFER_UDMA_0)
+	{
 		unsigned int udma = adev->dma_mode - XFER_UDMA_0;
 		u16 udma_timing;
 		u16 ideconf;
@@ -216,12 +243,19 @@ static void rdc_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 		 *	       except UDMA0 which is 00
 		 */
 		u_speed = min(2 - (udma & 1), udma);
+
 		if (udma == 5)
-			u_clock = 0x1000;	/* 100Mhz */
+		{
+			u_clock = 0x1000;    /* 100Mhz */
+		}
 		else if (udma > 2)
-			u_clock = 1;		/* 66Mhz */
+		{
+			u_clock = 1;    /* 66Mhz */
+		}
 		else
-			u_clock = 0;		/* 33Mhz */
+		{
+			u_clock = 0;    /* 33Mhz */
+		}
 
 		udma_enable |= (1 << devid);
 
@@ -236,7 +270,9 @@ static void rdc_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 		ideconf &= ~(0x1001 << devid);
 		ideconf |= u_clock << devid;
 		pci_write_config_word(dev, 0x54, ideconf);
-	} else {
+	}
+	else
+	{
 		/*
 		 * MWDMA is driven by the PIO timings. We must also enable
 		 * IORDY unconditionally along with TIME1. PPE has already
@@ -245,7 +281,8 @@ static void rdc_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 		unsigned int mwdma	= adev->dma_mode - XFER_MW_DMA_0;
 		unsigned int control;
 		u8 slave_data;
-		const unsigned int needed_pio[3] = {
+		const unsigned int needed_pio[3] =
+		{
 			XFER_PIO_0, XFER_PIO_3, XFER_PIO_4
 		};
 		int pio = needed_pio[mwdma] - XFER_PIO_0;
@@ -257,9 +294,12 @@ static void rdc_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 
 		if (adev->pio_mode < needed_pio[mwdma])
 			/* Enable DMA timing only */
-			control |= 8;	/* PIO cycles in PIO0 */
+		{
+			control |= 8;    /* PIO cycles in PIO0 */
+		}
 
-		if (adev->devno) {	/* Slave */
+		if (adev->devno)  	/* Slave */
+		{
 			master_data &= 0xFF4F;  /* Mask out IORDY|TIME1|DMAONLY */
 			master_data |= control << 4;
 			pci_read_config_byte(dev, 0x44, &slave_data);
@@ -267,7 +307,9 @@ static void rdc_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 			/* Load the matching timing */
 			slave_data |= ((timings[pio][0] << 2) | timings[pio][1]) << (ap->port_no ? 4 : 0);
 			pci_write_config_byte(dev, 0x44, slave_data);
-		} else { 	/* Master */
+		}
+		else   	/* Master */
+		{
 			master_data &= 0xCCF4;	/* Mask out IORDY|TIME1|DMAONLY
 						   and master timing bits */
 			master_data |= control;
@@ -279,12 +321,14 @@ static void rdc_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 		udma_enable &= ~(1 << devid);
 		pci_write_config_word(dev, master_port, master_data);
 	}
+
 	pci_write_config_byte(dev, 0x48, udma_enable);
 
 	spin_unlock_irqrestore(&rdc_lock, flags);
 }
 
-static struct ata_port_operations rdc_pata_ops = {
+static struct ata_port_operations rdc_pata_ops =
+{
 	.inherits		= &ata_bmdma32_port_ops,
 	.cable_detect		= rdc_pata_cable_detect,
 	.set_piomode		= rdc_set_piomode,
@@ -292,7 +336,8 @@ static struct ata_port_operations rdc_pata_ops = {
 	.prereset		= rdc_pata_prereset,
 };
 
-static struct ata_port_info rdc_port_info = {
+static struct ata_port_info rdc_port_info =
+{
 
 	.flags		= ATA_FLAG_SLAVE_POSS,
 	.pio_mask	= ATA_PIO4,
@@ -301,7 +346,8 @@ static struct ata_port_info rdc_port_info = {
 	.port_ops	= &rdc_pata_ops,
 };
 
-static struct scsi_host_template rdc_sht = {
+static struct scsi_host_template rdc_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
@@ -336,12 +382,18 @@ static int rdc_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* enable device and prepare host */
 	rc = pcim_enable_device(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	hpriv = devm_kzalloc(dev, sizeof(*hpriv), GFP_KERNEL);
+
 	if (!hpriv)
+	{
 		return -ENOMEM;
+	}
 
 	/* Save IOCFG, this will be used for cable detection, quirk
 	 * detection and restoration on detach.
@@ -349,8 +401,12 @@ static int rdc_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pci_read_config_dword(pdev, 0x54, &hpriv->saved_iocfg);
 
 	rc = ata_pci_bmdma_prepare_host(pdev, ppi, &host);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	host->private_data = hpriv;
 
 	pci_intx(pdev, 1);
@@ -371,13 +427,15 @@ static void rdc_remove_one(struct pci_dev *pdev)
 	ata_pci_remove_one(pdev);
 }
 
-static const struct pci_device_id rdc_pci_tbl[] = {
+static const struct pci_device_id rdc_pci_tbl[] =
+{
 	{ PCI_DEVICE(0x17F3, 0x1011), },
 	{ PCI_DEVICE(0x17F3, 0x1012), },
 	{ }	/* terminate list */
 };
 
-static struct pci_driver rdc_pci_driver = {
+static struct pci_driver rdc_pci_driver =
+{
 	.name			= DRV_NAME,
 	.id_table		= rdc_pci_tbl,
 	.probe			= rdc_init_one,

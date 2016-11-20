@@ -30,7 +30,8 @@
 #include "../iso-resources.h"
 #include "../amdtp-stream.h"
 
-struct snd_dg00x {
+struct snd_dg00x
+{
 	struct snd_card *card;
 	struct fw_unit *unit;
 
@@ -89,7 +90,8 @@ struct snd_dg00x {
 /* unknown				0x0138 */
 #define DG00X_OFFSET_MMC		0x0400
 
-enum snd_dg00x_rate {
+enum snd_dg00x_rate
+{
 	SND_DG00X_RATE_44100 = 0,
 	SND_DG00X_RATE_48000,
 	SND_DG00X_RATE_88200,
@@ -97,7 +99,8 @@ enum snd_dg00x_rate {
 	SND_DG00X_RATE_COUNT,
 };
 
-enum snd_dg00x_clock {
+enum snd_dg00x_clock
+{
 	SND_DG00X_CLOCK_INTERNAL = 0,
 	SND_DG00X_CLOCK_SPDIF,
 	SND_DG00X_CLOCK_ADAT,
@@ -105,7 +108,8 @@ enum snd_dg00x_clock {
 	SND_DG00X_CLOCK_COUNT,
 };
 
-enum snd_dg00x_optical_mode {
+enum snd_dg00x_optical_mode
+{
 	SND_DG00X_OPT_IFACE_MODE_ADAT = 0,
 	SND_DG00X_OPT_IFACE_MODE_SPDIF,
 	SND_DG00X_OPT_IFACE_MODE_COUNT,
@@ -115,15 +119,15 @@ enum snd_dg00x_optical_mode {
 #define DOT_MIDI_OUT_PORTS	2
 
 int amdtp_dot_init(struct amdtp_stream *s, struct fw_unit *unit,
-		   enum amdtp_stream_direction dir);
+				   enum amdtp_stream_direction dir);
 int amdtp_dot_set_parameters(struct amdtp_stream *s, unsigned int rate,
-			     unsigned int pcm_channels);
+							 unsigned int pcm_channels);
 void amdtp_dot_reset(struct amdtp_stream *s);
 int amdtp_dot_add_pcm_hw_constraints(struct amdtp_stream *s,
-				     struct snd_pcm_runtime *runtime);
+									 struct snd_pcm_runtime *runtime);
 void amdtp_dot_set_pcm_format(struct amdtp_stream *s, snd_pcm_format_t format);
 void amdtp_dot_midi_trigger(struct amdtp_stream *s, unsigned int port,
-			  struct snd_rawmidi_substream *midi);
+							struct snd_rawmidi_substream *midi);
 
 int snd_dg00x_transaction_register(struct snd_dg00x *dg00x);
 int snd_dg00x_transaction_reregister(struct snd_dg00x *dg00x);
@@ -132,14 +136,14 @@ void snd_dg00x_transaction_unregister(struct snd_dg00x *dg00x);
 extern const unsigned int snd_dg00x_stream_rates[SND_DG00X_RATE_COUNT];
 extern const unsigned int snd_dg00x_stream_pcm_channels[SND_DG00X_RATE_COUNT];
 int snd_dg00x_stream_get_external_rate(struct snd_dg00x *dg00x,
-				       unsigned int *rate);
+									   unsigned int *rate);
 int snd_dg00x_stream_get_local_rate(struct snd_dg00x *dg00x,
-				    unsigned int *rate);
+									unsigned int *rate);
 int snd_dg00x_stream_set_local_rate(struct snd_dg00x *dg00x, unsigned int rate);
 int snd_dg00x_stream_get_clock(struct snd_dg00x *dg00x,
-			       enum snd_dg00x_clock *clock);
+							   enum snd_dg00x_clock *clock);
 int snd_dg00x_stream_check_external_clock(struct snd_dg00x *dg00x,
-					  bool *detect);
+		bool *detect);
 int snd_dg00x_stream_init_duplex(struct snd_dg00x *dg00x);
 int snd_dg00x_stream_start_duplex(struct snd_dg00x *dg00x, unsigned int rate);
 void snd_dg00x_stream_stop_duplex(struct snd_dg00x *dg00x);

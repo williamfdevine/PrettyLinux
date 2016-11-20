@@ -18,7 +18,7 @@
 #include <linux/if_ether.h>
 
 #ifndef __KERNEL__
-#include <limits.h> /* for INT_MAX */
+	#include <limits.h> /* for INT_MAX */
 #endif
 
 /* All structures exposed to userland should be defined such that they
@@ -96,7 +96,8 @@
  *
  * Deprecated fields should be ignored by both users and drivers.
  */
-struct ethtool_cmd {
+struct ethtool_cmd
+{
 	__u32	cmd;
 	__u32	supported;
 	__u32	advertising;
@@ -117,7 +118,7 @@ struct ethtool_cmd {
 };
 
 static inline void ethtool_cmd_speed_set(struct ethtool_cmd *ep,
-					 __u32 speed)
+		__u32 speed)
 {
 	ep->speed = (__u16)(speed & 0xFFFF);
 	ep->speed_hi = (__u16)(speed >> 16);
@@ -177,7 +178,8 @@ static inline __u32 ethtool_cmd_speed(const struct ethtool_cmd *ep)
  * @bus_info in their get_drvinfo() implementation.  The ethtool
  * core fills in the other fields using other driver operations.
  */
-struct ethtool_drvinfo {
+struct ethtool_drvinfo
+{
 	__u32	cmd;
 	char	driver[32];
 	char	version[32];
@@ -203,7 +205,8 @@ struct ethtool_drvinfo {
  * @sopass: SecureOn(tm) password; meaningful only if %WAKE_MAGICSECURE
  *	is set in @wolopts.
  */
-struct ethtool_wolinfo {
+struct ethtool_wolinfo
+{
 	__u32	cmd;
 	__u32	supported;
 	__u32	wolopts;
@@ -211,12 +214,14 @@ struct ethtool_wolinfo {
 };
 
 /* for passing single values */
-struct ethtool_value {
+struct ethtool_value
+{
 	__u32	cmd;
 	__u32	data;
 };
 
-enum tunable_id {
+enum tunable_id
+{
 	ETHTOOL_ID_UNSPEC,
 	ETHTOOL_RX_COPYBREAK,
 	ETHTOOL_TX_COPYBREAK,
@@ -227,7 +232,8 @@ enum tunable_id {
 	__ETHTOOL_TUNABLE_COUNT,
 };
 
-enum tunable_type_id {
+enum tunable_type_id
+{
 	ETHTOOL_TUNABLE_UNSPEC,
 	ETHTOOL_TUNABLE_U8,
 	ETHTOOL_TUNABLE_U16,
@@ -240,7 +246,8 @@ enum tunable_type_id {
 	ETHTOOL_TUNABLE_S64,
 };
 
-struct ethtool_tunable {
+struct ethtool_tunable
+{
 	__u32	cmd;
 	__u32	id;
 	__u32	type_id;
@@ -263,7 +270,8 @@ struct ethtool_tunable {
  * a register dump for the interface.  They must allocate the buffer
  * immediately following this structure.
  */
-struct ethtool_regs {
+struct ethtool_regs
+{
 	__u32	cmd;
 	__u32	version;
 	__u32	len;
@@ -288,7 +296,8 @@ struct ethtool_regs {
  * the length of an on-board or module EEPROM, respectively.  They
  * must allocate the buffer immediately following this structure.
  */
-struct ethtool_eeprom {
+struct ethtool_eeprom
+{
 	__u32	cmd;
 	__u32	magic;
 	__u32	offset;
@@ -313,7 +322,8 @@ struct ethtool_eeprom {
  *	its tx lpi (after reaching 'idle' state). Effective only when eee
  *	was negotiated and tx_lpi_enabled was set.
  */
-struct ethtool_eee {
+struct ethtool_eee
+{
 	__u32	cmd;
 	__u32	supported;
 	__u32	advertised;
@@ -335,7 +345,8 @@ struct ethtool_eee {
  * properly size memory for a subsequent call to %ETHTOOL_GMODULEEEPROM.
  * The type code indicates the eeprom data format
  */
-struct ethtool_modinfo {
+struct ethtool_modinfo
+{
 	__u32   cmd;
 	__u32   type;
 	__u32   eeprom_len;
@@ -415,7 +426,8 @@ struct ethtool_modinfo {
  * @pkt_rate_low (both measured in packets per second) the
  * normal {rx,tx}_* coalescing parameters are used.
  */
-struct ethtool_coalesce {
+struct ethtool_coalesce
+{
 	__u32	cmd;
 	__u32	rx_coalesce_usecs;
 	__u32	rx_max_coalesced_frames;
@@ -466,7 +478,8 @@ struct ethtool_coalesce {
  * There may also be driver-dependent minimum values for the number
  * of entries per ring.
  */
-struct ethtool_ringparam {
+struct ethtool_ringparam
+{
 	__u32	cmd;
 	__u32	rx_max_pending;
 	__u32	rx_mini_max_pending;
@@ -494,7 +507,8 @@ struct ethtool_ringparam {
  * This can be used to configure RX, TX and other channels.
  */
 
-struct ethtool_channels {
+struct ethtool_channels
+{
 	__u32	cmd;
 	__u32	max_rx;
 	__u32	max_tx;
@@ -528,7 +542,8 @@ struct ethtool_channels {
  * Otherwise, it is configured directly based on the @rx_pause and
  * @tx_pause flags.
  */
-struct ethtool_pauseparam {
+struct ethtool_pauseparam
+{
 	__u32	cmd;
 	__u32	autoneg;
 	__u32	rx_pause;
@@ -549,7 +564,8 @@ struct ethtool_pauseparam {
  * @ETH_SS_RSS_HASH_FUNCS: RSS hush function names
  * @ETH_SS_PHY_STATS: Statistic names, for use with %ETHTOOL_GPHYSTATS
  */
-enum ethtool_stringset {
+enum ethtool_stringset
+{
 	ETH_SS_TEST		= 0,
 	ETH_SS_STATS,
 	ETH_SS_PRIV_FLAGS,
@@ -572,7 +588,8 @@ enum ethtool_stringset {
  * the string set.  They must allocate a buffer of the appropriate
  * size immediately following this structure.
  */
-struct ethtool_gstrings {
+struct ethtool_gstrings
+{
 	__u32	cmd;
 	__u32	string_set;
 	__u32	len;
@@ -596,7 +613,8 @@ struct ethtool_gstrings {
  * Users must allocate a buffer of the appropriate size (4 * number of
  * sets queried) immediately following this structure.
  */
-struct ethtool_sset_info {
+struct ethtool_sset_info
+{
 	__u32	cmd;
 	__u32	reserved;
 	__u64	sset_mask;
@@ -613,7 +631,8 @@ struct ethtool_sset_info {
  * @ETH_TEST_FL_EXTERNAL_LB_DONE: Driver performed the external loopback test
  */
 
-enum ethtool_test_flags {
+enum ethtool_test_flags
+{
 	ETH_TEST_FL_OFFLINE	= (1 << 0),
 	ETH_TEST_FL_FAILED	= (1 << 1),
 	ETH_TEST_FL_EXTERNAL_LB	= (1 << 2),
@@ -634,7 +653,8 @@ enum ethtool_test_flags {
  * buffer of the appropriate size (8 * number of results) immediately
  * following this structure.
  */
-struct ethtool_test {
+struct ethtool_test
+{
 	__u32	cmd;
 	__u32	flags;
 	__u32	reserved;
@@ -653,7 +673,8 @@ struct ethtool_test {
  * buffer of the appropriate size (8 * number of statistics)
  * immediately following this structure.
  */
-struct ethtool_stats {
+struct ethtool_stats
+{
 	__u32	cmd;
 	__u32	n_stats;
 	__u64	data[0];
@@ -670,7 +691,8 @@ struct ethtool_stats {
  * A buffer size of %MAX_ADDR_LEN should be sufficient for any address
  * type.
  */
-struct ethtool_perm_addr {
+struct ethtool_perm_addr
+{
 	__u32	cmd;
 	__u32	size;
 	__u8	data[0];
@@ -685,7 +707,8 @@ struct ethtool_perm_addr {
  * If such is the case, return EINVAL in the set-flags operation if the
  * flag differs from the read-only value.
  */
-enum ethtool_flags {
+enum ethtool_flags
+{
 	ETH_FLAG_TXVLAN		= (1 << 7),	/* TX VLAN offload enabled */
 	ETH_FLAG_RXVLAN		= (1 << 8),	/* RX VLAN offload enabled */
 	ETH_FLAG_LRO		= (1 << 15),	/* LRO is enabled */
@@ -709,7 +732,8 @@ enum ethtool_flags {
  *
  * This can be used to specify a TCP/IPv4, UDP/IPv4 or SCTP/IPv4 flow.
  */
-struct ethtool_tcpip4_spec {
+struct ethtool_tcpip4_spec
+{
 	__be32	ip4src;
 	__be32	ip4dst;
 	__be16	psrc;
@@ -726,7 +750,8 @@ struct ethtool_tcpip4_spec {
  *
  * This can be used to specify an IPsec transport or tunnel over IPv4.
  */
-struct ethtool_ah_espip4_spec {
+struct ethtool_ah_espip4_spec
+{
 	__be32	ip4src;
 	__be32	ip4dst;
 	__be32	spi;
@@ -744,7 +769,8 @@ struct ethtool_ah_espip4_spec {
  * @ip_ver: Value must be %ETH_RX_NFC_IP4; mask must be 0
  * @proto: Transport protocol number; mask must be 0
  */
-struct ethtool_usrip4_spec {
+struct ethtool_usrip4_spec
+{
 	__be32	ip4src;
 	__be32	ip4dst;
 	__be32	l4_4_bytes;
@@ -763,7 +789,8 @@ struct ethtool_usrip4_spec {
  *
  * This can be used to specify a TCP/IPv6, UDP/IPv6 or SCTP/IPv6 flow.
  */
-struct ethtool_tcpip6_spec {
+struct ethtool_tcpip6_spec
+{
 	__be32	ip6src[4];
 	__be32	ip6dst[4];
 	__be16	psrc;
@@ -780,7 +807,8 @@ struct ethtool_tcpip6_spec {
  *
  * This can be used to specify an IPsec transport or tunnel over IPv6.
  */
-struct ethtool_ah_espip6_spec {
+struct ethtool_ah_espip6_spec
+{
 	__be32	ip6src[4];
 	__be32	ip6dst[4];
 	__be32	spi;
@@ -795,7 +823,8 @@ struct ethtool_ah_espip6_spec {
  * @tclass: Traffic Class
  * @l4_proto: Transport protocol number (nexthdr after any Extension Headers)
  */
-struct ethtool_usrip6_spec {
+struct ethtool_usrip6_spec
+{
 	__be32	ip6src[4];
 	__be32	ip6dst[4];
 	__be32	l4_4_bytes;
@@ -803,7 +832,8 @@ struct ethtool_usrip6_spec {
 	__u8    l4_proto;
 };
 
-union ethtool_flow_union {
+union ethtool_flow_union
+{
 	struct ethtool_tcpip4_spec		tcp_ip4_spec;
 	struct ethtool_tcpip4_spec		udp_ip4_spec;
 	struct ethtool_tcpip4_spec		sctp_ip4_spec;
@@ -831,7 +861,8 @@ union ethtool_flow_union {
  * is set in &struct ethtool_rx_flow_spec @flow_type.
  * @h_dest is valid if %FLOW_MAC_EXT is set.
  */
-struct ethtool_flow_ext {
+struct ethtool_flow_ext
+{
 	__u8		padding[2];
 	unsigned char	h_dest[ETH_ALEN];
 	__be16		vlan_etype;
@@ -855,7 +886,8 @@ struct ethtool_flow_ext {
  *	numbered such that a flow matching multiple rules will be
  *	classified according to the first (lowest numbered) rule.
  */
-struct ethtool_rx_flow_spec {
+struct ethtool_rx_flow_spec
+{
 	__u32		flow_type;
 	union ethtool_flow_union h_u;
 	struct ethtool_flow_ext h_ext;
@@ -887,7 +919,7 @@ static inline __u64 ethtool_get_flow_spec_ring(__u64 ring_cookie)
 static inline __u64 ethtool_get_flow_spec_ring_vf(__u64 ring_cookie)
 {
 	return (ETHTOOL_RX_FLOW_SPEC_RING_VF & ring_cookie) >>
-				ETHTOOL_RX_FLOW_SPEC_RING_VF_OFF;
+		   ETHTOOL_RX_FLOW_SPEC_RING_VF_OFF;
 };
 
 /**
@@ -942,7 +974,8 @@ static inline __u64 ethtool_get_flow_spec_ring_vf(__u64 ring_cookie)
  * defined in future and drivers must return -%EINVAL for any
  * unrecognised value.
  */
-struct ethtool_rxnfc {
+struct ethtool_rxnfc
+{
 	__u32				cmd;
 	__u32				flow_type;
 	__u64				data;
@@ -965,7 +998,8 @@ struct ethtool_rxnfc {
  * the table should be reset to default values.  This last feature
  * is not supported by the original implementations.
  */
-struct ethtool_rxfh_indir {
+struct ethtool_rxfh_indir
+{
 	__u32	cmd;
 	__u32	size;
 	__u32	ring_index[0];
@@ -995,7 +1029,8 @@ struct ethtool_rxfh_indir {
  * and a @indir_size of zero means the indir table should be reset to default
  * values. An hfunc of zero means that hash function setting is not requested.
  */
-struct ethtool_rxfh {
+struct ethtool_rxfh
+{
 	__u32   cmd;
 	__u32	rss_context;
 	__u32   indir_size;
@@ -1023,9 +1058,11 @@ struct ethtool_rxfh {
  * a field value and mask are both zero this is treated as if all mask
  * bits are set i.e. the field is ignored.
  */
-struct ethtool_rx_ntuple_flow_spec {
+struct ethtool_rx_ntuple_flow_spec
+{
 	__u32		 flow_type;
-	union {
+	union
+	{
 		struct ethtool_tcpip4_spec		tcp_ip4_spec;
 		struct ethtool_tcpip4_spec		udp_ip4_spec;
 		struct ethtool_tcpip4_spec		sctp_ip4_spec;
@@ -1051,18 +1088,21 @@ struct ethtool_rx_ntuple_flow_spec {
  * @cmd: Command number - %ETHTOOL_SRXNTUPLE
  * @fs: Flow filter specification
  */
-struct ethtool_rx_ntuple {
+struct ethtool_rx_ntuple
+{
 	__u32					cmd;
 	struct ethtool_rx_ntuple_flow_spec	fs;
 };
 
 #define ETHTOOL_FLASH_MAX_FILENAME	128
-enum ethtool_flash_op_type {
+enum ethtool_flash_op_type
+{
 	ETHTOOL_FLASH_ALL_REGIONS	= 0,
 };
 
 /* for passing firmware flashing related parameters */
-struct ethtool_flash {
+struct ethtool_flash
+{
 	__u32	cmd;
 	__u32	region;
 	char	data[ETHTOOL_FLASH_MAX_FILENAME];
@@ -1082,7 +1122,8 @@ struct ethtool_flash {
  * 	 for %ETHTOOL_GET_DUMP_FLAG command
  * @data: data collected for get dump data operation
  */
-struct ethtool_dump {
+struct ethtool_dump
+{
 	__u32	cmd;
 	__u32	version;
 	__u32	flag;
@@ -1101,7 +1142,8 @@ struct ethtool_dump {
  * @active: mask of currently enabled features
  * @never_changed: mask of features not changeable for any device
  */
-struct ethtool_get_features_block {
+struct ethtool_get_features_block
+{
 	__u32	available;
 	__u32	requested;
 	__u32	active;
@@ -1116,7 +1158,8 @@ struct ethtool_get_features_block {
  *	all features
  * @features: state of features
  */
-struct ethtool_gfeatures {
+struct ethtool_gfeatures
+{
 	__u32	cmd;
 	__u32	size;
 	struct ethtool_get_features_block features[0];
@@ -1127,7 +1170,8 @@ struct ethtool_gfeatures {
  * @valid: mask of features to be changed
  * @requested: values of features to be changed
  */
-struct ethtool_set_features_block {
+struct ethtool_set_features_block
+{
 	__u32	valid;
 	__u32	requested;
 };
@@ -1138,7 +1182,8 @@ struct ethtool_set_features_block {
  * @size: array size of the features[] array
  * @features: feature change masks
  */
-struct ethtool_sfeatures {
+struct ethtool_sfeatures
+{
 	__u32	cmd;
 	__u32	size;
 	struct ethtool_set_features_block features[0];
@@ -1162,7 +1207,8 @@ struct ethtool_sfeatures {
  * HWTSTAMP_FILTER_V1_SYNC is supported by HWTSTAMP_FILTER_V1_EVENT, then the
  * driver should only report HWTSTAMP_FILTER_V1_EVENT in this op.
  */
-struct ethtool_ts_info {
+struct ethtool_ts_info
+{
 	__u32	cmd;
 	__u32	so_timestamping;
 	__s32	phc_index;
@@ -1197,7 +1243,8 @@ struct ethtool_ts_info {
  * for ETH_SS_FEATURES string set. First entry in the table corresponds to least
  * significant bit in features[0] fields. Empty strings mark undefined features.
  */
-enum ethtool_sfeatures_retval_bits {
+enum ethtool_sfeatures_retval_bits
+{
 	ETHTOOL_F_UNSUPPORTED__BIT,
 	ETHTOOL_F_WISH__BIT,
 	ETHTOOL_F_COMPAT__BIT,
@@ -1216,7 +1263,8 @@ enum ethtool_sfeatures_retval_bits {
  * @queue_mask: Bitmap of the queues which sub command apply to
  * @data: A complete command structure following for each of the queues addressed
  */
-struct ethtool_per_queue_op {
+struct ethtool_per_queue_op
+{
 	__u32	cmd;
 	__u32	sub_command;
 	__u32	queue_mask[__KERNEL_DIV_ROUND_UP(MAX_NUM_QUEUE, 32)];
@@ -1320,7 +1368,8 @@ struct ethtool_per_queue_op {
 #define SPARC_ETH_SSET		ETHTOOL_SSET
 
 /* Link mode bit indices */
-enum ethtool_link_mode_bit_indices {
+enum ethtool_link_mode_bit_indices
+{
 	ETHTOOL_LINK_MODE_10baseT_Half_BIT	= 0,
 	ETHTOOL_LINK_MODE_10baseT_Full_BIT	= 1,
 	ETHTOOL_LINK_MODE_100baseT_Half_BIT	= 2,
@@ -1377,7 +1426,7 @@ enum ethtool_link_mode_bit_indices {
 	 */
 
 	__ETHTOOL_LINK_MODE_LAST
-	  = ETHTOOL_LINK_MODE_10000baseER_Full_BIT,
+	= ETHTOOL_LINK_MODE_10000baseER_Full_BIT,
 };
 
 #define __ETHTOOL_LINK_MODE_LEGACY_MASK(base_name)	\
@@ -1496,11 +1545,12 @@ static inline int ethtool_validate_speed(__u32 speed)
 
 static inline int ethtool_validate_duplex(__u8 duplex)
 {
-	switch (duplex) {
-	case DUPLEX_HALF:
-	case DUPLEX_FULL:
-	case DUPLEX_UNKNOWN:
-		return 1;
+	switch (duplex)
+	{
+		case DUPLEX_HALF:
+		case DUPLEX_FULL:
+		case DUPLEX_UNKNOWN:
+			return 1;
 	}
 
 	return 0;
@@ -1602,7 +1652,8 @@ static inline int ethtool_validate_duplex(__u8 duplex)
  * in the hardware or because they cannot be reset independently.  The
  * driver must never reset any components that were not requested.
  */
-enum ethtool_reset_flags {
+enum ethtool_reset_flags
+{
 	/* These flags represent components dedicated to the interface
 	 * the command is addressed to.  Shift any flag left by
 	 * ETH_RESET_SHARED_SHIFT to reset a shared component of the
@@ -1725,7 +1776,8 @@ enum ethtool_reset_flags {
  * and @link_mode_masks_nwords that are not described as read-only or
  * deprecated, and must ignore all fields described as read-only.
  */
-struct ethtool_link_settings {
+struct ethtool_link_settings
+{
 	__u32	cmd;
 	__u32	speed;
 	__u8	duplex;

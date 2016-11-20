@@ -10,7 +10,7 @@
 #define STACK_SIZE 8192
 
 static int sample_ustack(struct perf_sample *sample,
-			 struct thread *thread, u64 *regs)
+						 struct thread *thread, u64 *regs)
 {
 	struct stack_dump *stack = &sample->user_stack;
 	struct map *map;
@@ -18,7 +18,9 @@ static int sample_ustack(struct perf_sample *sample,
 	u64 stack_size, *buf;
 
 	buf = malloc(STACK_SIZE);
-	if (!buf) {
+
+	if (!buf)
+	{
 		pr_debug("failed to allocate sample uregs data\n");
 		return -1;
 	}
@@ -26,7 +28,9 @@ static int sample_ustack(struct perf_sample *sample,
 	sp = (unsigned long) regs[PERF_REG_X86_SP];
 
 	map = map_groups__find(thread->mg, MAP__VARIABLE, (u64) sp);
-	if (!map) {
+
+	if (!map)
+	{
 		pr_debug("failed to get stack map\n");
 		free(buf);
 		return -1;
@@ -42,13 +46,15 @@ static int sample_ustack(struct perf_sample *sample,
 }
 
 int test__arch_unwind_sample(struct perf_sample *sample,
-			     struct thread *thread)
+							 struct thread *thread)
 {
 	struct regs_dump *regs = &sample->user_regs;
 	u64 *buf;
 
 	buf = malloc(sizeof(u64) * PERF_REGS_MAX);
-	if (!buf) {
+
+	if (!buf)
+	{
 		pr_debug("failed to allocate sample uregs data\n");
 		return -1;
 	}

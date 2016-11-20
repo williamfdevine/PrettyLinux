@@ -23,13 +23,13 @@
  */
 #define AMDPLC			/* if Amd PLC chip used */
 #ifdef	CONC
-#define NUMPHYS		12	/* 2 for SAS or DAS, more for Concentrator */
+	#define NUMPHYS		12	/* 2 for SAS or DAS, more for Concentrator */
 #else
-#ifdef	CONC_II
-#define NUMPHYS		24	/* 2 for SAS or DAS, more for Concentrator */
-#else
-#define NUMPHYS		2	/* 2 for SAS or DAS, more for Concentrator */
-#endif
+	#ifdef	CONC_II
+		#define NUMPHYS		24	/* 2 for SAS or DAS, more for Concentrator */
+	#else
+		#define NUMPHYS		2	/* 2 for SAS or DAS, more for Concentrator */
+	#endif
 #endif
 #define NUMMACS		1	/* only 1 supported at the moment */
 #define NUMPATHS	2	/* primary and secondary path supported */
@@ -41,60 +41,60 @@
 /* **************************************************************** */
 
 #if	NUMPHYS > 2
-#define CONCENTRATOR
+	#define CONCENTRATOR
 #endif
 
 /*
  * Definitions for comfortable LINT usage
  */
 #ifdef	lint
-#define LINT_USE(x)	(x)=(x)
+	#define LINT_USE(x)	(x)=(x)
 #else
-#define LINT_USE(x)
+	#define LINT_USE(x)
 #endif
 
 #ifdef	DEBUG
-#define	DB_PR(flag,a,b,c)	{ if (flag) printf(a,b,c) ; }
+	#define	DB_PR(flag,a,b,c)	{ if (flag) printf(a,b,c) ; }
 #else
-#define	DB_PR(flag,a,b,c)
+	#define	DB_PR(flag,a,b,c)
 #endif
 
 #ifdef DEBUG_BRD
-#define DB_ECM(a,b,c)		DB_PR((smc->debug.d_smt&1),a,b,c)
-#define DB_ECMN(n,a,b,c)	DB_PR((smc->debug.d_ecm >=(n)),a,b,c)
-#define DB_RMT(a,b,c)		DB_PR((smc->debug.d_smt&2),a,b,c)
-#define DB_RMTN(n,a,b,c)	DB_PR((smc->debug.d_rmt >=(n)),a,b,c)
-#define DB_CFM(a,b,c)		DB_PR((smc->debug.d_smt&4),a,b,c)
-#define DB_CFMN(n,a,b,c)	DB_PR((smc->debug.d_cfm >=(n)),a,b,c)
-#define DB_PCM(a,b,c)		DB_PR((smc->debug.d_smt&8),a,b,c)
-#define DB_PCMN(n,a,b,c)	DB_PR((smc->debug.d_pcm >=(n)),a,b,c)
-#define DB_SMT(a,b,c)		DB_PR((smc->debug.d_smtf),a,b,c)
-#define DB_SMTN(n,a,b,c)	DB_PR((smc->debug.d_smtf >=(n)),a,b,c)
-#define DB_SBA(a,b,c)		DB_PR((smc->debug.d_sba),a,b,c)
-#define DB_SBAN(n,a,b,c)	DB_PR((smc->debug.d_sba >=(n)),a,b,c)
-#define DB_ESS(a,b,c)		DB_PR((smc->debug.d_ess),a,b,c)
-#define DB_ESSN(n,a,b,c)	DB_PR((smc->debug.d_ess >=(n)),a,b,c)
+	#define DB_ECM(a,b,c)		DB_PR((smc->debug.d_smt&1),a,b,c)
+	#define DB_ECMN(n,a,b,c)	DB_PR((smc->debug.d_ecm >=(n)),a,b,c)
+	#define DB_RMT(a,b,c)		DB_PR((smc->debug.d_smt&2),a,b,c)
+	#define DB_RMTN(n,a,b,c)	DB_PR((smc->debug.d_rmt >=(n)),a,b,c)
+	#define DB_CFM(a,b,c)		DB_PR((smc->debug.d_smt&4),a,b,c)
+	#define DB_CFMN(n,a,b,c)	DB_PR((smc->debug.d_cfm >=(n)),a,b,c)
+	#define DB_PCM(a,b,c)		DB_PR((smc->debug.d_smt&8),a,b,c)
+	#define DB_PCMN(n,a,b,c)	DB_PR((smc->debug.d_pcm >=(n)),a,b,c)
+	#define DB_SMT(a,b,c)		DB_PR((smc->debug.d_smtf),a,b,c)
+	#define DB_SMTN(n,a,b,c)	DB_PR((smc->debug.d_smtf >=(n)),a,b,c)
+	#define DB_SBA(a,b,c)		DB_PR((smc->debug.d_sba),a,b,c)
+	#define DB_SBAN(n,a,b,c)	DB_PR((smc->debug.d_sba >=(n)),a,b,c)
+	#define DB_ESS(a,b,c)		DB_PR((smc->debug.d_ess),a,b,c)
+	#define DB_ESSN(n,a,b,c)	DB_PR((smc->debug.d_ess >=(n)),a,b,c)
 #else
-#define DB_ECM(a,b,c)		DB_PR((debug.d_smt&1),a,b,c)
-#define DB_ECMN(n,a,b,c)	DB_PR((debug.d_ecm >=(n)),a,b,c)
-#define DB_RMT(a,b,c)		DB_PR((debug.d_smt&2),a,b,c)
-#define DB_RMTN(n,a,b,c)	DB_PR((debug.d_rmt >=(n)),a,b,c)
-#define DB_CFM(a,b,c)		DB_PR((debug.d_smt&4),a,b,c)
-#define DB_CFMN(n,a,b,c)	DB_PR((debug.d_cfm >=(n)),a,b,c)
-#define DB_PCM(a,b,c)		DB_PR((debug.d_smt&8),a,b,c)
-#define DB_PCMN(n,a,b,c)	DB_PR((debug.d_pcm >=(n)),a,b,c)
-#define DB_SMT(a,b,c)		DB_PR((debug.d_smtf),a,b,c)
-#define DB_SMTN(n,a,b,c)	DB_PR((debug.d_smtf >=(n)),a,b,c)
-#define DB_SBA(a,b,c)		DB_PR((debug.d_sba),a,b,c)
-#define DB_SBAN(n,a,b,c)	DB_PR((debug.d_sba >=(n)),a,b,c)
-#define DB_ESS(a,b,c)		DB_PR((debug.d_ess),a,b,c)
-#define DB_ESSN(n,a,b,c)	DB_PR((debug.d_ess >=(n)),a,b,c)
+	#define DB_ECM(a,b,c)		DB_PR((debug.d_smt&1),a,b,c)
+	#define DB_ECMN(n,a,b,c)	DB_PR((debug.d_ecm >=(n)),a,b,c)
+	#define DB_RMT(a,b,c)		DB_PR((debug.d_smt&2),a,b,c)
+	#define DB_RMTN(n,a,b,c)	DB_PR((debug.d_rmt >=(n)),a,b,c)
+	#define DB_CFM(a,b,c)		DB_PR((debug.d_smt&4),a,b,c)
+	#define DB_CFMN(n,a,b,c)	DB_PR((debug.d_cfm >=(n)),a,b,c)
+	#define DB_PCM(a,b,c)		DB_PR((debug.d_smt&8),a,b,c)
+	#define DB_PCMN(n,a,b,c)	DB_PR((debug.d_pcm >=(n)),a,b,c)
+	#define DB_SMT(a,b,c)		DB_PR((debug.d_smtf),a,b,c)
+	#define DB_SMTN(n,a,b,c)	DB_PR((debug.d_smtf >=(n)),a,b,c)
+	#define DB_SBA(a,b,c)		DB_PR((debug.d_sba),a,b,c)
+	#define DB_SBAN(n,a,b,c)	DB_PR((debug.d_sba >=(n)),a,b,c)
+	#define DB_ESS(a,b,c)		DB_PR((debug.d_ess),a,b,c)
+	#define DB_ESSN(n,a,b,c)	DB_PR((debug.d_ess >=(n)),a,b,c)
 #endif
 
 #ifndef	SS_NOT_DS
-#define	SK_LOC_DECL(type,var)	type var
+	#define	SK_LOC_DECL(type,var)	type var
 #else
-#define	SK_LOC_DECL(type,var)	static type var
+	#define	SK_LOC_DECL(type,var)	static type var
 #endif
 /*
  * PHYs and PORTS
@@ -104,14 +104,14 @@
 #define PA		0
 #define PB		1
 #if	defined(SUPERNET_3) || defined(CONC_II)
-/*
- * The port indices have to be different,
- * because the MAC output goes through the 2. PLC
- * Conc II: It has to be the first port in the row.
- */
-#define PS		0	/* Internal PLC which is the same as PA */
+	/*
+	* The port indices have to be different,
+	* because the MAC output goes through the 2. PLC
+	* Conc II: It has to be the first port in the row.
+	*/
+	#define PS		0	/* Internal PLC which is the same as PA */
 #else
-#define PS		1
+	#define PS		1
 #endif
 #define PM		2		/* PM .. PA+NUM_PHYS-1 */
 
@@ -383,7 +383,8 @@
 /*
  * SMT timer
  */
-struct smt_timer {
+struct smt_timer
+{
 	struct smt_timer	*tm_next ;	/* linked list */
 	struct s_smc		*tm_smc ;	/* pointer to context */
 	u_long			tm_delta ;	/* delta time */
@@ -395,7 +396,8 @@ struct smt_timer {
 /*
  * communication structures
  */
-struct mac_parameter {
+struct mac_parameter
+{
 	u_long	t_neg ;		/* T_Neg parameter */
 	u_long	t_pri ;		/* T_Pri register in MAC */
 } ;
@@ -403,7 +405,8 @@ struct mac_parameter {
 /*
  * MAC counters
  */
-struct mac_counter {
+struct mac_counter
+{
 	u_long	mac_nobuf_counter ;	/* MAC SW counter: no buffer */
 	u_long	mac_r_restart_counter ;	/* MAC SW counter: rx restarted */
 } ;
@@ -411,7 +414,8 @@ struct mac_counter {
 /*
  * para struct context for SMT parameters
  */
-struct s_pcon {
+struct s_pcon
+{
 	int	pc_len ;
 	int	pc_err ;
 	int	pc_badset ;
@@ -422,7 +426,8 @@ struct s_pcon {
  * link error monitor
  */
 #define LEM_AVG	5
-struct lem_counter {
+struct lem_counter
+{
 #ifdef	AM29K
 	int	lem_on	;
 	u_long	lem_errors ;
@@ -448,7 +453,8 @@ struct lem_counter {
 /*
  * PLC state table
  */
-struct s_plc {
+struct s_plc
+{
 	u_short	p_state ;		/* current state */
 	u_short	p_bits ;		/* number of bits to send */
 	u_short	p_start ;		/* first bit pos */
@@ -482,13 +488,13 @@ struct s_plc {
 
 void hwt_restart(struct s_smc *smc);	/* hwt.c */
 SMbuf *smt_build_frame(struct s_smc *smc, int class, int type,
-		       int length);	/* smt.c */
+					   int length);	/* smt.c */
 SMbuf *smt_get_mbuf(struct s_smc *smc);	/* drvsr.c */
 void *sm_to_para(struct s_smc *smc, struct smt_header *sm,
-		 int para);		/* smt.c */
+				 int para);		/* smt.c */
 
 #ifndef SK_UNUSED
-#define SK_UNUSED(var)		(void)(var)
+	#define SK_UNUSED(var)		(void)(var)
 #endif
 
 void queue_event(struct s_smc *smc, int class, int event);
@@ -501,10 +507,10 @@ void pcm_init(struct s_smc *smc);
 void cfm(struct s_smc *smc, int event);
 void cfm_init(struct s_smc *smc);
 void smt_timer_start(struct s_smc *smc, struct smt_timer *timer, u_long time,
-		     u_long token);
+					 u_long token);
 void smt_timer_stop(struct s_smc *smc, struct smt_timer *timer);
 void pcm_status_state(struct s_smc *smc, int np, int *type, int *state,
-		      int *remote, int *mac);
+					  int *remote, int *mac);
 void plc_config_mux(struct s_smc *smc, int mux);
 void sm_lem_evaluate(struct s_smc *smc);
 void mac_update_counter(struct s_smc *smc);
@@ -516,7 +522,7 @@ void smt_agent_init(struct s_smc *smc);
 void smt_timer_init(struct s_smc *smc);
 void smt_received_pack(struct s_smc *smc, SMbuf *mb, int fs);
 void smt_add_para(struct s_smc *smc, struct s_pcon *pcon, u_short para,
-		  int index, int local);
+				  int index, int local);
 void smt_swap_para(struct smt_header *sm, int len, int direction);
 void ev_init(struct s_smc *smc);
 void hwt_init(struct s_smc *smc);
@@ -530,9 +536,9 @@ void rmt_indication(struct s_smc *smc, int i);
 void cfm_state_change(struct s_smc *smc, int c_state);
 
 #if defined(DEBUG) || !defined(NO_SMT_PANIC)
-void smt_panic(struct s_smc *smc, char *text);
+	void smt_panic(struct s_smc *smc, char *text);
 #else
-#define	smt_panic(smc,text)
+	#define	smt_panic(smc,text)
 #endif /* DEBUG || !NO_SMT_PANIC */
 
 void smt_stat_counter(struct s_smc *smc, int stat);
@@ -544,11 +550,11 @@ void smt_fixup_mib(struct s_smc *smc);
 void smt_reset_defaults(struct s_smc *smc, int level);
 void smt_agent_task(struct s_smc *smc);
 int smt_check_para(struct s_smc *smc, struct smt_header *sm,
-		   const u_short list[]);
+				   const u_short list[]);
 void driver_get_bia(struct s_smc *smc, struct fddi_addr *bia_addr);
 
 #ifdef SUPERNET_3
-void drv_reset_indication(struct s_smc *smc);
+	void drv_reset_indication(struct s_smc *smc);
 #endif	/* SUPERNET_3 */
 
 void smt_start_watchdog(struct s_smc *smc);
@@ -593,86 +599,86 @@ void plc_irq(struct s_smc *smc,	int np,	unsigned int cmd);
 int smt_set_mac_opvalues(struct s_smc *smc);
 
 #ifdef TAG_MODE
-void mac_do_pci_fix(struct s_smc *smc);
-void mac_drv_clear_tx_queue(struct s_smc *smc);
-void mac_drv_repair_descr(struct s_smc *smc);
-u_long hwt_quick_read(struct s_smc *smc);
-void hwt_wait_time(struct s_smc *smc, u_long start, long duration);
+	void mac_do_pci_fix(struct s_smc *smc);
+	void mac_drv_clear_tx_queue(struct s_smc *smc);
+	void mac_drv_repair_descr(struct s_smc *smc);
+	u_long hwt_quick_read(struct s_smc *smc);
+	void hwt_wait_time(struct s_smc *smc, u_long start, long duration);
 #endif
 
 #ifdef SMT_PNMI
-int pnmi_init(struct s_smc* smc);
+int pnmi_init(struct s_smc *smc);
 int pnmi_process_ndis_id(struct s_smc *smc, u_long ndis_oid, void *buf, int len,
-			 int *BytesAccessed, int *BytesNeeded, u_char action);
+						 int *BytesAccessed, int *BytesNeeded, u_char action);
 #endif
 
 #ifdef	SBA
-#ifndef _H2INC
-void sba();
-#endif
-void sba_raf_received_pack();
-void sba_timer_poll();
-void smt_init_sba();
+	#ifndef _H2INC
+		void sba();
+	#endif
+	void sba_raf_received_pack();
+	void sba_timer_poll();
+	void smt_init_sba();
 #endif
 
 #ifdef	ESS
 int ess_raf_received_pack(struct s_smc *smc, SMbuf *mb, struct smt_header *sm,
-			  int fs);
+						  int fs);
 void ess_timer_poll(struct s_smc *smc);
 void ess_para_change(struct s_smc *smc);
 #endif
 
 #ifndef	BOOT
-void smt_init_evc(struct s_smc *smc);
-void smt_srf_event(struct s_smc *smc, int code, int index, int cond);
+	void smt_init_evc(struct s_smc *smc);
+	void smt_srf_event(struct s_smc *smc, int code, int index, int cond);
 #else
-#define smt_init_evc(smc)
-#define smt_srf_event(smc,code,index,cond)
+	#define smt_init_evc(smc)
+	#define smt_srf_event(smc,code,index,cond)
 #endif
 
 #ifndef SMT_REAL_TOKEN_CT
-void smt_emulate_token_ct(struct s_smc *smc, int mac_index);
+	void smt_emulate_token_ct(struct s_smc *smc, int mac_index);
 #endif
 
 #if defined(DEBUG) && !defined(BOOT)
-void dump_smt(struct s_smc *smc, struct smt_header *sm, char *text);
+	void dump_smt(struct s_smc *smc, struct smt_header *sm, char *text);
 #else
-#define	dump_smt(smc,sm,text)
+	#define	dump_smt(smc,sm,text)
 #endif
 
 #ifdef	DEBUG
-char* addr_to_string(struct fddi_addr *addr);
-void dump_hex(char *p, int len);
+	char *addr_to_string(struct fddi_addr *addr);
+	void dump_hex(char *p, int len);
 #endif
 
 #endif	/* PROTOTYP_INC */
 
 /* PNMI default defines */
 #ifndef PNMI_INIT
-#define	PNMI_INIT(smc)	/* Nothing */
+	#define	PNMI_INIT(smc)	/* Nothing */
 #endif
 #ifndef PNMI_GET_ID
 #define PNMI_GET_ID( smc, ndis_oid, buf, len, BytesWritten, BytesNeeded ) \
-		( 1 ? (-1) : (-1) )
+	( 1 ? (-1) : (-1) )
 #endif
 #ifndef PNMI_SET_ID
 #define PNMI_SET_ID( smc, ndis_oid, buf, len, BytesRead, BytesNeeded, \
-		set_type) ( 1 ? (-1) : (-1) )
+					 set_type) ( 1 ? (-1) : (-1) )
 #endif
 
 /*
  * SMT_PANIC defines
  */
 #ifndef	SMT_PANIC
-#define	SMT_PANIC(smc,nr,msg)	smt_panic (smc, msg)
+	#define	SMT_PANIC(smc,nr,msg)	smt_panic (smc, msg)
 #endif
 
 #ifndef	SMT_ERR_LOG
-#define	SMT_ERR_LOG(smc,nr,msg)	SMT_PANIC (smc, nr, msg)
+	#define	SMT_ERR_LOG(smc,nr,msg)	SMT_PANIC (smc, nr, msg)
 #endif
 
 #ifndef	SMT_EBASE
-#define	SMT_EBASE	100
+	#define	SMT_EBASE	100
 #endif
 
 #define	SMT_E0100	SMT_EBASE + 0

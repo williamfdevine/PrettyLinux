@@ -34,11 +34,11 @@
 #if 0
 #define eeprom_delay()	solo_reg_read(solo_dev, SOLO_EEPROM_CTRL)
 #define eeprom_delay()	({				\
-	int i, ret;					\
-	udelay(100);					\
-	for (i = ret = 0; i < 1000 && !ret; i++)	\
-		ret = solo_eeprom_reg_read(solo_dev);	\
-})
+		int i, ret;					\
+		udelay(100);					\
+		for (i = ret = 0; i < 1000 && !ret; i++)	\
+			ret = solo_eeprom_reg_read(solo_dev);	\
+	})
 #endif
 #define ADDR_LEN	6
 
@@ -67,12 +67,13 @@ static void solo_eeprom_cmd(struct solo_dev *solo_dev, int cmd)
 	solo_eeprom_reg_write(solo_dev, SOLO_EEPROM_ACCESS_EN);
 	solo_eeprom_reg_write(solo_dev, SOLO_EEPROM_ENABLE);
 
-	for (i = 4 + ADDR_LEN; i >= 0; i--) {
+	for (i = 4 + ADDR_LEN; i >= 0; i--)
+	{
 		int dataval = (cmd & (1 << i)) ? EE_DATA_WRITE : 0;
 
 		solo_eeprom_reg_write(solo_dev, SOLO_EEPROM_ENABLE | dataval);
 		solo_eeprom_reg_write(solo_dev, SOLO_EEPROM_ENABLE |
-				      EE_SHIFT_CLK | dataval);
+							  EE_SHIFT_CLK | dataval);
 	}
 
 	solo_eeprom_reg_write(solo_dev, SOLO_EEPROM_ENABLE);
@@ -86,9 +87,10 @@ unsigned int solo_eeprom_ewen(struct solo_dev *solo_dev, int w_en)
 
 	solo_eeprom_cmd(solo_dev, ewen_cmd);
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		solo_eeprom_reg_write(solo_dev, SOLO_EEPROM_ENABLE |
-				      EE_SHIFT_CLK);
+							  EE_SHIFT_CLK);
 		retval = (retval << 1) | solo_eeprom_reg_read(solo_dev);
 		solo_eeprom_reg_write(solo_dev, SOLO_EEPROM_ENABLE);
 		retval = (retval << 1) | solo_eeprom_reg_read(solo_dev);
@@ -108,9 +110,10 @@ __be16 solo_eeprom_read(struct solo_dev *solo_dev, int loc)
 
 	solo_eeprom_cmd(solo_dev, read_cmd);
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		solo_eeprom_reg_write(solo_dev, SOLO_EEPROM_ENABLE |
-				      EE_SHIFT_CLK);
+							  EE_SHIFT_CLK);
 		retval = (retval << 1) | solo_eeprom_reg_read(solo_dev);
 		solo_eeprom_reg_write(solo_dev, SOLO_EEPROM_ENABLE);
 	}
@@ -121,7 +124,7 @@ __be16 solo_eeprom_read(struct solo_dev *solo_dev, int loc)
 }
 
 int solo_eeprom_write(struct solo_dev *solo_dev, int loc,
-		      __be16 data)
+					  __be16 data)
 {
 	int write_cmd = loc | (EE_WRITE_CMD << ADDR_LEN);
 	unsigned int retval;
@@ -129,12 +132,13 @@ int solo_eeprom_write(struct solo_dev *solo_dev, int loc,
 
 	solo_eeprom_cmd(solo_dev, write_cmd);
 
-	for (i = 15; i >= 0; i--) {
+	for (i = 15; i >= 0; i--)
+	{
 		unsigned int dataval = ((__force unsigned)data >> i) & 1;
 
 		solo_eeprom_reg_write(solo_dev, EE_ENB);
 		solo_eeprom_reg_write(solo_dev,
-				      EE_ENB | (dataval << 1) | EE_SHIFT_CLK);
+							  EE_ENB | (dataval << 1) | EE_SHIFT_CLK);
 	}
 
 	solo_eeprom_reg_write(solo_dev, EE_ENB);
@@ -142,7 +146,9 @@ int solo_eeprom_write(struct solo_dev *solo_dev, int loc,
 	solo_eeprom_reg_write(solo_dev, EE_ENB);
 
 	for (i = retval = 0; i < 10000 && !retval; i++)
+	{
 		retval = solo_eeprom_reg_read(solo_dev);
+	}
 
 	solo_eeprom_reg_write(solo_dev, ~EE_CS);
 

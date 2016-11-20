@@ -331,7 +331,7 @@
 /* S/PDIF input status 2 bit defines */
 #define AC97_ALC650_SOUCE_MASK      0x000f  /* Source number */
 #define AC97_ALC650_CHANNEL_MASK    0x00f0  /* Channel number */
-#define AC97_ALC650_CHANNEL_SHIFT   4 
+#define AC97_ALC650_CHANNEL_SHIFT   4
 #define AC97_ALC650_SPSR_MASK       0x0f00  /* S/PDIF Sample Rate bits */
 #define AC97_ALC650_SPSR_SHIFT      8
 #define AC97_ALC650_SPSR_44K        0x0000  /* Use 44.1kHz Sample rate */
@@ -426,7 +426,8 @@ struct snd_ac97;
 struct snd_ac97_gpio_priv;
 struct snd_pcm_chmap;
 
-struct snd_ac97_build_ops {
+struct snd_ac97_build_ops
+{
 	int (*build_3d) (struct snd_ac97 *ac97);
 	int (*build_specific) (struct snd_ac97 *ac97);
 	int (*build_spdif) (struct snd_ac97 *ac97);
@@ -438,7 +439,8 @@ struct snd_ac97_build_ops {
 	void (*update_jacks) (struct snd_ac97 *ac97);	/* for jack-sharing */
 };
 
-struct snd_ac97_bus_ops {
+struct snd_ac97_bus_ops
+{
 	void (*reset) (struct snd_ac97 *ac97);
 	void (*warm_reset)(struct snd_ac97 *ac97);
 	void (*write) (struct snd_ac97 *ac97, unsigned short reg, unsigned short val);
@@ -447,7 +449,8 @@ struct snd_ac97_bus_ops {
 	void (*init) (struct snd_ac97 *ac97);
 };
 
-struct snd_ac97_bus {
+struct snd_ac97_bus
+{
 	/* -- lowlevel (hardware) driver specific -- */
 	struct snd_ac97_bus_ops *ops;
 	void *private_data;
@@ -456,8 +459,8 @@ struct snd_ac97_bus {
 	struct snd_card *card;
 	unsigned short num;	/* bus number */
 	unsigned short no_vra: 1, /* bridge doesn't support VRA */
-		       dra: 1,	/* bridge supports double rate */
-		       isdin: 1;/* independent SDIN */
+			 dra: 1,	/* bridge supports double rate */
+			 isdin: 1;/* independent SDIN */
 	unsigned int clock;	/* AC'97 base clock (usually 48000Hz) */
 	spinlock_t bus_lock;	/* used mainly for slot allocation */
 	unsigned short used_slots[2][4]; /* actually used PCM slots */
@@ -468,12 +471,14 @@ struct snd_ac97_bus {
 };
 
 /* static resolution table */
-struct snd_ac97_res_table {
+struct snd_ac97_res_table
+{
 	unsigned short reg;	/* register */
 	unsigned short bits;	/* resolution bitmask */
 };
 
-struct snd_ac97_template {
+struct snd_ac97_template
+{
 	void *private_data;
 	void (*private_free) (struct snd_ac97 *ac97);
 	struct pci_dev *pci;	/* assigned PCI device - used for quirks */
@@ -483,7 +488,8 @@ struct snd_ac97_template {
 	const struct snd_ac97_res_table *res_table;	/* static resolution */
 };
 
-struct snd_ac97 {
+struct snd_ac97
+{
 	/* -- lowlevel (hardware) driver specific -- */
 	const struct snd_ac97_build_ops *build_ops;
 	void *private_data;
@@ -510,8 +516,10 @@ struct snd_ac97 {
 	unsigned int spdif_status;
 	unsigned short regs[0x80]; /* register cache */
 	DECLARE_BITMAP(reg_accessed, 0x80); /* bit flags */
-	union {			/* vendor specific code */
-		struct {
+	union  			/* vendor specific code */
+	{
+		struct
+		{
 			unsigned short unchained[3];	// 0 = C34, 1 = C79, 2 = C69
 			unsigned short chained[3];	// 0 = C34, 1 = C79, 2 = C69
 			unsigned short id[3];		// codec IDs (lower 16-bit word)
@@ -539,23 +547,23 @@ struct snd_ac97 {
 #define to_ac97_t(d) container_of(d, struct snd_ac97, dev)
 
 /* conditions */
-static inline int ac97_is_audio(struct snd_ac97 * ac97)
+static inline int ac97_is_audio(struct snd_ac97 *ac97)
 {
 	return (ac97->scaps & AC97_SCAP_AUDIO);
 }
-static inline int ac97_is_modem(struct snd_ac97 * ac97)
+static inline int ac97_is_modem(struct snd_ac97 *ac97)
 {
 	return (ac97->scaps & AC97_SCAP_MODEM);
 }
-static inline int ac97_is_rev22(struct snd_ac97 * ac97)
+static inline int ac97_is_rev22(struct snd_ac97 *ac97)
 {
 	return (ac97->ext_id & AC97_EI_REV_MASK) >= AC97_EI_REV_22;
 }
-static inline int ac97_can_amap(struct snd_ac97 * ac97)
+static inline int ac97_can_amap(struct snd_ac97 *ac97)
 {
 	return (ac97->ext_id & AC97_EI_AMAP) != 0;
 }
-static inline int ac97_can_spdif(struct snd_ac97 * ac97)
+static inline int ac97_can_spdif(struct snd_ac97 *ac97)
 {
 	return (ac97->ext_id & AC97_EI_SPDIF) != 0;
 }
@@ -563,10 +571,10 @@ static inline int ac97_can_spdif(struct snd_ac97 * ac97)
 /* functions */
 /* create new AC97 bus */
 int snd_ac97_bus(struct snd_card *card, int num, struct snd_ac97_bus_ops *ops,
-		 void *private_data, struct snd_ac97_bus **rbus);
+				 void *private_data, struct snd_ac97_bus **rbus);
 /* create mixer controls */
 int snd_ac97_mixer(struct snd_ac97_bus *bus, struct snd_ac97_template *template,
-		   struct snd_ac97 **rac97);
+				   struct snd_ac97 **rac97);
 const char *snd_ac97_get_short_name(struct snd_ac97 *ac97);
 
 void snd_ac97_write(struct snd_ac97 *ac97, unsigned short reg, unsigned short value);
@@ -578,20 +586,21 @@ int snd_ac97_update_bits(struct snd_ac97 *ac97, unsigned short reg, unsigned sho
 int snd_ac97_update_power(struct snd_ac97 *ac97, int reg, int powerup);
 #else
 static inline int snd_ac97_update_power(struct snd_ac97 *ac97, int reg,
-					int powerup)
+										int powerup)
 {
 	return 0;
 }
 #endif
 #ifdef CONFIG_PM
-void snd_ac97_suspend(struct snd_ac97 *ac97);
-void snd_ac97_resume(struct snd_ac97 *ac97);
+	void snd_ac97_suspend(struct snd_ac97 *ac97);
+	void snd_ac97_resume(struct snd_ac97 *ac97);
 #endif
 int snd_ac97_reset(struct snd_ac97 *ac97, bool try_warm, unsigned int id,
-	unsigned int id_mask);
+				   unsigned int id_mask);
 
 /* quirk types */
-enum {
+enum
+{
 	AC97_TUNE_DEFAULT = -1,	/* use default from quirk list (not valid in list) */
 	AC97_TUNE_NONE = 0,	/* nothing extra to do */
 	AC97_TUNE_HP_ONLY,	/* headphone (true line-out) control as master only */
@@ -604,7 +613,8 @@ enum {
 	AC97_TUNE_HP_MUTE_LED,  /* EAPD bit works as mute LED, use headphone control as master */
 };
 
-struct ac97_quirk {
+struct ac97_quirk
+{
 	unsigned short subvendor; /* PCI subsystem vendor id */
 	unsigned short subdevice; /* PCI subsystem device id */
 	unsigned short mask;	/* device id bit mask, 0 = accept all */
@@ -614,15 +624,16 @@ struct ac97_quirk {
 };
 
 int snd_ac97_tune_hardware(struct snd_ac97 *ac97,
-			   const struct ac97_quirk *quirk,
-			   const char *override);
+						   const struct ac97_quirk *quirk,
+						   const char *override);
 int snd_ac97_set_rate(struct snd_ac97 *ac97, int reg, unsigned int rate);
 
 /*
  * PCM allocation
  */
 
-enum ac97_pcm_cfg {
+enum ac97_pcm_cfg
+{
 	AC97_PCM_CFG_FRONT = 2,
 	AC97_PCM_CFG_REAR = 10,		/* alias surround */
 	AC97_PCM_CFG_LFE = 11,		/* center + lfe */
@@ -631,16 +642,18 @@ enum ac97_pcm_cfg {
 	AC97_PCM_CFG_SPDIF = 20
 };
 
-struct ac97_pcm {
+struct ac97_pcm
+{
 	struct snd_ac97_bus *bus;
 	unsigned int stream: 1,	   	   /* stream type: 1 = capture */
-		     exclusive: 1,	   /* exclusive mode, don't override with other pcms */
-		     copy_flag: 1,	   /* lowlevel driver must fill all entries */
-		     spdif: 1;		   /* spdif pcm */
+			 exclusive: 1,	   /* exclusive mode, don't override with other pcms */
+			 copy_flag: 1,	   /* lowlevel driver must fill all entries */
+			 spdif: 1;		   /* spdif pcm */
 	unsigned short aslots;		   /* active slots */
 	unsigned short cur_dbl;		   /* current double-rate state */
 	unsigned int rates;		   /* available rates */
-	struct {
+	struct
+	{
 		unsigned short slots;	   /* driver input: requested AC97 slot numbers */
 		unsigned short rslots[4];  /* allocated slots per codecs */
 		unsigned char rate_table[4];
@@ -650,10 +663,10 @@ struct ac97_pcm {
 };
 
 int snd_ac97_pcm_assign(struct snd_ac97_bus *ac97,
-			unsigned short pcms_count,
-			const struct ac97_pcm *pcms);
+						unsigned short pcms_count,
+						const struct ac97_pcm *pcms);
 int snd_ac97_pcm_open(struct ac97_pcm *pcm, unsigned int rate,
-		      enum ac97_pcm_cfg cfg, unsigned short slots);
+					  enum ac97_pcm_cfg cfg, unsigned short slots);
 int snd_ac97_pcm_close(struct ac97_pcm *pcm);
 int snd_ac97_pcm_double_rate_rules(struct snd_pcm_runtime *runtime);
 

@@ -58,27 +58,33 @@ static DEFINE_SPINLOCK(dlm_cookie_lock);
 static u64 dlm_next_cookie = 1;
 
 static enum dlm_status dlm_send_remote_lock_request(struct dlm_ctxt *dlm,
-					       struct dlm_lock_resource *res,
-					       struct dlm_lock *lock, int flags);
+		struct dlm_lock_resource *res,
+		struct dlm_lock *lock, int flags);
 static void dlm_init_lock(struct dlm_lock *newlock, int type,
-			  u8 node, u64 cookie);
+						  u8 node, u64 cookie);
 static void dlm_lock_release(struct kref *kref);
 static void dlm_lock_detach_lockres(struct dlm_lock *lock);
 
 int dlm_init_lock_cache(void)
 {
 	dlm_lock_cache = kmem_cache_create("o2dlm_lock",
-					   sizeof(struct dlm_lock),
-					   0, SLAB_HWCACHE_ALIGN, NULL);
+									   sizeof(struct dlm_lock),
+									   0, SLAB_HWCACHE_ALIGN, NULL);
+
 	if (dlm_lock_cache == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
 void dlm_destroy_lock_cache(void)
 {
 	if (dlm_lock_cache)
+	{
 		kmem_cache_destroy(dlm_lock_cache);
+	}
 }
 
 /* Tell us whether we can grant a new lock request.
@@ -89,21 +95,30 @@ void dlm_destroy_lock_cache(void)
  * returns: 1 if the lock can be granted, 0 otherwise.
  */
 static int dlm_can_grant_new_lock(struct dlm_lock_resource *res,
-				  struct dlm_lock *lock)
+								  struct dlm_lock *lock)
 {
 	struct dlm_lock *tmplock;
 
-	list_for_each_entry(tmplock, &res->granted, list) {
+	list_for_each_entry(tmplock, &res->granted, list)
+	{
 		if (!dlm_lock_compatible(tmplock->ml.type, lock->ml.type))
+		{
 			return 0;
+		}
 	}
 
-	list_for_each_entry(tmplock, &res->converting, list) {
+	list_for_each_entry(tmplock, &res->converting, list)
+	{
 		if (!dlm_lock_compatible(tmplock->ml.type, lock->ml.type))
+		{
 			return 0;
+		}
+
 		if (!dlm_lock_compatible(tmplock->ml.convert_type,
-					 lock->ml.type))
+								 lock->ml.type))
+		{
 			return 0;
+		}
 	}
 
 	return 1;
@@ -117,8 +132,8 @@ static int dlm_can_grant_new_lock(struct dlm_lock_resource *res,
  * returns: DLM_NORMAL, DLM_NOTQUEUED
  */
 static enum dlm_status dlmlock_master(struct dlm_ctxt *dlm,
-				      struct dlm_lock_resource *res,
-				      struct dlm_lock *lock, int flags)
+									  struct dlm_lock_resource *res,
+									  struct dlm_lock *lock, int flags)
 {
 	int call_ast = 0, kick_thread = 0;
 	enum dlm_status status = DLM_NORMAL;
@@ -129,17 +144,21 @@ static enum dlm_status dlmlock_master(struct dlm_ctxt *dlm,
 	/* if called from dlm_create_lock_handler, need to
 	 * ensure it will not sleep in dlm_wait_on_lockres */
 	status = __dlm_lockres_state_to_status(res);
+
 	if (status != DLM_NORMAL &&
-	    lock->ml.node != dlm->node_num) {
+		lock->ml.node != dlm->node_num)
+	{
 		/* erf.  state changed after lock was dropped. */
 		spin_unlock(&res->spinlock);
 		dlm_error(status);
 		return status;
 	}
+
 	__dlm_wait_on_lockres(res);
 	__dlm_lockres_reserve_ast(res);
 
-	if (dlm_can_grant_new_lock(res, lock)) {
+	if (dlm_can_grant_new_lock(res, lock))
+	{
 		mlog(0, "I can grant this lock right away\n");
 		/* got it right away */
 		lock->lksb->status = DLM_NORMAL;
@@ -153,26 +172,36 @@ static enum dlm_status dlmlock_master(struct dlm_ctxt *dlm,
 		 * with LKM_NOQUEUE so we do not need the ast in
 		 * this special case */
 		if (!dlm_is_recovery_lock(res->lockname.name,
-					  res->lockname.len)) {
+								  res->lockname.len))
+		{
 			kick_thread = 1;
 			call_ast = 1;
-		} else {
-			mlog(0, "%s: returning DLM_NORMAL to "
-			     "node %u for reco lock\n", dlm->name,
-			     lock->ml.node);
 		}
-	} else {
+		else
+		{
+			mlog(0, "%s: returning DLM_NORMAL to "
+				 "node %u for reco lock\n", dlm->name,
+				 lock->ml.node);
+		}
+	}
+	else
+	{
 		/* for NOQUEUE request, unless we get the
 		 * lock right away, return DLM_NOTQUEUED */
-		if (flags & LKM_NOQUEUE) {
+		if (flags & LKM_NOQUEUE)
+		{
 			status = DLM_NOTQUEUED;
+
 			if (dlm_is_recovery_lock(res->lockname.name,
-						 res->lockname.len)) {
+									 res->lockname.len))
+			{
 				mlog(0, "%s: returning NOTQUEUED to "
-				     "node %u for reco lock\n", dlm->name,
-				     lock->ml.node);
+					 "node %u for reco lock\n", dlm->name,
+					 lock->ml.node);
 			}
-		} else {
+		}
+		else
+		{
 			status = DLM_NORMAL;
 			dlm_lock_get(lock);
 			list_add_tail(&lock->list, &res->blocked);
@@ -185,19 +214,26 @@ static enum dlm_status dlmlock_master(struct dlm_ctxt *dlm,
 
 	/* either queue the ast or release it */
 	if (call_ast)
+	{
 		dlm_queue_ast(dlm, lock);
+	}
 	else
+	{
 		dlm_lockres_release_ast(dlm, res);
+	}
 
 	dlm_lockres_calc_usage(dlm, res);
+
 	if (kick_thread)
+	{
 		dlm_kick_thread(dlm, res);
+	}
 
 	return status;
 }
 
 void dlm_revert_pending_lock(struct dlm_lock_resource *res,
-			     struct dlm_lock *lock)
+							 struct dlm_lock *lock)
 {
 	/* remove from local queue if it failed */
 	list_del_init(&lock->list);
@@ -213,15 +249,15 @@ void dlm_revert_pending_lock(struct dlm_lock_resource *res,
  * returns: DLM_DENIED, DLM_RECOVERING, or net status
  */
 static enum dlm_status dlmlock_remote(struct dlm_ctxt *dlm,
-				      struct dlm_lock_resource *res,
-				      struct dlm_lock *lock, int flags)
+									  struct dlm_lock_resource *res,
+									  struct dlm_lock *lock, int flags)
 {
 	enum dlm_status status = DLM_DENIED;
 	int lockres_changed = 1;
 
 	mlog(0, "type=%d, lockres %.*s, flags = 0x%x\n",
-	     lock->ml.type, res->lockname.len,
-	     res->lockname.name, flags);
+		 lock->ml.type, res->lockname.len,
+		 res->lockname.name, flags);
 
 	/*
 	 * Wait if resource is getting recovered, remastered, etc.
@@ -229,10 +265,13 @@ static enum dlm_status dlmlock_remote(struct dlm_ctxt *dlm,
 	 */
 	spin_lock(&res->spinlock);
 	__dlm_wait_on_lockres(res);
-	if (res->owner == dlm->node_num) {
+
+	if (res->owner == dlm->node_num)
+	{
 		spin_unlock(&res->spinlock);
 		return DLM_RECOVERING;
 	}
+
 	res->state |= DLM_LOCK_RES_IN_PROGRESS;
 
 	/* add lock to local (secondary) queue */
@@ -248,17 +287,22 @@ static enum dlm_status dlmlock_remote(struct dlm_ctxt *dlm,
 	spin_lock(&res->spinlock);
 	res->state &= ~DLM_LOCK_RES_IN_PROGRESS;
 	lock->lock_pending = 0;
-	if (status != DLM_NORMAL) {
+
+	if (status != DLM_NORMAL)
+	{
 		if (status == DLM_RECOVERING &&
-		    dlm_is_recovery_lock(res->lockname.name,
-					 res->lockname.len)) {
+			dlm_is_recovery_lock(res->lockname.name,
+								 res->lockname.len))
+		{
 			/* recovery lock was mastered by dead node.
 			 * we need to have calc_usage shoot down this
 			 * lockres and completely remaster it. */
 			mlog(0, "%s: recovery lock was owned by "
-			     "dead node %u, remaster it now.\n",
-			     dlm->name, res->owner);
-		} else if (status != DLM_NOTQUEUED) {
+				 "dead node %u, remaster it now.\n",
+				 dlm->name, res->owner);
+		}
+		else if (status != DLM_NOTQUEUED)
+		{
 			/*
 			 * DO NOT call calc_usage, as this would unhash
 			 * the remote lockres before we ever get to use
@@ -268,23 +312,29 @@ static enum dlm_status dlmlock_remote(struct dlm_ctxt *dlm,
 			lockres_changed = 0;
 			dlm_error(status);
 		}
+
 		dlm_revert_pending_lock(res, lock);
 		dlm_lock_put(lock);
-	} else if (dlm_is_recovery_lock(res->lockname.name,
-					res->lockname.len)) {
+	}
+	else if (dlm_is_recovery_lock(res->lockname.name,
+								  res->lockname.len))
+	{
 		/* special case for the $RECOVERY lock.
 		 * there will never be an AST delivered to put
 		 * this lock on the proper secondary queue
 		 * (granted), so do it manually. */
 		mlog(0, "%s: $RECOVERY lock for this node (%u) is "
-		     "mastered by %u; got lock, manually granting (no ast)\n",
-		     dlm->name, dlm->node_num, res->owner);
+			 "mastered by %u; got lock, manually granting (no ast)\n",
+			 dlm->name, dlm->node_num, res->owner);
 		list_move_tail(&lock->list, &res->granted);
 	}
+
 	spin_unlock(&res->spinlock);
 
 	if (lockres_changed)
+	{
 		dlm_lockres_calc_usage(dlm, res);
+	}
 
 	wake_up(&res->wq);
 	return status;
@@ -299,8 +349,8 @@ static enum dlm_status dlmlock_remote(struct dlm_ctxt *dlm,
  * returns: DLM_NOLOCKMGR, or net status
  */
 static enum dlm_status dlm_send_remote_lock_request(struct dlm_ctxt *dlm,
-					       struct dlm_lock_resource *res,
-					       struct dlm_lock *lock, int flags)
+		struct dlm_lock_resource *res,
+		struct dlm_lock *lock, int flags)
 {
 	struct dlm_create_lock create;
 	int tmpret, status = 0;
@@ -315,25 +365,36 @@ static enum dlm_status dlm_send_remote_lock_request(struct dlm_ctxt *dlm,
 	memcpy(create.name, res->lockname.name, create.namelen);
 
 	tmpret = o2net_send_message(DLM_CREATE_LOCK_MSG, dlm->key, &create,
-				    sizeof(create), res->owner, &status);
-	if (tmpret >= 0) {
+								sizeof(create), res->owner, &status);
+
+	if (tmpret >= 0)
+	{
 		ret = status;
-		if (ret == DLM_REJECTED) {
+
+		if (ret == DLM_REJECTED)
+		{
 			mlog(ML_ERROR, "%s: res %.*s, Stale lockres no longer "
-			     "owned by node %u. That node is coming back up "
-			     "currently.\n", dlm->name, create.namelen,
-			     create.name, res->owner);
+				 "owned by node %u. That node is coming back up "
+				 "currently.\n", dlm->name, create.namelen,
+				 create.name, res->owner);
 			dlm_print_one_lock_resource(res);
 			BUG();
 		}
-	} else {
+	}
+	else
+	{
 		mlog(ML_ERROR, "%s: res %.*s, Error %d send CREATE LOCK to "
-		     "node %u\n", dlm->name, create.namelen, create.name,
-		     tmpret, res->owner);
+			 "node %u\n", dlm->name, create.namelen, create.name,
+			 tmpret, res->owner);
+
 		if (dlm_is_host_down(tmpret))
+		{
 			ret = DLM_RECOVERING;
+		}
 		else
+		{
 			ret = dlm_err_to_dlm_status(tmpret);
+		}
 	}
 
 	return ret;
@@ -363,16 +424,18 @@ static void dlm_lock_release(struct kref *kref)
 
 	dlm_lock_detach_lockres(lock);
 
-	if (lock->lksb_kernel_allocated) {
+	if (lock->lksb_kernel_allocated)
+	{
 		mlog(0, "freeing kernel-allocated lksb\n");
 		kfree(lock->lksb);
 	}
+
 	kmem_cache_free(dlm_lock_cache, lock);
 }
 
 /* associate a lock with it's lockres, getting a ref on the lockres */
 void dlm_lock_attach_lockres(struct dlm_lock *lock,
-			     struct dlm_lock_resource *res)
+							 struct dlm_lock_resource *res)
 {
 	dlm_lockres_get(res);
 	lock->lockres = res;
@@ -384,7 +447,9 @@ static void dlm_lock_detach_lockres(struct dlm_lock *lock)
 	struct dlm_lock_resource *res;
 
 	res = lock->lockres;
-	if (res) {
+
+	if (res)
+	{
 		lock->lockres = NULL;
 		mlog(0, "removing lock's lockres reference\n");
 		dlm_lockres_put(res);
@@ -392,7 +457,7 @@ static void dlm_lock_detach_lockres(struct dlm_lock *lock)
 }
 
 static void dlm_init_lock(struct dlm_lock *newlock, int type,
-			  u8 node, u64 cookie)
+						  u8 node, u64 cookie)
 {
 	INIT_LIST_HEAD(&newlock->list);
 	INIT_LIST_HEAD(&newlock->ast_list);
@@ -420,29 +485,40 @@ static void dlm_init_lock(struct dlm_lock *newlock, int type,
 	kref_init(&newlock->lock_refs);
 }
 
-struct dlm_lock * dlm_new_lock(int type, u8 node, u64 cookie,
-			       struct dlm_lockstatus *lksb)
+struct dlm_lock *dlm_new_lock(int type, u8 node, u64 cookie,
+							  struct dlm_lockstatus *lksb)
 {
 	struct dlm_lock *lock;
 	int kernel_allocated = 0;
 
 	lock = kmem_cache_zalloc(dlm_lock_cache, GFP_NOFS);
-	if (!lock)
-		return NULL;
 
-	if (!lksb) {
+	if (!lock)
+	{
+		return NULL;
+	}
+
+	if (!lksb)
+	{
 		/* zero memory only if kernel-allocated */
 		lksb = kzalloc(sizeof(*lksb), GFP_NOFS);
-		if (!lksb) {
+
+		if (!lksb)
+		{
 			kmem_cache_free(dlm_lock_cache, lock);
 			return NULL;
 		}
+
 		kernel_allocated = 1;
 	}
 
 	dlm_init_lock(lock, type, node, cookie);
+
 	if (kernel_allocated)
+	{
 		lock->lksb_kernel_allocated = 1;
+	}
+
 	lock->lksb = lksb;
 	lksb->lockid = lock;
 	return lock;
@@ -456,7 +532,7 @@ struct dlm_lock * dlm_new_lock(int type, u8 node, u64 cookie,
  * returns: DLM_NORMAL, DLM_SYSERR, DLM_IVLOCKID, DLM_NOTQUEUED
  */
 int dlm_create_lock_handler(struct o2net_msg *msg, u32 len, void *data,
-			    void **ret_data)
+							void **ret_data)
 {
 	struct dlm_ctxt *dlm = data;
 	struct dlm_create_lock *create = (struct dlm_create_lock *)msg->buf;
@@ -470,44 +546,55 @@ int dlm_create_lock_handler(struct o2net_msg *msg, u32 len, void *data,
 	BUG_ON(!dlm);
 
 	if (!dlm_grab(dlm))
+	{
 		return DLM_REJECTED;
+	}
 
 	name = create->name;
 	namelen = create->namelen;
 	status = DLM_REJECTED;
-	if (!dlm_domain_fully_joined(dlm)) {
+
+	if (!dlm_domain_fully_joined(dlm))
+	{
 		mlog(ML_ERROR, "Domain %s not fully joined, but node %u is "
-		     "sending a create_lock message for lock %.*s!\n",
-		     dlm->name, create->node_idx, namelen, name);
+			 "sending a create_lock message for lock %.*s!\n",
+			 dlm->name, create->node_idx, namelen, name);
 		dlm_error(status);
 		goto leave;
 	}
 
 	status = DLM_IVBUFLEN;
-	if (namelen > DLM_LOCKID_NAME_MAX) {
+
+	if (namelen > DLM_LOCKID_NAME_MAX)
+	{
 		dlm_error(status);
 		goto leave;
 	}
 
 	status = DLM_SYSERR;
 	newlock = dlm_new_lock(create->requested_type,
-			       create->node_idx,
-			       be64_to_cpu(create->cookie), NULL);
-	if (!newlock) {
+						   create->node_idx,
+						   be64_to_cpu(create->cookie), NULL);
+
+	if (!newlock)
+	{
 		dlm_error(status);
 		goto leave;
 	}
 
 	lksb = newlock->lksb;
 
-	if (be32_to_cpu(create->flags) & LKM_GET_LVB) {
+	if (be32_to_cpu(create->flags) & LKM_GET_LVB)
+	{
 		lksb->flags |= DLM_LKSB_GET_LVB;
 		mlog(0, "set DLM_LKSB_GET_LVB flag\n");
 	}
 
 	status = DLM_IVLOCKID;
 	res = dlm_lookup_lockres(dlm, name, namelen);
-	if (!res) {
+
+	if (!res)
+	{
 		dlm_error(status);
 		goto leave;
 	}
@@ -516,7 +603,8 @@ int dlm_create_lock_handler(struct o2net_msg *msg, u32 len, void *data,
 	status = __dlm_lockres_state_to_status(res);
 	spin_unlock(&res->spinlock);
 
-	if (status != DLM_NORMAL) {
+	if (status != DLM_NORMAL)
+	{
 		mlog(0, "lockres recovering/migrating/in-progress\n");
 		goto leave;
 	}
@@ -525,12 +613,17 @@ int dlm_create_lock_handler(struct o2net_msg *msg, u32 len, void *data,
 
 	status = dlmlock_master(dlm, res, newlock, be32_to_cpu(create->flags));
 leave:
+
 	if (status != DLM_NORMAL)
 		if (newlock)
+		{
 			dlm_lock_put(newlock);
+		}
 
 	if (res)
+	{
 		dlm_lockres_put(res);
+	}
 
 	dlm_put(dlm);
 
@@ -548,17 +641,20 @@ static inline void dlm_get_next_cookie(u8 node_num, u64 *cookie)
 
 	spin_lock(&dlm_cookie_lock);
 	*cookie = (dlm_next_cookie | tmpnode);
-	if (++dlm_next_cookie & 0xff00000000000000ull) {
+
+	if (++dlm_next_cookie & 0xff00000000000000ull)
+	{
 		mlog(0, "This node's cookie will now wrap!\n");
 		dlm_next_cookie = 1;
 	}
+
 	spin_unlock(&dlm_cookie_lock);
 }
 
 enum dlm_status dlmlock(struct dlm_ctxt *dlm, int mode,
-			struct dlm_lockstatus *lksb, int flags,
-			const char *name, int namelen, dlm_astlockfunc_t *ast,
-			void *data, dlm_bastlockfunc_t *bast)
+						struct dlm_lockstatus *lksb, int flags,
+						const char *name, int namelen, dlm_astlockfunc_t *ast,
+						void *data, dlm_bastlockfunc_t *bast)
 {
 	enum dlm_status status;
 	struct dlm_lock_resource *res = NULL;
@@ -568,18 +664,22 @@ enum dlm_status dlmlock(struct dlm_ctxt *dlm, int mode,
 	/* yes this function is a mess.
 	 * TODO: clean this up.  lots of common code in the
 	 *       lock and convert paths, especially in the retry blocks */
-	if (!lksb) {
+	if (!lksb)
+	{
 		dlm_error(DLM_BADARGS);
 		return DLM_BADARGS;
 	}
 
 	status = DLM_BADPARAM;
-	if (mode != LKM_EXMODE && mode != LKM_PRMODE && mode != LKM_NLMODE) {
+
+	if (mode != LKM_EXMODE && mode != LKM_PRMODE && mode != LKM_NLMODE)
+	{
 		dlm_error(status);
 		goto error;
 	}
 
-	if (flags & ~LKM_VALID_FLAGS) {
+	if (flags & ~LKM_VALID_FLAGS)
+	{
 		dlm_error(status);
 		goto error;
 	}
@@ -588,96 +688,125 @@ enum dlm_status dlmlock(struct dlm_ctxt *dlm, int mode,
 	recovery = (flags & LKM_RECOVERY);
 
 	if (recovery &&
-	    (!dlm_is_recovery_lock(name, namelen) || convert) ) {
+		(!dlm_is_recovery_lock(name, namelen) || convert) )
+	{
 		dlm_error(status);
 		goto error;
 	}
-	if (convert && (flags & LKM_LOCAL)) {
+
+	if (convert && (flags & LKM_LOCAL))
+	{
 		mlog(ML_ERROR, "strange LOCAL convert request!\n");
 		goto error;
 	}
 
-	if (convert) {
+	if (convert)
+	{
 		/* CONVERT request */
 
 		/* if converting, must pass in a valid dlm_lock */
 		lock = lksb->lockid;
-		if (!lock) {
+
+		if (!lock)
+		{
 			mlog(ML_ERROR, "NULL lock pointer in convert "
-			     "request\n");
+				 "request\n");
 			goto error;
 		}
 
 		res = lock->lockres;
-		if (!res) {
+
+		if (!res)
+		{
 			mlog(ML_ERROR, "NULL lockres pointer in convert "
-			     "request\n");
+				 "request\n");
 			goto error;
 		}
+
 		dlm_lockres_get(res);
 
 		/* XXX: for ocfs2 purposes, the ast/bast/astdata/lksb are
-	 	 * static after the original lock call.  convert requests will
+		 * static after the original lock call.  convert requests will
 		 * ensure that everything is the same, or return DLM_BADARGS.
-	 	 * this means that DLM_DENIED_NOASTS will never be returned.
-	 	 */
+		 * this means that DLM_DENIED_NOASTS will never be returned.
+		 */
 		if (lock->lksb != lksb || lock->ast != ast ||
-		    lock->bast != bast || lock->astdata != data) {
+			lock->bast != bast || lock->astdata != data)
+		{
 			status = DLM_BADARGS;
 			mlog(ML_ERROR, "new args:  lksb=%p, ast=%p, bast=%p, "
-			     "astdata=%p\n", lksb, ast, bast, data);
+				 "astdata=%p\n", lksb, ast, bast, data);
 			mlog(ML_ERROR, "orig args: lksb=%p, ast=%p, bast=%p, "
-			     "astdata=%p\n", lock->lksb, lock->ast,
-			     lock->bast, lock->astdata);
+				 "astdata=%p\n", lock->lksb, lock->ast,
+				 lock->bast, lock->astdata);
 			goto error;
 		}
+
 retry_convert:
 		dlm_wait_for_recovery(dlm);
 
 		if (res->owner == dlm->node_num)
+		{
 			status = dlmconvert_master(dlm, res, lock, flags, mode);
+		}
 		else
+		{
 			status = dlmconvert_remote(dlm, res, lock, flags, mode);
+		}
+
 		if (status == DLM_RECOVERING || status == DLM_MIGRATING ||
-		    status == DLM_FORWARD) {
+			status == DLM_FORWARD)
+		{
 			/* for now, see how this works without sleeping
 			 * and just retry right away.  I suspect the reco
 			 * or migration will complete fast enough that
 			 * no waiting will be necessary */
 			mlog(0, "retrying convert with migration/recovery/"
-			     "in-progress\n");
+				 "in-progress\n");
 			msleep(100);
 			goto retry_convert;
 		}
-	} else {
+	}
+	else
+	{
 		u64 tmpcookie;
 
 		/* LOCK request */
 		status = DLM_BADARGS;
-		if (!name) {
+
+		if (!name)
+		{
 			dlm_error(status);
 			goto error;
 		}
 
 		status = DLM_IVBUFLEN;
-		if (namelen > DLM_LOCKID_NAME_MAX || namelen < 1) {
+
+		if (namelen > DLM_LOCKID_NAME_MAX || namelen < 1)
+		{
 			dlm_error(status);
 			goto error;
 		}
 
 		dlm_get_next_cookie(dlm->node_num, &tmpcookie);
 		lock = dlm_new_lock(mode, dlm->node_num, tmpcookie, lksb);
-		if (!lock) {
+
+		if (!lock)
+		{
 			dlm_error(status);
 			goto error;
 		}
 
 		if (!recovery)
+		{
 			dlm_wait_for_recovery(dlm);
+		}
 
 		/* find or create the lock resource */
 		res = dlm_get_lock_resource(dlm, name, namelen, flags);
-		if (!res) {
+
+		if (!res)
+		{
 			status = DLM_IVLOCKID;
 			dlm_error(status);
 			goto error;
@@ -692,36 +821,53 @@ retry_convert:
 		lock->astdata = data;
 
 retry_lock:
-		if (flags & LKM_VALBLK) {
+
+		if (flags & LKM_VALBLK)
+		{
 			mlog(0, "LKM_VALBLK passed by caller\n");
 
 			/* LVB requests for non PR, PW or EX locks are
 			 * ignored. */
 			if (mode < LKM_PRMODE)
+			{
 				flags &= ~LKM_VALBLK;
-			else {
+			}
+			else
+			{
 				flags |= LKM_GET_LVB;
 				lock->lksb->flags |= DLM_LKSB_GET_LVB;
 			}
 		}
 
 		if (res->owner == dlm->node_num)
+		{
 			status = dlmlock_master(dlm, res, lock, flags);
+		}
 		else
+		{
 			status = dlmlock_remote(dlm, res, lock, flags);
+		}
 
 		if (status == DLM_RECOVERING || status == DLM_MIGRATING ||
-		    status == DLM_FORWARD) {
+			status == DLM_FORWARD)
+		{
 			msleep(100);
-			if (recovery) {
+
+			if (recovery)
+			{
 				if (status != DLM_RECOVERING)
+				{
 					goto retry_lock;
+				}
+
 				/* wait to see the node go down, then
 				 * drop down and allow the lockres to
 				 * get cleaned up.  need to remaster. */
 				dlm_wait_for_node_death(dlm, res->owner,
-						DLM_NODE_DEATH_WAIT_MAX);
-			} else {
+										DLM_NODE_DEATH_WAIT_MAX);
+			}
+			else
+			{
 				dlm_wait_for_recovery(dlm);
 				goto retry_lock;
 			}
@@ -735,18 +881,28 @@ retry_lock:
 		dlm_lockres_calc_usage(dlm, res);
 		dlm_kick_thread(dlm, res);
 
-		if (status != DLM_NORMAL) {
+		if (status != DLM_NORMAL)
+		{
 			lock->lksb->flags &= ~DLM_LKSB_GET_LVB;
+
 			if (status != DLM_NOTQUEUED)
+			{
 				dlm_error(status);
+			}
+
 			goto error;
 		}
 	}
 
 error:
-	if (status != DLM_NORMAL) {
+
+	if (status != DLM_NORMAL)
+	{
 		if (lock && !convert)
+		{
 			dlm_lock_put(lock);
+		}
+
 		// this is kind of unnecessary
 		lksb->status = status;
 	}
@@ -754,7 +910,9 @@ error:
 	/* put lockres ref from the convert path
 	 * or from dlm_get_lock_resource */
 	if (res)
+	{
 		dlm_lockres_put(res);
+	}
 
 	return status;
 }

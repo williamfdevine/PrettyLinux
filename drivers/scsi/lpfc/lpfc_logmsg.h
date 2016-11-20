@@ -41,19 +41,19 @@
 #define LOG_ALL_MSG	0xffffffff	/* LOG all messages */
 
 #define lpfc_printf_vlog(vport, level, mask, fmt, arg...) \
-do { \
-	{ if (((mask) & (vport)->cfg_log_verbose) || (level[1] <= '3')) \
-		dev_printk(level, &((vport)->phba->pcidev)->dev, "%d:(%d):" \
-			   fmt, (vport)->phba->brd_no, vport->vpi, ##arg); } \
-} while (0)
+	do { \
+		{ if (((mask) & (vport)->cfg_log_verbose) || (level[1] <= '3')) \
+				dev_printk(level, &((vport)->phba->pcidev)->dev, "%d:(%d):" \
+						   fmt, (vport)->phba->brd_no, vport->vpi, ##arg); } \
+	} while (0)
 
 #define lpfc_printf_log(phba, level, mask, fmt, arg...) \
-do { \
-	{ uint32_t log_verbose = (phba)->pport ? \
-				 (phba)->pport->cfg_log_verbose : \
-				 (phba)->cfg_log_verbose; \
-	  if (((mask) & log_verbose) || (level[1] <= '3')) \
-		dev_printk(level, &((phba)->pcidev)->dev, "%d:" \
-			   fmt, phba->brd_no, ##arg); \
-	} \
-} while (0)
+	do { \
+		{ uint32_t log_verbose = (phba)->pport ? \
+								 (phba)->pport->cfg_log_verbose : \
+								 (phba)->cfg_log_verbose; \
+			if (((mask) & log_verbose) || (level[1] <= '3')) \
+				dev_printk(level, &((phba)->pcidev)->dev, "%d:" \
+						   fmt, phba->brd_no, ##arg); \
+		} \
+	} while (0)

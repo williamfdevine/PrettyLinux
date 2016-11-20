@@ -12,9 +12,10 @@
 #include <linux/module.h>
 
 #define FILTER_VALID_HOOKS ((1 << NF_BR_LOCAL_IN) | (1 << NF_BR_FORWARD) | \
-			    (1 << NF_BR_LOCAL_OUT))
+							(1 << NF_BR_LOCAL_OUT))
 
-static struct ebt_entries initial_chains[] = {
+static struct ebt_entries initial_chains[] =
+{
 	{
 		.name	= "INPUT",
 		.policy	= EBT_ACCEPT,
@@ -29,7 +30,8 @@ static struct ebt_entries initial_chains[] = {
 	},
 };
 
-static struct ebt_replace_kernel initial_table = {
+static struct ebt_replace_kernel initial_table =
+{
 	.name		= "filter",
 	.valid_hooks	= FILTER_VALID_HOOKS,
 	.entries_size	= 3 * sizeof(struct ebt_entries),
@@ -44,11 +46,15 @@ static struct ebt_replace_kernel initial_table = {
 static int check(const struct ebt_table_info *info, unsigned int valid_hooks)
 {
 	if (valid_hooks & ~FILTER_VALID_HOOKS)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
-static const struct ebt_table frame_filter = {
+static const struct ebt_table frame_filter =
+{
 	.name		= "filter",
 	.table		= &initial_table,
 	.valid_hooks	= FILTER_VALID_HOOKS,
@@ -58,19 +64,20 @@ static const struct ebt_table frame_filter = {
 
 static unsigned int
 ebt_in_hook(void *priv, struct sk_buff *skb,
-	    const struct nf_hook_state *state)
+			const struct nf_hook_state *state)
 {
 	return ebt_do_table(skb, state, state->net->xt.frame_filter);
 }
 
 static unsigned int
 ebt_out_hook(void *priv, struct sk_buff *skb,
-	     const struct nf_hook_state *state)
+			 const struct nf_hook_state *state)
 {
 	return ebt_do_table(skb, state, state->net->xt.frame_filter);
 }
 
-static struct nf_hook_ops ebt_ops_filter[] __read_mostly = {
+static struct nf_hook_ops ebt_ops_filter[] __read_mostly =
+{
 	{
 		.hook		= ebt_in_hook,
 		.pf		= NFPROTO_BRIDGE,
@@ -102,7 +109,8 @@ static void __net_exit frame_filter_net_exit(struct net *net)
 	ebt_unregister_table(net, net->xt.frame_filter);
 }
 
-static struct pernet_operations frame_filter_net_ops = {
+static struct pernet_operations frame_filter_net_ops =
+{
 	.init = frame_filter_net_init,
 	.exit = frame_filter_net_exit,
 };
@@ -112,11 +120,19 @@ static int __init ebtable_filter_init(void)
 	int ret;
 
 	ret = register_pernet_subsys(&frame_filter_net_ops);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = nf_register_hooks(ebt_ops_filter, ARRAY_SIZE(ebt_ops_filter));
+
 	if (ret < 0)
+	{
 		unregister_pernet_subsys(&frame_filter_net_ops);
+	}
+
 	return ret;
 }
 

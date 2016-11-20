@@ -29,7 +29,8 @@
  */
 #define DRIVER_NAME	"onenand-flash"
 
-struct onenand_info {
+struct onenand_info
+{
 	struct mtd_info		mtd;
 	struct onenand_chip	onenand;
 };
@@ -43,16 +44,22 @@ static int generic_onenand_probe(struct platform_device *pdev)
 	int err;
 
 	info = kzalloc(sizeof(struct onenand_info), GFP_KERNEL);
-	if (!info)
-		return -ENOMEM;
 
-	if (!request_mem_region(res->start, size, dev_name(&pdev->dev))) {
+	if (!info)
+	{
+		return -ENOMEM;
+	}
+
+	if (!request_mem_region(res->start, size, dev_name(&pdev->dev)))
+	{
 		err = -EBUSY;
 		goto out_free_info;
 	}
 
 	info->onenand.base = ioremap(res->start, size);
-	if (!info->onenand.base) {
+
+	if (!info->onenand.base)
+	{
 		err = -ENOMEM;
 		goto out_release_mem_region;
 	}
@@ -63,14 +70,15 @@ static int generic_onenand_probe(struct platform_device *pdev)
 	info->mtd.dev.parent = &pdev->dev;
 	info->mtd.priv = &info->onenand;
 
-	if (onenand_scan(&info->mtd, 1)) {
+	if (onenand_scan(&info->mtd, 1))
+	{
 		err = -ENXIO;
 		goto out_iounmap;
 	}
 
 	err = mtd_device_parse_register(&info->mtd, NULL, NULL,
-					pdata ? pdata->parts : NULL,
-					pdata ? pdata->nr_parts : 0);
+									pdata ? pdata->parts : NULL,
+									pdata ? pdata->nr_parts : 0);
 
 	platform_set_drvdata(pdev, info);
 
@@ -92,7 +100,8 @@ static int generic_onenand_remove(struct platform_device *pdev)
 	struct resource *res = pdev->resource;
 	unsigned long size = resource_size(res);
 
-	if (info) {
+	if (info)
+	{
 		onenand_release(&info->mtd);
 		release_mem_region(res->start, size);
 		iounmap(info->onenand.base);
@@ -102,7 +111,8 @@ static int generic_onenand_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver generic_onenand_driver = {
+static struct platform_driver generic_onenand_driver =
+{
 	.driver = {
 		.name		= DRIVER_NAME,
 	},

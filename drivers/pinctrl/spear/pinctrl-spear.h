@@ -29,7 +29,8 @@ struct spear_pmx;
  * @mask: mask of this mode in reg
  * @val: val to be configured at reg after doing (val & mask)
  */
-struct spear_pmx_mode {
+struct spear_pmx_mode
+{
 	const char *const name;
 	u16 mode;
 	u16 reg;
@@ -43,13 +44,15 @@ struct spear_pmx_mode {
  * @mask: mask bits
  * @val: val to be written on mask bits
  */
-struct spear_muxreg {
+struct spear_muxreg
+{
 	u16 reg;
 	u32 mask;
 	u32 val;
 };
 
-struct spear_gpio_pingroup {
+struct spear_gpio_pingroup
+{
 	const unsigned *pins;
 	unsigned npins;
 	struct spear_muxreg *muxregs;
@@ -58,33 +61,33 @@ struct spear_gpio_pingroup {
 
 /* ste: set to enable */
 #define DEFINE_MUXREG(__pins, __muxreg, __mask, __ste)		\
-static struct spear_muxreg __pins##_muxregs[] = {		\
-	{							\
-		.reg = __muxreg,				\
-		.mask = __mask,					\
-		.val = __ste ? __mask : 0,			\
-	},							\
-}
+	static struct spear_muxreg __pins##_muxregs[] = {		\
+		{							\
+			.reg = __muxreg,				\
+				   .mask = __mask,					\
+						   .val = __ste ? __mask : 0,			\
+		},							\
+	}
 
 #define DEFINE_2_MUXREG(__pins, __muxreg1, __muxreg2, __mask, __ste1, __ste2) \
-static struct spear_muxreg __pins##_muxregs[] = {		\
-	{							\
-		.reg = __muxreg1,				\
-		.mask = __mask,					\
-		.val = __ste1 ? __mask : 0,			\
-	}, {							\
-		.reg = __muxreg2,				\
-		.mask = __mask,					\
-		.val = __ste2 ? __mask : 0,			\
-	},							\
-}
+	static struct spear_muxreg __pins##_muxregs[] = {		\
+		{							\
+			.reg = __muxreg1,				\
+				   .mask = __mask,					\
+						   .val = __ste1 ? __mask : 0,			\
+		}, {							\
+										.reg = __muxreg2,				\
+										.mask = __mask,					\
+										.val = __ste2 ? __mask : 0,			\
+		   },							\
+	}
 
 #define GPIO_PINGROUP(__pins)					\
 	{							\
 		.pins = __pins,					\
-		.npins = ARRAY_SIZE(__pins),			\
-		.muxregs = __pins##_muxregs,			\
-		.nmuxregs = ARRAY_SIZE(__pins##_muxregs),	\
+				.npins = ARRAY_SIZE(__pins),			\
+						 .muxregs = __pins##_muxregs,			\
+									.nmuxregs = ARRAY_SIZE(__pins##_muxregs),	\
 	}
 
 /**
@@ -93,7 +96,8 @@ static struct spear_muxreg __pins##_muxregs[] = {		\
  * @nmuxregs: number of muxreg configurations to be done for modes
  * @muxregs: array of muxreg configurations to be done for modes
  */
-struct spear_modemux {
+struct spear_modemux
+{
 	u16 modes;
 	u8 nmuxregs;
 	struct spear_muxreg *muxregs;
@@ -110,7 +114,8 @@ struct spear_modemux {
  * A representation of a group of pins in the SPEAr pin controller. Each group
  * allows some parameter or parameters to be configured.
  */
-struct spear_pingroup {
+struct spear_pingroup
+{
 	const char *name;
 	const unsigned *pins;
 	unsigned npins;
@@ -124,7 +129,8 @@ struct spear_pingroup {
  * @groups: An array of pin groups that may select this function.
  * @ngroups: The number of entries in @groups.
  */
-struct spear_function {
+struct spear_function
+{
 	const char *name;
 	const char *const *groups;
 	unsigned ngroups;
@@ -149,7 +155,8 @@ struct spear_function {
  * @pmx_modes: array of modes supported by SoC
  * @npmx_modes: number of entries in pmx_modes.
  */
-struct spear_pinctrl_machdata {
+struct spear_pinctrl_machdata
+{
 	const struct pinctrl_pin_desc *pins;
 	unsigned npins;
 	struct spear_function **functions;
@@ -158,7 +165,7 @@ struct spear_pinctrl_machdata {
 	unsigned ngroups;
 	struct spear_gpio_pingroup *gpio_pingroups;
 	void (*gpio_request_endisable)(struct spear_pmx *pmx, int offset,
-			bool enable);
+								   bool enable);
 	unsigned ngpio_pingroups;
 
 	bool modes_supported;
@@ -174,7 +181,8 @@ struct spear_pinctrl_machdata {
  * @machdata: pointer to SoC or machine specific structure
  * @vbase: virtual base address of pinmux controller
  */
-struct spear_pmx {
+struct spear_pmx
+{
 	struct device *dev;
 	struct pinctrl_dev *pctl;
 	struct spear_pinctrl_machdata *machdata;
@@ -194,9 +202,9 @@ static inline void pmx_writel(struct spear_pmx *pmx, u32 val, u32 reg)
 
 void pmx_init_addr(struct spear_pinctrl_machdata *machdata, u16 reg);
 void pmx_init_gpio_pingroup_addr(struct spear_gpio_pingroup *gpio_pingroup,
-				 unsigned count, u16 reg);
+								 unsigned count, u16 reg);
 int spear_pinctrl_probe(struct platform_device *pdev,
-			struct spear_pinctrl_machdata *machdata);
+						struct spear_pinctrl_machdata *machdata);
 
 #define SPEAR_PIN_0_TO_101		\
 	PINCTRL_PIN(0, "PLGPIO0"),	\

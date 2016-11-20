@@ -171,7 +171,8 @@
  */
 
 /* NetLabel Management commands */
-enum {
+enum
+{
 	NLBL_MGMT_C_UNSPEC,
 	NLBL_MGMT_C_ADD,
 	NLBL_MGMT_C_REMOVE,
@@ -185,7 +186,8 @@ enum {
 };
 
 /* NetLabel Management attributes */
-enum {
+enum
+{
 	NLBL_MGMT_A_UNSPEC,
 	NLBL_MGMT_A_DOMAIN,
 	/* (NLA_NUL_STRING)

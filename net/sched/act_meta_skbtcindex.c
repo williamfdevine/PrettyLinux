@@ -25,7 +25,7 @@
 #include <linux/rtnetlink.h>
 
 static int skbtcindex_encode(struct sk_buff *skb, void *skbdata,
-			     struct tcf_meta_info *e)
+							 struct tcf_meta_info *e)
 {
 	u32 ifetc_index = skb->tc_index;
 
@@ -45,7 +45,8 @@ static int skbtcindex_check(struct sk_buff *skb, struct tcf_meta_info *e)
 	return ife_check_meta_u16(skb->tc_index, e);
 }
 
-static struct tcf_meta_ops ife_skbtcindex_ops = {
+static struct tcf_meta_ops ife_skbtcindex_ops =
+{
 	.metaid = IFE_META_TCINDEX,
 	.metatype = NLA_U16,
 	.name = "tc_index",

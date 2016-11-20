@@ -19,15 +19,16 @@
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-	"Watchdog cannot be stopped once started (default="
-	__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 /* possible feed values */
 #define TS4800_WDT_FEED_2S       0x1
 #define TS4800_WDT_FEED_10S      0x2
 #define TS4800_WDT_DISABLE       0x3
 
-struct ts4800_wdt {
+struct ts4800_wdt
+{
 	struct watchdog_device  wdd;
 	struct regmap           *regmap;
 	u32                     feed_offset;
@@ -46,10 +47,12 @@ struct ts4800_wdt {
  *
  * Keep the regmap/timeout map ordered by timeout
  */
-static const struct {
+static const struct
+{
 	const int timeout;
 	const int regval;
-} ts4800_wdt_map[] = {
+} ts4800_wdt_map[] =
+{
 	{ 2,  TS4800_WDT_FEED_2S },
 	{ 10, TS4800_WDT_FEED_10S },
 };
@@ -78,14 +81,17 @@ static int ts4800_wdt_stop(struct watchdog_device *wdd)
 }
 
 static int ts4800_wdt_set_timeout(struct watchdog_device *wdd,
-				  unsigned int timeout)
+								  unsigned int timeout)
 {
 	struct ts4800_wdt *wdt = watchdog_get_drvdata(wdd);
 	int i;
 
-	for (i = 0; i < MAX_TIMEOUT_INDEX; i++) {
+	for (i = 0; i < MAX_TIMEOUT_INDEX; i++)
+	{
 		if (ts4800_wdt_map[i].timeout >= timeout)
+		{
 			break;
+		}
 	}
 
 	wdd->timeout = ts4800_wdt_map[i].timeout;
@@ -94,14 +100,16 @@ static int ts4800_wdt_set_timeout(struct watchdog_device *wdd,
 	return 0;
 }
 
-static const struct watchdog_ops ts4800_wdt_ops = {
+static const struct watchdog_ops ts4800_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = ts4800_wdt_start,
 	.stop = ts4800_wdt_stop,
 	.set_timeout = ts4800_wdt_set_timeout,
 };
 
-static const struct watchdog_info ts4800_wdt_info = {
+static const struct watchdog_info ts4800_wdt_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
 	.identity = "TS-4800 Watchdog",
 };
@@ -116,26 +124,35 @@ static int ts4800_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	syscon_np = of_parse_phandle(np, "syscon", 0);
-	if (!syscon_np) {
+
+	if (!syscon_np)
+	{
 		dev_err(&pdev->dev, "no syscon property\n");
 		return -ENODEV;
 	}
 
 	ret = of_property_read_u32_index(np, "syscon", 1, &reg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "no offset in syscon\n");
 		return ret;
 	}
 
 	/* allocate memory for watchdog struct */
 	wdt = devm_kzalloc(&pdev->dev, sizeof(*wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	/* set regmap and offset to know where to write */
 	wdt->feed_offset = reg;
 	wdt->regmap = syscon_node_to_regmap(syscon_np);
-	if (IS_ERR(wdt->regmap)) {
+
+	if (IS_ERR(wdt->regmap))
+	{
 		dev_err(&pdev->dev, "cannot get parent's regmap\n");
 		return PTR_ERR(wdt->regmap);
 	}
@@ -159,7 +176,10 @@ static int ts4800_wdt_probe(struct platform_device *pdev)
 	 * device tree.
 	 */
 	if (!wdd->timeout)
+	{
 		wdd->timeout = wdd->max_timeout;
+	}
+
 	ts4800_wdt_set_timeout(wdd, wdd->timeout);
 
 	/*
@@ -169,17 +189,19 @@ static int ts4800_wdt_probe(struct platform_device *pdev)
 	ts4800_wdt_stop(wdd);
 
 	ret = watchdog_register_device(wdd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"failed to register watchdog device\n");
+				"failed to register watchdog device\n");
 		return ret;
 	}
 
 	platform_set_drvdata(pdev, wdt);
 
 	dev_info(&pdev->dev,
-		 "initialized (timeout = %d sec, nowayout = %d)\n",
-		 wdd->timeout, nowayout);
+			 "initialized (timeout = %d sec, nowayout = %d)\n",
+			 wdd->timeout, nowayout);
 
 	return 0;
 }
@@ -193,13 +215,15 @@ static int ts4800_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id ts4800_wdt_of_match[] = {
+static const struct of_device_id ts4800_wdt_of_match[] =
+{
 	{ .compatible = "technologic,ts4800-wdt", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, ts4800_wdt_of_match);
 
-static struct platform_driver ts4800_wdt_driver = {
+static struct platform_driver ts4800_wdt_driver =
+{
 	.probe		= ts4800_wdt_probe,
 	.remove		= ts4800_wdt_remove,
 	.driver		= {

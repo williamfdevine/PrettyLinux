@@ -53,12 +53,17 @@ EXPORT_SYMBOL(rt_global_debug_component);
 static inline int rtllib_networks_allocate(struct rtllib_device *ieee)
 {
 	if (ieee->networks)
+	{
 		return 0;
+	}
 
 	ieee->networks = kcalloc(MAX_NETWORK_COUNT,
-				 sizeof(struct rtllib_network), GFP_KERNEL);
+							 sizeof(struct rtllib_network), GFP_KERNEL);
+
 	if (!ieee->networks)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -66,7 +71,10 @@ static inline int rtllib_networks_allocate(struct rtllib_device *ieee)
 static inline void rtllib_networks_free(struct rtllib_device *ieee)
 {
 	if (!ieee->networks)
+	{
 		return;
+	}
+
 	kfree(ieee->networks);
 	ieee->networks = NULL;
 }
@@ -77,9 +85,10 @@ static inline void rtllib_networks_initialize(struct rtllib_device *ieee)
 
 	INIT_LIST_HEAD(&ieee->network_free_list);
 	INIT_LIST_HEAD(&ieee->network_list);
+
 	for (i = 0; i < MAX_NETWORK_COUNT; i++)
 		list_add_tail(&ieee->networks[i].list,
-			      &ieee->network_free_list);
+					  &ieee->network_free_list);
 }
 
 struct net_device *alloc_rtllib(int sizeof_priv)
@@ -91,19 +100,25 @@ struct net_device *alloc_rtllib(int sizeof_priv)
 	pr_debug("rtllib: Initializing...\n");
 
 	dev = alloc_etherdev(sizeof(struct rtllib_device) + sizeof_priv);
-	if (!dev) {
+
+	if (!dev)
+	{
 		pr_err("Unable to allocate net_device.\n");
 		return NULL;
 	}
+
 	ieee = (struct rtllib_device *)netdev_priv_rsl(dev);
-	memset(ieee, 0, sizeof(struct rtllib_device)+sizeof_priv);
+	memset(ieee, 0, sizeof(struct rtllib_device) + sizeof_priv);
 	ieee->dev = dev;
 
 	err = rtllib_networks_allocate(ieee);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Unable to allocate beacon storage: %d\n", err);
 		goto failed;
 	}
+
 	rtllib_networks_initialize(ieee);
 
 	/* Default fragmentation threshold is maximum payload size */
@@ -138,16 +153,23 @@ struct net_device *alloc_rtllib(int sizeof_priv)
 	rtllib_softmac_init(ieee);
 
 	ieee->pHTInfo = kzalloc(sizeof(struct rt_hi_throughput), GFP_KERNEL);
+
 	if (!ieee->pHTInfo)
+	{
 		return NULL;
+	}
 
 	HTUpdateDefaultSetting(ieee);
 	HTInitializeHTInfo(ieee);
 	TSInitialize(ieee);
-	for (i = 0; i < IEEE_IBSS_MAC_HASH_SIZE; i++)
-		INIT_LIST_HEAD(&ieee->ibss_mac_hash[i]);
 
-	for (i = 0; i < 17; i++) {
+	for (i = 0; i < IEEE_IBSS_MAC_HASH_SIZE; i++)
+	{
+		INIT_LIST_HEAD(&ieee->ibss_mac_hash[i]);
+	}
+
+	for (i = 0; i < 17; i++)
+	{
 		ieee->last_rxseq_num[i] = -1;
 		ieee->last_rxfrag_num[i] = -1;
 		ieee->last_packet_time[i] = 0;
@@ -155,7 +177,7 @@ struct net_device *alloc_rtllib(int sizeof_priv)
 
 	return dev;
 
- failed:
+failed:
 	free_netdev(dev);
 	return NULL;
 }
@@ -164,7 +186,7 @@ EXPORT_SYMBOL(alloc_rtllib);
 void free_rtllib(struct net_device *dev)
 {
 	struct rtllib_device *ieee = (struct rtllib_device *)
-				      netdev_priv_rsl(dev);
+								 netdev_priv_rsl(dev);
 
 	kfree(ieee->pHTInfo);
 	ieee->pHTInfo = NULL;

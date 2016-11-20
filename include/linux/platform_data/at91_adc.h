@@ -7,7 +7,8 @@
 #ifndef _AT91_ADC_H_
 #define _AT91_ADC_H_
 
-enum atmel_adc_ts_type {
+enum atmel_adc_ts_type
+{
 	ATMEL_ADC_TOUCHSCREEN_NONE = 0,
 	ATMEL_ADC_TOUCHSCREEN_4WIRE = 4,
 	ATMEL_ADC_TOUCHSCREEN_5WIRE = 5,
@@ -20,7 +21,8 @@ enum atmel_adc_ts_type {
 			to enable the trigger
  * @is_external:	Does the trigger rely on an external pin?
  */
-struct at91_adc_trigger {
+struct at91_adc_trigger
+{
 	const char	*name;
 	u8		value;
 	bool		is_external;
@@ -36,7 +38,8 @@ struct at91_adc_trigger {
  * @vref:			Reference voltage for the ADC in millivolts
  * @touchscreen_type:		If a touchscreen is connected, its type (4 or 5 wires)
  */
-struct at91_adc_data {
+struct at91_adc_data
+{
 	unsigned long			channels_used;
 	u8				startup_time;
 	struct at91_adc_trigger		*trigger_list;

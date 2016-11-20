@@ -13,7 +13,8 @@
 #include <linux/module.h>
 
 /* mce-mode imon mce remote key table */
-static struct rc_map_table imon_mce[] = {
+static struct rc_map_table imon_mce[] =
+{
 	/* keys sorted mostly by frequency of use to optimize lookups */
 	{ 0x800ff415, KEY_REWIND },
 	{ 0x800ff414, KEY_FASTFORWARD },
@@ -38,8 +39,8 @@ static struct rc_map_table imon_mce[] = {
 	/* 0x800ff40b also KEY_NUMERIC_POUND on some receivers */
 	{ 0x800ff40b, KEY_ENTER },
 	{ 0x02000028, KEY_ENTER },
-/* the OK and Enter buttons decode to the same value on some remotes
-	{ 0x02000028, KEY_OK }, */
+	/* the OK and Enter buttons decode to the same value on some remotes
+		{ 0x02000028, KEY_OK }, */
 	{ 0x800ff422, KEY_OK },
 	{ 0x0200002a, KEY_EXIT },
 	{ 0x800ff423, KEY_EXIT },
@@ -116,7 +117,8 @@ static struct rc_map_table imon_mce[] = {
 
 };
 
-static struct rc_map_list imon_mce_map = {
+static struct rc_map_list imon_mce_map =
+{
 	.map = {
 		.scan    = imon_mce,
 		.size    = ARRAY_SIZE(imon_mce),

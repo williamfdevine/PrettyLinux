@@ -29,7 +29,8 @@
 #include <linux/mfd/wm831x/core.h>
 #include <linux/mfd/wm831x/auxadc.h>
 
-static const char * const input_names[] = {
+static const char *const input_names[] =
+{
 	[WM831X_AUX_SYSVDD]    = "SYSVDD",
 	[WM831X_AUX_USB]       = "USB",
 	[WM831X_AUX_BKUP_BATT] = "Backup battery",
@@ -40,29 +41,35 @@ static const char * const input_names[] = {
 };
 
 static ssize_t show_voltage(struct device *dev,
-			    struct device_attribute *attr, char *buf)
+							struct device_attribute *attr, char *buf)
 {
 	struct wm831x *wm831x = dev_get_drvdata(dev);
 	int channel = to_sensor_dev_attr(attr)->index;
 	int ret;
 
 	ret = wm831x_auxadc_read_uv(wm831x, channel);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return sprintf(buf, "%d\n", DIV_ROUND_CLOSEST(ret, 1000));
 }
 
 static ssize_t show_chip_temp(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct wm831x *wm831x = dev_get_drvdata(dev);
 	int channel = to_sensor_dev_attr(attr)->index;
 	int ret;
 
 	ret = wm831x_auxadc_read(wm831x, channel);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Degrees celsius = (512.18-ret) / 1.0983 */
 	ret = 512180 - (ret * 1000);
@@ -72,7 +79,7 @@ static ssize_t show_chip_temp(struct device *dev,
 }
 
 static ssize_t show_label(struct device *dev,
-			  struct device_attribute *attr, char *buf)
+						  struct device_attribute *attr, char *buf)
 {
 	int channel = to_sensor_dev_attr(attr)->index;
 
@@ -81,12 +88,12 @@ static ssize_t show_label(struct device *dev,
 
 #define WM831X_VOLTAGE(id, name) \
 	static SENSOR_DEVICE_ATTR(in##id##_input, S_IRUGO, show_voltage, \
-				  NULL, name)
+							  NULL, name)
 
 #define WM831X_NAMED_VOLTAGE(id, name) \
 	WM831X_VOLTAGE(id, name); \
 	static SENSOR_DEVICE_ATTR(in##id##_label, S_IRUGO, show_label,	\
-				  NULL, name)
+							  NULL, name)
 
 WM831X_VOLTAGE(0, WM831X_AUX_AUX1);
 WM831X_VOLTAGE(1, WM831X_AUX_AUX2);
@@ -100,19 +107,20 @@ WM831X_NAMED_VOLTAGE(7, WM831X_AUX_WALL);
 WM831X_NAMED_VOLTAGE(8, WM831X_AUX_BKUP_BATT);
 
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_chip_temp, NULL,
-			  WM831X_AUX_CHIP_TEMP);
+						  WM831X_AUX_CHIP_TEMP);
 static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_label, NULL,
-			  WM831X_AUX_CHIP_TEMP);
+						  WM831X_AUX_CHIP_TEMP);
 /*
  * Report as a voltage since conversion depends on external components
  * and that's what the ABI wants.
  */
 static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_voltage, NULL,
-			  WM831X_AUX_BATT_TEMP);
+						  WM831X_AUX_BATT_TEMP);
 static SENSOR_DEVICE_ATTR(temp2_label, S_IRUGO, show_label, NULL,
-			  WM831X_AUX_BATT_TEMP);
+						  WM831X_AUX_BATT_TEMP);
 
-static struct attribute *wm831x_attrs[] = {
+static struct attribute *wm831x_attrs[] =
+{
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_in1_input.dev_attr.attr,
 	&sensor_dev_attr_in2_input.dev_attr.attr,
@@ -145,12 +153,13 @@ static int wm831x_hwmon_probe(struct platform_device *pdev)
 	struct device *hwmon_dev;
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(&pdev->dev, "wm831x",
-							   wm831x,
-							   wm831x_groups);
+				wm831x,
+				wm831x_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static struct platform_driver wm831x_hwmon_driver = {
+static struct platform_driver wm831x_hwmon_driver =
+{
 	.probe = wm831x_hwmon_probe,
 	.driver = {
 		.name = "wm831x-hwmon",

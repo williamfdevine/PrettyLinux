@@ -59,16 +59,17 @@
 
 /* Mask for all the Receive Interrupts */
 #define XPS2_IPIXR_RX_ALL	(XPS2_IPIXR_RX_OVF | XPS2_IPIXR_RX_ERR |  \
-				 XPS2_IPIXR_RX_FULL)
+							 XPS2_IPIXR_RX_FULL)
 
 /* Mask for all the Interrupts */
 #define XPS2_IPIXR_ALL		(XPS2_IPIXR_TX_ALL | XPS2_IPIXR_RX_ALL |  \
-				 XPS2_IPIXR_WDT_TOUT)
+							 XPS2_IPIXR_WDT_TOUT)
 
 /* Global Interrupt Enable mask */
 #define XPS2_GIER_GIE_MASK	0x80000000
 
-struct xps2data {
+struct xps2data
+{
 	int irq;
 	spinlock_t lock;
 	void __iomem *base_address;	/* virt. address of control registers */
@@ -96,7 +97,9 @@ static int xps2_recv(struct xps2data *drvdata, u8 *byte)
 
 	/* If there is data available in the PS/2 receiver, read it */
 	sr = in_be32(drvdata->base_address + XPS2_STATUS_OFFSET);
-	if (sr & XPS2_STATUS_RX_FULL) {
+
+	if (sr & XPS2_STATUS_RX_FULL)
+	{
 		*byte = in_be32(drvdata->base_address + XPS2_RX_DATA_OFFSET);
 		status = 0;
 	}
@@ -120,22 +123,32 @@ static irqreturn_t xps2_interrupt(int irq, void *dev_id)
 
 	/* Check which interrupt is active */
 	if (intr_sr & XPS2_IPIXR_RX_OVF)
+	{
 		dev_warn(drvdata->dev, "receive overrun error\n");
+	}
 
 	if (intr_sr & XPS2_IPIXR_RX_ERR)
+	{
 		drvdata->flags |= SERIO_PARITY;
+	}
 
 	if (intr_sr & (XPS2_IPIXR_TX_NOACK | XPS2_IPIXR_WDT_TOUT))
+	{
 		drvdata->flags |= SERIO_TIMEOUT;
+	}
 
-	if (intr_sr & XPS2_IPIXR_RX_FULL) {
+	if (intr_sr & XPS2_IPIXR_RX_FULL)
+	{
 		status = xps2_recv(drvdata, &c);
 
 		/* Error, if a byte is not received */
-		if (status) {
+		if (status)
+		{
 			dev_err(drvdata->dev,
-				"wrong rcvd byte count (%d)\n", status);
-		} else {
+					"wrong rcvd byte count (%d)\n", status);
+		}
+		else
+		{
 			serio_interrupt(drvdata->serio, c, drvdata->flags);
 			drvdata->flags = 0;
 		}
@@ -169,7 +182,9 @@ static int sxps2_write(struct serio *pserio, unsigned char c)
 
 	/* If the PS/2 transmitter is empty send a byte of data */
 	sr = in_be32(drvdata->base_address + XPS2_STATUS_OFFSET);
-	if (!(sr & XPS2_STATUS_TX_FULL)) {
+
+	if (!(sr & XPS2_STATUS_TX_FULL))
+	{
 		out_be32(drvdata->base_address + XPS2_TX_DATA_OFFSET, c);
 		status = 0;
 	}
@@ -192,10 +207,12 @@ static int sxps2_open(struct serio *pserio)
 	u8 c;
 
 	error = request_irq(drvdata->irq, &xps2_interrupt, 0,
-				DRIVER_NAME, drvdata);
-	if (error) {
+						DRIVER_NAME, drvdata);
+
+	if (error)
+	{
 		dev_err(drvdata->dev,
-			"Couldn't allocate interrupt %d\n", drvdata->irq);
+				"Couldn't allocate interrupt %d\n", drvdata->irq);
 		return error;
 	}
 
@@ -244,25 +261,31 @@ static int xps2_of_probe(struct platform_device *ofdev)
 	int error;
 
 	dev_info(dev, "Device Tree Probing \'%s\'\n",
-			ofdev->dev.of_node->name);
+			 ofdev->dev.of_node->name);
 
 	/* Get iospace for the device */
 	error = of_address_to_resource(ofdev->dev.of_node, 0, &r_mem);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "invalid address\n");
 		return error;
 	}
 
 	/* Get IRQ for the device */
 	irq = irq_of_parse_and_map(ofdev->dev.of_node, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		dev_err(dev, "no IRQ found\n");
 		return -ENODEV;
 	}
 
 	drvdata = kzalloc(sizeof(struct xps2data), GFP_KERNEL);
 	serio = kzalloc(sizeof(struct serio), GFP_KERNEL);
-	if (!drvdata || !serio) {
+
+	if (!drvdata || !serio)
+	{
 		error = -ENOMEM;
 		goto failed1;
 	}
@@ -274,18 +297,22 @@ static int xps2_of_probe(struct platform_device *ofdev)
 
 	phys_addr = r_mem.start;
 	remap_size = resource_size(&r_mem);
-	if (!request_mem_region(phys_addr, remap_size, DRIVER_NAME)) {
+
+	if (!request_mem_region(phys_addr, remap_size, DRIVER_NAME))
+	{
 		dev_err(dev, "Couldn't lock memory region at 0x%08llX\n",
-			(unsigned long long)phys_addr);
+				(unsigned long long)phys_addr);
 		error = -EBUSY;
 		goto failed1;
 	}
 
 	/* Fill in configuration data and add them to the list */
 	drvdata->base_address = ioremap(phys_addr, remap_size);
-	if (drvdata->base_address == NULL) {
+
+	if (drvdata->base_address == NULL)
+	{
 		dev_err(dev, "Couldn't ioremap memory at 0x%08llX\n",
-			(unsigned long long)phys_addr);
+				(unsigned long long)phys_addr);
 		error = -EFAULT;
 		goto failed2;
 	}
@@ -298,8 +325,8 @@ static int xps2_of_probe(struct platform_device *ofdev)
 	out_be32(drvdata->base_address + XPS2_SRST_OFFSET, XPS2_SRST_RESET);
 
 	dev_info(dev, "Xilinx PS2 at 0x%08llX mapped to 0x%p, irq=%d\n",
-		 (unsigned long long)phys_addr, drvdata->base_address,
-		 drvdata->irq);
+			 (unsigned long long)phys_addr, drvdata->base_address,
+			 drvdata->irq);
 
 	serio->id.type = SERIO_8042;
 	serio->write = sxps2_write;
@@ -308,9 +335,9 @@ static int xps2_of_probe(struct platform_device *ofdev)
 	serio->port_data = drvdata;
 	serio->dev.parent = dev;
 	snprintf(serio->name, sizeof(serio->name),
-		 "Xilinx XPS PS/2 at %08llX", (unsigned long long)phys_addr);
+			 "Xilinx XPS PS/2 at %08llX", (unsigned long long)phys_addr);
 	snprintf(serio->phys, sizeof(serio->phys),
-		 "xilinxps2/serio at %08llX", (unsigned long long)phys_addr);
+			 "xilinxps2/serio at %08llX", (unsigned long long)phys_addr);
 
 	serio_register_port(serio);
 
@@ -344,9 +371,13 @@ static int xps2_of_remove(struct platform_device *of_dev)
 
 	/* Get iospace of the device */
 	if (of_address_to_resource(of_dev->dev.of_node, 0, &r_mem))
+	{
 		dev_err(drvdata->dev, "invalid address\n");
+	}
 	else
+	{
 		release_mem_region(r_mem.start, resource_size(&r_mem));
+	}
 
 	kfree(drvdata);
 
@@ -354,13 +385,15 @@ static int xps2_of_remove(struct platform_device *of_dev)
 }
 
 /* Match table for of_platform binding */
-static const struct of_device_id xps2_of_match[] = {
+static const struct of_device_id xps2_of_match[] =
+{
 	{ .compatible = "xlnx,xps-ps2-1.00.a", },
 	{ /* end of list */ },
 };
 MODULE_DEVICE_TABLE(of, xps2_of_match);
 
-static struct platform_driver xps2_of_driver = {
+static struct platform_driver xps2_of_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 		.of_match_table = xps2_of_match,

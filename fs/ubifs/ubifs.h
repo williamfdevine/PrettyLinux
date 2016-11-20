@@ -153,7 +153,8 @@
 /*
  * Lockdep classes for UBIFS inode @ui_mutex.
  */
-enum {
+enum
+{
 	WB_MUTEX_1 = 0,
 	WB_MUTEX_2 = 1,
 	WB_MUTEX_3 = 2,
@@ -170,7 +171,8 @@ enum {
  *                 still in the commit list and the ongoing commit operation
  *                 will commit it, and delete this znode after it is done
  */
-enum {
+enum
+{
 	DIRTY_ZNODE    = 0,
 	COW_ZNODE      = 1,
 	OBSOLETE_ZNODE = 2,
@@ -186,7 +188,8 @@ enum {
  * COMMIT_RUNNING_REQUIRED: commit is running and it is required
  * COMMIT_BROKEN: commit failed
  */
-enum {
+enum
+{
 	COMMIT_RESTING = 0,
 	COMMIT_BACKGROUND,
 	COMMIT_REQUIRED,
@@ -206,7 +209,8 @@ enum {
  *
  * Greater than zero means: 'scanned that number of padding bytes'
  */
-enum {
+enum
+{
 	SCANNED_GARBAGE        = 0,
 	SCANNED_EMPTY_SPACE    = -1,
 	SCANNED_A_NODE         = -2,
@@ -222,7 +226,8 @@ enum {
  *                 so it can (and must) be freed when the commit is finished
  * COW_CNODE: cnode is being committed and must be copied before writing
  */
-enum {
+enum
+{
 	DIRTY_CNODE    = 0,
 	OBSOLETE_CNODE = 1,
 	COW_CNODE      = 2,
@@ -234,7 +239,8 @@ enum {
  * LTAB_DIRTY: ltab node is dirty
  * LSAVE_DIRTY: lsave node is dirty
  */
-enum {
+enum
+{
 	LTAB_DIRTY  = 1,
 	LSAVE_DIRTY = 2,
 };
@@ -245,7 +251,8 @@ enum {
  * @LEB_FREED_IDX: indexing LEB was freed and can be used only after the commit
  * @LEB_RETAINED: the logical eraseblock was freed and retained for GC purposes
  */
-enum {
+enum
+{
 	LEB_FREED,
 	LEB_FREED_IDX,
 	LEB_RETAINED,
@@ -257,18 +264,20 @@ enum {
  * @lnum: LEB number of obsoleted index node
  * @offs: offset of obsoleted index node
  */
-struct ubifs_old_idx {
+struct ubifs_old_idx
+{
 	struct rb_node rb;
 	int lnum;
 	int offs;
 };
 
 /* The below union makes it easier to deal with keys */
-union ubifs_key {
+union ubifs_key
+{
 	uint8_t u8[UBIFS_SK_LEN];
-	uint32_t u32[UBIFS_SK_LEN/4];
-	uint64_t u64[UBIFS_SK_LEN/8];
-	__le32 j32[UBIFS_SK_LEN/4];
+	uint32_t u32[UBIFS_SK_LEN / 4];
+	uint64_t u64[UBIFS_SK_LEN / 8];
+	__le32 j32[UBIFS_SK_LEN / 4];
 };
 
 /**
@@ -281,7 +290,8 @@ union ubifs_key {
  * @len: length of node scanned
  * @node: raw node
  */
-struct ubifs_scan_node {
+struct ubifs_scan_node
+{
 	struct list_head list;
 	union ubifs_key key;
 	unsigned long long sqnum;
@@ -299,7 +309,8 @@ struct ubifs_scan_node {
  * @endpt: end point (and therefore the start of empty space)
  * @buf: buffer containing entire LEB scanned
  */
-struct ubifs_scan_leb {
+struct ubifs_scan_leb
+{
 	int lnum;
 	int nodes_cnt;
 	struct list_head nodes;
@@ -317,7 +328,8 @@ struct ubifs_scan_leb {
  * LEBs - they are not released immediately, but only after the next commit.
  * This is needed to guarantee recoverability.
  */
-struct ubifs_gced_idx_leb {
+struct ubifs_gced_idx_leb
+{
 	struct list_head list;
 	int lnum;
 	int unmap;
@@ -380,17 +392,18 @@ struct ubifs_gced_idx_leb {
  * are changed under @ui_mutex, so they do not need "shadow" fields. Note, one
  * could consider to rework locking and base it on "shadow" fields.
  */
-struct ubifs_inode {
+struct ubifs_inode
+{
 	struct inode vfs_inode;
 	unsigned long long creat_sqnum;
 	unsigned long long del_cmtno;
 	unsigned int xattr_size;
 	unsigned int xattr_cnt;
 	unsigned int xattr_names;
-	unsigned int dirty:1;
-	unsigned int xattr:1;
-	unsigned int bulk_read:1;
-	unsigned int compr_type:2;
+	unsigned int dirty: 1;
+	unsigned int xattr: 1;
+	unsigned int bulk_read: 1;
+	unsigned int compr_type: 2;
 	struct mutex ui_mutex;
 	spinlock_t ui_lock;
 	loff_t synced_i_size;
@@ -412,7 +425,8 @@ struct ubifs_inode {
  * cleaned but was not because UBIFS was mounted read-only. The information
  * is used to clean the LEB when remounting to read-write mode.
  */
-struct ubifs_unclean_leb {
+struct ubifs_unclean_leb
+{
 	struct list_head list;
 	int lnum;
 	int endpt;
@@ -433,7 +447,8 @@ struct ubifs_unclean_leb {
  * LPROPS_TAKEN: LEB was taken (this flag is not saved on the media)
  * LPROPS_INDEX: LEB contains indexing nodes (this flag also exists on flash)
  */
-enum {
+enum
+{
 	LPROPS_UNCAT     =  0,
 	LPROPS_DIRTY     =  1,
 	LPROPS_DIRTY_IDX =  2,
@@ -456,12 +471,14 @@ enum {
  * @list: list of same-category lprops (for LPROPS_EMPTY and LPROPS_FREEABLE)
  * @hpos: heap position in heap of same-category lprops (other categories)
  */
-struct ubifs_lprops {
+struct ubifs_lprops
+{
 	int free;
 	int dirty;
 	int flags;
 	int lnum;
-	union {
+	union
+	{
 		struct list_head list;
 		int hpos;
 	};
@@ -474,11 +491,12 @@ struct ubifs_lprops {
  * @tgc: trivial GC flag (1 => unmap after commit end)
  * @cmt: commit flag (1 => reserved for commit)
  */
-struct ubifs_lpt_lprops {
+struct ubifs_lpt_lprops
+{
 	int free;
 	int dirty;
-	unsigned tgc:1;
-	unsigned cmt:1;
+	unsigned tgc: 1;
+	unsigned cmt: 1;
 };
 
 /**
@@ -507,7 +525,8 @@ struct ubifs_lpt_lprops {
  * @total_used, @total_dead and @total_dark fields do not account indexing
  * LEBs.
  */
-struct ubifs_lp_stats {
+struct ubifs_lp_stats
+{
 	int empty_lebs;
 	int taken_empty_lebs;
 	int idx_lebs;
@@ -529,7 +548,8 @@ struct ubifs_nnode;
  * @level: level in the tree (zero for pnodes, greater than zero for nnodes)
  * @num: node number
  */
-struct ubifs_cnode {
+struct ubifs_cnode
+{
 	struct ubifs_nnode *parent;
 	struct ubifs_cnode *cnext;
 	unsigned long flags;
@@ -548,7 +568,8 @@ struct ubifs_cnode {
  * @num: node number
  * @lprops: LEB properties array
  */
-struct ubifs_pnode {
+struct ubifs_pnode
+{
 	struct ubifs_nnode *parent;
 	struct ubifs_cnode *cnext;
 	unsigned long flags;
@@ -566,10 +587,12 @@ struct ubifs_pnode {
  * @pnode: pnode child
  * @cnode: cnode child
  */
-struct ubifs_nbranch {
+struct ubifs_nbranch
+{
 	int lnum;
 	int offs;
-	union {
+	union
+	{
 		struct ubifs_nnode *nnode;
 		struct ubifs_pnode *pnode;
 		struct ubifs_cnode *cnode;
@@ -586,7 +609,8 @@ struct ubifs_nbranch {
  * @num: node number
  * @nbranch: branches to child nodes
  */
-struct ubifs_nnode {
+struct ubifs_nnode
+{
 	struct ubifs_nnode *parent;
 	struct ubifs_cnode *cnext;
 	unsigned long flags;
@@ -604,7 +628,8 @@ struct ubifs_nnode {
  *
  * There are %LPROPS_HEAP_CNT heaps.
  */
-struct ubifs_lpt_heap {
+struct ubifs_lpt_heap
+{
 	struct ubifs_lprops **arr;
 	int cnt;
 	int max_cnt;
@@ -617,7 +642,8 @@ struct ubifs_lpt_heap {
  * LPT_SCAN_ADD: add the LEB properties scanned to the tree in memory
  * LPT_SCAN_STOP: stop scanning
  */
-enum {
+enum
+{
 	LPT_SCAN_CONTINUE = 0,
 	LPT_SCAN_ADD = 1,
 	LPT_SCAN_STOP = 2,
@@ -627,8 +653,8 @@ struct ubifs_info;
 
 /* Callback used by the 'ubifs_lpt_scan_nolock()' function */
 typedef int (*ubifs_lpt_scan_callback)(struct ubifs_info *c,
-				       const struct ubifs_lprops *lprops,
-				       int in_tree, void *data);
+									   const struct ubifs_lprops *lprops,
+									   int in_tree, void *data);
 
 /**
  * struct ubifs_wbuf - UBIFS write-buffer.
@@ -664,7 +690,8 @@ typedef int (*ubifs_lpt_scan_callback)(struct ubifs_info *c,
  * spin-lock. Thus the data between @buf and @buf + @used can be read under
  * spinlock.
  */
-struct ubifs_wbuf {
+struct ubifs_wbuf
+{
 	struct ubifs_info *c;
 	void *buf;
 	int lnum;
@@ -679,8 +706,8 @@ struct ubifs_wbuf {
 	ktime_t softlimit;
 	unsigned long long delta;
 	struct hrtimer timer;
-	unsigned int no_timer:1;
-	unsigned int need_sync:1;
+	unsigned int no_timer: 1;
+	unsigned int need_sync: 1;
 	int next_ino;
 	ino_t *inodes;
 };
@@ -693,7 +720,8 @@ struct ubifs_wbuf {
  * @list: link in the list buds belonging to the same journal head
  * @rb: link in the tree of all buds
  */
-struct ubifs_bud {
+struct ubifs_bud
+{
 	int lnum;
 	int start;
 	int jhead;
@@ -709,10 +737,11 @@ struct ubifs_bud {
  *
  * Note, the @buds list is protected by the @c->buds_lock.
  */
-struct ubifs_jhead {
+struct ubifs_jhead
+{
 	struct ubifs_wbuf wbuf;
 	struct list_head buds_list;
-	unsigned int grouped:1;
+	unsigned int grouped: 1;
 };
 
 /**
@@ -723,9 +752,11 @@ struct ubifs_jhead {
  * @offs: target node offset within @lnum
  * @len: target node length
  */
-struct ubifs_zbranch {
+struct ubifs_zbranch
+{
 	union ubifs_key key;
-	union {
+	union
+	{
 		struct ubifs_znode *znode;
 		void *leaf;
 	};
@@ -752,7 +783,8 @@ struct ubifs_zbranch {
  * Note! The @lnum, @offs, and @len fields are not really needed - we have them
  * only for internal consistency check. They could be removed to save some RAM.
  */
-struct ubifs_znode {
+struct ubifs_znode
+{
 	struct ubifs_znode *parent;
 	struct ubifs_znode *cnext;
 	unsigned long flags;
@@ -778,7 +810,8 @@ struct ubifs_znode {
  * @blk_cnt: number of data blocks including holes
  * @oef: end of file reached
  */
-struct bu_info {
+struct bu_info
+{
 	union ubifs_key key;
 	struct ubifs_zbranch zbranch[UBIFS_MAX_BULK_READ];
 	void *buf;
@@ -797,8 +830,10 @@ struct bu_info {
  *
  * If @max_len is %0, the node has fixed length @len.
  */
-struct ubifs_node_range {
-	union {
+struct ubifs_node_range
+{
+	union
+	{
 		int len;
 		int min_len;
 	};
@@ -814,7 +849,8 @@ struct ubifs_node_range {
  * @name: compressor name
  * @capi_name: cryptoapi compressor name
  */
-struct ubifs_compressor {
+struct ubifs_compressor
+{
 	int compr_type;
 	struct crypto_comp *cc;
 	struct mutex *comp_mutex;
@@ -857,18 +893,19 @@ struct ubifs_compressor {
  * make sure the amount of inode data which contribute to @new_ino_d and
  * @dirtied_ino_d fields are aligned.
  */
-struct ubifs_budget_req {
-	unsigned int fast:1;
-	unsigned int recalculate:1;
+struct ubifs_budget_req
+{
+	unsigned int fast: 1;
+	unsigned int recalculate: 1;
 #ifndef UBIFS_DEBUG
-	unsigned int new_page:1;
-	unsigned int dirtied_page:1;
-	unsigned int new_dent:1;
-	unsigned int mod_dent:1;
-	unsigned int new_ino:1;
-	unsigned int new_ino_d:13;
-	unsigned int dirtied_ino:4;
-	unsigned int dirtied_ino_d:15;
+	unsigned int new_page: 1;
+	unsigned int dirtied_page: 1;
+	unsigned int new_dent: 1;
+	unsigned int mod_dent: 1;
+	unsigned int new_ino: 1;
+	unsigned int new_ino_d: 13;
+	unsigned int dirtied_ino: 4;
+	unsigned int dirtied_ino_d: 15;
 #else
 	/* Not bit-fields to check for overflows */
 	unsigned int new_page;
@@ -897,16 +934,17 @@ struct ubifs_budget_req {
  * @cmt: %1 => commit pending, otherwise %0
  * @del: %1 => delete pending, otherwise %0
  */
-struct ubifs_orphan {
+struct ubifs_orphan
+{
 	struct rb_node rb;
 	struct list_head list;
 	struct list_head new_list;
 	struct ubifs_orphan *cnext;
 	struct ubifs_orphan *dnext;
 	ino_t inum;
-	unsigned new:1;
-	unsigned cmt:1;
-	unsigned del:1;
+	unsigned new: 1;
+	unsigned cmt: 1;
+	unsigned del: 1;
 };
 
 /**
@@ -921,12 +959,13 @@ struct ubifs_orphan {
  * @compr_type: compressor type to override the superblock compressor with
  *              (%UBIFS_COMPR_NONE, etc)
  */
-struct ubifs_mount_opts {
-	unsigned int unmount_mode:2;
-	unsigned int bulk_read:2;
-	unsigned int chk_data_crc:2;
-	unsigned int override_compr:1;
-	unsigned int compr_type:2;
+struct ubifs_mount_opts
+{
+	unsigned int unmount_mode: 2;
+	unsigned int bulk_read: 2;
+	unsigned int chk_data_crc: 2;
+	unsigned int override_compr: 1;
+	unsigned int compr_type: 2;
 };
 
 /**
@@ -949,15 +988,16 @@ struct ubifs_mount_opts {
  * @dent_budget: budget for a directory entry (constant, never changed after
  *               mount)
  */
-struct ubifs_budg_info {
+struct ubifs_budg_info
+{
 	long long idx_growth;
 	long long data_growth;
 	long long dd_growth;
 	long long uncommitted_idx;
 	unsigned long long old_idx_sz;
 	int min_idx_lebs;
-	unsigned int nospace:1;
-	unsigned int nospace_rp:1;
+	unsigned int nospace: 1;
+	unsigned int nospace_rp: 1;
 	int page_budget;
 	int inode_budget;
 	int dent_budget;
@@ -1213,7 +1253,8 @@ struct ubifs_debug_info;
  *
  * @dbg: debugging-related information
  */
-struct ubifs_info {
+struct ubifs_info
+{
 	struct super_block *vfs_sb;
 	struct backing_dev_info bdi;
 
@@ -1247,12 +1288,12 @@ struct ubifs_info {
 	spinlock_t cs_lock;
 	wait_queue_head_t cmt_wq;
 
-	unsigned int big_lpt:1;
-	unsigned int space_fixup:1;
-	unsigned int no_chk_data_crc:1;
-	unsigned int bulk_read:1;
-	unsigned int default_compr:2;
-	unsigned int rw_incompat:1;
+	unsigned int big_lpt: 1;
+	unsigned int space_fixup: 1;
+	unsigned int no_chk_data_crc: 1;
+	unsigned int bulk_read: 1;
+	unsigned int default_compr: 2;
+	unsigned int rw_incompat: 1;
 
 	struct mutex tnc_mutex;
 	struct ubifs_zbranch zroot;
@@ -1310,9 +1351,9 @@ struct ubifs_info {
 	int leb_cnt;
 	int max_leb_cnt;
 	int old_leb_cnt;
-	unsigned int ro_media:1;
-	unsigned int ro_mount:1;
-	unsigned int ro_error:1;
+	unsigned int ro_media: 1;
+	unsigned int ro_mount: 1;
+	unsigned int ro_error: 1;
 
 	atomic_long_t dirty_pg_cnt;
 	atomic_long_t dirty_zn_cnt;
@@ -1425,12 +1466,12 @@ struct ubifs_info {
 	kgid_t rp_gid;
 
 	/* The below fields are used only during mounting and re-mounting */
-	unsigned int empty:1;
-	unsigned int need_recovery:1;
-	unsigned int replaying:1;
-	unsigned int mounting:1;
-	unsigned int remounting_rw:1;
-	unsigned int probing:1;
+	unsigned int empty: 1;
+	unsigned int need_recovery: 1;
+	unsigned int replaying: 1;
+	unsigned int mounting: 1;
+	unsigned int remounting_rw: 1;
+	unsigned int probing: 1;
 	struct list_head replay_list;
 	struct list_head replay_buds;
 	unsigned long long cs_sqnum;
@@ -1460,9 +1501,9 @@ extern struct ubifs_compressor *ubifs_compressors[UBIFS_COMPR_TYPES_CNT];
 /* io.c */
 void ubifs_ro_mode(struct ubifs_info *c, int err);
 int ubifs_leb_read(const struct ubifs_info *c, int lnum, void *buf, int offs,
-		   int len, int even_ebadmsg);
+				   int len, int even_ebadmsg);
 int ubifs_leb_write(struct ubifs_info *c, int lnum, const void *buf, int offs,
-		    int len);
+					int len);
 int ubifs_leb_change(struct ubifs_info *c, int lnum, const void *buf, int len);
 int ubifs_leb_unmap(struct ubifs_info *c, int lnum);
 int ubifs_leb_map(struct ubifs_info *c, int lnum);
@@ -1471,13 +1512,13 @@ int ubifs_wbuf_write_nolock(struct ubifs_wbuf *wbuf, void *buf, int len);
 int ubifs_wbuf_seek_nolock(struct ubifs_wbuf *wbuf, int lnum, int offs);
 int ubifs_wbuf_init(struct ubifs_info *c, struct ubifs_wbuf *wbuf);
 int ubifs_read_node(const struct ubifs_info *c, void *buf, int type, int len,
-		    int lnum, int offs);
+					int lnum, int offs);
 int ubifs_read_node_wbuf(struct ubifs_wbuf *wbuf, void *buf, int type, int len,
-			 int lnum, int offs);
+						 int lnum, int offs);
 int ubifs_write_node(struct ubifs_info *c, void *node, int len, int lnum,
-		     int offs);
+					 int offs);
 int ubifs_check_node(const struct ubifs_info *c, const void *buf, int lnum,
-		     int offs, int quiet, int must_chk_crc);
+					 int offs, int quiet, int must_chk_crc);
 void ubifs_prepare_node(struct ubifs_info *c, void *buf, int len, int pad);
 void ubifs_prep_grp_node(struct ubifs_info *c, void *node, int len, int last);
 int ubifs_io_init(struct ubifs_info *c);
@@ -1489,18 +1530,18 @@ int ubifs_sync_wbufs_by_inode(struct ubifs_info *c, struct inode *inode);
 
 /* scan.c */
 struct ubifs_scan_leb *ubifs_scan(const struct ubifs_info *c, int lnum,
-				  int offs, void *sbuf, int quiet);
+								  int offs, void *sbuf, int quiet);
 void ubifs_scan_destroy(struct ubifs_scan_leb *sleb);
 int ubifs_scan_a_node(const struct ubifs_info *c, void *buf, int len, int lnum,
-		      int offs, int quiet);
+					  int offs, int quiet);
 struct ubifs_scan_leb *ubifs_start_scan(const struct ubifs_info *c, int lnum,
-					int offs, void *sbuf);
+										int offs, void *sbuf);
 void ubifs_end_scan(const struct ubifs_info *c, struct ubifs_scan_leb *sleb,
-		    int lnum, int offs);
+					int lnum, int offs);
 int ubifs_add_snod(const struct ubifs_info *c, struct ubifs_scan_leb *sleb,
-		   void *buf, int offs);
+				   void *buf, int offs);
 void ubifs_scanned_corruption(const struct ubifs_info *c, int lnum, int offs,
-			      void *buf);
+							  void *buf);
 
 /* log.c */
 void ubifs_add_bud(struct ubifs_info *c, struct ubifs_bud *bud);
@@ -1515,39 +1556,39 @@ int ubifs_consolidate_log(struct ubifs_info *c);
 
 /* journal.c */
 int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
-		     const struct qstr *nm, const struct inode *inode,
-		     int deletion, int xent);
+					 const struct qstr *nm, const struct inode *inode,
+					 int deletion, int xent);
 int ubifs_jnl_write_data(struct ubifs_info *c, const struct inode *inode,
-			 const union ubifs_key *key, const void *buf, int len);
+						 const union ubifs_key *key, const void *buf, int len);
 int ubifs_jnl_write_inode(struct ubifs_info *c, const struct inode *inode);
 int ubifs_jnl_delete_inode(struct ubifs_info *c, const struct inode *inode);
 int ubifs_jnl_xrename(struct ubifs_info *c, const struct inode *fst_dir,
-		      const struct dentry *fst_dentry,
-		      const struct inode *snd_dir,
-		      const struct dentry *snd_dentry, int sync);
+					  const struct dentry *fst_dentry,
+					  const struct inode *snd_dir,
+					  const struct dentry *snd_dentry, int sync);
 int ubifs_jnl_rename(struct ubifs_info *c, const struct inode *old_dir,
-		     const struct dentry *old_dentry,
-		     const struct inode *new_dir,
-		     const struct dentry *new_dentry,
-		     const struct inode *whiteout, int sync);
+					 const struct dentry *old_dentry,
+					 const struct inode *new_dir,
+					 const struct dentry *new_dentry,
+					 const struct inode *whiteout, int sync);
 int ubifs_jnl_truncate(struct ubifs_info *c, const struct inode *inode,
-		       loff_t old_size, loff_t new_size);
+					   loff_t old_size, loff_t new_size);
 int ubifs_jnl_delete_xattr(struct ubifs_info *c, const struct inode *host,
-			   const struct inode *inode, const struct qstr *nm);
+						   const struct inode *inode, const struct qstr *nm);
 int ubifs_jnl_change_xattr(struct ubifs_info *c, const struct inode *inode1,
-			   const struct inode *inode2);
+						   const struct inode *inode2);
 
 /* budget.c */
 int ubifs_budget_space(struct ubifs_info *c, struct ubifs_budget_req *req);
 void ubifs_release_budget(struct ubifs_info *c, struct ubifs_budget_req *req);
 void ubifs_release_dirty_inode_budget(struct ubifs_info *c,
-				      struct ubifs_inode *ui);
+									  struct ubifs_inode *ui);
 int ubifs_budget_inode_op(struct ubifs_info *c, struct inode *inode,
-			  struct ubifs_budget_req *req);
+						  struct ubifs_budget_req *req);
 void ubifs_release_ino_dirty(struct ubifs_info *c, struct inode *inode,
-				struct ubifs_budget_req *req);
+							 struct ubifs_budget_req *req);
 void ubifs_cancel_ino_op(struct ubifs_info *c, struct inode *inode,
-			 struct ubifs_budget_req *req);
+						 struct ubifs_budget_req *req);
 long long ubifs_get_free_space(struct ubifs_info *c);
 long long ubifs_get_free_space_nolock(struct ubifs_info *c);
 int ubifs_calc_min_idx_lebs(struct ubifs_info *c);
@@ -1557,62 +1598,62 @@ long long ubifs_calc_available(const struct ubifs_info *c, int min_idx_lebs);
 
 /* find.c */
 int ubifs_find_free_space(struct ubifs_info *c, int min_space, int *offs,
-			  int squeeze);
+						  int squeeze);
 int ubifs_find_free_leb_for_idx(struct ubifs_info *c);
 int ubifs_find_dirty_leb(struct ubifs_info *c, struct ubifs_lprops *ret_lp,
-			 int min_space, int pick_free);
+						 int min_space, int pick_free);
 int ubifs_find_dirty_idx_leb(struct ubifs_info *c);
 int ubifs_save_dirty_idx_lnums(struct ubifs_info *c);
 
 /* tnc.c */
 int ubifs_lookup_level0(struct ubifs_info *c, const union ubifs_key *key,
-			struct ubifs_znode **zn, int *n);
+						struct ubifs_znode **zn, int *n);
 int ubifs_tnc_lookup_nm(struct ubifs_info *c, const union ubifs_key *key,
-			void *node, const struct qstr *nm);
+						void *node, const struct qstr *nm);
 int ubifs_tnc_locate(struct ubifs_info *c, const union ubifs_key *key,
-		     void *node, int *lnum, int *offs);
+					 void *node, int *lnum, int *offs);
 int ubifs_tnc_add(struct ubifs_info *c, const union ubifs_key *key, int lnum,
-		  int offs, int len);
+				  int offs, int len);
 int ubifs_tnc_replace(struct ubifs_info *c, const union ubifs_key *key,
-		      int old_lnum, int old_offs, int lnum, int offs, int len);
+					  int old_lnum, int old_offs, int lnum, int offs, int len);
 int ubifs_tnc_add_nm(struct ubifs_info *c, const union ubifs_key *key,
-		     int lnum, int offs, int len, const struct qstr *nm);
+					 int lnum, int offs, int len, const struct qstr *nm);
 int ubifs_tnc_remove(struct ubifs_info *c, const union ubifs_key *key);
 int ubifs_tnc_remove_nm(struct ubifs_info *c, const union ubifs_key *key,
-			const struct qstr *nm);
+						const struct qstr *nm);
 int ubifs_tnc_remove_range(struct ubifs_info *c, union ubifs_key *from_key,
-			   union ubifs_key *to_key);
+						   union ubifs_key *to_key);
 int ubifs_tnc_remove_ino(struct ubifs_info *c, ino_t inum);
 struct ubifs_dent_node *ubifs_tnc_next_ent(struct ubifs_info *c,
-					   union ubifs_key *key,
-					   const struct qstr *nm);
+		union ubifs_key *key,
+		const struct qstr *nm);
 void ubifs_tnc_close(struct ubifs_info *c);
 int ubifs_tnc_has_node(struct ubifs_info *c, union ubifs_key *key, int level,
-		       int lnum, int offs, int is_idx);
+					   int lnum, int offs, int is_idx);
 int ubifs_dirty_idx_node(struct ubifs_info *c, union ubifs_key *key, int level,
-			 int lnum, int offs);
+						 int lnum, int offs);
 /* Shared by tnc.c for tnc_commit.c */
 void destroy_old_idx(struct ubifs_info *c);
 int is_idx_node_in_tnc(struct ubifs_info *c, union ubifs_key *key, int level,
-		       int lnum, int offs);
+					   int lnum, int offs);
 int insert_old_idx_znode(struct ubifs_info *c, struct ubifs_znode *znode);
 int ubifs_tnc_get_bu_keys(struct ubifs_info *c, struct bu_info *bu);
 int ubifs_tnc_bulk_read(struct ubifs_info *c, struct bu_info *bu);
 
 /* tnc_misc.c */
 struct ubifs_znode *ubifs_tnc_levelorder_next(struct ubifs_znode *zr,
-					      struct ubifs_znode *znode);
+		struct ubifs_znode *znode);
 int ubifs_search_zbranch(const struct ubifs_info *c,
-			 const struct ubifs_znode *znode,
-			 const union ubifs_key *key, int *n);
+						 const struct ubifs_znode *znode,
+						 const union ubifs_key *key, int *n);
 struct ubifs_znode *ubifs_tnc_postorder_first(struct ubifs_znode *znode);
 struct ubifs_znode *ubifs_tnc_postorder_next(struct ubifs_znode *znode);
 long ubifs_destroy_tnc_subtree(struct ubifs_znode *zr);
 struct ubifs_znode *ubifs_load_znode(struct ubifs_info *c,
-				     struct ubifs_zbranch *zbr,
-				     struct ubifs_znode *parent, int iip);
+									 struct ubifs_zbranch *zbr,
+									 struct ubifs_znode *parent, int iip);
 int ubifs_tnc_read_node(struct ubifs_info *c, struct ubifs_zbranch *zbr,
-			void *node);
+						void *node);
 
 /* tnc_commit.c */
 int ubifs_tnc_start_commit(struct ubifs_info *c, struct ubifs_zbranch *zroot);
@@ -1620,9 +1661,9 @@ int ubifs_tnc_end_commit(struct ubifs_info *c);
 
 /* shrinker.c */
 unsigned long ubifs_shrink_scan(struct shrinker *shrink,
-				struct shrink_control *sc);
+								struct shrink_control *sc);
 unsigned long ubifs_shrink_count(struct shrinker *shrink,
-				 struct shrink_control *sc);
+								 struct shrink_control *sc);
 
 /* commit.c */
 int ubifs_bg_thread(void *info);
@@ -1645,7 +1686,7 @@ int ubifs_fixup_free_space(struct ubifs_info *c);
 
 /* replay.c */
 int ubifs_validate_entry(struct ubifs_info *c,
-			 const struct ubifs_dent_node *dent);
+						 const struct ubifs_dent_node *dent);
 int ubifs_replay_journal(struct ubifs_info *c);
 
 /* gc.c */
@@ -1667,25 +1708,25 @@ int ubifs_clear_orphans(struct ubifs_info *c);
 /* lpt.c */
 int ubifs_calc_lpt_geom(struct ubifs_info *c);
 int ubifs_create_dflt_lpt(struct ubifs_info *c, int *main_lebs, int lpt_first,
-			  int *lpt_lebs, int *big_lpt);
+						  int *lpt_lebs, int *big_lpt);
 int ubifs_lpt_init(struct ubifs_info *c, int rd, int wr);
 struct ubifs_lprops *ubifs_lpt_lookup(struct ubifs_info *c, int lnum);
 struct ubifs_lprops *ubifs_lpt_lookup_dirty(struct ubifs_info *c, int lnum);
 int ubifs_lpt_scan_nolock(struct ubifs_info *c, int start_lnum, int end_lnum,
-			  ubifs_lpt_scan_callback scan_cb, void *data);
+						  ubifs_lpt_scan_callback scan_cb, void *data);
 
 /* Shared by lpt.c for lpt_commit.c */
 void ubifs_pack_lsave(struct ubifs_info *c, void *buf, int *lsave);
 void ubifs_pack_ltab(struct ubifs_info *c, void *buf,
-		     struct ubifs_lpt_lprops *ltab);
+					 struct ubifs_lpt_lprops *ltab);
 void ubifs_pack_pnode(struct ubifs_info *c, void *buf,
-		      struct ubifs_pnode *pnode);
+					  struct ubifs_pnode *pnode);
 void ubifs_pack_nnode(struct ubifs_info *c, void *buf,
-		      struct ubifs_nnode *nnode);
+					  struct ubifs_nnode *nnode);
 struct ubifs_pnode *ubifs_get_pnode(struct ubifs_info *c,
-				    struct ubifs_nnode *parent, int iip);
+									struct ubifs_nnode *parent, int iip);
 struct ubifs_nnode *ubifs_get_nnode(struct ubifs_info *c,
-				    struct ubifs_nnode *parent, int iip);
+									struct ubifs_nnode *parent, int iip);
 int ubifs_read_nnode(struct ubifs_info *c, struct ubifs_nnode *parent, int iip);
 void ubifs_add_lpt_dirt(struct ubifs_info *c, int lnum, int dirty);
 void ubifs_add_nnode_dirt(struct ubifs_info *c, struct ubifs_nnode *nnode);
@@ -1693,7 +1734,7 @@ uint32_t ubifs_unpack_bits(uint8_t **addr, int *pos, int nrbits);
 struct ubifs_nnode *ubifs_first_nnode(struct ubifs_info *c, int *hght);
 /* Needed only in debugging code in lpt_commit.c */
 int ubifs_unpack_nnode(const struct ubifs_info *c, void *buf,
-		       struct ubifs_nnode *nnode);
+					   struct ubifs_nnode *nnode);
 
 /* lpt_commit.c */
 int ubifs_lpt_start_commit(struct ubifs_info *c);
@@ -1703,21 +1744,21 @@ void ubifs_lpt_free(struct ubifs_info *c, int wr_only);
 
 /* lprops.c */
 const struct ubifs_lprops *ubifs_change_lp(struct ubifs_info *c,
-					   const struct ubifs_lprops *lp,
-					   int free, int dirty, int flags,
-					   int idx_gc_cnt);
+		const struct ubifs_lprops *lp,
+		int free, int dirty, int flags,
+		int idx_gc_cnt);
 void ubifs_get_lp_stats(struct ubifs_info *c, struct ubifs_lp_stats *lst);
 void ubifs_add_to_cat(struct ubifs_info *c, struct ubifs_lprops *lprops,
-		      int cat);
+					  int cat);
 void ubifs_replace_cat(struct ubifs_info *c, struct ubifs_lprops *old_lprops,
-		       struct ubifs_lprops *new_lprops);
+					   struct ubifs_lprops *new_lprops);
 void ubifs_ensure_cat(struct ubifs_info *c, struct ubifs_lprops *lprops);
 int ubifs_categorize_lprops(const struct ubifs_info *c,
-			    const struct ubifs_lprops *lprops);
+							const struct ubifs_lprops *lprops);
 int ubifs_change_one_lp(struct ubifs_info *c, int lnum, int free, int dirty,
-			int flags_set, int flags_clean, int idx_gc_cnt);
+						int flags_set, int flags_clean, int idx_gc_cnt);
 int ubifs_update_one_lp(struct ubifs_info *c, int lnum, int free, int dirty,
-			int flags_set, int flags_clean);
+						int flags_set, int flags_clean);
 int ubifs_read_one_lp(struct ubifs_info *c, int lnum, struct ubifs_lprops *lp);
 const struct ubifs_lprops *ubifs_fast_find_free(struct ubifs_info *c);
 const struct ubifs_lprops *ubifs_fast_find_empty(struct ubifs_info *c);
@@ -1729,20 +1770,20 @@ int ubifs_calc_dark(const struct ubifs_info *c, int spc);
 int ubifs_fsync(struct file *file, loff_t start, loff_t end, int datasync);
 int ubifs_setattr(struct dentry *dentry, struct iattr *attr);
 #ifdef CONFIG_UBIFS_ATIME_SUPPORT
-int ubifs_update_time(struct inode *inode, struct timespec *time, int flags);
+	int ubifs_update_time(struct inode *inode, struct timespec *time, int flags);
 #endif
 
 /* dir.c */
 struct inode *ubifs_new_inode(struct ubifs_info *c, const struct inode *dir,
-			      umode_t mode);
+							  umode_t mode);
 int ubifs_getattr(struct vfsmount *mnt, struct dentry *dentry,
-		  struct kstat *stat);
+				  struct kstat *stat);
 
 /* xattr.c */
 extern const struct xattr_handler *ubifs_xattr_handlers[];
 ssize_t ubifs_listxattr(struct dentry *dentry, char *buffer, size_t size);
 int ubifs_init_security(struct inode *dentry, struct inode *inode,
-			const struct qstr *qstr);
+						const struct qstr *qstr);
 
 /* super.c */
 struct inode *ubifs_iget(struct super_block *sb, unsigned long inum);
@@ -1751,14 +1792,14 @@ struct inode *ubifs_iget(struct super_block *sb, unsigned long inum);
 int ubifs_recover_master_node(struct ubifs_info *c);
 int ubifs_write_rcvrd_mst_node(struct ubifs_info *c);
 struct ubifs_scan_leb *ubifs_recover_leb(struct ubifs_info *c, int lnum,
-					 int offs, void *sbuf, int jhead);
+		int offs, void *sbuf, int jhead);
 struct ubifs_scan_leb *ubifs_recover_log_leb(struct ubifs_info *c, int lnum,
-					     int offs, void *sbuf);
+		int offs, void *sbuf);
 int ubifs_recover_inl_heads(struct ubifs_info *c, void *sbuf);
 int ubifs_clean_lebs(struct ubifs_info *c, void *sbuf);
 int ubifs_rcvry_gc_commit(struct ubifs_info *c);
 int ubifs_recover_size_accum(struct ubifs_info *c, union ubifs_key *key,
-			     int deletion, loff_t new_size);
+							 int deletion, loff_t new_size);
 int ubifs_recover_size(struct ubifs_info *c);
 void ubifs_destroy_size_tree(struct ubifs_info *c);
 
@@ -1766,16 +1807,16 @@ void ubifs_destroy_size_tree(struct ubifs_info *c);
 long ubifs_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 void ubifs_set_inode_flags(struct inode *inode);
 #ifdef CONFIG_COMPAT
-long ubifs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+	long ubifs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 #endif
 
 /* compressor.c */
 int __init ubifs_compressors_init(void);
 void ubifs_compressors_exit(void);
 void ubifs_compress(const struct ubifs_info *c, const void *in_buf, int in_len,
-		    void *out_buf, int *out_len, int *compr_type);
+					void *out_buf, int *out_len, int *compr_type);
 int ubifs_decompress(const struct ubifs_info *c, const void *buf, int len,
-		     void *out, int *out_len, int compr_type);
+					 void *out, int *out_len, int compr_type);
 
 #include "debug.h"
 #include "misc.h"
@@ -1793,9 +1834,9 @@ void ubifs_warn(const struct ubifs_info *c, const char *fmt, ...);
  * if probing (ie. MS_SILENT set).
  */
 #define ubifs_errc(c, fmt, ...)						\
-do {									\
-	if (!(c)->probing)						\
-		ubifs_err(c, fmt, ##__VA_ARGS__);			\
-} while (0)
+	do {									\
+		if (!(c)->probing)						\
+			ubifs_err(c, fmt, ##__VA_ARGS__);			\
+	} while (0)
 
 #endif /* !__UBIFS_H__ */

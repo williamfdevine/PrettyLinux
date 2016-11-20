@@ -6,7 +6,8 @@
  * tree except for omap where there are still some dependencies
  * to the legacy PRM code.
  */
-struct pcs_pdata {
+struct pcs_pdata
+{
 	int irq;
 	void (*rearm)(void);
 };

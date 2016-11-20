@@ -174,9 +174,9 @@
 
 /* On AVR chips the Peripheral DMA Controller is not connected to MCI. */
 #ifdef CONFIG_AVR32
-#	define ATMCI_PDC_CONNECTED	0
+	#define ATMCI_PDC_CONNECTED	0
 #else
-#	define ATMCI_PDC_CONNECTED	1
+	#define ATMCI_PDC_CONNECTED	1
 #endif
 
 #define AUTOSUSPEND_DELAY	50
@@ -184,14 +184,16 @@
 #define ATMCI_DATA_ERROR_FLAGS	(ATMCI_DCRCE | ATMCI_DTOE | ATMCI_OVRE | ATMCI_UNRE)
 #define ATMCI_DMA_THRESHOLD	16
 
-enum {
+enum
+{
 	EVENT_CMD_RDY = 0,
 	EVENT_XFER_COMPLETE,
 	EVENT_NOTBUSY,
 	EVENT_DATA_ERROR,
 };
 
-enum atmel_mci_state {
+enum atmel_mci_state
+{
 	STATE_IDLE = 0,
 	STATE_SENDING_CMD,
 	STATE_DATA_XFER,
@@ -200,17 +202,20 @@ enum atmel_mci_state {
 	STATE_END_REQUEST,
 };
 
-enum atmci_xfer_dir {
+enum atmci_xfer_dir
+{
 	XFER_RECEIVE = 0,
 	XFER_TRANSMIT,
 };
 
-enum atmci_pdc_buf {
+enum atmci_pdc_buf
+{
 	PDC_FIRST_BUF = 0,
 	PDC_SECOND_BUF,
 };
 
-struct atmel_mci_caps {
+struct atmel_mci_caps
+{
 	bool    has_dma_conf_reg;
 	bool    has_pdc;
 	bool    has_cfg_reg;
@@ -224,7 +229,8 @@ struct atmel_mci_caps {
 	bool	need_notbusy_for_read_ops;
 };
 
-struct atmel_mci_dma {
+struct atmel_mci_dma
+{
 	struct dma_chan			*chan;
 	struct dma_async_tx_descriptor	*data_desc;
 };
@@ -310,7 +316,8 @@ struct atmel_mci_dma {
  * bytes_xfered field of @data must be written. This is ensured by
  * using barriers.
  */
-struct atmel_mci {
+struct atmel_mci
+{
 	spinlock_t		lock;
 	void __iomem		*regs;
 
@@ -379,7 +386,8 @@ struct atmel_mci {
  * @detect_is_active_high: The state of the detect pin when it is active.
  * @detect_timer: Timer used for debouncing @detect_pin interrupts.
  */
-struct atmel_mci_slot {
+struct atmel_mci_slot
+{
 	struct mmc_host		*mmc;
 	struct atmel_mci	*host;
 
@@ -425,27 +433,30 @@ static int atmci_req_show(struct seq_file *s, void *v)
 	spin_lock_bh(&slot->host->lock);
 	mrq = slot->mrq;
 
-	if (mrq) {
+	if (mrq)
+	{
 		cmd = mrq->cmd;
 		data = mrq->data;
 		stop = mrq->stop;
 
 		if (cmd)
 			seq_printf(s,
-				"CMD%u(0x%x) flg %x rsp %x %x %x %x err %d\n",
-				cmd->opcode, cmd->arg, cmd->flags,
-				cmd->resp[0], cmd->resp[1], cmd->resp[2],
-				cmd->resp[3], cmd->error);
+					   "CMD%u(0x%x) flg %x rsp %x %x %x %x err %d\n",
+					   cmd->opcode, cmd->arg, cmd->flags,
+					   cmd->resp[0], cmd->resp[1], cmd->resp[2],
+					   cmd->resp[3], cmd->error);
+
 		if (data)
 			seq_printf(s, "DATA %u / %u * %u flg %x err %d\n",
-				data->bytes_xfered, data->blocks,
-				data->blksz, data->flags, data->error);
+					   data->bytes_xfered, data->blocks,
+					   data->blksz, data->flags, data->error);
+
 		if (stop)
 			seq_printf(s,
-				"CMD%u(0x%x) flg %x rsp %x %x %x %x err %d\n",
-				stop->opcode, stop->arg, stop->flags,
-				stop->resp[0], stop->resp[1], stop->resp[2],
-				stop->resp[3], stop->error);
+					   "CMD%u(0x%x) flg %x rsp %x %x %x %x err %d\n",
+					   stop->opcode, stop->arg, stop->flags,
+					   stop->resp[0], stop->resp[1], stop->resp[2],
+					   stop->resp[3], stop->error);
 	}
 
 	spin_unlock_bh(&slot->host->lock);
@@ -458,7 +469,8 @@ static int atmci_req_open(struct inode *inode, struct file *file)
 	return single_open(file, atmci_req_show, inode->i_private);
 }
 
-static const struct file_operations atmci_req_fops = {
+static const struct file_operations atmci_req_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= atmci_req_open,
 	.read		= seq_read,
@@ -467,9 +479,10 @@ static const struct file_operations atmci_req_fops = {
 };
 
 static void atmci_show_status_reg(struct seq_file *s,
-		const char *regname, u32 value)
+								  const char *regname, u32 value)
 {
-	static const char	*sr_bit[] = {
+	static const char	*sr_bit[] =
+	{
 		[0]	= "CMDRDY",
 		[1]	= "RXRDY",
 		[2]	= "TXRDY",
@@ -501,14 +514,22 @@ static void atmci_show_status_reg(struct seq_file *s,
 	unsigned int		i;
 
 	seq_printf(s, "%s:\t0x%08x", regname, value);
-	for (i = 0; i < ARRAY_SIZE(sr_bit); i++) {
-		if (value & (1 << i)) {
+
+	for (i = 0; i < ARRAY_SIZE(sr_bit); i++)
+	{
+		if (value & (1 << i))
+		{
 			if (sr_bit[i])
+			{
 				seq_printf(s, " %s", sr_bit[i]);
+			}
 			else
+			{
 				seq_puts(s, " UNKNOWN");
+			}
 		}
 	}
+
 	seq_putc(s, '\n');
 }
 
@@ -520,8 +541,11 @@ static int atmci_regs_show(struct seq_file *s, void *v)
 
 
 	buf = kmalloc(ATMCI_REGS_SIZE, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	pm_runtime_get_sync(&host->pdev->dev);
 
@@ -538,51 +562,59 @@ static int atmci_regs_show(struct seq_file *s, void *v)
 	pm_runtime_put_autosuspend(&host->pdev->dev);
 
 	seq_printf(s, "MR:\t0x%08x%s%s ",
-			buf[ATMCI_MR / 4],
-			buf[ATMCI_MR / 4] & ATMCI_MR_RDPROOF ? " RDPROOF" : "",
-			buf[ATMCI_MR / 4] & ATMCI_MR_WRPROOF ? " WRPROOF" : "");
+			   buf[ATMCI_MR / 4],
+			   buf[ATMCI_MR / 4] & ATMCI_MR_RDPROOF ? " RDPROOF" : "",
+			   buf[ATMCI_MR / 4] & ATMCI_MR_WRPROOF ? " WRPROOF" : "");
+
 	if (host->caps.has_odd_clk_div)
 		seq_printf(s, "{CLKDIV,CLKODD}=%u\n",
-				((buf[ATMCI_MR / 4] & 0xff) << 1)
-				| ((buf[ATMCI_MR / 4] >> 16) & 1));
+				   ((buf[ATMCI_MR / 4] & 0xff) << 1)
+				   | ((buf[ATMCI_MR / 4] >> 16) & 1));
 	else
 		seq_printf(s, "CLKDIV=%u\n",
-				(buf[ATMCI_MR / 4] & 0xff));
+				   (buf[ATMCI_MR / 4] & 0xff));
+
 	seq_printf(s, "DTOR:\t0x%08x\n", buf[ATMCI_DTOR / 4]);
 	seq_printf(s, "SDCR:\t0x%08x\n", buf[ATMCI_SDCR / 4]);
 	seq_printf(s, "ARGR:\t0x%08x\n", buf[ATMCI_ARGR / 4]);
 	seq_printf(s, "BLKR:\t0x%08x BCNT=%u BLKLEN=%u\n",
-			buf[ATMCI_BLKR / 4],
-			buf[ATMCI_BLKR / 4] & 0xffff,
-			(buf[ATMCI_BLKR / 4] >> 16) & 0xffff);
+			   buf[ATMCI_BLKR / 4],
+			   buf[ATMCI_BLKR / 4] & 0xffff,
+			   (buf[ATMCI_BLKR / 4] >> 16) & 0xffff);
+
 	if (host->caps.has_cstor_reg)
+	{
 		seq_printf(s, "CSTOR:\t0x%08x\n", buf[ATMCI_CSTOR / 4]);
+	}
 
 	/* Don't read RSPR and RDR; it will consume the data there */
 
 	atmci_show_status_reg(s, "SR", buf[ATMCI_SR / 4]);
 	atmci_show_status_reg(s, "IMR", buf[ATMCI_IMR / 4]);
 
-	if (host->caps.has_dma_conf_reg) {
+	if (host->caps.has_dma_conf_reg)
+	{
 		u32 val;
 
 		val = buf[ATMCI_DMA / 4];
 		seq_printf(s, "DMA:\t0x%08x OFFSET=%u CHKSIZE=%u%s\n",
-				val, val & 3,
-				((val >> 4) & 3) ?
-					1 << (((val >> 4) & 3) + 1) : 1,
-				val & ATMCI_DMAEN ? " DMAEN" : "");
+				   val, val & 3,
+				   ((val >> 4) & 3) ?
+				   1 << (((val >> 4) & 3) + 1) : 1,
+				   val & ATMCI_DMAEN ? " DMAEN" : "");
 	}
-	if (host->caps.has_cfg_reg) {
+
+	if (host->caps.has_cfg_reg)
+	{
 		u32 val;
 
 		val = buf[ATMCI_CFG / 4];
 		seq_printf(s, "CFG:\t0x%08x%s%s%s%s\n",
-				val,
-				val & ATMCI_CFG_FIFOMODE_1DATA ? " FIFOMODE_ONE_DATA" : "",
-				val & ATMCI_CFG_FERRCTRL_COR ? " FERRCTRL_CLEAR_ON_READ" : "",
-				val & ATMCI_CFG_HSMODE ? " HSMODE" : "",
-				val & ATMCI_CFG_LSYNC ? " LSYNC" : "");
+				   val,
+				   val & ATMCI_CFG_FIFOMODE_1DATA ? " FIFOMODE_ONE_DATA" : "",
+				   val & ATMCI_CFG_FERRCTRL_COR ? " FERRCTRL_CLEAR_ON_READ" : "",
+				   val & ATMCI_CFG_HSMODE ? " HSMODE" : "",
+				   val & ATMCI_CFG_LSYNC ? " LSYNC" : "");
 	}
 
 	kfree(buf);
@@ -595,7 +627,8 @@ static int atmci_regs_open(struct inode *inode, struct file *file)
 	return single_open(file, atmci_regs_show, inode->i_private);
 }
 
-static const struct file_operations atmci_regs_fops = {
+static const struct file_operations atmci_regs_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= atmci_regs_open,
 	.read		= seq_read,
@@ -611,33 +644,54 @@ static void atmci_init_debugfs(struct atmel_mci_slot *slot)
 	struct dentry		*node;
 
 	root = mmc->debugfs_root;
+
 	if (!root)
+	{
 		return;
+	}
 
 	node = debugfs_create_file("regs", S_IRUSR, root, host,
-			&atmci_regs_fops);
+							   &atmci_regs_fops);
+
 	if (IS_ERR(node))
+	{
 		return;
+	}
+
 	if (!node)
+	{
 		goto err;
+	}
 
 	node = debugfs_create_file("req", S_IRUSR, root, slot, &atmci_req_fops);
+
 	if (!node)
+	{
 		goto err;
+	}
 
 	node = debugfs_create_u32("state", S_IRUSR, root, (u32 *)&host->state);
+
 	if (!node)
+	{
 		goto err;
+	}
 
 	node = debugfs_create_x32("pending_events", S_IRUSR, root,
-				     (u32 *)&host->pending_events);
+							  (u32 *)&host->pending_events);
+
 	if (!node)
+	{
 		goto err;
+	}
 
 	node = debugfs_create_x32("completed_events", S_IRUSR, root,
-				     (u32 *)&host->completed_events);
+							  (u32 *)&host->completed_events);
+
 	if (!node)
+	{
 		goto err;
+	}
 
 	return;
 
@@ -646,14 +700,15 @@ err:
 }
 
 #if defined(CONFIG_OF)
-static const struct of_device_id atmci_dt_ids[] = {
+static const struct of_device_id atmci_dt_ids[] =
+{
 	{ .compatible = "atmel,hsmci" },
 	{ /* sentinel */ }
 };
 
 MODULE_DEVICE_TABLE(of, atmci_dt_ids);
 
-static struct mci_platform_data*
+static struct mci_platform_data *
 atmci_of_init(struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
@@ -661,33 +716,41 @@ atmci_of_init(struct platform_device *pdev)
 	struct mci_platform_data *pdata;
 	u32 slot_id;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&pdev->dev, "device node not found\n");
 		return ERR_PTR(-EINVAL);
 	}
 
 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "could not allocate memory for pdata\n");
 		return ERR_PTR(-ENOMEM);
 	}
 
-	for_each_child_of_node(np, cnp) {
-		if (of_property_read_u32(cnp, "reg", &slot_id)) {
+	for_each_child_of_node(np, cnp)
+	{
+		if (of_property_read_u32(cnp, "reg", &slot_id))
+		{
 			dev_warn(&pdev->dev, "reg property is missing for %s\n",
-				 cnp->full_name);
+					 cnp->full_name);
 			continue;
 		}
 
-		if (slot_id >= ATMCI_MAX_NR_SLOTS) {
+		if (slot_id >= ATMCI_MAX_NR_SLOTS)
+		{
 			dev_warn(&pdev->dev, "can't have more than %d slots\n",
-			         ATMCI_MAX_NR_SLOTS);
+					 ATMCI_MAX_NR_SLOTS);
 			break;
 		}
 
 		if (of_property_read_u32(cnp, "bus-width",
-		                         &pdata->slot[slot_id].bus_width))
+								 &pdata->slot[slot_id].bus_width))
+		{
 			pdata->slot[slot_id].bus_width = 1;
+		}
 
 		pdata->slot[slot_id].detect_pin =
 			of_get_named_gpio(cnp, "cd-gpios", 0);
@@ -705,7 +768,7 @@ atmci_of_init(struct platform_device *pdev)
 	return pdata;
 }
 #else /* CONFIG_OF */
-static inline struct mci_platform_data*
+static inline struct mci_platform_data *
 atmci_of_init(struct platform_device *dev)
 {
 	return ERR_PTR(-EINVAL);
@@ -726,18 +789,24 @@ static inline unsigned int atmci_get_version(struct atmel_mci *host)
  * This can be done by finding most significant bit set.
  */
 static inline unsigned int atmci_convert_chksize(struct atmel_mci *host,
-						 unsigned int maxburst)
+		unsigned int maxburst)
 {
 	unsigned int version = atmci_get_version(host);
 	unsigned int offset = 2;
 
 	if (version >= 0x600)
+	{
 		offset = 1;
+	}
 
 	if (maxburst > 1)
+	{
 		return fls(maxburst) - offset;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static void atmci_timeout_timer(unsigned long data)
@@ -748,20 +817,27 @@ static void atmci_timeout_timer(unsigned long data)
 
 	dev_dbg(&host->pdev->dev, "software timeout\n");
 
-	if (host->mrq->cmd->data) {
+	if (host->mrq->cmd->data)
+	{
 		host->mrq->cmd->data->error = -ETIMEDOUT;
 		host->data = NULL;
+
 		/*
 		 * With some SDIO modules, sometimes DMA transfer hangs. If
 		 * stop_transfer() is not called then the DMA request is not
 		 * removed, following ones are queued and never computed.
 		 */
 		if (host->state == STATE_DATA_XFER)
+		{
 			host->stop_transfer(host);
-	} else {
+		}
+	}
+	else
+	{
 		host->mrq->cmd->error = -ETIMEDOUT;
 		host->cmd = NULL;
 	}
+
 	host->need_reset = 1;
 	host->state = STATE_END_REQUEST;
 	smp_wmb();
@@ -769,7 +845,7 @@ static void atmci_timeout_timer(unsigned long data)
 }
 
 static inline unsigned int atmci_ns_to_clocks(struct atmel_mci *host,
-					unsigned int ns)
+		unsigned int ns)
 {
 	/*
 	 * It is easier here to use us instead of ns for the timeout,
@@ -782,9 +858,10 @@ static inline unsigned int atmci_ns_to_clocks(struct atmel_mci *host,
 }
 
 static void atmci_set_timeout(struct atmel_mci *host,
-		struct atmel_mci_slot *slot, struct mmc_data *data)
+							  struct atmel_mci_slot *slot, struct mmc_data *data)
 {
-	static unsigned	dtomul_to_shift[] = {
+	static unsigned	dtomul_to_shift[] =
+	{
 		0, 4, 7, 8, 10, 12, 16, 20
 	};
 	unsigned	timeout;
@@ -792,22 +869,27 @@ static void atmci_set_timeout(struct atmel_mci *host,
 	unsigned	dtomul;
 
 	timeout = atmci_ns_to_clocks(host, data->timeout_ns)
-		+ data->timeout_clks;
+			  + data->timeout_clks;
 
-	for (dtomul = 0; dtomul < 8; dtomul++) {
+	for (dtomul = 0; dtomul < 8; dtomul++)
+	{
 		unsigned shift = dtomul_to_shift[dtomul];
 		dtocyc = (timeout + (1 << shift) - 1) >> shift;
+
 		if (dtocyc < 15)
+		{
 			break;
+		}
 	}
 
-	if (dtomul >= 8) {
+	if (dtomul >= 8)
+	{
 		dtomul = 7;
 		dtocyc = 15;
 	}
 
 	dev_vdbg(&slot->mmc->class_dev, "setting timeout to %u cycles\n",
-			dtocyc << dtomul_to_shift[dtomul]);
+			 dtocyc << dtomul_to_shift[dtomul]);
 	atmci_writel(host, ATMCI_DTOR, (ATMCI_DTOMUL(dtomul) | ATMCI_DTOCYC(dtocyc)));
 }
 
@@ -815,7 +897,7 @@ static void atmci_set_timeout(struct atmel_mci *host,
  * Return mask with command flags to be enabled for this command.
  */
 static u32 atmci_prepare_command(struct mmc_host *mmc,
-				 struct mmc_command *cmd)
+								 struct mmc_command *cmd)
 {
 	struct mmc_data	*data;
 	u32		cmdr;
@@ -824,11 +906,16 @@ static u32 atmci_prepare_command(struct mmc_host *mmc,
 
 	cmdr = ATMCI_CMDR_CMDNB(cmd->opcode);
 
-	if (cmd->flags & MMC_RSP_PRESENT) {
+	if (cmd->flags & MMC_RSP_PRESENT)
+	{
 		if (cmd->flags & MMC_RSP_136)
+		{
 			cmdr |= ATMCI_CMDR_RSPTYP_136BIT;
+		}
 		else
+		{
 			cmdr |= ATMCI_CMDR_RSPTYP_48BIT;
+		}
 	}
 
 	/*
@@ -839,37 +926,50 @@ static u32 atmci_prepare_command(struct mmc_host *mmc,
 	cmdr |= ATMCI_CMDR_MAXLAT_64CYC;
 
 	if (mmc->ios.bus_mode == MMC_BUSMODE_OPENDRAIN)
+	{
 		cmdr |= ATMCI_CMDR_OPDCMD;
+	}
 
 	data = cmd->data;
-	if (data) {
+
+	if (data)
+	{
 		cmdr |= ATMCI_CMDR_START_XFER;
 
-		if (cmd->opcode == SD_IO_RW_EXTENDED) {
+		if (cmd->opcode == SD_IO_RW_EXTENDED)
+		{
 			cmdr |= ATMCI_CMDR_SDIO_BLOCK;
-		} else {
+		}
+		else
+		{
 			if (data->blocks > 1)
+			{
 				cmdr |= ATMCI_CMDR_MULTI_BLOCK;
+			}
 			else
+			{
 				cmdr |= ATMCI_CMDR_BLOCK;
+			}
 		}
 
 		if (data->flags & MMC_DATA_READ)
+		{
 			cmdr |= ATMCI_CMDR_TRDIR_READ;
+		}
 	}
 
 	return cmdr;
 }
 
 static void atmci_send_command(struct atmel_mci *host,
-		struct mmc_command *cmd, u32 cmd_flags)
+							   struct mmc_command *cmd, u32 cmd_flags)
 {
 	WARN_ON(host->cmd);
 	host->cmd = cmd;
 
 	dev_vdbg(&host->pdev->dev,
-			"start command: ARGR=0x%08x CMDR=0x%08x\n",
-			cmd->arg, cmd_flags);
+			 "start command: ARGR=0x%08x CMDR=0x%08x\n",
+			 cmd->arg, cmd_flags);
 
 	atmci_writel(host, ATMCI_ARGR, cmd->arg);
 	atmci_writel(host, ATMCI_CMDR, cmd_flags);
@@ -887,48 +987,65 @@ static void atmci_send_stop_cmd(struct atmel_mci *host, struct mmc_data *data)
  * Update host->data_size and host->sg.
  */
 static void atmci_pdc_set_single_buf(struct atmel_mci *host,
-	enum atmci_xfer_dir dir, enum atmci_pdc_buf buf_nb)
+									 enum atmci_xfer_dir dir, enum atmci_pdc_buf buf_nb)
 {
 	u32 pointer_reg, counter_reg;
 	unsigned int buf_size;
 
-	if (dir == XFER_RECEIVE) {
+	if (dir == XFER_RECEIVE)
+	{
 		pointer_reg = ATMEL_PDC_RPR;
 		counter_reg = ATMEL_PDC_RCR;
-	} else {
+	}
+	else
+	{
 		pointer_reg = ATMEL_PDC_TPR;
 		counter_reg = ATMEL_PDC_TCR;
 	}
 
-	if (buf_nb == PDC_SECOND_BUF) {
+	if (buf_nb == PDC_SECOND_BUF)
+	{
 		pointer_reg += ATMEL_PDC_SCND_BUF_OFF;
 		counter_reg += ATMEL_PDC_SCND_BUF_OFF;
 	}
 
-	if (!host->caps.has_rwproof) {
+	if (!host->caps.has_rwproof)
+	{
 		buf_size = host->buf_size;
 		atmci_writel(host, pointer_reg, host->buf_phys_addr);
-	} else {
+	}
+	else
+	{
 		buf_size = sg_dma_len(host->sg);
 		atmci_writel(host, pointer_reg, sg_dma_address(host->sg));
 	}
 
-	if (host->data_size <= buf_size) {
-		if (host->data_size & 0x3) {
+	if (host->data_size <= buf_size)
+	{
+		if (host->data_size & 0x3)
+		{
 			/* If size is different from modulo 4, transfer bytes */
 			atmci_writel(host, counter_reg, host->data_size);
 			atmci_writel(host, ATMCI_MR, host->mode_reg | ATMCI_MR_PDCFBYTE);
-		} else {
+		}
+		else
+		{
 			/* Else transfer 32-bits words */
 			atmci_writel(host, counter_reg, host->data_size / 4);
 		}
+
 		host->data_size = 0;
-	} else {
+	}
+	else
+	{
 		/* We assume the size of a page is 32-bits aligned */
 		atmci_writel(host, counter_reg, sg_dma_len(host->sg) / 4);
 		host->data_size -= sg_dma_len(host->sg);
+
 		if (host->data_size)
+		{
 			host->sg = sg_next(host->sg);
+		}
 	}
 }
 
@@ -940,8 +1057,11 @@ static void atmci_pdc_set_single_buf(struct atmel_mci *host,
 static void atmci_pdc_set_both_buf(struct atmel_mci *host, int dir)
 {
 	atmci_pdc_set_single_buf(host, dir, PDC_FIRST_BUF);
+
 	if (host->data_size)
+	{
 		atmci_pdc_set_single_buf(host, dir, PDC_SECOND_BUF);
+	}
 }
 
 /*
@@ -953,9 +1073,9 @@ static void atmci_pdc_cleanup(struct atmel_mci *host)
 
 	if (data)
 		dma_unmap_sg(&host->pdev->dev,
-				data->sg, data->sg_len,
-				((data->flags & MMC_DATA_WRITE)
-				 ? DMA_TO_DEVICE : DMA_FROM_DEVICE));
+					 data->sg, data->sg_len,
+					 ((data->flags & MMC_DATA_WRITE)
+					  ? DMA_TO_DEVICE : DMA_FROM_DEVICE));
 }
 
 /*
@@ -971,12 +1091,16 @@ static void atmci_pdc_complete(struct atmel_mci *host)
 	atmci_writel(host, ATMEL_PDC_PTCR, ATMEL_PDC_RXTDIS | ATMEL_PDC_TXTDIS);
 
 	if ((!host->caps.has_rwproof)
-	    && (host->data->flags & MMC_DATA_READ)) {
+		&& (host->data->flags & MMC_DATA_READ))
+	{
 		if (host->caps.has_bad_data_ordering)
 			for (i = 0; i < transfer_size; i++)
+			{
 				host->buffer[i] = swab32(host->buffer[i]);
+			}
+
 		sg_copy_from_buffer(host->data->sg, host->data->sg_len,
-		                    host->buffer, transfer_size);
+							host->buffer, transfer_size);
 	}
 
 	atmci_pdc_cleanup(host);
@@ -992,9 +1116,9 @@ static void atmci_dma_cleanup(struct atmel_mci *host)
 
 	if (data)
 		dma_unmap_sg(host->dma.chan->device->dev,
-				data->sg, data->sg_len,
-				((data->flags & MMC_DATA_WRITE)
-				 ? DMA_TO_DEVICE : DMA_FROM_DEVICE));
+					 data->sg, data->sg_len,
+					 ((data->flags & MMC_DATA_WRITE)
+					  ? DMA_TO_DEVICE : DMA_FROM_DEVICE));
 }
 
 /*
@@ -1009,7 +1133,9 @@ static void atmci_dma_complete(void *arg)
 
 	if (host->caps.has_dma_conf_reg)
 		/* Disable DMA hardware handshaking on MCI */
+	{
 		atmci_writel(host, ATMCI_DMA, atmci_readl(host, ATMCI_DMA) & ~ATMCI_DMAEN);
+	}
 
 	atmci_dma_cleanup(host);
 
@@ -1017,9 +1143,10 @@ static void atmci_dma_complete(void *arg)
 	 * If the card was removed, data will be NULL. No point trying
 	 * to send the stop command or waiting for NBUSY in this case.
 	 */
-	if (data) {
+	if (data)
+	{
 		dev_dbg(&host->pdev->dev,
-		        "(%s) set pending xfer complete\n", __func__);
+				"(%s) set pending xfer complete\n", __func__);
 		atmci_set_pending(host, EVENT_XFER_COMPLETE);
 		tasklet_schedule(&host->tasklet);
 
@@ -1072,14 +1199,21 @@ static u32 atmci_prepare_data(struct atmel_mci *host, struct mmc_data *data)
 	 * corruption when length is not multiple of 4.
 	 */
 	if (data->blocks * data->blksz < 12
-			|| (data->blocks * data->blksz) & 3)
+		|| (data->blocks * data->blksz) & 3)
+	{
 		host->need_reset = true;
+	}
 
 	host->pio_offset = 0;
+
 	if (data->flags & MMC_DATA_READ)
+	{
 		iflags |= ATMCI_RXRDY;
+	}
 	else
+	{
 		iflags |= ATMCI_TXRDY;
+	}
 
 	return iflags;
 }
@@ -1107,10 +1241,13 @@ atmci_prepare_data_pdc(struct atmel_mci *host, struct mmc_data *data)
 	/* Enable pdc mode */
 	atmci_writel(host, ATMCI_MR, host->mode_reg | ATMCI_MR_PDCMODE);
 
-	if (data->flags & MMC_DATA_READ) {
+	if (data->flags & MMC_DATA_READ)
+	{
 		dir = DMA_FROM_DEVICE;
 		iflags |= ATMCI_ENDRX | ATMCI_RXBUFF;
-	} else {
+	}
+	else
+	{
 		dir = DMA_TO_DEVICE;
 		iflags |= ATMCI_ENDTX | ATMCI_TXBUFE | ATMCI_BLKE;
 	}
@@ -1126,17 +1263,21 @@ atmci_prepare_data_pdc(struct atmel_mci *host, struct mmc_data *data)
 	sg_len = dma_map_sg(&host->pdev->dev, data->sg, data->sg_len, dir);
 
 	if ((!host->caps.has_rwproof)
-	    && (host->data->flags & MMC_DATA_WRITE)) {
+		&& (host->data->flags & MMC_DATA_WRITE))
+	{
 		sg_copy_to_buffer(host->data->sg, host->data->sg_len,
-		                  host->buffer, host->data_size);
+						  host->buffer, host->data_size);
+
 		if (host->caps.has_bad_data_ordering)
 			for (i = 0; i < host->data_size; i++)
+			{
 				host->buffer[i] = swab32(host->buffer[i]);
+			}
 	}
 
 	if (host->data_size)
 		atmci_pdc_set_both_buf(host,
-			((dir == DMA_FROM_DEVICE) ? XFER_RECEIVE : XFER_TRANSMIT));
+							   ((dir == DMA_FROM_DEVICE) ? XFER_RECEIVE : XFER_TRANSMIT));
 
 	return iflags;
 }
@@ -1168,48 +1309,67 @@ atmci_prepare_data_dma(struct atmel_mci *host, struct mmc_data *data)
 	 * with all the DMA setup overhead for short transfers.
 	 */
 	if (data->blocks * data->blksz < ATMCI_DMA_THRESHOLD)
+	{
 		return atmci_prepare_data(host, data);
-	if (data->blksz & 3)
-		return atmci_prepare_data(host, data);
+	}
 
-	for_each_sg(data->sg, sg, data->sg_len, i) {
+	if (data->blksz & 3)
+	{
+		return atmci_prepare_data(host, data);
+	}
+
+	for_each_sg(data->sg, sg, data->sg_len, i)
+	{
 		if (sg->offset & 3 || sg->length & 3)
+		{
 			return atmci_prepare_data(host, data);
+		}
 	}
 
 	/* If we don't have a channel, we can't do DMA */
 	chan = host->dma.chan;
+
 	if (chan)
+	{
 		host->data_chan = chan;
+	}
 
 	if (!chan)
+	{
 		return -ENODEV;
+	}
 
-	if (data->flags & MMC_DATA_READ) {
+	if (data->flags & MMC_DATA_READ)
+	{
 		direction = DMA_FROM_DEVICE;
 		host->dma_conf.direction = slave_dirn = DMA_DEV_TO_MEM;
 		maxburst = atmci_convert_chksize(host,
-						 host->dma_conf.src_maxburst);
-	} else {
+										 host->dma_conf.src_maxburst);
+	}
+	else
+	{
 		direction = DMA_TO_DEVICE;
 		host->dma_conf.direction = slave_dirn = DMA_MEM_TO_DEV;
 		maxburst = atmci_convert_chksize(host,
-						 host->dma_conf.dst_maxburst);
+										 host->dma_conf.dst_maxburst);
 	}
 
 	if (host->caps.has_dma_conf_reg)
 		atmci_writel(host, ATMCI_DMA, ATMCI_DMA_CHKSIZE(maxburst) |
-			ATMCI_DMAEN);
+					 ATMCI_DMAEN);
 
 	sglen = dma_map_sg(chan->device->dev, data->sg,
-			data->sg_len, direction);
+					   data->sg_len, direction);
 
 	dmaengine_slave_config(chan, &host->dma_conf);
 	desc = dmaengine_prep_slave_sg(chan,
-			data->sg, sglen, slave_dirn,
-			DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+								   data->sg, sglen, slave_dirn,
+								   DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+
 	if (!desc)
+	{
 		goto unmap_exit;
+	}
 
 	host->dma.data_desc = desc;
 	desc->callback = atmci_dma_complete;
@@ -1234,9 +1394,13 @@ static void
 atmci_submit_data_pdc(struct atmel_mci *host, struct mmc_data *data)
 {
 	if (data->flags & MMC_DATA_READ)
+	{
 		atmci_writel(host, ATMEL_PDC_PTCR, ATMEL_PDC_RXTEN);
+	}
 	else
+	{
 		atmci_writel(host, ATMEL_PDC_PTCR, ATMEL_PDC_TXTEN);
+	}
 }
 
 static void
@@ -1245,7 +1409,8 @@ atmci_submit_data_dma(struct atmel_mci *host, struct mmc_data *data)
 	struct dma_chan			*chan = host->data_chan;
 	struct dma_async_tx_descriptor	*desc = host->dma.data_desc;
 
-	if (chan) {
+	if (chan)
+	{
 		dmaengine_submit(desc);
 		dma_async_issue_pending(chan);
 	}
@@ -1254,7 +1419,7 @@ atmci_submit_data_dma(struct atmel_mci *host, struct mmc_data *data)
 static void atmci_stop_transfer(struct atmel_mci *host)
 {
 	dev_dbg(&host->pdev->dev,
-	        "(%s) set pending xfer complete\n", __func__);
+			"(%s) set pending xfer complete\n", __func__);
 	atmci_set_pending(host, EVENT_XFER_COMPLETE);
 	atmci_writel(host, ATMCI_IER, ATMCI_NOTBUSY);
 }
@@ -1271,13 +1436,16 @@ static void atmci_stop_transfer_dma(struct atmel_mci *host)
 {
 	struct dma_chan *chan = host->data_chan;
 
-	if (chan) {
+	if (chan)
+	{
 		dmaengine_terminate_all(chan);
 		atmci_dma_cleanup(host);
-	} else {
+	}
+	else
+	{
 		/* Data transfer was stopped by the interrupt handler */
 		dev_dbg(&host->pdev->dev,
-		        "(%s) set pending xfer complete\n", __func__);
+				"(%s) set pending xfer complete\n", __func__);
 		atmci_set_pending(host, EVENT_XFER_COMPLETE);
 		atmci_writel(host, ATMCI_IER, ATMCI_NOTBUSY);
 	}
@@ -1288,7 +1456,7 @@ static void atmci_stop_transfer_dma(struct atmel_mci *host)
  * interrupts.
  */
 static void atmci_start_request(struct atmel_mci *host,
-		struct atmel_mci_slot *slot)
+								struct atmel_mci_slot *slot)
 {
 	struct mmc_request	*mrq;
 	struct mmc_command	*cmd;
@@ -1307,40 +1475,54 @@ static void atmci_start_request(struct atmel_mci *host,
 
 	dev_dbg(&host->pdev->dev, "start request: cmd %u\n", mrq->cmd->opcode);
 
-	if (host->need_reset || host->caps.need_reset_after_xfer) {
+	if (host->need_reset || host->caps.need_reset_after_xfer)
+	{
 		iflags = atmci_readl(host, ATMCI_IMR);
 		iflags &= (ATMCI_SDIOIRQA | ATMCI_SDIOIRQB);
 		atmci_writel(host, ATMCI_CR, ATMCI_CR_SWRST);
 		atmci_writel(host, ATMCI_CR, ATMCI_CR_MCIEN);
 		atmci_writel(host, ATMCI_MR, host->mode_reg);
+
 		if (host->caps.has_cfg_reg)
+		{
 			atmci_writel(host, ATMCI_CFG, host->cfg_reg);
+		}
+
 		atmci_writel(host, ATMCI_IER, iflags);
 		host->need_reset = false;
 	}
+
 	atmci_writel(host, ATMCI_SDCR, slot->sdc_reg);
 
 	iflags = atmci_readl(host, ATMCI_IMR);
+
 	if (iflags & ~(ATMCI_SDIOIRQA | ATMCI_SDIOIRQB))
 		dev_dbg(&slot->mmc->class_dev, "WARNING: IMR=0x%08x\n",
 				iflags);
 
-	if (unlikely(test_and_clear_bit(ATMCI_CARD_NEED_INIT, &slot->flags))) {
+	if (unlikely(test_and_clear_bit(ATMCI_CARD_NEED_INIT, &slot->flags)))
+	{
 		/* Send init sequence (74 clock cycles) */
 		atmci_writel(host, ATMCI_CMDR, ATMCI_CMDR_SPCMD_INIT);
+
 		while (!(atmci_readl(host, ATMCI_SR) & ATMCI_CMDRDY))
+		{
 			cpu_relax();
+		}
 	}
+
 	iflags = 0;
 	data = mrq->data;
-	if (data) {
+
+	if (data)
+	{
 		atmci_set_timeout(host, slot, data);
 
 		/* Must set block count/size before sending command */
 		atmci_writel(host, ATMCI_BLKR, ATMCI_BCNT(data->blocks)
-				| ATMCI_BLKLEN(data->blksz));
+					 | ATMCI_BLKLEN(data->blksz));
 		dev_vdbg(&slot->mmc->class_dev, "BLKR=0x%08x\n",
-			ATMCI_BCNT(data->blocks) | ATMCI_BLKLEN(data->blksz));
+				 ATMCI_BCNT(data->blocks) | ATMCI_BLKLEN(data->blksz));
 
 		iflags |= host->prepare_data(host, data);
 	}
@@ -1356,19 +1538,30 @@ static void atmci_start_request(struct atmel_mci *host,
 	 * the transfer.
 	 */
 	if (host->submit_data != &atmci_submit_data_dma)
+	{
 		atmci_send_command(host, cmd, cmdflags);
+	}
 
 	if (data)
+	{
 		host->submit_data(host, data);
+	}
 
 	if (host->submit_data == &atmci_submit_data_dma)
+	{
 		atmci_send_command(host, cmd, cmdflags);
+	}
 
-	if (mrq->stop) {
+	if (mrq->stop)
+	{
 		host->stop_cmdr = atmci_prepare_command(slot->mmc, mrq->stop);
 		host->stop_cmdr |= ATMCI_CMDR_STOP_XFER;
+
 		if (!(data->flags & MMC_DATA_WRITE))
+		{
 			host->stop_cmdr |= ATMCI_CMDR_TRDIR_READ;
+		}
+
 		host->stop_cmdr |= ATMCI_CMDR_MULTI_BLOCK;
 	}
 
@@ -1384,20 +1577,25 @@ static void atmci_start_request(struct atmel_mci *host,
 }
 
 static void atmci_queue_request(struct atmel_mci *host,
-		struct atmel_mci_slot *slot, struct mmc_request *mrq)
+								struct atmel_mci_slot *slot, struct mmc_request *mrq)
 {
 	dev_vdbg(&slot->mmc->class_dev, "queue request: state=%d\n",
-			host->state);
+			 host->state);
 
 	spin_lock_bh(&host->lock);
 	slot->mrq = mrq;
-	if (host->state == STATE_IDLE) {
+
+	if (host->state == STATE_IDLE)
+	{
 		host->state = STATE_SENDING_CMD;
 		atmci_start_request(host, slot);
-	} else {
+	}
+	else
+	{
 		dev_dbg(&host->pdev->dev, "queue request\n");
 		list_add_tail(&slot->queue_node, &host->queue);
 	}
+
 	spin_unlock_bh(&host->lock);
 }
 
@@ -1418,7 +1616,8 @@ static void atmci_request(struct mmc_host *mmc, struct mmc_request *mrq)
 	 * the MMC core might believe the card is still there even
 	 * though the card was just removed very slowly.
 	 */
-	if (!test_bit(ATMCI_CARD_PRESENT, &slot->flags)) {
+	if (!test_bit(ATMCI_CARD_PRESENT, &slot->flags))
+	{
 		mrq->cmd->error = -ENOMEDIUM;
 		mmc_request_done(mmc, mrq);
 		return;
@@ -1426,7 +1625,9 @@ static void atmci_request(struct mmc_host *mmc, struct mmc_request *mrq)
 
 	/* We don't support multiple blocks of weird lengths. */
 	data = mrq->data;
-	if (data && data->blocks > 1 && data->blksz & 3) {
+
+	if (data && data->blocks > 1 && data->blksz & 3)
+	{
 		mrq->cmd->error = -EINVAL;
 		mmc_request_done(mmc, mrq);
 	}
@@ -1441,25 +1642,34 @@ static void atmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	unsigned int		i;
 
 	slot->sdc_reg &= ~ATMCI_SDCBUS_MASK;
-	switch (ios->bus_width) {
-	case MMC_BUS_WIDTH_1:
-		slot->sdc_reg |= ATMCI_SDCBUS_1BIT;
-		break;
-	case MMC_BUS_WIDTH_4:
-		slot->sdc_reg |= ATMCI_SDCBUS_4BIT;
-		break;
+
+	switch (ios->bus_width)
+	{
+		case MMC_BUS_WIDTH_1:
+			slot->sdc_reg |= ATMCI_SDCBUS_1BIT;
+			break;
+
+		case MMC_BUS_WIDTH_4:
+			slot->sdc_reg |= ATMCI_SDCBUS_4BIT;
+			break;
 	}
 
-	if (ios->clock) {
+	if (ios->clock)
+	{
 		unsigned int clock_min = ~0U;
 		int clkdiv;
 
 		spin_lock_bh(&host->lock);
-		if (!host->mode_reg) {
+
+		if (!host->mode_reg)
+		{
 			atmci_writel(host, ATMCI_CR, ATMCI_CR_SWRST);
 			atmci_writel(host, ATMCI_CR, ATMCI_CR_MCIEN);
+
 			if (host->caps.has_cfg_reg)
+			{
 				atmci_writel(host, ATMCI_CFG, host->cfg_reg);
+			}
 		}
 
 		/*
@@ -1467,36 +1677,51 @@ static void atmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		 * core ios update when finding the minimum.
 		 */
 		slot->clock = ios->clock;
-		for (i = 0; i < ATMCI_MAX_NR_SLOTS; i++) {
+
+		for (i = 0; i < ATMCI_MAX_NR_SLOTS; i++)
+		{
 			if (host->slot[i] && host->slot[i]->clock
-					&& host->slot[i]->clock < clock_min)
+				&& host->slot[i]->clock < clock_min)
+			{
 				clock_min = host->slot[i]->clock;
+			}
 		}
 
 		/* Calculate clock divider */
-		if (host->caps.has_odd_clk_div) {
+		if (host->caps.has_odd_clk_div)
+		{
 			clkdiv = DIV_ROUND_UP(host->bus_hz, clock_min) - 2;
-			if (clkdiv < 0) {
+
+			if (clkdiv < 0)
+			{
 				dev_warn(&mmc->class_dev,
-					 "clock %u too fast; using %lu\n",
-					 clock_min, host->bus_hz / 2);
+						 "clock %u too fast; using %lu\n",
+						 clock_min, host->bus_hz / 2);
 				clkdiv = 0;
-			} else if (clkdiv > 511) {
+			}
+			else if (clkdiv > 511)
+			{
 				dev_warn(&mmc->class_dev,
-				         "clock %u too slow; using %lu\n",
-				         clock_min, host->bus_hz / (511 + 2));
+						 "clock %u too slow; using %lu\n",
+						 clock_min, host->bus_hz / (511 + 2));
 				clkdiv = 511;
 			}
+
 			host->mode_reg = ATMCI_MR_CLKDIV(clkdiv >> 1)
-			                 | ATMCI_MR_CLKODD(clkdiv & 1);
-		} else {
+							 | ATMCI_MR_CLKODD(clkdiv & 1);
+		}
+		else
+		{
 			clkdiv = DIV_ROUND_UP(host->bus_hz, 2 * clock_min) - 1;
-			if (clkdiv > 255) {
+
+			if (clkdiv > 255)
+			{
 				dev_warn(&mmc->class_dev,
-				         "clock %u too slow; using %lu\n",
-				         clock_min, host->bus_hz / (2 * 256));
+						 "clock %u too slow; using %lu\n",
+						 clock_min, host->bus_hz / (2 * 256));
 				clkdiv = 255;
 			}
+
 			host->mode_reg = ATMCI_MR_CLKDIV(clkdiv);
 		}
 
@@ -1506,70 +1731,104 @@ static void atmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		 * This state is not expected to last for long.
 		 */
 		if (host->caps.has_rwproof)
+		{
 			host->mode_reg |= (ATMCI_MR_WRPROOF | ATMCI_MR_RDPROOF);
-
-		if (host->caps.has_cfg_reg) {
-			/* setup High Speed mode in relation with card capacity */
-			if (ios->timing == MMC_TIMING_SD_HS)
-				host->cfg_reg |= ATMCI_CFG_HSMODE;
-			else
-				host->cfg_reg &= ~ATMCI_CFG_HSMODE;
 		}
 
-		if (list_empty(&host->queue)) {
+		if (host->caps.has_cfg_reg)
+		{
+			/* setup High Speed mode in relation with card capacity */
+			if (ios->timing == MMC_TIMING_SD_HS)
+			{
+				host->cfg_reg |= ATMCI_CFG_HSMODE;
+			}
+			else
+			{
+				host->cfg_reg &= ~ATMCI_CFG_HSMODE;
+			}
+		}
+
+		if (list_empty(&host->queue))
+		{
 			atmci_writel(host, ATMCI_MR, host->mode_reg);
+
 			if (host->caps.has_cfg_reg)
+			{
 				atmci_writel(host, ATMCI_CFG, host->cfg_reg);
-		} else {
+			}
+		}
+		else
+		{
 			host->need_clock_update = true;
 		}
 
 		spin_unlock_bh(&host->lock);
-	} else {
+	}
+	else
+	{
 		bool any_slot_active = false;
 
 		spin_lock_bh(&host->lock);
 		slot->clock = 0;
-		for (i = 0; i < ATMCI_MAX_NR_SLOTS; i++) {
-			if (host->slot[i] && host->slot[i]->clock) {
+
+		for (i = 0; i < ATMCI_MAX_NR_SLOTS; i++)
+		{
+			if (host->slot[i] && host->slot[i]->clock)
+			{
 				any_slot_active = true;
 				break;
 			}
 		}
-		if (!any_slot_active) {
+
+		if (!any_slot_active)
+		{
 			atmci_writel(host, ATMCI_CR, ATMCI_CR_MCIDIS);
-			if (host->mode_reg) {
+
+			if (host->mode_reg)
+			{
 				atmci_readl(host, ATMCI_MR);
 			}
+
 			host->mode_reg = 0;
 		}
+
 		spin_unlock_bh(&host->lock);
 	}
 
-	switch (ios->power_mode) {
-	case MMC_POWER_OFF:
-		if (!IS_ERR(mmc->supply.vmmc))
-			mmc_regulator_set_ocr(mmc, mmc->supply.vmmc, 0);
-		break;
-	case MMC_POWER_UP:
-		set_bit(ATMCI_CARD_NEED_INIT, &slot->flags);
-		if (!IS_ERR(mmc->supply.vmmc))
-			mmc_regulator_set_ocr(mmc, mmc->supply.vmmc, ios->vdd);
-		break;
-	default:
-		/*
-		 * TODO: None of the currently available AVR32-based
-		 * boards allow MMC power to be turned off. Implement
-		 * power control when this can be tested properly.
-		 *
-		 * We also need to hook this into the clock management
-		 * somehow so that newly inserted cards aren't
-		 * subjected to a fast clock before we have a chance
-		 * to figure out what the maximum rate is. Currently,
-		 * there's no way to avoid this, and there never will
-		 * be for boards that don't support power control.
-		 */
-		break;
+	switch (ios->power_mode)
+	{
+		case MMC_POWER_OFF:
+			if (!IS_ERR(mmc->supply.vmmc))
+			{
+				mmc_regulator_set_ocr(mmc, mmc->supply.vmmc, 0);
+			}
+
+			break;
+
+		case MMC_POWER_UP:
+			set_bit(ATMCI_CARD_NEED_INIT, &slot->flags);
+
+			if (!IS_ERR(mmc->supply.vmmc))
+			{
+				mmc_regulator_set_ocr(mmc, mmc->supply.vmmc, ios->vdd);
+			}
+
+			break;
+
+		default:
+			/*
+			 * TODO: None of the currently available AVR32-based
+			 * boards allow MMC power to be turned off. Implement
+			 * power control when this can be tested properly.
+			 *
+			 * We also need to hook this into the clock management
+			 * somehow so that newly inserted cards aren't
+			 * subjected to a fast clock before we have a chance
+			 * to figure out what the maximum rate is. Currently,
+			 * there's no way to avoid this, and there never will
+			 * be for boards that don't support power control.
+			 */
+			break;
 	}
 
 }
@@ -1579,7 +1838,8 @@ static int atmci_get_ro(struct mmc_host *mmc)
 	int			read_only = -ENOSYS;
 	struct atmel_mci_slot	*slot = mmc_priv(mmc);
 
-	if (gpio_is_valid(slot->wp_pin)) {
+	if (gpio_is_valid(slot->wp_pin))
+	{
 		read_only = gpio_get_value(slot->wp_pin);
 		dev_dbg(&mmc->class_dev, "card is %s\n",
 				read_only ? "read-only" : "read-write");
@@ -1593,9 +1853,10 @@ static int atmci_get_cd(struct mmc_host *mmc)
 	int			present = -ENOSYS;
 	struct atmel_mci_slot	*slot = mmc_priv(mmc);
 
-	if (gpio_is_valid(slot->detect_pin)) {
+	if (gpio_is_valid(slot->detect_pin))
+	{
 		present = !(gpio_get_value(slot->detect_pin) ^
-			    slot->detect_is_active_high);
+					slot->detect_is_active_high);
 		dev_dbg(&mmc->class_dev, "card is %spresent\n",
 				present ? "" : "not ");
 	}
@@ -1609,12 +1870,17 @@ static void atmci_enable_sdio_irq(struct mmc_host *mmc, int enable)
 	struct atmel_mci	*host = slot->host;
 
 	if (enable)
+	{
 		atmci_writel(host, ATMCI_IER, slot->sdio_irq);
+	}
 	else
+	{
 		atmci_writel(host, ATMCI_IDR, slot->sdio_irq);
+	}
 }
 
-static const struct mmc_host_ops atmci_ops = {
+static const struct mmc_host_ops atmci_ops =
+{
 	.request	= atmci_request,
 	.set_ios	= atmci_set_ios,
 	.get_ro		= atmci_get_ro,
@@ -1624,8 +1890,8 @@ static const struct mmc_host_ops atmci_ops = {
 
 /* Called with host->lock held */
 static void atmci_request_end(struct atmel_mci *host, struct mmc_request *mrq)
-	__releases(&host->lock)
-	__acquires(&host->lock)
+__releases(&host->lock)
+__acquires(&host->lock)
 {
 	struct atmel_mci_slot	*slot = NULL;
 	struct mmc_host		*prev_mmc = host->cur_slot->mmc;
@@ -1637,23 +1903,31 @@ static void atmci_request_end(struct atmel_mci *host, struct mmc_request *mrq)
 	 * necessary if set_ios() is called when a different slot is
 	 * busy transferring data.
 	 */
-	if (host->need_clock_update) {
+	if (host->need_clock_update)
+	{
 		atmci_writel(host, ATMCI_MR, host->mode_reg);
+
 		if (host->caps.has_cfg_reg)
+		{
 			atmci_writel(host, ATMCI_CFG, host->cfg_reg);
+		}
 	}
 
 	host->cur_slot->mrq = NULL;
 	host->mrq = NULL;
-	if (!list_empty(&host->queue)) {
+
+	if (!list_empty(&host->queue))
+	{
 		slot = list_entry(host->queue.next,
-				struct atmel_mci_slot, queue_node);
+						  struct atmel_mci_slot, queue_node);
 		list_del(&slot->queue_node);
 		dev_vdbg(&host->pdev->dev, "list not empty: %s is next\n",
-				mmc_hostname(slot->mmc));
+				 mmc_hostname(slot->mmc));
 		host->state = STATE_SENDING_CMD;
 		atmci_start_request(host, slot);
-	} else {
+	}
+	else
+	{
 		dev_vdbg(&host->pdev->dev, "list empty\n");
 		host->state = STATE_IDLE;
 	}
@@ -1666,7 +1940,7 @@ static void atmci_request_end(struct atmel_mci *host, struct mmc_request *mrq)
 }
 
 static void atmci_command_complete(struct atmel_mci *host,
-			struct mmc_command *cmd)
+								   struct mmc_command *cmd)
 {
 	u32		status = host->cmd_status;
 
@@ -1677,18 +1951,29 @@ static void atmci_command_complete(struct atmel_mci *host,
 	cmd->resp[3] = atmci_readl(host, ATMCI_RSPR);
 
 	if (status & ATMCI_RTOE)
+	{
 		cmd->error = -ETIMEDOUT;
+	}
 	else if ((cmd->flags & MMC_RSP_CRC) && (status & ATMCI_RCRCE))
+	{
 		cmd->error = -EILSEQ;
+	}
 	else if (status & (ATMCI_RINDE | ATMCI_RDIRE | ATMCI_RENDE))
+	{
 		cmd->error = -EIO;
-	else if (host->mrq->data && (host->mrq->data->blksz & 3)) {
-		if (host->caps.need_blksz_mul_4) {
+	}
+	else if (host->mrq->data && (host->mrq->data->blksz & 3))
+	{
+		if (host->caps.need_blksz_mul_4)
+		{
 			cmd->error = -EINVAL;
 			host->need_reset = 1;
 		}
-	} else
+	}
+	else
+	{
 		cmd->error = 0;
+	}
 }
 
 static void atmci_detect_change(unsigned long data)
@@ -1704,35 +1989,46 @@ static void atmci_detect_change(unsigned long data)
 	 * doesn't really matter whether the card is present or not.
 	 */
 	smp_rmb();
+
 	if (test_bit(ATMCI_SHUTDOWN, &slot->flags))
+	{
 		return;
+	}
 
 	enable_irq(gpio_to_irq(slot->detect_pin));
 	present = !(gpio_get_value(slot->detect_pin) ^
-		    slot->detect_is_active_high);
+				slot->detect_is_active_high);
 	present_old = test_bit(ATMCI_CARD_PRESENT, &slot->flags);
 
 	dev_vdbg(&slot->mmc->class_dev, "detect change: %d (was %d)\n",
-			present, present_old);
+			 present, present_old);
 
-	if (present != present_old) {
+	if (present != present_old)
+	{
 		struct atmel_mci	*host = slot->host;
 		struct mmc_request	*mrq;
 
 		dev_dbg(&slot->mmc->class_dev, "card %s\n",
-			present ? "inserted" : "removed");
+				present ? "inserted" : "removed");
 
 		spin_lock(&host->lock);
 
 		if (!present)
+		{
 			clear_bit(ATMCI_CARD_PRESENT, &slot->flags);
+		}
 		else
+		{
 			set_bit(ATMCI_CARD_PRESENT, &slot->flags);
+		}
 
 		/* Clean up queue if present */
 		mrq = slot->mrq;
-		if (mrq) {
-			if (mrq == host->mrq) {
+
+		if (mrq)
+		{
+			if (mrq == host->mrq)
+			{
 				/*
 				 * Reset controller to terminate any ongoing
 				 * commands or data transfers.
@@ -1740,48 +2036,70 @@ static void atmci_detect_change(unsigned long data)
 				atmci_writel(host, ATMCI_CR, ATMCI_CR_SWRST);
 				atmci_writel(host, ATMCI_CR, ATMCI_CR_MCIEN);
 				atmci_writel(host, ATMCI_MR, host->mode_reg);
+
 				if (host->caps.has_cfg_reg)
+				{
 					atmci_writel(host, ATMCI_CFG, host->cfg_reg);
+				}
 
 				host->data = NULL;
 				host->cmd = NULL;
 
-				switch (host->state) {
-				case STATE_IDLE:
-					break;
-				case STATE_SENDING_CMD:
-					mrq->cmd->error = -ENOMEDIUM;
-					if (mrq->data)
+				switch (host->state)
+				{
+					case STATE_IDLE:
+						break;
+
+					case STATE_SENDING_CMD:
+						mrq->cmd->error = -ENOMEDIUM;
+
+						if (mrq->data)
+						{
+							host->stop_transfer(host);
+						}
+
+						break;
+
+					case STATE_DATA_XFER:
+						mrq->data->error = -ENOMEDIUM;
 						host->stop_transfer(host);
-					break;
-				case STATE_DATA_XFER:
-					mrq->data->error = -ENOMEDIUM;
-					host->stop_transfer(host);
-					break;
-				case STATE_WAITING_NOTBUSY:
-					mrq->data->error = -ENOMEDIUM;
-					break;
-				case STATE_SENDING_STOP:
-					mrq->stop->error = -ENOMEDIUM;
-					break;
-				case STATE_END_REQUEST:
-					break;
+						break;
+
+					case STATE_WAITING_NOTBUSY:
+						mrq->data->error = -ENOMEDIUM;
+						break;
+
+					case STATE_SENDING_STOP:
+						mrq->stop->error = -ENOMEDIUM;
+						break;
+
+					case STATE_END_REQUEST:
+						break;
 				}
 
 				atmci_request_end(host, mrq);
-			} else {
+			}
+			else
+			{
 				list_del(&slot->queue_node);
 				mrq->cmd->error = -ENOMEDIUM;
+
 				if (mrq->data)
+				{
 					mrq->data->error = -ENOMEDIUM;
+				}
+
 				if (mrq->stop)
+				{
 					mrq->stop->error = -ENOMEDIUM;
+				}
 
 				spin_unlock(&host->lock);
 				mmc_request_done(slot->mmc, mrq);
 				spin_lock(&host->lock);
 			}
 		}
+
 		spin_unlock(&host->lock);
 
 		mmc_detect_change(slot->mmc, 0);
@@ -1802,192 +2120,248 @@ static void atmci_tasklet_func(unsigned long priv)
 	state = host->state;
 
 	dev_vdbg(&host->pdev->dev,
-		"tasklet: state %u pending/completed/mask %lx/%lx/%x\n",
-		state, host->pending_events, host->completed_events,
-		atmci_readl(host, ATMCI_IMR));
+			 "tasklet: state %u pending/completed/mask %lx/%lx/%x\n",
+			 state, host->pending_events, host->completed_events,
+			 atmci_readl(host, ATMCI_IMR));
 
-	do {
+	do
+	{
 		prev_state = state;
 		dev_dbg(&host->pdev->dev, "FSM: state=%d\n", state);
 
-		switch (state) {
-		case STATE_IDLE:
-			break;
-
-		case STATE_SENDING_CMD:
-			/*
-			 * Command has been sent, we are waiting for command
-			 * ready. Then we have three next states possible:
-			 * END_REQUEST by default, WAITING_NOTBUSY if it's a
-			 * command needing it or DATA_XFER if there is data.
-			 */
-			dev_dbg(&host->pdev->dev, "FSM: cmd ready?\n");
-			if (!atmci_test_and_clear_pending(host,
-						EVENT_CMD_RDY))
+		switch (state)
+		{
+			case STATE_IDLE:
 				break;
 
-			dev_dbg(&host->pdev->dev, "set completed cmd ready\n");
-			host->cmd = NULL;
-			atmci_set_completed(host, EVENT_CMD_RDY);
-			atmci_command_complete(host, mrq->cmd);
-			if (mrq->data) {
-				dev_dbg(&host->pdev->dev,
-				        "command with data transfer");
+			case STATE_SENDING_CMD:
 				/*
-				 * If there is a command error don't start
-				 * data transfer.
+				 * Command has been sent, we are waiting for command
+				 * ready. Then we have three next states possible:
+				 * END_REQUEST by default, WAITING_NOTBUSY if it's a
+				 * command needing it or DATA_XFER if there is data.
 				 */
-				if (mrq->cmd->error) {
-					host->stop_transfer(host);
-					host->data = NULL;
-					atmci_writel(host, ATMCI_IDR,
-					             ATMCI_TXRDY | ATMCI_RXRDY
-					             | ATMCI_DATA_ERROR_FLAGS);
+				dev_dbg(&host->pdev->dev, "FSM: cmd ready?\n");
+
+				if (!atmci_test_and_clear_pending(host,
+												  EVENT_CMD_RDY))
+				{
+					break;
+				}
+
+				dev_dbg(&host->pdev->dev, "set completed cmd ready\n");
+				host->cmd = NULL;
+				atmci_set_completed(host, EVENT_CMD_RDY);
+				atmci_command_complete(host, mrq->cmd);
+
+				if (mrq->data)
+				{
+					dev_dbg(&host->pdev->dev,
+							"command with data transfer");
+
+					/*
+					 * If there is a command error don't start
+					 * data transfer.
+					 */
+					if (mrq->cmd->error)
+					{
+						host->stop_transfer(host);
+						host->data = NULL;
+						atmci_writel(host, ATMCI_IDR,
+									 ATMCI_TXRDY | ATMCI_RXRDY
+									 | ATMCI_DATA_ERROR_FLAGS);
+						state = STATE_END_REQUEST;
+					}
+					else
+					{
+						state = STATE_DATA_XFER;
+					}
+				}
+				else if ((!mrq->data) && (mrq->cmd->flags & MMC_RSP_BUSY))
+				{
+					dev_dbg(&host->pdev->dev,
+							"command response need waiting notbusy");
+					atmci_writel(host, ATMCI_IER, ATMCI_NOTBUSY);
+					state = STATE_WAITING_NOTBUSY;
+				}
+				else
+				{
 					state = STATE_END_REQUEST;
-				} else
-					state = STATE_DATA_XFER;
-			} else if ((!mrq->data) && (mrq->cmd->flags & MMC_RSP_BUSY)) {
-				dev_dbg(&host->pdev->dev,
-				        "command response need waiting notbusy");
-				atmci_writel(host, ATMCI_IER, ATMCI_NOTBUSY);
-				state = STATE_WAITING_NOTBUSY;
-			} else
-				state = STATE_END_REQUEST;
+				}
 
-			break;
-
-		case STATE_DATA_XFER:
-			if (atmci_test_and_clear_pending(host,
-						EVENT_DATA_ERROR)) {
-				dev_dbg(&host->pdev->dev, "set completed data error\n");
-				atmci_set_completed(host, EVENT_DATA_ERROR);
-				state = STATE_END_REQUEST;
-				break;
-			}
-
-			/*
-			 * A data transfer is in progress. The event expected
-			 * to move to the next state depends of data transfer
-			 * type (PDC or DMA). Once transfer done we can move
-			 * to the next step which is WAITING_NOTBUSY in write
-			 * case and directly SENDING_STOP in read case.
-			 */
-			dev_dbg(&host->pdev->dev, "FSM: xfer complete?\n");
-			if (!atmci_test_and_clear_pending(host,
-						EVENT_XFER_COMPLETE))
 				break;
 
-			dev_dbg(&host->pdev->dev,
-			        "(%s) set completed xfer complete\n",
-				__func__);
-			atmci_set_completed(host, EVENT_XFER_COMPLETE);
+			case STATE_DATA_XFER:
+				if (atmci_test_and_clear_pending(host,
+												 EVENT_DATA_ERROR))
+				{
+					dev_dbg(&host->pdev->dev, "set completed data error\n");
+					atmci_set_completed(host, EVENT_DATA_ERROR);
+					state = STATE_END_REQUEST;
+					break;
+				}
 
-			if (host->caps.need_notbusy_for_read_ops ||
-			   (host->data->flags & MMC_DATA_WRITE)) {
-				atmci_writel(host, ATMCI_IER, ATMCI_NOTBUSY);
-				state = STATE_WAITING_NOTBUSY;
-			} else if (host->mrq->stop) {
-				atmci_writel(host, ATMCI_IER, ATMCI_CMDRDY);
-				atmci_send_stop_cmd(host, data);
-				state = STATE_SENDING_STOP;
-			} else {
-				host->data = NULL;
-				data->bytes_xfered = data->blocks * data->blksz;
-				data->error = 0;
-				state = STATE_END_REQUEST;
-			}
-			break;
-
-		case STATE_WAITING_NOTBUSY:
-			/*
-			 * We can be in the state for two reasons: a command
-			 * requiring waiting not busy signal (stop command
-			 * included) or a write operation. In the latest case,
-			 * we need to send a stop command.
-			 */
-			dev_dbg(&host->pdev->dev, "FSM: not busy?\n");
-			if (!atmci_test_and_clear_pending(host,
-						EVENT_NOTBUSY))
-				break;
-
-			dev_dbg(&host->pdev->dev, "set completed not busy\n");
-			atmci_set_completed(host, EVENT_NOTBUSY);
-
-			if (host->data) {
 				/*
-				 * For some commands such as CMD53, even if
-				 * there is data transfer, there is no stop
-				 * command to send.
+				 * A data transfer is in progress. The event expected
+				 * to move to the next state depends of data transfer
+				 * type (PDC or DMA). Once transfer done we can move
+				 * to the next step which is WAITING_NOTBUSY in write
+				 * case and directly SENDING_STOP in read case.
 				 */
-				if (host->mrq->stop) {
-					atmci_writel(host, ATMCI_IER,
-					             ATMCI_CMDRDY);
+				dev_dbg(&host->pdev->dev, "FSM: xfer complete?\n");
+
+				if (!atmci_test_and_clear_pending(host,
+												  EVENT_XFER_COMPLETE))
+				{
+					break;
+				}
+
+				dev_dbg(&host->pdev->dev,
+						"(%s) set completed xfer complete\n",
+						__func__);
+				atmci_set_completed(host, EVENT_XFER_COMPLETE);
+
+				if (host->caps.need_notbusy_for_read_ops ||
+					(host->data->flags & MMC_DATA_WRITE))
+				{
+					atmci_writel(host, ATMCI_IER, ATMCI_NOTBUSY);
+					state = STATE_WAITING_NOTBUSY;
+				}
+				else if (host->mrq->stop)
+				{
+					atmci_writel(host, ATMCI_IER, ATMCI_CMDRDY);
 					atmci_send_stop_cmd(host, data);
 					state = STATE_SENDING_STOP;
-				} else {
+				}
+				else
+				{
 					host->data = NULL;
-					data->bytes_xfered = data->blocks
-					                     * data->blksz;
+					data->bytes_xfered = data->blocks * data->blksz;
 					data->error = 0;
 					state = STATE_END_REQUEST;
 				}
-			} else
-				state = STATE_END_REQUEST;
-			break;
 
-		case STATE_SENDING_STOP:
-			/*
-			 * In this state, it is important to set host->data to
-			 * NULL (which is tested in the waiting notbusy state)
-			 * in order to go to the end request state instead of
-			 * sending stop again.
-			 */
-			dev_dbg(&host->pdev->dev, "FSM: cmd ready?\n");
-			if (!atmci_test_and_clear_pending(host,
-						EVENT_CMD_RDY))
 				break;
 
-			dev_dbg(&host->pdev->dev, "FSM: cmd ready\n");
-			host->cmd = NULL;
-			data->bytes_xfered = data->blocks * data->blksz;
-			data->error = 0;
-			atmci_command_complete(host, mrq->stop);
-			if (mrq->stop->error) {
-				host->stop_transfer(host);
-				atmci_writel(host, ATMCI_IDR,
-				             ATMCI_TXRDY | ATMCI_RXRDY
-				             | ATMCI_DATA_ERROR_FLAGS);
-				state = STATE_END_REQUEST;
-			} else {
-				atmci_writel(host, ATMCI_IER, ATMCI_NOTBUSY);
-				state = STATE_WAITING_NOTBUSY;
-			}
-			host->data = NULL;
-			break;
+			case STATE_WAITING_NOTBUSY:
+				/*
+				 * We can be in the state for two reasons: a command
+				 * requiring waiting not busy signal (stop command
+				 * included) or a write operation. In the latest case,
+				 * we need to send a stop command.
+				 */
+				dev_dbg(&host->pdev->dev, "FSM: not busy?\n");
 
-		case STATE_END_REQUEST:
-			atmci_writel(host, ATMCI_IDR, ATMCI_TXRDY | ATMCI_RXRDY
-			                   | ATMCI_DATA_ERROR_FLAGS);
-			status = host->data_status;
-			if (unlikely(status)) {
-				host->stop_transfer(host);
-				host->data = NULL;
-				if (data) {
-					if (status & ATMCI_DTOE) {
-						data->error = -ETIMEDOUT;
-					} else if (status & ATMCI_DCRCE) {
-						data->error = -EILSEQ;
-					} else {
-						data->error = -EIO;
+				if (!atmci_test_and_clear_pending(host,
+												  EVENT_NOTBUSY))
+				{
+					break;
+				}
+
+				dev_dbg(&host->pdev->dev, "set completed not busy\n");
+				atmci_set_completed(host, EVENT_NOTBUSY);
+
+				if (host->data)
+				{
+					/*
+					 * For some commands such as CMD53, even if
+					 * there is data transfer, there is no stop
+					 * command to send.
+					 */
+					if (host->mrq->stop)
+					{
+						atmci_writel(host, ATMCI_IER,
+									 ATMCI_CMDRDY);
+						atmci_send_stop_cmd(host, data);
+						state = STATE_SENDING_STOP;
+					}
+					else
+					{
+						host->data = NULL;
+						data->bytes_xfered = data->blocks
+											 * data->blksz;
+						data->error = 0;
+						state = STATE_END_REQUEST;
 					}
 				}
-			}
+				else
+				{
+					state = STATE_END_REQUEST;
+				}
 
-			atmci_request_end(host, host->mrq);
-			state = STATE_IDLE;
-			break;
+				break;
+
+			case STATE_SENDING_STOP:
+				/*
+				 * In this state, it is important to set host->data to
+				 * NULL (which is tested in the waiting notbusy state)
+				 * in order to go to the end request state instead of
+				 * sending stop again.
+				 */
+				dev_dbg(&host->pdev->dev, "FSM: cmd ready?\n");
+
+				if (!atmci_test_and_clear_pending(host,
+												  EVENT_CMD_RDY))
+				{
+					break;
+				}
+
+				dev_dbg(&host->pdev->dev, "FSM: cmd ready\n");
+				host->cmd = NULL;
+				data->bytes_xfered = data->blocks * data->blksz;
+				data->error = 0;
+				atmci_command_complete(host, mrq->stop);
+
+				if (mrq->stop->error)
+				{
+					host->stop_transfer(host);
+					atmci_writel(host, ATMCI_IDR,
+								 ATMCI_TXRDY | ATMCI_RXRDY
+								 | ATMCI_DATA_ERROR_FLAGS);
+					state = STATE_END_REQUEST;
+				}
+				else
+				{
+					atmci_writel(host, ATMCI_IER, ATMCI_NOTBUSY);
+					state = STATE_WAITING_NOTBUSY;
+				}
+
+				host->data = NULL;
+				break;
+
+			case STATE_END_REQUEST:
+				atmci_writel(host, ATMCI_IDR, ATMCI_TXRDY | ATMCI_RXRDY
+							 | ATMCI_DATA_ERROR_FLAGS);
+				status = host->data_status;
+
+				if (unlikely(status))
+				{
+					host->stop_transfer(host);
+					host->data = NULL;
+
+					if (data)
+					{
+						if (status & ATMCI_DTOE)
+						{
+							data->error = -ETIMEDOUT;
+						}
+						else if (status & ATMCI_DCRCE)
+						{
+							data->error = -EILSEQ;
+						}
+						else
+						{
+							data->error = -EIO;
+						}
+					}
+				}
+
+				atmci_request_end(host, host->mrq);
+				state = STATE_IDLE;
+				break;
 		}
-	} while (state != prev_state);
+	}
+	while (state != prev_state);
 
 	host->state = state;
 
@@ -2004,25 +2378,34 @@ static void atmci_read_data_pio(struct atmel_mci *host)
 	u32			status;
 	unsigned int		nbytes = 0;
 
-	do {
+	do
+	{
 		value = atmci_readl(host, ATMCI_RDR);
-		if (likely(offset + 4 <= sg->length)) {
+
+		if (likely(offset + 4 <= sg->length))
+		{
 			put_unaligned(value, (u32 *)(buf + offset));
 
 			offset += 4;
 			nbytes += 4;
 
-			if (offset == sg->length) {
+			if (offset == sg->length)
+			{
 				flush_dcache_page(sg_page(sg));
 				host->sg = sg = sg_next(sg);
 				host->sg_len--;
+
 				if (!sg || !host->sg_len)
+				{
 					goto done;
+				}
 
 				offset = 0;
 				buf = sg_virt(sg);
 			}
-		} else {
+		}
+		else
+		{
 			unsigned int remaining = sg->length - offset;
 			memcpy(buf + offset, &value, remaining);
 			nbytes += remaining;
@@ -2030,8 +2413,11 @@ static void atmci_read_data_pio(struct atmel_mci *host)
 			flush_dcache_page(sg_page(sg));
 			host->sg = sg = sg_next(sg);
 			host->sg_len--;
+
 			if (!sg || !host->sg_len)
+			{
 				goto done;
+			}
 
 			offset = 4 - remaining;
 			buf = sg_virt(sg);
@@ -2040,14 +2426,17 @@ static void atmci_read_data_pio(struct atmel_mci *host)
 		}
 
 		status = atmci_readl(host, ATMCI_SR);
-		if (status & ATMCI_DATA_ERROR_FLAGS) {
+
+		if (status & ATMCI_DATA_ERROR_FLAGS)
+		{
 			atmci_writel(host, ATMCI_IDR, (ATMCI_NOTBUSY | ATMCI_RXRDY
-						| ATMCI_DATA_ERROR_FLAGS));
+										   | ATMCI_DATA_ERROR_FLAGS));
 			host->data_status = status;
 			data->bytes_xfered += nbytes;
 			return;
 		}
-	} while (status & ATMCI_RXRDY);
+	}
+	while (status & ATMCI_RXRDY);
 
 	host->pio_offset = offset;
 	data->bytes_xfered += nbytes;
@@ -2072,23 +2461,32 @@ static void atmci_write_data_pio(struct atmel_mci *host)
 	u32			status;
 	unsigned int		nbytes = 0;
 
-	do {
-		if (likely(offset + 4 <= sg->length)) {
+	do
+	{
+		if (likely(offset + 4 <= sg->length))
+		{
 			value = get_unaligned((u32 *)(buf + offset));
 			atmci_writel(host, ATMCI_TDR, value);
 
 			offset += 4;
 			nbytes += 4;
-			if (offset == sg->length) {
+
+			if (offset == sg->length)
+			{
 				host->sg = sg = sg_next(sg);
 				host->sg_len--;
+
 				if (!sg || !host->sg_len)
+				{
 					goto done;
+				}
 
 				offset = 0;
 				buf = sg_virt(sg);
 			}
-		} else {
+		}
+		else
+		{
 			unsigned int remaining = sg->length - offset;
 
 			value = 0;
@@ -2097,7 +2495,9 @@ static void atmci_write_data_pio(struct atmel_mci *host)
 
 			host->sg = sg = sg_next(sg);
 			host->sg_len--;
-			if (!sg || !host->sg_len) {
+
+			if (!sg || !host->sg_len)
+			{
 				atmci_writel(host, ATMCI_TDR, value);
 				goto done;
 			}
@@ -2110,14 +2510,17 @@ static void atmci_write_data_pio(struct atmel_mci *host)
 		}
 
 		status = atmci_readl(host, ATMCI_SR);
-		if (status & ATMCI_DATA_ERROR_FLAGS) {
+
+		if (status & ATMCI_DATA_ERROR_FLAGS)
+		{
 			atmci_writel(host, ATMCI_IDR, (ATMCI_NOTBUSY | ATMCI_TXRDY
-						| ATMCI_DATA_ERROR_FLAGS));
+										   | ATMCI_DATA_ERROR_FLAGS));
 			host->data_status = status;
 			data->bytes_xfered += nbytes;
 			return;
 		}
-	} while (status & ATMCI_TXRDY);
+	}
+	while (status & ATMCI_TXRDY);
 
 	host->pio_offset = offset;
 	data->bytes_xfered += nbytes;
@@ -2136,9 +2539,12 @@ static void atmci_sdio_interrupt(struct atmel_mci *host, u32 status)
 {
 	int	i;
 
-	for (i = 0; i < ATMCI_MAX_NR_SLOTS; i++) {
+	for (i = 0; i < ATMCI_MAX_NR_SLOTS; i++)
+	{
 		struct atmel_mci_slot *slot = host->slot[i];
-		if (slot && (status & slot->sdio_irq)) {
+
+		if (slot && (status & slot->sdio_irq))
+		{
 			mmc_signal_sdio_irq(slot->mmc);
 		}
 	}
@@ -2151,19 +2557,24 @@ static irqreturn_t atmci_interrupt(int irq, void *dev_id)
 	u32			status, mask, pending;
 	unsigned int		pass_count = 0;
 
-	do {
+	do
+	{
 		status = atmci_readl(host, ATMCI_SR);
 		mask = atmci_readl(host, ATMCI_IMR);
 		pending = status & mask;
-		if (!pending)
-			break;
 
-		if (pending & ATMCI_DATA_ERROR_FLAGS) {
+		if (!pending)
+		{
+			break;
+		}
+
+		if (pending & ATMCI_DATA_ERROR_FLAGS)
+		{
 			dev_dbg(&host->pdev->dev, "IRQ: data error\n");
 			atmci_writel(host, ATMCI_IDR, ATMCI_DATA_ERROR_FLAGS
-					| ATMCI_RXRDY | ATMCI_TXRDY
-					| ATMCI_ENDRX | ATMCI_ENDTX
-					| ATMCI_RXBUFF | ATMCI_TXBUFE);
+						 | ATMCI_RXRDY | ATMCI_TXRDY
+						 | ATMCI_ENDRX | ATMCI_ENDTX
+						 | ATMCI_RXBUFF | ATMCI_TXBUFE);
 
 			host->data_status = status;
 			dev_dbg(&host->pdev->dev, "set pending data error\n");
@@ -2172,56 +2583,72 @@ static irqreturn_t atmci_interrupt(int irq, void *dev_id)
 			tasklet_schedule(&host->tasklet);
 		}
 
-		if (pending & ATMCI_TXBUFE) {
+		if (pending & ATMCI_TXBUFE)
+		{
 			dev_dbg(&host->pdev->dev, "IRQ: tx buffer empty\n");
 			atmci_writel(host, ATMCI_IDR, ATMCI_TXBUFE);
 			atmci_writel(host, ATMCI_IDR, ATMCI_ENDTX);
+
 			/*
 			 * We can receive this interruption before having configured
 			 * the second pdc buffer, so we need to reconfigure first and
 			 * second buffers again
 			 */
-			if (host->data_size) {
+			if (host->data_size)
+			{
 				atmci_pdc_set_both_buf(host, XFER_TRANSMIT);
 				atmci_writel(host, ATMCI_IER, ATMCI_ENDTX);
 				atmci_writel(host, ATMCI_IER, ATMCI_TXBUFE);
-			} else {
+			}
+			else
+			{
 				atmci_pdc_complete(host);
 			}
-		} else if (pending & ATMCI_ENDTX) {
+		}
+		else if (pending & ATMCI_ENDTX)
+		{
 			dev_dbg(&host->pdev->dev, "IRQ: end of tx buffer\n");
 			atmci_writel(host, ATMCI_IDR, ATMCI_ENDTX);
 
-			if (host->data_size) {
+			if (host->data_size)
+			{
 				atmci_pdc_set_single_buf(host,
-						XFER_TRANSMIT, PDC_SECOND_BUF);
+										 XFER_TRANSMIT, PDC_SECOND_BUF);
 				atmci_writel(host, ATMCI_IER, ATMCI_ENDTX);
 			}
 		}
 
-		if (pending & ATMCI_RXBUFF) {
+		if (pending & ATMCI_RXBUFF)
+		{
 			dev_dbg(&host->pdev->dev, "IRQ: rx buffer full\n");
 			atmci_writel(host, ATMCI_IDR, ATMCI_RXBUFF);
 			atmci_writel(host, ATMCI_IDR, ATMCI_ENDRX);
+
 			/*
 			 * We can receive this interruption before having configured
 			 * the second pdc buffer, so we need to reconfigure first and
 			 * second buffers again
 			 */
-			if (host->data_size) {
+			if (host->data_size)
+			{
 				atmci_pdc_set_both_buf(host, XFER_RECEIVE);
 				atmci_writel(host, ATMCI_IER, ATMCI_ENDRX);
 				atmci_writel(host, ATMCI_IER, ATMCI_RXBUFF);
-			} else {
+			}
+			else
+			{
 				atmci_pdc_complete(host);
 			}
-		} else if (pending & ATMCI_ENDRX) {
+		}
+		else if (pending & ATMCI_ENDRX)
+		{
 			dev_dbg(&host->pdev->dev, "IRQ: end of rx buffer\n");
 			atmci_writel(host, ATMCI_IDR, ATMCI_ENDRX);
 
-			if (host->data_size) {
+			if (host->data_size)
+			{
 				atmci_pdc_set_single_buf(host,
-						XFER_RECEIVE, PDC_SECOND_BUF);
+										 XFER_RECEIVE, PDC_SECOND_BUF);
 				atmci_writel(host, ATMCI_IER, ATMCI_ENDRX);
 			}
 		}
@@ -2232,7 +2659,8 @@ static irqreturn_t atmci_interrupt(int irq, void *dev_id)
 		 * data transmission if you have not sent a stop command.
 		 * The appropriate workaround is to use the BLKE signal.
 		 */
-		if (pending & ATMCI_BLKE) {
+		if (pending & ATMCI_BLKE)
+		{
 			dev_dbg(&host->pdev->dev, "IRQ: blke\n");
 			atmci_writel(host, ATMCI_IDR, ATMCI_BLKE);
 			smp_wmb();
@@ -2241,7 +2669,8 @@ static irqreturn_t atmci_interrupt(int irq, void *dev_id)
 			tasklet_schedule(&host->tasklet);
 		}
 
-		if (pending & ATMCI_NOTBUSY) {
+		if (pending & ATMCI_NOTBUSY)
+		{
 			dev_dbg(&host->pdev->dev, "IRQ: not_busy\n");
 			atmci_writel(host, ATMCI_IDR, ATMCI_NOTBUSY);
 			smp_wmb();
@@ -2251,11 +2680,17 @@ static irqreturn_t atmci_interrupt(int irq, void *dev_id)
 		}
 
 		if (pending & ATMCI_RXRDY)
+		{
 			atmci_read_data_pio(host);
-		if (pending & ATMCI_TXRDY)
-			atmci_write_data_pio(host);
+		}
 
-		if (pending & ATMCI_CMDRDY) {
+		if (pending & ATMCI_TXRDY)
+		{
+			atmci_write_data_pio(host);
+		}
+
+		if (pending & ATMCI_CMDRDY)
+		{
 			dev_dbg(&host->pdev->dev, "IRQ: cmd ready\n");
 			atmci_writel(host, ATMCI_IDR, ATMCI_CMDRDY);
 			host->cmd_status = status;
@@ -2266,9 +2701,12 @@ static irqreturn_t atmci_interrupt(int irq, void *dev_id)
 		}
 
 		if (pending & (ATMCI_SDIOIRQA | ATMCI_SDIOIRQB))
+		{
 			atmci_sdio_interrupt(host, status);
+		}
 
-	} while (pass_count++ < 5);
+	}
+	while (pass_count++ < 5);
 
 	return pass_count ? IRQ_HANDLED : IRQ_NONE;
 }
@@ -2289,15 +2727,18 @@ static irqreturn_t atmci_detect_interrupt(int irq, void *dev_id)
 }
 
 static int atmci_init_slot(struct atmel_mci *host,
-		struct mci_slot_pdata *slot_data, unsigned int id,
-		u32 sdc_reg, u32 sdio_irq)
+						   struct mci_slot_pdata *slot_data, unsigned int id,
+						   u32 sdc_reg, u32 sdio_irq)
 {
 	struct mmc_host			*mmc;
 	struct atmel_mci_slot		*slot;
 
 	mmc = mmc_alloc_host(sizeof(struct atmel_mci_slot), &host->pdev->dev);
+
 	if (!mmc)
+	{
 		return -ENOMEM;
+	}
 
 	slot = mmc_priv(mmc);
 	slot->mmc = mmc;
@@ -2309,35 +2750,47 @@ static int atmci_init_slot(struct atmel_mci *host,
 	slot->sdio_irq = sdio_irq;
 
 	dev_dbg(&mmc->class_dev,
-	        "slot[%u]: bus_width=%u, detect_pin=%d, "
-		"detect_is_active_high=%s, wp_pin=%d\n",
-		id, slot_data->bus_width, slot_data->detect_pin,
-		slot_data->detect_is_active_high ? "true" : "false",
-		slot_data->wp_pin);
+			"slot[%u]: bus_width=%u, detect_pin=%d, "
+			"detect_is_active_high=%s, wp_pin=%d\n",
+			id, slot_data->bus_width, slot_data->detect_pin,
+			slot_data->detect_is_active_high ? "true" : "false",
+			slot_data->wp_pin);
 
 	mmc->ops = &atmci_ops;
 	mmc->f_min = DIV_ROUND_UP(host->bus_hz, 512);
 	mmc->f_max = host->bus_hz / 2;
 	mmc->ocr_avail	= MMC_VDD_32_33 | MMC_VDD_33_34;
+
 	if (sdio_irq)
+	{
 		mmc->caps |= MMC_CAP_SDIO_IRQ;
+	}
+
 	if (host->caps.has_highspeed)
+	{
 		mmc->caps |= MMC_CAP_SD_HIGHSPEED;
+	}
+
 	/*
 	 * Without the read/write proof capability, it is strongly suggested to
 	 * use only one bit for data to prevent fifo underruns and overruns
 	 * which will corrupt data.
 	 */
 	if ((slot_data->bus_width >= 4) && host->caps.has_rwproof)
+	{
 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+	}
 
-	if (atmci_get_version(host) < 0x200) {
+	if (atmci_get_version(host) < 0x200)
+	{
 		mmc->max_segs = 256;
 		mmc->max_blk_size = 4095;
 		mmc->max_blk_count = 256;
 		mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
 		mmc->max_seg_size = mmc->max_blk_size * mmc->max_segs;
-	} else {
+	}
+	else
+	{
 		mmc->max_segs = 64;
 		mmc->max_req_size = 32768 * 512;
 		mmc->max_blk_size = 32768;
@@ -2346,27 +2799,39 @@ static int atmci_init_slot(struct atmel_mci *host,
 
 	/* Assume card is present initially */
 	set_bit(ATMCI_CARD_PRESENT, &slot->flags);
-	if (gpio_is_valid(slot->detect_pin)) {
+
+	if (gpio_is_valid(slot->detect_pin))
+	{
 		if (devm_gpio_request(&host->pdev->dev, slot->detect_pin,
-				      "mmc_detect")) {
+							  "mmc_detect"))
+		{
 			dev_dbg(&mmc->class_dev, "no detect pin available\n");
 			slot->detect_pin = -EBUSY;
-		} else if (gpio_get_value(slot->detect_pin) ^
-				slot->detect_is_active_high) {
+		}
+		else if (gpio_get_value(slot->detect_pin) ^
+				 slot->detect_is_active_high)
+		{
 			clear_bit(ATMCI_CARD_PRESENT, &slot->flags);
 		}
 	}
 
-	if (!gpio_is_valid(slot->detect_pin)) {
+	if (!gpio_is_valid(slot->detect_pin))
+	{
 		if (slot_data->non_removable)
+		{
 			mmc->caps |= MMC_CAP_NONREMOVABLE;
+		}
 		else
+		{
 			mmc->caps |= MMC_CAP_NEEDS_POLL;
+		}
 	}
 
-	if (gpio_is_valid(slot->wp_pin)) {
+	if (gpio_is_valid(slot->wp_pin))
+	{
 		if (devm_gpio_request(&host->pdev->dev, slot->wp_pin,
-				      "mmc_wp")) {
+							  "mmc_wp"))
+		{
 			dev_dbg(&mmc->class_dev, "no WP pin available\n");
 			slot->wp_pin = -EBUSY;
 		}
@@ -2376,20 +2841,23 @@ static int atmci_init_slot(struct atmel_mci *host,
 	mmc_regulator_get_supply(mmc);
 	mmc_add_host(mmc);
 
-	if (gpio_is_valid(slot->detect_pin)) {
+	if (gpio_is_valid(slot->detect_pin))
+	{
 		int ret;
 
 		setup_timer(&slot->detect_timer, atmci_detect_change,
-				(unsigned long)slot);
+					(unsigned long)slot);
 
 		ret = request_irq(gpio_to_irq(slot->detect_pin),
-				atmci_detect_interrupt,
-				IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
-				"mmc-detect", slot);
-		if (ret) {
+						  atmci_detect_interrupt,
+						  IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
+						  "mmc-detect", slot);
+
+		if (ret)
+		{
 			dev_dbg(&mmc->class_dev,
-				"could not request IRQ %d for detect pin\n",
-				gpio_to_irq(slot->detect_pin));
+					"could not request IRQ %d for detect pin\n",
+					gpio_to_irq(slot->detect_pin));
 			slot->detect_pin = -EBUSY;
 		}
 	}
@@ -2400,7 +2868,7 @@ static int atmci_init_slot(struct atmel_mci *host,
 }
 
 static void atmci_cleanup_slot(struct atmel_mci_slot *slot,
-		unsigned int id)
+							   unsigned int id)
 {
 	/* Debugfs stuff is cleaned up by mmc core */
 
@@ -2409,7 +2877,8 @@ static void atmci_cleanup_slot(struct atmel_mci_slot *slot,
 
 	mmc_remove_host(slot->mmc);
 
-	if (gpio_is_valid(slot->detect_pin)) {
+	if (gpio_is_valid(slot->detect_pin))
+	{
 		int pin = slot->detect_pin;
 
 		free_irq(gpio_to_irq(pin), slot);
@@ -2423,29 +2892,37 @@ static void atmci_cleanup_slot(struct atmel_mci_slot *slot,
 static int atmci_configure_dma(struct atmel_mci *host)
 {
 	host->dma.chan = dma_request_slave_channel_reason(&host->pdev->dev,
-							"rxtx");
+					 "rxtx");
 
-	if (PTR_ERR(host->dma.chan) == -ENODEV) {
+	if (PTR_ERR(host->dma.chan) == -ENODEV)
+	{
 		struct mci_platform_data *pdata = host->pdev->dev.platform_data;
 		dma_cap_mask_t mask;
 
 		if (!pdata || !pdata->dma_filter)
+		{
 			return -ENODEV;
+		}
 
 		dma_cap_zero(mask);
 		dma_cap_set(DMA_SLAVE, mask);
 
 		host->dma.chan = dma_request_channel(mask, pdata->dma_filter,
-						     pdata->dma_slave);
+											 pdata->dma_slave);
+
 		if (!host->dma.chan)
+		{
 			host->dma.chan = ERR_PTR(-ENODEV);
+		}
 	}
 
 	if (IS_ERR(host->dma.chan))
+	{
 		return PTR_ERR(host->dma.chan);
+	}
 
 	dev_info(&host->pdev->dev, "using %s for DMA transfers\n",
-		 dma_chan_name(host->dma.chan));
+			 dma_chan_name(host->dma.chan));
 
 	host->dma_conf.src_addr = host->mapbase + ATMCI_RDR;
 	host->dma_conf.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
@@ -2469,7 +2946,7 @@ static void atmci_get_cap(struct atmel_mci *host)
 
 	version = atmci_get_version(host);
 	dev_info(&host->pdev->dev,
-			"version: 0x%x\n", version);
+			 "version: 0x%x\n", version);
 
 	host->caps.has_dma_conf_reg = 0;
 	host->caps.has_pdc = ATMCI_PDC_CONNECTED;
@@ -2484,31 +2961,37 @@ static void atmci_get_cap(struct atmel_mci *host)
 	host->caps.need_notbusy_for_read_ops = 0;
 
 	/* keep only major version number */
-	switch (version & 0xf00) {
-	case 0x600:
-	case 0x500:
-		host->caps.has_odd_clk_div = 1;
-	case 0x400:
-	case 0x300:
-		host->caps.has_dma_conf_reg = 1;
-		host->caps.has_pdc = 0;
-		host->caps.has_cfg_reg = 1;
-		host->caps.has_cstor_reg = 1;
-		host->caps.has_highspeed = 1;
-	case 0x200:
-		host->caps.has_rwproof = 1;
-		host->caps.need_blksz_mul_4 = 0;
-		host->caps.need_notbusy_for_read_ops = 1;
-	case 0x100:
-		host->caps.has_bad_data_ordering = 0;
-		host->caps.need_reset_after_xfer = 0;
-	case 0x0:
-		break;
-	default:
-		host->caps.has_pdc = 0;
-		dev_warn(&host->pdev->dev,
-				"Unmanaged mci version, set minimum capabilities\n");
-		break;
+	switch (version & 0xf00)
+	{
+		case 0x600:
+		case 0x500:
+			host->caps.has_odd_clk_div = 1;
+
+		case 0x400:
+		case 0x300:
+			host->caps.has_dma_conf_reg = 1;
+			host->caps.has_pdc = 0;
+			host->caps.has_cfg_reg = 1;
+			host->caps.has_cstor_reg = 1;
+			host->caps.has_highspeed = 1;
+
+		case 0x200:
+			host->caps.has_rwproof = 1;
+			host->caps.need_blksz_mul_4 = 0;
+			host->caps.need_notbusy_for_read_ops = 1;
+
+		case 0x100:
+			host->caps.has_bad_data_ordering = 0;
+			host->caps.need_reset_after_xfer = 0;
+
+		case 0x0:
+			break;
+
+		default:
+			host->caps.has_pdc = 0;
+			dev_warn(&host->pdev->dev,
+					 "Unmanaged mci version, set minimum capabilities\n");
+			break;
 	}
 }
 
@@ -2522,40 +3005,63 @@ static int atmci_probe(struct platform_device *pdev)
 	int				ret, i;
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!regs)
+	{
 		return -ENXIO;
+	}
+
 	pdata = pdev->dev.platform_data;
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		pdata = atmci_of_init(pdev);
-		if (IS_ERR(pdata)) {
+
+		if (IS_ERR(pdata))
+		{
 			dev_err(&pdev->dev, "platform data not available\n");
 			return PTR_ERR(pdata);
 		}
 	}
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	host = devm_kzalloc(&pdev->dev, sizeof(*host), GFP_KERNEL);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	host->pdev = pdev;
 	spin_lock_init(&host->lock);
 	INIT_LIST_HEAD(&host->queue);
 
 	host->mck = devm_clk_get(&pdev->dev, "mci_clk");
+
 	if (IS_ERR(host->mck))
+	{
 		return PTR_ERR(host->mck);
+	}
 
 	host->regs = devm_ioremap(&pdev->dev, regs->start, resource_size(regs));
+
 	if (!host->regs)
+	{
 		return -ENOMEM;
+	}
 
 	ret = clk_prepare_enable(host->mck);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	atmci_writel(host, ATMCI_CR, ATMCI_CR_SWRST);
 	host->bus_hz = clk_get_rate(host->mck);
@@ -2565,7 +3071,9 @@ static int atmci_probe(struct platform_device *pdev)
 	tasklet_init(&host->tasklet, atmci_tasklet_func, (unsigned long)host);
 
 	ret = request_irq(irq, atmci_interrupt, 0, dev_name(&pdev->dev), host);
-	if (ret) {
+
+	if (ret)
+	{
 		clk_disable_unprepare(host->mck);
 		return ret;
 	}
@@ -2573,18 +3081,27 @@ static int atmci_probe(struct platform_device *pdev)
 	/* Get MCI capabilities and set operations according to it */
 	atmci_get_cap(host);
 	ret = atmci_configure_dma(host);
+
 	if (ret == -EPROBE_DEFER)
+	{
 		goto err_dma_probe_defer;
-	if (ret == 0) {
+	}
+
+	if (ret == 0)
+	{
 		host->prepare_data = &atmci_prepare_data_dma;
 		host->submit_data = &atmci_submit_data_dma;
 		host->stop_transfer = &atmci_stop_transfer_dma;
-	} else if (host->caps.has_pdc) {
+	}
+	else if (host->caps.has_pdc)
+	{
 		dev_info(&pdev->dev, "using PDC\n");
 		host->prepare_data = &atmci_prepare_data_pdc;
 		host->submit_data = &atmci_submit_data_pdc;
 		host->stop_transfer = &atmci_stop_transfer_pdc;
-	} else {
+	}
+	else
+	{
 		dev_info(&pdev->dev, "using PIO\n");
 		host->prepare_data = &atmci_prepare_data;
 		host->submit_data = &atmci_submit_data;
@@ -2604,35 +3121,48 @@ static int atmci_probe(struct platform_device *pdev)
 	/* We need at least one slot to succeed */
 	nr_slots = 0;
 	ret = -ENODEV;
-	if (pdata->slot[0].bus_width) {
+
+	if (pdata->slot[0].bus_width)
+	{
 		ret = atmci_init_slot(host, &pdata->slot[0],
-				0, ATMCI_SDCSEL_SLOT_A, ATMCI_SDIOIRQA);
-		if (!ret) {
+							  0, ATMCI_SDCSEL_SLOT_A, ATMCI_SDIOIRQA);
+
+		if (!ret)
+		{
 			nr_slots++;
 			host->buf_size = host->slot[0]->mmc->max_req_size;
 		}
 	}
-	if (pdata->slot[1].bus_width) {
+
+	if (pdata->slot[1].bus_width)
+	{
 		ret = atmci_init_slot(host, &pdata->slot[1],
-				1, ATMCI_SDCSEL_SLOT_B, ATMCI_SDIOIRQB);
-		if (!ret) {
+							  1, ATMCI_SDCSEL_SLOT_B, ATMCI_SDIOIRQB);
+
+		if (!ret)
+		{
 			nr_slots++;
+
 			if (host->slot[1]->mmc->max_req_size > host->buf_size)
 				host->buf_size =
 					host->slot[1]->mmc->max_req_size;
 		}
 	}
 
-	if (!nr_slots) {
+	if (!nr_slots)
+	{
 		dev_err(&pdev->dev, "init failed: no slot defined\n");
 		goto err_init_slot;
 	}
 
-	if (!host->caps.has_rwproof) {
+	if (!host->caps.has_rwproof)
+	{
 		host->buffer = dma_alloc_coherent(&pdev->dev, host->buf_size,
-		                                  &host->buf_phys_addr,
-						  GFP_KERNEL);
-		if (!host->buffer) {
+										  &host->buf_phys_addr,
+										  GFP_KERNEL);
+
+		if (!host->buffer)
+		{
 			ret = -ENOMEM;
 			dev_err(&pdev->dev, "buffer allocation failed\n");
 			goto err_dma_alloc;
@@ -2640,8 +3170,8 @@ static int atmci_probe(struct platform_device *pdev)
 	}
 
 	dev_info(&pdev->dev,
-			"Atmel MCI controller at 0x%08lx irq %d, %u slots\n",
-			host->mapbase, irq, nr_slots);
+			 "Atmel MCI controller at 0x%08lx irq %d, %u slots\n",
+			 host->mapbase, irq, nr_slots);
 
 	pm_runtime_mark_last_busy(&host->pdev->dev);
 	pm_runtime_put_autosuspend(&pdev->dev);
@@ -2649,10 +3179,15 @@ static int atmci_probe(struct platform_device *pdev)
 	return 0;
 
 err_dma_alloc:
-	for (i = 0; i < ATMCI_MAX_NR_SLOTS; i++) {
+
+	for (i = 0; i < ATMCI_MAX_NR_SLOTS; i++)
+	{
 		if (host->slot[i])
+		{
 			atmci_cleanup_slot(host->slot[i], i);
+		}
 	}
+
 err_init_slot:
 	clk_disable_unprepare(host->mck);
 
@@ -2660,8 +3195,12 @@ err_init_slot:
 	pm_runtime_put_noidle(&pdev->dev);
 
 	del_timer_sync(&host->timer);
+
 	if (!IS_ERR(host->dma.chan))
+	{
 		dma_release_channel(host->dma.chan);
+	}
+
 err_dma_probe_defer:
 	free_irq(irq, host);
 	return ret;
@@ -2676,11 +3215,14 @@ static int atmci_remove(struct platform_device *pdev)
 
 	if (host->buffer)
 		dma_free_coherent(&pdev->dev, host->buf_size,
-		                  host->buffer, host->buf_phys_addr);
+						  host->buffer, host->buf_phys_addr);
 
-	for (i = 0; i < ATMCI_MAX_NR_SLOTS; i++) {
+	for (i = 0; i < ATMCI_MAX_NR_SLOTS; i++)
+	{
 		if (host->slot[i])
+		{
 			atmci_cleanup_slot(host->slot[i], i);
+		}
 	}
 
 	atmci_writel(host, ATMCI_IDR, ~0UL);
@@ -2688,8 +3230,11 @@ static int atmci_remove(struct platform_device *pdev)
 	atmci_readl(host, ATMCI_SR);
 
 	del_timer_sync(&host->timer);
+
 	if (!IS_ERR(host->dma.chan))
+	{
 		dma_release_channel(host->dma.chan);
+	}
 
 	free_irq(platform_get_irq(pdev, 0), host);
 
@@ -2723,13 +3268,15 @@ static int atmci_runtime_resume(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops atmci_dev_pm_ops = {
+static const struct dev_pm_ops atmci_dev_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-				pm_runtime_force_resume)
+	pm_runtime_force_resume)
 	SET_RUNTIME_PM_OPS(atmci_runtime_suspend, atmci_runtime_resume, NULL)
 };
 
-static struct platform_driver atmci_driver = {
+static struct platform_driver atmci_driver =
+{
 	.probe		= atmci_probe,
 	.remove		= atmci_remove,
 	.driver		= {

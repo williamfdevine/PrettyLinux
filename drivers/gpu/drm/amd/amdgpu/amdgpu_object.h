@@ -41,22 +41,30 @@
  */
 static inline unsigned amdgpu_mem_type_to_domain(u32 mem_type)
 {
-	switch (mem_type) {
-	case TTM_PL_VRAM:
-		return AMDGPU_GEM_DOMAIN_VRAM;
-	case TTM_PL_TT:
-		return AMDGPU_GEM_DOMAIN_GTT;
-	case TTM_PL_SYSTEM:
-		return AMDGPU_GEM_DOMAIN_CPU;
-	case AMDGPU_PL_GDS:
-		return AMDGPU_GEM_DOMAIN_GDS;
-	case AMDGPU_PL_GWS:
-		return AMDGPU_GEM_DOMAIN_GWS;
-	case AMDGPU_PL_OA:
-		return AMDGPU_GEM_DOMAIN_OA;
-	default:
-		break;
+	switch (mem_type)
+	{
+		case TTM_PL_VRAM:
+			return AMDGPU_GEM_DOMAIN_VRAM;
+
+		case TTM_PL_TT:
+			return AMDGPU_GEM_DOMAIN_GTT;
+
+		case TTM_PL_SYSTEM:
+			return AMDGPU_GEM_DOMAIN_CPU;
+
+		case AMDGPU_PL_GDS:
+			return AMDGPU_GEM_DOMAIN_GDS;
+
+		case AMDGPU_PL_GWS:
+			return AMDGPU_GEM_DOMAIN_GWS;
+
+		case AMDGPU_PL_OA:
+			return AMDGPU_GEM_DOMAIN_OA;
+
+		default:
+			break;
 	}
+
 	return 0;
 }
 
@@ -74,11 +82,17 @@ static inline int amdgpu_bo_reserve(struct amdgpu_bo *bo, bool no_intr)
 	int r;
 
 	r = ttm_bo_reserve(&bo->tbo, !no_intr, false, NULL);
-	if (unlikely(r != 0)) {
+
+	if (unlikely(r != 0))
+	{
 		if (r != -ERESTARTSYS)
+		{
 			dev_err(bo->adev->dev, "%p reserve failed\n", bo);
+		}
+
 		return r;
 	}
+
 	return 0;
 }
 
@@ -114,62 +128,62 @@ static inline u64 amdgpu_bo_mmap_offset(struct amdgpu_bo *bo)
 }
 
 int amdgpu_bo_create(struct amdgpu_device *adev,
-			    unsigned long size, int byte_align,
-			    bool kernel, u32 domain, u64 flags,
-			    struct sg_table *sg,
-			    struct reservation_object *resv,
-			    struct amdgpu_bo **bo_ptr);
+					 unsigned long size, int byte_align,
+					 bool kernel, u32 domain, u64 flags,
+					 struct sg_table *sg,
+					 struct reservation_object *resv,
+					 struct amdgpu_bo **bo_ptr);
 int amdgpu_bo_create_restricted(struct amdgpu_device *adev,
-				unsigned long size, int byte_align,
-				bool kernel, u32 domain, u64 flags,
-				struct sg_table *sg,
-				struct ttm_placement *placement,
-			        struct reservation_object *resv,
-				struct amdgpu_bo **bo_ptr);
+								unsigned long size, int byte_align,
+								bool kernel, u32 domain, u64 flags,
+								struct sg_table *sg,
+								struct ttm_placement *placement,
+								struct reservation_object *resv,
+								struct amdgpu_bo **bo_ptr);
 int amdgpu_bo_create_kernel(struct amdgpu_device *adev,
-			    unsigned long size, int align,
-			    u32 domain, struct amdgpu_bo **bo_ptr,
-			    u64 *gpu_addr, void **cpu_addr);
+							unsigned long size, int align,
+							u32 domain, struct amdgpu_bo **bo_ptr,
+							u64 *gpu_addr, void **cpu_addr);
 void amdgpu_bo_free_kernel(struct amdgpu_bo **bo, u64 *gpu_addr,
-			   void **cpu_addr);
+						   void **cpu_addr);
 int amdgpu_bo_kmap(struct amdgpu_bo *bo, void **ptr);
 void amdgpu_bo_kunmap(struct amdgpu_bo *bo);
 struct amdgpu_bo *amdgpu_bo_ref(struct amdgpu_bo *bo);
 void amdgpu_bo_unref(struct amdgpu_bo **bo);
 int amdgpu_bo_pin(struct amdgpu_bo *bo, u32 domain, u64 *gpu_addr);
 int amdgpu_bo_pin_restricted(struct amdgpu_bo *bo, u32 domain,
-			     u64 min_offset, u64 max_offset,
-			     u64 *gpu_addr);
+							 u64 min_offset, u64 max_offset,
+							 u64 *gpu_addr);
 int amdgpu_bo_unpin(struct amdgpu_bo *bo);
 int amdgpu_bo_evict_vram(struct amdgpu_device *adev);
 int amdgpu_bo_init(struct amdgpu_device *adev);
 void amdgpu_bo_fini(struct amdgpu_device *adev);
 int amdgpu_bo_fbdev_mmap(struct amdgpu_bo *bo,
-				struct vm_area_struct *vma);
+						 struct vm_area_struct *vma);
 int amdgpu_bo_set_tiling_flags(struct amdgpu_bo *bo, u64 tiling_flags);
 void amdgpu_bo_get_tiling_flags(struct amdgpu_bo *bo, u64 *tiling_flags);
 int amdgpu_bo_set_metadata (struct amdgpu_bo *bo, void *metadata,
-			    uint32_t metadata_size, uint64_t flags);
+							uint32_t metadata_size, uint64_t flags);
 int amdgpu_bo_get_metadata(struct amdgpu_bo *bo, void *buffer,
-			   size_t buffer_size, uint32_t *metadata_size,
-			   uint64_t *flags);
+						   size_t buffer_size, uint32_t *metadata_size,
+						   uint64_t *flags);
 void amdgpu_bo_move_notify(struct ttm_buffer_object *bo,
-				  struct ttm_mem_reg *new_mem);
+						   struct ttm_mem_reg *new_mem);
 int amdgpu_bo_fault_reserve_notify(struct ttm_buffer_object *bo);
 void amdgpu_bo_fence(struct amdgpu_bo *bo, struct fence *fence,
-		     bool shared);
+					 bool shared);
 u64 amdgpu_bo_gpu_offset(struct amdgpu_bo *bo);
 int amdgpu_bo_backup_to_shadow(struct amdgpu_device *adev,
-			       struct amdgpu_ring *ring,
-			       struct amdgpu_bo *bo,
-			       struct reservation_object *resv,
-			       struct fence **fence, bool direct);
+							   struct amdgpu_ring *ring,
+							   struct amdgpu_bo *bo,
+							   struct reservation_object *resv,
+							   struct fence **fence, bool direct);
 int amdgpu_bo_restore_from_shadow(struct amdgpu_device *adev,
-				  struct amdgpu_ring *ring,
-				  struct amdgpu_bo *bo,
-				  struct reservation_object *resv,
-				  struct fence **fence,
-				  bool direct);
+								  struct amdgpu_ring *ring,
+								  struct amdgpu_bo *bo,
+								  struct reservation_object *resv,
+								  struct fence **fence,
+								  bool direct);
 
 
 /*
@@ -181,29 +195,29 @@ static inline uint64_t amdgpu_sa_bo_gpu_addr(struct amdgpu_sa_bo *sa_bo)
 	return sa_bo->manager->gpu_addr + sa_bo->soffset;
 }
 
-static inline void * amdgpu_sa_bo_cpu_addr(struct amdgpu_sa_bo *sa_bo)
+static inline void *amdgpu_sa_bo_cpu_addr(struct amdgpu_sa_bo *sa_bo)
 {
 	return sa_bo->manager->cpu_ptr + sa_bo->soffset;
 }
 
 int amdgpu_sa_bo_manager_init(struct amdgpu_device *adev,
-				     struct amdgpu_sa_manager *sa_manager,
-				     unsigned size, u32 align, u32 domain);
+							  struct amdgpu_sa_manager *sa_manager,
+							  unsigned size, u32 align, u32 domain);
 void amdgpu_sa_bo_manager_fini(struct amdgpu_device *adev,
-				      struct amdgpu_sa_manager *sa_manager);
+							   struct amdgpu_sa_manager *sa_manager);
 int amdgpu_sa_bo_manager_start(struct amdgpu_device *adev,
-				      struct amdgpu_sa_manager *sa_manager);
+							   struct amdgpu_sa_manager *sa_manager);
 int amdgpu_sa_bo_manager_suspend(struct amdgpu_device *adev,
-					struct amdgpu_sa_manager *sa_manager);
+								 struct amdgpu_sa_manager *sa_manager);
 int amdgpu_sa_bo_new(struct amdgpu_sa_manager *sa_manager,
-		     struct amdgpu_sa_bo **sa_bo,
-		     unsigned size, unsigned align);
+					 struct amdgpu_sa_bo **sa_bo,
+					 unsigned size, unsigned align);
 void amdgpu_sa_bo_free(struct amdgpu_device *adev,
-			      struct amdgpu_sa_bo **sa_bo,
-			      struct fence *fence);
+					   struct amdgpu_sa_bo **sa_bo,
+					   struct fence *fence);
 #if defined(CONFIG_DEBUG_FS)
 void amdgpu_sa_bo_dump_debug_info(struct amdgpu_sa_manager *sa_manager,
-					 struct seq_file *m);
+								  struct seq_file *m);
 #endif
 
 

@@ -17,7 +17,8 @@
 #define WIL_FW_SIGNATURE (0x36323130) /* '0126' */
 #define WIL_FW_FMT_VERSION (1) /* format version driver supports */
 
-enum wil_fw_record_type {
+enum wil_fw_record_type
+{
 	wil_fw_type_comment = 1,
 	wil_fw_type_data = 2,
 	wil_fw_type_fill = 3,
@@ -29,7 +30,8 @@ enum wil_fw_record_type {
 	wil_fw_type_gateway_data4 = 9,
 };
 
-struct wil_fw_record_head {
+struct wil_fw_record_head
+{
 	__le16 type; /* enum wil_fw_record_type */
 	__le16 flags; /* to be defined */
 	__le32 size; /* whole record, bytes after head */
@@ -39,13 +41,15 @@ struct wil_fw_record_head {
  * data_size inferred from the @head.size. For this case,
  * data_size = @head.size - offsetof(struct wil_fw_record_data, data)
  */
-struct wil_fw_record_data { /* type == wil_fw_type_data */
+struct wil_fw_record_data   /* type == wil_fw_type_data */
+{
 	__le32 addr;
 	__le32 data[0]; /* [data_size], see above */
 } __packed;
 
 /* fill with constant @value, @size bytes starting from @addr */
-struct wil_fw_record_fill { /* type == wil_fw_type_fill */
+struct wil_fw_record_fill   /* type == wil_fw_type_fill */
+{
 	__le32 addr;
 	__le32 value;
 	__le32 size;
@@ -54,13 +58,15 @@ struct wil_fw_record_fill { /* type == wil_fw_type_fill */
 /* free-form comment
  * for informational purpose, data_size is @head.size from record header
  */
-struct wil_fw_record_comment { /* type == wil_fw_type_comment */
+struct wil_fw_record_comment   /* type == wil_fw_type_comment */
+{
 	u8 data[0]; /* free-form data [data_size], see above */
 } __packed;
 
 /* FW capabilities encoded inside a comment record */
 #define WIL_FW_CAPABILITIES_MAGIC (0xabcddcba)
-struct wil_fw_record_capabilities { /* type == wil_fw_type_comment */
+struct wil_fw_record_capabilities   /* type == wil_fw_type_comment */
+{
 	/* identifies capabilities record */
 	__le32 magic;
 	/* capabilities (variable size), see enum wmi_fw_capability */
@@ -70,13 +76,15 @@ struct wil_fw_record_capabilities { /* type == wil_fw_type_comment */
 /* perform action
  * data_size = @head.size - offsetof(struct wil_fw_record_action, data)
  */
-struct wil_fw_record_action { /* type == wil_fw_type_action */
+struct wil_fw_record_action   /* type == wil_fw_type_action */
+{
 	__le32 action; /* action to perform: reset, wait for fw ready etc. */
 	__le32 data[0]; /* action specific, [data_size], see above */
 } __packed;
 
 /* data block for struct wil_fw_record_direct_write */
-struct wil_fw_data_dwrite {
+struct wil_fw_data_dwrite
+{
 	__le32 addr;
 	__le32 value;
 	__le32 mask;
@@ -86,14 +94,16 @@ struct wil_fw_data_dwrite {
  * preserve original bits accordingly to the @mask
  * data_size is @head.size where @head is record header
  */
-struct wil_fw_record_direct_write { /* type == wil_fw_type_direct_write */
+struct wil_fw_record_direct_write   /* type == wil_fw_type_direct_write */
+{
 	struct wil_fw_data_dwrite data[0];
 } __packed;
 
 /* verify condition: [@addr] & @mask == @value
  * if condition not met, firmware download fails
  */
-struct wil_fw_record_verify { /* type == wil_fw_verify */
+struct wil_fw_record_verify   /* type == wil_fw_verify */
+{
 	__le32 addr; /* read from this address */
 	__le32 value; /* reference value */
 	__le32 mask; /* mask for verification */
@@ -105,7 +115,8 @@ struct wil_fw_record_verify { /* type == wil_fw_verify */
 /* the FW version prefix in the comment */
 #define WIL_FW_VERSION_PREFIX "FW version: "
 #define WIL_FW_VERSION_PREFIX_LEN (sizeof(WIL_FW_VERSION_PREFIX) - 1)
-struct wil_fw_record_file_header {
+struct wil_fw_record_file_header
+{
 	__le32 signature ; /* Wilocity signature */
 	__le32 reserved;
 	__le32 crc; /* crc32 of the following data  */
@@ -116,7 +127,8 @@ struct wil_fw_record_file_header {
 
 /* 1-dword gateway */
 /* data block for the struct wil_fw_record_gateway_data */
-struct wil_fw_data_gw {
+struct wil_fw_data_gw
+{
 	__le32 addr;
 	__le32 value;
 } __packed;
@@ -127,7 +139,8 @@ struct wil_fw_data_gw {
  * data_size inferred from the @head.size. For this case,
  * data_size = @head.size - offsetof(struct wil_fw_record_gateway_data, data)
  */
-struct wil_fw_record_gateway_data { /* type == wil_fw_type_gateway_data */
+struct wil_fw_record_gateway_data   /* type == wil_fw_type_gateway_data */
+{
 	__le32 gateway_addr_addr;
 	__le32 gateway_value_addr;
 	__le32 gateway_cmd_addr;
@@ -140,7 +153,8 @@ struct wil_fw_record_gateway_data { /* type == wil_fw_type_gateway_data */
 
 /* 4-dword gateway */
 /* data block for the struct wil_fw_record_gateway_data4 */
-struct wil_fw_data_gw4 {
+struct wil_fw_data_gw4
+{
 	__le32 addr;
 	__le32 value[4];
 } __packed;
@@ -151,7 +165,8 @@ struct wil_fw_data_gw4 {
  * data_size inferred from the @head.size. For this case,
  * data_size = @head.size - offsetof(struct wil_fw_record_gateway_data4, data)
  */
-struct wil_fw_record_gateway_data4 { /* type == wil_fw_type_gateway_data4 */
+struct wil_fw_record_gateway_data4   /* type == wil_fw_type_gateway_data4 */
+{
 	__le32 gateway_addr_addr;
 	__le32 gateway_value_addr[4];
 	__le32 gateway_cmd_addr;

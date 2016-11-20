@@ -30,7 +30,8 @@
 
 #define MSG_FRAME_MAX_SIZE 2150
 
-typedef struct _diva_dbg_entry_head {
+typedef struct _diva_dbg_entry_head
+{
 	dword sequence;
 	dword time_sec;
 	dword time_usec;
@@ -45,9 +46,9 @@ int diva_maint_init(byte *base, unsigned long length, int do_init);
 void *diva_maint_finit(void);
 dword diva_dbg_q_length(void);
 diva_dbg_entry_head_t *diva_maint_get_message(word *size,
-					      diva_os_spin_lock_magic_t *old_irql);
+		diva_os_spin_lock_magic_t *old_irql);
 void diva_maint_ack_message(int do_release,
-			    diva_os_spin_lock_magic_t *old_irql);
+							diva_os_spin_lock_magic_t *old_irql);
 void diva_maint_prtComp(char *format, ...);
 void diva_maint_wakeup_read(void);
 int diva_get_driver_info(dword id, byte *data, int data_length);

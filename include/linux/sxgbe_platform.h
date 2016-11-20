@@ -24,20 +24,23 @@
 /* Platfrom data for platform device structure's
  * platform_data field
  */
-struct sxgbe_mdio_bus_data {
+struct sxgbe_mdio_bus_data
+{
 	unsigned int phy_mask;
 	int *irqs;
 	int probed_phy_irq;
 };
 
-struct sxgbe_dma_cfg {
+struct sxgbe_dma_cfg
+{
 	int pbl;
 	int fixed_burst;
 	int burst_map;
 	int adv_addr_mode;
 };
 
-struct sxgbe_plat_data {
+struct sxgbe_plat_data
+{
 	char *phy_bus_name;
 	int bus_id;
 	int phy_addr;

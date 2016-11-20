@@ -45,7 +45,8 @@
  * @unlock:	optional. Define a driver's own unlock callback, instead of
  *		using &v4l2_m2m_ctx->q_lock.
  */
-struct v4l2_m2m_ops {
+struct v4l2_m2m_ops
+{
 	void (*device_run)(void *priv);
 	int (*job_ready)(void *priv);
 	void (*job_abort)(void *priv);
@@ -69,7 +70,8 @@ struct v4l2_m2m_dev;
  * instance receives access to the device.
  */
 
-struct v4l2_m2m_queue_ctx {
+struct v4l2_m2m_queue_ctx
+{
 	struct vb2_queue	q;
 
 	struct list_head	rdy_queue;
@@ -91,7 +93,8 @@ struct v4l2_m2m_queue_ctx {
  * @finished: Wait queue used to signalize when a job queue finished.
  * @priv: Instance private data
  */
-struct v4l2_m2m_ctx {
+struct v4l2_m2m_ctx
+{
 	/* optional cap/out vb2 queues lock */
 	struct mutex			*q_lock;
 
@@ -116,7 +119,8 @@ struct v4l2_m2m_ctx {
  * @vb: pointer to struct &vb2_v4l2_buffer
  * @list: list of m2m buffers
  */
-struct v4l2_m2m_buffer {
+struct v4l2_m2m_buffer
+{
 	struct vb2_v4l2_buffer	vb;
 	struct list_head	list;
 };
@@ -136,7 +140,7 @@ void *v4l2_m2m_get_curr_priv(struct v4l2_m2m_dev *m2m_dev);
  * @type: type of the V4L2 buffer, as defined by enum &v4l2_buf_type
  */
 struct vb2_queue *v4l2_m2m_get_vq(struct v4l2_m2m_ctx *m2m_ctx,
-				       enum v4l2_buf_type type);
+								  enum v4l2_buf_type type);
 
 /**
  * v4l2_m2m_try_schedule() - check whether an instance is ready to be added to
@@ -177,7 +181,7 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx);
  * not be called directly from the &v4l2_m2m_ops->device_run callback though.
  */
 void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
-			 struct v4l2_m2m_ctx *m2m_ctx);
+						 struct v4l2_m2m_ctx *m2m_ctx);
 
 static inline void
 v4l2_m2m_buf_done(struct vb2_v4l2_buffer *buf, enum vb2_buffer_state state)
@@ -193,7 +197,7 @@ v4l2_m2m_buf_done(struct vb2_v4l2_buffer *buf, enum vb2_buffer_state state)
  * @reqbufs: pointer to struct &v4l2_requestbuffers
  */
 int v4l2_m2m_reqbufs(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-		     struct v4l2_requestbuffers *reqbufs);
+					 struct v4l2_requestbuffers *reqbufs);
 
 /**
  * v4l2_m2m_querybuf() - multi-queue-aware QUERYBUF multiplexer
@@ -205,7 +209,7 @@ int v4l2_m2m_reqbufs(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
  * See v4l2_m2m_mmap() documentation for details.
  */
 int v4l2_m2m_querybuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-		      struct v4l2_buffer *buf);
+					  struct v4l2_buffer *buf);
 
 /**
  * v4l2_m2m_qbuf() - enqueue a source or destination buffer, depending on
@@ -216,7 +220,7 @@ int v4l2_m2m_querybuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
  * @buf: pointer to struct &v4l2_buffer
  */
 int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-		  struct v4l2_buffer *buf);
+				  struct v4l2_buffer *buf);
 
 /**
  * v4l2_m2m_dqbuf() - dequeue a source or destination buffer, depending on
@@ -227,7 +231,7 @@ int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
  * @buf: pointer to struct &v4l2_buffer
  */
 int v4l2_m2m_dqbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-		   struct v4l2_buffer *buf);
+				   struct v4l2_buffer *buf);
 
 /**
  * v4l2_m2m_prepare_buf() - prepare a source or destination buffer, depending on
@@ -238,7 +242,7 @@ int v4l2_m2m_dqbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
  * @buf: pointer to struct &v4l2_buffer
  */
 int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-			 struct v4l2_buffer *buf);
+						 struct v4l2_buffer *buf);
 
 /**
  * v4l2_m2m_create_bufs() - create a source or destination buffer, depending
@@ -249,7 +253,7 @@ int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
  * @create: pointer to struct &v4l2_create_buffers
  */
 int v4l2_m2m_create_bufs(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-			 struct v4l2_create_buffers *create);
+						 struct v4l2_create_buffers *create);
 
 /**
  * v4l2_m2m_expbuf() - export a source or destination buffer, depending on
@@ -260,7 +264,7 @@ int v4l2_m2m_create_bufs(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
  * @eb: pointer to struct &v4l2_exportbuffer
  */
 int v4l2_m2m_expbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-		   struct v4l2_exportbuffer *eb);
+					struct v4l2_exportbuffer *eb);
 
 /**
  * v4l2_m2m_streamon() - turn on streaming for a video queue
@@ -270,7 +274,7 @@ int v4l2_m2m_expbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
  * @type: type of the V4L2 buffer, as defined by enum &v4l2_buf_type
  */
 int v4l2_m2m_streamon(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-		      enum v4l2_buf_type type);
+					  enum v4l2_buf_type type);
 
 /**
  * v4l2_m2m_streamoff() - turn off streaming for a video queue
@@ -280,7 +284,7 @@ int v4l2_m2m_streamon(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
  * @type: type of the V4L2 buffer, as defined by enum &v4l2_buf_type
  */
 int v4l2_m2m_streamoff(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-		       enum v4l2_buf_type type);
+					   enum v4l2_buf_type type);
 
 /**
  * v4l2_m2m_poll() - poll replacement, for destination buffers only
@@ -295,7 +299,7 @@ int v4l2_m2m_streamoff(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
  * returned in case of the destination queue.
  */
 unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-			   struct poll_table_struct *wait);
+						   struct poll_table_struct *wait);
 
 /**
  * v4l2_m2m_mmap() - source and destination queues-aware mmap multiplexer
@@ -312,7 +316,7 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
  * thus applications) receive modified offsets.
  */
 int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-		  struct vm_area_struct *vma);
+				  struct vm_area_struct *vma);
 
 /**
  * v4l2_m2m_init() - initialize per-driver m2m data
@@ -345,17 +349,17 @@ void v4l2_m2m_release(struct v4l2_m2m_dev *m2m_dev);
  * Usually called from driver's ``open()`` function.
  */
 struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
-		void *drv_priv,
-		int (*queue_init)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq));
+									   void *drv_priv,
+									   int (*queue_init)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq));
 
 static inline void v4l2_m2m_set_src_buffered(struct v4l2_m2m_ctx *m2m_ctx,
-					     bool buffered)
+		bool buffered)
 {
 	m2m_ctx->out_q_ctx.buffered = buffered;
 }
 
 static inline void v4l2_m2m_set_dst_buffered(struct v4l2_m2m_ctx *m2m_ctx,
-					     bool buffered)
+		bool buffered)
 {
 	m2m_ctx->cap_q_ctx.buffered = buffered;
 }
@@ -378,7 +382,7 @@ void v4l2_m2m_ctx_release(struct v4l2_m2m_ctx *m2m_ctx);
  * Call from videobuf_queue_ops->ops->buf_queue, videobuf_queue_ops callback.
  */
 void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx,
-			struct vb2_v4l2_buffer *vbuf);
+						struct vb2_v4l2_buffer *vbuf);
 
 /**
  * v4l2_m2m_num_src_bufs_ready() - return the number of source buffers ready for
@@ -488,23 +492,23 @@ static inline void *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
 /* v4l2 ioctl helpers */
 
 int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
-				struct v4l2_requestbuffers *rb);
+						   struct v4l2_requestbuffers *rb);
 int v4l2_m2m_ioctl_create_bufs(struct file *file, void *fh,
-				struct v4l2_create_buffers *create);
+							   struct v4l2_create_buffers *create);
 int v4l2_m2m_ioctl_querybuf(struct file *file, void *fh,
-				struct v4l2_buffer *buf);
+							struct v4l2_buffer *buf);
 int v4l2_m2m_ioctl_expbuf(struct file *file, void *fh,
-				struct v4l2_exportbuffer *eb);
+						  struct v4l2_exportbuffer *eb);
 int v4l2_m2m_ioctl_qbuf(struct file *file, void *fh,
-				struct v4l2_buffer *buf);
+						struct v4l2_buffer *buf);
 int v4l2_m2m_ioctl_dqbuf(struct file *file, void *fh,
-				struct v4l2_buffer *buf);
+						 struct v4l2_buffer *buf);
 int v4l2_m2m_ioctl_prepare_buf(struct file *file, void *fh,
-			       struct v4l2_buffer *buf);
+							   struct v4l2_buffer *buf);
 int v4l2_m2m_ioctl_streamon(struct file *file, void *fh,
-				enum v4l2_buf_type type);
+							enum v4l2_buf_type type);
 int v4l2_m2m_ioctl_streamoff(struct file *file, void *fh,
-				enum v4l2_buf_type type);
+							 enum v4l2_buf_type type);
 int v4l2_m2m_fop_mmap(struct file *file, struct vm_area_struct *vma);
 unsigned int v4l2_m2m_fop_poll(struct file *file, poll_table *wait);
 

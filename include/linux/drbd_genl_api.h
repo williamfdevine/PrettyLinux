@@ -20,20 +20,24 @@
  *     (union with flags).
  * @ret_code: kernel->userland unicast cfg reply return code (union with flags);
  */
-struct drbd_genlmsghdr {
+struct drbd_genlmsghdr
+{
 	__u32 minor;
-	union {
-	__u32 flags;
-	__s32 ret_code;
+	union
+	{
+		__u32 flags;
+		__s32 ret_code;
 	};
 };
 
 /* To be used in drbd_genlmsghdr.flags */
-enum {
+enum
+{
 	DRBD_GENL_F_SET_DEFAULTS = 1,
 };
 
-enum drbd_state_info_bcast_reason {
+enum drbd_state_info_bcast_reason
+{
 	SIB_GET_STATUS_REPLY = 1,
 	SIB_STATE_CHANGE = 2,
 	SIB_HELPER_PRE = 3,

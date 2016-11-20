@@ -80,10 +80,10 @@
 #define P2C_RG_SUSPENDM			BIT(3)
 #define P2C_RG_TERMSEL			BIT(2)
 #define P2C_DTM0_PART_MASK \
-		(P2C_FORCE_DATAIN | P2C_FORCE_DM_PULLDOWN | \
-		P2C_FORCE_DP_PULLDOWN | P2C_FORCE_XCVRSEL | \
-		P2C_FORCE_TERMSEL | P2C_RG_DMPULLDOWN | \
-		P2C_RG_DPPULLDOWN | P2C_RG_TERMSEL)
+	(P2C_FORCE_DATAIN | P2C_FORCE_DM_PULLDOWN | \
+	 P2C_FORCE_DP_PULLDOWN | P2C_FORCE_XCVRSEL | \
+	 P2C_FORCE_TERMSEL | P2C_RG_DMPULLDOWN | \
+	 P2C_RG_DPPULLDOWN | P2C_RG_TERMSEL)
 
 #define U3P_U2PHYDTM1		(SSUSB_SIFSLV_U2PHY_COM_BASE + 0x006C)
 #define P2C_RG_UART_EN			BIT(16)
@@ -134,19 +134,22 @@
 #define U3P_SR_COEF_DIVISOR	1000
 #define U3P_FM_DET_CYCLE_CNT	1024
 
-struct mt65xx_phy_pdata {
+struct mt65xx_phy_pdata
+{
 	/* avoid RX sensitivity level degradation only for mt8173 */
 	bool avoid_rx_sen_degradation;
 };
 
-struct mt65xx_phy_instance {
+struct mt65xx_phy_instance
+{
 	struct phy *phy;
 	void __iomem *port_base;
 	u32 index;
 	u8 type;
 };
 
-struct mt65xx_u3phy {
+struct mt65xx_u3phy
+{
 	struct device *dev;
 	void __iomem *sif_base;	/* include sif2, but exclude port's */
 	struct clk *u3phya_ref;	/* reference clock of usb3 anolog phy */
@@ -156,7 +159,7 @@ struct mt65xx_u3phy {
 };
 
 static void hs_slew_rate_calibrate(struct mt65xx_u3phy *u3phy,
-	struct mt65xx_phy_instance *instance)
+								   struct mt65xx_phy_instance *instance)
 {
 	void __iomem *sif_base = u3phy->sif_base;
 	int calibration_val;
@@ -188,7 +191,7 @@ static void hs_slew_rate_calibrate(struct mt65xx_u3phy *u3phy,
 
 	/* ignore return value */
 	readl_poll_timeout(sif_base + U3P_U2FREQ_FMMONR1, tmp,
-		  (tmp & P2F_USB_FM_VALID), 10, 200);
+					   (tmp & P2F_USB_FM_VALID), 10, 200);
 
 	fm_out = readl(sif_base + U3P_U2FREQ_VALUE);
 
@@ -202,17 +205,21 @@ static void hs_slew_rate_calibrate(struct mt65xx_u3phy *u3phy,
 	tmp &= ~P2F_RG_FRCK_EN;
 	writel(tmp, sif_base + U3P_U2FREQ_FMMONR1);
 
-	if (fm_out) {
+	if (fm_out)
+	{
 		/* ( 1024 / FM_OUT ) x reference clock frequency x 0.028 */
 		tmp = U3P_FM_DET_CYCLE_CNT * U3P_REF_CLK * U3P_SLEW_RATE_COEF;
 		tmp /= fm_out;
 		calibration_val = DIV_ROUND_CLOSEST(tmp, U3P_SR_COEF_DIVISOR);
-	} else {
+	}
+	else
+	{
 		/* if FM detection fail, set default value */
 		calibration_val = 4;
 	}
+
 	dev_dbg(u3phy->dev, "phy:%d, fm_out:%d, calib:%d\n",
-		instance->index, fm_out, calibration_val);
+			instance->index, fm_out, calibration_val);
 
 	/* set HS slew rate */
 	tmp = readl(instance->port_base + U3P_USBPHYACR5);
@@ -227,7 +234,7 @@ static void hs_slew_rate_calibrate(struct mt65xx_u3phy *u3phy,
 }
 
 static void phy_instance_init(struct mt65xx_u3phy *u3phy,
-	struct mt65xx_phy_instance *instance)
+							  struct mt65xx_phy_instance *instance)
 {
 	void __iomem *port_base = instance->port_base;
 	u32 index = instance->index;
@@ -243,14 +250,17 @@ static void phy_instance_init(struct mt65xx_u3phy *u3phy,
 	tmp &= ~P2C_RG_UART_EN;
 	writel(tmp, port_base + U3P_U2PHYDTM1);
 
-	if (!index) {
+	if (!index)
+	{
 		tmp = readl(port_base + U3P_U2PHYACR4);
 		tmp &= ~P2C_U2_GPIO_CTR_MSK;
 		writel(tmp, port_base + U3P_U2PHYACR4);
 	}
 
-	if (u3phy->pdata->avoid_rx_sen_degradation) {
-		if (!index) {
+	if (u3phy->pdata->avoid_rx_sen_degradation)
+	{
+		if (!index)
+		{
 			tmp = readl(port_base + U3P_USBPHYACR2);
 			tmp |= PA2_RG_SIF_U2PLL_FORCE_EN;
 			writel(tmp, port_base + U3P_USBPHYACR2);
@@ -258,7 +268,9 @@ static void phy_instance_init(struct mt65xx_u3phy *u3phy,
 			tmp = readl(port_base + U3D_U2PHYDCR0);
 			tmp &= ~P2C_RG_SIF_U2PLL_FORCE_ON;
 			writel(tmp, port_base + U3D_U2PHYDCR0);
-		} else {
+		}
+		else
+		{
 			tmp = readl(port_base + U3D_U2PHYDCR0);
 			tmp |= P2C_RG_SIF_U2PLL_FORCE_ON;
 			writel(tmp, port_base + U3D_U2PHYDCR0);
@@ -299,13 +311,14 @@ static void phy_instance_init(struct mt65xx_u3phy *u3phy,
 }
 
 static void phy_instance_power_on(struct mt65xx_u3phy *u3phy,
-	struct mt65xx_phy_instance *instance)
+								  struct mt65xx_phy_instance *instance)
 {
 	void __iomem *port_base = instance->port_base;
 	u32 index = instance->index;
 	u32 tmp;
 
-	if (!index) {
+	if (!index)
+	{
 		/* Set RG_SSUSB_VUSB10_ON as 1 after VUSB10 ready */
 		tmp = readl(port_base + U3P_U3_PHYA_REG0);
 		tmp |= P3A_RG_U3_VUSB10_ON;
@@ -323,7 +336,8 @@ static void phy_instance_power_on(struct mt65xx_u3phy *u3phy,
 	tmp |= PA6_RG_U2_OTG_VBUSCMP_EN;
 	writel(tmp, port_base + U3P_USBPHYACR6);
 
-	if (!index) {
+	if (!index)
+	{
 		tmp = readl(u3phy->sif_base + U3P_XTALCTL3);
 		tmp |= XC3_RG_U3_XTAL_RX_PWD | XC3_RG_U3_FRC_XTAL_RX_PWD;
 		writel(tmp, u3phy->sif_base + U3P_XTALCTL3);
@@ -345,7 +359,8 @@ static void phy_instance_power_on(struct mt65xx_u3phy *u3phy,
 	tmp |= PA5_RG_U2_HSTX_SRCTRL_VAL(4);
 	writel(tmp, port_base + U3P_USBPHYACR5);
 
-	if (u3phy->pdata->avoid_rx_sen_degradation && index) {
+	if (u3phy->pdata->avoid_rx_sen_degradation && index)
+	{
 		tmp = readl(port_base + U3D_U2PHYDCR0);
 		tmp |= P2C_RG_SIF_U2PLL_FORCE_ON;
 		writel(tmp, port_base + U3D_U2PHYDCR0);
@@ -354,11 +369,12 @@ static void phy_instance_power_on(struct mt65xx_u3phy *u3phy,
 		tmp |= P2C_RG_SUSPENDM | P2C_FORCE_SUSPENDM;
 		writel(tmp, port_base + U3P_U2PHYDTM0);
 	}
+
 	dev_dbg(u3phy->dev, "%s(%d)\n", __func__, index);
 }
 
 static void phy_instance_power_off(struct mt65xx_u3phy *u3phy,
-	struct mt65xx_phy_instance *instance)
+								   struct mt65xx_phy_instance *instance)
 {
 	void __iomem *port_base = instance->port_base;
 	u32 index = instance->index;
@@ -374,7 +390,8 @@ static void phy_instance_power_off(struct mt65xx_u3phy *u3phy,
 	tmp &= ~PA6_RG_U2_OTG_VBUSCMP_EN;
 	writel(tmp, port_base + U3P_USBPHYACR6);
 
-	if (!index) {
+	if (!index)
+	{
 		/* switch 100uA current back to USB2.0 */
 		tmp = readl(port_base + U3P_USBPHYACR5);
 		tmp &= ~PA5_RG_U2_HS_100U_U3_EN;
@@ -392,13 +409,15 @@ static void phy_instance_power_off(struct mt65xx_u3phy *u3phy,
 	tmp |= P2C_RG_SESSEND;
 	writel(tmp, port_base + U3P_U2PHYDTM1);
 
-	if (!index) {
+	if (!index)
+	{
 		tmp = readl(port_base + U3P_U3_PHYA_REG0);
 		tmp &= ~P3A_RG_U3_VUSB10_ON;
 		writel(tmp, port_base + U3P_U3_PHYA_REG0);
 	}
 
-	if (u3phy->pdata->avoid_rx_sen_degradation && index) {
+	if (u3phy->pdata->avoid_rx_sen_degradation && index)
+	{
 		tmp = readl(port_base + U3D_U2PHYDCR0);
 		tmp &= ~P2C_RG_SIF_U2PLL_FORCE_ON;
 		writel(tmp, port_base + U3D_U2PHYDCR0);
@@ -408,13 +427,14 @@ static void phy_instance_power_off(struct mt65xx_u3phy *u3phy,
 }
 
 static void phy_instance_exit(struct mt65xx_u3phy *u3phy,
-	struct mt65xx_phy_instance *instance)
+							  struct mt65xx_phy_instance *instance)
 {
 	void __iomem *port_base = instance->port_base;
 	u32 index = instance->index;
 	u32 tmp;
 
-	if (u3phy->pdata->avoid_rx_sen_degradation && index) {
+	if (u3phy->pdata->avoid_rx_sen_degradation && index)
+	{
 		tmp = readl(port_base + U3D_U2PHYDCR0);
 		tmp &= ~P2C_RG_SIF_U2PLL_FORCE_ON;
 		writel(tmp, port_base + U3D_U2PHYDCR0);
@@ -432,7 +452,9 @@ static int mt65xx_phy_init(struct phy *phy)
 	int ret;
 
 	ret = clk_prepare_enable(u3phy->u3phya_ref);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(u3phy->dev, "failed to enable u3phya_ref\n");
 		return ret;
 	}
@@ -471,7 +493,7 @@ static int mt65xx_phy_exit(struct phy *phy)
 }
 
 static struct phy *mt65xx_phy_xlate(struct device *dev,
-					struct of_phandle_args *args)
+									struct of_phandle_args *args)
 {
 	struct mt65xx_u3phy *u3phy = dev_get_drvdata(dev);
 	struct mt65xx_phy_instance *instance = NULL;
@@ -479,18 +501,21 @@ static struct phy *mt65xx_phy_xlate(struct device *dev,
 	int index;
 
 
-	if (args->args_count != 1) {
+	if (args->args_count != 1)
+	{
 		dev_err(dev, "invalid number of cells in 'phy' property\n");
 		return ERR_PTR(-EINVAL);
 	}
 
 	for (index = 0; index < u3phy->nphys; index++)
-		if (phy_np == u3phy->phys[index]->phy->dev.of_node) {
+		if (phy_np == u3phy->phys[index]->phy->dev.of_node)
+		{
 			instance = u3phy->phys[index];
 			break;
 		}
 
-	if (!instance) {
+	if (!instance)
+	{
 		dev_err(dev, "failed to find appropriate phy\n");
 		return ERR_PTR(-EINVAL);
 	}
@@ -498,7 +523,8 @@ static struct phy *mt65xx_phy_xlate(struct device *dev,
 	instance->type = args->args[0];
 
 	if (!(instance->type == PHY_TYPE_USB2 ||
-	      instance->type == PHY_TYPE_USB3)) {
+		  instance->type == PHY_TYPE_USB3))
+	{
 		dev_err(dev, "unsupported device type: %d\n", instance->type);
 		return ERR_PTR(-EINVAL);
 	}
@@ -506,7 +532,8 @@ static struct phy *mt65xx_phy_xlate(struct device *dev,
 	return instance->phy;
 }
 
-static struct phy_ops mt65xx_u3phy_ops = {
+static struct phy_ops mt65xx_u3phy_ops =
+{
 	.init		= mt65xx_phy_init,
 	.exit		= mt65xx_phy_exit,
 	.power_on	= mt65xx_phy_power_on,
@@ -514,15 +541,18 @@ static struct phy_ops mt65xx_u3phy_ops = {
 	.owner		= THIS_MODULE,
 };
 
-static const struct mt65xx_phy_pdata mt2701_pdata = {
+static const struct mt65xx_phy_pdata mt2701_pdata =
+{
 	.avoid_rx_sen_degradation = false,
 };
 
-static const struct mt65xx_phy_pdata mt8173_pdata = {
+static const struct mt65xx_phy_pdata mt8173_pdata =
+{
 	.avoid_rx_sen_degradation = true,
 };
 
-static const struct of_device_id mt65xx_u3phy_id_table[] = {
+static const struct of_device_id mt65xx_u3phy_id_table[] =
+{
 	{ .compatible = "mediatek,mt2701-u3phy", .data = &mt2701_pdata },
 	{ .compatible = "mediatek,mt8173-u3phy", .data = &mt8173_pdata },
 	{ },
@@ -542,43 +572,59 @@ static int mt65xx_u3phy_probe(struct platform_device *pdev)
 	int port, retval;
 
 	match = of_match_node(mt65xx_u3phy_id_table, pdev->dev.of_node);
+
 	if (!match)
+	{
 		return -EINVAL;
+	}
 
 	u3phy = devm_kzalloc(dev, sizeof(*u3phy), GFP_KERNEL);
+
 	if (!u3phy)
+	{
 		return -ENOMEM;
+	}
 
 	u3phy->pdata = match->data;
 	u3phy->nphys = of_get_child_count(np);
 	u3phy->phys = devm_kcalloc(dev, u3phy->nphys,
-				       sizeof(*u3phy->phys), GFP_KERNEL);
+							   sizeof(*u3phy->phys), GFP_KERNEL);
+
 	if (!u3phy->phys)
+	{
 		return -ENOMEM;
+	}
 
 	u3phy->dev = dev;
 	platform_set_drvdata(pdev, u3phy);
 
 	sif_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	u3phy->sif_base = devm_ioremap_resource(dev, sif_res);
-	if (IS_ERR(u3phy->sif_base)) {
+
+	if (IS_ERR(u3phy->sif_base))
+	{
 		dev_err(dev, "failed to remap sif regs\n");
 		return PTR_ERR(u3phy->sif_base);
 	}
 
 	u3phy->u3phya_ref = devm_clk_get(dev, "u3phya_ref");
-	if (IS_ERR(u3phy->u3phya_ref)) {
+
+	if (IS_ERR(u3phy->u3phya_ref))
+	{
 		dev_err(dev, "error to get u3phya_ref\n");
 		return PTR_ERR(u3phy->u3phya_ref);
 	}
 
 	port = 0;
-	for_each_child_of_node(np, child_np) {
+	for_each_child_of_node(np, child_np)
+	{
 		struct mt65xx_phy_instance *instance;
 		struct phy *phy;
 
 		instance = devm_kzalloc(dev, sizeof(*instance), GFP_KERNEL);
-		if (!instance) {
+
+		if (!instance)
+		{
 			retval = -ENOMEM;
 			goto put_child;
 		}
@@ -586,21 +632,27 @@ static int mt65xx_u3phy_probe(struct platform_device *pdev)
 		u3phy->phys[port] = instance;
 
 		phy = devm_phy_create(dev, child_np, &mt65xx_u3phy_ops);
-		if (IS_ERR(phy)) {
+
+		if (IS_ERR(phy))
+		{
 			dev_err(dev, "failed to create phy\n");
 			retval = PTR_ERR(phy);
 			goto put_child;
 		}
 
 		retval = of_address_to_resource(child_np, 0, &res);
-		if (retval) {
+
+		if (retval)
+		{
 			dev_err(dev, "failed to get address resource(id-%d)\n",
-				port);
+					port);
 			goto put_child;
 		}
 
 		instance->port_base = devm_ioremap_resource(&phy->dev, &res);
-		if (IS_ERR(instance->port_base)) {
+
+		if (IS_ERR(instance->port_base))
+		{
 			dev_err(dev, "failed to remap phy regs\n");
 			retval = PTR_ERR(instance->port_base);
 			goto put_child;
@@ -620,7 +672,8 @@ put_child:
 	return retval;
 }
 
-static struct platform_driver mt65xx_u3phy_driver = {
+static struct platform_driver mt65xx_u3phy_driver =
+{
 	.probe		= mt65xx_u3phy_probe,
 	.driver		= {
 		.name	= "mt65xx-u3phy",

@@ -48,7 +48,8 @@ struct qe_ic;
 #define QE_IC_GRP_W_DEST_SIGNAL_SHIFT		(12)
 
 /* QE interrupt sources groups */
-enum qe_ic_grp_id {
+enum qe_ic_grp_id
+{
 	QE_IC_GRP_W = 0,	/* QE interrupt controller group W */
 	QE_IC_GRP_X,		/* QE interrupt controller group X */
 	QE_IC_GRP_Y,		/* QE interrupt controller group Y */
@@ -59,14 +60,14 @@ enum qe_ic_grp_id {
 
 #ifdef CONFIG_QUICC_ENGINE
 void qe_ic_init(struct device_node *node, unsigned int flags,
-		void (*low_handler)(struct irq_desc *desc),
-		void (*high_handler)(struct irq_desc *desc));
+				void (*low_handler)(struct irq_desc *desc),
+				void (*high_handler)(struct irq_desc *desc));
 unsigned int qe_ic_get_low_irq(struct qe_ic *qe_ic);
 unsigned int qe_ic_get_high_irq(struct qe_ic *qe_ic);
 #else
 static inline void qe_ic_init(struct device_node *node, unsigned int flags,
-		void (*low_handler)(struct irq_desc *desc),
-		void (*high_handler)(struct irq_desc *desc))
+							  void (*low_handler)(struct irq_desc *desc),
+							  void (*high_handler)(struct irq_desc *desc))
 {}
 static inline unsigned int qe_ic_get_low_irq(struct qe_ic *qe_ic)
 { return 0; }
@@ -84,7 +85,9 @@ static inline void qe_ic_cascade_low_ipic(struct irq_desc *desc)
 	unsigned int cascade_irq = qe_ic_get_low_irq(qe_ic);
 
 	if (cascade_irq != NO_IRQ)
+	{
 		generic_handle_irq(cascade_irq);
+	}
 }
 
 static inline void qe_ic_cascade_high_ipic(struct irq_desc *desc)
@@ -93,7 +96,9 @@ static inline void qe_ic_cascade_high_ipic(struct irq_desc *desc)
 	unsigned int cascade_irq = qe_ic_get_high_irq(qe_ic);
 
 	if (cascade_irq != NO_IRQ)
+	{
 		generic_handle_irq(cascade_irq);
+	}
 }
 
 static inline void qe_ic_cascade_low_mpic(struct irq_desc *desc)
@@ -103,7 +108,9 @@ static inline void qe_ic_cascade_low_mpic(struct irq_desc *desc)
 	struct irq_chip *chip = irq_desc_get_chip(desc);
 
 	if (cascade_irq != NO_IRQ)
+	{
 		generic_handle_irq(cascade_irq);
+	}
 
 	chip->irq_eoi(&desc->irq_data);
 }
@@ -115,7 +122,9 @@ static inline void qe_ic_cascade_high_mpic(struct irq_desc *desc)
 	struct irq_chip *chip = irq_desc_get_chip(desc);
 
 	if (cascade_irq != NO_IRQ)
+	{
 		generic_handle_irq(cascade_irq);
+	}
 
 	chip->irq_eoi(&desc->irq_data);
 }
@@ -127,11 +136,16 @@ static inline void qe_ic_cascade_muxed_mpic(struct irq_desc *desc)
 	struct irq_chip *chip = irq_desc_get_chip(desc);
 
 	cascade_irq = qe_ic_get_high_irq(qe_ic);
+
 	if (cascade_irq == NO_IRQ)
+	{
 		cascade_irq = qe_ic_get_low_irq(qe_ic);
+	}
 
 	if (cascade_irq != NO_IRQ)
+	{
 		generic_handle_irq(cascade_irq);
+	}
 
 	chip->irq_eoi(&desc->irq_data);
 }

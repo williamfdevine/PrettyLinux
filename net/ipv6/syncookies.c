@@ -24,7 +24,7 @@
 #define COOKIEBITS 24	/* Upper bits store count */
 #define COOKIEMASK (((__u32)1 << COOKIEBITS) - 1)
 
-static u32 syncookie6_secret[2][16-4+SHA_DIGEST_WORDS] __read_mostly;
+static u32 syncookie6_secret[2][16 - 4 + SHA_DIGEST_WORDS] __read_mostly;
 
 /* RFC 2460, Section 8.3:
  * [ipv6 tcp] MSS must be computed as the maximum packet size minus 60 [..]
@@ -34,7 +34,8 @@ static u32 syncookie6_secret[2][16-4+SHA_DIGEST_WORDS] __read_mostly;
  * The other values are chosen based on ethernet (1500 and 9k MTU), plus
  * one that accounts for common encap (PPPoe) overhead. Table must be sorted.
  */
-static __u16 const msstab[] = {
+static __u16 const msstab[] =
+{
 	1280 - 60, /* IPV6_MIN_MTU - 60 */
 	1480 - 60,
 	1500 - 60,
@@ -44,7 +45,7 @@ static __u16 const msstab[] = {
 static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS], ipv6_cookie_scratch);
 
 static u32 cookie_hash(const struct in6_addr *saddr, const struct in6_addr *daddr,
-		       __be16 sport, __be16 dport, u32 count, int c)
+					   __be16 sport, __be16 dport, u32 count, int c)
 {
 	__u32 *tmp;
 
@@ -68,48 +69,53 @@ static u32 cookie_hash(const struct in6_addr *saddr, const struct in6_addr *dadd
 }
 
 static __u32 secure_tcp_syn_cookie(const struct in6_addr *saddr,
-				   const struct in6_addr *daddr,
-				   __be16 sport, __be16 dport, __u32 sseq,
-				   __u32 data)
+								   const struct in6_addr *daddr,
+								   __be16 sport, __be16 dport, __u32 sseq,
+								   __u32 data)
 {
 	u32 count = tcp_cookie_time();
 	return (cookie_hash(saddr, daddr, sport, dport, 0, 0) +
-		sseq + (count << COOKIEBITS) +
-		((cookie_hash(saddr, daddr, sport, dport, count, 1) + data)
-		& COOKIEMASK));
+			sseq + (count << COOKIEBITS) +
+			((cookie_hash(saddr, daddr, sport, dport, count, 1) + data)
+			 & COOKIEMASK));
 }
 
 static __u32 check_tcp_syn_cookie(__u32 cookie, const struct in6_addr *saddr,
-				  const struct in6_addr *daddr, __be16 sport,
-				  __be16 dport, __u32 sseq)
+								  const struct in6_addr *daddr, __be16 sport,
+								  __be16 dport, __u32 sseq)
 {
 	__u32 diff, count = tcp_cookie_time();
 
 	cookie -= cookie_hash(saddr, daddr, sport, dport, 0, 0) + sseq;
 
-	diff = (count - (cookie >> COOKIEBITS)) & ((__u32) -1 >> COOKIEBITS);
+	diff = (count - (cookie >> COOKIEBITS)) & ((__u32) - 1 >> COOKIEBITS);
+
 	if (diff >= MAX_SYNCOOKIE_AGE)
-		return (__u32)-1;
+	{
+		return (__u32) - 1;
+	}
 
 	return (cookie -
-		cookie_hash(saddr, daddr, sport, dport, count - diff, 1))
-		& COOKIEMASK;
+			cookie_hash(saddr, daddr, sport, dport, count - diff, 1))
+		   & COOKIEMASK;
 }
 
 u32 __cookie_v6_init_sequence(const struct ipv6hdr *iph,
-			      const struct tcphdr *th, __u16 *mssp)
+							  const struct tcphdr *th, __u16 *mssp)
 {
 	int mssind;
 	const __u16 mss = *mssp;
 
 	for (mssind = ARRAY_SIZE(msstab) - 1; mssind ; mssind--)
 		if (mss >= msstab[mssind])
+		{
 			break;
+		}
 
 	*mssp = msstab[mssind];
 
 	return secure_tcp_syn_cookie(&iph->saddr, &iph->daddr, th->source,
-				     th->dest, ntohl(th->seq), mssind);
+								 th->dest, ntohl(th->seq), mssind);
 }
 EXPORT_SYMBOL_GPL(__cookie_v6_init_sequence);
 
@@ -122,11 +128,11 @@ __u32 cookie_v6_init_sequence(const struct sk_buff *skb, __u16 *mssp)
 }
 
 int __cookie_v6_check(const struct ipv6hdr *iph, const struct tcphdr *th,
-		      __u32 cookie)
+					  __u32 cookie)
 {
 	__u32 seq = ntohl(th->seq) - 1;
 	__u32 mssind = check_tcp_syn_cookie(cookie, &iph->saddr, &iph->daddr,
-					    th->source, th->dest, seq);
+										th->source, th->dest, seq);
 
 	return mssind < ARRAY_SIZE(msstab) ? msstab[mssind] : 0;
 }
@@ -148,13 +154,19 @@ struct sock *cookie_v6_check(struct sock *sk, struct sk_buff *skb)
 	__u8 rcv_wscale;
 
 	if (!sock_net(sk)->ipv4.sysctl_tcp_syncookies || !th->ack || th->rst)
+	{
 		goto out;
+	}
 
 	if (tcp_synq_no_recent_overflow(sk))
+	{
 		goto out;
+	}
 
 	mss = __cookie_v6_check(ipv6_hdr(skb), th, cookie);
-	if (mss == 0) {
+
+	if (mss == 0)
+	{
 		__NET_INC_STATS(sock_net(sk), LINUX_MIB_SYNCOOKIESFAILED);
 		goto out;
 	}
@@ -166,37 +178,49 @@ struct sock *cookie_v6_check(struct sock *sk, struct sk_buff *skb)
 	tcp_parse_options(skb, &tcp_opt, 0, NULL);
 
 	if (!cookie_timestamp_decode(&tcp_opt))
+	{
 		goto out;
+	}
 
 	ret = NULL;
 	req = inet_reqsk_alloc(&tcp6_request_sock_ops, sk, false);
+
 	if (!req)
+	{
 		goto out;
+	}
 
 	ireq = inet_rsk(req);
 	treq = tcp_rsk(req);
 	treq->tfo_listener = false;
 
 	if (security_inet_conn_request(sk, skb, req))
+	{
 		goto out_free;
+	}
 
 	req->mss = mss;
 	ireq->ir_rmt_port = th->source;
 	ireq->ir_num = ntohs(th->dest);
 	ireq->ir_v6_rmt_addr = ipv6_hdr(skb)->saddr;
 	ireq->ir_v6_loc_addr = ipv6_hdr(skb)->daddr;
+
 	if (ipv6_opt_accepted(sk, skb, &TCP_SKB_CB(skb)->header.h6) ||
-	    np->rxopt.bits.rxinfo || np->rxopt.bits.rxoinfo ||
-	    np->rxopt.bits.rxhlim || np->rxopt.bits.rxohlim) {
+		np->rxopt.bits.rxinfo || np->rxopt.bits.rxoinfo ||
+		np->rxopt.bits.rxhlim || np->rxopt.bits.rxohlim)
+	{
 		atomic_inc(&skb->users);
 		ireq->pktopts = skb;
 	}
 
 	ireq->ir_iif = inet_request_bound_dev_if(sk, skb);
+
 	/* So that link locals have meaning */
 	if (!sk->sk_bound_dev_if &&
-	    ipv6_addr_type(&ireq->ir_v6_rmt_addr) & IPV6_ADDR_LINKLOCAL)
+		ipv6_addr_type(&ireq->ir_v6_rmt_addr) & IPV6_ADDR_LINKLOCAL)
+	{
 		ireq->ir_iif = tcp_v6_iif(skb);
+	}
 
 	ireq->ir_mark = inet_request_mark(sk, skb);
 
@@ -230,15 +254,18 @@ struct sock *cookie_v6_check(struct sock *sk, struct sk_buff *skb)
 		security_req_classify_flow(req, flowi6_to_flowi(&fl6));
 
 		dst = ip6_dst_lookup_flow(sk, &fl6, final_p);
+
 		if (IS_ERR(dst))
+		{
 			goto out_free;
+		}
 	}
 
-	req->rsk_window_clamp = tp->window_clamp ? :dst_metric(dst, RTAX_WINDOW);
+	req->rsk_window_clamp = tp->window_clamp ? : dst_metric(dst, RTAX_WINDOW);
 	tcp_select_initial_window(tcp_full_space(sk), req->mss,
-				  &req->rsk_rcv_wnd, &req->rsk_window_clamp,
-				  ireq->wscale_ok, &rcv_wscale,
-				  dst_metric(dst, RTAX_INITRWND));
+							  &req->rsk_rcv_wnd, &req->rsk_window_clamp,
+							  ireq->wscale_ok, &rcv_wscale,
+							  dst_metric(dst, RTAX_INITRWND));
 
 	ireq->rcv_wscale = rcv_wscale;
 	ireq->ecn_ok = cookie_ecn_ok(&tcp_opt, sock_net(sk), dst);

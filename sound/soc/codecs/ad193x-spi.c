@@ -26,7 +26,7 @@ static int ad193x_spi_probe(struct spi_device *spi)
 	config.write_flag_mask = 0x08;
 
 	return ad193x_probe(&spi->dev, devm_regmap_init_spi(spi, &config),
-			    (enum ad193x_type)id->driver_data);
+						(enum ad193x_type)id->driver_data);
 }
 
 static int ad193x_spi_remove(struct spi_device *spi)
@@ -35,7 +35,8 @@ static int ad193x_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id ad193x_spi_id[] = {
+static const struct spi_device_id ad193x_spi_id[] =
+{
 	{ "ad193x", AD193X },
 	{ "ad1933", AD1933 },
 	{ "ad1934", AD1934 },
@@ -46,7 +47,8 @@ static const struct spi_device_id ad193x_spi_id[] = {
 };
 MODULE_DEVICE_TABLE(spi, ad193x_spi_id);
 
-static struct spi_driver ad193x_spi_driver = {
+static struct spi_driver ad193x_spi_driver =
+{
 	.driver = {
 		.name	= "ad193x",
 	},

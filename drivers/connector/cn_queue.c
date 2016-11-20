@@ -33,14 +33,16 @@
 
 static struct cn_callback_entry *
 cn_queue_alloc_callback_entry(struct cn_queue_dev *dev, const char *name,
-			      struct cb_id *id,
-			      void (*callback)(struct cn_msg *,
-					       struct netlink_skb_parms *))
+							  struct cb_id *id,
+							  void (*callback)(struct cn_msg *,
+									  struct netlink_skb_parms *))
 {
 	struct cn_callback_entry *cbq;
 
 	cbq = kzalloc(sizeof(*cbq), GFP_KERNEL);
-	if (!cbq) {
+
+	if (!cbq)
+	{
 		pr_err("Failed to create new callback queue.\n");
 		return NULL;
 	}
@@ -59,7 +61,9 @@ cn_queue_alloc_callback_entry(struct cn_queue_dev *dev, const char *name,
 void cn_queue_release_callback(struct cn_callback_entry *cbq)
 {
 	if (!atomic_dec_and_test(&cbq->refcnt))
+	{
 		return;
+	}
 
 	atomic_dec(&cbq->pdev->refcnt);
 	kfree(cbq);
@@ -71,29 +75,39 @@ int cn_cb_equal(struct cb_id *i1, struct cb_id *i2)
 }
 
 int cn_queue_add_callback(struct cn_queue_dev *dev, const char *name,
-			  struct cb_id *id,
-			  void (*callback)(struct cn_msg *,
-					   struct netlink_skb_parms *))
+						  struct cb_id *id,
+						  void (*callback)(struct cn_msg *,
+								  struct netlink_skb_parms *))
 {
 	struct cn_callback_entry *cbq, *__cbq;
 	int found = 0;
 
 	cbq = cn_queue_alloc_callback_entry(dev, name, id, callback);
+
 	if (!cbq)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_bh(&dev->queue_lock);
-	list_for_each_entry(__cbq, &dev->queue_list, callback_entry) {
-		if (cn_cb_equal(&__cbq->id.id, id)) {
+	list_for_each_entry(__cbq, &dev->queue_list, callback_entry)
+	{
+		if (cn_cb_equal(&__cbq->id.id, id))
+		{
 			found = 1;
 			break;
 		}
 	}
+
 	if (!found)
+	{
 		list_add_tail(&cbq->callback_entry, &dev->queue_list);
+	}
+
 	spin_unlock_bh(&dev->queue_lock);
 
-	if (found) {
+	if (found)
+	{
 		cn_queue_release_callback(cbq);
 		return -EINVAL;
 	}
@@ -110,8 +124,10 @@ void cn_queue_del_callback(struct cn_queue_dev *dev, struct cb_id *id)
 	int found = 0;
 
 	spin_lock_bh(&dev->queue_lock);
-	list_for_each_entry_safe(cbq, n, &dev->queue_list, callback_entry) {
-		if (cn_cb_equal(&cbq->id.id, id)) {
+	list_for_each_entry_safe(cbq, n, &dev->queue_list, callback_entry)
+	{
+		if (cn_cb_equal(&cbq->id.id, id))
+		{
 			list_del(&cbq->callback_entry);
 			found = 1;
 			break;
@@ -120,7 +136,9 @@ void cn_queue_del_callback(struct cn_queue_dev *dev, struct cb_id *id)
 	spin_unlock_bh(&dev->queue_lock);
 
 	if (found)
+	{
 		cn_queue_release_callback(cbq);
+	}
 }
 
 struct cn_queue_dev *cn_queue_alloc_dev(const char *name, struct sock *nls)
@@ -128,8 +146,11 @@ struct cn_queue_dev *cn_queue_alloc_dev(const char *name, struct sock *nls)
 	struct cn_queue_dev *dev;
 
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	snprintf(dev->name, sizeof(dev->name), "%s", name);
 	atomic_set(&dev->refcnt, 0);
@@ -147,12 +168,13 @@ void cn_queue_free_dev(struct cn_queue_dev *dev)
 
 	spin_lock_bh(&dev->queue_lock);
 	list_for_each_entry_safe(cbq, n, &dev->queue_list, callback_entry)
-		list_del(&cbq->callback_entry);
+	list_del(&cbq->callback_entry);
 	spin_unlock_bh(&dev->queue_lock);
 
-	while (atomic_read(&dev->refcnt)) {
+	while (atomic_read(&dev->refcnt))
+	{
 		pr_info("Waiting for %s to become free: refcnt=%d.\n",
-		       dev->name, atomic_read(&dev->refcnt));
+				dev->name, atomic_read(&dev->refcnt));
 		msleep(1000);
 	}
 

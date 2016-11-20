@@ -49,7 +49,8 @@ void fw_notice(const struct fw_card *card, const char *fmt, ...);
 #define CSR_STATE_BIT_CMSTR	(1 << 8)
 #define CSR_STATE_BIT_ABDICATE	(1 << 10)
 
-struct fw_card_driver {
+struct fw_card_driver
+{
 	/*
 	 * Enable the given card with the given initial config rom.
 	 * This function is expected to activate the card, and either
@@ -57,11 +58,11 @@ struct fw_card_driver {
 	 * reset.
 	 */
 	int (*enable)(struct fw_card *card,
-		      const __be32 *config_rom, size_t length);
+				  const __be32 *config_rom, size_t length);
 
 	int (*read_phy_reg)(struct fw_card *card, int address);
 	int (*update_phy_reg)(struct fw_card *card, int address,
-			      int clear_bits, int set_bits);
+						  int clear_bits, int set_bits);
 
 	/*
 	 * Update the config rom for an enabled card.  This function
@@ -69,7 +70,7 @@ struct fw_card_driver {
 	 * and initiate a bus reset.
 	 */
 	int (*set_config_rom)(struct fw_card *card,
-			      const __be32 *config_rom, size_t length);
+						  const __be32 *config_rom, size_t length);
 
 	void (*send_request)(struct fw_card *card, struct fw_packet *packet);
 	void (*send_response)(struct fw_card *card, struct fw_packet *packet);
@@ -85,25 +86,25 @@ struct fw_card_driver {
 	 * match.
 	 */
 	int (*enable_phys_dma)(struct fw_card *card,
-			       int node_id, int generation);
+						   int node_id, int generation);
 
 	u32 (*read_csr)(struct fw_card *card, int csr_offset);
 	void (*write_csr)(struct fw_card *card, int csr_offset, u32 value);
 
 	struct fw_iso_context *
 	(*allocate_iso_context)(struct fw_card *card,
-				int type, int channel, size_t header_size);
+							int type, int channel, size_t header_size);
 	void (*free_iso_context)(struct fw_iso_context *ctx);
 
 	int (*start_iso)(struct fw_iso_context *ctx,
-			 s32 cycle, u32 sync, u32 tags);
+					 s32 cycle, u32 sync, u32 tags);
 
 	int (*set_iso_channels)(struct fw_iso_context *ctx, u64 *channels);
 
 	int (*queue_iso)(struct fw_iso_context *ctx,
-			 struct fw_iso_packet *packet,
-			 struct fw_iso_buffer *buffer,
-			 unsigned long payload);
+					 struct fw_iso_packet *packet,
+					 struct fw_iso_buffer *buffer,
+					 unsigned long payload);
 
 	void (*flush_queue_iso)(struct fw_iso_context *ctx);
 
@@ -113,9 +114,9 @@ struct fw_card_driver {
 };
 
 void fw_card_initialize(struct fw_card *card,
-		const struct fw_card_driver *driver, struct device *device);
+						const struct fw_card_driver *driver, struct device *device);
 int fw_card_add(struct fw_card *card,
-		u32 max_receive, u32 link_speed, u64 guid);
+				u32 max_receive, u32 link_speed, u64 guid);
 void fw_core_remove_card(struct fw_card *card);
 int fw_compute_block_crc(__be32 *block);
 void fw_schedule_bm_work(struct fw_card *card, unsigned long delay);
@@ -156,14 +157,15 @@ void fw_node_event(struct fw_card *card, struct fw_node *node, int event);
 
 int fw_iso_buffer_alloc(struct fw_iso_buffer *buffer, int page_count);
 int fw_iso_buffer_map_dma(struct fw_iso_buffer *buffer, struct fw_card *card,
-			  enum dma_data_direction direction);
+						  enum dma_data_direction direction);
 int fw_iso_buffer_map_vma(struct fw_iso_buffer *buffer,
-			  struct vm_area_struct *vma);
+						  struct vm_area_struct *vma);
 
 
 /* -topology */
 
-enum {
+enum
+{
 	FW_NODE_CREATED,
 	FW_NODE_UPDATED,
 	FW_NODE_DESTROYED,
@@ -172,18 +174,19 @@ enum {
 	FW_NODE_INITIATED_RESET,
 };
 
-struct fw_node {
+struct fw_node
+{
 	u16 node_id;
 	u8 color;
 	u8 port_count;
-	u8 link_on:1;
-	u8 initiated_reset:1;
-	u8 b_path:1;
-	u8 phy_speed:2;	/* As in the self ID packet. */
-	u8 max_speed:2;	/* Minimum of all phy-speeds on the path from the
+	u8 link_on: 1;
+	u8 initiated_reset: 1;
+	u8 b_path: 1;
+	u8 phy_speed: 2;	/* As in the self ID packet. */
+	u8 max_speed: 2;	/* Minimum of all phy-speeds on the path from the
 			 * local node to this node. */
-	u8 max_depth:4;	/* Maximum depth to any leaf node */
-	u8 max_hops:4;	/* Max hops in this sub tree */
+	u8 max_depth: 4;	/* Maximum depth to any leaf node */
+	u8 max_hops: 4;	/* Max hops in this sub tree */
 	atomic_t ref_count;
 
 	/* For serializing node topology into a list. */
@@ -205,11 +208,13 @@ static inline struct fw_node *fw_node_get(struct fw_node *node)
 static inline void fw_node_put(struct fw_node *node)
 {
 	if (atomic_dec_and_test(&node->ref_count))
+	{
 		kfree(node);
+	}
 }
 
 void fw_core_handle_bus_reset(struct fw_card *card, int node_id,
-	int generation, int self_id_count, u32 *self_ids, bool bm_abdicate);
+							  int generation, int self_id_count, u32 *self_ids, bool bm_abdicate);
 void fw_destroy_nodes(struct fw_card *card);
 
 /*
@@ -243,12 +248,12 @@ void fw_core_handle_request(struct fw_card *card, struct fw_packet *request);
 void fw_core_handle_response(struct fw_card *card, struct fw_packet *packet);
 int fw_get_response_length(struct fw_request *request);
 void fw_fill_response(struct fw_packet *response, u32 *request_header,
-		      int rcode, void *payload, size_t length);
+					  int rcode, void *payload, size_t length);
 
 #define FW_PHY_CONFIG_NO_NODE_ID	-1
 #define FW_PHY_CONFIG_CURRENT_GAP_COUNT	-1
 void fw_send_phy_config(struct fw_card *card,
-			int node_id, int generation, int gap_count);
+						int node_id, int generation, int gap_count);
 
 static inline bool is_ping_packet(u32 *data)
 {

@@ -18,7 +18,8 @@
  *
  * Both GPIO parameters are optional.
  */
-struct ak4641_platform_data {
+struct ak4641_platform_data
+{
 	int gpio_power;
 	int gpio_npdn;
 };

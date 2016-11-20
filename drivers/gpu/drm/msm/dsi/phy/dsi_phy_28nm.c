@@ -15,43 +15,46 @@
 #include "dsi.xml.h"
 
 static void dsi_28nm_dphy_set_timing(struct msm_dsi_phy *phy,
-		struct msm_dsi_dphy_timing *timing)
+									 struct msm_dsi_dphy_timing *timing)
 {
 	void __iomem *base = phy->base;
 
 	dsi_phy_write(base + REG_DSI_28nm_PHY_TIMING_CTRL_0,
-		DSI_28nm_PHY_TIMING_CTRL_0_CLK_ZERO(timing->clk_zero));
+				  DSI_28nm_PHY_TIMING_CTRL_0_CLK_ZERO(timing->clk_zero));
 	dsi_phy_write(base + REG_DSI_28nm_PHY_TIMING_CTRL_1,
-		DSI_28nm_PHY_TIMING_CTRL_1_CLK_TRAIL(timing->clk_trail));
+				  DSI_28nm_PHY_TIMING_CTRL_1_CLK_TRAIL(timing->clk_trail));
 	dsi_phy_write(base + REG_DSI_28nm_PHY_TIMING_CTRL_2,
-		DSI_28nm_PHY_TIMING_CTRL_2_CLK_PREPARE(timing->clk_prepare));
+				  DSI_28nm_PHY_TIMING_CTRL_2_CLK_PREPARE(timing->clk_prepare));
+
 	if (timing->clk_zero & BIT(8))
 		dsi_phy_write(base + REG_DSI_28nm_PHY_TIMING_CTRL_3,
-			DSI_28nm_PHY_TIMING_CTRL_3_CLK_ZERO_8);
+					  DSI_28nm_PHY_TIMING_CTRL_3_CLK_ZERO_8);
+
 	dsi_phy_write(base + REG_DSI_28nm_PHY_TIMING_CTRL_4,
-		DSI_28nm_PHY_TIMING_CTRL_4_HS_EXIT(timing->hs_exit));
+				  DSI_28nm_PHY_TIMING_CTRL_4_HS_EXIT(timing->hs_exit));
 	dsi_phy_write(base + REG_DSI_28nm_PHY_TIMING_CTRL_5,
-		DSI_28nm_PHY_TIMING_CTRL_5_HS_ZERO(timing->hs_zero));
+				  DSI_28nm_PHY_TIMING_CTRL_5_HS_ZERO(timing->hs_zero));
 	dsi_phy_write(base + REG_DSI_28nm_PHY_TIMING_CTRL_6,
-		DSI_28nm_PHY_TIMING_CTRL_6_HS_PREPARE(timing->hs_prepare));
+				  DSI_28nm_PHY_TIMING_CTRL_6_HS_PREPARE(timing->hs_prepare));
 	dsi_phy_write(base + REG_DSI_28nm_PHY_TIMING_CTRL_7,
-		DSI_28nm_PHY_TIMING_CTRL_7_HS_TRAIL(timing->hs_trail));
+				  DSI_28nm_PHY_TIMING_CTRL_7_HS_TRAIL(timing->hs_trail));
 	dsi_phy_write(base + REG_DSI_28nm_PHY_TIMING_CTRL_8,
-		DSI_28nm_PHY_TIMING_CTRL_8_HS_RQST(timing->hs_rqst));
+				  DSI_28nm_PHY_TIMING_CTRL_8_HS_RQST(timing->hs_rqst));
 	dsi_phy_write(base + REG_DSI_28nm_PHY_TIMING_CTRL_9,
-		DSI_28nm_PHY_TIMING_CTRL_9_TA_GO(timing->ta_go) |
-		DSI_28nm_PHY_TIMING_CTRL_9_TA_SURE(timing->ta_sure));
+				  DSI_28nm_PHY_TIMING_CTRL_9_TA_GO(timing->ta_go) |
+				  DSI_28nm_PHY_TIMING_CTRL_9_TA_SURE(timing->ta_sure));
 	dsi_phy_write(base + REG_DSI_28nm_PHY_TIMING_CTRL_10,
-		DSI_28nm_PHY_TIMING_CTRL_10_TA_GET(timing->ta_get));
+				  DSI_28nm_PHY_TIMING_CTRL_10_TA_GET(timing->ta_get));
 	dsi_phy_write(base + REG_DSI_28nm_PHY_TIMING_CTRL_11,
-		DSI_28nm_PHY_TIMING_CTRL_11_TRIG3_CMD(0));
+				  DSI_28nm_PHY_TIMING_CTRL_11_TRIG3_CMD(0));
 }
 
 static void dsi_28nm_phy_regulator_ctrl(struct msm_dsi_phy *phy, bool enable)
 {
 	void __iomem *base = phy->reg_base;
 
-	if (!enable) {
+	if (!enable)
+	{
 		dsi_phy_write(base + REG_DSI_28nm_PHY_REGULATOR_CAL_PWR_CFG, 0);
 		return;
 	}
@@ -67,7 +70,7 @@ static void dsi_28nm_phy_regulator_ctrl(struct msm_dsi_phy *phy, bool enable)
 }
 
 static int dsi_28nm_phy_enable(struct msm_dsi_phy *phy, int src_pll_id,
-		const unsigned long bit_rate, const unsigned long esc_rate)
+							   const unsigned long bit_rate, const unsigned long esc_rate)
 {
 	struct msm_dsi_dphy_timing *timing = &phy->timing;
 	int i;
@@ -75,9 +78,10 @@ static int dsi_28nm_phy_enable(struct msm_dsi_phy *phy, int src_pll_id,
 
 	DBG("");
 
-	if (msm_dsi_dphy_timing_calc(timing, bit_rate, esc_rate)) {
+	if (msm_dsi_dphy_timing_calc(timing, bit_rate, esc_rate))
+	{
 		dev_err(&phy->pdev->dev,
-			"%s: D-PHY timing calculation failed\n", __func__);
+				"%s: D-PHY timing calculation failed\n", __func__);
 		return -EINVAL;
 	}
 
@@ -94,7 +98,8 @@ static int dsi_28nm_phy_enable(struct msm_dsi_phy *phy, int src_pll_id,
 
 	dsi_phy_write(base + REG_DSI_28nm_PHY_STRENGTH_1, 0x6);
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		dsi_phy_write(base + REG_DSI_28nm_PHY_LN_CFG_0(i), 0);
 		dsi_phy_write(base + REG_DSI_28nm_PHY_LN_CFG_1(i), 0);
 		dsi_phy_write(base + REG_DSI_28nm_PHY_LN_CFG_2(i), 0);
@@ -114,8 +119,8 @@ static int dsi_28nm_phy_enable(struct msm_dsi_phy *phy, int src_pll_id,
 	dsi_phy_write(base + REG_DSI_28nm_PHY_CTRL_0, 0x5f);
 
 	msm_dsi_phy_set_src_pll(phy, src_pll_id,
-				REG_DSI_28nm_PHY_GLBL_TEST_CTRL,
-				DSI_28nm_PHY_GLBL_TEST_CTRL_BITCLK_HS_SEL);
+							REG_DSI_28nm_PHY_GLBL_TEST_CTRL,
+							DSI_28nm_PHY_GLBL_TEST_CTRL_BITCLK_HS_SEL);
 
 	return 0;
 }
@@ -132,7 +137,8 @@ static void dsi_28nm_phy_disable(struct msm_dsi_phy *phy)
 	wmb();
 }
 
-const struct msm_dsi_phy_cfg dsi_phy_28nm_hpm_cfgs = {
+const struct msm_dsi_phy_cfg dsi_phy_28nm_hpm_cfgs =
+{
 	.type = MSM_DSI_PHY_28NM_HPM,
 	.src_pll_truthtable = { {true, true}, {false, true} },
 	.reg_cfg = {
@@ -149,7 +155,8 @@ const struct msm_dsi_phy_cfg dsi_phy_28nm_hpm_cfgs = {
 	.num_dsi_phy = 2,
 };
 
-const struct msm_dsi_phy_cfg dsi_phy_28nm_lp_cfgs = {
+const struct msm_dsi_phy_cfg dsi_phy_28nm_lp_cfgs =
+{
 	.type = MSM_DSI_PHY_28NM_LP,
 	.src_pll_truthtable = { {true, true}, {true, true} },
 	.reg_cfg = {

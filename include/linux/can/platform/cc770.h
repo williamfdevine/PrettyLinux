@@ -22,7 +22,8 @@
 #define BUSCFG_POL	0x20	/* Polarity dominant or recessive */
 #define BUSCFG_CBY	0x40	/* Input Comparator Bypass */
 
-struct cc770_platform_data {
+struct cc770_platform_data
+{
 	u32 osc_freq;	/* CAN bus oscillator frequency in Hz */
 
 	u8 cir;		/* CPU Interface Register */

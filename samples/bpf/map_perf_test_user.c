@@ -44,10 +44,14 @@ static void test_hash_prealloc(int cpu)
 	int i;
 
 	start_time = time_get_ns();
+
 	for (i = 0; i < MAX_CNT; i++)
+	{
 		syscall(__NR_getuid);
+	}
+
 	printf("%d:hash_map_perf pre-alloc %lld events per sec\n",
-	       cpu, MAX_CNT * 1000000000ll / (time_get_ns() - start_time));
+		   cpu, MAX_CNT * 1000000000ll / (time_get_ns() - start_time));
 }
 
 static void test_percpu_hash_prealloc(int cpu)
@@ -56,10 +60,14 @@ static void test_percpu_hash_prealloc(int cpu)
 	int i;
 
 	start_time = time_get_ns();
+
 	for (i = 0; i < MAX_CNT; i++)
+	{
 		syscall(__NR_geteuid);
+	}
+
 	printf("%d:percpu_hash_map_perf pre-alloc %lld events per sec\n",
-	       cpu, MAX_CNT * 1000000000ll / (time_get_ns() - start_time));
+		   cpu, MAX_CNT * 1000000000ll / (time_get_ns() - start_time));
 }
 
 static void test_hash_kmalloc(int cpu)
@@ -68,10 +76,14 @@ static void test_hash_kmalloc(int cpu)
 	int i;
 
 	start_time = time_get_ns();
+
 	for (i = 0; i < MAX_CNT; i++)
+	{
 		syscall(__NR_getgid);
+	}
+
 	printf("%d:hash_map_perf kmalloc %lld events per sec\n",
-	       cpu, MAX_CNT * 1000000000ll / (time_get_ns() - start_time));
+		   cpu, MAX_CNT * 1000000000ll / (time_get_ns() - start_time));
 }
 
 static void test_percpu_hash_kmalloc(int cpu)
@@ -80,10 +92,14 @@ static void test_percpu_hash_kmalloc(int cpu)
 	int i;
 
 	start_time = time_get_ns();
+
 	for (i = 0; i < MAX_CNT; i++)
+	{
 		syscall(__NR_getegid);
+	}
+
 	printf("%d:percpu_hash_map_perf kmalloc %lld events per sec\n",
-	       cpu, MAX_CNT * 1000000000ll / (time_get_ns() - start_time));
+		   cpu, MAX_CNT * 1000000000ll / (time_get_ns() - start_time));
 }
 
 static void loop(int cpu)
@@ -95,16 +111,24 @@ static void loop(int cpu)
 	sched_setaffinity(0, sizeof(cpuset), &cpuset);
 
 	if (test_flags & HASH_PREALLOC)
+	{
 		test_hash_prealloc(cpu);
+	}
 
 	if (test_flags & PERCPU_HASH_PREALLOC)
+	{
 		test_percpu_hash_prealloc(cpu);
+	}
 
 	if (test_flags & HASH_KMALLOC)
+	{
 		test_hash_kmalloc(cpu);
+	}
 
 	if (test_flags & PERCPU_HASH_KMALLOC)
+	{
 		test_percpu_hash_kmalloc(cpu);
+	}
 }
 
 static void run_perf_test(int tasks)
@@ -112,17 +136,24 @@ static void run_perf_test(int tasks)
 	pid_t pid[tasks];
 	int i;
 
-	for (i = 0; i < tasks; i++) {
+	for (i = 0; i < tasks; i++)
+	{
 		pid[i] = fork();
-		if (pid[i] == 0) {
+
+		if (pid[i] == 0)
+		{
 			loop(i);
 			exit(0);
-		} else if (pid[i] == -1) {
+		}
+		else if (pid[i] == -1)
+		{
 			printf("couldn't spawn #%d process\n", i);
 			exit(1);
 		}
 	}
-	for (i = 0; i < tasks; i++) {
+
+	for (i = 0; i < tasks; i++)
+	{
 		int status;
 
 		assert(waitpid(pid[i], &status, 0) == pid[i]);
@@ -140,12 +171,17 @@ int main(int argc, char **argv)
 	setrlimit(RLIMIT_MEMLOCK, &r);
 
 	if (argc > 1)
+	{
 		test_flags = atoi(argv[1]) ? : test_flags;
+	}
 
 	if (argc > 2)
+	{
 		num_cpu = atoi(argv[2]) ? : num_cpu;
+	}
 
-	if (load_bpf_file(filename)) {
+	if (load_bpf_file(filename))
+	{
 		printf("%s", bpf_log_buf);
 		return 1;
 	}

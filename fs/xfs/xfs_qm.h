@@ -32,15 +32,15 @@ extern struct kmem_zone	*xfs_qm_dqtrxzone;
 #define XFS_DQITER_MAP_SIZE	10
 
 #define XFS_IS_DQUOT_UNINITIALIZED(dqp) ( \
-	!dqp->q_core.d_blk_hardlimit && \
-	!dqp->q_core.d_blk_softlimit && \
-	!dqp->q_core.d_rtb_hardlimit && \
-	!dqp->q_core.d_rtb_softlimit && \
-	!dqp->q_core.d_ino_hardlimit && \
-	!dqp->q_core.d_ino_softlimit && \
-	!dqp->q_core.d_bcount && \
-	!dqp->q_core.d_rtbcount && \
-	!dqp->q_core.d_icount)
+		!dqp->q_core.d_blk_hardlimit && \
+		!dqp->q_core.d_blk_softlimit && \
+		!dqp->q_core.d_rtb_hardlimit && \
+		!dqp->q_core.d_rtb_softlimit && \
+		!dqp->q_core.d_ino_hardlimit && \
+		!dqp->q_core.d_ino_softlimit && \
+		!dqp->q_core.d_bcount && \
+		!dqp->q_core.d_rtbcount && \
+		!dqp->q_core.d_icount)
 
 /*
  * This defines the unit of allocation of dquots.
@@ -53,7 +53,8 @@ extern struct kmem_zone	*xfs_qm_dqtrxzone;
  */
 #define XFS_DQUOT_CLUSTER_SIZE_FSB	(xfs_filblks_t)1
 
-struct xfs_def_quota {
+struct xfs_def_quota
+{
 	xfs_qcnt_t       bhardlimit;     /* default data blk hard limit */
 	xfs_qcnt_t       bsoftlimit;	 /* default data blk soft limit */
 	xfs_qcnt_t       ihardlimit;	 /* default inode count hard limit */
@@ -66,7 +67,8 @@ struct xfs_def_quota {
  * Various quota information for individual filesystems.
  * The mount structure keeps a pointer to this.
  */
-typedef struct xfs_quotainfo {
+typedef struct xfs_quotainfo
+{
 	struct radix_tree_root qi_uquota_tree;
 	struct radix_tree_root qi_gquota_tree;
 	struct radix_tree_root qi_pquota_tree;
@@ -96,41 +98,51 @@ xfs_dquot_tree(
 	struct xfs_quotainfo	*qi,
 	int			type)
 {
-	switch (type) {
-	case XFS_DQ_USER:
-		return &qi->qi_uquota_tree;
-	case XFS_DQ_GROUP:
-		return &qi->qi_gquota_tree;
-	case XFS_DQ_PROJ:
-		return &qi->qi_pquota_tree;
-	default:
-		ASSERT(0);
+	switch (type)
+	{
+		case XFS_DQ_USER:
+			return &qi->qi_uquota_tree;
+
+		case XFS_DQ_GROUP:
+			return &qi->qi_gquota_tree;
+
+		case XFS_DQ_PROJ:
+			return &qi->qi_pquota_tree;
+
+		default:
+			ASSERT(0);
 	}
+
 	return NULL;
 }
 
 static inline struct xfs_inode *
 xfs_quota_inode(xfs_mount_t *mp, uint dq_flags)
 {
-	switch (dq_flags & XFS_DQ_ALLTYPES) {
-	case XFS_DQ_USER:
-		return mp->m_quotainfo->qi_uquotaip;
-	case XFS_DQ_GROUP:
-		return mp->m_quotainfo->qi_gquotaip;
-	case XFS_DQ_PROJ:
-		return mp->m_quotainfo->qi_pquotaip;
-	default:
-		ASSERT(0);
+	switch (dq_flags & XFS_DQ_ALLTYPES)
+	{
+		case XFS_DQ_USER:
+			return mp->m_quotainfo->qi_uquotaip;
+
+		case XFS_DQ_GROUP:
+			return mp->m_quotainfo->qi_gquotaip;
+
+		case XFS_DQ_PROJ:
+			return mp->m_quotainfo->qi_pquotaip;
+
+		default:
+			ASSERT(0);
 	}
+
 	return NULL;
 }
 
 extern void	xfs_trans_mod_dquot(struct xfs_trans *,
-					struct xfs_dquot *, uint, long);
+								struct xfs_dquot *, uint, long);
 extern int	xfs_trans_reserve_quota_bydquots(struct xfs_trans *,
-			struct xfs_mount *, struct xfs_dquot *,
-			struct xfs_dquot *, struct xfs_dquot *,
-			long, long, uint);
+		struct xfs_mount *, struct xfs_dquot *,
+		struct xfs_dquot *, struct xfs_dquot *,
+		long, long, uint);
 extern void	xfs_trans_dqjoin(struct xfs_trans *, struct xfs_dquot *);
 extern void	xfs_trans_log_dquot(struct xfs_trans *, struct xfs_dquot *);
 
@@ -139,14 +151,16 @@ extern void	xfs_trans_log_dquot(struct xfs_trans *, struct xfs_dquot *);
  * easier to do at commit time. All transactions that we know of at this point
  * affect no more than two dquots of one type. Hence, the TRANS_MAXDQS value.
  */
-enum {
+enum
+{
 	XFS_QM_TRANS_USR = 0,
 	XFS_QM_TRANS_GRP,
 	XFS_QM_TRANS_PRJ,
 	XFS_QM_TRANS_DQTYPES
 };
 #define XFS_QM_TRANS_MAXDQS		2
-struct xfs_dquot_acct {
+struct xfs_dquot_acct
+{
 	struct xfs_dqtrx	dqs[XFS_QM_TRANS_DQTYPES][XFS_QM_TRANS_MAXDQS];
 };
 
@@ -171,9 +185,9 @@ extern void		xfs_qm_dqrele_all_inodes(struct xfs_mount *, uint);
 /* quota ops */
 extern int		xfs_qm_scall_trunc_qfiles(struct xfs_mount *, uint);
 extern int		xfs_qm_scall_getquota(struct xfs_mount *, xfs_dqid_t *,
-					uint, struct qc_dqblk *, uint);
+									  uint, struct qc_dqblk *, uint);
 extern int		xfs_qm_scall_setqlim(struct xfs_mount *, xfs_dqid_t, uint,
-					struct qc_dqblk *);
+									 struct qc_dqblk *);
 extern int		xfs_qm_scall_quotaon(struct xfs_mount *, uint);
 extern int		xfs_qm_scall_quotaoff(struct xfs_mount *, uint);
 
@@ -183,13 +197,19 @@ xfs_get_defquota(struct xfs_dquot *dqp, struct xfs_quotainfo *qi)
 	struct xfs_def_quota *defq;
 
 	if (XFS_QM_ISUDQ(dqp))
+	{
 		defq = &qi->qi_usr_default;
+	}
 	else if (XFS_QM_ISGDQ(dqp))
+	{
 		defq = &qi->qi_grp_default;
-	else {
+	}
+	else
+	{
 		ASSERT(XFS_QM_ISPDQ(dqp));
 		defq = &qi->qi_prj_default;
 	}
+
 	return defq;
 }
 

@@ -1,11 +1,13 @@
 #ifndef _MULTIPATH_H
 #define _MULTIPATH_H
 
-struct multipath_info {
+struct multipath_info
+{
 	struct md_rdev	*rdev;
 };
 
-struct mpconf {
+struct mpconf
+{
 	struct mddev			*mddev;
 	struct multipath_info	*multipaths;
 	int			raid_disks;
@@ -21,7 +23,8 @@ struct mpconf {
  * for this MULTIPATH operation, and about their status:
  */
 
-struct multipath_bh {
+struct multipath_bh
+{
 	struct mddev			*mddev;
 	struct bio		*master_bio;
 	struct bio		bio;

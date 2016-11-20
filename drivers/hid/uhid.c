@@ -28,7 +28,8 @@
 #define UHID_NAME	"uhid"
 #define UHID_BUFSIZE	32
 
-struct uhid_device {
+struct uhid_device
+{
 	struct mutex devlock;
 	bool running;
 
@@ -62,7 +63,9 @@ static void uhid_device_add_worker(struct work_struct *work)
 	int ret;
 
 	ret = hid_add_device(uhid->hid);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(uhid->hid, "Cannot register HID device: error %d\n", ret);
 
 		hid_destroy_device(uhid->hid);
@@ -77,11 +80,14 @@ static void uhid_queue(struct uhid_device *uhid, struct uhid_event *ev)
 
 	newhead = (uhid->head + 1) % UHID_BUFSIZE;
 
-	if (newhead != uhid->tail) {
+	if (newhead != uhid->tail)
+	{
 		uhid->outq[uhid->head] = ev;
 		uhid->head = newhead;
 		wake_up_interruptible(&uhid->waitq);
-	} else {
+	}
+	else
+	{
 		hid_warn(uhid->hid, "Output queue is full\n");
 		kfree(ev);
 	}
@@ -93,8 +99,11 @@ static int uhid_queue_event(struct uhid_device *uhid, __u32 event)
 	struct uhid_event *ev;
 
 	ev = kzalloc(sizeof(*ev), GFP_KERNEL);
+
 	if (!ev)
+	{
 		return -ENOMEM;
+	}
 
 	ev->type = event;
 
@@ -112,17 +121,28 @@ static int uhid_hid_start(struct hid_device *hid)
 	unsigned long flags;
 
 	ev = kzalloc(sizeof(*ev), GFP_KERNEL);
+
 	if (!ev)
+	{
 		return -ENOMEM;
+	}
 
 	ev->type = UHID_START;
 
 	if (hid->report_enum[HID_FEATURE_REPORT].numbered)
+	{
 		ev->u.start.dev_flags |= UHID_DEV_NUMBERED_FEATURE_REPORTS;
+	}
+
 	if (hid->report_enum[HID_OUTPUT_REPORT].numbered)
+	{
 		ev->u.start.dev_flags |= UHID_DEV_NUMBERED_OUTPUT_REPORTS;
+	}
+
 	if (hid->report_enum[HID_INPUT_REPORT].numbered)
+	{
 		ev->u.start.dev_flags |= UHID_DEV_NUMBERED_INPUT_REPORTS;
+	}
 
 	spin_lock_irqsave(&uhid->qlock, flags);
 	uhid_queue(uhid, ev);
@@ -162,8 +182,8 @@ static int uhid_hid_parse(struct hid_device *hid)
 
 /* must be called with report_lock held */
 static int __uhid_report_queue_and_wait(struct uhid_device *uhid,
-					struct uhid_event *ev,
-					__u32 *report_id)
+										struct uhid_event *ev,
+										__u32 *report_id)
 {
 	unsigned long flags;
 	int ret;
@@ -176,14 +196,21 @@ static int __uhid_report_queue_and_wait(struct uhid_device *uhid,
 	spin_unlock_irqrestore(&uhid->qlock, flags);
 
 	ret = wait_event_interruptible_timeout(uhid->report_wait,
-				!uhid->report_running || !uhid->running,
-				5 * HZ);
+										   !uhid->report_running || !uhid->running,
+										   5 * HZ);
+
 	if (!ret || !uhid->running || uhid->report_running)
+	{
 		ret = -EIO;
+	}
 	else if (ret < 0)
+	{
 		ret = -ERESTARTSYS;
+	}
 	else
+	{
 		ret = 0;
+	}
 
 	uhid->report_running = false;
 
@@ -191,7 +218,7 @@ static int __uhid_report_queue_and_wait(struct uhid_device *uhid,
 }
 
 static void uhid_report_wake_up(struct uhid_device *uhid, u32 id,
-				const struct uhid_event *ev)
+								const struct uhid_event *ev)
 {
 	unsigned long flags;
 
@@ -199,9 +226,14 @@ static void uhid_report_wake_up(struct uhid_device *uhid, u32 id,
 
 	/* id for old report; drop it silently */
 	if (uhid->report_type != ev->type || uhid->report_id != id)
+	{
 		goto unlock;
+	}
+
 	if (!uhid->report_running)
+	{
 		goto unlock;
+	}
 
 	memcpy(&uhid->report_buf, ev, sizeof(*ev));
 	uhid->report_running = false;
@@ -212,7 +244,7 @@ unlock:
 }
 
 static int uhid_hid_get_report(struct hid_device *hid, unsigned char rnum,
-			       u8 *buf, size_t count, u8 rtype)
+							   u8 *buf, size_t count, u8 rtype)
 {
 	struct uhid_device *uhid = hid->driver_data;
 	struct uhid_get_report_reply_req *req;
@@ -220,31 +252,45 @@ static int uhid_hid_get_report(struct hid_device *hid, unsigned char rnum,
 	int ret;
 
 	if (!uhid->running)
+	{
 		return -EIO;
+	}
 
 	ev = kzalloc(sizeof(*ev), GFP_KERNEL);
+
 	if (!ev)
+	{
 		return -ENOMEM;
+	}
 
 	ev->type = UHID_GET_REPORT;
 	ev->u.get_report.rnum = rnum;
 	ev->u.get_report.rtype = rtype;
 
 	ret = mutex_lock_interruptible(&uhid->report_lock);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(ev);
 		return ret;
 	}
 
 	/* this _always_ takes ownership of @ev */
 	ret = __uhid_report_queue_and_wait(uhid, ev, &ev->u.get_report.id);
+
 	if (ret)
+	{
 		goto unlock;
+	}
 
 	req = &uhid->report_buf.u.get_report_reply;
-	if (req->err) {
+
+	if (req->err)
+	{
 		ret = -EIO;
-	} else {
+	}
+	else
+	{
 		ret = min3(count, (size_t)req->size, (size_t)UHID_DATA_MAX);
 		memcpy(buf, req->data, ret);
 	}
@@ -255,18 +301,23 @@ unlock:
 }
 
 static int uhid_hid_set_report(struct hid_device *hid, unsigned char rnum,
-			       const u8 *buf, size_t count, u8 rtype)
+							   const u8 *buf, size_t count, u8 rtype)
 {
 	struct uhid_device *uhid = hid->driver_data;
 	struct uhid_event *ev;
 	int ret;
 
 	if (!uhid->running || count > UHID_DATA_MAX)
+	{
 		return -EIO;
+	}
 
 	ev = kzalloc(sizeof(*ev), GFP_KERNEL);
+
 	if (!ev)
+	{
 		return -ENOMEM;
+	}
 
 	ev->type = UHID_SET_REPORT;
 	ev->u.set_report.rnum = rnum;
@@ -275,20 +326,29 @@ static int uhid_hid_set_report(struct hid_device *hid, unsigned char rnum,
 	memcpy(ev->u.set_report.data, buf, count);
 
 	ret = mutex_lock_interruptible(&uhid->report_lock);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(ev);
 		return ret;
 	}
 
 	/* this _always_ takes ownership of @ev */
 	ret = __uhid_report_queue_and_wait(uhid, ev, &ev->u.set_report.id);
+
 	if (ret)
+	{
 		goto unlock;
+	}
 
 	if (uhid->report_buf.u.set_report_reply.err)
+	{
 		ret = -EIO;
+	}
 	else
+	{
 		ret = count;
+	}
 
 unlock:
 	mutex_unlock(&uhid->report_lock);
@@ -296,60 +356,75 @@ unlock:
 }
 
 static int uhid_hid_raw_request(struct hid_device *hid, unsigned char reportnum,
-				__u8 *buf, size_t len, unsigned char rtype,
-				int reqtype)
+								__u8 *buf, size_t len, unsigned char rtype,
+								int reqtype)
 {
 	u8 u_rtype;
 
-	switch (rtype) {
-	case HID_FEATURE_REPORT:
-		u_rtype = UHID_FEATURE_REPORT;
-		break;
-	case HID_OUTPUT_REPORT:
-		u_rtype = UHID_OUTPUT_REPORT;
-		break;
-	case HID_INPUT_REPORT:
-		u_rtype = UHID_INPUT_REPORT;
-		break;
-	default:
-		return -EINVAL;
+	switch (rtype)
+	{
+		case HID_FEATURE_REPORT:
+			u_rtype = UHID_FEATURE_REPORT;
+			break;
+
+		case HID_OUTPUT_REPORT:
+			u_rtype = UHID_OUTPUT_REPORT;
+			break;
+
+		case HID_INPUT_REPORT:
+			u_rtype = UHID_INPUT_REPORT;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	switch (reqtype) {
-	case HID_REQ_GET_REPORT:
-		return uhid_hid_get_report(hid, reportnum, buf, len, u_rtype);
-	case HID_REQ_SET_REPORT:
-		return uhid_hid_set_report(hid, reportnum, buf, len, u_rtype);
-	default:
-		return -EIO;
+	switch (reqtype)
+	{
+		case HID_REQ_GET_REPORT:
+			return uhid_hid_get_report(hid, reportnum, buf, len, u_rtype);
+
+		case HID_REQ_SET_REPORT:
+			return uhid_hid_set_report(hid, reportnum, buf, len, u_rtype);
+
+		default:
+			return -EIO;
 	}
 }
 
 static int uhid_hid_output_raw(struct hid_device *hid, __u8 *buf, size_t count,
-			       unsigned char report_type)
+							   unsigned char report_type)
 {
 	struct uhid_device *uhid = hid->driver_data;
 	__u8 rtype;
 	unsigned long flags;
 	struct uhid_event *ev;
 
-	switch (report_type) {
-	case HID_FEATURE_REPORT:
-		rtype = UHID_FEATURE_REPORT;
-		break;
-	case HID_OUTPUT_REPORT:
-		rtype = UHID_OUTPUT_REPORT;
-		break;
-	default:
-		return -EINVAL;
+	switch (report_type)
+	{
+		case HID_FEATURE_REPORT:
+			rtype = UHID_FEATURE_REPORT;
+			break;
+
+		case HID_OUTPUT_REPORT:
+			rtype = UHID_OUTPUT_REPORT;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	if (count < 1 || count > UHID_DATA_MAX)
+	{
 		return -EINVAL;
+	}
 
 	ev = kzalloc(sizeof(*ev), GFP_KERNEL);
+
 	if (!ev)
+	{
 		return -ENOMEM;
+	}
 
 	ev->type = UHID_OUTPUT;
 	ev->u.output.size = count;
@@ -364,12 +439,13 @@ static int uhid_hid_output_raw(struct hid_device *hid, __u8 *buf, size_t count,
 }
 
 static int uhid_hid_output_report(struct hid_device *hid, __u8 *buf,
-				  size_t count)
+								  size_t count)
 {
 	return uhid_hid_output_raw(hid, buf, count, HID_OUTPUT_REPORT);
 }
 
-static struct hid_ll_driver uhid_hid_driver = {
+static struct hid_ll_driver uhid_hid_driver =
+{
 	.start = uhid_hid_start,
 	.stop = uhid_hid_stop,
 	.open = uhid_hid_open,
@@ -382,7 +458,8 @@ static struct hid_ll_driver uhid_hid_driver = {
 #ifdef CONFIG_COMPAT
 
 /* Apparently we haven't stepped on these rakes enough times yet. */
-struct uhid_create_req_compat {
+struct uhid_create_req_compat
+{
 	__u8 name[128];
 	__u8 phys[64];
 	__u8 uniq[64];
@@ -398,15 +475,19 @@ struct uhid_create_req_compat {
 } __attribute__((__packed__));
 
 static int uhid_event_from_user(const char __user *buffer, size_t len,
-				struct uhid_event *event)
+								struct uhid_event *event)
 {
-	if (in_compat_syscall()) {
+	if (in_compat_syscall())
+	{
 		u32 type;
 
 		if (get_user(type, buffer))
+		{
 			return -EFAULT;
+		}
 
-		if (type == UHID_CREATE) {
+		if (type == UHID_CREATE)
+		{
 			/*
 			 * This is our messed up request with compat pointer.
 			 * It is largish (more than 256 bytes) so we better
@@ -415,13 +496,18 @@ static int uhid_event_from_user(const char __user *buffer, size_t len,
 			struct uhid_create_req_compat *compat;
 
 			compat = kzalloc(sizeof(*compat), GFP_KERNEL);
+
 			if (!compat)
+			{
 				return -ENOMEM;
+			}
 
 			buffer += sizeof(type);
 			len -= sizeof(type);
+
 			if (copy_from_user(compat, buffer,
-					   min(len, sizeof(*compat)))) {
+							   min(len, sizeof(*compat))))
+			{
 				kfree(compat);
 				return -EFAULT;
 			}
@@ -430,11 +516,11 @@ static int uhid_event_from_user(const char __user *buffer, size_t len,
 			event->type = type;
 
 			memcpy(event->u.create.name, compat->name,
-				sizeof(compat->name));
+				   sizeof(compat->name));
 			memcpy(event->u.create.phys, compat->phys,
-				sizeof(compat->phys));
+				   sizeof(compat->phys));
 			memcpy(event->u.create.uniq, compat->uniq,
-				sizeof(compat->uniq));
+				   sizeof(compat->uniq));
 
 			event->u.create.rd_data = compat_ptr(compat->rd_data);
 			event->u.create.rd_size = compat->rd_size;
@@ -448,27 +534,32 @@ static int uhid_event_from_user(const char __user *buffer, size_t len,
 			kfree(compat);
 			return 0;
 		}
+
 		/* All others can be copied directly */
 	}
 
 	if (copy_from_user(event, buffer, min(len, sizeof(*event))))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
 #else
 static int uhid_event_from_user(const char __user *buffer, size_t len,
-				struct uhid_event *event)
+								struct uhid_event *event)
 {
 	if (copy_from_user(event, buffer, min(len, sizeof(*event))))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
 #endif
 
 static int uhid_dev_create2(struct uhid_device *uhid,
-			    const struct uhid_event *ev)
+							const struct uhid_event *ev)
 {
 	struct hid_device *hid;
 	size_t rd_size, len;
@@ -476,21 +567,31 @@ static int uhid_dev_create2(struct uhid_device *uhid,
 	int ret;
 
 	if (uhid->running)
+	{
 		return -EALREADY;
+	}
 
 	rd_size = ev->u.create2.rd_size;
+
 	if (rd_size <= 0 || rd_size > HID_MAX_DESCRIPTOR_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	rd_data = kmemdup(ev->u.create2.rd_data, rd_size, GFP_KERNEL);
+
 	if (!rd_data)
+	{
 		return -ENOMEM;
+	}
 
 	uhid->rd_size = rd_size;
 	uhid->rd_data = rd_data;
 
 	hid = hid_allocate_device();
-	if (IS_ERR(hid)) {
+
+	if (IS_ERR(hid))
+	{
 		ret = PTR_ERR(hid);
 		goto err_free;
 	}
@@ -530,16 +631,21 @@ err_free:
 }
 
 static int uhid_dev_create(struct uhid_device *uhid,
-			   struct uhid_event *ev)
+						   struct uhid_event *ev)
 {
 	struct uhid_create_req orig;
 
 	orig = ev->u.create;
 
 	if (orig.rd_size <= 0 || orig.rd_size > HID_MAX_DESCRIPTOR_SIZE)
+	{
 		return -EINVAL;
+	}
+
 	if (copy_from_user(&ev->u.create2.rd_data, orig.rd_data, orig.rd_size))
+	{
 		return -EFAULT;
+	}
 
 	memcpy(ev->u.create2.name, orig.name, sizeof(orig.name));
 	memcpy(ev->u.create2.phys, orig.phys, sizeof(orig.phys));
@@ -557,7 +663,9 @@ static int uhid_dev_create(struct uhid_device *uhid,
 static int uhid_dev_destroy(struct uhid_device *uhid)
 {
 	if (!uhid->running)
+	{
 		return -EINVAL;
+	}
 
 	uhid->running = false;
 	wake_up_interruptible(&uhid->report_wait);
@@ -573,10 +681,12 @@ static int uhid_dev_destroy(struct uhid_device *uhid)
 static int uhid_dev_input(struct uhid_device *uhid, struct uhid_event *ev)
 {
 	if (!uhid->running)
+	{
 		return -EINVAL;
+	}
 
 	hid_input_report(uhid->hid, HID_INPUT_REPORT, ev->u.input.data,
-			 min_t(size_t, ev->u.input.size, UHID_DATA_MAX), 0);
+					 min_t(size_t, ev->u.input.size, UHID_DATA_MAX), 0);
 
 	return 0;
 }
@@ -584,29 +694,35 @@ static int uhid_dev_input(struct uhid_device *uhid, struct uhid_event *ev)
 static int uhid_dev_input2(struct uhid_device *uhid, struct uhid_event *ev)
 {
 	if (!uhid->running)
+	{
 		return -EINVAL;
+	}
 
 	hid_input_report(uhid->hid, HID_INPUT_REPORT, ev->u.input2.data,
-			 min_t(size_t, ev->u.input2.size, UHID_DATA_MAX), 0);
+					 min_t(size_t, ev->u.input2.size, UHID_DATA_MAX), 0);
 
 	return 0;
 }
 
 static int uhid_dev_get_report_reply(struct uhid_device *uhid,
-				     struct uhid_event *ev)
+									 struct uhid_event *ev)
 {
 	if (!uhid->running)
+	{
 		return -EINVAL;
+	}
 
 	uhid_report_wake_up(uhid, ev->u.get_report_reply.id, ev);
 	return 0;
 }
 
 static int uhid_dev_set_report_reply(struct uhid_device *uhid,
-				     struct uhid_event *ev)
+									 struct uhid_event *ev)
 {
 	if (!uhid->running)
+	{
 		return -EINVAL;
+	}
 
 	uhid_report_wake_up(uhid, ev->u.set_report_reply.id, ev);
 	return 0;
@@ -617,8 +733,11 @@ static int uhid_char_open(struct inode *inode, struct file *file)
 	struct uhid_device *uhid;
 
 	uhid = kzalloc(sizeof(*uhid), GFP_KERNEL);
+
 	if (!uhid)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&uhid->devlock);
 	mutex_init(&uhid->report_lock);
@@ -642,7 +761,9 @@ static int uhid_char_release(struct inode *inode, struct file *file)
 	uhid_dev_destroy(uhid);
 
 	for (i = 0; i < UHID_BUFSIZE; ++i)
+	{
 		kfree(uhid->outq[i]);
+	}
 
 	kfree(uhid);
 
@@ -650,7 +771,7 @@ static int uhid_char_release(struct inode *inode, struct file *file)
 }
 
 static ssize_t uhid_char_read(struct file *file, char __user *buffer,
-				size_t count, loff_t *ppos)
+							  size_t count, loff_t *ppos)
 {
 	struct uhid_device *uhid = file->private_data;
 	int ret;
@@ -659,31 +780,52 @@ static ssize_t uhid_char_read(struct file *file, char __user *buffer,
 
 	/* they need at least the "type" member of uhid_event */
 	if (count < sizeof(__u32))
+	{
 		return -EINVAL;
+	}
 
 try_again:
-	if (file->f_flags & O_NONBLOCK) {
+
+	if (file->f_flags & O_NONBLOCK)
+	{
 		if (uhid->head == uhid->tail)
+		{
 			return -EAGAIN;
-	} else {
+		}
+	}
+	else
+	{
 		ret = wait_event_interruptible(uhid->waitq,
-						uhid->head != uhid->tail);
+									   uhid->head != uhid->tail);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	ret = mutex_lock_interruptible(&uhid->devlock);
-	if (ret)
-		return ret;
 
-	if (uhid->head == uhid->tail) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (uhid->head == uhid->tail)
+	{
 		mutex_unlock(&uhid->devlock);
 		goto try_again;
-	} else {
+	}
+	else
+	{
 		len = min(count, sizeof(**uhid->outq));
-		if (copy_to_user(buffer, uhid->outq[uhid->tail], len)) {
+
+		if (copy_to_user(buffer, uhid->outq[uhid->tail], len))
+		{
 			ret = -EFAULT;
-		} else {
+		}
+		else
+		{
 			kfree(uhid->outq[uhid->tail]);
 			uhid->outq[uhid->tail] = NULL;
 
@@ -698,7 +840,7 @@ try_again:
 }
 
 static ssize_t uhid_char_write(struct file *file, const char __user *buffer,
-				size_t count, loff_t *ppos)
+							   size_t count, loff_t *ppos)
 {
 	struct uhid_device *uhid = file->private_data;
 	int ret;
@@ -706,43 +848,59 @@ static ssize_t uhid_char_write(struct file *file, const char __user *buffer,
 
 	/* we need at least the "type" member of uhid_event */
 	if (count < sizeof(__u32))
+	{
 		return -EINVAL;
+	}
 
 	ret = mutex_lock_interruptible(&uhid->devlock);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	memset(&uhid->input_buf, 0, sizeof(uhid->input_buf));
 	len = min(count, sizeof(uhid->input_buf));
 
 	ret = uhid_event_from_user(buffer, len, &uhid->input_buf);
-	if (ret)
-		goto unlock;
 
-	switch (uhid->input_buf.type) {
-	case UHID_CREATE:
-		ret = uhid_dev_create(uhid, &uhid->input_buf);
-		break;
-	case UHID_CREATE2:
-		ret = uhid_dev_create2(uhid, &uhid->input_buf);
-		break;
-	case UHID_DESTROY:
-		ret = uhid_dev_destroy(uhid);
-		break;
-	case UHID_INPUT:
-		ret = uhid_dev_input(uhid, &uhid->input_buf);
-		break;
-	case UHID_INPUT2:
-		ret = uhid_dev_input2(uhid, &uhid->input_buf);
-		break;
-	case UHID_GET_REPORT_REPLY:
-		ret = uhid_dev_get_report_reply(uhid, &uhid->input_buf);
-		break;
-	case UHID_SET_REPORT_REPLY:
-		ret = uhid_dev_set_report_reply(uhid, &uhid->input_buf);
-		break;
-	default:
-		ret = -EOPNOTSUPP;
+	if (ret)
+	{
+		goto unlock;
+	}
+
+	switch (uhid->input_buf.type)
+	{
+		case UHID_CREATE:
+			ret = uhid_dev_create(uhid, &uhid->input_buf);
+			break;
+
+		case UHID_CREATE2:
+			ret = uhid_dev_create2(uhid, &uhid->input_buf);
+			break;
+
+		case UHID_DESTROY:
+			ret = uhid_dev_destroy(uhid);
+			break;
+
+		case UHID_INPUT:
+			ret = uhid_dev_input(uhid, &uhid->input_buf);
+			break;
+
+		case UHID_INPUT2:
+			ret = uhid_dev_input2(uhid, &uhid->input_buf);
+			break;
+
+		case UHID_GET_REPORT_REPLY:
+			ret = uhid_dev_get_report_reply(uhid, &uhid->input_buf);
+			break;
+
+		case UHID_SET_REPORT_REPLY:
+			ret = uhid_dev_set_report_reply(uhid, &uhid->input_buf);
+			break;
+
+		default:
+			ret = -EOPNOTSUPP;
 	}
 
 unlock:
@@ -759,12 +917,15 @@ static unsigned int uhid_char_poll(struct file *file, poll_table *wait)
 	poll_wait(file, &uhid->waitq, wait);
 
 	if (uhid->head != uhid->tail)
+	{
 		return POLLIN | POLLRDNORM;
+	}
 
 	return 0;
 }
 
-static const struct file_operations uhid_fops = {
+static const struct file_operations uhid_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= uhid_char_open,
 	.release	= uhid_char_release,
@@ -774,7 +935,8 @@ static const struct file_operations uhid_fops = {
 	.llseek		= no_llseek,
 };
 
-static struct miscdevice uhid_misc = {
+static struct miscdevice uhid_misc =
+{
 	.fops		= &uhid_fops,
 	.minor		= UHID_MINOR,
 	.name		= UHID_NAME,

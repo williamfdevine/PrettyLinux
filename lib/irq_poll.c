@@ -28,9 +28,14 @@ void irq_poll_sched(struct irq_poll *iop)
 	unsigned long flags;
 
 	if (test_bit(IRQ_POLL_F_DISABLE, &iop->state))
+	{
 		return;
+	}
+
 	if (test_and_set_bit(IRQ_POLL_F_SCHED, &iop->state))
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 	list_add_tail(&iop->list, this_cpu_ptr(&blk_cpu_iopoll));
@@ -82,14 +87,16 @@ static void __latent_entropy irq_poll_softirq(struct softirq_action *h)
 
 	local_irq_disable();
 
-	while (!list_empty(list)) {
+	while (!list_empty(list))
+	{
 		struct irq_poll *iop;
 		int work, weight;
 
 		/*
 		 * If softirq window is exhausted then punt.
 		 */
-		if (budget <= 0 || time_after(jiffies, start_time)) {
+		if (budget <= 0 || time_after(jiffies, start_time))
+		{
 			rearm = 1;
 			break;
 		}
@@ -105,8 +112,11 @@ static void __latent_entropy irq_poll_softirq(struct softirq_action *h)
 
 		weight = iop->weight;
 		work = 0;
+
 		if (test_bit(IRQ_POLL_F_SCHED, &iop->state))
+		{
 			work = iop->poll(iop, weight);
+		}
 
 		budget -= work;
 
@@ -120,16 +130,23 @@ static void __latent_entropy irq_poll_softirq(struct softirq_action *h)
 		 * still "owns" the iopoll instance and therefore can
 		 * move the instance around on the list at-will.
 		 */
-		if (work >= weight) {
+		if (work >= weight)
+		{
 			if (test_bit(IRQ_POLL_F_DISABLE, &iop->state))
+			{
 				__irq_poll_complete(iop);
+			}
 			else
+			{
 				list_move_tail(&iop->list, list);
+			}
 		}
 	}
 
 	if (rearm)
+	{
 		__raise_softirq_irqoff(IRQ_POLL_SOFTIRQ);
+	}
 
 	local_irq_enable();
 }
@@ -144,8 +161,12 @@ static void __latent_entropy irq_poll_softirq(struct softirq_action *h)
 void irq_poll_disable(struct irq_poll *iop)
 {
 	set_bit(IRQ_POLL_F_DISABLE, &iop->state);
+
 	while (test_and_set_bit(IRQ_POLL_F_SCHED, &iop->state))
+	{
 		msleep(1);
+	}
+
 	clear_bit(IRQ_POLL_F_DISABLE, &iop->state);
 }
 EXPORT_SYMBOL(irq_poll_disable);
@@ -192,7 +213,7 @@ static int irq_poll_cpu_dead(unsigned int cpu)
 	 */
 	local_irq_disable();
 	list_splice_init(&per_cpu(blk_cpu_iopoll, cpu),
-			 this_cpu_ptr(&blk_cpu_iopoll));
+					 this_cpu_ptr(&blk_cpu_iopoll));
 	__raise_softirq_irqoff(IRQ_POLL_SOFTIRQ);
 	local_irq_enable();
 
@@ -204,11 +225,11 @@ static __init int irq_poll_setup(void)
 	int i;
 
 	for_each_possible_cpu(i)
-		INIT_LIST_HEAD(&per_cpu(blk_cpu_iopoll, i));
+	INIT_LIST_HEAD(&per_cpu(blk_cpu_iopoll, i));
 
 	open_softirq(IRQ_POLL_SOFTIRQ, irq_poll_softirq);
 	cpuhp_setup_state_nocalls(CPUHP_IRQ_POLL_DEAD, "irq_poll:dead", NULL,
-				  irq_poll_cpu_dead);
+							  irq_poll_cpu_dead);
 	return 0;
 }
 subsys_initcall(irq_poll_setup);

@@ -25,7 +25,8 @@
 #ifndef _SAA6588_H
 #define _SAA6588_H
 
-struct saa6588_command {
+struct saa6588_command
+{
 	unsigned int  block_count;
 	bool          nonblocking;
 	int           result;

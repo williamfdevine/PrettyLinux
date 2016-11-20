@@ -64,7 +64,8 @@ static void release_node(struct config_item *);
 static struct configfs_attribute *comm_attrs[];
 static struct configfs_attribute *node_attrs[];
 
-struct dlm_cluster {
+struct dlm_cluster
+{
 	struct config_group group;
 	unsigned int cl_tcp_port;
 	unsigned int cl_buffer_size;
@@ -88,7 +89,8 @@ static struct dlm_cluster *config_item_to_cluster(struct config_item *i)
 		   NULL;
 }
 
-enum {
+enum
+{
 	CLUSTER_ATTR_TCP_PORT = 0,
 	CLUSTER_ATTR_BUFFER_SIZE,
 	CLUSTER_ATTR_RSBTBL_SIZE,
@@ -112,12 +114,12 @@ static ssize_t cluster_cluster_name_show(struct config_item *item, char *buf)
 }
 
 static ssize_t cluster_cluster_name_store(struct config_item *item,
-					  const char *buf, size_t len)
+		const char *buf, size_t len)
 {
 	struct dlm_cluster *cl = config_item_to_cluster(item);
 
 	strlcpy(dlm_config.ci_cluster_name, buf,
-				sizeof(dlm_config.ci_cluster_name));
+			sizeof(dlm_config.ci_cluster_name));
 	strlcpy(cl->cl_cluster_name, buf, sizeof(cl->cl_cluster_name));
 	return len;
 }
@@ -125,20 +127,28 @@ static ssize_t cluster_cluster_name_store(struct config_item *item,
 CONFIGFS_ATTR(cluster_, cluster_name);
 
 static ssize_t cluster_set(struct dlm_cluster *cl, unsigned int *cl_field,
-			   int *info_field, int check_zero,
-			   const char *buf, size_t len)
+						   int *info_field, int check_zero,
+						   const char *buf, size_t len)
 {
 	unsigned int x;
 	int rc;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	rc = kstrtouint(buf, 0, &x);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (check_zero && !x)
+	{
 		return -EINVAL;
+	}
 
 	*cl_field = x;
 	*info_field = x;
@@ -147,19 +157,19 @@ static ssize_t cluster_set(struct dlm_cluster *cl, unsigned int *cl_field,
 }
 
 #define CLUSTER_ATTR(name, check_zero)                                        \
-static ssize_t cluster_##name##_store(struct config_item *item, \
-		const char *buf, size_t len) \
-{                                                                             \
-	struct dlm_cluster *cl = config_item_to_cluster(item);		      \
-	return cluster_set(cl, &cl->cl_##name, &dlm_config.ci_##name,         \
-			   check_zero, buf, len);                             \
-}                                                                             \
-static ssize_t cluster_##name##_show(struct config_item *item, char *buf)     \
-{                                                                             \
-	struct dlm_cluster *cl = config_item_to_cluster(item);		      \
-	return snprintf(buf, PAGE_SIZE, "%u\n", cl->cl_##name);               \
-}                                                                             \
-CONFIGFS_ATTR(cluster_, name);
+	static ssize_t cluster_##name##_store(struct config_item *item, \
+										  const char *buf, size_t len) \
+	{                                                                             \
+		struct dlm_cluster *cl = config_item_to_cluster(item);		      \
+		return cluster_set(cl, &cl->cl_##name, &dlm_config.ci_##name,         \
+						   check_zero, buf, len);                             \
+	}                                                                             \
+	static ssize_t cluster_##name##_show(struct config_item *item, char *buf)     \
+	{                                                                             \
+		struct dlm_cluster *cl = config_item_to_cluster(item);		      \
+		return snprintf(buf, PAGE_SIZE, "%u\n", cl->cl_##name);               \
+	}                                                                             \
+	CONFIGFS_ATTR(cluster_, name);
 
 CLUSTER_ATTR(tcp_port, 1);
 CLUSTER_ATTR(buffer_size, 1);
@@ -175,7 +185,8 @@ CLUSTER_ATTR(waitwarn_us, 0);
 CLUSTER_ATTR(new_rsb_count, 0);
 CLUSTER_ATTR(recover_callbacks, 0);
 
-static struct configfs_attribute *cluster_attrs[] = {
+static struct configfs_attribute *cluster_attrs[] =
+{
 	[CLUSTER_ATTR_TCP_PORT] = &cluster_attr_tcp_port,
 	[CLUSTER_ATTR_BUFFER_SIZE] = &cluster_attr_buffer_size,
 	[CLUSTER_ATTR_RSBTBL_SIZE] = &cluster_attr_rsbtbl_size,
@@ -193,38 +204,45 @@ static struct configfs_attribute *cluster_attrs[] = {
 	NULL,
 };
 
-enum {
+enum
+{
 	COMM_ATTR_NODEID = 0,
 	COMM_ATTR_LOCAL,
 	COMM_ATTR_ADDR,
 	COMM_ATTR_ADDR_LIST,
 };
 
-enum {
+enum
+{
 	NODE_ATTR_NODEID = 0,
 	NODE_ATTR_WEIGHT,
 };
 
-struct dlm_clusters {
+struct dlm_clusters
+{
 	struct configfs_subsystem subsys;
 };
 
-struct dlm_spaces {
+struct dlm_spaces
+{
 	struct config_group ss_group;
 };
 
-struct dlm_space {
+struct dlm_space
+{
 	struct config_group group;
 	struct list_head members;
 	struct mutex members_lock;
 	int members_count;
 };
 
-struct dlm_comms {
+struct dlm_comms
+{
 	struct config_group cs_group;
 };
 
-struct dlm_comm {
+struct dlm_comm
+{
 	struct config_item item;
 	int seq;
 	int nodeid;
@@ -233,11 +251,13 @@ struct dlm_comm {
 	struct sockaddr_storage *addr[DLM_MAX_ADDR_COUNT];
 };
 
-struct dlm_nodes {
+struct dlm_nodes
+{
 	struct config_group ns_group;
 };
 
-struct dlm_node {
+struct dlm_node
+{
 	struct config_item item;
 	struct list_head list; /* space->members */
 	int nodeid;
@@ -246,80 +266,96 @@ struct dlm_node {
 	int comm_seq; /* copy of cm->seq when nd->nodeid is set */
 };
 
-static struct configfs_group_operations clusters_ops = {
+static struct configfs_group_operations clusters_ops =
+{
 	.make_group = make_cluster,
 	.drop_item = drop_cluster,
 };
 
-static struct configfs_item_operations cluster_ops = {
+static struct configfs_item_operations cluster_ops =
+{
 	.release = release_cluster,
 };
 
-static struct configfs_group_operations spaces_ops = {
+static struct configfs_group_operations spaces_ops =
+{
 	.make_group = make_space,
 	.drop_item = drop_space,
 };
 
-static struct configfs_item_operations space_ops = {
+static struct configfs_item_operations space_ops =
+{
 	.release = release_space,
 };
 
-static struct configfs_group_operations comms_ops = {
+static struct configfs_group_operations comms_ops =
+{
 	.make_item = make_comm,
 	.drop_item = drop_comm,
 };
 
-static struct configfs_item_operations comm_ops = {
+static struct configfs_item_operations comm_ops =
+{
 	.release = release_comm,
 };
 
-static struct configfs_group_operations nodes_ops = {
+static struct configfs_group_operations nodes_ops =
+{
 	.make_item = make_node,
 	.drop_item = drop_node,
 };
 
-static struct configfs_item_operations node_ops = {
+static struct configfs_item_operations node_ops =
+{
 	.release = release_node,
 };
 
-static struct config_item_type clusters_type = {
+static struct config_item_type clusters_type =
+{
 	.ct_group_ops = &clusters_ops,
 	.ct_owner = THIS_MODULE,
 };
 
-static struct config_item_type cluster_type = {
+static struct config_item_type cluster_type =
+{
 	.ct_item_ops = &cluster_ops,
 	.ct_attrs = cluster_attrs,
 	.ct_owner = THIS_MODULE,
 };
 
-static struct config_item_type spaces_type = {
+static struct config_item_type spaces_type =
+{
 	.ct_group_ops = &spaces_ops,
 	.ct_owner = THIS_MODULE,
 };
 
-static struct config_item_type space_type = {
+static struct config_item_type space_type =
+{
 	.ct_item_ops = &space_ops,
 	.ct_owner = THIS_MODULE,
 };
 
-static struct config_item_type comms_type = {
+static struct config_item_type comms_type =
+{
 	.ct_group_ops = &comms_ops,
 	.ct_owner = THIS_MODULE,
 };
 
-static struct config_item_type comm_type = {
+static struct config_item_type comm_type =
+{
 	.ct_item_ops = &comm_ops,
 	.ct_attrs = comm_attrs,
 	.ct_owner = THIS_MODULE,
 };
 
-static struct config_item_type nodes_type = {
+static struct config_item_type nodes_type =
+{
 	.ct_group_ops = &nodes_ops,
 	.ct_owner = THIS_MODULE,
 };
 
-static struct config_item_type node_type = {
+static struct config_item_type node_type =
+{
 	.ct_item_ops = &node_ops,
 	.ct_attrs = node_attrs,
 	.ct_owner = THIS_MODULE,
@@ -342,7 +378,7 @@ static struct dlm_node *config_item_to_node(struct config_item *i)
 }
 
 static struct config_group *make_cluster(struct config_group *g,
-					 const char *name)
+		const char *name)
 {
 	struct dlm_cluster *cl = NULL;
 	struct dlm_spaces *sps = NULL;
@@ -353,7 +389,9 @@ static struct config_group *make_cluster(struct config_group *g,
 	cms = kzalloc(sizeof(struct dlm_comms), GFP_NOFS);
 
 	if (!cl || !sps || !cms)
+	{
 		goto fail;
+	}
 
 	config_group_init_type_name(&cl->group, name, &cluster_type);
 	config_group_init_type_name(&sps->ss_group, "spaces", &spaces_type);
@@ -376,13 +414,13 @@ static struct config_group *make_cluster(struct config_group *g,
 	cl->cl_new_rsb_count = dlm_config.ci_new_rsb_count;
 	cl->cl_recover_callbacks = dlm_config.ci_recover_callbacks;
 	memcpy(cl->cl_cluster_name, dlm_config.ci_cluster_name,
-	       DLM_LOCKSPACE_LEN);
+		   DLM_LOCKSPACE_LEN);
 
 	space_list = &sps->ss_group;
 	comm_list = &cms->cs_group;
 	return &cl->group;
 
- fail:
+fail:
 	kfree(cl);
 	kfree(sps);
 	kfree(cms);
@@ -416,7 +454,9 @@ static struct config_group *make_space(struct config_group *g, const char *name)
 	nds = kzalloc(sizeof(struct dlm_nodes), GFP_NOFS);
 
 	if (!sp || !nds)
+	{
 		goto fail;
+	}
 
 	config_group_init_type_name(&sp->group, name, &space_type);
 
@@ -428,7 +468,7 @@ static struct config_group *make_space(struct config_group *g, const char *name)
 	sp->members_count = 0;
 	return &sp->group;
 
- fail:
+fail:
 	kfree(sp);
 	kfree(nds);
 	return ERR_PTR(-ENOMEM);
@@ -455,14 +495,20 @@ static struct config_item *make_comm(struct config_group *g, const char *name)
 	struct dlm_comm *cm;
 
 	cm = kzalloc(sizeof(struct dlm_comm), GFP_NOFS);
+
 	if (!cm)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	config_item_init_type_name(&cm->item, name, &comm_type);
 
 	cm->seq = dlm_comm_count++;
+
 	if (!cm->seq)
+	{
 		cm->seq = dlm_comm_count++;
+	}
 
 	cm->nodeid = -1;
 	cm->local = 0;
@@ -473,11 +519,19 @@ static struct config_item *make_comm(struct config_group *g, const char *name)
 static void drop_comm(struct config_group *g, struct config_item *i)
 {
 	struct dlm_comm *cm = config_item_to_comm(i);
+
 	if (local_comm == cm)
+	{
 		local_comm = NULL;
+	}
+
 	dlm_lowcomms_close(cm->nodeid);
+
 	while (cm->addr_count--)
+	{
 		kfree(cm->addr[cm->addr_count]);
+	}
+
 	config_item_put(i);
 }
 
@@ -493,8 +547,11 @@ static struct config_item *make_node(struct config_group *g, const char *name)
 	struct dlm_node *nd;
 
 	nd = kzalloc(sizeof(struct dlm_node), GFP_NOFS);
+
 	if (!nd)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	config_item_init_type_name(&nd->item, name, &node_type);
 	nd->nodeid = -1;
@@ -528,7 +585,8 @@ static void release_node(struct config_item *i)
 	kfree(nd);
 }
 
-static struct dlm_clusters clusters_root = {
+static struct dlm_clusters clusters_root =
+{
 	.subsys = {
 		.su_group = {
 			.cg_item = {
@@ -561,12 +619,15 @@ static ssize_t comm_nodeid_show(struct config_item *item, char *buf)
 }
 
 static ssize_t comm_nodeid_store(struct config_item *item, const char *buf,
-				 size_t len)
+								 size_t len)
 {
 	int rc = kstrtoint(buf, 0, &config_item_to_comm(item)->nodeid);
 
 	if (rc)
+	{
 		return rc;
+	}
+
 	return len;
 }
 
@@ -576,39 +637,54 @@ static ssize_t comm_local_show(struct config_item *item, char *buf)
 }
 
 static ssize_t comm_local_store(struct config_item *item, const char *buf,
-				size_t len)
+								size_t len)
 {
 	struct dlm_comm *cm = config_item_to_comm(item);
 	int rc = kstrtoint(buf, 0, &cm->local);
 
 	if (rc)
+	{
 		return rc;
+	}
+
 	if (cm->local && !local_comm)
+	{
 		local_comm = cm;
+	}
+
 	return len;
 }
 
 static ssize_t comm_addr_store(struct config_item *item, const char *buf,
-		size_t len)
+							   size_t len)
 {
 	struct dlm_comm *cm = config_item_to_comm(item);
 	struct sockaddr_storage *addr;
 	int rv;
 
 	if (len != sizeof(struct sockaddr_storage))
+	{
 		return -EINVAL;
+	}
 
 	if (cm->addr_count >= DLM_MAX_ADDR_COUNT)
+	{
 		return -ENOSPC;
+	}
 
 	addr = kzalloc(sizeof(*addr), GFP_NOFS);
+
 	if (!addr)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(addr, buf, len);
 
 	rv = dlm_lowcomms_addr(cm->nodeid, addr, len);
-	if (rv) {
+
+	if (rv)
+	{
 		kfree(addr);
 		return rv;
 	}
@@ -626,39 +702,49 @@ static ssize_t comm_addr_list_show(struct config_item *item, char *buf)
 	struct sockaddr_storage *addr;
 	struct sockaddr_in *addr_in;
 	struct sockaddr_in6 *addr_in6;
-	
+
 	/* Taken from ip6_addr_string() defined in lib/vsprintf.c */
 	char buf0[sizeof("AF_INET6	xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255\n")];
-	
+
 
 	/* Derived from SIMPLE_ATTR_SIZE of fs/configfs/file.c */
 	allowance = 4096;
 	buf[0] = '\0';
 
-	for (i = 0; i < cm->addr_count; i++) {
+	for (i = 0; i < cm->addr_count; i++)
+	{
 		addr = cm->addr[i];
 
-		switch(addr->ss_family) {
-		case AF_INET:
-			addr_in = (struct sockaddr_in *)addr;
-			s = sprintf(buf0, "AF_INET	%pI4\n", &addr_in->sin_addr.s_addr);
-			break;
-		case AF_INET6:
-			addr_in6 = (struct sockaddr_in6 *)addr;
-			s = sprintf(buf0, "AF_INET6	%pI6\n", &addr_in6->sin6_addr);
-			break;
-		default:
-			s = sprintf(buf0, "%s\n", "<UNKNOWN>");
-			break;
+		switch (addr->ss_family)
+		{
+			case AF_INET:
+				addr_in = (struct sockaddr_in *)addr;
+				s = sprintf(buf0, "AF_INET	%pI4\n", &addr_in->sin_addr.s_addr);
+				break;
+
+			case AF_INET6:
+				addr_in6 = (struct sockaddr_in6 *)addr;
+				s = sprintf(buf0, "AF_INET6	%pI6\n", &addr_in6->sin6_addr);
+				break;
+
+			default:
+				s = sprintf(buf0, "%s\n", "<UNKNOWN>");
+				break;
 		}
+
 		allowance -= s;
+
 		if (allowance >= 0)
+		{
 			strcat(buf, buf0);
-		else {
+		}
+		else
+		{
 			allowance += s;
 			break;
 		}
 	}
+
 	return 4096 - allowance;
 }
 
@@ -667,7 +753,8 @@ CONFIGFS_ATTR(comm_, local);
 CONFIGFS_ATTR_WO(comm_, addr);
 CONFIGFS_ATTR_RO(comm_, addr_list);
 
-static struct configfs_attribute *comm_attrs[] = {
+static struct configfs_attribute *comm_attrs[] =
+{
 	[COMM_ATTR_NODEID] = &comm_attr_nodeid,
 	[COMM_ATTR_LOCAL] = &comm_attr_local,
 	[COMM_ATTR_ADDR] = &comm_attr_addr,
@@ -681,14 +768,17 @@ static ssize_t node_nodeid_show(struct config_item *item, char *buf)
 }
 
 static ssize_t node_nodeid_store(struct config_item *item, const char *buf,
-				 size_t len)
+								 size_t len)
 {
 	struct dlm_node *nd = config_item_to_node(item);
 	uint32_t seq = 0;
 	int rc = kstrtoint(buf, 0, &nd->nodeid);
 
 	if (rc)
+	{
 		return rc;
+	}
+
 	dlm_comm_seq(nd->nodeid, &seq);
 	nd->comm_seq = seq;
 	return len;
@@ -700,19 +790,23 @@ static ssize_t node_weight_show(struct config_item *item, char *buf)
 }
 
 static ssize_t node_weight_store(struct config_item *item, const char *buf,
-				 size_t len)
+								 size_t len)
 {
 	int rc = kstrtoint(buf, 0, &config_item_to_node(item)->weight);
 
 	if (rc)
+	{
 		return rc;
+	}
+
 	return len;
 }
 
 CONFIGFS_ATTR(node_, nodeid);
 CONFIGFS_ATTR(node_, weight);
 
-static struct configfs_attribute *node_attrs[] = {
+static struct configfs_attribute *node_attrs[] =
+{
 	[NODE_ATTR_NODEID] = &node_attr_nodeid,
 	[NODE_ATTR_WEIGHT] = &node_attr_weight,
 	NULL,
@@ -727,7 +821,9 @@ static struct dlm_space *get_space(char *name)
 	struct config_item *i;
 
 	if (!space_list)
+	{
 		return NULL;
+	}
 
 	mutex_lock(&space_list->cg_subsys->su_mutex);
 	i = config_group_find_item(space_list, name);
@@ -748,15 +844,21 @@ static struct dlm_comm *get_comm(int nodeid)
 	int found = 0;
 
 	if (!comm_list)
+	{
 		return NULL;
+	}
 
 	mutex_lock(&clusters_root.subsys.su_mutex);
 
-	list_for_each_entry(i, &comm_list->cg_children, ci_entry) {
+	list_for_each_entry(i, &comm_list->cg_children, ci_entry)
+	{
 		cm = config_item_to_comm(i);
 
 		if (cm->nodeid != nodeid)
+		{
 			continue;
+		}
+
 		found = 1;
 		config_item_get(i);
 		break;
@@ -764,7 +866,10 @@ static struct dlm_comm *get_comm(int nodeid)
 	mutex_unlock(&clusters_root.subsys.su_mutex);
 
 	if (!found)
+	{
 		cm = NULL;
+	}
+
 	return cm;
 }
 
@@ -775,7 +880,7 @@ static void put_comm(struct dlm_comm *cm)
 
 /* caller must free mem */
 int dlm_config_nodes(char *lsname, struct dlm_config_node **nodes_out,
-		     int *count_out)
+					 int *count_out)
 {
 	struct dlm_space *sp;
 	struct dlm_node *nd;
@@ -783,11 +888,16 @@ int dlm_config_nodes(char *lsname, struct dlm_config_node **nodes_out,
 	int rv, count;
 
 	sp = get_space(lsname);
+
 	if (!sp)
+	{
 		return -EEXIST;
+	}
 
 	mutex_lock(&sp->members_lock);
-	if (!sp->members_count) {
+
+	if (!sp->members_count)
+	{
 		rv = -EINVAL;
 		printk(KERN_ERR "dlm: zero members_count\n");
 		goto out;
@@ -796,13 +906,16 @@ int dlm_config_nodes(char *lsname, struct dlm_config_node **nodes_out,
 	count = sp->members_count;
 
 	nodes = kcalloc(count, sizeof(struct dlm_config_node), GFP_NOFS);
-	if (!nodes) {
+
+	if (!nodes)
+	{
 		rv = -ENOMEM;
 		goto out;
 	}
 
 	node = nodes;
-	list_for_each_entry(nd, &sp->members, list) {
+	list_for_each_entry(nd, &sp->members, list)
+	{
 		node->nodeid = nd->nodeid;
 		node->weight = nd->weight;
 		node->new = nd->new;
@@ -815,7 +928,7 @@ int dlm_config_nodes(char *lsname, struct dlm_config_node **nodes_out,
 	*count_out = count;
 	*nodes_out = nodes;
 	rv = 0;
- out:
+out:
 	mutex_unlock(&sp->members_lock);
 	put_space(sp);
 	return rv;
@@ -824,8 +937,12 @@ int dlm_config_nodes(char *lsname, struct dlm_config_node **nodes_out,
 int dlm_comm_seq(int nodeid, uint32_t *seq)
 {
 	struct dlm_comm *cm = get_comm(nodeid);
+
 	if (!cm)
+	{
 		return -EEXIST;
+	}
+
 	*seq = cm->seq;
 	put_comm(cm);
 	return 0;
@@ -840,9 +957,15 @@ int dlm_our_nodeid(void)
 int dlm_our_addr(struct sockaddr_storage *addr, int num)
 {
 	if (!local_comm)
+	{
 		return -1;
+	}
+
 	if (num + 1 > local_comm->addr_count)
+	{
 		return -1;
+	}
+
 	memcpy(addr, local_comm->addr[num], sizeof(*addr));
 	return 0;
 }
@@ -863,7 +986,8 @@ int dlm_our_addr(struct sockaddr_storage *addr, int num)
 #define DEFAULT_RECOVER_CALLBACKS  0
 #define DEFAULT_CLUSTER_NAME      ""
 
-struct dlm_config_info dlm_config = {
+struct dlm_config_info dlm_config =
+{
 	.ci_tcp_port = DEFAULT_TCP_PORT,
 	.ci_buffer_size = DEFAULT_BUFFER_SIZE,
 	.ci_rsbtbl_size = DEFAULT_RSBTBL_SIZE,

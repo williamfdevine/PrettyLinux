@@ -19,7 +19,8 @@
 #define WM8994_NUM_GPIO 11
 #define WM8994_NUM_AIF   3
 
-struct wm8994_ldo_pdata {
+struct wm8994_ldo_pdata
+{
 	/** GPIOs to enable regulator, 0 or less if not available */
 	int enable;
 
@@ -47,9 +48,10 @@ struct wm8994_ldo_pdata {
  * panel provided by the WISCE - see  http://www.wolfsonmicro.com/wisce/
  * for details.
  */
-struct wm8994_drc_cfg {
-        const char *name;
-        u16 regs[WM8994_DRC_REGS];
+struct wm8994_drc_cfg
+{
+	const char *name;
+	u16 regs[WM8994_DRC_REGS];
 };
 
 /**
@@ -59,10 +61,11 @@ struct wm8994_drc_cfg {
  * Configurations are expected to be generated using the ReTune Mobile
  * control panel in WISCE - see http://www.wolfsonmicro.com/wisce/
  */
-struct wm8994_retune_mobile_cfg {
-        const char *name;
-        unsigned int rate;
-        u16 regs[WM8994_EQ_REGS];
+struct wm8994_retune_mobile_cfg
+{
+	const char *name;
+	unsigned int rate;
+	u16 regs[WM8994_EQ_REGS];
 };
 
 /**
@@ -71,7 +74,8 @@ struct wm8994_retune_mobile_cfg {
  * generated using the multiband compressor configuration panel in
  * WISCE - see http://www.wolfsonmicro.com/wisce/
  */
-struct wm8958_mbc_cfg {
+struct wm8958_mbc_cfg
+{
 	const char *name;
 	u16 cutoff_regs[WM8958_MBC_CUTOFF_REGS];
 	u16 coeff_regs[WM8958_MBC_COEFF_REGS];
@@ -86,7 +90,8 @@ struct wm8958_mbc_cfg {
  * multiband compressor configuration panel in WISCE - see
  * http://www.wolfsonmicro.com/wisce/
  */
-struct wm8958_vss_hpf_cfg {
+struct wm8958_vss_hpf_cfg
+{
 	const char *name;
 	u16 regs[WM8958_VSS_HPF_REGS];
 };
@@ -97,7 +102,8 @@ struct wm8958_vss_hpf_cfg {
  * multiband compressor configuration panel in WISCE - see
  * http://www.wolfsonmicro.com/wisce/
  */
-struct wm8958_vss_cfg {
+struct wm8958_vss_cfg
+{
 	const char *name;
 	u16 regs[WM8958_VSS_REGS];
 };
@@ -108,7 +114,8 @@ struct wm8958_vss_cfg {
  * the multiband compressor configuration panel in WISCE - see
  * http://www.wolfsonmicro.com/wisce/
  */
-struct wm8958_enh_eq_cfg {
+struct wm8958_enh_eq_cfg
+{
 	const char *name;
 	u16 regs[WM8958_ENH_EQ_REGS];
 };
@@ -123,14 +130,16 @@ struct wm8958_enh_eq_cfg {
  * @start: Value for MICD_BIAS_START_TIME register field (not shifted).
  * @rate: Value for MICD_RATE register field (not shifted).
  */
-struct wm8958_micd_rate {
+struct wm8958_micd_rate
+{
 	int sysclk;
 	bool idle;
 	int start;
 	int rate;
 };
 
-struct wm8994_pdata {
+struct wm8994_pdata
+{
 	int gpio_base;
 
 	/**
@@ -144,11 +153,11 @@ struct wm8994_pdata {
 	int irq_base;  /** Base IRQ number for WM8994, required for IRQs */
 	unsigned long irq_flags; /** user irq flags */
 
-        int num_drc_cfgs;
-        struct wm8994_drc_cfg *drc_cfgs;
+	int num_drc_cfgs;
+	struct wm8994_drc_cfg *drc_cfgs;
 
-        int num_retune_mobile_cfgs;
-        struct wm8994_retune_mobile_cfg *retune_mobile_cfgs;
+	int num_retune_mobile_cfgs;
+	struct wm8994_retune_mobile_cfg *retune_mobile_cfgs;
 
 	int num_mbc_cfgs;
 	struct wm8958_mbc_cfg *mbc_cfgs;
@@ -169,13 +178,13 @@ struct wm8994_pdata {
 	int micb1_delay;
 	int micb2_delay;
 
-        /* LINEOUT can be differential or single ended */
-        unsigned int lineout1_diff:1;
-        unsigned int lineout2_diff:1;
+	/* LINEOUT can be differential or single ended */
+	unsigned int lineout1_diff: 1;
+	unsigned int lineout2_diff: 1;
 
-        /* Common mode feedback */
-        unsigned int lineout1fb:1;
-        unsigned int lineout2fb:1;
+	/* Common mode feedback */
+	unsigned int lineout1fb: 1;
+	unsigned int lineout2fb: 1;
 
 	/* Delay between detecting a jack and starting microphone
 	 * detect (specified in ms)
@@ -192,16 +201,16 @@ struct wm8994_pdata {
 	 */
 	int micdet_irq;
 
-        /* WM8994 microphone biases: 0=0.9*AVDD1 1=0.65*AVVD1 */
-        unsigned int micbias1_lvl:1;
-        unsigned int micbias2_lvl:1;
+	/* WM8994 microphone biases: 0=0.9*AVDD1 1=0.65*AVVD1 */
+	unsigned int micbias1_lvl: 1;
+	unsigned int micbias2_lvl: 1;
 
-        /* WM8994 jack detect threashold levels, see datasheet for values */
-        unsigned int jd_scthr:2;
-        unsigned int jd_thr:2;
+	/* WM8994 jack detect threashold levels, see datasheet for values */
+	unsigned int jd_scthr: 2;
+	unsigned int jd_thr: 2;
 
 	/* Configure WM1811 jack detection for use with external capacitor */
-	unsigned int jd_ext_cap:1;
+	unsigned int jd_ext_cap: 1;
 
 	/* WM8958 microphone bias configuration */
 	int micbias[2];

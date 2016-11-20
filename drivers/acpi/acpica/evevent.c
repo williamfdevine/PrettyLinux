@@ -73,7 +73,8 @@ acpi_status acpi_ev_initialize_events(void)
 
 	/* If Hardware Reduced flag is set, there are no fixed events */
 
-	if (acpi_gbl_reduced_hardware) {
+	if (acpi_gbl_reduced_hardware)
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
@@ -83,16 +84,20 @@ acpi_status acpi_ev_initialize_events(void)
 	 * are installed.
 	 */
 	status = acpi_ev_fixed_event_initialize();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status,
-				"Unable to initialize fixed events"));
+						"Unable to initialize fixed events"));
 		return_ACPI_STATUS(status);
 	}
 
 	status = acpi_ev_gpe_initialize();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status,
-				"Unable to initialize general purpose events"));
+						"Unable to initialize general purpose events"));
 		return_ACPI_STATUS(status);
 	}
 
@@ -119,25 +124,30 @@ acpi_status acpi_ev_install_xrupt_handlers(void)
 
 	/* If Hardware Reduced flag is set, there is no ACPI h/w */
 
-	if (acpi_gbl_reduced_hardware) {
+	if (acpi_gbl_reduced_hardware)
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
 	/* Install the SCI handler */
 
 	status = acpi_ev_install_sci_handler();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status,
-				"Unable to install System Control Interrupt handler"));
+						"Unable to install System Control Interrupt handler"));
 		return_ACPI_STATUS(status);
 	}
 
 	/* Install the handler for the Global Lock */
 
 	status = acpi_ev_init_global_lock_handler();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status,
-				"Unable to initialize Global Lock handler"));
+						"Unable to initialize Global Lock handler"));
 		return_ACPI_STATUS(status);
 	}
 
@@ -166,18 +176,22 @@ static acpi_status acpi_ev_fixed_event_initialize(void)
 	 * Initialize the structure that keeps track of fixed event handlers and
 	 * enable the fixed events.
 	 */
-	for (i = 0; i < ACPI_NUM_FIXED_EVENTS; i++) {
+	for (i = 0; i < ACPI_NUM_FIXED_EVENTS; i++)
+	{
 		acpi_gbl_fixed_event_handlers[i].handler = NULL;
 		acpi_gbl_fixed_event_handlers[i].context = NULL;
 
 		/* Disable the fixed event */
 
-		if (acpi_gbl_fixed_event_info[i].enable_register_id != 0xFF) {
+		if (acpi_gbl_fixed_event_info[i].enable_register_id != 0xFF)
+		{
 			status =
-			    acpi_write_bit_register(acpi_gbl_fixed_event_info
-						    [i].enable_register_id,
-						    ACPI_DISABLE_EVENT);
-			if (ACPI_FAILURE(status)) {
+				acpi_write_bit_register(acpi_gbl_fixed_event_info
+										[i].enable_register_id,
+										ACPI_DISABLE_EVENT);
+
+			if (ACPI_FAILURE(status))
+			{
 				return (status);
 			}
 		}
@@ -215,29 +229,33 @@ u32 acpi_ev_fixed_event_detect(void)
 	(void)acpi_hw_register_read(ACPI_REGISTER_PM1_ENABLE, &fixed_enable);
 
 	ACPI_DEBUG_PRINT((ACPI_DB_INTERRUPTS,
-			  "Fixed Event Block: Enable %08X Status %08X\n",
-			  fixed_enable, fixed_status));
+					  "Fixed Event Block: Enable %08X Status %08X\n",
+					  fixed_enable, fixed_status));
 
 	/*
 	 * Check for all possible Fixed Events and dispatch those that are active
 	 */
-	for (i = 0; i < ACPI_NUM_FIXED_EVENTS; i++) {
+	for (i = 0; i < ACPI_NUM_FIXED_EVENTS; i++)
+	{
 
 		/* Both the status and enable bits must be on for this event */
 
 		if ((fixed_status & acpi_gbl_fixed_event_info[i].
-		     status_bit_mask)
-		    && (fixed_enable & acpi_gbl_fixed_event_info[i].
-			enable_bit_mask)) {
+			 status_bit_mask)
+			&& (fixed_enable & acpi_gbl_fixed_event_info[i].
+				enable_bit_mask))
+		{
 			/*
 			 * Found an active (signalled) event. Invoke global event
 			 * handler if present.
 			 */
 			acpi_fixed_event_count[i]++;
-			if (acpi_gbl_global_event_handler) {
+
+			if (acpi_gbl_global_event_handler)
+			{
 				acpi_gbl_global_event_handler
-				    (ACPI_EVENT_TYPE_FIXED, NULL, i,
-				     acpi_gbl_global_event_handler_context);
+				(ACPI_EVENT_TYPE_FIXED, NULL, i,
+				 acpi_gbl_global_event_handler_context);
 			}
 
 			int_status |= acpi_ev_fixed_event_dispatch(i);
@@ -270,20 +288,21 @@ static u32 acpi_ev_fixed_event_dispatch(u32 event)
 	/* Clear the status bit */
 
 	(void)acpi_write_bit_register(acpi_gbl_fixed_event_info[event].
-				      status_register_id, ACPI_CLEAR_STATUS);
+								  status_register_id, ACPI_CLEAR_STATUS);
 
 	/*
 	 * Make sure that a handler exists. If not, report an error
 	 * and disable the event to prevent further interrupts.
 	 */
-	if (!acpi_gbl_fixed_event_handlers[event].handler) {
+	if (!acpi_gbl_fixed_event_handlers[event].handler)
+	{
 		(void)acpi_write_bit_register(acpi_gbl_fixed_event_info[event].
-					      enable_register_id,
-					      ACPI_DISABLE_EVENT);
+									  enable_register_id,
+									  ACPI_DISABLE_EVENT);
 
 		ACPI_ERROR((AE_INFO,
-			    "No installed handler for fixed event - %s (%u), disabling",
-			    acpi_ut_get_event_name(event), event));
+					"No installed handler for fixed event - %s (%u), disabling",
+					acpi_ut_get_event_name(event), event));
 
 		return (ACPI_INTERRUPT_NOT_HANDLED);
 	}
@@ -291,7 +310,7 @@ static u32 acpi_ev_fixed_event_dispatch(u32 event)
 	/* Invoke the Fixed Event handler */
 
 	return ((acpi_gbl_fixed_event_handlers[event].
-		 handler) (acpi_gbl_fixed_event_handlers[event].context));
+			 handler) (acpi_gbl_fixed_event_handlers[event].context));
 }
 
 #endif				/* !ACPI_REDUCED_HARDWARE */

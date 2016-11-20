@@ -62,7 +62,8 @@
 /*
  * PXA LCD controller private state.
  */
-struct pxa168fb_info {
+struct pxa168fb_info
+{
 	struct device		*dev;
 	struct clk		*clk;
 	struct fb_info		*info;
@@ -72,15 +73,16 @@ struct pxa168fb_info {
 	u32			pseudo_palette[16];
 
 	int			pix_fmt;
-	unsigned		is_blanked:1;
-	unsigned		panel_rbswap:1;
-	unsigned		active:1;
+	unsigned		is_blanked: 1;
+	unsigned		panel_rbswap: 1;
+	unsigned		active: 1;
 };
 
 /*
  * PXA fb machine information
  */
-struct pxa168fb_mach_info {
+struct pxa168fb_mach_info
+{
 	char	id[16];
 
 	int		num_modes;
@@ -94,30 +96,30 @@ struct pxa168fb_mach_info {
 	/*
 	 * I/O pin allocation.
 	 */
-	unsigned	io_pin_allocation_mode:4;
+	unsigned	io_pin_allocation_mode: 4;
 
 	/*
 	 * Dumb panel -- assignment of R/G/B component info to the 24
 	 * available external data lanes.
 	 */
-	unsigned	dumb_mode:4;
-	unsigned	panel_rgb_reverse_lanes:1;
+	unsigned	dumb_mode: 4;
+	unsigned	panel_rgb_reverse_lanes: 1;
 
 	/*
 	 * Dumb panel -- GPIO output data.
 	 */
-	unsigned	gpio_output_mask:8;
-	unsigned	gpio_output_data:8;
+	unsigned	gpio_output_mask: 8;
+	unsigned	gpio_output_data: 8;
 
 	/*
 	 * Dumb panel -- configurable output signal polarity.
 	 */
-	unsigned	invert_composite_blank:1;
-	unsigned	invert_pix_val_ena:1;
-	unsigned	invert_pixclock:1;
-	unsigned	panel_rbswap:1;
-	unsigned	active:1;
-	unsigned	enable_lcd:1;
+	unsigned	invert_composite_blank: 1;
+	unsigned	invert_pix_val_ena: 1;
+	unsigned	invert_pixclock: 1;
+	unsigned	panel_rbswap: 1;
+	unsigned	active: 1;
+	unsigned	enable_lcd: 1;
 };
 
 #endif /* __ASM_MACH_PXA168FB_H */

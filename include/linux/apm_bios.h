@@ -32,7 +32,8 @@
 /*
  * Data for APM that is persistent across module unload/load
  */
-struct apm_info {
+struct apm_info
+{
 	struct apm_bios_info	bios;
 	unsigned short		connection_version;
 	int			get_power_status_broken;
@@ -97,5 +98,5 @@ extern struct apm_info	apm_info;
  * This is the "All Devices" ID communicated to the BIOS
  */
 #define APM_DEVICE_BALL		((apm_info.connection_version > 0x0100) ? \
-				 APM_DEVICE_ALL : APM_DEVICE_OLD_ALL)
+							 APM_DEVICE_ALL : APM_DEVICE_OLD_ALL)
 #endif	/* LINUX_APM_H */

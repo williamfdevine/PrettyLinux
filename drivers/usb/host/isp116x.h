@@ -158,7 +158,8 @@
 #define	HCATLPORT	0x41
 
 /* Philips transfer descriptor */
-struct ptd {
+struct ptd
+{
 	u16 count;
 #define	PTD_COUNT_MSK	(0x3ff << 0)
 #define	PTD_TOGGLE_MSK	(1 << 10)
@@ -220,14 +221,15 @@ struct ptd {
 #define TD_UNEXPECTEDPID   0x07
 #define TD_DATAOVERRUN     0x08
 #define TD_DATAUNDERRUN    0x09
-    /* 0x0A, 0x0B reserved for hardware */
+/* 0x0A, 0x0B reserved for hardware */
 #define TD_BUFFEROVERRUN   0x0C
 #define TD_BUFFERUNDERRUN  0x0D
-    /* 0x0E, 0x0F reserved for HCD */
+/* 0x0E, 0x0F reserved for HCD */
 #define TD_NOTACCESSED     0x0F
 
 /* map PTD status codes (CC) to errno values */
-static const int cc_to_error[16] = {
+static const int cc_to_error[16] =
+{
 	/* No  Error  */ 0,
 	/* CRC Error  */ -EILSEQ,
 	/* Bit Stuff  */ -EPROTO,
@@ -251,7 +253,8 @@ static const int cc_to_error[16] = {
 #define	LOG2_PERIODIC_SIZE	5	/* arbitrary; this matches OHCI */
 #define	PERIODIC_SIZE		(1 << LOG2_PERIODIC_SIZE)
 
-struct isp116x {
+struct isp116x
+{
 	spinlock_t lock;
 
 	void __iomem *addr_reg;
@@ -298,7 +301,8 @@ static inline struct usb_hcd *isp116x_to_hcd(struct isp116x *isp116x)
 	return container_of((void *)isp116x, struct usb_hcd, hcd_priv);
 }
 
-struct isp116x_ep {
+struct isp116x_ep
+{
 	struct usb_host_endpoint *hep;
 	struct usb_device *udev;
 	struct ptd ptd;
@@ -328,9 +332,9 @@ struct isp116x_ep {
 #define DBG(stuff...)		pr_debug("116x: " stuff)
 
 #ifdef VERBOSE
-#    define VDBG		DBG
+	#define VDBG		DBG
 #else
-#    define VDBG(stuff...)	do{}while(0)
+	#define VDBG(stuff...)	do{}while(0)
 #endif
 
 #define ERR(stuff...)		printk(KERN_ERR "116x: " stuff)
@@ -341,10 +345,10 @@ struct isp116x_ep {
 
 #if defined(USE_PLATFORM_DELAY)
 #if defined(USE_NDELAY)
-#error USE_PLATFORM_DELAY and USE_NDELAY simultaneously defined.
+	#error USE_PLATFORM_DELAY and USE_NDELAY simultaneously defined.
 #endif
 #define	isp116x_delay(h,d)	(h)->board->delay(	\
-				isp116x_to_hcd(h)->self.controller,d)
+		isp116x_to_hcd(h)->self.controller,d)
 #define isp116x_check_platform_delay(h)	((h)->board->delay == NULL)
 #elif defined(USE_NDELAY)
 #define	isp116x_delay(h,d)	ndelay(d)
@@ -425,72 +429,72 @@ static u32 isp116x_read_reg32(struct isp116x *isp116x, unsigned reg)
 }
 
 static void isp116x_write_reg16(struct isp116x *isp116x, unsigned reg,
-				unsigned val)
+								unsigned val)
 {
 	isp116x_write_addr(isp116x, reg | ISP116x_WRITE_OFFSET);
 	isp116x_write_data16(isp116x, (u16) (val & 0xffff));
 }
 
 static void isp116x_write_reg32(struct isp116x *isp116x, unsigned reg,
-				unsigned val)
+								unsigned val)
 {
 	isp116x_write_addr(isp116x, reg | ISP116x_WRITE_OFFSET);
 	isp116x_write_data32(isp116x, (u32) val);
 }
 
 #define isp116x_show_reg_log(d,r,s) {				\
-	if ((r) < 0x20) {			                \
-		DBG("%-12s[%02x]: %08x\n", #r,			\
-			r, isp116x_read_reg32(d, r));		\
-	} else {						\
-		DBG("%-12s[%02x]:     %04x\n", #r,		\
-			r, isp116x_read_reg16(d, r));	    	\
-	}							\
-}
+		if ((r) < 0x20) {			                \
+			DBG("%-12s[%02x]: %08x\n", #r,			\
+				r, isp116x_read_reg32(d, r));		\
+		} else {						\
+			DBG("%-12s[%02x]:     %04x\n", #r,		\
+				r, isp116x_read_reg16(d, r));	    	\
+		}							\
+	}
 #define isp116x_show_reg_seq(d,r,s) {				\
-	if ((r) < 0x20) {					\
-		seq_printf(s, "%-12s[%02x]: %08x\n", #r,	\
-			r, isp116x_read_reg32(d, r));		\
-	} else {						\
-		seq_printf(s, "%-12s[%02x]:     %04x\n", #r,	\
-			r, isp116x_read_reg16(d, r));		\
-	}							\
-}
+		if ((r) < 0x20) {					\
+			seq_printf(s, "%-12s[%02x]: %08x\n", #r,	\
+					   r, isp116x_read_reg32(d, r));		\
+		} else {						\
+			seq_printf(s, "%-12s[%02x]:     %04x\n", #r,	\
+					   r, isp116x_read_reg16(d, r));		\
+		}							\
+	}
 
 #define isp116x_show_regs(d,type,s) {			\
-	isp116x_show_reg_##type(d, HCREVISION, s);	\
-	isp116x_show_reg_##type(d, HCCONTROL, s);	\
-	isp116x_show_reg_##type(d, HCCMDSTAT, s);	\
-	isp116x_show_reg_##type(d, HCINTSTAT, s);	\
-	isp116x_show_reg_##type(d, HCINTENB, s);	\
-	isp116x_show_reg_##type(d, HCFMINTVL, s);	\
-	isp116x_show_reg_##type(d, HCFMREM, s);		\
-	isp116x_show_reg_##type(d, HCFMNUM, s);		\
-	isp116x_show_reg_##type(d, HCLSTHRESH, s);	\
-	isp116x_show_reg_##type(d, HCRHDESCA, s);	\
-	isp116x_show_reg_##type(d, HCRHDESCB, s);	\
-	isp116x_show_reg_##type(d, HCRHSTATUS, s);	\
-	isp116x_show_reg_##type(d, HCRHPORT1, s);	\
-	isp116x_show_reg_##type(d, HCRHPORT2, s);	\
-	isp116x_show_reg_##type(d, HCHWCFG, s);		\
-	isp116x_show_reg_##type(d, HCDMACFG, s);	\
-	isp116x_show_reg_##type(d, HCXFERCTR, s);	\
-	isp116x_show_reg_##type(d, HCuPINT, s);		\
-	isp116x_show_reg_##type(d, HCuPINTENB, s);	\
-	isp116x_show_reg_##type(d, HCCHIPID, s);	\
-	isp116x_show_reg_##type(d, HCSCRATCH, s);	\
-	isp116x_show_reg_##type(d, HCITLBUFLEN, s);	\
-	isp116x_show_reg_##type(d, HCATLBUFLEN, s);	\
-	isp116x_show_reg_##type(d, HCBUFSTAT, s);	\
-	isp116x_show_reg_##type(d, HCRDITL0LEN, s);	\
-	isp116x_show_reg_##type(d, HCRDITL1LEN, s);	\
-}
+		isp116x_show_reg_##type(d, HCREVISION, s);	\
+		isp116x_show_reg_##type(d, HCCONTROL, s);	\
+		isp116x_show_reg_##type(d, HCCMDSTAT, s);	\
+		isp116x_show_reg_##type(d, HCINTSTAT, s);	\
+		isp116x_show_reg_##type(d, HCINTENB, s);	\
+		isp116x_show_reg_##type(d, HCFMINTVL, s);	\
+		isp116x_show_reg_##type(d, HCFMREM, s);		\
+		isp116x_show_reg_##type(d, HCFMNUM, s);		\
+		isp116x_show_reg_##type(d, HCLSTHRESH, s);	\
+		isp116x_show_reg_##type(d, HCRHDESCA, s);	\
+		isp116x_show_reg_##type(d, HCRHDESCB, s);	\
+		isp116x_show_reg_##type(d, HCRHSTATUS, s);	\
+		isp116x_show_reg_##type(d, HCRHPORT1, s);	\
+		isp116x_show_reg_##type(d, HCRHPORT2, s);	\
+		isp116x_show_reg_##type(d, HCHWCFG, s);		\
+		isp116x_show_reg_##type(d, HCDMACFG, s);	\
+		isp116x_show_reg_##type(d, HCXFERCTR, s);	\
+		isp116x_show_reg_##type(d, HCuPINT, s);		\
+		isp116x_show_reg_##type(d, HCuPINTENB, s);	\
+		isp116x_show_reg_##type(d, HCCHIPID, s);	\
+		isp116x_show_reg_##type(d, HCSCRATCH, s);	\
+		isp116x_show_reg_##type(d, HCITLBUFLEN, s);	\
+		isp116x_show_reg_##type(d, HCATLBUFLEN, s);	\
+		isp116x_show_reg_##type(d, HCBUFSTAT, s);	\
+		isp116x_show_reg_##type(d, HCRDITL0LEN, s);	\
+		isp116x_show_reg_##type(d, HCRDITL1LEN, s);	\
+	}
 
 /*
    Dump registers for debugfs.
 */
 static inline void isp116x_show_regs_seq(struct isp116x *isp116x,
-					  struct seq_file *s)
+		struct seq_file *s)
 {
 	isp116x_show_regs(isp116x, seq, s);
 }
@@ -506,29 +510,31 @@ static inline void isp116x_show_regs_log(struct isp116x *isp116x)
 #if defined(URB_TRACE)
 
 #define PIPETYPE(pipe)  ({ char *__s;			\
-	if (usb_pipecontrol(pipe))	__s = "ctrl";	\
-	else if (usb_pipeint(pipe))	__s = "int";	\
-	else if (usb_pipebulk(pipe))	__s = "bulk";	\
-	else				__s = "iso";	\
-	__s;})
+		if (usb_pipecontrol(pipe))	__s = "ctrl";	\
+		else if (usb_pipeint(pipe))	__s = "int";	\
+		else if (usb_pipebulk(pipe))	__s = "bulk";	\
+		else				__s = "iso";	\
+		__s;})
 #define PIPEDIR(pipe)   ({ usb_pipein(pipe) ? "in" : "out"; })
 #define URB_NOTSHORT(urb) ({ (urb)->transfer_flags & URB_SHORT_NOT_OK ? \
-	"short_not_ok" : ""; })
+		"short_not_ok" : ""; })
 
 /* print debug info about the URB */
 static void urb_dbg(struct urb *urb, char *msg)
 {
 	unsigned int pipe;
 
-	if (!urb) {
+	if (!urb)
+	{
 		DBG("%s: zero urb\n", msg);
 		return;
 	}
+
 	pipe = urb->pipe;
 	DBG("%s: FA %d ep%d%s %s: len %d/%d %s\n", msg,
-	    usb_pipedevice(pipe), usb_pipeendpoint(pipe),
-	    PIPEDIR(pipe), PIPETYPE(pipe),
-	    urb->transfer_buffer_length, urb->actual_length, URB_NOTSHORT(urb));
+		usb_pipedevice(pipe), usb_pipeendpoint(pipe),
+		PIPEDIR(pipe), PIPETYPE(pipe),
+		urb->transfer_buffer_length, urb->actual_length, URB_NOTSHORT(urb));
 }
 
 #else
@@ -540,11 +546,11 @@ static void urb_dbg(struct urb *urb, char *msg)
 #if defined(PTD_TRACE)
 
 #define PTD_DIR_STR(ptd)  ({char __c;		\
-	switch(PTD_GET_DIR(ptd)){		\
-	case 0:  __c = 's'; break;		\
-	case 1:  __c = 'o'; break;		\
-	default: __c = 'i'; break;		\
-	}; __c;})
+		switch(PTD_GET_DIR(ptd)){		\
+			case 0:  __c = 's'; break;		\
+			case 1:  __c = 'o'; break;		\
+			default: __c = 'i'; break;		\
+		}; __c;})
 
 /*
   Dump PTD info. The code documents the format
@@ -553,37 +559,50 @@ static void urb_dbg(struct urb *urb, char *msg)
 static inline void dump_ptd(struct ptd *ptd)
 {
 	printk(KERN_WARNING "td: %x %d%c%d %d,%d,%d  %x %x%x%x\n",
-	       PTD_GET_CC(ptd), PTD_GET_FA(ptd),
-	       PTD_DIR_STR(ptd), PTD_GET_EP(ptd),
-	       PTD_GET_COUNT(ptd), PTD_GET_LEN(ptd), PTD_GET_MPS(ptd),
-	       PTD_GET_TOGGLE(ptd), PTD_GET_ACTIVE(ptd),
-	       PTD_GET_SPD(ptd), PTD_GET_LAST(ptd));
+		   PTD_GET_CC(ptd), PTD_GET_FA(ptd),
+		   PTD_DIR_STR(ptd), PTD_GET_EP(ptd),
+		   PTD_GET_COUNT(ptd), PTD_GET_LEN(ptd), PTD_GET_MPS(ptd),
+		   PTD_GET_TOGGLE(ptd), PTD_GET_ACTIVE(ptd),
+		   PTD_GET_SPD(ptd), PTD_GET_LAST(ptd));
 }
 
-static inline void dump_ptd_out_data(struct ptd *ptd, u8 * buf)
+static inline void dump_ptd_out_data(struct ptd *ptd, u8 *buf)
 {
 	int k;
 
-	if (PTD_GET_DIR(ptd) != PTD_DIR_IN && PTD_GET_LEN(ptd)) {
+	if (PTD_GET_DIR(ptd) != PTD_DIR_IN && PTD_GET_LEN(ptd))
+	{
 		printk(KERN_WARNING "-> ");
+
 		for (k = 0; k < PTD_GET_LEN(ptd); ++k)
+		{
 			printk("%02x ", ((u8 *) buf)[k]);
+		}
+
 		printk("\n");
 	}
 }
 
-static inline void dump_ptd_in_data(struct ptd *ptd, u8 * buf)
+static inline void dump_ptd_in_data(struct ptd *ptd, u8 *buf)
 {
 	int k;
 
-	if (PTD_GET_DIR(ptd) == PTD_DIR_IN && PTD_GET_COUNT(ptd)) {
+	if (PTD_GET_DIR(ptd) == PTD_DIR_IN && PTD_GET_COUNT(ptd))
+	{
 		printk(KERN_WARNING "<- ");
+
 		for (k = 0; k < PTD_GET_COUNT(ptd); ++k)
+		{
 			printk("%02x ", ((u8 *) buf)[k]);
+		}
+
 		printk("\n");
 	}
+
 	if (PTD_GET_LAST(ptd))
+	{
 		printk(KERN_WARNING "-\n");
+	}
 }
 
 #else

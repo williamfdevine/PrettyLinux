@@ -35,12 +35,13 @@
 
 #define WHIRLPOOL_ROUNDS 10
 
-struct wp512_ctx {
+struct wp512_ctx
+{
 	u8  bitLength[WP512_LENGTHBYTES];
 	u8  buffer[WP512_BLOCK_SIZE];
 	int bufferBits;
 	int bufferPos;
-	u64 hash[WP512_DIGEST_SIZE/8];
+	u64 hash[WP512_DIGEST_SIZE / 8];
 };
 
 /*
@@ -50,7 +51,8 @@ struct wp512_ctx {
  * employed).
  */
 
-static const u64 C0[256] = {
+static const u64 C0[256] =
+{
 	0x18186018c07830d8ULL, 0x23238c2305af4626ULL, 0xc6c63fc67ef991b8ULL,
 	0xe8e887e8136fcdfbULL, 0x878726874ca113cbULL, 0xb8b8dab8a9626d11ULL,
 	0x0101040108050209ULL, 0x4f4f214f426e9e0dULL, 0x3636d836adee6c9bULL,
@@ -139,7 +141,8 @@ static const u64 C0[256] = {
 	0x8686228644a411c2ULL,
 };
 
-static const u64 C1[256] = {
+static const u64 C1[256] =
+{
 	0xd818186018c07830ULL, 0x2623238c2305af46ULL, 0xb8c6c63fc67ef991ULL,
 	0xfbe8e887e8136fcdULL, 0xcb878726874ca113ULL, 0x11b8b8dab8a9626dULL,
 	0x0901010401080502ULL, 0x0d4f4f214f426e9eULL, 0x9b3636d836adee6cULL,
@@ -228,7 +231,8 @@ static const u64 C1[256] = {
 	0xc28686228644a411ULL,
 };
 
-static const u64 C2[256] = {
+static const u64 C2[256] =
+{
 	0x30d818186018c078ULL, 0x462623238c2305afULL, 0x91b8c6c63fc67ef9ULL,
 	0xcdfbe8e887e8136fULL, 0x13cb878726874ca1ULL, 0x6d11b8b8dab8a962ULL,
 	0x0209010104010805ULL, 0x9e0d4f4f214f426eULL, 0x6c9b3636d836adeeULL,
@@ -317,7 +321,8 @@ static const u64 C2[256] = {
 	0x11c28686228644a4ULL,
 };
 
-static const u64 C3[256] = {
+static const u64 C3[256] =
+{
 	0x7830d818186018c0ULL, 0xaf462623238c2305ULL, 0xf991b8c6c63fc67eULL,
 	0x6fcdfbe8e887e813ULL, 0xa113cb878726874cULL, 0x626d11b8b8dab8a9ULL,
 	0x0502090101040108ULL, 0x6e9e0d4f4f214f42ULL, 0xee6c9b3636d836adULL,
@@ -406,7 +411,8 @@ static const u64 C3[256] = {
 	0xa411c28686228644ULL,
 };
 
-static const u64 C4[256] = {
+static const u64 C4[256] =
+{
 	0xc07830d818186018ULL, 0x05af462623238c23ULL, 0x7ef991b8c6c63fc6ULL,
 	0x136fcdfbe8e887e8ULL, 0x4ca113cb87872687ULL, 0xa9626d11b8b8dab8ULL,
 	0x0805020901010401ULL, 0x426e9e0d4f4f214fULL, 0xadee6c9b3636d836ULL,
@@ -495,7 +501,8 @@ static const u64 C4[256] = {
 	0x44a411c286862286ULL,
 };
 
-static const u64 C5[256] = {
+static const u64 C5[256] =
+{
 	0x18c07830d8181860ULL, 0x2305af462623238cULL, 0xc67ef991b8c6c63fULL,
 	0xe8136fcdfbe8e887ULL, 0x874ca113cb878726ULL, 0xb8a9626d11b8b8daULL,
 	0x0108050209010104ULL, 0x4f426e9e0d4f4f21ULL, 0x36adee6c9b3636d8ULL,
@@ -584,7 +591,8 @@ static const u64 C5[256] = {
 	0x8644a411c2868622ULL,
 };
 
-static const u64 C6[256] = {
+static const u64 C6[256] =
+{
 	0x6018c07830d81818ULL, 0x8c2305af46262323ULL, 0x3fc67ef991b8c6c6ULL,
 	0x87e8136fcdfbe8e8ULL, 0x26874ca113cb8787ULL, 0xdab8a9626d11b8b8ULL,
 	0x0401080502090101ULL, 0x214f426e9e0d4f4fULL, 0xd836adee6c9b3636ULL,
@@ -673,7 +681,8 @@ static const u64 C6[256] = {
 	0x228644a411c28686ULL,
 };
 
-static const u64 C7[256] = {
+static const u64 C7[256] =
+{
 	0x186018c07830d818ULL, 0x238c2305af462623ULL, 0xc63fc67ef991b8c6ULL,
 	0xe887e8136fcdfbe8ULL, 0x8726874ca113cb87ULL, 0xb8dab8a9626d11b8ULL,
 	0x0104010805020901ULL, 0x4f214f426e9e0d4fULL, 0x36d836adee6c9b36ULL,
@@ -762,7 +771,8 @@ static const u64 C7[256] = {
 	0x86228644a411c286ULL,
 };
 
-static const u64 rc[WHIRLPOOL_ROUNDS] = {
+static const u64 rc[WHIRLPOOL_ROUNDS] =
+{
 	0x1823c6e887b8014fULL,
 	0x36a6d2f5796f9152ULL,
 	0x60bc9b8ea30c7b35ULL,
@@ -779,7 +789,8 @@ static const u64 rc[WHIRLPOOL_ROUNDS] = {
  * The core Whirlpool transform.
  */
 
-static void wp512_process_buffer(struct wp512_ctx *wctx) {
+static void wp512_process_buffer(struct wp512_ctx *wctx)
+{
 	int i, r;
 	u64 K[8];        /* the round key */
 	u64 block[8];    /* mu(buffer) */
@@ -788,7 +799,9 @@ static void wp512_process_buffer(struct wp512_ctx *wctx) {
 	const __be64 *buffer = (const __be64 *)wctx->buffer;
 
 	for (i = 0; i < 8; i++)
+	{
 		block[i] = be64_to_cpu(buffer[i]);
+	}
 
 	state[0] = block[0] ^ (K[0] = wctx->hash[0]);
 	state[1] = block[1] ^ (K[1] = wctx->hash[1]);
@@ -799,7 +812,8 @@ static void wp512_process_buffer(struct wp512_ctx *wctx) {
 	state[6] = block[6] ^ (K[6] = wctx->hash[6]);
 	state[7] = block[7] ^ (K[7] = wctx->hash[7]);
 
-	for (r = 0; r < WHIRLPOOL_ROUNDS; r++) {
+	for (r = 0; r < WHIRLPOOL_ROUNDS; r++)
+	{
 
 		L[0] = C0[(int)(K[0] >> 56)       ] ^
 			   C1[(int)(K[7] >> 48) & 0xff] ^
@@ -972,6 +986,7 @@ static void wp512_process_buffer(struct wp512_ctx *wctx) {
 		state[6] = L[6];
 		state[7] = L[7];
 	}
+
 	/*
 	* apply the Miyaguchi-Preneel compression function:
 	*/
@@ -986,14 +1001,17 @@ static void wp512_process_buffer(struct wp512_ctx *wctx) {
 
 }
 
-static int wp512_init(struct shash_desc *desc) {
+static int wp512_init(struct shash_desc *desc)
+{
 	struct wp512_ctx *wctx = shash_desc_ctx(desc);
 	int i;
 
 	memset(wctx->bitLength, 0, 32);
 	wctx->bufferBits = wctx->bufferPos = 0;
 	wctx->buffer[0] = 0;
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		wctx->hash[i] = 0L;
 	}
 
@@ -1001,7 +1019,7 @@ static int wp512_init(struct shash_desc *desc) {
 }
 
 static int wp512_update(struct shash_desc *desc, const u8 *source,
-			 unsigned int len)
+						unsigned int len)
 {
 	struct wp512_ctx *wctx = shash_desc_ctx(desc);
 	int sourcePos    = 0;
@@ -1016,42 +1034,60 @@ static int wp512_update(struct shash_desc *desc, const u8 *source,
 	int bufferPos    = wctx->bufferPos;
 
 	u64 value = bits_len;
-	for (i = 31, carry = 0; i >= 0 && (carry != 0 || value != 0ULL); i--) {
+
+	for (i = 31, carry = 0; i >= 0 && (carry != 0 || value != 0ULL); i--)
+	{
 		carry += bitLength[i] + ((u32)value & 0xff);
 		bitLength[i] = (u8)carry;
 		carry >>= 8;
 		value >>= 8;
 	}
-	while (bits_len > 8) {
+
+	while (bits_len > 8)
+	{
 		b = ((source[sourcePos] << sourceGap) & 0xff) |
-		((source[sourcePos + 1] & 0xff) >> (8 - sourceGap));
+			((source[sourcePos + 1] & 0xff) >> (8 - sourceGap));
 		buffer[bufferPos++] |= (u8)(b >> bufferRem);
 		bufferBits += 8 - bufferRem;
-		if (bufferBits == WP512_BLOCK_SIZE * 8) {
+
+		if (bufferBits == WP512_BLOCK_SIZE * 8)
+		{
 			wp512_process_buffer(wctx);
 			bufferBits = bufferPos = 0;
 		}
+
 		buffer[bufferPos] = b << (8 - bufferRem);
 		bufferBits += bufferRem;
 		bits_len -= 8;
 		sourcePos++;
 	}
-	if (bits_len > 0) {
+
+	if (bits_len > 0)
+	{
 		b = (source[sourcePos] << sourceGap) & 0xff;
 		buffer[bufferPos] |= b >> bufferRem;
-	} else {
+	}
+	else
+	{
 		b = 0;
 	}
-	if (bufferRem + bits_len < 8) {
+
+	if (bufferRem + bits_len < 8)
+	{
 		bufferBits += bits_len;
-	} else {
+	}
+	else
+	{
 		bufferPos++;
 		bufferBits += 8 - bufferRem;
 		bits_len -= 8 - bufferRem;
-		if (bufferBits == WP512_BLOCK_SIZE * 8) {
+
+		if (bufferBits == WP512_BLOCK_SIZE * 8)
+		{
 			wp512_process_buffer(wctx);
 			bufferBits = bufferPos = 0;
 		}
+
 		buffer[bufferPos] = b << (8 - bufferRem);
 		bufferBits += (int)bits_len;
 	}
@@ -1066,33 +1102,44 @@ static int wp512_final(struct shash_desc *desc, u8 *out)
 {
 	struct wp512_ctx *wctx = shash_desc_ctx(desc);
 	int i;
-   	u8 *buffer      = wctx->buffer;
-   	u8 *bitLength   = wctx->bitLength;
-   	int bufferBits  = wctx->bufferBits;
-   	int bufferPos   = wctx->bufferPos;
+	u8 *buffer      = wctx->buffer;
+	u8 *bitLength   = wctx->bitLength;
+	int bufferBits  = wctx->bufferBits;
+	int bufferPos   = wctx->bufferPos;
 	__be64 *digest  = (__be64 *)out;
 
-   	buffer[bufferPos] |= 0x80U >> (bufferBits & 7);
-   	bufferPos++;
-   	if (bufferPos > WP512_BLOCK_SIZE - WP512_LENGTHBYTES) {
-   		if (bufferPos < WP512_BLOCK_SIZE) {
-	   	memset(&buffer[bufferPos], 0, WP512_BLOCK_SIZE - bufferPos);
-   		}
-   		wp512_process_buffer(wctx);
-   		bufferPos = 0;
-   	}
-   	if (bufferPos < WP512_BLOCK_SIZE - WP512_LENGTHBYTES) {
-   		memset(&buffer[bufferPos], 0,
-			  (WP512_BLOCK_SIZE - WP512_LENGTHBYTES) - bufferPos);
-   	}
-   	bufferPos = WP512_BLOCK_SIZE - WP512_LENGTHBYTES;
-   	memcpy(&buffer[WP512_BLOCK_SIZE - WP512_LENGTHBYTES],
+	buffer[bufferPos] |= 0x80U >> (bufferBits & 7);
+	bufferPos++;
+
+	if (bufferPos > WP512_BLOCK_SIZE - WP512_LENGTHBYTES)
+	{
+		if (bufferPos < WP512_BLOCK_SIZE)
+		{
+			memset(&buffer[bufferPos], 0, WP512_BLOCK_SIZE - bufferPos);
+		}
+
+		wp512_process_buffer(wctx);
+		bufferPos = 0;
+	}
+
+	if (bufferPos < WP512_BLOCK_SIZE - WP512_LENGTHBYTES)
+	{
+		memset(&buffer[bufferPos], 0,
+			   (WP512_BLOCK_SIZE - WP512_LENGTHBYTES) - bufferPos);
+	}
+
+	bufferPos = WP512_BLOCK_SIZE - WP512_LENGTHBYTES;
+	memcpy(&buffer[WP512_BLOCK_SIZE - WP512_LENGTHBYTES],
 		   bitLength, WP512_LENGTHBYTES);
-   	wp512_process_buffer(wctx);
-	for (i = 0; i < WP512_DIGEST_SIZE/8; i++)
+	wp512_process_buffer(wctx);
+
+	for (i = 0; i < WP512_DIGEST_SIZE / 8; i++)
+	{
 		digest[i] = cpu_to_be64(wctx->hash[i]);
-   	wctx->bufferBits   = bufferBits;
-   	wctx->bufferPos    = bufferPos;
+	}
+
+	wctx->bufferBits   = bufferBits;
+	wctx->bufferPos    = bufferPos;
 
 	return 0;
 }
@@ -1120,42 +1167,43 @@ static int wp256_final(struct shash_desc *desc, u8 *out)
 }
 
 static struct shash_alg wp_algs[3] = { {
-	.digestsize	=	WP512_DIGEST_SIZE,
-	.init		=	wp512_init,
-	.update		=	wp512_update,
-	.final		=	wp512_final,
-	.descsize	=	sizeof(struct wp512_ctx),
-	.base		=	{
-		.cra_name	=	"wp512",
-		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize	=	WP512_BLOCK_SIZE,
-		.cra_module	=	THIS_MODULE,
+		.digestsize	=	WP512_DIGEST_SIZE,
+		.init		=	wp512_init,
+		.update		=	wp512_update,
+		.final		=	wp512_final,
+		.descsize	=	sizeof(struct wp512_ctx),
+		.base		=	{
+			.cra_name	=	"wp512",
+			.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize	=	WP512_BLOCK_SIZE,
+			.cra_module	=	THIS_MODULE,
+		}
+	}, {
+		.digestsize	=	WP384_DIGEST_SIZE,
+		.init		=	wp512_init,
+		.update		=	wp512_update,
+		.final		=	wp384_final,
+		.descsize	=	sizeof(struct wp512_ctx),
+		.base		=	{
+			.cra_name	=	"wp384",
+			.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize	=	WP512_BLOCK_SIZE,
+			.cra_module	=	THIS_MODULE,
+		}
+	}, {
+		.digestsize	=	WP256_DIGEST_SIZE,
+		.init		=	wp512_init,
+		.update		=	wp512_update,
+		.final		=	wp256_final,
+		.descsize	=	sizeof(struct wp512_ctx),
+		.base		=	{
+			.cra_name	=	"wp256",
+			.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize	=	WP512_BLOCK_SIZE,
+			.cra_module	=	THIS_MODULE,
+		}
 	}
-}, {
-	.digestsize	=	WP384_DIGEST_SIZE,
-	.init		=	wp512_init,
-	.update		=	wp512_update,
-	.final		=	wp384_final,
-	.descsize	=	sizeof(struct wp512_ctx),
-	.base		=	{
-		.cra_name	=	"wp384",
-		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize	=	WP512_BLOCK_SIZE,
-		.cra_module	=	THIS_MODULE,
-	}
-}, {
-	.digestsize	=	WP256_DIGEST_SIZE,
-	.init		=	wp512_init,
-	.update		=	wp512_update,
-	.final		=	wp256_final,
-	.descsize	=	sizeof(struct wp512_ctx),
-	.base		=	{
-		.cra_name	=	"wp256",
-		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize	=	WP512_BLOCK_SIZE,
-		.cra_module	=	THIS_MODULE,
-	}
-} };
+};
 
 static int __init wp512_mod_init(void)
 {

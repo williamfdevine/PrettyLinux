@@ -26,13 +26,15 @@
 #define STEDMA40_DEV_DST_MEMORY (-1)
 #define	STEDMA40_DEV_SRC_MEMORY (-1)
 
-enum stedma40_mode {
+enum stedma40_mode
+{
 	STEDMA40_MODE_LOGICAL = 0,
 	STEDMA40_MODE_PHYSICAL,
 	STEDMA40_MODE_OPERATION,
 };
 
-enum stedma40_mode_opt {
+enum stedma40_mode_opt
+{
 	STEDMA40_PCHAN_BASIC_MODE = 0,
 	STEDMA40_LCHAN_SRC_LOG_DST_LOG = 0,
 	STEDMA40_PCHAN_MODULO_MODE,
@@ -65,7 +67,8 @@ enum stedma40_mode_opt {
 /* Maximum number of possible physical channels */
 #define STEDMA40_MAX_PHYS 32
 
-enum stedma40_flow_ctrl {
+enum stedma40_flow_ctrl
+{
 	STEDMA40_NO_FLOW_CTRL,
 	STEDMA40_FLOW_CTRL,
 };
@@ -78,7 +81,8 @@ enum stedma40_flow_ctrl {
  * @p_size: Burst size
  * @flow_ctrl: Flow control on/off.
  */
-struct stedma40_half_channel_info {
+struct stedma40_half_channel_info
+{
 	bool big_endian;
 	enum dma_slave_buswidth data_width;
 	int psize;
@@ -104,7 +108,8 @@ struct stedma40_half_channel_info {
  * It is recommended to do all dma configurations for clients in the machine.
  *
  */
-struct stedma40_chan_cfg {
+struct stedma40_chan_cfg
+{
 	enum dma_transfer_direction		 dir;
 	bool					 high_priority;
 	bool					 realtime;
@@ -137,7 +142,8 @@ struct stedma40_chan_cfg {
  * 0 means reading the number of channels from DMA HW but this is only valid
  * for 'multiple of 4' channels, like 8.
  */
-struct stedma40_platform_data {
+struct stedma40_platform_data
+{
 	int				 disabled_channels[STEDMA40_MAX_PHYS];
 	int				*soft_lli_chans;
 	int				 num_of_soft_lli_chans;
@@ -176,10 +182,10 @@ bool stedma40_filter(struct dma_chan *chan, void *data);
 
 static inline struct
 dma_async_tx_descriptor *stedma40_slave_mem(struct dma_chan *chan,
-					    dma_addr_t addr,
-					    unsigned int size,
-					    enum dma_transfer_direction direction,
-					    unsigned long flags)
+		dma_addr_t addr,
+		unsigned int size,
+		enum dma_transfer_direction direction,
+		unsigned long flags)
 {
 	struct scatterlist sg;
 	sg_init_table(&sg, 1);
@@ -197,10 +203,10 @@ static inline bool stedma40_filter(struct dma_chan *chan, void *data)
 
 static inline struct
 dma_async_tx_descriptor *stedma40_slave_mem(struct dma_chan *chan,
-					    dma_addr_t addr,
-					    unsigned int size,
-					    enum dma_transfer_direction direction,
-					    unsigned long flags)
+		dma_addr_t addr,
+		unsigned int size,
+		enum dma_transfer_direction direction,
+		unsigned long flags)
 {
 	return NULL;
 }

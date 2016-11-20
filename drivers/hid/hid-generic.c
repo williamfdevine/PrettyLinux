@@ -24,13 +24,15 @@
 
 #include <linux/hid.h>
 
-static const struct hid_device_id hid_table[] = {
+static const struct hid_device_id hid_table[] =
+{
 	{ HID_DEVICE(HID_BUS_ANY, HID_GROUP_GENERIC, HID_ANY_ID, HID_ANY_ID) },
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, hid_table);
 
-static struct hid_driver hid_generic = {
+static struct hid_driver hid_generic =
+{
 	.name = "hid-generic",
 	.id_table = hid_table,
 };

@@ -86,7 +86,8 @@
 #define TFP410_V_RES_LO		0x3C
 #define TFP410_V_RES_HI		0x3D
 
-struct tfp410_priv {
+struct tfp410_priv
+{
 	bool quiet;
 };
 
@@ -97,7 +98,8 @@ static bool tfp410_readb(struct intel_dvo_device *dvo, int addr, uint8_t *ch)
 	u8 out_buf[2];
 	u8 in_buf[2];
 
-	struct i2c_msg msgs[] = {
+	struct i2c_msg msgs[] =
+	{
 		{
 			.addr = dvo->slave_addr,
 			.flags = 0,
@@ -115,15 +117,18 @@ static bool tfp410_readb(struct intel_dvo_device *dvo, int addr, uint8_t *ch)
 	out_buf[0] = addr;
 	out_buf[1] = 0;
 
-	if (i2c_transfer(adapter, msgs, 2) == 2) {
+	if (i2c_transfer(adapter, msgs, 2) == 2)
+	{
 		*ch = in_buf[0];
 		return true;
 	}
 
-	if (!tfp->quiet) {
+	if (!tfp->quiet)
+	{
 		DRM_DEBUG_KMS("Unable to read register 0x%02x from %s:%02x.\n",
-			  addr, adapter->name, dvo->slave_addr);
+					  addr, adapter->name, dvo->slave_addr);
 	}
+
 	return false;
 }
 
@@ -132,7 +137,8 @@ static bool tfp410_writeb(struct intel_dvo_device *dvo, int addr, uint8_t ch)
 	struct tfp410_priv *tfp = dvo->dev_priv;
 	struct i2c_adapter *adapter = dvo->i2c_bus;
 	uint8_t out_buf[2];
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = dvo->slave_addr,
 		.flags = 0,
 		.len = 2,
@@ -143,11 +149,14 @@ static bool tfp410_writeb(struct intel_dvo_device *dvo, int addr, uint8_t ch)
 	out_buf[1] = ch;
 
 	if (i2c_transfer(adapter, &msg, 1) == 1)
+	{
 		return true;
+	}
 
-	if (!tfp->quiet) {
+	if (!tfp->quiet)
+	{
 		DRM_DEBUG_KMS("Unable to write register 0x%02x to %s:%d.\n",
-			  addr, adapter->name, dvo->slave_addr);
+					  addr, adapter->name, dvo->slave_addr);
 	}
 
 	return false;
@@ -157,42 +166,50 @@ static int tfp410_getid(struct intel_dvo_device *dvo, int addr)
 {
 	uint8_t ch1, ch2;
 
-	if (tfp410_readb(dvo, addr+0, &ch1) &&
-	    tfp410_readb(dvo, addr+1, &ch2))
+	if (tfp410_readb(dvo, addr + 0, &ch1) &&
+		tfp410_readb(dvo, addr + 1, &ch2))
+	{
 		return ((ch2 << 8) & 0xFF00) | (ch1 & 0x00FF);
+	}
 
 	return -1;
 }
 
 /* Ti TFP410 driver for chip on i2c bus */
 static bool tfp410_init(struct intel_dvo_device *dvo,
-			struct i2c_adapter *adapter)
+						struct i2c_adapter *adapter)
 {
 	/* this will detect the tfp410 chip on the specified i2c bus */
 	struct tfp410_priv *tfp;
 	int id;
 
 	tfp = kzalloc(sizeof(struct tfp410_priv), GFP_KERNEL);
+
 	if (tfp == NULL)
+	{
 		return false;
+	}
 
 	dvo->i2c_bus = adapter;
 	dvo->dev_priv = tfp;
 	tfp->quiet = true;
 
-	if ((id = tfp410_getid(dvo, TFP410_VID_LO)) != TFP410_VID) {
+	if ((id = tfp410_getid(dvo, TFP410_VID_LO)) != TFP410_VID)
+	{
 		DRM_DEBUG_KMS("tfp410 not detected got VID %X: from %s "
-				"Slave %d.\n",
-			  id, adapter->name, dvo->slave_addr);
+					  "Slave %d.\n",
+					  id, adapter->name, dvo->slave_addr);
 		goto out;
 	}
 
-	if ((id = tfp410_getid(dvo, TFP410_DID_LO)) != TFP410_DID) {
+	if ((id = tfp410_getid(dvo, TFP410_DID_LO)) != TFP410_DID)
+	{
 		DRM_DEBUG_KMS("tfp410 not detected got DID %X: from %s "
-				"Slave %d.\n",
-			  id, adapter->name, dvo->slave_addr);
+					  "Slave %d.\n",
+					  id, adapter->name, dvo->slave_addr);
 		goto out;
 	}
+
 	tfp->quiet = false;
 	return true;
 out:
@@ -205,25 +222,30 @@ static enum drm_connector_status tfp410_detect(struct intel_dvo_device *dvo)
 	enum drm_connector_status ret = connector_status_disconnected;
 	uint8_t ctl2;
 
-	if (tfp410_readb(dvo, TFP410_CTL_2, &ctl2)) {
+	if (tfp410_readb(dvo, TFP410_CTL_2, &ctl2))
+	{
 		if (ctl2 & TFP410_CTL_2_RSEN)
+		{
 			ret = connector_status_connected;
+		}
 		else
+		{
 			ret = connector_status_disconnected;
+		}
 	}
 
 	return ret;
 }
 
 static enum drm_mode_status tfp410_mode_valid(struct intel_dvo_device *dvo,
-					      struct drm_display_mode *mode)
+		struct drm_display_mode *mode)
 {
 	return MODE_OK;
 }
 
 static void tfp410_mode_set(struct intel_dvo_device *dvo,
-			    const struct drm_display_mode *mode,
-			    const struct drm_display_mode *adjusted_mode)
+							const struct drm_display_mode *mode,
+							const struct drm_display_mode *adjusted_mode)
 {
 	/* As long as the basics are set up, since we don't have clock dependencies
 	* in the mode setup, we can just leave the registers alone and everything
@@ -239,12 +261,18 @@ static void tfp410_dpms(struct intel_dvo_device *dvo, bool enable)
 	uint8_t ctl1;
 
 	if (!tfp410_readb(dvo, TFP410_CTL_1, &ctl1))
+	{
 		return;
+	}
 
 	if (enable)
+	{
 		ctl1 |= TFP410_CTL_1_PD;
+	}
 	else
+	{
 		ctl1 &= ~TFP410_CTL_1_PD;
+	}
 
 	tfp410_writeb(dvo, TFP410_CTL_1, ctl1);
 }
@@ -254,12 +282,18 @@ static bool tfp410_get_hw_state(struct intel_dvo_device *dvo)
 	uint8_t ctl1;
 
 	if (!tfp410_readb(dvo, TFP410_CTL_1, &ctl1))
+	{
 		return false;
+	}
 
 	if (ctl1 & TFP410_CTL_1_PD)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 static void tfp410_dump_regs(struct intel_dvo_device *dvo)
@@ -300,13 +334,15 @@ static void tfp410_destroy(struct intel_dvo_device *dvo)
 {
 	struct tfp410_priv *tfp = dvo->dev_priv;
 
-	if (tfp) {
+	if (tfp)
+	{
 		kfree(tfp);
 		dvo->dev_priv = NULL;
 	}
 }
 
-const struct intel_dvo_dev_ops tfp410_ops = {
+const struct intel_dvo_dev_ops tfp410_ops =
+{
 	.init = tfp410_init,
 	.detect = tfp410_detect,
 	.mode_valid = tfp410_mode_valid,

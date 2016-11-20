@@ -32,17 +32,32 @@ void jfs_set_inode_flags(struct inode *inode)
 	unsigned int new_fl = 0;
 
 	if (flags & JFS_IMMUTABLE_FL)
+	{
 		new_fl |= S_IMMUTABLE;
+	}
+
 	if (flags & JFS_APPEND_FL)
+	{
 		new_fl |= S_APPEND;
+	}
+
 	if (flags & JFS_NOATIME_FL)
+	{
 		new_fl |= S_NOATIME;
+	}
+
 	if (flags & JFS_DIRSYNC_FL)
+	{
 		new_fl |= S_DIRSYNC;
+	}
+
 	if (flags & JFS_SYNC_FL)
+	{
 		new_fl |= S_SYNC;
+	}
+
 	inode_set_flags(inode, new_fl, S_IMMUTABLE | S_APPEND | S_NOATIME |
-			S_DIRSYNC | S_SYNC);
+					S_DIRSYNC | S_SYNC);
 }
 
 void jfs_get_inode_flags(struct jfs_inode_info *jfs_ip)
@@ -50,17 +65,32 @@ void jfs_get_inode_flags(struct jfs_inode_info *jfs_ip)
 	unsigned int flags = jfs_ip->vfs_inode.i_flags;
 
 	jfs_ip->mode2 &= ~(JFS_IMMUTABLE_FL | JFS_APPEND_FL | JFS_NOATIME_FL |
-			   JFS_DIRSYNC_FL | JFS_SYNC_FL);
+					   JFS_DIRSYNC_FL | JFS_SYNC_FL);
+
 	if (flags & S_IMMUTABLE)
+	{
 		jfs_ip->mode2 |= JFS_IMMUTABLE_FL;
+	}
+
 	if (flags & S_APPEND)
+	{
 		jfs_ip->mode2 |= JFS_APPEND_FL;
+	}
+
 	if (flags & S_NOATIME)
+	{
 		jfs_ip->mode2 |= JFS_NOATIME_FL;
+	}
+
 	if (flags & S_DIRSYNC)
+	{
 		jfs_ip->mode2 |= JFS_DIRSYNC_FL;
+	}
+
 	if (flags & S_SYNC)
+	{
 		jfs_ip->mode2 |= JFS_SYNC_FL;
+	}
 }
 
 /*
@@ -77,7 +107,9 @@ struct inode *ialloc(struct inode *parent, umode_t mode)
 	int rc;
 
 	inode = new_inode(sb);
-	if (!inode) {
+
+	if (!inode)
+	{
 		jfs_warn("ialloc: new_inode returned NULL!");
 		rc = -ENOMEM;
 		goto fail;
@@ -86,14 +118,21 @@ struct inode *ialloc(struct inode *parent, umode_t mode)
 	jfs_inode = JFS_IP(inode);
 
 	rc = diAlloc(parent, S_ISDIR(mode), inode);
-	if (rc) {
+
+	if (rc)
+	{
 		jfs_warn("ialloc: diAlloc returned %d!", rc);
+
 		if (rc == -EIO)
+		{
 			make_bad_inode(inode);
+		}
+
 		goto fail_put;
 	}
 
-	if (insert_inode_locked(inode) < 0) {
+	if (insert_inode_locked(inode) < 0)
+	{
 		rc = -EINVAL;
 		goto fail_put;
 	}
@@ -110,24 +149,37 @@ struct inode *ialloc(struct inode *parent, umode_t mode)
 	 * Allocate inode to quota.
 	 */
 	rc = dquot_initialize(inode);
+
 	if (rc)
+	{
 		goto fail_drop;
+	}
+
 	rc = dquot_alloc_inode(inode);
+
 	if (rc)
+	{
 		goto fail_drop;
+	}
 
 	/* inherit flags from parent */
 	jfs_inode->mode2 = JFS_IP(parent)->mode2 & JFS_FL_INHERIT;
 
-	if (S_ISDIR(mode)) {
+	if (S_ISDIR(mode))
+	{
 		jfs_inode->mode2 |= IDIRECTORY;
 		jfs_inode->mode2 &= ~JFS_DIRSYNC_FL;
 	}
-	else {
+	else
+	{
 		jfs_inode->mode2 |= INLINEEA | ISPARSE;
+
 		if (S_ISLNK(mode))
-			jfs_inode->mode2 &= ~(JFS_IMMUTABLE_FL|JFS_APPEND_FL);
+		{
+			jfs_inode->mode2 &= ~(JFS_IMMUTABLE_FL | JFS_APPEND_FL);
+		}
 	}
+
 	jfs_inode->mode2 |= inode->i_mode;
 
 	inode->i_blocks = 0;

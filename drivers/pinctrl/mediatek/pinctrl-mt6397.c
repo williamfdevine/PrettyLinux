@@ -25,7 +25,8 @@
 
 #define MT6397_PIN_REG_BASE  0xc000
 
-static const struct mtk_pinctrl_devdata mt6397_pinctrl_data = {
+static const struct mtk_pinctrl_devdata mt6397_pinctrl_data =
+{
 	.pins = mtk_pins_mt6397,
 	.npins = ARRAY_SIZE(mtk_pins_mt6397),
 	.dir_offset = (MT6397_PIN_REG_BASE + 0x000),
@@ -51,12 +52,14 @@ static int mt6397_pinctrl_probe(struct platform_device *pdev)
 	return mtk_pctrl_init(pdev, &mt6397_pinctrl_data, mt6397->regmap);
 }
 
-static const struct of_device_id mt6397_pctrl_match[] = {
+static const struct of_device_id mt6397_pctrl_match[] =
+{
 	{ .compatible = "mediatek,mt6397-pinctrl", },
 	{ }
 };
 
-static struct platform_driver mtk_pinctrl_driver = {
+static struct platform_driver mtk_pinctrl_driver =
+{
 	.probe = mt6397_pinctrl_probe,
 	.driver = {
 		.name = "mediatek-mt6397-pinctrl",

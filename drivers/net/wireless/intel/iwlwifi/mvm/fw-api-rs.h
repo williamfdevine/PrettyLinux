@@ -70,7 +70,8 @@
  * struct iwl_rate_info fw_rate_idx_to_plcp[IWL_RATE_COUNT];
  * TODO: avoid overlap between legacy and HT rates
  */
-enum {
+enum
+{
 	IWL_RATE_1M_INDEX = 0,
 	IWL_FIRST_CCK_RATE = IWL_RATE_1M_INDEX,
 	IWL_RATE_2M_INDEX,
@@ -109,7 +110,8 @@ enum {
 #define IWL_RATE_BIT_MSK(r) BIT(IWL_RATE_##r##M_INDEX)
 
 /* fw API values for legacy bit rates, both OFDM and CCK */
-enum {
+enum
+{
 	IWL_RATE_6M_PLCP  = 13,
 	IWL_RATE_9M_PLCP  = 15,
 	IWL_RATE_12M_PLCP = 5,
@@ -249,9 +251,9 @@ enum {
 #define RATE_MCS_ANT_B_MSK		(2 << RATE_MCS_ANT_POS)
 #define RATE_MCS_ANT_C_MSK		(4 << RATE_MCS_ANT_POS)
 #define RATE_MCS_ANT_AB_MSK		(RATE_MCS_ANT_A_MSK | \
-					 RATE_MCS_ANT_B_MSK)
+								 RATE_MCS_ANT_B_MSK)
 #define RATE_MCS_ANT_ABC_MSK		(RATE_MCS_ANT_AB_MSK | \
-					 RATE_MCS_ANT_C_MSK)
+									 RATE_MCS_ANT_C_MSK)
 #define RATE_MCS_ANT_MSK		RATE_MCS_ANT_ABC_MSK
 #define RATE_MCS_ANT_NUM 3
 
@@ -368,7 +370,8 @@ enum {
  *	meaning it is a combination of RATE_MCS_* and IWL_RATE_*_PLCP
  * @ss_params: single stream features. declare whether STBC or BFER are allowed.
  */
-struct iwl_lq_cmd {
+struct iwl_lq_cmd
+{
 	u8 sta_id;
 	u8 reduced_tpc;
 	u16 control;

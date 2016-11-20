@@ -36,23 +36,30 @@
  */
 int
 usb_descriptor_fillbuf(void *buf, unsigned buflen,
-		const struct usb_descriptor_header **src)
+					   const struct usb_descriptor_header **src)
 {
 	u8	*dest = buf;
 
 	if (!src)
+	{
 		return -EINVAL;
+	}
 
 	/* fill buffer from src[] until null descriptor ptr */
-	for (; NULL != *src; src++) {
+	for (; NULL != *src; src++)
+	{
 		unsigned		len = (*src)->bLength;
 
 		if (len > buflen)
+		{
 			return -EINVAL;
+		}
+
 		memcpy(dest, *src, len);
 		buflen -= len;
 		dest += len;
 	}
+
 	return dest - (u8 *)buf;
 }
 EXPORT_SYMBOL_GPL(usb_descriptor_fillbuf);
@@ -89,17 +96,27 @@ int usb_gadget_config_buf(
 
 	/* config descriptor first */
 	if (length < USB_DT_CONFIG_SIZE || !desc)
+	{
 		return -EINVAL;
+	}
+
 	*cp = *config;
 
 	/* then interface/endpoint/class/vendor/... */
 	len = usb_descriptor_fillbuf(USB_DT_CONFIG_SIZE + (u8 *)buf,
-			length - USB_DT_CONFIG_SIZE, desc);
+								 length - USB_DT_CONFIG_SIZE, desc);
+
 	if (len < 0)
+	{
 		return len;
+	}
+
 	len += USB_DT_CONFIG_SIZE;
+
 	if (len > 0xffff)
+	{
 		return -EINVAL;
+	}
 
 	/* patch up the config descriptor */
 	cp->bLength = USB_DT_CONFIG_SIZE;
@@ -133,12 +150,18 @@ usb_copy_descriptors(struct usb_descriptor_header **src)
 
 	/* count descriptors and their sizes; then add vector size */
 	for (bytes = 0, n_desc = 0, tmp = src; *tmp; tmp++, n_desc++)
+	{
 		bytes += (*tmp)->bLength;
+	}
+
 	bytes += (n_desc + 1) * sizeof(*tmp);
 
 	mem = kmalloc(bytes, GFP_KERNEL);
+
 	if (!mem)
+	{
 		return NULL;
+	}
 
 	/* fill in pointers starting at "tmp",
 	 * to descriptors copied starting at "mem";
@@ -147,13 +170,16 @@ usb_copy_descriptors(struct usb_descriptor_header **src)
 	tmp = mem;
 	ret = mem;
 	mem += (n_desc + 1) * sizeof(*tmp);
-	while (*src) {
+
+	while (*src)
+	{
 		memcpy(mem, *src, (*src)->bLength);
 		*tmp = mem;
 		tmp++;
 		mem += (*src)->bLength;
 		src++;
 	}
+
 	*tmp = NULL;
 
 	return ret;
@@ -161,33 +187,53 @@ usb_copy_descriptors(struct usb_descriptor_header **src)
 EXPORT_SYMBOL_GPL(usb_copy_descriptors);
 
 int usb_assign_descriptors(struct usb_function *f,
-		struct usb_descriptor_header **fs,
-		struct usb_descriptor_header **hs,
-		struct usb_descriptor_header **ss,
-		struct usb_descriptor_header **ssp)
+						   struct usb_descriptor_header **fs,
+						   struct usb_descriptor_header **hs,
+						   struct usb_descriptor_header **ss,
+						   struct usb_descriptor_header **ssp)
 {
 	struct usb_gadget *g = f->config->cdev->gadget;
 
-	if (fs) {
+	if (fs)
+	{
 		f->fs_descriptors = usb_copy_descriptors(fs);
+
 		if (!f->fs_descriptors)
+		{
 			goto err;
+		}
 	}
-	if (hs && gadget_is_dualspeed(g)) {
+
+	if (hs && gadget_is_dualspeed(g))
+	{
 		f->hs_descriptors = usb_copy_descriptors(hs);
+
 		if (!f->hs_descriptors)
+		{
 			goto err;
+		}
 	}
-	if (ss && gadget_is_superspeed(g)) {
+
+	if (ss && gadget_is_superspeed(g))
+	{
 		f->ss_descriptors = usb_copy_descriptors(ss);
+
 		if (!f->ss_descriptors)
+		{
 			goto err;
+		}
 	}
-	if (ssp && gadget_is_superspeed_plus(g)) {
+
+	if (ssp && gadget_is_superspeed_plus(g))
+	{
 		f->ssp_descriptors = usb_copy_descriptors(ssp);
+
 		if (!f->ssp_descriptors)
+		{
 			goto err;
+		}
 	}
+
 	return 0;
 err:
 	usb_free_all_descriptors(f);
@@ -205,15 +251,19 @@ void usb_free_all_descriptors(struct usb_function *f)
 EXPORT_SYMBOL_GPL(usb_free_all_descriptors);
 
 struct usb_descriptor_header *usb_otg_descriptor_alloc(
-				struct usb_gadget *gadget)
+	struct usb_gadget *gadget)
 {
 	struct usb_descriptor_header *otg_desc;
 	unsigned length = 0;
 
 	if (gadget->otg_caps && (gadget->otg_caps->otg_rev >= 0x0200))
+	{
 		length = sizeof(struct usb_otg20_descriptor);
+	}
 	else
+	{
 		length = sizeof(struct usb_otg_descriptor);
+	}
 
 	otg_desc = kzalloc(length, GFP_KERNEL);
 	return otg_desc;
@@ -221,7 +271,7 @@ struct usb_descriptor_header *usb_otg_descriptor_alloc(
 EXPORT_SYMBOL_GPL(usb_otg_descriptor_alloc);
 
 int usb_otg_descriptor_init(struct usb_gadget *gadget,
-		struct usb_descriptor_header *otg_desc)
+							struct usb_descriptor_header *otg_desc)
 {
 	struct usb_otg_descriptor *otg1x_desc;
 	struct usb_otg20_descriptor *otg20_desc;
@@ -229,26 +279,42 @@ int usb_otg_descriptor_init(struct usb_gadget *gadget,
 	u8 otg_attributes = 0;
 
 	if (!otg_desc)
+	{
 		return -EINVAL;
+	}
 
-	if (otg_caps && otg_caps->otg_rev) {
+	if (otg_caps && otg_caps->otg_rev)
+	{
 		if (otg_caps->hnp_support)
+		{
 			otg_attributes |= USB_OTG_HNP;
+		}
+
 		if (otg_caps->srp_support)
+		{
 			otg_attributes |= USB_OTG_SRP;
+		}
+
 		if (otg_caps->adp_support && (otg_caps->otg_rev >= 0x0200))
+		{
 			otg_attributes |= USB_OTG_ADP;
-	} else {
+		}
+	}
+	else
+	{
 		otg_attributes = USB_OTG_SRP | USB_OTG_HNP;
 	}
 
-	if (otg_caps && (otg_caps->otg_rev >= 0x0200)) {
+	if (otg_caps && (otg_caps->otg_rev >= 0x0200))
+	{
 		otg20_desc = (struct usb_otg20_descriptor *)otg_desc;
 		otg20_desc->bLength = sizeof(struct usb_otg20_descriptor);
 		otg20_desc->bDescriptorType = USB_DT_OTG;
 		otg20_desc->bmAttributes = otg_attributes;
 		otg20_desc->bcdOTG = cpu_to_le16(otg_caps->otg_rev);
-	} else {
+	}
+	else
+	{
 		otg1x_desc = (struct usb_otg_descriptor *)otg_desc;
 		otg1x_desc->bLength = sizeof(struct usb_otg_descriptor);
 		otg1x_desc->bDescriptorType = USB_DT_OTG;

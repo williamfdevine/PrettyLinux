@@ -46,7 +46,8 @@ ACPI_MODULE_NAME("acpi-als");
  * ACPI0008 says there can be more to what the block can report. Like
  * chromaticity and such. We are ready for incoming additions!
  */
-static const struct iio_chan_spec acpi_als_channels[] = {
+static const struct iio_chan_spec acpi_als_channels[] =
+{
 	{
 		.type		= IIO_LIGHT,
 		.scan_type	= {
@@ -56,7 +57,7 @@ static const struct iio_chan_spec acpi_als_channels[] = {
 		},
 		/* _RAW is here for backward ABI compatibility */
 		.info_mask_separate	= BIT(IIO_CHAN_INFO_RAW) |
-					  BIT(IIO_CHAN_INFO_PROCESSED),
+		BIT(IIO_CHAN_INFO_PROCESSED),
 	},
 };
 
@@ -71,7 +72,8 @@ static const struct iio_chan_spec acpi_als_channels[] = {
 #define ACPI_ALS_EVT_BUFFER_SIZE		\
 	(sizeof(s64) + (ACPI_ALS_EVT_NR_SOURCES * sizeof(s32)))
 
-struct acpi_als {
+struct acpi_als
+{
 	struct acpi_device	*device;
 	struct mutex		lock;
 
@@ -101,9 +103,10 @@ static int acpi_als_read_value(struct acpi_als *als, char *prop, s32 *val)
 	acpi_status status;
 
 	status = acpi_evaluate_integer(als->device->handle, prop, NULL,
-				       &temp_val);
+								   &temp_val);
 
-	if (ACPI_FAILURE(status)) {
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "Error reading ALS %s", prop));
 		return -EIO;
 	}
@@ -126,18 +129,24 @@ static void acpi_als_notify(struct acpi_device *device, u32 event)
 
 	memset(buffer, 0, ACPI_ALS_EVT_BUFFER_SIZE);
 
-	switch (event) {
-	case ACPI_ALS_NOTIFY_ILLUMINANCE:
-		ret = acpi_als_read_value(als, ACPI_ALS_ILLUMINANCE, &val);
-		if (ret < 0)
+	switch (event)
+	{
+		case ACPI_ALS_NOTIFY_ILLUMINANCE:
+			ret = acpi_als_read_value(als, ACPI_ALS_ILLUMINANCE, &val);
+
+			if (ret < 0)
+			{
+				goto out;
+			}
+
+			*buffer++ = val;
+			break;
+
+		default:
+			/* Unhandled event */
+			dev_dbg(&device->dev, "Unhandled ACPI ALS event (%08x)!\n",
+					event);
 			goto out;
-		*buffer++ = val;
-		break;
-	default:
-		/* Unhandled event */
-		dev_dbg(&device->dev, "Unhandled ACPI ALS event (%08x)!\n",
-			event);
-		goto out;
 	}
 
 	iio_push_to_buffers_with_timestamp(indio_dev, als->evt_buffer, time_ns);
@@ -147,30 +156,38 @@ out:
 }
 
 static int acpi_als_read_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan, int *val,
-			     int *val2, long mask)
+							 struct iio_chan_spec const *chan, int *val,
+							 int *val2, long mask)
 {
 	struct acpi_als *als = iio_priv(indio_dev);
 	s32 temp_val;
 	int ret;
 
 	if ((mask != IIO_CHAN_INFO_PROCESSED) && (mask != IIO_CHAN_INFO_RAW))
+	{
 		return -EINVAL;
+	}
 
 	/* we support only illumination (_ALI) so far. */
 	if (chan->type != IIO_LIGHT)
+	{
 		return -EINVAL;
+	}
 
 	ret = acpi_als_read_value(als, ACPI_ALS_ILLUMINANCE, &temp_val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*val = temp_val;
 
 	return IIO_VAL_INT;
 }
 
-static const struct iio_info acpi_als_info = {
+static const struct iio_info acpi_als_info =
+{
 	.driver_module		= THIS_MODULE,
 	.read_raw		= acpi_als_read_raw,
 };
@@ -182,8 +199,11 @@ static int acpi_als_add(struct acpi_device *device)
 	struct iio_buffer *buffer;
 
 	indio_dev = devm_iio_device_alloc(&device->dev, sizeof(*als));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	als = iio_priv(indio_dev);
 
@@ -199,22 +219,27 @@ static int acpi_als_add(struct acpi_device *device)
 	indio_dev->num_channels = ARRAY_SIZE(acpi_als_channels);
 
 	buffer = devm_iio_kfifo_allocate(&device->dev);
+
 	if (!buffer)
+	{
 		return -ENOMEM;
+	}
 
 	iio_device_attach_buffer(indio_dev, buffer);
 
 	return devm_iio_device_register(&device->dev, indio_dev);
 }
 
-static const struct acpi_device_id acpi_als_device_ids[] = {
+static const struct acpi_device_id acpi_als_device_ids[] =
+{
 	{"ACPI0008", 0},
 	{},
 };
 
 MODULE_DEVICE_TABLE(acpi, acpi_als_device_ids);
 
-static struct acpi_driver acpi_als_driver = {
+static struct acpi_driver acpi_als_driver =
+{
 	.name	= "acpi_als",
 	.class	= ACPI_ALS_CLASS,
 	.ids	= acpi_als_device_ids,

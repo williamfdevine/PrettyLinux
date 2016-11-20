@@ -5,7 +5,8 @@
 struct nvkm_fifo_chan;
 struct nvkm_fb_tile;
 
-struct nvkm_engine {
+struct nvkm_engine
+{
 	const struct nvkm_engine_func *func;
 	struct nvkm_subdev subdev;
 	spinlock_t lock;
@@ -13,7 +14,8 @@ struct nvkm_engine {
 	int usecount;
 };
 
-struct nvkm_engine_func {
+struct nvkm_engine_func
+{
 	void *(*dtor)(struct nvkm_engine *);
 	int (*oneinit)(struct nvkm_engine *);
 	int (*init)(struct nvkm_engine *);
@@ -21,15 +23,17 @@ struct nvkm_engine_func {
 	void (*intr)(struct nvkm_engine *);
 	void (*tile)(struct nvkm_engine *, int region, struct nvkm_fb_tile *);
 
-	struct {
+	struct
+	{
 		int (*sclass)(struct nvkm_oclass *, int index,
-			      const struct nvkm_device_oclass **);
+					  const struct nvkm_device_oclass **);
 	} base;
 
-	struct {
+	struct
+	{
 		int (*cclass)(struct nvkm_fifo_chan *,
-			      const struct nvkm_oclass *,
-			      struct nvkm_object **);
+					  const struct nvkm_oclass *,
+					  struct nvkm_object **);
 		int (*sclass)(struct nvkm_oclass *, int index);
 	} fifo;
 
@@ -38,9 +42,9 @@ struct nvkm_engine_func {
 };
 
 int nvkm_engine_ctor(const struct nvkm_engine_func *, struct nvkm_device *,
-		     int index, bool enable, struct nvkm_engine *);
+					 int index, bool enable, struct nvkm_engine *);
 int nvkm_engine_new_(const struct nvkm_engine_func *, struct nvkm_device *,
-		     int index, bool enable, struct nvkm_engine **);
+					 int index, bool enable, struct nvkm_engine **);
 struct nvkm_engine *nvkm_engine_ref(struct nvkm_engine *);
 void nvkm_engine_unref(struct nvkm_engine **);
 void nvkm_engine_tile(struct nvkm_engine *, int region);

@@ -18,7 +18,8 @@
 #include <linux/regmap.h>
 #include <linux/thermal.h>
 
-enum st_thermal_regfield_ids {
+enum st_thermal_regfield_ids
+{
 	INT_THRESH_HI = 0, /* Top two regfield IDs are mutually exclusive */
 	TEMP_PWR = 0,
 	DCORRECT,
@@ -30,7 +31,8 @@ enum st_thermal_regfield_ids {
 };
 
 /* Thermal sensor power states */
-enum st_thermal_power_state {
+enum st_thermal_power_state
+{
 	POWER_OFF = 0,
 	POWER_ON
 };
@@ -47,7 +49,8 @@ struct st_thermal_sensor;
  *			instance or find regmap instance.
  * @register_irq: 	Register an interrupt handler for a sensor.
  */
-struct st_thermal_sensor_ops {
+struct st_thermal_sensor_ops
+{
 	int (*power_ctrl)(struct st_thermal_sensor *, enum st_thermal_power_state);
 	int (*alloc_regfields)(struct st_thermal_sensor *);
 	int (*regmap_init)(struct st_thermal_sensor *);
@@ -70,7 +73,8 @@ struct st_thermal_sensor_ops {
  * @crit_temp: 		The temperature beyond which the SoC should be shutdown
  * 			to prevent damage.
  */
-struct st_thermal_compat_data {
+struct st_thermal_compat_data
+{
 	char *sys_compat;
 	const struct reg_field *reg_fields;
 	const struct st_thermal_sensor_ops *ops;
@@ -79,7 +83,8 @@ struct st_thermal_compat_data {
 	int crit_temp;
 };
 
-struct st_thermal_sensor {
+struct st_thermal_sensor
+{
 	struct device *dev;
 	struct thermal_zone_device *thermal_dev;
 	const struct st_thermal_sensor_ops *ops;
@@ -97,7 +102,7 @@ struct st_thermal_sensor {
 };
 
 extern int st_thermal_register(struct platform_device *pdev,
-			       const struct of_device_id *st_thermal_of_match);
+							   const struct of_device_id *st_thermal_of_match);
 extern int st_thermal_unregister(struct platform_device *pdev);
 extern const struct dev_pm_ops st_thermal_pm_ops;
 

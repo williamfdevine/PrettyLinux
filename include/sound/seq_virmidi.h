@@ -31,7 +31,8 @@
  * opened.  Each instance has its own input buffer and MIDI parser
  * (buffer), and is associated with the device instance.
  */
-struct snd_virmidi {
+struct snd_virmidi
+{
 	struct list_head list;
 	int seq_mode;
 	int client;
@@ -49,9 +50,10 @@ struct snd_virmidi {
 /*
  * device record:
  * Each virtual midi device has one device instance.  It contains
- * common information and the linked-list of opened files, 
+ * common information and the linked-list of opened files,
  */
-struct snd_virmidi_dev {
+struct snd_virmidi_dev
+{
 	struct snd_card *card;		/* associated card */
 	struct snd_rawmidi *rmidi;		/* rawmidi device */
 	int seq_mode;			/* SNDRV_VIRMIDI_XXX */

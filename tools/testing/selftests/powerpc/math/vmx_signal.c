@@ -33,10 +33,11 @@
  */
 #define THREAD_FACTOR 8
 
-__thread vector int varray[] = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10,11,12},
-	{13,14,15,16},{17,18,19,20},{21,22,23,24},
-	{25,26,27,28},{29,30,31,32},{33,34,35,36},
-	{37,38,39,40},{41,42,43,44},{45,46,47,48}};
+__thread vector int varray[] = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12},
+	{13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24},
+	{25, 26, 27, 28}, {29, 30, 31, 32}, {33, 34, 35, 36},
+	{37, 38, 39, 40}, {41, 42, 43, 44}, {45, 46, 47, 48}
+};
 
 bool bad_context;
 int running;
@@ -51,8 +52,10 @@ void signal_vmx_sig(int sig, siginfo_t *info, void *context)
 	mcontext_t *mc = &uc->uc_mcontext;
 
 	/* Only the non volatiles were loaded up */
-	for (i = 20; i < 32; i++) {
-		if (memcmp(mc->v_regs->vrregs[i], &varray[i - 20], 16)) {
+	for (i = 20; i < 32; i++)
+	{
+		if (memcmp(mc->v_regs->vrregs[i], &varray[i - 20], 16))
+		{
 			int j;
 			/*
 			 * Shouldn't printf() in a signal handler, however, this is a
@@ -62,11 +65,14 @@ void signal_vmx_sig(int sig, siginfo_t *info, void *context)
 			 */
 			printf("VMX mismatch at reg %d!\n", i);
 			printf("Reg | Actual                  | Expected\n");
-			for (j = 20; j < 32; j++) {
+
+			for (j = 20; j < 32; j++)
+			{
 				printf("%d  | 0x%04x%04x%04x%04x      | 0x%04x%04x%04x%04x\n", j, mc->v_regs->vrregs[j][0],
 					   mc->v_regs->vrregs[j][1], mc->v_regs->vrregs[j][2], mc->v_regs->vrregs[j][3],
 					   varray[j - 20][0], varray[j - 20][1], varray[j - 20][2], varray[j - 20][3]);
 			}
+
 			bad_context = true;
 			break;
 		}
@@ -81,13 +87,19 @@ void *signal_vmx_c(void *p)
 	act.sa_sigaction = signal_vmx_sig;
 	act.sa_flags = SA_SIGINFO;
 	rc = sigaction(SIGUSR1, &act, NULL);
+
 	if (rc)
+	{
 		return p;
+	}
 
 	srand(pthread_self());
+
 	for (i = 0; i < 12; i++)
 		for (j = 0; j < 4; j++)
+		{
 			varray[i][j] = rand();
+		}
 
 	rc = preempt_vmx(varray, &threads_starting, &running);
 
@@ -106,32 +118,44 @@ int test_signal_vmx(void)
 
 	running = true;
 	threads_starting = threads;
-	for (i = 0; i < threads; i++) {
+
+	for (i = 0; i < threads; i++)
+	{
 		rc = pthread_create(&tids[i], NULL, signal_vmx_c, NULL);
 		FAIL_IF(rc);
 	}
 
 	setbuf(stdout, NULL);
 	printf("\tWaiting for %d workers to start... %d", threads, threads_starting);
-	while (threads_starting) {
+
+	while (threads_starting)
+	{
 		asm volatile("": : :"memory");
 		usleep(1000);
 		printf(", %d", threads_starting);
 	}
+
 	printf(" ...done\n");
 
 	printf("\tSending signals to all threads %d times...", ITERATIONS);
-	for (i = 0; i < ITERATIONS; i++) {
-		for (j = 0; j < threads; j++) {
+
+	for (i = 0; i < ITERATIONS; i++)
+	{
+		for (j = 0; j < threads; j++)
+		{
 			pthread_kill(tids[j], SIGUSR1);
 		}
+
 		sleep(1);
 	}
+
 	printf("done\n");
 
 	printf("\tKilling workers...");
 	running = 0;
-	for (i = 0; i < threads; i++) {
+
+	for (i = 0; i < threads; i++)
+	{
 		pthread_join(tids[i], &rc_p);
 
 		/*
@@ -139,11 +163,18 @@ int test_signal_vmx(void)
 		 * returned
 		 */
 		if ((long) rc_p || bad_context)
+		{
 			printf("oops\n");
+		}
+
 		if (bad_context)
+		{
 			fprintf(stderr, "\t!! bad_context is true\n");
+		}
+
 		FAIL_IF((long) rc_p || bad_context);
 	}
+
 	printf("done\n");
 
 	free(tids);

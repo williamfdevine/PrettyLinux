@@ -42,7 +42,8 @@ struct nfsd4_client_tracking_ops;
  * Each nfsd_net runs a nfs4_laundromat workqueue job when necessary to clean
  * up expired clients and delegations within the container.
  */
-struct nfsd_net {
+struct nfsd_net
+{
 	struct cld_net *cld_net;
 
 	struct cache_detail *svc_expkey_cache;

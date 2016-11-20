@@ -86,12 +86,14 @@
 #define MIPI_CAL_BIAS_PAD_VAUXP(x)	(((x) & 0x7) << 4)
 #define MIPI_CAL_BIAS_PAD_PDVREG	(1 << 1)
 
-struct tegra_mipi_pad {
+struct tegra_mipi_pad
+{
 	unsigned long data;
 	unsigned long clk;
 };
 
-struct tegra_mipi_soc {
+struct tegra_mipi_soc
+{
 	bool has_clk_lane;
 	const struct tegra_mipi_pad *pads;
 	unsigned int num_pads;
@@ -116,7 +118,8 @@ struct tegra_mipi_soc {
 	u8 hsclkpuos;
 };
 
-struct tegra_mipi {
+struct tegra_mipi
+{
 	const struct tegra_mipi_soc *soc;
 	struct device *dev;
 	void __iomem *regs;
@@ -126,7 +129,8 @@ struct tegra_mipi {
 	unsigned long usage_count;
 };
 
-struct tegra_mipi_device {
+struct tegra_mipi_device
+{
 	struct platform_device *pdev;
 	struct tegra_mipi *mipi;
 	struct device *device;
@@ -134,13 +138,13 @@ struct tegra_mipi_device {
 };
 
 static inline u32 tegra_mipi_readl(struct tegra_mipi *mipi,
-				   unsigned long offset)
+								   unsigned long offset)
 {
 	return readl(mipi->regs + (offset << 2));
 }
 
 static inline void tegra_mipi_writel(struct tegra_mipi *mipi, u32 value,
-				     unsigned long offset)
+									 unsigned long offset)
 {
 	writel(value, mipi->regs + (offset << 2));
 }
@@ -151,14 +155,19 @@ static int tegra_mipi_power_up(struct tegra_mipi *mipi)
 	int err;
 
 	err = clk_enable(mipi->clk);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	value = tegra_mipi_readl(mipi, MIPI_CAL_BIAS_PAD_CFG0);
 	value &= ~MIPI_CAL_BIAS_PAD_PDVCLAMP;
 
 	if (mipi->soc->needs_vclamp_ref)
+	{
 		value |= MIPI_CAL_BIAS_PAD_E_VCLAMP_REF;
+	}
 
 	tegra_mipi_writel(mipi, value, MIPI_CAL_BIAS_PAD_CFG0);
 
@@ -177,8 +186,11 @@ static int tegra_mipi_power_down(struct tegra_mipi *mipi)
 	int err;
 
 	err = clk_enable(mipi->clk);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/*
 	 * The MIPI_CAL_BIAS_PAD_PDVREG controls a voltage regulator that
@@ -198,7 +210,9 @@ static int tegra_mipi_power_down(struct tegra_mipi *mipi)
 	value = tegra_mipi_readl(mipi, MIPI_CAL_BIAS_PAD_CFG0);
 
 	if (mipi->soc->needs_vclamp_ref)
+	{
 		value &= ~MIPI_CAL_BIAS_PAD_E_VCLAMP_REF;
+	}
 
 	value |= MIPI_CAL_BIAS_PAD_PDVCLAMP;
 	tegra_mipi_writel(mipi, value, MIPI_CAL_BIAS_PAD_CFG0);
@@ -214,25 +228,34 @@ struct tegra_mipi_device *tegra_mipi_request(struct device *device)
 	int err;
 
 	err = of_parse_phandle_with_args(np, "nvidia,mipi-calibrate",
-					 "#nvidia,mipi-calibrate-cells", 0,
-					 &args);
+									 "#nvidia,mipi-calibrate-cells", 0,
+									 &args);
+
 	if (err < 0)
+	{
 		return ERR_PTR(err);
+	}
 
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-	if (!dev) {
+
+	if (!dev)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
 
 	dev->pdev = of_find_device_by_node(args.np);
-	if (!dev->pdev) {
+
+	if (!dev->pdev)
+	{
 		err = -ENODEV;
 		goto free;
 	}
 
 	dev->mipi = platform_get_drvdata(dev->pdev);
-	if (!dev->mipi) {
+
+	if (!dev->mipi)
+	{
 		err = -EPROBE_DEFER;
 		goto put;
 	}
@@ -268,7 +291,9 @@ int tegra_mipi_enable(struct tegra_mipi_device *dev)
 	mutex_lock(&dev->mipi->lock);
 
 	if (dev->mipi->usage_count++ == 0)
+	{
 		err = tegra_mipi_power_up(dev->mipi);
+	}
 
 	mutex_unlock(&dev->mipi->lock);
 
@@ -284,7 +309,9 @@ int tegra_mipi_disable(struct tegra_mipi_device *dev)
 	mutex_lock(&dev->mipi->lock);
 
 	if (--dev->mipi->usage_count == 0)
+	{
 		err = tegra_mipi_power_down(dev->mipi);
+	}
 
 	mutex_unlock(&dev->mipi->lock);
 
@@ -298,11 +325,15 @@ static int tegra_mipi_wait(struct tegra_mipi *mipi)
 	unsigned long timeout = jiffies + msecs_to_jiffies(250);
 	u32 value;
 
-	while (time_before(jiffies, timeout)) {
+	while (time_before(jiffies, timeout))
+	{
 		value = tegra_mipi_readl(mipi, MIPI_CAL_STATUS);
+
 		if ((value & MIPI_CAL_STATUS_ACTIVE) == 0 &&
-		    (value & MIPI_CAL_STATUS_DONE) != 0)
+			(value & MIPI_CAL_STATUS_DONE) != 0)
+		{
 			return 0;
+		}
 
 		usleep_range(10, 50);
 	}
@@ -318,13 +349,16 @@ int tegra_mipi_calibrate(struct tegra_mipi_device *device)
 	int err;
 
 	err = clk_enable(device->mipi->clk);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	mutex_lock(&device->mipi->lock);
 
 	value = MIPI_CAL_BIAS_PAD_DRV_DN_REF(soc->pad_drive_down_ref) |
-		MIPI_CAL_BIAS_PAD_DRV_UP_REF(soc->pad_drive_up_ref);
+			MIPI_CAL_BIAS_PAD_DRV_UP_REF(soc->pad_drive_up_ref);
 	tegra_mipi_writel(device->mipi, value, MIPI_CAL_BIAS_PAD_CFG1);
 
 	value = tegra_mipi_readl(device->mipi, MIPI_CAL_BIAS_PAD_CFG2);
@@ -334,23 +368,27 @@ int tegra_mipi_calibrate(struct tegra_mipi_device *device)
 	value |= MIPI_CAL_BIAS_PAD_VAUXP(soc->pad_vauxp_level);
 	tegra_mipi_writel(device->mipi, value, MIPI_CAL_BIAS_PAD_CFG2);
 
-	for (i = 0; i < soc->num_pads; i++) {
+	for (i = 0; i < soc->num_pads; i++)
+	{
 		u32 clk = 0, data = 0;
 
-		if (device->pads & BIT(i)) {
+		if (device->pads & BIT(i))
+		{
 			data = MIPI_CAL_CONFIG_SELECT |
-			       MIPI_CAL_CONFIG_HSPDOS(soc->hspdos) |
-			       MIPI_CAL_CONFIG_HSPUOS(soc->hspuos) |
-			       MIPI_CAL_CONFIG_TERMOS(soc->termos);
+				   MIPI_CAL_CONFIG_HSPDOS(soc->hspdos) |
+				   MIPI_CAL_CONFIG_HSPUOS(soc->hspuos) |
+				   MIPI_CAL_CONFIG_TERMOS(soc->termos);
 			clk = MIPI_CAL_CONFIG_SELECT |
-			      MIPI_CAL_CONFIG_HSCLKPDOSD(soc->hsclkpdos) |
-			      MIPI_CAL_CONFIG_HSCLKPUOSD(soc->hsclkpuos);
+				  MIPI_CAL_CONFIG_HSCLKPDOSD(soc->hsclkpdos) |
+				  MIPI_CAL_CONFIG_HSCLKPUOSD(soc->hsclkpuos);
 		}
 
 		tegra_mipi_writel(device->mipi, data, soc->pads[i].data);
 
 		if (soc->has_clk_lane && soc->pads[i].clk != 0)
+		{
 			tegra_mipi_writel(device->mipi, clk, soc->pads[i].clk);
+		}
 	}
 
 	value = tegra_mipi_readl(device->mipi, MIPI_CAL_CTRL);
@@ -360,9 +398,13 @@ int tegra_mipi_calibrate(struct tegra_mipi_device *device)
 	value |= MIPI_CAL_CTRL_PRESCALE(0x2);
 
 	if (!soc->clock_enable_override)
+	{
 		value &= ~MIPI_CAL_CTRL_CLKEN_OVR;
+	}
 	else
+	{
 		value |= MIPI_CAL_CTRL_CLKEN_OVR;
+	}
 
 	tegra_mipi_writel(device->mipi, value, MIPI_CAL_CTRL);
 
@@ -383,7 +425,8 @@ int tegra_mipi_calibrate(struct tegra_mipi_device *device)
 }
 EXPORT_SYMBOL(tegra_mipi_calibrate);
 
-static const struct tegra_mipi_pad tegra114_mipi_pads[] = {
+static const struct tegra_mipi_pad tegra114_mipi_pads[] =
+{
 	{ .data = MIPI_CAL_CONFIG_CSIA },
 	{ .data = MIPI_CAL_CONFIG_CSIB },
 	{ .data = MIPI_CAL_CONFIG_CSIC },
@@ -395,7 +438,8 @@ static const struct tegra_mipi_pad tegra114_mipi_pads[] = {
 	{ .data = MIPI_CAL_CONFIG_DSID },
 };
 
-static const struct tegra_mipi_soc tegra114_mipi_soc = {
+static const struct tegra_mipi_soc tegra114_mipi_soc =
+{
 	.has_clk_lane = false,
 	.pads = tegra114_mipi_pads,
 	.num_pads = ARRAY_SIZE(tegra114_mipi_pads),
@@ -412,7 +456,8 @@ static const struct tegra_mipi_soc tegra114_mipi_soc = {
 	.hsclkpuos = 0x4,
 };
 
-static const struct tegra_mipi_pad tegra124_mipi_pads[] = {
+static const struct tegra_mipi_pad tegra124_mipi_pads[] =
+{
 	{ .data = MIPI_CAL_CONFIG_CSIA, .clk = MIPI_CAL_CONFIG_CSIAB_CLK },
 	{ .data = MIPI_CAL_CONFIG_CSIB, .clk = MIPI_CAL_CONFIG_CSIAB_CLK },
 	{ .data = MIPI_CAL_CONFIG_CSIC, .clk = MIPI_CAL_CONFIG_CSICD_CLK },
@@ -422,7 +467,8 @@ static const struct tegra_mipi_pad tegra124_mipi_pads[] = {
 	{ .data = MIPI_CAL_CONFIG_DSIB, .clk = MIPI_CAL_CONFIG_DSIB_CLK  },
 };
 
-static const struct tegra_mipi_soc tegra124_mipi_soc = {
+static const struct tegra_mipi_soc tegra124_mipi_soc =
+{
 	.has_clk_lane = true,
 	.pads = tegra124_mipi_pads,
 	.num_pads = ARRAY_SIZE(tegra124_mipi_pads),
@@ -439,7 +485,8 @@ static const struct tegra_mipi_soc tegra124_mipi_soc = {
 	.hsclkpuos = 0x2,
 };
 
-static const struct tegra_mipi_soc tegra132_mipi_soc = {
+static const struct tegra_mipi_soc tegra132_mipi_soc =
+{
 	.has_clk_lane = true,
 	.pads = tegra124_mipi_pads,
 	.num_pads = ARRAY_SIZE(tegra124_mipi_pads),
@@ -456,7 +503,8 @@ static const struct tegra_mipi_soc tegra132_mipi_soc = {
 	.hsclkpuos = 0x2,
 };
 
-static const struct tegra_mipi_pad tegra210_mipi_pads[] = {
+static const struct tegra_mipi_pad tegra210_mipi_pads[] =
+{
 	{ .data = MIPI_CAL_CONFIG_CSIA, .clk = 0 },
 	{ .data = MIPI_CAL_CONFIG_CSIB, .clk = 0 },
 	{ .data = MIPI_CAL_CONFIG_CSIC, .clk = 0 },
@@ -469,7 +517,8 @@ static const struct tegra_mipi_pad tegra210_mipi_pads[] = {
 	{ .data = MIPI_CAL_CONFIG_DSID, .clk = MIPI_CAL_CONFIG_DSID_CLK },
 };
 
-static const struct tegra_mipi_soc tegra210_mipi_soc = {
+static const struct tegra_mipi_soc tegra210_mipi_soc =
+{
 	.has_clk_lane = true,
 	.pads = tegra210_mipi_pads,
 	.num_pads = ARRAY_SIZE(tegra210_mipi_pads),
@@ -486,7 +535,8 @@ static const struct tegra_mipi_soc tegra210_mipi_soc = {
 	.hsclkpuos = 0x2,
 };
 
-static const struct of_device_id tegra_mipi_of_match[] = {
+static const struct of_device_id tegra_mipi_of_match[] =
+{
 	{ .compatible = "nvidia,tegra114-mipi", .data = &tegra114_mipi_soc },
 	{ .compatible = "nvidia,tegra124-mipi", .data = &tegra124_mipi_soc },
 	{ .compatible = "nvidia,tegra132-mipi", .data = &tegra132_mipi_soc },
@@ -502,32 +552,46 @@ static int tegra_mipi_probe(struct platform_device *pdev)
 	int err;
 
 	match = of_match_node(tegra_mipi_of_match, pdev->dev.of_node);
+
 	if (!match)
+	{
 		return -ENODEV;
+	}
 
 	mipi = devm_kzalloc(&pdev->dev, sizeof(*mipi), GFP_KERNEL);
+
 	if (!mipi)
+	{
 		return -ENOMEM;
+	}
 
 	mipi->soc = match->data;
 	mipi->dev = &pdev->dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mipi->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(mipi->regs))
+	{
 		return PTR_ERR(mipi->regs);
+	}
 
 	mutex_init(&mipi->lock);
 
 	mipi->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(mipi->clk)) {
+
+	if (IS_ERR(mipi->clk))
+	{
 		dev_err(&pdev->dev, "failed to get clock\n");
 		return PTR_ERR(mipi->clk);
 	}
 
 	err = clk_prepare(mipi->clk);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	platform_set_drvdata(pdev, mipi);
 
@@ -543,7 +607,8 @@ static int tegra_mipi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-struct platform_driver tegra_mipi_driver = {
+struct platform_driver tegra_mipi_driver =
+{
 	.driver = {
 		.name = "tegra-mipi",
 		.of_match_table = tegra_mipi_of_match,

@@ -63,12 +63,12 @@ static struct platform_device *sp5100_tco_platform_device;
 static int heartbeat = WATCHDOG_HEARTBEAT;  /* in seconds */
 module_param(heartbeat, int, 0);
 MODULE_PARM_DESC(heartbeat, "Watchdog heartbeat in seconds. (default="
-		 __MODULE_STRING(WATCHDOG_HEARTBEAT) ")");
+				 __MODULE_STRING(WATCHDOG_HEARTBEAT) ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started."
-		" (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 " (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 /*
  * Some TCO specific functions
@@ -77,7 +77,7 @@ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started."
 static bool tco_has_sp5100_reg_layout(struct pci_dev *dev)
 {
 	return dev->device == PCI_DEVICE_ID_ATI_SBX00_SMBUS &&
-	       dev->revision < 0x40;
+		   dev->revision < 0x40;
 }
 
 static void tco_timer_start(void)
@@ -121,7 +121,9 @@ static int tco_timer_set_heartbeat(int t)
 	unsigned long flags;
 
 	if (t < 0 || t > 0xffff)
+	{
 		return -EINVAL;
+	}
 
 	/* Write new heartbeat to watchdog */
 	spin_lock_irqsave(&tco_lock, flags);
@@ -136,7 +138,8 @@ static void tco_timer_enable(void)
 {
 	int val;
 
-	if (!tco_has_sp5100_reg_layout(sp5100_tco_pci)) {
+	if (!tco_has_sp5100_reg_layout(sp5100_tco_pci))
+	{
 		/* For SB800 or later */
 		/* Set the Watchdog timer resolution to 1 sec */
 		outb(SB800_PM_WATCHDOG_CONFIG, SB800_IO_PM_INDEX_REG);
@@ -150,18 +153,20 @@ static void tco_timer_enable(void)
 		val |= SB800_PCI_WATCHDOG_DECODE_EN;
 		val &= ~SB800_PM_WATCHDOG_DISABLE;
 		outb(val, SB800_IO_PM_DATA_REG);
-	} else {
+	}
+	else
+	{
 		/* For SP5100 or SB7x0 */
 		/* Enable watchdog decode bit */
 		pci_read_config_dword(sp5100_tco_pci,
-				      SP5100_PCI_WATCHDOG_MISC_REG,
-				      &val);
+							  SP5100_PCI_WATCHDOG_MISC_REG,
+							  &val);
 
 		val |= SP5100_PCI_WATCHDOG_DECODE_EN;
 
 		pci_write_config_dword(sp5100_tco_pci,
-				       SP5100_PCI_WATCHDOG_MISC_REG,
-				       val);
+							   SP5100_PCI_WATCHDOG_MISC_REG,
+							   val);
 
 		/* Enable Watchdog timer and set the resolution to 1 sec */
 		outb(SP5100_PM_WATCHDOG_CONTROL, SP5100_IO_PM_INDEX_REG);
@@ -180,7 +185,9 @@ static int sp5100_tco_open(struct inode *inode, struct file *file)
 {
 	/* /dev/watchdog can only be opened once */
 	if (test_and_set_bit(0, &timer_alive))
+	{
 		return -EBUSY;
+	}
 
 	/* Reload and activate timer */
 	tco_timer_start();
@@ -191,23 +198,29 @@ static int sp5100_tco_open(struct inode *inode, struct file *file)
 static int sp5100_tco_release(struct inode *inode, struct file *file)
 {
 	/* Shut off the timer. */
-	if (tco_expect_close == 42) {
+	if (tco_expect_close == 42)
+	{
 		tco_timer_stop();
-	} else {
+	}
+	else
+	{
 		pr_crit("Unexpected close, not stopping watchdog!\n");
 		tco_timer_keepalive();
 	}
+
 	clear_bit(0, &timer_alive);
 	tco_expect_close = 0;
 	return 0;
 }
 
 static ssize_t sp5100_tco_write(struct file *file, const char __user *data,
-				size_t len, loff_t *ppos)
+								size_t len, loff_t *ppos)
 {
 	/* See if we got the magic character 'V' and reload the timer */
-	if (len) {
-		if (!nowayout) {
+	if (len)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			/* note: just in case someone wrote the magic character
@@ -216,70 +229,99 @@ static ssize_t sp5100_tco_write(struct file *file, const char __user *data,
 
 			/* scan to see whether or not we got the magic character
 			 */
-			for (i = 0; i != len; i++) {
+			for (i = 0; i != len; i++)
+			{
 				char c;
+
 				if (get_user(c, data + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					tco_expect_close = 42;
+				}
 			}
 		}
 
 		/* someone wrote to us, we should reload the timer */
 		tco_timer_keepalive();
 	}
+
 	return len;
 }
 
 static long sp5100_tco_ioctl(struct file *file, unsigned int cmd,
-			     unsigned long arg)
+							 unsigned long arg)
 {
 	int new_options, retval = -EINVAL;
 	int new_heartbeat;
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
-	static const struct watchdog_info ident = {
+	static const struct watchdog_info ident =
+	{
 		.options =		WDIOF_SETTIMEOUT |
-					WDIOF_KEEPALIVEPING |
-					WDIOF_MAGICCLOSE,
+		WDIOF_KEEPALIVEPING |
+		WDIOF_MAGICCLOSE,
 		.firmware_version =	0,
 		.identity =		TCO_MODULE_NAME,
 	};
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		return copy_to_user(argp, &ident,
-			sizeof(ident)) ? -EFAULT : 0;
-	case WDIOC_GETSTATUS:
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(0, p);
-	case WDIOC_SETOPTIONS:
-		if (get_user(new_options, p))
-			return -EFAULT;
-		if (new_options & WDIOS_DISABLECARD) {
-			tco_timer_stop();
-			retval = 0;
-		}
-		if (new_options & WDIOS_ENABLECARD) {
-			tco_timer_start();
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			return copy_to_user(argp, &ident,
+								sizeof(ident)) ? -EFAULT : 0;
+
+		case WDIOC_GETSTATUS:
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(0, p);
+
+		case WDIOC_SETOPTIONS:
+			if (get_user(new_options, p))
+			{
+				return -EFAULT;
+			}
+
+			if (new_options & WDIOS_DISABLECARD)
+			{
+				tco_timer_stop();
+				retval = 0;
+			}
+
+			if (new_options & WDIOS_ENABLECARD)
+			{
+				tco_timer_start();
+				tco_timer_keepalive();
+				retval = 0;
+			}
+
+			return retval;
+
+		case WDIOC_KEEPALIVE:
 			tco_timer_keepalive();
-			retval = 0;
-		}
-		return retval;
-	case WDIOC_KEEPALIVE:
-		tco_timer_keepalive();
-		return 0;
-	case WDIOC_SETTIMEOUT:
-		if (get_user(new_heartbeat, p))
-			return -EFAULT;
-		if (tco_timer_set_heartbeat(new_heartbeat))
-			return -EINVAL;
-		tco_timer_keepalive();
+			return 0;
+
+		case WDIOC_SETTIMEOUT:
+			if (get_user(new_heartbeat, p))
+			{
+				return -EFAULT;
+			}
+
+			if (tco_timer_set_heartbeat(new_heartbeat))
+			{
+				return -EINVAL;
+			}
+
+			tco_timer_keepalive();
+
 		/* Fall through */
-	case WDIOC_GETTIMEOUT:
-		return put_user(heartbeat, p);
-	default:
-		return -ENOTTY;
+		case WDIOC_GETTIMEOUT:
+			return put_user(heartbeat, p);
+
+		default:
+			return -ENOTTY;
 	}
 }
 
@@ -287,7 +329,8 @@ static long sp5100_tco_ioctl(struct file *file, unsigned int cmd,
  * Kernel Interfaces
  */
 
-static const struct file_operations sp5100_tco_fops = {
+static const struct file_operations sp5100_tco_fops =
+{
 	.owner =		THIS_MODULE,
 	.llseek =		no_llseek,
 	.write =		sp5100_tco_write,
@@ -296,7 +339,8 @@ static const struct file_operations sp5100_tco_fops = {
 	.release =		sp5100_tco_release,
 };
 
-static struct miscdevice sp5100_tco_miscdev = {
+static struct miscdevice sp5100_tco_miscdev =
+{
 	.minor =	WATCHDOG_MINOR,
 	.name =		"watchdog",
 	.fops =		&sp5100_tco_fops,
@@ -310,13 +354,20 @@ static struct miscdevice sp5100_tco_miscdev = {
  * register a pci_driver, because someone else might
  * want to register another driver on the same PCI id.
  */
-static const struct pci_device_id sp5100_tco_pci_tbl[] = {
-	{ PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_SBX00_SMBUS, PCI_ANY_ID,
-	  PCI_ANY_ID, },
-	{ PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_HUDSON2_SMBUS, PCI_ANY_ID,
-	  PCI_ANY_ID, },
-	{ PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_KERNCZ_SMBUS, PCI_ANY_ID,
-	  PCI_ANY_ID, },
+static const struct pci_device_id sp5100_tco_pci_tbl[] =
+{
+	{
+		PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_SBX00_SMBUS, PCI_ANY_ID,
+		PCI_ANY_ID,
+	},
+	{
+		PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_HUDSON2_SMBUS, PCI_ANY_ID,
+		PCI_ANY_ID,
+	},
+	{
+		PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_KERNCZ_SMBUS, PCI_ANY_ID,
+		PCI_ANY_ID,
+	},
 	{ 0, },			/* End of list */
 };
 MODULE_DEVICE_TABLE(pci, sp5100_tco_pci_tbl);
@@ -332,29 +383,36 @@ static unsigned char sp5100_tco_setupdevice(void)
 	u32 index_reg, data_reg, base_addr;
 
 	/* Match the PCI device */
-	for_each_pci_dev(dev) {
-		if (pci_match_id(sp5100_tco_pci_tbl, dev) != NULL) {
+	for_each_pci_dev(dev)
+	{
+		if (pci_match_id(sp5100_tco_pci_tbl, dev) != NULL)
+		{
 			sp5100_tco_pci = dev;
 			break;
 		}
 	}
 
 	if (!sp5100_tco_pci)
+	{
 		return 0;
+	}
 
 	pr_info("PCI Vendor ID: 0x%x, Device ID: 0x%x, Revision ID: 0x%x\n",
-		sp5100_tco_pci->vendor, sp5100_tco_pci->device,
-		sp5100_tco_pci->revision);
+			sp5100_tco_pci->vendor, sp5100_tco_pci->device,
+			sp5100_tco_pci->revision);
 
 	/*
 	 * Determine type of southbridge chipset.
 	 */
-	if (tco_has_sp5100_reg_layout(sp5100_tco_pci)) {
+	if (tco_has_sp5100_reg_layout(sp5100_tco_pci))
+	{
 		dev_name = SP5100_DEVNAME;
 		index_reg = SP5100_IO_PM_INDEX_REG;
 		data_reg = SP5100_IO_PM_DATA_REG;
 		base_addr = SP5100_PM_WATCHDOG_BASE;
-	} else {
+	}
+	else
+	{
 		dev_name = SB800_DEVNAME;
 		index_reg = SB800_IO_PM_INDEX_REG;
 		data_reg = SB800_IO_PM_DATA_REG;
@@ -363,7 +421,9 @@ static unsigned char sp5100_tco_setupdevice(void)
 
 	/* Request the IO ports used by this driver */
 	pm_iobase = SP5100_IO_PM_INDEX_REG;
-	if (!request_region(pm_iobase, SP5100_PM_IOPORTS_SIZE, dev_name)) {
+
+	if (!request_region(pm_iobase, SP5100_PM_IOPORTS_SIZE, dev_name))
+	{
 		pr_err("I/O address 0x%04x already in use\n", pm_iobase);
 		goto exit;
 	}
@@ -371,13 +431,13 @@ static unsigned char sp5100_tco_setupdevice(void)
 	/*
 	 * First, Find the watchdog timer MMIO address from indirect I/O.
 	 */
-	outb(base_addr+3, index_reg);
+	outb(base_addr + 3, index_reg);
 	val = inb(data_reg);
-	outb(base_addr+2, index_reg);
+	outb(base_addr + 2, index_reg);
 	val = val << 8 | inb(data_reg);
-	outb(base_addr+1, index_reg);
+	outb(base_addr + 1, index_reg);
 	val = val << 8 | inb(data_reg);
-	outb(base_addr+0, index_reg);
+	outb(base_addr + 0, index_reg);
 	/* Low three bits of BASE are reserved */
 	val = val << 8 | (inb(data_reg) & 0xf8);
 
@@ -385,48 +445,64 @@ static unsigned char sp5100_tco_setupdevice(void)
 
 	/* Check MMIO address conflict */
 	if (request_mem_region_exclusive(val, SP5100_WDT_MEM_MAP_SIZE,
-								dev_name))
+									 dev_name))
+	{
 		goto setup_wdt;
+	}
 	else
+	{
 		pr_debug("MMIO address 0x%04x already in use\n", val);
+	}
 
 	/*
 	 * Secondly, Find the watchdog timer MMIO address
 	 * from SBResource_MMIO register.
 	 */
-	if (tco_has_sp5100_reg_layout(sp5100_tco_pci)) {
+	if (tco_has_sp5100_reg_layout(sp5100_tco_pci))
+	{
 		/* Read SBResource_MMIO from PCI config(PCI_Reg: 9Ch) */
 		pci_read_config_dword(sp5100_tco_pci,
-				      SP5100_SB_RESOURCE_MMIO_BASE, &val);
-	} else {
+							  SP5100_SB_RESOURCE_MMIO_BASE, &val);
+	}
+	else
+	{
 		/* Read SBResource_MMIO from AcpiMmioEn(PM_Reg: 24h) */
-		outb(SB800_PM_ACPI_MMIO_EN+3, SB800_IO_PM_INDEX_REG);
+		outb(SB800_PM_ACPI_MMIO_EN + 3, SB800_IO_PM_INDEX_REG);
 		val = inb(SB800_IO_PM_DATA_REG);
-		outb(SB800_PM_ACPI_MMIO_EN+2, SB800_IO_PM_INDEX_REG);
+		outb(SB800_PM_ACPI_MMIO_EN + 2, SB800_IO_PM_INDEX_REG);
 		val = val << 8 | inb(SB800_IO_PM_DATA_REG);
-		outb(SB800_PM_ACPI_MMIO_EN+1, SB800_IO_PM_INDEX_REG);
+		outb(SB800_PM_ACPI_MMIO_EN + 1, SB800_IO_PM_INDEX_REG);
 		val = val << 8 | inb(SB800_IO_PM_DATA_REG);
-		outb(SB800_PM_ACPI_MMIO_EN+0, SB800_IO_PM_INDEX_REG);
+		outb(SB800_PM_ACPI_MMIO_EN + 0, SB800_IO_PM_INDEX_REG);
 		val = val << 8 | inb(SB800_IO_PM_DATA_REG);
 	}
 
 	/* The SBResource_MMIO is enabled and mapped memory space? */
 	if ((val & (SB800_ACPI_MMIO_DECODE_EN | SB800_ACPI_MMIO_SEL)) ==
-						  SB800_ACPI_MMIO_DECODE_EN) {
+		SB800_ACPI_MMIO_DECODE_EN)
+	{
 		/* Clear unnecessary the low twelve bits */
 		val &= ~0xFFF;
 		/* Add the Watchdog Timer offset to base address. */
 		val += SB800_PM_WDT_MMIO_OFFSET;
+
 		/* Check MMIO address conflict */
 		if (request_mem_region_exclusive(val, SP5100_WDT_MEM_MAP_SIZE,
-								   dev_name)) {
+										 dev_name))
+		{
 			pr_debug("Got 0x%04x from SBResource_MMIO register\n",
-				val);
+					 val);
 			goto setup_wdt;
-		} else
+		}
+		else
+		{
 			pr_debug("MMIO address 0x%04x already in use\n", val);
-	} else
+		}
+	}
+	else
+	{
 		pr_debug("SBResource_MMIO is disabled(0x%04x)\n", val);
+	}
 
 	pr_notice("failed to find MMIO address, giving up.\n");
 	goto  unreg_region;
@@ -435,7 +511,9 @@ setup_wdt:
 	tcobase_phys = val;
 
 	tcobase = ioremap(val, SP5100_WDT_MEM_MAP_SIZE);
-	if (!tcobase) {
+
+	if (!tcobase)
+	{
 		pr_err("failed to get tcobase address\n");
 		goto unreg_mem_region;
 	}
@@ -484,25 +562,30 @@ static int sp5100_tco_init(struct platform_device *dev)
 	 * set it up.
 	 */
 	if (!sp5100_tco_setupdevice())
+	{
 		return -ENODEV;
+	}
 
 	/* Check to see if last reboot was due to watchdog timeout */
 	pr_info("Last reboot was %striggered by watchdog.\n",
-		tco_wdt_fired ? "" : "not ");
+			tco_wdt_fired ? "" : "not ");
 
 	/*
 	 * Check that the heartbeat value is within it's range.
 	 * If not, reset to the default.
 	 */
-	if (tco_timer_set_heartbeat(heartbeat)) {
+	if (tco_timer_set_heartbeat(heartbeat))
+	{
 		heartbeat = WATCHDOG_HEARTBEAT;
 		tco_timer_set_heartbeat(heartbeat);
 	}
 
 	ret = misc_register(&sp5100_tco_miscdev);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-		       WATCHDOG_MINOR, ret);
+			   WATCHDOG_MINOR, ret);
 		goto exit;
 	}
 
@@ -510,7 +593,7 @@ static int sp5100_tco_init(struct platform_device *dev)
 
 	/* Show module parameters */
 	pr_info("initialized (0x%p). heartbeat=%d sec (nowayout=%d)\n",
-		tcobase, heartbeat, nowayout);
+			tcobase, heartbeat, nowayout);
 
 	return 0;
 
@@ -525,7 +608,9 @@ static void sp5100_tco_cleanup(void)
 {
 	/* Stop the timer before we leave */
 	if (!nowayout)
+	{
 		tco_timer_stop();
+	}
 
 	/* Deregister */
 	misc_deregister(&sp5100_tco_miscdev);
@@ -537,7 +622,10 @@ static void sp5100_tco_cleanup(void)
 static int sp5100_tco_remove(struct platform_device *dev)
 {
 	if (tcobase)
+	{
 		sp5100_tco_cleanup();
+	}
+
 	return 0;
 }
 
@@ -546,7 +634,8 @@ static void sp5100_tco_shutdown(struct platform_device *dev)
 	tco_timer_stop();
 }
 
-static struct platform_driver sp5100_tco_driver = {
+static struct platform_driver sp5100_tco_driver =
+{
 	.probe		= sp5100_tco_init,
 	.remove		= sp5100_tco_remove,
 	.shutdown	= sp5100_tco_shutdown,
@@ -562,12 +651,17 @@ static int __init sp5100_tco_init_module(void)
 	pr_info("SP5100/SB800 TCO WatchDog Timer Driver v%s\n", TCO_VERSION);
 
 	err = platform_driver_register(&sp5100_tco_driver);
+
 	if (err)
+	{
 		return err;
+	}
 
 	sp5100_tco_platform_device = platform_device_register_simple(
-					TCO_MODULE_NAME, -1, NULL, 0);
-	if (IS_ERR(sp5100_tco_platform_device)) {
+									 TCO_MODULE_NAME, -1, NULL, 0);
+
+	if (IS_ERR(sp5100_tco_platform_device))
+	{
 		err = PTR_ERR(sp5100_tco_platform_device);
 		goto unreg_platform_driver;
 	}

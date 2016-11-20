@@ -57,7 +57,8 @@
 #define MAX_PF_CAP		120
 #define TUNE_CAP_DIV		8
 
-struct as3935_state {
+struct as3935_state
+{
 	struct spi_device *spi;
 	struct iio_trigger *trig;
 	struct mutex lock;
@@ -68,13 +69,14 @@ struct as3935_state {
 	u8 buf[2] ____cacheline_aligned;
 };
 
-static const struct iio_chan_spec as3935_channels[] = {
+static const struct iio_chan_spec as3935_channels[] =
+{
 	{
 		.type           = IIO_PROXIMITY,
 		.info_mask_separate =
-			BIT(IIO_CHAN_INFO_RAW) |
-			BIT(IIO_CHAN_INFO_PROCESSED) |
-			BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_RAW) |
+		BIT(IIO_CHAN_INFO_PROCESSED) |
+		BIT(IIO_CHAN_INFO_SCALE),
 		.scan_index     = 0,
 		.scan_type = {
 			.sign           = 'u',
@@ -92,16 +94,20 @@ static int as3935_read(struct as3935_state *st, unsigned int reg, int *val)
 
 	cmd = (AS3935_READ_DATA | AS3935_ADDRESS(reg)) >> 8;
 	ret = spi_w8r8(st->spi, cmd);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	*val = ret;
 
 	return 0;
 }
 
 static int as3935_write(struct as3935_state *st,
-				unsigned int reg,
-				unsigned int val)
+						unsigned int reg,
+						unsigned int val)
 {
 	u8 *buf = st->buf;
 
@@ -112,34 +118,43 @@ static int as3935_write(struct as3935_state *st,
 }
 
 static ssize_t as3935_sensor_sensitivity_show(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	struct as3935_state *st = iio_priv(dev_to_iio_dev(dev));
 	int val, ret;
 
 	ret = as3935_read(st, AS3935_AFE_GAIN, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	val = (val & AS3935_AFE_MASK) >> 1;
 
 	return sprintf(buf, "%d\n", val);
 }
 
 static ssize_t as3935_sensor_sensitivity_store(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t len)
+		struct device_attribute *attr,
+		const char *buf, size_t len)
 {
 	struct as3935_state *st = iio_priv(dev_to_iio_dev(dev));
 	unsigned long val;
 	int ret;
 
 	ret = kstrtoul((const char *) buf, 10, &val);
+
 	if (ret)
+	{
 		return -EINVAL;
+	}
 
 	if (val > AS3935_AFE_GAIN_MAX)
+	{
 		return -EINVAL;
+	}
 
 	as3935_write(st, AS3935_AFE_GAIN, val << 1);
 
@@ -147,57 +162,73 @@ static ssize_t as3935_sensor_sensitivity_store(struct device *dev,
 }
 
 static IIO_DEVICE_ATTR(sensor_sensitivity, S_IRUGO | S_IWUSR,
-	as3935_sensor_sensitivity_show, as3935_sensor_sensitivity_store, 0);
+					   as3935_sensor_sensitivity_show, as3935_sensor_sensitivity_store, 0);
 
 
-static struct attribute *as3935_attributes[] = {
+static struct attribute *as3935_attributes[] =
+{
 	&iio_dev_attr_sensor_sensitivity.dev_attr.attr,
 	NULL,
 };
 
-static struct attribute_group as3935_attribute_group = {
+static struct attribute_group as3935_attribute_group =
+{
 	.attrs = as3935_attributes,
 };
 
 static int as3935_read_raw(struct iio_dev *indio_dev,
-			   struct iio_chan_spec const *chan,
-			   int *val,
-			   int *val2,
-			   long m)
+						   struct iio_chan_spec const *chan,
+						   int *val,
+						   int *val2,
+						   long m)
 {
 	struct as3935_state *st = iio_priv(indio_dev);
 	int ret;
 
 
-	switch (m) {
-	case IIO_CHAN_INFO_PROCESSED:
-	case IIO_CHAN_INFO_RAW:
-		*val2 = 0;
-		ret = as3935_read(st, AS3935_DATA, val);
-		if (ret)
-			return ret;
+	switch (m)
+	{
+		case IIO_CHAN_INFO_PROCESSED:
+		case IIO_CHAN_INFO_RAW:
+			*val2 = 0;
+			ret = as3935_read(st, AS3935_DATA, val);
 
-		if (m == IIO_CHAN_INFO_RAW)
-			return IIO_VAL_INT;
+			if (ret)
+			{
+				return ret;
+			}
 
-		/* storm out of range */
-		if (*val == AS3935_DATA_MASK)
+			if (m == IIO_CHAN_INFO_RAW)
+			{
+				return IIO_VAL_INT;
+			}
+
+			/* storm out of range */
+			if (*val == AS3935_DATA_MASK)
+			{
+				return -EINVAL;
+			}
+
+			if (m == IIO_CHAN_INFO_PROCESSED)
+			{
+				*val *= 1000;
+			}
+
+			break;
+
+		case IIO_CHAN_INFO_SCALE:
+			*val = 1000;
+			break;
+
+		default:
 			return -EINVAL;
-
-		if (m == IIO_CHAN_INFO_PROCESSED)
-			*val *= 1000;
-		break;
-	case IIO_CHAN_INFO_SCALE:
-		*val = 1000;
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return IIO_VAL_INT;
 }
 
-static const struct iio_info as3935_info = {
+static const struct iio_info as3935_info =
+{
 	.driver_module = THIS_MODULE,
 	.attrs = &as3935_attribute_group,
 	.read_raw = &as3935_read_raw,
@@ -211,19 +242,23 @@ static irqreturn_t as3935_trigger_handler(int irq, void *private)
 	int val, ret;
 
 	ret = as3935_read(st, AS3935_DATA, &val);
+
 	if (ret)
+	{
 		goto err_read;
+	}
 
 	st->buffer[0] = val & AS3935_DATA_MASK;
 	iio_push_to_buffers_with_timestamp(indio_dev, &st->buffer,
-					   pf->timestamp);
+									   pf->timestamp);
 err_read:
 	iio_trigger_notify_done(indio_dev->trig);
 
 	return IRQ_HANDLED;
 }
 
-static const struct iio_trigger_ops iio_interrupt_trigger_ops = {
+static const struct iio_trigger_ops iio_interrupt_trigger_ops =
+{
 	.owner = THIS_MODULE,
 };
 
@@ -236,20 +271,24 @@ static void as3935_event_work(struct work_struct *work)
 	st = container_of(work, struct as3935_state, work.work);
 
 	ret = as3935_read(st, AS3935_INT, &val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(&st->spi->dev, "read error\n");
 		return;
 	}
 
 	val &= AS3935_INT_MASK;
 
-	switch (val) {
-	case AS3935_EVENT_INT:
-		iio_trigger_poll(st->trig);
-		break;
-	case AS3935_NOISE_INT:
-		dev_warn(&st->spi->dev, "noise level is too high\n");
-		break;
+	switch (val)
+	{
+		case AS3935_EVENT_INT:
+			iio_trigger_poll(st->trig);
+			break;
+
+		case AS3935_NOISE_INT:
+			dev_warn(&st->spi->dev, "noise level is too high\n");
+			break;
 	}
 }
 
@@ -277,7 +316,7 @@ static void calibrate_as3935(struct as3935_state *st)
 
 	as3935_write(st, AS3935_CALIBRATE, 0x96);
 	as3935_write(st, AS3935_TUNE_CAP,
-		BIT(5) | (st->tune_cap / TUNE_CAP_DIV));
+				 BIT(5) | (st->tune_cap / TUNE_CAP_DIV));
 
 	mdelay(2);
 	as3935_write(st, AS3935_TUNE_CAP, (st->tune_cap / TUNE_CAP_DIV));
@@ -294,8 +333,12 @@ static int as3935_suspend(struct device *dev)
 
 	mutex_lock(&st->lock);
 	ret = as3935_read(st, AS3935_AFE_GAIN, &val);
+
 	if (ret)
+	{
 		goto err_suspend;
+	}
+
 	val |= AS3935_AFE_PWR_BIT;
 
 	ret = as3935_write(st, AS3935_AFE_GAIN, val);
@@ -314,8 +357,12 @@ static int as3935_resume(struct device *dev)
 
 	mutex_lock(&st->lock);
 	ret = as3935_read(st, AS3935_AFE_GAIN, &val);
+
 	if (ret)
+	{
 		goto err_resume;
+	}
+
 	val &= ~AS3935_AFE_PWR_BIT;
 	ret = as3935_write(st, AS3935_AFE_GAIN, val);
 
@@ -341,14 +388,18 @@ static int as3935_probe(struct spi_device *spi)
 	int ret;
 
 	/* Be sure lightning event interrupt is specified */
-	if (!spi->irq) {
+	if (!spi->irq)
+	{
 		dev_err(&spi->dev, "unable to get event interrupt\n");
 		return -EINVAL;
 	}
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	st = iio_priv(indio_dev);
 	st->spi = spi;
@@ -358,18 +409,21 @@ static int as3935_probe(struct spi_device *spi)
 	INIT_DELAYED_WORK(&st->work, as3935_event_work);
 
 	ret = of_property_read_u32(np,
-			"ams,tuning-capacitor-pf", &st->tune_cap);
-	if (ret) {
+							   "ams,tuning-capacitor-pf", &st->tune_cap);
+
+	if (ret)
+	{
 		st->tune_cap = 0;
 		dev_warn(&spi->dev,
-			"no tuning-capacitor-pf set, defaulting to %d",
-			st->tune_cap);
+				 "no tuning-capacitor-pf set, defaulting to %d",
+				 st->tune_cap);
 	}
 
-	if (st->tune_cap > MAX_PF_CAP) {
+	if (st->tune_cap > MAX_PF_CAP)
+	{
 		dev_err(&spi->dev,
-			"wrong tuning-capacitor-pf setting of %d\n",
-			st->tune_cap);
+				"wrong tuning-capacitor-pf setting of %d\n",
+				st->tune_cap);
 		return -EINVAL;
 	}
 
@@ -381,10 +435,12 @@ static int as3935_probe(struct spi_device *spi)
 	indio_dev->info = &as3935_info;
 
 	trig = devm_iio_trigger_alloc(&spi->dev, "%s-dev%d",
-				      indio_dev->name, indio_dev->id);
+								  indio_dev->name, indio_dev->id);
 
 	if (!trig)
+	{
 		return -ENOMEM;
+	}
 
 	st->trig = trig;
 	trig->dev.parent = indio_dev->dev.parent;
@@ -392,15 +448,18 @@ static int as3935_probe(struct spi_device *spi)
 	trig->ops = &iio_interrupt_trigger_ops;
 
 	ret = iio_trigger_register(trig);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&spi->dev, "failed to register trigger\n");
 		return ret;
 	}
 
 	ret = iio_triggered_buffer_setup(indio_dev, iio_pollfunc_store_time,
-		&as3935_trigger_handler, NULL);
+									 &as3935_trigger_handler, NULL);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(&spi->dev, "cannot setup iio trigger\n");
 		goto unregister_trigger;
 	}
@@ -408,21 +467,25 @@ static int as3935_probe(struct spi_device *spi)
 	calibrate_as3935(st);
 
 	ret = devm_request_irq(&spi->dev, spi->irq,
-				&as3935_interrupt_handler,
-				IRQF_TRIGGER_RISING,
-				dev_name(&spi->dev),
-				indio_dev);
+						   &as3935_interrupt_handler,
+						   IRQF_TRIGGER_RISING,
+						   dev_name(&spi->dev),
+						   indio_dev);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(&spi->dev, "unable to request irq\n");
 		goto unregister_buffer;
 	}
 
 	ret = iio_device_register(indio_dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&spi->dev, "unable to register device\n");
 		goto unregister_buffer;
 	}
+
 	return 0;
 
 unregister_buffer:
@@ -446,19 +509,22 @@ static int as3935_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct of_device_id as3935_of_match[] = {
+static const struct of_device_id as3935_of_match[] =
+{
 	{ .compatible = "ams,as3935", },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, as3935_of_match);
 
-static const struct spi_device_id as3935_id[] = {
+static const struct spi_device_id as3935_id[] =
+{
 	{"as3935", 0},
 	{},
 };
 MODULE_DEVICE_TABLE(spi, as3935_id);
 
-static struct spi_driver as3935_driver = {
+static struct spi_driver as3935_driver =
+{
 	.driver = {
 		.name	= "as3935",
 		.of_match_table = of_match_ptr(as3935_of_match),

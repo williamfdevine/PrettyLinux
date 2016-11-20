@@ -74,24 +74,30 @@ void irlmp_add_discovery(hashbin_t *cachelog, discovery_t *new)
 	 * their device address between every discovery.
 	 */
 	discovery = (discovery_t *) hashbin_get_first(cachelog);
-	while (discovery != NULL ) {
+
+	while (discovery != NULL )
+	{
 		node = discovery;
 
 		/* Be sure to stay one item ahead */
 		discovery = (discovery_t *) hashbin_get_next(cachelog);
 
 		if ((node->data.saddr == new->data.saddr) &&
-		    ((node->data.daddr == new->data.daddr) ||
-		     (strcmp(node->data.info, new->data.info) == 0)))
+			((node->data.daddr == new->data.daddr) ||
+			 (strcmp(node->data.info, new->data.info) == 0)))
 		{
 			/* This discovery is a previous discovery
 			 * from the same device, so just remove it
 			 */
 			hashbin_remove_this(cachelog, (irda_queue_t *) node);
+
 			/* Check if hints bits are unchanged */
 			if (get_unaligned((__u16 *)node->data.hints) == get_unaligned((__u16 *)new->data.hints))
 				/* Set time of first discovery for this node */
+			{
 				new->firststamp = node->firststamp;
+			}
+
 			kfree(node);
 		}
 	}
@@ -118,7 +124,8 @@ void irlmp_add_discovery_log(hashbin_t *cachelog, hashbin_t *log)
 	 *  of the normal one.
 	 */
 	/* Well... It means that there was nobody out there - Jean II */
-	if (log == NULL) {
+	if (log == NULL)
+	{
 		/* irlmp_start_discovery_timer(irlmp, 150); */
 		return;
 	}
@@ -129,7 +136,9 @@ void irlmp_add_discovery_log(hashbin_t *cachelog, hashbin_t *log)
 	 * We just need to lock the global log in irlmp_add_discovery().
 	 */
 	discovery = (discovery_t *) hashbin_remove_first(log);
-	while (discovery != NULL) {
+
+	while (discovery != NULL)
+	{
 		irlmp_add_discovery(cachelog, discovery);
 
 		discovery = (discovery_t *) hashbin_remove_first(log);
@@ -149,10 +158,10 @@ void irlmp_add_discovery_log(hashbin_t *cachelog, hashbin_t *log)
  */
 void irlmp_expire_discoveries(hashbin_t *log, __u32 saddr, int force)
 {
-	discovery_t *		discovery;
-	discovery_t *		curr;
+	discovery_t 		*discovery;
+	discovery_t 		*curr;
 	unsigned long		flags;
-	discinfo_t *		buffer = NULL;
+	discinfo_t 		*buffer = NULL;
 	int			n;		/* Size of the full log */
 	int			i = 0;		/* How many we expired */
 
@@ -160,26 +169,31 @@ void irlmp_expire_discoveries(hashbin_t *log, __u32 saddr, int force)
 	spin_lock_irqsave(&log->hb_spinlock, flags);
 
 	discovery = (discovery_t *) hashbin_get_first(log);
-	while (discovery != NULL) {
+
+	while (discovery != NULL)
+	{
 		/* Be sure to be one item ahead */
 		curr = discovery;
 		discovery = (discovery_t *) hashbin_get_next(log);
 
 		/* Test if it's time to expire this discovery */
 		if ((curr->data.saddr == saddr) &&
-		    (force ||
-		     ((jiffies - curr->timestamp) > DISCOVERY_EXPIRE_TIMEOUT)))
+			(force ||
+			 ((jiffies - curr->timestamp) > DISCOVERY_EXPIRE_TIMEOUT)))
 		{
 			/* Create buffer as needed.
 			 * As this function get called a lot and most time
 			 * we don't have anything to put in the log (we are
 			 * quite picky), we can save a lot of overhead
 			 * by not calling kmalloc. Jean II */
-			if(buffer == NULL) {
+			if (buffer == NULL)
+			{
 				/* Create the client specific buffer */
 				n = HASHBIN_GET_SIZE(log);
 				buffer = kmalloc(n * sizeof(struct irda_device_info), GFP_ATOMIC);
-				if (buffer == NULL) {
+
+				if (buffer == NULL)
+				{
 					spin_unlock_irqrestore(&log->hb_spinlock, flags);
 					return;
 				}
@@ -188,7 +202,7 @@ void irlmp_expire_discoveries(hashbin_t *log, __u32 saddr, int force)
 
 			/* Copy discovery information */
 			memcpy(&(buffer[i]), &(curr->data),
-			       sizeof(discinfo_t));
+				   sizeof(discinfo_t));
 			i++;
 
 			/* Remove it from the log */
@@ -203,8 +217,10 @@ void irlmp_expire_discoveries(hashbin_t *log, __u32 saddr, int force)
 	 * don't care to be interrupted. - Jean II */
 	spin_unlock_irqrestore(&log->hb_spinlock, flags);
 
-	if(buffer == NULL)
+	if (buffer == NULL)
+	{
 		return;
+	}
 
 	/* Tell IrLMP and registered clients about it */
 	irlmp_discovery_expiry(buffer, i);
@@ -227,7 +243,9 @@ void irlmp_dump_discoveries(hashbin_t *log)
 	IRDA_ASSERT(log != NULL, return;);
 
 	discovery = (discovery_t *) hashbin_get_first(log);
-	while (discovery != NULL) {
+
+	while (discovery != NULL)
+	{
 		pr_debug("Discovery:\n");
 		pr_debug("  daddr=%08x\n", discovery->data.daddr);
 		pr_debug("  saddr=%08x\n", discovery->data.saddr);
@@ -259,11 +277,11 @@ void irlmp_dump_discoveries(hashbin_t *log)
  * Jean II
  */
 struct irda_device_info *irlmp_copy_discoveries(hashbin_t *log, int *pn,
-						__u16 mask, int old_entries)
+		__u16 mask, int old_entries)
 {
-	discovery_t *		discovery;
+	discovery_t 		*discovery;
 	unsigned long		flags;
-	discinfo_t *		buffer = NULL;
+	discinfo_t 		*buffer = NULL;
 	int			j_timeout = (sysctl_discovery_timeout * HZ);
 	int			n;		/* Size of the full log */
 	int			i = 0;		/* How many we picked */
@@ -275,23 +293,29 @@ struct irda_device_info *irlmp_copy_discoveries(hashbin_t *log, int *pn,
 	spin_lock_irqsave(&log->hb_spinlock, flags);
 
 	discovery = (discovery_t *) hashbin_get_first(log);
-	while (discovery != NULL) {
+
+	while (discovery != NULL)
+	{
 		/* Mask out the ones we don't want :
 		 * We want to match the discovery mask, and to get only
 		 * the most recent one (unless we want old ones) */
 		if ((get_unaligned((__u16 *)discovery->data.hints) & mask) &&
-		    ((old_entries) ||
-		     ((jiffies - discovery->firststamp) < j_timeout))) {
+			((old_entries) ||
+			 ((jiffies - discovery->firststamp) < j_timeout)))
+		{
 			/* Create buffer as needed.
 			 * As this function get called a lot and most time
 			 * we don't have anything to put in the log (we are
 			 * quite picky), we can save a lot of overhead
 			 * by not calling kmalloc. Jean II */
-			if(buffer == NULL) {
+			if (buffer == NULL)
+			{
 				/* Create the client specific buffer */
 				n = HASHBIN_GET_SIZE(log);
 				buffer = kmalloc(n * sizeof(struct irda_device_info), GFP_ATOMIC);
-				if (buffer == NULL) {
+
+				if (buffer == NULL)
+				{
 					spin_unlock_irqrestore(&log->hb_spinlock, flags);
 					return NULL;
 				}
@@ -300,9 +324,10 @@ struct irda_device_info *irlmp_copy_discoveries(hashbin_t *log, int *pn,
 
 			/* Copy discovery information */
 			memcpy(&(buffer[i]), &(discovery->data),
-			       sizeof(discinfo_t));
+				   sizeof(discinfo_t));
 			i++;
 		}
+
 		discovery = (discovery_t *) hashbin_get_next(log);
 	}
 
@@ -320,10 +345,13 @@ static inline discovery_t *discovery_seq_idx(loff_t pos)
 	discovery_t *discovery;
 
 	for (discovery = (discovery_t *) hashbin_get_first(irlmp->cachelog);
-	     discovery != NULL;
-	     discovery = (discovery_t *) hashbin_get_next(irlmp->cachelog)) {
+		 discovery != NULL;
+		 discovery = (discovery_t *) hashbin_get_next(irlmp->cachelog))
+	{
 		if (pos-- == 0)
+		{
 			break;
+		}
 	}
 
 	return discovery;
@@ -339,8 +367,8 @@ static void *discovery_seq_next(struct seq_file *seq, void *v, loff_t *pos)
 {
 	++*pos;
 	return (v == SEQ_START_TOKEN)
-		? (void *) hashbin_get_first(irlmp->cachelog)
-		: (void *) hashbin_get_next(irlmp->cachelog);
+		   ? (void *) hashbin_get_first(irlmp->cachelog)
+		   : (void *) hashbin_get_next(irlmp->cachelog);
 }
 
 static void discovery_seq_stop(struct seq_file *seq, void *v)
@@ -351,49 +379,87 @@ static void discovery_seq_stop(struct seq_file *seq, void *v)
 static int discovery_seq_show(struct seq_file *seq, void *v)
 {
 	if (v == SEQ_START_TOKEN)
+	{
 		seq_puts(seq, "IrLMP: Discovery log:\n\n");
-	else {
+	}
+	else
+	{
 		const discovery_t *discovery = v;
 
 		seq_printf(seq, "nickname: %s, hint: 0x%02x%02x",
-			   discovery->data.info,
-			   discovery->data.hints[0],
-			   discovery->data.hints[1]);
+				   discovery->data.info,
+				   discovery->data.hints[0],
+				   discovery->data.hints[1]);
 #if 0
+
 		if ( discovery->data.hints[0] & HINT_PNP)
+		{
 			seq_puts(seq, "PnP Compatible ");
+		}
+
 		if ( discovery->data.hints[0] & HINT_PDA)
+		{
 			seq_puts(seq, "PDA/Palmtop ");
+		}
+
 		if ( discovery->data.hints[0] & HINT_COMPUTER)
+		{
 			seq_puts(seq, "Computer ");
+		}
+
 		if ( discovery->data.hints[0] & HINT_PRINTER)
+		{
 			seq_puts(seq, "Printer ");
+		}
+
 		if ( discovery->data.hints[0] & HINT_MODEM)
+		{
 			seq_puts(seq, "Modem ");
+		}
+
 		if ( discovery->data.hints[0] & HINT_FAX)
+		{
 			seq_puts(seq, "Fax ");
+		}
+
 		if ( discovery->data.hints[0] & HINT_LAN)
+		{
 			seq_puts(seq, "LAN Access ");
+		}
 
 		if ( discovery->data.hints[1] & HINT_TELEPHONY)
+		{
 			seq_puts(seq, "Telephony ");
+		}
+
 		if ( discovery->data.hints[1] & HINT_FILE_SERVER)
+		{
 			seq_puts(seq, "File Server ");
+		}
+
 		if ( discovery->data.hints[1] & HINT_COMM)
+		{
 			seq_puts(seq, "IrCOMM ");
+		}
+
 		if ( discovery->data.hints[1] & HINT_OBEX)
+		{
 			seq_puts(seq, "IrOBEX ");
+		}
+
 #endif
-		seq_printf(seq,", saddr: 0x%08x, daddr: 0x%08x\n\n",
-			       discovery->data.saddr,
-			       discovery->data.daddr);
+		seq_printf(seq, ", saddr: 0x%08x, daddr: 0x%08x\n\n",
+				   discovery->data.saddr,
+				   discovery->data.daddr);
 
 		seq_putc(seq, '\n');
 	}
+
 	return 0;
 }
 
-static const struct seq_operations discovery_seq_ops = {
+static const struct seq_operations discovery_seq_ops =
+{
 	.start  = discovery_seq_start,
 	.next   = discovery_seq_next,
 	.stop   = discovery_seq_stop,
@@ -407,7 +473,8 @@ static int discovery_seq_open(struct inode *inode, struct file *file)
 	return seq_open(file, &discovery_seq_ops);
 }
 
-const struct file_operations discovery_seq_fops = {
+const struct file_operations discovery_seq_fops =
+{
 	.owner		= THIS_MODULE,
 	.open           = discovery_seq_open,
 	.read           = seq_read,

@@ -77,7 +77,8 @@
 #define GXBB_WDT_TCNT_SETUP_MASK		(BIT(16) - 1)
 #define GXBB_WDT_TCNT_CNT_SHIFT			16
 
-struct meson_gxbb_wdt {
+struct meson_gxbb_wdt
+{
 	void __iomem *reg_base;
 	struct watchdog_device wdt_dev;
 	struct clk *clk;
@@ -88,7 +89,7 @@ static int meson_gxbb_wdt_start(struct watchdog_device *wdt_dev)
 	struct meson_gxbb_wdt *data = watchdog_get_drvdata(wdt_dev);
 
 	writel(readl(data->reg_base + GXBB_WDT_CTRL_REG) | GXBB_WDT_CTRL_EN,
-	       data->reg_base + GXBB_WDT_CTRL_REG);
+		   data->reg_base + GXBB_WDT_CTRL_REG);
 
 	return 0;
 }
@@ -98,7 +99,7 @@ static int meson_gxbb_wdt_stop(struct watchdog_device *wdt_dev)
 	struct meson_gxbb_wdt *data = watchdog_get_drvdata(wdt_dev);
 
 	writel(readl(data->reg_base + GXBB_WDT_CTRL_REG) & ~GXBB_WDT_CTRL_EN,
-	       data->reg_base + GXBB_WDT_CTRL_REG);
+		   data->reg_base + GXBB_WDT_CTRL_REG);
 
 	return 0;
 }
@@ -113,13 +114,15 @@ static int meson_gxbb_wdt_ping(struct watchdog_device *wdt_dev)
 }
 
 static int meson_gxbb_wdt_set_timeout(struct watchdog_device *wdt_dev,
-				      unsigned int timeout)
+									  unsigned int timeout)
 {
 	struct meson_gxbb_wdt *data = watchdog_get_drvdata(wdt_dev);
 	unsigned long tcnt = timeout * 1000;
 
 	if (tcnt > GXBB_WDT_TCNT_SETUP_MASK)
+	{
 		tcnt = GXBB_WDT_TCNT_SETUP_MASK;
+	}
 
 	wdt_dev->timeout = timeout;
 
@@ -138,10 +141,11 @@ static unsigned int meson_gxbb_wdt_get_timeleft(struct watchdog_device *wdt_dev)
 	reg = readl(data->reg_base + GXBB_WDT_TCNT_REG);
 
 	return ((reg >> GXBB_WDT_TCNT_CNT_SHIFT) -
-		(reg & GXBB_WDT_TCNT_SETUP_MASK)) / 1000;
+			(reg & GXBB_WDT_TCNT_SETUP_MASK)) / 1000;
 }
 
-static const struct watchdog_ops meson_gxbb_wdt_ops = {
+static const struct watchdog_ops meson_gxbb_wdt_ops =
+{
 	.start = meson_gxbb_wdt_start,
 	.stop = meson_gxbb_wdt_stop,
 	.ping = meson_gxbb_wdt_ping,
@@ -149,7 +153,8 @@ static const struct watchdog_ops meson_gxbb_wdt_ops = {
 	.get_timeleft = meson_gxbb_wdt_get_timeleft,
 };
 
-static const struct watchdog_info meson_gxbb_wdt_info = {
+static const struct watchdog_info meson_gxbb_wdt_info =
+{
 	.identity = "Meson GXBB Watchdog",
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 };
@@ -159,7 +164,9 @@ static int __maybe_unused meson_gxbb_wdt_resume(struct device *dev)
 	struct meson_gxbb_wdt *data = dev_get_drvdata(dev);
 
 	if (watchdog_active(&data->wdt_dev))
+	{
 		meson_gxbb_wdt_start(&data->wdt_dev);
+	}
 
 	return 0;
 }
@@ -169,18 +176,22 @@ static int __maybe_unused meson_gxbb_wdt_suspend(struct device *dev)
 	struct meson_gxbb_wdt *data = dev_get_drvdata(dev);
 
 	if (watchdog_active(&data->wdt_dev))
+	{
 		meson_gxbb_wdt_stop(&data->wdt_dev);
+	}
 
 	return 0;
 }
 
-static const struct dev_pm_ops meson_gxbb_wdt_pm_ops = {
+static const struct dev_pm_ops meson_gxbb_wdt_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(meson_gxbb_wdt_suspend, meson_gxbb_wdt_resume)
 };
 
-static const struct of_device_id meson_gxbb_wdt_dt_ids[] = {
-	 { .compatible = "amlogic,meson-gxbb-wdt", },
-	 { /* sentinel */ },
+static const struct of_device_id meson_gxbb_wdt_dt_ids[] =
+{
+	{ .compatible = "amlogic,meson-gxbb-wdt", },
+	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, meson_gxbb_wdt_dt_ids);
 
@@ -191,17 +202,26 @@ static int meson_gxbb_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	data->reg_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(data->reg_base))
+	{
 		return PTR_ERR(data->reg_base);
+	}
 
 	data->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(data->clk))
+	{
 		return PTR_ERR(data->clk);
+	}
 
 	clk_prepare_enable(data->clk);
 
@@ -217,15 +237,17 @@ static int meson_gxbb_wdt_probe(struct platform_device *pdev)
 
 	/* Setup with 1ms timebase */
 	writel(((clk_get_rate(data->clk) / 1000) & GXBB_WDT_CTRL_DIV_MASK) |
-		GXBB_WDT_CTRL_EE_RESET |
-		GXBB_WDT_CTRL_CLK_EN |
-		GXBB_WDT_CTRL_CLKDIV_EN,
-		data->reg_base + GXBB_WDT_CTRL_REG);
+		   GXBB_WDT_CTRL_EE_RESET |
+		   GXBB_WDT_CTRL_CLK_EN |
+		   GXBB_WDT_CTRL_CLKDIV_EN,
+		   data->reg_base + GXBB_WDT_CTRL_REG);
 
 	meson_gxbb_wdt_set_timeout(&data->wdt_dev, data->wdt_dev.timeout);
 
 	ret = watchdog_register_device(&data->wdt_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		clk_disable_unprepare(data->clk);
 		return ret;
 	}
@@ -251,7 +273,8 @@ static void meson_gxbb_wdt_shutdown(struct platform_device *pdev)
 	meson_gxbb_wdt_stop(&data->wdt_dev);
 }
 
-static struct platform_driver meson_gxbb_wdt_driver = {
+static struct platform_driver meson_gxbb_wdt_driver =
+{
 	.probe	= meson_gxbb_wdt_probe,
 	.remove	= meson_gxbb_wdt_remove,
 	.shutdown = meson_gxbb_wdt_shutdown,

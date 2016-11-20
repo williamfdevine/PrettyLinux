@@ -4,9 +4,9 @@
  *
  *	Copyright (c) 2002 Martin Diehl
  *
- *	This program is free software; you can redistribute it and/or 
- *	modify it under the terms of the GNU General Public License as 
- *	published by the Free Software Foundation; either version 2 of 
+ *	This program is free software; you can redistribute it and/or
+ *	modify it under the terms of the GNU General Public License as
+ *	published by the Free Software Foundation; either version 2 of
  *	the License, or (at your option) any later version.
  *
  ********************************************************************/
@@ -20,7 +20,8 @@
 #include <net/irda/irda.h>
 #include <net/irda/irda_device.h>		// iobuff_t
 
-struct sir_fsm {
+struct sir_fsm
+{
 	struct semaphore	sem;
 	struct delayed_work	work;
 	unsigned		state, substate;
@@ -64,7 +65,8 @@ struct sir_fsm {
 
 struct sir_dev;
 
-struct dongle_driver {
+struct dongle_driver
+{
 
 	struct module *owner;
 
@@ -80,7 +82,8 @@ struct dongle_driver {
 	struct list_head dongle_list;
 };
 
-struct sir_driver {
+struct sir_driver
+{
 
 	struct module *owner;
 
@@ -106,7 +109,7 @@ int irda_register_dongle(struct dongle_driver *new);
 int irda_unregister_dongle(struct dongle_driver *drv);
 
 struct sir_dev *sirdev_get_instance(const struct sir_driver *drv,
-				    const char *name);
+									const char *name);
 int sirdev_put_instance(struct sir_dev *self);
 
 int sirdev_set_dongle(struct sir_dev *dev, IRDA_DONGLE type);
@@ -159,7 +162,8 @@ static inline int sirdev_schedule_mode(struct sir_dev *dev, int mode)
 #endif
 
 
-struct sir_dev {
+struct sir_dev
+{
 	struct net_device *netdev;
 
 	struct irlap_cb    *irlap;
@@ -174,7 +178,7 @@ struct sir_dev {
 	spinlock_t tx_lock;
 
 	u32 new_speed;
- 	u32 flags;
+	u32 flags;
 
 	unsigned	speed;
 
@@ -182,8 +186,8 @@ struct sir_dev {
 	iobuff_t rx_buff;          /* Receive buffer */
 	struct sk_buff *tx_skb;
 
-	const struct dongle_driver * dongle_drv;
-	const struct sir_driver * drv;
+	const struct dongle_driver *dongle_drv;
+	const struct sir_driver *drv;
 	void *priv;
 
 };

@@ -26,7 +26,8 @@ static int rcar_du_vga_connector_get_modes(struct drm_connector *connector)
 	return 0;
 }
 
-static const struct drm_connector_helper_funcs connector_helper_funcs = {
+static const struct drm_connector_helper_funcs connector_helper_funcs =
+{
 	.get_modes = rcar_du_vga_connector_get_modes,
 };
 
@@ -36,7 +37,8 @@ rcar_du_vga_connector_detect(struct drm_connector *connector, bool force)
 	return connector_status_connected;
 }
 
-static const struct drm_connector_funcs connector_funcs = {
+static const struct drm_connector_funcs connector_funcs =
+{
 	.dpms = drm_atomic_helper_connector_dpms,
 	.reset = drm_atomic_helper_connector_reset,
 	.detect = rcar_du_vga_connector_detect,
@@ -47,7 +49,7 @@ static const struct drm_connector_funcs connector_funcs = {
 };
 
 int rcar_du_vga_connector_init(struct rcar_du_device *rcdu,
-			       struct rcar_du_encoder *renc)
+							   struct rcar_du_encoder *renc)
 {
 	struct drm_encoder *encoder = rcar_encoder_to_drm_encoder(renc);
 	struct rcar_du_connector *rcon;
@@ -55,8 +57,11 @@ int rcar_du_vga_connector_init(struct rcar_du_device *rcdu,
 	int ret;
 
 	rcon = devm_kzalloc(rcdu->dev, sizeof(*rcon), GFP_KERNEL);
+
 	if (rcon == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	connector = &rcon->connector;
 	connector->display_info.width_mm = 0;
@@ -64,19 +69,25 @@ int rcar_du_vga_connector_init(struct rcar_du_device *rcdu,
 	connector->interlace_allowed = true;
 
 	ret = drm_connector_init(rcdu->ddev, connector, &connector_funcs,
-				 DRM_MODE_CONNECTOR_VGA);
+							 DRM_MODE_CONNECTOR_VGA);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	drm_connector_helper_add(connector, &connector_helper_funcs);
 
 	connector->dpms = DRM_MODE_DPMS_OFF;
 	drm_object_property_set_value(&connector->base,
-		rcdu->ddev->mode_config.dpms_property, DRM_MODE_DPMS_OFF);
+								  rcdu->ddev->mode_config.dpms_property, DRM_MODE_DPMS_OFF);
 
 	ret = drm_mode_connector_attach_encoder(connector, encoder);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }

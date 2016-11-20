@@ -55,15 +55,15 @@
 #include "rcu.h"
 
 #ifdef MODULE_PARAM_PREFIX
-#undef MODULE_PARAM_PREFIX
+	#undef MODULE_PARAM_PREFIX
 #endif
 #define MODULE_PARAM_PREFIX "rcupdate."
 
 #ifndef CONFIG_TINY_RCU
-module_param(rcu_expedited, int, 0);
-module_param(rcu_normal, int, 0);
-static int rcu_normal_after_boot;
-module_param(rcu_normal_after_boot, int, 0);
+	module_param(rcu_expedited, int, 0);
+	module_param(rcu_normal, int, 0);
+	static int rcu_normal_after_boot;
+	module_param(rcu_normal_after_boot, int, 0);
 #endif /* #ifndef CONFIG_TINY_RCU */
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
@@ -103,13 +103,25 @@ int rcu_read_lock_sched_held(void)
 	int lockdep_opinion = 0;
 
 	if (!debug_lockdep_rcu_enabled())
+	{
 		return 1;
+	}
+
 	if (!rcu_is_watching())
+	{
 		return 0;
+	}
+
 	if (!rcu_lockdep_current_cpu_online())
+	{
 		return 0;
+	}
+
 	if (debug_locks)
+	{
 		lockdep_opinion = lock_is_held(&rcu_sched_lock_map);
+	}
+
 	return lockdep_opinion || !preemptible();
 }
 EXPORT_SYMBOL(rcu_read_lock_sched_held);
@@ -179,9 +191,14 @@ EXPORT_SYMBOL_GPL(rcu_unexpedite_gp);
 void rcu_end_inkernel_boot(void)
 {
 	if (IS_ENABLED(CONFIG_RCU_EXPEDITE_BOOT))
+	{
 		rcu_unexpedite_gp();
+	}
+
 	if (rcu_normal_after_boot)
+	{
 		WRITE_ONCE(rcu_normal, 1);
+	}
 }
 
 #endif /* #ifndef CONFIG_TINY_RCU */
@@ -211,17 +228,25 @@ void __rcu_read_unlock(void)
 {
 	struct task_struct *t = current;
 
-	if (t->rcu_read_lock_nesting != 1) {
+	if (t->rcu_read_lock_nesting != 1)
+	{
 		--t->rcu_read_lock_nesting;
-	} else {
+	}
+	else
+	{
 		barrier();  /* critical section before exit code. */
 		t->rcu_read_lock_nesting = INT_MIN;
 		barrier();  /* assign before ->rcu_read_unlock_special load */
+
 		if (unlikely(READ_ONCE(t->rcu_read_unlock_special.s)))
+		{
 			rcu_read_unlock_special(t);
+		}
+
 		barrier();  /* ->rcu_read_unlock_special load before assign */
 		t->rcu_read_lock_nesting = 0;
 	}
+
 #ifdef CONFIG_PROVE_LOCKING
 	{
 		int rrln = READ_ONCE(t->rcu_read_lock_nesting);
@@ -258,7 +283,7 @@ EXPORT_SYMBOL_GPL(rcu_callback_map);
 int notrace debug_lockdep_rcu_enabled(void)
 {
 	return rcu_scheduler_active && debug_locks &&
-	       current->lockdep_recursion == 0;
+		   current->lockdep_recursion == 0;
 }
 EXPORT_SYMBOL_GPL(debug_lockdep_rcu_enabled);
 
@@ -285,11 +310,20 @@ EXPORT_SYMBOL_GPL(debug_lockdep_rcu_enabled);
 int rcu_read_lock_held(void)
 {
 	if (!debug_lockdep_rcu_enabled())
+	{
 		return 1;
+	}
+
 	if (!rcu_is_watching())
+	{
 		return 0;
+	}
+
 	if (!rcu_lockdep_current_cpu_online())
+	{
 		return 0;
+	}
+
 	return lock_is_held(&rcu_lock_map);
 }
 EXPORT_SYMBOL_GPL(rcu_read_lock_held);
@@ -312,11 +346,20 @@ EXPORT_SYMBOL_GPL(rcu_read_lock_held);
 int rcu_read_lock_bh_held(void)
 {
 	if (!debug_lockdep_rcu_enabled())
+	{
 		return 1;
+	}
+
 	if (!rcu_is_watching())
+	{
 		return 0;
+	}
+
 	if (!rcu_lockdep_current_cpu_online())
+	{
 		return 0;
+	}
+
 	return in_softirq() || irqs_disabled();
 }
 EXPORT_SYMBOL_GPL(rcu_read_lock_bh_held);
@@ -339,29 +382,36 @@ void wakeme_after_rcu(struct rcu_head *head)
 EXPORT_SYMBOL_GPL(wakeme_after_rcu);
 
 void __wait_rcu_gp(bool checktiny, int n, call_rcu_func_t *crcu_array,
-		   struct rcu_synchronize *rs_array)
+				   struct rcu_synchronize *rs_array)
 {
 	int i;
 
 	/* Initialize and register callbacks for each flavor specified. */
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		if (checktiny &&
-		    (crcu_array[i] == call_rcu ||
-		     crcu_array[i] == call_rcu_bh)) {
+			(crcu_array[i] == call_rcu ||
+			 crcu_array[i] == call_rcu_bh))
+		{
 			might_sleep();
 			continue;
 		}
+
 		init_rcu_head_on_stack(&rs_array[i].head);
 		init_completion(&rs_array[i].completion);
 		(crcu_array[i])(&rs_array[i].head, wakeme_after_rcu);
 	}
 
 	/* Wait for all callbacks to be invoked. */
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		if (checktiny &&
-		    (crcu_array[i] == call_rcu ||
-		     crcu_array[i] == call_rcu_bh))
+			(crcu_array[i] == call_rcu ||
+			 crcu_array[i] == call_rcu_bh))
+		{
 			continue;
+		}
+
 		wait_for_completion(&rs_array[i].completion);
 		destroy_rcu_head_on_stack(&rs_array[i].head);
 	}
@@ -417,7 +467,8 @@ void destroy_rcu_head_on_stack(struct rcu_head *head)
 }
 EXPORT_SYMBOL_GPL(destroy_rcu_head_on_stack);
 
-struct debug_obj_descr rcuhead_debug_descr = {
+struct debug_obj_descr rcuhead_debug_descr =
+{
 	.name = "rcu_head",
 	.is_static_object = rcuhead_is_static_object,
 };
@@ -426,8 +477,8 @@ EXPORT_SYMBOL_GPL(rcuhead_debug_descr);
 
 #if defined(CONFIG_TREE_RCU) || defined(CONFIG_PREEMPT_RCU) || defined(CONFIG_RCU_TRACE)
 void do_trace_rcu_torture_read(const char *rcutorturename, struct rcu_head *rhp,
-			       unsigned long secs,
-			       unsigned long c_old, unsigned long c)
+							   unsigned long secs,
+							   unsigned long c_old, unsigned long c)
 {
 	trace_rcu_torture_read(rcutorturename, rhp, secs, c_old, c);
 }
@@ -440,9 +491,9 @@ EXPORT_SYMBOL_GPL(do_trace_rcu_torture_read);
 #ifdef CONFIG_RCU_STALL_COMMON
 
 #ifdef CONFIG_PROVE_RCU
-#define RCU_STALL_DELAY_DELTA	       (5 * HZ)
+	#define RCU_STALL_DELAY_DELTA	       (5 * HZ)
 #else
-#define RCU_STALL_DELAY_DELTA	       0
+	#define RCU_STALL_DELAY_DELTA	       0
 #endif
 
 int rcu_cpu_stall_suppress __read_mostly; /* 1 = suppress stall warnings. */
@@ -459,26 +510,34 @@ int rcu_jiffies_till_stall_check(void)
 	 * Limit check must be consistent with the Kconfig limits
 	 * for CONFIG_RCU_CPU_STALL_TIMEOUT.
 	 */
-	if (till_stall_check < 3) {
+	if (till_stall_check < 3)
+	{
 		WRITE_ONCE(rcu_cpu_stall_timeout, 3);
 		till_stall_check = 3;
-	} else if (till_stall_check > 300) {
+	}
+	else if (till_stall_check > 300)
+	{
 		WRITE_ONCE(rcu_cpu_stall_timeout, 300);
 		till_stall_check = 300;
 	}
+
 	return till_stall_check * HZ + RCU_STALL_DELAY_DELTA;
 }
 
 void rcu_sysrq_start(void)
 {
 	if (!rcu_cpu_stall_suppress)
+	{
 		rcu_cpu_stall_suppress = 2;
+	}
 }
 
 void rcu_sysrq_end(void)
 {
 	if (rcu_cpu_stall_suppress == 2)
+	{
 		rcu_cpu_stall_suppress = 0;
+	}
 }
 
 static int rcu_panic(struct notifier_block *this, unsigned long ev, void *ptr)
@@ -487,7 +546,8 @@ static int rcu_panic(struct notifier_block *this, unsigned long ev, void *ptr)
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block rcu_panic_block = {
+static struct notifier_block rcu_panic_block =
+{
 	.notifier_call = rcu_panic,
 };
 
@@ -546,9 +606,11 @@ void call_rcu_tasks(struct rcu_head *rhp, rcu_callback_t func)
 	*rcu_tasks_cbs_tail = rhp;
 	rcu_tasks_cbs_tail = &rhp->next;
 	raw_spin_unlock_irqrestore(&rcu_tasks_cbs_lock, flags);
+
 	/* We can't create the thread unless interrupts are enabled. */
 	if ((needwake && havetask) ||
-	    (!havetask && !irqs_disabled_flags(flags))) {
+		(!havetask && !irqs_disabled_flags(flags)))
+	{
 		rcu_spawn_tasks_kthread();
 		wake_up(&rcu_tasks_cbs_wq);
 	}
@@ -592,7 +654,7 @@ void synchronize_rcu_tasks(void)
 {
 	/* Complain if the scheduler has not started.  */
 	RCU_LOCKDEP_WARN(!rcu_scheduler_active,
-			 "synchronize_rcu_tasks called too soon");
+					 "synchronize_rcu_tasks called too soon");
 
 	/* Wait for the grace period. */
 	wait_rcu_gp(call_rcu_tasks);
@@ -614,32 +676,39 @@ EXPORT_SYMBOL_GPL(rcu_barrier_tasks);
 
 /* See if tasks are still holding out, complain if so. */
 static void check_holdout_task(struct task_struct *t,
-			       bool needreport, bool *firstreport)
+							   bool needreport, bool *firstreport)
 {
 	int cpu;
 
 	if (!READ_ONCE(t->rcu_tasks_holdout) ||
-	    t->rcu_tasks_nvcsw != READ_ONCE(t->nvcsw) ||
-	    !READ_ONCE(t->on_rq) ||
-	    (IS_ENABLED(CONFIG_NO_HZ_FULL) &&
-	     !is_idle_task(t) && t->rcu_tasks_idle_cpu >= 0)) {
+		t->rcu_tasks_nvcsw != READ_ONCE(t->nvcsw) ||
+		!READ_ONCE(t->on_rq) ||
+		(IS_ENABLED(CONFIG_NO_HZ_FULL) &&
+		 !is_idle_task(t) && t->rcu_tasks_idle_cpu >= 0))
+	{
 		WRITE_ONCE(t->rcu_tasks_holdout, false);
 		list_del_init(&t->rcu_tasks_holdout_list);
 		put_task_struct(t);
 		return;
 	}
+
 	if (!needreport)
+	{
 		return;
-	if (*firstreport) {
+	}
+
+	if (*firstreport)
+	{
 		pr_err("INFO: rcu_tasks detected stalls on tasks:\n");
 		*firstreport = false;
 	}
+
 	cpu = task_cpu(t);
 	pr_alert("%p: %c%c nvcsw: %lu/%lu holdout: %d idle_cpu: %d/%d\n",
-		 t, ".I"[is_idle_task(t)],
-		 "N."[cpu < 0 || !tick_nohz_full_cpu(cpu)],
-		 t->rcu_tasks_nvcsw, t->nvcsw, t->rcu_tasks_holdout,
-		 t->rcu_tasks_idle_cpu, cpu);
+			 t, ".I"[is_idle_task(t)],
+			 "N."[cpu < 0 || !tick_nohz_full_cpu(cpu)],
+			 t->rcu_tasks_nvcsw, t->nvcsw, t->rcu_tasks_holdout,
+			 t->rcu_tasks_idle_cpu, cpu);
 	sched_show_task(t);
 }
 
@@ -662,7 +731,8 @@ static int __noreturn rcu_tasks_kthread(void *arg)
 	 * one RCU-tasks grace period and then invokes the callbacks.
 	 * This loop is terminated by the system going down.  ;-)
 	 */
-	for (;;) {
+	for (;;)
+	{
 
 		/* Pick up any new callbacks. */
 		raw_spin_lock_irqsave(&rcu_tasks_cbs_lock, flags);
@@ -672,13 +742,17 @@ static int __noreturn rcu_tasks_kthread(void *arg)
 		raw_spin_unlock_irqrestore(&rcu_tasks_cbs_lock, flags);
 
 		/* If there were none, wait a bit and start over. */
-		if (!list) {
+		if (!list)
+		{
 			wait_event_interruptible(rcu_tasks_cbs_wq,
-						 rcu_tasks_cbs_head);
-			if (!rcu_tasks_cbs_head) {
+									 rcu_tasks_cbs_head);
+
+			if (!rcu_tasks_cbs_head)
+			{
 				WARN_ON(signal_pending(current));
-				schedule_timeout_interruptible(HZ/10);
+				schedule_timeout_interruptible(HZ / 10);
 			}
+
 			continue;
 		}
 
@@ -706,14 +780,16 @@ static int __noreturn rcu_tasks_kthread(void *arg)
 		 * a list of them in rcu_tasks_holdouts.
 		 */
 		rcu_read_lock();
-		for_each_process_thread(g, t) {
+		for_each_process_thread(g, t)
+		{
 			if (t != current && READ_ONCE(t->on_rq) &&
-			    !is_idle_task(t)) {
+				!is_idle_task(t))
+			{
 				get_task_struct(t);
 				t->rcu_tasks_nvcsw = READ_ONCE(t->nvcsw);
 				WRITE_ONCE(t->rcu_tasks_holdout, true);
 				list_add(&t->rcu_tasks_holdout_list,
-					 &rcu_tasks_holdouts);
+						 &rcu_tasks_holdouts);
 			}
 		}
 		rcu_read_unlock();
@@ -733,7 +809,9 @@ static int __noreturn rcu_tasks_kthread(void *arg)
 		 * holdouts.  When the list is empty, we are done.
 		 */
 		lastreport = jiffies;
-		while (!list_empty(&rcu_tasks_holdouts)) {
+
+		while (!list_empty(&rcu_tasks_holdouts))
+		{
 			bool firstreport;
 			bool needreport;
 			int rtst;
@@ -742,13 +820,18 @@ static int __noreturn rcu_tasks_kthread(void *arg)
 			schedule_timeout_interruptible(HZ);
 			rtst = READ_ONCE(rcu_task_stall_timeout);
 			needreport = rtst > 0 &&
-				     time_after(jiffies, lastreport + rtst);
+						 time_after(jiffies, lastreport + rtst);
+
 			if (needreport)
+			{
 				lastreport = jiffies;
+			}
+
 			firstreport = true;
 			WARN_ON(signal_pending(current));
 			list_for_each_entry_safe(t, t1, &rcu_tasks_holdouts,
-						rcu_tasks_holdout_list) {
+									 rcu_tasks_holdout_list)
+			{
 				check_holdout_task(t, needreport, &firstreport);
 				cond_resched();
 			}
@@ -777,7 +860,8 @@ static int __noreturn rcu_tasks_kthread(void *arg)
 		synchronize_sched();
 
 		/* Invoke the callbacks. */
-		while (list) {
+		while (list)
+		{
 			next = list->next;
 			local_bh_disable();
 			list->func(list);
@@ -785,7 +869,8 @@ static int __noreturn rcu_tasks_kthread(void *arg)
 			list = next;
 			cond_resched();
 		}
-		schedule_timeout_uninterruptible(HZ/10);
+
+		schedule_timeout_uninterruptible(HZ / 10);
 	}
 }
 
@@ -795,15 +880,20 @@ static void rcu_spawn_tasks_kthread(void)
 	static DEFINE_MUTEX(rcu_tasks_kthread_mutex);
 	struct task_struct *t;
 
-	if (READ_ONCE(rcu_tasks_kthread_ptr)) {
+	if (READ_ONCE(rcu_tasks_kthread_ptr))
+	{
 		smp_mb(); /* Ensure caller sees full kthread. */
 		return;
 	}
+
 	mutex_lock(&rcu_tasks_kthread_mutex);
-	if (rcu_tasks_kthread_ptr) {
+
+	if (rcu_tasks_kthread_ptr)
+	{
 		mutex_unlock(&rcu_tasks_kthread_mutex);
 		return;
 	}
+
 	t = kthread_run(rcu_tasks_kthread, NULL, "rcu_tasks_kthread");
 	BUG_ON(IS_ERR(t));
 	smp_mb(); /* Ensure others see full kthread. */
@@ -860,11 +950,19 @@ void rcu_early_boot_tests(void)
 	pr_info("Running RCU self tests\n");
 
 	if (rcu_self_test)
+	{
 		early_boot_test_call_rcu();
+	}
+
 	if (rcu_self_test_bh)
+	{
 		early_boot_test_call_rcu_bh();
+	}
+
 	if (rcu_self_test_sched)
+	{
 		early_boot_test_call_rcu_sched();
+	}
 }
 
 static int rcu_verify_early_boot_tests(void)
@@ -872,20 +970,26 @@ static int rcu_verify_early_boot_tests(void)
 	int ret = 0;
 	int early_boot_test_counter = 0;
 
-	if (rcu_self_test) {
+	if (rcu_self_test)
+	{
 		early_boot_test_counter++;
 		rcu_barrier();
 	}
-	if (rcu_self_test_bh) {
+
+	if (rcu_self_test_bh)
+	{
 		early_boot_test_counter++;
 		rcu_barrier_bh();
 	}
-	if (rcu_self_test_sched) {
+
+	if (rcu_self_test_sched)
+	{
 		early_boot_test_counter++;
 		rcu_barrier_sched();
 	}
 
-	if (rcu_self_test_counter != early_boot_test_counter) {
+	if (rcu_self_test_counter != early_boot_test_counter)
+	{
 		WARN_ON(1);
 		ret = -1;
 	}

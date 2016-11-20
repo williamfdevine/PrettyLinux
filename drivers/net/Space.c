@@ -38,7 +38,8 @@
  * ethernet adaptor have the name "eth[0123...]".
  */
 
-struct devprobe2 {
+struct devprobe2
+{
 	struct net_device *(*probe)(int unit);
 	int status;	/* non-zero if autoprobe has failed */
 };
@@ -47,22 +48,34 @@ static int __init probe_list2(int unit, struct devprobe2 *p, int autoprobe)
 {
 	struct net_device *dev;
 
-	for (; p->probe; p++) {
+	for (; p->probe; p++)
+	{
 		if (autoprobe && p->status)
+		{
 			continue;
+		}
+
 		dev = p->probe(unit);
+
 		if (!IS_ERR(dev))
+		{
 			return 0;
+		}
+
 		if (autoprobe)
+		{
 			p->status = PTR_ERR(dev);
+		}
 	}
+
 	return -ENODEV;
 }
 
 /* ISA probes that touch addresses < 0x400 (including those that also
  * look for EISA/PCI cards in addition to ISA cards).
  */
-static struct devprobe2 isa_probes[] __initdata = {
+static struct devprobe2 isa_probes[] __initdata =
+{
 #if defined(CONFIG_HP100) && defined(CONFIG_ISA)	/* ISA, EISA */
 	{hp100_probe, 0},
 #endif
@@ -98,7 +111,8 @@ static struct devprobe2 isa_probes[] __initdata = {
 	{NULL, 0},
 };
 
-static struct devprobe2 m68k_probes[] __initdata = {
+static struct devprobe2 m68k_probes[] __initdata =
+{
 #ifdef CONFIG_ATARILANCE	/* Lance-based Atari ethernet boards */
 	{atarilance_probe, 0},
 #endif
@@ -132,10 +146,12 @@ static void __init ethif_probe2(int unit)
 	unsigned long base_addr = netdev_boot_base("eth", unit);
 
 	if (base_addr == 1)
+	{
 		return;
+	}
 
 	(void)(probe_list2(unit, m68k_probes, base_addr == 0) &&
-		probe_list2(unit, isa_probes, base_addr == 0));
+		   probe_list2(unit, isa_probes, base_addr == 0));
 }
 
 /*  Statically configured drivers -- order matters here. */
@@ -144,11 +160,18 @@ static int __init net_olddevs_init(void)
 	int num;
 
 #ifdef CONFIG_SBNI
+
 	for (num = 0; num < 8; ++num)
+	{
 		sbni_probe(num);
+	}
+
 #endif
+
 	for (num = 0; num < 8; ++num)
+	{
 		ethif_probe2(num);
+	}
 
 #ifdef CONFIG_COPS
 	cops_probe(0);

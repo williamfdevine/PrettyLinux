@@ -54,7 +54,8 @@
 
 #define KNAV_NAME_SIZE			32
 
-enum knav_acc_result {
+enum knav_acc_result
+{
 	ACC_RET_IDLE,
 	ACC_RET_SUCCESS,
 	ACC_RET_INVALID_COMMAND,
@@ -65,7 +66,8 @@ enum knav_acc_result {
 	ACC_RET_INVALID_RET,
 };
 
-struct knav_reg_config {
+struct knav_reg_config
+{
 	u32		revision;
 	u32		__pad1;
 	u32		divert;
@@ -76,21 +78,24 @@ struct knav_reg_config {
 	u32		starvation[0];
 };
 
-struct knav_reg_region {
+struct knav_reg_region
+{
 	u32		base;
 	u32		start_index;
 	u32		size_count;
 	u32		__pad;
 };
 
-struct knav_reg_pdsp_regs {
+struct knav_reg_pdsp_regs
+{
 	u32		control;
 	u32		status;
 	u32		cycle_count;
 	u32		stall_count;
 };
 
-struct knav_reg_acc_command {
+struct knav_reg_acc_command
+{
 	u32		command;
 	u32		queue_mask;
 	u32		list_dma;
@@ -98,13 +103,15 @@ struct knav_reg_acc_command {
 	u32		timer_config;
 };
 
-struct knav_link_ram_block {
+struct knav_link_ram_block
+{
 	dma_addr_t	 dma;
 	void		*virt;
 	size_t		 size;
 };
 
-struct knav_acc_info {
+struct knav_acc_info
+{
 	u32			 pdsp_id;
 	u32			 start_channel;
 	u32			 list_entries;
@@ -115,7 +122,8 @@ struct knav_acc_info {
 	struct knav_pdsp_info	*pdsp;
 };
 
-struct knav_acc_channel {
+struct knav_acc_channel
+{
 	u32			channel;
 	u32			list_index;
 	u32			open_mask;
@@ -125,10 +133,12 @@ struct knav_acc_channel {
 	atomic_t		retrigger_count;
 };
 
-struct knav_pdsp_info {
+struct knav_pdsp_info
+{
 	const char					*name;
 	struct knav_reg_pdsp_regs  __iomem		*regs;
-	union {
+	union
+	{
 		void __iomem				*command;
 		struct knav_reg_acc_command __iomem	*acc_command;
 		u32 __iomem				*qos_command;
@@ -141,7 +151,8 @@ struct knav_pdsp_info {
 	bool						started;
 };
 
-struct knav_qmgr_info {
+struct knav_qmgr_info
+{
 	unsigned			start_queue;
 	unsigned			num_queues;
 	struct knav_reg_config __iomem	*reg_config;
@@ -161,7 +172,8 @@ struct knav_qmgr_info {
  * pop_errors:			number of pop errors
  * notifies:			notifier counts
  */
-struct knav_queue_stats {
+struct knav_queue_stats
+{
 	atomic_t	 pushes;
 	atomic_t	 pops;
 	atomic_t	 push_errors;
@@ -176,7 +188,8 @@ struct knav_queue_stats {
  * @packet_size:		packet size for the queue
  * @ptr_size_thresh:		packet pointer size threshold
  */
-struct knav_reg_queue {
+struct knav_reg_queue
+{
 	u32		entry_count;
 	u32		byte_count;
 	u32		packet_size;
@@ -196,7 +209,8 @@ struct knav_reg_queue {
  * @list:			instance in the device's region list
  * @pools:			list of descriptor pools in the region
  */
-struct knav_region {
+struct knav_region
+{
 	dma_addr_t		dma_start, dma_end;
 	void			*virt_start, *virt_end;
 	unsigned		desc_size;
@@ -223,7 +237,8 @@ struct knav_region {
  * @list:			list head
  * @region_inst:		instance in the region's pool list
  */
-struct knav_pool {
+struct knav_pool
+{
 	struct device			*dev;
 	struct knav_region		*region;
 	struct knav_queue		*queue;
@@ -253,7 +268,8 @@ struct knav_pool {
  * @name:				queue instance name
  * @irq_name:				irq line name
  */
-struct knav_queue_inst {
+struct knav_queue_inst
+{
 	u32				*descs;
 	atomic_t			desc_head, desc_tail, desc_count;
 	struct knav_acc_channel	*acc;
@@ -280,7 +296,8 @@ struct knav_queue_inst {
  * @flags:				queue flags
  * @list:				list head
  */
-struct knav_queue {
+struct knav_queue
+{
 	struct knav_reg_queue __iomem	*reg_push, *reg_pop, *reg_peek;
 	struct knav_queue_inst		*inst;
 	struct knav_queue_stats	stats;
@@ -292,7 +309,8 @@ struct knav_queue {
 	struct list_head		list;
 };
 
-struct knav_device {
+struct knav_device
+{
 	struct device				*dev;
 	unsigned				base_id;
 	unsigned				num_queues;
@@ -307,25 +325,28 @@ struct knav_device {
 	struct list_head			qmgrs;
 };
 
-struct knav_range_ops {
+struct knav_range_ops
+{
 	int	(*init_range)(struct knav_range_info *range);
 	int	(*free_range)(struct knav_range_info *range);
 	int	(*init_queue)(struct knav_range_info *range,
-			      struct knav_queue_inst *inst);
+					  struct knav_queue_inst *inst);
 	int	(*open_queue)(struct knav_range_info *range,
-			      struct knav_queue_inst *inst, unsigned flags);
+					  struct knav_queue_inst *inst, unsigned flags);
 	int	(*close_queue)(struct knav_range_info *range,
-			       struct knav_queue_inst *inst);
+					   struct knav_queue_inst *inst);
 	int	(*set_notify)(struct knav_range_info *range,
-			      struct knav_queue_inst *inst, bool enabled);
+					  struct knav_queue_inst *inst, bool enabled);
 };
 
-struct knav_irq_info {
+struct knav_irq_info
+{
 	int	irq;
 	u32	cpu_map;
 };
 
-struct knav_range_info {
+struct knav_range_info
+{
 	const char			*name;
 	struct knav_device		*kdev;
 	unsigned			queue_base;
@@ -346,18 +367,18 @@ struct knav_range_info {
 #define RANGE_MULTI_QUEUE	BIT(3)
 
 #define for_each_region(kdev, region)				\
-	list_for_each_entry(region, &kdev->regions, list)
+						list_for_each_entry(region, &kdev->regions, list)
 
 #define first_region(kdev)					\
 	list_first_entry_or_null(&kdev->regions, \
-				 struct knav_region, list)
+							 struct knav_region, list)
 
 #define for_each_queue_range(kdev, range)			\
 	list_for_each_entry(range, &kdev->queue_ranges, list)
 
 #define first_queue_range(kdev)					\
 	list_first_entry_or_null(&kdev->queue_ranges, \
-				 struct knav_range_info, list)
+							 struct knav_range_info, list)
 
 #define for_each_pool(kdev, pool)				\
 	list_for_each_entry(pool, &kdev->pools, list)
@@ -374,14 +395,18 @@ knav_find_pdsp(struct knav_device *kdev, unsigned pdsp_id)
 	struct knav_pdsp_info *pdsp;
 
 	for_each_pdsp(kdev, pdsp)
-		if (pdsp_id == pdsp->id)
-			return pdsp;
+
+	if (pdsp_id == pdsp->id)
+	{
+		return pdsp;
+	}
+
 	return NULL;
 }
 
 extern int knav_init_acc_range(struct knav_device *kdev,
-					struct device_node *node,
-					struct knav_range_info *range);
+							   struct device_node *node,
+							   struct knav_range_info *range);
 extern void knav_queue_notify(struct knav_queue_inst *inst);
 
 #endif /* __KNAV_QMSS_H__ */

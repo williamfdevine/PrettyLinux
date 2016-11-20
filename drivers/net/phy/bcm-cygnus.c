@@ -27,48 +27,75 @@ static int bcm_cygnus_afe_config(struct phy_device *phydev)
 
 	/* ensure smdspclk is enabled */
 	rc = phy_write(phydev, MII_BCM54XX_AUX_CTL, 0x0c30);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* AFE_VDAC_ICTRL_0 bit 7:4 Iq=1100 for 1g 10bt, normal modes */
 	rc = bcm_phy_write_misc(phydev, 0x39, 0x01, 0xA7C8);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* AFE_HPF_TRIM_OTHERS bit11=1, short cascode enable for all modes*/
 	rc = bcm_phy_write_misc(phydev, 0x3A, 0x00, 0x0803);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* AFE_TX_CONFIG_1 bit 7:4 Iq=1100 for test modes */
 	rc = bcm_phy_write_misc(phydev, 0x3A, 0x01, 0xA740);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* AFE TEMPSEN_OTHERS rcal_HT, rcal_LT 10000 */
 	rc = bcm_phy_write_misc(phydev, 0x3A, 0x03, 0x8400);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* AFE_FUTURE_RSV bit 2:0 rccal <2:0>=100 */
 	rc = bcm_phy_write_misc(phydev, 0x3B, 0x00, 0x0004);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* Adjust bias current trim to overcome digital offSet */
 	rc = phy_write(phydev, MII_BRCM_CORE_BASE1E, 0x02);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* make rcal=100, since rdb default is 000 */
 	rc = bcm_phy_write_exp(phydev, MII_BRCM_CORE_EXPB1, 0x10);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* CORE_EXPB0, Reset R_CAL/RC_CAL Engine */
 	rc = bcm_phy_write_exp(phydev, MII_BRCM_CORE_EXPB0, 0x10);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* CORE_EXPB0, Disable Reset R_CAL/RC_CAL Engine */
 	rc = bcm_phy_write_exp(phydev, MII_BRCM_CORE_EXPB0, 0x00);
@@ -81,32 +108,47 @@ static int bcm_cygnus_config_init(struct phy_device *phydev)
 	int reg, rc;
 
 	reg = phy_read(phydev, MII_BCM54XX_ECR);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
 
 	/* Mask interrupts globally. */
 	reg |= MII_BCM54XX_ECR_IM;
 	rc = phy_write(phydev, MII_BCM54XX_ECR, reg);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Unmask events of interest */
 	reg = ~(MII_BCM54XX_INT_DUPLEX |
-		MII_BCM54XX_INT_SPEED |
-		MII_BCM54XX_INT_LINK);
+			MII_BCM54XX_INT_SPEED |
+			MII_BCM54XX_INT_LINK);
 	rc = phy_write(phydev, MII_BCM54XX_IMR, reg);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Apply AFE settings for the PHY */
 	rc = bcm_cygnus_afe_config(phydev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Advertise EEE */
 	rc = bcm_phy_enable_eee(phydev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Enable APD */
 	return bcm_phy_enable_apd(phydev, false);
@@ -122,30 +164,36 @@ static int bcm_cygnus_resume(struct phy_device *phydev)
 	 * configurations when coming out of suspend.
 	 */
 	rc = bcm_cygnus_config_init(phydev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* restart auto negotiation with the new settings */
 	return genphy_config_aneg(phydev);
 }
 
-static struct phy_driver bcm_cygnus_phy_driver[] = {
+static struct phy_driver bcm_cygnus_phy_driver[] =
 {
-	.phy_id        = PHY_ID_BCM_CYGNUS,
-	.phy_id_mask   = 0xfffffff0,
-	.name          = "Broadcom Cygnus PHY",
-	.features      = PHY_GBIT_FEATURES |
-			SUPPORTED_Pause | SUPPORTED_Asym_Pause,
-	.config_init   = bcm_cygnus_config_init,
-	.config_aneg   = genphy_config_aneg,
-	.read_status   = genphy_read_status,
-	.ack_interrupt = bcm_phy_ack_intr,
-	.config_intr   = bcm_phy_config_intr,
-	.suspend       = genphy_suspend,
-	.resume        = bcm_cygnus_resume,
-} };
+	{
+		.phy_id        = PHY_ID_BCM_CYGNUS,
+		.phy_id_mask   = 0xfffffff0,
+		.name          = "Broadcom Cygnus PHY",
+		.features      = PHY_GBIT_FEATURES |
+		SUPPORTED_Pause | SUPPORTED_Asym_Pause,
+		.config_init   = bcm_cygnus_config_init,
+		.config_aneg   = genphy_config_aneg,
+		.read_status   = genphy_read_status,
+		.ack_interrupt = bcm_phy_ack_intr,
+		.config_intr   = bcm_phy_config_intr,
+		.suspend       = genphy_suspend,
+		.resume        = bcm_cygnus_resume,
+	}
+};
 
-static struct mdio_device_id __maybe_unused bcm_cygnus_phy_tbl[] = {
+static struct mdio_device_id __maybe_unused bcm_cygnus_phy_tbl[] =
+{
 	{ PHY_ID_BCM_CYGNUS, 0xfffffff0, },
 	{ }
 };

@@ -35,18 +35,26 @@ nv20_gr_chan_fini(struct nvkm_object *object, bool suspend)
 	int chid = -1;
 
 	nvkm_mask(device, 0x400720, 0x00000001, 0x00000000);
+
 	if (nvkm_rd32(device, 0x400144) & 0x00010000)
+	{
 		chid = (nvkm_rd32(device, 0x400148) & 0x1f000000) >> 24;
-	if (chan->chid == chid) {
+	}
+
+	if (chan->chid == chid)
+	{
 		nvkm_wr32(device, 0x400784, inst >> 4);
 		nvkm_wr32(device, 0x400788, 0x00000002);
 		nvkm_msec(device, 2000,
-			if (!nvkm_rd32(device, 0x400700))
-				break;
-		);
+
+				  if (!nvkm_rd32(device, 0x400700))
+				  break;
+				 );
+
 		nvkm_wr32(device, 0x400144, 0x10000000);
 		nvkm_mask(device, 0x400148, 0xff000000, 0x1f000000);
 	}
+
 	nvkm_mask(device, 0x400720, 0x00000001, 0x00000001);
 
 	nvkm_kmap(gr->ctxtab);
@@ -64,7 +72,8 @@ nv20_gr_chan_dtor(struct nvkm_object *object)
 }
 
 static const struct nvkm_object_func
-nv20_gr_chan = {
+	nv20_gr_chan =
+{
 	.dtor = nv20_gr_chan_dtor,
 	.init = nv20_gr_chan_init,
 	.fini = nv20_gr_chan_fini,
@@ -72,24 +81,30 @@ nv20_gr_chan = {
 
 static int
 nv20_gr_chan_new(struct nvkm_gr *base, struct nvkm_fifo_chan *fifoch,
-		 const struct nvkm_oclass *oclass, struct nvkm_object **pobject)
+				 const struct nvkm_oclass *oclass, struct nvkm_object **pobject)
 {
 	struct nv20_gr *gr = nv20_gr(base);
 	struct nv20_gr_chan *chan;
 	int ret, i;
 
 	if (!(chan = kzalloc(sizeof(*chan), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_object_ctor(&nv20_gr_chan, oclass, &chan->object);
 	chan->gr = gr;
 	chan->chid = fifoch->chid;
 	*pobject = &chan->object;
 
 	ret = nvkm_memory_new(gr->base.engine.subdev.device,
-			      NVKM_MEM_TARGET_INST, 0x37f0, 16, true,
-			      &chan->inst);
+						  NVKM_MEM_TARGET_INST, 0x37f0, 16, true,
+						  &chan->inst);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nvkm_kmap(chan->inst);
 	nvkm_wo32(chan->inst, 0x0000, 0x00000001 | (chan->chid << 24));
@@ -99,29 +114,51 @@ nv20_gr_chan_new(struct nvkm_gr *base, struct nvkm_fifo_chan *fifoch,
 	nvkm_wo32(chan->inst, 0x047c, 0x00000101);
 	nvkm_wo32(chan->inst, 0x0490, 0x00000111);
 	nvkm_wo32(chan->inst, 0x04a8, 0x44400000);
+
 	for (i = 0x04d4; i <= 0x04e0; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x00030303);
+	}
+
 	for (i = 0x04f4; i <= 0x0500; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x00080000);
+	}
+
 	for (i = 0x050c; i <= 0x0518; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x01012000);
+	}
+
 	for (i = 0x051c; i <= 0x0528; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x000105b8);
+	}
+
 	for (i = 0x052c; i <= 0x0538; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x00080008);
+	}
+
 	for (i = 0x055c; i <= 0x0598; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x07ff0000);
+	}
+
 	nvkm_wo32(chan->inst, 0x05a4, 0x4b7fffff);
 	nvkm_wo32(chan->inst, 0x05fc, 0x00000001);
 	nvkm_wo32(chan->inst, 0x0604, 0x00004000);
 	nvkm_wo32(chan->inst, 0x0610, 0x00000001);
 	nvkm_wo32(chan->inst, 0x0618, 0x00040000);
 	nvkm_wo32(chan->inst, 0x061c, 0x00010000);
-	for (i = 0x1c1c; i <= 0x248c; i += 16) {
+
+	for (i = 0x1c1c; i <= 0x248c; i += 16)
+	{
 		nvkm_wo32(chan->inst, (i + 0), 0x10700ff9);
 		nvkm_wo32(chan->inst, (i + 4), 0x0436086c);
 		nvkm_wo32(chan->inst, (i + 8), 0x000c001b);
 	}
+
 	nvkm_wo32(chan->inst, 0x281c, 0x3f800000);
 	nvkm_wo32(chan->inst, 0x2830, 0x3f800000);
 	nvkm_wo32(chan->inst, 0x285c, 0x40000000);
@@ -134,8 +171,12 @@ nv20_gr_chan_new(struct nvkm_gr *base, struct nvkm_fifo_chan *fifoch,
 	nvkm_wo32(chan->inst, 0x34a4, 0x000fe000);
 	nvkm_wo32(chan->inst, 0x3530, 0x000003f8);
 	nvkm_wo32(chan->inst, 0x3540, 0x002fe000);
+
 	for (i = 0x355c; i <= 0x3578; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x001c527c);
+	}
+
 	nvkm_done(chan->inst);
 	return 0;
 }
@@ -166,7 +207,8 @@ nv20_gr_tile(struct nvkm_gr *base, int i, struct nvkm_fb_tile *tile)
 	nvkm_wr32(device, NV10_PGRAPH_RDI_INDEX, 0x00EA0010 + 4 * i);
 	nvkm_wr32(device, NV10_PGRAPH_RDI_DATA, tile->addr);
 
-	if (device->chipset != 0x34) {
+	if (device->chipset != 0x34)
+	{
 		nvkm_wr32(device, NV20_PGRAPH_ZCOMP(i), tile->zcomp);
 		nvkm_wr32(device, NV10_PGRAPH_RDI_INDEX, 0x00ea0090 + 4 * i);
 		nvkm_wr32(device, NV10_PGRAPH_RDI_DATA, tile->zcomp);
@@ -200,16 +242,17 @@ nv20_gr_intr(struct nvkm_gr *base)
 	nvkm_wr32(device, NV03_PGRAPH_INTR, stat);
 	nvkm_wr32(device, NV04_PGRAPH_FIFO, 0x00000001);
 
-	if (show) {
+	if (show)
+	{
 		nvkm_snprintbf(msg, sizeof(msg), nv10_gr_intr_name, show);
 		nvkm_snprintbf(src, sizeof(src), nv04_gr_nsource, nsource);
 		nvkm_snprintbf(sta, sizeof(sta), nv10_gr_nstatus, nstatus);
 		nvkm_error(subdev, "intr %08x [%s] nsource %08x [%s] "
 				   "nstatus %08x [%s] ch %d [%s] subc %d "
 				   "class %04x mthd %04x data %08x\n",
-			   show, msg, nsource, src, nstatus, sta, chid,
-			   chan ? chan->object.client->name : "unknown",
-			   subc, class, mthd, data);
+				   show, msg, nsource, src, nstatus, sta, chid,
+				   chan ? chan->object.client->name : "unknown",
+				   subc, class, mthd, data);
 	}
 
 	nvkm_fifo_chan_put(device->fifo, flags, &chan);
@@ -220,8 +263,8 @@ nv20_gr_oneinit(struct nvkm_gr *base)
 {
 	struct nv20_gr *gr = nv20_gr(base);
 	return nvkm_memory_new(gr->base.engine.subdev.device,
-			       NVKM_MEM_TARGET_INST, 32 * 4, 16,
-			       true, &gr->ctxtab);
+						   NVKM_MEM_TARGET_INST, 32 * 4, 16,
+						   true, &gr->ctxtab);
 }
 
 int
@@ -235,22 +278,35 @@ nv20_gr_init(struct nvkm_gr *base)
 	nvkm_wr32(device, NV20_PGRAPH_CHANNEL_CTX_TABLE,
 			  nvkm_memory_addr(gr->ctxtab) >> 4);
 
-	if (device->chipset == 0x20) {
+	if (device->chipset == 0x20)
+	{
 		nvkm_wr32(device, NV10_PGRAPH_RDI_INDEX, 0x003d0000);
+
 		for (i = 0; i < 15; i++)
+		{
 			nvkm_wr32(device, NV10_PGRAPH_RDI_DATA, 0x00000000);
+		}
+
 		nvkm_msec(device, 2000,
-			if (!nvkm_rd32(device, 0x400700))
-				break;
-		);
-	} else {
+
+				  if (!nvkm_rd32(device, 0x400700))
+				  break;
+				 );
+	}
+	else
+	{
 		nvkm_wr32(device, NV10_PGRAPH_RDI_INDEX, 0x02c80000);
+
 		for (i = 0; i < 32; i++)
+		{
 			nvkm_wr32(device, NV10_PGRAPH_RDI_DATA, 0x00000000);
+		}
+
 		nvkm_msec(device, 2000,
-			if (!nvkm_rd32(device, 0x400700))
-				break;
-		);
+
+				  if (!nvkm_rd32(device, 0x400700))
+				  break;
+				 );
 	}
 
 	nvkm_wr32(device, NV03_PGRAPH_INTR   , 0xFFFFFFFF);
@@ -263,7 +319,8 @@ nv20_gr_init(struct nvkm_gr *base)
 	nvkm_wr32(device, NV10_PGRAPH_DEBUG_4, 0x00000000);
 	nvkm_wr32(device, 0x40009C           , 0x00000040);
 
-	if (device->chipset >= 0x25) {
+	if (device->chipset >= 0x25)
+	{
 		nvkm_wr32(device, 0x400890, 0x00a8cfff);
 		nvkm_wr32(device, 0x400610, 0x304B1FB6);
 		nvkm_wr32(device, 0x400B80, 0x1cbd3883);
@@ -271,7 +328,9 @@ nv20_gr_init(struct nvkm_gr *base)
 		nvkm_wr32(device, 0x400098, 0x40000080);
 		nvkm_wr32(device, 0x400B88, 0x000000ff);
 
-	} else {
+	}
+	else
+	{
 		nvkm_wr32(device, 0x400880, 0x0008c7df);
 		nvkm_wr32(device, 0x400094, 0x00000005);
 		nvkm_wr32(device, 0x400B80, 0x45eae20e);
@@ -329,19 +388,23 @@ nv20_gr_dtor(struct nvkm_gr *base)
 
 int
 nv20_gr_new_(const struct nvkm_gr_func *func, struct nvkm_device *device,
-	     int index, struct nvkm_gr **pgr)
+			 int index, struct nvkm_gr **pgr)
 {
 	struct nv20_gr *gr;
 
 	if (!(gr = kzalloc(sizeof(*gr), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pgr = &gr->base;
 
 	return nvkm_gr_ctor(func, device, index, true, &gr->base);
 }
 
 static const struct nvkm_gr_func
-nv20_gr = {
+	nv20_gr =
+{
 	.dtor = nv20_gr_dtor,
 	.oneinit = nv20_gr_oneinit,
 	.init = nv20_gr_init,

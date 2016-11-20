@@ -47,17 +47,22 @@ extern struct builtin_fw __start_builtin_fw[];
 extern struct builtin_fw __end_builtin_fw[];
 
 static bool fw_get_builtin_firmware(struct firmware *fw, const char *name,
-				    void *buf, size_t size)
+									void *buf, size_t size)
 {
 	struct builtin_fw *b_fw;
 
-	for (b_fw = __start_builtin_fw; b_fw != __end_builtin_fw; b_fw++) {
-		if (strcmp(name, b_fw->name) == 0) {
+	for (b_fw = __start_builtin_fw; b_fw != __end_builtin_fw; b_fw++)
+	{
+		if (strcmp(name, b_fw->name) == 0)
+		{
 			fw->size = b_fw->size;
 			fw->data = b_fw->data;
 
 			if (buf && fw->size <= size)
+			{
 				memcpy(buf, fw->data, fw->size);
+			}
+
 			return true;
 		}
 	}
@@ -71,7 +76,9 @@ static bool fw_is_builtin_firmware(const struct firmware *fw)
 
 	for (b_fw = __start_builtin_fw; b_fw != __end_builtin_fw; b_fw++)
 		if (fw->data == b_fw->data)
+		{
 			return true;
+		}
 
 	return false;
 }
@@ -79,8 +86,8 @@ static bool fw_is_builtin_firmware(const struct firmware *fw)
 #else /* Module case - no builtin firmware support */
 
 static inline bool fw_get_builtin_firmware(struct firmware *fw,
-					   const char *name, void *buf,
-					   size_t size)
+		const char *name, void *buf,
+		size_t size)
 {
 	return false;
 }
@@ -91,7 +98,8 @@ static inline bool fw_is_builtin_firmware(const struct firmware *fw)
 }
 #endif
 
-enum {
+enum
+{
 	FW_STATUS_LOADING,
 	FW_STATUS_DONE,
 	FW_STATUS_ABORT,
@@ -108,19 +116,20 @@ static inline long firmware_loading_timeout(void)
 #define FW_OPT_UEVENT	(1U << 0)
 #define FW_OPT_NOWAIT	(1U << 1)
 #ifdef CONFIG_FW_LOADER_USER_HELPER
-#define FW_OPT_USERHELPER	(1U << 2)
+	#define FW_OPT_USERHELPER	(1U << 2)
 #else
-#define FW_OPT_USERHELPER	0
+	#define FW_OPT_USERHELPER	0
 #endif
 #ifdef CONFIG_FW_LOADER_USER_HELPER_FALLBACK
-#define FW_OPT_FALLBACK		FW_OPT_USERHELPER
+	#define FW_OPT_FALLBACK		FW_OPT_USERHELPER
 #else
-#define FW_OPT_FALLBACK		0
+	#define FW_OPT_FALLBACK		0
 #endif
 #define FW_OPT_NO_WARN	(1U << 3)
 #define FW_OPT_NOCACHE	(1U << 4)
 
-struct firmware_cache {
+struct firmware_cache
+{
 	/* firmware_buf instance will be added into the below list */
 	spinlock_t lock;
 	struct list_head head;
@@ -142,7 +151,8 @@ struct firmware_cache {
 #endif
 };
 
-struct firmware_buf {
+struct firmware_buf
+{
 	struct kref ref;
 	struct list_head list;
 	struct completion completion;
@@ -162,12 +172,14 @@ struct firmware_buf {
 	const char *fw_id;
 };
 
-struct fw_cache_entry {
+struct fw_cache_entry
+{
 	struct list_head list;
 	const char *name;
 };
 
-struct fw_name_devm {
+struct fw_name_devm
+{
 	unsigned long magic;
 	const char *name;
 };
@@ -186,17 +198,22 @@ static DEFINE_MUTEX(fw_lock);
 static struct firmware_cache fw_cache;
 
 static struct firmware_buf *__allocate_fw_buf(const char *fw_name,
-					      struct firmware_cache *fwc,
-					      void *dbuf, size_t size)
+		struct firmware_cache *fwc,
+		void *dbuf, size_t size)
 {
 	struct firmware_buf *buf;
 
 	buf = kzalloc(sizeof(*buf), GFP_ATOMIC);
+
 	if (!buf)
+	{
 		return NULL;
+	}
 
 	buf->fw_id = kstrdup_const(fw_name, GFP_ATOMIC);
-	if (!buf->fw_id) {
+
+	if (!buf->fw_id)
+	{
 		kfree(buf);
 		return NULL;
 	}
@@ -221,29 +238,40 @@ static struct firmware_buf *__fw_lookup_buf(const char *fw_name)
 	struct firmware_cache *fwc = &fw_cache;
 
 	list_for_each_entry(tmp, &fwc->head, list)
-		if (!strcmp(tmp->fw_id, fw_name))
-			return tmp;
+
+	if (!strcmp(tmp->fw_id, fw_name))
+	{
+		return tmp;
+	}
+
 	return NULL;
 }
 
 static int fw_lookup_and_allocate_buf(const char *fw_name,
-				      struct firmware_cache *fwc,
-				      struct firmware_buf **buf, void *dbuf,
-				      size_t size)
+									  struct firmware_cache *fwc,
+									  struct firmware_buf **buf, void *dbuf,
+									  size_t size)
 {
 	struct firmware_buf *tmp;
 
 	spin_lock(&fwc->lock);
 	tmp = __fw_lookup_buf(fw_name);
-	if (tmp) {
+
+	if (tmp)
+	{
 		kref_get(&tmp->ref);
 		spin_unlock(&fwc->lock);
 		*buf = tmp;
 		return 1;
 	}
+
 	tmp = __allocate_fw_buf(fw_name, fwc, dbuf, size);
+
 	if (tmp)
+	{
 		list_add(&tmp->list, &fwc->head);
+	}
+
 	spin_unlock(&fwc->lock);
 
 	*buf = tmp;
@@ -252,29 +280,39 @@ static int fw_lookup_and_allocate_buf(const char *fw_name,
 }
 
 static void __fw_free_buf(struct kref *ref)
-	__releases(&fwc->lock)
+__releases(&fwc->lock)
 {
 	struct firmware_buf *buf = to_fwbuf(ref);
 	struct firmware_cache *fwc = buf->fwc;
 
 	pr_debug("%s: fw-%s buf=%p data=%p size=%u\n",
-		 __func__, buf->fw_id, buf, buf->data,
-		 (unsigned int)buf->size);
+			 __func__, buf->fw_id, buf, buf->data,
+			 (unsigned int)buf->size);
 
 	list_del(&buf->list);
 	spin_unlock(&fwc->lock);
 
 #ifdef CONFIG_FW_LOADER_USER_HELPER
-	if (buf->is_paged_buf) {
+
+	if (buf->is_paged_buf)
+	{
 		int i;
 		vunmap(buf->data);
+
 		for (i = 0; i < buf->nr_pages; i++)
+		{
 			__free_page(buf->pages[i]);
+		}
+
 		vfree(buf->pages);
-	} else
+	}
+	else
 #endif
-	if (!buf->allocated_size)
-		vfree(buf->data);
+		if (!buf->allocated_size)
+		{
+			vfree(buf->data);
+		}
+
 	kfree_const(buf->fw_id);
 	kfree(buf);
 }
@@ -283,13 +321,17 @@ static void fw_free_buf(struct firmware_buf *buf)
 {
 	struct firmware_cache *fwc = buf->fwc;
 	spin_lock(&fwc->lock);
+
 	if (!kref_put(&buf->ref, __fw_free_buf))
+	{
 		spin_unlock(&fwc->lock);
+	}
 }
 
 /* direct firmware loading support */
 static char fw_path_para[256];
-static const char * const fw_path[] = {
+static const char *const fw_path[] =
+{
 	fw_path_para,
 	"/lib/firmware/updates/" UTS_RELEASE,
 	"/lib/firmware/updates",
@@ -306,7 +348,7 @@ module_param_string(path, fw_path_para, sizeof(fw_path_para), 0644);
 MODULE_PARM_DESC(path, "customized firmware image search path with a higher priority than default path");
 
 static void fw_finish_direct_load(struct device *device,
-				  struct firmware_buf *buf)
+								  struct firmware_buf *buf)
 {
 	mutex_lock(&fw_lock);
 	set_bit(FW_STATUS_DONE, &buf->status);
@@ -325,44 +367,58 @@ fw_get_filesystem_firmware(struct device *device, struct firmware_buf *buf)
 	size_t msize = INT_MAX;
 
 	/* Already populated data member means we're loading into a buffer */
-	if (buf->data) {
+	if (buf->data)
+	{
 		id = READING_FIRMWARE_PREALLOC_BUFFER;
 		msize = buf->allocated_size;
 	}
 
 	path = __getname();
-	if (!path)
-		return -ENOMEM;
 
-	for (i = 0; i < ARRAY_SIZE(fw_path); i++) {
+	if (!path)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(fw_path); i++)
+	{
 		/* skip the unset customized path */
 		if (!fw_path[i][0])
+		{
 			continue;
+		}
 
 		len = snprintf(path, PATH_MAX, "%s/%s",
-			       fw_path[i], buf->fw_id);
-		if (len >= PATH_MAX) {
+					   fw_path[i], buf->fw_id);
+
+		if (len >= PATH_MAX)
+		{
 			rc = -ENAMETOOLONG;
 			break;
 		}
 
 		buf->size = 0;
 		rc = kernel_read_file_from_path(path, &buf->data, &size, msize,
-						id);
-		if (rc) {
+										id);
+
+		if (rc)
+		{
 			if (rc == -ENOENT)
 				dev_dbg(device, "loading %s failed with error %d\n",
-					 path, rc);
+						path, rc);
 			else
 				dev_warn(device, "loading %s failed with error %d\n",
-					 path, rc);
+						 path, rc);
+
 			continue;
 		}
+
 		dev_dbg(device, "direct-loading %s\n", buf->fw_id);
 		buf->size = size;
 		fw_finish_direct_load(device, buf);
 		break;
 	}
+
 	__putname(path);
 
 	return rc;
@@ -372,10 +428,12 @@ fw_get_filesystem_firmware(struct device *device, struct firmware_buf *buf)
 static void firmware_free_data(const struct firmware *fw)
 {
 	/* Loaded directly? */
-	if (!fw->priv) {
+	if (!fw->priv)
+	{
 		vfree(fw->data);
 		return;
 	}
+
 	fw_free_buf(fw->priv);
 }
 
@@ -390,8 +448,8 @@ static void fw_set_page_data(struct firmware_buf *buf, struct firmware *fw)
 	fw->data = buf->data;
 
 	pr_debug("%s: fw-%s buf=%p data=%p size=%u\n",
-		 __func__, buf->fw_id, buf, buf->data,
-		 (unsigned int)buf->size);
+			 __func__, buf->fw_id, buf, buf->data,
+			 (unsigned int)buf->size);
 }
 
 #ifdef CONFIG_PM_SLEEP
@@ -401,17 +459,18 @@ static void fw_name_devm_release(struct device *dev, void *res)
 
 	if (fwn->magic == (unsigned long)&fw_cache)
 		pr_debug("%s: fw_name-%s devm-%p released\n",
-				__func__, fwn->name, res);
+				 __func__, fwn->name, res);
+
 	kfree_const(fwn->name);
 }
 
 static int fw_devm_match(struct device *dev, void *res,
-		void *match_data)
+						 void *match_data)
 {
 	struct fw_name_devm *fwn = res;
 
 	return (fwn->magic == (unsigned long)&fw_cache) &&
-		!strcmp(fwn->name, match_data);
+		   !strcmp(fwn->name, match_data);
 }
 
 static struct fw_name_devm *fw_find_devm_name(struct device *dev,
@@ -420,7 +479,7 @@ static struct fw_name_devm *fw_find_devm_name(struct device *dev,
 	struct fw_name_devm *fwn;
 
 	fwn = devres_find(dev, fw_name_devm_release,
-			  fw_devm_match, (void *)name);
+					  fw_devm_match, (void *)name);
 	return fwn;
 }
 
@@ -430,15 +489,24 @@ static int fw_add_devm_name(struct device *dev, const char *name)
 	struct fw_name_devm *fwn;
 
 	fwn = fw_find_devm_name(dev, name);
+
 	if (fwn)
+	{
 		return 1;
+	}
 
 	fwn = devres_alloc(fw_name_devm_release, sizeof(struct fw_name_devm),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!fwn)
+	{
 		return -ENOMEM;
+	}
+
 	fwn->name = kstrdup_const(name, GFP_KERNEL);
-	if (!fwn->name) {
+
+	if (!fwn->name)
+	{
 		devres_free(fwn);
 		return -ENOMEM;
 	}
@@ -460,7 +528,8 @@ static int fw_add_devm_name(struct device *dev, const char *name)
  * user-mode helper code
  */
 #ifdef CONFIG_FW_LOADER_USER_HELPER
-struct firmware_priv {
+struct firmware_priv
+{
 	bool nowait;
 	struct device dev;
 	struct firmware_buf *buf;
@@ -479,7 +548,9 @@ static void __fw_load_abort(struct firmware_buf *buf)
 	 * between loading done and disappearance of 'loading'
 	 */
 	if (test_bit(FW_STATUS_DONE, &buf->status))
+	{
 		return;
+	}
 
 	list_del_init(&buf->pending_list);
 	set_bit(FW_STATUS_ABORT, &buf->status);
@@ -503,23 +574,26 @@ static LIST_HEAD(pending_fw_head);
 
 /* reboot notifier for avoid deadlock with usermode_lock */
 static int fw_shutdown_notify(struct notifier_block *unused1,
-			      unsigned long unused2, void *unused3)
+							  unsigned long unused2, void *unused3)
 {
 	mutex_lock(&fw_lock);
+
 	while (!list_empty(&pending_fw_head))
 		__fw_load_abort(list_first_entry(&pending_fw_head,
-					       struct firmware_buf,
-					       pending_list));
+										 struct firmware_buf,
+										 pending_list));
+
 	mutex_unlock(&fw_lock);
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block fw_shutdown_nb = {
+static struct notifier_block fw_shutdown_nb =
+{
 	.notifier_call = fw_shutdown_notify,
 };
 
 static ssize_t timeout_show(struct class *class, struct class_attribute *attr,
-			    char *buf)
+							char *buf)
 {
 	return sprintf(buf, "%d\n", loading_timeout);
 }
@@ -538,16 +612,20 @@ static ssize_t timeout_show(struct class *class, struct class_attribute *attr,
  *	Note: zero means 'wait forever'.
  **/
 static ssize_t timeout_store(struct class *class, struct class_attribute *attr,
-			     const char *buf, size_t count)
+							 const char *buf, size_t count)
 {
 	loading_timeout = simple_strtol(buf, NULL, 10);
+
 	if (loading_timeout < 0)
+	{
 		loading_timeout = 0;
+	}
 
 	return count;
 }
 
-static struct class_attribute firmware_class_attrs[] = {
+static struct class_attribute firmware_class_attrs[] =
+{
 	__ATTR_RW(timeout),
 	__ATTR_NULL
 };
@@ -562,11 +640,19 @@ static void fw_dev_release(struct device *dev)
 static int do_firmware_uevent(struct firmware_priv *fw_priv, struct kobj_uevent_env *env)
 {
 	if (add_uevent_var(env, "FIRMWARE=%s", fw_priv->buf->fw_id))
+	{
 		return -ENOMEM;
+	}
+
 	if (add_uevent_var(env, "TIMEOUT=%i", loading_timeout))
+	{
 		return -ENOMEM;
+	}
+
 	if (add_uevent_var(env, "ASYNC=%d", fw_priv->nowait))
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -577,28 +663,37 @@ static int firmware_uevent(struct device *dev, struct kobj_uevent_env *env)
 	int err = 0;
 
 	mutex_lock(&fw_lock);
+
 	if (fw_priv->buf)
+	{
 		err = do_firmware_uevent(fw_priv, env);
+	}
+
 	mutex_unlock(&fw_lock);
 	return err;
 }
 
-static struct class firmware_class = {
-	.name		= "firmware",
-	.class_attrs	= firmware_class_attrs,
-	.dev_uevent	= firmware_uevent,
-	.dev_release	= fw_dev_release,
-};
+static struct class firmware_class =
+	{
+			.name		= "firmware",
+			.class_attrs	= firmware_class_attrs,
+			.dev_uevent	= firmware_uevent,
+			.dev_release	= fw_dev_release,
+	};
 
 static ssize_t firmware_loading_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct firmware_priv *fw_priv = to_firmware_priv(dev);
 	int loading = 0;
 
 	mutex_lock(&fw_lock);
+
 	if (fw_priv->buf)
+	{
 		loading = test_bit(FW_STATUS_LOADING, &fw_priv->buf->status);
+	}
+
 	mutex_unlock(&fw_lock);
 
 	return sprintf(buf, "%d\n", loading);
@@ -606,19 +701,25 @@ static ssize_t firmware_loading_show(struct device *dev,
 
 /* Some architectures don't have PAGE_KERNEL_RO */
 #ifndef PAGE_KERNEL_RO
-#define PAGE_KERNEL_RO PAGE_KERNEL
+	#define PAGE_KERNEL_RO PAGE_KERNEL
 #endif
 
 /* one pages buffer should be mapped/unmapped only once */
 static int fw_map_pages_buf(struct firmware_buf *buf)
 {
 	if (!buf->is_paged_buf)
+	{
 		return 0;
+	}
 
 	vunmap(buf->data);
 	buf->data = vmap(buf->pages, buf->nr_pages, 0, PAGE_KERNEL_RO);
+
 	if (!buf->data)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -636,8 +737,8 @@ static int fw_map_pages_buf(struct firmware_buf *buf)
  *	-1: Conclude the load with an error and discard any written data.
  **/
 static ssize_t firmware_loading_store(struct device *dev,
-				      struct device_attribute *attr,
-				      const char *buf, size_t count)
+									  struct device_attribute *attr,
+									  const char *buf, size_t count)
 {
 	struct firmware_priv *fw_priv = to_firmware_priv(dev);
 	struct firmware_buf *fw_buf;
@@ -647,64 +748,83 @@ static ssize_t firmware_loading_store(struct device *dev,
 
 	mutex_lock(&fw_lock);
 	fw_buf = fw_priv->buf;
+
 	if (!fw_buf)
+	{
 		goto out;
-
-	switch (loading) {
-	case 1:
-		/* discarding any previous partial load */
-		if (!test_bit(FW_STATUS_DONE, &fw_buf->status)) {
-			for (i = 0; i < fw_buf->nr_pages; i++)
-				__free_page(fw_buf->pages[i]);
-			vfree(fw_buf->pages);
-			fw_buf->pages = NULL;
-			fw_buf->page_array_size = 0;
-			fw_buf->nr_pages = 0;
-			set_bit(FW_STATUS_LOADING, &fw_buf->status);
-		}
-		break;
-	case 0:
-		if (test_bit(FW_STATUS_LOADING, &fw_buf->status)) {
-			int rc;
-
-			set_bit(FW_STATUS_DONE, &fw_buf->status);
-			clear_bit(FW_STATUS_LOADING, &fw_buf->status);
-
-			/*
-			 * Several loading requests may be pending on
-			 * one same firmware buf, so let all requests
-			 * see the mapped 'buf->data' once the loading
-			 * is completed.
-			 * */
-			rc = fw_map_pages_buf(fw_buf);
-			if (rc)
-				dev_err(dev, "%s: map pages failed\n",
-					__func__);
-			else
-				rc = security_kernel_post_read_file(NULL,
-						fw_buf->data, fw_buf->size,
-						READING_FIRMWARE);
-
-			/*
-			 * Same logic as fw_load_abort, only the DONE bit
-			 * is ignored and we set ABORT only on failure.
-			 */
-			list_del_init(&fw_buf->pending_list);
-			if (rc) {
-				set_bit(FW_STATUS_ABORT, &fw_buf->status);
-				written = rc;
-			}
-			complete_all(&fw_buf->completion);
-			break;
-		}
-		/* fallthrough */
-	default:
-		dev_err(dev, "%s: unexpected value (%d)\n", __func__, loading);
-		/* fallthrough */
-	case -1:
-		fw_load_abort(fw_priv);
-		break;
 	}
+
+	switch (loading)
+	{
+		case 1:
+
+			/* discarding any previous partial load */
+			if (!test_bit(FW_STATUS_DONE, &fw_buf->status))
+			{
+				for (i = 0; i < fw_buf->nr_pages; i++)
+				{
+					__free_page(fw_buf->pages[i]);
+				}
+
+				vfree(fw_buf->pages);
+				fw_buf->pages = NULL;
+				fw_buf->page_array_size = 0;
+				fw_buf->nr_pages = 0;
+				set_bit(FW_STATUS_LOADING, &fw_buf->status);
+			}
+
+			break;
+
+		case 0:
+			if (test_bit(FW_STATUS_LOADING, &fw_buf->status))
+			{
+				int rc;
+
+				set_bit(FW_STATUS_DONE, &fw_buf->status);
+				clear_bit(FW_STATUS_LOADING, &fw_buf->status);
+
+				/*
+				 * Several loading requests may be pending on
+				 * one same firmware buf, so let all requests
+				 * see the mapped 'buf->data' once the loading
+				 * is completed.
+				 * */
+				rc = fw_map_pages_buf(fw_buf);
+
+				if (rc)
+					dev_err(dev, "%s: map pages failed\n",
+							__func__);
+				else
+					rc = security_kernel_post_read_file(NULL,
+														fw_buf->data, fw_buf->size,
+														READING_FIRMWARE);
+
+				/*
+				 * Same logic as fw_load_abort, only the DONE bit
+				 * is ignored and we set ABORT only on failure.
+				 */
+				list_del_init(&fw_buf->pending_list);
+
+				if (rc)
+				{
+					set_bit(FW_STATUS_ABORT, &fw_buf->status);
+					written = rc;
+				}
+
+				complete_all(&fw_buf->completion);
+				break;
+			}
+
+		/* fallthrough */
+		default:
+			dev_err(dev, "%s: unexpected value (%d)\n", __func__, loading);
+
+		/* fallthrough */
+		case -1:
+			fw_load_abort(fw_priv);
+			break;
+	}
+
 out:
 	mutex_unlock(&fw_lock);
 	return written;
@@ -713,29 +833,38 @@ out:
 static DEVICE_ATTR(loading, 0644, firmware_loading_show, firmware_loading_store);
 
 static void firmware_rw_buf(struct firmware_buf *buf, char *buffer,
-			   loff_t offset, size_t count, bool read)
+							loff_t offset, size_t count, bool read)
 {
 	if (read)
+	{
 		memcpy(buffer, buf->data + offset, count);
+	}
 	else
+	{
 		memcpy(buf->data + offset, buffer, count);
+	}
 }
 
 static void firmware_rw(struct firmware_buf *buf, char *buffer,
-			loff_t offset, size_t count, bool read)
+						loff_t offset, size_t count, bool read)
 {
-	while (count) {
+	while (count)
+	{
 		void *page_data;
 		int page_nr = offset >> PAGE_SHIFT;
-		int page_ofs = offset & (PAGE_SIZE-1);
+		int page_ofs = offset & (PAGE_SIZE - 1);
 		int page_cnt = min_t(size_t, PAGE_SIZE - page_ofs, count);
 
 		page_data = kmap(buf->pages[page_nr]);
 
 		if (read)
+		{
 			memcpy(buffer, page_data + page_ofs, page_cnt);
+		}
 		else
+		{
 			memcpy(page_data + page_ofs, buffer, page_cnt);
+		}
 
 		kunmap(buf->pages[page_nr]);
 		buffer += page_cnt;
@@ -745,8 +874,8 @@ static void firmware_rw(struct firmware_buf *buf, char *buffer,
 }
 
 static ssize_t firmware_data_read(struct file *filp, struct kobject *kobj,
-				  struct bin_attribute *bin_attr,
-				  char *buffer, loff_t offset, size_t count)
+								  struct bin_attribute *bin_attr,
+								  char *buffer, loff_t offset, size_t count)
 {
 	struct device *dev = kobj_to_dev(kobj);
 	struct firmware_priv *fw_priv = to_firmware_priv(dev);
@@ -755,23 +884,34 @@ static ssize_t firmware_data_read(struct file *filp, struct kobject *kobj,
 
 	mutex_lock(&fw_lock);
 	buf = fw_priv->buf;
-	if (!buf || test_bit(FW_STATUS_DONE, &buf->status)) {
+
+	if (!buf || test_bit(FW_STATUS_DONE, &buf->status))
+	{
 		ret_count = -ENODEV;
 		goto out;
 	}
-	if (offset > buf->size) {
+
+	if (offset > buf->size)
+	{
 		ret_count = 0;
 		goto out;
 	}
+
 	if (count > buf->size - offset)
+	{
 		count = buf->size - offset;
+	}
 
 	ret_count = count;
 
 	if (buf->data)
+	{
 		firmware_rw_buf(buf, buffer, offset, count, true);
+	}
 	else
+	{
 		firmware_rw(buf, buffer, offset, count, true);
+	}
 
 out:
 	mutex_unlock(&fw_lock);
@@ -784,35 +924,43 @@ static int fw_realloc_buffer(struct firmware_priv *fw_priv, int min_size)
 	int pages_needed = PAGE_ALIGN(min_size) >> PAGE_SHIFT;
 
 	/* If the array of pages is too small, grow it... */
-	if (buf->page_array_size < pages_needed) {
+	if (buf->page_array_size < pages_needed)
+	{
 		int new_array_size = max(pages_needed,
-					 buf->page_array_size * 2);
+								 buf->page_array_size * 2);
 		struct page **new_pages;
 
 		new_pages = vmalloc(new_array_size * sizeof(void *));
-		if (!new_pages) {
+
+		if (!new_pages)
+		{
 			fw_load_abort(fw_priv);
 			return -ENOMEM;
 		}
+
 		memcpy(new_pages, buf->pages,
-		       buf->page_array_size * sizeof(void *));
+			   buf->page_array_size * sizeof(void *));
 		memset(&new_pages[buf->page_array_size], 0, sizeof(void *) *
-		       (new_array_size - buf->page_array_size));
+			   (new_array_size - buf->page_array_size));
 		vfree(buf->pages);
 		buf->pages = new_pages;
 		buf->page_array_size = new_array_size;
 	}
 
-	while (buf->nr_pages < pages_needed) {
+	while (buf->nr_pages < pages_needed)
+	{
 		buf->pages[buf->nr_pages] =
 			alloc_page(GFP_KERNEL | __GFP_HIGHMEM);
 
-		if (!buf->pages[buf->nr_pages]) {
+		if (!buf->pages[buf->nr_pages])
+		{
 			fw_load_abort(fw_priv);
 			return -ENOMEM;
 		}
+
 		buf->nr_pages++;
 	}
+
 	return 0;
 }
 
@@ -829,8 +977,8 @@ static int fw_realloc_buffer(struct firmware_priv *fw_priv, int min_size)
  *	the driver as a firmware image.
  **/
 static ssize_t firmware_data_write(struct file *filp, struct kobject *kobj,
-				   struct bin_attribute *bin_attr,
-				   char *buffer, loff_t offset, size_t count)
+								   struct bin_attribute *bin_attr,
+								   char *buffer, loff_t offset, size_t count)
 {
 	struct device *dev = kobj_to_dev(kobj);
 	struct firmware_priv *fw_priv = to_firmware_priv(dev);
@@ -838,26 +986,38 @@ static ssize_t firmware_data_write(struct file *filp, struct kobject *kobj,
 	ssize_t retval;
 
 	if (!capable(CAP_SYS_RAWIO))
+	{
 		return -EPERM;
+	}
 
 	mutex_lock(&fw_lock);
 	buf = fw_priv->buf;
-	if (!buf || test_bit(FW_STATUS_DONE, &buf->status)) {
+
+	if (!buf || test_bit(FW_STATUS_DONE, &buf->status))
+	{
 		retval = -ENODEV;
 		goto out;
 	}
 
-	if (buf->data) {
-		if (offset + count > buf->allocated_size) {
+	if (buf->data)
+	{
+		if (offset + count > buf->allocated_size)
+		{
 			retval = -ENOMEM;
 			goto out;
 		}
+
 		firmware_rw_buf(buf, buffer, offset, count, false);
 		retval = count;
-	} else {
+	}
+	else
+	{
 		retval = fw_realloc_buffer(fw_priv, offset + count);
+
 		if (retval)
+		{
 			goto out;
+		}
 
 		retval = count;
 		firmware_rw(buf, buffer, offset, count, false);
@@ -869,42 +1029,49 @@ out:
 	return retval;
 }
 
-static struct bin_attribute firmware_attr_data = {
+static struct bin_attribute firmware_attr_data =
+{
 	.attr = { .name = "data", .mode = 0644 },
 	.size = 0,
 	.read = firmware_data_read,
 	.write = firmware_data_write,
 };
 
-static struct attribute *fw_dev_attrs[] = {
+static struct attribute *fw_dev_attrs[] =
+{
 	&dev_attr_loading.attr,
 	NULL
 };
 
-static struct bin_attribute *fw_dev_bin_attrs[] = {
+static struct bin_attribute *fw_dev_bin_attrs[] =
+{
 	&firmware_attr_data,
 	NULL
 };
 
-static const struct attribute_group fw_dev_attr_group = {
+static const struct attribute_group fw_dev_attr_group =
+{
 	.attrs = fw_dev_attrs,
 	.bin_attrs = fw_dev_bin_attrs,
 };
 
-static const struct attribute_group *fw_dev_attr_groups[] = {
+static const struct attribute_group *fw_dev_attr_groups[] =
+{
 	&fw_dev_attr_group,
 	NULL
 };
 
 static struct firmware_priv *
 fw_create_instance(struct firmware *firmware, const char *fw_name,
-		   struct device *device, unsigned int opt_flags)
+				   struct device *device, unsigned int opt_flags)
 {
 	struct firmware_priv *fw_priv;
 	struct device *f_dev;
 
 	fw_priv = kzalloc(sizeof(*fw_priv), GFP_KERNEL);
-	if (!fw_priv) {
+
+	if (!fw_priv)
+	{
 		fw_priv = ERR_PTR(-ENOMEM);
 		goto exit;
 	}
@@ -924,7 +1091,7 @@ exit:
 
 /* load a firmware via user helper */
 static int _request_firmware_load(struct firmware_priv *fw_priv,
-				  unsigned int opt_flags, long timeout)
+								  unsigned int opt_flags, long timeout)
 {
 	int retval = 0;
 	struct device *f_dev = &fw_priv->dev;
@@ -932,12 +1099,16 @@ static int _request_firmware_load(struct firmware_priv *fw_priv,
 
 	/* fall back on userspace loading */
 	if (!buf->data)
+	{
 		buf->is_paged_buf = true;
+	}
 
 	dev_set_uevent_suppress(f_dev, true);
 
 	retval = device_add(f_dev);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(f_dev, "%s: device_register failed\n", __func__);
 		goto err_put_dev;
 	}
@@ -946,29 +1117,40 @@ static int _request_firmware_load(struct firmware_priv *fw_priv,
 	list_add(&buf->pending_list, &pending_fw_head);
 	mutex_unlock(&fw_lock);
 
-	if (opt_flags & FW_OPT_UEVENT) {
+	if (opt_flags & FW_OPT_UEVENT)
+	{
 		buf->need_uevent = true;
 		dev_set_uevent_suppress(f_dev, false);
 		dev_dbg(f_dev, "firmware: requesting %s\n", buf->fw_id);
 		kobject_uevent(&fw_priv->dev.kobj, KOBJ_ADD);
-	} else {
+	}
+	else
+	{
 		timeout = MAX_JIFFY_OFFSET;
 	}
 
 	retval = wait_for_completion_interruptible_timeout(&buf->completion,
-			timeout);
-	if (retval == -ERESTARTSYS || !retval) {
+			 timeout);
+
+	if (retval == -ERESTARTSYS || !retval)
+	{
 		mutex_lock(&fw_lock);
 		fw_load_abort(fw_priv);
 		mutex_unlock(&fw_lock);
-	} else if (retval > 0) {
+	}
+	else if (retval > 0)
+	{
 		retval = 0;
 	}
 
 	if (is_fw_load_aborted(buf))
+	{
 		retval = -EAGAIN;
+	}
 	else if (buf->is_paged_buf && !buf->data)
+	{
 		retval = -ENOMEM;
+	}
 
 	device_del(f_dev);
 err_put_dev:
@@ -977,14 +1159,17 @@ err_put_dev:
 }
 
 static int fw_load_from_user_helper(struct firmware *firmware,
-				    const char *name, struct device *device,
-				    unsigned int opt_flags, long timeout)
+									const char *name, struct device *device,
+									unsigned int opt_flags, long timeout)
 {
 	struct firmware_priv *fw_priv;
 
 	fw_priv = fw_create_instance(firmware, name, device, opt_flags);
+
 	if (IS_ERR(fw_priv))
+	{
 		return PTR_ERR(fw_priv);
+	}
 
 	fw_priv->buf = firmware->priv;
 	return _request_firmware_load(fw_priv, opt_flags, timeout);
@@ -998,9 +1183,12 @@ static void kill_requests_without_uevent(void)
 	struct firmware_buf *next;
 
 	mutex_lock(&fw_lock);
-	list_for_each_entry_safe(buf, next, &pending_fw_head, pending_list) {
+	list_for_each_entry_safe(buf, next, &pending_fw_head, pending_list)
+	{
 		if (!buf->need_uevent)
-			 __fw_load_abort(buf);
+		{
+			__fw_load_abort(buf);
+		}
 	}
 	mutex_unlock(&fw_lock);
 }
@@ -1009,8 +1197,8 @@ static void kill_requests_without_uevent(void)
 #else /* CONFIG_FW_LOADER_USER_HELPER */
 static inline int
 fw_load_from_user_helper(struct firmware *firmware, const char *name,
-			 struct device *device, unsigned int opt_flags,
-			 long timeout)
+						 struct device *device, unsigned int opt_flags,
+						 long timeout)
 {
 	return -ENOENT;
 }
@@ -1031,15 +1219,20 @@ static int sync_cached_firmware_buf(struct firmware_buf *buf)
 	int ret = 0;
 
 	mutex_lock(&fw_lock);
-	while (!test_bit(FW_STATUS_DONE, &buf->status)) {
-		if (is_fw_load_aborted(buf)) {
+
+	while (!test_bit(FW_STATUS_DONE, &buf->status))
+	{
+		if (is_fw_load_aborted(buf))
+		{
 			ret = -ENOENT;
 			break;
 		}
+
 		mutex_unlock(&fw_lock);
 		ret = wait_for_completion_interruptible(&buf->completion);
 		mutex_lock(&fw_lock);
 	}
+
 	mutex_unlock(&fw_lock);
 	return ret;
 }
@@ -1050,20 +1243,23 @@ static int sync_cached_firmware_buf(struct firmware_buf *buf)
  */
 static int
 _request_firmware_prepare(struct firmware **firmware_p, const char *name,
-			  struct device *device, void *dbuf, size_t size)
+						  struct device *device, void *dbuf, size_t size)
 {
 	struct firmware *firmware;
 	struct firmware_buf *buf;
 	int ret;
 
 	*firmware_p = firmware = kzalloc(sizeof(*firmware), GFP_KERNEL);
-	if (!firmware) {
+
+	if (!firmware)
+	{
 		dev_err(device, "%s: kmalloc(struct firmware) failed\n",
-			__func__);
+				__func__);
 		return -ENOMEM;
 	}
 
-	if (fw_get_builtin_firmware(firmware, name, dbuf, size)) {
+	if (fw_get_builtin_firmware(firmware, name, dbuf, size))
+	{
 		dev_dbg(device, "using built-in %s\n", name);
 		return 0; /* assigned */
 	}
@@ -1076,26 +1272,34 @@ _request_firmware_prepare(struct firmware **firmware_p, const char *name,
 	 */
 	firmware->priv = buf;
 
-	if (ret > 0) {
+	if (ret > 0)
+	{
 		ret = sync_cached_firmware_buf(buf);
-		if (!ret) {
+
+		if (!ret)
+		{
 			fw_set_page_data(buf, firmware);
 			return 0; /* assigned */
 		}
 	}
 
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return 1; /* need to load */
 }
 
 static int assign_firmware_buf(struct firmware *fw, struct device *device,
-			       unsigned int opt_flags)
+							   unsigned int opt_flags)
 {
 	struct firmware_buf *buf = fw->priv;
 
 	mutex_lock(&fw_lock);
-	if (!buf->size || is_fw_load_aborted(buf)) {
+
+	if (!buf->size || is_fw_load_aborted(buf))
+	{
 		mutex_unlock(&fw_lock);
 		return -ENOENT;
 	}
@@ -1109,17 +1313,22 @@ static int assign_firmware_buf(struct firmware *fw, struct device *device,
 	 */
 	/* don't cache firmware handled without uevent */
 	if (device && (opt_flags & FW_OPT_UEVENT) &&
-	    !(opt_flags & FW_OPT_NOCACHE))
+		!(opt_flags & FW_OPT_NOCACHE))
+	{
 		fw_add_devm_name(device, buf->fw_id);
+	}
 
 	/*
 	 * After caching firmware image is started, let it piggyback
 	 * on request firmware.
 	 */
 	if (!(opt_flags & FW_OPT_NOCACHE) &&
-	    buf->fwc->state == FW_LOADER_START_CACHE) {
+		buf->fwc->state == FW_LOADER_START_CACHE)
+	{
 		if (fw_cache_piggyback_on_request(buf->fw_id))
+		{
 			kref_get(&buf->ref);
+		}
 	}
 
 	/* pass the pages buffer to driver at the last minute */
@@ -1131,64 +1340,86 @@ static int assign_firmware_buf(struct firmware *fw, struct device *device,
 /* called from request_firmware() and request_firmware_work_func() */
 static int
 _request_firmware(const struct firmware **firmware_p, const char *name,
-		  struct device *device, void *buf, size_t size,
-		  unsigned int opt_flags)
+				  struct device *device, void *buf, size_t size,
+				  unsigned int opt_flags)
 {
 	struct firmware *fw = NULL;
 	long timeout;
 	int ret;
 
 	if (!firmware_p)
+	{
 		return -EINVAL;
+	}
 
-	if (!name || name[0] == '\0') {
+	if (!name || name[0] == '\0')
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
 	ret = _request_firmware_prepare(&fw, name, device, buf, size);
+
 	if (ret <= 0) /* error or already assigned */
+	{
 		goto out;
+	}
 
 	ret = 0;
 	timeout = firmware_loading_timeout();
-	if (opt_flags & FW_OPT_NOWAIT) {
+
+	if (opt_flags & FW_OPT_NOWAIT)
+	{
 		timeout = usermodehelper_read_lock_wait(timeout);
-		if (!timeout) {
+
+		if (!timeout)
+		{
 			dev_dbg(device, "firmware: %s loading timed out\n",
-				name);
+					name);
 			ret = -EBUSY;
 			goto out;
 		}
-	} else {
+	}
+	else
+	{
 		ret = usermodehelper_read_trylock();
-		if (WARN_ON(ret)) {
+
+		if (WARN_ON(ret))
+		{
 			dev_err(device, "firmware: %s will not be loaded\n",
-				name);
+					name);
 			goto out;
 		}
 	}
 
 	ret = fw_get_filesystem_firmware(device, fw->priv);
-	if (ret) {
+
+	if (ret)
+	{
 		if (!(opt_flags & FW_OPT_NO_WARN))
 			dev_warn(device,
-				 "Direct firmware load for %s failed with error %d\n",
-				 name, ret);
-		if (opt_flags & FW_OPT_USERHELPER) {
+					 "Direct firmware load for %s failed with error %d\n",
+					 name, ret);
+
+		if (opt_flags & FW_OPT_USERHELPER)
+		{
 			dev_warn(device, "Falling back to user helper\n");
 			ret = fw_load_from_user_helper(fw, name, device,
-						       opt_flags, timeout);
+										   opt_flags, timeout);
 		}
 	}
 
 	if (!ret)
+	{
 		ret = assign_firmware_buf(fw, device, opt_flags);
+	}
 
 	usermodehelper_read_unlock();
 
- out:
-	if (ret < 0) {
+out:
+
+	if (ret < 0)
+	{
 		release_firmware(fw);
 		fw = NULL;
 	}
@@ -1219,14 +1450,14 @@ _request_firmware(const struct firmware **firmware_p, const char *name,
  **/
 int
 request_firmware(const struct firmware **firmware_p, const char *name,
-		 struct device *device)
+				 struct device *device)
 {
 	int ret;
 
 	/* Need to pin this module until return */
 	__module_get(THIS_MODULE);
 	ret = _request_firmware(firmware_p, name, device, NULL, 0,
-				FW_OPT_UEVENT | FW_OPT_FALLBACK);
+							FW_OPT_UEVENT | FW_OPT_FALLBACK);
 	module_put(THIS_MODULE);
 	return ret;
 }
@@ -1244,13 +1475,13 @@ EXPORT_SYMBOL(request_firmware);
  * aren't always present, without extra long timeouts of udev.
  **/
 int request_firmware_direct(const struct firmware **firmware_p,
-			    const char *name, struct device *device)
+							const char *name, struct device *device)
 {
 	int ret;
 
 	__module_get(THIS_MODULE);
 	ret = _request_firmware(firmware_p, name, device, NULL, 0,
-				FW_OPT_UEVENT | FW_OPT_NO_WARN);
+							FW_OPT_UEVENT | FW_OPT_NO_WARN);
 	module_put(THIS_MODULE);
 	return ret;
 }
@@ -1273,14 +1504,14 @@ EXPORT_SYMBOL_GPL(request_firmware_direct);
  */
 int
 request_firmware_into_buf(const struct firmware **firmware_p, const char *name,
-			  struct device *device, void *buf, size_t size)
+						  struct device *device, void *buf, size_t size)
 {
 	int ret;
 
 	__module_get(THIS_MODULE);
 	ret = _request_firmware(firmware_p, name, device, buf, size,
-				FW_OPT_UEVENT | FW_OPT_FALLBACK |
-				FW_OPT_NOCACHE);
+							FW_OPT_UEVENT | FW_OPT_FALLBACK |
+							FW_OPT_NOCACHE);
 	module_put(THIS_MODULE);
 	return ret;
 }
@@ -1292,16 +1523,21 @@ EXPORT_SYMBOL(request_firmware_into_buf);
  **/
 void release_firmware(const struct firmware *fw)
 {
-	if (fw) {
+	if (fw)
+	{
 		if (!fw_is_builtin_firmware(fw))
+		{
 			firmware_free_data(fw);
+		}
+
 		kfree(fw);
 	}
 }
 EXPORT_SYMBOL(release_firmware);
 
 /* Async support */
-struct firmware_work {
+struct firmware_work
+{
 	struct work_struct work;
 	struct module *module;
 	const char *name;
@@ -1319,7 +1555,7 @@ static void request_firmware_work_func(struct work_struct *work)
 	fw_work = container_of(work, struct firmware_work, work);
 
 	_request_firmware(&fw, fw_work->name, fw_work->device, NULL, 0,
-			  fw_work->opt_flags);
+					  fw_work->opt_flags);
 	fw_work->cont(fw, fw_work->context);
 	put_device(fw_work->device); /* taken in request_firmware_nowait() */
 
@@ -1360,22 +1596,29 @@ request_firmware_nowait(
 	struct firmware_work *fw_work;
 
 	fw_work = kzalloc(sizeof(struct firmware_work), gfp);
+
 	if (!fw_work)
+	{
 		return -ENOMEM;
+	}
 
 	fw_work->module = module;
 	fw_work->name = kstrdup_const(name, gfp);
-	if (!fw_work->name) {
+
+	if (!fw_work->name)
+	{
 		kfree(fw_work);
 		return -ENOMEM;
 	}
+
 	fw_work->device = device;
 	fw_work->context = context;
 	fw_work->cont = cont;
 	fw_work->opt_flags = FW_OPT_NOWAIT | FW_OPT_FALLBACK |
-		(uevent ? FW_OPT_UEVENT : FW_OPT_USERHELPER);
+						 (uevent ? FW_OPT_UEVENT : FW_OPT_USERHELPER);
 
-	if (!try_module_get(module)) {
+	if (!try_module_get(module))
+	{
 		kfree_const(fw_work->name);
 		kfree(fw_work);
 		return -EFAULT;
@@ -1413,8 +1656,11 @@ static int cache_firmware(const char *fw_name)
 	pr_debug("%s: %s\n", __func__, fw_name);
 
 	ret = request_firmware(&fw, fw_name, NULL);
+
 	if (!ret)
+	{
 		kfree(fw);
+	}
 
 	pr_debug("%s: %s ret=%d\n", __func__, fw_name, ret);
 
@@ -1452,10 +1698,14 @@ static int uncache_firmware(const char *fw_name)
 	pr_debug("%s: %s\n", __func__, fw_name);
 
 	if (fw_get_builtin_firmware(&fw, fw_name, NULL, 0))
+	{
 		return 0;
+	}
 
 	buf = fw_lookup_buf(fw_name);
-	if (buf) {
+
+	if (buf)
+	{
 		fw_free_buf(buf);
 		return 0;
 	}
@@ -1468,15 +1718,21 @@ static struct fw_cache_entry *alloc_fw_cache_entry(const char *name)
 	struct fw_cache_entry *fce;
 
 	fce = kzalloc(sizeof(*fce), GFP_ATOMIC);
+
 	if (!fce)
+	{
 		goto exit;
+	}
 
 	fce->name = kstrdup_const(name, GFP_ATOMIC);
-	if (!fce->name) {
+
+	if (!fce->name)
+	{
 		kfree(fce);
 		fce = NULL;
 		goto exit;
 	}
+
 exit:
 	return fce;
 }
@@ -1486,9 +1742,12 @@ static int __fw_entry_found(const char *name)
 	struct firmware_cache *fwc = &fw_cache;
 	struct fw_cache_entry *fce;
 
-	list_for_each_entry(fce, &fwc->fw_names, list) {
+	list_for_each_entry(fce, &fwc->fw_names, list)
+	{
 		if (!strcmp(fce->name, name))
+		{
 			return 1;
+		}
 	}
 	return 0;
 }
@@ -1500,15 +1759,21 @@ static int fw_cache_piggyback_on_request(const char *name)
 	int ret = 0;
 
 	spin_lock(&fwc->name_lock);
+
 	if (__fw_entry_found(name))
+	{
 		goto found;
+	}
 
 	fce = alloc_fw_cache_entry(name);
-	if (fce) {
+
+	if (fce)
+	{
 		ret = 1;
 		list_add(&fce->list, &fwc->fw_names);
 		pr_debug("%s: fw: %s\n", __func__, name);
 	}
+
 found:
 	spin_unlock(&fwc->name_lock);
 	return ret;
@@ -1521,14 +1786,16 @@ static void free_fw_cache_entry(struct fw_cache_entry *fce)
 }
 
 static void __async_dev_cache_fw_image(void *fw_entry,
-				       async_cookie_t cookie)
+									   async_cookie_t cookie)
 {
 	struct fw_cache_entry *fce = fw_entry;
 	struct firmware_cache *fwc = &fw_cache;
 	int ret;
 
 	ret = cache_firmware(fce->name);
-	if (ret) {
+
+	if (ret)
+	{
 		spin_lock(&fwc->name_lock);
 		list_del(&fce->list);
 		spin_unlock(&fwc->name_lock);
@@ -1539,7 +1806,7 @@ static void __async_dev_cache_fw_image(void *fw_entry,
 
 /* called with dev->devres_lock held */
 static void dev_create_fw_entry(struct device *dev, void *res,
-				void *data)
+								void *data)
 {
 	struct fw_name_devm *fwn = res;
 	const char *fw_name = fwn->name;
@@ -1547,12 +1814,15 @@ static void dev_create_fw_entry(struct device *dev, void *res,
 	struct fw_cache_entry *fce;
 
 	fce = alloc_fw_cache_entry(fw_name);
+
 	if (fce)
+	{
 		list_add(&fce->list, head);
+	}
 }
 
 static int devm_name_match(struct device *dev, void *res,
-			   void *match_data)
+						   void *match_data)
 {
 	struct fw_name_devm *fwn = res;
 	return (fwn->magic == (unsigned long)match_data);
@@ -1566,26 +1836,32 @@ static void dev_cache_fw_image(struct device *dev, void *data)
 	struct firmware_cache *fwc = &fw_cache;
 
 	devres_for_each_res(dev, fw_name_devm_release,
-			    devm_name_match, &fw_cache,
-			    dev_create_fw_entry, &todo);
+						devm_name_match, &fw_cache,
+						dev_create_fw_entry, &todo);
 
-	list_for_each_entry_safe(fce, fce_next, &todo, list) {
+	list_for_each_entry_safe(fce, fce_next, &todo, list)
+	{
 		list_del(&fce->list);
 
 		spin_lock(&fwc->name_lock);
+
 		/* only one cache entry for one firmware */
-		if (!__fw_entry_found(fce->name)) {
+		if (!__fw_entry_found(fce->name))
+		{
 			list_add(&fce->list, &fwc->fw_names);
-		} else {
+		}
+		else
+		{
 			free_fw_cache_entry(fce);
 			fce = NULL;
 		}
+
 		spin_unlock(&fwc->name_lock);
 
 		if (fce)
 			async_schedule_domain(__async_dev_cache_fw_image,
-					      (void *)fce,
-					      &fw_cache_domain);
+								  (void *)fce,
+								  &fw_cache_domain);
 	}
 }
 
@@ -1595,9 +1871,11 @@ static void __device_uncache_fw_images(void)
 	struct fw_cache_entry *fce;
 
 	spin_lock(&fwc->name_lock);
-	while (!list_empty(&fwc->fw_names)) {
+
+	while (!list_empty(&fwc->fw_names))
+	{
 		fce = list_entry(fwc->fw_names.next,
-				struct fw_cache_entry, list);
+						 struct fw_cache_entry, list);
 		list_del(&fce->list);
 		spin_unlock(&fwc->name_lock);
 
@@ -1606,6 +1884,7 @@ static void __device_uncache_fw_images(void)
 
 		spin_lock(&fwc->name_lock);
 	}
+
 	spin_unlock(&fwc->name_lock);
 }
 
@@ -1679,33 +1958,34 @@ static void device_uncache_fw_images_work(struct work_struct *work)
 static void device_uncache_fw_images_delay(unsigned long delay)
 {
 	queue_delayed_work(system_power_efficient_wq, &fw_cache.work,
-			   msecs_to_jiffies(delay));
+					   msecs_to_jiffies(delay));
 }
 
 static int fw_pm_notify(struct notifier_block *notify_block,
-			unsigned long mode, void *unused)
+						unsigned long mode, void *unused)
 {
-	switch (mode) {
-	case PM_HIBERNATION_PREPARE:
-	case PM_SUSPEND_PREPARE:
-	case PM_RESTORE_PREPARE:
-		kill_requests_without_uevent();
-		device_cache_fw_images();
-		break;
+	switch (mode)
+	{
+		case PM_HIBERNATION_PREPARE:
+		case PM_SUSPEND_PREPARE:
+		case PM_RESTORE_PREPARE:
+			kill_requests_without_uevent();
+			device_cache_fw_images();
+			break;
 
-	case PM_POST_SUSPEND:
-	case PM_POST_HIBERNATION:
-	case PM_POST_RESTORE:
-		/*
-		 * In case that system sleep failed and syscore_suspend is
-		 * not called.
-		 */
-		mutex_lock(&fw_lock);
-		fw_cache.state = FW_LOADER_NO_CACHE;
-		mutex_unlock(&fw_lock);
+		case PM_POST_SUSPEND:
+		case PM_POST_HIBERNATION:
+		case PM_POST_RESTORE:
+			/*
+			 * In case that system sleep failed and syscore_suspend is
+			 * not called.
+			 */
+			mutex_lock(&fw_lock);
+			fw_cache.state = FW_LOADER_NO_CACHE;
+			mutex_unlock(&fw_lock);
 
-		device_uncache_fw_images_delay(10 * MSEC_PER_SEC);
-		break;
+			device_uncache_fw_images_delay(10 * MSEC_PER_SEC);
+			break;
 	}
 
 	return 0;
@@ -1718,7 +1998,8 @@ static int fw_suspend(void)
 	return 0;
 }
 
-static struct syscore_ops fw_syscore_ops = {
+static struct syscore_ops fw_syscore_ops =
+{
 	.suspend = fw_suspend,
 };
 #else
@@ -1739,7 +2020,7 @@ static void __init fw_cache_init(void)
 	INIT_LIST_HEAD(&fw_cache.fw_names);
 
 	INIT_DELAYED_WORK(&fw_cache.work,
-			  device_uncache_fw_images_work);
+					  device_uncache_fw_images_work);
 
 	fw_cache.pm_notify.notifier_call = fw_pm_notify;
 	register_pm_notifier(&fw_cache.pm_notify);

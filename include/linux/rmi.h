@@ -37,7 +37,8 @@
  * @rel_report_enabled - if set to true, the relative reporting will be
  *               automatically enabled for this sensor.
  */
-struct rmi_2d_axis_alignment {
+struct rmi_2d_axis_alignment
+{
 	bool swap_axes;
 	bool flip_x;
 	bool flip_y;
@@ -61,7 +62,8 @@ struct rmi_2d_axis_alignment {
  * @rmi_f11_sensor_touchpad - thread the sensor as a touchpad (indirect
  * pointing).
  */
-enum rmi_sensor_type {
+enum rmi_sensor_type
+{
 	rmi_sensor_default = 0,
 	rmi_sensor_touchscreen,
 	rmi_sensor_touchpad
@@ -89,7 +91,8 @@ enum rmi_sensor_type {
  * @dmax - the maximum distance (in sensor units) the kernel tracking allows two
  * distincts fingers to be considered the same.
  */
-struct rmi_2d_sensor_platform_data {
+struct rmi_2d_sensor_platform_data
+{
 	struct rmi_2d_axis_alignment axis_align;
 	enum rmi_sensor_type sensor_type;
 	int x_mm;
@@ -110,7 +113,8 @@ struct rmi_2d_sensor_platform_data {
  * @disable - the touchpad incorrectly reports F30 and it should be ignored.
  * This is a special case which is due to misconfigured firmware.
  */
-struct rmi_f30_data {
+struct rmi_f30_data
+{
 	bool buttonpad;
 	bool trackstick_buttons;
 	bool disable;
@@ -120,7 +124,8 @@ struct rmi_f30_data {
  * struct rmi_f01_power - override default power management settings.
  *
  */
-enum rmi_f01_nosleep {
+enum rmi_f01_nosleep
+{
 	RMI_F01_NOSLEEP_DEFAULT = 0,
 	RMI_F01_NOSLEEP_OFF = 1,
 	RMI_F01_NOSLEEP_ON = 2
@@ -142,7 +147,8 @@ enum rmi_f01_nosleep {
  * @doze_interval - controls the interval between checks for finger presence
  * when the touch sensor is in doze mode, in units of 10ms.
  */
-struct rmi_f01_power_management {
+struct rmi_f01_power_management
+{
 	enum rmi_f01_nosleep nosleep;
 	u8 wakeup_threshold;
 	u8 doze_holdoff;
@@ -183,7 +189,8 @@ struct rmi_f01_power_management {
  * and post_delay_us after completion of the SPI transfer(s) before calling it
  * with assert==FALSE.
  */
-struct rmi_device_platform_data_spi {
+struct rmi_device_platform_data_spi
+{
 	u32 block_delay_us;
 	u32 split_read_block_delay_us;
 	u32 read_delay_us;
@@ -205,7 +212,8 @@ struct rmi_device_platform_data_spi {
  * driver waits a few milliseconds to give the firmware a chance to
  * to re-initialize.  You can override the default wait period here.
  */
-struct rmi_device_platform_data {
+struct rmi_device_platform_data
+{
 	int reset_delay_ms;
 
 	struct rmi_device_platform_data_spi spi_data;
@@ -230,7 +238,8 @@ struct rmi_device_platform_data {
  * are 16-bit values to include the current page address.
  *
  */
-struct rmi_function_descriptor {
+struct rmi_function_descriptor
+{
 	u16 query_base_addr;
 	u16 command_base_addr;
 	u16 control_base_addr;
@@ -254,7 +263,8 @@ struct rmi_device;
  * buses such as I2C and SPI.
  *
  */
-struct rmi_transport_dev {
+struct rmi_transport_dev
+{
 	struct device *dev;
 	struct rmi_device *rmi_dev;
 
@@ -275,11 +285,12 @@ struct rmi_transport_dev {
  * @write_block: Writing a block of data to the specified address
  * @read_block: Read a block of data from the specified address.
  */
-struct rmi_transport_ops {
+struct rmi_transport_ops
+{
 	int (*write_block)(struct rmi_transport_dev *xport, u16 addr,
-			   const void *buf, size_t len);
+					   const void *buf, size_t len);
 	int (*read_block)(struct rmi_transport_dev *xport, u16 addr,
-			  void *buf, size_t len);
+					  void *buf, size_t len);
 	int (*reset)(struct rmi_transport_dev *xport, u16 reset_addr);
 };
 
@@ -294,7 +305,8 @@ struct rmi_transport_ops {
  * @data: Private data pointer
  *
  */
-struct rmi_driver {
+struct rmi_driver
+{
 	struct device_driver driver;
 
 	int (*reset_handler)(struct rmi_device *rmi_dev);
@@ -302,7 +314,7 @@ struct rmi_driver {
 	int (*set_irq_bits)(struct rmi_device *rmi_dev, unsigned long *mask);
 	int (*store_productid)(struct rmi_device *rmi_dev);
 	int (*set_input_params)(struct rmi_device *rmi_dev,
-			struct input_dev *input);
+							struct input_dev *input);
 	void *data;
 };
 
@@ -315,7 +327,8 @@ struct rmi_driver {
  * @xport: Pointer to the transport interface
  *
  */
-struct rmi_device {
+struct rmi_device
+{
 	struct device dev;
 	int number;
 
@@ -324,7 +337,8 @@ struct rmi_device {
 
 };
 
-struct rmi_driver_data {
+struct rmi_driver_data
+{
 	struct list_head function_list;
 
 	struct rmi_device *rmi_dev;

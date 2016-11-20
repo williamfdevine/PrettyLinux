@@ -20,7 +20,8 @@ typedef int (*emac_sgmii_initialize)(struct emac_adapter *adpt);
  * @digital per-lane digital block
  * @initialize initialization function
  */
-struct emac_phy {
+struct emac_phy
+{
 	void __iomem		*base;
 	void __iomem		*digital;
 	emac_sgmii_initialize	initialize;

@@ -28,12 +28,13 @@
 #define KIRKWOOD_THERMAL_TEMP_MASK	0x1FF
 
 /* Kirkwood Thermal Sensor Dev Structure */
-struct kirkwood_thermal_priv {
+struct kirkwood_thermal_priv
+{
 	void __iomem *sensor;
 };
 
 static int kirkwood_get_temp(struct thermal_zone_device *thermal,
-			  int *temp)
+							 int *temp)
 {
 	unsigned long reg;
 	struct kirkwood_thermal_priv *priv = thermal->devdata;
@@ -42,9 +43,10 @@ static int kirkwood_get_temp(struct thermal_zone_device *thermal,
 
 	/* Valid check */
 	if (!((reg >> KIRKWOOD_THERMAL_VALID_OFFSET) &
-	    KIRKWOOD_THERMAL_VALID_MASK)) {
+		  KIRKWOOD_THERMAL_VALID_MASK))
+	{
 		dev_err(&thermal->device,
-			"Temperature sensor reading not valid\n");
+				"Temperature sensor reading not valid\n");
 		return -EIO;
 	}
 
@@ -54,17 +56,19 @@ static int kirkwood_get_temp(struct thermal_zone_device *thermal,
 	 * Celsius = (322-reg)/1.3625
 	 */
 	reg = (reg >> KIRKWOOD_THERMAL_TEMP_OFFSET) &
-		KIRKWOOD_THERMAL_TEMP_MASK;
+		  KIRKWOOD_THERMAL_TEMP_MASK;
 	*temp = ((3220000000UL - (10000000UL * reg)) / 13625);
 
 	return 0;
 }
 
-static struct thermal_zone_device_ops ops = {
+static struct thermal_zone_device_ops ops =
+{
 	.get_temp = kirkwood_get_temp,
 };
 
-static const struct of_device_id kirkwood_thermal_id_table[] = {
+static const struct of_device_id kirkwood_thermal_id_table[] =
+{
 	{ .compatible = "marvell,kirkwood-thermal" },
 	{}
 };
@@ -76,19 +80,27 @@ static int kirkwood_thermal_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->sensor = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->sensor))
+	{
 		return PTR_ERR(priv->sensor);
+	}
 
 	thermal = thermal_zone_device_register("kirkwood_thermal", 0, 0,
-					       priv, &ops, NULL, 0, 0);
-	if (IS_ERR(thermal)) {
+										   priv, &ops, NULL, 0, 0);
+
+	if (IS_ERR(thermal))
+	{
 		dev_err(&pdev->dev,
-			"Failed to register thermal zone device\n");
+				"Failed to register thermal zone device\n");
 		return PTR_ERR(thermal);
 	}
 
@@ -109,7 +121,8 @@ static int kirkwood_thermal_exit(struct platform_device *pdev)
 
 MODULE_DEVICE_TABLE(of, kirkwood_thermal_id_table);
 
-static struct platform_driver kirkwood_thermal_driver = {
+static struct platform_driver kirkwood_thermal_driver =
+{
 	.probe = kirkwood_thermal_probe,
 	.remove = kirkwood_thermal_exit,
 	.driver = {

@@ -23,7 +23,9 @@ void (*ebb_user_func)(void);
 void ebb_hook(void)
 {
 	if (ebb_user_func)
+	{
 		ebb_user_func();
+	}
 }
 
 struct ebb_state ebb_state;
@@ -59,7 +61,9 @@ int ebb_check_mmcr0(void)
 	u64 val;
 
 	val = mfspr(SPRN_MMCR0);
-	if ((val & (MMCR0_FC | MMCR0_PMAO)) == MMCR0_FC) {
+
+	if ((val & (MMCR0_FC | MMCR0_PMAO)) == MMCR0_FC)
+	{
 		/* It's OK if we see FC & PMAO, but not FC by itself */
 		printf("Outside of loop, only FC set 0x%llx\n", val);
 		return 1;
@@ -76,22 +80,24 @@ bool ebb_check_count(int pmc, u64 sample_period, int fudge)
 
 	lower = ebb_state.stats.ebb_count * (sample_period - fudge);
 
-	if (count < lower) {
+	if (count < lower)
+	{
 		printf("PMC%d count (0x%llx) below lower limit 0x%llx (-0x%llx)\n",
-			pmc, count, lower, lower - count);
+			   pmc, count, lower, lower - count);
 		return false;
 	}
 
 	upper = ebb_state.stats.ebb_count * (sample_period + fudge);
 
-	if (count > upper) {
+	if (count > upper)
+	{
 		printf("PMC%d count (0x%llx) above upper limit 0x%llx (+0x%llx)\n",
-			pmc, count, upper, count - upper);
+			   pmc, count, upper, count - upper);
 		return false;
 	}
 
 	printf("PMC%d count (0x%llx) is between 0x%llx and 0x%llx delta +0x%llx/-0x%llx\n",
-		pmc, count, lower, upper, count - lower, upper - count);
+		   pmc, count, lower, upper, count - lower, upper - count);
 
 	return true;
 }
@@ -102,7 +108,9 @@ void standard_ebb_callee(void)
 	u64 val;
 
 	val = mfspr(SPRN_BESCR);
-	if (!(val & BESCR_PMEO)) {
+
+	if (!(val & BESCR_PMEO))
+	{
 		ebb_state.stats.spurious++;
 		goto out;
 	}
@@ -114,13 +122,19 @@ void standard_ebb_callee(void)
 	trace_log_reg(ebb_state.trace, SPRN_MMCR0, val);
 
 	found = 0;
-	for (i = 1; i <= 6; i++) {
+
+	for (i = 1; i <= 6; i++)
+	{
 		if (ebb_state.pmc_enable[PMC_INDEX(i)])
+		{
 			found += count_pmc(i, sample_period);
+		}
 	}
 
 	if (!found)
+	{
 		ebb_state.stats.no_overflow++;
+	}
 
 out:
 	reset_ebb();
@@ -137,8 +151,8 @@ void setup_ebb_handler(void (*callee)(void))
 #else
 	struct opd
 	{
-	    u64 entry;
-	    u64 toc;
+		u64 entry;
+		u64 toc;
 	} *opd;
 
 	opd = (struct opd *)ebb_handler;
@@ -164,21 +178,21 @@ void clear_ebb_stats(void)
 void dump_summary_ebb_state(void)
 {
 	printf("ebb_state:\n"			\
-	       "  ebb_count    = %d\n"		\
-	       "  spurious     = %d\n"		\
-	       "  negative     = %d\n"		\
-	       "  no_overflow  = %d\n"		\
-	       "  pmc[1] count = 0x%llx\n"	\
-	       "  pmc[2] count = 0x%llx\n"	\
-	       "  pmc[3] count = 0x%llx\n"	\
-	       "  pmc[4] count = 0x%llx\n"	\
-	       "  pmc[5] count = 0x%llx\n"	\
-	       "  pmc[6] count = 0x%llx\n",
-		ebb_state.stats.ebb_count, ebb_state.stats.spurious,
-		ebb_state.stats.negative, ebb_state.stats.no_overflow,
-		ebb_state.stats.pmc_count[0], ebb_state.stats.pmc_count[1],
-		ebb_state.stats.pmc_count[2], ebb_state.stats.pmc_count[3],
-		ebb_state.stats.pmc_count[4], ebb_state.stats.pmc_count[5]);
+		   "  ebb_count    = %d\n"		\
+		   "  spurious     = %d\n"		\
+		   "  negative     = %d\n"		\
+		   "  no_overflow  = %d\n"		\
+		   "  pmc[1] count = 0x%llx\n"	\
+		   "  pmc[2] count = 0x%llx\n"	\
+		   "  pmc[3] count = 0x%llx\n"	\
+		   "  pmc[4] count = 0x%llx\n"	\
+		   "  pmc[5] count = 0x%llx\n"	\
+		   "  pmc[6] count = 0x%llx\n",
+		   ebb_state.stats.ebb_count, ebb_state.stats.spurious,
+		   ebb_state.stats.negative, ebb_state.stats.no_overflow,
+		   ebb_state.stats.pmc_count[0], ebb_state.stats.pmc_count[1],
+		   ebb_state.stats.pmc_count[2], ebb_state.stats.pmc_count[3],
+		   ebb_state.stats.pmc_count[4], ebb_state.stats.pmc_count[5]);
 }
 
 static char *decode_mmcr0(u32 value)
@@ -188,11 +202,19 @@ static char *decode_mmcr0(u32 value)
 	buf[0] = '\0';
 
 	if (value & (1 << 31))
+	{
 		strcat(buf, "FC ");
+	}
+
 	if (value & (1 << 26))
+	{
 		strcat(buf, "PMAE ");
+	}
+
 	if (value & (1 << 7))
+	{
 		strcat(buf, "PMAO ");
+	}
 
 	return buf;
 }
@@ -204,11 +226,19 @@ static char *decode_bescr(u64 value)
 	buf[0] = '\0';
 
 	if (value & (1ull << 63))
+	{
 		strcat(buf, "GE ");
+	}
+
 	if (value & (1ull << 32))
+	{
 		strcat(buf, "PMAE ");
+	}
+
 	if (value & 1)
+	{
 		strcat(buf, "PMAO ");
+	}
 
 	return buf;
 }
@@ -222,22 +252,22 @@ void dump_ebb_hw_state(void)
 	bescr = mfspr(SPRN_BESCR);
 
 	printf("HW state:\n"		\
-	       "MMCR0 0x%016x %s\n"	\
-	       "MMCR2 0x%016lx\n"	\
-	       "EBBHR 0x%016lx\n"	\
-	       "BESCR 0x%016llx %s\n"	\
-	       "PMC1  0x%016lx\n"	\
-	       "PMC2  0x%016lx\n"	\
-	       "PMC3  0x%016lx\n"	\
-	       "PMC4  0x%016lx\n"	\
-	       "PMC5  0x%016lx\n"	\
-	       "PMC6  0x%016lx\n"	\
-	       "SIAR  0x%016lx\n",
-	       mmcr0, decode_mmcr0(mmcr0), mfspr(SPRN_MMCR2),
-	       mfspr(SPRN_EBBHR), bescr, decode_bescr(bescr),
-	       mfspr(SPRN_PMC1), mfspr(SPRN_PMC2), mfspr(SPRN_PMC3),
-	       mfspr(SPRN_PMC4), mfspr(SPRN_PMC5), mfspr(SPRN_PMC6),
-	       mfspr(SPRN_SIAR));
+		   "MMCR0 0x%016x %s\n"	\
+		   "MMCR2 0x%016lx\n"	\
+		   "EBBHR 0x%016lx\n"	\
+		   "BESCR 0x%016llx %s\n"	\
+		   "PMC1  0x%016lx\n"	\
+		   "PMC2  0x%016lx\n"	\
+		   "PMC3  0x%016lx\n"	\
+		   "PMC4  0x%016lx\n"	\
+		   "PMC5  0x%016lx\n"	\
+		   "PMC6  0x%016lx\n"	\
+		   "SIAR  0x%016lx\n",
+		   mmcr0, decode_mmcr0(mmcr0), mfspr(SPRN_MMCR2),
+		   mfspr(SPRN_EBBHR), bescr, decode_bescr(bescr),
+		   mfspr(SPRN_PMC1), mfspr(SPRN_PMC2), mfspr(SPRN_PMC3),
+		   mfspr(SPRN_PMC4), mfspr(SPRN_PMC5), mfspr(SPRN_PMC6),
+		   mfspr(SPRN_SIAR));
 }
 
 void dump_ebb_state(void)
@@ -258,10 +288,15 @@ int count_pmc(int pmc, uint32_t sample_period)
 	start_value = pmc_sample_period(sample_period);
 
 	val = read_pmc(pmc);
+
 	if (val < start_value)
+	{
 		ebb_state.stats.negative++;
+	}
 	else
+	{
 		ebb_state.stats.pmc_count[PMC_INDEX(pmc)] += val - start_value;
+	}
 
 	trace_log_reg(ebb_state.trace, SPRN_PMC1 + pmc - 1, val);
 
@@ -280,8 +315,11 @@ int ebb_event_enable(struct event *e)
 	mb();
 
 	rc = ioctl(e->fd, PERF_EVENT_IOC_ENABLE);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = event_read(e);
 
@@ -368,7 +406,8 @@ int ebb_child(union pipe read_pipe, union pipe write_pipe)
 
 	FAIL_IF(event_enable(&event));
 
-	if (event_read(&event)) {
+	if (event_read(&event))
+	{
 		/*
 		 * Some tests expect to fail here, so don't report an error on
 		 * this line, and return a distinguisable error code. Tell the
@@ -384,7 +423,8 @@ int ebb_child(union pipe read_pipe, union pipe write_pipe)
 	FAIL_IF(wait_for_parent(read_pipe));
 	FAIL_IF(notify_parent(write_pipe));
 
-	while (ebb_state.stats.ebb_count < 20) {
+	while (ebb_state.stats.ebb_count < 20)
+	{
 		FAIL_IF(core_busy_loop());
 
 		/* To try and hit SIGILL case */
@@ -415,18 +455,21 @@ static void sigill_handler(int signal)
 	longjmp(setjmp_env, 1);
 }
 
-static struct sigaction sigill_action = {
+static struct sigaction sigill_action =
+{
 	.sa_handler = sigill_handler,
 };
 
 int catch_sigill(void (*func)(void))
 {
-	if (sigaction(SIGILL, &sigill_action, NULL)) {
+	if (sigaction(SIGILL, &sigill_action, NULL))
+	{
 		perror("sigaction");
 		return 1;
 	}
 
-	if (setjmp(setjmp_env) == 0) {
+	if (setjmp(setjmp_env) == 0)
+	{
 		func();
 		return 1;
 	}
@@ -441,24 +484,36 @@ void write_pmc1(void)
 
 void write_pmc(int pmc, u64 value)
 {
-	switch (pmc) {
+	switch (pmc)
+	{
 		case 1: mtspr(SPRN_PMC1, value); break;
+
 		case 2: mtspr(SPRN_PMC2, value); break;
+
 		case 3: mtspr(SPRN_PMC3, value); break;
+
 		case 4: mtspr(SPRN_PMC4, value); break;
+
 		case 5: mtspr(SPRN_PMC5, value); break;
+
 		case 6: mtspr(SPRN_PMC6, value); break;
 	}
 }
 
 u64 read_pmc(int pmc)
 {
-	switch (pmc) {
+	switch (pmc)
+	{
 		case 1: return mfspr(SPRN_PMC1);
+
 		case 2: return mfspr(SPRN_PMC2);
+
 		case 3: return mfspr(SPRN_PMC3);
+
 		case 4: return mfspr(SPRN_PMC4);
+
 		case 5: return mfspr(SPRN_PMC5);
+
 		case 6: return mfspr(SPRN_PMC6);
 	}
 
@@ -472,7 +527,8 @@ static void term_handler(int signal)
 	abort();
 }
 
-struct sigaction term_action = {
+struct sigaction term_action =
+{
 	.sa_handler = term_handler,
 };
 
@@ -481,7 +537,9 @@ static void __attribute__((constructor)) ebb_init(void)
 	clear_ebb_stats();
 
 	if (sigaction(SIGTERM, &term_action, NULL))
+	{
 		perror("sigaction");
+	}
 
 	ebb_state.trace = trace_buffer_allocate(1 * 1024 * 1024);
 }

@@ -79,7 +79,8 @@
 #define DLN2_TRANSFERS_CANCEL			0
 #define DLN2_RPM_AUTOSUSPEND_TIMEOUT		2000
 
-struct dln2_spi {
+struct dln2_spi
+{
 	struct platform_device *pdev;
 	struct spi_master *master;
 	u8 port;
@@ -104,7 +105,8 @@ struct dln2_spi {
 static int dln2_spi_enable(struct dln2_spi *dln2, bool enable)
 {
 	u16 cmd;
-	struct {
+	struct
+	{
 		u8 port;
 		u8 wait_for_completion;
 	} tx;
@@ -112,10 +114,13 @@ static int dln2_spi_enable(struct dln2_spi *dln2, bool enable)
 
 	tx.port = dln2->port;
 
-	if (enable) {
+	if (enable)
+	{
 		cmd = DLN2_SPI_ENABLE;
 		len -= sizeof(tx.wait_for_completion);
-	} else {
+	}
+	else
+	{
 		tx.wait_for_completion = DLN2_TRANSFERS_WAIT_COMPLETE;
 		cmd = DLN2_SPI_DISABLE;
 	}
@@ -133,7 +138,8 @@ static int dln2_spi_enable(struct dln2_spi *dln2, bool enable)
  */
 static int dln2_spi_cs_set(struct dln2_spi *dln2, u8 cs_mask)
 {
-	struct {
+	struct
+	{
 		u8 port;
 		u8 cs;
 	} tx;
@@ -163,7 +169,8 @@ static int dln2_spi_cs_set_one(struct dln2_spi *dln2, u8 cs)
  */
 static int dln2_spi_cs_enable(struct dln2_spi *dln2, u8 cs_mask, bool enable)
 {
-	struct {
+	struct
+	{
 		u8 port;
 		u8 cs;
 	} tx;
@@ -186,21 +193,29 @@ static int dln2_spi_cs_enable_all(struct dln2_spi *dln2, bool enable)
 static int dln2_spi_get_cs_num(struct dln2_spi *dln2, u16 *cs_num)
 {
 	int ret;
-	struct {
+	struct
+	{
 		u8 port;
 	} tx;
-	struct {
+	struct
+	{
 		__le16 cs_count;
 	} rx;
 	unsigned rx_len = sizeof(rx);
 
 	tx.port = dln2->port;
 	ret = dln2_transfer(dln2->pdev, DLN2_SPI_GET_SS_COUNT, &tx, sizeof(tx),
-			    &rx, &rx_len);
+						&rx, &rx_len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (rx_len < sizeof(rx))
+	{
 		return -EPROTO;
+	}
 
 	*cs_num = le16_to_cpu(rx.cs_count);
 
@@ -212,10 +227,12 @@ static int dln2_spi_get_cs_num(struct dln2_spi *dln2, u16 *cs_num)
 static int dln2_spi_get_speed(struct dln2_spi *dln2, u16 cmd, u32 *freq)
 {
 	int ret;
-	struct {
+	struct
+	{
 		u8 port;
 	} tx;
-	struct {
+	struct
+	{
 		__le32 speed;
 	} rx;
 	unsigned rx_len = sizeof(rx);
@@ -223,10 +240,16 @@ static int dln2_spi_get_speed(struct dln2_spi *dln2, u16 cmd, u32 *freq)
 	tx.port = dln2->port;
 
 	ret = dln2_transfer(dln2->pdev, cmd, &tx, sizeof(tx), &rx, &rx_len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (rx_len < sizeof(rx))
+	{
 		return -EPROTO;
+	}
 
 	*freq = le32_to_cpu(rx.speed);
 
@@ -241,15 +264,21 @@ static int dln2_spi_get_speed_range(struct dln2_spi *dln2, u32 *fmin, u32 *fmax)
 	int ret;
 
 	ret = dln2_spi_get_speed(dln2, DLN2_SPI_GET_MIN_FREQUENCY, fmin);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = dln2_spi_get_speed(dln2, DLN2_SPI_GET_MAX_FREQUENCY, fmax);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev_dbg(&dln2->pdev->dev, "freq_min = %d, freq_max = %d\n",
-		*fmin, *fmax);
+			*fmin, *fmax);
 
 	return 0;
 }
@@ -261,11 +290,13 @@ static int dln2_spi_get_speed_range(struct dln2_spi *dln2, u32 *fmin, u32 *fmax)
 static int dln2_spi_set_speed(struct dln2_spi *dln2, u32 speed)
 {
 	int ret;
-	struct {
+	struct
+	{
 		u8 port;
 		__le32 speed;
 	} __packed tx;
-	struct {
+	struct
+	{
 		__le32 speed;
 	} rx;
 	int rx_len = sizeof(rx);
@@ -274,11 +305,17 @@ static int dln2_spi_set_speed(struct dln2_spi *dln2, u32 speed)
 	tx.speed = cpu_to_le32(speed);
 
 	ret = dln2_transfer(dln2->pdev, DLN2_SPI_SET_FREQUENCY, &tx, sizeof(tx),
-			    &rx, &rx_len);
+						&rx, &rx_len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (rx_len < sizeof(rx))
+	{
 		return -EPROTO;
+	}
 
 	return 0;
 }
@@ -288,7 +325,8 @@ static int dln2_spi_set_speed(struct dln2_spi *dln2, u32 speed)
  */
 static int dln2_spi_set_mode(struct dln2_spi *dln2, u8 mode)
 {
-	struct {
+	struct
+	{
 		u8 port;
 		u8 mode;
 	} tx;
@@ -304,7 +342,8 @@ static int dln2_spi_set_mode(struct dln2_spi *dln2, u8 mode)
  */
 static int dln2_spi_set_bpw(struct dln2_spi *dln2, u8 bpw)
 {
-	struct {
+	struct
+	{
 		u8 port;
 		u8 bpw;
 	} tx;
@@ -313,17 +352,19 @@ static int dln2_spi_set_bpw(struct dln2_spi *dln2, u8 bpw)
 	tx.bpw = bpw;
 
 	return dln2_transfer_tx(dln2->pdev, DLN2_SPI_SET_FRAME_SIZE,
-				&tx, sizeof(tx));
+							&tx, sizeof(tx));
 }
 
 static int dln2_spi_get_supported_frame_sizes(struct dln2_spi *dln2,
-					      u32 *bpw_mask)
+		u32 *bpw_mask)
 {
 	int ret;
-	struct {
+	struct
+	{
 		u8 port;
 	} tx;
-	struct {
+	struct
+	{
 		u8 count;
 		u8 frame_sizes[36];
 	} *rx = dln2->buf;
@@ -333,17 +374,29 @@ static int dln2_spi_get_supported_frame_sizes(struct dln2_spi *dln2,
 	tx.port = dln2->port;
 
 	ret = dln2_transfer(dln2->pdev, DLN2_SPI_GET_SUPPORTED_FRAME_SIZES,
-			    &tx, sizeof(tx), rx, &rx_len);
+						&tx, sizeof(tx), rx, &rx_len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (rx_len < sizeof(*rx))
+	{
 		return -EPROTO;
+	}
+
 	if (rx->count > ARRAY_SIZE(rx->frame_sizes))
+	{
 		return -EPROTO;
+	}
 
 	*bpw_mask = 0;
+
 	for (i = 0; i < rx->count; i++)
+	{
 		*bpw_mask |= BIT(rx->frame_sizes[i] - 1);
+	}
 
 	dev_dbg(&dln2->pdev->dev, "bpw_mask = 0x%X\n", *bpw_mask);
 
@@ -360,23 +413,36 @@ static int dln2_spi_copy_to_buf(u8 *dln2_buf, const u8 *src, u16 len, u8 bpw)
 #ifdef __LITTLE_ENDIAN
 	memcpy(dln2_buf, src, len);
 #else
-	if (bpw <= 8) {
+
+	if (bpw <= 8)
+	{
 		memcpy(dln2_buf, src, len);
-	} else if (bpw <= 16) {
+	}
+	else if (bpw <= 16)
+	{
 		__le16 *d = (__le16 *)dln2_buf;
 		u16 *s = (u16 *)src;
 
 		len = len / 2;
+
 		while (len--)
+		{
 			*d++ = cpu_to_le16p(s++);
-	} else {
+		}
+	}
+	else
+	{
 		__le32 *d = (__le32 *)dln2_buf;
 		u32 *s = (u32 *)src;
 
 		len = len / 4;
+
 		while (len--)
+		{
 			*d++ = cpu_to_le32p(s++);
+		}
 	}
+
 #endif
 
 	return 0;
@@ -393,23 +459,36 @@ static int dln2_spi_copy_from_buf(u8 *dest, const u8 *dln2_buf, u16 len, u8 bpw)
 #ifdef __LITTLE_ENDIAN
 	memcpy(dest, dln2_buf, len);
 #else
-	if (bpw <= 8) {
+
+	if (bpw <= 8)
+	{
 		memcpy(dest, dln2_buf, len);
-	} else if (bpw <= 16) {
+	}
+	else if (bpw <= 16)
+	{
 		u16 *d = (u16 *)dest;
 		__le16 *s = (__le16 *)dln2_buf;
 
 		len = len / 2;
+
 		while (len--)
+		{
 			*d++ = le16_to_cpup(s++);
-	} else {
+		}
+	}
+	else
+	{
 		u32 *d = (u32 *)dest;
 		__le32 *s = (__le32 *)dln2_buf;
 
 		len = len / 4;
+
 		while (len--)
+		{
 			*d++ = get_unaligned_le32(s++);
+		}
 	}
+
 #endif
 
 	return 0;
@@ -419,9 +498,10 @@ static int dln2_spi_copy_from_buf(u8 *dest, const u8 *dln2_buf, u16 len, u8 bpw)
  * Perform one write operation.
  */
 static int dln2_spi_write_one(struct dln2_spi *dln2, const u8 *data,
-			      u16 data_len, u8 attr)
+							  u16 data_len, u8 attr)
 {
-	struct {
+	struct
+	{
 		u8 port;
 		__le16 size;
 		u8 attr;
@@ -432,7 +512,9 @@ static int dln2_spi_write_one(struct dln2_spi *dln2, const u8 *data,
 	BUILD_BUG_ON(sizeof(*tx) > DLN2_SPI_BUF_SIZE);
 
 	if (data_len > DLN2_SPI_MAX_XFER_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	tx->port = dln2->port;
 	tx->size = cpu_to_le16(data_len);
@@ -448,15 +530,17 @@ static int dln2_spi_write_one(struct dln2_spi *dln2, const u8 *data,
  * Perform one read operation.
  */
 static int dln2_spi_read_one(struct dln2_spi *dln2, u8 *data,
-			     u16 data_len, u8 attr)
+							 u16 data_len, u8 attr)
 {
 	int ret;
-	struct {
+	struct
+	{
 		u8 port;
 		__le16 size;
 		u8 attr;
 	} __packed tx;
-	struct {
+	struct
+	{
 		__le16 size;
 		u8 buf[DLN2_SPI_MAX_XFER_SIZE];
 	} __packed *rx = dln2->buf;
@@ -465,20 +549,31 @@ static int dln2_spi_read_one(struct dln2_spi *dln2, u8 *data,
 	BUILD_BUG_ON(sizeof(*rx) > DLN2_SPI_BUF_SIZE);
 
 	if (data_len > DLN2_SPI_MAX_XFER_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	tx.port = dln2->port;
 	tx.size = cpu_to_le16(data_len);
 	tx.attr = attr;
 
 	ret = dln2_transfer(dln2->pdev, DLN2_SPI_READ, &tx, sizeof(tx),
-			    rx, &rx_len);
+						rx, &rx_len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (rx_len < sizeof(rx->size) + data_len)
+	{
 		return -EPROTO;
+	}
+
 	if (le16_to_cpu(rx->size) != data_len)
+	{
 		return -EPROTO;
+	}
 
 	dln2_spi_copy_from_buf(data, rx->buf, data_len, dln2->bpw);
 
@@ -489,26 +584,30 @@ static int dln2_spi_read_one(struct dln2_spi *dln2, u8 *data,
  * Perform one write & read operation.
  */
 static int dln2_spi_read_write_one(struct dln2_spi *dln2, const u8 *tx_data,
-				   u8 *rx_data, u16 data_len, u8 attr)
+								   u8 *rx_data, u16 data_len, u8 attr)
 {
 	int ret;
-	struct {
+	struct
+	{
 		u8 port;
 		__le16 size;
 		u8 attr;
 		u8 buf[DLN2_SPI_MAX_XFER_SIZE];
 	} __packed *tx;
-	struct {
+	struct
+	{
 		__le16 size;
 		u8 buf[DLN2_SPI_MAX_XFER_SIZE];
 	} __packed *rx;
 	unsigned tx_len, rx_len;
 
 	BUILD_BUG_ON(sizeof(*tx) > DLN2_SPI_BUF_SIZE ||
-		     sizeof(*rx) > DLN2_SPI_BUF_SIZE);
+				 sizeof(*rx) > DLN2_SPI_BUF_SIZE);
 
 	if (data_len > DLN2_SPI_MAX_XFER_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Since this is a pseudo full-duplex communication, we're perfectly
@@ -528,13 +627,22 @@ static int dln2_spi_read_write_one(struct dln2_spi *dln2, const u8 *tx_data,
 	rx_len = sizeof(*rx);
 
 	ret = dln2_transfer(dln2->pdev, DLN2_SPI_READ_WRITE, tx, tx_len,
-			    rx, &rx_len);
+						rx, &rx_len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (rx_len < sizeof(rx->size) + data_len)
+	{
 		return -EPROTO;
+	}
+
 	if (le16_to_cpu(rx->size) != data_len)
+	{
 		return -EPROTO;
+	}
 
 	dln2_spi_copy_from_buf(rx_data, rx->buf, data_len, dln2->bpw);
 
@@ -546,61 +654,80 @@ static int dln2_spi_read_write_one(struct dln2_spi *dln2, const u8 *tx_data,
  * single ones due to device buffer constraints.
  */
 static int dln2_spi_rdwr(struct dln2_spi *dln2, const u8 *tx_data,
-			 u8 *rx_data, u16 data_len, u8 attr) {
+						 u8 *rx_data, u16 data_len, u8 attr)
+{
 	int ret;
 	u16 len;
 	u8 temp_attr;
 	u16 remaining = data_len;
 	u16 offset;
 
-	do {
-		if (remaining > DLN2_SPI_MAX_XFER_SIZE) {
+	do
+	{
+		if (remaining > DLN2_SPI_MAX_XFER_SIZE)
+		{
 			len = DLN2_SPI_MAX_XFER_SIZE;
 			temp_attr = DLN2_SPI_ATTR_LEAVE_SS_LOW;
-		} else {
+		}
+		else
+		{
 			len = remaining;
 			temp_attr = attr;
 		}
 
 		offset = data_len - remaining;
 
-		if (tx_data && rx_data) {
+		if (tx_data && rx_data)
+		{
 			ret = dln2_spi_read_write_one(dln2,
-						      tx_data + offset,
-						      rx_data + offset,
-						      len, temp_attr);
-		} else if (tx_data) {
+										  tx_data + offset,
+										  rx_data + offset,
+										  len, temp_attr);
+		}
+		else if (tx_data)
+		{
 			ret = dln2_spi_write_one(dln2,
-						 tx_data + offset,
-						 len, temp_attr);
-		} else if (rx_data) {
+									 tx_data + offset,
+									 len, temp_attr);
+		}
+		else if (rx_data)
+		{
 			ret = dln2_spi_read_one(dln2,
-						rx_data + offset,
-						len, temp_attr);
-		 } else {
+									rx_data + offset,
+									len, temp_attr);
+		}
+		else
+		{
 			return -EINVAL;
-		 }
+		}
 
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		remaining -= len;
-	} while (remaining);
+	}
+	while (remaining);
 
 	return 0;
 }
 
 static int dln2_spi_prepare_message(struct spi_master *master,
-				    struct spi_message *message)
+									struct spi_message *message)
 {
 	int ret;
 	struct dln2_spi *dln2 = spi_master_get_devdata(master);
 	struct spi_device *spi = message->spi;
 
-	if (dln2->cs != spi->chip_select) {
+	if (dln2->cs != spi->chip_select)
+	{
 		ret = dln2_spi_cs_set_one(dln2, spi->chip_select);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		dln2->cs = spi->chip_select;
 	}
@@ -609,41 +736,58 @@ static int dln2_spi_prepare_message(struct spi_master *master,
 }
 
 static int dln2_spi_transfer_setup(struct dln2_spi *dln2, u32 speed,
-				   u8 bpw, u8 mode)
+								   u8 bpw, u8 mode)
 {
 	int ret;
 	bool bus_setup_change;
 
 	bus_setup_change = dln2->speed != speed || dln2->mode != mode ||
-			   dln2->bpw != bpw;
+					   dln2->bpw != bpw;
 
 	if (!bus_setup_change)
+	{
 		return 0;
+	}
 
 	ret = dln2_spi_enable(dln2, false);
-	if (ret < 0)
-		return ret;
 
-	if (dln2->speed != speed) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (dln2->speed != speed)
+	{
 		ret = dln2_spi_set_speed(dln2, speed);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		dln2->speed = speed;
 	}
 
-	if (dln2->mode != mode) {
+	if (dln2->mode != mode)
+	{
 		ret = dln2_spi_set_mode(dln2, mode & 0x3);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		dln2->mode = mode;
 	}
 
-	if (dln2->bpw != bpw) {
+	if (dln2->bpw != bpw)
+	{
 		ret = dln2_spi_set_bpw(dln2, bpw);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		dln2->bpw = bpw;
 	}
@@ -652,28 +796,35 @@ static int dln2_spi_transfer_setup(struct dln2_spi *dln2, u32 speed,
 }
 
 static int dln2_spi_transfer_one(struct spi_master *master,
-				 struct spi_device *spi,
-				 struct spi_transfer *xfer)
+								 struct spi_device *spi,
+								 struct spi_transfer *xfer)
 {
 	struct dln2_spi *dln2 = spi_master_get_devdata(master);
 	int status;
 	u8 attr = 0;
 
 	status = dln2_spi_transfer_setup(dln2, xfer->speed_hz,
-					 xfer->bits_per_word,
-					 spi->mode);
-	if (status < 0) {
+									 xfer->bits_per_word,
+									 spi->mode);
+
+	if (status < 0)
+	{
 		dev_err(&dln2->pdev->dev, "Cannot setup transfer\n");
 		return status;
 	}
 
 	if (!xfer->cs_change && !spi_transfer_is_last(master, xfer))
+	{
 		attr = DLN2_SPI_ATTR_LEAVE_SS_LOW;
+	}
 
 	status = dln2_spi_rdwr(dln2, xfer->tx_buf, xfer->rx_buf,
-			       xfer->len, attr);
+						   xfer->len, attr);
+
 	if (status < 0)
+	{
 		dev_err(&dln2->pdev->dev, "write/read failed!\n");
+	}
 
 	return status;
 }
@@ -687,15 +838,20 @@ static int dln2_spi_probe(struct platform_device *pdev)
 	int ret;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(*dln2));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, master);
 
 	dln2 = spi_master_get_devdata(master);
 
 	dln2->buf = devm_kmalloc(&pdev->dev, DLN2_SPI_BUF_SIZE, GFP_KERNEL);
-	if (!dln2->buf) {
+
+	if (!dln2->buf)
+	{
 		ret = -ENOMEM;
 		goto exit_free_master;
 	}
@@ -710,34 +866,44 @@ static int dln2_spi_probe(struct platform_device *pdev)
 
 	/* disable SPI module before continuing with the setup */
 	ret = dln2_spi_enable(dln2, false);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to disable SPI module\n");
 		goto exit_free_master;
 	}
 
 	ret = dln2_spi_get_cs_num(dln2, &master->num_chipselect);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to get number of CS pins\n");
 		goto exit_free_master;
 	}
 
 	ret = dln2_spi_get_speed_range(dln2,
-				       &master->min_speed_hz,
-				       &master->max_speed_hz);
-	if (ret < 0) {
+								   &master->min_speed_hz,
+								   &master->max_speed_hz);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to read bus min/max freqs\n");
 		goto exit_free_master;
 	}
 
 	ret = dln2_spi_get_supported_frame_sizes(dln2,
-						 &master->bits_per_word_mask);
-	if (ret < 0) {
+			&master->bits_per_word_mask);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to read supported frame sizes\n");
 		goto exit_free_master;
 	}
 
 	ret = dln2_spi_cs_enable_all(dln2, true);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to enable CS pins\n");
 		goto exit_free_master;
 	}
@@ -750,19 +916,23 @@ static int dln2_spi_probe(struct platform_device *pdev)
 
 	/* enable SPI module, we're good to go */
 	ret = dln2_spi_enable(dln2, true);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to enable SPI module\n");
 		goto exit_free_master;
 	}
 
 	pm_runtime_set_autosuspend_delay(&pdev->dev,
-					 DLN2_RPM_AUTOSUSPEND_TIMEOUT);
+									 DLN2_RPM_AUTOSUSPEND_TIMEOUT);
 	pm_runtime_use_autosuspend(&pdev->dev);
 	pm_runtime_set_active(&pdev->dev);
 	pm_runtime_enable(&pdev->dev);
 
 	ret = devm_spi_register_master(&pdev->dev, master);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to register master\n");
 		goto exit_register;
 	}
@@ -774,7 +944,10 @@ exit_register:
 	pm_runtime_set_suspended(&pdev->dev);
 
 	if (dln2_spi_enable(dln2, false) < 0)
+	{
 		dev_err(&pdev->dev, "Failed to disable SPI module\n");
+	}
+
 exit_free_master:
 	spi_master_put(master);
 
@@ -789,7 +962,9 @@ static int dln2_spi_remove(struct platform_device *pdev)
 	pm_runtime_disable(&pdev->dev);
 
 	if (dln2_spi_enable(dln2, false) < 0)
+	{
 		dev_err(&pdev->dev, "Failed to disable SPI module\n");
+	}
 
 	return 0;
 }
@@ -802,13 +977,20 @@ static int dln2_spi_suspend(struct device *dev)
 	struct dln2_spi *dln2 = spi_master_get_devdata(master);
 
 	ret = spi_master_suspend(master);
-	if (ret < 0)
-		return ret;
 
-	if (!pm_runtime_suspended(dev)) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (!pm_runtime_suspended(dev))
+	{
 		ret = dln2_spi_enable(dln2, false);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	/*
@@ -829,14 +1011,21 @@ static int dln2_spi_resume(struct device *dev)
 	struct spi_master *master = dev_get_drvdata(dev);
 	struct dln2_spi *dln2 = spi_master_get_devdata(master);
 
-	if (!pm_runtime_suspended(dev)) {
+	if (!pm_runtime_suspended(dev))
+	{
 		ret = dln2_spi_cs_enable_all(dln2, true);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		ret = dln2_spi_enable(dln2, true);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return spi_master_resume(master);
@@ -861,13 +1050,15 @@ static int dln2_spi_runtime_resume(struct device *dev)
 }
 #endif /* CONFIG_PM */
 
-static const struct dev_pm_ops dln2_spi_pm = {
+static const struct dev_pm_ops dln2_spi_pm =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(dln2_spi_suspend, dln2_spi_resume)
 	SET_RUNTIME_PM_OPS(dln2_spi_runtime_suspend,
-			   dln2_spi_runtime_resume, NULL)
+	dln2_spi_runtime_resume, NULL)
 };
 
-static struct platform_driver spi_dln2_driver = {
+static struct platform_driver spi_dln2_driver =
+{
 	.driver = {
 		.name	= "dln2-spi",
 		.pm	= &dln2_spi_pm,

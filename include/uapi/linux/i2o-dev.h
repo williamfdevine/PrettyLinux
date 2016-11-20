@@ -45,23 +45,27 @@
 #define I2OPASSTHRU		_IOR(I2O_MAGIC_NUMBER,12,struct i2o_cmd_passthru)
 #define I2OPASSTHRU32		_IOR(I2O_MAGIC_NUMBER,12,struct i2o_cmd_passthru32)
 
-struct i2o_cmd_passthru32 {
+struct i2o_cmd_passthru32
+{
 	unsigned int iop;	/* IOP unit number */
 	__u32 msg;		/* message */
 };
 
-struct i2o_cmd_passthru {
+struct i2o_cmd_passthru
+{
 	unsigned int iop;	/* IOP unit number */
 	void __user *msg;	/* message */
 };
 
-struct i2o_cmd_hrtlct {
+struct i2o_cmd_hrtlct
+{
 	unsigned int iop;	/* IOP unit number */
 	void __user *resbuf;	/* Buffer for result */
 	unsigned int __user *reslen;	/* Buffer length in bytes */
 };
 
-struct i2o_cmd_psetget {
+struct i2o_cmd_psetget
+{
 	unsigned int iop;	/* IOP unit number */
 	unsigned int tid;	/* Target device TID */
 	void __user *opbuf;	/* Operation List buffer */
@@ -70,7 +74,8 @@ struct i2o_cmd_psetget {
 	unsigned int __user *reslen;	/* Result List buffer length in bytes */
 };
 
-struct i2o_sw_xfer {
+struct i2o_sw_xfer
+{
 	unsigned int iop;	/* IOP unit number */
 	unsigned char flags;	/* Flags field */
 	unsigned char sw_type;	/* Software type */
@@ -81,7 +86,8 @@ struct i2o_sw_xfer {
 	unsigned int __user *curfrag;	/* Current fragment count */
 };
 
-struct i2o_html {
+struct i2o_html
+{
 	unsigned int iop;	/* IOP unit number */
 	unsigned int tid;	/* Target device ID */
 	unsigned int page;	/* HTML page */
@@ -93,7 +99,8 @@ struct i2o_html {
 
 #define I2O_EVT_Q_LEN 32
 
-struct i2o_evt_id {
+struct i2o_evt_id
+{
 	unsigned int iop;
 	unsigned int tid;
 	unsigned int evt_mask;
@@ -102,19 +109,22 @@ struct i2o_evt_id {
 /* Event data size = frame size - message header + evt indicator */
 #define I2O_EVT_DATA_SIZE 88
 
-struct i2o_evt_info {
+struct i2o_evt_info
+{
 	struct i2o_evt_id id;
 	unsigned char evt_data[I2O_EVT_DATA_SIZE];
 	unsigned int data_size;
 };
 
-struct i2o_evt_get {
+struct i2o_evt_get
+{
 	struct i2o_evt_info info;
 	int pending;
 	int lost;
 };
 
-typedef struct i2o_sg_io_hdr {
+typedef struct i2o_sg_io_hdr
+{
 	unsigned int flags;	/* see I2O_DPT_SG_IO_FLAGS */
 } i2o_sg_io_hdr_t;
 
@@ -131,7 +141,8 @@ typedef struct i2o_sg_io_hdr {
 #define I2O_BUS_CARDBUS 7
 #define I2O_BUS_UNKNOWN 0x80
 
-typedef struct _i2o_pci_bus {
+typedef struct _i2o_pci_bus
+{
 	__u8 PciFunctionNumber;
 	__u8 PciDeviceNumber;
 	__u8 PciBusNumber;
@@ -140,46 +151,53 @@ typedef struct _i2o_pci_bus {
 	__u16 PciDeviceID;
 } i2o_pci_bus;
 
-typedef struct _i2o_local_bus {
+typedef struct _i2o_local_bus
+{
 	__u16 LbBaseIOPort;
 	__u16 reserved;
 	__u32 LbBaseMemoryAddress;
 } i2o_local_bus;
 
-typedef struct _i2o_isa_bus {
+typedef struct _i2o_isa_bus
+{
 	__u16 IsaBaseIOPort;
 	__u8 CSN;
 	__u8 reserved;
 	__u32 IsaBaseMemoryAddress;
 } i2o_isa_bus;
 
-typedef struct _i2o_eisa_bus_info {
+typedef struct _i2o_eisa_bus_info
+{
 	__u16 EisaBaseIOPort;
 	__u8 reserved;
 	__u8 EisaSlotNumber;
 	__u32 EisaBaseMemoryAddress;
 } i2o_eisa_bus;
 
-typedef struct _i2o_mca_bus {
+typedef struct _i2o_mca_bus
+{
 	__u16 McaBaseIOPort;
 	__u8 reserved;
 	__u8 McaSlotNumber;
 	__u32 McaBaseMemoryAddress;
 } i2o_mca_bus;
 
-typedef struct _i2o_other_bus {
+typedef struct _i2o_other_bus
+{
 	__u16 BaseIOPort;
 	__u16 reserved;
 	__u32 BaseMemoryAddress;
 } i2o_other_bus;
 
-typedef struct _i2o_hrt_entry {
+typedef struct _i2o_hrt_entry
+{
 	__u32 adapter_id;
-	__u32 parent_tid:12;
-	__u32 state:4;
-	__u32 bus_num:8;
-	__u32 bus_type:8;
-	union {
+	__u32 parent_tid: 12;
+	__u32 state: 4;
+	__u32 bus_num: 8;
+	__u32 bus_type: 8;
+	union
+	{
 		i2o_pci_bus pci_bus;
 		i2o_local_bus local_bus;
 		i2o_isa_bus isa_bus;
@@ -189,7 +207,8 @@ typedef struct _i2o_hrt_entry {
 	} bus;
 } i2o_hrt_entry;
 
-typedef struct _i2o_hrt {
+typedef struct _i2o_hrt
+{
 	__u16 num_entries;
 	__u8 entry_len;
 	__u8 hrt_version;
@@ -197,40 +216,43 @@ typedef struct _i2o_hrt {
 	i2o_hrt_entry hrt_entry[1];
 } i2o_hrt;
 
-typedef struct _i2o_lct_entry {
-	__u32 entry_size:16;
-	__u32 tid:12;
-	__u32 reserved:4;
+typedef struct _i2o_lct_entry
+{
+	__u32 entry_size: 16;
+	__u32 tid: 12;
+	__u32 reserved: 4;
 	__u32 change_ind;
 	__u32 device_flags;
-	__u32 class_id:12;
-	__u32 version:4;
-	__u32 vendor_id:16;
+	__u32 class_id: 12;
+	__u32 version: 4;
+	__u32 vendor_id: 16;
 	__u32 sub_class;
-	__u32 user_tid:12;
-	__u32 parent_tid:12;
-	__u32 bios_info:8;
+	__u32 user_tid: 12;
+	__u32 parent_tid: 12;
+	__u32 bios_info: 8;
 	__u8 identity_tag[8];
 	__u32 event_capabilities;
 } i2o_lct_entry;
 
-typedef struct _i2o_lct {
-	__u32 table_size:16;
-	__u32 boot_tid:12;
-	__u32 lct_ver:4;
+typedef struct _i2o_lct
+{
+	__u32 table_size: 16;
+	__u32 boot_tid: 12;
+	__u32 lct_ver: 4;
 	__u32 iop_flags;
 	__u32 change_ind;
 	i2o_lct_entry lct_entry[1];
 } i2o_lct;
 
-typedef struct _i2o_status_block {
+typedef struct _i2o_status_block
+{
 	__u16 org_id;
 	__u16 reserved;
-	__u16 iop_id:12;
-	__u16 reserved1:4;
+	__u16 iop_id: 12;
+	__u16 reserved1: 4;
 	__u16 host_unit_id;
-	__u16 segment_number:12;
-	__u16 i2o_version:4;
+	__u16 segment_number: 12;
+	__u16 i2o_version: 4;
 	__u8 iop_state;
 	__u8 msg_type;
 	__u16 inbound_frame_size;
@@ -248,8 +270,8 @@ typedef struct _i2o_status_block {
 	__u32 desired_io_size;
 	__u32 current_io_size;
 	__u32 current_io_base;
-	__u32 reserved3:24;
-	__u32 cmd_status:8;
+	__u32 reserved3: 24;
+	__u32 cmd_status: 8;
 } i2o_status_block;
 
 /* Event indicator mask flags */

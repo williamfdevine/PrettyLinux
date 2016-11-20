@@ -2,7 +2,7 @@
 #define __RADEONFB_H__
 
 #ifdef CONFIG_FB_RADEON_DEBUG
-#define DEBUG		1
+	#define DEBUG		1
 #endif
 
 #include <linux/module.h>
@@ -14,14 +14,14 @@
 
 
 #ifdef CONFIG_FB_RADEON_I2C
-#include <linux/i2c.h>
-#include <linux/i2c-algo-bit.h>
+	#include <linux/i2c.h>
+	#include <linux/i2c-algo-bit.h>
 #endif
 
 #include <asm/io.h>
 
 #if defined(CONFIG_PPC) || defined(CONFIG_SPARC)
-#include <asm/prom.h>
+	#include <asm/prom.h>
 #endif
 
 #include <video/radeon.h>
@@ -34,7 +34,8 @@
 /*
  * Chip families. Must fit in the low 16 bits of a long word
  */
-enum radeon_family {
+enum radeon_family
+{
 	CHIP_FAMILY_UNKNOW,
 	CHIP_FAMILY_LEGACY,
 	CHIP_FAMILY_RADEON,
@@ -59,37 +60,39 @@ enum radeon_family {
 };
 
 #define IS_RV100_VARIANT(rinfo) (((rinfo)->family == CHIP_FAMILY_RV100)  || \
-				 ((rinfo)->family == CHIP_FAMILY_RV200)  || \
-				 ((rinfo)->family == CHIP_FAMILY_RS100)  || \
-				 ((rinfo)->family == CHIP_FAMILY_RS200)  || \
-				 ((rinfo)->family == CHIP_FAMILY_RV250)  || \
-				 ((rinfo)->family == CHIP_FAMILY_RV280)  || \
-				 ((rinfo)->family == CHIP_FAMILY_RS300))
+								 ((rinfo)->family == CHIP_FAMILY_RV200)  || \
+								 ((rinfo)->family == CHIP_FAMILY_RS100)  || \
+								 ((rinfo)->family == CHIP_FAMILY_RS200)  || \
+								 ((rinfo)->family == CHIP_FAMILY_RV250)  || \
+								 ((rinfo)->family == CHIP_FAMILY_RV280)  || \
+								 ((rinfo)->family == CHIP_FAMILY_RS300))
 
 
 #define IS_R300_VARIANT(rinfo) (((rinfo)->family == CHIP_FAMILY_R300)  || \
-				((rinfo)->family == CHIP_FAMILY_RV350) || \
-				((rinfo)->family == CHIP_FAMILY_R350)  || \
-				((rinfo)->family == CHIP_FAMILY_RV380) || \
-				((rinfo)->family == CHIP_FAMILY_R420)  || \
-                               ((rinfo)->family == CHIP_FAMILY_RC410) || \
-                               ((rinfo)->family == CHIP_FAMILY_RS480))
+								((rinfo)->family == CHIP_FAMILY_RV350) || \
+								((rinfo)->family == CHIP_FAMILY_R350)  || \
+								((rinfo)->family == CHIP_FAMILY_RV380) || \
+								((rinfo)->family == CHIP_FAMILY_R420)  || \
+								((rinfo)->family == CHIP_FAMILY_RC410) || \
+								((rinfo)->family == CHIP_FAMILY_RS480))
 
 /*
  * Chip flags
  */
-enum radeon_chip_flags {
+enum radeon_chip_flags
+{
 	CHIP_FAMILY_MASK	= 0x0000ffffUL,
 	CHIP_FLAGS_MASK		= 0xffff0000UL,
 	CHIP_IS_MOBILITY	= 0x00010000UL,
 	CHIP_IS_IGP		= 0x00020000UL,
-	CHIP_HAS_CRTC2		= 0x00040000UL,	
+	CHIP_HAS_CRTC2		= 0x00040000UL,
 };
 
 /*
  * Errata workarounds
  */
-enum radeon_errata {
+enum radeon_errata
+{
 	CHIP_ERRATA_R300_CG		= 0x00000001,
 	CHIP_ERRATA_PLL_DUMMYREADS	= 0x00000002,
 	CHIP_ERRATA_PLL_DELAY		= 0x00000004,
@@ -99,7 +102,8 @@ enum radeon_errata {
 /*
  * Monitor types
  */
-enum radeon_montype {
+enum radeon_montype
+{
 	MT_NONE = 0,
 	MT_CRT,		/* CRT */
 	MT_LCD,		/* LCD */
@@ -111,7 +115,8 @@ enum radeon_montype {
 /*
  * DDC i2c ports
  */
-enum ddc_type {
+enum ddc_type
+{
 	ddc_none,
 	ddc_monid,
 	ddc_dvi,
@@ -122,7 +127,8 @@ enum ddc_type {
 /*
  * Connector types
  */
-enum conn_type {
+enum conn_type
+{
 	conn_none,
 	conn_proprietary,
 	conn_crt,
@@ -134,7 +140,8 @@ enum conn_type {
 /*
  * PLL infos
  */
-struct pll_info {
+struct pll_info
+{
 	int ppll_max;
 	int ppll_min;
 	int sclk, mclk;
@@ -149,7 +156,8 @@ struct pll_info {
  * XFree's RADEONSaveRec structure. A few chip settings might still be
  * tweaked without beeing reflected or saved in these registers though
  */
-struct radeon_regs {
+struct radeon_regs
+{
 	/* Common registers */
 	u32		ovr_clr;
 	u32		ovr_wid_left_right;
@@ -229,7 +237,7 @@ struct radeon_regs {
 	/* Computed values for PLL */
 	u32		dot_clock_freq;
 	int		feedback_div;
-	int		post_div;	
+	int		post_div;
 
 	/* PLL registers */
 	u32		ppll_div_3;
@@ -247,11 +255,12 @@ struct radeon_regs {
 	u32		p2pll_div_0;
 	u32		htotal_cntl2;
 
-       	/* Palette */
+	/* Palette */
 	int		palette_valid;
 };
 
-struct panel_info {
+struct panel_info
+{
 	int xres, yres;
 	int valid;
 	int clock;
@@ -268,7 +277,8 @@ struct panel_info {
 struct radeonfb_info;
 
 #ifdef CONFIG_FB_RADEON_I2C
-struct radeon_i2c_chan {
+struct radeon_i2c_chan
+{
 	struct radeonfb_info		*rinfo;
 	u32		 		ddc_reg;
 	struct i2c_adapter		adapter;
@@ -276,7 +286,8 @@ struct radeon_i2c_chan {
 };
 #endif
 
-enum radeon_pm_mode {
+enum radeon_pm_mode
+{
 	radeon_pm_none	= 0,		/* Nothing supported */
 	radeon_pm_d2	= 0x00000001,	/* Can do D2 state */
 	radeon_pm_off	= 0x00000002,	/* Can resume from D3 cold */
@@ -284,7 +295,8 @@ enum radeon_pm_mode {
 
 typedef void (*reinit_function_ptr)(struct radeonfb_info *rinfo);
 
-struct radeonfb_info {
+struct radeonfb_info
+{
 	struct fb_info		*info;
 
 	struct radeon_regs 	state;
@@ -310,7 +322,7 @@ struct radeonfb_info {
 
 	u32			pseudo_palette[16];
 	struct { u8 red, green, blue, pad; }
-				palette[256];
+	palette[256];
 
 	int			chipset;
 	u8			family;
@@ -404,20 +416,24 @@ void radeon_pll_errata_after_index_slow(struct radeonfb_info *rinfo);
 static inline void radeon_pll_errata_after_index(struct radeonfb_info *rinfo)
 {
 	if (rinfo->errata & CHIP_ERRATA_PLL_DUMMYREADS)
+	{
 		radeon_pll_errata_after_index_slow(rinfo);
+	}
 }
 
 void radeon_pll_errata_after_data_slow(struct radeonfb_info *rinfo);
 static inline void radeon_pll_errata_after_data(struct radeonfb_info *rinfo)
 {
-	if (rinfo->errata & (CHIP_ERRATA_PLL_DELAY|CHIP_ERRATA_R300_CG))
+	if (rinfo->errata & (CHIP_ERRATA_PLL_DELAY | CHIP_ERRATA_R300_CG))
+	{
 		radeon_pll_errata_after_data_slow(rinfo);
+	}
 }
 
 u32 __INPLL(struct radeonfb_info *rinfo, u32 addr);
 void __OUTPLL(struct radeonfb_info *rinfo, unsigned int index, u32 val);
 void __OUTPLLP(struct radeonfb_info *rinfo, unsigned int index,
-			     u32 val, u32 mask);
+			   u32 val, u32 mask);
 
 #define INPLL(addr)			__INPLL(rinfo, addr)
 #define OUTPLL(index, val)		__OUTPLL(rinfo, index, val)
@@ -426,40 +442,48 @@ void __OUTPLLP(struct radeonfb_info *rinfo, unsigned int index,
 
 #define BIOS_IN8(v)  	(readb(rinfo->bios_seg + (v)))
 #define BIOS_IN16(v) 	(readb(rinfo->bios_seg + (v)) | \
-			  (readb(rinfo->bios_seg + (v) + 1) << 8))
+						 (readb(rinfo->bios_seg + (v) + 1) << 8))
 #define BIOS_IN32(v) 	(readb(rinfo->bios_seg + (v)) | \
-			  (readb(rinfo->bios_seg + (v) + 1) << 8) | \
-			  (readb(rinfo->bios_seg + (v) + 2) << 16) | \
-			  (readb(rinfo->bios_seg + (v) + 3) << 24))
+						 (readb(rinfo->bios_seg + (v) + 1) << 8) | \
+						 (readb(rinfo->bios_seg + (v) + 2) << 16) | \
+						 (readb(rinfo->bios_seg + (v) + 3) << 24))
 
 /*
  * Inline utilities
  */
 static inline int round_div(int num, int den)
 {
-        return (num + (den / 2)) / den;
+	return (num + (den / 2)) / den;
 }
 
 static inline int var_to_depth(const struct fb_var_screeninfo *var)
 {
 	if (var->bits_per_pixel != 16)
+	{
 		return var->bits_per_pixel;
+	}
+
 	return (var->green.length == 5) ? 15 : 16;
 }
 
 static inline u32 radeon_get_dstbpp(u16 depth)
 {
-	switch (depth) {
-       	case 8:
-       		return DST_8BPP;
-       	case 15:
-       		return DST_15BPP;
-       	case 16:
-       		return DST_16BPP;
-       	case 32:
-       		return DST_32BPP;
-       	default:
-       		return 0;
+	switch (depth)
+	{
+		case 8:
+			return DST_8BPP;
+
+		case 15:
+			return DST_15BPP;
+
+		case 16:
+			return DST_16BPP;
+
+		case 32:
+			return DST_32BPP;
+
+		default:
+			return 0;
 	}
 }
 
@@ -489,11 +513,11 @@ extern void radeonfb_pm_exit(struct radeonfb_info *rinfo);
 
 /* Monitor probe functions */
 extern void radeon_probe_screens(struct radeonfb_info *rinfo,
-				 const char *monitor_layout, int ignore_edid);
+								 const char *monitor_layout, int ignore_edid);
 extern void radeon_check_modes(struct radeonfb_info *rinfo, const char *mode_option);
 extern int radeon_match_mode(struct radeonfb_info *rinfo,
-			     struct fb_var_screeninfo *dest,
-			     const struct fb_var_screeninfo *src);
+							 struct fb_var_screeninfo *dest,
+							 const struct fb_var_screeninfo *src);
 
 /* Accel functions */
 extern void radeonfb_fillrect(struct fb_info *info, const struct fb_fillrect *region);
@@ -506,7 +530,7 @@ extern void radeonfb_engine_reset(struct radeonfb_info *rinfo);
 /* Other functions */
 extern int radeon_screen_blank(struct radeonfb_info *rinfo, int blank, int mode_switch);
 extern void radeon_write_mode (struct radeonfb_info *rinfo, struct radeon_regs *mode,
-			       int reg_only);
+							   int reg_only);
 
 /* Backlight functions */
 #ifdef CONFIG_FB_RADEON_BACKLIGHT

@@ -24,8 +24,10 @@ void exynos3250_jpeg_reset(void __iomem *regs)
 	int count = 1000;
 
 	writel(1, regs + EXYNOS3250_SW_RESET);
+
 	/* no other way but polling for when JPEG IP becomes operational */
-	while (reg != 0 && --count > 0) {
+	while (reg != 0 && --count > 0)
+	{
 		udelay(1);
 		cpu_relax();
 		reg = readl(regs + EXYNOS3250_SW_RESET);
@@ -34,7 +36,8 @@ void exynos3250_jpeg_reset(void __iomem *regs)
 	reg = 0;
 	count = 1000;
 
-	while (reg != 1 && --count > 0) {
+	while (reg != 1 && --count > 0)
+	{
 		writel(1, regs + EXYNOS3250_JPGDRI);
 		udelay(1);
 		cpu_relax();
@@ -53,11 +56,11 @@ void exynos3250_jpeg_set_dma_num(void __iomem *regs)
 {
 	writel(((EXYNOS3250_DMA_MO_COUNT << EXYNOS3250_WDMA_ISSUE_NUM_SHIFT) &
 			EXYNOS3250_WDMA_ISSUE_NUM_MASK) |
-	       ((EXYNOS3250_DMA_MO_COUNT << EXYNOS3250_RDMA_ISSUE_NUM_SHIFT) &
+		   ((EXYNOS3250_DMA_MO_COUNT << EXYNOS3250_RDMA_ISSUE_NUM_SHIFT) &
 			EXYNOS3250_RDMA_ISSUE_NUM_MASK) |
-	       ((EXYNOS3250_DMA_MO_COUNT << EXYNOS3250_ISSUE_GATHER_NUM_SHIFT) &
+		   ((EXYNOS3250_DMA_MO_COUNT << EXYNOS3250_ISSUE_GATHER_NUM_SHIFT) &
 			EXYNOS3250_ISSUE_GATHER_NUM_MASK),
-		regs + EXYNOS3250_DMA_ISSUE_NUM);
+		   regs + EXYNOS3250_DMA_ISSUE_NUM);
 }
 
 void exynos3250_jpeg_clk_set(void __iomem *base)
@@ -74,46 +77,58 @@ void exynos3250_jpeg_input_raw_fmt(void __iomem *regs, unsigned int fmt)
 	u32 reg;
 
 	reg = readl(regs + EXYNOS3250_JPGCMOD) &
-			EXYNOS3250_MODE_Y16_MASK;
+		  EXYNOS3250_MODE_Y16_MASK;
 
-	switch (fmt) {
-	case V4L2_PIX_FMT_RGB32:
-		reg |= EXYNOS3250_MODE_SEL_ARGB8888;
-		break;
-	case V4L2_PIX_FMT_BGR32:
-		reg |= EXYNOS3250_MODE_SEL_ARGB8888 | EXYNOS3250_SRC_SWAP_RGB;
-		break;
-	case V4L2_PIX_FMT_RGB565:
-		reg |= EXYNOS3250_MODE_SEL_RGB565;
-		break;
-	case V4L2_PIX_FMT_RGB565X:
-		reg |= EXYNOS3250_MODE_SEL_RGB565 | EXYNOS3250_SRC_SWAP_RGB;
-		break;
-	case V4L2_PIX_FMT_YUYV:
-		reg |= EXYNOS3250_MODE_SEL_422_1P_LUM_CHR;
-		break;
-	case V4L2_PIX_FMT_YVYU:
-		reg |= EXYNOS3250_MODE_SEL_422_1P_LUM_CHR |
-			EXYNOS3250_SRC_SWAP_UV;
-		break;
-	case V4L2_PIX_FMT_UYVY:
-		reg |= EXYNOS3250_MODE_SEL_422_1P_CHR_LUM;
-		break;
-	case V4L2_PIX_FMT_VYUY:
-		reg |= EXYNOS3250_MODE_SEL_422_1P_CHR_LUM |
-			EXYNOS3250_SRC_SWAP_UV;
-		break;
-	case V4L2_PIX_FMT_NV12:
-		reg |= EXYNOS3250_MODE_SEL_420_2P | EXYNOS3250_SRC_NV12;
-		break;
-	case V4L2_PIX_FMT_NV21:
-		reg |= EXYNOS3250_MODE_SEL_420_2P | EXYNOS3250_SRC_NV21;
-		break;
-	case V4L2_PIX_FMT_YUV420:
-		reg |= EXYNOS3250_MODE_SEL_420_3P;
-		break;
-	default:
-		break;
+	switch (fmt)
+	{
+		case V4L2_PIX_FMT_RGB32:
+			reg |= EXYNOS3250_MODE_SEL_ARGB8888;
+			break;
+
+		case V4L2_PIX_FMT_BGR32:
+			reg |= EXYNOS3250_MODE_SEL_ARGB8888 | EXYNOS3250_SRC_SWAP_RGB;
+			break;
+
+		case V4L2_PIX_FMT_RGB565:
+			reg |= EXYNOS3250_MODE_SEL_RGB565;
+			break;
+
+		case V4L2_PIX_FMT_RGB565X:
+			reg |= EXYNOS3250_MODE_SEL_RGB565 | EXYNOS3250_SRC_SWAP_RGB;
+			break;
+
+		case V4L2_PIX_FMT_YUYV:
+			reg |= EXYNOS3250_MODE_SEL_422_1P_LUM_CHR;
+			break;
+
+		case V4L2_PIX_FMT_YVYU:
+			reg |= EXYNOS3250_MODE_SEL_422_1P_LUM_CHR |
+				   EXYNOS3250_SRC_SWAP_UV;
+			break;
+
+		case V4L2_PIX_FMT_UYVY:
+			reg |= EXYNOS3250_MODE_SEL_422_1P_CHR_LUM;
+			break;
+
+		case V4L2_PIX_FMT_VYUY:
+			reg |= EXYNOS3250_MODE_SEL_422_1P_CHR_LUM |
+				   EXYNOS3250_SRC_SWAP_UV;
+			break;
+
+		case V4L2_PIX_FMT_NV12:
+			reg |= EXYNOS3250_MODE_SEL_420_2P | EXYNOS3250_SRC_NV12;
+			break;
+
+		case V4L2_PIX_FMT_NV21:
+			reg |= EXYNOS3250_MODE_SEL_420_2P | EXYNOS3250_SRC_NV21;
+			break;
+
+		case V4L2_PIX_FMT_YUV420:
+			reg |= EXYNOS3250_MODE_SEL_420_3P;
+			break;
+
+		default:
+			break;
 
 	}
 
@@ -125,10 +140,16 @@ void exynos3250_jpeg_set_y16(void __iomem *regs, bool y16)
 	u32 reg;
 
 	reg = readl(regs + EXYNOS3250_JPGCMOD);
+
 	if (y16)
+	{
 		reg |= EXYNOS3250_MODE_Y16;
+	}
 	else
+	{
 		reg &= ~EXYNOS3250_MODE_Y16_MASK;
+	}
+
 	writel(reg, regs + EXYNOS3250_JPGCMOD);
 }
 
@@ -137,9 +158,14 @@ void exynos3250_jpeg_proc_mode(void __iomem *regs, unsigned int mode)
 	u32 reg, m;
 
 	if (mode == S5P_JPEG_ENCODE)
+	{
 		m = EXYNOS3250_PROC_MODE_COMPR;
+	}
 	else
+	{
 		m = EXYNOS3250_PROC_MODE_DECOMPR;
+	}
+
 	reg = readl(regs + EXYNOS3250_JPGMOD);
 	reg &= ~EXYNOS3250_PROC_MODE_MASK;
 	reg |= m;
@@ -150,16 +176,19 @@ void exynos3250_jpeg_subsampling_mode(void __iomem *regs, unsigned int mode)
 {
 	u32 reg, m = 0;
 
-	switch (mode) {
-	case V4L2_JPEG_CHROMA_SUBSAMPLING_444:
-		m = EXYNOS3250_SUBSAMPLING_MODE_444;
-		break;
-	case V4L2_JPEG_CHROMA_SUBSAMPLING_422:
-		m = EXYNOS3250_SUBSAMPLING_MODE_422;
-		break;
-	case V4L2_JPEG_CHROMA_SUBSAMPLING_420:
-		m = EXYNOS3250_SUBSAMPLING_MODE_420;
-		break;
+	switch (mode)
+	{
+		case V4L2_JPEG_CHROMA_SUBSAMPLING_444:
+			m = EXYNOS3250_SUBSAMPLING_MODE_444;
+			break;
+
+		case V4L2_JPEG_CHROMA_SUBSAMPLING_422:
+			m = EXYNOS3250_SUBSAMPLING_MODE_422;
+			break;
+
+		case V4L2_JPEG_CHROMA_SUBSAMPLING_420:
+			m = EXYNOS3250_SUBSAMPLING_MODE_420;
+			break;
 	}
 
 	reg = readl(regs + EXYNOS3250_JPGMOD);
@@ -171,7 +200,7 @@ void exynos3250_jpeg_subsampling_mode(void __iomem *regs, unsigned int mode)
 unsigned int exynos3250_jpeg_get_subsampling_mode(void __iomem *regs)
 {
 	return readl(regs + EXYNOS3250_JPGMOD) &
-				EXYNOS3250_SUBSAMPLING_MODE_MASK;
+		   EXYNOS3250_SUBSAMPLING_MODE_MASK;
 }
 
 void exynos3250_jpeg_dri(void __iomem *regs, unsigned int dri)
@@ -189,7 +218,7 @@ void exynos3250_jpeg_qtbl(void __iomem *regs, unsigned int t, unsigned int n)
 	reg = readl(regs + EXYNOS3250_QHTBL);
 	reg &= ~EXYNOS3250_QT_NUM_MASK(t);
 	reg |= (n << EXYNOS3250_QT_NUM_SHIFT(t)) &
-					EXYNOS3250_QT_NUM_MASK(t);
+		   EXYNOS3250_QT_NUM_MASK(t);
 	writel(reg, regs + EXYNOS3250_QHTBL);
 }
 
@@ -201,7 +230,7 @@ void exynos3250_jpeg_htbl_ac(void __iomem *regs, unsigned int t)
 	reg &= ~EXYNOS3250_HT_NUM_AC_MASK(t);
 	/* this driver uses table 0 for all color components */
 	reg |= (0 << EXYNOS3250_HT_NUM_AC_SHIFT(t)) &
-					EXYNOS3250_HT_NUM_AC_MASK(t);
+		   EXYNOS3250_HT_NUM_AC_MASK(t);
 	writel(reg, regs + EXYNOS3250_QHTBL);
 }
 
@@ -213,7 +242,7 @@ void exynos3250_jpeg_htbl_dc(void __iomem *regs, unsigned int t)
 	reg &= ~EXYNOS3250_HT_NUM_DC_MASK(t);
 	/* this driver uses table 0 for all color components */
 	reg |= (0 << EXYNOS3250_HT_NUM_DC_SHIFT(t)) &
-					EXYNOS3250_HT_NUM_DC_MASK(t);
+		   EXYNOS3250_HT_NUM_DC_MASK(t);
 	writel(reg, regs + EXYNOS3250_QHTBL);
 }
 
@@ -251,12 +280,12 @@ void exynos3250_jpeg_interrupts_enable(void __iomem *regs)
 
 	reg = readl(regs + EXYNOS3250_JPGINTSE);
 	reg |= (EXYNOS3250_JPEG_DONE_EN |
-		EXYNOS3250_WDMA_DONE_EN |
-		EXYNOS3250_RDMA_DONE_EN |
-		EXYNOS3250_ENC_STREAM_INT_EN |
-		EXYNOS3250_CORE_DONE_EN |
-		EXYNOS3250_ERR_INT_EN |
-		EXYNOS3250_HEAD_INT_EN);
+			EXYNOS3250_WDMA_DONE_EN |
+			EXYNOS3250_RDMA_DONE_EN |
+			EXYNOS3250_ENC_STREAM_INT_EN |
+			EXYNOS3250_CORE_DONE_EN |
+			EXYNOS3250_ERR_INT_EN |
+			EXYNOS3250_HEAD_INT_EN);
 	writel(reg, regs + EXYNOS3250_JPGINTSE);
 }
 
@@ -272,45 +301,57 @@ void exynos3250_jpeg_output_raw_fmt(void __iomem *regs, unsigned int fmt)
 {
 	u32 reg;
 
-	switch (fmt) {
-	case V4L2_PIX_FMT_RGB32:
-		reg = EXYNOS3250_OUT_FMT_ARGB8888;
-		break;
-	case V4L2_PIX_FMT_BGR32:
-		reg = EXYNOS3250_OUT_FMT_ARGB8888 | EXYNOS3250_OUT_SWAP_RGB;
-		break;
-	case V4L2_PIX_FMT_RGB565:
-		reg = EXYNOS3250_OUT_FMT_RGB565;
-		break;
-	case V4L2_PIX_FMT_RGB565X:
-		reg = EXYNOS3250_OUT_FMT_RGB565 | EXYNOS3250_OUT_SWAP_RGB;
-		break;
-	case V4L2_PIX_FMT_YUYV:
-		reg = EXYNOS3250_OUT_FMT_422_1P_LUM_CHR;
-		break;
-	case V4L2_PIX_FMT_YVYU:
-		reg = EXYNOS3250_OUT_FMT_422_1P_LUM_CHR |
-			EXYNOS3250_OUT_SWAP_UV;
-		break;
-	case V4L2_PIX_FMT_UYVY:
-		reg = EXYNOS3250_OUT_FMT_422_1P_CHR_LUM;
-		break;
-	case V4L2_PIX_FMT_VYUY:
-		reg = EXYNOS3250_OUT_FMT_422_1P_CHR_LUM |
-			EXYNOS3250_OUT_SWAP_UV;
-		break;
-	case V4L2_PIX_FMT_NV12:
-		reg = EXYNOS3250_OUT_FMT_420_2P | EXYNOS3250_OUT_NV12;
-		break;
-	case V4L2_PIX_FMT_NV21:
-		reg = EXYNOS3250_OUT_FMT_420_2P | EXYNOS3250_OUT_NV21;
-		break;
-	case V4L2_PIX_FMT_YUV420:
-		reg = EXYNOS3250_OUT_FMT_420_3P;
-		break;
-	default:
-		reg = 0;
-		break;
+	switch (fmt)
+	{
+		case V4L2_PIX_FMT_RGB32:
+			reg = EXYNOS3250_OUT_FMT_ARGB8888;
+			break;
+
+		case V4L2_PIX_FMT_BGR32:
+			reg = EXYNOS3250_OUT_FMT_ARGB8888 | EXYNOS3250_OUT_SWAP_RGB;
+			break;
+
+		case V4L2_PIX_FMT_RGB565:
+			reg = EXYNOS3250_OUT_FMT_RGB565;
+			break;
+
+		case V4L2_PIX_FMT_RGB565X:
+			reg = EXYNOS3250_OUT_FMT_RGB565 | EXYNOS3250_OUT_SWAP_RGB;
+			break;
+
+		case V4L2_PIX_FMT_YUYV:
+			reg = EXYNOS3250_OUT_FMT_422_1P_LUM_CHR;
+			break;
+
+		case V4L2_PIX_FMT_YVYU:
+			reg = EXYNOS3250_OUT_FMT_422_1P_LUM_CHR |
+				  EXYNOS3250_OUT_SWAP_UV;
+			break;
+
+		case V4L2_PIX_FMT_UYVY:
+			reg = EXYNOS3250_OUT_FMT_422_1P_CHR_LUM;
+			break;
+
+		case V4L2_PIX_FMT_VYUY:
+			reg = EXYNOS3250_OUT_FMT_422_1P_CHR_LUM |
+				  EXYNOS3250_OUT_SWAP_UV;
+			break;
+
+		case V4L2_PIX_FMT_NV12:
+			reg = EXYNOS3250_OUT_FMT_420_2P | EXYNOS3250_OUT_NV12;
+			break;
+
+		case V4L2_PIX_FMT_NV21:
+			reg = EXYNOS3250_OUT_FMT_420_2P | EXYNOS3250_OUT_NV21;
+			break;
+
+		case V4L2_PIX_FMT_YUV420:
+			reg = EXYNOS3250_OUT_FMT_420_3P;
+			break;
+
+		default:
+			reg = 0;
+			break;
 	}
 
 	writel(reg, regs + EXYNOS3250_OUTFORM);
@@ -329,33 +370,38 @@ void exynos3250_jpeg_imgadr(void __iomem *regs, struct s5p_jpeg_addr *img_addr)
 }
 
 void exynos3250_jpeg_stride(void __iomem *regs, unsigned int img_fmt,
-			    unsigned int width)
+							unsigned int width)
 {
 	u32 reg_luma = 0, reg_cr = 0, reg_cb = 0;
 
-	switch (img_fmt) {
-	case V4L2_PIX_FMT_RGB32:
-		reg_luma = 4 * width;
-		break;
-	case V4L2_PIX_FMT_RGB565:
-	case V4L2_PIX_FMT_RGB565X:
-	case V4L2_PIX_FMT_YUYV:
-	case V4L2_PIX_FMT_YVYU:
-	case V4L2_PIX_FMT_UYVY:
-	case V4L2_PIX_FMT_VYUY:
-		reg_luma = 2 * width;
-		break;
-	case V4L2_PIX_FMT_NV12:
-	case V4L2_PIX_FMT_NV21:
-		reg_luma = width;
-		reg_cb = reg_luma;
-		break;
-	case V4L2_PIX_FMT_YUV420:
-		reg_luma = width;
-		reg_cb = reg_cr = reg_luma / 2;
-		break;
-	default:
-		break;
+	switch (img_fmt)
+	{
+		case V4L2_PIX_FMT_RGB32:
+			reg_luma = 4 * width;
+			break;
+
+		case V4L2_PIX_FMT_RGB565:
+		case V4L2_PIX_FMT_RGB565X:
+		case V4L2_PIX_FMT_YUYV:
+		case V4L2_PIX_FMT_YVYU:
+		case V4L2_PIX_FMT_UYVY:
+		case V4L2_PIX_FMT_VYUY:
+			reg_luma = 2 * width;
+			break;
+
+		case V4L2_PIX_FMT_NV12:
+		case V4L2_PIX_FMT_NV21:
+			reg_luma = width;
+			reg_cb = reg_luma;
+			break;
+
+		case V4L2_PIX_FMT_YUV420:
+			reg_luma = width;
+			reg_cb = reg_cr = reg_luma / 2;
+			break;
+
+		default:
+			break;
 	}
 
 	writel(reg_luma, regs + EXYNOS3250_LUMA_STRIDE);
@@ -364,48 +410,51 @@ void exynos3250_jpeg_stride(void __iomem *regs, unsigned int img_fmt,
 }
 
 void exynos3250_jpeg_offset(void __iomem *regs, unsigned int x_offset,
-				unsigned int y_offset)
+							unsigned int y_offset)
 {
 	u32 reg;
 
 	reg = (y_offset << EXYNOS3250_LUMA_YY_OFFSET_SHIFT) &
-			EXYNOS3250_LUMA_YY_OFFSET_MASK;
+		  EXYNOS3250_LUMA_YY_OFFSET_MASK;
 	reg |= (x_offset << EXYNOS3250_LUMA_YX_OFFSET_SHIFT) &
-			EXYNOS3250_LUMA_YX_OFFSET_MASK;
+		   EXYNOS3250_LUMA_YX_OFFSET_MASK;
 
 	writel(reg, regs + EXYNOS3250_LUMA_XY_OFFSET);
 
 	reg = (y_offset << EXYNOS3250_CHROMA_YY_OFFSET_SHIFT) &
-			EXYNOS3250_CHROMA_YY_OFFSET_MASK;
+		  EXYNOS3250_CHROMA_YY_OFFSET_MASK;
 	reg |= (x_offset << EXYNOS3250_CHROMA_YX_OFFSET_SHIFT) &
-			EXYNOS3250_CHROMA_YX_OFFSET_MASK;
+		   EXYNOS3250_CHROMA_YX_OFFSET_MASK;
 
 	writel(reg, regs + EXYNOS3250_CHROMA_XY_OFFSET);
 
 	reg = (y_offset << EXYNOS3250_CHROMA_CR_YY_OFFSET_SHIFT) &
-			EXYNOS3250_CHROMA_CR_YY_OFFSET_MASK;
+		  EXYNOS3250_CHROMA_CR_YY_OFFSET_MASK;
 	reg |= (x_offset << EXYNOS3250_CHROMA_CR_YX_OFFSET_SHIFT) &
-			EXYNOS3250_CHROMA_CR_YX_OFFSET_MASK;
+		   EXYNOS3250_CHROMA_CR_YX_OFFSET_MASK;
 
 	writel(reg, regs + EXYNOS3250_CHROMA_CR_XY_OFFSET);
 }
 
 void exynos3250_jpeg_coef(void __iomem *base, unsigned int mode)
 {
-	if (mode == S5P_JPEG_ENCODE) {
+	if (mode == S5P_JPEG_ENCODE)
+	{
 		writel(EXYNOS3250_JPEG_ENC_COEF1,
-					base + EXYNOS3250_JPG_COEF(1));
+			   base + EXYNOS3250_JPG_COEF(1));
 		writel(EXYNOS3250_JPEG_ENC_COEF2,
-					base + EXYNOS3250_JPG_COEF(2));
+			   base + EXYNOS3250_JPG_COEF(2));
 		writel(EXYNOS3250_JPEG_ENC_COEF3,
-					base + EXYNOS3250_JPG_COEF(3));
-	} else {
+			   base + EXYNOS3250_JPG_COEF(3));
+	}
+	else
+	{
 		writel(EXYNOS3250_JPEG_DEC_COEF1,
-					base + EXYNOS3250_JPG_COEF(1));
+			   base + EXYNOS3250_JPG_COEF(1));
 		writel(EXYNOS3250_JPEG_DEC_COEF2,
-					base + EXYNOS3250_JPG_COEF(2));
+			   base + EXYNOS3250_JPG_COEF(2));
 		writel(EXYNOS3250_JPEG_DEC_COEF3,
-					base + EXYNOS3250_JPG_COEF(3));
+			   base + EXYNOS3250_JPG_COEF(3));
 	}
 }
 
@@ -425,7 +474,7 @@ unsigned int exynos3250_jpeg_get_int_status(void __iomem *regs)
 }
 
 void exynos3250_jpeg_clear_int_status(void __iomem *regs,
-						unsigned int value)
+									  unsigned int value)
 {
 	return writel(value, regs + EXYNOS3250_JPGINTST);
 }
@@ -441,33 +490,37 @@ unsigned int exynos3250_jpeg_compressed_size(void __iomem *regs)
 }
 
 void exynos3250_jpeg_dec_stream_size(void __iomem *regs,
-						unsigned int size)
+									 unsigned int size)
 {
 	writel(size & EXYNOS3250_DEC_STREAM_MASK,
-				regs + EXYNOS3250_DEC_STREAM_SIZE);
+		   regs + EXYNOS3250_DEC_STREAM_SIZE);
 }
 
 void exynos3250_jpeg_dec_scaling_ratio(void __iomem *regs,
-						unsigned int sratio)
+									   unsigned int sratio)
 {
-	switch (sratio) {
-	case 1:
-	default:
-		sratio = EXYNOS3250_DEC_SCALE_FACTOR_8_8;
-		break;
-	case 2:
-		sratio = EXYNOS3250_DEC_SCALE_FACTOR_4_8;
-		break;
-	case 4:
-		sratio = EXYNOS3250_DEC_SCALE_FACTOR_2_8;
-		break;
-	case 8:
-		sratio = EXYNOS3250_DEC_SCALE_FACTOR_1_8;
-		break;
+	switch (sratio)
+	{
+		case 1:
+		default:
+			sratio = EXYNOS3250_DEC_SCALE_FACTOR_8_8;
+			break;
+
+		case 2:
+			sratio = EXYNOS3250_DEC_SCALE_FACTOR_4_8;
+			break;
+
+		case 4:
+			sratio = EXYNOS3250_DEC_SCALE_FACTOR_2_8;
+			break;
+
+		case 8:
+			sratio = EXYNOS3250_DEC_SCALE_FACTOR_1_8;
+			break;
 	}
 
 	writel(sratio & EXYNOS3250_DEC_SCALE_FACTOR_MASK,
-				regs + EXYNOS3250_DEC_SCALING_RATIO);
+		   regs + EXYNOS3250_DEC_SCALING_RATIO);
 }
 
 void exynos3250_jpeg_set_timer(void __iomem *regs, unsigned int time_value)
@@ -475,7 +528,7 @@ void exynos3250_jpeg_set_timer(void __iomem *regs, unsigned int time_value)
 	time_value &= EXYNOS3250_TIMER_INIT_MASK;
 
 	writel(EXYNOS3250_TIMER_INT_STAT | time_value,
-					regs + EXYNOS3250_TIMER_SE);
+		   regs + EXYNOS3250_TIMER_SE);
 }
 
 unsigned int exynos3250_jpeg_get_timer_status(void __iomem *regs)

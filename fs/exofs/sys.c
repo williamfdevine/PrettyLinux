@@ -24,14 +24,15 @@
 
 #include "exofs.h"
 
-struct odev_attr {
+struct odev_attr
+{
 	struct attribute attr;
 	ssize_t (*show)(struct exofs_dev *, char *);
 	ssize_t (*store)(struct exofs_dev *, const char *, size_t);
 };
 
 static ssize_t odev_attr_show(struct kobject *kobj, struct attribute *attr,
-		char *buf)
+							  char *buf)
 {
 	struct exofs_dev *edp = container_of(kobj, struct exofs_dev, ed_kobj);
 	struct odev_attr *a = container_of(attr, struct odev_attr, attr);
@@ -40,7 +41,7 @@ static ssize_t odev_attr_show(struct kobject *kobj, struct attribute *attr,
 }
 
 static ssize_t odev_attr_store(struct kobject *kobj, struct attribute *attr,
-		const char *buf, size_t len)
+							   const char *buf, size_t len)
 {
 	struct exofs_dev *edp = container_of(kobj, struct exofs_dev, ed_kobj);
 	struct odev_attr *a = container_of(attr, struct odev_attr, attr);
@@ -48,7 +49,8 @@ static ssize_t odev_attr_store(struct kobject *kobj, struct attribute *attr,
 	return a->store ? a->store(edp, buf, len) : len;
 }
 
-static const struct sysfs_ops odev_attr_ops = {
+static const struct sysfs_ops odev_attr_ops =
+{
 	.show  = odev_attr_show,
 	.store = odev_attr_store,
 };
@@ -84,8 +86,12 @@ static ssize_t uri_store(struct exofs_dev *edp, const char *buf, size_t len)
 
 	edp->urilen = strlen(buf) + 1;
 	new_uri = krealloc(edp->uri, edp->urilen, GFP_KERNEL);
+
 	if (new_uri == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	edp->uri = new_uri;
 	strncpy(edp->uri, buf, edp->urilen);
 	return edp->urilen;
@@ -93,25 +99,28 @@ static ssize_t uri_store(struct exofs_dev *edp, const char *buf, size_t len)
 
 #define OSD_ATTR(name, mode, show, store) \
 	static struct odev_attr odev_attr_##name = \
-					__ATTR(name, mode, show, store)
+			__ATTR(name, mode, show, store)
 
 OSD_ATTR(osdname, S_IRUGO, osdname_show, NULL);
 OSD_ATTR(systemid, S_IRUGO, systemid_show, NULL);
 OSD_ATTR(uri, S_IRWXU, uri_show, uri_store);
 
-static struct attribute *odev_attrs[] = {
+static struct attribute *odev_attrs[] =
+{
 	&odev_attr_osdname.attr,
 	&odev_attr_systemid.attr,
 	&odev_attr_uri.attr,
 	NULL,
 };
 
-static struct kobj_type odev_ktype = {
+static struct kobj_type odev_ktype =
+{
 	.default_attrs	= odev_attrs,
 	.sysfs_ops	= &odev_attr_ops,
 };
 
-static struct kobj_type uuid_ktype = {
+static struct kobj_type uuid_ktype =
+{
 };
 
 void exofs_sysfs_dbg_print(void)
@@ -119,10 +128,11 @@ void exofs_sysfs_dbg_print(void)
 #ifdef CONFIG_EXOFS_DEBUG
 	struct kobject *k_name, *k_tmp;
 
-	list_for_each_entry_safe(k_name, k_tmp, &exofs_kset->list, entry) {
+	list_for_each_entry_safe(k_name, k_tmp, &exofs_kset->list, entry)
+	{
 		printk(KERN_INFO "%s: name %s ref %d\n",
-			__func__, kobject_name(k_name),
-			(int)atomic_read(&k_name->kref.refcount));
+			   __func__, kobject_name(k_name),
+			   (int)atomic_read(&k_name->kref.refcount));
 	}
 #endif
 }
@@ -136,10 +146,13 @@ void exofs_sysfs_sb_del(struct exofs_sb_info *sbi)
 	struct kobject *k_name, *k_tmp;
 	struct kobject *s_kobj = &sbi->s_kobj;
 
-	list_for_each_entry_safe(k_name, k_tmp, &exofs_kset->list, entry) {
+	list_for_each_entry_safe(k_name, k_tmp, &exofs_kset->list, entry)
+	{
 		/* Remove all that are children of this SBI */
 		if (k_name->parent == s_kobj)
+		{
 			kobject_put(k_name);
+		}
 	}
 	kobject_put(s_kobj);
 }
@@ -150,7 +163,7 @@ void exofs_sysfs_sb_del(struct exofs_sb_info *sbi)
  * This function gets called once per exofs mount instance.
  */
 int exofs_sysfs_sb_add(struct exofs_sb_info *sbi,
-		       struct exofs_dt_device_info *dt_dev)
+					   struct exofs_dt_device_info *dt_dev)
 {
 	struct kobject *s_kobj;
 	int retval = 0;
@@ -160,12 +173,15 @@ int exofs_sysfs_sb_add(struct exofs_sb_info *sbi,
 	s_kobj = &sbi->s_kobj;
 	s_kobj->kset = exofs_kset;
 	retval = kobject_init_and_add(s_kobj, &uuid_ktype,
-			&exofs_kset->kobj,  "%s_%llx", dt_dev->osdname, pid);
-	if (retval) {
+								  &exofs_kset->kobj,  "%s_%llx", dt_dev->osdname, pid);
+
+	if (retval)
+	{
 		EXOFS_ERR("ERROR: Failed to create sysfs entry for "
-			  "uuid-%s_%llx => %d\n", dt_dev->osdname, pid, retval);
+				  "uuid-%s_%llx => %d\n", dt_dev->osdname, pid, retval);
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 
@@ -180,22 +196,28 @@ int exofs_sysfs_odev_add(struct exofs_dev *edev, struct exofs_sb_info *sbi)
 	d_kobj = &edev->ed_kobj;
 	d_kobj->kset = exofs_kset;
 	retval = kobject_init_and_add(d_kobj, &odev_ktype,
-			&sbi->s_kobj, "dev%u", edev->did);
-	if (retval) {
+								  &sbi->s_kobj, "dev%u", edev->did);
+
+	if (retval)
+	{
 		EXOFS_ERR("ERROR: Failed to create sysfs entry for "
-				"device dev%u\n", edev->did);
+				  "device dev%u\n", edev->did);
 		return retval;
 	}
+
 	return 0;
 }
 
 int exofs_sysfs_init(void)
 {
 	exofs_kset = kset_create_and_add("exofs", NULL, fs_kobj);
-	if (!exofs_kset) {
+
+	if (!exofs_kset)
+	{
 		EXOFS_ERR("ERROR: kset_create_and_add exofs failed\n");
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 

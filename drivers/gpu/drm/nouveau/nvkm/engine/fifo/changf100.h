@@ -4,7 +4,8 @@
 #include "chan.h"
 #include "gf100.h"
 
-struct gf100_fifo_chan {
+struct gf100_fifo_chan
+{
 	struct nvkm_fifo_chan base;
 	struct gf100_fifo *fifo;
 
@@ -14,7 +15,8 @@ struct gf100_fifo_chan {
 	struct nvkm_gpuobj *pgd;
 	struct nvkm_vm *vm;
 
-	struct {
+	struct
+	{
 		struct nvkm_gpuobj *inst;
 		struct nvkm_vma vma;
 	} engn[NVKM_SUBDEV_NR];

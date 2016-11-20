@@ -18,7 +18,8 @@ struct media_device;
  * since vb2_thread has many dependencies on videobuf2-v4l2.
  */
 
-struct vb2_dvb {
+struct vb2_dvb
+{
 	/* filling that the job of the driver */
 	char			*name;
 	struct dvb_frontend	*frontend;
@@ -36,13 +37,15 @@ struct vb2_dvb {
 	struct dvb_net		net;
 };
 
-struct vb2_dvb_frontend {
+struct vb2_dvb_frontend
+{
 	struct list_head felist;
 	int id;
 	struct vb2_dvb dvb;
 };
 
-struct vb2_dvb_frontends {
+struct vb2_dvb_frontends
+{
 	struct list_head felist;
 	struct mutex lock;
 	struct dvb_adapter adapter;
@@ -51,12 +54,12 @@ struct vb2_dvb_frontends {
 };
 
 int vb2_dvb_register_bus(struct vb2_dvb_frontends *f,
-			 struct module *module,
-			 void *adapter_priv,
-			 struct device *device,
-			 struct media_device *mdev,
-			 short *adapter_nr,
-			 int mfe_shared);
+						 struct module *module,
+						 void *adapter_priv,
+						 struct device *device,
+						 struct media_device *mdev,
+						 short *adapter_nr,
+						 int mfe_shared);
 
 void vb2_dvb_unregister_bus(struct vb2_dvb_frontends *f);
 

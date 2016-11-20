@@ -24,7 +24,8 @@
 #include "priv.h"
 
 static const struct nvkm_pci_func
-gf106_pci_func = {
+	gf106_pci_func =
+{
 	.init = g84_pci_init,
 	.rd32 = nv40_pci_rd32,
 	.wr08 = nv40_pci_wr08,

@@ -29,12 +29,14 @@
 #include <linux/dvb/frontend.h>
 #include "dvb_frontend.h"
 
-struct stv0900_reg {
+struct stv0900_reg
+{
 	u16 addr;
 	u8  val;
 };
 
-struct stv0900_config {
+struct stv0900_config
+{
 	u8 demod_address;
 	u8 demod_mode;
 	u32 xtal;
@@ -59,10 +61,10 @@ struct stv0900_config {
 
 #if IS_REACHABLE(CONFIG_DVB_STV0900)
 extern struct dvb_frontend *stv0900_attach(const struct stv0900_config *config,
-					struct i2c_adapter *i2c, int demod);
+		struct i2c_adapter *i2c, int demod);
 #else
 static inline struct dvb_frontend *stv0900_attach(const struct stv0900_config *config,
-					struct i2c_adapter *i2c, int demod)
+		struct i2c_adapter *i2c, int demod)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

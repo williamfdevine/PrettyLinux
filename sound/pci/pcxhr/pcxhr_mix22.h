@@ -27,10 +27,10 @@ struct pcxhr_mgr;
 
 int hr222_sub_init(struct pcxhr_mgr *mgr);
 int hr222_sub_set_clock(struct pcxhr_mgr *mgr, unsigned int rate,
-			int *changed);
+						int *changed);
 int hr222_get_external_clock(struct pcxhr_mgr *mgr,
-			     enum pcxhr_clock_type clock_type,
-			     int *sample_rate);
+							 enum pcxhr_clock_type clock_type,
+							 int *sample_rate);
 
 int hr222_read_gpio(struct pcxhr_mgr *mgr, int is_gpi, int *value);
 int hr222_write_gpo(struct pcxhr_mgr *mgr, int value);
@@ -47,13 +47,13 @@ int hr222_manage_timecode(struct pcxhr_mgr *mgr, int enable);
 #define HR222_MICRO_CAPTURE_LEVEL_MAX		210	/* +6.5 dB */
 
 int hr222_update_analog_audio_level(struct snd_pcxhr *chip,
-				    int is_capture,
-				    int channel);
+									int is_capture,
+									int channel);
 int hr222_set_audio_source(struct snd_pcxhr *chip);
 int hr222_iec958_capture_byte(struct snd_pcxhr *chip, int aes_idx,
-			      unsigned char *aes_bits);
+							  unsigned char *aes_bits);
 int hr222_iec958_update_byte(struct snd_pcxhr *chip, int aes_idx,
-			     unsigned char aes_bits);
+							 unsigned char aes_bits);
 
 int hr222_add_mic_controls(struct snd_pcxhr *chip);
 

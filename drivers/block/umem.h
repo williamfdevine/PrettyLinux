@@ -109,7 +109,8 @@ DMA READ OPERATIONS.
 #define DMA_READ_FROM_HOST 0
 #define DMA_WRITE_TO_HOST 1
 
-struct mm_dma_desc {
+struct mm_dma_desc
+{
 	__le64	pci_addr;
 	__le64	local_addr;
 	__le32	transfer_size;

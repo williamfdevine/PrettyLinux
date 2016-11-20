@@ -24,15 +24,17 @@ static inline __u8 ipv6_get_dsfield(const struct ipv6hdr *ipv6h)
 }
 
 
-static inline void ipv4_change_dsfield(struct iphdr *iph,__u8 mask,
-    __u8 value)
+static inline void ipv4_change_dsfield(struct iphdr *iph, __u8 mask,
+									   __u8 value)
 {
-        __u32 check = ntohs((__force __be16)iph->check);
+	__u32 check = ntohs((__force __be16)iph->check);
 	__u8 dsfield;
 
 	dsfield = (iph->tos & mask) | value;
 	check += iph->tos;
-	if ((check+1) >> 16) check = (check+1) & 0xffff;
+
+	if ((check + 1) >> 16) { check = (check + 1) & 0xffff; }
+
 	check -= dsfield;
 	check += check >> 16; /* adjust carry */
 	iph->check = (__force __sum16)htons(check);
@@ -40,8 +42,8 @@ static inline void ipv4_change_dsfield(struct iphdr *iph,__u8 mask,
 }
 
 
-static inline void ipv6_change_dsfield(struct ipv6hdr *ipv6h,__u8 mask,
-    __u8 value)
+static inline void ipv6_change_dsfield(struct ipv6hdr *ipv6h, __u8 mask,
+									   __u8 value)
 {
 	__be16 *p = (__force __be16 *)ipv6h;
 

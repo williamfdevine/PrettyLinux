@@ -46,17 +46,18 @@ MODULE_LICENSE("GPL");
 MODULE_VERSION("0.1.99");
 
 #ifndef CONFIG_RADIO_TYPHOON_PORT
-#define CONFIG_RADIO_TYPHOON_PORT -1
+	#define CONFIG_RADIO_TYPHOON_PORT -1
 #endif
 
 #ifndef CONFIG_RADIO_TYPHOON_MUTEFREQ
-#define CONFIG_RADIO_TYPHOON_MUTEFREQ 87000
+	#define CONFIG_RADIO_TYPHOON_MUTEFREQ 87000
 #endif
 
 #define TYPHOON_MAX 2
 
 static int io[TYPHOON_MAX] = { [0] = CONFIG_RADIO_TYPHOON_PORT,
-			      [1 ... (TYPHOON_MAX - 1)] = -1 };
+							   [1 ... (TYPHOON_MAX - 1)] = -1
+							 };
 static int radio_nr[TYPHOON_MAX]	= { [0 ... (TYPHOON_MAX - 1)] = -1 };
 static unsigned long mutefreq = CONFIG_RADIO_TYPHOON_MUTEFREQ;
 
@@ -67,7 +68,8 @@ MODULE_PARM_DESC(radio_nr, "Radio device numbers");
 module_param(mutefreq, ulong, 0);
 MODULE_PARM_DESC(mutefreq, "Frequency used when muting the card (in kHz)");
 
-struct typhoon {
+struct typhoon
+{
 	struct radio_isa_card isa;
 	int muted;
 };
@@ -112,24 +114,32 @@ static int typhoon_s_mute_volume(struct radio_isa_card *isa, bool mute, int vol)
 	struct typhoon *ty = container_of(isa, struct typhoon, isa);
 
 	if (mute)
+	{
 		vol = 0;
+	}
+
 	vol >>= 14;			/* Map 16 bit to 2 bit */
 	vol &= 3;
 	outb_p(vol / 2, isa->io);	/* Set the volume, high bit. */
 	outb_p(vol % 2, isa->io + 2);	/* Set the volume, low bit. */
 
-	if (vol == 0 && !ty->muted) {
+	if (vol == 0 && !ty->muted)
+	{
 		ty->muted = true;
 		return typhoon_s_frequency(isa, mutefreq << 4);
 	}
-	if (vol && ty->muted) {
+
+	if (vol && ty->muted)
+	{
 		ty->muted = false;
 		return typhoon_s_frequency(isa, isa->freq);
 	}
+
 	return 0;
 }
 
-static const struct radio_isa_ops typhoon_ops = {
+static const struct radio_isa_ops typhoon_ops =
+{
 	.alloc = typhoon_alloc,
 	.s_mute_volume = typhoon_s_mute_volume,
 	.s_frequency = typhoon_s_frequency,
@@ -137,7 +147,8 @@ static const struct radio_isa_ops typhoon_ops = {
 
 static const int typhoon_ioports[] = { 0x316, 0x336 };
 
-static struct radio_isa_driver typhoon_driver = {
+static struct radio_isa_driver typhoon_driver =
+{
 	.driver = {
 		.match		= radio_isa_match,
 		.probe		= radio_isa_probe,
@@ -159,13 +170,15 @@ static struct radio_isa_driver typhoon_driver = {
 
 static int __init typhoon_init(void)
 {
-	if (mutefreq < 87000 || mutefreq > 108000) {
+	if (mutefreq < 87000 || mutefreq > 108000)
+	{
 		printk(KERN_ERR "%s: You must set a frequency (in kHz) used when muting the card,\n",
-				typhoon_driver.driver.driver.name);
+			   typhoon_driver.driver.driver.name);
 		printk(KERN_ERR "%s: e.g. with \"mutefreq=87500\" (87000 <= mutefreq <= 108000)\n",
-				typhoon_driver.driver.driver.name);
+			   typhoon_driver.driver.driver.name);
 		return -ENODEV;
 	}
+
 	return isa_register_driver(&typhoon_driver.driver, TYPHOON_MAX);
 }
 

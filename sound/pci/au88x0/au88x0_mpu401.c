@@ -31,7 +31,7 @@
 /* MPU401 legacy support is only provided as a emergency fallback *
  * for older versions of ALSA. Its usage is strongly discouraged. */
 #ifndef MPU401_HW_AUREAL
-#define VORTEX_MPU401_LEGACY
+	#define VORTEX_MPU401_LEGACY
 #endif
 
 /* Vortex MPU401 defines. */
@@ -53,14 +53,14 @@ static int snd_vortex_midi(vortex_t *vortex)
 	/* Enable Legacy MIDI Interface port. */
 	port = (0x03 << 5);	/* FIXME: static address. 0x330 */
 	temp =
-	    (hwread(vortex->mmio, VORTEX_CTRL) & ~CTRL_MIDI_PORT) |
-	    CTRL_MIDI_EN | port;
+		(hwread(vortex->mmio, VORTEX_CTRL) & ~CTRL_MIDI_PORT) |
+		CTRL_MIDI_EN | port;
 	hwwrite(vortex->mmio, VORTEX_CTRL, temp);
 #else
 	/* Disable Legacy MIDI Interface port. */
 	temp =
-	    (hwread(vortex->mmio, VORTEX_CTRL) & ~CTRL_MIDI_PORT) &
-	    ~CTRL_MIDI_EN;
+		(hwread(vortex->mmio, VORTEX_CTRL) & ~CTRL_MIDI_PORT) &
+		~CTRL_MIDI_EN;
 	hwwrite(vortex->mmio, VORTEX_CTRL, temp);
 #endif
 	/* Mpu401UartInit() */
@@ -72,35 +72,44 @@ static int snd_vortex_midi(vortex_t *vortex)
 
 	/* Check if anything is OK. */
 	temp = hwread(vortex->mmio, VORTEX_MIDI_DATA);
-	if (temp != MPU401_ACK /*0xfe */ ) {
+
+	if (temp != MPU401_ACK /*0xfe */ )
+	{
 		dev_err(vortex->card->dev, "midi port doesn't acknowledge!\n");
 		return -ENODEV;
 	}
+
 	/* Enable MPU401 interrupts. */
 	hwwrite(vortex->mmio, VORTEX_IRQ_CTRL,
-		hwread(vortex->mmio, VORTEX_IRQ_CTRL) | IRQ_MIDI);
+			hwread(vortex->mmio, VORTEX_IRQ_CTRL) | IRQ_MIDI);
 
 	/* Create MPU401 instance. */
 #ifdef VORTEX_MPU401_LEGACY
+
 	if ((temp =
-	     snd_mpu401_uart_new(vortex->card, 0, MPU401_HW_MPU401, 0x330,
-				 MPU401_INFO_IRQ_HOOK, -1, &rmidi)) != 0) {
+			 snd_mpu401_uart_new(vortex->card, 0, MPU401_HW_MPU401, 0x330,
+								 MPU401_INFO_IRQ_HOOK, -1, &rmidi)) != 0)
+	{
 		hwwrite(vortex->mmio, VORTEX_CTRL,
-			(hwread(vortex->mmio, VORTEX_CTRL) &
-			 ~CTRL_MIDI_PORT) & ~CTRL_MIDI_EN);
+				(hwread(vortex->mmio, VORTEX_CTRL) &
+				 ~CTRL_MIDI_PORT) & ~CTRL_MIDI_EN);
 		return temp;
 	}
+
 #else
 	port = (unsigned long)(vortex->mmio + VORTEX_MIDI_DATA);
+
 	if ((temp =
-	     snd_mpu401_uart_new(vortex->card, 0, MPU401_HW_AUREAL, port,
-				 MPU401_INFO_INTEGRATED | MPU401_INFO_MMIO |
-				 MPU401_INFO_IRQ_HOOK, -1, &rmidi)) != 0) {
+			 snd_mpu401_uart_new(vortex->card, 0, MPU401_HW_AUREAL, port,
+								 MPU401_INFO_INTEGRATED | MPU401_INFO_MMIO |
+								 MPU401_INFO_IRQ_HOOK, -1, &rmidi)) != 0)
+	{
 		hwwrite(vortex->mmio, VORTEX_CTRL,
-			(hwread(vortex->mmio, VORTEX_CTRL) &
-			 ~CTRL_MIDI_PORT) & ~CTRL_MIDI_EN);
+				(hwread(vortex->mmio, VORTEX_CTRL) &
+				 ~CTRL_MIDI_PORT) & ~CTRL_MIDI_EN);
 		return temp;
 	}
+
 	mpu = rmidi->private_data;
 	mpu->cport = (unsigned long)(vortex->mmio + VORTEX_MIDI_CMD);
 #endif

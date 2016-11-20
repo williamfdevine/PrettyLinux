@@ -35,7 +35,7 @@
 #define BOND_DEFAULT_MIIMON	100
 
 #ifndef __long_aligned
-#define __long_aligned __attribute__((aligned((sizeof(long)))))
+	#define __long_aligned __attribute__((aligned((sizeof(long)))))
 #endif
 
 #define BOND_MODE(bond) ((bond)->params.mode)
@@ -48,12 +48,12 @@
 /* IMPORTANT: bond_first/last_slave can return NULL in case of an empty list */
 #define bond_first_slave(bond) \
 	(bond_has_slaves(bond) ? \
-		netdev_adjacent_get_private(bond_slave_list(bond)->next) : \
-		NULL)
+	 netdev_adjacent_get_private(bond_slave_list(bond)->next) : \
+	 NULL)
 #define bond_last_slave(bond) \
 	(bond_has_slaves(bond) ? \
-		netdev_adjacent_get_private(bond_slave_list(bond)->prev) : \
-		NULL)
+	 netdev_adjacent_get_private(bond_slave_list(bond)->prev) : \
+	 NULL)
 
 /* Caller must have rcu_read_lock */
 #define bond_first_slave_rcu(bond) \
@@ -93,7 +93,10 @@ static inline void unblock_netpoll_tx(void)
 static inline int is_netpoll_tx_blocked(struct net_device *dev)
 {
 	if (unlikely(netpoll_tx_running(dev)))
+	{
 		return atomic_read(&netpoll_block_tx);
+	}
+
 	return 0;
 }
 #else
@@ -102,7 +105,8 @@ static inline int is_netpoll_tx_blocked(struct net_device *dev)
 #define is_netpoll_tx_blocked(dev) (0)
 #endif
 
-struct bond_params {
+struct bond_params
+{
 	int mode;
 	int xmit_policy;
 	int miimon;
@@ -134,18 +138,21 @@ struct bond_params {
 	u8 ad_actor_system[ETH_ALEN + 2];
 };
 
-struct bond_parm_tbl {
+struct bond_parm_tbl
+{
 	char *modename;
 	int mode;
 };
 
-struct netdev_notify_work {
+struct netdev_notify_work
+{
 	struct delayed_work	work;
 	struct net_device	*dev;
 	struct netdev_bonding_info bonding_info;
 };
 
-struct slave {
+struct slave
+{
 	struct net_device *dev; /* first - useful for panic debug */
 	struct bonding *bond; /* our master */
 	int    delay;
@@ -155,11 +162,11 @@ struct slave {
 	unsigned long target_last_arp_rx[BOND_MAX_ARP_TARGETS];
 	s8     link;    /* one of BOND_LINK_XXXX */
 	s8     new_link;
-	u8     backup:1,   /* indicates backup slave. Value corresponds with
+	u8     backup: 1,   /* indicates backup slave. Value corresponds with
 			      BOND_STATE_ACTIVE and BOND_STATE_BACKUP */
-	       inactive:1, /* indicates inactive slave */
-	       should_notify:1, /* indicates whether the state changed */
-	       should_notify_link:1; /* indicates whether the link changed */
+	inactive: 1, /* indicates inactive slave */
+	should_notify: 1, /* indicates whether the state changed */
+	should_notify_link: 1; /* indicates whether the link changed */
 	u8     duplex;
 	u32    original_mtu;
 	u32    link_failure_count;
@@ -175,7 +182,8 @@ struct slave {
 	struct rtnl_link_stats64 slave_stats;
 };
 
-struct bond_up_slave {
+struct bond_up_slave
+{
 	unsigned int	count;
 	struct rcu_head rcu;
 	struct slave	*arr[0];
@@ -190,7 +198,8 @@ struct bond_up_slave {
  * Here are the locking policies for the two bonding locks:
  * Get rcu_read_lock when reading or RTNL when writing slave list.
  */
-struct bonding {
+struct bonding
+{
 	struct   net_device *dev; /* first - useful for panic debug */
 	struct   slave __rcu *curr_active_slave;
 	struct   slave __rcu *current_arp_slave;
@@ -199,7 +208,7 @@ struct bonding {
 	bool     force_primary;
 	s32      slave_cnt; /* never change this value outside the attach/detach wrappers */
 	int     (*recv_probe)(const struct sk_buff *, struct bonding *,
-			      struct slave *);
+						  struct slave *);
 	/* mode_lock is used for mode-specific locking needs, currently used by:
 	 * 3ad mode (4) - protect against running bond_3ad_unbind_slave() and
 	 *                bond_3ad_state_machine_handler() concurrently and also
@@ -243,7 +252,8 @@ struct bonding {
 void bond_queue_slave_event(struct slave *slave);
 void bond_lower_state_changed(struct slave *slave);
 
-struct bond_vlan_tag {
+struct bond_vlan_tag
+{
 	__be16		vlan_proto;
 	unsigned short	vlan_id;
 };
@@ -254,7 +264,7 @@ struct bond_vlan_tag {
  * Caller must hold bond lock for read
  */
 static inline struct slave *bond_get_slave_by_dev(struct bonding *bond,
-						  struct net_device *slave_dev)
+		struct net_device *slave_dev)
 {
 	return netdev_lower_dev_get_private(bond->dev, slave_dev);
 }
@@ -267,38 +277,38 @@ static inline struct bonding *bond_get_bond_by_slave(struct slave *slave)
 static inline bool bond_should_override_tx_queue(struct bonding *bond)
 {
 	return BOND_MODE(bond) == BOND_MODE_ACTIVEBACKUP ||
-	       BOND_MODE(bond) == BOND_MODE_ROUNDROBIN;
+		   BOND_MODE(bond) == BOND_MODE_ROUNDROBIN;
 }
 
 static inline bool bond_is_lb(const struct bonding *bond)
 {
 	return BOND_MODE(bond) == BOND_MODE_TLB ||
-	       BOND_MODE(bond) == BOND_MODE_ALB;
+		   BOND_MODE(bond) == BOND_MODE_ALB;
 }
 
 static inline bool bond_is_nondyn_tlb(const struct bonding *bond)
 {
 	return (BOND_MODE(bond) == BOND_MODE_TLB)  &&
-	       (bond->params.tlb_dynamic_lb == 0);
+		   (bond->params.tlb_dynamic_lb == 0);
 }
 
 static inline bool bond_mode_uses_xmit_hash(const struct bonding *bond)
 {
 	return (BOND_MODE(bond) == BOND_MODE_8023AD ||
-		BOND_MODE(bond) == BOND_MODE_XOR ||
-		bond_is_nondyn_tlb(bond));
+			BOND_MODE(bond) == BOND_MODE_XOR ||
+			bond_is_nondyn_tlb(bond));
 }
 
 static inline bool bond_mode_uses_arp(int mode)
 {
 	return mode != BOND_MODE_8023AD && mode != BOND_MODE_TLB &&
-	       mode != BOND_MODE_ALB;
+		   mode != BOND_MODE_ALB;
 }
 
 static inline bool bond_mode_uses_primary(int mode)
 {
 	return mode == BOND_MODE_ACTIVEBACKUP || mode == BOND_MODE_TLB ||
-	       mode == BOND_MODE_ALB;
+		   mode == BOND_MODE_ALB;
 }
 
 static inline bool bond_uses_primary(struct bonding *bond)
@@ -320,7 +330,8 @@ static inline bool bond_slave_is_up(struct slave *slave)
 
 static inline void bond_set_active_slave(struct slave *slave)
 {
-	if (slave->backup) {
+	if (slave->backup)
+	{
 		slave->backup = 0;
 		bond_queue_slave_event(slave);
 		bond_lower_state_changed(slave);
@@ -330,7 +341,8 @@ static inline void bond_set_active_slave(struct slave *slave)
 
 static inline void bond_set_backup_slave(struct slave *slave)
 {
-	if (!slave->backup) {
+	if (!slave->backup)
+	{
 		slave->backup = 1;
 		bond_queue_slave_event(slave);
 		bond_lower_state_changed(slave);
@@ -339,22 +351,32 @@ static inline void bond_set_backup_slave(struct slave *slave)
 }
 
 static inline void bond_set_slave_state(struct slave *slave,
-					int slave_state, bool notify)
+										int slave_state, bool notify)
 {
 	if (slave->backup == slave_state)
+	{
 		return;
+	}
 
 	slave->backup = slave_state;
-	if (notify) {
+
+	if (notify)
+	{
 		bond_lower_state_changed(slave);
 		rtmsg_ifinfo(RTM_NEWLINK, slave->dev, 0, GFP_ATOMIC);
 		bond_queue_slave_event(slave);
 		slave->should_notify = 0;
-	} else {
+	}
+	else
+	{
 		if (slave->should_notify)
+		{
 			slave->should_notify = 0;
+		}
 		else
+		{
 			slave->should_notify = 1;
+		}
 	}
 }
 
@@ -363,11 +385,16 @@ static inline void bond_slave_state_change(struct bonding *bond)
 	struct list_head *iter;
 	struct slave *tmp;
 
-	bond_for_each_slave(bond, tmp, iter) {
+	bond_for_each_slave(bond, tmp, iter)
+	{
 		if (tmp->link == BOND_LINK_UP)
+		{
 			bond_set_active_slave(tmp);
+		}
 		else if (tmp->link == BOND_LINK_DOWN)
+		{
 			bond_set_backup_slave(tmp);
+		}
 	}
 }
 
@@ -376,8 +403,10 @@ static inline void bond_slave_state_notify(struct bonding *bond)
 	struct list_head *iter;
 	struct slave *tmp;
 
-	bond_for_each_slave(bond, tmp, iter) {
-		if (tmp->should_notify) {
+	bond_for_each_slave(bond, tmp, iter)
+	{
+		if (tmp->should_notify)
+		{
 			bond_lower_state_changed(tmp);
 			rtmsg_ifinfo(RTM_NEWLINK, tmp->dev, 0, GFP_ATOMIC);
 			tmp->should_notify = 0;
@@ -398,7 +427,7 @@ static inline bool bond_is_active_slave(struct slave *slave)
 static inline bool bond_slave_can_tx(struct slave *slave)
 {
 	return bond_slave_is_up(slave) && slave->link == BOND_LINK_UP &&
-	       bond_is_active_slave(slave);
+		   bond_is_active_slave(slave);
 }
 
 #define BOND_PRI_RESELECT_ALWAYS	0
@@ -416,18 +445,18 @@ static inline bool bond_slave_can_tx(struct slave *slave)
 #define BOND_ARP_VALIDATE_ACTIVE	(1 << BOND_STATE_ACTIVE)
 #define BOND_ARP_VALIDATE_BACKUP	(1 << BOND_STATE_BACKUP)
 #define BOND_ARP_VALIDATE_ALL		(BOND_ARP_VALIDATE_ACTIVE | \
-					 BOND_ARP_VALIDATE_BACKUP)
+									 BOND_ARP_VALIDATE_BACKUP)
 #define BOND_ARP_FILTER			(BOND_ARP_VALIDATE_ALL + 1)
 #define BOND_ARP_FILTER_ACTIVE		(BOND_ARP_VALIDATE_ACTIVE | \
-					 BOND_ARP_FILTER)
+									 BOND_ARP_FILTER)
 #define BOND_ARP_FILTER_BACKUP		(BOND_ARP_VALIDATE_BACKUP | \
-					 BOND_ARP_FILTER)
+									 BOND_ARP_FILTER)
 
 #define BOND_SLAVE_NOTIFY_NOW		true
 #define BOND_SLAVE_NOTIFY_LATER		false
 
 static inline int slave_do_arp_validate(struct bonding *bond,
-					struct slave *slave)
+										struct slave *slave)
 {
 	return bond->params.arp_validate & (1 << bond_slave_state(slave));
 }
@@ -446,54 +475,65 @@ static inline int bond_is_ip_target_ok(__be32 addr)
  * arp_targets.
  */
 static inline unsigned long slave_oldest_target_arp_rx(struct bonding *bond,
-						       struct slave *slave)
+		struct slave *slave)
 {
 	int i = 1;
 	unsigned long ret = slave->target_last_arp_rx[0];
 
 	for (; (i < BOND_MAX_ARP_TARGETS) && bond->params.arp_targets[i]; i++)
 		if (time_before(slave->target_last_arp_rx[i], ret))
+		{
 			ret = slave->target_last_arp_rx[i];
+		}
 
 	return ret;
 }
 
 static inline unsigned long slave_last_rx(struct bonding *bond,
-					struct slave *slave)
+		struct slave *slave)
 {
 	if (bond->params.arp_all_targets == BOND_ARP_TARGETS_ALL)
+	{
 		return slave_oldest_target_arp_rx(bond, slave);
+	}
 
 	return slave->last_rx;
 }
 
 #ifdef CONFIG_NET_POLL_CONTROLLER
 static inline void bond_netpoll_send_skb(const struct slave *slave,
-					 struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	struct netpoll *np = slave->np;
 
 	if (np)
+	{
 		netpoll_send_skb(np, skb);
+	}
 }
 #else
 static inline void bond_netpoll_send_skb(const struct slave *slave,
-					 struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 }
 #endif
 
 static inline void bond_set_slave_inactive_flags(struct slave *slave,
-						 bool notify)
+		bool notify)
 {
 	if (!bond_is_lb(slave->bond))
+	{
 		bond_set_slave_state(slave, BOND_STATE_BACKUP, notify);
+	}
+
 	if (!slave->bond->params.all_slaves_active)
+	{
 		slave->inactive = 1;
+	}
 }
 
 static inline void bond_set_slave_active_flags(struct slave *slave,
-					       bool notify)
+		bool notify)
 {
 	bond_set_slave_state(slave, BOND_STATE_ACTIVE, notify);
 	slave->inactive = 0;
@@ -505,21 +545,31 @@ static inline bool bond_is_slave_inactive(struct slave *slave)
 }
 
 static inline void bond_set_slave_link_state(struct slave *slave, int state,
-					     bool notify)
+		bool notify)
 {
 	if (slave->link == state)
+	{
 		return;
+	}
 
 	slave->link = state;
-	if (notify) {
+
+	if (notify)
+	{
 		bond_queue_slave_event(slave);
 		bond_lower_state_changed(slave);
 		slave->should_notify_link = 0;
-	} else {
+	}
+	else
+	{
 		if (slave->should_notify_link)
+		{
 			slave->should_notify_link = 0;
+		}
 		else
+		{
 			slave->should_notify_link = 1;
+		}
 	}
 }
 
@@ -528,8 +578,10 @@ static inline void bond_slave_link_notify(struct bonding *bond)
 	struct list_head *iter;
 	struct slave *tmp;
 
-	bond_for_each_slave(bond, tmp, iter) {
-		if (tmp->should_notify_link) {
+	bond_for_each_slave(bond, tmp, iter)
+	{
+		if (tmp->should_notify_link)
+		{
 			bond_queue_slave_event(tmp);
 			bond_lower_state_changed(tmp);
 			tmp->should_notify_link = 0;
@@ -547,12 +599,14 @@ static inline __be32 bond_confirm_addr(struct net_device *dev, __be32 dst, __be3
 
 	if (in_dev)
 		addr = inet_confirm_addr(dev_net(dev), in_dev, dst, local,
-					 RT_SCOPE_HOST);
+								 RT_SCOPE_HOST);
+
 	rcu_read_unlock();
 	return addr;
 }
 
-struct bond_net {
+struct bond_net
+{
 	struct net		*net;	/* Associated network namespace */
 	struct list_head	dev_list;
 #ifdef CONFIG_PROC_FS
@@ -588,8 +642,8 @@ void bond_netlink_fini(void);
 struct net_device *bond_option_active_slave_get_rcu(struct bonding *bond);
 const char *bond_slave_link_status(s8 link);
 struct bond_vlan_tag *bond_verify_device_path(struct net_device *start_dev,
-					      struct net_device *end_dev,
-					      int level);
+		struct net_device *end_dev,
+		int level);
 int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave);
 void bond_slave_arr_work_rearm(struct bonding *bond, unsigned long delay);
 
@@ -617,28 +671,34 @@ static inline void bond_destroy_proc_dir(struct bond_net *bn)
 #endif
 
 static inline struct slave *bond_slave_has_mac(struct bonding *bond,
-					       const u8 *mac)
+		const u8 *mac)
 {
 	struct list_head *iter;
 	struct slave *tmp;
 
 	bond_for_each_slave(bond, tmp, iter)
-		if (ether_addr_equal_64bits(mac, tmp->dev->dev_addr))
-			return tmp;
+
+	if (ether_addr_equal_64bits(mac, tmp->dev->dev_addr))
+	{
+		return tmp;
+	}
 
 	return NULL;
 }
 
 /* Caller must hold rcu_read_lock() for read */
 static inline struct slave *bond_slave_has_mac_rcu(struct bonding *bond,
-					       const u8 *mac)
+		const u8 *mac)
 {
 	struct list_head *iter;
 	struct slave *tmp;
 
 	bond_for_each_slave_rcu(bond, tmp, iter)
-		if (ether_addr_equal_64bits(mac, tmp->dev->dev_addr))
-			return tmp;
+
+	if (ether_addr_equal_64bits(mac, tmp->dev->dev_addr))
+	{
+		return tmp;
+	}
 
 	return NULL;
 }
@@ -651,15 +711,23 @@ static inline bool bond_slave_has_mac_rx(struct bonding *bond, const u8 *mac)
 	struct netdev_hw_addr *ha;
 
 	bond_for_each_slave_rcu(bond, tmp, iter)
-		if (ether_addr_equal_64bits(mac, tmp->dev->dev_addr))
-			return true;
+
+	if (ether_addr_equal_64bits(mac, tmp->dev->dev_addr))
+	{
+		return true;
+	}
 
 	if (netdev_uc_empty(bond->dev))
+	{
 		return false;
+	}
 
 	netdev_for_each_uc_addr(ha, bond->dev)
-		if (ether_addr_equal_64bits(mac, ha->addr))
-			return true;
+
+	if (ether_addr_equal_64bits(mac, ha->addr))
+	{
+		return true;
+	}
 
 	return false;
 }
@@ -673,9 +741,13 @@ static inline int bond_get_targets_ip(__be32 *targets, __be32 ip)
 
 	for (i = 0; i < BOND_MAX_ARP_TARGETS; i++)
 		if (targets[i] == ip)
+		{
 			return i;
+		}
 		else if (targets[i] == 0)
+		{
 			break;
+		}
 
 	return -1;
 }

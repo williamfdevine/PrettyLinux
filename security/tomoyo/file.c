@@ -10,7 +10,8 @@
 /*
  * Mapping table from "enum tomoyo_path_acl_index" to "enum tomoyo_mac_index".
  */
-static const u8 tomoyo_p2mac[TOMOYO_MAX_PATH_OPERATION] = {
+static const u8 tomoyo_p2mac[TOMOYO_MAX_PATH_OPERATION] =
+{
 	[TOMOYO_TYPE_EXECUTE]    = TOMOYO_MAC_FILE_EXECUTE,
 	[TOMOYO_TYPE_READ]       = TOMOYO_MAC_FILE_OPEN,
 	[TOMOYO_TYPE_WRITE]      = TOMOYO_MAC_FILE_OPEN,
@@ -27,7 +28,8 @@ static const u8 tomoyo_p2mac[TOMOYO_MAX_PATH_OPERATION] = {
 /*
  * Mapping table from "enum tomoyo_mkdev_acl_index" to "enum tomoyo_mac_index".
  */
-const u8 tomoyo_pnnn2mac[TOMOYO_MAX_MKDEV_OPERATION] = {
+const u8 tomoyo_pnnn2mac[TOMOYO_MAX_MKDEV_OPERATION] =
+{
 	[TOMOYO_TYPE_MKBLOCK] = TOMOYO_MAC_FILE_MKBLOCK,
 	[TOMOYO_TYPE_MKCHAR]  = TOMOYO_MAC_FILE_MKCHAR,
 };
@@ -35,7 +37,8 @@ const u8 tomoyo_pnnn2mac[TOMOYO_MAX_MKDEV_OPERATION] = {
 /*
  * Mapping table from "enum tomoyo_path2_acl_index" to "enum tomoyo_mac_index".
  */
-const u8 tomoyo_pp2mac[TOMOYO_MAX_PATH2_OPERATION] = {
+const u8 tomoyo_pp2mac[TOMOYO_MAX_PATH2_OPERATION] =
+{
 	[TOMOYO_TYPE_LINK]       = TOMOYO_MAC_FILE_LINK,
 	[TOMOYO_TYPE_RENAME]     = TOMOYO_MAC_FILE_RENAME,
 	[TOMOYO_TYPE_PIVOT_ROOT] = TOMOYO_MAC_FILE_PIVOT_ROOT,
@@ -45,7 +48,8 @@ const u8 tomoyo_pp2mac[TOMOYO_MAX_PATH2_OPERATION] = {
  * Mapping table from "enum tomoyo_path_number_acl_index" to
  * "enum tomoyo_mac_index".
  */
-const u8 tomoyo_pn2mac[TOMOYO_MAX_PATH_NUMBER_OPERATION] = {
+const u8 tomoyo_pn2mac[TOMOYO_MAX_PATH_NUMBER_OPERATION] =
+{
 	[TOMOYO_TYPE_CREATE] = TOMOYO_MAC_FILE_CREATE,
 	[TOMOYO_TYPE_MKDIR]  = TOMOYO_MAC_FILE_MKDIR,
 	[TOMOYO_TYPE_MKFIFO] = TOMOYO_MAC_FILE_MKFIFO,
@@ -79,12 +83,18 @@ void tomoyo_put_name_union(struct tomoyo_name_union *ptr)
  */
 const struct tomoyo_path_info *
 tomoyo_compare_name_union(const struct tomoyo_path_info *name,
-			  const struct tomoyo_name_union *ptr)
+						  const struct tomoyo_name_union *ptr)
 {
 	if (ptr->group)
+	{
 		return tomoyo_path_matches_group(name, ptr->group);
+	}
+
 	if (tomoyo_path_matches_pattern(name, ptr->filename))
+	{
 		return ptr->filename;
+	}
+
 	return NULL;
 }
 
@@ -109,10 +119,13 @@ void tomoyo_put_number_union(struct tomoyo_number_union *ptr)
  * Returns true if @value matches @ptr, false otherwise.
  */
 bool tomoyo_compare_number_union(const unsigned long value,
-				 const struct tomoyo_number_union *ptr)
+								 const struct tomoyo_number_union *ptr)
 {
 	if (ptr->group)
+	{
 		return tomoyo_number_matches_group(value, value, ptr->group);
+	}
+
 	return value >= ptr->values[0] && value <= ptr->values[1];
 }
 
@@ -129,7 +142,10 @@ bool tomoyo_compare_number_union(const unsigned long value,
 static void tomoyo_add_slash(struct tomoyo_path_info *buf)
 {
 	if (buf->is_dir)
+	{
 		return;
+	}
+
 	/*
 	 * This is OK because tomoyo_encode() reserves space for appending "/".
 	 */
@@ -148,10 +164,13 @@ static void tomoyo_add_slash(struct tomoyo_path_info *buf)
 static bool tomoyo_get_realpath(struct tomoyo_path_info *buf, const struct path *path)
 {
 	buf->name = tomoyo_realpath_from_path(path);
-	if (buf->name) {
+
+	if (buf->name)
+	{
 		tomoyo_fill_path_info(buf);
 		return true;
 	}
+
 	return false;
 }
 
@@ -165,8 +184,8 @@ static bool tomoyo_get_realpath(struct tomoyo_path_info *buf, const struct path 
 static int tomoyo_audit_path_log(struct tomoyo_request_info *r)
 {
 	return tomoyo_supervisor(r, "file %s %s\n", tomoyo_path_keyword
-				 [r->param.path.operation],
-				 r->param.path.filename->name);
+							 [r->param.path.operation],
+							 r->param.path.filename->name);
 }
 
 /**
@@ -179,9 +198,9 @@ static int tomoyo_audit_path_log(struct tomoyo_request_info *r)
 static int tomoyo_audit_path2_log(struct tomoyo_request_info *r)
 {
 	return tomoyo_supervisor(r, "file %s %s %s\n", tomoyo_mac_keywords
-				 [tomoyo_pp2mac[r->param.path2.operation]],
-				 r->param.path2.filename1->name,
-				 r->param.path2.filename2->name);
+							 [tomoyo_pp2mac[r->param.path2.operation]],
+							 r->param.path2.filename1->name,
+							 r->param.path2.filename2->name);
 }
 
 /**
@@ -194,11 +213,11 @@ static int tomoyo_audit_path2_log(struct tomoyo_request_info *r)
 static int tomoyo_audit_mkdev_log(struct tomoyo_request_info *r)
 {
 	return tomoyo_supervisor(r, "file %s %s 0%o %u %u\n",
-				 tomoyo_mac_keywords
-				 [tomoyo_pnnn2mac[r->param.mkdev.operation]],
-				 r->param.mkdev.filename->name,
-				 r->param.mkdev.mode, r->param.mkdev.major,
-				 r->param.mkdev.minor);
+							 tomoyo_mac_keywords
+							 [tomoyo_pnnn2mac[r->param.mkdev.operation]],
+							 r->param.mkdev.filename->name,
+							 r->param.mkdev.mode, r->param.mkdev.major,
+							 r->param.mkdev.minor);
 }
 
 /**
@@ -213,26 +232,31 @@ static int tomoyo_audit_path_number_log(struct tomoyo_request_info *r)
 	const u8 type = r->param.path_number.operation;
 	u8 radix;
 	char buffer[64];
-	switch (type) {
-	case TOMOYO_TYPE_CREATE:
-	case TOMOYO_TYPE_MKDIR:
-	case TOMOYO_TYPE_MKFIFO:
-	case TOMOYO_TYPE_MKSOCK:
-	case TOMOYO_TYPE_CHMOD:
-		radix = TOMOYO_VALUE_TYPE_OCTAL;
-		break;
-	case TOMOYO_TYPE_IOCTL:
-		radix = TOMOYO_VALUE_TYPE_HEXADECIMAL;
-		break;
-	default:
-		radix = TOMOYO_VALUE_TYPE_DECIMAL;
-		break;
+
+	switch (type)
+	{
+		case TOMOYO_TYPE_CREATE:
+		case TOMOYO_TYPE_MKDIR:
+		case TOMOYO_TYPE_MKFIFO:
+		case TOMOYO_TYPE_MKSOCK:
+		case TOMOYO_TYPE_CHMOD:
+			radix = TOMOYO_VALUE_TYPE_OCTAL;
+			break;
+
+		case TOMOYO_TYPE_IOCTL:
+			radix = TOMOYO_VALUE_TYPE_HEXADECIMAL;
+			break;
+
+		default:
+			radix = TOMOYO_VALUE_TYPE_DECIMAL;
+			break;
 	}
+
 	tomoyo_print_ulong(buffer, sizeof(buffer), r->param.path_number.number,
-			   radix);
+					   radix);
 	return tomoyo_supervisor(r, "file %s %s %s\n", tomoyo_mac_keywords
-				 [tomoyo_pn2mac[type]],
-				 r->param.path_number.filename->name, buffer);
+							 [tomoyo_pn2mac[type]],
+							 r->param.path_number.filename->name, buffer);
 }
 
 /**
@@ -248,16 +272,19 @@ static int tomoyo_audit_path_number_log(struct tomoyo_request_info *r)
  * it is safe to set matching entry.
  */
 static bool tomoyo_check_path_acl(struct tomoyo_request_info *r,
-				  const struct tomoyo_acl_info *ptr)
+								  const struct tomoyo_acl_info *ptr)
 {
 	const struct tomoyo_path_acl *acl = container_of(ptr, typeof(*acl),
-							 head);
-	if (acl->perm & (1 << r->param.path.operation)) {
+										head);
+
+	if (acl->perm & (1 << r->param.path.operation))
+	{
 		r->param.path.matched_path =
 			tomoyo_compare_name_union(r->param.path.filename,
-						  &acl->name);
+									  &acl->name);
 		return r->param.path.matched_path != NULL;
 	}
+
 	return false;
 }
 
@@ -270,15 +297,15 @@ static bool tomoyo_check_path_acl(struct tomoyo_request_info *r,
  * Returns true if granted, false otherwise.
  */
 static bool tomoyo_check_path_number_acl(struct tomoyo_request_info *r,
-					 const struct tomoyo_acl_info *ptr)
+		const struct tomoyo_acl_info *ptr)
 {
 	const struct tomoyo_path_number_acl *acl =
 		container_of(ptr, typeof(*acl), head);
 	return (acl->perm & (1 << r->param.path_number.operation)) &&
-		tomoyo_compare_number_union(r->param.path_number.number,
-					    &acl->number) &&
-		tomoyo_compare_name_union(r->param.path_number.filename,
-					  &acl->name);
+		   tomoyo_compare_number_union(r->param.path_number.number,
+									   &acl->number) &&
+		   tomoyo_compare_name_union(r->param.path_number.filename,
+									 &acl->name);
 }
 
 /**
@@ -290,14 +317,14 @@ static bool tomoyo_check_path_number_acl(struct tomoyo_request_info *r,
  * Returns true if granted, false otherwise.
  */
 static bool tomoyo_check_path2_acl(struct tomoyo_request_info *r,
-				   const struct tomoyo_acl_info *ptr)
+								   const struct tomoyo_acl_info *ptr)
 {
 	const struct tomoyo_path2_acl *acl =
 		container_of(ptr, typeof(*acl), head);
 	return (acl->perm & (1 << r->param.path2.operation)) &&
-		tomoyo_compare_name_union(r->param.path2.filename1, &acl->name1)
-		&& tomoyo_compare_name_union(r->param.path2.filename2,
-					     &acl->name2);
+		   tomoyo_compare_name_union(r->param.path2.filename1, &acl->name1)
+		   && tomoyo_compare_name_union(r->param.path2.filename2,
+										&acl->name2);
 }
 
 /**
@@ -309,19 +336,19 @@ static bool tomoyo_check_path2_acl(struct tomoyo_request_info *r,
  * Returns true if granted, false otherwise.
  */
 static bool tomoyo_check_mkdev_acl(struct tomoyo_request_info *r,
-				   const struct tomoyo_acl_info *ptr)
+								   const struct tomoyo_acl_info *ptr)
 {
 	const struct tomoyo_mkdev_acl *acl =
 		container_of(ptr, typeof(*acl), head);
 	return (acl->perm & (1 << r->param.mkdev.operation)) &&
-		tomoyo_compare_number_union(r->param.mkdev.mode,
-					    &acl->mode) &&
-		tomoyo_compare_number_union(r->param.mkdev.major,
-					    &acl->major) &&
-		tomoyo_compare_number_union(r->param.mkdev.minor,
-					    &acl->minor) &&
-		tomoyo_compare_name_union(r->param.mkdev.filename,
-					  &acl->name);
+		   tomoyo_compare_number_union(r->param.mkdev.mode,
+									   &acl->mode) &&
+		   tomoyo_compare_number_union(r->param.mkdev.major,
+									   &acl->major) &&
+		   tomoyo_compare_number_union(r->param.mkdev.minor,
+									   &acl->minor) &&
+		   tomoyo_compare_name_union(r->param.mkdev.filename,
+									 &acl->name);
 }
 
 /**
@@ -333,7 +360,7 @@ static bool tomoyo_check_mkdev_acl(struct tomoyo_request_info *r,
  * Returns true if @a == @b except permission bits, false otherwise.
  */
 static bool tomoyo_same_path_acl(const struct tomoyo_acl_info *a,
-				 const struct tomoyo_acl_info *b)
+								 const struct tomoyo_acl_info *b)
 {
 	const struct tomoyo_path_acl *p1 = container_of(a, typeof(*p1), head);
 	const struct tomoyo_path_acl *p2 = container_of(b, typeof(*p2), head);
@@ -350,17 +377,23 @@ static bool tomoyo_same_path_acl(const struct tomoyo_acl_info *a,
  * Returns true if @a is empty, false otherwise.
  */
 static bool tomoyo_merge_path_acl(struct tomoyo_acl_info *a,
-				  struct tomoyo_acl_info *b,
-				  const bool is_delete)
+								  struct tomoyo_acl_info *b,
+								  const bool is_delete)
 {
-	u16 * const a_perm = &container_of(a, struct tomoyo_path_acl, head)
-		->perm;
+	u16 *const a_perm = &container_of(a, struct tomoyo_path_acl, head)
+						->perm;
 	u16 perm = *a_perm;
 	const u16 b_perm = container_of(b, struct tomoyo_path_acl, head)->perm;
+
 	if (is_delete)
+	{
 		perm &= ~b_perm;
+	}
 	else
+	{
 		perm |= b_perm;
+	}
+
 	*a_perm = perm;
 	return !perm;
 }
@@ -376,19 +409,24 @@ static bool tomoyo_merge_path_acl(struct tomoyo_acl_info *a,
  * Caller holds tomoyo_read_lock().
  */
 static int tomoyo_update_path_acl(const u16 perm,
-				  struct tomoyo_acl_param *param)
+								  struct tomoyo_acl_param *param)
 {
-	struct tomoyo_path_acl e = {
+	struct tomoyo_path_acl e =
+	{
 		.head.type = TOMOYO_TYPE_PATH_ACL,
 		.perm = perm
 	};
 	int error;
+
 	if (!tomoyo_parse_name_union(param, &e.name))
+	{
 		error = -EINVAL;
+	}
 	else
 		error = tomoyo_update_domain(&e.head, sizeof(e), param,
-					     tomoyo_same_path_acl,
-					     tomoyo_merge_path_acl);
+									 tomoyo_same_path_acl,
+									 tomoyo_merge_path_acl);
+
 	tomoyo_put_name_union(&e.name);
 	return error;
 }
@@ -402,14 +440,14 @@ static int tomoyo_update_path_acl(const u16 perm,
  * Returns true if @a == @b except permission bits, false otherwise.
  */
 static bool tomoyo_same_mkdev_acl(const struct tomoyo_acl_info *a,
-					 const struct tomoyo_acl_info *b)
+								  const struct tomoyo_acl_info *b)
 {
 	const struct tomoyo_mkdev_acl *p1 = container_of(a, typeof(*p1), head);
 	const struct tomoyo_mkdev_acl *p2 = container_of(b, typeof(*p2), head);
 	return tomoyo_same_name_union(&p1->name, &p2->name) &&
-		tomoyo_same_number_union(&p1->mode, &p2->mode) &&
-		tomoyo_same_number_union(&p1->major, &p2->major) &&
-		tomoyo_same_number_union(&p1->minor, &p2->minor);
+		   tomoyo_same_number_union(&p1->mode, &p2->mode) &&
+		   tomoyo_same_number_union(&p1->major, &p2->major) &&
+		   tomoyo_same_number_union(&p1->minor, &p2->minor);
 }
 
 /**
@@ -422,18 +460,24 @@ static bool tomoyo_same_mkdev_acl(const struct tomoyo_acl_info *a,
  * Returns true if @a is empty, false otherwise.
  */
 static bool tomoyo_merge_mkdev_acl(struct tomoyo_acl_info *a,
-				   struct tomoyo_acl_info *b,
-				   const bool is_delete)
+								   struct tomoyo_acl_info *b,
+								   const bool is_delete)
 {
 	u8 *const a_perm = &container_of(a, struct tomoyo_mkdev_acl,
-					 head)->perm;
+									 head)->perm;
 	u8 perm = *a_perm;
 	const u8 b_perm = container_of(b, struct tomoyo_mkdev_acl, head)
-		->perm;
+					  ->perm;
+
 	if (is_delete)
+	{
 		perm &= ~b_perm;
+	}
 	else
+	{
 		perm |= b_perm;
+	}
+
 	*a_perm = perm;
 	return !perm;
 }
@@ -449,22 +493,27 @@ static bool tomoyo_merge_mkdev_acl(struct tomoyo_acl_info *a,
  * Caller holds tomoyo_read_lock().
  */
 static int tomoyo_update_mkdev_acl(const u8 perm,
-				   struct tomoyo_acl_param *param)
+								   struct tomoyo_acl_param *param)
 {
-	struct tomoyo_mkdev_acl e = {
+	struct tomoyo_mkdev_acl e =
+	{
 		.head.type = TOMOYO_TYPE_MKDEV_ACL,
 		.perm = perm
 	};
 	int error;
+
 	if (!tomoyo_parse_name_union(param, &e.name) ||
-	    !tomoyo_parse_number_union(param, &e.mode) ||
-	    !tomoyo_parse_number_union(param, &e.major) ||
-	    !tomoyo_parse_number_union(param, &e.minor))
+		!tomoyo_parse_number_union(param, &e.mode) ||
+		!tomoyo_parse_number_union(param, &e.major) ||
+		!tomoyo_parse_number_union(param, &e.minor))
+	{
 		error = -EINVAL;
+	}
 	else
 		error = tomoyo_update_domain(&e.head, sizeof(e), param,
-					     tomoyo_same_mkdev_acl,
-					     tomoyo_merge_mkdev_acl);
+									 tomoyo_same_mkdev_acl,
+									 tomoyo_merge_mkdev_acl);
+
 	tomoyo_put_name_union(&e.name);
 	tomoyo_put_number_union(&e.mode);
 	tomoyo_put_number_union(&e.major);
@@ -481,12 +530,12 @@ static int tomoyo_update_mkdev_acl(const u8 perm,
  * Returns true if @a == @b except permission bits, false otherwise.
  */
 static bool tomoyo_same_path2_acl(const struct tomoyo_acl_info *a,
-				  const struct tomoyo_acl_info *b)
+								  const struct tomoyo_acl_info *b)
 {
 	const struct tomoyo_path2_acl *p1 = container_of(a, typeof(*p1), head);
 	const struct tomoyo_path2_acl *p2 = container_of(b, typeof(*p2), head);
 	return tomoyo_same_name_union(&p1->name1, &p2->name1) &&
-		tomoyo_same_name_union(&p1->name2, &p2->name2);
+		   tomoyo_same_name_union(&p1->name2, &p2->name2);
 }
 
 /**
@@ -499,17 +548,23 @@ static bool tomoyo_same_path2_acl(const struct tomoyo_acl_info *a,
  * Returns true if @a is empty, false otherwise.
  */
 static bool tomoyo_merge_path2_acl(struct tomoyo_acl_info *a,
-				   struct tomoyo_acl_info *b,
-				   const bool is_delete)
+								   struct tomoyo_acl_info *b,
+								   const bool is_delete)
 {
-	u8 * const a_perm = &container_of(a, struct tomoyo_path2_acl, head)
-		->perm;
+	u8 *const a_perm = &container_of(a, struct tomoyo_path2_acl, head)
+					   ->perm;
 	u8 perm = *a_perm;
 	const u8 b_perm = container_of(b, struct tomoyo_path2_acl, head)->perm;
+
 	if (is_delete)
+	{
 		perm &= ~b_perm;
+	}
 	else
+	{
 		perm |= b_perm;
+	}
+
 	*a_perm = perm;
 	return !perm;
 }
@@ -525,20 +580,25 @@ static bool tomoyo_merge_path2_acl(struct tomoyo_acl_info *a,
  * Caller holds tomoyo_read_lock().
  */
 static int tomoyo_update_path2_acl(const u8 perm,
-				   struct tomoyo_acl_param *param)
+								   struct tomoyo_acl_param *param)
 {
-	struct tomoyo_path2_acl e = {
+	struct tomoyo_path2_acl e =
+	{
 		.head.type = TOMOYO_TYPE_PATH2_ACL,
 		.perm = perm
 	};
 	int error;
+
 	if (!tomoyo_parse_name_union(param, &e.name1) ||
-	    !tomoyo_parse_name_union(param, &e.name2))
+		!tomoyo_parse_name_union(param, &e.name2))
+	{
 		error = -EINVAL;
+	}
 	else
 		error = tomoyo_update_domain(&e.head, sizeof(e), param,
-					     tomoyo_same_path2_acl,
-					     tomoyo_merge_path2_acl);
+									 tomoyo_same_path2_acl,
+									 tomoyo_merge_path2_acl);
+
 	tomoyo_put_name_union(&e.name1);
 	tomoyo_put_name_union(&e.name2);
 	return error;
@@ -556,21 +616,29 @@ static int tomoyo_update_path2_acl(const u8 perm,
  * Caller holds tomoyo_read_lock().
  */
 static int tomoyo_path_permission(struct tomoyo_request_info *r, u8 operation,
-				  const struct tomoyo_path_info *filename)
+								  const struct tomoyo_path_info *filename)
 {
 	int error;
 
 	r->type = tomoyo_p2mac[operation];
 	r->mode = tomoyo_get_mode(r->domain->ns, r->profile, r->type);
+
 	if (r->mode == TOMOYO_CONFIG_DISABLED)
+	{
 		return 0;
+	}
+
 	r->param_type = TOMOYO_TYPE_PATH_ACL;
 	r->param.path.filename = filename;
 	r->param.path.operation = operation;
-	do {
+
+	do
+	{
 		tomoyo_check_acl(r, tomoyo_check_path_acl);
 		error = tomoyo_audit_path_log(r);
-	} while (error == TOMOYO_RETRY_REQUEST);
+	}
+	while (error == TOMOYO_RETRY_REQUEST);
+
 	return error;
 }
 
@@ -585,7 +653,7 @@ static int tomoyo_path_permission(struct tomoyo_request_info *r, u8 operation,
  * Caller holds tomoyo_read_lock().
  */
 int tomoyo_execute_permission(struct tomoyo_request_info *r,
-			      const struct tomoyo_path_info *filename)
+							  const struct tomoyo_path_info *filename)
 {
 	/*
 	 * Unlike other permission checks, this check is done regardless of
@@ -599,9 +667,13 @@ int tomoyo_execute_permission(struct tomoyo_request_info *r,
 	r->param.path.operation = TOMOYO_TYPE_EXECUTE;
 	tomoyo_check_acl(r, tomoyo_check_path_acl);
 	r->ee->transition = r->matched_acl && r->matched_acl->cond ?
-		r->matched_acl->cond->transit : NULL;
+						r->matched_acl->cond->transit : NULL;
+
 	if (r->mode != TOMOYO_CONFIG_DISABLED)
+	{
 		return tomoyo_audit_path_log(r);
+	}
+
 	return 0;
 }
 
@@ -614,14 +686,14 @@ int tomoyo_execute_permission(struct tomoyo_request_info *r,
  * Returns true if @a == @b except permission bits, false otherwise.
  */
 static bool tomoyo_same_path_number_acl(const struct tomoyo_acl_info *a,
-					const struct tomoyo_acl_info *b)
+										const struct tomoyo_acl_info *b)
 {
 	const struct tomoyo_path_number_acl *p1 = container_of(a, typeof(*p1),
-							       head);
+			head);
 	const struct tomoyo_path_number_acl *p2 = container_of(b, typeof(*p2),
-							       head);
+			head);
 	return tomoyo_same_name_union(&p1->name, &p2->name) &&
-		tomoyo_same_number_union(&p1->number, &p2->number);
+		   tomoyo_same_number_union(&p1->number, &p2->number);
 }
 
 /**
@@ -634,18 +706,24 @@ static bool tomoyo_same_path_number_acl(const struct tomoyo_acl_info *a,
  * Returns true if @a is empty, false otherwise.
  */
 static bool tomoyo_merge_path_number_acl(struct tomoyo_acl_info *a,
-					 struct tomoyo_acl_info *b,
-					 const bool is_delete)
+		struct tomoyo_acl_info *b,
+		const bool is_delete)
 {
-	u8 * const a_perm = &container_of(a, struct tomoyo_path_number_acl,
-					  head)->perm;
+	u8 *const a_perm = &container_of(a, struct tomoyo_path_number_acl,
+									 head)->perm;
 	u8 perm = *a_perm;
 	const u8 b_perm = container_of(b, struct tomoyo_path_number_acl, head)
-		->perm;
+					  ->perm;
+
 	if (is_delete)
+	{
 		perm &= ~b_perm;
+	}
 	else
+	{
 		perm |= b_perm;
+	}
+
 	*a_perm = perm;
 	return !perm;
 }
@@ -659,20 +737,25 @@ static bool tomoyo_merge_path_number_acl(struct tomoyo_acl_info *a,
  * Returns 0 on success, negative value otherwise.
  */
 static int tomoyo_update_path_number_acl(const u8 perm,
-					 struct tomoyo_acl_param *param)
+		struct tomoyo_acl_param *param)
 {
-	struct tomoyo_path_number_acl e = {
+	struct tomoyo_path_number_acl e =
+	{
 		.head.type = TOMOYO_TYPE_PATH_NUMBER_ACL,
 		.perm = perm
 	};
 	int error;
+
 	if (!tomoyo_parse_name_union(param, &e.name) ||
-	    !tomoyo_parse_number_union(param, &e.number))
+		!tomoyo_parse_number_union(param, &e.number))
+	{
 		error = -EINVAL;
+	}
 	else
 		error = tomoyo_update_domain(&e.head, sizeof(e), param,
-					     tomoyo_same_path_number_acl,
-					     tomoyo_merge_path_number_acl);
+									 tomoyo_same_path_number_acl,
+									 tomoyo_merge_path_number_acl);
+
 	tomoyo_put_name_union(&e.name);
 	tomoyo_put_number_union(&e.number);
 	return error;
@@ -688,10 +771,11 @@ static int tomoyo_update_path_number_acl(const u8 perm,
  * Returns 0 on success, negative value otherwise.
  */
 int tomoyo_path_number_perm(const u8 type, const struct path *path,
-			    unsigned long number)
+							unsigned long number)
 {
 	struct tomoyo_request_info r;
-	struct tomoyo_obj_info obj = {
+	struct tomoyo_obj_info obj =
+	{
 		.path1 = *path,
 	};
 	int error = -ENOMEM;
@@ -699,27 +783,46 @@ int tomoyo_path_number_perm(const u8 type, const struct path *path,
 	int idx;
 
 	if (tomoyo_init_request_info(&r, NULL, tomoyo_pn2mac[type])
-	    == TOMOYO_CONFIG_DISABLED || !path->dentry)
+		== TOMOYO_CONFIG_DISABLED || !path->dentry)
+	{
 		return 0;
+	}
+
 	idx = tomoyo_read_lock();
+
 	if (!tomoyo_get_realpath(&buf, path))
+	{
 		goto out;
+	}
+
 	r.obj = &obj;
+
 	if (type == TOMOYO_TYPE_MKDIR)
+	{
 		tomoyo_add_slash(&buf);
+	}
+
 	r.param_type = TOMOYO_TYPE_PATH_NUMBER_ACL;
 	r.param.path_number.operation = type;
 	r.param.path_number.filename = &buf;
 	r.param.path_number.number = number;
-	do {
+
+	do
+	{
 		tomoyo_check_acl(&r, tomoyo_check_path_number_acl);
 		error = tomoyo_audit_path_number_log(&r);
-	} while (error == TOMOYO_RETRY_REQUEST);
+	}
+	while (error == TOMOYO_RETRY_REQUEST);
+
 	kfree(buf.name);
- out:
+out:
 	tomoyo_read_unlock(idx);
+
 	if (r.mode != TOMOYO_CONFIG_ENFORCING)
+	{
 		error = 0;
+	}
+
 	return error;
 }
 
@@ -733,13 +836,14 @@ int tomoyo_path_number_perm(const u8 type, const struct path *path,
  * Returns 0 on success, negative value otherwise.
  */
 int tomoyo_check_open_permission(struct tomoyo_domain_info *domain,
-				 const struct path *path, const int flag)
+								 const struct path *path, const int flag)
 {
 	const u8 acc_mode = ACC_MODE(flag);
 	int error = 0;
 	struct tomoyo_path_info buf;
 	struct tomoyo_request_info r;
-	struct tomoyo_obj_info obj = {
+	struct tomoyo_obj_info obj =
+	{
 		.path1 = *path,
 	};
 	int idx;
@@ -747,28 +851,39 @@ int tomoyo_check_open_permission(struct tomoyo_domain_info *domain,
 	buf.name = NULL;
 	r.mode = TOMOYO_CONFIG_DISABLED;
 	idx = tomoyo_read_lock();
+
 	if (acc_mode &&
-	    tomoyo_init_request_info(&r, domain, TOMOYO_MAC_FILE_OPEN)
-	    != TOMOYO_CONFIG_DISABLED) {
-		if (!tomoyo_get_realpath(&buf, path)) {
+		tomoyo_init_request_info(&r, domain, TOMOYO_MAC_FILE_OPEN)
+		!= TOMOYO_CONFIG_DISABLED)
+	{
+		if (!tomoyo_get_realpath(&buf, path))
+		{
 			error = -ENOMEM;
 			goto out;
 		}
+
 		r.obj = &obj;
+
 		if (acc_mode & MAY_READ)
 			error = tomoyo_path_permission(&r, TOMOYO_TYPE_READ,
-						       &buf);
+										   &buf);
+
 		if (!error && (acc_mode & MAY_WRITE))
 			error = tomoyo_path_permission(&r, (flag & O_APPEND) ?
-						       TOMOYO_TYPE_APPEND :
-						       TOMOYO_TYPE_WRITE,
-						       &buf);
+										   TOMOYO_TYPE_APPEND :
+										   TOMOYO_TYPE_WRITE,
+										   &buf);
 	}
- out:
+
+out:
 	kfree(buf.name);
 	tomoyo_read_unlock(idx);
+
 	if (r.mode != TOMOYO_CONFIG_ENFORCING)
+	{
 		error = 0;
+	}
+
 	return error;
 }
 
@@ -785,7 +900,8 @@ int tomoyo_check_open_permission(struct tomoyo_domain_info *domain,
 int tomoyo_path_perm(const u8 operation, const struct path *path, const char *target)
 {
 	struct tomoyo_request_info r;
-	struct tomoyo_obj_info obj = {
+	struct tomoyo_obj_info obj =
+	{
 		.path1 = *path,
 	};
 	int error;
@@ -795,36 +911,59 @@ int tomoyo_path_perm(const u8 operation, const struct path *path, const char *ta
 	int idx;
 
 	if (tomoyo_init_request_info(&r, NULL, tomoyo_p2mac[operation])
-	    == TOMOYO_CONFIG_DISABLED)
+		== TOMOYO_CONFIG_DISABLED)
+	{
 		return 0;
+	}
+
 	is_enforce = (r.mode == TOMOYO_CONFIG_ENFORCING);
 	error = -ENOMEM;
 	buf.name = NULL;
 	idx = tomoyo_read_lock();
+
 	if (!tomoyo_get_realpath(&buf, path))
+	{
 		goto out;
-	r.obj = &obj;
-	switch (operation) {
-	case TOMOYO_TYPE_RMDIR:
-	case TOMOYO_TYPE_CHROOT:
-		tomoyo_add_slash(&buf);
-		break;
-	case TOMOYO_TYPE_SYMLINK:
-		symlink_target.name = tomoyo_encode(target);
-		if (!symlink_target.name)
-			goto out;
-		tomoyo_fill_path_info(&symlink_target);
-		obj.symlink_target = &symlink_target;
-		break;
 	}
+
+	r.obj = &obj;
+
+	switch (operation)
+	{
+		case TOMOYO_TYPE_RMDIR:
+		case TOMOYO_TYPE_CHROOT:
+			tomoyo_add_slash(&buf);
+			break;
+
+		case TOMOYO_TYPE_SYMLINK:
+			symlink_target.name = tomoyo_encode(target);
+
+			if (!symlink_target.name)
+			{
+				goto out;
+			}
+
+			tomoyo_fill_path_info(&symlink_target);
+			obj.symlink_target = &symlink_target;
+			break;
+	}
+
 	error = tomoyo_path_permission(&r, operation, &buf);
+
 	if (operation == TOMOYO_TYPE_SYMLINK)
+	{
 		kfree(symlink_target.name);
- out:
+	}
+
+out:
 	kfree(buf.name);
 	tomoyo_read_unlock(idx);
+
 	if (!is_enforce)
+	{
 		error = 0;
+	}
+
 	return error;
 }
 
@@ -839,10 +978,11 @@ int tomoyo_path_perm(const u8 operation, const struct path *path, const char *ta
  * Returns 0 on success, negative value otherwise.
  */
 int tomoyo_mkdev_perm(const u8 operation, const struct path *path,
-		      const unsigned int mode, unsigned int dev)
+					  const unsigned int mode, unsigned int dev)
 {
 	struct tomoyo_request_info r;
-	struct tomoyo_obj_info obj = {
+	struct tomoyo_obj_info obj =
+	{
 		.path1 = *path,
 	};
 	int error = -ENOMEM;
@@ -850,11 +990,16 @@ int tomoyo_mkdev_perm(const u8 operation, const struct path *path,
 	int idx;
 
 	if (tomoyo_init_request_info(&r, NULL, tomoyo_pnnn2mac[operation])
-	    == TOMOYO_CONFIG_DISABLED)
+		== TOMOYO_CONFIG_DISABLED)
+	{
 		return 0;
+	}
+
 	idx = tomoyo_read_lock();
 	error = -ENOMEM;
-	if (tomoyo_get_realpath(&buf, path)) {
+
+	if (tomoyo_get_realpath(&buf, path))
+	{
 		r.obj = &obj;
 		dev = new_decode_dev(dev);
 		r.param_type = TOMOYO_TYPE_MKDEV_ACL;
@@ -867,9 +1012,14 @@ int tomoyo_mkdev_perm(const u8 operation, const struct path *path,
 		error = tomoyo_audit_mkdev_log(&r);
 		kfree(buf.name);
 	}
+
 	tomoyo_read_unlock(idx);
+
 	if (r.mode != TOMOYO_CONFIG_ENFORCING)
+	{
 		error = 0;
+	}
+
 	return error;
 }
 
@@ -883,53 +1033,74 @@ int tomoyo_mkdev_perm(const u8 operation, const struct path *path,
  * Returns 0 on success, negative value otherwise.
  */
 int tomoyo_path2_perm(const u8 operation, const struct path *path1,
-		      const struct path *path2)
+					  const struct path *path2)
 {
 	int error = -ENOMEM;
 	struct tomoyo_path_info buf1;
 	struct tomoyo_path_info buf2;
 	struct tomoyo_request_info r;
-	struct tomoyo_obj_info obj = {
+	struct tomoyo_obj_info obj =
+	{
 		.path1 = *path1,
 		.path2 = *path2,
 	};
 	int idx;
 
 	if (tomoyo_init_request_info(&r, NULL, tomoyo_pp2mac[operation])
-	    == TOMOYO_CONFIG_DISABLED)
+		== TOMOYO_CONFIG_DISABLED)
+	{
 		return 0;
+	}
+
 	buf1.name = NULL;
 	buf2.name = NULL;
 	idx = tomoyo_read_lock();
+
 	if (!tomoyo_get_realpath(&buf1, path1) ||
-	    !tomoyo_get_realpath(&buf2, path2))
+		!tomoyo_get_realpath(&buf2, path2))
+	{
 		goto out;
-	switch (operation) {
-	case TOMOYO_TYPE_RENAME:
-	case TOMOYO_TYPE_LINK:
-		if (!d_is_dir(path1->dentry))
-			break;
-		/* fall through */
-	case TOMOYO_TYPE_PIVOT_ROOT:
-		tomoyo_add_slash(&buf1);
-		tomoyo_add_slash(&buf2);
-		break;
 	}
+
+	switch (operation)
+	{
+		case TOMOYO_TYPE_RENAME:
+		case TOMOYO_TYPE_LINK:
+			if (!d_is_dir(path1->dentry))
+			{
+				break;
+			}
+
+		/* fall through */
+		case TOMOYO_TYPE_PIVOT_ROOT:
+			tomoyo_add_slash(&buf1);
+			tomoyo_add_slash(&buf2);
+			break;
+	}
+
 	r.obj = &obj;
 	r.param_type = TOMOYO_TYPE_PATH2_ACL;
 	r.param.path2.operation = operation;
 	r.param.path2.filename1 = &buf1;
 	r.param.path2.filename2 = &buf2;
-	do {
+
+	do
+	{
 		tomoyo_check_acl(&r, tomoyo_check_path2_acl);
 		error = tomoyo_audit_path2_log(&r);
-	} while (error == TOMOYO_RETRY_REQUEST);
- out:
+	}
+	while (error == TOMOYO_RETRY_REQUEST);
+
+out:
 	kfree(buf1.name);
 	kfree(buf2.name);
 	tomoyo_read_unlock(idx);
+
 	if (r.mode != TOMOYO_CONFIG_ENFORCING)
+	{
 		error = 0;
+	}
+
 	return error;
 }
 
@@ -942,14 +1113,14 @@ int tomoyo_path2_perm(const u8 operation, const struct path *path1,
  * Returns true if @a == @b, false otherwise.
  */
 static bool tomoyo_same_mount_acl(const struct tomoyo_acl_info *a,
-				  const struct tomoyo_acl_info *b)
+								  const struct tomoyo_acl_info *b)
 {
 	const struct tomoyo_mount_acl *p1 = container_of(a, typeof(*p1), head);
 	const struct tomoyo_mount_acl *p2 = container_of(b, typeof(*p2), head);
 	return tomoyo_same_name_union(&p1->dev_name, &p2->dev_name) &&
-		tomoyo_same_name_union(&p1->dir_name, &p2->dir_name) &&
-		tomoyo_same_name_union(&p1->fs_type, &p2->fs_type) &&
-		tomoyo_same_number_union(&p1->flags, &p2->flags);
+		   tomoyo_same_name_union(&p1->dir_name, &p2->dir_name) &&
+		   tomoyo_same_name_union(&p1->fs_type, &p2->fs_type) &&
+		   tomoyo_same_number_union(&p1->flags, &p2->flags);
 }
 
 /**
@@ -965,14 +1136,18 @@ static int tomoyo_update_mount_acl(struct tomoyo_acl_param *param)
 {
 	struct tomoyo_mount_acl e = { .head.type = TOMOYO_TYPE_MOUNT_ACL };
 	int error;
+
 	if (!tomoyo_parse_name_union(param, &e.dev_name) ||
-	    !tomoyo_parse_name_union(param, &e.dir_name) ||
-	    !tomoyo_parse_name_union(param, &e.fs_type) ||
-	    !tomoyo_parse_number_union(param, &e.flags))
+		!tomoyo_parse_name_union(param, &e.dir_name) ||
+		!tomoyo_parse_name_union(param, &e.fs_type) ||
+		!tomoyo_parse_number_union(param, &e.flags))
+	{
 		error = -EINVAL;
+	}
 	else
 		error = tomoyo_update_domain(&e.head, sizeof(e), param,
-					     tomoyo_same_mount_acl, NULL);
+									 tomoyo_same_mount_acl, NULL);
+
 	tomoyo_put_name_union(&e.dev_name);
 	tomoyo_put_name_union(&e.dir_name);
 	tomoyo_put_name_union(&e.fs_type);
@@ -994,31 +1169,59 @@ int tomoyo_write_file(struct tomoyo_acl_param *param)
 	u16 perm = 0;
 	u8 type;
 	const char *operation = tomoyo_read_token(param);
+
 	for (type = 0; type < TOMOYO_MAX_PATH_OPERATION; type++)
 		if (tomoyo_permstr(operation, tomoyo_path_keyword[type]))
+		{
 			perm |= 1 << type;
+		}
+
 	if (perm)
+	{
 		return tomoyo_update_path_acl(perm, param);
+	}
+
 	for (type = 0; type < TOMOYO_MAX_PATH2_OPERATION; type++)
 		if (tomoyo_permstr(operation,
-				   tomoyo_mac_keywords[tomoyo_pp2mac[type]]))
+						   tomoyo_mac_keywords[tomoyo_pp2mac[type]]))
+		{
 			perm |= 1 << type;
+		}
+
 	if (perm)
+	{
 		return tomoyo_update_path2_acl(perm, param);
+	}
+
 	for (type = 0; type < TOMOYO_MAX_PATH_NUMBER_OPERATION; type++)
 		if (tomoyo_permstr(operation,
-				   tomoyo_mac_keywords[tomoyo_pn2mac[type]]))
+						   tomoyo_mac_keywords[tomoyo_pn2mac[type]]))
+		{
 			perm |= 1 << type;
+		}
+
 	if (perm)
+	{
 		return tomoyo_update_path_number_acl(perm, param);
+	}
+
 	for (type = 0; type < TOMOYO_MAX_MKDEV_OPERATION; type++)
 		if (tomoyo_permstr(operation,
-				   tomoyo_mac_keywords[tomoyo_pnnn2mac[type]]))
+						   tomoyo_mac_keywords[tomoyo_pnnn2mac[type]]))
+		{
 			perm |= 1 << type;
+		}
+
 	if (perm)
+	{
 		return tomoyo_update_mkdev_acl(perm, param);
+	}
+
 	if (tomoyo_permstr(operation,
-			   tomoyo_mac_keywords[TOMOYO_MAC_FILE_MOUNT]))
+					   tomoyo_mac_keywords[TOMOYO_MAC_FILE_MOUNT]))
+	{
 		return tomoyo_update_mount_acl(param);
+	}
+
 	return -EINVAL;
 }

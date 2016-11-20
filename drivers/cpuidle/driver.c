@@ -48,10 +48,13 @@ static inline void __cpuidle_unset_driver(struct cpuidle_driver *drv)
 {
 	int cpu;
 
-	for_each_cpu(cpu, drv->cpumask) {
+	for_each_cpu(cpu, drv->cpumask)
+	{
 
 		if (drv != __cpuidle_get_cpu_driver(cpu))
+		{
 			continue;
+		}
 
 		per_cpu(cpuidle_drivers, cpu) = NULL;
 	}
@@ -70,9 +73,11 @@ static inline int __cpuidle_set_driver(struct cpuidle_driver *drv)
 {
 	int cpu;
 
-	for_each_cpu(cpu, drv->cpumask) {
+	for_each_cpu(cpu, drv->cpumask)
+	{
 
-		if (__cpuidle_get_cpu_driver(cpu)) {
+		if (__cpuidle_get_cpu_driver(cpu))
+		{
 			__cpuidle_unset_driver(drv);
 			return -EBUSY;
 		}
@@ -108,7 +113,9 @@ static inline struct cpuidle_driver *__cpuidle_get_cpu_driver(int cpu)
 static inline int __cpuidle_set_driver(struct cpuidle_driver *drv)
 {
 	if (cpuidle_curr_driver)
+	{
 		return -EBUSY;
+	}
 
 	cpuidle_curr_driver = drv;
 
@@ -125,7 +132,9 @@ static inline int __cpuidle_set_driver(struct cpuidle_driver *drv)
 static inline void __cpuidle_unset_driver(struct cpuidle_driver *drv)
 {
 	if (drv == cpuidle_curr_driver)
+	{
 		cpuidle_curr_driver = NULL;
+	}
 }
 
 #endif
@@ -142,9 +151,13 @@ static inline void __cpuidle_unset_driver(struct cpuidle_driver *drv)
 static void cpuidle_setup_broadcast_timer(void *arg)
 {
 	if (arg)
+	{
 		tick_broadcast_enable();
+	}
 	else
+	{
 		tick_broadcast_disable();
+	}
 }
 
 /**
@@ -163,15 +176,19 @@ static void __cpuidle_driver_init(struct cpuidle_driver *drv)
 	 * notifier has to know which driver to assign.
 	 */
 	if (!drv->cpumask)
+	{
 		drv->cpumask = (struct cpumask *)cpu_possible_mask;
+	}
 
 	/*
 	 * Look for the timer stop flag in the different states, so that we know
 	 * if the broadcast timer has to be set up.  The loop is in the reverse
 	 * order, because usually one of the deeper states have this flag set.
 	 */
-	for (i = drv->state_count - 1; i >= 0 ; i--) {
-		if (drv->states[i].flags & CPUIDLE_FLAG_TIMER_STOP) {
+	for (i = drv->state_count - 1; i >= 0 ; i--)
+	{
+		if (drv->states[i].flags & CPUIDLE_FLAG_TIMER_STOP)
+		{
 			drv->bctimer = 1;
 			break;
 		}
@@ -180,13 +197,18 @@ static void __cpuidle_driver_init(struct cpuidle_driver *drv)
 
 #ifdef CONFIG_ARCH_HAS_CPU_RELAX
 static int __cpuidle poll_idle(struct cpuidle_device *dev,
-			       struct cpuidle_driver *drv, int index)
+							   struct cpuidle_driver *drv, int index)
 {
 	local_irq_enable();
-	if (!current_set_polling_and_test()) {
+
+	if (!current_set_polling_and_test())
+	{
 		while (!need_resched())
+		{
 			cpu_relax();
+		}
 	}
+
 	current_clr_polling();
 
 	return index;
@@ -226,24 +248,34 @@ static int __cpuidle_register_driver(struct cpuidle_driver *drv)
 	int ret;
 
 	if (!drv || !drv->state_count)
+	{
 		return -EINVAL;
+	}
 
 	ret = cpuidle_coupled_state_verify(drv);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (cpuidle_disabled())
+	{
 		return -ENODEV;
+	}
 
 	__cpuidle_driver_init(drv);
 
 	ret = __cpuidle_set_driver(drv);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (drv->bctimer)
 		on_each_cpu_mask(drv->cpumask, cpuidle_setup_broadcast_timer,
-				 (void *)1, 1);
+						 (void *)1, 1);
 
 	poll_idle_init(drv);
 
@@ -262,12 +294,15 @@ static int __cpuidle_register_driver(struct cpuidle_driver *drv)
 static void __cpuidle_unregister_driver(struct cpuidle_driver *drv)
 {
 	if (WARN_ON(drv->refcnt > 0))
+	{
 		return;
+	}
 
-	if (drv->bctimer) {
+	if (drv->bctimer)
+	{
 		drv->bctimer = 0;
 		on_each_cpu_mask(drv->cpumask, cpuidle_setup_broadcast_timer,
-				 NULL, 1);
+						 NULL, 1);
 	}
 
 	__cpuidle_unset_driver(drv);
@@ -339,7 +374,9 @@ EXPORT_SYMBOL_GPL(cpuidle_get_driver);
 struct cpuidle_driver *cpuidle_get_cpu_driver(struct cpuidle_device *dev)
 {
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	return __cpuidle_get_cpu_driver(dev->cpu);
 }
@@ -360,8 +397,11 @@ struct cpuidle_driver *cpuidle_driver_ref(void)
 	spin_lock(&cpuidle_driver_lock);
 
 	drv = cpuidle_get_driver();
+
 	if (drv)
+	{
 		drv->refcnt++;
+	}
 
 	spin_unlock(&cpuidle_driver_lock);
 	return drv;
@@ -380,8 +420,11 @@ void cpuidle_driver_unref(void)
 	spin_lock(&cpuidle_driver_lock);
 
 	drv = cpuidle_get_driver();
+
 	if (drv && !WARN_ON(drv->refcnt <= 0))
+	{
 		drv->refcnt--;
+	}
 
 	spin_unlock(&cpuidle_driver_lock);
 }

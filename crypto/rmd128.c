@@ -22,7 +22,8 @@
 
 #include "ripemd.h"
 
-struct rmd128_ctx {
+struct rmd128_ctx
+{
 	u64 byte_count;
 	u32 state[4];
 	__le32 buffer[16];
@@ -43,9 +44,9 @@ struct rmd128_ctx {
 #define F4(x, y, z) (y ^ (z & (x ^ y)))	/* z ? x : y */
 
 #define ROUND(a, b, c, d, f, k, x, s)  { \
-	(a) += f((b), (c), (d)) + le32_to_cpup(&(x)) + (k);	\
-	(a) = rol32((a), (s)); \
-}
+		(a) += f((b), (c), (d)) + le32_to_cpup(&(x)) + (k);	\
+		(a) = rol32((a), (s)); \
+	}
 
 static void rmd128_transform(u32 *state, const __le32 *in)
 {
@@ -234,7 +235,7 @@ static int rmd128_init(struct shash_desc *desc)
 }
 
 static int rmd128_update(struct shash_desc *desc, const u8 *data,
-			 unsigned int len)
+						 unsigned int len)
 {
 	struct rmd128_ctx *rctx = shash_desc_ctx(desc);
 	const u32 avail = sizeof(rctx->buffer) - (rctx->byte_count & 0x3f);
@@ -242,20 +243,22 @@ static int rmd128_update(struct shash_desc *desc, const u8 *data,
 	rctx->byte_count += len;
 
 	/* Enough space in buffer? If so copy and we're done */
-	if (avail > len) {
+	if (avail > len)
+	{
 		memcpy((char *)rctx->buffer + (sizeof(rctx->buffer) - avail),
-		       data, len);
+			   data, len);
 		goto out;
 	}
 
 	memcpy((char *)rctx->buffer + (sizeof(rctx->buffer) - avail),
-	       data, avail);
+		   data, avail);
 
 	rmd128_transform(rctx->state, rctx->buffer);
 	data += avail;
 	len -= avail;
 
-	while (len >= sizeof(rctx->buffer)) {
+	while (len >= sizeof(rctx->buffer))
+	{
 		memcpy(rctx->buffer, data, sizeof(rctx->buffer));
 		rmd128_transform(rctx->state, rctx->buffer);
 		data += sizeof(rctx->buffer);
@@ -281,7 +284,7 @@ static int rmd128_final(struct shash_desc *desc, u8 *out)
 
 	/* Pad out to 56 mod 64 */
 	index = rctx->byte_count & 0x3f;
-	padlen = (index < 56) ? (56 - index) : ((64+56) - index);
+	padlen = (index < 56) ? (56 - index) : ((64 + 56) - index);
 	rmd128_update(desc, padding, padlen);
 
 	/* Append length */
@@ -289,7 +292,9 @@ static int rmd128_final(struct shash_desc *desc, u8 *out)
 
 	/* Store state in digest */
 	for (i = 0; i < 4; i++)
+	{
 		dst[i] = cpu_to_le32p(&rctx->state[i]);
+	}
 
 	/* Wipe context */
 	memset(rctx, 0, sizeof(*rctx));
@@ -297,7 +302,8 @@ static int rmd128_final(struct shash_desc *desc, u8 *out)
 	return 0;
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize	=	RMD128_DIGEST_SIZE,
 	.init		=	rmd128_init,
 	.update		=	rmd128_update,

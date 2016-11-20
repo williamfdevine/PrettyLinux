@@ -28,7 +28,8 @@
 
 #include "device.h"
 
-struct vnt_interrupt_data {
+struct vnt_interrupt_data
+{
 	u8 tsr0;
 	u8 pkt0;
 	u16 time0;

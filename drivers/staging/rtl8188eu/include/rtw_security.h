@@ -36,7 +36,8 @@
 #define AES_BLOCK_SIZE 16
 #define AES_PRIV_SIZE (4 * 44)
 
-enum {
+enum
+{
 	ENCRYP_PROTOCOL_OPENSYS,   /* open system */
 	ENCRYP_PROTOCOL_WEP,       /* WEP */
 	ENCRYP_PROTOCOL_WPA,       /* WPA */
@@ -47,18 +48,20 @@ enum {
 
 
 #ifndef Ndis802_11AuthModeWPA2
-#define Ndis802_11AuthModeWPA2 (Ndis802_11AuthModeWPANone + 1)
+	#define Ndis802_11AuthModeWPA2 (Ndis802_11AuthModeWPANone + 1)
 #endif
 
 #ifndef Ndis802_11AuthModeWPA2PSK
-#define Ndis802_11AuthModeWPA2PSK (Ndis802_11AuthModeWPANone + 2)
+	#define Ndis802_11AuthModeWPA2PSK (Ndis802_11AuthModeWPANone + 2)
 #endif
 
-union pn48	{
+union pn48
+{
 	u64	val;
 
 #ifdef __LITTLE_ENDIAN
-	struct {
+	struct
+	{
 		u8 TSC0;
 		u8 TSC1;
 		u8 TSC2;
@@ -71,7 +74,8 @@ union pn48	{
 
 #elif defined(__BIG_ENDIAN)
 
-	struct {
+	struct
+	{
 		u8 TSC7;
 		u8 TSC6;
 		u8 TSC5;
@@ -84,12 +88,14 @@ union pn48	{
 #endif
 };
 
-union Keytype {
+union Keytype
+{
 	u8   skey[16];
 	u32    lkey[4];
 };
 
-struct rt_pmkid_list {
+struct rt_pmkid_list
+{
 	u8	bUsed;
 	u8	Bssid[6];
 	u8	PMKID[16];
@@ -98,7 +104,8 @@ struct rt_pmkid_list {
 	u16	ssid_length;
 };
 
-struct security_priv {
+struct security_priv
+{
 	u32	  dot11AuthAlgrthm;	/*  802.11 auth, could be open,
 					 * shared, 8021x and authswitch */
 	u32	  dot11PrivacyAlgrthm;	/*  This specify the privacy for
@@ -165,68 +172,69 @@ struct security_priv {
 };
 
 #define GET_ENCRY_ALGO(psecuritypriv, psta, encry_algo, bmcst)		\
-do {									\
-	switch (psecuritypriv->dot11AuthAlgrthm) {			\
-	case dot11AuthAlgrthm_Open:					\
-	case dot11AuthAlgrthm_Shared:					\
-	case dot11AuthAlgrthm_Auto:					\
-		encry_algo = (u8)psecuritypriv->dot11PrivacyAlgrthm;	\
-		break;							\
-	case dot11AuthAlgrthm_8021X:					\
-		if (bmcst)						\
-			encry_algo = (u8)psecuritypriv->dot118021XGrpPrivacy;\
-		else							\
-			encry_algo = (u8)psta->dot118021XPrivacy;	\
-		break;							\
-	case dot11AuthAlgrthm_WAPI:					\
-		encry_algo = (u8)psecuritypriv->dot11PrivacyAlgrthm;	\
-		break;							\
-	}								\
-} while (0)
+	do {									\
+		switch (psecuritypriv->dot11AuthAlgrthm) {			\
+			case dot11AuthAlgrthm_Open:					\
+			case dot11AuthAlgrthm_Shared:					\
+			case dot11AuthAlgrthm_Auto:					\
+				encry_algo = (u8)psecuritypriv->dot11PrivacyAlgrthm;	\
+				break;							\
+			case dot11AuthAlgrthm_8021X:					\
+				if (bmcst)						\
+					encry_algo = (u8)psecuritypriv->dot118021XGrpPrivacy;\
+				else							\
+					encry_algo = (u8)psta->dot118021XPrivacy;	\
+				break;							\
+			case dot11AuthAlgrthm_WAPI:					\
+				encry_algo = (u8)psecuritypriv->dot11PrivacyAlgrthm;	\
+				break;							\
+		}								\
+	} while (0)
 
 #define SET_ICE_IV_LEN(iv_len, icv_len, encrypt)			\
-do {									\
-	switch (encrypt) {						\
-	case _WEP40_:							\
-	case _WEP104_:							\
-		iv_len = 4;						\
-		icv_len = 4;						\
-		break;							\
-	case _TKIP_:							\
-		iv_len = 8;						\
-		icv_len = 4;						\
-		break;							\
-	case _AES_:							\
-		iv_len = 8;						\
-		icv_len = 8;						\
-		break;							\
-	case _SMS4_:							\
-		iv_len = 18;						\
-		icv_len = 16;						\
-		break;							\
-	default:							\
-		iv_len = 0;						\
-		icv_len = 0;						\
-		break;							\
-	}								\
-} while (0)
+	do {									\
+		switch (encrypt) {						\
+			case _WEP40_:							\
+			case _WEP104_:							\
+				iv_len = 4;						\
+				icv_len = 4;						\
+				break;							\
+			case _TKIP_:							\
+				iv_len = 8;						\
+				icv_len = 4;						\
+				break;							\
+			case _AES_:							\
+				iv_len = 8;						\
+				icv_len = 8;						\
+				break;							\
+			case _SMS4_:							\
+				iv_len = 18;						\
+				icv_len = 16;						\
+				break;							\
+			default:							\
+				iv_len = 0;						\
+				icv_len = 0;						\
+				break;							\
+		}								\
+	} while (0)
 
 
 #define GET_TKIP_PN(iv, dot11txpn)					\
-do {									\
-	dot11txpn._byte_.TSC0 = iv[2];					\
-	dot11txpn._byte_.TSC1 = iv[0];					\
-	dot11txpn._byte_.TSC2 = iv[4];					\
-	dot11txpn._byte_.TSC3 = iv[5];					\
-	dot11txpn._byte_.TSC4 = iv[6];					\
-	dot11txpn._byte_.TSC5 = iv[7];					\
-} while (0)
+	do {									\
+		dot11txpn._byte_.TSC0 = iv[2];					\
+		dot11txpn._byte_.TSC1 = iv[0];					\
+		dot11txpn._byte_.TSC2 = iv[4];					\
+		dot11txpn._byte_.TSC3 = iv[5];					\
+		dot11txpn._byte_.TSC4 = iv[6];					\
+		dot11txpn._byte_.TSC5 = iv[7];					\
+	} while (0)
 
 
 #define ROL32(A, n)	(((A) << (n)) | (((A)>>(32-(n)))  & ((1UL << (n)) - 1)))
 #define ROR32(A, n)	ROL32((A), 32-(n))
 
-struct mic_data {
+struct mic_data
+{
 	u32  K0, K1;         /*  Key */
 	u32  L, R;           /*  Current state */
 	u32  M;              /*  Message accumulator (single word) */
@@ -256,14 +264,14 @@ static inline u32 rotr(u32 val, int bits)
 #define TE3(i) rotr(Te0[(i) & 0xff], 24)
 
 #define GETU32(pt) (((u32)(pt)[0] << 24) ^ ((u32)(pt)[1] << 16) ^ \
-			((u32)(pt)[2] <<  8) ^ ((u32)(pt)[3]))
+					((u32)(pt)[2] <<  8) ^ ((u32)(pt)[3]))
 
 #define PUTU32(ct, st) { \
-(ct)[0] = (u8)((st) >> 24); (ct)[1] = (u8)((st) >> 16); \
-(ct)[2] = (u8)((st) >>  8); (ct)[3] = (u8)(st); }
+		(ct)[0] = (u8)((st) >> 24); (ct)[1] = (u8)((st) >> 16); \
+		(ct)[2] = (u8)((st) >>  8); (ct)[3] = (u8)(st); }
 
 #define WPA_GET_BE32(a) ((((u32)(a)[0]) << 24) | (((u32)(a)[1]) << 16) | \
-			 (((u32)(a)[2]) << 8) | ((u32)(a)[3]))
+						 (((u32)(a)[2]) << 8) | ((u32)(a)[3]))
 
 #define WPA_PUT_LE16(a, val)			\
 	do {					\
@@ -297,7 +305,8 @@ static inline u32 rotr(u32 val, int bits)
  * public domain by Tom St Denis. */
 
 /* the K array */
-static const unsigned long K[64] = {
+static const unsigned long K[64] =
+{
 	0x428a2f98UL, 0x71374491UL, 0xb5c0fbcfUL, 0xe9b5dba5UL, 0x3956c25bUL,
 	0x59f111f1UL, 0x923f82a4UL, 0xab1c5ed5UL, 0xd807aa98UL, 0x12835b01UL,
 	0x243185beUL, 0x550c7dc3UL, 0x72be5d74UL, 0x80deb1feUL, 0x9bdc06a7UL,
@@ -316,7 +325,7 @@ static const unsigned long K[64] = {
 /* Various logical functions */
 #define RORc(x, y) \
 	(((((unsigned long)(x) & 0xFFFFFFFFUL) >> (unsigned long)((y)&31)) | \
-	 ((unsigned long)(x) << (unsigned long)(32-((y)&31)))) & 0xFFFFFFFFUL)
+	  ((unsigned long)(x) << (unsigned long)(32-((y)&31)))) & 0xFFFFFFFFUL)
 #define Ch(x, y, z)       (z ^ (x & (y ^ z)))
 #define Maj(x, y, z)      (((x | y) & z) | (x & y))
 #define S(x, n)         RORc((x), (n))
@@ -331,7 +340,7 @@ void rtw_secmicappendbyte(struct mic_data *pmicdata, u8 b);
 void rtw_secmicappend(struct mic_data *pmicdata, u8 *src, u32 nBytes);
 void rtw_secgetmic(struct mic_data *pmicdata, u8 *dst);
 void rtw_seccalctkipmic(u8 *key, u8 *header, u8 *data, u32 data_len,
-			u8 *Miccode, u8   priority);
+						u8 *Miccode, u8   priority);
 u32 rtw_aes_encrypt(struct adapter *padapter, u8 *pxmitframe);
 u32 rtw_tkip_encrypt(struct adapter *padapter, u8 *pxmitframe);
 void rtw_wep_encrypt(struct adapter *padapter, u8  *pxmitframe);

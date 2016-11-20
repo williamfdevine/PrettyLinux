@@ -36,7 +36,8 @@
 #define LGS8GXX_PROD_LGS8G54 5
 #define LGS8GXX_PROD_LGS8G75 6
 
-struct lgs8gxx_config {
+struct lgs8gxx_config
+{
 
 	/* product type */
 	u8 prod;
@@ -81,11 +82,12 @@ struct lgs8gxx_config {
 
 #if IS_REACHABLE(CONFIG_DVB_LGS8GXX)
 extern struct dvb_frontend *lgs8gxx_attach(const struct lgs8gxx_config *config,
-					   struct i2c_adapter *i2c);
+		struct i2c_adapter *i2c);
 #else
 static inline
 struct dvb_frontend *lgs8gxx_attach(const struct lgs8gxx_config *config,
-				    struct i2c_adapter *i2c) {
+									struct i2c_adapter *i2c)
+{
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
 }

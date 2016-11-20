@@ -29,19 +29,25 @@ int ebitmap_cmp(struct ebitmap *e1, struct ebitmap *e2)
 	struct ebitmap_node *n1, *n2;
 
 	if (e1->highbit != e2->highbit)
+	{
 		return 0;
+	}
 
 	n1 = e1->node;
 	n2 = e2->node;
+
 	while (n1 && n2 &&
-	       (n1->startbit == n2->startbit) &&
-	       !memcmp(n1->maps, n2->maps, EBITMAP_SIZE / 8)) {
+		   (n1->startbit == n2->startbit) &&
+		   !memcmp(n1->maps, n2->maps, EBITMAP_SIZE / 8))
+	{
 		n1 = n1->next;
 		n2 = n2->next;
 	}
 
 	if (n1 || n2)
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -53,19 +59,30 @@ int ebitmap_cpy(struct ebitmap *dst, struct ebitmap *src)
 	ebitmap_init(dst);
 	n = src->node;
 	prev = NULL;
-	while (n) {
+
+	while (n)
+	{
 		new = kzalloc(sizeof(*new), GFP_ATOMIC);
-		if (!new) {
+
+		if (!new)
+		{
 			ebitmap_destroy(dst);
 			return -ENOMEM;
 		}
+
 		new->startbit = n->startbit;
 		memcpy(new->maps, n->maps, EBITMAP_SIZE / 8);
 		new->next = NULL;
+
 		if (prev)
+		{
 			prev->next = new;
+		}
 		else
+		{
 			dst->node = new;
+		}
+
 		prev = new;
 		n = n->next;
 	}
@@ -86,7 +103,7 @@ int ebitmap_cpy(struct ebitmap *dst, struct ebitmap *src)
  *
  */
 int ebitmap_netlbl_export(struct ebitmap *ebmap,
-			  struct netlbl_lsm_catmap **catmap)
+						  struct netlbl_lsm_catmap **catmap)
 {
 	struct ebitmap_node *e_iter = ebmap->node;
 	unsigned long e_map;
@@ -94,29 +111,43 @@ int ebitmap_netlbl_export(struct ebitmap *ebmap,
 	unsigned int iter;
 	int rc;
 
-	if (e_iter == NULL) {
+	if (e_iter == NULL)
+	{
 		*catmap = NULL;
 		return 0;
 	}
 
 	if (*catmap != NULL)
+	{
 		netlbl_catmap_free(*catmap);
+	}
+
 	*catmap = NULL;
 
-	while (e_iter) {
+	while (e_iter)
+	{
 		offset = e_iter->startbit;
-		for (iter = 0; iter < EBITMAP_UNIT_NUMS; iter++) {
+
+		for (iter = 0; iter < EBITMAP_UNIT_NUMS; iter++)
+		{
 			e_map = e_iter->maps[iter];
-			if (e_map != 0) {
+
+			if (e_map != 0)
+			{
 				rc = netlbl_catmap_setlong(catmap,
-							   offset,
-							   e_map,
-							   GFP_ATOMIC);
+										   offset,
+										   e_map,
+										   GFP_ATOMIC);
+
 				if (rc != 0)
+				{
 					goto netlbl_export_failure;
+				}
 			}
+
 			offset += EBITMAP_UNIT_SIZE;
 		}
+
 		e_iter = e_iter->next;
 	}
 
@@ -138,7 +169,7 @@ netlbl_export_failure:
  *
  */
 int ebitmap_netlbl_import(struct ebitmap *ebmap,
-			  struct netlbl_lsm_catmap *catmap)
+						  struct netlbl_lsm_catmap *catmap)
 {
 	int rc;
 	struct ebitmap_node *e_iter = NULL;
@@ -146,30 +177,49 @@ int ebitmap_netlbl_import(struct ebitmap *ebmap,
 	u32 offset = 0, idx;
 	unsigned long bitmap;
 
-	for (;;) {
+	for (;;)
+	{
 		rc = netlbl_catmap_getlong(catmap, &offset, &bitmap);
+
 		if (rc < 0)
+		{
 			goto netlbl_import_failure;
-		if (offset == (u32)-1)
+		}
+
+		if (offset == (u32) - 1)
+		{
 			return 0;
+		}
 
 		/* don't waste ebitmap space if the netlabel bitmap is empty */
-		if (bitmap == 0) {
+		if (bitmap == 0)
+		{
 			offset += EBITMAP_UNIT_SIZE;
 			continue;
 		}
 
 		if (e_iter == NULL ||
-		    offset >= e_iter->startbit + EBITMAP_SIZE) {
+			offset >= e_iter->startbit + EBITMAP_SIZE)
+		{
 			e_prev = e_iter;
 			e_iter = kzalloc(sizeof(*e_iter), GFP_ATOMIC);
+
 			if (e_iter == NULL)
+			{
 				goto netlbl_import_failure;
+			}
+
 			e_iter->startbit = offset - (offset % EBITMAP_SIZE);
+
 			if (e_prev == NULL)
+			{
 				ebmap->node = e_iter;
+			}
 			else
+			{
 				e_prev->next = e_iter;
+			}
+
 			ebmap->highbit = e_iter->startbit + EBITMAP_SIZE;
 		}
 
@@ -201,28 +251,44 @@ int ebitmap_contains(struct ebitmap *e1, struct ebitmap *e2, u32 last_e2bit)
 	int i;
 
 	if (e1->highbit < e2->highbit)
+	{
 		return 0;
+	}
 
 	n1 = e1->node;
 	n2 = e2->node;
 
-	while (n1 && n2 && (n1->startbit <= n2->startbit)) {
-		if (n1->startbit < n2->startbit) {
+	while (n1 && n2 && (n1->startbit <= n2->startbit))
+	{
+		if (n1->startbit < n2->startbit)
+		{
 			n1 = n1->next;
 			continue;
 		}
+
 		for (i = EBITMAP_UNIT_NUMS - 1; (i >= 0) && !n2->maps[i]; )
-			i--;	/* Skip trailing NULL map entries */
-		if (last_e2bit && (i >= 0)) {
-			u32 lastsetbit = n2->startbit + i * EBITMAP_UNIT_SIZE +
-					 __fls(n2->maps[i]);
-			if (lastsetbit > last_e2bit)
-				return 0;
+		{
+			i--;    /* Skip trailing NULL map entries */
 		}
 
-		while (i >= 0) {
-			if ((n1->maps[i] & n2->maps[i]) != n2->maps[i])
+		if (last_e2bit && (i >= 0))
+		{
+			u32 lastsetbit = n2->startbit + i * EBITMAP_UNIT_SIZE +
+							 __fls(n2->maps[i]);
+
+			if (lastsetbit > last_e2bit)
+			{
 				return 0;
+			}
+		}
+
+		while (i >= 0)
+		{
+			if ((n1->maps[i] & n2->maps[i]) != n2->maps[i])
+			{
+				return 0;
+			}
+
 			i--;
 		}
 
@@ -231,7 +297,9 @@ int ebitmap_contains(struct ebitmap *e1, struct ebitmap *e2, u32 last_e2bit)
 	}
 
 	if (n2)
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -241,12 +309,19 @@ int ebitmap_get_bit(struct ebitmap *e, unsigned long bit)
 	struct ebitmap_node *n;
 
 	if (e->highbit < bit)
+	{
 		return 0;
+	}
 
 	n = e->node;
-	while (n && (n->startbit <= bit)) {
+
+	while (n && (n->startbit <= bit))
+	{
 		if ((n->startbit + EBITMAP_SIZE) > bit)
+		{
 			return ebitmap_node_get_bit(n, bit);
+		}
+
 		n = n->next;
 	}
 
@@ -259,61 +334,91 @@ int ebitmap_set_bit(struct ebitmap *e, unsigned long bit, int value)
 
 	prev = NULL;
 	n = e->node;
-	while (n && n->startbit <= bit) {
-		if ((n->startbit + EBITMAP_SIZE) > bit) {
-			if (value) {
+
+	while (n && n->startbit <= bit)
+	{
+		if ((n->startbit + EBITMAP_SIZE) > bit)
+		{
+			if (value)
+			{
 				ebitmap_node_set_bit(n, bit);
-			} else {
+			}
+			else
+			{
 				unsigned int s;
 
 				ebitmap_node_clr_bit(n, bit);
 
 				s = find_first_bit(n->maps, EBITMAP_SIZE);
+
 				if (s < EBITMAP_SIZE)
+				{
 					return 0;
+				}
 
 				/* drop this node from the bitmap */
-				if (!n->next) {
+				if (!n->next)
+				{
 					/*
 					 * this was the highest map
 					 * within the bitmap
 					 */
 					if (prev)
 						e->highbit = prev->startbit
-							     + EBITMAP_SIZE;
+									 + EBITMAP_SIZE;
 					else
+					{
 						e->highbit = 0;
+					}
 				}
+
 				if (prev)
+				{
 					prev->next = n->next;
+				}
 				else
+				{
 					e->node = n->next;
+				}
+
 				kfree(n);
 			}
+
 			return 0;
 		}
+
 		prev = n;
 		n = n->next;
 	}
 
 	if (!value)
+	{
 		return 0;
+	}
 
 	new = kzalloc(sizeof(*new), GFP_ATOMIC);
+
 	if (!new)
+	{
 		return -ENOMEM;
+	}
 
 	new->startbit = bit - (bit % EBITMAP_SIZE);
 	ebitmap_node_set_bit(new, bit);
 
 	if (!n)
 		/* this node will be the highest map within the bitmap */
+	{
 		e->highbit = new->startbit + EBITMAP_SIZE;
+	}
 
-	if (prev) {
+	if (prev)
+	{
 		new->next = prev->next;
 		prev->next = new;
-	} else {
+	}
+	else
+	{
 		new->next = e->node;
 		e->node = new;
 	}
@@ -326,10 +431,14 @@ void ebitmap_destroy(struct ebitmap *e)
 	struct ebitmap_node *n, *temp;
 
 	if (!e)
+	{
 		return;
+	}
 
 	n = e->node;
-	while (n) {
+
+	while (n)
+	{
 		temp = n;
 		n = n->next;
 		kfree(temp);
@@ -351,17 +460,21 @@ int ebitmap_read(struct ebitmap *e, void *fp)
 	ebitmap_init(e);
 
 	rc = next_entry(buf, fp, sizeof buf);
+
 	if (rc < 0)
+	{
 		goto out;
+	}
 
 	mapunit = le32_to_cpu(buf[0]);
 	e->highbit = le32_to_cpu(buf[1]);
 	count = le32_to_cpu(buf[2]);
 
-	if (mapunit != BITS_PER_U64) {
+	if (mapunit != BITS_PER_U64)
+	{
 		printk(KERN_ERR "SELinux: ebitmap: map size %u does not "
-		       "match my size %Zd (high bit was %d)\n",
-		       mapunit, BITS_PER_U64, e->highbit);
+			   "match my size %Zd (high bit was %d)\n",
+			   mapunit, BITS_PER_U64, e->highbit);
 		goto bad;
 	}
 
@@ -369,78 +482,110 @@ int ebitmap_read(struct ebitmap *e, void *fp)
 	e->highbit += EBITMAP_SIZE - 1;
 	e->highbit -= (e->highbit % EBITMAP_SIZE);
 
-	if (!e->highbit) {
+	if (!e->highbit)
+	{
 		e->node = NULL;
 		goto ok;
 	}
 
 	if (e->highbit && !count)
+	{
 		goto bad;
+	}
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		rc = next_entry(&startbit, fp, sizeof(u32));
-		if (rc < 0) {
+
+		if (rc < 0)
+		{
 			printk(KERN_ERR "SELinux: ebitmap: truncated map\n");
 			goto bad;
 		}
+
 		startbit = le32_to_cpu(startbit);
 
-		if (startbit & (mapunit - 1)) {
+		if (startbit & (mapunit - 1))
+		{
 			printk(KERN_ERR "SELinux: ebitmap start bit (%d) is "
-			       "not a multiple of the map unit size (%u)\n",
-			       startbit, mapunit);
-			goto bad;
-		}
-		if (startbit > e->highbit - mapunit) {
-			printk(KERN_ERR "SELinux: ebitmap start bit (%d) is "
-			       "beyond the end of the bitmap (%u)\n",
-			       startbit, (e->highbit - mapunit));
+				   "not a multiple of the map unit size (%u)\n",
+				   startbit, mapunit);
 			goto bad;
 		}
 
-		if (!n || startbit >= n->startbit + EBITMAP_SIZE) {
+		if (startbit > e->highbit - mapunit)
+		{
+			printk(KERN_ERR "SELinux: ebitmap start bit (%d) is "
+				   "beyond the end of the bitmap (%u)\n",
+				   startbit, (e->highbit - mapunit));
+			goto bad;
+		}
+
+		if (!n || startbit >= n->startbit + EBITMAP_SIZE)
+		{
 			struct ebitmap_node *tmp;
 			tmp = kzalloc(sizeof(*tmp), GFP_KERNEL);
-			if (!tmp) {
+
+			if (!tmp)
+			{
 				printk(KERN_ERR
-				       "SELinux: ebitmap: out of memory\n");
+					   "SELinux: ebitmap: out of memory\n");
 				rc = -ENOMEM;
 				goto bad;
 			}
+
 			/* round down */
 			tmp->startbit = startbit - (startbit % EBITMAP_SIZE);
+
 			if (n)
+			{
 				n->next = tmp;
+			}
 			else
+			{
 				e->node = tmp;
+			}
+
 			n = tmp;
-		} else if (startbit <= n->startbit) {
+		}
+		else if (startbit <= n->startbit)
+		{
 			printk(KERN_ERR "SELinux: ebitmap: start bit %d"
-			       " comes after start bit %d\n",
-			       startbit, n->startbit);
+				   " comes after start bit %d\n",
+				   startbit, n->startbit);
 			goto bad;
 		}
 
 		rc = next_entry(&map, fp, sizeof(u64));
-		if (rc < 0) {
+
+		if (rc < 0)
+		{
 			printk(KERN_ERR "SELinux: ebitmap: truncated map\n");
 			goto bad;
 		}
+
 		map = le64_to_cpu(map);
 
 		index = (startbit - n->startbit) / EBITMAP_UNIT_SIZE;
-		while (map) {
+
+		while (map)
+		{
 			n->maps[index++] = map & (-1UL);
 			map = EBITMAP_SHIFT_UNIT_SIZE(map);
 		}
 	}
+
 ok:
 	rc = 0;
 out:
 	return rc;
 bad:
+
 	if (!rc)
+	{
 		rc = -EINVAL;
+	}
+
 	ebitmap_destroy(e);
 	goto out;
 }
@@ -458,28 +603,37 @@ int ebitmap_write(struct ebitmap *e, void *fp)
 	count = 0;
 	last_bit = 0;
 	last_startbit = -1;
-	ebitmap_for_each_positive_bit(e, n, bit) {
-		if (rounddown(bit, (int)BITS_PER_U64) > last_startbit) {
+	ebitmap_for_each_positive_bit(e, n, bit)
+	{
+		if (rounddown(bit, (int)BITS_PER_U64) > last_startbit)
+		{
 			count++;
 			last_startbit = rounddown(bit, BITS_PER_U64);
 		}
+
 		last_bit = roundup(bit + 1, BITS_PER_U64);
 	}
 	buf[1] = cpu_to_le32(last_bit);
 	buf[2] = cpu_to_le32(count);
 
 	rc = put_entry(buf, sizeof(u32), 3, fp);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	map = 0;
 	last_startbit = INT_MIN;
-	ebitmap_for_each_positive_bit(e, n, bit) {
-		if (rounddown(bit, (int)BITS_PER_U64) > last_startbit) {
+	ebitmap_for_each_positive_bit(e, n, bit)
+	{
+		if (rounddown(bit, (int)BITS_PER_U64) > last_startbit)
+		{
 			__le64 buf64[1];
 
 			/* this is the very first bit */
-			if (!map) {
+			if (!map)
+			{
 				last_startbit = rounddown(bit, BITS_PER_U64);
 				map = (u64)1 << (bit - last_startbit);
 				continue;
@@ -488,34 +642,50 @@ int ebitmap_write(struct ebitmap *e, void *fp)
 			/* write the last node */
 			buf[0] = cpu_to_le32(last_startbit);
 			rc = put_entry(buf, sizeof(u32), 1, fp);
+
 			if (rc)
+			{
 				return rc;
+			}
 
 			buf64[0] = cpu_to_le64(map);
 			rc = put_entry(buf64, sizeof(u64), 1, fp);
+
 			if (rc)
+			{
 				return rc;
+			}
 
 			/* set up for the next node */
 			map = 0;
 			last_startbit = rounddown(bit, BITS_PER_U64);
 		}
+
 		map |= (u64)1 << (bit - last_startbit);
 	}
+
 	/* write the last node */
-	if (map) {
+	if (map)
+	{
 		__le64 buf64[1];
 
 		/* write the last node */
 		buf[0] = cpu_to_le32(last_startbit);
 		rc = put_entry(buf, sizeof(u32), 1, fp);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		buf64[0] = cpu_to_le64(map);
 		rc = put_entry(buf64, sizeof(u64), 1, fp);
+
 		if (rc)
+		{
 			return rc;
+		}
 	}
+
 	return 0;
 }

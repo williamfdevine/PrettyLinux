@@ -38,7 +38,8 @@
 #define  MDIO_CLK_DIV_MASK	0x3F
 #define  MDIO_SUPP_PREAMBLE	(1 << 12)
 
-struct unimac_mdio_priv {
+struct unimac_mdio_priv
+{
 	struct mii_bus		*mii_bus;
 	void __iomem		*base;
 };
@@ -70,15 +71,21 @@ static int unimac_mdio_read(struct mii_bus *bus, int phy_id, int reg)
 	/* Start MDIO transaction */
 	unimac_mdio_start(priv);
 
-	do {
+	do
+	{
 		if (!unimac_mdio_busy(priv))
+		{
 			break;
+		}
 
 		usleep_range(1000, 2000);
-	} while (timeout--);
+	}
+	while (timeout--);
 
 	if (!timeout)
+	{
 		return -ETIMEDOUT;
+	}
 
 	cmd = __raw_readl(priv->base + MDIO_CMD);
 
@@ -88,13 +95,15 @@ static int unimac_mdio_read(struct mii_bus *bus, int phy_id, int reg)
 	 * indication.
 	 */
 	if (!(bus->phy_ignore_ta_mask & 1 << phy_id) && (cmd & MDIO_READ_FAIL))
+	{
 		return -EIO;
+	}
 
 	return cmd & 0xffff;
 }
 
 static int unimac_mdio_write(struct mii_bus *bus, int phy_id,
-			     int reg, u16 val)
+							 int reg, u16 val)
 {
 	struct unimac_mdio_priv *priv = bus->priv;
 	unsigned int timeout = 1000;
@@ -102,20 +111,26 @@ static int unimac_mdio_write(struct mii_bus *bus, int phy_id,
 
 	/* Prepare the write operation */
 	cmd = MDIO_WR | (phy_id << MDIO_PMD_SHIFT) |
-		(reg << MDIO_REG_SHIFT) | (0xffff & val);
+		  (reg << MDIO_REG_SHIFT) | (0xffff & val);
 	__raw_writel(cmd, priv->base + MDIO_CMD);
 
 	unimac_mdio_start(priv);
 
-	do {
+	do
+	{
 		if (!unimac_mdio_busy(priv))
+		{
 			break;
+		}
 
 		usleep_range(1000, 2000);
-	} while (timeout--);
+	}
+	while (timeout--);
 
 	if (!timeout)
+	{
 		return -ETIMEDOUT;
+	}
 
 	return 0;
 }
@@ -142,21 +157,31 @@ static int unimac_mdio_reset(struct mii_bus *bus)
 	u32 read_mask = 0;
 	int addr;
 
-	if (!np) {
+	if (!np)
+	{
 		read_mask = ~bus->phy_mask;
-	} else {
-		for_each_available_child_of_node(np, child) {
+	}
+	else
+	{
+		for_each_available_child_of_node(np, child)
+		{
 			addr = of_mdio_parse_addr(&bus->dev, child);
+
 			if (addr < 0)
+			{
 				continue;
+			}
 
 			read_mask |= 1 << addr;
 		}
 	}
 
-	for (addr = 0; addr < PHY_MAX_ADDR; addr++) {
+	for (addr = 0; addr < PHY_MAX_ADDR; addr++)
+	{
 		if (read_mask & 1 << addr)
+		{
 			mdiobus_read(bus, addr, MII_BMSR);
+		}
 	}
 
 	return 0;
@@ -173,8 +198,11 @@ static int unimac_mdio_probe(struct platform_device *pdev)
 	np = pdev->dev.of_node;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
@@ -182,14 +210,19 @@ static int unimac_mdio_probe(struct platform_device *pdev)
 	 * Ethernet MAC controller register range
 	 */
 	priv->base = devm_ioremap(&pdev->dev, r->start, resource_size(r));
-	if (!priv->base) {
+
+	if (!priv->base)
+	{
 		dev_err(&pdev->dev, "failed to remap register\n");
 		return -ENOMEM;
 	}
 
 	priv->mii_bus = mdiobus_alloc();
+
 	if (!priv->mii_bus)
+	{
 		return -ENOMEM;
+	}
 
 	bus = priv->mii_bus;
 	bus->priv = priv;
@@ -201,7 +234,9 @@ static int unimac_mdio_probe(struct platform_device *pdev)
 	snprintf(bus->id, MII_BUS_ID_SIZE, "%s", pdev->name);
 
 	ret = of_mdiobus_register(bus, np);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "MDIO bus registration failed\n");
 		goto out_mdio_free;
 	}
@@ -227,7 +262,8 @@ static int unimac_mdio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id unimac_mdio_ids[] = {
+static const struct of_device_id unimac_mdio_ids[] =
+{
 	{ .compatible = "brcm,genet-mdio-v4", },
 	{ .compatible = "brcm,genet-mdio-v3", },
 	{ .compatible = "brcm,genet-mdio-v2", },
@@ -237,7 +273,8 @@ static const struct of_device_id unimac_mdio_ids[] = {
 };
 MODULE_DEVICE_TABLE(of, unimac_mdio_ids);
 
-static struct platform_driver unimac_mdio_driver = {
+static struct platform_driver unimac_mdio_driver =
+{
 	.driver = {
 		.name = "unimac-mdio",
 		.of_match_table = unimac_mdio_ids,

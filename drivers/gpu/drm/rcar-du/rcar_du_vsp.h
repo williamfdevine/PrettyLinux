@@ -20,13 +20,15 @@
 struct rcar_du_format_info;
 struct rcar_du_vsp;
 
-struct rcar_du_vsp_plane {
+struct rcar_du_vsp_plane
+{
 	struct drm_plane plane;
 	struct rcar_du_vsp *vsp;
 	unsigned int index;
 };
 
-struct rcar_du_vsp {
+struct rcar_du_vsp
+{
 	unsigned int index;
 	struct device *vsp;
 	struct rcar_du_device *dev;
@@ -46,7 +48,8 @@ static inline struct rcar_du_vsp_plane *to_rcar_vsp_plane(struct drm_plane *p)
  * @alpha: value of the plane alpha property
  * @zpos: value of the plane zpos property
  */
-struct rcar_du_vsp_plane_state {
+struct rcar_du_vsp_plane_state
+{
 	struct drm_plane_state state;
 
 	const struct rcar_du_format_info *format;

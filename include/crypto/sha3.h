@@ -16,7 +16,8 @@
 #define SHA3_512_DIGEST_SIZE	(512 / 8)
 #define SHA3_512_BLOCK_SIZE	(200 - 2 * SHA3_512_DIGEST_SIZE)
 
-struct sha3_state {
+struct sha3_state
+{
 	u64		st[25];
 	unsigned int	md_len;
 	unsigned int	rsiz;

@@ -43,9 +43,9 @@
 #define H2C_92E_WOWLAN_LENGTH			3
 #define H2C_92E_KEEP_ALIVE_CTRL_LENGTH		3
 #if (USE_OLD_WOWLAN_DEBUG_FW == 0)
-#define H2C_92E_REMOTE_WAKE_CTRL_LEN		1
+	#define H2C_92E_REMOTE_WAKE_CTRL_LEN		1
 #else
-#define H2C_92E_REMOTE_WAKE_CTRL_LEN		3
+	#define H2C_92E_REMOTE_WAKE_CTRL_LEN		3
 #endif
 #define H2C_92E_AOAC_GLOBAL_INFO_LEN		2
 #define H2C_92E_AOAC_RSVDPAGE_LOC_LEN		7
@@ -61,8 +61,8 @@
 #define	FW_PS_ACK		BIT(6)
 #define	FW_PS_TOGGLE		BIT(7)
 
- /* 92E RPWM value*/
- /* BIT[0] = 1: 32k, 0: 40M*/
+/* 92E RPWM value*/
+/* BIT[0] = 1: 32k, 0: 40M*/
 #define	FW_PS_CLOCK_OFF		BIT(0)		/* 32k */
 #define	FW_PS_CLOCK_ON		0		/* 40M */
 
@@ -89,7 +89,8 @@
 #define	FW_PWR_STATE_ACTIVE	((FW_PS_RF_ON) | (FW_PS_REGISTER_ACTIVE))
 #define	FW_PWR_STATE_RF_OFF	0
 
-enum rtl8192e_h2c_cmd {
+enum rtl8192e_h2c_cmd
+{
 	H2C_92E_RSVDPAGE = 0,
 	H2C_92E_MSRRPT = 1,
 	H2C_92E_SCAN = 2,
@@ -128,7 +129,8 @@ enum rtl8192e_h2c_cmd {
 	MAX_92E_H2CCMD
 };
 
-enum rtl8192e_c2h_evt {
+enum rtl8192e_c2h_evt
+{
 	C2H_8192E_DBG = 0,
 	C2H_8192E_LB = 1,
 	C2H_8192E_TXBF = 2,
@@ -178,7 +180,7 @@ enum rtl8192e_c2h_evt {
 
 int rtl92ee_download_fw(struct ieee80211_hw *hw, bool buse_wake_on_wlan_fw);
 void rtl92ee_fill_h2c_cmd(struct ieee80211_hw *hw, u8 element_id,
-			  u32 cmd_len, u8 *cmdbuffer);
+						  u32 cmd_len, u8 *cmdbuffer);
 void rtl92ee_firmware_selfreset(struct ieee80211_hw *hw);
 void rtl92ee_set_fw_pwrmode_cmd(struct ieee80211_hw *hw, u8 mode);
 void rtl92ee_set_fw_media_status_rpt_cmd(struct ieee80211_hw *hw, u8 mstatus);

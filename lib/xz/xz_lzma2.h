@@ -39,7 +39,8 @@
  * The symbol names are in from STATE_oldest_older_previous. REP means
  * either short or long repeated match, and NONLIT means any non-literal.
  */
-enum lzma_state {
+enum lzma_state
+{
 	STATE_LIT_LIT,
 	STATE_MATCH_LIT_LIT,
 	STATE_REP_LIT_LIT,
@@ -64,11 +65,17 @@ enum lzma_state {
 static inline void lzma_state_literal(enum lzma_state *state)
 {
 	if (*state <= STATE_SHORTREP_LIT_LIT)
+	{
 		*state = STATE_LIT_LIT;
+	}
 	else if (*state <= STATE_LIT_SHORTREP)
+	{
 		*state -= 3;
+	}
 	else
+	{
 		*state -= 6;
+	}
 }
 
 /* Indicate that the latest symbol was a match. */
@@ -147,7 +154,7 @@ static inline bool lzma_state_is_literal(enum lzma_state state)
 static inline uint32_t lzma_get_dist_state(uint32_t len)
 {
 	return len < DIST_STATES + MATCH_LEN_MIN
-			? len - MATCH_LEN_MIN : DIST_STATES - 1;
+		   ? len - MATCH_LEN_MIN : DIST_STATES - 1;
 }
 
 /*

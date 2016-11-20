@@ -31,17 +31,17 @@
 #define MVNETA_BM_XBAR_01_REG			0x8
 #define MVNETA_BM_XBAR_23_REG			0xc
 #define MVNETA_BM_XBAR_POOL_REG(pool)		\
-		(((pool) < 2) ? MVNETA_BM_XBAR_01_REG : MVNETA_BM_XBAR_23_REG)
+	(((pool) < 2) ? MVNETA_BM_XBAR_01_REG : MVNETA_BM_XBAR_23_REG)
 #define     MVNETA_BM_TARGET_ID_OFFS(pool)	(((pool) & 1) ? 16 : 0)
 #define     MVNETA_BM_TARGET_ID_MASK(pool)	\
-		(0xf << MVNETA_BM_TARGET_ID_OFFS(pool))
+	(0xf << MVNETA_BM_TARGET_ID_OFFS(pool))
 #define     MVNETA_BM_TARGET_ID_VAL(pool, id)	\
-		((id) << MVNETA_BM_TARGET_ID_OFFS(pool))
+	((id) << MVNETA_BM_TARGET_ID_OFFS(pool))
 #define     MVNETA_BM_XBAR_ATTR_OFFS(pool)	(((pool) & 1) ? 20 : 4)
 #define     MVNETA_BM_XBAR_ATTR_MASK(pool)	\
-		(0xff << MVNETA_BM_XBAR_ATTR_OFFS(pool))
+	(0xff << MVNETA_BM_XBAR_ATTR_OFFS(pool))
 #define     MVNETA_BM_XBAR_ATTR_VAL(pool, attr)	\
-		((attr) << MVNETA_BM_XBAR_ATTR_OFFS(pool))
+	((attr) << MVNETA_BM_XBAR_ATTR_OFFS(pool))
 
 /* Address of External Buffer Pointers Pool Register */
 #define MVNETA_BM_POOL_BASE_REG(pool)		(0x10 + ((pool) << 4))
@@ -76,7 +76,7 @@
 #define MVNETA_BM_POOL_CAP_MIN			128
 #define MVNETA_BM_POOL_CAP_DEF			2048
 #define MVNETA_BM_POOL_CAP_MAX			\
-		(16 * 1024 - MVNETA_BM_POOL_CAP_ALIGN)
+	(16 * 1024 - MVNETA_BM_POOL_CAP_ALIGN)
 #define MVNETA_BM_POOL_CAP_ALIGN		32
 #define MVNETA_BM_POOL_PTR_ALIGN		32
 
@@ -86,13 +86,15 @@
 
 #define MVNETA_RX_BUF_SIZE(pkt_size)   ((pkt_size) + NET_SKB_PAD)
 
-enum mvneta_bm_type {
+enum mvneta_bm_type
+{
 	MVNETA_BM_FREE,
 	MVNETA_BM_LONG,
 	MVNETA_BM_SHORT
 };
 
-struct mvneta_bm {
+struct mvneta_bm
+{
 	void __iomem *reg_base;
 	struct clk *clk;
 	struct platform_device *pdev;
@@ -107,7 +109,8 @@ struct mvneta_bm {
 	struct mvneta_bm_pool *bm_pools;
 };
 
-struct mvneta_bm_pool {
+struct mvneta_bm_pool
+{
 	struct hwbm_pool hwbm_pool;
 	/* Pool number in the range 0-3 */
 	u8 id;
@@ -135,48 +138,48 @@ void mvneta_frag_free(unsigned int frag_size, void *data);
 
 #if IS_ENABLED(CONFIG_MVNETA_BM)
 void mvneta_bm_pool_destroy(struct mvneta_bm *priv,
-			    struct mvneta_bm_pool *bm_pool, u8 port_map);
+							struct mvneta_bm_pool *bm_pool, u8 port_map);
 void mvneta_bm_bufs_free(struct mvneta_bm *priv, struct mvneta_bm_pool *bm_pool,
-			 u8 port_map);
+						 u8 port_map);
 int mvneta_bm_construct(struct hwbm_pool *hwbm_pool, void *buf);
 int mvneta_bm_pool_refill(struct mvneta_bm *priv,
-			  struct mvneta_bm_pool *bm_pool);
+						  struct mvneta_bm_pool *bm_pool);
 struct mvneta_bm_pool *mvneta_bm_pool_use(struct mvneta_bm *priv, u8 pool_id,
-					  enum mvneta_bm_type type, u8 port_id,
-					  int pkt_size);
+		enum mvneta_bm_type type, u8 port_id,
+		int pkt_size);
 
 static inline void mvneta_bm_pool_put_bp(struct mvneta_bm *priv,
-					 struct mvneta_bm_pool *bm_pool,
-					 dma_addr_t buf_phys_addr)
+		struct mvneta_bm_pool *bm_pool,
+		dma_addr_t buf_phys_addr)
 {
 	writel_relaxed(buf_phys_addr, priv->bppi_virt_addr +
-		       (bm_pool->id << MVNETA_BM_POOL_ACCESS_OFFS));
+				   (bm_pool->id << MVNETA_BM_POOL_ACCESS_OFFS));
 }
 
 static inline u32 mvneta_bm_pool_get_bp(struct mvneta_bm *priv,
-					struct mvneta_bm_pool *bm_pool)
+										struct mvneta_bm_pool *bm_pool)
 {
 	return readl_relaxed(priv->bppi_virt_addr +
-			     (bm_pool->id << MVNETA_BM_POOL_ACCESS_OFFS));
+						 (bm_pool->id << MVNETA_BM_POOL_ACCESS_OFFS));
 }
 #else
 void mvneta_bm_pool_destroy(struct mvneta_bm *priv,
-			    struct mvneta_bm_pool *bm_pool, u8 port_map) {}
+							struct mvneta_bm_pool *bm_pool, u8 port_map) {}
 void mvneta_bm_bufs_free(struct mvneta_bm *priv, struct mvneta_bm_pool *bm_pool,
-			 u8 port_map) {}
+						 u8 port_map) {}
 int mvneta_bm_construct(struct hwbm_pool *hwbm_pool, void *buf) { return 0; }
 int mvneta_bm_pool_refill(struct mvneta_bm *priv,
-			  struct mvneta_bm_pool *bm_pool) {return 0; }
+						  struct mvneta_bm_pool *bm_pool) {return 0; }
 struct mvneta_bm_pool *mvneta_bm_pool_use(struct mvneta_bm *priv, u8 pool_id,
-					  enum mvneta_bm_type type, u8 port_id,
-					  int pkt_size) { return NULL; }
+		enum mvneta_bm_type type, u8 port_id,
+		int pkt_size) { return NULL; }
 
 static inline void mvneta_bm_pool_put_bp(struct mvneta_bm *priv,
-					 struct mvneta_bm_pool *bm_pool,
-					 dma_addr_t buf_phys_addr) {}
+		struct mvneta_bm_pool *bm_pool,
+		dma_addr_t buf_phys_addr) {}
 
 static inline u32 mvneta_bm_pool_get_bp(struct mvneta_bm *priv,
-					struct mvneta_bm_pool *bm_pool)
+										struct mvneta_bm_pool *bm_pool)
 { return 0; }
 #endif /* CONFIG_MVNETA_BM */
 #endif

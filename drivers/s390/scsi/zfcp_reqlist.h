@@ -18,7 +18,8 @@
  * @lock: Spinlock for protecting the hash list
  * @list: Array of hashbuckets, each is a list of requests in this bucket
  */
-struct zfcp_reqlist {
+struct zfcp_reqlist
+{
 	spinlock_t lock;
 	struct list_head buckets[ZFCP_REQ_LIST_BUCKETS];
 };
@@ -40,13 +41,18 @@ static inline struct zfcp_reqlist *zfcp_reqlist_alloc(void)
 	struct zfcp_reqlist *rl;
 
 	rl = kzalloc(sizeof(struct zfcp_reqlist), GFP_KERNEL);
+
 	if (!rl)
+	{
 		return NULL;
+	}
 
 	spin_lock_init(&rl->lock);
 
 	for (i = 0; i < ZFCP_REQ_LIST_BUCKETS; i++)
+	{
 		INIT_LIST_HEAD(&rl->buckets[i]);
+	}
 
 	return rl;
 }
@@ -63,7 +69,10 @@ static inline int zfcp_reqlist_isempty(struct zfcp_reqlist *rl)
 
 	for (i = 0; i < ZFCP_REQ_LIST_BUCKETS; i++)
 		if (!list_empty(&rl->buckets[i]))
+		{
 			return 0;
+		}
+
 	return 1;
 }
 
@@ -87,8 +96,12 @@ _zfcp_reqlist_find(struct zfcp_reqlist *rl, unsigned long req_id)
 
 	i = zfcp_reqlist_hash(req_id);
 	list_for_each_entry(req, &rl->buckets[i], list)
-		if (req->req_id == req_id)
-			return req;
+
+	if (req->req_id == req_id)
+	{
+		return req;
+	}
+
 	return NULL;
 }
 
@@ -133,8 +146,12 @@ zfcp_reqlist_find_rm(struct zfcp_reqlist *rl, unsigned long req_id)
 
 	spin_lock_irqsave(&rl->lock, flags);
 	req = _zfcp_reqlist_find(rl, req_id);
+
 	if (req)
+	{
 		list_del(&req->list);
+	}
+
 	spin_unlock_irqrestore(&rl->lock, flags);
 
 	return req;
@@ -151,7 +168,7 @@ zfcp_reqlist_find_rm(struct zfcp_reqlist *rl, unsigned long req_id)
  * lists.
  */
 static inline void zfcp_reqlist_add(struct zfcp_reqlist *rl,
-				    struct zfcp_fsf_req *req)
+									struct zfcp_fsf_req *req)
 {
 	unsigned int i;
 	unsigned long flags;
@@ -169,14 +186,18 @@ static inline void zfcp_reqlist_add(struct zfcp_reqlist *rl,
  * @list: The list where to move all entries
  */
 static inline void zfcp_reqlist_move(struct zfcp_reqlist *rl,
-				     struct list_head *list)
+									 struct list_head *list)
 {
 	unsigned int i;
 	unsigned long flags;
 
 	spin_lock_irqsave(&rl->lock, flags);
+
 	for (i = 0; i < ZFCP_REQ_LIST_BUCKETS; i++)
+	{
 		list_splice_init(&rl->buckets[i], list);
+	}
+
 	spin_unlock_irqrestore(&rl->lock, flags);
 }
 

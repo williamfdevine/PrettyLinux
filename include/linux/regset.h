@@ -37,7 +37,7 @@ struct user_regset;
  * is no inexpensive check to yield a value < @n.
  */
 typedef int user_regset_active_fn(struct task_struct *target,
-				  const struct user_regset *regset);
+								  const struct user_regset *regset);
 
 /**
  * user_regset_get_fn - type of @get function in &struct user_regset
@@ -56,9 +56,9 @@ typedef int user_regset_active_fn(struct task_struct *target,
  * return value is possible.
  */
 typedef int user_regset_get_fn(struct task_struct *target,
-			       const struct user_regset *regset,
-			       unsigned int pos, unsigned int count,
-			       void *kbuf, void __user *ubuf);
+							   const struct user_regset *regset,
+							   unsigned int pos, unsigned int count,
+							   void *kbuf, void __user *ubuf);
 
 /**
  * user_regset_set_fn - type of @set function in &struct user_regset
@@ -77,9 +77,9 @@ typedef int user_regset_get_fn(struct task_struct *target,
  * return value is possible.
  */
 typedef int user_regset_set_fn(struct task_struct *target,
-			       const struct user_regset *regset,
-			       unsigned int pos, unsigned int count,
-			       const void *kbuf, const void __user *ubuf);
+							   const struct user_regset *regset,
+							   unsigned int pos, unsigned int count,
+							   const void *kbuf, const void __user *ubuf);
 
 /**
  * user_regset_writeback_fn - type of @writeback function in &struct user_regset
@@ -103,8 +103,8 @@ typedef int user_regset_set_fn(struct task_struct *target,
  * hardware problem.
  */
 typedef int user_regset_writeback_fn(struct task_struct *target,
-				     const struct user_regset *regset,
-				     int immediate);
+									 const struct user_regset *regset,
+									 int immediate);
 
 /**
  * struct user_regset - accessible thread CPU state
@@ -151,7 +151,8 @@ typedef int user_regset_writeback_fn(struct task_struct *target,
  * (@n * @size) and nothing else.  The core file note is normally
  * omitted when there is an @active function and it returns zero.
  */
-struct user_regset {
+struct user_regset
+{
 	user_regset_get_fn		*get;
 	user_regset_set_fn		*set;
 	user_regset_active_fn		*active;
@@ -181,7 +182,8 @@ struct user_regset {
  * view or from the 64-bit view.  Either method reaches the same thread
  * register state, doing appropriate widening or truncation.
  */
-struct user_regset_view {
+struct user_regset_view
+{
 	const char *name;
 	const struct user_regset *regsets;
 	unsigned int n;
@@ -218,52 +220,80 @@ const struct user_regset_view *task_user_regset_view(struct task_struct *tsk);
  */
 
 static inline int user_regset_copyout(unsigned int *pos, unsigned int *count,
-				      void **kbuf,
-				      void __user **ubuf, const void *data,
-				      const int start_pos, const int end_pos)
+									  void **kbuf,
+									  void __user **ubuf, const void *data,
+									  const int start_pos, const int end_pos)
 {
 	if (*count == 0)
+	{
 		return 0;
+	}
+
 	BUG_ON(*pos < start_pos);
-	if (end_pos < 0 || *pos < end_pos) {
+
+	if (end_pos < 0 || *pos < end_pos)
+	{
 		unsigned int copy = (end_pos < 0 ? *count
-				     : min(*count, end_pos - *pos));
+							 : min(*count, end_pos - *pos));
 		data += *pos - start_pos;
-		if (*kbuf) {
+
+		if (*kbuf)
+		{
 			memcpy(*kbuf, data, copy);
 			*kbuf += copy;
-		} else if (__copy_to_user(*ubuf, data, copy))
+		}
+		else if (__copy_to_user(*ubuf, data, copy))
+		{
 			return -EFAULT;
+		}
 		else
+		{
 			*ubuf += copy;
+		}
+
 		*pos += copy;
 		*count -= copy;
 	}
+
 	return 0;
 }
 
 static inline int user_regset_copyin(unsigned int *pos, unsigned int *count,
-				     const void **kbuf,
-				     const void __user **ubuf, void *data,
-				     const int start_pos, const int end_pos)
+									 const void **kbuf,
+									 const void __user **ubuf, void *data,
+									 const int start_pos, const int end_pos)
 {
 	if (*count == 0)
+	{
 		return 0;
+	}
+
 	BUG_ON(*pos < start_pos);
-	if (end_pos < 0 || *pos < end_pos) {
+
+	if (end_pos < 0 || *pos < end_pos)
+	{
 		unsigned int copy = (end_pos < 0 ? *count
-				     : min(*count, end_pos - *pos));
+							 : min(*count, end_pos - *pos));
 		data += *pos - start_pos;
-		if (*kbuf) {
+
+		if (*kbuf)
+		{
 			memcpy(data, *kbuf, copy);
 			*kbuf += copy;
-		} else if (__copy_from_user(data, *ubuf, copy))
+		}
+		else if (__copy_from_user(data, *ubuf, copy))
+		{
 			return -EFAULT;
+		}
 		else
+		{
 			*ubuf += copy;
+		}
+
 		*pos += copy;
 		*count -= copy;
 	}
+
 	return 0;
 }
 
@@ -272,50 +302,76 @@ static inline int user_regset_copyin(unsigned int *pos, unsigned int *count,
  * that always read as all-zero or for which writes are ignored.
  */
 static inline int user_regset_copyout_zero(unsigned int *pos,
-					   unsigned int *count,
-					   void **kbuf, void __user **ubuf,
-					   const int start_pos,
-					   const int end_pos)
+		unsigned int *count,
+		void **kbuf, void __user **ubuf,
+		const int start_pos,
+		const int end_pos)
 {
 	if (*count == 0)
+	{
 		return 0;
+	}
+
 	BUG_ON(*pos < start_pos);
-	if (end_pos < 0 || *pos < end_pos) {
+
+	if (end_pos < 0 || *pos < end_pos)
+	{
 		unsigned int copy = (end_pos < 0 ? *count
-				     : min(*count, end_pos - *pos));
-		if (*kbuf) {
+							 : min(*count, end_pos - *pos));
+
+		if (*kbuf)
+		{
 			memset(*kbuf, 0, copy);
 			*kbuf += copy;
-		} else if (__clear_user(*ubuf, copy))
+		}
+		else if (__clear_user(*ubuf, copy))
+		{
 			return -EFAULT;
+		}
 		else
+		{
 			*ubuf += copy;
+		}
+
 		*pos += copy;
 		*count -= copy;
 	}
+
 	return 0;
 }
 
 static inline int user_regset_copyin_ignore(unsigned int *pos,
-					    unsigned int *count,
-					    const void **kbuf,
-					    const void __user **ubuf,
-					    const int start_pos,
-					    const int end_pos)
+		unsigned int *count,
+		const void **kbuf,
+		const void __user **ubuf,
+		const int start_pos,
+		const int end_pos)
 {
 	if (*count == 0)
+	{
 		return 0;
+	}
+
 	BUG_ON(*pos < start_pos);
-	if (end_pos < 0 || *pos < end_pos) {
+
+	if (end_pos < 0 || *pos < end_pos)
+	{
 		unsigned int copy = (end_pos < 0 ? *count
-				     : min(*count, end_pos - *pos));
+							 : min(*count, end_pos - *pos));
+
 		if (*kbuf)
+		{
 			*kbuf += copy;
+		}
 		else
+		{
 			*ubuf += copy;
+		}
+
 		*pos += copy;
 		*count -= copy;
 	}
+
 	return 0;
 }
 
@@ -329,18 +385,22 @@ static inline int user_regset_copyin_ignore(unsigned int *pos,
  * @data:	user-mode pointer to copy into
  */
 static inline int copy_regset_to_user(struct task_struct *target,
-				      const struct user_regset_view *view,
-				      unsigned int setno,
-				      unsigned int offset, unsigned int size,
-				      void __user *data)
+									  const struct user_regset_view *view,
+									  unsigned int setno,
+									  unsigned int offset, unsigned int size,
+									  void __user *data)
 {
 	const struct user_regset *regset = &view->regsets[setno];
 
 	if (!regset->get)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (!access_ok(VERIFY_WRITE, data, size))
+	{
 		return -EFAULT;
+	}
 
 	return regset->get(target, regset, offset, size, NULL, data);
 }
@@ -355,18 +415,22 @@ static inline int copy_regset_to_user(struct task_struct *target,
  * @data:	user-mode pointer to copy from
  */
 static inline int copy_regset_from_user(struct task_struct *target,
-					const struct user_regset_view *view,
-					unsigned int setno,
-					unsigned int offset, unsigned int size,
-					const void __user *data)
+										const struct user_regset_view *view,
+										unsigned int setno,
+										unsigned int offset, unsigned int size,
+										const void __user *data)
 {
 	const struct user_regset *regset = &view->regsets[setno];
 
 	if (!regset->set)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (!access_ok(VERIFY_READ, data, size))
+	{
 		return -EFAULT;
+	}
 
 	return regset->set(target, regset, offset, size, NULL, data);
 }

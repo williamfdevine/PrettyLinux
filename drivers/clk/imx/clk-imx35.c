@@ -34,11 +34,13 @@
 #define MX35_CCM_CGR2		0x34
 #define MX35_CCM_CGR3		0x38
 
-struct arm_ahb_div {
+struct arm_ahb_div
+{
 	unsigned char arm, ahb, sel;
 };
 
-static struct arm_ahb_div clk_consumer[] = {
+static struct arm_ahb_div clk_consumer[] =
+{
 	{ .arm = 1, .ahb = 4, .sel = 0},
 	{ .arm = 1, .ahb = 3, .sel = 1},
 	{ .arm = 2, .ahb = 2, .sel = 0},
@@ -65,7 +67,8 @@ static struct clk_onecell_data clk_data;
 static const char *std_sel[] = {"ppll", "arm"};
 static const char *ipg_per_sel[] = {"ahb_per_div", "arm_per_div"};
 
-enum mx35_clks {
+enum mx35_clks
+{
 	/*  0 */ ckih, mpll, ppll, mpll_075, arm, hsp, hsp_div, hsp_sel, ahb,
 	/*  9 */ ipg, arm_per_div, ahb_per_div, ipg_per, uart_sel, uart_div,
 	/* 15 */ esdhc_sel, esdhc1_div, esdhc2_div, esdhc3_div, spdif_sel,
@@ -86,7 +89,8 @@ enum mx35_clks {
 
 static struct clk *clk[clk_max];
 
-static struct clk ** const uart_clks[] __initconst = {
+static struct clk **const uart_clks[] __initconst =
+{
 	&clk[ipg],
 	&clk[uart1_gate],
 	&clk[uart2_gate],
@@ -107,7 +111,9 @@ static void __init _mx35_clocks_init(void)
 	pdr0 = __raw_readl(base + MXC_CCM_PDR0);
 	consumer_sel = (pdr0 >> 16) & 0xf;
 	aad = &clk_consumer[consumer_sel];
-	if (!aad->arm) {
+
+	if (!aad->arm)
+	{
 		pr_err("i.MX35 clk: illegal consumer mux selection 0x%x\n", consumer_sel);
 		/*
 		 * We are basically stuck. Continue with a default entry and hope we
@@ -124,17 +130,27 @@ static void __init _mx35_clocks_init(void)
 	clk[mpll] = imx_clk_fixed_factor("mpll_075", "mpll", 3, 4);
 
 	if (aad->sel)
+	{
 		clk[arm] = imx_clk_fixed_factor("arm", "mpll_075", 1, aad->arm);
+	}
 	else
+	{
 		clk[arm] = imx_clk_fixed_factor("arm", "mpll", 1, aad->arm);
+	}
 
 	if (clk_get_rate(clk[arm]) > 400000000)
+	{
 		hsp_div = hsp_div_532;
+	}
 	else
+	{
 		hsp_div = hsp_div_400;
+	}
 
 	hsp_sel = (pdr0 >> 20) & 0x3;
-	if (!hsp_div[hsp_sel]) {
+
+	if (!hsp_div[hsp_sel])
+	{
 		pr_err("i.MX35 clk: illegal hsp clk selection 0x%x\n", hsp_sel);
 		hsp_sel = 0;
 	}
@@ -157,7 +173,8 @@ static void __init _mx35_clocks_init(void)
 	clk[esdhc3_div] = imx_clk_divider("esdhc3_div", "esdhc_sel", base + MX35_CCM_PDR3, 16, 6);
 
 	clk[spdif_sel] = imx_clk_mux("spdif_sel", base + MX35_CCM_PDR3, 22, 1, std_sel, ARRAY_SIZE(std_sel));
-	clk[spdif_div_pre] = imx_clk_divider("spdif_div_pre", "spdif_sel", base + MX35_CCM_PDR3, 29, 3); /* divide by 1 not allowed */ 
+	clk[spdif_div_pre] = imx_clk_divider("spdif_div_pre", "spdif_sel", base + MX35_CCM_PDR3, 29,
+										 3); /* divide by 1 not allowed */
 	clk[spdif_div_post] = imx_clk_divider("spdif_div_post", "spdif_div_pre", base + MX35_CCM_PDR3, 23, 6);
 
 	clk[ssi_sel] = imx_clk_mux("ssi_sel", base + MX35_CCM_PDR2, 6, 1, std_sel, ARRAY_SIZE(std_sel));

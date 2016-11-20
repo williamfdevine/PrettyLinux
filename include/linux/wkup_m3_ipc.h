@@ -25,7 +25,8 @@
 
 struct wkup_m3_ipc_ops;
 
-struct wkup_m3_ipc {
+struct wkup_m3_ipc
+{
 	struct rproc *rproc;
 
 	void __iomem *ipc_mem_base;
@@ -42,7 +43,8 @@ struct wkup_m3_ipc {
 	struct wkup_m3_ipc_ops *ops;
 };
 
-struct wkup_m3_ipc_ops {
+struct wkup_m3_ipc_ops
+{
 	void (*set_mem_type)(struct wkup_m3_ipc *m3_ipc, int mem_type);
 	void (*set_resume_address)(struct wkup_m3_ipc *m3_ipc, void *addr);
 	int (*prepare_low_power)(struct wkup_m3_ipc *m3_ipc, int state);

@@ -51,7 +51,8 @@ extern int msp_standard;
 extern bool msp_dolby;
 extern int msp_stereo_thresh;
 
-struct msp_state {
+struct msp_state
+{
 	struct v4l2_subdev sd;
 	struct v4l2_ctrl_handler hdl;
 	int rev1, rev2;
@@ -90,7 +91,8 @@ struct msp_state {
 	int audmode;
 	int rxsubchans;
 
-	struct {
+	struct
+	{
 		/* volume cluster */
 		struct v4l2_ctrl *volume;
 		struct v4l2_ctrl *muted;
@@ -101,8 +103,8 @@ struct msp_state {
 	/* thread */
 	struct task_struct   *kthread;
 	wait_queue_head_t    wq;
-	unsigned int         restart:1;
-	unsigned int         watch_stereo:1;
+	unsigned int         restart: 1;
+	unsigned int         watch_stereo: 1;
 
 #if IS_ENABLED(CONFIG_MEDIA_CONTROLLER)
 	struct media_pad pads[IF_AUD_DEC_PAD_NUM_PADS];

@@ -10,11 +10,11 @@
 #ifndef __LINUX_IPMI_FRU_H__
 #define __LINUX_IPMI_FRU_H__
 #ifdef __KERNEL__
-#  include <linux/types.h>
-#  include <linux/string.h>
+	#include <linux/types.h>
+	#include <linux/string.h>
 #else
-#  include <stdint.h>
-#  include <string.h>
+	#include <stdint.h>
+	#include <string.h>
 #endif
 
 /*
@@ -23,7 +23,8 @@
  */
 
 /* chapter 8, page 5 */
-struct fru_common_header {
+struct fru_common_header
+{
 	uint8_t format;			/* 0x01 */
 	uint8_t internal_use_off;	/* multiple of 8 bytes */
 	uint8_t chassis_info_off;	/* multiple of 8 bytes */
@@ -39,13 +40,15 @@ struct fru_common_header {
 /* chapter 10, page 6 -- chassis info: not used by us */
 
 /* chapter 13, page 9 -- used by board_info_area below */
-struct fru_type_length {
+struct fru_type_length
+{
 	uint8_t type_length;
 	uint8_t data[0];
 };
 
 /* chapter 11, page 7 */
-struct fru_board_info_area {
+struct fru_board_info_area
+{
 	uint8_t format;			/* 0x01 */
 	uint8_t area_len;		/* multiple of 8 bytes */
 	uint8_t language;		/* I hope it's 0 */
@@ -66,7 +69,8 @@ struct fru_board_info_area {
 	 */
 };
 
-enum fru_type {
+enum fru_type
+{
 	FRU_TYPE_BINARY		= 0x00,
 	FRU_TYPE_BCDPLUS	= 0x40,
 	FRU_TYPE_ASCII6		= 0x80,

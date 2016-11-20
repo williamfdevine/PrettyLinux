@@ -37,22 +37,34 @@ static int marvell_pata_active(struct pci_dev *pdev)
 
 	/* We don't yet know how to do this for other devices */
 	if (pdev->device != 0x6145)
+	{
 		return 1;
+	}
 
 	barp = pci_iomap(pdev, 5, 0x10);
+
 	if (barp == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	printk("BAR5:");
-	for(i = 0; i <= 0x0F; i++)
+
+	for (i = 0; i <= 0x0F; i++)
+	{
 		printk("%02X:%02X ", i, ioread8(barp + i));
+	}
+
 	printk("\n");
 
 	devices = ioread32(barp + 0x0C);
 	pci_iounmap(pdev, barp);
 
 	if (devices & 0x10)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -71,7 +83,9 @@ static int marvell_pre_reset(struct ata_link *link, unsigned long deadline)
 
 	if (pdev->device == 0x6145 && ap->port_no == 0 &&
 		!marvell_pata_active(pdev))	/* PATA enable ? */
-			return -ENOENT;
+	{
+		return -ENOENT;
+	}
 
 	return ata_sff_prereset(link, deadline);
 }
@@ -79,14 +93,18 @@ static int marvell_pre_reset(struct ata_link *link, unsigned long deadline)
 static int marvell_cable_detect(struct ata_port *ap)
 {
 	/* Cable type */
-	switch(ap->port_no)
+	switch (ap->port_no)
 	{
-	case 0:
-		if (ioread8(ap->ioaddr.bmdma_addr + 1) & 1)
-			return ATA_CBL_PATA40;
-		return ATA_CBL_PATA80;
-	case 1: /* Legacy SATA port */
-		return ATA_CBL_SATA;
+		case 0:
+			if (ioread8(ap->ioaddr.bmdma_addr + 1) & 1)
+			{
+				return ATA_CBL_PATA40;
+			}
+
+			return ATA_CBL_PATA80;
+
+		case 1: /* Legacy SATA port */
+			return ATA_CBL_SATA;
 	}
 
 	BUG();
@@ -95,11 +113,13 @@ static int marvell_cable_detect(struct ata_port *ap)
 
 /* No PIO or DMA methods needed for this device */
 
-static struct scsi_host_template marvell_sht = {
+static struct scsi_host_template marvell_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations marvell_ops = {
+static struct ata_port_operations marvell_ops =
+{
 	.inherits		= &ata_bmdma_port_ops,
 	.cable_detect		= marvell_cable_detect,
 	.prereset		= marvell_pre_reset,
@@ -122,7 +142,8 @@ static struct ata_port_operations marvell_ops = {
 
 static int marvell_init_one (struct pci_dev *pdev, const struct pci_device_id *id)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags		= ATA_FLAG_SLAVE_POSS,
 
 		.pio_mask	= ATA_PIO4,
@@ -131,7 +152,8 @@ static int marvell_init_one (struct pci_dev *pdev, const struct pci_device_id *i
 
 		.port_ops	= &marvell_ops,
 	};
-	static const struct ata_port_info info_sata = {
+	static const struct ata_port_info info_sata =
+	{
 		/* Slave possible as its magically mapped not real */
 		.flags		= ATA_FLAG_SLAVE_POSS,
 
@@ -144,18 +166,24 @@ static int marvell_init_one (struct pci_dev *pdev, const struct pci_device_id *i
 	const struct ata_port_info *ppi[] = { &info, &info_sata };
 
 	if (pdev->device == 0x6101)
+	{
 		ppi[1] = &ata_dummy_port_info;
+	}
 
 #if IS_ENABLED(CONFIG_SATA_AHCI)
-	if (!marvell_pata_active(pdev)) {
+
+	if (!marvell_pata_active(pdev))
+	{
 		printk(KERN_INFO DRV_NAME ": PATA port not active, deferring to AHCI driver.\n");
 		return -ENODEV;
 	}
+
 #endif
 	return ata_pci_bmdma_init_one(pdev, ppi, &marvell_sht, NULL, 0);
 }
 
-static const struct pci_device_id marvell_pci_tbl[] = {
+static const struct pci_device_id marvell_pci_tbl[] =
+{
 	{ PCI_DEVICE(0x11AB, 0x6101), },
 	{ PCI_DEVICE(0x11AB, 0x6121), },
 	{ PCI_DEVICE(0x11AB, 0x6123), },
@@ -166,7 +194,8 @@ static const struct pci_device_id marvell_pci_tbl[] = {
 	{ }	/* terminate list */
 };
 
-static struct pci_driver marvell_pci_driver = {
+static struct pci_driver marvell_pci_driver =
+{
 	.name			= DRV_NAME,
 	.id_table		= marvell_pci_tbl,
 	.probe			= marvell_init_one,

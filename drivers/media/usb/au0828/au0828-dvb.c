@@ -42,13 +42,15 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 #define _AU0828_BULKPIPE 0x83
 #define _BULKPIPESIZE 0xe522
 
-static u8 hauppauge_hvr950q_led_states[] = {
+static u8 hauppauge_hvr950q_led_states[] =
+{
 	0x00, /* off */
 	0x02, /* yellow */
 	0x04, /* green */
 };
 
-static struct au8522_led_config hauppauge_hvr950q_led_cfg = {
+static struct au8522_led_config hauppauge_hvr950q_led_cfg =
+{
 	.gpio_output = 0x00e0,
 	.gpio_output_enable  = 0x6006,
 	.gpio_output_disable = 0x0660,
@@ -62,7 +64,8 @@ static struct au8522_led_config hauppauge_hvr950q_led_cfg = {
 	.qam256_strong = 32 /* dB */ * 10,
 };
 
-static struct au8522_config hauppauge_hvr950q_config = {
+static struct au8522_config hauppauge_hvr950q_config =
+{
 	.demod_address = 0x8e >> 1,
 	.status_mode   = AU8522_DEMODLOCKING,
 	.qam_if        = AU8522_IF_6MHZ,
@@ -70,40 +73,46 @@ static struct au8522_config hauppauge_hvr950q_config = {
 	.led_cfg       = &hauppauge_hvr950q_led_cfg,
 };
 
-static struct au8522_config fusionhdtv7usb_config = {
+static struct au8522_config fusionhdtv7usb_config =
+{
 	.demod_address = 0x8e >> 1,
 	.status_mode   = AU8522_DEMODLOCKING,
 	.qam_if        = AU8522_IF_6MHZ,
 	.vsb_if        = AU8522_IF_6MHZ,
 };
 
-static struct au8522_config hauppauge_woodbury_config = {
+static struct au8522_config hauppauge_woodbury_config =
+{
 	.demod_address = 0x8e >> 1,
 	.status_mode   = AU8522_DEMODLOCKING,
 	.qam_if        = AU8522_IF_4MHZ,
 	.vsb_if        = AU8522_IF_3_25MHZ,
 };
 
-static struct xc5000_config hauppauge_xc5000a_config = {
+static struct xc5000_config hauppauge_xc5000a_config =
+{
 	.i2c_address      = 0x61,
 	.if_khz           = 6000,
 	.chip_id          = XC5000A,
 	.output_amp       = 0x8f,
 };
 
-static struct xc5000_config hauppauge_xc5000c_config = {
+static struct xc5000_config hauppauge_xc5000c_config =
+{
 	.i2c_address      = 0x61,
 	.if_khz           = 6000,
 	.chip_id          = XC5000C,
 	.output_amp       = 0x8f,
 };
 
-static struct mxl5007t_config mxl5007t_hvr950q_config = {
+static struct mxl5007t_config mxl5007t_hvr950q_config =
+{
 	.xtal_freq_hz = MxL_XTAL_24_MHZ,
 	.if_freq_hz = MxL_IF_6_MHZ,
 };
 
-static struct tda18271_config hauppauge_woodbury_tunerconfig = {
+static struct tda18271_config hauppauge_woodbury_tunerconfig =
+{
 	.gate    = TDA18271_GATE_DIGITAL,
 };
 
@@ -118,35 +127,40 @@ static void urb_completion(struct urb *purb)
 
 	dprintk(2, "%s: %d\n", __func__, purb->actual_length);
 
-	if (!dev) {
+	if (!dev)
+	{
 		dprintk(2, "%s: no dev!\n", __func__);
 		return;
 	}
 
-	if (!dev->urb_streaming) {
+	if (!dev->urb_streaming)
+	{
 		dprintk(2, "%s: not streaming!\n", __func__);
 		return;
 	}
 
-	if (ptype != PIPE_BULK) {
+	if (ptype != PIPE_BULK)
+	{
 		pr_err("%s: Unsupported URB type %d\n",
-		       __func__, ptype);
+			   __func__, ptype);
 		return;
 	}
 
 	/* See if the stream is corrupted (to work around a hardware
 	   bug where the stream gets misaligned */
 	ptr = purb->transfer_buffer;
-	if (purb->actual_length > 0 && ptr[0] != 0x47) {
+
+	if (purb->actual_length > 0 && ptr[0] != 0x47)
+	{
 		dprintk(1, "Need to restart streaming %02x len=%d!\n",
-			ptr[0], purb->actual_length);
+				ptr[0], purb->actual_length);
 		schedule_work(&dev->restart_streaming);
 		return;
 	}
 
 	/* Feed the transport payload into the kernel demux */
 	dvb_dmx_swfilter_packets(&dev->dvb.demux,
-		purb->transfer_buffer, purb->actual_length / 188);
+							 purb->transfer_buffer, purb->actual_length / 188);
 
 	/* Clean the buffer before we requeue */
 	memset(purb->transfer_buffer, 0, URB_BUFSIZE);
@@ -162,14 +176,22 @@ static int stop_urb_transfer(struct au0828_dev *dev)
 	dprintk(2, "%s()\n", __func__);
 
 	if (!dev->urb_streaming)
+	{
 		return 0;
+	}
 
 	dev->urb_streaming = false;
-	for (i = 0; i < URB_COUNT; i++) {
-		if (dev->urbs[i]) {
+
+	for (i = 0; i < URB_COUNT; i++)
+	{
+		if (dev->urbs[i])
+		{
 			usb_kill_urb(dev->urbs[i]);
+
 			if (!preallocate_big_buffers)
+			{
 				kfree(dev->urbs[i]->transfer_buffer);
+			}
 
 			usb_free_urb(dev->urbs[i]);
 		}
@@ -185,52 +207,63 @@ static int start_urb_transfer(struct au0828_dev *dev)
 
 	dprintk(2, "%s()\n", __func__);
 
-	if (dev->urb_streaming) {
+	if (dev->urb_streaming)
+	{
 		dprintk(2, "%s: bulk xfer already running!\n", __func__);
 		return 0;
 	}
 
-	for (i = 0; i < URB_COUNT; i++) {
+	for (i = 0; i < URB_COUNT; i++)
+	{
 
 		dev->urbs[i] = usb_alloc_urb(0, GFP_KERNEL);
+
 		if (!dev->urbs[i])
+		{
 			return -ENOMEM;
+		}
 
 		purb = dev->urbs[i];
 
 		if (preallocate_big_buffers)
+		{
 			purb->transfer_buffer = dev->dig_transfer_buffer[i];
+		}
 		else
 			purb->transfer_buffer = kzalloc(URB_BUFSIZE,
-					GFP_KERNEL);
+											GFP_KERNEL);
 
-		if (!purb->transfer_buffer) {
+		if (!purb->transfer_buffer)
+		{
 			usb_free_urb(purb);
 			dev->urbs[i] = NULL;
 			ret = -ENOMEM;
 			pr_err("%s: failed big buffer allocation, err = %d\n",
-			       __func__, ret);
+				   __func__, ret);
 			return ret;
 		}
 
 		purb->status = -EINPROGRESS;
 		usb_fill_bulk_urb(purb,
-				  dev->usbdev,
-				  usb_rcvbulkpipe(dev->usbdev,
-					_AU0828_BULKPIPE),
-				  purb->transfer_buffer,
-				  URB_BUFSIZE,
-				  urb_completion,
-				  dev);
+						  dev->usbdev,
+						  usb_rcvbulkpipe(dev->usbdev,
+										  _AU0828_BULKPIPE),
+						  purb->transfer_buffer,
+						  URB_BUFSIZE,
+						  urb_completion,
+						  dev);
 
 	}
 
-	for (i = 0; i < URB_COUNT; i++) {
+	for (i = 0; i < URB_COUNT; i++)
+	{
 		ret = usb_submit_urb(dev->urbs[i], GFP_ATOMIC);
-		if (ret != 0) {
+
+		if (ret != 0)
+		{
 			stop_urb_transfer(dev);
 			pr_err("%s: failed urb submission, err = %d\n",
-			       __func__, ret);
+				   __func__, ret);
 			return ret;
 		}
 	}
@@ -250,11 +283,13 @@ static void au0828_start_transport(struct au0828_dev *dev)
 
 static void au0828_stop_transport(struct au0828_dev *dev, int full_stop)
 {
-	if (full_stop) {
+	if (full_stop)
+	{
 		au0828_write(dev, 0x608, 0x00);
 		au0828_write(dev, 0x609, 0x00);
 		au0828_write(dev, 0x60a, 0x00);
 	}
+
 	au0828_write(dev, 0x60b, 0x00);
 }
 
@@ -268,22 +303,30 @@ static int au0828_dvb_start_feed(struct dvb_demux_feed *feed)
 	dprintk(1, "%s()\n", __func__);
 
 	if (!demux->dmx.frontend)
+	{
 		return -EINVAL;
+	}
 
-	if (dvb->frontend) {
+	if (dvb->frontend)
+	{
 		mutex_lock(&dvb->lock);
 		dvb->start_count++;
 		dprintk(1, "%s(), start_count: %d, stop_count: %d\n", __func__,
-			dvb->start_count, dvb->stop_count);
-		if (dvb->feeding++ == 0) {
+				dvb->start_count, dvb->stop_count);
+
+		if (dvb->feeding++ == 0)
+		{
 			/* Start transport */
 			au0828_start_transport(dev);
 			ret = start_urb_transfer(dev);
-			if (ret < 0) {
+
+			if (ret < 0)
+			{
 				au0828_stop_transport(dev, 0);
 				dvb->feeding--;	/* We ran out of memory... */
 			}
 		}
+
 		mutex_unlock(&dvb->lock);
 	}
 
@@ -299,21 +342,27 @@ static int au0828_dvb_stop_feed(struct dvb_demux_feed *feed)
 
 	dprintk(1, "%s()\n", __func__);
 
-	if (dvb->frontend) {
+	if (dvb->frontend)
+	{
 		cancel_work_sync(&dev->restart_streaming);
 
 		mutex_lock(&dvb->lock);
 		dvb->stop_count++;
 		dprintk(1, "%s(), start_count: %d, stop_count: %d\n", __func__,
-			dvb->start_count, dvb->stop_count);
-		if (dvb->feeding > 0) {
+				dvb->start_count, dvb->stop_count);
+
+		if (dvb->feeding > 0)
+		{
 			dvb->feeding--;
-			if (dvb->feeding == 0) {
+
+			if (dvb->feeding == 0)
+			{
 				/* Stop transport */
 				ret = stop_urb_transfer(dev);
 				au0828_stop_transport(dev, 0);
 			}
 		}
+
 		mutex_unlock(&dvb->lock);
 	}
 
@@ -323,11 +372,13 @@ static int au0828_dvb_stop_feed(struct dvb_demux_feed *feed)
 static void au0828_restart_dvb_streaming(struct work_struct *work)
 {
 	struct au0828_dev *dev = container_of(work, struct au0828_dev,
-					      restart_streaming);
+										  restart_streaming);
 	struct au0828_dvb *dvb = &dev->dvb;
 
 	if (!dev->urb_streaming)
+	{
 		return;
+	}
 
 	dprintk(1, "Restarting streaming...!\n");
 
@@ -352,7 +403,9 @@ static int au0828_set_frontend(struct dvb_frontend *fe)
 
 	mutex_lock(&dvb->lock);
 	was_streaming = dev->urb_streaming;
-	if (was_streaming) {
+
+	if (was_streaming)
+	{
 		au0828_stop_transport(dev, 1);
 
 		/*
@@ -365,11 +418,13 @@ static int au0828_set_frontend(struct dvb_frontend *fe)
 
 		stop_urb_transfer(dev);
 	}
+
 	mutex_unlock(&dvb->lock);
 
 	ret = dvb->set_frontend(fe);
 
-	if (was_streaming) {
+	if (was_streaming)
+	{
 		mutex_lock(&dvb->lock);
 		au0828_start_transport(dev);
 		start_urb_transfer(dev);
@@ -386,17 +441,21 @@ static int dvb_register(struct au0828_dev *dev)
 
 	dprintk(1, "%s()\n", __func__);
 
-	if (preallocate_big_buffers) {
+	if (preallocate_big_buffers)
+	{
 		int i;
-		for (i = 0; i < URB_COUNT; i++) {
-			dev->dig_transfer_buffer[i] = kzalloc(URB_BUFSIZE,
-					GFP_KERNEL);
 
-			if (!dev->dig_transfer_buffer[i]) {
+		for (i = 0; i < URB_COUNT; i++)
+		{
+			dev->dig_transfer_buffer[i] = kzalloc(URB_BUFSIZE,
+												  GFP_KERNEL);
+
+			if (!dev->dig_transfer_buffer[i])
+			{
 				result = -ENOMEM;
 
 				pr_err("failed buffer allocation (errno = %d)\n",
-				       result);
+					   result);
 				goto fail_adapter;
 			}
 		}
@@ -406,11 +465,13 @@ static int dvb_register(struct au0828_dev *dev)
 
 	/* register adapter */
 	result = dvb_register_adapter(&dvb->adapter,
-				      KBUILD_MODNAME, THIS_MODULE,
-				      &dev->usbdev->dev, adapter_nr);
-	if (result < 0) {
+								  KBUILD_MODNAME, THIS_MODULE,
+								  &dev->usbdev->dev, adapter_nr);
+
+	if (result < 0)
+	{
 		pr_err("dvb_register_adapter failed (errno = %d)\n",
-		       result);
+			   result);
 		goto fail_adapter;
 	}
 
@@ -422,9 +483,11 @@ static int dvb_register(struct au0828_dev *dev)
 
 	/* register frontend */
 	result = dvb_register_frontend(&dvb->adapter, dvb->frontend);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		pr_err("dvb_register_frontend failed (errno = %d)\n",
-		       result);
+			   result);
 		goto fail_frontend;
 	}
 
@@ -442,7 +505,9 @@ static int dvb_register(struct au0828_dev *dev)
 	dvb->demux.start_feed = au0828_dvb_start_feed;
 	dvb->demux.stop_feed  = au0828_dvb_stop_feed;
 	result = dvb_dmx_init(&dvb->demux);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		pr_err("dvb_dmx_init failed (errno = %d)\n", result);
 		goto fail_dmx;
 	}
@@ -451,29 +516,37 @@ static int dvb_register(struct au0828_dev *dev)
 	dvb->dmxdev.demux        = &dvb->demux.dmx;
 	dvb->dmxdev.capabilities = 0;
 	result = dvb_dmxdev_init(&dvb->dmxdev, &dvb->adapter);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		pr_err("dvb_dmxdev_init failed (errno = %d)\n", result);
 		goto fail_dmxdev;
 	}
 
 	dvb->fe_hw.source = DMX_FRONTEND_0;
 	result = dvb->demux.dmx.add_frontend(&dvb->demux.dmx, &dvb->fe_hw);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		pr_err("add_frontend failed (DMX_FRONTEND_0, errno = %d)\n",
-		       result);
+			   result);
 		goto fail_fe_hw;
 	}
 
 	dvb->fe_mem.source = DMX_MEMORY_FE;
 	result = dvb->demux.dmx.add_frontend(&dvb->demux.dmx, &dvb->fe_mem);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		pr_err("add_frontend failed (DMX_MEMORY_FE, errno = %d)\n",
-		       result);
+			   result);
 		goto fail_fe_mem;
 	}
 
 	result = dvb->demux.dmx.connect_frontend(&dvb->demux.dmx, &dvb->fe_hw);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		pr_err("connect_frontend failed (errno = %d)\n", result);
 		goto fail_fe_conn;
 	}
@@ -485,8 +558,11 @@ static int dvb_register(struct au0828_dev *dev)
 	dvb->stop_count = 0;
 
 	result = dvb_create_media_graph(&dvb->adapter, false);
+
 	if (result < 0)
+	{
 		goto fail_create_graph;
+	}
 
 	return 0;
 
@@ -507,10 +583,14 @@ fail_frontend:
 	dvb_unregister_adapter(&dvb->adapter);
 fail_adapter:
 
-	if (preallocate_big_buffers) {
+	if (preallocate_big_buffers)
+	{
 		int i;
+
 		for (i = 0; i < URB_COUNT; i++)
+		{
 			kfree(dev->dig_transfer_buffer[i]);
+		}
 	}
 
 	return result;
@@ -523,7 +603,9 @@ void au0828_dvb_unregister(struct au0828_dev *dev)
 	dprintk(1, "%s()\n", __func__);
 
 	if (dvb->frontend == NULL)
+	{
 		return;
+	}
 
 	cancel_work_sync(&dev->restart_streaming);
 
@@ -536,11 +618,16 @@ void au0828_dvb_unregister(struct au0828_dev *dev)
 	dvb_frontend_detach(dvb->frontend);
 	dvb_unregister_adapter(&dvb->adapter);
 
-	if (preallocate_big_buffers) {
+	if (preallocate_big_buffers)
+	{
 		int i;
+
 		for (i = 0; i < URB_COUNT; i++)
+		{
 			kfree(dev->dig_transfer_buffer[i]);
+		}
 	}
+
 	dvb->frontend = NULL;
 }
 
@@ -556,72 +643,96 @@ int au0828_dvb_register(struct au0828_dev *dev)
 	dprintk(1, "%s()\n", __func__);
 
 	/* init frontend */
-	switch (dev->boardnr) {
-	case AU0828_BOARD_HAUPPAUGE_HVR850:
-	case AU0828_BOARD_HAUPPAUGE_HVR950Q:
-		dvb->frontend = dvb_attach(au8522_attach,
-				&hauppauge_hvr950q_config,
-				&dev->i2c_adap);
-		if (dvb->frontend != NULL)
-			switch (dev->board.tuner_type) {
-			default:
-			case TUNER_XC5000:
+	switch (dev->boardnr)
+	{
+		case AU0828_BOARD_HAUPPAUGE_HVR850:
+		case AU0828_BOARD_HAUPPAUGE_HVR950Q:
+			dvb->frontend = dvb_attach(au8522_attach,
+									   &hauppauge_hvr950q_config,
+									   &dev->i2c_adap);
+
+			if (dvb->frontend != NULL)
+				switch (dev->board.tuner_type)
+				{
+					default:
+					case TUNER_XC5000:
+						dvb_attach(xc5000_attach, dvb->frontend,
+								   &dev->i2c_adap,
+								   &hauppauge_xc5000a_config);
+						break;
+
+					case TUNER_XC5000C:
+						dvb_attach(xc5000_attach, dvb->frontend,
+								   &dev->i2c_adap,
+								   &hauppauge_xc5000c_config);
+						break;
+				}
+
+			break;
+
+		case AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL:
+			dvb->frontend = dvb_attach(au8522_attach,
+									   &hauppauge_hvr950q_config,
+									   &dev->i2c_adap);
+
+			if (dvb->frontend != NULL)
+				dvb_attach(mxl5007t_attach, dvb->frontend,
+						   &dev->i2c_adap, 0x60,
+						   &mxl5007t_hvr950q_config);
+
+			break;
+
+		case AU0828_BOARD_HAUPPAUGE_WOODBURY:
+			dvb->frontend = dvb_attach(au8522_attach,
+									   &hauppauge_woodbury_config,
+									   &dev->i2c_adap);
+
+			if (dvb->frontend != NULL)
+				dvb_attach(tda18271_attach, dvb->frontend,
+						   0x60, &dev->i2c_adap,
+						   &hauppauge_woodbury_tunerconfig);
+
+			break;
+
+		case AU0828_BOARD_DVICO_FUSIONHDTV7:
+			dvb->frontend = dvb_attach(au8522_attach,
+									   &fusionhdtv7usb_config,
+									   &dev->i2c_adap);
+
+			if (dvb->frontend != NULL)
+			{
 				dvb_attach(xc5000_attach, dvb->frontend,
-					   &dev->i2c_adap,
-					   &hauppauge_xc5000a_config);
-				break;
-			case TUNER_XC5000C:
-				dvb_attach(xc5000_attach, dvb->frontend,
-					   &dev->i2c_adap,
-					   &hauppauge_xc5000c_config);
-				break;
+						   &dev->i2c_adap,
+						   &hauppauge_xc5000a_config);
 			}
-		break;
-	case AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL:
-		dvb->frontend = dvb_attach(au8522_attach,
-				&hauppauge_hvr950q_config,
-				&dev->i2c_adap);
-		if (dvb->frontend != NULL)
-			dvb_attach(mxl5007t_attach, dvb->frontend,
-				   &dev->i2c_adap, 0x60,
-				   &mxl5007t_hvr950q_config);
-		break;
-	case AU0828_BOARD_HAUPPAUGE_WOODBURY:
-		dvb->frontend = dvb_attach(au8522_attach,
-				&hauppauge_woodbury_config,
-				&dev->i2c_adap);
-		if (dvb->frontend != NULL)
-			dvb_attach(tda18271_attach, dvb->frontend,
-				   0x60, &dev->i2c_adap,
-				   &hauppauge_woodbury_tunerconfig);
-		break;
-	case AU0828_BOARD_DVICO_FUSIONHDTV7:
-		dvb->frontend = dvb_attach(au8522_attach,
-				&fusionhdtv7usb_config,
-				&dev->i2c_adap);
-		if (dvb->frontend != NULL) {
-			dvb_attach(xc5000_attach, dvb->frontend,
-				&dev->i2c_adap,
-				&hauppauge_xc5000a_config);
-		}
-		break;
-	default:
-		pr_warn("The frontend of your DVB/ATSC card isn't supported yet\n");
-		break;
+
+			break;
+
+		default:
+			pr_warn("The frontend of your DVB/ATSC card isn't supported yet\n");
+			break;
 	}
-	if (NULL == dvb->frontend) {
+
+	if (NULL == dvb->frontend)
+	{
 		pr_err("%s() Frontend initialization failed\n",
-		       __func__);
+			   __func__);
 		return -1;
 	}
+
 	/* define general-purpose callback pointer */
 	dvb->frontend->callback = au0828_tuner_callback;
 
 	/* register everything */
 	ret = dvb_register(dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		if (dvb->frontend->ops.release)
+		{
 			dvb->frontend->ops.release(dvb->frontend);
+		}
+
 		dvb->frontend = NULL;
 		return ret;
 	}
@@ -634,8 +745,10 @@ void au0828_dvb_suspend(struct au0828_dev *dev)
 	struct au0828_dvb *dvb = &dev->dvb;
 	int rc;
 
-	if (dvb->frontend) {
-		if (dev->urb_streaming) {
+	if (dvb->frontend)
+	{
+		if (dev->urb_streaming)
+		{
 			cancel_work_sync(&dev->restart_streaming);
 			/* Stop transport */
 			mutex_lock(&dvb->lock);
@@ -644,6 +757,7 @@ void au0828_dvb_suspend(struct au0828_dev *dev)
 			mutex_unlock(&dvb->lock);
 			dev->need_urb_start = true;
 		}
+
 		/* suspend frontend - does tuner and fe to sleep */
 		rc = dvb_frontend_suspend(dvb->frontend);
 		pr_info("au0828_dvb_suspend(): Suspending DVB fe %d\n", rc);
@@ -655,11 +769,14 @@ void au0828_dvb_resume(struct au0828_dev *dev)
 	struct au0828_dvb *dvb = &dev->dvb;
 	int rc;
 
-	if (dvb->frontend) {
+	if (dvb->frontend)
+	{
 		/* resume frontend - does fe and tuner init */
 		rc = dvb_frontend_resume(dvb->frontend);
 		pr_info("au0828_dvb_resume(): Resuming DVB fe %d\n", rc);
-		if (dev->need_urb_start) {
+
+		if (dev->need_urb_start)
+		{
 			/* Start transport */
 			mutex_lock(&dvb->lock);
 			au0828_start_transport(dev);

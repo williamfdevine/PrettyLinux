@@ -1,6 +1,7 @@
 #ifndef __NVBIOS_CONN_H__
 #define __NVBIOS_CONN_H__
-enum dcb_connector_type {
+enum dcb_connector_type
+{
 	DCB_CONNECTOR_VGA = 0x00,
 	DCB_CONNECTOR_TV_0 = 0x10,
 	DCB_CONNECTOR_TV_1 = 0x11,
@@ -21,14 +22,16 @@ enum dcb_connector_type {
 	DCB_CONNECTOR_NONE = 0xff
 };
 
-struct nvbios_connT {
+struct nvbios_connT
+{
 };
 
 u32 nvbios_connTe(struct nvkm_bios *bios, u8 *ver, u8 *hdr, u8 *cnt, u8 *len);
 u32 nvbios_connTp(struct nvkm_bios *bios, u8 *ver, u8 *hdr, u8 *cnt, u8 *len,
-		  struct nvbios_connT *info);
+				  struct nvbios_connT *info);
 
-struct nvbios_connE {
+struct nvbios_connE
+{
 	u8 type;
 	u8 location;
 	u8 hpd;
@@ -40,5 +43,5 @@ struct nvbios_connE {
 
 u32 nvbios_connEe(struct nvkm_bios *bios, u8 idx, u8 *ver, u8 *hdr);
 u32 nvbios_connEp(struct nvkm_bios *bios, u8 idx, u8 *ver, u8 *hdr,
-		  struct nvbios_connE *info);
+				  struct nvbios_connE *info);
 #endif

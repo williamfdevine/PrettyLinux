@@ -410,8 +410,8 @@
 #define MT_PROT_RATE_DUP_OFDM_24	0x4084
 #define MT_PROT_TXOP_ALLOW_ALL		GENMASK(25, 20)
 #define MT_PROT_TXOP_ALLOW_BW20		(MT_PROT_TXOP_ALLOW_ALL &	\
-					 ~MT_PROT_TXOP_ALLOW_MM40 &	\
-					 ~MT_PROT_TXOP_ALLOW_GF40)
+									 ~MT_PROT_TXOP_ALLOW_MM40 &	\
+									 ~MT_PROT_TXOP_ALLOW_GF40)
 
 #define MT_EXP_ACK_TIME			0x1380
 
@@ -530,8 +530,8 @@
 #define MT_TX_AGG_CNT_BASE1		0x174c
 
 #define MT_TX_AGG_CNT(_id)		((_id) < 8 ?			\
-					 MT_TX_AGG_CNT_BASE0 + ((_id) << 2) : \
-					 MT_TX_AGG_CNT_BASE1 + ((_id - 8) << 2))
+								 MT_TX_AGG_CNT_BASE0 + ((_id) << 2) : \
+								 MT_TX_AGG_CNT_BASE1 + ((_id - 8) << 2))
 
 #define MT_TX_STAT_FIFO_EXT		0x1798
 #define MT_TX_STAT_FIFO_EXT_RETRY	GENMASK(7, 0)
@@ -617,7 +617,8 @@
 #define MT_TEMP_SENSOR			0x1d000
 #define MT_TEMP_SENSOR_VAL		GENMASK(6, 0)
 
-enum mt76_cipher_type {
+enum mt76_cipher_type
+{
 	MT_CIPHER_NONE,
 	MT_CIPHER_WEP40,
 	MT_CIPHER_WEP104,

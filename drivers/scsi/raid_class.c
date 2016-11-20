@@ -20,17 +20,19 @@
 
 #define RAID_NUM_ATTRS	3
 
-struct raid_internal {
+struct raid_internal
+{
 	struct raid_template r;
 	struct raid_function_template *f;
 	/* The actual attributes */
 	struct device_attribute private_attrs[RAID_NUM_ATTRS];
-	/* The array of null terminated pointers to attributes 
+	/* The array of null terminated pointers to attributes
 	 * needed by scsi_sysfs.c */
 	struct device_attribute *attrs[RAID_NUM_ATTRS + 1];
 };
 
-struct raid_component {
+struct raid_component
+{
 	struct list_head node;
 	struct device dev;
 	int num;
@@ -39,23 +41,23 @@ struct raid_component {
 #define to_raid_internal(tmpl)	container_of(tmpl, struct raid_internal, r)
 
 #define tc_to_raid_internal(tcont) ({					\
-	struct raid_template *r =					\
-		container_of(tcont, struct raid_template, raid_attrs);	\
-	to_raid_internal(r);						\
-})
+		struct raid_template *r =					\
+				container_of(tcont, struct raid_template, raid_attrs);	\
+		to_raid_internal(r);						\
+	})
 
 #define ac_to_raid_internal(acont) ({					\
-	struct transport_container *tc =				\
-		container_of(acont, struct transport_container, ac);	\
-	tc_to_raid_internal(tc);					\
-})
+		struct transport_container *tc =				\
+				container_of(acont, struct transport_container, ac);	\
+		tc_to_raid_internal(tc);					\
+	})
 
 #define device_to_raid_internal(dev) ({				\
-	struct attribute_container *ac =				\
-		attribute_container_classdev_to_container(dev);	\
-	ac_to_raid_internal(ac);					\
-})
-	
+		struct attribute_container *ac =				\
+				attribute_container_classdev_to_container(dev);	\
+		ac_to_raid_internal(ac);					\
+	})
+
 
 static int raid_match(struct attribute_container *cont, struct device *dev)
 {
@@ -64,44 +66,53 @@ static int raid_match(struct attribute_container *cont, struct device *dev)
 	struct raid_internal *i = ac_to_raid_internal(cont);
 
 #if defined(CONFIG_SCSI) || defined(CONFIG_SCSI_MODULE)
-	if (scsi_is_sdev_device(dev)) {
+
+	if (scsi_is_sdev_device(dev))
+	{
 		struct scsi_device *sdev = to_scsi_device(dev);
 
 		if (i->f->cookie != sdev->host->hostt)
+		{
 			return 0;
+		}
 
 		return i->f->is_raid(dev);
 	}
+
 #endif
 	/* FIXME: look at other subsystems too */
 	return 0;
 }
 
 static int raid_setup(struct transport_container *tc, struct device *dev,
-		       struct device *cdev)
+					  struct device *cdev)
 {
 	struct raid_data *rd;
 
 	BUG_ON(dev_get_drvdata(cdev));
 
 	rd = kzalloc(sizeof(*rd), GFP_KERNEL);
+
 	if (!rd)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&rd->component_list);
 	dev_set_drvdata(cdev, rd);
-		
+
 	return 0;
 }
 
 static int raid_remove(struct transport_container *tc, struct device *dev,
-		       struct device *cdev)
+					   struct device *cdev)
 {
 	struct raid_data *rd = dev_get_drvdata(cdev);
 	struct raid_component *rc, *next;
 	dev_printk(KERN_ERR, dev, "RAID REMOVE\n");
 	dev_set_drvdata(cdev, NULL);
-	list_for_each_entry_safe(rc, next, &rd->component_list, node) {
+	list_for_each_entry_safe(rc, next, &rd->component_list, node)
+	{
 		list_del(&rc->node);
 		dev_printk(KERN_ERR, rc->dev.parent, "RAID COMPONENT REMOVE\n");
 		device_unregister(&rc->dev);
@@ -112,15 +123,17 @@ static int raid_remove(struct transport_container *tc, struct device *dev,
 }
 
 static DECLARE_TRANSPORT_CLASS(raid_class,
-			       "raid_devices",
-			       raid_setup,
-			       raid_remove,
-			       NULL);
+							   "raid_devices",
+							   raid_setup,
+							   raid_remove,
+							   NULL);
 
-static const struct {
+static const struct
+{
 	enum raid_state	value;
 	char		*name;
-} raid_states[] = {
+} raid_states[] =
+{
 	{ RAID_STATE_UNKNOWN, "unknown" },
 	{ RAID_STATE_ACTIVE, "active" },
 	{ RAID_STATE_DEGRADED, "degraded" },
@@ -133,19 +146,24 @@ static const char *raid_state_name(enum raid_state state)
 	int i;
 	char *name = NULL;
 
-	for (i = 0; i < ARRAY_SIZE(raid_states); i++) {
-		if (raid_states[i].value == state) {
+	for (i = 0; i < ARRAY_SIZE(raid_states); i++)
+	{
+		if (raid_states[i].value == state)
+		{
 			name = raid_states[i].name;
 			break;
 		}
 	}
+
 	return name;
 }
 
-static struct {
+static struct
+{
 	enum raid_level value;
 	char *name;
-} raid_levels[] = {
+} raid_levels[] =
+{
 	{ RAID_LEVEL_UNKNOWN, "unknown" },
 	{ RAID_LEVEL_LINEAR, "linear" },
 	{ RAID_LEVEL_0, "raid0" },
@@ -164,37 +182,40 @@ static const char *raid_level_name(enum raid_level level)
 	int i;
 	char *name = NULL;
 
-	for (i = 0; i < ARRAY_SIZE(raid_levels); i++) {
-		if (raid_levels[i].value == level) {
+	for (i = 0; i < ARRAY_SIZE(raid_levels); i++)
+	{
+		if (raid_levels[i].value == level)
+		{
 			name = raid_levels[i].name;
 			break;
 		}
 	}
+
 	return name;
 }
 
 #define raid_attr_show_internal(attr, fmt, var, code)			\
-static ssize_t raid_show_##attr(struct device *dev, 			\
-				struct device_attribute *attr, 		\
-				char *buf)				\
-{									\
-	struct raid_data *rd = dev_get_drvdata(dev);			\
-	code								\
-	return snprintf(buf, 20, #fmt "\n", var);			\
-}
+	static ssize_t raid_show_##attr(struct device *dev, 			\
+									struct device_attribute *attr, 		\
+									char *buf)				\
+	{									\
+		struct raid_data *rd = dev_get_drvdata(dev);			\
+		code								\
+		return snprintf(buf, 20, #fmt "\n", var);			\
+	}
 
 #define raid_attr_ro_states(attr, states, code)				\
-raid_attr_show_internal(attr, %s, name,					\
-	const char *name;						\
-	code								\
-	name = raid_##states##_name(rd->attr);				\
-)									\
-static DEVICE_ATTR(attr, S_IRUGO, raid_show_##attr, NULL)
+	raid_attr_show_internal(attr, %s, name,					\
+							const char *name;						\
+							code								\
+							name = raid_##states##_name(rd->attr);				\
+						   )									\
+	static DEVICE_ATTR(attr, S_IRUGO, raid_show_##attr, NULL)
 
 
 #define raid_attr_ro_internal(attr, code)				\
-raid_attr_show_internal(attr, %d, rd->attr, code)			\
-static DEVICE_ATTR(attr, S_IRUGO, raid_show_##attr, NULL)
+	raid_attr_show_internal(attr, %d, rd->attr, code)			\
+	static DEVICE_ATTR(attr, S_IRUGO, raid_show_##attr, NULL)
 
 #define ATTR_CODE(attr)							\
 	struct raid_internal *i = device_to_raid_internal(dev);		\
@@ -220,19 +241,22 @@ static void raid_component_release(struct device *dev)
 	kfree(rc);
 }
 
-int raid_component_add(struct raid_template *r,struct device *raid_dev,
-		       struct device *component_dev)
+int raid_component_add(struct raid_template *r, struct device *raid_dev,
+					   struct device *component_dev)
 {
 	struct device *cdev =
 		attribute_container_find_class_device(&r->raid_attrs.ac,
-						      raid_dev);
+				raid_dev);
 	struct raid_component *rc;
 	struct raid_data *rd = dev_get_drvdata(cdev);
 	int err;
 
 	rc = kzalloc(sizeof(*rc), GFP_KERNEL);
+
 	if (!rc)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&rc->node);
 	device_initialize(&rc->dev);
@@ -244,8 +268,11 @@ int raid_component_add(struct raid_template *r,struct device *raid_dev,
 	list_add_tail(&rc->node, &rd->component_list);
 	rc->dev.class = &raid_class.class;
 	err = device_add(&rc->dev);
+
 	if (err)
+	{
 		goto err_out;
+	}
 
 	return 0;
 
@@ -262,11 +289,13 @@ struct raid_template *
 raid_class_attach(struct raid_function_template *ft)
 {
 	struct raid_internal *i = kzalloc(sizeof(struct raid_internal),
-					  GFP_KERNEL);
+									  GFP_KERNEL);
 	int count = 0;
 
 	if (unlikely(!i))
+	{
 		return NULL;
+	}
 
 	i->f = ft;
 

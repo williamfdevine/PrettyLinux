@@ -24,16 +24,19 @@
 #define BCM_UART_CLOCK_48MHZ	0x01
 #define BCM_UART_CLOCK_24MHZ	0x02
 
-struct bcm_update_uart_baud_rate {
+struct bcm_update_uart_baud_rate
+{
 	__le16 zero;
 	__le32 baud_rate;
 } __packed;
 
-struct bcm_write_uart_clock_setting {
+struct bcm_write_uart_clock_setting
+{
 	__u8 type;
 } __packed;
 
-struct bcm_set_sleep_mode {
+struct bcm_set_sleep_mode
+{
 	__u8 sleep_mode;
 	__u8 idle_host;
 	__u8 idle_dev;
@@ -48,7 +51,8 @@ struct bcm_set_sleep_mode {
 	__u8 break_to_host;
 } __packed;
 
-struct bcm_set_pcm_int_params {
+struct bcm_set_pcm_int_params
+{
 	__u8 routing;
 	__u8 rate;
 	__u8 frame_sync;
@@ -56,7 +60,8 @@ struct bcm_set_pcm_int_params {
 	__u8 clock_mode;
 } __packed;
 
-struct bcm_set_pcm_format_params {
+struct bcm_set_pcm_format_params
+{
 	__u8 lsb_first;
 	__u8 fill_value;
 	__u8 fill_method;
@@ -104,7 +109,7 @@ static inline int btbcm_setup_apple(struct hci_dev *hdev)
 }
 
 static inline int btbcm_initialize(struct hci_dev *hdev, char *fw_name,
-				   size_t len)
+								   size_t len)
 {
 	return 0;
 }

@@ -85,14 +85,15 @@
 #define PCI1723_VREF_POS10V		PCI1723_VREF(3)
 
 static int pci1723_ao_insn_write(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		unsigned int val = data[i];
 
 		outw(val, dev->iobase + PCI1723_AO_REG(chan));
@@ -103,9 +104,9 @@ static int pci1723_ao_insn_write(struct comedi_device *dev,
 }
 
 static int pci1723_dio_insn_config(struct comedi_device *dev,
-				   struct comedi_subdevice *s,
-				   struct comedi_insn *insn,
-				   unsigned int *data)
+								   struct comedi_subdevice *s,
+								   struct comedi_insn *insn,
+								   unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int mask = (chan < 8) ? 0x00ff : 0xff00;
@@ -113,25 +114,36 @@ static int pci1723_dio_insn_config(struct comedi_device *dev,
 	int ret;
 
 	ret = comedi_dio_insn_config(dev, s, insn, data, mask);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (!(s->io_bits & 0x00ff))
-		mode |= PCI1723_DIO_CTRL_LDIO;	/* low byte input */
+	{
+		mode |= PCI1723_DIO_CTRL_LDIO;    /* low byte input */
+	}
+
 	if (!(s->io_bits & 0xff00))
-		mode |= PCI1723_DIO_CTRL_HDIO;	/* high byte input */
+	{
+		mode |= PCI1723_DIO_CTRL_HDIO;    /* high byte input */
+	}
+
 	outw(mode, dev->iobase + PCI1723_DIO_CTRL_REG);
 
 	return insn->n;
 }
 
 static int pci1723_dio_insn_bits(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		outw(s->state, dev->iobase + PCI1723_DIO_DATA_REG);
+	}
 
 	data[1] = inw(dev->iobase + PCI1723_DIO_DATA_REG);
 
@@ -139,7 +151,7 @@ static int pci1723_dio_insn_bits(struct comedi_device *dev,
 }
 
 static int pci1723_auto_attach(struct comedi_device *dev,
-			       unsigned long context_unused)
+							   unsigned long context_unused)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	struct comedi_subdevice *s;
@@ -148,13 +160,20 @@ static int pci1723_auto_attach(struct comedi_device *dev,
 	int i;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = pci_resource_start(pcidev, 2);
 
 	ret = comedi_alloc_subdevices(dev, 2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[0];
 	s->type		= COMEDI_SUBD_AO;
@@ -165,19 +184,25 @@ static int pci1723_auto_attach(struct comedi_device *dev,
 	s->insn_write	= pci1723_ao_insn_write;
 
 	ret = comedi_alloc_subdev_readback(s);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* synchronously reset all analog outputs to 0V, +/-10V range */
 	outw(PCI1723_SYNC_CTRL_SYNC, dev->iobase + PCI1723_SYNC_CTRL_REG);
-	for (i = 0; i < s->n_chan; i++) {
+
+	for (i = 0; i < s->n_chan; i++)
+	{
 		outw(PCI1723_CTRL_RANGE(0) | PCI1723_CTRL_CHAN(i),
-		     PCI1723_CTRL_REG);
+			 PCI1723_CTRL_REG);
 		outw(0, dev->iobase + PCI1723_RANGE_STROBE_REG);
 
 		outw(0x8000, dev->iobase + PCI1723_AO_REG(i));
 		s->readback[i] = 0x8000;
 	}
+
 	outw(0, dev->iobase + PCI1723_SYNC_STROBE_REG);
 
 	/* disable syncronous control */
@@ -194,16 +219,24 @@ static int pci1723_auto_attach(struct comedi_device *dev,
 
 	/* get initial DIO direction and state */
 	val = inw(dev->iobase + PCI1723_DIO_CTRL_REG);
+
 	if (!(val & PCI1723_DIO_CTRL_LDIO))
-		s->io_bits |= 0x00ff;	/* low byte output */
+	{
+		s->io_bits |= 0x00ff;    /* low byte output */
+	}
+
 	if (!(val & PCI1723_DIO_CTRL_HDIO))
-		s->io_bits |= 0xff00;	/* high byte output */
+	{
+		s->io_bits |= 0xff00;    /* high byte output */
+	}
+
 	s->state = inw(dev->iobase + PCI1723_DIO_DATA_REG);
 
 	return 0;
 }
 
-static struct comedi_driver adv_pci1723_driver = {
+static struct comedi_driver adv_pci1723_driver =
+{
 	.driver_name	= "adv_pci1723",
 	.module		= THIS_MODULE,
 	.auto_attach	= pci1723_auto_attach,
@@ -211,19 +244,21 @@ static struct comedi_driver adv_pci1723_driver = {
 };
 
 static int adv_pci1723_pci_probe(struct pci_dev *dev,
-				 const struct pci_device_id *id)
+								 const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &adv_pci1723_driver,
-				      id->driver_data);
+								  id->driver_data);
 }
 
-static const struct pci_device_id adv_pci1723_pci_table[] = {
+static const struct pci_device_id adv_pci1723_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_ADVANTECH, 0x1723) },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, adv_pci1723_pci_table);
 
-static struct pci_driver adv_pci1723_pci_driver = {
+static struct pci_driver adv_pci1723_pci_driver =
+{
 	.name		= "adv_pci1723",
 	.id_table	= adv_pci1723_pci_table,
 	.probe		= adv_pci1723_pci_probe,

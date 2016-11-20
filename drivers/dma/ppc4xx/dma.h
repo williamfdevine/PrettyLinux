@@ -75,17 +75,17 @@
 #define DMA_CUED_XOR_HB		(0x00000008)
 
 #ifdef CONFIG_440SP
-#define DMA_CUED_MULT1_OFF	0
-#define DMA_CUED_MULT2_OFF	8
-#define DMA_CUED_MULT3_OFF	16
-#define DMA_CUED_REGION_OFF	24
-#define DMA_CUED_XOR_WIN_MSK	(0xFC000000)
+	#define DMA_CUED_MULT1_OFF	0
+	#define DMA_CUED_MULT2_OFF	8
+	#define DMA_CUED_MULT3_OFF	16
+	#define DMA_CUED_REGION_OFF	24
+	#define DMA_CUED_XOR_WIN_MSK	(0xFC000000)
 #else
-#define DMA_CUED_MULT1_OFF	2
-#define DMA_CUED_MULT2_OFF	10
-#define DMA_CUED_MULT3_OFF	18
-#define DMA_CUED_REGION_OFF	26
-#define DMA_CUED_XOR_WIN_MSK	(0xF0000000)
+	#define DMA_CUED_MULT1_OFF	2
+	#define DMA_CUED_MULT2_OFF	10
+	#define DMA_CUED_MULT3_OFF	18
+	#define DMA_CUED_REGION_OFF	26
+	#define DMA_CUED_XOR_WIN_MSK	(0xF0000000)
 #endif
 
 #define DMA_CUED_REGION_MSK	0x3
@@ -102,7 +102,8 @@
 /*
  * DMAx engines Command Descriptor Block Type
  */
-struct dma_cdb {
+struct dma_cdb
+{
 	/*
 	 * Basic CDB structure (Table 20-17, p.499, 440spe_um_1_22.pdf)
 	 */
@@ -121,7 +122,8 @@ struct dma_cdb {
 /*
  * DMAx hardware registers (p.515 in 440SPe UM 1.22)
  */
-struct dma_regs {
+struct dma_regs
+{
 	u32	cpfpl;
 	u32	cpfph;
 	u32	csfpl;
@@ -155,7 +157,8 @@ struct dma_regs {
 /*
  * I2O hardware registers (p.528 in 440SPe UM 1.22)
  */
-struct i2o_regs {
+struct i2o_regs
+{
 	u32	ists;
 	u32	iseat;
 	u32	isead;

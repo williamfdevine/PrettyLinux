@@ -33,7 +33,8 @@
 
 
 /* Register default values for ISABELLE driver. */
-static const struct reg_default isabelle_reg_defs[] = {
+static const struct reg_default isabelle_reg_defs[] =
+{
 	{ 0, 0x00 },
 	{ 1, 0x00 },
 	{ 2, 0x00 },
@@ -139,18 +140,20 @@ static const struct reg_default isabelle_reg_defs[] = {
 static const char *isabelle_rx1_texts[] = {"VRX1", "ARX1"};
 static const char *isabelle_rx2_texts[] = {"VRX2", "ARX2"};
 
-static const struct soc_enum isabelle_rx1_enum[] = {
+static const struct soc_enum isabelle_rx1_enum[] =
+{
 	SOC_ENUM_SINGLE(ISABELLE_VOICE_HPF_CFG_REG, 3,
-			ARRAY_SIZE(isabelle_rx1_texts), isabelle_rx1_texts),
+	ARRAY_SIZE(isabelle_rx1_texts), isabelle_rx1_texts),
 	SOC_ENUM_SINGLE(ISABELLE_AUDIO_HPF_CFG_REG, 5,
-			ARRAY_SIZE(isabelle_rx1_texts), isabelle_rx1_texts),
+	ARRAY_SIZE(isabelle_rx1_texts), isabelle_rx1_texts),
 };
 
-static const struct soc_enum isabelle_rx2_enum[] = {
+static const struct soc_enum isabelle_rx2_enum[] =
+{
 	SOC_ENUM_SINGLE(ISABELLE_VOICE_HPF_CFG_REG, 2,
-			ARRAY_SIZE(isabelle_rx2_texts), isabelle_rx2_texts),
+	ARRAY_SIZE(isabelle_rx2_texts), isabelle_rx2_texts),
 	SOC_ENUM_SINGLE(ISABELLE_AUDIO_HPF_CFG_REG, 4,
-			ARRAY_SIZE(isabelle_rx2_texts), isabelle_rx2_texts),
+	ARRAY_SIZE(isabelle_rx2_texts), isabelle_rx2_texts),
 };
 
 /* Headset DAC playback switches */
@@ -164,18 +167,20 @@ static const struct snd_kcontrol_new rx2_mux_controls =
 static const char *isabelle_atx_texts[] = {"AMIC1", "DMIC"};
 static const char *isabelle_vtx_texts[] = {"AMIC2", "DMIC"};
 
-static const struct soc_enum isabelle_atx_enum[] = {
+static const struct soc_enum isabelle_atx_enum[] =
+{
 	SOC_ENUM_SINGLE(ISABELLE_AMIC_CFG_REG, 7,
-			ARRAY_SIZE(isabelle_atx_texts), isabelle_atx_texts),
+	ARRAY_SIZE(isabelle_atx_texts), isabelle_atx_texts),
 	SOC_ENUM_SINGLE(ISABELLE_DMIC_CFG_REG, 0,
-			ARRAY_SIZE(isabelle_atx_texts), isabelle_atx_texts),
+	ARRAY_SIZE(isabelle_atx_texts), isabelle_atx_texts),
 };
 
-static const struct soc_enum isabelle_vtx_enum[] = {
+static const struct soc_enum isabelle_vtx_enum[] =
+{
 	SOC_ENUM_SINGLE(ISABELLE_AMIC_CFG_REG, 6,
-			ARRAY_SIZE(isabelle_vtx_texts), isabelle_vtx_texts),
+	ARRAY_SIZE(isabelle_vtx_texts), isabelle_vtx_texts),
 	SOC_ENUM_SINGLE(ISABELLE_DMIC_CFG_REG, 0,
-			ARRAY_SIZE(isabelle_vtx_texts), isabelle_vtx_texts),
+	ARRAY_SIZE(isabelle_vtx_texts), isabelle_vtx_texts),
 };
 
 static const struct snd_kcontrol_new atx_mux_controls =
@@ -185,19 +190,21 @@ static const struct snd_kcontrol_new vtx_mux_controls =
 	SOC_DAPM_ENUM("Route", isabelle_vtx_enum);
 
 /* Left analog microphone selection */
-static const char *isabelle_amic1_texts[] = {
-	"Main Mic", "Headset Mic", "Aux/FM Left"};
+static const char *isabelle_amic1_texts[] =
+{
+	"Main Mic", "Headset Mic", "Aux/FM Left"
+};
 
 /* Left analog microphone selection */
 static const char *isabelle_amic2_texts[] = {"Sub Mic", "Aux/FM Right"};
 
 static SOC_ENUM_SINGLE_DECL(isabelle_amic1_enum,
-			    ISABELLE_AMIC_CFG_REG, 5,
-			    isabelle_amic1_texts);
+							ISABELLE_AMIC_CFG_REG, 5,
+							isabelle_amic1_texts);
 
 static SOC_ENUM_SINGLE_DECL(isabelle_amic2_enum,
-			    ISABELLE_AMIC_CFG_REG, 4,
-			    isabelle_amic2_texts);
+							ISABELLE_AMIC_CFG_REG, 4,
+							isabelle_amic2_texts);
 
 static const struct snd_kcontrol_new amic1_control =
 	SOC_DAPM_ENUM("Route", isabelle_amic1_enum);
@@ -209,22 +216,24 @@ static const char *isabelle_st_audio_texts[] = {"ATX1", "ATX2"};
 
 static const char *isabelle_st_voice_texts[] = {"VTX1", "VTX2"};
 
-static const struct soc_enum isabelle_st_audio_enum[] = {
+static const struct soc_enum isabelle_st_audio_enum[] =
+{
 	SOC_ENUM_SINGLE(ISABELLE_ATX_STPGA1_CFG_REG, 7,
-			ARRAY_SIZE(isabelle_st_audio_texts),
-			isabelle_st_audio_texts),
+	ARRAY_SIZE(isabelle_st_audio_texts),
+	isabelle_st_audio_texts),
 	SOC_ENUM_SINGLE(ISABELLE_ATX_STPGA2_CFG_REG, 7,
-			ARRAY_SIZE(isabelle_st_audio_texts),
-			isabelle_st_audio_texts),
+	ARRAY_SIZE(isabelle_st_audio_texts),
+	isabelle_st_audio_texts),
 };
 
-static const struct soc_enum isabelle_st_voice_enum[] = {
+static const struct soc_enum isabelle_st_voice_enum[] =
+{
 	SOC_ENUM_SINGLE(ISABELLE_VTX_STPGA1_CFG_REG, 7,
-			ARRAY_SIZE(isabelle_st_voice_texts),
-			isabelle_st_voice_texts),
+	ARRAY_SIZE(isabelle_st_voice_texts),
+	isabelle_st_voice_texts),
 	SOC_ENUM_SINGLE(ISABELLE_VTX2_STPGA2_CFG_REG, 7,
-			ARRAY_SIZE(isabelle_st_voice_texts),
-			isabelle_st_voice_texts),
+	ARRAY_SIZE(isabelle_st_voice_texts),
+	isabelle_st_voice_texts),
 };
 
 static const struct snd_kcontrol_new st_audio_control =
@@ -234,109 +243,128 @@ static const struct snd_kcontrol_new st_voice_control =
 	SOC_DAPM_ENUM("Route", isabelle_st_voice_enum);
 
 /* Mixer controls */
-static const struct snd_kcontrol_new isabelle_hs_left_mixer_controls[] = {
-SOC_DAPM_SINGLE("DAC1L Playback Switch", ISABELLE_HSDRV_CFG1_REG, 7, 1, 0),
-SOC_DAPM_SINGLE("APGA1 Playback Switch", ISABELLE_HSDRV_CFG1_REG, 6, 1, 0),
+static const struct snd_kcontrol_new isabelle_hs_left_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("DAC1L Playback Switch", ISABELLE_HSDRV_CFG1_REG, 7, 1, 0),
+	SOC_DAPM_SINGLE("APGA1 Playback Switch", ISABELLE_HSDRV_CFG1_REG, 6, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_hs_right_mixer_controls[] = {
-SOC_DAPM_SINGLE("DAC1R Playback Switch", ISABELLE_HSDRV_CFG1_REG, 5, 1, 0),
-SOC_DAPM_SINGLE("APGA2 Playback Switch", ISABELLE_HSDRV_CFG1_REG, 4, 1, 0),
+static const struct snd_kcontrol_new isabelle_hs_right_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("DAC1R Playback Switch", ISABELLE_HSDRV_CFG1_REG, 5, 1, 0),
+	SOC_DAPM_SINGLE("APGA2 Playback Switch", ISABELLE_HSDRV_CFG1_REG, 4, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_hf_left_mixer_controls[] = {
-SOC_DAPM_SINGLE("DAC2L Playback Switch", ISABELLE_HFLPGA_CFG_REG, 7, 1, 0),
-SOC_DAPM_SINGLE("APGA1 Playback Switch", ISABELLE_HFLPGA_CFG_REG, 6, 1, 0),
+static const struct snd_kcontrol_new isabelle_hf_left_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("DAC2L Playback Switch", ISABELLE_HFLPGA_CFG_REG, 7, 1, 0),
+	SOC_DAPM_SINGLE("APGA1 Playback Switch", ISABELLE_HFLPGA_CFG_REG, 6, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_hf_right_mixer_controls[] = {
-SOC_DAPM_SINGLE("DAC2R Playback Switch", ISABELLE_HFRPGA_CFG_REG, 7, 1, 0),
-SOC_DAPM_SINGLE("APGA2 Playback Switch", ISABELLE_HFRPGA_CFG_REG, 6, 1, 0),
+static const struct snd_kcontrol_new isabelle_hf_right_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("DAC2R Playback Switch", ISABELLE_HFRPGA_CFG_REG, 7, 1, 0),
+	SOC_DAPM_SINGLE("APGA2 Playback Switch", ISABELLE_HFRPGA_CFG_REG, 6, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_ep_mixer_controls[] = {
-SOC_DAPM_SINGLE("DAC2L Playback Switch", ISABELLE_EARDRV_CFG1_REG, 7, 1, 0),
-SOC_DAPM_SINGLE("APGA1 Playback Switch", ISABELLE_EARDRV_CFG1_REG, 6, 1, 0),
+static const struct snd_kcontrol_new isabelle_ep_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("DAC2L Playback Switch", ISABELLE_EARDRV_CFG1_REG, 7, 1, 0),
+	SOC_DAPM_SINGLE("APGA1 Playback Switch", ISABELLE_EARDRV_CFG1_REG, 6, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_aux_left_mixer_controls[] = {
-SOC_DAPM_SINGLE("DAC3L Playback Switch", ISABELLE_LINEAMP_CFG_REG, 7, 1, 0),
-SOC_DAPM_SINGLE("APGA1 Playback Switch", ISABELLE_LINEAMP_CFG_REG, 6, 1, 0),
+static const struct snd_kcontrol_new isabelle_aux_left_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("DAC3L Playback Switch", ISABELLE_LINEAMP_CFG_REG, 7, 1, 0),
+	SOC_DAPM_SINGLE("APGA1 Playback Switch", ISABELLE_LINEAMP_CFG_REG, 6, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_aux_right_mixer_controls[] = {
-SOC_DAPM_SINGLE("DAC3R Playback Switch", ISABELLE_LINEAMP_CFG_REG, 5, 1, 0),
-SOC_DAPM_SINGLE("APGA2 Playback Switch", ISABELLE_LINEAMP_CFG_REG, 4, 1, 0),
+static const struct snd_kcontrol_new isabelle_aux_right_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("DAC3R Playback Switch", ISABELLE_LINEAMP_CFG_REG, 5, 1, 0),
+	SOC_DAPM_SINGLE("APGA2 Playback Switch", ISABELLE_LINEAMP_CFG_REG, 4, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_dpga1_left_mixer_controls[] = {
-SOC_DAPM_SINGLE("RX1 Playback Switch", ISABELLE_DPGA1LR_IN_SEL_REG, 7, 1, 0),
-SOC_DAPM_SINGLE("RX3 Playback Switch", ISABELLE_DPGA1LR_IN_SEL_REG, 6, 1, 0),
-SOC_DAPM_SINGLE("RX5 Playback Switch", ISABELLE_DPGA1LR_IN_SEL_REG, 5, 1, 0),
+static const struct snd_kcontrol_new isabelle_dpga1_left_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("RX1 Playback Switch", ISABELLE_DPGA1LR_IN_SEL_REG, 7, 1, 0),
+	SOC_DAPM_SINGLE("RX3 Playback Switch", ISABELLE_DPGA1LR_IN_SEL_REG, 6, 1, 0),
+	SOC_DAPM_SINGLE("RX5 Playback Switch", ISABELLE_DPGA1LR_IN_SEL_REG, 5, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_dpga1_right_mixer_controls[] = {
-SOC_DAPM_SINGLE("RX2 Playback Switch", ISABELLE_DPGA1LR_IN_SEL_REG, 3, 1, 0),
-SOC_DAPM_SINGLE("RX4 Playback Switch", ISABELLE_DPGA1LR_IN_SEL_REG, 2, 1, 0),
-SOC_DAPM_SINGLE("RX6 Playback Switch", ISABELLE_DPGA1LR_IN_SEL_REG, 1, 1, 0),
+static const struct snd_kcontrol_new isabelle_dpga1_right_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("RX2 Playback Switch", ISABELLE_DPGA1LR_IN_SEL_REG, 3, 1, 0),
+	SOC_DAPM_SINGLE("RX4 Playback Switch", ISABELLE_DPGA1LR_IN_SEL_REG, 2, 1, 0),
+	SOC_DAPM_SINGLE("RX6 Playback Switch", ISABELLE_DPGA1LR_IN_SEL_REG, 1, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_dpga2_left_mixer_controls[] = {
-SOC_DAPM_SINGLE("RX1 Playback Switch", ISABELLE_DPGA2L_IN_SEL_REG, 7, 1, 0),
-SOC_DAPM_SINGLE("RX2 Playback Switch", ISABELLE_DPGA2L_IN_SEL_REG, 6, 1, 0),
-SOC_DAPM_SINGLE("RX3 Playback Switch", ISABELLE_DPGA2L_IN_SEL_REG, 5, 1, 0),
-SOC_DAPM_SINGLE("RX4 Playback Switch", ISABELLE_DPGA2L_IN_SEL_REG, 4, 1, 0),
-SOC_DAPM_SINGLE("RX5 Playback Switch", ISABELLE_DPGA2L_IN_SEL_REG, 3, 1, 0),
-SOC_DAPM_SINGLE("RX6 Playback Switch", ISABELLE_DPGA2L_IN_SEL_REG, 2, 1, 0),
+static const struct snd_kcontrol_new isabelle_dpga2_left_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("RX1 Playback Switch", ISABELLE_DPGA2L_IN_SEL_REG, 7, 1, 0),
+	SOC_DAPM_SINGLE("RX2 Playback Switch", ISABELLE_DPGA2L_IN_SEL_REG, 6, 1, 0),
+	SOC_DAPM_SINGLE("RX3 Playback Switch", ISABELLE_DPGA2L_IN_SEL_REG, 5, 1, 0),
+	SOC_DAPM_SINGLE("RX4 Playback Switch", ISABELLE_DPGA2L_IN_SEL_REG, 4, 1, 0),
+	SOC_DAPM_SINGLE("RX5 Playback Switch", ISABELLE_DPGA2L_IN_SEL_REG, 3, 1, 0),
+	SOC_DAPM_SINGLE("RX6 Playback Switch", ISABELLE_DPGA2L_IN_SEL_REG, 2, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_dpga2_right_mixer_controls[] = {
-SOC_DAPM_SINGLE("USNC Playback Switch", ISABELLE_DPGA2R_IN_SEL_REG, 7, 1, 0),
-SOC_DAPM_SINGLE("RX2 Playback Switch", ISABELLE_DPGA2R_IN_SEL_REG, 3, 1, 0),
-SOC_DAPM_SINGLE("RX4 Playback Switch", ISABELLE_DPGA2R_IN_SEL_REG, 2, 1, 0),
-SOC_DAPM_SINGLE("RX6 Playback Switch", ISABELLE_DPGA2R_IN_SEL_REG, 1, 1, 0),
+static const struct snd_kcontrol_new isabelle_dpga2_right_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("USNC Playback Switch", ISABELLE_DPGA2R_IN_SEL_REG, 7, 1, 0),
+	SOC_DAPM_SINGLE("RX2 Playback Switch", ISABELLE_DPGA2R_IN_SEL_REG, 3, 1, 0),
+	SOC_DAPM_SINGLE("RX4 Playback Switch", ISABELLE_DPGA2R_IN_SEL_REG, 2, 1, 0),
+	SOC_DAPM_SINGLE("RX6 Playback Switch", ISABELLE_DPGA2R_IN_SEL_REG, 1, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_dpga3_left_mixer_controls[] = {
-SOC_DAPM_SINGLE("RX1 Playback Switch", ISABELLE_DPGA3LR_IN_SEL_REG, 7, 1, 0),
-SOC_DAPM_SINGLE("RX3 Playback Switch", ISABELLE_DPGA3LR_IN_SEL_REG, 6, 1, 0),
-SOC_DAPM_SINGLE("RX5 Playback Switch", ISABELLE_DPGA3LR_IN_SEL_REG, 5, 1, 0),
+static const struct snd_kcontrol_new isabelle_dpga3_left_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("RX1 Playback Switch", ISABELLE_DPGA3LR_IN_SEL_REG, 7, 1, 0),
+	SOC_DAPM_SINGLE("RX3 Playback Switch", ISABELLE_DPGA3LR_IN_SEL_REG, 6, 1, 0),
+	SOC_DAPM_SINGLE("RX5 Playback Switch", ISABELLE_DPGA3LR_IN_SEL_REG, 5, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_dpga3_right_mixer_controls[] = {
-SOC_DAPM_SINGLE("RX2 Playback Switch", ISABELLE_DPGA3LR_IN_SEL_REG, 3, 1, 0),
-SOC_DAPM_SINGLE("RX4 Playback Switch", ISABELLE_DPGA3LR_IN_SEL_REG, 2, 1, 0),
-SOC_DAPM_SINGLE("RX6 Playback Switch", ISABELLE_DPGA3LR_IN_SEL_REG, 1, 1, 0),
+static const struct snd_kcontrol_new isabelle_dpga3_right_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("RX2 Playback Switch", ISABELLE_DPGA3LR_IN_SEL_REG, 3, 1, 0),
+	SOC_DAPM_SINGLE("RX4 Playback Switch", ISABELLE_DPGA3LR_IN_SEL_REG, 2, 1, 0),
+	SOC_DAPM_SINGLE("RX6 Playback Switch", ISABELLE_DPGA3LR_IN_SEL_REG, 1, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_rx1_mixer_controls[] = {
-SOC_DAPM_SINGLE("ST1 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 7, 1, 0),
-SOC_DAPM_SINGLE("DL1 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 6, 1, 0),
+static const struct snd_kcontrol_new isabelle_rx1_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("ST1 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 7, 1, 0),
+	SOC_DAPM_SINGLE("DL1 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 6, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_rx2_mixer_controls[] = {
-SOC_DAPM_SINGLE("ST2 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 5, 1, 0),
-SOC_DAPM_SINGLE("DL2 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 4, 1, 0),
+static const struct snd_kcontrol_new isabelle_rx2_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("ST2 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 5, 1, 0),
+	SOC_DAPM_SINGLE("DL2 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 4, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_rx3_mixer_controls[] = {
-SOC_DAPM_SINGLE("ST1 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 3, 1, 0),
-SOC_DAPM_SINGLE("DL3 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 2, 1, 0),
+static const struct snd_kcontrol_new isabelle_rx3_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("ST1 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 3, 1, 0),
+	SOC_DAPM_SINGLE("DL3 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 2, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_rx4_mixer_controls[] = {
-SOC_DAPM_SINGLE("ST2 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 1, 1, 0),
-SOC_DAPM_SINGLE("DL4 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 0, 1, 0),
+static const struct snd_kcontrol_new isabelle_rx4_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("ST2 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 1, 1, 0),
+	SOC_DAPM_SINGLE("DL4 Playback Switch", ISABELLE_RX_INPUT_CFG_REG, 0, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_rx5_mixer_controls[] = {
-SOC_DAPM_SINGLE("ST1 Playback Switch", ISABELLE_RX_INPUT_CFG2_REG, 7, 1, 0),
-SOC_DAPM_SINGLE("DL5 Playback Switch", ISABELLE_RX_INPUT_CFG2_REG, 6, 1, 0),
+static const struct snd_kcontrol_new isabelle_rx5_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("ST1 Playback Switch", ISABELLE_RX_INPUT_CFG2_REG, 7, 1, 0),
+	SOC_DAPM_SINGLE("DL5 Playback Switch", ISABELLE_RX_INPUT_CFG2_REG, 6, 1, 0),
 };
 
-static const struct snd_kcontrol_new isabelle_rx6_mixer_controls[] = {
-SOC_DAPM_SINGLE("ST2 Playback Switch", ISABELLE_RX_INPUT_CFG2_REG, 5, 1, 0),
-SOC_DAPM_SINGLE("DL6 Playback Switch", ISABELLE_RX_INPUT_CFG2_REG, 4, 1, 0),
+static const struct snd_kcontrol_new isabelle_rx6_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("ST2 Playback Switch", ISABELLE_RX_INPUT_CFG2_REG, 5, 1, 0),
+	SOC_DAPM_SINGLE("DL6 Playback Switch", ISABELLE_RX_INPUT_CFG2_REG, 4, 1, 0),
 };
 
 static const struct snd_kcontrol_new ep_path_enable_control =
@@ -357,122 +385,124 @@ static const DECLARE_TLV_DB_SCALE(rx_tlv, -6300, 100, 1);
 static const DECLARE_TLV_DB_SCALE(st_tlv, -2700, 300, 1);
 static const DECLARE_TLV_DB_SCALE(tx_tlv, -600, 100, 0);
 
-static const struct snd_kcontrol_new isabelle_snd_controls[] = {
+static const struct snd_kcontrol_new isabelle_snd_controls[] =
+{
 	SOC_DOUBLE_TLV("Headset Playback Volume", ISABELLE_HSDRV_GAIN_REG,
-			4, 0, 0xF, 0, dac_tlv),
+	4, 0, 0xF, 0, dac_tlv),
 	SOC_DOUBLE_R_TLV("Handsfree Playback Volume",
-			ISABELLE_HFLPGA_CFG_REG, ISABELLE_HFRPGA_CFG_REG,
-			0, 0x1F, 0, hf_tlv),
+	ISABELLE_HFLPGA_CFG_REG, ISABELLE_HFRPGA_CFG_REG,
+	0, 0x1F, 0, hf_tlv),
 	SOC_DOUBLE_TLV("Aux Playback Volume", ISABELLE_LINEAMP_GAIN_REG,
-			4, 0, 0xF, 0, dac_tlv),
+	4, 0, 0xF, 0, dac_tlv),
 	SOC_SINGLE_TLV("Earpiece Playback Volume", ISABELLE_EARDRV_CFG1_REG,
-			0, 0xF, 0, dac_tlv),
+	0, 0xF, 0, dac_tlv),
 
 	SOC_DOUBLE_TLV("Aux FM Volume", ISABELLE_APGA_GAIN_REG, 4, 0, 0xF, 0,
-			afm_amp_tlv),
+	afm_amp_tlv),
 	SOC_SINGLE_TLV("Mic1 Capture Volume", ISABELLE_MIC1_GAIN_REG, 3, 0x1F,
-			0, mic_amp_tlv),
+	0, mic_amp_tlv),
 	SOC_SINGLE_TLV("Mic2 Capture Volume", ISABELLE_MIC2_GAIN_REG, 3, 0x1F,
-			0, mic_amp_tlv),
+	0, mic_amp_tlv),
 
 	SOC_DOUBLE_R_TLV("DPGA1 Volume", ISABELLE_DPGA1L_GAIN_REG,
-			ISABELLE_DPGA1R_GAIN_REG, 0, 0x3F, 0, dpga_tlv),
+	ISABELLE_DPGA1R_GAIN_REG, 0, 0x3F, 0, dpga_tlv),
 	SOC_DOUBLE_R_TLV("DPGA2 Volume", ISABELLE_DPGA2L_GAIN_REG,
-			ISABELLE_DPGA2R_GAIN_REG, 0, 0x3F, 0, dpga_tlv),
+	ISABELLE_DPGA2R_GAIN_REG, 0, 0x3F, 0, dpga_tlv),
 	SOC_DOUBLE_R_TLV("DPGA3 Volume", ISABELLE_DPGA3L_GAIN_REG,
-			ISABELLE_DPGA3R_GAIN_REG, 0, 0x3F, 0, dpga_tlv),
+	ISABELLE_DPGA3R_GAIN_REG, 0, 0x3F, 0, dpga_tlv),
 
 	SOC_SINGLE_TLV("Sidetone Audio TX1 Volume",
-			ISABELLE_ATX_STPGA1_CFG_REG, 0, 0xF, 0, st_tlv),
+	ISABELLE_ATX_STPGA1_CFG_REG, 0, 0xF, 0, st_tlv),
 	SOC_SINGLE_TLV("Sidetone Audio TX2 Volume",
-			ISABELLE_ATX_STPGA2_CFG_REG, 0, 0xF, 0, st_tlv),
+	ISABELLE_ATX_STPGA2_CFG_REG, 0, 0xF, 0, st_tlv),
 	SOC_SINGLE_TLV("Sidetone Voice TX1 Volume",
-			ISABELLE_VTX_STPGA1_CFG_REG, 0, 0xF, 0, st_tlv),
+	ISABELLE_VTX_STPGA1_CFG_REG, 0, 0xF, 0, st_tlv),
 	SOC_SINGLE_TLV("Sidetone Voice TX2 Volume",
-			ISABELLE_VTX2_STPGA2_CFG_REG, 0, 0xF, 0, st_tlv),
+	ISABELLE_VTX2_STPGA2_CFG_REG, 0, 0xF, 0, st_tlv),
 
 	SOC_SINGLE_TLV("Audio TX1 Volume", ISABELLE_ATX1_DPGA_REG, 4, 0xF, 0,
-			tx_tlv),
+	tx_tlv),
 	SOC_SINGLE_TLV("Audio TX2 Volume", ISABELLE_ATX2_DPGA_REG, 4, 0xF, 0,
-			tx_tlv),
+	tx_tlv),
 	SOC_SINGLE_TLV("Voice TX1 Volume", ISABELLE_VTX1_DPGA_REG, 4, 0xF, 0,
-			tx_tlv),
+	tx_tlv),
 	SOC_SINGLE_TLV("Voice TX2 Volume", ISABELLE_VTX2_DPGA_REG, 4, 0xF, 0,
-			tx_tlv),
+	tx_tlv),
 
 	SOC_SINGLE_TLV("RX1 DPGA Volume", ISABELLE_RX1_DPGA_REG, 0, 0x3F, 0,
-			rx_tlv),
+	rx_tlv),
 	SOC_SINGLE_TLV("RX2 DPGA Volume", ISABELLE_RX2_DPGA_REG, 0, 0x3F, 0,
-			rx_tlv),
+	rx_tlv),
 	SOC_SINGLE_TLV("RX3 DPGA Volume", ISABELLE_RX3_DPGA_REG, 0, 0x3F, 0,
-			rx_tlv),
+	rx_tlv),
 	SOC_SINGLE_TLV("RX4 DPGA Volume", ISABELLE_RX4_DPGA_REG, 0, 0x3F, 0,
-			rx_tlv),
+	rx_tlv),
 	SOC_SINGLE_TLV("RX5 DPGA Volume", ISABELLE_RX5_DPGA_REG, 0, 0x3F, 0,
-			rx_tlv),
+	rx_tlv),
 	SOC_SINGLE_TLV("RX6 DPGA Volume", ISABELLE_RX6_DPGA_REG, 0, 0x3F, 0,
-			rx_tlv),
+	rx_tlv),
 
 	SOC_SINGLE("Headset Noise Gate", ISABELLE_HS_NG_CFG1_REG, 7, 1, 0),
 	SOC_SINGLE("Handsfree Noise Gate", ISABELLE_HF_NG_CFG1_REG, 7, 1, 0),
 
 	SOC_SINGLE("ATX1 Filter Bypass Switch", ISABELLE_AUDIO_HPF_CFG_REG,
-		7, 1, 0),
+	7, 1, 0),
 	SOC_SINGLE("ATX2 Filter Bypass Switch", ISABELLE_AUDIO_HPF_CFG_REG,
-		6, 1, 0),
+	6, 1, 0),
 	SOC_SINGLE("ARX1 Filter Bypass Switch", ISABELLE_AUDIO_HPF_CFG_REG,
-		5, 1, 0),
+	5, 1, 0),
 	SOC_SINGLE("ARX2 Filter Bypass Switch", ISABELLE_AUDIO_HPF_CFG_REG,
-		4, 1, 0),
+	4, 1, 0),
 	SOC_SINGLE("ARX3 Filter Bypass Switch", ISABELLE_AUDIO_HPF_CFG_REG,
-		3, 1, 0),
+	3, 1, 0),
 	SOC_SINGLE("ARX4 Filter Bypass Switch", ISABELLE_AUDIO_HPF_CFG_REG,
-		2, 1, 0),
+	2, 1, 0),
 	SOC_SINGLE("ARX5 Filter Bypass Switch", ISABELLE_AUDIO_HPF_CFG_REG,
-		1, 1, 0),
+	1, 1, 0),
 	SOC_SINGLE("ARX6 Filter Bypass Switch", ISABELLE_AUDIO_HPF_CFG_REG,
-		0, 1, 0),
+	0, 1, 0),
 	SOC_SINGLE("VRX1 Filter Bypass Switch", ISABELLE_AUDIO_HPF_CFG_REG,
-		3, 1, 0),
+	3, 1, 0),
 	SOC_SINGLE("VRX2 Filter Bypass Switch", ISABELLE_AUDIO_HPF_CFG_REG,
-		2, 1, 0),
+	2, 1, 0),
 
 	SOC_SINGLE("ATX1 Filter Enable Switch", ISABELLE_ALU_TX_EN_REG,
-		7, 1, 0),
+	7, 1, 0),
 	SOC_SINGLE("ATX2 Filter Enable Switch", ISABELLE_ALU_TX_EN_REG,
-		6, 1, 0),
+	6, 1, 0),
 	SOC_SINGLE("VTX1 Filter Enable Switch", ISABELLE_ALU_TX_EN_REG,
-		5, 1, 0),
+	5, 1, 0),
 	SOC_SINGLE("VTX2 Filter Enable Switch", ISABELLE_ALU_TX_EN_REG,
-		4, 1, 0),
+	4, 1, 0),
 	SOC_SINGLE("RX1 Filter Enable Switch", ISABELLE_ALU_RX_EN_REG,
-		5, 1, 0),
+	5, 1, 0),
 	SOC_SINGLE("RX2 Filter Enable Switch", ISABELLE_ALU_RX_EN_REG,
-		4, 1, 0),
+	4, 1, 0),
 	SOC_SINGLE("RX3 Filter Enable Switch", ISABELLE_ALU_RX_EN_REG,
-		3, 1, 0),
+	3, 1, 0),
 	SOC_SINGLE("RX4 Filter Enable Switch", ISABELLE_ALU_RX_EN_REG,
-		2, 1, 0),
+	2, 1, 0),
 	SOC_SINGLE("RX5 Filter Enable Switch", ISABELLE_ALU_RX_EN_REG,
-		1, 1, 0),
+	1, 1, 0),
 	SOC_SINGLE("RX6 Filter Enable Switch", ISABELLE_ALU_RX_EN_REG,
-		0, 1, 0),
+	0, 1, 0),
 
 	SOC_SINGLE("ULATX12 Capture Switch", ISABELLE_ULATX12_INTF_CFG_REG,
-		7, 1, 0),
+	7, 1, 0),
 
 	SOC_SINGLE("DL12 Playback Switch", ISABELLE_DL12_INTF_CFG_REG,
-		7, 1, 0),
+	7, 1, 0),
 	SOC_SINGLE("DL34 Playback Switch", ISABELLE_DL34_INTF_CFG_REG,
-		7, 1, 0),
+	7, 1, 0),
 	SOC_SINGLE("DL56 Playback Switch", ISABELLE_DL56_INTF_CFG_REG,
-		7, 1, 0),
+	7, 1, 0),
 
 	/* DMIC Switch */
 	SOC_SINGLE("DMIC Switch", ISABELLE_DMIC_CFG_REG, 0, 1, 0),
 };
 
-static const struct snd_soc_dapm_widget isabelle_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget isabelle_dapm_widgets[] =
+{
 	/* Inputs */
 	SND_SOC_DAPM_INPUT("MAINMIC"),
 	SND_SOC_DAPM_INPUT("HSMIC"),
@@ -499,14 +529,14 @@ static const struct snd_soc_dapm_widget isabelle_dapm_widgets[] = {
 
 	/* Analog input muxes for the capture amplifiers */
 	SND_SOC_DAPM_MUX("Analog Left Capture Route",
-			SND_SOC_NOPM, 0, 0, &amic1_control),
+	SND_SOC_NOPM, 0, 0, &amic1_control),
 	SND_SOC_DAPM_MUX("Analog Right Capture Route",
-			SND_SOC_NOPM, 0, 0, &amic2_control),
+	SND_SOC_NOPM, 0, 0, &amic2_control),
 
 	SND_SOC_DAPM_MUX("Sidetone Audio Playback", SND_SOC_NOPM, 0, 0,
-			&st_audio_control),
+	&st_audio_control),
 	SND_SOC_DAPM_MUX("Sidetone Voice Playback", SND_SOC_NOPM, 0, 0,
-			&st_voice_control),
+	&st_voice_control),
 
 	/* AIF */
 	SND_SOC_DAPM_AIF_IN("INTF1_SDI", NULL, 0, ISABELLE_INTF_EN_REG, 7, 0),
@@ -530,94 +560,94 @@ static const struct snd_soc_dapm_widget isabelle_dapm_widgets[] = {
 
 	/* ADCs */
 	SND_SOC_DAPM_ADC("ADC1", "Left Front Capture",
-			ISABELLE_AMIC_CFG_REG, 7, 0),
+	ISABELLE_AMIC_CFG_REG, 7, 0),
 	SND_SOC_DAPM_ADC("ADC2", "Right Front Capture",
-			ISABELLE_AMIC_CFG_REG, 6, 0),
+	ISABELLE_AMIC_CFG_REG, 6, 0),
 
 	/* Microphone Bias */
 	SND_SOC_DAPM_SUPPLY("Headset Mic Bias", ISABELLE_ABIAS_CFG_REG,
-			3, 0, NULL, 0),
+	3, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("Main Mic Bias", ISABELLE_ABIAS_CFG_REG,
-			2, 0, NULL, 0),
+	2, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("Digital Mic1 Bias",
-			ISABELLE_DBIAS_CFG_REG, 3, 0, NULL, 0),
+	ISABELLE_DBIAS_CFG_REG, 3, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("Digital Mic2 Bias",
-			ISABELLE_DBIAS_CFG_REG, 2, 0, NULL, 0),
+	ISABELLE_DBIAS_CFG_REG, 2, 0, NULL, 0),
 
 	/* Mixers */
 	SND_SOC_DAPM_MIXER("Headset Left Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_hs_left_mixer_controls,
-			ARRAY_SIZE(isabelle_hs_left_mixer_controls)),
+	isabelle_hs_left_mixer_controls,
+	ARRAY_SIZE(isabelle_hs_left_mixer_controls)),
 	SND_SOC_DAPM_MIXER("Headset Right Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_hs_right_mixer_controls,
-			ARRAY_SIZE(isabelle_hs_right_mixer_controls)),
+	isabelle_hs_right_mixer_controls,
+	ARRAY_SIZE(isabelle_hs_right_mixer_controls)),
 	SND_SOC_DAPM_MIXER("Handsfree Left Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_hf_left_mixer_controls,
-			ARRAY_SIZE(isabelle_hf_left_mixer_controls)),
+	isabelle_hf_left_mixer_controls,
+	ARRAY_SIZE(isabelle_hf_left_mixer_controls)),
 	SND_SOC_DAPM_MIXER("Handsfree Right Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_hf_right_mixer_controls,
-			ARRAY_SIZE(isabelle_hf_right_mixer_controls)),
+	isabelle_hf_right_mixer_controls,
+	ARRAY_SIZE(isabelle_hf_right_mixer_controls)),
 	SND_SOC_DAPM_MIXER("LINEOUT1 Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_aux_left_mixer_controls,
-			ARRAY_SIZE(isabelle_aux_left_mixer_controls)),
+	isabelle_aux_left_mixer_controls,
+	ARRAY_SIZE(isabelle_aux_left_mixer_controls)),
 	SND_SOC_DAPM_MIXER("LINEOUT2 Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_aux_right_mixer_controls,
-			ARRAY_SIZE(isabelle_aux_right_mixer_controls)),
+	isabelle_aux_right_mixer_controls,
+	ARRAY_SIZE(isabelle_aux_right_mixer_controls)),
 	SND_SOC_DAPM_MIXER("Earphone Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_ep_mixer_controls,
-			ARRAY_SIZE(isabelle_ep_mixer_controls)),
+	isabelle_ep_mixer_controls,
+	ARRAY_SIZE(isabelle_ep_mixer_controls)),
 
 	SND_SOC_DAPM_MIXER("DPGA1L Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_dpga1_left_mixer_controls,
-			ARRAY_SIZE(isabelle_dpga1_left_mixer_controls)),
+	isabelle_dpga1_left_mixer_controls,
+	ARRAY_SIZE(isabelle_dpga1_left_mixer_controls)),
 	SND_SOC_DAPM_MIXER("DPGA1R Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_dpga1_right_mixer_controls,
-			ARRAY_SIZE(isabelle_dpga1_right_mixer_controls)),
+	isabelle_dpga1_right_mixer_controls,
+	ARRAY_SIZE(isabelle_dpga1_right_mixer_controls)),
 	SND_SOC_DAPM_MIXER("DPGA2L Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_dpga2_left_mixer_controls,
-			ARRAY_SIZE(isabelle_dpga2_left_mixer_controls)),
+	isabelle_dpga2_left_mixer_controls,
+	ARRAY_SIZE(isabelle_dpga2_left_mixer_controls)),
 	SND_SOC_DAPM_MIXER("DPGA2R Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_dpga2_right_mixer_controls,
-			ARRAY_SIZE(isabelle_dpga2_right_mixer_controls)),
+	isabelle_dpga2_right_mixer_controls,
+	ARRAY_SIZE(isabelle_dpga2_right_mixer_controls)),
 	SND_SOC_DAPM_MIXER("DPGA3L Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_dpga3_left_mixer_controls,
-			ARRAY_SIZE(isabelle_dpga3_left_mixer_controls)),
+	isabelle_dpga3_left_mixer_controls,
+	ARRAY_SIZE(isabelle_dpga3_left_mixer_controls)),
 	SND_SOC_DAPM_MIXER("DPGA3R Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_dpga3_right_mixer_controls,
-			ARRAY_SIZE(isabelle_dpga3_right_mixer_controls)),
+	isabelle_dpga3_right_mixer_controls,
+	ARRAY_SIZE(isabelle_dpga3_right_mixer_controls)),
 
 	SND_SOC_DAPM_MIXER("RX1 Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_rx1_mixer_controls,
-			ARRAY_SIZE(isabelle_rx1_mixer_controls)),
+	isabelle_rx1_mixer_controls,
+	ARRAY_SIZE(isabelle_rx1_mixer_controls)),
 	SND_SOC_DAPM_MIXER("RX2 Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_rx2_mixer_controls,
-			ARRAY_SIZE(isabelle_rx2_mixer_controls)),
+	isabelle_rx2_mixer_controls,
+	ARRAY_SIZE(isabelle_rx2_mixer_controls)),
 	SND_SOC_DAPM_MIXER("RX3 Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_rx3_mixer_controls,
-			ARRAY_SIZE(isabelle_rx3_mixer_controls)),
+	isabelle_rx3_mixer_controls,
+	ARRAY_SIZE(isabelle_rx3_mixer_controls)),
 	SND_SOC_DAPM_MIXER("RX4 Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_rx4_mixer_controls,
-			ARRAY_SIZE(isabelle_rx4_mixer_controls)),
+	isabelle_rx4_mixer_controls,
+	ARRAY_SIZE(isabelle_rx4_mixer_controls)),
 	SND_SOC_DAPM_MIXER("RX5 Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_rx5_mixer_controls,
-			ARRAY_SIZE(isabelle_rx5_mixer_controls)),
+	isabelle_rx5_mixer_controls,
+	ARRAY_SIZE(isabelle_rx5_mixer_controls)),
 	SND_SOC_DAPM_MIXER("RX6 Mixer", SND_SOC_NOPM, 0, 0,
-			isabelle_rx6_mixer_controls,
-			ARRAY_SIZE(isabelle_rx6_mixer_controls)),
+	isabelle_rx6_mixer_controls,
+	ARRAY_SIZE(isabelle_rx6_mixer_controls)),
 
 	/* DACs */
 	SND_SOC_DAPM_DAC("DAC1L", "Headset Playback", ISABELLE_DAC_CFG_REG,
-			5, 0),
+	5, 0),
 	SND_SOC_DAPM_DAC("DAC1R", "Headset Playback", ISABELLE_DAC_CFG_REG,
-			4, 0),
+	4, 0),
 	SND_SOC_DAPM_DAC("DAC2L", "Handsfree Playback", ISABELLE_DAC_CFG_REG,
-			3, 0),
+	3, 0),
 	SND_SOC_DAPM_DAC("DAC2R", "Handsfree Playback", ISABELLE_DAC_CFG_REG,
-			2, 0),
+	2, 0),
 	SND_SOC_DAPM_DAC("DAC3L", "Lineout Playback", ISABELLE_DAC_CFG_REG,
-			1, 0),
+	1, 0),
 	SND_SOC_DAPM_DAC("DAC3R", "Lineout Playback", ISABELLE_DAC_CFG_REG,
-			0, 0),
+	0, 0),
 
 	/* Analog Playback PGAs */
 	SND_SOC_DAPM_PGA("Sidetone Audio PGA", SND_SOC_NOPM, 0, 0, NULL, 0),
@@ -633,38 +663,39 @@ static const struct snd_soc_dapm_widget isabelle_dapm_widgets[] = {
 
 	/* Analog Playback Mux */
 	SND_SOC_DAPM_MUX("RX1 Playback", ISABELLE_ALU_RX_EN_REG, 5, 0,
-			&rx1_mux_controls),
+	&rx1_mux_controls),
 	SND_SOC_DAPM_MUX("RX2 Playback", ISABELLE_ALU_RX_EN_REG, 4, 0,
-			&rx2_mux_controls),
+	&rx2_mux_controls),
 
 	/* TX Select */
 	SND_SOC_DAPM_MUX("ATX Select", ISABELLE_TX_INPUT_CFG_REG,
-			7, 0, &atx_mux_controls),
+	7, 0, &atx_mux_controls),
 	SND_SOC_DAPM_MUX("VTX Select", ISABELLE_TX_INPUT_CFG_REG,
-			6, 0, &vtx_mux_controls),
+	6, 0, &vtx_mux_controls),
 
 	SND_SOC_DAPM_SWITCH("Earphone Playback", SND_SOC_NOPM, 0, 0,
-			&ep_path_enable_control),
+	&ep_path_enable_control),
 
 	/* Output Drivers */
 	SND_SOC_DAPM_OUT_DRV("HS Left Driver", ISABELLE_HSDRV_CFG2_REG,
-			1, 0, NULL, 0),
+	1, 0, NULL, 0),
 	SND_SOC_DAPM_OUT_DRV("HS Right Driver", ISABELLE_HSDRV_CFG2_REG,
-			0, 0, NULL, 0),
+	0, 0, NULL, 0),
 	SND_SOC_DAPM_OUT_DRV("LINEOUT1 Left Driver", ISABELLE_LINEAMP_CFG_REG,
-			1, 0, NULL, 0),
+	1, 0, NULL, 0),
 	SND_SOC_DAPM_OUT_DRV("LINEOUT2 Right Driver", ISABELLE_LINEAMP_CFG_REG,
-			0, 0, NULL, 0),
+	0, 0, NULL, 0),
 	SND_SOC_DAPM_OUT_DRV("Earphone Driver", ISABELLE_EARDRV_CFG2_REG,
-			1, 0, NULL, 0),
+	1, 0, NULL, 0),
 
 	SND_SOC_DAPM_OUT_DRV("HF Left Driver", ISABELLE_HFDRV_CFG_REG,
-			1, 0, NULL, 0),
+	1, 0, NULL, 0),
 	SND_SOC_DAPM_OUT_DRV("HF Right Driver", ISABELLE_HFDRV_CFG_REG,
-			0, 0, NULL, 0),
+	0, 0, NULL, 0),
 };
 
-static const struct snd_soc_dapm_route isabelle_intercon[] = {
+static const struct snd_soc_dapm_route isabelle_intercon[] =
+{
 	/* Interface mapping */
 	{ "DL1", "DL12 Playback Switch", "INTF1_SDI" },
 	{ "DL2", "DL12 Playback Switch", "INTF1_SDI" },
@@ -868,7 +899,7 @@ static const struct snd_soc_dapm_route isabelle_intercon[] = {
 static int isabelle_hs_mute(struct snd_soc_dai *dai, int mute)
 {
 	snd_soc_update_bits(dai->codec, ISABELLE_DAC1_SOFTRAMP_REG,
-			BIT(4), (mute ? BIT(4) : 0));
+						BIT(4), (mute ? BIT(4) : 0));
 
 	return 0;
 }
@@ -876,7 +907,7 @@ static int isabelle_hs_mute(struct snd_soc_dai *dai, int mute)
 static int isabelle_hf_mute(struct snd_soc_dai *dai, int mute)
 {
 	snd_soc_update_bits(dai->codec, ISABELLE_DAC2_SOFTRAMP_REG,
-			BIT(4), (mute ? BIT(4) : 0));
+						BIT(4), (mute ? BIT(4) : 0));
 
 	return 0;
 }
@@ -884,91 +915,106 @@ static int isabelle_hf_mute(struct snd_soc_dai *dai, int mute)
 static int isabelle_line_mute(struct snd_soc_dai *dai, int mute)
 {
 	snd_soc_update_bits(dai->codec, ISABELLE_DAC3_SOFTRAMP_REG,
-			BIT(4), (mute ? BIT(4) : 0));
+						BIT(4), (mute ? BIT(4) : 0));
 
 	return 0;
 }
 
 static int isabelle_set_bias_level(struct snd_soc_codec *codec,
-				enum snd_soc_bias_level level)
+								   enum snd_soc_bias_level level)
 {
-	switch (level) {
-	case SND_SOC_BIAS_ON:
-		break;
-	case SND_SOC_BIAS_PREPARE:
-		break;
+	switch (level)
+	{
+		case SND_SOC_BIAS_ON:
+			break;
 
-	case SND_SOC_BIAS_STANDBY:
-		snd_soc_update_bits(codec, ISABELLE_PWR_EN_REG,
-				ISABELLE_CHIP_EN, BIT(0));
-		break;
+		case SND_SOC_BIAS_PREPARE:
+			break;
 
-	case SND_SOC_BIAS_OFF:
-		snd_soc_update_bits(codec, ISABELLE_PWR_EN_REG,
-				ISABELLE_CHIP_EN, 0);
-		break;
+		case SND_SOC_BIAS_STANDBY:
+			snd_soc_update_bits(codec, ISABELLE_PWR_EN_REG,
+								ISABELLE_CHIP_EN, BIT(0));
+			break;
+
+		case SND_SOC_BIAS_OFF:
+			snd_soc_update_bits(codec, ISABELLE_PWR_EN_REG,
+								ISABELLE_CHIP_EN, 0);
+			break;
 	}
 
 	return 0;
 }
 
 static int isabelle_hw_params(struct snd_pcm_substream *substream,
-			      struct snd_pcm_hw_params *params,
-			      struct snd_soc_dai *dai)
+							  struct snd_pcm_hw_params *params,
+							  struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	u16 aif = 0;
 	unsigned int fs_val = 0;
 
-	switch (params_rate(params)) {
-	case 8000:
-		fs_val = ISABELLE_FS_RATE_8;
-		break;
-	case 11025:
-		fs_val = ISABELLE_FS_RATE_11;
-		break;
-	case 12000:
-		fs_val = ISABELLE_FS_RATE_12;
-		break;
-	case 16000:
-		fs_val = ISABELLE_FS_RATE_16;
-		break;
-	case 22050:
-		fs_val = ISABELLE_FS_RATE_22;
-		break;
-	case 24000:
-		fs_val = ISABELLE_FS_RATE_24;
-		break;
-	case 32000:
-		fs_val = ISABELLE_FS_RATE_32;
-		break;
-	case 44100:
-		fs_val = ISABELLE_FS_RATE_44;
-		break;
-	case 48000:
-		fs_val = ISABELLE_FS_RATE_48;
-		break;
-	default:
-		return -EINVAL;
+	switch (params_rate(params))
+	{
+		case 8000:
+			fs_val = ISABELLE_FS_RATE_8;
+			break;
+
+		case 11025:
+			fs_val = ISABELLE_FS_RATE_11;
+			break;
+
+		case 12000:
+			fs_val = ISABELLE_FS_RATE_12;
+			break;
+
+		case 16000:
+			fs_val = ISABELLE_FS_RATE_16;
+			break;
+
+		case 22050:
+			fs_val = ISABELLE_FS_RATE_22;
+			break;
+
+		case 24000:
+			fs_val = ISABELLE_FS_RATE_24;
+			break;
+
+		case 32000:
+			fs_val = ISABELLE_FS_RATE_32;
+			break;
+
+		case 44100:
+			fs_val = ISABELLE_FS_RATE_44;
+			break;
+
+		case 48000:
+			fs_val = ISABELLE_FS_RATE_48;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	snd_soc_update_bits(codec, ISABELLE_FS_RATE_CFG_REG,
-			ISABELLE_FS_RATE_MASK, fs_val);
+						ISABELLE_FS_RATE_MASK, fs_val);
 
 	/* bit size */
-	switch (params_width(params)) {
-	case 20:
-		aif |= ISABELLE_AIF_LENGTH_20;
-		break;
-	case 32:
-		aif |= ISABELLE_AIF_LENGTH_32;
-		break;
-	default:
-		return -EINVAL;
+	switch (params_width(params))
+	{
+		case 20:
+			aif |= ISABELLE_AIF_LENGTH_20;
+			break;
+
+		case 32:
+			aif |= ISABELLE_AIF_LENGTH_32;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	snd_soc_update_bits(codec, ISABELLE_INTF_CFG_REG,
-			ISABELLE_AIF_LENGTH_MASK, aif);
+						ISABELLE_AIF_LENGTH_MASK, aif);
 
 	return 0;
 }
@@ -978,33 +1024,40 @@ static int isabelle_set_dai_fmt(struct snd_soc_dai *codec_dai, unsigned int fmt)
 	struct snd_soc_codec *codec = codec_dai->codec;
 	unsigned int aif_val = 0;
 
-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBS_CFS:
-		aif_val &= ~ISABELLE_AIF_MS;
-		break;
-	case SND_SOC_DAIFMT_CBM_CFM:
-		aif_val |= ISABELLE_AIF_MS;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBS_CFS:
+			aif_val &= ~ISABELLE_AIF_MS;
+			break;
+
+		case SND_SOC_DAIFMT_CBM_CFM:
+			aif_val |= ISABELLE_AIF_MS;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_I2S:
-		aif_val |= ISABELLE_I2S_MODE;
-		break;
-	case SND_SOC_DAIFMT_LEFT_J:
-		aif_val |= ISABELLE_LEFT_J_MODE;
-		break;
-	case SND_SOC_DAIFMT_PDM:
-		aif_val |= ISABELLE_PDM_MODE;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_I2S:
+			aif_val |= ISABELLE_I2S_MODE;
+			break;
+
+		case SND_SOC_DAIFMT_LEFT_J:
+			aif_val |= ISABELLE_LEFT_J_MODE;
+			break;
+
+		case SND_SOC_DAIFMT_PDM:
+			aif_val |= ISABELLE_PDM_MODE;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	snd_soc_update_bits(codec, ISABELLE_INTF_CFG_REG,
-			(ISABELLE_AIF_MS | ISABELLE_AIF_FMT_MASK), aif_val);
+						(ISABELLE_AIF_MS | ISABELLE_AIF_FMT_MASK), aif_val);
 
 	return 0;
 }
@@ -1014,33 +1067,38 @@ static int isabelle_set_dai_fmt(struct snd_soc_dai *codec_dai, unsigned int fmt)
 
 /* Formates supported by Isabelle driver. */
 #define ISABELLE_FORMATS (SNDRV_PCM_FMTBIT_S20_3LE |\
-			SNDRV_PCM_FMTBIT_S32_LE)
+						  SNDRV_PCM_FMTBIT_S32_LE)
 
-static const struct snd_soc_dai_ops isabelle_hs_dai_ops = {
+static const struct snd_soc_dai_ops isabelle_hs_dai_ops =
+{
 	.hw_params	= isabelle_hw_params,
 	.set_fmt	= isabelle_set_dai_fmt,
 	.digital_mute	= isabelle_hs_mute,
 };
 
-static const struct snd_soc_dai_ops isabelle_hf_dai_ops = {
+static const struct snd_soc_dai_ops isabelle_hf_dai_ops =
+{
 	.hw_params	= isabelle_hw_params,
 	.set_fmt	= isabelle_set_dai_fmt,
 	.digital_mute	= isabelle_hf_mute,
 };
 
-static const struct snd_soc_dai_ops isabelle_line_dai_ops = {
+static const struct snd_soc_dai_ops isabelle_line_dai_ops =
+{
 	.hw_params	= isabelle_hw_params,
 	.set_fmt	= isabelle_set_dai_fmt,
 	.digital_mute	= isabelle_line_mute,
 };
 
-static const struct snd_soc_dai_ops isabelle_ul_dai_ops = {
+static const struct snd_soc_dai_ops isabelle_ul_dai_ops =
+{
 	.hw_params	= isabelle_hw_params,
 	.set_fmt	= isabelle_set_dai_fmt,
 };
 
 /* ISABELLE dai structure */
-static struct snd_soc_dai_driver isabelle_dai[] = {
+static struct snd_soc_dai_driver isabelle_dai[] =
+{
 	{
 		.name = "isabelle-dl1",
 		.playback = {
@@ -1087,7 +1145,8 @@ static struct snd_soc_dai_driver isabelle_dai[] = {
 	},
 };
 
-static struct snd_soc_codec_driver soc_codec_dev_isabelle = {
+static struct snd_soc_codec_driver soc_codec_dev_isabelle =
+{
 	.set_bias_level = isabelle_set_bias_level,
 	.component_driver = {
 		.controls		= isabelle_snd_controls,
@@ -1100,7 +1159,8 @@ static struct snd_soc_codec_driver soc_codec_dev_isabelle = {
 	.idle_bias_off = true,
 };
 
-static const struct regmap_config isabelle_regmap_config = {
+static const struct regmap_config isabelle_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 
@@ -1111,24 +1171,29 @@ static const struct regmap_config isabelle_regmap_config = {
 };
 
 static int isabelle_i2c_probe(struct i2c_client *i2c,
-			      const struct i2c_device_id *id)
+							  const struct i2c_device_id *id)
 {
 	struct regmap *isabelle_regmap;
 	int ret = 0;
 
 	isabelle_regmap = devm_regmap_init_i2c(i2c, &isabelle_regmap_config);
-	if (IS_ERR(isabelle_regmap)) {
+
+	if (IS_ERR(isabelle_regmap))
+	{
 		ret = PTR_ERR(isabelle_regmap);
 		dev_err(&i2c->dev, "Failed to allocate register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
+
 	i2c_set_clientdata(i2c, isabelle_regmap);
 
 	ret =  snd_soc_register_codec(&i2c->dev,
-				&soc_codec_dev_isabelle, isabelle_dai,
-				ARRAY_SIZE(isabelle_dai));
-	if (ret < 0) {
+								  &soc_codec_dev_isabelle, isabelle_dai,
+								  ARRAY_SIZE(isabelle_dai));
+
+	if (ret < 0)
+	{
 		dev_err(&i2c->dev, "Failed to register codec: %d\n", ret);
 		return ret;
 	}
@@ -1142,13 +1207,15 @@ static int isabelle_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id isabelle_i2c_id[] = {
+static const struct i2c_device_id isabelle_i2c_id[] =
+{
 	{ "isabelle", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, isabelle_i2c_id);
 
-static struct i2c_driver isabelle_i2c_driver = {
+static struct i2c_driver isabelle_i2c_driver =
+{
 	.driver = {
 		.name = "isabelle",
 	},

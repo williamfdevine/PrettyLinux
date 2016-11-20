@@ -46,8 +46,8 @@
 #define	FW_PS_ACK		BIT(6)
 #define	FW_PS_TOGGLE		BIT(7)
 
- /* 8723BE RPWM value*/
- /* BIT[0] = 1: 32k, 0: 40M*/
+/* 8723BE RPWM value*/
+/* BIT[0] = 1: 32k, 0: 40M*/
 #define	FW_PS_CLOCK_OFF		BIT(0)		/* 32k*/
 #define	FW_PS_CLOCK_ON		0		/*40M*/
 
@@ -80,7 +80,8 @@
 #define	FW_PWR_STATE_ACTIVE	((FW_PS_RF_ON) | (FW_PS_REGISTER_ACTIVE))
 #define	FW_PWR_STATE_RF_OFF	0
 
-enum rtl8723b_h2c_cmd {
+enum rtl8723b_h2c_cmd
+{
 	H2C_8723B_RSVDPAGE = 0,
 	H2C_8723B_MSRRPT = 1,
 	H2C_8723B_SCAN = 2,
@@ -100,7 +101,8 @@ enum rtl8723b_h2c_cmd {
 	MAX_8723B_H2CCMD
 };
 
-enum rtl8723b_c2h_evt {
+enum rtl8723b_c2h_evt
+{
 	C2H_8723B_DBG = 0,
 	C2H_8723B_LB = 1,
 	C2H_8723B_TXBF = 2,
@@ -142,7 +144,7 @@ enum rtl8723b_c2h_evt {
 
 
 void rtl8723be_fill_h2c_cmd(struct ieee80211_hw *hw, u8 element_id,
-			    u32 cmd_len, u8 *p_cmdbuffer);
+							u32 cmd_len, u8 *p_cmdbuffer);
 void rtl8723be_set_fw_pwrmode_cmd(struct ieee80211_hw *hw, u8 mode);
 void rtl8723be_set_fw_media_status_rpt_cmd(struct ieee80211_hw *hw, u8 mstatus);
 void rtl8723be_set_fw_rsvdpagepkt(struct ieee80211_hw *hw, bool b_dl_finished);

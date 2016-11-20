@@ -74,7 +74,9 @@ static void __iomem *digctrl;
 int mxs_saif_clkmux_select(unsigned int clkmux)
 {
 	if (clkmux > 0x3)
+	{
 		return -EINVAL;
+	}
 
 	writel_relaxed(0x3 << BP_SAIF_CLKMUX, DIGCTRL + CLR);
 	writel_relaxed(clkmux << BP_SAIF_CLKMUX, DIGCTRL + SET);
@@ -135,7 +137,8 @@ static const char *const cpu_sels[] __initconst = { "cpu_pll", "cpu_xtal", };
 static const char *const emi_sels[] __initconst = { "emi_pll", "emi_xtal", };
 static const char *const ptp_sels[] __initconst = { "ref_xtal", "pll0", };
 
-enum imx28_clk {
+enum imx28_clk
+{
 	ref_xtal, pll0, pll1, pll2, ref_cpu, ref_emi, ref_io0, ref_io1,
 	ref_pix, ref_hsadc, ref_gpmi, saif0_sel, saif1_sel, gpmi_sel,
 	ssp0_sel, ssp1_sel, ssp2_sel, ssp3_sel, emi_sel, etm_sel,
@@ -151,7 +154,8 @@ enum imx28_clk {
 static struct clk *clks[clk_max];
 static struct clk_onecell_data clk_data;
 
-static enum imx28_clk clks_init_on[] __initdata = {
+static enum imx28_clk clks_init_on[] __initdata =
+{
 	cpu, hbus, xbus, emi, uart,
 };
 
@@ -237,9 +241,10 @@ static void __init mx28_clocks_init(struct device_node *np)
 	clks[enet_out] = clk_register_gate(NULL, "enet_out", "pll2", 0, ENET, 18, 0, &mxs_lock);
 
 	for (i = 0; i < ARRAY_SIZE(clks); i++)
-		if (IS_ERR(clks[i])) {
+		if (IS_ERR(clks[i]))
+		{
 			pr_err("i.MX28 clk %d: register failed with %ld\n",
-				i, PTR_ERR(clks[i]));
+				   i, PTR_ERR(clks[i]));
 			return;
 		}
 
@@ -250,6 +255,8 @@ static void __init mx28_clocks_init(struct device_node *np)
 	clk_register_clkdev(clks[enet_out], NULL, "enet_out");
 
 	for (i = 0; i < ARRAY_SIZE(clks_init_on); i++)
+	{
 		clk_prepare_enable(clks[clks_init_on[i]]);
+	}
 }
 CLK_OF_DECLARE(imx28_clkctrl, "fsl,imx28-clkctrl", mx28_clocks_init);

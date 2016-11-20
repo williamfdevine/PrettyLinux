@@ -23,11 +23,12 @@
 #include <net/nfc/llc.h>
 #include <linux/skbuff.h>
 
-struct nfc_llc_ops {
+struct nfc_llc_ops
+{
 	void *(*init) (struct nfc_hci_dev *hdev, xmit_to_drv_t xmit_to_drv,
-		       rcv_to_hci_t rcv_to_hci, int tx_headroom,
-		       int tx_tailroom, int *rx_headroom, int *rx_tailroom,
-		       llc_failure_t llc_failure);
+				   rcv_to_hci_t rcv_to_hci, int tx_headroom,
+				   int tx_tailroom, int *rx_headroom, int *rx_tailroom,
+				   llc_failure_t llc_failure);
 	void (*deinit) (struct nfc_llc *llc);
 	int (*start) (struct nfc_llc *llc);
 	int (*stop) (struct nfc_llc *llc);
@@ -35,13 +36,15 @@ struct nfc_llc_ops {
 	int (*xmit_from_hci) (struct nfc_llc *llc, struct sk_buff *skb);
 };
 
-struct nfc_llc_engine {
+struct nfc_llc_engine
+{
 	const char *name;
 	struct nfc_llc_ops *ops;
 	struct list_head entry;
 };
 
-struct nfc_llc {
+struct nfc_llc
+{
 	void *data;
 	struct nfc_llc_ops *ops;
 	int rx_headroom;

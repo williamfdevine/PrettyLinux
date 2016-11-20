@@ -18,7 +18,8 @@
 
 #ifdef CONFIG_COMPAT
 
-struct compat_ethtool_rx_flow_spec {
+struct compat_ethtool_rx_flow_spec
+{
 	u32		flow_type;
 	union ethtool_flow_union h_u;
 	struct ethtool_flow_ext h_ext;
@@ -28,7 +29,8 @@ struct compat_ethtool_rx_flow_spec {
 	u32		location;
 };
 
-struct compat_ethtool_rxnfc {
+struct compat_ethtool_rxnfc
+{
 	u32				cmd;
 	u32				flow_type;
 	compat_u64			data;
@@ -50,14 +52,16 @@ struct compat_ethtool_rxnfc {
  * @ETHTOOL_ID_OFF: LED should be turned off (used iff %ETHTOOL_ID_ACTIVE
  *	is not supported)
  */
-enum ethtool_phys_id_state {
+enum ethtool_phys_id_state
+{
 	ETHTOOL_ID_INACTIVE,
 	ETHTOOL_ID_ACTIVE,
 	ETHTOOL_ID_ON,
 	ETHTOOL_ID_OFF
 };
 
-enum {
+enum
+{
 	ETH_RSS_HASH_TOP_BIT, /* Configurable RSS hash function - Toeplitz */
 	ETH_RSS_HASH_XOR_BIT, /* Configurable RSS hash function - Xor */
 
@@ -106,9 +110,11 @@ static inline u32 ethtool_rxfh_indir_default(u32 index, u32 n_rx_rings)
 /* drivers must ignore base.cmd and base.link_mode_masks_nwords
  * fields, but they are allowed to overwrite them (will be ignored).
  */
-struct ethtool_link_ksettings {
+struct ethtool_link_ksettings
+{
 	struct ethtool_link_settings base;
-	struct {
+	struct
+	{
 		__ETHTOOL_DECLARE_LINK_MODE_MASK(supported);
 		__ETHTOOL_DECLARE_LINK_MODE_MASK(advertising);
 		__ETHTOOL_DECLARE_LINK_MODE_MASK(lp_advertising);
@@ -148,14 +154,14 @@ struct ethtool_link_ksettings {
 
 extern int
 __ethtool_get_link_ksettings(struct net_device *dev,
-			     struct ethtool_link_ksettings *link_ksettings);
+							 struct ethtool_link_ksettings *link_ksettings);
 
 void ethtool_convert_legacy_u32_to_link_mode(unsigned long *dst,
-					     u32 legacy_u32);
+		u32 legacy_u32);
 
 /* return false if src had higher bits set. lower bits always updated. */
 bool ethtool_convert_link_mode_to_legacy_u32(u32 *legacy_u32,
-				     const unsigned long *src);
+		const unsigned long *src);
 
 /**
  * struct ethtool_ops - optional netdev operations
@@ -299,7 +305,8 @@ bool ethtool_convert_link_mode_to_legacy_u32(u32 *legacy_u32,
  * See &struct net_device and &struct net_device_ops for documentation
  * of the generic netdev features interface.
  */
-struct ethtool_ops {
+struct ethtool_ops
+{
 	int	(*get_settings)(struct net_device *, struct ethtool_cmd *);
 	int	(*set_settings)(struct net_device *, struct ethtool_cmd *);
 	void	(*get_drvinfo)(struct net_device *, struct ethtool_drvinfo *);
@@ -313,64 +320,64 @@ struct ethtool_ops {
 	u32	(*get_link)(struct net_device *);
 	int	(*get_eeprom_len)(struct net_device *);
 	int	(*get_eeprom)(struct net_device *,
-			      struct ethtool_eeprom *, u8 *);
+					  struct ethtool_eeprom *, u8 *);
 	int	(*set_eeprom)(struct net_device *,
-			      struct ethtool_eeprom *, u8 *);
+					  struct ethtool_eeprom *, u8 *);
 	int	(*get_coalesce)(struct net_device *, struct ethtool_coalesce *);
 	int	(*set_coalesce)(struct net_device *, struct ethtool_coalesce *);
 	void	(*get_ringparam)(struct net_device *,
-				 struct ethtool_ringparam *);
+							 struct ethtool_ringparam *);
 	int	(*set_ringparam)(struct net_device *,
-				 struct ethtool_ringparam *);
+						 struct ethtool_ringparam *);
 	void	(*get_pauseparam)(struct net_device *,
-				  struct ethtool_pauseparam*);
+							  struct ethtool_pauseparam *);
 	int	(*set_pauseparam)(struct net_device *,
-				  struct ethtool_pauseparam*);
+						  struct ethtool_pauseparam *);
 	void	(*self_test)(struct net_device *, struct ethtool_test *, u64 *);
 	void	(*get_strings)(struct net_device *, u32 stringset, u8 *);
 	int	(*set_phys_id)(struct net_device *, enum ethtool_phys_id_state);
 	void	(*get_ethtool_stats)(struct net_device *,
-				     struct ethtool_stats *, u64 *);
+								 struct ethtool_stats *, u64 *);
 	int	(*begin)(struct net_device *);
 	void	(*complete)(struct net_device *);
 	u32	(*get_priv_flags)(struct net_device *);
 	int	(*set_priv_flags)(struct net_device *, u32);
 	int	(*get_sset_count)(struct net_device *, int);
 	int	(*get_rxnfc)(struct net_device *,
-			     struct ethtool_rxnfc *, u32 *rule_locs);
+					 struct ethtool_rxnfc *, u32 *rule_locs);
 	int	(*set_rxnfc)(struct net_device *, struct ethtool_rxnfc *);
 	int	(*flash_device)(struct net_device *, struct ethtool_flash *);
 	int	(*reset)(struct net_device *, u32 *);
 	u32	(*get_rxfh_key_size)(struct net_device *);
 	u32	(*get_rxfh_indir_size)(struct net_device *);
 	int	(*get_rxfh)(struct net_device *, u32 *indir, u8 *key,
-			    u8 *hfunc);
+					u8 *hfunc);
 	int	(*set_rxfh)(struct net_device *, const u32 *indir,
-			    const u8 *key, const u8 hfunc);
+					const u8 *key, const u8 hfunc);
 	void	(*get_channels)(struct net_device *, struct ethtool_channels *);
 	int	(*set_channels)(struct net_device *, struct ethtool_channels *);
 	int	(*get_dump_flag)(struct net_device *, struct ethtool_dump *);
 	int	(*get_dump_data)(struct net_device *,
-				 struct ethtool_dump *, void *);
+						 struct ethtool_dump *, void *);
 	int	(*set_dump)(struct net_device *, struct ethtool_dump *);
 	int	(*get_ts_info)(struct net_device *, struct ethtool_ts_info *);
 	int     (*get_module_info)(struct net_device *,
-				   struct ethtool_modinfo *);
+							   struct ethtool_modinfo *);
 	int     (*get_module_eeprom)(struct net_device *,
-				     struct ethtool_eeprom *, u8 *);
+								 struct ethtool_eeprom *, u8 *);
 	int	(*get_eee)(struct net_device *, struct ethtool_eee *);
 	int	(*set_eee)(struct net_device *, struct ethtool_eee *);
 	int	(*get_tunable)(struct net_device *,
-			       const struct ethtool_tunable *, void *);
+					   const struct ethtool_tunable *, void *);
 	int	(*set_tunable)(struct net_device *,
-			       const struct ethtool_tunable *, const void *);
+					   const struct ethtool_tunable *, const void *);
 	int	(*get_per_queue_coalesce)(struct net_device *, u32,
-					  struct ethtool_coalesce *);
+								  struct ethtool_coalesce *);
 	int	(*set_per_queue_coalesce)(struct net_device *, u32,
-					  struct ethtool_coalesce *);
+								  struct ethtool_coalesce *);
 	int	(*get_link_ksettings)(struct net_device *,
-				      struct ethtool_link_ksettings *);
+							  struct ethtool_link_ksettings *);
 	int	(*set_link_ksettings)(struct net_device *,
-				      const struct ethtool_link_ksettings *);
+							  const struct ethtool_link_ksettings *);
 };
 #endif /* _LINUX_ETHTOOL_H */

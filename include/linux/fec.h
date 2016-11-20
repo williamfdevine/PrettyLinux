@@ -16,7 +16,8 @@
 
 #include <linux/phy.h>
 
-struct fec_platform_data {
+struct fec_platform_data
+{
 	phy_interface_t phy;
 	unsigned char mac[ETH_ALEN];
 	void (*sleep_mode_enable)(int enabled);

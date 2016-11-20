@@ -38,16 +38,23 @@ static void test_task_rename(int cpu)
 	char buf[] = "test\n";
 	int i, fd;
 
-	fd = open("/proc/self/comm", O_WRONLY|O_TRUNC);
-	if (fd < 0) {
+	fd = open("/proc/self/comm", O_WRONLY | O_TRUNC);
+
+	if (fd < 0)
+	{
 		printf("couldn't open /proc\n");
 		exit(1);
 	}
+
 	start_time = time_get_ns();
+
 	for (i = 0; i < MAX_CNT; i++)
+	{
 		write(fd, buf, sizeof(buf));
+	}
+
 	printf("task_rename:%d: %lld events per sec\n",
-	       cpu, MAX_CNT * 1000000000ll / (time_get_ns() - start_time));
+		   cpu, MAX_CNT * 1000000000ll / (time_get_ns() - start_time));
 	close(fd);
 }
 
@@ -58,15 +65,22 @@ static void test_urandom_read(int cpu)
 	int i, fd;
 
 	fd = open("/dev/urandom", O_RDONLY);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		printf("couldn't open /dev/urandom\n");
 		exit(1);
 	}
+
 	start_time = time_get_ns();
+
 	for (i = 0; i < MAX_CNT; i++)
+	{
 		read(fd, buf, sizeof(buf));
+	}
+
 	printf("urandom_read:%d: %lld events per sec\n",
-	       cpu, MAX_CNT * 1000000000ll / (time_get_ns() - start_time));
+		   cpu, MAX_CNT * 1000000000ll / (time_get_ns() - start_time));
 	close(fd);
 }
 
@@ -79,9 +93,14 @@ static void loop(int cpu, int flags)
 	sched_setaffinity(0, sizeof(cpuset), &cpuset);
 
 	if (flags & 1)
+	{
 		test_task_rename(cpu);
+	}
+
 	if (flags & 2)
+	{
 		test_urandom_read(cpu);
+	}
 }
 
 static void run_perf_test(int tasks, int flags)
@@ -89,17 +108,24 @@ static void run_perf_test(int tasks, int flags)
 	pid_t pid[tasks];
 	int i;
 
-	for (i = 0; i < tasks; i++) {
+	for (i = 0; i < tasks; i++)
+	{
 		pid[i] = fork();
-		if (pid[i] == 0) {
+
+		if (pid[i] == 0)
+		{
 			loop(i, flags);
 			exit(0);
-		} else if (pid[i] == -1) {
+		}
+		else if (pid[i] == -1)
+		{
 			printf("couldn't spawn #%d process\n", i);
 			exit(1);
 		}
 	}
-	for (i = 0; i < tasks; i++) {
+
+	for (i = 0; i < tasks; i++)
+	{
 		int status;
 
 		assert(waitpid(pid[i], &status, 0) == pid[i]);
@@ -125,34 +151,48 @@ int main(int argc, char **argv)
 	setrlimit(RLIMIT_MEMLOCK, &r);
 
 	if (argc > 1)
+	{
 		test_flags = atoi(argv[1]) ? : test_flags;
-	if (argc > 2)
-		num_cpu = atoi(argv[2]) ? : num_cpu;
+	}
 
-	if (test_flags & 0x3) {
+	if (argc > 2)
+	{
+		num_cpu = atoi(argv[2]) ? : num_cpu;
+	}
+
+	if (test_flags & 0x3)
+	{
 		printf("BASE\n");
 		run_perf_test(num_cpu, test_flags);
 	}
 
-	if (test_flags & 0xC) {
+	if (test_flags & 0xC)
+	{
 		snprintf(filename, sizeof(filename),
-			 "%s_kprobe_kern.o", argv[0]);
-		if (load_bpf_file(filename)) {
+				 "%s_kprobe_kern.o", argv[0]);
+
+		if (load_bpf_file(filename))
+		{
 			printf("%s", bpf_log_buf);
 			return 1;
 		}
+
 		printf("w/KPROBE\n");
 		run_perf_test(num_cpu, test_flags >> 2);
 		unload_progs();
 	}
 
-	if (test_flags & 0x30) {
+	if (test_flags & 0x30)
+	{
 		snprintf(filename, sizeof(filename),
-			 "%s_tp_kern.o", argv[0]);
-		if (load_bpf_file(filename)) {
+				 "%s_tp_kern.o", argv[0]);
+
+		if (load_bpf_file(filename))
+		{
 			printf("%s", bpf_log_buf);
 			return 1;
 		}
+
 		printf("w/TRACEPOINT\n");
 		run_perf_test(num_cpu, test_flags >> 4);
 		unload_progs();

@@ -22,7 +22,8 @@ struct freq_tbl;
 struct clk_hw;
 struct parent_map;
 
-struct qcom_cc_desc {
+struct qcom_cc_desc
+{
 	const struct regmap_config *config;
 	struct clk_regmap **clks;
 	size_t num_clks;
@@ -33,20 +34,20 @@ struct qcom_cc_desc {
 };
 
 extern const struct freq_tbl *qcom_find_freq(const struct freq_tbl *f,
-					     unsigned long rate);
+		unsigned long rate);
 extern int qcom_find_src_index(struct clk_hw *hw, const struct parent_map *map,
-			       u8 src);
+							   u8 src);
 
 extern int qcom_cc_register_board_clk(struct device *dev, const char *path,
-				      const char *name, unsigned long rate);
+									  const char *name, unsigned long rate);
 extern int qcom_cc_register_sleep_clk(struct device *dev);
 
 extern struct regmap *qcom_cc_map(struct platform_device *pdev,
-				  const struct qcom_cc_desc *desc);
+								  const struct qcom_cc_desc *desc);
 extern int qcom_cc_really_probe(struct platform_device *pdev,
-				const struct qcom_cc_desc *desc,
-				struct regmap *regmap);
+								const struct qcom_cc_desc *desc,
+								struct regmap *regmap);
 extern int qcom_cc_probe(struct platform_device *pdev,
-			 const struct qcom_cc_desc *desc);
+						 const struct qcom_cc_desc *desc);
 
 #endif

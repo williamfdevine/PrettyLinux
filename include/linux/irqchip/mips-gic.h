@@ -49,12 +49,12 @@
 
 /* Convert an interrupt number to a byte offset/bit for multi-word registers */
 #define GIC_INTR_OFS(intr) ({				\
-	unsigned bits = mips_cm_is64 ? 64 : 32;		\
-	unsigned reg_idx = (intr) / bits;		\
-	unsigned reg_width = bits / 8;			\
-							\
-	reg_idx * reg_width;				\
-})
+		unsigned bits = mips_cm_is64 ? 64 : 32;		\
+		unsigned reg_idx = (intr) / bits;		\
+		unsigned reg_width = bits / 8;			\
+		\
+		reg_idx * reg_width;				\
+	})
 #define GIC_INTR_BIT(intr)		((intr) % (mips_cm_is64 ? 64 : 32))
 
 /* Polarity : Reset Value is always 0 */
@@ -256,8 +256,8 @@
 extern unsigned int gic_present;
 
 extern void gic_init(unsigned long gic_base_addr,
-	unsigned long gic_addrspace_size, unsigned int cpu_vec,
-	unsigned int irqbase);
+					 unsigned long gic_addrspace_size, unsigned int cpu_vec,
+					 unsigned int irqbase);
 extern void gic_clocksource_init(unsigned int);
 extern cycle_t gic_read_count(void);
 extern unsigned int gic_get_count_width(void);

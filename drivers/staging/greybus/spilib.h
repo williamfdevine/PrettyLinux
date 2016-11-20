@@ -13,7 +13,8 @@
 struct device;
 struct gb_connection;
 
-struct spilib_ops {
+struct spilib_ops
+{
 	int (*prepare_transfer_hardware)(struct device *dev);
 	void (*unprepare_transfer_hardware)(struct device *dev);
 };

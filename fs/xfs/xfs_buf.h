@@ -34,7 +34,8 @@
 
 #define XFS_BUF_DADDR_NULL	((xfs_daddr_t) (-1LL))
 
-typedef enum {
+typedef enum
+{
 	XBRW_READ = 1,			/* transfer into target memory */
 	XBRW_WRITE = 2,			/* transfer from target memory */
 	XBRW_ZERO = 3,			/* Zero target memory */
@@ -79,12 +80,12 @@ typedef unsigned int xfs_buf_flags_t;
 	{ XBF_FUA,		"FUA" }, \
 	{ XBF_FLUSH,		"FLUSH" }, \
 	{ XBF_TRYLOCK,		"TRYLOCK" },	/* should never be set */\
-	{ XBF_UNMAPPED,		"UNMAPPED" },	/* ditto */\
-	{ _XBF_PAGES,		"PAGES" }, \
-	{ _XBF_KMEM,		"KMEM" }, \
-	{ _XBF_DELWRI_Q,	"DELWRI_Q" }, \
-	{ _XBF_COMPOUND,	"COMPOUND" }, \
-	{ _XBF_IN_FLIGHT,	"IN_FLIGHT" }
+		{ XBF_UNMAPPED,		"UNMAPPED" },	/* ditto */\
+		{ _XBF_PAGES,		"PAGES" }, \
+		{ _XBF_KMEM,		"KMEM" }, \
+		{ _XBF_DELWRI_Q,	"DELWRI_Q" }, \
+		{ _XBF_COMPOUND,	"COMPOUND" }, \
+		{ _XBF_IN_FLIGHT,	"IN_FLIGHT" }
 
 
 /*
@@ -105,7 +106,8 @@ typedef unsigned int xfs_buf_flags_t;
  * The latter is derived from the underlying device, and controls direct IO
  * alignment constraints.
  */
-typedef struct xfs_buftarg {
+typedef struct xfs_buftarg
+{
 	dev_t			bt_dev;
 	struct block_device	*bt_bdev;
 	struct backing_dev_info	*bt_bdi;
@@ -128,7 +130,8 @@ typedef void (*xfs_buf_iodone_t)(struct xfs_buf *);
 
 #define XB_PAGES	2
 
-struct xfs_buf_map {
+struct xfs_buf_map
+{
 	xfs_daddr_t		bm_bn;	/* block number for I/O */
 	int			bm_len;	/* size of I/O */
 };
@@ -136,13 +139,15 @@ struct xfs_buf_map {
 #define DEFINE_SINGLE_BUF_MAP(map, blkno, numblk) \
 	struct xfs_buf_map (map) = { .bm_bn = (blkno), .bm_len = (numblk) };
 
-struct xfs_buf_ops {
+struct xfs_buf_ops
+{
 	char *name;
 	void (*verify_read)(struct xfs_buf *);
 	void (*verify_write)(struct xfs_buf *);
 };
 
-typedef struct xfs_buf {
+typedef struct xfs_buf
+{
 	/*
 	 * first cacheline holds all the fields needed for an uncontended cache
 	 * hit to be fully processed. The semaphore straddles the cacheline
@@ -217,8 +222,8 @@ typedef struct xfs_buf {
 
 /* Finding and Reading Buffers */
 struct xfs_buf *_xfs_buf_find(struct xfs_buftarg *target,
-			      struct xfs_buf_map *map, int nmaps,
-			      xfs_buf_flags_t flags, struct xfs_buf *new_bp);
+							  struct xfs_buf_map *map, int nmaps,
+							  xfs_buf_flags_t flags, struct xfs_buf *new_bp);
 
 static inline struct xfs_buf *
 xfs_incore(
@@ -232,8 +237,8 @@ xfs_incore(
 }
 
 struct xfs_buf *_xfs_buf_alloc(struct xfs_buftarg *target,
-			       struct xfs_buf_map *map, int nmaps,
-			       xfs_buf_flags_t flags);
+							   struct xfs_buf_map *map, int nmaps,
+							   xfs_buf_flags_t flags);
 
 static inline struct xfs_buf *
 xfs_buf_alloc(
@@ -247,15 +252,15 @@ xfs_buf_alloc(
 }
 
 struct xfs_buf *xfs_buf_get_map(struct xfs_buftarg *target,
-			       struct xfs_buf_map *map, int nmaps,
-			       xfs_buf_flags_t flags);
+								struct xfs_buf_map *map, int nmaps,
+								xfs_buf_flags_t flags);
 struct xfs_buf *xfs_buf_read_map(struct xfs_buftarg *target,
-			       struct xfs_buf_map *map, int nmaps,
-			       xfs_buf_flags_t flags,
-			       const struct xfs_buf_ops *ops);
+								 struct xfs_buf_map *map, int nmaps,
+								 xfs_buf_flags_t flags,
+								 const struct xfs_buf_ops *ops);
 void xfs_buf_readahead_map(struct xfs_buftarg *target,
-			       struct xfs_buf_map *map, int nmaps,
-			       const struct xfs_buf_ops *ops);
+						   struct xfs_buf_map *map, int nmaps,
+						   const struct xfs_buf_ops *ops);
 
 static inline struct xfs_buf *
 xfs_buf_get(
@@ -296,10 +301,10 @@ void xfs_buf_set_empty(struct xfs_buf *bp, size_t numblks);
 int xfs_buf_associate_memory(struct xfs_buf *bp, void *mem, size_t length);
 
 struct xfs_buf *xfs_buf_get_uncached(struct xfs_buftarg *target, size_t numblks,
-				int flags);
+									 int flags);
 int xfs_buf_read_uncached(struct xfs_buftarg *target, xfs_daddr_t daddr,
-			  size_t numblks, int flags, struct xfs_buf **bpp,
-			  const struct xfs_buf_ops *ops);
+						  size_t numblks, int flags, struct xfs_buf **bpp,
+						  const struct xfs_buf_ops *ops);
 void xfs_buf_hold(struct xfs_buf *bp);
 
 /* Releasing Buffers */
@@ -321,9 +326,9 @@ extern void xfs_buf_ioerror_alert(struct xfs_buf *, const char *func);
 extern void xfs_buf_submit(struct xfs_buf *bp);
 extern int xfs_buf_submit_wait(struct xfs_buf *bp);
 extern void xfs_buf_iomove(xfs_buf_t *, size_t, size_t, void *,
-				xfs_buf_rw_t);
+						   xfs_buf_rw_t);
 #define xfs_buf_zero(bp, off, len) \
-	    xfs_buf_iomove((bp), (off), (len), NULL, XBRW_ZERO)
+	xfs_buf_iomove((bp), (off), (len), NULL, XBRW_ZERO)
 
 /* Buffer Utility Routines */
 extern void *xfs_buf_offset(struct xfs_buf *, size_t);
@@ -371,21 +376,21 @@ static inline int
 xfs_buf_verify_cksum(struct xfs_buf *bp, unsigned long cksum_offset)
 {
 	return xfs_verify_cksum(bp->b_addr, BBTOB(bp->b_length),
-				cksum_offset);
+							cksum_offset);
 }
 
 static inline void
 xfs_buf_update_cksum(struct xfs_buf *bp, unsigned long cksum_offset)
 {
 	xfs_update_cksum(bp->b_addr, BBTOB(bp->b_length),
-			 cksum_offset);
+					 cksum_offset);
 }
 
 /*
  *	Handling of buftargs.
  */
 extern xfs_buftarg_t *xfs_alloc_buftarg(struct xfs_mount *,
-			struct block_device *);
+										struct block_device *);
 extern void xfs_free_buftarg(struct xfs_mount *, struct xfs_buftarg *);
 extern void xfs_wait_buftarg(xfs_buftarg_t *);
 extern int xfs_setsize_buftarg(xfs_buftarg_t *, unsigned int);

@@ -19,7 +19,8 @@
 
 #define BCM963XX_DEFAULT_PSI_SIZE	64
 
-enum bcm963xx_nvram_nand_part {
+enum bcm963xx_nvram_nand_part
+{
 	BCM963XX_NVRAM_NAND_PART_BOOT = 0,
 	BCM963XX_NVRAM_NAND_PART_ROOTFS_1,
 	BCM963XX_NVRAM_NAND_PART_ROOTFS_2,
@@ -29,7 +30,8 @@ enum bcm963xx_nvram_nand_part {
 	__BCM963XX_NVRAM_NAND_NR_PARTS
 };
 
-struct bcm963xx_nvram {
+struct bcm963xx_nvram
+{
 	u32	version;
 	char	bootline[256];
 	char	name[16];
@@ -83,10 +85,13 @@ static int __maybe_unused bcm963xx_nvram_checksum(
 	u32 expected, actual;
 	size_t len;
 
-	if (nvram->version <= 4) {
+	if (nvram->version <= 4)
+	{
 		expected = nvram->checksum_v4;
 		len = BCM963XX_NVRAM_V4_SIZE - sizeof(u32);
-	} else {
+	}
+	else
+	{
 		expected = nvram->checksum_v5;
 		len = BCM963XX_NVRAM_V5_SIZE - sizeof(u32);
 	}
@@ -98,13 +103,17 @@ static int __maybe_unused bcm963xx_nvram_checksum(
 	 * - The CRC32 of a zero checksum value (which is also 0)
 	 */
 	actual = crc32_le_combine(
-		crc32_le(~0, (u8 *)nvram, len), 0, sizeof(u32));
+				 crc32_le(~0, (u8 *)nvram, len), 0, sizeof(u32));
 
 	if (expected_out)
+	{
 		*expected_out = expected;
+	}
 
 	if (actual_out)
+	{
 		*actual_out = actual;
+	}
 
 	return expected == actual ? 0 : -EINVAL;
 };

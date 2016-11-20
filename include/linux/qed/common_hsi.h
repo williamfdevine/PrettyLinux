@@ -16,9 +16,9 @@
 #define DMA_LO_LE(x)		cpu_to_le32(lower_32_bits(x))
 #define DMA_HI_LE(x)		cpu_to_le32(upper_32_bits(x))
 #define DMA_REGPAIR_LE(x, val)	do { \
-					(x).hi = DMA_HI_LE((val)); \
-					(x).lo = DMA_LO_LE((val)); \
-				} while (0)
+		(x).hi = DMA_HI_LE((val)); \
+		(x).lo = DMA_LO_LE((val)); \
+	} while (0)
 
 #define HILO_GEN(hi, lo, type)  ((((type)(hi)) << 32) + (lo))
 #define HILO_64(hi, lo) HILO_GEN((le32_to_cpu(hi)), (le32_to_cpu(lo)), u64)
@@ -375,8 +375,8 @@
 
 #define IGU_CMD_INT_ACK_BASE		0x0400
 #define IGU_CMD_INT_ACK_UPPER		(IGU_CMD_INT_ACK_BASE +	\
-					 MAX_TOT_SB_PER_PATH -	\
-					 1)
+									 MAX_TOT_SB_PER_PATH -	\
+									 1)
 #define IGU_CMD_INT_ACK_RESERVED_UPPER	0x05ff
 
 #define IGU_CMD_ATTN_BIT_UPD_UPPER	0x05f0
@@ -390,8 +390,8 @@
 
 #define IGU_CMD_PROD_UPD_BASE			0x0600
 #define IGU_CMD_PROD_UPD_UPPER			(IGU_CMD_PROD_UPD_BASE +\
-						 MAX_TOT_SB_PER_PATH - \
-						 1)
+		MAX_TOT_SB_PER_PATH - \
+		1)
 #define IGU_CMD_PROD_UPD_RESERVED_UPPER		0x07ff
 
 /*****************/
@@ -418,18 +418,18 @@
 #define PXP_PF_WINDOW_ADMIN_START	0
 #define PXP_PF_WINDOW_ADMIN_LENGTH	0x1000
 #define PXP_PF_WINDOW_ADMIN_END		(PXP_PF_WINDOW_ADMIN_START + \
-					 PXP_PF_WINDOW_ADMIN_LENGTH - 1)
+									 PXP_PF_WINDOW_ADMIN_LENGTH - 1)
 #define PXP_PF_WINDOW_ADMIN_PER_PF_START	0
 #define PXP_PF_WINDOW_ADMIN_PER_PF_LENGTH	(PXP_NUM_PF_WINDOWS * \
-						 PXP_PER_PF_ENTRY_SIZE)
+		PXP_PER_PF_ENTRY_SIZE)
 #define PXP_PF_WINDOW_ADMIN_PER_PF_END	(PXP_PF_WINDOW_ADMIN_PER_PF_START + \
-					 PXP_PF_WINDOW_ADMIN_PER_PF_LENGTH - 1)
+		PXP_PF_WINDOW_ADMIN_PER_PF_LENGTH - 1)
 #define PXP_PF_WINDOW_ADMIN_GLOBAL_START	0x200
 #define PXP_PF_WINDOW_ADMIN_GLOBAL_LENGTH	(PXP_NUM_GLOBAL_WINDOWS * \
-						 PXP_GLOBAL_ENTRY_SIZE)
+		PXP_GLOBAL_ENTRY_SIZE)
 #define PXP_PF_WINDOW_ADMIN_GLOBAL_END \
-		(PXP_PF_WINDOW_ADMIN_GLOBAL_START + \
-		 PXP_PF_WINDOW_ADMIN_GLOBAL_LENGTH - 1)
+	(PXP_PF_WINDOW_ADMIN_GLOBAL_START + \
+	 PXP_PF_WINDOW_ADMIN_GLOBAL_LENGTH - 1)
 #define PXP_PF_GLOBAL_PRETEND_ADDR	0x1f0
 #define PXP_PF_ME_OPAQUE_MASK_ADDR	0xf4
 #define PXP_PF_ME_OPAQUE_ADDR		0x1f8
@@ -460,38 +460,38 @@
 #define PXP_BAR0_START_GRC	0x0000
 #define PXP_BAR0_GRC_LENGTH	0x1C00000
 #define PXP_BAR0_END_GRC	(PXP_BAR0_START_GRC + \
-				 PXP_BAR0_GRC_LENGTH - 1)
+							 PXP_BAR0_GRC_LENGTH - 1)
 
 #define PXP_BAR0_START_IGU	0x1C00000
 #define PXP_BAR0_IGU_LENGTH	0x10000
 #define PXP_BAR0_END_IGU	(PXP_BAR0_START_IGU + \
-				 PXP_BAR0_IGU_LENGTH - 1)
+							 PXP_BAR0_IGU_LENGTH - 1)
 
 #define PXP_BAR0_START_TSDM	0x1C80000
 #define PXP_BAR0_SDM_LENGTH	0x40000
 #define PXP_BAR0_SDM_RESERVED_LENGTH	0x40000
 #define PXP_BAR0_END_TSDM	(PXP_BAR0_START_TSDM + \
-				 PXP_BAR0_SDM_LENGTH - 1)
+							 PXP_BAR0_SDM_LENGTH - 1)
 
 #define PXP_BAR0_START_MSDM	0x1D00000
 #define PXP_BAR0_END_MSDM	(PXP_BAR0_START_MSDM + \
-				 PXP_BAR0_SDM_LENGTH - 1)
+							 PXP_BAR0_SDM_LENGTH - 1)
 
 #define PXP_BAR0_START_USDM	0x1D80000
 #define PXP_BAR0_END_USDM	(PXP_BAR0_START_USDM + \
-				 PXP_BAR0_SDM_LENGTH - 1)
+							 PXP_BAR0_SDM_LENGTH - 1)
 
 #define PXP_BAR0_START_XSDM	0x1E00000
 #define PXP_BAR0_END_XSDM	(PXP_BAR0_START_XSDM + \
-				 PXP_BAR0_SDM_LENGTH - 1)
+							 PXP_BAR0_SDM_LENGTH - 1)
 
 #define PXP_BAR0_START_YSDM	0x1E80000
 #define PXP_BAR0_END_YSDM	(PXP_BAR0_START_YSDM + \
-				 PXP_BAR0_SDM_LENGTH - 1)
+							 PXP_BAR0_SDM_LENGTH - 1)
 
 #define PXP_BAR0_START_PSDM	0x1F00000
 #define PXP_BAR0_END_PSDM	(PXP_BAR0_START_PSDM + \
-				 PXP_BAR0_SDM_LENGTH - 1)
+							 PXP_BAR0_SDM_LENGTH - 1)
 
 #define PXP_BAR0_FIRST_INVALID_ADDRESS	(PXP_BAR0_END_PSDM + 1)
 
@@ -501,59 +501,59 @@
 #define PXP_VF_BAR0_START_GRC	0x3E00
 #define PXP_VF_BAR0_GRC_LENGTH	0x200
 #define PXP_VF_BAR0_END_GRC	(PXP_VF_BAR0_START_GRC + \
-				 PXP_VF_BAR0_GRC_LENGTH - 1)
+							 PXP_VF_BAR0_GRC_LENGTH - 1)
 
 #define PXP_VF_BAR0_START_IGU                   0
 #define PXP_VF_BAR0_IGU_LENGTH                  0x3000
 #define PXP_VF_BAR0_END_IGU                     (PXP_VF_BAR0_START_IGU + \
-						 PXP_VF_BAR0_IGU_LENGTH - 1)
+		PXP_VF_BAR0_IGU_LENGTH - 1)
 
 #define PXP_VF_BAR0_START_DQ                    0x3000
 #define PXP_VF_BAR0_DQ_LENGTH                   0x200
 #define PXP_VF_BAR0_DQ_OPAQUE_OFFSET            0
 #define PXP_VF_BAR0_ME_OPAQUE_ADDRESS           (PXP_VF_BAR0_START_DQ +	\
-						 PXP_VF_BAR0_DQ_OPAQUE_OFFSET)
+		PXP_VF_BAR0_DQ_OPAQUE_OFFSET)
 #define PXP_VF_BAR0_ME_CONCRETE_ADDRESS         (PXP_VF_BAR0_ME_OPAQUE_ADDRESS \
-						 + 4)
+		+ 4)
 #define PXP_VF_BAR0_END_DQ                      (PXP_VF_BAR0_START_DQ +	\
-						 PXP_VF_BAR0_DQ_LENGTH - 1)
+		PXP_VF_BAR0_DQ_LENGTH - 1)
 
 #define PXP_VF_BAR0_START_TSDM_ZONE_B           0x3200
 #define PXP_VF_BAR0_SDM_LENGTH_ZONE_B           0x200
 #define PXP_VF_BAR0_END_TSDM_ZONE_B             (PXP_VF_BAR0_START_TSDM_ZONE_B \
-						 +			       \
-						 PXP_VF_BAR0_SDM_LENGTH_ZONE_B \
-						 - 1)
+		+			       \
+		PXP_VF_BAR0_SDM_LENGTH_ZONE_B \
+		- 1)
 
 #define PXP_VF_BAR0_START_MSDM_ZONE_B           0x3400
 #define PXP_VF_BAR0_END_MSDM_ZONE_B             (PXP_VF_BAR0_START_MSDM_ZONE_B \
-						 +			       \
-						 PXP_VF_BAR0_SDM_LENGTH_ZONE_B \
-						 - 1)
+		+			       \
+		PXP_VF_BAR0_SDM_LENGTH_ZONE_B \
+		- 1)
 
 #define PXP_VF_BAR0_START_USDM_ZONE_B           0x3600
 #define PXP_VF_BAR0_END_USDM_ZONE_B             (PXP_VF_BAR0_START_USDM_ZONE_B \
-						 +			       \
-						 PXP_VF_BAR0_SDM_LENGTH_ZONE_B \
-						 - 1)
+		+			       \
+		PXP_VF_BAR0_SDM_LENGTH_ZONE_B \
+		- 1)
 
 #define PXP_VF_BAR0_START_XSDM_ZONE_B           0x3800
 #define PXP_VF_BAR0_END_XSDM_ZONE_B             (PXP_VF_BAR0_START_XSDM_ZONE_B \
-						 +			       \
-						 PXP_VF_BAR0_SDM_LENGTH_ZONE_B \
-						 - 1)
+		+			       \
+		PXP_VF_BAR0_SDM_LENGTH_ZONE_B \
+		- 1)
 
 #define PXP_VF_BAR0_START_YSDM_ZONE_B           0x3a00
 #define PXP_VF_BAR0_END_YSDM_ZONE_B             (PXP_VF_BAR0_START_YSDM_ZONE_B \
-						 +			       \
-						 PXP_VF_BAR0_SDM_LENGTH_ZONE_B \
-						 - 1)
+		+			       \
+		PXP_VF_BAR0_SDM_LENGTH_ZONE_B \
+		- 1)
 
 #define PXP_VF_BAR0_START_PSDM_ZONE_B           0x3c00
 #define PXP_VF_BAR0_END_PSDM_ZONE_B             (PXP_VF_BAR0_START_PSDM_ZONE_B \
-						 +			       \
-						 PXP_VF_BAR0_SDM_LENGTH_ZONE_B \
-						 - 1)
+		+			       \
+		PXP_VF_BAR0_SDM_LENGTH_ZONE_B \
+		- 1)
 
 #define PXP_VF_BAR0_START_SDM_ZONE_A            0x4000
 #define PXP_VF_BAR0_END_SDM_ZONE_A              0x10000
@@ -609,14 +609,16 @@
 #define PRS_GFT_CAM_LINES_NO_MATCH	31
 
 /* Async data KCQ CQE */
-struct async_data {
+struct async_data
+{
 	__le32	cid;
 	__le16	itid;
 	u8	error_code;
 	u8	fw_debug_param;
 };
 
-struct coalescing_timeset {
+struct coalescing_timeset
+{
 	u8 value;
 #define	COALESCING_TIMESET_TIMESET_MASK		0x7F
 #define	COALESCING_TIMESET_TIMESET_SHIFT	0
@@ -624,26 +626,31 @@ struct coalescing_timeset {
 #define	COALESCING_TIMESET_VALID_SHIFT		7
 };
 
-struct common_queue_zone {
+struct common_queue_zone
+{
 	__le16 ring_drv_data_consumer;
 	__le16 reserved;
 };
 
-struct eth_rx_prod_data {
+struct eth_rx_prod_data
+{
 	__le16 bd_prod;
 	__le16 cqe_prod;
 };
 
-struct regpair {
+struct regpair
+{
 	__le32	lo;
 	__le32	hi;
 };
 
-struct vf_pf_channel_eqe_data {
+struct vf_pf_channel_eqe_data
+{
 	struct regpair msg_addr;
 };
 
-struct iscsi_eqe_data {
+struct iscsi_eqe_data
+{
 	__le32 cid;
 	__le16 conn_id;
 	u8 error_code;
@@ -656,19 +663,22 @@ struct iscsi_eqe_data {
 #define ISCSI_EQE_DATA_RESERVED0_SHIFT			7
 };
 
-struct malicious_vf_eqe_data {
+struct malicious_vf_eqe_data
+{
 	u8 vf_id;
 	u8 err_id;
 	__le16 reserved[3];
 };
 
-struct initial_cleanup_eqe_data {
+struct initial_cleanup_eqe_data
+{
 	u8 vf_id;
 	u8 reserved[7];
 };
 
 /* Event Data Union */
-union event_ring_data {
+union event_ring_data
+{
 	u8 bytes[8];
 	struct vf_pf_channel_eqe_data vf_pf_channel;
 	struct iscsi_eqe_data iscsi_info;
@@ -678,7 +688,8 @@ union event_ring_data {
 };
 
 /* Event Ring Entry */
-struct event_ring_entry {
+struct event_ring_entry
+{
 	u8			protocol_id;
 	u8			opcode;
 	__le16			reserved0;
@@ -693,7 +704,8 @@ struct event_ring_entry {
 };
 
 /* Multi function mode */
-enum mf_mode {
+enum mf_mode
+{
 	ERROR_MODE /* Unsupported mode */,
 	MF_OVLAN,
 	MF_NPAR,
@@ -701,7 +713,8 @@ enum mf_mode {
 };
 
 /* Per-protocol connection types */
-enum protocol_type {
+enum protocol_type
+{
 	PROTOCOLID_ISCSI,
 	PROTOCOLID_RESERVED2,
 	PROTOCOLID_ROCE,
@@ -715,18 +728,21 @@ enum protocol_type {
 	MAX_PROTOCOL_TYPE
 };
 
-struct ustorm_eth_queue_zone {
+struct ustorm_eth_queue_zone
+{
 	struct coalescing_timeset int_coalescing_timeset;
 	u8 reserved[3];
 };
 
-struct ustorm_queue_zone {
+struct ustorm_queue_zone
+{
 	struct ustorm_eth_queue_zone eth;
 	struct common_queue_zone common;
 };
 
 /* status block structure */
-struct cau_pi_entry {
+struct cau_pi_entry
+{
 	u32 prod;
 #define CAU_PI_ENTRY_PROD_VAL_MASK    0xFFFF
 #define CAU_PI_ENTRY_PROD_VAL_SHIFT   0
@@ -739,7 +755,8 @@ struct cau_pi_entry {
 };
 
 /* status block structure */
-struct cau_sb_entry {
+struct cau_sb_entry
+{
 	u32 data;
 #define CAU_SB_ENTRY_SB_PROD_MASK      0xFFFFFF
 #define CAU_SB_ENTRY_SB_PROD_SHIFT     0
@@ -767,7 +784,8 @@ struct cau_sb_entry {
 };
 
 /* core doorbell data */
-struct core_db_data {
+struct core_db_data
+{
 	u8 params;
 #define CORE_DB_DATA_DEST_MASK         0x3
 #define CORE_DB_DATA_DEST_SHIFT        0
@@ -784,7 +802,8 @@ struct core_db_data {
 };
 
 /* Enum of doorbell aggregative command selection */
-enum db_agg_cmd_sel {
+enum db_agg_cmd_sel
+{
 	DB_AGG_CMD_NOP,
 	DB_AGG_CMD_SET,
 	DB_AGG_CMD_ADD,
@@ -793,7 +812,8 @@ enum db_agg_cmd_sel {
 };
 
 /* Enum of doorbell destination */
-enum db_dest {
+enum db_dest
+{
 	DB_DEST_XCM,
 	DB_DEST_UCM,
 	DB_DEST_TCM,
@@ -802,7 +822,8 @@ enum db_dest {
 };
 
 /* Enum of doorbell DPM types */
-enum db_dpm_type {
+enum db_dpm_type
+{
 	DPM_LEGACY,
 	DPM_ROCE,
 	DPM_L2_INLINE,
@@ -811,7 +832,8 @@ enum db_dpm_type {
 };
 
 /* Structure for doorbell data, in L2 DPM mode, for 1st db in a DPM burst */
-struct db_l2_dpm_data {
+struct db_l2_dpm_data
+{
 	__le16 icid;
 	__le16 bd_prod;
 	__le32 params;
@@ -832,7 +854,8 @@ struct db_l2_dpm_data {
 };
 
 /* Structure for SGE in a DPM doorbell of type DPM_L2_BD */
-struct db_l2_dpm_sge {
+struct db_l2_dpm_sge
+{
 	struct regpair addr;
 	__le16 nbytes;
 	__le16 bitfields;
@@ -848,7 +871,8 @@ struct db_l2_dpm_sge {
 };
 
 /* Structure for doorbell address, in legacy mode */
-struct db_legacy_addr {
+struct db_legacy_addr
+{
 	__le32 addr;
 #define DB_LEGACY_ADDR_RESERVED0_MASK  0x3
 #define DB_LEGACY_ADDR_RESERVED0_SHIFT 0
@@ -859,7 +883,8 @@ struct db_legacy_addr {
 };
 
 /* Structure for doorbell address, in PWM mode */
-struct db_pwm_addr {
+struct db_pwm_addr
+{
 	__le32 addr;
 #define DB_PWM_ADDR_RESERVED0_MASK	0x7
 #define DB_PWM_ADDR_RESERVED0_SHIFT 0
@@ -874,7 +899,8 @@ struct db_pwm_addr {
 };
 
 /* Parameters to RoCE firmware, passed in EDPM doorbell */
-struct db_roce_dpm_params {
+struct db_roce_dpm_params
+{
 	__le32 params;
 #define DB_ROCE_DPM_PARAMS_SIZE_MASK		0x3F
 #define DB_ROCE_DPM_PARAMS_SIZE_SHIFT		0
@@ -895,14 +921,16 @@ struct db_roce_dpm_params {
 };
 
 /* Structure for doorbell data, in ROCE DPM mode, for 1st db in a DPM burst */
-struct db_roce_dpm_data {
+struct db_roce_dpm_data
+{
 	__le16 icid;
 	__le16 prod_val;
 	struct db_roce_dpm_params params;
 };
 
 /* Igu interrupt command */
-enum igu_int_cmd {
+enum igu_int_cmd
+{
 	IGU_INT_ENABLE	= 0,
 	IGU_INT_DISABLE = 1,
 	IGU_INT_NOP	= 2,
@@ -911,7 +939,8 @@ enum igu_int_cmd {
 };
 
 /* IGU producer or consumer update command */
-struct igu_prod_cons_update {
+struct igu_prod_cons_update
+{
 	u32 sb_id_and_flags;
 #define IGU_PROD_CONS_UPDATE_SB_INDEX_MASK        0xFFFFFF
 #define IGU_PROD_CONS_UPDATE_SB_INDEX_SHIFT       0
@@ -931,13 +960,15 @@ struct igu_prod_cons_update {
 };
 
 /* Igu segments access for default status block only */
-enum igu_seg_access {
+enum igu_seg_access
+{
 	IGU_SEG_ACCESS_REG	= 0,
 	IGU_SEG_ACCESS_ATTN	= 1,
 	MAX_IGU_SEG_ACCESS
 };
 
-struct parsing_and_err_flags {
+struct parsing_and_err_flags
+{
 	__le16 flags;
 #define PARSING_AND_ERR_FLAGS_L3TYPE_MASK                      0x3
 #define PARSING_AND_ERR_FLAGS_L3TYPE_SHIFT                     0
@@ -969,11 +1000,13 @@ struct parsing_and_err_flags {
 #define PARSING_AND_ERR_FLAGS_TUNNELL4CHKSMERROR_SHIFT         15
 };
 
-struct pb_context {
+struct pb_context
+{
 	__le32 crc[4];
 };
 
-struct pxp_concrete_fid {
+struct pxp_concrete_fid
+{
 	__le16 fid;
 #define PXP_CONCRETE_FID_PFID_MASK     0xF
 #define PXP_CONCRETE_FID_PFID_SHIFT    0
@@ -987,7 +1020,8 @@ struct pxp_concrete_fid {
 #define PXP_CONCRETE_FID_VFID_SHIFT    8
 };
 
-struct pxp_pretend_concrete_fid {
+struct pxp_pretend_concrete_fid
+{
 	__le16 fid;
 #define PXP_PRETEND_CONCRETE_FID_PFID_MASK      0xF
 #define PXP_PRETEND_CONCRETE_FID_PFID_SHIFT     0
@@ -999,13 +1033,15 @@ struct pxp_pretend_concrete_fid {
 #define PXP_PRETEND_CONCRETE_FID_VFID_SHIFT     8
 };
 
-union pxp_pretend_fid {
+union pxp_pretend_fid
+{
 	struct pxp_pretend_concrete_fid concrete_fid;
 	__le16				opaque_fid;
 };
 
 /* Pxp Pretend Command Register. */
-struct pxp_pretend_cmd {
+struct pxp_pretend_cmd
+{
 	union pxp_pretend_fid	fid;
 	__le16			control;
 #define PXP_PRETEND_CMD_PATH_MASK              0x1
@@ -1029,7 +1065,8 @@ struct pxp_pretend_cmd {
 };
 
 /* PTT Record in PXP Admin Window. */
-struct pxp_ptt_entry {
+struct pxp_ptt_entry
+{
 	__le32			offset;
 #define PXP_PTT_ENTRY_OFFSET_MASK     0x7FFFFF
 #define PXP_PTT_ENTRY_OFFSET_SHIFT    0
@@ -1039,7 +1076,8 @@ struct pxp_ptt_entry {
 };
 
 /* VF Zone A Permission Register. */
-struct pxp_vf_zone_a_permission {
+struct pxp_vf_zone_a_permission
+{
 	__le32 control;
 #define PXP_VF_ZONE_A_PERMISSION_VFID_MASK	0xFF
 #define PXP_VF_ZONE_A_PERMISSION_VFID_SHIFT	0
@@ -1052,7 +1090,8 @@ struct pxp_vf_zone_a_permission {
 };
 
 /* RSS hash type */
-struct rdif_task_context {
+struct rdif_task_context
+{
 	__le32 initial_ref_tag;
 	__le16 app_tag_value;
 	__le16 app_tag_mask;
@@ -1119,7 +1158,8 @@ struct rdif_task_context {
 };
 
 /* RSS hash type */
-enum rss_hash_type {
+enum rss_hash_type
+{
 	RSS_HASH_TYPE_DEFAULT	= 0,
 	RSS_HASH_TYPE_IPV4	= 1,
 	RSS_HASH_TYPE_TCP_IPV4	= 2,
@@ -1131,7 +1171,8 @@ enum rss_hash_type {
 };
 
 /* status block structure */
-struct status_block {
+struct status_block
+{
 	__le16	pi_array[PIS_PER_SB];
 	__le32	sb_num;
 #define STATUS_BLOCK_SB_NUM_MASK      0x1FF
@@ -1147,7 +1188,8 @@ struct status_block {
 #define STATUS_BLOCK_ZERO_PAD3_SHIFT  24
 };
 
-struct tdif_task_context {
+struct tdif_task_context
+{
 	__le32 initial_ref_tag;
 	__le16 app_tag_value;
 	__le16 app_tag_mask;
@@ -1229,7 +1271,8 @@ struct tdif_task_context {
 	u8 partial_dif_data_b[8];
 };
 
-struct timers_context {
+struct timers_context
+{
 	__le32 logical_client_0;
 #define TIMERS_CONTEXT_EXPIRATIONTIMELC0_MASK     0xFFFFFFF
 #define TIMERS_CONTEXT_EXPIRATIONTIMELC0_SHIFT    0

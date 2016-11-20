@@ -42,26 +42,26 @@
 #include "atlx.h"
 
 #ifdef ETHTOOL_OPS_COMPAT
-int ethtool_ioctl(struct ifreq *ifr);
+	int ethtool_ioctl(struct ifreq *ifr);
 #endif
 
 #define PCI_COMMAND_REGISTER	PCI_COMMAND
 #define CMD_MEM_WRT_INVALIDATE	PCI_COMMAND_INVALIDATE
 
 #define ATL2_WRITE_REG(a, reg, value) (iowrite32((value), \
-	((a)->hw_addr + (reg))))
+									   ((a)->hw_addr + (reg))))
 
 #define ATL2_WRITE_FLUSH(a) (ioread32((a)->hw_addr))
 
 #define ATL2_READ_REG(a, reg) (ioread32((a)->hw_addr + (reg)))
 
 #define ATL2_WRITE_REGB(a, reg, value) (iowrite8((value), \
-	((a)->hw_addr + (reg))))
+										((a)->hw_addr + (reg))))
 
 #define ATL2_READ_REGB(a, reg) (ioread8((a)->hw_addr + (reg)))
 
 #define ATL2_WRITE_REGW(a, reg, value) (iowrite16((value), \
-	((a)->hw_addr + (reg))))
+										((a)->hw_addr + (reg))))
 
 #define ATL2_READ_REGW(a, reg) (ioread16((a)->hw_addr + (reg)))
 
@@ -81,7 +81,7 @@ static s32 atl2_reset_hw(struct atl2_hw *hw);
 static s32 atl2_read_mac_addr(struct atl2_hw *hw);
 static s32 atl2_init_hw(struct atl2_hw *hw);
 static s32 atl2_get_speed_and_duplex(struct atl2_hw *hw, u16 *speed,
-	u16 *duplex);
+									 u16 *duplex);
 static u32 atl2_hash_mc_addr(struct atl2_hw *hw, u8 *mc_addr);
 static void atl2_hash_set(struct atl2_hw *hw, u32 hash_value);
 static s32 atl2_read_phy_reg(struct atl2_hw *hw, u16 reg_addr, u16 *phy_data);
@@ -184,19 +184,19 @@ static void atl2_force_ps(struct atl2_hw *hw);
 				 * packet */
 
 #define ISR_TX_EVENT (ISR_TXF_UR | ISR_TXS_OV | ISR_HOST_TXD_UR |\
-	ISR_TS_UPDATE | ISR_TX_EARLY)
+					  ISR_TS_UPDATE | ISR_TX_EARLY)
 #define ISR_RX_EVENT (ISR_RXF_OV | ISR_RXS_OV | ISR_HOST_RXD_OV |\
-	 ISR_RS_UPDATE)
+					  ISR_RS_UPDATE)
 
 #define IMR_NORMAL_MASK		(\
-	/*ISR_LINK_CHG		|*/\
-	ISR_MANUAL		|\
-	ISR_DMAR_TO_RST		|\
-	ISR_DMAW_TO_RST		|\
-	ISR_PHY			|\
-	ISR_PHY_LINKDOWN	|\
-	ISR_TS_UPDATE		|\
-	ISR_RS_UPDATE)
+							 /*ISR_LINK_CHG		|*/\
+							 ISR_MANUAL		|\
+							 ISR_DMAR_TO_RST		|\
+							 ISR_DMAW_TO_RST		|\
+							 ISR_PHY			|\
+							 ISR_PHY_LINKDOWN	|\
+							 ISR_TS_UPDATE		|\
+							 ISR_RS_UPDATE)
 
 /* Receive MAC Statistics Registers */
 #define REG_STS_RX_PAUSE	0x1700	/* Num pause packets received */
@@ -235,10 +235,11 @@ static void atl2_force_ps(struct atl2_hw *hw);
 #define MAX_JUMBO_FRAME_SIZE		0x2000
 #define VLAN_SIZE                                               4
 
-struct tx_pkt_header {
-	unsigned pkt_size:11;
-	unsigned:4;			/* reserved */
-	unsigned ins_vlan:1;		/* txmac should insert vlan */
+struct tx_pkt_header
+{
+	unsigned pkt_size: 11;
+	unsigned: 4;			/* reserved */
+	unsigned ins_vlan: 1;		/* txmac should insert vlan */
 	unsigned short vlan;		/* vlan tag */
 };
 /* FIXME: replace above bitfields with MASK/SHIFT defines below */
@@ -249,24 +250,25 @@ struct tx_pkt_header {
 #define TX_PKT_HEADER_VLAN_TAG_MASK	0xFFFF
 #define TX_PKT_HEADER_VLAN_TAG_SHIFT	16
 
-struct tx_pkt_status {
-	unsigned pkt_size:11;
-	unsigned:5;		/* reserved */
-	unsigned ok:1;		/* current packet transmitted without error */
-	unsigned bcast:1;	/* broadcast packet */
-	unsigned mcast:1;	/* multicast packet */
-	unsigned pause:1;	/* transmiited a pause frame */
-	unsigned ctrl:1;
-	unsigned defer:1;    	/* current packet is xmitted with defer */
-	unsigned exc_defer:1;
-	unsigned single_col:1;
-	unsigned multi_col:1;
-	unsigned late_col:1;
-	unsigned abort_col:1;
-	unsigned underun:1;	/* current packet is aborted
+struct tx_pkt_status
+{
+	unsigned pkt_size: 11;
+	unsigned: 5;		/* reserved */
+	unsigned ok: 1;		/* current packet transmitted without error */
+	unsigned bcast: 1;	/* broadcast packet */
+	unsigned mcast: 1;	/* multicast packet */
+	unsigned pause: 1;	/* transmiited a pause frame */
+	unsigned ctrl: 1;
+	unsigned defer: 1;    	/* current packet is xmitted with defer */
+	unsigned exc_defer: 1;
+	unsigned single_col: 1;
+	unsigned multi_col: 1;
+	unsigned late_col: 1;
+	unsigned abort_col: 1;
+	unsigned underun: 1;	/* current packet is aborted
 				 * due to txram underrun */
-	unsigned:3;		/* reserved */
-	unsigned update:1;	/* always 1'b1 in tx_status_buf */
+	unsigned: 3;		/* reserved */
+	unsigned update: 1;	/* always 1'b1 in tx_status_buf */
 };
 /* FIXME: replace above bitfields with MASK/SHIFT defines below */
 #define TX_PKT_STATUS_SIZE_MASK		0x7FF
@@ -298,27 +300,28 @@ struct tx_pkt_status {
 #define TX_PKT_STATUS_UPDATE_MASK	0x1
 #define TX_PKT_STATUS_UPDATE_SHIFT	31
 
-struct rx_pkt_status {
-	unsigned pkt_size:11;	/* packet size, max 2047 bytes */
-	unsigned:5;		/* reserved */
-	unsigned ok:1;		/* current packet received ok without error */
-	unsigned bcast:1;	/* current packet is broadcast */
-	unsigned mcast:1;	/* current packet is multicast */
-	unsigned pause:1;
-	unsigned ctrl:1;
-	unsigned crc:1;		/* received a packet with crc error */
-	unsigned code:1;	/* received a packet with code error */
-	unsigned runt:1;	/* received a packet less than 64 bytes
+struct rx_pkt_status
+{
+	unsigned pkt_size: 11;	/* packet size, max 2047 bytes */
+	unsigned: 5;		/* reserved */
+	unsigned ok: 1;		/* current packet received ok without error */
+	unsigned bcast: 1;	/* current packet is broadcast */
+	unsigned mcast: 1;	/* current packet is multicast */
+	unsigned pause: 1;
+	unsigned ctrl: 1;
+	unsigned crc: 1;		/* received a packet with crc error */
+	unsigned code: 1;	/* received a packet with code error */
+	unsigned runt: 1;	/* received a packet less than 64 bytes
 				 * with good crc */
-	unsigned frag:1;	/* received a packet less than 64 bytes
+	unsigned frag: 1;	/* received a packet less than 64 bytes
 				 * with bad crc */
-	unsigned trunc:1;	/* current frame truncated due to rxram full */
-	unsigned align:1;	/* this packet is alignment error */
-	unsigned vlan:1;	/* this packet has vlan */
-	unsigned:3;		/* reserved */
-	unsigned update:1;
+	unsigned trunc: 1;	/* current frame truncated due to rxram full */
+	unsigned align: 1;	/* this packet is alignment error */
+	unsigned vlan: 1;	/* this packet has vlan */
+	unsigned: 3;		/* reserved */
+	unsigned update: 1;
 	unsigned short vtag;	/* vlan tag */
-	unsigned:16;
+	unsigned: 16;
 };
 /* FIXME: replace above bitfields with MASK/SHIFT defines below */
 #define RX_PKT_STATUS_SIZE_MASK		0x7FF
@@ -352,19 +355,22 @@ struct rx_pkt_status {
 #define RX_PKT_STATUS_VLAN_TAG_MASK	0xFFFF
 #define RX_PKT_STATUS_VLAN_TAG_SHIFT	32
 
-struct rx_desc {
+struct rx_desc
+{
 	struct rx_pkt_status	status;
-	unsigned char     	packet[1536-sizeof(struct rx_pkt_status)];
+	unsigned char     	packet[1536 - sizeof(struct rx_pkt_status)];
 };
 
-enum atl2_speed_duplex {
+enum atl2_speed_duplex
+{
 	atl2_10_half = 0,
 	atl2_10_full = 1,
 	atl2_100_half = 2,
 	atl2_100_full = 3
 };
 
-struct atl2_spi_flash_dev {
+struct atl2_spi_flash_dev
+{
 	const char *manu_name;	/* manufacturer id */
 	/* op-code */
 	u8 cmdWRSR;
@@ -379,7 +385,8 @@ struct atl2_spi_flash_dev {
 };
 
 /* Structure containing variables used by the shared code (atl2_hw.c) */
-struct atl2_hw {
+struct atl2_hw
+{
 	u8 __iomem *hw_addr;
 	void *back;
 
@@ -438,17 +445,19 @@ struct atl2_hw {
 
 #endif /* _ATL2_HW_H_ */
 
-struct atl2_ring_header {
-    /* pointer to the descriptor ring memory */
-    void *desc;
-    /* physical address of the descriptor ring */
-    dma_addr_t dma;
-    /* length of descriptor ring in bytes */
-    unsigned int size;
+struct atl2_ring_header
+{
+	/* pointer to the descriptor ring memory */
+	void *desc;
+	/* physical address of the descriptor ring */
+	dma_addr_t dma;
+	/* length of descriptor ring in bytes */
+	unsigned int size;
 };
 
 /* board specific private data structure */
-struct atl2_adapter {
+struct atl2_adapter
+{
 	/* OS defined structs */
 	struct net_device *netdev;
 	struct pci_dev *pdev;
@@ -515,7 +524,8 @@ struct atl2_adapter {
 	u32 *config_space;
 };
 
-enum atl2_state_t {
+enum atl2_state_t
+{
 	__ATL2_TESTING,
 	__ATL2_RESETTING,
 	__ATL2_DOWN

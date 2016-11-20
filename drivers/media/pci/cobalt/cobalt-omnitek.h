@@ -24,7 +24,8 @@
 #include <linux/scatterlist.h>
 #include "cobalt-driver.h"
 
-struct sg_dma_descriptor {
+struct sg_dma_descriptor
+{
 	u32 pci_l;
 	u32 pci_h;
 
@@ -44,12 +45,12 @@ void omni_sg_dma_start(struct cobalt_stream *s, struct sg_dma_desc_info *desc);
 bool is_dma_done(struct cobalt_stream *s);
 
 int descriptor_list_create(struct cobalt *cobalt,
-	struct scatterlist *scatter_list, bool to_pci, unsigned sglen,
-	unsigned size, unsigned width, unsigned stride,
-	struct sg_dma_desc_info *desc);
+						   struct scatterlist *scatter_list, bool to_pci, unsigned sglen,
+						   unsigned size, unsigned width, unsigned stride,
+						   struct sg_dma_desc_info *desc);
 
 void descriptor_list_chain(struct sg_dma_desc_info *this,
-			   struct sg_dma_desc_info *next);
+						   struct sg_dma_desc_info *next);
 void descriptor_list_loopback(struct sg_dma_desc_info *desc);
 void descriptor_list_end_of_chain(struct sg_dma_desc_info *desc);
 

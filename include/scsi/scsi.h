@@ -13,7 +13,8 @@
 
 struct scsi_cmnd;
 
-enum scsi_timeouts {
+enum scsi_timeouts
+{
 	SCSI_DEFAULT_EH_TIMEOUT		= 10 * HZ,
 };
 
@@ -30,13 +31,13 @@ enum scsi_timeouts {
 #define SCAN_WILD_CARD	~0
 
 #ifdef CONFIG_ACPI
-struct acpi_bus_type;
+	struct acpi_bus_type;
 
-extern int
-scsi_register_acpi_bus_type(struct acpi_bus_type *bus);
+	extern int
+	scsi_register_acpi_bus_type(struct acpi_bus_type *bus);
 
-extern void
-scsi_unregister_acpi_bus_type(struct acpi_bus_type *bus);
+	extern void
+	scsi_unregister_acpi_bus_type(struct acpi_bus_type *bus);
 #endif
 
 /** scsi_status_is_good - check the status return.
@@ -56,10 +57,10 @@ static inline int scsi_status_is_good(int status)
 	 */
 	status &= 0xfe;
 	return ((status == SAM_STAT_GOOD) ||
-		(status == SAM_STAT_INTERMEDIATE) ||
-		(status == SAM_STAT_INTERMEDIATE_CONDITION_MET) ||
-		/* FIXME: this is obsolete in SAM-3 */
-		(status == SAM_STAT_COMMAND_TERMINATED));
+			(status == SAM_STAT_INTERMEDIATE) ||
+			(status == SAM_STAT_INTERMEDIATE_CONDITION_MET) ||
+			/* FIXME: this is obsolete in SAM-3 */
+			(status == SAM_STAT_COMMAND_TERMINATED));
 }
 
 
@@ -67,7 +68,8 @@ static inline int scsi_status_is_good(int status)
  * standard mode-select header prepended to all mode-select commands
  */
 
-struct ccs_modesel_head {
+struct ccs_modesel_head
+{
 	__u8 _r1;			/* reserved */
 	__u8 medium;		/* device-specific medium type */
 	__u8 _r2;			/* reserved */
@@ -235,8 +237,8 @@ static inline int scsi_is_wlun(u64 lun)
 
 #define IDENTIFY_BASE       0x80
 #define IDENTIFY(can_disconnect, lun)   (IDENTIFY_BASE |\
-		     ((can_disconnect) ?  0x40 : 0) |\
-		     ((lun) & 0x07))
+		((can_disconnect) ?  0x40 : 0) |\
+		((lun) & 0x07))
 
 /*
  *  struct scsi_device::scsi_level values. For SCSI devices other than those
@@ -284,7 +286,7 @@ static inline int scsi_is_wlun(u64 lun)
 /* Pull a u32 out of a SCSI message (using BE SCSI conventions) */
 static inline __u32 scsi_to_u32(__u8 *ptr)
 {
-	return (ptr[0]<<24) + (ptr[1]<<16) + (ptr[2]<<8) + ptr[3];
+	return (ptr[0] << 24) + (ptr[1] << 16) + (ptr[2] << 8) + ptr[3];
 }
 
 #endif /* _SCSI_SCSI_H */

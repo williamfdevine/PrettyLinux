@@ -37,14 +37,17 @@
 /* for array static allocation, it is the max of above */
 #define RTL818X_NR_TX_QUEUES 5
 
-struct rtl8180_tx_desc {
+struct rtl8180_tx_desc
+{
 	__le32 flags;
 	__le16 rts_duration;
 	__le16 plcp_len;
 	__le32 tx_buf;
-	union{
+	union
+	{
 		__le32 frame_len;
-		struct {
+		struct
+		{
 			__le16 frame_len_se;
 			__le16 frame_duration;
 		} __packed;
@@ -63,20 +66,23 @@ struct rtl8180_tx_desc {
 	__le16 frag_qsize;
 } __packed;
 
-struct rtl818x_rx_cmd_desc {
+struct rtl818x_rx_cmd_desc
+{
 	__le32 flags;
 	u32 reserved;
 	__le32 rx_buf;
 } __packed;
 
-struct rtl8180_rx_desc {
+struct rtl8180_rx_desc
+{
 	__le32 flags;
 	__le32 flags2;
 	__le64 tsft;
 
 } __packed;
 
-struct rtl8187se_rx_desc {
+struct rtl8187se_rx_desc
+{
 	__le32 flags;
 	__le64 tsft;
 	__le32 flags2;
@@ -84,7 +90,8 @@ struct rtl8187se_rx_desc {
 	u32 reserved[3];
 } __packed;
 
-struct rtl8180_tx_ring {
+struct rtl8180_tx_ring
+{
 	struct rtl8180_tx_desc *desc;
 	dma_addr_t dma;
 	unsigned int idx;
@@ -92,7 +99,8 @@ struct rtl8180_tx_ring {
 	struct sk_buff_head queue;
 };
 
-struct rtl8180_vif {
+struct rtl8180_vif
+{
 	struct ieee80211_hw *dev;
 
 	/* beaconing */
@@ -100,7 +108,8 @@ struct rtl8180_vif {
 	bool enable_beacon;
 };
 
-struct rtl8180_priv {
+struct rtl8180_priv
+{
 	/* common between rtl818x drivers */
 	struct rtl818x_csr __iomem *map;
 	const struct rtl818x_rf_ops *rf;
@@ -124,7 +133,8 @@ struct rtl8180_priv {
 	u8 slot_time;
 	u16 ack_time;
 
-	enum {
+	enum
+	{
 		RTL818X_CHIP_FAMILY_RTL8180,
 		RTL818X_CHIP_FAMILY_RTL8185,
 		RTL818X_CHIP_FAMILY_RTL8187SE,
@@ -165,19 +175,19 @@ static inline u32 rtl818x_ioread32(struct rtl8180_priv *priv, __le32 __iomem *ad
 }
 
 static inline void rtl818x_iowrite8(struct rtl8180_priv *priv,
-				    u8 __iomem *addr, u8 val)
+									u8 __iomem *addr, u8 val)
 {
 	iowrite8(val, addr);
 }
 
 static inline void rtl818x_iowrite16(struct rtl8180_priv *priv,
-				     __le16 __iomem *addr, u16 val)
+									 __le16 __iomem *addr, u16 val)
 {
 	iowrite16(val, addr);
 }
 
 static inline void rtl818x_iowrite32(struct rtl8180_priv *priv,
-				     __le32 __iomem *addr, u32 val)
+									 __le32 __iomem *addr, u32 val)
 {
 	iowrite32(val, addr);
 }

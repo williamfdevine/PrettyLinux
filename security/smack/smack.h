@@ -18,7 +18,7 @@
 #include <linux/lsm_hooks.h>
 #include <linux/in.h>
 #if IS_ENABLED(CONFIG_IPV6)
-#include <linux/in6.h>
+	#include <linux/in6.h>
 #endif /* CONFIG_IPV6 */
 #include <net/netlabel.h>
 #include <linux/list.h>
@@ -30,11 +30,11 @@
  * are not being used.
  */
 #if IS_ENABLED(CONFIG_IPV6) && !defined(CONFIG_SECURITY_SMACK_NETFILTER)
-#define SMACK_IPV6_PORT_LABELING 1
+	#define SMACK_IPV6_PORT_LABELING 1
 #endif
 
 #if IS_ENABLED(CONFIG_IPV6) && defined(CONFIG_SECURITY_SMACK_NETFILTER)
-#define SMACK_IPV6_SECMARK_LABELING 1
+	#define SMACK_IPV6_SECMARK_LABELING 1
 #endif
 
 /*
@@ -66,7 +66,8 @@
  * the entire set of rules does not need to be examined every
  * time.
  */
-struct smack_known {
+struct smack_known
+{
 	struct list_head		list;
 	struct hlist_node		smk_hashed;
 	char				*smk_known;
@@ -85,7 +86,8 @@ struct smack_known {
  */
 #define SMK_CIPSOLEN	24
 
-struct superblock_smack {
+struct superblock_smack
+{
 	struct smack_known	*smk_root;
 	struct smack_known	*smk_floor;
 	struct smack_known	*smk_hat;
@@ -99,7 +101,8 @@ struct superblock_smack {
 #define SMK_SB_INITIALIZED	0x01
 #define SMK_SB_UNTRUSTED	0x02
 
-struct socket_smack {
+struct socket_smack
+{
 	struct smack_known	*smk_out;	/* outbound label */
 	struct smack_known	*smk_in;	/* inbound label */
 	struct smack_known	*smk_packet;	/* TCP peer label */
@@ -108,7 +111,8 @@ struct socket_smack {
 /*
  * Inode smack data
  */
-struct inode_smack {
+struct inode_smack
+{
 	struct smack_known	*smk_inode;	/* label of the fso */
 	struct smack_known	*smk_task;	/* label of the task */
 	struct smack_known	*smk_mmap;	/* label of the mmap domain */
@@ -116,7 +120,8 @@ struct inode_smack {
 	int			smk_flags;	/* smack inode flags */
 };
 
-struct task_smack {
+struct task_smack
+{
 	struct smack_known	*smk_task;	/* label for access control */
 	struct smack_known	*smk_forked;	/* label when forked */
 	struct list_head	smk_rules;	/* per task access rules */
@@ -132,7 +137,8 @@ struct task_smack {
 /*
  * A label access rule.
  */
-struct smack_rule {
+struct smack_rule
+{
 	struct list_head	list;
 	struct smack_known	*smk_subject;
 	struct smack_known	*smk_object;
@@ -142,7 +148,8 @@ struct smack_rule {
 /*
  * An entry in the table identifying IPv4 hosts.
  */
-struct smk_net4addr {
+struct smk_net4addr
+{
 	struct list_head	list;
 	struct in_addr		smk_host;	/* network address */
 	struct in_addr		smk_mask;	/* network mask */
@@ -154,7 +161,8 @@ struct smk_net4addr {
 /*
  * An entry in the table identifying IPv6 hosts.
  */
-struct smk_net6addr {
+struct smk_net6addr
+{
 	struct list_head	list;
 	struct in6_addr		smk_host;	/* network address */
 	struct in6_addr		smk_mask;	/* network mask */
@@ -167,7 +175,8 @@ struct smk_net6addr {
 /*
  * An entry in the table identifying ports.
  */
-struct smk_port_label {
+struct smk_port_label
+{
 	struct list_head	list;
 	struct sock		*smk_sock;	/* socket initialized on */
 	unsigned short		smk_port;	/* the port number */
@@ -176,7 +185,8 @@ struct smk_port_label {
 };
 #endif /* SMACK_IPV6_PORT_LABELING */
 
-struct smack_known_list_elem {
+struct smack_known_list_elem
+{
 	struct list_head	list;
 	struct smack_known	*smk_label;
 };
@@ -190,7 +200,8 @@ struct smack_known_list_elem {
 
 #define NUM_SMK_MNT_OPTS	5
 
-enum {
+enum
+{
 	Opt_error = -1,
 	Opt_fsdefault = 1,
 	Opt_fsfloor = 2,
@@ -261,9 +272,9 @@ enum {
  * It is usually "write", but can be "append".
  */
 #ifdef CONFIG_SECURITY_SMACK_APPEND_SIGNALS
-#define MAY_DELIVER	MAY_APPEND	/* Signal delivery requires append */
+	#define MAY_DELIVER	MAY_APPEND	/* Signal delivery requires append */
 #else
-#define MAY_DELIVER	MAY_WRITE	/* Signal delivery requires write */
+	#define MAY_DELIVER	MAY_WRITE	/* Signal delivery requires write */
 #endif
 
 #define SMACK_BRINGUP_ALLOW		1	/* Allow bringup mode */
@@ -283,7 +294,8 @@ enum {
 #define SMK_NUM_ACCESS_TYPE 7
 
 /* SMACK data */
-struct smack_audit_data {
+struct smack_audit_data
+{
 	const char *function;
 	char *subject;
 	char *object;
@@ -295,7 +307,8 @@ struct smack_audit_data {
  * Smack audit data; is empty if CONFIG_AUDIT not set
  * to save some stack
  */
-struct smk_audit_info {
+struct smk_audit_info
+{
 #ifdef CONFIG_AUDIT
 	struct common_audit_data a;
 	struct smack_audit_data sad;
@@ -307,9 +320,9 @@ struct smk_audit_info {
  */
 int smk_access_entry(char *, char *, struct list_head *);
 int smk_access(struct smack_known *, struct smack_known *,
-	       int, struct smk_audit_info *);
+			   int, struct smk_audit_info *);
 int smk_tskacc(struct task_smack *, struct smack_known *,
-	       u32, struct smk_audit_info *);
+			   u32, struct smk_audit_info *);
 int smk_curacc(struct smack_known *, u32, struct smk_audit_info *);
 struct smack_known *smack_from_secid(const u32);
 char *smk_parse_smack(const char *string, int len);
@@ -329,7 +342,7 @@ extern int smack_cipso_mapped;
 extern struct smack_known *smack_net_ambient;
 extern struct smack_known *smack_syslog_label;
 #ifdef CONFIG_SECURITY_SMACK_BRINGUP
-extern struct smack_known *smack_unconfined;
+	extern struct smack_known *smack_unconfined;
 #endif
 extern int smack_ptrace_rule;
 
@@ -344,7 +357,7 @@ extern struct mutex	smack_known_lock;
 extern struct list_head smack_known_list;
 extern struct list_head smk_net4addr_list;
 #if IS_ENABLED(CONFIG_IPV6)
-extern struct list_head smk_net6addr_list;
+	extern struct list_head smk_net6addr_list;
 #endif /* CONFIG_IPV6 */
 
 extern struct mutex     smack_onlycap_lock;
@@ -413,8 +426,8 @@ static inline struct smack_known *smk_of_current(void)
 extern int log_policy;
 
 void smack_log(char *subject_label, char *object_label,
-		int request,
-		int result, struct smk_audit_info *auditdata);
+			   int request,
+			   int result, struct smk_audit_info *auditdata);
 
 #ifdef CONFIG_AUDIT
 
@@ -424,7 +437,7 @@ void smack_log(char *subject_label, char *object_label,
  *
  */
 static inline void smk_ad_init(struct smk_audit_info *a, const char *func,
-			       char type)
+							   char type)
 {
 	memset(&a->sad, 0, sizeof(a->sad));
 	a->a.type = type;
@@ -433,7 +446,7 @@ static inline void smk_ad_init(struct smk_audit_info *a, const char *func,
 }
 
 static inline void smk_ad_init_net(struct smk_audit_info *a, const char *func,
-				   char type, struct lsm_network_audit *net)
+								   char type, struct lsm_network_audit *net)
 {
 	smk_ad_init(a, func, type);
 	memset(net, 0, sizeof(*net));
@@ -441,27 +454,27 @@ static inline void smk_ad_init_net(struct smk_audit_info *a, const char *func,
 }
 
 static inline void smk_ad_setfield_u_tsk(struct smk_audit_info *a,
-					 struct task_struct *t)
+		struct task_struct *t)
 {
 	a->a.u.tsk = t;
 }
 static inline void smk_ad_setfield_u_fs_path_dentry(struct smk_audit_info *a,
-						    struct dentry *d)
+		struct dentry *d)
 {
 	a->a.u.dentry = d;
 }
 static inline void smk_ad_setfield_u_fs_inode(struct smk_audit_info *a,
-					      struct inode *i)
+		struct inode *i)
 {
 	a->a.u.inode = i;
 }
 static inline void smk_ad_setfield_u_fs_path(struct smk_audit_info *a,
-					     struct path p)
+		struct path p)
 {
 	a->a.u.path = p;
 }
 static inline void smk_ad_setfield_u_net_sk(struct smk_audit_info *a,
-					    struct sock *sk)
+		struct sock *sk)
 {
 	a->a.u.net->sk = sk;
 }
@@ -469,31 +482,31 @@ static inline void smk_ad_setfield_u_net_sk(struct smk_audit_info *a,
 #else /* no AUDIT */
 
 static inline void smk_ad_init(struct smk_audit_info *a, const char *func,
-			       char type)
+							   char type)
 {
 }
 static inline void smk_ad_setfield_u_tsk(struct smk_audit_info *a,
-					 struct task_struct *t)
+		struct task_struct *t)
 {
 }
 static inline void smk_ad_setfield_u_fs_path_dentry(struct smk_audit_info *a,
-						    struct dentry *d)
+		struct dentry *d)
 {
 }
 static inline void smk_ad_setfield_u_fs_path_mnt(struct smk_audit_info *a,
-						 struct vfsmount *m)
+		struct vfsmount *m)
 {
 }
 static inline void smk_ad_setfield_u_fs_inode(struct smk_audit_info *a,
-					      struct inode *i)
+		struct inode *i)
 {
 }
 static inline void smk_ad_setfield_u_fs_path(struct smk_audit_info *a,
-					     struct path p)
+		struct path p)
 {
 }
 static inline void smk_ad_setfield_u_net_sk(struct smk_audit_info *a,
-					    struct sock *sk)
+		struct sock *sk)
 {
 }
 #endif

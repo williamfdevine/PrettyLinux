@@ -60,19 +60,22 @@ extern int fimc_isp_debug;
  * @height: full image height
  * @rect: crop/composition rectangle
  */
-struct fimc_isp_frame {
+struct fimc_isp_frame
+{
 	u16 width;
 	u16 height;
 	struct v4l2_rect rect;
 };
 
-struct fimc_isp_ctrls {
+struct fimc_isp_ctrls
+{
 	struct v4l2_ctrl_handler handler;
 
 	/* Auto white balance */
 	struct v4l2_ctrl *auto_wb;
 	/* Auto ISO control cluster */
-	struct {
+	struct
+	{
 		struct v4l2_ctrl *auto_iso;
 		struct v4l2_ctrl *iso;
 	};
@@ -101,7 +104,8 @@ struct fimc_isp_ctrls {
 	struct v4l2_ctrl *colorfx;
 };
 
-struct isp_video_buf {
+struct isp_video_buf
+{
 	struct vb2_v4l2_buffer vb;
 	dma_addr_t dma_addr[FIMC_ISP_MAX_PLANES];
 	unsigned int index;
@@ -124,7 +128,8 @@ struct isp_video_buf {
  * @reqbufs_count: number of buffers requested with REQBUFS ioctl
  * @format: current pixel format
  */
-struct fimc_is_video {
+struct fimc_is_video
+{
 	struct exynos_video_entity ve;
 	enum v4l2_buf_type	type;
 	struct media_pad	pad;
@@ -158,7 +163,8 @@ struct fimc_is_video {
  * @state: driver state flags
  * @video_capture: the ISP block video capture device
  */
-struct fimc_isp {
+struct fimc_isp
+{
 	struct platform_device		*pdev;
 	struct v4l2_subdev		subdev;
 	struct media_pad		subdev_pads[FIMC_ISP_SD_PADS_NUM];
@@ -189,5 +195,5 @@ void fimc_isp_irq_handler(struct fimc_is *is);
 int fimc_is_create_controls(struct fimc_isp *isp);
 int fimc_is_delete_controls(struct fimc_isp *isp);
 const struct fimc_fmt *fimc_isp_find_format(const u32 *pixelformat,
-					const u32 *mbus_code, int index);
+		const u32 *mbus_code, int index);
 #endif /* FIMC_ISP_H_ */

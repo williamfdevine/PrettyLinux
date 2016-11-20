@@ -8,12 +8,13 @@
 #include <linux/slab.h>
 #include <linux/init.h>
 
-struct noop_data {
+struct noop_data
+{
 	struct list_head queue;
 };
 
 static void noop_merged_requests(struct request_queue *q, struct request *rq,
-				 struct request *next)
+								 struct request *next)
 {
 	list_del_init(&next->queuelist);
 }
@@ -24,11 +25,14 @@ static int noop_dispatch(struct request_queue *q, int force)
 	struct request *rq;
 
 	rq = list_first_entry_or_null(&nd->queue, struct request, queuelist);
-	if (rq) {
+
+	if (rq)
+	{
 		list_del_init(&rq->queuelist);
 		elv_dispatch_sort(q, rq);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -45,7 +49,10 @@ noop_former_request(struct request_queue *q, struct request *rq)
 	struct noop_data *nd = q->elevator->elevator_data;
 
 	if (rq->queuelist.prev == &nd->queue)
+	{
 		return NULL;
+	}
+
 	return list_prev_entry(rq, queuelist);
 }
 
@@ -55,7 +62,10 @@ noop_latter_request(struct request_queue *q, struct request *rq)
 	struct noop_data *nd = q->elevator->elevator_data;
 
 	if (rq->queuelist.next == &nd->queue)
+	{
 		return NULL;
+	}
+
 	return list_next_entry(rq, queuelist);
 }
 
@@ -65,14 +75,20 @@ static int noop_init_queue(struct request_queue *q, struct elevator_type *e)
 	struct elevator_queue *eq;
 
 	eq = elevator_alloc(q, e);
+
 	if (!eq)
+	{
 		return -ENOMEM;
+	}
 
 	nd = kmalloc_node(sizeof(*nd), GFP_KERNEL, q->node);
-	if (!nd) {
+
+	if (!nd)
+	{
 		kobject_put(&eq->kobj);
 		return -ENOMEM;
 	}
+
 	eq->elevator_data = nd;
 
 	INIT_LIST_HEAD(&nd->queue);
@@ -91,7 +107,8 @@ static void noop_exit_queue(struct elevator_queue *e)
 	kfree(nd);
 }
 
-static struct elevator_type elevator_noop = {
+static struct elevator_type elevator_noop =
+{
 	.ops = {
 		.elevator_merge_req_fn		= noop_merged_requests,
 		.elevator_dispatch_fn		= noop_dispatch,

@@ -32,22 +32,26 @@ void smsendian_handle_tx_message(void *buffer)
 	int i;
 	int msg_words;
 
-	switch (msg->x_msg_header.msg_type) {
-	case MSG_SMS_DATA_DOWNLOAD_REQ:
+	switch (msg->x_msg_header.msg_type)
 	{
-		msg->msg_data[0] = le32_to_cpu(msg->msg_data[0]);
-		break;
+		case MSG_SMS_DATA_DOWNLOAD_REQ:
+			{
+				msg->msg_data[0] = le32_to_cpu(msg->msg_data[0]);
+				break;
+			}
+
+		default:
+			msg_words = (msg->x_msg_header.msg_length -
+						 sizeof(struct sms_msg_hdr)) / 4;
+
+			for (i = 0; i < msg_words; i++)
+			{
+				msg->msg_data[i] = le32_to_cpu(msg->msg_data[i]);
+			}
+
+			break;
 	}
 
-	default:
-		msg_words = (msg->x_msg_header.msg_length -
-				sizeof(struct sms_msg_hdr))/4;
-
-		for (i = 0; i < msg_words; i++)
-			msg->msg_data[i] = le32_to_cpu(msg->msg_data[i]);
-
-		break;
-	}
 #endif /* __BIG_ENDIAN */
 }
 EXPORT_SYMBOL_GPL(smsendian_handle_tx_message);
@@ -59,33 +63,37 @@ void smsendian_handle_rx_message(void *buffer)
 	int i;
 	int msg_words;
 
-	switch (msg->x_msg_header.msg_type) {
-	case MSG_SMS_GET_VERSION_EX_RES:
+	switch (msg->x_msg_header.msg_type)
 	{
-		struct sms_version_res *ver =
-			(struct sms_version_res *) msg;
-		ver->chip_model = le16_to_cpu(ver->chip_model);
-		break;
+		case MSG_SMS_GET_VERSION_EX_RES:
+			{
+				struct sms_version_res *ver =
+					(struct sms_version_res *) msg;
+				ver->chip_model = le16_to_cpu(ver->chip_model);
+				break;
+			}
+
+		case MSG_SMS_DVBT_BDA_DATA:
+		case MSG_SMS_DAB_CHANNEL:
+		case MSG_SMS_DATA_MSG:
+			{
+				break;
+			}
+
+		default:
+			{
+				msg_words = (msg->x_msg_header.msg_length -
+							 sizeof(struct sms_msg_hdr)) / 4;
+
+				for (i = 0; i < msg_words; i++)
+				{
+					msg->msg_data[i] = le32_to_cpu(msg->msg_data[i]);
+				}
+
+				break;
+			}
 	}
 
-	case MSG_SMS_DVBT_BDA_DATA:
-	case MSG_SMS_DAB_CHANNEL:
-	case MSG_SMS_DATA_MSG:
-	{
-		break;
-	}
-
-	default:
-	{
-		msg_words = (msg->x_msg_header.msg_length -
-				sizeof(struct sms_msg_hdr))/4;
-
-		for (i = 0; i < msg_words; i++)
-			msg->msg_data[i] = le32_to_cpu(msg->msg_data[i]);
-
-		break;
-	}
-	}
 #endif /* __BIG_ENDIAN */
 }
 EXPORT_SYMBOL_GPL(smsendian_handle_rx_message);

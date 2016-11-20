@@ -38,7 +38,7 @@
 #define DA850_SATA_CLK_MULTIPLIER	7
 
 static void da850_sata_init(struct device *dev, void __iomem *pwrdn_reg,
-			    void __iomem *ahci_base)
+							void __iomem *ahci_base)
 {
 	unsigned int val;
 
@@ -48,20 +48,22 @@ static void da850_sata_init(struct device *dev, void __iomem *pwrdn_reg,
 	writel(val, pwrdn_reg);
 
 	val = SATA_PHY_MPY(DA850_SATA_CLK_MULTIPLIER + 1) | SATA_PHY_LOS(1) |
-	      SATA_PHY_RXCDR(4) | SATA_PHY_RXEQ(1) | SATA_PHY_TXSWING(3) |
-	      SATA_PHY_ENPLL(1);
+		  SATA_PHY_RXCDR(4) | SATA_PHY_RXEQ(1) | SATA_PHY_TXSWING(3) |
+		  SATA_PHY_ENPLL(1);
 
 	writel(val, ahci_base + SATA_P0PHYCR_REG);
 }
 
-static const struct ata_port_info ahci_da850_port_info = {
+static const struct ata_port_info ahci_da850_port_info =
+{
 	.flags		= AHCI_FLAG_COMMON,
 	.pio_mask	= ATA_PIO4,
 	.udma_mask	= ATA_UDMA6,
 	.port_ops	= &ahci_platform_ops,
 };
 
-static struct scsi_host_template ahci_platform_sht = {
+static struct scsi_host_template ahci_platform_sht =
+{
 	AHCI_SHT(DRV_NAME),
 };
 
@@ -74,27 +76,42 @@ static int ahci_da850_probe(struct platform_device *pdev)
 	int rc;
 
 	hpriv = ahci_platform_get_resources(pdev);
+
 	if (IS_ERR(hpriv))
+	{
 		return PTR_ERR(hpriv);
+	}
 
 	rc = ahci_platform_enable_resources(hpriv);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+
 	if (!res)
+	{
 		goto disable_resources;
+	}
 
 	pwrdn_reg = devm_ioremap(dev, res->start, resource_size(res));
+
 	if (!pwrdn_reg)
+	{
 		goto disable_resources;
+	}
 
 	da850_sata_init(dev, pwrdn_reg, hpriv->mmio);
 
 	rc = ahci_platform_init_host(pdev, hpriv, &ahci_da850_port_info,
-				     &ahci_platform_sht);
+								 &ahci_platform_sht);
+
 	if (rc)
+	{
 		goto disable_resources;
+	}
 
 	return 0;
 disable_resources:
@@ -103,9 +120,10 @@ disable_resources:
 }
 
 static SIMPLE_DEV_PM_OPS(ahci_da850_pm_ops, ahci_platform_suspend,
-			 ahci_platform_resume);
+						 ahci_platform_resume);
 
-static struct platform_driver ahci_da850_driver = {
+static struct platform_driver ahci_da850_driver =
+{
 	.probe = ahci_da850_probe,
 	.remove = ata_platform_remove_one,
 	.driver = {

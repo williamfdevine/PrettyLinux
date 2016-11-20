@@ -26,12 +26,15 @@ static int powernv_rng_read(struct hwrng *rng, void *data, size_t max, bool wait
 	buf = (unsigned long *)data;
 
 	for (i = 0; i < len; i++)
+	{
 		powernv_get_random_long(buf++);
+	}
 
 	return len * sizeof(unsigned long);
 }
 
-static struct hwrng powernv_hwrng = {
+static struct hwrng powernv_hwrng =
+{
 	.name = "powernv-rng",
 	.read = powernv_rng_read,
 };
@@ -48,10 +51,14 @@ static int powernv_rng_probe(struct platform_device *pdev)
 	int rc;
 
 	rc = hwrng_register(&powernv_hwrng);
-	if (rc) {
+
+	if (rc)
+	{
 		/* We only register one device, ignore any others */
 		if (rc == -EEXIST)
+		{
 			rc = -ENODEV;
+		}
 
 		return rc;
 	}
@@ -61,13 +68,15 @@ static int powernv_rng_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id powernv_rng_match[] = {
+static const struct of_device_id powernv_rng_match[] =
+{
 	{ .compatible	= "ibm,power-rng",},
 	{},
 };
 MODULE_DEVICE_TABLE(of, powernv_rng_match);
 
-static struct platform_driver powernv_rng_driver = {
+static struct platform_driver powernv_rng_driver =
+{
 	.driver = {
 		.name = "powernv_rng",
 		.of_match_table = powernv_rng_match,

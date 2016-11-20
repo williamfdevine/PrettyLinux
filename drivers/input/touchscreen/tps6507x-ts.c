@@ -28,17 +28,19 @@
 #define MAX_10BIT ((1 << 10) - 1)
 
 #define	TPS6507X_ADCONFIG_CONVERT_TS (TPS6507X_ADCONFIG_AD_ENABLE | \
-					 TPS6507X_ADCONFIG_START_CONVERSION | \
-					 TPS6507X_ADCONFIG_INPUT_REAL_TSC)
+									  TPS6507X_ADCONFIG_START_CONVERSION | \
+									  TPS6507X_ADCONFIG_INPUT_REAL_TSC)
 #define	TPS6507X_ADCONFIG_POWER_DOWN_TS (TPS6507X_ADCONFIG_INPUT_REAL_TSC)
 
-struct ts_event {
+struct ts_event
+{
 	u16	x;
 	u16	y;
 	u16	pressure;
 };
 
-struct tps6507x_ts {
+struct tps6507x_ts
+{
 	struct device		*dev;
 	struct input_polled_dev	*poll_dev;
 	struct tps6507x_dev	*mfd;
@@ -59,7 +61,7 @@ static int tps6507x_write_u8(struct tps6507x_ts *tsc, u8 reg, u8 data)
 }
 
 static s32 tps6507x_adc_conversion(struct tps6507x_ts *tsc,
-				   u8 tsc_mode, u16 *value)
+								   u8 tsc_mode, u16 *value)
 {
 	s32 ret;
 	u8 adc_status;
@@ -68,7 +70,9 @@ static s32 tps6507x_adc_conversion(struct tps6507x_ts *tsc,
 	/* Route input signal to A/D converter */
 
 	ret = tps6507x_write_u8(tsc, TPS6507X_REG_TSCMODE, tsc_mode);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(tsc->dev, "TSC mode read failed\n");
 		goto err;
 	}
@@ -76,23 +80,31 @@ static s32 tps6507x_adc_conversion(struct tps6507x_ts *tsc,
 	/* Start A/D conversion */
 
 	ret = tps6507x_write_u8(tsc, TPS6507X_REG_ADCONFIG,
-				TPS6507X_ADCONFIG_CONVERT_TS);
-	if (ret) {
+							TPS6507X_ADCONFIG_CONVERT_TS);
+
+	if (ret)
+	{
 		dev_err(tsc->dev, "ADC config write failed\n");
 		return ret;
 	}
 
-	do {
+	do
+	{
 		ret = tps6507x_read_u8(tsc, TPS6507X_REG_ADCONFIG,
-				       &adc_status);
-		if (ret) {
+							   &adc_status);
+
+		if (ret)
+		{
 			dev_err(tsc->dev, "ADC config read failed\n");
 			goto err;
 		}
-	} while (adc_status & TPS6507X_ADCONFIG_START_CONVERSION);
+	}
+	while (adc_status & TPS6507X_ADCONFIG_START_CONVERSION);
 
 	ret = tps6507x_read_u8(tsc, TPS6507X_REG_ADRESULT_2, &result);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(tsc->dev, "ADC result 2 read failed\n");
 		goto err;
 	}
@@ -100,7 +112,9 @@ static s32 tps6507x_adc_conversion(struct tps6507x_ts *tsc,
 	*value = (result & TPS6507X_REG_ADRESULT_2_MASK) << 8;
 
 	ret = tps6507x_read_u8(tsc, TPS6507X_REG_ADRESULT_1, &result);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(tsc->dev, "ADC result 1 read failed\n");
 		goto err;
 	}
@@ -124,24 +138,38 @@ static s32 tps6507x_adc_standby(struct tps6507x_ts *tsc)
 	u8 val;
 
 	ret = tps6507x_write_u8(tsc,  TPS6507X_REG_ADCONFIG,
-				TPS6507X_ADCONFIG_INPUT_TSC);
+							TPS6507X_ADCONFIG_INPUT_TSC);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = tps6507x_write_u8(tsc, TPS6507X_REG_TSCMODE,
-				TPS6507X_TSCMODE_STANDBY);
+							TPS6507X_TSCMODE_STANDBY);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = tps6507x_read_u8(tsc, TPS6507X_REG_INT, &val);
-	if (ret)
-		return ret;
 
-	while (val & TPS6507X_REG_TSC_INT) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	while (val & TPS6507X_REG_TSC_INT)
+	{
 		mdelay(10);
 		ret = tps6507x_read_u8(tsc, TPS6507X_REG_INT, &val);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		loops++;
 	}
 
@@ -156,13 +184,17 @@ static void tps6507x_ts_poll(struct input_polled_dev *poll_dev)
 	s32 ret;
 
 	ret = tps6507x_adc_conversion(tsc, TPS6507X_TSCMODE_PRESSURE,
-				      &tsc->tc.pressure);
+								  &tsc->tc.pressure);
+
 	if (ret)
+	{
 		goto done;
+	}
 
 	pendown = tsc->tc.pressure > tsc->min_pressure;
 
-	if (unlikely(!pendown && tsc->pendown)) {
+	if (unlikely(!pendown && tsc->pendown))
+	{
 		dev_dbg(tsc->dev, "UP\n");
 		input_report_key(input_dev, BTN_TOUCH, 0);
 		input_report_abs(input_dev, ABS_PRESSURE, 0);
@@ -170,23 +202,34 @@ static void tps6507x_ts_poll(struct input_polled_dev *poll_dev)
 		tsc->pendown = false;
 	}
 
-	if (pendown) {
+	if (pendown)
+	{
 
-		if (!tsc->pendown) {
+		if (!tsc->pendown)
+		{
 			dev_dbg(tsc->dev, "DOWN\n");
 			input_report_key(input_dev, BTN_TOUCH, 1);
-		} else
+		}
+		else
+		{
 			dev_dbg(tsc->dev, "still down\n");
+		}
 
 		ret =  tps6507x_adc_conversion(tsc, TPS6507X_TSCMODE_X_POSITION,
-					       &tsc->tc.x);
+									   &tsc->tc.x);
+
 		if (ret)
+		{
 			goto done;
+		}
 
 		ret =  tps6507x_adc_conversion(tsc, TPS6507X_TSCMODE_Y_POSITION,
-					       &tsc->tc.y);
+									   &tsc->tc.y);
+
 		if (ret)
+		{
 			goto done;
+		}
 
 		input_report_abs(input_dev, ABS_X, tsc->tc.x);
 		input_report_abs(input_dev, ABS_Y, tsc->tc.y);
@@ -214,9 +257,11 @@ static int tps6507x_ts_probe(struct platform_device *pdev)
 	 * coming from the board-evm file.
 	 */
 	tps_board = dev_get_platdata(tps6507x_dev->dev);
-	if (!tps_board) {
+
+	if (!tps_board)
+	{
 		dev_err(tps6507x_dev->dev,
-			"Could not find tps6507x platform data\n");
+				"Could not find tps6507x platform data\n");
 		return -ENODEV;
 	}
 
@@ -227,7 +272,9 @@ static int tps6507x_ts_probe(struct platform_device *pdev)
 	init_data = tps_board->tps6507x_ts_init_data;
 
 	tsc = kzalloc(sizeof(struct tps6507x_ts), GFP_KERNEL);
-	if (!tsc) {
+
+	if (!tsc)
+	{
 		dev_err(tps6507x_dev->dev, "failed to allocate driver data\n");
 		return -ENOMEM;
 	}
@@ -235,13 +282,15 @@ static int tps6507x_ts_probe(struct platform_device *pdev)
 	tsc->mfd = tps6507x_dev;
 	tsc->dev = tps6507x_dev->dev;
 	tsc->min_pressure = init_data ?
-			init_data->min_pressure : TPS_DEFAULT_MIN_PRESSURE;
+						init_data->min_pressure : TPS_DEFAULT_MIN_PRESSURE;
 
 	snprintf(tsc->phys, sizeof(tsc->phys),
-		 "%s/input0", dev_name(tsc->dev));
+			 "%s/input0", dev_name(tsc->dev));
 
 	poll_dev = input_allocate_polled_device();
-	if (!poll_dev) {
+
+	if (!poll_dev)
+	{
 		dev_err(tsc->dev, "Failed to allocate polled input device.\n");
 		error = -ENOMEM;
 		goto err_free_mem;
@@ -252,7 +301,7 @@ static int tps6507x_ts_probe(struct platform_device *pdev)
 	poll_dev->private = tsc;
 	poll_dev->poll = tps6507x_ts_poll;
 	poll_dev->poll_interval = init_data ?
-			init_data->poll_period : TSC_DEFAULT_POLL_PERIOD;
+							  init_data->poll_period : TSC_DEFAULT_POLL_PERIOD;
 
 	input_dev = poll_dev->input;
 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
@@ -266,19 +315,27 @@ static int tps6507x_ts_probe(struct platform_device *pdev)
 	input_dev->phys = tsc->phys;
 	input_dev->dev.parent = tsc->dev;
 	input_dev->id.bustype = BUS_I2C;
-	if (init_data) {
+
+	if (init_data)
+	{
 		input_dev->id.vendor = init_data->vendor;
 		input_dev->id.product = init_data->product;
 		input_dev->id.version = init_data->version;
 	}
 
 	error = tps6507x_adc_standby(tsc);
+
 	if (error)
+	{
 		goto err_free_polled_dev;
+	}
 
 	error = input_register_polled_device(poll_dev);
+
 	if (error)
+	{
 		goto err_free_polled_dev;
+	}
 
 	platform_set_drvdata(pdev, tsc);
 
@@ -304,7 +361,8 @@ static int tps6507x_ts_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver tps6507x_ts_driver = {
+static struct platform_driver tps6507x_ts_driver =
+{
 	.driver = {
 		.name = "tps6507x-ts",
 	},

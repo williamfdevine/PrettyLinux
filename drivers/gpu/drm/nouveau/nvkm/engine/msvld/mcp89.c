@@ -26,7 +26,8 @@
 #include <nvif/class.h>
 
 static const struct nvkm_falcon_func
-mcp89_msvld = {
+	mcp89_msvld =
+{
 	.init = g98_msvld_init,
 	.sclass = {
 		{ -1, -1, IGT21A_MSVLD },
@@ -36,7 +37,7 @@ mcp89_msvld = {
 
 int
 mcp89_msvld_new(struct nvkm_device *device, int index,
-	      struct nvkm_engine **pengine)
+				struct nvkm_engine **pengine)
 {
 	return nvkm_msvld_new_(&mcp89_msvld, device, index, pengine);
 }

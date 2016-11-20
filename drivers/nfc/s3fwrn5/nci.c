@@ -31,50 +31,51 @@ static int s3fwrn5_nci_prop_rsp(struct nci_dev *ndev, struct sk_buff *skb)
 	return 0;
 }
 
-static struct nci_driver_ops s3fwrn5_nci_prop_ops[] = {
+static struct nci_driver_ops s3fwrn5_nci_prop_ops[] =
+{
 	{
 		.opcode = nci_opcode_pack(NCI_GID_PROPRIETARY,
-				NCI_PROP_AGAIN),
+		NCI_PROP_AGAIN),
 		.rsp = s3fwrn5_nci_prop_rsp,
 	},
 	{
 		.opcode = nci_opcode_pack(NCI_GID_PROPRIETARY,
-				NCI_PROP_GET_RFREG),
+		NCI_PROP_GET_RFREG),
 		.rsp = s3fwrn5_nci_prop_rsp,
 	},
 	{
 		.opcode = nci_opcode_pack(NCI_GID_PROPRIETARY,
-				NCI_PROP_SET_RFREG),
+		NCI_PROP_SET_RFREG),
 		.rsp = s3fwrn5_nci_prop_rsp,
 	},
 	{
 		.opcode = nci_opcode_pack(NCI_GID_PROPRIETARY,
-				NCI_PROP_GET_RFREG_VER),
+		NCI_PROP_GET_RFREG_VER),
 		.rsp = s3fwrn5_nci_prop_rsp,
 	},
 	{
 		.opcode = nci_opcode_pack(NCI_GID_PROPRIETARY,
-				NCI_PROP_SET_RFREG_VER),
+		NCI_PROP_SET_RFREG_VER),
 		.rsp = s3fwrn5_nci_prop_rsp,
 	},
 	{
 		.opcode = nci_opcode_pack(NCI_GID_PROPRIETARY,
-				NCI_PROP_START_RFREG),
+		NCI_PROP_START_RFREG),
 		.rsp = s3fwrn5_nci_prop_rsp,
 	},
 	{
 		.opcode = nci_opcode_pack(NCI_GID_PROPRIETARY,
-				NCI_PROP_STOP_RFREG),
+		NCI_PROP_STOP_RFREG),
 		.rsp = s3fwrn5_nci_prop_rsp,
 	},
 	{
 		.opcode = nci_opcode_pack(NCI_GID_PROPRIETARY,
-				NCI_PROP_FW_CFG),
+		NCI_PROP_FW_CFG),
 		.rsp = s3fwrn5_nci_prop_rsp,
 	},
 	{
 		.opcode = nci_opcode_pack(NCI_GID_PROPRIETARY,
-				NCI_PROP_WR_RESET),
+		NCI_PROP_WR_RESET),
 		.rsp = s3fwrn5_nci_prop_rsp,
 	},
 };
@@ -98,14 +99,20 @@ int s3fwrn5_nci_rf_configure(struct s3fwrn5_info *info, const char *fw_name)
 	int ret;
 
 	ret = request_firmware(&fw, fw_name, &info->ndev->nfc_dev->dev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Compute rfreg checksum */
 
 	checksum = 0;
+
 	for (i = 0; i < fw->size; i += 4)
-		checksum += *((u32 *)(fw->data+i));
+	{
+		checksum += *((u32 *)(fw->data + i));
+	}
 
 	/* Set default clock configuration for external crystal */
 
@@ -113,36 +120,46 @@ int s3fwrn5_nci_rf_configure(struct s3fwrn5_info *info, const char *fw_name)
 	fw_cfg.clk_speed = 0xff;
 	fw_cfg.clk_req = 0xff;
 	ret = nci_prop_cmd(info->ndev, NCI_PROP_FW_CFG,
-		sizeof(fw_cfg), (__u8 *)&fw_cfg);
+					   sizeof(fw_cfg), (__u8 *)&fw_cfg);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* Start rfreg configuration */
 
 	dev_info(&info->ndev->nfc_dev->dev,
-		"rfreg configuration update: %s\n", fw_name);
+			 "rfreg configuration update: %s\n", fw_name);
 
 	ret = nci_prop_cmd(info->ndev, NCI_PROP_START_RFREG, 0, NULL);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&info->ndev->nfc_dev->dev,
-			"Unable to start rfreg update\n");
+				"Unable to start rfreg update\n");
 		goto out;
 	}
 
 	/* Update rfreg */
 
 	set_rfreg.index = 0;
-	for (i = 0; i < fw->size; i += S3FWRN5_RFREG_SECTION_SIZE) {
+
+	for (i = 0; i < fw->size; i += S3FWRN5_RFREG_SECTION_SIZE)
+	{
 		len = (fw->size - i < S3FWRN5_RFREG_SECTION_SIZE) ?
-			(fw->size - i) : S3FWRN5_RFREG_SECTION_SIZE;
-		memcpy(set_rfreg.data, fw->data+i, len);
+			  (fw->size - i) : S3FWRN5_RFREG_SECTION_SIZE;
+		memcpy(set_rfreg.data, fw->data + i, len);
 		ret = nci_prop_cmd(info->ndev, NCI_PROP_SET_RFREG,
-			len+1, (__u8 *)&set_rfreg);
-		if (ret < 0) {
+						   len + 1, (__u8 *)&set_rfreg);
+
+		if (ret < 0)
+		{
 			dev_err(&info->ndev->nfc_dev->dev,
-				"rfreg update error (code=%d)\n", ret);
+					"rfreg update error (code=%d)\n", ret);
 			goto out;
 		}
+
 		set_rfreg.index++;
 	}
 
@@ -150,15 +167,17 @@ int s3fwrn5_nci_rf_configure(struct s3fwrn5_info *info, const char *fw_name)
 
 	stop_rfreg.checksum = checksum & 0xffff;
 	ret = nci_prop_cmd(info->ndev, NCI_PROP_STOP_RFREG,
-		sizeof(stop_rfreg), (__u8 *)&stop_rfreg);
-	if (ret < 0) {
+					   sizeof(stop_rfreg), (__u8 *)&stop_rfreg);
+
+	if (ret < 0)
+	{
 		dev_err(&info->ndev->nfc_dev->dev,
-			"Unable to stop rfreg update\n");
+				"Unable to stop rfreg update\n");
 		goto out;
 	}
 
 	dev_info(&info->ndev->nfc_dev->dev,
-		"rfreg configuration update: success\n");
+			 "rfreg configuration update: success\n");
 out:
 	release_firmware(fw);
 	return ret;

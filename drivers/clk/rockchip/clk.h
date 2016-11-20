@@ -32,7 +32,7 @@
 struct clk;
 
 #define HIWORD_UPDATE(val, mask, shift) \
-		((val) << (shift) | (mask) << ((shift) + 16))
+	((val) << (shift) | (mask) << ((shift) + 16))
 
 #define RK2928_PLL_CON(x)		((x) * 0x4)
 #define RK2928_MODE_CON		0x40
@@ -112,41 +112,42 @@ struct clk;
 #define RK3399_PMU_CLKGATE_CON(x)	((x) * 0x4 + 0x100)
 #define RK3399_PMU_SOFTRST_CON(x)	((x) * 0x4 + 0x110)
 
-enum rockchip_pll_type {
+enum rockchip_pll_type
+{
 	pll_rk3036,
 	pll_rk3066,
 	pll_rk3399,
 };
 
 #define RK3036_PLL_RATE(_rate, _refdiv, _fbdiv, _postdiv1,	\
-			_postdiv2, _dsmpd, _frac)		\
+						_postdiv2, _dsmpd, _frac)		\
 {								\
 	.rate	= _rate##U,					\
-	.fbdiv = _fbdiv,					\
-	.postdiv1 = _postdiv1,					\
-	.refdiv = _refdiv,					\
-	.postdiv2 = _postdiv2,					\
-	.dsmpd = _dsmpd,					\
-	.frac = _frac,						\
+			  .fbdiv = _fbdiv,					\
+					   .postdiv1 = _postdiv1,					\
+								   .refdiv = _refdiv,					\
+										   .postdiv2 = _postdiv2,					\
+												   .dsmpd = _dsmpd,					\
+														   .frac = _frac,						\
 }
 
 #define RK3066_PLL_RATE(_rate, _nr, _nf, _no)	\
-{						\
-	.rate	= _rate##U,			\
-	.nr = _nr,				\
-	.nf = _nf,				\
-	.no = _no,				\
-	.nb = ((_nf) < 2) ? 1 : (_nf) >> 1,	\
-}
+	{						\
+		.rate	= _rate##U,			\
+				  .nr = _nr,				\
+						.nf = _nf,				\
+							  .no = _no,				\
+									.nb = ((_nf) < 2) ? 1 : (_nf) >> 1,	\
+	}
 
 #define RK3066_PLL_RATE_NB(_rate, _nr, _nf, _no, _nb)		\
-{								\
-	.rate	= _rate##U,					\
-	.nr = _nr,						\
-	.nf = _nf,						\
-	.no = _no,						\
-	.nb = _nb,						\
-}
+	{								\
+		.rate	= _rate##U,					\
+				  .nr = _nr,						\
+						.nf = _nf,						\
+							  .no = _no,						\
+									.nb = _nb,						\
+	}
 
 /**
  * struct rockchip_clk_provider - information about clock provider
@@ -156,7 +157,8 @@ enum rockchip_pll_type {
  * @grf: regmap of the general-register-files syscon
  * @lock: maintains exclusion between callbacks for a given clock-provider.
  */
-struct rockchip_clk_provider {
+struct rockchip_clk_provider
+{
 	void __iomem *reg_base;
 	struct clk_onecell_data clk_data;
 	struct device_node *cru_node;
@@ -164,7 +166,8 @@ struct rockchip_clk_provider {
 	spinlock_t lock;
 };
 
-struct rockchip_pll_rate_table {
+struct rockchip_pll_rate_table
+{
 	unsigned long rate;
 	unsigned int nr;
 	unsigned int nf;
@@ -198,7 +201,8 @@ struct rockchip_pll_rate_table {
  * ROCKCHIP_PLL_SYNC_RATE - check rate parameters to match against the
  *	rate_table parameters and ajust them if necessary.
  */
-struct rockchip_pll_clock {
+struct rockchip_pll_clock
+{
 	unsigned int		id;
 	const char		*name;
 	const char		*const *parent_names;
@@ -216,37 +220,39 @@ struct rockchip_pll_clock {
 #define ROCKCHIP_PLL_SYNC_RATE		BIT(0)
 
 #define PLL(_type, _id, _name, _pnames, _flags, _con, _mode, _mshift,	\
-		_lshift, _pflags, _rtable)				\
-	{								\
-		.id		= _id,					\
-		.type		= _type,				\
-		.name		= _name,				\
-		.parent_names	= _pnames,				\
-		.num_parents	= ARRAY_SIZE(_pnames),			\
-		.flags		= CLK_GET_RATE_NOCACHE | _flags,	\
-		.con_offset	= _con,					\
-		.mode_offset	= _mode,				\
-		.mode_shift	= _mshift,				\
-		.lock_shift	= _lshift,				\
-		.pll_flags	= _pflags,				\
-		.rate_table	= _rtable,				\
-	}
+			_lshift, _pflags, _rtable)				\
+{								\
+	.id		= _id,					\
+			  .type		= _type,				\
+							.name		= _name,				\
+										  .parent_names	= _pnames,				\
+												  .num_parents	= ARRAY_SIZE(_pnames),			\
+														  .flags		= CLK_GET_RATE_NOCACHE | _flags,	\
+																  .con_offset	= _con,					\
+																		  .mode_offset	= _mode,				\
+																				  .mode_shift	= _mshift,				\
+																						  .lock_shift	= _lshift,				\
+																								  .pll_flags	= _pflags,				\
+																										  .rate_table	= _rtable,				\
+}
 
 struct clk *rockchip_clk_register_pll(struct rockchip_clk_provider *ctx,
-		enum rockchip_pll_type pll_type,
-		const char *name, const char *const *parent_names,
-		u8 num_parents, int con_offset, int grf_lock_offset,
-		int lock_shift, int mode_offset, int mode_shift,
-		struct rockchip_pll_rate_table *rate_table,
-		unsigned long flags, u8 clk_pll_flags);
+									  enum rockchip_pll_type pll_type,
+									  const char *name, const char *const *parent_names,
+									  u8 num_parents, int con_offset, int grf_lock_offset,
+									  int lock_shift, int mode_offset, int mode_shift,
+									  struct rockchip_pll_rate_table *rate_table,
+									  unsigned long flags, u8 clk_pll_flags);
 
-struct rockchip_cpuclk_clksel {
+struct rockchip_cpuclk_clksel
+{
 	int reg;
 	u32 val;
 };
 
 #define ROCKCHIP_CPUCLK_NUM_DIVIDERS	2
-struct rockchip_cpuclk_rate_table {
+struct rockchip_cpuclk_rate_table
+{
 	unsigned long prate;
 	struct rockchip_cpuclk_clksel divs[ROCKCHIP_CPUCLK_NUM_DIVIDERS];
 };
@@ -261,7 +267,8 @@ struct rockchip_cpuclk_rate_table {
  * @mux_core_shift:	offset of the core multiplexer
  * @mux_core_mask:	core multiplexer mask
  */
-struct rockchip_cpuclk_reg_data {
+struct rockchip_cpuclk_reg_data
+{
 	int		core_reg;
 	u8		div_core_shift;
 	u32		div_core_mask;
@@ -272,14 +279,14 @@ struct rockchip_cpuclk_reg_data {
 };
 
 struct clk *rockchip_clk_register_cpuclk(const char *name,
-			const char *const *parent_names, u8 num_parents,
-			const struct rockchip_cpuclk_reg_data *reg_data,
-			const struct rockchip_cpuclk_rate_table *rates,
-			int nrates, void __iomem *reg_base, spinlock_t *lock);
+		const char *const *parent_names, u8 num_parents,
+		const struct rockchip_cpuclk_reg_data *reg_data,
+		const struct rockchip_cpuclk_rate_table *rates,
+		int nrates, void __iomem *reg_base, spinlock_t *lock);
 
 struct clk *rockchip_clk_register_mmc(const char *name,
-				const char *const *parent_names, u8 num_parents,
-				void __iomem *reg, int shift);
+									  const char *const *parent_names, u8 num_parents,
+									  void __iomem *reg, int shift);
 
 /*
  * DDRCLK flags, including method of setting the rate
@@ -288,23 +295,24 @@ struct clk *rockchip_clk_register_mmc(const char *name,
 #define ROCKCHIP_DDRCLK_SIP		BIT(0)
 
 struct clk *rockchip_clk_register_ddrclk(const char *name, int flags,
-					 const char *const *parent_names,
-					 u8 num_parents, int mux_offset,
-					 int mux_shift, int mux_width,
-					 int div_shift, int div_width,
-					 int ddr_flags, void __iomem *reg_base,
-					 spinlock_t *lock);
+		const char *const *parent_names,
+		u8 num_parents, int mux_offset,
+		int mux_shift, int mux_width,
+		int div_shift, int div_width,
+		int ddr_flags, void __iomem *reg_base,
+		spinlock_t *lock);
 
 #define ROCKCHIP_INVERTER_HIWORD_MASK	BIT(0)
 
 struct clk *rockchip_clk_register_inverter(const char *name,
-				const char *const *parent_names, u8 num_parents,
-				void __iomem *reg, int shift, int flags,
-				spinlock_t *lock);
+		const char *const *parent_names, u8 num_parents,
+		void __iomem *reg, int shift, int flags,
+		spinlock_t *lock);
 
 #define PNAME(x) static const char *const x[] __initconst
 
-enum rockchip_clk_branch_type {
+enum rockchip_clk_branch_type
+{
 	branch_composite,
 	branch_mux,
 	branch_divider,
@@ -316,7 +324,8 @@ enum rockchip_clk_branch_type {
 	branch_ddrclk,
 };
 
-struct rockchip_clk_branch {
+struct rockchip_clk_branch
+{
 	unsigned int			id;
 	enum rockchip_clk_branch_type	branch_type;
 	const char			*name;
@@ -338,329 +347,329 @@ struct rockchip_clk_branch {
 };
 
 #define COMPOSITE(_id, cname, pnames, f, mo, ms, mw, mf, ds, dw,\
-		  df, go, gs, gf)				\
-	{							\
-		.id		= _id,				\
-		.branch_type	= branch_composite,		\
-		.name		= cname,			\
-		.parent_names	= pnames,			\
-		.num_parents	= ARRAY_SIZE(pnames),		\
-		.flags		= f,				\
-		.muxdiv_offset	= mo,				\
-		.mux_shift	= ms,				\
-		.mux_width	= mw,				\
-		.mux_flags	= mf,				\
-		.div_shift	= ds,				\
-		.div_width	= dw,				\
-		.div_flags	= df,				\
-		.gate_offset	= go,				\
-		.gate_shift	= gs,				\
-		.gate_flags	= gf,				\
-	}
+				  df, go, gs, gf)				\
+{							\
+	.id		= _id,				\
+			  .branch_type	= branch_composite,		\
+								.name		= cname,			\
+										.parent_names	= pnames,			\
+												.num_parents	= ARRAY_SIZE(pnames),		\
+														.flags		= f,				\
+																.muxdiv_offset	= mo,				\
+																		.mux_shift	= ms,				\
+																				.mux_width	= mw,				\
+																						.mux_flags	= mf,				\
+																								.div_shift	= ds,				\
+																										.div_width	= dw,				\
+																												.div_flags	= df,				\
+																														.gate_offset	= go,				\
+																																.gate_shift	= gs,				\
+																																		.gate_flags	= gf,				\
+}
 
 #define COMPOSITE_NOMUX(_id, cname, pname, f, mo, ds, dw, df,	\
-			go, gs, gf)				\
-	{							\
-		.id		= _id,				\
-		.branch_type	= branch_composite,		\
-		.name		= cname,			\
-		.parent_names	= (const char *[]){ pname },	\
-		.num_parents	= 1,				\
-		.flags		= f,				\
-		.muxdiv_offset	= mo,				\
-		.div_shift	= ds,				\
-		.div_width	= dw,				\
-		.div_flags	= df,				\
-		.gate_offset	= go,				\
-		.gate_shift	= gs,				\
-		.gate_flags	= gf,				\
-	}
+						go, gs, gf)				\
+{							\
+	.id		= _id,				\
+			  .branch_type	= branch_composite,		\
+								.name		= cname,			\
+	.parent_names	= (const char *[]){ pname },	\
+	.num_parents	= 1,				\
+					  .flags		= f,				\
+									.muxdiv_offset	= mo,				\
+											.div_shift	= ds,				\
+													.div_width	= dw,				\
+															.div_flags	= df,				\
+																	.gate_offset	= go,				\
+																			.gate_shift	= gs,				\
+																					.gate_flags	= gf,				\
+}
 
 #define COMPOSITE_NOMUX_DIVTBL(_id, cname, pname, f, mo, ds, dw,\
-			       df, dt, go, gs, gf)		\
-	{							\
-		.id		= _id,				\
-		.branch_type	= branch_composite,		\
-		.name		= cname,			\
-		.parent_names	= (const char *[]){ pname },	\
-		.num_parents	= 1,				\
-		.flags		= f,				\
-		.muxdiv_offset	= mo,				\
-		.div_shift	= ds,				\
-		.div_width	= dw,				\
-		.div_flags	= df,				\
-		.div_table	= dt,				\
-		.gate_offset	= go,				\
-		.gate_shift	= gs,				\
-		.gate_flags	= gf,				\
-	}
+							   df, dt, go, gs, gf)		\
+{							\
+	.id		= _id,				\
+			  .branch_type	= branch_composite,		\
+								.name		= cname,			\
+	.parent_names	= (const char *[]){ pname },	\
+	.num_parents	= 1,				\
+					  .flags		= f,				\
+									.muxdiv_offset	= mo,				\
+											.div_shift	= ds,				\
+													.div_width	= dw,				\
+															.div_flags	= df,				\
+																	.div_table	= dt,				\
+																			.gate_offset	= go,				\
+																					.gate_shift	= gs,				\
+																							.gate_flags	= gf,				\
+}
 
 #define COMPOSITE_NODIV(_id, cname, pnames, f, mo, ms, mw, mf,	\
-			go, gs, gf)				\
-	{							\
-		.id		= _id,				\
-		.branch_type	= branch_composite,		\
-		.name		= cname,			\
-		.parent_names	= pnames,			\
-		.num_parents	= ARRAY_SIZE(pnames),		\
-		.flags		= f,				\
-		.muxdiv_offset	= mo,				\
-		.mux_shift	= ms,				\
-		.mux_width	= mw,				\
-		.mux_flags	= mf,				\
-		.gate_offset	= go,				\
-		.gate_shift	= gs,				\
-		.gate_flags	= gf,				\
-	}
+						go, gs, gf)				\
+{							\
+	.id		= _id,				\
+			  .branch_type	= branch_composite,		\
+								.name		= cname,			\
+										.parent_names	= pnames,			\
+												.num_parents	= ARRAY_SIZE(pnames),		\
+														.flags		= f,				\
+																.muxdiv_offset	= mo,				\
+																		.mux_shift	= ms,				\
+																				.mux_width	= mw,				\
+																						.mux_flags	= mf,				\
+																								.gate_offset	= go,				\
+																										.gate_shift	= gs,				\
+																												.gate_flags	= gf,				\
+}
 
 #define COMPOSITE_NOGATE(_id, cname, pnames, f, mo, ms, mw, mf,	\
-			 ds, dw, df)				\
-	{							\
-		.id		= _id,				\
-		.branch_type	= branch_composite,		\
-		.name		= cname,			\
-		.parent_names	= pnames,			\
-		.num_parents	= ARRAY_SIZE(pnames),		\
-		.flags		= f,				\
-		.muxdiv_offset	= mo,				\
-		.mux_shift	= ms,				\
-		.mux_width	= mw,				\
-		.mux_flags	= mf,				\
-		.div_shift	= ds,				\
-		.div_width	= dw,				\
-		.div_flags	= df,				\
-		.gate_offset	= -1,				\
-	}
+						 ds, dw, df)				\
+{							\
+	.id		= _id,				\
+			  .branch_type	= branch_composite,		\
+								.name		= cname,			\
+										.parent_names	= pnames,			\
+												.num_parents	= ARRAY_SIZE(pnames),		\
+														.flags		= f,				\
+																.muxdiv_offset	= mo,				\
+																		.mux_shift	= ms,				\
+																				.mux_width	= mw,				\
+																						.mux_flags	= mf,				\
+																								.div_shift	= ds,				\
+																										.div_width	= dw,				\
+																												.div_flags	= df,				\
+																														.gate_offset	= -1,				\
+}
 
 #define COMPOSITE_NOGATE_DIVTBL(_id, cname, pnames, f, mo, ms,	\
-				mw, mf, ds, dw, df, dt)		\
-	{							\
-		.id		= _id,				\
-		.branch_type	= branch_composite,		\
-		.name		= cname,			\
-		.parent_names	= pnames,			\
-		.num_parents	= ARRAY_SIZE(pnames),		\
-		.flags		= f,				\
-		.muxdiv_offset	= mo,				\
-		.mux_shift	= ms,				\
-		.mux_width	= mw,				\
-		.mux_flags	= mf,				\
-		.div_shift	= ds,				\
-		.div_width	= dw,				\
-		.div_flags	= df,				\
-		.div_table	= dt,				\
-		.gate_offset	= -1,				\
-	}
+								mw, mf, ds, dw, df, dt)		\
+{							\
+	.id		= _id,				\
+			  .branch_type	= branch_composite,		\
+								.name		= cname,			\
+										.parent_names	= pnames,			\
+												.num_parents	= ARRAY_SIZE(pnames),		\
+														.flags		= f,				\
+																.muxdiv_offset	= mo,				\
+																		.mux_shift	= ms,				\
+																				.mux_width	= mw,				\
+																						.mux_flags	= mf,				\
+																								.div_shift	= ds,				\
+																										.div_width	= dw,				\
+																												.div_flags	= df,				\
+																														.div_table	= dt,				\
+																																.gate_offset	= -1,				\
+}
 
 #define COMPOSITE_FRAC(_id, cname, pname, f, mo, df, go, gs, gf)\
 	{							\
 		.id		= _id,				\
-		.branch_type	= branch_fraction_divider,	\
-		.name		= cname,			\
+				  .branch_type	= branch_fraction_divider,	\
+									.name		= cname,			\
 		.parent_names	= (const char *[]){ pname },	\
 		.num_parents	= 1,				\
-		.flags		= f,				\
-		.muxdiv_offset	= mo,				\
-		.div_shift	= 16,				\
-		.div_width	= 16,				\
-		.div_flags	= df,				\
-		.gate_offset	= go,				\
-		.gate_shift	= gs,				\
-		.gate_flags	= gf,				\
+						  .flags		= f,				\
+										.muxdiv_offset	= mo,				\
+												.div_shift	= 16,				\
+														.div_width	= 16,				\
+																.div_flags	= df,				\
+																		.gate_offset	= go,				\
+																				.gate_shift	= gs,				\
+																						.gate_flags	= gf,				\
 	}
 
 #define COMPOSITE_FRACMUX(_id, cname, pname, f, mo, df, go, gs, gf, ch) \
 	{							\
 		.id		= _id,				\
-		.branch_type	= branch_fraction_divider,	\
-		.name		= cname,			\
+				  .branch_type	= branch_fraction_divider,	\
+									.name		= cname,			\
 		.parent_names	= (const char *[]){ pname },	\
 		.num_parents	= 1,				\
-		.flags		= f,				\
-		.muxdiv_offset	= mo,				\
-		.div_shift	= 16,				\
-		.div_width	= 16,				\
-		.div_flags	= df,				\
-		.gate_offset	= go,				\
-		.gate_shift	= gs,				\
-		.gate_flags	= gf,				\
-		.child		= ch,				\
+						  .flags		= f,				\
+										.muxdiv_offset	= mo,				\
+												.div_shift	= 16,				\
+														.div_width	= 16,				\
+																.div_flags	= df,				\
+																		.gate_offset	= go,				\
+																				.gate_shift	= gs,				\
+																						.gate_flags	= gf,				\
+																								.child		= ch,				\
 	}
 
 #define COMPOSITE_FRACMUX_NOGATE(_id, cname, pname, f, mo, df, ch) \
 	{							\
 		.id		= _id,				\
-		.branch_type	= branch_fraction_divider,	\
-		.name		= cname,			\
+				  .branch_type	= branch_fraction_divider,	\
+									.name		= cname,			\
 		.parent_names	= (const char *[]){ pname },	\
 		.num_parents	= 1,				\
-		.flags		= f,				\
-		.muxdiv_offset	= mo,				\
-		.div_shift	= 16,				\
-		.div_width	= 16,				\
-		.div_flags	= df,				\
-		.gate_offset	= -1,				\
-		.child		= ch,				\
+						  .flags		= f,				\
+										.muxdiv_offset	= mo,				\
+												.div_shift	= 16,				\
+														.div_width	= 16,				\
+																.div_flags	= df,				\
+																		.gate_offset	= -1,				\
+																				.child		= ch,				\
 	}
 
 #define COMPOSITE_DDRCLK(_id, cname, pnames, f, mo, ms, mw,	\
-			 ds, dw, df)				\
-	{							\
-		.id		= _id,				\
-		.branch_type	= branch_ddrclk,		\
-		.name		= cname,			\
-		.parent_names	= pnames,			\
-		.num_parents	= ARRAY_SIZE(pnames),		\
-		.flags		= f,				\
-		.muxdiv_offset  = mo,                           \
-		.mux_shift      = ms,                           \
-		.mux_width      = mw,                           \
-		.div_shift      = ds,                           \
-		.div_width      = dw,                           \
-		.div_flags	= df,				\
-		.gate_offset    = -1,                           \
-	}
+						 ds, dw, df)				\
+{							\
+	.id		= _id,				\
+			  .branch_type	= branch_ddrclk,		\
+								.name		= cname,			\
+										.parent_names	= pnames,			\
+												.num_parents	= ARRAY_SIZE(pnames),		\
+														.flags		= f,				\
+																.muxdiv_offset  = mo,                           \
+																		.mux_shift      = ms,                           \
+																				.mux_width      = mw,                           \
+																						.div_shift      = ds,                           \
+																								.div_width      = dw,                           \
+																										.div_flags	= df,				\
+																												.gate_offset    = -1,                           \
+}
 
 #define MUX(_id, cname, pnames, f, o, s, w, mf)			\
 	{							\
 		.id		= _id,				\
-		.branch_type	= branch_mux,			\
-		.name		= cname,			\
-		.parent_names	= pnames,			\
-		.num_parents	= ARRAY_SIZE(pnames),		\
-		.flags		= f,				\
-		.muxdiv_offset	= o,				\
-		.mux_shift	= s,				\
-		.mux_width	= w,				\
-		.mux_flags	= mf,				\
-		.gate_offset	= -1,				\
+				  .branch_type	= branch_mux,			\
+									.name		= cname,			\
+											.parent_names	= pnames,			\
+													.num_parents	= ARRAY_SIZE(pnames),		\
+															.flags		= f,				\
+																	.muxdiv_offset	= o,				\
+																			.mux_shift	= s,				\
+																					.mux_width	= w,				\
+																							.mux_flags	= mf,				\
+																									.gate_offset	= -1,				\
 	}
 
 #define DIV(_id, cname, pname, f, o, s, w, df)			\
 	{							\
 		.id		= _id,				\
-		.branch_type	= branch_divider,		\
-		.name		= cname,			\
+				  .branch_type	= branch_divider,		\
+									.name		= cname,			\
 		.parent_names	= (const char *[]){ pname },	\
 		.num_parents	= 1,				\
-		.flags		= f,				\
-		.muxdiv_offset	= o,				\
-		.div_shift	= s,				\
-		.div_width	= w,				\
-		.div_flags	= df,				\
-		.gate_offset	= -1,				\
+						  .flags		= f,				\
+										.muxdiv_offset	= o,				\
+												.div_shift	= s,				\
+														.div_width	= w,				\
+																.div_flags	= df,				\
+																		.gate_offset	= -1,				\
 	}
 
 #define DIVTBL(_id, cname, pname, f, o, s, w, df, dt)		\
 	{							\
 		.id		= _id,				\
-		.branch_type	= branch_divider,		\
-		.name		= cname,			\
+				  .branch_type	= branch_divider,		\
+									.name		= cname,			\
 		.parent_names	= (const char *[]){ pname },	\
 		.num_parents	= 1,				\
-		.flags		= f,				\
-		.muxdiv_offset	= o,				\
-		.div_shift	= s,				\
-		.div_width	= w,				\
-		.div_flags	= df,				\
-		.div_table	= dt,				\
+						  .flags		= f,				\
+										.muxdiv_offset	= o,				\
+												.div_shift	= s,				\
+														.div_width	= w,				\
+																.div_flags	= df,				\
+																		.div_table	= dt,				\
 	}
 
 #define GATE(_id, cname, pname, f, o, b, gf)			\
 	{							\
 		.id		= _id,				\
-		.branch_type	= branch_gate,			\
-		.name		= cname,			\
+				  .branch_type	= branch_gate,			\
+									.name		= cname,			\
 		.parent_names	= (const char *[]){ pname },	\
 		.num_parents	= 1,				\
-		.flags		= f,				\
-		.gate_offset	= o,				\
-		.gate_shift	= b,				\
-		.gate_flags	= gf,				\
+						  .flags		= f,				\
+										.gate_offset	= o,				\
+												.gate_shift	= b,				\
+														.gate_flags	= gf,				\
 	}
 
 #define MMC(_id, cname, pname, offset, shift)			\
 	{							\
 		.id		= _id,				\
-		.branch_type	= branch_mmc,			\
-		.name		= cname,			\
+				  .branch_type	= branch_mmc,			\
+									.name		= cname,			\
 		.parent_names	= (const char *[]){ pname },	\
 		.num_parents	= 1,				\
-		.muxdiv_offset	= offset,			\
-		.div_shift	= shift,			\
+						  .muxdiv_offset	= offset,			\
+											.div_shift	= shift,			\
 	}
 
 #define INVERTER(_id, cname, pname, io, is, if)			\
 	{							\
 		.id		= _id,				\
-		.branch_type	= branch_inverter,		\
-		.name		= cname,			\
+				  .branch_type	= branch_inverter,		\
+									.name		= cname,			\
 		.parent_names	= (const char *[]){ pname },	\
 		.num_parents	= 1,				\
-		.muxdiv_offset	= io,				\
-		.div_shift	= is,				\
-		.div_flags	= if,				\
+						  .muxdiv_offset	= io,				\
+											.div_shift	= is,				\
+													.div_flags	= if,				\
 	}
 
 #define FACTOR(_id, cname, pname,  f, fm, fd)			\
 	{							\
 		.id		= _id,				\
-		.branch_type	= branch_factor,		\
-		.name		= cname,			\
+				  .branch_type	= branch_factor,		\
+									.name		= cname,			\
 		.parent_names	= (const char *[]){ pname },	\
 		.num_parents	= 1,				\
-		.flags		= f,				\
-		.div_shift	= fm,				\
-		.div_width	= fd,				\
+						  .flags		= f,				\
+										.div_shift	= fm,				\
+												.div_width	= fd,				\
 	}
 
 #define FACTOR_GATE(_id, cname, pname,  f, fm, fd, go, gb, gf)	\
 	{							\
 		.id		= _id,				\
-		.branch_type	= branch_factor,		\
-		.name		= cname,			\
+				  .branch_type	= branch_factor,		\
+									.name		= cname,			\
 		.parent_names	= (const char *[]){ pname },	\
 		.num_parents	= 1,				\
-		.flags		= f,				\
-		.div_shift	= fm,				\
-		.div_width	= fd,				\
-		.gate_offset	= go,				\
-		.gate_shift	= gb,				\
-		.gate_flags	= gf,				\
+						  .flags		= f,				\
+										.div_shift	= fm,				\
+												.div_width	= fd,				\
+														.gate_offset	= go,				\
+																.gate_shift	= gb,				\
+																		.gate_flags	= gf,				\
 	}
 
 struct rockchip_clk_provider *rockchip_clk_init(struct device_node *np,
-			void __iomem *base, unsigned long nr_clks);
+		void __iomem *base, unsigned long nr_clks);
 void rockchip_clk_of_add_provider(struct device_node *np,
-				struct rockchip_clk_provider *ctx);
+								  struct rockchip_clk_provider *ctx);
 void rockchip_clk_add_lookup(struct rockchip_clk_provider *ctx,
-			     struct clk *clk, unsigned int id);
+							 struct clk *clk, unsigned int id);
 void rockchip_clk_register_branches(struct rockchip_clk_provider *ctx,
-				    struct rockchip_clk_branch *list,
-				    unsigned int nr_clk);
+									struct rockchip_clk_branch *list,
+									unsigned int nr_clk);
 void rockchip_clk_register_plls(struct rockchip_clk_provider *ctx,
-				struct rockchip_pll_clock *pll_list,
-				unsigned int nr_pll, int grf_lock_offset);
+								struct rockchip_pll_clock *pll_list,
+								unsigned int nr_pll, int grf_lock_offset);
 void rockchip_clk_register_armclk(struct rockchip_clk_provider *ctx,
-			unsigned int lookup_id, const char *name,
-			const char *const *parent_names, u8 num_parents,
-			const struct rockchip_cpuclk_reg_data *reg_data,
-			const struct rockchip_cpuclk_rate_table *rates,
-			int nrates);
+								  unsigned int lookup_id, const char *name,
+								  const char *const *parent_names, u8 num_parents,
+								  const struct rockchip_cpuclk_reg_data *reg_data,
+								  const struct rockchip_cpuclk_rate_table *rates,
+								  int nrates);
 void rockchip_clk_protect_critical(const char *const clocks[], int nclocks);
 void rockchip_register_restart_notifier(struct rockchip_clk_provider *ctx,
-					unsigned int reg, void (*cb)(void));
+										unsigned int reg, void (*cb)(void));
 
 #define ROCKCHIP_SOFTRST_HIWORD_MASK	BIT(0)
 
 #ifdef CONFIG_RESET_CONTROLLER
 void rockchip_register_softrst(struct device_node *np,
-			       unsigned int num_regs,
-			       void __iomem *base, u8 flags);
+							   unsigned int num_regs,
+							   void __iomem *base, u8 flags);
 #else
 static inline void rockchip_register_softrst(struct device_node *np,
-			       unsigned int num_regs,
-			       void __iomem *base, u8 flags)
+		unsigned int num_regs,
+		void __iomem *base, u8 flags)
 {
 }
 #endif

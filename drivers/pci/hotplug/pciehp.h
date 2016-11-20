@@ -45,10 +45,10 @@ extern int pciehp_poll_time;
 extern bool pciehp_debug;
 
 #define dbg(format, arg...)						\
-do {									\
-	if (pciehp_debug)						\
-		printk(KERN_DEBUG "%s: " format, MY_NAME, ## arg);	\
-} while (0)
+	do {									\
+		if (pciehp_debug)						\
+			printk(KERN_DEBUG "%s: " format, MY_NAME, ## arg);	\
+	} while (0)
 #define err(format, arg...)						\
 	printk(KERN_ERR "%s: " format, MY_NAME, ## arg)
 #define info(format, arg...)						\
@@ -60,7 +60,7 @@ do {									\
 	do {								\
 		if (pciehp_debug)					\
 			dev_printk(KERN_DEBUG, &ctrl->pcie->device,	\
-					format, ## arg);		\
+					   format, ## arg);		\
 	} while (0)
 #define ctrl_err(ctrl, format, arg...)					\
 	dev_err(&ctrl->pcie->device, format, ## arg)
@@ -70,7 +70,8 @@ do {									\
 	dev_warn(&ctrl->pcie->device, format, ## arg)
 
 #define SLOT_NAME_SIZE 10
-struct slot {
+struct slot
+{
 	u8 state;
 	struct controller *ctrl;
 	struct hotplug_slot *hotplug_slot;
@@ -80,13 +81,15 @@ struct slot {
 	struct workqueue_struct *wq;
 };
 
-struct event_info {
+struct event_info
+{
 	u32 event_type;
 	struct slot *p_slot;
 	struct work_struct work;
 };
 
-struct controller {
+struct controller
+{
 	struct mutex ctrl_lock;		/* controller lock */
 	struct pcie_device *pcie;	/* PCI Express port service */
 	struct slot *slot;
@@ -95,9 +98,9 @@ struct controller {
 	u16 slot_ctrl;
 	struct timer_list poll_timer;
 	unsigned long cmd_started;	/* jiffies */
-	unsigned int cmd_busy:1;
-	unsigned int link_active_reporting:1;
-	unsigned int notification_enabled:1;
+	unsigned int cmd_busy: 1;
+	unsigned int link_active_reporting: 1;
+	unsigned int notification_enabled: 1;
 	unsigned int power_fault_detected;
 };
 

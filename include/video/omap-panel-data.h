@@ -35,7 +35,8 @@
  * @source: name of the display entity used as a video source
  * @invert_polarity: invert signal polarity
  */
-struct connector_atv_platform_data {
+struct connector_atv_platform_data
+{
 	const char *name;
 	const char *source;
 
@@ -51,7 +52,8 @@ struct connector_atv_platform_data {
  * @backlight_gpio: gpio to enable/disable the backlight (or -1)
  * @enable_gpio: gpio to enable/disable the panel (or -1)
  */
-struct panel_dpi_platform_data {
+struct panel_dpi_platform_data
+{
 	const char *name;
 	const char *source;
 
@@ -70,7 +72,8 @@ struct panel_dpi_platform_data {
  * @reset_gpio: gpio to reset the panel (or -1)
  * @datapairs: number of SDI datapairs
  */
-struct panel_acx565akm_platform_data {
+struct panel_acx565akm_platform_data
+{
 	const char *name;
 	const char *source;
 

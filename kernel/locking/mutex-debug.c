@@ -49,7 +49,7 @@ void debug_mutex_free_waiter(struct mutex_waiter *waiter)
 }
 
 void debug_mutex_add_waiter(struct mutex *lock, struct mutex_waiter *waiter,
-			    struct task_struct *task)
+							struct task_struct *task)
 {
 	SMP_DEBUG_LOCKS_WARN_ON(!spin_is_locked(&lock->wait_lock));
 
@@ -58,7 +58,7 @@ void debug_mutex_add_waiter(struct mutex *lock, struct mutex_waiter *waiter,
 }
 
 void mutex_remove_waiter(struct mutex *lock, struct mutex_waiter *waiter,
-			 struct task_struct *task)
+						 struct task_struct *task)
 {
 	DEBUG_LOCKS_WARN_ON(list_empty(&waiter->list));
 	DEBUG_LOCKS_WARN_ON(waiter->task != task);
@@ -71,13 +71,18 @@ void mutex_remove_waiter(struct mutex *lock, struct mutex_waiter *waiter,
 
 void debug_mutex_unlock(struct mutex *lock)
 {
-	if (likely(debug_locks)) {
+	if (likely(debug_locks))
+	{
 		DEBUG_LOCKS_WARN_ON(lock->magic != lock);
 
 		if (!lock->owner)
+		{
 			DEBUG_LOCKS_WARN_ON(!lock->owner);
+		}
 		else
+		{
 			DEBUG_LOCKS_WARN_ON(lock->owner != current);
+		}
 
 		DEBUG_LOCKS_WARN_ON(!lock->wait_list.prev && !lock->wait_list.next);
 	}
@@ -91,7 +96,7 @@ void debug_mutex_unlock(struct mutex *lock)
 }
 
 void debug_mutex_init(struct mutex *lock, const char *name,
-		      struct lock_class_key *key)
+					  struct lock_class_key *key)
 {
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 	/*

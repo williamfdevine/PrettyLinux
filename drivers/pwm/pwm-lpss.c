@@ -31,14 +31,16 @@
 /* Size of each PWM register space if multiple */
 #define PWM_SIZE			0x400
 
-struct pwm_lpss_chip {
+struct pwm_lpss_chip
+{
 	struct pwm_chip chip;
 	void __iomem *regs;
 	const struct pwm_lpss_boardinfo *info;
 };
 
 /* BayTrail */
-const struct pwm_lpss_boardinfo pwm_lpss_byt_info = {
+const struct pwm_lpss_boardinfo pwm_lpss_byt_info =
+{
 	.clk_rate = 25000000,
 	.npwm = 1,
 	.base_unit_bits = 16,
@@ -46,7 +48,8 @@ const struct pwm_lpss_boardinfo pwm_lpss_byt_info = {
 EXPORT_SYMBOL_GPL(pwm_lpss_byt_info);
 
 /* Braswell */
-const struct pwm_lpss_boardinfo pwm_lpss_bsw_info = {
+const struct pwm_lpss_boardinfo pwm_lpss_bsw_info =
+{
 	.clk_rate = 19200000,
 	.npwm = 1,
 	.base_unit_bits = 16,
@@ -54,7 +57,8 @@ const struct pwm_lpss_boardinfo pwm_lpss_bsw_info = {
 EXPORT_SYMBOL_GPL(pwm_lpss_bsw_info);
 
 /* Broxton */
-const struct pwm_lpss_boardinfo pwm_lpss_bxt_info = {
+const struct pwm_lpss_boardinfo pwm_lpss_bxt_info =
+{
 	.clk_rate = 19200000,
 	.npwm = 4,
 	.base_unit_bits = 22,
@@ -88,7 +92,7 @@ static void pwm_lpss_update(struct pwm_device *pwm)
 }
 
 static int pwm_lpss_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			   int duty_ns, int period_ns)
+						   int duty_ns, int period_ns)
 {
 	struct pwm_lpss_chip *lpwm = to_lpwm(chip);
 	unsigned long long on_time_div;
@@ -108,7 +112,10 @@ static int pwm_lpss_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	base_unit = DIV_ROUND_CLOSEST_ULL(freq, c);
 
 	if (duty_ns <= 0)
+	{
 		duty_ns = 1;
+	}
+
 	on_time_div = 255ULL * duty_ns;
 	do_div(on_time_div, period_ns);
 	on_time_div = 255ULL - on_time_div;
@@ -128,7 +135,9 @@ static int pwm_lpss_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * about the change by setting PWM_SW_UPDATE.
 	 */
 	if (pwm_is_enabled(pwm))
+	{
 		pwm_lpss_update(pwm);
+	}
 
 	pm_runtime_put(chip->dev);
 
@@ -154,7 +163,8 @@ static void pwm_lpss_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	pm_runtime_put(chip->dev);
 }
 
-static const struct pwm_ops pwm_lpss_ops = {
+static const struct pwm_ops pwm_lpss_ops =
+{
 	.config = pwm_lpss_config,
 	.enable = pwm_lpss_enable,
 	.disable = pwm_lpss_disable,
@@ -162,25 +172,34 @@ static const struct pwm_ops pwm_lpss_ops = {
 };
 
 struct pwm_lpss_chip *pwm_lpss_probe(struct device *dev, struct resource *r,
-				     const struct pwm_lpss_boardinfo *info)
+									 const struct pwm_lpss_boardinfo *info)
 {
 	struct pwm_lpss_chip *lpwm;
 	unsigned long c;
 	int ret;
 
 	lpwm = devm_kzalloc(dev, sizeof(*lpwm), GFP_KERNEL);
+
 	if (!lpwm)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	lpwm->regs = devm_ioremap_resource(dev, r);
+
 	if (IS_ERR(lpwm->regs))
+	{
 		return ERR_CAST(lpwm->regs);
+	}
 
 	lpwm->info = info;
 
 	c = lpwm->info->clk_rate;
+
 	if (!c)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	lpwm->chip.dev = dev;
 	lpwm->chip.ops = &pwm_lpss_ops;
@@ -188,7 +207,9 @@ struct pwm_lpss_chip *pwm_lpss_probe(struct device *dev, struct resource *r,
 	lpwm->chip.npwm = info->npwm;
 
 	ret = pwmchip_add(&lpwm->chip);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to add PWM chip: %d\n", ret);
 		return ERR_PTR(ret);
 	}

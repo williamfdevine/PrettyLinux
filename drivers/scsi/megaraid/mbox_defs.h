@@ -159,7 +159,8 @@
  * structure must be allocated by the driver and aligned at 8-byte boundary.
  */
 #define MBOX_MAX_FIRMWARE_STATUS	46
-typedef struct {
+typedef struct
+{
 	uint8_t		cmd;
 	uint8_t		cmdid;
 	uint16_t	numsectors;
@@ -187,7 +188,8 @@ typedef struct {
  * This is the extension of the 32-bit mailbox to be able to perform DMA
  * beyond 4GB address range.
  */
-typedef struct {
+typedef struct
+{
 	uint32_t	xferaddr_lo;
 	uint32_t	xferaddr_hi;
 	mbox_t		mbox32;
@@ -196,7 +198,8 @@ typedef struct {
 /*
  * mailbox structure used for internal commands
  */
-typedef struct {
+typedef struct
+{
 	u8	cmd;
 	u8	cmdid;
 	u8	opcode;
@@ -228,11 +231,12 @@ typedef struct {
  * @dataxferaddr	: DMA data transfer address
  * @dataxferlen		: amount of the data to be transferred.
  */
-typedef struct {
-	uint8_t		timeout		:3;
-	uint8_t		ars		:1;
-	uint8_t		reserved	:3;
-	uint8_t		islogical	:1;
+typedef struct
+{
+	uint8_t		timeout		: 3;
+	uint8_t		ars		: 1;
+	uint8_t		reserved	: 3;
+	uint8_t		islogical	: 1;
 	uint8_t		logdrv;
 	uint8_t		channel;
 	uint8_t		target;
@@ -248,7 +252,8 @@ typedef struct {
 	uint32_t	dataxferlen;
 } __attribute__ ((packed)) mraid_passthru_t;
 
-typedef struct {
+typedef struct
+{
 
 	uint32_t		dataxferaddr_lo;
 	uint32_t		dataxferaddr_hi;
@@ -280,13 +285,14 @@ typedef struct {
  * @dataxferaddr	: DMA data transfer address
  * @dataxferlen		: amount of the data to be transferred.
  */
-typedef struct {
-	uint8_t		timeout		:3;
-	uint8_t		ars		:1;
-	uint8_t		rsvd1		:1;
-	uint8_t		cd_rom		:1;
-	uint8_t		rsvd2		:1;
-	uint8_t		islogical	:1;
+typedef struct
+{
+	uint8_t		timeout		: 3;
+	uint8_t		ars		: 1;
+	uint8_t		rsvd1		: 1;
+	uint8_t		cd_rom		: 1;
+	uint8_t		rsvd2		: 1;
+	uint8_t		islogical	: 1;
 	uint8_t		logdrv;
 	uint8_t		channel;
 	uint8_t		target;
@@ -331,7 +337,8 @@ typedef struct {
  * 0x20 = Number of stripes and
  * 0x08 = Number of spans
  */
-typedef struct {
+typedef struct
+{
 	uint32_t	data_size;
 	uint32_t	config_signature;
 	uint8_t		fw_version[16];
@@ -387,7 +394,8 @@ typedef struct {
  * @fcloop_state1		: state of fc loop 1
  * @fcloop_state_rsvd		:
  */
-typedef struct {
+typedef struct
+{
 	uint32_t	global_counter;
 	uint8_t		param_counter;
 	uint8_t		param_id;
@@ -450,7 +458,8 @@ typedef struct {
 #define MAX_NOTIFY_SIZE		0x80
 #define CUR_NOTIFY_SIZE		sizeof(mraid_notify_t)
 
-typedef struct {
+typedef struct
+{
 	uint32_t	data_size;
 
 	mraid_notify_t	notify;
@@ -508,7 +517,8 @@ typedef struct {
  *				bit 7: Undefined
  * @dec_fault_bus_info		:
  */
-typedef struct {
+typedef struct
+{
 	uint8_t		max_commands;
 	uint8_t		rebuild_rate;
 	uint8_t		max_targ_per_chan;
@@ -535,7 +545,8 @@ typedef struct {
  * @prop	:
  * @state	: state of each logical drive
  */
-typedef struct {
+typedef struct
+{
 	uint8_t		nldrv;
 	uint8_t		rsvd[3];
 	uint32_t	size[MAX_LOGICAL_DRIVES_8LD];
@@ -548,7 +559,8 @@ typedef struct {
  * mraid_pdrv_info_t - information about the physical drives
  * @pdrv_state	: state of each physical drive
  */
-typedef struct {
+typedef struct
+{
 	uint8_t		pdrv_state[MBOX_MAX_PHYSICAL_DRIVES];
 	uint8_t		rsvd;
 } __attribute__ ((packed)) mraid_pdrv_info_t;
@@ -560,7 +572,8 @@ typedef struct {
  * @mraid_ldrv_info_t	: logical drives information
  * @mraid_pdrv_info_t	: physical drives information
  */
-typedef struct {
+typedef struct
+{
 	mraid_adapinfo_t	adapter_info;
 	mraid_ldrv_info_t	logdrv_info;
 	mraid_pdrv_info_t	pdrv_info;
@@ -576,7 +589,8 @@ typedef struct {
  * @modem_status	:
  * @rsvd		:
  */
-typedef struct {
+typedef struct
+{
 	mraid_inquiry_t	raid_inq;
 	uint16_t	phys_drv_format[MAX_MBOX_CHANNELS];
 	uint8_t		stack_attn;
@@ -590,10 +604,11 @@ typedef struct {
  * @channel	: channel fpor the device
  * @target	: target ID of the device
  */
-typedef struct {
+typedef struct
+{
 	uint8_t		channel;
 	uint8_t		target;
-}__attribute__ ((packed)) adap_device_t;
+} __attribute__ ((packed)) adap_device_t;
 
 
 /**
@@ -601,11 +616,12 @@ typedef struct {
  * @start_blk	: starting block
  * @num_blks	: number of blocks
  */
-typedef struct {
+typedef struct
+{
 	uint32_t	start_blk;
 	uint32_t	num_blks;
 	adap_device_t	device[MAX_ROW_SIZE_40LD];
-}__attribute__ ((packed)) adap_span_40ld_t;
+} __attribute__ ((packed)) adap_span_40ld_t;
 
 
 /**
@@ -613,11 +629,12 @@ typedef struct {
  * @start_blk	: starting block
  * @num_blks	: number of blocks
  */
-typedef struct {
+typedef struct
+{
 	uint32_t	start_blk;
 	uint32_t	num_blks;
 	adap_device_t	device[MAX_ROW_SIZE_8LD];
-}__attribute__ ((packed)) adap_span_8ld_t;
+} __attribute__ ((packed)) adap_span_8ld_t;
 
 
 /**
@@ -632,7 +649,8 @@ typedef struct {
  * @direct_io	: direct io or through cache
  * @row_size	: number of stripes in a row
  */
-typedef struct {
+typedef struct
+{
 	uint8_t		span_depth;
 	uint8_t		level;
 	uint8_t		read_ahead;
@@ -649,10 +667,11 @@ typedef struct {
  * @lparam	: logical drives parameters
  * @span	: span
  */
-typedef struct {
+typedef struct
+{
 	logdrv_param_t		lparam;
 	adap_span_40ld_t	span[SPAN_DEPTH_8_SPANS];
-}__attribute__ ((packed)) logdrv_40ld_t;
+} __attribute__ ((packed)) logdrv_40ld_t;
 
 
 /**
@@ -662,10 +681,11 @@ typedef struct {
  *
  * 8-LD logical drive with up to 8 spans
  */
-typedef struct {
+typedef struct
+{
 	logdrv_param_t	lparam;
 	adap_span_8ld_t	span[SPAN_DEPTH_8_SPANS];
-}__attribute__ ((packed)) logdrv_8ld_span8_t;
+} __attribute__ ((packed)) logdrv_8ld_span8_t;
 
 
 /**
@@ -675,10 +695,11 @@ typedef struct {
  *
  * 8-LD logical drive with up to 4 spans
  */
-typedef struct {
+typedef struct
+{
 	logdrv_param_t	lparam;
 	adap_span_8ld_t	span[SPAN_DEPTH_4_SPANS];
-}__attribute__ ((packed)) logdrv_8ld_span4_t;
+} __attribute__ ((packed)) logdrv_8ld_span4_t;
 
 
 /**
@@ -689,13 +710,14 @@ typedef struct {
  * @sync_neg	: sync negotiation - ENABLE or DISABLE
  * @size	: configurable size in terms of 512 byte
  */
-typedef struct {
+typedef struct
+{
 	uint8_t		type;
 	uint8_t		cur_status;
 	uint8_t		tag_depth;
 	uint8_t		sync_neg;
 	uint32_t	size;
-}__attribute__ ((packed)) phys_drive_t;
+} __attribute__ ((packed)) phys_drive_t;
 
 
 /**
@@ -705,12 +727,13 @@ typedef struct {
  * @ldrv	: logical drives information
  * @pdrv	: physical drives information
  */
-typedef struct {
+typedef struct
+{
 	uint8_t		numldrv;
 	uint8_t		resvd[3];
 	logdrv_40ld_t	ldrv[MAX_LOGICAL_DRIVES_40LD];
 	phys_drive_t	pdrv[MBOX_MAX_PHYSICAL_DRIVES];
-}__attribute__ ((packed)) disk_array_40ld_t;
+} __attribute__ ((packed)) disk_array_40ld_t;
 
 
 /**
@@ -722,12 +745,13 @@ typedef struct {
  *
  * Disk array for 8LD logical drives with up to 8 spans
  */
-typedef struct {
+typedef struct
+{
 	uint8_t			numldrv;
 	uint8_t			resvd[3];
 	logdrv_8ld_span8_t	ldrv[MAX_LOGICAL_DRIVES_8LD];
 	phys_drive_t		pdrv[MBOX_MAX_PHYSICAL_DRIVES];
-}__attribute__ ((packed)) disk_array_8ld_span8_t;
+} __attribute__ ((packed)) disk_array_8ld_span8_t;
 
 
 /**
@@ -739,12 +763,13 @@ typedef struct {
  *
  * Disk array for 8LD logical drives with up to 4 spans
  */
-typedef struct {
+typedef struct
+{
 	uint8_t			numldrv;
 	uint8_t			resvd[3];
 	logdrv_8ld_span4_t	ldrv[MAX_LOGICAL_DRIVES_8LD];
 	phys_drive_t		pdrv[MBOX_MAX_PHYSICAL_DRIVES];
-}__attribute__ ((packed)) disk_array_8ld_span4_t;
+} __attribute__ ((packed)) disk_array_8ld_span4_t;
 
 
 /**
@@ -756,9 +781,10 @@ typedef struct {
  * 		0..39 - for 40LD cards
  * @cksum	: 0-(sum of first 13 bytes of this structure)
  */
-struct private_bios_data {
-	uint8_t		geometry	:4;
-	uint8_t		unused		:4;
+struct private_bios_data
+{
+	uint8_t		geometry	: 4;
+	uint8_t		unused		: 4;
 	uint8_t		boot_drv;
 	uint8_t		rsvd[12];
 	uint16_t	cksum;
@@ -770,7 +796,8 @@ struct private_bios_data {
  * @address	: address of the buffer
  * @length	: data transfer length
  */
-typedef struct {
+typedef struct
+{
 	uint64_t	address;
 	uint32_t	length;
 } __attribute__ ((packed)) mbox_sgl64;
@@ -780,7 +807,8 @@ typedef struct {
  * @address	: address of the buffer
  * @length	: data transfer length
  */
-typedef struct {
+typedef struct
+{
 	uint32_t	address;
 	uint32_t	length;
 } __attribute__ ((packed)) mbox_sgl32;

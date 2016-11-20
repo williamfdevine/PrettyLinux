@@ -47,7 +47,8 @@
 #define NR_VX855_GPInO	(NR_VX855_GPI + NR_VX855_GPO)
 #define NR_VX855_GP	(NR_VX855_GPI + NR_VX855_GPO + NR_VX855_GPIO)
 
-struct vx855_gpio {
+struct vx855_gpio
+{
 	struct gpio_chip gpio;
 	spinlock_t lock;
 	u32 io_gpi;
@@ -58,33 +59,49 @@ struct vx855_gpio {
 static inline u_int32_t gpi_i_bit(int i)
 {
 	if (i < 10)
+	{
 		return 1 << i;
+	}
 	else
+	{
 		return 1 << (i + 14);
+	}
 }
 
 static inline u_int32_t gpo_o_bit(int i)
 {
 	if (i < 11)
+	{
 		return 1 << i;
+	}
 	else
+	{
 		return 1 << (i + 14);
+	}
 }
 
 static inline u_int32_t gpio_i_bit(int i)
 {
 	if (i < 14)
+	{
 		return 1 << (i + 10);
+	}
 	else
+	{
 		return 1 << (i + 14);
+	}
 }
 
 static inline u_int32_t gpio_o_bit(int i)
 {
 	if (i < 14)
+	{
 		return 1 << (i + 11);
+	}
 	else
+	{
 		return 1 << (i + 13);
+	}
 }
 
 /* Mapping betwee numeric GPIO ID and the actual GPIO hardware numbering:
@@ -94,7 +111,7 @@ static inline u_int32_t gpio_o_bit(int i)
  */
 
 static int vx855gpio_direction_input(struct gpio_chip *gpio,
-				     unsigned int nr)
+									 unsigned int nr)
 {
 	struct vx855_gpio *vg = gpiochip_get_data(gpio);
 	unsigned long flags;
@@ -102,11 +119,15 @@ static int vx855gpio_direction_input(struct gpio_chip *gpio,
 
 	/* Real GPI bits are always in input direction */
 	if (nr < NR_VX855_GPI)
+	{
 		return 0;
+	}
 
 	/* Real GPO bits cannot be put in output direction */
 	if (nr < NR_VX855_GPInO)
+	{
 		return -EINVAL;
+	}
 
 	/* Open Drain GPIO have to be set to one */
 	spin_lock_irqsave(&vg->lock, flags);
@@ -124,27 +145,41 @@ static int vx855gpio_get(struct gpio_chip *gpio, unsigned int nr)
 	u_int32_t reg_in;
 	int ret = 0;
 
-	if (nr < NR_VX855_GPI) {
+	if (nr < NR_VX855_GPI)
+	{
 		reg_in = inl(vg->io_gpi);
+
 		if (reg_in & gpi_i_bit(nr))
+		{
 			ret = 1;
-	} else if (nr < NR_VX855_GPInO) {
+		}
+	}
+	else if (nr < NR_VX855_GPInO)
+	{
 		/* GPO don't have an input bit, we need to read it
 		 * back from the output register */
 		reg_in = inl(vg->io_gpo);
+
 		if (reg_in & gpo_o_bit(nr - NR_VX855_GPI))
+		{
 			ret = 1;
-	} else {
+		}
+	}
+	else
+	{
 		reg_in = inl(vg->io_gpi);
+
 		if (reg_in & gpio_i_bit(nr - NR_VX855_GPInO))
+		{
 			ret = 1;
+		}
 	}
 
 	return ret;
 }
 
 static void vx855gpio_set(struct gpio_chip *gpio, unsigned int nr,
-			  int val)
+						  int val)
 {
 	struct vx855_gpio *vg = gpiochip_get_data(gpio);
 	unsigned long flags;
@@ -152,31 +187,48 @@ static void vx855gpio_set(struct gpio_chip *gpio, unsigned int nr,
 
 	/* True GPI cannot be switched to output mode */
 	if (nr < NR_VX855_GPI)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&vg->lock, flags);
 	reg_out = inl(vg->io_gpo);
-	if (nr < NR_VX855_GPInO) {
+
+	if (nr < NR_VX855_GPInO)
+	{
 		if (val)
+		{
 			reg_out |= gpo_o_bit(nr - NR_VX855_GPI);
+		}
 		else
+		{
 			reg_out &= ~gpo_o_bit(nr - NR_VX855_GPI);
-	} else {
-		if (val)
-			reg_out |= gpio_o_bit(nr - NR_VX855_GPInO);
-		else
-			reg_out &= ~gpio_o_bit(nr - NR_VX855_GPInO);
+		}
 	}
+	else
+	{
+		if (val)
+		{
+			reg_out |= gpio_o_bit(nr - NR_VX855_GPInO);
+		}
+		else
+		{
+			reg_out &= ~gpio_o_bit(nr - NR_VX855_GPInO);
+		}
+	}
+
 	outl(reg_out, vg->io_gpo);
 	spin_unlock_irqrestore(&vg->lock, flags);
 }
 
 static int vx855gpio_direction_output(struct gpio_chip *gpio,
-				      unsigned int nr, int val)
+									  unsigned int nr, int val)
 {
 	/* True GPI cannot be switched to output mode */
 	if (nr < NR_VX855_GPI)
+	{
 		return -EINVAL;
+	}
 
 	/* True GPO don't need to be switched to output mode,
 	 * and GPIO are open-drain, i.e. also need no switching,
@@ -187,28 +239,37 @@ static int vx855gpio_direction_output(struct gpio_chip *gpio,
 }
 
 static int vx855gpio_set_single_ended(struct gpio_chip *gpio,
-				      unsigned int nr,
-				      enum single_ended_mode mode)
+									  unsigned int nr,
+									  enum single_ended_mode mode)
 {
 	/* The GPI cannot be single-ended */
 	if (nr < NR_VX855_GPI)
+	{
 		return -EINVAL;
+	}
 
 	/* The GPO's are push-pull */
-	if (nr < NR_VX855_GPInO) {
+	if (nr < NR_VX855_GPInO)
+	{
 		if (mode != LINE_MODE_PUSH_PULL)
+		{
 			return -ENOTSUPP;
+		}
+
 		return 0;
 	}
 
 	/* The GPIO's are open drain */
 	if (mode != LINE_MODE_OPEN_DRAIN)
+	{
 		return -ENOTSUPP;
+	}
 
 	return 0;
 }
 
-static const char *vx855gpio_names[NR_VX855_GP] = {
+static const char *vx855gpio_names[NR_VX855_GP] =
+{
 	"VX855_GPI0", "VX855_GPI1", "VX855_GPI2", "VX855_GPI3", "VX855_GPI4",
 	"VX855_GPI5", "VX855_GPI6", "VX855_GPI7", "VX855_GPI8", "VX855_GPI9",
 	"VX855_GPI10", "VX855_GPI11", "VX855_GPI12", "VX855_GPI13",
@@ -248,12 +309,18 @@ static int vx855gpio_probe(struct platform_device *pdev)
 
 	res_gpi = platform_get_resource(pdev, IORESOURCE_IO, 0);
 	res_gpo = platform_get_resource(pdev, IORESOURCE_IO, 1);
+
 	if (!res_gpi || !res_gpo)
+	{
 		return -EBUSY;
+	}
 
 	vg = devm_kzalloc(&pdev->dev, sizeof(*vg), GFP_KERNEL);
+
 	if (!vg)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, vg);
 
@@ -271,21 +338,22 @@ static int vx855gpio_probe(struct platform_device *pdev)
 	 */
 
 	if (!devm_request_region(&pdev->dev, res_gpi->start,
-				 resource_size(res_gpi), MODULE_NAME "_gpi"))
+							 resource_size(res_gpi), MODULE_NAME "_gpi"))
 		dev_warn(&pdev->dev,
-			"GPI I/O resource busy, probably claimed by ACPI\n");
+				 "GPI I/O resource busy, probably claimed by ACPI\n");
 
 	if (!devm_request_region(&pdev->dev, res_gpo->start,
-				 resource_size(res_gpo), MODULE_NAME "_gpo"))
+							 resource_size(res_gpo), MODULE_NAME "_gpo"))
 		dev_warn(&pdev->dev,
-			"GPO I/O resource busy, probably claimed by ACPI\n");
+				 "GPO I/O resource busy, probably claimed by ACPI\n");
 
 	vx855gpio_gpio_setup(vg);
 
 	return devm_gpiochip_add_data(&pdev->dev, &vg->gpio, vg);
 }
 
-static struct platform_driver vx855gpio_driver = {
+static struct platform_driver vx855gpio_driver =
+{
 	.driver = {
 		.name	= MODULE_NAME,
 	},

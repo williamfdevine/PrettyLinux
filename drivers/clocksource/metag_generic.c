@@ -50,7 +50,7 @@ static DEFINE_PER_CPU(struct clock_event_device, local_clockevent);
 static DEFINE_PER_CPU(char [11], local_clockevent_name);
 
 static int metag_timer_set_next_event(unsigned long delta,
-				      struct clock_event_device *dev)
+									  struct clock_event_device *dev)
 {
 	__core_reg_set(TXTIMERI, -delta);
 	return 0;
@@ -61,7 +61,8 @@ static cycle_t metag_clocksource_read(struct clocksource *cs)
 	return __core_reg_get(TXTIMER);
 }
 
-static struct clocksource clocksource_metag = {
+static struct clocksource clocksource_metag =
+{
 	.name = "META",
 	.rating = 200,
 	.mask = CLOCKSOURCE_MASK(32),
@@ -78,7 +79,8 @@ static irqreturn_t metag_timer_interrupt(int irq, void *dummy)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction metag_timer_irq = {
+static struct irqaction metag_timer_irq =
+{
 	.name = "META core timer",
 	.handler = metag_timer_interrupt,
 	.flags = IRQF_TIMER | IRQF_IRQPOLL | IRQF_PERCPU,
@@ -107,12 +109,12 @@ static int arch_timer_starting_cpu(unsigned int cpu)
 	clk->name = name;
 	clk->features = CLOCK_EVT_FEAT_ONESHOT,
 
-	clk->rating = 200,
-	clk->shift = 12,
-	clk->irq = tbisig_map(TBID_SIGNUM_TRT),
-	clk->set_next_event = metag_timer_set_next_event,
+		 clk->rating = 200,
+			  clk->shift = 12,
+				   clk->irq = tbisig_map(TBID_SIGNUM_TRT),
+						clk->set_next_event = metag_timer_set_next_event,
 
-	clk->mult = div_sc(hwtimer_freq, NSEC_PER_SEC, clk->shift);
+							 clk->mult = div_sc(hwtimer_freq, NSEC_PER_SEC, clk->shift);
 	clk->max_delta_ns = clockevent_delta2ns(0x7fffffff, clk);
 	clk->min_delta_ns = clockevent_delta2ns(0xf, clk);
 	clk->cpumask = cpumask_of(cpu);
@@ -125,13 +127,15 @@ static int arch_timer_starting_cpu(unsigned int cpu)
 	 *
 	 * While this won't be accurate, it should be close enough.
 	 */
-	if (cpu) {
+	if (cpu)
+	{
 		unsigned int thread0 = cpu_2_hwthread_id[0];
 		unsigned long val;
 
 		val = core_reg_read(TXUCT_ID, TXTIMER_REGNUM, thread0);
 		__core_reg_set(TXTIMER, val);
 	}
+
 	return 0;
 }
 
@@ -154,6 +158,6 @@ int __init metag_generic_timer_init(void)
 
 	/* Hook cpu boot to configure the CPU's timers */
 	return cpuhp_setup_state(CPUHP_AP_METAG_TIMER_STARTING,
-				 "AP_METAG_TIMER_STARTING",
-				 arch_timer_starting_cpu, NULL);
+							 "AP_METAG_TIMER_STARTING",
+							 arch_timer_starting_cpu, NULL);
 }

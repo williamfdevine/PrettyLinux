@@ -19,12 +19,14 @@
 #include <recv_osdep.h>
 #include <xmit_osdep.h>
 
-struct ch_freq {
+struct ch_freq
+{
 	u32 channel;
 	u32 frequency;
 };
 
-static struct ch_freq ch_freq_map[] = {
+static struct ch_freq ch_freq_map[] =
+{
 	{1, 2412}, {2, 2417}, {3, 2422}, {4, 2427}, {5, 2432},
 	{6, 2437}, {7, 2442}, {8, 2447}, {9, 2452}, {10, 2457},
 	{11, 2462}, {12, 2467}, {13, 2472}, {14, 2484},
@@ -53,14 +55,19 @@ u32 rtw_ch2freq(u32 channel)
 	u8	i;
 	u32	freq = 0;
 
-	for (i = 0; i < ch_freq_map_num; i++) {
-		if (channel == ch_freq_map[i].channel) {
+	for (i = 0; i < ch_freq_map_num; i++)
+	{
+		if (channel == ch_freq_map[i].channel)
+		{
 			freq = ch_freq_map[i].frequency;
-				break;
+			break;
 		}
 	}
+
 	if (i == ch_freq_map_num)
+	{
 		freq = 2412;
+	}
 
 	return freq;
 }

@@ -19,7 +19,7 @@
 #include "rsaprivkey-asn1.h"
 
 int rsa_get_n(void *context, size_t hdrlen, unsigned char tag,
-	      const void *value, size_t vlen)
+			  const void *value, size_t vlen)
 {
 	struct rsa_key *key = context;
 	const u8 *ptr = value;
@@ -27,16 +27,21 @@ int rsa_get_n(void *context, size_t hdrlen, unsigned char tag,
 
 	/* invalid key provided */
 	if (!value || !vlen)
+	{
 		return -EINVAL;
+	}
 
-	if (fips_enabled) {
-		while (!*ptr && n_sz) {
+	if (fips_enabled)
+	{
+		while (!*ptr && n_sz)
+		{
 			ptr++;
 			n_sz--;
 		}
 
 		/* In FIPS mode only allow key size 2K and higher */
-		if (n_sz < 256) {
+		if (n_sz < 256)
+		{
 			pr_err("RSA: key size not allowed in FIPS mode\n");
 			return -EINVAL;
 		}
@@ -49,13 +54,15 @@ int rsa_get_n(void *context, size_t hdrlen, unsigned char tag,
 }
 
 int rsa_get_e(void *context, size_t hdrlen, unsigned char tag,
-	      const void *value, size_t vlen)
+			  const void *value, size_t vlen)
 {
 	struct rsa_key *key = context;
 
 	/* invalid key provided */
 	if (!value || !key->n_sz || !vlen || vlen > key->n_sz)
+	{
 		return -EINVAL;
+	}
 
 	key->e = value;
 	key->e_sz = vlen;
@@ -64,13 +71,15 @@ int rsa_get_e(void *context, size_t hdrlen, unsigned char tag,
 }
 
 int rsa_get_d(void *context, size_t hdrlen, unsigned char tag,
-	      const void *value, size_t vlen)
+			  const void *value, size_t vlen)
 {
 	struct rsa_key *key = context;
 
 	/* invalid key provided */
 	if (!value || !key->n_sz || !vlen || vlen > key->n_sz)
+	{
 		return -EINVAL;
+	}
 
 	key->d = value;
 	key->d_sz = vlen;
@@ -79,13 +88,15 @@ int rsa_get_d(void *context, size_t hdrlen, unsigned char tag,
 }
 
 int rsa_get_p(void *context, size_t hdrlen, unsigned char tag,
-	      const void *value, size_t vlen)
+			  const void *value, size_t vlen)
 {
 	struct rsa_key *key = context;
 
 	/* invalid key provided */
 	if (!value || !vlen || vlen > key->n_sz)
+	{
 		return -EINVAL;
+	}
 
 	key->p = value;
 	key->p_sz = vlen;
@@ -94,13 +105,15 @@ int rsa_get_p(void *context, size_t hdrlen, unsigned char tag,
 }
 
 int rsa_get_q(void *context, size_t hdrlen, unsigned char tag,
-	      const void *value, size_t vlen)
+			  const void *value, size_t vlen)
 {
 	struct rsa_key *key = context;
 
 	/* invalid key provided */
 	if (!value || !vlen || vlen > key->n_sz)
+	{
 		return -EINVAL;
+	}
 
 	key->q = value;
 	key->q_sz = vlen;
@@ -109,13 +122,15 @@ int rsa_get_q(void *context, size_t hdrlen, unsigned char tag,
 }
 
 int rsa_get_dp(void *context, size_t hdrlen, unsigned char tag,
-	       const void *value, size_t vlen)
+			   const void *value, size_t vlen)
 {
 	struct rsa_key *key = context;
 
 	/* invalid key provided */
 	if (!value || !vlen || vlen > key->n_sz)
+	{
 		return -EINVAL;
+	}
 
 	key->dp = value;
 	key->dp_sz = vlen;
@@ -124,13 +139,15 @@ int rsa_get_dp(void *context, size_t hdrlen, unsigned char tag,
 }
 
 int rsa_get_dq(void *context, size_t hdrlen, unsigned char tag,
-	       const void *value, size_t vlen)
+			   const void *value, size_t vlen)
 {
 	struct rsa_key *key = context;
 
 	/* invalid key provided */
 	if (!value || !vlen || vlen > key->n_sz)
+	{
 		return -EINVAL;
+	}
 
 	key->dq = value;
 	key->dq_sz = vlen;
@@ -139,13 +156,15 @@ int rsa_get_dq(void *context, size_t hdrlen, unsigned char tag,
 }
 
 int rsa_get_qinv(void *context, size_t hdrlen, unsigned char tag,
-		 const void *value, size_t vlen)
+				 const void *value, size_t vlen)
 {
 	struct rsa_key *key = context;
 
 	/* invalid key provided */
 	if (!value || !vlen || vlen > key->n_sz)
+	{
 		return -EINVAL;
+	}
 
 	key->qinv = value;
 	key->qinv_sz = vlen;
@@ -165,7 +184,7 @@ int rsa_get_qinv(void *context, size_t hdrlen, unsigned char tag,
  * Return:	0 on success or error code in case of error
  */
 int rsa_parse_pub_key(struct rsa_key *rsa_key, const void *key,
-		      unsigned int key_len)
+					  unsigned int key_len)
 {
 	return asn1_ber_decoder(&rsapubkey_decoder, rsa_key, key, key_len);
 }
@@ -184,7 +203,7 @@ EXPORT_SYMBOL_GPL(rsa_parse_pub_key);
  * Return:	0 on success or error code in case of error
  */
 int rsa_parse_priv_key(struct rsa_key *rsa_key, const void *key,
-		       unsigned int key_len)
+					   unsigned int key_len)
 {
 	return asn1_ber_decoder(&rsaprivkey_decoder, rsa_key, key, key_len);
 }

@@ -7,8 +7,8 @@
 #include <linux/fb.h>
 
 #ifdef CONFIG_FB_INTEL_I2C
-#include <linux/i2c.h>
-#include <linux/i2c-algo-bit.h>
+	#include <linux/i2c.h>
+	#include <linux/i2c-algo-bit.h>
 #endif
 
 /*** Version/name ***/
@@ -20,27 +20,27 @@
 /*** Debug/feature defines ***/
 
 #ifndef DEBUG
-#define DEBUG				0
+	#define DEBUG				0
 #endif
 
 #ifndef VERBOSE
-#define VERBOSE				0
+	#define VERBOSE				0
 #endif
 
 #ifndef REGDUMP
-#define REGDUMP				0
+	#define REGDUMP				0
 #endif
 
 #ifndef DETECT_VGA_CLASS_ONLY
-#define DETECT_VGA_CLASS_ONLY		1
+	#define DETECT_VGA_CLASS_ONLY		1
 #endif
 
 #ifndef ALLOCATE_FOR_PANNING
-#define ALLOCATE_FOR_PANNING		1
+	#define ALLOCATE_FOR_PANNING		1
 #endif
 
 #ifndef PREFERRED_MODE
-#define PREFERRED_MODE			"1024x768-32@70"
+	#define PREFERRED_MODE			"1024x768-32@70"
 #endif
 
 /*** hw-related values ***/
@@ -95,9 +95,9 @@
 #define NOT_MSG(fmt, args...)	printk(KERN_NOTICE PFX fmt, ## args)
 #define INF_MSG(fmt, args...)	printk(KERN_INFO PFX fmt, ## args)
 #if DEBUG
-#define DBG_MSG(fmt, args...)	printk(KERN_DEBUG PFX fmt, ## args)
+	#define DBG_MSG(fmt, args...)	printk(KERN_DEBUG PFX fmt, ## args)
 #else
-#define DBG_MSG(fmt, args...)	while (0) printk(fmt, ## args)
+	#define DBG_MSG(fmt, args...)	while (0) printk(fmt, ## args)
 #endif
 
 /* get commonly used pointers */
@@ -149,7 +149,8 @@
 /*** Data Types ***/
 
 /* supported chipsets */
-enum intel_chips {
+enum intel_chips
+{
 	INTEL_830M,
 	INTEL_845G,
 	INTEL_85XGM,
@@ -168,7 +169,8 @@ enum intel_chips {
 	INTEL_965GM,
 };
 
-struct intelfb_hwstate {
+struct intelfb_hwstate
+{
 	u32 vga0_divisor;
 	u32 vga1_divisor;
 	u32 vga_pd;
@@ -236,7 +238,8 @@ struct intelfb_hwstate {
 	u16 imr;
 };
 
-struct intelfb_heap_data {
+struct intelfb_heap_data
+{
 	u32 physical;
 	u8 __iomem *virtual;
 	u32 offset;		/* in GATT pages */
@@ -244,33 +247,37 @@ struct intelfb_heap_data {
 };
 
 #ifdef CONFIG_FB_INTEL_I2C
-struct intelfb_i2c_chan {
-    struct intelfb_info *dinfo;
-    u32 reg;
-    struct i2c_adapter adapter;
-    struct i2c_algo_bit_data algo;
+struct intelfb_i2c_chan
+{
+	struct intelfb_info *dinfo;
+	u32 reg;
+	struct i2c_adapter adapter;
+	struct i2c_algo_bit_data algo;
 };
 #endif
 
-struct intelfb_output_rec {
-    int type;
-    int pipe;
-    int flags;
+struct intelfb_output_rec
+{
+	int type;
+	int pipe;
+	int flags;
 
 #ifdef CONFIG_FB_INTEL_I2C
-    struct intelfb_i2c_chan i2c_bus;
-    struct intelfb_i2c_chan ddc_bus;
+	struct intelfb_i2c_chan i2c_bus;
+	struct intelfb_i2c_chan ddc_bus;
 #endif
 };
 
-struct intelfb_vsync {
+struct intelfb_vsync
+{
 	wait_queue_head_t wait;
 	unsigned int count;
 	int pan_display;
 	u32 pan_offset;
 };
 
-struct intelfb_info {
+struct intelfb_info
+{
 	struct fb_info *info;
 	struct fb_ops  *fbops;
 	struct pci_dev *pdev;
@@ -362,20 +369,20 @@ struct intelfb_info {
 };
 
 #define IS_I9XX(dinfo) (((dinfo)->chipset == INTEL_915G) ||	\
-			((dinfo)->chipset == INTEL_915GM) ||	\
-			((dinfo)->chipset == INTEL_945G) ||	\
-			((dinfo)->chipset == INTEL_945GM) ||	\
-			((dinfo)->chipset == INTEL_945GME) ||	\
-			((dinfo)->chipset == INTEL_965G) ||	\
-			((dinfo)->chipset == INTEL_965GM))
+						((dinfo)->chipset == INTEL_915GM) ||	\
+						((dinfo)->chipset == INTEL_945G) ||	\
+						((dinfo)->chipset == INTEL_945GM) ||	\
+						((dinfo)->chipset == INTEL_945GME) ||	\
+						((dinfo)->chipset == INTEL_965G) ||	\
+						((dinfo)->chipset == INTEL_965GM))
 
 /*** function prototypes ***/
 
 extern int intelfb_var_to_depth(const struct fb_var_screeninfo *var);
 
 #ifdef CONFIG_FB_INTEL_I2C
-extern void intelfb_create_i2c_busses(struct intelfb_info *dinfo);
-extern void intelfb_delete_i2c_busses(struct intelfb_info *dinfo);
+	extern void intelfb_create_i2c_busses(struct intelfb_info *dinfo);
+	extern void intelfb_delete_i2c_busses(struct intelfb_info *dinfo);
 #endif
 
 #endif /* _INTELFB_H */

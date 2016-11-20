@@ -73,7 +73,8 @@
  * This structure is used by the usb-serial core and drivers for the specific
  * ports of a device.
  */
-struct usb_serial_port {
+struct usb_serial_port
+{
 	struct usb_serial	*serial;
 	struct tty_port		port;
 	spinlock_t		lock;
@@ -128,7 +129,7 @@ static inline void *usb_get_serial_port_data(struct usb_serial_port *port)
 }
 
 static inline void usb_set_serial_port_data(struct usb_serial_port *port,
-					    void *data)
+		void *data)
 {
 	dev_set_drvdata(&port->dev, data);
 }
@@ -149,24 +150,25 @@ static inline void usb_set_serial_port_data(struct usb_serial_port *port,
  *	will not touch this.  Use usb_get_serial_data() and
  *	usb_set_serial_data() to access this.
  */
-struct usb_serial {
-	struct usb_device		*dev;
-	struct usb_serial_driver	*type;
-	struct usb_interface		*interface;
-	unsigned char			disconnected:1;
-	unsigned char			suspending:1;
-	unsigned char			attached:1;
-	unsigned char			minors_reserved:1;
-	unsigned char			num_ports;
-	unsigned char			num_port_pointers;
-	char				num_interrupt_in;
-	char				num_interrupt_out;
-	char				num_bulk_in;
-	char				num_bulk_out;
-	struct usb_serial_port		*port[MAX_NUM_PORTS];
-	struct kref			kref;
-	struct mutex			disc_mutex;
-	void				*private;
+struct usb_serial
+{
+		struct usb_device		*dev;
+		struct usb_serial_driver	*type;
+		struct usb_interface		*interface;
+		unsigned char			disconnected: 1;
+		unsigned char			suspending: 1;
+		unsigned char			attached: 1;
+		unsigned char			minors_reserved: 1;
+		unsigned char			num_ports;
+		unsigned char			num_port_pointers;
+		char				num_interrupt_in;
+		char				num_interrupt_out;
+		char				num_bulk_in;
+		char				num_bulk_out;
+		struct usb_serial_port		*port[MAX_NUM_PORTS];
+		struct kref			kref;
+		struct mutex			disc_mutex;
+		void				*private;
 };
 #define to_usb_serial(d) container_of(d, struct usb_serial, kref)
 
@@ -224,7 +226,8 @@ static inline void usb_set_serial_data(struct usb_serial *serial, void *data)
  * it will show up in sysfs, so it needs to be short and to the point.
  * Using the module name is a good idea.)
  */
-struct usb_serial_driver {
+struct usb_serial_driver
+{
 	const char *description;
 	const struct usb_device_id *id_table;
 	char	num_ports;
@@ -256,13 +259,13 @@ struct usb_serial_driver {
 	int  (*open)(struct tty_struct *tty, struct usb_serial_port *port);
 	void (*close)(struct usb_serial_port *port);
 	int  (*write)(struct tty_struct *tty, struct usb_serial_port *port,
-			const unsigned char *buf, int count);
+				  const unsigned char *buf, int count);
 	/* Called only by the tty layer */
 	int  (*write_room)(struct tty_struct *tty);
 	int  (*ioctl)(struct tty_struct *tty,
-		      unsigned int cmd, unsigned long arg);
+				  unsigned int cmd, unsigned long arg);
 	void (*set_termios)(struct tty_struct *tty,
-			struct usb_serial_port *port, struct ktermios *old);
+						struct usb_serial_port *port, struct ktermios *old);
 	void (*break_ctl)(struct tty_struct *tty, int break_state);
 	int  (*chars_in_buffer)(struct tty_struct *tty);
 	void (*wait_until_sent)(struct tty_struct *tty, long timeout);
@@ -271,10 +274,10 @@ struct usb_serial_driver {
 	void (*unthrottle)(struct tty_struct *tty);
 	int  (*tiocmget)(struct tty_struct *tty);
 	int  (*tiocmset)(struct tty_struct *tty,
-			 unsigned int set, unsigned int clear);
+					 unsigned int set, unsigned int clear);
 	int  (*tiocmiwait)(struct tty_struct *tty, unsigned long arg);
 	int  (*get_icount)(struct tty_struct *tty,
-			struct serial_icounter_struct *icount);
+					   struct serial_icounter_struct *icount);
 	/* Called by the tty layer for port level work. There may or may not
 	   be an attached tty at this point */
 	void (*dtr_rts)(struct usb_serial_port *port, int on);
@@ -291,13 +294,13 @@ struct usb_serial_driver {
 	void (*process_read_urb)(struct urb *urb);
 	/* Called by the generic write implementation */
 	int (*prepare_write_buffer)(struct usb_serial_port *port,
-						void *dest, size_t size);
+								void *dest, size_t size);
 };
 #define to_usb_serial_driver(d) \
 	container_of(d, struct usb_serial_driver, driver)
 
 extern int usb_serial_register_drivers(struct usb_serial_driver *const serial_drivers[],
-		const char *name, const struct usb_device_id *id_table);
+									   const char *name, const struct usb_device_id *id_table);
 extern void usb_serial_deregister_drivers(struct usb_serial_driver *const serial_drivers[]);
 extern void usb_serial_port_softint(struct usb_serial_port *port);
 
@@ -319,38 +322,38 @@ static inline void usb_serial_console_disconnect(struct usb_serial *serial) {}
 extern struct usb_serial_port *usb_serial_port_get_by_minor(unsigned int minor);
 extern void usb_serial_put(struct usb_serial *serial);
 extern int usb_serial_generic_open(struct tty_struct *tty,
-	struct usb_serial_port *port);
+								   struct usb_serial_port *port);
 extern int usb_serial_generic_write_start(struct usb_serial_port *port,
-							gfp_t mem_flags);
+		gfp_t mem_flags);
 extern int usb_serial_generic_write(struct tty_struct *tty,
-	struct usb_serial_port *port, const unsigned char *buf, int count);
+									struct usb_serial_port *port, const unsigned char *buf, int count);
 extern void usb_serial_generic_close(struct usb_serial_port *port);
 extern int usb_serial_generic_resume(struct usb_serial *serial);
 extern int usb_serial_generic_write_room(struct tty_struct *tty);
 extern int usb_serial_generic_chars_in_buffer(struct tty_struct *tty);
 extern void usb_serial_generic_wait_until_sent(struct tty_struct *tty,
-								long timeout);
+		long timeout);
 extern void usb_serial_generic_read_bulk_callback(struct urb *urb);
 extern void usb_serial_generic_write_bulk_callback(struct urb *urb);
 extern void usb_serial_generic_throttle(struct tty_struct *tty);
 extern void usb_serial_generic_unthrottle(struct tty_struct *tty);
 extern int usb_serial_generic_tiocmiwait(struct tty_struct *tty,
-							unsigned long arg);
+		unsigned long arg);
 extern int usb_serial_generic_get_icount(struct tty_struct *tty,
-					struct serial_icounter_struct *icount);
+		struct serial_icounter_struct *icount);
 extern int usb_serial_generic_register(void);
 extern void usb_serial_generic_deregister(void);
 extern int usb_serial_generic_submit_read_urbs(struct usb_serial_port *port,
-						 gfp_t mem_flags);
+		gfp_t mem_flags);
 extern void usb_serial_generic_process_read_urb(struct urb *urb);
 extern int usb_serial_generic_prepare_write_buffer(struct usb_serial_port *port,
-						void *dest, size_t size);
+		void *dest, size_t size);
 extern int usb_serial_handle_sysrq_char(struct usb_serial_port *port,
-					unsigned int ch);
+										unsigned int ch);
 extern int usb_serial_handle_break(struct usb_serial_port *port);
 extern void usb_serial_handle_dcd_change(struct usb_serial_port *usb_port,
-					 struct tty_struct *tty,
-					 unsigned int status);
+		struct tty_struct *tty,
+		unsigned int status);
 
 
 extern int usb_serial_bus_register(struct usb_serial_driver *device);
@@ -361,11 +364,11 @@ extern struct bus_type usb_serial_bus_type;
 extern struct tty_driver *usb_serial_tty_driver;
 
 static inline void usb_serial_debug_data(struct device *dev,
-					 const char *function, int size,
-					 const unsigned char *data)
+		const char *function, int size,
+		const unsigned char *data)
 {
 	dev_dbg(dev, "%s - length = %d, data = %*ph\n",
-		function, size, size, data);
+			function, size, size, data);
 }
 
 /*
@@ -373,15 +376,15 @@ static inline void usb_serial_debug_data(struct device *dev,
  * when port is used as a console.
  */
 #define dev_err_console(usport, fmt, ...)				\
-do {									\
-	static bool __print_once;					\
-	struct usb_serial_port *__port = (usport);			\
-									\
-	if (!__port->port.console || !__print_once) {			\
-		__print_once = true;					\
-		dev_err(&__port->dev, fmt, ##__VA_ARGS__);		\
-	}								\
-} while (0)
+	do {									\
+		static bool __print_once;					\
+		struct usb_serial_port *__port = (usport);			\
+		\
+		if (!__port->port.console || !__print_once) {			\
+			__print_once = true;					\
+			dev_err(&__port->dev, fmt, ##__VA_ARGS__);		\
+		}								\
+	} while (0)
 
 /*
  * module_usb_serial_driver() - Helper macro for registering a USB Serial driver
@@ -395,17 +398,17 @@ do {									\
  *
  */
 #define usb_serial_module_driver(__name, __serial_drivers, __ids)	\
-static int __init usb_serial_module_init(void)				\
-{									\
-	return usb_serial_register_drivers(__serial_drivers,		\
-					   __name, __ids);		\
-}									\
-module_init(usb_serial_module_init);					\
-static void __exit usb_serial_module_exit(void)				\
-{									\
-	usb_serial_deregister_drivers(__serial_drivers);		\
-}									\
-module_exit(usb_serial_module_exit);
+	static int __init usb_serial_module_init(void)				\
+	{									\
+		return usb_serial_register_drivers(__serial_drivers,		\
+										   __name, __ids);		\
+	}									\
+	module_init(usb_serial_module_init);					\
+	static void __exit usb_serial_module_exit(void)				\
+	{									\
+		usb_serial_deregister_drivers(__serial_drivers);		\
+	}									\
+	module_exit(usb_serial_module_exit);
 
 #define module_usb_serial_driver(__serial_drivers, __ids)		\
 	usb_serial_module_driver(KBUILD_MODNAME, __serial_drivers, __ids)

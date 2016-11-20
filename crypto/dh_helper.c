@@ -42,16 +42,21 @@ EXPORT_SYMBOL_GPL(crypto_dh_key_len);
 int crypto_dh_encode_key(char *buf, unsigned int len, const struct dh *params)
 {
 	u8 *ptr = buf;
-	struct kpp_secret secret = {
+	struct kpp_secret secret =
+	{
 		.type = CRYPTO_KPP_SECRET_TYPE_DH,
 		.len = len
 	};
 
 	if (unlikely(!buf))
+	{
 		return -EINVAL;
+	}
 
 	if (len != crypto_dh_key_len(params))
+	{
 		return -EINVAL;
+	}
 
 	ptr = dh_pack_data(ptr, &secret, sizeof(secret));
 	ptr = dh_pack_data(ptr, &params->key_size, sizeof(params->key_size));
@@ -71,17 +76,25 @@ int crypto_dh_decode_key(const char *buf, unsigned int len, struct dh *params)
 	struct kpp_secret secret;
 
 	if (unlikely(!buf || len < DH_KPP_SECRET_MIN_SIZE))
+	{
 		return -EINVAL;
+	}
 
 	ptr = dh_unpack_data(&secret, ptr, sizeof(secret));
+
 	if (secret.type != CRYPTO_KPP_SECRET_TYPE_DH)
+	{
 		return -EINVAL;
+	}
 
 	ptr = dh_unpack_data(&params->key_size, ptr, sizeof(params->key_size));
 	ptr = dh_unpack_data(&params->p_size, ptr, sizeof(params->p_size));
 	ptr = dh_unpack_data(&params->g_size, ptr, sizeof(params->g_size));
+
 	if (secret.len != crypto_dh_key_len(params))
+	{
 		return -EINVAL;
+	}
 
 	/* Don't allocate memory. Set pointers to data within
 	 * the given buffer

@@ -22,12 +22,14 @@
 
 #define CLPS711X_KEYPAD_COL_COUNT	8
 
-struct clps711x_gpio_data {
+struct clps711x_gpio_data
+{
 	struct gpio_desc *desc;
 	DECLARE_BITMAP(last_state, CLPS711X_KEYPAD_COL_COUNT);
 };
 
-struct clps711x_keypad_data {
+struct clps711x_keypad_data
+{
 	struct regmap			*syscon;
 	int				row_count;
 	unsigned int			row_shift;
@@ -41,50 +43,61 @@ static void clps711x_keypad_poll(struct input_polled_dev *dev)
 	bool sync = false;
 	int col, row;
 
-	for (col = 0; col < CLPS711X_KEYPAD_COL_COUNT; col++) {
+	for (col = 0; col < CLPS711X_KEYPAD_COL_COUNT; col++)
+	{
 		/* Assert column */
 		regmap_update_bits(priv->syscon, SYSCON_OFFSET,
-				   SYSCON1_KBDSCAN_MASK,
-				   SYSCON1_KBDSCAN(8 + col));
+						   SYSCON1_KBDSCAN_MASK,
+						   SYSCON1_KBDSCAN(8 + col));
 
 		/* Scan rows */
-		for (row = 0; row < priv->row_count; row++) {
+		for (row = 0; row < priv->row_count; row++)
+		{
 			struct clps711x_gpio_data *data = &priv->gpio_data[row];
 			bool state, state1;
 
 			/* Read twice for protection against fluctuations */
-			do {
+			do
+			{
 				state = gpiod_get_value_cansleep(data->desc);
 				cond_resched();
 				state1 = gpiod_get_value_cansleep(data->desc);
-			} while (state != state1);
+			}
+			while (state != state1);
 
-			if (test_bit(col, data->last_state) != state) {
+			if (test_bit(col, data->last_state) != state)
+			{
 				int code = MATRIX_SCAN_CODE(row, col,
-							    priv->row_shift);
+											priv->row_shift);
 
-				if (state) {
+				if (state)
+				{
 					set_bit(col, data->last_state);
 					input_event(dev->input, EV_MSC,
-						    MSC_SCAN, code);
-				} else {
+								MSC_SCAN, code);
+				}
+				else
+				{
 					clear_bit(col, data->last_state);
 				}
 
 				if (keycodes[code])
 					input_report_key(dev->input,
-							 keycodes[code], state);
+									 keycodes[code], state);
+
 				sync = true;
 			}
 		}
 
 		/* Set all columns to low */
 		regmap_update_bits(priv->syscon, SYSCON_OFFSET,
-				   SYSCON1_KBDSCAN_MASK, SYSCON1_KBDSCAN(1));
+						   SYSCON1_KBDSCAN_MASK, SYSCON1_KBDSCAN(1));
 	}
 
 	if (sync)
+	{
 		input_sync(dev->input);
+	}
 }
 
 static int clps711x_keypad_probe(struct platform_device *pdev)
@@ -97,41 +110,63 @@ static int clps711x_keypad_probe(struct platform_device *pdev)
 	int i, err;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->syscon =
 		syscon_regmap_lookup_by_compatible("cirrus,ep7209-syscon1");
+
 	if (IS_ERR(priv->syscon))
+	{
 		return PTR_ERR(priv->syscon);
+	}
 
 	priv->row_count = of_gpio_named_count(np, "row-gpios");
+
 	if (priv->row_count < 1)
+	{
 		return -EINVAL;
+	}
 
 	priv->gpio_data = devm_kzalloc(dev,
-				sizeof(*priv->gpio_data) * priv->row_count,
-				GFP_KERNEL);
+								   sizeof(*priv->gpio_data) * priv->row_count,
+								   GFP_KERNEL);
+
 	if (!priv->gpio_data)
+	{
 		return -ENOMEM;
+	}
 
 	priv->row_shift = get_count_order(CLPS711X_KEYPAD_COL_COUNT);
 
-	for (i = 0; i < priv->row_count; i++) {
+	for (i = 0; i < priv->row_count; i++)
+	{
 		struct clps711x_gpio_data *data = &priv->gpio_data[i];
 
 		data->desc = devm_gpiod_get_index(dev, "row", i, GPIOD_IN);
+
 		if (IS_ERR(data->desc))
+		{
 			return PTR_ERR(data->desc);
+		}
 	}
 
 	err = of_property_read_u32(np, "poll-interval", &poll_interval);
+
 	if (err)
+	{
 		return err;
+	}
 
 	poll_dev = input_allocate_polled_device();
+
 	if (!poll_dev)
+	{
 		return -ENOMEM;
+	}
 
 	poll_dev->private		= priv;
 	poll_dev->poll			= clps711x_keypad_poll;
@@ -144,24 +179,33 @@ static int clps711x_keypad_probe(struct platform_device *pdev)
 	poll_dev->input->id.version	= 0x0100;
 
 	err = matrix_keypad_build_keymap(NULL, NULL, priv->row_count,
-					 CLPS711X_KEYPAD_COL_COUNT,
-					 NULL, poll_dev->input);
+									 CLPS711X_KEYPAD_COL_COUNT,
+									 NULL, poll_dev->input);
+
 	if (err)
+	{
 		goto out_err;
+	}
 
 	input_set_capability(poll_dev->input, EV_MSC, MSC_SCAN);
+
 	if (of_property_read_bool(np, "autorepeat"))
+	{
 		__set_bit(EV_REP, poll_dev->input->evbit);
+	}
 
 	platform_set_drvdata(pdev, poll_dev);
 
 	/* Set all columns to low */
 	regmap_update_bits(priv->syscon, SYSCON_OFFSET, SYSCON1_KBDSCAN_MASK,
-			   SYSCON1_KBDSCAN(1));
+					   SYSCON1_KBDSCAN(1));
 
 	err = input_register_polled_device(poll_dev);
+
 	if (err)
+	{
 		goto out_err;
+	}
 
 	return 0;
 
@@ -180,13 +224,15 @@ static int clps711x_keypad_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id clps711x_keypad_of_match[] = {
+static const struct of_device_id clps711x_keypad_of_match[] =
+{
 	{ .compatible = "cirrus,ep7209-keypad", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, clps711x_keypad_of_match);
 
-static struct platform_driver clps711x_keypad_driver = {
+static struct platform_driver clps711x_keypad_driver =
+{
 	.driver	= {
 		.name		= "clps711x-keypad",
 		.of_match_table	= clps711x_keypad_of_match,

@@ -33,14 +33,18 @@ static int masquerade_tg_check(const struct xt_tgchk_param *par)
 {
 	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
 
-	if (mr->range[0].flags & NF_NAT_RANGE_MAP_IPS) {
+	if (mr->range[0].flags & NF_NAT_RANGE_MAP_IPS)
+	{
 		pr_debug("bad MAP_IPS.\n");
 		return -EINVAL;
 	}
-	if (mr->rangesize != 1) {
+
+	if (mr->rangesize != 1)
+	{
 		pr_debug("bad rangesize %u\n", mr->rangesize);
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -58,7 +62,8 @@ masquerade_tg(struct sk_buff *skb, const struct xt_action_param *par)
 	return nf_nat_masquerade_ipv4(skb, par->hooknum, &range, par->out);
 }
 
-static struct xt_target masquerade_tg_reg __read_mostly = {
+static struct xt_target masquerade_tg_reg __read_mostly =
+{
 	.name		= "MASQUERADE",
 	.family		= NFPROTO_IPV4,
 	.target		= masquerade_tg,
@@ -76,7 +81,9 @@ static int __init masquerade_tg_init(void)
 	ret = xt_register_target(&masquerade_tg_reg);
 
 	if (ret == 0)
+	{
 		nf_nat_masquerade_ipv4_register_notifier();
+	}
 
 	return ret;
 }

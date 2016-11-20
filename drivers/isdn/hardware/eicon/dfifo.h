@@ -37,7 +37,7 @@
 #define DIVA_DFIFO_MEM_SZ (						\
 		(DIVA_DFIFO_SEGMENT_SZ) * (DIVA_DFIFO_SEGMENTS) +	\
 		(DIVA_DFIFO_CACHE_SZ) * 2				\
-		)
+						  )
 #define DIVA_DFIFO_STEP DIVA_DFIFO_SEGMENT_SZ
 /* -------------------------------------------------------------------------
    Block header layout is:

@@ -100,25 +100,29 @@
 
 #define RFCOMM_RPN_PM_ALL		0x3F7F
 
-struct rfcomm_hdr {
+struct rfcomm_hdr
+{
 	u8 addr;
 	u8 ctrl;
 	u8 len;    /* Actual size can be 2 bytes */
 } __packed;
 
-struct rfcomm_cmd {
+struct rfcomm_cmd
+{
 	u8 addr;
 	u8 ctrl;
 	u8 len;
 	u8 fcs;
 } __packed;
 
-struct rfcomm_mcc {
+struct rfcomm_mcc
+{
 	u8 type;
 	u8 len;
 } __packed;
 
-struct rfcomm_pn {
+struct rfcomm_pn
+{
 	u8  dlci;
 	u8  flow_ctrl;
 	u8  priority;
@@ -128,7 +132,8 @@ struct rfcomm_pn {
 	u8  credits;
 } __packed;
 
-struct rfcomm_rpn {
+struct rfcomm_rpn
+{
 	u8  dlci;
 	u8  bit_rate;
 	u8  line_settings;
@@ -138,19 +143,22 @@ struct rfcomm_rpn {
 	__le16 param_mask;
 } __packed;
 
-struct rfcomm_rls {
+struct rfcomm_rls
+{
 	u8  dlci;
 	u8  status;
 } __packed;
 
-struct rfcomm_msc {
+struct rfcomm_msc
+{
 	u8  dlci;
 	u8  v24_sig;
 } __packed;
 
 /* ---- Core structures, flags etc ---- */
 
-struct rfcomm_session {
+struct rfcomm_session
+{
 	struct list_head list;
 	struct socket   *sock;
 	struct timer_list timer;
@@ -165,7 +173,8 @@ struct rfcomm_session {
 	struct list_head dlcs;
 };
 
-struct rfcomm_dlc {
+struct rfcomm_dlc
+{
 	struct list_head      list;
 	struct rfcomm_session *session;
 	struct sk_buff_head   tx_queue;
@@ -225,15 +234,15 @@ struct rfcomm_dlc {
 
 /* ---- RFCOMM SEND RPN ---- */
 int rfcomm_send_rpn(struct rfcomm_session *s, int cr, u8 dlci,
-			u8 bit_rate, u8 data_bits, u8 stop_bits,
-			u8 parity, u8 flow_ctrl_settings,
-			u8 xon_char, u8 xoff_char, u16 param_mask);
+					u8 bit_rate, u8 data_bits, u8 stop_bits,
+					u8 parity, u8 flow_ctrl_settings,
+					u8 xon_char, u8 xoff_char, u16 param_mask);
 
 /* ---- RFCOMM DLCs (channels) ---- */
 struct rfcomm_dlc *rfcomm_dlc_alloc(gfp_t prio);
 void rfcomm_dlc_free(struct rfcomm_dlc *d);
 int  rfcomm_dlc_open(struct rfcomm_dlc *d, bdaddr_t *src, bdaddr_t *dst,
-								u8 channel);
+					 u8 channel);
 int  rfcomm_dlc_close(struct rfcomm_dlc *d, int reason);
 int  rfcomm_dlc_send(struct rfcomm_dlc *d, struct sk_buff *skb);
 void rfcomm_dlc_send_noerror(struct rfcomm_dlc *d, struct sk_buff *skb);
@@ -253,7 +262,9 @@ static inline void rfcomm_dlc_hold(struct rfcomm_dlc *d)
 static inline void rfcomm_dlc_put(struct rfcomm_dlc *d)
 {
 	if (atomic_dec_and_test(&d->refcnt))
+	{
 		rfcomm_dlc_free(d);
+	}
 }
 
 void __rfcomm_dlc_throttle(struct rfcomm_dlc *d);
@@ -262,28 +273,34 @@ void __rfcomm_dlc_unthrottle(struct rfcomm_dlc *d);
 static inline void rfcomm_dlc_throttle(struct rfcomm_dlc *d)
 {
 	if (!test_and_set_bit(RFCOMM_RX_THROTTLED, &d->flags))
+	{
 		__rfcomm_dlc_throttle(d);
+	}
 }
 
 static inline void rfcomm_dlc_unthrottle(struct rfcomm_dlc *d)
 {
 	if (test_and_clear_bit(RFCOMM_RX_THROTTLED, &d->flags))
+	{
 		__rfcomm_dlc_unthrottle(d);
+	}
 }
 
 /* ---- RFCOMM sessions ---- */
 void   rfcomm_session_getaddr(struct rfcomm_session *s, bdaddr_t *src,
-								bdaddr_t *dst);
+							  bdaddr_t *dst);
 
 /* ---- RFCOMM sockets ---- */
-struct sockaddr_rc {
+struct sockaddr_rc
+{
 	sa_family_t	rc_family;
 	bdaddr_t	rc_bdaddr;
 	u8		rc_channel;
 };
 
 #define RFCOMM_CONNINFO	0x02
-struct rfcomm_conninfo {
+struct rfcomm_conninfo
+{
 	__u16 hci_handle;
 	__u8  dev_class[3];
 };
@@ -299,7 +316,8 @@ struct rfcomm_conninfo {
 
 #define rfcomm_pi(sk) ((struct rfcomm_pinfo *) sk)
 
-struct rfcomm_pinfo {
+struct rfcomm_pinfo
+{
 	struct bt_sock bt;
 	bdaddr_t src;
 	bdaddr_t dst;
@@ -313,7 +331,7 @@ int  rfcomm_init_sockets(void);
 void rfcomm_cleanup_sockets(void);
 
 int  rfcomm_connect_ind(struct rfcomm_session *s, u8 channel,
-							struct rfcomm_dlc **d);
+						struct rfcomm_dlc **d);
 
 /* ---- RFCOMM TTY ---- */
 #define RFCOMM_MAX_DEV  256
@@ -335,7 +353,8 @@ int  rfcomm_connect_ind(struct rfcomm_session *s, u8 channel,
 #define RFCOMM_DEV_RELEASED   0
 #define RFCOMM_TTY_OWNED      1
 
-struct rfcomm_dev_req {
+struct rfcomm_dev_req
+{
 	s16      dev_id;
 	u32      flags;
 	bdaddr_t src;
@@ -343,7 +362,8 @@ struct rfcomm_dev_req {
 	u8       channel;
 };
 
-struct rfcomm_dev_info {
+struct rfcomm_dev_info
+{
 	s16      id;
 	u32      flags;
 	u16      state;
@@ -352,7 +372,8 @@ struct rfcomm_dev_info {
 	u8       channel;
 };
 
-struct rfcomm_dev_list_req {
+struct rfcomm_dev_list_req
+{
 	u16      dev_num;
 	struct   rfcomm_dev_info dev_info[0];
 };

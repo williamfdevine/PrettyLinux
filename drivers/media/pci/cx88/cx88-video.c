@@ -58,80 +58,81 @@ module_param_array(video_nr, int, NULL, 0444);
 module_param_array(vbi_nr,   int, NULL, 0444);
 module_param_array(radio_nr, int, NULL, 0444);
 
-MODULE_PARM_DESC(video_nr,"video device numbers");
-MODULE_PARM_DESC(vbi_nr,"vbi device numbers");
-MODULE_PARM_DESC(radio_nr,"radio device numbers");
+MODULE_PARM_DESC(video_nr, "video device numbers");
+MODULE_PARM_DESC(vbi_nr, "vbi device numbers");
+MODULE_PARM_DESC(radio_nr, "radio device numbers");
 
 static unsigned int video_debug;
-module_param(video_debug,int,0644);
-MODULE_PARM_DESC(video_debug,"enable debug messages [video]");
+module_param(video_debug, int, 0644);
+MODULE_PARM_DESC(video_debug, "enable debug messages [video]");
 
 static unsigned int irq_debug;
-module_param(irq_debug,int,0644);
-MODULE_PARM_DESC(irq_debug,"enable debug messages [IRQ handler]");
+module_param(irq_debug, int, 0644);
+MODULE_PARM_DESC(irq_debug, "enable debug messages [IRQ handler]");
 
 #define dprintk(level,fmt, arg...)	if (video_debug >= level) \
-	printk(KERN_DEBUG "%s/0: " fmt, core->name , ## arg)
+		printk(KERN_DEBUG "%s/0: " fmt, core->name , ## arg)
 
 /* ------------------------------------------------------------------- */
 /* static data                                                         */
 
-static const struct cx8800_fmt formats[] = {
+static const struct cx8800_fmt formats[] =
+{
 	{
 		.name     = "8 bpp, gray",
 		.fourcc   = V4L2_PIX_FMT_GREY,
 		.cxformat = ColorFormatY8,
 		.depth    = 8,
 		.flags    = FORMAT_FLAGS_PACKED,
-	},{
+	}, {
 		.name     = "15 bpp RGB, le",
 		.fourcc   = V4L2_PIX_FMT_RGB555,
 		.cxformat = ColorFormatRGB15,
 		.depth    = 16,
 		.flags    = FORMAT_FLAGS_PACKED,
-	},{
+	}, {
 		.name     = "15 bpp RGB, be",
 		.fourcc   = V4L2_PIX_FMT_RGB555X,
 		.cxformat = ColorFormatRGB15 | ColorFormatBSWAP,
 		.depth    = 16,
 		.flags    = FORMAT_FLAGS_PACKED,
-	},{
+	}, {
 		.name     = "16 bpp RGB, le",
 		.fourcc   = V4L2_PIX_FMT_RGB565,
 		.cxformat = ColorFormatRGB16,
 		.depth    = 16,
 		.flags    = FORMAT_FLAGS_PACKED,
-	},{
+	}, {
 		.name     = "16 bpp RGB, be",
 		.fourcc   = V4L2_PIX_FMT_RGB565X,
 		.cxformat = ColorFormatRGB16 | ColorFormatBSWAP,
 		.depth    = 16,
 		.flags    = FORMAT_FLAGS_PACKED,
-	},{
+	}, {
 		.name     = "24 bpp RGB, le",
 		.fourcc   = V4L2_PIX_FMT_BGR24,
 		.cxformat = ColorFormatRGB24,
 		.depth    = 24,
 		.flags    = FORMAT_FLAGS_PACKED,
-	},{
+	}, {
 		.name     = "32 bpp RGB, le",
 		.fourcc   = V4L2_PIX_FMT_BGR32,
 		.cxformat = ColorFormatRGB32,
 		.depth    = 32,
 		.flags    = FORMAT_FLAGS_PACKED,
-	},{
+	}, {
 		.name     = "32 bpp RGB, be",
 		.fourcc   = V4L2_PIX_FMT_RGB32,
 		.cxformat = ColorFormatRGB32 | ColorFormatBSWAP | ColorFormatWSWAP,
 		.depth    = 32,
 		.flags    = FORMAT_FLAGS_PACKED,
-	},{
+	}, {
 		.name     = "4:2:2, packed, YUYV",
 		.fourcc   = V4L2_PIX_FMT_YUYV,
 		.cxformat = ColorFormatYUY2,
 		.depth    = 16,
 		.flags    = FORMAT_FLAGS_PACKED,
-	},{
+	}, {
 		.name     = "4:2:2, packed, UYVY",
 		.fourcc   = V4L2_PIX_FMT_UYVY,
 		.cxformat = ColorFormatYUY2 | ColorFormatBSWAP,
@@ -140,19 +141,23 @@ static const struct cx8800_fmt formats[] = {
 	},
 };
 
-static const struct cx8800_fmt* format_by_fourcc(unsigned int fourcc)
+static const struct cx8800_fmt *format_by_fourcc(unsigned int fourcc)
 {
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(formats); i++)
 		if (formats[i].fourcc == fourcc)
-			return formats+i;
+		{
+			return formats + i;
+		}
+
 	return NULL;
 }
 
 /* ------------------------------------------------------------------- */
 
-struct cx88_ctrl {
+struct cx88_ctrl
+{
 	/* control information */
 	u32 id;
 	s32 minimum;
@@ -168,7 +173,8 @@ struct cx88_ctrl {
 	u32 shift;
 };
 
-static const struct cx88_ctrl cx8800_vid_ctls[] = {
+static const struct cx88_ctrl cx8800_vid_ctls[] =
+{
 	/* --- video --- */
 	{
 		.id            = V4L2_CID_BRIGHTNESS,
@@ -180,7 +186,7 @@ static const struct cx88_ctrl cx8800_vid_ctls[] = {
 		.reg           = MO_CONTR_BRIGHT,
 		.mask          = 0x00ff,
 		.shift         = 0,
-	},{
+	}, {
 		.id            = V4L2_CID_CONTRAST,
 		.minimum       = 0,
 		.maximum       = 0xff,
@@ -190,7 +196,7 @@ static const struct cx88_ctrl cx8800_vid_ctls[] = {
 		.reg           = MO_CONTR_BRIGHT,
 		.mask          = 0xff00,
 		.shift         = 8,
-	},{
+	}, {
 		.id            = V4L2_CID_HUE,
 		.minimum       = 0,
 		.maximum       = 0xff,
@@ -200,7 +206,7 @@ static const struct cx88_ctrl cx8800_vid_ctls[] = {
 		.reg           = MO_HUE,
 		.mask          = 0x00ff,
 		.shift         = 0,
-	},{
+	}, {
 		/* strictly, this only describes only U saturation.
 		 * V saturation is handled specially through code.
 		 */
@@ -254,7 +260,8 @@ static const struct cx88_ctrl cx8800_vid_ctls[] = {
 	}
 };
 
-static const struct cx88_ctrl cx8800_aud_ctls[] = {
+static const struct cx88_ctrl cx8800_aud_ctls[] =
+{
 	{
 		/* --- audio --- */
 		.id            = V4L2_CID_AUDIO_MUTE,
@@ -265,7 +272,7 @@ static const struct cx88_ctrl cx8800_aud_ctls[] = {
 		.sreg          = SHADOW_AUD_VOL_CTL,
 		.mask          = (1 << 6),
 		.shift         = 6,
-	},{
+	}, {
 		.id            = V4L2_CID_AUDIO_VOLUME,
 		.minimum       = 0,
 		.maximum       = 0x3f,
@@ -275,7 +282,7 @@ static const struct cx88_ctrl cx8800_aud_ctls[] = {
 		.sreg          = SHADOW_AUD_VOL_CTL,
 		.mask          = 0x3f,
 		.shift         = 0,
-	},{
+	}, {
 		.id            = V4L2_CID_AUDIO_BALANCE,
 		.minimum       = 0,
 		.maximum       = 0x7f,
@@ -288,7 +295,8 @@ static const struct cx88_ctrl cx8800_aud_ctls[] = {
 	}
 };
 
-enum {
+enum
+{
 	CX8800_VID_CTLS = ARRAY_SIZE(cx8800_vid_ctls),
 	CX8800_AUD_CTLS = ARRAY_SIZE(cx8800_aud_ctls),
 };
@@ -299,10 +307,10 @@ int cx88_video_mux(struct cx88_core *core, unsigned int input)
 {
 	/* struct cx88_core *core = dev->core; */
 
-	dprintk(1,"video_mux: %d [vmux=%d,gpio=0x%x,0x%x,0x%x,0x%x]\n",
-		input, INPUT(input).vmux,
-		INPUT(input).gpio0,INPUT(input).gpio1,
-		INPUT(input).gpio2,INPUT(input).gpio3);
+	dprintk(1, "video_mux: %d [vmux=%d,gpio=0x%x,0x%x,0x%x,0x%x]\n",
+			input, INPUT(input).vmux,
+			INPUT(input).gpio0, INPUT(input).gpio1,
+			INPUT(input).gpio2, INPUT(input).gpio3);
 	core->input = input;
 	cx_andor(MO_INPUT_FORMAT, 0x03 << 14, INPUT(input).vmux << 14);
 	cx_write(MO_GP3_IO, INPUT(input).gpio3);
@@ -310,40 +318,48 @@ int cx88_video_mux(struct cx88_core *core, unsigned int input)
 	cx_write(MO_GP1_IO, INPUT(input).gpio1);
 	cx_write(MO_GP2_IO, INPUT(input).gpio2);
 
-	switch (INPUT(input).type) {
-	case CX88_VMUX_SVIDEO:
-		cx_set(MO_AFECFG_IO,    0x00000001);
-		cx_set(MO_INPUT_FORMAT, 0x00010010);
-		cx_set(MO_FILTER_EVEN,  0x00002020);
-		cx_set(MO_FILTER_ODD,   0x00002020);
-		break;
-	default:
-		cx_clear(MO_AFECFG_IO,    0x00000001);
-		cx_clear(MO_INPUT_FORMAT, 0x00010010);
-		cx_clear(MO_FILTER_EVEN,  0x00002020);
-		cx_clear(MO_FILTER_ODD,   0x00002020);
-		break;
+	switch (INPUT(input).type)
+	{
+		case CX88_VMUX_SVIDEO:
+			cx_set(MO_AFECFG_IO,    0x00000001);
+			cx_set(MO_INPUT_FORMAT, 0x00010010);
+			cx_set(MO_FILTER_EVEN,  0x00002020);
+			cx_set(MO_FILTER_ODD,   0x00002020);
+			break;
+
+		default:
+			cx_clear(MO_AFECFG_IO,    0x00000001);
+			cx_clear(MO_INPUT_FORMAT, 0x00010010);
+			cx_clear(MO_FILTER_EVEN,  0x00002020);
+			cx_clear(MO_FILTER_ODD,   0x00002020);
+			break;
 	}
 
 	/* if there are audioroutes defined, we have an external
 	   ADC to deal with audio */
-	if (INPUT(input).audioroute) {
+	if (INPUT(input).audioroute)
+	{
 		/* The wm8775 module has the "2" route hardwired into
 		   the initialization. Some boards may use different
 		   routes for different inputs. HVR-1300 surely does */
-		if (core->sd_wm8775) {
+		if (core->sd_wm8775)
+		{
 			call_all(core, audio, s_routing,
-				 INPUT(input).audioroute, 0, 0);
+					 INPUT(input).audioroute, 0, 0);
 		}
+
 		/* cx2388's C-ADC is connected to the tuner only.
 		   When used with S-Video, that ADC is busy dealing with
 		   chroma, so an external must be used for baseband audio */
 		if (INPUT(input).type != CX88_VMUX_TELEVISION &&
-		    INPUT(input).type != CX88_VMUX_CABLE) {
+			INPUT(input).type != CX88_VMUX_CABLE)
+		{
 			/* "I2S ADC mode" */
 			core->tvaudio = WW_I2SADC;
 			cx88_set_tvaudio(core);
-		} else {
+		}
+		else
+		{
 			/* Normal mode */
 			cx_write(AUD_I2SCNTL, 0x0);
 			cx_clear(AUD_CTL, EN_I2SIN_ENABLE);
@@ -357,19 +373,19 @@ EXPORT_SYMBOL(cx88_video_mux);
 /* ------------------------------------------------------------------ */
 
 static int start_video_dma(struct cx8800_dev    *dev,
-			   struct cx88_dmaqueue *q,
-			   struct cx88_buffer   *buf)
+						   struct cx88_dmaqueue *q,
+						   struct cx88_buffer   *buf)
 {
 	struct cx88_core *core = dev->core;
 
 	/* setup fifo + format */
 	cx88_sram_channel_setup(core, &cx88_sram_channels[SRAM_CH21],
-				buf->bpl, buf->risc.dma);
+							buf->bpl, buf->risc.dma);
 	cx88_set_scale(core, core->width, core->height, core->field);
 	cx_write(MO_COLOR_CTRL, dev->fmt->cxformat | ColorFormatGamma);
 
 	/* reset counter */
-	cx_write(MO_VIDY_GPCNTRL,GP_COUNT_CONTROL_RESET);
+	cx_write(MO_VIDY_GPCNTRL, GP_COUNT_CONTROL_RESET);
 	q->count = 0;
 
 	/* enable irqs */
@@ -385,10 +401,10 @@ static int start_video_dma(struct cx8800_dev    *dev,
 	cx_set(MO_VID_INTMSK, 0x0f0011);
 
 	/* enable capture */
-	cx_set(VID_CAPTURE_CONTROL,0x06);
+	cx_set(VID_CAPTURE_CONTROL, 0x06);
 
 	/* start dma */
-	cx_set(MO_DEV_CNTRL2, (1<<5));
+	cx_set(MO_DEV_CNTRL2, (1 << 5));
 	cx_set(MO_VID_DMACNTRL, 0x11); /* Planar Y and packed FIFO and RISC enable */
 
 	return 0;
@@ -403,7 +419,7 @@ static int stop_video_dma(struct cx8800_dev    *dev)
 	cx_clear(MO_VID_DMACNTRL, 0x11);
 
 	/* disable capture */
-	cx_clear(VID_CAPTURE_CONTROL,0x06);
+	cx_clear(VID_CAPTURE_CONTROL, 0x06);
 
 	/* disable irqs */
 	cx_clear(MO_PCI_INTMSK, PCI_INT_VIDINT);
@@ -412,17 +428,19 @@ static int stop_video_dma(struct cx8800_dev    *dev)
 }
 
 static int restart_video_queue(struct cx8800_dev    *dev,
-			       struct cx88_dmaqueue *q)
+							   struct cx88_dmaqueue *q)
 {
 	struct cx88_core *core = dev->core;
 	struct cx88_buffer *buf;
 
-	if (!list_empty(&q->active)) {
+	if (!list_empty(&q->active))
+	{
 		buf = list_entry(q->active.next, struct cx88_buffer, list);
-		dprintk(2,"restart_queue [%p/%d]: restart dma\n",
-			buf, buf->vb.vb2_buf.index);
+		dprintk(2, "restart_queue [%p/%d]: restart dma\n",
+				buf, buf->vb.vb2_buf.index);
 		start_video_dma(dev, q, buf);
 	}
+
 	return 0;
 }
 #endif
@@ -430,8 +448,8 @@ static int restart_video_queue(struct cx8800_dev    *dev,
 /* ------------------------------------------------------------------ */
 
 static int queue_setup(struct vb2_queue *q,
-			   unsigned int *num_buffers, unsigned int *num_planes,
-			   unsigned int sizes[], struct device *alloc_devs[])
+					   unsigned int *num_buffers, unsigned int *num_planes,
+					   unsigned int sizes[], struct device *alloc_devs[])
 {
 	struct cx8800_dev *dev = q->drv_priv;
 	struct cx88_core *core = dev->core;
@@ -452,46 +470,55 @@ static int buffer_prepare(struct vb2_buffer *vb)
 	buf->bpl = core->width * dev->fmt->depth >> 3;
 
 	if (vb2_plane_size(vb, 0) < core->height * buf->bpl)
+	{
 		return -EINVAL;
+	}
+
 	vb2_set_plane_payload(vb, 0, core->height * buf->bpl);
 
-	switch (core->field) {
-	case V4L2_FIELD_TOP:
-		cx88_risc_buffer(dev->pci, &buf->risc,
-				 sgt->sgl, 0, UNSET,
-				 buf->bpl, 0, core->height);
-		break;
-	case V4L2_FIELD_BOTTOM:
-		cx88_risc_buffer(dev->pci, &buf->risc,
-				 sgt->sgl, UNSET, 0,
-				 buf->bpl, 0, core->height);
-		break;
-	case V4L2_FIELD_SEQ_TB:
-		cx88_risc_buffer(dev->pci, &buf->risc,
-				 sgt->sgl,
-				 0, buf->bpl * (core->height >> 1),
-				 buf->bpl, 0,
-				 core->height >> 1);
-		break;
-	case V4L2_FIELD_SEQ_BT:
-		cx88_risc_buffer(dev->pci, &buf->risc,
-				 sgt->sgl,
-				 buf->bpl * (core->height >> 1), 0,
-				 buf->bpl, 0,
-				 core->height >> 1);
-		break;
-	case V4L2_FIELD_INTERLACED:
-	default:
-		cx88_risc_buffer(dev->pci, &buf->risc,
-				 sgt->sgl, 0, buf->bpl,
-				 buf->bpl, buf->bpl,
-				 core->height >> 1);
-		break;
+	switch (core->field)
+	{
+		case V4L2_FIELD_TOP:
+			cx88_risc_buffer(dev->pci, &buf->risc,
+							 sgt->sgl, 0, UNSET,
+							 buf->bpl, 0, core->height);
+			break;
+
+		case V4L2_FIELD_BOTTOM:
+			cx88_risc_buffer(dev->pci, &buf->risc,
+							 sgt->sgl, UNSET, 0,
+							 buf->bpl, 0, core->height);
+			break;
+
+		case V4L2_FIELD_SEQ_TB:
+			cx88_risc_buffer(dev->pci, &buf->risc,
+							 sgt->sgl,
+							 0, buf->bpl * (core->height >> 1),
+							 buf->bpl, 0,
+							 core->height >> 1);
+			break;
+
+		case V4L2_FIELD_SEQ_BT:
+			cx88_risc_buffer(dev->pci, &buf->risc,
+							 sgt->sgl,
+							 buf->bpl * (core->height >> 1), 0,
+							 buf->bpl, 0,
+							 core->height >> 1);
+			break;
+
+		case V4L2_FIELD_INTERLACED:
+		default:
+			cx88_risc_buffer(dev->pci, &buf->risc,
+							 sgt->sgl, 0, buf->bpl,
+							 buf->bpl, buf->bpl,
+							 core->height >> 1);
+			break;
 	}
-	dprintk(2,"[%p/%d] buffer_prepare - %dx%d %dbpp \"%s\" - dma=0x%08lx\n",
-		buf, buf->vb.vb2_buf.index,
-		core->width, core->height, dev->fmt->depth, dev->fmt->name,
-		(unsigned long)buf->risc.dma);
+
+	dprintk(2, "[%p/%d] buffer_prepare - %dx%d %dbpp \"%s\" - dma=0x%08lx\n",
+			buf, buf->vb.vb2_buf.index,
+			core->width, core->height, dev->fmt->depth, dev->fmt->name,
+			(unsigned long)buf->risc.dma);
 	return 0;
 }
 
@@ -503,7 +530,10 @@ static void buffer_finish(struct vb2_buffer *vb)
 	struct cx88_riscmem *risc = &buf->risc;
 
 	if (risc->cpu)
+	{
 		pci_free_consistent(dev->pci, risc->size, risc->cpu, risc->dma);
+	}
+
 	memset(risc, 0, sizeof(*risc));
 }
 
@@ -521,18 +551,21 @@ static void buffer_queue(struct vb2_buffer *vb)
 	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_CNT_INC);
 	buf->risc.jmp[1] = cpu_to_le32(buf->risc.dma + 8);
 
-	if (list_empty(&q->active)) {
+	if (list_empty(&q->active))
+	{
 		list_add_tail(&buf->list, &q->active);
-		dprintk(2,"[%p/%d] buffer_queue - first active\n",
-			buf, buf->vb.vb2_buf.index);
+		dprintk(2, "[%p/%d] buffer_queue - first active\n",
+				buf, buf->vb.vb2_buf.index);
 
-	} else {
+	}
+	else
+	{
 		buf->risc.cpu[0] |= cpu_to_le32(RISC_IRQ1);
 		prev = list_entry(q->active.prev, struct cx88_buffer, list);
 		list_add_tail(&buf->list, &q->active);
 		prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
 		dprintk(2, "[%p/%d] buffer_queue - append to active\n",
-			buf, buf->vb.vb2_buf.index);
+				buf, buf->vb.vb2_buf.index);
 	}
 }
 
@@ -541,7 +574,7 @@ static int start_streaming(struct vb2_queue *q, unsigned int count)
 	struct cx8800_dev *dev = q->drv_priv;
 	struct cx88_dmaqueue *dmaq = &dev->vidq;
 	struct cx88_buffer *buf = list_entry(dmaq->active.next,
-			struct cx88_buffer, list);
+										 struct cx88_buffer, list);
 
 	start_video_dma(dev, dmaq, buf);
 	return 0;
@@ -557,17 +590,21 @@ static void stop_streaming(struct vb2_queue *q)
 	cx_clear(MO_VID_DMACNTRL, 0x11);
 	cx_clear(VID_CAPTURE_CONTROL, 0x06);
 	spin_lock_irqsave(&dev->slock, flags);
-	while (!list_empty(&dmaq->active)) {
+
+	while (!list_empty(&dmaq->active))
+	{
 		struct cx88_buffer *buf = list_entry(dmaq->active.next,
-			struct cx88_buffer, list);
+											 struct cx88_buffer, list);
 
 		list_del(&buf->list);
 		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
 	}
+
 	spin_unlock_irqrestore(&dev->slock, flags);
 }
 
-static const struct vb2_ops cx8800_video_qops = {
+static const struct vb2_ops cx8800_video_qops =
+{
 	.queue_setup    = queue_setup,
 	.buf_prepare  = buffer_prepare,
 	.buf_finish = buffer_finish,
@@ -587,26 +624,35 @@ static int radio_open(struct file *file)
 	int ret = v4l2_fh_open(file);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	cx_write(MO_GP3_IO, core->board.radio.gpio3);
 	cx_write(MO_GP0_IO, core->board.radio.gpio0);
 	cx_write(MO_GP1_IO, core->board.radio.gpio1);
 	cx_write(MO_GP2_IO, core->board.radio.gpio2);
-	if (core->board.radio.audioroute) {
-		if (core->sd_wm8775) {
+
+	if (core->board.radio.audioroute)
+	{
+		if (core->sd_wm8775)
+		{
 			call_all(core, audio, s_routing,
-					core->board.radio.audioroute, 0, 0);
+					 core->board.radio.audioroute, 0, 0);
 		}
+
 		/* "I2S ADC mode" */
 		core->tvaudio = WW_I2SADC;
 		cx88_set_tvaudio(core);
-	} else {
+	}
+	else
+	{
 		/* FM Mode */
 		core->tvaudio = WW_FM;
 		cx88_set_tvaudio(core);
 		cx88_set_stereo(core, V4L2_TUNER_MODE_STEREO, 1);
 	}
+
 	call_all(core, tuner, s_radio);
 	return 0;
 }
@@ -622,41 +668,57 @@ static int cx8800_s_vid_ctrl(struct v4l2_ctrl *ctrl)
 	u32 value, mask;
 
 	mask = cc->mask;
-	switch (ctrl->id) {
-	case V4L2_CID_SATURATION:
-		/* special v_sat handling */
 
-		value = ((ctrl->val - cc->off) << cc->shift) & cc->mask;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_SATURATION:
+			/* special v_sat handling */
 
-		if (core->tvnorm & V4L2_STD_SECAM) {
-			/* For SECAM, both U and V sat should be equal */
-			value = value << 8 | value;
-		} else {
-			/* Keeps U Saturation proportional to V Sat */
-			value = (value * 0x5a) / 0x7f << 8 | value;
-		}
-		mask = 0xffff;
-		break;
-	case V4L2_CID_SHARPNESS:
-		/* 0b000, 0b100, 0b101, 0b110, or 0b111 */
-		value = (ctrl->val < 1 ? 0 : ((ctrl->val + 3) << 7));
-		/* needs to be set for both fields */
-		cx_andor(MO_FILTER_EVEN, mask, value);
-		break;
-	case V4L2_CID_CHROMA_AGC:
-		value = ((ctrl->val - cc->off) << cc->shift) & cc->mask;
-		break;
-	default:
-		value = ((ctrl->val - cc->off) << cc->shift) & cc->mask;
-		break;
+			value = ((ctrl->val - cc->off) << cc->shift) & cc->mask;
+
+			if (core->tvnorm & V4L2_STD_SECAM)
+			{
+				/* For SECAM, both U and V sat should be equal */
+				value = value << 8 | value;
+			}
+			else
+			{
+				/* Keeps U Saturation proportional to V Sat */
+				value = (value * 0x5a) / 0x7f << 8 | value;
+			}
+
+			mask = 0xffff;
+			break;
+
+		case V4L2_CID_SHARPNESS:
+			/* 0b000, 0b100, 0b101, 0b110, or 0b111 */
+			value = (ctrl->val < 1 ? 0 : ((ctrl->val + 3) << 7));
+			/* needs to be set for both fields */
+			cx_andor(MO_FILTER_EVEN, mask, value);
+			break;
+
+		case V4L2_CID_CHROMA_AGC:
+			value = ((ctrl->val - cc->off) << cc->shift) & cc->mask;
+			break;
+
+		default:
+			value = ((ctrl->val - cc->off) << cc->shift) & cc->mask;
+			break;
 	}
+
 	dprintk(1, "set_control id=0x%X(%s) ctrl=0x%02x, reg=0x%02x val=0x%02x (mask 0x%02x)%s\n",
-				ctrl->id, ctrl->name, ctrl->val, cc->reg, value,
-				mask, cc->sreg ? " [shadowed]" : "");
+			ctrl->id, ctrl->name, ctrl->val, cc->reg, value,
+			mask, cc->sreg ? " [shadowed]" : "");
+
 	if (cc->sreg)
+	{
 		cx_sandor(cc->sreg, cc->reg, mask, value);
+	}
 	else
+	{
 		cx_andor(cc->reg, mask, value);
+	}
+
 	return 0;
 }
 
@@ -665,45 +727,61 @@ static int cx8800_s_aud_ctrl(struct v4l2_ctrl *ctrl)
 	struct cx88_core *core =
 		container_of(ctrl->handler, struct cx88_core, audio_hdl);
 	const struct cx88_ctrl *cc = ctrl->priv;
-	u32 value,mask;
+	u32 value, mask;
 
 	/* Pass changes onto any WM8775 */
-	if (core->sd_wm8775) {
-		switch (ctrl->id) {
-		case V4L2_CID_AUDIO_MUTE:
-			wm8775_s_ctrl(core, ctrl->id, ctrl->val);
-			break;
-		case V4L2_CID_AUDIO_VOLUME:
-			wm8775_s_ctrl(core, ctrl->id, (ctrl->val) ?
-						(0x90 + ctrl->val) << 8 : 0);
-			break;
-		case V4L2_CID_AUDIO_BALANCE:
-			wm8775_s_ctrl(core, ctrl->id, ctrl->val << 9);
-			break;
-		default:
-			break;
+	if (core->sd_wm8775)
+	{
+		switch (ctrl->id)
+		{
+			case V4L2_CID_AUDIO_MUTE:
+				wm8775_s_ctrl(core, ctrl->id, ctrl->val);
+				break;
+
+			case V4L2_CID_AUDIO_VOLUME:
+				wm8775_s_ctrl(core, ctrl->id, (ctrl->val) ?
+							  (0x90 + ctrl->val) << 8 : 0);
+				break;
+
+			case V4L2_CID_AUDIO_BALANCE:
+				wm8775_s_ctrl(core, ctrl->id, ctrl->val << 9);
+				break;
+
+			default:
+				break;
 		}
 	}
 
 	mask = cc->mask;
-	switch (ctrl->id) {
-	case V4L2_CID_AUDIO_BALANCE:
-		value = (ctrl->val < 0x40) ? (0x7f - ctrl->val) : (ctrl->val - 0x40);
-		break;
-	case V4L2_CID_AUDIO_VOLUME:
-		value = 0x3f - (ctrl->val & 0x3f);
-		break;
-	default:
-		value = ((ctrl->val - cc->off) << cc->shift) & cc->mask;
-		break;
+
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUDIO_BALANCE:
+			value = (ctrl->val < 0x40) ? (0x7f - ctrl->val) : (ctrl->val - 0x40);
+			break;
+
+		case V4L2_CID_AUDIO_VOLUME:
+			value = 0x3f - (ctrl->val & 0x3f);
+			break;
+
+		default:
+			value = ((ctrl->val - cc->off) << cc->shift) & cc->mask;
+			break;
 	}
-	dprintk(1,"set_control id=0x%X(%s) ctrl=0x%02x, reg=0x%02x val=0x%02x (mask 0x%02x)%s\n",
-				ctrl->id, ctrl->name, ctrl->val, cc->reg, value,
-				mask, cc->sreg ? " [shadowed]" : "");
+
+	dprintk(1, "set_control id=0x%X(%s) ctrl=0x%02x, reg=0x%02x val=0x%02x (mask 0x%02x)%s\n",
+			ctrl->id, ctrl->name, ctrl->val, cc->reg, value,
+			mask, cc->sreg ? " [shadowed]" : "");
+
 	if (cc->sreg)
+	{
 		cx_sandor(cc->sreg, cc->reg, mask, value);
+	}
 	else
+	{
 		cx_andor(cc->reg, mask, value);
+	}
+
 	return 0;
 }
 
@@ -711,7 +789,7 @@ static int cx8800_s_aud_ctrl(struct v4l2_ctrl *ctrl)
 /* VIDEO IOCTLS                                                       */
 
 static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-					struct v4l2_format *f)
+								struct v4l2_format *f)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
@@ -729,7 +807,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-			struct v4l2_format *f)
+								  struct v4l2_format *f)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
@@ -738,32 +816,40 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
 	unsigned int      maxw, maxh;
 
 	fmt = format_by_fourcc(f->fmt.pix.pixelformat);
+
 	if (NULL == fmt)
+	{
 		return -EINVAL;
+	}
 
 	maxw = norm_maxw(core->tvnorm);
 	maxh = norm_maxh(core->tvnorm);
 
 	field = f->fmt.pix.field;
 
-	switch (field) {
-	case V4L2_FIELD_TOP:
-	case V4L2_FIELD_BOTTOM:
-	case V4L2_FIELD_INTERLACED:
-	case V4L2_FIELD_SEQ_BT:
-	case V4L2_FIELD_SEQ_TB:
-		break;
-	default:
-		field = (f->fmt.pix.height > maxh / 2)
-			? V4L2_FIELD_INTERLACED
-			: V4L2_FIELD_BOTTOM;
-		break;
+	switch (field)
+	{
+		case V4L2_FIELD_TOP:
+		case V4L2_FIELD_BOTTOM:
+		case V4L2_FIELD_INTERLACED:
+		case V4L2_FIELD_SEQ_BT:
+		case V4L2_FIELD_SEQ_TB:
+			break;
+
+		default:
+			field = (f->fmt.pix.height > maxh / 2)
+					? V4L2_FIELD_INTERLACED
+					: V4L2_FIELD_BOTTOM;
+			break;
 	}
+
 	if (V4L2_FIELD_HAS_T_OR_B(field))
+	{
 		maxh /= 2;
+	}
 
 	v4l_bound_align_image(&f->fmt.pix.width, 48, maxw, 2,
-			      &f->fmt.pix.height, 32, maxh, 0, 0);
+						  &f->fmt.pix.height, 32, maxh, 0, 0);
 	f->fmt.pix.field = field;
 	f->fmt.pix.bytesperline =
 		(f->fmt.pix.width * fmt->depth) >> 3;
@@ -775,18 +861,27 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
-					struct v4l2_format *f)
+								struct v4l2_format *f)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
-	int err = vidioc_try_fmt_vid_cap (file,priv,f);
+	int err = vidioc_try_fmt_vid_cap (file, priv, f);
 
 	if (0 != err)
+	{
 		return err;
+	}
+
 	if (vb2_is_busy(&dev->vb2_vidq) || vb2_is_busy(&dev->vb2_vbiq))
+	{
 		return -EBUSY;
+	}
+
 	if (core->dvbdev && vb2_is_busy(&core->dvbdev->vb2_mpegq))
+	{
 		return -EBUSY;
+	}
+
 	dev->fmt = format_by_fourcc(f->fmt.pix.pixelformat);
 	core->width = f->fmt.pix.width;
 	core->height = f->fmt.pix.height;
@@ -795,34 +890,45 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
 }
 
 void cx88_querycap(struct file *file, struct cx88_core *core,
-		struct v4l2_capability *cap)
+				   struct v4l2_capability *cap)
 {
 	struct video_device *vdev = video_devdata(file);
 
 	strlcpy(cap->card, core->board.name, sizeof(cap->card));
 	cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+
 	if (UNSET != core->board.tuner_type)
+	{
 		cap->device_caps |= V4L2_CAP_TUNER;
-	switch (vdev->vfl_type) {
-	case VFL_TYPE_RADIO:
-		cap->device_caps = V4L2_CAP_RADIO | V4L2_CAP_TUNER;
-		break;
-	case VFL_TYPE_GRABBER:
-		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
-		break;
-	case VFL_TYPE_VBI:
-		cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
-		break;
 	}
+
+	switch (vdev->vfl_type)
+	{
+		case VFL_TYPE_RADIO:
+			cap->device_caps = V4L2_CAP_RADIO | V4L2_CAP_TUNER;
+			break;
+
+		case VFL_TYPE_GRABBER:
+			cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
+			break;
+
+		case VFL_TYPE_VBI:
+			cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
+			break;
+	}
+
 	cap->capabilities = cap->device_caps | V4L2_CAP_VIDEO_CAPTURE |
-		V4L2_CAP_VBI_CAPTURE | V4L2_CAP_DEVICE_CAPS;
+						V4L2_CAP_VBI_CAPTURE | V4L2_CAP_DEVICE_CAPS;
+
 	if (core->board.radio.type == CX88_RADIO)
+	{
 		cap->capabilities |= V4L2_CAP_RADIO;
+	}
 }
 EXPORT_SYMBOL(cx88_querycap);
 
 static int vidioc_querycap(struct file *file, void  *priv,
-					struct v4l2_capability *cap)
+						   struct v4l2_capability *cap)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
@@ -834,12 +940,14 @@ static int vidioc_querycap(struct file *file, void  *priv,
 }
 
 static int vidioc_enum_fmt_vid_cap (struct file *file, void  *priv,
-					struct v4l2_fmtdesc *f)
+									struct v4l2_fmtdesc *f)
 {
 	if (unlikely(f->index >= ARRAY_SIZE(formats)))
+	{
 		return -EINVAL;
+	}
 
-	strlcpy(f->description,formats[f->index].name,sizeof(f->description));
+	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
 	f->pixelformat = formats[f->index].fourcc;
 
 	return 0;
@@ -863,9 +971,10 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id tvnorms)
 }
 
 /* only one input in this sample driver */
-int cx88_enum_input (struct cx88_core  *core,struct v4l2_input *i)
+int cx88_enum_input (struct cx88_core  *core, struct v4l2_input *i)
 {
-	static const char * const iname[] = {
+	static const char *const iname[] =
+	{
 		[ CX88_VMUX_COMPOSITE1 ] = "Composite1",
 		[ CX88_VMUX_COMPOSITE2 ] = "Composite2",
 		[ CX88_VMUX_COMPOSITE3 ] = "Composite3",
@@ -879,26 +988,35 @@ int cx88_enum_input (struct cx88_core  *core,struct v4l2_input *i)
 	unsigned int n = i->index;
 
 	if (n >= 4)
+	{
 		return -EINVAL;
+	}
+
 	if (0 == INPUT(n).type)
+	{
 		return -EINVAL;
+	}
+
 	i->type  = V4L2_INPUT_TYPE_CAMERA;
-	strcpy(i->name,iname[INPUT(n).type]);
+	strcpy(i->name, iname[INPUT(n).type]);
+
 	if ((CX88_VMUX_TELEVISION == INPUT(n).type) ||
-	    (CX88_VMUX_CABLE      == INPUT(n).type)) {
+		(CX88_VMUX_CABLE      == INPUT(n).type))
+	{
 		i->type = V4L2_INPUT_TYPE_TUNER;
 	}
+
 	i->std = CX88_NORMS;
 	return 0;
 }
 EXPORT_SYMBOL(cx88_enum_input);
 
 static int vidioc_enum_input (struct file *file, void *priv,
-				struct v4l2_input *i)
+							  struct v4l2_input *i)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
-	return cx88_enum_input (core,i);
+	return cx88_enum_input (core, i);
 }
 
 static int vidioc_g_input (struct file *file, void *priv, unsigned int *i)
@@ -916,63 +1034,83 @@ static int vidioc_s_input (struct file *file, void *priv, unsigned int i)
 	struct cx88_core *core = dev->core;
 
 	if (i >= 4)
+	{
 		return -EINVAL;
+	}
+
 	if (0 == INPUT(i).type)
+	{
 		return -EINVAL;
+	}
 
 	cx88_newstation(core);
-	cx88_video_mux(core,i);
+	cx88_video_mux(core, i);
 	return 0;
 }
 
 static int vidioc_g_tuner (struct file *file, void *priv,
-				struct v4l2_tuner *t)
+						   struct v4l2_tuner *t)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
 	u32 reg;
 
 	if (unlikely(UNSET == core->board.tuner_type))
+	{
 		return -EINVAL;
+	}
+
 	if (0 != t->index)
+	{
 		return -EINVAL;
+	}
 
 	strcpy(t->name, "Television");
 	t->capability = V4L2_TUNER_CAP_NORM;
 	t->rangehigh  = 0xffffffffUL;
 	call_all(core, tuner, g_tuner, t);
 
-	cx88_get_stereo(core ,t);
+	cx88_get_stereo(core , t);
 	reg = cx_read(MO_DEVICE_STATUS);
-	t->signal = (reg & (1<<5)) ? 0xffff : 0x0000;
+	t->signal = (reg & (1 << 5)) ? 0xffff : 0x0000;
 	return 0;
 }
 
 static int vidioc_s_tuner (struct file *file, void *priv,
-				const struct v4l2_tuner *t)
+						   const struct v4l2_tuner *t)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
 
 	if (UNSET == core->board.tuner_type)
+	{
 		return -EINVAL;
+	}
+
 	if (0 != t->index)
+	{
 		return -EINVAL;
+	}
 
 	cx88_set_stereo(core, t->audmode, 1);
 	return 0;
 }
 
 static int vidioc_g_frequency (struct file *file, void *priv,
-				struct v4l2_frequency *f)
+							   struct v4l2_frequency *f)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
 
 	if (unlikely(UNSET == core->board.tuner_type))
+	{
 		return -EINVAL;
+	}
+
 	if (f->tuner)
+	{
 		return -EINVAL;
+	}
 
 	f->frequency = core->freq;
 
@@ -982,14 +1120,19 @@ static int vidioc_g_frequency (struct file *file, void *priv,
 }
 
 int cx88_set_freq (struct cx88_core  *core,
-				const struct v4l2_frequency *f)
+				   const struct v4l2_frequency *f)
 {
 	struct v4l2_frequency new_freq = *f;
 
 	if (unlikely(UNSET == core->board.tuner_type))
+	{
 		return -EINVAL;
+	}
+
 	if (unlikely(f->tuner != 0))
+	{
 		return -EINVAL;
+	}
 
 	cx88_newstation(core);
 	call_all(core, tuner, s_frequency, f);
@@ -1005,7 +1148,7 @@ int cx88_set_freq (struct cx88_core  *core,
 EXPORT_SYMBOL(cx88_set_freq);
 
 static int vidioc_s_frequency (struct file *file, void *priv,
-				const struct v4l2_frequency *f)
+							   const struct v4l2_frequency *f)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
@@ -1015,7 +1158,7 @@ static int vidioc_s_frequency (struct file *file, void *priv,
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 static int vidioc_g_register (struct file *file, void *fh,
-				struct v4l2_dbg_register *reg)
+							  struct v4l2_dbg_register *reg)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
@@ -1027,7 +1170,7 @@ static int vidioc_g_register (struct file *file, void *fh,
 }
 
 static int vidioc_s_register (struct file *file, void *fh,
-				const struct v4l2_dbg_register *reg)
+							  const struct v4l2_dbg_register *reg)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
@@ -1042,13 +1185,15 @@ static int vidioc_s_register (struct file *file, void *fh,
 /* ----------------------------------------------------------- */
 
 static int radio_g_tuner (struct file *file, void *priv,
-				struct v4l2_tuner *t)
+						  struct v4l2_tuner *t)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
 
 	if (unlikely(t->index > 0))
+	{
 		return -EINVAL;
+	}
 
 	strcpy(t->name, "Radio");
 
@@ -1057,13 +1202,15 @@ static int radio_g_tuner (struct file *file, void *priv,
 }
 
 static int radio_s_tuner (struct file *file, void *priv,
-				const struct v4l2_tuner *t)
+						  const struct v4l2_tuner *t)
 {
 	struct cx8800_dev *dev = video_drvdata(file);
 	struct cx88_core *core = dev->core;
 
 	if (0 != t->index)
+	{
 		return -EINVAL;
+	}
 
 	call_all(core, tuner, s_tuner, t);
 	return 0;
@@ -1071,7 +1218,8 @@ static int radio_s_tuner (struct file *file, void *priv,
 
 /* ----------------------------------------------------------- */
 
-static const char *cx88_vid_irqs[32] = {
+static const char *cx88_vid_irqs[32] =
+{
 	"y_risci1", "u_risci1", "v_risci1", "vbi_risc1",
 	"y_risci2", "u_risci2", "v_risci2", "vbi_risc2",
 	"y_oflow",  "u_oflow",  "v_oflow",  "vbi_oflow",
@@ -1086,24 +1234,31 @@ static void cx8800_vid_irq(struct cx8800_dev *dev)
 
 	status = cx_read(MO_VID_INTSTAT);
 	mask   = cx_read(MO_VID_INTMSK);
+
 	if (0 == (status & mask))
+	{
 		return;
+	}
+
 	cx_write(MO_VID_INTSTAT, status);
+
 	if (irq_debug  ||  (status & mask & ~0xff))
 		cx88_print_irqbits(core->name, "irq vid",
-				   cx88_vid_irqs, ARRAY_SIZE(cx88_vid_irqs),
-				   status, mask);
+						   cx88_vid_irqs, ARRAY_SIZE(cx88_vid_irqs),
+						   status, mask);
 
 	/* risc op code error */
-	if (status & (1 << 16)) {
-		printk(KERN_WARNING "%s/0: video risc op code error\n",core->name);
+	if (status & (1 << 16))
+	{
+		printk(KERN_WARNING "%s/0: video risc op code error\n", core->name);
 		cx_clear(MO_VID_DMACNTRL, 0x11);
 		cx_clear(VID_CAPTURE_CONTROL, 0x06);
 		cx88_sram_channel_dump(core, &cx88_sram_channels[SRAM_CH21]);
 	}
 
 	/* risc1 y */
-	if (status & 0x01) {
+	if (status & 0x01)
+	{
 		spin_lock(&dev->slock);
 		count = cx_read(MO_VIDY_GPCNT);
 		cx88_wakeup(core, &dev->vidq, count);
@@ -1111,7 +1266,8 @@ static void cx8800_vid_irq(struct cx8800_dev *dev)
 	}
 
 	/* risc1 vbi */
-	if (status & 0x08) {
+	if (status & 0x08)
+	{
 		spin_lock(&dev->slock);
 		count = cx_read(MO_VBI_GPCNT);
 		cx88_wakeup(core, &dev->vbiq, count);
@@ -1126,26 +1282,38 @@ static irqreturn_t cx8800_irq(int irq, void *dev_id)
 	u32 status;
 	int loop, handled = 0;
 
-	for (loop = 0; loop < 10; loop++) {
+	for (loop = 0; loop < 10; loop++)
+	{
 		status = cx_read(MO_PCI_INTSTAT) &
-			(core->pci_irqmask | PCI_INT_VIDINT);
+				 (core->pci_irqmask | PCI_INT_VIDINT);
+
 		if (0 == status)
+		{
 			goto out;
+		}
+
 		cx_write(MO_PCI_INTSTAT, status);
 		handled = 1;
 
 		if (status & core->pci_irqmask)
-			cx88_core_irq(core,status);
+		{
+			cx88_core_irq(core, status);
+		}
+
 		if (status & PCI_INT_VIDINT)
+		{
 			cx8800_vid_irq(dev);
-	}
-	if (10 == loop) {
-		printk(KERN_WARNING "%s/0: irq loop -- clearing mask\n",
-		       core->name);
-		cx_write(MO_PCI_INTMSK,0);
+		}
 	}
 
- out:
+	if (10 == loop)
+	{
+		printk(KERN_WARNING "%s/0: irq loop -- clearing mask\n",
+			   core->name);
+		cx_write(MO_PCI_INTMSK, 0);
+	}
+
+out:
 	return IRQ_RETVAL(handled);
 }
 
@@ -1163,7 +1331,8 @@ static const struct v4l2_file_operations video_fops =
 	.unlocked_ioctl = video_ioctl2,
 };
 
-static const struct v4l2_ioctl_ops video_ioctl_ops = {
+static const struct v4l2_ioctl_ops video_ioctl_ops =
+{
 	.vidioc_querycap      = vidioc_querycap,
 	.vidioc_enum_fmt_vid_cap  = vidioc_enum_fmt_vid_cap,
 	.vidioc_g_fmt_vid_cap     = vidioc_g_fmt_vid_cap,
@@ -1192,14 +1361,16 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
 #endif
 };
 
-static const struct video_device cx8800_video_template = {
+static const struct video_device cx8800_video_template =
+{
 	.name                 = "cx8800-video",
 	.fops                 = &video_fops,
 	.ioctl_ops 	      = &video_ioctl_ops,
 	.tvnorms              = CX88_NORMS,
 };
 
-static const struct v4l2_ioctl_ops vbi_ioctl_ops = {
+static const struct v4l2_ioctl_ops vbi_ioctl_ops =
+{
 	.vidioc_querycap      = vidioc_querycap,
 	.vidioc_g_fmt_vbi_cap     = cx8800_vbi_fmt,
 	.vidioc_try_fmt_vbi_cap   = cx8800_vbi_fmt,
@@ -1225,7 +1396,8 @@ static const struct v4l2_ioctl_ops vbi_ioctl_ops = {
 #endif
 };
 
-static const struct video_device cx8800_vbi_template = {
+static const struct video_device cx8800_vbi_template =
+{
 	.name                 = "cx8800-vbi",
 	.fops                 = &video_fops,
 	.ioctl_ops	      = &vbi_ioctl_ops,
@@ -1241,7 +1413,8 @@ static const struct v4l2_file_operations radio_fops =
 	.unlocked_ioctl = video_ioctl2,
 };
 
-static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+static const struct v4l2_ioctl_ops radio_ioctl_ops =
+{
 	.vidioc_querycap      = vidioc_querycap,
 	.vidioc_g_tuner       = radio_g_tuner,
 	.vidioc_s_tuner       = radio_s_tuner,
@@ -1255,17 +1428,20 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
 #endif
 };
 
-static const struct video_device cx8800_radio_template = {
+static const struct video_device cx8800_radio_template =
+{
 	.name                 = "cx8800-radio",
 	.fops                 = &radio_fops,
 	.ioctl_ops 	      = &radio_ioctl_ops,
 };
 
-static const struct v4l2_ctrl_ops cx8800_ctrl_vid_ops = {
+static const struct v4l2_ctrl_ops cx8800_ctrl_vid_ops =
+{
 	.s_ctrl = cx8800_s_vid_ctrl,
 };
 
-static const struct v4l2_ctrl_ops cx8800_ctrl_aud_ops = {
+static const struct v4l2_ctrl_ops cx8800_ctrl_aud_ops =
+{
 	.s_ctrl = cx8800_s_aud_ctrl,
 };
 
@@ -1279,7 +1455,7 @@ static void cx8800_unregister_video(struct cx8800_dev *dev)
 }
 
 static int cx8800_initdev(struct pci_dev *pci_dev,
-			  const struct pci_device_id *pci_id)
+						  const struct pci_device_id *pci_id)
 {
 	struct cx8800_dev *dev;
 	struct cx88_core *core;
@@ -1287,35 +1463,46 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
 	int err;
 	int i;
 
-	dev = kzalloc(sizeof(*dev),GFP_KERNEL);
+	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+
 	if (NULL == dev)
+	{
 		return -ENOMEM;
+	}
 
 	/* pci init */
 	dev->pci = pci_dev;
-	if (pci_enable_device(pci_dev)) {
+
+	if (pci_enable_device(pci_dev))
+	{
 		err = -EIO;
 		goto fail_free;
 	}
+
 	core = cx88_core_get(dev->pci);
-	if (NULL == core) {
+
+	if (NULL == core)
+	{
 		err = -EINVAL;
 		goto fail_free;
 	}
+
 	dev->core = core;
 
 	/* print pci info */
 	dev->pci_rev = pci_dev->revision;
 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER,  &dev->pci_lat);
 	printk(KERN_INFO "%s/0: found at %s, rev: %d, irq: %d, "
-	       "latency: %d, mmio: 0x%llx\n", core->name,
-	       pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
-	       dev->pci_lat,(unsigned long long)pci_resource_start(pci_dev,0));
+		   "latency: %d, mmio: 0x%llx\n", core->name,
+		   pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
+		   dev->pci_lat, (unsigned long long)pci_resource_start(pci_dev, 0));
 
 	pci_set_master(pci_dev);
-	err = pci_set_dma_mask(pci_dev,DMA_BIT_MASK(32));
-	if (err) {
-		printk("%s/0: Oops: no 32bit PCI DMA ???\n",core->name);
+	err = pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32));
+
+	if (err)
+	{
+		printk("%s/0: Oops: no 32bit PCI DMA ???\n", core->name);
 		goto fail_core;
 	}
 
@@ -1330,47 +1517,64 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
 
 	/* get irq */
 	err = request_irq(pci_dev->irq, cx8800_irq,
-			  IRQF_SHARED, core->name, dev);
-	if (err < 0) {
+					  IRQF_SHARED, core->name, dev);
+
+	if (err < 0)
+	{
 		printk(KERN_ERR "%s/0: can't get IRQ %d\n",
-		       core->name,pci_dev->irq);
+			   core->name, pci_dev->irq);
 		goto fail_core;
 	}
+
 	cx_set(MO_PCI_INTMSK, core->pci_irqmask);
 
-	for (i = 0; i < CX8800_AUD_CTLS; i++) {
+	for (i = 0; i < CX8800_AUD_CTLS; i++)
+	{
 		const struct cx88_ctrl *cc = &cx8800_aud_ctls[i];
 		struct v4l2_ctrl *vc;
 
 		vc = v4l2_ctrl_new_std(&core->audio_hdl, &cx8800_ctrl_aud_ops,
-			cc->id, cc->minimum, cc->maximum, cc->step, cc->default_value);
-		if (vc == NULL) {
+							   cc->id, cc->minimum, cc->maximum, cc->step, cc->default_value);
+
+		if (vc == NULL)
+		{
 			err = core->audio_hdl.error;
 			goto fail_core;
 		}
+
 		vc->priv = (void *)cc;
 	}
 
-	for (i = 0; i < CX8800_VID_CTLS; i++) {
+	for (i = 0; i < CX8800_VID_CTLS; i++)
+	{
 		const struct cx88_ctrl *cc = &cx8800_vid_ctls[i];
 		struct v4l2_ctrl *vc;
 
 		vc = v4l2_ctrl_new_std(&core->video_hdl, &cx8800_ctrl_vid_ops,
-			cc->id, cc->minimum, cc->maximum, cc->step, cc->default_value);
-		if (vc == NULL) {
+							   cc->id, cc->minimum, cc->maximum, cc->step, cc->default_value);
+
+		if (vc == NULL)
+		{
 			err = core->video_hdl.error;
 			goto fail_core;
 		}
+
 		vc->priv = (void *)cc;
+
 		if (vc->id == V4L2_CID_CHROMA_AGC)
+		{
 			core->chroma_agc = vc;
+		}
 	}
+
 	v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl, NULL);
 
 	/* load and configure helper modules */
 
-	if (core->board.audio_chip == CX88_AUDIO_WM8775) {
-		struct i2c_board_info wm8775_info = {
+	if (core->board.audio_chip == CX88_AUDIO_WM8775)
+	{
+		struct i2c_board_info wm8775_info =
+		{
 			.type = "wm8775",
 			.addr = 0x36 >> 1,
 			.platform_data = &core->wm8775_data,
@@ -1378,38 +1582,49 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
 		struct v4l2_subdev *sd;
 
 		if (core->boardnr == CX88_BOARD_HAUPPAUGE_NOVASPLUS_S1)
+		{
 			core->wm8775_data.is_nova_s = true;
+		}
 		else
+		{
 			core->wm8775_data.is_nova_s = false;
+		}
 
 		sd = v4l2_i2c_new_subdev_board(&core->v4l2_dev, &core->i2c_adap,
-				&wm8775_info, NULL);
-		if (sd != NULL) {
+									   &wm8775_info, NULL);
+
+		if (sd != NULL)
+		{
 			core->sd_wm8775 = sd;
 			sd->grp_id = WM8775_GID;
 		}
 	}
 
-	if (core->board.audio_chip == CX88_AUDIO_TVAUDIO) {
+	if (core->board.audio_chip == CX88_AUDIO_TVAUDIO)
+	{
 		/* This probes for a tda9874 as is used on some
 		   Pixelview Ultra boards. */
 		v4l2_i2c_new_subdev(&core->v4l2_dev, &core->i2c_adap,
-				"tvaudio", 0, I2C_ADDRS(0xb0 >> 1));
+							"tvaudio", 0, I2C_ADDRS(0xb0 >> 1));
 	}
 
-	switch (core->boardnr) {
-	case CX88_BOARD_DVICO_FUSIONHDTV_5_GOLD:
-	case CX88_BOARD_DVICO_FUSIONHDTV_7_GOLD: {
-		static const struct i2c_board_info rtc_info = {
-			I2C_BOARD_INFO("isl1208", 0x6f)
-		};
+	switch (core->boardnr)
+	{
+		case CX88_BOARD_DVICO_FUSIONHDTV_5_GOLD:
+		case CX88_BOARD_DVICO_FUSIONHDTV_7_GOLD:
+			{
+				static const struct i2c_board_info rtc_info =
+				{
+					I2C_BOARD_INFO("isl1208", 0x6f)
+				};
 
-		request_module("rtc-isl1208");
-		core->i2c_rtc = i2c_new_device(&core->i2c_adap, &rtc_info);
-	}
+				request_module("rtc-isl1208");
+				core->i2c_rtc = i2c_new_device(&core->i2c_adap, &rtc_info);
+			}
+
 		/* break intentionally omitted */
-	case CX88_BOARD_DVICO_FUSIONHDTV_5_PCI_NANO:
-		request_module("ir-kbd-i2c");
+		case CX88_BOARD_DVICO_FUSIONHDTV_5_PCI_NANO:
+			request_module("ir-kbd-i2c");
 	}
 
 	/* Sets device info at pci_dev */
@@ -1441,8 +1656,11 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
 	q->dev = &dev->pci->dev;
 
 	err = vb2_queue_init(q);
+
 	if (err < 0)
+	{
 		goto fail_unreg;
+	}
 
 	q = &dev->vb2_vbiq;
 	q->type = V4L2_BUF_TYPE_VBI_CAPTURE;
@@ -1458,64 +1676,81 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
 	q->dev = &dev->pci->dev;
 
 	err = vb2_queue_init(q);
+
 	if (err < 0)
+	{
 		goto fail_unreg;
+	}
 
 	/* register v4l devices */
 	cx88_vdev_init(core, dev->pci, &dev->video_dev,
-		       &cx8800_video_template, "video");
+				   &cx8800_video_template, "video");
 	video_set_drvdata(&dev->video_dev, dev);
 	dev->video_dev.ctrl_handler = &core->video_hdl;
 	dev->video_dev.queue = &dev->vb2_vidq;
 	err = video_register_device(&dev->video_dev, VFL_TYPE_GRABBER,
-				    video_nr[core->nr]);
-	if (err < 0) {
+								video_nr[core->nr]);
+
+	if (err < 0)
+	{
 		printk(KERN_ERR "%s/0: can't register video device\n",
-		       core->name);
+			   core->name);
 		goto fail_unreg;
 	}
+
 	printk(KERN_INFO "%s/0: registered device %s [v4l2]\n",
-	       core->name, video_device_node_name(&dev->video_dev));
+		   core->name, video_device_node_name(&dev->video_dev));
 
 	cx88_vdev_init(core, dev->pci, &dev->vbi_dev,
-		       &cx8800_vbi_template, "vbi");
+				   &cx8800_vbi_template, "vbi");
 	video_set_drvdata(&dev->vbi_dev, dev);
 	dev->vbi_dev.queue = &dev->vb2_vbiq;
 	err = video_register_device(&dev->vbi_dev, VFL_TYPE_VBI,
-				    vbi_nr[core->nr]);
-	if (err < 0) {
+								vbi_nr[core->nr]);
+
+	if (err < 0)
+	{
 		printk(KERN_ERR "%s/0: can't register vbi device\n",
-		       core->name);
+			   core->name);
 		goto fail_unreg;
 	}
-	printk(KERN_INFO "%s/0: registered device %s\n",
-	       core->name, video_device_node_name(&dev->vbi_dev));
 
-	if (core->board.radio.type == CX88_RADIO) {
+	printk(KERN_INFO "%s/0: registered device %s\n",
+		   core->name, video_device_node_name(&dev->vbi_dev));
+
+	if (core->board.radio.type == CX88_RADIO)
+	{
 		cx88_vdev_init(core, dev->pci, &dev->radio_dev,
-			       &cx8800_radio_template, "radio");
+					   &cx8800_radio_template, "radio");
 		video_set_drvdata(&dev->radio_dev, dev);
 		dev->radio_dev.ctrl_handler = &core->audio_hdl;
 		err = video_register_device(&dev->radio_dev, VFL_TYPE_RADIO,
-					    radio_nr[core->nr]);
-		if (err < 0) {
+									radio_nr[core->nr]);
+
+		if (err < 0)
+		{
 			printk(KERN_ERR "%s/0: can't register radio device\n",
-			       core->name);
+				   core->name);
 			goto fail_unreg;
 		}
+
 		printk(KERN_INFO "%s/0: registered device %s\n",
-		       core->name, video_device_node_name(&dev->radio_dev));
+			   core->name, video_device_node_name(&dev->radio_dev));
 	}
 
 	/* start tvaudio thread */
-	if (core->board.tuner_type != UNSET) {
+	if (core->board.tuner_type != UNSET)
+	{
 		core->kthread = kthread_run(cx88_audio_thread, core, "cx88 tvaudio");
-		if (IS_ERR(core->kthread)) {
+
+		if (IS_ERR(core->kthread))
+		{
 			err = PTR_ERR(core->kthread);
 			printk(KERN_ERR "%s/0: failed to create cx88 audio thread, err=%d\n",
-			       core->name, err);
+				   core->name, err);
 		}
 	}
+
 	mutex_unlock(&core->lock);
 
 	return 0;
@@ -1526,7 +1761,7 @@ fail_unreg:
 	mutex_unlock(&core->lock);
 fail_core:
 	core->v4ldev = NULL;
-	cx88_core_put(core,dev->pci);
+	cx88_core_put(core, dev->pci);
 fail_free:
 	kfree(dev);
 	return err;
@@ -1538,13 +1773,16 @@ static void cx8800_finidev(struct pci_dev *pci_dev)
 	struct cx88_core *core = dev->core;
 
 	/* stop thread */
-	if (core->kthread) {
+	if (core->kthread)
+	{
 		kthread_stop(core->kthread);
 		core->kthread = NULL;
 	}
 
 	if (core->ir)
+	{
 		cx88_ir_stop(core);
+	}
 
 	cx88_shutdown(core); /* FIXME */
 
@@ -1557,7 +1795,7 @@ static void cx8800_finidev(struct pci_dev *pci_dev)
 	core->v4ldev = NULL;
 
 	/* free memory */
-	cx88_core_put(core,dev->pci);
+	cx88_core_put(core, dev->pci);
 	kfree(dev);
 }
 
@@ -1570,26 +1808,37 @@ static int cx8800_suspend(struct pci_dev *pci_dev, pm_message_t state)
 
 	/* stop video+vbi capture */
 	spin_lock_irqsave(&dev->slock, flags);
-	if (!list_empty(&dev->vidq.active)) {
+
+	if (!list_empty(&dev->vidq.active))
+	{
 		printk("%s/0: suspend video\n", core->name);
 		stop_video_dma(dev);
 	}
-	if (!list_empty(&dev->vbiq.active)) {
+
+	if (!list_empty(&dev->vbiq.active))
+	{
 		printk("%s/0: suspend vbi\n", core->name);
 		cx8800_stop_vbi_dma(dev);
 	}
+
 	spin_unlock_irqrestore(&dev->slock, flags);
 
 	if (core->ir)
+	{
 		cx88_ir_stop(core);
+	}
+
 	/* FIXME -- shutdown device */
 	cx88_shutdown(core);
 
 	pci_save_state(pci_dev);
-	if (0 != pci_set_power_state(pci_dev, pci_choose_state(pci_dev, state))) {
+
+	if (0 != pci_set_power_state(pci_dev, pci_choose_state(pci_dev, state)))
+	{
 		pci_disable_device(pci_dev);
 		dev->state.disabled = 1;
 	}
+
 	return 0;
 }
 
@@ -1600,43 +1849,58 @@ static int cx8800_resume(struct pci_dev *pci_dev)
 	unsigned long flags;
 	int err;
 
-	if (dev->state.disabled) {
-		err=pci_enable_device(pci_dev);
-		if (err) {
+	if (dev->state.disabled)
+	{
+		err = pci_enable_device(pci_dev);
+
+		if (err)
+		{
 			printk(KERN_ERR "%s/0: can't enable device\n",
-			       core->name);
+				   core->name);
 			return err;
 		}
 
 		dev->state.disabled = 0;
 	}
-	err= pci_set_power_state(pci_dev, PCI_D0);
-	if (err) {
+
+	err = pci_set_power_state(pci_dev, PCI_D0);
+
+	if (err)
+	{
 		printk(KERN_ERR "%s/0: can't set power state\n", core->name);
 		pci_disable_device(pci_dev);
 		dev->state.disabled = 1;
 
 		return err;
 	}
+
 	pci_restore_state(pci_dev);
 
 	/* FIXME: re-initialize hardware */
 	cx88_reset(core);
+
 	if (core->ir)
+	{
 		cx88_ir_start(core);
+	}
 
 	cx_set(MO_PCI_INTMSK, core->pci_irqmask);
 
 	/* restart video+vbi capture */
 	spin_lock_irqsave(&dev->slock, flags);
-	if (!list_empty(&dev->vidq.active)) {
+
+	if (!list_empty(&dev->vidq.active))
+	{
 		printk("%s/0: resume video\n", core->name);
-		restart_video_queue(dev,&dev->vidq);
+		restart_video_queue(dev, &dev->vidq);
 	}
-	if (!list_empty(&dev->vbiq.active)) {
+
+	if (!list_empty(&dev->vbiq.active))
+	{
 		printk("%s/0: resume vbi\n", core->name);
-		cx8800_restart_vbi_queue(dev,&dev->vbiq);
+		cx8800_restart_vbi_queue(dev, &dev->vbiq);
 	}
+
 	spin_unlock_irqrestore(&dev->slock, flags);
 
 	return 0;
@@ -1645,19 +1909,21 @@ static int cx8800_resume(struct pci_dev *pci_dev)
 
 /* ----------------------------------------------------------- */
 
-static const struct pci_device_id cx8800_pci_tbl[] = {
+static const struct pci_device_id cx8800_pci_tbl[] =
+{
 	{
 		.vendor       = 0x14f1,
 		.device       = 0x8800,
 		.subvendor    = PCI_ANY_ID,
 		.subdevice    = PCI_ANY_ID,
-	},{
+	}, {
 		/* --- end of list --- */
 	}
 };
 MODULE_DEVICE_TABLE(pci, cx8800_pci_tbl);
 
-static struct pci_driver cx8800_pci_driver = {
+static struct pci_driver cx8800_pci_driver =
+{
 	.name     = "cx8800",
 	.id_table = cx8800_pci_tbl,
 	.probe    = cx8800_initdev,

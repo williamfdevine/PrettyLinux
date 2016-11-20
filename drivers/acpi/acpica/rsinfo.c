@@ -59,7 +59,8 @@ ACPI_MODULE_NAME("rsinfo")
  * descriptors are indexed by the acpi_resource_type field.
  */
 /* Dispatch table for resource-to-AML (Set Resource) conversion functions */
-struct acpi_rsconvert_info *acpi_gbl_set_resource_dispatch[] = {
+struct acpi_rsconvert_info *acpi_gbl_set_resource_dispatch[] =
+{
 	acpi_rs_set_irq,	/* 0x00, ACPI_RESOURCE_TYPE_IRQ */
 	acpi_rs_convert_dma,	/* 0x01, ACPI_RESOURCE_TYPE_DMA */
 	acpi_rs_set_start_dpf,	/* 0x02, ACPI_RESOURCE_TYPE_START_DEPENDENT */
@@ -84,7 +85,8 @@ struct acpi_rsconvert_info *acpi_gbl_set_resource_dispatch[] = {
 
 /* Dispatch tables for AML-to-resource (Get Resource) conversion functions */
 
-struct acpi_rsconvert_info *acpi_gbl_get_resource_dispatch[] = {
+struct acpi_rsconvert_info *acpi_gbl_get_resource_dispatch[] =
+{
 	/* Small descriptors */
 
 	NULL,			/* 0x00, Reserved */
@@ -125,7 +127,8 @@ struct acpi_rsconvert_info *acpi_gbl_get_resource_dispatch[] = {
 
 /* Subtype table for serial_bus -- I2C, SPI, and UART */
 
-struct acpi_rsconvert_info *acpi_gbl_convert_resource_serial_bus_dispatch[] = {
+struct acpi_rsconvert_info *acpi_gbl_convert_resource_serial_bus_dispatch[] =
+{
 	NULL,
 	acpi_rs_convert_i2c_serial_bus,
 	acpi_rs_convert_spi_serial_bus,
@@ -136,7 +139,8 @@ struct acpi_rsconvert_info *acpi_gbl_convert_resource_serial_bus_dispatch[] = {
 
 /* Dispatch table for resource dump functions */
 
-struct acpi_rsdump_info *acpi_gbl_dump_resource_dispatch[] = {
+struct acpi_rsdump_info *acpi_gbl_dump_resource_dispatch[] =
+{
 	acpi_rs_dump_irq,	/* ACPI_RESOURCE_TYPE_IRQ */
 	acpi_rs_dump_dma,	/* ACPI_RESOURCE_TYPE_DMA */
 	acpi_rs_dump_start_dpf,	/* ACPI_RESOURCE_TYPE_START_DEPENDENT */
@@ -159,7 +163,8 @@ struct acpi_rsdump_info *acpi_gbl_dump_resource_dispatch[] = {
 	NULL,			/* ACPI_RESOURCE_TYPE_SERIAL_BUS */
 };
 
-struct acpi_rsdump_info *acpi_gbl_dump_serial_bus_dispatch[] = {
+struct acpi_rsdump_info *acpi_gbl_dump_serial_bus_dispatch[] =
+{
 	NULL,
 	acpi_rs_dump_i2c_serial_bus,	/* AML_RESOURCE_I2C_BUS_TYPE */
 	acpi_rs_dump_spi_serial_bus,	/* AML_RESOURCE_SPI_BUS_TYPE */
@@ -172,7 +177,8 @@ struct acpi_rsdump_info *acpi_gbl_dump_serial_bus_dispatch[] = {
  * Includes size of the descriptor header (1 byte for small descriptors,
  * 3 bytes for large descriptors)
  */
-const u8 acpi_gbl_aml_resource_sizes[] = {
+const u8 acpi_gbl_aml_resource_sizes[] =
+{
 	sizeof(struct aml_resource_irq),	/* ACPI_RESOURCE_TYPE_IRQ (optional Byte 3 always created) */
 	sizeof(struct aml_resource_dma),	/* ACPI_RESOURCE_TYPE_DMA */
 	sizeof(struct aml_resource_start_dependent),	/* ACPI_RESOURCE_TYPE_START_DEPENDENT (optional Byte 1 always created) */
@@ -195,7 +201,8 @@ const u8 acpi_gbl_aml_resource_sizes[] = {
 	sizeof(struct aml_resource_common_serialbus),	/* ACPI_RESOURCE_TYPE_SERIAL_BUS */
 };
 
-const u8 acpi_gbl_resource_struct_sizes[] = {
+const u8 acpi_gbl_resource_struct_sizes[] =
+{
 	/* Small descriptors */
 
 	0,
@@ -233,14 +240,16 @@ const u8 acpi_gbl_resource_struct_sizes[] = {
 	ACPI_RS_SIZE(struct acpi_resource_common_serialbus)
 };
 
-const u8 acpi_gbl_aml_resource_serial_bus_sizes[] = {
+const u8 acpi_gbl_aml_resource_serial_bus_sizes[] =
+{
 	0,
 	sizeof(struct aml_resource_i2c_serialbus),
 	sizeof(struct aml_resource_spi_serialbus),
 	sizeof(struct aml_resource_uart_serialbus),
 };
 
-const u8 acpi_gbl_resource_struct_serial_bus_sizes[] = {
+const u8 acpi_gbl_resource_struct_serial_bus_sizes[] =
+{
 	0,
 	ACPI_RS_SIZE(struct acpi_resource_i2c_serialbus),
 	ACPI_RS_SIZE(struct acpi_resource_spi_serialbus),

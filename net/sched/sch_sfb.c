@@ -39,7 +39,8 @@
 #define SFB_LEVELS	(32 / SFB_BUCKET_SHIFT) /* L */
 
 /* SFB algo uses a virtual queue, named "bin" */
-struct sfb_bucket {
+struct sfb_bucket
+{
 	u16		qlen; /* length of virtual queue */
 	u16		p_mark; /* marking probability */
 };
@@ -47,12 +48,14 @@ struct sfb_bucket {
 /* We use a double buffering right before hash change
  * (Section 4.4 of SFB reference : moving hash functions)
  */
-struct sfb_bins {
+struct sfb_bins
+{
 	u32		  perturbation; /* jhash perturbation */
 	struct sfb_bucket bins[SFB_LEVELS][SFB_NUMBUCKETS];
 };
 
-struct sfb_sched_data {
+struct sfb_sched_data
+{
 	struct Qdisc	*qdisc;
 	struct tcf_proto __rcu *filter_list;
 	unsigned long	rehash_interval;
@@ -72,7 +75,8 @@ struct sfb_sched_data {
 	bool		double_buffering;
 	struct sfb_bins bins[2];
 
-	struct {
+	struct
+	{
 		u32	earlydrop;
 		u32	penaltydrop;
 		u32	bucketdrop;
@@ -87,7 +91,8 @@ struct sfb_sched_data {
  * We store in skb_cb the two hash values.
  * (A zero value means double buffering was not used)
  */
-struct sfb_skb_cb {
+struct sfb_skb_cb
+{
 	u32 hashes[2];
 };
 
@@ -127,12 +132,17 @@ static void increment_one_qlen(u32 sfbhash, u32 slot, struct sfb_sched_data *q)
 	int i;
 	struct sfb_bucket *b = &q->bins[slot].bins[0][0];
 
-	for (i = 0; i < SFB_LEVELS; i++) {
+	for (i = 0; i < SFB_LEVELS; i++)
+	{
 		u32 hash = sfbhash & SFB_BUCKET_MASK;
 
 		sfbhash >>= SFB_BUCKET_SHIFT;
+
 		if (b[hash].qlen < 0xFFFF)
+		{
 			b[hash].qlen++;
+		}
+
 		b += SFB_NUMBUCKETS; /* next level */
 	}
 }
@@ -142,26 +152,37 @@ static void increment_qlen(const struct sk_buff *skb, struct sfb_sched_data *q)
 	u32 sfbhash;
 
 	sfbhash = sfb_hash(skb, 0);
+
 	if (sfbhash)
+	{
 		increment_one_qlen(sfbhash, 0, q);
+	}
 
 	sfbhash = sfb_hash(skb, 1);
+
 	if (sfbhash)
+	{
 		increment_one_qlen(sfbhash, 1, q);
+	}
 }
 
 static void decrement_one_qlen(u32 sfbhash, u32 slot,
-			       struct sfb_sched_data *q)
+							   struct sfb_sched_data *q)
 {
 	int i;
 	struct sfb_bucket *b = &q->bins[slot].bins[0][0];
 
-	for (i = 0; i < SFB_LEVELS; i++) {
+	for (i = 0; i < SFB_LEVELS; i++)
+	{
 		u32 hash = sfbhash & SFB_BUCKET_MASK;
 
 		sfbhash >>= SFB_BUCKET_SHIFT;
+
 		if (b[hash].qlen > 0)
+		{
 			b[hash].qlen--;
+		}
+
 		b += SFB_NUMBUCKETS; /* next level */
 	}
 }
@@ -171,12 +192,18 @@ static void decrement_qlen(const struct sk_buff *skb, struct sfb_sched_data *q)
 	u32 sfbhash;
 
 	sfbhash = sfb_hash(skb, 0);
+
 	if (sfbhash)
+	{
 		decrement_one_qlen(sfbhash, 0, q);
+	}
 
 	sfbhash = sfb_hash(skb, 1);
+
 	if (sfbhash)
+	{
 		decrement_one_qlen(sfbhash, 1, q);
+	}
 }
 
 static void decrement_prob(struct sfb_bucket *b, struct sfb_sched_data *q)
@@ -203,14 +230,23 @@ static u32 sfb_compute_qlen(u32 *prob_r, u32 *avgpm_r, const struct sfb_sched_da
 	u32 qlen = 0, prob = 0, totalpm = 0;
 	const struct sfb_bucket *b = &q->bins[q->slot].bins[0][0];
 
-	for (i = 0; i < SFB_LEVELS * SFB_NUMBUCKETS; i++) {
+	for (i = 0; i < SFB_LEVELS * SFB_NUMBUCKETS; i++)
+	{
 		if (qlen < b->qlen)
+		{
 			qlen = b->qlen;
+		}
+
 		totalpm += b->p_mark;
+
 		if (prob < b->p_mark)
+		{
 			prob = b->p_mark;
+		}
+
 		b++;
 	}
+
 	*prob_r = prob;
 	*avgpm_r = totalpm / (SFB_LEVELS * SFB_NUMBUCKETS);
 	return qlen;
@@ -235,17 +271,27 @@ static void sfb_swap_slot(struct sfb_sched_data *q)
 static bool sfb_rate_limit(struct sk_buff *skb, struct sfb_sched_data *q)
 {
 	if (q->penalty_rate == 0 || q->penalty_burst == 0)
+	{
 		return true;
+	}
 
-	if (q->tokens_avail < 1) {
+	if (q->tokens_avail < 1)
+	{
 		unsigned long age = min(10UL * HZ, jiffies - q->token_time);
 
 		q->tokens_avail = (age * q->penalty_rate) / HZ;
+
 		if (q->tokens_avail > q->penalty_burst)
+		{
 			q->tokens_avail = q->penalty_burst;
+		}
+
 		q->token_time = jiffies;
+
 		if (q->tokens_avail < 1)
+		{
 			return true;
+		}
 	}
 
 	q->tokens_avail--;
@@ -253,30 +299,37 @@ static bool sfb_rate_limit(struct sk_buff *skb, struct sfb_sched_data *q)
 }
 
 static bool sfb_classify(struct sk_buff *skb, struct tcf_proto *fl,
-			 int *qerr, u32 *salt)
+						 int *qerr, u32 *salt)
 {
 	struct tcf_result res;
 	int result;
 
 	result = tc_classify(skb, fl, &res, false);
-	if (result >= 0) {
+
+	if (result >= 0)
+	{
 #ifdef CONFIG_NET_CLS_ACT
-		switch (result) {
-		case TC_ACT_STOLEN:
-		case TC_ACT_QUEUED:
-			*qerr = NET_XMIT_SUCCESS | __NET_XMIT_STOLEN;
-		case TC_ACT_SHOT:
-			return false;
+
+		switch (result)
+		{
+			case TC_ACT_STOLEN:
+			case TC_ACT_QUEUED:
+				*qerr = NET_XMIT_SUCCESS | __NET_XMIT_STOLEN;
+
+			case TC_ACT_SHOT:
+				return false;
 		}
+
 #endif
 		*salt = TC_H_MIN(res.classid);
 		return true;
 	}
+
 	return false;
 }
 
 static int sfb_enqueue(struct sk_buff *skb, struct Qdisc *sch,
-		       struct sk_buff **to_free)
+					   struct sk_buff **to_free)
 {
 
 	struct sfb_sched_data *q = qdisc_priv(sch);
@@ -289,109 +342,159 @@ static int sfb_enqueue(struct sk_buff *skb, struct Qdisc *sch,
 	u32 slot = q->slot;
 	int ret = NET_XMIT_SUCCESS | __NET_XMIT_BYPASS;
 
-	if (unlikely(sch->q.qlen >= q->limit)) {
+	if (unlikely(sch->q.qlen >= q->limit))
+	{
 		qdisc_qstats_overlimit(sch);
 		q->stats.queuedrop++;
 		goto drop;
 	}
 
-	if (q->rehash_interval > 0) {
+	if (q->rehash_interval > 0)
+	{
 		unsigned long limit = q->rehash_time + q->rehash_interval;
 
-		if (unlikely(time_after(jiffies, limit))) {
+		if (unlikely(time_after(jiffies, limit)))
+		{
 			sfb_swap_slot(q);
 			q->rehash_time = jiffies;
-		} else if (unlikely(!q->double_buffering && q->warmup_time > 0 &&
-				    time_after(jiffies, limit - q->warmup_time))) {
+		}
+		else if (unlikely(!q->double_buffering && q->warmup_time > 0 &&
+						  time_after(jiffies, limit - q->warmup_time)))
+		{
 			q->double_buffering = true;
 		}
 	}
 
 	fl = rcu_dereference_bh(q->filter_list);
-	if (fl) {
+
+	if (fl)
+	{
 		u32 salt;
 
 		/* If using external classifiers, get result and record it. */
 		if (!sfb_classify(skb, fl, &ret, &salt))
+		{
 			goto other_drop;
+		}
+
 		sfbhash = jhash_1word(salt, q->bins[slot].perturbation);
-	} else {
+	}
+	else
+	{
 		sfbhash = skb_get_hash_perturb(skb, q->bins[slot].perturbation);
 	}
 
 
 	if (!sfbhash)
+	{
 		sfbhash = 1;
+	}
+
 	sfb_skb_cb(skb)->hashes[slot] = sfbhash;
 
-	for (i = 0; i < SFB_LEVELS; i++) {
+	for (i = 0; i < SFB_LEVELS; i++)
+	{
 		u32 hash = sfbhash & SFB_BUCKET_MASK;
 		struct sfb_bucket *b = &q->bins[slot].bins[i][hash];
 
 		sfbhash >>= SFB_BUCKET_SHIFT;
+
 		if (b->qlen == 0)
+		{
 			decrement_prob(b, q);
+		}
 		else if (b->qlen >= q->bin_size)
+		{
 			increment_prob(b, q);
+		}
+
 		if (minqlen > b->qlen)
+		{
 			minqlen = b->qlen;
+		}
+
 		if (p_min > b->p_mark)
+		{
 			p_min = b->p_mark;
+		}
 	}
 
 	slot ^= 1;
 	sfb_skb_cb(skb)->hashes[slot] = 0;
 
-	if (unlikely(minqlen >= q->max)) {
+	if (unlikely(minqlen >= q->max))
+	{
 		qdisc_qstats_overlimit(sch);
 		q->stats.bucketdrop++;
 		goto drop;
 	}
 
-	if (unlikely(p_min >= SFB_MAX_PROB)) {
+	if (unlikely(p_min >= SFB_MAX_PROB))
+	{
 		/* Inelastic flow */
-		if (q->double_buffering) {
+		if (q->double_buffering)
+		{
 			sfbhash = skb_get_hash_perturb(skb,
-			    q->bins[slot].perturbation);
+										   q->bins[slot].perturbation);
+
 			if (!sfbhash)
+			{
 				sfbhash = 1;
+			}
+
 			sfb_skb_cb(skb)->hashes[slot] = sfbhash;
 
-			for (i = 0; i < SFB_LEVELS; i++) {
+			for (i = 0; i < SFB_LEVELS; i++)
+			{
 				u32 hash = sfbhash & SFB_BUCKET_MASK;
 				struct sfb_bucket *b = &q->bins[slot].bins[i][hash];
 
 				sfbhash >>= SFB_BUCKET_SHIFT;
+
 				if (b->qlen == 0)
+				{
 					decrement_prob(b, q);
+				}
 				else if (b->qlen >= q->bin_size)
+				{
 					increment_prob(b, q);
+				}
 			}
 		}
-		if (sfb_rate_limit(skb, q)) {
+
+		if (sfb_rate_limit(skb, q))
+		{
 			qdisc_qstats_overlimit(sch);
 			q->stats.penaltydrop++;
 			goto drop;
 		}
+
 		goto enqueue;
 	}
 
 	r = prandom_u32() & SFB_MAX_PROB;
 
-	if (unlikely(r < p_min)) {
-		if (unlikely(p_min > SFB_MAX_PROB / 2)) {
+	if (unlikely(r < p_min))
+	{
+		if (unlikely(p_min > SFB_MAX_PROB / 2))
+		{
 			/* If we're marking that many packets, then either
 			 * this flow is unresponsive, or we're badly congested.
 			 * In either case, we want to start dropping packets.
 			 */
-			if (r < (p_min - SFB_MAX_PROB / 2) * 2) {
+			if (r < (p_min - SFB_MAX_PROB / 2) * 2)
+			{
 				q->stats.earlydrop++;
 				goto drop;
 			}
 		}
-		if (INET_ECN_set_ce(skb)) {
+
+		if (INET_ECN_set_ce(skb))
+		{
 			q->stats.marked++;
-		} else {
+		}
+		else
+		{
 			q->stats.earlydrop++;
 			goto drop;
 		}
@@ -399,22 +502,31 @@ static int sfb_enqueue(struct sk_buff *skb, struct Qdisc *sch,
 
 enqueue:
 	ret = qdisc_enqueue(skb, child, to_free);
-	if (likely(ret == NET_XMIT_SUCCESS)) {
+
+	if (likely(ret == NET_XMIT_SUCCESS))
+	{
 		qdisc_qstats_backlog_inc(sch, skb);
 		sch->q.qlen++;
 		increment_qlen(skb, q);
-	} else if (net_xmit_drop_count(ret)) {
+	}
+	else if (net_xmit_drop_count(ret))
+	{
 		q->stats.childdrop++;
 		qdisc_qstats_drop(sch);
 	}
+
 	return ret;
 
 drop:
 	qdisc_drop(skb, sch, to_free);
 	return NET_XMIT_CN;
 other_drop:
+
 	if (ret & __NET_XMIT_BYPASS)
+	{
 		qdisc_qstats_drop(sch);
+	}
+
 	kfree_skb(skb);
 	return ret;
 }
@@ -427,7 +539,8 @@ static struct sk_buff *sfb_dequeue(struct Qdisc *sch)
 
 	skb = child->dequeue(q->qdisc);
 
-	if (skb) {
+	if (skb)
+	{
 		qdisc_bstats_update(sch, skb);
 		qdisc_qstats_backlog_dec(sch, skb);
 		sch->q.qlen--;
@@ -468,11 +581,13 @@ static void sfb_destroy(struct Qdisc *sch)
 	qdisc_destroy(q->qdisc);
 }
 
-static const struct nla_policy sfb_policy[TCA_SFB_MAX + 1] = {
+static const struct nla_policy sfb_policy[TCA_SFB_MAX + 1] =
+{
 	[TCA_SFB_PARMS]	= { .len = sizeof(struct tc_sfb_qopt) },
 };
 
-static const struct tc_sfb_qopt sfb_default_ops = {
+static const struct tc_sfb_qopt sfb_default_ops =
+{
 	.rehash_interval = 600 * MSEC_PER_SEC,
 	.warmup_time = 60 * MSEC_PER_SEC,
 	.limit = 0,
@@ -493,29 +608,41 @@ static int sfb_change(struct Qdisc *sch, struct nlattr *opt)
 	u32 limit;
 	int err;
 
-	if (opt) {
+	if (opt)
+	{
 		err = nla_parse_nested(tb, TCA_SFB_MAX, opt, sfb_policy);
+
 		if (err < 0)
+		{
 			return -EINVAL;
+		}
 
 		if (tb[TCA_SFB_PARMS] == NULL)
+		{
 			return -EINVAL;
+		}
 
 		ctl = nla_data(tb[TCA_SFB_PARMS]);
 	}
 
 	limit = ctl->limit;
+
 	if (limit == 0)
+	{
 		limit = qdisc_dev(sch)->tx_queue_len;
+	}
 
 	child = fifo_create_dflt(sch, &pfifo_qdisc_ops, limit);
+
 	if (IS_ERR(child))
+	{
 		return PTR_ERR(child);
+	}
 
 	sch_tree_lock(sch);
 
 	qdisc_tree_reduce_backlog(q->qdisc, q->qdisc->q.qlen,
-				  q->qdisc->qstats.backlog);
+							  q->qdisc->qstats.backlog);
 	qdisc_destroy(q->qdisc);
 	q->qdisc = child;
 
@@ -555,7 +682,8 @@ static int sfb_dump(struct Qdisc *sch, struct sk_buff *skb)
 {
 	struct sfb_sched_data *q = qdisc_priv(sch);
 	struct nlattr *opts;
-	struct tc_sfb_qopt opt = {
+	struct tc_sfb_qopt opt =
+	{
 		.rehash_interval = jiffies_to_msecs(q->rehash_interval),
 		.warmup_time = jiffies_to_msecs(q->warmup_time),
 		.limit = q->limit,
@@ -569,10 +697,17 @@ static int sfb_dump(struct Qdisc *sch, struct sk_buff *skb)
 
 	sch->qstats.backlog = q->qdisc->qstats.backlog;
 	opts = nla_nest_start(skb, TCA_OPTIONS);
+
 	if (opts == NULL)
+	{
 		goto nla_put_failure;
+	}
+
 	if (nla_put(skb, TCA_SFB_PARMS, sizeof(opt), &opt))
+	{
 		goto nla_put_failure;
+	}
+
 	return nla_nest_end(skb, opts);
 
 nla_put_failure:
@@ -583,7 +718,8 @@ nla_put_failure:
 static int sfb_dump_stats(struct Qdisc *sch, struct gnet_dump *d)
 {
 	struct sfb_sched_data *q = qdisc_priv(sch);
-	struct tc_sfb_xstats st = {
+	struct tc_sfb_xstats st =
+	{
 		.earlydrop = q->stats.earlydrop,
 		.penaltydrop = q->stats.penaltydrop,
 		.bucketdrop = q->stats.bucketdrop,
@@ -598,18 +734,20 @@ static int sfb_dump_stats(struct Qdisc *sch, struct gnet_dump *d)
 }
 
 static int sfb_dump_class(struct Qdisc *sch, unsigned long cl,
-			  struct sk_buff *skb, struct tcmsg *tcm)
+						  struct sk_buff *skb, struct tcmsg *tcm)
 {
 	return -ENOSYS;
 }
 
 static int sfb_graft(struct Qdisc *sch, unsigned long arg, struct Qdisc *new,
-		     struct Qdisc **old)
+					 struct Qdisc **old)
 {
 	struct sfb_sched_data *q = qdisc_priv(sch);
 
 	if (new == NULL)
+	{
 		new = &noop_qdisc;
+	}
 
 	*old = qdisc_replace(sch, new, &q->qdisc);
 	return 0;
@@ -632,7 +770,7 @@ static void sfb_put(struct Qdisc *sch, unsigned long arg)
 }
 
 static int sfb_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
-			    struct nlattr **tca, unsigned long *arg)
+							struct nlattr **tca, unsigned long *arg)
 {
 	return -ENOSYS;
 }
@@ -644,34 +782,41 @@ static int sfb_delete(struct Qdisc *sch, unsigned long cl)
 
 static void sfb_walk(struct Qdisc *sch, struct qdisc_walker *walker)
 {
-	if (!walker->stop) {
+	if (!walker->stop)
+	{
 		if (walker->count >= walker->skip)
-			if (walker->fn(sch, 1, walker) < 0) {
+			if (walker->fn(sch, 1, walker) < 0)
+			{
 				walker->stop = 1;
 				return;
 			}
+
 		walker->count++;
 	}
 }
 
 static struct tcf_proto __rcu **sfb_find_tcf(struct Qdisc *sch,
-					     unsigned long cl)
+		unsigned long cl)
 {
 	struct sfb_sched_data *q = qdisc_priv(sch);
 
 	if (cl)
+	{
 		return NULL;
+	}
+
 	return &q->filter_list;
 }
 
 static unsigned long sfb_bind(struct Qdisc *sch, unsigned long parent,
-			      u32 classid)
+							  u32 classid)
 {
 	return 0;
 }
 
 
-static const struct Qdisc_class_ops sfb_class_ops = {
+static const struct Qdisc_class_ops sfb_class_ops =
+{
 	.graft		=	sfb_graft,
 	.leaf		=	sfb_leaf,
 	.get		=	sfb_get,
@@ -685,7 +830,8 @@ static const struct Qdisc_class_ops sfb_class_ops = {
 	.dump		=	sfb_dump_class,
 };
 
-static struct Qdisc_ops sfb_qdisc_ops __read_mostly = {
+static struct Qdisc_ops sfb_qdisc_ops __read_mostly =
+{
 	.id		=	"sfb",
 	.priv_size	=	sizeof(struct sfb_sched_data),
 	.cl_ops		=	&sfb_class_ops,

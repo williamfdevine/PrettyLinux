@@ -118,10 +118,11 @@
 #define MV_U3D_EP_DIR_IN		1
 #define MV_U3D_EP_DIR_OUT		0
 #define mv_u3d_ep_dir(ep)	(((ep)->ep_num == 0) ? \
-				((ep)->u3d->ep0_dir) : ((ep)->direction))
+							 ((ep)->u3d->ep0_dir) : ((ep)->direction))
 
 /* usb capability registers */
-struct mv_u3d_cap_regs {
+struct mv_u3d_cap_regs
+{
 	u32	rsvd[5];
 	u32	dboff;	/* doorbell register offset */
 	u32	rtsoff;	/* runtime register offset */
@@ -129,7 +130,8 @@ struct mv_u3d_cap_regs {
 };
 
 /* operation registers */
-struct mv_u3d_op_regs {
+struct mv_u3d_op_regs
+{
 	u32	usbcmd;		/* Command register */
 	u32	rsvd1[11];
 	u32	dcbaapl;	/* Device Context Base Address low register */
@@ -142,7 +144,8 @@ struct mv_u3d_op_regs {
 };
 
 /* control enpoint enable registers */
-struct epxcr {
+struct epxcr
+{
 	u32	epxoutcr0;	/* ep out control 0 register */
 	u32	epxoutcr1;	/* ep out control 1 register */
 	u32	epxincr0;	/* ep in control 0 register */
@@ -150,7 +153,8 @@ struct epxcr {
 };
 
 /* transfer status registers */
-struct xferstatus {
+struct xferstatus
+{
 	u32	curdeqlo;	/* current TRB pointer low */
 	u32	curdeqhi;	/* current TRB pointer high */
 	u32	statuslo;	/* transfer status low */
@@ -158,7 +162,8 @@ struct xferstatus {
 };
 
 /* vendor unique control registers */
-struct mv_u3d_vuc_regs {
+struct mv_u3d_vuc_regs
+{
 	u32	ctrlepenable;	/* control endpoint enable register */
 	u32	setuplock;	/* setup lock register */
 	u32	endcomplete;	/* endpoint transfer complete register */
@@ -194,7 +199,8 @@ struct mv_u3d_vuc_regs {
 };
 
 /* Endpoint context structure */
-struct mv_u3d_ep_context {
+struct mv_u3d_ep_context
+{
 	u32	rsvd0;
 	u32	rsvd1;
 	u32	trb_addr_lo;		/* TRB address low 32 bit */
@@ -205,26 +211,28 @@ struct mv_u3d_ep_context {
 };
 
 /* TRB control data structure */
-struct mv_u3d_trb_ctrl {
-	u32	own:1;		/* owner of TRB */
-	u32	rsvd1:3;
-	u32	chain:1;	/* associate this TRB with the
+struct mv_u3d_trb_ctrl
+{
+	u32	own: 1;		/* owner of TRB */
+	u32	rsvd1: 3;
+	u32	chain: 1;	/* associate this TRB with the
 				next TRB on the Ring */
-	u32	ioc:1;		/* interrupt on complete */
-	u32	rsvd2:4;
-	u32	type:6;		/* TRB type */
+	u32	ioc: 1;		/* interrupt on complete */
+	u32	rsvd2: 4;
+	u32	type: 6;		/* TRB type */
 #define TYPE_NORMAL	1
 #define TYPE_DATA	3
 #define TYPE_LINK	6
-	u32	dir:1;		/* Working at data stage of control endpoint
+	u32	dir: 1;		/* Working at data stage of control endpoint
 				operation. 0 is OUT and 1 is IN. */
-	u32	rsvd3:15;
+	u32	rsvd3: 15;
 };
 
 /* TRB data structure
  * For multiple TRB, all the TRBs' physical address should be continuous.
  */
-struct mv_u3d_trb_hw {
+struct mv_u3d_trb_hw
+{
 	u32	buf_addr_lo;	/* data buffer address low 32 bit */
 	u32	buf_addr_hi;	/* data buffer address high 32 bit */
 	u32	trb_len;	/* transfer length */
@@ -232,14 +240,16 @@ struct mv_u3d_trb_hw {
 };
 
 /* TRB structure */
-struct mv_u3d_trb {
+struct mv_u3d_trb
+{
 	struct mv_u3d_trb_hw *trb_hw;	/* point to the trb_hw structure */
 	dma_addr_t trb_dma;		/* dma address for this trb_hw */
 	struct list_head trb_list;	/* trb list */
 };
 
 /* device data structure */
-struct mv_u3d {
+struct mv_u3d
+{
 	struct usb_gadget		gadget;
 	struct usb_gadget_driver	*driver;
 	spinlock_t			lock;	/* device lock */
@@ -273,12 +283,12 @@ struct mv_u3d {
 
 	unsigned int		errors;
 
-	unsigned		softconnect:1;
-	unsigned		vbus_active:1;	/* vbus is active or not */
-	unsigned		remote_wakeup:1; /* support remote wakeup */
-	unsigned		clock_gating:1;	/* clock gating or not */
-	unsigned		active:1;	/* udc is active or not */
-	unsigned		vbus_valid_detect:1; /* udc vbus detection */
+	unsigned		softconnect: 1;
+	unsigned		vbus_active: 1;	/* vbus is active or not */
+	unsigned		remote_wakeup: 1; /* support remote wakeup */
+	unsigned		clock_gating: 1;	/* clock gating or not */
+	unsigned		active: 1;	/* udc is active or not */
+	unsigned		vbus_valid_detect: 1; /* udc vbus detection */
 
 	struct mv_usb_addon_irq *vbus;
 	unsigned int		power;
@@ -287,7 +297,8 @@ struct mv_u3d {
 };
 
 /* endpoint data structure */
-struct mv_u3d_ep {
+struct mv_u3d_ep
+{
 	struct usb_ep		ep;
 	struct mv_u3d		*u3d;
 	struct list_head	queue;	/* ep request queued hardware */
@@ -298,14 +309,15 @@ struct mv_u3d_ep {
 	u32			processing; /* there is ep request
 						queued on haredware */
 	spinlock_t		req_lock; /* ep lock */
-	unsigned		wedge:1;
-	unsigned		enabled:1;
-	unsigned		ep_type:2;
-	unsigned		ep_num:8;
+	unsigned		wedge: 1;
+	unsigned		enabled: 1;
+	unsigned		ep_type: 2;
+	unsigned		ep_num: 8;
 };
 
 /* request data structure */
-struct mv_u3d_req {
+struct mv_u3d_req
+{
 	struct usb_request	req;
 	struct mv_u3d_ep	*ep;
 	struct list_head	queue;	/* ep requst queued on hardware */

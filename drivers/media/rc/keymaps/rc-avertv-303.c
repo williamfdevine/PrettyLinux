@@ -15,7 +15,8 @@
 
 /* AVERTV STUDIO 303 Remote */
 
-static struct rc_map_table avertv_303[] = {
+static struct rc_map_table avertv_303[] =
+{
 	{ 0x2a, KEY_1 },
 	{ 0x32, KEY_2 },
 	{ 0x3a, KEY_3 },
@@ -60,7 +61,8 @@ static struct rc_map_table avertv_303[] = {
 	{ 0x1b, KEY_UP },
 };
 
-static struct rc_map_list avertv_303_map = {
+static struct rc_map_list avertv_303_map =
+{
 	.map = {
 		.scan    = avertv_303,
 		.size    = ARRAY_SIZE(avertv_303),

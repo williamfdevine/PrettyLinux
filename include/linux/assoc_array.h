@@ -23,7 +23,8 @@
 /*
  * Generic associative array.
  */
-struct assoc_array {
+struct assoc_array
+{
 	struct assoc_array_ptr	*root;		/* The node at the root of the tree */
 	unsigned long		nr_leaves_on_tree;
 };
@@ -31,7 +32,8 @@ struct assoc_array {
 /*
  * Operations on objects and index keys for use by array manipulation routines.
  */
-struct assoc_array_ops {
+struct assoc_array_ops
+{
 	/* Method to get a chunk of an index key from caller-supplied data */
 	unsigned long (*get_key_chunk)(const void *index_key, int level);
 
@@ -62,31 +64,31 @@ static inline void assoc_array_init(struct assoc_array *array)
 }
 
 extern int assoc_array_iterate(const struct assoc_array *array,
-			       int (*iterator)(const void *object,
-					       void *iterator_data),
-			       void *iterator_data);
+							   int (*iterator)(const void *object,
+									   void *iterator_data),
+							   void *iterator_data);
 extern void *assoc_array_find(const struct assoc_array *array,
-			      const struct assoc_array_ops *ops,
-			      const void *index_key);
+							  const struct assoc_array_ops *ops,
+							  const void *index_key);
 extern void assoc_array_destroy(struct assoc_array *array,
-				const struct assoc_array_ops *ops);
+								const struct assoc_array_ops *ops);
 extern struct assoc_array_edit *assoc_array_insert(struct assoc_array *array,
-						   const struct assoc_array_ops *ops,
-						   const void *index_key,
-						   void *object);
+		const struct assoc_array_ops *ops,
+		const void *index_key,
+		void *object);
 extern void assoc_array_insert_set_object(struct assoc_array_edit *edit,
-					  void *object);
+		void *object);
 extern struct assoc_array_edit *assoc_array_delete(struct assoc_array *array,
-						   const struct assoc_array_ops *ops,
-						   const void *index_key);
+		const struct assoc_array_ops *ops,
+		const void *index_key);
 extern struct assoc_array_edit *assoc_array_clear(struct assoc_array *array,
-						  const struct assoc_array_ops *ops);
+		const struct assoc_array_ops *ops);
 extern void assoc_array_apply_edit(struct assoc_array_edit *edit);
 extern void assoc_array_cancel_edit(struct assoc_array_edit *edit);
 extern int assoc_array_gc(struct assoc_array *array,
-			  const struct assoc_array_ops *ops,
-			  bool (*iterator)(void *object, void *iterator_data),
-			  void *iterator_data);
+						  const struct assoc_array_ops *ops,
+						  bool (*iterator)(void *object, void *iterator_data),
+						  void *iterator_data);
 
 #endif /* CONFIG_ASSOCIATIVE_ARRAY */
 #endif /* _LINUX_ASSOC_ARRAY_H */

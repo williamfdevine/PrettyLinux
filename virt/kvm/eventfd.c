@@ -51,14 +51,16 @@ irqfd_inject(struct work_struct *work)
 		container_of(work, struct kvm_kernel_irqfd, inject);
 	struct kvm *kvm = irqfd->kvm;
 
-	if (!irqfd->resampler) {
+	if (!irqfd->resampler)
+	{
 		kvm_set_irq(kvm, KVM_USERSPACE_IRQ_SOURCE_ID, irqfd->gsi, 1,
-				false);
+					false);
 		kvm_set_irq(kvm, KVM_USERSPACE_IRQ_SOURCE_ID, irqfd->gsi, 0,
-				false);
-	} else
+					false);
+	}
+	else
 		kvm_set_irq(kvm, KVM_IRQFD_RESAMPLE_IRQ_SOURCE_ID,
-			    irqfd->gsi, 1, false);
+					irqfd->gsi, 1, false);
 }
 
 /*
@@ -75,16 +77,16 @@ irqfd_resampler_ack(struct kvm_irq_ack_notifier *kian)
 	int idx;
 
 	resampler = container_of(kian,
-			struct kvm_kernel_irqfd_resampler, notifier);
+							 struct kvm_kernel_irqfd_resampler, notifier);
 	kvm = resampler->kvm;
 
 	kvm_set_irq(kvm, KVM_IRQFD_RESAMPLE_IRQ_SOURCE_ID,
-		    resampler->notifier.gsi, 0, false);
+				resampler->notifier.gsi, 0, false);
 
 	idx = srcu_read_lock(&kvm->irq_srcu);
 
 	list_for_each_entry_rcu(irqfd, &resampler->list, resampler_link)
-		eventfd_signal(irqfd->resamplefd, 1);
+	eventfd_signal(irqfd->resamplefd, 1);
 
 	srcu_read_unlock(&kvm->irq_srcu, idx);
 }
@@ -100,11 +102,12 @@ irqfd_resampler_shutdown(struct kvm_kernel_irqfd *irqfd)
 	list_del_rcu(&irqfd->resampler_link);
 	synchronize_srcu(&kvm->irq_srcu);
 
-	if (list_empty(&resampler->list)) {
+	if (list_empty(&resampler->list))
+	{
 		list_del(&resampler->link);
 		kvm_unregister_irq_ack_notifier(kvm, &resampler->notifier);
 		kvm_set_irq(kvm, KVM_IRQFD_RESAMPLE_IRQ_SOURCE_ID,
-			    resampler->notifier.gsi, 0, false);
+					resampler->notifier.gsi, 0, false);
 		kfree(resampler);
 	}
 
@@ -133,7 +136,8 @@ irqfd_shutdown(struct work_struct *work)
 	 */
 	flush_work(&irqfd->inject);
 
-	if (irqfd->resampler) {
+	if (irqfd->resampler)
+	{
 		irqfd_resampler_shutdown(irqfd);
 		eventfd_ctx_put(irqfd->resamplefd);
 	}
@@ -172,10 +176,10 @@ irqfd_deactivate(struct kvm_kernel_irqfd *irqfd)
 }
 
 int __attribute__((weak)) kvm_arch_set_irq_inatomic(
-				struct kvm_kernel_irq_routing_entry *irq,
-				struct kvm *kvm, int irq_source_id,
-				int level,
-				bool line_status)
+	struct kvm_kernel_irq_routing_entry *irq,
+	struct kvm *kvm, int irq_source_id,
+	int level,
+	bool line_status)
 {
 	return -EWOULDBLOCK;
 }
@@ -194,21 +198,30 @@ irqfd_wakeup(wait_queue_t *wait, unsigned mode, int sync, void *key)
 	unsigned seq;
 	int idx;
 
-	if (flags & POLLIN) {
+	if (flags & POLLIN)
+	{
 		idx = srcu_read_lock(&kvm->irq_srcu);
-		do {
+
+		do
+		{
 			seq = read_seqcount_begin(&irqfd->irq_entry_sc);
 			irq = irqfd->irq_entry;
-		} while (read_seqcount_retry(&irqfd->irq_entry_sc, seq));
+		}
+		while (read_seqcount_retry(&irqfd->irq_entry_sc, seq));
+
 		/* An event has been signaled, inject an interrupt */
 		if (kvm_arch_set_irq_inatomic(&irq, kvm,
-					      KVM_USERSPACE_IRQ_SOURCE_ID, 1,
-					      false) == -EWOULDBLOCK)
+									  KVM_USERSPACE_IRQ_SOURCE_ID, 1,
+									  false) == -EWOULDBLOCK)
+		{
 			schedule_work(&irqfd->inject);
+		}
+
 		srcu_read_unlock(&kvm->irq_srcu, idx);
 	}
 
-	if (flags & POLLHUP) {
+	if (flags & POLLHUP)
+	{
 		/* The eventfd is closing, detach from KVM */
 		unsigned long flags;
 
@@ -224,7 +237,9 @@ irqfd_wakeup(wait_queue_t *wait, unsigned mode, int sync, void *key)
 		 * other side is required to acquire wqh->lock, which we hold
 		 */
 		if (irqfd_is_active(irqfd))
+		{
 			irqfd_deactivate(irqfd);
+		}
 
 		spin_unlock_irqrestore(&kvm->irqfds.lock, flags);
 	}
@@ -234,7 +249,7 @@ irqfd_wakeup(wait_queue_t *wait, unsigned mode, int sync, void *key)
 
 static void
 irqfd_ptable_queue_proc(struct file *file, wait_queue_head_t *wqh,
-			poll_table *pt)
+						poll_table *pt)
 {
 	struct kvm_kernel_irqfd *irqfd =
 		container_of(pt, struct kvm_kernel_irqfd, pt);
@@ -253,28 +268,33 @@ static void irqfd_update(struct kvm *kvm, struct kvm_kernel_irqfd *irqfd)
 	write_seqcount_begin(&irqfd->irq_entry_sc);
 
 	e = entries;
+
 	if (n_entries == 1)
+	{
 		irqfd->irq_entry = *e;
+	}
 	else
+	{
 		irqfd->irq_entry.type = 0;
+	}
 
 	write_seqcount_end(&irqfd->irq_entry_sc);
 }
 
 #ifdef CONFIG_HAVE_KVM_IRQ_BYPASS
 void __attribute__((weak)) kvm_arch_irq_bypass_stop(
-				struct irq_bypass_consumer *cons)
+	struct irq_bypass_consumer *cons)
 {
 }
 
 void __attribute__((weak)) kvm_arch_irq_bypass_start(
-				struct irq_bypass_consumer *cons)
+	struct irq_bypass_consumer *cons)
 {
 }
 
 int  __attribute__((weak)) kvm_arch_update_irqfd_routing(
-				struct kvm *kvm, unsigned int host_irq,
-				uint32_t guest_irq, bool set)
+	struct kvm *kvm, unsigned int host_irq,
+	uint32_t guest_irq, bool set)
 {
 	return 0;
 }
@@ -291,11 +311,16 @@ kvm_irqfd_assign(struct kvm *kvm, struct kvm_irqfd *args)
 	int idx;
 
 	if (!kvm_arch_intc_initialized(kvm))
+	{
 		return -EAGAIN;
+	}
 
 	irqfd = kzalloc(sizeof(*irqfd), GFP_KERNEL);
+
 	if (!irqfd)
+	{
 		return -ENOMEM;
+	}
 
 	irqfd->kvm = kvm;
 	irqfd->gsi = args->gsi;
@@ -305,24 +330,31 @@ kvm_irqfd_assign(struct kvm *kvm, struct kvm_irqfd *args)
 	seqcount_init(&irqfd->irq_entry_sc);
 
 	f = fdget(args->fd);
-	if (!f.file) {
+
+	if (!f.file)
+	{
 		ret = -EBADF;
 		goto out;
 	}
 
 	eventfd = eventfd_ctx_fileget(f.file);
-	if (IS_ERR(eventfd)) {
+
+	if (IS_ERR(eventfd))
+	{
 		ret = PTR_ERR(eventfd);
 		goto fail;
 	}
 
 	irqfd->eventfd = eventfd;
 
-	if (args->flags & KVM_IRQFD_FLAG_RESAMPLE) {
+	if (args->flags & KVM_IRQFD_FLAG_RESAMPLE)
+	{
 		struct kvm_kernel_irqfd_resampler *resampler;
 
 		resamplefd = eventfd_ctx_fdget(args->resamplefd);
-		if (IS_ERR(resamplefd)) {
+
+		if (IS_ERR(resamplefd))
+		{
 			ret = PTR_ERR(resamplefd);
 			goto fail;
 		}
@@ -333,16 +365,21 @@ kvm_irqfd_assign(struct kvm *kvm, struct kvm_irqfd *args)
 		mutex_lock(&kvm->irqfds.resampler_lock);
 
 		list_for_each_entry(resampler,
-				    &kvm->irqfds.resampler_list, link) {
-			if (resampler->notifier.gsi == irqfd->gsi) {
+							&kvm->irqfds.resampler_list, link)
+		{
+			if (resampler->notifier.gsi == irqfd->gsi)
+			{
 				irqfd->resampler = resampler;
 				break;
 			}
 		}
 
-		if (!irqfd->resampler) {
+		if (!irqfd->resampler)
+		{
 			resampler = kzalloc(sizeof(*resampler), GFP_KERNEL);
-			if (!resampler) {
+
+			if (!resampler)
+			{
 				ret = -ENOMEM;
 				mutex_unlock(&kvm->irqfds.resampler_lock);
 				goto fail;
@@ -356,7 +393,7 @@ kvm_irqfd_assign(struct kvm *kvm, struct kvm_irqfd *args)
 
 			list_add(&resampler->link, &kvm->irqfds.resampler_list);
 			kvm_register_irq_ack_notifier(kvm,
-						      &resampler->notifier);
+										  &resampler->notifier);
 			irqfd->resampler = resampler;
 		}
 
@@ -376,9 +413,13 @@ kvm_irqfd_assign(struct kvm *kvm, struct kvm_irqfd *args)
 	spin_lock_irq(&kvm->irqfds.lock);
 
 	ret = 0;
-	list_for_each_entry(tmp, &kvm->irqfds.items, list) {
+	list_for_each_entry(tmp, &kvm->irqfds.items, list)
+	{
 		if (irqfd->eventfd != tmp->eventfd)
+		{
 			continue;
+		}
+
 		/* This fd is used for another irq already. */
 		ret = -EBUSY;
 		spin_unlock_irq(&kvm->irqfds.lock);
@@ -400,7 +441,9 @@ kvm_irqfd_assign(struct kvm *kvm, struct kvm_irqfd *args)
 	events = f.file->f_op->poll(f.file, &irqfd->pt);
 
 	if (events & POLLIN)
+	{
 		schedule_work(&irqfd->inject);
+	}
 
 	/*
 	 * do not drop the file until the irqfd is fully initialized, otherwise
@@ -408,30 +451,41 @@ kvm_irqfd_assign(struct kvm *kvm, struct kvm_irqfd *args)
 	 */
 	fdput(f);
 #ifdef CONFIG_HAVE_KVM_IRQ_BYPASS
-	if (kvm_arch_has_irq_bypass()) {
+
+	if (kvm_arch_has_irq_bypass())
+	{
 		irqfd->consumer.token = (void *)irqfd->eventfd;
 		irqfd->consumer.add_producer = kvm_arch_irq_bypass_add_producer;
 		irqfd->consumer.del_producer = kvm_arch_irq_bypass_del_producer;
 		irqfd->consumer.stop = kvm_arch_irq_bypass_stop;
 		irqfd->consumer.start = kvm_arch_irq_bypass_start;
 		ret = irq_bypass_register_consumer(&irqfd->consumer);
+
 		if (ret)
 			pr_info("irq bypass consumer (token %p) registration fails: %d\n",
-				irqfd->consumer.token, ret);
+					irqfd->consumer.token, ret);
 	}
+
 #endif
 
 	return 0;
 
 fail:
+
 	if (irqfd->resampler)
+	{
 		irqfd_resampler_shutdown(irqfd);
+	}
 
 	if (resamplefd && !IS_ERR(resamplefd))
+	{
 		eventfd_ctx_put(resamplefd);
+	}
 
 	if (eventfd && !IS_ERR(eventfd))
+	{
 		eventfd_ctx_put(eventfd);
+	}
 
 	fdput(f);
 
@@ -447,13 +501,15 @@ bool kvm_irq_has_notifier(struct kvm *kvm, unsigned irqchip, unsigned pin)
 
 	idx = srcu_read_lock(&kvm->irq_srcu);
 	gsi = kvm_irq_map_chip_pin(kvm, irqchip, pin);
+
 	if (gsi != -1)
 		hlist_for_each_entry_rcu(kian, &kvm->irq_ack_notifier_list,
-					 link)
-			if (kian->gsi == gsi) {
-				srcu_read_unlock(&kvm->irq_srcu, idx);
-				return true;
-			}
+								 link)
+		if (kian->gsi == gsi)
+		{
+			srcu_read_unlock(&kvm->irq_srcu, idx);
+			return true;
+		}
 
 	srcu_read_unlock(&kvm->irq_srcu, idx);
 
@@ -466,9 +522,12 @@ void kvm_notify_acked_gsi(struct kvm *kvm, int gsi)
 	struct kvm_irq_ack_notifier *kian;
 
 	hlist_for_each_entry_rcu(kian, &kvm->irq_ack_notifier_list,
-				 link)
-		if (kian->gsi == gsi)
-			kian->irq_acked(kian);
+							 link)
+
+	if (kian->gsi == gsi)
+	{
+		kian->irq_acked(kian);
+	}
 }
 
 void kvm_notify_acked_irq(struct kvm *kvm, unsigned irqchip, unsigned pin)
@@ -479,13 +538,17 @@ void kvm_notify_acked_irq(struct kvm *kvm, unsigned irqchip, unsigned pin)
 
 	idx = srcu_read_lock(&kvm->irq_srcu);
 	gsi = kvm_irq_map_chip_pin(kvm, irqchip, pin);
+
 	if (gsi != -1)
+	{
 		kvm_notify_acked_gsi(kvm, gsi);
+	}
+
 	srcu_read_unlock(&kvm->irq_srcu, idx);
 }
 
 void kvm_register_irq_ack_notifier(struct kvm *kvm,
-				   struct kvm_irq_ack_notifier *kian)
+								   struct kvm_irq_ack_notifier *kian)
 {
 	mutex_lock(&kvm->irq_lock);
 	hlist_add_head_rcu(&kian->link, &kvm->irq_ack_notifier_list);
@@ -494,7 +557,7 @@ void kvm_register_irq_ack_notifier(struct kvm *kvm,
 }
 
 void kvm_unregister_irq_ack_notifier(struct kvm *kvm,
-				    struct kvm_irq_ack_notifier *kian)
+									 struct kvm_irq_ack_notifier *kian)
 {
 	mutex_lock(&kvm->irq_lock);
 	hlist_del_init_rcu(&kian->link);
@@ -527,13 +590,18 @@ kvm_irqfd_deassign(struct kvm *kvm, struct kvm_irqfd *args)
 	struct eventfd_ctx *eventfd;
 
 	eventfd = eventfd_ctx_fdget(args->fd);
+
 	if (IS_ERR(eventfd))
+	{
 		return PTR_ERR(eventfd);
+	}
 
 	spin_lock_irq(&kvm->irqfds.lock);
 
-	list_for_each_entry_safe(irqfd, tmp, &kvm->irqfds.items, list) {
-		if (irqfd->eventfd == eventfd && irqfd->gsi == args->gsi) {
+	list_for_each_entry_safe(irqfd, tmp, &kvm->irqfds.items, list)
+	{
+		if (irqfd->eventfd == eventfd && irqfd->gsi == args->gsi)
+		{
 			/*
 			 * This clearing of irq_entry.type is needed for when
 			 * another thread calls kvm_irq_routing_update before
@@ -564,10 +632,14 @@ int
 kvm_irqfd(struct kvm *kvm, struct kvm_irqfd *args)
 {
 	if (args->flags & ~(KVM_IRQFD_FLAG_DEASSIGN | KVM_IRQFD_FLAG_RESAMPLE))
+	{
 		return -EINVAL;
+	}
 
 	if (args->flags & KVM_IRQFD_FLAG_DEASSIGN)
+	{
 		return kvm_irqfd_deassign(kvm, args);
+	}
 
 	return kvm_irqfd_assign(kvm, args);
 }
@@ -584,7 +656,7 @@ kvm_irqfd_release(struct kvm *kvm)
 	spin_lock_irq(&kvm->irqfds.lock);
 
 	list_for_each_entry_safe(irqfd, tmp, &kvm->irqfds.items, list)
-		irqfd_deactivate(irqfd);
+	irqfd_deactivate(irqfd);
 
 	spin_unlock_irq(&kvm->irqfds.lock);
 
@@ -606,16 +678,20 @@ void kvm_irq_routing_update(struct kvm *kvm)
 
 	spin_lock_irq(&kvm->irqfds.lock);
 
-	list_for_each_entry(irqfd, &kvm->irqfds.items, list) {
+	list_for_each_entry(irqfd, &kvm->irqfds.items, list)
+	{
 		irqfd_update(kvm, irqfd);
 
 #ifdef CONFIG_HAVE_KVM_IRQ_BYPASS
-		if (irqfd->producer) {
+
+		if (irqfd->producer)
+		{
 			int ret = kvm_arch_update_irqfd_routing(
-					irqfd->kvm, irqfd->producer->irq,
-					irqfd->gsi, 1);
+						  irqfd->kvm, irqfd->producer->irq,
+						  irqfd->gsi, 1);
 			WARN_ON(ret);
 		}
+
 #endif
 	}
 
@@ -630,8 +706,11 @@ void kvm_irq_routing_update(struct kvm *kvm)
 int kvm_irqfd_init(void)
 {
 	irqfd_cleanup_wq = alloc_workqueue("kvm-irqfd-cleanup", 0, 0);
+
 	if (!irqfd_cleanup_wq)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -651,7 +730,8 @@ void kvm_irqfd_exit(void)
  * --------------------------------------------------------------------
  */
 
-struct _ioeventfd {
+struct _ioeventfd
+{
 	struct list_head     list;
 	u64                  addr;
 	int                  length;
@@ -683,39 +763,52 @@ ioeventfd_in_range(struct _ioeventfd *p, gpa_t addr, int len, const void *val)
 
 	if (addr != p->addr)
 		/* address must be precise for a hit */
+	{
 		return false;
+	}
 
 	if (!p->length)
 		/* length = 0 means only look at the address, so always a hit */
+	{
 		return true;
+	}
 
 	if (len != p->length)
 		/* address-range must be precise for a hit */
+	{
 		return false;
+	}
 
 	if (p->wildcard)
 		/* all else equal, wildcard is always a hit */
+	{
 		return true;
+	}
 
 	/* otherwise, we have to actually compare the data */
 
 	BUG_ON(!IS_ALIGNED((unsigned long)val, len));
 
-	switch (len) {
-	case 1:
-		_val = *(u8 *)val;
-		break;
-	case 2:
-		_val = *(u16 *)val;
-		break;
-	case 4:
-		_val = *(u32 *)val;
-		break;
-	case 8:
-		_val = *(u64 *)val;
-		break;
-	default:
-		return false;
+	switch (len)
+	{
+		case 1:
+			_val = *(u8 *)val;
+			break;
+
+		case 2:
+			_val = *(u16 *)val;
+			break;
+
+		case 4:
+			_val = *(u32 *)val;
+			break;
+
+		case 8:
+			_val = *(u64 *)val;
+			break;
+
+		default:
+			return false;
 	}
 
 	return _val == p->datamatch ? true : false;
@@ -724,12 +817,14 @@ ioeventfd_in_range(struct _ioeventfd *p, gpa_t addr, int len, const void *val)
 /* MMIO/PIO writes trigger an event if the addr/val match */
 static int
 ioeventfd_write(struct kvm_vcpu *vcpu, struct kvm_io_device *this, gpa_t addr,
-		int len, const void *val)
+				int len, const void *val)
 {
 	struct _ioeventfd *p = to_ioeventfd(this);
 
 	if (!ioeventfd_in_range(p, addr, len, val))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	eventfd_signal(p->eventfd, 1);
 	return 0;
@@ -747,7 +842,8 @@ ioeventfd_destructor(struct kvm_io_device *this)
 	ioeventfd_release(p);
 }
 
-static const struct kvm_io_device_ops ioeventfd_ops = {
+static const struct kvm_io_device_ops ioeventfd_ops =
+{
 	.write      = ioeventfd_write,
 	.destructor = ioeventfd_destructor,
 };
@@ -759,13 +855,16 @@ ioeventfd_check_collision(struct kvm *kvm, struct _ioeventfd *p)
 	struct _ioeventfd *_p;
 
 	list_for_each_entry(_p, &kvm->ioeventfds, list)
-		if (_p->bus_idx == p->bus_idx &&
-		    _p->addr == p->addr &&
-		    (!_p->length || !p->length ||
-		     (_p->length == p->length &&
-		      (_p->wildcard || p->wildcard ||
-		       _p->datamatch == p->datamatch))))
-			return true;
+
+	if (_p->bus_idx == p->bus_idx &&
+		_p->addr == p->addr &&
+		(!_p->length || !p->length ||
+		 (_p->length == p->length &&
+		  (_p->wildcard || p->wildcard ||
+		   _p->datamatch == p->datamatch))))
+	{
+		return true;
+	}
 
 	return false;
 }
@@ -773,15 +872,21 @@ ioeventfd_check_collision(struct kvm *kvm, struct _ioeventfd *p)
 static enum kvm_bus ioeventfd_bus_from_flags(__u32 flags)
 {
 	if (flags & KVM_IOEVENTFD_FLAG_PIO)
+	{
 		return KVM_PIO_BUS;
+	}
+
 	if (flags & KVM_IOEVENTFD_FLAG_VIRTIO_CCW_NOTIFY)
+	{
 		return KVM_VIRTIO_CCW_NOTIFY_BUS;
+	}
+
 	return KVM_MMIO_BUS;
 }
 
 static int kvm_assign_ioeventfd_idx(struct kvm *kvm,
-				enum kvm_bus bus_idx,
-				struct kvm_ioeventfd *args)
+									enum kvm_bus bus_idx,
+									struct kvm_ioeventfd *args)
 {
 
 	struct eventfd_ctx *eventfd;
@@ -789,11 +894,16 @@ static int kvm_assign_ioeventfd_idx(struct kvm *kvm,
 	int ret;
 
 	eventfd = eventfd_ctx_fdget(args->fd);
+
 	if (IS_ERR(eventfd))
+	{
 		return PTR_ERR(eventfd);
+	}
 
 	p = kzalloc(sizeof(*p), GFP_KERNEL);
-	if (!p) {
+
+	if (!p)
+	{
 		ret = -ENOMEM;
 		goto fail;
 	}
@@ -806,14 +916,19 @@ static int kvm_assign_ioeventfd_idx(struct kvm *kvm,
 
 	/* The datamatch feature is optional, otherwise this is a wildcard */
 	if (args->flags & KVM_IOEVENTFD_FLAG_DATAMATCH)
+	{
 		p->datamatch = args->datamatch;
+	}
 	else
+	{
 		p->wildcard = true;
+	}
 
 	mutex_lock(&kvm->slots_lock);
 
 	/* Verify that there isn't a match already */
-	if (ioeventfd_check_collision(kvm, p)) {
+	if (ioeventfd_check_collision(kvm, p))
+	{
 		ret = -EEXIST;
 		goto unlock_fail;
 	}
@@ -821,9 +936,12 @@ static int kvm_assign_ioeventfd_idx(struct kvm *kvm,
 	kvm_iodevice_init(&p->dev, &ioeventfd_ops);
 
 	ret = kvm_io_bus_register_dev(kvm, bus_idx, p->addr, p->length,
-				      &p->dev);
+								  &p->dev);
+
 	if (ret < 0)
+	{
 		goto unlock_fail;
+	}
 
 	kvm->buses[bus_idx]->ioeventfd_count++;
 	list_add_tail(&p->list, &kvm->ioeventfds);
@@ -844,30 +962,38 @@ fail:
 
 static int
 kvm_deassign_ioeventfd_idx(struct kvm *kvm, enum kvm_bus bus_idx,
-			   struct kvm_ioeventfd *args)
+						   struct kvm_ioeventfd *args)
 {
 	struct _ioeventfd        *p, *tmp;
 	struct eventfd_ctx       *eventfd;
 	int                       ret = -ENOENT;
 
 	eventfd = eventfd_ctx_fdget(args->fd);
+
 	if (IS_ERR(eventfd))
+	{
 		return PTR_ERR(eventfd);
+	}
 
 	mutex_lock(&kvm->slots_lock);
 
-	list_for_each_entry_safe(p, tmp, &kvm->ioeventfds, list) {
+	list_for_each_entry_safe(p, tmp, &kvm->ioeventfds, list)
+	{
 		bool wildcard = !(args->flags & KVM_IOEVENTFD_FLAG_DATAMATCH);
 
 		if (p->bus_idx != bus_idx ||
-		    p->eventfd != eventfd  ||
-		    p->addr != args->addr  ||
-		    p->length != args->len ||
-		    p->wildcard != wildcard)
+			p->eventfd != eventfd  ||
+			p->addr != args->addr  ||
+			p->length != args->len ||
+			p->wildcard != wildcard)
+		{
 			continue;
+		}
 
 		if (!p->wildcard && p->datamatch != args->datamatch)
+		{
 			continue;
+		}
 
 		kvm_io_bus_unregister_dev(kvm, bus_idx, &p->dev);
 		kvm->buses[bus_idx]->ioeventfd_count--;
@@ -889,7 +1015,9 @@ static int kvm_deassign_ioeventfd(struct kvm *kvm, struct kvm_ioeventfd *args)
 	int ret = kvm_deassign_ioeventfd_idx(kvm, bus_idx, args);
 
 	if (!args->len && bus_idx == KVM_MMIO_BUS)
+	{
 		kvm_deassign_ioeventfd_idx(kvm, KVM_FAST_MMIO_BUS, args);
+	}
 
 	return ret;
 }
@@ -901,41 +1029,57 @@ kvm_assign_ioeventfd(struct kvm *kvm, struct kvm_ioeventfd *args)
 	int ret;
 
 	bus_idx = ioeventfd_bus_from_flags(args->flags);
+
 	/* must be natural-word sized, or 0 to ignore length */
-	switch (args->len) {
-	case 0:
-	case 1:
-	case 2:
-	case 4:
-	case 8:
-		break;
-	default:
-		return -EINVAL;
+	switch (args->len)
+	{
+		case 0:
+		case 1:
+		case 2:
+		case 4:
+		case 8:
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* check for range overflow */
 	if (args->addr + args->len < args->addr)
+	{
 		return -EINVAL;
+	}
 
 	/* check for extra flags that we don't understand */
 	if (args->flags & ~KVM_IOEVENTFD_VALID_FLAG_MASK)
+	{
 		return -EINVAL;
+	}
 
 	/* ioeventfd with no length can't be combined with DATAMATCH */
 	if (!args->len && (args->flags & KVM_IOEVENTFD_FLAG_DATAMATCH))
+	{
 		return -EINVAL;
+	}
 
 	ret = kvm_assign_ioeventfd_idx(kvm, bus_idx, args);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	/* When length is ignored, MMIO is also put on a separate bus, for
 	 * faster lookups.
 	 */
-	if (!args->len && bus_idx == KVM_MMIO_BUS) {
+	if (!args->len && bus_idx == KVM_MMIO_BUS)
+	{
 		ret = kvm_assign_ioeventfd_idx(kvm, KVM_FAST_MMIO_BUS, args);
+
 		if (ret < 0)
+		{
 			goto fast_fail;
+		}
 	}
 
 	return 0;
@@ -950,7 +1094,9 @@ int
 kvm_ioeventfd(struct kvm *kvm, struct kvm_ioeventfd *args)
 {
 	if (args->flags & KVM_IOEVENTFD_FLAG_DEASSIGN)
+	{
 		return kvm_deassign_ioeventfd(kvm, args);
+	}
 
 	return kvm_assign_ioeventfd(kvm, args);
 }

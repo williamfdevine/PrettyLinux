@@ -29,7 +29,8 @@
 
 #define LM8323_NUM_PWMS		3
 
-struct lm8323_platform_data {
+struct lm8323_platform_data
+{
 	int debounce_time; /* Time to watch for key bouncing, in ms. */
 	int active_time; /* Idle time until sleep, in ms. */
 

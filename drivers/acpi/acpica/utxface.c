@@ -101,9 +101,12 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_terminate)
 acpi_status acpi_subsystem_status(void)
 {
 
-	if (acpi_gbl_startup_flags & ACPI_INITIALIZED_OK) {
+	if (acpi_gbl_startup_flags & ACPI_INITIALIZED_OK)
+	{
 		return (AE_OK);
-	} else {
+	}
+	else
+	{
 		return (AE_ERROR);
 	}
 }
@@ -137,16 +140,20 @@ acpi_status acpi_get_system_info(struct acpi_buffer *out_buffer)
 	/* Parameter validation */
 
 	status = acpi_ut_validate_buffer(out_buffer);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	/* Validate/Allocate/Clear caller buffer */
 
 	status =
-	    acpi_ut_initialize_buffer(out_buffer,
-				      sizeof(struct acpi_system_info));
-	if (ACPI_FAILURE(status)) {
+		acpi_ut_initialize_buffer(out_buffer,
+								  sizeof(struct acpi_system_info));
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
@@ -162,9 +169,12 @@ acpi_status acpi_get_system_info(struct acpi_buffer *out_buffer)
 
 	/* Timer resolution - 24 or 32 bits  */
 
-	if (acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER) {
+	if (acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER)
+	{
 		info_ptr->timer_resolution = 24;
-	} else {
+	}
+	else
+	{
 		info_ptr->timer_resolution = 32;
 	}
 
@@ -200,7 +210,8 @@ acpi_status acpi_get_statistics(struct acpi_statistics *stats)
 
 	/* Parameter validation */
 
-	if (!stats) {
+	if (!stats)
+	{
 		return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 
@@ -210,7 +221,7 @@ acpi_status acpi_get_statistics(struct acpi_statistics *stats)
 	stats->gpe_count = acpi_gpe_count;
 
 	memcpy(stats->fixed_event_count, acpi_fixed_event_count,
-	       sizeof(acpi_fixed_event_count));
+		   sizeof(acpi_fixed_event_count));
 
 	/* Other counters */
 
@@ -238,11 +249,13 @@ acpi_status
 acpi_install_initialization_handler(acpi_init_handler handler, u32 function)
 {
 
-	if (!handler) {
+	if (!handler)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
-	if (acpi_gbl_init_handler) {
+	if (acpi_gbl_init_handler)
+	{
 		return (AE_ALREADY_EXISTS);
 	}
 
@@ -296,30 +309,40 @@ acpi_status acpi_install_interface(acpi_string interface_name)
 
 	/* Parameter validation */
 
-	if (!interface_name || (strlen(interface_name) == 0)) {
+	if (!interface_name || (strlen(interface_name) == 0))
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
 	status = acpi_os_acquire_mutex(acpi_gbl_osi_mutex, ACPI_WAIT_FOREVER);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	/* Check if the interface name is already in the global list */
 
 	interface_info = acpi_ut_get_interface(interface_name);
-	if (interface_info) {
+
+	if (interface_info)
+	{
 		/*
 		 * The interface already exists in the list. This is OK if the
 		 * interface has been marked invalid -- just clear the bit.
 		 */
-		if (interface_info->flags & ACPI_OSI_INVALID) {
+		if (interface_info->flags & ACPI_OSI_INVALID)
+		{
 			interface_info->flags &= ~ACPI_OSI_INVALID;
 			status = AE_OK;
-		} else {
+		}
+		else
+		{
 			status = AE_ALREADY_EXISTS;
 		}
-	} else {
+	}
+	else
+	{
 		/* New interface name, install into the global list */
 
 		status = acpi_ut_install_interface(interface_name);
@@ -348,12 +371,15 @@ acpi_status acpi_remove_interface(acpi_string interface_name)
 
 	/* Parameter validation */
 
-	if (!interface_name || (strlen(interface_name) == 0)) {
+	if (!interface_name || (strlen(interface_name) == 0))
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
 	status = acpi_os_acquire_mutex(acpi_gbl_osi_mutex, ACPI_WAIT_FOREVER);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
@@ -384,13 +410,18 @@ acpi_status acpi_install_interface_handler(acpi_interface_handler handler)
 	acpi_status status;
 
 	status = acpi_os_acquire_mutex(acpi_gbl_osi_mutex, ACPI_WAIT_FOREVER);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
-	if (handler && acpi_gbl_interface_handler) {
+	if (handler && acpi_gbl_interface_handler)
+	{
 		status = AE_ALREADY_EXISTS;
-	} else {
+	}
+	else
+	{
 		acpi_gbl_interface_handler = handler;
 	}
 
@@ -418,7 +449,9 @@ acpi_status acpi_update_interfaces(u8 action)
 	acpi_status status;
 
 	status = acpi_os_acquire_mutex(acpi_gbl_osi_mutex, ACPI_WAIT_FOREVER);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
@@ -446,19 +479,21 @@ acpi_status acpi_update_interfaces(u8 action)
 
 u32
 acpi_check_address_range(acpi_adr_space_type space_id,
-			 acpi_physical_address address,
-			 acpi_size length, u8 warn)
+						 acpi_physical_address address,
+						 acpi_size length, u8 warn)
 {
 	u32 overlaps;
 	acpi_status status;
 
 	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (0);
 	}
 
 	overlaps = acpi_ut_check_address_range(space_id, address,
-					       (u32)length, warn);
+										   (u32)length, warn);
 
 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
 	return (overlaps);
@@ -483,7 +518,7 @@ ACPI_EXPORT_SYMBOL(acpi_check_address_range)
  ******************************************************************************/
 acpi_status
 acpi_decode_pld_buffer(u8 *in_buffer,
-		       acpi_size length, struct acpi_pld_info **return_buffer)
+					   acpi_size length, struct acpi_pld_info **return_buffer)
 {
 	struct acpi_pld_info *pld_info;
 	u32 *buffer = ACPI_CAST_PTR(u32, in_buffer);
@@ -492,12 +527,15 @@ acpi_decode_pld_buffer(u8 *in_buffer,
 	/* Parameter validation */
 
 	if (!in_buffer || !return_buffer
-	    || (length < ACPI_PLD_REV1_BUFFER_SIZE)) {
+		|| (length < ACPI_PLD_REV1_BUFFER_SIZE))
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
 	pld_info = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pld_info));
-	if (!pld_info) {
+
+	if (!pld_info)
+	{
 		return (AE_NO_MEMORY);
 	}
 
@@ -542,7 +580,8 @@ acpi_decode_pld_buffer(u8 *in_buffer,
 	pld_info->rotation = ACPI_PLD_GET_ROTATION(&dword);
 	pld_info->order = ACPI_PLD_GET_ORDER(&dword);
 
-	if (length >= ACPI_PLD_REV2_BUFFER_SIZE) {
+	if (length >= ACPI_PLD_REV2_BUFFER_SIZE)
+	{
 
 		/* Fifth 32-bit DWord (Revision 2 of _PLD) */
 

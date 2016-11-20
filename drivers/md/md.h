@@ -32,7 +32,8 @@
 /*
  * MD's 'extended' device
  */
-struct md_rdev {
+struct md_rdev
+{
 	struct list_head same_set;	/* RAID devices within the same set */
 
 	sector_t sectors;		/* Device size (in 512bytes sectors) */
@@ -81,7 +82,8 @@ struct md_rdev {
 					 * array and could again if we did a partial
 					 * resync from the bitmap
 					 */
-	union {
+	union
+	{
 		sector_t recovery_offset;/* If this device has been partially
 					 * recovered, this is where we were
 					 * up to.
@@ -113,7 +115,8 @@ struct md_rdev {
 
 	struct badblocks badblocks;
 };
-enum flag_bits {
+enum flag_bits
+{
 	Faulty,			/* device is known to have a fault */
 	In_sync,		/* device is in_sync with rest of array */
 	Bitmap_sync,		/* ..actually, not quite In_sync.  Need a
@@ -171,31 +174,38 @@ enum flag_bits {
 };
 
 static inline int is_badblock(struct md_rdev *rdev, sector_t s, int sectors,
-			      sector_t *first_bad, int *bad_sectors)
+							  sector_t *first_bad, int *bad_sectors)
 {
-	if (unlikely(rdev->badblocks.count)) {
+	if (unlikely(rdev->badblocks.count))
+	{
 		int rv = badblocks_check(&rdev->badblocks, rdev->data_offset + s,
-					sectors,
-					first_bad, bad_sectors);
+								 sectors,
+								 first_bad, bad_sectors);
+
 		if (rv)
+		{
 			*first_bad -= rdev->data_offset;
+		}
+
 		return rv;
 	}
+
 	return 0;
 }
 extern int rdev_set_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
-			      int is_new);
+							  int is_new);
 extern int rdev_clear_badblocks(struct md_rdev *rdev, sector_t s, int sectors,
-				int is_new);
+								int is_new);
 struct md_cluster_info;
 
-struct mddev {
-	void				*private;
-	struct md_personality		*pers;
-	dev_t				unit;
-	int				md_minor;
-	struct list_head		disks;
-	unsigned long			flags;
+struct mddev
+{
+		void				*private;
+		struct md_personality		*pers;
+		dev_t				unit;
+		int				md_minor;
+		struct list_head		disks;
+		unsigned long			flags;
 #define MD_CHANGE_DEVS	0	/* Some device status has changed */
 #define MD_CHANGE_CLEAN 1	/* transition to or from 'clean' */
 #define MD_CHANGE_PENDING 2	/* switch from 'clean' to 'active' in progress */
@@ -212,112 +222,112 @@ struct mddev {
 				    * already took resync lock, need to
 				    * release the lock */
 
-	int				suspended;
-	atomic_t			active_io;
-	int				ro;
-	int				sysfs_active; /* set when sysfs deletes
+		int				suspended;
+		atomic_t			active_io;
+		int				ro;
+		int				sysfs_active; /* set when sysfs deletes
 						       * are happening, so run/
 						       * takeover/stop are not safe
 						       */
-	struct gendisk			*gendisk;
+		struct gendisk			*gendisk;
 
-	struct kobject			kobj;
-	int				hold_active;
+		struct kobject			kobj;
+		int				hold_active;
 #define	UNTIL_IOCTL	1
 #define	UNTIL_STOP	2
 
-	/* Superblock information */
-	int				major_version,
-					minor_version,
-					patch_version;
-	int				persistent;
-	int				external;	/* metadata is
+		/* Superblock information */
+		int				major_version,
+						minor_version,
+						patch_version;
+		int				persistent;
+		int				external;	/* metadata is
 							 * managed externally */
-	char				metadata_type[17]; /* externally set*/
-	int				chunk_sectors;
-	time64_t			ctime, utime;
-	int				level, layout;
-	char				clevel[16];
-	int				raid_disks;
-	int				max_disks;
-	sector_t			dev_sectors;	/* used size of
+		char				metadata_type[17]; /* externally set*/
+		int				chunk_sectors;
+		time64_t			ctime, utime;
+		int				level, layout;
+		char				clevel[16];
+		int				raid_disks;
+		int				max_disks;
+		sector_t			dev_sectors;	/* used size of
 							 * component devices */
-	sector_t			array_sectors; /* exported array size */
-	int				external_size; /* size managed
+		sector_t			array_sectors; /* exported array size */
+		int				external_size; /* size managed
 							* externally */
-	__u64				events;
-	/* If the last 'event' was simply a clean->dirty transition, and
-	 * we didn't write it to the spares, then it is safe and simple
-	 * to just decrement the event count on a dirty->clean transition.
-	 * So we record that possibility here.
-	 */
-	int				can_decrease_events;
+		__u64				events;
+		/* If the last 'event' was simply a clean->dirty transition, and
+		 * we didn't write it to the spares, then it is safe and simple
+		 * to just decrement the event count on a dirty->clean transition.
+		 * So we record that possibility here.
+		 */
+		int				can_decrease_events;
 
-	char				uuid[16];
+		char				uuid[16];
 
-	/* If the array is being reshaped, we need to record the
-	 * new shape and an indication of where we are up to.
-	 * This is written to the superblock.
-	 * If reshape_position is MaxSector, then no reshape is happening (yet).
-	 */
-	sector_t			reshape_position;
-	int				delta_disks, new_level, new_layout;
-	int				new_chunk_sectors;
-	int				reshape_backwards;
+		/* If the array is being reshaped, we need to record the
+		 * new shape and an indication of where we are up to.
+		 * This is written to the superblock.
+		 * If reshape_position is MaxSector, then no reshape is happening (yet).
+		 */
+		sector_t			reshape_position;
+		int				delta_disks, new_level, new_layout;
+		int				new_chunk_sectors;
+		int				reshape_backwards;
 
-	struct md_thread		*thread;	/* management thread */
-	struct md_thread		*sync_thread;	/* doing resync or reconstruct */
+		struct md_thread		*thread;	/* management thread */
+		struct md_thread		*sync_thread;	/* doing resync or reconstruct */
 
-	/* 'last_sync_action' is initialized to "none".  It is set when a
-	 * sync operation (i.e "data-check", "requested-resync", "resync",
-	 * "recovery", or "reshape") is started.  It holds this value even
-	 * when the sync thread is "frozen" (interrupted) or "idle" (stopped
-	 * or finished).  It is overwritten when a new sync operation is begun.
-	 */
-	char				*last_sync_action;
-	sector_t			curr_resync;	/* last block scheduled */
-	/* As resync requests can complete out of order, we cannot easily track
-	 * how much resync has been completed.  So we occasionally pause until
-	 * everything completes, then set curr_resync_completed to curr_resync.
-	 * As such it may be well behind the real resync mark, but it is a value
-	 * we are certain of.
-	 */
-	sector_t			curr_resync_completed;
-	unsigned long			resync_mark;	/* a recent timestamp */
-	sector_t			resync_mark_cnt;/* blocks written at resync_mark */
-	sector_t			curr_mark_cnt; /* blocks scheduled now */
+		/* 'last_sync_action' is initialized to "none".  It is set when a
+		 * sync operation (i.e "data-check", "requested-resync", "resync",
+		 * "recovery", or "reshape") is started.  It holds this value even
+		 * when the sync thread is "frozen" (interrupted) or "idle" (stopped
+		 * or finished).  It is overwritten when a new sync operation is begun.
+		 */
+		char				*last_sync_action;
+		sector_t			curr_resync;	/* last block scheduled */
+		/* As resync requests can complete out of order, we cannot easily track
+		 * how much resync has been completed.  So we occasionally pause until
+		 * everything completes, then set curr_resync_completed to curr_resync.
+		 * As such it may be well behind the real resync mark, but it is a value
+		 * we are certain of.
+		 */
+		sector_t			curr_resync_completed;
+		unsigned long			resync_mark;	/* a recent timestamp */
+		sector_t			resync_mark_cnt;/* blocks written at resync_mark */
+		sector_t			curr_mark_cnt; /* blocks scheduled now */
 
-	sector_t			resync_max_sectors; /* may be set by personality */
+		sector_t			resync_max_sectors; /* may be set by personality */
 
-	atomic64_t			resync_mismatches; /* count of sectors where
+		atomic64_t			resync_mismatches; /* count of sectors where
 							    * parity/replica mismatch found
 							    */
 
-	/* allow user-space to request suspension of IO to regions of the array */
-	sector_t			suspend_lo;
-	sector_t			suspend_hi;
-	/* if zero, use the system-wide default */
-	int				sync_speed_min;
-	int				sync_speed_max;
+		/* allow user-space to request suspension of IO to regions of the array */
+		sector_t			suspend_lo;
+		sector_t			suspend_hi;
+		/* if zero, use the system-wide default */
+		int				sync_speed_min;
+		int				sync_speed_max;
 
-	/* resync even though the same disks are shared among md-devices */
-	int				parallel_resync;
+		/* resync even though the same disks are shared among md-devices */
+		int				parallel_resync;
 
-	int				ok_start_degraded;
-	/* recovery/resync flags
-	 * NEEDED:   we might need to start a resync/recover
-	 * RUNNING:  a thread is running, or about to be started
-	 * SYNC:     actually doing a resync, not a recovery
-	 * RECOVER:  doing recovery, or need to try it.
-	 * INTR:     resync needs to be aborted for some reason
-	 * DONE:     thread is done and is waiting to be reaped
-	 * REQUEST:  user-space has requested a sync (used with SYNC)
-	 * CHECK:    user-space request for check-only, no repair
-	 * RESHAPE:  A reshape is happening
-	 * ERROR:    sync-action interrupted because io-error
-	 *
-	 * If neither SYNC or RESHAPE are set, then it is a recovery.
-	 */
+		int				ok_start_degraded;
+		/* recovery/resync flags
+		 * NEEDED:   we might need to start a resync/recover
+		 * RUNNING:  a thread is running, or about to be started
+		 * SYNC:     actually doing a resync, not a recovery
+		 * RECOVER:  doing recovery, or need to try it.
+		 * INTR:     resync needs to be aborted for some reason
+		 * DONE:     thread is done and is waiting to be reaped
+		 * REQUEST:  user-space has requested a sync (used with SYNC)
+		 * CHECK:    user-space request for check-only, no repair
+		 * RESHAPE:  A reshape is happening
+		 * ERROR:    sync-action interrupted because io-error
+		 *
+		 * If neither SYNC or RESHAPE are set, then it is a recovery.
+		 */
 #define	MD_RECOVERY_RUNNING	0
 #define	MD_RECOVERY_SYNC	1
 #define	MD_RECOVERY_RECOVER	2
@@ -330,116 +340,117 @@ struct mddev {
 #define	MD_RECOVERY_FROZEN	9
 #define	MD_RECOVERY_ERROR	10
 
-	unsigned long			recovery;
-	/* If a RAID personality determines that recovery (of a particular
-	 * device) will fail due to a read error on the source device, it
-	 * takes a copy of this number and does not attempt recovery again
-	 * until this number changes.
-	 */
-	int				recovery_disabled;
+		unsigned long			recovery;
+		/* If a RAID personality determines that recovery (of a particular
+		 * device) will fail due to a read error on the source device, it
+		 * takes a copy of this number and does not attempt recovery again
+		 * until this number changes.
+		 */
+		int				recovery_disabled;
 
-	int				in_sync;	/* know to not need resync */
-	/* 'open_mutex' avoids races between 'md_open' and 'do_md_stop', so
-	 * that we are never stopping an array while it is open.
-	 * 'reconfig_mutex' protects all other reconfiguration.
-	 * These locks are separate due to conflicting interactions
-	 * with bdev->bd_mutex.
-	 * Lock ordering is:
-	 *  reconfig_mutex -> bd_mutex : e.g. do_md_run -> revalidate_disk
-	 *  bd_mutex -> open_mutex:  e.g. __blkdev_get -> md_open
-	 */
-	struct mutex			open_mutex;
-	struct mutex			reconfig_mutex;
-	atomic_t			active;		/* general refcount */
-	atomic_t			openers;	/* number of active opens */
+		int				in_sync;	/* know to not need resync */
+		/* 'open_mutex' avoids races between 'md_open' and 'do_md_stop', so
+		 * that we are never stopping an array while it is open.
+		 * 'reconfig_mutex' protects all other reconfiguration.
+		 * These locks are separate due to conflicting interactions
+		 * with bdev->bd_mutex.
+		 * Lock ordering is:
+		 *  reconfig_mutex -> bd_mutex : e.g. do_md_run -> revalidate_disk
+		 *  bd_mutex -> open_mutex:  e.g. __blkdev_get -> md_open
+		 */
+		struct mutex			open_mutex;
+		struct mutex			reconfig_mutex;
+		atomic_t			active;		/* general refcount */
+		atomic_t			openers;	/* number of active opens */
 
-	int				changed;	/* True if we might need to
+		int				changed;	/* True if we might need to
 							 * reread partition info */
-	int				degraded;	/* whether md should consider
+		int				degraded;	/* whether md should consider
 							 * adding a spare
 							 */
 
-	atomic_t			recovery_active; /* blocks scheduled, but not written */
-	wait_queue_head_t		recovery_wait;
-	sector_t			recovery_cp;
-	sector_t			resync_min;	/* user requested sync
+		atomic_t			recovery_active; /* blocks scheduled, but not written */
+		wait_queue_head_t		recovery_wait;
+		sector_t			recovery_cp;
+		sector_t			resync_min;	/* user requested sync
 							 * starts here */
-	sector_t			resync_max;	/* resync should pause
+		sector_t			resync_max;	/* resync should pause
 							 * when it gets here */
 
-	struct kernfs_node		*sysfs_state;	/* handle for 'array_state'
+		struct kernfs_node		*sysfs_state;	/* handle for 'array_state'
 							 * file in sysfs.
 							 */
-	struct kernfs_node		*sysfs_action;  /* handle for 'sync_action' */
+		struct kernfs_node		*sysfs_action;  /* handle for 'sync_action' */
 
-	struct work_struct del_work;	/* used for delayed sysfs removal */
+		struct work_struct del_work;	/* used for delayed sysfs removal */
 
-	/* "lock" protects:
-	 *   flush_bio transition from NULL to !NULL
-	 *   rdev superblocks, events
-	 *   clearing MD_CHANGE_*
-	 *   in_sync - and related safemode and MD_CHANGE changes
-	 *   pers (also protected by reconfig_mutex and pending IO).
-	 *   clearing ->bitmap
-	 *   clearing ->bitmap_info.file
-	 *   changing ->resync_{min,max}
-	 *   setting MD_RECOVERY_RUNNING (which interacts with resync_{min,max})
-	 */
-	spinlock_t			lock;
-	wait_queue_head_t		sb_wait;	/* for waiting on superblock updates */
-	atomic_t			pending_writes;	/* number of active superblock writes */
+		/* "lock" protects:
+		 *   flush_bio transition from NULL to !NULL
+		 *   rdev superblocks, events
+		 *   clearing MD_CHANGE_*
+		 *   in_sync - and related safemode and MD_CHANGE changes
+		 *   pers (also protected by reconfig_mutex and pending IO).
+		 *   clearing ->bitmap
+		 *   clearing ->bitmap_info.file
+		 *   changing ->resync_{min,max}
+		 *   setting MD_RECOVERY_RUNNING (which interacts with resync_{min,max})
+		 */
+		spinlock_t			lock;
+		wait_queue_head_t		sb_wait;	/* for waiting on superblock updates */
+		atomic_t			pending_writes;	/* number of active superblock writes */
 
-	unsigned int			safemode;	/* if set, update "clean" superblock
+		unsigned int			safemode;	/* if set, update "clean" superblock
 							 * when no writes pending.
 							 */
-	unsigned int			safemode_delay;
-	struct timer_list		safemode_timer;
-	atomic_t			writes_pending;
-	struct request_queue		*queue;	/* for plugging ... */
+		unsigned int			safemode_delay;
+		struct timer_list		safemode_timer;
+		atomic_t			writes_pending;
+		struct request_queue		*queue;	/* for plugging ... */
 
-	struct bitmap			*bitmap; /* the bitmap for the device */
-	struct {
-		struct file		*file; /* the bitmap file */
-		loff_t			offset; /* offset from superblock of
+		struct bitmap			*bitmap; /* the bitmap for the device */
+		struct
+		{
+			struct file		*file; /* the bitmap file */
+			loff_t			offset; /* offset from superblock of
 						 * start of bitmap. May be
 						 * negative, but not '0'
 						 * For external metadata, offset
 						 * from start of device.
 						 */
-		unsigned long		space; /* space available at this offset */
-		loff_t			default_offset; /* this is the offset to use when
+			unsigned long		space; /* space available at this offset */
+			loff_t			default_offset; /* this is the offset to use when
 							 * hot-adding a bitmap.  It should
 							 * eventually be settable by sysfs.
 							 */
-		unsigned long		default_space; /* space available at
+			unsigned long		default_space; /* space available at
 							* default offset */
-		struct mutex		mutex;
-		unsigned long		chunksize;
-		unsigned long		daemon_sleep; /* how many jiffies between updates? */
-		unsigned long		max_write_behind; /* write-behind mode */
-		int			external;
-		int			nodes; /* Maximum number of nodes in the cluster */
-		char                    cluster_name[64]; /* Name of the cluster */
-	} bitmap_info;
+			struct mutex		mutex;
+			unsigned long		chunksize;
+			unsigned long		daemon_sleep; /* how many jiffies between updates? */
+			unsigned long		max_write_behind; /* write-behind mode */
+			int			external;
+			int			nodes; /* Maximum number of nodes in the cluster */
+			char                    cluster_name[64]; /* Name of the cluster */
+		} bitmap_info;
 
-	atomic_t			max_corr_read_errors; /* max read retries */
-	struct list_head		all_mddevs;
+		atomic_t			max_corr_read_errors; /* max read retries */
+		struct list_head		all_mddevs;
 
-	struct attribute_group		*to_remove;
+		struct attribute_group		*to_remove;
 
-	struct bio_set			*bio_set;
+		struct bio_set			*bio_set;
 
-	/* Generic flush handling.
-	 * The last to finish preflush schedules a worker to submit
-	 * the rest of the request (without the REQ_PREFLUSH flag).
-	 */
-	struct bio *flush_bio;
-	atomic_t flush_pending;
-	struct work_struct flush_work;
-	struct work_struct event_work;	/* used by dm to report failure event */
-	void (*sync_super)(struct mddev *mddev, struct md_rdev *rdev);
-	struct md_cluster_info		*cluster_info;
-	unsigned int			good_device_nr;	/* good device num within cluster raid */
+		/* Generic flush handling.
+		 * The last to finish preflush schedules a worker to submit
+		 * the rest of the request (without the REQ_PREFLUSH flag).
+		 */
+		struct bio *flush_bio;
+		atomic_t flush_pending;
+		struct work_struct flush_work;
+		struct work_struct event_work;	/* used by dm to report failure event */
+		void (*sync_super)(struct mddev *mddev, struct md_rdev *rdev);
+		struct md_cluster_info		*cluster_info;
+		unsigned int			good_device_nr;	/* good device num within cluster raid */
 };
 
 static inline int __must_check mddev_lock(struct mddev *mddev)
@@ -515,7 +526,8 @@ struct md_personality
 	int (*congested)(struct mddev *mddev, int bits);
 };
 
-struct md_sysfs_entry {
+struct md_sysfs_entry
+{
 	struct attribute attr;
 	ssize_t (*show)(struct mddev *, char *);
 	ssize_t (*store)(struct mddev *, const char *, size_t);
@@ -525,16 +537,21 @@ extern struct attribute_group md_bitmap_group;
 static inline struct kernfs_node *sysfs_get_dirent_safe(struct kernfs_node *sd, char *name)
 {
 	if (sd)
+	{
 		return sysfs_get_dirent(sd, name);
+	}
+
 	return sd;
 }
 static inline void sysfs_notify_dirent_safe(struct kernfs_node *sd)
 {
 	if (sd)
+	{
 		sysfs_notify_dirent(sd);
+	}
 }
 
-static inline char * mdname (struct mddev * mddev)
+static inline char *mdname (struct mddev *mddev)
 {
 	return mddev->gendisk ? mddev->gendisk->disk_name : "mdX";
 }
@@ -542,21 +559,28 @@ static inline char * mdname (struct mddev * mddev)
 static inline int sysfs_link_rdev(struct mddev *mddev, struct md_rdev *rdev)
 {
 	char nm[20];
+
 	if (!test_bit(Replacement, &rdev->flags) &&
-	    !test_bit(Journal, &rdev->flags) &&
-	    mddev->kobj.sd) {
+		!test_bit(Journal, &rdev->flags) &&
+		mddev->kobj.sd)
+	{
 		sprintf(nm, "rd%d", rdev->raid_disk);
 		return sysfs_create_link(&mddev->kobj, &rdev->kobj, nm);
-	} else
+	}
+	else
+	{
 		return 0;
+	}
 }
 
 static inline void sysfs_unlink_rdev(struct mddev *mddev, struct md_rdev *rdev)
 {
 	char nm[20];
+
 	if (!test_bit(Replacement, &rdev->flags) &&
-	    !test_bit(Journal, &rdev->flags) &&
-	    mddev->kobj.sd) {
+		!test_bit(Journal, &rdev->flags) &&
+		mddev->kobj.sd)
+	{
 		sprintf(nm, "rd%d", rdev->raid_disk);
 		sysfs_remove_link(&mddev->kobj, nm);
 	}
@@ -581,21 +605,22 @@ static inline void sysfs_unlink_rdev(struct mddev *mddev, struct md_rdev *rdev)
 #define rdev_for_each_rcu(rdev, mddev)				\
 	list_for_each_entry_rcu(rdev, &((mddev)->disks), same_set)
 
-struct md_thread {
-	void			(*run) (struct md_thread *thread);
-	struct mddev		*mddev;
-	wait_queue_head_t	wqueue;
-	unsigned long		flags;
-	struct task_struct	*tsk;
-	unsigned long		timeout;
-	void			*private;
+struct md_thread
+{
+		void			(*run) (struct md_thread *thread);
+		struct mddev		*mddev;
+		wait_queue_head_t	wqueue;
+		unsigned long		flags;
+		struct task_struct	*tsk;
+		unsigned long		timeout;
+		void			*private;
 };
 
 #define THREAD_WAKEUP  0
 
 static inline void safe_put_page(struct page *p)
 {
-	if (p) put_page(p);
+	if (p) { put_page(p); }
 }
 
 extern int register_md_personality(struct md_personality *p);
@@ -622,11 +647,11 @@ extern void md_finish_reshape(struct mddev *mddev);
 extern int mddev_congested(struct mddev *mddev, int bits);
 extern void md_flush_request(struct mddev *mddev, struct bio *bio);
 extern void md_super_write(struct mddev *mddev, struct md_rdev *rdev,
-			   sector_t sector, int size, struct page *page);
+						   sector_t sector, int size, struct page *page);
 extern void md_super_wait(struct mddev *mddev);
 extern int sync_page_io(struct md_rdev *rdev, sector_t sector, int size,
-			struct page *page, int op, int op_flags,
-			bool metadata_op);
+						struct page *page, int op, int op_flags,
+						bool metadata_op);
 extern void md_do_sync(struct md_thread *thread);
 extern void md_new_event(struct mddev *mddev);
 extern int md_allow_write(struct mddev *mddev);
@@ -647,25 +672,27 @@ extern void md_rdev_clear(struct md_rdev *rdev);
 extern void mddev_suspend(struct mddev *mddev);
 extern void mddev_resume(struct mddev *mddev);
 extern struct bio *bio_clone_mddev(struct bio *bio, gfp_t gfp_mask,
-				   struct mddev *mddev);
+								   struct mddev *mddev);
 extern struct bio *bio_alloc_mddev(gfp_t gfp_mask, int nr_iovecs,
-				   struct mddev *mddev);
+								   struct mddev *mddev);
 
 extern void md_unplug(struct blk_plug_cb *cb, bool from_schedule);
 extern void md_reload_sb(struct mddev *mddev, int raid_disk);
 extern void md_update_sb(struct mddev *mddev, int force);
-extern void md_kick_rdev_from_array(struct md_rdev * rdev);
+extern void md_kick_rdev_from_array(struct md_rdev *rdev);
 struct md_rdev *md_find_rdev_nr_rcu(struct mddev *mddev, int nr);
 static inline int mddev_check_plugged(struct mddev *mddev)
 {
 	return !!blk_check_plugged(md_unplug, mddev,
-				   sizeof(struct blk_plug_cb));
+							   sizeof(struct blk_plug_cb));
 }
 
 static inline void rdev_dec_pending(struct md_rdev *rdev, struct mddev *mddev)
 {
 	int faulty = test_bit(Faulty, &rdev->flags);
-	if (atomic_dec_and_test(&rdev->nr_pending) && faulty) {
+
+	if (atomic_dec_and_test(&rdev->nr_pending) && faulty)
+	{
 		set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
 		md_wakeup_thread(mddev->thread);
 	}

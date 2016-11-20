@@ -29,7 +29,8 @@
 typedef void (*bfa_sm_t)(void *sm, int event);
 
 /* For converting from state machine function to state encoding. */
-struct bfa_sm_table {
+struct bfa_sm_table
+{
 	bfa_sm_t	sm;	/*!< state machine function	*/
 	int		state;	/*!< state machine encoding	*/
 	char		*name;	/*!< state name for display	*/
@@ -49,9 +50,9 @@ typedef void (*bfa_fsm_t)(void *fsm, int event);
 	static void oc ## _sm_ ## st ## _entry(otype * fsm)
 
 #define bfa_fsm_set_state(_fsm, _state) do {				\
-	(_fsm)->fsm = (bfa_fsm_t)(_state);				\
-	_state ## _entry(_fsm);						\
-} while (0)
+		(_fsm)->fsm = (bfa_fsm_t)(_state);				\
+		_state ## _entry(_fsm);						\
+	} while (0)
 
 #define bfa_fsm_send_event(_fsm, _event)	((_fsm)->fsm((_fsm), (_event)))
 #define bfa_fsm_cmp_state(_fsm, _state)					\
@@ -63,7 +64,10 @@ bfa_sm_to_state(const struct bfa_sm_table *smt, bfa_sm_t sm)
 	int	i = 0;
 
 	while (smt[i].sm && smt[i].sm != sm)
+	{
 		i++;
+	}
+
 	return smt[i].state;
 }
 
@@ -71,7 +75,8 @@ bfa_sm_to_state(const struct bfa_sm_table *smt, bfa_sm_t sm)
 
 typedef void (*bfa_wc_resume_t) (void *cbarg);
 
-struct bfa_wc {
+struct bfa_wc
+{
 	bfa_wc_resume_t wc_resume;
 	void		*wc_cbarg;
 	int		wc_count;
@@ -87,8 +92,11 @@ static inline void
 bfa_wc_down(struct bfa_wc *wc)
 {
 	wc->wc_count--;
+
 	if (wc->wc_count == 0)
+	{
 		wc->wc_resume(wc->wc_cbarg);
+	}
 }
 
 /* Initialize a waiting counter. */

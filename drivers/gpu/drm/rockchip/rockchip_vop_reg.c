@@ -21,18 +21,19 @@
 #include "rockchip_vop_reg.h"
 
 #define VOP_REG(off, _mask, s) \
-		{.offset = off, \
-		 .mask = _mask, \
-		 .shift = s, \
-		 .write_mask = false,}
+	{.offset = off, \
+			   .mask = _mask, \
+					   .shift = s, \
+								.write_mask = false,}
 
 #define VOP_REG_MASK(off, _mask, s) \
-		{.offset = off, \
-		 .mask = _mask, \
-		 .shift = s, \
-		 .write_mask = true,}
+	{.offset = off, \
+			   .mask = _mask, \
+					   .shift = s, \
+								.write_mask = true,}
 
-static const uint32_t formats_win_full[] = {
+static const uint32_t formats_win_full[] =
+{
 	DRM_FORMAT_XRGB8888,
 	DRM_FORMAT_ARGB8888,
 	DRM_FORMAT_XBGR8888,
@@ -46,7 +47,8 @@ static const uint32_t formats_win_full[] = {
 	DRM_FORMAT_NV24,
 };
 
-static const uint32_t formats_win_lite[] = {
+static const uint32_t formats_win_lite[] =
+{
 	DRM_FORMAT_XRGB8888,
 	DRM_FORMAT_ARGB8888,
 	DRM_FORMAT_XBGR8888,
@@ -57,14 +59,16 @@ static const uint32_t formats_win_lite[] = {
 	DRM_FORMAT_BGR565,
 };
 
-static const struct vop_scl_regs rk3036_win_scl = {
+static const struct vop_scl_regs rk3036_win_scl =
+{
 	.scale_yrgb_x = VOP_REG(RK3036_WIN0_SCL_FACTOR_YRGB, 0xffff, 0x0),
 	.scale_yrgb_y = VOP_REG(RK3036_WIN0_SCL_FACTOR_YRGB, 0xffff, 16),
 	.scale_cbcr_x = VOP_REG(RK3036_WIN0_SCL_FACTOR_CBR, 0xffff, 0x0),
 	.scale_cbcr_y = VOP_REG(RK3036_WIN0_SCL_FACTOR_CBR, 0xffff, 16),
 };
 
-static const struct vop_win_phy rk3036_win0_data = {
+static const struct vop_win_phy rk3036_win0_data =
+{
 	.scl = &rk3036_win_scl,
 	.data_formats = formats_win_full,
 	.nformats = ARRAY_SIZE(formats_win_full),
@@ -80,7 +84,8 @@ static const struct vop_win_phy rk3036_win0_data = {
 	.uv_vir = VOP_REG(RK3036_WIN0_VIR, 0x1fff, 16),
 };
 
-static const struct vop_win_phy rk3036_win1_data = {
+static const struct vop_win_phy rk3036_win1_data =
+{
 	.data_formats = formats_win_lite,
 	.nformats = ARRAY_SIZE(formats_win_lite),
 	.enable = VOP_REG(RK3036_SYS_CTRL, 0x1, 1),
@@ -93,21 +98,28 @@ static const struct vop_win_phy rk3036_win1_data = {
 	.yrgb_vir = VOP_REG(RK3036_WIN1_VIR, 0xffff, 0),
 };
 
-static const struct vop_win_data rk3036_vop_win_data[] = {
-	{ .base = 0x00, .phy = &rk3036_win0_data,
-	  .type = DRM_PLANE_TYPE_PRIMARY },
-	{ .base = 0x00, .phy = &rk3036_win1_data,
-	  .type = DRM_PLANE_TYPE_CURSOR },
+static const struct vop_win_data rk3036_vop_win_data[] =
+{
+	{
+		.base = 0x00, .phy = &rk3036_win0_data,
+		.type = DRM_PLANE_TYPE_PRIMARY
+	},
+	{
+		.base = 0x00, .phy = &rk3036_win1_data,
+		.type = DRM_PLANE_TYPE_CURSOR
+	},
 };
 
-static const int rk3036_vop_intrs[] = {
+static const int rk3036_vop_intrs[] =
+{
 	DSP_HOLD_VALID_INTR,
 	FS_INTR,
 	LINE_FLAG_INTR,
 	BUS_ERROR_INTR,
 };
 
-static const struct vop_intr rk3036_intr = {
+static const struct vop_intr rk3036_intr =
+{
 	.intrs = rk3036_vop_intrs,
 	.nintrs = ARRAY_SIZE(rk3036_vop_intrs),
 	.status = VOP_REG(RK3036_INT_STATUS, 0xf, 0),
@@ -115,7 +127,8 @@ static const struct vop_intr rk3036_intr = {
 	.clear = VOP_REG(RK3036_INT_STATUS, 0xf, 8),
 };
 
-static const struct vop_ctrl rk3036_ctrl_data = {
+static const struct vop_ctrl rk3036_ctrl_data =
+{
 	.standby = VOP_REG(RK3036_SYS_CTRL, 0x1, 30),
 	.out_mode = VOP_REG(RK3036_DSP_CTRL0, 0xf, 0),
 	.pin_pol = VOP_REG(RK3036_DSP_CTRL0, 0xf, 4),
@@ -127,11 +140,13 @@ static const struct vop_ctrl rk3036_ctrl_data = {
 	.cfg_done = VOP_REG(RK3036_REG_CFG_DONE, 0x1, 0),
 };
 
-static const struct vop_reg_data rk3036_vop_init_reg_table[] = {
+static const struct vop_reg_data rk3036_vop_init_reg_table[] =
+{
 	{RK3036_DSP_CTRL1, 0x00000000},
 };
 
-static const struct vop_data rk3036_vop = {
+static const struct vop_data rk3036_vop =
+{
 	.init_table = rk3036_vop_init_reg_table,
 	.table_size = ARRAY_SIZE(rk3036_vop_init_reg_table),
 	.ctrl = &rk3036_ctrl_data,
@@ -140,7 +155,8 @@ static const struct vop_data rk3036_vop = {
 	.win_size = ARRAY_SIZE(rk3036_vop_win_data),
 };
 
-static const struct vop_scl_extension rk3288_win_full_scl_ext = {
+static const struct vop_scl_extension rk3288_win_full_scl_ext =
+{
 	.cbcr_vsd_mode = VOP_REG(RK3288_WIN0_CTRL1, 0x1, 31),
 	.cbcr_vsu_mode = VOP_REG(RK3288_WIN0_CTRL1, 0x1, 30),
 	.cbcr_hsd_mode = VOP_REG(RK3288_WIN0_CTRL1, 0x3, 28),
@@ -164,7 +180,8 @@ static const struct vop_scl_extension rk3288_win_full_scl_ext = {
 	.lb_mode = VOP_REG(RK3288_WIN0_CTRL0, 0x7, 5),
 };
 
-static const struct vop_scl_regs rk3288_win_full_scl = {
+static const struct vop_scl_regs rk3288_win_full_scl =
+{
 	.ext = &rk3288_win_full_scl_ext,
 	.scale_yrgb_x = VOP_REG(RK3288_WIN0_SCL_FACTOR_YRGB, 0xffff, 0x0),
 	.scale_yrgb_y = VOP_REG(RK3288_WIN0_SCL_FACTOR_YRGB, 0xffff, 16),
@@ -172,7 +189,8 @@ static const struct vop_scl_regs rk3288_win_full_scl = {
 	.scale_cbcr_y = VOP_REG(RK3288_WIN0_SCL_FACTOR_CBR, 0xffff, 16),
 };
 
-static const struct vop_win_phy rk3288_win01_data = {
+static const struct vop_win_phy rk3288_win01_data =
+{
 	.scl = &rk3288_win_full_scl,
 	.data_formats = formats_win_full,
 	.nformats = ARRAY_SIZE(formats_win_full),
@@ -190,7 +208,8 @@ static const struct vop_win_phy rk3288_win01_data = {
 	.dst_alpha_ctl = VOP_REG(RK3288_WIN0_DST_ALPHA_CTRL, 0xff, 0),
 };
 
-static const struct vop_win_phy rk3288_win23_data = {
+static const struct vop_win_phy rk3288_win23_data =
+{
 	.data_formats = formats_win_lite,
 	.nformats = ARRAY_SIZE(formats_win_lite),
 	.enable = VOP_REG(RK3288_WIN2_CTRL0, 0x1, 0),
@@ -204,7 +223,8 @@ static const struct vop_win_phy rk3288_win23_data = {
 	.dst_alpha_ctl = VOP_REG(RK3288_WIN2_DST_ALPHA_CTRL, 0xff, 0),
 };
 
-static const struct vop_ctrl rk3288_ctrl_data = {
+static const struct vop_ctrl rk3288_ctrl_data =
+{
 	.standby = VOP_REG(RK3288_SYS_CTRL, 0x1, 22),
 	.gate_en = VOP_REG(RK3288_SYS_CTRL, 0x1, 23),
 	.mmu_en = VOP_REG(RK3288_SYS_CTRL, 0x1, 20),
@@ -227,7 +247,8 @@ static const struct vop_ctrl rk3288_ctrl_data = {
 	.cfg_done = VOP_REG(RK3288_REG_CFG_DONE, 0x1, 0),
 };
 
-static const struct vop_reg_data rk3288_init_reg_table[] = {
+static const struct vop_reg_data rk3288_init_reg_table[] =
+{
 	{RK3288_SYS_CTRL, 0x00c00000},
 	{RK3288_DSP_CTRL0, 0x00000000},
 	{RK3288_WIN0_CTRL0, 0x00000080},
@@ -246,25 +267,36 @@ static const struct vop_reg_data rk3288_init_reg_table[] = {
  * window 3 for the drm cursor.
  *
  */
-static const struct vop_win_data rk3288_vop_win_data[] = {
-	{ .base = 0x00, .phy = &rk3288_win01_data,
-	  .type = DRM_PLANE_TYPE_PRIMARY },
-	{ .base = 0x40, .phy = &rk3288_win01_data,
-	  .type = DRM_PLANE_TYPE_OVERLAY },
-	{ .base = 0x00, .phy = &rk3288_win23_data,
-	  .type = DRM_PLANE_TYPE_OVERLAY },
-	{ .base = 0x50, .phy = &rk3288_win23_data,
-	  .type = DRM_PLANE_TYPE_CURSOR },
+static const struct vop_win_data rk3288_vop_win_data[] =
+{
+	{
+		.base = 0x00, .phy = &rk3288_win01_data,
+		.type = DRM_PLANE_TYPE_PRIMARY
+	},
+	{
+		.base = 0x40, .phy = &rk3288_win01_data,
+		.type = DRM_PLANE_TYPE_OVERLAY
+	},
+	{
+		.base = 0x00, .phy = &rk3288_win23_data,
+		.type = DRM_PLANE_TYPE_OVERLAY
+	},
+	{
+		.base = 0x50, .phy = &rk3288_win23_data,
+		.type = DRM_PLANE_TYPE_CURSOR
+	},
 };
 
-static const int rk3288_vop_intrs[] = {
+static const int rk3288_vop_intrs[] =
+{
 	DSP_HOLD_VALID_INTR,
 	FS_INTR,
 	LINE_FLAG_INTR,
 	BUS_ERROR_INTR,
 };
 
-static const struct vop_intr rk3288_vop_intr = {
+static const struct vop_intr rk3288_vop_intr =
+{
 	.intrs = rk3288_vop_intrs,
 	.nintrs = ARRAY_SIZE(rk3288_vop_intrs),
 	.status = VOP_REG(RK3288_INTR_CTRL0, 0xf, 0),
@@ -272,7 +304,8 @@ static const struct vop_intr rk3288_vop_intr = {
 	.clear = VOP_REG(RK3288_INTR_CTRL0, 0xf, 8),
 };
 
-static const struct vop_data rk3288_vop = {
+static const struct vop_data rk3288_vop =
+{
 	.init_table = rk3288_init_reg_table,
 	.table_size = ARRAY_SIZE(rk3288_init_reg_table),
 	.intr = &rk3288_vop_intr,
@@ -281,7 +314,8 @@ static const struct vop_data rk3288_vop = {
 	.win_size = ARRAY_SIZE(rk3288_vop_win_data),
 };
 
-static const struct vop_ctrl rk3399_ctrl_data = {
+static const struct vop_ctrl rk3399_ctrl_data =
+{
 	.standby = VOP_REG(RK3399_SYS_CTRL, 0x1, 22),
 	.gate_en = VOP_REG(RK3399_SYS_CTRL, 0x1, 23),
 	.rgb_en = VOP_REG(RK3399_SYS_CTRL, 0x1, 12),
@@ -307,7 +341,8 @@ static const struct vop_ctrl rk3399_ctrl_data = {
 	.cfg_done = VOP_REG_MASK(RK3399_REG_CFG_DONE, 0x1, 0),
 };
 
-static const int rk3399_vop_intrs[] = {
+static const int rk3399_vop_intrs[] =
+{
 	FS_INTR,
 	0, 0,
 	LINE_FLAG_INTR,
@@ -317,7 +352,8 @@ static const int rk3399_vop_intrs[] = {
 	DSP_HOLD_VALID_INTR,
 };
 
-static const struct vop_intr rk3399_vop_intr = {
+static const struct vop_intr rk3399_vop_intr =
+{
 	.intrs = rk3399_vop_intrs,
 	.nintrs = ARRAY_SIZE(rk3399_vop_intrs),
 	.status = VOP_REG_MASK(RK3399_INTR_STATUS0, 0xffff, 0),
@@ -325,7 +361,8 @@ static const struct vop_intr rk3399_vop_intr = {
 	.clear = VOP_REG_MASK(RK3399_INTR_CLEAR0, 0xffff, 0),
 };
 
-static const struct vop_reg_data rk3399_init_reg_table[] = {
+static const struct vop_reg_data rk3399_init_reg_table[] =
+{
 	{RK3399_SYS_CTRL, 0x2000f800},
 	{RK3399_DSP_CTRL0, 0x00000000},
 	{RK3399_WIN0_CTRL0, 0x00000080},
@@ -338,7 +375,8 @@ static const struct vop_reg_data rk3399_init_reg_table[] = {
 	{RK3399_WIN3_CTRL0, 0x00000010},
 };
 
-static const struct vop_data rk3399_vop_big = {
+static const struct vop_data rk3399_vop_big =
+{
 	.init_table = rk3399_init_reg_table,
 	.table_size = ARRAY_SIZE(rk3399_init_reg_table),
 	.intr = &rk3399_vop_intr,
@@ -350,14 +388,20 @@ static const struct vop_data rk3399_vop_big = {
 	.win_size = ARRAY_SIZE(rk3288_vop_win_data),
 };
 
-static const struct vop_win_data rk3399_vop_lit_win_data[] = {
-	{ .base = 0x00, .phy = &rk3288_win01_data,
-	  .type = DRM_PLANE_TYPE_PRIMARY },
-	{ .base = 0x00, .phy = &rk3288_win23_data,
-	  .type = DRM_PLANE_TYPE_CURSOR},
+static const struct vop_win_data rk3399_vop_lit_win_data[] =
+{
+	{
+		.base = 0x00, .phy = &rk3288_win01_data,
+		.type = DRM_PLANE_TYPE_PRIMARY
+	},
+	{
+		.base = 0x00, .phy = &rk3288_win23_data,
+		.type = DRM_PLANE_TYPE_CURSOR
+	},
 };
 
-static const struct vop_data rk3399_vop_lit = {
+static const struct vop_data rk3399_vop_lit =
+{
 	.init_table = rk3399_init_reg_table,
 	.table_size = ARRAY_SIZE(rk3399_init_reg_table),
 	.intr = &rk3399_vop_intr,
@@ -370,15 +414,24 @@ static const struct vop_data rk3399_vop_lit = {
 	.win_size = ARRAY_SIZE(rk3399_vop_lit_win_data),
 };
 
-static const struct of_device_id vop_driver_dt_match[] = {
-	{ .compatible = "rockchip,rk3036-vop",
-	  .data = &rk3036_vop },
-	{ .compatible = "rockchip,rk3288-vop",
-	  .data = &rk3288_vop },
-	{ .compatible = "rockchip,rk3399-vop-big",
-	  .data = &rk3399_vop_big },
-	{ .compatible = "rockchip,rk3399-vop-lit",
-	  .data = &rk3399_vop_lit },
+static const struct of_device_id vop_driver_dt_match[] =
+{
+	{
+		.compatible = "rockchip,rk3036-vop",
+		.data = &rk3036_vop
+	},
+	{
+		.compatible = "rockchip,rk3288-vop",
+		.data = &rk3288_vop
+	},
+	{
+		.compatible = "rockchip,rk3399-vop-big",
+		.data = &rk3399_vop_big
+	},
+	{
+		.compatible = "rockchip,rk3399-vop-lit",
+		.data = &rk3399_vop_lit
+	},
 	{},
 };
 MODULE_DEVICE_TABLE(of, vop_driver_dt_match);
@@ -387,7 +440,8 @@ static int vop_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 
-	if (!dev->of_node) {
+	if (!dev->of_node)
+	{
 		dev_err(dev, "can't find vop devices\n");
 		return -ENODEV;
 	}
@@ -402,7 +456,8 @@ static int vop_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver vop_platform_driver = {
+static struct platform_driver vop_platform_driver =
+{
 	.probe = vop_probe,
 	.remove = vop_remove,
 	.driver = {

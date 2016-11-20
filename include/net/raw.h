@@ -30,7 +30,8 @@ int raw_rcv(struct sock *, struct sk_buff *);
 
 #define RAW_HTABLE_SIZE	MAX_INET_PROTOS
 
-struct raw_hashinfo {
+struct raw_hashinfo
+{
 	rwlock_t lock;
 	struct hlist_head ht[RAW_HTABLE_SIZE];
 };
@@ -39,7 +40,8 @@ struct raw_hashinfo {
 int raw_proc_init(void);
 void raw_proc_exit(void);
 
-struct raw_iter_state {
+struct raw_iter_state
+{
 	struct seq_net_private p;
 	int bucket;
 	struct raw_hashinfo *h;
@@ -53,14 +55,15 @@ void *raw_seq_start(struct seq_file *seq, loff_t *pos);
 void *raw_seq_next(struct seq_file *seq, void *v, loff_t *pos);
 void raw_seq_stop(struct seq_file *seq, void *v);
 int raw_seq_open(struct inode *ino, struct file *file,
-		 struct raw_hashinfo *h, const struct seq_operations *ops);
+				 struct raw_hashinfo *h, const struct seq_operations *ops);
 
 #endif
 
 int raw_hash_sk(struct sock *sk);
 void raw_unhash_sk(struct sock *sk);
 
-struct raw_sock {
+struct raw_sock
+{
 	/* inet_sock has to be the first member */
 	struct inet_sock   inet;
 	struct icmp_filter filter;

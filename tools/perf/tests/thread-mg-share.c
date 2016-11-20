@@ -40,7 +40,7 @@ int test__thread_mg_share(int subtest __maybe_unused)
 	other  = machine__findnew_thread(machine, 4, 5);
 
 	TEST_ASSERT_VAL("failed to create threads",
-			leader && t1 && t2 && t3 && other);
+					leader && t1 && t2 && t3 && other);
 
 	mg = leader->mg;
 	TEST_ASSERT_EQUAL("wrong refcnt", atomic_read(&mg->refcnt), 4);

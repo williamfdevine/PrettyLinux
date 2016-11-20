@@ -67,19 +67,22 @@
 #define PCI_DEVICE_ID_HYPERV_VIDEO 0x5353
 
 
-enum pipe_msg_type {
+enum pipe_msg_type
+{
 	PIPE_MSG_INVALID,
 	PIPE_MSG_DATA,
 	PIPE_MSG_MAX
 };
 
-struct pipe_msg_hdr {
+struct pipe_msg_hdr
+{
 	u32 type;
 	u32 size; /* size of message after this field */
 } __packed;
 
 
-enum synthvid_msg_type {
+enum synthvid_msg_type
+{
 	SYNTHVID_ERROR			= 0,
 	SYNTHVID_VERSION_REQUEST	= 1,
 	SYNTHVID_VERSION_RESPONSE	= 2,
@@ -95,33 +98,39 @@ enum synthvid_msg_type {
 	SYNTHVID_MAX			= 11
 };
 
-struct synthvid_msg_hdr {
+struct synthvid_msg_hdr
+{
 	u32 type;
 	u32 size;  /* size of this header + payload after this field*/
 } __packed;
 
 
-struct synthvid_version_req {
+struct synthvid_version_req
+{
 	u32 version;
 } __packed;
 
-struct synthvid_version_resp {
+struct synthvid_version_resp
+{
 	u32 version;
 	u8 is_accepted;
 	u8 max_video_outputs;
 } __packed;
 
-struct synthvid_vram_location {
+struct synthvid_vram_location
+{
 	u64 user_ctx;
 	u8 is_vram_gpa_specified;
 	u64 vram_gpa;
 } __packed;
 
-struct synthvid_vram_location_ack {
+struct synthvid_vram_location_ack
+{
 	u64 user_ctx;
 } __packed;
 
-struct video_output_situation {
+struct video_output_situation
+{
 	u8 active;
 	u32 vram_offset;
 	u8 depth_bits;
@@ -130,17 +139,20 @@ struct video_output_situation {
 	u32 pitch_bytes;
 } __packed;
 
-struct synthvid_situation_update {
+struct synthvid_situation_update
+{
 	u64 user_ctx;
 	u8 video_output_count;
 	struct video_output_situation video_output[1];
 } __packed;
 
-struct synthvid_situation_update_ack {
+struct synthvid_situation_update_ack
+{
 	u64 user_ctx;
 } __packed;
 
-struct synthvid_pointer_position {
+struct synthvid_pointer_position
+{
 	u8 is_visible;
 	u8 video_output;
 	s32 image_x;
@@ -154,7 +166,8 @@ struct synthvid_pointer_position {
 #define CURSOR_MAX_SIZE (CURSOR_MAX_X * CURSOR_MAX_Y * CURSOR_ARGB_PIXEL_SIZE)
 #define CURSOR_COMPLETE (-1)
 
-struct synthvid_pointer_shape {
+struct synthvid_pointer_shape
+{
 	u8 part_idx;
 	u8 is_argb;
 	u32 width; /* CURSOR_MAX_X at most */
@@ -164,28 +177,33 @@ struct synthvid_pointer_shape {
 	u8 data[4];
 } __packed;
 
-struct synthvid_feature_change {
+struct synthvid_feature_change
+{
 	u8 is_dirt_needed;
 	u8 is_ptr_pos_needed;
 	u8 is_ptr_shape_needed;
 	u8 is_situ_needed;
 } __packed;
 
-struct rect {
+struct rect
+{
 	s32 x1, y1; /* top left corner */
 	s32 x2, y2; /* bottom right corner, exclusive */
 } __packed;
 
-struct synthvid_dirt {
+struct synthvid_dirt
+{
 	u8 video_output;
 	u8 dirt_count;
 	struct rect rect[1];
 } __packed;
 
-struct synthvid_msg {
+struct synthvid_msg
+{
 	struct pipe_msg_hdr pipe_hdr;
 	struct synthvid_msg_hdr vid_hdr;
-	union {
+	union
+	{
 		struct synthvid_version_req ver_req;
 		struct synthvid_version_resp ver_resp;
 		struct synthvid_vram_location vram;
@@ -211,7 +229,8 @@ struct synthvid_msg {
 #define VSP_TIMEOUT (10 * HZ)
 #define HVFB_UPDATE_DELAY (HZ / 20)
 
-struct hvfb_par {
+struct hvfb_par
+{
 	struct fb_info *info;
 	struct resource *mem;
 	bool fb_ready; /* fb device is ready */
@@ -238,7 +257,7 @@ static uint screen_fb_size;
 
 /* Send message to Hyper-V host */
 static inline int synthvid_send(struct hv_device *hdev,
-				struct synthvid_msg *msg)
+								struct synthvid_msg *msg)
 {
 	static atomic64_t request_id = ATOMIC64_INIT(0);
 	int ret;
@@ -247,12 +266,14 @@ static inline int synthvid_send(struct hv_device *hdev,
 	msg->pipe_hdr.size = msg->vid_hdr.size;
 
 	ret = vmbus_sendpacket(hdev->channel, msg,
-			       msg->vid_hdr.size + sizeof(struct pipe_msg_hdr),
-			       atomic64_inc_return(&request_id),
-			       VM_PKT_DATA_INBAND, 0);
+						   msg->vid_hdr.size + sizeof(struct pipe_msg_hdr),
+						   atomic64_inc_return(&request_id),
+						   VM_PKT_DATA_INBAND, 0);
 
 	if (ret)
+	{
 		pr_err("Unable to send packet via vmbus\n");
+	}
 
 	return ret;
 }
@@ -265,13 +286,15 @@ static int synthvid_send_situ(struct hv_device *hdev)
 	struct synthvid_msg msg;
 
 	if (!info)
+	{
 		return -ENODEV;
+	}
 
 	memset(&msg, 0, sizeof(struct synthvid_msg));
 
 	msg.vid_hdr.type = SYNTHVID_SITUATION_UPDATE;
 	msg.vid_hdr.size = sizeof(struct synthvid_msg_hdr) +
-		sizeof(struct synthvid_situation_update);
+					   sizeof(struct synthvid_situation_update);
 	msg.situ.user_ctx = 0;
 	msg.situ.video_output_count = 1;
 	msg.situ.video_output[0].active = 1;
@@ -294,7 +317,7 @@ static int synthvid_send_ptr(struct hv_device *hdev)
 	memset(&msg, 0, sizeof(struct synthvid_msg));
 	msg.vid_hdr.type = SYNTHVID_POINTER_POSITION;
 	msg.vid_hdr.size = sizeof(struct synthvid_msg_hdr) +
-		sizeof(struct synthvid_pointer_position);
+					   sizeof(struct synthvid_pointer_position);
 	msg.ptr_pos.is_visible = 1;
 	msg.ptr_pos.video_output = 0;
 	msg.ptr_pos.image_x = 0;
@@ -304,7 +327,7 @@ static int synthvid_send_ptr(struct hv_device *hdev)
 	memset(&msg, 0, sizeof(struct synthvid_msg));
 	msg.vid_hdr.type = SYNTHVID_POINTER_SHAPE;
 	msg.vid_hdr.size = sizeof(struct synthvid_msg_hdr) +
-		sizeof(struct synthvid_pointer_shape);
+					   sizeof(struct synthvid_pointer_shape);
 	msg.ptr_shape.part_idx = CURSOR_COMPLETE;
 	msg.ptr_shape.is_argb = 1;
 	msg.ptr_shape.width = 1;
@@ -330,7 +353,7 @@ static int synthvid_update(struct fb_info *info)
 
 	msg.vid_hdr.type = SYNTHVID_DIRT;
 	msg.vid_hdr.size = sizeof(struct synthvid_msg_hdr) +
-		sizeof(struct synthvid_dirt);
+					   sizeof(struct synthvid_dirt);
 	msg.dirt.video_output = 0;
 	msg.dirt.dirt_count = 1;
 	msg.dirt.rect[0].x1 = 0;
@@ -356,29 +379,37 @@ static void synthvid_recv_sub(struct hv_device *hdev)
 	struct synthvid_msg *msg;
 
 	if (!info)
+	{
 		return;
+	}
 
 	par = info->par;
 	msg = (struct synthvid_msg *)par->recv_buf;
 
 	/* Complete the wait event */
 	if (msg->vid_hdr.type == SYNTHVID_VERSION_RESPONSE ||
-	    msg->vid_hdr.type == SYNTHVID_VRAM_LOCATION_ACK) {
+		msg->vid_hdr.type == SYNTHVID_VRAM_LOCATION_ACK)
+	{
 		memcpy(par->init_buf, msg, MAX_VMBUS_PKT_SIZE);
 		complete(&par->wait);
 		return;
 	}
 
 	/* Reply with screen and cursor info */
-	if (msg->vid_hdr.type == SYNTHVID_FEATURE_CHANGE) {
-		if (par->fb_ready) {
+	if (msg->vid_hdr.type == SYNTHVID_FEATURE_CHANGE)
+	{
+		if (par->fb_ready)
+		{
 			synthvid_send_ptr(hdev);
 			synthvid_send_situ(hdev);
 		}
 
 		par->update = msg->feature_chg.is_dirt_needed;
+
 		if (par->update)
+		{
 			schedule_delayed_work(&par->dwork, HVFB_UPDATE_DELAY);
+		}
 	}
 }
 
@@ -394,19 +425,26 @@ static void synthvid_receive(void *ctx)
 	int ret;
 
 	if (!info)
+	{
 		return;
+	}
 
 	par = info->par;
 	recv_buf = (struct synthvid_msg *)par->recv_buf;
 
-	do {
+	do
+	{
 		ret = vmbus_recvpacket(hdev->channel, recv_buf,
-				       MAX_VMBUS_PKT_SIZE,
-				       &bytes_recvd, &req_id);
+							   MAX_VMBUS_PKT_SIZE,
+							   &bytes_recvd, &req_id);
+
 		if (bytes_recvd > 0 &&
-		    recv_buf->pipe_hdr.type == PIPE_MSG_DATA)
+			recv_buf->pipe_hdr.type == PIPE_MSG_DATA)
+		{
 			synthvid_recv_sub(hdev);
-	} while (bytes_recvd > 0 && ret == 0);
+		}
+	}
+	while (bytes_recvd > 0 && ret == 0);
 }
 
 /* Check synthetic video protocol version with the host */
@@ -421,17 +459,21 @@ static int synthvid_negotiate_ver(struct hv_device *hdev, u32 ver)
 	memset(msg, 0, sizeof(struct synthvid_msg));
 	msg->vid_hdr.type = SYNTHVID_VERSION_REQUEST;
 	msg->vid_hdr.size = sizeof(struct synthvid_msg_hdr) +
-		sizeof(struct synthvid_version_req);
+						sizeof(struct synthvid_version_req);
 	msg->ver_req.version = ver;
 	synthvid_send(hdev, msg);
 
 	t = wait_for_completion_timeout(&par->wait, VSP_TIMEOUT);
-	if (!t) {
+
+	if (!t)
+	{
 		pr_err("Time out on waiting version response\n");
 		ret = -ETIMEDOUT;
 		goto out;
 	}
-	if (!msg->ver_resp.is_accepted) {
+
+	if (!msg->ver_resp.is_accepted)
+	{
 		ret = -ENODEV;
 		goto out;
 	}
@@ -450,31 +492,42 @@ static int synthvid_connect_vsp(struct hv_device *hdev)
 	int ret;
 
 	ret = vmbus_open(hdev->channel, RING_BUFSIZE, RING_BUFSIZE,
-			 NULL, 0, synthvid_receive, hdev);
-	if (ret) {
+					 NULL, 0, synthvid_receive, hdev);
+
+	if (ret)
+	{
 		pr_err("Unable to open vmbus channel\n");
 		return ret;
 	}
 
 	/* Negotiate the protocol version with host */
 	if (vmbus_proto_version == VERSION_WS2008 ||
-	    vmbus_proto_version == VERSION_WIN7)
+		vmbus_proto_version == VERSION_WIN7)
+	{
 		ret = synthvid_negotiate_ver(hdev, SYNTHVID_VERSION_WIN7);
+	}
 	else
+	{
 		ret = synthvid_negotiate_ver(hdev, SYNTHVID_VERSION_WIN8);
+	}
 
-	if (ret) {
+	if (ret)
+	{
 		pr_err("Synthetic video device version not accepted\n");
 		goto error;
 	}
 
 	if (par->synthvid_version == SYNTHVID_VERSION_WIN7)
+	{
 		screen_depth = SYNTHVID_DEPTH_WIN7;
+	}
 	else
+	{
 		screen_depth = SYNTHVID_DEPTH_WIN8;
+	}
 
 	screen_fb_size = hdev->channel->offermsg.offer.
-				mmio_megabytes * 1024 * 1024;
+					 mmio_megabytes * 1024 * 1024;
 
 	return 0;
 
@@ -496,18 +549,22 @@ static int synthvid_send_config(struct hv_device *hdev)
 	memset(msg, 0, sizeof(struct synthvid_msg));
 	msg->vid_hdr.type = SYNTHVID_VRAM_LOCATION;
 	msg->vid_hdr.size = sizeof(struct synthvid_msg_hdr) +
-		sizeof(struct synthvid_vram_location);
+						sizeof(struct synthvid_vram_location);
 	msg->vram.user_ctx = msg->vram.vram_gpa = info->fix.smem_start;
 	msg->vram.is_vram_gpa_specified = 1;
 	synthvid_send(hdev, msg);
 
 	t = wait_for_completion_timeout(&par->wait, VSP_TIMEOUT);
-	if (!t) {
+
+	if (!t)
+	{
 		pr_err("Time out on waiting vram location ack\n");
 		ret = -ETIMEDOUT;
 		goto out;
 	}
-	if (msg->vram_ack.user_ctx != info->fix.smem_start) {
+
+	if (msg->vram_ack.user_ctx != info->fix.smem_start)
+	{
 		pr_err("Unable to set VRAM location\n");
 		ret = -ENODEV;
 		goto out;
@@ -533,14 +590,18 @@ static void hvfb_update_work(struct work_struct *w)
 	struct fb_info *info = par->info;
 
 	if (par->fb_ready)
+	{
 		synthvid_update(info);
+	}
 
 	if (par->update)
+	{
 		schedule_delayed_work(&par->dwork, HVFB_UPDATE_DELAY);
+	}
 }
 
 static int hvfb_on_panic(struct notifier_block *nb,
-			 unsigned long e, void *p)
+						 unsigned long e, void *p)
 {
 	struct hvfb_par *par;
 	struct fb_info *info;
@@ -558,9 +619,11 @@ static int hvfb_on_panic(struct notifier_block *nb,
 static int hvfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 {
 	if (var->xres < HVFB_WIDTH_MIN || var->yres < HVFB_HEIGHT_MIN ||
-	    var->xres > screen_width || var->yres >  screen_height ||
-	    var->bits_per_pixel != screen_depth)
+		var->xres > screen_width || var->yres >  screen_height ||
+		var->bits_per_pixel != screen_depth)
+	{
 		return -EINVAL;
+	}
 
 	var->xres_virtual = var->xres;
 	var->yres_virtual = var->yres;
@@ -582,17 +645,19 @@ static inline u32 chan_to_field(u32 chan, struct fb_bitfield *bf)
 }
 
 static int hvfb_setcolreg(unsigned regno, unsigned red, unsigned green,
-			  unsigned blue, unsigned transp, struct fb_info *info)
+						  unsigned blue, unsigned transp, struct fb_info *info)
 {
 	u32 *pal = info->pseudo_palette;
 
 	if (regno > 15)
+	{
 		return -EINVAL;
+	}
 
 	pal[regno] = chan_to_field(red, &info->var.red)
-		| chan_to_field(green, &info->var.green)
-		| chan_to_field(blue, &info->var.blue)
-		| chan_to_field(transp, &info->var.transp);
+				 | chan_to_field(green, &info->var.green)
+				 | chan_to_field(blue, &info->var.blue)
+				 | chan_to_field(transp, &info->var.transp);
 
 	return 0;
 }
@@ -603,36 +668,46 @@ static int hvfb_blank(int blank, struct fb_info *info)
 }
 
 static void hvfb_cfb_fillrect(struct fb_info *p,
-			      const struct fb_fillrect *rect)
+							  const struct fb_fillrect *rect)
 {
 	struct hvfb_par *par = p->par;
 
 	cfb_fillrect(p, rect);
+
 	if (par->synchronous_fb)
+	{
 		synthvid_update(p);
+	}
 }
 
 static void hvfb_cfb_copyarea(struct fb_info *p,
-			      const struct fb_copyarea *area)
+							  const struct fb_copyarea *area)
 {
 	struct hvfb_par *par = p->par;
 
 	cfb_copyarea(p, area);
+
 	if (par->synchronous_fb)
+	{
 		synthvid_update(p);
+	}
 }
 
 static void hvfb_cfb_imageblit(struct fb_info *p,
-			       const struct fb_image *image)
+							   const struct fb_image *image)
 {
 	struct hvfb_par *par = p->par;
 
 	cfb_imageblit(p, image);
+
 	if (par->synchronous_fb)
+	{
 		synthvid_update(p);
+	}
 }
 
-static struct fb_ops hvfb_ops = {
+static struct fb_ops hvfb_ops =
+{
 	.owner = THIS_MODULE,
 	.fb_check_var = hvfb_check_var,
 	.fb_set_par = hvfb_set_par,
@@ -652,20 +727,25 @@ static void hvfb_get_option(struct fb_info *info)
 	uint x = 0, y = 0;
 
 	if (fb_get_options(KBUILD_MODNAME, &opt) || !opt || !*opt)
+	{
 		return;
+	}
 
 	p = strsep(&opt, "x");
+
 	if (!*p || kstrtouint(p, 0, &x) ||
-	    !opt || !*opt || kstrtouint(opt, 0, &y)) {
+		!opt || !*opt || kstrtouint(opt, 0, &y))
+	{
 		pr_err("Screen option is invalid: skipped\n");
 		return;
 	}
 
 	if (x < HVFB_WIDTH_MIN || y < HVFB_HEIGHT_MIN ||
-	    (par->synthvid_version == SYNTHVID_VERSION_WIN8 &&
-	     x * y * screen_depth / 8 > SYNTHVID_FB_SIZE_WIN8) ||
-	    (par->synthvid_version == SYNTHVID_VERSION_WIN7 &&
-	     (x > SYNTHVID_WIDTH_MAX_WIN7 || y > SYNTHVID_HEIGHT_MAX_WIN7))) {
+		(par->synthvid_version == SYNTHVID_VERSION_WIN8 &&
+		 x * y * screen_depth / 8 > SYNTHVID_FB_SIZE_WIN8) ||
+		(par->synthvid_version == SYNTHVID_VERSION_WIN7 &&
+		 (x > SYNTHVID_WIDTH_MAX_WIN7 || y > SYNTHVID_HEIGHT_MAX_WIN7)))
+	{
 		pr_err("Screen resolution option is out of range: skipped\n");
 		return;
 	}
@@ -686,46 +766,64 @@ static int hvfb_getmem(struct hv_device *hdev, struct fb_info *info)
 	resource_size_t pot_start, pot_end;
 	int ret;
 
-	if (gen2vm) {
+	if (gen2vm)
+	{
 		pot_start = 0;
 		pot_end = -1;
-	} else {
+	}
+	else
+	{
 		pdev = pci_get_device(PCI_VENDOR_ID_MICROSOFT,
-			      PCI_DEVICE_ID_HYPERV_VIDEO, NULL);
-		if (!pdev) {
+							  PCI_DEVICE_ID_HYPERV_VIDEO, NULL);
+
+		if (!pdev)
+		{
 			pr_err("Unable to find PCI Hyper-V video\n");
 			return -ENODEV;
 		}
 
 		if (!(pci_resource_flags(pdev, 0) & IORESOURCE_MEM) ||
-		    pci_resource_len(pdev, 0) < screen_fb_size)
+			pci_resource_len(pdev, 0) < screen_fb_size)
+		{
 			goto err1;
+		}
 
 		pot_end = pci_resource_end(pdev, 0);
 		pot_start = pot_end - screen_fb_size + 1;
 	}
 
 	ret = vmbus_allocate_mmio(&par->mem, hdev, pot_start, pot_end,
-				  screen_fb_size, 0x100000, true);
-	if (ret != 0) {
+							  screen_fb_size, 0x100000, true);
+
+	if (ret != 0)
+	{
 		pr_err("Unable to allocate framebuffer memory\n");
 		goto err1;
 	}
 
 	fb_virt = ioremap(par->mem->start, screen_fb_size);
+
 	if (!fb_virt)
+	{
 		goto err2;
+	}
 
 	info->apertures = alloc_apertures(1);
-	if (!info->apertures)
-		goto err3;
 
-	if (gen2vm) {
+	if (!info->apertures)
+	{
+		goto err3;
+	}
+
+	if (gen2vm)
+	{
 		info->apertures->ranges[0].base = screen_info.lfb_base;
 		info->apertures->ranges[0].size = screen_info.lfb_size;
 		remove_conflicting_framebuffers(info->apertures,
-						KBUILD_MODNAME, false);
-	} else {
+										KBUILD_MODNAME, false);
+	}
+	else
+	{
 		info->apertures->ranges[0].base = pci_resource_start(pdev, 0);
 		info->apertures->ranges[0].size = pci_resource_len(pdev, 0);
 	}
@@ -736,7 +834,9 @@ static int hvfb_getmem(struct hv_device *hdev, struct fb_info *info)
 	info->screen_size = screen_fb_size;
 
 	if (!gen2vm)
+	{
 		pci_dev_put(pdev);
+	}
 
 	return 0;
 
@@ -746,8 +846,11 @@ err2:
 	vmbus_free_mmio(par->mem->start, screen_fb_size);
 	par->mem = NULL;
 err1:
+
 	if (!gen2vm)
+	{
 		pci_dev_put(pdev);
+	}
 
 	return -ENOMEM;
 }
@@ -764,14 +867,16 @@ static void hvfb_putmem(struct fb_info *info)
 
 
 static int hvfb_probe(struct hv_device *hdev,
-		      const struct hv_vmbus_device_id *dev_id)
+					  const struct hv_vmbus_device_id *dev_id)
 {
 	struct fb_info *info;
 	struct hvfb_par *par;
 	int ret;
 
 	info = framebuffer_alloc(sizeof(struct hvfb_par), &hdev->device);
-	if (!info) {
+
+	if (!info)
+	{
 		pr_err("No memory for framebuffer info\n");
 		return -ENOMEM;
 	}
@@ -785,20 +890,24 @@ static int hvfb_probe(struct hv_device *hdev,
 	/* Connect to VSP */
 	hv_set_drvdata(hdev, info);
 	ret = synthvid_connect_vsp(hdev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Unable to connect to VSP\n");
 		goto error1;
 	}
 
 	ret = hvfb_getmem(hdev, info);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("No memory for framebuffer\n");
 		goto error2;
 	}
 
 	hvfb_get_option(info);
 	pr_info("Screen resolution: %dx%d, Color depth: %d\n",
-		screen_width, screen_height, screen_depth);
+			screen_width, screen_height, screen_depth);
 
 
 	/* Set up fb_info */
@@ -808,16 +917,19 @@ static int hvfb_probe(struct hv_device *hdev,
 	info->var.yres_virtual = info->var.yres = screen_height;
 	info->var.bits_per_pixel = screen_depth;
 
-	if (info->var.bits_per_pixel == 16) {
-		info->var.red = (struct fb_bitfield){11, 5, 0};
-		info->var.green = (struct fb_bitfield){5, 6, 0};
-		info->var.blue = (struct fb_bitfield){0, 5, 0};
-		info->var.transp = (struct fb_bitfield){0, 0, 0};
-	} else {
-		info->var.red = (struct fb_bitfield){16, 8, 0};
-		info->var.green = (struct fb_bitfield){8, 8, 0};
-		info->var.blue = (struct fb_bitfield){0, 8, 0};
-		info->var.transp = (struct fb_bitfield){24, 8, 0};
+	if (info->var.bits_per_pixel == 16)
+	{
+		info->var.red = (struct fb_bitfield) {11, 5, 0};
+		info->var.green = (struct fb_bitfield) {5, 6, 0};
+		info->var.blue = (struct fb_bitfield) {0, 5, 0};
+		info->var.transp = (struct fb_bitfield) {0, 0, 0};
+	}
+	else
+	{
+		info->var.red = (struct fb_bitfield) {16, 8, 0};
+		info->var.green = (struct fb_bitfield) {8, 8, 0};
+		info->var.blue = (struct fb_bitfield) {0, 8, 0};
+		info->var.transp = (struct fb_bitfield) {24, 8, 0};
 	}
 
 	info->var.activate = FB_ACTIVATE_NOW;
@@ -836,11 +948,16 @@ static int hvfb_probe(struct hv_device *hdev,
 
 	/* Send config to host */
 	ret = synthvid_send_config(hdev);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	ret = register_framebuffer(info);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Unable to register framebuffer\n");
 		goto error;
 	}
@@ -850,7 +967,7 @@ static int hvfb_probe(struct hv_device *hdev,
 	par->synchronous_fb = false;
 	par->hvfb_panic_nb.notifier_call = hvfb_on_panic;
 	atomic_notifier_chain_register(&panic_notifier_list,
-				       &par->hvfb_panic_nb);
+								   &par->hvfb_panic_nb);
 
 	return 0;
 
@@ -872,7 +989,7 @@ static int hvfb_remove(struct hv_device *hdev)
 	struct hvfb_par *par = info->par;
 
 	atomic_notifier_chain_unregister(&panic_notifier_list,
-					 &par->hvfb_panic_nb);
+									 &par->hvfb_panic_nb);
 
 	par->update = false;
 	par->fb_ready = false;
@@ -890,7 +1007,8 @@ static int hvfb_remove(struct hv_device *hdev)
 }
 
 
-static const struct pci_device_id pci_stub_id_table[] = {
+static const struct pci_device_id pci_stub_id_table[] =
+{
 	{
 		.vendor      = PCI_VENDOR_ID_MICROSOFT,
 		.device      = PCI_DEVICE_ID_HYPERV_VIDEO,
@@ -898,7 +1016,8 @@ static const struct pci_device_id pci_stub_id_table[] = {
 	{ /* end of list */ }
 };
 
-static const struct hv_vmbus_device_id id_table[] = {
+static const struct hv_vmbus_device_id id_table[] =
+{
 	/* Synthetic Video Device GUID */
 	{HV_SYNTHVID_GUID},
 	{}
@@ -907,7 +1026,8 @@ static const struct hv_vmbus_device_id id_table[] = {
 MODULE_DEVICE_TABLE(pci, pci_stub_id_table);
 MODULE_DEVICE_TABLE(vmbus, id_table);
 
-static struct hv_driver hvfb_drv = {
+static struct hv_driver hvfb_drv =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = id_table,
 	.probe = hvfb_probe,
@@ -915,7 +1035,7 @@ static struct hv_driver hvfb_drv = {
 };
 
 static int hvfb_pci_stub_probe(struct pci_dev *pdev,
-			       const struct pci_device_id *ent)
+							   const struct pci_device_id *ent)
 {
 	return 0;
 }
@@ -924,7 +1044,8 @@ static void hvfb_pci_stub_remove(struct pci_dev *pdev)
 {
 }
 
-static struct pci_driver hvfb_pci_stub_driver = {
+static struct pci_driver hvfb_pci_stub_driver =
+{
 	.name =		KBUILD_MODNAME,
 	.id_table =	pci_stub_id_table,
 	.probe =	hvfb_pci_stub_probe,
@@ -936,11 +1057,16 @@ static int __init hvfb_drv_init(void)
 	int ret;
 
 	ret = vmbus_driver_register(&hvfb_drv);
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	ret = pci_register_driver(&hvfb_pci_stub_driver);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		vmbus_driver_unregister(&hvfb_drv);
 		return ret;
 	}

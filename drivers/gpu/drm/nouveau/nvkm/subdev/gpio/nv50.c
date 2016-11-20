@@ -32,7 +32,8 @@ nv50_gpio_reset(struct nvkm_gpio *gpio, u8 match)
 	u16 entry;
 	int ent = -1;
 
-	while ((entry = dcb_gpio_entry(bios, 0, ++ent, &ver, &len))) {
+	while ((entry = dcb_gpio_entry(bios, 0, ++ent, &ver, &len)))
+	{
 		static const u32 regs[] = { 0xe100, 0xe28c };
 		u32 data = nvbios_rd32(bios, entry);
 		u8  line =   (data & 0x0000001f);
@@ -45,8 +46,10 @@ nv50_gpio_reset(struct nvkm_gpio *gpio, u8 match)
 		u32 lsh = line & 0x0f;
 
 		if ( func  == DCB_GPIO_UNUSED ||
-		    (match != DCB_GPIO_UNUSED && match != func))
+			 (match != DCB_GPIO_UNUSED && match != func))
+		{
 			continue;
+		}
 
 		nvkm_gpio_set(gpio, 0, func, line, defs);
 
@@ -60,7 +63,9 @@ nv50_gpio_location(int line, u32 *reg, u32 *shift)
 	const u32 nv50_gpio_reg[4] = { 0xe104, 0xe108, 0xe280, 0xe284 };
 
 	if (line >= 32)
+	{
 		return -EINVAL;
+	}
 
 	*reg = nv50_gpio_reg[line >> 3];
 	*shift = (line & 7) << 2;
@@ -74,7 +79,9 @@ nv50_gpio_drive(struct nvkm_gpio *gpio, int line, int dir, int out)
 	u32 reg, shift;
 
 	if (nv50_gpio_location(line, &reg, &shift))
+	{
 		return -EINVAL;
+	}
 
 	nvkm_mask(device, reg, 3 << shift, (((dir ^ 1) << 1) | out) << shift);
 	return 0;
@@ -87,7 +94,9 @@ nv50_gpio_sense(struct nvkm_gpio *gpio, int line)
 	u32 reg, shift;
 
 	if (nv50_gpio_location(line, &reg, &shift))
+	{
 		return -EINVAL;
+	}
 
 	return !!(nvkm_rd32(device, reg) & (4 << shift));
 }
@@ -108,15 +117,23 @@ nv50_gpio_intr_mask(struct nvkm_gpio *gpio, u32 type, u32 mask, u32 data)
 {
 	struct nvkm_device *device = gpio->subdev.device;
 	u32 inte = nvkm_rd32(device, 0x00e050);
+
 	if (type & NVKM_GPIO_LO)
+	{
 		inte = (inte & ~(mask << 16)) | (data << 16);
+	}
+
 	if (type & NVKM_GPIO_HI)
+	{
 		inte = (inte & ~mask) | data;
+	}
+
 	nvkm_wr32(device, 0x00e050, inte);
 }
 
 static const struct nvkm_gpio_func
-nv50_gpio = {
+	nv50_gpio =
+{
 	.lines = 16,
 	.intr_stat = nv50_gpio_intr_stat,
 	.intr_mask = nv50_gpio_intr_mask,

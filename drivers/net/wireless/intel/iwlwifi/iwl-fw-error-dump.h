@@ -93,7 +93,8 @@
  *	for that reason is not in use in any other place in the Linux Wi-Fi
  *	stack.
  */
-enum iwl_fw_error_dump_type {
+enum iwl_fw_error_dump_type
+{
 	/* 0 is deprecated */
 	IWL_FW_ERROR_DUMP_CSR = 1,
 	IWL_FW_ERROR_DUMP_RXF = 2,
@@ -120,7 +121,8 @@ enum iwl_fw_error_dump_type {
  * @len: the length starting from %data
  * @data: the data itself
  */
-struct iwl_fw_error_dump_data {
+struct iwl_fw_error_dump_data
+{
 	__le32 type;
 	__le32 len;
 	__u8 data[];
@@ -132,7 +134,8 @@ struct iwl_fw_error_dump_data {
  * @file_len: the length of all the file starting from %barker
  * @data: array of %struct iwl_fw_error_dump_data
  */
-struct iwl_fw_error_dump_file {
+struct iwl_fw_error_dump_file
+{
 	__le32 barker;
 	__le32 file_len;
 	u8 data[0];
@@ -144,7 +147,8 @@ struct iwl_fw_error_dump_file {
  * @caplen: captured length of command (may be less)
  * @data: captured command data, @caplen bytes
  */
-struct iwl_fw_error_dump_txcmd {
+struct iwl_fw_error_dump_txcmd
+{
 	__le32 cmdlen;
 	__le32 caplen;
 	u8 data[];
@@ -161,7 +165,8 @@ struct iwl_fw_error_dump_txcmd {
  *	0=follow RD pointer ; 1 = freeze
  * @data: all of the FIFO's data
  */
-struct iwl_fw_error_dump_fifo {
+struct iwl_fw_error_dump_fifo
+{
 	__le32 fifo_num;
 	__le32 available_bytes;
 	__le32 wr_ptr;
@@ -171,7 +176,8 @@ struct iwl_fw_error_dump_fifo {
 	u8 data[];
 } __packed;
 
-enum iwl_fw_error_dump_family {
+enum iwl_fw_error_dump_family
+{
 	IWL_FW_ERROR_DUMP_FAMILY_7 = 7,
 	IWL_FW_ERROR_DUMP_FAMILY_8 = 8,
 };
@@ -184,7 +190,8 @@ enum iwl_fw_error_dump_family {
  * @dev_human_readable: name of the device
  * @bus_human_readable: name of the bus used
  */
-struct iwl_fw_error_dump_info {
+struct iwl_fw_error_dump_info
+{
 	__le32 device_family;
 	__le32 hw_step;
 	u8 fw_human_readable[FW_VER_HUMAN_READABLE_SZ];
@@ -200,7 +207,8 @@ struct iwl_fw_error_dump_info {
  * @reserved: for future use
  * @data: captured data
  */
-struct iwl_fw_error_dump_fw_mon {
+struct iwl_fw_error_dump_fw_mon
+{
 	__le32 fw_mon_wr_ptr;
 	__le32 fw_mon_base_ptr;
 	__le32 fw_mon_cycle_cnt;
@@ -213,12 +221,14 @@ struct iwl_fw_error_dump_fw_mon {
  * @prph_start: address of the first register in this chunk
  * @data: the content of the registers
  */
-struct iwl_fw_error_dump_prph {
+struct iwl_fw_error_dump_prph
+{
 	__le32 prph_start;
 	__le32 data[];
 };
 
-enum iwl_fw_error_dump_mem_type {
+enum iwl_fw_error_dump_mem_type
+{
 	IWL_FW_ERROR_DUMP_MEM_SRAM,
 	IWL_FW_ERROR_DUMP_MEM_SMEM,
 };
@@ -229,7 +239,8 @@ enum iwl_fw_error_dump_mem_type {
  * @offset: the offset from which the memory was read
  * @data: the content of the memory
  */
-struct iwl_fw_error_dump_mem {
+struct iwl_fw_error_dump_mem
+{
 	__le32 type;
 	__le32 offset;
 	u8 data[];
@@ -242,7 +253,8 @@ struct iwl_fw_error_dump_mem {
  * @reserved:
  * @data: the content of the Receive Buffer
  */
-struct iwl_fw_error_dump_rb {
+struct iwl_fw_error_dump_rb
+{
 	__le32 index;
 	__le32 rxq;
 	__le32 reserved;
@@ -256,7 +268,8 @@ struct iwl_fw_error_dump_rb {
  * @reserved:
  * @data: the content of the page block
  */
-struct iwl_fw_error_dump_paging {
+struct iwl_fw_error_dump_paging
+{
 	__le32 index;
 	__le32 reserved;
 	u8 data[];
@@ -301,7 +314,8 @@ iwl_fw_error_next_data(struct iwl_fw_error_dump_data *data)
  * @FW_DBG_TRIGGER_TX_STATUS: trigger log collection upon tx status when
  *  the firmware sends a tx reply.
  */
-enum iwl_fw_dbg_trigger {
+enum iwl_fw_dbg_trigger
+{
 	FW_DBG_TRIGGER_INVALID = 0,
 	FW_DBG_TRIGGER_USER,
 	FW_DBG_TRIGGER_FW_ASSERT,
@@ -327,7 +341,8 @@ enum iwl_fw_dbg_trigger {
  * @type: %enum iwl_fw_dbg_trigger
  * @data: raw data about what happened
  */
-struct iwl_fw_error_dump_trigger_desc {
+struct iwl_fw_error_dump_trigger_desc
+{
 	__le32 type;
 	u8 data[];
 };

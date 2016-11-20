@@ -17,27 +17,27 @@
 #define __DIGI_H
 
 #ifndef TIOCM_LE
-#define		TIOCM_LE	0x01		/* line enable		*/
-#define		TIOCM_DTR	0x02		/* data terminal ready	*/
-#define		TIOCM_RTS	0x04		/* request to send	*/
-#define		TIOCM_ST	0x08		/* secondary transmit	*/
-#define		TIOCM_SR	0x10		/* secondary receive	*/
-#define		TIOCM_CTS	0x20		/* clear to send	*/
-#define		TIOCM_CAR	0x40		/* carrier detect	*/
-#define		TIOCM_RNG	0x80		/* ring	indicator	*/
-#define		TIOCM_DSR	0x100		/* data set ready	*/
-#define		TIOCM_RI	TIOCM_RNG	/* ring (alternate)	*/
-#define		TIOCM_CD	TIOCM_CAR	/* carrier detect (alt)	*/
+	#define		TIOCM_LE	0x01		/* line enable		*/
+	#define		TIOCM_DTR	0x02		/* data terminal ready	*/
+	#define		TIOCM_RTS	0x04		/* request to send	*/
+	#define		TIOCM_ST	0x08		/* secondary transmit	*/
+	#define		TIOCM_SR	0x10		/* secondary receive	*/
+	#define		TIOCM_CTS	0x20		/* clear to send	*/
+	#define		TIOCM_CAR	0x40		/* carrier detect	*/
+	#define		TIOCM_RNG	0x80		/* ring	indicator	*/
+	#define		TIOCM_DSR	0x100		/* data set ready	*/
+	#define		TIOCM_RI	TIOCM_RNG	/* ring (alternate)	*/
+	#define		TIOCM_CD	TIOCM_CAR	/* carrier detect (alt)	*/
 #endif
 
 #if !defined(TIOCMSET)
-#define	TIOCMSET	(('d' << 8) | 252)	/* set modem ctrl state	*/
-#define	TIOCMGET	(('d' << 8) | 253)	/* set modem ctrl state	*/
+	#define	TIOCMSET	(('d' << 8) | 252)	/* set modem ctrl state	*/
+	#define	TIOCMGET	(('d' << 8) | 253)	/* set modem ctrl state	*/
 #endif
 
 #if !defined(TIOCMBIC)
-#define	TIOCMBIC	(('d' << 8) | 254)	/* set modem ctrl state */
-#define	TIOCMBIS	(('d' << 8) | 255)	/* set modem ctrl state */
+	#define	TIOCMBIC	(('d' << 8) | 254)	/* set modem ctrl state */
+	#define	TIOCMBIS	(('d' << 8) | 255)	/* set modem ctrl state */
 #endif
 
 #define DIGI_GETA	(('e' << 8) | 94)	/* Read params		*/
@@ -64,7 +64,8 @@
 /************************************************************************
  * Structure used with ioctl commands for DIGI parameters.
  ************************************************************************/
-struct digi_t {
+struct digi_t
+{
 	unsigned short	digi_flags;		/* Flags (see above)	*/
 	unsigned short	digi_maxcps;		/* Max printer CPS	*/
 	unsigned short	digi_maxchar;		/* Max chars in print queue */
@@ -79,7 +80,8 @@ struct digi_t {
 /************************************************************************
  * Structure to get driver status information
  ************************************************************************/
-struct digi_dinfo {
+struct digi_dinfo
+{
 	unsigned int	dinfo_nboards;		/* # boards configured	*/
 	char		dinfo_reserved[12];	/* for future expansion */
 	char		dinfo_version[16];	/* driver version       */
@@ -92,13 +94,14 @@ struct digi_dinfo {
  *
  * physsize and memsize differ when board has "windowed" memory
  ************************************************************************/
-struct digi_info {
+struct digi_info
+{
 	unsigned int	info_bdnum;		/* Board number (0 based)  */
 	unsigned int	info_ioport;		/* io port address         */
 	unsigned int	info_physaddr;		/* memory address          */
 	unsigned int	info_physsize;		/* Size of host mem window */
 	unsigned int	info_memsize;		/* Amount of dual-port mem */
-						/* on board                */
+	/* on board                */
 	unsigned short	info_bdtype;		/* Board type              */
 	unsigned short	info_nports;		/* number of ports         */
 	char		info_bdstate;		/* board state             */
@@ -116,7 +119,8 @@ struct digi_getbuffer /* Struct for holding buffer use counts */
 	unsigned long txdone;
 };
 
-struct digi_getcounter {
+struct digi_getcounter
+{
 	unsigned long norun;		/* number of UART overrun errors */
 	unsigned long noflow;		/* number of buffer overflow errors */
 	unsigned long nframe;		/* number of framing errors */
@@ -148,7 +152,8 @@ struct digi_getcounter {
  * This structure holds data needed for the intelligent <--> nonintelligent
  * DPA translation
  */
-struct ni_info {
+struct ni_info
+{
 	int board;
 	int channel;
 	int dtr;

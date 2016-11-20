@@ -39,10 +39,14 @@ ebt_limit_mt(const struct sk_buff *skb, struct xt_action_param *par)
 
 	spin_lock_bh(&limit_lock);
 	info->credit += (now - xchg(&info->prev, now)) * CREDITS_PER_JIFFY;
-	if (info->credit > info->credit_cap)
-		info->credit = info->credit_cap;
 
-	if (info->credit >= info->cost) {
+	if (info->credit > info->credit_cap)
+	{
+		info->credit = info->credit_cap;
+	}
+
+	if (info->credit >= info->cost)
+	{
 		/* We're not limited. */
 		info->credit -= info->cost;
 		spin_unlock_bh(&limit_lock);
@@ -58,9 +62,11 @@ static u_int32_t
 user2credits(u_int32_t user)
 {
 	/* If multiplying would overflow... */
-	if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY))
+	if (user > 0xFFFFFFFF / (HZ * CREDITS_PER_JIFFY))
 		/* Divide first. */
+	{
 		return (user / EBT_LIMIT_SCALE) * HZ * CREDITS_PER_JIFFY;
+	}
 
 	return (user * HZ * CREDITS_PER_JIFFY) / EBT_LIMIT_SCALE;
 }
@@ -71,9 +77,10 @@ static int ebt_limit_mt_check(const struct xt_mtchk_param *par)
 
 	/* Check for overflow. */
 	if (info->burst == 0 ||
-	    user2credits(info->avg * info->burst) < user2credits(info->avg)) {
+		user2credits(info->avg * info->burst) < user2credits(info->avg))
+	{
 		pr_info("overflow, try lower: %u/%u\n",
-			info->avg, info->burst);
+				info->avg, info->burst);
 		return -EINVAL;
 	}
 
@@ -91,14 +98,16 @@ static int ebt_limit_mt_check(const struct xt_mtchk_param *par)
  * no conversion function needed --
  * only avg/burst have meaningful values in userspace.
  */
-struct ebt_compat_limit_info {
+struct ebt_compat_limit_info
+{
 	compat_uint_t avg, burst;
 	compat_ulong_t prev;
 	compat_uint_t credit, credit_cap, cost;
 };
 #endif
 
-static struct xt_match ebt_limit_mt_reg __read_mostly = {
+static struct xt_match ebt_limit_mt_reg __read_mostly =
+{
 	.name		= "limit",
 	.revision	= 0,
 	.family		= NFPROTO_BRIDGE,

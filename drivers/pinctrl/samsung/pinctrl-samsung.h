@@ -38,7 +38,8 @@
  * @PINCFG_TYPE_CON_PDN: Pin function in power down mode.
  * @PINCFG_TYPE_PUD_PDN: Pull up/down configuration in power down mode.
  */
-enum pincfg_type {
+enum pincfg_type
+{
 	PINCFG_TYPE_FUNC,
 	PINCFG_TYPE_DAT,
 	PINCFG_TYPE_PUD,
@@ -60,7 +61,7 @@ enum pincfg_type {
 #define PINCFG_PACK(type, value)	(((value) << PINCFG_VALUE_SHIFT) | type)
 #define PINCFG_UNPACK_TYPE(cfg)		((cfg) & PINCFG_TYPE_MASK)
 #define PINCFG_UNPACK_VALUE(cfg)	(((cfg) & PINCFG_VALUE_MASK) >> \
-						PINCFG_VALUE_SHIFT)
+									 PINCFG_VALUE_SHIFT)
 /**
  * enum eint_type - possible external interrupt types.
  * @EINT_TYPE_NONE: bank does not support external interrupts
@@ -75,7 +76,8 @@ enum pincfg_type {
  * the wakeup interrupts can additionally wakeup the system if it is in
  * suspended state.
  */
-enum eint_type {
+enum eint_type
+{
 	EINT_TYPE_NONE,
 	EINT_TYPE_GPIO,
 	EINT_TYPE_WKUP,
@@ -88,16 +90,16 @@ enum eint_type {
 #define PIN_GROUP(n, p, f)				\
 	{						\
 		.name		= n,			\
-		.pins		= p,			\
-		.num_pins	= ARRAY_SIZE(p),	\
-		.func		= f			\
+					  .pins		= p,			\
+									.num_pins	= ARRAY_SIZE(p),	\
+											.func		= f			\
 	}
 
 #define PMX_FUNC(n, g)					\
 	{						\
 		.name		= n,			\
-		.groups		= g,			\
-		.num_groups	= ARRAY_SIZE(g),	\
+					  .groups		= g,			\
+									.num_groups	= ARRAY_SIZE(g),	\
 	}
 
 struct samsung_pinctrl_drv_data;
@@ -107,7 +109,8 @@ struct samsung_pinctrl_drv_data;
  * @fld_width: widths of configuration bitfields (0 if unavailable)
  * @reg_offset: offsets of configuration registers (don't care of width is 0)
  */
-struct samsung_pin_bank_type {
+struct samsung_pin_bank_type
+{
 	u8 fld_width[PINCFG_TYPE_NUM];
 	u8 reg_offset[PINCFG_TYPE_NUM];
 };
@@ -123,7 +126,8 @@ struct samsung_pin_bank_type {
  * @eint_offset: SoC-specific EINT register or interrupt offset of bank.
  * @name: name to be prefixed for each pin in this pin bank.
  */
-struct samsung_pin_bank_data {
+struct samsung_pin_bank_data
+{
 	const struct samsung_pin_bank_type *type;
 	u32		pctl_offset;
 	u8		nr_pins;
@@ -155,7 +159,8 @@ struct samsung_pin_bank_data {
  * @slock: spinlock protecting bank registers
  * @pm_save: saved register values during suspend
  */
-struct samsung_pin_bank {
+struct samsung_pin_bank
+{
 	const struct samsung_pin_bank_type *type;
 	u32		pctl_offset;
 	u8		nr_pins;
@@ -187,7 +192,8 @@ struct samsung_pin_bank {
  * @eint_wkup_init: platform specific callback to setup the external wakeup
  *	interrupts for the controller.
  */
-struct samsung_pin_ctrl {
+struct samsung_pin_ctrl
+{
 	const struct samsung_pin_bank_data *pin_banks;
 	u32		nr_banks;
 
@@ -213,7 +219,8 @@ struct samsung_pin_ctrl {
  * @pin_base: starting system wide pin number.
  * @nr_pins: number of pins supported by the controller.
  */
-struct samsung_pinctrl_drv_data {
+struct samsung_pinctrl_drv_data
+{
 	struct list_head		node;
 	void __iomem			*virt_base;
 	struct device			*dev;
@@ -243,7 +250,8 @@ struct samsung_pinctrl_drv_data {
  * @num_pins: number of pins included in this group.
  * @func: the function number to be programmed when selected.
  */
-struct samsung_pin_group {
+struct samsung_pin_group
+{
 	const char		*name;
 	const unsigned int	*pins;
 	u8			num_pins;
@@ -256,7 +264,8 @@ struct samsung_pin_group {
  * @groups: one or more names of pin groups that provide this function.
  * @num_groups: number of groups included in @groups.
  */
-struct samsung_pmx_func {
+struct samsung_pmx_func
+{
 	const char		*name;
 	const char		**groups;
 	u8			num_groups;

@@ -33,7 +33,8 @@ MODULE_LICENSE("GPL");
 #define QUALITY 85
 
 /* specific webcam descriptor */
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;		/* !! must be the first item */
 
 	char subtype;
@@ -56,30 +57,40 @@ struct sd {
 	u8 jpeg_hdr[JPEG_HDR_SZ];
 };
 
-static const struct v4l2_pix_format vga_mode[] = {
-	{320, 240, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
+static const struct v4l2_pix_format vga_mode[] =
+{
+	{
+		320, 240, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
 		.bytesperline = 320,
 		.sizeimage = 320 * 240 * 3 / 8 + 590,
 		.colorspace = V4L2_COLORSPACE_JPEG,
-		.priv = 1},
-	{640, 480, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
+		.priv = 1
+	},
+	{
+		640, 480, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
 		.bytesperline = 640,
 		.sizeimage = 640 * 480 * 3 / 8 + 590,
 		.colorspace = V4L2_COLORSPACE_JPEG,
-		.priv = 0},
+		.priv = 0
+	},
 };
 
-static const struct v4l2_pix_format sif_mode[] = {
-	{176, 144, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
+static const struct v4l2_pix_format sif_mode[] =
+{
+	{
+		176, 144, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
 		.bytesperline = 176,
 		.sizeimage = 176 * 144 * 3 / 8 + 590,
 		.colorspace = V4L2_COLORSPACE_JPEG,
-		.priv = 1},
-	{352, 288, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
+		.priv = 1
+	},
+	{
+		352, 288, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
 		.bytesperline = 352,
 		.sizeimage = 352 * 288 * 3 / 8 + 590,
 		.colorspace = V4L2_COLORSPACE_JPEG,
-		.priv = 0},
+		.priv = 0
+	},
 };
 
 /* Frame packet header offsets for the spca500 */
@@ -97,7 +108,8 @@ static const struct v4l2_pix_format sif_mode[] = {
 #define SPCA500_OFFSET_DATA      16
 
 
-static const __u16 spca500_visual_defaults[][3] = {
+static const __u16 spca500_visual_defaults[][3] =
+{
 	{0x00, 0x0003, 0x816b},	/* SSI not active sync with vsync,
 				 * hue (H byte) = 0,
 				 * saturation/hue enable,
@@ -121,7 +133,8 @@ static const __u16 spca500_visual_defaults[][3] = {
 	/* set interface */
 	{}
 };
-static const __u16 Clicksmart510_defaults[][3] = {
+static const __u16 Clicksmart510_defaults[][3] =
+{
 	{0x00, 0x00, 0x8211},
 	{0x00, 0x01, 0x82c0},
 	{0x00, 0x10, 0x82cb},
@@ -250,120 +263,135 @@ static const __u16 Clicksmart510_defaults[][3] = {
 	{}
 };
 
-static const __u8 qtable_creative_pccam[2][64] = {
+static const __u8 qtable_creative_pccam[2][64] =
+{
 	{				/* Q-table Y-components */
-	 0x05, 0x03, 0x03, 0x05, 0x07, 0x0c, 0x0f, 0x12,
-	 0x04, 0x04, 0x04, 0x06, 0x08, 0x11, 0x12, 0x11,
-	 0x04, 0x04, 0x05, 0x07, 0x0c, 0x11, 0x15, 0x11,
-	 0x04, 0x05, 0x07, 0x09, 0x0f, 0x1a, 0x18, 0x13,
-	 0x05, 0x07, 0x0b, 0x11, 0x14, 0x21, 0x1f, 0x17,
-	 0x07, 0x0b, 0x11, 0x13, 0x18, 0x1f, 0x22, 0x1c,
-	 0x0f, 0x13, 0x17, 0x1a, 0x1f, 0x24, 0x24, 0x1e,
-	 0x16, 0x1c, 0x1d, 0x1d, 0x22, 0x1e, 0x1f, 0x1e},
+		0x05, 0x03, 0x03, 0x05, 0x07, 0x0c, 0x0f, 0x12,
+		0x04, 0x04, 0x04, 0x06, 0x08, 0x11, 0x12, 0x11,
+		0x04, 0x04, 0x05, 0x07, 0x0c, 0x11, 0x15, 0x11,
+		0x04, 0x05, 0x07, 0x09, 0x0f, 0x1a, 0x18, 0x13,
+		0x05, 0x07, 0x0b, 0x11, 0x14, 0x21, 0x1f, 0x17,
+		0x07, 0x0b, 0x11, 0x13, 0x18, 0x1f, 0x22, 0x1c,
+		0x0f, 0x13, 0x17, 0x1a, 0x1f, 0x24, 0x24, 0x1e,
+		0x16, 0x1c, 0x1d, 0x1d, 0x22, 0x1e, 0x1f, 0x1e
+	},
 	{				/* Q-table C-components */
-	 0x05, 0x05, 0x07, 0x0e, 0x1e, 0x1e, 0x1e, 0x1e,
-	 0x05, 0x06, 0x08, 0x14, 0x1e, 0x1e, 0x1e, 0x1e,
-	 0x07, 0x08, 0x11, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
-	 0x0e, 0x14, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
-	 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
-	 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
-	 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
-	 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e}
+		0x05, 0x05, 0x07, 0x0e, 0x1e, 0x1e, 0x1e, 0x1e,
+		0x05, 0x06, 0x08, 0x14, 0x1e, 0x1e, 0x1e, 0x1e,
+		0x07, 0x08, 0x11, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
+		0x0e, 0x14, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
+		0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
+		0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
+		0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
+		0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e
+	}
 };
 
-static const __u8 qtable_kodak_ez200[2][64] = {
+static const __u8 qtable_kodak_ez200[2][64] =
+{
 	{				/* Q-table Y-components */
-	 0x02, 0x01, 0x01, 0x02, 0x02, 0x04, 0x05, 0x06,
-	 0x01, 0x01, 0x01, 0x02, 0x03, 0x06, 0x06, 0x06,
-	 0x01, 0x01, 0x02, 0x02, 0x04, 0x06, 0x07, 0x06,
-	 0x01, 0x02, 0x02, 0x03, 0x05, 0x09, 0x08, 0x06,
-	 0x02, 0x02, 0x04, 0x06, 0x07, 0x0b, 0x0a, 0x08,
-	 0x02, 0x04, 0x06, 0x06, 0x08, 0x0a, 0x0b, 0x09,
-	 0x05, 0x06, 0x08, 0x09, 0x0a, 0x0c, 0x0c, 0x0a,
-	 0x07, 0x09, 0x0a, 0x0a, 0x0b, 0x0a, 0x0a, 0x0a},
+		0x02, 0x01, 0x01, 0x02, 0x02, 0x04, 0x05, 0x06,
+		0x01, 0x01, 0x01, 0x02, 0x03, 0x06, 0x06, 0x06,
+		0x01, 0x01, 0x02, 0x02, 0x04, 0x06, 0x07, 0x06,
+		0x01, 0x02, 0x02, 0x03, 0x05, 0x09, 0x08, 0x06,
+		0x02, 0x02, 0x04, 0x06, 0x07, 0x0b, 0x0a, 0x08,
+		0x02, 0x04, 0x06, 0x06, 0x08, 0x0a, 0x0b, 0x09,
+		0x05, 0x06, 0x08, 0x09, 0x0a, 0x0c, 0x0c, 0x0a,
+		0x07, 0x09, 0x0a, 0x0a, 0x0b, 0x0a, 0x0a, 0x0a
+	},
 	{				/* Q-table C-components */
-	 0x02, 0x02, 0x02, 0x05, 0x0a, 0x0a, 0x0a, 0x0a,
-	 0x02, 0x02, 0x03, 0x07, 0x0a, 0x0a, 0x0a, 0x0a,
-	 0x02, 0x03, 0x06, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a,
-	 0x05, 0x07, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a,
-	 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a,
-	 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a,
-	 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a,
-	 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a}
+		0x02, 0x02, 0x02, 0x05, 0x0a, 0x0a, 0x0a, 0x0a,
+		0x02, 0x02, 0x03, 0x07, 0x0a, 0x0a, 0x0a, 0x0a,
+		0x02, 0x03, 0x06, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a,
+		0x05, 0x07, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a,
+		0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a,
+		0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a,
+		0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a,
+		0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a
+	}
 };
 
-static const __u8 qtable_pocketdv[2][64] = {
+static const __u8 qtable_pocketdv[2][64] =
+{
 	{		/* Q-table Y-components start registers 0x8800 */
-	 0x06, 0x04, 0x04, 0x06, 0x0a, 0x10, 0x14, 0x18,
-	 0x05, 0x05, 0x06, 0x08, 0x0a, 0x17, 0x18, 0x16,
-	 0x06, 0x05, 0x06, 0x0a, 0x10, 0x17, 0x1c, 0x16,
-	 0x06, 0x07, 0x09, 0x0c, 0x14, 0x23, 0x20, 0x19,
-	 0x07, 0x09, 0x0f, 0x16, 0x1b, 0x2c, 0x29, 0x1f,
-	 0x0a, 0x0e, 0x16, 0x1a, 0x20, 0x2a, 0x2d, 0x25,
-	 0x14, 0x1a, 0x1f, 0x23, 0x29, 0x30, 0x30, 0x28,
-	 0x1d, 0x25, 0x26, 0x27, 0x2d, 0x28, 0x29, 0x28,
-	 },
+		0x06, 0x04, 0x04, 0x06, 0x0a, 0x10, 0x14, 0x18,
+		0x05, 0x05, 0x06, 0x08, 0x0a, 0x17, 0x18, 0x16,
+		0x06, 0x05, 0x06, 0x0a, 0x10, 0x17, 0x1c, 0x16,
+		0x06, 0x07, 0x09, 0x0c, 0x14, 0x23, 0x20, 0x19,
+		0x07, 0x09, 0x0f, 0x16, 0x1b, 0x2c, 0x29, 0x1f,
+		0x0a, 0x0e, 0x16, 0x1a, 0x20, 0x2a, 0x2d, 0x25,
+		0x14, 0x1a, 0x1f, 0x23, 0x29, 0x30, 0x30, 0x28,
+		0x1d, 0x25, 0x26, 0x27, 0x2d, 0x28, 0x29, 0x28,
+	},
 	{		/* Q-table C-components start registers 0x8840 */
-	 0x07, 0x07, 0x0a, 0x13, 0x28, 0x28, 0x28, 0x28,
-	 0x07, 0x08, 0x0a, 0x1a, 0x28, 0x28, 0x28, 0x28,
-	 0x0a, 0x0a, 0x16, 0x28, 0x28, 0x28, 0x28, 0x28,
-	 0x13, 0x1a, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28,
-	 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28,
-	 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28,
-	 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28,
-	 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28}
+		0x07, 0x07, 0x0a, 0x13, 0x28, 0x28, 0x28, 0x28,
+		0x07, 0x08, 0x0a, 0x1a, 0x28, 0x28, 0x28, 0x28,
+		0x0a, 0x0a, 0x16, 0x28, 0x28, 0x28, 0x28, 0x28,
+		0x13, 0x1a, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28,
+		0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28,
+		0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28,
+		0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28,
+		0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28
+	}
 };
 
 /* read 'len' bytes to gspca_dev->usb_buf */
 static void reg_r(struct gspca_dev *gspca_dev,
-		  __u16 index,
-		  __u16 length)
+				  __u16 index,
+				  __u16 length)
 {
 	usb_control_msg(gspca_dev->dev,
-			usb_rcvctrlpipe(gspca_dev->dev, 0),
-			0,
-			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			0,		/* value */
-			index, gspca_dev->usb_buf, length, 500);
+					usb_rcvctrlpipe(gspca_dev->dev, 0),
+					0,
+					USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+					0,		/* value */
+					index, gspca_dev->usb_buf, length, 500);
 }
 
 static int reg_w(struct gspca_dev *gspca_dev,
-		     __u16 req, __u16 index, __u16 value)
+				 __u16 req, __u16 index, __u16 value)
 {
 	int ret;
 
 	PDEBUG(D_USBO, "reg write: [0x%02x] = 0x%02x", index, value);
 	ret = usb_control_msg(gspca_dev->dev,
-			usb_sndctrlpipe(gspca_dev->dev, 0),
-			req,
-			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			value, index, NULL, 0, 500);
+						  usb_sndctrlpipe(gspca_dev->dev, 0),
+						  req,
+						  USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+						  value, index, NULL, 0, 500);
+
 	if (ret < 0)
+	{
 		pr_err("reg write: error %d\n", ret);
+	}
+
 	return ret;
 }
 
 /* returns: negative is error, pos or zero is data */
 static int reg_r_12(struct gspca_dev *gspca_dev,
-			__u16 req,	/* bRequest */
-			__u16 index,	/* wIndex */
-			__u16 length)	/* wLength (1 or 2 only) */
+					__u16 req,	/* bRequest */
+					__u16 index,	/* wIndex */
+					__u16 length)	/* wLength (1 or 2 only) */
 {
 	int ret;
 
 	gspca_dev->usb_buf[1] = 0;
 	ret = usb_control_msg(gspca_dev->dev,
-			usb_rcvctrlpipe(gspca_dev->dev, 0),
-			req,
-			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			0,		/* value */
-			index,
-			gspca_dev->usb_buf, length,
-			500);		/* timeout */
-	if (ret < 0) {
+						  usb_rcvctrlpipe(gspca_dev->dev, 0),
+						  req,
+						  USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+						  0,		/* value */
+						  index,
+						  gspca_dev->usb_buf, length,
+						  500);		/* timeout */
+
+	if (ret < 0)
+	{
 		pr_err("reg_r_12 err %d\n", ret);
 		return ret;
 	}
+
 	return (gspca_dev->usb_buf[1] << 8) + gspca_dev->usb_buf[0];
 }
 
@@ -373,54 +401,75 @@ static int reg_r_12(struct gspca_dev *gspca_dev,
  * Returns: negative is error or timeout, zero is success.
  */
 static int reg_r_wait(struct gspca_dev *gspca_dev,
-			__u16 reg, __u16 index, __u16 value)
+					  __u16 reg, __u16 index, __u16 value)
 {
 	int ret, cnt = 20;
 
-	while (--cnt > 0) {
+	while (--cnt > 0)
+	{
 		ret = reg_r_12(gspca_dev, reg, index, 1);
+
 		if (ret == value)
+		{
 			return 0;
+		}
+
 		msleep(50);
 	}
+
 	return -EIO;
 }
 
 static int write_vector(struct gspca_dev *gspca_dev,
-			const __u16 data[][3])
+						const __u16 data[][3])
 {
 	int ret, i = 0;
 
-	while (data[i][0] != 0 || data[i][1] != 0 || data[i][2] != 0) {
+	while (data[i][0] != 0 || data[i][1] != 0 || data[i][2] != 0)
+	{
 		ret = reg_w(gspca_dev, data[i][0], data[i][2], data[i][1]);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		i++;
 	}
+
 	return 0;
 }
 
 static int spca50x_setup_qtable(struct gspca_dev *gspca_dev,
-				unsigned int request,
-				unsigned int ybase,
-				unsigned int cbase,
-				const __u8 qtable[2][64])
+								unsigned int request,
+								unsigned int ybase,
+								unsigned int cbase,
+								const __u8 qtable[2][64])
 {
 	int i, err;
 
 	/* loop over y components */
-	for (i = 0; i < 64; i++) {
+	for (i = 0; i < 64; i++)
+	{
 		err = reg_w(gspca_dev, request, ybase + i, qtable[0][i]);
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
 
 	/* loop over c components */
-	for (i = 0; i < 64; i++) {
+	for (i = 0; i < 64; i++)
+	{
 		err = reg_w(gspca_dev, request, cbase + i, qtable[1][i]);
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
+
 	return 0;
 }
 
@@ -428,14 +477,14 @@ static void spca500_ping310(struct gspca_dev *gspca_dev)
 {
 	reg_r(gspca_dev, 0x0d04, 2);
 	PDEBUG(D_STREAM, "ClickSmart310 ping 0x0d04 0x%02x 0x%02x",
-		gspca_dev->usb_buf[0], gspca_dev->usb_buf[1]);
+		   gspca_dev->usb_buf[0], gspca_dev->usb_buf[1]);
 }
 
 static void spca500_clksmart310_init(struct gspca_dev *gspca_dev)
 {
 	reg_r(gspca_dev, 0x0d05, 2);
 	PDEBUG(D_STREAM, "ClickSmart310 init 0x0d05 0x%02x 0x%02x",
-		gspca_dev->usb_buf[0], gspca_dev->usb_buf[1]);
+		   gspca_dev->usb_buf[0], gspca_dev->usb_buf[1]);
 	reg_w(gspca_dev, 0x00, 0x8167, 0x5a);
 	spca500_ping310(gspca_dev);
 
@@ -449,14 +498,14 @@ static void spca500_clksmart310_init(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, 0x00, 0x8151, 0x4a);
 	reg_w(gspca_dev, 0x00, 0x8153, 0x78);
 	reg_w(gspca_dev, 0x00, 0x0d01, 0x04);
-						/* 00 for adjust shutter */
+	/* 00 for adjust shutter */
 	reg_w(gspca_dev, 0x00, 0x0d02, 0x01);
 	reg_w(gspca_dev, 0x00, 0x8169, 0x25);
 	reg_w(gspca_dev, 0x00, 0x0d01, 0x02);
 }
 
 static void spca500_setmode(struct gspca_dev *gspca_dev,
-			__u8 xmult, __u8 ymult)
+							__u8 xmult, __u8 ymult)
 {
 	int mode;
 
@@ -477,21 +526,35 @@ static int spca500_full_reset(struct gspca_dev *gspca_dev)
 
 	/* send the reset command */
 	err = reg_w(gspca_dev, 0xe0, 0x0001, 0x0000);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* wait for the reset to complete */
 	err = reg_r_wait(gspca_dev, 0x06, 0x0000, 0x0000);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err = reg_w(gspca_dev, 0xe0, 0x0000, 0x0000);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err = reg_r_wait(gspca_dev, 0x06, 0, 0);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		PERR("reg_r_wait() failed");
 		return err;
 	}
+
 	/* all ok */
 	return 0;
 }
@@ -504,10 +567,12 @@ static int spca500_full_reset(struct gspca_dev *gspca_dev)
 /* up-port the same feature as in 2.4.x kernel */
 static int spca500_synch310(struct gspca_dev *gspca_dev)
 {
-	if (usb_set_interface(gspca_dev->dev, gspca_dev->iface, 0) < 0) {
+	if (usb_set_interface(gspca_dev->dev, gspca_dev->iface, 0) < 0)
+	{
 		PERR("Set packet size: set interface error");
 		goto error;
 	}
+
 	spca500_ping310(gspca_dev);
 
 	reg_r(gspca_dev, 0x0d00, 1);
@@ -517,11 +582,13 @@ static int spca500_synch310(struct gspca_dev *gspca_dev)
 
 	/* Windoze use pipe with altsetting 6 why 7 here */
 	if (usb_set_interface(gspca_dev->dev,
-				gspca_dev->iface,
-				gspca_dev->alt) < 0) {
+						  gspca_dev->iface,
+						  gspca_dev->alt) < 0)
+	{
 		PERR("Set packet size: set interface error");
 		goto error;
 	}
+
 	return 0;
 error:
 	return -EBUSY;
@@ -542,9 +609,12 @@ static void spca500_reinit(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
 
 	err = spca50x_setup_qtable(gspca_dev, 0x00, 0x8800, 0x8840,
-				 qtable_pocketdv);
+							   qtable_pocketdv);
+
 	if (err < 0)
+	{
 		PERR("spca50x_setup_qtable failed on init");
+	}
 
 	/* set qtable index */
 	reg_w(gspca_dev, 0x00, 0x8880, 2);
@@ -559,7 +629,9 @@ static void spca500_reinit(struct gspca_dev *gspca_dev)
 	/* switch to video camera mode */
 	reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
 	msleep(2000);
-	if (reg_r_wait(gspca_dev, 0, 0x8000, 0x44) != 0) {
+
+	if (reg_r_wait(gspca_dev, 0, 0x8000, 0x44) != 0)
+	{
 		reg_r(gspca_dev, 0x816b, 1);
 		Data = gspca_dev->usb_buf[0];
 		reg_w(gspca_dev, 0x00, 0x816b, Data);
@@ -568,20 +640,25 @@ static void spca500_reinit(struct gspca_dev *gspca_dev)
 
 /* this function is called at probe time */
 static int sd_config(struct gspca_dev *gspca_dev,
-			const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	struct cam *cam;
 
 	cam = &gspca_dev->cam;
 	sd->subtype = id->driver_info;
-	if (sd->subtype != LogitechClickSmart310) {
+
+	if (sd->subtype != LogitechClickSmart310)
+	{
 		cam->cam_mode = vga_mode;
 		cam->nmodes = ARRAY_SIZE(vga_mode);
-	} else {
+	}
+	else
+	{
 		cam->cam_mode = sif_mode;
 		cam->nmodes = ARRAY_SIZE(sif_mode);
 	}
+
 	return 0;
 }
 
@@ -592,10 +669,14 @@ static int sd_init(struct gspca_dev *gspca_dev)
 
 	/* initialisation of spca500 based cameras is deferred */
 	PDEBUG(D_STREAM, "SPCA500 init");
+
 	if (sd->subtype == LogitechClickSmart310)
+	{
 		spca500_clksmart310_init(gspca_dev);
-/*	else
-		spca500_initialise(gspca_dev); */
+	}
+
+	/*	else
+			spca500_initialise(gspca_dev); */
 	PDEBUG(D_STREAM, "SPCA500 init done");
 	return 0;
 }
@@ -609,14 +690,17 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
 	/* create the JPEG header */
 	jpeg_define(sd->jpeg_hdr, gspca_dev->pixfmt.height,
-			gspca_dev->pixfmt.width,
-			0x22);		/* JPEG 411 */
+				gspca_dev->pixfmt.width,
+				0x22);		/* JPEG 411 */
 	jpeg_set_qual(sd->jpeg_hdr, QUALITY);
 
-	if (sd->subtype == LogitechClickSmart310) {
+	if (sd->subtype == LogitechClickSmart310)
+	{
 		xmult = 0x16;
 		ymult = 0x12;
-	} else {
+	}
+	else
+	{
 		xmult = 0x28;
 		ymult = 0x1e;
 	}
@@ -624,196 +708,247 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	/* is there a sensor here ? */
 	reg_r(gspca_dev, 0x8a04, 1);
 	PDEBUG(D_STREAM, "Spca500 Sensor Address 0x%02x",
-		gspca_dev->usb_buf[0]);
+		   gspca_dev->usb_buf[0]);
 	PDEBUG(D_STREAM, "Spca500 curr_mode: %d Xmult: 0x%02x, Ymult: 0x%02x",
-		gspca_dev->curr_mode, xmult, ymult);
+		   gspca_dev->curr_mode, xmult, ymult);
 
 	/* setup qtable */
-	switch (sd->subtype) {
-	case LogitechClickSmart310:
-		 spca500_setmode(gspca_dev, xmult, ymult);
+	switch (sd->subtype)
+	{
+		case LogitechClickSmart310:
+			spca500_setmode(gspca_dev, xmult, ymult);
 
-		/* enable drop packet */
-		reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
-		reg_w(gspca_dev, 0x00, 0x8880, 3);
-		err = spca50x_setup_qtable(gspca_dev,
-					   0x00, 0x8800, 0x8840,
-					   qtable_creative_pccam);
-		if (err < 0)
-			PERR("spca50x_setup_qtable failed");
-		/* Init SDRAM - needed for SDRAM access */
-		reg_w(gspca_dev, 0x00, 0x870a, 0x04);
+			/* enable drop packet */
+			reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
+			reg_w(gspca_dev, 0x00, 0x8880, 3);
+			err = spca50x_setup_qtable(gspca_dev,
+									   0x00, 0x8800, 0x8840,
+									   qtable_creative_pccam);
 
-		/* switch to video camera mode */
-		reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
-		msleep(500);
-		if (reg_r_wait(gspca_dev, 0, 0x8000, 0x44) != 0)
-			PERR("reg_r_wait() failed");
+			if (err < 0)
+			{
+				PERR("spca50x_setup_qtable failed");
+			}
 
-		reg_r(gspca_dev, 0x816b, 1);
-		Data = gspca_dev->usb_buf[0];
-		reg_w(gspca_dev, 0x00, 0x816b, Data);
+			/* Init SDRAM - needed for SDRAM access */
+			reg_w(gspca_dev, 0x00, 0x870a, 0x04);
 
-		spca500_synch310(gspca_dev);
+			/* switch to video camera mode */
+			reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
+			msleep(500);
 
-		write_vector(gspca_dev, spca500_visual_defaults);
-		spca500_setmode(gspca_dev, xmult, ymult);
-		/* enable drop packet */
-		err = reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
-		if (err < 0)
-			PERR("failed to enable drop packet");
-		reg_w(gspca_dev, 0x00, 0x8880, 3);
-		err = spca50x_setup_qtable(gspca_dev,
-					   0x00, 0x8800, 0x8840,
-					   qtable_creative_pccam);
-		if (err < 0)
-			PERR("spca50x_setup_qtable failed");
+			if (reg_r_wait(gspca_dev, 0, 0x8000, 0x44) != 0)
+			{
+				PERR("reg_r_wait() failed");
+			}
 
-		/* Init SDRAM - needed for SDRAM access */
-		reg_w(gspca_dev, 0x00, 0x870a, 0x04);
+			reg_r(gspca_dev, 0x816b, 1);
+			Data = gspca_dev->usb_buf[0];
+			reg_w(gspca_dev, 0x00, 0x816b, Data);
 
-		/* switch to video camera mode */
-		reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
+			spca500_synch310(gspca_dev);
 
-		if (reg_r_wait(gspca_dev, 0, 0x8000, 0x44) != 0)
-			PERR("reg_r_wait() failed");
+			write_vector(gspca_dev, spca500_visual_defaults);
+			spca500_setmode(gspca_dev, xmult, ymult);
+			/* enable drop packet */
+			err = reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
 
-		reg_r(gspca_dev, 0x816b, 1);
-		Data = gspca_dev->usb_buf[0];
-		reg_w(gspca_dev, 0x00, 0x816b, Data);
-		break;
-	case CreativePCCam300:		/* Creative PC-CAM 300 640x480 CCD */
-	case IntelPocketPCCamera:	/* FIXME: Temporary fix for
+			if (err < 0)
+			{
+				PERR("failed to enable drop packet");
+			}
+
+			reg_w(gspca_dev, 0x00, 0x8880, 3);
+			err = spca50x_setup_qtable(gspca_dev,
+									   0x00, 0x8800, 0x8840,
+									   qtable_creative_pccam);
+
+			if (err < 0)
+			{
+				PERR("spca50x_setup_qtable failed");
+			}
+
+			/* Init SDRAM - needed for SDRAM access */
+			reg_w(gspca_dev, 0x00, 0x870a, 0x04);
+
+			/* switch to video camera mode */
+			reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
+
+			if (reg_r_wait(gspca_dev, 0, 0x8000, 0x44) != 0)
+			{
+				PERR("reg_r_wait() failed");
+			}
+
+			reg_r(gspca_dev, 0x816b, 1);
+			Data = gspca_dev->usb_buf[0];
+			reg_w(gspca_dev, 0x00, 0x816b, Data);
+			break;
+
+		case CreativePCCam300:		/* Creative PC-CAM 300 640x480 CCD */
+		case IntelPocketPCCamera:	/* FIXME: Temporary fix for
 					 *	Intel Pocket PC Camera
 					 *	- NWG (Sat 29th March 2003) */
 
-		/* do a full reset */
-		err = spca500_full_reset(gspca_dev);
-		if (err < 0)
-			PERR("spca500_full_reset failed");
+			/* do a full reset */
+			err = spca500_full_reset(gspca_dev);
 
-		/* enable drop packet */
-		err = reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
-		if (err < 0)
-			PERR("failed to enable drop packet");
-		reg_w(gspca_dev, 0x00, 0x8880, 3);
-		err = spca50x_setup_qtable(gspca_dev,
-					   0x00, 0x8800, 0x8840,
-					   qtable_creative_pccam);
-		if (err < 0)
-			PERR("spca50x_setup_qtable failed");
+			if (err < 0)
+			{
+				PERR("spca500_full_reset failed");
+			}
 
-		spca500_setmode(gspca_dev, xmult, ymult);
-		reg_w(gspca_dev, 0x20, 0x0001, 0x0004);
+			/* enable drop packet */
+			err = reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
 
-		/* switch to video camera mode */
-		reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
+			if (err < 0)
+			{
+				PERR("failed to enable drop packet");
+			}
 
-		if (reg_r_wait(gspca_dev, 0, 0x8000, 0x44) != 0)
-			PERR("reg_r_wait() failed");
+			reg_w(gspca_dev, 0x00, 0x8880, 3);
+			err = spca50x_setup_qtable(gspca_dev,
+									   0x00, 0x8800, 0x8840,
+									   qtable_creative_pccam);
 
-		reg_r(gspca_dev, 0x816b, 1);
-		Data = gspca_dev->usb_buf[0];
-		reg_w(gspca_dev, 0x00, 0x816b, Data);
+			if (err < 0)
+			{
+				PERR("spca50x_setup_qtable failed");
+			}
 
-/*		write_vector(gspca_dev, spca500_visual_defaults); */
-		break;
-	case KodakEZ200:		/* Kodak EZ200 */
+			spca500_setmode(gspca_dev, xmult, ymult);
+			reg_w(gspca_dev, 0x20, 0x0001, 0x0004);
 
-		/* do a full reset */
-		err = spca500_full_reset(gspca_dev);
-		if (err < 0)
-			PERR("spca500_full_reset failed");
-		/* enable drop packet */
-		reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
-		reg_w(gspca_dev, 0x00, 0x8880, 0);
-		err = spca50x_setup_qtable(gspca_dev,
-					   0x00, 0x8800, 0x8840,
-					   qtable_kodak_ez200);
-		if (err < 0)
-			PERR("spca50x_setup_qtable failed");
-		spca500_setmode(gspca_dev, xmult, ymult);
+			/* switch to video camera mode */
+			reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
 
-		reg_w(gspca_dev, 0x20, 0x0001, 0x0004);
+			if (reg_r_wait(gspca_dev, 0, 0x8000, 0x44) != 0)
+			{
+				PERR("reg_r_wait() failed");
+			}
 
-		/* switch to video camera mode */
-		reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
+			reg_r(gspca_dev, 0x816b, 1);
+			Data = gspca_dev->usb_buf[0];
+			reg_w(gspca_dev, 0x00, 0x816b, Data);
 
-		if (reg_r_wait(gspca_dev, 0, 0x8000, 0x44) != 0)
-			PERR("reg_r_wait() failed");
+			/*		write_vector(gspca_dev, spca500_visual_defaults); */
+			break;
 
-		reg_r(gspca_dev, 0x816b, 1);
-		Data = gspca_dev->usb_buf[0];
-		reg_w(gspca_dev, 0x00, 0x816b, Data);
+		case KodakEZ200:		/* Kodak EZ200 */
 
-/*		write_vector(gspca_dev, spca500_visual_defaults); */
-		break;
+			/* do a full reset */
+			err = spca500_full_reset(gspca_dev);
 
-	case BenqDC1016:
-	case DLinkDSC350:		/* FamilyCam 300 */
-	case AiptekPocketDV:		/* Aiptek PocketDV */
-	case Gsmartmini:		/*Mustek Gsmart Mini */
-	case MustekGsmart300:		/* Mustek Gsmart 300 */
-	case PalmPixDC85:
-	case Optimedia:
-	case ToptroIndus:
-	case AgfaCl20:
-		spca500_reinit(gspca_dev);
-		reg_w(gspca_dev, 0x00, 0x0d01, 0x01);
-		/* enable drop packet */
-		reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
+			if (err < 0)
+			{
+				PERR("spca500_full_reset failed");
+			}
 
-		err = spca50x_setup_qtable(gspca_dev,
-				   0x00, 0x8800, 0x8840, qtable_pocketdv);
-		if (err < 0)
-			PERR("spca50x_setup_qtable failed");
-		reg_w(gspca_dev, 0x00, 0x8880, 2);
+			/* enable drop packet */
+			reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
+			reg_w(gspca_dev, 0x00, 0x8880, 0);
+			err = spca50x_setup_qtable(gspca_dev,
+									   0x00, 0x8800, 0x8840,
+									   qtable_kodak_ez200);
 
-		/* familycam Quicksmart pocketDV stuff */
-		reg_w(gspca_dev, 0x00, 0x800a, 0x00);
-		/* Set agc transfer: synced between frames */
-		reg_w(gspca_dev, 0x00, 0x820f, 0x01);
-		/* Init SDRAM - needed for SDRAM access */
-		reg_w(gspca_dev, 0x00, 0x870a, 0x04);
+			if (err < 0)
+			{
+				PERR("spca50x_setup_qtable failed");
+			}
 
-		spca500_setmode(gspca_dev, xmult, ymult);
-		/* switch to video camera mode */
-		reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
+			spca500_setmode(gspca_dev, xmult, ymult);
 
-		reg_r_wait(gspca_dev, 0, 0x8000, 0x44);
+			reg_w(gspca_dev, 0x20, 0x0001, 0x0004);
 
-		reg_r(gspca_dev, 0x816b, 1);
-		Data = gspca_dev->usb_buf[0];
-		reg_w(gspca_dev, 0x00, 0x816b, Data);
-		break;
-	case LogitechTraveler:
-	case LogitechClickSmart510:
-		reg_w(gspca_dev, 0x02, 0x00, 0x00);
-		/* enable drop packet */
-		reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
+			/* switch to video camera mode */
+			reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
 
-		err = spca50x_setup_qtable(gspca_dev,
-					0x00, 0x8800,
-					0x8840, qtable_creative_pccam);
-		if (err < 0)
-			PERR("spca50x_setup_qtable failed");
-		reg_w(gspca_dev, 0x00, 0x8880, 3);
-		reg_w(gspca_dev, 0x00, 0x800a, 0x00);
-		/* Init SDRAM - needed for SDRAM access */
-		reg_w(gspca_dev, 0x00, 0x870a, 0x04);
+			if (reg_r_wait(gspca_dev, 0, 0x8000, 0x44) != 0)
+			{
+				PERR("reg_r_wait() failed");
+			}
 
-		spca500_setmode(gspca_dev, xmult, ymult);
+			reg_r(gspca_dev, 0x816b, 1);
+			Data = gspca_dev->usb_buf[0];
+			reg_w(gspca_dev, 0x00, 0x816b, Data);
 
-		/* switch to video camera mode */
-		reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
-		reg_r_wait(gspca_dev, 0, 0x8000, 0x44);
+			/*		write_vector(gspca_dev, spca500_visual_defaults); */
+			break;
 
-		reg_r(gspca_dev, 0x816b, 1);
-		Data = gspca_dev->usb_buf[0];
-		reg_w(gspca_dev, 0x00, 0x816b, Data);
-		write_vector(gspca_dev, Clicksmart510_defaults);
-		break;
+		case BenqDC1016:
+		case DLinkDSC350:		/* FamilyCam 300 */
+		case AiptekPocketDV:		/* Aiptek PocketDV */
+		case Gsmartmini:		/*Mustek Gsmart Mini */
+		case MustekGsmart300:		/* Mustek Gsmart 300 */
+		case PalmPixDC85:
+		case Optimedia:
+		case ToptroIndus:
+		case AgfaCl20:
+			spca500_reinit(gspca_dev);
+			reg_w(gspca_dev, 0x00, 0x0d01, 0x01);
+			/* enable drop packet */
+			reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
+
+			err = spca50x_setup_qtable(gspca_dev,
+									   0x00, 0x8800, 0x8840, qtable_pocketdv);
+
+			if (err < 0)
+			{
+				PERR("spca50x_setup_qtable failed");
+			}
+
+			reg_w(gspca_dev, 0x00, 0x8880, 2);
+
+			/* familycam Quicksmart pocketDV stuff */
+			reg_w(gspca_dev, 0x00, 0x800a, 0x00);
+			/* Set agc transfer: synced between frames */
+			reg_w(gspca_dev, 0x00, 0x820f, 0x01);
+			/* Init SDRAM - needed for SDRAM access */
+			reg_w(gspca_dev, 0x00, 0x870a, 0x04);
+
+			spca500_setmode(gspca_dev, xmult, ymult);
+			/* switch to video camera mode */
+			reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
+
+			reg_r_wait(gspca_dev, 0, 0x8000, 0x44);
+
+			reg_r(gspca_dev, 0x816b, 1);
+			Data = gspca_dev->usb_buf[0];
+			reg_w(gspca_dev, 0x00, 0x816b, Data);
+			break;
+
+		case LogitechTraveler:
+		case LogitechClickSmart510:
+			reg_w(gspca_dev, 0x02, 0x00, 0x00);
+			/* enable drop packet */
+			reg_w(gspca_dev, 0x00, 0x850a, 0x0001);
+
+			err = spca50x_setup_qtable(gspca_dev,
+									   0x00, 0x8800,
+									   0x8840, qtable_creative_pccam);
+
+			if (err < 0)
+			{
+				PERR("spca50x_setup_qtable failed");
+			}
+
+			reg_w(gspca_dev, 0x00, 0x8880, 3);
+			reg_w(gspca_dev, 0x00, 0x800a, 0x00);
+			/* Init SDRAM - needed for SDRAM access */
+			reg_w(gspca_dev, 0x00, 0x870a, 0x04);
+
+			spca500_setmode(gspca_dev, xmult, ymult);
+
+			/* switch to video camera mode */
+			reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
+			reg_r_wait(gspca_dev, 0, 0x8000, 0x44);
+
+			reg_r(gspca_dev, 0x816b, 1);
+			Data = gspca_dev->usb_buf[0];
+			reg_w(gspca_dev, 0x00, 0x816b, Data);
+			write_vector(gspca_dev, Clicksmart510_defaults);
+			break;
 	}
+
 	return 0;
 }
 
@@ -825,57 +960,68 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, 0x00, 0x8000, 0x0004);
 	reg_r(gspca_dev, 0x8000, 1);
 	PDEBUG(D_STREAM, "stop SPCA500 done reg8000: 0x%2x",
-		gspca_dev->usb_buf[0]);
+		   gspca_dev->usb_buf[0]);
 }
 
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-			u8 *data,			/* isoc packet */
-			int len)			/* iso packet length */
+						u8 *data,			/* isoc packet */
+						int len)			/* iso packet length */
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	int i;
 	static __u8 ffd9[] = {0xff, 0xd9};
 
-/* frames are jpeg 4.1.1 without 0xff escape */
-	if (data[0] == 0xff) {
-		if (data[1] != 0x01) {	/* drop packet */
-/*			gspca_dev->last_packet_type = DISCARD_PACKET; */
+	/* frames are jpeg 4.1.1 without 0xff escape */
+	if (data[0] == 0xff)
+	{
+		if (data[1] != 0x01)  	/* drop packet */
+		{
+			/*			gspca_dev->last_packet_type = DISCARD_PACKET; */
 			return;
 		}
+
 		gspca_frame_add(gspca_dev, LAST_PACKET,
-					ffd9, 2);
+						ffd9, 2);
 
 		/* put the JPEG header in the new frame */
 		gspca_frame_add(gspca_dev, FIRST_PACKET,
-			sd->jpeg_hdr, JPEG_HDR_SZ);
+						sd->jpeg_hdr, JPEG_HDR_SZ);
 
 		data += SPCA500_OFFSET_DATA;
 		len -= SPCA500_OFFSET_DATA;
-	} else {
+	}
+	else
+	{
 		data += 1;
 		len -= 1;
 	}
 
 	/* add 0x00 after 0xff */
 	i = 0;
-	do {
-		if (data[i] == 0xff) {
+
+	do
+	{
+		if (data[i] == 0xff)
+		{
 			gspca_frame_add(gspca_dev, INTER_PACKET,
-					data, i + 1);
+							data, i + 1);
 			len -= i;
 			data += i;
 			*data = 0x00;
 			i = 0;
 		}
+
 		i++;
-	} while (i < len);
+	}
+	while (i < len);
+
 	gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
 }
 
 static void setbrightness(struct gspca_dev *gspca_dev, s32 val)
 {
 	reg_w(gspca_dev, 0x00, 0x8167,
-			(__u8) (val - 128));
+		  (__u8) (val - 128));
 }
 
 static void setcontrast(struct gspca_dev *gspca_dev, s32 val)
@@ -896,23 +1042,30 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 	gspca_dev->usb_err = 0;
 
 	if (!gspca_dev->streaming)
+	{
 		return 0;
-
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		setbrightness(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_CONTRAST:
-		setcontrast(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_SATURATION:
-		setcolors(gspca_dev, ctrl->val);
-		break;
 	}
+
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			setbrightness(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_CONTRAST:
+			setcontrast(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_SATURATION:
+			setcolors(gspca_dev, ctrl->val);
+			break;
+	}
+
 	return gspca_dev->usb_err;
 }
 
-static const struct v4l2_ctrl_ops sd_ctrl_ops = {
+static const struct v4l2_ctrl_ops sd_ctrl_ops =
+{
 	.s_ctrl = sd_s_ctrl,
 };
 
@@ -923,21 +1076,24 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 	gspca_dev->vdev.ctrl_handler = hdl;
 	v4l2_ctrl_handler_init(hdl, 3);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_BRIGHTNESS, 0, 255, 1, 127);
+					  V4L2_CID_BRIGHTNESS, 0, 255, 1, 127);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_CONTRAST, 0, 63, 1, 31);
+					  V4L2_CID_CONTRAST, 0, 63, 1, 31);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_SATURATION, 0, 63, 1, 31);
+					  V4L2_CID_SATURATION, 0, 63, 1, 31);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		pr_err("Could not initialize controls\n");
 		return hdl->error;
 	}
+
 	return 0;
 }
 
 /* sub-driver description */
-static const struct sd_desc sd_desc = {
+static const struct sd_desc sd_desc =
+{
 	.name = MODULE_NAME,
 	.config = sd_config,
 	.init = sd_init,
@@ -948,7 +1104,8 @@ static const struct sd_desc sd_desc = {
 };
 
 /* -- module initialisation -- */
-static const struct usb_device_id device_table[] = {
+static const struct usb_device_id device_table[] =
+{
 	{USB_DEVICE(0x040a, 0x0300), .driver_info = KodakEZ200},
 	{USB_DEVICE(0x041e, 0x400a), .driver_info = CreativePCCam300},
 	{USB_DEVICE(0x046d, 0x0890), .driver_info = LogitechTraveler},
@@ -970,13 +1127,14 @@ MODULE_DEVICE_TABLE(usb, device_table);
 
 /* -- device connect -- */
 static int sd_probe(struct usb_interface *intf,
-			const struct usb_device_id *id)
+					const struct usb_device_id *id)
 {
 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
-				THIS_MODULE);
+						   THIS_MODULE);
 }
 
-static struct usb_driver sd_driver = {
+static struct usb_driver sd_driver =
+{
 	.name = MODULE_NAME,
 	.id_table = device_table,
 	.probe = sd_probe,

@@ -42,9 +42,11 @@ MODULE_DESCRIPTION("Classic gameport (ISA/PnP) driver");
 MODULE_LICENSE("GPL");
 
 static int ns558_isa_portlist[] = { 0x201, 0x200, 0x202, 0x203, 0x204, 0x205, 0x207, 0x209,
-				    0x20b, 0x20c, 0x20e, 0x20f, 0x211, 0x219, 0x101, 0 };
+									0x20b, 0x20c, 0x20e, 0x20f, 0x211, 0x219, 0x101, 0
+								  };
 
-struct ns558 {
+struct ns558
+{
 	int type;
 	int io;
 	int size;
@@ -68,65 +70,81 @@ static int ns558_isa_probe(int io)
 	struct ns558 *ns558;
 	struct gameport *port;
 
-/*
- * No one should be using this address.
- */
+	/*
+	 * No one should be using this address.
+	 */
 
 	if (!request_region(io, 1, "ns558-isa"))
+	{
 		return -EBUSY;
+	}
 
-/*
- * We must not be able to write arbitrary values to the port.
- * The lower two axis bits must be 1 after a write.
- */
+	/*
+	 * We must not be able to write arbitrary values to the port.
+	 * The lower two axis bits must be 1 after a write.
+	 */
 
 	c = inb(io);
 	outb(~c & ~3, io);
-	if (~(u = v = inb(io)) & 3) {
+
+	if (~(u = v = inb(io)) & 3)
+	{
 		outb(c, io);
 		release_region(io, 1);
 		return -ENODEV;
 	}
-/*
- * After a trigger, there must be at least some bits changing.
- */
 
-	for (i = 0; i < 1000; i++) v &= inb(io);
+	/*
+	 * After a trigger, there must be at least some bits changing.
+	 */
 
-	if (u == v) {
+	for (i = 0; i < 1000; i++) { v &= inb(io); }
+
+	if (u == v)
+	{
 		outb(c, io);
 		release_region(io, 1);
 		return -ENODEV;
 	}
+
 	msleep(3);
-/*
- * After some time (4ms) the axes shouldn't change anymore.
- */
+	/*
+	 * After some time (4ms) the axes shouldn't change anymore.
+	 */
 
 	u = inb(io);
+
 	for (i = 0; i < 1000; i++)
-		if ((u ^ inb(io)) & 0xf) {
+		if ((u ^ inb(io)) & 0xf)
+		{
 			outb(c, io);
 			release_region(io, 1);
 			return -ENODEV;
 		}
-/*
- * And now find the number of mirrors of the port.
- */
 
-	for (i = 1; i < 5; i++) {
+	/*
+	 * And now find the number of mirrors of the port.
+	 */
+
+	for (i = 1; i < 5; i++)
+	{
 
 		release_region(io & (-1 << (i - 1)), (1 << (i - 1)));
 
 		if (!request_region(io & (-1 << i), (1 << i), "ns558-isa"))
-			break;				/* Don't disturb anyone */
+		{
+			break;    /* Don't disturb anyone */
+		}
 
 		outb(0xff, io & (-1 << i));
+
 		for (j = b = 0; j < 1000; j++)
-			if (inb(io & (-1 << i)) != inb((io & (-1 << i)) + (1 << i) - 1)) b++;
+			if (inb(io & (-1 << i)) != inb((io & (-1 << i)) + (1 << i) - 1)) { b++; }
+
 		msleep(3);
 
-		if (b > 300) {				/* We allow 30% difference */
+		if (b > 300)  				/* We allow 30% difference */
+		{
 			release_region(io & (-1 << i), (1 << i));
 			break;
 		}
@@ -134,14 +152,19 @@ static int ns558_isa_probe(int io)
 
 	i--;
 
-	if (i != 4) {
+	if (i != 4)
+	{
 		if (!request_region(io & (-1 << i), (1 << i), "ns558-isa"))
+		{
 			return -EBUSY;
+		}
 	}
 
 	ns558 = kzalloc(sizeof(struct ns558), GFP_KERNEL);
 	port = gameport_allocate_port();
-	if (!ns558 || !port) {
+
+	if (!ns558 || !port)
+	{
 		printk(KERN_ERR "ns558: Memory allocation failed.\n");
 		release_region(io & (-1 << i), (1 << i));
 		kfree(ns558);
@@ -166,7 +189,8 @@ static int ns558_isa_probe(int io)
 
 #ifdef CONFIG_PNP
 
-static const struct pnp_device_id pnp_devids[] = {
+static const struct pnp_device_id pnp_devids[] =
+{
 	{ .id = "@P@0001", .driver_data = 0 }, /* ALS 100 */
 	{ .id = "@P@0020", .driver_data = 0 }, /* ALS 200 */
 	{ .id = "@P@1001", .driver_data = 0 }, /* ALS 100+ */
@@ -200,7 +224,8 @@ static int ns558_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *did)
 	struct ns558 *ns558;
 	struct gameport *port;
 
-	if (!pnp_port_valid(dev, 0)) {
+	if (!pnp_port_valid(dev, 0))
+	{
 		printk(KERN_WARNING "ns558: No i/o ports on a gameport? Weird\n");
 		return -ENODEV;
 	}
@@ -209,11 +234,15 @@ static int ns558_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *did)
 	iolen = pnp_port_len(dev, 0);
 
 	if (!request_region(ioport, iolen, "ns558-pnp"))
+	{
 		return -EBUSY;
+	}
 
 	ns558 = kzalloc(sizeof(struct ns558), GFP_KERNEL);
 	port = gameport_allocate_port();
-	if (!ns558 || !port) {
+
+	if (!ns558 || !port)
+	{
 		printk(KERN_ERR "ns558: Memory allocation failed\n");
 		kfree(ns558);
 		gameport_free_port(port);
@@ -236,7 +265,8 @@ static int ns558_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *did)
 	return 0;
 }
 
-static struct pnp_driver ns558_pnp_driver = {
+static struct pnp_driver ns558_pnp_driver =
+{
 	.name		= "ns558",
 	.id_table	= pnp_devids,
 	.probe		= ns558_pnp_probe,
@@ -254,17 +284,22 @@ static int __init ns558_init(void)
 	int error;
 
 	error = pnp_register_driver(&ns558_pnp_driver);
-	if (error && error != -ENODEV)	/* should be ENOSYS really */
-		return error;
 
-/*
- * Probe ISA ports after PnP, so that PnP ports that are already
- * enabled get detected as PnP. This may be suboptimal in multi-device
- * configurations, but saves hassle with simple setups.
- */
+	if (error && error != -ENODEV)	/* should be ENOSYS really */
+	{
+		return error;
+	}
+
+	/*
+	 * Probe ISA ports after PnP, so that PnP ports that are already
+	 * enabled get detected as PnP. This may be suboptimal in multi-device
+	 * configurations, but saves hassle with simple setups.
+	 */
 
 	while (ns558_isa_portlist[i])
+	{
 		ns558_isa_probe(ns558_isa_portlist[i++]);
+	}
 
 	return list_empty(&ns558_list) && error ? -ENODEV : 0;
 }
@@ -273,7 +308,8 @@ static void __exit ns558_exit(void)
 {
 	struct ns558 *ns558, *safe;
 
-	list_for_each_entry_safe(ns558, safe, &ns558_list, node) {
+	list_for_each_entry_safe(ns558, safe, &ns558_list, node)
+	{
 		gameport_unregister_port(ns558->gameport);
 		release_region(ns558->io & ~(ns558->size - 1), ns558->size);
 		kfree(ns558);

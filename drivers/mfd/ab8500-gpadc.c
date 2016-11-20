@@ -118,7 +118,8 @@
 
 #define CONVERSION_TIME			500 /* ms */
 
-enum cal_channels {
+enum cal_channels
+{
 	ADC_INPUT_VMAIN = 0,
 	ADC_INPUT_BTEMP,
 	ADC_INPUT_VBAT,
@@ -132,7 +133,8 @@ enum cal_channels {
  * @gain:		Gain of the ADC channel
  * @offset:		Offset of the ADC channel
  */
-struct adc_cal_data {
+struct adc_cal_data
+{
 	s64 gain;
 	s64 offset;
 	u16 otp_calib_hi;
@@ -155,7 +157,8 @@ struct adc_cal_data {
  *				conversion
  * @cal_data			array of ADC calibration data structs
  */
-struct ab8500_gpadc {
+struct ab8500_gpadc
+{
 	struct device *dev;
 	struct list_head node;
 	struct ab8500 *parent;
@@ -177,9 +180,12 @@ struct ab8500_gpadc *ab8500_gpadc_get(char *name)
 {
 	struct ab8500_gpadc *gpadc;
 
-	list_for_each_entry(gpadc, &ab8500_gpadc_list, node) {
+	list_for_each_entry(gpadc, &ab8500_gpadc_list, node)
+	{
 		if (!strcmp(name, dev_name(gpadc->dev)))
+		{
 			return gpadc;
+		}
 	}
 
 	return ERR_PTR(-ENOENT);
@@ -190,108 +196,122 @@ EXPORT_SYMBOL(ab8500_gpadc_get);
  * ab8500_gpadc_ad_to_voltage() - Convert a raw ADC value to a voltage
  */
 int ab8500_gpadc_ad_to_voltage(struct ab8500_gpadc *gpadc, u8 channel,
-	int ad_value)
+							   int ad_value)
 {
 	int res;
 
-	switch (channel) {
-	case MAIN_CHARGER_V:
-		/* For some reason we don't have calibrated data */
-		if (!gpadc->cal_data[ADC_INPUT_VMAIN].gain) {
-			res = ADC_CH_CHG_V_MIN + (ADC_CH_CHG_V_MAX -
-				ADC_CH_CHG_V_MIN) * ad_value /
-				ADC_RESOLUTION;
+	switch (channel)
+	{
+		case MAIN_CHARGER_V:
+
+			/* For some reason we don't have calibrated data */
+			if (!gpadc->cal_data[ADC_INPUT_VMAIN].gain)
+			{
+				res = ADC_CH_CHG_V_MIN + (ADC_CH_CHG_V_MAX -
+										  ADC_CH_CHG_V_MIN) * ad_value /
+					  ADC_RESOLUTION;
+				break;
+			}
+
+			/* Here we can use the calibrated data */
+			res = (int) (ad_value * gpadc->cal_data[ADC_INPUT_VMAIN].gain +
+						 gpadc->cal_data[ADC_INPUT_VMAIN].offset) / CALIB_SCALE;
 			break;
-		}
-		/* Here we can use the calibrated data */
-		res = (int) (ad_value * gpadc->cal_data[ADC_INPUT_VMAIN].gain +
-			gpadc->cal_data[ADC_INPUT_VMAIN].offset) / CALIB_SCALE;
-		break;
 
-	case XTAL_TEMP:
-	case BAT_CTRL:
-	case BTEMP_BALL:
-	case ACC_DETECT1:
-	case ADC_AUX1:
-	case ADC_AUX2:
-		/* For some reason we don't have calibrated data */
-		if (!gpadc->cal_data[ADC_INPUT_BTEMP].gain) {
-			res = ADC_CH_BTEMP_MIN + (ADC_CH_BTEMP_MAX -
-				ADC_CH_BTEMP_MIN) * ad_value /
-				ADC_RESOLUTION;
+		case XTAL_TEMP:
+		case BAT_CTRL:
+		case BTEMP_BALL:
+		case ACC_DETECT1:
+		case ADC_AUX1:
+		case ADC_AUX2:
+
+			/* For some reason we don't have calibrated data */
+			if (!gpadc->cal_data[ADC_INPUT_BTEMP].gain)
+			{
+				res = ADC_CH_BTEMP_MIN + (ADC_CH_BTEMP_MAX -
+										  ADC_CH_BTEMP_MIN) * ad_value /
+					  ADC_RESOLUTION;
+				break;
+			}
+
+			/* Here we can use the calibrated data */
+			res = (int) (ad_value * gpadc->cal_data[ADC_INPUT_BTEMP].gain +
+						 gpadc->cal_data[ADC_INPUT_BTEMP].offset) / CALIB_SCALE;
 			break;
-		}
-		/* Here we can use the calibrated data */
-		res = (int) (ad_value * gpadc->cal_data[ADC_INPUT_BTEMP].gain +
-			gpadc->cal_data[ADC_INPUT_BTEMP].offset) / CALIB_SCALE;
-		break;
 
-	case MAIN_BAT_V:
-	case VBAT_TRUE_MEAS:
-		/* For some reason we don't have calibrated data */
-		if (!gpadc->cal_data[ADC_INPUT_VBAT].gain) {
-			res = ADC_CH_VBAT_MIN + (ADC_CH_VBAT_MAX -
-				ADC_CH_VBAT_MIN) * ad_value /
-				ADC_RESOLUTION;
+		case MAIN_BAT_V:
+		case VBAT_TRUE_MEAS:
+
+			/* For some reason we don't have calibrated data */
+			if (!gpadc->cal_data[ADC_INPUT_VBAT].gain)
+			{
+				res = ADC_CH_VBAT_MIN + (ADC_CH_VBAT_MAX -
+										 ADC_CH_VBAT_MIN) * ad_value /
+					  ADC_RESOLUTION;
+				break;
+			}
+
+			/* Here we can use the calibrated data */
+			res = (int) (ad_value * gpadc->cal_data[ADC_INPUT_VBAT].gain +
+						 gpadc->cal_data[ADC_INPUT_VBAT].offset) / CALIB_SCALE;
 			break;
-		}
-		/* Here we can use the calibrated data */
-		res = (int) (ad_value * gpadc->cal_data[ADC_INPUT_VBAT].gain +
-			gpadc->cal_data[ADC_INPUT_VBAT].offset) / CALIB_SCALE;
-		break;
 
-	case DIE_TEMP:
-		res = ADC_CH_DIETEMP_MIN +
-			(ADC_CH_DIETEMP_MAX - ADC_CH_DIETEMP_MIN) * ad_value /
-			ADC_RESOLUTION;
-		break;
-
-	case ACC_DETECT2:
-		res = ADC_CH_ACCDET2_MIN +
-			(ADC_CH_ACCDET2_MAX - ADC_CH_ACCDET2_MIN) * ad_value /
-			ADC_RESOLUTION;
-		break;
-
-	case VBUS_V:
-		res = ADC_CH_CHG_V_MIN +
-			(ADC_CH_CHG_V_MAX - ADC_CH_CHG_V_MIN) * ad_value /
-			ADC_RESOLUTION;
-		break;
-
-	case MAIN_CHARGER_C:
-	case USB_CHARGER_C:
-		res = ADC_CH_CHG_I_MIN +
-			(ADC_CH_CHG_I_MAX - ADC_CH_CHG_I_MIN) * ad_value /
-			ADC_RESOLUTION;
-		break;
-
-	case BK_BAT_V:
-		res = ADC_CH_BKBAT_MIN +
-			(ADC_CH_BKBAT_MAX - ADC_CH_BKBAT_MIN) * ad_value /
-			ADC_RESOLUTION;
-		break;
-
-	case IBAT_VIRTUAL_CHANNEL:
-		/* For some reason we don't have calibrated data */
-		if (!gpadc->cal_data[ADC_INPUT_IBAT].gain) {
-			res = ADC_CH_IBAT_MIN + (ADC_CH_IBAT_MAX -
-				ADC_CH_IBAT_MIN) * ad_value /
-				ADC_RESOLUTION;
+		case DIE_TEMP:
+			res = ADC_CH_DIETEMP_MIN +
+				  (ADC_CH_DIETEMP_MAX - ADC_CH_DIETEMP_MIN) * ad_value /
+				  ADC_RESOLUTION;
 			break;
-		}
-		/* Here we can use the calibrated data */
-		res = (int) (ad_value * gpadc->cal_data[ADC_INPUT_IBAT].gain +
-				gpadc->cal_data[ADC_INPUT_IBAT].offset)
-				>> CALIB_SHIFT_IBAT;
-		break;
 
-	default:
-		dev_err(gpadc->dev,
-			"unknown channel, not possible to convert\n");
-		res = -EINVAL;
-		break;
+		case ACC_DETECT2:
+			res = ADC_CH_ACCDET2_MIN +
+				  (ADC_CH_ACCDET2_MAX - ADC_CH_ACCDET2_MIN) * ad_value /
+				  ADC_RESOLUTION;
+			break;
+
+		case VBUS_V:
+			res = ADC_CH_CHG_V_MIN +
+				  (ADC_CH_CHG_V_MAX - ADC_CH_CHG_V_MIN) * ad_value /
+				  ADC_RESOLUTION;
+			break;
+
+		case MAIN_CHARGER_C:
+		case USB_CHARGER_C:
+			res = ADC_CH_CHG_I_MIN +
+				  (ADC_CH_CHG_I_MAX - ADC_CH_CHG_I_MIN) * ad_value /
+				  ADC_RESOLUTION;
+			break;
+
+		case BK_BAT_V:
+			res = ADC_CH_BKBAT_MIN +
+				  (ADC_CH_BKBAT_MAX - ADC_CH_BKBAT_MIN) * ad_value /
+				  ADC_RESOLUTION;
+			break;
+
+		case IBAT_VIRTUAL_CHANNEL:
+
+			/* For some reason we don't have calibrated data */
+			if (!gpadc->cal_data[ADC_INPUT_IBAT].gain)
+			{
+				res = ADC_CH_IBAT_MIN + (ADC_CH_IBAT_MAX -
+										 ADC_CH_IBAT_MIN) * ad_value /
+					  ADC_RESOLUTION;
+				break;
+			}
+
+			/* Here we can use the calibrated data */
+			res = (int) (ad_value * gpadc->cal_data[ADC_INPUT_IBAT].gain +
+						 gpadc->cal_data[ADC_INPUT_IBAT].offset)
+				  >> CALIB_SHIFT_IBAT;
+			break;
+
+		default:
+			dev_err(gpadc->dev,
+					"unknown channel, not possible to convert\n");
+			res = -EINVAL;
+			break;
 
 	}
+
 	return res;
 }
 EXPORT_SYMBOL(ab8500_gpadc_ad_to_voltage);
@@ -308,29 +328,32 @@ EXPORT_SYMBOL(ab8500_gpadc_ad_to_voltage);
  * data.
  */
 int ab8500_gpadc_sw_hw_convert(struct ab8500_gpadc *gpadc, u8 channel,
-		u8 avg_sample, u8 trig_edge, u8 trig_timer, u8 conv_type)
+							   u8 avg_sample, u8 trig_edge, u8 trig_timer, u8 conv_type)
 {
 	int ad_value;
 	int voltage;
 
 	ad_value = ab8500_gpadc_read_raw(gpadc, channel, avg_sample,
-			trig_edge, trig_timer, conv_type);
+									 trig_edge, trig_timer, conv_type);
 
 	/* On failure retry a second time */
 	if (ad_value < 0)
 		ad_value = ab8500_gpadc_read_raw(gpadc, channel, avg_sample,
-			trig_edge, trig_timer, conv_type);
-	if (ad_value < 0) {
+										 trig_edge, trig_timer, conv_type);
+
+	if (ad_value < 0)
+	{
 		dev_err(gpadc->dev, "GPADC raw value failed ch: %d\n",
 				channel);
 		return ad_value;
 	}
 
 	voltage = ab8500_gpadc_ad_to_voltage(gpadc, channel, ad_value);
+
 	if (voltage < 0)
 		dev_err(gpadc->dev,
-			"GPADC to voltage conversion failed ch: %d AD: 0x%x\n",
-			channel, ad_value);
+				"GPADC to voltage conversion failed ch: %d AD: 0x%x\n",
+				channel, ad_value);
 
 	return voltage;
 }
@@ -348,16 +371,16 @@ EXPORT_SYMBOL(ab8500_gpadc_sw_hw_convert);
  * this then needs to be converted by calling ab8500_gpadc_ad_to_voltage()
  */
 int ab8500_gpadc_read_raw(struct ab8500_gpadc *gpadc, u8 channel,
-		u8 avg_sample, u8 trig_edge, u8 trig_timer, u8 conv_type)
+						  u8 avg_sample, u8 trig_edge, u8 trig_timer, u8 conv_type)
 {
 	return ab8500_gpadc_double_read_raw(gpadc, channel, avg_sample,
-					    trig_edge, trig_timer, conv_type,
-					    NULL);
+										trig_edge, trig_timer, conv_type,
+										NULL);
 }
 
 int ab8500_gpadc_double_read_raw(struct ab8500_gpadc *gpadc, u8 channel,
-		u8 avg_sample, u8 trig_edge, u8 trig_timer, u8 conv_type,
-		int *ibat)
+								 u8 avg_sample, u8 trig_edge, u8 trig_timer, u8 conv_type,
+								 int *ibat)
 {
 	int ret;
 	int looplimit = 0;
@@ -369,29 +392,47 @@ int ab8500_gpadc_double_read_raw(struct ab8500_gpadc *gpadc, u8 channel,
 	u8 data_low_addr, data_high_addr;
 
 	if (!gpadc)
+	{
 		return -ENODEV;
+	}
 
 	/* check if convertion is supported */
 	if ((gpadc->irq_sw < 0) && (conv_type == ADC_SW))
+	{
 		return -ENOTSUPP;
+	}
+
 	if ((gpadc->irq_hw < 0) && (conv_type == ADC_HW))
+	{
 		return -ENOTSUPP;
+	}
 
 	mutex_lock(&gpadc->ab8500_gpadc_lock);
 	/* Enable VTVout LDO this is required for GPADC */
 	pm_runtime_get_sync(gpadc->dev);
 
 	/* Check if ADC is not busy, lock and proceed */
-	do {
+	do
+	{
 		ret = abx500_get_register_interruptible(gpadc->dev,
-			AB8500_GPADC, AB8500_GPADC_STAT_REG, &val);
+												AB8500_GPADC, AB8500_GPADC_STAT_REG, &val);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
+
 		if (!(val & GPADC_BUSY))
+		{
 			break;
+		}
+
 		msleep(20);
-	} while (++looplimit < 10);
-	if (looplimit >= 10 && (val & GPADC_BUSY)) {
+	}
+	while (++looplimit < 10);
+
+	if (looplimit >= 10 && (val & GPADC_BUSY))
+	{
 		dev_err(gpadc->dev, "gpadc_conversion: GPADC busy");
 		ret = -EINVAL;
 		goto out;
@@ -401,33 +442,44 @@ int ab8500_gpadc_double_read_raw(struct ab8500_gpadc *gpadc, u8 channel,
 	val_reg1 |= EN_GPADC;
 
 	/* Select the channel source and set average samples */
-	switch (avg_sample) {
-	case SAMPLE_1:
-		val = channel | AVG_1;
-		break;
-	case SAMPLE_4:
-		val = channel | AVG_4;
-		break;
-	case SAMPLE_8:
-		val = channel | AVG_8;
-		break;
-	default:
-		val = channel | AVG_16;
-		break;
+	switch (avg_sample)
+	{
+		case SAMPLE_1:
+			val = channel | AVG_1;
+			break;
+
+		case SAMPLE_4:
+			val = channel | AVG_4;
+			break;
+
+		case SAMPLE_8:
+			val = channel | AVG_8;
+			break;
+
+		default:
+			val = channel | AVG_16;
+			break;
 	}
 
-	if (conv_type == ADC_HW) {
+	if (conv_type == ADC_HW)
+	{
 		ret = abx500_set_register_interruptible(gpadc->dev,
-				AB8500_GPADC, AB8500_GPADC_CTRL3_REG, val);
+												AB8500_GPADC, AB8500_GPADC_CTRL3_REG, val);
 		val_reg1 |= EN_TRIG_EDGE;
+
 		if (trig_edge)
+		{
 			val_reg1 |= EN_FALLING;
-	} else
+		}
+	}
+	else
 		ret = abx500_set_register_interruptible(gpadc->dev,
-				AB8500_GPADC, AB8500_GPADC_CTRL2_REG, val);
-	if (ret < 0) {
+												AB8500_GPADC, AB8500_GPADC_CTRL2_REG, val);
+
+	if (ret < 0)
+	{
 		dev_err(gpadc->dev,
-			"gpadc_conversion: set avg samples failed\n");
+				"gpadc_conversion: set avg samples failed\n");
 		goto out;
 	}
 
@@ -436,62 +488,79 @@ int ab8500_gpadc_double_read_raw(struct ab8500_gpadc *gpadc, u8 channel,
 	 * charging current sense if it needed, ABB 3.0 needs some special
 	 * treatment too.
 	 */
-	switch (channel) {
-	case MAIN_CHARGER_C:
-	case USB_CHARGER_C:
-		val_reg1 |= EN_BUF | EN_ICHAR;
-		break;
-	case BTEMP_BALL:
-		if (!is_ab8500_2p0_or_earlier(gpadc->parent)) {
-			val_reg1 |= EN_BUF | BTEMP_PULL_UP;
-			/*
-			* Delay might be needed for ABB8500 cut 3.0, if not,
-			* remove when hardware will be availible
-			*/
-			delay_min = 1000; /* Delay in micro seconds */
-			delay_max = 10000; /* large range optimises sleepmode */
+	switch (channel)
+	{
+		case MAIN_CHARGER_C:
+		case USB_CHARGER_C:
+			val_reg1 |= EN_BUF | EN_ICHAR;
 			break;
-		}
+
+		case BTEMP_BALL:
+			if (!is_ab8500_2p0_or_earlier(gpadc->parent))
+			{
+				val_reg1 |= EN_BUF | BTEMP_PULL_UP;
+				/*
+				* Delay might be needed for ABB8500 cut 3.0, if not,
+				* remove when hardware will be availible
+				*/
+				delay_min = 1000; /* Delay in micro seconds */
+				delay_max = 10000; /* large range optimises sleepmode */
+				break;
+			}
+
 		/* Intentional fallthrough */
-	default:
-		val_reg1 |= EN_BUF;
-		break;
+		default:
+			val_reg1 |= EN_BUF;
+			break;
 	}
 
 	/* Write configuration to register */
 	ret = abx500_set_register_interruptible(gpadc->dev,
-		AB8500_GPADC, AB8500_GPADC_CTRL1_REG, val_reg1);
-	if (ret < 0) {
+											AB8500_GPADC, AB8500_GPADC_CTRL1_REG, val_reg1);
+
+	if (ret < 0)
+	{
 		dev_err(gpadc->dev,
-			"gpadc_conversion: set Control register failed\n");
+				"gpadc_conversion: set Control register failed\n");
 		goto out;
 	}
 
 	if (delay_min != 0)
+	{
 		usleep_range(delay_min, delay_max);
+	}
 
-	if (conv_type == ADC_HW) {
+	if (conv_type == ADC_HW)
+	{
 		/* Set trigger delay timer */
 		ret = abx500_set_register_interruptible(gpadc->dev,
-			AB8500_GPADC, AB8500_GPADC_AUTO_TIMER_REG, trig_timer);
-		if (ret < 0) {
+												AB8500_GPADC, AB8500_GPADC_AUTO_TIMER_REG, trig_timer);
+
+		if (ret < 0)
+		{
 			dev_err(gpadc->dev,
-				"gpadc_conversion: trig timer failed\n");
+					"gpadc_conversion: trig timer failed\n");
 			goto out;
 		}
+
 		completion_timeout = 2 * HZ;
 		data_low_addr = AB8500_GPADC_AUTODATAL_REG;
 		data_high_addr = AB8500_GPADC_AUTODATAH_REG;
-	} else {
+	}
+	else
+	{
 		/* Start SW conversion */
 		ret = abx500_mask_and_set_register_interruptible(gpadc->dev,
-			AB8500_GPADC, AB8500_GPADC_CTRL1_REG,
-			ADC_SW_CONV, ADC_SW_CONV);
-		if (ret < 0) {
+				AB8500_GPADC, AB8500_GPADC_CTRL1_REG,
+				ADC_SW_CONV, ADC_SW_CONV);
+
+		if (ret < 0)
+		{
 			dev_err(gpadc->dev,
-				"gpadc_conversion: start s/w conv failed\n");
+					"gpadc_conversion: start s/w conv failed\n");
 			goto out;
 		}
+
 		completion_timeout = msecs_to_jiffies(CONVERSION_TIME);
 		data_low_addr = AB8500_GPADC_MANDATAL_REG;
 		data_high_addr = AB8500_GPADC_MANDATAH_REG;
@@ -499,64 +568,81 @@ int ab8500_gpadc_double_read_raw(struct ab8500_gpadc *gpadc, u8 channel,
 
 	/* wait for completion of conversion */
 	if (!wait_for_completion_timeout(&gpadc->ab8500_gpadc_complete,
-			completion_timeout)) {
+									 completion_timeout))
+	{
 		dev_err(gpadc->dev,
-			"timeout didn't receive GPADC conv interrupt\n");
+				"timeout didn't receive GPADC conv interrupt\n");
 		ret = -EINVAL;
 		goto out;
 	}
 
 	/* Read the converted RAW data */
 	ret = abx500_get_register_interruptible(gpadc->dev,
-			AB8500_GPADC, data_low_addr, &low_data);
-	if (ret < 0) {
+											AB8500_GPADC, data_low_addr, &low_data);
+
+	if (ret < 0)
+	{
 		dev_err(gpadc->dev, "gpadc_conversion: read low data failed\n");
 		goto out;
 	}
 
 	ret = abx500_get_register_interruptible(gpadc->dev,
-		AB8500_GPADC, data_high_addr, &high_data);
-	if (ret < 0) {
+											AB8500_GPADC, data_high_addr, &high_data);
+
+	if (ret < 0)
+	{
 		dev_err(gpadc->dev, "gpadc_conversion: read high data failed\n");
 		goto out;
 	}
 
 	/* Check if double convertion is required */
 	if ((channel == BAT_CTRL_AND_IBAT) ||
-			(channel == VBAT_MEAS_AND_IBAT) ||
-			(channel == VBAT_TRUE_MEAS_AND_IBAT) ||
-			(channel == BAT_TEMP_AND_IBAT)) {
+		(channel == VBAT_MEAS_AND_IBAT) ||
+		(channel == VBAT_TRUE_MEAS_AND_IBAT) ||
+		(channel == BAT_TEMP_AND_IBAT))
+	{
 
-		if (conv_type == ADC_HW) {
+		if (conv_type == ADC_HW)
+		{
 			/* not supported */
 			ret = -ENOTSUPP;
 			dev_err(gpadc->dev,
-				"gpadc_conversion: only SW double conversion supported\n");
+					"gpadc_conversion: only SW double conversion supported\n");
 			goto out;
-		} else {
+		}
+		else
+		{
 			/* Read the converted RAW data 2 */
 			ret = abx500_get_register_interruptible(gpadc->dev,
-				AB8500_GPADC, AB8540_GPADC_MANDATA2L_REG,
-				&low_data2);
-			if (ret < 0) {
+													AB8500_GPADC, AB8540_GPADC_MANDATA2L_REG,
+													&low_data2);
+
+			if (ret < 0)
+			{
 				dev_err(gpadc->dev,
-					"gpadc_conversion: read sw low data 2 failed\n");
+						"gpadc_conversion: read sw low data 2 failed\n");
 				goto out;
 			}
 
 			ret = abx500_get_register_interruptible(gpadc->dev,
-				AB8500_GPADC, AB8540_GPADC_MANDATA2H_REG,
-				&high_data2);
-			if (ret < 0) {
+													AB8500_GPADC, AB8540_GPADC_MANDATA2H_REG,
+													&high_data2);
+
+			if (ret < 0)
+			{
 				dev_err(gpadc->dev,
-					"gpadc_conversion: read sw high data 2 failed\n");
+						"gpadc_conversion: read sw high data 2 failed\n");
 				goto out;
 			}
-			if (ibat != NULL) {
+
+			if (ibat != NULL)
+			{
 				*ibat = (high_data2 << 8) | low_data2;
-			} else {
+			}
+			else
+			{
 				dev_warn(gpadc->dev,
-					"gpadc_conversion: ibat not stored\n");
+						 "gpadc_conversion: ibat not stored\n");
 			}
 
 		}
@@ -564,8 +650,10 @@ int ab8500_gpadc_double_read_raw(struct ab8500_gpadc *gpadc, u8 channel,
 
 	/* Disable GPADC */
 	ret = abx500_set_register_interruptible(gpadc->dev, AB8500_GPADC,
-		AB8500_GPADC_CTRL1_REG, DIS_GPADC);
-	if (ret < 0) {
+											AB8500_GPADC_CTRL1_REG, DIS_GPADC);
+
+	if (ret < 0)
+	{
 		dev_err(gpadc->dev, "gpadc_conversion: disable gpadc failed\n");
 		goto out;
 	}
@@ -586,11 +674,11 @@ out:
 	 * seems to timeout when waiting for an interrupt.. Not seen in V2.0
 	 */
 	(void) abx500_set_register_interruptible(gpadc->dev, AB8500_GPADC,
-		AB8500_GPADC_CTRL1_REG, DIS_GPADC);
+			AB8500_GPADC_CTRL1_REG, DIS_GPADC);
 	pm_runtime_put(gpadc->dev);
 	mutex_unlock(&gpadc->ab8500_gpadc_lock);
 	dev_err(gpadc->dev,
-		"gpadc_conversion: Failed to AD convert channel %d\n", channel);
+			"gpadc_conversion: Failed to AD convert channel %d\n", channel);
 	return ret;
 }
 EXPORT_SYMBOL(ab8500_gpadc_read_raw);
@@ -614,7 +702,8 @@ static irqreturn_t ab8500_bm_gpadcconvend_handler(int irq, void *_gpadc)
 	return IRQ_HANDLED;
 }
 
-static int otp_cal_regs[] = {
+static int otp_cal_regs[] =
+{
 	AB8500_GPADC_CAL_1,
 	AB8500_GPADC_CAL_2,
 	AB8500_GPADC_CAL_3,
@@ -624,7 +713,8 @@ static int otp_cal_regs[] = {
 	AB8500_GPADC_CAL_7,
 };
 
-static int otp4_cal_regs[] = {
+static int otp4_cal_regs[] =
+{
 	AB8540_GPADC_OTP4_REG_7,
 	AB8540_GPADC_OTP4_REG_6,
 	AB8540_GPADC_OTP4_REG_5,
@@ -647,12 +737,14 @@ static void ab8500_gpadc_read_calibration_data(struct ab8500_gpadc *gpadc)
 	ab8500 = gpadc->parent;
 
 	/* First we read all OTP registers and store the error code */
-	for (i = 0; i < ARRAY_SIZE(otp_cal_regs); i++) {
+	for (i = 0; i < ARRAY_SIZE(otp_cal_regs); i++)
+	{
 		ret[i] = abx500_get_register_interruptible(gpadc->dev,
-			AB8500_OTP_EMUL, otp_cal_regs[i],  &gpadc_cal[i]);
+				 AB8500_OTP_EMUL, otp_cal_regs[i],  &gpadc_cal[i]);
+
 		if (ret[i] < 0)
 			dev_err(gpadc->dev, "%s: read otp reg 0x%02x failed\n",
-				__func__, otp_cal_regs[i]);
+					__func__, otp_cal_regs[i]);
 	}
 
 	/*
@@ -723,11 +815,13 @@ static void ab8500_gpadc_read_calibration_data(struct ab8500_gpadc *gpadc)
 	 * vbat_low:   Vin = 2380mV  / ADC ideal code = 33
 	 */
 
-	if (is_ab8540(ab8500)) {
+	if (is_ab8540(ab8500))
+	{
 		/* Calculate gain and offset for VMAIN if all reads succeeded*/
-		if (!(ret[1] < 0 || ret[2] < 0)) {
+		if (!(ret[1] < 0 || ret[2] < 0))
+		{
 			vmain_high = (((gpadc_cal[1] & 0xFF) << 2) |
-				((gpadc_cal[2] & 0xC0) >> 6));
+						  ((gpadc_cal[2] & 0xC0) >> 6));
 			vmain_low = ((gpadc_cal[2] & 0x3E) >> 1);
 
 			gpadc->cal_data[ADC_INPUT_VMAIN].otp_calib_hi =
@@ -736,31 +830,36 @@ static void ab8500_gpadc_read_calibration_data(struct ab8500_gpadc *gpadc)
 				(u16)vmain_low;
 
 			gpadc->cal_data[ADC_INPUT_VMAIN].gain = CALIB_SCALE *
-				(19500 - 315) / (vmain_high - vmain_low);
+													(19500 - 315) / (vmain_high - vmain_low);
 			gpadc->cal_data[ADC_INPUT_VMAIN].offset = CALIB_SCALE *
-				19500 - (CALIB_SCALE * (19500 - 315) /
-				(vmain_high - vmain_low)) * vmain_high;
-		} else {
-		gpadc->cal_data[ADC_INPUT_VMAIN].gain = 0;
+					19500 - (CALIB_SCALE * (19500 - 315) /
+							 (vmain_high - vmain_low)) * vmain_high;
+		}
+		else
+		{
+			gpadc->cal_data[ADC_INPUT_VMAIN].gain = 0;
 		}
 
 		/* Read IBAT calibration Data */
-		for (i = 0; i < ARRAY_SIZE(otp4_cal_regs); i++) {
+		for (i = 0; i < ARRAY_SIZE(otp4_cal_regs); i++)
+		{
 			ret_otp4[i] = abx500_get_register_interruptible(
-					gpadc->dev, AB8500_OTP_EMUL,
-					otp4_cal_regs[i],  &gpadc_otp4[i]);
+							  gpadc->dev, AB8500_OTP_EMUL,
+							  otp4_cal_regs[i],  &gpadc_otp4[i]);
+
 			if (ret_otp4[i] < 0)
 				dev_err(gpadc->dev,
-					"%s: read otp4 reg 0x%02x failed\n",
-					__func__, otp4_cal_regs[i]);
+						"%s: read otp4 reg 0x%02x failed\n",
+						__func__, otp4_cal_regs[i]);
 		}
 
 		/* Calculate gain and offset for IBAT if all reads succeeded */
-		if (!(ret_otp4[0] < 0 || ret_otp4[1] < 0 || ret_otp4[2] < 0)) {
+		if (!(ret_otp4[0] < 0 || ret_otp4[1] < 0 || ret_otp4[2] < 0))
+		{
 			ibat_high = (((gpadc_otp4[0] & 0x07) << 7) |
-				((gpadc_otp4[1] & 0xFE) >> 1));
+						 ((gpadc_otp4[1] & 0xFE) >> 1));
 			ibat_low = (((gpadc_otp4[1] & 0x01) << 5) |
-				((gpadc_otp4[2] & 0xF8) >> 3));
+						((gpadc_otp4[2] & 0xF8) >> 3));
 
 			gpadc->cal_data[ADC_INPUT_IBAT].otp_calib_hi =
 				(u16)ibat_high;
@@ -768,40 +867,45 @@ static void ab8500_gpadc_read_calibration_data(struct ab8500_gpadc *gpadc)
 				(u16)ibat_low;
 
 			V_gain = ((IBAT_VDROP_H - IBAT_VDROP_L)
-				<< CALIB_SHIFT_IBAT) / (ibat_high - ibat_low);
+					  << CALIB_SHIFT_IBAT) / (ibat_high - ibat_low);
 
 			V_offset = (IBAT_VDROP_H << CALIB_SHIFT_IBAT) -
-				(((IBAT_VDROP_H - IBAT_VDROP_L) <<
-				CALIB_SHIFT_IBAT) / (ibat_high - ibat_low))
-				* ibat_high;
+					   (((IBAT_VDROP_H - IBAT_VDROP_L) <<
+						 CALIB_SHIFT_IBAT) / (ibat_high - ibat_low))
+					   * ibat_high;
 			/*
 			 * Result obtained is in mV (at a scale factor),
 			 * we need to calculate gain and offset to get mA
 			 */
-			V2A_gain = (ADC_CH_IBAT_MAX - ADC_CH_IBAT_MIN)/
-				(ADC_CH_IBAT_MAX_V - ADC_CH_IBAT_MIN_V);
+			V2A_gain = (ADC_CH_IBAT_MAX - ADC_CH_IBAT_MIN) /
+					   (ADC_CH_IBAT_MAX_V - ADC_CH_IBAT_MIN_V);
 			V2A_offset = ((ADC_CH_IBAT_MAX_V * ADC_CH_IBAT_MIN -
-				ADC_CH_IBAT_MAX * ADC_CH_IBAT_MIN_V)
-				<< CALIB_SHIFT_IBAT)
-				/ (ADC_CH_IBAT_MAX_V - ADC_CH_IBAT_MIN_V);
+						   ADC_CH_IBAT_MAX * ADC_CH_IBAT_MIN_V)
+						  << CALIB_SHIFT_IBAT)
+						 / (ADC_CH_IBAT_MAX_V - ADC_CH_IBAT_MIN_V);
 
 			gpadc->cal_data[ADC_INPUT_IBAT].gain =
 				V_gain * V2A_gain;
 			gpadc->cal_data[ADC_INPUT_IBAT].offset =
 				V_offset * V2A_gain + V2A_offset;
-		} else {
+		}
+		else
+		{
 			gpadc->cal_data[ADC_INPUT_IBAT].gain = 0;
 		}
 
 		dev_dbg(gpadc->dev, "IBAT gain %llu offset %llu\n",
-			gpadc->cal_data[ADC_INPUT_IBAT].gain,
-			gpadc->cal_data[ADC_INPUT_IBAT].offset);
-	} else {
+				gpadc->cal_data[ADC_INPUT_IBAT].gain,
+				gpadc->cal_data[ADC_INPUT_IBAT].offset);
+	}
+	else
+	{
 		/* Calculate gain and offset for VMAIN if all reads succeeded */
-		if (!(ret[0] < 0 || ret[1] < 0 || ret[2] < 0)) {
+		if (!(ret[0] < 0 || ret[1] < 0 || ret[2] < 0))
+		{
 			vmain_high = (((gpadc_cal[0] & 0x03) << 8) |
-				((gpadc_cal[1] & 0x3F) << 2) |
-				((gpadc_cal[2] & 0xC0) >> 6));
+						  ((gpadc_cal[1] & 0x3F) << 2) |
+						  ((gpadc_cal[2] & 0xC0) >> 6));
 			vmain_low = ((gpadc_cal[2] & 0x3E) >> 1);
 
 			gpadc->cal_data[ADC_INPUT_VMAIN].otp_calib_hi =
@@ -810,20 +914,23 @@ static void ab8500_gpadc_read_calibration_data(struct ab8500_gpadc *gpadc)
 				(u16)vmain_low;
 
 			gpadc->cal_data[ADC_INPUT_VMAIN].gain = CALIB_SCALE *
-				(19500 - 315) / (vmain_high - vmain_low);
+													(19500 - 315) / (vmain_high - vmain_low);
 
 			gpadc->cal_data[ADC_INPUT_VMAIN].offset = CALIB_SCALE *
-				19500 - (CALIB_SCALE * (19500 - 315) /
-				(vmain_high - vmain_low)) * vmain_high;
-		} else {
+					19500 - (CALIB_SCALE * (19500 - 315) /
+							 (vmain_high - vmain_low)) * vmain_high;
+		}
+		else
+		{
 			gpadc->cal_data[ADC_INPUT_VMAIN].gain = 0;
 		}
 	}
 
 	/* Calculate gain and offset for BTEMP if all reads succeeded */
-	if (!(ret[2] < 0 || ret[3] < 0 || ret[4] < 0)) {
+	if (!(ret[2] < 0 || ret[3] < 0 || ret[4] < 0))
+	{
 		btemp_high = (((gpadc_cal[2] & 0x01) << 9) |
-			(gpadc_cal[3] << 1) | ((gpadc_cal[4] & 0x80) >> 7));
+					  (gpadc_cal[3] << 1) | ((gpadc_cal[4] & 0x80) >> 7));
 		btemp_low = ((gpadc_cal[4] & 0x7C) >> 2);
 
 		gpadc->cal_data[ADC_INPUT_BTEMP].otp_calib_hi = (u16)btemp_high;
@@ -832,14 +939,17 @@ static void ab8500_gpadc_read_calibration_data(struct ab8500_gpadc *gpadc)
 		gpadc->cal_data[ADC_INPUT_BTEMP].gain =
 			CALIB_SCALE * (1300 - 21) / (btemp_high - btemp_low);
 		gpadc->cal_data[ADC_INPUT_BTEMP].offset = CALIB_SCALE * 1300 -
-			(CALIB_SCALE * (1300 - 21) / (btemp_high - btemp_low))
-			* btemp_high;
-	} else {
+				(CALIB_SCALE * (1300 - 21) / (btemp_high - btemp_low))
+				* btemp_high;
+	}
+	else
+	{
 		gpadc->cal_data[ADC_INPUT_BTEMP].gain = 0;
 	}
 
 	/* Calculate gain and offset for VBAT if all reads succeeded */
-	if (!(ret[4] < 0 || ret[5] < 0 || ret[6] < 0)) {
+	if (!(ret[4] < 0 || ret[5] < 0 || ret[6] < 0))
+	{
 		vbat_high = (((gpadc_cal[4] & 0x03) << 8) | gpadc_cal[5]);
 		vbat_low = ((gpadc_cal[6] & 0xFC) >> 2);
 
@@ -847,25 +957,27 @@ static void ab8500_gpadc_read_calibration_data(struct ab8500_gpadc *gpadc)
 		gpadc->cal_data[ADC_INPUT_VBAT].otp_calib_lo = (u16)vbat_low;
 
 		gpadc->cal_data[ADC_INPUT_VBAT].gain = CALIB_SCALE *
-			(4700 - 2380) /	(vbat_high - vbat_low);
+											   (4700 - 2380) /	(vbat_high - vbat_low);
 		gpadc->cal_data[ADC_INPUT_VBAT].offset = CALIB_SCALE * 4700 -
-			(CALIB_SCALE * (4700 - 2380) /
-			(vbat_high - vbat_low)) * vbat_high;
-	} else {
+				(CALIB_SCALE * (4700 - 2380) /
+				 (vbat_high - vbat_low)) * vbat_high;
+	}
+	else
+	{
 		gpadc->cal_data[ADC_INPUT_VBAT].gain = 0;
 	}
 
 	dev_dbg(gpadc->dev, "VMAIN gain %llu offset %llu\n",
-		gpadc->cal_data[ADC_INPUT_VMAIN].gain,
-		gpadc->cal_data[ADC_INPUT_VMAIN].offset);
+			gpadc->cal_data[ADC_INPUT_VMAIN].gain,
+			gpadc->cal_data[ADC_INPUT_VMAIN].offset);
 
 	dev_dbg(gpadc->dev, "BTEMP gain %llu offset %llu\n",
-		gpadc->cal_data[ADC_INPUT_BTEMP].gain,
-		gpadc->cal_data[ADC_INPUT_BTEMP].offset);
+			gpadc->cal_data[ADC_INPUT_BTEMP].gain,
+			gpadc->cal_data[ADC_INPUT_BTEMP].offset);
 
 	dev_dbg(gpadc->dev, "VBAT gain %llu offset %llu\n",
-		gpadc->cal_data[ADC_INPUT_VBAT].gain,
-		gpadc->cal_data[ADC_INPUT_VBAT].offset);
+			gpadc->cal_data[ADC_INPUT_VBAT].gain,
+			gpadc->cal_data[ADC_INPUT_VBAT].offset);
 }
 
 #ifdef CONFIG_PM
@@ -883,8 +995,12 @@ static int ab8500_gpadc_runtime_resume(struct device *dev)
 	int ret;
 
 	ret = regulator_enable(gpadc->regu);
+
 	if (ret)
+	{
 		dev_err(dev, "Failed to enable vtvout LDO: %d\n", ret);
+	}
+
 	return ret;
 }
 #endif
@@ -908,8 +1024,11 @@ static int ab8500_gpadc_resume(struct device *dev)
 	int ret;
 
 	ret = regulator_enable(gpadc->regu);
+
 	if (ret)
+	{
 		dev_err(dev, "Failed to enable vtvout LDO: %d\n", ret);
+	}
 
 	pm_runtime_mark_last_busy(gpadc->dev);
 	pm_runtime_put_autosuspend(gpadc->dev);
@@ -925,17 +1044,26 @@ static int ab8500_gpadc_probe(struct platform_device *pdev)
 	struct ab8500_gpadc *gpadc;
 
 	gpadc = devm_kzalloc(&pdev->dev,
-			     sizeof(struct ab8500_gpadc), GFP_KERNEL);
+						 sizeof(struct ab8500_gpadc), GFP_KERNEL);
+
 	if (!gpadc)
+	{
 		return -ENOMEM;
+	}
 
 	gpadc->irq_sw = platform_get_irq_byname(pdev, "SW_CONV_END");
+
 	if (gpadc->irq_sw < 0)
+	{
 		dev_err(gpadc->dev, "failed to get platform sw_conv_end irq\n");
+	}
 
 	gpadc->irq_hw = platform_get_irq_byname(pdev, "HW_CONV_END");
+
 	if (gpadc->irq_hw < 0)
+	{
 		dev_err(gpadc->dev, "failed to get platform hw_conv_end irq\n");
+	}
 
 	gpadc->dev = &pdev->dev;
 	gpadc->parent = dev_get_drvdata(pdev->dev.parent);
@@ -945,37 +1073,45 @@ static int ab8500_gpadc_probe(struct platform_device *pdev)
 	init_completion(&gpadc->ab8500_gpadc_complete);
 
 	/* Register interrupts */
-	if (gpadc->irq_sw >= 0) {
+	if (gpadc->irq_sw >= 0)
+	{
 		ret = request_threaded_irq(gpadc->irq_sw, NULL,
-			ab8500_bm_gpadcconvend_handler,
-			IRQF_NO_SUSPEND | IRQF_SHARED | IRQF_ONESHOT,
-			"ab8500-gpadc-sw",
-			gpadc);
-		if (ret < 0) {
+								   ab8500_bm_gpadcconvend_handler,
+								   IRQF_NO_SUSPEND | IRQF_SHARED | IRQF_ONESHOT,
+								   "ab8500-gpadc-sw",
+								   gpadc);
+
+		if (ret < 0)
+		{
 			dev_err(gpadc->dev,
-				"Failed to register interrupt irq: %d\n",
-				gpadc->irq_sw);
+					"Failed to register interrupt irq: %d\n",
+					gpadc->irq_sw);
 			goto fail;
 		}
 	}
 
-	if (gpadc->irq_hw >= 0) {
+	if (gpadc->irq_hw >= 0)
+	{
 		ret = request_threaded_irq(gpadc->irq_hw, NULL,
-			ab8500_bm_gpadcconvend_handler,
-			IRQF_NO_SUSPEND | IRQF_SHARED | IRQF_ONESHOT,
-			"ab8500-gpadc-hw",
-			gpadc);
-		if (ret < 0) {
+								   ab8500_bm_gpadcconvend_handler,
+								   IRQF_NO_SUSPEND | IRQF_SHARED | IRQF_ONESHOT,
+								   "ab8500-gpadc-hw",
+								   gpadc);
+
+		if (ret < 0)
+		{
 			dev_err(gpadc->dev,
-				"Failed to register interrupt irq: %d\n",
-				gpadc->irq_hw);
+					"Failed to register interrupt irq: %d\n",
+					gpadc->irq_hw);
 			goto fail_irq;
 		}
 	}
 
 	/* VTVout LDO used to power up ab8500-GPADC */
 	gpadc->regu = devm_regulator_get(&pdev->dev, "vddadc");
-	if (IS_ERR(gpadc->regu)) {
+
+	if (IS_ERR(gpadc->regu))
+	{
 		ret = PTR_ERR(gpadc->regu);
 		dev_err(gpadc->dev, "failed to get vtvout LDO\n");
 		goto fail_irq;
@@ -984,7 +1120,9 @@ static int ab8500_gpadc_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, gpadc);
 
 	ret = regulator_enable(gpadc->regu);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(gpadc->dev, "Failed to enable vtvout LDO: %d\n", ret);
 		goto fail_enable;
 	}
@@ -1014,11 +1152,17 @@ static int ab8500_gpadc_remove(struct platform_device *pdev)
 
 	/* remove this gpadc entry from the list */
 	list_del(&gpadc->node);
+
 	/* remove interrupt  - completion of Sw ADC conversion */
 	if (gpadc->irq_sw >= 0)
+	{
 		free_irq(gpadc->irq_sw, gpadc);
+	}
+
 	if (gpadc->irq_hw >= 0)
+	{
 		free_irq(gpadc->irq_hw, gpadc);
+	}
 
 	pm_runtime_get_sync(gpadc->dev);
 	pm_runtime_disable(gpadc->dev);
@@ -1032,16 +1176,18 @@ static int ab8500_gpadc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct dev_pm_ops ab8500_gpadc_pm_ops = {
+static const struct dev_pm_ops ab8500_gpadc_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(ab8500_gpadc_runtime_suspend,
-			   ab8500_gpadc_runtime_resume,
-			   NULL)
+	ab8500_gpadc_runtime_resume,
+	NULL)
 	SET_SYSTEM_SLEEP_PM_OPS(ab8500_gpadc_suspend,
-				ab8500_gpadc_resume)
+	ab8500_gpadc_resume)
 
 };
 
-static struct platform_driver ab8500_gpadc_driver = {
+static struct platform_driver ab8500_gpadc_driver =
+{
 	.probe = ab8500_gpadc_probe,
 	.remove = ab8500_gpadc_remove,
 	.driver = {
@@ -1065,8 +1211,8 @@ static void __exit ab8500_gpadc_exit(void)
  *
  */
 void ab8540_gpadc_get_otp(struct ab8500_gpadc *gpadc,
-			u16 *vmain_l, u16 *vmain_h, u16 *btemp_l, u16 *btemp_h,
-			u16 *vbat_l, u16 *vbat_h, u16 *ibat_l, u16 *ibat_h)
+						  u16 *vmain_l, u16 *vmain_h, u16 *btemp_l, u16 *btemp_h,
+						  u16 *vbat_l, u16 *vbat_h, u16 *ibat_l, u16 *ibat_h)
 {
 	*vmain_l = gpadc->cal_data[ADC_INPUT_VMAIN].otp_calib_lo;
 	*vmain_h = gpadc->cal_data[ADC_INPUT_VMAIN].otp_calib_hi;

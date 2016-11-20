@@ -24,21 +24,21 @@ MODULE_LICENSE("GPL");
 
 unsigned fscache_defer_lookup = 1;
 module_param_named(defer_lookup, fscache_defer_lookup, uint,
-		   S_IWUSR | S_IRUGO);
+				   S_IWUSR | S_IRUGO);
 MODULE_PARM_DESC(fscache_defer_lookup,
-		 "Defer cookie lookup to background thread");
+				 "Defer cookie lookup to background thread");
 
 unsigned fscache_defer_create = 1;
 module_param_named(defer_create, fscache_defer_create, uint,
-		   S_IWUSR | S_IRUGO);
+				   S_IWUSR | S_IRUGO);
 MODULE_PARM_DESC(fscache_defer_create,
-		 "Defer cookie creation to background thread");
+				 "Defer cookie creation to background thread");
 
 unsigned fscache_debug;
 module_param_named(debug, fscache_debug, uint,
-		   S_IWUSR | S_IRUGO);
+				   S_IWUSR | S_IRUGO);
 MODULE_PARM_DESC(fscache_debug,
-		 "FS-Cache debugging mask");
+				 "FS-Cache debugging mask");
 
 struct kobject *fscache_root;
 struct workqueue_struct *fscache_object_wq;
@@ -54,20 +54,25 @@ static unsigned fscache_op_max_active = 2;
 static struct ctl_table_header *fscache_sysctl_header;
 
 static int fscache_max_active_sysctl(struct ctl_table *table, int write,
-				     void __user *buffer,
-				     size_t *lenp, loff_t *ppos)
+									 void __user *buffer,
+									 size_t *lenp, loff_t *ppos)
 {
 	struct workqueue_struct **wqp = table->extra1;
 	unsigned int *datap = table->data;
 	int ret;
 
 	ret = proc_dointvec(table, write, buffer, lenp, ppos);
+
 	if (ret == 0)
+	{
 		workqueue_set_max_active(*wqp, *datap);
+	}
+
 	return ret;
 }
 
-static struct ctl_table fscache_sysctls[] = {
+static struct ctl_table fscache_sysctls[] =
+{
 	{
 		.procname	= "object_max_active",
 		.data		= &fscache_object_max_active,
@@ -87,7 +92,8 @@ static struct ctl_table fscache_sysctls[] = {
 	{}
 };
 
-static struct ctl_table fscache_sysctls_root[] = {
+static struct ctl_table fscache_sysctls_root[] =
+{
 	{
 		.procname	= "fscache",
 		.mode		= 0555,
@@ -108,52 +114,70 @@ static int __init fscache_init(void)
 
 	fscache_object_max_active =
 		clamp_val(nr_cpus,
-			  fscache_object_max_active, WQ_UNBOUND_MAX_ACTIVE);
+				  fscache_object_max_active, WQ_UNBOUND_MAX_ACTIVE);
 
 	ret = -ENOMEM;
 	fscache_object_wq = alloc_workqueue("fscache_object", WQ_UNBOUND,
-					    fscache_object_max_active);
+										fscache_object_max_active);
+
 	if (!fscache_object_wq)
+	{
 		goto error_object_wq;
+	}
 
 	fscache_op_max_active =
 		clamp_val(fscache_object_max_active / 2,
-			  fscache_op_max_active, WQ_UNBOUND_MAX_ACTIVE);
+				  fscache_op_max_active, WQ_UNBOUND_MAX_ACTIVE);
 
 	ret = -ENOMEM;
 	fscache_op_wq = alloc_workqueue("fscache_operation", WQ_UNBOUND,
-					fscache_op_max_active);
+									fscache_op_max_active);
+
 	if (!fscache_op_wq)
+	{
 		goto error_op_wq;
+	}
 
 	for_each_possible_cpu(cpu)
-		init_waitqueue_head(&per_cpu(fscache_object_cong_wait, cpu));
+	init_waitqueue_head(&per_cpu(fscache_object_cong_wait, cpu));
 
 	ret = fscache_proc_init();
+
 	if (ret < 0)
+	{
 		goto error_proc;
+	}
 
 #ifdef CONFIG_SYSCTL
 	ret = -ENOMEM;
 	fscache_sysctl_header = register_sysctl_table(fscache_sysctls_root);
+
 	if (!fscache_sysctl_header)
+	{
 		goto error_sysctl;
+	}
+
 #endif
 
 	fscache_cookie_jar = kmem_cache_create("fscache_cookie_jar",
-					       sizeof(struct fscache_cookie),
-					       0,
-					       0,
-					       fscache_cookie_init_once);
-	if (!fscache_cookie_jar) {
+										   sizeof(struct fscache_cookie),
+										   0,
+										   0,
+										   fscache_cookie_init_once);
+
+	if (!fscache_cookie_jar)
+	{
 		pr_notice("Failed to allocate a cookie jar\n");
 		ret = -ENOMEM;
 		goto error_cookie_jar;
 	}
 
 	fscache_root = kobject_create_and_add("fscache", kernel_kobj);
+
 	if (!fscache_root)
+	{
 		goto error_kobj;
+	}
 
 	pr_notice("Loaded\n");
 	return 0;

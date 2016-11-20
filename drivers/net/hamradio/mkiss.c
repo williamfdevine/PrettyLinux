@@ -47,7 +47,8 @@
 #define ESC_END         0334		/* ESC ESC_END means END 'data'	*/
 #define ESC_ESC         0335		/* ESC ESC_ESC means ESC 'data'	*/
 
-struct mkiss {
+struct mkiss
+{
 	struct tty_struct	*tty;	/* ptr to TTY structure		*/
 	struct net_device	*dev;	/* easy for intr handling	*/
 
@@ -64,7 +65,7 @@ struct mkiss {
 	int		buffsize;	/* Max buffers sizes            */
 
 	unsigned long	flags;		/* Flag values/ mode etc	*/
-					/* long req'd: used by set_bit --RR */
+	/* long req'd: used by set_bit --RR */
 #define AXF_INUSE	0		/* Channel in use               */
 #define AXF_ESCAPE	1               /* ESC received                 */
 #define AXF_ERROR	2               /* Parity, etc. error           */
@@ -72,7 +73,7 @@ struct mkiss {
 #define AXF_OUTWAIT	4		/* is outpacket was flag	*/
 
 	int		mode;
-        int		crcmode;	/* MW: for FlexNet, SMACK etc.  */
+	int		crcmode;	/* MW: for FlexNet, SMACK etc.  */
 	int		crcauto;	/* CRC auto mode */
 
 #define CRC_MODE_NONE		0
@@ -87,7 +88,8 @@ struct mkiss {
 
 /*---------------------------------------------------------------------------*/
 
-static const unsigned short crc_flex_table[] = {
+static const unsigned short crc_flex_table[] =
+{
 	0x0f87, 0x1e0e, 0x2c95, 0x3d1c, 0x49a3, 0x582a, 0x6ab1, 0x7b38,
 	0x83cf, 0x9246, 0xa0dd, 0xb154, 0xc5eb, 0xd462, 0xe6f9, 0xf770,
 	0x1f06, 0x0e8f, 0x3c14, 0x2d9d, 0x5922, 0x48ab, 0x7a30, 0x6bb9,
@@ -127,7 +129,9 @@ static unsigned short calc_crc_flex(unsigned char *cp, int size)
 	unsigned short crc = 0xffff;
 
 	while (size--)
+	{
 		crc = (crc << 8) ^ crc_flex_table[((crc >> 8) ^ *cp++) & 0xff];
+	}
 
 	return crc;
 }
@@ -137,13 +141,19 @@ static int check_crc_flex(unsigned char *cp, int size)
 	unsigned short crc = 0xffff;
 
 	if (size < 3)
+	{
 		return -1;
+	}
 
 	while (size--)
+	{
 		crc = (crc << 8) ^ crc_flex_table[((crc >> 8) ^ *cp++) & 0xff];
+	}
 
 	if ((crc & 0xffff) != 0x7070)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -153,12 +163,16 @@ static int check_crc_16(unsigned char *cp, int size)
 	unsigned short crc = 0x0000;
 
 	if (size < 3)
+	{
 		return -1;
+	}
 
 	crc = crc16(0, cp, size);
 
 	if (crc != 0x0000)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -179,19 +193,23 @@ static int kiss_esc(unsigned char *s, unsigned char *d, int len)
 
 	*ptr++ = END;
 
-	while (len-- > 0) {
-		switch (c = *s++) {
-		case END:
-			*ptr++ = ESC;
-			*ptr++ = ESC_END;
-			break;
-		case ESC:
-			*ptr++ = ESC;
-			*ptr++ = ESC_ESC;
-			break;
-		default:
-			*ptr++ = c;
-			break;
+	while (len-- > 0)
+	{
+		switch (c = *s++)
+		{
+			case END:
+				*ptr++ = ESC;
+				*ptr++ = ESC_END;
+				break;
+
+			case ESC:
+				*ptr++ = ESC;
+				*ptr++ = ESC_ESC;
+				break;
+
+			default:
+				*ptr++ = c;
+				break;
 		}
 	}
 
@@ -206,36 +224,48 @@ static int kiss_esc(unsigned char *s, unsigned char *d, int len)
  * packet to a temporary buffer :-)
  */
 static int kiss_esc_crc(unsigned char *s, unsigned char *d, unsigned short crc,
-	int len)
+						int len)
 {
 	unsigned char *ptr = d;
-	unsigned char c=0;
+	unsigned char c = 0;
 
 	*ptr++ = END;
-	while (len > 0) {
+
+	while (len > 0)
+	{
 		if (len > 2)
+		{
 			c = *s++;
+		}
 		else if (len > 1)
+		{
 			c = crc >> 8;
+		}
 		else if (len > 0)
+		{
 			c = crc & 0xff;
+		}
 
 		len--;
 
-		switch (c) {
-		case END:
-			*ptr++ = ESC;
-			*ptr++ = ESC_END;
-			break;
-		case ESC:
-			*ptr++ = ESC;
-			*ptr++ = ESC_ESC;
-			break;
-		default:
-			*ptr++ = c;
-			break;
+		switch (c)
+		{
+			case END:
+				*ptr++ = ESC;
+				*ptr++ = ESC_END;
+				break;
+
+			case ESC:
+				*ptr++ = ESC;
+				*ptr++ = ESC_ESC;
+				break;
+
+			default:
+				*ptr++ = c;
+				break;
 		}
 	}
+
 	*ptr++ = END;
 
 	return ptr - d;
@@ -248,34 +278,47 @@ static void ax_bump(struct mkiss *ax)
 	int count;
 
 	spin_lock_bh(&ax->buflock);
-	if (ax->rbuff[0] > 0x0f) {
-		if (ax->rbuff[0] & 0x80) {
-			if (check_crc_16(ax->rbuff, ax->rcount) < 0) {
+
+	if (ax->rbuff[0] > 0x0f)
+	{
+		if (ax->rbuff[0] & 0x80)
+		{
+			if (check_crc_16(ax->rbuff, ax->rcount) < 0)
+			{
 				ax->dev->stats.rx_errors++;
 				spin_unlock_bh(&ax->buflock);
 
 				return;
 			}
-			if (ax->crcmode != CRC_MODE_SMACK && ax->crcauto) {
+
+			if (ax->crcmode != CRC_MODE_SMACK && ax->crcauto)
+			{
 				printk(KERN_INFO
-				       "mkiss: %s: Switching to crc-smack\n",
-				       ax->dev->name);
+					   "mkiss: %s: Switching to crc-smack\n",
+					   ax->dev->name);
 				ax->crcmode = CRC_MODE_SMACK;
 			}
+
 			ax->rcount -= 2;
 			*ax->rbuff &= ~0x80;
-		} else if (ax->rbuff[0] & 0x20)  {
-			if (check_crc_flex(ax->rbuff, ax->rcount) < 0) {
+		}
+		else if (ax->rbuff[0] & 0x20)
+		{
+			if (check_crc_flex(ax->rbuff, ax->rcount) < 0)
+			{
 				ax->dev->stats.rx_errors++;
 				spin_unlock_bh(&ax->buflock);
 				return;
 			}
-			if (ax->crcmode != CRC_MODE_FLEX && ax->crcauto) {
+
+			if (ax->crcmode != CRC_MODE_FLEX && ax->crcauto)
+			{
 				printk(KERN_INFO
-				       "mkiss: %s: Switching to crc-flexnet\n",
-				       ax->dev->name);
+					   "mkiss: %s: Switching to crc-flexnet\n",
+					   ax->dev->name);
 				ax->crcmode = CRC_MODE_FLEX;
 			}
+
 			ax->rcount -= 2;
 
 			/*
@@ -286,19 +329,20 @@ static void ax_bump(struct mkiss *ax)
 			 */
 			*ax->rbuff &= ~0x20;
 		}
- 	}
+	}
 
 	count = ax->rcount;
 
-	if ((skb = dev_alloc_skb(count)) == NULL) {
+	if ((skb = dev_alloc_skb(count)) == NULL)
+	{
 		printk(KERN_ERR "mkiss: %s: memory squeeze, dropping packet.\n",
-		       ax->dev->name);
+			   ax->dev->name);
 		ax->dev->stats.rx_dropped++;
 		spin_unlock_bh(&ax->buflock);
 		return;
 	}
 
-	memcpy(skb_put(skb,count), ax->rbuff, count);
+	memcpy(skb_put(skb, count), ax->rbuff, count);
 	skb->protocol = ax25_type_trans(skb, ax->dev);
 	netif_rx(skb);
 	ax->dev->stats.rx_packets++;
@@ -308,35 +352,52 @@ static void ax_bump(struct mkiss *ax)
 
 static void kiss_unesc(struct mkiss *ax, unsigned char s)
 {
-	switch (s) {
-	case END:
-		/* drop keeptest bit = VSV */
-		if (test_bit(AXF_KEEPTEST, &ax->flags))
-			clear_bit(AXF_KEEPTEST, &ax->flags);
+	switch (s)
+	{
+		case END:
 
-		if (!test_and_clear_bit(AXF_ERROR, &ax->flags) && (ax->rcount > 2))
-			ax_bump(ax);
+			/* drop keeptest bit = VSV */
+			if (test_bit(AXF_KEEPTEST, &ax->flags))
+			{
+				clear_bit(AXF_KEEPTEST, &ax->flags);
+			}
 
-		clear_bit(AXF_ESCAPE, &ax->flags);
-		ax->rcount = 0;
-		return;
+			if (!test_and_clear_bit(AXF_ERROR, &ax->flags) && (ax->rcount > 2))
+			{
+				ax_bump(ax);
+			}
 
-	case ESC:
-		set_bit(AXF_ESCAPE, &ax->flags);
-		return;
-	case ESC_ESC:
-		if (test_and_clear_bit(AXF_ESCAPE, &ax->flags))
-			s = ESC;
-		break;
-	case ESC_END:
-		if (test_and_clear_bit(AXF_ESCAPE, &ax->flags))
-			s = END;
-		break;
+			clear_bit(AXF_ESCAPE, &ax->flags);
+			ax->rcount = 0;
+			return;
+
+		case ESC:
+			set_bit(AXF_ESCAPE, &ax->flags);
+			return;
+
+		case ESC_ESC:
+			if (test_and_clear_bit(AXF_ESCAPE, &ax->flags))
+			{
+				s = ESC;
+			}
+
+			break;
+
+		case ESC_END:
+			if (test_and_clear_bit(AXF_ESCAPE, &ax->flags))
+			{
+				s = END;
+			}
+
+			break;
 	}
 
 	spin_lock_bh(&ax->buflock);
-	if (!test_bit(AXF_ERROR, &ax->flags)) {
-		if (ax->rcount < ax->buffsize) {
+
+	if (!test_bit(AXF_ERROR, &ax->flags))
+	{
+		if (ax->rcount < ax->buffsize)
+		{
 			ax->rbuff[ax->rcount++] = s;
 			spin_unlock_bh(&ax->buflock);
 			return;
@@ -345,6 +406,7 @@ static void kiss_unesc(struct mkiss *ax, unsigned char s)
 		ax->dev->stats.rx_over_errors++;
 		set_bit(AXF_ERROR, &ax->flags);
 	}
+
 	spin_unlock_bh(&ax->buflock);
 }
 
@@ -377,15 +439,18 @@ static void ax_changedmtu(struct mkiss *ax)
 	 * an MSS of 128
 	 */
 	if (len < 576 * 2)
+	{
 		len = 576 * 2;
+	}
 
 	xbuff = kmalloc(len + 4, GFP_ATOMIC);
 	rbuff = kmalloc(len + 4, GFP_ATOMIC);
 
-	if (xbuff == NULL || rbuff == NULL)  {
+	if (xbuff == NULL || rbuff == NULL)
+	{
 		printk(KERN_ERR "mkiss: %s: unable to grow ax25 buffers, "
-		       "MTU change cancelled.\n",
-		       ax->dev->name);
+			   "MTU change cancelled.\n",
+			   ax->dev->name);
 		dev->mtu = ax->mtu;
 		kfree(xbuff);
 		kfree(rbuff);
@@ -399,10 +464,14 @@ static void ax_changedmtu(struct mkiss *ax)
 	orbuff    = ax->rbuff;
 	ax->rbuff = rbuff;
 
-	if (ax->xleft) {
-		if (ax->xleft <= len) {
+	if (ax->xleft)
+	{
+		if (ax->xleft <= len)
+		{
 			memcpy(ax->xbuff, ax->xhead, ax->xleft);
-		} else  {
+		}
+		else
+		{
 			ax->xleft = 0;
 			dev->stats.tx_dropped++;
 		}
@@ -410,10 +479,14 @@ static void ax_changedmtu(struct mkiss *ax)
 
 	ax->xhead = ax->xbuff;
 
-	if (ax->rcount) {
-		if (ax->rcount <= len) {
+	if (ax->rcount)
+	{
+		if (ax->rcount <= len)
+		{
 			memcpy(ax->rbuff, orbuff, ax->rcount);
-		} else  {
+		}
+		else
+		{
 			ax->rcount = 0;
 			dev->stats.rx_over_errors++;
 			set_bit(AXF_ERROR, &ax->flags);
@@ -437,9 +510,12 @@ static void ax_encaps(struct net_device *dev, unsigned char *icp, int len)
 	int actual, count;
 
 	if (ax->mtu != ax->dev->mtu + 73)	/* Someone has been ifconfigging */
+	{
 		ax_changedmtu(ax);
+	}
 
-	if (len > ax->mtu) {		/* Sigh, shouldn't occur BUT ... */
+	if (len > ax->mtu)  		/* Sigh, shouldn't occur BUT ... */
+	{
 		len = ax->mtu;
 		printk(KERN_ERR "mkiss: %s: truncating oversized transmit packet!\n", ax->dev->name);
 		dev->stats.tx_dropped++;
@@ -450,68 +526,89 @@ static void ax_encaps(struct net_device *dev, unsigned char *icp, int len)
 	p = icp;
 
 	spin_lock_bh(&ax->buflock);
-	if ((*p & 0x0f) != 0) {
+
+	if ((*p & 0x0f) != 0)
+	{
 		/* Configuration Command (kissparms(1).
 		 * Protocol spec says: never append CRC.
 		 * This fixes a very old bug in the linux
 		 * kiss driver. -- dl9sau */
-		switch (*p & 0xff) {
-		case 0x85:
-			/* command from userspace especially for us,
-			 * not for delivery to the tnc */
-			if (len > 1) {
-				int cmd = (p[1] & 0xff);
-				switch(cmd) {
-				case 3:
-				  ax->crcmode = CRC_MODE_SMACK;
-				  break;
-				case 2:
-				  ax->crcmode = CRC_MODE_FLEX;
-				  break;
-				case 1:
-				  ax->crcmode = CRC_MODE_NONE;
-				  break;
-				case 0:
-				default:
-				  ax->crcmode = CRC_MODE_SMACK_TEST;
-				  cmd = 0;
+		switch (*p & 0xff)
+		{
+			case 0x85:
+
+				/* command from userspace especially for us,
+				 * not for delivery to the tnc */
+				if (len > 1)
+				{
+					int cmd = (p[1] & 0xff);
+
+					switch (cmd)
+					{
+						case 3:
+							ax->crcmode = CRC_MODE_SMACK;
+							break;
+
+						case 2:
+							ax->crcmode = CRC_MODE_FLEX;
+							break;
+
+						case 1:
+							ax->crcmode = CRC_MODE_NONE;
+							break;
+
+						case 0:
+						default:
+							ax->crcmode = CRC_MODE_SMACK_TEST;
+							cmd = 0;
+					}
+
+					ax->crcauto = (cmd ? 0 : 1);
+					printk(KERN_INFO "mkiss: %s: crc mode %s %d\n", ax->dev->name, (len) ? "set to" : "is", cmd);
 				}
-				ax->crcauto = (cmd ? 0 : 1);
-				printk(KERN_INFO "mkiss: %s: crc mode %s %d\n", ax->dev->name, (len) ? "set to" : "is", cmd);
-			}
-			spin_unlock_bh(&ax->buflock);
-			netif_start_queue(dev);
 
-			return;
-		default:
-			count = kiss_esc(p, ax->xbuff, len);
+				spin_unlock_bh(&ax->buflock);
+				netif_start_queue(dev);
+
+				return;
+
+			default:
+				count = kiss_esc(p, ax->xbuff, len);
 		}
-	} else {
+	}
+	else
+	{
 		unsigned short crc;
-		switch (ax->crcmode) {
-		case CRC_MODE_SMACK_TEST:
-			ax->crcmode  = CRC_MODE_FLEX_TEST;
-			printk(KERN_INFO "mkiss: %s: Trying crc-smack\n", ax->dev->name);
-			// fall through
-		case CRC_MODE_SMACK:
-			*p |= 0x80;
-			crc = swab16(crc16(0, p, len));
-			count = kiss_esc_crc(p, ax->xbuff, crc, len+2);
-			break;
-		case CRC_MODE_FLEX_TEST:
-			ax->crcmode = CRC_MODE_NONE;
-			printk(KERN_INFO "mkiss: %s: Trying crc-flexnet\n", ax->dev->name);
-			// fall through
-		case CRC_MODE_FLEX:
-			*p |= 0x20;
-			crc = calc_crc_flex(p, len);
-			count = kiss_esc_crc(p, ax->xbuff, crc, len+2);
-			break;
 
-		default:
-			count = kiss_esc(p, ax->xbuff, len);
+		switch (ax->crcmode)
+		{
+			case CRC_MODE_SMACK_TEST:
+				ax->crcmode  = CRC_MODE_FLEX_TEST;
+				printk(KERN_INFO "mkiss: %s: Trying crc-smack\n", ax->dev->name);
+
+			// fall through
+			case CRC_MODE_SMACK:
+				*p |= 0x80;
+				crc = swab16(crc16(0, p, len));
+				count = kiss_esc_crc(p, ax->xbuff, crc, len + 2);
+				break;
+
+			case CRC_MODE_FLEX_TEST:
+				ax->crcmode = CRC_MODE_NONE;
+				printk(KERN_INFO "mkiss: %s: Trying crc-flexnet\n", ax->dev->name);
+
+			// fall through
+			case CRC_MODE_FLEX:
+				*p |= 0x20;
+				crc = calc_crc_flex(p, len);
+				count = kiss_esc_crc(p, ax->xbuff, crc, len + 2);
+				break;
+
+			default:
+				count = kiss_esc(p, ax->xbuff, len);
 		}
-  	}
+	}
+
 	spin_unlock_bh(&ax->buflock);
 
 	set_bit(TTY_DO_WRITE_WAKEUP, &ax->tty->flags);
@@ -530,26 +627,31 @@ static netdev_tx_t ax_xmit(struct sk_buff *skb, struct net_device *dev)
 	struct mkiss *ax = netdev_priv(dev);
 
 	if (skb->protocol == htons(ETH_P_IP))
+	{
 		return ax25_ip_xmit(skb);
+	}
 
-	if (!netif_running(dev))  {
+	if (!netif_running(dev))
+	{
 		printk(KERN_ERR "mkiss: %s: xmit call when iface is down\n", dev->name);
 		return NETDEV_TX_BUSY;
 	}
 
-	if (netif_queue_stopped(dev)) {
+	if (netif_queue_stopped(dev))
+	{
 		/*
 		 * May be we must check transmitter timeout here ?
 		 *      14 Oct 1994 Dmitry Gorodchanin.
 		 */
-		if (time_before(jiffies, dev_trans_start(dev) + 20 * HZ)) {
+		if (time_before(jiffies, dev_trans_start(dev) + 20 * HZ))
+		{
 			/* 20 sec timeout not reached */
 			return NETDEV_TX_BUSY;
 		}
 
 		printk(KERN_ERR "mkiss: %s: transmit timed out, %s?\n", dev->name,
-		       (tty_chars_in_buffer(ax->tty) || ax->xleft) ?
-		       "bad line quality" : "driver error");
+			   (tty_chars_in_buffer(ax->tty) || ax->xleft) ?
+			   "bad line quality" : "driver error");
 
 		ax->xleft = 0;
 		clear_bit(TTY_DO_WRITE_WAKEUP, &ax->tty->flags);
@@ -569,7 +671,9 @@ static int ax_open_dev(struct net_device *dev)
 	struct mkiss *ax = netdev_priv(dev);
 
 	if (ax->tty == NULL)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -581,7 +685,9 @@ static int ax_open(struct net_device *dev)
 	unsigned long len;
 
 	if (ax->tty == NULL)
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * Allocate the frame buffers:
@@ -597,13 +703,19 @@ static int ax_open(struct net_device *dev)
 	 * an MSS of 128
 	 */
 	if (len < 576 * 2)
+	{
 		len = 576 * 2;
+	}
 
 	if ((ax->rbuff = kmalloc(len + 4, GFP_KERNEL)) == NULL)
+	{
 		goto norbuff;
+	}
 
 	if ((ax->xbuff = kmalloc(len + 4, GFP_KERNEL)) == NULL)
+	{
 		goto noxbuff;
+	}
 
 	ax->mtu	     = dev->mtu + 73;
 	ax->buffsize = len;
@@ -630,14 +742,17 @@ static int ax_close(struct net_device *dev)
 	struct mkiss *ax = netdev_priv(dev);
 
 	if (ax->tty)
+	{
 		clear_bit(TTY_DO_WRITE_WAKEUP, &ax->tty->flags);
+	}
 
 	netif_stop_queue(dev);
 
 	return 0;
 }
 
-static const struct net_device_ops ax_netdev_ops = {
+static const struct net_device_ops ax_netdev_ops =
+{
 	.ndo_open            = ax_open_dev,
 	.ndo_stop            = ax_close,
 	.ndo_start_xmit	     = ax_xmit,
@@ -678,8 +793,12 @@ static struct mkiss *mkiss_get(struct tty_struct *tty)
 
 	read_lock(&disc_data_lock);
 	ax = tty->disc_data;
+
 	if (ax)
+	{
 		atomic_inc(&ax->refcnt);
+	}
+
 	read_unlock(&disc_data_lock);
 
 	return ax;
@@ -688,7 +807,9 @@ static struct mkiss *mkiss_get(struct tty_struct *tty)
 static void mkiss_put(struct mkiss *ax)
 {
 	if (atomic_dec_and_test(&ax->refcnt))
+	{
 		up(&ax->dead_sem);
+	}
 }
 
 static int crc_force = 0;	/* Can be overridden with insmod */
@@ -700,13 +821,20 @@ static int mkiss_open(struct tty_struct *tty)
 	int err;
 
 	if (!capable(CAP_NET_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	if (tty->ops->write == NULL)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	dev = alloc_netdev(sizeof(struct mkiss), "ax%d", NET_NAME_UNKNOWN,
-			   ax_setup);
-	if (!dev) {
+					   ax_setup);
+
+	if (!dev)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
@@ -729,38 +857,50 @@ static int mkiss_open(struct tty_struct *tty)
 
 	/* Perform the low-level AX25 initialization. */
 	err = ax_open(ax->dev);
+
 	if (err)
+	{
 		goto out_free_netdev;
+	}
 
 	err = register_netdev(dev);
+
 	if (err)
+	{
 		goto out_free_buffers;
+	}
 
 	/* after register_netdev() - because else printk smashes the kernel */
-	switch (crc_force) {
-	case 3:
-		ax->crcmode  = CRC_MODE_SMACK;
-		printk(KERN_INFO "mkiss: %s: crc mode smack forced.\n",
-		       ax->dev->name);
-		break;
-	case 2:
-		ax->crcmode  = CRC_MODE_FLEX;
-		printk(KERN_INFO "mkiss: %s: crc mode flexnet forced.\n",
-		       ax->dev->name);
-		break;
-	case 1:
-		ax->crcmode  = CRC_MODE_NONE;
-		printk(KERN_INFO "mkiss: %s: crc mode disabled.\n",
-		       ax->dev->name);
-		break;
-	case 0:
+	switch (crc_force)
+	{
+		case 3:
+			ax->crcmode  = CRC_MODE_SMACK;
+			printk(KERN_INFO "mkiss: %s: crc mode smack forced.\n",
+				   ax->dev->name);
+			break;
+
+		case 2:
+			ax->crcmode  = CRC_MODE_FLEX;
+			printk(KERN_INFO "mkiss: %s: crc mode flexnet forced.\n",
+				   ax->dev->name);
+			break;
+
+		case 1:
+			ax->crcmode  = CRC_MODE_NONE;
+			printk(KERN_INFO "mkiss: %s: crc mode disabled.\n",
+				   ax->dev->name);
+			break;
+
+		case 0:
+
 		/* fall through */
-	default:
-		crc_force = 0;
-		printk(KERN_INFO "mkiss: %s: crc mode is auto.\n",
-		       ax->dev->name);
-		ax->crcmode  = CRC_MODE_SMACK_TEST;
+		default:
+			crc_force = 0;
+			printk(KERN_INFO "mkiss: %s: crc mode is auto.\n",
+				   ax->dev->name);
+			ax->crcmode  = CRC_MODE_SMACK_TEST;
 	}
+
 	ax->crcauto = (crc_force ? 0 : 1);
 
 	netif_start_queue(dev);
@@ -789,14 +929,19 @@ static void mkiss_close(struct tty_struct *tty)
 	write_unlock_bh(&disc_data_lock);
 
 	if (!ax)
+	{
 		return;
+	}
 
 	/*
 	 * We have now ensured that nobody can start using ap from now on, but
 	 * we have to wait for all existing users to finish.
 	 */
 	if (!atomic_dec_and_test(&ax->refcnt))
+	{
 		down(&ax->dead_sem);
+	}
+
 	/*
 	 * Halt the transmit queue so that a new transmit cannot scribble
 	 * on our buffers
@@ -814,7 +959,7 @@ static void mkiss_close(struct tty_struct *tty)
 
 /* Perform I/O control on an active ax25 channel. */
 static int mkiss_ioctl(struct tty_struct *tty, struct file *file,
-	unsigned int cmd, unsigned long arg)
+					   unsigned int cmd, unsigned long arg)
 {
 	struct mkiss *ax = mkiss_get(tty);
 	struct net_device *dev;
@@ -822,52 +967,60 @@ static int mkiss_ioctl(struct tty_struct *tty, struct file *file,
 
 	/* First make sure we're connected. */
 	if (ax == NULL)
+	{
 		return -ENXIO;
+	}
+
 	dev = ax->dev;
 
-	switch (cmd) {
- 	case SIOCGIFNAME:
-		err = copy_to_user((void __user *) arg, ax->dev->name,
-		                   strlen(ax->dev->name) + 1) ? -EFAULT : 0;
-		break;
-
-	case SIOCGIFENCAP:
-		err = put_user(4, (int __user *) arg);
-		break;
-
-	case SIOCSIFENCAP:
-		if (get_user(tmp, (int __user *) arg)) {
-			err = -EFAULT;
+	switch (cmd)
+	{
+		case SIOCGIFNAME:
+			err = copy_to_user((void __user *) arg, ax->dev->name,
+							   strlen(ax->dev->name) + 1) ? -EFAULT : 0;
 			break;
-		}
 
-		ax->mode = tmp;
-		dev->addr_len        = AX25_ADDR_LEN;
-		dev->hard_header_len = AX25_KISS_HEADER_LEN +
-		                       AX25_MAX_HEADER_LEN + 3;
-		dev->type            = ARPHRD_AX25;
-
-		err = 0;
-		break;
-
-	case SIOCSIFHWADDR: {
-		char addr[AX25_ADDR_LEN];
-
-		if (copy_from_user(&addr,
-		                   (void __user *) arg, AX25_ADDR_LEN)) {
-			err = -EFAULT;
+		case SIOCGIFENCAP:
+			err = put_user(4, (int __user *) arg);
 			break;
-		}
 
-		netif_tx_lock_bh(dev);
-		memcpy(dev->dev_addr, addr, AX25_ADDR_LEN);
-		netif_tx_unlock_bh(dev);
+		case SIOCSIFENCAP:
+			if (get_user(tmp, (int __user *) arg))
+			{
+				err = -EFAULT;
+				break;
+			}
 
-		err = 0;
-		break;
-	}
-	default:
-		err = -ENOIOCTLCMD;
+			ax->mode = tmp;
+			dev->addr_len        = AX25_ADDR_LEN;
+			dev->hard_header_len = AX25_KISS_HEADER_LEN +
+								   AX25_MAX_HEADER_LEN + 3;
+			dev->type            = ARPHRD_AX25;
+
+			err = 0;
+			break;
+
+		case SIOCSIFHWADDR:
+			{
+				char addr[AX25_ADDR_LEN];
+
+				if (copy_from_user(&addr,
+								   (void __user *) arg, AX25_ADDR_LEN))
+				{
+					err = -EFAULT;
+					break;
+				}
+
+				netif_tx_lock_bh(dev);
+				memcpy(dev->dev_addr, addr, AX25_ADDR_LEN);
+				netif_tx_unlock_bh(dev);
+
+				err = 0;
+				break;
+			}
+
+		default:
+			err = -ENOIOCTLCMD;
 	}
 
 	mkiss_put(ax);
@@ -877,15 +1030,16 @@ static int mkiss_ioctl(struct tty_struct *tty, struct file *file,
 
 #ifdef CONFIG_COMPAT
 static long mkiss_compat_ioctl(struct tty_struct *tty, struct file *file,
-	unsigned int cmd, unsigned long arg)
+							   unsigned int cmd, unsigned long arg)
 {
-	switch (cmd) {
-	case SIOCGIFNAME:
-	case SIOCGIFENCAP:
-	case SIOCSIFENCAP:
-	case SIOCSIFHWADDR:
-		return mkiss_ioctl(tty, file, cmd,
-				   (unsigned long)compat_ptr(arg));
+	switch (cmd)
+	{
+		case SIOCGIFNAME:
+		case SIOCGIFENCAP:
+		case SIOCSIFENCAP:
+		case SIOCSIFHWADDR:
+			return mkiss_ioctl(tty, file, cmd,
+							   (unsigned long)compat_ptr(arg));
 	}
 
 	return -ENOIOCTLCMD;
@@ -899,25 +1053,34 @@ static long mkiss_compat_ioctl(struct tty_struct *tty, struct file *file,
  * and sent on to the AX.25 layer for further processing.
  */
 static void mkiss_receive_buf(struct tty_struct *tty, const unsigned char *cp,
-	char *fp, int count)
+							  char *fp, int count)
 {
 	struct mkiss *ax = mkiss_get(tty);
 
 	if (!ax)
+	{
 		return;
+	}
 
 	/*
 	 * Argh! mtu change time! - costs us the packet part received
 	 * at the change
 	 */
 	if (ax->mtu != ax->dev->mtu + 73)
+	{
 		ax_changedmtu(ax);
+	}
 
 	/* Read the characters out of the buffer */
-	while (count--) {
-		if (fp != NULL && *fp++) {
+	while (count--)
+	{
+		if (fp != NULL && *fp++)
+		{
 			if (!test_and_set_bit(AXF_ERROR, &ax->flags))
+			{
 				ax->dev->stats.rx_errors++;
+			}
+
 			cp++;
 			continue;
 		}
@@ -939,9 +1102,12 @@ static void mkiss_write_wakeup(struct tty_struct *tty)
 	int actual;
 
 	if (!ax)
+	{
 		return;
+	}
 
-	if (ax->xleft <= 0)  {
+	if (ax->xleft <= 0)
+	{
 		/* Now serial buffer is almost free & we can start
 		 * transmission of another packet
 		 */
@@ -959,7 +1125,8 @@ out:
 	mkiss_put(ax);
 }
 
-static struct tty_ldisc_ops ax_ldisc = {
+static struct tty_ldisc_ops ax_ldisc =
+{
 	.owner		= THIS_MODULE,
 	.magic		= TTY_LDISC_MAGIC,
 	.name		= "mkiss",
@@ -974,9 +1141,9 @@ static struct tty_ldisc_ops ax_ldisc = {
 };
 
 static const char banner[] __initconst = KERN_INFO \
-	"mkiss: AX.25 Multikiss, Hans Albas PE1AYX\n";
+		"mkiss: AX.25 Multikiss, Hans Albas PE1AYX\n";
 static const char msg_regfail[] __initconst = KERN_ERR \
-	"mkiss: can't register line discipline (err = %d)\n";
+		"mkiss: can't register line discipline (err = %d)\n";
 
 static int __init mkiss_init_driver(void)
 {
@@ -985,21 +1152,26 @@ static int __init mkiss_init_driver(void)
 	printk(banner);
 
 	status = tty_register_ldisc(N_AX25, &ax_ldisc);
+
 	if (status != 0)
+	{
 		printk(msg_regfail, status);
+	}
 
 	return status;
 }
 
 static const char msg_unregfail[] = KERN_ERR \
-	"mkiss: can't unregister line discipline (err = %d)\n";
+									"mkiss: can't unregister line discipline (err = %d)\n";
 
 static void __exit mkiss_exit_driver(void)
 {
 	int ret;
 
 	if ((ret = tty_unregister_ldisc(N_AX25)))
+	{
 		printk(msg_unregfail, ret);
+	}
 }
 
 MODULE_AUTHOR("Ralf Baechle DL5RB <ralf@linux-mips.org>");

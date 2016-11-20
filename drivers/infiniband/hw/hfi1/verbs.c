@@ -63,14 +63,14 @@
 
 static unsigned int hfi1_lkey_table_size = 16;
 module_param_named(lkey_table_size, hfi1_lkey_table_size, uint,
-		   S_IRUGO);
+				   S_IRUGO);
 MODULE_PARM_DESC(lkey_table_size,
-		 "LKEY table size in bits (2^n, 1 <= n <= 23)");
+				 "LKEY table size in bits (2^n, 1 <= n <= 23)");
 
 static unsigned int hfi1_max_pds = 0xFFFF;
 module_param_named(max_pds, hfi1_max_pds, uint, S_IRUGO);
 MODULE_PARM_DESC(max_pds,
-		 "Maximum number of protection domains to support");
+				 "Maximum number of protection domains to support");
 
 static unsigned int hfi1_max_ahs = 0xFFFF;
 module_param_named(max_ahs, hfi1_max_ahs, uint, S_IRUGO);
@@ -79,7 +79,7 @@ MODULE_PARM_DESC(max_ahs, "Maximum number of address handles to support");
 unsigned int hfi1_max_cqes = 0x2FFFFF;
 module_param_named(max_cqes, hfi1_max_cqes, uint, S_IRUGO);
 MODULE_PARM_DESC(max_cqes,
-		 "Maximum number of completion queue entries to support");
+				 "Maximum number of completion queue entries to support");
 
 unsigned int hfi1_max_cqs = 0x1FFFF;
 module_param_named(max_cqs, hfi1_max_cqs, uint, S_IRUGO);
@@ -100,13 +100,13 @@ MODULE_PARM_DESC(max_sges, "Maximum number of SGEs to support");
 unsigned int hfi1_max_mcast_grps = 16384;
 module_param_named(max_mcast_grps, hfi1_max_mcast_grps, uint, S_IRUGO);
 MODULE_PARM_DESC(max_mcast_grps,
-		 "Maximum number of multicast groups to support");
+				 "Maximum number of multicast groups to support");
 
 unsigned int hfi1_max_mcast_qp_attached = 16;
 module_param_named(max_mcast_qp_attached, hfi1_max_mcast_qp_attached,
-		   uint, S_IRUGO);
+				   uint, S_IRUGO);
 MODULE_PARM_DESC(max_mcast_qp_attached,
-		 "Maximum number of attached QPs to support");
+				 "Maximum number of attached QPs to support");
 
 unsigned int hfi1_max_srqs = 1024;
 module_param_named(max_srqs, hfi1_max_srqs, uint, S_IRUGO);
@@ -129,16 +129,16 @@ MODULE_PARM_DESC(piothreshold, "size used to determine sdma vs. pio");
 static unsigned int sge_copy_mode;
 module_param(sge_copy_mode, uint, S_IRUGO);
 MODULE_PARM_DESC(sge_copy_mode,
-		 "Verbs copy mode: 0 use memcpy, 1 use cacheless copy, 2 adapt based on WSS");
+				 "Verbs copy mode: 0 use memcpy, 1 use cacheless copy, 2 adapt based on WSS");
 
 static void verbs_sdma_complete(
 	struct sdma_txreq *cookie,
 	int status);
 
 static int pio_wait(struct rvt_qp *qp,
-		    struct send_context *sc,
-		    struct hfi1_pkt_state *ps,
-		    u32 flag);
+					struct send_context *sc,
+					struct hfi1_pkt_state *ps,
+					u32 flag);
 
 /* Length of buffer to create verbs txreq cache name */
 #define TXREQ_NAME_LEN 24
@@ -151,7 +151,8 @@ module_param(wss_clean_period, uint, S_IRUGO);
 MODULE_PARM_DESC(wss_clean_period, "Count of verbs copies before an entry in the page copy table is cleaned");
 
 /* memory working set size */
-struct hfi1_wss {
+struct hfi1_wss
+{
 	unsigned long *entries;
 	atomic_t total_count;
 	atomic_t clean_counter;
@@ -173,13 +174,21 @@ int hfi1_wss_init(void)
 
 	/* check for a valid percent range - default to 80 if none or invalid */
 	if (wss_threshold < 1 || wss_threshold > 100)
+	{
 		wss_threshold = 80;
+	}
+
 	/* reject a wildly large period */
 	if (wss_clean_period > 1000000)
+	{
 		wss_clean_period = 256;
+	}
+
 	/* reject a zero period */
 	if (wss_clean_period == 0)
+	{
 		wss_clean_period = 1;
+	}
 
 	/*
 	 * Calculate the table size - the next power of 2 larger than the
@@ -195,14 +204,19 @@ int hfi1_wss_init(void)
 	wss.num_entries = table_bits / BITS_PER_LONG;
 
 	wss.threshold = (llc_bits * wss_threshold) / 100;
+
 	if (wss.threshold == 0)
+	{
 		wss.threshold = 1;
+	}
 
 	atomic_set(&wss.clean_counter, wss_clean_period);
 
 	wss.entries = kcalloc(wss.num_entries, sizeof(*wss.entries),
-			      GFP_KERNEL);
-	if (!wss.entries) {
+						  GFP_KERNEL);
+
+	if (!wss.entries)
+	{
 		hfi1_wss_exit();
 		return -ENOMEM;
 	}
@@ -239,7 +253,8 @@ static void wss_advance_clean_counter(void)
 	unsigned long bits;
 
 	/* become the cleaner if we decrement the counter to zero */
-	if (atomic_dec_and_test(&wss.clean_counter)) {
+	if (atomic_dec_and_test(&wss.clean_counter))
+	{
 		/*
 		 * Set, not add, the clean period.  This avoids an issue
 		 * where the counter could decrement below the clean period.
@@ -262,14 +277,17 @@ static void wss_advance_clean_counter(void)
 		 * is always a power-of-2.
 		 */
 		entry = (atomic_inc_return(&wss.clean_entry) - 1)
-			& (wss.num_entries - 1);
+				& (wss.num_entries - 1);
 
 		/* clear the entry and count the bits */
 		bits = xchg(&wss.entries[entry], 0);
 		weight = hweight64((u64)bits);
+
 		/* only adjust the contended total count if needed */
 		if (weight)
+		{
 			atomic_sub(weight, &wss.total_count);
+		}
 	}
 }
 
@@ -283,7 +301,9 @@ static void wss_insert(void *address)
 	u32 nr = page & (BITS_PER_LONG - 1);
 
 	if (!test_and_set_bit(nr, &wss.entries[entry]))
+	{
 		atomic_inc(&wss.total_count);
+	}
 
 	wss_advance_clean_counter();
 }
@@ -299,7 +319,8 @@ static inline int wss_exceeds_threshold(void)
 /*
  * Translate ib_wr_opcode into ib_wc_opcode.
  */
-const enum ib_wc_opcode ib_hfi1_wc_opcode[] = {
+const enum ib_wc_opcode ib_hfi1_wc_opcode[] =
+{
 	[IB_WR_RDMA_WRITE] = IB_WC_RDMA_WRITE,
 	[IB_WR_RDMA_WRITE_WITH_IMM] = IB_WC_RDMA_WRITE,
 	[IB_WR_SEND] = IB_WC_SEND,
@@ -315,7 +336,8 @@ const enum ib_wc_opcode ib_hfi1_wc_opcode[] = {
 /*
  * Length of header by opcode, 0 --> not supported
  */
-const u8 hdr_len_by_opcode[256] = {
+const u8 hdr_len_by_opcode[256] =
+{
 	/* RC */
 	[IB_OPCODE_RC_SEND_FIRST]                     = 12 + 8,
 	[IB_OPCODE_RC_SEND_MIDDLE]                    = 12 + 8,
@@ -358,7 +380,8 @@ const u8 hdr_len_by_opcode[256] = {
 	[IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE]       = 12 + 8 + 12
 };
 
-static const opcode_handler opcode_handler_tbl[256] = {
+static const opcode_handler opcode_handler_tbl[256] =
+{
 	/* RC */
 	[IB_OPCODE_RC_SEND_FIRST]                     = &hfi1_rc_rcv,
 	[IB_OPCODE_RC_SEND_MIDDLE]                    = &hfi1_rc_rcv,
@@ -405,24 +428,25 @@ static const opcode_handler opcode_handler_tbl[256] = {
 
 #define OPMASK 0x1f
 
-static const u32 pio_opmask[BIT(3)] = {
+static const u32 pio_opmask[BIT(3)] =
+{
 	/* RC */
 	[IB_OPCODE_RC >> 5] =
-		BIT(RC_OP(SEND_ONLY) & OPMASK) |
-		BIT(RC_OP(SEND_ONLY_WITH_IMMEDIATE) & OPMASK) |
-		BIT(RC_OP(RDMA_WRITE_ONLY) & OPMASK) |
-		BIT(RC_OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE) & OPMASK) |
-		BIT(RC_OP(RDMA_READ_REQUEST) & OPMASK) |
-		BIT(RC_OP(ACKNOWLEDGE) & OPMASK) |
-		BIT(RC_OP(ATOMIC_ACKNOWLEDGE) & OPMASK) |
-		BIT(RC_OP(COMPARE_SWAP) & OPMASK) |
-		BIT(RC_OP(FETCH_ADD) & OPMASK),
+	BIT(RC_OP(SEND_ONLY) & OPMASK) |
+	BIT(RC_OP(SEND_ONLY_WITH_IMMEDIATE) & OPMASK) |
+	BIT(RC_OP(RDMA_WRITE_ONLY) & OPMASK) |
+	BIT(RC_OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE) & OPMASK) |
+	BIT(RC_OP(RDMA_READ_REQUEST) & OPMASK) |
+	BIT(RC_OP(ACKNOWLEDGE) & OPMASK) |
+	BIT(RC_OP(ATOMIC_ACKNOWLEDGE) & OPMASK) |
+	BIT(RC_OP(COMPARE_SWAP) & OPMASK) |
+	BIT(RC_OP(FETCH_ADD) & OPMASK),
 	/* UC */
 	[IB_OPCODE_UC >> 5] =
-		BIT(UC_OP(SEND_ONLY) & OPMASK) |
-		BIT(UC_OP(SEND_ONLY_WITH_IMMEDIATE) & OPMASK) |
-		BIT(UC_OP(RDMA_WRITE_ONLY) & OPMASK) |
-		BIT(UC_OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE) & OPMASK),
+	BIT(UC_OP(SEND_ONLY) & OPMASK) |
+	BIT(UC_OP(SEND_ONLY_WITH_IMMEDIATE) & OPMASK) |
+	BIT(UC_OP(RDMA_WRITE_ONLY) & OPMASK) |
+	BIT(UC_OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE) & OPMASK),
 };
 
 /*
@@ -448,75 +472,122 @@ void hfi1_copy_sge(
 	int i;
 	int cacheless_copy = 0;
 
-	if (sge_copy_mode == COPY_CACHELESS) {
+	if (sge_copy_mode == COPY_CACHELESS)
+	{
 		cacheless_copy = length >= PAGE_SIZE;
-	} else if (sge_copy_mode == COPY_ADAPTIVE) {
-		if (length >= PAGE_SIZE) {
+	}
+	else if (sge_copy_mode == COPY_ADAPTIVE)
+	{
+		if (length >= PAGE_SIZE)
+		{
 			/*
 			 * NOTE: this *assumes*:
 			 * o The first vaddr is the dest.
 			 * o If multiple pages, then vaddr is sequential.
 			 */
 			wss_insert(sge->vaddr);
+
 			if (length >= (2 * PAGE_SIZE))
+			{
 				wss_insert(sge->vaddr + PAGE_SIZE);
+			}
 
 			cacheless_copy = wss_exceeds_threshold();
-		} else {
+		}
+		else
+		{
 			wss_advance_clean_counter();
 		}
 	}
-	if (copy_last) {
-		if (length > 8) {
+
+	if (copy_last)
+	{
+		if (length > 8)
+		{
 			length -= 8;
-		} else {
+		}
+		else
+		{
 			copy_last = 0;
 			in_last = 1;
 		}
 	}
 
 again:
-	while (length) {
+
+	while (length)
+	{
 		u32 len = sge->length;
 
 		if (len > length)
+		{
 			len = length;
+		}
+
 		if (len > sge->sge_length)
+		{
 			len = sge->sge_length;
+		}
+
 		WARN_ON_ONCE(len == 0);
-		if (unlikely(in_last)) {
+
+		if (unlikely(in_last))
+		{
 			/* enforce byte transfer ordering */
 			for (i = 0; i < len; i++)
+			{
 				((u8 *)sge->vaddr)[i] = ((u8 *)data)[i];
-		} else if (cacheless_copy) {
+			}
+		}
+		else if (cacheless_copy)
+		{
 			cacheless_memcpy(sge->vaddr, data, len);
-		} else {
+		}
+		else
+		{
 			memcpy(sge->vaddr, data, len);
 		}
+
 		sge->vaddr += len;
 		sge->length -= len;
 		sge->sge_length -= len;
-		if (sge->sge_length == 0) {
+
+		if (sge->sge_length == 0)
+		{
 			if (release)
+			{
 				rvt_put_mr(sge->mr);
+			}
+
 			if (--ss->num_sge)
+			{
 				*sge = *ss->sg_list++;
-		} else if (sge->length == 0 && sge->mr->lkey) {
-			if (++sge->n >= RVT_SEGSZ) {
+			}
+		}
+		else if (sge->length == 0 && sge->mr->lkey)
+		{
+			if (++sge->n >= RVT_SEGSZ)
+			{
 				if (++sge->m >= sge->mr->mapsz)
+				{
 					break;
+				}
+
 				sge->n = 0;
 			}
+
 			sge->vaddr =
 				sge->mr->map[sge->m]->segs[sge->n].vaddr;
 			sge->length =
 				sge->mr->map[sge->m]->segs[sge->n].length;
 		}
+
 		data += len;
 		length -= len;
 	}
 
-	if (copy_last) {
+	if (copy_last)
+	{
 		copy_last = 0;
 		in_last = 1;
 		length = 8;
@@ -533,33 +604,55 @@ void hfi1_skip_sge(struct rvt_sge_state *ss, u32 length, int release)
 {
 	struct rvt_sge *sge = &ss->sge;
 
-	while (length) {
+	while (length)
+	{
 		u32 len = sge->length;
 
 		if (len > length)
+		{
 			len = length;
+		}
+
 		if (len > sge->sge_length)
+		{
 			len = sge->sge_length;
+		}
+
 		WARN_ON_ONCE(len == 0);
 		sge->vaddr += len;
 		sge->length -= len;
 		sge->sge_length -= len;
-		if (sge->sge_length == 0) {
+
+		if (sge->sge_length == 0)
+		{
 			if (release)
+			{
 				rvt_put_mr(sge->mr);
+			}
+
 			if (--ss->num_sge)
+			{
 				*sge = *ss->sg_list++;
-		} else if (sge->length == 0 && sge->mr->lkey) {
-			if (++sge->n >= RVT_SEGSZ) {
+			}
+		}
+		else if (sge->length == 0 && sge->mr->lkey)
+		{
+			if (++sge->n >= RVT_SEGSZ)
+			{
 				if (++sge->m >= sge->mr->mapsz)
+				{
 					break;
+				}
+
 				sge->n = 0;
 			}
+
 			sge->vaddr =
 				sge->mr->map[sge->m]->segs[sge->n].vaddr;
 			sge->length =
 				sge->mr->map[sge->m]->segs[sge->n].length;
 		}
+
 		length -= len;
 	}
 }
@@ -570,10 +663,15 @@ void hfi1_skip_sge(struct rvt_sge_state *ss, u32 length, int release)
 static inline opcode_handler qp_ok(int opcode, struct hfi1_packet *packet)
 {
 	if (!(ib_rvt_state_ops[packet->qp->state] & RVT_PROCESS_RECV_OK))
+	{
 		return NULL;
+	}
+
 	if (((opcode & RVT_OPCODE_QP_MASK) == packet->qp->allowed_ops) ||
-	    (opcode == IB_OPCODE_CNP))
+		(opcode == IB_OPCODE_CNP))
+	{
 		return opcode_handler_tbl[opcode];
+	}
 
 	return NULL;
 }
@@ -603,19 +701,33 @@ void hfi1_ib_rcv(struct hfi1_packet *packet)
 
 	/* Check for GRH */
 	lnh = be16_to_cpu(hdr->lrh[0]) & 3;
-	if (lnh == HFI1_LRH_BTH) {
+
+	if (lnh == HFI1_LRH_BTH)
+	{
 		packet->ohdr = &hdr->u.oth;
-	} else if (lnh == HFI1_LRH_GRH) {
+	}
+	else if (lnh == HFI1_LRH_GRH)
+	{
 		u32 vtf;
 
 		packet->ohdr = &hdr->u.l.oth;
+
 		if (hdr->u.l.grh.next_hdr != IB_GRH_NEXT_HDR)
+		{
 			goto drop;
+		}
+
 		vtf = be32_to_cpu(hdr->u.l.grh.version_tclass_flow);
+
 		if ((vtf >> IB_GRH_VERSION_SHIFT) != IB_GRH_VERSION)
+		{
 			goto drop;
+		}
+
 		packet->rcv_flags |= HFI1_HAS_GRH;
-	} else {
+	}
+	else
+	{
 		goto drop;
 	}
 
@@ -627,48 +739,79 @@ void hfi1_ib_rcv(struct hfi1_packet *packet)
 	/* Get the destination QP number. */
 	qp_num = be32_to_cpu(packet->ohdr->bth[1]) & RVT_QPN_MASK;
 	lid = be16_to_cpu(hdr->lrh[1]);
+
 	if (unlikely((lid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
-		     (lid != be16_to_cpu(IB_LID_PERMISSIVE)))) {
+				 (lid != be16_to_cpu(IB_LID_PERMISSIVE))))
+	{
 		struct rvt_mcast *mcast;
 		struct rvt_mcast_qp *p;
 
 		if (lnh != HFI1_LRH_GRH)
+		{
 			goto drop;
+		}
+
 		mcast = rvt_mcast_find(&ibp->rvp, &hdr->u.l.grh.dgid);
+
 		if (!mcast)
+		{
 			goto drop;
-		list_for_each_entry_rcu(p, &mcast->qp_list, list) {
+		}
+
+		list_for_each_entry_rcu(p, &mcast->qp_list, list)
+		{
 			packet->qp = p->qp;
 			spin_lock_irqsave(&packet->qp->r_lock, flags);
 			packet_handler = qp_ok(opcode, packet);
+
 			if (likely(packet_handler))
+			{
 				packet_handler(packet);
+			}
 			else
+			{
 				ibp->rvp.n_pkt_drops++;
+			}
+
 			spin_unlock_irqrestore(&packet->qp->r_lock, flags);
 		}
+
 		/*
 		 * Notify rvt_multicast_detach() if it is waiting for us
 		 * to finish.
 		 */
 		if (atomic_dec_return(&mcast->refcount) <= 1)
+		{
 			wake_up(&mcast->wait);
-	} else {
+		}
+	}
+	else
+	{
 		rcu_read_lock();
 		packet->qp = rvt_lookup_qpn(rdi, &ibp->rvp, qp_num);
-		if (!packet->qp) {
+
+		if (!packet->qp)
+		{
 			rcu_read_unlock();
 			goto drop;
 		}
+
 		spin_lock_irqsave(&packet->qp->r_lock, flags);
 		packet_handler = qp_ok(opcode, packet);
+
 		if (likely(packet_handler))
+		{
 			packet_handler(packet);
+		}
 		else
+		{
 			ibp->rvp.n_pkt_drops++;
+		}
+
 		spin_unlock_irqrestore(&packet->qp->r_lock, flags);
 		rcu_read_unlock();
 	}
+
 	return;
 
 drop:
@@ -689,19 +832,27 @@ static void mem_timer(unsigned long data)
 	struct hfi1_qp_priv *priv;
 
 	write_seqlock_irqsave(&dev->iowait_lock, flags);
-	if (!list_empty(list)) {
+
+	if (!list_empty(list))
+	{
 		wait = list_first_entry(list, struct iowait, list);
 		qp = iowait_to_qp(wait);
 		priv = qp->priv;
 		list_del_init(&priv->s_iowait.list);
+
 		/* refcount held until actual wake up */
 		if (!list_empty(list))
+		{
 			mod_timer(&dev->mem_timer, jiffies + 1);
+		}
 	}
+
 	write_sequnlock_irqrestore(&dev->iowait_lock, flags);
 
 	if (qp)
+	{
 		hfi1_qp_wakeup(qp, RVT_S_WAIT_KMEM);
+	}
 }
 
 void update_sge(struct rvt_sge_state *ss, u32 length)
@@ -711,15 +862,26 @@ void update_sge(struct rvt_sge_state *ss, u32 length)
 	sge->vaddr += length;
 	sge->length -= length;
 	sge->sge_length -= length;
-	if (sge->sge_length == 0) {
+
+	if (sge->sge_length == 0)
+	{
 		if (--ss->num_sge)
+		{
 			*sge = *ss->sg_list++;
-	} else if (sge->length == 0 && sge->mr->lkey) {
-		if (++sge->n >= RVT_SEGSZ) {
+		}
+	}
+	else if (sge->length == 0 && sge->mr->lkey)
+	{
+		if (++sge->n >= RVT_SEGSZ)
+		{
 			if (++sge->m >= sge->mr->mapsz)
+			{
 				return;
+			}
+
 			sge->n = 0;
 		}
+
 		sge->vaddr = sge->mr->map[sge->m]->segs[sge->n].vaddr;
 		sge->length = sge->mr->map[sge->m]->segs[sge->n].length;
 	}
@@ -738,44 +900,58 @@ static void verbs_sdma_complete(
 	struct rvt_qp *qp = tx->qp;
 
 	spin_lock(&qp->s_lock);
-	if (tx->wqe) {
+
+	if (tx->wqe)
+	{
 		hfi1_send_complete(qp, tx->wqe, IB_WC_SUCCESS);
-	} else if (qp->ibqp.qp_type == IB_QPT_RC) {
+	}
+	else if (qp->ibqp.qp_type == IB_QPT_RC)
+	{
 		struct ib_header *hdr;
 
 		hdr = &tx->phdr.hdr;
 		hfi1_rc_send_complete(qp, hdr);
 	}
+
 	spin_unlock(&qp->s_lock);
 
 	hfi1_put_txreq(tx);
 }
 
 static int wait_kmem(struct hfi1_ibdev *dev,
-		     struct rvt_qp *qp,
-		     struct hfi1_pkt_state *ps)
+					 struct rvt_qp *qp,
+					 struct hfi1_pkt_state *ps)
 {
 	struct hfi1_qp_priv *priv = qp->priv;
 	unsigned long flags;
 	int ret = 0;
 
 	spin_lock_irqsave(&qp->s_lock, flags);
-	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK) {
+
+	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK)
+	{
 		write_seqlock(&dev->iowait_lock);
 		list_add_tail(&ps->s_txreq->txreq.list,
-			      &priv->s_iowait.tx_head);
-		if (list_empty(&priv->s_iowait.list)) {
+					  &priv->s_iowait.tx_head);
+
+		if (list_empty(&priv->s_iowait.list))
+		{
 			if (list_empty(&dev->memwait))
+			{
 				mod_timer(&dev->mem_timer, jiffies + 1);
+			}
+
 			qp->s_flags |= RVT_S_WAIT_KMEM;
 			list_add_tail(&priv->s_iowait.list, &dev->memwait);
 			trace_hfi1_qpsleep(qp, RVT_S_WAIT_KMEM);
 			rvt_get_qp(qp);
 		}
+
 		write_sequnlock(&dev->iowait_lock);
 		qp->s_flags &= ~RVT_S_BUSY;
 		ret = -EBUSY;
 	}
+
 	spin_unlock_irqrestore(&qp->s_lock, flags);
 
 	return ret;
@@ -798,23 +974,36 @@ static noinline int build_verbs_ulp_payload(
 	u32 len;
 	int ret = 0;
 
-	while (length) {
+	while (length)
+	{
 		len = ss->sge.length;
+
 		if (len > length)
+		{
 			len = length;
+		}
+
 		if (len > ss->sge.sge_length)
+		{
 			len = ss->sge.sge_length;
+		}
+
 		WARN_ON_ONCE(len == 0);
 		ret = sdma_txadd_kvaddr(
-			sde->dd,
-			&tx->txreq,
-			ss->sge.vaddr,
-			len);
+				  sde->dd,
+				  &tx->txreq,
+				  ss->sge.vaddr,
+				  len);
+
 		if (ret)
+		{
 			goto bail_txadd;
+		}
+
 		update_sge(ss, len);
 		length -= len;
 	}
+
 	return ret;
 bail_txadd:
 	/* unwind cursor */
@@ -845,49 +1034,65 @@ static int build_verbs_tx_desc(
 	struct hfi1_sdma_header *phdr = &tx->phdr;
 	u16 hdrbytes = tx->hdr_dwords << 2;
 
-	if (!ahg_info->ahgcount) {
+	if (!ahg_info->ahgcount)
+	{
 		ret = sdma_txinit_ahg(
-			&tx->txreq,
-			ahg_info->tx_flags,
-			hdrbytes + length,
-			ahg_info->ahgidx,
-			0,
-			NULL,
-			0,
-			verbs_sdma_complete);
+				  &tx->txreq,
+				  ahg_info->tx_flags,
+				  hdrbytes + length,
+				  ahg_info->ahgidx,
+				  0,
+				  NULL,
+				  0,
+				  verbs_sdma_complete);
+
 		if (ret)
+		{
 			goto bail_txadd;
+		}
+
 		phdr->pbc = cpu_to_le64(pbc);
 		ret = sdma_txadd_kvaddr(
-			sde->dd,
-			&tx->txreq,
-			phdr,
-			hdrbytes);
+				  sde->dd,
+				  &tx->txreq,
+				  phdr,
+				  hdrbytes);
+
 		if (ret)
+		{
 			goto bail_txadd;
-	} else {
+		}
+	}
+	else
+	{
 		ret = sdma_txinit_ahg(
-			&tx->txreq,
-			ahg_info->tx_flags,
-			length,
-			ahg_info->ahgidx,
-			ahg_info->ahgcount,
-			ahg_info->ahgdesc,
-			hdrbytes,
-			verbs_sdma_complete);
+				  &tx->txreq,
+				  ahg_info->tx_flags,
+				  length,
+				  ahg_info->ahgidx,
+				  ahg_info->ahgcount,
+				  ahg_info->ahgdesc,
+				  hdrbytes,
+				  verbs_sdma_complete);
+
 		if (ret)
+		{
 			goto bail_txadd;
+		}
 	}
 
 	/* add the ulp payload - if any.  ss can be NULL for acks */
 	if (ss)
+	{
 		ret = build_verbs_ulp_payload(sde, ss, length, tx);
+	}
+
 bail_txadd:
 	return ret;
 }
 
 int hfi1_verbs_send_dma(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
-			u64 pbc)
+						u64 pbc)
 {
 	struct hfi1_qp_priv *priv = qp->priv;
 	struct hfi1_ahg_info *ahg_info = priv->s_ahg;
@@ -904,32 +1109,46 @@ int hfi1_verbs_send_dma(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
 	int ret;
 
 	tx = ps->s_txreq;
-	if (!sdma_txreq_built(&tx->txreq)) {
-		if (likely(pbc == 0)) {
+
+	if (!sdma_txreq_built(&tx->txreq))
+	{
+		if (likely(pbc == 0))
+		{
 			u32 vl = sc_to_vlt(dd_from_ibdev(qp->ibqp.device), sc5);
 			/* No vl15 here */
 			/* set PBC_DC_INFO bit (aka SC[4]) in pbc_flags */
 			pbc_flags |= (!!(sc5 & 0x10)) << PBC_DC_INFO_SHIFT;
 
 			pbc = create_pbc(ppd,
-					 pbc_flags,
-					 qp->srate_mbps,
-					 vl,
-					 plen);
+							 pbc_flags,
+							 qp->srate_mbps,
+							 vl,
+							 plen);
 		}
+
 		tx->wqe = qp->s_wqe;
 		ret = build_verbs_tx_desc(tx->sde, ss, len, tx, ahg_info, pbc);
+
 		if (unlikely(ret))
+		{
 			goto bail_build;
+		}
 	}
+
 	ret =  sdma_send_txreq(tx->sde, &priv->s_iowait, &tx->txreq);
-	if (unlikely(ret < 0)) {
+
+	if (unlikely(ret < 0))
+	{
 		if (ret == -ECOMM)
+		{
 			goto bail_ecomm;
+		}
+
 		return ret;
 	}
+
 	trace_sdma_output_ibhdr(dd_from_ibdev(qp->ibqp.device),
-				&ps->s_txreq->phdr.hdr);
+							&ps->s_txreq->phdr.hdr);
 	return ret;
 
 bail_ecomm:
@@ -937,11 +1156,14 @@ bail_ecomm:
 	return 0;
 bail_build:
 	ret = wait_kmem(dev, qp, ps);
-	if (!ret) {
+
+	if (!ret)
+	{
 		/* free txreq - bad state */
 		hfi1_put_txreq(ps->s_txreq);
 		ps->s_txreq = NULL;
 	}
+
 	return ret;
 }
 
@@ -950,9 +1172,9 @@ bail_build:
  * send work request.
  */
 static int pio_wait(struct rvt_qp *qp,
-		    struct send_context *sc,
-		    struct hfi1_pkt_state *ps,
-		    u32 flag)
+					struct send_context *sc,
+					struct hfi1_pkt_state *ps,
+					u32 flag)
 {
 	struct hfi1_qp_priv *priv = qp->priv;
 	struct hfi1_devdata *dd = sc->dd;
@@ -967,11 +1189,15 @@ static int pio_wait(struct rvt_qp *qp,
 	 * enabling the PIO avail interrupt.
 	 */
 	spin_lock_irqsave(&qp->s_lock, flags);
-	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK) {
+
+	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK)
+	{
 		write_seqlock(&dev->iowait_lock);
 		list_add_tail(&ps->s_txreq->txreq.list,
-			      &priv->s_iowait.tx_head);
-		if (list_empty(&priv->s_iowait.list)) {
+					  &priv->s_iowait.tx_head);
+
+		if (list_empty(&priv->s_iowait.list))
+		{
 			struct hfi1_ibdev *dev = &dd->verbs_dev;
 			int was_empty;
 
@@ -982,14 +1208,19 @@ static int pio_wait(struct rvt_qp *qp,
 			list_add_tail(&priv->s_iowait.list, &sc->piowait);
 			trace_hfi1_qpsleep(qp, RVT_S_WAIT_PIO);
 			rvt_get_qp(qp);
+
 			/* counting: only call wantpiobuf_intr if first user */
 			if (was_empty)
+			{
 				hfi1_sc_wantpiobuf_intr(sc, 1);
+			}
 		}
+
 		write_sequnlock(&dev->iowait_lock);
 		qp->s_flags &= ~RVT_S_BUSY;
 		ret = -EBUSY;
 	}
+
 	spin_unlock_irqrestore(&qp->s_lock, flags);
 	return ret;
 }
@@ -1000,11 +1231,13 @@ static void verbs_pio_complete(void *arg, int code)
 	struct hfi1_qp_priv *priv = qp->priv;
 
 	if (iowait_pio_dec(&priv->s_iowait))
+	{
 		iowait_drain_wakeup(&priv->s_iowait);
+	}
 }
 
 int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
-			u64 pbc)
+						u64 pbc)
 {
 	struct hfi1_qp_priv *priv = qp->priv;
 	u32 hdrwords = qp->s_hdrwords;
@@ -1024,32 +1257,45 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
 	pio_release_cb cb = NULL;
 
 	/* only RC/UC use complete */
-	switch (qp->ibqp.qp_type) {
-	case IB_QPT_RC:
-	case IB_QPT_UC:
-		cb = verbs_pio_complete;
-		break;
-	default:
-		break;
+	switch (qp->ibqp.qp_type)
+	{
+		case IB_QPT_RC:
+		case IB_QPT_UC:
+			cb = verbs_pio_complete;
+			break;
+
+		default:
+			break;
 	}
 
 	/* vl15 special case taken care of in ud.c */
 	sc5 = priv->s_sc;
 	sc = ps->s_txreq->psc;
 
-	if (likely(pbc == 0)) {
+	if (likely(pbc == 0))
+	{
 		u8 vl = sc_to_vlt(dd_from_ibdev(qp->ibqp.device), sc5);
 		/* set PBC_DC_INFO bit (aka SC[4]) in pbc_flags */
 		pbc_flags |= (!!(sc5 & 0x10)) << PBC_DC_INFO_SHIFT;
 		pbc = create_pbc(ppd, pbc_flags, qp->srate_mbps, vl, plen);
 	}
+
 	if (cb)
+	{
 		iowait_pio_inc(&priv->s_iowait);
+	}
+
 	pbuf = sc_buffer_alloc(sc, plen, cb, qp);
-	if (unlikely(!pbuf)) {
+
+	if (unlikely(!pbuf))
+	{
 		if (cb)
+		{
 			verbs_pio_complete(qp, 0);
-		if (ppd->host_link_state != HLS_UP_ACTIVE) {
+		}
+
+		if (ppd->host_link_state != HLS_UP_ACTIVE)
+		{
 			/*
 			 * If we have filled the PIO buffers to capacity and are
 			 * not in an active state this request is not going to
@@ -1061,7 +1307,9 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
 				"alloc failed. state not active, completing");
 			wc_status = IB_WC_GENERAL_ERR;
 			goto pio_bail;
-		} else {
+		}
+		else
+		{
 			/*
 			 * This is a normal occurrence. The PIO buffs are full
 			 * up but we are still happily sending, well we could be
@@ -1069,42 +1317,60 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
 			 */
 			hfi1_cdbg(PIO, "alloc failed. state active, queuing");
 			ret = pio_wait(qp, sc, ps, RVT_S_WAIT_PIO);
+
 			if (!ret)
 				/* txreq not queued - free */
+			{
 				goto bail;
+			}
+
 			/* tx consumed in wait */
 			return ret;
 		}
 	}
 
-	if (len == 0) {
+	if (len == 0)
+	{
 		pio_copy(ppd->dd, pbuf, pbc, hdr, hdrwords);
-	} else {
-		if (ss) {
+	}
+	else
+	{
+		if (ss)
+		{
 			seg_pio_copy_start(pbuf, pbc, hdr, hdrwords * 4);
-			while (len) {
+
+			while (len)
+			{
 				void *addr = ss->sge.vaddr;
 				u32 slen = ss->sge.length;
 
 				if (slen > len)
+				{
 					slen = len;
+				}
+
 				update_sge(ss, slen);
 				seg_pio_copy_mid(pbuf, addr, slen);
 				len -= slen;
 			}
+
 			seg_pio_copy_end(pbuf);
 		}
 	}
 
 	trace_pio_output_ibhdr(dd_from_ibdev(qp->ibqp.device),
-			       &ps->s_txreq->phdr.hdr);
+						   &ps->s_txreq->phdr.hdr);
 
 pio_bail:
-	if (qp->s_wqe) {
+
+	if (qp->s_wqe)
+	{
 		spin_lock_irqsave(&qp->s_lock, flags);
 		hfi1_send_complete(qp, qp->s_wqe, wc_status);
 		spin_unlock_irqrestore(&qp->s_lock, flags);
-	} else if (qp->ibqp.qp_type == IB_QPT_RC) {
+	}
+	else if (qp->ibqp.qp_type == IB_QPT_RC)
+	{
 		spin_lock_irqsave(&qp->s_lock, flags);
 		hfi1_rc_send_complete(qp, &ps->s_txreq->phdr.hdr);
 		spin_unlock_irqrestore(&qp->s_lock, flags);
@@ -1128,16 +1394,21 @@ static inline int egress_pkey_matches_entry(u16 pkey, u16 ent)
 	u16 mkey = pkey & PKEY_LOW_15_MASK;
 	u16 mentry = ent & PKEY_LOW_15_MASK;
 
-	if (mkey == mentry) {
+	if (mkey == mentry)
+	{
 		/*
 		 * If pkey[15] is set (full partition member),
 		 * is bit 15 in the corresponding table element
 		 * clear (limited member)?
 		 */
 		if (pkey & PKEY_MEMBER_MASK)
+		{
 			return !!(ent & PKEY_MEMBER_MASK);
+		}
+
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -1156,7 +1427,7 @@ static inline int egress_pkey_matches_entry(u16 pkey, u16 ent)
  * Return: 0 on success, otherwise, 1
  */
 int egress_pkey_check(struct hfi1_pportdata *ppd, __be16 *lrh, __be32 *bth,
-		      u8 sc5, int8_t s_pkey_index)
+					  u8 sc5, int8_t s_pkey_index)
 {
 	struct hfi1_devdata *dd;
 	int i;
@@ -1164,42 +1435,57 @@ int egress_pkey_check(struct hfi1_pportdata *ppd, __be16 *lrh, __be32 *bth,
 	int is_user_ctxt_mechanism = (s_pkey_index < 0);
 
 	if (!(ppd->part_enforce & HFI1_PART_ENFORCE_OUT))
+	{
 		return 0;
+	}
 
 	pkey = (u16)be32_to_cpu(bth[0]);
 
 	/* If SC15, pkey[0:14] must be 0x7fff */
 	if ((sc5 == 0xf) && ((pkey & PKEY_LOW_15_MASK) != PKEY_LOW_15_MASK))
+	{
 		goto bad;
+	}
 
 	/* Is the pkey = 0x0, or 0x8000? */
 	if ((pkey & PKEY_LOW_15_MASK) == 0)
+	{
 		goto bad;
+	}
 
 	/*
 	 * For the kernel contexts only, if a qp is passed into the function,
 	 * the most likely matching pkey has index qp->s_pkey_index
 	 */
 	if (!is_user_ctxt_mechanism &&
-	    egress_pkey_matches_entry(pkey, ppd->pkeys[s_pkey_index])) {
+		egress_pkey_matches_entry(pkey, ppd->pkeys[s_pkey_index]))
+	{
 		return 0;
 	}
 
-	for (i = 0; i < MAX_PKEY_VALUES; i++) {
+	for (i = 0; i < MAX_PKEY_VALUES; i++)
+	{
 		if (egress_pkey_matches_entry(pkey, ppd->pkeys[i]))
+		{
 			return 0;
+		}
 	}
+
 bad:
+
 	/*
 	 * For the user-context mechanism, the P_KEY check would only happen
 	 * once per SDMA request, not once per packet.  Therefore, there's no
 	 * need to increment the counter for the user-context mechanism.
 	 */
-	if (!is_user_ctxt_mechanism) {
+	if (!is_user_ctxt_mechanism)
+	{
 		incr_cntr64(&ppd->port_xmit_constraint_errors);
 		dd = ppd->dd;
+
 		if (!(dd->err_info_xmit_constraint.status &
-		      OPA_EI_STATUS_SMASK)) {
+			  OPA_EI_STATUS_SMASK))
+		{
 			u16 slid = be16_to_cpu(lrh[3]);
 
 			dd->err_info_xmit_constraint.status |=
@@ -1208,6 +1494,7 @@ bad:
 			dd->err_info_xmit_constraint.pkey = pkey;
 		}
 	}
+
 	return 1;
 }
 
@@ -1218,35 +1505,47 @@ bad:
  * and size
  */
 static inline send_routine get_send_routine(struct rvt_qp *qp,
-					    struct verbs_txreq *tx)
+		struct verbs_txreq *tx)
 {
 	struct hfi1_devdata *dd = dd_from_ibdev(qp->ibqp.device);
 	struct hfi1_qp_priv *priv = qp->priv;
 	struct ib_header *h = &tx->phdr.hdr;
 
 	if (unlikely(!(dd->flags & HFI1_HAS_SEND_DMA)))
+	{
 		return dd->process_pio_send;
-	switch (qp->ibqp.qp_type) {
-	case IB_QPT_SMI:
-		return dd->process_pio_send;
-	case IB_QPT_GSI:
-	case IB_QPT_UD:
-		break;
-	case IB_QPT_UC:
-	case IB_QPT_RC: {
-		u8 op = get_opcode(h);
+	}
 
-		if (piothreshold &&
-		    qp->s_cur_size <= min(piothreshold, qp->pmtu) &&
-		    (BIT(op & OPMASK) & pio_opmask[op >> 5]) &&
-		    iowait_sdma_pending(&priv->s_iowait) == 0 &&
-		    !sdma_txreq_built(&tx->txreq))
+	switch (qp->ibqp.qp_type)
+	{
+		case IB_QPT_SMI:
 			return dd->process_pio_send;
-		break;
+
+		case IB_QPT_GSI:
+		case IB_QPT_UD:
+			break;
+
+		case IB_QPT_UC:
+		case IB_QPT_RC:
+			{
+				u8 op = get_opcode(h);
+
+				if (piothreshold &&
+					qp->s_cur_size <= min(piothreshold, qp->pmtu) &&
+					(BIT(op & OPMASK) & pio_opmask[op >> 5]) &&
+					iowait_sdma_pending(&priv->s_iowait) == 0 &&
+					!sdma_txreq_built(&tx->txreq))
+				{
+					return dd->process_pio_send;
+				}
+
+				break;
+			}
+
+		default:
+			break;
 	}
-	default:
-		break;
-	}
+
 	return dd->process_dma_send;
 }
 
@@ -1271,18 +1570,25 @@ int hfi1_verbs_send(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
 	hdr = &ps->s_txreq->phdr.hdr;
 	/* locate the pkey within the headers */
 	lnh = be16_to_cpu(hdr->lrh[0]) & 3;
+
 	if (lnh == HFI1_LRH_GRH)
+	{
 		ohdr = &hdr->u.l.oth;
+	}
 	else
+	{
 		ohdr = &hdr->u.oth;
+	}
 
 	sr = get_send_routine(qp, ps->s_txreq);
 	ret = egress_pkey_check(dd->pport,
-				hdr->lrh,
-				ohdr->bth,
-				priv->s_sc,
-				qp->s_pkey_index);
-	if (unlikely(ret)) {
+							hdr->lrh,
+							ohdr->bth,
+							priv->s_sc,
+							qp->s_pkey_index);
+
+	if (unlikely(ret))
+	{
 		/*
 		 * The value we are returning here does not get propagated to
 		 * the verbs caller. Thus we need to complete the request with
@@ -1291,22 +1597,26 @@ int hfi1_verbs_send(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
 		 * mechanism for handling the errors. So for SDMA we can just
 		 * return.
 		 */
-		if (sr == dd->process_pio_send) {
+		if (sr == dd->process_pio_send)
+		{
 			unsigned long flags;
 
 			hfi1_cdbg(PIO, "%s() Failed. Completing with err",
-				  __func__);
+					  __func__);
 			spin_lock_irqsave(&qp->s_lock, flags);
 			hfi1_send_complete(qp, qp->s_wqe, IB_WC_GENERAL_ERR);
 			spin_unlock_irqrestore(&qp->s_lock, flags);
 		}
+
 		return -EINVAL;
 	}
+
 	if (sr == dd->process_dma_send && iowait_pio_pending(&priv->s_iowait))
 		return pio_wait(qp,
-				ps->s_txreq->psc,
-				ps,
-				RVT_S_WAIT_PIO_DRAIN);
+						ps->s_txreq->psc,
+						ps,
+						RVT_S_WAIT_PIO_DRAIN);
+
 	return sr(qp, ps, 0);
 }
 
@@ -1322,12 +1632,12 @@ static void hfi1_fill_device_attr(struct hfi1_devdata *dd)
 	memset(&rdi->dparms.props, 0, sizeof(rdi->dparms.props));
 
 	rdi->dparms.props.fw_ver = ((u64)(dc8051_ver_maj(ver)) << 16) |
-				    (u64)dc8051_ver_min(ver);
+							   (u64)dc8051_ver_min(ver);
 	rdi->dparms.props.device_cap_flags = IB_DEVICE_BAD_PKEY_CNTR |
-			IB_DEVICE_BAD_QKEY_CNTR | IB_DEVICE_SHUTDOWN_PORT |
-			IB_DEVICE_SYS_IMAGE_GUID | IB_DEVICE_RC_RNR_NAK_GEN |
-			IB_DEVICE_PORT_ACTIVE_EVENT | IB_DEVICE_SRQ_RESIZE |
-			IB_DEVICE_MEM_MGT_EXTENSIONS;
+										 IB_DEVICE_BAD_QKEY_CNTR | IB_DEVICE_SHUTDOWN_PORT |
+										 IB_DEVICE_SYS_IMAGE_GUID | IB_DEVICE_RC_RNR_NAK_GEN |
+										 IB_DEVICE_PORT_ACTIVE_EVENT | IB_DEVICE_SRQ_RESIZE |
+										 IB_DEVICE_MEM_MGT_EXTENSIONS;
 	rdi->dparms.props.page_size_cap = PAGE_SIZE;
 	rdi->dparms.props.vendor_id = dd->oui1 << 16 | dd->oui2 << 8 | dd->oui3;
 	rdi->dparms.props.vendor_part_id = dd->pcidev->device;
@@ -1356,8 +1666,8 @@ static void hfi1_fill_device_attr(struct hfi1_devdata *dd)
 	rdi->dparms.props.max_mcast_grp = hfi1_max_mcast_grps;
 	rdi->dparms.props.max_mcast_qp_attach = hfi1_max_mcast_qp_attached;
 	rdi->dparms.props.max_total_mcast_qp_attach =
-					rdi->dparms.props.max_mcast_qp_attach *
-					rdi->dparms.props.max_mcast_grp;
+		rdi->dparms.props.max_mcast_qp_attach *
+		rdi->dparms.props.max_mcast_grp;
 }
 
 static inline u16 opa_speed_to_ib(u16 in)
@@ -1365,9 +1675,14 @@ static inline u16 opa_speed_to_ib(u16 in)
 	u16 out = 0;
 
 	if (in & OPA_LINK_SPEED_25G)
+	{
 		out |= IB_SPEED_EDR;
+	}
+
 	if (in & OPA_LINK_SPEED_12_5G)
+	{
 		out |= IB_SPEED_FDR;
+	}
 
 	return out;
 }
@@ -1379,20 +1694,23 @@ static inline u16 opa_speed_to_ib(u16 in)
  */
 static inline u16 opa_width_to_ib(u16 in)
 {
-	switch (in) {
-	case OPA_LINK_WIDTH_1X:
-	/* map 2x and 3x to 1x as they don't exist in IB */
-	case OPA_LINK_WIDTH_2X:
-	case OPA_LINK_WIDTH_3X:
-		return IB_WIDTH_1X;
-	default: /* link down or unknown, return our largest width */
-	case OPA_LINK_WIDTH_4X:
-		return IB_WIDTH_4X;
+	switch (in)
+	{
+		case OPA_LINK_WIDTH_1X:
+
+		/* map 2x and 3x to 1x as they don't exist in IB */
+		case OPA_LINK_WIDTH_2X:
+		case OPA_LINK_WIDTH_3X:
+			return IB_WIDTH_1X;
+
+		default: /* link down or unknown, return our largest width */
+		case OPA_LINK_WIDTH_4X:
+			return IB_WIDTH_4X;
 	}
 }
 
 static int query_port(struct rvt_dev_info *rdi, u8 port_num,
-		      struct ib_port_attr *props)
+					  struct ib_port_attr *props)
 {
 	struct hfi1_ibdev *verbs_dev = dev_from_rdi(rdi);
 	struct hfi1_devdata *dd = dd_from_dev(verbs_dev);
@@ -1419,41 +1737,48 @@ static int query_port(struct rvt_dev_info *rdi, u8 port_num,
 	 * attempt to process the MTU enum may fail in various ways.
 	 */
 	props->max_mtu = mtu_to_enum((!valid_ib_mtu(hfi1_max_mtu) ?
-				      4096 : hfi1_max_mtu), IB_MTU_4096);
+								  4096 : hfi1_max_mtu), IB_MTU_4096);
 	props->active_mtu = !valid_ib_mtu(ppd->ibmtu) ? props->max_mtu :
-		mtu_to_enum(ppd->ibmtu, IB_MTU_2048);
+						mtu_to_enum(ppd->ibmtu, IB_MTU_2048);
 
 	return 0;
 }
 
 static int modify_device(struct ib_device *device,
-			 int device_modify_mask,
-			 struct ib_device_modify *device_modify)
+						 int device_modify_mask,
+						 struct ib_device_modify *device_modify)
 {
 	struct hfi1_devdata *dd = dd_from_ibdev(device);
 	unsigned i;
 	int ret;
 
 	if (device_modify_mask & ~(IB_DEVICE_MODIFY_SYS_IMAGE_GUID |
-				   IB_DEVICE_MODIFY_NODE_DESC)) {
+							   IB_DEVICE_MODIFY_NODE_DESC))
+	{
 		ret = -EOPNOTSUPP;
 		goto bail;
 	}
 
-	if (device_modify_mask & IB_DEVICE_MODIFY_NODE_DESC) {
+	if (device_modify_mask & IB_DEVICE_MODIFY_NODE_DESC)
+	{
 		memcpy(device->node_desc, device_modify->node_desc,
-		       IB_DEVICE_NODE_DESC_MAX);
-		for (i = 0; i < dd->num_pports; i++) {
+			   IB_DEVICE_NODE_DESC_MAX);
+
+		for (i = 0; i < dd->num_pports; i++)
+		{
 			struct hfi1_ibport *ibp = &dd->pport[i].ibport_data;
 
 			hfi1_node_desc_chg(ibp);
 		}
 	}
 
-	if (device_modify_mask & IB_DEVICE_MODIFY_SYS_IMAGE_GUID) {
+	if (device_modify_mask & IB_DEVICE_MODIFY_SYS_IMAGE_GUID)
+	{
 		ib_hfi1_sys_image_guid =
 			cpu_to_be64(device_modify->sys_image_guid);
-		for (i = 0; i < dd->num_pports; i++) {
+
+		for (i = 0; i < dd->num_pports; i++)
+		{
 			struct hfi1_ibport *ibp = &dd->pport[i].ibport_data;
 
 			hfi1_sys_guid_chg(ibp);
@@ -1474,23 +1799,29 @@ static int shut_down_port(struct rvt_dev_info *rdi, u8 port_num)
 	int ret;
 
 	set_link_down_reason(ppd, OPA_LINKDOWN_REASON_UNKNOWN, 0,
-			     OPA_LINKDOWN_REASON_UNKNOWN);
+						 OPA_LINKDOWN_REASON_UNKNOWN);
 	ret = set_link_state(ppd, HLS_DN_DOWNDEF);
 	return ret;
 }
 
 static int hfi1_get_guid_be(struct rvt_dev_info *rdi, struct rvt_ibport *rvp,
-			    int guid_index, __be64 *guid)
+							int guid_index, __be64 *guid)
 {
 	struct hfi1_ibport *ibp = container_of(rvp, struct hfi1_ibport, rvp);
 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
 
 	if (guid_index == 0)
+	{
 		*guid = cpu_to_be64(ppd->guid);
+	}
 	else if (guid_index < HFI1_GUIDS_PER_PORT)
+	{
 		*guid = ibp->guids[guid_index - 1];
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -1517,14 +1848,18 @@ static int hfi1_check_ah(struct ib_device *ibdev, struct ib_ah_attr *ah_attr)
 	ppd = ppd_from_ibp(ibp);
 	sc5 = ibp->sl_to_sc[ah_attr->sl];
 	dd = dd_from_ppd(ppd);
+
 	if (sc_to_vlt(dd, sc5) > num_vls && sc_to_vlt(dd, sc5) != 0xf)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
 static void hfi1_notify_new_ah(struct ib_device *ibdev,
-			       struct ib_ah_attr *ah_attr,
-			       struct rvt_ah *ah)
+							   struct ib_ah_attr *ah_attr,
+							   struct rvt_ah *ah)
 {
 	struct hfi1_ibport *ibp;
 	struct hfi1_pportdata *ppd;
@@ -1541,8 +1876,11 @@ static void hfi1_notify_new_ah(struct ib_device *ibdev,
 	sc5 = ibp->sl_to_sc[ah->attr.sl];
 	dd = dd_from_ppd(ppd);
 	ah->vl = sc_to_vlt(dd, sc5);
+
 	if (ah->vl < num_vls || ah->vl == 15)
+	{
 		ah->log_pmtu = ilog2(dd->vld[ah->vl].mtu);
+	}
 }
 
 struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid)
@@ -1556,8 +1894,12 @@ struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid)
 	attr.port_num = ppd_from_ibp(ibp)->port;
 	rcu_read_lock();
 	qp0 = rcu_dereference(ibp->rvp.qp[0]);
+
 	if (qp0)
+	{
 		ah = ib_create_ah(qp0->ibqp.pd, &attr);
+	}
+
 	rcu_read_unlock();
 	return ah;
 }
@@ -1577,7 +1919,8 @@ static void init_ibport(struct hfi1_pportdata *ppd)
 	size_t sz = ARRAY_SIZE(ibp->sl_to_sc);
 	int i;
 
-	for (i = 0; i < sz; i++) {
+	for (i = 0; i < sz; i++)
+	{
 		ibp->sl_to_sc[i] = i;
 		ibp->sc_to_sl[i] = i;
 	}
@@ -1588,7 +1931,7 @@ static void init_ibport(struct hfi1_pportdata *ppd)
 	ibp->rvp.sm_lid = 0;
 	/* Below should only set bits defined in OPA PortInfo.CapabilityMask */
 	ibp->rvp.port_cap_flags = IB_PORT_AUTO_MIGR_SUP |
-		IB_PORT_CAP_MASK_NOTICE_SUP;
+							  IB_PORT_CAP_MASK_NOTICE_SUP;
 	ibp->rvp.pma_counter_select[0] = IB_PMA_PORT_XMIT_DATA;
 	ibp->rvp.pma_counter_select[1] = IB_PMA_PORT_RCV_DATA;
 	ibp->rvp.pma_counter_select[2] = IB_PMA_PORT_XMIT_PKTS;
@@ -1600,14 +1943,14 @@ static void init_ibport(struct hfi1_pportdata *ppd)
 }
 
 static void hfi1_get_dev_fw_str(struct ib_device *ibdev, char *str,
-				size_t str_len)
+								size_t str_len)
 {
 	struct rvt_dev_info *rdi = ib_to_rvt(ibdev);
 	struct hfi1_ibdev *dev = dev_from_rdi(rdi);
 	u16 ver = dd_from_dev(dev)->dc8051_ver;
 
 	snprintf(str, str_len, "%u.%u", dc8051_ver_maj(ver),
-		 dc8051_ver_min(ver));
+			 dc8051_ver_min(ver));
 }
 
 /**
@@ -1625,7 +1968,9 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
 	size_t lcpysz = IB_DEVICE_NAME_MAX;
 
 	for (i = 0; i < dd->num_pports; i++)
+	{
 		init_ibport(ppd + i);
+	}
 
 	/* Only need to initialize non-zero fields. */
 
@@ -1636,8 +1981,11 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
 	INIT_LIST_HEAD(&dev->memwait);
 
 	ret = verbs_txreq_init(dev);
+
 	if (ret)
+	{
 		goto err_verbs_txreq;
+	}
 
 	/*
 	 * The system image GUID is supposed to be the same for all
@@ -1645,7 +1993,10 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
 	 * device types in the system, we can't be sure this is unique.
 	 */
 	if (!ib_hfi1_sys_image_guid)
+	{
 		ib_hfi1_sys_image_guid = cpu_to_be64(ppd->guid);
+	}
+
 	lcpysz = strlcpy(ibdev->name, class_name(), lcpysz);
 	strlcpy(ibdev->name + lcpysz, "_%d", IB_DEVICE_NAME_MAX - lcpysz);
 	ibdev->owner = THIS_MODULE;
@@ -1659,7 +2010,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
 	ibdev->get_dev_fw_str = hfi1_get_dev_fw_str;
 
 	strncpy(ibdev->node_desc, init_utsname()->nodename,
-		sizeof(ibdev->node_desc));
+			sizeof(ibdev->node_desc));
 
 	/*
 	 * Fill in rvt info object.
@@ -1685,7 +2036,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
 	dd->verbs_dev.rdi.dparms.qos_shift = dd->qos_shift;
 	dd->verbs_dev.rdi.dparms.qpn_res_start = kdeth_qp << 16;
 	dd->verbs_dev.rdi.dparms.qpn_res_end =
-	dd->verbs_dev.rdi.dparms.qpn_res_start + 65535;
+		dd->verbs_dev.rdi.dparms.qpn_res_start + 65535;
 	dd->verbs_dev.rdi.dparms.max_rdma_atomic = HFI1_MAX_RDMA_ATOMIC;
 	dd->verbs_dev.rdi.dparms.psn_mask = PSN_MASK;
 	dd->verbs_dev.rdi.dparms.psn_shift = PSN_SHIFT;
@@ -1714,8 +2065,8 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
 
 	/* completeion queue */
 	snprintf(dd->verbs_dev.rdi.dparms.cq_name,
-		 sizeof(dd->verbs_dev.rdi.dparms.cq_name),
-		 "hfi1_cq%d", dd->unit);
+			 sizeof(dd->verbs_dev.rdi.dparms.cq_name),
+			 "hfi1_cq%d", dd->unit);
 	dd->verbs_dev.rdi.dparms.node = dd->node;
 
 	/* misc settings */
@@ -1728,19 +2079,26 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
 	dd->verbs_dev.rdi.post_parms = hfi1_post_parms;
 
 	ppd = dd->pport;
+
 	for (i = 0; i < dd->num_pports; i++, ppd++)
 		rvt_init_port(&dd->verbs_dev.rdi,
-			      &ppd->ibport_data.rvp,
-			      i,
-			      ppd->pkeys);
+					  &ppd->ibport_data.rvp,
+					  i,
+					  ppd->pkeys);
 
 	ret = rvt_register_device(&dd->verbs_dev.rdi);
+
 	if (ret)
+	{
 		goto err_verbs_txreq;
+	}
 
 	ret = hfi1_verbs_register_sysfs(dd);
+
 	if (ret)
+	{
 		goto err_class;
+	}
 
 	return ret;
 
@@ -1761,9 +2119,14 @@ void hfi1_unregister_ib_device(struct hfi1_devdata *dd)
 	rvt_unregister_device(&dd->verbs_dev.rdi);
 
 	if (!list_empty(&dev->txwait))
+	{
 		dd_dev_err(dd, "txwait list not empty!\n");
+	}
+
 	if (!list_empty(&dev->memwait))
+	{
 		dd_dev_err(dd, "memwait list not empty!\n");
+	}
 
 	del_timer_sync(&dev->mem_timer);
 	verbs_txreq_exit(dev);
@@ -1779,25 +2142,29 @@ void hfi1_cnp_rcv(struct hfi1_packet *packet)
 	u16 rlid = 0;
 	u8 sl, sc5, svc_type;
 
-	switch (packet->qp->ibqp.qp_type) {
-	case IB_QPT_UC:
-		rlid = qp->remote_ah_attr.dlid;
-		rqpn = qp->remote_qpn;
-		svc_type = IB_CC_SVCTYPE_UC;
-		break;
-	case IB_QPT_RC:
-		rlid = qp->remote_ah_attr.dlid;
-		rqpn = qp->remote_qpn;
-		svc_type = IB_CC_SVCTYPE_RC;
-		break;
-	case IB_QPT_SMI:
-	case IB_QPT_GSI:
-	case IB_QPT_UD:
-		svc_type = IB_CC_SVCTYPE_UD;
-		break;
-	default:
-		ibp->rvp.n_pkt_drops++;
-		return;
+	switch (packet->qp->ibqp.qp_type)
+	{
+		case IB_QPT_UC:
+			rlid = qp->remote_ah_attr.dlid;
+			rqpn = qp->remote_qpn;
+			svc_type = IB_CC_SVCTYPE_UC;
+			break;
+
+		case IB_QPT_RC:
+			rlid = qp->remote_ah_attr.dlid;
+			rqpn = qp->remote_qpn;
+			svc_type = IB_CC_SVCTYPE_RC;
+			break;
+
+		case IB_QPT_SMI:
+		case IB_QPT_GSI:
+		case IB_QPT_UD:
+			svc_type = IB_CC_SVCTYPE_UD;
+			break;
+
+		default:
+			ibp->rvp.n_pkt_drops++;
+			return;
 	}
 
 	sc5 = hdr2sc(hdr, packet->rhf);

@@ -3,7 +3,8 @@
 #include <core/device.h>
 #include <core/mm.h>
 
-struct nvkm_device_tegra {
+struct nvkm_device_tegra
+{
 	const struct nvkm_device_tegra_func *func;
 	struct nvkm_device device;
 	struct platform_device *pdev;
@@ -16,7 +17,8 @@ struct nvkm_device_tegra {
 
 	struct regulator *vdd;
 
-	struct {
+	struct
+	{
 		/*
 		 * Protects accesses to mm from subsystems
 		 */
@@ -31,7 +33,8 @@ struct nvkm_device_tegra {
 	int gpu_speedo_id;
 };
 
-struct nvkm_device_tegra_func {
+struct nvkm_device_tegra_func
+{
 	/*
 	 * If an IOMMU is used, indicates which address bit will trigger a
 	 * IOMMU translation when set (when this bit is not set, IOMMU is
@@ -45,8 +48,8 @@ struct nvkm_device_tegra_func {
 };
 
 int nvkm_device_tegra_new(const struct nvkm_device_tegra_func *,
-			  struct platform_device *,
-			  const char *cfg, const char *dbg,
-			  bool detect, bool mmio, u64 subdev_mask,
-			  struct nvkm_device **);
+						  struct platform_device *,
+						  const char *cfg, const char *dbg,
+						  bool detect, bool mmio, u64 subdev_mask,
+						  struct nvkm_device **);
 #endif

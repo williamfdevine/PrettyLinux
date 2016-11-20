@@ -29,23 +29,26 @@
 #define BRCMF_NROF_H2D_COMMON_MSGRINGS		2
 #define BRCMF_NROF_D2H_COMMON_MSGRINGS		3
 #define BRCMF_NROF_COMMON_MSGRINGS	(BRCMF_NROF_H2D_COMMON_MSGRINGS + \
-					 BRCMF_NROF_D2H_COMMON_MSGRINGS)
+									 BRCMF_NROF_D2H_COMMON_MSGRINGS)
 
 /* The level of bus communication with the dongle */
-enum brcmf_bus_state {
+enum brcmf_bus_state
+{
 	BRCMF_BUS_DOWN,		/* Not ready for frame transfers */
 	BRCMF_BUS_UP		/* Ready for frame transfers */
 };
 
 /* The level of bus communication with the dongle */
-enum brcmf_bus_protocol_type {
+enum brcmf_bus_protocol_type
+{
 	BRCMF_PROTO_BCDC,
 	BRCMF_PROTO_MSGBUF
 };
 
 struct brcmf_mp_device;
 
-struct brcmf_bus_dcmd {
+struct brcmf_bus_dcmd
+{
 	char *name;
 	char *param;
 	int param_len;
@@ -75,13 +78,14 @@ struct brcmf_bus_dcmd {
  * will assure there is only one active transaction. Unless
  * indicated otherwise these callbacks are mandatory.
  */
-struct brcmf_bus_ops {
+struct brcmf_bus_ops
+{
 	int (*preinit)(struct device *dev);
 	void (*stop)(struct device *dev);
 	int (*txdata)(struct device *dev, struct sk_buff *skb);
 	int (*txctl)(struct device *dev, unsigned char *msg, uint len);
 	int (*rxctl)(struct device *dev, unsigned char *msg, uint len);
-	struct pktq * (*gettxq)(struct device *dev);
+	struct pktq *(*gettxq)(struct device *dev);
 	void (*wowl_config)(struct device *dev, bool enabled);
 	size_t (*get_ramsize)(struct device *dev);
 	int (*get_memdump)(struct device *dev, void *data, size_t len);
@@ -97,7 +101,8 @@ struct brcmf_bus_ops {
  * @max_rxbufpost: maximum number of buffers to post for rx.
  * @nrof_flowrings: number of flowrings.
  */
-struct brcmf_bus_msgbuf {
+struct brcmf_bus_msgbuf
+{
 	struct brcmf_commonring *commonrings[BRCMF_NROF_COMMON_MSGRINGS];
 	struct brcmf_commonring **flowrings;
 	u32 rx_dataoffset;
@@ -122,8 +127,10 @@ struct brcmf_bus_msgbuf {
  * @wowl_supported: is wowl supported by bus driver.
  * @chiprev: revision of the dongle chip.
  */
-struct brcmf_bus {
-	union {
+struct brcmf_bus
+{
+	union
+	{
 		struct brcmf_sdio_dev *sdio;
 		struct brcmf_usbdev *usb;
 		struct brcmf_pciedev *pcie;
@@ -149,7 +156,10 @@ struct brcmf_bus {
 static inline int brcmf_bus_preinit(struct brcmf_bus *bus)
 {
 	if (!bus->ops->preinit)
+	{
 		return 0;
+	}
+
 	return bus->ops->preinit(bus->dev);
 }
 
@@ -179,7 +189,9 @@ static inline
 struct pktq *brcmf_bus_gettxq(struct brcmf_bus *bus)
 {
 	if (!bus->ops->gettxq)
+	{
 		return ERR_PTR(-ENOENT);
+	}
 
 	return bus->ops->gettxq(bus->dev);
 }
@@ -188,13 +200,17 @@ static inline
 void brcmf_bus_wowl_config(struct brcmf_bus *bus, bool enabled)
 {
 	if (bus->ops->wowl_config)
+	{
 		bus->ops->wowl_config(bus->dev, enabled);
+	}
 }
 
 static inline size_t brcmf_bus_get_ramsize(struct brcmf_bus *bus)
 {
 	if (!bus->ops->get_ramsize)
+	{
 		return 0;
+	}
 
 	return bus->ops->get_ramsize(bus->dev);
 }
@@ -203,7 +219,9 @@ static inline
 int brcmf_bus_get_memdump(struct brcmf_bus *bus, void *data, size_t len)
 {
 	if (!bus->ops->get_memdump)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	return bus->ops->get_memdump(bus->dev, data, len);
 }
@@ -213,7 +231,7 @@ int brcmf_bus_get_memdump(struct brcmf_bus *bus, void *data, size_t len)
  */
 
 bool brcmf_c_prec_enq(struct device *dev, struct pktq *q, struct sk_buff *pkt,
-		      int prec);
+					  int prec);
 
 /* Receive frame for delivery to OS.  Callee disposes of rxp. */
 void brcmf_rx_frame(struct device *dev, struct sk_buff *rxp, bool handle_event);
@@ -240,13 +258,13 @@ s32 brcmf_iovar_data_set(struct device *dev, char *name, void *data, u32 len);
 void brcmf_bus_add_txhdrlen(struct device *dev, uint len);
 
 #ifdef CONFIG_BRCMFMAC_SDIO
-void brcmf_sdio_exit(void);
-void brcmf_sdio_init(void);
-void brcmf_sdio_register(void);
+	void brcmf_sdio_exit(void);
+	void brcmf_sdio_init(void);
+	void brcmf_sdio_register(void);
 #endif
 #ifdef CONFIG_BRCMFMAC_USB
-void brcmf_usb_exit(void);
-void brcmf_usb_register(void);
+	void brcmf_usb_exit(void);
+	void brcmf_usb_register(void);
 #endif
 
 #endif /* BRCMFMAC_BUS_H */

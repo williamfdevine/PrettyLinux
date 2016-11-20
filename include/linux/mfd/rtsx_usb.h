@@ -48,7 +48,8 @@
 #define CHECK_PKG(ucr, pkg)	((ucr)->package == (pkg))
 
 /* data structures */
-struct rtsx_ucr {
+struct rtsx_ucr
+{
 	u16			vendor_id;
 	u16			product_id;
 
@@ -80,25 +81,25 @@ extern int rtsx_usb_get_card_status(struct rtsx_ucr *ucr, u16 *status);
 
 extern int rtsx_usb_read_register(struct rtsx_ucr *ucr, u16 addr, u8 *data);
 extern int rtsx_usb_write_register(struct rtsx_ucr *ucr, u16 addr, u8 mask,
-		u8 data);
+								   u8 data);
 
 extern int rtsx_usb_ep0_write_register(struct rtsx_ucr *ucr, u16 addr, u8 mask,
-		u8 data);
+									   u8 data);
 extern int rtsx_usb_ep0_read_register(struct rtsx_ucr *ucr, u16 addr,
-		u8 *data);
+									  u8 *data);
 
 extern void rtsx_usb_add_cmd(struct rtsx_ucr *ucr, u8 cmd_type,
-		u16 reg_addr, u8 mask, u8 data);
+							 u16 reg_addr, u8 mask, u8 data);
 extern int rtsx_usb_send_cmd(struct rtsx_ucr *ucr, u8 flag, int timeout);
 extern int rtsx_usb_get_rsp(struct rtsx_ucr *ucr, int rsp_len, int timeout);
 extern int rtsx_usb_transfer_data(struct rtsx_ucr *ucr, unsigned int pipe,
-			      void *buf, unsigned int len, int use_sg,
-			      unsigned int *act_len, int timeout);
+								  void *buf, unsigned int len, int use_sg,
+								  unsigned int *act_len, int timeout);
 
 extern int rtsx_usb_read_ppbuf(struct rtsx_ucr *ucr, u8 *buf, int buf_len);
 extern int rtsx_usb_write_ppbuf(struct rtsx_ucr *ucr, u8 *buf, int buf_len);
 extern int rtsx_usb_switch_clock(struct rtsx_ucr *ucr, unsigned int card_clock,
-		u8 ssc_depth, bool initial_mode, bool double_clk, bool vpclk);
+								 u8 ssc_depth, bool initial_mode, bool double_clk, bool vpclk);
 extern int rtsx_usb_card_exclusive_check(struct rtsx_ucr *ucr, int card);
 
 /* card status */
@@ -622,7 +623,7 @@ static inline void rtsx_usb_clear_fsm_err(struct rtsx_ucr *ucr)
 static inline void rtsx_usb_clear_dma_err(struct rtsx_ucr *ucr)
 {
 	rtsx_usb_ep0_write_register(ucr, MC_FIFO_CTL,
-			FIFO_FLUSH, FIFO_FLUSH);
+								FIFO_FLUSH, FIFO_FLUSH);
 	rtsx_usb_ep0_write_register(ucr, MC_DMA_RST, DMA_RESET, DMA_RESET);
 }
 #endif /* __RTS51139_H */

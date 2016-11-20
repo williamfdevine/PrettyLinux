@@ -17,7 +17,8 @@
    Magnus Alm <magnus.alm@gmail.com>
  */
 
-static struct rc_map_table winfast_usbii_deluxe[] = {
+static struct rc_map_table winfast_usbii_deluxe[] =
+{
 	{ 0x62, KEY_0},
 	{ 0x75, KEY_1},
 	{ 0x76, KEY_2},
@@ -57,7 +58,8 @@ static struct rc_map_table winfast_usbii_deluxe[] = {
 
 };
 
-static struct rc_map_list winfast_usbii_deluxe_map = {
+static struct rc_map_list winfast_usbii_deluxe_map =
+{
 	.map = {
 		.scan    = winfast_usbii_deluxe,
 		.size    = ARRAY_SIZE(winfast_usbii_deluxe),

@@ -18,7 +18,8 @@
 
 #include "smiapp.h"
 
-struct smiapp_reg_limits smiapp_reg_limits[] = {
+struct smiapp_reg_limits smiapp_reg_limits[] =
+{
 	{ SMIAPP_REG_U16_ANALOGUE_GAIN_CAPABILITY, "analogue_gain_capability" }, /* 0 */
 	{ SMIAPP_REG_U16_ANALOGUE_GAIN_CODE_MIN, "analogue_gain_code_min" },
 	{ SMIAPP_REG_U16_ANALOGUE_GAIN_CODE_MAX, "analogue_gain_code_max" },

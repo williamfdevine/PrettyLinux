@@ -78,64 +78,64 @@
 #define BNA_PCI_REG_CT_ADDRSZ		(0x40000)
 
 #define ct_reg_addr_init(_bna, _pcidev)					\
-{									\
-	struct bna_reg_offset reg_offset[] =				\
-	{{HOSTFN0_INT_STATUS, HOSTFN0_INT_MSK},				\
-	 {HOSTFN1_INT_STATUS, HOSTFN1_INT_MSK},				\
-	 {HOSTFN2_INT_STATUS, HOSTFN2_INT_MSK},				\
-	 {HOSTFN3_INT_STATUS, HOSTFN3_INT_MSK} };			\
-									\
-	(_bna)->regs.fn_int_status = (_pcidev)->pci_bar_kva +		\
-				reg_offset[(_pcidev)->pci_func].fn_int_status;\
-	(_bna)->regs.fn_int_mask = (_pcidev)->pci_bar_kva +		\
-				reg_offset[(_pcidev)->pci_func].fn_int_mask;\
-}
+	{									\
+		struct bna_reg_offset reg_offset[] =				\
+		{{HOSTFN0_INT_STATUS, HOSTFN0_INT_MSK},				\
+			{HOSTFN1_INT_STATUS, HOSTFN1_INT_MSK},				\
+			{HOSTFN2_INT_STATUS, HOSTFN2_INT_MSK},				\
+			{HOSTFN3_INT_STATUS, HOSTFN3_INT_MSK} };			\
+		\
+		(_bna)->regs.fn_int_status = (_pcidev)->pci_bar_kva +		\
+									 reg_offset[(_pcidev)->pci_func].fn_int_status;\
+		(_bna)->regs.fn_int_mask = (_pcidev)->pci_bar_kva +		\
+								   reg_offset[(_pcidev)->pci_func].fn_int_mask;\
+	}
 
 #define ct_bit_defn_init(_bna, _pcidev)					\
-{									\
-	(_bna)->bits.mbox_status_bits = (__HFN_INT_MBOX_LPU0 |		\
-					__HFN_INT_MBOX_LPU1);		\
-	(_bna)->bits.mbox_mask_bits = (__HFN_INT_MBOX_LPU0 |		\
-					__HFN_INT_MBOX_LPU1);		\
-	(_bna)->bits.error_status_bits = (__HFN_INT_ERR_MASK);		\
-	(_bna)->bits.error_mask_bits = (__HFN_INT_ERR_MASK);		\
-	(_bna)->bits.halt_status_bits = __HFN_INT_LL_HALT;		\
-	(_bna)->bits.halt_mask_bits = __HFN_INT_LL_HALT;		\
-}
+	{									\
+		(_bna)->bits.mbox_status_bits = (__HFN_INT_MBOX_LPU0 |		\
+										 __HFN_INT_MBOX_LPU1);		\
+		(_bna)->bits.mbox_mask_bits = (__HFN_INT_MBOX_LPU0 |		\
+									   __HFN_INT_MBOX_LPU1);		\
+		(_bna)->bits.error_status_bits = (__HFN_INT_ERR_MASK);		\
+		(_bna)->bits.error_mask_bits = (__HFN_INT_ERR_MASK);		\
+		(_bna)->bits.halt_status_bits = __HFN_INT_LL_HALT;		\
+		(_bna)->bits.halt_mask_bits = __HFN_INT_LL_HALT;		\
+	}
 
 #define ct2_reg_addr_init(_bna, _pcidev)				\
-{									\
-	(_bna)->regs.fn_int_status = (_pcidev)->pci_bar_kva +		\
-				CT2_HOSTFN_INT_STATUS;			\
-	(_bna)->regs.fn_int_mask = (_pcidev)->pci_bar_kva +		\
-				CT2_HOSTFN_INTR_MASK;			\
-}
+	{									\
+		(_bna)->regs.fn_int_status = (_pcidev)->pci_bar_kva +		\
+									 CT2_HOSTFN_INT_STATUS;			\
+		(_bna)->regs.fn_int_mask = (_pcidev)->pci_bar_kva +		\
+								   CT2_HOSTFN_INTR_MASK;			\
+	}
 
 #define ct2_bit_defn_init(_bna, _pcidev)				\
-{									\
-	(_bna)->bits.mbox_status_bits = (__HFN_INT_MBOX_LPU0_CT2 |	\
-					__HFN_INT_MBOX_LPU1_CT2);	\
-	(_bna)->bits.mbox_mask_bits = (__HFN_INT_MBOX_LPU0_CT2 |	\
-					__HFN_INT_MBOX_LPU1_CT2);	\
-	(_bna)->bits.error_status_bits = (__HFN_INT_ERR_MASK_CT2);	\
-	(_bna)->bits.error_mask_bits = (__HFN_INT_ERR_MASK_CT2);	\
-	(_bna)->bits.halt_status_bits = __HFN_INT_CPQ_HALT_CT2;		\
-	(_bna)->bits.halt_mask_bits = __HFN_INT_CPQ_HALT_CT2;		\
-}
+	{									\
+		(_bna)->bits.mbox_status_bits = (__HFN_INT_MBOX_LPU0_CT2 |	\
+										 __HFN_INT_MBOX_LPU1_CT2);	\
+		(_bna)->bits.mbox_mask_bits = (__HFN_INT_MBOX_LPU0_CT2 |	\
+									   __HFN_INT_MBOX_LPU1_CT2);	\
+		(_bna)->bits.error_status_bits = (__HFN_INT_ERR_MASK_CT2);	\
+		(_bna)->bits.error_mask_bits = (__HFN_INT_ERR_MASK_CT2);	\
+		(_bna)->bits.halt_status_bits = __HFN_INT_CPQ_HALT_CT2;		\
+		(_bna)->bits.halt_mask_bits = __HFN_INT_CPQ_HALT_CT2;		\
+	}
 
 #define bna_reg_addr_init(_bna, _pcidev)				\
-{									\
-	switch ((_pcidev)->device_id) {					\
-	case PCI_DEVICE_ID_BROCADE_CT:					\
-		ct_reg_addr_init((_bna), (_pcidev));			\
-		ct_bit_defn_init((_bna), (_pcidev));			\
-		break;							\
-	case BFA_PCI_DEVICE_ID_CT2:					\
-		ct2_reg_addr_init((_bna), (_pcidev));			\
-		ct2_bit_defn_init((_bna), (_pcidev));			\
-		break;							\
-	}								\
-}
+	{									\
+		switch ((_pcidev)->device_id) {					\
+			case PCI_DEVICE_ID_BROCADE_CT:					\
+				ct_reg_addr_init((_bna), (_pcidev));			\
+				ct_bit_defn_init((_bna), (_pcidev));			\
+				break;							\
+			case BFA_PCI_DEVICE_ID_CT2:					\
+				ct2_reg_addr_init((_bna), (_pcidev));			\
+				ct2_bit_defn_init((_bna), (_pcidev));			\
+				break;							\
+		}								\
+	}
 
 #define bna_port_id_get(_bna) ((_bna)->ioceth.ioc.port_id)
 
@@ -154,54 +154,54 @@
 
 #define BNA_IS_MBOX_ERR_INTR(_bna, _intr_status)	\
 	(BNA_IS_MBOX_INTR(_bna, _intr_status) |		\
-	BNA_IS_ERR_INTR(_bna, _intr_status))
+	 BNA_IS_ERR_INTR(_bna, _intr_status))
 
 #define BNA_IS_INTX_DATA_INTR(_intr_status)		\
-		((_intr_status) & IB_STATUS_BITS)
+	((_intr_status) & IB_STATUS_BITS)
 
 #define bna_halt_clear(_bna)						\
-do {									\
-	u32 init_halt;						\
-	init_halt = readl((_bna)->ioceth.ioc.ioc_regs.ll_halt);	\
-	init_halt &= ~__FW_INIT_HALT_P;					\
-	writel(init_halt, (_bna)->ioceth.ioc.ioc_regs.ll_halt);	\
-	init_halt = readl((_bna)->ioceth.ioc.ioc_regs.ll_halt);	\
-} while (0)
+	do {									\
+		u32 init_halt;						\
+		init_halt = readl((_bna)->ioceth.ioc.ioc_regs.ll_halt);	\
+		init_halt &= ~__FW_INIT_HALT_P;					\
+		writel(init_halt, (_bna)->ioceth.ioc.ioc_regs.ll_halt);	\
+		init_halt = readl((_bna)->ioceth.ioc.ioc_regs.ll_halt);	\
+	} while (0)
 
 #define bna_intx_disable(_bna, _cur_mask)				\
-{									\
-	(_cur_mask) = readl((_bna)->regs.fn_int_mask);		\
-	writel(0xffffffff, (_bna)->regs.fn_int_mask);		\
-}
+	{									\
+		(_cur_mask) = readl((_bna)->regs.fn_int_mask);		\
+		writel(0xffffffff, (_bna)->regs.fn_int_mask);		\
+	}
 
 #define bna_intx_enable(bna, new_mask)					\
 	writel((new_mask), (bna)->regs.fn_int_mask)
 #define bna_mbox_intr_disable(bna)					\
-do {									\
-	u32 mask;							\
-	mask = readl((bna)->regs.fn_int_mask);				\
-	writel((mask | (bna)->bits.mbox_mask_bits |			\
-		(bna)->bits.error_mask_bits), (bna)->regs.fn_int_mask); \
-	mask = readl((bna)->regs.fn_int_mask);				\
-} while (0)
+	do {									\
+		u32 mask;							\
+		mask = readl((bna)->regs.fn_int_mask);				\
+		writel((mask | (bna)->bits.mbox_mask_bits |			\
+				(bna)->bits.error_mask_bits), (bna)->regs.fn_int_mask); \
+		mask = readl((bna)->regs.fn_int_mask);				\
+	} while (0)
 
 #define bna_mbox_intr_enable(bna)					\
-do {									\
-	u32 mask;							\
-	mask = readl((bna)->regs.fn_int_mask);				\
-	writel((mask & ~((bna)->bits.mbox_mask_bits |			\
-		(bna)->bits.error_mask_bits)), (bna)->regs.fn_int_mask);\
-	mask = readl((bna)->regs.fn_int_mask);				\
-} while (0)
+	do {									\
+		u32 mask;							\
+		mask = readl((bna)->regs.fn_int_mask);				\
+		writel((mask & ~((bna)->bits.mbox_mask_bits |			\
+						 (bna)->bits.error_mask_bits)), (bna)->regs.fn_int_mask);\
+		mask = readl((bna)->regs.fn_int_mask);				\
+	} while (0)
 
 #define bna_intr_status_get(_bna, _status)				\
-{									\
-	(_status) = readl((_bna)->regs.fn_int_status);			\
-	if (_status) {							\
-		writel(((_status) & ~(_bna)->bits.mbox_status_bits),	\
-			(_bna)->regs.fn_int_status);			\
-	}								\
-}
+	{									\
+		(_status) = readl((_bna)->regs.fn_int_status);			\
+		if (_status) {							\
+			writel(((_status) & ~(_bna)->bits.mbox_status_bits),	\
+				   (_bna)->regs.fn_int_status);			\
+		}								\
+	}
 
 /*
  * MAX ACK EVENTS : No. of acks that can be accumulated in driver,
@@ -231,48 +231,48 @@ do {									\
 /* Acks 'events' # of events for a given ib while disabling interrupts */
 #define bna_ib_ack_disable_irq(_i_dbell, _events)			\
 	(writel(BNA_DOORBELL_IB_INT_ACK(0, (_events)), \
-		(_i_dbell)->doorbell_addr));
+			(_i_dbell)->doorbell_addr));
 
 /* Acks 'events' # of events for a given ib */
 #define bna_ib_ack(_i_dbell, _events)					\
 	(writel(((_i_dbell)->doorbell_ack | (_events)), \
-		(_i_dbell)->doorbell_addr));
+			(_i_dbell)->doorbell_addr));
 
 #define bna_ib_start(_bna, _ib, _is_regular)				\
-{									\
-	u32 intx_mask;						\
-	struct bna_ib *ib = _ib;					\
-	if ((ib->intr_type == BNA_INTR_T_INTX)) {			\
-		bna_intx_disable((_bna), intx_mask);			\
-		intx_mask &= ~(ib->intr_vector);			\
-		bna_intx_enable((_bna), intx_mask);			\
-	}								\
-	bna_ib_coalescing_timer_set(&ib->door_bell,			\
-			ib->coalescing_timeo);				\
-	if (_is_regular)						\
-		bna_ib_ack(&ib->door_bell, 0);				\
-}
+	{									\
+		u32 intx_mask;						\
+		struct bna_ib *ib = _ib;					\
+		if ((ib->intr_type == BNA_INTR_T_INTX)) {			\
+			bna_intx_disable((_bna), intx_mask);			\
+			intx_mask &= ~(ib->intr_vector);			\
+			bna_intx_enable((_bna), intx_mask);			\
+		}								\
+		bna_ib_coalescing_timer_set(&ib->door_bell,			\
+									ib->coalescing_timeo);				\
+		if (_is_regular)						\
+			bna_ib_ack(&ib->door_bell, 0);				\
+	}
 
 #define bna_ib_stop(_bna, _ib)						\
-{									\
-	u32 intx_mask;						\
-	struct bna_ib *ib = _ib;					\
-	writel(BNA_DOORBELL_IB_INT_DISABLE,				\
-		ib->door_bell.doorbell_addr);				\
-	if (ib->intr_type == BNA_INTR_T_INTX) {				\
-		bna_intx_disable((_bna), intx_mask);			\
-		intx_mask |= ib->intr_vector;				\
-		bna_intx_enable((_bna), intx_mask);			\
-	}								\
-}
+	{									\
+		u32 intx_mask;						\
+		struct bna_ib *ib = _ib;					\
+		writel(BNA_DOORBELL_IB_INT_DISABLE,				\
+			   ib->door_bell.doorbell_addr);				\
+		if (ib->intr_type == BNA_INTR_T_INTX) {				\
+			bna_intx_disable((_bna), intx_mask);			\
+			intx_mask |= ib->intr_vector;				\
+			bna_intx_enable((_bna), intx_mask);			\
+		}								\
+	}
 
 #define bna_txq_prod_indx_doorbell(_tcb)				\
 	(writel(BNA_DOORBELL_Q_PRD_IDX((_tcb)->producer_index), \
-		(_tcb)->q_dbell));
+			(_tcb)->q_dbell));
 
 #define bna_rxq_prod_indx_doorbell(_rcb)				\
 	(writel(BNA_DOORBELL_Q_PRD_IDX((_rcb)->producer_index), \
-		(_rcb)->q_dbell));
+			(_rcb)->q_dbell));
 
 /* TxQ, RxQ, CQ related bits, offsets, macros */
 
@@ -291,7 +291,7 @@ do {									\
 #define BNA_TXQ_WI_CF_IP_CKSUM		BIT(0)
 
 #define BNA_TXQ_WI_L4_HDR_N_OFFSET(_hdr_size, _offset) \
-		(((_hdr_size) << 10) | ((_offset) & 0x3FF))
+	(((_hdr_size) << 10) | ((_offset) & 0x3FF))
 
 /*
  * Completion Q defines
@@ -330,12 +330,14 @@ do {									\
 
 /* Data structures */
 
-struct bna_reg_offset {
+struct bna_reg_offset
+{
 	u32 fn_int_status;
 	u32 fn_int_mask;
 };
 
-struct bna_bit_defn {
+struct bna_bit_defn
+{
 	u32 mbox_status_bits;
 	u32 mbox_mask_bits;
 	u32 error_status_bits;
@@ -344,18 +346,21 @@ struct bna_bit_defn {
 	u32 halt_mask_bits;
 };
 
-struct bna_reg {
+struct bna_reg
+{
 	void __iomem *fn_int_status;
 	void __iomem *fn_int_mask;
 };
 
 /* TxQ Vector (a.k.a. Tx-Buffer Descriptor) */
-struct bna_dma_addr {
+struct bna_dma_addr
+{
 	u32		msb;
 	u32		lsb;
 };
 
-struct bna_txq_wi_vector {
+struct bna_txq_wi_vector
+{
 	u16		reserved;
 	u16		length;		/* Only 14 LSB are valid */
 	struct bna_dma_addr host_addr; /* Tx-Buf DMA addr */
@@ -365,14 +370,17 @@ struct bna_txq_wi_vector {
  *
  *  BEWARE:  Load values into this structure with correct endianness.
  */
-struct bna_txq_entry {
-	union {
-		struct {
+struct bna_txq_entry
+{
+	union
+	{
+		struct
+		{
 			u8 reserved;
 			u8 num_vectors;	/* number of vectors present */
 			u16 opcode; /* Either */
-						    /* BNA_TXQ_WI_SEND or */
-						    /* BNA_TXQ_WI_SEND_LSO */
+			/* BNA_TXQ_WI_SEND or */
+			/* BNA_TXQ_WI_SEND_LSO */
 			u16 flags; /* OR of all the flags */
 			u16 l4_hdr_size_n_offset;
 			u16 vlan_tag;
@@ -380,24 +388,27 @@ struct bna_txq_entry {
 			u32 frame_length;	/* Only 24 LSB are valid */
 		} wi;
 
-		struct {
+		struct
+		{
 			u16 reserved;
 			u16 opcode; /* Must be */
-						    /* BNA_TXQ_WI_EXTENSION */
+			/* BNA_TXQ_WI_EXTENSION */
 			u32 reserved2[3];	/* Place holder for */
-						/* removed vector (12 bytes) */
+			/* removed vector (12 bytes) */
 		} wi_ext;
 	} hdr;
 	struct bna_txq_wi_vector vector[4];
 };
 
 /* RxQ Entry Structure */
-struct bna_rxq_entry {		/* Rx-Buffer */
+struct bna_rxq_entry  		/* Rx-Buffer */
+{
 	struct bna_dma_addr host_addr; /* Rx-Buffer DMA address */
 };
 
 /* CQ Entry Structure */
-struct bna_cq_entry {
+struct bna_cq_entry
+{
 	u32 flags;
 	u16 vlan_tag;
 	u16 length;

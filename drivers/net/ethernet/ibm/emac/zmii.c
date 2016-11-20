@@ -33,7 +33,7 @@
 /* ZMIIx_FER */
 #define ZMII_FER_MDI(idx)	(0x80000000 >> ((idx) * 4))
 #define ZMII_FER_MDI_ALL	(ZMII_FER_MDI(0) | ZMII_FER_MDI(1) | \
-				 ZMII_FER_MDI(2) | ZMII_FER_MDI(3))
+							 ZMII_FER_MDI(2) | ZMII_FER_MDI(3))
 
 #define ZMII_FER_SMII(idx)	(0x40000000 >> ((idx) * 4))
 #define ZMII_FER_RMII(idx)	(0x20000000 >> ((idx) * 4))
@@ -50,36 +50,44 @@
 static inline int zmii_valid_mode(int mode)
 {
 	return  mode == PHY_MODE_MII ||
-		mode == PHY_MODE_RMII ||
-		mode == PHY_MODE_SMII ||
-		mode == PHY_MODE_NA;
+			mode == PHY_MODE_RMII ||
+			mode == PHY_MODE_SMII ||
+			mode == PHY_MODE_NA;
 }
 
 static inline const char *zmii_mode_name(int mode)
 {
-	switch (mode) {
-	case PHY_MODE_MII:
-		return "MII";
-	case PHY_MODE_RMII:
-		return "RMII";
-	case PHY_MODE_SMII:
-		return "SMII";
-	default:
-		BUG();
+	switch (mode)
+	{
+		case PHY_MODE_MII:
+			return "MII";
+
+		case PHY_MODE_RMII:
+			return "RMII";
+
+		case PHY_MODE_SMII:
+			return "SMII";
+
+		default:
+			BUG();
 	}
 }
 
 static inline u32 zmii_mode_mask(int mode, int input)
 {
-	switch (mode) {
-	case PHY_MODE_MII:
-		return ZMII_FER_MII(input);
-	case PHY_MODE_RMII:
-		return ZMII_FER_RMII(input);
-	case PHY_MODE_SMII:
-		return ZMII_FER_SMII(input);
-	default:
-		return 0;
+	switch (mode)
+	{
+		case PHY_MODE_MII:
+			return ZMII_FER_MII(input);
+
+		case PHY_MODE_RMII:
+			return ZMII_FER_RMII(input);
+
+		case PHY_MODE_SMII:
+			return ZMII_FER_SMII(input);
+
+		default:
+			return 0;
 	}
 }
 
@@ -90,7 +98,8 @@ int zmii_attach(struct platform_device *ofdev, int input, int *mode)
 
 	ZMII_DBG(dev, "init(%d, %d)" NL, input, *mode);
 
-	if (!zmii_valid_mode(*mode)) {
+	if (!zmii_valid_mode(*mode))
+	{
 		/* Probably an EMAC connected to RGMII,
 		 * but it still may need ZMII for MDIO so
 		 * we don't fail here.
@@ -106,30 +115,44 @@ int zmii_attach(struct platform_device *ofdev, int input, int *mode)
 	 * Please, always specify PHY mode in your board port to avoid
 	 * any surprises.
 	 */
-	if (dev->mode == PHY_MODE_NA) {
-		if (*mode == PHY_MODE_NA) {
+	if (dev->mode == PHY_MODE_NA)
+	{
+		if (*mode == PHY_MODE_NA)
+		{
 			u32 r = dev->fer_save;
 
 			ZMII_DBG(dev, "autodetecting mode, FER = 0x%08x" NL, r);
 
 			if (r & (ZMII_FER_MII(0) | ZMII_FER_MII(1)))
+			{
 				dev->mode = PHY_MODE_MII;
+			}
 			else if (r & (ZMII_FER_RMII(0) | ZMII_FER_RMII(1)))
+			{
 				dev->mode = PHY_MODE_RMII;
+			}
 			else
+			{
 				dev->mode = PHY_MODE_SMII;
-		} else
+			}
+		}
+		else
+		{
 			dev->mode = *mode;
+		}
 
 		printk(KERN_NOTICE "%s: bridge in %s mode\n",
-		       ofdev->dev.of_node->full_name,
-		       zmii_mode_name(dev->mode));
-	} else {
+			   ofdev->dev.of_node->full_name,
+			   zmii_mode_name(dev->mode));
+	}
+	else
+	{
 		/* All inputs must use the same mode */
-		if (*mode != PHY_MODE_NA && *mode != dev->mode) {
+		if (*mode != PHY_MODE_NA && *mode != dev->mode)
+		{
 			printk(KERN_ERR
-			       "%s: invalid mode %d specified for input %d\n",
-			       ofdev->dev.of_node->full_name, *mode, input);
+				   "%s: invalid mode %d specified for input %d\n",
+				   ofdev->dev.of_node->full_name, *mode, input);
 			mutex_unlock(&dev->lock);
 			return -EINVAL;
 		}
@@ -183,9 +206,13 @@ void zmii_set_speed(struct platform_device *ofdev, int input, int speed)
 	ZMII_DBG(dev, "speed(%d, %d)" NL, input, speed);
 
 	if (speed == SPEED_100)
+	{
 		ssr |= ZMII_SSR_SP(input);
+	}
 	else
+	{
 		ssr &= ~ZMII_SSR_SP(input);
+	}
 
 	out_be32(&dev->base->ssr, ssr);
 
@@ -204,7 +231,7 @@ void zmii_detach(struct platform_device *ofdev, int input)
 
 	/* Disable this input */
 	out_be32(&dev->base->fer,
-		 in_be32(&dev->base->fer) & ~zmii_mode_mask(dev->mode, input));
+			 in_be32(&dev->base->fer) & ~zmii_mode_mask(dev->mode, input));
 
 	--dev->users;
 
@@ -214,7 +241,7 @@ void zmii_detach(struct platform_device *ofdev, int input)
 int zmii_get_regs_len(struct platform_device *ofdev)
 {
 	return sizeof(struct emac_ethtool_regs_subhdr) +
-		sizeof(struct zmii_regs);
+		   sizeof(struct zmii_regs);
 }
 
 void *zmii_dump_regs(struct platform_device *ofdev, void *buf)
@@ -241,26 +268,33 @@ static int zmii_probe(struct platform_device *ofdev)
 
 	rc = -ENOMEM;
 	dev = kzalloc(sizeof(struct zmii_instance), GFP_KERNEL);
+
 	if (dev == NULL)
+	{
 		goto err_gone;
+	}
 
 	mutex_init(&dev->lock);
 	dev->ofdev = ofdev;
 	dev->mode = PHY_MODE_NA;
 
 	rc = -ENXIO;
-	if (of_address_to_resource(np, 0, &regs)) {
+
+	if (of_address_to_resource(np, 0, &regs))
+	{
 		printk(KERN_ERR "%s: Can't get registers address\n",
-		       np->full_name);
+			   np->full_name);
 		goto err_free;
 	}
 
 	rc = -ENOMEM;
 	dev->base = (struct zmii_regs __iomem *)ioremap(regs.start,
-						sizeof(struct zmii_regs));
-	if (dev->base == NULL) {
+				sizeof(struct zmii_regs));
+
+	if (dev->base == NULL)
+	{
 		printk(KERN_ERR "%s: Can't map device registers!\n",
-		       np->full_name);
+			   np->full_name);
 		goto err_free;
 	}
 
@@ -271,15 +305,15 @@ static int zmii_probe(struct platform_device *ofdev)
 	out_be32(&dev->base->fer, 0);
 
 	printk(KERN_INFO
-	       "ZMII %s initialized\n", ofdev->dev.of_node->full_name);
+		   "ZMII %s initialized\n", ofdev->dev.of_node->full_name);
 	wmb();
 	platform_set_drvdata(ofdev, dev);
 
 	return 0;
 
- err_free:
+err_free:
 	kfree(dev);
- err_gone:
+err_gone:
 	return rc;
 }
 
@@ -307,7 +341,8 @@ static const struct of_device_id zmii_match[] =
 	{},
 };
 
-static struct platform_driver zmii_driver = {
+static struct platform_driver zmii_driver =
+{
 	.driver = {
 		.name = "emac-zmii",
 		.of_match_table = zmii_match,

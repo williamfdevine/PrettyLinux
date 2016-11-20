@@ -42,14 +42,19 @@ nilfs_btnode_create_block(struct address_space *btnc, __u64 blocknr)
 	struct buffer_head *bh;
 
 	bh = nilfs_grab_buffer(inode, btnc, blocknr, BIT(BH_NILFS_Node));
+
 	if (unlikely(!bh))
+	{
 		return NULL;
+	}
 
 	if (unlikely(buffer_mapped(bh) || buffer_uptodate(bh) ||
-		     buffer_dirty(bh))) {
+				 buffer_dirty(bh)))
+	{
 		brelse(bh);
 		BUG();
 	}
+
 	memset(bh->b_data, 0, 1 << inode->i_blkbits);
 	bh->b_bdev = inode->i_sb->s_bdev;
 	bh->b_blocknr = blocknr;
@@ -62,8 +67,8 @@ nilfs_btnode_create_block(struct address_space *btnc, __u64 blocknr)
 }
 
 int nilfs_btnode_submit_block(struct address_space *btnc, __u64 blocknr,
-			      sector_t pblocknr, int mode, int mode_flags,
-			      struct buffer_head **pbh, sector_t *submit_ptr)
+							  sector_t pblocknr, int mode, int mode_flags,
+							  struct buffer_head **pbh, sector_t *submit_ptr)
 {
 	struct buffer_head *bh;
 	struct inode *inode = NILFS_BTNC_I(btnc);
@@ -71,44 +76,61 @@ int nilfs_btnode_submit_block(struct address_space *btnc, __u64 blocknr,
 	int err;
 
 	bh = nilfs_grab_buffer(inode, btnc, blocknr, BIT(BH_NILFS_Node));
+
 	if (unlikely(!bh))
+	{
 		return -ENOMEM;
+	}
 
 	err = -EEXIST; /* internal code */
 	page = bh->b_page;
 
 	if (buffer_uptodate(bh) || buffer_dirty(bh))
+	{
 		goto found;
+	}
 
-	if (pblocknr == 0) {
+	if (pblocknr == 0)
+	{
 		pblocknr = blocknr;
-		if (inode->i_ino != NILFS_DAT_INO) {
+
+		if (inode->i_ino != NILFS_DAT_INO)
+		{
 			struct the_nilfs *nilfs = inode->i_sb->s_fs_info;
 
 			/* blocknr is a virtual block number */
 			err = nilfs_dat_translate(nilfs->ns_dat, blocknr,
-						  &pblocknr);
-			if (unlikely(err)) {
+									  &pblocknr);
+
+			if (unlikely(err))
+			{
 				brelse(bh);
 				goto out_locked;
 			}
 		}
 	}
 
-	if (mode_flags & REQ_RAHEAD) {
-		if (pblocknr != *submit_ptr + 1 || !trylock_buffer(bh)) {
+	if (mode_flags & REQ_RAHEAD)
+	{
+		if (pblocknr != *submit_ptr + 1 || !trylock_buffer(bh))
+		{
 			err = -EBUSY; /* internal code */
 			brelse(bh);
 			goto out_locked;
 		}
-	} else { /* mode == READ */
+	}
+	else     /* mode == READ */
+	{
 		lock_buffer(bh);
 	}
-	if (buffer_uptodate(bh)) {
+
+	if (buffer_uptodate(bh))
+	{
 		unlock_buffer(bh);
 		err = -EEXIST; /* internal code */
 		goto found;
 	}
+
 	set_buffer_mapped(bh);
 	bh->b_bdev = inode->i_sb->s_bdev;
 	bh->b_blocknr = pblocknr; /* set block address for read */
@@ -152,7 +174,9 @@ void nilfs_btnode_delete(struct buffer_head *bh)
 	put_page(page);
 
 	if (!still_dirty && mapping)
+	{
 		invalidate_inode_pages2_range(mapping, index, index);
+	}
 }
 
 /**
@@ -163,7 +187,7 @@ void nilfs_btnode_delete(struct buffer_head *bh)
  *  and might return -EIO because of disk read errors.
  */
 int nilfs_btnode_prepare_change_key(struct address_space *btnc,
-				    struct nilfs_btnode_chkey_ctxt *ctxt)
+									struct nilfs_btnode_chkey_ctxt *ctxt)
 {
 	struct buffer_head *obh, *nbh;
 	struct inode *inode = NILFS_BTNC_I(btnc);
@@ -171,12 +195,15 @@ int nilfs_btnode_prepare_change_key(struct address_space *btnc,
 	int err;
 
 	if (oldkey == newkey)
+	{
 		return 0;
+	}
 
 	obh = ctxt->bh;
 	ctxt->newbh = NULL;
 
-	if (inode->i_blkbits == PAGE_SHIFT) {
+	if (inode->i_blkbits == PAGE_SHIFT)
+	{
 		lock_page(obh->b_page);
 		/*
 		 * We cannot call radix_tree_preload for the kernels older
@@ -184,14 +211,18 @@ int nilfs_btnode_prepare_change_key(struct address_space *btnc,
 		 */
 retry:
 		err = radix_tree_preload(GFP_NOFS & ~__GFP_HIGHMEM);
+
 		if (err)
+		{
 			goto failed_unlock;
+		}
+
 		/* BUG_ON(oldkey != obh->b_page->index); */
 		if (unlikely(oldkey != obh->b_page->index))
 			NILFS_PAGE_BUG(obh->b_page,
-				       "invalid oldkey %lld (newkey=%lld)",
-				       (unsigned long long)oldkey,
-				       (unsigned long long)newkey);
+						   "invalid oldkey %lld (newkey=%lld)",
+						   (unsigned long long)oldkey,
+						   (unsigned long long)newkey);
 
 		spin_lock_irq(&btnc->tree_lock);
 		err = radix_tree_insert(&btnc->page_tree, newkey, obh->b_page);
@@ -203,27 +234,39 @@ retry:
 		 * is held.
 		 */
 		radix_tree_preload_end();
+
 		if (!err)
+		{
 			return 0;
+		}
 		else if (err != -EEXIST)
+		{
 			goto failed_unlock;
+		}
 
 		err = invalidate_inode_pages2_range(btnc, newkey, newkey);
+
 		if (!err)
+		{
 			goto retry;
+		}
+
 		/* fallback to copy mode */
 		unlock_page(obh->b_page);
 	}
 
 	nbh = nilfs_btnode_create_block(btnc, newkey);
+
 	if (!nbh)
+	{
 		return -ENOMEM;
+	}
 
 	BUG_ON(nbh == obh);
 	ctxt->newbh = nbh;
 	return 0;
 
- failed_unlock:
+failed_unlock:
 	unlock_page(obh->b_page);
 	return err;
 }
@@ -233,33 +276,40 @@ retry:
  *  commit the change_key operation prepared by prepare_change_key().
  */
 void nilfs_btnode_commit_change_key(struct address_space *btnc,
-				    struct nilfs_btnode_chkey_ctxt *ctxt)
+									struct nilfs_btnode_chkey_ctxt *ctxt)
 {
 	struct buffer_head *obh = ctxt->bh, *nbh = ctxt->newbh;
 	__u64 oldkey = ctxt->oldkey, newkey = ctxt->newkey;
 	struct page *opage;
 
 	if (oldkey == newkey)
+	{
 		return;
+	}
 
-	if (nbh == NULL) {	/* blocksize == pagesize */
+	if (nbh == NULL)  	/* blocksize == pagesize */
+	{
 		opage = obh->b_page;
+
 		if (unlikely(oldkey != opage->index))
 			NILFS_PAGE_BUG(opage,
-				       "invalid oldkey %lld (newkey=%lld)",
-				       (unsigned long long)oldkey,
-				       (unsigned long long)newkey);
+						   "invalid oldkey %lld (newkey=%lld)",
+						   (unsigned long long)oldkey,
+						   (unsigned long long)newkey);
+
 		mark_buffer_dirty(obh);
 
 		spin_lock_irq(&btnc->tree_lock);
 		radix_tree_delete(&btnc->page_tree, oldkey);
 		radix_tree_tag_set(&btnc->page_tree, newkey,
-				   PAGECACHE_TAG_DIRTY);
+						   PAGECACHE_TAG_DIRTY);
 		spin_unlock_irq(&btnc->tree_lock);
 
 		opage->index = obh->b_blocknr = newkey;
 		unlock_page(opage);
-	} else {
+	}
+	else
+	{
 		nilfs_copy_buffer(nbh, obh);
 		mark_buffer_dirty(nbh);
 
@@ -274,19 +324,25 @@ void nilfs_btnode_commit_change_key(struct address_space *btnc,
  *  abort the change_key operation prepared by prepare_change_key().
  */
 void nilfs_btnode_abort_change_key(struct address_space *btnc,
-				   struct nilfs_btnode_chkey_ctxt *ctxt)
+								   struct nilfs_btnode_chkey_ctxt *ctxt)
 {
 	struct buffer_head *nbh = ctxt->newbh;
 	__u64 oldkey = ctxt->oldkey, newkey = ctxt->newkey;
 
 	if (oldkey == newkey)
+	{
 		return;
+	}
 
-	if (nbh == NULL) {	/* blocksize == pagesize */
+	if (nbh == NULL)  	/* blocksize == pagesize */
+	{
 		spin_lock_irq(&btnc->tree_lock);
 		radix_tree_delete(&btnc->page_tree, newkey);
 		spin_unlock_irq(&btnc->tree_lock);
 		unlock_page(ctxt->bh->b_page);
-	} else
+	}
+	else
+	{
 		brelse(nbh);
+	}
 }

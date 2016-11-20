@@ -32,7 +32,8 @@ int __fscache_register_netfs(struct fscache_netfs *netfs)
 	/* allocate a cookie for the primary index */
 	cookie = kmem_cache_zalloc(fscache_cookie_jar, GFP_KERNEL);
 
-	if (!cookie) {
+	if (!cookie)
+	{
 		_leave(" = -ENOMEM");
 		return -ENOMEM;
 	}
@@ -54,9 +55,12 @@ int __fscache_register_netfs(struct fscache_netfs *netfs)
 	down_write(&fscache_addremove_sem);
 
 	ret = -EEXIST;
-	list_for_each_entry(ptr, &fscache_netfs_list, link) {
+	list_for_each_entry(ptr, &fscache_netfs_list, link)
+	{
 		if (strcmp(ptr->name, netfs->name) == 0)
+		{
 			goto already_registered;
+		}
 	}
 
 	atomic_inc(&cookie->parent->usage);
@@ -72,7 +76,9 @@ already_registered:
 	up_write(&fscache_addremove_sem);
 
 	if (ret < 0)
+	{
 		kmem_cache_free(fscache_cookie_jar, cookie);
+	}
 
 	_leave(" = %d", ret);
 	return ret;
@@ -95,7 +101,7 @@ void __fscache_unregister_netfs(struct fscache_netfs *netfs)
 	up_write(&fscache_addremove_sem);
 
 	pr_notice("Netfs '%s' unregistered from caching\n",
-		  netfs->name);
+			  netfs->name);
 
 	_leave("");
 }

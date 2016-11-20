@@ -2,7 +2,7 @@
 #define __LINUX_SPINLOCK_TYPES_UP_H
 
 #ifndef __LINUX_SPINLOCK_TYPES_H
-# error "please don't include this file directly"
+	# error "please don't include this file directly"
 #endif
 
 /*
@@ -14,7 +14,8 @@
 
 #ifdef CONFIG_DEBUG_SPINLOCK
 
-typedef struct {
+typedef struct
+{
 	volatile unsigned int slock;
 } arch_spinlock_t;
 
@@ -28,7 +29,8 @@ typedef struct { } arch_spinlock_t;
 
 #endif
 
-typedef struct {
+typedef struct
+{
 	/* no debug version on UP */
 } arch_rwlock_t;
 

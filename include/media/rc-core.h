@@ -24,10 +24,10 @@
 
 extern int rc_core_debug;
 #define IR_dprintk(level, fmt, ...)				\
-do {								\
-	if (rc_core_debug >= level)				\
-		printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
-} while (0)
+	do {								\
+		if (rc_core_debug >= level)				\
+			printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
+	} while (0)
 
 /**
  * enum rc_driver_type - type of the RC output
@@ -36,7 +36,8 @@ do {								\
  * @RC_DRIVER_IR_RAW:	Driver or hardware generates pulse/space sequences.
  *			It needs a Infra-Red pulse/space decoder
  */
-enum rc_driver_type {
+enum rc_driver_type
+{
 	RC_DRIVER_SCANCODE = 0,
 	RC_DRIVER_IR_RAW,
 };
@@ -46,7 +47,8 @@ enum rc_driver_type {
  * @data:	Scancode data to match.
  * @mask:	Mask of bits of scancode to compare.
  */
-struct rc_scancode_filter {
+struct rc_scancode_filter
+{
 	u32 data;
 	u32 mask;
 };
@@ -57,7 +59,8 @@ struct rc_scancode_filter {
  * @RC_FILTER_WAKEUP:	Filter for waking from suspend.
  * @RC_FILTER_MAX:	Number of filter types.
  */
-enum rc_filter_type {
+enum rc_filter_type
+{
 	RC_FILTER_NORMAL = 0,
 	RC_FILTER_WAKEUP,
 
@@ -128,7 +131,8 @@ enum rc_filter_type {
  * @s_wakeup_filter: set the wakeup scancode filter
  * @s_timeout: set hardware timeout in ns
  */
-struct rc_dev {
+struct rc_dev
+{
 	struct device			dev;
 	atomic_t			initialized;
 	const struct attribute_group	*sysfs_groups[5];
@@ -179,11 +183,11 @@ struct rc_dev {
 	int				(*s_learning_mode)(struct rc_dev *dev, int enable);
 	int				(*s_carrier_report) (struct rc_dev *dev, int enable);
 	int				(*s_filter)(struct rc_dev *dev,
-						    struct rc_scancode_filter *filter);
+								struct rc_scancode_filter *filter);
 	int				(*s_wakeup_filter)(struct rc_dev *dev,
-							   struct rc_scancode_filter *filter);
+									   struct rc_scancode_filter *filter);
 	int				(*s_timeout)(struct rc_dev *dev,
-						     unsigned int timeout);
+								 unsigned int timeout);
 };
 
 #define to_rc_dev(d) container_of(d, struct rc_dev, dev)
@@ -249,24 +253,27 @@ u32 rc_g_keycode_from_table(struct rc_dev *dev, u32 scancode);
  * split it later into a separate header.
  */
 
-enum raw_event_type {
+enum raw_event_type
+{
 	IR_SPACE        = (1 << 0),
 	IR_PULSE        = (1 << 1),
 	IR_START_EVENT  = (1 << 2),
 	IR_STOP_EVENT   = (1 << 3),
 };
 
-struct ir_raw_event {
-	union {
+struct ir_raw_event
+{
+	union
+	{
 		u32             duration;
 		u32             carrier;
 	};
 	u8                      duty_cycle;
 
-	unsigned                pulse:1;
-	unsigned                reset:1;
-	unsigned                timeout:1;
-	unsigned                carrier_report:1;
+	unsigned                pulse: 1;
+	unsigned                reset: 1;
+	unsigned                timeout: 1;
+	unsigned                carrier_report: 1;
 };
 
 #define DEFINE_IR_RAW_EVENT(event) struct ir_raw_event event = {}
@@ -286,7 +293,7 @@ void ir_raw_event_handle(struct rc_dev *dev);
 int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev);
 int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type);
 int ir_raw_event_store_with_filter(struct rc_dev *dev,
-				struct ir_raw_event *ev);
+								   struct ir_raw_event *ev);
 void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
 
 static inline void ir_raw_event_reset(struct rc_dev *dev)
@@ -302,14 +309,21 @@ static inline u32 ir_extract_bits(u32 data, u32 mask)
 {
 	u32 vbit = 1, value = 0;
 
-	do {
-		if (mask & 1) {
+	do
+	{
+		if (mask & 1)
+		{
 			if (data & 1)
+			{
 				value |= vbit;
+			}
+
 			vbit <<= 1;
 		}
+
 		data >>= 1;
-	} while (mask >>= 1);
+	}
+	while (mask >>= 1);
 
 	return value;
 }

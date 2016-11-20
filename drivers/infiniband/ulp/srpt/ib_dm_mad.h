@@ -38,7 +38,8 @@
 
 #include <rdma/ib_mad.h>
 
-enum {
+enum
+{
 	/*
 	 * See also section 13.4.7 Status Field, table 115 MAD Common Status
 	 * Field Bit Values and also section 16.3.1.1 Status Field in the
@@ -60,7 +61,8 @@ enum {
 	DM_ATTR_SVC_ENTRIES = 0x12
 };
 
-struct ib_dm_hdr {
+struct ib_dm_hdr
+{
 	u8 reserved[28];
 };
 
@@ -75,7 +77,8 @@ struct ib_dm_hdr {
  * - The maximum supported size for a management datagram when not using RMPP
  *   is 256 bytes -- 64 bytes header and 192 (IB_MGMT_DEVICE_DATA) bytes data.
  */
-struct ib_dm_mad {
+struct ib_dm_mad
+{
 	struct ib_mad_hdr mad_hdr;
 	struct ib_rmpp_hdr rmpp_hdr;
 	struct ib_dm_hdr dm_hdr;
@@ -86,7 +89,8 @@ struct ib_dm_mad {
  * IOUnitInfo as defined in section 16.3.3.3 IOUnitInfo of the InfiniBand
  * Architecture Specification.
  */
-struct ib_dm_iou_info {
+struct ib_dm_iou_info
+{
 	__be16 change_id;
 	u8 max_controllers;
 	u8 op_rom;
@@ -97,7 +101,8 @@ struct ib_dm_iou_info {
  * IOControllerprofile as defined in section 16.3.3.4 IOControllerProfile of
  * the InfiniBand Architecture Specification.
  */
-struct ib_dm_ioc_profile {
+struct ib_dm_ioc_profile
+{
 	__be64 guid;
 	__be32 vendor_id;
 	__be32 device_id;
@@ -123,7 +128,8 @@ struct ib_dm_ioc_profile {
 	u8 id_string[64];
 };
 
-struct ib_dm_svc_entry {
+struct ib_dm_svc_entry
+{
 	u8 name[40];
 	__be64 id;
 };
@@ -132,7 +138,8 @@ struct ib_dm_svc_entry {
  * See also section 16.3.3.5 ServiceEntries in the InfiniBand Architecture
  * Specification. See also section B.7, table B.8 in the T10 SRP r16a document.
  */
-struct ib_dm_svc_entries {
+struct ib_dm_svc_entries
+{
 	struct ib_dm_svc_entry service_entries[4];
 };
 

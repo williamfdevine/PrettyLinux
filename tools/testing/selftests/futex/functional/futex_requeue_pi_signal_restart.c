@@ -46,11 +46,11 @@ void usage(char *prog)
 	printf("  -c	Use color\n");
 	printf("  -h	Display this help message\n");
 	printf("  -v L	Verbosity level: %d=QUIET %d=CRITICAL %d=INFO\n",
-	       VQUIET, VCRITICAL, VINFO);
+		   VQUIET, VCRITICAL, VINFO);
 }
 
-int create_rt_thread(pthread_t *pth, void*(*func)(void *), void *arg,
-		     int policy, int prio)
+int create_rt_thread(pthread_t *pth, void *(*func)(void *), void *arg,
+					 int policy, int prio)
 {
 	struct sched_param schedp;
 	pthread_attr_t attr;
@@ -60,36 +60,45 @@ int create_rt_thread(pthread_t *pth, void*(*func)(void *), void *arg,
 	memset(&schedp, 0, sizeof(schedp));
 
 	ret = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-	if (ret) {
+
+	if (ret)
+	{
 		error("pthread_attr_setinheritsched\n", ret);
 		return -1;
 	}
 
 	ret = pthread_attr_setschedpolicy(&attr, policy);
-	if (ret) {
+
+	if (ret)
+	{
 		error("pthread_attr_setschedpolicy\n", ret);
 		return -1;
 	}
 
 	schedp.sched_priority = prio;
 	ret = pthread_attr_setschedparam(&attr, &schedp);
-	if (ret) {
+
+	if (ret)
+	{
 		error("pthread_attr_setschedparam\n", ret);
 		return -1;
 	}
 
 	ret = pthread_create(pth, &attr, func, arg);
-	if (ret) {
+
+	if (ret)
+	{
 		error("pthread_create\n", ret);
 		return -1;
 	}
+
 	return 0;
 }
 
 void handle_signal(int signo)
 {
 	info("signal received %s requeue\n",
-	     requeued.val ? "after" : "prior to");
+		 requeued.val ? "after" : "prior to");
 }
 
 void *waiterfn(void *arg)
@@ -103,13 +112,19 @@ void *waiterfn(void *arg)
 	info("Calling FUTEX_LOCK_PI on f2=%x @ %p\n", f2, &f2);
 	old_val = f1;
 	res = futex_wait_requeue_pi(&f1, old_val, &(f2), NULL,
-				    FUTEX_PRIVATE_FLAG);
-	if (!requeued.val || errno != EWOULDBLOCK) {
+								FUTEX_PRIVATE_FLAG);
+
+	if (!requeued.val || errno != EWOULDBLOCK)
+	{
 		fail("unexpected return from futex_wait_requeue_pi: %d (%s)\n",
-		     res, strerror(errno));
+			 res, strerror(errno));
 		info("w2:futex: %x\n", f2);
+
 		if (!res)
+		{
 			futex_unlock_pi(&f2, FUTEX_PRIVATE_FLAG);
+		}
+
 		waiter_ret = RET_FAIL;
 	}
 
@@ -125,31 +140,38 @@ int main(int argc, char *argv[])
 	pthread_t waiter;
 	int c, res, ret = RET_PASS;
 
-	while ((c = getopt(argc, argv, "chv:")) != -1) {
-		switch (c) {
-		case 'c':
-			log_color(1);
-			break;
-		case 'h':
-			usage(basename(argv[0]));
-			exit(0);
-		case 'v':
-			log_verbosity(atoi(optarg));
-			break;
-		default:
-			usage(basename(argv[0]));
-			exit(1);
+	while ((c = getopt(argc, argv, "chv:")) != -1)
+	{
+		switch (c)
+		{
+			case 'c':
+				log_color(1);
+				break;
+
+			case 'h':
+				usage(basename(argv[0]));
+				exit(0);
+
+			case 'v':
+				log_verbosity(atoi(optarg));
+				break;
+
+			default:
+				usage(basename(argv[0]));
+				exit(1);
 		}
 	}
 
 	printf("%s: Test signal handling during requeue_pi\n",
-	       basename(argv[0]));
+		   basename(argv[0]));
 	printf("\tArguments: <none>\n");
 
 	sa.sa_handler = handle_signal;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
-	if (sigaction(SIGUSR1, &sa, NULL)) {
+
+	if (sigaction(SIGUSR1, &sa, NULL))
+	{
 		error("sigaction\n", errno);
 		exit(1);
 	}
@@ -157,7 +179,9 @@ int main(int argc, char *argv[])
 	info("m1:f2: %x\n", f2);
 	info("Creating waiter\n");
 	res = create_rt_thread(&waiter, waiterfn, NULL, SCHED_FIFO, 1);
-	if (res) {
+
+	if (res)
+	{
 		error("Creating waiting thread failed", res);
 		ret = RET_ERROR;
 		goto out;
@@ -168,7 +192,8 @@ int main(int argc, char *argv[])
 	futex_lock_pi(&f2, 0, 0, FUTEX_PRIVATE_FLAG);
 	info("m3:f2: %x\n", f2);
 
-	while (1) {
+	while (1)
+	{
 		/*
 		 * signal the waiter before requeue, waiter should automatically
 		 * restart futex_wait_requeue_pi() in the kernel. Wait for the
@@ -181,22 +206,27 @@ int main(int argc, char *argv[])
 		info("Requeueing waiter via FUTEX_CMP_REQUEUE_PI\n");
 		old_val = f1;
 		res = futex_cmp_requeue_pi(&f1, old_val, &(f2), 1, 0,
-					   FUTEX_PRIVATE_FLAG);
+								   FUTEX_PRIVATE_FLAG);
+
 		/*
 		 * If res is non-zero, we either requeued the waiter or hit an
 		 * error, break out and handle it. If it is zero, then the
 		 * signal may have hit before the the waiter was blocked on f1.
 		 * Try again.
 		 */
-		if (res > 0) {
+		if (res > 0)
+		{
 			atomic_set(&requeued, 1);
 			break;
-		} else if (res < 0) {
+		}
+		else if (res < 0)
+		{
 			error("FUTEX_CMP_REQUEUE_PI failed\n", errno);
 			ret = RET_ERROR;
 			break;
 		}
 	}
+
 	info("m4:f2: %x\n", f2);
 
 	/*
@@ -214,9 +244,12 @@ int main(int argc, char *argv[])
 	futex_unlock_pi(&f2, FUTEX_PRIVATE_FLAG);
 	info("m5:f2: %x\n", f2);
 
- out:
+out:
+
 	if (ret == RET_PASS && waiter_ret)
+	{
 		ret = waiter_ret;
+	}
 
 	print_result(ret);
 	return ret;

@@ -18,7 +18,8 @@
 #include "../nvdimm/nd.h"
 #include "dax.h"
 
-struct dax_pmem {
+struct dax_pmem
+{
 	struct device *dev;
 	struct percpu_ref ref;
 	struct completion cmp;
@@ -73,58 +74,85 @@ static int dax_pmem_probe(struct device *dev)
 	struct vmem_altmap __altmap, *altmap = NULL;
 
 	ndns = nvdimm_namespace_common_probe(dev);
+
 	if (IS_ERR(ndns))
+	{
 		return PTR_ERR(ndns);
+	}
+
 	nsio = to_nd_namespace_io(&ndns->dev);
 
 	/* parse the 'pfn' info block via ->rw_bytes */
 	devm_nsio_enable(dev, nsio);
 	altmap = nvdimm_setup_pfn(nd_pfn, &res, &__altmap);
+
 	if (IS_ERR(altmap))
+	{
 		return PTR_ERR(altmap);
+	}
+
 	devm_nsio_disable(dev, nsio);
 
 	pfn_sb = nd_pfn->pfn_sb;
 
 	if (!devm_request_mem_region(dev, nsio->res.start,
-				resource_size(&nsio->res), dev_name(dev))) {
+								 resource_size(&nsio->res), dev_name(dev)))
+	{
 		dev_warn(dev, "could not reserve region %pR\n", &nsio->res);
 		return -EBUSY;
 	}
 
 	dax_pmem = devm_kzalloc(dev, sizeof(*dax_pmem), GFP_KERNEL);
+
 	if (!dax_pmem)
+	{
 		return -ENOMEM;
+	}
 
 	dax_pmem->dev = dev;
 	init_completion(&dax_pmem->cmp);
 	rc = percpu_ref_init(&dax_pmem->ref, dax_pmem_percpu_release, 0,
-			GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = devm_add_action_or_reset(dev, dax_pmem_percpu_exit,
-							&dax_pmem->ref);
+								  &dax_pmem->ref);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	addr = devm_memremap_pages(dev, &res, &dax_pmem->ref, altmap);
+
 	if (IS_ERR(addr))
+	{
 		return PTR_ERR(addr);
+	}
 
 	rc = devm_add_action_or_reset(dev, dax_pmem_percpu_kill,
-							&dax_pmem->ref);
+								  &dax_pmem->ref);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* adjust the dax_region resource to the start of data */
 	res.start += le64_to_cpu(pfn_sb->dataoff);
 
 	nd_region = to_nd_region(dev->parent);
 	dax_region = alloc_dax_region(dev, nd_region->id, &res,
-			le32_to_cpu(pfn_sb->align), addr, PFN_DEV|PFN_MAP);
+								  le32_to_cpu(pfn_sb->align), addr, PFN_DEV | PFN_MAP);
+
 	if (!dax_region)
+	{
 		return -ENOMEM;
+	}
 
 	/* TODO: support for subdividing a dax region... */
 	dax_dev = devm_create_dax_dev(dax_region, &res, 1);
@@ -135,7 +163,8 @@ static int dax_pmem_probe(struct device *dev)
 	return PTR_ERR_OR_ZERO(dax_dev);
 }
 
-static struct nd_device_driver dax_pmem_driver = {
+static struct nd_device_driver dax_pmem_driver =
+{
 	.probe = dax_pmem_probe,
 	.drv = {
 		.name = "dax_pmem",

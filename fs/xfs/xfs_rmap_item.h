@@ -62,7 +62,8 @@ struct kmem_zone;
  * These log items follow the same rules as struct xfs_efi_log_item; see the
  * comments about that structure (in xfs_extfree_item.h) for more details.
  */
-struct xfs_rui_log_item {
+struct xfs_rui_log_item
+{
 	struct xfs_log_item		rui_item;
 	atomic_t			rui_refcount;
 	atomic_t			rui_next_extent;
@@ -75,14 +76,15 @@ xfs_rui_log_item_sizeof(
 	unsigned int		nr)
 {
 	return offsetof(struct xfs_rui_log_item, rui_format) +
-			xfs_rui_log_format_sizeof(nr);
+		   xfs_rui_log_format_sizeof(nr);
 }
 
 /*
  * This is the "rmap update done" log item.  It is used to log the fact that
  * some rmapbt updates mentioned in an earlier rui item have been performed.
  */
-struct xfs_rud_log_item {
+struct xfs_rud_log_item
+{
 	struct xfs_log_item		rud_item;
 	struct xfs_rui_log_item		*rud_ruip;
 	struct xfs_rud_log_format	rud_format;
@@ -93,9 +95,9 @@ extern struct kmem_zone	*xfs_rud_zone;
 
 struct xfs_rui_log_item *xfs_rui_init(struct xfs_mount *, uint);
 struct xfs_rud_log_item *xfs_rud_init(struct xfs_mount *,
-		struct xfs_rui_log_item *);
+									  struct xfs_rui_log_item *);
 int xfs_rui_copy_format(struct xfs_log_iovec *buf,
-		struct xfs_rui_log_format *dst_rui_fmt);
+						struct xfs_rui_log_format *dst_rui_fmt);
 void xfs_rui_item_free(struct xfs_rui_log_item *);
 void xfs_rui_release(struct xfs_rui_log_item *);
 int xfs_rui_recover(struct xfs_mount *mp, struct xfs_rui_log_item *ruip);

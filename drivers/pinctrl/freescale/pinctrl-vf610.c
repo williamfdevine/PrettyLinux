@@ -18,7 +18,8 @@
 
 #include "pinctrl-imx.h"
 
-enum vf610_pads {
+enum vf610_pads
+{
 	VF610_PAD_PTA6 = 0,
 	VF610_PAD_PTA8 = 1,
 	VF610_PAD_PTA9 = 2,
@@ -157,7 +158,8 @@ enum vf610_pads {
 };
 
 /* Pad names for the pinmux subsystem */
-static const struct pinctrl_pin_desc vf610_pinctrl_pads[] = {
+static const struct pinctrl_pin_desc vf610_pinctrl_pads[] =
+{
 	IMX_PINCTRL_PIN(VF610_PAD_PTA6),
 	IMX_PINCTRL_PIN(VF610_PAD_PTA8),
 	IMX_PINCTRL_PIN(VF610_PAD_PTA9),
@@ -295,13 +297,15 @@ static const struct pinctrl_pin_desc vf610_pinctrl_pads[] = {
 	IMX_PINCTRL_PIN(VF610_PAD_PTA7),
 };
 
-static struct imx_pinctrl_soc_info vf610_pinctrl_info = {
+static struct imx_pinctrl_soc_info vf610_pinctrl_info =
+{
 	.pins = vf610_pinctrl_pads,
 	.npins = ARRAY_SIZE(vf610_pinctrl_pads),
 	.flags = SHARE_MUX_CONF_REG | ZERO_OFFSET_VALID,
 };
 
-static const struct of_device_id vf610_pinctrl_of_match[] = {
+static const struct of_device_id vf610_pinctrl_of_match[] =
+{
 	{ .compatible = "fsl,vf610-iomuxc", },
 	{ /* sentinel */ }
 };
@@ -311,7 +315,8 @@ static int vf610_pinctrl_probe(struct platform_device *pdev)
 	return imx_pinctrl_probe(pdev, &vf610_pinctrl_info);
 }
 
-static struct platform_driver vf610_pinctrl_driver = {
+static struct platform_driver vf610_pinctrl_driver =
+{
 	.driver = {
 		.name = "vf610-pinctrl",
 		.of_match_table = vf610_pinctrl_of_match,

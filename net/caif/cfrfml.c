@@ -21,7 +21,8 @@
 static int cfrfml_receive(struct cflayer *layr, struct cfpkt *pkt);
 static int cfrfml_transmit(struct cflayer *layr, struct cfpkt *pkt);
 
-struct cfrfml {
+struct cfrfml
+{
 	struct cfsrvl serv;
 	struct cfpkt *incomplete_frm;
 	int fragment_size;
@@ -37,19 +38,23 @@ static void cfrfml_release(struct cflayer *layer)
 	struct cfrfml *rfml = container_obj(&srvl->layer);
 
 	if (rfml->incomplete_frm)
+	{
 		cfpkt_destroy(rfml->incomplete_frm);
+	}
 
 	kfree(srvl);
 }
 
 struct cflayer *cfrfml_create(u8 channel_id, struct dev_info *dev_info,
-			      int mtu_size)
+							  int mtu_size)
 {
 	int tmp;
 	struct cfrfml *this = kzalloc(sizeof(struct cfrfml), GFP_ATOMIC);
 
 	if (!this)
+	{
 		return NULL;
+	}
 
 	cfsrvl_init(&this->serv, channel_id, dev_info, false);
 	this->serv.release = cfrfml_release;
@@ -63,32 +68,39 @@ struct cflayer *cfrfml_create(u8 channel_id, struct dev_info *dev_info,
 	this->fragment_size = tmp;
 	spin_lock_init(&this->sync);
 	snprintf(this->serv.layer.name, CAIF_LAYER_NAME_SZ,
-		"rfm%d", channel_id);
+			 "rfm%d", channel_id);
 
 	return &this->serv.layer;
 }
 
 static struct cfpkt *rfm_append(struct cfrfml *rfml, char *seghead,
-				struct cfpkt *pkt, int *err)
+								struct cfpkt *pkt, int *err)
 {
 	struct cfpkt *tmppkt;
 	*err = -EPROTO;
 	/* n-th but not last segment */
 
 	if (cfpkt_extr_head(pkt, seghead, 6) < 0)
+	{
 		return NULL;
+	}
 
 	/* Verify correct header */
 	if (memcmp(seghead, rfml->seghead, 6) != 0)
+	{
 		return NULL;
+	}
 
 	tmppkt = cfpkt_append(rfml->incomplete_frm, pkt,
-			rfml->pdu_size + RFM_HEAD_SIZE);
+						  rfml->pdu_size + RFM_HEAD_SIZE);
 
 	/* If cfpkt_append failes input pkts are not freed */
 	*err = -ENOMEM;
+
 	if (tmppkt == NULL)
+	{
 		return NULL;
+	}
 
 	*err = 0;
 	return tmppkt;
@@ -109,50 +121,77 @@ static int cfrfml_receive(struct cflayer *layr, struct cfpkt *pkt)
 	spin_lock(&rfml->sync);
 
 	err = -EPROTO;
+
 	if (cfpkt_extr_head(pkt, &tmp, 1) < 0)
+	{
 		goto out;
+	}
+
 	segmented = tmp & RFM_SEGMENTATION_BIT;
 
-	if (segmented) {
-		if (rfml->incomplete_frm == NULL) {
+	if (segmented)
+	{
+		if (rfml->incomplete_frm == NULL)
+		{
 			/* Initial Segment */
 			if (cfpkt_peek_head(pkt, rfml->seghead, 6) < 0)
+			{
 				goto out;
+			}
 
-			rfml->pdu_size = get_unaligned_le16(rfml->seghead+4);
+			rfml->pdu_size = get_unaligned_le16(rfml->seghead + 4);
 
 			if (cfpkt_erroneous(pkt))
+			{
 				goto out;
+			}
+
 			rfml->incomplete_frm = pkt;
 			pkt = NULL;
-		} else {
+		}
+		else
+		{
 
 			tmppkt = rfm_append(rfml, seghead, pkt, &err);
+
 			if (tmppkt == NULL)
+			{
 				goto out;
+			}
 
 			if (cfpkt_erroneous(tmppkt))
+			{
 				goto out;
+			}
 
 			rfml->incomplete_frm = tmppkt;
 
 
 			if (cfpkt_erroneous(tmppkt))
+			{
 				goto out;
+			}
 		}
+
 		err = 0;
 		goto out;
 	}
 
-	if (rfml->incomplete_frm) {
+	if (rfml->incomplete_frm)
+	{
 
 		/* Last Segment */
 		tmppkt = rfm_append(rfml, seghead, pkt, &err);
+
 		if (tmppkt == NULL)
+		{
 			goto out;
+		}
 
 		if (cfpkt_erroneous(tmppkt))
+		{
 			goto out;
+		}
 
 		rfml->incomplete_frm = NULL;
 		pkt = tmppkt;
@@ -160,34 +199,50 @@ static int cfrfml_receive(struct cflayer *layr, struct cfpkt *pkt)
 
 		/* Verify that length is correct */
 		err = -EPROTO;
+
 		if (rfml->pdu_size != cfpkt_getlen(pkt) - RFM_HEAD_SIZE + 1)
+		{
 			goto out;
+		}
 	}
 
 	err = rfml->serv.layer.up->receive(rfml->serv.layer.up, pkt);
 
 out:
 
-	if (err != 0) {
+	if (err != 0)
+	{
 		if (tmppkt)
+		{
 			cfpkt_destroy(tmppkt);
+		}
+
 		if (pkt)
+		{
 			cfpkt_destroy(pkt);
+		}
+
 		if (rfml->incomplete_frm)
+		{
 			cfpkt_destroy(rfml->incomplete_frm);
+		}
+
 		rfml->incomplete_frm = NULL;
 
 		pr_info("Connection error %d triggered on RFM link\n", err);
 
 		/* Trigger connection error upon failure.*/
 		layr->up->ctrlcmd(layr->up, CAIF_CTRLCMD_REMOTE_SHUTDOWN_IND,
-					rfml->serv.dev_info.id);
+						  rfml->serv.dev_info.id);
 	}
+
 	spin_unlock(&rfml->sync);
 
 	if (unlikely(err == -EAGAIN))
 		/* It is not possible to recover after drop of a fragment */
+	{
 		err = -EIO;
+	}
 
 	return err;
 }
@@ -223,26 +278,40 @@ static int cfrfml_transmit(struct cflayer *layr, struct cfpkt *pkt)
 	caif_assert(layr->dn->transmit != NULL);
 
 	if (!cfsrvl_ready(&rfml->serv, &err))
+	{
 		goto out;
+	}
 
 	err = -EPROTO;
-	if (cfpkt_getlen(pkt) <= RFM_HEAD_SIZE-1)
+
+	if (cfpkt_getlen(pkt) <= RFM_HEAD_SIZE - 1)
+	{
 		goto out;
+	}
 
 	err = 0;
+
 	if (cfpkt_getlen(pkt) > rfml->fragment_size + RFM_HEAD_SIZE)
+	{
 		err = cfpkt_peek_head(pkt, head, 6);
+	}
 
 	if (err < 0)
+	{
 		goto out;
+	}
 
-	while (cfpkt_getlen(frontpkt) > rfml->fragment_size + RFM_HEAD_SIZE) {
+	while (cfpkt_getlen(frontpkt) > rfml->fragment_size + RFM_HEAD_SIZE)
+	{
 
 		seg = 1;
 		err = -EPROTO;
 
 		if (cfpkt_add_head(frontpkt, &seg, 1) < 0)
+		{
 			goto out;
+		}
+
 		/*
 		 * On OOM error cfpkt_split returns NULL.
 		 *
@@ -251,12 +320,16 @@ static int cfrfml_transmit(struct cflayer *layr, struct cfpkt *pkt)
 		 */
 
 		rearpkt = cfpkt_split(frontpkt, rfml->fragment_size);
+
 		if (rearpkt == NULL)
+		{
 			goto out;
+		}
 
 		err = cfrfml_transmit_segment(rfml, frontpkt);
 
-		if (err != 0) {
+		if (err != 0)
+		{
 			frontpkt = NULL;
 			goto out;
 		}
@@ -265,11 +338,18 @@ static int cfrfml_transmit(struct cflayer *layr, struct cfpkt *pkt)
 		rearpkt = NULL;
 
 		err = -ENOMEM;
+
 		if (frontpkt == NULL)
+		{
 			goto out;
+		}
+
 		err = -EPROTO;
+
 		if (cfpkt_add_head(frontpkt, head, 6) < 0)
+		{
 			goto out;
+		}
 
 	}
 
@@ -277,25 +357,32 @@ static int cfrfml_transmit(struct cflayer *layr, struct cfpkt *pkt)
 	err = -EPROTO;
 
 	if (cfpkt_add_head(frontpkt, &seg, 1) < 0)
+	{
 		goto out;
+	}
 
 	err = cfrfml_transmit_segment(rfml, frontpkt);
 
 	frontpkt = NULL;
 out:
 
-	if (err != 0) {
+	if (err != 0)
+	{
 		pr_info("Connection error %d triggered on RFM link\n", err);
 		/* Trigger connection error upon failure.*/
 
 		layr->up->ctrlcmd(layr->up, CAIF_CTRLCMD_REMOTE_SHUTDOWN_IND,
-					rfml->serv.dev_info.id);
+						  rfml->serv.dev_info.id);
 
 		if (rearpkt)
+		{
 			cfpkt_destroy(rearpkt);
+		}
 
 		if (frontpkt)
+		{
 			cfpkt_destroy(frontpkt);
+		}
 	}
 
 	return err;

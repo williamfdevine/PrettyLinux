@@ -28,7 +28,10 @@
 void __vwarning(const char *fmt, va_list ap)
 {
 	if (errno)
+	{
 		perror("trace-cmd");
+	}
+
 	errno = 0;
 
 	fprintf(stderr, "  ");

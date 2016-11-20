@@ -26,21 +26,24 @@
 
 #define ACPI_AC_CLASS           "ac_adapter"
 
-struct atif_verify_interface {
+struct atif_verify_interface
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u16 version;		/* version */
 	u32 notification_mask;	/* supported notifications mask */
 	u32 function_bits;	/* supported functions bit vector */
 } __packed;
 
-struct atif_system_params {
+struct atif_system_params
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u32 valid_mask;		/* valid flags mask */
 	u32 flags;		/* flags */
 	u8 command_code;	/* notify command code */
 } __packed;
 
-struct atif_sbios_requests {
+struct atif_sbios_requests
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u32 pending;		/* pending sbios requests */
 	u8 panel_exp_mode;	/* panel expansion mode */
@@ -57,7 +60,8 @@ struct atif_sbios_requests {
 #define ATIF_NOTIFY_81		1
 #define ATIF_NOTIFY_N		2
 
-struct atcs_verify_interface {
+struct atcs_verify_interface
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u16 version;		/* version */
 	u32 function_bits;	/* supported functions bit vector */
@@ -65,7 +69,8 @@ struct atcs_verify_interface {
 
 #define ATCS_VALID_FLAGS_MASK	0x3
 
-struct atcs_pref_req_input {
+struct atcs_pref_req_input
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u16 client_id;		/* client id (bit 2-0: func num, 7-3: dev num, 15-8: bus num) */
 	u16 valid_flags_mask;	/* valid flags mask */
@@ -74,7 +79,8 @@ struct atcs_pref_req_input {
 	u8 perf_req;		/* performance request */
 } __packed;
 
-struct atcs_pref_req_output {
+struct atcs_pref_req_output
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u8 ret_val;		/* return value */
 } __packed;

@@ -33,18 +33,21 @@ static int pm_tmr_ioport = 0;
 /*helper function to safely read acpi pm timesource*/
 static u32 read_pmtmr(void)
 {
-	u32 v1=0,v2=0,v3=0;
+	u32 v1 = 0, v2 = 0, v3 = 0;
+
 	/* It has been reported that because of various broken
 	 * chipsets (ICH4, PIIX4 and PIIX4E) where the ACPI PM time
 	 * source is not latched, so you must read it multiple
 	 * times to insure a safe value is read.
 	 */
-	do {
+	do
+	{
 		v1 = inl(pm_tmr_ioport);
 		v2 = inl(pm_tmr_ioport);
 		v3 = inl(pm_tmr_ioport);
-	} while ((v1 > v2 && v1 < v3) || (v2 > v3 && v2 < v1)
-		 || (v3 > v1 && v3 < v2));
+	}
+	while ((v1 > v2 && v1 < v3) || (v2 > v3 && v2 < v1)
+		   || (v3 > v1 && v3 < v2));
 
 	/* mask the output to 24 bits */
 	return (v2 & 0xFFFFFF);
@@ -60,21 +63,29 @@ static int __init cpufreq_test_tsc(void)
 	   of Linux v2.6.25. */
 
 	/* detect the location of the ACPI PM Timer */
-	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID) {
+	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID)
+	{
 		/* FADT rev. 2 */
 		if (acpi_gbl_FADT.xpm_timer_block.space_id !=
-		    ACPI_ADR_SPACE_SYSTEM_IO)
+			ACPI_ADR_SPACE_SYSTEM_IO)
+		{
 			return 0;
+		}
 
 		pm_tmr_ioport = acpi_gbl_FADT.xpm_timer_block.address;
+
 		/*
 		 * "X" fields are optional extensions to the original V1.0
 		 * fields, so we must selectively expand V1.0 fields if the
 		 * corresponding X field is zero.
-	 	 */
+		 */
 		if (!pm_tmr_ioport)
+		{
 			pm_tmr_ioport = acpi_gbl_FADT.pm_timer_block;
-	} else {
+		}
+	}
+	else
+	{
 		/* FADT rev. 1 */
 		pm_tmr_ioport = acpi_gbl_FADT.pm_timer_block;
 	}
@@ -82,7 +93,9 @@ static int __init cpufreq_test_tsc(void)
 	printk(KERN_DEBUG "start--> \n");
 	then = read_pmtmr();
 	then_tsc = rdtsc();
-	for (i=0;i<20;i++) {
+
+	for (i = 0; i < 20; i++)
+	{
 		mdelay(100);
 		now = read_pmtmr();
 		now_tsc = rdtsc();
@@ -92,6 +105,7 @@ static int __init cpufreq_test_tsc(void)
 		then = now;
 		then_tsc = now_tsc;
 	}
+
 	printk(KERN_DEBUG "<-- end \n");
 	return -ENODEV;
 }

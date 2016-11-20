@@ -47,7 +47,7 @@ typedef __uint32_t xlog_tid_t;
 #define XLOG_BIG_RECORD_BSHIFT	15		/* 32k == 1 << 15 */
 #define XLOG_MAX_RECORD_BSHIFT	18		/* 256k == 1 << 18 */
 #define XLOG_BTOLSUNIT(log, b)  (((b)+(log)->l_mp->m_sb.sb_logsunit-1) / \
-                                 (log)->l_mp->m_sb.sb_logsunit)
+								 (log)->l_mp->m_sb.sb_logsunit)
 #define XLOG_LSUNITTOB(log, su) ((su) * (log)->l_mp->m_sb.sb_logsunit)
 
 #define XLOG_HEADER_SIZE	512
@@ -57,10 +57,10 @@ typedef __uint32_t xlog_tid_t;
 
 #define XLOG_REC_SHIFT(log) \
 	BTOBB(1 << (xfs_sb_version_haslogv2(&log->l_mp->m_sb) ? \
-	 XLOG_MAX_RECORD_BSHIFT : XLOG_BIG_RECORD_BSHIFT))
+				XLOG_MAX_RECORD_BSHIFT : XLOG_BIG_RECORD_BSHIFT))
 #define XLOG_TOTAL_REC_SHIFT(log) \
 	BTOBB(XLOG_MAX_ICLOGS << (xfs_sb_version_haslogv2(&log->l_mp->m_sb) ? \
-	 XLOG_MAX_RECORD_BSHIFT : XLOG_BIG_RECORD_BSHIFT))
+							  XLOG_MAX_RECORD_BSHIFT : XLOG_BIG_RECORD_BSHIFT))
 
 /* get lsn fields */
 #define CYCLE_LSN(lsn) ((uint)((lsn)>>32))
@@ -77,9 +77,13 @@ static inline xfs_lsn_t xlog_assign_lsn(uint cycle, uint block)
 static inline uint xlog_get_cycle(char *ptr)
 {
 	if (be32_to_cpu(*(__be32 *)ptr) == XLOG_HEADER_MAGIC_NUM)
+	{
 		return be32_to_cpu(*((__be32 *)ptr + 1));
+	}
 	else
+	{
 		return be32_to_cpu(*(__be32 *)ptr);
+	}
 }
 
 /* Log Clients */
@@ -137,7 +141,8 @@ static inline uint xlog_get_cycle(char *ptr)
 #define XLOG_UNMOUNT_TRANS	0x20	/* Unmount a filesystem transaction */
 
 
-typedef struct xlog_op_header {
+typedef struct xlog_op_header
+{
 	__be32	   oh_tid;	/* transaction id of operation	:  4 b */
 	__be32	   oh_len;	/* bytes in data region		:  4 b */
 	__u8	   oh_clientid;	/* who sent me this		:  1 b */
@@ -153,12 +158,13 @@ typedef struct xlog_op_header {
 
 /* our fmt */
 #ifdef XFS_NATIVE_HOST
-#define XLOG_FMT XLOG_FMT_LINUX_BE
+	#define XLOG_FMT XLOG_FMT_LINUX_BE
 #else
-#define XLOG_FMT XLOG_FMT_LINUX_LE
+	#define XLOG_FMT XLOG_FMT_LINUX_LE
 #endif
 
-typedef struct xlog_rec_header {
+typedef struct xlog_rec_header
+{
 	__be32	  h_magicno;	/* log record (LR) identifier		:  4 */
 	__be32	  h_cycle;	/* write cycle of log			:  4 */
 	__be32	  h_version;	/* LR version				:  4 */
@@ -175,7 +181,8 @@ typedef struct xlog_rec_header {
 	__be32	  h_size;	/* iclog size				:  4 */
 } xlog_rec_header_t;
 
-typedef struct xlog_rec_ext_header {
+typedef struct xlog_rec_ext_header
+{
 	__be32	  xh_cycle;	/* write cycle of log			: 4 */
 	__be32	  xh_cycle_data[XLOG_HEADER_CYCLE_SIZE / BBSIZE]; /*	: 256 */
 } xlog_rec_ext_header_t;
@@ -183,14 +190,16 @@ typedef struct xlog_rec_ext_header {
 /*
  * Quite misnamed, because this union lays out the actual on-disk log buffer.
  */
-typedef union xlog_in_core2 {
+typedef union xlog_in_core2
+{
 	xlog_rec_header_t	hic_header;
 	xlog_rec_ext_header_t	hic_xheader;
 	char			hic_sector[XLOG_HEADER_SIZE];
 } xlog_in_core_2_t;
 
 /* not an on-disk structure, but needed by log recovery in userspace */
-typedef struct xfs_log_iovec {
+typedef struct xfs_log_iovec
+{
 	void		*i_addr;	/* beginning address of region */
 	int		i_len;		/* length in bytes of region */
 	uint		i_type;		/* type of region */
@@ -208,7 +217,8 @@ typedef struct xfs_log_iovec {
  * Do not change the below structure without redoing the code in
  * xlog_recover_add_to_trans() and xlog_recover_add_to_cont_trans().
  */
-typedef struct xfs_trans_header {
+typedef struct xfs_trans_header
+{
 	uint		th_magic;		/* magic number */
 	uint		th_type;		/* transaction type */
 	__int32_t	th_tid;			/* transaction id (unused) */
@@ -264,14 +274,16 @@ typedef struct xfs_trans_header {
  * (if any) is indicated in the ilf_dsize field.  Changes to this structure
  * must be added on to the end.
  */
-typedef struct xfs_inode_log_format {
+typedef struct xfs_inode_log_format
+{
 	__uint16_t		ilf_type;	/* inode log item type */
 	__uint16_t		ilf_size;	/* size of this item */
 	__uint32_t		ilf_fields;	/* flags for fields logged */
 	__uint16_t		ilf_asize;	/* size of attr d/ext/root */
 	__uint16_t		ilf_dsize;	/* size of data/ext/root */
 	__uint64_t		ilf_ino;	/* inode number */
-	union {
+	union
+	{
 		__uint32_t	ilfu_rdev;	/* rdev value for dev inode*/
 		uuid_t		ilfu_uuid;	/* mount point value */
 	} ilf_u;
@@ -280,14 +292,16 @@ typedef struct xfs_inode_log_format {
 	__int32_t		ilf_boffset;	/* off of inode in buffer */
 } xfs_inode_log_format_t;
 
-typedef struct xfs_inode_log_format_32 {
+typedef struct xfs_inode_log_format_32
+{
 	__uint16_t		ilf_type;	/* inode log item type */
 	__uint16_t		ilf_size;	/* size of this item */
 	__uint32_t		ilf_fields;	/* flags for fields logged */
 	__uint16_t		ilf_asize;	/* size of attr d/ext/root */
 	__uint16_t		ilf_dsize;	/* size of data/ext/root */
 	__uint64_t		ilf_ino;	/* inode number */
-	union {
+	union
+	{
 		__uint32_t	ilfu_rdev;	/* rdev value for dev inode*/
 		uuid_t		ilfu_uuid;	/* mount point value */
 	} ilf_u;
@@ -296,7 +310,8 @@ typedef struct xfs_inode_log_format_32 {
 	__int32_t		ilf_boffset;	/* off of inode in buffer */
 } __attribute__((packed)) xfs_inode_log_format_32_t;
 
-typedef struct xfs_inode_log_format_64 {
+typedef struct xfs_inode_log_format_64
+{
 	__uint16_t		ilf_type;	/* inode log item type */
 	__uint16_t		ilf_size;	/* size of this item */
 	__uint32_t		ilf_fields;	/* flags for fields logged */
@@ -304,7 +319,8 @@ typedef struct xfs_inode_log_format_64 {
 	__uint16_t		ilf_dsize;	/* size of data/ext/root */
 	__uint32_t		ilf_pad;	/* pad for 64 bit boundary */
 	__uint64_t		ilf_ino;	/* inode number */
-	union {
+	union
+	{
 		__uint32_t	ilfu_rdev;	/* rdev value for dev inode*/
 		uuid_t		ilfu_uuid;	/* mount point value */
 	} ilf_u;
@@ -339,23 +355,23 @@ typedef struct xfs_inode_log_format_64 {
 #define XFS_ILOG_TIMESTAMP	0x4000
 
 #define	XFS_ILOG_NONCORE	(XFS_ILOG_DDATA | XFS_ILOG_DEXT | \
-				 XFS_ILOG_DBROOT | XFS_ILOG_DEV | \
-				 XFS_ILOG_UUID | XFS_ILOG_ADATA | \
-				 XFS_ILOG_AEXT | XFS_ILOG_ABROOT | \
-				 XFS_ILOG_DOWNER | XFS_ILOG_AOWNER)
+							 XFS_ILOG_DBROOT | XFS_ILOG_DEV | \
+							 XFS_ILOG_UUID | XFS_ILOG_ADATA | \
+							 XFS_ILOG_AEXT | XFS_ILOG_ABROOT | \
+							 XFS_ILOG_DOWNER | XFS_ILOG_AOWNER)
 
 #define	XFS_ILOG_DFORK		(XFS_ILOG_DDATA | XFS_ILOG_DEXT | \
-				 XFS_ILOG_DBROOT)
+							 XFS_ILOG_DBROOT)
 
 #define	XFS_ILOG_AFORK		(XFS_ILOG_ADATA | XFS_ILOG_AEXT | \
-				 XFS_ILOG_ABROOT)
+							 XFS_ILOG_ABROOT)
 
 #define	XFS_ILOG_ALL		(XFS_ILOG_CORE | XFS_ILOG_DDATA | \
-				 XFS_ILOG_DEXT | XFS_ILOG_DBROOT | \
-				 XFS_ILOG_DEV | XFS_ILOG_UUID | \
-				 XFS_ILOG_ADATA | XFS_ILOG_AEXT | \
-				 XFS_ILOG_ABROOT | XFS_ILOG_TIMESTAMP | \
-				 XFS_ILOG_DOWNER | XFS_ILOG_AOWNER)
+							 XFS_ILOG_DEXT | XFS_ILOG_DBROOT | \
+							 XFS_ILOG_DEV | XFS_ILOG_UUID | \
+							 XFS_ILOG_ADATA | XFS_ILOG_AEXT | \
+							 XFS_ILOG_ABROOT | XFS_ILOG_TIMESTAMP | \
+							 XFS_ILOG_DOWNER | XFS_ILOG_AOWNER)
 
 static inline int xfs_ilog_fbroot(int w)
 {
@@ -378,7 +394,8 @@ static inline int xfs_ilog_fdata(int w)
  * directly mirrors the xfs_dinode structure as it must contain all the same
  * information.
  */
-typedef struct xfs_ictimestamp {
+typedef struct xfs_ictimestamp
+{
 	__int32_t	t_sec;		/* timestamp seconds */
 	__int32_t	t_nsec;		/* timestamp nanoseconds */
 } xfs_ictimestamp_t;
@@ -387,7 +404,8 @@ typedef struct xfs_ictimestamp {
  * Define the format of the inode core that is logged. This structure must be
  * kept identical to struct xfs_dinode except for the endianness annotations.
  */
-struct xfs_log_dinode {
+struct xfs_log_dinode
+{
 	__uint16_t	di_magic;	/* inode magic # = XFS_DINODE_MAGIC */
 	__uint16_t	di_mode;	/* mode and type of file */
 	__int8_t	di_version;	/* inode version */
@@ -437,7 +455,10 @@ struct xfs_log_dinode {
 static inline uint xfs_log_dinode_size(int version)
 {
 	if (version == 3)
+	{
 		return sizeof(struct xfs_log_dinode);
+	}
+
 	return offsetof(struct xfs_log_dinode, di_next_unlinked);
 }
 
@@ -478,7 +499,8 @@ static inline uint xfs_log_dinode_size(int version)
  */
 #define XFS_BLF_DATAMAP_SIZE	((XFS_MAX_BLOCKSIZE / XFS_BLF_CHUNK) / NBWORD)
 
-typedef struct xfs_buf_log_format {
+typedef struct xfs_buf_log_format
+{
 	unsigned short	blf_type;	/* buf log item type indicator */
 	unsigned short	blf_size;	/* size of this item */
 	ushort		blf_flags;	/* misc state */
@@ -500,7 +522,8 @@ typedef struct xfs_buf_log_format {
 #define XFS_BLFT_SHIFT	11
 #define XFS_BLFT_MASK	(((1 << XFS_BLFT_BITS) - 1) << XFS_BLFT_SHIFT)
 
-enum xfs_blft {
+enum xfs_blft
+{
 	XFS_BLFT_UNKNOWN_BUF = 0,
 	XFS_BLFT_UDQUOT_BUF,
 	XFS_BLFT_PDQUOT_BUF,
@@ -542,7 +565,8 @@ xfs_blft_from_flags(struct xfs_buf_log_format *blf)
 /*
  * EFI/EFD log format definitions
  */
-typedef struct xfs_extent {
+typedef struct xfs_extent
+{
 	xfs_fsblock_t	ext_start;
 	xfs_extlen_t	ext_len;
 } xfs_extent_t;
@@ -553,12 +577,14 @@ typedef struct xfs_extent {
  * So we provide the different variants for use by a
  * conversion routine.
  */
-typedef struct xfs_extent_32 {
+typedef struct xfs_extent_32
+{
 	__uint64_t	ext_start;
 	__uint32_t	ext_len;
 } __attribute__((packed)) xfs_extent_32_t;
 
-typedef struct xfs_extent_64 {
+typedef struct xfs_extent_64
+{
 	__uint64_t	ext_start;
 	__uint32_t	ext_len;
 	__uint32_t	ext_pad;
@@ -569,7 +595,8 @@ typedef struct xfs_extent_64 {
  * log.  The efi_extents field is a variable size array whose
  * size is given by efi_nextents.
  */
-typedef struct xfs_efi_log_format {
+typedef struct xfs_efi_log_format
+{
 	__uint16_t		efi_type;	/* efi log item type */
 	__uint16_t		efi_size;	/* size of this item */
 	__uint32_t		efi_nextents;	/* # extents to free */
@@ -577,7 +604,8 @@ typedef struct xfs_efi_log_format {
 	xfs_extent_t		efi_extents[1];	/* array of extents to free */
 } xfs_efi_log_format_t;
 
-typedef struct xfs_efi_log_format_32 {
+typedef struct xfs_efi_log_format_32
+{
 	__uint16_t		efi_type;	/* efi log item type */
 	__uint16_t		efi_size;	/* size of this item */
 	__uint32_t		efi_nextents;	/* # extents to free */
@@ -585,7 +613,8 @@ typedef struct xfs_efi_log_format_32 {
 	xfs_extent_32_t		efi_extents[1];	/* array of extents to free */
 } __attribute__((packed)) xfs_efi_log_format_32_t;
 
-typedef struct xfs_efi_log_format_64 {
+typedef struct xfs_efi_log_format_64
+{
 	__uint16_t		efi_type;	/* efi log item type */
 	__uint16_t		efi_size;	/* size of this item */
 	__uint32_t		efi_nextents;	/* # extents to free */
@@ -598,7 +627,8 @@ typedef struct xfs_efi_log_format_64 {
  * log.  The efd_extents array is a variable size array whose
  * size is given by efd_nextents;
  */
-typedef struct xfs_efd_log_format {
+typedef struct xfs_efd_log_format
+{
 	__uint16_t		efd_type;	/* efd log item type */
 	__uint16_t		efd_size;	/* size of this item */
 	__uint32_t		efd_nextents;	/* # of extents freed */
@@ -606,7 +636,8 @@ typedef struct xfs_efd_log_format {
 	xfs_extent_t		efd_extents[1];	/* array of extents freed */
 } xfs_efd_log_format_t;
 
-typedef struct xfs_efd_log_format_32 {
+typedef struct xfs_efd_log_format_32
+{
 	__uint16_t		efd_type;	/* efd log item type */
 	__uint16_t		efd_size;	/* size of this item */
 	__uint32_t		efd_nextents;	/* # of extents freed */
@@ -614,7 +645,8 @@ typedef struct xfs_efd_log_format_32 {
 	xfs_extent_32_t		efd_extents[1];	/* array of extents freed */
 } __attribute__((packed)) xfs_efd_log_format_32_t;
 
-typedef struct xfs_efd_log_format_64 {
+typedef struct xfs_efd_log_format_64
+{
 	__uint16_t		efd_type;	/* efd log item type */
 	__uint16_t		efd_size;	/* size of this item */
 	__uint32_t		efd_nextents;	/* # of extents freed */
@@ -625,7 +657,8 @@ typedef struct xfs_efd_log_format_64 {
 /*
  * RUI/RUD (reverse mapping) log format definitions
  */
-struct xfs_map_extent {
+struct xfs_map_extent
+{
 	__uint64_t		me_owner;
 	__uint64_t		me_startblock;
 	__uint64_t		me_startoff;
@@ -649,16 +682,17 @@ struct xfs_map_extent {
 #define XFS_RMAP_EXTENT_UNWRITTEN	(1U << 29)
 
 #define XFS_RMAP_EXTENT_FLAGS		(XFS_RMAP_EXTENT_TYPE_MASK | \
-					 XFS_RMAP_EXTENT_ATTR_FORK | \
-					 XFS_RMAP_EXTENT_BMBT_BLOCK | \
-					 XFS_RMAP_EXTENT_UNWRITTEN)
+									 XFS_RMAP_EXTENT_ATTR_FORK | \
+									 XFS_RMAP_EXTENT_BMBT_BLOCK | \
+									 XFS_RMAP_EXTENT_UNWRITTEN)
 
 /*
  * This is the structure used to lay out an rui log item in the
  * log.  The rui_extents field is a variable size array whose
  * size is given by rui_nextents.
  */
-struct xfs_rui_log_format {
+struct xfs_rui_log_format
+{
 	__uint16_t		rui_type;	/* rui log item type */
 	__uint16_t		rui_size;	/* size of this item */
 	__uint32_t		rui_nextents;	/* # extents to free */
@@ -671,7 +705,7 @@ xfs_rui_log_format_sizeof(
 	unsigned int		nr)
 {
 	return sizeof(struct xfs_rui_log_format) +
-			nr * sizeof(struct xfs_map_extent);
+		   nr * sizeof(struct xfs_map_extent);
 }
 
 /*
@@ -679,7 +713,8 @@ xfs_rui_log_format_sizeof(
  * log.  The rud_extents array is a variable size array whose
  * size is given by rud_nextents;
  */
-struct xfs_rud_log_format {
+struct xfs_rud_log_format
+{
 	__uint16_t		rud_type;	/* rud log item type */
 	__uint16_t		rud_size;	/* size of this item */
 	__uint32_t		__pad;
@@ -689,7 +724,8 @@ struct xfs_rud_log_format {
 /*
  * CUI/CUD (refcount update) log format definitions
  */
-struct xfs_phys_extent {
+struct xfs_phys_extent
+{
 	__uint64_t		pe_startblock;
 	__uint32_t		pe_len;
 	__uint32_t		pe_flags;
@@ -706,7 +742,8 @@ struct xfs_phys_extent {
  * log.  The cui_extents field is a variable size array whose
  * size is given by cui_nextents.
  */
-struct xfs_cui_log_format {
+struct xfs_cui_log_format
+{
 	__uint16_t		cui_type;	/* cui log item type */
 	__uint16_t		cui_size;	/* size of this item */
 	__uint32_t		cui_nextents;	/* # extents to free */
@@ -719,7 +756,7 @@ xfs_cui_log_format_sizeof(
 	unsigned int		nr)
 {
 	return sizeof(struct xfs_cui_log_format) +
-			nr * sizeof(struct xfs_phys_extent);
+		   nr * sizeof(struct xfs_phys_extent);
 }
 
 /*
@@ -727,7 +764,8 @@ xfs_cui_log_format_sizeof(
  * log.  The cud_extents array is a variable size array whose
  * size is given by cud_nextents;
  */
-struct xfs_cud_log_format {
+struct xfs_cud_log_format
+{
 	__uint16_t		cud_type;	/* cud log item type */
 	__uint16_t		cud_size;	/* size of this item */
 	__uint32_t		__pad;
@@ -746,15 +784,16 @@ struct xfs_cud_log_format {
 #define XFS_BMAP_EXTENT_UNWRITTEN	(1U << 30)
 
 #define XFS_BMAP_EXTENT_FLAGS		(XFS_BMAP_EXTENT_TYPE_MASK | \
-					 XFS_BMAP_EXTENT_ATTR_FORK | \
-					 XFS_BMAP_EXTENT_UNWRITTEN)
+									 XFS_BMAP_EXTENT_ATTR_FORK | \
+									 XFS_BMAP_EXTENT_UNWRITTEN)
 
 /*
  * This is the structure used to lay out an bui log item in the
  * log.  The bui_extents field is a variable size array whose
  * size is given by bui_nextents.
  */
-struct xfs_bui_log_format {
+struct xfs_bui_log_format
+{
 	__uint16_t		bui_type;	/* bui log item type */
 	__uint16_t		bui_size;	/* size of this item */
 	__uint32_t		bui_nextents;	/* # extents to free */
@@ -767,7 +806,7 @@ xfs_bui_log_format_sizeof(
 	unsigned int		nr)
 {
 	return sizeof(struct xfs_bui_log_format) +
-			nr * sizeof(struct xfs_map_extent);
+		   nr * sizeof(struct xfs_map_extent);
 }
 
 /*
@@ -775,7 +814,8 @@ xfs_bui_log_format_sizeof(
  * log.  The bud_extents array is a variable size array whose
  * size is given by bud_nextents;
  */
-struct xfs_bud_log_format {
+struct xfs_bud_log_format
+{
 	__uint16_t		bud_type;	/* bud log item type */
 	__uint16_t		bud_size;	/* size of this item */
 	__uint32_t		__pad;
@@ -788,7 +828,8 @@ struct xfs_bud_log_format {
  * The first two fields must be the type and size fitting into
  * 32 bits : log_recovery code assumes that.
  */
-typedef struct xfs_dq_logformat {
+typedef struct xfs_dq_logformat
+{
 	__uint16_t		qlf_type;      /* dquot log item type */
 	__uint16_t		qlf_size;      /* size of this item */
 	xfs_dqid_t		qlf_id;	       /* usr/grp/proj id : 32 bits */
@@ -805,7 +846,8 @@ typedef struct xfs_dq_logformat {
  * to the first and ensures that the first logitem is taken out of the AIL
  * only when the last one is securely committed.
  */
-typedef struct xfs_qoff_logformat {
+typedef struct xfs_qoff_logformat
+{
 	unsigned short		qf_type;	/* quotaoff log item type */
 	unsigned short		qf_size;	/* size of this item */
 	unsigned int		qf_flags;	/* USR and/or GRP */
@@ -833,17 +875,17 @@ typedef struct xfs_qoff_logformat {
 #define XFS_PQUOTA_CHKD	0x0400  /* quotacheck run on project quotas */
 
 #define XFS_ALL_QUOTA_ACCT	\
-		(XFS_UQUOTA_ACCT | XFS_GQUOTA_ACCT | XFS_PQUOTA_ACCT)
+	(XFS_UQUOTA_ACCT | XFS_GQUOTA_ACCT | XFS_PQUOTA_ACCT)
 #define XFS_ALL_QUOTA_ENFD	\
-		(XFS_UQUOTA_ENFD | XFS_GQUOTA_ENFD | XFS_PQUOTA_ENFD)
+	(XFS_UQUOTA_ENFD | XFS_GQUOTA_ENFD | XFS_PQUOTA_ENFD)
 #define XFS_ALL_QUOTA_CHKD	\
-		(XFS_UQUOTA_CHKD | XFS_GQUOTA_CHKD | XFS_PQUOTA_CHKD)
+	(XFS_UQUOTA_CHKD | XFS_GQUOTA_CHKD | XFS_PQUOTA_CHKD)
 
 #define XFS_MOUNT_QUOTA_ALL	(XFS_UQUOTA_ACCT|XFS_UQUOTA_ENFD|\
-				 XFS_UQUOTA_CHKD|XFS_GQUOTA_ACCT|\
-				 XFS_GQUOTA_ENFD|XFS_GQUOTA_CHKD|\
-				 XFS_PQUOTA_ACCT|XFS_PQUOTA_ENFD|\
-				 XFS_PQUOTA_CHKD)
+							 XFS_UQUOTA_CHKD|XFS_GQUOTA_ACCT|\
+							 XFS_GQUOTA_ENFD|XFS_GQUOTA_CHKD|\
+							 XFS_PQUOTA_ACCT|XFS_PQUOTA_ENFD|\
+							 XFS_PQUOTA_CHKD)
 
 /*
  * Inode create log item structure
@@ -852,7 +894,8 @@ typedef struct xfs_qoff_logformat {
  * in 32 bits. Also in host order (ugh) so they have to be 32 bit aligned so
  * decoding can be done correctly.
  */
-struct xfs_icreate_log {
+struct xfs_icreate_log
+{
 	__uint16_t	icl_type;	/* type of log format structure */
 	__uint16_t	icl_size;	/* size of log format structure */
 	__be32		icl_ag;		/* ag being allocated in */

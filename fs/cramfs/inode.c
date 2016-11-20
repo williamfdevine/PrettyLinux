@@ -30,7 +30,8 @@
 /*
  * cramfs super-block data in memory
  */
-struct cramfs_sb_info {
+struct cramfs_sb_info
+{
 	unsigned long magic;
 	unsigned long size;
 	unsigned long blocks;
@@ -57,55 +58,73 @@ static DEFINE_MUTEX(read_mutex);
 static unsigned long cramino(const struct cramfs_inode *cino, unsigned int offset)
 {
 	if (!cino->offset)
+	{
 		return offset + 1;
+	}
+
 	if (!cino->size)
+	{
 		return offset + 1;
+	}
 
 	/*
 	 * The file mode test fixes buggy mkcramfs implementations where
 	 * cramfs_inode->offset is set to a non zero value for entries
 	 * which did not contain data, like devices node and fifos.
 	 */
-	switch (cino->mode & S_IFMT) {
-	case S_IFREG:
-	case S_IFDIR:
-	case S_IFLNK:
-		return cino->offset << 2;
-	default:
-		break;
+	switch (cino->mode & S_IFMT)
+	{
+		case S_IFREG:
+		case S_IFDIR:
+		case S_IFLNK:
+			return cino->offset << 2;
+
+		default:
+			break;
 	}
+
 	return offset + 1;
 }
 
 static struct inode *get_cramfs_inode(struct super_block *sb,
-	const struct cramfs_inode *cramfs_inode, unsigned int offset)
+									  const struct cramfs_inode *cramfs_inode, unsigned int offset)
 {
 	struct inode *inode;
 	static struct timespec zerotime;
 
 	inode = iget_locked(sb, cramino(cramfs_inode, offset));
-	if (!inode)
-		return ERR_PTR(-ENOMEM);
-	if (!(inode->i_state & I_NEW))
-		return inode;
 
-	switch (cramfs_inode->mode & S_IFMT) {
-	case S_IFREG:
-		inode->i_fop = &generic_ro_fops;
-		inode->i_data.a_ops = &cramfs_aops;
-		break;
-	case S_IFDIR:
-		inode->i_op = &cramfs_dir_inode_operations;
-		inode->i_fop = &cramfs_directory_operations;
-		break;
-	case S_IFLNK:
-		inode->i_op = &page_symlink_inode_operations;
-		inode_nohighmem(inode);
-		inode->i_data.a_ops = &cramfs_aops;
-		break;
-	default:
-		init_special_inode(inode, cramfs_inode->mode,
-				old_decode_dev(cramfs_inode->size));
+	if (!inode)
+	{
+		return ERR_PTR(-ENOMEM);
+	}
+
+	if (!(inode->i_state & I_NEW))
+	{
+		return inode;
+	}
+
+	switch (cramfs_inode->mode & S_IFMT)
+	{
+		case S_IFREG:
+			inode->i_fop = &generic_ro_fops;
+			inode->i_data.a_ops = &cramfs_aops;
+			break;
+
+		case S_IFDIR:
+			inode->i_op = &cramfs_dir_inode_operations;
+			inode->i_fop = &cramfs_directory_operations;
+			break;
+
+		case S_IFLNK:
+			inode->i_op = &page_symlink_inode_operations;
+			inode_nohighmem(inode);
+			inode->i_data.a_ops = &cramfs_aops;
+			break;
+
+		default:
+			init_special_inode(inode, cramfs_inode->mode,
+							   old_decode_dev(cramfs_inode->size));
 	}
 
 	inode->i_mode = cramfs_inode->mode;
@@ -113,7 +132,8 @@ static struct inode *get_cramfs_inode(struct super_block *sb,
 	i_gid_write(inode, cramfs_inode->gid);
 
 	/* if the lower 2 bits are zero, the inode contains data */
-	if (!(inode->i_ino & 3)) {
+	if (!(inode->i_ino & 3))
+	{
 		inode->i_size = cramfs_inode->size;
 		inode->i_blocks = (cramfs_inode->size - 1) / 512 + 1;
 	}
@@ -172,46 +192,70 @@ static void *cramfs_read(struct super_block *sb, unsigned int offset, unsigned i
 	char *data;
 
 	if (!len)
+	{
 		return NULL;
+	}
+
 	blocknr = offset >> PAGE_SHIFT;
 	offset &= PAGE_SIZE - 1;
 
 	/* Check if an existing buffer already has the data.. */
-	for (i = 0; i < READ_BUFFERS; i++) {
+	for (i = 0; i < READ_BUFFERS; i++)
+	{
 		unsigned int blk_offset;
 
 		if (buffer_dev[i] != sb)
+		{
 			continue;
+		}
+
 		if (blocknr < buffer_blocknr[i])
+		{
 			continue;
+		}
+
 		blk_offset = (blocknr - buffer_blocknr[i]) << PAGE_SHIFT;
 		blk_offset += offset;
+
 		if (blk_offset + len > BUFFER_SIZE)
+		{
 			continue;
+		}
+
 		return read_buffers[i] + blk_offset;
 	}
 
 	devsize = mapping->host->i_size >> PAGE_SHIFT;
 
 	/* Ok, read in BLKS_PER_BUF pages completely first. */
-	for (i = 0; i < BLKS_PER_BUF; i++) {
+	for (i = 0; i < BLKS_PER_BUF; i++)
+	{
 		struct page *page = NULL;
 
-		if (blocknr + i < devsize) {
+		if (blocknr + i < devsize)
+		{
 			page = read_mapping_page(mapping, blocknr + i, NULL);
+
 			/* synchronous error? */
 			if (IS_ERR(page))
+			{
 				page = NULL;
+			}
 		}
+
 		pages[i] = page;
 	}
 
-	for (i = 0; i < BLKS_PER_BUF; i++) {
+	for (i = 0; i < BLKS_PER_BUF; i++)
+	{
 		struct page *page = pages[i];
 
-		if (page) {
+		if (page)
+		{
 			wait_on_page_locked(page);
-			if (!PageUptodate(page)) {
+
+			if (!PageUptodate(page))
+			{
 				/* asynchronous error */
 				put_page(page);
 				pages[i] = NULL;
@@ -225,17 +269,25 @@ static void *cramfs_read(struct super_block *sb, unsigned int offset, unsigned i
 	buffer_dev[buffer] = sb;
 
 	data = read_buffers[buffer];
-	for (i = 0; i < BLKS_PER_BUF; i++) {
+
+	for (i = 0; i < BLKS_PER_BUF; i++)
+	{
 		struct page *page = pages[i];
 
-		if (page) {
+		if (page)
+		{
 			memcpy(data, kmap(page), PAGE_SIZE);
 			kunmap(page);
 			put_page(page);
-		} else
+		}
+		else
+		{
 			memset(data, 0, PAGE_SIZE);
+		}
+
 		data += PAGE_SIZE;
 	}
+
 	return read_buffers[buffer] + offset;
 }
 
@@ -265,25 +317,37 @@ static int cramfs_fill_super(struct super_block *sb, void *data, int silent)
 	sb->s_flags |= MS_RDONLY;
 
 	sbi = kzalloc(sizeof(struct cramfs_sb_info), GFP_KERNEL);
+
 	if (!sbi)
+	{
 		return -ENOMEM;
+	}
+
 	sb->s_fs_info = sbi;
 
 	/* Invalidate the read buffers on mount: think disk change.. */
 	mutex_lock(&read_mutex);
+
 	for (i = 0; i < READ_BUFFERS; i++)
+	{
 		buffer_blocknr[i] = -1;
+	}
 
 	/* Read the first block and get the superblock from it */
 	memcpy(&super, cramfs_read(sb, 0, sizeof(super)), sizeof(super));
 	mutex_unlock(&read_mutex);
 
 	/* Do sanity checks on the superblock */
-	if (super.magic != CRAMFS_MAGIC) {
+	if (super.magic != CRAMFS_MAGIC)
+	{
 		/* check for wrong endianness */
-		if (super.magic == CRAMFS_MAGIC_WEND) {
+		if (super.magic == CRAMFS_MAGIC_WEND)
+		{
 			if (!silent)
+			{
 				pr_err("wrong endianness\n");
+			}
+
 			return -EINVAL;
 		}
 
@@ -291,46 +355,64 @@ static int cramfs_fill_super(struct super_block *sb, void *data, int silent)
 		mutex_lock(&read_mutex);
 		memcpy(&super, cramfs_read(sb, 512, sizeof(super)), sizeof(super));
 		mutex_unlock(&read_mutex);
-		if (super.magic != CRAMFS_MAGIC) {
+
+		if (super.magic != CRAMFS_MAGIC)
+		{
 			if (super.magic == CRAMFS_MAGIC_WEND && !silent)
+			{
 				pr_err("wrong endianness\n");
+			}
 			else if (!silent)
+			{
 				pr_err("wrong magic\n");
+			}
+
 			return -EINVAL;
 		}
 	}
 
 	/* get feature flags first */
-	if (super.flags & ~CRAMFS_SUPPORTED_FLAGS) {
+	if (super.flags & ~CRAMFS_SUPPORTED_FLAGS)
+	{
 		pr_err("unsupported filesystem features\n");
 		return -EINVAL;
 	}
 
 	/* Check that the root inode is in a sane state */
-	if (!S_ISDIR(super.root.mode)) {
+	if (!S_ISDIR(super.root.mode))
+	{
 		pr_err("root is not a directory\n");
 		return -EINVAL;
 	}
+
 	/* correct strange, hard-coded permissions of mkcramfs */
 	super.root.mode |= (S_IRUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
 
 	root_offset = super.root.offset << 2;
-	if (super.flags & CRAMFS_FLAG_FSID_VERSION_2) {
+
+	if (super.flags & CRAMFS_FLAG_FSID_VERSION_2)
+	{
 		sbi->size = super.size;
 		sbi->blocks = super.fsid.blocks;
 		sbi->files = super.fsid.files;
-	} else {
-		sbi->size = 1<<28;
+	}
+	else
+	{
+		sbi->size = 1 << 28;
 		sbi->blocks = 0;
 		sbi->files = 0;
 	}
+
 	sbi->magic = super.magic;
 	sbi->flags = super.flags;
+
 	if (root_offset == 0)
+	{
 		pr_info("empty filesystem");
+	}
 	else if (!(super.flags & CRAMFS_FLAG_SHIFTED_ROOT_OFFSET) &&
-		 ((root_offset != sizeof(struct cramfs_super)) &&
-		  (root_offset != 512 + sizeof(struct cramfs_super))))
+			 ((root_offset != sizeof(struct cramfs_super)) &&
+			  (root_offset != 512 + sizeof(struct cramfs_super))))
 	{
 		pr_err("bad root offset %lu\n", root_offset);
 		return -EINVAL;
@@ -339,11 +421,19 @@ static int cramfs_fill_super(struct super_block *sb, void *data, int silent)
 	/* Set it all up.. */
 	sb->s_op = &cramfs_ops;
 	root = get_cramfs_inode(sb, &super.root, 0);
+
 	if (IS_ERR(root))
+	{
 		return PTR_ERR(root);
+	}
+
 	sb->s_root = d_make_root(root);
+
 	if (!sb->s_root)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -377,17 +467,27 @@ static int cramfs_readdir(struct file *file, struct dir_context *ctx)
 
 	/* Offset within the thing. */
 	if (ctx->pos >= inode->i_size)
+	{
 		return 0;
+	}
+
 	offset = ctx->pos;
+
 	/* Directory entries are always 4-byte aligned */
 	if (offset & 3)
+	{
 		return -EINVAL;
+	}
 
 	buf = kmalloc(CRAMFS_MAXPATHLEN, GFP_KERNEL);
-	if (!buf)
-		return -ENOMEM;
 
-	while (offset < inode->i_size) {
+	if (!buf)
+	{
+		return -ENOMEM;
+	}
+
+	while (offset < inode->i_size)
+	{
 		struct cramfs_inode *de;
 		unsigned long nextoffset;
 		char *name;
@@ -396,8 +496,8 @@ static int cramfs_readdir(struct file *file, struct dir_context *ctx)
 		int namelen;
 
 		mutex_lock(&read_mutex);
-		de = cramfs_read(sb, OFFSET(inode) + offset, sizeof(*de)+CRAMFS_MAXPATHLEN);
-		name = (char *)(de+1);
+		de = cramfs_read(sb, OFFSET(inode) + offset, sizeof(*de) + CRAMFS_MAXPATHLEN);
+		name = (char *)(de + 1);
 
 		/*
 		 * Namelengths on disk are shifted by two
@@ -410,20 +510,31 @@ static int cramfs_readdir(struct file *file, struct dir_context *ctx)
 		mode = de->mode;
 		mutex_unlock(&read_mutex);
 		nextoffset = offset + sizeof(*de) + namelen;
-		for (;;) {
-			if (!namelen) {
+
+		for (;;)
+		{
+			if (!namelen)
+			{
 				kfree(buf);
 				return -EIO;
 			}
-			if (buf[namelen-1])
+
+			if (buf[namelen - 1])
+			{
 				break;
+			}
+
 			namelen--;
 		}
+
 		if (!dir_emit(ctx, buf, namelen, ino, mode >> 12))
+		{
 			break;
+		}
 
 		ctx->pos = offset = nextoffset;
 	}
+
 	kfree(buf);
 	return 0;
 }
@@ -439,52 +550,81 @@ static struct dentry *cramfs_lookup(struct inode *dir, struct dentry *dentry, un
 
 	mutex_lock(&read_mutex);
 	sorted = CRAMFS_SB(dir->i_sb)->flags & CRAMFS_FLAG_SORTED_DIRS;
-	while (offset < dir->i_size) {
+
+	while (offset < dir->i_size)
+	{
 		struct cramfs_inode *de;
 		char *name;
 		int namelen, retval;
 		int dir_off = OFFSET(dir) + offset;
 
-		de = cramfs_read(dir->i_sb, dir_off, sizeof(*de)+CRAMFS_MAXPATHLEN);
-		name = (char *)(de+1);
+		de = cramfs_read(dir->i_sb, dir_off, sizeof(*de) + CRAMFS_MAXPATHLEN);
+		name = (char *)(de + 1);
 
 		/* Try to take advantage of sorted directories */
 		if (sorted && (dentry->d_name.name[0] < name[0]))
+		{
 			break;
+		}
 
 		namelen = de->namelen << 2;
 		offset += sizeof(*de) + namelen;
 
 		/* Quick check that the name is roughly the right length */
 		if (((dentry->d_name.len + 3) & ~3) != namelen)
+		{
 			continue;
+		}
 
-		for (;;) {
-			if (!namelen) {
+		for (;;)
+		{
+			if (!namelen)
+			{
 				inode = ERR_PTR(-EIO);
 				goto out;
 			}
-			if (name[namelen-1])
+
+			if (name[namelen - 1])
+			{
 				break;
+			}
+
 			namelen--;
 		}
+
 		if (namelen != dentry->d_name.len)
+		{
 			continue;
+		}
+
 		retval = memcmp(dentry->d_name.name, name, namelen);
+
 		if (retval > 0)
+		{
 			continue;
-		if (!retval) {
+		}
+
+		if (!retval)
+		{
 			inode = get_cramfs_inode(dir->i_sb, de, dir_off);
 			break;
 		}
+
 		/* else (retval < 0) */
 		if (sorted)
+		{
 			break;
+		}
 	}
+
 out:
 	mutex_unlock(&read_mutex);
+
 	if (IS_ERR(inode))
+	{
 		return ERR_CAST(inode);
+	}
+
 	d_add(dentry, inode);
 	return NULL;
 }
@@ -500,35 +640,44 @@ static int cramfs_readpage(struct file *file, struct page *page)
 	bytes_filled = 0;
 	pgdata = kmap(page);
 
-	if (page->index < maxblock) {
+	if (page->index < maxblock)
+	{
 		struct super_block *sb = inode->i_sb;
-		u32 blkptr_offset = OFFSET(inode) + page->index*4;
+		u32 blkptr_offset = OFFSET(inode) + page->index * 4;
 		u32 start_offset, compr_len;
 
-		start_offset = OFFSET(inode) + maxblock*4;
+		start_offset = OFFSET(inode) + maxblock * 4;
 		mutex_lock(&read_mutex);
+
 		if (page->index)
-			start_offset = *(u32 *) cramfs_read(sb, blkptr_offset-4,
-				4);
+			start_offset = *(u32 *) cramfs_read(sb, blkptr_offset - 4,
+												4);
+
 		compr_len = (*(u32 *) cramfs_read(sb, blkptr_offset, 4) -
-			start_offset);
+					 start_offset);
 		mutex_unlock(&read_mutex);
 
 		if (compr_len == 0)
 			; /* hole */
-		else if (unlikely(compr_len > (PAGE_SIZE << 1))) {
+		else if (unlikely(compr_len > (PAGE_SIZE << 1)))
+		{
 			pr_err("bad compressed blocksize %u\n",
-				compr_len);
+				   compr_len);
 			goto err;
-		} else {
+		}
+		else
+		{
 			mutex_lock(&read_mutex);
 			bytes_filled = cramfs_uncompress_block(pgdata,
-				 PAGE_SIZE,
-				 cramfs_read(sb, start_offset, compr_len),
-				 compr_len);
+												   PAGE_SIZE,
+												   cramfs_read(sb, start_offset, compr_len),
+												   compr_len);
 			mutex_unlock(&read_mutex);
+
 			if (unlikely(bytes_filled < 0))
+			{
 				goto err;
+			}
 		}
 	}
 
@@ -547,7 +696,8 @@ err:
 	return 0;
 }
 
-static const struct address_space_operations cramfs_aops = {
+static const struct address_space_operations cramfs_aops =
+{
 	.readpage = cramfs_readpage
 };
 
@@ -558,28 +708,32 @@ static const struct address_space_operations cramfs_aops = {
 /*
  * A directory can only readdir
  */
-static const struct file_operations cramfs_directory_operations = {
+static const struct file_operations cramfs_directory_operations =
+{
 	.llseek		= generic_file_llseek,
 	.read		= generic_read_dir,
 	.iterate_shared	= cramfs_readdir,
 };
 
-static const struct inode_operations cramfs_dir_inode_operations = {
+static const struct inode_operations cramfs_dir_inode_operations =
+{
 	.lookup		= cramfs_lookup,
 };
 
-static const struct super_operations cramfs_ops = {
+static const struct super_operations cramfs_ops =
+{
 	.remount_fs	= cramfs_remount,
 	.statfs		= cramfs_statfs,
 };
 
 static struct dentry *cramfs_mount(struct file_system_type *fs_type,
-	int flags, const char *dev_name, void *data)
+								   int flags, const char *dev_name, void *data)
 {
 	return mount_bdev(fs_type, flags, dev_name, data, cramfs_fill_super);
 }
 
-static struct file_system_type cramfs_fs_type = {
+static struct file_system_type cramfs_fs_type =
+{
 	.owner		= THIS_MODULE,
 	.name		= "cramfs",
 	.mount		= cramfs_mount,
@@ -593,11 +747,19 @@ static int __init init_cramfs_fs(void)
 	int rv;
 
 	rv = cramfs_uncompress_init();
+
 	if (rv < 0)
+	{
 		return rv;
+	}
+
 	rv = register_filesystem(&cramfs_fs_type);
+
 	if (rv < 0)
+	{
 		cramfs_uncompress_exit();
+	}
+
 	return rv;
 }
 

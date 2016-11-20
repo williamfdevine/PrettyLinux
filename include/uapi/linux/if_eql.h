@@ -7,7 +7,7 @@
  *
  *	This software may be used and distributed according to the terms
  *	of the GNU General Public License, incorporated herein by reference.
- * 
+ *
  * The author may be reached as simon@ncm.com, or C/O
  *    NCM
  *    Attn: Simon Janes
@@ -34,18 +34,21 @@
 #define EQL_SETMASTRCFG (SIOCDEVPRIVATE + 5)
 
 
-typedef struct master_config {
+typedef struct master_config
+{
 	char	master_name[16];
 	int	max_slaves;
 	int	min_slaves;
 } master_config_t;
 
-typedef struct slave_config {
+typedef struct slave_config
+{
 	char	slave_name[16];
 	long	priority;
 } slave_config_t;
 
-typedef struct slaving_request {
+typedef struct slaving_request
+{
 	char	slave_name[16];
 	long	priority;
 } slaving_request_t;

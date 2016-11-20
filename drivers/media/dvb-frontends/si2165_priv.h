@@ -20,7 +20,8 @@
 
 #define SI2165_FIRMWARE_REV_D "dvb-demod-si2165.fw"
 
-struct si2165_config {
+struct si2165_config
+{
 	/* i2c addr
 	 * possible values: 0x64,0x65,0x66,0x67 */
 	u8 i2c_addr;

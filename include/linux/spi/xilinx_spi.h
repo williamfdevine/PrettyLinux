@@ -9,7 +9,8 @@
  * @devices:		Devices to add when the driver is probed.
  * @num_devices:	Number of devices in the devices array.
  */
-struct xspi_platform_data {
+struct xspi_platform_data
+{
 	u16 num_chipselect;
 	u8 bits_per_word;
 	struct spi_board_info *devices;

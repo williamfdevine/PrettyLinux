@@ -49,7 +49,8 @@
 #include <adf_common_drv.h>
 #include "adf_dh895xccvf_hw_data.h"
 
-static struct adf_hw_device_class dh895xcciov_class = {
+static struct adf_hw_device_class dh895xcciov_class =
+{
 	.name = ADF_DH895XCCVF_DEVICE_NAME,
 	.type = DEV_DH895XCCVF,
 	.instances = 0

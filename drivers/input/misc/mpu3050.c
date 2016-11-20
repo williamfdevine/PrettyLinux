@@ -101,13 +101,15 @@
 #define MPU3050_PWR_MGM_RESET		0x80
 #define MPU3050_PWR_MGM_MASK		0x40
 
-struct axis_data {
+struct axis_data
+{
 	s16 x;
 	s16 y;
 	s16 z;
 };
 
-struct mpu3050_sensor {
+struct mpu3050_sensor
+{
 	struct i2c_client *client;
 	struct device *dev;
 	struct input_dev *idev;
@@ -122,14 +124,15 @@ struct mpu3050_sensor {
  *	error code on failure.
  */
 static int mpu3050_xyz_read_reg(struct i2c_client *client,
-			       u8 *buffer, int length)
+								u8 *buffer, int length)
 {
 	/*
 	 * Annoying we can't make this const because the i2c layer doesn't
 	 * declare input buffers const.
 	 */
 	char cmd = MPU3050_XOUT_H;
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{
 			.addr = client->addr,
 			.flags = 0,
@@ -155,7 +158,7 @@ static int mpu3050_xyz_read_reg(struct i2c_client *client,
  *	Return the converted X Y and Z co-ordinates from the sensor device
  */
 static void mpu3050_read_xyz(struct i2c_client *client,
-			     struct axis_data *coords)
+							 struct axis_data *coords)
 {
 	u16 buffer[3];
 
@@ -164,7 +167,7 @@ static void mpu3050_read_xyz(struct i2c_client *client,
 	coords->y = be16_to_cpu(buffer[1]);
 	coords->z = be16_to_cpu(buffer[2]);
 	dev_dbg(&client->dev, "%s: x %d, y %d, z %d\n", __func__,
-					coords->x, coords->y, coords->z);
+			coords->x, coords->y, coords->z);
 }
 
 /**
@@ -180,8 +183,8 @@ static void mpu3050_set_power_mode(struct i2c_client *client, u8 val)
 
 	value = i2c_smbus_read_byte_data(client, MPU3050_PWR_MGM);
 	value = (value & ~MPU3050_PWR_MGM_MASK) |
-		(((val << MPU3050_PWR_MGM_POS) & MPU3050_PWR_MGM_MASK) ^
-		 MPU3050_PWR_MGM_MASK);
+			(((val << MPU3050_PWR_MGM_POS) & MPU3050_PWR_MGM_MASK) ^
+			 MPU3050_PWR_MGM_MASK);
 	i2c_smbus_write_byte_data(client, MPU3050_PWR_MGM, value);
 }
 
@@ -202,10 +205,12 @@ static int mpu3050_input_open(struct input_dev *input)
 
 	/* Enable interrupts */
 	error = i2c_smbus_write_byte_data(sensor->client, MPU3050_INT_CFG,
-					  MPU3050_LATCH_INT_EN |
-					  MPU3050_RAW_RDY_EN |
-					  MPU3050_MPU_RDY_EN);
-	if (error < 0) {
+									  MPU3050_LATCH_INT_EN |
+									  MPU3050_RAW_RDY_EN |
+									  MPU3050_MPU_RDY_EN);
+
+	if (error < 0)
+	{
 		pm_runtime_put(sensor->dev);
 		return error;
 	}
@@ -264,33 +269,48 @@ static int mpu3050_hw_init(struct mpu3050_sensor *sensor)
 
 	/* Reset */
 	ret = i2c_smbus_write_byte_data(client, MPU3050_PWR_MGM,
-					MPU3050_PWR_MGM_RESET);
+									MPU3050_PWR_MGM_RESET);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = i2c_smbus_read_byte_data(client, MPU3050_PWR_MGM);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret &= ~MPU3050_PWR_MGM_CLKSEL;
 	ret |= MPU3050_PWR_MGM_PLL_Z;
 	ret = i2c_smbus_write_byte_data(client, MPU3050_PWR_MGM, ret);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Output frequency divider. The poll interval */
 	ret = i2c_smbus_write_byte_data(client, MPU3050_SMPLRT_DIV,
-					MPU3050_DEFAULT_POLL_INTERVAL - 1);
+									MPU3050_DEFAULT_POLL_INTERVAL - 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Set low pass filter and full scale */
 	reg = MPU3050_DEFAULT_FS_RANGE;
 	reg |= MPU3050_DLPF_CFG_42HZ << 3;
 	reg |= MPU3050_EXT_SYNC_NONE << 5;
 	ret = i2c_smbus_write_byte_data(client, MPU3050_DLPF_FS_SYNC, reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -306,7 +326,7 @@ static int mpu3050_hw_init(struct mpu3050_sensor *sensor)
  *	If present install the relevant sysfs interfaces and input device.
  */
 static int mpu3050_probe(struct i2c_client *client,
-				   const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct mpu3050_sensor *sensor;
 	struct input_dev *idev;
@@ -315,7 +335,9 @@ static int mpu3050_probe(struct i2c_client *client,
 
 	sensor = kzalloc(sizeof(struct mpu3050_sensor), GFP_KERNEL);
 	idev = input_allocate_device();
-	if (!sensor || !idev) {
+
+	if (!sensor || !idev)
+	{
 		dev_err(&client->dev, "failed to allocate driver data\n");
 		error = -ENOMEM;
 		goto err_free_mem;
@@ -329,13 +351,16 @@ static int mpu3050_probe(struct i2c_client *client,
 	msleep(10);
 
 	ret = i2c_smbus_read_byte_data(client, MPU3050_CHIP_ID_REG);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed to detect device\n");
 		error = -ENXIO;
 		goto err_free_mem;
 	}
 
-	if (ret != MPU3050_CHIP_ID) {
+	if (ret != MPU3050_CHIP_ID)
+	{
 		dev_err(&client->dev, "unsupported chip id\n");
 		error = -ENXIO;
 		goto err_free_mem;
@@ -350,32 +375,39 @@ static int mpu3050_probe(struct i2c_client *client,
 
 	__set_bit(EV_ABS, idev->evbit);
 	input_set_abs_params(idev, ABS_X,
-			     MPU3050_MIN_VALUE, MPU3050_MAX_VALUE, 0, 0);
+						 MPU3050_MIN_VALUE, MPU3050_MAX_VALUE, 0, 0);
 	input_set_abs_params(idev, ABS_Y,
-			     MPU3050_MIN_VALUE, MPU3050_MAX_VALUE, 0, 0);
+						 MPU3050_MIN_VALUE, MPU3050_MAX_VALUE, 0, 0);
 	input_set_abs_params(idev, ABS_Z,
-			     MPU3050_MIN_VALUE, MPU3050_MAX_VALUE, 0, 0);
+						 MPU3050_MIN_VALUE, MPU3050_MAX_VALUE, 0, 0);
 
 	input_set_drvdata(idev, sensor);
 
 	pm_runtime_set_active(&client->dev);
 
 	error = mpu3050_hw_init(sensor);
+
 	if (error)
+	{
 		goto err_pm_set_suspended;
+	}
 
 	error = request_threaded_irq(client->irq,
-				     NULL, mpu3050_interrupt_thread,
-				     IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-				     "mpu3050", sensor);
-	if (error) {
+								 NULL, mpu3050_interrupt_thread,
+								 IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+								 "mpu3050", sensor);
+
+	if (error)
+	{
 		dev_err(&client->dev,
-			"can't get IRQ %d, error %d\n", client->irq, error);
+				"can't get IRQ %d, error %d\n", client->irq, error);
 		goto err_pm_set_suspended;
 	}
 
 	error = input_register_device(idev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "failed to register input device\n");
 		goto err_free_irq;
 	}
@@ -451,19 +483,22 @@ static int mpu3050_resume(struct device *dev)
 
 static UNIVERSAL_DEV_PM_OPS(mpu3050_pm, mpu3050_suspend, mpu3050_resume, NULL);
 
-static const struct i2c_device_id mpu3050_ids[] = {
+static const struct i2c_device_id mpu3050_ids[] =
+{
 	{ "mpu3050", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, mpu3050_ids);
 
-static const struct of_device_id mpu3050_of_match[] = {
+static const struct of_device_id mpu3050_of_match[] =
+{
 	{ .compatible = "invn,mpu3050", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, mpu3050_of_match);
 
-static struct i2c_driver mpu3050_i2c_driver = {
+static struct i2c_driver mpu3050_i2c_driver =
+{
 	.driver	= {
 		.name	= "mpu3050",
 		.pm	= &mpu3050_pm,

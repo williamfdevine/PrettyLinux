@@ -33,17 +33,20 @@
  */
 #define BRCMF_FEAT_DEF(_f) \
 	#_f,
-static const char *brcmf_feat_names[] = {
+static const char *brcmf_feat_names[] =
+{
 	BRCMF_FEAT_LIST
 };
 #undef BRCMF_FEAT_DEF
 
-struct brcmf_feat_fwcap {
+struct brcmf_feat_fwcap
+{
 	enum brcmf_feat_id feature;
-	const char * const fwcap_id;
+	const char *const fwcap_id;
 };
 
-static const struct brcmf_feat_fwcap brcmf_fwcap_map[] = {
+static const struct brcmf_feat_fwcap brcmf_fwcap_map[] =
+{
 	{ BRCMF_FEAT_MBSS, "mbss" },
 	{ BRCMF_FEAT_MCHAN, "mchan" },
 	{ BRCMF_FEAT_P2P, "p2p" },
@@ -55,7 +58,8 @@ static const struct brcmf_feat_fwcap brcmf_fwcap_map[] = {
  */
 #define BRCMF_QUIRK_DEF(_q) \
 	#_q,
-static const char * const brcmf_quirk_names[] = {
+static const char *const brcmf_quirk_names[] =
+{
 	BRCMF_QUIRK_LIST
 };
 #undef BRCMF_QUIRK_DEF
@@ -74,13 +78,21 @@ static int brcmf_feat_debugfs_read(struct seq_file *seq, void *data)
 	int id;
 
 	seq_printf(seq, "Features: %08x\n", feats);
+
 	for (id = 0; id < BRCMF_FEAT_LAST; id++)
 		if (feats & BIT(id))
+		{
 			seq_printf(seq, "\t%s\n", brcmf_feat_names[id]);
+		}
+
 	seq_printf(seq, "\nQuirks:   %08x\n", quirks);
+
 	for (id = 0; id < BRCMF_FEAT_QUIRK_LAST; id++)
 		if (quirks & BIT(id))
+		{
 			seq_printf(seq, "\t%s\n", brcmf_quirk_names[id]);
+		}
+
 	return 0;
 }
 #else
@@ -98,18 +110,22 @@ static int brcmf_feat_debugfs_read(struct seq_file *seq, void *data)
  * @name: iovar name.
  */
 static void brcmf_feat_iovar_int_get(struct brcmf_if *ifp,
-				     enum brcmf_feat_id id, char *name)
+									 enum brcmf_feat_id id, char *name)
 {
 	u32 data;
 	int err;
 
 	err = brcmf_fil_iovar_int_get(ifp, name, &data);
-	if (err == 0) {
+
+	if (err == 0)
+	{
 		brcmf_dbg(INFO, "enabling feature: %s\n", brcmf_feat_names[id]);
 		ifp->drvr->feat_flags |= BIT(id);
-	} else {
+	}
+	else
+	{
 		brcmf_dbg(TRACE, "%s feature check failed: %d\n",
-			  brcmf_feat_names[id], err);
+				  brcmf_feat_names[id], err);
 	}
 }
 
@@ -122,11 +138,13 @@ static void brcmf_feat_firmware_capabilities(struct brcmf_if *ifp)
 	brcmf_fil_iovar_data_get(ifp, "cap", caps, sizeof(caps));
 	brcmf_dbg(INFO, "[ %s]\n", caps);
 
-	for (i = 0; i < ARRAY_SIZE(brcmf_fwcap_map); i++) {
-		if (strnstr(caps, brcmf_fwcap_map[i].fwcap_id, sizeof(caps))) {
+	for (i = 0; i < ARRAY_SIZE(brcmf_fwcap_map); i++)
+	{
+		if (strnstr(caps, brcmf_fwcap_map[i].fwcap_id, sizeof(caps)))
+		{
 			id = brcmf_fwcap_map[i].feature;
 			brcmf_dbg(INFO, "enabling feature: %s\n",
-				  brcmf_feat_names[id]);
+					  brcmf_feat_names[id]);
 			ifp->drvr->feat_flags |= BIT(id);
 		}
 	}
@@ -142,51 +160,71 @@ void brcmf_feat_attach(struct brcmf_pub *drvr)
 	brcmf_feat_firmware_capabilities(ifp);
 
 	brcmf_feat_iovar_int_get(ifp, BRCMF_FEAT_PNO, "pfn");
+
 	if (drvr->bus_if->wowl_supported)
+	{
 		brcmf_feat_iovar_int_get(ifp, BRCMF_FEAT_WOWL, "wowl");
-	if (brcmf_feat_is_enabled(ifp, BRCMF_FEAT_WOWL)) {
+	}
+
+	if (brcmf_feat_is_enabled(ifp, BRCMF_FEAT_WOWL))
+	{
 		err = brcmf_fil_iovar_int_get(ifp, "wowl_cap", &wowl_cap);
-		if (!err) {
+
+		if (!err)
+		{
 			ifp->drvr->feat_flags |= BIT(BRCMF_FEAT_WOWL_ARP_ND);
+
 			if (wowl_cap & BRCMF_WOWL_PFN_FOUND)
 				ifp->drvr->feat_flags |=
 					BIT(BRCMF_FEAT_WOWL_ND);
+
 			if (wowl_cap & BRCMF_WOWL_GTK_FAILURE)
 				ifp->drvr->feat_flags |=
 					BIT(BRCMF_FEAT_WOWL_GTK);
 		}
 	}
+
 	/* MBSS does not work for 43362 */
 	if (drvr->bus_if->chip == BRCM_CC_43362_CHIP_ID)
+	{
 		ifp->drvr->feat_flags &= ~BIT(BRCMF_FEAT_MBSS);
+	}
+
 	brcmf_feat_iovar_int_get(ifp, BRCMF_FEAT_RSDB, "rsdb_mode");
 	brcmf_feat_iovar_int_get(ifp, BRCMF_FEAT_TDLS, "tdls_enable");
 	brcmf_feat_iovar_int_get(ifp, BRCMF_FEAT_MFP, "mfp");
 
 	pfn_mac.version = BRCMF_PFN_MACADDR_CFG_VER;
 	err = brcmf_fil_iovar_data_get(ifp, "pfn_macaddr", &pfn_mac,
-				       sizeof(pfn_mac));
-	if (!err)
-		ifp->drvr->feat_flags |= BIT(BRCMF_FEAT_SCAN_RANDOM_MAC);
+								   sizeof(pfn_mac));
 
-	if (drvr->settings->feature_disable) {
+	if (!err)
+	{
+		ifp->drvr->feat_flags |= BIT(BRCMF_FEAT_SCAN_RANDOM_MAC);
+	}
+
+	if (drvr->settings->feature_disable)
+	{
 		brcmf_dbg(INFO, "Features: 0x%02x, disable: 0x%02x\n",
-			  ifp->drvr->feat_flags,
-			  drvr->settings->feature_disable);
+				  ifp->drvr->feat_flags,
+				  drvr->settings->feature_disable);
 		ifp->drvr->feat_flags &= ~drvr->settings->feature_disable;
 	}
 
 	/* set chip related quirks */
-	switch (drvr->bus_if->chip) {
-	case BRCM_CC_43236_CHIP_ID:
-		drvr->chip_quirks |= BIT(BRCMF_FEAT_QUIRK_AUTO_AUTH);
-		break;
-	case BRCM_CC_4329_CHIP_ID:
-		drvr->chip_quirks |= BIT(BRCMF_FEAT_QUIRK_NEED_MPC);
-		break;
-	default:
-		/* no quirks */
-		break;
+	switch (drvr->bus_if->chip)
+	{
+		case BRCM_CC_43236_CHIP_ID:
+			drvr->chip_quirks |= BIT(BRCMF_FEAT_QUIRK_AUTO_AUTH);
+			break;
+
+		case BRCM_CC_4329_CHIP_ID:
+			drvr->chip_quirks |= BIT(BRCMF_FEAT_QUIRK_NEED_MPC);
+			break;
+
+		default:
+			/* no quirks */
+			break;
 	}
 
 	brcmf_debugfs_add_entry(drvr, "features", brcmf_feat_debugfs_read);
@@ -198,7 +236,7 @@ bool brcmf_feat_is_enabled(struct brcmf_if *ifp, enum brcmf_feat_id id)
 }
 
 bool brcmf_feat_is_quirk_enabled(struct brcmf_if *ifp,
-				 enum brcmf_feat_quirk quirk)
+								 enum brcmf_feat_quirk quirk)
 {
 	return (ifp->drvr->chip_quirks & BIT(quirk));
 }

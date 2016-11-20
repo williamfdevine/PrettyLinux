@@ -20,7 +20,7 @@
 #include <linux/if_vlan.h>
 
 #if IS_ENABLED(CONFIG_IPV6)
-#include <linux/icmpv6.h>
+	#include <linux/icmpv6.h>
 #endif
 
 #include <net/ip.h>
@@ -49,7 +49,8 @@ MODULE_LICENSE("GPL");
 MODULE_VERSION(DRV_MODULE_VERSION);
 
 /* Ordered from largest major to lowest */
-static struct vio_version vnet_versions[] = {
+static struct vio_version vnet_versions[] =
+{
 	{ .major = 1, .minor = 8 },
 	{ .major = 1, .minor = 7 },
 	{ .major = 1, .minor = 6 },
@@ -57,7 +58,7 @@ static struct vio_version vnet_versions[] = {
 };
 
 static void vnet_get_drvinfo(struct net_device *dev,
-			     struct ethtool_drvinfo *info)
+							 struct ethtool_drvinfo *info)
 {
 	strlcpy(info->driver, DRV_MODULE_NAME, sizeof(info->driver));
 	strlcpy(info->version, DRV_MODULE_VERSION, sizeof(info->version));
@@ -77,7 +78,8 @@ static void vnet_set_msglevel(struct net_device *dev, u32 value)
 	vp->msg_enable = value;
 }
 
-static const struct ethtool_ops vnet_ethtool_ops = {
+static const struct ethtool_ops vnet_ethtool_ops =
+{
 	.get_drvinfo		= vnet_get_drvinfo,
 	.get_msglevel		= vnet_get_msglevel,
 	.set_msglevel		= vnet_set_msglevel,
@@ -93,17 +95,30 @@ static struct vnet_port *__tx_port_find(struct vnet *vp, struct sk_buff *skb)
 	struct hlist_head *hp = &vp->port_hash[hash];
 	struct vnet_port *port;
 
-	hlist_for_each_entry_rcu(port, hp, hash) {
+	hlist_for_each_entry_rcu(port, hp, hash)
+	{
 		if (!sunvnet_port_is_up_common(port))
+		{
 			continue;
+		}
+
 		if (ether_addr_equal(port->raddr, skb->data))
+		{
 			return port;
+		}
 	}
-	list_for_each_entry_rcu(port, &vp->port_list, list) {
+	list_for_each_entry_rcu(port, &vp->port_list, list)
+	{
 		if (!port->switch_port)
+		{
 			continue;
+		}
+
 		if (!sunvnet_port_is_up_common(port))
+		{
 			continue;
+		}
+
 		return port;
 	}
 	return NULL;
@@ -111,7 +126,7 @@ static struct vnet_port *__tx_port_find(struct vnet *vp, struct sk_buff *skb)
 
 /* func arg to vnet_start_xmit_common() to get the proper tx port */
 static struct vnet_port *vnet_tx_port_find(struct sk_buff *skb,
-					   struct net_device *dev)
+		struct net_device *dev)
 {
 	struct vnet *vp = netdev_priv(dev);
 
@@ -119,13 +134,15 @@ static struct vnet_port *vnet_tx_port_find(struct sk_buff *skb,
 }
 
 static u16 vnet_select_queue(struct net_device *dev, struct sk_buff *skb,
-			     void *accel_priv, select_queue_fallback_t fallback)
+							 void *accel_priv, select_queue_fallback_t fallback)
 {
 	struct vnet *vp = netdev_priv(dev);
 	struct vnet_port *port = __tx_port_find(vp, skb);
 
 	if (!port)
+	{
 		return 0;
+	}
 
 	return port->q_index;
 }
@@ -152,7 +169,8 @@ static void vnet_poll_controller(struct net_device *dev)
 }
 #endif
 
-static const struct net_device_ops vnet_ops = {
+static const struct net_device_ops vnet_ops =
+{
 	.ndo_open		= sunvnet_open_common,
 	.ndo_stop		= sunvnet_close_common,
 	.ndo_set_rx_mode	= vnet_set_rx_mode,
@@ -168,20 +186,26 @@ static const struct net_device_ops vnet_ops = {
 };
 
 static struct vnet *vnet_new(const u64 *local_mac,
-			     struct vio_dev *vdev)
+							 struct vio_dev *vdev)
 {
 	struct net_device *dev;
 	struct vnet *vp;
 	int err, i;
 
 	dev = alloc_etherdev_mqs(sizeof(*vp), VNET_MAX_TXQS, 1);
+
 	if (!dev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	dev->needed_headroom = VNET_PACKET_SKIP + 8;
 	dev->needed_tailroom = 8;
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		dev->dev_addr[i] = (*local_mac >> (5 - i) * 8) & 0xff;
+	}
 
 	vp = netdev_priv(dev);
 
@@ -189,8 +213,12 @@ static struct vnet *vnet_new(const u64 *local_mac,
 	vp->dev = dev;
 
 	INIT_LIST_HEAD(&vp->port_list);
+
 	for (i = 0; i < VNET_PORT_HASH_SIZE; i++)
+	{
 		INIT_HLIST_HEAD(&vp->port_hash[i]);
+	}
+
 	INIT_LIST_HEAD(&vp->list);
 	vp->local_mac = *local_mac;
 
@@ -199,13 +227,15 @@ static struct vnet *vnet_new(const u64 *local_mac,
 	dev->watchdog_timeo = VNET_TX_TIMEOUT;
 
 	dev->hw_features = NETIF_F_TSO | NETIF_F_GSO | NETIF_F_GSO_SOFTWARE |
-			   NETIF_F_HW_CSUM | NETIF_F_SG;
+					   NETIF_F_HW_CSUM | NETIF_F_SG;
 	dev->features = dev->hw_features;
 
 	SET_NETDEV_DEV(dev, &vdev->dev);
 
 	err = register_netdev(dev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Cannot register net device, aborting\n");
 		goto err_out_free_dev;
 	}
@@ -223,20 +253,26 @@ err_out_free_dev:
 }
 
 static struct vnet *vnet_find_or_create(const u64 *local_mac,
-					struct vio_dev *vdev)
+										struct vio_dev *vdev)
 {
 	struct vnet *iter, *vp;
 
 	mutex_lock(&vnet_list_mutex);
 	vp = NULL;
-	list_for_each_entry(iter, &vnet_list, list) {
-		if (iter->local_mac == *local_mac) {
+	list_for_each_entry(iter, &vnet_list, list)
+	{
+		if (iter->local_mac == *local_mac)
+		{
 			vp = iter;
 			break;
 		}
 	}
+
 	if (!vp)
+	{
 		vp = vnet_new(local_mac, vdev);
+	}
+
 	mutex_unlock(&vnet_list_mutex);
 
 	return vp;
@@ -248,7 +284,9 @@ static void vnet_cleanup(void)
 	struct net_device *dev;
 
 	mutex_lock(&vnet_list_mutex);
-	while (!list_empty(&vnet_list)) {
+
+	while (!list_empty(&vnet_list))
+	{
 		vp = list_first_entry(&vnet_list, struct vnet, list);
 		list_del(&vp->list);
 		dev = vp->dev;
@@ -257,44 +295,57 @@ static void vnet_cleanup(void)
 		unregister_netdev(dev);
 		free_netdev(dev);
 	}
+
 	mutex_unlock(&vnet_list_mutex);
 }
 
 static const char *local_mac_prop = "local-mac-address";
 
 static struct vnet *vnet_find_parent(struct mdesc_handle *hp,
-				     u64 port_node,
-				     struct vio_dev *vdev)
+									 u64 port_node,
+									 struct vio_dev *vdev)
 {
 	const u64 *local_mac = NULL;
 	u64 a;
 
-	mdesc_for_each_arc(a, hp, port_node, MDESC_ARC_TYPE_BACK) {
+	mdesc_for_each_arc(a, hp, port_node, MDESC_ARC_TYPE_BACK)
+	{
 		u64 target = mdesc_arc_target(hp, a);
 		const char *name;
 
 		name = mdesc_get_property(hp, target, "name", NULL);
+
 		if (!name || strcmp(name, "network"))
+		{
 			continue;
+		}
 
 		local_mac = mdesc_get_property(hp, target,
-					       local_mac_prop, NULL);
+									   local_mac_prop, NULL);
+
 		if (local_mac)
+		{
 			break;
+		}
 	}
+
 	if (!local_mac)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	return vnet_find_or_create(local_mac, vdev);
 }
 
-static struct ldc_channel_config vnet_ldc_cfg = {
+static struct ldc_channel_config vnet_ldc_cfg =
+{
 	.event		= sunvnet_event_common,
 	.mtu		= 64,
 	.mode		= LDC_MODE_UNRELIABLE,
 };
 
-static struct vio_driver_ops vnet_vio_ops = {
+static struct vio_driver_ops vnet_vio_ops =
+{
 	.send_attr		= sunvnet_send_attr_common,
 	.handle_attr		= sunvnet_handle_attr_common,
 	.handshake_complete	= sunvnet_handshake_complete_common,
@@ -321,7 +372,9 @@ static int vnet_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 	hp = mdesc_grab();
 
 	vp = vnet_find_parent(hp, vdev->mp, vdev);
-	if (IS_ERR(vp)) {
+
+	if (IS_ERR(vp))
+	{
 		pr_err("Cannot find port parent vnet\n");
 		err = PTR_ERR(vp);
 		goto err_out_put_mdesc;
@@ -329,61 +382,84 @@ static int vnet_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 
 	rmac = mdesc_get_property(hp, vdev->mp, remote_macaddr_prop, &len);
 	err = -ENODEV;
-	if (!rmac) {
+
+	if (!rmac)
+	{
 		pr_err("Port lacks %s property\n", remote_macaddr_prop);
 		goto err_out_put_mdesc;
 	}
 
 	port = kzalloc(sizeof(*port), GFP_KERNEL);
 	err = -ENOMEM;
+
 	if (!port)
+	{
 		goto err_out_put_mdesc;
+	}
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		port->raddr[i] = (*rmac >> (5 - i) * 8) & 0xff;
+	}
 
 	port->vp = vp;
 
 	err = vio_driver_init(&port->vio, vdev, VDEV_NETWORK,
-			      vnet_versions, ARRAY_SIZE(vnet_versions),
-			      &vnet_vio_ops, vp->dev->name);
+						  vnet_versions, ARRAY_SIZE(vnet_versions),
+						  &vnet_vio_ops, vp->dev->name);
+
 	if (err)
+	{
 		goto err_out_free_port;
+	}
 
 	err = vio_ldc_alloc(&port->vio, &vnet_ldc_cfg, port);
+
 	if (err)
+	{
 		goto err_out_free_port;
+	}
 
 	netif_napi_add(port->vp->dev, &port->napi, sunvnet_poll_common,
-		       NAPI_POLL_WEIGHT);
+				   NAPI_POLL_WEIGHT);
 
 	INIT_HLIST_NODE(&port->hash);
 	INIT_LIST_HEAD(&port->list);
 
 	switch_port = 0;
+
 	if (mdesc_get_property(hp, vdev->mp, "switch-port", NULL))
+	{
 		switch_port = 1;
+	}
+
 	port->switch_port = switch_port;
 	port->tso = true;
 	port->tsolen = 0;
 
 	spin_lock_irqsave(&vp->lock, flags);
+
 	if (switch_port)
+	{
 		list_add_rcu(&port->list, &vp->port_list);
+	}
 	else
+	{
 		list_add_tail_rcu(&port->list, &vp->port_list);
+	}
+
 	hlist_add_head_rcu(&port->hash,
-			   &vp->port_hash[vnet_hashfn(port->raddr)]);
+					   &vp->port_hash[vnet_hashfn(port->raddr)]);
 	sunvnet_port_add_txq_common(port);
 	spin_unlock_irqrestore(&vp->lock, flags);
 
 	dev_set_drvdata(&vdev->dev, port);
 
 	pr_info("%s: PORT ( remote-mac %pM%s )\n",
-		vp->dev->name, port->raddr, switch_port ? " switch-port" : "");
+			vp->dev->name, port->raddr, switch_port ? " switch-port" : "");
 
 	setup_timer(&port->clean_timer, sunvnet_clean_timer_expire_common,
-		    (unsigned long)port);
+				(unsigned long)port);
 
 	napi_enable(&port->napi);
 	vio_port_up(&port->vio);
@@ -404,7 +480,8 @@ static int vnet_port_remove(struct vio_dev *vdev)
 {
 	struct vnet_port *port = dev_get_drvdata(&vdev->dev);
 
-	if (port) {
+	if (port)
+	{
 		del_timer_sync(&port->vio.timer);
 
 		napi_disable(&port->napi);
@@ -423,10 +500,12 @@ static int vnet_port_remove(struct vio_dev *vdev)
 
 		kfree(port);
 	}
+
 	return 0;
 }
 
-static const struct vio_device_id vnet_port_match[] = {
+static const struct vio_device_id vnet_port_match[] =
+{
 	{
 		.type = "vnet-port",
 	},
@@ -434,7 +513,8 @@ static const struct vio_device_id vnet_port_match[] = {
 };
 MODULE_DEVICE_TABLE(vio, vnet_port_match);
 
-static struct vio_driver vnet_port_driver = {
+static struct vio_driver vnet_port_driver =
+{
 	.id_table	= vnet_port_match,
 	.probe		= vnet_port_probe,
 	.remove		= vnet_port_remove,

@@ -40,15 +40,22 @@ static int sanitize_arg(const char *val, char *intf, int intf_len)
 	int len;
 
 	if (!val)
+	{
 		return 0;
+	}
 
 	/* Remove newline. */
 	for (len = 0; len < intf_len - 1 && val[len] && val[len] != '\n'; len++)
+	{
 		intf[len] = val[len];
+	}
+
 	intf[len] = 0;
 
 	if (len == 0 || (val[len] != 0 && val[len] != '\n'))
+	{
 		return 0;
+	}
 
 	return len;
 }
@@ -59,12 +66,19 @@ static void rxe_set_port_state(struct net_device *ndev)
 	bool is_up = netif_running(ndev) && netif_carrier_ok(ndev);
 
 	if (!rxe)
+	{
 		goto out;
+	}
 
 	if (is_up)
+	{
 		rxe_port_up(rxe);
+	}
 	else
-		rxe_port_down(rxe); /* down for unknown state */
+	{
+		rxe_port_down(rxe);    /* down for unknown state */
+	}
+
 out:
 	return;
 }
@@ -78,27 +92,34 @@ static int rxe_param_set_add(const char *val, const struct kernel_param *kp)
 	struct rxe_dev *rxe;
 
 	len = sanitize_arg(val, intf, sizeof(intf));
-	if (!len) {
+
+	if (!len)
+	{
 		pr_err("add: invalid interface name\n");
 		err = -EINVAL;
 		goto err;
 	}
 
 	ndev = dev_get_by_name(&init_net, intf);
-	if (!ndev) {
+
+	if (!ndev)
+	{
 		pr_err("interface %s not found\n", intf);
 		err = -EINVAL;
 		goto err;
 	}
 
-	if (net_to_rxe(ndev)) {
+	if (net_to_rxe(ndev))
+	{
 		pr_err("already configured on %s\n", intf);
 		err = -EINVAL;
 		goto err;
 	}
 
 	rxe = rxe_net_add(ndev);
-	if (!rxe) {
+
+	if (!rxe)
+	{
 		pr_err("failed to add %s\n", intf);
 		err = -EINVAL;
 		goto err;
@@ -107,8 +128,12 @@ static int rxe_param_set_add(const char *val, const struct kernel_param *kp)
 	rxe_set_port_state(ndev);
 	pr_info("added %s to %s\n", rxe->ib_dev.name, intf);
 err:
+
 	if (ndev)
+	{
 		dev_put(ndev);
+	}
+
 	return err;
 }
 
@@ -119,12 +144,15 @@ static int rxe_param_set_remove(const char *val, const struct kernel_param *kp)
 	struct rxe_dev *rxe;
 
 	len = sanitize_arg(val, intf, sizeof(intf));
-	if (!len) {
+
+	if (!len)
+	{
 		pr_err("add: invalid interface name\n");
 		return -EINVAL;
 	}
 
-	if (strncmp("all", intf, len) == 0) {
+	if (strncmp("all", intf, len) == 0)
+	{
 		pr_info("rxe_sys: remove all");
 		rxe_remove_all();
 		return 0;
@@ -132,7 +160,8 @@ static int rxe_param_set_remove(const char *val, const struct kernel_param *kp)
 
 	rxe = get_rxe_by_name(intf);
 
-	if (!rxe) {
+	if (!rxe)
+	{
 		pr_err("not configured on %s\n", intf);
 		return -EINVAL;
 	}
@@ -143,11 +172,13 @@ static int rxe_param_set_remove(const char *val, const struct kernel_param *kp)
 	return 0;
 }
 
-static const struct kernel_param_ops rxe_add_ops = {
+static const struct kernel_param_ops rxe_add_ops =
+{
 	.set = rxe_param_set_add,
 };
 
-static const struct kernel_param_ops rxe_remove_ops = {
+static const struct kernel_param_ops rxe_remove_ops =
+{
 	.set = rxe_param_set_remove,
 };
 

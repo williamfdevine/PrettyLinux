@@ -33,12 +33,13 @@
 
 #include "hid-ids.h"
 
-struct betopff_device {
+struct betopff_device
+{
 	struct hid_report *report;
 };
 
 static int hid_betopff_play(struct input_dev *dev, void *data,
-			 struct ff_effect *effect)
+							struct ff_effect *effect)
 {
 	struct hid_device *hid = input_get_drvdata(dev);
 	struct betopff_device *betopff = data;
@@ -60,7 +61,7 @@ static int betopff_init(struct hid_device *hid)
 	struct betopff_device *betopff;
 	struct hid_report *report;
 	struct hid_input *hidinput =
-			list_first_entry(&hid->inputs, struct hid_input, list);
+		list_first_entry(&hid->inputs, struct hid_input, list);
 	struct list_head *report_list =
 			&hid->report_enum[HID_OUTPUT_REPORT].report_list;
 	struct input_dev *dev = hidinput->input;
@@ -68,12 +69,14 @@ static int betopff_init(struct hid_device *hid)
 	int error;
 	int i, j;
 
-	if (list_empty(report_list)) {
+	if (list_empty(report_list))
+	{
 		hid_err(hid, "no output reports found\n");
 		return -ENODEV;
 	}
 
 	report = list_first_entry(report_list, struct hid_report, list);
+
 	/*
 	 * Actually there are 4 fields for 4 Bytes as below:
 	 * -----------------------------------------
@@ -82,27 +85,35 @@ static int betopff_init(struct hid_device *hid)
 	 * -----------------------------------------
 	 * Do init them with default value.
 	 */
-	for (i = 0; i < report->maxfield; i++) {
-		for (j = 0; j < report->field[i]->report_count; j++) {
+	for (i = 0; i < report->maxfield; i++)
+	{
+		for (j = 0; j < report->field[i]->report_count; j++)
+		{
 			report->field[i]->value[j] = 0x00;
 			field_count++;
 		}
 	}
 
-	if (field_count < 4) {
+	if (field_count < 4)
+	{
 		hid_err(hid, "not enough fields in the report: %d\n",
 				field_count);
 		return -ENODEV;
 	}
 
 	betopff = kzalloc(sizeof(*betopff), GFP_KERNEL);
+
 	if (!betopff)
+	{
 		return -ENOMEM;
+	}
 
 	set_bit(FF_RUMBLE, dev->ffbit);
 
 	error = input_ff_create_memless(dev, betopff, hid_betopff_play);
-	if (error) {
+
+	if (error)
+	{
 		kfree(betopff);
 		return error;
 	}
@@ -120,16 +131,22 @@ static int betop_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	int ret;
 
 	if (id->driver_data)
+	{
 		hdev->quirks |= HID_QUIRK_MULTI_INPUT;
+	}
 
 	ret = hid_parse(hdev);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hdev, "parse failed\n");
 		goto err;
 	}
 
 	ret = hid_hw_start(hdev, HID_CONNECT_DEFAULT & ~HID_CONNECT_FF);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hdev, "hw start failed\n");
 		goto err;
 	}
@@ -141,7 +158,8 @@ err:
 	return ret;
 }
 
-static const struct hid_device_id betop_devices[] = {
+static const struct hid_device_id betop_devices[] =
+{
 	{ HID_USB_DEVICE(USB_VENDOR_ID_BETOP_2185BFM, 0x2208) },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_BETOP_2185PC, 0x5506) },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_BETOP_2185V2PC, 0x1850) },
@@ -150,7 +168,8 @@ static const struct hid_device_id betop_devices[] = {
 };
 MODULE_DEVICE_TABLE(hid, betop_devices);
 
-static struct hid_driver betop_driver = {
+static struct hid_driver betop_driver =
+{
 	.name = "betop",
 	.id_table = betop_devices,
 	.probe = betop_probe,

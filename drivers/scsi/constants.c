@@ -22,88 +22,92 @@
 #define THIRD_PARTY_COPY_OUT 0x83
 #define THIRD_PARTY_COPY_IN 0x84
 
-struct sa_name_list {
+struct sa_name_list
+{
 	int opcode;
 	const struct value_name_pair *arr;
 	int arr_sz;
 };
 
-struct value_name_pair {
+struct value_name_pair
+{
 	int value;
-	const char * name;
+	const char *name;
 };
 
-static const char * cdb_byte0_names[] = {
-/* 00-03 */ "Test Unit Ready", "Rezero Unit/Rewind", NULL, "Request Sense",
-/* 04-07 */ "Format Unit/Medium", "Read Block Limits", NULL,
-	    "Reassign Blocks",
-/* 08-0d */ "Read(6)", NULL, "Write(6)", "Seek(6)", NULL, NULL,
-/* 0e-12 */ NULL, "Read Reverse", "Write Filemarks", "Space", "Inquiry",
-/* 13-16 */ "Verify(6)", "Recover Buffered Data", "Mode Select(6)",
-	    "Reserve(6)",
-/* 17-1a */ "Release(6)", "Copy", "Erase", "Mode Sense(6)",
-/* 1b-1d */ "Start/Stop Unit", "Receive Diagnostic", "Send Diagnostic",
-/* 1e-1f */ "Prevent/Allow Medium Removal", NULL,
-/* 20-22 */  NULL, NULL, NULL,
-/* 23-28 */ "Read Format Capacities", "Set Window",
-	    "Read Capacity(10)", NULL, NULL, "Read(10)",
-/* 29-2d */ "Read Generation", "Write(10)", "Seek(10)", "Erase(10)",
-            "Read updated block",
-/* 2e-31 */ "Write Verify(10)", "Verify(10)", "Search High", "Search Equal",
-/* 32-34 */ "Search Low", "Set Limits", "Prefetch/Read Position",
-/* 35-37 */ "Synchronize Cache(10)", "Lock/Unlock Cache(10)",
-	    "Read Defect Data(10)",
-/* 38-3c */ "Medium Scan", "Compare", "Copy Verify", "Write Buffer",
-	    "Read Buffer",
-/* 3d-3f */ "Update Block", "Read Long(10)",  "Write Long(10)",
-/* 40-41 */ "Change Definition", "Write Same(10)",
-/* 42-48 */ "Unmap/Read sub-channel", "Read TOC/PMA/ATIP",
-	    "Read density support", "Play audio(10)", "Get configuration",
-	    "Play audio msf", "Sanitize/Play audio track/index",
-/* 49-4f */ "Play track relative(10)", "Get event status notification",
-            "Pause/resume", "Log Select", "Log Sense", "Stop play/scan",
-            NULL,
-/* 50-55 */ "Xdwrite", "Xpwrite, Read disk info", "Xdread, Read track info",
-            "Reserve track", "Send OPC info", "Mode Select(10)",
-/* 56-5b */ "Reserve(10)", "Release(10)", "Repair track", "Read master cue",
-            "Mode Sense(10)", "Close track/session",
-/* 5c-5f */ "Read buffer capacity", "Send cue sheet", "Persistent reserve in",
-            "Persistent reserve out",
-/* 60-67 */ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-/* 68-6f */ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-/* 70-77 */ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-/* 78-7f */ NULL, NULL, NULL, NULL, NULL, NULL, "Extended CDB",
-	    "Variable length",
-/* 80-84 */ "Xdwrite(16)", "Rebuild(16)", "Regenerate(16)",
-	    "Third party copy out", "Third party copy in",
-/* 85-89 */ "ATA command pass through(16)", "Access control in",
-	    "Access control out", "Read(16)", "Compare and Write",
-/* 8a-8f */ "Write(16)", "ORWrite", "Read attributes", "Write attributes",
-            "Write and verify(16)", "Verify(16)",
-/* 90-94 */ "Pre-fetch(16)", "Synchronize cache(16)",
-            "Lock/unlock cache(16)", "Write same(16)", NULL,
-/* 95-99 */ NULL, NULL, NULL, NULL, NULL,
-/* 9a-9f */ NULL, NULL, NULL, "Service action bidirectional",
-	    "Service action in(16)", "Service action out(16)",
-/* a0-a5 */ "Report luns", "ATA command pass through(12)/Blank",
-            "Security protocol in", "Maintenance in", "Maintenance out",
-	    "Move medium/play audio(12)",
-/* a6-a9 */ "Exchange medium", "Move medium attached", "Read(12)",
-            "Play track relative(12)",
-/* aa-ae */ "Write(12)", NULL, "Erase(12), Get Performance",
-            "Read DVD structure", "Write and verify(12)",
-/* af-b1 */ "Verify(12)", "Search data high(12)", "Search data equal(12)",
-/* b2-b4 */ "Search data low(12)", "Set limits(12)",
-            "Read element status attached",
-/* b5-b6 */ "Security protocol out", "Send volume tag, set streaming",
-/* b7-b9 */ "Read defect data(12)", "Read element status", "Read CD msf",
-/* ba-bc */ "Redundancy group (in), Scan",
-            "Redundancy group (out), Set cd-rom speed", "Spare (in), Play cd",
-/* bd-bf */ "Spare (out), Mechanism status", "Volume set (in), Read cd",
-            "Volume set (out), Send DVD structure",
+static const char *cdb_byte0_names[] =
+{
+	/* 00-03 */ "Test Unit Ready", "Rezero Unit/Rewind", NULL, "Request Sense",
+	/* 04-07 */ "Format Unit/Medium", "Read Block Limits", NULL,
+	"Reassign Blocks",
+	/* 08-0d */ "Read(6)", NULL, "Write(6)", "Seek(6)", NULL, NULL,
+	/* 0e-12 */ NULL, "Read Reverse", "Write Filemarks", "Space", "Inquiry",
+	/* 13-16 */ "Verify(6)", "Recover Buffered Data", "Mode Select(6)",
+	"Reserve(6)",
+	/* 17-1a */ "Release(6)", "Copy", "Erase", "Mode Sense(6)",
+	/* 1b-1d */ "Start/Stop Unit", "Receive Diagnostic", "Send Diagnostic",
+	/* 1e-1f */ "Prevent/Allow Medium Removal", NULL,
+	/* 20-22 */  NULL, NULL, NULL,
+	/* 23-28 */ "Read Format Capacities", "Set Window",
+	"Read Capacity(10)", NULL, NULL, "Read(10)",
+	/* 29-2d */ "Read Generation", "Write(10)", "Seek(10)", "Erase(10)",
+	"Read updated block",
+	/* 2e-31 */ "Write Verify(10)", "Verify(10)", "Search High", "Search Equal",
+	/* 32-34 */ "Search Low", "Set Limits", "Prefetch/Read Position",
+	/* 35-37 */ "Synchronize Cache(10)", "Lock/Unlock Cache(10)",
+	"Read Defect Data(10)",
+	/* 38-3c */ "Medium Scan", "Compare", "Copy Verify", "Write Buffer",
+	"Read Buffer",
+	/* 3d-3f */ "Update Block", "Read Long(10)",  "Write Long(10)",
+	/* 40-41 */ "Change Definition", "Write Same(10)",
+	/* 42-48 */ "Unmap/Read sub-channel", "Read TOC/PMA/ATIP",
+	"Read density support", "Play audio(10)", "Get configuration",
+	"Play audio msf", "Sanitize/Play audio track/index",
+	/* 49-4f */ "Play track relative(10)", "Get event status notification",
+	"Pause/resume", "Log Select", "Log Sense", "Stop play/scan",
+	NULL,
+	/* 50-55 */ "Xdwrite", "Xpwrite, Read disk info", "Xdread, Read track info",
+	"Reserve track", "Send OPC info", "Mode Select(10)",
+	/* 56-5b */ "Reserve(10)", "Release(10)", "Repair track", "Read master cue",
+	"Mode Sense(10)", "Close track/session",
+	/* 5c-5f */ "Read buffer capacity", "Send cue sheet", "Persistent reserve in",
+	"Persistent reserve out",
+	/* 60-67 */ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	/* 68-6f */ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	/* 70-77 */ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	/* 78-7f */ NULL, NULL, NULL, NULL, NULL, NULL, "Extended CDB",
+	"Variable length",
+	/* 80-84 */ "Xdwrite(16)", "Rebuild(16)", "Regenerate(16)",
+	"Third party copy out", "Third party copy in",
+	/* 85-89 */ "ATA command pass through(16)", "Access control in",
+	"Access control out", "Read(16)", "Compare and Write",
+	/* 8a-8f */ "Write(16)", "ORWrite", "Read attributes", "Write attributes",
+	"Write and verify(16)", "Verify(16)",
+	/* 90-94 */ "Pre-fetch(16)", "Synchronize cache(16)",
+	"Lock/unlock cache(16)", "Write same(16)", NULL,
+	/* 95-99 */ NULL, NULL, NULL, NULL, NULL,
+	/* 9a-9f */ NULL, NULL, NULL, "Service action bidirectional",
+	"Service action in(16)", "Service action out(16)",
+	/* a0-a5 */ "Report luns", "ATA command pass through(12)/Blank",
+	"Security protocol in", "Maintenance in", "Maintenance out",
+	"Move medium/play audio(12)",
+	/* a6-a9 */ "Exchange medium", "Move medium attached", "Read(12)",
+	"Play track relative(12)",
+	/* aa-ae */ "Write(12)", NULL, "Erase(12), Get Performance",
+	"Read DVD structure", "Write and verify(12)",
+	/* af-b1 */ "Verify(12)", "Search data high(12)", "Search data equal(12)",
+	/* b2-b4 */ "Search data low(12)", "Set limits(12)",
+	"Read element status attached",
+	/* b5-b6 */ "Security protocol out", "Send volume tag, set streaming",
+	/* b7-b9 */ "Read defect data(12)", "Read element status", "Read CD msf",
+	/* ba-bc */ "Redundancy group (in), Scan",
+	"Redundancy group (out), Set cd-rom speed", "Spare (in), Play cd",
+	/* bd-bf */ "Spare (out), Mechanism status", "Volume set (in), Read cd",
+	"Volume set (out), Send DVD structure",
 };
 
-static const struct value_name_pair maint_in_arr[] = {
+static const struct value_name_pair maint_in_arr[] =
+{
 	{0x5, "Report identifying information"},
 	{0xa, "Report target port groups"},
 	{0xb, "Report aliases"},
@@ -115,7 +119,8 @@ static const struct value_name_pair maint_in_arr[] = {
 };
 #define MAINT_IN_SZ ARRAY_SIZE(maint_in_arr)
 
-static const struct value_name_pair maint_out_arr[] = {
+static const struct value_name_pair maint_out_arr[] =
+{
 	{0x6, "Set identifying information"},
 	{0xa, "Set target port groups"},
 	{0xb, "Change aliases"},
@@ -126,22 +131,26 @@ static const struct value_name_pair maint_out_arr[] = {
 };
 #define MAINT_OUT_SZ ARRAY_SIZE(maint_out_arr)
 
-static const struct value_name_pair serv_in12_arr[] = {
+static const struct value_name_pair serv_in12_arr[] =
+{
 	{0x1, "Read media serial number"},
 };
 #define SERV_IN12_SZ ARRAY_SIZE(serv_in12_arr)
 
-static const struct value_name_pair serv_out12_arr[] = {
-	{-1, "dummy entry"},
+static const struct value_name_pair serv_out12_arr[] =
+{
+	{ -1, "dummy entry"},
 };
 #define SERV_OUT12_SZ ARRAY_SIZE(serv_out12_arr)
 
-static const struct value_name_pair serv_bidi_arr[] = {
-	{-1, "dummy entry"},
+static const struct value_name_pair serv_bidi_arr[] =
+{
+	{ -1, "dummy entry"},
 };
 #define SERV_BIDI_SZ ARRAY_SIZE(serv_bidi_arr)
 
-static const struct value_name_pair serv_in16_arr[] = {
+static const struct value_name_pair serv_in16_arr[] =
+{
 	{0x10, "Read capacity(16)"},
 	{0x11, "Read long(16)"},
 	{0x12, "Get LBA status"},
@@ -149,13 +158,15 @@ static const struct value_name_pair serv_in16_arr[] = {
 };
 #define SERV_IN16_SZ ARRAY_SIZE(serv_in16_arr)
 
-static const struct value_name_pair serv_out16_arr[] = {
+static const struct value_name_pair serv_out16_arr[] =
+{
 	{0x11, "Write long(16)"},
 	{0x1f, "Notify data transfer device(16)"},
 };
 #define SERV_OUT16_SZ ARRAY_SIZE(serv_out16_arr)
 
-static const struct value_name_pair pr_in_arr[] = {
+static const struct value_name_pair pr_in_arr[] =
+{
 	{0x0, "Persistent reserve in, read keys"},
 	{0x1, "Persistent reserve in, read reservation"},
 	{0x2, "Persistent reserve in, report capabilities"},
@@ -163,7 +174,8 @@ static const struct value_name_pair pr_in_arr[] = {
 };
 #define PR_IN_SZ ARRAY_SIZE(pr_in_arr)
 
-static const struct value_name_pair pr_out_arr[] = {
+static const struct value_name_pair pr_out_arr[] =
+{
 	{0x0, "Persistent reserve out, register"},
 	{0x1, "Persistent reserve out, reserve"},
 	{0x2, "Persistent reserve out, release"},
@@ -178,7 +190,8 @@ static const struct value_name_pair pr_out_arr[] = {
 /* SPC-4 rev 34 renamed the Extended Copy opcode to Third Party Copy Out.
    LID1 (List Identifier length: 1 byte) is the Extended Copy found in SPC-2
    and SPC-3 */
-static const struct value_name_pair tpc_out_arr[] = {
+static const struct value_name_pair tpc_out_arr[] =
+{
 	{0x0, "Extended copy(LID1)"},
 	{0x1, "Extended copy(LID4)"},
 	{0x10, "Populate token"},
@@ -187,7 +200,8 @@ static const struct value_name_pair tpc_out_arr[] = {
 };
 #define TPC_OUT_SZ ARRAY_SIZE(tpc_out_arr)
 
-static const struct value_name_pair tpc_in_arr[] = {
+static const struct value_name_pair tpc_in_arr[] =
+{
 	{0x0, "Receive copy status(LID1)"},
 	{0x1, "Receive copy data(LID1)"},
 	{0x3, "Receive copy operating parameters"},
@@ -200,7 +214,8 @@ static const struct value_name_pair tpc_in_arr[] = {
 #define TPC_IN_SZ ARRAY_SIZE(tpc_in_arr)
 
 
-static const struct value_name_pair variable_length_arr[] = {
+static const struct value_name_pair variable_length_arr[] =
+{
 	{0x1, "Rebuild(32)"},
 	{0x2, "Regenerate(32)"},
 	{0x3, "Xdread(32)"},
@@ -240,7 +255,8 @@ static const struct value_name_pair variable_length_arr[] = {
 };
 #define VARIABLE_LENGTH_SZ ARRAY_SIZE(variable_length_arr)
 
-static struct sa_name_list sa_names_arr[] = {
+static struct sa_name_list sa_names_arr[] =
+{
 	{VARIABLE_LENGTH_CMD, variable_length_arr, VARIABLE_LENGTH_SZ},
 	{MAINTENANCE_IN, maint_in_arr, MAINT_IN_SZ},
 	{MAINTENANCE_OUT, maint_out_arr, MAINT_OUT_SZ},
@@ -257,40 +273,57 @@ static struct sa_name_list sa_names_arr[] = {
 };
 
 bool scsi_opcode_sa_name(int opcode, int service_action,
-			 const char **cdb_name, const char **sa_name)
+						 const char **cdb_name, const char **sa_name)
 {
 	struct sa_name_list *sa_name_ptr;
 	const struct value_name_pair *arr = NULL;
 	int arr_sz, k;
 
 	*cdb_name = NULL;
+
 	if (opcode >= VENDOR_SPECIFIC_CDB)
+	{
 		return false;
+	}
 
 	if (opcode < ARRAY_SIZE(cdb_byte0_names))
+	{
 		*cdb_name = cdb_byte0_names[opcode];
+	}
 
-	for (sa_name_ptr = sa_names_arr; sa_name_ptr->arr; ++sa_name_ptr) {
-		if (sa_name_ptr->opcode == opcode) {
+	for (sa_name_ptr = sa_names_arr; sa_name_ptr->arr; ++sa_name_ptr)
+	{
+		if (sa_name_ptr->opcode == opcode)
+		{
 			arr = sa_name_ptr->arr;
 			arr_sz = sa_name_ptr->arr_sz;
 			break;
 		}
 	}
-	if (!arr)
-		return false;
 
-	for (k = 0; k < arr_sz; ++k, ++arr) {
-		if (service_action == arr->value)
-			break;
+	if (!arr)
+	{
+		return false;
 	}
+
+	for (k = 0; k < arr_sz; ++k, ++arr)
+	{
+		if (service_action == arr->value)
+		{
+			break;
+		}
+	}
+
 	if (k < arr_sz)
+	{
 		*sa_name = arr->name;
+	}
 
 	return true;
 }
 
-struct error_info {
+struct error_info
+{
 	unsigned short code12;	/* 0x0302 looks better than 0x03,0x02 */
 	unsigned short size;
 };
@@ -316,10 +349,11 @@ static const char *additional_text =
 #undef SENSE_CODE
 	;
 
-struct error_info2 {
+struct error_info2
+{
 	unsigned char code1, code2_min, code2_max;
-	const char * str;
-	const char * fmt;
+	const char *str;
+	const char *fmt;
 };
 
 static const struct error_info2 additional2[] =
@@ -334,7 +368,8 @@ static const struct error_info2 additional2[] =
 };
 
 /* description of the sense key values */
-static const char * const snstext[] = {
+static const char *const snstext[] =
+{
 	"No Sense",	    /* 0: There is no sense information */
 	"Recovered Error",  /* 1: The last command completed successfully
 				  but used error correction */
@@ -364,7 +399,10 @@ const char *
 scsi_sense_key_string(unsigned char key)
 {
 	if (key < ARRAY_SIZE(snstext))
+	{
 		return snstext[key];
+	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(scsi_sense_key_string);
@@ -381,33 +419,46 @@ scsi_extd_sense_format(unsigned char asc, unsigned char ascq, const char **fmt)
 	unsigned offset = 0;
 
 	*fmt = NULL;
-	for (i = 0; i < ARRAY_SIZE(additional); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(additional); i++)
+	{
 		if (additional[i].code12 == code)
+		{
 			return additional_text + offset;
+		}
+
 		offset += additional[i].size;
 	}
-	for (i = 0; additional2[i].fmt; i++) {
+
+	for (i = 0; additional2[i].fmt; i++)
+	{
 		if (additional2[i].code1 == asc &&
-		    ascq >= additional2[i].code2_min &&
-		    ascq <= additional2[i].code2_max) {
+			ascq >= additional2[i].code2_min &&
+			ascq <= additional2[i].code2_max)
+		{
 			*fmt = additional2[i].fmt;
 			return additional2[i].str;
 		}
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(scsi_extd_sense_format);
 
-static const char * const hostbyte_table[]={
-"DID_OK", "DID_NO_CONNECT", "DID_BUS_BUSY", "DID_TIME_OUT", "DID_BAD_TARGET",
-"DID_ABORT", "DID_PARITY", "DID_ERROR", "DID_RESET", "DID_BAD_INTR",
-"DID_PASSTHROUGH", "DID_SOFT_ERROR", "DID_IMM_RETRY", "DID_REQUEUE",
-"DID_TRANSPORT_DISRUPTED", "DID_TRANSPORT_FAILFAST", "DID_TARGET_FAILURE",
-"DID_NEXUS_FAILURE" };
+static const char *const hostbyte_table[] =
+{
+	"DID_OK", "DID_NO_CONNECT", "DID_BUS_BUSY", "DID_TIME_OUT", "DID_BAD_TARGET",
+	"DID_ABORT", "DID_PARITY", "DID_ERROR", "DID_RESET", "DID_BAD_INTR",
+	"DID_PASSTHROUGH", "DID_SOFT_ERROR", "DID_IMM_RETRY", "DID_REQUEUE",
+	"DID_TRANSPORT_DISRUPTED", "DID_TRANSPORT_FAILFAST", "DID_TARGET_FAILURE",
+	"DID_NEXUS_FAILURE"
+};
 
-static const char * const driverbyte_table[]={
-"DRIVER_OK", "DRIVER_BUSY", "DRIVER_SOFT",  "DRIVER_MEDIA", "DRIVER_ERROR",
-"DRIVER_INVALID", "DRIVER_TIMEOUT", "DRIVER_HARD", "DRIVER_SENSE"};
+static const char *const driverbyte_table[] =
+{
+	"DRIVER_OK", "DRIVER_BUSY", "DRIVER_SOFT",  "DRIVER_MEDIA", "DRIVER_ERROR",
+	"DRIVER_INVALID", "DRIVER_TIMEOUT", "DRIVER_HARD", "DRIVER_SENSE"
+};
 
 const char *scsi_hostbyte_string(int result)
 {
@@ -415,7 +466,10 @@ const char *scsi_hostbyte_string(int result)
 	int hb = host_byte(result);
 
 	if (hb < ARRAY_SIZE(hostbyte_table))
+	{
 		hb_string = hostbyte_table[hb];
+	}
+
 	return hb_string;
 }
 EXPORT_SYMBOL(scsi_hostbyte_string);
@@ -426,13 +480,17 @@ const char *scsi_driverbyte_string(int result)
 	int db = driver_byte(result);
 
 	if (db < ARRAY_SIZE(driverbyte_table))
+	{
 		db_string = driverbyte_table[db];
+	}
+
 	return db_string;
 }
 EXPORT_SYMBOL(scsi_driverbyte_string);
 
 #define scsi_mlreturn_name(result)	{ result, #result }
-static const struct value_name_pair scsi_mlreturn_arr[] = {
+static const struct value_name_pair scsi_mlreturn_arr[] =
+{
 	scsi_mlreturn_name(NEEDS_RETRY),
 	scsi_mlreturn_name(SUCCESS),
 	scsi_mlreturn_name(FAILED),
@@ -449,10 +507,14 @@ const char *scsi_mlreturn_string(int result)
 	const struct value_name_pair *arr = scsi_mlreturn_arr;
 	int k;
 
-	for (k = 0; k < ARRAY_SIZE(scsi_mlreturn_arr); ++k, ++arr) {
+	for (k = 0; k < ARRAY_SIZE(scsi_mlreturn_arr); ++k, ++arr)
+	{
 		if (result == arr->value)
+		{
 			return arr->name;
+		}
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(scsi_mlreturn_string);

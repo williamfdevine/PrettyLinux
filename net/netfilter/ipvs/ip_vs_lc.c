@@ -27,7 +27,7 @@
  */
 static struct ip_vs_dest *
 ip_vs_lc_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
-		  struct ip_vs_iphdr *iph)
+				  struct ip_vs_iphdr *iph)
 {
 	struct ip_vs_dest *dest, *least = NULL;
 	unsigned int loh = 0, doh;
@@ -43,32 +43,41 @@ ip_vs_lc_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
 	 * served, but no new connection is assigned to the server.
 	 */
 
-	list_for_each_entry_rcu(dest, &svc->destinations, n_list) {
+	list_for_each_entry_rcu(dest, &svc->destinations, n_list)
+	{
 		if ((dest->flags & IP_VS_DEST_F_OVERLOAD) ||
-		    atomic_read(&dest->weight) == 0)
+			atomic_read(&dest->weight) == 0)
+		{
 			continue;
+		}
+
 		doh = ip_vs_dest_conn_overhead(dest);
-		if (!least || doh < loh) {
+
+		if (!least || doh < loh)
+		{
 			least = dest;
 			loh = doh;
 		}
 	}
 
 	if (!least)
+	{
 		ip_vs_scheduler_err(svc, "no destination available");
+	}
 	else
 		IP_VS_DBG_BUF(6, "LC: server %s:%u activeconns %d "
-			      "inactconns %d\n",
-			      IP_VS_DBG_ADDR(least->af, &least->addr),
-			      ntohs(least->port),
-			      atomic_read(&least->activeconns),
-			      atomic_read(&least->inactconns));
+					  "inactconns %d\n",
+					  IP_VS_DBG_ADDR(least->af, &least->addr),
+					  ntohs(least->port),
+					  atomic_read(&least->activeconns),
+					  atomic_read(&least->inactconns));
 
 	return least;
 }
 
 
-static struct ip_vs_scheduler ip_vs_lc_scheduler = {
+static struct ip_vs_scheduler ip_vs_lc_scheduler =
+{
 	.name =			"lc",
 	.refcnt =		ATOMIC_INIT(0),
 	.module =		THIS_MODULE,

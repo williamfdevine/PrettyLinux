@@ -24,7 +24,7 @@
 #include "ccp-crypto.h"
 
 static int ccp_aes_cmac_complete(struct crypto_async_request *async_req,
-				 int ret)
+								 int ret)
 {
 	struct ahash_request *req = ahash_request_cast(async_req);
 	struct crypto_ahash *tfm = crypto_ahash_reqtfm(req);
@@ -32,22 +32,29 @@ static int ccp_aes_cmac_complete(struct crypto_async_request *async_req,
 	unsigned int digest_size = crypto_ahash_digestsize(tfm);
 
 	if (ret)
+	{
 		goto e_free;
+	}
 
-	if (rctx->hash_rem) {
+	if (rctx->hash_rem)
+	{
 		/* Save remaining data to buffer */
 		unsigned int offset = rctx->nbytes - rctx->hash_rem;
 
 		scatterwalk_map_and_copy(rctx->buf, rctx->src,
-					 offset, rctx->hash_rem, 0);
+								 offset, rctx->hash_rem, 0);
 		rctx->buf_count = rctx->hash_rem;
-	} else {
+	}
+	else
+	{
 		rctx->buf_count = 0;
 	}
 
 	/* Update result area if supplied */
 	if (req->result)
+	{
 		memcpy(req->result, rctx->iv, digest_size);
+	}
 
 e_free:
 	sg_free_table(&rctx->data_sg);
@@ -56,7 +63,7 @@ e_free:
 }
 
 static int ccp_do_cmac_update(struct ahash_request *req, unsigned int nbytes,
-			      unsigned int final)
+							  unsigned int final)
 {
 	struct crypto_ahash *tfm = crypto_ahash_reqtfm(req);
 	struct ccp_ctx *ctx = crypto_ahash_ctx(tfm);
@@ -70,16 +77,21 @@ static int ccp_do_cmac_update(struct ahash_request *req, unsigned int nbytes,
 	int ret;
 
 	if (!ctx->u.aes.key_len)
+	{
 		return -EINVAL;
+	}
 
 	if (nbytes)
+	{
 		rctx->null_msg = 0;
+	}
 
 	len = (u64)rctx->buf_count + (u64)nbytes;
 
-	if (!final && (len <= block_size)) {
+	if (!final && (len <= block_size))
+	{
 		scatterwalk_map_and_copy(rctx->buf + rctx->buf_count, req->src,
-					 0, nbytes, 0);
+								 0, nbytes, 0);
 		rctx->buf_count += nbytes;
 
 		return 0;
@@ -91,16 +103,22 @@ static int ccp_do_cmac_update(struct ahash_request *req, unsigned int nbytes,
 	rctx->final = final;
 	rctx->hash_rem = final ? 0 : len & (block_size - 1);
 	rctx->hash_cnt = len - rctx->hash_rem;
-	if (!final && !rctx->hash_rem) {
+
+	if (!final && !rctx->hash_rem)
+	{
 		/* CCP can't do zero length final, so keep some data around */
 		rctx->hash_cnt -= block_size;
 		rctx->hash_rem = block_size;
 	}
 
 	if (final && (rctx->null_msg || (len & (block_size - 1))))
+	{
 		need_pad = 1;
+	}
 	else
+	{
 		need_pad = 0;
+	}
 
 	sg_init_one(&rctx->iv_sg, rctx->iv, sizeof(rctx->iv));
 
@@ -109,30 +127,41 @@ static int ccp_do_cmac_update(struct ahash_request *req, unsigned int nbytes,
 	 */
 	sg_count = (nbytes) ? sg_nents(req->src) + 2 : 2;
 	gfp = req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ?
-		GFP_KERNEL : GFP_ATOMIC;
+		  GFP_KERNEL : GFP_ATOMIC;
 	ret = sg_alloc_table(&rctx->data_sg, sg_count, gfp);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	sg = NULL;
-	if (rctx->buf_count) {
+
+	if (rctx->buf_count)
+	{
 		sg_init_one(&rctx->buf_sg, rctx->buf, rctx->buf_count);
 		sg = ccp_crypto_sg_table_add(&rctx->data_sg, &rctx->buf_sg);
-		if (!sg) {
+
+		if (!sg)
+		{
 			ret = -EINVAL;
 			goto e_free;
 		}
 	}
 
-	if (nbytes) {
+	if (nbytes)
+	{
 		sg = ccp_crypto_sg_table_add(&rctx->data_sg, req->src);
-		if (!sg) {
+
+		if (!sg)
+		{
 			ret = -EINVAL;
 			goto e_free;
 		}
 	}
 
-	if (need_pad) {
+	if (need_pad)
+	{
 		int pad_length = block_size - (len & (block_size - 1));
 
 		rctx->hash_cnt += pad_length;
@@ -141,12 +170,16 @@ static int ccp_do_cmac_update(struct ahash_request *req, unsigned int nbytes,
 		rctx->pad[0] = 0x80;
 		sg_init_one(&rctx->pad_sg, rctx->pad, pad_length);
 		sg = ccp_crypto_sg_table_add(&rctx->data_sg, &rctx->pad_sg);
-		if (!sg) {
+
+		if (!sg)
+		{
 			ret = -EINVAL;
 			goto e_free;
 		}
 	}
-	if (sg) {
+
+	if (sg)
+	{
 		sg_mark_end(sg);
 		sg = rctx->data_sg.sgl;
 	}
@@ -154,7 +187,7 @@ static int ccp_do_cmac_update(struct ahash_request *req, unsigned int nbytes,
 	/* Initialize the K1/K2 scatterlist */
 	if (final)
 		cmac_key_sg = (need_pad) ? &ctx->u.aes.k2_sg
-					 : &ctx->u.aes.k1_sg;
+					  : &ctx->u.aes.k1_sg;
 
 	memset(&rctx->cmd, 0, sizeof(rctx->cmd));
 	INIT_LIST_HEAD(&rctx->cmd.entry);
@@ -214,8 +247,11 @@ static int ccp_aes_cmac_digest(struct ahash_request *req)
 	int ret;
 
 	ret = ccp_aes_cmac_init(req);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return ccp_aes_cmac_finup(req);
 }
@@ -257,7 +293,7 @@ static int ccp_aes_cmac_import(struct ahash_request *req, const void *in)
 }
 
 static int ccp_aes_cmac_setkey(struct crypto_ahash *tfm, const u8 *key,
-			       unsigned int key_len)
+							   unsigned int key_len)
 {
 	struct ccp_ctx *ctx = crypto_tfm_ctx(crypto_ahash_tfm(tfm));
 	struct ccp_crypto_ahash_alg *alg =
@@ -267,20 +303,25 @@ static int ccp_aes_cmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 	__be64 *gk;
 	int ret;
 
-	switch (key_len) {
-	case AES_KEYSIZE_128:
-		ctx->u.aes.type = CCP_AES_TYPE_128;
-		break;
-	case AES_KEYSIZE_192:
-		ctx->u.aes.type = CCP_AES_TYPE_192;
-		break;
-	case AES_KEYSIZE_256:
-		ctx->u.aes.type = CCP_AES_TYPE_256;
-		break;
-	default:
-		crypto_ahash_set_flags(tfm, CRYPTO_TFM_RES_BAD_KEY_LEN);
-		return -EINVAL;
+	switch (key_len)
+	{
+		case AES_KEYSIZE_128:
+			ctx->u.aes.type = CCP_AES_TYPE_128;
+			break;
+
+		case AES_KEYSIZE_192:
+			ctx->u.aes.type = CCP_AES_TYPE_192;
+			break;
+
+		case AES_KEYSIZE_256:
+			ctx->u.aes.type = CCP_AES_TYPE_256;
+			break;
+
+		default:
+			crypto_ahash_set_flags(tfm, CRYPTO_TFM_RES_BAD_KEY_LEN);
+			return -EINVAL;
 	}
+
 	ctx->u.aes.mode = alg->mode;
 
 	/* Set to zero until complete */
@@ -288,13 +329,16 @@ static int ccp_aes_cmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 
 	/* Set the key for the AES cipher used to generate the keys */
 	ret = crypto_cipher_setkey(ctx->u.aes.tfm_cipher, key, key_len);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Encrypt a block of zeroes - use key area in context */
 	memset(ctx->u.aes.key, 0, sizeof(ctx->u.aes.key));
 	crypto_cipher_encrypt_one(ctx->u.aes.tfm_cipher, ctx->u.aes.key,
-				  ctx->u.aes.key);
+							  ctx->u.aes.key);
 
 	/* Generate K1 and K2 */
 	k0_hi = be64_to_cpu(*((__be64 *)ctx->u.aes.key));
@@ -302,10 +346,13 @@ static int ccp_aes_cmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 
 	k1_hi = (k0_hi << 1) | (k0_lo >> 63);
 	k1_lo = k0_lo << 1;
-	if (ctx->u.aes.key[0] & 0x80) {
+
+	if (ctx->u.aes.key[0] & 0x80)
+	{
 		k1_hi ^= rb_hi;
 		k1_lo ^= rb_lo;
 	}
+
 	gk = (__be64 *)ctx->u.aes.k1;
 	*gk = cpu_to_be64(k1_hi);
 	gk++;
@@ -313,10 +360,13 @@ static int ccp_aes_cmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 
 	k2_hi = (k1_hi << 1) | (k1_lo >> 63);
 	k2_lo = k1_lo << 1;
-	if (ctx->u.aes.k1[0] & 0x80) {
+
+	if (ctx->u.aes.k1[0] & 0x80)
+	{
 		k2_hi ^= rb_hi;
 		k2_lo ^= rb_lo;
 	}
+
 	gk = (__be64 *)ctx->u.aes.k2;
 	*gk = cpu_to_be64(k2_hi);
 	gk++;
@@ -347,12 +397,15 @@ static int ccp_aes_cmac_cra_init(struct crypto_tfm *tfm)
 	crypto_ahash_set_reqsize(ahash, sizeof(struct ccp_aes_cmac_req_ctx));
 
 	cipher_tfm = crypto_alloc_cipher("aes", 0,
-					 CRYPTO_ALG_ASYNC |
-					 CRYPTO_ALG_NEED_FALLBACK);
-	if (IS_ERR(cipher_tfm)) {
+									 CRYPTO_ALG_ASYNC |
+									 CRYPTO_ALG_NEED_FALLBACK);
+
+	if (IS_ERR(cipher_tfm))
+	{
 		pr_warn("could not load aes cipher driver\n");
 		return PTR_ERR(cipher_tfm);
 	}
+
 	ctx->u.aes.tfm_cipher = cipher_tfm;
 
 	return 0;
@@ -363,7 +416,10 @@ static void ccp_aes_cmac_cra_exit(struct crypto_tfm *tfm)
 	struct ccp_ctx *ctx = crypto_tfm_ctx(tfm);
 
 	if (ctx->u.aes.tfm_cipher)
+	{
 		crypto_free_cipher(ctx->u.aes.tfm_cipher);
+	}
+
 	ctx->u.aes.tfm_cipher = NULL;
 }
 
@@ -376,8 +432,11 @@ int ccp_register_aes_cmac_algs(struct list_head *head)
 	int ret;
 
 	ccp_alg = kzalloc(sizeof(*ccp_alg), GFP_KERNEL);
+
 	if (!ccp_alg)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&ccp_alg->entry);
 	ccp_alg->mode = CCP_AES_MODE_CMAC;
@@ -400,8 +459,8 @@ int ccp_register_aes_cmac_algs(struct list_head *head)
 	snprintf(base->cra_name, CRYPTO_MAX_ALG_NAME, "cmac(aes)");
 	snprintf(base->cra_driver_name, CRYPTO_MAX_ALG_NAME, "cmac-aes-ccp");
 	base->cra_flags = CRYPTO_ALG_TYPE_AHASH | CRYPTO_ALG_ASYNC |
-			  CRYPTO_ALG_KERN_DRIVER_ONLY |
-			  CRYPTO_ALG_NEED_FALLBACK;
+					  CRYPTO_ALG_KERN_DRIVER_ONLY |
+					  CRYPTO_ALG_NEED_FALLBACK;
 	base->cra_blocksize = AES_BLOCK_SIZE;
 	base->cra_ctxsize = sizeof(struct ccp_ctx);
 	base->cra_priority = CCP_CRA_PRIORITY;
@@ -411,9 +470,11 @@ int ccp_register_aes_cmac_algs(struct list_head *head)
 	base->cra_module = THIS_MODULE;
 
 	ret = crypto_register_ahash(alg);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s ahash algorithm registration error (%d)\n",
-		       base->cra_name, ret);
+			   base->cra_name, ret);
 		kfree(ccp_alg);
 		return ret;
 	}

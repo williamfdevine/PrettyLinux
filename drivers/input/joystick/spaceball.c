@@ -57,16 +57,19 @@ MODULE_LICENSE("GPL");
 #define SPACEBALL_4000FLX_L 9
 
 static int spaceball_axes[] = { ABS_X, ABS_Z, ABS_Y, ABS_RX, ABS_RZ, ABS_RY };
-static char *spaceball_names[] = {
+static char *spaceball_names[] =
+{
 	"?", "SpaceTec SpaceBall 1003", "SpaceTec SpaceBall 2003", "SpaceTec SpaceBall 2003B",
 	"SpaceTec SpaceBall 2003C", "SpaceTec SpaceBall 3003", "SpaceTec SpaceBall SpaceController",
-	"SpaceTec SpaceBall 3003C", "SpaceTec SpaceBall 4000FLX", "SpaceTec SpaceBall 4000FLX Lefty" };
+	"SpaceTec SpaceBall 3003C", "SpaceTec SpaceBall 4000FLX", "SpaceTec SpaceBall 4000FLX Lefty"
+};
 
 /*
  * Per-Ball data.
  */
 
-struct spaceball {
+struct spaceball
+{
 	struct input_dev *dev;
 	int idx;
 	int escape;
@@ -79,25 +82,29 @@ struct spaceball {
  * SpaceBall.
  */
 
-static void spaceball_process_packet(struct spaceball* spaceball)
+static void spaceball_process_packet(struct spaceball *spaceball)
 {
 	struct input_dev *dev = spaceball->dev;
 	unsigned char *data = spaceball->data;
 	int i;
 
-	if (spaceball->idx < 2) return;
+	if (spaceball->idx < 2) { return; }
 
-	switch (spaceball->data[0]) {
+	switch (spaceball->data[0])
+	{
 
 		case 'D':					/* Ball data */
-			if (spaceball->idx != 15) return;
+			if (spaceball->idx != 15) { return; }
+
 			for (i = 0; i < 6; i++)
 				input_report_abs(dev, spaceball_axes[i],
-					(__s16)((data[2 * i + 3] << 8) | data[2 * i + 2]));
+								 (__s16)((data[2 * i + 3] << 8) | data[2 * i + 2]));
+
 			break;
 
 		case 'K':					/* Button data */
-			if (spaceball->idx != 3) return;
+			if (spaceball->idx != 3) { return; }
+
 			input_report_key(dev, BTN_1, (data[2] & 0x01) || (data[2] & 0x20));
 			input_report_key(dev, BTN_2, data[2] & 0x02);
 			input_report_key(dev, BTN_3, data[2] & 0x04);
@@ -109,7 +116,8 @@ static void spaceball_process_packet(struct spaceball* spaceball)
 			break;
 
 		case '.':					/* Advanced button data */
-			if (spaceball->idx != 3) return;
+			if (spaceball->idx != 3) { return; }
+
 			input_report_key(dev, BTN_1, data[2] & 0x01);
 			input_report_key(dev, BTN_2, data[2] & 0x02);
 			input_report_key(dev, BTN_3, data[2] & 0x04);
@@ -146,36 +154,50 @@ static void spaceball_process_packet(struct spaceball* spaceball)
  */
 
 static irqreturn_t spaceball_interrupt(struct serio *serio,
-		unsigned char data, unsigned int flags)
+									   unsigned char data, unsigned int flags)
 {
 	struct spaceball *spaceball = serio_get_drvdata(serio);
 
-	switch (data) {
+	switch (data)
+	{
 		case 0xd:
 			spaceball_process_packet(spaceball);
 			spaceball->idx = 0;
 			spaceball->escape = 0;
 			break;
+
 		case '^':
-			if (!spaceball->escape) {
+			if (!spaceball->escape)
+			{
 				spaceball->escape = 1;
 				break;
 			}
+
 			spaceball->escape = 0;
+
 		case 'M':
 		case 'Q':
 		case 'S':
-			if (spaceball->escape) {
+			if (spaceball->escape)
+			{
 				spaceball->escape = 0;
 				data &= 0x1f;
 			}
+
 		default:
 			if (spaceball->escape)
+			{
 				spaceball->escape = 0;
+			}
+
 			if (spaceball->idx < SPACEBALL_MAX_LENGTH)
+			{
 				spaceball->data[spaceball->idx++] = data;
+			}
+
 			break;
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -185,7 +207,7 @@ static irqreturn_t spaceball_interrupt(struct serio *serio,
 
 static void spaceball_disconnect(struct serio *serio)
 {
-	struct spaceball* spaceball = serio_get_drvdata(serio);
+	struct spaceball *spaceball = serio_get_drvdata(serio);
 
 	serio_close(serio);
 	serio_set_drvdata(serio, NULL);
@@ -207,12 +229,17 @@ static int spaceball_connect(struct serio *serio, struct serio_driver *drv)
 	int i, id;
 
 	if ((id = serio->id.id) > SPACEBALL_MAX_ID)
+	{
 		return -ENODEV;
+	}
 
 	spaceball = kmalloc(sizeof(struct spaceball), GFP_KERNEL);
 	input_dev = input_allocate_device();
+
 	if (!spaceball || !input_dev)
+	{
 		goto fail1;
+	}
 
 	spaceball->dev = input_dev;
 	snprintf(spaceball->phys, sizeof(spaceball->phys), "%s/input0", serio->phys);
@@ -227,24 +254,28 @@ static int spaceball_connect(struct serio *serio, struct serio_driver *drv)
 
 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
 
-	switch (id) {
+	switch (id)
+	{
 		case SPACEBALL_4000FLX:
 		case SPACEBALL_4000FLX_L:
 			input_dev->keybit[BIT_WORD(BTN_0)] |= BIT_MASK(BTN_9);
 			input_dev->keybit[BIT_WORD(BTN_A)] |= BIT_MASK(BTN_A) |
-				BIT_MASK(BTN_B) | BIT_MASK(BTN_C) |
-				BIT_MASK(BTN_MODE);
+												  BIT_MASK(BTN_B) | BIT_MASK(BTN_C) |
+												  BIT_MASK(BTN_MODE);
+
 		default:
 			input_dev->keybit[BIT_WORD(BTN_0)] |= BIT_MASK(BTN_2) |
-				BIT_MASK(BTN_3) | BIT_MASK(BTN_4) |
-				BIT_MASK(BTN_5) | BIT_MASK(BTN_6) |
-				BIT_MASK(BTN_7) | BIT_MASK(BTN_8);
+												  BIT_MASK(BTN_3) | BIT_MASK(BTN_4) |
+												  BIT_MASK(BTN_5) | BIT_MASK(BTN_6) |
+												  BIT_MASK(BTN_7) | BIT_MASK(BTN_8);
+
 		case SPACEBALL_3003C:
 			input_dev->keybit[BIT_WORD(BTN_0)] |= BIT_MASK(BTN_1) |
-				BIT_MASK(BTN_8);
+												  BIT_MASK(BTN_8);
 	}
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		input_set_abs_params(input_dev, ABS_X + i, -8000, 8000, 8, 40);
 		input_set_abs_params(input_dev, ABS_RX + i, -1600, 1600, 2, 8);
 	}
@@ -252,18 +283,24 @@ static int spaceball_connect(struct serio *serio, struct serio_driver *drv)
 	serio_set_drvdata(serio, spaceball);
 
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	err = input_register_device(spaceball->dev);
+
 	if (err)
+	{
 		goto fail3;
+	}
 
 	return 0;
 
- fail3:	serio_close(serio);
- fail2:	serio_set_drvdata(serio, NULL);
- fail1:	input_free_device(input_dev);
+fail3:	serio_close(serio);
+fail2:	serio_set_drvdata(serio, NULL);
+fail1:	input_free_device(input_dev);
 	kfree(spaceball);
 	return err;
 }
@@ -272,7 +309,8 @@ static int spaceball_connect(struct serio *serio, struct serio_driver *drv)
  * The serio driver structure.
  */
 
-static struct serio_device_id spaceball_serio_ids[] = {
+static struct serio_device_id spaceball_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_SPACEBALL,
@@ -284,7 +322,8 @@ static struct serio_device_id spaceball_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, spaceball_serio_ids);
 
-static struct serio_driver spaceball_drv = {
+static struct serio_driver spaceball_drv =
+{
 	.driver		= {
 		.name	= "spaceball",
 	},

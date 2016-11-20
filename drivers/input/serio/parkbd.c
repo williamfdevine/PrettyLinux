@@ -13,18 +13,18 @@
 /*
  * To connect an AT or XT keyboard to the parallel port, a fairly simple adapter
  * can be made:
- * 
+ *
  *  Parallel port            Keyboard port
  *
  *     +5V --------------------- +5V (4)
- *  
+ *
  *                 ______
  *     +5V -------|______|--.
  *                          |
  *     ACK (10) ------------|
  *                          |--- KBD CLOCK (5)
  *     STROBE (1) ---|<|----'
- *     
+ *
  *                 ______
  *     +5V -------|______|--.
  *                          |
@@ -33,7 +33,7 @@
  *     AUTOFD (14) --|<|----'
  *
  *     GND (18-25) ------------- GND (3)
- *     
+ *
  * The diodes can be fairly any type, and the resistors should be somewhere
  * around 5 kOhm, but the adapter will likely work without the resistors,
  * too.
@@ -88,9 +88,9 @@ static int parkbd_write(struct serio *port, unsigned char c)
 {
 	unsigned char p;
 
-	if (!parkbd_mode) return -1;
+	if (!parkbd_mode) { return -1; }
 
-        p = c ^ (c >> 4);
+	p = c ^ (c >> 4);
 	p = p ^ (p >> 2);
 	p = p ^ (p >> 1);
 
@@ -106,9 +106,11 @@ static int parkbd_write(struct serio *port, unsigned char c)
 static void parkbd_interrupt(void *dev_id)
 {
 
-	if (parkbd_writing) {
+	if (parkbd_writing)
+	{
 
-		if (parkbd_counter && ((parkbd_counter == 11) || time_after(jiffies, parkbd_last + HZ/100))) {
+		if (parkbd_counter && ((parkbd_counter == 11) || time_after(jiffies, parkbd_last + HZ / 100)))
+		{
 			parkbd_counter = 0;
 			parkbd_buffer = 0;
 			parkbd_writing = 0;
@@ -118,16 +120,20 @@ static void parkbd_interrupt(void *dev_id)
 
 		parkbd_writelines(((parkbd_buffer >> parkbd_counter++) & 1) | 2);
 
-		if (parkbd_counter == 11) {
+		if (parkbd_counter == 11)
+		{
 			parkbd_counter = 0;
 			parkbd_buffer = 0;
 			parkbd_writing = 0;
 			parkbd_writelines(3);
 		}
 
-	} else {
+	}
+	else
+	{
 
-		if ((parkbd_counter == parkbd_mode + 10) || time_after(jiffies, parkbd_last + HZ/100)) {
+		if ((parkbd_counter == parkbd_mode + 10) || time_after(jiffies, parkbd_last + HZ / 100))
+		{
 			parkbd_counter = 0;
 			parkbd_buffer = 0;
 		}
@@ -135,7 +141,9 @@ static void parkbd_interrupt(void *dev_id)
 		parkbd_buffer |= (parkbd_readlines() >> 1) << parkbd_counter++;
 
 		if (parkbd_counter == parkbd_mode + 10)
+		{
 			serio_interrupt(parkbd_port, (parkbd_buffer >> (2 - parkbd_mode)) & 0xff, 0);
+		}
 	}
 
 	parkbd_last = jiffies;
@@ -150,12 +158,15 @@ static int parkbd_getport(struct parport *pp)
 	parkbd_parport_cb.flags = PARPORT_FLAG_EXCL;
 
 	parkbd_dev = parport_register_dev_model(pp, "parkbd",
-						&parkbd_parport_cb, 0);
+											&parkbd_parport_cb, 0);
 
 	if (!parkbd_dev)
+	{
 		return -ENODEV;
+	}
 
-	if (parport_claim(parkbd_dev)) {
+	if (parport_claim(parkbd_dev))
+	{
 		parport_unregister_device(parkbd_dev);
 		return -EBUSY;
 	}
@@ -170,10 +181,12 @@ static struct serio *parkbd_allocate_serio(void)
 	struct serio *serio;
 
 	serio = kzalloc(sizeof(struct serio), GFP_KERNEL);
-	if (serio) {
+
+	if (serio)
+	{
 		serio->id.type = parkbd_mode;
 		serio->write = parkbd_write,
-		strlcpy(serio->name, "PARKBD AT/XT keyboard adapter", sizeof(serio->name));
+			   strlcpy(serio->name, "PARKBD AT/XT keyboard adapter", sizeof(serio->name));
 		snprintf(serio->phys, sizeof(serio->phys), "%s/serio0", parkbd_dev->port->name);
 	}
 
@@ -182,16 +195,21 @@ static struct serio *parkbd_allocate_serio(void)
 
 static void parkbd_attach(struct parport *pp)
 {
-	if (pp->number != parkbd_pp_no) {
+	if (pp->number != parkbd_pp_no)
+	{
 		pr_debug("Not using parport%d.\n", pp->number);
 		return;
 	}
 
 	if (parkbd_getport(pp))
+	{
 		return;
+	}
 
 	parkbd_port = parkbd_allocate_serio();
-	if (!parkbd_port) {
+
+	if (!parkbd_port)
+	{
 		parport_release(parkbd_dev);
 		parport_unregister_device(parkbd_dev);
 		return;
@@ -202,7 +220,7 @@ static void parkbd_attach(struct parport *pp)
 	serio_register_port(parkbd_port);
 
 	printk(KERN_INFO "serio: PARKBD %s adapter on %s\n",
-                        parkbd_mode ? "AT" : "XT", parkbd_dev->port->name);
+		   parkbd_mode ? "AT" : "XT", parkbd_dev->port->name);
 
 	return;
 }
@@ -210,7 +228,9 @@ static void parkbd_attach(struct parport *pp)
 static void parkbd_detach(struct parport *port)
 {
 	if (!parkbd_port || port->number != parkbd_pp_no)
+	{
 		return;
+	}
 
 	parport_release(parkbd_dev);
 	serio_unregister_port(parkbd_port);
@@ -218,7 +238,8 @@ static void parkbd_detach(struct parport *port)
 	parkbd_port = NULL;
 }
 
-static struct parport_driver parkbd_parport_driver = {
+static struct parport_driver parkbd_parport_driver =
+{
 	.name = "parkbd",
 	.match_port = parkbd_attach,
 	.detach = parkbd_detach,

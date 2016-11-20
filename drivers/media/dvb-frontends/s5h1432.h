@@ -33,7 +33,8 @@
 #define IF_FREQ_3point5_MHZ       3500000
 #define IF_FREQ_4_MHZ             4000000
 
-struct s5h1432_config {
+struct s5h1432_config
+{
 
 	/* serial/parallel output */
 #define S5H1432_PARALLEL_OUTPUT 0
@@ -76,11 +77,11 @@ struct s5h1432_config {
 
 #if IS_REACHABLE(CONFIG_DVB_S5H1432)
 extern struct dvb_frontend *s5h1432_attach(const struct s5h1432_config *config,
-					   struct i2c_adapter *i2c);
+		struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *s5h1432_attach(const struct s5h1432_config
-						  *config,
-						  struct i2c_adapter *i2c)
+		*config,
+		struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

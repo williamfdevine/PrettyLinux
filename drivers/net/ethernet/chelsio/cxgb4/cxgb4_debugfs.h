@@ -38,26 +38,28 @@
 #include <linux/export.h>
 
 #define DEFINE_SIMPLE_DEBUGFS_FILE(name) \
-static int name##_open(struct inode *inode, struct file *file) \
-{ \
-	return single_open(file, name##_show, inode->i_private); \
-} \
-static const struct file_operations name##_debugfs_fops = { \
-	.owner   = THIS_MODULE, \
-	.open    = name##_open, \
-	.read    = seq_read, \
-	.llseek  = seq_lseek, \
-	.release = single_release \
-}
+	static int name##_open(struct inode *inode, struct file *file) \
+	{ \
+		return single_open(file, name##_show, inode->i_private); \
+	} \
+	static const struct file_operations name##_debugfs_fops = { \
+		.owner   = THIS_MODULE, \
+				   .open    = name##_open, \
+							  .read    = seq_read, \
+										 .llseek  = seq_lseek, \
+												 .release = single_release \
+	}
 
-struct t4_debugfs_entry {
+struct t4_debugfs_entry
+{
 	const char *name;
 	const struct file_operations *ops;
 	umode_t mode;
 	unsigned char data;
 };
 
-struct seq_tab {
+struct seq_tab
+{
 	int (*show)(struct seq_file *seq, void *v, int idx);
 	unsigned int rows;        /* # of entries */
 	unsigned char width;      /* size in bytes of each entry */
@@ -71,13 +73,13 @@ static inline unsigned int hex2val(char c)
 }
 
 struct seq_tab *seq_open_tab(struct file *f, unsigned int rows,
-			     unsigned int width, unsigned int have_header,
-			     int (*show)(struct seq_file *seq, void *v, int i));
+							 unsigned int width, unsigned int have_header,
+							 int (*show)(struct seq_file *seq, void *v, int i));
 
 int t4_setup_debugfs(struct adapter *adap);
 void add_debugfs_files(struct adapter *adap,
-		       struct t4_debugfs_entry *files,
-		       unsigned int nfiles);
+					   struct t4_debugfs_entry *files,
+					   unsigned int nfiles);
 int mem_open(struct inode *inode, struct file *file);
 
 #endif

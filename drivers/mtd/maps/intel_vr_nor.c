@@ -39,7 +39,8 @@
 
 #define DRV_NAME "vr_nor"
 
-struct vr_nor_mtd {
+struct vr_nor_mtd
+{
 	void __iomem *csr_base;
 	struct map_info map;
 	struct mtd_info *info;
@@ -81,14 +82,19 @@ static void vr_nor_destroy_mtd_setup(struct vr_nor_mtd *p)
 
 static int vr_nor_mtd_setup(struct vr_nor_mtd *p)
 {
-	static const char * const probe_types[] =
-	    { "cfi_probe", "jedec_probe", NULL };
-	const char * const *type;
+	static const char *const probe_types[] =
+	{ "cfi_probe", "jedec_probe", NULL };
+	const char *const *type;
 
 	for (type = probe_types; !p->info && *type; type++)
+	{
 		p->info = do_map_probe(*type, &p->map);
+	}
+
 	if (!p->info)
+	{
 		return -ENODEV;
+	}
 
 	p->info->dev.parent = &p->dev->dev;
 
@@ -128,35 +134,50 @@ static int vr_nor_init_maps(struct vr_nor_mtd *p)
 	win_len = pci_resource_len(p->dev, EXP_WIN_MBAR);
 
 	if (!csr_phys || !csr_len || !win_phys || !win_len)
+	{
 		return -ENODEV;
+	}
 
 	if (win_len < (CS0_START + CS0_SIZE))
+	{
 		return -ENXIO;
+	}
 
 	p->csr_base = ioremap_nocache(csr_phys, csr_len);
+
 	if (!p->csr_base)
+	{
 		return -ENOMEM;
+	}
 
 	exp_timing_cs0 = readl(p->csr_base + EXP_TIMING_CS0);
-	if (!(exp_timing_cs0 & TIMING_CS_EN)) {
+
+	if (!(exp_timing_cs0 & TIMING_CS_EN))
+	{
 		dev_warn(&p->dev->dev, "Expansion Bus Chip Select 0 "
-		       "is disabled.\n");
+				 "is disabled.\n");
 		err = -ENODEV;
 		goto release;
 	}
-	if ((exp_timing_cs0 & TIMING_MASK) == TIMING_MASK) {
+
+	if ((exp_timing_cs0 & TIMING_MASK) == TIMING_MASK)
+	{
 		dev_warn(&p->dev->dev, "Expansion Bus Chip Select 0 "
-		       "is configured for maximally slow access times.\n");
+				 "is configured for maximally slow access times.\n");
 	}
+
 	p->map.name = DRV_NAME;
 	p->map.bankwidth = (exp_timing_cs0 & TIMING_BYTE_EN) ? 1 : 2;
 	p->map.phys = win_phys + CS0_START;
 	p->map.size = CS0_SIZE;
 	p->map.virt = ioremap_nocache(p->map.phys, p->map.size);
-	if (!p->map.virt) {
+
+	if (!p->map.virt)
+	{
 		err = -ENOMEM;
 		goto release;
 	}
+
 	simple_map_init(&p->map);
 
 	/* Enable writes to flash bank */
@@ -165,12 +186,13 @@ static int vr_nor_init_maps(struct vr_nor_mtd *p)
 
 	return 0;
 
-      release:
+release:
 	iounmap(p->csr_base);
 	return err;
 }
 
-static struct pci_device_id vr_nor_pci_ids[] = {
+static struct pci_device_id vr_nor_pci_ids[] =
+{
 	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x500D)},
 	{0,}
 };
@@ -194,40 +216,58 @@ static int vr_nor_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	int err;
 
 	err = pci_enable_device(dev);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = pci_request_regions(dev, DRV_NAME);
+
 	if (err)
+	{
 		goto disable_dev;
+	}
 
 	p = kzalloc(sizeof(*p), GFP_KERNEL);
 	err = -ENOMEM;
+
 	if (!p)
+	{
 		goto release;
+	}
 
 	p->dev = dev;
 
 	err = vr_nor_init_maps(p);
+
 	if (err)
+	{
 		goto release;
+	}
 
 	err = vr_nor_mtd_setup(p);
+
 	if (err)
+	{
 		goto destroy_maps;
+	}
 
 	err = vr_nor_init_partitions(p);
+
 	if (err)
+	{
 		goto destroy_mtd_setup;
+	}
 
 	pci_set_drvdata(dev, p);
 
 	return 0;
 
-      destroy_mtd_setup:
+destroy_mtd_setup:
 	map_destroy(p->info);
 
-      destroy_maps:
+destroy_maps:
 	/* write-protect the flash bank */
 	exp_timing_cs0 = readl(p->csr_base + EXP_TIMING_CS0);
 	exp_timing_cs0 &= ~TIMING_WR_EN;
@@ -239,18 +279,19 @@ static int vr_nor_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	/* unmap the csr window */
 	iounmap(p->csr_base);
 
-      release:
+release:
 	kfree(p);
 	pci_release_regions(dev);
 
-      disable_dev:
+disable_dev:
 	pci_disable_device(dev);
 
-      out:
+out:
 	return err;
 }
 
-static struct pci_driver vr_nor_pci_driver = {
+static struct pci_driver vr_nor_pci_driver =
+{
 	.name = DRV_NAME,
 	.probe = vr_nor_pci_probe,
 	.remove = vr_nor_pci_remove,

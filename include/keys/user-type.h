@@ -28,7 +28,8 @@
  * - the key's data length is the size of the actual data, not including the
  *   payload wrapper
  */
-struct user_key_payload {
+struct user_key_payload
+{
 	struct rcu_head	rcu;		/* RCU destructor */
 	unsigned short	datalen;	/* length of this data */
 	char		data[0];	/* actual data */
@@ -46,7 +47,7 @@ extern void user_revoke(struct key *key);
 extern void user_destroy(struct key *key);
 extern void user_describe(const struct key *user, struct seq_file *m);
 extern long user_read(const struct key *key,
-		      char __user *buffer, size_t buflen);
+					  char __user *buffer, size_t buflen);
 
 static inline const struct user_key_payload *user_key_payload(const struct key *key)
 {

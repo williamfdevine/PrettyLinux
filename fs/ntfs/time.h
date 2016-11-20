@@ -52,7 +52,7 @@ static inline sle64 utc2ntfs(const struct timespec ts)
 	 * converted to 100ns intervals, and then add the NTFS time offset.
 	 */
 	return cpu_to_sle64((s64)ts.tv_sec * 10000000 + ts.tv_nsec / 100 +
-			NTFS_TIME_OFFSET);
+						NTFS_TIME_OFFSET);
 }
 
 /**

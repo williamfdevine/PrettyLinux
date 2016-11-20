@@ -23,24 +23,28 @@
 
 #define DA9052_MAX_BRIGHTNESS		0xFF
 
-enum {
+enum
+{
 	DA9052_WLEDS_OFF,
 	DA9052_WLEDS_ON,
 };
 
-enum {
+enum
+{
 	DA9052_TYPE_WLED1,
 	DA9052_TYPE_WLED2,
 	DA9052_TYPE_WLED3,
 };
 
-static const unsigned char wled_bank[] = {
+static const unsigned char wled_bank[] =
+{
 	DA9052_LED1_CONF_REG,
 	DA9052_LED2_CONF_REG,
 	DA9052_LED3_CONF_REG,
 };
 
-struct da9052_bl {
+struct da9052_bl
+{
 	struct da9052 *da9052;
 	uint brightness;
 	uint state;
@@ -55,30 +59,45 @@ static int da9052_adjust_wled_brightness(struct da9052_bl *wleds)
 
 	boost_en = 0x3F;
 	i_sink = 0xFF;
-	if (wleds->state == DA9052_WLEDS_OFF) {
+
+	if (wleds->state == DA9052_WLEDS_OFF)
+	{
 		boost_en = 0x00;
 		i_sink = 0x00;
 	}
 
 	ret = da9052_reg_write(wleds->da9052, DA9052_BOOST_REG, boost_en);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = da9052_reg_write(wleds->da9052, DA9052_LED_CONT_REG, i_sink);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = da9052_reg_write(wleds->da9052, wled_bank[wleds->led_reg], 0x0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	usleep_range(10000, 11000);
 
-	if (wleds->brightness) {
+	if (wleds->brightness)
+	{
 		ret = da9052_reg_write(wleds->da9052, wled_bank[wleds->led_reg],
-				       wleds->brightness);
+							   wleds->brightness);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -102,7 +121,8 @@ static int da9052_backlight_get_brightness(struct backlight_device *bl)
 	return wleds->brightness;
 }
 
-static const struct backlight_ops da9052_backlight_ops = {
+static const struct backlight_ops da9052_backlight_ops =
+{
 	.update_status = da9052_backlight_update_status,
 	.get_brightness = da9052_backlight_get_brightness,
 };
@@ -114,8 +134,11 @@ static int da9052_backlight_probe(struct platform_device *pdev)
 	struct da9052_bl *wleds;
 
 	wleds = devm_kzalloc(&pdev->dev, sizeof(struct da9052_bl), GFP_KERNEL);
+
 	if (!wleds)
+	{
 		return -ENOMEM;
+	}
 
 	wleds->da9052 = dev_get_drvdata(pdev->dev.parent);
 	wleds->brightness = 0;
@@ -126,9 +149,11 @@ static int da9052_backlight_probe(struct platform_device *pdev)
 	props.max_brightness = DA9052_MAX_BRIGHTNESS;
 
 	bl = devm_backlight_device_register(&pdev->dev, pdev->name,
-					wleds->da9052->dev, wleds,
-					&da9052_backlight_ops, &props);
-	if (IS_ERR(bl)) {
+										wleds->da9052->dev, wleds,
+										&da9052_backlight_ops, &props);
+
+	if (IS_ERR(bl))
+	{
 		dev_err(&pdev->dev, "Failed to register backlight\n");
 		return PTR_ERR(bl);
 	}
@@ -152,7 +177,8 @@ static int da9052_backlight_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct platform_device_id da9052_wled_ids[] = {
+static const struct platform_device_id da9052_wled_ids[] =
+{
 	{
 		.name		= "da9052-wled1",
 		.driver_data	= DA9052_TYPE_WLED1,
@@ -168,7 +194,8 @@ static const struct platform_device_id da9052_wled_ids[] = {
 	{ },
 };
 
-static struct platform_driver da9052_wled_driver = {
+static struct platform_driver da9052_wled_driver =
+{
 	.probe		= da9052_backlight_probe,
 	.remove		= da9052_backlight_remove,
 	.id_table	= da9052_wled_ids,

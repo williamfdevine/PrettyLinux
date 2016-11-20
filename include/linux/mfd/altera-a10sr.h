@@ -77,7 +77,8 @@
  * @dev:  : this device
  * @regmap: the regmap assigned to the parent device.
  */
-struct altr_a10sr {
+struct altr_a10sr
+{
 	struct device *dev;
 	struct regmap *regmap;
 };

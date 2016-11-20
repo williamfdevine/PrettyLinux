@@ -23,7 +23,8 @@
  * A security context consists of an authenticated user
  * identity, a role, a type and a MLS range.
  */
-struct context {
+struct context
+{
 	u32 user;
 	u32 role;
 	u32 type;
@@ -43,13 +44,20 @@ static inline int mls_context_cpy(struct context *dst, struct context *src)
 
 	dst->range.level[0].sens = src->range.level[0].sens;
 	rc = ebitmap_cpy(&dst->range.level[0].cat, &src->range.level[0].cat);
+
 	if (rc)
+	{
 		goto out;
+	}
 
 	dst->range.level[1].sens = src->range.level[1].sens;
 	rc = ebitmap_cpy(&dst->range.level[1].cat, &src->range.level[1].cat);
+
 	if (rc)
+	{
 		ebitmap_destroy(&dst->range.level[0].cat);
+	}
+
 out:
 	return rc;
 }
@@ -63,13 +71,20 @@ static inline int mls_context_cpy_low(struct context *dst, struct context *src)
 
 	dst->range.level[0].sens = src->range.level[0].sens;
 	rc = ebitmap_cpy(&dst->range.level[0].cat, &src->range.level[0].cat);
+
 	if (rc)
+	{
 		goto out;
+	}
 
 	dst->range.level[1].sens = src->range.level[0].sens;
 	rc = ebitmap_cpy(&dst->range.level[1].cat, &src->range.level[0].cat);
+
 	if (rc)
+	{
 		ebitmap_destroy(&dst->range.level[0].cat);
+	}
+
 out:
 	return rc;
 }
@@ -83,13 +98,20 @@ static inline int mls_context_cpy_high(struct context *dst, struct context *src)
 
 	dst->range.level[0].sens = src->range.level[1].sens;
 	rc = ebitmap_cpy(&dst->range.level[0].cat, &src->range.level[1].cat);
+
 	if (rc)
+	{
 		goto out;
+	}
 
 	dst->range.level[1].sens = src->range.level[1].sens;
 	rc = ebitmap_cpy(&dst->range.level[1].cat, &src->range.level[1].cat);
+
 	if (rc)
+	{
 		ebitmap_destroy(&dst->range.level[0].cat);
+	}
+
 out:
 	return rc;
 }
@@ -97,9 +119,9 @@ out:
 static inline int mls_context_cmp(struct context *c1, struct context *c2)
 {
 	return ((c1->range.level[0].sens == c2->range.level[0].sens) &&
-		ebitmap_cmp(&c1->range.level[0].cat, &c2->range.level[0].cat) &&
-		(c1->range.level[1].sens == c2->range.level[1].sens) &&
-		ebitmap_cmp(&c1->range.level[1].cat, &c2->range.level[1].cat));
+			ebitmap_cmp(&c1->range.level[0].cat, &c2->range.level[0].cat) &&
+			(c1->range.level[1].sens == c2->range.level[1].sens) &&
+			ebitmap_cmp(&c1->range.level[1].cat, &c2->range.level[1].cat));
 }
 
 static inline void mls_context_destroy(struct context *c)
@@ -121,20 +143,32 @@ static inline int context_cpy(struct context *dst, struct context *src)
 	dst->user = src->user;
 	dst->role = src->role;
 	dst->type = src->type;
-	if (src->str) {
+
+	if (src->str)
+	{
 		dst->str = kstrdup(src->str, GFP_ATOMIC);
+
 		if (!dst->str)
+		{
 			return -ENOMEM;
+		}
+
 		dst->len = src->len;
-	} else {
+	}
+	else
+	{
 		dst->str = NULL;
 		dst->len = 0;
 	}
+
 	rc = mls_context_cpy(dst, src);
-	if (rc) {
+
+	if (rc)
+	{
 		kfree(dst->str);
 		return rc;
 	}
+
 	return 0;
 }
 
@@ -150,13 +184,19 @@ static inline void context_destroy(struct context *c)
 static inline int context_cmp(struct context *c1, struct context *c2)
 {
 	if (c1->len && c2->len)
+	{
 		return (c1->len == c2->len && !strcmp(c1->str, c2->str));
+	}
+
 	if (c1->len || c2->len)
+	{
 		return 0;
+	}
+
 	return ((c1->user == c2->user) &&
-		(c1->role == c2->role) &&
-		(c1->type == c2->type) &&
-		mls_context_cmp(c1, c2));
+			(c1->role == c2->role) &&
+			(c1->type == c2->type) &&
+			mls_context_cmp(c1, c2));
 }
 
 #endif	/* _SS_CONTEXT_H_ */

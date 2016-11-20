@@ -12,8 +12,8 @@
  * bit of memory.  Use nr_cpu_ids instead of this except for static bitmaps.
  */
 #ifndef CONFIG_NR_CPUS
-/* FIXME: This should be fixed in the arch's Kconfig */
-#define CONFIG_NR_CPUS	1
+	/* FIXME: This should be fixed in the arch's Kconfig */
+	#define CONFIG_NR_CPUS	1
 #endif
 
 /* Places which use this should consider cpumask_var_t. */
@@ -31,7 +31,7 @@
  * [NOTE: PID/TIDs are limited to 2^29 ~= 500+ million, see futex.h.]
  */
 #define PID_MAX_LIMIT (CONFIG_BASE_SMALL ? PAGE_SIZE * 8 : \
-	(sizeof(long) > 4 ? 4 * 1024 * 1024 : PID_MAX_DEFAULT))
+					   (sizeof(long) > 4 ? 4 * 1024 * 1024 : PID_MAX_DEFAULT))
 
 /*
  * Define a minimum number of pids per cpu.  Heuristically based

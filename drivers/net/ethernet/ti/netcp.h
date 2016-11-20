@@ -37,7 +37,8 @@
 
 struct netcp_device;
 
-struct netcp_tx_pipe {
+struct netcp_tx_pipe
+{
 	struct netcp_device	*netcp_device;
 	void			*dma_queue;
 	unsigned int		dma_queue_id;
@@ -52,7 +53,8 @@ struct netcp_tx_pipe {
 #define ADDR_NEW			BIT(0)
 #define ADDR_VALID			BIT(1)
 
-enum netcp_addr_type {
+enum netcp_addr_type
+{
 	ADDR_ANY,
 	ADDR_DEV,
 	ADDR_UCAST,
@@ -60,7 +62,8 @@ enum netcp_addr_type {
 	ADDR_BCAST
 };
 
-struct netcp_addr {
+struct netcp_addr
+{
 	struct netcp_intf	*netcp;
 	unsigned char		addr[ETH_ALEN];
 	enum netcp_addr_type	type;
@@ -68,7 +71,8 @@ struct netcp_addr {
 	struct list_head	node;
 };
 
-struct netcp_intf {
+struct netcp_intf
+{
 	struct device		*dev;
 	struct device		*ndev_dev;
 	struct net_device	*ndev;
@@ -111,7 +115,8 @@ struct netcp_intf {
 };
 
 #define	NETCP_PSDATA_LEN		KNAV_DMA_NUM_PS_WORDS
-struct netcp_packet {
+struct netcp_packet
+{
 	struct sk_buff		*skb;
 	__le32			*epib;
 	u32			*psdata;
@@ -125,17 +130,22 @@ struct netcp_packet {
 };
 
 static inline u32 *netcp_push_psdata(struct netcp_packet *p_info,
-				     unsigned int bytes)
+									 unsigned int bytes)
 {
 	u32 *buf;
 	unsigned int words;
 
 	if ((bytes & 0x03) != 0)
+	{
 		return NULL;
+	}
+
 	words = bytes >> 2;
 
 	if ((p_info->psdata_len + words) > NETCP_PSDATA_LEN)
+	{
 		return NULL;
+	}
 
 	p_info->psdata_len += words;
 	buf = &p_info->psdata[NETCP_PSDATA_LEN - p_info->psdata_len];
@@ -143,46 +153,53 @@ static inline u32 *netcp_push_psdata(struct netcp_packet *p_info,
 }
 
 static inline int netcp_align_psdata(struct netcp_packet *p_info,
-				     unsigned int byte_align)
+									 unsigned int byte_align)
 {
 	int padding;
 
-	switch (byte_align) {
-	case 0:
-		padding = -EINVAL;
-		break;
-	case 1:
-	case 2:
-	case 4:
-		padding = 0;
-		break;
-	case 8:
-		padding = (p_info->psdata_len << 2) % 8;
-		break;
-	case 16:
-		padding = (p_info->psdata_len << 2) % 16;
-		break;
-	default:
-		padding = (p_info->psdata_len << 2) % byte_align;
-		break;
+	switch (byte_align)
+	{
+		case 0:
+			padding = -EINVAL;
+			break;
+
+		case 1:
+		case 2:
+		case 4:
+			padding = 0;
+			break;
+
+		case 8:
+			padding = (p_info->psdata_len << 2) % 8;
+			break;
+
+		case 16:
+			padding = (p_info->psdata_len << 2) % 16;
+			break;
+
+		default:
+			padding = (p_info->psdata_len << 2) % byte_align;
+			break;
 	}
+
 	return padding;
 }
 
-struct netcp_module {
+struct netcp_module
+{
 	const char		*name;
 	struct module		*owner;
 	bool			primary;
 
 	/* probe/remove: called once per NETCP instance */
 	int	(*probe)(struct netcp_device *netcp_device,
-			 struct device *device, struct device_node *node,
-			 void **inst_priv);
+				 struct device *device, struct device_node *node,
+				 void **inst_priv);
 	int	(*remove)(struct netcp_device *netcp_device, void *inst_priv);
 
 	/* attach/release: called once per network interface */
 	int	(*attach)(void *inst_priv, struct net_device *ndev,
-			  struct device_node *node, void **intf_priv);
+				  struct device_node *node, void **intf_priv);
 	int	(*release)(void *intf_priv);
 	int	(*open)(void *intf_priv, struct net_device *ndev);
 	int	(*close)(void *intf_priv, struct net_device *ndev);
@@ -200,25 +217,25 @@ struct netcp_module {
 int netcp_register_module(struct netcp_module *module);
 void netcp_unregister_module(struct netcp_module *module);
 void *netcp_module_get_intf_data(struct netcp_module *module,
-				 struct netcp_intf *intf);
+								 struct netcp_intf *intf);
 
 int netcp_txpipe_init(struct netcp_tx_pipe *tx_pipe,
-		      struct netcp_device *netcp_device,
-		      const char *dma_chan_name, unsigned int dma_queue_id);
+					  struct netcp_device *netcp_device,
+					  const char *dma_chan_name, unsigned int dma_queue_id);
 int netcp_txpipe_open(struct netcp_tx_pipe *tx_pipe);
 int netcp_txpipe_close(struct netcp_tx_pipe *tx_pipe);
 
 typedef int netcp_hook_rtn(int order, void *data, struct netcp_packet *packet);
 int netcp_register_txhook(struct netcp_intf *netcp_priv, int order,
-			  netcp_hook_rtn *hook_rtn, void *hook_data);
+						  netcp_hook_rtn *hook_rtn, void *hook_data);
 int netcp_unregister_txhook(struct netcp_intf *netcp_priv, int order,
-			    netcp_hook_rtn *hook_rtn, void *hook_data);
+							netcp_hook_rtn *hook_rtn, void *hook_data);
 int netcp_register_rxhook(struct netcp_intf *netcp_priv, int order,
-			  netcp_hook_rtn *hook_rtn, void *hook_data);
+						  netcp_hook_rtn *hook_rtn, void *hook_data);
 int netcp_unregister_rxhook(struct netcp_intf *netcp_priv, int order,
-			    netcp_hook_rtn *hook_rtn, void *hook_data);
+							netcp_hook_rtn *hook_rtn, void *hook_data);
 void *netcp_device_find_module(struct netcp_device *netcp_device,
-			       const char *name);
+							   const char *name);
 
 /* SGMII functions */
 int netcp_sgmii_reset(void __iomem *sgmii_ofs, int port);

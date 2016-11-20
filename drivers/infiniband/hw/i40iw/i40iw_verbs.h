@@ -35,7 +35,8 @@
 #ifndef I40IW_VERBS_H
 #define I40IW_VERBS_H
 
-struct i40iw_ucontext {
+struct i40iw_ucontext
+{
 	struct ib_ucontext ibucontext;
 	struct i40iw_device *iwdev;
 	struct list_head cq_reg_mem_list;
@@ -44,34 +45,41 @@ struct i40iw_ucontext {
 	spinlock_t qp_reg_mem_list_lock; /* memory list for qp's */
 };
 
-struct i40iw_pd {
+struct i40iw_pd
+{
 	struct ib_pd ibpd;
 	struct i40iw_sc_pd sc_pd;
 	atomic_t usecount;
 };
 
-struct i40iw_hmc_pble {
-	union {
+struct i40iw_hmc_pble
+{
+	union
+	{
 		u32 idx;
 		dma_addr_t addr;
 	};
 };
 
-struct i40iw_cq_mr {
+struct i40iw_cq_mr
+{
 	struct i40iw_hmc_pble cq_pbl;
 	dma_addr_t shadow;
 };
 
-struct i40iw_qp_mr {
+struct i40iw_qp_mr
+{
 	struct i40iw_hmc_pble sq_pbl;
 	struct i40iw_hmc_pble rq_pbl;
 	dma_addr_t shadow;
 	struct page *sq_page;
 };
 
-struct i40iw_pbl {
+struct i40iw_pbl
+{
 	struct list_head list;
-	union {
+	union
+	{
 		struct i40iw_qp_mr qp_mr;
 		struct i40iw_cq_mr cq_mr;
 	};
@@ -83,8 +91,10 @@ struct i40iw_pbl {
 };
 
 #define MAX_SAVE_PAGE_ADDRS     4
-struct i40iw_mr {
-	union {
+struct i40iw_mr
+{
+	union
+	{
 		struct ib_mr ibmr;
 		struct ib_mw ibmw;
 		struct ib_fmr ibfmr;
@@ -99,7 +109,8 @@ struct i40iw_mr {
 	struct i40iw_pbl iwpbl;
 };
 
-struct i40iw_cq {
+struct i40iw_cq
+{
 	struct ib_cq ibcq;
 	struct i40iw_sc_cq sc_cq;
 	u16 cq_head;
@@ -113,7 +124,8 @@ struct i40iw_cq {
 	struct i40iw_pbl *iwpbl;
 };
 
-struct disconn_work {
+struct disconn_work
+{
 	struct work_struct work;
 	struct i40iw_qp *iwqp;
 };
@@ -122,12 +134,14 @@ struct iw_cm_id;
 struct ietf_mpa_frame;
 struct i40iw_ud_file;
 
-struct i40iw_qp_kmode {
+struct i40iw_qp_kmode
+{
 	struct i40iw_dma_mem dma_mem;
 	u64 *wrid_mem;
 };
 
-struct i40iw_qp {
+struct i40iw_qp
+{
 	struct ib_qp ibqp;
 	struct i40iw_sc_qp sc_qp;
 	struct i40iw_device *iwdev;
@@ -152,14 +166,14 @@ struct i40iw_qp {
 	void *pbl_vbase;
 	dma_addr_t pbl_pbase;
 	struct page *page;
-	u8 active_conn:1;
-	u8 user_mode:1;
-	u8 hte_added:1;
-	u8 flush_issued:1;
-	u8 destroyed:1;
-	u8 sig_all:1;
-	u8 pau_mode:1;
-	u8 rsvd:1;
+	u8 active_conn: 1;
+	u8 user_mode: 1;
+	u8 hte_added: 1;
+	u8 flush_issued: 1;
+	u8 destroyed: 1;
+	u8 sig_all: 1;
+	u8 pau_mode: 1;
+	u8 rsvd: 1;
 	u16 term_sq_flush_code;
 	u16 term_rq_flush_code;
 	u8 hw_iwarp_state;

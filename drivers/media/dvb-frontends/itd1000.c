@@ -39,31 +39,33 @@ module_param(debug, int, 0644);
 MODULE_PARM_DESC(debug, "Turn on/off debugging (default:off).");
 
 #define itd_dbg(args...)  do { \
-	if (debug) { \
-		printk(KERN_DEBUG   "ITD1000: " args);\
-	} \
-} while (0)
+		if (debug) { \
+			printk(KERN_DEBUG   "ITD1000: " args);\
+		} \
+	} while (0)
 
 #define itd_warn(args...) do { \
-	printk(KERN_WARNING "ITD1000: " args); \
-} while (0)
+		printk(KERN_WARNING "ITD1000: " args); \
+	} while (0)
 
 #define itd_info(args...) do { \
-	printk(KERN_INFO    "ITD1000: " args); \
-} while (0)
+		printk(KERN_INFO    "ITD1000: " args); \
+	} while (0)
 
 /* don't write more than one byte with flexcop behind */
 static int itd1000_write_regs(struct itd1000_state *state, u8 reg, u8 v[], u8 len)
 {
 	u8 buf[MAX_XFER_SIZE];
-	struct i2c_msg msg = {
-		.addr = state->cfg->i2c_address, .flags = 0, .buf = buf, .len = len+1
+	struct i2c_msg msg =
+	{
+		.addr = state->cfg->i2c_address, .flags = 0, .buf = buf, .len = len + 1
 	};
 
-	if (1 + len > sizeof(buf)) {
+	if (1 + len > sizeof(buf))
+	{
 		printk(KERN_WARNING
-		       "itd1000: i2c wr reg=%04x: len=%d is too big!\n",
-		       reg, len);
+			   "itd1000: i2c wr reg=%04x: len=%d is too big!\n",
+			   reg, len);
 		return -EINVAL;
 	}
 
@@ -72,17 +74,20 @@ static int itd1000_write_regs(struct itd1000_state *state, u8 reg, u8 v[], u8 le
 
 	/* itd_dbg("wr %02x: %02x\n", reg, v[0]); */
 
-	if (i2c_transfer(state->i2c, &msg, 1) != 1) {
+	if (i2c_transfer(state->i2c, &msg, 1) != 1)
+	{
 		printk(KERN_WARNING "itd1000 I2C write failed\n");
 		return -EREMOTEIO;
 	}
+
 	return 0;
 }
 
 static int itd1000_read_reg(struct itd1000_state *state, u8 reg)
 {
 	u8 val;
-	struct i2c_msg msg[2] = {
+	struct i2c_msg msg[2] =
+	{
 		{ .addr = state->cfg->i2c_address, .flags = 0,        .buf = &reg, .len = 1 },
 		{ .addr = state->cfg->i2c_address, .flags = I2C_M_RD, .buf = &val, .len = 1 },
 	};
@@ -90,10 +95,12 @@ static int itd1000_read_reg(struct itd1000_state *state, u8 reg)
 	/* ugly flexcop workaround */
 	itd1000_write_regs(state, (reg - 1) & 0xff, &state->shadow[(reg - 1) & 0xff], 1);
 
-	if (i2c_transfer(state->i2c, msg, 2) != 2) {
+	if (i2c_transfer(state->i2c, msg, 2) != 2)
+	{
 		itd_warn("itd1000 I2C read failed\n");
 		return -EREMOTEIO;
 	}
+
 	return val;
 }
 
@@ -105,11 +112,13 @@ static inline int itd1000_write_reg(struct itd1000_state *state, u8 r, u8 v)
 }
 
 
-static struct {
+static struct
+{
 	u32 symbol_rate;
 	u8  pgaext  : 4; /* PLLFH */
 	u8  bbgvmin : 4; /* BBGVMIN */
-} itd1000_lpf_pga[] = {
+} itd1000_lpf_pga[] =
+{
 	{        0, 0x8, 0x3 },
 	{  5200000, 0x8, 0x3 },
 	{ 12200000, 0x4, 0x3 },
@@ -141,7 +150,8 @@ static void itd1000_set_lpf_bw(struct itd1000_state *state, u32 symbol_rate)
 	itd1000_write_reg(state, CON1, con1 | (1 << 1));
 
 	for (i = 0; i < ARRAY_SIZE(itd1000_lpf_pga); i++)
-		if (symbol_rate < itd1000_lpf_pga[i].symbol_rate) {
+		if (symbol_rate < itd1000_lpf_pga[i].symbol_rate)
+		{
 			itd_dbg("symrate: index: %d pgaext: %x, bbgvmin: %x\n", i, itd1000_lpf_pga[i].pgaext, itd1000_lpf_pga[i].bbgvmin);
 			itd1000_write_reg(state, PLLFH,   pllfh | (itd1000_lpf_pga[i].pgaext << 4));
 			itd1000_write_reg(state, BBGVMIN, bbgvmin | (itd1000_lpf_pga[i].bbgvmin));
@@ -152,10 +162,12 @@ static void itd1000_set_lpf_bw(struct itd1000_state *state, u32 symbol_rate)
 	itd1000_write_reg(state, CON1, con1 | (0 << 1));
 }
 
-static struct {
+static struct
+{
 	u8 vcorg;
 	u32 fmax_rg;
-} itd1000_vcorg[] = {
+} itd1000_vcorg[] =
+{
 	{  1,  920000 },
 	{  2,  971000 },
 	{  3, 1031000 },
@@ -183,8 +195,10 @@ static void itd1000_set_vco(struct itd1000_state *state, u32 freq_khz)
 	/* reserved bit again (reset ?) */
 	itd1000_write_reg(state, GVBB_I2C, gvbb_i2c | (1 << 6));
 
-	for (i = 0; i < ARRAY_SIZE(itd1000_vcorg); i++) {
-		if (freq_khz < itd1000_vcorg[i].fmax_rg) {
+	for (i = 0; i < ARRAY_SIZE(itd1000_vcorg); i++)
+	{
+		if (freq_khz < itd1000_vcorg[i].fmax_rg)
+		{
 			itd1000_write_reg(state, VCO_CHP1_I2C, vco_chp1_i2c | (itd1000_vcorg[i].vcorg << 4));
 			msleep(1);
 
@@ -192,22 +206,32 @@ static void itd1000_set_vco(struct itd1000_state *state, u32 freq_khz)
 
 			itd_dbg("VCO: %dkHz: %d -> ADCOUT: %d %02x\n", freq_khz, itd1000_vcorg[i].vcorg, adcout, vco_chp1_i2c);
 
-			if (adcout > 13) {
+			if (adcout > 13)
+			{
 				if (!(itd1000_vcorg[i].vcorg == 7 || itd1000_vcorg[i].vcorg == 15))
+				{
 					itd1000_write_reg(state, VCO_CHP1_I2C, vco_chp1_i2c | ((itd1000_vcorg[i].vcorg + 1) << 4));
-			} else if (adcout < 2) {
-				if (!(itd1000_vcorg[i].vcorg == 1 || itd1000_vcorg[i].vcorg == 9))
-					itd1000_write_reg(state, VCO_CHP1_I2C, vco_chp1_i2c | ((itd1000_vcorg[i].vcorg - 1) << 4));
+				}
 			}
+			else if (adcout < 2)
+			{
+				if (!(itd1000_vcorg[i].vcorg == 1 || itd1000_vcorg[i].vcorg == 9))
+				{
+					itd1000_write_reg(state, VCO_CHP1_I2C, vco_chp1_i2c | ((itd1000_vcorg[i].vcorg - 1) << 4));
+				}
+			}
+
 			break;
 		}
 	}
 }
 
-static const struct {
+static const struct
+{
 	u32 freq;
 	u8 values[10]; /* RFTR, RFST1 - RFST9 */
-} itd1000_fre_values[] = {
+} itd1000_fre_values[] =
+{
 	{ 1075000, { 0x59, 0x1d, 0x1c, 0x17, 0x16, 0x0f, 0x0e, 0x0c, 0x0b, 0x0a } },
 	{ 1250000, { 0x89, 0x1e, 0x1d, 0x17, 0x15, 0x0f, 0x0e, 0x0c, 0x0b, 0x0a } },
 	{ 1450000, { 0x89, 0x1e, 0x1d, 0x17, 0x15, 0x0f, 0x0e, 0x0c, 0x0b, 0x0a } },
@@ -239,7 +263,7 @@ static void itd1000_set_lo(struct itd1000_state *state, u32 freq_khz)
 	do_div(tmp, 1000000);
 	pllf = (u32) tmp;
 
-	state->frequency = ((plln * 1000) + (pllf * 1000)/1048576) * 2*FREF;
+	state->frequency = ((plln * 1000) + (pllf * 1000) / 1048576) * 2 * FREF;
 	itd_dbg("frequency: %dkHz (wanted) %dkHz (set), PLLF = %d, PLLN = %d\n", freq_khz, state->frequency, pllf, plln);
 
 	itd1000_write_reg(state, PLLNH, 0x80); /* PLLNH */
@@ -248,12 +272,18 @@ static void itd1000_set_lo(struct itd1000_state *state, u32 freq_khz)
 	itd1000_write_reg(state, PLLFM, (pllf >> 8) & 0xff);
 	itd1000_write_reg(state, PLLFL, (pllf >> 0) & 0xff);
 
-	for (i = 0; i < ARRAY_SIZE(itd1000_fre_values); i++) {
-		if (freq_khz <= itd1000_fre_values[i].freq) {
+	for (i = 0; i < ARRAY_SIZE(itd1000_fre_values); i++)
+	{
+		if (freq_khz <= itd1000_fre_values[i].freq)
+		{
 			itd_dbg("fre_values: %d\n", i);
 			itd1000_write_reg(state, RFTR, itd1000_fre_values[i].values[0]);
+
 			for (j = 0; j < 9; j++)
-				itd1000_write_reg(state, RFST1+j, itd1000_fre_values[i].values[j+1]);
+			{
+				itd1000_write_reg(state, RFST1 + j, itd1000_fre_values[i].values[j + 1]);
+			}
+
 			break;
 		}
 	}
@@ -289,7 +319,8 @@ static int itd1000_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
 	return 0;
 }
 
-static u8 itd1000_init_tab[][2] = {
+static u8 itd1000_init_tab[][2] =
+{
 	{ PLLCON1,       0x65 }, /* Register does not change */
 	{ PLLNH,         0x80 }, /* Bits [7:6] do not change */
 	{ RESERVED_0X6D, 0x3b },
@@ -320,7 +351,8 @@ static u8 itd1000_init_tab[][2] = {
 	{ RESERVED_0X9B, 0xaa },
 };
 
-static u8 itd1000_reinit_tab[][2] = {
+static u8 itd1000_reinit_tab[][2] =
+{
 	{ VCO_CHP1_I2C, 0x8a },
 	{ BW,           0x87 },
 	{ GVBB_I2C,     0x03 },
@@ -335,10 +367,14 @@ static int itd1000_init(struct dvb_frontend *fe)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(itd1000_init_tab); i++)
+	{
 		itd1000_write_reg(state, itd1000_init_tab[i][0], itd1000_init_tab[i][1]);
+	}
 
 	for (i = 0; i < ARRAY_SIZE(itd1000_reinit_tab); i++)
+	{
 		itd1000_write_reg(state, itd1000_reinit_tab[i][0], itd1000_reinit_tab[i][1]);
+	}
 
 	return 0;
 }
@@ -355,7 +391,8 @@ static int itd1000_release(struct dvb_frontend *fe)
 	return 0;
 }
 
-static const struct dvb_tuner_ops itd1000_tuner_ops = {
+static const struct dvb_tuner_ops itd1000_tuner_ops =
+{
 	.info = {
 		.name           = "Integrant ITD1000",
 		.frequency_min  = 950000,
@@ -380,22 +417,31 @@ struct dvb_frontend *itd1000_attach(struct dvb_frontend *fe, struct i2c_adapter 
 	u8 i = 0;
 
 	state = kzalloc(sizeof(struct itd1000_state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		return NULL;
+	}
 
 	state->cfg = cfg;
 	state->i2c = i2c;
 
 	i = itd1000_read_reg(state, 0);
-	if (i != 0) {
+
+	if (i != 0)
+	{
 		kfree(state);
 		return NULL;
 	}
+
 	itd_info("successfully identified (ID: %d)\n", i);
 
 	memset(state->shadow, 0xff, sizeof(state->shadow));
+
 	for (i = 0x65; i < 0x9c; i++)
+	{
 		state->shadow[i] = itd1000_read_reg(state, i);
+	}
 
 	memcpy(&fe->ops.tuner_ops, &itd1000_tuner_ops, sizeof(struct dvb_tuner_ops));
 

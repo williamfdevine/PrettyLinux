@@ -24,7 +24,8 @@
 #define LPC18XX_MAX_PORTS	8
 #define LPC18XX_PINS_PER_PORT	32
 
-struct lpc18xx_gpio_chip {
+struct lpc18xx_gpio_chip
+{
 	struct gpio_chip gpio;
 	void __iomem *base;
 	struct clk *clk;
@@ -44,7 +45,7 @@ static int lpc18xx_gpio_get(struct gpio_chip *chip, unsigned offset)
 }
 
 static int lpc18xx_gpio_direction(struct gpio_chip *chip, unsigned offset,
-				  bool out)
+								  bool out)
 {
 	struct lpc18xx_gpio_chip *gc = gpiochip_get_data(chip);
 	unsigned long flags;
@@ -55,10 +56,16 @@ static int lpc18xx_gpio_direction(struct gpio_chip *chip, unsigned offset,
 
 	spin_lock_irqsave(&gc->lock, flags);
 	dir = readl(gc->base + LPC18XX_REG_DIR(port));
+
 	if (out)
+	{
 		dir |= BIT(pin);
+	}
 	else
+	{
 		dir &= ~BIT(pin);
+	}
+
 	writel(dir, gc->base + LPC18XX_REG_DIR(port));
 	spin_unlock_irqrestore(&gc->lock, flags);
 
@@ -66,19 +73,20 @@ static int lpc18xx_gpio_direction(struct gpio_chip *chip, unsigned offset,
 }
 
 static int lpc18xx_gpio_direction_input(struct gpio_chip *chip,
-					unsigned offset)
+										unsigned offset)
 {
 	return lpc18xx_gpio_direction(chip, offset, false);
 }
 
 static int lpc18xx_gpio_direction_output(struct gpio_chip *chip,
-					 unsigned offset, int value)
+		unsigned offset, int value)
 {
 	lpc18xx_gpio_set(chip, offset, value);
 	return lpc18xx_gpio_direction(chip, offset, true);
 }
 
-static const struct gpio_chip lpc18xx_chip = {
+static const struct gpio_chip lpc18xx_chip =
+{
 	.label			= "lpc18xx/43xx-gpio",
 	.request		= gpiochip_generic_request,
 	.free			= gpiochip_generic_free,
@@ -97,25 +105,35 @@ static int lpc18xx_gpio_probe(struct platform_device *pdev)
 	int ret;
 
 	gc = devm_kzalloc(&pdev->dev, sizeof(*gc), GFP_KERNEL);
+
 	if (!gc)
+	{
 		return -ENOMEM;
+	}
 
 	gc->gpio = lpc18xx_chip;
 	platform_set_drvdata(pdev, gc);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	gc->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(gc->base))
+	{
 		return PTR_ERR(gc->base);
+	}
 
 	gc->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(gc->clk)) {
+
+	if (IS_ERR(gc->clk))
+	{
 		dev_err(&pdev->dev, "input clock not found\n");
 		return PTR_ERR(gc->clk);
 	}
 
 	ret = clk_prepare_enable(gc->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable clock\n");
 		return ret;
 	}
@@ -125,7 +143,9 @@ static int lpc18xx_gpio_probe(struct platform_device *pdev)
 	gc->gpio.parent = &pdev->dev;
 
 	ret = gpiochip_add_data(&gc->gpio, gc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to add gpio chip\n");
 		clk_disable_unprepare(gc->clk);
 		return ret;
@@ -144,13 +164,15 @@ static int lpc18xx_gpio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id lpc18xx_gpio_match[] = {
+static const struct of_device_id lpc18xx_gpio_match[] =
+{
 	{ .compatible = "nxp,lpc1850-gpio" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, lpc18xx_gpio_match);
 
-static struct platform_driver lpc18xx_gpio_driver = {
+static struct platform_driver lpc18xx_gpio_driver =
+{
 	.probe	= lpc18xx_gpio_probe,
 	.remove	= lpc18xx_gpio_remove,
 	.driver	= {

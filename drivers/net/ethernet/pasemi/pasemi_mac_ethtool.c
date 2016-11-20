@@ -24,9 +24,11 @@
 #include <asm/pasemi_dma.h>
 #include "pasemi_mac.h"
 
-static struct {
+static struct
+{
 	const char str[ETH_GSTRING_LEN];
-} ethtool_stats_keys[] = {
+} ethtool_stats_keys[] =
+{
 	{ "rx-drops" },
 	{ "rx-bytes" },
 	{ "rx-packets" },
@@ -71,7 +73,7 @@ pasemi_mac_ethtool_get_msglevel(struct net_device *netdev)
 
 static void
 pasemi_mac_ethtool_set_msglevel(struct net_device *netdev,
-				u32 level)
+								u32 level)
 {
 	struct pasemi_mac *mac = netdev_priv(netdev);
 	mac->msg_enable = level;
@@ -80,23 +82,25 @@ pasemi_mac_ethtool_set_msglevel(struct net_device *netdev,
 
 static void
 pasemi_mac_ethtool_get_ringparam(struct net_device *netdev,
-				 struct ethtool_ringparam *ering)
+								 struct ethtool_ringparam *ering)
 {
 	struct pasemi_mac *mac = netdev_priv(netdev);
 
-	ering->tx_max_pending = TX_RING_SIZE/2;
-	ering->tx_pending = RING_USED(mac->tx)/2;
-	ering->rx_max_pending = RX_RING_SIZE/4;
-	ering->rx_pending = RING_USED(mac->rx)/4;
+	ering->tx_max_pending = TX_RING_SIZE / 2;
+	ering->tx_pending = RING_USED(mac->tx) / 2;
+	ering->rx_max_pending = RX_RING_SIZE / 4;
+	ering->rx_pending = RING_USED(mac->rx) / 4;
 }
 
 static int pasemi_mac_get_sset_count(struct net_device *netdev, int sset)
 {
-	switch (sset) {
-	case ETH_SS_STATS:
-		return ARRAY_SIZE(ethtool_stats_keys);
-	default:
-		return -EOPNOTSUPP;
+	switch (sset)
+	{
+		case ETH_SS_STATS:
+			return ARRAY_SIZE(ethtool_stats_keys);
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
@@ -107,18 +111,22 @@ static void pasemi_mac_get_ethtool_stats(struct net_device *netdev,
 	int i;
 
 	data[0] = pasemi_read_dma_reg(PAS_DMA_RXINT_RCMDSTA(mac->dma_if))
-			>> PAS_DMA_RXINT_RCMDSTA_DROPS_S;
+			  >> PAS_DMA_RXINT_RCMDSTA_DROPS_S;
+
 	for (i = 0; i < 32; i++)
-		data[1+i] = pasemi_read_mac_reg(mac->dma_if, PAS_MAC_RMON(i));
+	{
+		data[1 + i] = pasemi_read_mac_reg(mac->dma_if, PAS_MAC_RMON(i));
+	}
 }
 
 static void pasemi_mac_get_strings(struct net_device *netdev, u32 stringset,
-				   u8 *data)
+								   u8 *data)
 {
 	memcpy(data, ethtool_stats_keys, sizeof(ethtool_stats_keys));
 }
 
-const struct ethtool_ops pasemi_mac_ethtool_ops = {
+const struct ethtool_ops pasemi_mac_ethtool_ops =
+{
 	.get_msglevel		= pasemi_mac_ethtool_get_msglevel,
 	.set_msglevel		= pasemi_mac_ethtool_set_msglevel,
 	.get_link		= ethtool_op_get_link,

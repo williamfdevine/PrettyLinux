@@ -44,15 +44,15 @@
 #define INT_UP		(1 << 8)
 
 #define WAIT4INT	(S3C2410_ADCTSC_YM_SEN | \
-			 S3C2410_ADCTSC_YP_SEN | \
-			 S3C2410_ADCTSC_XP_SEN | \
-			 S3C2410_ADCTSC_XY_PST(3))
+					 S3C2410_ADCTSC_YP_SEN | \
+					 S3C2410_ADCTSC_XP_SEN | \
+					 S3C2410_ADCTSC_XY_PST(3))
 
 #define AUTOPST		(S3C2410_ADCTSC_YM_SEN | \
-			 S3C2410_ADCTSC_YP_SEN | \
-			 S3C2410_ADCTSC_XP_SEN | \
-			 S3C2410_ADCTSC_AUTO_PST | \
-			 S3C2410_ADCTSC_XY_PST(0))
+					 S3C2410_ADCTSC_YP_SEN | \
+					 S3C2410_ADCTSC_XP_SEN | \
+					 S3C2410_ADCTSC_AUTO_PST | \
+					 S3C2410_ADCTSC_XY_PST(0))
 
 #define FEAT_PEN_IRQ	(1 << 0)	/* HAS ADCCLRINTPNDNUP */
 
@@ -72,7 +72,8 @@
  * @shift: The log2 of the maximum count to read in one go.
  * @features: The features supported by the TSADC MOdule.
  */
-struct s3c2410ts {
+struct s3c2410ts
+{
 	struct s3c_adc_client *client;
 	struct device *dev;
 	struct input_dev *input;
@@ -99,7 +100,7 @@ static inline bool get_down(unsigned long data0, unsigned long data1)
 {
 	/* returns true if both data values show stylus down */
 	return (!(data0 & S3C2410_ADCDAT0_UPDOWN) &&
-		!(data1 & S3C2410_ADCDAT0_UPDOWN));
+			!(data1 & S3C2410_ADCDAT0_UPDOWN));
 }
 
 static void touch_timer_fire(unsigned long data)
@@ -113,13 +114,15 @@ static void touch_timer_fire(unsigned long data)
 
 	down = get_down(data0, data1);
 
-	if (down) {
-		if (ts.count == (1 << ts.shift)) {
+	if (down)
+	{
+		if (ts.count == (1 << ts.shift))
+		{
 			ts.xp >>= ts.shift;
 			ts.yp >>= ts.shift;
 
 			dev_dbg(ts.dev, "%s: X=%lu, Y=%lu, count=%d\n",
-				__func__, ts.xp, ts.yp, ts.count);
+					__func__, ts.xp, ts.yp, ts.count);
 
 			input_report_abs(ts.input, ABS_X, ts.xp);
 			input_report_abs(ts.input, ABS_Y, ts.yp);
@@ -133,7 +136,9 @@ static void touch_timer_fire(unsigned long data)
 		}
 
 		s3c_adc_start(ts.client, 0, 1 << ts.shift);
-	} else {
+	}
+	else
+	{
 		ts.xp = 0;
 		ts.yp = 0;
 		ts.count = 0;
@@ -170,11 +175,16 @@ static irqreturn_t stylus_irq(int irq, void *dev_id)
 	 * timer isn't running anyways. */
 
 	if (down)
+	{
 		s3c_adc_start(ts.client, 0, 1 << ts.shift);
+	}
 	else
+	{
 		dev_dbg(ts.dev, "%s: count=%d\n", __func__, ts.count);
+	}
 
-	if (ts.features & FEAT_PEN_IRQ) {
+	if (ts.features & FEAT_PEN_IRQ)
+	{
 		/* Clear pen down/up interrupt */
 		writel(0x0, ts.io + S3C64XX_ADCCLRINTPNDNUP);
 	}
@@ -192,8 +202,8 @@ static irqreturn_t stylus_irq(int irq, void *dev_id)
  * Called when a conversion has finished.
  */
 static void s3c24xx_ts_conversion(struct s3c_adc_client *client,
-				  unsigned data0, unsigned data1,
-				  unsigned *left)
+								  unsigned data0, unsigned data1,
+								  unsigned *left)
 {
 	dev_dbg(ts.dev, "%s: %d,%d\n", __func__, data0, data1);
 
@@ -221,11 +231,14 @@ static void s3c24xx_ts_conversion(struct s3c_adc_client *client,
  */
 static void s3c24xx_ts_select(struct s3c_adc_client *client, unsigned select)
 {
-	if (select) {
+	if (select)
+	{
 		writel(S3C2410_ADCTSC_PULL_UP_DISABLE | AUTOPST,
-		       ts.io + S3C2410_ADCTSC);
-	} else {
-		mod_timer(&touch_timer, jiffies+1);
+			   ts.io + S3C2410_ADCTSC);
+	}
+	else
+	{
+		mod_timer(&touch_timer, jiffies + 1);
 		writel(WAIT4INT | INT_UP, ts.io + S3C2410_ADCTSC);
 	}
 }
@@ -251,7 +264,9 @@ static int s3c2410ts_probe(struct platform_device *pdev)
 	ts.dev = dev;
 
 	info = dev_get_platdata(&pdev->dev);
-	if (!info) {
+
+	if (!info)
+	{
 		dev_err(dev, "no platform data, cannot attach\n");
 		return -EINVAL;
 	}
@@ -259,7 +274,9 @@ static int s3c2410ts_probe(struct platform_device *pdev)
 	dev_dbg(dev, "initialising touchscreen\n");
 
 	ts.clock = clk_get(dev, "adc");
-	if (IS_ERR(ts.clock)) {
+
+	if (IS_ERR(ts.clock))
+	{
 		dev_err(dev, "cannot get adc clock source\n");
 		return -ENOENT;
 	}
@@ -268,20 +285,26 @@ static int s3c2410ts_probe(struct platform_device *pdev)
 	dev_dbg(dev, "got and enabled clocks\n");
 
 	ts.irq_tc = ret = platform_get_irq(pdev, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "no resource for interrupt\n");
 		goto err_clk;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(dev, "no resource for registers\n");
 		ret = -ENOENT;
 		goto err_clk;
 	}
 
 	ts.io = ioremap(res->start, resource_size(res));
-	if (ts.io == NULL) {
+
+	if (ts.io == NULL)
+	{
 		dev_err(dev, "cannot map registers\n");
 		ret = -ENOMEM;
 		goto err_clk;
@@ -289,11 +312,15 @@ static int s3c2410ts_probe(struct platform_device *pdev)
 
 	/* inititalise the gpio */
 	if (info->cfg_gpio)
+	{
 		info->cfg_gpio(to_platform_device(ts.dev));
+	}
 
 	ts.client = s3c_adc_register(pdev, s3c24xx_ts_select,
-				     s3c24xx_ts_conversion, 1);
-	if (IS_ERR(ts.client)) {
+								 s3c24xx_ts_conversion, 1);
+
+	if (IS_ERR(ts.client))
+	{
 		dev_err(dev, "failed to register adc client\n");
 		ret = PTR_ERR(ts.client);
 		goto err_iomap;
@@ -301,12 +328,16 @@ static int s3c2410ts_probe(struct platform_device *pdev)
 
 	/* Initialise registers */
 	if ((info->delay & 0xffff) > 0)
+	{
 		writel(info->delay & 0xffff, ts.io + S3C2410_ADCDLY);
+	}
 
 	writel(WAIT4INT | INT_DOWN, ts.io + S3C2410_ADCTSC);
 
 	input_dev = input_allocate_device();
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		dev_err(dev, "Unable to allocate the input device !!\n");
 		ret = -ENOMEM;
 		goto err_iomap;
@@ -328,8 +359,10 @@ static int s3c2410ts_probe(struct platform_device *pdev)
 	ts.features = platform_get_device_id(pdev)->driver_data;
 
 	ret = request_irq(ts.irq_tc, stylus_irq, 0,
-			  "s3c2410_ts_pen", ts.input);
-	if (ret) {
+					  "s3c2410_ts_pen", ts.input);
+
+	if (ret)
+	{
 		dev_err(dev, "cannot get TC interrupt\n");
 		goto err_inputdev;
 	}
@@ -338,7 +371,9 @@ static int s3c2410ts_probe(struct platform_device *pdev)
 
 	/* All went ok, so register to the input system */
 	ret = input_register_device(ts.input);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to register input device\n");
 		ret = -EIO;
 		goto err_tcirq;
@@ -346,13 +381,13 @@ static int s3c2410ts_probe(struct platform_device *pdev)
 
 	return 0;
 
- err_tcirq:
+err_tcirq:
 	free_irq(ts.irq_tc, ts.input);
- err_inputdev:
+err_inputdev:
 	input_free_device(ts.input);
- err_iomap:
+err_iomap:
 	iounmap(ts.io);
- err_clk:
+err_clk:
 	del_timer_sync(&touch_timer);
 	clk_put(ts.clock);
 	return ret;
@@ -398,20 +433,24 @@ static int s3c2410ts_resume(struct device *dev)
 
 	/* Initialise registers */
 	if ((info->delay & 0xffff) > 0)
+	{
 		writel(info->delay & 0xffff, ts.io + S3C2410_ADCDLY);
+	}
 
 	writel(WAIT4INT | INT_DOWN, ts.io + S3C2410_ADCTSC);
 
 	return 0;
 }
 
-static const struct dev_pm_ops s3c_ts_pmops = {
+static const struct dev_pm_ops s3c_ts_pmops =
+{
 	.suspend	= s3c2410ts_suspend,
 	.resume		= s3c2410ts_resume,
 };
 #endif
 
-static const struct platform_device_id s3cts_driver_ids[] = {
+static const struct platform_device_id s3cts_driver_ids[] =
+{
 	{ "s3c2410-ts", 0 },
 	{ "s3c2440-ts", 0 },
 	{ "s3c64xx-ts", FEAT_PEN_IRQ },
@@ -419,7 +458,8 @@ static const struct platform_device_id s3cts_driver_ids[] = {
 };
 MODULE_DEVICE_TABLE(platform, s3cts_driver_ids);
 
-static struct platform_driver s3c_ts_driver = {
+static struct platform_driver s3c_ts_driver =
+{
 	.driver         = {
 		.name   = "samsung-ts",
 #ifdef CONFIG_PM
@@ -433,7 +473,7 @@ static struct platform_driver s3c_ts_driver = {
 module_platform_driver(s3c_ts_driver);
 
 MODULE_AUTHOR("Arnaud Patard <arnaud.patard@rtp-net.org>, "
-	      "Ben Dooks <ben@simtec.co.uk>, "
-	      "Simtec Electronics <linux@simtec.co.uk>");
+			  "Ben Dooks <ben@simtec.co.uk>, "
+			  "Simtec Electronics <linux@simtec.co.uk>");
 MODULE_DESCRIPTION("S3C24XX Touchscreen driver");
 MODULE_LICENSE("GPL v2");

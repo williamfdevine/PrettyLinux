@@ -23,7 +23,8 @@
 #define WMI_TLV_PDEV_PARAM_UNSUPPORTED 0
 #define WMI_TLV_VDEV_PARAM_UNSUPPORTED 0
 
-enum wmi_tlv_grp_id {
+enum wmi_tlv_grp_id
+{
 	WMI_TLV_GRP_START = 0x3,
 	WMI_TLV_GRP_SCAN = WMI_TLV_GRP_START,
 	WMI_TLV_GRP_PDEV,
@@ -73,7 +74,8 @@ enum wmi_tlv_grp_id {
 	WMI_TLV_GRP_SAP_OFL,
 };
 
-enum wmi_tlv_cmd_id {
+enum wmi_tlv_cmd_id
+{
 	WMI_TLV_INIT_CMDID = 0x1,
 	WMI_TLV_START_SCAN_CMDID = WMI_TLV_CMD(WMI_TLV_GRP_SCAN),
 	WMI_TLV_STOP_SCAN_CMDID,
@@ -206,7 +208,7 @@ enum wmi_tlv_cmd_id {
 	WMI_TLV_ADD_PROACTIVE_ARP_RSP_PATTERN_CMDID,
 	WMI_TLV_DEL_PROACTIVE_ARP_RSP_PATTERN_CMDID,
 	WMI_TLV_NETWORK_LIST_OFFLOAD_CONFIG_CMDID =
-			WMI_TLV_CMD(WMI_TLV_GRP_NLO_OFL),
+		WMI_TLV_CMD(WMI_TLV_GRP_NLO_OFL),
 	WMI_TLV_APFIND_CMDID,
 	WMI_TLV_GTK_OFFLOAD_CMDID = WMI_TLV_CMD(WMI_TLV_GRP_GTK_OFL),
 	WMI_TLV_CSA_OFFLOAD_ENABLE_CMDID = WMI_TLV_CMD(WMI_TLV_GRP_CSA_OFL),
@@ -238,7 +240,7 @@ enum wmi_tlv_cmd_id {
 	WMI_TLV_GPIO_OUTPUT_CMDID,
 	WMI_TLV_TXBF_CMDID,
 	WMI_TLV_FWTEST_VDEV_MCC_SET_TBTT_MODE_CMDID =
-			WMI_TLV_CMD(WMI_TLV_GRP_FWTEST),
+		WMI_TLV_CMD(WMI_TLV_GRP_FWTEST),
 	WMI_TLV_FWTEST_P2P_SET_NOA_PARAM_CMDID,
 	WMI_TLV_UNIT_TEST_CMDID,
 	WMI_TLV_TDLS_SET_STATE_CMDID = WMI_TLV_CMD(WMI_TLV_GRP_TDLS),
@@ -260,7 +262,7 @@ enum wmi_tlv_cmd_id {
 	WMI_TLV_MHF_OFFLOAD_SET_MODE_CMDID = WMI_TLV_CMD(WMI_TLV_GRP_MHF_OFL),
 	WMI_TLV_MHF_OFFLOAD_PLUMB_ROUTING_TBL_CMDID,
 	WMI_TLV_BATCH_SCAN_ENABLE_CMDID =
-			WMI_TLV_CMD(WMI_TLV_GRP_LOCATION_SCAN),
+		WMI_TLV_CMD(WMI_TLV_GRP_LOCATION_SCAN),
 	WMI_TLV_BATCH_SCAN_DISABLE_CMDID,
 	WMI_TLV_BATCH_SCAN_TRIGGER_RESULT_CMDID,
 	WMI_TLV_OEM_REQ_CMDID = WMI_TLV_CMD(WMI_TLV_GRP_OEM),
@@ -281,7 +283,7 @@ enum wmi_tlv_cmd_id {
 	WMI_TLV_EXTSCAN_SET_CAPABILITIES_CMDID,
 	WMI_TLV_EXTSCAN_GET_CAPABILITIES_CMDID,
 	WMI_TLV_SET_DHCP_SERVER_OFFLOAD_CMDID =
-			WMI_TLV_CMD(WMI_TLV_GRP_DHCP_OFL),
+		WMI_TLV_CMD(WMI_TLV_GRP_DHCP_OFL),
 	WMI_TLV_IPA_OFFLOAD_ENABLE_DISABLE_CMDID = WMI_TLV_CMD(WMI_TLV_GRP_IPA),
 	WMI_TLV_MDNS_OFFLOAD_ENABLE_CMDID = WMI_TLV_CMD(WMI_TLV_GRP_MDNS_OFL),
 	WMI_TLV_MDNS_SET_FQDN_CMDID,
@@ -290,7 +292,8 @@ enum wmi_tlv_cmd_id {
 	WMI_TLV_SAP_OFL_ENABLE_CMDID = WMI_TLV_CMD(WMI_TLV_GRP_SAP_OFL),
 };
 
-enum wmi_tlv_event_id {
+enum wmi_tlv_event_id
+{
 	WMI_TLV_SERVICE_READY_EVENTID = 0x1,
 	WMI_TLV_READY_EVENTID,
 	WMI_TLV_SCAN_EVENTID = WMI_TLV_EV(WMI_TLV_GRP_SCAN),
@@ -365,7 +368,7 @@ enum wmi_tlv_event_id {
 	WMI_TLV_RFKILL_STATE_CHANGE_EVENTID,
 	WMI_TLV_TDLS_PEER_EVENTID = WMI_TLV_EV(WMI_TLV_GRP_TDLS),
 	WMI_TLV_BATCH_SCAN_ENABLED_EVENTID =
-			WMI_TLV_EV(WMI_TLV_GRP_LOCATION_SCAN),
+		WMI_TLV_EV(WMI_TLV_GRP_LOCATION_SCAN),
 	WMI_TLV_BATCH_SCAN_RESULT_EVENTID,
 	WMI_TLV_OEM_CAPABILITY_EVENTID = WMI_TLV_EV(WMI_TLV_GRP_OEM),
 	WMI_TLV_OEM_MEASUREMENT_REPORT_EVENTID,
@@ -386,7 +389,8 @@ enum wmi_tlv_event_id {
 	WMI_TLV_SAP_OFL_DEL_STA_EVENTID,
 };
 
-enum wmi_tlv_pdev_param {
+enum wmi_tlv_pdev_param
+{
 	WMI_TLV_PDEV_PARAM_TX_CHAIN_MASK = 0x1,
 	WMI_TLV_PDEV_PARAM_RX_CHAIN_MASK,
 	WMI_TLV_PDEV_PARAM_TXPOWER_LIMIT2G,
@@ -451,7 +455,8 @@ enum wmi_tlv_pdev_param {
 	WMI_TLV_PDEV_PARAM_TXPOWER_REASON_MAX,
 };
 
-enum wmi_tlv_vdev_param {
+enum wmi_tlv_vdev_param
+{
 	WMI_TLV_VDEV_PARAM_RTS_THRESHOLD = 0x1,
 	WMI_TLV_VDEV_PARAM_FRAGMENTATION_THRESHOLD,
 	WMI_TLV_VDEV_PARAM_BEACON_INTERVAL,
@@ -527,7 +532,8 @@ enum wmi_tlv_vdev_param {
 	WMI_TLV_VDEV_PARAM_IBSS_PS_1RX_CHAIN_IN_ATIM_WINDOW_ENABLE,
 };
 
-enum wmi_tlv_peer_flags {
+enum wmi_tlv_peer_flags
+{
 	WMI_TLV_PEER_AUTH = 0x00000001,
 	WMI_TLV_PEER_QOS = 0x00000002,
 	WMI_TLV_PEER_NEED_PTK_4_WAY = 0x00000004,
@@ -545,7 +551,8 @@ enum wmi_tlv_peer_flags {
 	WMI_TLV_PEER_PMF = 0x08000000,
 };
 
-enum wmi_tlv_tag {
+enum wmi_tlv_tag
+{
 	WMI_TLV_TAG_LAST_RESERVED = 15,
 
 	WMI_TLV_TAG_FIRST_ARRAY_ENUM,
@@ -893,7 +900,8 @@ enum wmi_tlv_tag {
 	WMI_TLV_TAG_MAX
 };
 
-enum wmi_tlv_service {
+enum wmi_tlv_service
+{
 	WMI_TLV_SERVICE_BEACON_OFFLOAD = 0,
 	WMI_TLV_SERVICE_SCAN_OFFLOAD,
 	WMI_TLV_SERVICE_ROAM_SCAN_OFFLOAD,
@@ -981,150 +989,151 @@ static inline void
 wmi_tlv_svc_map(const __le32 *in, unsigned long *out, size_t len)
 {
 	SVCMAP(WMI_TLV_SERVICE_BEACON_OFFLOAD,
-	       WMI_SERVICE_BEACON_OFFLOAD, len);
+		   WMI_SERVICE_BEACON_OFFLOAD, len);
 	SVCMAP(WMI_TLV_SERVICE_SCAN_OFFLOAD,
-	       WMI_SERVICE_SCAN_OFFLOAD, len);
+		   WMI_SERVICE_SCAN_OFFLOAD, len);
 	SVCMAP(WMI_TLV_SERVICE_ROAM_SCAN_OFFLOAD,
-	       WMI_SERVICE_ROAM_SCAN_OFFLOAD, len);
+		   WMI_SERVICE_ROAM_SCAN_OFFLOAD, len);
 	SVCMAP(WMI_TLV_SERVICE_BCN_MISS_OFFLOAD,
-	       WMI_SERVICE_BCN_MISS_OFFLOAD, len);
+		   WMI_SERVICE_BCN_MISS_OFFLOAD, len);
 	SVCMAP(WMI_TLV_SERVICE_STA_PWRSAVE,
-	       WMI_SERVICE_STA_PWRSAVE, len);
+		   WMI_SERVICE_STA_PWRSAVE, len);
 	SVCMAP(WMI_TLV_SERVICE_STA_ADVANCED_PWRSAVE,
-	       WMI_SERVICE_STA_ADVANCED_PWRSAVE, len);
+		   WMI_SERVICE_STA_ADVANCED_PWRSAVE, len);
 	SVCMAP(WMI_TLV_SERVICE_AP_UAPSD,
-	       WMI_SERVICE_AP_UAPSD, len);
+		   WMI_SERVICE_AP_UAPSD, len);
 	SVCMAP(WMI_TLV_SERVICE_AP_DFS,
-	       WMI_SERVICE_AP_DFS, len);
+		   WMI_SERVICE_AP_DFS, len);
 	SVCMAP(WMI_TLV_SERVICE_11AC,
-	       WMI_SERVICE_11AC, len);
+		   WMI_SERVICE_11AC, len);
 	SVCMAP(WMI_TLV_SERVICE_BLOCKACK,
-	       WMI_SERVICE_BLOCKACK, len);
+		   WMI_SERVICE_BLOCKACK, len);
 	SVCMAP(WMI_TLV_SERVICE_PHYERR,
-	       WMI_SERVICE_PHYERR, len);
+		   WMI_SERVICE_PHYERR, len);
 	SVCMAP(WMI_TLV_SERVICE_BCN_FILTER,
-	       WMI_SERVICE_BCN_FILTER, len);
+		   WMI_SERVICE_BCN_FILTER, len);
 	SVCMAP(WMI_TLV_SERVICE_RTT,
-	       WMI_SERVICE_RTT, len);
+		   WMI_SERVICE_RTT, len);
 	SVCMAP(WMI_TLV_SERVICE_WOW,
-	       WMI_SERVICE_WOW, len);
+		   WMI_SERVICE_WOW, len);
 	SVCMAP(WMI_TLV_SERVICE_RATECTRL_CACHE,
-	       WMI_SERVICE_RATECTRL_CACHE, len);
+		   WMI_SERVICE_RATECTRL_CACHE, len);
 	SVCMAP(WMI_TLV_SERVICE_IRAM_TIDS,
-	       WMI_SERVICE_IRAM_TIDS, len);
+		   WMI_SERVICE_IRAM_TIDS, len);
 	SVCMAP(WMI_TLV_SERVICE_ARPNS_OFFLOAD,
-	       WMI_SERVICE_ARPNS_OFFLOAD, len);
+		   WMI_SERVICE_ARPNS_OFFLOAD, len);
 	SVCMAP(WMI_TLV_SERVICE_NLO,
-	       WMI_SERVICE_NLO, len);
+		   WMI_SERVICE_NLO, len);
 	SVCMAP(WMI_TLV_SERVICE_GTK_OFFLOAD,
-	       WMI_SERVICE_GTK_OFFLOAD, len);
+		   WMI_SERVICE_GTK_OFFLOAD, len);
 	SVCMAP(WMI_TLV_SERVICE_SCAN_SCH,
-	       WMI_SERVICE_SCAN_SCH, len);
+		   WMI_SERVICE_SCAN_SCH, len);
 	SVCMAP(WMI_TLV_SERVICE_CSA_OFFLOAD,
-	       WMI_SERVICE_CSA_OFFLOAD, len);
+		   WMI_SERVICE_CSA_OFFLOAD, len);
 	SVCMAP(WMI_TLV_SERVICE_CHATTER,
-	       WMI_SERVICE_CHATTER, len);
+		   WMI_SERVICE_CHATTER, len);
 	SVCMAP(WMI_TLV_SERVICE_COEX_FREQAVOID,
-	       WMI_SERVICE_COEX_FREQAVOID, len);
+		   WMI_SERVICE_COEX_FREQAVOID, len);
 	SVCMAP(WMI_TLV_SERVICE_PACKET_POWER_SAVE,
-	       WMI_SERVICE_PACKET_POWER_SAVE, len);
+		   WMI_SERVICE_PACKET_POWER_SAVE, len);
 	SVCMAP(WMI_TLV_SERVICE_FORCE_FW_HANG,
-	       WMI_SERVICE_FORCE_FW_HANG, len);
+		   WMI_SERVICE_FORCE_FW_HANG, len);
 	SVCMAP(WMI_TLV_SERVICE_GPIO,
-	       WMI_SERVICE_GPIO, len);
+		   WMI_SERVICE_GPIO, len);
 	SVCMAP(WMI_TLV_SERVICE_STA_DTIM_PS_MODULATED_DTIM,
-	       WMI_SERVICE_STA_DTIM_PS_MODULATED_DTIM, len);
+		   WMI_SERVICE_STA_DTIM_PS_MODULATED_DTIM, len);
 	SVCMAP(WMI_TLV_SERVICE_STA_UAPSD_BASIC_AUTO_TRIG,
-	       WMI_SERVICE_STA_UAPSD_BASIC_AUTO_TRIG, len);
+		   WMI_SERVICE_STA_UAPSD_BASIC_AUTO_TRIG, len);
 	SVCMAP(WMI_TLV_SERVICE_STA_UAPSD_VAR_AUTO_TRIG,
-	       WMI_SERVICE_STA_UAPSD_VAR_AUTO_TRIG, len);
+		   WMI_SERVICE_STA_UAPSD_VAR_AUTO_TRIG, len);
 	SVCMAP(WMI_TLV_SERVICE_STA_KEEP_ALIVE,
-	       WMI_SERVICE_STA_KEEP_ALIVE, len);
+		   WMI_SERVICE_STA_KEEP_ALIVE, len);
 	SVCMAP(WMI_TLV_SERVICE_TX_ENCAP,
-	       WMI_SERVICE_TX_ENCAP, len);
+		   WMI_SERVICE_TX_ENCAP, len);
 	SVCMAP(WMI_TLV_SERVICE_AP_PS_DETECT_OUT_OF_SYNC,
-	       WMI_SERVICE_AP_PS_DETECT_OUT_OF_SYNC, len);
+		   WMI_SERVICE_AP_PS_DETECT_OUT_OF_SYNC, len);
 	SVCMAP(WMI_TLV_SERVICE_EARLY_RX,
-	       WMI_SERVICE_EARLY_RX, len);
+		   WMI_SERVICE_EARLY_RX, len);
 	SVCMAP(WMI_TLV_SERVICE_STA_SMPS,
-	       WMI_SERVICE_STA_SMPS, len);
+		   WMI_SERVICE_STA_SMPS, len);
 	SVCMAP(WMI_TLV_SERVICE_FWTEST,
-	       WMI_SERVICE_FWTEST, len);
+		   WMI_SERVICE_FWTEST, len);
 	SVCMAP(WMI_TLV_SERVICE_STA_WMMAC,
-	       WMI_SERVICE_STA_WMMAC, len);
+		   WMI_SERVICE_STA_WMMAC, len);
 	SVCMAP(WMI_TLV_SERVICE_TDLS,
-	       WMI_SERVICE_TDLS, len);
+		   WMI_SERVICE_TDLS, len);
 	SVCMAP(WMI_TLV_SERVICE_BURST,
-	       WMI_SERVICE_BURST, len);
+		   WMI_SERVICE_BURST, len);
 	SVCMAP(WMI_TLV_SERVICE_MCC_BCN_INTERVAL_CHANGE,
-	       WMI_SERVICE_MCC_BCN_INTERVAL_CHANGE, len);
+		   WMI_SERVICE_MCC_BCN_INTERVAL_CHANGE, len);
 	SVCMAP(WMI_TLV_SERVICE_ADAPTIVE_OCS,
-	       WMI_SERVICE_ADAPTIVE_OCS, len);
+		   WMI_SERVICE_ADAPTIVE_OCS, len);
 	SVCMAP(WMI_TLV_SERVICE_BA_SSN_SUPPORT,
-	       WMI_SERVICE_BA_SSN_SUPPORT, len);
+		   WMI_SERVICE_BA_SSN_SUPPORT, len);
 	SVCMAP(WMI_TLV_SERVICE_FILTER_IPSEC_NATKEEPALIVE,
-	       WMI_SERVICE_FILTER_IPSEC_NATKEEPALIVE, len);
+		   WMI_SERVICE_FILTER_IPSEC_NATKEEPALIVE, len);
 	SVCMAP(WMI_TLV_SERVICE_WLAN_HB,
-	       WMI_SERVICE_WLAN_HB, len);
+		   WMI_SERVICE_WLAN_HB, len);
 	SVCMAP(WMI_TLV_SERVICE_LTE_ANT_SHARE_SUPPORT,
-	       WMI_SERVICE_LTE_ANT_SHARE_SUPPORT, len);
+		   WMI_SERVICE_LTE_ANT_SHARE_SUPPORT, len);
 	SVCMAP(WMI_TLV_SERVICE_BATCH_SCAN,
-	       WMI_SERVICE_BATCH_SCAN, len);
+		   WMI_SERVICE_BATCH_SCAN, len);
 	SVCMAP(WMI_TLV_SERVICE_QPOWER,
-	       WMI_SERVICE_QPOWER, len);
+		   WMI_SERVICE_QPOWER, len);
 	SVCMAP(WMI_TLV_SERVICE_PLMREQ,
-	       WMI_SERVICE_PLMREQ, len);
+		   WMI_SERVICE_PLMREQ, len);
 	SVCMAP(WMI_TLV_SERVICE_THERMAL_MGMT,
-	       WMI_SERVICE_THERMAL_MGMT, len);
+		   WMI_SERVICE_THERMAL_MGMT, len);
 	SVCMAP(WMI_TLV_SERVICE_RMC,
-	       WMI_SERVICE_RMC, len);
+		   WMI_SERVICE_RMC, len);
 	SVCMAP(WMI_TLV_SERVICE_MHF_OFFLOAD,
-	       WMI_SERVICE_MHF_OFFLOAD, len);
+		   WMI_SERVICE_MHF_OFFLOAD, len);
 	SVCMAP(WMI_TLV_SERVICE_COEX_SAR,
-	       WMI_SERVICE_COEX_SAR, len);
+		   WMI_SERVICE_COEX_SAR, len);
 	SVCMAP(WMI_TLV_SERVICE_BCN_TXRATE_OVERRIDE,
-	       WMI_SERVICE_BCN_TXRATE_OVERRIDE, len);
+		   WMI_SERVICE_BCN_TXRATE_OVERRIDE, len);
 	SVCMAP(WMI_TLV_SERVICE_NAN,
-	       WMI_SERVICE_NAN, len);
+		   WMI_SERVICE_NAN, len);
 	SVCMAP(WMI_TLV_SERVICE_L1SS_STAT,
-	       WMI_SERVICE_L1SS_STAT, len);
+		   WMI_SERVICE_L1SS_STAT, len);
 	SVCMAP(WMI_TLV_SERVICE_ESTIMATE_LINKSPEED,
-	       WMI_SERVICE_ESTIMATE_LINKSPEED, len);
+		   WMI_SERVICE_ESTIMATE_LINKSPEED, len);
 	SVCMAP(WMI_TLV_SERVICE_OBSS_SCAN,
-	       WMI_SERVICE_OBSS_SCAN, len);
+		   WMI_SERVICE_OBSS_SCAN, len);
 	SVCMAP(WMI_TLV_SERVICE_TDLS_OFFCHAN,
-	       WMI_SERVICE_TDLS_OFFCHAN, len);
+		   WMI_SERVICE_TDLS_OFFCHAN, len);
 	SVCMAP(WMI_TLV_SERVICE_TDLS_UAPSD_BUFFER_STA,
-	       WMI_SERVICE_TDLS_UAPSD_BUFFER_STA, len);
+		   WMI_SERVICE_TDLS_UAPSD_BUFFER_STA, len);
 	SVCMAP(WMI_TLV_SERVICE_TDLS_UAPSD_SLEEP_STA,
-	       WMI_SERVICE_TDLS_UAPSD_SLEEP_STA, len);
+		   WMI_SERVICE_TDLS_UAPSD_SLEEP_STA, len);
 	SVCMAP(WMI_TLV_SERVICE_IBSS_PWRSAVE,
-	       WMI_SERVICE_IBSS_PWRSAVE, len);
+		   WMI_SERVICE_IBSS_PWRSAVE, len);
 	SVCMAP(WMI_TLV_SERVICE_LPASS,
-	       WMI_SERVICE_LPASS, len);
+		   WMI_SERVICE_LPASS, len);
 	SVCMAP(WMI_TLV_SERVICE_EXTSCAN,
-	       WMI_SERVICE_EXTSCAN, len);
+		   WMI_SERVICE_EXTSCAN, len);
 	SVCMAP(WMI_TLV_SERVICE_D0WOW,
-	       WMI_SERVICE_D0WOW, len);
+		   WMI_SERVICE_D0WOW, len);
 	SVCMAP(WMI_TLV_SERVICE_HSOFFLOAD,
-	       WMI_SERVICE_HSOFFLOAD, len);
+		   WMI_SERVICE_HSOFFLOAD, len);
 	SVCMAP(WMI_TLV_SERVICE_ROAM_HO_OFFLOAD,
-	       WMI_SERVICE_ROAM_HO_OFFLOAD, len);
+		   WMI_SERVICE_ROAM_HO_OFFLOAD, len);
 	SVCMAP(WMI_TLV_SERVICE_RX_FULL_REORDER,
-	       WMI_SERVICE_RX_FULL_REORDER, len);
+		   WMI_SERVICE_RX_FULL_REORDER, len);
 	SVCMAP(WMI_TLV_SERVICE_DHCP_OFFLOAD,
-	       WMI_SERVICE_DHCP_OFFLOAD, len);
+		   WMI_SERVICE_DHCP_OFFLOAD, len);
 	SVCMAP(WMI_TLV_SERVICE_STA_RX_IPA_OFFLOAD_SUPPORT,
-	       WMI_SERVICE_STA_RX_IPA_OFFLOAD_SUPPORT, len);
+		   WMI_SERVICE_STA_RX_IPA_OFFLOAD_SUPPORT, len);
 	SVCMAP(WMI_TLV_SERVICE_MDNS_OFFLOAD,
-	       WMI_SERVICE_MDNS_OFFLOAD, len);
+		   WMI_SERVICE_MDNS_OFFLOAD, len);
 	SVCMAP(WMI_TLV_SERVICE_SAP_AUTH_OFFLOAD,
-	       WMI_SERVICE_SAP_AUTH_OFFLOAD, len);
+		   WMI_SERVICE_SAP_AUTH_OFFLOAD, len);
 }
 
 #undef SVCMAP
 
-struct wmi_tlv {
+struct wmi_tlv
+{
 	__le16 len;
 	__le16 tag;
 	u8 value[0];
@@ -1132,7 +1141,8 @@ struct wmi_tlv {
 
 #define WMI_TLV_MGMT_RX_NUM_RSSI 4
 
-struct wmi_tlv_mgmt_rx_ev {
+struct wmi_tlv_mgmt_rx_ev
+{
 	__le32 channel;
 	__le32 snr;
 	__le32 rate;
@@ -1142,7 +1152,8 @@ struct wmi_tlv_mgmt_rx_ev {
 	__le32 rssi[WMI_TLV_MGMT_RX_NUM_RSSI];
 } __packed;
 
-struct wmi_tlv_abi_version {
+struct wmi_tlv_abi_version
+{
 	__le32 abi_ver0;
 	__le32 abi_ver1;
 	__le32 abi_ver_ns0;
@@ -1151,20 +1162,23 @@ struct wmi_tlv_abi_version {
 	__le32 abi_ver_ns3;
 } __packed;
 
-enum wmi_tlv_hw_bd_id {
+enum wmi_tlv_hw_bd_id
+{
 	WMI_TLV_HW_BD_LEGACY = 0,
 	WMI_TLV_HW_BD_QCA6174 = 1,
 	WMI_TLV_HW_BD_QCA2582 = 2,
 };
 
-struct wmi_tlv_hw_bd_info {
+struct wmi_tlv_hw_bd_info
+{
 	u8 rev;
 	u8 project_id;
 	u8 custom_id;
 	u8 reference_design_id;
 } __packed;
 
-struct wmi_tlv_svc_rdy_ev {
+struct wmi_tlv_svc_rdy_ev
+{
 	__le32 fw_build_vers;
 	struct wmi_tlv_abi_version abi;
 	__le32 phy_capability;
@@ -1184,13 +1198,15 @@ struct wmi_tlv_svc_rdy_ev {
 	struct wmi_tlv_hw_bd_info hw_bd_info[5];
 } __packed;
 
-struct wmi_tlv_rdy_ev {
+struct wmi_tlv_rdy_ev
+{
 	struct wmi_tlv_abi_version abi;
 	struct wmi_mac_addr mac_addr;
 	__le32 status;
 } __packed;
 
-struct wmi_tlv_resource_config {
+struct wmi_tlv_resource_config
+{
 	__le32 num_vdevs;
 	__le32 num_peers;
 	__le32 num_offload_peers;
@@ -1229,18 +1245,21 @@ struct wmi_tlv_resource_config {
 	__le32 max_tdls_concurrent_buffer_sta;
 } __packed;
 
-struct wmi_tlv_init_cmd {
+struct wmi_tlv_init_cmd
+{
 	struct wmi_tlv_abi_version abi;
 	__le32 num_host_mem_chunks;
 } __packed;
 
-struct wmi_tlv_pdev_set_param_cmd {
+struct wmi_tlv_pdev_set_param_cmd
+{
 	__le32 pdev_id; /* not used yet */
 	__le32 param_id;
 	__le32 param_value;
 } __packed;
 
-struct wmi_tlv_pdev_set_rd_cmd {
+struct wmi_tlv_pdev_set_rd_cmd
+{
 	__le32 pdev_id; /* not used yet */
 	__le32 regd;
 	__le32 regd_2ghz;
@@ -1249,11 +1268,13 @@ struct wmi_tlv_pdev_set_rd_cmd {
 	__le32 conform_limit_5ghz;
 } __packed;
 
-struct wmi_tlv_scan_chan_list_cmd {
+struct wmi_tlv_scan_chan_list_cmd
+{
 	__le32 num_scan_chans;
 } __packed;
 
-struct wmi_tlv_start_scan_cmd {
+struct wmi_tlv_start_scan_cmd
+{
 	struct wmi_start_scan_common common;
 	__le32 burst_duration_ms;
 	__le32 num_channels;
@@ -1263,7 +1284,8 @@ struct wmi_tlv_start_scan_cmd {
 	__le32 num_probes;
 } __packed;
 
-struct wmi_tlv_vdev_start_cmd {
+struct wmi_tlv_vdev_start_cmd
+{
 	__le32 vdev_id;
 	__le32 requestor_id;
 	__le32 bcn_intval;
@@ -1276,7 +1298,8 @@ struct wmi_tlv_vdev_start_cmd {
 	__le32 disable_hw_ack;
 } __packed;
 
-enum {
+enum
+{
 	WMI_TLV_PEER_TYPE_DEFAULT = 0, /* generic / non-BSS / self-peer */
 	WMI_TLV_PEER_TYPE_BSS = 1,
 	WMI_TLV_PEER_TYPE_TDLS = 2,
@@ -1284,13 +1307,15 @@ enum {
 	WMI_TLV_PEER_TYPE_ROAMOFFLOAD_TMP = 128,
 };
 
-struct wmi_tlv_peer_create_cmd {
+struct wmi_tlv_peer_create_cmd
+{
 	__le32 vdev_id;
 	struct wmi_mac_addr peer_addr;
 	__le32 peer_type;
 } __packed;
 
-struct wmi_tlv_peer_assoc_cmd {
+struct wmi_tlv_peer_assoc_cmd
+{
 	struct wmi_mac_addr mac_addr;
 	__le32 vdev_id;
 	__le32 new_assoc;
@@ -1310,34 +1335,40 @@ struct wmi_tlv_peer_assoc_cmd {
 	__le32 num_ht_rates;
 } __packed;
 
-struct wmi_tlv_pdev_suspend {
+struct wmi_tlv_pdev_suspend
+{
 	__le32 pdev_id; /* not used yet */
 	__le32 opt;
 } __packed;
 
-struct wmi_tlv_pdev_set_wmm_cmd {
+struct wmi_tlv_pdev_set_wmm_cmd
+{
 	__le32 pdev_id; /* not used yet */
 	__le32 dg_type; /* no idea.. */
 } __packed;
 
-struct wmi_tlv_vdev_wmm_params {
+struct wmi_tlv_vdev_wmm_params
+{
 	__le32 dummy;
 	struct wmi_wmm_params params;
 } __packed;
 
-struct wmi_tlv_vdev_set_wmm_cmd {
+struct wmi_tlv_vdev_set_wmm_cmd
+{
 	__le32 vdev_id;
 	struct wmi_tlv_vdev_wmm_params vdev_wmm_params[4];
 } __packed;
 
-struct wmi_tlv_phyerr_ev {
+struct wmi_tlv_phyerr_ev
+{
 	__le32 num_phyerrs;
 	__le32 tsf_l32;
 	__le32 tsf_u32;
 	__le32 buf_len;
 } __packed;
 
-enum wmi_tlv_dbglog_param {
+enum wmi_tlv_dbglog_param
+{
 	WMI_TLV_DBGLOG_PARAM_LOG_LEVEL = 1,
 	WMI_TLV_DBGLOG_PARAM_VDEV_ENABLE,
 	WMI_TLV_DBGLOG_PARAM_VDEV_DISABLE,
@@ -1345,7 +1376,8 @@ enum wmi_tlv_dbglog_param {
 	WMI_TLV_DBGLOG_PARAM_VDEV_DISABLE_BITMAP,
 };
 
-enum wmi_tlv_dbglog_log_level {
+enum wmi_tlv_dbglog_log_level
+{
 	WMI_TLV_DBGLOG_LOG_LEVEL_VERBOSE = 0,
 	WMI_TLV_DBGLOG_LOG_LEVEL_INFO,
 	WMI_TLV_DBGLOG_LOG_LEVEL_INFO_LVL_1,
@@ -1356,28 +1388,32 @@ enum wmi_tlv_dbglog_log_level {
 
 #define WMI_TLV_DBGLOG_BITMAP_MAX_IDS 512
 #define WMI_TLV_DBGLOG_BITMAP_MAX_WORDS (WMI_TLV_DBGLOG_BITMAP_MAX_IDS / \
-					 sizeof(__le32))
+		sizeof(__le32))
 #define WMI_TLV_DBGLOG_ALL_MODULES 0xffff
 #define WMI_TLV_DBGLOG_LOG_LEVEL_VALUE(module_id, log_level) \
-		(((module_id << 16) & 0xffff0000) | \
-		 ((log_level <<  0) & 0x000000ff))
+	(((module_id << 16) & 0xffff0000) | \
+	 ((log_level <<  0) & 0x000000ff))
 
-struct wmi_tlv_dbglog_cmd {
+struct wmi_tlv_dbglog_cmd
+{
 	__le32 param;
 	__le32 value;
 } __packed;
 
-struct wmi_tlv_resume_cmd {
+struct wmi_tlv_resume_cmd
+{
 	__le32 reserved;
 } __packed;
 
-struct wmi_tlv_req_stats_cmd {
+struct wmi_tlv_req_stats_cmd
+{
 	__le32 stats_id; /* wmi_stats_id */
 	__le32 vdev_id;
 	struct wmi_mac_addr peer_macaddr;
 } __packed;
 
-struct wmi_tlv_vdev_stats {
+struct wmi_tlv_vdev_stats
+{
 	__le32 vdev_id;
 	__le32 beacon_snr;
 	__le32 data_snr;
@@ -1394,56 +1430,66 @@ struct wmi_tlv_vdev_stats {
 	__le32 beacon_rssi_history[10];
 } __packed;
 
-struct wmi_tlv_pktlog_enable {
+struct wmi_tlv_pktlog_enable
+{
 	__le32 reserved;
 	__le32 filter;
 } __packed;
 
-struct wmi_tlv_pktlog_disable {
+struct wmi_tlv_pktlog_disable
+{
 	__le32 reserved;
 } __packed;
 
-enum wmi_tlv_bcn_tx_status {
+enum wmi_tlv_bcn_tx_status
+{
 	WMI_TLV_BCN_TX_STATUS_OK,
 	WMI_TLV_BCN_TX_STATUS_XRETRY,
 	WMI_TLV_BCN_TX_STATUS_DROP,
 	WMI_TLV_BCN_TX_STATUS_FILTERED,
 };
 
-struct wmi_tlv_bcn_tx_status_ev {
+struct wmi_tlv_bcn_tx_status_ev
+{
 	__le32 vdev_id;
 	__le32 tx_status;
 } __packed;
 
-struct wmi_tlv_bcn_prb_info {
+struct wmi_tlv_bcn_prb_info
+{
 	__le32 caps;
 	__le32 erp;
 	u8 ies[0];
 } __packed;
 
-struct wmi_tlv_bcn_tmpl_cmd {
+struct wmi_tlv_bcn_tmpl_cmd
+{
 	__le32 vdev_id;
 	__le32 tim_ie_offset;
 	__le32 buf_len;
 } __packed;
 
-struct wmi_tlv_prb_tmpl_cmd {
+struct wmi_tlv_prb_tmpl_cmd
+{
 	__le32 vdev_id;
 	__le32 buf_len;
 } __packed;
 
-struct wmi_tlv_p2p_go_bcn_ie {
+struct wmi_tlv_p2p_go_bcn_ie
+{
 	__le32 vdev_id;
 	__le32 ie_len;
 } __packed;
 
-enum wmi_tlv_diag_item_type {
+enum wmi_tlv_diag_item_type
+{
 	WMI_TLV_DIAG_ITEM_TYPE_FW_EVENT,
 	WMI_TLV_DIAG_ITEM_TYPE_FW_LOG,
 	WMI_TLV_DIAG_ITEM_TYPE_FW_DEBUG_MSG,
 };
 
-struct wmi_tlv_diag_item {
+struct wmi_tlv_diag_item
+{
 	u8 type;
 	u8 reserved;
 	__le16 len;
@@ -1452,18 +1498,21 @@ struct wmi_tlv_diag_item {
 	u8 payload[0];
 } __packed;
 
-struct wmi_tlv_diag_data_ev {
+struct wmi_tlv_diag_data_ev
+{
 	__le32 num_items;
 } __packed;
 
-struct wmi_tlv_sta_keepalive_cmd {
+struct wmi_tlv_sta_keepalive_cmd
+{
 	__le32 vdev_id;
 	__le32 enabled;
 	__le32 method; /* WMI_STA_KEEPALIVE_METHOD_ */
 	__le32 interval; /* in seconds */
 } __packed;
 
-struct wmi_tlv_stats_ev {
+struct wmi_tlv_stats_ev
+{
 	__le32 stats_id; /* WMI_STAT_ */
 	__le32 num_pdev_stats;
 	__le32 num_vdev_stats;
@@ -1472,38 +1521,45 @@ struct wmi_tlv_stats_ev {
 	__le32 num_chan_stats;
 } __packed;
 
-struct wmi_tlv_p2p_noa_ev {
+struct wmi_tlv_p2p_noa_ev
+{
 	__le32 vdev_id;
 } __packed;
 
-struct wmi_tlv_roam_ev {
+struct wmi_tlv_roam_ev
+{
 	__le32 vdev_id;
 	__le32 reason;
 	__le32 rssi;
 } __packed;
 
-struct wmi_tlv_wow_add_del_event_cmd {
+struct wmi_tlv_wow_add_del_event_cmd
+{
 	__le32 vdev_id;
 	__le32 is_add;
 	__le32 event_bitmap;
 } __packed;
 
-struct wmi_tlv_wow_enable_cmd {
+struct wmi_tlv_wow_enable_cmd
+{
 	__le32 enable;
 } __packed;
 
-struct wmi_tlv_wow_host_wakeup_ind {
+struct wmi_tlv_wow_host_wakeup_ind
+{
 	__le32 reserved;
 } __packed;
 
-struct wmi_tlv_wow_event_info {
+struct wmi_tlv_wow_event_info
+{
 	__le32 vdev_id;
 	__le32 flag;
 	__le32 wake_reason;
 	__le32 data_len;
 } __packed;
 
-enum wmi_tlv_pattern_type {
+enum wmi_tlv_pattern_type
+{
 	WOW_PATTERN_MIN = 0,
 	WOW_BITMAP_PATTERN = WOW_PATTERN_MIN,
 	WOW_IPV4_SYNC_PATTERN,
@@ -1520,7 +1576,8 @@ enum wmi_tlv_pattern_type {
 #define WOW_DEFAULT_BITMAP_PATTERN_SIZE		148
 #define WOW_DEFAULT_BITMASK_SIZE		148
 
-struct wmi_tlv_wow_bitmap_pattern {
+struct wmi_tlv_wow_bitmap_pattern
+{
 	u8 patternbuf[WOW_DEFAULT_BITMAP_PATTERN_SIZE];
 	u8 bitmaskbuf[WOW_DEFAULT_BITMASK_SIZE];
 	__le32 pattern_offset;
@@ -1529,26 +1586,30 @@ struct wmi_tlv_wow_bitmap_pattern {
 	__le32 pattern_id;
 } __packed;
 
-struct wmi_tlv_wow_add_pattern_cmd {
+struct wmi_tlv_wow_add_pattern_cmd
+{
 	__le32 vdev_id;
 	__le32 pattern_id;
 	__le32 pattern_type;
 } __packed;
 
-struct wmi_tlv_wow_del_pattern_cmd {
+struct wmi_tlv_wow_del_pattern_cmd
+{
 	__le32 vdev_id;
 	__le32 pattern_id;
 	__le32 pattern_type;
 } __packed;
 
 /* TDLS Options */
-enum wmi_tlv_tdls_options {
+enum wmi_tlv_tdls_options
+{
 	WMI_TLV_TDLS_OFFCHAN_EN = BIT(0),
 	WMI_TLV_TDLS_BUFFER_STA_EN = BIT(1),
 	WMI_TLV_TDLS_SLEEP_STA_EN = BIT(2),
 };
 
-struct wmi_tdls_set_state_cmd {
+struct wmi_tdls_set_state_cmd
+{
 	__le32 vdev_id;
 	__le32 state;
 	__le32 notification_interval_ms;
@@ -1564,13 +1625,15 @@ struct wmi_tdls_set_state_cmd {
 	__le32 tdls_puapsd_rx_frame_threshold;
 } __packed;
 
-struct wmi_tdls_peer_update_cmd {
+struct wmi_tdls_peer_update_cmd
+{
 	__le32 vdev_id;
 	struct wmi_mac_addr peer_macaddr;
 	__le32 peer_state;
 } __packed;
 
-enum {
+enum
+{
 	WMI_TLV_TDLS_PEER_QOS_AC_VO = BIT(0),
 	WMI_TLV_TDLS_PEER_QOS_AC_VI = BIT(1),
 	WMI_TLV_TDLS_PEER_QOS_AC_BK = BIT(2),
@@ -1580,7 +1643,8 @@ enum {
 #define WMI_TLV_TDLS_PEER_SP_MASK	0x60
 #define WMI_TLV_TDLS_PEER_SP_LSB	5
 
-struct wmi_tdls_peer_capab {
+struct wmi_tdls_peer_capab
+{
 	__le32 peer_qos;
 	__le32 buff_sta_support;
 	__le32 off_chan_support;
@@ -1594,7 +1658,8 @@ struct wmi_tdls_peer_capab {
 	__le32 pref_offchan_bw;
 } __packed;
 
-struct wmi_tlv_adaptive_qcs {
+struct wmi_tlv_adaptive_qcs
+{
 	__le32 enable;
 } __packed;
 
@@ -1615,7 +1680,8 @@ struct wmi_tlv_adaptive_qcs {
  *		vdev_map is valid.
  * @WMI_TLV_TX_PAUSE_ID_HOST: Host itself requested tx pause.
  */
-enum wmi_tlv_tx_pause_id {
+enum wmi_tlv_tx_pause_id
+{
 	WMI_TLV_TX_PAUSE_ID_MCC = 1,
 	WMI_TLV_TX_PAUSE_ID_AP_PEER_PS = 2,
 	WMI_TLV_TX_PAUSE_ID_AP_PEER_UAPSD = 3,
@@ -1627,12 +1693,14 @@ enum wmi_tlv_tx_pause_id {
 	WMI_TLV_TX_PAUSE_ID_HOST = 21,
 };
 
-enum wmi_tlv_tx_pause_action {
+enum wmi_tlv_tx_pause_action
+{
 	WMI_TLV_TX_PAUSE_ACTION_STOP,
 	WMI_TLV_TX_PAUSE_ACTION_WAKE,
 };
 
-struct wmi_tlv_tx_pause_ev {
+struct wmi_tlv_tx_pause_ev
+{
 	__le32 pause_id;
 	__le32 action;
 	__le32 vdev_map;

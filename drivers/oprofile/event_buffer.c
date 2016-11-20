@@ -47,18 +47,22 @@ void add_event_entry(unsigned long value)
 	 * This shouldn't happen since all workqueues or handlers are
 	 * canceled or flushed before the event buffer is freed.
 	 */
-	if (!event_buffer) {
+	if (!event_buffer)
+	{
 		WARN_ON_ONCE(1);
 		return;
 	}
 
-	if (buffer_pos == buffer_size) {
+	if (buffer_pos == buffer_size)
+	{
 		atomic_inc(&oprofile_stats.event_lost_overflow);
 		return;
 	}
 
 	event_buffer[buffer_pos] = value;
-	if (++buffer_pos == buffer_size - buffer_watershed) {
+
+	if (++buffer_pos == buffer_size - buffer_watershed)
+	{
 		atomic_set(&buffer_ready, 1);
 		wake_up(&buffer_wait);
 	}
@@ -88,12 +92,17 @@ int alloc_event_buffer(void)
 	raw_spin_unlock_irqrestore(&oprofilefs_lock, flags);
 
 	if (buffer_watershed >= buffer_size)
+	{
 		return -EINVAL;
+	}
 
 	buffer_pos = 0;
 	event_buffer = vmalloc(sizeof(unsigned long) * buffer_size);
+
 	if (!event_buffer)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -114,10 +123,14 @@ static int event_buffer_open(struct inode *inode, struct file *file)
 	int err = -EPERM;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	if (test_and_set_bit_lock(0, &buffer_opened))
+	{
 		return -EBUSY;
+	}
 
 	/* Register as a user of dcookies
 	 * to ensure they persist for the lifetime of
@@ -125,11 +138,16 @@ static int event_buffer_open(struct inode *inode, struct file *file)
 	 */
 	err = -EINVAL;
 	file->private_data = dcookie_register();
+
 	if (!file->private_data)
+	{
 		goto out;
+	}
 
 	if ((err = oprofile_setup()))
+	{
 		goto fail;
+	}
 
 	/* NB: the actual start happens from userspace
 	 * echo 1 >/dev/oprofile/enable
@@ -158,28 +176,35 @@ static int event_buffer_release(struct inode *inode, struct file *file)
 
 
 static ssize_t event_buffer_read(struct file *file, char __user *buf,
-				 size_t count, loff_t *offset)
+								 size_t count, loff_t *offset)
 {
 	int retval = -EINVAL;
 	size_t const max = buffer_size * sizeof(unsigned long);
 
 	/* handling partial reads is more trouble than it's worth */
 	if (count != max || *offset)
+	{
 		return -EINVAL;
+	}
 
 	wait_event_interruptible(buffer_wait, atomic_read(&buffer_ready));
 
 	if (signal_pending(current))
+	{
 		return -EINTR;
+	}
 
 	/* can't currently happen */
 	if (!atomic_read(&buffer_ready))
+	{
 		return -EAGAIN;
+	}
 
 	mutex_lock(&buffer_mutex);
 
 	/* May happen if the buffer is freed during pending reads. */
-	if (!event_buffer) {
+	if (!event_buffer)
+	{
 		retval = -EINTR;
 		goto out;
 	}
@@ -191,7 +216,9 @@ static ssize_t event_buffer_read(struct file *file, char __user *buf,
 	count = buffer_pos * sizeof(unsigned long);
 
 	if (copy_to_user(buf, event_buffer, count))
+	{
 		goto out;
+	}
 
 	retval = count;
 	buffer_pos = 0;
@@ -201,7 +228,8 @@ out:
 	return retval;
 }
 
-const struct file_operations event_buffer_fops = {
+const struct file_operations event_buffer_fops =
+{
 	.open		= event_buffer_open,
 	.release	= event_buffer_release,
 	.read		= event_buffer_read,

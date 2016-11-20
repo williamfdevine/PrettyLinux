@@ -50,37 +50,46 @@ static int m41t93_set_time(struct device *dev, struct rtc_time *tm)
 	struct spi_device *spi = to_spi_device(dev);
 	int tmp;
 	u8 buf[9] = {0x80};        /* write cmd + 8 data bytes */
-	u8 * const data = &buf[1]; /* ptr to first data byte */
+	u8 *const data = &buf[1];  /* ptr to first data byte */
 
 	dev_dbg(dev, "%s secs=%d, mins=%d, "
-		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-		"write", tm->tm_sec, tm->tm_min,
-		tm->tm_hour, tm->tm_mday,
-		tm->tm_mon, tm->tm_year, tm->tm_wday);
+			"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
+			"write", tm->tm_sec, tm->tm_min,
+			tm->tm_hour, tm->tm_mday,
+			tm->tm_mon, tm->tm_year, tm->tm_wday);
 
-	if (tm->tm_year < 100) {
+	if (tm->tm_year < 100)
+	{
 		dev_warn(&spi->dev, "unsupported date (before 2000-01-01).\n");
 		return -EINVAL;
 	}
 
 	tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
-	if (tmp < 0)
-		return tmp;
 
-	if (tmp & M41T93_FLAG_OF) {
+	if (tmp < 0)
+	{
+		return tmp;
+	}
+
+	if (tmp & M41T93_FLAG_OF)
+	{
 		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
 		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
 
 		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
-		if (tmp < 0) {
+
+		if (tmp < 0)
+		{
 			return tmp;
-		} else if (tmp & M41T93_FLAG_OF) {
+		}
+		else if (tmp & M41T93_FLAG_OF)
+		{
 			/* OF cannot be immediately reset: oscillator has to be
 			 * restarted. */
 			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
 
 			dev_warn(&spi->dev,
-				 "OF bit is still set, kickstarting clock.\n");
+					 "OF bit is still set, kickstarting clock.\n");
 			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
 			reset_osc &= ~M41T93_FLAG_ST;
 			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
@@ -91,7 +100,7 @@ static int m41t93_set_time(struct device *dev, struct rtc_time *tm)
 	data[M41T93_REG_ST_SEC]		= bin2bcd(tm->tm_sec);
 	data[M41T93_REG_MIN]		= bin2bcd(tm->tm_min);
 	data[M41T93_REG_CENT_HOUR]	= bin2bcd(tm->tm_hour) |
-						((tm->tm_year/100-1) << 6);
+								  ((tm->tm_year / 100 - 1) << 6);
 	data[M41T93_REG_DAY]		= bin2bcd(tm->tm_mday);
 	data[M41T93_REG_WDAY]		= bin2bcd(tm->tm_wday + 1);
 	data[M41T93_REG_MON]		= bin2bcd(tm->tm_mon + 1);
@@ -117,31 +126,44 @@ static int m41t93_get_time(struct device *dev, struct rtc_time *tm)
 	   2. oscillator fail bit (OF) is set: time is invalid.
 	*/
 	tmp = spi_w8r8(spi, M41T93_REG_ALM_HOUR_HT);
-	if (tmp < 0)
-		return tmp;
 
-	if (tmp & M41T93_FLAG_HT) {
+	if (tmp < 0)
+	{
+		return tmp;
+	}
+
+	if (tmp & M41T93_FLAG_HT)
+	{
 		dev_dbg(&spi->dev, "HT bit is set, reenable clock update.\n");
 		m41t93_set_reg(spi, M41T93_REG_ALM_HOUR_HT,
-			       tmp & ~M41T93_FLAG_HT);
+					   tmp & ~M41T93_FLAG_HT);
 	}
 
 	tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
-	if (tmp < 0)
-		return tmp;
 
-	if (tmp & M41T93_FLAG_OF) {
+	if (tmp < 0)
+	{
+		return tmp;
+	}
+
+	if (tmp & M41T93_FLAG_OF)
+	{
 		ret = -EINVAL;
 		dev_warn(&spi->dev, "OF bit is set, write time to restart.\n");
 	}
 
 	if (tmp & M41T93_FLAG_BL)
+	{
 		dev_warn(&spi->dev, "BL bit is set, replace battery.\n");
+	}
 
 	/* read actual time/date */
 	tmp = spi_write_then_read(spi, &start_addr, 1, buf, sizeof(buf));
+
 	if (tmp < 0)
+	{
 		return tmp;
+	}
 
 	tm->tm_sec	= bcd2bin(buf[M41T93_REG_ST_SEC]);
 	tm->tm_min	= bcd2bin(buf[M41T93_REG_MIN]);
@@ -154,16 +176,17 @@ static int m41t93_get_time(struct device *dev, struct rtc_time *tm)
 	tm->tm_year = bcd2bin(buf[M41T93_REG_YEAR]) + century_after_1900 * 100;
 
 	dev_dbg(dev, "%s secs=%d, mins=%d, "
-		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-		"read", tm->tm_sec, tm->tm_min,
-		tm->tm_hour, tm->tm_mday,
-		tm->tm_mon, tm->tm_year, tm->tm_wday);
+			"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
+			"read", tm->tm_sec, tm->tm_min,
+			tm->tm_hour, tm->tm_mday,
+			tm->tm_mon, tm->tm_year, tm->tm_wday);
 
 	return ret < 0 ? ret : rtc_valid_tm(tm);
 }
 
 
-static const struct rtc_class_ops m41t93_rtc_ops = {
+static const struct rtc_class_ops m41t93_rtc_ops =
+{
 	.read_time	= m41t93_get_time,
 	.set_time	= m41t93_set_time,
 };
@@ -179,22 +202,28 @@ static int m41t93_probe(struct spi_device *spi)
 	spi_setup(spi);
 
 	res = spi_w8r8(spi, M41T93_REG_WDAY);
-	if (res < 0 || (res & 0xf8) != 0) {
+
+	if (res < 0 || (res & 0xf8) != 0)
+	{
 		dev_err(&spi->dev, "not found 0x%x.\n", res);
 		return -ENODEV;
 	}
 
 	rtc = devm_rtc_device_register(&spi->dev, m41t93_driver.driver.name,
-					&m41t93_rtc_ops, THIS_MODULE);
+								   &m41t93_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	spi_set_drvdata(spi, rtc);
 
 	return 0;
 }
 
-static struct spi_driver m41t93_driver = {
+static struct spi_driver m41t93_driver =
+{
 	.driver = {
 		.name	= "rtc-m41t93",
 	},

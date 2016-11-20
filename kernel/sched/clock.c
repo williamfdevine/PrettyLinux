@@ -71,7 +71,7 @@
 unsigned long long __weak sched_clock(void)
 {
 	return (unsigned long long)(jiffies - INITIAL_JIFFIES)
-					* (NSEC_PER_SEC / HZ);
+		   * (NSEC_PER_SEC / HZ);
 }
 EXPORT_SYMBOL_GPL(sched_clock);
 
@@ -89,7 +89,9 @@ int sched_clock_stable(void)
 static void __set_sched_clock_stable(void)
 {
 	if (!sched_clock_stable())
+	{
 		static_key_slow_inc(&__sched_clock_stable);
+	}
 
 	tick_dep_clear(TICK_DEP_BIT_CLOCK_UNSTABLE);
 }
@@ -101,7 +103,9 @@ void set_sched_clock_stable(void)
 	smp_mb(); /* matches sched_clock_init() */
 
 	if (!sched_clock_running)
+	{
 		return;
+	}
 
 	__set_sched_clock_stable();
 }
@@ -110,7 +114,9 @@ static void __clear_sched_clock_stable(struct work_struct *work)
 {
 	/* XXX worry about clock continuity */
 	if (sched_clock_stable())
+	{
 		static_key_slow_dec(&__sched_clock_stable);
+	}
 
 	tick_dep_set(TICK_DEP_BIT_CLOCK_UNSTABLE);
 }
@@ -124,12 +130,15 @@ void clear_sched_clock_stable(void)
 	smp_mb(); /* matches sched_clock_init() */
 
 	if (!sched_clock_running)
+	{
 		return;
+	}
 
 	schedule_work(&sched_clock_work);
 }
 
-struct sched_clock_data {
+struct sched_clock_data
+{
 	u64			tick_raw;
 	u64			tick_gtod;
 	u64			clock;
@@ -152,7 +161,8 @@ void sched_clock_init(void)
 	u64 ktime_now = ktime_to_ns(ktime_get());
 	int cpu;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct sched_clock_data *scd = cpu_sdc(cpu);
 
 		scd->tick_raw = 0;
@@ -172,9 +182,13 @@ void sched_clock_init(void)
 	smp_mb(); /* matches {set,clear}_sched_clock_stable() */
 
 	if (__sched_clock_stable_early)
+	{
 		__set_sched_clock_stable();
+	}
 	else
+	{
 		__clear_sched_clock_stable(NULL);
+	}
 }
 
 /*
@@ -205,8 +219,11 @@ static u64 sched_clock_local(struct sched_clock_data *scd)
 again:
 	now = sched_clock();
 	delta = now - scd->tick_raw;
+
 	if (unlikely(delta < 0))
+	{
 		delta = 0;
+	}
 
 	old_clock = scd->clock;
 
@@ -224,7 +241,9 @@ again:
 	clock = wrap_min(clock, max_clock);
 
 	if (cmpxchg64(&scd->clock, old_clock, clock) != old_clock)
+	{
 		goto again;
+	}
 
 	return clock;
 }
@@ -272,11 +291,14 @@ again:
 	 * larger time as the latest time for both
 	 * runqueues. (this creates monotonic movement)
 	 */
-	if (likely((s64)(remote_clock - this_clock) < 0)) {
+	if (likely((s64)(remote_clock - this_clock) < 0))
+	{
 		ptr = &scd->clock;
 		old_val = remote_clock;
 		val = this_clock;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Should be rare, but possible:
 		 */
@@ -286,7 +308,9 @@ again:
 	}
 
 	if (cmpxchg64(ptr, old_val, val) != old_val)
+	{
 		goto again;
+	}
 
 	return val;
 }
@@ -302,18 +326,27 @@ u64 sched_clock_cpu(int cpu)
 	u64 clock;
 
 	if (sched_clock_stable())
+	{
 		return sched_clock();
+	}
 
 	if (unlikely(!sched_clock_running))
+	{
 		return 0ull;
+	}
 
 	preempt_disable_notrace();
 	scd = cpu_sdc(cpu);
 
 	if (cpu != smp_processor_id())
+	{
 		clock = sched_clock_remote(scd);
+	}
 	else
+	{
 		clock = sched_clock_local(scd);
+	}
+
 	preempt_enable_notrace();
 
 	return clock;
@@ -326,10 +359,14 @@ void sched_clock_tick(void)
 	u64 now, now_gtod;
 
 	if (sched_clock_stable())
+	{
 		return;
+	}
 
 	if (unlikely(!sched_clock_running))
+	{
 		return;
+	}
 
 	WARN_ON_ONCE(!irqs_disabled());
 
@@ -357,7 +394,9 @@ EXPORT_SYMBOL_GPL(sched_clock_idle_sleep_event);
 void sched_clock_idle_wakeup_event(u64 delta_ns)
 {
 	if (timekeeping_suspended)
+	{
 		return;
+	}
 
 	sched_clock_tick();
 	touch_softlockup_watchdog_sched();
@@ -374,7 +413,9 @@ void sched_clock_init(void)
 u64 sched_clock_cpu(int cpu)
 {
 	if (unlikely(!sched_clock_running))
+	{
 		return 0;
+	}
 
 	return sched_clock();
 }

@@ -25,14 +25,15 @@
  *	as for sda_is_open_drain apply.
  * @scl_is_output_only: SCL output drivers cannot be turned off.
  */
-struct i2c_gpio_platform_data {
+struct i2c_gpio_platform_data
+{
 	unsigned int	sda_pin;
 	unsigned int	scl_pin;
 	int		udelay;
 	int		timeout;
-	unsigned int	sda_is_open_drain:1;
-	unsigned int	scl_is_open_drain:1;
-	unsigned int	scl_is_output_only:1;
+	unsigned int	sda_is_open_drain: 1;
+	unsigned int	scl_is_open_drain: 1;
+	unsigned int	scl_is_output_only: 1;
 };
 
 #endif /* _LINUX_I2C_GPIO_H */

@@ -93,8 +93,8 @@
 
 /* Test a valid handle address to determine the type */
 #define TYPE_IS(hn, h)		((h) >= GRU_##hn##_BASE && (h) <	\
-		GRU_##hn##_BASE + GRU_NUM_##hn * GRU_HANDLE_STRIDE &&   \
-		(((h) & (GRU_HANDLE_STRIDE - 1)) == 0))
+							 GRU_##hn##_BASE + GRU_NUM_##hn * GRU_HANDLE_STRIDE &&   \
+							 (((h) & (GRU_HANDLE_STRIDE - 1)) == 0))
 
 
 /* General addressing macros. */
@@ -106,55 +106,55 @@ static inline void *get_gseg_base_address(void *base, int ctxnum)
 static inline void *get_gseg_base_address_cb(void *base, int ctxnum, int line)
 {
 	return (void *)(get_gseg_base_address(base, ctxnum) +
-			GRU_CB_BASE + GRU_HANDLE_STRIDE * line);
+					GRU_CB_BASE + GRU_HANDLE_STRIDE * line);
 }
 
 static inline void *get_gseg_base_address_ds(void *base, int ctxnum, int line)
 {
 	return (void *)(get_gseg_base_address(base, ctxnum) + GRU_DS_BASE +
-			GRU_CACHE_LINE_BYTES * line);
+					GRU_CACHE_LINE_BYTES * line);
 }
 
 static inline struct gru_tlb_fault_map *get_tfm(void *base, int ctxnum)
 {
 	return (struct gru_tlb_fault_map *)(base + GRU_TFM_BASE +
-					ctxnum * GRU_HANDLE_STRIDE);
+										ctxnum * GRU_HANDLE_STRIDE);
 }
 
 static inline struct gru_tlb_global_handle *get_tgh(void *base, int ctxnum)
 {
 	return (struct gru_tlb_global_handle *)(base + GRU_TGH_BASE +
-					ctxnum * GRU_HANDLE_STRIDE);
+											ctxnum * GRU_HANDLE_STRIDE);
 }
 
 static inline struct gru_control_block_extended *get_cbe(void *base, int ctxnum)
 {
 	return (struct gru_control_block_extended *)(base + GRU_CBE_BASE +
-					ctxnum * GRU_HANDLE_STRIDE);
+			ctxnum * GRU_HANDLE_STRIDE);
 }
 
 static inline struct gru_tlb_fault_handle *get_tfh(void *base, int ctxnum)
 {
 	return (struct gru_tlb_fault_handle *)(base + GRU_TFH_BASE +
-					ctxnum * GRU_HANDLE_STRIDE);
+										   ctxnum * GRU_HANDLE_STRIDE);
 }
 
 static inline struct gru_context_configuration_handle *get_cch(void *base,
-					int ctxnum)
+		int ctxnum)
 {
 	return (struct gru_context_configuration_handle *)(base +
-				GRU_CCH_BASE + ctxnum * GRU_HANDLE_STRIDE);
+			GRU_CCH_BASE + ctxnum * GRU_HANDLE_STRIDE);
 }
 
 static inline unsigned long get_cb_number(void *cb)
 {
 	return (((unsigned long)cb - GRU_CB_BASE) % GRU_GSEG_PAGESIZE) /
-					GRU_HANDLE_STRIDE;
+		   GRU_HANDLE_STRIDE;
 }
 
 /* byte offset to a specific GRU chiplet. (p=pnode, c=chiplet (0 or 1)*/
 static inline unsigned long gru_chiplet_paddr(unsigned long paddr, int pnode,
-							int chiplet)
+		int chiplet)
 {
 	return paddr + GRU_SIZE * (2 * pnode  + chiplet);
 }
@@ -165,12 +165,12 @@ static inline void *gru_chiplet_vaddr(void *vaddr, int pnode, int chiplet)
 }
 
 static inline struct gru_control_block_extended *gru_tfh_to_cbe(
-					struct gru_tlb_fault_handle *tfh)
+	struct gru_tlb_fault_handle *tfh)
 {
 	unsigned long cbe;
 
 	cbe = (unsigned long)tfh - GRU_TFH_BASE + GRU_CBE_BASE;
-	return (struct gru_control_block_extended*)cbe;
+	return (struct gru_control_block_extended *)cbe;
 }
 
 
@@ -181,7 +181,8 @@ static inline struct gru_control_block_extended *gru_tfh_to_cbe(
  * 	Bitmap of outstanding TLB misses needing interrupt/polling service.
  *
  */
-struct gru_tlb_fault_map {
+struct gru_tlb_fault_map
+{
 	unsigned long fault_bits[BITS_TO_LONGS(GRU_NUM_CBE)];
 	unsigned long fill0[2];
 	unsigned long done_bits[BITS_TO_LONGS(GRU_NUM_CBE)];
@@ -193,58 +194,63 @@ struct gru_tlb_fault_map {
  * 	Used for TLB flushing.
  *
  */
-struct gru_tlb_global_handle {
-	unsigned int cmd:1;		/* DW 0 */
-	unsigned int delresp:1;
-	unsigned int opc:1;
-	unsigned int fill1:5;
+struct gru_tlb_global_handle
+{
+	unsigned int cmd: 1;		/* DW 0 */
+	unsigned int delresp: 1;
+	unsigned int opc: 1;
+	unsigned int fill1: 5;
 
-	unsigned int fill2:8;
+	unsigned int fill2: 8;
 
-	unsigned int status:2;
-	unsigned long fill3:2;
-	unsigned int state:3;
-	unsigned long fill4:1;
+	unsigned int status: 2;
+	unsigned long fill3: 2;
+	unsigned int state: 3;
+	unsigned long fill4: 1;
 
-	unsigned int cause:3;
-	unsigned long fill5:37;
+	unsigned int cause: 3;
+	unsigned long fill5: 37;
 
-	unsigned long vaddr:64;		/* DW 1 */
+	unsigned long vaddr: 64;		/* DW 1 */
 
-	unsigned int asid:24;		/* DW 2 */
-	unsigned int fill6:8;
+	unsigned int asid: 24;		/* DW 2 */
+	unsigned int fill6: 8;
 
-	unsigned int pagesize:5;
-	unsigned int fill7:11;
+	unsigned int pagesize: 5;
+	unsigned int fill7: 11;
 
-	unsigned int global:1;
-	unsigned int fill8:15;
+	unsigned int global: 1;
+	unsigned int fill8: 15;
 
-	unsigned long vaddrmask:39;	/* DW 3 */
-	unsigned int fill9:9;
-	unsigned int n:10;
-	unsigned int fill10:6;
+	unsigned long vaddrmask: 39;	/* DW 3 */
+	unsigned int fill9: 9;
+	unsigned int n: 10;
+	unsigned int fill10: 6;
 
-	unsigned int ctxbitmap:16;	/* DW4 */
+	unsigned int ctxbitmap: 16;	/* DW4 */
 	unsigned long fill11[3];
 };
 
-enum gru_tgh_cmd {
+enum gru_tgh_cmd
+{
 	TGHCMD_START
 };
 
-enum gru_tgh_opc {
+enum gru_tgh_opc
+{
 	TGHOP_TLBNOP,
 	TGHOP_TLBINV
 };
 
-enum gru_tgh_status {
+enum gru_tgh_status
+{
 	TGHSTATUS_IDLE,
 	TGHSTATUS_EXCEPTION,
 	TGHSTATUS_ACTIVE
 };
 
-enum gru_tgh_state {
+enum gru_tgh_state
+{
 	TGHSTATE_IDLE,
 	TGHSTATE_PE_INVAL,
 	TGHSTATE_INTERRUPT_INVAL,
@@ -252,7 +258,8 @@ enum gru_tgh_state {
 	TGHSTATE_RESTART_CTX,
 };
 
-enum gru_tgh_cause {
+enum gru_tgh_cause
+{
 	TGHCAUSE_RR_ECC,
 	TGHCAUSE_TLB_ECC,
 	TGHCAUSE_LRU_ECC,
@@ -268,48 +275,50 @@ enum gru_tgh_cause {
  * 	Used for TLB dropins into the GRU TLB.
  *
  */
-struct gru_tlb_fault_handle {
-	unsigned int cmd:1;		/* DW 0 - low 32*/
-	unsigned int delresp:1;
-	unsigned int fill0:2;
-	unsigned int opc:3;
-	unsigned int fill1:9;
+struct gru_tlb_fault_handle
+{
+	unsigned int cmd: 1;		/* DW 0 - low 32*/
+	unsigned int delresp: 1;
+	unsigned int fill0: 2;
+	unsigned int opc: 3;
+	unsigned int fill1: 9;
 
-	unsigned int status:2;
-	unsigned int fill2:2;
-	unsigned int state:3;
-	unsigned int fill3:1;
+	unsigned int status: 2;
+	unsigned int fill2: 2;
+	unsigned int state: 3;
+	unsigned int fill3: 1;
 
-	unsigned int cause:6;
-	unsigned int cb_int:1;
-	unsigned int fill4:1;
+	unsigned int cause: 6;
+	unsigned int cb_int: 1;
+	unsigned int fill4: 1;
 
-	unsigned int indexway:12;	/* DW 0 - high 32 */
-	unsigned int fill5:4;
+	unsigned int indexway: 12;	/* DW 0 - high 32 */
+	unsigned int fill5: 4;
 
-	unsigned int ctxnum:4;
-	unsigned int fill6:12;
+	unsigned int ctxnum: 4;
+	unsigned int fill6: 12;
 
-	unsigned long missvaddr:64;	/* DW 1 */
+	unsigned long missvaddr: 64;	/* DW 1 */
 
-	unsigned int missasid:24;	/* DW 2 */
-	unsigned int fill7:8;
-	unsigned int fillasid:24;
-	unsigned int dirty:1;
-	unsigned int gaa:2;
-	unsigned long fill8:5;
+	unsigned int missasid: 24;	/* DW 2 */
+	unsigned int fill7: 8;
+	unsigned int fillasid: 24;
+	unsigned int dirty: 1;
+	unsigned int gaa: 2;
+	unsigned long fill8: 5;
 
-	unsigned long pfn:41;		/* DW 3 */
-	unsigned int fill9:7;
-	unsigned int pagesize:5;
-	unsigned int fill10:11;
+	unsigned long pfn: 41;		/* DW 3 */
+	unsigned int fill9: 7;
+	unsigned int pagesize: 5;
+	unsigned int fill10: 11;
 
-	unsigned long fillvaddr:64;	/* DW 4 */
+	unsigned long fillvaddr: 64;	/* DW 4 */
 
 	unsigned long fill11[3];
 };
 
-enum gru_tfh_opc {
+enum gru_tfh_opc
+{
 	TFHOP_NOOP,
 	TFHOP_RESTART,
 	TFHOP_WRITE_ONLY,
@@ -318,13 +327,15 @@ enum gru_tfh_opc {
 	TFHOP_USER_POLLING_MODE = 7,
 };
 
-enum tfh_status {
+enum tfh_status
+{
 	TFHSTATUS_IDLE,
 	TFHSTATUS_EXCEPTION,
 	TFHSTATUS_ACTIVE,
 };
 
-enum tfh_state {
+enum tfh_state
+{
 	TFHSTATE_INACTIVE,
 	TFHSTATE_IDLE,
 	TFHSTATE_MISS_UPM,
@@ -335,7 +346,8 @@ enum tfh_state {
 };
 
 /* TFH cause bits */
-enum tfh_cause {
+enum tfh_cause
+{
 	TFHCAUSE_NONE,
 	TFHCAUSE_TLB_MISS,
 	TFHCAUSE_TLB_MOD,
@@ -361,25 +373,26 @@ enum tfh_cause {
  * 	Used to allocate resources to a GSEG context.
  *
  */
-struct gru_context_configuration_handle {
-	unsigned int cmd:1;			/* DW0 */
-	unsigned int delresp:1;
-	unsigned int opc:3;
-	unsigned int unmap_enable:1;
-	unsigned int req_slice_set_enable:1;
-	unsigned int req_slice:2;
-	unsigned int cb_int_enable:1;
-	unsigned int tlb_int_enable:1;
-	unsigned int tfm_fault_bit_enable:1;
-	unsigned int tlb_int_select:4;
+struct gru_context_configuration_handle
+{
+	unsigned int cmd: 1;			/* DW0 */
+	unsigned int delresp: 1;
+	unsigned int opc: 3;
+	unsigned int unmap_enable: 1;
+	unsigned int req_slice_set_enable: 1;
+	unsigned int req_slice: 2;
+	unsigned int cb_int_enable: 1;
+	unsigned int tlb_int_enable: 1;
+	unsigned int tfm_fault_bit_enable: 1;
+	unsigned int tlb_int_select: 4;
 
-	unsigned int status:2;
-	unsigned int state:2;
-	unsigned int reserved2:4;
+	unsigned int status: 2;
+	unsigned int state: 2;
+	unsigned int reserved2: 4;
 
-	unsigned int cause:4;
-	unsigned int tfm_done_bit_enable:1;
-	unsigned int unused:3;
+	unsigned int cause: 4;
+	unsigned int tfm_done_bit_enable: 1;
+	unsigned int unused: 3;
 
 	unsigned int dsr_allocation_map;
 
@@ -389,7 +402,8 @@ struct gru_context_configuration_handle {
 	unsigned short sizeavail[8];		/* DW 6 - 7 */
 } __attribute__ ((packed));
 
-enum gru_cch_opc {
+enum gru_cch_opc
+{
 	CCHOP_START = 1,
 	CCHOP_ALLOCATE,
 	CCHOP_INTERRUPT,
@@ -397,13 +411,15 @@ enum gru_cch_opc {
 	CCHOP_INTERRUPT_SYNC,
 };
 
-enum gru_cch_status {
+enum gru_cch_status
+{
 	CCHSTATUS_IDLE,
 	CCHSTATUS_EXCEPTION,
 	CCHSTATUS_ACTIVE,
 };
 
-enum gru_cch_state {
+enum gru_cch_state
+{
 	CCHSTATE_INACTIVE,
 	CCHSTATE_MAPPED,
 	CCHSTATE_ACTIVE,
@@ -411,7 +427,8 @@ enum gru_cch_state {
 };
 
 /* CCH Exception cause */
-enum gru_cch_cause {
+enum gru_cch_cause
+{
 	CCHCAUSE_REGION_REGISTER_WRITE_ERROR = 1,
 	CCHCAUSE_ILLEGAL_OPCODE = 2,
 	CCHCAUSE_INVALID_START_REQUEST = 3,
@@ -430,41 +447,42 @@ enum gru_cch_cause {
  * 	Maintains internal GRU state for active CBs.
  *
  */
-struct gru_control_block_extended {
-	unsigned int reserved0:1;	/* DW 0  - low */
-	unsigned int imacpy:3;
-	unsigned int reserved1:4;
-	unsigned int xtypecpy:3;
-	unsigned int iaa0cpy:2;
-	unsigned int iaa1cpy:2;
-	unsigned int reserved2:1;
-	unsigned int opccpy:8;
-	unsigned int exopccpy:8;
+struct gru_control_block_extended
+{
+	unsigned int reserved0: 1;	/* DW 0  - low */
+	unsigned int imacpy: 3;
+	unsigned int reserved1: 4;
+	unsigned int xtypecpy: 3;
+	unsigned int iaa0cpy: 2;
+	unsigned int iaa1cpy: 2;
+	unsigned int reserved2: 1;
+	unsigned int opccpy: 8;
+	unsigned int exopccpy: 8;
 
-	unsigned int idef2cpy:22;	/* DW 0  - high */
-	unsigned int reserved3:10;
+	unsigned int idef2cpy: 22;	/* DW 0  - high */
+	unsigned int reserved3: 10;
 
-	unsigned int idef4cpy:22;	/* DW 1 */
-	unsigned int reserved4:10;
-	unsigned int idef4upd:22;
-	unsigned int reserved5:10;
+	unsigned int idef4cpy: 22;	/* DW 1 */
+	unsigned int reserved4: 10;
+	unsigned int idef4upd: 22;
+	unsigned int reserved5: 10;
 
-	unsigned long idef1upd:64;	/* DW 2 */
+	unsigned long idef1upd: 64;	/* DW 2 */
 
-	unsigned long idef5cpy:64;	/* DW 3 */
+	unsigned long idef5cpy: 64;	/* DW 3 */
 
-	unsigned long idef6cpy:64;	/* DW 4 */
+	unsigned long idef6cpy: 64;	/* DW 4 */
 
-	unsigned long idef3upd:64;	/* DW 5 */
+	unsigned long idef3upd: 64;	/* DW 5 */
 
-	unsigned long idef5upd:64;	/* DW 6 */
+	unsigned long idef5upd: 64;	/* DW 6 */
 
-	unsigned int idef2upd:22;	/* DW 7 */
-	unsigned int reserved6:10;
+	unsigned int idef2upd: 22;	/* DW 7 */
+	unsigned int reserved6: 10;
 
-	unsigned int ecause:20;
-	unsigned int cbrstate:4;
-	unsigned int cbrexecstatus:8;
+	unsigned int ecause: 20;
+	unsigned int cbrstate: 4;
+	unsigned int cbrexecstatus: 8;
 };
 
 /* CBE fields for active BCOPY instructions */
@@ -473,7 +491,8 @@ struct gru_control_block_extended {
 #define cbe_src_cl	idef6cpy
 #define cbe_nelemcur	idef5upd
 
-enum gru_cbr_state {
+enum gru_cbr_state
+{
 	CBRSTATE_INACTIVE,
 	CBRSTATE_IDLE,
 	CBRSTATE_PE_CHECK,
@@ -518,12 +537,12 @@ int cch_interrupt(struct gru_context_configuration_handle *cch);
 int cch_deallocate(struct gru_context_configuration_handle *cch);
 int cch_interrupt_sync(struct gru_context_configuration_handle *cch);
 int tgh_invalidate(struct gru_tlb_global_handle *tgh, unsigned long vaddr,
-	unsigned long vaddrmask, int asid, int pagesize, int global, int n,
-	unsigned short ctxbitmap);
+				   unsigned long vaddrmask, int asid, int pagesize, int global, int n,
+				   unsigned short ctxbitmap);
 int tfh_write_only(struct gru_tlb_fault_handle *tfh, unsigned long paddr,
-	int gaa, unsigned long vaddr, int asid, int dirty, int pagesize);
+				   int gaa, unsigned long vaddr, int asid, int dirty, int pagesize);
 void tfh_write_restart(struct gru_tlb_fault_handle *tfh, unsigned long paddr,
-	int gaa, unsigned long vaddr, int asid, int dirty, int pagesize);
+					   int gaa, unsigned long vaddr, int asid, int dirty, int pagesize);
 void tfh_user_polling_mode(struct gru_tlb_fault_handle *tfh);
 void tfh_exception(struct gru_tlb_fault_handle *tfh);
 

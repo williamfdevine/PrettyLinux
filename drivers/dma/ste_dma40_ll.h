@@ -341,7 +341,8 @@
  * This struct must be 16 bytes aligned, and only contain physical registers
  * since it will be directly accessed by the DMA.
  */
-struct d40_phy_lli {
+struct d40_phy_lli
+{
 	u32 reg_cfg;
 	u32 reg_elt;
 	u32 reg_ptr;
@@ -357,7 +358,8 @@ struct d40_phy_lli {
  * All DMA transfers have a source and a destination.
  */
 
-struct d40_phy_lli_bidir {
+struct d40_phy_lli_bidir
+{
 	struct d40_phy_lli	*src;
 	struct d40_phy_lli	*dst;
 };
@@ -373,7 +375,8 @@ struct d40_phy_lli_bidir {
  * the DMA. Never add any none hw mapped registers to this struct.
  */
 
-struct d40_log_lli {
+struct d40_log_lli
+{
 	u32 lcsp02;
 	u32 lcsp13;
 };
@@ -387,7 +390,8 @@ struct d40_log_lli {
  * You always have a src and a dst when doing DMA transfers.
  */
 
-struct d40_log_lli_bidir {
+struct d40_log_lli_bidir
+{
 	struct d40_log_lli *src;
 	struct d40_log_lli *dst;
 };
@@ -403,7 +407,8 @@ struct d40_log_lli_bidir {
  * This struct maps to LCPA physical memory layout. Must map to
  * the hw.
  */
-struct d40_log_lli_full {
+struct d40_log_lli_full
+{
 	u32 lcsp0;
 	u32 lcsp1;
 	u32 lcsp2;
@@ -416,14 +421,16 @@ struct d40_log_lli_full {
  * @lcsp3: The default configuration for dst.
  * @lcsp1: The default configuration for src.
  */
-struct d40_def_lcsp {
+struct d40_def_lcsp
+{
 	u32 lcsp3;
 	u32 lcsp1;
 };
 
 /* Physical channels */
 
-enum d40_lli_flags {
+enum d40_lli_flags
+{
 	LLI_ADDR_INC	= 1 << 0,
 	LLI_TERM_INT	= 1 << 1,
 	LLI_CYCLIC	= 1 << 2,
@@ -431,40 +438,40 @@ enum d40_lli_flags {
 };
 
 void d40_phy_cfg(struct stedma40_chan_cfg *cfg,
-		 u32 *src_cfg,
-		 u32 *dst_cfg);
+				 u32 *src_cfg,
+				 u32 *dst_cfg);
 
 void d40_log_cfg(struct stedma40_chan_cfg *cfg,
-		 u32 *lcsp1,
-		 u32 *lcsp2);
+				 u32 *lcsp1,
+				 u32 *lcsp2);
 
 int d40_phy_sg_to_lli(struct scatterlist *sg,
-		      int sg_len,
-		      dma_addr_t target,
-		      struct d40_phy_lli *lli,
-		      dma_addr_t lli_phys,
-		      u32 reg_cfg,
-		      struct stedma40_half_channel_info *info,
-		      struct stedma40_half_channel_info *otherinfo,
-		      unsigned long flags);
+					  int sg_len,
+					  dma_addr_t target,
+					  struct d40_phy_lli *lli,
+					  dma_addr_t lli_phys,
+					  u32 reg_cfg,
+					  struct stedma40_half_channel_info *info,
+					  struct stedma40_half_channel_info *otherinfo,
+					  unsigned long flags);
 
 /* Logical channels */
 
 int d40_log_sg_to_lli(struct scatterlist *sg,
-		      int sg_len,
-		      dma_addr_t dev_addr,
-		      struct d40_log_lli *lli_sg,
-		      u32 lcsp13, /* src or dst*/
-		      u32 data_width1, u32 data_width2);
+					  int sg_len,
+					  dma_addr_t dev_addr,
+					  struct d40_log_lli *lli_sg,
+					  u32 lcsp13, /* src or dst*/
+					  u32 data_width1, u32 data_width2);
 
 void d40_log_lli_lcpa_write(struct d40_log_lli_full *lcpa,
-			    struct d40_log_lli *lli_dst,
-			    struct d40_log_lli *lli_src,
-			    int next, unsigned int flags);
+							struct d40_log_lli *lli_dst,
+							struct d40_log_lli *lli_src,
+							int next, unsigned int flags);
 
 void d40_log_lli_lcla_write(struct d40_log_lli *lcla,
-			    struct d40_log_lli *lli_dst,
-			    struct d40_log_lli *lli_src,
-			    int next, unsigned int flags);
+							struct d40_log_lli *lli_dst,
+							struct d40_log_lli *lli_src,
+							int next, unsigned int flags);
 
 #endif /* STE_DMA40_LLI_H */

@@ -47,7 +47,7 @@
 #define EHEA_CAPABILITIES  (DLPAR_PORT_ADD_REM | DLPAR_MEM_ADD | DLPAR_MEM_REM)
 
 #define EHEA_MSG_DEFAULT (NETIF_MSG_LINK | NETIF_MSG_TIMER \
-	| NETIF_MSG_RX_ERR | NETIF_MSG_TX_ERR)
+						  | NETIF_MSG_RX_ERR | NETIF_MSG_TX_ERR)
 
 #define EHEA_MAX_ENTRIES_RQ1 32767
 #define EHEA_MAX_ENTRIES_RQ2 16383
@@ -58,17 +58,17 @@
 #define EHEA_SMALL_QUEUES
 
 #ifdef EHEA_SMALL_QUEUES
-#define EHEA_MAX_CQE_COUNT      1023
-#define EHEA_DEF_ENTRIES_SQ     1023
-#define EHEA_DEF_ENTRIES_RQ1    1023
-#define EHEA_DEF_ENTRIES_RQ2    1023
-#define EHEA_DEF_ENTRIES_RQ3    511
+	#define EHEA_MAX_CQE_COUNT      1023
+	#define EHEA_DEF_ENTRIES_SQ     1023
+	#define EHEA_DEF_ENTRIES_RQ1    1023
+	#define EHEA_DEF_ENTRIES_RQ2    1023
+	#define EHEA_DEF_ENTRIES_RQ3    511
 #else
-#define EHEA_MAX_CQE_COUNT      4080
-#define EHEA_DEF_ENTRIES_SQ     4080
-#define EHEA_DEF_ENTRIES_RQ1    8160
-#define EHEA_DEF_ENTRIES_RQ2    2040
-#define EHEA_DEF_ENTRIES_RQ3    2040
+	#define EHEA_MAX_CQE_COUNT      4080
+	#define EHEA_DEF_ENTRIES_SQ     4080
+	#define EHEA_DEF_ENTRIES_RQ1    8160
+	#define EHEA_DEF_ENTRIES_RQ2    2040
+	#define EHEA_DEF_ENTRIES_RQ3    2040
 #endif
 
 #define EHEA_MAX_ENTRIES_EQ 20
@@ -144,14 +144,16 @@ void ehea_dump(void *adr, int len, char *msg);
 /*
  * Generic ehea page
  */
-struct ehea_page {
+struct ehea_page
+{
 	u8 entries[PAGE_SIZE];
 };
 
 /*
  * Generic queue in linux kernel virtual memory
  */
-struct hw_queue {
+struct hw_queue
+{
 	u64 current_q_offset;		/* current queue entry */
 	struct ehea_page **queue_pages;	/* array of pages belonging to queue */
 	u32 qe_size;			/* queue entry size */
@@ -165,15 +167,18 @@ struct hw_queue {
  * For pSeries this is a 64bit memory address where
  * I/O memory is mapped into CPU address space
  */
-struct h_epa {
+struct h_epa
+{
 	void __iomem *addr;
 };
 
-struct h_epa_user {
+struct h_epa_user
+{
 	u64 addr;
 };
 
-struct h_epas {
+struct h_epas
+{
 	struct h_epa kernel;	/* kernel space accessible resource,
 				   set to 0 if unused */
 	struct h_epa_user user;	/* user space accessible resource
@@ -205,7 +210,8 @@ struct ehea_av;
 /*
  * Queue attributes passed to ehea_create_qp()
  */
-struct ehea_qp_init_attr {
+struct ehea_qp_init_attr
+{
 	/* input parameter */
 	u32 qp_token;           /* queue token */
 	u8 low_lat_rq1;
@@ -251,7 +257,8 @@ struct ehea_qp_init_attr {
 /*
  * Event Queue attributes, passed as parameter
  */
-struct ehea_eq_attr {
+struct ehea_eq_attr
+{
 	u32 type;
 	u32 max_nr_of_eqes;
 	u8 eqe_gen;        /* generate eqe flag */
@@ -268,7 +275,8 @@ struct ehea_eq_attr {
 /*
  * Event Queue
  */
-struct ehea_eq {
+struct ehea_eq
+{
 	struct ehea_adapter *adapter;
 	struct hw_queue hw_queue;
 	u64 fw_handle;
@@ -280,7 +288,8 @@ struct ehea_eq {
 /*
  * HEA Queues
  */
-struct ehea_qp {
+struct ehea_qp
+{
 	struct ehea_adapter *adapter;
 	u64 fw_handle;			/* QP handle for firmware calls */
 	struct hw_queue hw_squeue;
@@ -294,7 +303,8 @@ struct ehea_qp {
 /*
  * Completion Queue attributes
  */
-struct ehea_cq_attr {
+struct ehea_cq_attr
+{
 	/* input parameter */
 	u32 max_nr_of_cqes;
 	u32 cq_token;
@@ -308,7 +318,8 @@ struct ehea_cq_attr {
 /*
  * Completion Queue
  */
-struct ehea_cq {
+struct ehea_cq
+{
 	struct ehea_adapter *adapter;
 	u64 fw_handle;
 	struct hw_queue hw_queue;
@@ -319,7 +330,8 @@ struct ehea_cq {
 /*
  * Memory Region
  */
-struct ehea_mr {
+struct ehea_mr
+{
 	struct ehea_adapter *adapter;
 	u64 handle;
 	u64 vaddr;
@@ -329,7 +341,8 @@ struct ehea_mr {
 /*
  * Port state information
  */
-struct port_stats {
+struct port_stats
+{
 	int poll_receive_errors;
 	int queue_stopped;
 	int err_tcp_cksum;
@@ -342,7 +355,8 @@ struct port_stats {
 /*
  * Queue SKB Array
  */
-struct ehea_q_skb_arr {
+struct ehea_q_skb_arr
+{
 	struct sk_buff **arr;		/* skb array for queue */
 	int len;                	/* array length */
 	int index;			/* array index */
@@ -352,7 +366,8 @@ struct ehea_q_skb_arr {
 /*
  * Port resources
  */
-struct ehea_port_res {
+struct ehea_port_res
+{
 	struct napi_struct napi;
 	struct port_stats p_stats;
 	struct ehea_mr send_mr;       	/* send memory region */
@@ -389,7 +404,8 @@ struct ehea_port_res {
 #define EHEA_NUM_PORT_FW_HANDLES       1  /* EQ handle */
 #define EHEA_NUM_ADAPTER_FW_HANDLES    2  /* MR handle, NEQ handle */
 
-struct ehea_adapter {
+struct ehea_adapter
+{
 	u64 handle;
 	struct platform_device *ofdev;
 	struct ehea_port *port[EHEA_MAX_PORTS];
@@ -403,31 +419,36 @@ struct ehea_adapter {
 };
 
 
-struct ehea_mc_list {
+struct ehea_mc_list
+{
 	struct list_head list;
 	u64 macaddr;
 };
 
 /* kdump support */
-struct ehea_fw_handle_entry {
+struct ehea_fw_handle_entry
+{
 	u64 adh;               /* Adapter Handle */
 	u64 fwh;               /* Firmware Handle */
 };
 
-struct ehea_fw_handle_array {
+struct ehea_fw_handle_array
+{
 	struct ehea_fw_handle_entry *arr;
 	int num_entries;
 	struct mutex lock;
 };
 
-struct ehea_bcmc_reg_entry {
+struct ehea_bcmc_reg_entry
+{
 	u64 adh;               /* Adapter Handle */
 	u32 port_id;           /* Logical Port Id */
 	u8 reg_type;           /* Registration Type */
 	u64 macaddr;
 };
 
-struct ehea_bcmc_reg_array {
+struct ehea_bcmc_reg_array
+{
 	struct ehea_bcmc_reg_entry *arr;
 	int num_entries;
 	spinlock_t lock;
@@ -438,7 +459,8 @@ struct ehea_bcmc_reg_array {
 #define EHEA_PHY_LINK_UP 1
 #define EHEA_PHY_LINK_DOWN 0
 #define EHEA_MAX_PORT_RES 16
-struct ehea_port {
+struct ehea_port
+{
 	struct ehea_adapter *adapter;	 /* adapter that owns this port */
 	struct net_device *netdev;
 	struct rtnl_link_stats64 stats;
@@ -469,7 +491,8 @@ struct ehea_port {
 	wait_queue_head_t restart_wq;
 };
 
-struct port_res_cfg {
+struct port_res_cfg
+{
 	int max_entries_rcq;
 	int max_entries_scq;
 	int max_entries_sq;
@@ -478,7 +501,8 @@ struct port_res_cfg {
 	int max_entries_rq3;
 };
 
-enum ehea_flag_bits {
+enum ehea_flag_bits
+{
 	__EHEA_STOP_XFER,
 	__EHEA_DISABLE_PORT_RESET
 };

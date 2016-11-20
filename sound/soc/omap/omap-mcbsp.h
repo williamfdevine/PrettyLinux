@@ -26,7 +26,8 @@
 #define __OMAP_I2S_H__
 
 /* Source clocks for McBSP sample rate generator */
-enum omap_mcbsp_clksrg_clk {
+enum omap_mcbsp_clksrg_clk
+{
 	OMAP_MCBSP_SYSCLK_CLKS_FCLK,	/* Internal FCLK */
 	OMAP_MCBSP_SYSCLK_CLKS_EXT,	/* External CLKS pin */
 	OMAP_MCBSP_SYSCLK_CLK,		/* Internal ICLK */
@@ -35,7 +36,8 @@ enum omap_mcbsp_clksrg_clk {
 };
 
 /* McBSP dividers */
-enum omap_mcbsp_div {
+enum omap_mcbsp_div
+{
 	OMAP_MCBSP_CLKGDV,		/* Sample rate generator divider */
 };
 

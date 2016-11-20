@@ -52,7 +52,8 @@ ACPI_MODULE_NAME("utpredef")
  * Names for the types that can be returned by the predefined objects.
  * Used for warning messages. Must be in the same order as the ACPI_RTYPEs
  */
-static const char *ut_rtype_names[] = {
+static const char *ut_rtype_names[] =
+{
 	"/Integer",
 	"/String",
 	"/Buffer",
@@ -75,8 +76,8 @@ static const char *ut_rtype_names[] = {
  ******************************************************************************/
 
 const union acpi_predefined_info *acpi_ut_get_next_predefined_method(const union
-								     acpi_predefined_info
-								     *this_name)
+			acpi_predefined_info
+			*this_name)
 {
 
 	/*
@@ -84,7 +85,8 @@ const union acpi_predefined_info *acpi_ut_get_next_predefined_method(const union
 	 * (next entry contains the package info)
 	 */
 	if ((this_name->info.expected_btypes & ACPI_RTYPE_PACKAGE) &&
-	    (this_name->info.expected_btypes != ACPI_RTYPE_ALL)) {
+		(this_name->info.expected_btypes != ACPI_RTYPE_ALL))
+	{
 		this_name++;
 	}
 
@@ -110,15 +112,19 @@ const union acpi_predefined_info *acpi_ut_match_predefined_method(char *name)
 
 	/* Quick check for a predefined name, first character must be underscore */
 
-	if (name[0] != '_') {
+	if (name[0] != '_')
+	{
 		return (NULL);
 	}
 
 	/* Search info table for a predefined method/object name */
 
 	this_name = acpi_gbl_predefined_methods;
-	while (this_name->info.name[0]) {
-		if (ACPI_COMPARE_NAME(name, this_name->info.name)) {
+
+	while (this_name->info.name[0])
+	{
+		if (ACPI_COMPARE_NAME(name, this_name->info.name))
+		{
 			return (this_name);
 		}
 
@@ -147,7 +153,8 @@ void acpi_ut_get_expected_return_types(char *buffer, u32 expected_btypes)
 	u32 i;
 	u32 j;
 
-	if (!expected_btypes) {
+	if (!expected_btypes)
+	{
 		strcpy(buffer, "NONE");
 		return;
 	}
@@ -156,11 +163,13 @@ void acpi_ut_get_expected_return_types(char *buffer, u32 expected_btypes)
 	buffer[0] = 0;
 	this_rtype = ACPI_RTYPE_INTEGER;
 
-	for (i = 0; i < ACPI_NUM_RTYPES; i++) {
+	for (i = 0; i < ACPI_NUM_RTYPES; i++)
+	{
 
 		/* If one of the expected types, concatenate the name of this type */
 
-		if (expected_btypes & this_rtype) {
+		if (expected_btypes & this_rtype)
+		{
 			strcat(buffer, &ut_rtype_names[i][j]);
 			j = 0;	/* Use name separator from now on */
 		}
@@ -194,7 +203,8 @@ static const char *ut_external_type_names[] =	/* Indexed by ACPI_TYPE_* */
 
 /* Bit widths for resource descriptor predefined names */
 
-static const char *ut_resource_type_names[] = {
+static const char *ut_resource_type_names[] =
+{
 	"/1",
 	"/2",
 	"/3",
@@ -227,15 +237,19 @@ const union acpi_predefined_info *acpi_ut_match_resource_name(char *name)
 	 * Quick check for a predefined name, first character must
 	 * be underscore
 	 */
-	if (name[0] != '_') {
+	if (name[0] != '_')
+	{
 		return (NULL);
 	}
 
 	/* Search info table for a predefined method/object name */
 
 	this_name = acpi_gbl_resource_names;
-	while (this_name->info.name[0]) {
-		if (ACPI_COMPARE_NAME(name, this_name->info.name)) {
+
+	while (this_name->info.name[0])
+	{
+		if (ACPI_COMPARE_NAME(name, this_name->info.name))
+		{
 			return (this_name);
 		}
 
@@ -263,8 +277,8 @@ const union acpi_predefined_info *acpi_ut_match_resource_name(char *name)
 
 void
 acpi_ut_display_predefined_method(char *buffer,
-				  const union acpi_predefined_info *this_name,
-				  u8 multi_line)
+								  const union acpi_predefined_info *this_name,
+								  u8 multi_line)
 {
 	u32 arg_count;
 
@@ -273,35 +287,41 @@ acpi_ut_display_predefined_method(char *buffer,
 	 * containing all argument types
 	 */
 	arg_count = acpi_ut_get_argument_types(buffer,
-					       this_name->info.argument_list);
+										   this_name->info.argument_list);
 
-	if (multi_line) {
+	if (multi_line)
+	{
 		printf("      ");
 	}
 
 	printf("%4.4s    Requires %s%u argument%s",
-	       this_name->info.name,
-	       (this_name->info.argument_list & ARG_COUNT_IS_MINIMUM) ?
-	       "(at least) " : "", arg_count, arg_count != 1 ? "s" : "");
+		   this_name->info.name,
+		   (this_name->info.argument_list & ARG_COUNT_IS_MINIMUM) ?
+		   "(at least) " : "", arg_count, arg_count != 1 ? "s" : "");
 
 	/* Display the types for any arguments */
 
-	if (arg_count > 0) {
+	if (arg_count > 0)
+	{
 		printf(" (%s)", buffer);
 	}
 
-	if (multi_line) {
+	if (multi_line)
+	{
 		printf("\n    ");
 	}
 
 	/* Get the return value type(s) allowed */
 
-	if (this_name->info.expected_btypes) {
+	if (this_name->info.expected_btypes)
+	{
 		acpi_ut_get_expected_return_types(buffer,
-						  this_name->info.
-						  expected_btypes);
+										  this_name->info.
+										  expected_btypes);
 		printf("  Return value types: %s\n", buffer);
-	} else {
+	}
+	else
+	{
 		printf("  No return value\n");
 	}
 }
@@ -334,27 +354,31 @@ static u32 acpi_ut_get_argument_types(char *buffer, u16 argument_types)
 	/* First field in the types list is the count of args to follow */
 
 	arg_count = METHOD_GET_ARG_COUNT(argument_types);
-	if (arg_count > METHOD_PREDEF_ARGS_MAX) {
+
+	if (arg_count > METHOD_PREDEF_ARGS_MAX)
+	{
 		printf("**** Invalid argument count (%u) "
-		       "in predefined info structure\n", arg_count);
+			   "in predefined info structure\n", arg_count);
 		return (arg_count);
 	}
 
 	/* Get each argument from the list, convert to ascii, store to buffer */
 
-	for (i = 0; i < arg_count; i++) {
+	for (i = 0; i < arg_count; i++)
+	{
 		this_argument_type = METHOD_GET_NEXT_TYPE(argument_types);
 
 		if (!this_argument_type
-		    || (this_argument_type > METHOD_MAX_ARG_TYPE)) {
+			|| (this_argument_type > METHOD_MAX_ARG_TYPE))
+		{
 			printf("**** Invalid argument type (%u) "
-			       "in predefined info structure\n",
-			       this_argument_type);
+				   "in predefined info structure\n",
+				   this_argument_type);
 			return (arg_count);
 		}
 
 		strcat(buffer,
-		       ut_external_type_names[this_argument_type] + sub_index);
+			   ut_external_type_names[this_argument_type] + sub_index);
 		sub_index = 0;
 	}
 
@@ -384,8 +408,10 @@ u32 acpi_ut_get_resource_bit_width(char *buffer, u16 types)
 	sub_index = 1;
 	found = 0;
 
-	for (i = 0; i < NUM_RESOURCE_WIDTHS; i++) {
-		if (types & 1) {
+	for (i = 0; i < NUM_RESOURCE_WIDTHS; i++)
+	{
+		if (types & 1)
+		{
 			strcat(buffer, &(ut_resource_type_names[i][sub_index]));
 			sub_index = 0;
 			found++;

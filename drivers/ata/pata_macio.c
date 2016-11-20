@@ -47,7 +47,8 @@
 #define DRV_VERSION	"0.9"
 
 /* Models of macio ATA controller */
-enum {
+enum
+{
 	controller_ohare,	/* OHare based */
 	controller_heathrow,	/* Heathrow/Paddington */
 	controller_kl_ata3,	/* KeyLargo ATA-3 */
@@ -57,7 +58,8 @@ enum {
 	controller_sh_ata6,	/* Shasta ATA-6 */
 };
 
-static const char* macio_ata_names[] = {
+static const char *macio_ata_names[] =
+{
 	"OHare ATA",		/* OHare based */
 	"Heathrow ATA",		/* Heathrow/Paddington */
 	"KeyLargo ATA-3",	/* KeyLargo ATA-3 (MDMA only) */
@@ -223,7 +225,8 @@ static const char* macio_ata_names[] = {
 
 struct pata_macio_timing;
 
-struct pata_macio_priv {
+struct pata_macio_priv
+{
 	int				kind;
 	int				aapl_bus_id;
 	int				mediabay : 1;
@@ -235,7 +238,7 @@ struct pata_macio_priv {
 	u32				treg[2][2];
 	void __iomem			*tfregs;
 	void __iomem			*kauai_fcr;
-	struct dbdma_cmd *		dma_table_cpu;
+	struct dbdma_cmd 		*dma_table_cpu;
 	dma_addr_t			dma_table_dma;
 	struct ata_host			*host;
 	const struct pata_macio_timing	*timings;
@@ -255,13 +258,15 @@ struct pata_macio_priv {
  * to calculate / snoop timing values for something else than the
  * standard modes.
  */
-struct pata_macio_timing {
+struct pata_macio_timing
+{
 	int	mode;
 	u32	reg1;	/* Bits to set in first timing reg */
 	u32	reg2;	/* Bits to set in second timing reg */
 };
 
-static const struct pata_macio_timing pata_macio_ohare_timings[] = {
+static const struct pata_macio_timing pata_macio_ohare_timings[] =
+{
 	{ XFER_PIO_0,		0x00000526,	0, },
 	{ XFER_PIO_1,		0x00000085,	0, },
 	{ XFER_PIO_2,		0x00000025,	0, },
@@ -273,7 +278,8 @@ static const struct pata_macio_timing pata_macio_ohare_timings[] = {
 	{ -1, 0, 0 }
 };
 
-static const struct pata_macio_timing pata_macio_heathrow_timings[] = {
+static const struct pata_macio_timing pata_macio_heathrow_timings[] =
+{
 	{ XFER_PIO_0,		0x00000526,	0, },
 	{ XFER_PIO_1,		0x00000085,	0, },
 	{ XFER_PIO_2,		0x00000025,	0, },
@@ -285,7 +291,8 @@ static const struct pata_macio_timing pata_macio_heathrow_timings[] = {
 	{ -1, 0, 0 }
 };
 
-static const struct pata_macio_timing pata_macio_kl33_timings[] = {
+static const struct pata_macio_timing pata_macio_kl33_timings[] =
+{
 	{ XFER_PIO_0,		0x00000526,	0, },
 	{ XFER_PIO_1,		0x00000085,	0, },
 	{ XFER_PIO_2,		0x00000025,	0, },
@@ -297,7 +304,8 @@ static const struct pata_macio_timing pata_macio_kl33_timings[] = {
 	{ -1, 0, 0 }
 };
 
-static const struct pata_macio_timing pata_macio_kl66_timings[] = {
+static const struct pata_macio_timing pata_macio_kl66_timings[] =
+{
 	{ XFER_PIO_0,		0x0000038c,	0, },
 	{ XFER_PIO_1,		0x0000020a,	0, },
 	{ XFER_PIO_2,		0x00000127,	0, },
@@ -314,7 +322,8 @@ static const struct pata_macio_timing pata_macio_kl66_timings[] = {
 	{ -1, 0, 0 }
 };
 
-static const struct pata_macio_timing pata_macio_kauai_timings[] = {
+static const struct pata_macio_timing pata_macio_kauai_timings[] =
+{
 	{ XFER_PIO_0,		0x08000a92,	0, },
 	{ XFER_PIO_1,		0x0800060f,	0, },
 	{ XFER_PIO_2,		0x0800038b,	0, },
@@ -332,7 +341,8 @@ static const struct pata_macio_timing pata_macio_kauai_timings[] = {
 	{ -1, 0, 0 }
 };
 
-static const struct pata_macio_timing pata_macio_shasta_timings[] = {
+static const struct pata_macio_timing pata_macio_shasta_timings[] =
+{
 	{ XFER_PIO_0,		0x0a000c97,	0, },
 	{ XFER_PIO_1,		0x07000712,	0, },
 	{ XFER_PIO_2,		0x040003cd,	0, },
@@ -352,15 +362,19 @@ static const struct pata_macio_timing pata_macio_shasta_timings[] = {
 };
 
 static const struct pata_macio_timing *pata_macio_find_timing(
-					    struct pata_macio_priv *priv,
-					    int mode)
+	struct pata_macio_priv *priv,
+	int mode)
 {
 	int i;
 
-	for (i = 0; priv->timings[i].mode > 0; i++) {
+	for (i = 0; priv->timings[i].mode > 0; i++)
+	{
 		if (priv->timings[i].mode == mode)
+		{
 			return &priv->timings[i];
+		}
 	}
+
 	return NULL;
 }
 
@@ -371,12 +385,16 @@ static void pata_macio_apply_timings(struct ata_port *ap, unsigned int device)
 	void __iomem *rbase = ap->ioaddr.cmd_addr;
 
 	if (priv->kind == controller_sh_ata6 ||
-	    priv->kind == controller_un_ata6 ||
-	    priv->kind == controller_k2_ata6) {
+		priv->kind == controller_un_ata6 ||
+		priv->kind == controller_k2_ata6)
+	{
 		writel(priv->treg[device][0], rbase + IDE_KAUAI_PIO_CONFIG);
 		writel(priv->treg[device][1], rbase + IDE_KAUAI_ULTRA_CONFIG);
-	} else
+	}
+	else
+	{
 		writel(priv->treg[device][0], rbase + IDE_TIMING_CONFIG);
+	}
 }
 
 static void pata_macio_dev_select(struct ata_port *ap, unsigned int device)
@@ -388,28 +406,31 @@ static void pata_macio_dev_select(struct ata_port *ap, unsigned int device)
 }
 
 static void pata_macio_set_timings(struct ata_port *ap,
-				   struct ata_device *adev)
+								   struct ata_device *adev)
 {
 	struct pata_macio_priv *priv = ap->private_data;
 	const struct pata_macio_timing *t;
 
 	dev_dbg(priv->dev, "Set timings: DEV=%d,PIO=0x%x (%s),DMA=0x%x (%s)\n",
-		adev->devno,
-		adev->pio_mode,
-		ata_mode_string(ata_xfer_mode2mask(adev->pio_mode)),
-		adev->dma_mode,
-		ata_mode_string(ata_xfer_mode2mask(adev->dma_mode)));
+			adev->devno,
+			adev->pio_mode,
+			ata_mode_string(ata_xfer_mode2mask(adev->pio_mode)),
+			adev->dma_mode,
+			ata_mode_string(ata_xfer_mode2mask(adev->dma_mode)));
 
 	/* First clear timings */
 	priv->treg[adev->devno][0] = priv->treg[adev->devno][1] = 0;
 
 	/* Now get the PIO timings */
 	t = pata_macio_find_timing(priv, adev->pio_mode);
-	if (t == NULL) {
+
+	if (t == NULL)
+	{
 		dev_warn(priv->dev, "Invalid PIO timing requested: 0x%x\n",
-			 adev->pio_mode);
+				 adev->pio_mode);
 		t = pata_macio_find_timing(priv, XFER_PIO_0);
 	}
+
 	BUG_ON(t == NULL);
 
 	/* PIO timings only ever use the first treg */
@@ -417,10 +438,13 @@ static void pata_macio_set_timings(struct ata_port *ap,
 
 	/* Now get DMA timings */
 	t = pata_macio_find_timing(priv, adev->dma_mode);
-	if (t == NULL || (t->reg1 == 0 && t->reg2 == 0)) {
+
+	if (t == NULL || (t->reg1 == 0 && t->reg2 == 0))
+	{
 		dev_dbg(priv->dev, "DMA timing not set yet, using MW_DMA_0\n");
 		t = pata_macio_find_timing(priv, XFER_MW_DMA_0);
 	}
+
 	BUG_ON(t == NULL);
 
 	/* DMA timings can use both tregs */
@@ -428,8 +452,8 @@ static void pata_macio_set_timings(struct ata_port *ap,
 	priv->treg[adev->devno][1] |= t->reg2;
 
 	dev_dbg(priv->dev, " -> %08x %08x\n",
-		priv->treg[adev->devno][0],
-		priv->treg[adev->devno][1]);
+			priv->treg[adev->devno][0],
+			priv->treg[adev->devno][1]);
 
 	/* Apply to hardware */
 	pata_macio_apply_timings(ap, adev->devno);
@@ -443,28 +467,34 @@ static void pata_macio_default_timings(struct pata_macio_priv *priv)
 {
 	unsigned int value, value2 = 0;
 
-	switch(priv->kind) {
+	switch (priv->kind)
+	{
 		case controller_sh_ata6:
 			value = 0x0a820c97;
 			value2 = 0x00033031;
 			break;
+
 		case controller_un_ata6:
 		case controller_k2_ata6:
 			value = 0x08618a92;
 			value2 = 0x00002921;
 			break;
+
 		case controller_kl_ata4:
 			value = 0x0008438c;
 			break;
+
 		case controller_kl_ata3:
 			value = 0x00084526;
 			break;
+
 		case controller_heathrow:
 		case controller_ohare:
 		default:
 			value = 0x00074526;
 			break;
 	}
+
 	priv->treg[0][0] = priv->treg[1][0] = value;
 	priv->treg[0][1] = priv->treg[1][1] = value2;
 }
@@ -475,23 +505,29 @@ static int pata_macio_cable_detect(struct ata_port *ap)
 
 	/* Get cable type from device-tree */
 	if (priv->kind == controller_kl_ata4 ||
-	    priv->kind == controller_un_ata6 ||
-	    priv->kind == controller_k2_ata6 ||
-	    priv->kind == controller_sh_ata6) {
-		const char* cable = of_get_property(priv->node, "cable-type",
-						    NULL);
+		priv->kind == controller_un_ata6 ||
+		priv->kind == controller_k2_ata6 ||
+		priv->kind == controller_sh_ata6)
+	{
+		const char *cable = of_get_property(priv->node, "cable-type",
+											NULL);
 		struct device_node *root = of_find_node_by_path("/");
 		const char *model = of_get_property(root, "model", NULL);
 
-		if (cable && !strncmp(cable, "80-", 3)) {
+		if (cable && !strncmp(cable, "80-", 3))
+		{
 			/* Some drives fail to detect 80c cable in PowerBook
 			 * These machine use proprietary short IDE cable
 			 * anyway
 			 */
 			if (!strncmp(model, "PowerBook", 9))
+			{
 				return ATA_CBL_PATA40_SHORT;
+			}
 			else
+			{
 				return ATA_CBL_PATA80;
+			}
 		}
 	}
 
@@ -500,8 +536,10 @@ static int pata_macio_cable_detect(struct ata_port *ap)
 	 * be always the case unless the user mucked around
 	 */
 	if (of_device_is_compatible(priv->node, "K2-UATA") ||
-	    of_device_is_compatible(priv->node, "shasta-ata"))
+		of_device_is_compatible(priv->node, "shasta-ata"))
+	{
 		return ATA_CBL_PATA80;
+	}
 
 	/* Anything else is 40 connectors */
 	return ATA_CBL_PATA40;
@@ -517,15 +555,18 @@ static void pata_macio_qc_prep(struct ata_queued_cmd *qc)
 	unsigned int si, pi;
 
 	dev_dbgdma(priv->dev, "%s: qc %p flags %lx, write %d dev %d\n",
-		   __func__, qc, qc->flags, write, qc->dev->devno);
+			   __func__, qc, qc->flags, write, qc->dev->devno);
 
 	if (!(qc->flags & ATA_QCFLAG_DMAMAP))
+	{
 		return;
+	}
 
 	table = (struct dbdma_cmd *) priv->dma_table_cpu;
 
 	pi = 0;
-	for_each_sg(qc->sg, sg, qc->n_elem, si) {
+	for_each_sg(qc->sg, sg, qc->n_elem, si)
+	{
 		u32 addr, sg_len, len;
 
 		/* determine if physical DMA addr spans 64K boundary.
@@ -535,12 +576,13 @@ static void pata_macio_qc_prep(struct ata_queued_cmd *qc)
 		addr = (u32) sg_dma_address(sg);
 		sg_len = sg_dma_len(sg);
 
-		while (sg_len) {
+		while (sg_len)
+		{
 			/* table overflow should never happen */
 			BUG_ON (pi++ >= MAX_DCMDS);
 
 			len = (sg_len < MAX_DBDMA_SEG) ? sg_len : MAX_DBDMA_SEG;
-			table->command = cpu_to_le16(write ? OUTPUT_MORE: INPUT_MORE);
+			table->command = cpu_to_le16(write ? OUTPUT_MORE : INPUT_MORE);
 			table->req_count = cpu_to_le16(len);
 			table->phy_addr = cpu_to_le32(addr);
 			table->cmd_dep = 0;
@@ -557,7 +599,7 @@ static void pata_macio_qc_prep(struct ata_queued_cmd *qc)
 
 	/* Convert the last command to an input/output */
 	table--;
-	table->command = cpu_to_le16(write ? OUTPUT_LAST: INPUT_LAST);
+	table->command = cpu_to_le16(write ? OUTPUT_LAST : INPUT_LAST);
 	table++;
 
 	/* Add the stop command to the end of the list */
@@ -572,13 +614,17 @@ static void pata_macio_freeze(struct ata_port *ap)
 {
 	struct dbdma_regs __iomem *dma_regs = ap->ioaddr.bmdma_addr;
 
-	if (dma_regs) {
+	if (dma_regs)
+	{
 		unsigned int timeout = 1000000;
 
 		/* Make sure DMA controller is stopped */
-		writel((RUN|PAUSE|FLUSH|WAKE|DEAD) << 16, &dma_regs->control);
+		writel((RUN | PAUSE | FLUSH | WAKE | DEAD) << 16, &dma_regs->control);
+
 		while (--timeout && (readl(&dma_regs->status) & RUN))
+		{
 			udelay(1);
+		}
 	}
 
 	ata_sff_freeze(ap);
@@ -601,12 +647,16 @@ static void pata_macio_bmdma_setup(struct ata_queued_cmd *qc)
 	 * UDMA reads
 	 */
 	if (priv->kind == controller_kl_ata4 &&
-	    (priv->treg[dev][0] & TR_66_UDMA_EN)) {
+		(priv->treg[dev][0] & TR_66_UDMA_EN))
+	{
 		void __iomem *rbase = ap->ioaddr.cmd_addr;
 		u32 reg = priv->treg[dev][0];
 
 		if (!(qc->tf.flags & ATA_TFLAG_WRITE))
+		{
 			reg += 0x00800000;
+		}
+
 		writel(reg, rbase + IDE_TIMING_CONFIG);
 	}
 
@@ -637,9 +687,12 @@ static void pata_macio_bmdma_stop(struct ata_queued_cmd *qc)
 	dev_dbgdma(priv->dev, "%s: qc %p\n", __func__, qc);
 
 	/* Stop the DMA engine and wait for it to full halt */
-	writel (((RUN|WAKE|DEAD) << 16), &dma_regs->control);
+	writel (((RUN | WAKE | DEAD) << 16), &dma_regs->control);
+
 	while (--timeout && (readl(&dma_regs->status) & RUN))
+	{
 		udelay(1);
+	}
 }
 
 static u8 pata_macio_bmdma_status(struct ata_port *ap)
@@ -666,15 +719,19 @@ static u8 pata_macio_bmdma_status(struct ata_port *ap)
 	 */
 
 	/* First check for errors */
-	if ((dstat & (RUN|DEAD)) != RUN)
+	if ((dstat & (RUN | DEAD)) != RUN)
+	{
 		rstat |= ATA_DMA_ERR;
+	}
 
 	/* If ACTIVE is cleared, the STOP command has been hit and
 	 * the transfer is complete. If not, we have to flush the
 	 * channel.
 	 */
 	if ((dstat & ACTIVE) == 0)
+	{
 		return rstat;
+	}
 
 	dev_dbgdma(priv->dev, "%s: DMA still active, flushing...\n", __func__);
 
@@ -686,17 +743,25 @@ static u8 pata_macio_bmdma_status(struct ata_port *ap)
 	 */
 	udelay(1);
 	writel((FLUSH << 16) | FLUSH, &dma_regs->control);
-	for (;;) {
+
+	for (;;)
+	{
 		udelay(1);
 		dstat = readl(&dma_regs->status);
+
 		if ((dstat & FLUSH) == 0)
+		{
 			break;
-		if (++timeout > 1000) {
+		}
+
+		if (++timeout > 1000)
+		{
 			dev_warn(priv->dev, "timeout flushing DMA\n");
 			rstat |= ATA_DMA_ERR;
 			break;
 		}
 	}
+
 	return rstat;
 }
 
@@ -706,7 +771,9 @@ static int pata_macio_port_start(struct ata_port *ap)
 	struct pata_macio_priv *priv = ap->private_data;
 
 	if (ap->ioaddr.bmdma_addr == NULL)
+	{
 		return 0;
+	}
 
 	/* Allocate space for the DBDMA commands.
 	 *
@@ -715,14 +782,17 @@ static int pata_macio_port_start(struct ata_port *ap)
 	 */
 	priv->dma_table_cpu =
 		dmam_alloc_coherent(priv->dev,
-				    (MAX_DCMDS + 2) * sizeof(struct dbdma_cmd),
-				    &priv->dma_table_dma, GFP_KERNEL);
-	if (priv->dma_table_cpu == NULL) {
+							(MAX_DCMDS + 2) * sizeof(struct dbdma_cmd),
+							&priv->dma_table_dma, GFP_KERNEL);
+
+	if (priv->dma_table_cpu == NULL)
+	{
 		dev_err(priv->dev, "Unable to allocate DMA command list\n");
 		ap->ioaddr.bmdma_addr = NULL;
 		ap->mwdma_mask = 0;
 		ap->udma_mask = 0;
 	}
+
 	return 0;
 }
 
@@ -740,43 +810,54 @@ static void pata_macio_reset_hw(struct pata_macio_priv *priv, int resume)
 	dev_dbg(priv->dev, "Enabling & resetting... \n");
 
 	if (priv->mediabay)
+	{
 		return;
+	}
 
-	if (priv->kind == controller_ohare && !resume) {
+	if (priv->kind == controller_ohare && !resume)
+	{
 		/* The code below is having trouble on some ohare machines
 		 * (timing related ?). Until I can put my hand on one of these
 		 * units, I keep the old way
 		 */
 		ppc_md.feature_call(PMAC_FTR_IDE_ENABLE, priv->node, 0, 1);
-	} else {
+	}
+	else
+	{
 		int rc;
 
- 		/* Reset and enable controller */
+		/* Reset and enable controller */
 		rc = ppc_md.feature_call(PMAC_FTR_IDE_RESET,
-					 priv->node, priv->aapl_bus_id, 1);
+								 priv->node, priv->aapl_bus_id, 1);
 		ppc_md.feature_call(PMAC_FTR_IDE_ENABLE,
-				    priv->node, priv->aapl_bus_id, 1);
+							priv->node, priv->aapl_bus_id, 1);
 		msleep(10);
+
 		/* Only bother waiting if there's a reset control */
-		if (rc == 0) {
+		if (rc == 0)
+		{
 			ppc_md.feature_call(PMAC_FTR_IDE_RESET,
-					    priv->node, priv->aapl_bus_id, 0);
+								priv->node, priv->aapl_bus_id, 0);
 			msleep(IDE_WAKEUP_DELAY_MS);
 		}
 	}
 
 	/* If resuming a PCI device, restore the config space here */
-	if (priv->pdev && resume) {
+	if (priv->pdev && resume)
+	{
 		int rc;
 
 		pci_restore_state(priv->pdev);
 		rc = pcim_enable_device(priv->pdev);
+
 		if (rc)
 			dev_err(&priv->pdev->dev,
-				"Failed to enable device after resume (%d)\n",
-				rc);
+					"Failed to enable device after resume (%d)\n",
+					rc);
 		else
+		{
 			pci_set_master(priv->pdev);
+		}
 	}
 
 	/* On Kauai, initialize the FCR. We don't perform a reset, doesn't really
@@ -784,8 +865,8 @@ static void pata_macio_reset_hw(struct pata_macio_priv *priv, int resume)
 	 */
 	if (priv->kauai_fcr)
 		writel(KAUAI_FCR_UATA_MAGIC |
-		       KAUAI_FCR_UATA_RESET_N |
-		       KAUAI_FCR_UATA_ENABLE, priv->kauai_fcr);
+			   KAUAI_FCR_UATA_RESET_N |
+			   KAUAI_FCR_UATA_ENABLE, priv->kauai_fcr);
 }
 
 /* Hook the standard slave config to fixup some HW related alignment
@@ -801,14 +882,18 @@ static int pata_macio_slave_config(struct scsi_device *sdev)
 
 	/* First call original */
 	rc = ata_scsi_slave_config(sdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* This is lifted from sata_nv */
 	dev = &ap->link.device[sdev->id];
 
 	/* OHare has issues with non cache aligned DMA on some chipsets */
-	if (priv->kind == controller_ohare) {
+	if (priv->kind == controller_ohare)
+	{
 		blk_queue_update_dma_alignment(sdev->request_queue, 31);
 		blk_queue_update_dma_pad(sdev->request_queue, 31);
 
@@ -819,10 +904,13 @@ static int pata_macio_slave_config(struct scsi_device *sdev)
 
 	/* We only have issues with ATAPI */
 	if (dev->class != ATA_DEV_ATAPI)
+	{
 		return 0;
+	}
 
 	/* Shasta and K2 seem to have "issues" with reads ... */
-	if (priv->kind == controller_sh_ata6 || priv->kind == controller_k2_ata6) {
+	if (priv->kind == controller_sh_ata6 || priv->kind == controller_k2_ata6)
+	{
 		/* Allright these are bad, apply restrictions */
 		blk_queue_update_dma_alignment(sdev->request_queue, 15);
 		blk_queue_update_dma_pad(sdev->request_queue, 15);
@@ -836,7 +924,7 @@ static int pata_macio_slave_config(struct scsi_device *sdev)
 		pci_write_config_byte(priv->pdev, PCI_CACHE_LINE_SIZE, 0x08);
 		pci_read_config_word(priv->pdev, PCI_COMMAND, &cmd);
 		pci_write_config_word(priv->pdev, PCI_COMMAND,
-				      cmd | PCI_COMMAND_INVALIDATE);
+							  cmd | PCI_COMMAND_INVALIDATE);
 
 		/* Tell the world about it */
 		ata_dev_info(dev, "K2/Shasta alignment limits applied\n");
@@ -852,8 +940,11 @@ static int pata_macio_do_suspend(struct pata_macio_priv *priv, pm_message_t mesg
 
 	/* First, core libata suspend to do most of the work */
 	rc = ata_host_suspend(priv->host, mesg);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Restore to default timings */
 	pata_macio_default_timings(priv);
@@ -864,10 +955,13 @@ static int pata_macio_do_suspend(struct pata_macio_priv *priv, pm_message_t mesg
 
 	/* The media bay will handle itself just fine */
 	if (priv->mediabay)
+	{
 		return 0;
+	}
 
 	/* Kauai has bus control FCRs directly here */
-	if (priv->kauai_fcr) {
+	if (priv->kauai_fcr)
+	{
 		u32 fcr = readl(priv->kauai_fcr);
 		fcr &= ~(KAUAI_FCR_UATA_RESET_N | KAUAI_FCR_UATA_ENABLE);
 		writel(fcr, priv->kauai_fcr);
@@ -878,14 +972,15 @@ static int pata_macio_do_suspend(struct pata_macio_priv *priv, pm_message_t mesg
 	 * way, the platform code will take care of suspending the
 	 * ASIC properly
 	 */
-	if (priv->pdev) {
+	if (priv->pdev)
+	{
 		pci_save_state(priv->pdev);
 		pci_disable_device(priv->pdev);
 	}
 
 	/* Disable the bus on older machines and the cell on kauai */
 	ppc_md.feature_call(PMAC_FTR_IDE_ENABLE, priv->node,
-			    priv->aapl_bus_id, 0);
+						priv->aapl_bus_id, 0);
 
 	return 0;
 }
@@ -908,7 +1003,8 @@ static int pata_macio_do_resume(struct pata_macio_priv *priv)
 }
 #endif /* CONFIG_PM_SLEEP */
 
-static struct scsi_host_template pata_macio_sht = {
+static struct scsi_host_template pata_macio_sht =
+{
 	ATA_BASE_SHT(DRV_NAME),
 	.sg_tablesize		= MAX_DCMDS,
 	/* We may not need that strict one */
@@ -916,7 +1012,8 @@ static struct scsi_host_template pata_macio_sht = {
 	.slave_configure	= pata_macio_slave_config,
 };
 
-static struct ata_port_operations pata_macio_ops = {
+static struct ata_port_operations pata_macio_ops =
+{
 	.inherits		= &ata_bmdma_port_ops,
 
 	.freeze			= pata_macio_freeze,
@@ -938,27 +1035,41 @@ static void pata_macio_invariants(struct pata_macio_priv *priv)
 	const int *bidp;
 
 	/* Identify the type of controller */
-	if (of_device_is_compatible(priv->node, "shasta-ata")) {
+	if (of_device_is_compatible(priv->node, "shasta-ata"))
+	{
 		priv->kind = controller_sh_ata6;
-	        priv->timings = pata_macio_shasta_timings;
-	} else if (of_device_is_compatible(priv->node, "kauai-ata")) {
+		priv->timings = pata_macio_shasta_timings;
+	}
+	else if (of_device_is_compatible(priv->node, "kauai-ata"))
+	{
 		priv->kind = controller_un_ata6;
-	        priv->timings = pata_macio_kauai_timings;
-	} else if (of_device_is_compatible(priv->node, "K2-UATA")) {
+		priv->timings = pata_macio_kauai_timings;
+	}
+	else if (of_device_is_compatible(priv->node, "K2-UATA"))
+	{
 		priv->kind = controller_k2_ata6;
-	        priv->timings = pata_macio_kauai_timings;
-	} else if (of_device_is_compatible(priv->node, "keylargo-ata")) {
-		if (strcmp(priv->node->name, "ata-4") == 0) {
+		priv->timings = pata_macio_kauai_timings;
+	}
+	else if (of_device_is_compatible(priv->node, "keylargo-ata"))
+	{
+		if (strcmp(priv->node->name, "ata-4") == 0)
+		{
 			priv->kind = controller_kl_ata4;
 			priv->timings = pata_macio_kl66_timings;
-		} else {
+		}
+		else
+		{
 			priv->kind = controller_kl_ata3;
 			priv->timings = pata_macio_kl33_timings;
 		}
-	} else if (of_device_is_compatible(priv->node, "heathrow-ata")) {
+	}
+	else if (of_device_is_compatible(priv->node, "heathrow-ata"))
+	{
 		priv->kind = controller_heathrow;
 		priv->timings = pata_macio_heathrow_timings;
-	} else {
+	}
+	else
+	{
 		priv->kind = controller_ohare;
 		priv->timings = pata_macio_ohare_timings;
 	}
@@ -971,11 +1082,13 @@ static void pata_macio_invariants(struct pata_macio_priv *priv)
 
 	/* Fixup missing Apple bus ID in case of media-bay */
 	if (priv->mediabay && bidp == 0)
+	{
 		priv->aapl_bus_id = 1;
+	}
 }
 
 static void pata_macio_setup_ios(struct ata_ioports *ioaddr,
-				 void __iomem * base, void __iomem * dma)
+								 void __iomem *base, void __iomem *dma)
 {
 	/* cmd_addr is the base of regs for that port */
 	ioaddr->cmd_addr	= base;
@@ -997,7 +1110,7 @@ static void pata_macio_setup_ios(struct ata_ioports *ioaddr,
 }
 
 static void pmac_macio_calc_timing_masks(struct pata_macio_priv *priv,
-					 struct ata_port_info *pinfo)
+		struct ata_port_info *pinfo)
 {
 	int i = 0;
 
@@ -1005,30 +1118,37 @@ static void pmac_macio_calc_timing_masks(struct pata_macio_priv *priv,
 	pinfo->mwdma_mask	= 0;
 	pinfo->udma_mask	= 0;
 
-	while (priv->timings[i].mode > 0) {
+	while (priv->timings[i].mode > 0)
+	{
 		unsigned int mask = 1U << (priv->timings[i].mode & 0x0f);
-		switch(priv->timings[i].mode & 0xf0) {
-		case 0x00: /* PIO */
-			pinfo->pio_mask |= (mask >> 8);
-			break;
-		case 0x20: /* MWDMA */
-			pinfo->mwdma_mask |= mask;
-			break;
-		case 0x40: /* UDMA */
-			pinfo->udma_mask |= mask;
-			break;
+
+		switch (priv->timings[i].mode & 0xf0)
+		{
+			case 0x00: /* PIO */
+				pinfo->pio_mask |= (mask >> 8);
+				break;
+
+			case 0x20: /* MWDMA */
+				pinfo->mwdma_mask |= mask;
+				break;
+
+			case 0x40: /* UDMA */
+				pinfo->udma_mask |= mask;
+				break;
 		}
+
 		i++;
 	}
+
 	dev_dbg(priv->dev, "Supported masks: PIO=%lx, MWDMA=%lx, UDMA=%lx\n",
-		pinfo->pio_mask, pinfo->mwdma_mask, pinfo->udma_mask);
+			pinfo->pio_mask, pinfo->mwdma_mask, pinfo->udma_mask);
 }
 
 static int pata_macio_common_init(struct pata_macio_priv *priv,
-				  resource_size_t tfregs,
-				  resource_size_t dmaregs,
-				  resource_size_t fcregs,
-				  unsigned long irq)
+								  resource_size_t tfregs,
+								  resource_size_t dmaregs,
+								  resource_size_t fcregs,
+								  unsigned long irq)
 {
 	struct ata_port_info		pinfo;
 	const struct ata_port_info	*ppi[] = { &pinfo, NULL };
@@ -1055,7 +1175,9 @@ static int pata_macio_common_init(struct pata_macio_priv *priv,
 	pinfo.private_data	= priv;
 
 	priv->host = ata_host_alloc_pinfo(priv->dev, ppi, 1);
-	if (priv->host == NULL) {
+
+	if (priv->host == NULL)
+	{
 		dev_err(priv->dev, "Failed to allocate ATA port structure\n");
 		return -ENOMEM;
 	}
@@ -1065,24 +1187,34 @@ static int pata_macio_common_init(struct pata_macio_priv *priv,
 
 	/* Map base registers */
 	priv->tfregs = devm_ioremap(priv->dev, tfregs, 0x100);
-	if (priv->tfregs == NULL) {
+
+	if (priv->tfregs == NULL)
+	{
 		dev_err(priv->dev, "Failed to map ATA ports\n");
 		return -ENOMEM;
 	}
+
 	priv->host->iomap = &priv->tfregs;
 
 	/* Map DMA regs */
-	if (dmaregs != 0) {
+	if (dmaregs != 0)
+	{
 		dma_regs = devm_ioremap(priv->dev, dmaregs,
-					sizeof(struct dbdma_regs));
+								sizeof(struct dbdma_regs));
+
 		if (dma_regs == NULL)
+		{
 			dev_warn(priv->dev, "Failed to map ATA DMA registers\n");
+		}
 	}
 
 	/* If chip has local feature control, map those regs too */
-	if (fcregs != 0) {
+	if (fcregs != 0)
+	{
 		priv->kauai_fcr = devm_ioremap(priv->dev, fcregs, 4);
-		if (priv->kauai_fcr == NULL) {
+
+		if (priv->kauai_fcr == NULL)
+		{
 			dev_err(priv->dev, "Failed to map ATA FCR register\n");
 			return -ENOMEM;
 		}
@@ -1090,7 +1222,7 @@ static int pata_macio_common_init(struct pata_macio_priv *priv,
 
 	/* Setup port data structure */
 	pata_macio_setup_ios(&priv->host->ports[0]->ioaddr,
-			     priv->tfregs, dma_regs);
+						 priv->tfregs, dma_regs);
 	priv->host->ports[0]->private_data = priv;
 
 	/* hard-reset the controller */
@@ -1099,19 +1231,21 @@ static int pata_macio_common_init(struct pata_macio_priv *priv,
 
 	/* Enable bus master if necessary */
 	if (priv->pdev && dma_regs)
+	{
 		pci_set_master(priv->pdev);
+	}
 
 	dev_info(priv->dev, "Activating pata-macio chipset %s, Apple bus ID %d\n",
-		 macio_ata_names[priv->kind], priv->aapl_bus_id);
+			 macio_ata_names[priv->kind], priv->aapl_bus_id);
 
 	/* Start it up */
 	priv->irq = irq;
 	return ata_host_activate(priv->host, irq, ata_bmdma_interrupt, 0,
-				 &pata_macio_sht);
+							 &pata_macio_sht);
 }
 
 static int pata_macio_attach(struct macio_dev *mdev,
-			     const struct of_device_id *match)
+							 const struct of_device_id *match)
 {
 	struct pata_macio_priv	*priv;
 	resource_size_t		tfregs, dmaregs = 0;
@@ -1119,9 +1253,10 @@ static int pata_macio_attach(struct macio_dev *mdev,
 	int			rc;
 
 	/* Check for broken device-trees */
-	if (macio_resource_count(mdev) == 0) {
+	if (macio_resource_count(mdev) == 0)
+	{
 		dev_err(&mdev->ofdev.dev,
-			"No addresses for controller\n");
+				"No addresses for controller\n");
 		return -ENXIO;
 	}
 
@@ -1130,31 +1265,39 @@ static int pata_macio_attach(struct macio_dev *mdev,
 
 	/* Allocate and init private data structure */
 	priv = devm_kzalloc(&mdev->ofdev.dev,
-			    sizeof(struct pata_macio_priv), GFP_KERNEL);
-	if (priv == NULL) {
+						sizeof(struct pata_macio_priv), GFP_KERNEL);
+
+	if (priv == NULL)
+	{
 		dev_err(&mdev->ofdev.dev,
-			"Failed to allocate private memory\n");
+				"Failed to allocate private memory\n");
 		return -ENOMEM;
 	}
+
 	priv->node = of_node_get(mdev->ofdev.dev.of_node);
 	priv->mdev = mdev;
 	priv->dev = &mdev->ofdev.dev;
 
 	/* Request memory resource for taskfile registers */
-	if (macio_request_resource(mdev, 0, "pata-macio")) {
+	if (macio_request_resource(mdev, 0, "pata-macio"))
+	{
 		dev_err(&mdev->ofdev.dev,
-			"Cannot obtain taskfile resource\n");
+				"Cannot obtain taskfile resource\n");
 		return -EBUSY;
 	}
+
 	tfregs = macio_resource_start(mdev, 0);
 
 	/* Request resources for DMA registers if any */
-	if (macio_resource_count(mdev) >= 2) {
+	if (macio_resource_count(mdev) >= 2)
+	{
 		if (macio_request_resource(mdev, 1, "pata-macio-dma"))
 			dev_err(&mdev->ofdev.dev,
-				"Cannot obtain DMA resource\n");
+					"Cannot obtain DMA resource\n");
 		else
+		{
 			dmaregs = macio_resource_start(mdev, 1);
+		}
 	}
 
 	/*
@@ -1166,22 +1309,26 @@ static int pata_macio_attach(struct macio_dev *mdev,
 	 * controller in the machine. However, I have no test HW for this case,
 	 * and this trick works well enough on those old machines...
 	 */
-	if (macio_irq_count(mdev) == 0) {
+	if (macio_irq_count(mdev) == 0)
+	{
 		dev_warn(&mdev->ofdev.dev,
-			 "No interrupts for controller, using 13\n");
+				 "No interrupts for controller, using 13\n");
 		irq = irq_create_mapping(NULL, 13);
-	} else
+	}
+	else
+	{
 		irq = macio_irq(mdev, 0);
+	}
 
 	/* Prevvent media bay callbacks until fully registered */
 	lock_media_bay(priv->mdev->media_bay);
 
 	/* Get register addresses and call common initialization */
 	rc = pata_macio_common_init(priv,
-				    tfregs,		/* Taskfile regs */
-				    dmaregs,		/* DBDMA regs */
-				    0,			/* Feature control */
-				    irq);
+								tfregs,		/* Taskfile regs */
+								dmaregs,		/* DBDMA regs */
+								0,			/* Feature control */
+								irq);
 	unlock_media_bay(priv->mdev->media_bay);
 
 	return rc;
@@ -1223,7 +1370,7 @@ static int pata_macio_resume(struct macio_dev *mdev)
 #endif /* CONFIG_PM_SLEEP */
 
 #ifdef CONFIG_PMAC_MEDIABAY
-static void pata_macio_mb_event(struct macio_dev* mdev, int mb_state)
+static void pata_macio_mb_event(struct macio_dev *mdev, int mb_state)
 {
 	struct ata_host *host = macio_get_drvdata(mdev);
 	struct ata_port *ap;
@@ -1232,20 +1379,28 @@ static void pata_macio_mb_event(struct macio_dev* mdev, int mb_state)
 	unsigned long flags;
 
 	if (!host || !host->private_data)
+	{
 		return;
+	}
+
 	ap = host->ports[0];
 	spin_lock_irqsave(ap->lock, flags);
 	ehi = &ap->link.eh_info;
-	if (mb_state == MB_CD) {
+
+	if (mb_state == MB_CD)
+	{
 		ata_ehi_push_desc(ehi, "mediabay plug");
 		ata_ehi_hotplugged(ehi);
 		ata_port_freeze(ap);
-	} else {
+	}
+	else
+	{
 		ata_ehi_push_desc(ehi, "mediabay unplug");
 		ata_for_each_dev(dev, &ap->link, ALL)
-			dev->flags |= ATA_DFLAG_DETACH;
+		dev->flags |= ATA_DFLAG_DETACH;
 		ata_port_abort(ap);
 	}
+
 	spin_unlock_irqrestore(ap->lock, flags);
 
 }
@@ -1253,7 +1408,7 @@ static void pata_macio_mb_event(struct macio_dev* mdev, int mb_state)
 
 
 static int pata_macio_pci_attach(struct pci_dev *pdev,
-				 const struct pci_device_id *id)
+								 const struct pci_device_id *id)
 {
 	struct pata_macio_priv	*priv;
 	struct device_node	*np;
@@ -1261,46 +1416,56 @@ static int pata_macio_pci_attach(struct pci_dev *pdev,
 
 	/* We cannot use a MacIO controller without its OF device node */
 	np = pci_device_to_OF_node(pdev);
-	if (np == NULL) {
+
+	if (np == NULL)
+	{
 		dev_err(&pdev->dev,
-			"Cannot find OF device node for controller\n");
+				"Cannot find OF device node for controller\n");
 		return -ENODEV;
 	}
 
 	/* Check that it can be enabled */
-	if (pcim_enable_device(pdev)) {
+	if (pcim_enable_device(pdev))
+	{
 		dev_err(&pdev->dev,
-			"Cannot enable controller PCI device\n");
+				"Cannot enable controller PCI device\n");
 		return -ENXIO;
 	}
 
 	/* Allocate and init private data structure */
 	priv = devm_kzalloc(&pdev->dev,
-			    sizeof(struct pata_macio_priv), GFP_KERNEL);
-	if (priv == NULL) {
+						sizeof(struct pata_macio_priv), GFP_KERNEL);
+
+	if (priv == NULL)
+	{
 		dev_err(&pdev->dev,
-			"Failed to allocate private memory\n");
+				"Failed to allocate private memory\n");
 		return -ENOMEM;
 	}
+
 	priv->node = of_node_get(np);
 	priv->pdev = pdev;
 	priv->dev = &pdev->dev;
 
 	/* Get MMIO regions */
-	if (pci_request_regions(pdev, "pata-macio")) {
+	if (pci_request_regions(pdev, "pata-macio"))
+	{
 		dev_err(&pdev->dev,
-			"Cannot obtain PCI resources\n");
+				"Cannot obtain PCI resources\n");
 		return -EBUSY;
 	}
 
 	/* Get register addresses and call common initialization */
 	rbase = pci_resource_start(pdev, 0);
+
 	if (pata_macio_common_init(priv,
-				   rbase + 0x2000,	/* Taskfile regs */
-				   rbase + 0x1000,	/* DBDMA regs */
-				   rbase,		/* Feature control */
-				   pdev->irq))
+							   rbase + 0x2000,	/* Taskfile regs */
+							   rbase + 0x1000,	/* DBDMA regs */
+							   rbase,		/* Feature control */
+							   pdev->irq))
+	{
 		return -ENXIO;
+	}
 
 	return 0;
 }
@@ -1331,16 +1496,16 @@ static int pata_macio_pci_resume(struct pci_dev *pdev)
 static struct of_device_id pata_macio_match[] =
 {
 	{
-	.name 		= "IDE",
+		.name 		= "IDE",
 	},
 	{
-	.name 		= "ATA",
+		.name 		= "ATA",
 	},
 	{
-	.type		= "ide",
+		.type		= "ide",
 	},
 	{
-	.type		= "ata",
+		.type		= "ata",
 	},
 	{},
 };
@@ -1364,7 +1529,8 @@ static struct macio_driver pata_macio_driver =
 #endif
 };
 
-static const struct pci_device_id pata_macio_pci_match[] = {
+static const struct pci_device_id pata_macio_pci_match[] =
+{
 	{ PCI_VDEVICE(APPLE, PCI_DEVICE_ID_APPLE_UNI_N_ATA),	0 },
 	{ PCI_VDEVICE(APPLE, PCI_DEVICE_ID_APPLE_IPID_ATA100),	0 },
 	{ PCI_VDEVICE(APPLE, PCI_DEVICE_ID_APPLE_K2_ATA100),	0 },
@@ -1373,7 +1539,8 @@ static const struct pci_device_id pata_macio_pci_match[] = {
 	{},
 };
 
-static struct pci_driver pata_macio_pci_driver = {
+static struct pci_driver pata_macio_pci_driver =
+{
 	.name		= "pata-pci-macio",
 	.id_table	= pata_macio_pci_match,
 	.probe		= pata_macio_pci_attach,
@@ -1394,16 +1561,25 @@ static int __init pata_macio_init(void)
 	int rc;
 
 	if (!machine_is(powermac))
+	{
 		return -ENODEV;
+	}
 
 	rc = pci_register_driver(&pata_macio_pci_driver);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	rc = macio_register_driver(&pata_macio_driver);
-	if (rc) {
+
+	if (rc)
+	{
 		pci_unregister_driver(&pata_macio_pci_driver);
 		return rc;
 	}
+
 	return 0;
 }
 

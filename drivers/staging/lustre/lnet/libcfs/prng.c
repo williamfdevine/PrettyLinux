@@ -91,9 +91,14 @@ EXPORT_SYMBOL(cfs_rand);
 void cfs_srand(unsigned int seed1, unsigned int seed2)
 {
 	if (seed1)
-		seed_x = seed1; /* use default seeds if parameter is 0 */
+	{
+		seed_x = seed1;    /* use default seeds if parameter is 0 */
+	}
+
 	if (seed2)
+	{
 		seed_y = seed2;
+	}
 }
 EXPORT_SYMBOL(cfs_srand);
 
@@ -112,7 +117,9 @@ void cfs_get_random_bytes(void *buf, int size)
 	LASSERT(size >= 0);
 
 	rem = min((int)((unsigned long)buf & (sizeof(int) - 1)), size);
-	if (rem) {
+
+	if (rem)
+	{
 		get_random_bytes(&tmp, sizeof(tmp));
 		tmp ^= cfs_rand();
 		memcpy(buf, &tmp, rem);
@@ -120,14 +127,18 @@ void cfs_get_random_bytes(void *buf, int size)
 		size -= rem;
 	}
 
-	while (size >= sizeof(int)) {
+	while (size >= sizeof(int))
+	{
 		get_random_bytes(&tmp, sizeof(tmp));
 		*p = cfs_rand() ^ tmp;
 		size -= sizeof(int);
 		p++;
 	}
+
 	buf = p;
-	if (size) {
+
+	if (size)
+	{
 		get_random_bytes(&tmp, sizeof(tmp));
 		tmp ^= cfs_rand();
 		memcpy(buf, &tmp, size);

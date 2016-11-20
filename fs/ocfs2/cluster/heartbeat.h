@@ -45,7 +45,8 @@ extern unsigned int o2hb_dead_threshold;
 #define O2HB_CB_MAGIC		0x51d1e4ec
 
 /* callback stuff */
-enum o2hb_callback_type {
+enum o2hb_callback_type
+{
 	O2HB_NODE_DOWN_CB = 0,
 	O2HB_NODE_UP_CB,
 	O2HB_NUM_CB
@@ -54,7 +55,8 @@ enum o2hb_callback_type {
 struct o2nm_node;
 typedef void (o2hb_cb_func)(struct o2nm_node *, int, void *);
 
-struct o2hb_callback_func {
+struct o2hb_callback_func
+{
 	u32			hc_magic;
 	struct list_head	hc_item;
 	o2hb_cb_func		*hc_func;
@@ -67,16 +69,16 @@ struct config_group *o2hb_alloc_hb_set(void);
 void o2hb_free_hb_set(struct config_group *group);
 
 void o2hb_setup_callback(struct o2hb_callback_func *hc,
-			 enum o2hb_callback_type type,
-			 o2hb_cb_func *func,
-			 void *data,
-			 int priority);
+						 enum o2hb_callback_type type,
+						 o2hb_cb_func *func,
+						 void *data,
+						 int priority);
 int o2hb_register_callback(const char *region_uuid,
-			   struct o2hb_callback_func *hc);
+						   struct o2hb_callback_func *hc);
 void o2hb_unregister_callback(const char *region_uuid,
-			      struct o2hb_callback_func *hc);
+							  struct o2hb_callback_func *hc);
 void o2hb_fill_node_map(unsigned long *map,
-			unsigned bytes);
+						unsigned bytes);
 void o2hb_exit(void);
 int o2hb_init(void);
 int o2hb_check_node_heartbeating(u8 node_num);

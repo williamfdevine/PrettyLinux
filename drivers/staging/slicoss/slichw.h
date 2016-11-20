@@ -53,8 +53,8 @@
 #define SLIC_RCVBUF_HEADSIZE	34
 #define SLIC_RCVBUF_TAILSIZE	0
 #define SLIC_RCVBUF_DATASIZE	(SLIC_RCVBUF_SIZE -		\
-				 (SLIC_RCVBUF_HEADSIZE +	\
-				  SLIC_RCVBUF_TAILSIZE))
+								 (SLIC_RCVBUF_HEADSIZE +	\
+								  SLIC_RCVBUF_TAILSIZE))
 
 #define VGBSTAT_XPERR		0x40000000
 #define VGBSTAT_XERRSHFT	25
@@ -222,7 +222,8 @@
 #define SLIC_HOSTID_DEFAULT	0xFFFF		/* uninitialized hostid */
 #define SLIC_NBR_MACS		4
 
-struct slic_rcvbuf {
+struct slic_rcvbuf
+{
 	u8 pad1[6];
 	u16 pad2;
 	u32 pad3;
@@ -235,15 +236,19 @@ struct slic_rcvbuf {
 	u8 data[SLIC_RCVBUF_DATASIZE];
 };
 
-struct slic_hddr_wds {
-	union {
-		struct {
+struct slic_hddr_wds
+{
+	union
+	{
+		struct
+		{
 			u32 frame_status;
 			u32 frame_status_b;
 			u32 time_stamp;
 			u32 checksum;
 		} hdrs_14port;
-		struct {
+		struct
+		{
 			u32 frame_status;
 			u16 ByteCnt;
 			u16 TpChksum;
@@ -258,30 +263,36 @@ struct slic_hddr_wds {
 #define frame_status_b14	u0.hdrs_14port.frame_status_b
 #define frame_statusGB		u0.hdrs_gbit.frame_status
 
-struct slic_host64sg {
+struct slic_host64sg
+{
 	u32 paddrl;
 	u32 paddrh;
 	u32 length;
 };
 
-struct slic_host64_cmd {
+struct slic_host64_cmd
+{
 	u32 hosthandle;
 	u32 RSVD;
 	u8 command;
 	u8 flags;
-	union {
+	union
+	{
 		u16 rsv1;
 		u16 rsv2;
 	} u0;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 totlen;
 			struct slic_host64sg bufs[SLIC_MAX64_BCNT];
 		} slic_buffers;
 	} u;
 };
 
-struct slic_rspbuf {
+struct slic_rspbuf
+{
 	u32 hosthandle;
 	u32 pad0;
 	u32 pad1;
@@ -402,7 +413,8 @@ struct slic_rspbuf {
 
 #define SLIC_REG_HOSTID		0x1554
 
-enum UPR_REQUEST {
+enum UPR_REQUEST
+{
 	SLIC_UPR_STATS,
 	SLIC_UPR_RLSR,
 	SLIC_UPR_WCFG,
@@ -415,13 +427,15 @@ enum UPR_REQUEST {
 	SLIC_UPR_DUMP,
 };
 
-struct inicpm_wakepattern {
+struct inicpm_wakepattern
+{
 	u32 patternlength;
 	u8 pattern[SLIC_PM_PATTERNSIZE];
 	u8 mask[SLIC_PM_PATTERNSIZE];
 };
 
-struct inicpm_state {
+struct inicpm_state
+{
 	u32 powercaps;
 	u32 powerstate;
 	u32 wake_linkstatus;
@@ -430,7 +444,8 @@ struct inicpm_state {
 	struct inicpm_wakepattern wakepattern[SLIC_PM_MAXPATTERNS];
 };
 
-struct slicpm_packet_pattern {
+struct slicpm_packet_pattern
+{
 	u32 priority;
 	u32 reserved;
 	u32 masksize;
@@ -439,7 +454,8 @@ struct slicpm_packet_pattern {
 	u32 patternflags;
 };
 
-enum slicpm_power_state {
+enum slicpm_power_state
+{
 	slicpm_state_unspecified = 0,
 	slicpm_state_d0,
 	slicpm_state_d1,
@@ -448,18 +464,21 @@ enum slicpm_power_state {
 	slicpm_state_maximum
 };
 
-struct slicpm_wakeup_capabilities {
+struct slicpm_wakeup_capabilities
+{
 	enum slicpm_power_state min_magic_packet_wakeup;
 	enum slicpm_power_state min_pattern_wakeup;
 	enum slicpm_power_state min_link_change_wakeup;
 };
 
-struct slic_pnp_capabilities {
+struct slic_pnp_capabilities
+{
 	u32 flags;
 	struct slicpm_wakeup_capabilities wakeup_capabilities;
 };
 
-struct slic_config_mac {
+struct slic_config_mac
+{
 	u8 macaddrA[6];
 };
 
@@ -470,14 +489,16 @@ struct slic_config_mac {
 #define VENDOR4_FRU_FORMAT	0x04
 #define NO_FRU_FORMAT		0xFF
 
-struct atk_fru {
+struct atk_fru
+{
 	u8 assembly[6];
 	u8 revision[2];
 	u8 serial[14];
 	u8 pad[3];
 };
 
-struct vendor1_fru {
+struct vendor1_fru
+{
 	u8 commodity;
 	u8 assembly[4];
 	u8 revision[2];
@@ -487,7 +508,8 @@ struct vendor1_fru {
 	u8 pad[13];
 };
 
-struct vendor2_fru {
+struct vendor2_fru
+{
 	u8 part[8];
 	u8 supplier[5];
 	u8 date[3];
@@ -495,21 +517,24 @@ struct vendor2_fru {
 	u8 pad[7];
 };
 
-struct vendor3_fru {
+struct vendor3_fru
+{
 	u8 assembly[6];
 	u8 revision[2];
 	u8 serial[14];
 	u8 pad[3];
 };
 
-struct vendor4_fru {
+struct vendor4_fru
+{
 	u8 number[8];
 	u8 part[8];
 	u8 version[8];
 	u8 pad[3];
 };
 
-union oemfru {
+union oemfru
+{
 	struct vendor1_fru vendor1_fru;
 	struct vendor2_fru vendor2_fru;
 	struct vendor3_fru vendor3_fru;
@@ -519,7 +544,8 @@ union oemfru {
 /*
  * SLIC EEPROM structure for Mojave
  */
-struct slic_eeprom {
+struct slic_eeprom
+{
 	u16 Id;			/* 00 EEPROM/FLASH Magic code 'A5A5'*/
 	u16 EecodeSize;		/* 01 Size of EEPROM Codes (bytes * 4)*/
 	u16 FlashSize;		/* 02 Flash size */
@@ -543,18 +569,22 @@ struct slic_eeprom {
 				 *  (simba/leone only)
 				 */
 	u8 NetIntPin2;		/* Network Interface Pin 2 (simba/leone only)*/
-	union {
+	union
+	{
 		u8 NetIntPin3;	/* 18 Network Interface Pin 3 (simba only) */
 		u8 FreeTime;	/* FreeTime setting (leone/mojave only) */
 	} u1;
 	u8 TBIctl;		/* 10-bit interface control (Mojave only) */
 	u16 DramSize;		/* 19 DRAM size (bytes * 64k) */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			/* Mac Interface Specific portions */
 			struct slic_config_mac	MacInfo[SLIC_NBR_MACS];
 		} mac;				/* MAC access for all boards */
-		struct {
+		struct
+		{
 			/* use above struct for MAC access */
 			struct slic_config_mac	pad[SLIC_NBR_MACS - 1];
 			u16 DeviceId2;	/* Device ID for 2nd PCI function */
@@ -576,7 +606,8 @@ struct slic_eeprom {
 };
 
 /* SLIC EEPROM structure for Oasis */
-struct oslic_eeprom {
+struct oslic_eeprom
+{
 	u16 Id;			/* 00 EEPROM/FLASH Magic code 'A5A5' */
 	u16 EecodeSize;		/* 01 Size of EEPROM Codes (bytes * 4)*/
 	u16 FlashConfig0;	/* 02 Flash Config for SPI device 0 */
@@ -632,14 +663,16 @@ struct oslic_eeprom {
  * It is filled in from the appropriate EEPROM structure by
  * SlicGetConfigData()
  */
-struct slic_config {
+struct slic_config
+{
 	bool EepromValid;	/* Valid EEPROM flag (checksum good?) */
 	u16 DramSize;		/* DRAM size (bytes / 64K) */
 	struct slic_config_mac MacInfo[SLIC_NBR_MACS]; /* MAC addresses */
 	u8 FruFormat;		/* Alacritech FRU format type */
 	struct atk_fru	AtkFru;	/* Alacritech FRU information */
 	u8 OemFruFormat;	/* optional OEM FRU format type */
-	union {
+	union
+	{
 		struct vendor1_fru vendor1_fru;
 		struct vendor2_fru vendor2_fru;
 		struct vendor3_fru vendor3_fru;

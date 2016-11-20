@@ -47,8 +47,8 @@
 
 static int fsync_buffers_list(spinlock_t *lock, struct list_head *list);
 static int submit_bh_wbc(int op, int op_flags, struct buffer_head *bh,
-			 unsigned long bio_flags,
-			 struct writeback_control *wbc);
+						 unsigned long bio_flags,
+						 struct writeback_control *wbc);
 
 #define BH_ENTRY(list) list_entry((list), struct buffer_head, b_assoc_buffers)
 
@@ -86,7 +86,7 @@ EXPORT_SYMBOL(unlock_buffer);
  * any of the pages are locked, it is assumed they are locked for IO.
  */
 void buffer_check_dirty_writeback(struct page *page,
-				     bool *dirty, bool *writeback)
+								  bool *dirty, bool *writeback)
 {
 	struct buffer_head *head, *bh;
 	*dirty = false;
@@ -95,22 +95,33 @@ void buffer_check_dirty_writeback(struct page *page,
 	BUG_ON(!PageLocked(page));
 
 	if (!page_has_buffers(page))
+	{
 		return;
+	}
 
 	if (PageWriteback(page))
+	{
 		*writeback = true;
+	}
 
 	head = page_buffers(page);
 	bh = head;
-	do {
+
+	do
+	{
 		if (buffer_locked(bh))
+		{
 			*writeback = true;
+		}
 
 		if (buffer_dirty(bh))
+		{
 			*dirty = true;
+		}
 
 		bh = bh->b_this_page;
-	} while (bh != head);
+	}
+	while (bh != head);
 }
 EXPORT_SYMBOL(buffer_check_dirty_writeback);
 
@@ -119,7 +130,7 @@ EXPORT_SYMBOL(buffer_check_dirty_writeback);
  * from becoming locked again - you have to lock it yourself
  * if you want to preserve its state.
  */
-void __wait_on_buffer(struct buffer_head * bh)
+void __wait_on_buffer(struct buffer_head *bh)
 {
 	wait_on_bit_io(&bh->b_state, BH_Lock, TASK_UNINTERRUPTIBLE);
 }
@@ -137,8 +148,8 @@ static void buffer_io_error(struct buffer_head *bh, char *msg)
 {
 	if (!test_bit(BH_Quiet, &bh->b_state))
 		printk_ratelimited(KERN_ERR
-			"Buffer I/O error on dev %pg, logical block %llu%s\n",
-			bh->b_bdev, (unsigned long long)bh->b_blocknr, msg);
+						   "Buffer I/O error on dev %pg, logical block %llu%s\n",
+						   bh->b_bdev, (unsigned long long)bh->b_blocknr, msg);
 }
 
 /*
@@ -151,12 +162,16 @@ static void buffer_io_error(struct buffer_head *bh, char *msg)
  */
 static void __end_buffer_read_notouch(struct buffer_head *bh, int uptodate)
 {
-	if (uptodate) {
+	if (uptodate)
+	{
 		set_buffer_uptodate(bh);
-	} else {
+	}
+	else
+	{
 		/* This happens, due to failed read-ahead attempts. */
 		clear_buffer_uptodate(bh);
 	}
+
 	unlock_buffer(bh);
 }
 
@@ -173,13 +188,17 @@ EXPORT_SYMBOL(end_buffer_read_sync);
 
 void end_buffer_write_sync(struct buffer_head *bh, int uptodate)
 {
-	if (uptodate) {
+	if (uptodate)
+	{
 		set_buffer_uptodate(bh);
-	} else {
+	}
+	else
+	{
 		buffer_io_error(bh, ", lost sync page write");
 		set_buffer_write_io_error(bh);
 		clear_buffer_uptodate(bh);
 	}
+
 	unlock_buffer(bh);
 	put_bh(bh);
 }
@@ -210,40 +229,56 @@ __find_get_block_slow(struct block_device *bdev, sector_t block)
 
 	index = block >> (PAGE_SHIFT - bd_inode->i_blkbits);
 	page = find_get_page_flags(bd_mapping, index, FGP_ACCESSED);
+
 	if (!page)
+	{
 		goto out;
+	}
 
 	spin_lock(&bd_mapping->private_lock);
+
 	if (!page_has_buffers(page))
+	{
 		goto out_unlock;
+	}
+
 	head = page_buffers(page);
 	bh = head;
-	do {
+
+	do
+	{
 		if (!buffer_mapped(bh))
+		{
 			all_mapped = 0;
-		else if (bh->b_blocknr == block) {
+		}
+		else if (bh->b_blocknr == block)
+		{
 			ret = bh;
 			get_bh(bh);
 			goto out_unlock;
 		}
+
 		bh = bh->b_this_page;
-	} while (bh != head);
+	}
+	while (bh != head);
 
 	/* we might be here because some of the buffers on this page are
 	 * not mapped.  This is due to various races between
 	 * file io on the block device and getblk.  It gets dealt with
 	 * elsewhere, don't buffer_error if we had some unmapped buffers
 	 */
-	if (all_mapped) {
+	if (all_mapped)
+	{
 		printk("__find_get_block_slow() failed. "
-			"block=%llu, b_blocknr=%llu\n",
-			(unsigned long long)block,
-			(unsigned long long)bh->b_blocknr);
+			   "block=%llu, b_blocknr=%llu\n",
+			   (unsigned long long)block,
+			   (unsigned long long)bh->b_blocknr);
 		printk("b_state=0x%08lx, b_size=%zu\n",
-			bh->b_state, bh->b_size);
+			   bh->b_state, bh->b_size);
 		printk("device %pg blocksize: %d\n", bdev,
-			1 << bd_inode->i_blkbits);
+			   1 << bd_inode->i_blkbits);
 	}
+
 out_unlock:
 	spin_unlock(&bd_mapping->private_lock);
 	put_page(page);
@@ -262,13 +297,15 @@ static void free_more_memory(void)
 	wakeup_flusher_threads(1024, WB_REASON_FREE_MORE_MEM);
 	yield();
 
-	for_each_online_node(nid) {
+	for_each_online_node(nid)
+	{
 
 		z = first_zones_zonelist(node_zonelist(nid, GFP_NOFS),
-						gfp_zone(GFP_NOFS), NULL);
+								 gfp_zone(GFP_NOFS), NULL);
+
 		if (z->zone)
 			try_to_free_pages(node_zonelist(nid, GFP_NOFS), 0,
-						GFP_NOFS, NULL);
+							  GFP_NOFS, NULL);
 	}
 }
 
@@ -287,9 +324,13 @@ static void end_buffer_async_read(struct buffer_head *bh, int uptodate)
 	BUG_ON(!buffer_async_read(bh));
 
 	page = bh->b_page;
-	if (uptodate) {
+
+	if (uptodate)
+	{
 		set_buffer_uptodate(bh);
-	} else {
+	}
+	else
+	{
 		clear_buffer_uptodate(bh);
 		buffer_io_error(bh, ", async page read");
 		SetPageError(page);
@@ -306,15 +347,24 @@ static void end_buffer_async_read(struct buffer_head *bh, int uptodate)
 	clear_buffer_async_read(bh);
 	unlock_buffer(bh);
 	tmp = bh;
-	do {
+
+	do
+	{
 		if (!buffer_uptodate(tmp))
+		{
 			page_uptodate = 0;
-		if (buffer_async_read(tmp)) {
+		}
+
+		if (buffer_async_read(tmp))
+		{
 			BUG_ON(!buffer_locked(tmp));
 			goto still_busy;
 		}
+
 		tmp = tmp->b_this_page;
-	} while (tmp != bh);
+	}
+	while (tmp != bh);
+
 	bit_spin_unlock(BH_Uptodate_Lock, &first->b_state);
 	local_irq_restore(flags);
 
@@ -323,7 +373,10 @@ static void end_buffer_async_read(struct buffer_head *bh, int uptodate)
 	 * uptodate then we can set the page uptodate.
 	 */
 	if (page_uptodate && !PageError(page))
+	{
 		SetPageUptodate(page);
+	}
+
 	unlock_page(page);
 	return;
 
@@ -347,9 +400,13 @@ void end_buffer_async_write(struct buffer_head *bh, int uptodate)
 	BUG_ON(!buffer_async_write(bh));
 
 	page = bh->b_page;
-	if (uptodate) {
+
+	if (uptodate)
+	{
 		set_buffer_uptodate(bh);
-	} else {
+	}
+	else
+	{
 		buffer_io_error(bh, ", lost async page write");
 		mapping_set_error(page->mapping, -EIO);
 		set_buffer_write_io_error(bh);
@@ -364,13 +421,18 @@ void end_buffer_async_write(struct buffer_head *bh, int uptodate)
 	clear_buffer_async_write(bh);
 	unlock_buffer(bh);
 	tmp = bh->b_this_page;
-	while (tmp != bh) {
-		if (buffer_async_write(tmp)) {
+
+	while (tmp != bh)
+	{
+		if (buffer_async_write(tmp))
+		{
 			BUG_ON(!buffer_locked(tmp));
 			goto still_busy;
 		}
+
 		tmp = tmp->b_this_page;
 	}
+
 	bit_spin_unlock(BH_Uptodate_Lock, &first->b_state);
 	local_irq_restore(flags);
 	end_page_writeback(page);
@@ -411,7 +473,7 @@ static void mark_buffer_async_read(struct buffer_head *bh)
 }
 
 static void mark_buffer_async_write_endio(struct buffer_head *bh,
-					  bh_end_io_t *handler)
+		bh_end_io_t *handler)
 {
 	bh->b_end_io = handler;
 	set_buffer_async_write(bh);
@@ -440,7 +502,7 @@ EXPORT_SYMBOL(mark_buffer_async_write);
  * try_to_free_buffers() will be operating against the *blockdev* mapping
  * at the time, not against the S_ISREG file which depends on those buffers.
  * So the locking for private_list is via the private_lock in the address_space
- * which backs the buffers.  Which is different from the address_space 
+ * which backs the buffers.  Which is different from the address_space
  * against which the buffers are listed.  So for a particular address_space,
  * mapping->private_lock does *not* protect mapping->private_list!  In fact,
  * mapping->private_list will always be protected by the backing blockdev's
@@ -480,8 +542,12 @@ static void __remove_assoc_queue(struct buffer_head *bh)
 {
 	list_del_init(&bh->b_assoc_buffers);
 	WARN_ON(!bh->b_assoc_map);
+
 	if (buffer_write_io_error(bh))
+	{
 		set_bit(AS_EIO, &bh->b_assoc_map->flags);
+	}
+
 	bh->b_assoc_map = NULL;
 }
 
@@ -508,14 +574,21 @@ static int osync_buffers_list(spinlock_t *lock, struct list_head *list)
 
 	spin_lock(lock);
 repeat:
-	list_for_each_prev(p, list) {
+	list_for_each_prev(p, list)
+	{
 		bh = BH_ENTRY(p);
-		if (buffer_locked(bh)) {
+
+		if (buffer_locked(bh))
+		{
 			get_bh(bh);
 			spin_unlock(lock);
 			wait_on_buffer(bh);
+
 			if (!buffer_uptodate(bh))
+			{
 				err = -EIO;
+			}
+
 			brelse(bh);
 			spin_lock(lock);
 			goto repeat;
@@ -528,7 +601,9 @@ repeat:
 static void do_thaw_one(struct super_block *sb, void *unused)
 {
 	while (sb->s_bdev && !thaw_bdev(sb->s_bdev, sb))
+	{
 		printk(KERN_WARNING "Emergency Thaw on %pg\n", sb->s_bdev);
+	}
 }
 
 static void do_thaw_all(struct work_struct *work)
@@ -548,7 +623,9 @@ void emergency_thaw_all(void)
 	struct work_struct *work;
 
 	work = kmalloc(sizeof(*work), GFP_ATOMIC);
-	if (work) {
+
+	if (work)
+	{
 		INIT_WORK(work, do_thaw_all);
 		schedule_work(work);
 	}
@@ -570,10 +647,12 @@ int sync_mapping_buffers(struct address_space *mapping)
 	struct address_space *buffer_mapping = mapping->private_data;
 
 	if (buffer_mapping == NULL || list_empty(&mapping->private_list))
+	{
 		return 0;
+	}
 
 	return fsync_buffers_list(&buffer_mapping->private_lock,
-					&mapping->private_list);
+							  &mapping->private_list);
 }
 EXPORT_SYMBOL(sync_mapping_buffers);
 
@@ -584,12 +663,17 @@ EXPORT_SYMBOL(sync_mapping_buffers);
  * dirty, schedule it for IO.  So that indirects merge nicely with their data.
  */
 void write_boundary_block(struct block_device *bdev,
-			sector_t bblock, unsigned blocksize)
+						  sector_t bblock, unsigned blocksize)
 {
 	struct buffer_head *bh = __find_get_block(bdev, bblock + 1, blocksize);
-	if (bh) {
+
+	if (bh)
+	{
 		if (buffer_dirty(bh))
+		{
 			ll_rw_block(REQ_OP_WRITE, 0, 1, &bh);
+		}
+
 		put_bh(bh);
 	}
 }
@@ -600,15 +684,21 @@ void mark_buffer_dirty_inode(struct buffer_head *bh, struct inode *inode)
 	struct address_space *buffer_mapping = bh->b_page->mapping;
 
 	mark_buffer_dirty(bh);
-	if (!mapping->private_data) {
+
+	if (!mapping->private_data)
+	{
 		mapping->private_data = buffer_mapping;
-	} else {
+	}
+	else
+	{
 		BUG_ON(mapping->private_data != buffer_mapping);
 	}
-	if (!bh->b_assoc_map) {
+
+	if (!bh->b_assoc_map)
+	{
 		spin_lock(&buffer_mapping->private_lock);
 		list_move_tail(&bh->b_assoc_buffers,
-				&mapping->private_list);
+					   &mapping->private_list);
 		bh->b_assoc_map = mapping;
 		spin_unlock(&buffer_mapping->private_lock);
 	}
@@ -625,17 +715,20 @@ EXPORT_SYMBOL(mark_buffer_dirty_inode);
  * The caller must hold lock_page_memcg().
  */
 static void __set_page_dirty(struct page *page, struct address_space *mapping,
-			     int warn)
+							 int warn)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&mapping->tree_lock, flags);
-	if (page->mapping) {	/* Race with truncate? */
+
+	if (page->mapping)  	/* Race with truncate? */
+	{
 		WARN_ON_ONCE(warn && !PageUptodate(page));
 		account_page_dirtied(page, mapping);
 		radix_tree_tag_set(&mapping->page_tree,
-				page_index(page), PAGECACHE_TAG_DIRTY);
+						   page_index(page), PAGECACHE_TAG_DIRTY);
 	}
+
 	spin_unlock_irqrestore(&mapping->tree_lock, flags);
 }
 
@@ -670,18 +763,25 @@ int __set_page_dirty_buffers(struct page *page)
 	struct address_space *mapping = page_mapping(page);
 
 	if (unlikely(!mapping))
+	{
 		return !TestSetPageDirty(page);
+	}
 
 	spin_lock(&mapping->private_lock);
-	if (page_has_buffers(page)) {
+
+	if (page_has_buffers(page))
+	{
 		struct buffer_head *head = page_buffers(page);
 		struct buffer_head *bh = head;
 
-		do {
+		do
+		{
 			set_buffer_dirty(bh);
 			bh = bh->b_this_page;
-		} while (bh != head);
+		}
+		while (bh != head);
 	}
+
 	/*
 	 * Lock out page->mem_cgroup migration to keep PageDirty
 	 * synchronized with per-memcg dirty page counters.
@@ -691,12 +791,16 @@ int __set_page_dirty_buffers(struct page *page)
 	spin_unlock(&mapping->private_lock);
 
 	if (newly_dirty)
+	{
 		__set_page_dirty(page, mapping, 1);
+	}
 
 	unlock_page_memcg(page);
 
 	if (newly_dirty)
+	{
 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+	}
 
 	return newly_dirty;
 }
@@ -713,7 +817,7 @@ EXPORT_SYMBOL(__set_page_dirty_buffers);
  * Do this in two main stages: first we copy dirty buffers to a
  * temporary inode list, queueing the writes as we go.  Then we clean
  * up, waiting for those writes to complete.
- * 
+ *
  * During this second stage, any subsequent updates to the file may end
  * up refiling the buffer on the original inode's dirty list again, so
  * there is a chance we will end up with a buffer queued for write but
@@ -733,17 +837,23 @@ static int fsync_buffers_list(spinlock_t *lock, struct list_head *list)
 	blk_start_plug(&plug);
 
 	spin_lock(lock);
-	while (!list_empty(list)) {
+
+	while (!list_empty(list))
+	{
 		bh = BH_ENTRY(list->next);
 		mapping = bh->b_assoc_map;
 		__remove_assoc_queue(bh);
 		/* Avoid race with mark_buffer_dirty_inode() which does
 		 * a lockless check and we rely on seeing the dirty bit */
 		smp_mb();
-		if (buffer_dirty(bh) || buffer_locked(bh)) {
+
+		if (buffer_dirty(bh) || buffer_locked(bh))
+		{
 			list_add(&bh->b_assoc_buffers, &tmp);
 			bh->b_assoc_map = mapping;
-			if (buffer_dirty(bh)) {
+
+			if (buffer_dirty(bh))
+			{
 				get_bh(bh);
 				spin_unlock(lock);
 				/*
@@ -771,7 +881,8 @@ static int fsync_buffers_list(spinlock_t *lock, struct list_head *list)
 	blk_finish_plug(&plug);
 	spin_lock(lock);
 
-	while (!list_empty(&tmp)) {
+	while (!list_empty(&tmp))
+	{
 		bh = BH_ENTRY(tmp.prev);
 		get_bh(bh);
 		mapping = bh->b_assoc_map;
@@ -779,25 +890,37 @@ static int fsync_buffers_list(spinlock_t *lock, struct list_head *list)
 		/* Avoid race with mark_buffer_dirty_inode() which does
 		 * a lockless check and we rely on seeing the dirty bit */
 		smp_mb();
-		if (buffer_dirty(bh)) {
+
+		if (buffer_dirty(bh))
+		{
 			list_add(&bh->b_assoc_buffers,
-				 &mapping->private_list);
+					 &mapping->private_list);
 			bh->b_assoc_map = mapping;
 		}
+
 		spin_unlock(lock);
 		wait_on_buffer(bh);
+
 		if (!buffer_uptodate(bh))
+		{
 			err = -EIO;
+		}
+
 		brelse(bh);
 		spin_lock(lock);
 	}
-	
+
 	spin_unlock(lock);
 	err2 = osync_buffers_list(lock, list);
+
 	if (err)
+	{
 		return err;
+	}
 	else
+	{
 		return err2;
+	}
 }
 
 /*
@@ -811,14 +934,19 @@ static int fsync_buffers_list(spinlock_t *lock, struct list_head *list)
  */
 void invalidate_inode_buffers(struct inode *inode)
 {
-	if (inode_has_buffers(inode)) {
+	if (inode_has_buffers(inode))
+	{
 		struct address_space *mapping = &inode->i_data;
 		struct list_head *list = &mapping->private_list;
 		struct address_space *buffer_mapping = mapping->private_data;
 
 		spin_lock(&buffer_mapping->private_lock);
+
 		while (!list_empty(list))
+		{
 			__remove_assoc_queue(BH_ENTRY(list->next));
+		}
+
 		spin_unlock(&buffer_mapping->private_lock);
 	}
 }
@@ -834,22 +962,30 @@ int remove_inode_buffers(struct inode *inode)
 {
 	int ret = 1;
 
-	if (inode_has_buffers(inode)) {
+	if (inode_has_buffers(inode))
+	{
 		struct address_space *mapping = &inode->i_data;
 		struct list_head *list = &mapping->private_list;
 		struct address_space *buffer_mapping = mapping->private_data;
 
 		spin_lock(&buffer_mapping->private_lock);
-		while (!list_empty(list)) {
+
+		while (!list_empty(list))
+		{
 			struct buffer_head *bh = BH_ENTRY(list->next);
-			if (buffer_dirty(bh)) {
+
+			if (buffer_dirty(bh))
+			{
 				ret = 0;
 				break;
 			}
+
 			__remove_assoc_queue(bh);
 		}
+
 		spin_unlock(&buffer_mapping->private_lock);
 	}
+
 	return ret;
 }
 
@@ -863,7 +999,7 @@ int remove_inode_buffers(struct inode *inode)
  * which may not fail from ordinary buffer allocations.
  */
 struct buffer_head *alloc_page_buffers(struct page *page, unsigned long size,
-		int retry)
+									   int retry)
 {
 	struct buffer_head *bh, *head;
 	long offset;
@@ -871,10 +1007,15 @@ struct buffer_head *alloc_page_buffers(struct page *page, unsigned long size,
 try_again:
 	head = NULL;
 	offset = PAGE_SIZE;
-	while ((offset -= size) >= 0) {
+
+	while ((offset -= size) >= 0)
+	{
 		bh = alloc_buffer_head(GFP_NOFS);
+
 		if (!bh)
+		{
 			goto no_grow;
+		}
 
 		bh->b_this_page = head;
 		bh->b_blocknr = -1;
@@ -885,32 +1026,39 @@ try_again:
 		/* Link the buffer to its page */
 		set_bh_page(bh, page, offset);
 	}
+
 	return head;
-/*
- * In case anything failed, we just free everything we got.
- */
+	/*
+	 * In case anything failed, we just free everything we got.
+	 */
 no_grow:
-	if (head) {
-		do {
+
+	if (head)
+	{
+		do
+		{
 			bh = head;
 			head = head->b_this_page;
 			free_buffer_head(bh);
-		} while (head);
+		}
+		while (head);
 	}
 
 	/*
 	 * Return failure for non-async IO requests.  Async IO requests
 	 * are not allowed to fail, so we have to wait until buffer heads
-	 * become available.  But we don't want tasks sleeping with 
+	 * become available.  But we don't want tasks sleeping with
 	 * partially complete buffers, so all were released above.
 	 */
 	if (!retry)
+	{
 		return NULL;
+	}
 
 	/* We're _really_ low on memory. Now we just
 	 * wait for old buffer heads to become free due to
 	 * finishing IO.  Since this is an async request and
-	 * the reserve list is empty, we're sure there are 
+	 * the reserve list is empty, we're sure there are
 	 * async buffer heads in use.
 	 */
 	free_more_memory();
@@ -924,10 +1072,14 @@ link_dev_buffers(struct page *page, struct buffer_head *head)
 	struct buffer_head *bh, *tail;
 
 	bh = head;
-	do {
+
+	do
+	{
 		tail = bh;
 		bh = bh->b_this_page;
-	} while (bh);
+	}
+	while (bh);
+
 	tail->b_this_page = head;
 	attach_page_buffers(page, head);
 }
@@ -937,38 +1089,50 @@ static sector_t blkdev_max_block(struct block_device *bdev, unsigned int size)
 	sector_t retval = ~((sector_t)0);
 	loff_t sz = i_size_read(bdev->bd_inode);
 
-	if (sz) {
+	if (sz)
+	{
 		unsigned int sizebits = blksize_bits(size);
 		retval = (sz >> sizebits);
 	}
+
 	return retval;
 }
 
 /*
  * Initialise the state of a blockdev page's buffers.
- */ 
+ */
 static sector_t
 init_page_buffers(struct page *page, struct block_device *bdev,
-			sector_t block, int size)
+				  sector_t block, int size)
 {
 	struct buffer_head *head = page_buffers(page);
 	struct buffer_head *bh = head;
 	int uptodate = PageUptodate(page);
 	sector_t end_block = blkdev_max_block(I_BDEV(bdev->bd_inode), size);
 
-	do {
-		if (!buffer_mapped(bh)) {
+	do
+	{
+		if (!buffer_mapped(bh))
+		{
 			init_buffer(bh, NULL, NULL);
 			bh->b_bdev = bdev;
 			bh->b_blocknr = block;
+
 			if (uptodate)
+			{
 				set_buffer_uptodate(bh);
+			}
+
 			if (block < end_block)
+			{
 				set_buffer_mapped(bh);
+			}
 		}
+
 		block++;
 		bh = bh->b_this_page;
-	} while (bh != head);
+	}
+	while (bh != head);
 
 	/*
 	 * Caller needs to validate requested block against end of device.
@@ -983,7 +1147,7 @@ init_page_buffers(struct page *page, struct block_device *bdev,
  */
 static int
 grow_dev_page(struct block_device *bdev, sector_t block,
-	      pgoff_t index, int size, int sizebits, gfp_t gfp)
+			  pgoff_t index, int size, int sizebits, gfp_t gfp)
 {
 	struct inode *inode = bdev->bd_inode;
 	struct page *page;
@@ -1003,29 +1167,41 @@ grow_dev_page(struct block_device *bdev, sector_t block,
 	gfp_mask |= __GFP_NOFAIL;
 
 	page = find_or_create_page(inode->i_mapping, index, gfp_mask);
+
 	if (!page)
+	{
 		return ret;
+	}
 
 	BUG_ON(!PageLocked(page));
 
-	if (page_has_buffers(page)) {
+	if (page_has_buffers(page))
+	{
 		bh = page_buffers(page);
-		if (bh->b_size == size) {
+
+		if (bh->b_size == size)
+		{
 			end_block = init_page_buffers(page, bdev,
-						(sector_t)index << sizebits,
-						size);
+										  (sector_t)index << sizebits,
+										  size);
 			goto done;
 		}
+
 		if (!try_to_free_buffers(page))
+		{
 			goto failed;
+		}
 	}
 
 	/*
 	 * Allocate some buffers for this page
 	 */
 	bh = alloc_page_buffers(page, size, 0);
+
 	if (!bh)
+	{
 		goto failed;
+	}
 
 	/*
 	 * Link the page to the buffers and initialise them.  Take the
@@ -1035,7 +1211,7 @@ grow_dev_page(struct block_device *bdev, sector_t block,
 	spin_lock(&inode->i_mapping->private_lock);
 	link_dev_buffers(page, bh);
 	end_block = init_page_buffers(page, bdev, (sector_t)index << sizebits,
-			size);
+								  size);
 	spin_unlock(&inode->i_mapping->private_lock);
 done:
 	ret = (block < end_block) ? 1 : -ENXIO;
@@ -1056,9 +1232,12 @@ grow_buffers(struct block_device *bdev, sector_t block, int size, gfp_t gfp)
 	int sizebits;
 
 	sizebits = -1;
-	do {
+
+	do
+	{
 		sizebits++;
-	} while ((size << sizebits) < PAGE_SIZE);
+	}
+	while ((size << sizebits) < PAGE_SIZE);
 
 	index = block >> sizebits;
 
@@ -1066,11 +1245,12 @@ grow_buffers(struct block_device *bdev, sector_t block, int size, gfp_t gfp)
 	 * Check for a block which wants to lie outside our maximum possible
 	 * pagecache index.  (this comparison is done using sector_t types).
 	 */
-	if (unlikely(index != block >> sizebits)) {
+	if (unlikely(index != block >> sizebits))
+	{
 		printk(KERN_ERR "%s: requested out-of-range block %llu for "
-			"device %pg\n",
-			__func__, (unsigned long long)block,
-			bdev);
+			   "device %pg\n",
+			   __func__, (unsigned long long)block,
+			   bdev);
 		return -EIO;
 	}
 
@@ -1080,33 +1260,44 @@ grow_buffers(struct block_device *bdev, sector_t block, int size, gfp_t gfp)
 
 static struct buffer_head *
 __getblk_slow(struct block_device *bdev, sector_t block,
-	     unsigned size, gfp_t gfp)
+			  unsigned size, gfp_t gfp)
 {
 	/* Size must be multiple of hard sectorsize */
-	if (unlikely(size & (bdev_logical_block_size(bdev)-1) ||
-			(size < 512 || size > PAGE_SIZE))) {
+	if (unlikely(size & (bdev_logical_block_size(bdev) - 1) ||
+				 (size < 512 || size > PAGE_SIZE)))
+	{
 		printk(KERN_ERR "getblk(): invalid block size %d requested\n",
-					size);
+			   size);
 		printk(KERN_ERR "logical block size: %d\n",
-					bdev_logical_block_size(bdev));
+			   bdev_logical_block_size(bdev));
 
 		dump_stack();
 		return NULL;
 	}
 
-	for (;;) {
+	for (;;)
+	{
 		struct buffer_head *bh;
 		int ret;
 
 		bh = __find_get_block(bdev, block, size);
+
 		if (bh)
+		{
 			return bh;
+		}
 
 		ret = grow_buffers(bdev, block, size, gfp);
+
 		if (ret < 0)
+		{
 			return NULL;
+		}
+
 		if (ret == 0)
+		{
 			free_more_memory();
+		}
 	}
 }
 
@@ -1157,25 +1348,39 @@ void mark_buffer_dirty(struct buffer_head *bh)
 	 * Don't let the final "is it dirty" escape to before we
 	 * perhaps modified the buffer.
 	 */
-	if (buffer_dirty(bh)) {
+	if (buffer_dirty(bh))
+	{
 		smp_mb();
+
 		if (buffer_dirty(bh))
+		{
 			return;
+		}
 	}
 
-	if (!test_set_buffer_dirty(bh)) {
+	if (!test_set_buffer_dirty(bh))
+	{
 		struct page *page = bh->b_page;
 		struct address_space *mapping = NULL;
 
 		lock_page_memcg(page);
-		if (!TestSetPageDirty(page)) {
+
+		if (!TestSetPageDirty(page))
+		{
 			mapping = page_mapping(page);
+
 			if (mapping)
+			{
 				__set_page_dirty(page, mapping, 0);
+			}
 		}
+
 		unlock_page_memcg(page);
+
 		if (mapping)
+		{
 			__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+		}
 	}
 }
 EXPORT_SYMBOL(mark_buffer_dirty);
@@ -1187,12 +1392,14 @@ EXPORT_SYMBOL(mark_buffer_dirty);
  * in preparation for freeing it (sometimes, rarely, buffers are removed from
  * a page but it ends up not being freed, and buffers may later be reattached).
  */
-void __brelse(struct buffer_head * buf)
+void __brelse(struct buffer_head *buf)
 {
-	if (atomic_read(&buf->b_count)) {
+	if (atomic_read(&buf->b_count))
+	{
 		put_bh(buf);
 		return;
 	}
+
 	WARN(1, KERN_ERR "VFS: brelse: Trying to free free buffer\n");
 }
 EXPORT_SYMBOL(__brelse);
@@ -1204,7 +1411,9 @@ EXPORT_SYMBOL(__brelse);
 void __bforget(struct buffer_head *bh)
 {
 	clear_buffer_dirty(bh);
-	if (bh->b_assoc_map) {
+
+	if (bh->b_assoc_map)
+	{
 		struct address_space *buffer_mapping = bh->b_page->mapping;
 
 		spin_lock(&buffer_mapping->private_lock);
@@ -1212,6 +1421,7 @@ void __bforget(struct buffer_head *bh)
 		bh->b_assoc_map = NULL;
 		spin_unlock(&buffer_mapping->private_lock);
 	}
+
 	__brelse(bh);
 }
 EXPORT_SYMBOL(__bforget);
@@ -1219,17 +1429,25 @@ EXPORT_SYMBOL(__bforget);
 static struct buffer_head *__bread_slow(struct buffer_head *bh)
 {
 	lock_buffer(bh);
-	if (buffer_uptodate(bh)) {
+
+	if (buffer_uptodate(bh))
+	{
 		unlock_buffer(bh);
 		return bh;
-	} else {
+	}
+	else
+	{
 		get_bh(bh);
 		bh->b_end_io = end_buffer_read_sync;
 		submit_bh(REQ_OP_READ, 0, bh);
 		wait_on_buffer(bh);
+
 		if (buffer_uptodate(bh))
+		{
 			return bh;
+		}
 	}
+
 	brelse(bh);
 	return NULL;
 }
@@ -1250,18 +1468,19 @@ static struct buffer_head *__bread_slow(struct buffer_head *bh)
 
 #define BH_LRU_SIZE	16
 
-struct bh_lru {
+struct bh_lru
+{
 	struct buffer_head *bhs[BH_LRU_SIZE];
 };
 
 static DEFINE_PER_CPU(struct bh_lru, bh_lrus) = {{ NULL }};
 
 #ifdef CONFIG_SMP
-#define bh_lru_lock()	local_irq_disable()
-#define bh_lru_unlock()	local_irq_enable()
+	#define bh_lru_lock()	local_irq_disable()
+	#define bh_lru_unlock()	local_irq_enable()
 #else
-#define bh_lru_lock()	preempt_disable()
-#define bh_lru_unlock()	preempt_enable()
+	#define bh_lru_lock()	preempt_disable()
+	#define bh_lru_unlock()	preempt_enable()
 #endif
 
 static inline void check_irqs_on(void)
@@ -1280,36 +1499,53 @@ static void bh_lru_install(struct buffer_head *bh)
 
 	check_irqs_on();
 	bh_lru_lock();
-	if (__this_cpu_read(bh_lrus.bhs[0]) != bh) {
+
+	if (__this_cpu_read(bh_lrus.bhs[0]) != bh)
+	{
 		struct buffer_head *bhs[BH_LRU_SIZE];
 		int in;
 		int out = 0;
 
 		get_bh(bh);
 		bhs[out++] = bh;
-		for (in = 0; in < BH_LRU_SIZE; in++) {
+
+		for (in = 0; in < BH_LRU_SIZE; in++)
+		{
 			struct buffer_head *bh2 =
 				__this_cpu_read(bh_lrus.bhs[in]);
 
-			if (bh2 == bh) {
+			if (bh2 == bh)
+			{
 				__brelse(bh2);
-			} else {
-				if (out >= BH_LRU_SIZE) {
+			}
+			else
+			{
+				if (out >= BH_LRU_SIZE)
+				{
 					BUG_ON(evictee != NULL);
 					evictee = bh2;
-				} else {
+				}
+				else
+				{
 					bhs[out++] = bh2;
 				}
 			}
 		}
+
 		while (out < BH_LRU_SIZE)
+		{
 			bhs[out++] = NULL;
+		}
+
 		memcpy(this_cpu_ptr(&bh_lrus.bhs), bhs, sizeof(bhs));
 	}
+
 	bh_lru_unlock();
 
 	if (evictee)
+	{
 		__brelse(evictee);
+	}
 }
 
 /*
@@ -1323,24 +1559,32 @@ lookup_bh_lru(struct block_device *bdev, sector_t block, unsigned size)
 
 	check_irqs_on();
 	bh_lru_lock();
-	for (i = 0; i < BH_LRU_SIZE; i++) {
+
+	for (i = 0; i < BH_LRU_SIZE; i++)
+	{
 		struct buffer_head *bh = __this_cpu_read(bh_lrus.bhs[i]);
 
 		if (bh && bh->b_blocknr == block && bh->b_bdev == bdev &&
-		    bh->b_size == size) {
-			if (i) {
-				while (i) {
+			bh->b_size == size)
+		{
+			if (i)
+			{
+				while (i)
+				{
 					__this_cpu_write(bh_lrus.bhs[i],
-						__this_cpu_read(bh_lrus.bhs[i - 1]));
+									 __this_cpu_read(bh_lrus.bhs[i - 1]));
 					i--;
 				}
+
 				__this_cpu_write(bh_lrus.bhs[0], bh);
 			}
+
 			get_bh(bh);
 			ret = bh;
 			break;
 		}
 	}
+
 	bh_lru_unlock();
 	return ret;
 }
@@ -1355,13 +1599,20 @@ __find_get_block(struct block_device *bdev, sector_t block, unsigned size)
 {
 	struct buffer_head *bh = lookup_bh_lru(bdev, block, size);
 
-	if (bh == NULL) {
+	if (bh == NULL)
+	{
 		/* __find_get_block_slow will mark the page accessed */
 		bh = __find_get_block_slow(bdev, block);
+
 		if (bh)
+		{
 			bh_lru_install(bh);
-	} else
+		}
+	}
+	else
+	{
 		touch_buffer(bh);
+	}
 
 	return bh;
 }
@@ -1377,13 +1628,17 @@ EXPORT_SYMBOL(__find_get_block);
  */
 struct buffer_head *
 __getblk_gfp(struct block_device *bdev, sector_t block,
-	     unsigned size, gfp_t gfp)
+			 unsigned size, gfp_t gfp)
 {
 	struct buffer_head *bh = __find_get_block(bdev, block, size);
 
 	might_sleep();
+
 	if (bh == NULL)
+	{
 		bh = __getblk_slow(bdev, block, size, gfp);
+	}
+
 	return bh;
 }
 EXPORT_SYMBOL(__getblk_gfp);
@@ -1394,7 +1649,9 @@ EXPORT_SYMBOL(__getblk_gfp);
 void __breadahead(struct block_device *bdev, sector_t block, unsigned size)
 {
 	struct buffer_head *bh = __getblk(bdev, block, size);
-	if (likely(bh)) {
+
+	if (likely(bh))
+	{
 		ll_rw_block(REQ_OP_READ, REQ_RAHEAD, 1, &bh);
 		brelse(bh);
 	}
@@ -1415,12 +1672,15 @@ EXPORT_SYMBOL(__breadahead);
  */
 struct buffer_head *
 __bread_gfp(struct block_device *bdev, sector_t block,
-		   unsigned size, gfp_t gfp)
+			unsigned size, gfp_t gfp)
 {
 	struct buffer_head *bh = __getblk_gfp(bdev, block, size, gfp);
 
 	if (likely(bh) && !buffer_uptodate(bh))
+	{
 		bh = __bread_slow(bh);
+	}
+
 	return bh;
 }
 EXPORT_SYMBOL(__bread_gfp);
@@ -1435,10 +1695,12 @@ static void invalidate_bh_lru(void *arg)
 	struct bh_lru *b = &get_cpu_var(bh_lrus);
 	int i;
 
-	for (i = 0; i < BH_LRU_SIZE; i++) {
+	for (i = 0; i < BH_LRU_SIZE; i++)
+	{
 		brelse(b->bhs[i]);
 		b->bhs[i] = NULL;
 	}
+
 	put_cpu_var(bh_lrus);
 }
 
@@ -1446,10 +1708,13 @@ static bool has_bh_in_lru(int cpu, void *dummy)
 {
 	struct bh_lru *b = per_cpu_ptr(&bh_lrus, cpu);
 	int i;
-	
-	for (i = 0; i < BH_LRU_SIZE; i++) {
+
+	for (i = 0; i < BH_LRU_SIZE; i++)
+	{
 		if (b->bhs[i])
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -1462,17 +1727,22 @@ void invalidate_bh_lrus(void)
 EXPORT_SYMBOL_GPL(invalidate_bh_lrus);
 
 void set_bh_page(struct buffer_head *bh,
-		struct page *page, unsigned long offset)
+				 struct page *page, unsigned long offset)
 {
 	bh->b_page = page;
 	BUG_ON(offset >= PAGE_SIZE);
+
 	if (PageHighMem(page))
 		/*
 		 * This catches illegal uses and preserves the offset:
 		 */
+	{
 		bh->b_data = (char *)(0 + offset);
+	}
 	else
+	{
 		bh->b_data = page_address(page) + offset;
+	}
 }
 EXPORT_SYMBOL(set_bh_page);
 
@@ -1485,7 +1755,7 @@ EXPORT_SYMBOL(set_bh_page);
 	(1 << BH_Mapped | 1 << BH_New | 1 << BH_Req | \
 	 1 << BH_Delay | 1 << BH_Unwritten)
 
-static void discard_buffer(struct buffer_head * bh)
+static void discard_buffer(struct buffer_head *bh)
 {
 	unsigned long b_state, b_state_old;
 
@@ -1493,13 +1763,20 @@ static void discard_buffer(struct buffer_head * bh)
 	clear_buffer_dirty(bh);
 	bh->b_bdev = NULL;
 	b_state = bh->b_state;
-	for (;;) {
+
+	for (;;)
+	{
 		b_state_old = cmpxchg(&bh->b_state, b_state,
-				      (b_state & ~BUFFER_FLAGS_DISCARD));
+							  (b_state & ~BUFFER_FLAGS_DISCARD));
+
 		if (b_state_old == b_state)
+		{
 			break;
+		}
+
 		b_state = b_state_old;
 	}
+
 	unlock_buffer(bh);
 }
 
@@ -1520,15 +1797,18 @@ static void discard_buffer(struct buffer_head * bh)
  * blocks on-disk.
  */
 void block_invalidatepage(struct page *page, unsigned int offset,
-			  unsigned int length)
+						  unsigned int length)
 {
 	struct buffer_head *head, *bh, *next;
 	unsigned int curr_off = 0;
 	unsigned int stop = length + offset;
 
 	BUG_ON(!PageLocked(page));
+
 	if (!page_has_buffers(page))
+	{
 		goto out;
+	}
 
 	/*
 	 * Check for overflow
@@ -1537,7 +1817,9 @@ void block_invalidatepage(struct page *page, unsigned int offset,
 
 	head = page_buffers(page);
 	bh = head;
-	do {
+
+	do
+	{
 		unsigned int next_off = curr_off + bh->b_size;
 		next = bh->b_this_page;
 
@@ -1545,16 +1827,22 @@ void block_invalidatepage(struct page *page, unsigned int offset,
 		 * Are we still fully in range ?
 		 */
 		if (next_off > stop)
+		{
 			goto out;
+		}
 
 		/*
 		 * is this block fully invalidated?
 		 */
 		if (offset <= curr_off)
+		{
 			discard_buffer(bh);
+		}
+
 		curr_off = next_off;
 		bh = next;
-	} while (bh != head);
+	}
+	while (bh != head);
 
 	/*
 	 * We release buffers only if the entire page is being invalidated.
@@ -1562,7 +1850,10 @@ void block_invalidatepage(struct page *page, unsigned int offset,
 	 * so real IO is not possible anymore.
 	 */
 	if (offset == 0)
+	{
 		try_to_release_page(page, 0);
+	}
+
 out:
 	return;
 }
@@ -1575,30 +1866,46 @@ EXPORT_SYMBOL(block_invalidatepage);
  * is already excluded via the page lock.
  */
 void create_empty_buffers(struct page *page,
-			unsigned long blocksize, unsigned long b_state)
+						  unsigned long blocksize, unsigned long b_state)
 {
 	struct buffer_head *bh, *head, *tail;
 
 	head = alloc_page_buffers(page, blocksize, 1);
 	bh = head;
-	do {
+
+	do
+	{
 		bh->b_state |= b_state;
 		tail = bh;
 		bh = bh->b_this_page;
-	} while (bh);
+	}
+	while (bh);
+
 	tail->b_this_page = head;
 
 	spin_lock(&page->mapping->private_lock);
-	if (PageUptodate(page) || PageDirty(page)) {
+
+	if (PageUptodate(page) || PageDirty(page))
+	{
 		bh = head;
-		do {
+
+		do
+		{
 			if (PageDirty(page))
+			{
 				set_buffer_dirty(bh);
+			}
+
 			if (PageUptodate(page))
+			{
 				set_buffer_uptodate(bh);
+			}
+
 			bh = bh->b_this_page;
-		} while (bh != head);
+		}
+		while (bh != head);
 	}
+
 	attach_page_buffers(page, head);
 	spin_unlock(&page->mapping->private_lock);
 }
@@ -1627,7 +1934,9 @@ void unmap_underlying_metadata(struct block_device *bdev, sector_t block)
 	might_sleep();
 
 	old_bh = __find_get_block_slow(bdev, block);
-	if (old_bh) {
+
+	if (old_bh)
+	{
 		clear_buffer_dirty(old_bh);
 		wait_on_buffer(old_bh);
 		clear_buffer_req(old_bh);
@@ -1654,7 +1963,10 @@ static struct buffer_head *create_page_buffers(struct page *page, struct inode *
 	BUG_ON(!PageLocked(page));
 
 	if (!page_has_buffers(page))
+	{
 		create_empty_buffers(page, 1 << ACCESS_ONCE(inode->i_blkbits), b_state);
+	}
+
 	return page_buffers(page);
 }
 
@@ -1688,8 +2000,8 @@ static struct buffer_head *create_page_buffers(struct page *page, struct inode *
  * causes the writes to be flagged as synchronous writes.
  */
 int __block_write_full_page(struct inode *inode, struct page *page,
-			get_block_t *get_block, struct writeback_control *wbc,
-			bh_end_io_t *handler)
+							get_block_t *get_block, struct writeback_control *wbc,
+							bh_end_io_t *handler)
 {
 	int err;
 	sector_t block;
@@ -1700,7 +2012,7 @@ int __block_write_full_page(struct inode *inode, struct page *page,
 	int write_flags = (wbc->sync_mode == WB_SYNC_ALL ? WRITE_SYNC : 0);
 
 	head = create_page_buffers(page, inode,
-					(1 << BH_Dirty)|(1 << BH_Uptodate));
+							   (1 << BH_Dirty) | (1 << BH_Uptodate));
 
 	/*
 	 * Be very careful.  We have no exclusion from __set_page_dirty_buffers
@@ -1723,8 +2035,10 @@ int __block_write_full_page(struct inode *inode, struct page *page,
 	 * Get all the dirty buffers mapped to disk addresses and
 	 * handle any aliases from the underlying blockdev's mapping.
 	 */
-	do {
-		if (block > last_block) {
+	do
+	{
+		if (block > last_block)
+		{
 			/*
 			 * mapped buffers outside i_size will occur, because
 			 * this page can be outside i_size when there is a
@@ -1735,27 +2049,41 @@ int __block_write_full_page(struct inode *inode, struct page *page,
 			 */
 			clear_buffer_dirty(bh);
 			set_buffer_uptodate(bh);
-		} else if ((!buffer_mapped(bh) || buffer_delay(bh)) &&
-			   buffer_dirty(bh)) {
+		}
+		else if ((!buffer_mapped(bh) || buffer_delay(bh)) &&
+				 buffer_dirty(bh))
+		{
 			WARN_ON(bh->b_size != blocksize);
 			err = get_block(inode, block, bh, 1);
+
 			if (err)
+			{
 				goto recover;
+			}
+
 			clear_buffer_delay(bh);
-			if (buffer_new(bh)) {
+
+			if (buffer_new(bh))
+			{
 				/* blockdev mappings never come here */
 				clear_buffer_new(bh);
 				unmap_underlying_metadata(bh->b_bdev,
-							bh->b_blocknr);
+										  bh->b_blocknr);
 			}
 		}
+
 		bh = bh->b_this_page;
 		block++;
-	} while (bh != head);
+	}
+	while (bh != head);
 
-	do {
+	do
+	{
 		if (!buffer_mapped(bh))
+		{
 			continue;
+		}
+
 		/*
 		 * If it's a fully non-blocking write attempt and we cannot
 		 * lock the buffer then redirty the page.  Note that this can
@@ -1763,18 +2091,26 @@ int __block_write_full_page(struct inode *inode, struct page *page,
 		 * and kswapd activity, but those code paths have their own
 		 * higher-level throttling.
 		 */
-		if (wbc->sync_mode != WB_SYNC_NONE) {
+		if (wbc->sync_mode != WB_SYNC_NONE)
+		{
 			lock_buffer(bh);
-		} else if (!trylock_buffer(bh)) {
+		}
+		else if (!trylock_buffer(bh))
+		{
 			redirty_page_for_writepage(wbc, page);
 			continue;
 		}
-		if (test_clear_buffer_dirty(bh)) {
+
+		if (test_clear_buffer_dirty(bh))
+		{
 			mark_buffer_async_write_endio(bh, handler);
-		} else {
+		}
+		else
+		{
 			unlock_buffer(bh);
 		}
-	} while ((bh = bh->b_this_page) != head);
+	}
+	while ((bh = bh->b_this_page) != head);
 
 	/*
 	 * The page and its buffers are protected by PageWriteback(), so we can
@@ -1783,19 +2119,27 @@ int __block_write_full_page(struct inode *inode, struct page *page,
 	BUG_ON(PageWriteback(page));
 	set_page_writeback(page);
 
-	do {
+	do
+	{
 		struct buffer_head *next = bh->b_this_page;
-		if (buffer_async_write(bh)) {
+
+		if (buffer_async_write(bh))
+		{
 			submit_bh_wbc(REQ_OP_WRITE, write_flags, bh, 0, wbc);
 			nr_underway++;
 		}
+
 		bh = next;
-	} while (bh != head);
+	}
+	while (bh != head);
+
 	unlock_page(page);
 
 	err = 0;
 done:
-	if (nr_underway == 0) {
+
+	if (nr_underway == 0)
+	{
 		/*
 		 * The page was marked dirty, but the buffers were
 		 * clean.  Someone wrote them back by hand with
@@ -1808,6 +2152,7 @@ done:
 		 * here on.
 		 */
 	}
+
 	return err;
 
 recover:
@@ -1818,33 +2163,47 @@ recover:
 	 * The page is currently locked and not marked for writeback
 	 */
 	bh = head;
+
 	/* Recovery: lock and submit the mapped buffers */
-	do {
+	do
+	{
 		if (buffer_mapped(bh) && buffer_dirty(bh) &&
-		    !buffer_delay(bh)) {
+			!buffer_delay(bh))
+		{
 			lock_buffer(bh);
 			mark_buffer_async_write_endio(bh, handler);
-		} else {
+		}
+		else
+		{
 			/*
 			 * The buffer may have been set dirty during
 			 * attachment to a dirty page.
 			 */
 			clear_buffer_dirty(bh);
 		}
-	} while ((bh = bh->b_this_page) != head);
+	}
+	while ((bh = bh->b_this_page) != head);
+
 	SetPageError(page);
 	BUG_ON(PageWriteback(page));
 	mapping_set_error(page->mapping, err);
 	set_page_writeback(page);
-	do {
+
+	do
+	{
 		struct buffer_head *next = bh->b_this_page;
-		if (buffer_async_write(bh)) {
+
+		if (buffer_async_write(bh))
+		{
 			clear_buffer_dirty(bh);
 			submit_bh_wbc(REQ_OP_WRITE, write_flags, bh, 0, wbc);
 			nr_underway++;
 		}
+
 		bh = next;
-	} while (bh != head);
+	}
+	while (bh != head);
+
 	unlock_page(page);
 	goto done;
 }
@@ -1861,17 +2220,25 @@ void page_zero_new_buffers(struct page *page, unsigned from, unsigned to)
 	struct buffer_head *head, *bh;
 
 	BUG_ON(!PageLocked(page));
+
 	if (!page_has_buffers(page))
+	{
 		return;
+	}
 
 	bh = head = page_buffers(page);
 	block_start = 0;
-	do {
+
+	do
+	{
 		block_end = block_start + bh->b_size;
 
-		if (buffer_new(bh)) {
-			if (block_end > from && block_start < to) {
-				if (!PageUptodate(page)) {
+		if (buffer_new(bh))
+		{
+			if (block_end > from && block_start < to)
+			{
+				if (!PageUptodate(page))
+				{
 					unsigned start, size;
 
 					start = max(from, block_start);
@@ -1888,13 +2255,14 @@ void page_zero_new_buffers(struct page *page, unsigned from, unsigned to)
 
 		block_start = block_end;
 		bh = bh->b_this_page;
-	} while (bh != head);
+	}
+	while (bh != head);
 }
 EXPORT_SYMBOL(page_zero_new_buffers);
 
 static void
 iomap_to_bh(struct inode *inode, sector_t block, struct buffer_head *bh,
-		struct iomap *iomap)
+			struct iomap *iomap)
 {
 	loff_t offset = block << inode->i_blkbits;
 
@@ -1908,46 +2276,60 @@ iomap_to_bh(struct inode *inode, sector_t block, struct buffer_head *bh,
 	 */
 	BUG_ON(offset >= iomap->offset + iomap->length);
 
-	switch (iomap->type) {
-	case IOMAP_HOLE:
-		/*
-		 * If the buffer is not up to date or beyond the current EOF,
-		 * we need to mark it as new to ensure sub-block zeroing is
-		 * executed if necessary.
-		 */
-		if (!buffer_uptodate(bh) ||
-		    (offset >= i_size_read(inode)))
+	switch (iomap->type)
+	{
+		case IOMAP_HOLE:
+
+			/*
+			 * If the buffer is not up to date or beyond the current EOF,
+			 * we need to mark it as new to ensure sub-block zeroing is
+			 * executed if necessary.
+			 */
+			if (!buffer_uptodate(bh) ||
+				(offset >= i_size_read(inode)))
+			{
+				set_buffer_new(bh);
+			}
+
+			break;
+
+		case IOMAP_DELALLOC:
+			if (!buffer_uptodate(bh) ||
+				(offset >= i_size_read(inode)))
+			{
+				set_buffer_new(bh);
+			}
+
+			set_buffer_uptodate(bh);
+			set_buffer_mapped(bh);
+			set_buffer_delay(bh);
+			break;
+
+		case IOMAP_UNWRITTEN:
+			/*
+			 * For unwritten regions, we always need to ensure that
+			 * sub-block writes cause the regions in the block we are not
+			 * writing to are zeroed. Set the buffer as new to ensure this.
+			 */
 			set_buffer_new(bh);
-		break;
-	case IOMAP_DELALLOC:
-		if (!buffer_uptodate(bh) ||
-		    (offset >= i_size_read(inode)))
-			set_buffer_new(bh);
-		set_buffer_uptodate(bh);
-		set_buffer_mapped(bh);
-		set_buffer_delay(bh);
-		break;
-	case IOMAP_UNWRITTEN:
-		/*
-		 * For unwritten regions, we always need to ensure that
-		 * sub-block writes cause the regions in the block we are not
-		 * writing to are zeroed. Set the buffer as new to ensure this.
-		 */
-		set_buffer_new(bh);
-		set_buffer_unwritten(bh);
+			set_buffer_unwritten(bh);
+
 		/* FALLTHRU */
-	case IOMAP_MAPPED:
-		if (offset >= i_size_read(inode))
-			set_buffer_new(bh);
-		bh->b_blocknr = (iomap->blkno >> (inode->i_blkbits - 9)) +
-				((offset - iomap->offset) >> inode->i_blkbits);
-		set_buffer_mapped(bh);
-		break;
+		case IOMAP_MAPPED:
+			if (offset >= i_size_read(inode))
+			{
+				set_buffer_new(bh);
+			}
+
+			bh->b_blocknr = (iomap->blkno >> (inode->i_blkbits - 9)) +
+							((offset - iomap->offset) >> inode->i_blkbits);
+			set_buffer_mapped(bh);
+			break;
 	}
 }
 
 int __block_write_begin_int(struct page *page, loff_t pos, unsigned len,
-		get_block_t *get_block, struct iomap *iomap)
+							get_block_t *get_block, struct iomap *iomap)
 {
 	unsigned from = pos & (PAGE_SIZE - 1);
 	unsigned to = from + len;
@@ -1956,7 +2338,7 @@ int __block_write_begin_int(struct page *page, loff_t pos, unsigned len,
 	sector_t block;
 	int err = 0;
 	unsigned blocksize, bbits;
-	struct buffer_head *bh, *head, *wait[2], **wait_bh=wait;
+	struct buffer_head *bh, *head, *wait[2], **wait_bh = wait;
 
 	BUG_ON(!PageLocked(page));
 	BUG_ON(from > PAGE_SIZE);
@@ -1969,78 +2351,118 @@ int __block_write_begin_int(struct page *page, loff_t pos, unsigned len,
 
 	block = (sector_t)page->index << (PAGE_SHIFT - bbits);
 
-	for(bh = head, block_start = 0; bh != head || !block_start;
-	    block++, block_start=block_end, bh = bh->b_this_page) {
+	for (bh = head, block_start = 0; bh != head || !block_start;
+		 block++, block_start = block_end, bh = bh->b_this_page)
+	{
 		block_end = block_start + blocksize;
-		if (block_end <= from || block_start >= to) {
-			if (PageUptodate(page)) {
+
+		if (block_end <= from || block_start >= to)
+		{
+			if (PageUptodate(page))
+			{
 				if (!buffer_uptodate(bh))
+				{
 					set_buffer_uptodate(bh);
+				}
 			}
+
 			continue;
 		}
+
 		if (buffer_new(bh))
+		{
 			clear_buffer_new(bh);
-		if (!buffer_mapped(bh)) {
+		}
+
+		if (!buffer_mapped(bh))
+		{
 			WARN_ON(bh->b_size != blocksize);
-			if (get_block) {
+
+			if (get_block)
+			{
 				err = get_block(inode, block, bh, 1);
+
 				if (err)
+				{
 					break;
-			} else {
+				}
+			}
+			else
+			{
 				iomap_to_bh(inode, block, bh, iomap);
 			}
 
-			if (buffer_new(bh)) {
+			if (buffer_new(bh))
+			{
 				unmap_underlying_metadata(bh->b_bdev,
-							bh->b_blocknr);
-				if (PageUptodate(page)) {
+										  bh->b_blocknr);
+
+				if (PageUptodate(page))
+				{
 					clear_buffer_new(bh);
 					set_buffer_uptodate(bh);
 					mark_buffer_dirty(bh);
 					continue;
 				}
+
 				if (block_end > to || block_start < from)
 					zero_user_segments(page,
-						to, block_end,
-						block_start, from);
+									   to, block_end,
+									   block_start, from);
+
 				continue;
 			}
 		}
-		if (PageUptodate(page)) {
+
+		if (PageUptodate(page))
+		{
 			if (!buffer_uptodate(bh))
+			{
 				set_buffer_uptodate(bh);
-			continue; 
+			}
+
+			continue;
 		}
+
 		if (!buffer_uptodate(bh) && !buffer_delay(bh) &&
-		    !buffer_unwritten(bh) &&
-		     (block_start < from || block_end > to)) {
+			!buffer_unwritten(bh) &&
+			(block_start < from || block_end > to))
+		{
 			ll_rw_block(REQ_OP_READ, 0, 1, &bh);
-			*wait_bh++=bh;
+			*wait_bh++ = bh;
 		}
 	}
+
 	/*
 	 * If we issued read requests - let them complete.
 	 */
-	while(wait_bh > wait) {
+	while (wait_bh > wait)
+	{
 		wait_on_buffer(*--wait_bh);
+
 		if (!buffer_uptodate(*wait_bh))
+		{
 			err = -EIO;
+		}
 	}
+
 	if (unlikely(err))
+	{
 		page_zero_new_buffers(page, from, to);
+	}
+
 	return err;
 }
 
 int __block_write_begin(struct page *page, loff_t pos, unsigned len,
-		get_block_t *get_block)
+						get_block_t *get_block)
 {
 	return __block_write_begin_int(page, pos, len, get_block, NULL);
 }
 EXPORT_SYMBOL(__block_write_begin);
 
 static int __block_commit_write(struct inode *inode, struct page *page,
-		unsigned from, unsigned to)
+								unsigned from, unsigned to)
 {
 	unsigned block_start, block_end;
 	int partial = 0;
@@ -2051,20 +2473,30 @@ static int __block_commit_write(struct inode *inode, struct page *page,
 	blocksize = bh->b_size;
 
 	block_start = 0;
-	do {
+
+	do
+	{
 		block_end = block_start + blocksize;
-		if (block_end <= from || block_start >= to) {
+
+		if (block_end <= from || block_start >= to)
+		{
 			if (!buffer_uptodate(bh))
+			{
 				partial = 1;
-		} else {
+			}
+		}
+		else
+		{
 			set_buffer_uptodate(bh);
 			mark_buffer_dirty(bh);
 		}
+
 		clear_buffer_new(bh);
 
 		block_start = block_end;
 		bh = bh->b_this_page;
-	} while (bh != head);
+	}
+	while (bh != head);
 
 	/*
 	 * If this is a partial write which happened to make all buffers
@@ -2073,7 +2505,10 @@ static int __block_commit_write(struct inode *inode, struct page *page,
 	 * uptodate as a result of this (potentially partial) write.
 	 */
 	if (!partial)
+	{
 		SetPageUptodate(page);
+	}
+
 	return 0;
 }
 
@@ -2084,18 +2519,23 @@ static int __block_commit_write(struct inode *inode, struct page *page,
  * The filesystem needs to handle block truncation upon failure.
  */
 int block_write_begin(struct address_space *mapping, loff_t pos, unsigned len,
-		unsigned flags, struct page **pagep, get_block_t *get_block)
+					  unsigned flags, struct page **pagep, get_block_t *get_block)
 {
 	pgoff_t index = pos >> PAGE_SHIFT;
 	struct page *page;
 	int status;
 
 	page = grab_cache_page_write_begin(mapping, index, flags);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	status = __block_write_begin(page, pos, len, get_block);
-	if (unlikely(status)) {
+
+	if (unlikely(status))
+	{
 		unlock_page(page);
 		put_page(page);
 		page = NULL;
@@ -2107,15 +2547,16 @@ int block_write_begin(struct address_space *mapping, loff_t pos, unsigned len,
 EXPORT_SYMBOL(block_write_begin);
 
 int block_write_end(struct file *file, struct address_space *mapping,
-			loff_t pos, unsigned len, unsigned copied,
-			struct page *page, void *fsdata)
+					loff_t pos, unsigned len, unsigned copied,
+					struct page *page, void *fsdata)
 {
 	struct inode *inode = mapping->host;
 	unsigned start;
 
 	start = pos & (PAGE_SIZE - 1);
 
-	if (unlikely(copied < len)) {
+	if (unlikely(copied < len))
+	{
 		/*
 		 * The buffers that were written will now be uptodate, so we
 		 * don't have to worry about a readpage reading them and
@@ -2129,22 +2570,25 @@ int block_write_end(struct file *file, struct address_space *mapping,
 		 * caller to redo the whole thing.
 		 */
 		if (!PageUptodate(page))
+		{
 			copied = 0;
+		}
 
-		page_zero_new_buffers(page, start+copied, start+len);
+		page_zero_new_buffers(page, start + copied, start + len);
 	}
+
 	flush_dcache_page(page);
 
 	/* This could be a short (even 0-length) commit */
-	__block_commit_write(inode, page, start, start+copied);
+	__block_commit_write(inode, page, start, start + copied);
 
 	return copied;
 }
 EXPORT_SYMBOL(block_write_end);
 
 int generic_write_end(struct file *file, struct address_space *mapping,
-			loff_t pos, unsigned len, unsigned copied,
-			struct page *page, void *fsdata)
+					  loff_t pos, unsigned len, unsigned copied,
+					  struct page *page, void *fsdata)
 {
 	struct inode *inode = mapping->host;
 	loff_t old_size = inode->i_size;
@@ -2159,8 +2603,9 @@ int generic_write_end(struct file *file, struct address_space *mapping,
 	 * But it's important to update i_size while still holding page lock:
 	 * page writeout could otherwise come in and zero beyond i_size.
 	 */
-	if (pos+copied > inode->i_size) {
-		i_size_write(inode, pos+copied);
+	if (pos + copied > inode->i_size)
+	{
+		i_size_write(inode, pos + copied);
 		i_size_changed = 1;
 	}
 
@@ -2168,7 +2613,10 @@ int generic_write_end(struct file *file, struct address_space *mapping,
 	put_page(page);
 
 	if (old_size < pos)
+	{
 		pagecache_isize_extended(inode, old_size, pos);
+	}
+
 	/*
 	 * Don't mark the inode dirty under page lock. First, it unnecessarily
 	 * makes the holding time of page lock longer. Second, it forces lock
@@ -2176,7 +2624,9 @@ int generic_write_end(struct file *file, struct address_space *mapping,
 	 * filesystems.
 	 */
 	if (i_size_changed)
+	{
 		mark_inode_dirty(inode);
+	}
 
 	return copied;
 }
@@ -2190,7 +2640,7 @@ EXPORT_SYMBOL(generic_write_end);
  * we want to read are uptodate.
  */
 int block_is_partially_uptodate(struct page *page, unsigned long from,
-					unsigned long count)
+								unsigned long count)
 {
 	unsigned block_start, block_end, blocksize;
 	unsigned to;
@@ -2198,30 +2648,45 @@ int block_is_partially_uptodate(struct page *page, unsigned long from,
 	int ret = 1;
 
 	if (!page_has_buffers(page))
+	{
 		return 0;
+	}
 
 	head = page_buffers(page);
 	blocksize = head->b_size;
 	to = min_t(unsigned, PAGE_SIZE - from, count);
 	to = from + to;
+
 	if (from < blocksize && to > PAGE_SIZE - blocksize)
+	{
 		return 0;
+	}
 
 	bh = head;
 	block_start = 0;
-	do {
+
+	do
+	{
 		block_end = block_start + blocksize;
-		if (block_end > from && block_start < to) {
-			if (!buffer_uptodate(bh)) {
+
+		if (block_end > from && block_start < to)
+		{
+			if (!buffer_uptodate(bh))
+			{
 				ret = 0;
 				break;
 			}
+
 			if (block_end >= to)
+			{
 				break;
+			}
 		}
+
 		block_start = block_end;
 		bh = bh->b_this_page;
-	} while (bh != head);
+	}
+	while (bh != head);
 
 	return ret;
 }
@@ -2248,57 +2713,84 @@ int block_read_full_page(struct page *page, get_block_t *get_block)
 	bbits = block_size_bits(blocksize);
 
 	iblock = (sector_t)page->index << (PAGE_SHIFT - bbits);
-	lblock = (i_size_read(inode)+blocksize-1) >> bbits;
+	lblock = (i_size_read(inode) + blocksize - 1) >> bbits;
 	bh = head;
 	nr = 0;
 	i = 0;
 
-	do {
+	do
+	{
 		if (buffer_uptodate(bh))
+		{
 			continue;
+		}
 
-		if (!buffer_mapped(bh)) {
+		if (!buffer_mapped(bh))
+		{
 			int err = 0;
 
 			fully_mapped = 0;
-			if (iblock < lblock) {
+
+			if (iblock < lblock)
+			{
 				WARN_ON(bh->b_size != blocksize);
 				err = get_block(inode, iblock, bh, 0);
+
 				if (err)
+				{
 					SetPageError(page);
+				}
 			}
-			if (!buffer_mapped(bh)) {
+
+			if (!buffer_mapped(bh))
+			{
 				zero_user(page, i * blocksize, blocksize);
+
 				if (!err)
+				{
 					set_buffer_uptodate(bh);
+				}
+
 				continue;
 			}
+
 			/*
 			 * get_block() might have updated the buffer
 			 * synchronously
 			 */
 			if (buffer_uptodate(bh))
+			{
 				continue;
+			}
 		}
+
 		arr[nr++] = bh;
-	} while (i++, iblock++, (bh = bh->b_this_page) != head);
+	}
+	while (i++, iblock++, (bh = bh->b_this_page) != head);
 
 	if (fully_mapped)
+	{
 		SetPageMappedToDisk(page);
+	}
 
-	if (!nr) {
+	if (!nr)
+	{
 		/*
 		 * All buffers are uptodate - we can set the page uptodate
 		 * as well. But not if get_block() returned an error.
 		 */
 		if (!PageError(page))
+		{
 			SetPageUptodate(page);
+		}
+
 		unlock_page(page);
 		return 0;
 	}
 
 	/* Stage two: lock the buffers */
-	for (i = 0; i < nr; i++) {
+	for (i = 0; i < nr; i++)
+	{
 		bh = arr[i];
 		lock_buffer(bh);
 		mark_buffer_async_read(bh);
@@ -2309,20 +2801,27 @@ int block_read_full_page(struct page *page, get_block_t *get_block)
 	 * inside the buffer lock in case another process reading
 	 * the underlying blockdev brought it uptodate (the sct fix).
 	 */
-	for (i = 0; i < nr; i++) {
+	for (i = 0; i < nr; i++)
+	{
 		bh = arr[i];
+
 		if (buffer_uptodate(bh))
+		{
 			end_buffer_async_read(bh, 1);
+		}
 		else
+		{
 			submit_bh(REQ_OP_READ, 0, bh);
+		}
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(block_read_full_page);
 
 /* utility function for filesystems that need to do work on expanding
  * truncates.  Uses filesystem pagecache writes to allow the filesystem to
- * deal with the hole.  
+ * deal with the hole.
  */
 int generic_cont_expand_simple(struct inode *inode, loff_t size)
 {
@@ -2332,14 +2831,20 @@ int generic_cont_expand_simple(struct inode *inode, loff_t size)
 	int err;
 
 	err = inode_newsize_ok(inode, size);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = pagecache_write_begin(NULL, mapping, size, 0,
-				AOP_FLAG_UNINTERRUPTIBLE|AOP_FLAG_CONT_EXPAND,
-				&page, &fsdata);
+								AOP_FLAG_UNINTERRUPTIBLE | AOP_FLAG_CONT_EXPAND,
+								&page, &fsdata);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = pagecache_write_end(NULL, mapping, size, 0, 0, page, fsdata);
 	BUG_ON(err > 0);
@@ -2350,7 +2855,7 @@ out:
 EXPORT_SYMBOL(generic_cont_expand_simple);
 
 static int cont_expand_zero(struct file *file, struct address_space *mapping,
-			    loff_t pos, loff_t *bytes)
+							loff_t pos, loff_t *bytes)
 {
 	struct inode *inode = mapping->host;
 	unsigned blocksize = 1 << inode->i_blkbits;
@@ -2364,61 +2869,89 @@ static int cont_expand_zero(struct file *file, struct address_space *mapping,
 	index = pos >> PAGE_SHIFT;
 	offset = pos & ~PAGE_MASK;
 
-	while (index > (curidx = (curpos = *bytes)>>PAGE_SHIFT)) {
+	while (index > (curidx = (curpos = *bytes) >> PAGE_SHIFT))
+	{
 		zerofrom = curpos & ~PAGE_MASK;
-		if (zerofrom & (blocksize-1)) {
-			*bytes |= (blocksize-1);
+
+		if (zerofrom & (blocksize - 1))
+		{
+			*bytes |= (blocksize - 1);
 			(*bytes)++;
 		}
+
 		len = PAGE_SIZE - zerofrom;
 
 		err = pagecache_write_begin(file, mapping, curpos, len,
-						AOP_FLAG_UNINTERRUPTIBLE,
-						&page, &fsdata);
+									AOP_FLAG_UNINTERRUPTIBLE,
+									&page, &fsdata);
+
 		if (err)
+		{
 			goto out;
+		}
+
 		zero_user(page, zerofrom, len);
 		err = pagecache_write_end(file, mapping, curpos, len, len,
-						page, fsdata);
+								  page, fsdata);
+
 		if (err < 0)
+		{
 			goto out;
+		}
+
 		BUG_ON(err != len);
 		err = 0;
 
 		balance_dirty_pages_ratelimited(mapping);
 
-		if (unlikely(fatal_signal_pending(current))) {
+		if (unlikely(fatal_signal_pending(current)))
+		{
 			err = -EINTR;
 			goto out;
 		}
 	}
 
 	/* page covers the boundary, find the boundary offset */
-	if (index == curidx) {
+	if (index == curidx)
+	{
 		zerofrom = curpos & ~PAGE_MASK;
+
 		/* if we will expand the thing last block will be filled */
-		if (offset <= zerofrom) {
+		if (offset <= zerofrom)
+		{
 			goto out;
 		}
-		if (zerofrom & (blocksize-1)) {
-			*bytes |= (blocksize-1);
+
+		if (zerofrom & (blocksize - 1))
+		{
+			*bytes |= (blocksize - 1);
 			(*bytes)++;
 		}
+
 		len = offset - zerofrom;
 
 		err = pagecache_write_begin(file, mapping, curpos, len,
-						AOP_FLAG_UNINTERRUPTIBLE,
-						&page, &fsdata);
+									AOP_FLAG_UNINTERRUPTIBLE,
+									&page, &fsdata);
+
 		if (err)
+		{
 			goto out;
+		}
+
 		zero_user(page, zerofrom, len);
 		err = pagecache_write_end(file, mapping, curpos, len, len,
-						page, fsdata);
+								  page, fsdata);
+
 		if (err < 0)
+		{
 			goto out;
+		}
+
 		BUG_ON(err != len);
 		err = 0;
 	}
+
 out:
 	return err;
 }
@@ -2428,9 +2961,9 @@ out:
  * We may have to extend the file.
  */
 int cont_write_begin(struct file *file, struct address_space *mapping,
-			loff_t pos, unsigned len, unsigned flags,
-			struct page **pagep, void **fsdata,
-			get_block_t *get_block, loff_t *bytes)
+					 loff_t pos, unsigned len, unsigned flags,
+					 struct page **pagep, void **fsdata,
+					 get_block_t *get_block, loff_t *bytes)
 {
 	struct inode *inode = mapping->host;
 	unsigned blocksize = 1 << inode->i_blkbits;
@@ -2438,12 +2971,17 @@ int cont_write_begin(struct file *file, struct address_space *mapping,
 	int err;
 
 	err = cont_expand_zero(file, mapping, pos, bytes);
+
 	if (err)
+	{
 		return err;
+	}
 
 	zerofrom = *bytes & ~PAGE_MASK;
-	if (pos+len > *bytes && zerofrom & (blocksize-1)) {
-		*bytes |= (blocksize-1);
+
+	if (pos + len > *bytes && zerofrom & (blocksize - 1))
+	{
+		*bytes |= (blocksize - 1);
 		(*bytes)++;
 	}
 
@@ -2454,7 +2992,7 @@ EXPORT_SYMBOL(cont_write_begin);
 int block_commit_write(struct page *page, unsigned from, unsigned to)
 {
 	struct inode *inode = page->mapping->host;
-	__block_commit_write(inode,page,from,to);
+	__block_commit_write(inode, page, from, to);
 	return 0;
 }
 EXPORT_SYMBOL(block_commit_write);
@@ -2478,7 +3016,7 @@ EXPORT_SYMBOL(block_commit_write);
  * using sb_start_pagefault() - sb_end_pagefault() functions.
  */
 int block_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf,
-			 get_block_t get_block)
+					   get_block_t get_block)
 {
 	struct page *page = vmf->page;
 	struct inode *inode = file_inode(vma->vm_file);
@@ -2488,8 +3026,10 @@ int block_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf,
 
 	lock_page(page);
 	size = i_size_read(inode);
+
 	if ((page->mapping != inode->i_mapping) ||
-	    (page_offset(page) > size)) {
+		(page_offset(page) > size))
+	{
 		/* We overload EFAULT to mean page got truncated */
 		ret = -EFAULT;
 		goto out_unlock;
@@ -2497,16 +3037,26 @@ int block_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf,
 
 	/* page is wholly or partially inside EOF */
 	if (((page->index + 1) << PAGE_SHIFT) > size)
+	{
 		end = size & ~PAGE_MASK;
+	}
 	else
+	{
 		end = PAGE_SIZE;
+	}
 
 	ret = __block_write_begin(page, 0, end, get_block);
+
 	if (!ret)
+	{
 		ret = block_commit_write(page, 0, end);
+	}
 
 	if (unlikely(ret < 0))
+	{
 		goto out_unlock;
+	}
+
 	set_page_dirty(page);
 	wait_for_stable_page(page);
 	return 0;
@@ -2539,13 +3089,23 @@ static void attach_nobh_buffers(struct page *page, struct buffer_head *head)
 
 	spin_lock(&page->mapping->private_lock);
 	bh = head;
-	do {
+
+	do
+	{
 		if (PageDirty(page))
+		{
 			set_buffer_dirty(bh);
+		}
+
 		if (!bh->b_this_page)
+		{
 			bh->b_this_page = head;
+		}
+
 		bh = bh->b_this_page;
-	} while (bh != head);
+	}
+	while (bh != head);
+
 	attach_page_buffers(page, head);
 	spin_unlock(&page->mapping->private_lock);
 }
@@ -2556,9 +3116,9 @@ static void attach_nobh_buffers(struct page *page, struct buffer_head *head)
  * The filesystem needs to handle block truncation upon failure.
  */
 int nobh_write_begin(struct address_space *mapping,
-			loff_t pos, unsigned len, unsigned flags,
-			struct page **pagep, void **fsdata,
-			get_block_t *get_block)
+					 loff_t pos, unsigned len, unsigned flags,
+					 struct page **pagep, void **fsdata,
+					 get_block_t *get_block)
 {
 	struct inode *inode = mapping->host;
 	const unsigned blkbits = inode->i_blkbits;
@@ -2579,20 +3139,31 @@ int nobh_write_begin(struct address_space *mapping,
 	to = from + len;
 
 	page = grab_cache_page_write_begin(mapping, index, flags);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
+
 	*pagep = page;
 	*fsdata = NULL;
 
-	if (page_has_buffers(page)) {
+	if (page_has_buffers(page))
+	{
 		ret = __block_write_begin(page, pos, len, get_block);
+
 		if (unlikely(ret))
+		{
 			goto out_release;
+		}
+
 		return ret;
 	}
 
 	if (PageMappedToDisk(page))
+	{
 		return 0;
+	}
 
 	/*
 	 * Allocate buffers so that we can keep track of state, and potentially
@@ -2604,7 +3175,9 @@ int nobh_write_begin(struct address_space *mapping,
 	 * than the circular one we're used to.
 	 */
 	head = alloc_page_buffers(page, blocksize, 0);
-	if (!head) {
+
+	if (!head)
+	{
 		ret = -ENOMEM;
 		goto out_release;
 	}
@@ -2617,35 +3190,58 @@ int nobh_write_begin(struct address_space *mapping,
 	 * page is fully mapped-to-disk.
 	 */
 	for (block_start = 0, block_in_page = 0, bh = head;
-		  block_start < PAGE_SIZE;
-		  block_in_page++, block_start += blocksize, bh = bh->b_this_page) {
+		 block_start < PAGE_SIZE;
+		 block_in_page++, block_start += blocksize, bh = bh->b_this_page)
+	{
 		int create;
 
 		block_end = block_start + blocksize;
 		bh->b_state = 0;
 		create = 1;
+
 		if (block_start >= to)
+		{
 			create = 0;
+		}
+
 		ret = get_block(inode, block_in_file + block_in_page,
-					bh, create);
+						bh, create);
+
 		if (ret)
+		{
 			goto failed;
+		}
+
 		if (!buffer_mapped(bh))
+		{
 			is_mapped_to_disk = 0;
+		}
+
 		if (buffer_new(bh))
+		{
 			unmap_underlying_metadata(bh->b_bdev, bh->b_blocknr);
-		if (PageUptodate(page)) {
+		}
+
+		if (PageUptodate(page))
+		{
 			set_buffer_uptodate(bh);
 			continue;
 		}
-		if (buffer_new(bh) || !buffer_mapped(bh)) {
+
+		if (buffer_new(bh) || !buffer_mapped(bh))
+		{
 			zero_user_segments(page, block_start, from,
-							to, block_end);
+							   to, block_end);
 			continue;
 		}
+
 		if (buffer_uptodate(bh))
-			continue;	/* reiserfs does this */
-		if (block_start < from || block_end > to) {
+		{
+			continue;    /* reiserfs does this */
+		}
+
+		if (block_start < from || block_end > to)
+		{
 			lock_buffer(bh);
 			bh->b_end_io = end_buffer_read_nobh;
 			submit_bh(REQ_OP_READ, 0, bh);
@@ -2653,23 +3249,33 @@ int nobh_write_begin(struct address_space *mapping,
 		}
 	}
 
-	if (nr_reads) {
+	if (nr_reads)
+	{
 		/*
 		 * The page is locked, so these buffers are protected from
 		 * any VM or truncate activity.  Hence we don't need to care
 		 * for the buffer_head refcounts.
 		 */
-		for (bh = head; bh; bh = bh->b_this_page) {
+		for (bh = head; bh; bh = bh->b_this_page)
+		{
 			wait_on_buffer(bh);
+
 			if (!buffer_uptodate(bh))
+			{
 				ret = -EIO;
+			}
 		}
+
 		if (ret)
+		{
 			goto failed;
+		}
 	}
 
 	if (is_mapped_to_disk)
+	{
 		SetPageMappedToDisk(page);
+	}
 
 	*fsdata = head; /* to be released by nobh_write_end */
 
@@ -2697,8 +3303,8 @@ out_release:
 EXPORT_SYMBOL(nobh_write_begin);
 
 int nobh_write_end(struct file *file, struct address_space *mapping,
-			loff_t pos, unsigned len, unsigned copied,
-			struct page *page, void *fsdata)
+				   loff_t pos, unsigned len, unsigned copied,
+				   struct page *page, void *fsdata)
 {
 	struct inode *inode = page->mapping->host;
 	struct buffer_head *head = fsdata;
@@ -2706,22 +3312,28 @@ int nobh_write_end(struct file *file, struct address_space *mapping,
 	BUG_ON(fsdata != NULL && page_has_buffers(page));
 
 	if (unlikely(copied < len) && head)
+	{
 		attach_nobh_buffers(page, head);
+	}
+
 	if (page_has_buffers(page))
 		return generic_write_end(file, mapping, pos, len,
-					copied, page, fsdata);
+								 copied, page, fsdata);
 
 	SetPageUptodate(page);
 	set_page_dirty(page);
-	if (pos+copied > inode->i_size) {
-		i_size_write(inode, pos+copied);
+
+	if (pos + copied > inode->i_size)
+	{
+		i_size_write(inode, pos + copied);
 		mark_inode_dirty(inode);
 	}
 
 	unlock_page(page);
 	put_page(page);
 
-	while (head) {
+	while (head)
+	{
 		bh = head;
 		head = head->b_this_page;
 		free_buffer_head(bh);
@@ -2737,9 +3349,9 @@ EXPORT_SYMBOL(nobh_write_end);
  * the page.
  */
 int nobh_writepage(struct page *page, get_block_t *get_block,
-			struct writeback_control *wbc)
+				   struct writeback_control *wbc)
 {
-	struct inode * const inode = page->mapping->host;
+	struct inode *const inode = page->mapping->host;
 	loff_t i_size = i_size_read(inode);
 	const pgoff_t end_index = i_size >> PAGE_SHIFT;
 	unsigned offset;
@@ -2747,11 +3359,15 @@ int nobh_writepage(struct page *page, get_block_t *get_block,
 
 	/* Is the page fully inside i_size? */
 	if (page->index < end_index)
+	{
 		goto out;
+	}
 
 	/* Is the page fully outside i_size? (truncate in progress) */
-	offset = i_size & (PAGE_SIZE-1);
-	if (page->index >= end_index+1 || !offset) {
+	offset = i_size & (PAGE_SIZE - 1);
+
+	if (page->index >= end_index + 1 || !offset)
+	{
 		/*
 		 * The page may have dirty, unmapped buffers.  For example,
 		 * they may have been added in ext3_writepage().  Make them
@@ -2760,7 +3376,10 @@ int nobh_writepage(struct page *page, get_block_t *get_block,
 #if 0
 		/* Not really sure about this  - do we need this ? */
 		if (page->mapping->a_ops->invalidatepage)
+		{
 			page->mapping->a_ops->invalidatepage(page, offset);
+		}
+
 #endif
 		unlock_page(page);
 		return 0; /* don't care */
@@ -2776,18 +3395,20 @@ int nobh_writepage(struct page *page, get_block_t *get_block,
 	zero_user_segment(page, offset, PAGE_SIZE);
 out:
 	ret = mpage_writepage(page, get_block, wbc);
+
 	if (ret == -EAGAIN)
 		ret = __block_write_full_page(inode, page, get_block, wbc,
-					      end_buffer_async_write);
+									  end_buffer_async_write);
+
 	return ret;
 }
 EXPORT_SYMBOL(nobh_writepage);
 
 int nobh_truncate_page(struct address_space *mapping,
-			loff_t from, get_block_t *get_block)
+					   loff_t from, get_block_t *get_block)
 {
 	pgoff_t index = from >> PAGE_SHIFT;
-	unsigned offset = from & (PAGE_SIZE-1);
+	unsigned offset = from & (PAGE_SIZE - 1);
 	unsigned blocksize;
 	sector_t iblock;
 	unsigned length, pos;
@@ -2801,17 +3422,23 @@ int nobh_truncate_page(struct address_space *mapping,
 
 	/* Block boundary? Nothing to do */
 	if (!length)
+	{
 		return 0;
+	}
 
 	length = blocksize - length;
 	iblock = (sector_t)index << (PAGE_SHIFT - inode->i_blkbits);
 
 	page = grab_cache_page(mapping, index);
 	err = -ENOMEM;
-	if (!page)
-		goto out;
 
-	if (page_has_buffers(page)) {
+	if (!page)
+	{
+		goto out;
+	}
+
+	if (page_has_buffers(page))
+	{
 has_buffers:
 		unlock_page(page);
 		put_page(page);
@@ -2820,7 +3447,9 @@ has_buffers:
 
 	/* Find the buffer that contains "offset" */
 	pos = blocksize;
-	while (offset >= pos) {
+
+	while (offset >= pos)
+	{
 		iblock++;
 		pos += blocksize;
 	}
@@ -2828,27 +3457,43 @@ has_buffers:
 	map_bh.b_size = blocksize;
 	map_bh.b_state = 0;
 	err = get_block(inode, iblock, &map_bh, 0);
+
 	if (err)
+	{
 		goto unlock;
+	}
+
 	/* unmapped? It's a hole - nothing to do */
 	if (!buffer_mapped(&map_bh))
+	{
 		goto unlock;
+	}
 
 	/* Ok, it's mapped. Make sure it's up-to-date */
-	if (!PageUptodate(page)) {
+	if (!PageUptodate(page))
+	{
 		err = mapping->a_ops->readpage(NULL, page);
-		if (err) {
+
+		if (err)
+		{
 			put_page(page);
 			goto out;
 		}
+
 		lock_page(page);
-		if (!PageUptodate(page)) {
+
+		if (!PageUptodate(page))
+		{
 			err = -EIO;
 			goto unlock;
 		}
+
 		if (page_has_buffers(page))
+		{
 			goto has_buffers;
+		}
 	}
+
 	zero_user(page, offset, length);
 	set_page_dirty(page);
 	err = 0;
@@ -2862,10 +3507,10 @@ out:
 EXPORT_SYMBOL(nobh_truncate_page);
 
 int block_truncate_page(struct address_space *mapping,
-			loff_t from, get_block_t *get_block)
+						loff_t from, get_block_t *get_block)
 {
 	pgoff_t index = from >> PAGE_SHIFT;
-	unsigned offset = from & (PAGE_SIZE-1);
+	unsigned offset = from & (PAGE_SIZE - 1);
 	unsigned blocksize;
 	sector_t iblock;
 	unsigned length, pos;
@@ -2879,50 +3524,73 @@ int block_truncate_page(struct address_space *mapping,
 
 	/* Block boundary? Nothing to do */
 	if (!length)
+	{
 		return 0;
+	}
 
 	length = blocksize - length;
 	iblock = (sector_t)index << (PAGE_SHIFT - inode->i_blkbits);
-	
+
 	page = grab_cache_page(mapping, index);
 	err = -ENOMEM;
+
 	if (!page)
+	{
 		goto out;
+	}
 
 	if (!page_has_buffers(page))
+	{
 		create_empty_buffers(page, blocksize, 0);
+	}
 
 	/* Find the buffer that contains "offset" */
 	bh = page_buffers(page);
 	pos = blocksize;
-	while (offset >= pos) {
+
+	while (offset >= pos)
+	{
 		bh = bh->b_this_page;
 		iblock++;
 		pos += blocksize;
 	}
 
 	err = 0;
-	if (!buffer_mapped(bh)) {
+
+	if (!buffer_mapped(bh))
+	{
 		WARN_ON(bh->b_size != blocksize);
 		err = get_block(inode, iblock, bh, 0);
+
 		if (err)
+		{
 			goto unlock;
+		}
+
 		/* unmapped? It's a hole - nothing to do */
 		if (!buffer_mapped(bh))
+		{
 			goto unlock;
+		}
 	}
 
 	/* Ok, it's mapped. Make sure it's up-to-date */
 	if (PageUptodate(page))
+	{
 		set_buffer_uptodate(bh);
+	}
 
-	if (!buffer_uptodate(bh) && !buffer_delay(bh) && !buffer_unwritten(bh)) {
+	if (!buffer_uptodate(bh) && !buffer_delay(bh) && !buffer_unwritten(bh))
+	{
 		err = -EIO;
 		ll_rw_block(REQ_OP_READ, 0, 1, &bh);
 		wait_on_buffer(bh);
+
 		/* Uhhuh. Read error. Complain and punt. */
 		if (!buffer_uptodate(bh))
+		{
 			goto unlock;
+		}
 	}
 
 	zero_user(page, offset, length);
@@ -2941,9 +3609,9 @@ EXPORT_SYMBOL(block_truncate_page);
  * The generic ->writepage function for buffer-backed address_spaces
  */
 int block_write_full_page(struct page *page, get_block_t *get_block,
-			struct writeback_control *wbc)
+						  struct writeback_control *wbc)
 {
-	struct inode * const inode = page->mapping->host;
+	struct inode *const inode = page->mapping->host;
 	loff_t i_size = i_size_read(inode);
 	const pgoff_t end_index = i_size >> PAGE_SHIFT;
 	unsigned offset;
@@ -2951,11 +3619,13 @@ int block_write_full_page(struct page *page, get_block_t *get_block,
 	/* Is the page fully inside i_size? */
 	if (page->index < end_index)
 		return __block_write_full_page(inode, page, get_block, wbc,
-					       end_buffer_async_write);
+									   end_buffer_async_write);
 
 	/* Is the page fully outside i_size? (truncate in progress) */
-	offset = i_size & (PAGE_SIZE-1);
-	if (page->index >= end_index+1 || !offset) {
+	offset = i_size & (PAGE_SIZE - 1);
+
+	if (page->index >= end_index + 1 || !offset)
+	{
 		/*
 		 * The page may have dirty, unmapped buffers.  For example,
 		 * they may have been added in ext3_writepage().  Make them
@@ -2975,12 +3645,12 @@ int block_write_full_page(struct page *page, get_block_t *get_block,
 	 */
 	zero_user_segment(page, offset, PAGE_SIZE);
 	return __block_write_full_page(inode, page, get_block, wbc,
-							end_buffer_async_write);
+								   end_buffer_async_write);
 }
 EXPORT_SYMBOL(block_write_full_page);
 
 sector_t generic_block_bmap(struct address_space *mapping, sector_t block,
-			    get_block_t *get_block)
+							get_block_t *get_block)
 {
 	struct buffer_head tmp;
 	struct inode *inode = mapping->host;
@@ -2997,7 +3667,9 @@ static void end_bio_bh_io_sync(struct bio *bio)
 	struct buffer_head *bh = bio->bi_private;
 
 	if (unlikely(bio_flagged(bio, BIO_QUIET)))
+	{
 		set_bit(BH_Quiet, &bh->b_state);
+	}
 
 	bh->b_end_io(bh, !bio->bi_error);
 	bio_put(bio);
@@ -3022,8 +3694,11 @@ void guard_bio_eod(int op, struct bio *bio)
 	unsigned truncated_bytes;
 
 	maxsector = i_size_read(bio->bi_bdev->bd_inode) >> 9;
+
 	if (!maxsector)
+	{
 		return;
+	}
 
 	/*
 	 * If the *whole* IO is past the end of the device,
@@ -3031,11 +3706,16 @@ void guard_bio_eod(int op, struct bio *bio)
 	 * an EIO.
 	 */
 	if (unlikely(bio->bi_iter.bi_sector >= maxsector))
+	{
 		return;
+	}
 
 	maxsector -= bio->bi_iter.bi_sector;
+
 	if (likely((bio->bi_iter.bi_size >> 9) <= maxsector))
+	{
 		return;
+	}
 
 	/* Uhhuh. We've got a bio that straddles the device size! */
 	truncated_bytes = bio->bi_iter.bi_size - (maxsector << 9);
@@ -3045,14 +3725,15 @@ void guard_bio_eod(int op, struct bio *bio)
 	bvec->bv_len -= truncated_bytes;
 
 	/* ..and clear the end of the buffer for reads */
-	if (op == REQ_OP_READ) {
+	if (op == REQ_OP_READ)
+	{
 		zero_user(bvec->bv_page, bvec->bv_offset + bvec->bv_len,
-				truncated_bytes);
+				  truncated_bytes);
 	}
 }
 
 static int submit_bh_wbc(int op, int op_flags, struct buffer_head *bh,
-			 unsigned long bio_flags, struct writeback_control *wbc)
+						 unsigned long bio_flags, struct writeback_control *wbc)
 {
 	struct bio *bio;
 
@@ -3066,7 +3747,9 @@ static int submit_bh_wbc(int op, int op_flags, struct buffer_head *bh,
 	 * Only clear out a write error when rewriting
 	 */
 	if (test_set_buffer_req(bh) && (op == REQ_OP_WRITE))
+	{
 		clear_buffer_write_io_error(bh);
+	}
 
 	/*
 	 * from here on down, it's all bio -- do the initial mapping,
@@ -3074,7 +3757,8 @@ static int submit_bh_wbc(int op, int op_flags, struct buffer_head *bh,
 	 */
 	bio = bio_alloc(GFP_NOIO, 1);
 
-	if (wbc) {
+	if (wbc)
+	{
 		wbc_init_bio(wbc, bio);
 		wbc_account_io(wbc, bh->b_page, bh->b_size);
 	}
@@ -3093,9 +3777,15 @@ static int submit_bh_wbc(int op, int op_flags, struct buffer_head *bh,
 	guard_bio_eod(op, bio);
 
 	if (buffer_meta(bh))
+	{
 		op_flags |= REQ_META;
+	}
+
 	if (buffer_prio(bh))
+	{
 		op_flags |= REQ_PRIO;
+	}
+
 	bio_set_op_attrs(bio, op, op_flags);
 
 	submit_bio(bio);
@@ -3103,7 +3793,7 @@ static int submit_bh_wbc(int op, int op_flags, struct buffer_head *bh,
 }
 
 int _submit_bh(int op, int op_flags, struct buffer_head *bh,
-	       unsigned long bio_flags)
+			   unsigned long bio_flags)
 {
 	return submit_bh_wbc(op, op_flags, bh, bio_flags, NULL);
 }
@@ -3136,7 +3826,7 @@ EXPORT_SYMBOL(submit_bh);
  *
  * ll_rw_block sets b_end_io to simple completion handler that marks
  * the buffer up-to-date (if appropriate), unlocks the buffer and wakes
- * any waiters. 
+ * any waiters.
  *
  * All of the buffers must be for the same device, and must also be a
  * multiple of the current approved size for the device.
@@ -3145,26 +3835,36 @@ void ll_rw_block(int op, int op_flags,  int nr, struct buffer_head *bhs[])
 {
 	int i;
 
-	for (i = 0; i < nr; i++) {
+	for (i = 0; i < nr; i++)
+	{
 		struct buffer_head *bh = bhs[i];
 
 		if (!trylock_buffer(bh))
+		{
 			continue;
-		if (op == WRITE) {
-			if (test_clear_buffer_dirty(bh)) {
+		}
+
+		if (op == WRITE)
+		{
+			if (test_clear_buffer_dirty(bh))
+			{
 				bh->b_end_io = end_buffer_write_sync;
 				get_bh(bh);
 				submit_bh(op, op_flags, bh);
 				continue;
 			}
-		} else {
-			if (!buffer_uptodate(bh)) {
+		}
+		else
+		{
+			if (!buffer_uptodate(bh))
+			{
 				bh->b_end_io = end_buffer_read_sync;
 				get_bh(bh);
 				submit_bh(op, op_flags, bh);
 				continue;
 			}
 		}
+
 		unlock_buffer(bh);
 	}
 }
@@ -3173,10 +3873,13 @@ EXPORT_SYMBOL(ll_rw_block);
 void write_dirty_buffer(struct buffer_head *bh, int op_flags)
 {
 	lock_buffer(bh);
-	if (!test_clear_buffer_dirty(bh)) {
+
+	if (!test_clear_buffer_dirty(bh))
+	{
 		unlock_buffer(bh);
 		return;
 	}
+
 	bh->b_end_io = end_buffer_write_sync;
 	get_bh(bh);
 	submit_bh(REQ_OP_WRITE, op_flags, bh);
@@ -3194,16 +3897,24 @@ int __sync_dirty_buffer(struct buffer_head *bh, int op_flags)
 
 	WARN_ON(atomic_read(&bh->b_count) < 1);
 	lock_buffer(bh);
-	if (test_clear_buffer_dirty(bh)) {
+
+	if (test_clear_buffer_dirty(bh))
+	{
 		get_bh(bh);
 		bh->b_end_io = end_buffer_write_sync;
 		ret = submit_bh(REQ_OP_WRITE, op_flags, bh);
 		wait_on_buffer(bh);
+
 		if (!ret && !buffer_uptodate(bh))
+		{
 			ret = -EIO;
-	} else {
+		}
+	}
+	else
+	{
 		unlock_buffer(bh);
 	}
+
 	return ret;
 }
 EXPORT_SYMBOL(__sync_dirty_buffer);
@@ -3237,7 +3948,7 @@ EXPORT_SYMBOL(sync_dirty_buffer);
 static inline int buffer_busy(struct buffer_head *bh)
 {
 	return atomic_read(&bh->b_count) |
-		(bh->b_state & ((1 << BH_Dirty) | (1 << BH_Lock)));
+		   (bh->b_state & ((1 << BH_Dirty) | (1 << BH_Lock)));
 }
 
 static int
@@ -3247,21 +3958,36 @@ drop_buffers(struct page *page, struct buffer_head **buffers_to_free)
 	struct buffer_head *bh;
 
 	bh = head;
-	do {
-		if (buffer_write_io_error(bh) && page->mapping)
-			mapping_set_error(page->mapping, -EIO);
-		if (buffer_busy(bh))
-			goto failed;
-		bh = bh->b_this_page;
-	} while (bh != head);
 
-	do {
+	do
+	{
+		if (buffer_write_io_error(bh) && page->mapping)
+		{
+			mapping_set_error(page->mapping, -EIO);
+		}
+
+		if (buffer_busy(bh))
+		{
+			goto failed;
+		}
+
+		bh = bh->b_this_page;
+	}
+	while (bh != head);
+
+	do
+	{
 		struct buffer_head *next = bh->b_this_page;
 
 		if (bh->b_assoc_map)
+		{
 			__remove_assoc_queue(bh);
+		}
+
 		bh = next;
-	} while (bh != head);
+	}
+	while (bh != head);
+
 	*buffers_to_free = head;
 	__clear_page_buffers(page);
 	return 1;
@@ -3271,15 +3997,19 @@ failed:
 
 int try_to_free_buffers(struct page *page)
 {
-	struct address_space * const mapping = page->mapping;
+	struct address_space *const mapping = page->mapping;
 	struct buffer_head *buffers_to_free = NULL;
 	int ret = 0;
 
 	BUG_ON(!PageLocked(page));
-	if (PageWriteback(page))
-		return 0;
 
-	if (mapping == NULL) {		/* can this still happen? */
+	if (PageWriteback(page))
+	{
+		return 0;
+	}
+
+	if (mapping == NULL)  		/* can this still happen? */
+	{
 		ret = drop_buffers(page, &buffers_to_free);
 		goto out;
 	}
@@ -3302,18 +4032,26 @@ int try_to_free_buffers(struct page *page)
 	 * dirty bit from being lost.
 	 */
 	if (ret)
+	{
 		cancel_dirty_page(page);
+	}
+
 	spin_unlock(&mapping->private_lock);
 out:
-	if (buffers_to_free) {
+
+	if (buffers_to_free)
+	{
 		struct buffer_head *bh = buffers_to_free;
 
-		do {
+		do
+		{
 			struct buffer_head *next = bh->b_this_page;
 			free_buffer_head(bh);
 			bh = next;
-		} while (bh != buffers_to_free);
+		}
+		while (bh != buffers_to_free);
 	}
+
 	return ret;
 }
 EXPORT_SYMBOL(try_to_free_buffers);
@@ -3330,18 +4068,24 @@ SYSCALL_DEFINE2(bdflush, int, func, long, data)
 	static int msg_count;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
-	if (msg_count < 5) {
+	if (msg_count < 5)
+	{
 		msg_count++;
 		printk(KERN_INFO
-			"warning: process `%s' used the obsolete bdflush"
-			" system call\n", current->comm);
+			   "warning: process `%s' used the obsolete bdflush"
+			   " system call\n", current->comm);
 		printk(KERN_INFO "Fix your initscripts?\n");
 	}
 
 	if (func == 1)
+	{
 		do_exit(0);
+	}
+
 	return 0;
 }
 
@@ -3358,7 +4102,8 @@ static unsigned long max_buffer_heads;
 
 int buffer_heads_over_limit;
 
-struct bh_accounting {
+struct bh_accounting
+{
 	int nr;			/* Number of live bh's */
 	int ratelimit;		/* Limit cacheline bouncing */
 };
@@ -3371,23 +4116,29 @@ static void recalc_bh_state(void)
 	int tot = 0;
 
 	if (__this_cpu_inc_return(bh_accounting.ratelimit) - 1 < 4096)
+	{
 		return;
+	}
+
 	__this_cpu_write(bh_accounting.ratelimit, 0);
 	for_each_online_cpu(i)
-		tot += per_cpu(bh_accounting, i).nr;
+	tot += per_cpu(bh_accounting, i).nr;
 	buffer_heads_over_limit = (tot > max_buffer_heads);
 }
 
 struct buffer_head *alloc_buffer_head(gfp_t gfp_flags)
 {
 	struct buffer_head *ret = kmem_cache_zalloc(bh_cachep, gfp_flags);
-	if (ret) {
+
+	if (ret)
+	{
 		INIT_LIST_HEAD(&ret->b_assoc_buffers);
 		preempt_disable();
 		__this_cpu_inc(bh_accounting.nr);
 		recalc_bh_state();
 		preempt_enable();
 	}
+
 	return ret;
 }
 EXPORT_SYMBOL(alloc_buffer_head);
@@ -3408,19 +4159,24 @@ static void buffer_exit_cpu(int cpu)
 	int i;
 	struct bh_lru *b = &per_cpu(bh_lrus, cpu);
 
-	for (i = 0; i < BH_LRU_SIZE; i++) {
+	for (i = 0; i < BH_LRU_SIZE; i++)
+	{
 		brelse(b->bhs[i]);
 		b->bhs[i] = NULL;
 	}
+
 	this_cpu_add(bh_accounting.nr, per_cpu(bh_accounting, cpu).nr);
 	per_cpu(bh_accounting, cpu).nr = 0;
 }
 
 static int buffer_cpu_notify(struct notifier_block *self,
-			      unsigned long action, void *hcpu)
+							 unsigned long action, void *hcpu)
 {
 	if (action == CPU_DEAD || action == CPU_DEAD_FROZEN)
+	{
 		buffer_exit_cpu((unsigned long)hcpu);
+	}
+
 	return NOTIFY_OK;
 }
 
@@ -3433,12 +4189,18 @@ static int buffer_cpu_notify(struct notifier_block *self,
  */
 int bh_uptodate_or_lock(struct buffer_head *bh)
 {
-	if (!buffer_uptodate(bh)) {
+	if (!buffer_uptodate(bh))
+	{
 		lock_buffer(bh);
+
 		if (!buffer_uptodate(bh))
+		{
 			return 0;
+		}
+
 		unlock_buffer(bh);
 	}
+
 	return 1;
 }
 EXPORT_SYMBOL(bh_uptodate_or_lock);
@@ -3453,7 +4215,8 @@ int bh_submit_read(struct buffer_head *bh)
 {
 	BUG_ON(!buffer_locked(bh));
 
-	if (buffer_uptodate(bh)) {
+	if (buffer_uptodate(bh))
+	{
 		unlock_buffer(bh);
 		return 0;
 	}
@@ -3462,8 +4225,12 @@ int bh_submit_read(struct buffer_head *bh)
 	bh->b_end_io = end_buffer_read_sync;
 	submit_bh(REQ_OP_READ, 0, bh);
 	wait_on_buffer(bh);
+
 	if (buffer_uptodate(bh))
+	{
 		return 0;
+	}
+
 	return -EIO;
 }
 EXPORT_SYMBOL(bh_submit_read);
@@ -3473,10 +4240,10 @@ void __init buffer_init(void)
 	unsigned long nrpages;
 
 	bh_cachep = kmem_cache_create("buffer_head",
-			sizeof(struct buffer_head), 0,
-				(SLAB_RECLAIM_ACCOUNT|SLAB_PANIC|
-				SLAB_MEM_SPREAD),
-				NULL);
+								  sizeof(struct buffer_head), 0,
+								  (SLAB_RECLAIM_ACCOUNT | SLAB_PANIC |
+								   SLAB_MEM_SPREAD),
+								  NULL);
 
 	/*
 	 * Limit the bh occupancy to 10% of ZONE_NORMAL

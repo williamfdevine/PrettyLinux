@@ -29,7 +29,7 @@ int test_copy_first_unaligned(void)
 	setup_signal_handler();
 
 	/* +1 makes buf unaligned */
-	copy_first(cacheline_buf+1);
+	copy_first(cacheline_buf + 1);
 
 	/* We should not get here */
 	return 1;

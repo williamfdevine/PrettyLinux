@@ -46,7 +46,7 @@ xfs_sysfs_init(
 {
 	init_completion(&kobj->complete);
 	return kobject_init_and_add(&kobj->kobject, ktype,
-				    &parent_kobj->kobject, "%s", name);
+								&parent_kobj->kobject, "%s", name);
 }
 
 static inline void

@@ -33,13 +33,15 @@
 
 #define NETJET_REV	"2.0"
 
-enum nj_types {
+enum nj_types
+{
 	NETJET_S_TJ300,
 	NETJET_S_TJ320,
 	ENTERNOW__TJ320,
 };
 
-struct tiger_dma {
+struct tiger_dma
+{
 	size_t		size;
 	u32		*start;
 	int		idx;
@@ -51,7 +53,8 @@ struct tiger_dma {
 
 struct tiger_hw;
 
-struct tiger_ch {
+struct tiger_ch
+{
 	struct bchannel		bch;
 	struct tiger_hw		*nj;
 	int			idx;
@@ -73,7 +76,8 @@ struct tiger_ch {
 
 #define LOG_SIZE	64
 
-struct tiger_hw {
+struct tiger_hw
+{
 	struct list_head	list;
 	struct pci_dev		*pdev;
 	char			name[MISDN_MAX_IDLEN];
@@ -117,12 +121,15 @@ set_debug(const char *val, struct kernel_param *kp)
 	struct tiger_hw *card;
 
 	ret = param_set_uint(val, kp);
-	if (!ret) {
+
+	if (!ret)
+	{
 		read_lock(&card_lock);
 		list_for_each_entry(card, &Cards, list)
-			_set_debug(card);
+		_set_debug(card);
 		read_unlock(&card_lock);
 	}
+
 	return ret;
 }
 
@@ -191,19 +198,27 @@ fill_mem(struct tiger_ch *bc, u32 idx, u32 cnt, u32 fill)
 	u32 mask = 0xff, val;
 
 	pr_debug("%s: B%1d fill %02x len %d idx %d/%d\n", card->name,
-		 bc->bch.nr, fill, cnt, idx, card->send.idx);
-	if (bc->bch.nr & 2) {
+			 bc->bch.nr, fill, cnt, idx, card->send.idx);
+
+	if (bc->bch.nr & 2)
+	{
 		fill  <<= 8;
 		mask <<= 8;
 	}
+
 	mask ^= 0xffffffff;
-	while (cnt--) {
+
+	while (cnt--)
+	{
 		val = card->send.start[idx];
 		val &= mask;
 		val |= fill;
 		card->send.start[idx++] = val;
+
 		if (idx >= card->send.size)
+		{
 			idx = 0;
+		}
 	}
 }
 
@@ -213,72 +228,90 @@ mode_tiger(struct tiger_ch *bc, u32 protocol)
 	struct tiger_hw *card = bc->bch.hw;
 
 	pr_debug("%s: B%1d protocol %x-->%x\n", card->name,
-		 bc->bch.nr, bc->bch.state, protocol);
-	switch (protocol) {
-	case ISDN_P_NONE:
-		if (bc->bch.state == ISDN_P_NONE)
+			 bc->bch.nr, bc->bch.state, protocol);
+
+	switch (protocol)
+	{
+		case ISDN_P_NONE:
+			if (bc->bch.state == ISDN_P_NONE)
+			{
+				break;
+			}
+
+			fill_mem(bc, 0, card->send.size, 0xff);
+			bc->bch.state = protocol;
+
+			/* only stop dma and interrupts if both channels NULL */
+			if ((card->bc[0].bch.state == ISDN_P_NONE) &&
+				(card->bc[1].bch.state == ISDN_P_NONE))
+			{
+				card->dmactrl = 0;
+				outb(card->dmactrl, card->base + NJ_DMACTRL);
+				outb(0, card->base + NJ_IRQMASK0);
+			}
+
+			test_and_clear_bit(FLG_HDLC, &bc->bch.Flags);
+			test_and_clear_bit(FLG_TRANSPARENT, &bc->bch.Flags);
+			bc->txstate = 0;
+			bc->rxstate = 0;
+			bc->lastrx = -1;
 			break;
-		fill_mem(bc, 0, card->send.size, 0xff);
-		bc->bch.state = protocol;
-		/* only stop dma and interrupts if both channels NULL */
-		if ((card->bc[0].bch.state == ISDN_P_NONE) &&
-		    (card->bc[1].bch.state == ISDN_P_NONE)) {
-			card->dmactrl = 0;
-			outb(card->dmactrl, card->base + NJ_DMACTRL);
-			outb(0, card->base + NJ_IRQMASK0);
-		}
-		test_and_clear_bit(FLG_HDLC, &bc->bch.Flags);
-		test_and_clear_bit(FLG_TRANSPARENT, &bc->bch.Flags);
-		bc->txstate = 0;
-		bc->rxstate = 0;
-		bc->lastrx = -1;
-		break;
-	case ISDN_P_B_RAW:
-		test_and_set_bit(FLG_TRANSPARENT, &bc->bch.Flags);
-		bc->bch.state = protocol;
-		bc->idx = 0;
-		bc->free = card->send.size / 2;
-		bc->rxstate = 0;
-		bc->txstate = TX_INIT | TX_IDLE;
-		bc->lastrx = -1;
-		if (!card->dmactrl) {
-			card->dmactrl = 1;
-			outb(card->dmactrl, card->base + NJ_DMACTRL);
-			outb(0x0f, card->base + NJ_IRQMASK0);
-		}
-		break;
-	case ISDN_P_B_HDLC:
-		test_and_set_bit(FLG_HDLC, &bc->bch.Flags);
-		bc->bch.state = protocol;
-		bc->idx = 0;
-		bc->free = card->send.size / 2;
-		bc->rxstate = 0;
-		bc->txstate = TX_INIT | TX_IDLE;
-		isdnhdlc_rcv_init(&bc->hrecv, 0);
-		isdnhdlc_out_init(&bc->hsend, 0);
-		bc->lastrx = -1;
-		if (!card->dmactrl) {
-			card->dmactrl = 1;
-			outb(card->dmactrl, card->base + NJ_DMACTRL);
-			outb(0x0f, card->base + NJ_IRQMASK0);
-		}
-		break;
-	default:
-		pr_info("%s: %s protocol %x not handled\n", card->name,
-			__func__, protocol);
-		return -ENOPROTOOPT;
+
+		case ISDN_P_B_RAW:
+			test_and_set_bit(FLG_TRANSPARENT, &bc->bch.Flags);
+			bc->bch.state = protocol;
+			bc->idx = 0;
+			bc->free = card->send.size / 2;
+			bc->rxstate = 0;
+			bc->txstate = TX_INIT | TX_IDLE;
+			bc->lastrx = -1;
+
+			if (!card->dmactrl)
+			{
+				card->dmactrl = 1;
+				outb(card->dmactrl, card->base + NJ_DMACTRL);
+				outb(0x0f, card->base + NJ_IRQMASK0);
+			}
+
+			break;
+
+		case ISDN_P_B_HDLC:
+			test_and_set_bit(FLG_HDLC, &bc->bch.Flags);
+			bc->bch.state = protocol;
+			bc->idx = 0;
+			bc->free = card->send.size / 2;
+			bc->rxstate = 0;
+			bc->txstate = TX_INIT | TX_IDLE;
+			isdnhdlc_rcv_init(&bc->hrecv, 0);
+			isdnhdlc_out_init(&bc->hsend, 0);
+			bc->lastrx = -1;
+
+			if (!card->dmactrl)
+			{
+				card->dmactrl = 1;
+				outb(card->dmactrl, card->base + NJ_DMACTRL);
+				outb(0x0f, card->base + NJ_IRQMASK0);
+			}
+
+			break;
+
+		default:
+			pr_info("%s: %s protocol %x not handled\n", card->name,
+					__func__, protocol);
+			return -ENOPROTOOPT;
 	}
+
 	card->send.dmacur = inl(card->base + NJ_DMA_READ_ADR);
 	card->recv.dmacur = inl(card->base + NJ_DMA_WRITE_ADR);
 	card->send.idx = (card->send.dmacur - card->send.dmastart) >> 2;
 	card->recv.idx = (card->recv.dmacur - card->recv.dmastart) >> 2;
 	pr_debug("%s: %s ctrl %x irq  %02x/%02x idx %d/%d\n",
-		 card->name, __func__,
-		 inb(card->base + NJ_DMACTRL),
-		 inb(card->base + NJ_IRQMASK0),
-		 inb(card->base + NJ_IRQSTAT0),
-		 card->send.idx,
-		 card->recv.idx);
+			 card->name, __func__,
+			 inb(card->base + NJ_DMACTRL),
+			 inb(card->base + NJ_IRQMASK0),
+			 inb(card->base + NJ_IRQSTAT0),
+			 card->send.idx,
+			 card->recv.idx);
 	return 0;
 }
 
@@ -291,9 +324,14 @@ nj_reset(struct tiger_hw *card)
 	/* now edge triggered for TJ320 GE 13/07/00 */
 	/* see comment in IRQ function */
 	if (card->typ == NETJET_S_TJ320) /* TJ320 */
-		card->ctrlreg = 0x40;  /* Reset Off and status read clear */
+	{
+		card->ctrlreg = 0x40;    /* Reset Off and status read clear */
+	}
 	else
-		card->ctrlreg = 0x00;  /* Reset Off and status read clear */
+	{
+		card->ctrlreg = 0x00;    /* Reset Off and status read clear */
+	}
+
 	outb(card->ctrlreg, card->base + NJ_CTRL);
 	mdelay(10);
 
@@ -311,42 +349,54 @@ inittiger(struct tiger_hw *card)
 	int i;
 
 	card->dma_p = pci_alloc_consistent(card->pdev, NJ_DMA_SIZE,
-					   &card->dma);
-	if (!card->dma_p) {
+									   &card->dma);
+
+	if (!card->dma_p)
+	{
 		pr_info("%s: No DMA memory\n", card->name);
 		return -ENOMEM;
 	}
-	if ((u64)card->dma > 0xffffffff) {
+
+	if ((u64)card->dma > 0xffffffff)
+	{
 		pr_info("%s: DMA outside 32 bit\n", card->name);
 		return -ENOMEM;
 	}
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		card->bc[i].hsbuf = kmalloc(NJ_DMA_TXSIZE, GFP_ATOMIC);
-		if (!card->bc[i].hsbuf) {
+
+		if (!card->bc[i].hsbuf)
+		{
 			pr_info("%s: no B%d send buffer\n", card->name, i + 1);
 			return -ENOMEM;
 		}
+
 		card->bc[i].hrbuf = kmalloc(NJ_DMA_RXSIZE, GFP_ATOMIC);
-		if (!card->bc[i].hrbuf) {
+
+		if (!card->bc[i].hrbuf)
+		{
 			pr_info("%s: no B%d recv buffer\n", card->name, i + 1);
 			return -ENOMEM;
 		}
 	}
+
 	memset(card->dma_p, 0xff, NJ_DMA_SIZE);
 
 	card->send.start = card->dma_p;
 	card->send.dmastart = (u32)card->dma;
 	card->send.dmaend = card->send.dmastart +
-		(4 * (NJ_DMA_TXSIZE - 1));
+						(4 * (NJ_DMA_TXSIZE - 1));
 	card->send.dmairq = card->send.dmastart +
-		(4 * ((NJ_DMA_TXSIZE / 2) - 1));
+						(4 * ((NJ_DMA_TXSIZE / 2) - 1));
 	card->send.size = NJ_DMA_TXSIZE;
 
 	if (debug & DEBUG_HW)
 		pr_notice("%s: send buffer phy %#x - %#x - %#x  virt %p"
-			  " size %zu u32\n", card->name,
-			  card->send.dmastart, card->send.dmairq,
-			  card->send.dmaend, card->send.start, card->send.size);
+				  " size %zu u32\n", card->name,
+				  card->send.dmastart, card->send.dmairq,
+				  card->send.dmaend, card->send.start, card->send.size);
 
 	outl(card->send.dmastart, card->base + NJ_DMA_READ_START);
 	outl(card->send.dmairq, card->base + NJ_DMA_READ_IRQ);
@@ -355,16 +405,16 @@ inittiger(struct tiger_hw *card)
 	card->recv.start = card->dma_p + (NJ_DMA_SIZE / 2);
 	card->recv.dmastart = (u32)card->dma  + (NJ_DMA_SIZE / 2);
 	card->recv.dmaend = card->recv.dmastart +
-		(4 * (NJ_DMA_RXSIZE - 1));
+						(4 * (NJ_DMA_RXSIZE - 1));
 	card->recv.dmairq = card->recv.dmastart +
-		(4 * ((NJ_DMA_RXSIZE / 2) - 1));
+						(4 * ((NJ_DMA_RXSIZE / 2) - 1));
 	card->recv.size = NJ_DMA_RXSIZE;
 
 	if (debug & DEBUG_HW)
 		pr_notice("%s: recv buffer phy %#x - %#x - %#x  virt %p"
-			  " size %zu u32\n", card->name,
-			  card->recv.dmastart, card->recv.dmairq,
-			  card->recv.dmaend, card->recv.start, card->recv.size);
+				  " size %zu u32\n", card->name,
+				  card->recv.dmastart, card->recv.dmairq,
+				  card->recv.dmaend, card->recv.start, card->recv.size);
 
 	outl(card->recv.dmastart, card->base + NJ_DMA_WRITE_START);
 	outl(card->recv.dmairq, card->base + NJ_DMA_WRITE_IRQ);
@@ -380,73 +430,110 @@ read_dma(struct tiger_ch *bc, u32 idx, int cnt)
 	u32 val;
 	u8 *p, *pn;
 
-	if (bc->lastrx == idx) {
+	if (bc->lastrx == idx)
+	{
 		bc->rxstate |= RX_OVERRUN;
 		pr_info("%s: B%1d overrun at idx %d\n", card->name,
-			bc->bch.nr, idx);
+				bc->bch.nr, idx);
 	}
+
 	bc->lastrx = idx;
-	if (test_bit(FLG_RX_OFF, &bc->bch.Flags)) {
+
+	if (test_bit(FLG_RX_OFF, &bc->bch.Flags))
+	{
 		bc->bch.dropcnt += cnt;
 		return;
 	}
+
 	stat = bchannel_get_rxbuf(&bc->bch, cnt);
+
 	/* only transparent use the count here, HDLC overun is detected later */
-	if (stat == -ENOMEM) {
+	if (stat == -ENOMEM)
+	{
 		pr_warning("%s.B%d: No memory for %d bytes\n",
-			   card->name, bc->bch.nr, cnt);
+				   card->name, bc->bch.nr, cnt);
 		return;
 	}
-	if (test_bit(FLG_TRANSPARENT, &bc->bch.Flags))
-		p = skb_put(bc->bch.rx_skb, cnt);
-	else
-		p = bc->hrbuf;
 
-	for (i = 0; i < cnt; i++) {
+	if (test_bit(FLG_TRANSPARENT, &bc->bch.Flags))
+	{
+		p = skb_put(bc->bch.rx_skb, cnt);
+	}
+	else
+	{
+		p = bc->hrbuf;
+	}
+
+	for (i = 0; i < cnt; i++)
+	{
 		val = card->recv.start[idx++];
+
 		if (bc->bch.nr & 2)
+		{
 			val >>= 8;
+		}
+
 		if (idx >= card->recv.size)
+		{
 			idx = 0;
+		}
+
 		p[i] = val & 0xff;
 	}
 
-	if (test_bit(FLG_TRANSPARENT, &bc->bch.Flags)) {
+	if (test_bit(FLG_TRANSPARENT, &bc->bch.Flags))
+	{
 		recv_Bchannel(&bc->bch, 0, false);
 		return;
 	}
 
 	pn = bc->hrbuf;
-	while (cnt > 0) {
+
+	while (cnt > 0)
+	{
 		stat = isdnhdlc_decode(&bc->hrecv, pn, cnt, &i,
-				       bc->bch.rx_skb->data, bc->bch.maxlen);
-		if (stat > 0) { /* valid frame received */
+							   bc->bch.rx_skb->data, bc->bch.maxlen);
+
+		if (stat > 0)   /* valid frame received */
+		{
 			p = skb_put(bc->bch.rx_skb, stat);
-			if (debug & DEBUG_HW_BFIFO) {
+
+			if (debug & DEBUG_HW_BFIFO)
+			{
 				snprintf(card->log, LOG_SIZE,
-					 "B%1d-recv %s %d ", bc->bch.nr,
-					 card->name, stat);
+						 "B%1d-recv %s %d ", bc->bch.nr,
+						 card->name, stat);
 				print_hex_dump_bytes(card->log,
-						     DUMP_PREFIX_OFFSET, p,
-						     stat);
+									 DUMP_PREFIX_OFFSET, p,
+									 stat);
 			}
+
 			recv_Bchannel(&bc->bch, 0, false);
 			stat = bchannel_get_rxbuf(&bc->bch, bc->bch.maxlen);
-			if (stat < 0) {
+
+			if (stat < 0)
+			{
 				pr_warning("%s.B%d: No memory for %d bytes\n",
-					   card->name, bc->bch.nr, cnt);
+						   card->name, bc->bch.nr, cnt);
 				return;
 			}
-		} else if (stat == -HDLC_CRC_ERROR) {
-			pr_info("%s: B%1d receive frame CRC error\n",
-				card->name, bc->bch.nr);
-		} else if (stat == -HDLC_FRAMING_ERROR) {
-			pr_info("%s: B%1d receive framing error\n",
-				card->name, bc->bch.nr);
-		} else if (stat == -HDLC_LENGTH_ERROR) {
-			pr_info("%s: B%1d receive frame too long (> %d)\n",
-				card->name, bc->bch.nr, bc->bch.maxlen);
 		}
+		else if (stat == -HDLC_CRC_ERROR)
+		{
+			pr_info("%s: B%1d receive frame CRC error\n",
+					card->name, bc->bch.nr);
+		}
+		else if (stat == -HDLC_FRAMING_ERROR)
+		{
+			pr_info("%s: B%1d receive framing error\n",
+					card->name, bc->bch.nr);
+		}
+		else if (stat == -HDLC_LENGTH_ERROR)
+		{
+			pr_info("%s: B%1d receive frame too long (> %d)\n",
+					card->name, bc->bch.nr, bc->bch.maxlen);
+		}
+
 		pn += i;
 		cnt -= i;
 	}
@@ -463,14 +550,23 @@ recv_tiger(struct tiger_hw *card, u8 irq_stat)
 	card->last_is0 |= (irq_stat & NJ_IRQM0_WR_MASK);
 
 	if (irq_stat & NJ_IRQM0_WR_END)
+	{
 		idx = cnt - 1;
+	}
 	else
+	{
 		idx = card->recv.size - 1;
+	}
 
 	if (test_bit(FLG_ACTIVE, &card->bc[0].bch.Flags))
+	{
 		read_dma(&card->bc[0], idx, cnt);
+	}
+
 	if (test_bit(FLG_ACTIVE, &card->bc[1].bch.Flags))
+	{
 		read_dma(&card->bc[1], idx, cnt);
+	}
 }
 
 /* sync with current DMA address at start or after exception */
@@ -479,19 +575,28 @@ resync(struct tiger_ch *bc, struct tiger_hw *card)
 {
 	card->send.dmacur = inl(card->base | NJ_DMA_READ_ADR);
 	card->send.idx = (card->send.dmacur - card->send.dmastart) >> 2;
+
 	if (bc->free > card->send.size / 2)
+	{
 		bc->free = card->send.size / 2;
+	}
+
 	/* currently we simple sync to the next complete free area
 	 * this hast the advantage that we have always maximum time to
 	 * handle TX irq
 	 */
 	if (card->send.idx < ((card->send.size / 2) - 1))
+	{
 		bc->idx = (card->recv.size / 2) - 1;
+	}
 	else
+	{
 		bc->idx = card->recv.size - 1;
+	}
+
 	bc->txstate = TX_RUN;
 	pr_debug("%s: %s B%1d free %d idx %d/%d\n", card->name,
-		 __func__, bc->bch.nr, bc->free, bc->idx, card->send.idx);
+			 __func__, bc->bch.nr, bc->free, bc->idx, card->send.idx);
 }
 
 static int bc_next_frame(struct tiger_ch *);
@@ -505,30 +610,44 @@ fill_hdlc_flag(struct tiger_ch *bc)
 	u8  *p;
 
 	if (bc->free == 0)
+	{
 		return;
+	}
+
 	pr_debug("%s: %s B%1d %d state %x idx %d/%d\n", card->name,
-		 __func__, bc->bch.nr, bc->free, bc->txstate,
-		 bc->idx, card->send.idx);
+			 __func__, bc->bch.nr, bc->free, bc->txstate,
+			 bc->idx, card->send.idx);
+
 	if (bc->txstate & (TX_IDLE | TX_INIT | TX_UNDERRUN))
+	{
 		resync(bc, card);
+	}
+
 	count = isdnhdlc_encode(&bc->hsend, NULL, 0, &i,
-				bc->hsbuf, bc->free);
+							bc->hsbuf, bc->free);
 	pr_debug("%s: B%1d hdlc encoded %d flags\n", card->name,
-		 bc->bch.nr, count);
+			 bc->bch.nr, count);
 	bc->free -= count;
 	p = bc->hsbuf;
 	m = (bc->bch.nr & 1) ? 0xffffff00 : 0xffff00ff;
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		if (bc->idx >= card->send.size)
+		{
 			bc->idx = 0;
+		}
+
 		v = card->send.start[bc->idx];
 		v &= m;
 		v |= (bc->bch.nr & 1) ? (u32)(p[i]) : ((u32)(p[i])) << 8;
 		card->send.start[bc->idx++] = v;
 	}
-	if (debug & DEBUG_HW_BFIFO) {
+
+	if (debug & DEBUG_HW_BFIFO)
+	{
 		snprintf(card->log, LOG_SIZE, "B%1d-send %s %d ",
-			 bc->bch.nr, card->name, count);
+				 bc->bch.nr, card->name, count);
 		print_hex_dump_bytes(card->log, DUMP_PREFIX_OFFSET, p, count);
 	}
 }
@@ -542,57 +661,100 @@ fill_dma(struct tiger_ch *bc)
 	u8  *p;
 
 	if (bc->free == 0)
+	{
 		return;
-	if (!bc->bch.tx_skb) {
+	}
+
+	if (!bc->bch.tx_skb)
+	{
 		if (!test_bit(FLG_TX_EMPTY, &bc->bch.Flags))
+		{
 			return;
+		}
+
 		fillempty = 1;
 		count = card->send.size >> 1;
 		p = bc->bch.fill;
-	} else {
+	}
+	else
+	{
 		count = bc->bch.tx_skb->len - bc->bch.tx_idx;
+
 		if (count <= 0)
+		{
 			return;
+		}
+
 		pr_debug("%s: %s B%1d %d/%d/%d/%d state %x idx %d/%d\n",
-			 card->name, __func__, bc->bch.nr, count, bc->free,
-			 bc->bch.tx_idx, bc->bch.tx_skb->len, bc->txstate,
-			 bc->idx, card->send.idx);
+				 card->name, __func__, bc->bch.nr, count, bc->free,
+				 bc->bch.tx_idx, bc->bch.tx_skb->len, bc->txstate,
+				 bc->idx, card->send.idx);
 		p = bc->bch.tx_skb->data + bc->bch.tx_idx;
 	}
+
 	if (bc->txstate & (TX_IDLE | TX_INIT | TX_UNDERRUN))
+	{
 		resync(bc, card);
-	if (test_bit(FLG_HDLC, &bc->bch.Flags) && !fillempty) {
+	}
+
+	if (test_bit(FLG_HDLC, &bc->bch.Flags) && !fillempty)
+	{
 		count = isdnhdlc_encode(&bc->hsend, p, count, &i,
-					bc->hsbuf, bc->free);
+								bc->hsbuf, bc->free);
 		pr_debug("%s: B%1d hdlc encoded %d in %d\n", card->name,
-			 bc->bch.nr, i, count);
+				 bc->bch.nr, i, count);
 		bc->bch.tx_idx += i;
 		bc->free -= count;
 		p = bc->hsbuf;
-	} else {
+	}
+	else
+	{
 		if (count > bc->free)
+		{
 			count = bc->free;
+		}
+
 		if (!fillempty)
+		{
 			bc->bch.tx_idx += count;
+		}
+
 		bc->free -= count;
 	}
+
 	m = (bc->bch.nr & 1) ? 0xffffff00 : 0xffff00ff;
-	if (fillempty) {
+
+	if (fillempty)
+	{
 		n = p[0];
+
 		if (!(bc->bch.nr & 1))
+		{
 			n <<= 8;
-		for (i = 0; i < count; i++) {
+		}
+
+		for (i = 0; i < count; i++)
+		{
 			if (bc->idx >= card->send.size)
+			{
 				bc->idx = 0;
+			}
+
 			v = card->send.start[bc->idx];
 			v &= m;
 			v |= n;
 			card->send.start[bc->idx++] = v;
 		}
-	} else {
-		for (i = 0; i < count; i++) {
+	}
+	else
+	{
+		for (i = 0; i < count; i++)
+		{
 			if (bc->idx >= card->send.size)
+			{
 				bc->idx = 0;
+			}
+
 			v = card->send.start[bc->idx];
 			v &= m;
 			n = p[i];
@@ -600,13 +762,18 @@ fill_dma(struct tiger_ch *bc)
 			card->send.start[bc->idx++] = v;
 		}
 	}
-	if (debug & DEBUG_HW_BFIFO) {
+
+	if (debug & DEBUG_HW_BFIFO)
+	{
 		snprintf(card->log, LOG_SIZE, "B%1d-send %s %d ",
-			 bc->bch.nr, card->name, count);
+				 bc->bch.nr, card->name, count);
 		print_hex_dump_bytes(card->log, DUMP_PREFIX_OFFSET, p, count);
 	}
+
 	if (bc->free)
+	{
 		bc_next_frame(bc);
+	}
 }
 
 
@@ -615,23 +782,37 @@ bc_next_frame(struct tiger_ch *bc)
 {
 	int ret = 1;
 
-	if (bc->bch.tx_skb && bc->bch.tx_idx < bc->bch.tx_skb->len) {
+	if (bc->bch.tx_skb && bc->bch.tx_idx < bc->bch.tx_skb->len)
+	{
 		fill_dma(bc);
-	} else {
+	}
+	else
+	{
 		if (bc->bch.tx_skb)
+		{
 			dev_kfree_skb(bc->bch.tx_skb);
-		if (get_next_bframe(&bc->bch)) {
+		}
+
+		if (get_next_bframe(&bc->bch))
+		{
 			fill_dma(bc);
 			test_and_clear_bit(FLG_TX_EMPTY, &bc->bch.Flags);
-		} else if (test_bit(FLG_TX_EMPTY, &bc->bch.Flags)) {
+		}
+		else if (test_bit(FLG_TX_EMPTY, &bc->bch.Flags))
+		{
 			fill_dma(bc);
-		} else if (test_bit(FLG_FILLEMPTY, &bc->bch.Flags)) {
+		}
+		else if (test_bit(FLG_FILLEMPTY, &bc->bch.Flags))
+		{
 			test_and_set_bit(FLG_TX_EMPTY, &bc->bch.Flags);
 			ret = 0;
-		} else {
+		}
+		else
+		{
 			ret = 0;
 		}
 	}
+
 	return ret;
 }
 
@@ -641,26 +822,40 @@ send_tiger_bc(struct tiger_hw *card, struct tiger_ch *bc)
 	int ret;
 
 	bc->free += card->send.size / 2;
-	if (bc->free >= card->send.size) {
-		if (!(bc->txstate & (TX_UNDERRUN | TX_INIT))) {
+
+	if (bc->free >= card->send.size)
+	{
+		if (!(bc->txstate & (TX_UNDERRUN | TX_INIT)))
+		{
 			pr_info("%s: B%1d TX underrun state %x\n", card->name,
-				bc->bch.nr, bc->txstate);
+					bc->bch.nr, bc->txstate);
 			bc->txstate |= TX_UNDERRUN;
 		}
+
 		bc->free = card->send.size;
 	}
+
 	ret = bc_next_frame(bc);
-	if (!ret) {
-		if (test_bit(FLG_HDLC, &bc->bch.Flags)) {
+
+	if (!ret)
+	{
+		if (test_bit(FLG_HDLC, &bc->bch.Flags))
+		{
 			fill_hdlc_flag(bc);
 			return;
 		}
+
 		pr_debug("%s: B%1d TX no data free %d idx %d/%d\n", card->name,
-			 bc->bch.nr, bc->free, bc->idx, card->send.idx);
-		if (!(bc->txstate & (TX_IDLE | TX_INIT))) {
+				 bc->bch.nr, bc->free, bc->idx, card->send.idx);
+
+		if (!(bc->txstate & (TX_IDLE | TX_INIT)))
+		{
 			fill_mem(bc, bc->idx, bc->free, 0xff);
+
 			if (bc->free == card->send.size)
+			{
 				bc->txstate |= TX_IDLE;
+			}
 		}
 	}
 }
@@ -671,17 +866,24 @@ send_tiger(struct tiger_hw *card, u8 irq_stat)
 	int i;
 
 	/* Note send is via the READ DMA channel */
-	if ((irq_stat & card->last_is0) & NJ_IRQM0_RD_MASK) {
+	if ((irq_stat & card->last_is0) & NJ_IRQM0_RD_MASK)
+	{
 		pr_info("%s: tiger warn write double dma %x/%x\n",
-			card->name, irq_stat, card->last_is0);
+				card->name, irq_stat, card->last_is0);
 		return;
-	} else {
+	}
+	else
+	{
 		card->last_is0 &= ~NJ_IRQM0_RD_MASK;
 		card->last_is0 |= (irq_stat & NJ_IRQM0_RD_MASK);
 	}
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		if (test_bit(FLG_ACTIVE, &card->bc[i].bch.Flags))
+		{
 			send_tiger_bc(card, &card->bc[i]);
+		}
 	}
 }
 
@@ -694,54 +896,85 @@ nj_irq(int intno, void *dev_id)
 	spin_lock(&card->lock);
 	s0val = inb(card->base | NJ_IRQSTAT0);
 	s1val = inb(card->base | NJ_IRQSTAT1);
-	if ((s1val & NJ_ISACIRQ) && (s0val == 0)) {
+
+	if ((s1val & NJ_ISACIRQ) && (s0val == 0))
+	{
 		/* shared IRQ */
 		spin_unlock(&card->lock);
 		return IRQ_NONE;
 	}
+
 	pr_debug("%s: IRQSTAT0 %02x IRQSTAT1 %02x\n", card->name, s0val, s1val);
 	card->irqcnt++;
-	if (!(s1val & NJ_ISACIRQ)) {
+
+	if (!(s1val & NJ_ISACIRQ))
+	{
 		val = ReadISAC_nj(card, ISAC_ISTA);
+
 		if (val)
+		{
 			mISDNisac_irq(&card->isac, val);
+		}
 	}
 
 	if (s0val)
 		/* write to clear */
+	{
 		outb(s0val, card->base | NJ_IRQSTAT0);
+	}
 	else
+	{
 		goto end;
+	}
+
 	s1val = s0val;
 	/* set bits in sval to indicate which page is free */
 	card->recv.dmacur = inl(card->base | NJ_DMA_WRITE_ADR);
 	card->recv.idx = (card->recv.dmacur - card->recv.dmastart) >> 2;
+
 	if (card->recv.dmacur < card->recv.dmairq)
-		s0val = 0x08;	/* the 2nd write area is free */
+	{
+		s0val = 0x08;    /* the 2nd write area is free */
+	}
 	else
-		s0val = 0x04;	/* the 1st write area is free */
+	{
+		s0val = 0x04;    /* the 1st write area is free */
+	}
 
 	card->send.dmacur = inl(card->base | NJ_DMA_READ_ADR);
 	card->send.idx = (card->send.dmacur - card->send.dmastart) >> 2;
+
 	if (card->send.dmacur < card->send.dmairq)
-		s0val |= 0x02;	/* the 2nd read area is free */
+	{
+		s0val |= 0x02;    /* the 2nd read area is free */
+	}
 	else
-		s0val |= 0x01;	/* the 1st read area is free */
+	{
+		s0val |= 0x01;    /* the 1st read area is free */
+	}
 
 	pr_debug("%s: DMA Status %02x/%02x/%02x %d/%d\n", card->name,
-		 s1val, s0val, card->last_is0,
-		 card->recv.idx, card->send.idx);
+			 s1val, s0val, card->last_is0,
+			 card->recv.idx, card->send.idx);
+
 	/* test if we have a DMA interrupt */
-	if (s0val != card->last_is0) {
+	if (s0val != card->last_is0)
+	{
 		if ((s0val & NJ_IRQM0_RD_MASK) !=
-		    (card->last_is0 & NJ_IRQM0_RD_MASK))
+			(card->last_is0 & NJ_IRQM0_RD_MASK))
 			/* got a write dma int */
+		{
 			send_tiger(card, s0val);
+		}
+
 		if ((s0val & NJ_IRQM0_WR_MASK) !=
-		    (card->last_is0 & NJ_IRQM0_WR_MASK))
+			(card->last_is0 & NJ_IRQM0_WR_MASK))
 			/* got a read dma int */
+		{
 			recv_tiger(card, s0val);
+		}
 	}
+
 end:
 	spin_unlock(&card->lock);
 	return IRQ_HANDLED;
@@ -757,39 +990,57 @@ nj_l2l1B(struct mISDNchannel *ch, struct sk_buff *skb)
 	struct mISDNhead *hh = mISDN_HEAD_P(skb);
 	unsigned long flags;
 
-	switch (hh->prim) {
-	case PH_DATA_REQ:
-		spin_lock_irqsave(&card->lock, flags);
-		ret = bchannel_senddata(bch, skb);
-		if (ret > 0) { /* direct TX */
-			fill_dma(bc);
+	switch (hh->prim)
+	{
+		case PH_DATA_REQ:
+			spin_lock_irqsave(&card->lock, flags);
+			ret = bchannel_senddata(bch, skb);
+
+			if (ret > 0)   /* direct TX */
+			{
+				fill_dma(bc);
+				ret = 0;
+			}
+
+			spin_unlock_irqrestore(&card->lock, flags);
+			return ret;
+
+		case PH_ACTIVATE_REQ:
+			spin_lock_irqsave(&card->lock, flags);
+
+			if (!test_and_set_bit(FLG_ACTIVE, &bch->Flags))
+			{
+				ret = mode_tiger(bc, ch->protocol);
+			}
+			else
+			{
+				ret = 0;
+			}
+
+			spin_unlock_irqrestore(&card->lock, flags);
+
+			if (!ret)
+				_queue_data(ch, PH_ACTIVATE_IND, MISDN_ID_ANY, 0,
+							NULL, GFP_KERNEL);
+
+			break;
+
+		case PH_DEACTIVATE_REQ:
+			spin_lock_irqsave(&card->lock, flags);
+			mISDN_clear_bchannel(bch);
+			mode_tiger(bc, ISDN_P_NONE);
+			spin_unlock_irqrestore(&card->lock, flags);
+			_queue_data(ch, PH_DEACTIVATE_IND, MISDN_ID_ANY, 0,
+						NULL, GFP_KERNEL);
 			ret = 0;
-		}
-		spin_unlock_irqrestore(&card->lock, flags);
-		return ret;
-	case PH_ACTIVATE_REQ:
-		spin_lock_irqsave(&card->lock, flags);
-		if (!test_and_set_bit(FLG_ACTIVE, &bch->Flags))
-			ret = mode_tiger(bc, ch->protocol);
-		else
-			ret = 0;
-		spin_unlock_irqrestore(&card->lock, flags);
-		if (!ret)
-			_queue_data(ch, PH_ACTIVATE_IND, MISDN_ID_ANY, 0,
-				    NULL, GFP_KERNEL);
-		break;
-	case PH_DEACTIVATE_REQ:
-		spin_lock_irqsave(&card->lock, flags);
-		mISDN_clear_bchannel(bch);
-		mode_tiger(bc, ISDN_P_NONE);
-		spin_unlock_irqrestore(&card->lock, flags);
-		_queue_data(ch, PH_DEACTIVATE_IND, MISDN_ID_ANY, 0,
-			    NULL, GFP_KERNEL);
-		ret = 0;
-		break;
+			break;
 	}
+
 	if (!ret)
+	{
 		dev_kfree_skb(skb);
+	}
+
 	return ret;
 }
 
@@ -809,25 +1060,30 @@ nj_bctrl(struct mISDNchannel *ch, u32 cmd, void *arg)
 	u_long flags;
 
 	pr_debug("%s: %s cmd:%x %p\n", card->name, __func__, cmd, arg);
-	switch (cmd) {
-	case CLOSE_CHANNEL:
-		test_and_clear_bit(FLG_OPEN, &bch->Flags);
-		cancel_work_sync(&bch->workq);
-		spin_lock_irqsave(&card->lock, flags);
-		mISDN_clear_bchannel(bch);
-		mode_tiger(bc, ISDN_P_NONE);
-		spin_unlock_irqrestore(&card->lock, flags);
-		ch->protocol = ISDN_P_NONE;
-		ch->peer = NULL;
-		module_put(THIS_MODULE);
-		ret = 0;
-		break;
-	case CONTROL_CHANNEL:
-		ret = channel_bctrl(bc, arg);
-		break;
-	default:
-		pr_info("%s: %s unknown prim(%x)\n", card->name, __func__, cmd);
+
+	switch (cmd)
+	{
+		case CLOSE_CHANNEL:
+			test_and_clear_bit(FLG_OPEN, &bch->Flags);
+			cancel_work_sync(&bch->workq);
+			spin_lock_irqsave(&card->lock, flags);
+			mISDN_clear_bchannel(bch);
+			mode_tiger(bc, ISDN_P_NONE);
+			spin_unlock_irqrestore(&card->lock, flags);
+			ch->protocol = ISDN_P_NONE;
+			ch->peer = NULL;
+			module_put(THIS_MODULE);
+			ret = 0;
+			break;
+
+		case CONTROL_CHANNEL:
+			ret = channel_bctrl(bc, arg);
+			break;
+
+		default:
+			pr_info("%s: %s unknown prim(%x)\n", card->name, __func__, cmd);
 	}
+
 	return ret;
 }
 
@@ -836,26 +1092,34 @@ channel_ctrl(struct tiger_hw *card, struct mISDN_ctrl_req *cq)
 {
 	int	ret = 0;
 
-	switch (cq->op) {
-	case MISDN_CTRL_GETOP:
-		cq->op = MISDN_CTRL_LOOP | MISDN_CTRL_L1_TIMER3;
-		break;
-	case MISDN_CTRL_LOOP:
-		/* cq->channel: 0 disable, 1 B1 loop 2 B2 loop, 3 both */
-		if (cq->channel < 0 || cq->channel > 3) {
+	switch (cq->op)
+	{
+		case MISDN_CTRL_GETOP:
+			cq->op = MISDN_CTRL_LOOP | MISDN_CTRL_L1_TIMER3;
+			break;
+
+		case MISDN_CTRL_LOOP:
+
+			/* cq->channel: 0 disable, 1 B1 loop 2 B2 loop, 3 both */
+			if (cq->channel < 0 || cq->channel > 3)
+			{
+				ret = -EINVAL;
+				break;
+			}
+
+			ret = card->isac.ctrl(&card->isac, HW_TESTLOOP, cq->channel);
+			break;
+
+		case MISDN_CTRL_L1_TIMER3:
+			ret = card->isac.ctrl(&card->isac, HW_TIMER3_VALUE, cq->p1);
+			break;
+
+		default:
+			pr_info("%s: %s unknown Op %x\n", card->name, __func__, cq->op);
 			ret = -EINVAL;
 			break;
-		}
-		ret = card->isac.ctrl(&card->isac, HW_TESTLOOP, cq->channel);
-		break;
-	case MISDN_CTRL_L1_TIMER3:
-		ret = card->isac.ctrl(&card->isac, HW_TIMER3_VALUE, cq->p1);
-		break;
-	default:
-		pr_info("%s: %s unknown Op %x\n", card->name, __func__, cq->op);
-		ret = -EINVAL;
-		break;
 	}
+
 	return ret;
 }
 
@@ -865,12 +1129,22 @@ open_bchannel(struct tiger_hw *card, struct channel_req *rq)
 	struct bchannel *bch;
 
 	if (rq->adr.channel == 0 || rq->adr.channel > 2)
+	{
 		return -EINVAL;
+	}
+
 	if (rq->protocol == ISDN_P_NONE)
+	{
 		return -EINVAL;
+	}
+
 	bch = &card->bc[rq->adr.channel - 1].bch;
+
 	if (test_and_set_bit(FLG_OPEN, &bch->Flags))
-		return -EBUSY; /* b-channel can be only open once */
+	{
+		return -EBUSY;    /* b-channel can be only open once */
+	}
+
 	test_and_clear_bit(FLG_FILLEMPTY, &bch->Flags);
 	bch->ch.protocol = rq->protocol;
 	rq->ch = &bch->ch;
@@ -890,31 +1164,49 @@ nj_dctrl(struct mISDNchannel *ch, u32 cmd, void *arg)
 	int			err = 0;
 
 	pr_debug("%s: %s cmd:%x %p\n", card->name, __func__, cmd, arg);
-	switch (cmd) {
-	case OPEN_CHANNEL:
-		rq = arg;
-		if (rq->protocol == ISDN_P_TE_S0)
-			err = card->isac.open(&card->isac, rq);
-		else
-			err = open_bchannel(card, rq);
-		if (err)
+
+	switch (cmd)
+	{
+		case OPEN_CHANNEL:
+			rq = arg;
+
+			if (rq->protocol == ISDN_P_TE_S0)
+			{
+				err = card->isac.open(&card->isac, rq);
+			}
+			else
+			{
+				err = open_bchannel(card, rq);
+			}
+
+			if (err)
+			{
+				break;
+			}
+
+			if (!try_module_get(THIS_MODULE))
+			{
+				pr_info("%s: cannot get module\n", card->name);
+			}
+
 			break;
-		if (!try_module_get(THIS_MODULE))
-			pr_info("%s: cannot get module\n", card->name);
-		break;
-	case CLOSE_CHANNEL:
-		pr_debug("%s: dev(%d) close from %p\n", card->name, dch->dev.id,
-			 __builtin_return_address(0));
-		module_put(THIS_MODULE);
-		break;
-	case CONTROL_CHANNEL:
-		err = channel_ctrl(card, arg);
-		break;
-	default:
-		pr_debug("%s: %s unknown command %x\n",
-			 card->name, __func__, cmd);
-		return -EINVAL;
+
+		case CLOSE_CHANNEL:
+			pr_debug("%s: dev(%d) close from %p\n", card->name, dch->dev.id,
+					 __builtin_return_address(0));
+			module_put(THIS_MODULE);
+			break;
+
+		case CONTROL_CHANNEL:
+			err = channel_ctrl(card, arg);
+			break;
+
+		default:
+			pr_debug("%s: %s unknown command %x\n",
+					 card->name, __func__, cmd);
+			return -EINVAL;
 	}
+
 	return err;
 }
 
@@ -929,9 +1221,11 @@ nj_init_card(struct tiger_hw *card)
 	spin_unlock_irqrestore(&card->lock, flags);
 
 	card->irq = card->pdev->irq;
-	if (request_irq(card->irq, nj_irq, IRQF_SHARED, card->name, card)) {
+
+	if (request_irq(card->irq, nj_irq, IRQF_SHARED, card->name, card))
+	{
 		pr_info("%s: couldn't get interrupt %d\n",
-			card->name, card->irq);
+				card->name, card->irq);
 		card->irq = -1;
 		return -EIO;
 	}
@@ -939,11 +1233,19 @@ nj_init_card(struct tiger_hw *card)
 	spin_lock_irqsave(&card->lock, flags);
 	nj_reset(card);
 	ret = card->isac.init(&card->isac);
+
 	if (ret)
+	{
 		goto error;
+	}
+
 	ret = inittiger(card);
+
 	if (ret)
+	{
 		goto error;
+	}
+
 	mode_tiger(&card->bc[0], ISDN_P_NONE);
 	mode_tiger(&card->bc[1], ISDN_P_NONE);
 error:
@@ -958,7 +1260,8 @@ nj_release(struct tiger_hw *card)
 	u_long flags;
 	int i;
 
-	if (card->base_s) {
+	if (card->base_s)
+	{
 		spin_lock_irqsave(&card->lock, flags);
 		nj_disable_hwirq(card);
 		mode_tiger(&card->bc[0], ISDN_P_NONE);
@@ -968,19 +1271,28 @@ nj_release(struct tiger_hw *card)
 		release_region(card->base, card->base_s);
 		card->base_s = 0;
 	}
-	if (card->irq > 0)
-		free_irq(card->irq, card);
-	if (card->isac.dch.dev.dev.class)
-		mISDN_unregister_device(&card->isac.dch.dev);
 
-	for (i = 0; i < 2; i++) {
+	if (card->irq > 0)
+	{
+		free_irq(card->irq, card);
+	}
+
+	if (card->isac.dch.dev.dev.class)
+	{
+		mISDN_unregister_device(&card->isac.dch.dev);
+	}
+
+	for (i = 0; i < 2; i++)
+	{
 		mISDN_freebchannel(&card->bc[i].bch);
 		kfree(card->bc[i].hsbuf);
 		kfree(card->bc[i].hrbuf);
 	}
+
 	if (card->dma_p)
 		pci_free_consistent(card->pdev, NJ_DMA_SIZE,
-				    card->dma_p, card->dma);
+							card->dma_p, card->dma);
+
 	write_lock_irqsave(&card_lock, flags);
 	list_del(&card->list);
 	write_unlock_irqrestore(&card_lock, flags);
@@ -996,13 +1308,16 @@ nj_setup(struct tiger_hw *card)
 {
 	card->base = pci_resource_start(card->pdev, 0);
 	card->base_s = pci_resource_len(card->pdev, 0);
-	if (!request_region(card->base, card->base_s, card->name)) {
+
+	if (!request_region(card->base, card->base_s, card->name))
+	{
 		pr_info("%s: NETjet config port %#x-%#x already in use\n",
-			card->name, card->base,
-			(u32)(card->base + card->base_s - 1));
+				card->name, card->base,
+				(u32)(card->base + card->base_s - 1));
 		card->base_s = 0;
 		return -EIO;
 	}
+
 	ASSIGN_FUNC(nj, ISAC, card->isac);
 	return 0;
 }
@@ -1026,34 +1341,48 @@ setup_instance(struct tiger_hw *card)
 	mISDNisac_init(&card->isac, card);
 
 	card->isac.dch.dev.Bprotocols = (1 << (ISDN_P_B_RAW & ISDN_P_B_MASK)) |
-		(1 << (ISDN_P_B_HDLC & ISDN_P_B_MASK));
+									(1 << (ISDN_P_B_HDLC & ISDN_P_B_MASK));
 	card->isac.dch.dev.D.ctrl = nj_dctrl;
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		card->bc[i].bch.nr = i + 1;
 		set_channelmap(i + 1, card->isac.dch.dev.channelmap);
 		mISDN_initbchannel(&card->bc[i].bch, MAX_DATA_MEM,
-				   NJ_DMA_RXSIZE >> 1);
+						   NJ_DMA_RXSIZE >> 1);
 		card->bc[i].bch.hw = card;
 		card->bc[i].bch.ch.send = nj_l2l1B;
 		card->bc[i].bch.ch.ctrl = nj_bctrl;
 		card->bc[i].bch.ch.nr = i + 1;
 		list_add(&card->bc[i].bch.ch.list,
-			 &card->isac.dch.dev.bchannels);
+				 &card->isac.dch.dev.bchannels);
 		card->bc[i].bch.hw = card;
 	}
+
 	err = nj_setup(card);
+
 	if (err)
+	{
 		goto error;
+	}
+
 	err = mISDN_register_device(&card->isac.dch.dev, &card->pdev->dev,
-				    card->name);
+								card->name);
+
 	if (err)
+	{
 		goto error;
+	}
+
 	err = nj_init_card(card);
-	if (!err)  {
+
+	if (!err)
+	{
 		nj_cnt++;
 		pr_notice("Netjet %d cards installed\n", nj_cnt);
 		return 0;
 	}
+
 error:
 	nj_release(card);
 	return err;
@@ -1067,25 +1396,30 @@ nj_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	struct tiger_hw *card;
 
 	if (pdev->subsystem_vendor == 0x8086 &&
-	    pdev->subsystem_device == 0x0003) {
+		pdev->subsystem_device == 0x0003)
+	{
 		pr_notice("Netjet: Digium X100P/X101P not handled\n");
 		return -ENODEV;
 	}
 
 	if (pdev->subsystem_vendor == 0x55 &&
-	    pdev->subsystem_device == 0x02) {
+		pdev->subsystem_device == 0x02)
+	{
 		pr_notice("Netjet: Enter!Now not handled yet\n");
 		return -ENODEV;
 	}
 
 	if (pdev->subsystem_vendor == 0xb100 &&
-	    pdev->subsystem_device == 0x0003) {
+		pdev->subsystem_device == 0x0003)
+	{
 		pr_notice("Netjet: Digium TDM400P not handled yet\n");
 		return -ENODEV;
 	}
 
 	card = kzalloc(sizeof(struct tiger_hw), GFP_ATOMIC);
-	if (!card) {
+
+	if (!card)
+	{
 		pr_info("No kmem for Netjet\n");
 		return err;
 	}
@@ -1093,13 +1427,15 @@ nj_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	card->pdev = pdev;
 
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		kfree(card);
 		return err;
 	}
 
 	printk(KERN_INFO "nj_probe(mISDN): found adapter at %s\n",
-	       pci_name(pdev));
+		   pci_name(pdev));
 
 	pci_set_master(pdev);
 
@@ -1108,17 +1444,25 @@ nj_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 * the bit20 in status PCI cfg register set
 	 */
 	pci_read_config_dword(pdev, 0x04, &cfg);
+
 	if (cfg & 0x00100000)
+	{
 		card->typ = NETJET_S_TJ320;
+	}
 	else
+	{
 		card->typ = NETJET_S_TJ300;
+	}
 
 	card->base = pci_resource_start(pdev, 0);
 	card->irq = pdev->irq;
 	pci_set_drvdata(pdev, card);
 	err = setup_instance(card);
+
 	if (err)
+	{
 		pci_set_drvdata(pdev, NULL);
+	}
 
 	return err;
 }
@@ -1129,22 +1473,30 @@ static void nj_remove(struct pci_dev *pdev)
 	struct tiger_hw *card = pci_get_drvdata(pdev);
 
 	if (card)
+	{
 		nj_release(card);
+	}
 	else
+	{
 		pr_info("%s drvdata already removed\n", __func__);
+	}
 }
 
 /* We cannot select cards with PCI_SUB... IDs, since here are cards with
  * SUB IDs set to PCI_ANY_ID, so we need to match all and reject
  * known other cards which not work with this driver - see probe function */
-static struct pci_device_id nj_pci_ids[] = {
-	{ PCI_VENDOR_ID_TIGERJET, PCI_DEVICE_ID_TIGERJET_300,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+static struct pci_device_id nj_pci_ids[] =
+{
+	{
+		PCI_VENDOR_ID_TIGERJET, PCI_DEVICE_ID_TIGERJET_300,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0
+	},
 	{ }
 };
 MODULE_DEVICE_TABLE(pci, nj_pci_ids);
 
-static struct pci_driver nj_driver = {
+static struct pci_driver nj_driver =
+{
 	.name = "netjet",
 	.probe = nj_probe,
 	.remove = nj_remove,

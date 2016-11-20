@@ -26,7 +26,8 @@
 #include "vnic_cq.h"
 
 /* Work queue control */
-struct vnic_wq_ctrl {
+struct vnic_wq_ctrl
+{
 	u64 ring_base;			/* 0x00 */
 	u32 ring_size;			/* 0x08 */
 	u32 pad0;
@@ -50,7 +51,8 @@ struct vnic_wq_ctrl {
 	u32 pad9;
 };
 
-struct vnic_wq_buf {
+struct vnic_wq_buf
+{
 	struct vnic_wq_buf *next;
 	dma_addr_t dma_addr;
 	void *os_buf;
@@ -70,14 +72,15 @@ struct vnic_wq_buf {
 #define VNIC_WQ_BUF_DFLT_BLK_ENTRIES 64
 #define VNIC_WQ_BUF_BLK_ENTRIES(entries) \
 	((unsigned int)((entries < VNIC_WQ_BUF_DFLT_BLK_ENTRIES) ? \
-	VNIC_WQ_BUF_MIN_BLK_ENTRIES : VNIC_WQ_BUF_DFLT_BLK_ENTRIES))
+					VNIC_WQ_BUF_MIN_BLK_ENTRIES : VNIC_WQ_BUF_DFLT_BLK_ENTRIES))
 #define VNIC_WQ_BUF_BLK_SZ(entries) \
 	(VNIC_WQ_BUF_BLK_ENTRIES(entries) * sizeof(struct vnic_wq_buf))
 #define VNIC_WQ_BUF_BLKS_NEEDED(entries) \
 	DIV_ROUND_UP(entries, VNIC_WQ_BUF_BLK_ENTRIES(entries))
 #define VNIC_WQ_BUF_BLKS_MAX VNIC_WQ_BUF_BLKS_NEEDED(4096)
 
-struct vnic_wq {
+struct vnic_wq
+{
 	unsigned int index;
 	struct vnic_dev *vdev;
 	struct vnic_wq_ctrl __iomem *ctrl;              /* memory-mapped */
@@ -88,7 +91,8 @@ struct vnic_wq {
 	unsigned int pkts_outstanding;
 };
 
-struct devcmd2_controller {
+struct devcmd2_controller
+{
 	struct vnic_wq_ctrl __iomem *wq_ctrl;
 	struct vnic_devcmd2 *cmd_ring;
 	struct devcmd2_result *result;
@@ -129,10 +133,10 @@ static inline void vnic_wq_doorbell(struct vnic_wq *wq)
 }
 
 static inline void vnic_wq_post(struct vnic_wq *wq,
-	void *os_buf, dma_addr_t dma_addr,
-	unsigned int len, int sop, int eop,
-	uint8_t desc_skip_cnt, uint8_t cq_entry,
-	uint8_t compressed_send, uint64_t wrid)
+								void *os_buf, dma_addr_t dma_addr,
+								unsigned int len, int sop, int eop,
+								uint8_t desc_skip_cnt, uint8_t cq_entry,
+								uint8_t compressed_send, uint64_t wrid)
 {
 	struct vnic_wq_buf *buf = wq->to_use;
 
@@ -152,15 +156,17 @@ static inline void vnic_wq_post(struct vnic_wq *wq,
 }
 
 static inline void vnic_wq_service(struct vnic_wq *wq,
-	struct cq_desc *cq_desc, u16 completed_index,
-	void (*buf_service)(struct vnic_wq *wq,
-	struct cq_desc *cq_desc, struct vnic_wq_buf *buf, void *opaque),
-	void *opaque)
+								   struct cq_desc *cq_desc, u16 completed_index,
+								   void (*buf_service)(struct vnic_wq *wq,
+										   struct cq_desc *cq_desc, struct vnic_wq_buf *buf, void *opaque),
+								   void *opaque)
 {
 	struct vnic_wq_buf *buf;
 
 	buf = wq->to_clean;
-	while (1) {
+
+	while (1)
+	{
 
 		(*buf_service)(wq, cq_desc, buf, opaque);
 
@@ -169,7 +175,9 @@ static inline void vnic_wq_service(struct vnic_wq *wq,
 		wq->to_clean = buf->next;
 
 		if (buf->index == completed_index)
+		{
 			break;
+		}
 
 		buf = wq->to_clean;
 	}
@@ -177,20 +185,20 @@ static inline void vnic_wq_service(struct vnic_wq *wq,
 
 void vnic_wq_free(struct vnic_wq *wq);
 int vnic_wq_alloc(struct vnic_dev *vdev, struct vnic_wq *wq, unsigned int index,
-	unsigned int desc_count, unsigned int desc_size);
+				  unsigned int desc_count, unsigned int desc_size);
 void vnic_wq_init(struct vnic_wq *wq, unsigned int cq_index,
-	unsigned int error_interrupt_enable,
-	unsigned int error_interrupt_offset);
+				  unsigned int error_interrupt_enable,
+				  unsigned int error_interrupt_offset);
 unsigned int vnic_wq_error_status(struct vnic_wq *wq);
 void vnic_wq_enable(struct vnic_wq *wq);
 int vnic_wq_disable(struct vnic_wq *wq);
 void vnic_wq_clean(struct vnic_wq *wq,
-	void (*buf_clean)(struct vnic_wq *wq, struct vnic_wq_buf *buf));
+				   void (*buf_clean)(struct vnic_wq *wq, struct vnic_wq_buf *buf));
 int enic_wq_devcmd2_alloc(struct vnic_dev *vdev, struct vnic_wq *wq,
-			  unsigned int desc_count, unsigned int desc_size);
+						  unsigned int desc_count, unsigned int desc_size);
 void enic_wq_init_start(struct vnic_wq *wq, unsigned int cq_index,
-			unsigned int fetch_index, unsigned int posted_index,
-			unsigned int error_interrupt_enable,
-			unsigned int error_interrupt_offset);
+						unsigned int fetch_index, unsigned int posted_index,
+						unsigned int error_interrupt_enable,
+						unsigned int error_interrupt_offset);
 
 #endif /* _VNIC_WQ_H_ */

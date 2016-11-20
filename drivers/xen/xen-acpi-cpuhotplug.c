@@ -48,20 +48,27 @@ static int xen_acpi_processor_enable(struct acpi_device *device)
 	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
 	struct acpi_processor *pr = acpi_driver_data(device);
 
-	if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_OBJECT_HID)) {
+	if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_OBJECT_HID))
+	{
 		/* Declared with "Processor" statement; match ProcessorID */
 		status = acpi_evaluate_object(pr->handle, NULL, NULL, &buffer);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			pr_err(PREFIX "Evaluating processor object\n");
 			return -ENODEV;
 		}
 
 		pr->acpi_id = object.processor.proc_id;
-	} else {
+	}
+	else
+	{
 		/* Declared with "Device" statement; match _UID */
 		status = acpi_evaluate_integer(pr->handle, METHOD_NAME__UID,
-						NULL, &value);
-		if (ACPI_FAILURE(status)) {
+									   NULL, &value);
+
+		if (ACPI_FAILURE(status))
+		{
 			pr_err(PREFIX "Evaluating processor _UID\n");
 			return -ENODEV;
 		}
@@ -72,10 +79,12 @@ static int xen_acpi_processor_enable(struct acpi_device *device)
 	pr->id = xen_pcpu_id(pr->acpi_id);
 
 	if (invalid_logical_cpuid(pr->id))
+
 		/* This cpu is not presented at hypervisor, try to hotadd it */
-		if (ACPI_FAILURE(xen_acpi_cpu_hotadd(pr))) {
+		if (ACPI_FAILURE(xen_acpi_cpu_hotadd(pr)))
+		{
 			pr_err(PREFIX "Hotadd CPU (acpi_id = %d) failed.\n",
-					pr->acpi_id);
+				   pr->acpi_id);
 			return -ENODEV;
 		}
 
@@ -88,11 +97,16 @@ static int xen_acpi_processor_add(struct acpi_device *device)
 	struct acpi_processor *pr;
 
 	if (!device)
+	{
 		return -EINVAL;
+	}
 
 	pr = kzalloc(sizeof(struct acpi_processor), GFP_KERNEL);
+
 	if (!pr)
+	{
 		return -ENOMEM;
+	}
 
 	pr->handle = device->handle;
 	strcpy(acpi_device_name(device), ACPI_PROCESSOR_DEVICE_NAME);
@@ -100,8 +114,11 @@ static int xen_acpi_processor_add(struct acpi_device *device)
 	device->driver_data = pr;
 
 	ret = xen_acpi_processor_enable(device);
+
 	if (ret)
+	{
 		pr_err(PREFIX "Error when enabling Xen processor\n");
+	}
 
 	return ret;
 }
@@ -111,11 +128,16 @@ static int xen_acpi_processor_remove(struct acpi_device *device)
 	struct acpi_processor *pr;
 
 	if (!device)
+	{
 		return -EINVAL;
+	}
 
 	pr = acpi_driver_data(device);
+
 	if (!pr)
+	{
 		return -EINVAL;
+	}
 
 	kfree(pr);
 	return 0;
@@ -134,15 +156,22 @@ static int is_processor_present(acpi_handle handle)
 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
 
 	if (ACPI_SUCCESS(status) && (sta & ACPI_STA_DEVICE_PRESENT))
+	{
 		return 1;
+	}
 
 	/*
 	 * _STA is mandatory for a processor that supports hot plug
 	 */
 	if (status == AE_NOT_FOUND)
+	{
 		pr_info(PREFIX "Processor does not support hot plug\n");
+	}
 	else
+	{
 		pr_info(PREFIX "Processor Device is not present");
+	}
+
 	return 0;
 }
 
@@ -154,14 +183,20 @@ static int xen_apic_id(acpi_handle handle)
 	int apic_id;
 
 	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
+	{
 		return -EINVAL;
+	}
 
 	if (!buffer.length || !buffer.pointer)
+	{
 		return -EINVAL;
+	}
 
 	obj = buffer.pointer;
+
 	if (obj->type != ACPI_TYPE_BUFFER ||
-	    obj->buffer.length < sizeof(*lapic)) {
+		obj->buffer.length < sizeof(*lapic))
+	{
 		kfree(buffer.pointer);
 		return -EINVAL;
 	}
@@ -169,7 +204,8 @@ static int xen_apic_id(acpi_handle handle)
 	lapic = (struct acpi_madt_local_apic *)obj->buffer.pointer;
 
 	if (lapic->header.type != ACPI_MADT_TYPE_LOCAL_APIC ||
-	    !(lapic->lapic_flags & ACPI_MADT_ENABLED)) {
+		!(lapic->lapic_flags & ACPI_MADT_ENABLED))
+	{
 		kfree(buffer.pointer);
 		return -EINVAL;
 	}
@@ -188,16 +224,20 @@ static int xen_hotadd_cpu(struct acpi_processor *pr)
 	struct xen_platform_op op;
 
 	apic_id = xen_apic_id(pr->handle);
-	if (apic_id < 0) {
+
+	if (apic_id < 0)
+	{
 		pr_err(PREFIX "Failed to get apic_id for acpi_id %d\n",
-				pr->acpi_id);
+			   pr->acpi_id);
 		return -ENODEV;
 	}
 
 	pxm = xen_acpi_get_pxm(pr->handle);
-	if (pxm < 0) {
+
+	if (pxm < 0)
+	{
 		pr_err(PREFIX "Failed to get _PXM for acpi_id %d\n",
-				pr->acpi_id);
+			   pr->acpi_id);
 		return pxm;
 	}
 
@@ -207,9 +247,10 @@ static int xen_hotadd_cpu(struct acpi_processor *pr)
 	op.u.cpu_add.pxm = pxm;
 
 	cpu_id = HYPERVISOR_platform_op(&op);
+
 	if (cpu_id < 0)
 		pr_err(PREFIX "Failed to hotadd CPU for acpi_id %d\n",
-				pr->acpi_id);
+			   pr->acpi_id);
 
 	return cpu_id;
 }
@@ -217,11 +258,16 @@ static int xen_hotadd_cpu(struct acpi_processor *pr)
 static acpi_status xen_acpi_cpu_hotadd(struct acpi_processor *pr)
 {
 	if (!is_processor_present(pr->handle))
+	{
 		return AE_ERROR;
+	}
 
 	pr->id = xen_hotadd_cpu(pr);
+
 	if (invalid_logical_cpuid(pr->id))
+	{
 		return AE_ERROR;
+	}
 
 	/*
 	 * Sync with Xen hypervisor, providing new /sys/.../xen_cpuX
@@ -240,7 +286,7 @@ static int acpi_processor_device_remove(struct acpi_device *device)
 }
 
 static void acpi_processor_hotplug_notify(acpi_handle handle,
-					  u32 event, void *data)
+		u32 event, void *data)
 {
 	struct acpi_processor *pr;
 	struct acpi_device *device = NULL;
@@ -249,62 +295,78 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
 
 	acpi_scan_lock_acquire();
 
-	switch (event) {
-	case ACPI_NOTIFY_BUS_CHECK:
-	case ACPI_NOTIFY_DEVICE_CHECK:
-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-			"Processor driver received %s event\n",
-			(event == ACPI_NOTIFY_BUS_CHECK) ?
-			"ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK"));
+	switch (event)
+	{
+		case ACPI_NOTIFY_BUS_CHECK:
+		case ACPI_NOTIFY_DEVICE_CHECK:
+			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+							  "Processor driver received %s event\n",
+							  (event == ACPI_NOTIFY_BUS_CHECK) ?
+							  "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK"));
 
-		if (!is_processor_present(handle))
+			if (!is_processor_present(handle))
+			{
+				break;
+			}
+
+			acpi_bus_get_device(handle, &device);
+
+			if (acpi_device_enumerated(device))
+			{
+				break;
+			}
+
+			result = acpi_bus_scan(handle);
+
+			if (result)
+			{
+				pr_err(PREFIX "Unable to add the device\n");
+				break;
+			}
+
+			device = NULL;
+			acpi_bus_get_device(handle, &device);
+
+			if (!acpi_device_enumerated(device))
+			{
+				pr_err(PREFIX "Missing device object\n");
+				break;
+			}
+
+			ost_code = ACPI_OST_SC_SUCCESS;
 			break;
 
-		acpi_bus_get_device(handle, &device);
-		if (acpi_device_enumerated(device))
+		case ACPI_NOTIFY_EJECT_REQUEST:
+			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+							  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
+
+			if (acpi_bus_get_device(handle, &device))
+			{
+				pr_err(PREFIX "Device don't exist, dropping EJECT\n");
+				break;
+			}
+
+			pr = acpi_driver_data(device);
+
+			if (!pr)
+			{
+				pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
+				break;
+			}
+
+			/*
+			 * TBD: implement acpi_processor_device_remove if Xen support
+			 * CPU hotremove in the future.
+			 */
+			acpi_processor_device_remove(device);
 			break;
 
-		result = acpi_bus_scan(handle);
-		if (result) {
-			pr_err(PREFIX "Unable to add the device\n");
-			break;
-		}
-		device = NULL;
-		acpi_bus_get_device(handle, &device);
-		if (!acpi_device_enumerated(device)) {
-			pr_err(PREFIX "Missing device object\n");
-			break;
-		}
-		ost_code = ACPI_OST_SC_SUCCESS;
-		break;
+		default:
+			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+							  "Unsupported event [0x%x]\n", event));
 
-	case ACPI_NOTIFY_EJECT_REQUEST:
-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
-
-		if (acpi_bus_get_device(handle, &device)) {
-			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
-			break;
-		}
-		pr = acpi_driver_data(device);
-		if (!pr) {
-			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
-			break;
-		}
-
-		/*
-		 * TBD: implement acpi_processor_device_remove if Xen support
-		 * CPU hotremove in the future.
-		 */
-		acpi_processor_device_remove(device);
-		break;
-
-	default:
-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-				  "Unsupported event [0x%x]\n", event));
-
-		/* non-hotplug event; possibly handled by other handler */
-		goto out;
+			/* non-hotplug event; possibly handled by other handler */
+			goto out;
 	}
 
 	(void) acpi_evaluate_ost(handle, event, ost_code, NULL);
@@ -320,21 +382,28 @@ static acpi_status is_processor_device(acpi_handle handle)
 	acpi_status status;
 
 	status = acpi_get_object_info(handle, &info);
-	if (ACPI_FAILURE(status))
-		return status;
 
-	if (info->type == ACPI_TYPE_PROCESSOR) {
+	if (ACPI_FAILURE(status))
+	{
+		return status;
+	}
+
+	if (info->type == ACPI_TYPE_PROCESSOR)
+	{
 		kfree(info);
 		return AE_OK;	/* found a processor object */
 	}
 
-	if (!(info->valid & ACPI_VALID_HID)) {
+	if (!(info->valid & ACPI_VALID_HID))
+	{
 		kfree(info);
 		return AE_ERROR;
 	}
 
 	hid = info->hardware_id.string;
-	if ((hid == NULL) || strcmp(hid, ACPI_PROCESSOR_DEVICE_HID)) {
+
+	if ((hid == NULL) || strcmp(hid, ACPI_PROCESSOR_DEVICE_HID))
+	{
 		kfree(info);
 		return AE_ERROR;
 	}
@@ -345,29 +414,35 @@ static acpi_status is_processor_device(acpi_handle handle)
 
 static acpi_status
 processor_walk_namespace_cb(acpi_handle handle,
-			    u32 lvl, void *context, void **rv)
+							u32 lvl, void *context, void **rv)
 {
 	acpi_status status;
 	int *action = context;
 
 	status = is_processor_device(handle);
-	if (ACPI_FAILURE(status))
-		return AE_OK;	/* not a processor; continue to walk */
 
-	switch (*action) {
-	case INSTALL_NOTIFY_HANDLER:
-		acpi_install_notify_handler(handle,
-					    ACPI_SYSTEM_NOTIFY,
-					    acpi_processor_hotplug_notify,
-					    NULL);
-		break;
-	case UNINSTALL_NOTIFY_HANDLER:
-		acpi_remove_notify_handler(handle,
-					   ACPI_SYSTEM_NOTIFY,
-					   acpi_processor_hotplug_notify);
-		break;
-	default:
-		break;
+	if (ACPI_FAILURE(status))
+	{
+		return AE_OK;    /* not a processor; continue to walk */
+	}
+
+	switch (*action)
+	{
+		case INSTALL_NOTIFY_HANDLER:
+			acpi_install_notify_handler(handle,
+										ACPI_SYSTEM_NOTIFY,
+										acpi_processor_hotplug_notify,
+										NULL);
+			break;
+
+		case UNINSTALL_NOTIFY_HANDLER:
+			acpi_remove_notify_handler(handle,
+									   ACPI_SYSTEM_NOTIFY,
+									   acpi_processor_hotplug_notify);
+			break;
+
+		default:
+			break;
 	}
 
 	/* found a processor; skip walking underneath */
@@ -379,9 +454,9 @@ void acpi_processor_install_hotplug_notify(void)
 {
 	int action = INSTALL_NOTIFY_HANDLER;
 	acpi_walk_namespace(ACPI_TYPE_ANY,
-			    ACPI_ROOT_OBJECT,
-			    ACPI_UINT32_MAX,
-			    processor_walk_namespace_cb, NULL, &action, NULL);
+						ACPI_ROOT_OBJECT,
+						ACPI_UINT32_MAX,
+						processor_walk_namespace_cb, NULL, &action, NULL);
 }
 
 static
@@ -389,26 +464,28 @@ void acpi_processor_uninstall_hotplug_notify(void)
 {
 	int action = UNINSTALL_NOTIFY_HANDLER;
 	acpi_walk_namespace(ACPI_TYPE_ANY,
-			    ACPI_ROOT_OBJECT,
-			    ACPI_UINT32_MAX,
-			    processor_walk_namespace_cb, NULL, &action, NULL);
+						ACPI_ROOT_OBJECT,
+						ACPI_UINT32_MAX,
+						processor_walk_namespace_cb, NULL, &action, NULL);
 }
 
-static const struct acpi_device_id processor_device_ids[] = {
+static const struct acpi_device_id processor_device_ids[] =
+{
 	{ACPI_PROCESSOR_OBJECT_HID, 0},
 	{ACPI_PROCESSOR_DEVICE_HID, 0},
 	{"", 0},
 };
 MODULE_DEVICE_TABLE(acpi, processor_device_ids);
 
-static struct acpi_driver xen_acpi_processor_driver = {
+static struct acpi_driver xen_acpi_processor_driver =
+{
 	.name = "processor",
 	.class = ACPI_PROCESSOR_CLASS,
 	.ids = processor_device_ids,
 	.ops = {
 		.add = xen_acpi_processor_add,
 		.remove = xen_acpi_processor_remove,
-		},
+	},
 };
 
 static int __init xen_acpi_processor_init(void)
@@ -416,13 +493,17 @@ static int __init xen_acpi_processor_init(void)
 	int result = 0;
 
 	if (!xen_initial_domain())
+	{
 		return -ENODEV;
+	}
 
 	/* unregister the stub which only used to reserve driver space */
 	xen_stub_processor_exit();
 
 	result = acpi_bus_register_driver(&xen_acpi_processor_driver);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		xen_stub_processor_init();
 		return result;
 	}
@@ -434,7 +515,9 @@ static int __init xen_acpi_processor_init(void)
 static void __exit xen_acpi_processor_exit(void)
 {
 	if (!xen_initial_domain())
+	{
 		return;
+	}
 
 	acpi_processor_uninstall_hotplug_notify();
 

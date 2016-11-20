@@ -19,7 +19,8 @@
 #include <linux/mfd/da9052/da9052.h>
 #include <linux/mfd/da9052/reg.h>
 
-struct da9052_onkey {
+struct da9052_onkey
+{
 	struct da9052 *da9052;
 	struct input_dev *input;
 	struct delayed_work work;
@@ -30,10 +31,14 @@ static void da9052_onkey_query(struct da9052_onkey *onkey)
 	int ret;
 
 	ret = da9052_reg_read(onkey->da9052, DA9052_STATUS_A_REG);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(onkey->da9052->dev,
-			"Failed to read onkey event err=%d\n", ret);
-	} else {
+				"Failed to read onkey event err=%d\n", ret);
+	}
+	else
+	{
 		/*
 		 * Since interrupt for deassertion of ONKEY pin is not
 		 * generated, onkey event state determines the onkey
@@ -51,14 +56,14 @@ static void da9052_onkey_query(struct da9052_onkey *onkey)
 		 */
 		if (pressed)
 			schedule_delayed_work(&onkey->work,
-						msecs_to_jiffies(50));
+								  msecs_to_jiffies(50));
 	}
 }
 
 static void da9052_onkey_work(struct work_struct *work)
 {
 	struct da9052_onkey *onkey = container_of(work, struct da9052_onkey,
-						  work.work);
+								 work.work);
 
 	da9052_onkey_query(onkey);
 }
@@ -79,14 +84,17 @@ static int da9052_onkey_probe(struct platform_device *pdev)
 	struct input_dev *input_dev;
 	int error;
 
-	if (!da9052) {
+	if (!da9052)
+	{
 		dev_err(&pdev->dev, "Failed to get the driver's data\n");
 		return -EINVAL;
 	}
 
 	onkey = kzalloc(sizeof(*onkey), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!onkey || !input_dev) {
+
+	if (!onkey || !input_dev)
+	{
 		dev_err(&pdev->dev, "Failed to allocate memory\n");
 		error = -ENOMEM;
 		goto err_free_mem;
@@ -104,17 +112,21 @@ static int da9052_onkey_probe(struct platform_device *pdev)
 	__set_bit(KEY_POWER, input_dev->keybit);
 
 	error = da9052_request_irq(onkey->da9052, DA9052_IRQ_NONKEY, "ONKEY",
-			    da9052_onkey_irq, onkey);
-	if (error < 0) {
+							   da9052_onkey_irq, onkey);
+
+	if (error < 0)
+	{
 		dev_err(onkey->da9052->dev,
-			"Failed to register ONKEY IRQ: %d\n", error);
+				"Failed to register ONKEY IRQ: %d\n", error);
 		goto err_free_mem;
 	}
 
 	error = input_register_device(onkey->input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Unable to register input device, %d\n",
-			error);
+				error);
 		goto err_free_irq;
 	}
 
@@ -144,7 +156,8 @@ static int da9052_onkey_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver da9052_onkey_driver = {
+static struct platform_driver da9052_onkey_driver =
+{
 	.probe	= da9052_onkey_probe,
 	.remove	= da9052_onkey_remove,
 	.driver = {

@@ -52,14 +52,14 @@
 #define MLXCPLD_LED_IS_OFF		0x00 /* Off */
 #define MLXCPLD_LED_RED_STATIC_ON	0x05 /* Solid red */
 #define MLXCPLD_LED_RED_BLINK_HALF	(MLXCPLD_LED_RED_STATIC_ON + \
-					 MLXCPLD_LED_OFFSET_HALF)
+									 MLXCPLD_LED_OFFSET_HALF)
 #define MLXCPLD_LED_RED_BLINK_FULL	(MLXCPLD_LED_RED_STATIC_ON + \
-					 MLXCPLD_LED_OFFSET_FULL)
+									 MLXCPLD_LED_OFFSET_FULL)
 #define MLXCPLD_LED_GREEN_STATIC_ON	0x0D /* Solid green */
 #define MLXCPLD_LED_GREEN_BLINK_HALF	(MLXCPLD_LED_GREEN_STATIC_ON + \
-					 MLXCPLD_LED_OFFSET_HALF)
+		MLXCPLD_LED_OFFSET_HALF)
 #define MLXCPLD_LED_GREEN_BLINK_FULL	(MLXCPLD_LED_GREEN_STATIC_ON + \
-					 MLXCPLD_LED_OFFSET_FULL)
+		MLXCPLD_LED_OFFSET_FULL)
 #define MLXCPLD_LED_BLINK_3HZ		167 /* ~167 msec off/on */
 #define MLXCPLD_LED_BLINK_6HZ		83 /* ~83 msec off/on */
 
@@ -69,7 +69,8 @@
  * @mask - mask for LED access in CPLD device
  * @base_color - base color code for LED
 **/
-struct mlxcpld_param {
+struct mlxcpld_param
+{
 	u8 offset;
 	u8 mask;
 	u8 base_color;
@@ -80,7 +81,8 @@ struct mlxcpld_param {
  * @cled - LED class device instance
  * @param - LED CPLD access parameters
 **/
-struct mlxcpld_led_priv {
+struct mlxcpld_led_priv
+{
 	struct led_classdev cdev;
 	struct mlxcpld_param param;
 };
@@ -95,7 +97,8 @@ struct mlxcpld_led_priv {
  * @brightness - default brightness setting (on/off)
  * @name - LED name
 **/
-struct mlxcpld_led_profile {
+struct mlxcpld_led_profile
+{
 	u8 offset;
 	u8 mask;
 	u8 base_color;
@@ -111,7 +114,8 @@ struct mlxcpld_led_profile {
  * @num_led_instances - number of LED instances
  * @lock - device access lock
 **/
-struct mlxcpld_led_pdata {
+struct mlxcpld_led_pdata
+{
 	struct platform_device *pdev;
 	struct mlxcpld_led_priv *pled;
 	struct mlxcpld_led_profile *profile;
@@ -125,7 +129,8 @@ static struct mlxcpld_led_pdata *mlxcpld_led;
  * "msx6710", "msx6720", "msb7700", "msn2700", "msx1410",
  * "msn2410", "msb7800", "msn2740"
  */
-static struct mlxcpld_led_profile mlxcpld_led_default_profile[] = {
+static struct mlxcpld_led_profile mlxcpld_led_default_profile[] =
+{
 	{
 		0x21, 0xf0, MLXCPLD_LED_GREEN_STATIC_ON, 1,
 		"mlxcpld:fan1:green",
@@ -177,7 +182,8 @@ static struct mlxcpld_led_profile mlxcpld_led_default_profile[] = {
 };
 
 /* Profile fit the Mellanox systems based on "msn2100" */
-static struct mlxcpld_led_profile mlxcpld_led_msn2100_profile[] = {
+static struct mlxcpld_led_profile mlxcpld_led_msn2100_profile[] =
+{
 	{
 		0x21, 0xf0, MLXCPLD_LED_GREEN_STATIC_ON, 1,
 		"mlxcpld:fan:green",
@@ -216,12 +222,14 @@ static struct mlxcpld_led_profile mlxcpld_led_msn2100_profile[] = {
 	},
 };
 
-enum mlxcpld_led_platform_types {
+enum mlxcpld_led_platform_types
+{
 	MLXCPLD_LED_PLATFORM_DEFAULT,
 	MLXCPLD_LED_PLATFORM_MSN2100,
 };
 
-static const char *mlx_product_names[] = {
+static const char *mlx_product_names[] =
+{
 	"DEFAULT",
 	"MSN2100",
 };
@@ -233,26 +241,36 @@ mlxcpld_led_platform_types mlxcpld_led_platform_check_sys_type(void)
 	int i;
 
 	mlx_product_name = dmi_get_system_info(DMI_PRODUCT_NAME);
-	if (!mlx_product_name)
-		return MLXCPLD_LED_PLATFORM_DEFAULT;
 
-	for (i = 1;  i < ARRAY_SIZE(mlx_product_names); i++) {
+	if (!mlx_product_name)
+	{
+		return MLXCPLD_LED_PLATFORM_DEFAULT;
+	}
+
+	for (i = 1;  i < ARRAY_SIZE(mlx_product_names); i++)
+	{
 		if (strstr(mlx_product_name, mlx_product_names[i]))
+		{
 			return i;
+		}
 	}
 
 	return MLXCPLD_LED_PLATFORM_DEFAULT;
 }
 
 static void mlxcpld_led_bus_access_func(u16 base, u8 offset, u8 rw_flag,
-					u8 *data)
+										u8 *data)
 {
 	u32 addr = base + offset;
 
 	if (rw_flag == 0)
+	{
 		outb(*data, addr);
+	}
 	else
+	{
 		*data = inb(addr);
+	}
 }
 
 static void mlxcpld_led_store_hw(u8 mask, u8 off, u8 vset)
@@ -271,32 +289,33 @@ static void mlxcpld_led_store_hw(u8 mask, u8 off, u8 vset)
 	 */
 	spin_lock(&mlxcpld_led->lock);
 	mlxcpld_led_bus_access_func(MLXPLAT_CPLD_LPC_REG_BASE_ADRR, off, 1,
-				    &val);
+								&val);
 	nib = (mask == 0xf0) ? vset : (vset << 4);
 	val = (val & mask) | nib;
 	mlxcpld_led_bus_access_func(MLXPLAT_CPLD_LPC_REG_BASE_ADRR, off, 0,
-				    &val);
+								&val);
 	spin_unlock(&mlxcpld_led->lock);
 }
 
 static void mlxcpld_led_brightness_set(struct led_classdev *led,
-				       enum led_brightness value)
+									   enum led_brightness value)
 {
 	struct mlxcpld_led_priv *pled = cdev_to_priv(led);
 
-	if (value) {
+	if (value)
+	{
 		mlxcpld_led_store_hw(pled->param.mask, pled->param.offset,
-				     pled->param.base_color);
+							 pled->param.base_color);
 		return;
 	}
 
 	mlxcpld_led_store_hw(pled->param.mask, pled->param.offset,
-			     MLXCPLD_LED_IS_OFF);
+						 MLXCPLD_LED_IS_OFF);
 }
 
 static int mlxcpld_led_blink_set(struct led_classdev *led,
-				 unsigned long *delay_on,
-				 unsigned long *delay_off)
+								 unsigned long *delay_on,
+								 unsigned long *delay_off)
 {
 	struct mlxcpld_led_priv *pled = cdev_to_priv(led);
 
@@ -305,36 +324,42 @@ static int mlxcpld_led_blink_set(struct led_classdev *led,
 	 * For delay on/off zero default setting 3Hz is used.
 	 */
 	if (!(*delay_on == 0 && *delay_off == 0) &&
-	    !(*delay_on == MLXCPLD_LED_BLINK_3HZ &&
-	      *delay_off == MLXCPLD_LED_BLINK_3HZ) &&
-	    !(*delay_on == MLXCPLD_LED_BLINK_6HZ &&
-	      *delay_off == MLXCPLD_LED_BLINK_6HZ))
+		!(*delay_on == MLXCPLD_LED_BLINK_3HZ &&
+		  *delay_off == MLXCPLD_LED_BLINK_3HZ) &&
+		!(*delay_on == MLXCPLD_LED_BLINK_6HZ &&
+		  *delay_off == MLXCPLD_LED_BLINK_6HZ))
+	{
 		return -EINVAL;
+	}
 
 	if (*delay_on == MLXCPLD_LED_BLINK_6HZ)
 		mlxcpld_led_store_hw(pled->param.mask, pled->param.offset,
-				     pled->param.base_color +
-				     MLXCPLD_LED_OFFSET_FULL);
+							 pled->param.base_color +
+							 MLXCPLD_LED_OFFSET_FULL);
 	else
 		mlxcpld_led_store_hw(pled->param.mask, pled->param.offset,
-				     pled->param.base_color +
-				     MLXCPLD_LED_OFFSET_HALF);
+							 pled->param.base_color +
+							 MLXCPLD_LED_OFFSET_HALF);
 
 	return 0;
 }
 
 static int mlxcpld_led_config(struct device *dev,
-			      struct mlxcpld_led_pdata *cpld)
+							  struct mlxcpld_led_pdata *cpld)
 {
 	int i;
 	int err;
 
 	cpld->pled = devm_kzalloc(dev, sizeof(struct mlxcpld_led_priv) *
-				  cpld->num_led_instances, GFP_KERNEL);
-	if (!cpld->pled)
-		return -ENOMEM;
+							  cpld->num_led_instances, GFP_KERNEL);
 
-	for (i = 0; i < cpld->num_led_instances; i++) {
+	if (!cpld->pled)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < cpld->num_led_instances; i++)
+	{
 		cpld->pled[i].cdev.name = cpld->profile[i].name;
 		cpld->pled[i].cdev.brightness = cpld->profile[i].brightness;
 		cpld->pled[i].cdev.max_brightness = 1;
@@ -342,17 +367,20 @@ static int mlxcpld_led_config(struct device *dev,
 		cpld->pled[i].cdev.blink_set = mlxcpld_led_blink_set;
 		cpld->pled[i].cdev.flags = LED_CORE_SUSPENDRESUME;
 		err = devm_led_classdev_register(dev, &cpld->pled[i].cdev);
+
 		if (err)
+		{
 			return err;
+		}
 
 		cpld->pled[i].param.offset = mlxcpld_led->profile[i].offset;
 		cpld->pled[i].param.mask = mlxcpld_led->profile[i].mask;
 		cpld->pled[i].param.base_color =
-					mlxcpld_led->profile[i].base_color;
+			mlxcpld_led->profile[i].base_color;
 
 		if (mlxcpld_led->profile[i].brightness)
 			mlxcpld_led_brightness_set(&cpld->pled[i].cdev,
-					mlxcpld_led->profile[i].brightness);
+									   mlxcpld_led->profile[i].brightness);
 	}
 
 	return 0;
@@ -361,27 +389,31 @@ static int mlxcpld_led_config(struct device *dev,
 static int __init mlxcpld_led_probe(struct platform_device *pdev)
 {
 	enum mlxcpld_led_platform_types mlxcpld_led_plat =
-					mlxcpld_led_platform_check_sys_type();
+		mlxcpld_led_platform_check_sys_type();
 
 	mlxcpld_led = devm_kzalloc(&pdev->dev, sizeof(*mlxcpld_led),
-				   GFP_KERNEL);
+							   GFP_KERNEL);
+
 	if (!mlxcpld_led)
+	{
 		return -ENOMEM;
+	}
 
 	mlxcpld_led->pdev = pdev;
 
-	switch (mlxcpld_led_plat) {
-	case MLXCPLD_LED_PLATFORM_MSN2100:
-		mlxcpld_led->profile = mlxcpld_led_msn2100_profile;
-		mlxcpld_led->num_led_instances =
+	switch (mlxcpld_led_plat)
+	{
+		case MLXCPLD_LED_PLATFORM_MSN2100:
+			mlxcpld_led->profile = mlxcpld_led_msn2100_profile;
+			mlxcpld_led->num_led_instances =
 				ARRAY_SIZE(mlxcpld_led_msn2100_profile);
-		break;
+			break;
 
-	default:
-		mlxcpld_led->profile = mlxcpld_led_default_profile;
-		mlxcpld_led->num_led_instances =
+		default:
+			mlxcpld_led->profile = mlxcpld_led_default_profile;
+			mlxcpld_led->num_led_instances =
 				ARRAY_SIZE(mlxcpld_led_default_profile);
-		break;
+			break;
 	}
 
 	spin_lock_init(&mlxcpld_led->lock);
@@ -389,7 +421,8 @@ static int __init mlxcpld_led_probe(struct platform_device *pdev)
 	return mlxcpld_led_config(&pdev->dev, mlxcpld_led);
 }
 
-static struct platform_driver mlxcpld_led_driver = {
+static struct platform_driver mlxcpld_led_driver =
+{
 	.driver = {
 		.name	= KBUILD_MODNAME,
 	},
@@ -401,13 +434,17 @@ static int __init mlxcpld_led_init(void)
 	int err;
 
 	pdev = platform_device_register_simple(KBUILD_MODNAME, -1, NULL, 0);
-	if (IS_ERR(pdev)) {
+
+	if (IS_ERR(pdev))
+	{
 		pr_err("Device allocation failed\n");
 		return PTR_ERR(pdev);
 	}
 
 	err = platform_driver_probe(&mlxcpld_led_driver, mlxcpld_led_probe);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Probe platform driver failed\n");
 		platform_device_unregister(pdev);
 	}

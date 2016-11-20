@@ -16,7 +16,8 @@
 #define DEVLINK_GENL_VERSION 0x1
 #define DEVLINK_GENL_MCGRP_CONFIG_NAME "config"
 
-enum devlink_command {
+enum devlink_command
+{
 	/* don't change the order or add anything between, this is ABI! */
 	DEVLINK_CMD_UNSPEC,
 
@@ -65,14 +66,16 @@ enum devlink_command {
 	DEVLINK_CMD_MAX = __DEVLINK_CMD_MAX - 1
 };
 
-enum devlink_port_type {
+enum devlink_port_type
+{
 	DEVLINK_PORT_TYPE_NOTSET,
 	DEVLINK_PORT_TYPE_AUTO,
 	DEVLINK_PORT_TYPE_ETH,
 	DEVLINK_PORT_TYPE_IB,
 };
 
-enum devlink_sb_pool_type {
+enum devlink_sb_pool_type
+{
 	DEVLINK_SB_POOL_TYPE_INGRESS,
 	DEVLINK_SB_POOL_TYPE_EGRESS,
 };
@@ -90,19 +93,22 @@ enum devlink_sb_pool_type {
  *     alpha = 2 ^ (passed_value - 10)
  */
 
-enum devlink_sb_threshold_type {
+enum devlink_sb_threshold_type
+{
 	DEVLINK_SB_THRESHOLD_TYPE_STATIC,
 	DEVLINK_SB_THRESHOLD_TYPE_DYNAMIC,
 };
 
 #define DEVLINK_SB_THRESHOLD_TO_ALPHA_MAX 20
 
-enum devlink_eswitch_mode {
+enum devlink_eswitch_mode
+{
 	DEVLINK_ESWITCH_MODE_LEGACY,
 	DEVLINK_ESWITCH_MODE_SWITCHDEV,
 };
 
-enum devlink_attr {
+enum devlink_attr
+{
 	/* don't change the order or add anything between, this is ABI! */
 	DEVLINK_ATTR_UNSPEC,
 

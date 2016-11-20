@@ -145,7 +145,7 @@ enum { SDI0, SDI1, SDI2, SDI3, SDO0, SDO1, SDO2, SDO3 };
 #define SD_INT_FIFO_ERR		0x08	/* FIFO error interrupt */
 #define SD_INT_COMPLETE		0x04	/* completion interrupt */
 #define SD_INT_MASK		(SD_INT_DESC_ERR|SD_INT_FIFO_ERR|\
-				 SD_INT_COMPLETE)
+						 SD_INT_COMPLETE)
 
 /* SD_STS */
 #define SD_STS_FIFO_READY	0x20	/* FIFO ready */

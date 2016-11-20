@@ -37,7 +37,7 @@ static void sclp_ftp_txcb(struct sclp_req *req, void *data)
 
 #ifdef DEBUG
 	pr_debug("SCLP (ET7) TX-IRQ, SCCB @ 0x%p: %*phN\n",
-		 req->sccb, 24, req->sccb);
+			 req->sccb, 24, req->sccb);
 #endif
 	complete(completion);
 }
@@ -53,14 +53,16 @@ static void sclp_ftp_rxcb(struct evbuf_header *evbuf)
 	 * Check for Diagnostic Test FTP Service
 	 */
 	if (evbuf->type != EVTYP_DIAG_TEST ||
-	    diag->route != SCLP_DIAG_FTP_ROUTE ||
-	    diag->mdd.ftp.pcx != SCLP_DIAG_FTP_XPCX ||
-	    evbuf->length < SCLP_DIAG_FTP_EVBUF_LEN)
+		diag->route != SCLP_DIAG_FTP_ROUTE ||
+		diag->mdd.ftp.pcx != SCLP_DIAG_FTP_XPCX ||
+		evbuf->length < SCLP_DIAG_FTP_EVBUF_LEN)
+	{
 		return;
+	}
 
 #ifdef DEBUG
 	pr_debug("SCLP (ET7) RX-IRQ, Event @ 0x%p: %*phN\n",
-		 evbuf, 24, evbuf);
+			 evbuf, 24, evbuf);
 #endif
 
 	/*
@@ -91,13 +93,15 @@ static int sclp_ftp_et7(const struct hmcdrv_ftp_cmdspec *ftp)
 
 	req = kzalloc(sizeof(*req), GFP_KERNEL);
 	sccb = (void *) get_zeroed_page(GFP_KERNEL | GFP_DMA);
-	if (!req || !sccb) {
+
+	if (!req || !sccb)
+	{
 		rc = -ENOMEM;
 		goto out_free;
 	}
 
 	sccb->hdr.length = SCLP_DIAG_FTP_EVBUF_LEN +
-		sizeof(struct sccb_header);
+					   sizeof(struct sccb_header);
 	sccb->evbuf.hdr.type = EVTYP_DIAG_TEST;
 	sccb->evbuf.hdr.length = SCLP_DIAG_FTP_EVBUF_LEN;
 	sccb->evbuf.hdr.flags = 0; /* clear processed-buffer */
@@ -114,8 +118,10 @@ static int sclp_ftp_et7(const struct hmcdrv_ftp_cmdspec *ftp)
 	sccb->evbuf.mdd.ftp.bufaddr = virt_to_phys(ftp->buf);
 
 	len = strlcpy(sccb->evbuf.mdd.ftp.fident, ftp->fname,
-		      HMCDRV_FTP_FIDENT_MAX);
-	if (len >= HMCDRV_FTP_FIDENT_MAX) {
+				  HMCDRV_FTP_FIDENT_MAX);
+
+	if (len >= HMCDRV_FTP_FIDENT_MAX)
+	{
 		rc = -EINVAL;
 		goto out_free;
 	}
@@ -129,15 +135,18 @@ static int sclp_ftp_et7(const struct hmcdrv_ftp_cmdspec *ftp)
 	init_completion(&completion);
 
 	rc = sclp_add_request(req);
+
 	if (rc)
+	{
 		goto out_free;
+	}
 
 	/* Wait for end of ftp sclp command. */
 	wait_for_completion(&completion);
 
 #ifdef DEBUG
 	pr_debug("status of SCLP (ET7) request is 0x%04x (0x%02x)\n",
-		 sccb->hdr.response_code, sccb->evbuf.hdr.flags);
+			 sccb->hdr.response_code, sccb->evbuf.hdr.flags);
 #endif
 
 	/*
@@ -146,8 +155,9 @@ static int sclp_ftp_et7(const struct hmcdrv_ftp_cmdspec *ftp)
 	 * sclp ET7 event.
 	 */
 	if (req->status != SCLP_REQ_DONE ||
-	    (sccb->evbuf.hdr.flags & 0x80) == 0 || /* processed-buffer */
-	    (sccb->hdr.response_code & 0xffU) != 0x20U) {
+		(sccb->evbuf.hdr.flags & 0x80) == 0 || /* processed-buffer */
+		(sccb->hdr.response_code & 0xffU) != 0x20U)
+	{
 		rc = -EIO;
 	}
 
@@ -174,7 +184,7 @@ ssize_t sclp_ftp_cmd(const struct hmcdrv_ftp_cmdspec *ftp, size_t *fsize)
 	unsigned long start_jiffies;
 
 	pr_debug("starting SCLP (ET7), cmd %d for '%s' at %lld with %zd bytes\n",
-		 ftp->id, ftp->fname, (long long) ftp->ofs, ftp->len);
+			 ftp->id, ftp->fname, (long long) ftp->ofs, ftp->len);
 	start_jiffies = jiffies;
 #endif
 
@@ -182,8 +192,11 @@ ssize_t sclp_ftp_cmd(const struct hmcdrv_ftp_cmdspec *ftp, size_t *fsize)
 
 	/* Start ftp sclp command. */
 	len = sclp_ftp_et7(ftp);
+
 	if (len)
+	{
 		goto out_unlock;
+	}
 
 	/*
 	 * There is no way to cancel the sclp ET7 request, the code
@@ -193,29 +206,38 @@ ssize_t sclp_ftp_cmd(const struct hmcdrv_ftp_cmdspec *ftp, size_t *fsize)
 
 #ifdef DEBUG
 	pr_debug("completed SCLP (ET7) request after %lu ms (all)\n",
-		 (jiffies - start_jiffies) * 1000 / HZ);
+			 (jiffies - start_jiffies) * 1000 / HZ);
 	pr_debug("return code of SCLP (ET7) FTP Service is 0x%02x, with %lld/%lld bytes\n",
-		 sclp_ftp_ldflg, sclp_ftp_length, sclp_ftp_fsize);
+			 sclp_ftp_ldflg, sclp_ftp_length, sclp_ftp_fsize);
 #endif
 
-	switch (sclp_ftp_ldflg) {
-	case SCLP_DIAG_FTP_OK:
-		len = sclp_ftp_length;
-		if (fsize)
-			*fsize = sclp_ftp_fsize;
-		break;
-	case SCLP_DIAG_FTP_LDNPERM:
-		len = -EPERM;
-		break;
-	case SCLP_DIAG_FTP_LDRUNS:
-		len = -EBUSY;
-		break;
-	case SCLP_DIAG_FTP_LDFAIL:
-		len = -ENOENT;
-		break;
-	default:
-		len = -EIO;
-		break;
+	switch (sclp_ftp_ldflg)
+	{
+		case SCLP_DIAG_FTP_OK:
+			len = sclp_ftp_length;
+
+			if (fsize)
+			{
+				*fsize = sclp_ftp_fsize;
+			}
+
+			break;
+
+		case SCLP_DIAG_FTP_LDNPERM:
+			len = -EPERM;
+			break;
+
+		case SCLP_DIAG_FTP_LDRUNS:
+			len = -EBUSY;
+			break;
+
+		case SCLP_DIAG_FTP_LDFAIL:
+			len = -ENOENT;
+			break;
+
+		default:
+			len = -EIO;
+			break;
 	}
 
 out_unlock:
@@ -225,7 +247,8 @@ out_unlock:
 /*
  * ET7 event listener
  */
-static struct sclp_register sclp_ftp_event = {
+static struct sclp_register sclp_ftp_event =
+{
 	.send_mask = EVTYP_DIAG_TEST_MASK,    /* want tx events */
 	.receive_mask = EVTYP_DIAG_TEST_MASK, /* want rx events */
 	.receiver_fn = sclp_ftp_rxcb,	      /* async callback (rx) */
@@ -244,24 +267,30 @@ int sclp_ftp_startup(void)
 	int rc;
 
 	rc = sclp_register(&sclp_ftp_event);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 #ifdef DEBUG
 	info = get_zeroed_page(GFP_KERNEL);
 
-	if (info != 0) {
+	if (info != 0)
+	{
 		struct sysinfo_2_2_2 *info222 = (struct sysinfo_2_2_2 *)info;
 
-		if (!stsi(info222, 2, 2, 2)) { /* get SYSIB 2.2.2 */
+		if (!stsi(info222, 2, 2, 2))   /* get SYSIB 2.2.2 */
+		{
 			info222->name[sizeof(info222->name) - 1] = '\0';
 			EBCASC_500(info222->name, sizeof(info222->name) - 1);
 			pr_debug("SCLP (ET7) FTP Service working on LPAR %u (%s)\n",
-				 info222->lpar_number, info222->name);
+					 info222->lpar_number, info222->name);
 		}
 
 		free_page(info);
 	}
+
 #endif	/* DEBUG */
 	return 0;
 }

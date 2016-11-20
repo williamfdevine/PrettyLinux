@@ -41,7 +41,8 @@
 /* SPSR */
 #define RXFL	(1 << 2)
 
-struct hspi_priv {
+struct hspi_priv
+{
 	void __iomem *addr;
 	struct spi_master *master;
 	struct device *dev;
@@ -78,9 +79,12 @@ static int hspi_status_check_timeout(struct hspi_priv *hspi, u32 mask, u32 val)
 {
 	int t = 256;
 
-	while (t--) {
+	while (t--)
+	{
 		if ((mask & hspi_read(hspi, SPSR)) == val)
+		{
 			return 0;
+		}
 
 		udelay(10);
 	}
@@ -101,8 +105,8 @@ static void hspi_hw_cs_ctrl(struct hspi_priv *hspi, int hi)
 }
 
 static void hspi_hw_setup(struct hspi_priv *hspi,
-			  struct spi_message *msg,
-			  struct spi_transfer *t)
+						  struct spi_message *msg,
+						  struct spi_transfer *t)
 {
 	struct spi_device *spi = msg->spi;
 	struct device *dev = hspi->dev;
@@ -115,21 +119,29 @@ static void hspi_hw_setup(struct hspi_priv *hspi,
 	min = ~0;
 	best_rate = 0;
 	spcr = 0;
-	for (idiv_clk = 0x00; idiv_clk <= 0x3F; idiv_clk++) {
+
+	for (idiv_clk = 0x00; idiv_clk <= 0x3F; idiv_clk++)
+	{
 		rate = clk_get_rate(hspi->clk);
 
 		/* IDIV calculation */
 		if (idiv_clk & (1 << 5))
+		{
 			rate /= 128;
+		}
 		else
+		{
 			rate /= 16;
+		}
 
 		/* CLKCx calculation */
 		rate /= (((idiv_clk & 0x1F) + 1) * 2);
 
 		/* save best settings */
 		tmp = abs(t->speed_hz - rate);
-		if (tmp < min) {
+
+		if (tmp < min)
+		{
 			min = tmp;
 			spcr = idiv_clk;
 			best_rate = rate;
@@ -137,9 +149,14 @@ static void hspi_hw_setup(struct hspi_priv *hspi,
 	}
 
 	if (spi->mode & SPI_CPHA)
+	{
 		spcr |= 1 << 7;
+	}
+
 	if (spi->mode & SPI_CPOL)
+	{
 		spcr |= 1 << 6;
+	}
 
 	dev_dbg(dev, "speed %d/%d\n", t->speed_hz, best_rate);
 
@@ -149,7 +166,7 @@ static void hspi_hw_setup(struct hspi_priv *hspi,
 }
 
 static int hspi_transfer_one_message(struct spi_master *master,
-				     struct spi_message *msg)
+									 struct spi_message *msg)
 {
 	struct hspi_priv *hspi = spi_master_get_devdata(master);
 	struct spi_transfer *t;
@@ -163,45 +180,64 @@ static int hspi_transfer_one_message(struct spi_master *master,
 
 	cs_change = 1;
 	ret = 0;
-	list_for_each_entry(t, &msg->transfers, transfer_list) {
+	list_for_each_entry(t, &msg->transfers, transfer_list)
+	{
 
-		if (cs_change) {
+		if (cs_change)
+		{
 			hspi_hw_setup(hspi, msg, t);
 			hspi_hw_cs_enable(hspi);
 			ndelay(nsecs);
 		}
+
 		cs_change = t->cs_change;
 
-		for (i = 0; i < t->len; i++) {
+		for (i = 0; i < t->len; i++)
+		{
 
 			/* wait remains */
 			ret = hspi_status_check_timeout(hspi, 0x1, 0);
+
 			if (ret < 0)
+			{
 				break;
+			}
 
 			tx = 0;
+
 			if (t->tx_buf)
+			{
 				tx = (u32)((u8 *)t->tx_buf)[i];
+			}
 
 			hspi_write(hspi, SPTBR, tx);
 
 			/* wait receive */
 			ret = hspi_status_check_timeout(hspi, 0x4, 0x4);
+
 			if (ret < 0)
+			{
 				break;
+			}
 
 			rx = hspi_read(hspi, SPRBR);
+
 			if (t->rx_buf)
+			{
 				((u8 *)t->rx_buf)[i] = (u8)rx;
+			}
 
 		}
 
 		msg->actual_length += t->len;
 
 		if (t->delay_usecs)
+		{
 			udelay(t->delay_usecs);
+		}
 
-		if (cs_change) {
+		if (cs_change)
+		{
 			ndelay(nsecs);
 			hspi_hw_cs_disable(hspi);
 			ndelay(nsecs);
@@ -209,10 +245,13 @@ static int hspi_transfer_one_message(struct spi_master *master,
 	}
 
 	msg->status = ret;
-	if (!cs_change) {
+
+	if (!cs_change)
+	{
 		ndelay(nsecs);
 		hspi_hw_cs_disable(hspi);
 	}
+
 	spi_finalize_current_message(master);
 
 	return ret;
@@ -228,19 +267,25 @@ static int hspi_probe(struct platform_device *pdev)
 
 	/* get base addr */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "invalid resource\n");
 		return -EINVAL;
 	}
 
 	master = spi_alloc_master(&pdev->dev, sizeof(*hspi));
-	if (!master) {
+
+	if (!master)
+	{
 		dev_err(&pdev->dev, "spi_alloc_master error.\n");
 		return -ENOMEM;
 	}
 
 	clk = clk_get(&pdev->dev, NULL);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "couldn't get clock\n");
 		ret = -EINVAL;
 		goto error0;
@@ -254,8 +299,10 @@ static int hspi_probe(struct platform_device *pdev)
 	hspi->dev	= &pdev->dev;
 	hspi->clk	= clk;
 	hspi->addr	= devm_ioremap(hspi->dev,
-				       res->start, resource_size(res));
-	if (!hspi->addr) {
+							   res->start, resource_size(res));
+
+	if (!hspi->addr)
+	{
 		dev_err(&pdev->dev, "ioremap error.\n");
 		ret = -ENOMEM;
 		goto error1;
@@ -271,18 +318,20 @@ static int hspi_probe(struct platform_device *pdev)
 	master->bits_per_word_mask = SPI_BPW_MASK(8);
 
 	ret = devm_spi_register_master(&pdev->dev, master);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "spi_register_master error.\n");
 		goto error2;
 	}
 
 	return 0;
 
- error2:
+error2:
 	pm_runtime_disable(&pdev->dev);
- error1:
+error1:
 	clk_put(clk);
- error0:
+error0:
 	spi_master_put(master);
 
 	return ret;
@@ -299,13 +348,15 @@ static int hspi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id hspi_of_match[] = {
+static const struct of_device_id hspi_of_match[] =
+{
 	{ .compatible = "renesas,hspi", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, hspi_of_match);
 
-static struct platform_driver hspi_driver = {
+static struct platform_driver hspi_driver =
+{
 	.probe = hspi_probe,
 	.remove = hspi_remove,
 	.driver = {

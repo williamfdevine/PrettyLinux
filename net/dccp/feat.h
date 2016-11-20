@@ -25,7 +25,8 @@
 /* Maximum number of SP values that fit in a single (Confirm) option */
 #define DCCP_FEAT_MAX_SP_VALS	(DCCP_SINGLE_OPT_MAXLEN - 2)
 
-enum dccp_feat_type {
+enum dccp_feat_type
+{
 	FEAT_AT_RX   = 1,	/* located at RX side of half-connection  */
 	FEAT_AT_TX   = 2,	/* located at TX side of half-connection  */
 	FEAT_SP      = 4,	/* server-priority reconciliation (6.3.1) */
@@ -33,7 +34,8 @@ enum dccp_feat_type {
 	FEAT_UNKNOWN = 0xFF	/* not understood or invalid feature	  */
 };
 
-enum dccp_feat_state {
+enum dccp_feat_state
+{
 	FEAT_DEFAULT = 0,	/* using default values from 6.4 */
 	FEAT_INITIALISING,	/* feature is being initialised  */
 	FEAT_CHANGING,		/* Change sent but not confirmed yet */
@@ -47,9 +49,11 @@ enum dccp_feat_state {
  * @sp.vec: single SP value plus optional preference list
  * @sp.len: length of @sp.vec in bytes
  */
-typedef union {
+typedef union
+{
 	u64 nn;
-	struct {
+	struct
+	{
 		u8	*vec;
 		u8	len;
 	}   sp;
@@ -66,23 +70,27 @@ typedef union {
  * @is_local: feature location (1) or feature-remote (0)
  * @node: list pointers, entries arranged in FIFO order
  */
-struct dccp_feat_entry {
+struct dccp_feat_entry
+{
 	dccp_feat_val           val;
-	enum dccp_feat_state    state:8;
-	u8                      feat_num;
+	enum dccp_feat_state    state : 8;
+		u8                      feat_num;
 
-	bool			needs_mandatory,
-				needs_confirm,
-				empty_confirm,
-				is_local;
+		bool			needs_mandatory,
+						needs_confirm,
+						empty_confirm,
+						is_local;
 
-	struct list_head	node;
-};
+		struct list_head	node;
+	};
 
-static inline u8 dccp_feat_genopt(struct dccp_feat_entry *entry)
+	static inline u8 dccp_feat_genopt(struct dccp_feat_entry *entry)
 {
 	if (entry->needs_confirm)
+	{
 		return entry->is_local ? DCCPO_CONFIRM_L : DCCPO_CONFIRM_R;
+	}
+
 	return entry->is_local ? DCCPO_CHANGE_L : DCCPO_CHANGE_R;
 }
 
@@ -93,10 +101,11 @@ static inline u8 dccp_feat_genopt(struct dccp_feat_entry *entry)
  * @is_mandatory: whether presence of @dependent_feat is mission-critical or not
  * @val: corresponding default value for @dependent_feat (u8 is sufficient here)
  */
-struct ccid_dependency {
+struct ccid_dependency
+{
 	u8	dependent_feat;
-	bool	is_local:1,
-		is_mandatory:1;
+	bool	is_local: 1,
+			is_mandatory: 1;
 	u8	val;
 };
 
@@ -110,9 +119,9 @@ extern int	     sysctl_dccp_tx_ccid;
 int dccp_feat_init(struct sock *sk);
 void dccp_feat_initialise_sysctls(void);
 int dccp_feat_register_sp(struct sock *sk, u8 feat, u8 is_local,
-			  u8 const *list, u8 len);
+						  u8 const *list, u8 len);
 int dccp_feat_parse_options(struct sock *, struct dccp_request_sock *,
-			    u8 mand, u8 opt, u8 feat, u8 *val, u8 len);
+							u8 mand, u8 opt, u8 feat, u8 *val, u8 len);
 int dccp_feat_clone_list(struct list_head const *, struct list_head *);
 
 /*
@@ -133,5 +142,5 @@ u64 dccp_feat_nn_get(struct sock *sk, u8 feat);
 
 int dccp_insert_option_mandatory(struct sk_buff *skb);
 int dccp_insert_fn_opt(struct sk_buff *skb, u8 type, u8 feat, u8 *val, u8 len,
-		       bool repeat_first);
+					   bool repeat_first);
 #endif /* _DCCP_FEAT_H */

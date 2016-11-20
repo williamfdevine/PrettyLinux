@@ -24,9 +24,13 @@ befs_load_sb(struct super_block *sb, befs_super_block *disk_sb)
 
 	/* Check the byte order of the filesystem */
 	if (disk_sb->fs_byte_order == BEFS_BYTEORDER_NATIVE_LE)
+	{
 		befs_sb->byte_order = BEFS_BYTESEX_LE;
+	}
 	else if (disk_sb->fs_byte_order == BEFS_BYTEORDER_NATIVE_BE)
+	{
 		befs_sb->byte_order = BEFS_BYTESEX_BE;
+	}
 
 	befs_sb->magic1 = fs32_to_cpu(sb, disk_sb->magic1);
 	befs_sb->magic2 = fs32_to_cpu(sb, disk_sb->magic2);
@@ -61,8 +65,9 @@ befs_check_sb(struct super_block *sb)
 
 	/* Check magic headers of super block */
 	if ((befs_sb->magic1 != BEFS_SUPER_MAGIC1)
-	    || (befs_sb->magic2 != BEFS_SUPER_MAGIC2)
-	    || (befs_sb->magic3 != BEFS_SUPER_MAGIC3)) {
+		|| (befs_sb->magic2 != BEFS_SUPER_MAGIC2)
+		|| (befs_sb->magic3 != BEFS_SUPER_MAGIC3))
+	{
 		befs_error(sb, "invalid magic header");
 		return BEFS_ERR;
 	}
@@ -74,17 +79,19 @@ befs_check_sb(struct super_block *sb)
 	 */
 
 	if ((befs_sb->block_size != 1024)
-	    && (befs_sb->block_size != 2048)
-	    && (befs_sb->block_size != 4096)
-	    && (befs_sb->block_size != 8192)) {
+		&& (befs_sb->block_size != 2048)
+		&& (befs_sb->block_size != 4096)
+		&& (befs_sb->block_size != 8192))
+	{
 		befs_error(sb, "invalid blocksize: %u", befs_sb->block_size);
 		return BEFS_ERR;
 	}
 
-	if (befs_sb->block_size > PAGE_SIZE) {
+	if (befs_sb->block_size > PAGE_SIZE)
+	{
 		befs_error(sb, "blocksize(%u) cannot be larger "
-			   "than system pagesize(%lu)", befs_sb->block_size,
-			   PAGE_SIZE);
+				   "than system pagesize(%lu)", befs_sb->block_size,
+				   PAGE_SIZE);
 		return BEFS_ERR;
 	}
 
@@ -93,9 +100,10 @@ befs_check_sb(struct super_block *sb)
 	 * in different ways as a consistency check.
 	 */
 
-	if ((1 << befs_sb->block_shift) != befs_sb->block_size) {
+	if ((1 << befs_sb->block_shift) != befs_sb->block_size)
+	{
 		befs_error(sb, "block_shift disagrees with block_size. "
-			   "Corruption likely.");
+				   "Corruption likely.");
 		return BEFS_ERR;
 	}
 
@@ -104,13 +112,16 @@ befs_check_sb(struct super_block *sb)
 	 * different way, non-fatal consistency check
 	 */
 	if ((1 << befs_sb->ag_shift) != befs_sb->blocks_per_ag)
+	{
 		befs_error(sb, "ag_shift disagrees with blocks_per_ag.");
+	}
 
 	if (befs_sb->log_start != befs_sb->log_end ||
-	    befs_sb->flags == BEFS_DIRTY) {
+		befs_sb->flags == BEFS_DIRTY)
+	{
 		befs_error(sb, "Filesystem not clean! There are blocks in the "
-			   "journal. You must boot into BeOS and mount this "
-			   "volume to make it clean.");
+				   "journal. You must boot into BeOS and mount this "
+				   "volume to make it clean.");
 		return BEFS_ERR;
 	}
 

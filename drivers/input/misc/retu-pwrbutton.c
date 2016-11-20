@@ -49,12 +49,18 @@ static int retu_pwrbutton_probe(struct platform_device *pdev)
 	int error;
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	idev = devm_input_allocate_device(&pdev->dev);
+
 	if (!idev)
+	{
 		return -ENOMEM;
+	}
 
 	idev->name = "retu-pwrbutton";
 	idev->dev.parent = &pdev->dev;
@@ -63,15 +69,21 @@ static int retu_pwrbutton_probe(struct platform_device *pdev)
 	input_set_drvdata(idev, rdev);
 
 	error = devm_request_threaded_irq(&pdev->dev, irq,
-					  NULL, retu_pwrbutton_irq,
-					  IRQF_ONESHOT,
-					  "retu-pwrbutton", idev);
+									  NULL, retu_pwrbutton_irq,
+									  IRQF_ONESHOT,
+									  "retu-pwrbutton", idev);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = input_register_device(idev);
+
 	if (error)
+	{
 		return error;
+	}
 
 	return 0;
 }
@@ -81,7 +93,8 @@ static int retu_pwrbutton_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver retu_pwrbutton_driver = {
+static struct platform_driver retu_pwrbutton_driver =
+{
 	.probe		= retu_pwrbutton_probe,
 	.remove		= retu_pwrbutton_remove,
 	.driver		= {

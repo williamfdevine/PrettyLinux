@@ -26,7 +26,8 @@ struct vsp1_device;
 #define LUT_PAD_SINK				0
 #define LUT_PAD_SOURCE				1
 
-struct vsp1_lut {
+struct vsp1_lut
+{
 	struct vsp1_entity entity;
 
 	struct v4l2_ctrl_handler ctrls;

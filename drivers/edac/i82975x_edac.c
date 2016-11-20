@@ -26,7 +26,7 @@
 	edac_mc_chipset_printk(mci, level, "i82975x", fmt, ##arg)
 
 #ifndef PCI_DEVICE_ID_INTEL_82975_0
-#define PCI_DEVICE_ID_INTEL_82975_0	0x277c
+	#define PCI_DEVICE_ID_INTEL_82975_0	0x277c
 #endif				/* PCI_DEVICE_ID_INTEL_82975_0 */
 
 #define I82975X_NR_DIMMS		8
@@ -202,19 +202,23 @@ NOTE: Only ONE of the three must be enabled
 #define I82975X_DRC_CH0M1		0x124
 #define I82975X_DRC_CH1M1		0x1A4
 
-enum i82975x_chips {
+enum i82975x_chips
+{
 	I82975X = 0,
 };
 
-struct i82975x_pvt {
+struct i82975x_pvt
+{
 	void __iomem *mch_window;
 };
 
-struct i82975x_dev_info {
+struct i82975x_dev_info
+{
 	const char *ctl_name;
 };
 
-struct i82975x_error_info {
+struct i82975x_error_info
+{
 	u16 errsts;
 	u32 eap;
 	u8 des;
@@ -224,7 +228,8 @@ struct i82975x_error_info {
 	u8 xeap;		/* extended eap bit */
 };
 
-static const struct i82975x_dev_info i82975x_devs[] = {
+static const struct i82975x_dev_info i82975x_devs[] =
+{
 	[I82975X] = {
 		.ctl_name = "i82975x"
 	},
@@ -237,7 +242,7 @@ static struct pci_dev *mci_pdev;	/* init dev: in case that AGP code has
 static int i82975x_registered = 1;
 
 static void i82975x_get_error_info(struct mem_ctl_info *mci,
-		struct i82975x_error_info *info)
+								   struct i82975x_error_info *info)
 {
 	struct pci_dev *pdev;
 
@@ -264,50 +269,64 @@ static void i82975x_get_error_info(struct mem_ctl_info *mci,
 	 * and should be UE info.
 	 */
 	if (!(info->errsts2 & 0x0003))
+	{
 		return;
+	}
 
-	if ((info->errsts ^ info->errsts2) & 0x0003) {
+	if ((info->errsts ^ info->errsts2) & 0x0003)
+	{
 		pci_read_config_dword(pdev, I82975X_EAP, &info->eap);
 		pci_read_config_byte(pdev, I82975X_XEAP, &info->xeap);
 		pci_read_config_byte(pdev, I82975X_DES, &info->des);
 		pci_read_config_byte(pdev, I82975X_DERRSYN,
-				&info->derrsyn);
+							 &info->derrsyn);
 	}
 }
 
 static int i82975x_process_error_info(struct mem_ctl_info *mci,
-		struct i82975x_error_info *info, int handle_errors)
+									  struct i82975x_error_info *info, int handle_errors)
 {
 	int row, chan;
 	unsigned long offst, page;
 
 	if (!(info->errsts2 & 0x0003))
+	{
 		return 0;
+	}
 
 	if (!handle_errors)
+	{
 		return 1;
+	}
 
-	if ((info->errsts ^ info->errsts2) & 0x0003) {
+	if ((info->errsts ^ info->errsts2) & 0x0003)
+	{
 		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1, 0, 0, 0,
-				     -1, -1, -1, "UE overwrote CE", "");
+							 -1, -1, -1, "UE overwrote CE", "");
 		info->errsts = info->errsts2;
 	}
 
 	page = (unsigned long) info->eap;
 	page >>= 1;
+
 	if (info->xeap & 1)
+	{
 		page |= 0x80000000;
+	}
+
 	page >>= (PAGE_SHIFT - 1);
 	row = edac_mc_find_csrow_by_page(mci, page);
 
-	if (row == -1)	{
+	if (row == -1)
+	{
 		i82975x_mc_printk(mci, KERN_ERR, "error processing EAP:\n"
-			"\tXEAP=%u\n"
-			"\t EAP=0x%08x\n"
-			"\tPAGE=0x%08x\n",
-			(info->xeap & 1) ? 1 : 0, info->eap, (unsigned int) page);
+						  "\tXEAP=%u\n"
+						  "\t EAP=0x%08x\n"
+						  "\tPAGE=0x%08x\n",
+						  (info->xeap & 1) ? 1 : 0, info->eap, (unsigned int) page);
 		return 0;
 	}
+
 	chan = (mci->csrows[row]->nr_channels == 1) ? 0 : info->eap & 1;
 	offst = info->eap
 			& ((1 << PAGE_SHIFT) -
@@ -315,14 +334,14 @@ static int i82975x_process_error_info(struct mem_ctl_info *mci,
 
 	if (info->errsts & 0x0002)
 		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
-				     page, offst, 0,
-				     row, -1, -1,
-				     "i82975x UE", "");
+							 page, offst, 0,
+							 row, -1, -1,
+							 "i82975x UE", "");
 	else
 		edac_mc_handle_error(HW_EVENT_ERR_CORRECTED, mci, 1,
-				     page, offst, info->derrsyn,
-				     row, chan ? chan : 0, -1,
-				     "i82975x CE", "");
+							 page, offst, info->derrsyn,
+							 row, chan ? chan : 0, -1,
+							 "i82975x CE", "");
 
 	return 1;
 }
@@ -351,11 +370,13 @@ static int dual_channel_active(void __iomem *mch_window)
 	int	row;
 	int    dualch;
 
-	for (dualch = 1, row = 0; dualch && (row < 4); row++) {
+	for (dualch = 1, row = 0; dualch && (row < 4); row++)
+	{
 		drb[row][0] = readb(mch_window + I82975X_DRB + row);
 		drb[row][1] = readb(mch_window + I82975X_DRB + row + 0x80);
 		dualch = dualch && (drb[row][0] == drb[row][1]);
 	}
+
 	return dualch;
 }
 
@@ -368,7 +389,7 @@ static enum dev_type i82975x_dram_type(void __iomem *mch_window, int rank)
 }
 
 static void i82975x_init_csrows(struct mem_ctl_info *mci,
-		struct pci_dev *pdev, void __iomem *mch_window)
+								struct pci_dev *pdev, void __iomem *mch_window)
 {
 	struct csrow_info *csrow;
 	unsigned long last_cumul_size;
@@ -389,24 +410,32 @@ static void i82975x_init_csrows(struct mem_ctl_info *mci,
 	 *
 	 */
 
-	for (index = 0; index < mci->nr_csrows; index++) {
+	for (index = 0; index < mci->nr_csrows; index++)
+	{
 		csrow = mci->csrows[index];
 
 		value = readb(mch_window + I82975X_DRB + index +
-					((index >= 4) ? 0x80 : 0));
+					  ((index >= 4) ? 0x80 : 0));
 		cumul_size = value;
 		cumul_size <<= (I82975X_DRB_SHIFT - PAGE_SHIFT);
+
 		/*
 		 * Adjust cumul_size w.r.t number of channels
 		 *
 		 */
 		if (csrow->nr_channels > 1)
+		{
 			cumul_size <<= 1;
+		}
+
 		edac_dbg(3, "(%d) cumul_size 0x%x\n", index, cumul_size);
 
 		nr_pages = cumul_size - last_cumul_size;
+
 		if (!nr_pages)
+		{
 			continue;
+		}
 
 		/*
 		 * Initialise dram labels
@@ -415,14 +444,16 @@ static void i82975x_init_csrows(struct mem_ctl_info *mci,
 		 *   [0-3] for dual-channel; i.e. csrow->nr_channels = 2
 		 */
 		dtype = i82975x_dram_type(mch_window, index);
-		for (chan = 0; chan < csrow->nr_channels; chan++) {
+
+		for (chan = 0; chan < csrow->nr_channels; chan++)
+		{
 			dimm = mci->csrows[index]->channels[chan]->dimm;
 
 			dimm->nr_pages = nr_pages / csrow->nr_channels;
 
 			snprintf(csrow->channels[chan]->dimm->label, EDAC_MC_LABEL_LEN, "DIMM %c%d",
-				 (chan == 0) ? 'A' : 'B',
-				 index);
+					 (chan == 0) ? 'A' : 'B',
+					 index);
 			dimm->grain = 1 << 7;	/* 128Byte cache-line resolution */
 			dimm->dtype = i82975x_dram_type(mch_window, index);
 			dimm->mtype = MEM_DDR2; /* I82975x supports only DDR2 */
@@ -452,19 +483,19 @@ static void i82975x_print_dram_timings(void __iomem *mch_window)
 	dtreg[0] = readl(mch_window + 0x114);
 	dtreg[1] = readl(mch_window + 0x194);
 	i82975x_printk(KERN_INFO, "DRAM Timings :     Ch0    Ch1\n"
-		"                RAS Active Min = %d     %d\n"
-		"                CAS latency    =  %d      %d\n"
-		"                RAS to CAS     =  %d      %d\n"
-		"                RAS precharge  =  %d      %d\n",
-		(dtreg[0] >> 19 ) & 0x0f,
-			(dtreg[1] >> 19) & 0x0f,
-		caslats[(dtreg[0] >> 8) & 0x03],
-			caslats[(dtreg[1] >> 8) & 0x03],
-		((dtreg[0] >> 4) & 0x07) + 2,
-			((dtreg[1] >> 4) & 0x07) + 2,
-		(dtreg[0] & 0x07) + 2,
-			(dtreg[1] & 0x07) + 2
-	);
+				   "                RAS Active Min = %d     %d\n"
+				   "                CAS latency    =  %d      %d\n"
+				   "                RAS to CAS     =  %d      %d\n"
+				   "                RAS precharge  =  %d      %d\n",
+				   (dtreg[0] >> 19 ) & 0x0f,
+				   (dtreg[1] >> 19) & 0x0f,
+				   caslats[(dtreg[0] >> 8) & 0x03],
+				   caslats[(dtreg[1] >> 8) & 0x03],
+				   ((dtreg[0] >> 4) & 0x07) + 2,
+				   ((dtreg[1] >> 4) & 0x07) + 2,
+				   (dtreg[0] & 0x07) + 2,
+				   (dtreg[1] & 0x07) + 2
+				  );
 
 }
 #endif
@@ -488,16 +519,19 @@ static int i82975x_probe1(struct pci_dev *pdev, int dev_idx)
 	edac_dbg(0, "\n");
 
 	pci_read_config_dword(pdev, I82975X_MCHBAR, &mchbar);
-	if (!(mchbar & 1)) {
+
+	if (!(mchbar & 1))
+	{
 		edac_dbg(3, "failed, MCHBAR disabled!\n");
 		goto fail0;
 	}
+
 	mchbar &= 0xffffc000;	/* bits 31:14 used for 16K window */
 	mch_window = ioremap_nocache(mchbar, 0x1000);
 
 #ifdef i82975x_DEBUG_IOMEM
 	i82975x_printk(KERN_INFO, "MCHBAR real = %0x, remapped = %p\n",
-					mchbar, mch_window);
+				   mchbar, mch_window);
 
 	c0drb[0] = readb(mch_window + I82975X_DRB_CH0R0);
 	c0drb[1] = readb(mch_window + I82975X_DRB_CH0R1);
@@ -521,20 +555,22 @@ static int i82975x_probe1(struct pci_dev *pdev, int dev_idx)
 	drc[1] = readl(mch_window + I82975X_DRC_CH1M0);
 #ifdef i82975x_DEBUG_IOMEM
 	i82975x_printk(KERN_INFO, "DRC_CH0 = %0x, %s\n", drc[0],
-			((drc[0] >> 21) & 3) == 1 ?
-				"ECC enabled" : "ECC disabled");
+				   ((drc[0] >> 21) & 3) == 1 ?
+				   "ECC enabled" : "ECC disabled");
 	i82975x_printk(KERN_INFO, "DRC_CH1 = %0x, %s\n", drc[1],
-			((drc[1] >> 21) & 3) == 1 ?
-				"ECC enabled" : "ECC disabled");
+				   ((drc[1] >> 21) & 3) == 1 ?
+				   "ECC enabled" : "ECC disabled");
 
 	i82975x_printk(KERN_INFO, "C0 BNKARC = %0x\n",
-		readw(mch_window + I82975X_C0BNKARC));
+				   readw(mch_window + I82975X_C0BNKARC));
 	i82975x_printk(KERN_INFO, "C1 BNKARC = %0x\n",
-		readw(mch_window + I82975X_C1BNKARC));
+				   readw(mch_window + I82975X_C1BNKARC));
 	i82975x_print_dram_timings(mch_window);
 	goto fail1;
 #endif
-	if (!(((drc[0] >> 21) & 3) == 1 || ((drc[1] >> 21) & 3) == 1)) {
+
+	if (!(((drc[0] >> 21) & 3) == 1 || ((drc[1] >> 21) & 3) == 1))
+	{
 		i82975x_printk(KERN_INFO, "ECC disabled on both channels.\n");
 		goto fail1;
 	}
@@ -549,7 +585,9 @@ static int i82975x_probe1(struct pci_dev *pdev, int dev_idx)
 	layers[1].size = I82975X_NR_CSROWS(chans);
 	layers[1].is_virt_csrow = false;
 	mci = edac_mc_alloc(0, ARRAY_SIZE(layers), layers, sizeof(*pvt));
-	if (!mci) {
+
+	if (!mci)
+	{
 		rc = -ENOMEM;
 		goto fail1;
 	}
@@ -573,7 +611,8 @@ static int i82975x_probe1(struct pci_dev *pdev, int dev_idx)
 	i82975x_get_error_info(mci, &discard);  /* clear counters */
 
 	/* finalize this instance of memory controller with edac core */
-	if (edac_mc_add_mc(mci)) {
+	if (edac_mc_add_mc(mci))
+	{
 		edac_dbg(3, "failed edac_mc_add_mc()\n");
 		goto fail2;
 	}
@@ -593,19 +632,23 @@ fail0:
 
 /* returns count (>= 0), or negative on error */
 static int i82975x_init_one(struct pci_dev *pdev,
-			    const struct pci_device_id *ent)
+							const struct pci_device_id *ent)
 {
 	int rc;
 
 	edac_dbg(0, "\n");
 
 	if (pci_enable_device(pdev) < 0)
+	{
 		return -EIO;
+	}
 
 	rc = i82975x_probe1(pdev, ent->driver_data);
 
 	if (mci_pdev == NULL)
+	{
 		mci_pdev = pci_dev_get(pdev);
+	}
 
 	return rc;
 }
@@ -618,17 +661,24 @@ static void i82975x_remove_one(struct pci_dev *pdev)
 	edac_dbg(0, "\n");
 
 	mci = edac_mc_del_mc(&pdev->dev);
+
 	if (mci  == NULL)
+	{
 		return;
+	}
 
 	pvt = mci->pvt_info;
+
 	if (pvt->mch_window)
+	{
 		iounmap( pvt->mch_window );
+	}
 
 	edac_mc_free(mci);
 }
 
-static const struct pci_device_id i82975x_pci_tbl[] = {
+static const struct pci_device_id i82975x_pci_tbl[] =
+{
 	{
 		PCI_VEND_DEV(INTEL, 82975_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 		I82975X
@@ -640,7 +690,8 @@ static const struct pci_device_id i82975x_pci_tbl[] = {
 
 MODULE_DEVICE_TABLE(pci, i82975x_pci_tbl);
 
-static struct pci_driver i82975x_driver = {
+static struct pci_driver i82975x_driver =
+{
 	.name = EDAC_MOD_STR,
 	.probe = i82975x_init_one,
 	.remove = i82975x_remove_one,
@@ -653,18 +704,23 @@ static int __init i82975x_init(void)
 
 	edac_dbg(3, "\n");
 
-       /* Ensure that the OPSTATE is set correctly for POLL or NMI */
-       opstate_init();
+	/* Ensure that the OPSTATE is set correctly for POLL or NMI */
+	opstate_init();
 
 	pci_rc = pci_register_driver(&i82975x_driver);
+
 	if (pci_rc < 0)
+	{
 		goto fail0;
+	}
 
-	if (mci_pdev == NULL) {
+	if (mci_pdev == NULL)
+	{
 		mci_pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
-				PCI_DEVICE_ID_INTEL_82975_0, NULL);
+								  PCI_DEVICE_ID_INTEL_82975_0, NULL);
 
-		if (!mci_pdev) {
+		if (!mci_pdev)
+		{
 			edac_dbg(0, "i82975x pci_get_device fail\n");
 			pci_rc = -ENODEV;
 			goto fail1;
@@ -672,7 +728,8 @@ static int __init i82975x_init(void)
 
 		pci_rc = i82975x_init_one(mci_pdev, i82975x_pci_tbl);
 
-		if (pci_rc < 0) {
+		if (pci_rc < 0)
+		{
 			edac_dbg(0, "i82975x init fail\n");
 			pci_rc = -ENODEV;
 			goto fail1;
@@ -695,7 +752,8 @@ static void __exit i82975x_exit(void)
 
 	pci_unregister_driver(&i82975x_driver);
 
-	if (!i82975x_registered) {
+	if (!i82975x_registered)
+	{
 		i82975x_remove_one(mci_pdev);
 		pci_dev_put(mci_pdev);
 	}

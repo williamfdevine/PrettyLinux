@@ -32,11 +32,15 @@ static int masquerade_tg6_checkentry(const struct xt_tgchk_param *par)
 	const struct nf_nat_range *range = par->targinfo;
 
 	if (range->flags & NF_NAT_RANGE_MAP_IPS)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
-static struct xt_target masquerade_tg6_reg __read_mostly = {
+static struct xt_target masquerade_tg6_reg __read_mostly =
+{
 	.name		= "MASQUERADE",
 	.family		= NFPROTO_IPV6,
 	.checkentry	= masquerade_tg6_checkentry,
@@ -52,8 +56,11 @@ static int __init masquerade_tg6_init(void)
 	int err;
 
 	err = xt_register_target(&masquerade_tg6_reg);
+
 	if (err == 0)
+	{
 		nf_nat_masquerade_ipv6_register_notifier();
+	}
 
 	return err;
 }

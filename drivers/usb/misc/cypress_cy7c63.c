@@ -56,21 +56,23 @@
 
 
 /* table of devices that work with this driver */
-static const struct usb_device_id cypress_table[] = {
+static const struct usb_device_id cypress_table[] =
+{
 	{ USB_DEVICE(CYPRESS_VENDOR_ID, CYPRESS_PRODUCT_ID) },
 	{ }
 };
 MODULE_DEVICE_TABLE(usb, cypress_table);
 
 /* structure to hold all of our device specific stuff */
-struct cypress {
-	struct usb_device *	udev;
+struct cypress
+{
+	struct usb_device 	*udev;
 	unsigned char		port[2];
 };
 
 /* used to send usb control messages to device */
 static int vendor_command(struct cypress *dev, unsigned char request,
-			  unsigned char address, unsigned char data)
+						  unsigned char address, unsigned char data)
 {
 	int retval = 0;
 	unsigned int pipe;
@@ -78,7 +80,9 @@ static int vendor_command(struct cypress *dev, unsigned char request,
 
 	/* allocate some memory for the i/o buffer*/
 	iobuf = kzalloc(CYPRESS_MAX_REQSIZE, GFP_KERNEL);
-	if (!iobuf) {
+
+	if (!iobuf)
+	{
 		retval = -ENOMEM;
 		goto error;
 	}
@@ -88,25 +92,29 @@ static int vendor_command(struct cypress *dev, unsigned char request,
 	/* prepare usb control message and send it upstream */
 	pipe = usb_rcvctrlpipe(dev->udev, 0);
 	retval = usb_control_msg(dev->udev, pipe, request,
-				 USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_OTHER,
-				 address, data, iobuf, CYPRESS_MAX_REQSIZE,
-				 USB_CTRL_GET_TIMEOUT);
+							 USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_OTHER,
+							 address, data, iobuf, CYPRESS_MAX_REQSIZE,
+							 USB_CTRL_GET_TIMEOUT);
 
 	/* store returned data (more READs to be added) */
-	switch (request) {
+	switch (request)
+	{
 		case CYPRESS_READ_PORT:
-			if (address == CYPRESS_READ_PORT_ID0) {
+			if (address == CYPRESS_READ_PORT_ID0)
+			{
 				dev->port[0] = iobuf[1];
 				dev_dbg(&dev->udev->dev,
-					"READ_PORT0 returned: %d\n",
-					dev->port[0]);
+						"READ_PORT0 returned: %d\n",
+						dev->port[0]);
 			}
-			else if (address == CYPRESS_READ_PORT_ID1) {
+			else if (address == CYPRESS_READ_PORT_ID1)
+			{
 				dev->port[1] = iobuf[1];
 				dev_dbg(&dev->udev->dev,
-					"READ_PORT1 returned: %d\n",
-					dev->port[1]);
+						"READ_PORT1 returned: %d\n",
+						dev->port[1]);
 			}
+
 			break;
 	}
 
@@ -117,8 +125,8 @@ error:
 
 /* write port value */
 static ssize_t write_port(struct device *dev, struct device_attribute *attr,
-			  const char *buf, size_t count,
-			  int port_num, int write_id)
+						  const char *buf, size_t count,
+						  int port_num, int write_id)
 {
 	int value = -1;
 	int result = 0;
@@ -129,17 +137,20 @@ static ssize_t write_port(struct device *dev, struct device_attribute *attr,
 	dev_dbg(&cyp->udev->dev, "WRITE_PORT%d called\n", port_num);
 
 	/* validate input data */
-	if (sscanf(buf, "%d", &value) < 1) {
+	if (sscanf(buf, "%d", &value) < 1)
+	{
 		result = -EINVAL;
 		goto error;
 	}
-	if (value < 0 || value > 255) {
+
+	if (value < 0 || value > 255)
+	{
 		result = -EINVAL;
 		goto error;
 	}
 
 	result = vendor_command(cyp, CYPRESS_WRITE_PORT, write_id,
-				(unsigned char)value);
+							(unsigned char)value);
 
 	dev_dbg(&cyp->udev->dev, "Result of vendor_command: %d\n\n", result);
 error:
@@ -148,23 +159,23 @@ error:
 
 /* attribute callback handler (write) */
 static ssize_t set_port0_handler(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
+								 struct device_attribute *attr,
+								 const char *buf, size_t count)
 {
 	return write_port(dev, attr, buf, count, 0, CYPRESS_WRITE_PORT_ID0);
 }
 
 /* attribute callback handler (write) */
 static ssize_t set_port1_handler(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
+								 struct device_attribute *attr,
+								 const char *buf, size_t count)
 {
 	return write_port(dev, attr, buf, count, 1, CYPRESS_WRITE_PORT_ID1);
 }
 
 /* read port value */
 static ssize_t read_port(struct device *dev, struct device_attribute *attr,
-			 char *buf, int port_num, int read_id)
+						 char *buf, int port_num, int read_id)
 {
 	int result = 0;
 
@@ -182,14 +193,14 @@ static ssize_t read_port(struct device *dev, struct device_attribute *attr,
 
 /* attribute callback handler (read) */
 static ssize_t get_port0_handler(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	return read_port(dev, attr, buf, 0, CYPRESS_READ_PORT_ID0);
 }
 
 /* attribute callback handler (read) */
 static ssize_t get_port1_handler(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	return read_port(dev, attr, buf, 1, CYPRESS_READ_PORT_ID1);
 }
@@ -200,15 +211,18 @@ static DEVICE_ATTR(port1, S_IRUGO | S_IWUSR, get_port1_handler, set_port1_handle
 
 
 static int cypress_probe(struct usb_interface *interface,
-			 const struct usb_device_id *id)
+						 const struct usb_device_id *id)
 {
 	struct cypress *dev = NULL;
 	int retval = -ENOMEM;
 
 	/* allocate memory for our device state and initialize it */
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		goto error_mem;
+	}
 
 	dev->udev = usb_get_dev(interface_to_usbdev(interface));
 
@@ -217,15 +231,22 @@ static int cypress_probe(struct usb_interface *interface,
 
 	/* create device attribute files */
 	retval = device_create_file(&interface->dev, &dev_attr_port0);
+
 	if (retval)
+	{
 		goto error;
+	}
+
 	retval = device_create_file(&interface->dev, &dev_attr_port1);
+
 	if (retval)
+	{
 		goto error;
+	}
 
 	/* let the user know that the device is now attached */
 	dev_info(&interface->dev,
-		 "Cypress CY7C63xxx device now attached\n");
+			 "Cypress CY7C63xxx device now attached\n");
 	return 0;
 
 error:
@@ -255,12 +276,13 @@ static void cypress_disconnect(struct usb_interface *interface)
 	usb_put_dev(dev->udev);
 
 	dev_info(&interface->dev,
-		 "Cypress CY7C63xxx device now disconnected\n");
+			 "Cypress CY7C63xxx device now disconnected\n");
 
 	kfree(dev);
 }
 
-static struct usb_driver cypress_driver = {
+static struct usb_driver cypress_driver =
+{
 	.name = "cypress_cy7c63",
 	.probe = cypress_probe,
 	.disconnect = cypress_disconnect,

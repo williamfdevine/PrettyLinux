@@ -70,14 +70,14 @@ static void PaceMsaAccess(unsigned short usDspBaseIO)
 }
 
 unsigned short dsp3780I_ReadMsaCfg(unsigned short usDspBaseIO,
-                                   unsigned long ulMsaAddr)
+								   unsigned long ulMsaAddr)
 {
 	unsigned long flags;
 	unsigned short val;
 
 	PRINTK_3(TRACE_3780I,
-		"3780i::dsp3780I_ReadMsaCfg entry usDspBaseIO %x ulMsaAddr %lx\n",
-		usDspBaseIO, ulMsaAddr);
+			 "3780i::dsp3780I_ReadMsaCfg entry usDspBaseIO %x ulMsaAddr %lx\n",
+			 usDspBaseIO, ulMsaAddr);
 
 	spin_lock_irqsave(&dsp_lock, flags);
 	OutWordDsp(DSP_MsaAddrLow, (unsigned short) ulMsaAddr);
@@ -91,13 +91,13 @@ unsigned short dsp3780I_ReadMsaCfg(unsigned short usDspBaseIO,
 }
 
 void dsp3780I_WriteMsaCfg(unsigned short usDspBaseIO,
-                          unsigned long ulMsaAddr, unsigned short usValue)
+						  unsigned long ulMsaAddr, unsigned short usValue)
 {
 	unsigned long flags;
 
 	PRINTK_4(TRACE_3780I,
-		"3780i::dsp3780i_WriteMsaCfg entry usDspBaseIO %x ulMsaAddr %lx usValue %x\n",
-		usDspBaseIO, ulMsaAddr, usValue);
+			 "3780i::dsp3780i_WriteMsaCfg entry usDspBaseIO %x ulMsaAddr %lx usValue %x\n",
+			 usDspBaseIO, ulMsaAddr, usValue);
 
 	spin_lock_irqsave(&dsp_lock, flags);
 	OutWordDsp(DSP_MsaAddrLow, (unsigned short) ulMsaAddr);
@@ -107,28 +107,28 @@ void dsp3780I_WriteMsaCfg(unsigned short usDspBaseIO,
 }
 
 static void dsp3780I_WriteGenCfg(unsigned short usDspBaseIO, unsigned uIndex,
-				 unsigned char ucValue)
+								 unsigned char ucValue)
 {
 	DSP_ISA_SLAVE_CONTROL rSlaveControl;
 	DSP_ISA_SLAVE_CONTROL rSlaveControl_Save;
 
 
 	PRINTK_4(TRACE_3780I,
-		"3780i::dsp3780i_WriteGenCfg entry usDspBaseIO %x uIndex %x ucValue %x\n",
-		usDspBaseIO, uIndex, ucValue);
+			 "3780i::dsp3780i_WriteGenCfg entry usDspBaseIO %x uIndex %x ucValue %x\n",
+			 usDspBaseIO, uIndex, ucValue);
 
 	MKBYTE(rSlaveControl) = InByteDsp(DSP_IsaSlaveControl);
 
 	PRINTK_2(TRACE_3780I,
-		"3780i::dsp3780i_WriteGenCfg rSlaveControl %x\n",
-		MKBYTE(rSlaveControl));
+			 "3780i::dsp3780i_WriteGenCfg rSlaveControl %x\n",
+			 MKBYTE(rSlaveControl));
 
 	rSlaveControl_Save = rSlaveControl;
 	rSlaveControl.ConfigMode = true;
 
 	PRINTK_2(TRACE_3780I,
-		"3780i::dsp3780i_WriteGenCfg entry rSlaveControl+ConfigMode %x\n",
-		MKBYTE(rSlaveControl));
+			 "3780i::dsp3780i_WriteGenCfg entry rSlaveControl+ConfigMode %x\n",
+			 MKBYTE(rSlaveControl));
 
 	OutByteDsp(DSP_IsaSlaveControl, MKBYTE(rSlaveControl));
 	OutByteDsp(DSP_ConfigAddress, (unsigned char) uIndex);
@@ -142,7 +142,7 @@ static void dsp3780I_WriteGenCfg(unsigned short usDspBaseIO, unsigned uIndex,
 
 #if 0
 unsigned char dsp3780I_ReadGenCfg(unsigned short usDspBaseIO,
-                                  unsigned uIndex)
+								  unsigned uIndex)
 {
 	DSP_ISA_SLAVE_CONTROL rSlaveControl;
 	DSP_ISA_SLAVE_CONTROL rSlaveControl_Save;
@@ -150,8 +150,8 @@ unsigned char dsp3780I_ReadGenCfg(unsigned short usDspBaseIO,
 
 
 	PRINTK_3(TRACE_3780I,
-		"3780i::dsp3780i_ReadGenCfg entry usDspBaseIO %x uIndex %x\n",
-		usDspBaseIO, uIndex);
+			 "3780i::dsp3780i_ReadGenCfg entry usDspBaseIO %x uIndex %x\n",
+			 usDspBaseIO, uIndex);
 
 	MKBYTE(rSlaveControl) = InByteDsp(DSP_IsaSlaveControl);
 	rSlaveControl_Save = rSlaveControl;
@@ -162,16 +162,16 @@ unsigned char dsp3780I_ReadGenCfg(unsigned short usDspBaseIO,
 	OutByteDsp(DSP_IsaSlaveControl, MKBYTE(rSlaveControl_Save));
 
 	PRINTK_2(TRACE_3780I,
-		"3780i::dsp3780i_ReadGenCfg exit ucValue %x\n", ucValue);
+			 "3780i::dsp3780i_ReadGenCfg exit ucValue %x\n", ucValue);
 
 
 	return ucValue;
 }
 #endif  /*  0  */
 
-int dsp3780I_EnableDSP(DSP_3780I_CONFIG_SETTINGS * pSettings,
-                       unsigned short *pIrqMap,
-                       unsigned short *pDmaMap)
+int dsp3780I_EnableDSP(DSP_3780I_CONFIG_SETTINGS *pSettings,
+					   unsigned short *pIrqMap,
+					   unsigned short *pDmaMap)
 {
 	unsigned long flags;
 	unsigned short usDspBaseIO = pSettings->usDspBaseIO;
@@ -196,40 +196,48 @@ int dsp3780I_EnableDSP(DSP_3780I_CONFIG_SETTINGS * pSettings,
 
 
 	PRINTK_2(TRACE_3780I,
-		"3780i::dsp3780I_EnableDSP entry pSettings->bDSPEnabled %x\n",
-		pSettings->bDSPEnabled);
+			 "3780i::dsp3780I_EnableDSP entry pSettings->bDSPEnabled %x\n",
+			 pSettings->bDSPEnabled);
 
 
-	if (!pSettings->bDSPEnabled) {
+	if (!pSettings->bDSPEnabled)
+	{
 		PRINTK_ERROR( KERN_ERR "3780i::dsp3780I_EnableDSP: Error: DSP not enabled. Aborting.\n" );
 		return -EIO;
 	}
 
 
 	PRINTK_2(TRACE_3780I,
-		"3780i::dsp3780i_EnableDSP entry pSettings->bModemEnabled %x\n",
-		pSettings->bModemEnabled);
+			 "3780i::dsp3780i_EnableDSP entry pSettings->bModemEnabled %x\n",
+			 pSettings->bModemEnabled);
 
-	if (pSettings->bModemEnabled) {
+	if (pSettings->bModemEnabled)
+	{
 		rUartCfg1.Reserved = rUartCfg2.Reserved = 0;
 		rUartCfg1.IrqActiveLow = pSettings->bUartIrqActiveLow;
 		rUartCfg1.IrqPulse = pSettings->bUartIrqPulse;
 		rUartCfg1.Irq =
 			(unsigned char) pIrqMap[pSettings->usUartIrq];
-		switch (pSettings->usUartBaseIO) {
-		case 0x03F8:
-			rUartCfg1.BaseIO = 0;
-			break;
-		case 0x02F8:
-			rUartCfg1.BaseIO = 1;
-			break;
-		case 0x03E8:
-			rUartCfg1.BaseIO = 2;
-			break;
-		case 0x02E8:
-			rUartCfg1.BaseIO = 3;
-			break;
+
+		switch (pSettings->usUartBaseIO)
+		{
+			case 0x03F8:
+				rUartCfg1.BaseIO = 0;
+				break;
+
+			case 0x02F8:
+				rUartCfg1.BaseIO = 1;
+				break;
+
+			case 0x03E8:
+				rUartCfg1.BaseIO = 2;
+				break;
+
+			case 0x02E8:
+				rUartCfg1.BaseIO = 3;
+				break;
 		}
+
 		rUartCfg2.Enable = true;
 	}
 
@@ -283,24 +291,26 @@ int dsp3780I_EnableDSP(DSP_3780I_CONFIG_SETTINGS * pSettings,
 	rSlaveControl.Reserved = 0;
 
 	PRINTK_4(TRACE_3780I,
-		"3780i::dsp3780i_EnableDSP usDspBaseIO %x index %x taddr %x\n",
-		usDspBaseIO, DSP_IsaSlaveControl,
-		usDspBaseIO + DSP_IsaSlaveControl);
+			 "3780i::dsp3780i_EnableDSP usDspBaseIO %x index %x taddr %x\n",
+			 usDspBaseIO, DSP_IsaSlaveControl,
+			 usDspBaseIO + DSP_IsaSlaveControl);
 
 	PRINTK_2(TRACE_3780I,
-		"3780i::dsp3780i_EnableDSP rSlaveContrl %x\n",
-		MKWORD(rSlaveControl));
+			 "3780i::dsp3780i_EnableDSP rSlaveContrl %x\n",
+			 MKWORD(rSlaveControl));
 
 	spin_lock_irqsave(&dsp_lock, flags);
 	OutWordDsp(DSP_IsaSlaveControl, MKWORD(rSlaveControl));
 	MKWORD(tval) = InWordDsp(DSP_IsaSlaveControl);
 
 	PRINTK_2(TRACE_3780I,
-		"3780i::dsp3780i_EnableDSP rSlaveControl 2 %x\n", tval);
+			 "3780i::dsp3780i_EnableDSP rSlaveControl 2 %x\n", tval);
 
 
 	for (i = 0; i < 11; i++)
+	{
 		udelay(2000);
+	}
 
 	rSlaveControl.SoftReset = false;
 	OutWordDsp(DSP_IsaSlaveControl, MKWORD(rSlaveControl));
@@ -308,7 +318,7 @@ int dsp3780I_EnableDSP(DSP_3780I_CONFIG_SETTINGS * pSettings,
 	MKWORD(tval) = InWordDsp(DSP_IsaSlaveControl);
 
 	PRINTK_2(TRACE_3780I,
-		"3780i::dsp3780i_EnableDSP rSlaveControl 3 %x\n", tval);
+			 "3780i::dsp3780i_EnableDSP rSlaveControl 3 %x\n", tval);
 
 
 	/* Program our general configuration registers */
@@ -320,7 +330,8 @@ int dsp3780I_EnableDSP(DSP_3780I_CONFIG_SETTINGS * pSettings,
 	WriteGenCfg(DSP_PowerMgCfgIndex, MKBYTE(rPowerMgmtCfg));
 	WriteGenCfg(DSP_HBusTimerCfgIndex, MKBYTE(rHBusTimerCfg));
 
-	if (pSettings->bModemEnabled) {
+	if (pSettings->bModemEnabled)
+	{
 		WriteGenCfg(DSP_UartCfg1Index, MKBYTE(rUartCfg1));
 		WriteGenCfg(DSP_UartCfg2Index, MKBYTE(rUartCfg2));
 	}
@@ -332,8 +343,8 @@ int dsp3780I_EnableDSP(DSP_3780I_CONFIG_SETTINGS * pSettings,
 	rHBridgeControl.DiagnosticMode = false;
 
 	PRINTK_3(TRACE_3780I,
-		"3780i::dsp3780i_EnableDSP DSP_HBridgeControl %x rHBridgeControl %x\n",
-		DSP_HBridgeControl, MKWORD(rHBridgeControl));
+			 "3780i::dsp3780i_EnableDSP DSP_HBridgeControl %x rHBridgeControl %x\n",
+			 DSP_HBridgeControl, MKWORD(rHBridgeControl));
 
 	OutWordDsp(DSP_HBridgeControl, MKWORD(rHBridgeControl));
 	spin_unlock_irqrestore(&dsp_lock, flags);
@@ -345,13 +356,13 @@ int dsp3780I_EnableDSP(DSP_3780I_CONFIG_SETTINGS * pSettings,
 	ChipID = ReadMsaCfg(DSP_ChipID);
 
 	PRINTK_2(TRACE_3780I,
-		"3780i::dsp3780I_EnableDSP exiting bRC=true, ChipID %x\n",
-		ChipID);
+			 "3780i::dsp3780I_EnableDSP exiting bRC=true, ChipID %x\n",
+			 ChipID);
 
 	return 0;
 }
 
-int dsp3780I_DisableDSP(DSP_3780I_CONFIG_SETTINGS * pSettings)
+int dsp3780I_DisableDSP(DSP_3780I_CONFIG_SETTINGS *pSettings)
 {
 	unsigned long flags;
 	unsigned short usDspBaseIO = pSettings->usDspBaseIO;
@@ -381,7 +392,7 @@ int dsp3780I_DisableDSP(DSP_3780I_CONFIG_SETTINGS * pSettings)
 	return 0;
 }
 
-int dsp3780I_Reset(DSP_3780I_CONFIG_SETTINGS * pSettings)
+int dsp3780I_Reset(DSP_3780I_CONFIG_SETTINGS *pSettings)
 {
 	unsigned long flags;
 	unsigned short usDspBaseIO = pSettings->usDspBaseIO;
@@ -396,7 +407,7 @@ int dsp3780I_Reset(DSP_3780I_CONFIG_SETTINGS * pSettings)
 	MKWORD(rHBridgeControl) = InWordDsp(DSP_HBridgeControl);
 
 	PRINTK_2(TRACE_3780I, "3780i::dsp3780i_Reset rHBridgeControl %x\n",
-		MKWORD(rHBridgeControl));
+			 MKWORD(rHBridgeControl));
 
 	rHBridgeControl.EnableDspInt = false;
 	OutWordDsp(DSP_HBridgeControl, MKWORD(rHBridgeControl));
@@ -409,7 +420,7 @@ int dsp3780I_Reset(DSP_3780I_CONFIG_SETTINGS * pSettings)
 	rBootDomain.Reserved = 0;
 
 	PRINTK_2(TRACE_3780I, "3780i::dsp3780i_Reset rBootDomain %x\n",
-		MKWORD(rBootDomain));
+			 MKWORD(rBootDomain));
 
 	WriteMsaCfg(DSP_MspBootDomain, MKWORD(rBootDomain));
 
@@ -417,7 +428,7 @@ int dsp3780I_Reset(DSP_3780I_CONFIG_SETTINGS * pSettings)
 	WriteMsaCfg(DSP_ChipReset, 0xFFFF);
 	udelay(5);
 	WriteMsaCfg(DSP_ChipReset,
-			(unsigned short) (~pSettings->usChipletEnable));
+				(unsigned short) (~pSettings->usChipletEnable));
 
 
 	PRINTK_1(TRACE_3780I, "3780i::dsp3780i_Reset exit bRC=0\n");
@@ -426,7 +437,7 @@ int dsp3780I_Reset(DSP_3780I_CONFIG_SETTINGS * pSettings)
 }
 
 
-int dsp3780I_Run(DSP_3780I_CONFIG_SETTINGS * pSettings)
+int dsp3780I_Run(DSP_3780I_CONFIG_SETTINGS *pSettings)
 {
 	unsigned long flags;
 	unsigned short usDspBaseIO = pSettings->usDspBaseIO;
@@ -460,7 +471,7 @@ int dsp3780I_Run(DSP_3780I_CONFIG_SETTINGS * pSettings)
 	rHBridgeControl.EnableDspInt = true;
 
 	PRINTK_2(TRACE_3780I, "3780i::dsp3780i_Run rHBridgeControl %x\n",
-		MKWORD(rHBridgeControl));
+			 MKWORD(rHBridgeControl));
 
 	OutWordDsp(DSP_HBridgeControl, MKWORD(rHBridgeControl));
 	spin_unlock_irqrestore(&dsp_lock, flags);
@@ -473,7 +484,7 @@ int dsp3780I_Run(DSP_3780I_CONFIG_SETTINGS * pSettings)
 
 
 int dsp3780I_ReadDStore(unsigned short usDspBaseIO, void __user *pvBuffer,
-                        unsigned uCount, unsigned long ulDSPAddr)
+						unsigned uCount, unsigned long ulDSPAddr)
 {
 	unsigned long flags;
 	unsigned short __user *pusBuffer = pvBuffer;
@@ -481,8 +492,8 @@ int dsp3780I_ReadDStore(unsigned short usDspBaseIO, void __user *pvBuffer,
 
 
 	PRINTK_5(TRACE_3780I,
-		"3780i::dsp3780I_ReadDStore entry usDspBaseIO %x, pusBuffer %p, uCount %x, ulDSPAddr %lx\n",
-		usDspBaseIO, pusBuffer, uCount, ulDSPAddr);
+			 "3780i::dsp3780I_ReadDStore entry usDspBaseIO %x, pusBuffer %p, uCount %x, ulDSPAddr %lx\n",
+			 usDspBaseIO, pusBuffer, uCount, ulDSPAddr);
 
 
 	/* Set the initial MSA address. No adjustments need to be made to data store addresses */
@@ -492,30 +503,34 @@ int dsp3780I_ReadDStore(unsigned short usDspBaseIO, void __user *pvBuffer,
 	spin_unlock_irqrestore(&dsp_lock, flags);
 
 	/* Transfer the memory block */
-	while (uCount-- != 0) {
+	while (uCount-- != 0)
+	{
 		spin_lock_irqsave(&dsp_lock, flags);
 		val = InWordDsp(DSP_MsaDataDSISHigh);
 		spin_unlock_irqrestore(&dsp_lock, flags);
-		if(put_user(val, pusBuffer++))
+
+		if (put_user(val, pusBuffer++))
+		{
 			return -EFAULT;
+		}
 
 		PRINTK_3(TRACE_3780I,
-			"3780I::dsp3780I_ReadDStore uCount %x val %x\n",
-			uCount, val);
+				 "3780I::dsp3780I_ReadDStore uCount %x val %x\n",
+				 uCount, val);
 
 		PaceMsaAccess(usDspBaseIO);
 	}
 
 
 	PRINTK_1(TRACE_3780I,
-		"3780I::dsp3780I_ReadDStore exit bRC=true\n");
+			 "3780I::dsp3780I_ReadDStore exit bRC=true\n");
 
 	return 0;
 }
 
 int dsp3780I_ReadAndClearDStore(unsigned short usDspBaseIO,
-                                void __user *pvBuffer, unsigned uCount,
-                                unsigned long ulDSPAddr)
+								void __user *pvBuffer, unsigned uCount,
+								unsigned long ulDSPAddr)
 {
 	unsigned long flags;
 	unsigned short __user *pusBuffer = pvBuffer;
@@ -523,8 +538,8 @@ int dsp3780I_ReadAndClearDStore(unsigned short usDspBaseIO,
 
 
 	PRINTK_5(TRACE_3780I,
-		"3780i::dsp3780I_ReadAndDStore entry usDspBaseIO %x, pusBuffer %p, uCount %x, ulDSPAddr %lx\n",
-		usDspBaseIO, pusBuffer, uCount, ulDSPAddr);
+			 "3780i::dsp3780I_ReadAndDStore entry usDspBaseIO %x, pusBuffer %p, uCount %x, ulDSPAddr %lx\n",
+			 usDspBaseIO, pusBuffer, uCount, ulDSPAddr);
 
 
 	/* Set the initial MSA address. No adjustments need to be made to data store addresses */
@@ -534,38 +549,42 @@ int dsp3780I_ReadAndClearDStore(unsigned short usDspBaseIO,
 	spin_unlock_irqrestore(&dsp_lock, flags);
 
 	/* Transfer the memory block */
-	while (uCount-- != 0) {
+	while (uCount-- != 0)
+	{
 		spin_lock_irqsave(&dsp_lock, flags);
 		val = InWordDsp(DSP_ReadAndClear);
 		spin_unlock_irqrestore(&dsp_lock, flags);
-		if(put_user(val, pusBuffer++))
+
+		if (put_user(val, pusBuffer++))
+		{
 			return -EFAULT;
+		}
 
 		PRINTK_3(TRACE_3780I,
-			"3780I::dsp3780I_ReadAndCleanDStore uCount %x val %x\n",
-			uCount, val);
+				 "3780I::dsp3780I_ReadAndCleanDStore uCount %x val %x\n",
+				 uCount, val);
 
 		PaceMsaAccess(usDspBaseIO);
 	}
 
 
 	PRINTK_1(TRACE_3780I,
-		"3780I::dsp3780I_ReadAndClearDStore exit bRC=true\n");
+			 "3780I::dsp3780I_ReadAndClearDStore exit bRC=true\n");
 
 	return 0;
 }
 
 
 int dsp3780I_WriteDStore(unsigned short usDspBaseIO, void __user *pvBuffer,
-                         unsigned uCount, unsigned long ulDSPAddr)
+						 unsigned uCount, unsigned long ulDSPAddr)
 {
 	unsigned long flags;
 	unsigned short __user *pusBuffer = pvBuffer;
 
 
 	PRINTK_5(TRACE_3780I,
-		"3780i::dsp3780D_WriteDStore entry usDspBaseIO %x, pusBuffer %p, uCount %x, ulDSPAddr %lx\n",
-		usDspBaseIO, pusBuffer, uCount, ulDSPAddr);
+			 "3780i::dsp3780D_WriteDStore entry usDspBaseIO %x, pusBuffer %p, uCount %x, ulDSPAddr %lx\n",
+			 usDspBaseIO, pusBuffer, uCount, ulDSPAddr);
 
 
 	/* Set the initial MSA address. No adjustments need to be made to data store addresses */
@@ -575,38 +594,43 @@ int dsp3780I_WriteDStore(unsigned short usDspBaseIO, void __user *pvBuffer,
 	spin_unlock_irqrestore(&dsp_lock, flags);
 
 	/* Transfer the memory block */
-	while (uCount-- != 0) {
+	while (uCount-- != 0)
+	{
 		unsigned short val;
-		if(get_user(val, pusBuffer++))
+
+		if (get_user(val, pusBuffer++))
+		{
 			return -EFAULT;
+		}
+
 		spin_lock_irqsave(&dsp_lock, flags);
 		OutWordDsp(DSP_MsaDataDSISHigh, val);
 		spin_unlock_irqrestore(&dsp_lock, flags);
 
 		PRINTK_3(TRACE_3780I,
-			"3780I::dsp3780I_WriteDStore uCount %x val %x\n",
-			uCount, val);
+				 "3780I::dsp3780I_WriteDStore uCount %x val %x\n",
+				 uCount, val);
 
 		PaceMsaAccess(usDspBaseIO);
 	}
 
 
 	PRINTK_1(TRACE_3780I,
-		"3780I::dsp3780D_WriteDStore exit bRC=true\n");
+			 "3780I::dsp3780D_WriteDStore exit bRC=true\n");
 
 	return 0;
 }
 
 
 int dsp3780I_ReadIStore(unsigned short usDspBaseIO, void __user *pvBuffer,
-                        unsigned uCount, unsigned long ulDSPAddr)
+						unsigned uCount, unsigned long ulDSPAddr)
 {
 	unsigned long flags;
 	unsigned short __user *pusBuffer = pvBuffer;
 
 	PRINTK_5(TRACE_3780I,
-		"3780i::dsp3780I_ReadIStore entry usDspBaseIO %x, pusBuffer %p, uCount %x, ulDSPAddr %lx\n",
-		usDspBaseIO, pusBuffer, uCount, ulDSPAddr);
+			 "3780i::dsp3780I_ReadIStore entry usDspBaseIO %x, pusBuffer %p, uCount %x, ulDSPAddr %lx\n",
+			 usDspBaseIO, pusBuffer, uCount, ulDSPAddr);
 
 	/*
 	* Set the initial MSA address. To convert from an instruction store
@@ -620,41 +644,48 @@ int dsp3780I_ReadIStore(unsigned short usDspBaseIO, void __user *pvBuffer,
 	spin_unlock_irqrestore(&dsp_lock, flags);
 
 	/* Transfer the memory block */
-	while (uCount-- != 0) {
+	while (uCount-- != 0)
+	{
 		unsigned short val_lo, val_hi;
 		spin_lock_irqsave(&dsp_lock, flags);
 		val_lo = InWordDsp(DSP_MsaDataISLow);
 		val_hi = InWordDsp(DSP_MsaDataDSISHigh);
 		spin_unlock_irqrestore(&dsp_lock, flags);
-		if(put_user(val_lo, pusBuffer++))
+
+		if (put_user(val_lo, pusBuffer++))
+		{
 			return -EFAULT;
-		if(put_user(val_hi, pusBuffer++))
+		}
+
+		if (put_user(val_hi, pusBuffer++))
+		{
 			return -EFAULT;
+		}
 
 		PRINTK_4(TRACE_3780I,
-			"3780I::dsp3780I_ReadIStore uCount %x val_lo %x val_hi %x\n",
-			uCount, val_lo, val_hi);
+				 "3780I::dsp3780I_ReadIStore uCount %x val_lo %x val_hi %x\n",
+				 uCount, val_lo, val_hi);
 
 		PaceMsaAccess(usDspBaseIO);
 
 	}
 
 	PRINTK_1(TRACE_3780I,
-		"3780I::dsp3780I_ReadIStore exit bRC=true\n");
+			 "3780I::dsp3780I_ReadIStore exit bRC=true\n");
 
 	return 0;
 }
 
 
 int dsp3780I_WriteIStore(unsigned short usDspBaseIO, void __user *pvBuffer,
-                         unsigned uCount, unsigned long ulDSPAddr)
+						 unsigned uCount, unsigned long ulDSPAddr)
 {
 	unsigned long flags;
 	unsigned short __user *pusBuffer = pvBuffer;
 
 	PRINTK_5(TRACE_3780I,
-		"3780i::dsp3780I_WriteIStore entry usDspBaseIO %x, pusBuffer %p, uCount %x, ulDSPAddr %lx\n",
-		usDspBaseIO, pusBuffer, uCount, ulDSPAddr);
+			 "3780i::dsp3780I_WriteIStore entry usDspBaseIO %x, pusBuffer %p, uCount %x, ulDSPAddr %lx\n",
+			 usDspBaseIO, pusBuffer, uCount, ulDSPAddr);
 
 
 	/*
@@ -669,34 +700,42 @@ int dsp3780I_WriteIStore(unsigned short usDspBaseIO, void __user *pvBuffer,
 	spin_unlock_irqrestore(&dsp_lock, flags);
 
 	/* Transfer the memory block */
-	while (uCount-- != 0) {
+	while (uCount-- != 0)
+	{
 		unsigned short val_lo, val_hi;
-		if(get_user(val_lo, pusBuffer++))
+
+		if (get_user(val_lo, pusBuffer++))
+		{
 			return -EFAULT;
-		if(get_user(val_hi, pusBuffer++))
+		}
+
+		if (get_user(val_hi, pusBuffer++))
+		{
 			return -EFAULT;
+		}
+
 		spin_lock_irqsave(&dsp_lock, flags);
 		OutWordDsp(DSP_MsaDataISLow, val_lo);
 		OutWordDsp(DSP_MsaDataDSISHigh, val_hi);
 		spin_unlock_irqrestore(&dsp_lock, flags);
 
 		PRINTK_4(TRACE_3780I,
-			"3780I::dsp3780I_WriteIStore uCount %x val_lo %x val_hi %x\n",
-			uCount, val_lo, val_hi);
+				 "3780I::dsp3780I_WriteIStore uCount %x val_lo %x val_hi %x\n",
+				 uCount, val_lo, val_hi);
 
 		PaceMsaAccess(usDspBaseIO);
 
 	}
 
 	PRINTK_1(TRACE_3780I,
-		"3780I::dsp3780I_WriteIStore exit bRC=true\n");
+			 "3780I::dsp3780I_WriteIStore exit bRC=true\n");
 
 	return 0;
 }
 
 
 int dsp3780I_GetIPCSource(unsigned short usDspBaseIO,
-                          unsigned short *pusIPCSource)
+						  unsigned short *pusIPCSource)
 {
 	unsigned long flags;
 	DSP_HBRIDGE_CONTROL rHBridgeControl;
@@ -704,8 +743,8 @@ int dsp3780I_GetIPCSource(unsigned short usDspBaseIO,
 
 
 	PRINTK_3(TRACE_3780I,
-		"3780i::dsp3780I_GetIPCSource entry usDspBaseIO %x pusIPCSource %p\n",
-		usDspBaseIO, pusIPCSource);
+			 "3780i::dsp3780I_GetIPCSource entry usDspBaseIO %x pusIPCSource %p\n",
+			 usDspBaseIO, pusIPCSource);
 
 	/*
 	* Disable DSP to PC interrupts, read the interrupt register,
@@ -720,8 +759,8 @@ int dsp3780I_GetIPCSource(unsigned short usDspBaseIO,
 	temp = (unsigned short) ~(*pusIPCSource);
 
 	PRINTK_3(TRACE_3780I,
-		"3780i::dsp3780I_GetIPCSource, usIPCSource %x ~ %x\n",
-		*pusIPCSource, temp);
+			 "3780i::dsp3780I_GetIPCSource, usIPCSource %x ~ %x\n",
+			 *pusIPCSource, temp);
 
 	OutWordDsp(DSP_Interrupt, (unsigned short) ~(*pusIPCSource));
 
@@ -731,8 +770,8 @@ int dsp3780I_GetIPCSource(unsigned short usDspBaseIO,
 
 
 	PRINTK_2(TRACE_3780I,
-		"3780i::dsp3780I_GetIPCSource exit usIPCSource %x\n",
-		*pusIPCSource);
+			 "3780i::dsp3780I_GetIPCSource exit usIPCSource %x\n",
+			 *pusIPCSource);
 
 	return 0;
 }

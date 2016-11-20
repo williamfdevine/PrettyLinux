@@ -69,7 +69,7 @@
 /* USB interrupt register bits */
 #define DA8XX_INTR_USB_SHIFT	16
 #define DA8XX_INTR_USB_MASK	(0x1ff << DA8XX_INTR_USB_SHIFT) /* 8 Mentor */
-					/* interrupts and DRVVBUS interrupt */
+/* interrupts and DRVVBUS interrupt */
 #define DA8XX_INTR_DRVVBUS	0x100
 #define DA8XX_INTR_RX_SHIFT	8
 #define DA8XX_INTR_RX_MASK	(DA8XX_USB_RX_EP_MASK << DA8XX_INTR_RX_SHIFT)
@@ -78,7 +78,8 @@
 
 #define DA8XX_MENTOR_CORE_OFFSET 0x400
 
-struct da8xx_glue {
+struct da8xx_glue
+{
 	struct device		*dev;
 	struct platform_device	*musb;
 	struct platform_device	*usb_phy;
@@ -103,13 +104,13 @@ static void da8xx_musb_enable(struct musb *musb)
 
 	/* Workaround: setup IRQs through both register sets. */
 	mask = ((musb->epmask & DA8XX_USB_TX_EP_MASK) << DA8XX_INTR_TX_SHIFT) |
-	       ((musb->epmask & DA8XX_USB_RX_EP_MASK) << DA8XX_INTR_RX_SHIFT) |
-	       DA8XX_INTR_USB_MASK;
+		   ((musb->epmask & DA8XX_USB_RX_EP_MASK) << DA8XX_INTR_RX_SHIFT) |
+		   DA8XX_INTR_USB_MASK;
 	musb_writel(reg_base, DA8XX_USB_INTR_MASK_SET_REG, mask);
 
 	/* Force the DRVVBUS IRQ so we can start polling for ID change. */
 	musb_writel(reg_base, DA8XX_USB_INTR_SRC_SET_REG,
-			DA8XX_INTR_DRVVBUS << DA8XX_INTR_USB_SHIFT);
+				DA8XX_INTR_DRVVBUS << DA8XX_INTR_USB_SHIFT);
 }
 
 /**
@@ -120,8 +121,8 @@ static void da8xx_musb_disable(struct musb *musb)
 	void __iomem *reg_base = musb->ctrl_base;
 
 	musb_writel(reg_base, DA8XX_USB_INTR_MASK_CLEAR_REG,
-		    DA8XX_INTR_USB_MASK |
-		    DA8XX_INTR_TX_MASK | DA8XX_INTR_RX_MASK);
+				DA8XX_INTR_USB_MASK |
+				DA8XX_INTR_TX_MASK | DA8XX_INTR_RX_MASK);
 	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
 	musb_writel(reg_base, DA8XX_USB_END_OF_INTR_REG, 0);
 }
@@ -150,61 +151,81 @@ static void otg_timer(unsigned long _musb)
 	 */
 	devctl = musb_readb(mregs, MUSB_DEVCTL);
 	dev_dbg(musb->controller, "Poll devctl %02x (%s)\n", devctl,
-		usb_otg_state_string(musb->xceiv->otg->state));
+			usb_otg_state_string(musb->xceiv->otg->state));
 
 	spin_lock_irqsave(&musb->lock, flags);
-	switch (musb->xceiv->otg->state) {
-	case OTG_STATE_A_WAIT_BCON:
-		devctl &= ~MUSB_DEVCTL_SESSION;
-		musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
 
-		devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
-		if (devctl & MUSB_DEVCTL_BDEVICE) {
-			musb->xceiv->otg->state = OTG_STATE_B_IDLE;
-			MUSB_DEV_MODE(musb);
-		} else {
-			musb->xceiv->otg->state = OTG_STATE_A_IDLE;
-			MUSB_HST_MODE(musb);
-		}
-		break;
-	case OTG_STATE_A_WAIT_VFALL:
-		/*
-		 * Wait till VBUS falls below SessionEnd (~0.2 V); the 1.3
-		 * RTL seems to mis-handle session "start" otherwise (or in
-		 * our case "recover"), in routine "VBUS was valid by the time
-		 * VBUSERR got reported during enumeration" cases.
-		 */
-		if (devctl & MUSB_DEVCTL_VBUS) {
-			mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
+	switch (musb->xceiv->otg->state)
+	{
+		case OTG_STATE_A_WAIT_BCON:
+			devctl &= ~MUSB_DEVCTL_SESSION;
+			musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
+
+			devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
+
+			if (devctl & MUSB_DEVCTL_BDEVICE)
+			{
+				musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+				MUSB_DEV_MODE(musb);
+			}
+			else
+			{
+				musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+				MUSB_HST_MODE(musb);
+			}
+
 			break;
-		}
-		musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
-		musb_writel(musb->ctrl_base, DA8XX_USB_INTR_SRC_SET_REG,
-			    MUSB_INTR_VBUSERROR << DA8XX_INTR_USB_SHIFT);
-		break;
-	case OTG_STATE_B_IDLE:
-		/*
-		 * There's no ID-changed IRQ, so we have no good way to tell
-		 * when to switch to the A-Default state machine (by setting
-		 * the DEVCTL.Session bit).
-		 *
-		 * Workaround:  whenever we're in B_IDLE, try setting the
-		 * session flag every few seconds.  If it works, ID was
-		 * grounded and we're now in the A-Default state machine.
-		 *
-		 * NOTE: setting the session flag is _supposed_ to trigger
-		 * SRP but clearly it doesn't.
-		 */
-		musb_writeb(mregs, MUSB_DEVCTL, devctl | MUSB_DEVCTL_SESSION);
-		devctl = musb_readb(mregs, MUSB_DEVCTL);
-		if (devctl & MUSB_DEVCTL_BDEVICE)
-			mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
-		else
-			musb->xceiv->otg->state = OTG_STATE_A_IDLE;
-		break;
-	default:
-		break;
+
+		case OTG_STATE_A_WAIT_VFALL:
+
+			/*
+			 * Wait till VBUS falls below SessionEnd (~0.2 V); the 1.3
+			 * RTL seems to mis-handle session "start" otherwise (or in
+			 * our case "recover"), in routine "VBUS was valid by the time
+			 * VBUSERR got reported during enumeration" cases.
+			 */
+			if (devctl & MUSB_DEVCTL_VBUS)
+			{
+				mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
+				break;
+			}
+
+			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+			musb_writel(musb->ctrl_base, DA8XX_USB_INTR_SRC_SET_REG,
+						MUSB_INTR_VBUSERROR << DA8XX_INTR_USB_SHIFT);
+			break;
+
+		case OTG_STATE_B_IDLE:
+			/*
+			 * There's no ID-changed IRQ, so we have no good way to tell
+			 * when to switch to the A-Default state machine (by setting
+			 * the DEVCTL.Session bit).
+			 *
+			 * Workaround:  whenever we're in B_IDLE, try setting the
+			 * session flag every few seconds.  If it works, ID was
+			 * grounded and we're now in the A-Default state machine.
+			 *
+			 * NOTE: setting the session flag is _supposed_ to trigger
+			 * SRP but clearly it doesn't.
+			 */
+			musb_writeb(mregs, MUSB_DEVCTL, devctl | MUSB_DEVCTL_SESSION);
+			devctl = musb_readb(mregs, MUSB_DEVCTL);
+
+			if (devctl & MUSB_DEVCTL_BDEVICE)
+			{
+				mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
+			}
+			else
+			{
+				musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+			}
+
+			break;
+
+		default:
+			break;
 	}
+
 	spin_unlock_irqrestore(&musb->lock, flags);
 }
 
@@ -213,27 +234,32 @@ static void da8xx_musb_try_idle(struct musb *musb, unsigned long timeout)
 	static unsigned long last_timer;
 
 	if (timeout == 0)
+	{
 		timeout = jiffies + msecs_to_jiffies(3);
+	}
 
 	/* Never idle if active, or when VBUS timeout is not set as host */
 	if (musb->is_active || (musb->a_wait_bcon == 0 &&
-				musb->xceiv->otg->state == OTG_STATE_A_WAIT_BCON)) {
+							musb->xceiv->otg->state == OTG_STATE_A_WAIT_BCON))
+	{
 		dev_dbg(musb->controller, "%s active, deleting timer\n",
-			usb_otg_state_string(musb->xceiv->otg->state));
+				usb_otg_state_string(musb->xceiv->otg->state));
 		del_timer(&otg_workaround);
 		last_timer = jiffies;
 		return;
 	}
 
-	if (time_after(last_timer, timeout) && timer_pending(&otg_workaround)) {
+	if (time_after(last_timer, timeout) && timer_pending(&otg_workaround))
+	{
 		dev_dbg(musb->controller, "Longer idle timer already pending, ignoring...\n");
 		return;
 	}
+
 	last_timer = timeout;
 
 	dev_dbg(musb->controller, "%s inactive, starting idle timer for %u ms\n",
-		usb_otg_state_string(musb->xceiv->otg->state),
-		jiffies_to_msecs(timeout - jiffies));
+			usb_otg_state_string(musb->xceiv->otg->state),
+			jiffies_to_msecs(timeout - jiffies));
 	mod_timer(&otg_workaround, timeout);
 }
 
@@ -255,8 +281,11 @@ static irqreturn_t da8xx_musb_interrupt(int irq, void *hci)
 
 	/* Acknowledge and handle non-CPPI interrupts */
 	status = musb_readl(reg_base, DA8XX_USB_INTR_SRC_MASKED_REG);
+
 	if (!status)
+	{
 		goto eoi;
+	}
 
 	musb_writel(reg_base, DA8XX_USB_INTR_SRC_CLEAR_REG, status);
 	dev_dbg(musb->controller, "USB IRQ %08x\n", status);
@@ -273,14 +302,17 @@ static irqreturn_t da8xx_musb_interrupt(int irq, void *hci)
 	 * value but DEVCTL.BDevice is invalid without DEVCTL.Session set.
 	 * Also, DRVVBUS pulses for SRP (but not at 5 V)...
 	 */
-	if (status & (DA8XX_INTR_DRVVBUS << DA8XX_INTR_USB_SHIFT)) {
+	if (status & (DA8XX_INTR_DRVVBUS << DA8XX_INTR_USB_SHIFT))
+	{
 		int drvvbus = musb_readl(reg_base, DA8XX_USB_STAT_REG);
 		void __iomem *mregs = musb->mregs;
 		u8 devctl = musb_readb(mregs, MUSB_DEVCTL);
 		int err;
 
 		err = musb->int_usb & MUSB_INTR_VBUSERROR;
-		if (err) {
+
+		if (err)
+		{
 			/*
 			 * The Mentor core doesn't debounce VBUS as needed
 			 * to cope with device connect current spikes. This
@@ -296,13 +328,17 @@ static irqreturn_t da8xx_musb_interrupt(int irq, void *hci)
 			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VFALL;
 			mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
 			WARNING("VBUS error workaround (delay coming)\n");
-		} else if (drvvbus) {
+		}
+		else if (drvvbus)
+		{
 			MUSB_HST_MODE(musb);
 			otg->default_a = 1;
 			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
 			portstate(musb->port1_status |= USB_PORT_STAT_POWER);
 			del_timer(&otg_workaround);
-		} else {
+		}
+		else
+		{
 			musb->is_active = 0;
 			MUSB_DEV_MODE(musb);
 			otg->default_a = 0;
@@ -319,16 +355,23 @@ static irqreturn_t da8xx_musb_interrupt(int irq, void *hci)
 	}
 
 	if (musb->int_tx || musb->int_rx || musb->int_usb)
+	{
 		ret |= musb_interrupt(musb);
+	}
 
- eoi:
+eoi:
+
 	/* EOI needs to be written for the IRQ to be re-asserted. */
 	if (ret == IRQ_HANDLED || status)
+	{
 		musb_writel(reg_base, DA8XX_USB_END_OF_INTR_REG, 0);
+	}
 
 	/* Poll for ID change */
 	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE)
+	{
 		mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
+	}
 
 	spin_unlock_irqrestore(&musb->lock, flags);
 
@@ -340,18 +383,22 @@ static int da8xx_musb_set_mode(struct musb *musb, u8 musb_mode)
 	struct da8xx_glue *glue = dev_get_drvdata(musb->controller->parent);
 	enum phy_mode phy_mode;
 
-	switch (musb_mode) {
-	case MUSB_HOST:		/* Force VBUS valid, ID = 0 */
-		phy_mode = PHY_MODE_USB_HOST;
-		break;
-	case MUSB_PERIPHERAL:	/* Force VBUS valid, ID = 1 */
-		phy_mode = PHY_MODE_USB_DEVICE;
-		break;
-	case MUSB_OTG:		/* Don't override the VBUS/ID comparators */
-		phy_mode = PHY_MODE_USB_OTG;
-		break;
-	default:
-		return -EINVAL;
+	switch (musb_mode)
+	{
+		case MUSB_HOST:		/* Force VBUS valid, ID = 0 */
+			phy_mode = PHY_MODE_USB_HOST;
+			break;
+
+		case MUSB_PERIPHERAL:	/* Force VBUS valid, ID = 1 */
+			phy_mode = PHY_MODE_USB_DEVICE;
+			break;
+
+		case MUSB_OTG:		/* Don't override the VBUS/ID comparators */
+			phy_mode = PHY_MODE_USB_OTG;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return phy_set_mode(glue->phy, phy_mode);
@@ -368,17 +415,24 @@ static int da8xx_musb_init(struct musb *musb)
 
 	/* Returns zero if e.g. not clocked */
 	rev = musb_readl(reg_base, DA8XX_USB_REVISION_REG);
+
 	if (!rev)
+	{
 		goto fail;
+	}
 
 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
-	if (IS_ERR_OR_NULL(musb->xceiv)) {
+
+	if (IS_ERR_OR_NULL(musb->xceiv))
+	{
 		ret = -EPROBE_DEFER;
 		goto fail;
 	}
 
 	ret = clk_prepare_enable(glue->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(glue->dev, "failed to enable clock\n");
 		goto fail;
 	}
@@ -390,13 +444,17 @@ static int da8xx_musb_init(struct musb *musb)
 
 	/* Start the on-chip PHY and its PLL. */
 	ret = phy_init(glue->phy);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(glue->dev, "Failed to init phy.\n");
 		goto err_phy_init;
 	}
 
 	ret = phy_power_on(glue->phy);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(glue->dev, "Failed to power on phy.\n");
 		goto err_phy_power_on;
 	}
@@ -405,7 +463,7 @@ static int da8xx_musb_init(struct musb *musb)
 
 	/* NOTE: IRQs are in mixed mode, not bypass to pure MUSB */
 	pr_debug("DA8xx OTG revision %08x, control %02x\n", rev,
-		 musb_readb(reg_base, DA8XX_USB_CTRL_REG));
+			 musb_readb(reg_base, DA8XX_USB_CTRL_REG));
 
 	musb->isr = da8xx_musb_interrupt;
 	return 0;
@@ -433,7 +491,8 @@ static int da8xx_musb_exit(struct musb *musb)
 	return 0;
 }
 
-static const struct musb_platform_ops da8xx_ops = {
+static const struct musb_platform_ops da8xx_ops =
+{
 	.quirks		= MUSB_DMA_CPPI | MUSB_INDEXED_EP,
 	.init		= da8xx_musb_init,
 	.exit		= da8xx_musb_exit,
@@ -452,7 +511,8 @@ static const struct musb_platform_ops da8xx_ops = {
 	.set_vbus	= da8xx_musb_set_vbus,
 };
 
-static const struct platform_device_info da8xx_dev_info = {
+static const struct platform_device_info da8xx_dev_info =
+{
 	.name		= "musb-hdrc",
 	.id		= PLATFORM_DEVID_AUTO,
 	.dma_mask	= DMA_BIT_MASK(32),
@@ -468,19 +528,29 @@ static int da8xx_probe(struct platform_device *pdev)
 	int				ret;
 
 	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
+
 	if (!glue)
+	{
 		return -ENOMEM;
+	}
 
 	clk = devm_clk_get(&pdev->dev, "usb20");
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "failed to get clock\n");
 		return PTR_ERR(clk);
 	}
 
 	glue->phy = devm_phy_get(&pdev->dev, "usb-phy");
-	if (IS_ERR(glue->phy)) {
+
+	if (IS_ERR(glue->phy))
+	{
 		if (PTR_ERR(glue->phy) != -EPROBE_DEFER)
+		{
 			dev_err(&pdev->dev, "failed to get phy\n");
+		}
+
 		return PTR_ERR(glue->phy);
 	}
 
@@ -491,14 +561,17 @@ static int da8xx_probe(struct platform_device *pdev)
 
 	glue->usb_phy = usb_phy_generic_register();
 	ret = PTR_ERR_OR_ZERO(glue->usb_phy);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register usb_phy\n");
 		return ret;
 	}
+
 	platform_set_drvdata(pdev, glue);
 
 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
-			ARRAY_SIZE(musb_resources));
+		   ARRAY_SIZE(musb_resources));
 
 	musb_resources[0].name = pdev->resource[0].name;
 	musb_resources[0].start = pdev->resource[0].start;
@@ -519,7 +592,9 @@ static int da8xx_probe(struct platform_device *pdev)
 
 	glue->musb = platform_device_register_full(&pinfo);
 	ret = PTR_ERR_OR_ZERO(glue->musb);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register musb device: %d\n", ret);
 		usb_phy_generic_unregister(glue->usb_phy);
 	}
@@ -537,7 +612,8 @@ static int da8xx_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver da8xx_driver = {
+static struct platform_driver da8xx_driver =
+{
 	.probe		= da8xx_probe,
 	.remove		= da8xx_remove,
 	.driver		= {

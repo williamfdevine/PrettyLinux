@@ -35,35 +35,48 @@ static int i2c_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs, int num)
 
 	dprintk(DBGLVL_I2C, "%s(num = %d)\n", __func__, num);
 
-	for (i = 0 ; i < num; i++) {
+	for (i = 0 ; i < num; i++)
+	{
 		dprintk(DBGLVL_I2C, "%s(num = %d) addr = 0x%02x  len = 0x%x\n",
-			__func__, num, msgs[i].addr, msgs[i].len);
-		if (msgs[i].flags & I2C_M_RD) {
+				__func__, num, msgs[i].addr, msgs[i].len);
+
+		if (msgs[i].flags & I2C_M_RD)
+		{
 			retval = saa7164_api_i2c_read(bus,
-				msgs[i].addr,
-				0 /* reglen */,
-				NULL /* reg */, msgs[i].len, msgs[i].buf);
-		} else if (i + 1 < num && (msgs[i + 1].flags & I2C_M_RD) &&
-			   msgs[i].addr == msgs[i + 1].addr) {
+										  msgs[i].addr,
+										  0 /* reglen */,
+										  NULL /* reg */, msgs[i].len, msgs[i].buf);
+		}
+		else if (i + 1 < num && (msgs[i + 1].flags & I2C_M_RD) &&
+				 msgs[i].addr == msgs[i + 1].addr)
+		{
 			/* write then read from same address */
 
 			retval = saa7164_api_i2c_read(bus, msgs[i].addr,
-				msgs[i].len, msgs[i].buf,
-				msgs[i+1].len, msgs[i+1].buf
-				);
+										  msgs[i].len, msgs[i].buf,
+										  msgs[i + 1].len, msgs[i + 1].buf
+										 );
 
 			i++;
 
 			if (retval < 0)
+			{
 				goto err;
-		} else {
+			}
+		}
+		else
+		{
 			/* write */
 			retval = saa7164_api_i2c_write(bus, msgs[i].addr,
-				msgs[i].len, msgs[i].buf);
+										   msgs[i].len, msgs[i].buf);
 		}
+
 		if (retval < 0)
+		{
 			goto err;
+		}
 	}
+
 	return num;
 
 err:
@@ -75,20 +88,23 @@ static u32 saa7164_functionality(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C;
 }
 
-static const struct i2c_algorithm saa7164_i2c_algo_template = {
+static const struct i2c_algorithm saa7164_i2c_algo_template =
+{
 	.master_xfer	= i2c_xfer,
 	.functionality	= saa7164_functionality,
 };
 
 /* ----------------------------------------------------------------------- */
 
-static struct i2c_adapter saa7164_i2c_adap_template = {
+static struct i2c_adapter saa7164_i2c_adap_template =
+{
 	.name              = "saa7164",
 	.owner             = THIS_MODULE,
 	.algo              = &saa7164_i2c_algo_template,
 };
 
-static struct i2c_client saa7164_i2c_client_template = {
+static struct i2c_client saa7164_i2c_client_template =
+{
 	.name	= "saa7164 internal",
 };
 
@@ -104,7 +120,7 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
 	bus->i2c_adap.dev.parent = &dev->pci->dev;
 
 	strlcpy(bus->i2c_adap.name, bus->dev->name,
-		sizeof(bus->i2c_adap.name));
+			sizeof(bus->i2c_adap.name));
 
 	bus->i2c_adap.algo_data = bus;
 	i2c_set_adapdata(&bus->i2c_adap, bus);
@@ -114,7 +130,7 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
 
 	if (0 != bus->i2c_rc)
 		printk(KERN_ERR "%s: i2c bus %d register FAILED\n",
-			dev->name, bus->nr);
+			   dev->name, bus->nr);
 
 	return bus->i2c_rc;
 }

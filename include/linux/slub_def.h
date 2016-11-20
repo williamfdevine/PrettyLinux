@@ -8,7 +8,8 @@
  */
 #include <linux/kobject.h>
 
-enum stat_item {
+enum stat_item
+{
 	ALLOC_FASTPATH,		/* Allocation from cpu slab */
 	ALLOC_SLOWPATH,		/* Allocation by getting a new cpu slab */
 	FREE_FASTPATH,		/* Free to cpu slab */
@@ -35,9 +36,11 @@ enum stat_item {
 	CPU_PARTIAL_FREE,	/* Refill cpu partial on free */
 	CPU_PARTIAL_NODE,	/* Refill cpu partial from node partial */
 	CPU_PARTIAL_DRAIN,	/* Drain cpu partial to node partial */
-	NR_SLUB_STAT_ITEMS };
+	NR_SLUB_STAT_ITEMS
+};
 
-struct kmem_cache_cpu {
+struct kmem_cache_cpu
+{
 	void **freelist;	/* Pointer to next available object */
 	unsigned long tid;	/* Globally unique transaction id */
 	struct page *page;	/* The slab from which we are allocating */
@@ -52,14 +55,16 @@ struct kmem_cache_cpu {
  * contains both the order and the number of objects that a slab of the
  * given order would contain.
  */
-struct kmem_cache_order_objects {
+struct kmem_cache_order_objects
+{
 	unsigned long x;
 };
 
 /*
  * Slab cache management.
  */
-struct kmem_cache {
+struct kmem_cache
+{
 	struct kmem_cache_cpu __percpu *cpu_slab;
 	/* Used for retriving partial slabs etc */
 	unsigned long flags;
@@ -121,15 +126,16 @@ static inline void sysfs_slab_remove(struct kmem_cache *s)
 #endif
 
 void object_err(struct kmem_cache *s, struct page *page,
-		u8 *object, char *reason);
+				u8 *object, char *reason);
 
 void *fixup_red_left(struct kmem_cache *s, void *p);
 
 static inline void *nearest_obj(struct kmem_cache *cache, struct page *page,
-				void *x) {
+								void *x)
+{
 	void *object = x - (x - page_address(page)) % cache->size;
 	void *last_object = page_address(page) +
-		(page->objects - 1) * cache->size;
+						(page->objects - 1) * cache->size;
 	void *result = (unlikely(object > last_object)) ? last_object : object;
 
 	result = fixup_red_left(cache, result);

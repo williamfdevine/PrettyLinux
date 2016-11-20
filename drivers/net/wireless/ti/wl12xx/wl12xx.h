@@ -68,12 +68,14 @@
 #define WL12XX_MAX_AP_STATIONS 8
 #define WL12XX_MAX_LINKS 12
 
-struct wl127x_rx_mem_pool_addr {
+struct wl127x_rx_mem_pool_addr
+{
 	u32 addr;
 	u32 addr_extra;
 };
 
-struct wl12xx_priv {
+struct wl12xx_priv
+{
 	struct wl12xx_priv_conf conf;
 
 	int ref_clock;
@@ -83,7 +85,8 @@ struct wl12xx_priv {
 };
 
 /* Reference clock values */
-enum {
+enum
+{
 	WL12XX_REFCLOCK_19	= 0, /* 19.2 MHz */
 	WL12XX_REFCLOCK_26	= 1, /* 26 MHz */
 	WL12XX_REFCLOCK_38	= 2, /* 38.4 MHz */
@@ -93,7 +96,8 @@ enum {
 };
 
 /* TCXO clock values */
-enum {
+enum
+{
 	WL12XX_TCXOCLOCK_19_2	= 0, /* 19.2MHz */
 	WL12XX_TCXOCLOCK_26	= 1, /* 26 MHz */
 	WL12XX_TCXOCLOCK_38_4	= 2, /* 38.4MHz */
@@ -104,13 +108,15 @@ enum {
 	WL12XX_TCXOCLOCK_33_6	= 7, /* 33.6 MHz */
 };
 
-struct wl12xx_clock {
+struct wl12xx_clock
+{
 	u32	freq;
 	bool	xtal;
 	u8	hw_idx;
 };
 
-struct wl12xx_fw_packet_counters {
+struct wl12xx_fw_packet_counters
+{
 	/* Cumulative counter of released packets per AC */
 	u8 tx_released_pkts[NUM_TX_QUEUES];
 
@@ -127,7 +133,8 @@ struct wl12xx_fw_packet_counters {
 } __packed;
 
 /* FW status registers */
-struct wl12xx_fw_status {
+struct wl12xx_fw_status
+{
 	__le32 intr;
 	u8  fw_rx_counter;
 	u8  drv_rx_counter;

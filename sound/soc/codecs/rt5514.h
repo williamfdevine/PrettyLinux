@@ -231,18 +231,21 @@
 #define RT5514_FIRMWARE2	"rt5514_dsp_fw2.bin"
 
 /* System Clock Source */
-enum {
+enum
+{
 	RT5514_SCLK_S_MCLK,
 	RT5514_SCLK_S_PLL1,
 };
 
 /* PLL1 Source */
-enum {
+enum
+{
 	RT5514_PLL1_S_MCLK,
 	RT5514_PLL1_S_BCLK,
 };
 
-struct rt5514_priv {
+struct rt5514_priv
+{
 	struct snd_soc_codec *codec;
 	struct regmap *i2c_regmap, *regmap;
 	struct clk *mclk;

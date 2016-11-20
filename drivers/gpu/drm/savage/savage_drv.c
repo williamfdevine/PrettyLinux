@@ -31,11 +31,13 @@
 
 #include <drm/drm_pciids.h>
 
-static struct pci_device_id pciidlist[] = {
+static struct pci_device_id pciidlist[] =
+{
 	savage_PCI_IDS
 };
 
-static const struct file_operations savage_driver_fops = {
+static const struct file_operations savage_driver_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -48,9 +50,10 @@ static const struct file_operations savage_driver_fops = {
 	.llseek = noop_llseek,
 };
 
-static struct drm_driver driver = {
+static struct drm_driver driver =
+{
 	.driver_features =
-	    DRIVER_USE_AGP | DRIVER_HAVE_DMA | DRIVER_PCI_DMA | DRIVER_LEGACY,
+	DRIVER_USE_AGP | DRIVER_HAVE_DMA | DRIVER_PCI_DMA | DRIVER_LEGACY,
 	.dev_priv_size = sizeof(drm_savage_buf_priv_t),
 	.load = savage_driver_load,
 	.firstopen = savage_driver_firstopen,
@@ -69,7 +72,8 @@ static struct drm_driver driver = {
 	.patchlevel = DRIVER_PATCHLEVEL,
 };
 
-static struct pci_driver savage_pci_driver = {
+static struct pci_driver savage_pci_driver =
+{
 	.name = DRIVER_NAME,
 	.id_table = pciidlist,
 };

@@ -33,7 +33,8 @@ static int adt7410_i2c_write_byte(struct device *dev, u8 reg, u8 data)
 	return i2c_smbus_write_byte_data(to_i2c_client(dev), reg, data);
 }
 
-static const struct adt7x10_ops adt7410_i2c_ops = {
+static const struct adt7x10_ops adt7410_i2c_ops =
+{
 	.read_word = adt7410_i2c_read_word,
 	.write_word = adt7410_i2c_write_word,
 	.read_byte = adt7410_i2c_read_byte,
@@ -41,11 +42,13 @@ static const struct adt7x10_ops adt7410_i2c_ops = {
 };
 
 static int adt7410_i2c_probe(struct i2c_client *client,
-	const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	if (!i2c_check_functionality(client->adapter,
-			I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA))
+								 I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA))
+	{
 		return -ENODEV;
+	}
 
 	return adt7x10_probe(&client->dev, NULL, client->irq, &adt7410_i2c_ops);
 }
@@ -55,14 +58,16 @@ static int adt7410_i2c_remove(struct i2c_client *client)
 	return adt7x10_remove(&client->dev, client->irq);
 }
 
-static const struct i2c_device_id adt7410_ids[] = {
+static const struct i2c_device_id adt7410_ids[] =
+{
 	{ "adt7410", 0 },
 	{ "adt7420", 0 },
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, adt7410_ids);
 
-static struct i2c_driver adt7410_driver = {
+static struct i2c_driver adt7410_driver =
+{
 	.class		= I2C_CLASS_HWMON,
 	.driver = {
 		.name	= "adt7410",

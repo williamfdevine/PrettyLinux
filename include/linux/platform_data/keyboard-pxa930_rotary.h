@@ -9,7 +9,8 @@
  * or rel_code is assigned a non-zero value. When all are non-zero,
  * up_key and down_key will be preferred.
  */
-struct pxa930_rotary_platform_data {
+struct pxa930_rotary_platform_data
+{
 	int	up_key;
 	int	down_key;
 	int	rel_code;

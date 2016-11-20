@@ -57,63 +57,76 @@
 
 /* register structure */
 /* Information registers */
-union REG_OWNER_EPID {
-	struct {
-		__le32 epid:16;
-		__le32:16;
+union REG_OWNER_EPID
+{
+	struct
+	{
+		__le32 epid: 16;
+		__le32: 16;
 	} bits;
 	__le32 reg;
 };
 
-union REG_MAX_EP {
-	struct {
-		__le32 maxep:16;
-		__le32:16;
+union REG_MAX_EP
+{
+	struct
+	{
+		__le32 maxep: 16;
+		__le32: 16;
 	} bits;
 	__le32 reg;
 };
 
 /* Device Control registers */
-union REG_DCTL {
-	struct {
-		__le32 reset:1;
-		__le32 rsv0:15;
-		__le32 rsv1:16;
+union REG_DCTL
+{
+	struct
+	{
+		__le32 reset: 1;
+		__le32 rsv0: 15;
+		__le32 rsv1: 16;
 	} bits;
 	__le32 reg;
 };
 
 /* Command Control registers */
-union REG_CR {
-	struct {
-		__le32 req_code:16;
-		__le32 err_info:14;
-		__le32 error:1;
-		__le32 req_start:1;
+union REG_CR
+{
+	struct
+	{
+		__le32 req_code: 16;
+		__le32 err_info: 14;
+		__le32 error: 1;
+		__le32 req_start: 1;
 	} bits;
 	__le32 reg;
 };
 
-union REG_CS {
-	struct {
-		__le32 req_code:16;
-		__le32 rsv0:14;
-		__le32 busy:1;
-		__le32 complete:1;
+union REG_CS
+{
+	struct
+	{
+		__le32 req_code: 16;
+		__le32 rsv0: 14;
+		__le32 busy: 1;
+		__le32 complete: 1;
 	} bits;
 	__le32 reg;
 };
 
 /* Interrupt Control registers */
-union REG_ICTL {
-	struct {
-		__le32 automak:1;
-		__le32 rsv0:31;
+union REG_ICTL
+{
+	struct
+	{
+		__le32 automak: 1;
+		__le32 rsv0: 31;
 	} bits;
 	__le32 reg;
 };
 
-enum REG_ICTL_MASK {
+enum REG_ICTL_MASK
+{
 	REG_ICTL_MASK_INFO_UPDATE     = 1 << 20,
 	REG_ICTL_MASK_DEV_STOP_REQ    = 1 << 19,
 	REG_ICTL_MASK_TXRX_STOP_REQ   = 1 << 18,
@@ -122,7 +135,8 @@ enum REG_ICTL_MASK {
 	REG_ICTL_MASK_ALL             = GENMASK(20, 16),
 };
 
-enum REG_IS_MASK {
+enum REG_IS_MASK
+{
 	REG_IS_MASK_IS_ASSERT	= 1 << 31,
 	REG_IS_MASK_EPID	= GENMASK(15, 0),
 };
@@ -132,10 +146,10 @@ struct fjes_hw;
 u32 fjes_hw_rd32(struct fjes_hw *hw, u32 reg);
 
 #define wr32(reg, val) \
-do { \
-	u8 *base = hw->base; \
-	writel((val), &base[(reg)]); \
-} while (0)
+	do { \
+		u8 *base = hw->base; \
+		writel((val), &base[(reg)]); \
+	} while (0)
 
 #define rd32(reg) (fjes_hw_rd32(hw, reg))
 

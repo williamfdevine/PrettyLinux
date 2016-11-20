@@ -30,7 +30,8 @@ typedef struct xfs_attr_sf_entry xfs_attr_sf_entry_t;
 /*
  * We generate this then sort it, attr_list() must return things in hash-order.
  */
-typedef struct xfs_attr_sf_sort {
+typedef struct xfs_attr_sf_sort
+{
 	__uint8_t	entno;		/* entry number in original list */
 	__uint8_t	namelen;	/* length of name value (no null) */
 	__uint8_t	valuelen;	/* length of value */
@@ -49,6 +50,6 @@ typedef struct xfs_attr_sf_sort {
 	((xfs_attr_sf_entry_t *)((char *)(sfep) + XFS_ATTR_SF_ENTSIZE(sfep)))
 #define XFS_ATTR_SF_TOTSIZE(dp)			/* total space in use */ \
 	(be16_to_cpu(((xfs_attr_shortform_t *)	\
-		((dp)->i_afp->if_u1.if_data))->hdr.totsize))
+				  ((dp)->i_afp->if_u1.if_data))->hdr.totsize))
 
 #endif	/* __XFS_ATTR_SF_H__ */

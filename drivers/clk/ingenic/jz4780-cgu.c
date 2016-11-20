@@ -109,7 +109,9 @@ static int jz4780_otg_phy_set_parent(struct clk_hw *hw, u8 idx)
 	u32 usbpcr1;
 
 	if (idx > 0)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&cgu->lock, flags);
 
@@ -124,7 +126,7 @@ static int jz4780_otg_phy_set_parent(struct clk_hw *hw, u8 idx)
 }
 
 static unsigned long jz4780_otg_phy_recalc_rate(struct clk_hw *hw,
-						unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	u32 usbpcr1;
 	unsigned refclk_div;
@@ -132,18 +134,19 @@ static unsigned long jz4780_otg_phy_recalc_rate(struct clk_hw *hw,
 	usbpcr1 = readl(cgu->base + CGU_REG_USBPCR1);
 	refclk_div = usbpcr1 & USBPCR1_REFCLKDIV_MASK;
 
-	switch (refclk_div) {
-	case USBPCR1_REFCLKDIV_12:
-		return 12000000;
+	switch (refclk_div)
+	{
+		case USBPCR1_REFCLKDIV_12:
+			return 12000000;
 
-	case USBPCR1_REFCLKDIV_24:
-		return 24000000;
+		case USBPCR1_REFCLKDIV_24:
+			return 24000000;
 
-	case USBPCR1_REFCLKDIV_48:
-		return 48000000;
+		case USBPCR1_REFCLKDIV_48:
+			return 48000000;
 
-	case USBPCR1_REFCLKDIV_19_2:
-		return 19200000;
+		case USBPCR1_REFCLKDIV_19_2:
+			return 19200000;
 	}
 
 	BUG();
@@ -151,45 +154,52 @@ static unsigned long jz4780_otg_phy_recalc_rate(struct clk_hw *hw,
 }
 
 static long jz4780_otg_phy_round_rate(struct clk_hw *hw, unsigned long req_rate,
-				      unsigned long *parent_rate)
+									  unsigned long *parent_rate)
 {
 	if (req_rate < 15600000)
+	{
 		return 12000000;
+	}
 
 	if (req_rate < 21600000)
+	{
 		return 19200000;
+	}
 
 	if (req_rate < 36000000)
+	{
 		return 24000000;
+	}
 
 	return 48000000;
 }
 
 static int jz4780_otg_phy_set_rate(struct clk_hw *hw, unsigned long req_rate,
-				   unsigned long parent_rate)
+								   unsigned long parent_rate)
 {
 	unsigned long flags;
 	u32 usbpcr1, div_bits;
 
-	switch (req_rate) {
-	case 12000000:
-		div_bits = USBPCR1_REFCLKDIV_12;
-		break;
+	switch (req_rate)
+	{
+		case 12000000:
+			div_bits = USBPCR1_REFCLKDIV_12;
+			break;
 
-	case 19200000:
-		div_bits = USBPCR1_REFCLKDIV_19_2;
-		break;
+		case 19200000:
+			div_bits = USBPCR1_REFCLKDIV_19_2;
+			break;
 
-	case 24000000:
-		div_bits = USBPCR1_REFCLKDIV_24;
-		break;
+		case 24000000:
+			div_bits = USBPCR1_REFCLKDIV_24;
+			break;
 
-	case 48000000:
-		div_bits = USBPCR1_REFCLKDIV_48;
-		break;
+		case 48000000:
+			div_bits = USBPCR1_REFCLKDIV_48;
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	spin_lock_irqsave(&cgu->lock, flags);
@@ -203,7 +213,8 @@ static int jz4780_otg_phy_set_rate(struct clk_hw *hw, unsigned long req_rate,
 	return 0;
 }
 
-static struct clk_ops jz4780_otg_phy_ops = {
+static struct clk_ops jz4780_otg_phy_ops =
+{
 	.get_parent = jz4780_otg_phy_get_parent,
 	.set_parent = jz4780_otg_phy_set_parent,
 
@@ -212,12 +223,14 @@ static struct clk_ops jz4780_otg_phy_ops = {
 	.set_rate = jz4780_otg_phy_set_rate,
 };
 
-static const s8 pll_od_encoding[16] = {
+static const s8 pll_od_encoding[16] =
+{
 	0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
 	0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf,
 };
 
-static const struct ingenic_cgu_clk_info jz4780_cgu_clocks[] = {
+static const struct ingenic_cgu_clk_info jz4780_cgu_clocks[] =
+{
 
 	/* External clocks */
 
@@ -227,21 +240,21 @@ static const struct ingenic_cgu_clk_info jz4780_cgu_clocks[] = {
 	/* PLLs */
 
 #define DEF_PLL(name) { \
-	.reg = CGU_REG_ ## name, \
-	.m_shift = 19, \
-	.m_bits = 13, \
-	.m_offset = 1, \
-	.n_shift = 13, \
-	.n_bits = 6, \
-	.n_offset = 1, \
-	.od_shift = 9, \
-	.od_bits = 4, \
-	.od_max = 16, \
-	.od_encoding = pll_od_encoding, \
-	.stable_bit = 6, \
-	.bypass_bit = 1, \
-	.enable_bit = 0, \
-}
+		.reg = CGU_REG_ ## name, \
+		.m_shift = 19, \
+		.m_bits = 13, \
+		.m_offset = 1, \
+		.n_shift = 13, \
+		.n_bits = 6, \
+		.n_offset = 1, \
+		.od_shift = 9, \
+		.od_bits = 4, \
+		.od_max = 16, \
+		.od_encoding = pll_od_encoding, \
+		.stable_bit = 6, \
+		.bypass_bit = 1, \
+		.enable_bit = 0, \
+	}
 
 	[JZ4780_CLK_APLL] = {
 		"apll", CGU_CLK_PLL,
@@ -281,15 +294,19 @@ static const struct ingenic_cgu_clk_info jz4780_cgu_clocks[] = {
 
 	[JZ4780_CLK_SCLKA] = {
 		"sclk_a", CGU_CLK_MUX,
-		.parents = { -1, JZ4780_CLK_APLL, JZ4780_CLK_EXCLK,
-			     JZ4780_CLK_RTCLK },
+		.parents = {
+			-1, JZ4780_CLK_APLL, JZ4780_CLK_EXCLK,
+			JZ4780_CLK_RTCLK
+		},
 		.mux = { CGU_REG_CLOCKCONTROL, 30, 2 },
 	},
 
 	[JZ4780_CLK_CPUMUX] = {
 		"cpumux", CGU_CLK_MUX,
-		.parents = { -1, JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
-			     JZ4780_CLK_EPLL },
+		.parents = {
+			-1, JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
+			JZ4780_CLK_EPLL
+		},
 		.mux = { CGU_REG_CLOCKCONTROL, 28, 2 },
 	},
 
@@ -307,16 +324,20 @@ static const struct ingenic_cgu_clk_info jz4780_cgu_clocks[] = {
 
 	[JZ4780_CLK_AHB0] = {
 		"ahb0", CGU_CLK_MUX | CGU_CLK_DIV,
-		.parents = { -1, JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
-			     JZ4780_CLK_EPLL },
+		.parents = {
+			-1, JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
+			JZ4780_CLK_EPLL
+		},
 		.mux = { CGU_REG_CLOCKCONTROL, 26, 2 },
 		.div = { CGU_REG_CLOCKCONTROL, 8, 1, 4, 21, -1, -1 },
 	},
 
 	[JZ4780_CLK_AHB2PMUX] = {
 		"ahb2_apb_mux", CGU_CLK_MUX,
-		.parents = { -1, JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
-			     JZ4780_CLK_RTCLK },
+		.parents = {
+			-1, JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
+			JZ4780_CLK_RTCLK
+		},
 		.mux = { CGU_REG_CLOCKCONTROL, 24, 2 },
 	},
 
@@ -341,8 +362,10 @@ static const struct ingenic_cgu_clk_info jz4780_cgu_clocks[] = {
 
 	[JZ4780_CLK_VPU] = {
 		"vpu", CGU_CLK_MUX | CGU_CLK_DIV | CGU_CLK_GATE,
-		.parents = { JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
-			     JZ4780_CLK_EPLL, -1 },
+		.parents = {
+			JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
+			JZ4780_CLK_EPLL, -1
+		},
 		.mux = { CGU_REG_VPUCDR, 30, 2 },
 		.div = { CGU_REG_VPUCDR, 0, 1, 4, 29, 28, 27 },
 		.gate = { CGU_REG_CLKGR1, 2 },
@@ -363,16 +386,20 @@ static const struct ingenic_cgu_clk_info jz4780_cgu_clocks[] = {
 
 	[JZ4780_CLK_LCD0PIXCLK] = {
 		"lcd0pixclk", CGU_CLK_MUX | CGU_CLK_DIV,
-		.parents = { JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
-			     JZ4780_CLK_VPLL, -1 },
+		.parents = {
+			JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
+			JZ4780_CLK_VPLL, -1
+		},
 		.mux = { CGU_REG_LP0CDR, 30, 2 },
 		.div = { CGU_REG_LP0CDR, 0, 1, 8, 28, 27, 26 },
 	},
 
 	[JZ4780_CLK_LCD1PIXCLK] = {
 		"lcd1pixclk", CGU_CLK_MUX | CGU_CLK_DIV,
-		.parents = { JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
-			     JZ4780_CLK_VPLL, -1 },
+		.parents = {
+			JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
+			JZ4780_CLK_VPLL, -1
+		},
 		.mux = { CGU_REG_LP1CDR, 30, 2 },
 		.div = { CGU_REG_LP1CDR, 0, 1, 8, 28, 27, 26 },
 	},
@@ -406,8 +433,10 @@ static const struct ingenic_cgu_clk_info jz4780_cgu_clocks[] = {
 
 	[JZ4780_CLK_UHC] = {
 		"uhc", CGU_CLK_MUX | CGU_CLK_DIV | CGU_CLK_GATE,
-		.parents = { JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
-			     JZ4780_CLK_EPLL, JZ4780_CLK_OTGPHY },
+		.parents = {
+			JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
+			JZ4780_CLK_EPLL, JZ4780_CLK_OTGPHY
+		},
 		.mux = { CGU_REG_UHCCDR, 30, 2 },
 		.div = { CGU_REG_UHCCDR, 0, 1, 8, 29, 28, 27 },
 		.gate = { CGU_REG_CLKGR0, 24 },
@@ -435,8 +464,10 @@ static const struct ingenic_cgu_clk_info jz4780_cgu_clocks[] = {
 
 	[JZ4780_CLK_PCMPLL] = {
 		"pcm_pll", CGU_CLK_MUX | CGU_CLK_DIV,
-		.parents = { JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
-			     JZ4780_CLK_EPLL, JZ4780_CLK_VPLL },
+		.parents = {
+			JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
+			JZ4780_CLK_EPLL, JZ4780_CLK_VPLL
+		},
 		.mux = { CGU_REG_PCMCDR, 29, 2 },
 		.div = { CGU_REG_PCMCDR, 0, 1, 8, 28, 27, 26 },
 	},
@@ -450,8 +481,10 @@ static const struct ingenic_cgu_clk_info jz4780_cgu_clocks[] = {
 
 	[JZ4780_CLK_GPU] = {
 		"gpu", CGU_CLK_MUX | CGU_CLK_DIV | CGU_CLK_GATE,
-		.parents = { -1, JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
-			     JZ4780_CLK_EPLL },
+		.parents = {
+			-1, JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
+			JZ4780_CLK_EPLL
+		},
 		.mux = { CGU_REG_GPUCDR, 30, 2 },
 		.div = { CGU_REG_GPUCDR, 0, 1, 4, 29, 28, 27 },
 		.gate = { CGU_REG_CLKGR1, 4 },
@@ -459,8 +492,10 @@ static const struct ingenic_cgu_clk_info jz4780_cgu_clocks[] = {
 
 	[JZ4780_CLK_HDMI] = {
 		"hdmi", CGU_CLK_MUX | CGU_CLK_DIV | CGU_CLK_GATE,
-		.parents = { JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
-			     JZ4780_CLK_VPLL, -1 },
+		.parents = {
+			JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
+			JZ4780_CLK_VPLL, -1
+		},
 		.mux = { CGU_REG_HDMICDR, 30, 2 },
 		.div = { CGU_REG_HDMICDR, 0, 1, 8, 29, 28, 26 },
 		.gate = { CGU_REG_CLKGR1, 9 },
@@ -468,8 +503,10 @@ static const struct ingenic_cgu_clk_info jz4780_cgu_clocks[] = {
 
 	[JZ4780_CLK_BCH] = {
 		"bch", CGU_CLK_MUX | CGU_CLK_DIV | CGU_CLK_GATE,
-		.parents = { -1, JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
-			     JZ4780_CLK_EPLL },
+		.parents = {
+			-1, JZ4780_CLK_SCLKA, JZ4780_CLK_MPLL,
+			JZ4780_CLK_EPLL
+		},
 		.mux = { CGU_REG_BCHCDR, 30, 2 },
 		.div = { CGU_REG_BCHCDR, 0, 1, 4, 29, 28, 27 },
 		.gate = { CGU_REG_CLKGR0, 1 },
@@ -718,14 +755,18 @@ static void __init jz4780_cgu_init(struct device_node *np)
 	int retval;
 
 	cgu = ingenic_cgu_new(jz4780_cgu_clocks,
-			      ARRAY_SIZE(jz4780_cgu_clocks), np);
-	if (!cgu) {
+						  ARRAY_SIZE(jz4780_cgu_clocks), np);
+
+	if (!cgu)
+	{
 		pr_err("%s: failed to initialise CGU\n", __func__);
 		return;
 	}
 
 	retval = ingenic_cgu_register_clocks(cgu);
-	if (retval) {
+
+	if (retval)
+	{
 		pr_err("%s: failed to register CGU Clocks\n", __func__);
 		return;
 	}

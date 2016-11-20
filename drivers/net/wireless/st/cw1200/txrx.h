@@ -21,8 +21,10 @@
 /* extern */ struct wsm_tx_confirm;
 /* extern */ struct cw1200_txpriv;
 
-struct tx_policy {
-	union {
+struct tx_policy
+{
+	union
+	{
 		__le32 tbl[3];
 		u8 raw[12];
 	};
@@ -32,13 +34,15 @@ struct tx_policy {
 	u8  uploaded;
 };
 
-struct tx_policy_cache_entry {
+struct tx_policy_cache_entry
+{
 	struct tx_policy policy;
 	struct list_head link;
 };
 
 #define TX_POLICY_CACHE_SIZE	(8)
-struct tx_policy_cache {
+struct tx_policy_cache
+{
 	struct tx_policy_cache_entry cache[TX_POLICY_CACHE_SIZE];
 	struct list_head used;
 	struct list_head free;
@@ -60,24 +64,24 @@ void tx_policy_clean(struct cw1200_common *priv);
 /* TX implementation							*/
 
 u32 cw1200_rate_mask_to_wsm(struct cw1200_common *priv,
-			       u32 rates);
+							u32 rates);
 void cw1200_tx(struct ieee80211_hw *dev,
-	       struct ieee80211_tx_control *control,
-	       struct sk_buff *skb);
+			   struct ieee80211_tx_control *control,
+			   struct sk_buff *skb);
 void cw1200_skb_dtor(struct cw1200_common *priv,
-		     struct sk_buff *skb,
-		     const struct cw1200_txpriv *txpriv);
+					 struct sk_buff *skb,
+					 const struct cw1200_txpriv *txpriv);
 
 /* ******************************************************************** */
 /* WSM callbacks							*/
 
 void cw1200_tx_confirm_cb(struct cw1200_common *priv,
-			  int link_id,
-			  struct wsm_tx_confirm *arg);
+						  int link_id,
+						  struct wsm_tx_confirm *arg);
 void cw1200_rx_cb(struct cw1200_common *priv,
-		  struct wsm_rx *arg,
-		  int link_id,
-		  struct sk_buff **skb_p);
+				  struct wsm_rx *arg,
+				  int link_id,
+				  struct sk_buff **skb_p);
 
 /* ******************************************************************** */
 /* Timeout								*/

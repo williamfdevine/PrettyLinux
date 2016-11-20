@@ -31,8 +31,10 @@ static void stm32_irq_handler(struct irq_desc *desc)
 
 	chained_irq_enter(chip, desc);
 
-	while ((pending = irq_reg_readl(gc, EXTI_PR))) {
-		for_each_set_bit(n, &pending, BITS_PER_LONG) {
+	while ((pending = irq_reg_readl(gc, EXTI_PR)))
+	{
+		for_each_set_bit(n, &pending, BITS_PER_LONG)
+		{
 			generic_handle_irq(irq_find_mapping(domain, n));
 			irq_reg_writel(gc, BIT(n), EXTI_PR);
 		}
@@ -52,22 +54,26 @@ static int stm32_irq_set_type(struct irq_data *data, unsigned int type)
 	rtsr = irq_reg_readl(gc, EXTI_RTSR);
 	ftsr = irq_reg_readl(gc, EXTI_FTSR);
 
-	switch (type) {
-	case IRQ_TYPE_EDGE_RISING:
-		rtsr |= BIT(pin);
-		ftsr &= ~BIT(pin);
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		rtsr &= ~BIT(pin);
-		ftsr |= BIT(pin);
-		break;
-	case IRQ_TYPE_EDGE_BOTH:
-		rtsr |= BIT(pin);
-		ftsr |= BIT(pin);
-		break;
-	default:
-		irq_gc_unlock(gc);
-		return -EINVAL;
+	switch (type)
+	{
+		case IRQ_TYPE_EDGE_RISING:
+			rtsr |= BIT(pin);
+			ftsr &= ~BIT(pin);
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			rtsr &= ~BIT(pin);
+			ftsr |= BIT(pin);
+			break;
+
+		case IRQ_TYPE_EDGE_BOTH:
+			rtsr |= BIT(pin);
+			ftsr |= BIT(pin);
+			break;
+
+		default:
+			irq_gc_unlock(gc);
+			return -EINVAL;
 	}
 
 	irq_reg_writel(gc, rtsr, EXTI_RTSR);
@@ -87,10 +93,16 @@ static int stm32_irq_set_wake(struct irq_data *data, unsigned int on)
 	irq_gc_lock(gc);
 
 	emr = irq_reg_readl(gc, EXTI_EMR);
+
 	if (on)
+	{
 		emr |= BIT(pin);
+	}
 	else
+	{
 		emr &= ~BIT(pin);
+	}
+
 	irq_reg_writel(gc, emr, EXTI_EMR);
 
 	irq_gc_unlock(gc);
@@ -99,7 +111,7 @@ static int stm32_irq_set_wake(struct irq_data *data, unsigned int on)
 }
 
 static int stm32_exti_alloc(struct irq_domain *d, unsigned int virq,
-			    unsigned int nr_irqs, void *data)
+							unsigned int nr_irqs, void *data)
 {
 	struct irq_chip_generic *gc = d->gc->gc[0];
 	struct irq_fwspec *fwspec = data;
@@ -109,20 +121,21 @@ static int stm32_exti_alloc(struct irq_domain *d, unsigned int virq,
 
 	irq_map_generic_chip(d, virq, hwirq);
 	irq_domain_set_info(d, virq, hwirq, &gc->chip_types->chip, gc,
-			    handle_simple_irq, NULL, NULL);
+						handle_simple_irq, NULL, NULL);
 
 	return 0;
 }
 
 static void stm32_exti_free(struct irq_domain *d, unsigned int virq,
-			    unsigned int nr_irqs)
+							unsigned int nr_irqs)
 {
 	struct irq_data *data = irq_domain_get_irq_data(d, virq);
 
 	irq_domain_reset_irq_data(data);
 }
 
-struct irq_domain_ops irq_exti_domain_ops = {
+struct irq_domain_ops irq_exti_domain_ops =
+{
 	.map	= irq_map_generic_chip,
 	.xlate	= irq_domain_xlate_onetwocell,
 	.alloc  = stm32_exti_alloc,
@@ -130,7 +143,7 @@ struct irq_domain_ops irq_exti_domain_ops = {
 };
 
 static int __init stm32_exti_init(struct device_node *node,
-				  struct device_node *parent)
+								  struct device_node *parent)
 {
 	unsigned int clr = IRQ_NOREQUEST | IRQ_NOPROBE | IRQ_NOAUTOEN;
 	int nr_irqs, nr_exti, ret, i;
@@ -139,7 +152,9 @@ static int __init stm32_exti_init(struct device_node *node,
 	void *base;
 
 	base = of_iomap(node, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		pr_err("%s: Unable to map registers\n", node->full_name);
 		return -ENOMEM;
 	}
@@ -152,19 +167,23 @@ static int __init stm32_exti_init(struct device_node *node,
 	pr_info("%s: %d External IRQs detected\n", node->full_name, nr_exti);
 
 	domain = irq_domain_add_linear(node, nr_exti,
-				       &irq_exti_domain_ops, NULL);
-	if (!domain) {
+								   &irq_exti_domain_ops, NULL);
+
+	if (!domain)
+	{
 		pr_err("%s: Could not register interrupt domain.\n",
-				node->name);
+			   node->name);
 		ret = -ENOMEM;
 		goto out_unmap;
 	}
 
 	ret = irq_alloc_domain_generic_chips(domain, nr_exti, 1, "exti",
-					     handle_edge_irq, clr, 0, 0);
-	if (ret) {
+										 handle_edge_irq, clr, 0, 0);
+
+	if (ret)
+	{
 		pr_err("%s: Could not allocate generic interrupt chip.\n",
-			node->full_name);
+			   node->full_name);
 		goto out_free_domain;
 	}
 
@@ -182,7 +201,9 @@ static int __init stm32_exti_init(struct device_node *node,
 	gc->chip_types->handler            = handle_edge_irq;
 
 	nr_irqs = of_irq_count(node);
-	for (i = 0; i < nr_irqs; i++) {
+
+	for (i = 0; i < nr_irqs; i++)
+	{
 		unsigned int irq = irq_of_parse_and_map(node, i);
 
 		irq_set_handler_data(irq, domain);

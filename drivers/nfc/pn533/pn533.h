@@ -24,23 +24,23 @@
 #define PN533_DEVICE_PN532   0x4
 
 #define PN533_ALL_PROTOCOLS (NFC_PROTO_JEWEL_MASK | NFC_PROTO_MIFARE_MASK |\
-			     NFC_PROTO_FELICA_MASK | NFC_PROTO_ISO14443_MASK |\
-			     NFC_PROTO_NFC_DEP_MASK |\
-			     NFC_PROTO_ISO14443_B_MASK)
+							 NFC_PROTO_FELICA_MASK | NFC_PROTO_ISO14443_MASK |\
+							 NFC_PROTO_NFC_DEP_MASK |\
+							 NFC_PROTO_ISO14443_B_MASK)
 
 #define PN533_NO_TYPE_B_PROTOCOLS (NFC_PROTO_JEWEL_MASK | \
-				   NFC_PROTO_MIFARE_MASK | \
-				   NFC_PROTO_FELICA_MASK | \
-				   NFC_PROTO_ISO14443_MASK | \
-				   NFC_PROTO_NFC_DEP_MASK)
+								   NFC_PROTO_MIFARE_MASK | \
+								   NFC_PROTO_FELICA_MASK | \
+								   NFC_PROTO_ISO14443_MASK | \
+								   NFC_PROTO_NFC_DEP_MASK)
 
 /* Standard pn533 frame definitions (standard and extended)*/
 #define PN533_STD_FRAME_HEADER_LEN (sizeof(struct pn533_std_frame) \
-					+ 2) /* data[0] TFI, data[1] CC */
+									+ 2) /* data[0] TFI, data[1] CC */
 #define PN533_STD_FRAME_TAIL_LEN 2 /* data[len] DCS, data[len + 1] postamble*/
 
 #define PN533_EXT_FRAME_HEADER_LEN (sizeof(struct pn533_ext_frame) \
-					+ 2) /* data[0] TFI, data[1] CC */
+									+ 2) /* data[0] TFI, data[1] CC */
 
 #define PN533_CMD_DATAEXCH_HEAD_LEN 1
 #define PN533_CMD_DATAEXCH_DATA_MAXLEN	262
@@ -59,7 +59,7 @@
 #define PN533_STD_FRAME_POSTAMBLE(f) (f->data[f->datalen + 1])
 /* Half start code (3), LEN (4) should be 0xffff for extended frame */
 #define PN533_STD_IS_EXTENDED(hdr) ((hdr)->datalen == 0xFF \
-					&& (hdr)->datalen_checksum == 0xFF)
+									&& (hdr)->datalen_checksum == 0xFF)
 #define PN533_EXT_FRAME_CHECKSUM(f) (f->data[be16_to_cpu(f->datalen)])
 
 /* start of frame */
@@ -97,13 +97,15 @@
 #define PN533_CMD_RET_SUCCESS 0x00
 
 
-enum  pn533_protocol_type {
+enum  pn533_protocol_type
+{
 	PN533_PROTO_REQ_ACK_RESP = 0,
 	PN533_PROTO_REQ_RESP
 };
 
 /* Poll modulations */
-enum {
+enum
+{
 	PN533_POLL_MOD_106KBPS_A,
 	PN533_POLL_MOD_212KBPS_FELICA,
 	PN533_POLL_MOD_424KBPS_FELICA,
@@ -115,7 +117,8 @@ enum {
 };
 #define PN533_POLL_MOD_MAX (__PN533_POLL_MOD_AFTER_LAST - 1)
 
-struct pn533_std_frame {
+struct pn533_std_frame
+{
 	u8 preamble;
 	__be16 start_frame;
 	u8 datalen;
@@ -123,7 +126,8 @@ struct pn533_std_frame {
 	u8 data[];
 } __packed;
 
-struct pn533_ext_frame {	/* Extended Information frame */
+struct pn533_ext_frame  	/* Extended Information frame */
+{
 	u8 preamble;
 	__be16 start_frame;
 	__be16 eif_flag;	/* fixed to 0xFFFF */
@@ -132,7 +136,8 @@ struct pn533_ext_frame {	/* Extended Information frame */
 	u8 data[];
 } __packed;
 
-struct pn533 {
+struct pn533
+{
 	struct nfc_dev *nfc_dev;
 	u32 device_type;
 	enum pn533_protocol_type protocol_type;
@@ -183,9 +188,10 @@ struct pn533 {
 };
 
 typedef int (*pn533_send_async_complete_t) (struct pn533 *dev, void *arg,
-					struct sk_buff *resp);
+		struct sk_buff *resp);
 
-struct pn533_cmd {
+struct pn533_cmd
+{
 	struct list_head queue;
 	u8 code;
 	int status;
@@ -196,7 +202,8 @@ struct pn533_cmd {
 };
 
 
-struct pn533_frame_ops {
+struct pn533_frame_ops
+{
 	void (*tx_frame_init)(void *frame, u8 cmd_code);
 	void (*tx_frame_finish)(void *frame);
 	void (*tx_update_payload_len)(void *frame, int len);
@@ -214,22 +221,23 @@ struct pn533_frame_ops {
 };
 
 
-struct pn533_phy_ops {
+struct pn533_phy_ops
+{
 	int (*send_frame)(struct pn533 *priv,
-			  struct sk_buff *out);
+					  struct sk_buff *out);
 	int (*send_ack)(struct pn533 *dev, gfp_t flags);
 	void (*abort_cmd)(struct pn533 *priv, gfp_t flags);
 };
 
 
 struct pn533 *pn533_register_device(u32 device_type,
-				u32 protocols,
-				enum pn533_protocol_type protocol_type,
-				void *phy,
-				struct pn533_phy_ops *phy_ops,
-				struct pn533_frame_ops *fops,
-				struct device *dev,
-				struct device *parent);
+									u32 protocols,
+									enum pn533_protocol_type protocol_type,
+									void *phy,
+									struct pn533_phy_ops *phy_ops,
+									struct pn533_frame_ops *fops,
+									struct device *dev,
+									struct device *parent);
 
 void pn533_unregister_device(struct pn533 *priv);
 void pn533_recv_frame(struct pn533 *dev, struct sk_buff *skb, int status);

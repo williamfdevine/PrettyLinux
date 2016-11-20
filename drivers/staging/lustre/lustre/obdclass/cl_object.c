@@ -71,11 +71,14 @@ int cl_object_header_init(struct cl_object_header *h)
 	int result;
 
 	result = lu_object_header_init(&h->coh_lu);
-	if (result == 0) {
+
+	if (result == 0)
+	{
 		spin_lock_init(&h->coh_attr_guard);
 		lockdep_set_class(&h->coh_attr_guard, &cl_attr_guard_class);
 		h->coh_page_bufsize = 0;
 	}
+
 	return result;
 }
 EXPORT_SYMBOL(cl_object_header_init);
@@ -89,8 +92,8 @@ EXPORT_SYMBOL(cl_object_header_init);
  * \see lu_object_find(), cl_page_find(), cl_lock_find()
  */
 struct cl_object *cl_object_find(const struct lu_env *env,
-				 struct cl_device *cd, const struct lu_fid *fid,
-				 const struct cl_object_conf *c)
+								 struct cl_device *cd, const struct lu_fid *fid,
+								 const struct cl_object_conf *c)
 {
 	might_sleep();
 	return lu2cl(lu_object_find_slice(env, cl2lu_dev(cd), fid, &c->coc_lu));
@@ -136,7 +139,9 @@ struct cl_object *cl_object_top(struct cl_object *o)
 	struct cl_object *top;
 
 	while (hdr->coh_parent)
+	{
 		hdr = hdr->coh_parent;
+	}
 
 	top = lu2cl(lu_object_top(&hdr->coh_lu));
 	CDEBUG(D_TRACE, "%p -> %p\n", o, top);
@@ -166,7 +171,7 @@ static spinlock_t *cl_object_attr_guard(struct cl_object *o)
  * cl_object_attr_get(), cl_object_attr_update().
  */
 void cl_object_attr_lock(struct cl_object *o)
-	__acquires(cl_object_attr_guard(o))
+__acquires(cl_object_attr_guard(o))
 {
 	spin_lock(cl_object_attr_guard(o));
 }
@@ -176,7 +181,7 @@ EXPORT_SYMBOL(cl_object_attr_lock);
  * Releases data-attributes lock, acquired by cl_object_attr_lock().
  */
 void cl_object_attr_unlock(struct cl_object *o)
-	__releases(cl_object_attr_guard(o))
+__releases(cl_object_attr_guard(o))
 {
 	spin_unlock(cl_object_attr_guard(o));
 }
@@ -190,7 +195,7 @@ EXPORT_SYMBOL(cl_object_attr_unlock);
  * for.
  */
 int cl_object_attr_get(const struct lu_env *env, struct cl_object *obj,
-		       struct cl_attr *attr)
+					   struct cl_attr *attr)
 {
 	struct lu_object_header *top;
 	int result;
@@ -199,12 +204,19 @@ int cl_object_attr_get(const struct lu_env *env, struct cl_object *obj,
 
 	top = obj->co_lu.lo_header;
 	result = 0;
-	list_for_each_entry(obj, &top->loh_layers, co_lu.lo_linkage) {
-		if (obj->co_ops->coo_attr_get) {
+	list_for_each_entry(obj, &top->loh_layers, co_lu.lo_linkage)
+	{
+		if (obj->co_ops->coo_attr_get)
+		{
 			result = obj->co_ops->coo_attr_get(env, obj, attr);
-			if (result != 0) {
+
+			if (result != 0)
+			{
 				if (result > 0)
+				{
 					result = 0;
+				}
+
 				break;
 			}
 		}
@@ -221,7 +233,7 @@ EXPORT_SYMBOL(cl_object_attr_get);
  * bottom to top.
  */
 int cl_object_attr_update(const struct lu_env *env, struct cl_object *obj,
-			  const struct cl_attr *attr, unsigned int v)
+						  const struct cl_attr *attr, unsigned int v)
 {
 	struct lu_object_header *top;
 	int result;
@@ -230,13 +242,20 @@ int cl_object_attr_update(const struct lu_env *env, struct cl_object *obj,
 
 	top = obj->co_lu.lo_header;
 	result = 0;
-	list_for_each_entry_reverse(obj, &top->loh_layers, co_lu.lo_linkage) {
-		if (obj->co_ops->coo_attr_update) {
+	list_for_each_entry_reverse(obj, &top->loh_layers, co_lu.lo_linkage)
+	{
+		if (obj->co_ops->coo_attr_update)
+		{
 			result = obj->co_ops->coo_attr_update(env, obj, attr,
-							      v);
-			if (result != 0) {
+												  v);
+
+			if (result != 0)
+			{
 				if (result > 0)
+				{
 					result = 0;
+				}
+
 				break;
 			}
 		}
@@ -254,24 +273,29 @@ EXPORT_SYMBOL(cl_object_attr_update);
  * \see cl_lock_operations::clo_glimpse()
  */
 int cl_object_glimpse(const struct lu_env *env, struct cl_object *obj,
-		      struct ost_lvb *lvb)
+					  struct ost_lvb *lvb)
 {
 	struct lu_object_header *top;
 	int result;
 
 	top = obj->co_lu.lo_header;
 	result = 0;
-	list_for_each_entry_reverse(obj, &top->loh_layers, co_lu.lo_linkage) {
-		if (obj->co_ops->coo_glimpse) {
+	list_for_each_entry_reverse(obj, &top->loh_layers, co_lu.lo_linkage)
+	{
+		if (obj->co_ops->coo_glimpse)
+		{
 			result = obj->co_ops->coo_glimpse(env, obj, lvb);
+
 			if (result != 0)
+			{
 				break;
+			}
 		}
 	}
 	LU_OBJECT_HEADER(D_DLMTRACE, env, lu_object_top(top),
-			 "size: %llu mtime: %llu atime: %llu ctime: %llu blocks: %llu\n",
-			 lvb->lvb_size, lvb->lvb_mtime, lvb->lvb_atime,
-			 lvb->lvb_ctime, lvb->lvb_blocks);
+					 "size: %llu mtime: %llu atime: %llu ctime: %llu blocks: %llu\n",
+					 lvb->lvb_size, lvb->lvb_mtime, lvb->lvb_atime,
+					 lvb->lvb_ctime, lvb->lvb_blocks);
 	return result;
 }
 EXPORT_SYMBOL(cl_object_glimpse);
@@ -280,18 +304,23 @@ EXPORT_SYMBOL(cl_object_glimpse);
  * Updates a configuration of an object \a obj.
  */
 int cl_conf_set(const struct lu_env *env, struct cl_object *obj,
-		const struct cl_object_conf *conf)
+				const struct cl_object_conf *conf)
 {
 	struct lu_object_header *top;
 	int result;
 
 	top = obj->co_lu.lo_header;
 	result = 0;
-	list_for_each_entry(obj, &top->loh_layers, co_lu.lo_linkage) {
-		if (obj->co_ops->coo_conf_set) {
+	list_for_each_entry(obj, &top->loh_layers, co_lu.lo_linkage)
+	{
+		if (obj->co_ops->coo_conf_set)
+		{
 			result = obj->co_ops->coo_conf_set(env, obj, conf);
+
 			if (result != 0)
+			{
 				break;
+			}
 		}
 	}
 	return result;
@@ -309,11 +338,16 @@ int cl_object_prune(const struct lu_env *env, struct cl_object *obj)
 
 	top = obj->co_lu.lo_header;
 	result = 0;
-	list_for_each_entry(o, &top->loh_layers, co_lu.lo_linkage) {
-		if (o->co_ops->coo_prune) {
+	list_for_each_entry(o, &top->loh_layers, co_lu.lo_linkage)
+	{
+		if (o->co_ops->coo_prune)
+		{
 			result = o->co_ops->coo_prune(env, o);
+
 			if (result != 0)
+			{
 				break;
+			}
 		}
 	}
 
@@ -325,17 +359,22 @@ EXPORT_SYMBOL(cl_object_prune);
  * Get stripe information of this object.
  */
 int cl_object_getstripe(const struct lu_env *env, struct cl_object *obj,
-			struct lov_user_md __user *uarg)
+						struct lov_user_md __user *uarg)
 {
 	struct lu_object_header *top;
 	int result = 0;
 
 	top = obj->co_lu.lo_header;
-	list_for_each_entry(obj, &top->loh_layers, co_lu.lo_linkage) {
-		if (obj->co_ops->coo_getstripe) {
+	list_for_each_entry(obj, &top->loh_layers, co_lu.lo_linkage)
+	{
+		if (obj->co_ops->coo_getstripe)
+		{
 			result = obj->co_ops->coo_getstripe(env, obj, uarg);
+
 			if (result)
-			break;
+			{
+				break;
+			}
 		}
 	}
 	return result;
@@ -362,30 +401,43 @@ void cache_stats_init(struct cache_stats *cs, const char *name)
 	int i;
 
 	cs->cs_name = name;
+
 	for (i = 0; i < CS_NR; i++)
+	{
 		atomic_set(&cs->cs_stats[i], 0);
+	}
 }
 
 static int cache_stats_print(const struct cache_stats *cs,
-			     struct seq_file *m, int h)
+							 struct seq_file *m, int h)
 {
 	int i;
+
 	/*
 	 *   lookup    hit    total  cached create
 	 * env: ...... ...... ...... ...... ......
 	 */
-	if (h) {
+	if (h)
+	{
 		const char *names[CS_NR] = CS_NAMES;
 
 		seq_printf(m, "%6s", " ");
+
 		for (i = 0; i < CS_NR; i++)
+		{
 			seq_printf(m, "%8s", names[i]);
+		}
+
 		seq_printf(m, "\n");
 	}
 
 	seq_printf(m, "%5.5s:", cs->cs_name);
+
 	for (i = 0; i < CS_NR; i++)
+	{
 		seq_printf(m, "%8u", atomic_read(&cs->cs_stats[i]));
+	}
+
 	return 0;
 }
 
@@ -403,12 +455,19 @@ int cl_site_init(struct cl_site *s, struct cl_device *d)
 	int result;
 
 	result = lu_site_init(&s->cs_lu, &d->cd_lu_dev);
-	if (result == 0) {
+
+	if (result == 0)
+	{
 		cache_stats_init(&s->cs_pages, "pages");
+
 		for (i = 0; i < ARRAY_SIZE(s->cs_pages_state); ++i)
+		{
 			atomic_set(&s->cs_pages_state[0], 0);
+		}
+
 		cl_env_percpu_refill();
 	}
+
 	return result;
 }
 EXPORT_SYMBOL(cl_site_init);
@@ -422,7 +481,8 @@ void cl_site_fini(struct cl_site *s)
 }
 EXPORT_SYMBOL(cl_site_fini);
 
-static struct cache_stats cl_env_stats = {
+static struct cache_stats cl_env_stats =
+{
 	.cs_name    = "envs",
 	.cs_stats = { ATOMIC_INIT(0), }
 };
@@ -434,25 +494,28 @@ static struct cache_stats cl_env_stats = {
 int cl_site_stats_print(const struct cl_site *site, struct seq_file *m)
 {
 	size_t i;
-	static const char *pstate[] = {
+	static const char *pstate[] =
+	{
 		[CPS_CACHED]  = "c",
 		[CPS_OWNED]   = "o",
 		[CPS_PAGEOUT] = "w",
 		[CPS_PAGEIN]  = "r",
 		[CPS_FREEING] = "f"
 	};
-/*
-       lookup    hit  total   busy create
-pages: ...... ...... ...... ...... ...... [...... ...... ...... ......]
-locks: ...... ...... ...... ...... ...... [...... ...... ...... ...... ......]
-  env: ...... ...... ...... ...... ......
- */
+	/*
+	       lookup    hit  total   busy create
+	pages: ...... ...... ...... ...... ...... [...... ...... ...... ......]
+	locks: ...... ...... ...... ...... ...... [...... ...... ...... ...... ......]
+	  env: ...... ...... ...... ...... ......
+	 */
 	lu_site_stats_print(&site->cs_lu, m);
 	cache_stats_print(&site->cs_pages, m, 1);
 	seq_printf(m, " [");
+
 	for (i = 0; i < ARRAY_SIZE(site->cs_pages_state); ++i)
 		seq_printf(m, "%s: %u ", pstate[i],
-			   atomic_read(&site->cs_pages_state[i]));
+				   atomic_read(&site->cs_pages_state[i]));
+
 	seq_printf(m, "]\n");
 	cache_stats_print(&cl_env_stats, m, 0);
 	seq_printf(m, "\n");
@@ -490,7 +553,8 @@ static unsigned int cl_envs_cached_max = 128; /* XXX: prototype: arbitrary limit
 					       */
 static DEFINE_SPINLOCK(cl_envs_guard);
 
-struct cl_env {
+struct cl_env
+{
 	void	     *ce_magic;
 	struct lu_env     ce_lu;
 	struct lu_context ce_ses;
@@ -550,7 +614,7 @@ static void cl_env_init0(struct cl_env *cle, void *debug)
 static struct cfs_hash *cl_env_hash;
 
 static unsigned cl_env_hops_hash(struct cfs_hash *lh,
-				 const void *key, unsigned mask)
+								 const void *key, unsigned mask)
 {
 #if BITS_PER_LONG == 64
 	return cfs_hash_u64_hash((__u64)key, mask);
@@ -582,7 +646,8 @@ static void cl_env_hops_noop(struct cfs_hash *hs, struct hlist_node *hn)
 	LASSERT(cle->ce_magic == &cl_env_init0);
 }
 
-static struct cfs_hash_ops cl_env_hops = {
+static struct cfs_hash_ops cl_env_hops =
+{
 	.hs_hash	= cl_env_hops_hash,
 	.hs_key		= cl_env_hops_obj,
 	.hs_keycmp      = cl_env_hops_keycmp,
@@ -602,13 +667,14 @@ static inline struct cl_env *cl_env_fetch(void)
 
 static inline void cl_env_attach(struct cl_env *cle)
 {
-	if (cle) {
+	if (cle)
+	{
 		int rc;
 
 		LASSERT(!cle->ce_owner);
 		cle->ce_owner = (void *)(long)current->pid;
 		rc = cfs_hash_add_unique(cl_env_hash, cle->ce_owner,
-					 &cle->ce_node);
+								 &cle->ce_node);
 		LASSERT(rc == 0);
 	}
 }
@@ -619,7 +685,7 @@ static inline void cl_env_do_detach(struct cl_env *cle)
 
 	LASSERT(cle->ce_owner == (void *)(long)current->pid);
 	cookie = cfs_hash_del(cl_env_hash, cle->ce_owner,
-			      &cle->ce_node);
+						  &cle->ce_node);
 	LASSERT(cookie == cle);
 	cle->ce_owner = NULL;
 }
@@ -627,12 +693,12 @@ static inline void cl_env_do_detach(struct cl_env *cle)
 static int cl_env_store_init(void)
 {
 	cl_env_hash = cfs_hash_create("cl_env",
-				      HASH_CL_ENV_BITS, HASH_CL_ENV_BITS,
-				      HASH_CL_ENV_BKT_BITS, 0,
-				      CFS_HASH_MIN_THETA,
-				      CFS_HASH_MAX_THETA,
-				      &cl_env_hops,
-				      CFS_HASH_RW_BKTLOCK);
+								  HASH_CL_ENV_BITS, HASH_CL_ENV_BITS,
+								  HASH_CL_ENV_BKT_BITS, 0,
+								  CFS_HASH_MIN_THETA,
+								  CFS_HASH_MAX_THETA,
+								  &cl_env_hops,
+								  CFS_HASH_RW_BKTLOCK);
 	return cl_env_hash ? 0 : -ENOMEM;
 }
 
@@ -644,10 +710,14 @@ static void cl_env_store_fini(void)
 static inline struct cl_env *cl_env_detach(struct cl_env *cle)
 {
 	if (!cle)
+	{
 		cle = cl_env_fetch();
+	}
 
 	if (cle && cle->ce_owner)
+	{
 		cl_env_do_detach(cle);
+	}
 
 	return cle;
 }
@@ -658,34 +728,49 @@ static struct lu_env *cl_env_new(__u32 ctx_tags, __u32 ses_tags, void *debug)
 	struct cl_env *cle;
 
 	cle = kmem_cache_zalloc(cl_env_kmem, GFP_NOFS);
-	if (cle) {
+
+	if (cle)
+	{
 		int rc;
 
 		INIT_LIST_HEAD(&cle->ce_linkage);
 		cle->ce_magic = &cl_env_init0;
 		env = &cle->ce_lu;
 		rc = lu_env_init(env, ctx_tags | LCT_CL_THREAD);
-		if (rc == 0) {
+
+		if (rc == 0)
+		{
 			rc = lu_context_init(&cle->ce_ses,
-					     ses_tags | LCT_SESSION);
-			if (rc == 0) {
+								 ses_tags | LCT_SESSION);
+
+			if (rc == 0)
+			{
 				lu_context_enter(&cle->ce_ses);
 				env->le_ses = &cle->ce_ses;
 				cl_env_init0(cle, debug);
-			} else {
+			}
+			else
+			{
 				lu_env_fini(env);
 			}
 		}
-		if (rc != 0) {
+
+		if (rc != 0)
+		{
 			kmem_cache_free(cl_env_kmem, cle);
 			env = ERR_PTR(rc);
-		} else {
+		}
+		else
+		{
 			CL_ENV_INC(create);
 			CL_ENV_INC(total);
 		}
-	} else {
+	}
+	else
+	{
 		env = ERR_PTR(-ENOMEM);
 	}
+
 	return env;
 }
 
@@ -704,7 +789,9 @@ static struct lu_env *cl_env_obtain(void *debug)
 
 	spin_lock(&cl_envs_guard);
 	LASSERT(equi(cl_envs_cached_nr == 0, list_empty(&cl_envs)));
-	if (cl_envs_cached_nr > 0) {
+
+	if (cl_envs_cached_nr > 0)
+	{
 		int rc;
 
 		cle = container_of(cl_envs.next, struct cl_env, ce_linkage);
@@ -714,19 +801,26 @@ static struct lu_env *cl_env_obtain(void *debug)
 
 		env = &cle->ce_lu;
 		rc = lu_env_refill(env);
-		if (rc == 0) {
+
+		if (rc == 0)
+		{
 			cl_env_init0(cle, debug);
 			lu_context_enter(&env->le_ctx);
 			lu_context_enter(&cle->ce_ses);
-		} else {
+		}
+		else
+		{
 			cl_env_fini(cle);
 			env = ERR_PTR(rc);
 		}
-	} else {
+	}
+	else
+	{
 		spin_unlock(&cl_envs_guard);
 		env = cl_env_new(lu_context_tags_default,
-				 lu_session_tags_default, debug);
+						 lu_session_tags_default, debug);
 	}
+
 	return env;
 }
 
@@ -747,11 +841,14 @@ static struct lu_env *cl_env_peek(int *refcheck)
 
 	env = NULL;
 	cle = cl_env_fetch();
-	if (cle) {
+
+	if (cle)
+	{
 		CL_ENV_INC(hit);
 		env = &cle->ce_lu;
 		*refcheck = ++cle->ce_ref;
 	}
+
 	CDEBUG(D_OTHER, "%d@%p\n", cle ? cle->ce_ref : 0, cle);
 	return env;
 }
@@ -774,9 +871,13 @@ struct lu_env *cl_env_get(int *refcheck)
 	struct lu_env *env;
 
 	env = cl_env_peek(refcheck);
-	if (!env) {
+
+	if (!env)
+	{
 		env = cl_env_obtain(__builtin_return_address(0));
-		if (!IS_ERR(env)) {
+
+		if (!IS_ERR(env))
+		{
 			struct cl_env *cle;
 
 			cle = cl_env_container(env);
@@ -785,6 +886,7 @@ struct lu_env *cl_env_get(int *refcheck)
 			CDEBUG(D_OTHER, "%d@%p\n", cle->ce_ref, cle);
 		}
 	}
+
 	return env;
 }
 EXPORT_SYMBOL(cl_env_get);
@@ -800,13 +902,16 @@ struct lu_env *cl_env_alloc(int *refcheck, __u32 tags)
 
 	LASSERT(!cl_env_peek(refcheck));
 	env = cl_env_new(tags, tags, __builtin_return_address(0));
-	if (!IS_ERR(env)) {
+
+	if (!IS_ERR(env))
+	{
 		struct cl_env *cle;
 
 		cle = cl_env_container(env);
 		*refcheck = cle->ce_ref;
 		CDEBUG(D_OTHER, "%d@%p\n", cle->ce_ref, cle);
 	}
+
 	return env;
 }
 EXPORT_SYMBOL(cl_env_alloc);
@@ -828,7 +933,9 @@ unsigned int cl_env_cache_purge(unsigned int nr)
 	struct cl_env *cle;
 
 	spin_lock(&cl_envs_guard);
-	for (; !list_empty(&cl_envs) && nr > 0; --nr) {
+
+	for (; !list_empty(&cl_envs) && nr > 0; --nr)
+	{
 		cle = container_of(cl_envs.next, struct cl_env, ce_linkage);
 		list_del_init(&cle->ce_linkage);
 		LASSERT(cl_envs_cached_nr > 0);
@@ -838,6 +945,7 @@ unsigned int cl_env_cache_purge(unsigned int nr)
 		cl_env_fini(cle);
 		spin_lock(&cl_envs_guard);
 	}
+
 	LASSERT(equi(cl_envs_cached_nr == 0, list_empty(&cl_envs)));
 	spin_unlock(&cl_envs_guard);
 	return nr;
@@ -861,11 +969,14 @@ void cl_env_put(struct lu_env *env, int *refcheck)
 	LASSERT(ergo(refcheck, cle->ce_ref == *refcheck));
 
 	CDEBUG(D_OTHER, "%d@%p\n", cle->ce_ref, cle);
-	if (--cle->ce_ref == 0) {
+
+	if (--cle->ce_ref == 0)
+	{
 		CL_ENV_DEC(busy);
 		cl_env_detach(cle);
 		cle->ce_debug = NULL;
 		cl_env_exit(cle);
+
 		/*
 		 * Don't bother to take a lock here.
 		 *
@@ -873,13 +984,16 @@ void cl_env_put(struct lu_env *env, int *refcheck)
 		 * with the standard tags.
 		 */
 		if (cl_envs_cached_nr < cl_envs_cached_max &&
-		    (env->le_ctx.lc_tags & ~LCT_HAS_EXIT) == LCT_CL_THREAD &&
-		    (env->le_ses->lc_tags & ~LCT_HAS_EXIT) == LCT_SESSION) {
+			(env->le_ctx.lc_tags & ~LCT_HAS_EXIT) == LCT_CL_THREAD &&
+			(env->le_ses->lc_tags & ~LCT_HAS_EXIT) == LCT_SESSION)
+		{
 			spin_lock(&cl_envs_guard);
 			list_add(&cle->ce_linkage, &cl_envs);
 			cl_envs_cached_nr++;
 			spin_unlock(&cl_envs_guard);
-		} else {
+		}
+		else
+		{
 			cl_env_fini(cle);
 		}
 	}
@@ -948,14 +1062,22 @@ struct lu_env *cl_env_nested_get(struct cl_env_nest *nest)
 
 	nest->cen_cookie = NULL;
 	env = cl_env_peek(&nest->cen_refcheck);
-	if (env) {
+
+	if (env)
+	{
 		if (!cl_io_is_going(env))
+		{
 			return env;
+		}
+
 		cl_env_put(env, &nest->cen_refcheck);
 		nest->cen_cookie = cl_env_reenter();
 	}
+
 	env = cl_env_get(&nest->cen_refcheck);
-	if (IS_ERR(env)) {
+
+	if (IS_ERR(env))
+	{
 		cl_env_reexit(nest->cen_cookie);
 		return env;
 	}
@@ -996,7 +1118,8 @@ static int cl_env_percpu_init(void)
 	int i, j;
 	int rc = 0;
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		struct lu_env *env;
 
 		cle = &cl_env_percpu[i];
@@ -1005,23 +1128,35 @@ static int cl_env_percpu_init(void)
 		INIT_LIST_HEAD(&cle->ce_linkage);
 		cle->ce_magic = &cl_env_init0;
 		rc = lu_env_init(env, LCT_CL_THREAD | tags);
-		if (rc == 0) {
+
+		if (rc == 0)
+		{
 			rc = lu_context_init(&cle->ce_ses, LCT_SESSION | tags);
-			if (rc == 0) {
+
+			if (rc == 0)
+			{
 				lu_context_enter(&cle->ce_ses);
 				env->le_ses = &cle->ce_ses;
-			} else {
+			}
+			else
+			{
 				lu_env_fini(env);
 			}
 		}
+
 		if (rc != 0)
+		{
 			break;
+		}
 	}
-	if (rc != 0) {
+
+	if (rc != 0)
+	{
 		/* Indices 0 to i (excluding i) were correctly initialized,
 		 * thus we must uninitialize up to i, the rest are undefined.
 		 */
-		for (j = 0; j < i; j++) {
+		for (j = 0; j < i; j++)
+		{
 			cle = &cl_env_percpu[j];
 			lu_context_exit(&cle->ce_ses);
 			lu_context_fini(&cle->ce_ses);
@@ -1036,7 +1171,8 @@ static void cl_env_percpu_fini(void)
 {
 	int i;
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		struct cl_env *cle = &cl_env_percpu[i];
 
 		lu_context_exit(&cle->ce_ses);
@@ -1050,7 +1186,7 @@ static void cl_env_percpu_refill(void)
 	int i;
 
 	for_each_possible_cpu(i)
-		lu_env_refill(&cl_env_percpu[i].ce_lu);
+	lu_env_refill(&cl_env_percpu[i].ce_lu);
 }
 
 void cl_env_percpu_put(struct lu_env *env)
@@ -1092,32 +1228,44 @@ EXPORT_SYMBOL(cl_env_percpu_get);
  */
 
 struct cl_device *cl_type_setup(const struct lu_env *env, struct lu_site *site,
-				struct lu_device_type *ldt,
-				struct lu_device *next)
+								struct lu_device_type *ldt,
+								struct lu_device *next)
 {
 	const char       *typename;
 	struct lu_device *d;
 
 	typename = ldt->ldt_name;
 	d = ldt->ldt_ops->ldto_device_alloc(env, ldt, NULL);
-	if (!IS_ERR(d)) {
+
+	if (!IS_ERR(d))
+	{
 		int rc;
 
 		if (site)
+		{
 			d->ld_site = site;
+		}
+
 		rc = ldt->ldt_ops->ldto_device_init(env, d, typename, next);
-		if (rc == 0) {
+
+		if (rc == 0)
+		{
 			lu_device_get(d);
 			lu_ref_add(&d->ld_reference,
-				   "lu-stack", &lu_site_init);
-		} else {
+					   "lu-stack", &lu_site_init);
+		}
+		else
+		{
 			ldt->ldt_ops->ldto_device_free(env, d);
 			CERROR("can't init device '%s', %d\n", typename, rc);
 			d = ERR_PTR(rc);
 		}
-	} else {
+	}
+	else
+	{
 		CERROR("Cannot allocate device: '%s'\n", typename);
 	}
+
 	return lu2cl_dev(d);
 }
 EXPORT_SYMBOL(cl_type_setup);
@@ -1142,39 +1290,49 @@ struct cl_thread_info *cl_env_info(const struct lu_env *env)
 LU_KEY_INIT_FINI(cl0, struct cl_thread_info);
 
 static void *cl_key_init(const struct lu_context *ctx,
-			 struct lu_context_key *key)
+						 struct lu_context_key *key)
 {
 	struct cl_thread_info *info;
 
 	info = cl0_key_init(ctx, key);
-	if (!IS_ERR(info)) {
+
+	if (!IS_ERR(info))
+	{
 		size_t i;
 
 		for (i = 0; i < ARRAY_SIZE(info->clt_counters); ++i)
+		{
 			lu_ref_init(&info->clt_counters[i].ctc_locks_locked);
+		}
 	}
+
 	return info;
 }
 
 static void cl_key_fini(const struct lu_context *ctx,
-			struct lu_context_key *key, void *data)
+						struct lu_context_key *key, void *data)
 {
 	struct cl_thread_info *info;
 	size_t i;
 
 	info = data;
+
 	for (i = 0; i < ARRAY_SIZE(info->clt_counters); ++i)
+	{
 		lu_ref_fini(&info->clt_counters[i].ctc_locks_locked);
+	}
+
 	cl0_key_fini(ctx, key, data);
 }
 
 static void cl_key_exit(const struct lu_context *ctx,
-			struct lu_context_key *key, void *data)
+						struct lu_context_key *key, void *data)
 {
 	struct cl_thread_info *info = data;
 	size_t i;
 
-	for (i = 0; i < ARRAY_SIZE(info->clt_counters); ++i) {
+	for (i = 0; i < ARRAY_SIZE(info->clt_counters); ++i)
+	{
 		LASSERT(info->clt_counters[i].ctc_nr_held == 0);
 		LASSERT(info->clt_counters[i].ctc_nr_used == 0);
 		LASSERT(info->clt_counters[i].ctc_nr_locks_acquired == 0);
@@ -1184,14 +1342,16 @@ static void cl_key_exit(const struct lu_context *ctx,
 	}
 }
 
-static struct lu_context_key cl_key = {
+static struct lu_context_key cl_key =
+{
 	.lct_tags = LCT_CL_THREAD,
 	.lct_init = cl_key_init,
 	.lct_fini = cl_key_fini,
 	.lct_exit = cl_key_exit
 };
 
-static struct lu_kmem_descr cl_object_caches[] = {
+static struct lu_kmem_descr cl_object_caches[] =
+{
 	{
 		.ckd_cache = &cl_env_kmem,
 		.ckd_name  = "cl_env_kmem",
@@ -1213,22 +1373,34 @@ int cl_global_init(void)
 	int result;
 
 	result = cl_env_store_init();
+
 	if (result)
+	{
 		return result;
+	}
 
 	result = lu_kmem_init(cl_object_caches);
+
 	if (result)
+	{
 		goto out_store;
+	}
 
 	LU_CONTEXT_KEY_INIT(&cl_key);
 	result = lu_context_key_register(&cl_key);
+
 	if (result)
+	{
 		goto out_kmem;
+	}
 
 	result = cl_env_percpu_init();
+
 	if (result)
 		/* no cl_env_percpu_fini on error */
+	{
 		goto out_context;
+	}
 
 	return 0;
 

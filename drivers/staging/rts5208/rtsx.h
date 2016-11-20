@@ -71,10 +71,10 @@
 	pci_write_config_byte((chip)->rtsx->pci, where, val)
 
 #define wait_timeout_x(task_state, msecs)	\
-do {						\
-	set_current_state((task_state));	\
-	schedule_timeout((msecs) * HZ / 1000);	\
-} while (0)
+	do {						\
+		set_current_state((task_state));	\
+		schedule_timeout((msecs) * HZ / 1000);	\
+	} while (0)
 #define wait_timeout(msecs)	wait_timeout_x(TASK_INTERRUPTIBLE, (msecs))
 
 #define STATE_TRANS_NONE	0
@@ -90,7 +90,8 @@ do {						\
 
 struct rtsx_chip;
 
-struct rtsx_dev {
+struct rtsx_dev
+{
 	struct pci_dev *pci;
 
 	/* pci resources */
@@ -145,11 +146,13 @@ static inline void get_current_time(u8 *timeval_buf, int buf_len)
 	u32 tv_usec;
 
 	if (!timeval_buf || (buf_len < 8))
+	{
 		return;
+	}
 
 	getnstimeofday64(&ts64);
 
-	tv_usec = ts64.tv_nsec/NSEC_PER_USEC;
+	tv_usec = ts64.tv_nsec / NSEC_PER_USEC;
 
 	timeval_buf[0] = (u8)(ts64.tv_sec >> 24);
 	timeval_buf[1] = (u8)(ts64.tv_sec >> 16);

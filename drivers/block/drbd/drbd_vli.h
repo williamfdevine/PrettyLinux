@@ -127,16 +127,16 @@ prefix    data bits                                    max val  Nº data bits
 
 /* fibonacci data 1, 1, ... */
 #define VLI_L_1_1() do { \
-	LEVEL( 2, 1, 0x00); \
-	LEVEL( 3, 2, 0x01); \
-	LEVEL( 5, 3, 0x03); \
-	LEVEL( 7, 4, 0x07); \
-	LEVEL(10, 5, 0x0f); \
-	LEVEL(14, 6, 0x1f); \
-	LEVEL(21, 8, 0x3f); \
-	LEVEL(29, 8, 0x7f); \
-	LEVEL(42, 8, 0xbf); \
-	LEVEL(64, 8, 0xff); \
+		LEVEL( 2, 1, 0x00); \
+		LEVEL( 3, 2, 0x01); \
+		LEVEL( 5, 3, 0x03); \
+		LEVEL( 7, 4, 0x07); \
+		LEVEL(10, 5, 0x0f); \
+		LEVEL(14, 6, 0x1f); \
+		LEVEL(21, 8, 0x3f); \
+		LEVEL(29, 8, 0x7f); \
+		LEVEL(42, 8, 0xbf); \
+		LEVEL(64, 8, 0xff); \
 	} while (0)
 
 /* finds a suitable level to decode the least significant part of in.
@@ -171,7 +171,9 @@ static inline int __vli_encode_bits(u64 *out, const u64 in)
 	u64 adj = 1;
 
 	if (in == 0)
+	{
 		return -EINVAL;
+	}
 
 #define LEVEL(t,b,v) do {		\
 		max += 1ULL << (t - b);	\
@@ -200,7 +202,8 @@ static inline int __vli_encode_bits(u64 *out, const u64 in)
  */
 
 /* for the bitstream, we need a cursor */
-struct bitstream_cursor {
+struct bitstream_cursor
+{
 	/* the current byte */
 	u8 *b;
 	/* the current bit within *b, nomalized: 0..7 */
@@ -224,7 +227,8 @@ static inline void bitstream_cursor_advance(struct bitstream_cursor *cur, unsign
 }
 
 /* the bitstream itself knows its length */
-struct bitstream {
+struct bitstream
+{
 	struct bitstream_cursor cur;
 	unsigned char *buf;
 	size_t buf_len;		/* in bytes */
@@ -263,19 +267,27 @@ static inline int bitstream_put_bits(struct bitstream *bs, u64 val, const unsign
 	unsigned int tmp;
 
 	if (bits == 0)
+	{
 		return 0;
+	}
 
-	if ((bs->cur.b + ((bs->cur.bit + bits -1) >> 3)) - bs->buf >= bs->buf_len)
+	if ((bs->cur.b + ((bs->cur.bit + bits - 1) >> 3)) - bs->buf >= bs->buf_len)
+	{
 		return -ENOBUFS;
+	}
 
 	/* paranoia: strip off hi bits; they should not be set anyways. */
 	if (bits < 64)
+	{
 		val &= ~0ULL >> (64 - bits);
+	}
 
 	*b++ |= (val & 0xff) << bs->cur.bit;
 
 	for (tmp = 8 - bs->cur.bit; tmp < bits; tmp += 8)
+	{
 		*b++ |= (val >> tmp) & 0xff;
+	}
 
 	bitstream_cursor_advance(&bs->cur, bits);
 	return bits;
@@ -296,13 +308,16 @@ static inline int bitstream_get_bits(struct bitstream *bs, u64 *out, int bits)
 	unsigned int n;
 
 	if (bits > 64)
+	{
 		return -EINVAL;
+	}
 
-	if (bs->cur.b + ((bs->cur.bit + bs->pad_bits + bits -1) >> 3) - bs->buf >= bs->buf_len)
+	if (bs->cur.b + ((bs->cur.bit + bs->pad_bits + bits - 1) >> 3) - bs->buf >= bs->buf_len)
 		bits = ((bs->buf_len - (bs->cur.b - bs->buf)) << 3)
-			- bs->cur.bit - bs->pad_bits;
+			   - bs->cur.bit - bs->pad_bits;
 
-	if (bits == 0) {
+	if (bits == 0)
+	{
 		*out = 0;
 		return 0;
 	}
@@ -310,10 +325,12 @@ static inline int bitstream_get_bits(struct bitstream *bs, u64 *out, int bits)
 	/* get the high bits */
 	val = 0;
 	n = (bs->cur.bit + bits + 7) >> 3;
+
 	/* n may be at most 9, if cur.bit + bits > 64 */
 	/* which means this copies at most 8 byte */
-	if (n) {
-		memcpy(&val, bs->cur.b+1, n - 1);
+	if (n)
+	{
+		memcpy(&val, bs->cur.b + 1, n - 1);
 		val = le64_to_cpu(val) << (8 - bs->cur.bit);
 	}
 
@@ -343,7 +360,9 @@ static inline int vli_encode_bits(struct bitstream *bs, u64 in)
 	int bits = __vli_encode_bits(&code, in);
 
 	if (bits <= 0)
+	{
 		return bits;
+	}
 
 	return bitstream_put_bits(bs, code, bits);
 }

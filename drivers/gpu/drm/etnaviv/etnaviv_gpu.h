@@ -25,7 +25,8 @@
 struct etnaviv_gem_submit;
 struct etnaviv_vram_mapping;
 
-struct etnaviv_chip_identity {
+struct etnaviv_chip_identity
+{
 	/* Chip model. */
 	u32 model;
 
@@ -87,14 +88,16 @@ struct etnaviv_chip_identity {
 	u8 varyings_count;
 };
 
-struct etnaviv_event {
+struct etnaviv_event
+{
 	bool used;
 	struct fence *fence;
 };
 
 struct etnaviv_cmdbuf;
 
-struct etnaviv_gpu {
+struct etnaviv_gpu
+{
 	struct drm_device *drm;
 	struct device *dev;
 	struct mutex lock;
@@ -150,7 +153,8 @@ struct etnaviv_gpu {
 	struct work_struct recover_work;
 };
 
-struct etnaviv_cmdbuf {
+struct etnaviv_cmdbuf
+{
 	/* device this cmdbuf is allocated for */
 	struct etnaviv_gpu *gpu;
 	/* user context key, must be unique between all active users */
@@ -198,21 +202,21 @@ int etnaviv_gpu_get_param(struct etnaviv_gpu *gpu, u32 param, u64 *value);
 int etnaviv_gpu_init(struct etnaviv_gpu *gpu);
 
 #ifdef CONFIG_DEBUG_FS
-int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu, struct seq_file *m);
+	int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu, struct seq_file *m);
 #endif
 
 int etnaviv_gpu_fence_sync_obj(struct etnaviv_gem_object *etnaviv_obj,
-	unsigned int context, bool exclusive);
+							   unsigned int context, bool exclusive);
 
 void etnaviv_gpu_retire(struct etnaviv_gpu *gpu);
 int etnaviv_gpu_wait_fence_interruptible(struct etnaviv_gpu *gpu,
-	u32 fence, struct timespec *timeout);
+		u32 fence, struct timespec *timeout);
 int etnaviv_gpu_wait_obj_inactive(struct etnaviv_gpu *gpu,
-	struct etnaviv_gem_object *etnaviv_obj, struct timespec *timeout);
+								  struct etnaviv_gem_object *etnaviv_obj, struct timespec *timeout);
 int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
-	struct etnaviv_gem_submit *submit, struct etnaviv_cmdbuf *cmdbuf);
+					   struct etnaviv_gem_submit *submit, struct etnaviv_cmdbuf *cmdbuf);
 struct etnaviv_cmdbuf *etnaviv_gpu_cmdbuf_new(struct etnaviv_gpu *gpu,
-					      u32 size, size_t nr_bos);
+		u32 size, size_t nr_bos);
 void etnaviv_gpu_cmdbuf_free(struct etnaviv_cmdbuf *cmdbuf);
 int etnaviv_gpu_pm_get_sync(struct etnaviv_gpu *gpu);
 void etnaviv_gpu_pm_put(struct etnaviv_gpu *gpu);

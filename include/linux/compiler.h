@@ -4,48 +4,48 @@
 #ifndef __ASSEMBLY__
 
 #ifdef __CHECKER__
-# define __user		__attribute__((noderef, address_space(1)))
-# define __kernel	__attribute__((address_space(0)))
-# define __safe		__attribute__((safe))
-# define __force	__attribute__((force))
-# define __nocast	__attribute__((nocast))
-# define __iomem	__attribute__((noderef, address_space(2)))
-# define __must_hold(x)	__attribute__((context(x,1,1)))
-# define __acquires(x)	__attribute__((context(x,0,1)))
-# define __releases(x)	__attribute__((context(x,1,0)))
-# define __acquire(x)	__context__(x,1)
-# define __release(x)	__context__(x,-1)
-# define __cond_lock(x,c)	((c) ? ({ __acquire(x); 1; }) : 0)
-# define __percpu	__attribute__((noderef, address_space(3)))
-#ifdef CONFIG_SPARSE_RCU_POINTER
-# define __rcu		__attribute__((noderef, address_space(4)))
-#else /* CONFIG_SPARSE_RCU_POINTER */
-# define __rcu
-#endif /* CONFIG_SPARSE_RCU_POINTER */
-# define __private	__attribute__((noderef))
-extern void __chk_user_ptr(const volatile void __user *);
-extern void __chk_io_ptr(const volatile void __iomem *);
-# define ACCESS_PRIVATE(p, member) (*((typeof((p)->member) __force *) &(p)->member))
+	#define __user		__attribute__((noderef, address_space(1)))
+	#define __kernel	__attribute__((address_space(0)))
+	#define __safe		__attribute__((safe))
+	#define __force	__attribute__((force))
+	#define __nocast	__attribute__((nocast))
+	#define __iomem	__attribute__((noderef, address_space(2)))
+	#define __must_hold(x)	__attribute__((context(x,1,1)))
+	#define __acquires(x)	__attribute__((context(x,0,1)))
+	#define __releases(x)	__attribute__((context(x,1,0)))
+	#define __acquire(x)	__context__(x,1)
+	#define __release(x)	__context__(x,-1)
+	#define __cond_lock(x,c)	((c) ? ({ __acquire(x); 1; }) : 0)
+	#define __percpu	__attribute__((noderef, address_space(3)))
+	#ifdef CONFIG_SPARSE_RCU_POINTER
+		#define __rcu		__attribute__((noderef, address_space(4)))
+	#else /* CONFIG_SPARSE_RCU_POINTER */
+		#define __rcu
+	#endif /* CONFIG_SPARSE_RCU_POINTER */
+	#define __private	__attribute__((noderef))
+	extern void __chk_user_ptr(const volatile void __user *);
+	extern void __chk_io_ptr(const volatile void __iomem *);
+	#define ACCESS_PRIVATE(p, member) (*((typeof((p)->member) __force *) &(p)->member))
 #else /* __CHECKER__ */
-# define __user
-# define __kernel
-# define __safe
-# define __force
-# define __nocast
-# define __iomem
-# define __chk_user_ptr(x) (void)0
-# define __chk_io_ptr(x) (void)0
-# define __builtin_warning(x, y...) (1)
-# define __must_hold(x)
-# define __acquires(x)
-# define __releases(x)
-# define __acquire(x) (void)0
-# define __release(x) (void)0
-# define __cond_lock(x,c) (c)
-# define __percpu
-# define __rcu
-# define __private
-# define ACCESS_PRIVATE(p, member) ((p)->member)
+	#define __user
+	#define __kernel
+	#define __safe
+	#define __force
+	#define __nocast
+	#define __iomem
+	#define __chk_user_ptr(x) (void)0
+	#define __chk_io_ptr(x) (void)0
+	#define __builtin_warning(x, y...) (1)
+	#define __must_hold(x)
+	#define __acquires(x)
+	#define __releases(x)
+	#define __acquire(x) (void)0
+	#define __release(x) (void)0
+	#define __cond_lock(x,c) (c)
+	#define __percpu
+	#define __rcu
+	#define __private
+	#define ACCESS_PRIVATE(p, member) ((p)->member)
 #endif /* __CHECKER__ */
 
 /* Indirect macros required for expanded argument pasting, eg. __LINE__. */
@@ -55,27 +55,27 @@ extern void __chk_io_ptr(const volatile void __iomem *);
 #ifdef __KERNEL__
 
 #ifdef __GNUC__
-#include <linux/compiler-gcc.h>
+	#include <linux/compiler-gcc.h>
 #endif
 
 #if defined(CC_USING_HOTPATCH) && !defined(__CHECKER__)
-#define notrace __attribute__((hotpatch(0,0)))
+	#define notrace __attribute__((hotpatch(0,0)))
 #else
-#define notrace __attribute__((no_instrument_function))
+	#define notrace __attribute__((no_instrument_function))
 #endif
 
 /* Intel compiler defines __GNUC__. So we will overwrite implementations
  * coming from above header files here
  */
 #ifdef __INTEL_COMPILER
-# include <linux/compiler-intel.h>
+	#include <linux/compiler-intel.h>
 #endif
 
 /* Clang compiler defines __GNUC__. So we will overwrite implementations
  * coming from above header files here
  */
 #ifdef __clang__
-#include <linux/compiler-clang.h>
+	#include <linux/compiler-clang.h>
 #endif
 
 /*
@@ -84,16 +84,20 @@ extern void __chk_io_ptr(const volatile void __iomem *);
  * specific implementations come from the above header files
  */
 
-struct ftrace_branch_data {
+struct ftrace_branch_data
+{
 	const char *func;
 	const char *file;
 	unsigned line;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			unsigned long correct;
 			unsigned long incorrect;
 		};
-		struct {
+		struct
+		{
 			unsigned long miss;
 			unsigned long hit;
 		};
@@ -113,31 +117,31 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
 #define unlikely_notrace(x)	__builtin_expect(!!(x), 0)
 
 #define __branch_check__(x, expect) ({					\
-			int ______r;					\
-			static struct ftrace_branch_data		\
-				__attribute__((__aligned__(4)))		\
-				__attribute__((section("_ftrace_annotated_branch"))) \
-				______f = {				\
-				.func = __func__,			\
-				.file = __FILE__,			\
-				.line = __LINE__,			\
-			};						\
-			______r = likely_notrace(x);			\
-			ftrace_likely_update(&______f, ______r, expect); \
-			______r;					\
-		})
+		int ______r;					\
+		static struct ftrace_branch_data		\
+		__attribute__((__aligned__(4)))		\
+		__attribute__((section("_ftrace_annotated_branch"))) \
+		______f = {				\
+								.func = __func__,			\
+								.file = __FILE__,			\
+								.line = __LINE__,			\
+				  };						\
+		______r = likely_notrace(x);			\
+		ftrace_likely_update(&______f, ______r, expect); \
+		______r;					\
+	})
 
 /*
  * Using __builtin_constant_p(x) to ignore cases where the return
  * value is always the same.  This idea is taken from a similar patch
  * written by Daniel Walker.
  */
-# ifndef likely
-#  define likely(x)	(__builtin_constant_p(x) ? !!(x) : __branch_check__(x, 1))
-# endif
-# ifndef unlikely
-#  define unlikely(x)	(__builtin_constant_p(x) ? !!(x) : __branch_check__(x, 0))
-# endif
+#ifndef likely
+	#define likely(x)	(__builtin_constant_p(x) ? !!(x) : __branch_check__(x, 1))
+#endif
+#ifndef unlikely
+	#define unlikely(x)	(__builtin_constant_p(x) ? !!(x) : __branch_check__(x, 0))
+#endif
 
 #ifdef CONFIG_PROFILE_ALL_BRANCHES
 /*
@@ -148,15 +152,15 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
 #define __trace_if(cond) \
 	if (__builtin_constant_p(!!(cond)) ? !!(cond) :			\
 	({								\
-		int ______r;						\
-		static struct ftrace_branch_data			\
-			__attribute__((__aligned__(4)))			\
-			__attribute__((section("_ftrace_branch")))	\
-			______f = {					\
-				.func = __func__,			\
-				.file = __FILE__,			\
-				.line = __LINE__,			\
-			};						\
+	int ______r;						\
+	static struct ftrace_branch_data			\
+	__attribute__((__aligned__(4)))			\
+		__attribute__((section("_ftrace_branch")))	\
+		______f = {					\
+									.func = __func__,			\
+									.file = __FILE__,			\
+									.line = __LINE__,			\
+				  };						\
 		______r = !!(cond);					\
 		______f.miss_hit[______r]++;					\
 		______r;						\
@@ -170,16 +174,16 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
 
 /* Optimization barrier */
 #ifndef barrier
-# define barrier() __memory_barrier()
+	#define barrier() __memory_barrier()
 #endif
 
 #ifndef barrier_data
-# define barrier_data(ptr) barrier()
+	#define barrier_data(ptr) barrier()
 #endif
 
 /* Unreachable code */
 #ifndef unreachable
-# define unreachable() do { } while (1)
+	#define unreachable() do { } while (1)
 #endif
 
 /*
@@ -202,40 +206,40 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
 	static const unsigned long __kentry_##sym		\
 	__used							\
 	__attribute__((section("___kentry" "+" #sym ), used))	\
-	= (unsigned long)&sym;
+		= (unsigned long)&sym;
 #endif
 
 #ifndef RELOC_HIDE
 # define RELOC_HIDE(ptr, off)					\
-  ({ unsigned long __ptr;					\
-     __ptr = (unsigned long) (ptr);				\
-    (typeof(ptr)) (__ptr + (off)); })
+	({ unsigned long __ptr;					\
+		__ptr = (unsigned long) (ptr);				\
+		(typeof(ptr)) (__ptr + (off)); })
 #endif
 
 #ifndef OPTIMIZER_HIDE_VAR
-#define OPTIMIZER_HIDE_VAR(var) barrier()
+	#define OPTIMIZER_HIDE_VAR(var) barrier()
 #endif
 
 /* Not-quite-unique ID. */
 #ifndef __UNIQUE_ID
-# define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __LINE__)
+	#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __LINE__)
 #endif
 
 #include <uapi/linux/types.h>
 
 #define __READ_ONCE_SIZE						\
-({									\
-	switch (size) {							\
-	case 1: *(__u8 *)res = *(volatile __u8 *)p; break;		\
-	case 2: *(__u16 *)res = *(volatile __u16 *)p; break;		\
-	case 4: *(__u32 *)res = *(volatile __u32 *)p; break;		\
-	case 8: *(__u64 *)res = *(volatile __u64 *)p; break;		\
-	default:							\
-		barrier();						\
-		__builtin_memcpy((void *)res, (const void *)p, size);	\
-		barrier();						\
-	}								\
-})
+	({									\
+		switch (size) {							\
+			case 1: *(__u8 *)res = *(volatile __u8 *)p; break;		\
+			case 2: *(__u16 *)res = *(volatile __u16 *)p; break;		\
+			case 4: *(__u32 *)res = *(volatile __u32 *)p; break;		\
+			case 8: *(__u64 *)res = *(volatile __u64 *)p; break;		\
+			default:							\
+				barrier();						\
+				__builtin_memcpy((void *)res, (const void *)p, size);	\
+				barrier();						\
+		}								\
+	})
 
 static __always_inline
 void __read_once_size(const volatile void *p, void *res, int size)
@@ -265,15 +269,20 @@ void __read_once_size_nocheck(const volatile void *p, void *res, int size)
 
 static __always_inline void __write_once_size(volatile void *p, void *res, int size)
 {
-	switch (size) {
-	case 1: *(volatile __u8 *)p = *(__u8 *)res; break;
-	case 2: *(volatile __u16 *)p = *(__u16 *)res; break;
-	case 4: *(volatile __u32 *)p = *(__u32 *)res; break;
-	case 8: *(volatile __u64 *)p = *(__u64 *)res; break;
-	default:
-		barrier();
-		__builtin_memcpy((void *)p, (const void *)res, size);
-		barrier();
+	switch (size)
+	{
+		case 1: *(volatile __u8 *)p = *(__u8 *)res; break;
+
+		case 2: *(volatile __u16 *)p = *(__u16 *)res; break;
+
+		case 4: *(volatile __u32 *)p = *(__u32 *)res; break;
+
+		case 8: *(volatile __u64 *)p = *(__u64 *)res; break;
+
+		default:
+			barrier();
+			__builtin_memcpy((void *)p, (const void *)res, size);
+			barrier();
 	}
 }
 
@@ -301,14 +310,14 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
  */
 
 #define __READ_ONCE(x, check)						\
-({									\
-	union { typeof(x) __val; char __c[1]; } __u;			\
-	if (check)							\
-		__read_once_size(&(x), __u.__c, sizeof(x));		\
-	else								\
-		__read_once_size_nocheck(&(x), __u.__c, sizeof(x));	\
-	__u.__val;							\
-})
+	({									\
+		union { typeof(x) __val; char __c[1]; } __u;			\
+		if (check)							\
+			__read_once_size(&(x), __u.__c, sizeof(x));		\
+		else								\
+			__read_once_size_nocheck(&(x), __u.__c, sizeof(x));	\
+		__u.__val;							\
+	})
 #define READ_ONCE(x) __READ_ONCE(x, 1)
 
 /*
@@ -318,96 +327,96 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
 #define READ_ONCE_NOCHECK(x) __READ_ONCE(x, 0)
 
 #define WRITE_ONCE(x, val) \
-({							\
-	union { typeof(x) __val; char __c[1]; } __u =	\
-		{ .__val = (__force typeof(x)) (val) }; \
-	__write_once_size(&(x), __u.__c, sizeof(x));	\
-	__u.__val;					\
-})
+	({							\
+		union { typeof(x) __val; char __c[1]; } __u =	\
+				{ .__val = (__force typeof(x)) (val) }; \
+		__write_once_size(&(x), __u.__c, sizeof(x));	\
+		__u.__val;					\
+	})
 
 #endif /* __KERNEL__ */
 
 #endif /* __ASSEMBLY__ */
 
 #ifdef __KERNEL__
-/*
- * Allow us to mark functions as 'deprecated' and have gcc emit a nice
- * warning for each use, in hopes of speeding the functions removal.
- * Usage is:
- * 		int __deprecated foo(void)
- */
-#ifndef __deprecated
-# define __deprecated		/* unimplemented */
-#endif
+	/*
+	* Allow us to mark functions as 'deprecated' and have gcc emit a nice
+	* warning for each use, in hopes of speeding the functions removal.
+	* Usage is:
+	* 		int __deprecated foo(void)
+	*/
+	#ifndef __deprecated
+		#define __deprecated		/* unimplemented */
+	#endif
 
-#ifdef MODULE
-#define __deprecated_for_modules __deprecated
-#else
-#define __deprecated_for_modules
-#endif
+	#ifdef MODULE
+		#define __deprecated_for_modules __deprecated
+	#else
+		#define __deprecated_for_modules
+	#endif
 
-#ifndef __must_check
-#define __must_check
-#endif
+	#ifndef __must_check
+		#define __must_check
+	#endif
 
-#ifndef CONFIG_ENABLE_MUST_CHECK
-#undef __must_check
-#define __must_check
-#endif
-#ifndef CONFIG_ENABLE_WARN_DEPRECATED
-#undef __deprecated
-#undef __deprecated_for_modules
-#define __deprecated
-#define __deprecated_for_modules
-#endif
+	#ifndef CONFIG_ENABLE_MUST_CHECK
+		#undef __must_check
+		#define __must_check
+	#endif
+	#ifndef CONFIG_ENABLE_WARN_DEPRECATED
+		#undef __deprecated
+		#undef __deprecated_for_modules
+		#define __deprecated
+		#define __deprecated_for_modules
+	#endif
 
-#ifndef __malloc
-#define __malloc
-#endif
+	#ifndef __malloc
+		#define __malloc
+	#endif
 
-/*
- * Allow us to avoid 'defined but not used' warnings on functions and data,
- * as well as force them to be emitted to the assembly file.
- *
- * As of gcc 3.4, static functions that are not marked with attribute((used))
- * may be elided from the assembly file.  As of gcc 3.4, static data not so
- * marked will not be elided, but this may change in a future gcc version.
- *
- * NOTE: Because distributions shipped with a backported unit-at-a-time
- * compiler in gcc 3.3, we must define __used to be __attribute__((used))
- * for gcc >=3.3 instead of 3.4.
- *
- * In prior versions of gcc, such functions and data would be emitted, but
- * would be warned about except with attribute((unused)).
- *
- * Mark functions that are referenced only in inline assembly as __used so
- * the code is emitted even though it appears to be unreferenced.
- */
-#ifndef __used
-# define __used			/* unimplemented */
-#endif
+	/*
+	* Allow us to avoid 'defined but not used' warnings on functions and data,
+	* as well as force them to be emitted to the assembly file.
+	*
+	* As of gcc 3.4, static functions that are not marked with attribute((used))
+	* may be elided from the assembly file.  As of gcc 3.4, static data not so
+	* marked will not be elided, but this may change in a future gcc version.
+	*
+	* NOTE: Because distributions shipped with a backported unit-at-a-time
+	* compiler in gcc 3.3, we must define __used to be __attribute__((used))
+	* for gcc >=3.3 instead of 3.4.
+	*
+	* In prior versions of gcc, such functions and data would be emitted, but
+	* would be warned about except with attribute((unused)).
+	*
+	* Mark functions that are referenced only in inline assembly as __used so
+	* the code is emitted even though it appears to be unreferenced.
+	*/
+	#ifndef __used
+		#define __used			/* unimplemented */
+	#endif
 
-#ifndef __maybe_unused
-# define __maybe_unused		/* unimplemented */
-#endif
+	#ifndef __maybe_unused
+		#define __maybe_unused		/* unimplemented */
+	#endif
 
-#ifndef __always_unused
-# define __always_unused	/* unimplemented */
-#endif
+	#ifndef __always_unused
+		#define __always_unused	/* unimplemented */
+	#endif
 
-#ifndef noinline
-#define noinline
-#endif
+	#ifndef noinline
+		#define noinline
+	#endif
 
-/*
- * Rather then using noinline to prevent stack consumption, use
- * noinline_for_stack instead.  For documentation reasons.
- */
-#define noinline_for_stack noinline
+	/*
+	* Rather then using noinline to prevent stack consumption, use
+	* noinline_for_stack instead.  For documentation reasons.
+	*/
+	#define noinline_for_stack noinline
 
-#ifndef __always_inline
-#define __always_inline inline
-#endif
+	#ifndef __always_inline
+		#define __always_inline inline
+	#endif
 
 #endif /* __KERNEL__ */
 
@@ -426,11 +435,11 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
  * `void'.
  */
 #ifndef __attribute_const__
-# define __attribute_const__	/* unimplemented */
+	#define __attribute_const__	/* unimplemented */
 #endif
 
 #ifndef __latent_entropy
-# define __latent_entropy
+	#define __latent_entropy
 #endif
 
 /*
@@ -439,42 +448,42 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
  */
 
 #ifndef __cold
-#define __cold
+	#define __cold
 #endif
 
 /* Simple shorthand for a section definition */
 #ifndef __section
-# define __section(S) __attribute__ ((__section__(#S)))
+	#define __section(S) __attribute__ ((__section__(#S)))
 #endif
 
 #ifndef __visible
-#define __visible
+	#define __visible
 #endif
 
 /*
  * Assume alignment of return value.
  */
 #ifndef __assume_aligned
-#define __assume_aligned(a, ...)
+	#define __assume_aligned(a, ...)
 #endif
 
 
 /* Are two types/vars the same type (ignoring qualifiers)? */
 #ifndef __same_type
-# define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
+	#define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
 #endif
 
 /* Is this type a native word size -- useful for atomic operations */
 #ifndef __native_word
-# define __native_word(t) (sizeof(t) == sizeof(char) || sizeof(t) == sizeof(short) || sizeof(t) == sizeof(int) || sizeof(t) == sizeof(long))
+	#define __native_word(t) (sizeof(t) == sizeof(char) || sizeof(t) == sizeof(short) || sizeof(t) == sizeof(int) || sizeof(t) == sizeof(long))
 #endif
 
 /* Compile time object size, -1 for unknown */
 #ifndef __compiletime_object_size
-# define __compiletime_object_size(obj) -1
+	#define __compiletime_object_size(obj) -1
 #endif
 #ifndef __compiletime_warning
-# define __compiletime_warning(message)
+	#define __compiletime_warning(message)
 #endif
 #ifndef __compiletime_error
 # define __compiletime_error(message)
@@ -490,7 +499,7 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
 # endif
 #endif
 #ifndef __compiletime_error_fallback
-# define __compiletime_error_fallback(condition) do { } while (0)
+	#define __compiletime_error_fallback(condition) do { } while (0)
 #endif
 
 #define __compiletime_assert(condition, msg, prefix, suffix)		\
@@ -519,7 +528,7 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
 
 #define compiletime_assert_atomic_type(t)				\
 	compiletime_assert(__native_word(t),				\
-		"Need native word sized stores/loads for atomicity.")
+					   "Need native word sized stores/loads for atomicity.")
 
 /*
  * Prevent the compiler from merging or refetching accesses.  The compiler
@@ -542,8 +551,8 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
  * If possible use READ_ONCE()/WRITE_ONCE() instead.
  */
 #define __ACCESS_ONCE(x) ({ \
-	 __maybe_unused typeof(x) __var = (__force typeof(x)) 0; \
-	(volatile typeof(x) *)&(x); })
+		__maybe_unused typeof(x) __var = (__force typeof(x)) 0; \
+		(volatile typeof(x) *)&(x); })
 #define ACCESS_ONCE(x) (*__ACCESS_ONCE(x))
 
 /**
@@ -559,19 +568,19 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
  * Taking a pointer to typeof(*p) again is needed in case p is void *.
  */
 #define lockless_dereference(p) \
-({ \
-	typeof(p) _________p1 = READ_ONCE(p); \
-	typeof(*(p)) *___typecheck_p __maybe_unused; \
-	smp_read_barrier_depends(); /* Dependency order vs. p above. */ \
-	(_________p1); \
-})
+	({ \
+		typeof(p) _________p1 = READ_ONCE(p); \
+		typeof(*(p)) *___typecheck_p __maybe_unused; \
+		smp_read_barrier_depends(); /* Dependency order vs. p above. */ \
+		(_________p1); \
+	})
 
 /* Ignore/forbid kprobes attach on very low level functions marked by this attribute: */
 #ifdef CONFIG_KPROBES
-# define __kprobes	__attribute__((__section__(".kprobes.text")))
-# define nokprobe_inline	__always_inline
+	#define __kprobes	__attribute__((__section__(".kprobes.text")))
+	#define nokprobe_inline	__always_inline
 #else
-# define __kprobes
-# define nokprobe_inline	inline
+	#define __kprobes
+	#define nokprobe_inline	inline
 #endif
 #endif /* __LINUX_COMPILER_H */

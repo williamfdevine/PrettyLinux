@@ -24,7 +24,8 @@
 #include "nv10.h"
 
 static const struct nvkm_gr_func
-nv17_gr = {
+	nv17_gr =
+{
 	.init = nv10_gr_init,
 	.intr = nv10_gr_intr,
 	.tile = nv10_gr_tile,

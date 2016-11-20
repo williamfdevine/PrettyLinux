@@ -92,19 +92,21 @@ static int ibmasmfs_fill_super (struct super_block *sb, void *data, int silent);
 
 
 static struct dentry *ibmasmfs_mount(struct file_system_type *fst,
-			int flags, const char *name, void *data)
+									 int flags, const char *name, void *data)
 {
 	return mount_single(fst, flags, data, ibmasmfs_fill_super);
 }
 
-static const struct super_operations ibmasmfs_s_ops = {
+static const struct super_operations ibmasmfs_s_ops =
+{
 	.statfs		= simple_statfs,
 	.drop_inode	= generic_delete_inode,
 };
 
 static const struct file_operations *ibmasmfs_dir_ops = &simple_dir_operations;
 
-static struct file_system_type ibmasmfs_type = {
+static struct file_system_type ibmasmfs_type =
+{
 	.owner          = THIS_MODULE,
 	.name           = "ibmasmfs",
 	.mount          = ibmasmfs_mount,
@@ -123,15 +125,21 @@ static int ibmasmfs_fill_super (struct super_block *sb, void *data, int silent)
 	sb->s_time_gran = 1;
 
 	root = ibmasmfs_make_inode (sb, S_IFDIR | 0500);
+
 	if (!root)
+	{
 		return -ENOMEM;
+	}
 
 	root->i_op = &simple_dir_inode_operations;
 	root->i_fop = ibmasmfs_dir_ops;
 
 	sb->s_root = d_make_root(root);
+
 	if (!sb->s_root)
+	{
 		return -ENOMEM;
+	}
 
 	ibmasmfs_create_files(sb);
 	return 0;
@@ -141,29 +149,36 @@ static struct inode *ibmasmfs_make_inode(struct super_block *sb, int mode)
 {
 	struct inode *ret = new_inode(sb);
 
-	if (ret) {
+	if (ret)
+	{
 		ret->i_ino = get_next_ino();
 		ret->i_mode = mode;
 		ret->i_atime = ret->i_mtime = ret->i_ctime = current_time(ret);
 	}
+
 	return ret;
 }
 
 static struct dentry *ibmasmfs_create_file(struct dentry *parent,
-			const char *name,
-			const struct file_operations *fops,
-			void *data,
-			int mode)
+		const char *name,
+		const struct file_operations *fops,
+		void *data,
+		int mode)
 {
 	struct dentry *dentry;
 	struct inode *inode;
 
 	dentry = d_alloc_name(parent, name);
+
 	if (!dentry)
+	{
 		return NULL;
+	}
 
 	inode = ibmasmfs_make_inode(parent->d_sb, S_IFREG | mode);
-	if (!inode) {
+
+	if (!inode)
+	{
 		dput(dentry);
 		return NULL;
 	}
@@ -176,17 +191,22 @@ static struct dentry *ibmasmfs_create_file(struct dentry *parent,
 }
 
 static struct dentry *ibmasmfs_create_dir(struct dentry *parent,
-				const char *name)
+		const char *name)
 {
 	struct dentry *dentry;
 	struct inode *inode;
 
 	dentry = d_alloc_name(parent, name);
+
 	if (!dentry)
+	{
 		return NULL;
+	}
 
 	inode = ibmasmfs_make_inode(parent->d_sb, S_IFDIR | 0500);
-	if (!inode) {
+
+	if (!inode)
+	{
 		dput(dentry);
 		return NULL;
 	}
@@ -214,20 +234,23 @@ void ibmasmfs_add_sp(struct service_processor *sp)
 }
 
 /* struct to save state between command file operations */
-struct ibmasmfs_command_data {
+struct ibmasmfs_command_data
+{
 	struct service_processor	*sp;
 	struct command			*command;
 };
 
 /* struct to save state between event file operations */
-struct ibmasmfs_event_data {
+struct ibmasmfs_event_data
+{
 	struct service_processor	*sp;
 	struct event_reader		reader;
 	int				active;
 };
 
 /* struct to save state between reverse heartbeat file operations */
-struct ibmasmfs_heartbeat_data {
+struct ibmasmfs_heartbeat_data
+{
 	struct service_processor	*sp;
 	struct reverse_heartbeat	heartbeat;
 	int				active;
@@ -238,11 +261,16 @@ static int command_file_open(struct inode *inode, struct file *file)
 	struct ibmasmfs_command_data *command_data;
 
 	if (!inode->i_private)
+	{
 		return -ENODEV;
+	}
 
 	command_data = kmalloc(sizeof(struct ibmasmfs_command_data), GFP_KERNEL);
+
 	if (!command_data)
+	{
 		return -ENOMEM;
+	}
 
 	command_data->command = NULL;
 	command_data->sp = inode->i_private;
@@ -255,7 +283,9 @@ static int command_file_close(struct inode *inode, struct file *file)
 	struct ibmasmfs_command_data *command_data = file->private_data;
 
 	if (command_data->command)
+	{
 		command_put(command_data->command);
+	}
 
 	kfree(command_data);
 	return 0;
@@ -269,30 +299,46 @@ static ssize_t command_file_read(struct file *file, char __user *buf, size_t cou
 	unsigned long flags;
 
 	if (*offset < 0)
+	{
 		return -EINVAL;
+	}
+
 	if (count == 0 || count > IBMASM_CMD_MAX_BUFFER_SIZE)
+	{
 		return 0;
+	}
+
 	if (*offset != 0)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&command_data->sp->lock, flags);
 	cmd = command_data->command;
-	if (cmd == NULL) {
+
+	if (cmd == NULL)
+	{
 		spin_unlock_irqrestore(&command_data->sp->lock, flags);
 		return 0;
 	}
+
 	command_data->command = NULL;
 	spin_unlock_irqrestore(&command_data->sp->lock, flags);
 
-	if (cmd->status != IBMASM_CMD_COMPLETE) {
+	if (cmd->status != IBMASM_CMD_COMPLETE)
+	{
 		command_put(cmd);
 		return -EIO;
 	}
+
 	len = min(count, cmd->buffer_size);
-	if (copy_to_user(buf, cmd->buffer, len)) {
+
+	if (copy_to_user(buf, cmd->buffer, len))
+	{
 		command_put(cmd);
 		return -EFAULT;
 	}
+
 	command_put(cmd);
 
 	return len;
@@ -305,31 +351,48 @@ static ssize_t command_file_write(struct file *file, const char __user *ubuff, s
 	unsigned long flags;
 
 	if (*offset < 0)
+	{
 		return -EINVAL;
+	}
+
 	if (count == 0 || count > IBMASM_CMD_MAX_BUFFER_SIZE)
+	{
 		return 0;
+	}
+
 	if (*offset != 0)
+	{
 		return 0;
+	}
 
 	/* commands are executed sequentially, only one command at a time */
 	if (command_data->command)
+	{
 		return -EAGAIN;
+	}
 
 	cmd = ibmasm_new_command(command_data->sp, count);
-	if (!cmd)
-		return -ENOMEM;
 
-	if (copy_from_user(cmd->buffer, ubuff, count)) {
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	if (copy_from_user(cmd->buffer, ubuff, count))
+	{
 		command_put(cmd);
 		return -EFAULT;
 	}
 
 	spin_lock_irqsave(&command_data->sp->lock, flags);
-	if (command_data->command) {
+
+	if (command_data->command)
+	{
 		spin_unlock_irqrestore(&command_data->sp->lock, flags);
 		command_put(cmd);
 		return -EAGAIN;
 	}
+
 	command_data->command = cmd;
 	spin_unlock_irqrestore(&command_data->sp->lock, flags);
 
@@ -345,13 +408,18 @@ static int event_file_open(struct inode *inode, struct file *file)
 	struct service_processor *sp;
 
 	if (!inode->i_private)
+	{
 		return -ENODEV;
+	}
 
 	sp = inode->i_private;
 
 	event_data = kmalloc(sizeof(struct ibmasmfs_event_data), GFP_KERNEL);
+
 	if (!event_data)
+	{
 		return -ENOMEM;
+	}
 
 	ibmasm_event_reader_register(sp, &event_data->reader);
 
@@ -379,33 +447,50 @@ static ssize_t event_file_read(struct file *file, char __user *buf, size_t count
 	unsigned long flags;
 
 	if (*offset < 0)
+	{
 		return -EINVAL;
+	}
+
 	if (count == 0 || count > IBMASM_EVENT_MAX_SIZE)
+	{
 		return 0;
+	}
+
 	if (*offset != 0)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&sp->lock, flags);
-	if (event_data->active) {
+
+	if (event_data->active)
+	{
 		spin_unlock_irqrestore(&sp->lock, flags);
 		return -EBUSY;
 	}
+
 	event_data->active = 1;
 	spin_unlock_irqrestore(&sp->lock, flags);
 
 	ret = ibmasm_get_next_event(sp, reader);
-	if (ret <= 0)
-		goto out;
 
-	if (count < reader->data_size) {
+	if (ret <= 0)
+	{
+		goto out;
+	}
+
+	if (count < reader->data_size)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
-        if (copy_to_user(buf, reader->data, reader->data_size)) {
+	if (copy_to_user(buf, reader->data, reader->data_size))
+	{
 		ret = -EFAULT;
 		goto out;
 	}
+
 	ret = reader->data_size;
 
 out:
@@ -418,11 +503,19 @@ static ssize_t event_file_write(struct file *file, const char __user *buf, size_
 	struct ibmasmfs_event_data *event_data = file->private_data;
 
 	if (*offset < 0)
+	{
 		return -EINVAL;
+	}
+
 	if (count != 1)
+	{
 		return 0;
+	}
+
 	if (*offset != 0)
+	{
 		return 0;
+	}
 
 	ibmasm_cancel_next_event(&event_data->reader);
 	return 0;
@@ -433,11 +526,16 @@ static int r_heartbeat_file_open(struct inode *inode, struct file *file)
 	struct ibmasmfs_heartbeat_data *rhbeat;
 
 	if (!inode->i_private)
+	{
 		return -ENODEV;
+	}
 
 	rhbeat = kmalloc(sizeof(struct ibmasmfs_heartbeat_data), GFP_KERNEL);
+
 	if (!rhbeat)
+	{
 		return -ENOMEM;
+	}
 
 	rhbeat->sp = inode->i_private;
 	rhbeat->active = 0;
@@ -461,18 +559,29 @@ static ssize_t r_heartbeat_file_read(struct file *file, char __user *buf, size_t
 	int result;
 
 	if (*offset < 0)
+	{
 		return -EINVAL;
+	}
+
 	if (count == 0 || count > 1024)
+	{
 		return 0;
+	}
+
 	if (*offset != 0)
+	{
 		return 0;
+	}
 
 	/* allow only one reverse heartbeat per process */
 	spin_lock_irqsave(&rhbeat->sp->lock, flags);
-	if (rhbeat->active) {
+
+	if (rhbeat->active)
+	{
 		spin_unlock_irqrestore(&rhbeat->sp->lock, flags);
 		return -EBUSY;
 	}
+
 	rhbeat->active = 1;
 	spin_unlock_irqrestore(&rhbeat->sp->lock, flags);
 
@@ -487,14 +596,24 @@ static ssize_t r_heartbeat_file_write(struct file *file, const char __user *buf,
 	struct ibmasmfs_heartbeat_data *rhbeat = file->private_data;
 
 	if (*offset < 0)
+	{
 		return -EINVAL;
+	}
+
 	if (count != 1)
+	{
 		return 0;
+	}
+
 	if (*offset != 0)
+	{
 		return 0;
+	}
 
 	if (rhbeat->active)
+	{
 		ibmasm_stop_reverse_heartbeat(&rhbeat->heartbeat);
+	}
 
 	return 1;
 }
@@ -513,23 +632,36 @@ static ssize_t remote_settings_file_read(struct file *file, char __user *buf, si
 	unsigned int value;
 
 	if (*offset < 0)
+	{
 		return -EINVAL;
+	}
+
 	if (count == 0 || count > 1024)
+	{
 		return 0;
+	}
+
 	if (*offset != 0)
+	{
 		return 0;
+	}
 
 	page = (unsigned char *)__get_free_page(GFP_KERNEL);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	value = readl(address);
 	len = sprintf(page, "%d\n", value);
 
-	if (copy_to_user(buf, page, len)) {
+	if (copy_to_user(buf, page, len))
+	{
 		retval = -EFAULT;
 		goto exit;
 	}
+
 	*offset += len;
 	retval = len;
 
@@ -545,18 +677,30 @@ static ssize_t remote_settings_file_write(struct file *file, const char __user *
 	unsigned int value;
 
 	if (*offset < 0)
+	{
 		return -EINVAL;
+	}
+
 	if (count == 0 || count > 1024)
+	{
 		return 0;
+	}
+
 	if (*offset != 0)
+	{
 		return 0;
+	}
 
 	buff = kzalloc (count + 1, GFP_KERNEL);
+
 	if (!buff)
+	{
 		return -ENOMEM;
+	}
 
 
-	if (copy_from_user(buff, ubuff, count)) {
+	if (copy_from_user(buff, ubuff, count))
+	{
 		kfree(buff);
 		return -EFAULT;
 	}
@@ -568,7 +712,8 @@ static ssize_t remote_settings_file_write(struct file *file, const char __user *
 	return count;
 }
 
-static const struct file_operations command_fops = {
+static const struct file_operations command_fops =
+{
 	.open =		command_file_open,
 	.release =	command_file_close,
 	.read =		command_file_read,
@@ -576,7 +721,8 @@ static const struct file_operations command_fops = {
 	.llseek =	generic_file_llseek,
 };
 
-static const struct file_operations event_fops = {
+static const struct file_operations event_fops =
+{
 	.open =		event_file_open,
 	.release =	event_file_close,
 	.read =		event_file_read,
@@ -584,7 +730,8 @@ static const struct file_operations event_fops = {
 	.llseek =	generic_file_llseek,
 };
 
-static const struct file_operations r_heartbeat_fops = {
+static const struct file_operations r_heartbeat_fops =
+{
 	.open =		r_heartbeat_file_open,
 	.release =	r_heartbeat_file_close,
 	.read =		r_heartbeat_file_read,
@@ -592,7 +739,8 @@ static const struct file_operations r_heartbeat_fops = {
 	.llseek =	generic_file_llseek,
 };
 
-static const struct file_operations remote_settings_fops = {
+static const struct file_operations remote_settings_fops =
+{
 	.open =		simple_open,
 	.release =	remote_settings_file_close,
 	.read =		remote_settings_file_read,
@@ -606,24 +754,31 @@ static void ibmasmfs_create_files (struct super_block *sb)
 	struct list_head *entry;
 	struct service_processor *sp;
 
-	list_for_each(entry, &service_processors) {
+	list_for_each(entry, &service_processors)
+	{
 		struct dentry *dir;
 		struct dentry *remote_dir;
 		sp = list_entry(entry, struct service_processor, node);
 		dir = ibmasmfs_create_dir(sb->s_root, sp->dirname);
-		if (!dir)
-			continue;
 
-		ibmasmfs_create_file(dir, "command", &command_fops, sp, S_IRUSR|S_IWUSR);
-		ibmasmfs_create_file(dir, "event", &event_fops, sp, S_IRUSR|S_IWUSR);
-		ibmasmfs_create_file(dir, "reverse_heartbeat", &r_heartbeat_fops, sp, S_IRUSR|S_IWUSR);
+		if (!dir)
+		{
+			continue;
+		}
+
+		ibmasmfs_create_file(dir, "command", &command_fops, sp, S_IRUSR | S_IWUSR);
+		ibmasmfs_create_file(dir, "event", &event_fops, sp, S_IRUSR | S_IWUSR);
+		ibmasmfs_create_file(dir, "reverse_heartbeat", &r_heartbeat_fops, sp, S_IRUSR | S_IWUSR);
 
 		remote_dir = ibmasmfs_create_dir(dir, "remote_video");
-		if (!remote_dir)
-			continue;
 
-		ibmasmfs_create_file(remote_dir, "width", &remote_settings_fops, (void *)display_width(sp), S_IRUSR|S_IWUSR);
-		ibmasmfs_create_file(remote_dir, "height", &remote_settings_fops, (void *)display_height(sp), S_IRUSR|S_IWUSR);
-		ibmasmfs_create_file(remote_dir, "depth", &remote_settings_fops, (void *)display_depth(sp), S_IRUSR|S_IWUSR);
+		if (!remote_dir)
+		{
+			continue;
+		}
+
+		ibmasmfs_create_file(remote_dir, "width", &remote_settings_fops, (void *)display_width(sp), S_IRUSR | S_IWUSR);
+		ibmasmfs_create_file(remote_dir, "height", &remote_settings_fops, (void *)display_height(sp), S_IRUSR | S_IWUSR);
+		ibmasmfs_create_file(remote_dir, "depth", &remote_settings_fops, (void *)display_depth(sp), S_IRUSR | S_IWUSR);
 	}
 }

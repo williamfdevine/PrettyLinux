@@ -25,7 +25,8 @@
 #include "changk104.h"
 
 static const struct nvkm_enum
-gp100_fifo_fault_engine[] = {
+	gp100_fifo_fault_engine[] =
+{
 	{ 0x01, "DISPLAY" },
 	{ 0x03, "IFB", NULL, NVKM_ENGINE_IFB },
 	{ 0x04, "BAR1", NULL, NVKM_SUBDEV_BAR },
@@ -49,7 +50,8 @@ gp100_fifo_fault_engine[] = {
 };
 
 static const struct gk104_fifo_func
-gp100_fifo = {
+	gp100_fifo =
+{
 	.fault.engine = gp100_fifo_fault_engine,
 	.fault.reason = gk104_fifo_fault_reason,
 	.fault.hubclient = gk104_fifo_fault_hubclient,

@@ -90,7 +90,8 @@ struct device;
  * access ANY fields. It is used as a token for calling the
  * AB3100 functions.
  */
-struct ab3100 {
+struct ab3100
+{
 	struct mutex access_mutex;
 	struct device *dev;
 	struct i2c_client *i2c_client;
@@ -115,15 +116,16 @@ struct ab3100 {
  *     BUCK sleep, LDO D. (LDO D need to be initialized last.)
  * @external_voltage: voltage level of the external regulator.
  */
-struct ab3100_platform_data {
+struct ab3100_platform_data
+{
 	struct regulator_init_data reg_constraints[AB3100_NUM_REGULATORS];
-	u8 reg_initvals[AB3100_NUM_REGULATORS+2];
+	u8 reg_initvals[AB3100_NUM_REGULATORS + 2];
 	int external_voltage;
 };
 
 int ab3100_event_register(struct ab3100 *ab3100,
-			  struct notifier_block *nb);
+						  struct notifier_block *nb);
 int ab3100_event_unregister(struct ab3100 *ab3100,
-			    struct notifier_block *nb);
+							struct notifier_block *nb);
 
 #endif /*  MFD_AB3100_H */

@@ -21,7 +21,8 @@
 #include <linux/of_platform.h>
 
 
-static const struct hc_driver ehci_ppc_of_hc_driver = {
+static const struct hc_driver ehci_ppc_of_hc_driver =
+{
 	.description		= hcd_name,
 	.product_desc		= "OF EHCI",
 	.hcd_priv_size		= sizeof(struct ehci_hcd),
@@ -80,8 +81,11 @@ ppc44x_enable_bmt(struct device_node *dn)
 	__iomem u32 *insreg_virt;
 
 	insreg_virt = of_iomap(dn, 1);
+
 	if (!insreg_virt)
+	{
 		return  -EINVAL;
+	}
 
 	out_be32(insreg_virt + 3, PPC440EPX_EHCI0_INSREG_BMT);
 
@@ -102,73 +106,104 @@ static int ehci_hcd_ppc_of_probe(struct platform_device *op)
 	struct device_node *np;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	dev_dbg(&op->dev, "initializing PPC-OF USB Controller\n");
 
 	rv = of_address_to_resource(dn, 0, &res);
+
 	if (rv)
+	{
 		return rv;
+	}
 
 	hcd = usb_create_hcd(&ehci_ppc_of_hc_driver, &op->dev, "PPC-OF USB");
+
 	if (!hcd)
+	{
 		return -ENOMEM;
+	}
 
 	hcd->rsrc_start = res.start;
 	hcd->rsrc_len = resource_size(&res);
 
 	irq = irq_of_parse_and_map(dn, 0);
-	if (irq == NO_IRQ) {
+
+	if (irq == NO_IRQ)
+	{
 		dev_err(&op->dev, "%s: irq_of_parse_and_map failed\n",
-			__FILE__);
+				__FILE__);
 		rv = -EBUSY;
 		goto err_irq;
 	}
 
 	hcd->regs = devm_ioremap_resource(&op->dev, &res);
-	if (IS_ERR(hcd->regs)) {
+
+	if (IS_ERR(hcd->regs))
+	{
 		rv = PTR_ERR(hcd->regs);
 		goto err_ioremap;
 	}
 
 	ehci = hcd_to_ehci(hcd);
 	np = of_find_compatible_node(NULL, NULL, "ibm,usb-ohci-440epx");
-	if (np != NULL) {
+
+	if (np != NULL)
+	{
 		/* claim we really affected by usb23 erratum */
 		if (!of_address_to_resource(np, 0, &res))
 			ehci->ohci_hcctrl_reg =
 				devm_ioremap(&op->dev,
-					     res.start + OHCI_HCCTRL_OFFSET,
-					     OHCI_HCCTRL_LEN);
+							 res.start + OHCI_HCCTRL_OFFSET,
+							 OHCI_HCCTRL_LEN);
 		else
+		{
 			pr_debug("%s: no ohci offset in fdt\n", __FILE__);
-		if (!ehci->ohci_hcctrl_reg) {
+		}
+
+		if (!ehci->ohci_hcctrl_reg)
+		{
 			pr_debug("%s: ioremap for ohci hcctrl failed\n", __FILE__);
-		} else {
+		}
+		else
+		{
 			ehci->has_amcc_usb23 = 1;
 		}
 	}
 
-	if (of_get_property(dn, "big-endian", NULL)) {
+	if (of_get_property(dn, "big-endian", NULL))
+	{
 		ehci->big_endian_mmio = 1;
 		ehci->big_endian_desc = 1;
 	}
+
 	if (of_get_property(dn, "big-endian-regs", NULL))
+	{
 		ehci->big_endian_mmio = 1;
+	}
+
 	if (of_get_property(dn, "big-endian-desc", NULL))
+	{
 		ehci->big_endian_desc = 1;
+	}
 
 	ehci->caps = hcd->regs;
 
-	if (of_device_is_compatible(dn, "ibm,usb-ehci-440epx")) {
+	if (of_device_is_compatible(dn, "ibm,usb-ehci-440epx"))
+	{
 		rv = ppc44x_enable_bmt(dn);
 		ehci_dbg(ehci, "Break Memory Transfer (BMT) is %senabled!\n",
-				rv ? "NOT ": "");
+				 rv ? "NOT " : "");
 	}
 
 	rv = usb_add_hcd(hcd, irq, 0);
+
 	if (rv)
+	{
 		goto err_ioremap;
+	}
 
 	device_wakeup_enable(hcd->self.controller);
 	return 0;
@@ -199,27 +234,39 @@ static int ehci_hcd_ppc_of_remove(struct platform_device *op)
 	/* use request_mem_region to test if the ohci driver is loaded.  if so
 	 * ensure the ohci core is operational.
 	 */
-	if (ehci->has_amcc_usb23) {
+	if (ehci->has_amcc_usb23)
+	{
 		np = of_find_compatible_node(NULL, NULL, "ibm,usb-ohci-440epx");
-		if (np != NULL) {
+
+		if (np != NULL)
+		{
 			if (!of_address_to_resource(np, 0, &res))
 				if (!request_mem_region(res.start,
-							    0x4, hcd_name))
+										0x4, hcd_name))
+				{
 					set_ohci_hcfs(ehci, 1);
+				}
 				else
+				{
 					release_mem_region(res.start, 0x4);
+				}
 			else
+			{
 				pr_debug("%s: no ohci offset in fdt\n", __FILE__);
+			}
+
 			of_node_put(np);
 		}
 	}
+
 	usb_put_hcd(hcd);
 
 	return 0;
 }
 
 
-static const struct of_device_id ehci_hcd_ppc_of_match[] = {
+static const struct of_device_id ehci_hcd_ppc_of_match[] =
+{
 	{
 		.compatible = "usb-ehci",
 	},
@@ -228,7 +275,8 @@ static const struct of_device_id ehci_hcd_ppc_of_match[] = {
 MODULE_DEVICE_TABLE(of, ehci_hcd_ppc_of_match);
 
 
-static struct platform_driver ehci_hcd_ppc_of_driver = {
+static struct platform_driver ehci_hcd_ppc_of_driver =
+{
 	.probe		= ehci_hcd_ppc_of_probe,
 	.remove		= ehci_hcd_ppc_of_remove,
 	.shutdown	= usb_hcd_platform_shutdown,

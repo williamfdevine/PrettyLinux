@@ -112,37 +112,37 @@ int rtl8723be_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpriv->rtlhal.macphymode = SINGLEMAC_SINGLEPHY;
 
 	rtlpci->receive_config = (RCR_APPFCS		|
-				  RCR_APP_MIC		|
-				  RCR_APP_ICV		|
-				  RCR_APP_PHYST_RXFF	|
-				  RCR_HTC_LOC_CTRL	|
-				  RCR_AMF		|
-				  RCR_ACF		|
-				  RCR_ADF		|
-				  RCR_AICV		|
-				  RCR_AB		|
-				  RCR_AM		|
-				  RCR_APM		|
-				  0);
+							  RCR_APP_MIC		|
+							  RCR_APP_ICV		|
+							  RCR_APP_PHYST_RXFF	|
+							  RCR_HTC_LOC_CTRL	|
+							  RCR_AMF		|
+							  RCR_ACF		|
+							  RCR_ADF		|
+							  RCR_AICV		|
+							  RCR_AB		|
+							  RCR_AM		|
+							  RCR_APM		|
+							  0);
 
 	rtlpci->irq_mask[0] = (u32) (IMR_PSTIMEOUT	|
-				     IMR_HSISR_IND_ON_INT	|
-				     IMR_C2HCMD		|
-				     IMR_HIGHDOK	|
-				     IMR_MGNTDOK	|
-				     IMR_BKDOK		|
-				     IMR_BEDOK		|
-				     IMR_VIDOK		|
-				     IMR_VODOK		|
-				     IMR_RDU		|
-				     IMR_ROK		|
-				     0);
+								 IMR_HSISR_IND_ON_INT	|
+								 IMR_C2HCMD		|
+								 IMR_HIGHDOK	|
+								 IMR_MGNTDOK	|
+								 IMR_BKDOK		|
+								 IMR_BEDOK		|
+								 IMR_VIDOK		|
+								 IMR_VODOK		|
+								 IMR_RDU		|
+								 IMR_ROK		|
+								 0);
 
 	rtlpci->irq_mask[1] = (u32)(IMR_RXFOVW | 0);
 
 	rtlpci->sys_irq_mask = (u32)(HSIMR_PDN_INT_EN	|
-				     HSIMR_RON_INT_EN	|
-				     0);
+								 HSIMR_RON_INT_EN	|
+								 0);
 
 	/* for debug level */
 	rtlpriv->dbg.global_debuglevel = rtlpriv->cfg->mod_params->debug;
@@ -152,11 +152,15 @@ int rtl8723be_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpriv->psc.fwctrl_lps = rtlpriv->cfg->mod_params->fwctrl_lps;
 	rtlpci->msi_support = rtlpriv->cfg->mod_params->msi_support;
 	rtlpriv->cfg->mod_params->sw_crypto =
-		 rtlpriv->cfg->mod_params->sw_crypto;
+		rtlpriv->cfg->mod_params->sw_crypto;
 	rtlpriv->cfg->mod_params->disable_watchdog =
-		 rtlpriv->cfg->mod_params->disable_watchdog;
+		rtlpriv->cfg->mod_params->disable_watchdog;
+
 	if (rtlpriv->cfg->mod_params->disable_watchdog)
+	{
 		pr_info("watchdog disabled\n");
+	}
+
 	rtlpriv->psc.reg_fwctrl_lps = 3;
 	rtlpriv->psc.reg_max_lps_awakeintvl = 5;
 	/* for ASPM, you can close aspm through
@@ -165,11 +169,17 @@ int rtl8723be_init_sw_vars(struct ieee80211_hw *hw)
 	rtl8723be_init_aspm_vars(hw);
 
 	if (rtlpriv->psc.reg_fwctrl_lps == 1)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MIN_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 2)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MAX_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 3)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_DTIM_MODE;
+	}
 
 	/*low power: Disable 32k */
 	rtlpriv->psc.low_power_enable = false;
@@ -178,22 +188,27 @@ int rtl8723be_init_sw_vars(struct ieee80211_hw *hw)
 
 	/* for firmware buf */
 	rtlpriv->rtlhal.pfirmware = vzalloc(0x8000);
-	if (!rtlpriv->rtlhal.pfirmware) {
+
+	if (!rtlpriv->rtlhal.pfirmware)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Can't alloc buffer for fw.\n");
+				 "Can't alloc buffer for fw.\n");
 		return 1;
 	}
 
 	rtlpriv->max_fw_size = 0x8000;
 	pr_info("Using firmware %s\n", fw_name);
 	err = request_firmware_nowait(THIS_MODULE, 1, fw_name,
-				      rtlpriv->io.dev, GFP_KERNEL, hw,
-				      rtl_fw_cb);
-	if (err) {
+								  rtlpriv->io.dev, GFP_KERNEL, hw,
+								  rtl_fw_cb);
+
+	if (err)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Failed to request firmware!\n");
+				 "Failed to request firmware!\n");
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -201,7 +216,8 @@ void rtl8723be_deinit_sw_vars(struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 
-	if (rtlpriv->rtlhal.pfirmware) {
+	if (rtlpriv->rtlhal.pfirmware)
+	{
 		vfree(rtlpriv->rtlhal.pfirmware);
 		rtlpriv->rtlhal.pfirmware = NULL;
 	}
@@ -218,7 +234,8 @@ static bool is_fw_header(struct rtlwifi_firmware_header *hdr)
 	return (le16_to_cpu(hdr->signature) & 0xfff0) == 0x5300;
 }
 
-static struct rtl_hal_ops rtl8723be_hal_ops = {
+static struct rtl_hal_ops rtl8723be_hal_ops =
+{
 	.init_sw_vars = rtl8723be_init_sw_vars,
 	.deinit_sw_vars = rtl8723be_deinit_sw_vars,
 	.read_eeprom_info = rtl8723be_read_eeprom_info,
@@ -266,7 +283,8 @@ static struct rtl_hal_ops rtl8723be_hal_ops = {
 	.is_fw_header = is_fw_header,
 };
 
-static struct rtl_mod_params rtl8723be_mod_params = {
+static struct rtl_mod_params rtl8723be_mod_params =
+{
 	.sw_crypto = false,
 	.inactiveps = true,
 	.swctrl_lps = false,
@@ -277,7 +295,8 @@ static struct rtl_mod_params rtl8723be_mod_params = {
 	.ant_sel = 0,
 };
 
-static const struct rtl_hal_cfg rtl8723be_hal_cfg = {
+static const struct rtl_hal_cfg rtl8723be_hal_cfg =
+{
 	.bar_id = 2,
 	.write_readback = true,
 	.name = "rtl8723be_pci",
@@ -327,7 +346,7 @@ static const struct rtl_hal_cfg rtl8723be_hal_cfg = {
 	.maps[RTL_IMR_BCNDMAINT3] = IMR_BCNDMAINT3,
 	.maps[RTL_IMR_BCNDMAINT2] = IMR_BCNDMAINT2,
 	.maps[RTL_IMR_BCNDMAINT1] = IMR_BCNDMAINT1,
-/*	.maps[RTL_IMR_BCNDOK8] = IMR_BCNDOK8,     */   /*need check*/
+	/*	.maps[RTL_IMR_BCNDOK8] = IMR_BCNDOK8,     */   /*need check*/
 	.maps[RTL_IMR_BCNDOK7] = IMR_BCNDOK7,
 	.maps[RTL_IMR_BCNDOK6] = IMR_BCNDOK6,
 	.maps[RTL_IMR_BCNDOK5] = IMR_BCNDOK5,
@@ -335,8 +354,8 @@ static const struct rtl_hal_cfg rtl8723be_hal_cfg = {
 	.maps[RTL_IMR_BCNDOK3] = IMR_BCNDOK3,
 	.maps[RTL_IMR_BCNDOK2] = IMR_BCNDOK2,
 	.maps[RTL_IMR_BCNDOK1] = IMR_BCNDOK1,
-/*	.maps[RTL_IMR_TIMEOUT2] = IMR_TIMEOUT2,*/
-/*	.maps[RTL_IMR_TIMEOUT1] = IMR_TIMEOUT1,*/
+	/*	.maps[RTL_IMR_TIMEOUT2] = IMR_TIMEOUT2,*/
+	/*	.maps[RTL_IMR_TIMEOUT1] = IMR_TIMEOUT1,*/
 
 	.maps[RTL_IMR_TXFOVW] = IMR_TXFOVW,
 	.maps[RTL_IMR_PSTIMEOUT] = IMR_PSTIMEOUT,
@@ -374,7 +393,8 @@ static const struct rtl_hal_cfg rtl8723be_hal_cfg = {
 	.maps[RTL_RC_HT_RATEMCS15] = DESC92C_RATEMCS15,
 };
 
-static struct pci_device_id rtl8723be_pci_ids[] = {
+static struct pci_device_id rtl8723be_pci_ids[] =
+{
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0xB723, rtl8723be_hal_cfg)},
 	{},
 };
@@ -394,7 +414,7 @@ module_param_named(swlps, rtl8723be_mod_params.swctrl_lps, bool, 0444);
 module_param_named(fwlps, rtl8723be_mod_params.fwctrl_lps, bool, 0444);
 module_param_named(msi, rtl8723be_mod_params.msi_support, bool, 0444);
 module_param_named(disable_watchdog, rtl8723be_mod_params.disable_watchdog,
-		   bool, 0444);
+				   bool, 0444);
 module_param_named(ant_sel, rtl8723be_mod_params.ant_sel, int, 0444);
 MODULE_PARM_DESC(swenc, "Set to 1 for software crypto (default 0)\n");
 MODULE_PARM_DESC(ips, "Set to 0 to not use link power save (default 1)\n");
@@ -403,12 +423,13 @@ MODULE_PARM_DESC(fwlps, "Set to 1 to use FW control power save (default 1)\n");
 MODULE_PARM_DESC(msi, "Set to 1 to use MSI interrupts mode (default 0)\n");
 MODULE_PARM_DESC(debug, "Set debug level (0-5) (default 0)");
 MODULE_PARM_DESC(disable_watchdog,
-		 "Set to 1 to disable the watchdog (default 0)\n");
+				 "Set to 1 to disable the watchdog (default 0)\n");
 MODULE_PARM_DESC(ant_sel, "Set to 1 or 2 to force antenna number (default 0)\n");
 
 static SIMPLE_DEV_PM_OPS(rtlwifi_pm_ops, rtl_pci_suspend, rtl_pci_resume);
 
-static struct pci_driver rtl8723be_driver = {
+static struct pci_driver rtl8723be_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = rtl8723be_pci_ids,
 	.probe = rtl_pci_probe,

@@ -22,7 +22,8 @@
 
 #include <linux/dvb/frontend.h>
 
-enum {
+enum
+{
 	SI2165_MODE_OFF = 0x00,
 	SI2165_MODE_PLL_EXT = 0x20,
 	SI2165_MODE_PLL_XTAL = 0x21
@@ -31,7 +32,8 @@ enum {
 /* I2C addresses
  * possible values: 0x64,0x65,0x66,0x67
  */
-struct si2165_platform_data {
+struct si2165_platform_data
+{
 	/*
 	 * frontend
 	 * returned by driver

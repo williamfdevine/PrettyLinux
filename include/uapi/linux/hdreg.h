@@ -13,10 +13,10 @@
 
 #define IDE_DRIVE_TASK_NO_DATA		0
 #ifndef __KERNEL__
-#define IDE_DRIVE_TASK_INVALID		-1
-#define IDE_DRIVE_TASK_SET_XFER		1
-#define IDE_DRIVE_TASK_IN		2
-#define IDE_DRIVE_TASK_OUT		3
+	#define IDE_DRIVE_TASK_INVALID		-1
+	#define IDE_DRIVE_TASK_SET_XFER		1
+	#define IDE_DRIVE_TASK_IN		2
+	#define IDE_DRIVE_TASK_OUT		3
 #endif
 #define IDE_DRIVE_TASK_RAW_WRITE	4
 
@@ -26,16 +26,18 @@
 #define IDE_TASKFILE_STD_IN_FLAGS	0xFE
 #define IDE_HOB_STD_IN_FLAGS		0x3C
 #ifndef __KERNEL__
-#define IDE_TASKFILE_STD_OUT_FLAGS	0xFE
-#define IDE_HOB_STD_OUT_FLAGS		0x3C
+	#define IDE_TASKFILE_STD_OUT_FLAGS	0xFE
+	#define IDE_HOB_STD_OUT_FLAGS		0x3C
 
-typedef unsigned char task_ioreg_t;
-typedef unsigned long sata_ioreg_t;
+	typedef unsigned char task_ioreg_t;
+	typedef unsigned long sata_ioreg_t;
 #endif
 
-typedef union ide_reg_valid_s {
+typedef union ide_reg_valid_s
+{
 	unsigned all				: 16;
-	struct {
+	struct
+	{
 		unsigned data			: 1;
 		unsigned error_feature		: 1;
 		unsigned sector			: 1;
@@ -56,7 +58,8 @@ typedef union ide_reg_valid_s {
 	} b;
 } ide_reg_valid_t;
 
-typedef struct ide_task_request_s {
+typedef struct ide_task_request_s
+{
 	__u8		io_ports[8];
 	__u8		hob_ports[8]; /* bytes 6 and 7 are unused */
 	ide_reg_valid_t	out_flags;
@@ -67,13 +70,15 @@ typedef struct ide_task_request_s {
 	unsigned long	in_size;
 } ide_task_request_t;
 
-typedef struct ide_ioctl_request_s {
+typedef struct ide_ioctl_request_s
+{
 	ide_task_request_t	*task_request;
 	unsigned char		*out_buffer;
 	unsigned char		*in_buffer;
 } ide_ioctl_request_t;
 
-struct hd_drive_cmd_hdr {
+struct hd_drive_cmd_hdr
+{
 	__u8 command;
 	__u8 sector_number;
 	__u8 feature;
@@ -81,7 +86,8 @@ struct hd_drive_cmd_hdr {
 };
 
 #ifndef __KERNEL__
-typedef struct hd_drive_task_hdr {
+typedef struct hd_drive_task_hdr
+{
 	__u8 data;
 	__u8 feature;
 	__u8 sector_count;
@@ -92,7 +98,8 @@ typedef struct hd_drive_task_hdr {
 	__u8 command;
 } task_struct_t;
 
-typedef struct hd_drive_hob_hdr {
+typedef struct hd_drive_hob_hdr
+{
 	__u8 data;
 	__u8 feature;
 	__u8 sector_count;
@@ -119,212 +126,213 @@ typedef struct hd_drive_hob_hdr {
 #define TASKFILE_OUT_DMAQ		0x0100
 
 #ifndef __KERNEL__
-#define TASKFILE_P_IN			0x0200
-#define TASKFILE_P_OUT			0x0400
-#define TASKFILE_P_IN_DMA		0x0800
-#define TASKFILE_P_OUT_DMA		0x1000
-#define TASKFILE_P_IN_DMAQ		0x2000
-#define TASKFILE_P_OUT_DMAQ		0x4000
-#define TASKFILE_48			0x8000
-#define TASKFILE_INVALID		0x7fff
+	#define TASKFILE_P_IN			0x0200
+	#define TASKFILE_P_OUT			0x0400
+	#define TASKFILE_P_IN_DMA		0x0800
+	#define TASKFILE_P_OUT_DMA		0x1000
+	#define TASKFILE_P_IN_DMAQ		0x2000
+	#define TASKFILE_P_OUT_DMAQ		0x4000
+	#define TASKFILE_48			0x8000
+	#define TASKFILE_INVALID		0x7fff
 #endif
 
 #ifndef __KERNEL__
-/* ATA/ATAPI Commands pre T13 Spec */
-#define WIN_NOP				0x00
-/*
- *	0x01->0x02 Reserved
- */
-#define CFA_REQ_EXT_ERROR_CODE		0x03 /* CFA Request Extended Error Code */
-/*
- *	0x04->0x07 Reserved
- */
-#define WIN_SRST			0x08 /* ATAPI soft reset command */
-#define WIN_DEVICE_RESET		0x08
-/*
- *	0x09->0x0F Reserved
- */
-#define WIN_RECAL			0x10
-#define WIN_RESTORE			WIN_RECAL
-/*
- *	0x10->0x1F Reserved
- */
-#define WIN_READ			0x20 /* 28-Bit */
-#define WIN_READ_ONCE			0x21 /* 28-Bit without retries */
-#define WIN_READ_LONG			0x22 /* 28-Bit */
-#define WIN_READ_LONG_ONCE		0x23 /* 28-Bit without retries */
-#define WIN_READ_EXT			0x24 /* 48-Bit */
-#define WIN_READDMA_EXT			0x25 /* 48-Bit */
-#define WIN_READDMA_QUEUED_EXT		0x26 /* 48-Bit */
-#define WIN_READ_NATIVE_MAX_EXT		0x27 /* 48-Bit */
-/*
- *	0x28
- */
-#define WIN_MULTREAD_EXT		0x29 /* 48-Bit */
-/*
- *	0x2A->0x2F Reserved
- */
-#define WIN_WRITE			0x30 /* 28-Bit */
-#define WIN_WRITE_ONCE			0x31 /* 28-Bit without retries */
-#define WIN_WRITE_LONG			0x32 /* 28-Bit */
-#define WIN_WRITE_LONG_ONCE		0x33 /* 28-Bit without retries */
-#define WIN_WRITE_EXT			0x34 /* 48-Bit */
-#define WIN_WRITEDMA_EXT		0x35 /* 48-Bit */
-#define WIN_WRITEDMA_QUEUED_EXT		0x36 /* 48-Bit */
-#define WIN_SET_MAX_EXT			0x37 /* 48-Bit */
-#define CFA_WRITE_SECT_WO_ERASE		0x38 /* CFA Write Sectors without erase */
-#define WIN_MULTWRITE_EXT		0x39 /* 48-Bit */
-/*
- *	0x3A->0x3B Reserved
- */
-#define WIN_WRITE_VERIFY		0x3C /* 28-Bit */
-/*
- *	0x3D->0x3F Reserved
- */
-#define WIN_VERIFY			0x40 /* 28-Bit - Read Verify Sectors */
-#define WIN_VERIFY_ONCE			0x41 /* 28-Bit - without retries */
-#define WIN_VERIFY_EXT			0x42 /* 48-Bit */
-/*
- *	0x43->0x4F Reserved
- */
-#define WIN_FORMAT			0x50
-/*
- *	0x51->0x5F Reserved
- */
-#define WIN_INIT			0x60
-/*
- *	0x61->0x5F Reserved
- */
-#define WIN_SEEK			0x70 /* 0x70-0x7F Reserved */
+	/* ATA/ATAPI Commands pre T13 Spec */
+	#define WIN_NOP				0x00
+	/*
+	*	0x01->0x02 Reserved
+	*/
+	#define CFA_REQ_EXT_ERROR_CODE		0x03 /* CFA Request Extended Error Code */
+	/*
+	*	0x04->0x07 Reserved
+	*/
+	#define WIN_SRST			0x08 /* ATAPI soft reset command */
+	#define WIN_DEVICE_RESET		0x08
+	/*
+	*	0x09->0x0F Reserved
+	*/
+	#define WIN_RECAL			0x10
+	#define WIN_RESTORE			WIN_RECAL
+	/*
+	*	0x10->0x1F Reserved
+	*/
+	#define WIN_READ			0x20 /* 28-Bit */
+	#define WIN_READ_ONCE			0x21 /* 28-Bit without retries */
+	#define WIN_READ_LONG			0x22 /* 28-Bit */
+	#define WIN_READ_LONG_ONCE		0x23 /* 28-Bit without retries */
+	#define WIN_READ_EXT			0x24 /* 48-Bit */
+	#define WIN_READDMA_EXT			0x25 /* 48-Bit */
+	#define WIN_READDMA_QUEUED_EXT		0x26 /* 48-Bit */
+	#define WIN_READ_NATIVE_MAX_EXT		0x27 /* 48-Bit */
+	/*
+	*	0x28
+	*/
+	#define WIN_MULTREAD_EXT		0x29 /* 48-Bit */
+	/*
+	*	0x2A->0x2F Reserved
+	*/
+	#define WIN_WRITE			0x30 /* 28-Bit */
+	#define WIN_WRITE_ONCE			0x31 /* 28-Bit without retries */
+	#define WIN_WRITE_LONG			0x32 /* 28-Bit */
+	#define WIN_WRITE_LONG_ONCE		0x33 /* 28-Bit without retries */
+	#define WIN_WRITE_EXT			0x34 /* 48-Bit */
+	#define WIN_WRITEDMA_EXT		0x35 /* 48-Bit */
+	#define WIN_WRITEDMA_QUEUED_EXT		0x36 /* 48-Bit */
+	#define WIN_SET_MAX_EXT			0x37 /* 48-Bit */
+	#define CFA_WRITE_SECT_WO_ERASE		0x38 /* CFA Write Sectors without erase */
+	#define WIN_MULTWRITE_EXT		0x39 /* 48-Bit */
+	/*
+	*	0x3A->0x3B Reserved
+	*/
+	#define WIN_WRITE_VERIFY		0x3C /* 28-Bit */
+	/*
+	*	0x3D->0x3F Reserved
+	*/
+	#define WIN_VERIFY			0x40 /* 28-Bit - Read Verify Sectors */
+	#define WIN_VERIFY_ONCE			0x41 /* 28-Bit - without retries */
+	#define WIN_VERIFY_EXT			0x42 /* 48-Bit */
+	/*
+	*	0x43->0x4F Reserved
+	*/
+	#define WIN_FORMAT			0x50
+	/*
+	*	0x51->0x5F Reserved
+	*/
+	#define WIN_INIT			0x60
+	/*
+	*	0x61->0x5F Reserved
+	*/
+	#define WIN_SEEK			0x70 /* 0x70-0x7F Reserved */
 
-#define CFA_TRANSLATE_SECTOR		0x87 /* CFA Translate Sector */
-#define WIN_DIAGNOSE			0x90
-#define WIN_SPECIFY			0x91 /* set drive geometry translation */
-#define WIN_DOWNLOAD_MICROCODE		0x92
-#define WIN_STANDBYNOW2			0x94
-#define WIN_STANDBY2			0x96
-#define WIN_SETIDLE2			0x97
-#define WIN_CHECKPOWERMODE2		0x98
-#define WIN_SLEEPNOW2			0x99
-/*
- *	0x9A VENDOR
- */
-#define WIN_PACKETCMD			0xA0 /* Send a packet command. */
-#define WIN_PIDENTIFY			0xA1 /* identify ATAPI device	*/
-#define WIN_QUEUED_SERVICE		0xA2
-#define WIN_SMART			0xB0 /* self-monitoring and reporting */
-#define CFA_ERASE_SECTORS		0xC0
-#define WIN_MULTREAD			0xC4 /* read sectors using multiple mode*/
-#define WIN_MULTWRITE			0xC5 /* write sectors using multiple mode */
-#define WIN_SETMULT			0xC6 /* enable/disable multiple mode */
-#define WIN_READDMA_QUEUED		0xC7 /* read sectors using Queued DMA transfers */
-#define WIN_READDMA			0xC8 /* read sectors using DMA transfers */
-#define WIN_READDMA_ONCE		0xC9 /* 28-Bit - without retries */
-#define WIN_WRITEDMA			0xCA /* write sectors using DMA transfers */
-#define WIN_WRITEDMA_ONCE		0xCB /* 28-Bit - without retries */
-#define WIN_WRITEDMA_QUEUED		0xCC /* write sectors using Queued DMA transfers */
-#define CFA_WRITE_MULTI_WO_ERASE	0xCD /* CFA Write multiple without erase */
-#define WIN_GETMEDIASTATUS		0xDA
-#define WIN_ACKMEDIACHANGE		0xDB /* ATA-1, ATA-2 vendor */
-#define WIN_POSTBOOT			0xDC
-#define WIN_PREBOOT 			0xDD
-#define WIN_DOORLOCK			0xDE /* lock door on removable drives */
-#define WIN_DOORUNLOCK			0xDF /* unlock door on removable drives */
-#define WIN_STANDBYNOW1			0xE0
-#define WIN_IDLEIMMEDIATE		0xE1 /* force drive to become "ready" */
-#define WIN_STANDBY			0xE2 /* Set device in Standby Mode */
-#define WIN_SETIDLE1			0xE3
-#define WIN_READ_BUFFER			0xE4 /* force read only 1 sector */
-#define WIN_CHECKPOWERMODE1		0xE5
-#define WIN_SLEEPNOW1			0xE6
-#define WIN_FLUSH_CACHE			0xE7
-#define WIN_WRITE_BUFFER		0xE8 /* force write only 1 sector */
-#define WIN_WRITE_SAME			0xE9 /* read ata-2 to use */
+	#define CFA_TRANSLATE_SECTOR		0x87 /* CFA Translate Sector */
+	#define WIN_DIAGNOSE			0x90
+	#define WIN_SPECIFY			0x91 /* set drive geometry translation */
+	#define WIN_DOWNLOAD_MICROCODE		0x92
+	#define WIN_STANDBYNOW2			0x94
+	#define WIN_STANDBY2			0x96
+	#define WIN_SETIDLE2			0x97
+	#define WIN_CHECKPOWERMODE2		0x98
+	#define WIN_SLEEPNOW2			0x99
+	/*
+	*	0x9A VENDOR
+	*/
+	#define WIN_PACKETCMD			0xA0 /* Send a packet command. */
+	#define WIN_PIDENTIFY			0xA1 /* identify ATAPI device	*/
+	#define WIN_QUEUED_SERVICE		0xA2
+	#define WIN_SMART			0xB0 /* self-monitoring and reporting */
+	#define CFA_ERASE_SECTORS		0xC0
+	#define WIN_MULTREAD			0xC4 /* read sectors using multiple mode*/
+	#define WIN_MULTWRITE			0xC5 /* write sectors using multiple mode */
+	#define WIN_SETMULT			0xC6 /* enable/disable multiple mode */
+	#define WIN_READDMA_QUEUED		0xC7 /* read sectors using Queued DMA transfers */
+	#define WIN_READDMA			0xC8 /* read sectors using DMA transfers */
+	#define WIN_READDMA_ONCE		0xC9 /* 28-Bit - without retries */
+	#define WIN_WRITEDMA			0xCA /* write sectors using DMA transfers */
+	#define WIN_WRITEDMA_ONCE		0xCB /* 28-Bit - without retries */
+	#define WIN_WRITEDMA_QUEUED		0xCC /* write sectors using Queued DMA transfers */
+	#define CFA_WRITE_MULTI_WO_ERASE	0xCD /* CFA Write multiple without erase */
+	#define WIN_GETMEDIASTATUS		0xDA
+	#define WIN_ACKMEDIACHANGE		0xDB /* ATA-1, ATA-2 vendor */
+	#define WIN_POSTBOOT			0xDC
+	#define WIN_PREBOOT 			0xDD
+	#define WIN_DOORLOCK			0xDE /* lock door on removable drives */
+	#define WIN_DOORUNLOCK			0xDF /* unlock door on removable drives */
+	#define WIN_STANDBYNOW1			0xE0
+	#define WIN_IDLEIMMEDIATE		0xE1 /* force drive to become "ready" */
+	#define WIN_STANDBY			0xE2 /* Set device in Standby Mode */
+	#define WIN_SETIDLE1			0xE3
+	#define WIN_READ_BUFFER			0xE4 /* force read only 1 sector */
+	#define WIN_CHECKPOWERMODE1		0xE5
+	#define WIN_SLEEPNOW1			0xE6
+	#define WIN_FLUSH_CACHE			0xE7
+	#define WIN_WRITE_BUFFER		0xE8 /* force write only 1 sector */
+	#define WIN_WRITE_SAME			0xE9 /* read ata-2 to use */
 	/* SET_FEATURES 0x22 or 0xDD */
-#define WIN_FLUSH_CACHE_EXT		0xEA /* 48-Bit */
-#define WIN_IDENTIFY			0xEC /* ask drive to identify itself	*/
-#define WIN_MEDIAEJECT			0xED
-#define WIN_IDENTIFY_DMA		0xEE /* same as WIN_IDENTIFY, but DMA */
-#define WIN_SETFEATURES			0xEF /* set special drive features */
-#define EXABYTE_ENABLE_NEST		0xF0
-#define WIN_SECURITY_SET_PASS		0xF1
-#define WIN_SECURITY_UNLOCK		0xF2
-#define WIN_SECURITY_ERASE_PREPARE	0xF3
-#define WIN_SECURITY_ERASE_UNIT		0xF4
-#define WIN_SECURITY_FREEZE_LOCK	0xF5
-#define WIN_SECURITY_DISABLE		0xF6
-#define WIN_READ_NATIVE_MAX		0xF8 /* return the native maximum address */
-#define WIN_SET_MAX			0xF9
-#define DISABLE_SEAGATE			0xFB
+	#define WIN_FLUSH_CACHE_EXT		0xEA /* 48-Bit */
+	#define WIN_IDENTIFY			0xEC /* ask drive to identify itself	*/
+	#define WIN_MEDIAEJECT			0xED
+	#define WIN_IDENTIFY_DMA		0xEE /* same as WIN_IDENTIFY, but DMA */
+	#define WIN_SETFEATURES			0xEF /* set special drive features */
+	#define EXABYTE_ENABLE_NEST		0xF0
+	#define WIN_SECURITY_SET_PASS		0xF1
+	#define WIN_SECURITY_UNLOCK		0xF2
+	#define WIN_SECURITY_ERASE_PREPARE	0xF3
+	#define WIN_SECURITY_ERASE_UNIT		0xF4
+	#define WIN_SECURITY_FREEZE_LOCK	0xF5
+	#define WIN_SECURITY_DISABLE		0xF6
+	#define WIN_READ_NATIVE_MAX		0xF8 /* return the native maximum address */
+	#define WIN_SET_MAX			0xF9
+	#define DISABLE_SEAGATE			0xFB
 
-/* WIN_SMART sub-commands */
+	/* WIN_SMART sub-commands */
 
-#define SMART_READ_VALUES		0xD0
-#define SMART_READ_THRESHOLDS		0xD1
-#define SMART_AUTOSAVE			0xD2
-#define SMART_SAVE			0xD3
-#define SMART_IMMEDIATE_OFFLINE		0xD4
-#define SMART_READ_LOG_SECTOR		0xD5
-#define SMART_WRITE_LOG_SECTOR		0xD6
-#define SMART_WRITE_THRESHOLDS		0xD7
-#define SMART_ENABLE			0xD8
-#define SMART_DISABLE			0xD9
-#define SMART_STATUS			0xDA
-#define SMART_AUTO_OFFLINE		0xDB
+	#define SMART_READ_VALUES		0xD0
+	#define SMART_READ_THRESHOLDS		0xD1
+	#define SMART_AUTOSAVE			0xD2
+	#define SMART_SAVE			0xD3
+	#define SMART_IMMEDIATE_OFFLINE		0xD4
+	#define SMART_READ_LOG_SECTOR		0xD5
+	#define SMART_WRITE_LOG_SECTOR		0xD6
+	#define SMART_WRITE_THRESHOLDS		0xD7
+	#define SMART_ENABLE			0xD8
+	#define SMART_DISABLE			0xD9
+	#define SMART_STATUS			0xDA
+	#define SMART_AUTO_OFFLINE		0xDB
 
-/* Password used in TF4 & TF5 executing SMART commands */
+	/* Password used in TF4 & TF5 executing SMART commands */
 
-#define SMART_LCYL_PASS			0x4F
-#define SMART_HCYL_PASS			0xC2
+	#define SMART_LCYL_PASS			0x4F
+	#define SMART_HCYL_PASS			0xC2
 
-/* WIN_SETFEATURES sub-commands */
-#define SETFEATURES_EN_8BIT	0x01	/* Enable 8-Bit Transfers */
-#define SETFEATURES_EN_WCACHE	0x02	/* Enable write cache */
-#define SETFEATURES_DIS_DEFECT	0x04	/* Disable Defect Management */
-#define SETFEATURES_EN_APM	0x05	/* Enable advanced power management */
-#define SETFEATURES_EN_SAME_R	0x22	/* for a region ATA-1 */
-#define SETFEATURES_DIS_MSN	0x31	/* Disable Media Status Notification */
-#define SETFEATURES_DIS_RETRY	0x33	/* Disable Retry */
-#define SETFEATURES_EN_AAM	0x42	/* Enable Automatic Acoustic Management */
-#define SETFEATURES_RW_LONG	0x44	/* Set Length of VS bytes */
-#define SETFEATURES_SET_CACHE	0x54	/* Set Cache segments to SC Reg. Val */
-#define SETFEATURES_DIS_RLA	0x55	/* Disable read look-ahead feature */
-#define SETFEATURES_EN_RI	0x5D	/* Enable release interrupt */
-#define SETFEATURES_EN_SI	0x5E	/* Enable SERVICE interrupt */
-#define SETFEATURES_DIS_RPOD	0x66	/* Disable reverting to power on defaults */
-#define SETFEATURES_DIS_ECC	0x77	/* Disable ECC byte count */
-#define SETFEATURES_DIS_8BIT	0x81	/* Disable 8-Bit Transfers */
-#define SETFEATURES_DIS_WCACHE	0x82	/* Disable write cache */
-#define SETFEATURES_EN_DEFECT	0x84	/* Enable Defect Management */
-#define SETFEATURES_DIS_APM	0x85	/* Disable advanced power management */
-#define SETFEATURES_EN_ECC	0x88	/* Enable ECC byte count */
-#define SETFEATURES_EN_MSN	0x95	/* Enable Media Status Notification */
-#define SETFEATURES_EN_RETRY	0x99	/* Enable Retry */
-#define SETFEATURES_EN_RLA	0xAA	/* Enable read look-ahead feature */
-#define SETFEATURES_PREFETCH	0xAB	/* Sets drive prefetch value */
-#define SETFEATURES_EN_REST	0xAC	/* ATA-1 */
-#define SETFEATURES_4B_RW_LONG	0xBB	/* Set Length of 4 bytes */
-#define SETFEATURES_DIS_AAM	0xC2	/* Disable Automatic Acoustic Management */
-#define SETFEATURES_EN_RPOD	0xCC	/* Enable reverting to power on defaults */
-#define SETFEATURES_DIS_RI	0xDD	/* Disable release interrupt ATAPI */
-#define SETFEATURES_EN_SAME_M	0xDD	/* for a entire device ATA-1 */
-#define SETFEATURES_DIS_SI	0xDE	/* Disable SERVICE interrupt ATAPI */
+	/* WIN_SETFEATURES sub-commands */
+	#define SETFEATURES_EN_8BIT	0x01	/* Enable 8-Bit Transfers */
+	#define SETFEATURES_EN_WCACHE	0x02	/* Enable write cache */
+	#define SETFEATURES_DIS_DEFECT	0x04	/* Disable Defect Management */
+	#define SETFEATURES_EN_APM	0x05	/* Enable advanced power management */
+	#define SETFEATURES_EN_SAME_R	0x22	/* for a region ATA-1 */
+	#define SETFEATURES_DIS_MSN	0x31	/* Disable Media Status Notification */
+	#define SETFEATURES_DIS_RETRY	0x33	/* Disable Retry */
+	#define SETFEATURES_EN_AAM	0x42	/* Enable Automatic Acoustic Management */
+	#define SETFEATURES_RW_LONG	0x44	/* Set Length of VS bytes */
+	#define SETFEATURES_SET_CACHE	0x54	/* Set Cache segments to SC Reg. Val */
+	#define SETFEATURES_DIS_RLA	0x55	/* Disable read look-ahead feature */
+	#define SETFEATURES_EN_RI	0x5D	/* Enable release interrupt */
+	#define SETFEATURES_EN_SI	0x5E	/* Enable SERVICE interrupt */
+	#define SETFEATURES_DIS_RPOD	0x66	/* Disable reverting to power on defaults */
+	#define SETFEATURES_DIS_ECC	0x77	/* Disable ECC byte count */
+	#define SETFEATURES_DIS_8BIT	0x81	/* Disable 8-Bit Transfers */
+	#define SETFEATURES_DIS_WCACHE	0x82	/* Disable write cache */
+	#define SETFEATURES_EN_DEFECT	0x84	/* Enable Defect Management */
+	#define SETFEATURES_DIS_APM	0x85	/* Disable advanced power management */
+	#define SETFEATURES_EN_ECC	0x88	/* Enable ECC byte count */
+	#define SETFEATURES_EN_MSN	0x95	/* Enable Media Status Notification */
+	#define SETFEATURES_EN_RETRY	0x99	/* Enable Retry */
+	#define SETFEATURES_EN_RLA	0xAA	/* Enable read look-ahead feature */
+	#define SETFEATURES_PREFETCH	0xAB	/* Sets drive prefetch value */
+	#define SETFEATURES_EN_REST	0xAC	/* ATA-1 */
+	#define SETFEATURES_4B_RW_LONG	0xBB	/* Set Length of 4 bytes */
+	#define SETFEATURES_DIS_AAM	0xC2	/* Disable Automatic Acoustic Management */
+	#define SETFEATURES_EN_RPOD	0xCC	/* Enable reverting to power on defaults */
+	#define SETFEATURES_DIS_RI	0xDD	/* Disable release interrupt ATAPI */
+	#define SETFEATURES_EN_SAME_M	0xDD	/* for a entire device ATA-1 */
+	#define SETFEATURES_DIS_SI	0xDE	/* Disable SERVICE interrupt ATAPI */
 
-/* WIN_SECURITY sub-commands */
+	/* WIN_SECURITY sub-commands */
 
-#define SECURITY_SET_PASSWORD		0xBA
-#define SECURITY_UNLOCK			0xBB
-#define SECURITY_ERASE_PREPARE		0xBC
-#define SECURITY_ERASE_UNIT		0xBD
-#define SECURITY_FREEZE_LOCK		0xBE
-#define SECURITY_DISABLE_PASSWORD	0xBF
+	#define SECURITY_SET_PASSWORD		0xBA
+	#define SECURITY_UNLOCK			0xBB
+	#define SECURITY_ERASE_PREPARE		0xBC
+	#define SECURITY_ERASE_UNIT		0xBD
+	#define SECURITY_FREEZE_LOCK		0xBE
+	#define SECURITY_DISABLE_PASSWORD	0xBF
 #endif /* __KERNEL__ */
 
-struct hd_geometry {
-      unsigned char heads;
-      unsigned char sectors;
-      unsigned short cylinders;
-      unsigned long start;
+struct hd_geometry
+{
+	unsigned char heads;
+	unsigned char sectors;
+	unsigned short cylinders;
+	unsigned long start;
 };
 
 /* hd/ide ctl's that pass (arg) ptrs to user space are numbered 0x030n/0x031n */
@@ -363,8 +371,8 @@ struct hd_geometry {
 #define HDIO_SET_DMA		0x0326	/* change use-dma flag */
 #define HDIO_SET_PIO_MODE	0x0327	/* reconfig interface to new speed */
 #ifndef __KERNEL__
-#define HDIO_SCAN_HWIF		0x0328	/* register and (re)scan interface */
-#define HDIO_UNREGISTER_HWIF	0x032a  /* unregister interface */
+	#define HDIO_SCAN_HWIF		0x0328	/* register and (re)scan interface */
+	#define HDIO_UNREGISTER_HWIF	0x032a  /* unregister interface */
 #endif
 #define HDIO_SET_NICE		0x0329	/* set nice flags */
 #define HDIO_SET_WCACHE		0x032b	/* change write cache enable-disable */
@@ -374,7 +382,8 @@ struct hd_geometry {
 #define HDIO_SET_ADDRESS	0x032f	/* change lba addressing modes */
 
 /* bus states */
-enum {
+enum
+{
 	BUSSTATE_OFF = 0,
 	BUSSTATE_ON,
 	BUSSTATE_TRISTATE
@@ -395,7 +404,8 @@ enum {
  * If you change something here, please remember to update fix_driveid() in
  * ide/probe.c.
  */
-struct hd_driveid {
+struct hd_driveid
+{
 	unsigned short	config;		/* lots of obsolete bit flags */
 	unsigned short	cyls;		/* Obsolete, "physical" cyls */
 	unsigned short	reserved2;	/* reserved (word 2) */
@@ -651,8 +661,8 @@ struct hd_driveid {
 #define IDE_NICE_ATAPI_OVERLAP	(1)	/* not supported yet */
 #define IDE_NICE_1		(3)	/* when probably won't affect us much */
 #ifndef __KERNEL__
-#define IDE_NICE_0		(2)	/* when sure that it won't affect us */
-#define IDE_NICE_2		(4)	/* when we know it's on our expense */
+	#define IDE_NICE_0		(2)	/* when sure that it won't affect us */
+	#define IDE_NICE_2		(4)	/* when we know it's on our expense */
 #endif
 
 #endif	/* _LINUX_HDREG_H */

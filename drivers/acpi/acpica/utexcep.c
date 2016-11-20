@@ -70,12 +70,14 @@ const char *acpi_format_exception(acpi_status status)
 	ACPI_FUNCTION_ENTRY();
 
 	exception = acpi_ut_validate_exception(status);
-	if (!exception) {
+
+	if (!exception)
+	{
 
 		/* Exception code was not recognized */
 
 		ACPI_ERROR((AE_INFO,
-			    "Unknown exception code: 0x%8.8X", status));
+					"Unknown exception code: 0x%8.8X", status));
 
 		return ("UNKNOWN_STATUS_CODE");
 	}
@@ -110,48 +112,60 @@ const struct acpi_exception_info *acpi_ut_validate_exception(acpi_status status)
 	 */
 	sub_status = (status & ~AE_CODE_MASK);
 
-	switch (status & AE_CODE_MASK) {
-	case AE_CODE_ENVIRONMENTAL:
+	switch (status & AE_CODE_MASK)
+	{
+		case AE_CODE_ENVIRONMENTAL:
 
-		if (sub_status <= AE_CODE_ENV_MAX) {
-			exception = &acpi_gbl_exception_names_env[sub_status];
-		}
-		break;
+			if (sub_status <= AE_CODE_ENV_MAX)
+			{
+				exception = &acpi_gbl_exception_names_env[sub_status];
+			}
 
-	case AE_CODE_PROGRAMMER:
+			break;
 
-		if (sub_status <= AE_CODE_PGM_MAX) {
-			exception = &acpi_gbl_exception_names_pgm[sub_status];
-		}
-		break;
+		case AE_CODE_PROGRAMMER:
 
-	case AE_CODE_ACPI_TABLES:
+			if (sub_status <= AE_CODE_PGM_MAX)
+			{
+				exception = &acpi_gbl_exception_names_pgm[sub_status];
+			}
 
-		if (sub_status <= AE_CODE_TBL_MAX) {
-			exception = &acpi_gbl_exception_names_tbl[sub_status];
-		}
-		break;
+			break;
 
-	case AE_CODE_AML:
+		case AE_CODE_ACPI_TABLES:
 
-		if (sub_status <= AE_CODE_AML_MAX) {
-			exception = &acpi_gbl_exception_names_aml[sub_status];
-		}
-		break;
+			if (sub_status <= AE_CODE_TBL_MAX)
+			{
+				exception = &acpi_gbl_exception_names_tbl[sub_status];
+			}
 
-	case AE_CODE_CONTROL:
+			break;
 
-		if (sub_status <= AE_CODE_CTRL_MAX) {
-			exception = &acpi_gbl_exception_names_ctrl[sub_status];
-		}
-		break;
+		case AE_CODE_AML:
 
-	default:
+			if (sub_status <= AE_CODE_AML_MAX)
+			{
+				exception = &acpi_gbl_exception_names_aml[sub_status];
+			}
 
-		break;
+			break;
+
+		case AE_CODE_CONTROL:
+
+			if (sub_status <= AE_CODE_CTRL_MAX)
+			{
+				exception = &acpi_gbl_exception_names_ctrl[sub_status];
+			}
+
+			break;
+
+		default:
+
+			break;
 	}
 
-	if (!exception || !exception->name) {
+	if (!exception || !exception->name)
+	{
 		return (NULL);
 	}
 

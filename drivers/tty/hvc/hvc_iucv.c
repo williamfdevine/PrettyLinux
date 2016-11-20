@@ -40,7 +40,8 @@
 #define MSG_TYPE_WINSIZE	0x08	/* Terminal window size update */
 #define MSG_TYPE_DATA		0x10	/* Terminal data */
 
-struct iucv_tty_msg {
+struct iucv_tty_msg
+{
 	u8	version;		/* Message version */
 	u8	type;			/* Message type */
 #define MSG_MAX_DATALEN		((u16)(~0))
@@ -49,18 +50,21 @@ struct iucv_tty_msg {
 } __attribute__((packed));
 #define MSG_SIZE(s)		((s) + offsetof(struct iucv_tty_msg, data))
 
-enum iucv_state_t {
+enum iucv_state_t
+{
 	IUCV_DISCONN	= 0,
 	IUCV_CONNECTED	= 1,
 	IUCV_SEVERED	= 2,
 };
 
-enum tty_state_t {
+enum tty_state_t
+{
 	TTY_CLOSED	= 0,
 	TTY_OPENED	= 1,
 };
 
-struct hvc_iucv_private {
+struct hvc_iucv_private
+{
 	struct hvc_struct	*hvc;		/* HVC struct reference */
 	u8			srv_name[8];	/* IUCV service name (ebcdic) */
 	unsigned char		is_console;	/* Linux console usage flag */
@@ -80,7 +84,8 @@ struct hvc_iucv_private {
 	u8			info_path[16];	/* IUCV path info (dev attr) */
 };
 
-struct iucv_tty_buffer {
+struct iucv_tty_buffer
+{
 	struct list_head	list;	/* list pointer */
 	struct iucv_message	msg;	/* store an IUCV message */
 	size_t			offset;	/* data buffer offset */
@@ -113,7 +118,8 @@ static struct kmem_cache *hvc_iucv_buffer_cache;
 static mempool_t *hvc_iucv_mempool;
 
 /* IUCV handler callback functions */
-static struct iucv_handler hvc_iucv_handler = {
+static struct iucv_handler hvc_iucv_handler =
+{
 	.path_pending  = hvc_iucv_path_pending,
 	.path_severed  = hvc_iucv_path_severed,
 	.message_complete = hvc_iucv_msg_complete,
@@ -131,7 +137,10 @@ static struct iucv_handler hvc_iucv_handler = {
 static struct hvc_iucv_private *hvc_iucv_get_private(uint32_t num)
 {
 	if ((num < HVC_IUCV_MAGIC) || (num - HVC_IUCV_MAGIC > hvc_iucv_devices))
+	{
 		return NULL;
+	}
+
 	return hvc_iucv_table[num - HVC_IUCV_MAGIC];
 }
 
@@ -153,21 +162,30 @@ static struct iucv_tty_buffer *alloc_tty_buffer(size_t size, gfp_t flags)
 	struct iucv_tty_buffer *bufp;
 
 	bufp = mempool_alloc(hvc_iucv_mempool, flags);
+
 	if (!bufp)
+	{
 		return NULL;
+	}
+
 	memset(bufp, 0, sizeof(*bufp));
 
-	if (size > 0) {
+	if (size > 0)
+	{
 		bufp->msg.length = MSG_SIZE(size);
 		bufp->mbuf = kmalloc(bufp->msg.length, flags | GFP_DMA);
-		if (!bufp->mbuf) {
+
+		if (!bufp->mbuf)
+		{
 			mempool_free(bufp, hvc_iucv_mempool);
 			return NULL;
 		}
+
 		bufp->mbuf->version = MSG_VERSION;
 		bufp->mbuf->type    = MSG_TYPE_DATA;
 		bufp->mbuf->datalen = (u16) size;
 	}
+
 	return bufp;
 }
 
@@ -189,7 +207,8 @@ static void destroy_tty_buffer_list(struct list_head *list)
 {
 	struct iucv_tty_buffer *ent, *next;
 
-	list_for_each_entry_safe(ent, next, list, list) {
+	list_for_each_entry_safe(ent, next, list, list)
+	{
 		list_del(&ent->list);
 		destroy_tty_buffer(ent);
 	}
@@ -216,7 +235,7 @@ static void destroy_tty_buffer_list(struct list_head *list)
  * hang up (that is issued by the HVC layer).
  */
 static int hvc_iucv_write(struct hvc_iucv_private *priv,
-			  char *buf, int count, int *has_more_data)
+						  char *buf, int count, int *has_more_data)
 {
 	struct iucv_tty_buffer *rb;
 	int written;
@@ -224,69 +243,94 @@ static int hvc_iucv_write(struct hvc_iucv_private *priv,
 
 	/* immediately return if there is no IUCV connection */
 	if (priv->iucv_state == IUCV_DISCONN)
+	{
 		return 0;
+	}
 
 	/* if the IUCV path has been severed, return -EPIPE to inform the
 	 * HVC layer to hang up the tty device. */
 	if (priv->iucv_state == IUCV_SEVERED)
+	{
 		return -EPIPE;
+	}
 
 	/* check if there are pending messages */
 	if (list_empty(&priv->tty_inqueue))
+	{
 		return 0;
+	}
 
 	/* receive an iucv message and flip data to the tty (ldisc) */
 	rb = list_first_entry(&priv->tty_inqueue, struct iucv_tty_buffer, list);
 
 	written = 0;
-	if (!rb->mbuf) { /* message not yet received ... */
+
+	if (!rb->mbuf)   /* message not yet received ... */
+	{
 		/* allocate mem to store msg data; if no memory is available
 		 * then leave the buffer on the list and re-try later */
 		rb->mbuf = kmalloc(rb->msg.length, GFP_ATOMIC | GFP_DMA);
+
 		if (!rb->mbuf)
+		{
 			return -ENOMEM;
+		}
 
 		rc = __iucv_message_receive(priv->path, &rb->msg, 0,
-					    rb->mbuf, rb->msg.length, NULL);
-		switch (rc) {
-		case 0: /* Successful	    */
-			break;
-		case 2:	/* No message found */
-		case 9: /* Message purged   */
-			break;
-		default:
-			written = -EIO;
+									rb->mbuf, rb->msg.length, NULL);
+
+		switch (rc)
+		{
+			case 0: /* Successful	    */
+				break;
+
+			case 2:	/* No message found */
+			case 9: /* Message purged   */
+				break;
+
+			default:
+				written = -EIO;
 		}
+
 		/* remove buffer if an error has occurred or received data
 		 * is not correct */
 		if (rc || (rb->mbuf->version != MSG_VERSION) ||
-			  (rb->msg.length    != MSG_SIZE(rb->mbuf->datalen)))
+			(rb->msg.length    != MSG_SIZE(rb->mbuf->datalen)))
+		{
 			goto out_remove_buffer;
+		}
 	}
 
-	switch (rb->mbuf->type) {
-	case MSG_TYPE_DATA:
-		written = min_t(int, rb->mbuf->datalen - rb->offset, count);
-		memcpy(buf, rb->mbuf->data + rb->offset, written);
-		if (written < (rb->mbuf->datalen - rb->offset)) {
-			rb->offset += written;
-			*has_more_data = 1;
-			goto out_written;
-		}
-		break;
+	switch (rb->mbuf->type)
+	{
+		case MSG_TYPE_DATA:
+			written = min_t(int, rb->mbuf->datalen - rb->offset, count);
+			memcpy(buf, rb->mbuf->data + rb->offset, written);
 
-	case MSG_TYPE_WINSIZE:
-		if (rb->mbuf->datalen != sizeof(struct winsize))
+			if (written < (rb->mbuf->datalen - rb->offset))
+			{
+				rb->offset += written;
+				*has_more_data = 1;
+				goto out_written;
+			}
+
 			break;
-		/* The caller must ensure that the hvc is locked, which
-		 * is the case when called from hvc_iucv_get_chars() */
-		__hvc_resize(priv->hvc, *((struct winsize *) rb->mbuf->data));
-		break;
 
-	case MSG_TYPE_ERROR:	/* ignored ... */
-	case MSG_TYPE_TERMENV:	/* ignored ... */
-	case MSG_TYPE_TERMIOS:	/* ignored ... */
-		break;
+		case MSG_TYPE_WINSIZE:
+			if (rb->mbuf->datalen != sizeof(struct winsize))
+			{
+				break;
+			}
+
+			/* The caller must ensure that the hvc is locked, which
+			 * is the case when called from hvc_iucv_get_chars() */
+			__hvc_resize(priv->hvc, *((struct winsize *) rb->mbuf->data));
+			break;
+
+		case MSG_TYPE_ERROR:	/* ignored ... */
+		case MSG_TYPE_TERMENV:	/* ignored ... */
+		case MSG_TYPE_TERMIOS:	/* ignored ... */
+			break;
 	}
 
 out_remove_buffer:
@@ -319,10 +363,14 @@ static int hvc_iucv_get_chars(uint32_t vtermno, char *buf, int count)
 	int has_more_data;
 
 	if (count <= 0)
+	{
 		return 0;
+	}
 
 	if (!priv)
+	{
 		return -ENODEV;
+	}
 
 	spin_lock(&priv->lock);
 	has_more_data = 0;
@@ -331,7 +379,9 @@ static int hvc_iucv_get_chars(uint32_t vtermno, char *buf, int count)
 
 	/* if there are still messages on the queue... schedule another run */
 	if (has_more_data)
+	{
 		hvc_kick();
+	}
 
 	return written;
 }
@@ -353,25 +403,34 @@ static int hvc_iucv_get_chars(uint32_t vtermno, char *buf, int count)
  * (that can be passed to HVC layer to cause a tty hangup).
  */
 static int hvc_iucv_queue(struct hvc_iucv_private *priv, const char *buf,
-			  int count)
+						  int count)
 {
 	size_t len;
 
 	if (priv->iucv_state == IUCV_DISCONN)
-		return count;			/* ignore data */
+	{
+		return count;    /* ignore data */
+	}
 
 	if (priv->iucv_state == IUCV_SEVERED)
+	{
 		return -EPIPE;
+	}
 
 	len = min_t(size_t, count, SNDBUF_SIZE - priv->sndbuf_len);
+
 	if (!len)
+	{
 		return 0;
+	}
 
 	memcpy(priv->sndbuf + priv->sndbuf_len, buf, len);
 	priv->sndbuf_len += len;
 
 	if (priv->iucv_state == IUCV_CONNECTED)
+	{
 		schedule_delayed_work(&priv->sndbuf_work, QUEUE_SNDBUF_DELAY);
+	}
 
 	return len;
 }
@@ -391,19 +450,28 @@ static int hvc_iucv_send(struct hvc_iucv_private *priv)
 	int rc, len;
 
 	if (priv->iucv_state == IUCV_SEVERED)
+	{
 		return -EPIPE;
+	}
 
 	if (priv->iucv_state == IUCV_DISCONN)
+	{
 		return -EIO;
+	}
 
 	if (!priv->sndbuf_len)
+	{
 		return 0;
+	}
 
 	/* allocate internal buffer to store msg data and also compute total
 	 * message length */
 	sb = alloc_tty_buffer(priv->sndbuf_len, GFP_ATOMIC);
+
 	if (!sb)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(sb->mbuf->data, priv->sndbuf, priv->sndbuf_len);
 	sb->mbuf->datalen = (u16) priv->sndbuf_len;
@@ -412,13 +480,16 @@ static int hvc_iucv_send(struct hvc_iucv_private *priv)
 	list_add_tail(&sb->list, &priv->tty_outqueue);
 
 	rc = __iucv_message_send(priv->path, &sb->msg, 0, 0,
-				 (void *) sb->mbuf, sb->msg.length);
-	if (rc) {
+							 (void *) sb->mbuf, sb->msg.length);
+
+	if (rc)
+	{
 		/* drop the message here; however we might want to handle
 		 * 0x03 (msg limit reached) by trying again... */
 		list_del(&sb->list);
 		destroy_tty_buffer(sb);
 	}
+
 	len = priv->sndbuf_len;
 	priv->sndbuf_len = 0;
 
@@ -437,8 +508,11 @@ static void hvc_iucv_sndbuf_work(struct work_struct *work)
 	struct hvc_iucv_private *priv;
 
 	priv = container_of(work, struct hvc_iucv_private, sndbuf_work.work);
+
 	if (!priv)
+	{
 		return;
+	}
 
 	spin_lock_bh(&priv->lock);
 	hvc_iucv_send(priv);
@@ -463,10 +537,14 @@ static int hvc_iucv_put_chars(uint32_t vtermno, const char *buf, int count)
 	int queued;
 
 	if (count <= 0)
+	{
 		return 0;
+	}
 
 	if (!priv)
+	{
 		return -ENODEV;
+	}
 
 	spin_lock(&priv->lock);
 	queued = hvc_iucv_queue(priv, buf, count);
@@ -491,8 +569,11 @@ static int hvc_iucv_notifier_add(struct hvc_struct *hp, int id)
 	struct hvc_iucv_private *priv;
 
 	priv = hvc_iucv_get_private(id);
+
 	if (!priv)
+	{
 		return 0;
+	}
 
 	spin_lock_bh(&priv->lock);
 	priv->tty_state = TTY_OPENED;
@@ -551,7 +632,7 @@ static void flush_sndbuf_sync(struct hvc_iucv_private *priv)
 
 	if (sync_wait)
 		wait_event_timeout(priv->sndbuf_waitq,
-				   tty_outqueue_empty(priv), HZ/10);
+						   tty_outqueue_empty(priv), HZ / 10);
 }
 
 /**
@@ -592,24 +673,36 @@ static void hvc_iucv_hangup(struct hvc_iucv_private *priv)
 
 	path = NULL;
 	spin_lock(&priv->lock);
-	if (priv->iucv_state == IUCV_CONNECTED) {
+
+	if (priv->iucv_state == IUCV_CONNECTED)
+	{
 		path = priv->path;
 		priv->path = NULL;
 		priv->iucv_state = IUCV_SEVERED;
+
 		if (priv->tty_state == TTY_CLOSED)
+		{
 			hvc_iucv_cleanup(priv);
+		}
 		else
+
 			/* console is special (see above) */
-			if (priv->is_console) {
+			if (priv->is_console)
+			{
 				hvc_iucv_cleanup(priv);
 				priv->tty_state = TTY_OPENED;
-			} else
+			}
+			else
+			{
 				hvc_kick();
+			}
 	}
+
 	spin_unlock(&priv->lock);
 
 	/* finally sever path (outside of priv->lock due to lock ordering) */
-	if (path) {
+	if (path)
+	{
 		iucv_path_sever(path, NULL);
 		iucv_path_free(path);
 	}
@@ -637,8 +730,11 @@ static void hvc_iucv_notifier_hangup(struct hvc_struct *hp, int id)
 	struct hvc_iucv_private *priv;
 
 	priv = hvc_iucv_get_private(id);
+
 	if (!priv)
+	{
 		return;
+	}
 
 	flush_sndbuf_sync(priv);
 
@@ -653,7 +749,10 @@ static void hvc_iucv_notifier_hangup(struct hvc_struct *hp, int id)
 	priv->tty_state = TTY_CLOSED;
 
 	if (priv->iucv_state == IUCV_SEVERED)
+	{
 		hvc_iucv_cleanup(priv);
+	}
+
 	spin_unlock_bh(&priv->lock);
 }
 
@@ -675,11 +774,16 @@ static void hvc_iucv_dtr_rts(struct hvc_struct *hp, int raise)
 	 * established at any times.
 	 */
 	if (raise)
+	{
 		return;
+	}
 
 	priv = hvc_iucv_get_private(hp->vtermno);
+
 	if (!priv)
+	{
 		return;
+	}
 
 	/* Lowering the DTR/RTS lines disconnects an established IUCV
 	 * connection.
@@ -694,7 +798,8 @@ static void hvc_iucv_dtr_rts(struct hvc_struct *hp, int raise)
 
 	/* Sever IUCV path outside of priv->lock due to lock ordering of:
 	 * priv->lock <--> iucv_table_lock */
-	if (path) {
+	if (path)
+	{
 		iucv_path_sever(path, NULL);
 		iucv_path_free(path);
 	}
@@ -718,8 +823,11 @@ static void hvc_iucv_notifier_del(struct hvc_struct *hp, int id)
 	struct hvc_iucv_private *priv;
 
 	priv = hvc_iucv_get_private(id);
+
 	if (!priv)
+	{
 		return;
+	}
 
 	flush_sndbuf_sync(priv);
 
@@ -745,9 +853,12 @@ static int hvc_iucv_filter_connreq(u8 ipvmid[8])
 
 	/* Note: default policy is ACCEPT if no filter is set */
 	if (!hvc_iucv_filter_size)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < hvc_iucv_filter_size; i++) {
+	for (i = 0; i < hvc_iucv_filter_size; i++)
+	{
 		filter_entry = hvc_iucv_filter + (8 * i);
 
 		/* If a filter entry contains the filter wildcard character,
@@ -757,9 +868,13 @@ static int hvc_iucv_filter_connreq(u8 ipvmid[8])
 		 */
 		wildcard = strnchr(filter_entry, 8, FILTER_WILDCARD_CHAR);
 		len = (wildcard) ? wildcard - filter_entry : 8;
+
 		if (0 == memcmp(ipvmid, filter_entry, len))
+		{
 			return 0;
+		}
 	}
+
 	return 1;
 }
 
@@ -783,7 +898,7 @@ static int hvc_iucv_filter_connreq(u8 ipvmid[8])
  * Locking:	struct hvc_iucv_private->lock
  */
 static	int hvc_iucv_path_pending(struct iucv_path *path, u8 *ipvmid,
-				  u8 *ipuser)
+								  u8 *ipuser)
 {
 	struct hvc_iucv_private *priv, *tmp;
 	u8 wildcard[9] = "lnxhvc  ";
@@ -800,36 +915,57 @@ static	int hvc_iucv_path_pending(struct iucv_path *path, u8 *ipvmid,
 	 * - find the device that matches the terminal ID in ipuser
 	 */
 	priv = NULL;
-	for (i = 0; i < hvc_iucv_devices; i++) {
-		tmp = hvc_iucv_table[i];
-		if (!tmp)
-			continue;
 
-		if (find_unused) {
+	for (i = 0; i < hvc_iucv_devices; i++)
+	{
+		tmp = hvc_iucv_table[i];
+
+		if (!tmp)
+		{
+			continue;
+		}
+
+		if (find_unused)
+		{
 			spin_lock(&tmp->lock);
+
 			if (tmp->iucv_state == IUCV_DISCONN)
+			{
 				priv = tmp;
+			}
+
 			spin_unlock(&tmp->lock);
 
-		} else if (!memcmp(tmp->srv_name, ipuser, 8))
-				priv = tmp;
+		}
+		else if (!memcmp(tmp->srv_name, ipuser, 8))
+		{
+			priv = tmp;
+		}
+
 		if (priv)
+		{
 			break;
+		}
 	}
+
 	if (!priv)
+	{
 		return -ENODEV;
+	}
 
 	/* Enforce that ipvmid is allowed to connect to us */
 	read_lock(&hvc_iucv_filter_lock);
 	rc = hvc_iucv_filter_connreq(ipvmid);
 	read_unlock(&hvc_iucv_filter_lock);
-	if (rc) {
+
+	if (rc)
+	{
 		iucv_path_sever(path, ipuser);
 		iucv_path_free(path);
 		memcpy(vm_user_id, ipvmid, 8);
 		vm_user_id[8] = 0;
 		pr_info("A connection request from z/VM user ID %s "
-			"was refused\n", vm_user_id);
+				"was refused\n", vm_user_id);
 		return 0;
 	}
 
@@ -838,7 +974,8 @@ static	int hvc_iucv_path_pending(struct iucv_path *path, u8 *ipvmid,
 	/* If the terminal is already connected or being severed, then sever
 	 * this path to enforce that there is only ONE established communication
 	 * path per terminal. */
-	if (priv->iucv_state != IUCV_DISCONN) {
+	if (priv->iucv_state != IUCV_DISCONN)
+	{
 		iucv_path_sever(path, ipuser);
 		iucv_path_free(path);
 		goto out_path_handled;
@@ -850,11 +987,14 @@ static	int hvc_iucv_path_pending(struct iucv_path *path, u8 *ipvmid,
 	path->msglim = 0xffff;		    /* IUCV MSGLIMIT */
 	path->flags &= ~IUCV_IPRMDATA;	    /* TODO: use IUCV_IPRMDATA */
 	rc = iucv_path_accept(path, &hvc_iucv_handler, nuser_data, priv);
-	if (rc) {
+
+	if (rc)
+	{
 		iucv_path_sever(path, ipuser);
 		iucv_path_free(path);
 		goto out_path_handled;
 	}
+
 	priv->path = path;
 	priv->iucv_state = IUCV_CONNECTED;
 
@@ -900,13 +1040,14 @@ static void hvc_iucv_path_severed(struct iucv_path *path, u8 *ipuser)
  * Locking:	struct hvc_iucv_private->lock
  */
 static void hvc_iucv_msg_pending(struct iucv_path *path,
-				 struct iucv_message *msg)
+								 struct iucv_message *msg)
 {
 	struct hvc_iucv_private *priv = path->private;
 	struct iucv_tty_buffer *rb;
 
 	/* reject messages that exceed max size of iucv_tty_msg->datalen */
-	if (msg->length > MSG_SIZE(MSG_MAX_DATALEN)) {
+	if (msg->length > MSG_SIZE(MSG_MAX_DATALEN))
+	{
 		iucv_message_reject(path, msg);
 		return;
 	}
@@ -914,17 +1055,21 @@ static void hvc_iucv_msg_pending(struct iucv_path *path,
 	spin_lock(&priv->lock);
 
 	/* reject messages if tty has not yet been opened */
-	if (priv->tty_state == TTY_CLOSED) {
+	if (priv->tty_state == TTY_CLOSED)
+	{
 		iucv_message_reject(path, msg);
 		goto unlock_return;
 	}
 
 	/* allocate tty buffer to save iucv msg only */
 	rb = alloc_tty_buffer(0, GFP_ATOMIC);
-	if (!rb) {
+
+	if (!rb)
+	{
 		iucv_message_reject(path, msg);
 		goto unlock_return;	/* -ENOMEM */
 	}
+
 	rb->msg = *msg;
 
 	list_add_tail(&rb->list, &priv->tty_inqueue);
@@ -948,7 +1093,7 @@ unlock_return:
  * Locking:	struct hvc_iucv_private->lock
  */
 static void hvc_iucv_msg_complete(struct iucv_path *path,
-				  struct iucv_message *msg)
+								  struct iucv_message *msg)
 {
 	struct hvc_iucv_private *priv = path->private;
 	struct iucv_tty_buffer	*ent, *next;
@@ -956,10 +1101,13 @@ static void hvc_iucv_msg_complete(struct iucv_path *path,
 
 	spin_lock(&priv->lock);
 	list_for_each_entry_safe(ent, next, &priv->tty_outqueue, list)
-		if (ent->msg.id == msg->id) {
-			list_move(&ent->list, &list_remove);
-			break;
-		}
+
+	if (ent->msg.id == msg->id)
+	{
+		list_move(&ent->list, &list_remove);
+		break;
+	}
+
 	wake_up(&priv->sndbuf_waitq);
 	spin_unlock(&priv->lock);
 	destroy_tty_buffer_list(&list_remove);
@@ -997,8 +1145,8 @@ static int hvc_iucv_pm_restore_thaw(struct device *dev)
 }
 
 static ssize_t hvc_iucv_dev_termid_show(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
+										struct device_attribute *attr,
+										char *buf)
 {
 	struct hvc_iucv_private *priv = dev_get_drvdata(dev);
 	size_t len;
@@ -1011,16 +1159,16 @@ static ssize_t hvc_iucv_dev_termid_show(struct device *dev,
 }
 
 static ssize_t hvc_iucv_dev_state_show(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
+									   struct device_attribute *attr,
+									   char *buf)
 {
 	struct hvc_iucv_private *priv = dev_get_drvdata(dev);
 	return sprintf(buf, "%u:%u\n", priv->iucv_state, priv->tty_state);
 }
 
 static ssize_t hvc_iucv_dev_peer_show(struct device *dev,
-				      struct device_attribute *attr,
-				      char *buf)
+									  struct device_attribute *attr,
+									  char *buf)
 {
 	struct hvc_iucv_private *priv = dev_get_drvdata(dev);
 	char vmid[9], ipuser[9];
@@ -1029,10 +1177,13 @@ static ssize_t hvc_iucv_dev_peer_show(struct device *dev,
 	memset(ipuser, 0, sizeof(ipuser));
 
 	spin_lock_bh(&priv->lock);
-	if (priv->iucv_state == IUCV_CONNECTED) {
+
+	if (priv->iucv_state == IUCV_CONNECTED)
+	{
 		memcpy(vmid, priv->info_path, 8);
 		memcpy(ipuser, priv->info_path + 8, 8);
 	}
+
 	spin_unlock_bh(&priv->lock);
 	EBCASC(ipuser, 8);
 
@@ -1041,7 +1192,8 @@ static ssize_t hvc_iucv_dev_peer_show(struct device *dev,
 
 
 /* HVC operations */
-static const struct hv_ops hvc_iucv_ops = {
+static const struct hv_ops hvc_iucv_ops =
+{
 	.get_chars = hvc_iucv_get_chars,
 	.put_chars = hvc_iucv_put_chars,
 	.notifier_add = hvc_iucv_notifier_add,
@@ -1051,14 +1203,16 @@ static const struct hv_ops hvc_iucv_ops = {
 };
 
 /* Suspend / resume device operations */
-static const struct dev_pm_ops hvc_iucv_pm_ops = {
+static const struct dev_pm_ops hvc_iucv_pm_ops =
+{
 	.freeze	  = hvc_iucv_pm_freeze,
 	.thaw	  = hvc_iucv_pm_restore_thaw,
 	.restore  = hvc_iucv_pm_restore_thaw,
 };
 
 /* IUCV HVC device driver */
-static struct device_driver hvc_iucv_driver = {
+static struct device_driver hvc_iucv_driver =
+{
 	.name = KMSG_COMPONENT,
 	.bus  = &iucv_bus,
 	.pm   = &hvc_iucv_pm_ops,
@@ -1068,16 +1222,19 @@ static struct device_driver hvc_iucv_driver = {
 static DEVICE_ATTR(termid, 0640, hvc_iucv_dev_termid_show, NULL);
 static DEVICE_ATTR(state, 0640, hvc_iucv_dev_state_show, NULL);
 static DEVICE_ATTR(peer, 0640, hvc_iucv_dev_peer_show, NULL);
-static struct attribute *hvc_iucv_dev_attrs[] = {
+static struct attribute *hvc_iucv_dev_attrs[] =
+{
 	&dev_attr_termid.attr,
 	&dev_attr_state.attr,
 	&dev_attr_peer.attr,
 	NULL,
 };
-static struct attribute_group hvc_iucv_dev_attr_group = {
+static struct attribute_group hvc_iucv_dev_attr_group =
+{
 	.attrs = hvc_iucv_dev_attrs,
 };
-static const struct attribute_group *hvc_iucv_dev_attr_groups[] = {
+static const struct attribute_group *hvc_iucv_dev_attr_groups[] =
+{
 	&hvc_iucv_dev_attr_group,
 	NULL,
 };
@@ -1099,8 +1256,11 @@ static int __init hvc_iucv_alloc(int id, unsigned int is_console)
 	int rc;
 
 	priv = kzalloc(sizeof(struct hvc_iucv_private), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&priv->lock);
 	INIT_LIST_HEAD(&priv->tty_outqueue);
@@ -1109,7 +1269,9 @@ static int __init hvc_iucv_alloc(int id, unsigned int is_console)
 	init_waitqueue_head(&priv->sndbuf_waitq);
 
 	priv->sndbuf = (void *) get_zeroed_page(GFP_KERNEL);
-	if (!priv->sndbuf) {
+
+	if (!priv->sndbuf)
+	{
 		kfree(priv);
 		return -ENOMEM;
 	}
@@ -1119,8 +1281,10 @@ static int __init hvc_iucv_alloc(int id, unsigned int is_console)
 
 	/* allocate hvc device */
 	priv->hvc = hvc_alloc(HVC_IUCV_MAGIC + id, /*		  PAGE_SIZE */
-			      HVC_IUCV_MAGIC + id, &hvc_iucv_ops, 256);
-	if (IS_ERR(priv->hvc)) {
+						  HVC_IUCV_MAGIC + id, &hvc_iucv_ops, 256);
+
+	if (IS_ERR(priv->hvc))
+	{
 		rc = PTR_ERR(priv->hvc);
 		goto out_error_hvc;
 	}
@@ -1135,10 +1299,13 @@ static int __init hvc_iucv_alloc(int id, unsigned int is_console)
 
 	/* create and setup device */
 	priv->dev = kzalloc(sizeof(*priv->dev), GFP_KERNEL);
-	if (!priv->dev) {
+
+	if (!priv->dev)
+	{
 		rc = -ENOMEM;
 		goto out_error_dev;
 	}
+
 	dev_set_name(priv->dev, "hvc_iucv%d", id);
 	dev_set_drvdata(priv->dev, priv);
 	priv->dev->bus = &iucv_bus;
@@ -1147,7 +1314,9 @@ static int __init hvc_iucv_alloc(int id, unsigned int is_console)
 	priv->dev->groups = hvc_iucv_dev_attr_groups;
 	priv->dev->release = (void (*)(struct device *)) kfree;
 	rc = device_register(priv->dev);
-	if (rc) {
+
+	if (rc)
+	{
 		put_device(priv->dev);
 		goto out_error_dev;
 	}
@@ -1186,32 +1355,48 @@ static const char *hvc_iucv_parse_filter(const char *filter, char *dest)
 	size_t len;
 
 	nextdelim = strchr(filter, ',');
-	if (nextdelim) {
+
+	if (nextdelim)
+	{
 		len = nextdelim - filter;
 		residual = nextdelim + 1;
-	} else {
+	}
+	else
+	{
 		len = strlen(filter);
 		residual = filter + len;
 	}
 
 	if (len == 0)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* check for '\n' (if called from sysfs) */
 	if (filter[len - 1] == '\n')
+	{
 		len--;
+	}
 
 	/* prohibit filter entries containing the wildcard character only */
 	if (len == 1 && *filter == FILTER_WILDCARD_CHAR)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (len > 8)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* pad with blanks and save upper case version of user ID */
 	memset(dest, ' ', 8);
+
 	while (len--)
+	{
 		dest[len] = toupper(filter[len]);
+	}
+
 	return residual;
 }
 
@@ -1233,7 +1418,9 @@ static int hvc_iucv_setup_filter(const char *val)
 	void *array, *old_filter;
 
 	count = strlen(val);
-	if (count == 0 || (count == 1 && val[0] == '\n')) {
+
+	if (count == 0 || (count == 1 && val[0] == '\n'))
+	{
 		size  = 0;
 		array = NULL;
 		goto out_replace_filter;	/* clear filter */
@@ -1242,29 +1429,41 @@ static int hvc_iucv_setup_filter(const char *val)
 	/* count user IDs in order to allocate sufficient memory */
 	size = 1;
 	residual = val;
-	while ((residual = strchr(residual, ',')) != NULL) {
+
+	while ((residual = strchr(residual, ',')) != NULL)
+	{
 		residual++;
 		size++;
 	}
 
 	/* check if the specified list exceeds the filter limit */
 	if (size > MAX_VMID_FILTER)
+	{
 		return -ENOSPC;
+	}
 
 	array = kzalloc(size * 8, GFP_KERNEL);
+
 	if (!array)
+	{
 		return -ENOMEM;
+	}
 
 	count = size;
 	residual = val;
-	while (*residual && count) {
+
+	while (*residual && count)
+	{
 		residual = hvc_iucv_parse_filter(residual,
-						 array + ((size - count) * 8));
-		if (IS_ERR(residual)) {
+										 array + ((size - count) * 8));
+
+		if (IS_ERR(residual))
+		{
 			err = PTR_ERR(residual);
 			kfree(array);
 			goto out_err;
 		}
+
 		count--;
 	}
 
@@ -1296,16 +1495,26 @@ static int param_set_vmidfilter(const char *val, const struct kernel_param *kp)
 	int rc;
 
 	if (!MACHINE_IS_VM || !hvc_iucv_devices)
+	{
 		return -ENODEV;
+	}
 
 	if (!val)
+	{
 		return -EINVAL;
+	}
 
 	rc = 0;
+
 	if (slab_is_available())
+	{
 		rc = hvc_iucv_setup_filter(val);
+	}
 	else
-		hvc_iucv_filter_string = val;	/* defer... */
+	{
+		hvc_iucv_filter_string = val;    /* defer... */
+	}
+
 	return rc;
 }
 
@@ -1325,11 +1534,15 @@ static int param_get_vmidfilter(char *buffer, const struct kernel_param *kp)
 	void *start, *end;
 
 	if (!MACHINE_IS_VM || !hvc_iucv_devices)
+	{
 		return -ENODEV;
+	}
 
 	rc = 0;
 	read_lock_bh(&hvc_iucv_filter_lock);
-	for (index = 0; index < hvc_iucv_filter_size; index++) {
+
+	for (index = 0; index < hvc_iucv_filter_size; index++)
+	{
 		start = hvc_iucv_filter + (8 * index);
 		end   = memchr(start, ' ', 8);
 		len   = (end) ? end - start : 8;
@@ -1337,15 +1550,21 @@ static int param_get_vmidfilter(char *buffer, const struct kernel_param *kp)
 		rc += len;
 		buffer[rc++] = ',';
 	}
+
 	read_unlock_bh(&hvc_iucv_filter_lock);
+
 	if (rc)
-		buffer[--rc] = '\0';	/* replace last comma and update rc */
+	{
+		buffer[--rc] = '\0';    /* replace last comma and update rc */
+	}
+
 	return rc;
 }
 
 #define param_check_vmidfilter(name, p) __param_check(name, p, void)
 
-static const struct kernel_param_ops param_ops_vmidfilter = {
+static const struct kernel_param_ops param_ops_vmidfilter =
+{
 	.set = param_set_vmidfilter,
 	.get = param_get_vmidfilter,
 };
@@ -1359,62 +1578,80 @@ static int __init hvc_iucv_init(void)
 	unsigned int i;
 
 	if (!hvc_iucv_devices)
+	{
 		return -ENODEV;
+	}
 
-	if (!MACHINE_IS_VM) {
+	if (!MACHINE_IS_VM)
+	{
 		pr_notice("The z/VM IUCV HVC device driver cannot "
-			   "be used without z/VM\n");
+				  "be used without z/VM\n");
 		rc = -ENODEV;
 		goto out_error;
 	}
 
-	if (hvc_iucv_devices > MAX_HVC_IUCV_LINES) {
+	if (hvc_iucv_devices > MAX_HVC_IUCV_LINES)
+	{
 		pr_err("%lu is not a valid value for the hvc_iucv= "
-			"kernel parameter\n", hvc_iucv_devices);
+			   "kernel parameter\n", hvc_iucv_devices);
 		rc = -EINVAL;
 		goto out_error;
 	}
 
 	/* register IUCV HVC device driver */
 	rc = driver_register(&hvc_iucv_driver);
+
 	if (rc)
+	{
 		goto out_error;
+	}
 
 	/* parse hvc_iucv_allow string and create z/VM user ID filter list */
-	if (hvc_iucv_filter_string) {
+	if (hvc_iucv_filter_string)
+	{
 		rc = hvc_iucv_setup_filter(hvc_iucv_filter_string);
-		switch (rc) {
-		case 0:
-			break;
-		case -ENOMEM:
-			pr_err("Allocating memory failed with "
-				"reason code=%d\n", 3);
-			goto out_error;
-		case -EINVAL:
-			pr_err("hvc_iucv_allow= does not specify a valid "
-				"z/VM user ID list\n");
-			goto out_error;
-		case -ENOSPC:
-			pr_err("hvc_iucv_allow= specifies too many "
-				"z/VM user IDs\n");
-			goto out_error;
-		default:
-			goto out_error;
+
+		switch (rc)
+		{
+			case 0:
+				break;
+
+			case -ENOMEM:
+				pr_err("Allocating memory failed with "
+					   "reason code=%d\n", 3);
+				goto out_error;
+
+			case -EINVAL:
+				pr_err("hvc_iucv_allow= does not specify a valid "
+					   "z/VM user ID list\n");
+				goto out_error;
+
+			case -ENOSPC:
+				pr_err("hvc_iucv_allow= specifies too many "
+					   "z/VM user IDs\n");
+				goto out_error;
+
+			default:
+				goto out_error;
 		}
 	}
 
 	hvc_iucv_buffer_cache = kmem_cache_create(KMSG_COMPONENT,
-					   sizeof(struct iucv_tty_buffer),
-					   0, 0, NULL);
-	if (!hvc_iucv_buffer_cache) {
+							sizeof(struct iucv_tty_buffer),
+							0, 0, NULL);
+
+	if (!hvc_iucv_buffer_cache)
+	{
 		pr_err("Allocating memory failed with reason code=%d\n", 1);
 		rc = -ENOMEM;
 		goto out_error;
 	}
 
 	hvc_iucv_mempool = mempool_create_slab_pool(MEMPOOL_MIN_NR,
-						    hvc_iucv_buffer_cache);
-	if (!hvc_iucv_mempool) {
+					   hvc_iucv_buffer_cache);
+
+	if (!hvc_iucv_mempool)
+	{
 		pr_err("Allocating memory failed with reason code=%d\n", 2);
 		kmem_cache_destroy(hvc_iucv_buffer_cache);
 		rc = -ENOMEM;
@@ -1424,36 +1661,47 @@ static int __init hvc_iucv_init(void)
 	/* register the first terminal device as console
 	 * (must be done before allocating hvc terminal devices) */
 	rc = hvc_instantiate(HVC_IUCV_MAGIC, IUCV_HVC_CON_IDX, &hvc_iucv_ops);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_err("Registering HVC terminal device as "
-		       "Linux console failed\n");
+			   "Linux console failed\n");
 		goto out_error_memory;
 	}
 
 	/* allocate hvc_iucv_private structs */
-	for (i = 0; i < hvc_iucv_devices; i++) {
+	for (i = 0; i < hvc_iucv_devices; i++)
+	{
 		rc = hvc_iucv_alloc(i, (i == IUCV_HVC_CON_IDX) ? 1 : 0);
-		if (rc) {
+
+		if (rc)
+		{
 			pr_err("Creating a new HVC terminal device "
-				"failed with error code=%d\n", rc);
+				   "failed with error code=%d\n", rc);
 			goto out_error_hvc;
 		}
 	}
 
 	/* register IUCV callback handler */
 	rc = iucv_register(&hvc_iucv_handler, 0);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_err("Registering IUCV handlers failed with error code=%d\n",
-			rc);
+			   rc);
 		goto out_error_hvc;
 	}
 
 	return 0;
 
 out_error_hvc:
+
 	for (i = 0; i < hvc_iucv_devices; i++)
 		if (hvc_iucv_table[i])
+		{
 			hvc_iucv_destroy(hvc_iucv_table[i]);
+		}
+
 out_error_memory:
 	mempool_destroy(hvc_iucv_mempool);
 	kmem_cache_destroy(hvc_iucv_buffer_cache);
@@ -1469,7 +1717,7 @@ out_error:
  */
 static	int __init hvc_iucv_config(char *val)
 {
-	 return kstrtoul(val, 10, &hvc_iucv_devices);
+	return kstrtoul(val, 10, &hvc_iucv_devices);
 }
 
 

@@ -17,7 +17,8 @@
 
 #define	ODM_CE			0x04	/* BIT2 */
 
-enum HAL_STATUS {
+enum HAL_STATUS
+{
 	HAL_STATUS_SUCCESS,
 	HAL_STATUS_FAILURE,
 };

@@ -90,7 +90,8 @@
 /*
  * The list of usermode accessible registers.  Also see Reg_* later in file.
  */
-enum qib_ureg {
+enum qib_ureg
+{
 	/* (RO)  DMA RcvHdr to be used next. */
 	ur_rcvhdrtail = 0,
 	/* (RW)  RcvHdr entry to be processed next by host. */
@@ -128,7 +129,8 @@ enum qib_ureg {
  * programs, since the 64 bit * bit kernel requires the user code
  * to have matching offsets
  */
-struct qib_base_info {
+struct qib_base_info
+{
 	/* version of hardware, for feature checking. */
 	__u32 spi_hw_version;
 	/* version of software, for feature checking. */
@@ -208,7 +210,7 @@ struct qib_base_info {
 	 * spi_piobufbase.
 	 */
 	__u32 spi_pioindex;
-	 /* number of buffers mapped for this process */
+	/* number of buffers mapped for this process */
 	__u32 spi_piocnt;
 
 	/*
@@ -284,7 +286,7 @@ struct qib_base_info {
 #define QIB_USER_SWVERSION ((QIB_USER_SWMAJOR << 16) | QIB_USER_SWMINOR)
 
 #ifndef QIB_KERN_TYPE
-#define QIB_KERN_TYPE 0
+	#define QIB_KERN_TYPE 0
 #endif
 
 /*
@@ -308,9 +310,9 @@ struct qib_base_info {
 
 /* create the final driver version string */
 #ifdef QIB_IDSTR
-#define QIB_DRIVER_VERSION QIB_DRIVER_VERSION_BASE " " QIB_IDSTR
+	#define QIB_DRIVER_VERSION QIB_DRIVER_VERSION_BASE " " QIB_IDSTR
 #else
-#define QIB_DRIVER_VERSION QIB_DRIVER_VERSION_BASE
+	#define QIB_DRIVER_VERSION QIB_DRIVER_VERSION_BASE
 #endif
 
 /*
@@ -331,7 +333,8 @@ struct qib_base_info {
  * fields must remain unchanged, for binary compatibility.  It can
  * be extended, if userversion is changed so user code can tell, if needed
  */
-struct qib_user_info {
+struct qib_user_info
+{
 	/*
 	 * version of user software, to detect compatibility issues.
 	 * Should be set to QIB_USER_SWVERSION.
@@ -416,7 +419,8 @@ struct qib_user_info {
 #define QIB_POLL_TYPE_ANYRCV     0x0
 #define QIB_POLL_TYPE_URGENT     0x1
 
-struct qib_ctxt_info {
+struct qib_ctxt_info
+{
 	__u16 num_active;       /* number of active units */
 	__u16 unit;             /* unit (chip) assigned to caller */
 	__u16 port;             /* IB port assigned to caller (1-based) */
@@ -427,7 +431,8 @@ struct qib_ctxt_info {
 	__u16 rec_cpu;          /* cpu # for affinity (ffff if none) */
 };
 
-struct qib_tid_info {
+struct qib_tid_info
+{
 	__u32 tidcnt;
 	/* make structure same size in 32 and 64 bit */
 	__u32 tid__unused;
@@ -443,9 +448,11 @@ struct qib_tid_info {
 	__u64 tidmap;
 };
 
-struct qib_cmd {
+struct qib_cmd
+{
 	__u32 type;                     /* command type */
-	union {
+	union
+	{
 		struct qib_tid_info tid_info;
 		struct qib_user_info user_info;
 
@@ -479,7 +486,8 @@ struct qib_cmd {
 	} cmd;
 };
 
-struct qib_iovec {
+struct qib_iovec
+{
 	/* Pointer to data, but same size 32 and 64 bit */
 	__u64 iov_base;
 
@@ -497,7 +505,8 @@ struct qib_iovec {
  * including IB headers, must be less than the qib_piosize value (words).
  * Use of this necessitates including sys/uio.h
  */
-struct __qib_sendpkt {
+struct __qib_sendpkt
+{
 	__u32 sps_flags;        /* flags for packet (TBD) */
 	__u32 sps_cnt;          /* number of entries to use in sps_iov */
 	/* array of iov's describing packet. TEMPORARY */
@@ -513,7 +522,8 @@ struct __qib_sendpkt {
  * for better alignment and to avoid padding issues.
  */
 #define _DIAG_XPKT_VERS 3
-struct qib_diag_xpkt {
+struct qib_diag_xpkt
+{
 	__u16 version;
 	__u16 unit;
 	__u16 port;
@@ -527,7 +537,8 @@ struct qib_diag_xpkt {
  * All fields are little-endian binary unless otherwise stated
  */
 #define QIB_FLASH_VERSION 2
-struct qib_flash {
+struct qib_flash
+{
 	/* flash layout version (QIB_FLASH_VERSION) */
 	__u8 if_fversion;
 	/* checksum protecting if_length bytes */
@@ -563,7 +574,8 @@ struct qib_flash {
  * These are the counters implemented in the chip, and are listed in order.
  * The InterCaps naming is taken straight from the chip spec.
  */
-struct qlogic_ib_counters {
+struct qlogic_ib_counters
+{
 	__u64 LBIntCnt;
 	__u64 LBFlowStallCnt;
 	__u64 TxSDmaDescCnt;    /* was Reserved1 */
@@ -680,7 +692,8 @@ struct qlogic_ib_counters {
 #define QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT 0
 
 /* qlogic_ib header format */
-struct qib_header {
+struct qib_header
+{
 	/*
 	 * Version - 4 bits, Context - 4 bits, TID - 10 bits and Offset -
 	 * 14 bits before ECO change ~28 Dec 03.  After that, Vers 4,
@@ -696,7 +709,8 @@ struct qib_header {
  * This structure contains the first 4 fields common to all protocols
  * that employ qlogic_ib.
  */
-struct qib_message_header {
+struct qib_message_header
+{
 	__be16 lrh[4];
 	__be32 bth[3];
 	/* fields below this point are in host byte order */
@@ -714,21 +728,25 @@ struct qib_message_header {
 };
 
 /* sequence number bits for message */
-union qib_seqnum {
-	struct {
-		__u32 seq:11;
-		__u32 gen:8;
-		__u32 flow:5;
+union qib_seqnum
+{
+	struct
+	{
+		__u32 seq: 11;
+		__u32 gen: 8;
+		__u32 flow: 5;
 	};
-	struct {
-		__u32 pkt:16;
-		__u32 msg:8;
+	struct
+	{
+		__u32 pkt: 16;
+		__u32 msg: 8;
 	};
 	__u32 val;
 };
 
 /* qib receiving-dma tid-session-member */
-struct qib_tid_session_member {
+struct qib_tid_session_member
+{
 	__u16 tid;
 	__u16 offset;
 	__u16 length;
@@ -768,31 +786,31 @@ static inline __u32 qib_hdrget_err_flags(const __le32 *rbuf)
 static inline __u32 qib_hdrget_rcv_type(const __le32 *rbuf)
 {
 	return (__le32_to_cpu(rbuf[0]) >> QLOGIC_IB_RHF_RCVTYPE_SHIFT) &
-		QLOGIC_IB_RHF_RCVTYPE_MASK;
+		   QLOGIC_IB_RHF_RCVTYPE_MASK;
 }
 
 static inline __u32 qib_hdrget_length_in_bytes(const __le32 *rbuf)
 {
 	return ((__le32_to_cpu(rbuf[0]) >> QLOGIC_IB_RHF_LENGTH_SHIFT) &
-		QLOGIC_IB_RHF_LENGTH_MASK) << 2;
+			QLOGIC_IB_RHF_LENGTH_MASK) << 2;
 }
 
 static inline __u32 qib_hdrget_index(const __le32 *rbuf)
 {
 	return (__le32_to_cpu(rbuf[0]) >> QLOGIC_IB_RHF_EGRINDEX_SHIFT) &
-		QLOGIC_IB_RHF_EGRINDEX_MASK;
+		   QLOGIC_IB_RHF_EGRINDEX_MASK;
 }
 
 static inline __u32 qib_hdrget_seq(const __le32 *rbuf)
 {
 	return (__le32_to_cpu(rbuf[1]) >> QLOGIC_IB_RHF_SEQ_SHIFT) &
-		QLOGIC_IB_RHF_SEQ_MASK;
+		   QLOGIC_IB_RHF_SEQ_MASK;
 }
 
 static inline __u32 qib_hdrget_offset(const __le32 *rbuf)
 {
 	return (__le32_to_cpu(rbuf[1]) >> QLOGIC_IB_RHF_HDRQ_OFFSET_SHIFT) &
-		QLOGIC_IB_RHF_HDRQ_OFFSET_MASK;
+		   QLOGIC_IB_RHF_HDRQ_OFFSET_MASK;
 }
 
 static inline __u32 qib_hdrget_use_egr_buf(const __le32 *rbuf)
@@ -803,7 +821,7 @@ static inline __u32 qib_hdrget_use_egr_buf(const __le32 *rbuf)
 static inline __u32 qib_hdrget_qib_ver(__le32 hdrword)
 {
 	return (__le32_to_cpu(hdrword) >> QLOGIC_IB_I_VERS_SHIFT) &
-		QLOGIC_IB_I_VERS_MASK;
+		   QLOGIC_IB_I_VERS_MASK;
 }
 
 #endif                          /* _QIB_COMMON_H */

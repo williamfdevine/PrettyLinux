@@ -32,22 +32,32 @@ pid_t getppid_tm(bool suspend)
 	int i;
 	pid_t pid;
 
-	for (i = 0; i < TM_RETRIES; i++) {
+	for (i = 0; i < TM_RETRIES; i++)
+	{
 		if (suspend)
+		{
 			pid = getppid_tm_suspended();
+		}
 		else
+		{
 			pid = getppid_tm_active();
+		}
 
 		if (pid >= 0)
+		{
 			return pid;
+		}
 
-		if (failure_is_persistent()) {
+		if (failure_is_persistent())
+		{
 			if (failure_is_syscall())
+			{
 				return -1;
+			}
 
 			printf("Unexpected persistent transaction failure.\n");
 			printf("TEXASR 0x%016lx, TFIAR 0x%016lx.\n",
-			       __builtin_get_texasr(), __builtin_get_tfiar());
+				   __builtin_get_texasr(), __builtin_get_tfiar());
 			exit(-1);
 		}
 
@@ -56,7 +66,7 @@ pid_t getppid_tm(bool suspend)
 
 	printf("Exceeded limit of %d temporary transaction failures.\n", TM_RETRIES);
 	printf("TEXASR 0x%016lx, TFIAR 0x%016lx.\n",
-	       __builtin_get_texasr(), __builtin_get_tfiar());
+		   __builtin_get_texasr(), __builtin_get_tfiar());
 
 	exit(-1);
 }
@@ -77,7 +87,8 @@ int tm_syscall(void)
 	now.tv_usec = 0;
 	timeradd(&end, &now, &end);
 
-	for (count = 0; timercmp(&now, &end, <); count++) {
+	for (count = 0; timercmp(&now, &end, < ); count++)
+	{
 		/*
 		 * Test a syscall within a suspended transaction and verify
 		 * that it succeeds.

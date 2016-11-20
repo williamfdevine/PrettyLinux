@@ -24,7 +24,8 @@
 #define ICN_IOCTL_ADDCARD   9
 
 /* Struct for adding new cards */
-typedef struct icn_cdef {
+typedef struct icn_cdef
+{
 	int port;
 	char id1[10];
 	char id2[10];
@@ -33,30 +34,30 @@ typedef struct icn_cdef {
 #if defined(__KERNEL__) || defined(__DEBUGVAR__)
 
 #ifdef __KERNEL__
-/* Kernel includes */
+	/* Kernel includes */
 
-#include <linux/errno.h>
-#include <linux/fs.h>
-#include <linux/major.h>
-#include <linux/io.h>
-#include <linux/kernel.h>
-#include <linux/signal.h>
-#include <linux/slab.h>
-#include <linux/mm.h>
-#include <linux/mman.h>
-#include <linux/ioport.h>
-#include <linux/timer.h>
-#include <linux/wait.h>
-#include <linux/delay.h>
-#include <linux/isdnif.h>
+	#include <linux/errno.h>
+	#include <linux/fs.h>
+	#include <linux/major.h>
+	#include <linux/io.h>
+	#include <linux/kernel.h>
+	#include <linux/signal.h>
+	#include <linux/slab.h>
+	#include <linux/mm.h>
+	#include <linux/mman.h>
+	#include <linux/ioport.h>
+	#include <linux/timer.h>
+	#include <linux/wait.h>
+	#include <linux/delay.h>
+	#include <linux/isdnif.h>
 
 #endif                          /* __KERNEL__ */
 
 /* some useful macros for debugging */
 #ifdef ICN_DEBUG_PORT
-#define OUTB_P(v, p) {printk(KERN_DEBUG "icn: outb_p(0x%02x,0x%03x)\n", v, p); outb_p(v, p);}
+	#define OUTB_P(v, p) {printk(KERN_DEBUG "icn: outb_p(0x%02x,0x%03x)\n", v, p); outb_p(v, p);}
 #else
-#define OUTB_P outb
+	#define OUTB_P outb
 #endif
 
 /* Defaults for Port-Address and shared-memory */
@@ -91,7 +92,8 @@ typedef struct icn_cdef {
 /*
  * Layout of card's data buffers
  */
-typedef struct {
+typedef struct
+{
 	unsigned char length;   /* Bytecount of fragment (max 250)    */
 	unsigned char endflag;  /* 0=last frag., 0xff=frag. continued */
 	unsigned char data[ICN_FRAGSIZE];	/* The data                           */
@@ -102,8 +104,10 @@ typedef struct {
 /*
  * Layout of card's shared memory
  */
-typedef union {
-	struct {
+typedef union
+{
+	struct
+	{
 		unsigned char scns;	/* Index to free SendFrag.             */
 		unsigned char scnr;	/* Index to active SendFrag   READONLY */
 		unsigned char ecns;	/* Index to free RcvFrag.     READONLY */
@@ -111,19 +115,22 @@ typedef union {
 		char unused[6];
 		unsigned short fuell1;	/* Internal Buf Bytecount              */
 	} data_control;
-	struct {
+	struct
+	{
 		char unused[SHM_CCTL_OFFSET];
 		unsigned char iopc_i;	/* Read-Ptr Status-Queue      READONLY */
 		unsigned char iopc_o;	/* Write-Ptr Status-Queue              */
 		unsigned char pcio_i;	/* Write-Ptr Command-Queue             */
 		unsigned char pcio_o;	/* Read-Ptr Command Queue     READONLY */
 	} comm_control;
-	struct {
+	struct
+	{
 		char unused[SHM_CBUF_OFFSET];
 		unsigned char pcio_buf[0x100];	/* Ring-Buffer Command-Queue           */
 		unsigned char iopc_buf[0x100];	/* Ring-Buffer Status-Queue            */
 	} comm_buffers;
-	struct {
+	struct
+	{
 		char unused[SHM_DBUF_OFFSET];
 		frag_buf receive_buf[0x10];
 		frag_buf send_buf[0x10];
@@ -133,14 +140,15 @@ typedef union {
 /*
  * Per card driver data
  */
-typedef struct icn_card {
+typedef struct icn_card
+{
 	struct icn_card *next;  /* Pointer to next device struct    */
 	struct icn_card *other; /* Pointer to other card for ICN4B  */
 	unsigned short port;    /* Base-port-address                */
 	int myid;               /* Driver-Nr. assigned by linklevel */
 	int rvalid;             /* IO-portregion has been requested */
 	int leased;             /* Flag: This Adapter is connected  */
-				/*       to a leased line           */
+	/*       to a leased line           */
 	unsigned short flags;   /* Statusflags                      */
 	int doubleS0;           /* Flag: ICN4B                      */
 	int secondhalf;         /* Flag: Second half of a doubleS0  */
@@ -170,7 +178,8 @@ typedef struct icn_card {
 /*
  * Main driver data
  */
-typedef struct icn_dev {
+typedef struct icn_dev
+{
 	spinlock_t devlock;     /* spinlock to protect this struct  */
 	unsigned long memaddr;	/* Address of memory mapped buffers */
 	icn_shmem __iomem *shmem;       /* Pointer to memory-mapped-buffers */
@@ -203,11 +212,11 @@ static icn_dev dev;
 
 /* Return true, if there is a free transmit-buffer */
 #define sbfree (((readb(&dev.shmem->data_control.scns) + 1) & 0xf) !=	\
-		readb(&dev.shmem->data_control.scnr))
+				readb(&dev.shmem->data_control.scnr))
 
 /* Switch to next transmit-buffer */
 #define sbnext (writeb((readb(&dev.shmem->data_control.scns) + 1) & 0xf,	\
-		       &dev.shmem->data_control.scns))
+					   &dev.shmem->data_control.scns))
 
 /* Shortcuts for transmit-buffer-access */
 #define sbuf_n dev.shmem->data_control.scns
@@ -217,11 +226,11 @@ static icn_dev dev;
 
 /* Return true, if there is receive-data is available */
 #define rbavl  (readb(&dev.shmem->data_control.ecnr) != \
-		readb(&dev.shmem->data_control.ecns))
+				readb(&dev.shmem->data_control.ecns))
 
 /* Switch to next receive-buffer */
 #define rbnext (writeb((readb(&dev.shmem->data_control.ecnr) + 1) & 0xf,	\
-		       &dev.shmem->data_control.ecnr))
+					   &dev.shmem->data_control.ecnr))
 
 /* Shortcuts for receive-buffer-access */
 #define rbuf_n dev.shmem->data_control.ecnr
@@ -235,8 +244,8 @@ static icn_dev dev;
 
 /* Return free space in command-buffer */
 #define cmd_free ((readb(&cmd_i) >= readb(&cmd_o)) ?		\
-		  0x100 - readb(&cmd_i) + readb(&cmd_o) :	\
-		  readb(&cmd_o) - readb(&cmd_i))
+				  0x100 - readb(&cmd_i) + readb(&cmd_o) :	\
+				  readb(&cmd_o) - readb(&cmd_i))
 
 /* Shortcuts for message-buffer-access */
 #define msg_o (dev.shmem->comm_control.iopc_o)
@@ -244,8 +253,8 @@ static icn_dev dev;
 
 /* Return length of Message, if avail. */
 #define msg_avail ((readb(&msg_o) > readb(&msg_i)) ?		\
-		   0x100 - readb(&msg_o) + readb(&msg_i) :	\
-		   readb(&msg_i) - readb(&msg_o))
+				   0x100 - readb(&msg_o) + readb(&msg_i) :	\
+				   readb(&msg_i) - readb(&msg_o))
 
 #define CID (card->interface.id)
 

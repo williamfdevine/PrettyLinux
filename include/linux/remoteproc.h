@@ -69,7 +69,8 @@
  * Immediately following this header are the resource entries themselves,
  * each of which begins with a resource entry header (as described below).
  */
-struct resource_table {
+struct resource_table
+{
 	u32 ver;
 	u32 num;
 	u32 reserved[2];
@@ -85,7 +86,8 @@ struct resource_table {
  * its @type. The content of the entry itself will immediately follow
  * this header, and it should be parsed according to the resource type.
  */
-struct fw_rsc_hdr {
+struct fw_rsc_hdr
+{
 	u32 type;
 	u8 data[0];
 } __packed;
@@ -110,7 +112,8 @@ struct fw_rsc_hdr {
  * check the validity of an index before the lookup table is accessed, so
  * please update it as needed.
  */
-enum fw_resource_type {
+enum fw_resource_type
+{
 	RSC_CARVEOUT	= 0,
 	RSC_DEVMEM	= 1,
 	RSC_TRACE	= 2,
@@ -163,7 +166,8 @@ enum fw_resource_type {
  * (optionally) contain a human readable name of this carveout region
  * (mainly for debugging purposes).
  */
-struct fw_rsc_carveout {
+struct fw_rsc_carveout
+{
 	u32 da;
 	u32 pa;
 	u32 len;
@@ -201,7 +205,8 @@ struct fw_rsc_carveout {
  * the firmware is allowed to request, and not allow firmwares to request
  * access to physical addresses that are outside those ranges.
  */
-struct fw_rsc_devmem {
+struct fw_rsc_devmem
+{
 	u32 da;
 	u32 pa;
 	u32 len;
@@ -226,7 +231,8 @@ struct fw_rsc_devmem {
  * After booting the remote processor, the trace buffers are exposed to the
  * user via debugfs entries (called trace0, trace1, etc..).
  */
-struct fw_rsc_trace {
+struct fw_rsc_trace
+{
 	u32 da;
 	u32 len;
 	u32 reserved;
@@ -250,7 +256,8 @@ struct fw_rsc_trace {
  * the remote processor is expecting the vring, or indicate that
  * dynamically allocation of the vring's device address is supported.
  */
-struct fw_rsc_vdev_vring {
+struct fw_rsc_vdev_vring
+{
 	u32 da;
 	u32 align;
 	u32 num;
@@ -293,7 +300,8 @@ struct fw_rsc_vdev_vring {
  * this vdev (which is specific to the vdev; for more info, read the virtio
  * spec). the size of the config space is specified by @config_len.
  */
-struct fw_rsc_vdev {
+struct fw_rsc_vdev
+{
 	u32 id;
 	u32 notifyid;
 	u32 dfeatures;
@@ -314,7 +322,8 @@ struct fw_rsc_vdev {
  * @priv: associated data
  * @node: list node
  */
-struct rproc_mem_entry {
+struct rproc_mem_entry
+{
 	void *va;
 	dma_addr_t dma;
 	int len;
@@ -332,11 +341,12 @@ struct rproc;
  * @kick:	kick a virtqueue (virtqueue id given as a parameter)
  * @da_to_va:	optional platform hook to perform address translations
  */
-struct rproc_ops {
+struct rproc_ops
+{
 	int (*start)(struct rproc *rproc);
 	int (*stop)(struct rproc *rproc);
 	void (*kick)(struct rproc *rproc, int vqid);
-	void * (*da_to_va)(struct rproc *rproc, u64 da, int len);
+	void *(*da_to_va)(struct rproc *rproc, u64 da, int len);
 };
 
 /**
@@ -354,7 +364,8 @@ struct rproc_ops {
  * the validity of an index before the lookup table is accessed, so
  * please update it as needed too.
  */
-enum rproc_state {
+enum rproc_state
+{
 	RPROC_OFFLINE	= 0,
 	RPROC_SUSPENDED	= 1,
 	RPROC_RUNNING	= 2,
@@ -373,7 +384,8 @@ enum rproc_state {
  *
  * Feel free to add more types when needed.
  */
-enum rproc_crash_type {
+enum rproc_crash_type
+{
 	RPROC_MMUFAULT,
 	RPROC_WATCHDOG,
 	RPROC_FATAL_ERROR,
@@ -411,7 +423,8 @@ enum rproc_crash_type {
  * @cached_table: copy of the resource table
  * @has_iommu: flag to indicate if remote processor is behind an MMU
  */
-struct rproc {
+struct rproc
+{
 	struct list_head node;
 	struct iommu_domain *domain;
 	const char *name;
@@ -459,7 +472,8 @@ struct rproc {
  * @rvdev: remote vdev
  * @vq: the virtqueue of this vring
  */
-struct rproc_vring {
+struct rproc_vring
+{
 	void *va;
 	dma_addr_t dma;
 	int len;
@@ -478,7 +492,8 @@ struct rproc_vring {
  * @vring: the vrings for this vdev
  * @rsc_offset: offset of the vdev's resource entry
  */
-struct rproc_vdev {
+struct rproc_vdev
+{
 	struct list_head node;
 	struct rproc *rproc;
 	struct virtio_device vdev;
@@ -488,8 +503,8 @@ struct rproc_vdev {
 
 struct rproc *rproc_get_by_phandle(phandle phandle);
 struct rproc *rproc_alloc(struct device *dev, const char *name,
-			  const struct rproc_ops *ops,
-			  const char *firmware, int len);
+						  const struct rproc_ops *ops,
+						  const char *firmware, int len);
 void rproc_put(struct rproc *rproc);
 int rproc_add(struct rproc *rproc);
 int rproc_del(struct rproc *rproc);

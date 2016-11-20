@@ -60,8 +60,8 @@ MODULE_PARM_DESC(debug, "Enable driver testing on unvalidated i5000");
 static uint throttle_low_limit = 1;
 module_param_named(throttle_low_limit, throttle_low_limit, uint, 0644);
 MODULE_PARM_DESC(throttle_low_limit,
-		"Value for THRTLOWLM activation field "
-		"(0 = disable throttle, 1 = Max throttle, 168 = Min throttle)");
+				 "Value for THRTLOWLM activation field "
+				 "(0 = disable throttle, 1 = Max throttle, 168 = Min throttle)");
 
 /*
  * simple invocation and duration statistics
@@ -70,7 +70,7 @@ static unsigned long total_starts;
 static unsigned long total_us;
 
 #ifdef DEBUG
-static unsigned long past_skip;
+	static unsigned long past_skip;
 #endif
 
 static struct pci_dev *fbd_dev;
@@ -107,8 +107,11 @@ static int i7300_idle_ioat_start(void)
 	u32 err;
 	/* Clear error (due to circular descriptor pointer) */
 	err = readl(ioat_chanbase + IOAT_CHANERR_OFFSET);
+
 	if (err)
+	{
 		writel(err, ioat_chanbase + IOAT_CHANERR_OFFSET);
+	}
 
 	writeb(IOAT_CHANCMD_START, ioat_chanbase + IOAT1_CHANCMD_OFFSET);
 	return 0;
@@ -120,23 +123,27 @@ static void i7300_idle_ioat_stop(void)
 	int i;
 	u64 sts;
 
-	for (i = 0; i < MAX_STOP_RETRIES; i++) {
+	for (i = 0; i < MAX_STOP_RETRIES; i++)
+	{
 		writeb(IOAT_CHANCMD_RESET,
-			ioat_chanbase + IOAT1_CHANCMD_OFFSET);
+			   ioat_chanbase + IOAT1_CHANCMD_OFFSET);
 
 		udelay(10);
 
 		sts = readq(ioat_chanbase + IOAT1_CHANSTS_OFFSET) &
-			IOAT_CHANSTS_STATUS;
+			  IOAT_CHANSTS_STATUS;
 
 		if (sts != IOAT_CHANSTS_ACTIVE)
+		{
 			break;
+		}
 
 	}
 
-	if (i == MAX_STOP_RETRIES) {
+	if (i == MAX_STOP_RETRIES)
+	{
 		dprintk("failed to stop I/O AT after %d retries\n",
-			MAX_STOP_RETRIES);
+				MAX_STOP_RETRIES);
 	}
 }
 
@@ -161,27 +168,31 @@ static int __init i7300_idle_ioat_selftest(u8 *ctl,
 	udelay(1000);
 
 	chan_sts = readq(ioat_chanbase + IOAT1_CHANSTS_OFFSET) &
-			IOAT_CHANSTS_STATUS;
+			   IOAT_CHANSTS_STATUS;
 
-	if (chan_sts != IOAT_CHANSTS_DONE) {
+	if (chan_sts != IOAT_CHANSTS_DONE)
+	{
 		/* Not complete, reset the channel */
 		writeb(IOAT_CHANCMD_RESET,
-		       ioat_chanbase + IOAT1_CHANCMD_OFFSET);
+			   ioat_chanbase + IOAT1_CHANCMD_OFFSET);
 		return -1;
 	}
 
 	if (*(u32 *) ((u8 *) desc + 3068) != 0xabababab ||
-	    *(u32 *) ((u8 *) desc + 2044) != 0xabababab) {
+		*(u32 *) ((u8 *) desc + 2044) != 0xabababab)
+	{
 		dprintk("Data values src 0x%x, dest 0x%x, memset 0x%x\n",
-			*(u32 *) ((u8 *) desc + 2048),
-			*(u32 *) ((u8 *) desc + 1024),
-			*(u32 *) ((u8 *) desc + 3072));
+				*(u32 *) ((u8 *) desc + 2048),
+				*(u32 *) ((u8 *) desc + 1024),
+				*(u32 *) ((u8 *) desc + 3072));
 		return -1;
 	}
+
 	return 0;
 }
 
-static struct device dummy_dma_dev = {
+static struct device dummy_dma_dev =
+{
 	.init_name = "fallback device",
 	.coherent_dma_mask = DMA_BIT_MASK(64),
 	.dma_mask = &dummy_dma_dev.coherent_dma_mask,
@@ -198,25 +209,30 @@ static int __init i7300_idle_ioat_init(void)
 	u16 chan_ctl;
 
 	ioat_iomap = (u8 *) ioremap_nocache(pci_resource_start(ioat_dev, 0),
-					    pci_resource_len(ioat_dev, 0));
+										pci_resource_len(ioat_dev, 0));
 
-	if (!ioat_iomap) {
+	if (!ioat_iomap)
+	{
 		printk(KERN_ERR I7300_PRINT "failed to map I/O AT registers\n");
 		goto err_ret;
 	}
 
 	ver = readb(ioat_iomap + IOAT_VER_OFFSET);
-	if (ver != IOAT_VER_1_2) {
+
+	if (ver != IOAT_VER_1_2)
+	{
 		printk(KERN_ERR I7300_PRINT "unknown I/O AT version (%u.%u)\n",
-			ver >> 4, ver & 0xf);
+			   ver >> 4, ver & 0xf);
 		goto err_unmap;
 	}
 
 	chan_count = readb(ioat_iomap + IOAT_CHANCNT_OFFSET);
-	if (!chan_count) {
+
+	if (!chan_count)
+	{
 		printk(KERN_ERR I7300_PRINT "unexpected # of I/O AT channels "
-			"(%u)\n",
-			chan_count);
+			   "(%u)\n",
+			   chan_count);
 		goto err_unmap;
 	}
 
@@ -224,28 +240,33 @@ static int __init i7300_idle_ioat_init(void)
 	ioat_chanbase = IOAT_CHANBASE(ioat_iomap, ioat_chan);
 
 	chan_ctl = readw(ioat_chanbase + IOAT_CHANCTRL_OFFSET);
-	if (chan_ctl & IOAT_CHANCTRL_CHANNEL_IN_USE) {
+
+	if (chan_ctl & IOAT_CHANCTRL_CHANNEL_IN_USE)
+	{
 		printk(KERN_ERR I7300_PRINT "channel %d in use\n", ioat_chan);
 		goto err_unmap;
 	}
 
 	writew(IOAT_CHANCTRL_CHANNEL_IN_USE,
-		ioat_chanbase + IOAT_CHANCTRL_OFFSET);
+		   ioat_chanbase + IOAT_CHANCTRL_OFFSET);
 
 	ioat_desc = (struct ioat_dma_descriptor *)dma_alloc_coherent(
-			&dummy_dma_dev, 4096,
-			(dma_addr_t *)&ioat_desc_phys, GFP_KERNEL);
-	if (!ioat_desc) {
+					&dummy_dma_dev, 4096,
+					(dma_addr_t *)&ioat_desc_phys, GFP_KERNEL);
+
+	if (!ioat_desc)
+	{
 		printk(KERN_ERR I7300_PRINT "failed to allocate I/O AT desc\n");
 		goto err_mark_unused;
 	}
 
 	writel(ioat_desc_phys & 0xffffffffUL,
-	       ioat_chanbase + IOAT1_CHAINADDR_OFFSET_LOW);
+		   ioat_chanbase + IOAT1_CHAINADDR_OFFSET_LOW);
 	writel(ioat_desc_phys >> 32,
-	       ioat_chanbase + IOAT1_CHAINADDR_OFFSET_HIGH);
+		   ioat_chanbase + IOAT1_CHAINADDR_OFFSET_HIGH);
 
-	if (i7300_idle_ioat_selftest(ioat_iomap, ioat_desc, ioat_desc_phys)) {
+	if (i7300_idle_ioat_selftest(ioat_iomap, ioat_desc, ioat_desc_phys))
+	{
 		printk(KERN_ERR I7300_PRINT "I/O AT self-test failed\n");
 		goto err_free;
 	}
@@ -284,31 +305,35 @@ static void __exit i7300_idle_ioat_exit(void)
 	i7300_idle_ioat_stop();
 
 	/* Wait for a while for the channel to halt before releasing */
-	for (i = 0; i < MAX_STOP_RETRIES; i++) {
+	for (i = 0; i < MAX_STOP_RETRIES; i++)
+	{
 		writeb(IOAT_CHANCMD_RESET,
-		       ioat_chanbase + IOAT1_CHANCMD_OFFSET);
+			   ioat_chanbase + IOAT1_CHANCMD_OFFSET);
 
 		chan_sts = readq(ioat_chanbase + IOAT1_CHANSTS_OFFSET) &
-			IOAT_CHANSTS_STATUS;
+				   IOAT_CHANSTS_STATUS;
 
-		if (chan_sts != IOAT_CHANSTS_ACTIVE) {
+		if (chan_sts != IOAT_CHANSTS_ACTIVE)
+		{
 			writew(0, ioat_chanbase + IOAT_CHANCTRL_OFFSET);
 			break;
 		}
+
 		udelay(1000);
 	}
 
 	chan_sts = readq(ioat_chanbase + IOAT1_CHANSTS_OFFSET) &
-			IOAT_CHANSTS_STATUS;
+			   IOAT_CHANSTS_STATUS;
 
 	/*
 	 * We tried to reset multiple times. If IO A/T channel is still active
 	 * flag an error and return without cleanup. Memory leak is better
 	 * than random corruption in that extreme error situation.
 	 */
-	if (chan_sts == IOAT_CHANSTS_ACTIVE) {
+	if (chan_sts == IOAT_CHANSTS_ACTIVE)
+	{
 		printk(KERN_ERR I7300_PRINT "Unable to stop IO A/T channels."
-			" Not freeing resources\n");
+			   " Not freeing resources\n");
 		return;
 	}
 
@@ -366,16 +391,20 @@ static int i7300_idle_thrt_save(void)
 	 */
 	pci_read_config_byte(fbd_dev, DIMM_GBLACT, &gblactlm);
 	dprintk("thrtctl_saved = 0x%02x, thrtlow_saved = 0x%02x\n",
-		i7300_idle_thrtctl_saved,
-		i7300_idle_thrtlow_saved);
+			i7300_idle_thrtctl_saved,
+			i7300_idle_thrtlow_saved);
 	dprintk("mc_saved = 0x%08x, gblactlm = 0x%02x\n",
-		i7300_idle_mc_saved,
-		gblactlm);
-	if (gblactlm == 0) {
+			i7300_idle_mc_saved,
+			gblactlm);
+
+	if (gblactlm == 0)
+	{
 		new_mc_val = i7300_idle_mc_saved | DIMM_GTW_MODE;
 		pci_write_config_dword(fbd_dev, DIMM_MC, new_mc_val);
 		return 0;
-	} else {
+	}
+	else
+	{
 		dprintk("could not set GTW_MODE = 1 (OLTT enabled)\n");
 		return -ENODEV;
 	}
@@ -399,8 +428,11 @@ static void i7300_idle_start(void)
 	pci_write_config_byte(fbd_dev, DIMM_THRTCTL, new_ctl);
 
 	limit = throttle_low_limit;
+
 	if (unlikely(limit > MAX_THROTTLE_LOW_LIMIT))
+	{
 		limit = MAX_THROTTLE_LOW_LIMIT;
+	}
 
 	pci_write_config_byte(fbd_dev, DIMM_THRTLOW, limit);
 
@@ -432,7 +464,9 @@ static void i7300_idle_stop(void)
 static int i7300_avg_duration_check(void)
 {
 	if (avg_idle_us >= DURATION_THRESHOLD_US)
+	{
 		return 0;
+	}
 
 #ifdef DEBUG
 	past_skip++;
@@ -442,7 +476,7 @@ static int i7300_avg_duration_check(void)
 
 /* Idle notifier to look at idle CPUs */
 static int i7300_idle_notifier(struct notifier_block *nb, unsigned long val,
-				void *data)
+							   void *data)
 {
 	unsigned long flags;
 	ktime_t now_ktime;
@@ -450,26 +484,35 @@ static int i7300_idle_notifier(struct notifier_block *nb, unsigned long val,
 	static int time_init = 1;
 
 	if (!throttle_low_limit)
+	{
 		return 0;
+	}
 
-	if (unlikely(time_init)) {
+	if (unlikely(time_init))
+	{
 		time_init = 0;
 		idle_begin_time = ktime_get();
 	}
 
 	raw_spin_lock_irqsave(&i7300_idle_lock, flags);
-	if (val == IDLE_START) {
+
+	if (val == IDLE_START)
+	{
 
 		cpumask_set_cpu(smp_processor_id(), idle_cpumask);
 
 		if (cpumask_weight(idle_cpumask) != num_online_cpus())
+		{
 			goto end;
+		}
 
 		now_ktime = ktime_get();
 		idle_begin_time = now_ktime;
 
 		if (i7300_avg_duration_check())
+		{
 			goto end;
+		}
 
 		i7300_idle_active = 1;
 		total_starts++;
@@ -478,22 +521,27 @@ static int i7300_idle_notifier(struct notifier_block *nb, unsigned long val,
 		i7300_idle_start();
 		i7300_idle_ioat_start();
 
-	} else if (val == IDLE_END) {
+	}
+	else if (val == IDLE_END)
+	{
 		cpumask_clear_cpu(smp_processor_id(), idle_cpumask);
-		if (cpumask_weight(idle_cpumask) == (num_online_cpus() - 1)) {
+
+		if (cpumask_weight(idle_cpumask) == (num_online_cpus() - 1))
+		{
 			/* First CPU coming out of idle */
 			u64 idle_duration_us;
 
 			now_ktime = ktime_get();
 
 			idle_duration_us = ktime_to_us(ktime_sub
-						(now_ktime, idle_begin_time));
+										   (now_ktime, idle_begin_time));
 
 			avg_idle_us =
 				((100 - DURATION_WEIGHT_PCT) * avg_idle_us +
 				 DURATION_WEIGHT_PCT * idle_duration_us) / 100;
 
-			if (i7300_idle_active) {
+			if (i7300_idle_active)
+			{
 				ktime_t idle_ktime;
 
 				idle_ktime = ktime_sub(now_ktime, start_ktime);
@@ -505,19 +553,21 @@ static int i7300_idle_notifier(struct notifier_block *nb, unsigned long val,
 			}
 		}
 	}
+
 end:
 	raw_spin_unlock_irqrestore(&i7300_idle_lock, flags);
 	return 0;
 }
 
-static struct notifier_block i7300_idle_nb = {
+static struct notifier_block i7300_idle_nb =
+{
 	.notifier_call = i7300_idle_notifier,
 };
 
 MODULE_DEVICE_TABLE(pci, pci_tbl);
 
 static ssize_t stats_read_ul(struct file *fp, char __user *ubuf, size_t count,
-				loff_t *off)
+							 loff_t *off)
 {
 	unsigned long *p = fp->private_data;
 	char buf[32];
@@ -527,24 +577,27 @@ static ssize_t stats_read_ul(struct file *fp, char __user *ubuf, size_t count,
 	return simple_read_from_buffer(ubuf, count, off, buf, len);
 }
 
-static const struct file_operations idle_fops = {
+static const struct file_operations idle_fops =
+{
 	.open	= simple_open,
 	.read	= stats_read_ul,
 	.llseek = default_llseek,
 };
 
-struct debugfs_file_info {
+struct debugfs_file_info
+{
 	void *ptr;
 	char name[32];
 	struct dentry *file;
-} debugfs_file_list[] = {
-				{&total_starts, "total_starts", NULL},
-				{&total_us, "total_us", NULL},
+} debugfs_file_list[] =
+{
+	{&total_starts, "total_starts", NULL},
+	{&total_us, "total_us", NULL},
 #ifdef DEBUG
-				{&past_skip, "past_skip", NULL},
+	{&past_skip, "past_skip", NULL},
 #endif
-				{NULL, "", NULL}
-			};
+	{NULL, "", NULL}
+};
 
 static int __init i7300_idle_init(void)
 {
@@ -552,28 +605,39 @@ static int __init i7300_idle_init(void)
 	total_us = 0;
 
 	if (i7300_idle_platform_probe(&fbd_dev, &ioat_dev, forceload))
+	{
 		return -ENODEV;
+	}
 
 	if (i7300_idle_thrt_save())
+	{
 		return -ENODEV;
+	}
 
 	if (i7300_idle_ioat_init())
+	{
 		return -ENODEV;
+	}
 
 	if (!zalloc_cpumask_var(&idle_cpumask, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	debugfs_dir = debugfs_create_dir("i7300_idle", NULL);
-	if (debugfs_dir) {
+
+	if (debugfs_dir)
+	{
 		int i = 0;
 
-		while (debugfs_file_list[i].ptr != NULL) {
+		while (debugfs_file_list[i].ptr != NULL)
+		{
 			debugfs_file_list[i].file = debugfs_create_file(
-					debugfs_file_list[i].name,
-					S_IRUSR,
-					debugfs_dir,
-					debugfs_file_list[i].ptr,
-					&idle_fops);
+											debugfs_file_list[i].name,
+											S_IRUSR,
+											debugfs_dir,
+											debugfs_file_list[i].ptr,
+											&idle_fops);
 			i++;
 		}
 	}
@@ -589,16 +653,19 @@ static void __exit i7300_idle_exit(void)
 	idle_notifier_unregister(&i7300_idle_nb);
 	free_cpumask_var(idle_cpumask);
 
-	if (debugfs_dir) {
+	if (debugfs_dir)
+	{
 		int i = 0;
 
-		while (debugfs_file_list[i].file != NULL) {
+		while (debugfs_file_list[i].file != NULL)
+		{
 			debugfs_remove(debugfs_file_list[i].file);
 			i++;
 		}
 
 		debugfs_remove(debugfs_dir);
 	}
+
 	i7300_idle_thrt_restore();
 	i7300_idle_ioat_exit();
 }
@@ -608,5 +675,5 @@ module_exit(i7300_idle_exit);
 
 MODULE_AUTHOR("Andy Henroid <andrew.d.henroid@intel.com>");
 MODULE_DESCRIPTION("Intel Chipset DIMM Idle Power Saving Driver v"
-			I7300_IDLE_DRIVER_VERSION);
+				   I7300_IDLE_DRIVER_VERSION);
 MODULE_LICENSE("GPL");

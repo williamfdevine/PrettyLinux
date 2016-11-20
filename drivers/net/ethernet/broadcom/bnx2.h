@@ -21,27 +21,28 @@
 /*
  *  tx_bd definition
  */
-struct bnx2_tx_bd {
+struct bnx2_tx_bd
+{
 	u32 tx_bd_haddr_hi;
 	u32 tx_bd_haddr_lo;
 	u32 tx_bd_mss_nbytes;
-		#define TX_BD_TCP6_OFF2_SHL		(14)
+#define TX_BD_TCP6_OFF2_SHL		(14)
 	u32 tx_bd_vlan_tag_flags;
-		#define TX_BD_FLAGS_CONN_FAULT		(1<<0)
-		#define TX_BD_FLAGS_TCP6_OFF0_MSK	(3<<1)
-		#define TX_BD_FLAGS_TCP6_OFF0_SHL	(1)
-		#define TX_BD_FLAGS_TCP_UDP_CKSUM	(1<<1)
-		#define TX_BD_FLAGS_IP_CKSUM		(1<<2)
-		#define TX_BD_FLAGS_VLAN_TAG		(1<<3)
-		#define TX_BD_FLAGS_COAL_NOW		(1<<4)
-		#define TX_BD_FLAGS_DONT_GEN_CRC	(1<<5)
-		#define TX_BD_FLAGS_END			(1<<6)
-		#define TX_BD_FLAGS_START		(1<<7)
-		#define TX_BD_FLAGS_SW_OPTION_WORD	(0x1f<<8)
-		#define TX_BD_FLAGS_TCP6_OFF4_SHL	(12)
-		#define TX_BD_FLAGS_SW_FLAGS		(1<<13)
-		#define TX_BD_FLAGS_SW_SNAP		(1<<14)
-		#define TX_BD_FLAGS_SW_LSO		(1<<15)
+#define TX_BD_FLAGS_CONN_FAULT		(1<<0)
+#define TX_BD_FLAGS_TCP6_OFF0_MSK	(3<<1)
+#define TX_BD_FLAGS_TCP6_OFF0_SHL	(1)
+#define TX_BD_FLAGS_TCP_UDP_CKSUM	(1<<1)
+#define TX_BD_FLAGS_IP_CKSUM		(1<<2)
+#define TX_BD_FLAGS_VLAN_TAG		(1<<3)
+#define TX_BD_FLAGS_COAL_NOW		(1<<4)
+#define TX_BD_FLAGS_DONT_GEN_CRC	(1<<5)
+#define TX_BD_FLAGS_END			(1<<6)
+#define TX_BD_FLAGS_START		(1<<7)
+#define TX_BD_FLAGS_SW_OPTION_WORD	(0x1f<<8)
+#define TX_BD_FLAGS_TCP6_OFF4_SHL	(12)
+#define TX_BD_FLAGS_SW_FLAGS		(1<<13)
+#define TX_BD_FLAGS_SW_SNAP		(1<<14)
+#define TX_BD_FLAGS_SW_LSO		(1<<15)
 
 };
 
@@ -49,15 +50,16 @@ struct bnx2_tx_bd {
 /*
  *  rx_bd definition
  */
-struct bnx2_rx_bd {
+struct bnx2_rx_bd
+{
 	u32 rx_bd_haddr_hi;
 	u32 rx_bd_haddr_lo;
 	u32 rx_bd_len;
 	u32 rx_bd_flags;
-		#define RX_BD_FLAGS_NOPUSH		(1<<0)
-		#define RX_BD_FLAGS_DUMMY		(1<<1)
-		#define RX_BD_FLAGS_END			(1<<2)
-		#define RX_BD_FLAGS_START		(1<<3)
+#define RX_BD_FLAGS_NOPUSH		(1<<0)
+#define RX_BD_FLAGS_DUMMY		(1<<1)
+#define RX_BD_FLAGS_END			(1<<2)
+#define RX_BD_FLAGS_START		(1<<3)
 
 };
 
@@ -66,38 +68,39 @@ struct bnx2_rx_bd {
 /*
  *  status_block definition
  */
-struct status_block {
+struct status_block
+{
 	u32 status_attn_bits;
-		#define STATUS_ATTN_BITS_LINK_STATE		(1L<<0)
-		#define STATUS_ATTN_BITS_TX_SCHEDULER_ABORT	(1L<<1)
-		#define STATUS_ATTN_BITS_TX_BD_READ_ABORT	(1L<<2)
-		#define STATUS_ATTN_BITS_TX_BD_CACHE_ABORT	(1L<<3)
-		#define STATUS_ATTN_BITS_TX_PROCESSOR_ABORT	(1L<<4)
-		#define STATUS_ATTN_BITS_TX_DMA_ABORT		(1L<<5)
-		#define STATUS_ATTN_BITS_TX_PATCHUP_ABORT	(1L<<6)
-		#define STATUS_ATTN_BITS_TX_ASSEMBLER_ABORT	(1L<<7)
-		#define STATUS_ATTN_BITS_RX_PARSER_MAC_ABORT	(1L<<8)
-		#define STATUS_ATTN_BITS_RX_PARSER_CATCHUP_ABORT	(1L<<9)
-		#define STATUS_ATTN_BITS_RX_MBUF_ABORT		(1L<<10)
-		#define STATUS_ATTN_BITS_RX_LOOKUP_ABORT	(1L<<11)
-		#define STATUS_ATTN_BITS_RX_PROCESSOR_ABORT	(1L<<12)
-		#define STATUS_ATTN_BITS_RX_V2P_ABORT		(1L<<13)
-		#define STATUS_ATTN_BITS_RX_BD_CACHE_ABORT	(1L<<14)
-		#define STATUS_ATTN_BITS_RX_DMA_ABORT		(1L<<15)
-		#define STATUS_ATTN_BITS_COMPLETION_ABORT	(1L<<16)
-		#define STATUS_ATTN_BITS_HOST_COALESCE_ABORT	(1L<<17)
-		#define STATUS_ATTN_BITS_MAILBOX_QUEUE_ABORT	(1L<<18)
-		#define STATUS_ATTN_BITS_CONTEXT_ABORT		(1L<<19)
-		#define STATUS_ATTN_BITS_CMD_SCHEDULER_ABORT	(1L<<20)
-		#define STATUS_ATTN_BITS_CMD_PROCESSOR_ABORT	(1L<<21)
-		#define STATUS_ATTN_BITS_MGMT_PROCESSOR_ABORT	(1L<<22)
-		#define STATUS_ATTN_BITS_MAC_ABORT		(1L<<23)
-		#define STATUS_ATTN_BITS_TIMER_ABORT		(1L<<24)
-		#define STATUS_ATTN_BITS_DMAE_ABORT		(1L<<25)
-		#define STATUS_ATTN_BITS_FLSH_ABORT		(1L<<26)
-		#define STATUS_ATTN_BITS_GRC_ABORT		(1L<<27)
-		#define STATUS_ATTN_BITS_EPB_ERROR		(1L<<30)
-		#define STATUS_ATTN_BITS_PARITY_ERROR		(1L<<31)
+#define STATUS_ATTN_BITS_LINK_STATE		(1L<<0)
+#define STATUS_ATTN_BITS_TX_SCHEDULER_ABORT	(1L<<1)
+#define STATUS_ATTN_BITS_TX_BD_READ_ABORT	(1L<<2)
+#define STATUS_ATTN_BITS_TX_BD_CACHE_ABORT	(1L<<3)
+#define STATUS_ATTN_BITS_TX_PROCESSOR_ABORT	(1L<<4)
+#define STATUS_ATTN_BITS_TX_DMA_ABORT		(1L<<5)
+#define STATUS_ATTN_BITS_TX_PATCHUP_ABORT	(1L<<6)
+#define STATUS_ATTN_BITS_TX_ASSEMBLER_ABORT	(1L<<7)
+#define STATUS_ATTN_BITS_RX_PARSER_MAC_ABORT	(1L<<8)
+#define STATUS_ATTN_BITS_RX_PARSER_CATCHUP_ABORT	(1L<<9)
+#define STATUS_ATTN_BITS_RX_MBUF_ABORT		(1L<<10)
+#define STATUS_ATTN_BITS_RX_LOOKUP_ABORT	(1L<<11)
+#define STATUS_ATTN_BITS_RX_PROCESSOR_ABORT	(1L<<12)
+#define STATUS_ATTN_BITS_RX_V2P_ABORT		(1L<<13)
+#define STATUS_ATTN_BITS_RX_BD_CACHE_ABORT	(1L<<14)
+#define STATUS_ATTN_BITS_RX_DMA_ABORT		(1L<<15)
+#define STATUS_ATTN_BITS_COMPLETION_ABORT	(1L<<16)
+#define STATUS_ATTN_BITS_HOST_COALESCE_ABORT	(1L<<17)
+#define STATUS_ATTN_BITS_MAILBOX_QUEUE_ABORT	(1L<<18)
+#define STATUS_ATTN_BITS_CONTEXT_ABORT		(1L<<19)
+#define STATUS_ATTN_BITS_CMD_SCHEDULER_ABORT	(1L<<20)
+#define STATUS_ATTN_BITS_CMD_PROCESSOR_ABORT	(1L<<21)
+#define STATUS_ATTN_BITS_MGMT_PROCESSOR_ABORT	(1L<<22)
+#define STATUS_ATTN_BITS_MAC_ABORT		(1L<<23)
+#define STATUS_ATTN_BITS_TIMER_ABORT		(1L<<24)
+#define STATUS_ATTN_BITS_DMAE_ABORT		(1L<<25)
+#define STATUS_ATTN_BITS_FLSH_ABORT		(1L<<26)
+#define STATUS_ATTN_BITS_GRC_ABORT		(1L<<27)
+#define STATUS_ATTN_BITS_EPB_ERROR		(1L<<30)
+#define STATUS_ATTN_BITS_PARITY_ERROR		(1L<<31)
 
 	u32 status_attn_bits_ack;
 #if defined(__BIG_ENDIAN)
@@ -158,7 +161,8 @@ struct status_block {
 /*
  *  status_block definition
  */
-struct status_block_msix {
+struct status_block_msix
+{
 #if defined(__BIG_ENDIAN)
 	u16 status_tx_quick_consumer_index;
 	u16 status_rx_quick_consumer_index;
@@ -186,7 +190,8 @@ struct status_block_msix {
 /*
  *  statistics_block definition
  */
-struct statistics_block {
+struct statistics_block
+{
 	u32 stat_IfHCInOctets_hi;
 	u32 stat_IfHCInOctets_lo;
 	u32 stat_IfHCInBadOctets_hi;
@@ -274,30 +279,31 @@ struct statistics_block {
 /*
  *  l2_fhdr definition
  */
-struct l2_fhdr {
+struct l2_fhdr
+{
 	u32 l2_fhdr_status;
-		#define L2_FHDR_STATUS_RULE_CLASS	(0x7<<0)
-		#define L2_FHDR_STATUS_RULE_P2		(1<<3)
-		#define L2_FHDR_STATUS_RULE_P3		(1<<4)
-		#define L2_FHDR_STATUS_RULE_P4		(1<<5)
-		#define L2_FHDR_STATUS_L2_VLAN_TAG	(1<<6)
-		#define L2_FHDR_STATUS_L2_LLC_SNAP	(1<<7)
-		#define L2_FHDR_STATUS_RSS_HASH		(1<<8)
-		#define L2_FHDR_STATUS_IP_DATAGRAM	(1<<13)
-		#define L2_FHDR_STATUS_TCP_SEGMENT	(1<<14)
-		#define L2_FHDR_STATUS_UDP_DATAGRAM	(1<<15)
+#define L2_FHDR_STATUS_RULE_CLASS	(0x7<<0)
+#define L2_FHDR_STATUS_RULE_P2		(1<<3)
+#define L2_FHDR_STATUS_RULE_P3		(1<<4)
+#define L2_FHDR_STATUS_RULE_P4		(1<<5)
+#define L2_FHDR_STATUS_L2_VLAN_TAG	(1<<6)
+#define L2_FHDR_STATUS_L2_LLC_SNAP	(1<<7)
+#define L2_FHDR_STATUS_RSS_HASH		(1<<8)
+#define L2_FHDR_STATUS_IP_DATAGRAM	(1<<13)
+#define L2_FHDR_STATUS_TCP_SEGMENT	(1<<14)
+#define L2_FHDR_STATUS_UDP_DATAGRAM	(1<<15)
 
-		#define L2_FHDR_STATUS_SPLIT		(1<<16)
-		#define L2_FHDR_ERRORS_BAD_CRC		(1<<17)
-		#define L2_FHDR_ERRORS_PHY_DECODE	(1<<18)
-		#define L2_FHDR_ERRORS_ALIGNMENT	(1<<19)
-		#define L2_FHDR_ERRORS_TOO_SHORT	(1<<20)
-		#define L2_FHDR_ERRORS_GIANT_FRAME	(1<<21)
-		#define L2_FHDR_ERRORS_TCP_XSUM		(1<<28)
-		#define L2_FHDR_ERRORS_UDP_XSUM		(1<<31)
+#define L2_FHDR_STATUS_SPLIT		(1<<16)
+#define L2_FHDR_ERRORS_BAD_CRC		(1<<17)
+#define L2_FHDR_ERRORS_PHY_DECODE	(1<<18)
+#define L2_FHDR_ERRORS_ALIGNMENT	(1<<19)
+#define L2_FHDR_ERRORS_TOO_SHORT	(1<<20)
+#define L2_FHDR_ERRORS_GIANT_FRAME	(1<<21)
+#define L2_FHDR_ERRORS_TCP_XSUM		(1<<28)
+#define L2_FHDR_ERRORS_UDP_XSUM		(1<<31)
 
-		#define L2_FHDR_STATUS_USE_RXHASH	\
-			(L2_FHDR_STATUS_TCP_SEGMENT | L2_FHDR_STATUS_RSS_HASH)
+#define L2_FHDR_STATUS_USE_RXHASH	\
+	(L2_FHDR_STATUS_TCP_SEGMENT | L2_FHDR_STATUS_RSS_HASH)
 
 	u32 l2_fhdr_hash;
 #if defined(__BIG_ENDIAN)
@@ -4225,7 +4231,7 @@ struct l2_fhdr {
 	((((mtu) - 1500) * 39 / 1000) + 66)
 #define BNX2_RBUF_CONFIG_VAL(mtu)			 \
 	(BNX2_RBUF_CONFIG_XOFF_TRIP_VAL(mtu) |		 \
-	(BNX2_RBUF_CONFIG_XON_TRIP_VAL(mtu) << 16))
+	 (BNX2_RBUF_CONFIG_XON_TRIP_VAL(mtu) << 16))
 
 #define BNX2_RBUF_FW_BUF_ALLOC				0x00200010
 #define BNX2_RBUF_FW_BUF_ALLOC_VALUE			 (0x1ffL<<7)
@@ -4254,7 +4260,7 @@ struct l2_fhdr {
 	((((mtu) - 1500) * 2 / 100) + 30)
 #define BNX2_RBUF_CONFIG2_VAL(mtu)			 \
 	(BNX2_RBUF_CONFIG2_MAC_DROP_TRIP_VAL(mtu) |	 \
-	(BNX2_RBUF_CONFIG2_MAC_KEEP_TRIP_VAL(mtu) << 16))
+	 (BNX2_RBUF_CONFIG2_MAC_KEEP_TRIP_VAL(mtu) << 16))
 
 #define BNX2_RBUF_CONFIG3				0x00200020
 #define BNX2_RBUF_CONFIG3_CU_DROP_TRIP			 (0x3ffL<<0)
@@ -4265,7 +4271,7 @@ struct l2_fhdr {
 	((((mtu) - 1500) * 2 / 100) + 30)
 #define BNX2_RBUF_CONFIG3_VAL(mtu)			 \
 	(BNX2_RBUF_CONFIG3_CU_DROP_TRIP_VAL(mtu) |	 \
-	(BNX2_RBUF_CONFIG3_CU_KEEP_TRIP_VAL(mtu) << 16))
+	 (BNX2_RBUF_CONFIG3_CU_KEEP_TRIP_VAL(mtu) << 16))
 
 #define BNX2_RBUF_PKT_DATA				0x00208000
 #define BNX2_RBUF_CLIST_DATA				0x00210000
@@ -5620,14 +5626,14 @@ struct l2_fhdr {
 
 #define BNX2_HC_SB_CONFIG_SIZE	(BNX2_HC_SB_CONFIG_2 - BNX2_HC_SB_CONFIG_1)
 #define BNX2_HC_COMP_PROD_TRIP_OFF	(BNX2_HC_COMP_PROD_TRIP_1 -	\
-					 BNX2_HC_SB_CONFIG_1)
+									 BNX2_HC_SB_CONFIG_1)
 #define BNX2_HC_COM_TICKS_OFF	(BNX2_HC_COM_TICKS_1 - BNX2_HC_SB_CONFIG_1)
 #define BNX2_HC_CMD_TICKS_OFF	(BNX2_HC_CMD_TICKS_1 - BNX2_HC_SB_CONFIG_1)
 #define BNX2_HC_TX_QUICK_CONS_TRIP_OFF	(BNX2_HC_TX_QUICK_CONS_TRIP_1 -	\
-					 BNX2_HC_SB_CONFIG_1)
+		BNX2_HC_SB_CONFIG_1)
 #define BNX2_HC_TX_TICKS_OFF	(BNX2_HC_TX_TICKS_1 - BNX2_HC_SB_CONFIG_1)
 #define BNX2_HC_RX_QUICK_CONS_TRIP_OFF	(BNX2_HC_RX_QUICK_CONS_TRIP_1 - \
-					 BNX2_HC_SB_CONFIG_1)
+		BNX2_HC_SB_CONFIG_1)
 #define BNX2_HC_RX_TICKS_OFF	(BNX2_HC_RX_TICKS_1 - BNX2_HC_SB_CONFIG_1)
 
 
@@ -6541,16 +6547,16 @@ struct l2_fhdr {
 #define BNX2_START_UNICAST_ADDRESS_INDEX	4
 #define BNX2_END_UNICAST_ADDRESS_INDEX		7
 #define BNX2_MAX_UNICAST_ADDRESSES     	(BNX2_END_UNICAST_ADDRESS_INDEX - \
-					 BNX2_START_UNICAST_ADDRESS_INDEX + 1)
+		BNX2_START_UNICAST_ADDRESS_INDEX + 1)
 
 #define DMA_READ_CHANS	5
 #define DMA_WRITE_CHANS	3
 
 /* Use CPU native page size up to 16K for the ring sizes.  */
 #if (PAGE_SHIFT > 14)
-#define BNX2_PAGE_BITS	14
+	#define BNX2_PAGE_BITS	14
 #else
-#define BNX2_PAGE_BITS	PAGE_SHIFT
+	#define BNX2_PAGE_BITS	PAGE_SHIFT
 #endif
 #define BNX2_PAGE_SIZE	(1 << BNX2_PAGE_BITS)
 
@@ -6566,14 +6572,14 @@ struct l2_fhdr {
 	(BNX2_MAX_RX_DESC_CNT * BNX2_MAX_RX_PG_RINGS)
 
 #define BNX2_NEXT_TX_BD(x) (((x) & (BNX2_MAX_TX_DESC_CNT - 1)) ==	\
-		(BNX2_MAX_TX_DESC_CNT - 1)) ?				\
-	(x) + 2 : (x) + 1
+							(BNX2_MAX_TX_DESC_CNT - 1)) ?				\
+(x) + 2 : (x) + 1
 
 #define BNX2_TX_RING_IDX(x) ((x) & BNX2_MAX_TX_DESC_CNT)
 
 #define BNX2_NEXT_RX_BD(x) (((x) & (BNX2_MAX_RX_DESC_CNT - 1)) ==	\
-		(BNX2_MAX_RX_DESC_CNT - 1)) ?				\
-	(x) + 2 : (x) + 1
+							(BNX2_MAX_RX_DESC_CNT - 1)) ?				\
+(x) + 2 : (x) + 1
 
 #define BNX2_RX_RING_IDX(x) ((x) & bp->rx_max_ring_idx)
 #define BNX2_RX_PG_RING_IDX(x) ((x) & bp->rx_max_pg_ring_idx)
@@ -6620,7 +6626,8 @@ struct l2_fhdr {
  * RX ring buffer contains pointer to kmalloc() data only,
  * skb are built only after Hardware filled the frame.
  */
-struct bnx2_sw_bd {
+struct bnx2_sw_bd
+{
 	u8			*data;
 	DEFINE_DMA_UNMAP_ADDR(mapping);
 };
@@ -6634,12 +6641,14 @@ static inline struct l2_fhdr *get_l2_fhdr(u8 *data)
 }
 
 
-struct bnx2_sw_pg {
+struct bnx2_sw_pg
+{
 	struct page		*page;
 	DEFINE_DMA_UNMAP_ADDR(mapping);
 };
 
-struct bnx2_sw_tx_bd {
+struct bnx2_sw_tx_bd
+{
 	struct sk_buff		*skb;
 	DEFINE_DMA_UNMAP_ADDR(mapping);
 	unsigned short		is_gso;
@@ -6686,13 +6695,14 @@ struct bnx2_sw_tx_bd {
 
 
 #define FLASH_STRAP_MASK			(BNX2_NVM_CFG1_FLASH_MODE   | \
-						 BNX2_NVM_CFG1_BUFFER_MODE  | \
-						 BNX2_NVM_CFG1_PROTECT_MODE | \
-						 BNX2_NVM_CFG1_FLASH_SIZE)
+									 BNX2_NVM_CFG1_BUFFER_MODE  | \
+									 BNX2_NVM_CFG1_PROTECT_MODE | \
+									 BNX2_NVM_CFG1_FLASH_SIZE)
 
 #define FLASH_BACKUP_STRAP_MASK			(0xf << 26)
 
-struct flash_spec {
+struct flash_spec
+{
 	u32 strapping;
 	u32 config1;
 	u32 config2;
@@ -6712,20 +6722,22 @@ struct flash_spec {
 #define BNX2_MAX_MSIX_HW_VEC	9
 #define BNX2_MAX_MSIX_VEC	9
 #ifdef BCM_CNIC
-#define BNX2_MIN_MSIX_VEC	2
+	#define BNX2_MIN_MSIX_VEC	2
 #else
-#define BNX2_MIN_MSIX_VEC	1
+	#define BNX2_MIN_MSIX_VEC	1
 #endif
 
 
-struct bnx2_irq {
+struct bnx2_irq
+{
 	irq_handler_t	handler;
 	unsigned int	vector;
 	u8		requested;
 	char		name[IFNAMSIZ + 2];
 };
 
-struct bnx2_tx_ring_info {
+struct bnx2_tx_ring_info
+{
 	u32			tx_prod_bseq;
 	u16			tx_prod;
 	u32			tx_bidx_addr;
@@ -6740,7 +6752,8 @@ struct bnx2_tx_ring_info {
 	dma_addr_t		tx_desc_mapping;
 };
 
-struct bnx2_rx_ring_info {
+struct bnx2_rx_ring_info
+{
 	u32			rx_prod_bseq;
 	u16			rx_prod;
 	u16			rx_cons;
@@ -6761,10 +6774,12 @@ struct bnx2_rx_ring_info {
 	dma_addr_t		rx_pg_desc_mapping[BNX2_MAX_RX_PG_RINGS];
 };
 
-struct bnx2_napi {
+struct bnx2_napi
+{
 	struct napi_struct	napi		____cacheline_aligned;
 	struct bnx2		*bp;
-	union {
+	union
+	{
 		struct status_block		*msi;
 		struct status_block_msix	*msix;
 	} status_blk;
@@ -6782,7 +6797,8 @@ struct bnx2_napi {
 	struct bnx2_tx_ring_info	tx_ring;
 };
 
-struct bnx2 {
+struct bnx2
+{
 	/* Fields used in the tx and intr/napi performance paths are grouped */
 	/* together in the beginning of the structure. */
 	void __iomem		*regview;
@@ -6804,7 +6820,7 @@ struct bnx2 {
 #define BNX2_FLAG_PCIE			0x00000200
 #define BNX2_FLAG_USING_MSIX		0x00000400
 #define BNX2_FLAG_USING_MSI_OR_MSIX	(BNX2_FLAG_USING_MSI | \
-					 BNX2_FLAG_USING_MSIX)
+									 BNX2_FLAG_USING_MSIX)
 #define BNX2_FLAG_JUMBO_BROKEN		0x00000800
 #define BNX2_FLAG_CAN_KEEP_VLAN		0x00001000
 #define BNX2_FLAG_BROKEN_STATS		0x00002000
@@ -6888,7 +6904,7 @@ struct bnx2 {
 #define BNX2_CHIP_ID_5709_A0			0x57090000
 #define BNX2_CHIP_ID_5709_A1			0x57090010
 
-/* A serdes chip will have the first bit of the bond id set. */
+	/* A serdes chip will have the first bit of the bond id set. */
 #define BNX2_CHIP_BOND_SERDES_BIT		0x01
 
 	u32			phy_addr;
@@ -6949,13 +6965,13 @@ struct bnx2 {
 	u16			line_speed;
 	u8			duplex;
 	u8			flow_ctrl;	/* actual flow ctrl settings */
-						/* may be different from     */
-						/* req_flow_ctrl if autoneg  */
+	/* may be different from     */
+	/* req_flow_ctrl if autoneg  */
 	u32			advertising;
 
 	u8			req_flow_ctrl;	/* flow ctrl advertisement */
-						/* settings or forced      */
-						/* settings                */
+	/* settings or forced      */
+	/* settings                */
 	u8			autoneg;
 #define AUTONEG_SPEED		1
 #define AUTONEG_FLOW_CTRL	2
@@ -7013,7 +7029,8 @@ struct bnx2 {
 #define BNX2_WR16(bp, offset, val)				\
 	writew(val, bp->regview + offset)
 
-struct cpu_reg {
+struct cpu_reg
+{
 	u32 mode;
 	u32 mode_value_halt;
 	u32 mode_value_sstep;
@@ -7032,25 +7049,29 @@ struct cpu_reg {
 	u32 mips_view_base;
 };
 
-struct bnx2_fw_file_section {
+struct bnx2_fw_file_section
+{
 	__be32 addr;
 	__be32 len;
 	__be32 offset;
 };
 
-struct bnx2_mips_fw_file_entry {
+struct bnx2_mips_fw_file_entry
+{
 	__be32 start_addr;
 	struct bnx2_fw_file_section text;
 	struct bnx2_fw_file_section data;
 	struct bnx2_fw_file_section rodata;
 };
 
-struct bnx2_rv2p_fw_file_entry {
+struct bnx2_rv2p_fw_file_entry
+{
 	struct bnx2_fw_file_section rv2p;
 	__be32 fixup[8];
 };
 
-struct bnx2_mips_fw_file {
+struct bnx2_mips_fw_file
+{
 	struct bnx2_mips_fw_file_entry com;
 	struct bnx2_mips_fw_file_entry cp;
 	struct bnx2_mips_fw_file_entry rxp;
@@ -7058,7 +7079,8 @@ struct bnx2_mips_fw_file {
 	struct bnx2_mips_fw_file_entry txp;
 };
 
-struct bnx2_rv2p_fw_file {
+struct bnx2_rv2p_fw_file
+{
 	struct bnx2_rv2p_fw_file_entry proc1;
 	struct bnx2_rv2p_fw_file_entry proc2;
 };
@@ -7351,24 +7373,24 @@ struct bnx2_rv2p_fw_file {
 #define BNX2_BC_STATE_RESET_TYPE_SIG		 0x00005254
 #define BNX2_BC_STATE_RESET_TYPE_SIG_MASK	 0x0000ffff
 #define BNX2_BC_STATE_RESET_TYPE_NONE	 (BNX2_BC_STATE_RESET_TYPE_SIG | \
-					  0x00010000)
+		0x00010000)
 #define BNX2_BC_STATE_RESET_TYPE_PCI	 (BNX2_BC_STATE_RESET_TYPE_SIG | \
-					  0x00020000)
+		0x00020000)
 #define BNX2_BC_STATE_RESET_TYPE_VAUX	 (BNX2_BC_STATE_RESET_TYPE_SIG | \
-					  0x00030000)
+		0x00030000)
 #define BNX2_BC_STATE_RESET_TYPE_DRV_MASK	 DRV_MSG_CODE
 #define BNX2_BC_STATE_RESET_TYPE_DRV_RESET (BNX2_BC_STATE_RESET_TYPE_SIG | \
-					    DRV_MSG_CODE_RESET)
+		DRV_MSG_CODE_RESET)
 #define BNX2_BC_STATE_RESET_TYPE_DRV_UNLOAD (BNX2_BC_STATE_RESET_TYPE_SIG | \
-					     DRV_MSG_CODE_UNLOAD)
+		DRV_MSG_CODE_UNLOAD)
 #define BNX2_BC_STATE_RESET_TYPE_DRV_SHUTDOWN (BNX2_BC_STATE_RESET_TYPE_SIG | \
-					       DRV_MSG_CODE_SHUTDOWN)
+		DRV_MSG_CODE_SHUTDOWN)
 #define BNX2_BC_STATE_RESET_TYPE_DRV_WOL (BNX2_BC_STATE_RESET_TYPE_SIG | \
-					  DRV_MSG_CODE_WOL)
+		DRV_MSG_CODE_WOL)
 #define BNX2_BC_STATE_RESET_TYPE_DRV_DIAG (BNX2_BC_STATE_RESET_TYPE_SIG | \
-					   DRV_MSG_CODE_DIAG)
+		DRV_MSG_CODE_DIAG)
 #define BNX2_BC_STATE_RESET_TYPE_VALUE(msg) (BNX2_BC_STATE_RESET_TYPE_SIG | \
-					     (msg))
+		(msg))
 
 #define BNX2_BC_RESET_TYPE			0x000001c0
 
@@ -7437,7 +7459,7 @@ struct bnx2_rv2p_fw_file {
 #define BNX2_FW_CAP_MFW_CAN_KEEP_VLAN		 0x00000008
 #define BNX2_FW_CAP_BC_CAN_KEEP_VLAN		 0x00000010
 #define BNX2_FW_CAP_CAN_KEEP_VLAN	(BNX2_FW_CAP_BC_CAN_KEEP_VLAN | \
-					 BNX2_FW_CAP_MFW_CAN_KEEP_VLAN)
+									 BNX2_FW_CAP_MFW_CAN_KEEP_VLAN)
 
 #define BNX2_RPHY_SIGNATURE			0x36c
 #define BNX2_RPHY_LOAD_SIGNATURE		 0x5a5a5a5a
@@ -7457,10 +7479,10 @@ struct bnx2_rv2p_fw_file {
 
 #define DP_SHMEM_LINE(bp, offset)					\
 	netdev_err(bp->dev, "DEBUG: %08x: %08x %08x %08x %08x\n",	\
-		   offset,						\
-		   bnx2_shmem_rd(bp, offset),				\
-		   bnx2_shmem_rd(bp, offset + 4),			\
-		   bnx2_shmem_rd(bp, offset + 8),			\
-		   bnx2_shmem_rd(bp, offset + 12))
+			   offset,						\
+			   bnx2_shmem_rd(bp, offset),				\
+			   bnx2_shmem_rd(bp, offset + 4),			\
+			   bnx2_shmem_rd(bp, offset + 8),			\
+			   bnx2_shmem_rd(bp, offset + 12))
 
 #endif

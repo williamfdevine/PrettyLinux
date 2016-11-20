@@ -62,7 +62,7 @@ static ssize_t instance_pe_count_show(struct edac_pci_ctl_info *pci, char *data)
 }
 
 static ssize_t instance_npe_count_show(struct edac_pci_ctl_info *pci,
-				char *data)
+									   char *data)
 {
 	return sprintf(data, "%u\n", atomic_read(&pci->counters.npe_count));
 }
@@ -87,7 +87,8 @@ static void edac_pci_instance_release(struct kobject *kobj)
 }
 
 /* instance specific attribute structure */
-struct instance_attribute {
+struct instance_attribute
+{
 	struct attribute attr;
 	ssize_t(*show) (struct edac_pci_ctl_info *, char *);
 	ssize_t(*store) (struct edac_pci_ctl_info *, const char *, size_t);
@@ -95,54 +96,63 @@ struct instance_attribute {
 
 /* Function to 'show' fields from the edac_pci 'instance' structure */
 static ssize_t edac_pci_instance_show(struct kobject *kobj,
-				struct attribute *attr, char *buffer)
+									  struct attribute *attr, char *buffer)
 {
 	struct edac_pci_ctl_info *pci = to_instance(kobj);
 	struct instance_attribute *instance_attr = to_instance_attr(attr);
 
 	if (instance_attr->show)
+	{
 		return instance_attr->show(pci, buffer);
+	}
+
 	return -EIO;
 }
 
 /* Function to 'store' fields into the edac_pci 'instance' structure */
 static ssize_t edac_pci_instance_store(struct kobject *kobj,
-				struct attribute *attr,
-				const char *buffer, size_t count)
+									   struct attribute *attr,
+									   const char *buffer, size_t count)
 {
 	struct edac_pci_ctl_info *pci = to_instance(kobj);
 	struct instance_attribute *instance_attr = to_instance_attr(attr);
 
 	if (instance_attr->store)
+	{
 		return instance_attr->store(pci, buffer, count);
+	}
+
 	return -EIO;
 }
 
 /* fs_ops table */
-static const struct sysfs_ops pci_instance_ops = {
+static const struct sysfs_ops pci_instance_ops =
+{
 	.show = edac_pci_instance_show,
 	.store = edac_pci_instance_store
 };
 
 #define INSTANCE_ATTR(_name, _mode, _show, _store)	\
-static struct instance_attribute attr_instance_##_name = {	\
-	.attr	= {.name = __stringify(_name), .mode = _mode },	\
-	.show	= _show,					\
-	.store	= _store,					\
-};
+	static struct instance_attribute attr_instance_##_name = {	\
+		.attr	= {.name = __stringify(_name), .mode = _mode },	\
+				  .show	= _show,					\
+							.store	= _store,					\
+	};
 
 INSTANCE_ATTR(pe_count, S_IRUGO, instance_pe_count_show, NULL);
 INSTANCE_ATTR(npe_count, S_IRUGO, instance_npe_count_show, NULL);
 
 /* pci instance attributes */
-static struct instance_attribute *pci_instance_attr[] = {
+static struct instance_attribute *pci_instance_attr[] =
+{
 	&attr_instance_pe_count,
 	&attr_instance_npe_count,
 	NULL
 };
 
 /* the ktype for a pci instance */
-static struct kobj_type ktype_pci_instance = {
+static struct kobj_type ktype_pci_instance =
+{
 	.release = edac_pci_instance_release,
 	.sysfs_ops = &pci_instance_ops,
 	.default_attrs = (struct attribute **)pci_instance_attr,
@@ -165,15 +175,19 @@ static int edac_pci_create_instance_kobj(struct edac_pci_ctl_info *pci, int idx)
 	 * properly on keeping the module loaded
 	 */
 	main_kobj = kobject_get(edac_pci_top_main_kobj);
-	if (!main_kobj) {
+
+	if (!main_kobj)
+	{
 		err = -ENODEV;
 		goto error_out;
 	}
 
 	/* And now register this new kobject under the main kobj */
 	err = kobject_init_and_add(&pci->kobj, &ktype_pci_instance,
-				   edac_pci_top_main_kobj, "pci%d", idx);
-	if (err != 0) {
+							   edac_pci_top_main_kobj, "pci%d", idx);
+
+	if (err != 0)
+	{
 		edac_dbg(2, "failed to register instance pci%d\n", idx);
 		kobject_put(edac_pci_top_main_kobj);
 		goto error_out;
@@ -195,7 +209,7 @@ error_out:
  *	unregister the kobj for the EDAC PCI instance
  */
 static void edac_pci_unregister_sysfs_instance_kobj(
-			struct edac_pci_ctl_info *pci)
+	struct edac_pci_ctl_info *pci)
 {
 	edac_dbg(0, "\n");
 
@@ -222,77 +236,88 @@ static ssize_t edac_pci_int_store(void *ptr, const char *buffer, size_t count)
 	int *value = ptr;
 
 	if (isdigit(*buffer))
+	{
 		*value = simple_strtoul(buffer, NULL, 0);
+	}
 
 	return count;
 }
 
-struct edac_pci_dev_attribute {
+struct edac_pci_dev_attribute
+{
 	struct attribute attr;
 	void *value;
-	 ssize_t(*show) (void *, char *);
-	 ssize_t(*store) (void *, const char *, size_t);
+	ssize_t(*show) (void *, char *);
+	ssize_t(*store) (void *, const char *, size_t);
 };
 
 /* Set of show/store abstract level functions for PCI Parity object */
 static ssize_t edac_pci_dev_show(struct kobject *kobj, struct attribute *attr,
-				 char *buffer)
+								 char *buffer)
 {
 	struct edac_pci_dev_attribute *edac_pci_dev;
 	edac_pci_dev = (struct edac_pci_dev_attribute *)attr;
 
 	if (edac_pci_dev->show)
+	{
 		return edac_pci_dev->show(edac_pci_dev->value, buffer);
+	}
+
 	return -EIO;
 }
 
 static ssize_t edac_pci_dev_store(struct kobject *kobj,
-				struct attribute *attr, const char *buffer,
-				size_t count)
+								  struct attribute *attr, const char *buffer,
+								  size_t count)
 {
 	struct edac_pci_dev_attribute *edac_pci_dev;
 	edac_pci_dev = (struct edac_pci_dev_attribute *)attr;
 
 	if (edac_pci_dev->store)
+	{
 		return edac_pci_dev->store(edac_pci_dev->value, buffer, count);
+	}
+
 	return -EIO;
 }
 
-static const struct sysfs_ops edac_pci_sysfs_ops = {
+static const struct sysfs_ops edac_pci_sysfs_ops =
+{
 	.show = edac_pci_dev_show,
 	.store = edac_pci_dev_store
 };
 
 #define EDAC_PCI_ATTR(_name,_mode,_show,_store)			\
-static struct edac_pci_dev_attribute edac_pci_attr_##_name = {		\
-	.attr = {.name = __stringify(_name), .mode = _mode },	\
-	.value  = &_name,					\
-	.show   = _show,					\
-	.store  = _store,					\
-};
+	static struct edac_pci_dev_attribute edac_pci_attr_##_name = {		\
+		.attr = {.name = __stringify(_name), .mode = _mode },	\
+				.value  = &_name,					\
+						  .show   = _show,					\
+									.store  = _store,					\
+	};
 
 #define EDAC_PCI_STRING_ATTR(_name,_data,_mode,_show,_store)	\
-static struct edac_pci_dev_attribute edac_pci_attr_##_name = {		\
-	.attr = {.name = __stringify(_name), .mode = _mode },	\
-	.value  = _data,					\
-	.show   = _show,					\
-	.store  = _store,					\
-};
+	static struct edac_pci_dev_attribute edac_pci_attr_##_name = {		\
+		.attr = {.name = __stringify(_name), .mode = _mode },	\
+				.value  = _data,					\
+						  .show   = _show,					\
+									.store  = _store,					\
+	};
 
 /* PCI Parity control files */
 EDAC_PCI_ATTR(check_pci_errors, S_IRUGO | S_IWUSR, edac_pci_int_show,
-	edac_pci_int_store);
+			  edac_pci_int_store);
 EDAC_PCI_ATTR(edac_pci_log_pe, S_IRUGO | S_IWUSR, edac_pci_int_show,
-	edac_pci_int_store);
+			  edac_pci_int_store);
 EDAC_PCI_ATTR(edac_pci_log_npe, S_IRUGO | S_IWUSR, edac_pci_int_show,
-	edac_pci_int_store);
+			  edac_pci_int_store);
 EDAC_PCI_ATTR(edac_pci_panic_on_pe, S_IRUGO | S_IWUSR, edac_pci_int_show,
-	edac_pci_int_store);
+			  edac_pci_int_store);
 EDAC_PCI_ATTR(pci_parity_count, S_IRUGO, edac_pci_int_show, NULL);
 EDAC_PCI_ATTR(pci_nonparity_count, S_IRUGO, edac_pci_int_show, NULL);
 
 /* Base Attributes of the memory ECC object */
-static struct edac_pci_dev_attribute *edac_pci_attr[] = {
+static struct edac_pci_dev_attribute *edac_pci_attr[] =
+{
 	&edac_pci_attr_check_pci_errors,
 	&edac_pci_attr_edac_pci_log_pe,
 	&edac_pci_attr_edac_pci_log_npe,
@@ -324,7 +349,8 @@ static void edac_pci_release_main_kobj(struct kobject *kobj)
 }
 
 /* ktype struct for the EDAC PCI main kobj */
-static struct kobj_type ktype_edac_pci_main_kobj = {
+static struct kobj_type ktype_edac_pci_main_kobj =
+{
 	.release = edac_pci_release_main_kobj,
 	.sysfs_ops = &edac_pci_sysfs_ops,
 	.default_attrs = (struct attribute **)edac_pci_attr,
@@ -342,7 +368,9 @@ static int edac_pci_main_kobj_setup(void)
 
 	/* check and count if we have already created the main kobject */
 	if (atomic_inc_return(&edac_pci_sysfs_refcount) != 1)
+	{
 		return 0;
+	}
 
 	/* First time, so create the main kobject and its
 	 * controls and attributes
@@ -353,14 +381,17 @@ static int edac_pci_main_kobj_setup(void)
 	 * modules isn't unloaded until we deconstruct the top
 	 * level main kobj for EDAC PCI
 	 */
-	if (!try_module_get(THIS_MODULE)) {
+	if (!try_module_get(THIS_MODULE))
+	{
 		edac_dbg(1, "try_module_get() failed\n");
 		err = -ENODEV;
 		goto decrement_count_fail;
 	}
 
 	edac_pci_top_main_kobj = kzalloc(sizeof(struct kobject), GFP_KERNEL);
-	if (!edac_pci_top_main_kobj) {
+
+	if (!edac_pci_top_main_kobj)
+	{
 		edac_dbg(1, "Failed to allocate\n");
 		err = -ENOMEM;
 		goto kzalloc_fail;
@@ -368,9 +399,11 @@ static int edac_pci_main_kobj_setup(void)
 
 	/* Instanstiate the pci object */
 	err = kobject_init_and_add(edac_pci_top_main_kobj,
-				   &ktype_edac_pci_main_kobj,
-				   &edac_subsys->dev_root->kobj, "pci");
-	if (err) {
+							   &ktype_edac_pci_main_kobj,
+							   &edac_subsys->dev_root->kobj, "pci");
+
+	if (err)
+	{
 		edac_dbg(1, "Failed to register '.../edac/pci'\n");
 		goto kobject_init_and_add_fail;
 	}
@@ -412,7 +445,8 @@ static void edac_pci_main_kobj_teardown(void)
 	 * are connected perform the unregisteration of the top level
 	 * main kobj
 	 */
-	if (atomic_dec_return(&edac_pci_sysfs_refcount) == 0) {
+	if (atomic_dec_return(&edac_pci_sysfs_refcount) == 0)
+	{
 		edac_dbg(0, "called kobject_put on main kobj\n");
 		kobject_put(edac_pci_top_main_kobj);
 	}
@@ -433,16 +467,24 @@ int edac_pci_create_sysfs(struct edac_pci_ctl_info *pci)
 
 	/* create the top main EDAC PCI kobject, IF needed */
 	err = edac_pci_main_kobj_setup();
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Create this instance's kobject under the MAIN kobject */
 	err = edac_pci_create_instance_kobj(pci, pci->pci_idx);
+
 	if (err)
+	{
 		goto unregister_cleanup;
+	}
 
 	err = sysfs_create_link(edac_kobj, &pci->dev->kobj, EDAC_PCI_SYMLINK);
-	if (err) {
+
+	if (err)
+	{
 		edac_dbg(0, "sysfs_create_link() returned err= %d\n", err);
 		goto symlink_fail;
 	}
@@ -496,21 +538,26 @@ static u16 get_pci_parity_status(struct pci_dev *dev, int secondary)
 	 * We don't want to report on such devices
 	 */
 
-	if (status == 0xFFFF) {
+	if (status == 0xFFFF)
+	{
 		u32 sanity;
 
 		pci_read_config_dword(dev, 0, &sanity);
 
 		if (sanity == 0xFFFFFFFF)
+		{
 			return 0;
+		}
 	}
 
 	status &= PCI_STATUS_DETECTED_PARITY | PCI_STATUS_SIG_SYSTEM_ERROR |
-		PCI_STATUS_PARITY;
+			  PCI_STATUS_PARITY;
 
 	if (status)
 		/* reset only the bits we are interested in */
+	{
 		pci_write_config_word(dev, where, status);
+	}
 
 	return status;
 }
@@ -527,7 +574,9 @@ static void edac_pci_dev_parity_clear(struct pci_dev *dev)
 	pci_read_config_byte(dev, PCI_HEADER_TYPE, &header_type);
 
 	if ((header_type & 0x7F) == PCI_HEADER_TYPE_BRIDGE)
+	{
 		get_pci_parity_status(dev, 1);
+	}
 }
 
 /*
@@ -559,26 +608,30 @@ static void edac_pci_dev_parity_test(struct pci_dev *dev)
 	/* check the status reg for errors on boards NOT marked as broken
 	 * if broken, we cannot trust any of the status bits
 	 */
-	if (status && !dev->broken_parity_status) {
-		if (status & (PCI_STATUS_SIG_SYSTEM_ERROR)) {
+	if (status && !dev->broken_parity_status)
+	{
+		if (status & (PCI_STATUS_SIG_SYSTEM_ERROR))
+		{
 			edac_printk(KERN_CRIT, EDAC_PCI,
-				"Signaled System Error on %s\n",
-				pci_name(dev));
+						"Signaled System Error on %s\n",
+						pci_name(dev));
 			atomic_inc(&pci_nonparity_count);
 		}
 
-		if (status & (PCI_STATUS_PARITY)) {
+		if (status & (PCI_STATUS_PARITY))
+		{
 			edac_printk(KERN_CRIT, EDAC_PCI,
-				"Master Data Parity Error on %s\n",
-				pci_name(dev));
+						"Master Data Parity Error on %s\n",
+						pci_name(dev));
 
 			atomic_inc(&pci_parity_count);
 		}
 
-		if (status & (PCI_STATUS_DETECTED_PARITY)) {
+		if (status & (PCI_STATUS_DETECTED_PARITY))
+		{
 			edac_printk(KERN_CRIT, EDAC_PCI,
-				"Detected Parity Error on %s\n",
-				pci_name(dev));
+						"Detected Parity Error on %s\n",
+						pci_name(dev));
 
 			atomic_inc(&pci_parity_count);
 		}
@@ -586,38 +639,43 @@ static void edac_pci_dev_parity_test(struct pci_dev *dev)
 
 
 	edac_dbg(4, "PCI HEADER TYPE= 0x%02x %s\n",
-		 header_type, dev_name(&dev->dev));
+			 header_type, dev_name(&dev->dev));
 
-	if ((header_type & 0x7F) == PCI_HEADER_TYPE_BRIDGE) {
+	if ((header_type & 0x7F) == PCI_HEADER_TYPE_BRIDGE)
+	{
 		/* On bridges, need to examine secondary status register  */
 		status = get_pci_parity_status(dev, 1);
 
 		edac_dbg(4, "PCI SEC_STATUS= 0x%04x %s\n",
-			 status, dev_name(&dev->dev));
+				 status, dev_name(&dev->dev));
 
 		/* check the secondary status reg for errors,
 		 * on NOT broken boards
 		 */
-		if (status && !dev->broken_parity_status) {
-			if (status & (PCI_STATUS_SIG_SYSTEM_ERROR)) {
+		if (status && !dev->broken_parity_status)
+		{
+			if (status & (PCI_STATUS_SIG_SYSTEM_ERROR))
+			{
 				edac_printk(KERN_CRIT, EDAC_PCI, "Bridge "
-					"Signaled System Error on %s\n",
-					pci_name(dev));
+							"Signaled System Error on %s\n",
+							pci_name(dev));
 				atomic_inc(&pci_nonparity_count);
 			}
 
-			if (status & (PCI_STATUS_PARITY)) {
+			if (status & (PCI_STATUS_PARITY))
+			{
 				edac_printk(KERN_CRIT, EDAC_PCI, "Bridge "
-					"Master Data Parity Error on "
-					"%s\n", pci_name(dev));
+							"Master Data Parity Error on "
+							"%s\n", pci_name(dev));
 
 				atomic_inc(&pci_parity_count);
 			}
 
-			if (status & (PCI_STATUS_DETECTED_PARITY)) {
+			if (status & (PCI_STATUS_DETECTED_PARITY))
+			{
 				edac_printk(KERN_CRIT, EDAC_PCI, "Bridge "
-					"Detected Parity Error on %s\n",
-					pci_name(dev));
+							"Detected Parity Error on %s\n",
+							pci_name(dev));
 
 				atomic_inc(&pci_parity_count);
 			}
@@ -639,7 +697,7 @@ static inline void edac_pci_dev_parity_iterator(pci_parity_check_fn_t fn)
 	struct pci_dev *dev = NULL;
 
 	for_each_pci_dev(dev)
-		fn(dev);
+	fn(dev);
 }
 
 /*
@@ -655,7 +713,9 @@ void edac_pci_do_parity_check(void)
 
 	/* if policy has PCI check off, leave now */
 	if (!check_pci_errors)
+	{
 		return;
+	}
 
 	before_count = atomic_read(&pci_parity_count);
 
@@ -667,10 +727,13 @@ void edac_pci_do_parity_check(void)
 	edac_pci_dev_parity_iterator(edac_pci_dev_parity_test);
 
 	/* Only if operator has selected panic on PCI Error */
-	if (edac_pci_get_panic_on_pe()) {
+	if (edac_pci_get_panic_on_pe())
+	{
 		/* If the count is different 'after' from 'before' */
 		if (before_count != atomic_read(&pci_parity_count))
+		{
 			panic("EDAC: PCI Parity Error");
+		}
 	}
 }
 
@@ -701,8 +764,8 @@ void edac_pci_handle_pe(struct edac_pci_ctl_info *pci, const char *msg)
 
 	if (edac_pci_get_log_pe())
 		edac_pci_printk(pci, KERN_WARNING,
-				"Parity Error ctl: %s %d: %s\n",
-				pci->ctl_name, pci->pci_idx, msg);
+						"Parity Error ctl: %s %d: %s\n",
+						pci->ctl_name, pci->pci_idx, msg);
 
 	/*
 	 * poke all PCI devices and see which one is the troublemaker
@@ -726,8 +789,8 @@ void edac_pci_handle_npe(struct edac_pci_ctl_info *pci, const char *msg)
 
 	if (edac_pci_get_log_npe())
 		edac_pci_printk(pci, KERN_WARNING,
-				"Non-Parity Error ctl: %s %d: %s\n",
-				pci->ctl_name, pci->pci_idx, msg);
+						"Non-Parity Error ctl: %s %d: %s\n",
+						pci->ctl_name, pci->pci_idx, msg);
 
 	/*
 	 * poke all PCI devices and see which one is the troublemaker
@@ -742,7 +805,7 @@ EXPORT_SYMBOL_GPL(edac_pci_handle_npe);
  */
 module_param(check_pci_errors, int, 0644);
 MODULE_PARM_DESC(check_pci_errors,
-		 "Check for PCI bus parity errors: 0=off 1=on");
+				 "Check for PCI bus parity errors: 0=off 1=on");
 module_param(edac_pci_panic_on_pe, int, 0644);
 MODULE_PARM_DESC(edac_pci_panic_on_pe,
-		 "Panic on PCI Bus Parity error: 0=off 1=on");
+				 "Panic on PCI Bus Parity error: 0=off 1=on");

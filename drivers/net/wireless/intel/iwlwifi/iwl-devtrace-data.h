@@ -34,60 +34,63 @@
 #define TRACE_SYSTEM iwlwifi_data
 
 TRACE_EVENT(iwlwifi_dev_tx_data,
-	TP_PROTO(const struct device *dev,
-		 struct sk_buff *skb,
-		 u8 hdr_len, size_t data_len),
-	TP_ARGS(dev, skb, hdr_len, data_len),
-	TP_STRUCT__entry(
-		DEV_ENTRY
+			TP_PROTO(const struct device *dev,
+					 struct sk_buff *skb,
+					 u8 hdr_len, size_t data_len),
+			TP_ARGS(dev, skb, hdr_len, data_len),
+			TP_STRUCT__entry(
+				DEV_ENTRY
 
-		__dynamic_array(u8, data, iwl_trace_data(skb) ? data_len : 0)
-	),
-	TP_fast_assign(
-		DEV_ASSIGN;
-		if (iwl_trace_data(skb))
-			skb_copy_bits(skb, hdr_len,
-				      __get_dynamic_array(data), data_len);
-	),
-	TP_printk("[%s] TX frame data", __get_str(dev))
-);
+				__dynamic_array(u8, data, iwl_trace_data(skb) ? data_len : 0)
+			),
+			TP_fast_assign(
+				DEV_ASSIGN;
+
+				if (iwl_trace_data(skb))
+				skb_copy_bits(skb, hdr_len,
+							  __get_dynamic_array(data), data_len);
+			),
+			TP_printk("[%s] TX frame data", __get_str(dev))
+		   );
 
 TRACE_EVENT(iwlwifi_dev_tx_tso_chunk,
-	TP_PROTO(const struct device *dev,
-		 u8 *data_src, size_t data_len),
-	TP_ARGS(dev, data_src, data_len),
-	TP_STRUCT__entry(
-		DEV_ENTRY
+			TP_PROTO(const struct device *dev,
+					 u8 *data_src, size_t data_len),
+			TP_ARGS(dev, data_src, data_len),
+			TP_STRUCT__entry(
+				DEV_ENTRY
 
-		__dynamic_array(u8, data, data_len)
-	),
-	TP_fast_assign(
-		DEV_ASSIGN;
-		memcpy(__get_dynamic_array(data), data_src, data_len);
-	),
-	TP_printk("[%s] TX frame data", __get_str(dev))
-);
+				__dynamic_array(u8, data, data_len)
+			),
+			TP_fast_assign(
+				DEV_ASSIGN;
+				memcpy(__get_dynamic_array(data), data_src, data_len);
+			),
+			TP_printk("[%s] TX frame data", __get_str(dev))
+		   );
 
 TRACE_EVENT(iwlwifi_dev_rx_data,
-	TP_PROTO(const struct device *dev,
-		 const struct iwl_trans *trans,
-		 void *rxbuf, size_t len),
-	TP_ARGS(dev, trans, rxbuf, len),
-	TP_STRUCT__entry(
-		DEV_ENTRY
+			TP_PROTO(const struct device *dev,
+					 const struct iwl_trans *trans,
+					 void *rxbuf, size_t len),
+			TP_ARGS(dev, trans, rxbuf, len),
+			TP_STRUCT__entry(
+				DEV_ENTRY
 
-		__dynamic_array(u8, data,
-				len - iwl_rx_trace_len(trans, rxbuf, len))
-	),
-	TP_fast_assign(
-		size_t offs = iwl_rx_trace_len(trans, rxbuf, len);
-		DEV_ASSIGN;
-		if (offs < len)
-			memcpy(__get_dynamic_array(data),
-			       ((u8 *)rxbuf) + offs, len - offs);
-	),
-	TP_printk("[%s] RX frame data", __get_str(dev))
-);
+				__dynamic_array(u8, data,
+								len - iwl_rx_trace_len(trans, rxbuf, len))
+			),
+			TP_fast_assign(
+				size_t offs = iwl_rx_trace_len(trans, rxbuf, len);
+				DEV_ASSIGN;
+
+				if (offs < len)
+				memcpy(__get_dynamic_array(data),
+					   ((u8 *)rxbuf) + offs, len - offs);
+			),
+			TP_printk("[%s] RX frame data", __get_str(dev))
+		   );
+
 #endif /* __IWLWIFI_DEVICE_TRACE_DATA */
 
 #undef TRACE_INCLUDE_PATH

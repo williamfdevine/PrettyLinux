@@ -17,52 +17,52 @@
  */
 
 #ifdef SST_DEBUG
-#  define dprintk(X...)		printk("sstfb: " X)
-#  define SST_DEBUG_REG  1
-#  define SST_DEBUG_FUNC 1
-#  define SST_DEBUG_VAR  1
+	#define dprintk(X...)		printk("sstfb: " X)
+	#define SST_DEBUG_REG  1
+	#define SST_DEBUG_FUNC 1
+	#define SST_DEBUG_VAR  1
 #else
-#  define dprintk(X...)
-#  define SST_DEBUG_REG  0
-#  define SST_DEBUG_FUNC 0
-#  define SST_DEBUG_VAR  0
+	#define dprintk(X...)
+	#define SST_DEBUG_REG  0
+	#define SST_DEBUG_FUNC 0
+	#define SST_DEBUG_VAR  0
 #endif
 
 #if (SST_DEBUG_REG > 0)
-#  define r_dprintk(X...)	dprintk(X)
+	#define r_dprintk(X...)	dprintk(X)
 #else
-#  define r_dprintk(X...)
+	#define r_dprintk(X...)
 #endif
 #if (SST_DEBUG_REG > 1)
-#  define r_ddprintk(X...)	dprintk(" " X)
+	#define r_ddprintk(X...)	dprintk(" " X)
 #else
-#  define r_ddprintk(X...)
+	#define r_ddprintk(X...)
 #endif
 
 #if (SST_DEBUG_FUNC > 0)
-#  define f_dprintk(X...)	dprintk(X)
+	#define f_dprintk(X...)	dprintk(X)
 #else
-#  define f_dprintk(X...)
+	#define f_dprintk(X...)
 #endif
 #if (SST_DEBUG_FUNC > 1)
-#  define f_ddprintk(X...)	dprintk(" " X)
+	#define f_ddprintk(X...)	dprintk(" " X)
 #else
-#  define f_ddprintk(X...)
+	#define f_ddprintk(X...)
 #endif
 #if (SST_DEBUG_FUNC > 2)
-#  define f_dddprintk(X...)	dprintk(" " X)
+	#define f_dddprintk(X...)	dprintk(" " X)
 #else
-#  define f_dddprintk(X...)
+	#define f_dddprintk(X...)
 #endif
 
 #if (SST_DEBUG_VAR > 0)
 #  define v_dprintk(X...)	dprintk(X)
 #  define print_var(V, X...)	\
-   {				\
-     dprintk(X);		\
-     printk(" :\n");		\
-     sst_dbg_print_var(V);	\
-   }
+	{				\
+		dprintk(X);		\
+		printk(" :\n");		\
+		sst_dbg_print_var(V);	\
+	}
 #else
 #  define v_dprintk(X...)
 #  define print_var(X,Y...)
@@ -254,23 +254,23 @@
 
 #define FBIINIT1_DEFAULT 	\
 	(			\
-	  FAST_PCI_WRITES	\
-/*	  SLOW_PCI_WRITES*/	\
-	| VIDEO_RESET		\
-	| 10 << TILES_IN_X_SHIFT\
-	| SEL_SOURCE_VCLK_2X_SEL\
-	| EN_LFB_READ		\
+				FAST_PCI_WRITES	\
+				/*	  SLOW_PCI_WRITES*/	\
+				| VIDEO_RESET		\
+				| 10 << TILES_IN_X_SHIFT\
+				| SEL_SOURCE_VCLK_2X_SEL\
+				| EN_LFB_READ		\
 	)
 
 #define FBIINIT2_DEFAULT	\
 	(			\
-	 SWAP_DACVSYNC		\
-	| EN_DRAM_OE		\
-	| DRAM_REFRESH_16	\
-	| EN_DRAM_REFRESH	\
-	| EN_FAST_RAS_READ	\
-	| EN_RD_AHEAD_FIFO	\
-	| EN_FAST_RD_AHEAD_WR	\
+				SWAP_DACVSYNC		\
+				| EN_DRAM_OE		\
+				| DRAM_REFRESH_16	\
+				| EN_DRAM_REFRESH	\
+				| EN_FAST_RAS_READ	\
+				| EN_RD_AHEAD_FIFO	\
+				| EN_FAST_RD_AHEAD_WR	\
 	)
 
 #define FBIINIT3_DEFAULT 	\
@@ -278,9 +278,9 @@
 
 #define FBIINIT4_DEFAULT	\
 	(			\
-	  FAST_PCI_READS	\
-/*	  SLOW_PCI_READS*/	\
-	| LFB_READ_AHEAD	\
+				FAST_PCI_READS	\
+				/*	  SLOW_PCI_READS*/	\
+				| LFB_READ_AHEAD	\
 	)
 /* Careful with this one : writing back the data just read will trash the DAC
    reading some fields give logic value on pins, but setting this field will
@@ -301,9 +301,10 @@
 
 
 /* used to know witch clock to set */
-enum {
-	VID_CLOCK=0,
-	GFX_CLOCK=1,
+enum
+{
+	VID_CLOCK = 0,
+	GFX_CLOCK = 1,
 };
 
 /* freq max */
@@ -314,26 +315,30 @@ enum {
  *  driver structs
  */
 
-struct pll_timing {
+struct pll_timing
+{
 	unsigned int m;
 	unsigned int n;
 	unsigned int p;
 };
 
-struct dac_switch {
+struct dac_switch
+{
 	const char *name;
 	int (*detect) (struct fb_info *info);
 	int (*set_pll) (struct fb_info *info, const struct pll_timing *t, const int clock);
 	void (*set_vidmod) (struct fb_info *info, const int bpp);
 };
 
-struct sst_spec {
-	char * name;
+struct sst_spec
+{
+	char *name;
 	int default_gfx_clock;	/* 50000 for voodoo1, 75000 for voodoo2 */
 	int max_gfxclk; 	/* ! in Mhz ie 60 for voodoo 1 */
 };
 
-struct sstfb_par {
+struct sstfb_par
+{
 	u32 palette[16];
 	unsigned int yDim;
 	unsigned int hSyncOn;	/* hsync_len */

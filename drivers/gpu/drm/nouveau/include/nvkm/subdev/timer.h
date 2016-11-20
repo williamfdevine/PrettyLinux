@@ -2,7 +2,8 @@
 #define __NVKM_TIMER_H__
 #include <core/subdev.h>
 
-struct nvkm_alarm {
+struct nvkm_alarm
+{
 	struct list_head head;
 	u64 timestamp;
 	void (*func)(struct nvkm_alarm *);
@@ -15,7 +16,8 @@ nvkm_alarm_init(struct nvkm_alarm *alarm, void (*func)(struct nvkm_alarm *))
 	alarm->func = func;
 }
 
-struct nvkm_timer {
+struct nvkm_timer
+{
 	const struct nvkm_timer_func *func;
 	struct nvkm_subdev subdev;
 
@@ -37,33 +39,33 @@ void nvkm_timer_alarm_cancel(struct nvkm_timer *, struct nvkm_alarm *);
  */
 #define NVKM_DELAY _warn = false;
 #define nvkm_nsec(d,n,cond...) ({                                              \
-	struct nvkm_device *_device = (d);                                     \
-	struct nvkm_timer *_tmr = _device->timer;                              \
-	u64 _nsecs = (n), _time0 = nvkm_timer_read(_tmr);                      \
-	s64 _taken = 0;                                                        \
-	bool _warn = true;                                                     \
-                                                                               \
-	do {                                                                   \
-		cond                                                           \
-	} while (_taken = nvkm_timer_read(_tmr) - _time0, _taken < _nsecs);    \
-                                                                               \
-	if (_taken >= _nsecs) {                                                \
-		if (_warn) {                                                   \
-			dev_warn(_device->dev, "timeout at %s:%d/%s()!\n",     \
-				 __FILE__, __LINE__, __func__);                \
-		}                                                              \
-		_taken = -ETIMEDOUT;                                           \
-	}                                                                      \
-	_taken;                                                                \
-})
+		struct nvkm_device *_device = (d);                                     \
+		struct nvkm_timer *_tmr = _device->timer;                              \
+		u64 _nsecs = (n), _time0 = nvkm_timer_read(_tmr);                      \
+		s64 _taken = 0;                                                        \
+		bool _warn = true;                                                     \
+		\
+		do {                                                                   \
+			cond                                                           \
+		} while (_taken = nvkm_timer_read(_tmr) - _time0, _taken < _nsecs);    \
+		\
+		if (_taken >= _nsecs) {                                                \
+			if (_warn) {                                                   \
+				dev_warn(_device->dev, "timeout at %s:%d/%s()!\n",     \
+						 __FILE__, __LINE__, __func__);                \
+			}                                                              \
+			_taken = -ETIMEDOUT;                                           \
+		}                                                                      \
+		_taken;                                                                \
+	})
 #define nvkm_usec(d,u,cond...) nvkm_nsec((d), (u) * 1000, ##cond)
 #define nvkm_msec(d,m,cond...) nvkm_usec((d), (m) * 1000, ##cond)
 
 #define nvkm_wait_nsec(d,n,addr,mask,data)                                     \
 	nvkm_nsec(d, n,                                                        \
-		if ((nvkm_rd32(d, (addr)) & (mask)) == (data))                 \
-			break;                                                 \
-		)
+			  if ((nvkm_rd32(d, (addr)) & (mask)) == (data))                 \
+			  break;                                                 \
+			 )
 #define nvkm_wait_usec(d,u,addr,mask,data)                                     \
 	nvkm_wait_nsec((d), (u) * 1000, (addr), (mask), (data))
 #define nvkm_wait_msec(d,m,addr,mask,data)                                     \

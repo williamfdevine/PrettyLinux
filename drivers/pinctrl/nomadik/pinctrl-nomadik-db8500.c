@@ -182,7 +182,8 @@
  * column in the table of the data sheet and often used on schematics and
  * such.
  */
-static const struct pinctrl_pin_desc nmk_db8500_pins[] = {
+static const struct pinctrl_pin_desc nmk_db8500_pins[] =
+{
 	PINCTRL_PIN(DB8500_PIN_AJ5, "GPIO0_AJ5"),
 	PINCTRL_PIN(DB8500_PIN_AJ3, "GPIO1_AJ3"),
 	PINCTRL_PIN(DB8500_PIN_AH4, "GPIO2_AH4"),
@@ -368,7 +369,8 @@ static const struct pinctrl_pin_desc nmk_db8500_pins[] = {
 
 /* Altfunction A column */
 static const unsigned u0_a_1_pins[] = { DB8500_PIN_AJ5, DB8500_PIN_AJ3,
-					DB8500_PIN_AH4, DB8500_PIN_AH3 };
+										DB8500_PIN_AH4, DB8500_PIN_AH3
+									  };
 static const unsigned u1rxtx_a_1_pins[] = { DB8500_PIN_AH6, DB8500_PIN_AG6 };
 static const unsigned u1ctsrts_a_1_pins[] = { DB8500_PIN_AF6, DB8500_PIN_AG5 };
 /* Image processor I2C line, this is driven by image processor firmware */
@@ -380,47 +382,61 @@ static const unsigned msp0tfstck_a_1_pins[] = { DB8500_PIN_AF3, DB8500_PIN_AE3 }
 static const unsigned msp0rfsrck_a_1_pins[] = { DB8500_PIN_AD3, DB8500_PIN_AD4 };
 /* Basic pins of the MMC/SD card 0 interface */
 static const unsigned mc0_a_1_pins[] = { DB8500_PIN_AC2, DB8500_PIN_AC1,
-	DB8500_PIN_AB4, DB8500_PIN_AA3, DB8500_PIN_AA4, DB8500_PIN_AB2,
-	DB8500_PIN_Y4, DB8500_PIN_Y2, DB8500_PIN_AA2, DB8500_PIN_AA1 };
+										 DB8500_PIN_AB4, DB8500_PIN_AA3, DB8500_PIN_AA4, DB8500_PIN_AB2,
+										 DB8500_PIN_Y4, DB8500_PIN_Y2, DB8500_PIN_AA2, DB8500_PIN_AA1
+									   };
 /* Often only 4 bits are used, then these are not needed (only used for MMC) */
 static const unsigned mc0_dat47_a_1_pins[] = { DB8500_PIN_W2, DB8500_PIN_W3,
-	DB8500_PIN_V3, DB8500_PIN_V2};
+											   DB8500_PIN_V3, DB8500_PIN_V2
+											 };
 static const unsigned mc0dat31dir_a_1_pins[] = { DB8500_PIN_AB3 };
 /* MSP1 can only be on these pins, but TXD and RXD can be flipped */
 static const unsigned msp1txrx_a_1_pins[] = { DB8500_PIN_AF2, DB8500_PIN_AG2 };
 static const unsigned msp1_a_1_pins[] = { DB8500_PIN_AE1, DB8500_PIN_AE2 };
 /* LCD interface */
 static const unsigned lcdb_a_1_pins[] = { DB8500_PIN_F3, DB8500_PIN_F1,
-					  DB8500_PIN_G3, DB8500_PIN_G2 };
+										  DB8500_PIN_G3, DB8500_PIN_G2
+										};
 static const unsigned lcdvsi0_a_1_pins[] = { DB8500_PIN_E1 };
 static const unsigned lcdvsi1_a_1_pins[] = { DB8500_PIN_E2 };
-static const unsigned lcd_d0_d7_a_1_pins[] = {
+static const unsigned lcd_d0_d7_a_1_pins[] =
+{
 	DB8500_PIN_G5, DB8500_PIN_G4, DB8500_PIN_H4, DB8500_PIN_H3,
-	DB8500_PIN_J3, DB8500_PIN_H2, DB8500_PIN_J2, DB8500_PIN_H1 };
+	DB8500_PIN_J3, DB8500_PIN_H2, DB8500_PIN_J2, DB8500_PIN_H1
+};
 /* D8 thru D11 often used as TVOUT lines */
 static const unsigned lcd_d8_d11_a_1_pins[] = { DB8500_PIN_F4,
-	DB8500_PIN_E3, DB8500_PIN_E4, DB8500_PIN_D2 };
-static const unsigned lcd_d12_d23_a_1_pins[] = {
+												DB8500_PIN_E3, DB8500_PIN_E4, DB8500_PIN_D2
+											  };
+static const unsigned lcd_d12_d23_a_1_pins[] =
+{
 	DB8500_PIN_C1, DB8500_PIN_D3, DB8500_PIN_C2, DB8500_PIN_D5,
 	DB8500_PIN_C6, DB8500_PIN_B3, DB8500_PIN_C4, DB8500_PIN_E6,
-	DB8500_PIN_A3, DB8500_PIN_B6, DB8500_PIN_D6, DB8500_PIN_B7 };
+	DB8500_PIN_A3, DB8500_PIN_B6, DB8500_PIN_D6, DB8500_PIN_B7
+};
 static const unsigned kp_a_1_pins[] = { DB8500_PIN_D7, DB8500_PIN_E8,
-	DB8500_PIN_D8, DB8500_PIN_D9 };
+										DB8500_PIN_D8, DB8500_PIN_D9
+									  };
 static const unsigned kpskaskb_a_1_pins[] = { DB8500_PIN_D17, DB8500_PIN_D16 };
-static const unsigned kp_a_2_pins[] = {
+static const unsigned kp_a_2_pins[] =
+{
 	DB8500_PIN_B17, DB8500_PIN_C16, DB8500_PIN_C19, DB8500_PIN_C17,
 	DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19, DB8500_PIN_B20,
 	DB8500_PIN_D21, DB8500_PIN_D20, DB8500_PIN_C20, DB8500_PIN_B21,
-	DB8500_PIN_C21, DB8500_PIN_A22, DB8500_PIN_B24, DB8500_PIN_C22 };
+	DB8500_PIN_C21, DB8500_PIN_A22, DB8500_PIN_B24, DB8500_PIN_C22
+};
 /* MC2 has 8 data lines and no direction control, so only for (e)MMC */
 static const unsigned mc2_a_1_pins[] = { DB8500_PIN_A5, DB8500_PIN_B4,
-	DB8500_PIN_C8, DB8500_PIN_A12, DB8500_PIN_C10, DB8500_PIN_B10,
-	DB8500_PIN_B9, DB8500_PIN_A9, DB8500_PIN_C7, DB8500_PIN_A7,
-	DB8500_PIN_C5 };
+										 DB8500_PIN_C8, DB8500_PIN_A12, DB8500_PIN_C10, DB8500_PIN_B10,
+										 DB8500_PIN_B9, DB8500_PIN_A9, DB8500_PIN_C7, DB8500_PIN_A7,
+										 DB8500_PIN_C5
+									   };
 static const unsigned ssp1_a_1_pins[] = { DB8500_PIN_C9, DB8500_PIN_B11,
-					  DB8500_PIN_C12, DB8500_PIN_C11 };
+										  DB8500_PIN_C12, DB8500_PIN_C11
+										};
 static const unsigned ssp0_a_1_pins[] = { DB8500_PIN_D12, DB8500_PIN_B13,
-					  DB8500_PIN_C13, DB8500_PIN_D13 };
+										  DB8500_PIN_C13, DB8500_PIN_D13
+										};
 static const unsigned i2c0_a_1_pins[] = { DB8500_PIN_C15, DB8500_PIN_B16 };
 /*
  * Image processor GPIO pins are named "ipgpio" and have their own
@@ -430,40 +446,50 @@ static const unsigned ipgpio0_a_1_pins[] = { DB8500_PIN_B14 };
 static const unsigned ipgpio1_a_1_pins[] = { DB8500_PIN_C14 };
 /* Three modem pins named RF_PURn, MODEM_STATE and MODEM_PWREN */
 static const unsigned modem_a_1_pins[] = { DB8500_PIN_D22, DB8500_PIN_C23,
-					   DB8500_PIN_D23 };
+										   DB8500_PIN_D23
+										 };
 /*
  * This MSP cannot switch RX and TX, SCK in a separate group since this
  * seems to be optional.
  */
 static const unsigned msp2sck_a_1_pins[] = { DB8500_PIN_AJ27 };
 static const unsigned msp2_a_1_pins[] = { DB8500_PIN_AH27, DB8500_PIN_AF27,
-					  DB8500_PIN_AG28, DB8500_PIN_AG26 };
+										  DB8500_PIN_AG28, DB8500_PIN_AG26
+										};
 static const unsigned mc4_a_1_pins[] = { DB8500_PIN_AH24, DB8500_PIN_AG25,
-	DB8500_PIN_AH23, DB8500_PIN_AH26, DB8500_PIN_AF24, DB8500_PIN_AF25,
-	DB8500_PIN_AE23, DB8500_PIN_AF23, DB8500_PIN_AG23, DB8500_PIN_AG24,
-	DB8500_PIN_AJ23 };
+										 DB8500_PIN_AH23, DB8500_PIN_AH26, DB8500_PIN_AF24, DB8500_PIN_AF25,
+										 DB8500_PIN_AE23, DB8500_PIN_AF23, DB8500_PIN_AG23, DB8500_PIN_AG24,
+										 DB8500_PIN_AJ23
+									   };
 /* MC1 has only 4 data pins, designed for SD or SDIO exclusively */
 static const unsigned mc1_a_1_pins[] = { DB8500_PIN_AH16, DB8500_PIN_AG15,
-	DB8500_PIN_AJ15, DB8500_PIN_AG14, DB8500_PIN_AF13, DB8500_PIN_AG13,
-	DB8500_PIN_AH15 };
+										 DB8500_PIN_AJ15, DB8500_PIN_AG14, DB8500_PIN_AF13, DB8500_PIN_AG13,
+										 DB8500_PIN_AH15
+									   };
 static const unsigned mc1_a_2_pins[] = { DB8500_PIN_AH16, DB8500_PIN_AJ15,
-	DB8500_PIN_AG14, DB8500_PIN_AF13, DB8500_PIN_AG13, DB8500_PIN_AH15 };
+										 DB8500_PIN_AG14, DB8500_PIN_AF13, DB8500_PIN_AG13, DB8500_PIN_AH15
+									   };
 static const unsigned mc1dir_a_1_pins[] = { DB8500_PIN_AH13, DB8500_PIN_AG12,
-	DB8500_PIN_AH12, DB8500_PIN_AH11 };
+											DB8500_PIN_AH12, DB8500_PIN_AH11
+										  };
 static const unsigned hsir_a_1_pins[] = { DB8500_PIN_AG10, DB8500_PIN_AH10,
-	DB8500_PIN_AJ11 };
+										  DB8500_PIN_AJ11
+										};
 static const unsigned hsit_a_1_pins[] = { DB8500_PIN_AJ9, DB8500_PIN_AH9,
-	DB8500_PIN_AG9, DB8500_PIN_AG8, DB8500_PIN_AF8 };
+										  DB8500_PIN_AG9, DB8500_PIN_AG8, DB8500_PIN_AF8
+										};
 static const unsigned hsit_a_2_pins[] = { DB8500_PIN_AJ9, DB8500_PIN_AH9,
-	DB8500_PIN_AG9, DB8500_PIN_AG8 };
+										  DB8500_PIN_AG9, DB8500_PIN_AG8
+										};
 static const unsigned clkout1_a_1_pins[] = { DB8500_PIN_AH7 };
 static const unsigned clkout1_a_2_pins[] = { DB8500_PIN_AG7 };
 static const unsigned clkout2_a_1_pins[] = { DB8500_PIN_AJ6 };
 static const unsigned clkout2_a_2_pins[] = { DB8500_PIN_AF7 };
 static const unsigned usb_a_1_pins[] = { DB8500_PIN_AF28, DB8500_PIN_AE29,
-	DB8500_PIN_AD29, DB8500_PIN_AC29, DB8500_PIN_AD28, DB8500_PIN_AD26,
-	DB8500_PIN_AE26, DB8500_PIN_AG29, DB8500_PIN_AE27, DB8500_PIN_AD27,
-	DB8500_PIN_AC28, DB8500_PIN_AC27 };
+										 DB8500_PIN_AD29, DB8500_PIN_AC29, DB8500_PIN_AD28, DB8500_PIN_AD26,
+										 DB8500_PIN_AE26, DB8500_PIN_AG29, DB8500_PIN_AE27, DB8500_PIN_AD27,
+										 DB8500_PIN_AC28, DB8500_PIN_AC27
+									   };
 
 /* Altfunction B column */
 static const unsigned trig_b_1_pins[] = { DB8500_PIN_AJ5, DB8500_PIN_AJ3 };
@@ -479,26 +505,31 @@ static const unsigned uartmodtx_b_1_pins[] = { DB8500_PIN_AB4 };
 static const unsigned msp0sck_b_1_pins[] = { DB8500_PIN_AB3 };
 static const unsigned uartmodrx_b_1_pins[] = { DB8500_PIN_AA3 };
 static const unsigned stmmod_b_1_pins[] = { DB8500_PIN_AA4, DB8500_PIN_Y4,
-	DB8500_PIN_Y2, DB8500_PIN_AA2, DB8500_PIN_AA1 };
+											DB8500_PIN_Y2, DB8500_PIN_AA2, DB8500_PIN_AA1
+										  };
 static const unsigned uartmodrx_b_2_pins[] = { DB8500_PIN_AB2 };
 static const unsigned spi3_b_1_pins[] = { DB8500_PIN_W2, DB8500_PIN_W3,
-					  DB8500_PIN_V3, DB8500_PIN_V2 };
+										  DB8500_PIN_V3, DB8500_PIN_V2
+										};
 static const unsigned msp1txrx_b_1_pins[] = { DB8500_PIN_AF2, DB8500_PIN_AG2 };
 static const unsigned kp_b_1_pins[] = { DB8500_PIN_F3, DB8500_PIN_F1,
-	DB8500_PIN_G3, DB8500_PIN_G2, DB8500_PIN_E1, DB8500_PIN_E2,
-	DB8500_PIN_G5, DB8500_PIN_G4, DB8500_PIN_H4, DB8500_PIN_H3,
-	DB8500_PIN_J3, DB8500_PIN_H2, DB8500_PIN_J2, DB8500_PIN_H1,
-	DB8500_PIN_F4, DB8500_PIN_E3, DB8500_PIN_E4, DB8500_PIN_D2,
-	DB8500_PIN_C1, DB8500_PIN_D3, DB8500_PIN_C2, DB8500_PIN_D5 };
+										DB8500_PIN_G3, DB8500_PIN_G2, DB8500_PIN_E1, DB8500_PIN_E2,
+										DB8500_PIN_G5, DB8500_PIN_G4, DB8500_PIN_H4, DB8500_PIN_H3,
+										DB8500_PIN_J3, DB8500_PIN_H2, DB8500_PIN_J2, DB8500_PIN_H1,
+										DB8500_PIN_F4, DB8500_PIN_E3, DB8500_PIN_E4, DB8500_PIN_D2,
+										DB8500_PIN_C1, DB8500_PIN_D3, DB8500_PIN_C2, DB8500_PIN_D5
+									  };
 static const unsigned kp_b_2_pins[] = { DB8500_PIN_F3, DB8500_PIN_F1,
-	DB8500_PIN_G3, DB8500_PIN_G2, DB8500_PIN_F4, DB8500_PIN_E3};
+										DB8500_PIN_G3, DB8500_PIN_G2, DB8500_PIN_F4, DB8500_PIN_E3
+									  };
 static const unsigned sm_b_1_pins[] = { DB8500_PIN_C6, DB8500_PIN_B3,
-	DB8500_PIN_C4, DB8500_PIN_E6, DB8500_PIN_A3, DB8500_PIN_B6,
-	DB8500_PIN_D6, DB8500_PIN_B7, DB8500_PIN_D7, DB8500_PIN_D8,
-	DB8500_PIN_D9, DB8500_PIN_A5, DB8500_PIN_B4, DB8500_PIN_C8,
-	DB8500_PIN_A12, DB8500_PIN_C10, DB8500_PIN_B10, DB8500_PIN_B9,
-	DB8500_PIN_A9, DB8500_PIN_C7, DB8500_PIN_A7, DB8500_PIN_C5,
-	DB8500_PIN_C9 };
+										DB8500_PIN_C4, DB8500_PIN_E6, DB8500_PIN_A3, DB8500_PIN_B6,
+										DB8500_PIN_D6, DB8500_PIN_B7, DB8500_PIN_D7, DB8500_PIN_D8,
+										DB8500_PIN_D9, DB8500_PIN_A5, DB8500_PIN_B4, DB8500_PIN_C8,
+										DB8500_PIN_A12, DB8500_PIN_C10, DB8500_PIN_B10, DB8500_PIN_B9,
+										DB8500_PIN_A9, DB8500_PIN_C7, DB8500_PIN_A7, DB8500_PIN_C5,
+										DB8500_PIN_C9
+									  };
 /* This chip select pin can be "ps0" in alt C so have it separately */
 static const unsigned smcs0_b_1_pins[] = { DB8500_PIN_E8 };
 /* This chip select pin can be "ps1" in alt C so have it separately */
@@ -508,27 +539,32 @@ static const unsigned ipgpio2_b_1_pins[] = { DB8500_PIN_C12 };
 static const unsigned ipgpio3_b_1_pins[] = { DB8500_PIN_C11 };
 static const unsigned lcdaclk_b_1_pins[] = { DB8500_PIN_C14 };
 static const unsigned lcda_b_1_pins[] = { DB8500_PIN_D22,
-	DB8500_PIN_C23, DB8500_PIN_D23 };
+										  DB8500_PIN_C23, DB8500_PIN_D23
+										};
 static const unsigned lcd_b_1_pins[] = { DB8500_PIN_D17, DB8500_PIN_D16,
-	DB8500_PIN_B17, DB8500_PIN_C16, DB8500_PIN_C19, DB8500_PIN_C17,
-	DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19, DB8500_PIN_B20,
-	DB8500_PIN_D21, DB8500_PIN_D20, DB8500_PIN_C20, DB8500_PIN_B21,
-	DB8500_PIN_C21, DB8500_PIN_A22, DB8500_PIN_B24, DB8500_PIN_C22 };
+										 DB8500_PIN_B17, DB8500_PIN_C16, DB8500_PIN_C19, DB8500_PIN_C17,
+										 DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19, DB8500_PIN_B20,
+										 DB8500_PIN_D21, DB8500_PIN_D20, DB8500_PIN_C20, DB8500_PIN_B21,
+										 DB8500_PIN_C21, DB8500_PIN_A22, DB8500_PIN_B24, DB8500_PIN_C22
+									   };
 static const unsigned ddrtrig_b_1_pins[] = { DB8500_PIN_AJ27 };
 static const unsigned pwl_b_1_pins[] = { DB8500_PIN_AF25 };
 static const unsigned spi1_b_1_pins[] = { DB8500_PIN_AG15, DB8500_PIN_AF13,
-					  DB8500_PIN_AG13, DB8500_PIN_AH15 };
+										  DB8500_PIN_AG13, DB8500_PIN_AH15
+										};
 static const unsigned mc3_b_1_pins[] = { DB8500_PIN_AH13, DB8500_PIN_AG12,
-	DB8500_PIN_AH12, DB8500_PIN_AH11, DB8500_PIN_AG10, DB8500_PIN_AH10,
-	DB8500_PIN_AJ11, DB8500_PIN_AJ9, DB8500_PIN_AH9, DB8500_PIN_AG9,
-	DB8500_PIN_AG8 };
+										 DB8500_PIN_AH12, DB8500_PIN_AH11, DB8500_PIN_AG10, DB8500_PIN_AH10,
+										 DB8500_PIN_AJ11, DB8500_PIN_AJ9, DB8500_PIN_AH9, DB8500_PIN_AG9,
+										 DB8500_PIN_AG8
+									   };
 static const unsigned pwl_b_2_pins[] = { DB8500_PIN_AF8 };
 static const unsigned pwl_b_3_pins[] = { DB8500_PIN_AG7 };
 static const unsigned pwl_b_4_pins[] = { DB8500_PIN_AF7 };
 
 /* Altfunction C column */
 static const unsigned ipjtag_c_1_pins[] = { DB8500_PIN_AJ5, DB8500_PIN_AJ3,
-	DB8500_PIN_AH4, DB8500_PIN_AH3, DB8500_PIN_AH6 };
+											DB8500_PIN_AH4, DB8500_PIN_AH3, DB8500_PIN_AH6
+										  };
 static const unsigned ipgpio6_c_1_pins[] = { DB8500_PIN_AG6 };
 static const unsigned ipgpio0_c_1_pins[] = { DB8500_PIN_AF6 };
 static const unsigned ipgpio1_c_1_pins[] = { DB8500_PIN_AG5 };
@@ -537,117 +573,141 @@ static const unsigned ipgpio2_c_1_pins[] = { DB8500_PIN_AG4 };
 static const unsigned slim0_c_1_pins[] = { DB8500_PIN_AD3, DB8500_PIN_AD4 };
 /* Optional 4-bit Memory Stick interface */
 static const unsigned ms_c_1_pins[] = { DB8500_PIN_AC2, DB8500_PIN_AC1,
-	DB8500_PIN_AB3, DB8500_PIN_AA3, DB8500_PIN_AA4, DB8500_PIN_AB2,
-	DB8500_PIN_Y4, DB8500_PIN_Y2, DB8500_PIN_AA2, DB8500_PIN_AA1 };
+										DB8500_PIN_AB3, DB8500_PIN_AA3, DB8500_PIN_AA4, DB8500_PIN_AB2,
+										DB8500_PIN_Y4, DB8500_PIN_Y2, DB8500_PIN_AA2, DB8500_PIN_AA1
+									  };
 static const unsigned iptrigout_c_1_pins[] = { DB8500_PIN_AB4 };
 static const unsigned u2rxtx_c_1_pins[] = { DB8500_PIN_W2, DB8500_PIN_W3 };
 static const unsigned u2ctsrts_c_1_pins[] = { DB8500_PIN_V3, DB8500_PIN_V2 };
 static const unsigned u0_c_1_pins[] = { DB8500_PIN_AF2, DB8500_PIN_AE1,
-					DB8500_PIN_AE2, DB8500_PIN_AG2 };
+										DB8500_PIN_AE2, DB8500_PIN_AG2
+									  };
 static const unsigned ipgpio4_c_1_pins[] = { DB8500_PIN_F3 };
 static const unsigned ipgpio5_c_1_pins[] = { DB8500_PIN_F1 };
 static const unsigned ipgpio6_c_2_pins[] = { DB8500_PIN_G3 };
 static const unsigned ipgpio7_c_1_pins[] = { DB8500_PIN_G2 };
 static const unsigned smcleale_c_1_pins[] = { DB8500_PIN_E1, DB8500_PIN_E2 };
 static const unsigned stmape_c_1_pins[] = { DB8500_PIN_G5, DB8500_PIN_G4,
-	DB8500_PIN_H4, DB8500_PIN_H3, DB8500_PIN_J3 };
+											DB8500_PIN_H4, DB8500_PIN_H3, DB8500_PIN_J3
+										  };
 static const unsigned u2rxtx_c_2_pins[] = { DB8500_PIN_H2, DB8500_PIN_J2 };
 static const unsigned ipgpio2_c_2_pins[] = { DB8500_PIN_F4 };
 static const unsigned ipgpio3_c_2_pins[] = { DB8500_PIN_E3 };
 static const unsigned ipgpio4_c_2_pins[] = { DB8500_PIN_E4 };
 static const unsigned ipgpio5_c_2_pins[] = { DB8500_PIN_D2 };
 static const unsigned mc5_c_1_pins[] = { DB8500_PIN_C6, DB8500_PIN_B3,
-	DB8500_PIN_C4, DB8500_PIN_E6, DB8500_PIN_A3, DB8500_PIN_B6,
-	DB8500_PIN_D6, DB8500_PIN_B7, DB8500_PIN_D7, DB8500_PIN_D8,
-	DB8500_PIN_D9 };
+										 DB8500_PIN_C4, DB8500_PIN_E6, DB8500_PIN_A3, DB8500_PIN_B6,
+										 DB8500_PIN_D6, DB8500_PIN_B7, DB8500_PIN_D7, DB8500_PIN_D8,
+										 DB8500_PIN_D9
+									   };
 static const unsigned mc2rstn_c_1_pins[] = { DB8500_PIN_C8 };
 static const unsigned kp_c_1_pins[] = { DB8500_PIN_C9, DB8500_PIN_B11,
-	DB8500_PIN_C12, DB8500_PIN_C11, DB8500_PIN_D17, DB8500_PIN_D16,
-	DB8500_PIN_C23, DB8500_PIN_D23 };
+										DB8500_PIN_C12, DB8500_PIN_C11, DB8500_PIN_D17, DB8500_PIN_D16,
+										DB8500_PIN_C23, DB8500_PIN_D23
+									  };
 static const unsigned smps0_c_1_pins[] = { DB8500_PIN_E8 };
 static const unsigned smps1_c_1_pins[] = { DB8500_PIN_B14 };
 static const unsigned u2rxtx_c_3_pins[] = { DB8500_PIN_B17, DB8500_PIN_C16 };
 static const unsigned stmape_c_2_pins[] = { DB8500_PIN_C19, DB8500_PIN_C17,
-	DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19 };
+											DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19
+										  };
 static const unsigned uartmodrx_c_1_pins[] = { DB8500_PIN_D21 };
 static const unsigned uartmodtx_c_1_pins[] = { DB8500_PIN_D20 };
 static const unsigned stmmod_c_1_pins[] = { DB8500_PIN_C20, DB8500_PIN_B21,
-	DB8500_PIN_C21, DB8500_PIN_A22, DB8500_PIN_B24 };
+											DB8500_PIN_C21, DB8500_PIN_A22, DB8500_PIN_B24
+										  };
 static const unsigned usbsim_c_1_pins[] = { DB8500_PIN_D22 };
 static const unsigned mc4rstn_c_1_pins[] = { DB8500_PIN_AF25 };
 static const unsigned clkout1_c_1_pins[] = { DB8500_PIN_AH13 };
 static const unsigned clkout2_c_1_pins[] = { DB8500_PIN_AH12 };
 static const unsigned i2c3_c_1_pins[] = { DB8500_PIN_AG12, DB8500_PIN_AH11 };
 static const unsigned spi0_c_1_pins[] = { DB8500_PIN_AH10, DB8500_PIN_AH9,
-					  DB8500_PIN_AG9, DB8500_PIN_AG8 };
+										  DB8500_PIN_AG9, DB8500_PIN_AG8
+										};
 static const unsigned usbsim_c_2_pins[] = { DB8500_PIN_AF8 };
 static const unsigned i2c3_c_2_pins[] = { DB8500_PIN_AG7, DB8500_PIN_AF7 };
 
 /* Other C1 column */
 static const unsigned u2rx_oc1_1_pins[] = { DB8500_PIN_AB2 };
 static const unsigned stmape_oc1_1_pins[] = { DB8500_PIN_AA4, DB8500_PIN_Y4,
-	DB8500_PIN_Y2, DB8500_PIN_AA2, DB8500_PIN_AA1 };
+											  DB8500_PIN_Y2, DB8500_PIN_AA2, DB8500_PIN_AA1
+											};
 static const unsigned remap0_oc1_1_pins[] = { DB8500_PIN_E1 };
 static const unsigned remap1_oc1_1_pins[] = { DB8500_PIN_E2 };
 static const unsigned ptma9_oc1_1_pins[] = { DB8500_PIN_G5, DB8500_PIN_G4,
-	DB8500_PIN_H4, DB8500_PIN_H3, DB8500_PIN_J3, DB8500_PIN_H2,
-	DB8500_PIN_J2, DB8500_PIN_H1 };
+											 DB8500_PIN_H4, DB8500_PIN_H3, DB8500_PIN_J3, DB8500_PIN_H2,
+											 DB8500_PIN_J2, DB8500_PIN_H1
+										   };
 static const unsigned kp_oc1_1_pins[] = { DB8500_PIN_C6, DB8500_PIN_B3,
-	DB8500_PIN_C4, DB8500_PIN_E6, DB8500_PIN_A3, DB8500_PIN_B6,
-	DB8500_PIN_D6, DB8500_PIN_B7 };
+										  DB8500_PIN_C4, DB8500_PIN_E6, DB8500_PIN_A3, DB8500_PIN_B6,
+										  DB8500_PIN_D6, DB8500_PIN_B7
+										};
 static const unsigned rf_oc1_1_pins[] = { DB8500_PIN_D8, DB8500_PIN_D9 };
 static const unsigned hxclk_oc1_1_pins[] = { DB8500_PIN_D16 };
 static const unsigned uartmodrx_oc1_1_pins[] = { DB8500_PIN_B17 };
 static const unsigned uartmodtx_oc1_1_pins[] = { DB8500_PIN_C16 };
 static const unsigned stmmod_oc1_1_pins[] = { DB8500_PIN_C19, DB8500_PIN_C17,
-	DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19 };
+											  DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19
+											};
 static const unsigned hxgpio_oc1_1_pins[] = { DB8500_PIN_D21, DB8500_PIN_D20,
-	DB8500_PIN_C20, DB8500_PIN_B21, DB8500_PIN_C21, DB8500_PIN_A22,
-	DB8500_PIN_B24, DB8500_PIN_C22 };
+											  DB8500_PIN_C20, DB8500_PIN_B21, DB8500_PIN_C21, DB8500_PIN_A22,
+											  DB8500_PIN_B24, DB8500_PIN_C22
+											};
 static const unsigned rf_oc1_2_pins[] = { DB8500_PIN_C23, DB8500_PIN_D23 };
 static const unsigned spi2_oc1_1_pins[] = { DB8500_PIN_AH13, DB8500_PIN_AG12,
-	DB8500_PIN_AH12, DB8500_PIN_AH11 };
+											DB8500_PIN_AH12, DB8500_PIN_AH11
+										  };
 static const unsigned spi2_oc1_2_pins[] = { DB8500_PIN_AH13, DB8500_PIN_AH12,
-	DB8500_PIN_AH11 };
+											DB8500_PIN_AH11
+										  };
 
 /* Other C2 column */
 static const unsigned sbag_oc2_1_pins[] = { DB8500_PIN_AA4, DB8500_PIN_AB2,
-	DB8500_PIN_Y4, DB8500_PIN_Y2, DB8500_PIN_AA2, DB8500_PIN_AA1 };
+											DB8500_PIN_Y4, DB8500_PIN_Y2, DB8500_PIN_AA2, DB8500_PIN_AA1
+										  };
 static const unsigned etmr4_oc2_1_pins[] = { DB8500_PIN_G5, DB8500_PIN_G4,
-	DB8500_PIN_H4, DB8500_PIN_H3, DB8500_PIN_J3, DB8500_PIN_H2,
-	DB8500_PIN_J2, DB8500_PIN_H1 };
+											 DB8500_PIN_H4, DB8500_PIN_H3, DB8500_PIN_J3, DB8500_PIN_H2,
+											 DB8500_PIN_J2, DB8500_PIN_H1
+										   };
 static const unsigned ptma9_oc2_1_pins[] = { DB8500_PIN_D17, DB8500_PIN_D16,
-	DB8500_PIN_B17, DB8500_PIN_C16, DB8500_PIN_C19, DB8500_PIN_C17,
-	DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19, DB8500_PIN_B20,
-	DB8500_PIN_D21, DB8500_PIN_D20,	DB8500_PIN_C20, DB8500_PIN_B21,
-	DB8500_PIN_C21, DB8500_PIN_A22, DB8500_PIN_B24, DB8500_PIN_C22 };
+											 DB8500_PIN_B17, DB8500_PIN_C16, DB8500_PIN_C19, DB8500_PIN_C17,
+											 DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19, DB8500_PIN_B20,
+											 DB8500_PIN_D21, DB8500_PIN_D20,	DB8500_PIN_C20, DB8500_PIN_B21,
+											 DB8500_PIN_C21, DB8500_PIN_A22, DB8500_PIN_B24, DB8500_PIN_C22
+										   };
 
 /* Other C3 column */
 static const unsigned stmmod_oc3_1_pins[] = { DB8500_PIN_AB2, DB8500_PIN_W2,
-	DB8500_PIN_W3, DB8500_PIN_V3, DB8500_PIN_V2 };
+											  DB8500_PIN_W3, DB8500_PIN_V3, DB8500_PIN_V2
+											};
 static const unsigned stmmod_oc3_2_pins[] = { DB8500_PIN_G5, DB8500_PIN_G4,
-	DB8500_PIN_H4, DB8500_PIN_H3, DB8500_PIN_J3 };
+											  DB8500_PIN_H4, DB8500_PIN_H3, DB8500_PIN_J3
+											};
 static const unsigned uartmodrx_oc3_1_pins[] = { DB8500_PIN_H2 };
 static const unsigned uartmodtx_oc3_1_pins[] = { DB8500_PIN_J2 };
 static const unsigned etmr4_oc3_1_pins[] = { DB8500_PIN_D17, DB8500_PIN_D16,
-	DB8500_PIN_B17, DB8500_PIN_C16, DB8500_PIN_C19, DB8500_PIN_C17,
-	DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19, DB8500_PIN_B20,
-	DB8500_PIN_D21, DB8500_PIN_D20,	DB8500_PIN_C20, DB8500_PIN_B21,
-	DB8500_PIN_C21, DB8500_PIN_A22, DB8500_PIN_B24, DB8500_PIN_C22 };
+											 DB8500_PIN_B17, DB8500_PIN_C16, DB8500_PIN_C19, DB8500_PIN_C17,
+											 DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19, DB8500_PIN_B20,
+											 DB8500_PIN_D21, DB8500_PIN_D20,	DB8500_PIN_C20, DB8500_PIN_B21,
+											 DB8500_PIN_C21, DB8500_PIN_A22, DB8500_PIN_B24, DB8500_PIN_C22
+										   };
 
 /* Other C4 column */
 static const unsigned sbag_oc4_1_pins[] = { DB8500_PIN_G5, DB8500_PIN_G4,
-	DB8500_PIN_H4, DB8500_PIN_H3, DB8500_PIN_J3, DB8500_PIN_H1 };
+											DB8500_PIN_H4, DB8500_PIN_H3, DB8500_PIN_J3, DB8500_PIN_H1
+										  };
 static const unsigned hwobs_oc4_1_pins[] = { DB8500_PIN_D17, DB8500_PIN_D16,
-	DB8500_PIN_B17, DB8500_PIN_C16, DB8500_PIN_C19, DB8500_PIN_C17,
-	DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19, DB8500_PIN_B20,
-	DB8500_PIN_D21, DB8500_PIN_D20,	DB8500_PIN_C20, DB8500_PIN_B21,
-	DB8500_PIN_C21, DB8500_PIN_A22, DB8500_PIN_B24, DB8500_PIN_C22 };
+											 DB8500_PIN_B17, DB8500_PIN_C16, DB8500_PIN_C19, DB8500_PIN_C17,
+											 DB8500_PIN_A18, DB8500_PIN_C18, DB8500_PIN_B19, DB8500_PIN_B20,
+											 DB8500_PIN_D21, DB8500_PIN_D20,	DB8500_PIN_C20, DB8500_PIN_B21,
+											 DB8500_PIN_C21, DB8500_PIN_A22, DB8500_PIN_B24, DB8500_PIN_C22
+										   };
 
 #define DB8500_PIN_GROUP(a, b) { .name = #a, .pins = a##_pins,		\
 			.npins = ARRAY_SIZE(a##_pins), .altsetting = b }
 
-static const struct nmk_pingroup nmk_db8500_groups[] = {
+static const struct nmk_pingroup nmk_db8500_groups[] =
+{
 	/* Altfunction A column */
 	DB8500_PIN_GROUP(u0_a_1, NMK_GPIO_ALT_A),
 	DB8500_PIN_GROUP(u1rxtx_a_1, NMK_GPIO_ALT_A),
@@ -798,7 +858,7 @@ static const struct nmk_pingroup nmk_db8500_groups[] = {
 
 /* We use this macro to define the groups applicable to a function */
 #define DB8500_FUNC_GROUPS(a, b...)	   \
-static const char * const a##_groups[] = { b };
+	static const char * const a##_groups[] = { b };
 
 DB8500_FUNC_GROUPS(u0, "u0_a_1", "u0_c_1");
 DB8500_FUNC_GROUPS(u1, "u1rxtx_a_1", "u1ctsrts_a_1");
@@ -807,7 +867,7 @@ DB8500_FUNC_GROUPS(u1, "u1rxtx_a_1", "u1ctsrts_a_1");
  * only available on two pins in alternative function C
  */
 DB8500_FUNC_GROUPS(u2, "u2rxtx_b_1", "u2rxtx_c_1", "u2ctsrts_c_1",
-		   "u2rxtx_c_2", "u2rxtx_c_3", "u2rx_oc1_1");
+				   "u2rxtx_c_2", "u2rxtx_c_3", "u2rx_oc1_1");
 DB8500_FUNC_GROUPS(ipi2c, "ipi2c_a_1", "ipi2c_a_2");
 /*
  * MSP0 can only be on a certain set of pins, but the TX/RX pins can be
@@ -815,13 +875,13 @@ DB8500_FUNC_GROUPS(ipi2c, "ipi2c_a_1", "ipi2c_a_2");
  * only available on the altfunction B.
  */
 DB8500_FUNC_GROUPS(msp0, "msp0txrx_a_1", "msp0tfstck_a_1", "msp0rfstck_a_1",
-		   "msp0txrx_b_1", "msp0sck_b_1");
+				   "msp0txrx_b_1", "msp0sck_b_1");
 DB8500_FUNC_GROUPS(mc0, "mc0_a_1", "mc0_dat47_a_1", "mc0dat31dir_a_1");
 /* MSP0 can swap RX/TX like MSP0 but has no SCK pin available */
 DB8500_FUNC_GROUPS(msp1, "msp1txrx_a_1", "msp1_a_1", "msp1txrx_b_1");
 DB8500_FUNC_GROUPS(lcdb, "lcdb_a_1");
 DB8500_FUNC_GROUPS(lcd, "lcdvsi0_a_1", "lcdvsi1_a_1", "lcd_d0_d7_a_1",
-	"lcd_d8_d11_a_1", "lcd_d12_d23_a_1", "lcd_b_1");
+				   "lcd_d8_d11_a_1", "lcd_d12_d23_a_1", "lcd_b_1");
 DB8500_FUNC_GROUPS(kp, "kp_a_1", "kp_a_2", "kp_b_1", "kp_b_2", "kp_c_1", "kp_oc1_1");
 DB8500_FUNC_GROUPS(mc2, "mc2_a_1", "mc2rstn_c_1");
 DB8500_FUNC_GROUPS(ssp1, "ssp1_a_1");
@@ -829,17 +889,17 @@ DB8500_FUNC_GROUPS(ssp0, "ssp0_a_1");
 DB8500_FUNC_GROUPS(i2c0, "i2c0_a_1");
 /* The image processor has 8 GPIO pins that can be muxed out */
 DB8500_FUNC_GROUPS(ipgpio, "ipgpio0_a_1", "ipgpio1_a_1", "ipgpio7_b_1",
-	"ipgpio2_b_1", "ipgpio3_b_1", "ipgpio6_c_1", "ipgpio0_c_1",
-	"ipgpio1_c_1", "ipgpio3_c_1", "ipgpio2_c_1", "ipgpio4_c_1",
-	"ipgpio5_c_1", "ipgpio6_c_2", "ipgpio7_c_1", "ipgpio2_c_2",
-	"ipgpio3_c_2", "ipgpio4_c_2", "ipgpio5_c_2");
+				   "ipgpio2_b_1", "ipgpio3_b_1", "ipgpio6_c_1", "ipgpio0_c_1",
+				   "ipgpio1_c_1", "ipgpio3_c_1", "ipgpio2_c_1", "ipgpio4_c_1",
+				   "ipgpio5_c_1", "ipgpio6_c_2", "ipgpio7_c_1", "ipgpio2_c_2",
+				   "ipgpio3_c_2", "ipgpio4_c_2", "ipgpio5_c_2");
 /* MSP2 can not invert the RX/TX pins but has the optional SCK pin */
 DB8500_FUNC_GROUPS(msp2, "msp2sck_a_1", "msp2_a_1");
 DB8500_FUNC_GROUPS(mc4, "mc4_a_1", "mc4rstn_c_1");
 DB8500_FUNC_GROUPS(mc1, "mc1_a_1", "mc1_a_2", "mc1dir_a_1");
 DB8500_FUNC_GROUPS(hsi, "hsir_a_1", "hsit_a_1", "hsit_a_2");
 DB8500_FUNC_GROUPS(clkout, "clkout1_a_1", "clkout1_a_2", "clkout1_c_1",
-		"clkout2_a_1", "clkout2_a_2", "clkout2_c_1");
+				   "clkout2_a_1", "clkout2_a_2", "clkout2_c_1");
 DB8500_FUNC_GROUPS(usb, "usb_a_1");
 DB8500_FUNC_GROUPS(trig, "trig_b_1");
 DB8500_FUNC_GROUPS(i2c4, "i2c4_b_1");
@@ -850,14 +910,14 @@ DB8500_FUNC_GROUPS(i2c2, "i2c2_b_1", "i2c2_b_2");
  * so select one of each.
  */
 DB8500_FUNC_GROUPS(uartmod, "uartmodtx_b_1", "uartmodrx_b_1", "uartmodrx_b_2",
-		"uartmodrx_c_1", "uartmod_tx_c_1", "uartmodrx_oc1_1",
-		"uartmodtx_oc1_1", "uartmodrx_oc3_1", "uartmodtx_oc3_1");
+				   "uartmodrx_c_1", "uartmod_tx_c_1", "uartmodrx_oc1_1",
+				   "uartmodtx_oc1_1", "uartmodrx_oc3_1", "uartmodtx_oc3_1");
 DB8500_FUNC_GROUPS(stmmod, "stmmod_b_1", "stmmod_c_1", "stmmod_oc1_1",
-		"stmmod_oc3_1", "stmmod_oc3_2");
+				   "stmmod_oc3_1", "stmmod_oc3_2");
 DB8500_FUNC_GROUPS(spi3, "spi3_b_1");
 /* Select between CS0 on alt B or PS1 on alt C */
 DB8500_FUNC_GROUPS(sm, "sm_b_1", "smcs0_b_1", "smcs1_b_1", "smcleale_c_1",
-		   "smps0_c_1", "smps1_c_1");
+				   "smps0_c_1", "smps1_c_1");
 DB8500_FUNC_GROUPS(lcda, "lcdaclk_b_1", "lcda_b_1");
 DB8500_FUNC_GROUPS(ddrtrig, "ddrtrig_b_1");
 DB8500_FUNC_GROUPS(pwl, "pwl_b_1", "pwl_b_2", "pwl_b_3", "pwl_b_4");
@@ -883,11 +943,12 @@ DB8500_FUNC_GROUPS(hwobs, "hwobs_oc4_1");
 #define FUNCTION(fname)					\
 	{						\
 		.name = #fname,				\
-		.groups = fname##_groups,		\
-		.ngroups = ARRAY_SIZE(fname##_groups),	\
+				.groups = fname##_groups,		\
+						  .ngroups = ARRAY_SIZE(fname##_groups),	\
 	}
 
-static const struct nmk_function nmk_db8500_functions[] = {
+static const struct nmk_function nmk_db8500_functions[] =
+{
 	FUNCTION(u0),
 	FUNCTION(u1),
 	FUNCTION(u2),
@@ -940,285 +1001,288 @@ static const struct nmk_function nmk_db8500_functions[] = {
 	FUNCTION(hwobs),
 };
 
-static const struct prcm_gpiocr_altcx_pin_desc db8500_altcx_pins[] = {
+static const struct prcm_gpiocr_altcx_pin_desc db8500_altcx_pins[] =
+{
 	PRCM_GPIOCR_ALTCX(23,	true, PRCM_IDX_GPIOCR1, 9,	/* STMAPE_CLK_a */
-				true, PRCM_IDX_GPIOCR1, 7,	/* SBAG_CLK_a */
-				false, 0, 0,
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR1, 7,	/* SBAG_CLK_a */
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(24,	true, PRCM_IDX_GPIOCR1, 9,	/* STMAPE or U2_RXD ??? */
-				true, PRCM_IDX_GPIOCR1, 7,	/* SBAG_VAL_a */
-				true, PRCM_IDX_GPIOCR1, 10,	/* STM_MOD_CMD0 */
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR1, 7,	/* SBAG_VAL_a */
+	true, PRCM_IDX_GPIOCR1, 10,	/* STM_MOD_CMD0 */
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(25,	true, PRCM_IDX_GPIOCR1, 9,	/* STMAPE_DAT_a[0] */
-				true, PRCM_IDX_GPIOCR1, 7,	/* SBAG_D_a[0] */
-				false, 0, 0,
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR1, 7,	/* SBAG_D_a[0] */
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(26,	true, PRCM_IDX_GPIOCR1, 9,	/* STMAPE_DAT_a[1] */
-				true, PRCM_IDX_GPIOCR1, 7,	/* SBAG_D_a[1] */
-				false, 0, 0,
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR1, 7,	/* SBAG_D_a[1] */
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(27,	true, PRCM_IDX_GPIOCR1, 9,	/* STMAPE_DAT_a[2] */
-				true, PRCM_IDX_GPIOCR1, 7,	/* SBAG_D_a[2] */
-				false, 0, 0,
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR1, 7,	/* SBAG_D_a[2] */
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(28,	true, PRCM_IDX_GPIOCR1, 9,	/* STMAPE_DAT_a[3] */
-				true, PRCM_IDX_GPIOCR1, 7,	/* SBAG_D_a[3] */
-				false, 0, 0,
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR1, 7,	/* SBAG_D_a[3] */
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(29,	false, 0, 0,
-				false, 0, 0,
-				true, PRCM_IDX_GPIOCR1, 10,	/* STM_MOD_CMD0 */
-				false, 0, 0
-	),
+	false, 0, 0,
+	true, PRCM_IDX_GPIOCR1, 10,	/* STM_MOD_CMD0 */
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(30,	false, 0, 0,
-				false, 0, 0,
-				true, PRCM_IDX_GPIOCR1, 10,	/* STM_MOD_CMD0 */
-				false, 0, 0
-	),
+	false, 0, 0,
+	true, PRCM_IDX_GPIOCR1, 10,	/* STM_MOD_CMD0 */
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(31,	false, 0, 0,
-				false, 0, 0,
-				true, PRCM_IDX_GPIOCR1, 10,	/* STM_MOD_CMD0 */
-				false, 0, 0
-	),
+	false, 0, 0,
+	true, PRCM_IDX_GPIOCR1, 10,	/* STM_MOD_CMD0 */
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(32,	false, 0, 0,
-				false, 0, 0,
-				true, PRCM_IDX_GPIOCR1, 10,	/* STM_MOD_CMD0 */
-				false, 0, 0
-	),
+	false, 0, 0,
+	true, PRCM_IDX_GPIOCR1, 10,	/* STM_MOD_CMD0 */
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(68,	true, PRCM_IDX_GPIOCR1, 18,	/* REMAP_SELECT_ON */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(69,	true, PRCM_IDX_GPIOCR1, 18,	/* REMAP_SELECT_ON */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(70,	true, PRCM_IDX_GPIOCR1, 5,	/* PTM_A9_D23 */
-				true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
-				true, PRCM_IDX_GPIOCR1, 11,	/* STM_MOD_CMD1 */
-				true, PRCM_IDX_GPIOCR1, 8	/* SBAG_CLK */
-	),
+	true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
+	true, PRCM_IDX_GPIOCR1, 11,	/* STM_MOD_CMD1 */
+	true, PRCM_IDX_GPIOCR1, 8	/* SBAG_CLK */
+					 ),
 	PRCM_GPIOCR_ALTCX(71,	true, PRCM_IDX_GPIOCR1, 5,	/* PTM_A9_D22 */
-				true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
-				true, PRCM_IDX_GPIOCR1, 11,	/* STM_MOD_CMD1 */
-				true, PRCM_IDX_GPIOCR1, 8	/* SBAG_D3 */
-	),
+	true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
+	true, PRCM_IDX_GPIOCR1, 11,	/* STM_MOD_CMD1 */
+	true, PRCM_IDX_GPIOCR1, 8	/* SBAG_D3 */
+					 ),
 	PRCM_GPIOCR_ALTCX(72,	true, PRCM_IDX_GPIOCR1, 5,	/* PTM_A9_D21 */
-				true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
-				true, PRCM_IDX_GPIOCR1, 11,	/* STM_MOD_CMD1 */
-				true, PRCM_IDX_GPIOCR1, 8	/* SBAG_D2 */
-	),
+	true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
+	true, PRCM_IDX_GPIOCR1, 11,	/* STM_MOD_CMD1 */
+	true, PRCM_IDX_GPIOCR1, 8	/* SBAG_D2 */
+					 ),
 	PRCM_GPIOCR_ALTCX(73,	true, PRCM_IDX_GPIOCR1, 5,	/* PTM_A9_D20 */
-				true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
-				true, PRCM_IDX_GPIOCR1, 11,	/* STM_MOD_CMD1 */
-				true, PRCM_IDX_GPIOCR1, 8	/* SBAG_D1 */
-	),
+	true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
+	true, PRCM_IDX_GPIOCR1, 11,	/* STM_MOD_CMD1 */
+	true, PRCM_IDX_GPIOCR1, 8	/* SBAG_D1 */
+					 ),
 	PRCM_GPIOCR_ALTCX(74,	true, PRCM_IDX_GPIOCR1, 5,	/* PTM_A9_D19 */
-				true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
-				true, PRCM_IDX_GPIOCR1, 11,	/* STM_MOD_CMD1 */
-				true, PRCM_IDX_GPIOCR1, 8	/* SBAG_D0 */
-	),
+	true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
+	true, PRCM_IDX_GPIOCR1, 11,	/* STM_MOD_CMD1 */
+	true, PRCM_IDX_GPIOCR1, 8	/* SBAG_D0 */
+					 ),
 	PRCM_GPIOCR_ALTCX(75,	true, PRCM_IDX_GPIOCR1, 5,	/* PTM_A9_D18 */
-				true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
-				true, PRCM_IDX_GPIOCR1, 0,	/* DBG_UARTMOD_CMD0 */
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
+	true, PRCM_IDX_GPIOCR1, 0,	/* DBG_UARTMOD_CMD0 */
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(76,	true, PRCM_IDX_GPIOCR1, 5,	/* PTM_A9_D17 */
-				true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
-				true, PRCM_IDX_GPIOCR1, 0,	/* DBG_UARTMOD_CMD0 */
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
+	true, PRCM_IDX_GPIOCR1, 0,	/* DBG_UARTMOD_CMD0 */
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(77,	true, PRCM_IDX_GPIOCR1, 5,	/* PTM_A9_D16 */
-				true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
-				false, 0, 0,
-				true, PRCM_IDX_GPIOCR1, 8	/* SBAG_VAL */
-	),
+	true, PRCM_IDX_GPIOCR2, 2,	/* DBG_ETM_R4_CMD0 */
+	false, 0, 0,
+	true, PRCM_IDX_GPIOCR1, 8	/* SBAG_VAL */
+					 ),
 	PRCM_GPIOCR_ALTCX(86,	true, PRCM_IDX_GPIOCR1, 12,	/* KP_O3 */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(87,	true, PRCM_IDX_GPIOCR1, 12,	/* KP_O2 */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(88,	true, PRCM_IDX_GPIOCR1, 12,	/* KP_I3 */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(89,	true, PRCM_IDX_GPIOCR1, 12,	/* KP_I2 */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(90,	true, PRCM_IDX_GPIOCR1, 12,	/* KP_O1 */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(91,	true, PRCM_IDX_GPIOCR1, 12,	/* KP_O0 */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(92,	true, PRCM_IDX_GPIOCR1, 12,	/* KP_I1 */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(93,	true, PRCM_IDX_GPIOCR1, 12,	/* KP_I0 */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(96,	true, PRCM_IDX_GPIOCR2, 3,	/* RF_INT */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(97,	true, PRCM_IDX_GPIOCR2, 1,	/* RF_CTRL */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(151,	false, 0, 0,
-				true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_CTL */
-				true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
-				true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS17 */
-	),
+	true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_CTL */
+	true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
+	true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS17 */
+					 ),
 	PRCM_GPIOCR_ALTCX(152,	true, PRCM_IDX_GPIOCR1, 4,	/* Hx_CLK */
-				true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_CLK */
-				true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
-				true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS16 */
-	),
+	true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_CLK */
+	true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
+	true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS16 */
+					 ),
 	PRCM_GPIOCR_ALTCX(153,	true, PRCM_IDX_GPIOCR1, 1,	/* UARTMOD_CMD1 */
-				true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D15 */
-				true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS15 */
-	),
+	true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D15 */
+	true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
+	true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS15 */
+					 ),
 	PRCM_GPIOCR_ALTCX(154,	true, PRCM_IDX_GPIOCR1, 1,	/* UARTMOD_CMD1 */
-				true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D14 */
-				true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS14 */
-	),
+	true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D14 */
+	true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
+	true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS14 */
+					 ),
 	PRCM_GPIOCR_ALTCX(155,	true, PRCM_IDX_GPIOCR1, 13,	/* STM_MOD_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D13 */
-				true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS13 */
-	),
+	true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D13 */
+	true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
+	true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS13 */
+					 ),
 	PRCM_GPIOCR_ALTCX(156,	true, PRCM_IDX_GPIOCR1, 13,	/* STM_MOD_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D12 */
-				true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS12 */
-	),
+	true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D12 */
+	true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
+	true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS12 */
+					 ),
 	PRCM_GPIOCR_ALTCX(157,	true, PRCM_IDX_GPIOCR1, 13,	/* STM_MOD_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D11 */
-				true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS11 */
-	),
+	true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D11 */
+	true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
+	true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS11 */
+					 ),
 	PRCM_GPIOCR_ALTCX(158,	true, PRCM_IDX_GPIOCR1, 13,	/* STM_MOD_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D10 */
-				true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS10 */
-	),
+	true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D10 */
+	true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
+	true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS10 */
+					 ),
 	PRCM_GPIOCR_ALTCX(159,	true, PRCM_IDX_GPIOCR1, 13,	/* STM_MOD_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D9 */
-				true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS9 */
-	),
+	true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D9 */
+	true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
+	true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS9 */
+					 ),
 	PRCM_GPIOCR_ALTCX(160,	false, 0, 0,
-				true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D8 */
-				true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
-				true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS8 */
-	),
+	true, PRCM_IDX_GPIOCR1, 14,	/* PTM_A9_D8 */
+	true, PRCM_IDX_GPIOCR1, 19,	/* DBG_ETM_R4_CMD2 */
+	true, PRCM_IDX_GPIOCR1, 25	/* HW_OBS8 */
+					 ),
 	PRCM_GPIOCR_ALTCX(161,	true, PRCM_IDX_GPIOCR1, 4,	/* Hx_GPIO7 */
-				true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D7 */
-				true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
-				true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS7 */
-	),
+	true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D7 */
+	true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
+	true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS7 */
+					 ),
 	PRCM_GPIOCR_ALTCX(162,	true, PRCM_IDX_GPIOCR1, 4,	/* Hx_GPIO6 */
-				true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D6 */
-				true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
-				true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS6 */
-	),
+	true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D6 */
+	true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
+	true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS6 */
+					 ),
 	PRCM_GPIOCR_ALTCX(163,	true, PRCM_IDX_GPIOCR1, 4,	/* Hx_GPIO5 */
-				true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D5 */
-				true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
-				true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS5 */
-	),
+	true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D5 */
+	true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
+	true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS5 */
+					 ),
 	PRCM_GPIOCR_ALTCX(164,	true, PRCM_IDX_GPIOCR1, 4,	/* Hx_GPIO4 */
-				true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D4 */
-				true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
-				true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS4 */
-	),
+	true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D4 */
+	true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
+	true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS4 */
+					 ),
 	PRCM_GPIOCR_ALTCX(165,	true, PRCM_IDX_GPIOCR1, 4,	/* Hx_GPIO3 */
-				true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D3 */
-				true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
-				true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS3 */
-	),
+	true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D3 */
+	true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
+	true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS3 */
+					 ),
 	PRCM_GPIOCR_ALTCX(166,	true, PRCM_IDX_GPIOCR1, 4,	/* Hx_GPIO2 */
-				true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D2 */
-				true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
-				true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS2 */
-	),
+	true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D2 */
+	true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
+	true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS2 */
+					 ),
 	PRCM_GPIOCR_ALTCX(167,	true, PRCM_IDX_GPIOCR1, 4,	/* Hx_GPIO1 */
-				true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D1 */
-				true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
-				true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS1 */
-	),
+	true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D1 */
+	true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
+	true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS1 */
+					 ),
 	PRCM_GPIOCR_ALTCX(168,	true, PRCM_IDX_GPIOCR1, 4,	/* Hx_GPIO0 */
-				true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D0 */
-				true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
-				true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS0 */
-	),
+	true, PRCM_IDX_GPIOCR1, 6,	/* PTM_A9_D0 */
+	true, PRCM_IDX_GPIOCR1, 15,	/* DBG_ETM_R4_CMD1*/
+	true, PRCM_IDX_GPIOCR1, 24	/* HW_OBS0 */
+					 ),
 	PRCM_GPIOCR_ALTCX(170,	true, PRCM_IDX_GPIOCR2, 2,	/* RF_INT */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(171,	true, PRCM_IDX_GPIOCR2, 0,	/* RF_CTRL */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(215,	true, PRCM_IDX_GPIOCR1, 23,	/* SPI2_TXD */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(216,	true, PRCM_IDX_GPIOCR1, 23,	/* SPI2_FRM */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(217,	true, PRCM_IDX_GPIOCR1, 23,	/* SPI2_CLK */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(218,	true, PRCM_IDX_GPIOCR1, 23,	/* SPI2_RXD */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 };
 
-static const u16 db8500_prcm_gpiocr_regs[] = {
+static const u16 db8500_prcm_gpiocr_regs[] =
+{
 	[PRCM_IDX_GPIOCR1] = 0x138,
 	[PRCM_IDX_GPIOCR2] = 0x574,
 };
 
-static const struct nmk_pinctrl_soc_data nmk_db8500_soc = {
+static const struct nmk_pinctrl_soc_data nmk_db8500_soc =
+{
 	.pins = nmk_db8500_pins,
 	.npins = ARRAY_SIZE(nmk_db8500_pins),
 	.functions = nmk_db8500_functions,

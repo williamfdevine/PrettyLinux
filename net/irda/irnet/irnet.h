@@ -338,44 +338,44 @@
 /* All error messages (will show up in the normal logs) */
 #define DERROR(dbg, format, args...) \
 	{if(DEBUG_##dbg) \
-		printk(KERN_INFO "irnet: %s(): " format, __func__ , ##args);}
+			printk(KERN_INFO "irnet: %s(): " format, __func__ , ##args);}
 
 /* Normal debug message (will show up in /var/log/debug) */
 #define DEBUG(dbg, format, args...) \
 	{if(DEBUG_##dbg) \
-		printk(KERN_DEBUG "irnet: %s(): " format, __func__ , ##args);}
+			printk(KERN_DEBUG "irnet: %s(): " format, __func__ , ##args);}
 
 /* Entering a function (trace) */
 #define DENTER(dbg, format, args...) \
 	{if(DEBUG_##dbg) \
-		printk(KERN_DEBUG "irnet: -> %s" format, __func__ , ##args);}
+			printk(KERN_DEBUG "irnet: -> %s" format, __func__ , ##args);}
 
 /* Entering and exiting a function in one go (trace) */
 #define DPASS(dbg, format, args...) \
 	{if(DEBUG_##dbg) \
-		printk(KERN_DEBUG "irnet: <>%s" format, __func__ , ##args);}
+			printk(KERN_DEBUG "irnet: <>%s" format, __func__ , ##args);}
 
 /* Exiting a function (trace) */
 #define DEXIT(dbg, format, args...) \
 	{if(DEBUG_##dbg) \
-		printk(KERN_DEBUG "irnet: <-%s()" format, __func__ , ##args);}
+			printk(KERN_DEBUG "irnet: <-%s()" format, __func__ , ##args);}
 
 /* Exit a function with debug */
 #define DRETURN(ret, dbg, args...) \
 	{DEXIT(dbg, ": " args);\
-	return ret; }
+		return ret; }
 
 /* Exit a function on failed condition */
 #define DABORT(cond, ret, dbg, args...) \
 	{if(cond) {\
-		DERROR(dbg, args);\
-		return ret; }}
+			DERROR(dbg, args);\
+			return ret; }}
 
 /* Invalid assertion, print out an error and exit... */
 #define DASSERT(cond, ret, dbg, args...) \
 	{if((DEBUG_ASSERT) && !(cond)) {\
-		DERROR(dbg, "Invalid assertion: " args);\
-		return ret; }}
+			DERROR(dbg, "Invalid assertion: " args);\
+			return ret; }}
 
 /************************ CONSTANTS & MACROS ************************/
 
@@ -397,68 +397,68 @@
  */
 typedef struct irnet_socket
 {
-  /* ------------------- Instance management ------------------- */
-  /* We manage a linked list of IrNET socket instances */
-  irda_queue_t		q;		/* Must be first - for hasbin */
-  int			magic;		/* Paranoia */
+	/* ------------------- Instance management ------------------- */
+	/* We manage a linked list of IrNET socket instances */
+	irda_queue_t		q;		/* Must be first - for hasbin */
+	int			magic;		/* Paranoia */
 
-  /* --------------------- FileSystem part --------------------- */
-  /* "pppd" interact directly with us on a /dev/ file */
-  struct file *		file;		/* File descriptor of this instance */
-  /* TTY stuff - to keep "pppd" happy */
-  struct ktermios	termios;	/* Various tty flags */
-  /* Stuff for the control channel */
-  int			event_index;	/* Last read in the event log */
+	/* --------------------- FileSystem part --------------------- */
+	/* "pppd" interact directly with us on a /dev/ file */
+	struct file 		*file;		/* File descriptor of this instance */
+	/* TTY stuff - to keep "pppd" happy */
+	struct ktermios	termios;	/* Various tty flags */
+	/* Stuff for the control channel */
+	int			event_index;	/* Last read in the event log */
 
-  /* ------------------------- PPP part ------------------------- */
-  /* We interface directly to the ppp_generic driver in the kernel */
-  int			ppp_open;	/* registered with ppp_generic */
-  struct ppp_channel	chan;		/* Interface to generic ppp layer */
+	/* ------------------------- PPP part ------------------------- */
+	/* We interface directly to the ppp_generic driver in the kernel */
+	int			ppp_open;	/* registered with ppp_generic */
+	struct ppp_channel	chan;		/* Interface to generic ppp layer */
 
-  int			mru;		/* Max size of PPP payload */
-  u32			xaccm[8];	/* Asynchronous character map (just */
-  u32			raccm;		/* to please pppd - dummy) */
-  unsigned int		flags;		/* PPP flags (compression, ...) */
-  unsigned int		rbits;		/* Unused receive flags ??? */
-  struct work_struct disconnect_work;   /* Process context disconnection */
-  /* ------------------------ IrTTP part ------------------------ */
-  /* We create a pseudo "socket" over the IrDA tranport */
-  unsigned long		ttp_open;	/* Set when IrTTP is ready */
-  unsigned long		ttp_connect;	/* Set when IrTTP is connecting */
-  struct tsap_cb *	tsap;		/* IrTTP instance (the connection) */
+	int			mru;		/* Max size of PPP payload */
+	u32			xaccm[8];	/* Asynchronous character map (just */
+	u32			raccm;		/* to please pppd - dummy) */
+	unsigned int		flags;		/* PPP flags (compression, ...) */
+	unsigned int		rbits;		/* Unused receive flags ??? */
+	struct work_struct disconnect_work;   /* Process context disconnection */
+	/* ------------------------ IrTTP part ------------------------ */
+	/* We create a pseudo "socket" over the IrDA tranport */
+	unsigned long		ttp_open;	/* Set when IrTTP is ready */
+	unsigned long		ttp_connect;	/* Set when IrTTP is connecting */
+	struct tsap_cb 	*tsap;		/* IrTTP instance (the connection) */
 
-  char			rname[NICKNAME_MAX_LEN + 1];
-					/* IrDA nickname of destination */
-  __u32			rdaddr;		/* Requested peer IrDA address */
-  __u32			rsaddr;		/* Requested local IrDA address */
-  __u32			daddr;		/* actual peer IrDA address */
-  __u32			saddr;		/* my local IrDA address */
-  __u8			dtsap_sel;	/* Remote TSAP selector */
-  __u8			stsap_sel;	/* Local TSAP selector */
+	char			rname[NICKNAME_MAX_LEN + 1];
+	/* IrDA nickname of destination */
+	__u32			rdaddr;		/* Requested peer IrDA address */
+	__u32			rsaddr;		/* Requested local IrDA address */
+	__u32			daddr;		/* actual peer IrDA address */
+	__u32			saddr;		/* my local IrDA address */
+	__u8			dtsap_sel;	/* Remote TSAP selector */
+	__u8			stsap_sel;	/* Local TSAP selector */
 
-  __u32			max_sdu_size_rx;/* Socket parameters used for IrTTP */
-  __u32			max_sdu_size_tx;
-  __u32			max_data_size;
-  __u8			max_header_size;
-  LOCAL_FLOW		tx_flow;	/* State of the Tx path in IrTTP */
+	__u32			max_sdu_size_rx;/* Socket parameters used for IrTTP */
+	__u32			max_sdu_size_tx;
+	__u32			max_data_size;
+	__u8			max_header_size;
+	LOCAL_FLOW		tx_flow;	/* State of the Tx path in IrTTP */
 
-  /* ------------------- IrLMP and IrIAS part ------------------- */
-  /* Used for IrDA Discovery and socket name resolution */
-  void *		ckey;		/* IrLMP client handle */
-  __u16			mask;		/* Hint bits mask (filter discov.)*/
-  int			nslots;		/* Number of slots for discovery */
+	/* ------------------- IrLMP and IrIAS part ------------------- */
+	/* Used for IrDA Discovery and socket name resolution */
+	void 		*ckey;		/* IrLMP client handle */
+	__u16			mask;		/* Hint bits mask (filter discov.)*/
+	int			nslots;		/* Number of slots for discovery */
 
-  struct iriap_cb *	iriap;		/* Used to query remote IAS */
-  int			errno;		/* status of the IAS query */
+	struct iriap_cb 	*iriap;		/* Used to query remote IAS */
+	int			errno;		/* status of the IAS query */
 
-  /* -------------------- Discovery log part -------------------- */
-  /* Used by initial discovery on the control channel
-   * and by irnet_discover_daddr_and_lsap_sel() */
-  struct irda_device_info *discoveries;	/* Copy of the discovery log */
-  int			disco_index;	/* Last read in the discovery log */
-  int			disco_number;	/* Size of the discovery log */
+	/* -------------------- Discovery log part -------------------- */
+	/* Used by initial discovery on the control channel
+	 * and by irnet_discover_daddr_and_lsap_sel() */
+	struct irda_device_info *discoveries;	/* Copy of the discovery log */
+	int			disco_index;	/* Last read in the discovery log */
+	int			disco_number;	/* Size of the discovery log */
 
-  struct mutex		lock;
+	struct mutex		lock;
 
 } irnet_socket;
 
@@ -467,15 +467,15 @@ typedef struct irnet_socket
  */
 typedef enum irnet_event
 {
-  IRNET_DISCOVER,		/* New IrNET node discovered */
-  IRNET_EXPIRE,			/* IrNET node expired */
-  IRNET_CONNECT_TO,		/* IrNET socket has connected to other node */
-  IRNET_CONNECT_FROM,		/* Other node has connected to IrNET socket */
-  IRNET_REQUEST_FROM,		/* Non satisfied connection request */
-  IRNET_NOANSWER_FROM,		/* Failed connection request */
-  IRNET_BLOCKED_LINK,		/* Link (IrLAP) is blocked for > 3s */
-  IRNET_DISCONNECT_FROM,	/* IrNET socket has disconnected */
-  IRNET_DISCONNECT_TO		/* Closing IrNET socket */
+	IRNET_DISCOVER,		/* New IrNET node discovered */
+	IRNET_EXPIRE,			/* IrNET node expired */
+	IRNET_CONNECT_TO,		/* IrNET socket has connected to other node */
+	IRNET_CONNECT_FROM,		/* Other node has connected to IrNET socket */
+	IRNET_REQUEST_FROM,		/* Non satisfied connection request */
+	IRNET_NOANSWER_FROM,		/* Failed connection request */
+	IRNET_BLOCKED_LINK,		/* Link (IrLAP) is blocked for > 3s */
+	IRNET_DISCONNECT_FROM,	/* IrNET socket has disconnected */
+	IRNET_DISCONNECT_TO		/* Closing IrNET socket */
 } irnet_event;
 
 /*
@@ -483,12 +483,12 @@ typedef enum irnet_event
  */
 typedef struct irnet_log
 {
-  irnet_event	event;
-  int		unit;
-  __u32		saddr;
-  __u32		daddr;
-  char		name[NICKNAME_MAX_LEN + 1];	/* 21 + 1 */
-  __u16_host_order hints;			/* Discovery hint bits */
+	irnet_event	event;
+	int		unit;
+	__u32		saddr;
+	__u32		daddr;
+	char		name[NICKNAME_MAX_LEN + 1];	/* 21 + 1 */
+	__u16_host_order hints;			/* Discovery hint bits */
 } irnet_log;
 
 /*
@@ -496,10 +496,10 @@ typedef struct irnet_log
  */
 typedef struct irnet_ctrl_channel
 {
-  irnet_log	log[IRNET_MAX_EVENTS];	/* Event log */
-  int		index;		/* Current index in log */
-  spinlock_t	spinlock;	/* Serialize access to the event log */
-  wait_queue_head_t	rwait;	/* processes blocked on read (or poll) */
+	irnet_log	log[IRNET_MAX_EVENTS];	/* Event log */
+	int		index;		/* Current index in log */
+	spinlock_t	spinlock;	/* Serialize access to the event log */
+	wait_queue_head_t	rwait;	/* processes blocked on read (or poll) */
 } irnet_ctrl_channel;
 
 /**************************** PROTOTYPES ****************************/

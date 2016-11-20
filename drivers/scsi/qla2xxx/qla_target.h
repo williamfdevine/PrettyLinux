@@ -61,7 +61,7 @@
  */
 #define CTIO_COMPLETION_HANDLE_MARK	BIT_29
 #if (CTIO_COMPLETION_HANDLE_MARK <= DEFAULT_OUTSTANDING_COMMANDS)
-#error "CTIO_COMPLETION_HANDLE_MARK not larger than "
+	#error "CTIO_COMPLETION_HANDLE_MARK not larger than "
 	"DEFAULT_OUTSTANDING_COMMANDS"
 #endif
 #define HANDLE_IS_CTIO_COMP(h) (h & CTIO_COMPLETION_HANDLE_MARK)
@@ -70,25 +70,25 @@
 #define CTIO_INTERMEDIATE_HANDLE_MARK	BIT_30
 
 #ifndef OF_SS_MODE_0
-/*
- * ISP target entries - Flags bit definitions.
- */
-#define OF_SS_MODE_0        0
-#define OF_SS_MODE_1        1
-#define OF_SS_MODE_2        2
-#define OF_SS_MODE_3        3
+	/*
+	* ISP target entries - Flags bit definitions.
+	*/
+	#define OF_SS_MODE_0        0
+	#define OF_SS_MODE_1        1
+	#define OF_SS_MODE_2        2
+	#define OF_SS_MODE_3        3
 
-#define OF_EXPL_CONF        BIT_5       /* Explicit Confirmation Requested */
-#define OF_DATA_IN          BIT_6       /* Data in to initiator */
-					/*  (data from target to initiator) */
-#define OF_DATA_OUT         BIT_7       /* Data out from initiator */
-					/*  (data from initiator to target) */
-#define OF_NO_DATA          (BIT_7 | BIT_6)
-#define OF_INC_RC           BIT_8       /* Increment command resource count */
-#define OF_FAST_POST        BIT_9       /* Enable mailbox fast posting. */
-#define OF_CONF_REQ         BIT_13      /* Confirmation Requested */
-#define OF_TERM_EXCH        BIT_14      /* Terminate exchange */
-#define OF_SSTS             BIT_15      /* Send SCSI status */
+	#define OF_EXPL_CONF        BIT_5       /* Explicit Confirmation Requested */
+	#define OF_DATA_IN          BIT_6       /* Data in to initiator */
+	/*  (data from target to initiator) */
+	#define OF_DATA_OUT         BIT_7       /* Data out from initiator */
+	/*  (data from initiator to target) */
+	#define OF_NO_DATA          (BIT_7 | BIT_6)
+	#define OF_INC_RC           BIT_8       /* Increment command resource count */
+	#define OF_FAST_POST        BIT_9       /* Enable mailbox fast posting. */
+	#define OF_CONF_REQ         BIT_13      /* Confirmation Requested */
+	#define OF_TERM_EXCH        BIT_14      /* Terminate exchange */
+	#define OF_SSTS             BIT_15      /* Send SCSI status */
 #endif
 
 #ifndef QLA_TGT_DATASEGS_PER_CMD32
@@ -96,13 +96,13 @@
 #define QLA_TGT_DATASEGS_PER_CONT32	7
 #define QLA_TGT_MAX_SG32(ql) \
 	(((ql) > 0) ? (QLA_TGT_DATASEGS_PER_CMD32 + \
-		QLA_TGT_DATASEGS_PER_CONT32*((ql) - 1)) : 0)
+				   QLA_TGT_DATASEGS_PER_CONT32*((ql) - 1)) : 0)
 
 #define QLA_TGT_DATASEGS_PER_CMD64	2
 #define QLA_TGT_DATASEGS_PER_CONT64	5
 #define QLA_TGT_MAX_SG64(ql) \
 	(((ql) > 0) ? (QLA_TGT_DATASEGS_PER_CMD64 + \
-		QLA_TGT_DATASEGS_PER_CONT64*((ql) - 1)) : 0)
+				   QLA_TGT_DATASEGS_PER_CONT64*((ql) - 1)) : 0)
 #endif
 
 #ifndef QLA_TGT_DATASEGS_PER_CMD_24XX
@@ -110,13 +110,13 @@
 #define QLA_TGT_DATASEGS_PER_CONT_24XX	5
 #define QLA_TGT_MAX_SG_24XX(ql) \
 	(min(1270, ((ql) > 0) ? (QLA_TGT_DATASEGS_PER_CMD_24XX + \
-		QLA_TGT_DATASEGS_PER_CONT_24XX*((ql) - 1)) : 0))
+							 QLA_TGT_DATASEGS_PER_CONT_24XX*((ql) - 1)) : 0))
 #endif
 #endif
 
 #define GET_TARGET_ID(ha, iocb) ((HAS_EXTENDED_IDS(ha))			\
-			 ? le16_to_cpu((iocb)->u.isp2x.target.extended)	\
-			 : (uint16_t)(iocb)->u.isp2x.target.id.standard)
+								 ? le16_to_cpu((iocb)->u.isp2x.target.extended)	\
+								 : (uint16_t)(iocb)->u.isp2x.target.id.standard)
 
 #ifndef IMMED_NOTIFY_TYPE
 #define IMMED_NOTIFY_TYPE 0x0D		/* Immediate notify entry. */
@@ -127,13 +127,16 @@
  *		initiator, that needs to be handled by the target
  *		driver immediately.
  */
-struct imm_ntfy_from_isp {
+struct imm_ntfy_from_isp
+{
 	uint8_t	 entry_type;		    /* Entry type. */
 	uint8_t	 entry_count;		    /* Entry count. */
 	uint8_t	 sys_define;		    /* System defined. */
 	uint8_t	 entry_status;		    /* Entry Status. */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint32_t sys_define_2; /* System defined. */
 			target_id_t target;
 			uint16_t lun;
@@ -152,7 +155,8 @@ struct imm_ntfy_from_isp {
 			uint16_t srr_ox_id;
 			uint8_t reserved_2[28];
 		} isp2x;
-		struct {
+		struct
+		{
 			uint32_t reserved;
 			uint16_t nport_handle;
 			uint16_t reserved_2;
@@ -167,16 +171,20 @@ struct imm_ntfy_from_isp {
 			uint32_t srr_rel_offs;
 			uint16_t srr_ui;
 			uint16_t srr_ox_id;
-			union {
-				struct {
+			union
+			{
+				struct
+				{
 					uint8_t node_name[8];
 				} plogi; /* PLOGI/ADISC/PDISC */
-				struct {
+				struct
+				{
 					/* PRLI word 3 bit 0-15 */
 					uint16_t wd3_lo;
 					uint8_t resv0[6];
 				} prli;
-				struct {
+				struct
+				{
 					uint8_t port_id[3];
 					uint8_t resv1;
 					uint16_t nport_handle;
@@ -202,13 +210,16 @@ struct imm_ntfy_from_isp {
  * ISP queue -	notify acknowledge entry structure definition.
  *		This is sent to the ISP from the target driver.
  */
-struct nack_to_isp {
+struct nack_to_isp
+{
 	uint8_t	 entry_type;		    /* Entry type. */
 	uint8_t	 entry_count;		    /* Entry count. */
 	uint8_t	 sys_define;		    /* System defined. */
 	uint8_t	 entry_status;		    /* Entry Status. */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint32_t sys_define_2; /* System defined. */
 			target_id_t target;
 			uint8_t	 target_id;
@@ -227,7 +238,8 @@ struct nack_to_isp {
 			uint8_t  srr_reject_code_expl;
 			uint8_t  reserved_2[24];
 		} isp2x;
-		struct {
+		struct
+		{
 			uint32_t handle;
 			uint16_t nport_handle;
 			uint16_t reserved_1;
@@ -264,7 +276,7 @@ struct nack_to_isp {
 #endif
 
 #ifndef ACCEPT_TGT_IO_TYPE
-#define ACCEPT_TGT_IO_TYPE 0x16 /* Accept target I/O entry. */
+	#define ACCEPT_TGT_IO_TYPE 0x16 /* Accept target I/O entry. */
 #endif
 
 #ifndef CONTINUE_TGT_IO_TYPE
@@ -273,7 +285,8 @@ struct nack_to_isp {
  * ISP queue -	Continue Target I/O (CTIO) entry for status mode 0 structure.
  *		This structure is sent to the ISP 2xxx from target driver.
  */
-struct ctio_to_2xxx {
+struct ctio_to_2xxx
+{
 	uint8_t	 entry_type;		/* Entry type. */
 	uint8_t	 entry_count;		/* Entry count. */
 	uint8_t	 sys_define;		/* System defined. */
@@ -306,25 +319,26 @@ struct ctio_to_2xxx {
 #endif
 
 #ifndef CTIO_A64_TYPE
-#define CTIO_A64_TYPE 0x1F
-#define CTIO_SUCCESS			0x01
-#define CTIO_ABORTED			0x02
-#define CTIO_INVALID_RX_ID		0x08
-#define CTIO_TIMEOUT			0x0B
-#define CTIO_DIF_ERROR			0x0C     /* DIF error detected  */
-#define CTIO_LIP_RESET			0x0E
-#define CTIO_TARGET_RESET		0x17
-#define CTIO_PORT_UNAVAILABLE		0x28
-#define CTIO_PORT_LOGGED_OUT		0x29
-#define CTIO_PORT_CONF_CHANGED		0x2A
-#define CTIO_SRR_RECEIVED		0x45
+	#define CTIO_A64_TYPE 0x1F
+	#define CTIO_SUCCESS			0x01
+	#define CTIO_ABORTED			0x02
+	#define CTIO_INVALID_RX_ID		0x08
+	#define CTIO_TIMEOUT			0x0B
+	#define CTIO_DIF_ERROR			0x0C     /* DIF error detected  */
+	#define CTIO_LIP_RESET			0x0E
+	#define CTIO_TARGET_RESET		0x17
+	#define CTIO_PORT_UNAVAILABLE		0x28
+	#define CTIO_PORT_LOGGED_OUT		0x29
+	#define CTIO_PORT_CONF_CHANGED		0x2A
+	#define CTIO_SRR_RECEIVED		0x45
 #endif
 
 #ifndef CTIO_RET_TYPE
 #define CTIO_RET_TYPE	0x17		/* CTIO return entry */
 #define ATIO_TYPE7 0x06 /* Accept target I/O entry for 24xx */
 
-struct fcp_hdr {
+struct fcp_hdr
+{
 	uint8_t  r_ctl;
 	uint8_t  d_id[3];
 	uint8_t  cs_ctl;
@@ -339,7 +353,8 @@ struct fcp_hdr {
 	uint32_t parameter;
 } __packed;
 
-struct fcp_hdr_le {
+struct fcp_hdr_le
+{
 	uint8_t  d_id[3];
 	uint8_t  r_ctl;
 	uint8_t  s_id[3];
@@ -364,20 +379,21 @@ struct fcp_hdr_le {
 #define R_CTL_B_ACC		0x4
 #define R_CTL_B_RJT		0x5
 
-struct atio7_fcp_cmnd {
+struct atio7_fcp_cmnd
+{
 	uint64_t lun;
 	uint8_t  cmnd_ref;
-	uint8_t  task_attr:3;
-	uint8_t  reserved:5;
+	uint8_t  task_attr: 3;
+	uint8_t  reserved: 5;
 	uint8_t  task_mgmt_flags;
 #define FCP_CMND_TASK_MGMT_CLEAR_ACA		6
 #define FCP_CMND_TASK_MGMT_TARGET_RESET		5
 #define FCP_CMND_TASK_MGMT_LU_RESET		4
 #define FCP_CMND_TASK_MGMT_CLEAR_TASK_SET	2
 #define FCP_CMND_TASK_MGMT_ABORT_TASK_SET	1
-	uint8_t  wrdata:1;
-	uint8_t  rddata:1;
-	uint8_t  add_cdb_len:6;
+	uint8_t  wrdata: 1;
+	uint8_t  rddata: 1;
+	uint8_t  add_cdb_len: 6;
 	uint8_t  cdb[16];
 	/*
 	 * add_cdb is optional and can absent from struct atio7_fcp_cmnd. Size 4
@@ -392,9 +408,12 @@ struct atio7_fcp_cmnd {
  * ISP queue -	Accept Target I/O (ATIO) type entry IOCB structure.
  *		This is sent from the ISP to the target driver.
  */
-struct atio_from_isp {
-	union {
-		struct {
+struct atio_from_isp
+{
+	union
+	{
+		struct
+		{
 			uint16_t entry_hdr;
 			uint8_t  sys_define;   /* System defined. */
 			uint8_t  entry_status; /* Entry Status.   */
@@ -414,17 +433,19 @@ struct atio_from_isp {
 			uint16_t reserved_32[6];
 			uint16_t ox_id;
 		} isp2x;
-		struct {
+		struct
+		{
 			uint16_t entry_hdr;
 			uint8_t  fcp_cmnd_len_low;
-			uint8_t  fcp_cmnd_len_high:4;
-			uint8_t  attr:4;
+			uint8_t  fcp_cmnd_len_high: 4;
+			uint8_t  attr: 4;
 			uint32_t exchange_addr;
 #define ATIO_EXCHANGE_ADDRESS_UNKNOWN	0xFFFFFFFF
 			struct fcp_hdr fcp_hdr;
 			struct atio7_fcp_cmnd fcp_cmnd;
 		} isp24;
-		struct {
+		struct
+		{
 			uint8_t  entry_type;	/* Entry type. */
 			uint8_t  entry_count;	/* Entry count. */
 			uint8_t  data[58];
@@ -441,7 +462,8 @@ struct atio_from_isp {
  *		This structure is sent to the ISP 24xx from the target driver.
  */
 
-struct ctio7_to_24xx {
+struct ctio7_to_24xx
+{
 	uint8_t	 entry_type;		    /* Entry type. */
 	uint8_t	 entry_count;		    /* Entry count. */
 	uint8_t	 sys_define;		    /* System defined. */
@@ -456,8 +478,10 @@ struct ctio7_to_24xx {
 	uint8_t  initiator_id[3];
 	uint8_t  reserved;
 	uint32_t exchange_addr;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint16_t reserved1;
 			__le16 flags;
 			uint32_t residual;
@@ -472,7 +496,8 @@ struct ctio7_to_24xx {
 			/* Data segment 0 length. */
 			uint32_t dseg_0_length;
 		} status0;
-		struct {
+		struct
+		{
 			uint16_t sense_length;
 			uint16_t flags;
 			uint32_t residual;
@@ -489,7 +514,8 @@ struct ctio7_to_24xx {
  * ISP queue - CTIO type 7 from ISP 24xx to target driver
  * returned entry structure.
  */
-struct ctio7_from_24xx {
+struct ctio7_from_24xx
+{
 	uint8_t	 entry_type;		    /* Entry type. */
 	uint8_t	 entry_count;		    /* Entry count. */
 	uint8_t	 sys_define;		    /* System defined. */
@@ -536,7 +562,8 @@ struct ctio7_from_24xx {
 /*
  *CTIO Type CRC_2 IOCB
  */
-struct ctio_crc2_to_fw {
+struct ctio_crc2_to_fw
+{
 	uint8_t entry_type;		/* Entry type. */
 #define CTIO_CRC2 0x7A
 	uint8_t entry_count;		/* Entry count. */
@@ -570,7 +597,8 @@ struct ctio_crc2_to_fw {
 } __packed;
 
 /* CTIO Type CRC_x Status IOCB */
-struct ctio_crc_from_fw {
+struct ctio_crc_from_fw
+{
 	uint8_t entry_type;		/* Entry type. */
 	uint8_t entry_count;		/* Entry count. */
 	uint8_t sys_define;		/* System defined. */
@@ -607,7 +635,8 @@ struct ctio_crc_from_fw {
  *		target driver by the ISP 24xx.
  *		The IOCB is placed on the response queue.
  */
-struct abts_recv_from_24xx {
+struct abts_recv_from_24xx
+{
 	uint8_t	 entry_type;		    /* Entry type. */
 	uint8_t	 entry_count;		    /* Entry count. */
 	uint8_t	 sys_define;		    /* System defined. */
@@ -616,8 +645,8 @@ struct abts_recv_from_24xx {
 	uint16_t nport_handle;
 	uint8_t  reserved_2[2];
 	uint8_t  vp_index;
-	uint8_t  reserved_3:4;
-	uint8_t  sof_type:4;
+	uint8_t  reserved_3: 4;
+	uint8_t  sof_type: 4;
 	uint32_t exchange_address;
 	struct fcp_hdr_le fcp_hdr_le;
 	uint8_t  reserved_4[16];
@@ -626,7 +655,8 @@ struct abts_recv_from_24xx {
 
 #define ABTS_PARAM_ABORT_SEQ		BIT_0
 
-struct ba_acc_le {
+struct ba_acc_le
+{
 	uint16_t reserved;
 	uint8_t  seq_id_last;
 	uint8_t  seq_id_valid;
@@ -638,7 +668,8 @@ struct ba_acc_le {
 	uint16_t low_seq_cnt;
 } __packed;
 
-struct ba_rjt_le {
+struct ba_rjt_le
+{
 	uint8_t vendor_uniq;
 	uint8_t reason_expl;
 	uint8_t reason_code;
@@ -653,7 +684,8 @@ struct ba_rjt_le {
  *		target driver to the ISP 24xx.
  *		The IOCB is placed on the request queue.
  */
-struct abts_resp_to_24xx {
+struct abts_resp_to_24xx
+{
 	uint8_t	 entry_type;		    /* Entry type. */
 	uint8_t	 entry_count;		    /* Entry count. */
 	uint8_t	 sys_define;		    /* System defined. */
@@ -664,11 +696,12 @@ struct abts_resp_to_24xx {
 	uint16_t control_flags;
 #define ABTS_CONTR_FLG_TERM_EXCHG	BIT_0
 	uint8_t  vp_index;
-	uint8_t  reserved_3:4;
-	uint8_t  sof_type:4;
+	uint8_t  reserved_3: 4;
+	uint8_t  sof_type: 4;
 	uint32_t exchange_address;
 	struct fcp_hdr_le fcp_hdr_le;
-	union {
+	union
+	{
 		struct ba_acc_le ba_acct;
 		struct ba_rjt_le ba_rjt;
 	} __packed payload;
@@ -683,7 +716,8 @@ struct abts_resp_to_24xx {
  *		ISP24xx firmware to the target driver.
  *		The IOCB is placed on the response queue.
  */
-struct abts_resp_from_24xx_fw {
+struct abts_resp_from_24xx_fw
+{
 	uint8_t	 entry_type;		    /* Entry type. */
 	uint8_t	 entry_count;		    /* Entry count. */
 	uint8_t	 sys_define;		    /* System defined. */
@@ -695,8 +729,8 @@ struct abts_resp_from_24xx_fw {
 	uint16_t nport_handle;
 	uint16_t reserved_1;
 	uint8_t  reserved_2;
-	uint8_t  reserved_3:4;
-	uint8_t  sof_type:4;
+	uint8_t  reserved_3: 4;
+	uint8_t  sof_type: 4;
 	uint32_t exchange_address;
 	struct fcp_hdr_le fcp_hdr_le;
 	uint8_t reserved_4[8];
@@ -718,25 +752,26 @@ struct qla_tgt_sess;
  * target driver (from within qla_target.c) can issue to the
  * target module (tcm_qla2xxx).
  */
-struct qla_tgt_func_tmpl {
+struct qla_tgt_func_tmpl
+{
 
 	int (*handle_cmd)(struct scsi_qla_host *, struct qla_tgt_cmd *,
-			unsigned char *, uint32_t, int, int, int);
+					  unsigned char *, uint32_t, int, int, int);
 	void (*handle_data)(struct qla_tgt_cmd *);
 	void (*handle_dif_err)(struct qla_tgt_cmd *);
 	int (*handle_tmr)(struct qla_tgt_mgmt_cmd *, uint32_t, uint8_t,
-			uint32_t);
+					  uint32_t);
 	void (*free_cmd)(struct qla_tgt_cmd *);
 	void (*free_mcmd)(struct qla_tgt_mgmt_cmd *);
 	void (*free_session)(struct qla_tgt_sess *);
 
 	int (*check_initiator_node_acl)(struct scsi_qla_host *, unsigned char *,
-					struct qla_tgt_sess *);
+									struct qla_tgt_sess *);
 	void (*update_sess)(struct qla_tgt_sess *, port_id_t, uint16_t, bool);
 	struct qla_tgt_sess *(*find_sess_by_loop_id)(struct scsi_qla_host *,
-						const uint16_t);
+			const uint16_t);
 	struct qla_tgt_sess *(*find_sess_by_s_id)(struct scsi_qla_host *,
-						const uint8_t *);
+			const uint8_t *);
 	void (*clear_nacl_from_fcport_map)(struct qla_tgt_sess *);
 	void (*shutdown_sess)(struct qla_tgt_sess *);
 };
@@ -808,23 +843,25 @@ int qla2x00_wait_for_hba_online(struct scsi_qla_host *);
 #define FC_TM_FAILED                5
 
 #if (BITS_PER_LONG > 32) || defined(CONFIG_HIGHMEM64G)
-#define pci_dma_lo32(a) (a & 0xffffffff)
-#define pci_dma_hi32(a) ((((a) >> 16)>>16) & 0xffffffff)
+	#define pci_dma_lo32(a) (a & 0xffffffff)
+	#define pci_dma_hi32(a) ((((a) >> 16)>>16) & 0xffffffff)
 #else
-#define pci_dma_lo32(a) (a & 0xffffffff)
-#define pci_dma_hi32(a) 0
+	#define pci_dma_lo32(a) (a & 0xffffffff)
+	#define pci_dma_hi32(a) 0
 #endif
 
 #define QLA_TGT_SENSE_VALID(sense)  ((sense != NULL) && \
-				(((const uint8_t *)(sense))[0] & 0x70) == 0x70)
+									 (((const uint8_t *)(sense))[0] & 0x70) == 0x70)
 
-struct qla_port_24xx_data {
+struct qla_port_24xx_data
+{
 	uint8_t port_name[WWN_SIZE];
 	uint16_t loop_id;
 	uint16_t reserved;
 };
 
-struct qla_tgt {
+struct qla_tgt
+{
 	struct scsi_qla_host *vha;
 	struct qla_hw_data *ha;
 
@@ -839,8 +876,8 @@ struct qla_tgt {
 	int datasegs_per_cmd, datasegs_per_cont, sg_tablesize;
 
 	/* Target's flags, serialized by pha->hardware_lock */
-	unsigned int tgt_enable_64bit_addr:1; /* 64-bits PCI addr enabled */
-	unsigned int link_reinit_iocb_pending:1;
+	unsigned int tgt_enable_64bit_addr: 1; /* 64-bits PCI addr enabled */
+	unsigned int link_reinit_iocb_pending: 1;
 
 	/*
 	 * Protected by tgt_mutex AND hardware_lock for writing and tgt_mutex
@@ -881,7 +918,8 @@ struct qla_tgt {
 	struct list_head tgt_list_entry;
 };
 
-struct qla_tgt_sess_op {
+struct qla_tgt_sess_op
+{
 	struct scsi_qla_host *vha;
 	uint32_t chip_reset;
 	struct atio_from_isp atio;
@@ -890,20 +928,23 @@ struct qla_tgt_sess_op {
 	bool aborted;
 };
 
-enum qla_sess_deletion {
+enum qla_sess_deletion
+{
 	QLA_SESS_DELETION_NONE		= 0,
 	QLA_SESS_DELETION_PENDING	= 1, /* hopefully we can get rid of
 					      * this one */
 	QLA_SESS_DELETION_IN_PROGRESS	= 2,
 };
 
-typedef enum {
+typedef enum
+{
 	QLT_PLOGI_LINK_SAME_WWN,
 	QLT_PLOGI_LINK_CONFLICT,
 	QLT_PLOGI_LINK_MAX
 } qlt_plogi_link_t;
 
-typedef struct {
+typedef struct
+{
 	struct list_head		list;
 	struct imm_ntfy_from_isp	iocb;
 	port_id_t			id;
@@ -913,16 +954,17 @@ typedef struct {
 /*
  * Equivilant to IT Nexus (Initiator-Target)
  */
-struct qla_tgt_sess {
+struct qla_tgt_sess
+{
 	uint16_t loop_id;
 	port_id_t s_id;
 
-	unsigned int conf_compl_supported:1;
-	unsigned int deleted:2;
-	unsigned int local:1;
-	unsigned int logout_on_delete:1;
-	unsigned int keep_nport_handle:1;
-	unsigned int send_els_logo:1;
+	unsigned int conf_compl_supported: 1;
+	unsigned int deleted: 2;
+	unsigned int local: 1;
+	unsigned int logout_on_delete: 1;
+	unsigned int keep_nport_handle: 1;
+	unsigned int send_els_logo: 1;
 
 	unsigned char logout_completed;
 
@@ -943,7 +985,8 @@ struct qla_tgt_sess {
 	qlt_plogi_ack_t *plogi_link[QLT_PLOGI_LINK_MAX];
 };
 
-typedef enum {
+typedef enum
+{
 	/*
 	 * BIT_0 - Atio Arrival / schedule to work
 	 * BIT_1 - qlt_do_work
@@ -973,7 +1016,8 @@ typedef enum {
 	CMD_FLAG_DATA_WORK_FREE = BIT_21,
 } cmd_flags_t;
 
-struct qla_tgt_cmd {
+struct qla_tgt_cmd
+{
 	struct se_cmd se_cmd;
 	struct qla_tgt_sess *sess;
 	int state;
@@ -984,16 +1028,16 @@ struct qla_tgt_cmd {
 
 	spinlock_t cmd_lock;
 	/* to save extra sess dereferences */
-	unsigned int conf_compl_supported:1;
-	unsigned int sg_mapped:1;
-	unsigned int free_sg:1;
-	unsigned int write_data_transferred:1;
-	unsigned int ctx_dsd_alloced:1;
-	unsigned int q_full:1;
-	unsigned int term_exchg:1;
-	unsigned int cmd_sent_to_fw:1;
-	unsigned int cmd_in_wq:1;
-	unsigned int aborted:1;
+	unsigned int conf_compl_supported: 1;
+	unsigned int sg_mapped: 1;
+	unsigned int free_sg: 1;
+	unsigned int write_data_transferred: 1;
+	unsigned int ctx_dsd_alloced: 1;
+	unsigned int q_full: 1;
+	unsigned int term_exchg: 1;
+	unsigned int cmd_sent_to_fw: 1;
+	unsigned int cmd_in_wq: 1;
+	unsigned int aborted: 1;
 
 	struct scatterlist *sg;	/* cmd data buffer SG vector */
 	int sg_cnt;		/* SG segments count */
@@ -1021,21 +1065,24 @@ struct qla_tgt_cmd {
 	cmd_flags_t cmd_flags;
 };
 
-struct qla_tgt_sess_work_param {
+struct qla_tgt_sess_work_param
+{
 	struct list_head sess_works_list_entry;
 
 #define QLA_TGT_SESS_WORK_ABORT	1
 #define QLA_TGT_SESS_WORK_TM	2
 	int type;
 
-	union {
+	union
+	{
 		struct abts_recv_from_24xx abts;
 		struct imm_ntfy_from_isp tm_iocb;
 		struct atio_from_isp tm_iocb2;
 	};
 };
 
-struct qla_tgt_mgmt_cmd {
+struct qla_tgt_mgmt_cmd
+{
 	uint8_t tmr_func;
 	uint8_t fc_tm_rsp;
 	struct qla_tgt_sess *sess;
@@ -1044,14 +1091,16 @@ struct qla_tgt_mgmt_cmd {
 	unsigned int flags;
 	uint32_t reset_count;
 #define QLA24XX_MGMT_SEND_NACK	1
-	union {
+	union
+	{
 		struct atio_from_isp atio;
 		struct imm_ntfy_from_isp imm_ntfy;
 		struct abts_recv_from_24xx abts;
 	} __packed orig_iocb;
 };
 
-struct qla_tgt_prm {
+struct qla_tgt_prm
+{
 	struct qla_tgt_cmd *cmd;
 	struct qla_tgt *tgt;
 	void *pkt;
@@ -1070,13 +1119,15 @@ struct qla_tgt_prm {
 	uint16_t tot_dsds;
 };
 
-struct qla_tgt_srr_imm {
+struct qla_tgt_srr_imm
+{
 	struct list_head srr_list_entry;
 	int srr_id;
 	struct imm_ntfy_from_isp imm_ntfy;
 };
 
-struct qla_tgt_srr_ctio {
+struct qla_tgt_srr_ctio
+{
 	struct list_head srr_list_entry;
 	int srr_id;
 	struct qla_tgt_cmd *cmd;
@@ -1099,7 +1150,7 @@ extern struct qla_tgt_data qla_target;
 extern int qlt_add_target(struct qla_hw_data *, struct scsi_qla_host *);
 extern int qlt_remove_target(struct qla_hw_data *, struct scsi_qla_host *);
 extern int qlt_lport_register(void *, u64, u64, u64,
-			int (*callback)(struct scsi_qla_host *, void *, u64, u64));
+							  int (*callback)(struct scsi_qla_host *, void *, u64, u64));
 extern void qlt_lport_deregister(struct scsi_qla_host *);
 void qlt_put_sess(struct qla_tgt_sess *sess);
 extern void qlt_fc_port_added(struct scsi_qla_host *, fc_port_t *);
@@ -1128,9 +1179,13 @@ static inline bool qla_ini_mode_enabled(struct scsi_qla_host *ha)
 static inline void qla_reverse_ini_mode(struct scsi_qla_host *ha)
 {
 	if (ha->host->active_mode & MODE_INITIATOR)
+	{
 		ha->host->active_mode &= ~MODE_INITIATOR;
+	}
 	else
+	{
 		ha->host->active_mode |= MODE_INITIATOR;
+	}
 }
 
 static inline uint32_t sid_to_key(const uint8_t *s_id)
@@ -1138,8 +1193,8 @@ static inline uint32_t sid_to_key(const uint8_t *s_id)
 	uint32_t key;
 
 	key = (((unsigned long)s_id[0] << 16) |
-	       ((unsigned long)s_id[1] << 8) |
-	       (unsigned long)s_id[2]);
+		   ((unsigned long)s_id[1] << 8) |
+		   (unsigned long)s_id[2]);
 	return key;
 }
 
@@ -1169,17 +1224,17 @@ extern void qlt_init_atio_q_entries(struct scsi_qla_host *);
 extern void qlt_24xx_process_atio_queue(struct scsi_qla_host *, uint8_t);
 extern void qlt_24xx_config_rings(struct scsi_qla_host *);
 extern void qlt_24xx_config_nvram_stage1(struct scsi_qla_host *,
-	struct nvram_24xx *);
+		struct nvram_24xx *);
 extern void qlt_24xx_config_nvram_stage2(struct scsi_qla_host *,
-	struct init_cb_24xx *);
+		struct init_cb_24xx *);
 extern void qlt_81xx_config_nvram_stage2(struct scsi_qla_host *,
-	struct init_cb_81xx *);
+		struct init_cb_81xx *);
 extern void qlt_81xx_config_nvram_stage1(struct scsi_qla_host *,
-	struct nvram_81xx *);
+		struct nvram_81xx *);
 extern int qlt_24xx_process_response_error(struct scsi_qla_host *,
-	struct sts_entry_24xx *);
+		struct sts_entry_24xx *);
 extern void qlt_modify_vp_config(struct scsi_qla_host *,
-	struct vp_config_entry_24xx *);
+								 struct vp_config_entry_24xx *);
 extern void qlt_probe_one_stage1(struct scsi_qla_host *, struct qla_hw_data *);
 extern int qlt_mem_alloc(struct qla_hw_data *);
 extern void qlt_mem_free(struct qla_hw_data *);

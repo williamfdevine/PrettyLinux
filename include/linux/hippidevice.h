@@ -27,7 +27,8 @@
 
 #ifdef __KERNEL__
 
-struct hippi_cb {
+struct hippi_cb
+{
 	__u32	ifield;
 };
 

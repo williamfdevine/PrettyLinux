@@ -38,17 +38,25 @@ static int ste10Xp_config_init(struct phy_device *phydev)
 
 	/* Software Reset PHY */
 	value = phy_read(phydev, MII_BMCR);
+
 	if (value < 0)
+	{
 		return value;
+	}
 
 	value |= BMCR_RESET;
 	err = phy_write(phydev, MII_BMCR, value);
-	if (err < 0)
-		return err;
 
-	do {
+	if (err < 0)
+	{
+		return err;
+	}
+
+	do
+	{
 		value = phy_read(phydev, MII_BMCR);
-	} while (value & BMCR_RESET);
+	}
+	while (value & BMCR_RESET);
 
 	return 0;
 }
@@ -57,17 +65,26 @@ static int ste10Xp_config_intr(struct phy_device *phydev)
 {
 	int err, value;
 
-	if (phydev->interrupts == PHY_INTERRUPT_ENABLED) {
+	if (phydev->interrupts == PHY_INTERRUPT_ENABLED)
+	{
 		/* Enable all STe101P interrupts (PR12) */
 		err = phy_write(phydev, MII_XIE, MII_XIE_DEFAULT_MASK);
+
 		/* clear any pending interrupts */
-		if (err == 0) {
+		if (err == 0)
+		{
 			value = phy_read(phydev, MII_XCIIS);
+
 			if (value < 0)
+			{
 				err = value;
+			}
 		}
-	} else
+	}
+	else
+	{
 		err = phy_write(phydev, MII_XIE, 0);
+	}
 
 	return err;
 }
@@ -75,44 +92,50 @@ static int ste10Xp_config_intr(struct phy_device *phydev)
 static int ste10Xp_ack_interrupt(struct phy_device *phydev)
 {
 	int err = phy_read(phydev, MII_XCIIS);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
 
-static struct phy_driver ste10xp_pdriver[] = {
+static struct phy_driver ste10xp_pdriver[] =
 {
-	.phy_id = STE101P_PHY_ID,
-	.phy_id_mask = 0xfffffff0,
-	.name = "STe101p",
-	.features = PHY_BASIC_FEATURES | SUPPORTED_Pause,
-	.flags = PHY_HAS_INTERRUPT,
-	.config_init = ste10Xp_config_init,
-	.config_aneg = genphy_config_aneg,
-	.read_status = genphy_read_status,
-	.ack_interrupt = ste10Xp_ack_interrupt,
-	.config_intr = ste10Xp_config_intr,
-	.suspend = genphy_suspend,
-	.resume = genphy_resume,
-}, {
-	.phy_id = STE100P_PHY_ID,
-	.phy_id_mask = 0xffffffff,
-	.name = "STe100p",
-	.features = PHY_BASIC_FEATURES | SUPPORTED_Pause,
-	.flags = PHY_HAS_INTERRUPT,
-	.config_init = ste10Xp_config_init,
-	.config_aneg = genphy_config_aneg,
-	.read_status = genphy_read_status,
-	.ack_interrupt = ste10Xp_ack_interrupt,
-	.config_intr = ste10Xp_config_intr,
-	.suspend = genphy_suspend,
-	.resume = genphy_resume,
-} };
+	{
+		.phy_id = STE101P_PHY_ID,
+		.phy_id_mask = 0xfffffff0,
+		.name = "STe101p",
+		.features = PHY_BASIC_FEATURES | SUPPORTED_Pause,
+		.flags = PHY_HAS_INTERRUPT,
+		.config_init = ste10Xp_config_init,
+		.config_aneg = genphy_config_aneg,
+		.read_status = genphy_read_status,
+		.ack_interrupt = ste10Xp_ack_interrupt,
+		.config_intr = ste10Xp_config_intr,
+		.suspend = genphy_suspend,
+		.resume = genphy_resume,
+	}, {
+		.phy_id = STE100P_PHY_ID,
+		.phy_id_mask = 0xffffffff,
+		.name = "STe100p",
+		.features = PHY_BASIC_FEATURES | SUPPORTED_Pause,
+		.flags = PHY_HAS_INTERRUPT,
+		.config_init = ste10Xp_config_init,
+		.config_aneg = genphy_config_aneg,
+		.read_status = genphy_read_status,
+		.ack_interrupt = ste10Xp_ack_interrupt,
+		.config_intr = ste10Xp_config_intr,
+		.suspend = genphy_suspend,
+		.resume = genphy_resume,
+	}
+};
 
 module_phy_driver(ste10xp_pdriver);
 
-static struct mdio_device_id __maybe_unused ste10Xp_tbl[] = {
+static struct mdio_device_id __maybe_unused ste10Xp_tbl[] =
+{
 	{ STE101P_PHY_ID, 0xfffffff0 },
 	{ STE100P_PHY_ID, 0xffffffff },
 	{ }

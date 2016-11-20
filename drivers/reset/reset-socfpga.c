@@ -25,18 +25,19 @@
 
 #define NR_BANKS		4
 
-struct socfpga_reset_data {
+struct socfpga_reset_data
+{
 	spinlock_t			lock;
 	void __iomem			*membase;
 	struct reset_controller_dev	rcdev;
 };
 
 static int socfpga_reset_assert(struct reset_controller_dev *rcdev,
-				unsigned long id)
+								unsigned long id)
 {
 	struct socfpga_reset_data *data = container_of(rcdev,
-						     struct socfpga_reset_data,
-						     rcdev);
+									  struct socfpga_reset_data,
+									  rcdev);
 	int bank = id / BITS_PER_LONG;
 	int offset = id % BITS_PER_LONG;
 	unsigned long flags;
@@ -52,11 +53,11 @@ static int socfpga_reset_assert(struct reset_controller_dev *rcdev,
 }
 
 static int socfpga_reset_deassert(struct reset_controller_dev *rcdev,
-				  unsigned long id)
+								  unsigned long id)
 {
 	struct socfpga_reset_data *data = container_of(rcdev,
-						     struct socfpga_reset_data,
-						     rcdev);
+									  struct socfpga_reset_data,
+									  rcdev);
 
 	int bank = id / BITS_PER_LONG;
 	int offset = id % BITS_PER_LONG;
@@ -74,10 +75,10 @@ static int socfpga_reset_deassert(struct reset_controller_dev *rcdev,
 }
 
 static int socfpga_reset_status(struct reset_controller_dev *rcdev,
-				unsigned long id)
+								unsigned long id)
 {
 	struct socfpga_reset_data *data = container_of(rcdev,
-						struct socfpga_reset_data, rcdev);
+									  struct socfpga_reset_data, rcdev);
 	int bank = id / BITS_PER_LONG;
 	int offset = id % BITS_PER_LONG;
 	u32 reg;
@@ -87,7 +88,8 @@ static int socfpga_reset_status(struct reset_controller_dev *rcdev,
 	return !(reg & BIT(offset));
 }
 
-static const struct reset_control_ops socfpga_reset_ops = {
+static const struct reset_control_ops socfpga_reset_ops =
+{
 	.assert		= socfpga_reset_assert,
 	.deassert	= socfpga_reset_deassert,
 	.status		= socfpga_reset_status,
@@ -105,25 +107,34 @@ static int socfpga_reset_probe(struct platform_device *pdev)
 	 * The binding was mainlined without the required property.
 	 * Do not continue, when we encounter an old DT.
 	 */
-	if (!of_find_property(pdev->dev.of_node, "#reset-cells", NULL)) {
+	if (!of_find_property(pdev->dev.of_node, "#reset-cells", NULL))
+	{
 		dev_err(&pdev->dev, "%s missing #reset-cells property\n",
-			pdev->dev.of_node->full_name);
+				pdev->dev.of_node->full_name);
 		return -EINVAL;
 	}
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	data->membase = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(data->membase))
-		return PTR_ERR(data->membase);
 
-	if (of_property_read_u32(np, "altr,modrst-offset", &modrst_offset)) {
+	if (IS_ERR(data->membase))
+	{
+		return PTR_ERR(data->membase);
+	}
+
+	if (of_property_read_u32(np, "altr,modrst-offset", &modrst_offset))
+	{
 		dev_warn(dev, "missing altr,modrst-offset property, assuming 0x10!\n");
 		modrst_offset = 0x10;
 	}
+
 	data->membase += modrst_offset;
 
 	spin_lock_init(&data->lock);
@@ -136,12 +147,14 @@ static int socfpga_reset_probe(struct platform_device *pdev)
 	return devm_reset_controller_register(dev, &data->rcdev);
 }
 
-static const struct of_device_id socfpga_reset_dt_ids[] = {
+static const struct of_device_id socfpga_reset_dt_ids[] =
+{
 	{ .compatible = "altr,rst-mgr", },
 	{ /* sentinel */ },
 };
 
-static struct platform_driver socfpga_reset_driver = {
+static struct platform_driver socfpga_reset_driver =
+{
 	.probe	= socfpga_reset_probe,
 	.driver = {
 		.name		= "socfpga-reset",

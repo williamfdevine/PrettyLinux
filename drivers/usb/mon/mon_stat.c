@@ -18,7 +18,8 @@
 
 #define STAT_BUF_SIZE  80
 
-struct snap {
+struct snap
+{
 	int slen;
 	char str[STAT_BUF_SIZE];
 };
@@ -29,21 +30,24 @@ static int mon_stat_open(struct inode *inode, struct file *file)
 	struct snap *sp;
 
 	sp = kmalloc(sizeof(struct snap), GFP_KERNEL);
+
 	if (sp == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	mbus = inode->i_private;
 
 	sp->slen = snprintf(sp->str, STAT_BUF_SIZE,
-	    "nreaders %d events %u text_lost %u\n",
-	    mbus->nreaders, mbus->cnt_events, mbus->cnt_text_lost);
+						"nreaders %d events %u text_lost %u\n",
+						mbus->nreaders, mbus->cnt_events, mbus->cnt_text_lost);
 
 	file->private_data = sp;
 	return 0;
 }
 
 static ssize_t mon_stat_read(struct file *file, char __user *buf,
-				size_t nbytes, loff_t *ppos)
+							 size_t nbytes, loff_t *ppos)
 {
 	struct snap *sp = file->private_data;
 
@@ -58,7 +62,8 @@ static int mon_stat_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-const struct file_operations mon_fops_stat = {
+const struct file_operations mon_fops_stat =
+{
 	.owner =	THIS_MODULE,
 	.open =		mon_stat_open,
 	.llseek =	no_llseek,

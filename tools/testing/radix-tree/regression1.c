@@ -45,7 +45,8 @@
 static RADIX_TREE(mt_tree, GFP_KERNEL);
 static pthread_mutex_t mt_lock = PTHREAD_MUTEX_INITIALIZER;
 
-struct page {
+struct page
+{
 	pthread_mutex_t lock;
 	struct rcu_head rcu;
 	int count;
@@ -77,7 +78,7 @@ static void page_free(struct page *p)
 }
 
 static unsigned find_get_pages(unsigned long start,
-			    unsigned int nr_pages, struct page **pages)
+							   unsigned int nr_pages, struct page **pages)
 {
 	unsigned int i;
 	unsigned int ret;
@@ -86,17 +87,24 @@ static unsigned find_get_pages(unsigned long start,
 	rcu_read_lock();
 restart:
 	nr_found = radix_tree_gang_lookup_slot(&mt_tree,
-				(void ***)pages, NULL, start, nr_pages);
+										   (void ** *)pages, NULL, start, nr_pages);
 	ret = 0;
-	for (i = 0; i < nr_found; i++) {
+
+	for (i = 0; i < nr_found; i++)
+	{
 		struct page *page;
 repeat:
 		page = radix_tree_deref_slot((void **)pages[i]);
-		if (unlikely(!page))
-			continue;
 
-		if (radix_tree_exception(page)) {
-			if (radix_tree_deref_retry(page)) {
+		if (unlikely(!page))
+		{
+			continue;
+		}
+
+		if (radix_tree_exception(page))
+		{
+			if (radix_tree_deref_retry(page))
+			{
 				/*
 				 * Transient condition which can only trigger
 				 * when entry at index 0 moves out of or back
@@ -105,6 +113,7 @@ repeat:
 				assert((start | i) == 0);
 				goto restart;
 			}
+
 			/*
 			 * No exceptional entries are inserted in this test.
 			 */
@@ -112,21 +121,26 @@ repeat:
 		}
 
 		pthread_mutex_lock(&page->lock);
-		if (!page->count) {
+
+		if (!page->count)
+		{
 			pthread_mutex_unlock(&page->lock);
 			goto repeat;
 		}
+
 		/* don't actually update page refcount */
 		pthread_mutex_unlock(&page->lock);
 
 		/* Has the page moved? */
-		if (unlikely(page != *((void **)pages[i]))) {
+		if (unlikely(page != *((void **)pages[i])))
+		{
 			goto repeat;
 		}
 
 		pages[ret] = page;
 		ret++;
 	}
+
 	rcu_read_unlock();
 	return ret;
 }
@@ -138,10 +152,12 @@ static void *regression1_fn(void *arg)
 	rcu_register_thread();
 
 	if (pthread_barrier_wait(&worker_barrier) ==
-			PTHREAD_BARRIER_SERIAL_THREAD) {
+		PTHREAD_BARRIER_SERIAL_THREAD)
+	{
 		int j;
 
-		for (j = 0; j < 1000000; j++) {
+		for (j = 0; j < 1000000; j++)
+		{
 			struct page *p;
 
 			p = page_alloc();
@@ -170,10 +186,13 @@ static void *regression1_fn(void *arg)
 			pthread_mutex_unlock(&mt_lock);
 			page_free(p);
 		}
-	} else {
+	}
+	else
+	{
 		int j;
 
-		for (j = 0; j < 100000000; j++) {
+		for (j = 0; j < 100000000; j++)
+		{
 			struct page *pages[10];
 
 			find_get_pages(0, 10, pages);
@@ -199,16 +218,21 @@ void regression1_test(void)
 
 	threads = malloc(nr_threads * sizeof(pthread_t *));
 
-	for (i = 0; i < nr_threads; i++) {
+	for (i = 0; i < nr_threads; i++)
+	{
 		arg = i;
-		if (pthread_create(&threads[i], NULL, regression1_fn, (void *)arg)) {
+
+		if (pthread_create(&threads[i], NULL, regression1_fn, (void *)arg))
+		{
 			perror("pthread_create");
 			exit(1);
 		}
 	}
 
-	for (i = 0; i < nr_threads; i++) {
-		if (pthread_join(threads[i], NULL)) {
+	for (i = 0; i < nr_threads; i++)
+	{
+		if (pthread_join(threads[i], NULL))
+		{
 			perror("pthread_join");
 			exit(1);
 		}

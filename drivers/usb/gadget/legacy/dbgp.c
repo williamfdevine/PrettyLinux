@@ -22,7 +22,8 @@
 #define DBGP_REQ_EP0_LEN              128
 #define DBGP_REQ_LEN                  512
 
-static struct dbgp {
+static struct dbgp
+{
 	struct usb_gadget  *gadget;
 	struct usb_request *req;
 	struct usb_ep      *i_ep;
@@ -32,7 +33,8 @@ static struct dbgp {
 #endif
 } dbgp;
 
-static struct usb_device_descriptor device_desc = {
+static struct usb_device_descriptor device_desc =
+{
 	.bLength = sizeof device_desc,
 	.bDescriptorType = USB_DT_DEVICE,
 	.bcdUSB = cpu_to_le16(0x0200),
@@ -42,19 +44,22 @@ static struct usb_device_descriptor device_desc = {
 	.bNumConfigurations = 1,
 };
 
-static struct usb_debug_descriptor dbg_desc = {
+static struct usb_debug_descriptor dbg_desc =
+{
 	.bLength = sizeof dbg_desc,
 	.bDescriptorType = USB_DT_DEBUG,
 };
 
-static struct usb_endpoint_descriptor i_desc = {
+static struct usb_endpoint_descriptor i_desc =
+{
 	.bLength = USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType = USB_DT_ENDPOINT,
 	.bmAttributes = USB_ENDPOINT_XFER_BULK,
 	.bEndpointAddress = USB_DIR_IN,
 };
 
-static struct usb_endpoint_descriptor o_desc = {
+static struct usb_endpoint_descriptor o_desc =
+{
 	.bLength = USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType = USB_DT_ENDPOINT,
 	.bmAttributes = USB_ENDPOINT_XFER_BULK,
@@ -67,11 +72,16 @@ static int dbgp_consume(char *buf, unsigned len)
 	char c;
 
 	if (!len)
+	{
 		return 0;
+	}
 
-	c = buf[len-1];
+	c = buf[len - 1];
+
 	if (c != 0)
-		buf[len-1] = 0;
+	{
+		buf[len - 1] = 0;
+	}
 
 	printk(KERN_NOTICE "%s%c", buf, c);
 	return 0;
@@ -94,12 +104,14 @@ static void dbgp_complete(struct usb_ep *ep, struct usb_request *req)
 	int err = 0;
 	int status = req->status;
 
-	if (ep == dbgp.i_ep) {
+	if (ep == dbgp.i_ep)
+	{
 		stp = 1;
 		goto fail;
 	}
 
-	if (status != 0) {
+	if (status != 0)
+	{
 		stp = 2;
 		goto release_req;
 	}
@@ -108,7 +120,9 @@ static void dbgp_complete(struct usb_ep *ep, struct usb_request *req)
 
 	req->length = DBGP_REQ_LEN;
 	err = usb_ep_queue(ep, req, GFP_ATOMIC);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		stp = 3;
 		goto release_req;
 	}
@@ -121,7 +135,7 @@ release_req:
 	dbgp_disable_ep();
 fail:
 	dev_dbg(&dbgp.gadget->dev,
-		"complete: failure (%d:%d) ==> %d\n", stp, err, status);
+			"complete: failure (%d:%d) ==> %d\n", stp, err, status);
 }
 
 static int dbgp_enable_ep_req(struct usb_ep *ep)
@@ -130,14 +144,18 @@ static int dbgp_enable_ep_req(struct usb_ep *ep)
 	struct usb_request *req;
 
 	req = usb_ep_alloc_request(ep, GFP_KERNEL);
-	if (!req) {
+
+	if (!req)
+	{
 		err = -ENOMEM;
 		stp = 1;
 		goto fail_1;
 	}
 
 	req->buf = kmalloc(DBGP_REQ_LEN, GFP_KERNEL);
-	if (!req->buf) {
+
+	if (!req->buf)
+	{
 		err = -ENOMEM;
 		stp = 2;
 		goto fail_2;
@@ -146,7 +164,9 @@ static int dbgp_enable_ep_req(struct usb_ep *ep)
 	req->complete = dbgp_complete;
 	req->length = DBGP_REQ_LEN;
 	err = usb_ep_queue(ep, req, GFP_ATOMIC);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		stp = 3;
 		goto fail_3;
 	}
@@ -159,7 +179,7 @@ fail_2:
 	usb_ep_free_request(dbgp.o_ep, req);
 fail_1:
 	dev_dbg(&dbgp.gadget->dev,
-		"enable ep req: failure (%d:%d)\n", stp, err);
+			"enable ep req: failure (%d:%d)\n", stp, err);
 	return err;
 }
 
@@ -176,19 +196,25 @@ static int dbgp_enable_ep(void)
 	int err, stp;
 
 	err = __enable_ep(dbgp.i_ep, &i_desc);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		stp = 1;
 		goto fail_1;
 	}
 
 	err = __enable_ep(dbgp.o_ep, &o_desc);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		stp = 2;
 		goto fail_2;
 	}
 
 	err = dbgp_enable_ep_req(dbgp.o_ep);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		stp = 3;
 		goto fail_3;
 	}
@@ -220,7 +246,9 @@ static void dbgp_unbind(struct usb_gadget *gadget)
 	kfree(dbgp.serial);
 	dbgp.serial = NULL;
 #endif
-	if (dbgp.req) {
+
+	if (dbgp.req)
+	{
 		kfree(dbgp.req->buf);
 		usb_ep_free_request(gadget->ep0, dbgp.req);
 		dbgp.req = NULL;
@@ -228,7 +256,7 @@ static void dbgp_unbind(struct usb_gadget *gadget)
 }
 
 #ifdef CONFIG_USB_G_DBGP_SERIAL
-static unsigned char tty_line;
+	static unsigned char tty_line;
 #endif
 
 static int dbgp_configure_endpoints(struct usb_gadget *gadget)
@@ -238,7 +266,9 @@ static int dbgp_configure_endpoints(struct usb_gadget *gadget)
 	usb_ep_autoconfig_reset(gadget);
 
 	dbgp.i_ep = usb_ep_autoconfig(gadget, &i_desc);
-	if (!dbgp.i_ep) {
+
+	if (!dbgp.i_ep)
+	{
 		stp = 1;
 		goto fail_1;
 	}
@@ -247,7 +277,9 @@ static int dbgp_configure_endpoints(struct usb_gadget *gadget)
 		cpu_to_le16(USB_DEBUG_MAX_PACKET_SIZE);
 
 	dbgp.o_ep = usb_ep_autoconfig(gadget, &o_desc);
-	if (!dbgp.o_ep) {
+
+	if (!dbgp.o_ep)
+	{
 		stp = 2;
 		goto fail_1;
 	}
@@ -274,21 +306,25 @@ fail_1:
 }
 
 static int dbgp_bind(struct usb_gadget *gadget,
-		struct usb_gadget_driver *driver)
+					 struct usb_gadget_driver *driver)
 {
 	int err, stp;
 
 	dbgp.gadget = gadget;
 
 	dbgp.req = usb_ep_alloc_request(gadget->ep0, GFP_KERNEL);
-	if (!dbgp.req) {
+
+	if (!dbgp.req)
+	{
 		err = -ENOMEM;
 		stp = 1;
 		goto fail;
 	}
 
 	dbgp.req->buf = kmalloc(DBGP_REQ_EP0_LEN, GFP_KERNEL);
-	if (!dbgp.req->buf) {
+
+	if (!dbgp.req->buf)
+	{
 		err = -ENOMEM;
 		stp = 2;
 		goto fail;
@@ -298,21 +334,27 @@ static int dbgp_bind(struct usb_gadget *gadget,
 
 #ifdef CONFIG_USB_G_DBGP_SERIAL
 	dbgp.serial = kzalloc(sizeof(struct gserial), GFP_KERNEL);
-	if (!dbgp.serial) {
+
+	if (!dbgp.serial)
+	{
 		stp = 3;
 		err = -ENOMEM;
 		goto fail;
 	}
 
-	if (gserial_alloc_line(&tty_line)) {
+	if (gserial_alloc_line(&tty_line))
+	{
 		stp = 4;
 		err = -ENODEV;
 		goto fail;
 	}
+
 #endif
 
 	err = dbgp_configure_endpoints(gadget);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		stp = 5;
 		goto fail;
 	}
@@ -327,14 +369,14 @@ fail:
 }
 
 static void dbgp_setup_complete(struct usb_ep *ep,
-				struct usb_request *req)
+								struct usb_request *req)
 {
 	dev_dbg(&dbgp.gadget->dev, "setup complete: %d, %d/%d\n",
-		req->status, req->actual, req->length);
+			req->status, req->actual, req->length);
 }
 
 static int dbgp_setup(struct usb_gadget *gadget,
-		      const struct usb_ctrlrequest *ctrl)
+					  const struct usb_ctrlrequest *ctrl)
 {
 	struct usb_request *req = dbgp.req;
 	u8 request = ctrl->bRequest;
@@ -344,55 +386,75 @@ static int dbgp_setup(struct usb_gadget *gadget,
 	void *data = NULL;
 	u16 len = 0;
 
-	if (request == USB_REQ_GET_DESCRIPTOR) {
-		switch (value>>8) {
-		case USB_DT_DEVICE:
-			dev_dbg(&dbgp.gadget->dev, "setup: desc device\n");
-			len = sizeof device_desc;
-			data = &device_desc;
-			device_desc.bMaxPacketSize0 = gadget->ep0->maxpacket;
-			break;
-		case USB_DT_DEBUG:
-			dev_dbg(&dbgp.gadget->dev, "setup: desc debug\n");
-			len = sizeof dbg_desc;
-			data = &dbg_desc;
-			break;
-		default:
-			goto fail;
+	if (request == USB_REQ_GET_DESCRIPTOR)
+	{
+		switch (value >> 8)
+		{
+			case USB_DT_DEVICE:
+				dev_dbg(&dbgp.gadget->dev, "setup: desc device\n");
+				len = sizeof device_desc;
+				data = &device_desc;
+				device_desc.bMaxPacketSize0 = gadget->ep0->maxpacket;
+				break;
+
+			case USB_DT_DEBUG:
+				dev_dbg(&dbgp.gadget->dev, "setup: desc debug\n");
+				len = sizeof dbg_desc;
+				data = &dbg_desc;
+				break;
+
+			default:
+				goto fail;
 		}
+
 		err = 0;
-	} else if (request == USB_REQ_SET_FEATURE &&
-		   value == USB_DEVICE_DEBUG_MODE) {
+	}
+	else if (request == USB_REQ_SET_FEATURE &&
+			 value == USB_DEVICE_DEBUG_MODE)
+	{
 		dev_dbg(&dbgp.gadget->dev, "setup: feat debug\n");
 #ifdef CONFIG_USB_G_DBGP_PRINTK
 		err = dbgp_enable_ep();
 #else
 		err = dbgp_configure_endpoints(gadget);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			goto fail;
 		}
+
 		err = gserial_connect(dbgp.serial, tty_line);
 #endif
+
 		if (err < 0)
+		{
 			goto fail;
-	} else
+		}
+	}
+	else
+	{
 		goto fail;
+	}
 
 	req->length = min(length, len);
 	req->zero = len < req->length;
+
 	if (data && req->length)
+	{
 		memcpy(req->buf, data, req->length);
+	}
 
 	req->complete = dbgp_setup_complete;
 	return usb_ep_queue(gadget->ep0, req, GFP_ATOMIC);
 
 fail:
 	dev_dbg(&dbgp.gadget->dev,
-		"setup: failure req %x v %x\n", request, value);
+			"setup: failure req %x v %x\n", request, value);
 	return err;
 }
 
-static struct usb_gadget_driver dbgp_driver = {
+static struct usb_gadget_driver dbgp_driver =
+{
 	.function = "dbgp",
 	.max_speed = USB_SPEED_HIGH,
 	.bind = dbgp_bind,

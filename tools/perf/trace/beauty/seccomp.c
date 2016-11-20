@@ -1,8 +1,8 @@
 #ifndef SECCOMP_SET_MODE_STRICT
-#define SECCOMP_SET_MODE_STRICT 0
+	#define SECCOMP_SET_MODE_STRICT 0
 #endif
 #ifndef SECCOMP_SET_MODE_FILTER
-#define SECCOMP_SET_MODE_FILTER 1
+	#define SECCOMP_SET_MODE_FILTER 1
 #endif
 
 static size_t syscall_arg__scnprintf_seccomp_op(char *bf, size_t size, struct syscall_arg *arg)
@@ -10,12 +10,14 @@ static size_t syscall_arg__scnprintf_seccomp_op(char *bf, size_t size, struct sy
 	int op = arg->val;
 	size_t printed = 0;
 
-	switch (op) {
+	switch (op)
+	{
 #define	P_SECCOMP_SET_MODE_OP(n) case SECCOMP_SET_MODE_##n: printed = scnprintf(bf, size, #n); break
-	P_SECCOMP_SET_MODE_OP(STRICT);
-	P_SECCOMP_SET_MODE_OP(FILTER);
+			P_SECCOMP_SET_MODE_OP(STRICT);
+			P_SECCOMP_SET_MODE_OP(FILTER);
 #undef P_SECCOMP_SET_MODE_OP
-	default: printed = scnprintf(bf, size, "%#x", op);			  break;
+
+		default: printed = scnprintf(bf, size, "%#x", op);			  break;
 	}
 
 	return printed;
@@ -24,11 +26,11 @@ static size_t syscall_arg__scnprintf_seccomp_op(char *bf, size_t size, struct sy
 #define SCA_SECCOMP_OP  syscall_arg__scnprintf_seccomp_op
 
 #ifndef SECCOMP_FILTER_FLAG_TSYNC
-#define SECCOMP_FILTER_FLAG_TSYNC 1
+	#define SECCOMP_FILTER_FLAG_TSYNC 1
 #endif
 
 static size_t syscall_arg__scnprintf_seccomp_flags(char *bf, size_t size,
-						   struct syscall_arg *arg)
+		struct syscall_arg *arg)
 {
 	int printed = 0, flags = arg->val;
 
@@ -42,7 +44,9 @@ static size_t syscall_arg__scnprintf_seccomp_flags(char *bf, size_t size,
 #undef P_FLAG
 
 	if (flags)
+	{
 		printed += scnprintf(bf + printed, size - printed, "%s%#x", printed ? "|" : "", flags);
+	}
 
 	return printed;
 }

@@ -16,49 +16,64 @@
 #include <linux/regmap.h>
 #include <linux/reset.h>
 
-struct sun6i_drc {
+struct sun6i_drc
+{
 	struct clk		*bus_clk;
 	struct clk		*mod_clk;
 	struct reset_control	*reset;
 };
 
 static int sun6i_drc_bind(struct device *dev, struct device *master,
-			 void *data)
+						  void *data)
 {
 	struct sun6i_drc *drc;
 	int ret;
 
 	drc = devm_kzalloc(dev, sizeof(*drc), GFP_KERNEL);
+
 	if (!drc)
+	{
 		return -ENOMEM;
+	}
+
 	dev_set_drvdata(dev, drc);
 
 	drc->reset = devm_reset_control_get(dev, NULL);
-	if (IS_ERR(drc->reset)) {
+
+	if (IS_ERR(drc->reset))
+	{
 		dev_err(dev, "Couldn't get our reset line\n");
 		return PTR_ERR(drc->reset);
 	}
 
 	ret = reset_control_deassert(drc->reset);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't deassert our reset line\n");
 		return ret;
 	}
 
 	drc->bus_clk = devm_clk_get(dev, "ahb");
-	if (IS_ERR(drc->bus_clk)) {
+
+	if (IS_ERR(drc->bus_clk))
+	{
 		dev_err(dev, "Couldn't get our bus clock\n");
 		ret = PTR_ERR(drc->bus_clk);
 		goto err_assert_reset;
 	}
+
 	clk_prepare_enable(drc->bus_clk);
 
 	drc->mod_clk = devm_clk_get(dev, "mod");
-	if (IS_ERR(drc->mod_clk)) {
+
+	if (IS_ERR(drc->mod_clk))
+	{
 		dev_err(dev, "Couldn't get our mod clock\n");
 		ret = PTR_ERR(drc->mod_clk);
 		goto err_disable_bus_clk;
 	}
+
 	clk_prepare_enable(drc->mod_clk);
 
 	return 0;
@@ -71,7 +86,7 @@ err_assert_reset:
 }
 
 static void sun6i_drc_unbind(struct device *dev, struct device *master,
-			    void *data)
+							 void *data)
 {
 	struct sun6i_drc *drc = dev_get_drvdata(dev);
 
@@ -80,7 +95,8 @@ static void sun6i_drc_unbind(struct device *dev, struct device *master,
 	reset_control_assert(drc->reset);
 }
 
-static struct component_ops sun6i_drc_ops = {
+static struct component_ops sun6i_drc_ops =
+{
 	.bind	= sun6i_drc_bind,
 	.unbind	= sun6i_drc_unbind,
 };
@@ -97,13 +113,15 @@ static int sun6i_drc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sun6i_drc_of_table[] = {
+static const struct of_device_id sun6i_drc_of_table[] =
+{
 	{ .compatible = "allwinner,sun8i-a33-drc" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, sun6i_drc_of_table);
 
-static struct platform_driver sun6i_drc_platform_driver = {
+static struct platform_driver sun6i_drc_platform_driver =
+{
 	.probe		= sun6i_drc_probe,
 	.remove		= sun6i_drc_remove,
 	.driver		= {

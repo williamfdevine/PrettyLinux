@@ -11,7 +11,8 @@
 
 #include <trace/events/bcache.h>
 
-struct moving_io {
+struct moving_io
+{
 	struct closure		cl;
 	struct keybuf_key	*w;
 	struct data_insert_op	op;
@@ -21,13 +22,15 @@ struct moving_io {
 static bool moving_pred(struct keybuf *buf, struct bkey *k)
 {
 	struct cache_set *c = container_of(buf, struct cache_set,
-					   moving_gc_keys);
+									   moving_gc_keys);
 	unsigned i;
 
 	for (i = 0; i < KEY_PTRS(k); i++)
 		if (ptr_available(c, k, i) &&
-		    GC_MOVE(PTR_BUCKET(c, k, i)))
+			GC_MOVE(PTR_BUCKET(c, k, i)))
+		{
 			return true;
+		}
 
 	return false;
 }
@@ -48,7 +51,9 @@ static void write_moving_finish(struct closure *cl)
 	bio_free_pages(bio);
 
 	if (io->op.replace_collision)
+	{
 		trace_bcache_gc_copy_collision(&io->w->key);
+	}
 
 	bch_keybuf_del(&io->op.c->moving_gc_keys, io->w);
 
@@ -61,12 +66,15 @@ static void read_moving_endio(struct bio *bio)
 {
 	struct bbio *b = container_of(bio, struct bbio, bio);
 	struct moving_io *io = container_of(bio->bi_private,
-					    struct moving_io, cl);
+										struct moving_io, cl);
 
 	if (bio->bi_error)
+	{
 		io->op.error = bio->bi_error;
+	}
 	else if (!KEY_DIRTY(&b->key) &&
-		 ptr_stale(io->op.c, &b->key, 0)) {
+			 ptr_stale(io->op.c, &b->key, 0))
+	{
 		io->op.error = -EINTR;
 	}
 
@@ -83,7 +91,7 @@ static void moving_init(struct moving_io *io)
 
 	bio->bi_iter.bi_size	= KEY_SIZE(&io->w->key) << 9;
 	bio->bi_max_vecs	= DIV_ROUND_UP(KEY_SIZE(&io->w->key),
-					       PAGE_SECTORS);
+									   PAGE_SECTORS);
 	bio->bi_private		= &io->cl;
 	bio->bi_io_vec		= bio->bi_inline_vecs;
 	bch_bio_map(bio, NULL);
@@ -94,7 +102,8 @@ static void write_moving(struct closure *cl)
 	struct moving_io *io = container_of(cl, struct moving_io, cl);
 	struct data_insert_op *op = &io->op;
 
-	if (!op->error) {
+	if (!op->error)
+	{
 		moving_init(io);
 
 		io->bio.bio.bi_iter.bi_sector = KEY_START(&io->w->key);
@@ -134,22 +143,30 @@ static void read_moving(struct cache_set *c)
 
 	/* XXX: if we error, background writeback could stall indefinitely */
 
-	while (!test_bit(CACHE_SET_STOPPING, &c->flags)) {
+	while (!test_bit(CACHE_SET_STOPPING, &c->flags))
+	{
 		w = bch_keybuf_next_rescan(c, &c->moving_gc_keys,
-					   &MAX_KEY, moving_pred);
-		if (!w)
-			break;
+								   &MAX_KEY, moving_pred);
 
-		if (ptr_stale(c, &w->key, 0)) {
+		if (!w)
+		{
+			break;
+		}
+
+		if (ptr_stale(c, &w->key, 0))
+		{
 			bch_keybuf_del(&c->moving_gc_keys, w);
 			continue;
 		}
 
 		io = kzalloc(sizeof(struct moving_io) + sizeof(struct bio_vec)
-			     * DIV_ROUND_UP(KEY_SIZE(&w->key), PAGE_SECTORS),
-			     GFP_KERNEL);
+					 * DIV_ROUND_UP(KEY_SIZE(&w->key), PAGE_SECTORS),
+					 GFP_KERNEL);
+
 		if (!io)
+		{
 			goto err;
+		}
 
 		w->private	= io;
 		io->w		= w;
@@ -164,7 +181,9 @@ static void read_moving(struct cache_set *c)
 		bio->bi_end_io	= read_moving_endio;
 
 		if (bio_alloc_pages(bio, GFP_KERNEL))
+		{
 			goto err;
+		}
 
 		trace_bcache_gc_copy(&w->key);
 
@@ -172,9 +191,14 @@ static void read_moving(struct cache_set *c)
 		closure_call(&io->cl, read_moving_submit, NULL, &cl);
 	}
 
-	if (0) {
-err:		if (!IS_ERR_OR_NULL(w->private))
+	if (0)
+	{
+err:
+
+		if (!IS_ERR_OR_NULL(w->private))
+		{
 			kfree(w->private);
+		}
 
 		bch_keybuf_del(&c->moving_gc_keys, w);
 	}
@@ -200,28 +224,37 @@ void bch_moving_gc(struct cache_set *c)
 	unsigned i;
 
 	if (!c->copy_gc_enabled)
+	{
 		return;
+	}
 
 	mutex_lock(&c->bucket_lock);
 
-	for_each_cache(ca, c, i) {
+	for_each_cache(ca, c, i)
+	{
 		unsigned sectors_to_move = 0;
 		unsigned reserve_sectors = ca->sb.bucket_size *
-			fifo_used(&ca->free[RESERVE_MOVINGGC]);
+								   fifo_used(&ca->free[RESERVE_MOVINGGC]);
 
 		ca->heap.used = 0;
 
-		for_each_bucket(b, ca) {
+		for_each_bucket(b, ca)
+		{
 			if (GC_MARK(b) == GC_MARK_METADATA ||
-			    !GC_SECTORS_USED(b) ||
-			    GC_SECTORS_USED(b) == ca->sb.bucket_size ||
-			    atomic_read(&b->pin))
+				!GC_SECTORS_USED(b) ||
+				GC_SECTORS_USED(b) == ca->sb.bucket_size ||
+				atomic_read(&b->pin))
+			{
 				continue;
+			}
 
-			if (!heap_full(&ca->heap)) {
+			if (!heap_full(&ca->heap))
+			{
 				sectors_to_move += GC_SECTORS_USED(b);
 				heap_add(&ca->heap, b, bucket_cmp);
-			} else if (bucket_cmp(b, heap_peek(&ca->heap))) {
+			}
+			else if (bucket_cmp(b, heap_peek(&ca->heap)))
+			{
 				sectors_to_move -= bucket_heap_top(ca);
 				sectors_to_move += GC_SECTORS_USED(b);
 
@@ -230,13 +263,16 @@ void bch_moving_gc(struct cache_set *c)
 			}
 		}
 
-		while (sectors_to_move > reserve_sectors) {
+		while (sectors_to_move > reserve_sectors)
+		{
 			heap_pop(&ca->heap, b, bucket_cmp);
 			sectors_to_move -= GC_SECTORS_USED(b);
 		}
 
 		while (heap_pop(&ca->heap, b, bucket_cmp))
+		{
 			SET_GC_MOVE(b, 1);
+		}
 	}
 
 	mutex_unlock(&c->bucket_lock);

@@ -19,7 +19,8 @@
 #include "scif_main.h"
 #include "scif_map.h"
 
-static const char * const scif_ep_states[] = {
+static const char *const scif_ep_states[] =
+{
 	"Unbound",
 	"Bound",
 	"Listening",
@@ -29,9 +30,11 @@ static const char * const scif_ep_states[] = {
 	"Closing",
 	"Close Listening",
 	"Disconnected",
-	"Zombie"};
+	"Zombie"
+};
 
-enum conn_async_state {
+enum conn_async_state
+{
 	ASYNC_CONN_IDLE = 1,	/* ep setup for async connect */
 	ASYNC_CONN_INPROGRESS,	/* async connect in progress */
 	ASYNC_CONN_FLUSH_WORK	/* async work flush in progress  */
@@ -44,7 +47,8 @@ enum conn_async_state {
  * file is not available to kernel mode SCIF, it uses an anonymous file for
  * this purpose.
  */
-const struct file_operations scif_anon_fops = {
+const struct file_operations scif_anon_fops =
+{
 	.owner = THIS_MODULE,
 };
 
@@ -55,16 +59,25 @@ scif_epd_t scif_open(void)
 
 	might_sleep();
 	ep = kzalloc(sizeof(*ep), GFP_KERNEL);
+
 	if (!ep)
+	{
 		goto err_ep_alloc;
+	}
 
 	ep->qp_info.qp = kzalloc(sizeof(*ep->qp_info.qp), GFP_KERNEL);
+
 	if (!ep->qp_info.qp)
+	{
 		goto err_qp_alloc;
+	}
 
 	err = scif_anon_inode_getfile(ep);
+
 	if (err)
+	{
 		goto err_anon_inode;
+	}
 
 	spin_lock_init(&ep->lock);
 	mutex_init(&ep->sendlock);
@@ -73,7 +86,7 @@ scif_epd_t scif_open(void)
 	scif_rma_ep_init(ep);
 	ep->state = SCIFEP_UNBOUND;
 	dev_dbg(scif_info.mdev.this_device,
-		"SCIFAPI open: ep %p success\n", ep);
+			"SCIFAPI open: ep %p success\n", ep);
 	return ep;
 
 err_anon_inode:
@@ -114,9 +127,12 @@ static struct scif_endpt *scif_disconnect_ep(struct scif_endpt *ep)
 
 	/* Remove from the connected list */
 	mutex_lock(&scif_info.connlock);
-	list_for_each_safe(pos, tmpq, &scif_info.connected) {
+	list_for_each_safe(pos, tmpq, &scif_info.connected)
+	{
 		tmpep = list_entry(pos, struct scif_endpt, list);
-		if (tmpep == ep) {
+
+		if (tmpep == ep)
+		{
 			list_del(pos);
 			fep = tmpep;
 			spin_lock(&ep->lock);
@@ -124,16 +140,20 @@ static struct scif_endpt *scif_disconnect_ep(struct scif_endpt *ep)
 		}
 	}
 
-	if (!fep) {
+	if (!fep)
+	{
 		/*
 		 * The other side has completed the disconnect before
 		 * the end point can be removed from the list. Therefore
 		 * the ep lock is not locked, traverse the disconnected
 		 * list to find the endpoint and release the conn lock.
 		 */
-		list_for_each_safe(pos, tmpq, &scif_info.disconnected) {
+		list_for_each_safe(pos, tmpq, &scif_info.disconnected)
+		{
 			tmpep = list_entry(pos, struct scif_endpt, list);
-			if (tmpep == ep) {
+
+			if (tmpep == ep)
+			{
 				list_del(pos);
 				break;
 			}
@@ -156,7 +176,8 @@ static struct scif_endpt *scif_disconnect_ep(struct scif_endpt *ep)
 	if (!err)
 		/* Wait for the remote node to respond with SCIF_DISCNT_ACK */
 		wait_for_completion_timeout(&ep->discon,
-					    SCIF_NODE_ALIVE_TIMEOUT);
+									SCIF_NODE_ALIVE_TIMEOUT);
+
 	return ep;
 }
 
@@ -169,138 +190,165 @@ int scif_close(scif_epd_t epd)
 	bool flush_conn;
 
 	dev_dbg(scif_info.mdev.this_device, "SCIFAPI close: ep %p %s\n",
-		ep, scif_ep_states[ep->state]);
+			ep, scif_ep_states[ep->state]);
 	might_sleep();
 	spin_lock(&ep->lock);
 	flush_conn = (ep->conn_async_state == ASYNC_CONN_INPROGRESS);
 	spin_unlock(&ep->lock);
 
 	if (flush_conn)
+	{
 		flush_work(&scif_info.conn_work);
+	}
 
 	spin_lock(&ep->lock);
 	oldstate = ep->state;
 
 	ep->state = SCIFEP_CLOSING;
 
-	switch (oldstate) {
-	case SCIFEP_ZOMBIE:
-		dev_err(scif_info.mdev.this_device,
-			"SCIFAPI close: zombie state unexpected\n");
-	case SCIFEP_DISCONNECTED:
-		spin_unlock(&ep->lock);
-		scif_unregister_all_windows(epd);
-		/* Remove from the disconnected list */
-		mutex_lock(&scif_info.connlock);
-		list_for_each_safe(pos, tmpq, &scif_info.disconnected) {
-			tmpep = list_entry(pos, struct scif_endpt, list);
-			if (tmpep == ep) {
-				list_del(pos);
-				break;
-			}
-		}
-		mutex_unlock(&scif_info.connlock);
-		break;
-	case SCIFEP_UNBOUND:
-	case SCIFEP_BOUND:
-	case SCIFEP_CONNECTING:
-		spin_unlock(&ep->lock);
-		break;
-	case SCIFEP_MAPPING:
-	case SCIFEP_CONNECTED:
-	case SCIFEP_CLOSING:
+	switch (oldstate)
 	{
-		spin_unlock(&ep->lock);
-		scif_unregister_all_windows(epd);
-		scif_disconnect_ep(ep);
-		break;
-	}
-	case SCIFEP_LISTENING:
-	case SCIFEP_CLLISTEN:
-	{
-		struct scif_conreq *conreq;
-		struct scifmsg msg;
-		struct scif_endpt *aep;
+		case SCIFEP_ZOMBIE:
+			dev_err(scif_info.mdev.this_device,
+					"SCIFAPI close: zombie state unexpected\n");
 
-		spin_unlock(&ep->lock);
-		mutex_lock(&scif_info.eplock);
-
-		/* remove from listen list */
-		list_for_each_safe(pos, tmpq, &scif_info.listen) {
-			tmpep = list_entry(pos, struct scif_endpt, list);
-			if (tmpep == ep)
-				list_del(pos);
-		}
-		/* Remove any dangling accepts */
-		while (ep->acceptcnt) {
-			aep = list_first_entry(&ep->li_accept,
-					       struct scif_endpt, liacceptlist);
-			list_del(&aep->liacceptlist);
-			scif_put_port(aep->port.port);
-			list_for_each_safe(pos, tmpq, &scif_info.uaccept) {
-				tmpep = list_entry(pos, struct scif_endpt,
-						   miacceptlist);
-				if (tmpep == aep) {
-					list_del(pos);
-					break;
-				}
-			}
-			mutex_unlock(&scif_info.eplock);
+		case SCIFEP_DISCONNECTED:
+			spin_unlock(&ep->lock);
+			scif_unregister_all_windows(epd);
+			/* Remove from the disconnected list */
 			mutex_lock(&scif_info.connlock);
-			list_for_each_safe(pos, tmpq, &scif_info.connected) {
-				tmpep = list_entry(pos,
-						   struct scif_endpt, list);
-				if (tmpep == aep) {
-					list_del(pos);
-					break;
-				}
-			}
-			list_for_each_safe(pos, tmpq, &scif_info.disconnected) {
-				tmpep = list_entry(pos,
-						   struct scif_endpt, list);
-				if (tmpep == aep) {
+			list_for_each_safe(pos, tmpq, &scif_info.disconnected)
+			{
+				tmpep = list_entry(pos, struct scif_endpt, list);
+
+				if (tmpep == ep)
+				{
 					list_del(pos);
 					break;
 				}
 			}
 			mutex_unlock(&scif_info.connlock);
-			scif_teardown_ep(aep);
-			mutex_lock(&scif_info.eplock);
-			scif_add_epd_to_zombie_list(aep, SCIF_EPLOCK_HELD);
-			ep->acceptcnt--;
-		}
+			break;
 
-		spin_lock(&ep->lock);
-		mutex_unlock(&scif_info.eplock);
+		case SCIFEP_UNBOUND:
+		case SCIFEP_BOUND:
+		case SCIFEP_CONNECTING:
+			spin_unlock(&ep->lock);
+			break;
 
-		/* Remove and reject any pending connection requests. */
-		while (ep->conreqcnt) {
-			conreq = list_first_entry(&ep->conlist,
-						  struct scif_conreq, list);
-			list_del(&conreq->list);
+		case SCIFEP_MAPPING:
+		case SCIFEP_CONNECTED:
+		case SCIFEP_CLOSING:
+			{
+				spin_unlock(&ep->lock);
+				scif_unregister_all_windows(epd);
+				scif_disconnect_ep(ep);
+				break;
+			}
 
-			msg.uop = SCIF_CNCT_REJ;
-			msg.dst.node = conreq->msg.src.node;
-			msg.dst.port = conreq->msg.src.port;
-			msg.payload[0] = conreq->msg.payload[0];
-			msg.payload[1] = conreq->msg.payload[1];
-			/*
-			 * No Error Handling on purpose for scif_nodeqp_send().
-			 * If the remote node is lost we still want free the
-			 * connection requests on the self node.
-			 */
-			scif_nodeqp_send(&scif_dev[conreq->msg.src.node],
-					 &msg);
-			ep->conreqcnt--;
-			kfree(conreq);
-		}
+		case SCIFEP_LISTENING:
+		case SCIFEP_CLLISTEN:
+			{
+				struct scif_conreq *conreq;
+				struct scifmsg msg;
+				struct scif_endpt *aep;
 
-		spin_unlock(&ep->lock);
-		/* If a kSCIF accept is waiting wake it up */
-		wake_up_interruptible(&ep->conwq);
-		break;
+				spin_unlock(&ep->lock);
+				mutex_lock(&scif_info.eplock);
+
+				/* remove from listen list */
+				list_for_each_safe(pos, tmpq, &scif_info.listen)
+				{
+					tmpep = list_entry(pos, struct scif_endpt, list);
+
+					if (tmpep == ep)
+					{
+						list_del(pos);
+					}
+				}
+
+				/* Remove any dangling accepts */
+				while (ep->acceptcnt)
+				{
+					aep = list_first_entry(&ep->li_accept,
+										   struct scif_endpt, liacceptlist);
+					list_del(&aep->liacceptlist);
+					scif_put_port(aep->port.port);
+					list_for_each_safe(pos, tmpq, &scif_info.uaccept)
+					{
+						tmpep = list_entry(pos, struct scif_endpt,
+										   miacceptlist);
+
+						if (tmpep == aep)
+						{
+							list_del(pos);
+							break;
+						}
+					}
+					mutex_unlock(&scif_info.eplock);
+					mutex_lock(&scif_info.connlock);
+					list_for_each_safe(pos, tmpq, &scif_info.connected)
+					{
+						tmpep = list_entry(pos,
+										   struct scif_endpt, list);
+
+						if (tmpep == aep)
+						{
+							list_del(pos);
+							break;
+						}
+					}
+					list_for_each_safe(pos, tmpq, &scif_info.disconnected)
+					{
+						tmpep = list_entry(pos,
+										   struct scif_endpt, list);
+
+						if (tmpep == aep)
+						{
+							list_del(pos);
+							break;
+						}
+					}
+					mutex_unlock(&scif_info.connlock);
+					scif_teardown_ep(aep);
+					mutex_lock(&scif_info.eplock);
+					scif_add_epd_to_zombie_list(aep, SCIF_EPLOCK_HELD);
+					ep->acceptcnt--;
+				}
+
+				spin_lock(&ep->lock);
+				mutex_unlock(&scif_info.eplock);
+
+				/* Remove and reject any pending connection requests. */
+				while (ep->conreqcnt)
+				{
+					conreq = list_first_entry(&ep->conlist,
+											  struct scif_conreq, list);
+					list_del(&conreq->list);
+
+					msg.uop = SCIF_CNCT_REJ;
+					msg.dst.node = conreq->msg.src.node;
+					msg.dst.port = conreq->msg.src.port;
+					msg.payload[0] = conreq->msg.payload[0];
+					msg.payload[1] = conreq->msg.payload[1];
+					/*
+					 * No Error Handling on purpose for scif_nodeqp_send().
+					 * If the remote node is lost we still want free the
+					 * connection requests on the self node.
+					 */
+					scif_nodeqp_send(&scif_dev[conreq->msg.src.node],
+									 &msg);
+					ep->conreqcnt--;
+					kfree(conreq);
+				}
+
+				spin_unlock(&ep->lock);
+				/* If a kSCIF accept is waiting wake it up */
+				wake_up_interruptible(&ep->conwq);
+				break;
+			}
 	}
-	}
+
 	scif_put_port(ep->port.port);
 	scif_anon_inode_fput(ep);
 	scif_teardown_ep(ep);
@@ -318,18 +366,21 @@ int __scif_flush(scif_epd_t epd)
 {
 	struct scif_endpt *ep = (struct scif_endpt *)epd;
 
-	switch (ep->state) {
-	case SCIFEP_LISTENING:
+	switch (ep->state)
 	{
-		ep->state = SCIFEP_CLLISTEN;
+		case SCIFEP_LISTENING:
+			{
+				ep->state = SCIFEP_CLLISTEN;
 
-		/* If an accept is waiting wake it up */
-		wake_up_interruptible(&ep->conwq);
-		break;
+				/* If an accept is waiting wake it up */
+				wake_up_interruptible(&ep->conwq);
+				break;
+			}
+
+		default:
+			break;
 	}
-	default:
-		break;
-	}
+
 	return 0;
 }
 
@@ -340,38 +391,52 @@ int scif_bind(scif_epd_t epd, u16 pn)
 	int tmp;
 
 	dev_dbg(scif_info.mdev.this_device,
-		"SCIFAPI bind: ep %p %s requested port number %d\n",
-		ep, scif_ep_states[ep->state], pn);
-	if (pn) {
+			"SCIFAPI bind: ep %p %s requested port number %d\n",
+			ep, scif_ep_states[ep->state], pn);
+
+	if (pn)
+	{
 		/*
 		 * Similar to IETF RFC 1700, SCIF ports below
 		 * SCIF_ADMIN_PORT_END can only be bound by system (or root)
 		 * processes or by processes executed by privileged users.
 		 */
-		if (pn < SCIF_ADMIN_PORT_END && !capable(CAP_SYS_ADMIN)) {
+		if (pn < SCIF_ADMIN_PORT_END && !capable(CAP_SYS_ADMIN))
+		{
 			ret = -EACCES;
 			goto scif_bind_admin_exit;
 		}
 	}
 
 	spin_lock(&ep->lock);
-	if (ep->state == SCIFEP_BOUND) {
+
+	if (ep->state == SCIFEP_BOUND)
+	{
 		ret = -EINVAL;
 		goto scif_bind_exit;
-	} else if (ep->state != SCIFEP_UNBOUND) {
+	}
+	else if (ep->state != SCIFEP_UNBOUND)
+	{
 		ret = -EISCONN;
 		goto scif_bind_exit;
 	}
 
-	if (pn) {
+	if (pn)
+	{
 		tmp = scif_rsrv_port(pn);
-		if (tmp != pn) {
+
+		if (tmp != pn)
+		{
 			ret = -EINVAL;
 			goto scif_bind_exit;
 		}
-	} else {
+	}
+	else
+	{
 		pn = scif_get_new_port();
-		if (!pn) {
+
+		if (!pn)
+		{
 			ret = -ENOSPC;
 			goto scif_bind_exit;
 		}
@@ -383,7 +448,7 @@ int scif_bind(scif_epd_t epd, u16 pn)
 	ep->conn_async_state = ASYNC_CONN_IDLE;
 	ret = pn;
 	dev_dbg(scif_info.mdev.this_device,
-		"SCIFAPI bind: bound to port number %d\n", pn);
+			"SCIFAPI bind: bound to port number %d\n", pn);
 scif_bind_exit:
 	spin_unlock(&ep->lock);
 scif_bind_admin_exit:
@@ -396,24 +461,28 @@ int scif_listen(scif_epd_t epd, int backlog)
 	struct scif_endpt *ep = (struct scif_endpt *)epd;
 
 	dev_dbg(scif_info.mdev.this_device,
-		"SCIFAPI listen: ep %p %s\n", ep, scif_ep_states[ep->state]);
+			"SCIFAPI listen: ep %p %s\n", ep, scif_ep_states[ep->state]);
 	spin_lock(&ep->lock);
-	switch (ep->state) {
-	case SCIFEP_ZOMBIE:
-	case SCIFEP_CLOSING:
-	case SCIFEP_CLLISTEN:
-	case SCIFEP_UNBOUND:
-	case SCIFEP_DISCONNECTED:
-		spin_unlock(&ep->lock);
-		return -EINVAL;
-	case SCIFEP_LISTENING:
-	case SCIFEP_CONNECTED:
-	case SCIFEP_CONNECTING:
-	case SCIFEP_MAPPING:
-		spin_unlock(&ep->lock);
-		return -EISCONN;
-	case SCIFEP_BOUND:
-		break;
+
+	switch (ep->state)
+	{
+		case SCIFEP_ZOMBIE:
+		case SCIFEP_CLOSING:
+		case SCIFEP_CLLISTEN:
+		case SCIFEP_UNBOUND:
+		case SCIFEP_DISCONNECTED:
+			spin_unlock(&ep->lock);
+			return -EINVAL;
+
+		case SCIFEP_LISTENING:
+		case SCIFEP_CONNECTED:
+		case SCIFEP_CONNECTING:
+		case SCIFEP_MAPPING:
+			spin_unlock(&ep->lock);
+			return -EISCONN;
+
+		case SCIFEP_BOUND:
+			break;
 	}
 
 	ep->state = SCIFEP_LISTENING;
@@ -475,28 +544,36 @@ static int scif_conn_func(struct scif_endpt *ep)
 	struct device *spdev;
 
 	err = scif_reserve_dma_chan(ep);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&ep->remote_dev->sdev->dev,
-			"%s %d err %d\n", __func__, __LINE__, err);
+				"%s %d err %d\n", __func__, __LINE__, err);
 		ep->state = SCIFEP_BOUND;
 		goto connect_error_simple;
 	}
+
 	/* Initiate the first part of the endpoint QP setup */
 	err = scif_setup_qp_connect(ep->qp_info.qp, &ep->qp_info.qp_offset,
-				    SCIF_ENDPT_QP_SIZE, ep->remote_dev);
-	if (err) {
+								SCIF_ENDPT_QP_SIZE, ep->remote_dev);
+
+	if (err)
+	{
 		dev_err(&ep->remote_dev->sdev->dev,
-			"%s err %d qp_offset 0x%llx\n",
-			__func__, err, ep->qp_info.qp_offset);
+				"%s err %d qp_offset 0x%llx\n",
+				__func__, err, ep->qp_info.qp_offset);
 		ep->state = SCIFEP_BOUND;
 		goto connect_error_simple;
 	}
 
 	spdev = scif_get_peer_dev(ep->remote_dev);
-	if (IS_ERR(spdev)) {
+
+	if (IS_ERR(spdev))
+	{
 		err = PTR_ERR(spdev);
 		goto cleanup_qp;
 	}
+
 	/* Format connect message and send it */
 	msg.src = ep->port;
 	msg.dst = ep->conn_port;
@@ -504,36 +581,49 @@ static int scif_conn_func(struct scif_endpt *ep)
 	msg.payload[0] = (u64)ep;
 	msg.payload[1] = ep->qp_info.qp_offset;
 	err = _scif_nodeqp_send(ep->remote_dev, &msg);
+
 	if (err)
+	{
 		goto connect_error_dec;
+	}
+
 	scif_put_peer_dev(spdev);
 	/*
 	 * Wait for the remote node to respond with SCIF_CNCT_GNT or
 	 * SCIF_CNCT_REJ message.
 	 */
 	err = wait_event_timeout(ep->conwq, ep->state != SCIFEP_CONNECTING,
-				 SCIF_NODE_ALIVE_TIMEOUT);
-	if (!err) {
+							 SCIF_NODE_ALIVE_TIMEOUT);
+
+	if (!err)
+	{
 		dev_err(&ep->remote_dev->sdev->dev,
-			"%s %d timeout\n", __func__, __LINE__);
+				"%s %d timeout\n", __func__, __LINE__);
 		ep->state = SCIFEP_BOUND;
 	}
+
 	spdev = scif_get_peer_dev(ep->remote_dev);
-	if (IS_ERR(spdev)) {
+
+	if (IS_ERR(spdev))
+	{
 		err = PTR_ERR(spdev);
 		goto cleanup_qp;
 	}
-	if (ep->state == SCIFEP_MAPPING) {
+
+	if (ep->state == SCIFEP_MAPPING)
+	{
 		err = scif_setup_qp_connect_response(ep->remote_dev,
-						     ep->qp_info.qp,
-						     ep->qp_info.gnt_pld);
+											 ep->qp_info.qp,
+											 ep->qp_info.gnt_pld);
+
 		/*
 		 * If the resource to map the queue are not available then
 		 * we need to tell the other side to terminate the accept
 		 */
-		if (err) {
+		if (err)
+		{
 			dev_err(&ep->remote_dev->sdev->dev,
-				"%s %d err %d\n", __func__, __LINE__, err);
+					"%s %d err %d\n", __func__, __LINE__, err);
 			msg.uop = SCIF_CNCT_GNTNACK;
 			msg.payload[0] = ep->remote_ep;
 			_scif_nodeqp_send(ep->remote_dev, &msg);
@@ -544,22 +634,28 @@ static int scif_conn_func(struct scif_endpt *ep)
 		msg.uop = SCIF_CNCT_GNTACK;
 		msg.payload[0] = ep->remote_ep;
 		err = _scif_nodeqp_send(ep->remote_dev, &msg);
-		if (err) {
+
+		if (err)
+		{
 			ep->state = SCIFEP_BOUND;
 			goto connect_error_dec;
 		}
+
 		ep->state = SCIFEP_CONNECTED;
 		mutex_lock(&scif_info.connlock);
 		list_add_tail(&ep->list, &scif_info.connected);
 		mutex_unlock(&scif_info.connlock);
 		dev_dbg(&ep->remote_dev->sdev->dev,
-			"SCIFAPI connect: ep %p connected\n", ep);
-	} else if (ep->state == SCIFEP_BOUND) {
+				"SCIFAPI connect: ep %p connected\n", ep);
+	}
+	else if (ep->state == SCIFEP_BOUND)
+	{
 		dev_dbg(&ep->remote_dev->sdev->dev,
-			"SCIFAPI connect: ep %p connection refused\n", ep);
+				"SCIFAPI connect: ep %p connection refused\n", ep);
 		err = -ECONNREFUSED;
 		goto connect_error_dec;
 	}
+
 	scif_put_peer_dev(spdev);
 	return err;
 connect_error_dec:
@@ -580,20 +676,27 @@ void scif_conn_handler(struct work_struct *work)
 {
 	struct scif_endpt *ep;
 
-	do {
+	do
+	{
 		ep = NULL;
 		spin_lock(&scif_info.nb_connect_lock);
-		if (!list_empty(&scif_info.nb_connect_list)) {
+
+		if (!list_empty(&scif_info.nb_connect_list))
+		{
 			ep = list_first_entry(&scif_info.nb_connect_list,
-					      struct scif_endpt, conn_list);
+								  struct scif_endpt, conn_list);
 			list_del(&ep->conn_list);
 		}
+
 		spin_unlock(&scif_info.nb_connect_lock);
-		if (ep) {
+
+		if (ep)
+		{
 			ep->conn_err = scif_conn_func(ep);
 			wake_up_interruptible(&ep->conn_pend_wq);
 		}
-	} while (ep);
+	}
+	while (ep);
 }
 
 int __scif_connect(scif_epd_t epd, struct scif_port_id *dst, bool non_block)
@@ -604,95 +707,139 @@ int __scif_connect(scif_epd_t epd, struct scif_port_id *dst, bool non_block)
 	struct device *spdev;
 
 	dev_dbg(scif_info.mdev.this_device, "SCIFAPI connect: ep %p %s\n", ep,
-		scif_ep_states[ep->state]);
+			scif_ep_states[ep->state]);
 
 	if (!scif_dev || dst->node > scif_info.maxid)
+	{
 		return -ENODEV;
+	}
 
 	might_sleep();
 
 	remote_dev = &scif_dev[dst->node];
 	spdev = scif_get_peer_dev(remote_dev);
-	if (IS_ERR(spdev)) {
+
+	if (IS_ERR(spdev))
+	{
 		err = PTR_ERR(spdev);
 		return err;
 	}
 
 	spin_lock(&ep->lock);
-	switch (ep->state) {
-	case SCIFEP_ZOMBIE:
-	case SCIFEP_CLOSING:
-		err = -EINVAL;
-		break;
-	case SCIFEP_DISCONNECTED:
-		if (ep->conn_async_state == ASYNC_CONN_INPROGRESS)
-			ep->conn_async_state = ASYNC_CONN_FLUSH_WORK;
-		else
-			err = -EINVAL;
-		break;
-	case SCIFEP_LISTENING:
-	case SCIFEP_CLLISTEN:
-		err = -EOPNOTSUPP;
-		break;
-	case SCIFEP_CONNECTING:
-	case SCIFEP_MAPPING:
-		if (ep->conn_async_state == ASYNC_CONN_INPROGRESS)
-			err = -EINPROGRESS;
-		else
-			err = -EISCONN;
-		break;
-	case SCIFEP_CONNECTED:
-		if (ep->conn_async_state == ASYNC_CONN_INPROGRESS)
-			ep->conn_async_state = ASYNC_CONN_FLUSH_WORK;
-		else
-			err = -EISCONN;
-		break;
-	case SCIFEP_UNBOUND:
-		ep->port.port = scif_get_new_port();
-		if (!ep->port.port) {
-			err = -ENOSPC;
-		} else {
-			ep->port.node = scif_info.nodeid;
-			ep->conn_async_state = ASYNC_CONN_IDLE;
-		}
-		/* Fall through */
-	case SCIFEP_BOUND:
-		/*
-		 * If a non-blocking connect has been already initiated
-		 * (conn_async_state is either ASYNC_CONN_INPROGRESS or
-		 * ASYNC_CONN_FLUSH_WORK), the end point could end up in
-		 * SCIF_BOUND due an error in the connection process
-		 * (e.g., connection refused) If conn_async_state is
-		 * ASYNC_CONN_INPROGRESS - transition to ASYNC_CONN_FLUSH_WORK
-		 * so that the error status can be collected. If the state is
-		 * already ASYNC_CONN_FLUSH_WORK - then set the error to
-		 * EINPROGRESS since some other thread is waiting to collect
-		 * error status.
-		 */
-		if (ep->conn_async_state == ASYNC_CONN_INPROGRESS) {
-			ep->conn_async_state = ASYNC_CONN_FLUSH_WORK;
-		} else if (ep->conn_async_state == ASYNC_CONN_FLUSH_WORK) {
-			err = -EINPROGRESS;
-		} else {
-			ep->conn_port = *dst;
-			init_waitqueue_head(&ep->sendwq);
-			init_waitqueue_head(&ep->recvwq);
-			init_waitqueue_head(&ep->conwq);
-			ep->conn_async_state = 0;
 
-			if (unlikely(non_block))
-				ep->conn_async_state = ASYNC_CONN_INPROGRESS;
-		}
-		break;
+	switch (ep->state)
+	{
+		case SCIFEP_ZOMBIE:
+		case SCIFEP_CLOSING:
+			err = -EINVAL;
+			break;
+
+		case SCIFEP_DISCONNECTED:
+			if (ep->conn_async_state == ASYNC_CONN_INPROGRESS)
+			{
+				ep->conn_async_state = ASYNC_CONN_FLUSH_WORK;
+			}
+			else
+			{
+				err = -EINVAL;
+			}
+
+			break;
+
+		case SCIFEP_LISTENING:
+		case SCIFEP_CLLISTEN:
+			err = -EOPNOTSUPP;
+			break;
+
+		case SCIFEP_CONNECTING:
+		case SCIFEP_MAPPING:
+			if (ep->conn_async_state == ASYNC_CONN_INPROGRESS)
+			{
+				err = -EINPROGRESS;
+			}
+			else
+			{
+				err = -EISCONN;
+			}
+
+			break;
+
+		case SCIFEP_CONNECTED:
+			if (ep->conn_async_state == ASYNC_CONN_INPROGRESS)
+			{
+				ep->conn_async_state = ASYNC_CONN_FLUSH_WORK;
+			}
+			else
+			{
+				err = -EISCONN;
+			}
+
+			break;
+
+		case SCIFEP_UNBOUND:
+			ep->port.port = scif_get_new_port();
+
+			if (!ep->port.port)
+			{
+				err = -ENOSPC;
+			}
+			else
+			{
+				ep->port.node = scif_info.nodeid;
+				ep->conn_async_state = ASYNC_CONN_IDLE;
+			}
+
+		/* Fall through */
+		case SCIFEP_BOUND:
+
+			/*
+			 * If a non-blocking connect has been already initiated
+			 * (conn_async_state is either ASYNC_CONN_INPROGRESS or
+			 * ASYNC_CONN_FLUSH_WORK), the end point could end up in
+			 * SCIF_BOUND due an error in the connection process
+			 * (e.g., connection refused) If conn_async_state is
+			 * ASYNC_CONN_INPROGRESS - transition to ASYNC_CONN_FLUSH_WORK
+			 * so that the error status can be collected. If the state is
+			 * already ASYNC_CONN_FLUSH_WORK - then set the error to
+			 * EINPROGRESS since some other thread is waiting to collect
+			 * error status.
+			 */
+			if (ep->conn_async_state == ASYNC_CONN_INPROGRESS)
+			{
+				ep->conn_async_state = ASYNC_CONN_FLUSH_WORK;
+			}
+			else if (ep->conn_async_state == ASYNC_CONN_FLUSH_WORK)
+			{
+				err = -EINPROGRESS;
+			}
+			else
+			{
+				ep->conn_port = *dst;
+				init_waitqueue_head(&ep->sendwq);
+				init_waitqueue_head(&ep->recvwq);
+				init_waitqueue_head(&ep->conwq);
+				ep->conn_async_state = 0;
+
+				if (unlikely(non_block))
+				{
+					ep->conn_async_state = ASYNC_CONN_INPROGRESS;
+				}
+			}
+
+			break;
 	}
 
 	if (err || ep->conn_async_state == ASYNC_CONN_FLUSH_WORK)
-			goto connect_simple_unlock1;
+	{
+		goto connect_simple_unlock1;
+	}
 
 	ep->state = SCIFEP_CONNECTING;
 	ep->remote_dev = &scif_dev[dst->node];
 	ep->qp_info.qp->magic = SCIFEP_MAGIC;
-	if (ep->conn_async_state == ASYNC_CONN_INPROGRESS) {
+
+	if (ep->conn_async_state == ASYNC_CONN_INPROGRESS)
+	{
 		init_waitqueue_head(&ep->conn_pend_wq);
 		spin_lock(&scif_info.nb_connect_lock);
 		list_add_tail(&ep->conn_list, &scif_info.nb_connect_list);
@@ -700,20 +847,28 @@ int __scif_connect(scif_epd_t epd, struct scif_port_id *dst, bool non_block)
 		err = -EINPROGRESS;
 		schedule_work(&scif_info.conn_work);
 	}
+
 connect_simple_unlock1:
 	spin_unlock(&ep->lock);
 	scif_put_peer_dev(spdev);
-	if (err) {
+
+	if (err)
+	{
 		return err;
-	} else if (ep->conn_async_state == ASYNC_CONN_FLUSH_WORK) {
+	}
+	else if (ep->conn_async_state == ASYNC_CONN_FLUSH_WORK)
+	{
 		flush_work(&scif_info.conn_work);
 		err = ep->conn_err;
 		spin_lock(&ep->lock);
 		ep->conn_async_state = ASYNC_CONN_IDLE;
 		spin_unlock(&ep->lock);
-	} else {
+	}
+	else
+	{
 		err = scif_conn_func(ep);
 	}
+
 	return err;
 }
 
@@ -745,7 +900,7 @@ EXPORT_SYMBOL_GPL(scif_connect);
  * terminate this function with a signal.  If so a -EINTR will be returned.
  */
 int scif_accept(scif_epd_t epd, struct scif_port_id *peer,
-		scif_epd_t *newepd, int flags)
+				scif_epd_t *newepd, int flags)
 {
 	struct scif_endpt *lep = (struct scif_endpt *)epd;
 	struct scif_endpt *cep;
@@ -755,22 +910,29 @@ int scif_accept(scif_epd_t epd, struct scif_port_id *peer,
 	struct device *spdev;
 
 	dev_dbg(scif_info.mdev.this_device,
-		"SCIFAPI accept: ep %p %s\n", lep, scif_ep_states[lep->state]);
+			"SCIFAPI accept: ep %p %s\n", lep, scif_ep_states[lep->state]);
 
 	if (flags & ~SCIF_ACCEPT_SYNC)
+	{
 		return -EINVAL;
+	}
 
 	if (!peer || !newepd)
+	{
 		return -EINVAL;
+	}
 
 	might_sleep();
 	spin_lock(&lep->lock);
-	if (lep->state != SCIFEP_LISTENING) {
+
+	if (lep->state != SCIFEP_LISTENING)
+	{
 		spin_unlock(&lep->lock);
 		return -EINVAL;
 	}
 
-	if (!lep->conreqcnt && !(flags & SCIF_ACCEPT_SYNC)) {
+	if (!lep->conreqcnt && !(flags & SCIF_ACCEPT_SYNC))
+	{
 		/* No connection request present and we do not want to wait */
 		spin_unlock(&lep->lock);
 		return -EAGAIN;
@@ -781,18 +943,25 @@ retry_connection:
 	spin_unlock(&lep->lock);
 	/* Wait for the remote node to send us a SCIF_CNCT_REQ */
 	err = wait_event_interruptible(lep->conwq,
-				       (lep->conreqcnt ||
-				       (lep->state != SCIFEP_LISTENING)));
+								   (lep->conreqcnt ||
+									(lep->state != SCIFEP_LISTENING)));
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (lep->state != SCIFEP_LISTENING)
+	{
 		return -EINTR;
+	}
 
 	spin_lock(&lep->lock);
 
 	if (!lep->conreqcnt)
+	{
 		goto retry_connection;
+	}
 
 	/* Get the first connect request off the list */
 	conreq = list_first_entry(&lep->conlist, struct scif_conreq, list);
@@ -805,10 +974,13 @@ retry_connection:
 	peer->port = conreq->msg.src.port;
 
 	cep = kzalloc(sizeof(*cep), GFP_KERNEL);
-	if (!cep) {
+
+	if (!cep)
+	{
 		err = -ENOMEM;
 		goto scif_accept_error_epalloc;
 	}
+
 	spin_lock_init(&cep->lock);
 	mutex_init(&cep->sendlock);
 	mutex_init(&cep->recvlock);
@@ -819,35 +991,47 @@ retry_connection:
 	scif_rma_ep_init(cep);
 
 	err = scif_reserve_dma_chan(cep);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(scif_info.mdev.this_device,
-			"%s %d err %d\n", __func__, __LINE__, err);
+				"%s %d err %d\n", __func__, __LINE__, err);
 		goto scif_accept_error_qpalloc;
 	}
 
 	cep->qp_info.qp = kzalloc(sizeof(*cep->qp_info.qp), GFP_KERNEL);
-	if (!cep->qp_info.qp) {
+
+	if (!cep->qp_info.qp)
+	{
 		err = -ENOMEM;
 		goto scif_accept_error_qpalloc;
 	}
 
 	err = scif_anon_inode_getfile(cep);
+
 	if (err)
+	{
 		goto scif_accept_error_anon_inode;
+	}
 
 	cep->qp_info.qp->magic = SCIFEP_MAGIC;
 	spdev = scif_get_peer_dev(cep->remote_dev);
-	if (IS_ERR(spdev)) {
+
+	if (IS_ERR(spdev))
+	{
 		err = PTR_ERR(spdev);
 		goto scif_accept_error_map;
 	}
+
 	err = scif_setup_qp_accept(cep->qp_info.qp, &cep->qp_info.qp_offset,
-				   conreq->msg.payload[1], SCIF_ENDPT_QP_SIZE,
-				   cep->remote_dev);
-	if (err) {
+							   conreq->msg.payload[1], SCIF_ENDPT_QP_SIZE,
+							   cep->remote_dev);
+
+	if (err)
+	{
 		dev_dbg(&cep->remote_dev->sdev->dev,
-			"SCIFAPI accept: ep %p new %p scif_setup_qp_accept %d qp_offset 0x%llx\n",
-			lep, cep, err, cep->qp_info.qp_offset);
+				"SCIFAPI accept: ep %p new %p scif_setup_qp_accept %d qp_offset 0x%llx\n",
+				lep, cep, err, cep->qp_info.qp_offset);
 		scif_put_peer_dev(spdev);
 		goto scif_accept_error_map;
 	}
@@ -868,22 +1052,35 @@ retry_connection:
 
 	err = _scif_nodeqp_send(cep->remote_dev, &msg);
 	scif_put_peer_dev(spdev);
+
 	if (err)
+	{
 		goto scif_accept_error_map;
+	}
+
 retry:
 	/* Wait for the remote node to respond with SCIF_CNCT_GNT(N)ACK */
 	err = wait_event_timeout(cep->conwq, cep->state != SCIFEP_CONNECTING,
-				 SCIF_NODE_ACCEPT_TIMEOUT);
+							 SCIF_NODE_ACCEPT_TIMEOUT);
+
 	if (!err && scifdev_alive(cep))
+	{
 		goto retry;
+	}
+
 	err = !err ? -ENODEV : 0;
+
 	if (err)
+	{
 		goto scif_accept_error_map;
+	}
+
 	kfree(conreq);
 
 	spin_lock(&cep->lock);
 
-	if (cep->state == SCIFEP_CLOSING) {
+	if (cep->state == SCIFEP_CLOSING)
+	{
 		/*
 		 * Remote failed to allocate resources and NAKed the grant.
 		 * There is at this point nothing referencing the new end point.
@@ -893,10 +1090,12 @@ retry:
 		kfree(cep);
 
 		/* If call with sync flag then go back and wait. */
-		if (flags & SCIF_ACCEPT_SYNC) {
+		if (flags & SCIF_ACCEPT_SYNC)
+		{
 			spin_lock(&lep->lock);
 			goto retry_connection;
 		}
+
 		return -EAGAIN;
 	}
 
@@ -935,9 +1134,15 @@ static inline int scif_msg_param_check(scif_epd_t epd, int len, int flags)
 	int ret = -EINVAL;
 
 	if (len < 0)
+	{
 		goto err_ret;
+	}
+
 	if (flags && (!(flags & SCIF_RECV_BLOCK)))
+	{
 		goto err_ret;
+	}
+
 	ret = 0;
 err_ret:
 	return ret;
@@ -952,18 +1157,28 @@ static int _scif_send(scif_epd_t epd, void *msg, int len, int flags)
 	struct scif_qp *qp = ep->qp_info.qp;
 
 	if (flags & SCIF_SEND_BLOCK)
+	{
 		might_sleep();
+	}
 
 	spin_lock(&ep->lock);
-	while (sent_len != len && SCIFEP_CONNECTED == ep->state) {
+
+	while (sent_len != len && SCIFEP_CONNECTED == ep->state)
+	{
 		write_count = scif_rb_space(&qp->outbound_q);
-		if (write_count) {
+
+		if (write_count)
+		{
 			/* Best effort to send as much data as possible */
 			curr_xfer_len = min(len - sent_len, write_count);
 			ret = scif_rb_write(&qp->outbound_q, msg,
-					    curr_xfer_len);
+								curr_xfer_len);
+
 			if (ret < 0)
+			{
 				break;
+			}
+
 			/* Success. Update write pointer */
 			scif_rb_commit(&qp->outbound_q);
 			/*
@@ -974,33 +1189,48 @@ static int _scif_send(scif_epd_t epd, void *msg, int len, int flags)
 			notif_msg.uop = SCIF_CLIENT_SENT;
 			notif_msg.payload[0] = ep->remote_ep;
 			ret = _scif_nodeqp_send(ep->remote_dev, &notif_msg);
+
 			if (ret)
+			{
 				break;
+			}
+
 			sent_len += curr_xfer_len;
 			msg = msg + curr_xfer_len;
 			continue;
 		}
+
 		curr_xfer_len = min(len - sent_len, SCIF_ENDPT_QP_SIZE - 1);
+
 		/* Not enough RB space. return for the Non Blocking case */
 		if (!(flags & SCIF_SEND_BLOCK))
+		{
 			break;
+		}
 
 		spin_unlock(&ep->lock);
 		/* Wait for a SCIF_CLIENT_RCVD message in the Blocking case */
 		ret =
-		wait_event_interruptible(ep->sendwq,
-					 (SCIFEP_CONNECTED != ep->state) ||
-					 (scif_rb_space(&qp->outbound_q) >=
-					 curr_xfer_len));
+			wait_event_interruptible(ep->sendwq,
+									 (SCIFEP_CONNECTED != ep->state) ||
+									 (scif_rb_space(&qp->outbound_q) >=
+									  curr_xfer_len));
 		spin_lock(&ep->lock);
+
 		if (ret)
+		{
 			break;
+		}
 	}
+
 	if (sent_len)
+	{
 		ret = sent_len;
+	}
 	else if (!ret && SCIFEP_CONNECTED != ep->state)
 		ret = SCIFEP_DISCONNECTED == ep->state ?
-			-ECONNRESET : -ENOTCONN;
+			  -ECONNRESET : -ENOTCONN;
+
 	spin_unlock(&ep->lock);
 	return ret;
 }
@@ -1015,12 +1245,19 @@ static int _scif_recv(scif_epd_t epd, void *msg, int len, int flags)
 	struct scif_qp *qp = ep->qp_info.qp;
 
 	if (flags & SCIF_RECV_BLOCK)
+	{
 		might_sleep();
+	}
+
 	spin_lock(&ep->lock);
+
 	while (remaining_len && (SCIFEP_CONNECTED == ep->state ||
-				 SCIFEP_DISCONNECTED == ep->state)) {
+							 SCIFEP_DISCONNECTED == ep->state))
+	{
 		read_count = scif_rb_count(&qp->inbound_q, remaining_len);
-		if (read_count) {
+
+		if (read_count)
+		{
 			/*
 			 * Best effort to recv as much data as there
 			 * are bytes to read in the RB particularly
@@ -1028,8 +1265,10 @@ static int _scif_recv(scif_epd_t epd, void *msg, int len, int flags)
 			 */
 			curr_recv_len = min(remaining_len, read_count);
 			read_size = scif_rb_get_next(&qp->inbound_q,
-						     msg, curr_recv_len);
-			if (ep->state == SCIFEP_CONNECTED) {
+										 msg, curr_recv_len);
+
+			if (ep->state == SCIFEP_CONNECTED)
+			{
 				/*
 				 * Update the read pointer only if the endpoint
 				 * is still connected else the read pointer
@@ -1046,26 +1285,37 @@ static int _scif_recv(scif_epd_t epd, void *msg, int len, int flags)
 				notif_msg.uop = SCIF_CLIENT_RCVD;
 				notif_msg.payload[0] = ep->remote_ep;
 				ret = _scif_nodeqp_send(ep->remote_dev,
-							&notif_msg);
+										&notif_msg);
+
 				if (ret)
+				{
 					break;
+				}
 			}
+
 			remaining_len -= curr_recv_len;
 			msg = msg + curr_recv_len;
 			continue;
 		}
+
 		/*
 		 * Bail out now if the EP is in SCIFEP_DISCONNECTED state else
 		 * we will keep looping forever.
 		 */
 		if (ep->state == SCIFEP_DISCONNECTED)
+		{
 			break;
+		}
+
 		/*
 		 * Return in the Non Blocking case if there is no data
 		 * to read in this iteration.
 		 */
 		if (!(flags & SCIF_RECV_BLOCK))
+		{
 			break;
+		}
+
 		curr_recv_len = min(remaining_len, SCIF_ENDPT_QP_SIZE - 1);
 		spin_unlock(&ep->lock);
 		/*
@@ -1073,20 +1323,27 @@ static int _scif_recv(scif_epd_t epd, void *msg, int len, int flags)
 		 * or until other side disconnects.
 		 */
 		ret =
-		wait_event_interruptible(ep->recvwq,
-					 SCIFEP_CONNECTED != ep->state ||
-					 scif_rb_count(&qp->inbound_q,
-						       curr_recv_len)
-					 >= curr_recv_len);
+			wait_event_interruptible(ep->recvwq,
+									 SCIFEP_CONNECTED != ep->state ||
+									 scif_rb_count(&qp->inbound_q,
+											 curr_recv_len)
+									 >= curr_recv_len);
 		spin_lock(&ep->lock);
+
 		if (ret)
+		{
 			break;
+		}
 	}
+
 	if (len - remaining_len)
+	{
 		ret = len - remaining_len;
+	}
 	else if (!ret && ep->state != SCIFEP_CONNECTED)
 		ret = ep->state == SCIFEP_DISCONNECTED ?
-			-ECONNRESET : -ENOTCONN;
+			  -ECONNRESET : -ENOTCONN;
+
 	spin_unlock(&ep->lock);
 	return ret;
 }
@@ -1111,40 +1368,62 @@ int scif_user_send(scif_epd_t epd, void __user *msg, int len, int flags)
 	int chunk_len = min(len, (1 << (MAX_ORDER + PAGE_SHIFT - 1)));
 
 	dev_dbg(scif_info.mdev.this_device,
-		"SCIFAPI send (U): ep %p %s\n", ep, scif_ep_states[ep->state]);
+			"SCIFAPI send (U): ep %p %s\n", ep, scif_ep_states[ep->state]);
+
 	if (!len)
+	{
 		return 0;
+	}
 
 	err = scif_msg_param_check(epd, len, flags);
+
 	if (err)
+	{
 		goto send_err;
+	}
 
 	tmp = kmalloc(chunk_len, GFP_KERNEL);
-	if (!tmp) {
+
+	if (!tmp)
+	{
 		err = -ENOMEM;
 		goto send_err;
 	}
+
 	/*
 	 * Grabbing the lock before breaking up the transfer in
 	 * multiple chunks is required to ensure that messages do
 	 * not get fragmented and reordered.
 	 */
 	mutex_lock(&ep->sendlock);
-	while (sent_len != len) {
+
+	while (sent_len != len)
+	{
 		loop_len = len - sent_len;
 		loop_len = min(chunk_len, loop_len);
-		if (copy_from_user(tmp, msg, loop_len)) {
+
+		if (copy_from_user(tmp, msg, loop_len))
+		{
 			err = -EFAULT;
 			goto send_free_err;
 		}
+
 		err = _scif_send(epd, tmp, loop_len, flags);
+
 		if (err < 0)
+		{
 			goto send_free_err;
+		}
+
 		sent_len += err;
 		msg += err;
+
 		if (err != loop_len)
+		{
 			goto send_free_err;
+		}
 	}
+
 send_free_err:
 	mutex_unlock(&ep->sendlock);
 	kfree(tmp);
@@ -1172,40 +1451,61 @@ int scif_user_recv(scif_epd_t epd, void __user *msg, int len, int flags)
 	int chunk_len = min(len, (1 << (MAX_ORDER + PAGE_SHIFT - 1)));
 
 	dev_dbg(scif_info.mdev.this_device,
-		"SCIFAPI recv (U): ep %p %s\n", ep, scif_ep_states[ep->state]);
+			"SCIFAPI recv (U): ep %p %s\n", ep, scif_ep_states[ep->state]);
+
 	if (!len)
+	{
 		return 0;
+	}
 
 	err = scif_msg_param_check(epd, len, flags);
+
 	if (err)
+	{
 		goto recv_err;
+	}
 
 	tmp = kmalloc(chunk_len, GFP_KERNEL);
-	if (!tmp) {
+
+	if (!tmp)
+	{
 		err = -ENOMEM;
 		goto recv_err;
 	}
+
 	/*
 	 * Grabbing the lock before breaking up the transfer in
 	 * multiple chunks is required to ensure that messages do
 	 * not get fragmented and reordered.
 	 */
 	mutex_lock(&ep->recvlock);
-	while (recv_len != len) {
+
+	while (recv_len != len)
+	{
 		loop_len = len - recv_len;
 		loop_len = min(chunk_len, loop_len);
 		err = _scif_recv(epd, tmp, loop_len, flags);
+
 		if (err < 0)
+		{
 			goto recv_free_err;
-		if (copy_to_user(msg, tmp, err)) {
+		}
+
+		if (copy_to_user(msg, tmp, err))
+		{
 			err = -EFAULT;
 			goto recv_free_err;
 		}
+
 		recv_len += err;
 		msg += err;
+
 		if (err != loop_len)
+		{
 			goto recv_free_err;
+		}
 	}
+
 recv_free_err:
 	mutex_unlock(&ep->recvlock);
 	kfree(tmp);
@@ -1229,15 +1529,25 @@ int scif_send(scif_epd_t epd, void *msg, int len, int flags)
 	int ret;
 
 	dev_dbg(scif_info.mdev.this_device,
-		"SCIFAPI send (K): ep %p %s\n", ep, scif_ep_states[ep->state]);
+			"SCIFAPI send (K): ep %p %s\n", ep, scif_ep_states[ep->state]);
+
 	if (!len)
+	{
 		return 0;
+	}
 
 	ret = scif_msg_param_check(epd, len, flags);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	if (!ep->remote_dev)
+	{
 		return -ENOTCONN;
+	}
+
 	/*
 	 * Grab the mutex lock in the blocking case only
 	 * to ensure messages do not get fragmented/reordered.
@@ -1245,12 +1555,17 @@ int scif_send(scif_epd_t epd, void *msg, int len, int flags)
 	 * in _scif_send().
 	 */
 	if (flags & SCIF_SEND_BLOCK)
+	{
 		mutex_lock(&ep->sendlock);
+	}
 
 	ret = _scif_send(epd, msg, len, flags);
 
 	if (flags & SCIF_SEND_BLOCK)
+	{
 		mutex_unlock(&ep->sendlock);
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(scif_send);
@@ -1271,13 +1586,20 @@ int scif_recv(scif_epd_t epd, void *msg, int len, int flags)
 	int ret;
 
 	dev_dbg(scif_info.mdev.this_device,
-		"SCIFAPI recv (K): ep %p %s\n", ep, scif_ep_states[ep->state]);
+			"SCIFAPI recv (K): ep %p %s\n", ep, scif_ep_states[ep->state]);
+
 	if (!len)
+	{
 		return 0;
+	}
 
 	ret = scif_msg_param_check(epd, len, flags);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	/*
 	 * Grab the mutex lock in the blocking case only
 	 * to ensure messages do not get fragmented/reordered.
@@ -1285,19 +1607,23 @@ int scif_recv(scif_epd_t epd, void *msg, int len, int flags)
 	 * in _scif_send().
 	 */
 	if (flags & SCIF_RECV_BLOCK)
+	{
 		mutex_lock(&ep->recvlock);
+	}
 
 	ret = _scif_recv(epd, msg, len, flags);
 
 	if (flags & SCIF_RECV_BLOCK)
+	{
 		mutex_unlock(&ep->recvlock);
+	}
 
 	return ret;
 }
 EXPORT_SYMBOL_GPL(scif_recv);
 
 static inline void _scif_poll_wait(struct file *f, wait_queue_head_t *wq,
-				   poll_table *p, struct scif_endpt *ep)
+								   poll_table *p, struct scif_endpt *ep)
 {
 	/*
 	 * Because poll_wait makes a GFP_KERNEL allocation, give up the lock
@@ -1317,49 +1643,78 @@ __scif_pollfd(struct file *f, poll_table *wait, struct scif_endpt *ep)
 	unsigned int mask = 0;
 
 	dev_dbg(scif_info.mdev.this_device,
-		"SCIFAPI pollfd: ep %p %s\n", ep, scif_ep_states[ep->state]);
+			"SCIFAPI pollfd: ep %p %s\n", ep, scif_ep_states[ep->state]);
 
 	spin_lock(&ep->lock);
 
 	/* Endpoint is waiting for a non-blocking connect to complete */
-	if (ep->conn_async_state == ASYNC_CONN_INPROGRESS) {
+	if (ep->conn_async_state == ASYNC_CONN_INPROGRESS)
+	{
 		_scif_poll_wait(f, &ep->conn_pend_wq, wait, ep);
-		if (ep->conn_async_state == ASYNC_CONN_INPROGRESS) {
+
+		if (ep->conn_async_state == ASYNC_CONN_INPROGRESS)
+		{
 			if (ep->state == SCIFEP_CONNECTED ||
-			    ep->state == SCIFEP_DISCONNECTED ||
-			    ep->conn_err)
+				ep->state == SCIFEP_DISCONNECTED ||
+				ep->conn_err)
+			{
 				mask |= POLLOUT;
+			}
+
 			goto exit;
 		}
 	}
 
 	/* Endpoint is listening for incoming connection requests */
-	if (ep->state == SCIFEP_LISTENING) {
+	if (ep->state == SCIFEP_LISTENING)
+	{
 		_scif_poll_wait(f, &ep->conwq, wait, ep);
-		if (ep->state == SCIFEP_LISTENING) {
+
+		if (ep->state == SCIFEP_LISTENING)
+		{
 			if (ep->conreqcnt)
+			{
 				mask |= POLLIN;
+			}
+
 			goto exit;
 		}
 	}
 
 	/* Endpoint is connected or disconnected */
-	if (ep->state == SCIFEP_CONNECTED || ep->state == SCIFEP_DISCONNECTED) {
+	if (ep->state == SCIFEP_CONNECTED || ep->state == SCIFEP_DISCONNECTED)
+	{
 		if (poll_requested_events(wait) & POLLIN)
+		{
 			_scif_poll_wait(f, &ep->recvwq, wait, ep);
+		}
+
 		if (poll_requested_events(wait) & POLLOUT)
+		{
 			_scif_poll_wait(f, &ep->sendwq, wait, ep);
+		}
+
 		if (ep->state == SCIFEP_CONNECTED ||
-		    ep->state == SCIFEP_DISCONNECTED) {
+			ep->state == SCIFEP_DISCONNECTED)
+		{
 			/* Data can be read without blocking */
 			if (scif_rb_count(&ep->qp_info.qp->inbound_q, 1))
+			{
 				mask |= POLLIN;
+			}
+
 			/* Data can be written without blocking */
 			if (scif_rb_space(&ep->qp_info.qp->outbound_q))
+			{
 				mask |= POLLOUT;
+			}
+
 			/* Return POLLHUP if endpoint is disconnected */
 			if (ep->state == SCIFEP_DISCONNECTED)
+			{
 				mask |= POLLHUP;
+			}
+
 			goto exit;
 		}
 	}
@@ -1391,34 +1746,52 @@ scif_poll(struct scif_pollepd *ufds, unsigned int nfds, long timeout_msecs)
 	poll_table *pt;
 	int i, mask, count = 0, timed_out = timeout_msecs == 0;
 	u64 timeout = timeout_msecs < 0 ? MAX_SCHEDULE_TIMEOUT
-		: msecs_to_jiffies(timeout_msecs);
+				  : msecs_to_jiffies(timeout_msecs);
 
 	poll_initwait(&table);
 	pt = &table.pt;
-	while (1) {
-		for (i = 0; i < nfds; i++) {
+
+	while (1)
+	{
+		for (i = 0; i < nfds; i++)
+		{
 			pt->_key = ufds[i].events | POLLERR | POLLHUP;
 			mask = __scif_pollfd(ufds[i].epd->anon,
-					     pt, ufds[i].epd);
+								 pt, ufds[i].epd);
 			mask &= ufds[i].events | POLLERR | POLLHUP;
-			if (mask) {
+
+			if (mask)
+			{
 				count++;
 				pt->_qproc = NULL;
 			}
+
 			ufds[i].revents = mask;
 		}
+
 		pt->_qproc = NULL;
-		if (!count) {
+
+		if (!count)
+		{
 			count = table.error;
+
 			if (signal_pending(current))
+			{
 				count = -EINTR;
+			}
 		}
+
 		if (count || timed_out)
+		{
 			break;
+		}
 
 		if (!schedule_timeout_interruptible(timeout))
+		{
 			timed_out = 1;
+		}
 	}
+
 	poll_freewait(&table);
 	return count;
 }
@@ -1431,21 +1804,30 @@ int scif_get_node_ids(u16 *nodes, int len, u16 *self)
 	int node;
 
 	if (!scif_is_mgmt_node())
+	{
 		scif_get_node_info();
+	}
 
 	*self = scif_info.nodeid;
 	mutex_lock(&scif_info.conflock);
 	len = min_t(int, len, scif_info.total);
-	for (node = 0; node <= scif_info.maxid; node++) {
-		if (_scifdev_alive(&scif_dev[node])) {
+
+	for (node = 0; node <= scif_info.maxid; node++)
+	{
+		if (_scifdev_alive(&scif_dev[node]))
+		{
 			online++;
+
 			if (offset < len)
+			{
 				nodes[offset++] = node;
+			}
 		}
 	}
+
 	dev_dbg(scif_info.mdev.this_device,
-		"SCIFAPI get_node_ids total %d online %d filled in %d nodes\n",
-		scif_info.total, online, offset);
+			"SCIFAPI get_node_ids total %d online %d filled in %d nodes\n",
+			scif_info.total, online, offset);
 	mutex_unlock(&scif_info.conflock);
 
 	return online;
@@ -1460,12 +1842,15 @@ static int scif_add_client_dev(struct device *dev, struct subsys_interface *si)
 		container_of(dev, struct scif_peer_dev, dev);
 
 	if (client->probe)
+	{
 		client->probe(spdev);
+	}
+
 	return 0;
 }
 
 static void scif_remove_client_dev(struct device *dev,
-				   struct subsys_interface *si)
+								   struct subsys_interface *si)
 {
 	struct scif_client *client =
 		container_of(si, struct scif_client, si);
@@ -1473,7 +1858,9 @@ static void scif_remove_client_dev(struct device *dev,
 		container_of(dev, struct scif_peer_dev, dev);
 
 	if (client->remove)
+	{
 		client->remove(spdev);
+	}
 }
 
 void scif_client_unregister(struct scif_client *client)

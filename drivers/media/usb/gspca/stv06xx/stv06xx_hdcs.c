@@ -32,53 +32,59 @@
 
 #include "stv06xx_hdcs.h"
 
-static struct v4l2_pix_format hdcs1x00_mode[] = {
+static struct v4l2_pix_format hdcs1x00_mode[] =
+{
 	{
 		HDCS_1X00_DEF_WIDTH,
 		HDCS_1X00_DEF_HEIGHT,
 		V4L2_PIX_FMT_SGRBG8,
 		V4L2_FIELD_NONE,
 		.sizeimage =
-			HDCS_1X00_DEF_WIDTH * HDCS_1X00_DEF_HEIGHT,
+		HDCS_1X00_DEF_WIDTH * HDCS_1X00_DEF_HEIGHT,
 		.bytesperline = HDCS_1X00_DEF_WIDTH,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.priv = 1
 	}
 };
 
-static struct v4l2_pix_format hdcs1020_mode[] = {
+static struct v4l2_pix_format hdcs1020_mode[] =
+{
 	{
 		HDCS_1020_DEF_WIDTH,
 		HDCS_1020_DEF_HEIGHT,
 		V4L2_PIX_FMT_SGRBG8,
 		V4L2_FIELD_NONE,
 		.sizeimage =
-			HDCS_1020_DEF_WIDTH * HDCS_1020_DEF_HEIGHT,
+		HDCS_1020_DEF_WIDTH * HDCS_1020_DEF_HEIGHT,
 		.bytesperline = HDCS_1020_DEF_WIDTH,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.priv = 1
 	}
 };
 
-enum hdcs_power_state {
+enum hdcs_power_state
+{
 	HDCS_STATE_SLEEP,
 	HDCS_STATE_IDLE,
 	HDCS_STATE_RUN
 };
 
 /* no lock? */
-struct hdcs {
+struct hdcs
+{
 	enum hdcs_power_state state;
 	int w, h;
 
 	/* visible area of the sensor array */
-	struct {
+	struct
+	{
 		int left, top;
 		int width, height;
 		int border;
 	} array;
 
-	struct {
+	struct
+	{
 		/* Column timing overhead */
 		u8 cto;
 		/* Column processing overhead */
@@ -98,10 +104,13 @@ static int hdcs_reg_write_seq(struct sd *sd, u8 reg, u8 *vals, u8 len)
 	int i;
 
 	if (unlikely((len <= 0) || (len >= I2C_MAX_BYTES) ||
-		     (reg + len > 0xff)))
+				 (reg + len > 0xff)))
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		regs[2 * i] = reg;
 		regs[2 * i + 1] = vals[i];
 		/* All addresses are shifted left one bit
@@ -119,38 +128,49 @@ static int hdcs_set_state(struct sd *sd, enum hdcs_power_state state)
 	int ret;
 
 	if (hdcs->state == state)
+	{
 		return 0;
+	}
 
 	/* we need to go idle before running or sleeping */
-	if (hdcs->state != HDCS_STATE_IDLE) {
+	if (hdcs->state != HDCS_STATE_IDLE)
+	{
 		ret = stv06xx_write_sensor(sd, HDCS_REG_CONTROL(sd), 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	hdcs->state = HDCS_STATE_IDLE;
 
 	if (state == HDCS_STATE_IDLE)
+	{
 		return 0;
+	}
 
-	switch (state) {
-	case HDCS_STATE_SLEEP:
-		val = HDCS_SLEEP_MODE;
-		break;
+	switch (state)
+	{
+		case HDCS_STATE_SLEEP:
+			val = HDCS_SLEEP_MODE;
+			break;
 
-	case HDCS_STATE_RUN:
-		val = HDCS_RUN_ENABLE;
-		break;
+		case HDCS_STATE_RUN:
+			val = HDCS_RUN_ENABLE;
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	ret = stv06xx_write_sensor(sd, HDCS_REG_CONTROL(sd), val);
 
 	/* Update the state if the write succeeded */
 	if (!ret)
+	{
 		hdcs->state = state;
+	}
 
 	return ret;
 }
@@ -161,12 +181,18 @@ static int hdcs_reset(struct sd *sd)
 	int err;
 
 	err = stv06xx_write_sensor(sd, HDCS_REG_CONTROL(sd), 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = stv06xx_write_sensor(sd, HDCS_REG_CONTROL(sd), 0);
+
 	if (err < 0)
+	{
 		hdcs->state = HDCS_STATE_IDLE;
+	}
 
 	return err;
 }
@@ -203,13 +229,16 @@ static int hdcs_set_exposure(struct gspca_dev *gspca_dev, __s32 val)
 	cycles -= rowexp * rp;
 
 	/* calculate sub-row exposure */
-	if (IS_1020(sd)) {
+	if (IS_1020(sd))
+	{
 		/* see HDCS-1020 datasheet 3.5.6.4, p. 63 */
 		srowexp = hdcs->w - (cycles + hdcs->exp.er + 13) / ct;
 
 		mnct = (hdcs->exp.er + 12 + ct - 1) / ct;
 		max_srowexp = hdcs->w - mnct;
-	} else {
+	}
+	else
+	{
 		/* see HDCS-1000 datasheet 3.4.5.5, p. 61 */
 		srowexp = cp - hdcs->exp.er - 6 - cycles;
 
@@ -218,11 +247,16 @@ static int hdcs_set_exposure(struct gspca_dev *gspca_dev, __s32 val)
 	}
 
 	if (srowexp < 0)
+	{
 		srowexp = 0;
+	}
 	else if (srowexp > max_srowexp)
+	{
 		srowexp = max_srowexp;
+	}
 
-	if (IS_1020(sd)) {
+	if (IS_1020(sd))
+	{
 		exp[0] = HDCS20_CONTROL;
 		exp[1] = 0x00;		/* Stop streaming */
 		exp[2] = HDCS_ROWEXPL;
@@ -236,7 +270,9 @@ static int hdcs_set_exposure(struct gspca_dev *gspca_dev, __s32 val)
 		exp[10] = HDCS20_CONTROL;
 		exp[11] = 0x04;		/* Restart streaming */
 		err = stv06xx_write_sensor_bytes(sd, exp, 6);
-	} else {
+	}
+	else
+	{
 		exp[0] = HDCS00_CONTROL;
 		exp[1] = 0x00;         /* Stop streaming */
 		exp[2] = HDCS_ROWEXPL;
@@ -252,11 +288,15 @@ static int hdcs_set_exposure(struct gspca_dev *gspca_dev, __s32 val)
 		exp[12] = HDCS00_CONTROL;
 		exp[13] = 0x04;         /* Restart streaming */
 		err = stv06xx_write_sensor_bytes(sd, exp, 7);
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
+
 	PDEBUG(D_CONF, "Writing exposure %d, rowexp %d, srowexp %d",
-	       val, rowexp, srowexp);
+		   val, rowexp, srowexp);
 	return err;
 }
 
@@ -267,7 +307,9 @@ static int hdcs_set_gains(struct sd *sd, u8 g)
 
 	/* the voltage gain Av = (1 + 19 * val / 127) * (1 + bit7) */
 	if (g > 127)
+	{
 		g = 0x80 | (g / 2);
+	}
 
 	gains[0] = g;
 	gains[1] = g;
@@ -282,11 +324,11 @@ static int hdcs_set_gain(struct gspca_dev *gspca_dev, __s32 val)
 {
 	PDEBUG(D_CONF, "Writing gain %d", val);
 	return hdcs_set_gains((struct sd *) gspca_dev,
-			       val & 0xff);
+						  val & 0xff);
 }
 
 static int hdcs_set_size(struct sd *sd,
-		unsigned int width, unsigned int height)
+						 unsigned int width, unsigned int height)
 {
 	struct hdcs *hdcs = sd->sensor_priv;
 	u8 win[4];
@@ -298,20 +340,27 @@ static int hdcs_set_size(struct sd *sd,
 	height = (height + 3) & ~0x3;
 
 	if (width > hdcs->array.width)
+	{
 		width = hdcs->array.width;
+	}
 
-	if (IS_1020(sd)) {
+	if (IS_1020(sd))
+	{
 		/* the borders are also invalid */
 		if (height + 2 * hdcs->array.border + HDCS_1020_BOTTOM_Y_SKIP
-				  > hdcs->array.height)
+			> hdcs->array.height)
 			height = hdcs->array.height - 2 * hdcs->array.border -
-				HDCS_1020_BOTTOM_Y_SKIP;
+					 HDCS_1020_BOTTOM_Y_SKIP;
 
 		y = (hdcs->array.height - HDCS_1020_BOTTOM_Y_SKIP - height) / 2
-				+ hdcs->array.top;
-	} else {
+			+ hdcs->array.top;
+	}
+	else
+	{
 		if (height > hdcs->array.height)
+		{
 			height = hdcs->array.height;
+		}
 
 		y = hdcs->array.top + (hdcs->array.height - height) / 2;
 	}
@@ -324,8 +373,11 @@ static int hdcs_set_size(struct sd *sd,
 	win[3] = (x + width) / 4 - 1;
 
 	err = hdcs_reg_write_seq(sd, HDCS_FWROW, win, 4);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* Update the current width and height */
 	hdcs->w = width;
@@ -339,18 +391,22 @@ static int hdcs_s_ctrl(struct v4l2_ctrl *ctrl)
 		container_of(ctrl->handler, struct gspca_dev, ctrl_handler);
 	int err = -EINVAL;
 
-	switch (ctrl->id) {
-	case V4L2_CID_GAIN:
-		err = hdcs_set_gain(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_EXPOSURE:
-		err = hdcs_set_exposure(gspca_dev, ctrl->val);
-		break;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_GAIN:
+			err = hdcs_set_gain(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_EXPOSURE:
+			err = hdcs_set_exposure(gspca_dev, ctrl->val);
+			break;
 	}
+
 	return err;
 }
 
-static const struct v4l2_ctrl_ops hdcs_ctrl_ops = {
+static const struct v4l2_ctrl_ops hdcs_ctrl_ops =
+{
 	.s_ctrl = hdcs_s_ctrl,
 };
 
@@ -360,9 +416,9 @@ static int hdcs_init_controls(struct sd *sd)
 
 	v4l2_ctrl_handler_init(hdl, 2);
 	v4l2_ctrl_new_std(hdl, &hdcs_ctrl_ops,
-			V4L2_CID_EXPOSURE, 0, 0xff, 1, HDCS_DEFAULT_EXPOSURE);
+					  V4L2_CID_EXPOSURE, 0, 0xff, 1, HDCS_DEFAULT_EXPOSURE);
 	v4l2_ctrl_new_std(hdl, &hdcs_ctrl_ops,
-			V4L2_CID_GAIN, 0, 0xff, 1, HDCS_DEFAULT_GAIN);
+					  V4L2_CID_GAIN, 0, 0xff, 1, HDCS_DEFAULT_GAIN);
 	return hdl->error;
 }
 
@@ -373,8 +429,11 @@ static int hdcs_probe_1x00(struct sd *sd)
 	int ret;
 
 	ret = stv06xx_read_sensor(sd, HDCS_IDENT, &sensor);
+
 	if (ret < 0 || sensor != 0x08)
+	{
 		return -ENODEV;
+	}
 
 	pr_info("HDCS-1000/1100 sensor detected\n");
 
@@ -382,8 +441,11 @@ static int hdcs_probe_1x00(struct sd *sd)
 	sd->gspca_dev.cam.nmodes = ARRAY_SIZE(hdcs1x00_mode);
 
 	hdcs = kmalloc(sizeof(struct hdcs), GFP_KERNEL);
+
 	if (!hdcs)
+	{
 		return -ENOMEM;
+	}
 
 	hdcs->array.left = 8;
 	hdcs->array.top = 8;
@@ -430,8 +492,11 @@ static int hdcs_probe_1020(struct sd *sd)
 	int ret;
 
 	ret = stv06xx_read_sensor(sd, HDCS_IDENT, &sensor);
+
 	if (ret < 0 || sensor != 0x10)
+	{
 		return -ENODEV;
+	}
 
 	pr_info("HDCS-1020 sensor detected\n");
 
@@ -439,8 +504,11 @@ static int hdcs_probe_1020(struct sd *sd)
 	sd->gspca_dev.cam.nmodes = ARRAY_SIZE(hdcs1020_mode);
 
 	hdcs = kmalloc(sizeof(struct hdcs), GFP_KERNEL);
+
 	if (!hdcs)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * From Andrey's test image: looks like HDCS-1020 upper-left
@@ -490,42 +558,58 @@ static int hdcs_init(struct sd *sd)
 
 	/* Set the STV0602AA in STV0600 emulation mode */
 	if (sd->bridge == BRIDGE_STV602)
+	{
 		stv06xx_write_bridge(sd, STV_STV0600_EMULATION, 1);
+	}
 
 	/* Execute the bridge init */
-	for (i = 0; i < ARRAY_SIZE(stv_bridge_init) && !err; i++) {
+	for (i = 0; i < ARRAY_SIZE(stv_bridge_init) && !err; i++)
+	{
 		err = stv06xx_write_bridge(sd, stv_bridge_init[i][0],
-					   stv_bridge_init[i][1]);
+								   stv_bridge_init[i][1]);
 	}
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* sensor soft reset */
 	hdcs_reset(sd);
 
 	/* Execute the sensor init */
-	for (i = 0; i < ARRAY_SIZE(stv_sensor_init) && !err; i++) {
+	for (i = 0; i < ARRAY_SIZE(stv_sensor_init) && !err; i++)
+	{
 		err = stv06xx_write_sensor(sd, stv_sensor_init[i][0],
-					     stv_sensor_init[i][1]);
+								   stv_sensor_init[i][1]);
 	}
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* Enable continuous frame capture, bit 2: stop when frame complete */
 	err = stv06xx_write_sensor(sd, HDCS_REG_CONFIG(sd), BIT(3));
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* Set PGA sample duration
 	(was 0x7E for the STV602, but caused slow framerate with HDCS-1020) */
 	if (IS_1020(sd))
 		err = stv06xx_write_sensor(sd, HDCS_TCTRL,
-				(HDCS_ADC_START_SIG_DUR << 6) | hdcs->psmp);
+								   (HDCS_ADC_START_SIG_DUR << 6) | hdcs->psmp);
 	else
 		err = stv06xx_write_sensor(sd, HDCS_TCTRL,
-				(HDCS_ADC_START_SIG_DUR << 5) | hdcs->psmp);
+								   (HDCS_ADC_START_SIG_DUR << 5) | hdcs->psmp);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return hdcs_set_size(sd, hdcs->array.width, hdcs->array.height);
 }
@@ -536,9 +620,11 @@ static int hdcs_dump(struct sd *sd)
 
 	pr_info("Dumping sensor registers:\n");
 
-	for (reg = HDCS_IDENT; reg <= HDCS_ROWEXPH; reg++) {
+	for (reg = HDCS_IDENT; reg <= HDCS_ROWEXPH; reg++)
+	{
 		stv06xx_read_sensor(sd, reg, &val);
 		pr_info("reg 0x%02x = 0x%02x\n", reg, val);
 	}
+
 	return 0;
 }

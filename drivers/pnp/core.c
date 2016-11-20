@@ -35,10 +35,13 @@ void *pnp_alloc(long size)
 	void *result;
 
 	result = kzalloc(size, GFP_KERNEL);
-	if (!result) {
+
+	if (!result)
+	{
 		printk(KERN_ERR "pnp: Out of Memory\n");
 		return NULL;
 	}
+
 	return result;
 }
 
@@ -67,9 +70,12 @@ int pnp_register_protocol(struct pnp_protocol *protocol)
 	mutex_lock(&pnp_lock);
 
 	/* assign the lowest unused number */
-	list_for_each(pos, &pnp_protocols) {
+	list_for_each(pos, &pnp_protocols)
+	{
 		struct pnp_protocol *cur = to_pnp_protocol(pos);
-		if (cur->number == nodenum) {
+
+		if (cur->number == nodenum)
+		{
 			pos = &pnp_protocols;
 			nodenum++;
 		}
@@ -83,8 +89,11 @@ int pnp_register_protocol(struct pnp_protocol *protocol)
 	mutex_unlock(&pnp_lock);
 
 	ret = device_register(&protocol->dev);
+
 	if (ret)
+	{
 		pnp_remove_protocol(protocol);
+	}
 
 	return ret;
 }
@@ -105,7 +114,9 @@ static void pnp_free_ids(struct pnp_dev *dev)
 	struct pnp_id *next;
 
 	id = dev->id;
-	while (id) {
+
+	while (id)
+	{
 		next = id->next;
 		kfree(id);
 		id = next;
@@ -122,7 +133,8 @@ void pnp_free_resources(struct pnp_dev *dev)
 {
 	struct pnp_resource *pnp_res, *tmp;
 
-	list_for_each_entry_safe(pnp_res, tmp, &dev->resources, list) {
+	list_for_each_entry_safe(pnp_res, tmp, &dev->resources, list)
+	{
 		pnp_free_resource(pnp_res);
 	}
 }
@@ -138,14 +150,17 @@ static void pnp_release_device(struct device *dmdev)
 }
 
 struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *protocol, int id,
-			      const char *pnpid)
+							  const char *pnpid)
 {
 	struct pnp_dev *dev;
 	struct pnp_id *dev_id;
 
 	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	INIT_LIST_HEAD(&dev->resources);
 	INIT_LIST_HEAD(&dev->options);
@@ -162,7 +177,9 @@ struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *protocol, int id,
 	dev_set_name(&dev->dev, "%02x:%02x", dev->protocol->number, dev->number);
 
 	dev_id = pnp_add_id(dev, pnpid);
-	if (!dev_id) {
+
+	if (!dev_id)
+	{
 		kfree(dev);
 		return NULL;
 	}
@@ -193,11 +210,14 @@ int __pnp_add_device(struct pnp_dev *dev)
 	mutex_unlock(&pnp_lock);
 
 	ret = device_register(&dev->dev);
+
 	if (ret)
+	{
 		pnp_delist_device(dev);
+	}
 	else if (dev->protocol->can_wakeup)
 		device_set_wakeup_capable(&dev->dev,
-				dev->protocol->can_wakeup(dev));
+								  dev->protocol->can_wakeup(dev));
 
 	return ret;
 }
@@ -216,19 +236,27 @@ int pnp_add_device(struct pnp_dev *dev)
 	struct pnp_id *id;
 
 	if (dev->card)
+	{
 		return -EINVAL;
+	}
 
 	ret = __pnp_add_device(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	buf[0] = '\0';
+
 	for (id = dev->id; id; id = id->next)
+	{
 		len += scnprintf(buf + len, sizeof(buf) - len, " %s", id->id);
+	}
 
 	dev_printk(KERN_DEBUG, &dev->dev, "%s device, IDs%s (%s)\n",
-		   dev->protocol->name, buf,
-		   dev->active ? "active" : "disabled");
+			   dev->protocol->name, buf,
+			   dev->active ? "active" : "disabled");
 	return 0;
 }
 

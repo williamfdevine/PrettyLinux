@@ -49,7 +49,8 @@
    In general, only the important configuration values or bits changed
    multiple times should be defined symbolically.
 */
-enum dl2x_offsets {
+enum dl2x_offsets
+{
 	/* I/O register offsets */
 	DMACtrl = 0x00,
 	RxDMAStatus = 0x08,
@@ -150,7 +151,8 @@ enum dl2x_offsets {
 };
 
 /* Bits in the interrupt status/mask registers. */
-enum IntStatus_bits {
+enum IntStatus_bits
+{
 	InterruptStatus = 0x0001,
 	HostError = 0x0002,
 	MACCtrlFrame = 0x0008,
@@ -167,7 +169,8 @@ enum IntStatus_bits {
 };
 
 /* Bits in the ReceiveMode register. */
-enum ReceiveMode_bits {
+enum ReceiveMode_bits
+{
 	ReceiveUnicast = 0x0001,
 	ReceiveMulticast = 0x0002,
 	ReceiveBroadcast = 0x0004,
@@ -178,7 +181,8 @@ enum ReceiveMode_bits {
 	ReceiveVLANHash = 0x0200,
 };
 /* Bits in MACCtrl. */
-enum MACCtrl_bits {
+enum MACCtrl_bits
+{
 	DuplexSelect = 0x20,
 	TxFlowControlEnable = 0x80,
 	RxFlowControlEnable = 0x0100,
@@ -196,11 +200,13 @@ enum MACCtrl_bits {
 	RxEnabled = 0x20000000,
 };
 
-enum ASICCtrl_LoWord_bits {
+enum ASICCtrl_LoWord_bits
+{
 	PhyMedia = 0x0080,
 };
 
-enum ASICCtrl_HiWord_bits {
+enum ASICCtrl_HiWord_bits
+{
 	GlobalReset = 0x0001,
 	RxReset = 0x0002,
 	TxReset = 0x0004,
@@ -216,7 +222,8 @@ enum ASICCtrl_HiWord_bits {
 #define IPG_AC_LED_MODE_BIT_1	BIT(29)
 
 /* Transmit Frame Control bits */
-enum TFC_bits {
+enum TFC_bits
+{
 	DwordAlign = 0x00000000,
 	WordAlignDisable = 0x00030000,
 	WordAlign = 0x00020000,
@@ -234,7 +241,8 @@ enum TFC_bits {
 };
 
 /* Receive Frames Status bits */
-enum RFS_bits {
+enum RFS_bits
+{
 	RxFIFOOverrun = 0x00010000,
 	RxRuntFrame = 0x00020000,
 	RxAlignmentError = 0x00040000,
@@ -257,12 +265,14 @@ enum RFS_bits {
 
 #define MII_RESET_TIME_OUT		10000
 /* MII register */
-enum _mii_reg {
+enum _mii_reg
+{
 	MII_PHY_SCR = 16,
 };
 
 /* PCS register */
-enum _pcs_reg {
+enum _pcs_reg
+{
 	PCS_BMCR = 0,
 	PCS_BMSR = 1,
 	PCS_ANAR = 4,
@@ -274,7 +284,8 @@ enum _pcs_reg {
 };
 
 /* IEEE Extened Status Register */
-enum _mii_esr {
+enum _mii_esr
+{
 	MII_ESR_1000BX_FD = 0x8000,
 	MII_ESR_1000BX_HD = 0x4000,
 	MII_ESR_1000BT_FD = 0x2000,
@@ -282,26 +293,29 @@ enum _mii_esr {
 };
 /* PHY Specific Control Register */
 #if 0
-typedef union t_MII_PHY_SCR {
+typedef union t_MII_PHY_SCR
+{
 	u16 image;
-	struct {
-		u16 disable_jabber:1;	// bit 0
-		u16 polarity_reversal:1;	// bit 1
-		u16 SEQ_test:1;	// bit 2
-		u16 _bit_3:1;	// bit 3
-		u16 disable_CLK125:1;	// bit 4
-		u16 mdi_crossover_mode:2;	// bit 6:5
-		u16 enable_ext_dist:1;	// bit 7
-		u16 _bit_8_9:2;	// bit 9:8
-		u16 force_link:1;	// bit 10
-		u16 assert_CRS:1;	// bit 11
-		u16 rcv_fifo_depth:2;	// bit 13:12
-		u16 xmit_fifo_depth:2;	// bit 15:14
+	struct
+	{
+		u16 disable_jabber: 1;	// bit 0
+		u16 polarity_reversal: 1;	// bit 1
+		u16 SEQ_test: 1;	// bit 2
+		u16 _bit_3: 1;	// bit 3
+		u16 disable_CLK125: 1;	// bit 4
+		u16 mdi_crossover_mode: 2;	// bit 6:5
+		u16 enable_ext_dist: 1;	// bit 7
+		u16 _bit_8_9: 2;	// bit 9:8
+		u16 force_link: 1;	// bit 10
+		u16 assert_CRS: 1;	// bit 11
+		u16 rcv_fifo_depth: 2;	// bit 13:12
+		u16 xmit_fifo_depth: 2;	// bit 15:14
 	} bits;
 } PHY_SCR_t, *PPHY_SCR_t;
 #endif
 
-typedef enum t_MII_ADMIN_STATUS {
+typedef enum t_MII_ADMIN_STATUS
+{
 	adm_reset,
 	adm_operational,
 	adm_loopback,
@@ -313,7 +327,8 @@ typedef enum t_MII_ADMIN_STATUS {
 /* PCS control and status registers bitmap as the same as MII */
 /* PCS Extended Status register bitmap as the same as MII */
 /* PCS ANAR */
-enum _pcs_anar {
+enum _pcs_anar
+{
 	PCS_ANAR_NEXT_PAGE = 0x8000,
 	PCS_ANAR_REMOTE_FAULT = 0x3000,
 	PCS_ANAR_ASYMMETRIC = 0x0100,
@@ -322,7 +337,8 @@ enum _pcs_anar {
 	PCS_ANAR_FULL_DUPLEX = 0x0020,
 };
 /* PCS ANLPAR */
-enum _pcs_anlpar {
+enum _pcs_anlpar
+{
 	PCS_ANLPAR_NEXT_PAGE = PCS_ANAR_NEXT_PAGE,
 	PCS_ANLPAR_REMOTE_FAULT = PCS_ANAR_REMOTE_FAULT,
 	PCS_ANLPAR_ASYMMETRIC = PCS_ANAR_ASYMMETRIC,
@@ -331,7 +347,8 @@ enum _pcs_anlpar {
 	PCS_ANLPAR_FULL_DUPLEX = PCS_ANAR_FULL_DUPLEX,
 };
 
-typedef struct t_SROM {
+typedef struct t_SROM
+{
 	u16 config_param;	/* 0x00 */
 	u16 asic_ctrl;		/* 0x02 */
 	u16 sub_vendor_id;	/* 0x04 */
@@ -347,7 +364,8 @@ typedef struct t_SROM {
 } SROM_t, *PSROM_t;
 
 /* Ioctl custom data */
-struct ioctl_data {
+struct ioctl_data
+{
 	char signature[10];
 	int cmd;
 	int len;
@@ -355,7 +373,8 @@ struct ioctl_data {
 };
 
 /* The Rx and Tx buffer descriptors. */
-struct netdev_desc {
+struct netdev_desc
+{
 	__le64 next_desc;
 	__le64 status;
 	__le64 fraginfo;
@@ -364,7 +383,8 @@ struct netdev_desc {
 #define PRIV_ALIGN	15	/* Required alignment mask */
 /* Use  __attribute__((aligned (L1_CACHE_BYTES)))  to maintain alignment
    within the structure. */
-struct netdev_private {
+struct netdev_private
+{
 	/* Descriptor rings first for alignment. */
 	struct netdev_desc *rx_ring;
 	struct netdev_desc *tx_ring;
@@ -385,14 +405,14 @@ struct netdev_private {
 	unsigned int rx_coalesce; 	/* Maximum frames each RxDMAComplete intr */
 	unsigned int rx_timeout; 	/* Wait time between RxDMAComplete intr */
 	unsigned int tx_coalesce;	/* Maximum frames each tx interrupt */
-	unsigned int full_duplex:1;	/* Full-duplex operation requested. */
-	unsigned int an_enable:2;	/* Auto-Negotiated Enable */
-	unsigned int jumbo:1;		/* Jumbo frame enable */
-	unsigned int coalesce:1;	/* Rx coalescing enable */
-	unsigned int tx_flow:1;		/* Tx flow control enable */
-	unsigned int rx_flow:1;		/* Rx flow control enable */
-	unsigned int phy_media:1;	/* 1: fiber, 0: copper */
-	unsigned int link_status:1;	/* Current link status */
+	unsigned int full_duplex: 1;	/* Full-duplex operation requested. */
+	unsigned int an_enable: 2;	/* Auto-Negotiated Enable */
+	unsigned int jumbo: 1;		/* Jumbo frame enable */
+	unsigned int coalesce: 1;	/* Rx coalescing enable */
+	unsigned int tx_flow: 1;		/* Tx flow control enable */
+	unsigned int rx_flow: 1;		/* Rx flow control enable */
+	unsigned int phy_media: 1;	/* 1: fiber, 0: copper */
+	unsigned int link_status: 1;	/* Current link status */
 	struct netdev_desc *last_tx;	/* Last Tx descriptor used. */
 	unsigned long cur_rx, old_rx;	/* Producer/consumer ring indices */
 	unsigned long cur_tx, old_tx;
@@ -417,7 +437,8 @@ struct netdev_private {
 */
 #define CHIP_IP1000A	1
 
-static const struct pci_device_id rio_pci_tbl[] = {
+static const struct pci_device_id rio_pci_tbl[] =
+{
 	{0x1186, 0x4000, PCI_ANY_ID, PCI_ANY_ID, },
 	{0x13f0, 0x1021, PCI_ANY_ID, PCI_ANY_ID, },
 	{ PCI_VDEVICE(SUNDANCE,	0x1023), CHIP_IP1000A },

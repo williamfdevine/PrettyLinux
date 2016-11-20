@@ -7,7 +7,8 @@
 
 #define FONTDATAMAX 9216
 
-static const unsigned char fontdata_10x18[FONTDATAMAX] = {
+static const unsigned char fontdata_10x18[FONTDATAMAX] =
+{
 
 	/* 0 0x00 '^@' */
 	0x00, 0x00, /* 0000000000 */
@@ -5132,7 +5133,8 @@ static const unsigned char fontdata_10x18[FONTDATAMAX] = {
 };
 
 
-const struct font_desc font_10x18 = {
+const struct font_desc font_10x18 =
+{
 	.idx	= FONT10x18_IDX,
 	.name	= "10x18",
 	.width	= 10,

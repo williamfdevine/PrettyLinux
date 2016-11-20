@@ -21,10 +21,11 @@ struct device;
 
 /* Main struct */
 struct c2port_ops;
-struct c2port_device {
+struct c2port_device
+{
 	kmemcheck_bitfield_begin(flags);
-	unsigned int access:1;
-	unsigned int flash_access:1;
+	unsigned int access: 1;
+	unsigned int flash_access: 1;
 	kmemcheck_bitfield_end(flags);
 
 	int id;
@@ -38,7 +39,8 @@ struct c2port_device {
 };
 
 /* Basic operations */
-struct c2port_ops {
+struct c2port_ops
+{
 	/* Flash layout */
 	unsigned short block_size;	/* flash block size in bytes */
 	unsigned short blocks_num;	/* flash blocks number */
@@ -62,5 +64,5 @@ struct c2port_ops {
  */
 
 extern struct c2port_device *c2port_device_register(char *name,
-					struct c2port_ops *ops, void *devdata);
+		struct c2port_ops *ops, void *devdata);
 extern void c2port_device_unregister(struct c2port_device *dev);

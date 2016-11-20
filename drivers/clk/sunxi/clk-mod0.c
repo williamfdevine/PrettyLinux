@@ -36,18 +36,28 @@ static void sun4i_a10_get_mod0_factors(struct factors_request *req)
 	/* These clocks can only divide, so we will never be able to achieve
 	 * frequencies higher than the parent frequency */
 	if (req->rate > req->parent_rate)
+	{
 		req->rate = req->parent_rate;
+	}
 
 	div = DIV_ROUND_UP(req->parent_rate, req->rate);
 
 	if (div < 16)
+	{
 		calcp = 0;
+	}
 	else if (div / 2 < 16)
+	{
 		calcp = 1;
+	}
 	else if (div / 4 < 16)
+	{
 		calcp = 2;
+	}
 	else
+	{
 		calcp = 3;
+	}
 
 	calcm = DIV_ROUND_UP(div, 1 << calcp);
 
@@ -57,14 +67,16 @@ static void sun4i_a10_get_mod0_factors(struct factors_request *req)
 }
 
 /* user manual says "n" but it's really "p" */
-static const struct clk_factors_config sun4i_a10_mod0_config = {
+static const struct clk_factors_config sun4i_a10_mod0_config =
+{
 	.mshift = 0,
 	.mwidth = 4,
 	.pshift = 16,
 	.pwidth = 2,
 };
 
-static const struct factors_data sun4i_a10_mod0_data = {
+static const struct factors_data sun4i_a10_mod0_data =
+{
 	.enable = 31,
 	.mux = 24,
 	.muxmask = BIT(1) | BIT(0),
@@ -79,7 +91,9 @@ static void __init sun4i_a10_mod0_setup(struct device_node *node)
 	void __iomem *reg;
 
 	reg = of_iomap(node, 0);
-	if (!reg) {
+
+	if (!reg)
+	{
 		/*
 		 * This happens with mod0 clk nodes instantiated through
 		 * mfd, as those do not have their resources assigned at
@@ -89,10 +103,10 @@ static void __init sun4i_a10_mod0_setup(struct device_node *node)
 	}
 
 	sunxi_factors_register(node, &sun4i_a10_mod0_data,
-			       &sun4i_a10_mod0_lock, reg);
+						   &sun4i_a10_mod0_lock, reg);
 }
 CLK_OF_DECLARE_DRIVER(sun4i_a10_mod0, "allwinner,sun4i-a10-mod0-clk",
-		      sun4i_a10_mod0_setup);
+					  sun4i_a10_mod0_setup);
 
 static int sun4i_a10_mod0_clk_probe(struct platform_device *pdev)
 {
@@ -101,24 +115,31 @@ static int sun4i_a10_mod0_clk_probe(struct platform_device *pdev)
 	void __iomem *reg;
 
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	reg = devm_ioremap_resource(&pdev->dev, r);
+
 	if (IS_ERR(reg))
+	{
 		return PTR_ERR(reg);
+	}
 
 	sunxi_factors_register(np, &sun4i_a10_mod0_data,
-			       &sun4i_a10_mod0_lock, reg);
+						   &sun4i_a10_mod0_lock, reg);
 	return 0;
 }
 
-static const struct of_device_id sun4i_a10_mod0_clk_dt_ids[] = {
+static const struct of_device_id sun4i_a10_mod0_clk_dt_ids[] =
+{
 	{ .compatible = "allwinner,sun4i-a10-mod0-clk" },
 	{ /* sentinel */ }
 };
 
-static struct platform_driver sun4i_a10_mod0_clk_driver = {
+static struct platform_driver sun4i_a10_mod0_clk_driver =
+{
 	.driver = {
 		.name = "sun4i-a10-mod0-clk",
 		.of_match_table = sun4i_a10_mod0_clk_dt_ids,
@@ -127,7 +148,8 @@ static struct platform_driver sun4i_a10_mod0_clk_driver = {
 };
 builtin_platform_driver(sun4i_a10_mod0_clk_driver);
 
-static const struct factors_data sun9i_a80_mod0_data __initconst = {
+static const struct factors_data sun9i_a80_mod0_data __initconst =
+{
 	.enable = 31,
 	.mux = 24,
 	.muxmask = BIT(3) | BIT(2) | BIT(1) | BIT(0),
@@ -140,14 +162,16 @@ static void __init sun9i_a80_mod0_setup(struct device_node *node)
 	void __iomem *reg;
 
 	reg = of_io_request_and_map(node, 0, of_node_full_name(node));
-	if (IS_ERR(reg)) {
+
+	if (IS_ERR(reg))
+	{
 		pr_err("Could not get registers for mod0-clk: %s\n",
-		       node->name);
+			   node->name);
 		return;
 	}
 
 	sunxi_factors_register(node, &sun9i_a80_mod0_data,
-			       &sun4i_a10_mod0_lock, reg);
+						   &sun4i_a10_mod0_lock, reg);
 }
 CLK_OF_DECLARE(sun9i_a80_mod0, "allwinner,sun9i-a80-mod0-clk", sun9i_a80_mod0_setup);
 
@@ -159,13 +183,15 @@ static void __init sun5i_a13_mbus_setup(struct device_node *node)
 	void __iomem *reg;
 
 	reg = of_iomap(node, 0);
-	if (!reg) {
+
+	if (!reg)
+	{
 		pr_err("Could not get registers for a13-mbus-clk\n");
 		return;
 	}
 
 	mbus = sunxi_factors_register(node, &sun4i_a10_mod0_data,
-				      &sun5i_a13_mbus_lock, reg);
+								  &sun5i_a13_mbus_lock, reg);
 
 	/* The MBUS clocks needs to be always enabled */
 	__clk_get(mbus);
@@ -173,7 +199,8 @@ static void __init sun5i_a13_mbus_setup(struct device_node *node)
 }
 CLK_OF_DECLARE(sun5i_a13_mbus, "allwinner,sun5i-a13-mbus-clk", sun5i_a13_mbus_setup);
 
-struct mmc_phase {
+struct mmc_phase
+{
 	struct clk_hw		hw;
 	u8			offset;
 	void __iomem		*reg;
@@ -195,27 +222,41 @@ static int mmc_get_phase(struct clk_hw *hw)
 	delay = (value >> phase->offset) & 0x3;
 
 	if (!delay)
+	{
 		return 180;
+	}
 
 	/* Get the main MMC clock */
 	mmc = clk_get_parent(clk);
+
 	if (!mmc)
+	{
 		return -EINVAL;
+	}
 
 	/* And its rate */
 	mmc_rate = clk_get_rate(mmc);
+
 	if (!mmc_rate)
+	{
 		return -EINVAL;
+	}
 
 	/* Now, get the MMC parent (most likely some PLL) */
 	mmc_parent = clk_get_parent(mmc);
+
 	if (!mmc_parent)
+	{
 		return -EINVAL;
+	}
 
 	/* And its rate */
 	mmc_parent_rate = clk_get_rate(mmc_parent);
+
 	if (!mmc_parent_rate)
+	{
 		return -EINVAL;
+	}
 
 	/* Get MMC clock divider */
 	mmc_div = mmc_parent_rate / mmc_rate;
@@ -235,25 +276,38 @@ static int mmc_set_phase(struct clk_hw *hw, int degrees)
 
 	/* Get the main MMC clock */
 	mmc = clk_get_parent(clk);
+
 	if (!mmc)
+	{
 		return -EINVAL;
+	}
 
 	/* And its rate */
 	mmc_rate = clk_get_rate(mmc);
+
 	if (!mmc_rate)
+	{
 		return -EINVAL;
+	}
 
 	/* Now, get the MMC parent (most likely some PLL) */
 	mmc_parent = clk_get_parent(mmc);
+
 	if (!mmc_parent)
+	{
 		return -EINVAL;
+	}
 
 	/* And its rate */
 	mmc_parent_rate = clk_get_rate(mmc_parent);
-	if (!mmc_parent_rate)
-		return -EINVAL;
 
-	if (degrees != 180) {
+	if (!mmc_parent_rate)
+	{
+		return -EINVAL;
+	}
+
+	if (degrees != 180)
+	{
 		u16 step, mmc_div;
 
 		/* Get MMC clock divider */
@@ -274,7 +328,9 @@ static int mmc_set_phase(struct clk_hw *hw, int degrees)
 		 */
 		step = DIV_ROUND_CLOSEST(360, mmc_div);
 		delay = DIV_ROUND_CLOSEST(degrees, step);
-	} else {
+	}
+	else
+	{
 		delay = 0;
 	}
 
@@ -288,7 +344,8 @@ static int mmc_set_phase(struct clk_hw *hw, int degrees)
 	return 0;
 }
 
-static const struct clk_ops mmc_clk_ops = {
+static const struct clk_ops mmc_clk_ops =
+{
 	.get_phase	= mmc_get_phase,
 	.set_phase	= mmc_set_phase,
 };
@@ -301,8 +358,8 @@ static const struct clk_ops mmc_clk_ops = {
  * through struct factors_data. The phase clocks parts are identical.
  */
 static void __init sunxi_mmc_setup(struct device_node *node,
-				   const struct factors_data *data,
-				   spinlock_t *lock)
+								   const struct factors_data *data,
+								   spinlock_t *lock)
 {
 	struct clk_onecell_data *clk_data;
 	const char *parent;
@@ -310,28 +367,41 @@ static void __init sunxi_mmc_setup(struct device_node *node,
 	int i;
 
 	reg = of_io_request_and_map(node, 0, of_node_full_name(node));
-	if (IS_ERR(reg)) {
+
+	if (IS_ERR(reg))
+	{
 		pr_err("Couldn't map the %s clock registers\n", node->name);
 		return;
 	}
 
 	clk_data = kmalloc(sizeof(*clk_data), GFP_KERNEL);
+
 	if (!clk_data)
+	{
 		return;
+	}
 
 	clk_data->clks = kcalloc(3, sizeof(*clk_data->clks), GFP_KERNEL);
+
 	if (!clk_data->clks)
+	{
 		goto err_free_data;
+	}
 
 	clk_data->clk_num = 3;
 	clk_data->clks[0] = sunxi_factors_register(node, data, lock, reg);
+
 	if (!clk_data->clks[0])
+	{
 		goto err_free_clks;
+	}
 
 	parent = __clk_get_name(clk_data->clks[0]);
 
-	for (i = 1; i < 3; i++) {
-		struct clk_init_data init = {
+	for (i = 1; i < 3; i++)
+	{
+		struct clk_init_data init =
+		{
 			.num_parents	= 1,
 			.parent_names	= &parent,
 			.ops		= &mmc_clk_ops,
@@ -339,24 +409,35 @@ static void __init sunxi_mmc_setup(struct device_node *node,
 		struct mmc_phase *phase;
 
 		phase = kmalloc(sizeof(*phase), GFP_KERNEL);
+
 		if (!phase)
+		{
 			continue;
+		}
 
 		phase->hw.init = &init;
 		phase->reg = reg;
 		phase->lock = lock;
 
 		if (i == 1)
+		{
 			phase->offset = 8;
+		}
 		else
+		{
 			phase->offset = 20;
+		}
 
 		if (of_property_read_string_index(node, "clock-output-names",
-						  i, &init.name))
+										  i, &init.name))
+		{
 			init.name = node->name;
+		}
 
 		clk_data->clks[i] = clk_register(NULL, &phase->hw);
-		if (IS_ERR(clk_data->clks[i])) {
+
+		if (IS_ERR(clk_data->clks[i]))
+		{
 			kfree(phase);
 			continue;
 		}

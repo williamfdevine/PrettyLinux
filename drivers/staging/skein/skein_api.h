@@ -84,7 +84,8 @@
 /**
  * Which Skein size to use
  */
-enum skein_size {
+enum skein_size
+{
 	SKEIN_256 = 256,     /*!< Skein with 256 bit state */
 	SKEIN_512 = 512,     /*!< Skein with 512 bit state */
 	SKEIN_1024 = 1024    /*!< Skein with 1024 bit state */
@@ -98,10 +99,12 @@ enum skein_size {
  * variables. If Skein implementation changes this, then adapt these
  * structures as well.
  */
-struct skein_ctx {
+struct skein_ctx
+{
 	u64 skein_size;
 	u64 x_save[SKEIN_MAX_STATE_WORDS];   /* save area for state variables */
-	union {
+	union
+	{
 		struct skein_ctx_hdr h;
 		struct skein_256_ctx s256;
 		struct skein_512_ctx s512;
@@ -174,7 +177,7 @@ void skein_reset(struct skein_ctx *ctx);
  *     SKEIN_SUCCESS of SKEIN_FAIL
  */
 int skein_mac_init(struct skein_ctx *ctx, const u8 *key, size_t key_len,
-		   size_t hash_bit_len);
+				   size_t hash_bit_len);
 
 /**
  * Update Skein with the next part of the message.
@@ -189,7 +192,7 @@ int skein_mac_init(struct skein_ctx *ctx, const u8 *key, size_t key_len,
  *     Success or error code.
  */
 int skein_update(struct skein_ctx *ctx, const u8 *msg,
-		 size_t msg_byte_cnt);
+				 size_t msg_byte_cnt);
 
 /**
  * Update the hash with a message bit string.
@@ -205,7 +208,7 @@ int skein_update(struct skein_ctx *ctx, const u8 *msg,
  *     Length of the message in @b bits.
  */
 int skein_update_bits(struct skein_ctx *ctx, const u8 *msg,
-		      size_t msg_bit_cnt);
+					  size_t msg_bit_cnt);
 
 /**
  * Finalize Skein and return the hash.

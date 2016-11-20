@@ -58,49 +58,72 @@ static u32 smi_decode_rc5(u8 *pData, u8 size)
 
 	group_array[group_index++] = 1;
 
-	for (index = 0; index < size; index++) {
+	for (index = 0; index < size; index++)
+	{
 
 		current_bit = (pData[index] & 0x80) ? 1 : 0;
 		bit_count = pData[index] & 0x7f;
 
-		if ((current_bit == 1) && (bit_count >= 2*IR_RC5_MAX_BIT + 1)) {
+		if ((current_bit == 1) && (bit_count >= 2 * IR_RC5_MAX_BIT + 1))
+		{
 			goto process_code;
-		} else if ((bit_count >= IR_RC5_MIN_BIT) &&
-			   (bit_count <= IR_RC5_MAX_BIT)) {
-				group_array[group_index++] = current_bit;
-		} else if ((bit_count > IR_RC5_MAX_BIT) &&
-			   (bit_count <= 2*IR_RC5_MAX_BIT)) {
-				group_array[group_index++] = current_bit;
-				group_array[group_index++] = current_bit;
-		} else {
+		}
+		else if ((bit_count >= IR_RC5_MIN_BIT) &&
+				 (bit_count <= IR_RC5_MAX_BIT))
+		{
+			group_array[group_index++] = current_bit;
+		}
+		else if ((bit_count > IR_RC5_MAX_BIT) &&
+				 (bit_count <= 2 * IR_RC5_MAX_BIT))
+		{
+			group_array[group_index++] = current_bit;
+			group_array[group_index++] = current_bit;
+		}
+		else
+		{
 			goto invalid_timing;
 		}
-		if (group_index >= BITS_PER_COMMAND*GROUPS_PER_BIT)
-			goto process_code;
 
-		if ((group_index == BITS_PER_COMMAND*GROUPS_PER_BIT - 1)
-		    && (group_array[group_index-1] == 0)) {
+		if (group_index >= BITS_PER_COMMAND * GROUPS_PER_BIT)
+		{
+			goto process_code;
+		}
+
+		if ((group_index == BITS_PER_COMMAND * GROUPS_PER_BIT - 1)
+			&& (group_array[group_index - 1] == 0))
+		{
 			group_array[group_index++] = 1;
 			goto process_code;
 		}
 	}
 
 process_code:
-	if (group_index == (BITS_PER_COMMAND*GROUPS_PER_BIT-1))
-		group_array[group_index++] = 1;
 
-	if (group_index == BITS_PER_COMMAND*GROUPS_PER_BIT) {
+	if (group_index == (BITS_PER_COMMAND * GROUPS_PER_BIT - 1))
+	{
+		group_array[group_index++] = 1;
+	}
+
+	if (group_index == BITS_PER_COMMAND * GROUPS_PER_BIT)
+	{
 		command = 0;
-		for (index = 0; index < (BITS_PER_COMMAND*GROUPS_PER_BIT);
-		     index = index + 2) {
+
+		for (index = 0; index < (BITS_PER_COMMAND * GROUPS_PER_BIT);
+			 index = index + 2)
+		{
 			if ((group_array[index] == 1) &&
-			    (group_array[index+1] == 0)) {
+				(group_array[index + 1] == 0))
+			{
 				command |= (1 << (BITS_PER_COMMAND -
-						   (index/2) - 1));
-			} else if ((group_array[index] == 0) &&
-				   (group_array[index+1] == 1)) {
+								  (index / 2) - 1));
+			}
+			else if ((group_array[index] == 0) &&
+					 (group_array[index + 1] == 1))
+			{
 				/* */
-			} else {
+			}
+			else
+			{
 				command = 0xFFFFFFFF;
 				goto invalid_timing;
 			}
@@ -120,26 +143,37 @@ static void smi_ir_decode(struct work_struct *work)
 	u8 index, ucIRCount, readLoop, rc5_command, rc5_system, toggle;
 
 	dwIRControl = smi_read(IR_Init_Reg);
-	if (dwIRControl & rbIRVld) {
+
+	if (dwIRControl & rbIRVld)
+	{
 		ucIRCount = (u8) smi_read(IR_Data_Cnt);
 
 		if (ucIRCount < 4)
+		{
 			goto end_ir_decode;
-
-		readLoop = ucIRCount/4;
-		if (ucIRCount % 4)
-			readLoop += 1;
-		for (index = 0; index < readLoop; index++) {
-			dwIRData = smi_read(IR_DATA_BUFFER_BASE + (index*4));
-
-			ir->irData[index*4 + 0] = (u8)(dwIRData);
-			ir->irData[index*4 + 1] = (u8)(dwIRData >> 8);
-			ir->irData[index*4 + 2] = (u8)(dwIRData >> 16);
-			ir->irData[index*4 + 3] = (u8)(dwIRData >> 24);
 		}
+
+		readLoop = ucIRCount / 4;
+
+		if (ucIRCount % 4)
+		{
+			readLoop += 1;
+		}
+
+		for (index = 0; index < readLoop; index++)
+		{
+			dwIRData = smi_read(IR_DATA_BUFFER_BASE + (index * 4));
+
+			ir->irData[index * 4 + 0] = (u8)(dwIRData);
+			ir->irData[index * 4 + 1] = (u8)(dwIRData >> 8);
+			ir->irData[index * 4 + 2] = (u8)(dwIRData >> 16);
+			ir->irData[index * 4 + 3] = (u8)(dwIRData >> 24);
+		}
+
 		dwIRCode = smi_decode_rc5(ir->irData, ucIRCount);
 
-		if (dwIRCode != 0xFFFFFFFF) {
+		if (dwIRCode != 0xFFFFFFFF)
+		{
 			rc5_command = dwIRCode & 0x3F;
 			rc5_system = (dwIRCode & 0x7C0) >> 6;
 			toggle = (dwIRCode & 0x800) ? 1 : 0;
@@ -147,6 +181,7 @@ static void smi_ir_decode(struct work_struct *work)
 			rc_keydown(rc_dev, RC_TYPE_RC5, scancode, toggle);
 		}
 	}
+
 end_ir_decode:
 	smi_set(IR_Init_Reg, 0x04);
 	smi_ir_enableInterrupt(ir);
@@ -157,12 +192,14 @@ int smi_ir_irq(struct smi_rc *ir, u32 int_status)
 {
 	int handled = 0;
 
-	if (int_status & IR_X_INT) {
+	if (int_status & IR_X_INT)
+	{
 		smi_ir_disableInterrupt(ir);
 		smi_ir_clearInterrupt(ir);
 		schedule_work(&ir->work);
 		handled = 1;
 	}
+
 	return handled;
 }
 
@@ -184,14 +221,17 @@ int smi_ir_init(struct smi_dev *dev)
 	struct smi_rc *ir = &dev->ir;
 
 	rc_dev = rc_allocate_device();
+
 	if (!rc_dev)
+	{
 		return -ENOMEM;
+	}
 
 	/* init input device */
 	snprintf(ir->input_name, sizeof(ir->input_name), "IR (%s)",
-		 dev->info->name);
+			 dev->info->name);
 	snprintf(ir->input_phys, sizeof(ir->input_phys), "pci-%s/ir0",
-		 pci_name(dev->pci_dev));
+			 pci_name(dev->pci_dev));
 
 	rc_dev->driver_name = "SMI_PCIe";
 	rc_dev->input_phys = ir->input_phys;
@@ -212,8 +252,11 @@ int smi_ir_init(struct smi_dev *dev)
 	smi_ir_disableInterrupt(ir);
 
 	ret = rc_register_device(rc_dev);
+
 	if (ret)
+	{
 		goto ir_err;
+	}
 
 	return 0;
 ir_err:

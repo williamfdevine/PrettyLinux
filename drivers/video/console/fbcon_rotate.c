@@ -27,28 +27,34 @@ static int fbcon_rotate_font(struct fb_info *info, struct vc_data *vc)
 	u8 *dst;
 
 	if (vc->vc_font.data == ops->fontdata &&
-	    ops->p->con_rotate == ops->cur_rotate)
+		ops->p->con_rotate == ops->cur_rotate)
+	{
 		goto finished;
+	}
 
 	src = ops->fontdata = vc->vc_font.data;
 	ops->cur_rotate = ops->p->con_rotate;
 	len = (!ops->p->userfont) ? 256 : FNTCHARCNT(src);
-	s_cellsize = ((vc->vc_font.width + 7)/8) *
-		vc->vc_font.height;
+	s_cellsize = ((vc->vc_font.width + 7) / 8) *
+				 vc->vc_font.height;
 	d_cellsize = s_cellsize;
 
 	if (ops->rotate == FB_ROTATE_CW ||
-	    ops->rotate == FB_ROTATE_CCW)
-		d_cellsize = ((vc->vc_font.height + 7)/8) *
-			vc->vc_font.width;
+		ops->rotate == FB_ROTATE_CCW)
+		d_cellsize = ((vc->vc_font.height + 7) / 8) *
+					 vc->vc_font.width;
 
 	if (info->fbops->fb_sync)
+	{
 		info->fbops->fb_sync(info);
+	}
 
-	if (ops->fd_size < d_cellsize * len) {
+	if (ops->fd_size < d_cellsize * len)
+	{
 		dst = kmalloc(d_cellsize * len, GFP_KERNEL);
 
-		if (dst == NULL) {
+		if (dst == NULL)
+		{
 			err = -ENOMEM;
 			goto finished;
 		}
@@ -61,32 +67,41 @@ static int fbcon_rotate_font(struct fb_info *info, struct vc_data *vc)
 	dst = ops->fontbuffer;
 	memset(dst, 0, ops->fd_size);
 
-	switch (ops->rotate) {
-	case FB_ROTATE_UD:
-		for (i = len; i--; ) {
-			rotate_ud(src, dst, vc->vc_font.width,
-				  vc->vc_font.height);
+	switch (ops->rotate)
+	{
+		case FB_ROTATE_UD:
+			for (i = len; i--; )
+			{
+				rotate_ud(src, dst, vc->vc_font.width,
+						  vc->vc_font.height);
 
-			src += s_cellsize;
-			dst += d_cellsize;
-		}
-		break;
-	case FB_ROTATE_CW:
-		for (i = len; i--; ) {
-			rotate_cw(src, dst, vc->vc_font.width,
-				  vc->vc_font.height);
-			src += s_cellsize;
-			dst += d_cellsize;
-		}
-		break;
-	case FB_ROTATE_CCW:
-		for (i = len; i--; ) {
-			rotate_ccw(src, dst, vc->vc_font.width,
-				   vc->vc_font.height);
-			src += s_cellsize;
-			dst += d_cellsize;
-		}
-		break;
+				src += s_cellsize;
+				dst += d_cellsize;
+			}
+
+			break;
+
+		case FB_ROTATE_CW:
+			for (i = len; i--; )
+			{
+				rotate_cw(src, dst, vc->vc_font.width,
+						  vc->vc_font.height);
+				src += s_cellsize;
+				dst += d_cellsize;
+			}
+
+			break;
+
+		case FB_ROTATE_CCW:
+			for (i = len; i--; )
+			{
+				rotate_ccw(src, dst, vc->vc_font.width,
+						   vc->vc_font.height);
+				src += s_cellsize;
+				dst += d_cellsize;
+			}
+
+			break;
 	}
 
 finished:
@@ -97,16 +112,19 @@ void fbcon_set_rotate(struct fbcon_ops *ops)
 {
 	ops->rotate_font = fbcon_rotate_font;
 
-	switch(ops->rotate) {
-	case FB_ROTATE_CW:
-		fbcon_rotate_cw(ops);
-		break;
-	case FB_ROTATE_UD:
-		fbcon_rotate_ud(ops);
-		break;
-	case FB_ROTATE_CCW:
-		fbcon_rotate_ccw(ops);
-		break;
+	switch (ops->rotate)
+	{
+		case FB_ROTATE_CW:
+			fbcon_rotate_cw(ops);
+			break;
+
+		case FB_ROTATE_UD:
+			fbcon_rotate_ud(ops);
+			break;
+
+		case FB_ROTATE_CCW:
+			fbcon_rotate_ccw(ops);
+			break;
 	}
 }
 EXPORT_SYMBOL(fbcon_set_rotate);

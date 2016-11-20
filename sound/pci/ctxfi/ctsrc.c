@@ -29,7 +29,8 @@ static int src_default_config_memrd(struct src *src);
 static int src_default_config_memwr(struct src *src);
 static int src_default_config_arcrw(struct src *src);
 
-static int (*src_default_config[3])(struct src *) = {
+static int (*src_default_config[3])(struct src *) =
+{
 	[MEMRD] = src_default_config_memrd,
 	[MEMWR] = src_default_config_memwr,
 	[ARCRW] = src_default_config_arcrw
@@ -183,23 +184,30 @@ static int src_commit_write(struct src *src)
 
 	hw = src->rsc.hw;
 	src->rsc.ops->master(&src->rsc);
-	if (src->rsc.msr > 1) {
+
+	if (src->rsc.msr > 1)
+	{
 		/* Save dirty flags for conjugate resource programming */
 		dirty = hw->src_get_dirty(src->rsc.ctrl_blk) & conj_mask;
 	}
+
 	hw->src_commit_write(hw, src->rsc.ops->index(&src->rsc),
-						src->rsc.ctrl_blk);
+						 src->rsc.ctrl_blk);
 
 	/* Program conjugate parameter mixer resources */
 	if (MEMWR == src->mode)
+	{
 		return 0;
+	}
 
-	for (i = 1; i < src->rsc.msr; i++) {
+	for (i = 1; i < src->rsc.msr; i++)
+	{
 		src->rsc.ops->next_conj(&src->rsc);
 		hw->src_set_dirty(src->rsc.ctrl_blk, dirty);
 		hw->src_commit_write(hw, src->rsc.ops->index(&src->rsc),
-							src->rsc.ctrl_blk);
+							 src->rsc.ctrl_blk);
 	}
+
 	src->rsc.ops->master(&src->rsc);
 
 	return 0;
@@ -211,7 +219,7 @@ static int src_get_ca(struct src *src)
 
 	hw = src->rsc.hw;
 	return hw->src_get_ca(hw, src->rsc.ops->index(&src->rsc),
-						src->rsc.ctrl_blk);
+						  src->rsc.ctrl_blk);
 }
 
 static int src_init(struct src *src)
@@ -233,8 +241,11 @@ static int src_default_config_memrd(struct src *src)
 
 	hw->src_set_state(src->rsc.ctrl_blk, SRC_STATE_OFF);
 	hw->src_set_bm(src->rsc.ctrl_blk, 1);
+
 	for (rsr = 0, msr = src->rsc.msr; msr > 1; msr >>= 1)
+	{
 		rsr++;
+	}
 
 	hw->src_set_rsr(src->rsc.ctrl_blk, rsr);
 	hw->src_set_sf(src->rsc.ctrl_blk, SRC_SF_S16);
@@ -253,14 +264,16 @@ static int src_default_config_memrd(struct src *src)
 
 	src->rsc.ops->master(&src->rsc);
 	hw->src_commit_write(hw, src->rsc.ops->index(&src->rsc),
-						src->rsc.ctrl_blk);
+						 src->rsc.ctrl_blk);
 
-	for (msr = 1; msr < src->rsc.msr; msr++) {
+	for (msr = 1; msr < src->rsc.msr; msr++)
+	{
 		src->rsc.ops->next_conj(&src->rsc);
 		hw->src_set_pitch(src->rsc.ctrl_blk, 0x1000000);
 		hw->src_commit_write(hw, src->rsc.ops->index(&src->rsc),
-							src->rsc.ctrl_blk);
+							 src->rsc.ctrl_blk);
 	}
+
 	src->rsc.ops->master(&src->rsc);
 
 	return 0;
@@ -289,7 +302,7 @@ static int src_default_config_memwr(struct src *src)
 
 	src->rsc.ops->master(&src->rsc);
 	hw->src_commit_write(hw, src->rsc.ops->index(&src->rsc),
-						src->rsc.ctrl_blk);
+						 src->rsc.ctrl_blk);
 
 	return 0;
 }
@@ -302,8 +315,11 @@ static int src_default_config_arcrw(struct src *src)
 
 	hw->src_set_state(src->rsc.ctrl_blk, SRC_STATE_OFF);
 	hw->src_set_bm(src->rsc.ctrl_blk, 0);
+
 	for (rsr = 0, msr = src->rsc.msr; msr > 1; msr >>= 1)
+	{
 		rsr++;
+	}
 
 	hw->src_set_rsr(src->rsc.ctrl_blk, rsr);
 	hw->src_set_sf(src->rsc.ctrl_blk, SRC_SF_F32);
@@ -324,18 +340,22 @@ static int src_default_config_arcrw(struct src *src)
 
 	dirty = hw->src_get_dirty(src->rsc.ctrl_blk);
 	src->rsc.ops->master(&src->rsc);
-	for (msr = 0; msr < src->rsc.msr; msr++) {
+
+	for (msr = 0; msr < src->rsc.msr; msr++)
+	{
 		hw->src_set_dirty(src->rsc.ctrl_blk, dirty);
 		hw->src_commit_write(hw, src->rsc.ops->index(&src->rsc),
-							src->rsc.ctrl_blk);
+							 src->rsc.ctrl_blk);
 		src->rsc.ops->next_conj(&src->rsc);
 	}
+
 	src->rsc.ops->master(&src->rsc);
 
 	return 0;
 }
 
-static const struct src_rsc_ops src_rsc_ops = {
+static const struct src_rsc_ops src_rsc_ops =
+{
 	.set_state		= src_set_state,
 	.set_bm			= src_set_bm,
 	.set_sf			= src_set_sf,
@@ -358,17 +378,22 @@ static const struct src_rsc_ops src_rsc_ops = {
 
 static int
 src_rsc_init(struct src *src, u32 idx,
-	     const struct src_desc *desc, struct src_mgr *mgr)
+			 const struct src_desc *desc, struct src_mgr *mgr)
 {
 	int err;
 	int i, n;
 	struct src *p;
 
 	n = (MEMRD == desc->mode) ? desc->multi : 1;
-	for (i = 0, p = src; i < n; i++, p++) {
+
+	for (i = 0, p = src; i < n; i++, p++)
+	{
 		err = rsc_init(&p->rsc, idx + i, SRC, desc->msr, mgr->mgr.hw);
+
 		if (err)
+		{
 			goto error1;
+		}
 
 		/* Initialize src specific rsc operations */
 		p->ops = &src_rsc_ops;
@@ -378,6 +403,7 @@ src_rsc_init(struct src *src, u32 idx,
 		mgr->src_enable(mgr, p);
 		p->intlv = p + 1;
 	}
+
 	(--p)->intlv = NULL;	/* Set @intlv of the last SRC to NULL */
 
 	mgr->commit_write(mgr);
@@ -385,10 +411,13 @@ src_rsc_init(struct src *src, u32 idx,
 	return 0;
 
 error1:
-	for (i--, p--; i >= 0; i--, p--) {
+
+	for (i--, p--; i >= 0; i--, p--)
+	{
 		mgr->src_disable(mgr, p);
 		rsc_uninit(&p->rsc);
 	}
+
 	mgr->commit_write(mgr);
 	return err;
 }
@@ -399,7 +428,9 @@ static int src_rsc_uninit(struct src *src, struct src_mgr *mgr)
 	struct src *p;
 
 	n = (MEMRD == src->mode) ? src->multi : 1;
-	for (i = 0, p = src; i < n; i++, p++) {
+
+	for (i = 0, p = src; i < n; i++, p++)
+	{
 		mgr->src_disable(mgr, p);
 		rsc_uninit(&p->rsc);
 		p->multi = 0;
@@ -407,6 +438,7 @@ static int src_rsc_uninit(struct src *src, struct src_mgr *mgr)
 		p->mode = NUM_SRCMODES;
 		p->intlv = NULL;
 	}
+
 	mgr->commit_write(mgr);
 
 	return 0;
@@ -424,32 +456,47 @@ get_src_rsc(struct src_mgr *mgr, const struct src_desc *desc, struct src **rsrc)
 
 	/* Check whether there are sufficient src resources to meet request. */
 	spin_lock_irqsave(&mgr->mgr_lock, flags);
+
 	if (MEMRD == desc->mode)
+	{
 		err = mgr_get_resource(&mgr->mgr, desc->multi, &idx);
+	}
 	else
+	{
 		err = mgr_get_resource(&mgr->mgr, 1, &idx);
+	}
 
 	spin_unlock_irqrestore(&mgr->mgr_lock, flags);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(mgr->card->dev,
-			"Can't meet SRC resource request!\n");
+				"Can't meet SRC resource request!\n");
 		return err;
 	}
 
 	/* Allocate mem for master src resource */
 	if (MEMRD == desc->mode)
+	{
 		src = kcalloc(desc->multi, sizeof(*src), GFP_KERNEL);
+	}
 	else
+	{
 		src = kzalloc(sizeof(*src), GFP_KERNEL);
+	}
 
-	if (!src) {
+	if (!src)
+	{
 		err = -ENOMEM;
 		goto error1;
 	}
 
 	err = src_rsc_init(src, idx, desc, mgr);
+
 	if (err)
+	{
 		goto error2;
+	}
 
 	*rsrc = src;
 
@@ -459,10 +506,15 @@ error2:
 	kfree(src);
 error1:
 	spin_lock_irqsave(&mgr->mgr_lock, flags);
+
 	if (MEMRD == desc->mode)
+	{
 		mgr_put_resource(&mgr->mgr, desc->multi, idx);
+	}
 	else
+	{
 		mgr_put_resource(&mgr->mgr, 1, idx);
+	}
 
 	spin_unlock_irqrestore(&mgr->mgr_lock, flags);
 	return err;
@@ -474,11 +526,14 @@ static int put_src_rsc(struct src_mgr *mgr, struct src *src)
 
 	spin_lock_irqsave(&mgr->mgr_lock, flags);
 	src->rsc.ops->master(&src->rsc);
+
 	if (MEMRD == src->mode)
 		mgr_put_resource(&mgr->mgr, src->multi,
-				 src->rsc.ops->index(&src->rsc));
+						 src->rsc.ops->index(&src->rsc));
 	else
+	{
 		mgr_put_resource(&mgr->mgr, 1, src->rsc.ops->index(&src->rsc));
+	}
 
 	spin_unlock_irqrestore(&mgr->mgr_lock, flags);
 	src_rsc_uninit(src, mgr);
@@ -493,11 +548,14 @@ static int src_enable_s(struct src_mgr *mgr, struct src *src)
 	int i;
 
 	src->rsc.ops->master(&src->rsc);
-	for (i = 0; i < src->rsc.msr; i++) {
+
+	for (i = 0; i < src->rsc.msr; i++)
+	{
 		hw->src_mgr_enbs_src(mgr->mgr.ctrl_blk,
-				     src->rsc.ops->index(&src->rsc));
+							 src->rsc.ops->index(&src->rsc));
 		src->rsc.ops->next_conj(&src->rsc);
 	}
+
 	src->rsc.ops->master(&src->rsc);
 
 	return 0;
@@ -509,11 +567,14 @@ static int src_enable(struct src_mgr *mgr, struct src *src)
 	int i;
 
 	src->rsc.ops->master(&src->rsc);
-	for (i = 0; i < src->rsc.msr; i++) {
+
+	for (i = 0; i < src->rsc.msr; i++)
+	{
 		hw->src_mgr_enb_src(mgr->mgr.ctrl_blk,
-				    src->rsc.ops->index(&src->rsc));
+							src->rsc.ops->index(&src->rsc));
 		src->rsc.ops->next_conj(&src->rsc);
 	}
+
 	src->rsc.ops->master(&src->rsc);
 
 	return 0;
@@ -525,11 +586,14 @@ static int src_disable(struct src_mgr *mgr, struct src *src)
 	int i;
 
 	src->rsc.ops->master(&src->rsc);
-	for (i = 0; i < src->rsc.msr; i++) {
+
+	for (i = 0; i < src->rsc.msr; i++)
+	{
 		hw->src_mgr_dsb_src(mgr->mgr.ctrl_blk,
-				    src->rsc.ops->index(&src->rsc));
+							src->rsc.ops->index(&src->rsc));
 		src->rsc.ops->next_conj(&src->rsc);
 	}
+
 	src->rsc.ops->master(&src->rsc);
 
 	return 0;
@@ -551,12 +615,18 @@ int src_mgr_create(struct hw *hw, struct src_mgr **rsrc_mgr)
 
 	*rsrc_mgr = NULL;
 	src_mgr = kzalloc(sizeof(*src_mgr), GFP_KERNEL);
+
 	if (!src_mgr)
+	{
 		return -ENOMEM;
+	}
 
 	err = rsc_mgr_init(&src_mgr->mgr, SRC, SRC_RESOURCE_NUM, hw);
+
 	if (err)
+	{
 		goto error1;
+	}
 
 	spin_lock_init(&src_mgr->mgr_lock);
 	conj_mask = hw->src_dirty_conj_mask();
@@ -571,7 +641,9 @@ int src_mgr_create(struct hw *hw, struct src_mgr **rsrc_mgr)
 
 	/* Disable all SRC resources. */
 	for (i = 0; i < 256; i++)
+	{
 		hw->src_mgr_dsb_src(src_mgr->mgr.ctrl_blk, i);
+	}
 
 	hw->src_mgr_commit_write(hw, src_mgr->mgr.ctrl_blk);
 
@@ -611,7 +683,8 @@ static int srcimp_index(const struct rsc *rsc)
 	return container_of(rsc, struct srcimp, rsc)->idx[rsc->conj];
 }
 
-static const struct rsc_ops srcimp_basic_rsc_ops = {
+static const struct rsc_ops srcimp_basic_rsc_ops =
+{
 	.master		= srcimp_master,
 	.next_conj	= srcimp_next_conj,
 	.index		= srcimp_index,
@@ -628,7 +701,8 @@ static int srcimp_map(struct srcimp *srcimp, struct src *src, struct rsc *input)
 	input->ops->master(input);
 
 	/* Program master and conjugate resources */
-	for (i = 0; i < srcimp->rsc.msr; i++) {
+	for (i = 0; i < srcimp->rsc.msr; i++)
+	{
 		entry = &srcimp->imappers[i];
 		entry->slot = input->ops->output_slot(input);
 		entry->user = src->rsc.ops->index(&src->rsc);
@@ -651,10 +725,12 @@ static int srcimp_unmap(struct srcimp *srcimp)
 	int i;
 
 	/* Program master and conjugate resources */
-	for (i = 0; i < srcimp->rsc.msr; i++) {
-		if (srcimp->mapped & (0x1 << i)) {
+	for (i = 0; i < srcimp->rsc.msr; i++)
+	{
+		if (srcimp->mapped & (0x1 << i))
+		{
 			srcimp->mgr->imap_delete(srcimp->mgr,
-						 &srcimp->imappers[i]);
+									 &srcimp->imappers[i]);
 			srcimp->mapped &= ~(0x1 << i);
 		}
 	}
@@ -662,26 +738,32 @@ static int srcimp_unmap(struct srcimp *srcimp)
 	return 0;
 }
 
-static const struct srcimp_rsc_ops srcimp_ops = {
+static const struct srcimp_rsc_ops srcimp_ops =
+{
 	.map = srcimp_map,
 	.unmap = srcimp_unmap
 };
 
 static int srcimp_rsc_init(struct srcimp *srcimp,
-			   const struct srcimp_desc *desc,
-			   struct srcimp_mgr *mgr)
+						   const struct srcimp_desc *desc,
+						   struct srcimp_mgr *mgr)
 {
 	int err;
 
 	err = rsc_init(&srcimp->rsc, srcimp->idx[0],
-		       SRCIMP, desc->msr, mgr->mgr.hw);
+				   SRCIMP, desc->msr, mgr->mgr.hw);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Reserve memory for imapper nodes */
-	srcimp->imappers = kzalloc(sizeof(struct imapper)*desc->msr,
-				   GFP_KERNEL);
-	if (!srcimp->imappers) {
+	srcimp->imappers = kzalloc(sizeof(struct imapper) * desc->msr,
+							   GFP_KERNEL);
+
+	if (!srcimp->imappers)
+	{
 		err = -ENOMEM;
 		goto error1;
 	}
@@ -702,10 +784,12 @@ error1:
 
 static int srcimp_rsc_uninit(struct srcimp *srcimp)
 {
-	if (NULL != srcimp->imappers) {
+	if (NULL != srcimp->imappers)
+	{
 		kfree(srcimp->imappers);
 		srcimp->imappers = NULL;
 	}
+
 	srcimp->ops = NULL;
 	srcimp->mgr = NULL;
 	rsc_uninit(&srcimp->rsc);
@@ -714,8 +798,8 @@ static int srcimp_rsc_uninit(struct srcimp *srcimp)
 }
 
 static int get_srcimp_rsc(struct srcimp_mgr *mgr,
-			  const struct srcimp_desc *desc,
-			  struct srcimp **rsrcimp)
+						  const struct srcimp_desc *desc,
+						  struct srcimp **rsrcimp)
 {
 	int err, i;
 	unsigned int idx;
@@ -726,29 +810,43 @@ static int get_srcimp_rsc(struct srcimp_mgr *mgr,
 
 	/* Allocate mem for SRCIMP resource */
 	srcimp = kzalloc(sizeof(*srcimp), GFP_KERNEL);
+
 	if (!srcimp)
+	{
 		return -ENOMEM;
+	}
 
 	/* Check whether there are sufficient SRCIMP resources. */
 	err = 0;
 	spin_lock_irqsave(&mgr->mgr_lock, flags);
-	for (i = 0; i < desc->msr; i++) {
+
+	for (i = 0; i < desc->msr; i++)
+	{
 		err = mgr_get_resource(&mgr->mgr, 1, &idx);
+
 		if (err)
+		{
 			break;
+		}
 
 		srcimp->idx[i] = idx;
 	}
+
 	spin_unlock_irqrestore(&mgr->mgr_lock, flags);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(mgr->card->dev,
-			"Can't meet SRCIMP resource request!\n");
+				"Can't meet SRCIMP resource request!\n");
 		goto error1;
 	}
 
 	err = srcimp_rsc_init(srcimp, desc, mgr);
+
 	if (err)
+	{
 		goto error1;
+	}
 
 	*rsrcimp = srcimp;
 
@@ -756,8 +854,11 @@ static int get_srcimp_rsc(struct srcimp_mgr *mgr,
 
 error1:
 	spin_lock_irqsave(&mgr->mgr_lock, flags);
+
 	for (i--; i >= 0; i--)
+	{
 		mgr_put_resource(&mgr->mgr, 1, srcimp->idx[i]);
+	}
 
 	spin_unlock_irqrestore(&mgr->mgr_lock, flags);
 	kfree(srcimp);
@@ -770,8 +871,11 @@ static int put_srcimp_rsc(struct srcimp_mgr *mgr, struct srcimp *srcimp)
 	int i;
 
 	spin_lock_irqsave(&mgr->mgr_lock, flags);
+
 	for (i = 0; i < srcimp->rsc.msr; i++)
+	{
 		mgr_put_resource(&mgr->mgr, 1, srcimp->idx[i]);
+	}
 
 	spin_unlock_irqrestore(&mgr->mgr_lock, flags);
 	srcimp_rsc_uninit(srcimp);
@@ -800,11 +904,14 @@ static int srcimp_imap_add(struct srcimp_mgr *mgr, struct imapper *entry)
 	int err;
 
 	spin_lock_irqsave(&mgr->imap_lock, flags);
-	if ((0 == entry->addr) && (mgr->init_imap_added)) {
+
+	if ((0 == entry->addr) && (mgr->init_imap_added))
+	{
 		input_mapper_delete(&mgr->imappers,
-				    mgr->init_imap, srcimp_map_op, mgr);
+							mgr->init_imap, srcimp_map_op, mgr);
 		mgr->init_imap_added = 0;
 	}
+
 	err = input_mapper_add(&mgr->imappers, entry, srcimp_map_op, mgr);
 	spin_unlock_irqrestore(&mgr->imap_lock, flags);
 
@@ -818,11 +925,14 @@ static int srcimp_imap_delete(struct srcimp_mgr *mgr, struct imapper *entry)
 
 	spin_lock_irqsave(&mgr->imap_lock, flags);
 	err = input_mapper_delete(&mgr->imappers, entry, srcimp_map_op, mgr);
-	if (list_empty(&mgr->imappers)) {
+
+	if (list_empty(&mgr->imappers))
+	{
 		input_mapper_add(&mgr->imappers, mgr->init_imap,
-				 srcimp_map_op, mgr);
+						 srcimp_map_op, mgr);
 		mgr->init_imap_added = 1;
 	}
+
 	spin_unlock_irqrestore(&mgr->imap_lock, flags);
 
 	return err;
@@ -836,21 +946,30 @@ int srcimp_mgr_create(struct hw *hw, struct srcimp_mgr **rsrcimp_mgr)
 
 	*rsrcimp_mgr = NULL;
 	srcimp_mgr = kzalloc(sizeof(*srcimp_mgr), GFP_KERNEL);
+
 	if (!srcimp_mgr)
+	{
 		return -ENOMEM;
+	}
 
 	err = rsc_mgr_init(&srcimp_mgr->mgr, SRCIMP, SRCIMP_RESOURCE_NUM, hw);
+
 	if (err)
+	{
 		goto error1;
+	}
 
 	spin_lock_init(&srcimp_mgr->mgr_lock);
 	spin_lock_init(&srcimp_mgr->imap_lock);
 	INIT_LIST_HEAD(&srcimp_mgr->imappers);
 	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
-	if (!entry) {
+
+	if (!entry)
+	{
 		err = -ENOMEM;
 		goto error2;
 	}
+
 	entry->slot = entry->addr = entry->next = entry->user = 0;
 	list_add(&entry->list, &srcimp_mgr->imappers);
 	srcimp_mgr->init_imap = entry;

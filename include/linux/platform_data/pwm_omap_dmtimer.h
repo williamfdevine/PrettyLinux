@@ -53,7 +53,8 @@
 struct omap_dm_timer;
 typedef struct omap_dm_timer pwm_omap_dmtimer;
 
-struct pwm_omap_dmtimer_pdata {
+struct pwm_omap_dmtimer_pdata
+{
 	pwm_omap_dmtimer *(*request_by_node)(struct device_node *np);
 	pwm_omap_dmtimer *(*request_specific)(int timer_id);
 	pwm_omap_dmtimer *(*request)(void);
@@ -74,11 +75,11 @@ struct pwm_omap_dmtimer_pdata {
 	int	(*set_source)(pwm_omap_dmtimer *timer, int source);
 
 	int	(*set_load)(pwm_omap_dmtimer *timer, int autoreload,
-			unsigned int value);
+					unsigned int value);
 	int	(*set_match)(pwm_omap_dmtimer *timer, int enable,
-			unsigned int match);
+					 unsigned int match);
 	int	(*set_pwm)(pwm_omap_dmtimer *timer, int def_on,
-			int toggle, int trigger);
+				   int toggle, int trigger);
 	int	(*set_prescaler)(pwm_omap_dmtimer *timer, int prescaler);
 
 	unsigned int (*read_counter)(pwm_omap_dmtimer *timer);

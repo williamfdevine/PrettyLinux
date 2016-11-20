@@ -96,7 +96,9 @@ static void dnet_get_hwaddr(struct dnet *bp)
 	*((__be16 *)(addr + 4)) = cpu_to_be16(tmp);
 
 	if (is_valid_ether_addr(addr))
+	{
 		memcpy(bp->dev->dev_addr, addr, sizeof(addr));
+	}
 }
 
 static int dnet_mdio_read(struct mii_bus *bus, int mii_id, int regnum)
@@ -105,8 +107,10 @@ static int dnet_mdio_read(struct mii_bus *bus, int mii_id, int regnum)
 	u16 value;
 
 	while (!(dnet_readw_mac(bp, DNET_INTERNAL_GMII_MNG_CTL_REG)
-				& DNET_INTERNAL_GMII_MNG_CMD_FIN))
+			 & DNET_INTERNAL_GMII_MNG_CMD_FIN))
+	{
 		cpu_relax();
+	}
 
 	/* only 5 bits allowed for phy-addr and reg_offset */
 	mii_id &= 0x1f;
@@ -121,8 +125,10 @@ static int dnet_mdio_read(struct mii_bus *bus, int mii_id, int regnum)
 
 	/* wait for end of transfer */
 	while (!(dnet_readw_mac(bp, DNET_INTERNAL_GMII_MNG_CTL_REG)
-				& DNET_INTERNAL_GMII_MNG_CMD_FIN))
+			 & DNET_INTERNAL_GMII_MNG_CMD_FIN))
+	{
 		cpu_relax();
+	}
 
 	value = dnet_readw_mac(bp, DNET_INTERNAL_GMII_MNG_DAT_REG);
 
@@ -132,7 +138,7 @@ static int dnet_mdio_read(struct mii_bus *bus, int mii_id, int regnum)
 }
 
 static int dnet_mdio_write(struct mii_bus *bus, int mii_id, int regnum,
-			   u16 value)
+						   u16 value)
 {
 	struct dnet *bp = bus->priv;
 	u16 tmp;
@@ -140,8 +146,10 @@ static int dnet_mdio_write(struct mii_bus *bus, int mii_id, int regnum,
 	pr_debug("mdio_write %02x:%02x <- %04x\n", mii_id, regnum, value);
 
 	while (!(dnet_readw_mac(bp, DNET_INTERNAL_GMII_MNG_CTL_REG)
-				& DNET_INTERNAL_GMII_MNG_CMD_FIN))
+			 & DNET_INTERNAL_GMII_MNG_CMD_FIN))
+	{
 		cpu_relax();
+	}
 
 	/* prepare for a write operation */
 	tmp = (1 << 13);
@@ -164,8 +172,10 @@ static int dnet_mdio_write(struct mii_bus *bus, int mii_id, int regnum,
 	dnet_writew_mac(bp, DNET_INTERNAL_GMII_MNG_CTL_REG, tmp);
 
 	while (!(dnet_readw_mac(bp, DNET_INTERNAL_GMII_MNG_CTL_REG)
-				& DNET_INTERNAL_GMII_MNG_CMD_FIN))
+			 & DNET_INTERNAL_GMII_MNG_CMD_FIN))
+	{
 		cpu_relax();
+	}
 
 	return 0;
 }
@@ -184,70 +194,87 @@ static void dnet_handle_link_change(struct net_device *dev)
 	mode_reg = dnet_readw_mac(bp, DNET_INTERNAL_MODE_REG);
 	ctl_reg = dnet_readw_mac(bp, DNET_INTERNAL_RXTX_CONTROL_REG);
 
-	if (phydev->link) {
-		if (bp->duplex != phydev->duplex) {
+	if (phydev->link)
+	{
+		if (bp->duplex != phydev->duplex)
+		{
 			if (phydev->duplex)
 				ctl_reg &=
-				    ~(DNET_INTERNAL_RXTX_CONTROL_ENABLEHALFDUP);
+					~(DNET_INTERNAL_RXTX_CONTROL_ENABLEHALFDUP);
 			else
 				ctl_reg |=
-				    DNET_INTERNAL_RXTX_CONTROL_ENABLEHALFDUP;
+					DNET_INTERNAL_RXTX_CONTROL_ENABLEHALFDUP;
 
 			bp->duplex = phydev->duplex;
 			status_change = 1;
 		}
 
-		if (bp->speed != phydev->speed) {
+		if (bp->speed != phydev->speed)
+		{
 			status_change = 1;
-			switch (phydev->speed) {
-			case 1000:
-				mode_reg |= DNET_INTERNAL_MODE_GBITEN;
-				break;
-			case 100:
-			case 10:
-				mode_reg &= ~DNET_INTERNAL_MODE_GBITEN;
-				break;
-			default:
-				printk(KERN_WARNING
-				       "%s: Ack!  Speed (%d) is not "
-				       "10/100/1000!\n", dev->name,
-				       phydev->speed);
-				break;
+
+			switch (phydev->speed)
+			{
+				case 1000:
+					mode_reg |= DNET_INTERNAL_MODE_GBITEN;
+					break;
+
+				case 100:
+				case 10:
+					mode_reg &= ~DNET_INTERNAL_MODE_GBITEN;
+					break;
+
+				default:
+					printk(KERN_WARNING
+						   "%s: Ack!  Speed (%d) is not "
+						   "10/100/1000!\n", dev->name,
+						   phydev->speed);
+					break;
 			}
+
 			bp->speed = phydev->speed;
 		}
 	}
 
-	if (phydev->link != bp->link) {
-		if (phydev->link) {
+	if (phydev->link != bp->link)
+	{
+		if (phydev->link)
+		{
 			mode_reg |=
-			    (DNET_INTERNAL_MODE_RXEN | DNET_INTERNAL_MODE_TXEN);
-		} else {
+				(DNET_INTERNAL_MODE_RXEN | DNET_INTERNAL_MODE_TXEN);
+		}
+		else
+		{
 			mode_reg &=
-			    ~(DNET_INTERNAL_MODE_RXEN |
-			      DNET_INTERNAL_MODE_TXEN);
+				~(DNET_INTERNAL_MODE_RXEN |
+				  DNET_INTERNAL_MODE_TXEN);
 			bp->speed = 0;
 			bp->duplex = -1;
 		}
+
 		bp->link = phydev->link;
 
 		status_change = 1;
 	}
 
-	if (status_change) {
+	if (status_change)
+	{
 		dnet_writew_mac(bp, DNET_INTERNAL_RXTX_CONTROL_REG, ctl_reg);
 		dnet_writew_mac(bp, DNET_INTERNAL_MODE_REG, mode_reg);
 	}
 
 	spin_unlock_irqrestore(&bp->lock, flags);
 
-	if (status_change) {
+	if (status_change)
+	{
 		if (phydev->link)
 			printk(KERN_INFO "%s: link up (%d/%s)\n",
-			       dev->name, phydev->speed,
-			       DUPLEX_FULL == phydev->duplex ? "Full" : "Half");
+				   dev->name, phydev->speed,
+				   DUPLEX_FULL == phydev->duplex ? "Full" : "Half");
 		else
+		{
 			printk(KERN_INFO "%s: link down\n", dev->name);
+		}
 	}
 }
 
@@ -259,7 +286,8 @@ static int dnet_mii_probe(struct net_device *dev)
 	/* find the first phy */
 	phydev = phy_find_first(bp->mii_bus);
 
-	if (!phydev) {
+	if (!phydev)
+	{
 		printk(KERN_ERR "%s: no PHY found\n", dev->name);
 		return -ENODEV;
 	}
@@ -267,26 +295,34 @@ static int dnet_mii_probe(struct net_device *dev)
 	/* TODO : add pin_irq */
 
 	/* attach the mac to the phy */
-	if (bp->capabilities & DNET_HAS_RMII) {
+	if (bp->capabilities & DNET_HAS_RMII)
+	{
 		phydev = phy_connect(dev, phydev_name(phydev),
-				     &dnet_handle_link_change,
-				     PHY_INTERFACE_MODE_RMII);
-	} else {
+							 &dnet_handle_link_change,
+							 PHY_INTERFACE_MODE_RMII);
+	}
+	else
+	{
 		phydev = phy_connect(dev, phydev_name(phydev),
-				     &dnet_handle_link_change,
-				     PHY_INTERFACE_MODE_MII);
+							 &dnet_handle_link_change,
+							 PHY_INTERFACE_MODE_MII);
 	}
 
-	if (IS_ERR(phydev)) {
+	if (IS_ERR(phydev))
+	{
 		printk(KERN_ERR "%s: Could not attach to PHY\n", dev->name);
 		return PTR_ERR(phydev);
 	}
 
 	/* mask with MAC supported features */
 	if (bp->capabilities & DNET_HAS_GIGABIT)
+	{
 		phydev->supported &= PHY_GBIT_FEATURES;
+	}
 	else
+	{
 		phydev->supported &= PHY_BASIC_FEATURES;
+	}
 
 	phydev->supported |= SUPPORTED_Asym_Pause | SUPPORTED_Pause;
 
@@ -304,24 +340,29 @@ static int dnet_mii_init(struct dnet *bp)
 	int err;
 
 	bp->mii_bus = mdiobus_alloc();
+
 	if (bp->mii_bus == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	bp->mii_bus->name = "dnet_mii_bus";
 	bp->mii_bus->read = &dnet_mdio_read;
 	bp->mii_bus->write = &dnet_mdio_write;
 
 	snprintf(bp->mii_bus->id, MII_BUS_ID_SIZE, "%s-%x",
-		bp->pdev->name, bp->pdev->id);
+			 bp->pdev->name, bp->pdev->id);
 
 	bp->mii_bus->priv = bp;
 
-	if (mdiobus_register(bp->mii_bus)) {
+	if (mdiobus_register(bp->mii_bus))
+	{
 		err = -ENXIO;
 		goto err_out;
 	}
 
-	if (dnet_mii_probe(bp->dev) != 0) {
+	if (dnet_mii_probe(bp->dev) != 0)
+	{
 		err = -ENXIO;
 		goto err_out_unregister_bus;
 	}
@@ -348,20 +389,24 @@ static void dnet_update_stats(struct dnet *bp)
 	u32 *end = &bp->hw_stats.rx_byte + 1;
 
 	WARN_ON((unsigned long)(end - p - 1) !=
-		(DNET_RX_BYTE_CNT - DNET_RX_PKT_IGNR_CNT) / 4);
+			(DNET_RX_BYTE_CNT - DNET_RX_PKT_IGNR_CNT) / 4);
 
 	for (; p < end; p++, reg++)
+	{
 		*p += readl(reg);
+	}
 
 	reg = bp->regs + DNET_TX_UNICAST_CNT;
 	p = &bp->hw_stats.tx_unicast;
 	end = &bp->hw_stats.tx_byte + 1;
 
 	WARN_ON((unsigned long)(end - p - 1) !=
-		(DNET_TX_BYTE_CNT - DNET_TX_UNICAST_CNT) / 4);
+			(DNET_TX_BYTE_CNT - DNET_TX_UNICAST_CNT) / 4);
 
 	for (; p < end; p++, reg++)
+	{
 		*p += readl(reg);
+	}
 }
 
 static int dnet_poll(struct napi_struct *napi, int budget)
@@ -376,23 +421,28 @@ static int dnet_poll(struct napi_struct *napi, int budget)
 	u32 cmd_word;
 	int i;
 
-	while (npackets < budget) {
+	while (npackets < budget)
+	{
 		/*
 		 * break out of while loop if there are no more
 		 * packets waiting
 		 */
 		if (!(dnet_readl(bp, RX_FIFO_WCNT) >> 16))
+		{
 			break;
+		}
 
 		cmd_word = dnet_readl(bp, RX_LEN_FIFO);
 		pkt_len = cmd_word & 0xFFFF;
 
 		if (cmd_word & 0xDF180000)
 			printk(KERN_ERR "%s packet receive error %x\n",
-			       __func__, cmd_word);
+				   __func__, cmd_word);
 
 		skb = netdev_alloc_skb(dev, pkt_len + 5);
-		if (skb != NULL) {
+
+		if (skb != NULL)
+		{
 			/* Align IP on 16 byte boundaries */
 			skb_reserve(skb, 2);
 			/*
@@ -400,18 +450,24 @@ static int dnet_poll(struct napi_struct *napi, int budget)
 			 * data area.
 			 */
 			data_ptr = (unsigned int *)skb_put(skb, pkt_len);
+
 			for (i = 0; i < (pkt_len + 3) >> 2; i++)
+			{
 				*data_ptr++ = dnet_readl(bp, RX_DATA_FIFO);
+			}
+
 			skb->protocol = eth_type_trans(skb, dev);
 			netif_receive_skb(skb);
 			npackets++;
-		} else
+		}
+		else
 			printk(KERN_NOTICE
-			       "%s: No memory to allocate a sk_buff of "
-			       "size %u.\n", dev->name, pkt_len);
+				   "%s: No memory to allocate a sk_buff of "
+				   "size %u.\n", dev->name, pkt_len);
 	}
 
-	if (npackets < budget) {
+	if (npackets < budget)
+	{
 		/* We processed all packets available.  Tell NAPI it can
 		 * stop polling then re-enable rx interrupts.
 		 */
@@ -440,7 +496,8 @@ static irqreturn_t dnet_interrupt(int irq, void *dev_id)
 	int_current = int_src & int_enable;
 
 	/* restart the queue if we had stopped it for TX fifo almost full */
-	if (int_current & DNET_INTR_SRC_TX_FIFOAE) {
+	if (int_current & DNET_INTR_SRC_TX_FIFOAE)
+	{
 		int_enable = dnet_readl(bp, INTR_ENB);
 		int_enable &= ~DNET_INTR_ENB_TX_FIFOAE;
 		dnet_writel(bp, int_enable, INTR_ENB);
@@ -450,9 +507,10 @@ static irqreturn_t dnet_interrupt(int irq, void *dev_id)
 
 	/* RX FIFO error checking */
 	if (int_current &
-	    (DNET_INTR_SRC_RX_CMDFIFOFF | DNET_INTR_SRC_RX_DATAFIFOFF)) {
+		(DNET_INTR_SRC_RX_CMDFIFOFF | DNET_INTR_SRC_RX_DATAFIFOFF))
+	{
 		printk(KERN_ERR "%s: RX fifo error %x, irq %x\n", __func__,
-		       dnet_readl(bp, RX_STATUS), int_current);
+			   dnet_readl(bp, RX_STATUS), int_current);
 		/* we can only flush the RX FIFOs */
 		dnet_writel(bp, DNET_SYS_CTL_RXFIFOFLUSH, SYS_CTL);
 		ndelay(500);
@@ -462,9 +520,10 @@ static irqreturn_t dnet_interrupt(int irq, void *dev_id)
 
 	/* TX FIFO error checking */
 	if (int_current &
-	    (DNET_INTR_SRC_TX_FIFOFULL | DNET_INTR_SRC_TX_DISCFRM)) {
+		(DNET_INTR_SRC_TX_FIFOFULL | DNET_INTR_SRC_TX_DISCFRM))
+	{
 		printk(KERN_ERR "%s: TX fifo error %x, irq %x\n", __func__,
-		       dnet_readl(bp, TX_STATUS), int_current);
+			   dnet_readl(bp, TX_STATUS), int_current);
 		/* we can only flush the TX FIFOs */
 		dnet_writel(bp, DNET_SYS_CTL_TXFIFOFLUSH, SYS_CTL);
 		ndelay(500);
@@ -472,8 +531,10 @@ static irqreturn_t dnet_interrupt(int irq, void *dev_id)
 		handled = 1;
 	}
 
-	if (int_current & DNET_INTR_SRC_RX_CMDFIFOAF) {
-		if (napi_schedule_prep(&bp->napi)) {
+	if (int_current & DNET_INTR_SRC_RX_CMDFIFOAF)
+	{
+		if (napi_schedule_prep(&bp->napi))
+		{
 			/*
 			 * There's no point taking any more interrupts
 			 * until we have processed the buffers
@@ -484,11 +545,14 @@ static irqreturn_t dnet_interrupt(int irq, void *dev_id)
 			dnet_writel(bp, int_enable, INTR_ENB);
 			__napi_schedule(&bp->napi);
 		}
+
 		handled = 1;
 	}
 
 	if (!handled)
+	{
 		pr_debug("%s: irq %x remains\n", __func__, int_current);
+	}
 
 	spin_unlock_irqrestore(&bp->lock, flags);
 
@@ -500,8 +564,12 @@ static inline void dnet_print_skb(struct sk_buff *skb)
 {
 	int k;
 	printk(KERN_DEBUG PFX "data:");
+
 	for (k = 0; k < skb->len; k++)
+	{
 		printk(" %02x", (unsigned int)skb->data[k]);
+	}
+
 	printk("\n");
 }
 #else
@@ -520,7 +588,7 @@ static netdev_tx_t dnet_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	tx_status = dnet_readl(bp, TX_STATUS);
 
 	pr_debug("start_xmit: len %u head %p data %p\n",
-	       skb->len, skb->head, skb->data);
+			 skb->len, skb->head, skb->data);
 	dnet_print_skb(skb);
 
 	/* frame size (words) */
@@ -537,9 +605,12 @@ static netdev_tx_t dnet_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	tx_cmd = ((((unsigned long)(skb->data)) & 0x03) << 16) | (u32) skb->len;
 
 	/* check if there is enough room for the current frame */
-	if (wrsz < (DNET_FIFO_SIZE - dnet_readl(bp, TX_FIFO_WCNT))) {
+	if (wrsz < (DNET_FIFO_SIZE - dnet_readl(bp, TX_FIFO_WCNT)))
+	{
 		for (i = 0; i < wrsz; i++)
+		{
 			dnet_writel(bp, *bufp++, TX_DATA_FIFO);
+		}
 
 		/*
 		 * inform MAC that a packet's written and ready to be
@@ -548,7 +619,8 @@ static netdev_tx_t dnet_start_xmit(struct sk_buff *skb, struct net_device *dev)
 		dnet_writel(bp, tx_cmd, TX_LEN_FIFO);
 	}
 
-	if (dnet_readl(bp, TX_FIFO_WCNT) > DNET_FIFO_TX_DATA_AF_TH) {
+	if (dnet_readl(bp, TX_FIFO_WCNT) > DNET_FIFO_TX_DATA_AF_TH)
+	{
 		netif_stop_queue(dev);
 		tx_status = dnet_readl(bp, INTR_SRC);
 		irq_enable = dnet_readl(bp, INTR_ENB);
@@ -584,7 +656,7 @@ static void dnet_reset_hw(struct dnet *bp)
 
 	/* flush rx/tx fifos */
 	dnet_writel(bp, DNET_SYS_CTL_RXFIFOFLUSH | DNET_SYS_CTL_TXFIFOFLUSH,
-			SYS_CTL);
+				SYS_CTL);
 	msleep(1);
 	dnet_writel(bp, 0, SYS_CTL);
 }
@@ -600,15 +672,20 @@ static void dnet_init_hw(struct dnet *bp)
 
 	if (bp->dev->flags & IFF_PROMISC)
 		/* Copy All Frames */
+	{
 		config |= DNET_INTERNAL_RXTX_CONTROL_ENPROMISC;
+	}
+
 	if (!(bp->dev->flags & IFF_BROADCAST))
 		/* No BroadCast */
+	{
 		config |= DNET_INTERNAL_RXTX_CONTROL_RXMULTICAST;
+	}
 
 	config |= DNET_INTERNAL_RXTX_CONTROL_RXPAUSE |
-	    DNET_INTERNAL_RXTX_CONTROL_RXBROADCAST |
-	    DNET_INTERNAL_RXTX_CONTROL_DROPCONTROL |
-	    DNET_INTERNAL_RXTX_CONTROL_DISCFXFCS;
+			  DNET_INTERNAL_RXTX_CONTROL_RXBROADCAST |
+			  DNET_INTERNAL_RXTX_CONTROL_DROPCONTROL |
+			  DNET_INTERNAL_RXTX_CONTROL_DISCFXFCS;
 
 	dnet_writew_mac(bp, DNET_INTERNAL_RXTX_CONTROL_REG, config);
 
@@ -617,10 +694,10 @@ static void dnet_init_hw(struct dnet *bp)
 
 	/* enable RX/TX interrupt, recv packet ready interrupt */
 	dnet_writel(bp, DNET_INTR_ENB_GLOBAL_ENABLE | DNET_INTR_ENB_RX_SUMMARY |
-			DNET_INTR_ENB_TX_SUMMARY | DNET_INTR_ENB_RX_FIFOERR |
-			DNET_INTR_ENB_RX_ERROR | DNET_INTR_ENB_RX_FIFOFULL |
-			DNET_INTR_ENB_TX_FIFOFULL | DNET_INTR_ENB_TX_DISCFRM |
-			DNET_INTR_ENB_RX_PKTRDY, INTR_ENB);
+				DNET_INTR_ENB_TX_SUMMARY | DNET_INTR_ENB_RX_FIFOERR |
+				DNET_INTR_ENB_RX_ERROR | DNET_INTR_ENB_RX_FIFOFULL |
+				DNET_INTR_ENB_TX_FIFOFULL | DNET_INTR_ENB_TX_DISCFRM |
+				DNET_INTR_ENB_RX_PKTRDY, INTR_ENB);
 }
 
 static int dnet_open(struct net_device *dev)
@@ -629,7 +706,9 @@ static int dnet_open(struct net_device *dev)
 
 	/* if the phy is not yet register, retry later */
 	if (!dev->phydev)
+	{
 		return -EAGAIN;
+	}
 
 	napi_enable(&bp->napi);
 	dnet_init_hw(bp);
@@ -652,7 +731,9 @@ static int dnet_close(struct net_device *dev)
 	napi_disable(&bp->napi);
 
 	if (dev->phydev)
+	{
 		phy_stop(dev->phydev);
+	}
 
 	dnet_reset_hw(bp);
 	netif_carrier_off(dev);
@@ -664,7 +745,7 @@ static inline void dnet_print_pretty_hwstats(struct dnet_stats *hwstat)
 {
 	pr_debug("%s\n", __func__);
 	pr_debug("----------------------------- RX statistics "
-		 "-------------------------------\n");
+			 "-------------------------------\n");
 	pr_debug("RX_PKT_IGNR_CNT %-8x\n", hwstat->rx_pkt_ignr);
 	pr_debug("RX_LEN_CHK_ERR_CNT %-8x\n", hwstat->rx_len_chk_err);
 	pr_debug("RX_LNG_FRM_CNT %-8x\n", hwstat->rx_lng_frm);
@@ -682,7 +763,7 @@ static inline void dnet_print_pretty_hwstats(struct dnet_stats *hwstat)
 	pr_debug("RX_UNSUP_OPCD_CNT %-8x\n", hwstat->rx_unsup_opcd);
 	pr_debug("RX_BYTE_CNT %-8x\n", hwstat->rx_byte);
 	pr_debug("----------------------------- TX statistics "
-		 "-------------------------------\n");
+			 "-------------------------------\n");
 	pr_debug("TX_UNICAST_CNT %-8x\n", hwstat->tx_unicast);
 	pr_debug("TX_PAUSE_FRM_CNT %-8x\n", hwstat->tx_pause_frm);
 	pr_debug("TX_MULTICAST_CNT %-8x\n", hwstat->tx_multicast);
@@ -705,21 +786,21 @@ static struct net_device_stats *dnet_get_stats(struct net_device *dev)
 
 	/* Convert HW stats into netdevice stats */
 	nstat->rx_errors = (hwstat->rx_len_chk_err +
-			    hwstat->rx_lng_frm + hwstat->rx_shrt_frm +
-			    /* ignore IGP violation error
-			    hwstat->rx_ipg_viol + */
-			    hwstat->rx_crc_err +
-			    hwstat->rx_pre_shrink +
-			    hwstat->rx_drib_nib + hwstat->rx_unsup_opcd);
+						hwstat->rx_lng_frm + hwstat->rx_shrt_frm +
+						/* ignore IGP violation error
+						hwstat->rx_ipg_viol + */
+						hwstat->rx_crc_err +
+						hwstat->rx_pre_shrink +
+						hwstat->rx_drib_nib + hwstat->rx_unsup_opcd);
 	nstat->tx_errors = hwstat->tx_bad_fcs;
 	nstat->rx_length_errors = (hwstat->rx_len_chk_err +
-				   hwstat->rx_lng_frm +
-				   hwstat->rx_shrt_frm + hwstat->rx_pre_shrink);
+							   hwstat->rx_lng_frm +
+							   hwstat->rx_shrt_frm + hwstat->rx_pre_shrink);
 	nstat->rx_crc_errors = hwstat->rx_crc_err;
 	nstat->rx_frame_errors = hwstat->rx_pre_shrink + hwstat->rx_drib_nib;
 	nstat->rx_packets = hwstat->rx_ok_pkt;
 	nstat->tx_packets = (hwstat->tx_unicast +
-			     hwstat->tx_multicast + hwstat->tx_brdcast);
+						 hwstat->tx_multicast + hwstat->tx_brdcast);
 	nstat->rx_bytes = hwstat->rx_byte;
 	nstat->tx_bytes = hwstat->tx_byte;
 	nstat->multicast = hwstat->rx_multicast;
@@ -735,23 +816,28 @@ static int dnet_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 	struct phy_device *phydev = dev->phydev;
 
 	if (!netif_running(dev))
+	{
 		return -EINVAL;
+	}
 
 	if (!phydev)
+	{
 		return -ENODEV;
+	}
 
 	return phy_mii_ioctl(phydev, rq, cmd);
 }
 
 static void dnet_get_drvinfo(struct net_device *dev,
-			     struct ethtool_drvinfo *info)
+							 struct ethtool_drvinfo *info)
 {
 	strlcpy(info->driver, DRV_NAME, sizeof(info->driver));
 	strlcpy(info->version, DRV_VERSION, sizeof(info->version));
 	strlcpy(info->bus_info, "0", sizeof(info->bus_info));
 }
 
-static const struct ethtool_ops dnet_ethtool_ops = {
+static const struct ethtool_ops dnet_ethtool_ops =
+{
 	.get_drvinfo		= dnet_get_drvinfo,
 	.get_link		= ethtool_op_get_link,
 	.get_ts_info		= ethtool_op_get_ts_info,
@@ -759,7 +845,8 @@ static const struct ethtool_ops dnet_ethtool_ops = {
 	.set_link_ksettings     = phy_ethtool_set_link_ksettings,
 };
 
-static const struct net_device_ops dnet_netdev_ops = {
+static const struct net_device_ops dnet_netdev_ops =
+{
 	.ndo_open		= dnet_open,
 	.ndo_stop		= dnet_close,
 	.ndo_get_stats		= dnet_get_stats,
@@ -782,8 +869,11 @@ static int dnet_probe(struct platform_device *pdev)
 	irq = platform_get_irq(pdev, 0);
 
 	dev = alloc_etherdev(sizeof(*bp));
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	/* TODO: Actually, we have some interesting features... */
 	dev->features |= 0;
@@ -798,16 +888,20 @@ static int dnet_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	bp->regs = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(bp->regs)) {
+
+	if (IS_ERR(bp->regs))
+	{
 		err = PTR_ERR(bp->regs);
 		goto err_out_free_dev;
 	}
 
 	dev->irq = irq;
 	err = request_irq(dev->irq, dnet_interrupt, 0, DRV_NAME, dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Unable to request IRQ %d (error %d)\n",
-		       irq, err);
+				irq, err);
 		goto err_out_free_dev;
 	}
 
@@ -821,36 +915,45 @@ static int dnet_probe(struct platform_device *pdev)
 
 	dnet_get_hwaddr(bp);
 
-	if (!is_valid_ether_addr(dev->dev_addr)) {
+	if (!is_valid_ether_addr(dev->dev_addr))
+	{
 		/* choose a random ethernet address */
 		eth_hw_addr_random(dev);
 		__dnet_set_hwaddr(bp);
 	}
 
 	err = register_netdev(dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Cannot register net device, aborting.\n");
 		goto err_out_free_irq;
 	}
 
 	/* register the PHY board fixup (for Marvell 88E1111) */
 	err = phy_register_fixup_for_uid(0x01410cc0, 0xfffffff0,
-					 dnet_phy_marvell_fixup);
+									 dnet_phy_marvell_fixup);
+
 	/* we can live without it, so just issue a warning */
 	if (err)
+	{
 		dev_warn(&pdev->dev, "Cannot register PHY board fixup.\n");
+	}
 
 	err = dnet_mii_init(bp);
+
 	if (err)
+	{
 		goto err_out_unregister_netdev;
+	}
 
 	dev_info(&pdev->dev, "Dave DNET at 0x%p (0x%08x) irq %d %pM\n",
-	       bp->regs, (unsigned int)res->start, dev->irq, dev->dev_addr);
+			 bp->regs, (unsigned int)res->start, dev->irq, dev->dev_addr);
 	dev_info(&pdev->dev, "has %smdio, %sirq, %sgigabit, %sdma\n",
-	       (bp->capabilities & DNET_HAS_MDIO) ? "" : "no ",
-	       (bp->capabilities & DNET_HAS_IRQ) ? "" : "no ",
-	       (bp->capabilities & DNET_HAS_GIGABIT) ? "" : "no ",
-	       (bp->capabilities & DNET_HAS_DMA) ? "" : "no ");
+			 (bp->capabilities & DNET_HAS_MDIO) ? "" : "no ",
+			 (bp->capabilities & DNET_HAS_IRQ) ? "" : "no ",
+			 (bp->capabilities & DNET_HAS_GIGABIT) ? "" : "no ",
+			 (bp->capabilities & DNET_HAS_DMA) ? "" : "no ");
 	phydev = dev->phydev;
 	phy_attached_info(phydev);
 
@@ -873,10 +976,15 @@ static int dnet_remove(struct platform_device *pdev)
 
 	dev = platform_get_drvdata(pdev);
 
-	if (dev) {
+	if (dev)
+	{
 		bp = netdev_priv(dev);
+
 		if (dev->phydev)
+		{
 			phy_disconnect(dev->phydev);
+		}
+
 		mdiobus_unregister(bp->mii_bus);
 		mdiobus_free(bp->mii_bus);
 		unregister_netdev(dev);
@@ -887,7 +995,8 @@ static int dnet_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver dnet_driver = {
+static struct platform_driver dnet_driver =
+{
 	.probe		= dnet_probe,
 	.remove		= dnet_remove,
 	.driver		= {
@@ -900,4 +1009,4 @@ module_platform_driver(dnet_driver);
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Dave DNET Ethernet driver");
 MODULE_AUTHOR("Ilya Yanok <yanok@emcraft.com>, "
-	      "Matteo Vit <matteo.vit@dave.eu>");
+			  "Matteo Vit <matteo.vit@dave.eu>");

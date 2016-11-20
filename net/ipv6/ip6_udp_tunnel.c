@@ -13,45 +13,59 @@
 #include <net/ip6_checksum.h>
 
 int udp_sock_create6(struct net *net, struct udp_port_cfg *cfg,
-		     struct socket **sockp)
+					 struct socket **sockp)
 {
 	struct sockaddr_in6 udp6_addr;
 	int err;
 	struct socket *sock = NULL;
 
 	err = sock_create_kern(net, AF_INET6, SOCK_DGRAM, 0, &sock);
-	if (err < 0)
-		goto error;
 
-	if (cfg->ipv6_v6only) {
+	if (err < 0)
+	{
+		goto error;
+	}
+
+	if (cfg->ipv6_v6only)
+	{
 		int val = 1;
 
 		err = kernel_setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY,
-					(char *) &val, sizeof(val));
+								(char *) &val, sizeof(val));
+
 		if (err < 0)
+		{
 			goto error;
+		}
 	}
 
 	udp6_addr.sin6_family = AF_INET6;
 	memcpy(&udp6_addr.sin6_addr, &cfg->local_ip6,
-	       sizeof(udp6_addr.sin6_addr));
+		   sizeof(udp6_addr.sin6_addr));
 	udp6_addr.sin6_port = cfg->local_udp_port;
 	err = kernel_bind(sock, (struct sockaddr *)&udp6_addr,
-			  sizeof(udp6_addr));
-	if (err < 0)
-		goto error;
+					  sizeof(udp6_addr));
 
-	if (cfg->peer_udp_port) {
+	if (err < 0)
+	{
+		goto error;
+	}
+
+	if (cfg->peer_udp_port)
+	{
 		udp6_addr.sin6_family = AF_INET6;
 		memcpy(&udp6_addr.sin6_addr, &cfg->peer_ip6,
-		       sizeof(udp6_addr.sin6_addr));
+			   sizeof(udp6_addr.sin6_addr));
 		udp6_addr.sin6_port = cfg->peer_udp_port;
 		err = kernel_connect(sock,
-				     (struct sockaddr *)&udp6_addr,
-				     sizeof(udp6_addr), 0);
+							 (struct sockaddr *)&udp6_addr,
+							 sizeof(udp6_addr), 0);
 	}
+
 	if (err < 0)
+	{
 		goto error;
+	}
 
 	udp_set_no_check6_tx(sock->sk, !cfg->use_udp6_tx_checksums);
 	udp_set_no_check6_rx(sock->sk, !cfg->use_udp6_rx_checksums);
@@ -60,21 +74,24 @@ int udp_sock_create6(struct net *net, struct udp_port_cfg *cfg,
 	return 0;
 
 error:
-	if (sock) {
+
+	if (sock)
+	{
 		kernel_sock_shutdown(sock, SHUT_RDWR);
 		sock_release(sock);
 	}
+
 	*sockp = NULL;
 	return err;
 }
 EXPORT_SYMBOL_GPL(udp_sock_create6);
 
 int udp_tunnel6_xmit_skb(struct dst_entry *dst, struct sock *sk,
-			 struct sk_buff *skb,
-			 struct net_device *dev, struct in6_addr *saddr,
-			 struct in6_addr *daddr,
-			 __u8 prio, __u8 ttl, __be32 label,
-			 __be16 src_port, __be16 dst_port, bool nocheck)
+						 struct sk_buff *skb,
+						 struct net_device *dev, struct in6_addr *saddr,
+						 struct in6_addr *daddr,
+						 __u8 prio, __u8 ttl, __be32 label,
+						 __be16 src_port, __be16 dst_port, bool nocheck)
 {
 	struct udphdr *uh;
 	struct ipv6hdr *ip6h;

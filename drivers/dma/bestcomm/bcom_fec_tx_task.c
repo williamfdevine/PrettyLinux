@@ -25,7 +25,8 @@
  * The size fields contain the number of 32-bit words.
  */
 
-u32 bcom_fec_tx_task[] = {
+u32 bcom_fec_tx_task[] =
+{
 	/* header */
 	0x4243544b,
 	0x2407070d,

@@ -26,7 +26,8 @@
 #include <nvif/class.h>
 
 static const struct nvkm_engine_func
-gm107_ce = {
+	gm107_ce =
+{
 	.intr = gk104_ce_intr,
 	.sclass = {
 		{ -1, -1, KEPLER_DMA_COPY_A },
@@ -37,7 +38,7 @@ gm107_ce = {
 
 int
 gm107_ce_new(struct nvkm_device *device, int index,
-	     struct nvkm_engine **pengine)
+			 struct nvkm_engine **pengine)
 {
 	return nvkm_engine_new_(&gm107_ce, device, index, true, pengine);
 }

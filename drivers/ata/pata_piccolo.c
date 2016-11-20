@@ -30,7 +30,8 @@
 
 static void tosh_set_piomode(struct ata_port *ap, struct ata_device *adev)
 {
-	static const u16 pio[6] = {	/* For reg 0x50 low word & E088 */
+	static const u16 pio[6] =  	/* For reg 0x50 low word & E088 */
+	{
 		0x0566, 0x0433, 0x0311, 0x0201, 0x0200, 0x0100
 	};
 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
@@ -47,26 +48,34 @@ static void tosh_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 	u32 conf;
 	pci_read_config_dword(pdev, 0x5C, &conf);
 	conf &= 0x78FFE088;	/* Keep the other bits */
-	if (adev->dma_mode >= XFER_UDMA_0) {
+
+	if (adev->dma_mode >= XFER_UDMA_0)
+	{
 		int udma = adev->dma_mode - XFER_UDMA_0;
 		conf |= 0x80000000;
 		conf |= (udma + 2) << 28;
 		conf |= (2 - udma) * 0x111;	/* spread into three nibbles */
-	} else {
-		static const u32 mwdma[4] = {
+	}
+	else
+	{
+		static const u32 mwdma[4] =
+		{
 			0x0655, 0x0200, 0x0200, 0x0100
 		};
 		conf |= mwdma[adev->dma_mode - XFER_MW_DMA_0];
 	}
+
 	pci_write_config_dword(pdev, 0x5C, conf);
 }
 
 
-static struct scsi_host_template tosh_sht = {
+static struct scsi_host_template tosh_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations tosh_port_ops = {
+static struct ata_port_operations tosh_port_ops =
+{
 	.inherits	= &ata_bmdma_port_ops,
 	.cable_detect	= ata_cable_unknown,
 	.set_piomode	= tosh_set_piomode,
@@ -85,7 +94,8 @@ static struct ata_port_operations tosh_port_ops = {
 
 static int ata_tosh_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags = ATA_FLAG_SLAVE_POSS,
 		.pio_mask = ATA_PIO5,
 		.mwdma_mask = ATA_MWDMA2,
@@ -97,15 +107,17 @@ static int ata_tosh_init_one(struct pci_dev *dev, const struct pci_device_id *id
 	return ata_pci_bmdma_init_one(dev, ppi, &tosh_sht, NULL, 0);
 }
 
-static struct pci_device_id ata_tosh[] = {
-	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA,PCI_DEVICE_ID_TOSHIBA_PICCOLO_1), },
-	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA,PCI_DEVICE_ID_TOSHIBA_PICCOLO_2),  },
-	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA,PCI_DEVICE_ID_TOSHIBA_PICCOLO_3),  },
-	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA,PCI_DEVICE_ID_TOSHIBA_PICCOLO_5),  },
+static struct pci_device_id ata_tosh[] =
+{
+	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA, PCI_DEVICE_ID_TOSHIBA_PICCOLO_1), },
+	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA, PCI_DEVICE_ID_TOSHIBA_PICCOLO_2),  },
+	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA, PCI_DEVICE_ID_TOSHIBA_PICCOLO_3),  },
+	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA, PCI_DEVICE_ID_TOSHIBA_PICCOLO_5),  },
 	{ 0, },
 };
 
-static struct pci_driver ata_tosh_pci_driver = {
+static struct pci_driver ata_tosh_pci_driver =
+{
 	.name 		= DRV_NAME,
 	.id_table	= ata_tosh,
 	.probe 		= ata_tosh_init_one,

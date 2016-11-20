@@ -36,7 +36,9 @@ void __wil_err_ratelimited(struct wil6210_priv *wil, const char *fmt, ...)
 	va_list args;
 
 	if (!net_ratelimit())
+	{
 		return;
+	}
 
 	va_start(args, fmt);
 	vaf.fmt = fmt;
@@ -52,7 +54,9 @@ void wil_dbg_ratelimited(const struct wil6210_priv *wil, const char *fmt, ...)
 	va_list args;
 
 	if (!net_ratelimit())
+	{
 		return;
+	}
 
 	va_start(args, fmt);
 	vaf.fmt = fmt;

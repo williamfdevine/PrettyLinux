@@ -21,7 +21,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table leadtek_y04g0051[] = {
+static struct rc_map_table leadtek_y04g0051[] =
+{
 	{ 0x0300, KEY_POWER2 },
 	{ 0x0303, KEY_SCREEN },
 	{ 0x0304, KEY_RIGHT },
@@ -74,7 +75,8 @@ static struct rc_map_table leadtek_y04g0051[] = {
 	{ 0x035f, KEY_CHANNELDOWN },
 };
 
-static struct rc_map_list leadtek_y04g0051_map = {
+static struct rc_map_list leadtek_y04g0051_map =
+{
 	.map = {
 		.scan    = leadtek_y04g0051,
 		.size    = ARRAY_SIZE(leadtek_y04g0051),

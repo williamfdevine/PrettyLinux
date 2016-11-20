@@ -55,7 +55,7 @@
  **/
 int
 lpfc_dump_static_vport(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb,
-		uint16_t offset)
+					   uint16_t offset)
 {
 	MAILBOX_t *mb;
 	struct lpfc_dmabuf *mp;
@@ -71,24 +71,30 @@ lpfc_dump_static_vport(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb,
 	mb->mbxOwner = OWN_HOST;
 
 	/* For SLI3 HBAs data is embedded in mailbox */
-	if (phba->sli_rev != LPFC_SLI_REV4) {
+	if (phba->sli_rev != LPFC_SLI_REV4)
+	{
 		mb->un.varDmp.cv = 1;
-		mb->un.varDmp.word_cnt = DMP_RSP_SIZE/sizeof(uint32_t);
+		mb->un.varDmp.word_cnt = DMP_RSP_SIZE / sizeof(uint32_t);
 		return 0;
 	}
 
 	/* For SLI4 HBAs driver need to allocate memory */
 	mp = kmalloc(sizeof(struct lpfc_dmabuf), GFP_KERNEL);
-	if (mp)
-		mp->virt = lpfc_mbuf_alloc(phba, 0, &mp->phys);
 
-	if (!mp || !mp->virt) {
+	if (mp)
+	{
+		mp->virt = lpfc_mbuf_alloc(phba, 0, &mp->phys);
+	}
+
+	if (!mp || !mp->virt)
+	{
 		kfree(mp);
 		lpfc_printf_log(phba, KERN_ERR, LOG_MBOX,
-			"2605 lpfc_dump_static_vport: memory"
-			" allocation failed\n");
+						"2605 lpfc_dump_static_vport: memory"
+						" allocation failed\n");
 		return 1;
 	}
+
 	memset(mp->virt, 0, LPFC_BPL_SIZE);
 	INIT_LIST_HEAD(&mp->list);
 	/* save address for completion */
@@ -131,7 +137,7 @@ lpfc_down_link(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
  **/
 void
 lpfc_dump_mem(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb, uint16_t offset,
-		uint16_t region_id)
+			  uint16_t region_id)
 {
 	MAILBOX_t *mb;
 	void *ctx;
@@ -178,8 +184,12 @@ lpfc_dump_wakeup_param(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 	mb->mbxOwner = OWN_HOST;
 	mb->un.varDmp.cv = 1;
 	mb->un.varDmp.type = DMP_NV_PARAMS;
+
 	if (phba->sli_rev < LPFC_SLI_REV4)
+	{
 		mb->un.varDmp.entry_index = 0;
+	}
+
 	mb->un.varDmp.region_id = WAKE_UP_PARMS_REGION_ID;
 	mb->un.varDmp.word_cnt = WAKE_UP_PARMS_WORD_SIZE;
 	mb->un.varDmp.co = 0;
@@ -200,7 +210,7 @@ lpfc_dump_wakeup_param(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
  * in the HBA's NVRAM. Specifically, the HBA's WWNN and WWPN.
  **/
 void
-lpfc_read_nv(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
+lpfc_read_nv(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 {
 	MAILBOX_t *mb;
 
@@ -225,8 +235,8 @@ lpfc_read_nv(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
  * event support on a IOCB ring.
  **/
 void
-lpfc_config_async(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb,
-		uint32_t ring)
+lpfc_config_async(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb,
+				  uint32_t ring)
 {
 	MAILBOX_t *mb;
 
@@ -252,7 +262,7 @@ lpfc_config_async(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb,
  * beat mailbox command indicates the health of the HBA.
  **/
 void
-lpfc_heart_beat(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
+lpfc_heart_beat(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 {
 	MAILBOX_t *mb;
 
@@ -286,7 +296,7 @@ lpfc_heart_beat(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
  **/
 int
 lpfc_read_topology(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb,
-		   struct lpfc_dmabuf *mp)
+				   struct lpfc_dmabuf *mp)
 {
 	MAILBOX_t *mb;
 
@@ -323,7 +333,7 @@ lpfc_read_topology(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb,
  * information.
  **/
 void
-lpfc_clear_la(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
+lpfc_clear_la(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 {
 	MAILBOX_t *mb;
 
@@ -351,7 +361,7 @@ lpfc_clear_la(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
  * This routine prepares the mailbox command for configuring link on a HBA.
  **/
 void
-lpfc_config_link(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
+lpfc_config_link(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 {
 	struct lpfc_vport  *vport = phba->pport;
 	MAILBOX_t *mb = &pmb->u.mb;
@@ -360,7 +370,8 @@ lpfc_config_link(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
 	/* NEW_FEATURE
 	 * SLI-2, Coalescing Response Feature.
 	 */
-	if (phba->cfg_cr_delay && (phba->sli_rev < LPFC_SLI_REV4)) {
+	if (phba->cfg_cr_delay && (phba->sli_rev < LPFC_SLI_REV4))
+	{
 		mb->un.varCfgLnk.cr = 1;
 		mb->un.varCfgLnk.ci = 1;
 		mb->un.varCfgLnk.cr_delay = phba->cfg_cr_delay;
@@ -377,7 +388,9 @@ lpfc_config_link(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
 	mb->un.varCfgLnk.citov = phba->fc_citov;
 
 	if (phba->cfg_ack0 && (phba->sli_rev < LPFC_SLI_REV4))
+	{
 		mb->un.varCfgLnk.ack0_enable = 1;
+	}
 
 	mb->mbxCommand = MBX_CONFIG_LINK;
 	mb->mbxOwner = OWN_HOST;
@@ -404,17 +417,19 @@ lpfc_config_msi(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 	uint32_t attentionConditions[2];
 
 	/* Sanity check */
-	if (phba->cfg_use_msi != 2) {
+	if (phba->cfg_use_msi != 2)
+	{
 		lpfc_printf_log(phba, KERN_ERR, LOG_INIT,
-				"0475 Not configured for supporting MSI-X "
-				"cfg_use_msi: 0x%x\n", phba->cfg_use_msi);
+						"0475 Not configured for supporting MSI-X "
+						"cfg_use_msi: 0x%x\n", phba->cfg_use_msi);
 		return -EINVAL;
 	}
 
-	if (phba->sli_rev < 3) {
+	if (phba->sli_rev < 3)
+	{
 		lpfc_printf_log(phba, KERN_ERR, LOG_INIT,
-				"0476 HBA not supporting SLI-3 or later "
-				"SLI Revision: 0x%x\n", phba->sli_rev);
+						"0476 HBA not supporting SLI-3 or later "
+						"SLI Revision: 0x%x\n", phba->sli_rev);
 		return -EINVAL;
 	}
 
@@ -427,7 +442,7 @@ lpfc_config_msi(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 
 	/* Multi-message attention configuration */
 	attentionConditions[0] = (HA_R0ATT | HA_R1ATT | HA_R2ATT | HA_ERATT |
-				  HA_LATT | HA_MBATT);
+							  HA_LATT | HA_MBATT);
 	attentionConditions[1] = 0;
 
 	mb->un.varCfgMSI.attentionConditions[0] = attentionConditions[0];
@@ -443,9 +458,9 @@ lpfc_config_msi(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 	mb->un.varCfgMSI.messageNumberByHA[HA_R1_POS] = 1;
 #else   /*  __LITTLE_ENDIAN_BITFIELD */
 	/* RA0 (FCP Ring) */
-	mb->un.varCfgMSI.messageNumberByHA[HA_R0_POS^3] = 1;
+	mb->un.varCfgMSI.messageNumberByHA[HA_R0_POS ^ 3] = 1;
 	/* RA1 (Other Protocol Extra Ring) */
-	mb->un.varCfgMSI.messageNumberByHA[HA_R1_POS^3] = 1;
+	mb->un.varCfgMSI.messageNumberByHA[HA_R1_POS ^ 3] = 1;
 #endif
 	/* Multi-message interrupt autoclear configuration*/
 	mb->un.varCfgMSI.autoClearHA[0] = attentionConditions[0];
@@ -477,8 +492,8 @@ lpfc_config_msi(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
  * with the specified link topology and speed.
  **/
 void
-lpfc_init_link(struct lpfc_hba * phba,
-	       LPFC_MBOXQ_t * pmb, uint32_t topology, uint32_t linkspeed)
+lpfc_init_link(struct lpfc_hba *phba,
+			   LPFC_MBOXQ_t *pmb, uint32_t topology, uint32_t linkspeed)
 {
 	lpfc_vpd_t *vpd;
 	MAILBOX_t *mb;
@@ -486,28 +501,34 @@ lpfc_init_link(struct lpfc_hba * phba,
 	mb = &pmb->u.mb;
 	memset(pmb, 0, sizeof (LPFC_MBOXQ_t));
 
-	switch (topology) {
-	case FLAGS_TOPOLOGY_MODE_LOOP_PT:
-		mb->un.varInitLnk.link_flags = FLAGS_TOPOLOGY_MODE_LOOP;
-		mb->un.varInitLnk.link_flags |= FLAGS_TOPOLOGY_FAILOVER;
-		break;
-	case FLAGS_TOPOLOGY_MODE_PT_PT:
-		mb->un.varInitLnk.link_flags = FLAGS_TOPOLOGY_MODE_PT_PT;
-		break;
-	case FLAGS_TOPOLOGY_MODE_LOOP:
-		mb->un.varInitLnk.link_flags = FLAGS_TOPOLOGY_MODE_LOOP;
-		break;
-	case FLAGS_TOPOLOGY_MODE_PT_LOOP:
-		mb->un.varInitLnk.link_flags = FLAGS_TOPOLOGY_MODE_PT_PT;
-		mb->un.varInitLnk.link_flags |= FLAGS_TOPOLOGY_FAILOVER;
-		break;
-	case FLAGS_LOCAL_LB:
-		mb->un.varInitLnk.link_flags = FLAGS_LOCAL_LB;
-		break;
+	switch (topology)
+	{
+		case FLAGS_TOPOLOGY_MODE_LOOP_PT:
+			mb->un.varInitLnk.link_flags = FLAGS_TOPOLOGY_MODE_LOOP;
+			mb->un.varInitLnk.link_flags |= FLAGS_TOPOLOGY_FAILOVER;
+			break;
+
+		case FLAGS_TOPOLOGY_MODE_PT_PT:
+			mb->un.varInitLnk.link_flags = FLAGS_TOPOLOGY_MODE_PT_PT;
+			break;
+
+		case FLAGS_TOPOLOGY_MODE_LOOP:
+			mb->un.varInitLnk.link_flags = FLAGS_TOPOLOGY_MODE_LOOP;
+			break;
+
+		case FLAGS_TOPOLOGY_MODE_PT_LOOP:
+			mb->un.varInitLnk.link_flags = FLAGS_TOPOLOGY_MODE_PT_PT;
+			mb->un.varInitLnk.link_flags |= FLAGS_TOPOLOGY_FAILOVER;
+			break;
+
+		case FLAGS_LOCAL_LB:
+			mb->un.varInitLnk.link_flags = FLAGS_LOCAL_LB;
+			break;
 	}
 
 	if (phba->pcidev->device == PCI_DEVICE_ID_LANCER_G6_FC &&
-		mb->un.varInitLnk.link_flags & FLAGS_TOPOLOGY_MODE_LOOP) {
+		mb->un.varInitLnk.link_flags & FLAGS_TOPOLOGY_MODE_LOOP)
+	{
 		/* Failover is not tried for Lancer G6 */
 		mb->un.varInitLnk.link_flags = FLAGS_TOPOLOGY_MODE_PT_PT;
 		phba->cfg_topology = FLAGS_TOPOLOGY_MODE_PT_PT;
@@ -520,45 +541,57 @@ lpfc_init_link(struct lpfc_hba * phba,
 	 * Setting up the link speed
 	 */
 	vpd = &phba->vpd;
-	if (vpd->rev.feaLevelHigh >= 0x02){
-		switch(linkspeed){
-		case LPFC_USER_LINK_SPEED_1G:
-			mb->un.varInitLnk.link_flags |= FLAGS_LINK_SPEED;
-			mb->un.varInitLnk.link_speed = LINK_SPEED_1G;
-			break;
-		case LPFC_USER_LINK_SPEED_2G:
-			mb->un.varInitLnk.link_flags |=	FLAGS_LINK_SPEED;
-			mb->un.varInitLnk.link_speed = LINK_SPEED_2G;
-			break;
-		case LPFC_USER_LINK_SPEED_4G:
-			mb->un.varInitLnk.link_flags |=	FLAGS_LINK_SPEED;
-			mb->un.varInitLnk.link_speed = LINK_SPEED_4G;
-			break;
-		case LPFC_USER_LINK_SPEED_8G:
-			mb->un.varInitLnk.link_flags |=	FLAGS_LINK_SPEED;
-			mb->un.varInitLnk.link_speed = LINK_SPEED_8G;
-			break;
-		case LPFC_USER_LINK_SPEED_10G:
-			mb->un.varInitLnk.link_flags |=	FLAGS_LINK_SPEED;
-			mb->un.varInitLnk.link_speed = LINK_SPEED_10G;
-			break;
-		case LPFC_USER_LINK_SPEED_16G:
-			mb->un.varInitLnk.link_flags |=	FLAGS_LINK_SPEED;
-			mb->un.varInitLnk.link_speed = LINK_SPEED_16G;
-			break;
-		case LPFC_USER_LINK_SPEED_32G:
-			mb->un.varInitLnk.link_flags |= FLAGS_LINK_SPEED;
-			mb->un.varInitLnk.link_speed = LINK_SPEED_32G;
-			break;
-		case LPFC_USER_LINK_SPEED_AUTO:
-		default:
-			mb->un.varInitLnk.link_speed = LINK_SPEED_AUTO;
-			break;
+
+	if (vpd->rev.feaLevelHigh >= 0x02)
+	{
+		switch (linkspeed)
+		{
+			case LPFC_USER_LINK_SPEED_1G:
+				mb->un.varInitLnk.link_flags |= FLAGS_LINK_SPEED;
+				mb->un.varInitLnk.link_speed = LINK_SPEED_1G;
+				break;
+
+			case LPFC_USER_LINK_SPEED_2G:
+				mb->un.varInitLnk.link_flags |=	FLAGS_LINK_SPEED;
+				mb->un.varInitLnk.link_speed = LINK_SPEED_2G;
+				break;
+
+			case LPFC_USER_LINK_SPEED_4G:
+				mb->un.varInitLnk.link_flags |=	FLAGS_LINK_SPEED;
+				mb->un.varInitLnk.link_speed = LINK_SPEED_4G;
+				break;
+
+			case LPFC_USER_LINK_SPEED_8G:
+				mb->un.varInitLnk.link_flags |=	FLAGS_LINK_SPEED;
+				mb->un.varInitLnk.link_speed = LINK_SPEED_8G;
+				break;
+
+			case LPFC_USER_LINK_SPEED_10G:
+				mb->un.varInitLnk.link_flags |=	FLAGS_LINK_SPEED;
+				mb->un.varInitLnk.link_speed = LINK_SPEED_10G;
+				break;
+
+			case LPFC_USER_LINK_SPEED_16G:
+				mb->un.varInitLnk.link_flags |=	FLAGS_LINK_SPEED;
+				mb->un.varInitLnk.link_speed = LINK_SPEED_16G;
+				break;
+
+			case LPFC_USER_LINK_SPEED_32G:
+				mb->un.varInitLnk.link_flags |= FLAGS_LINK_SPEED;
+				mb->un.varInitLnk.link_speed = LINK_SPEED_32G;
+				break;
+
+			case LPFC_USER_LINK_SPEED_AUTO:
+			default:
+				mb->un.varInitLnk.link_speed = LINK_SPEED_AUTO;
+				break;
 		}
 
 	}
 	else
+	{
 		mb->un.varInitLnk.link_speed = LINK_SPEED_AUTO;
+	}
 
 	mb->mbxCommand = (volatile uint8_t)MBX_INIT_LINK;
 	mb->mbxOwner = OWN_HOST;
@@ -601,23 +634,32 @@ lpfc_read_sparam(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb, int vpi)
 	/* Get a buffer to hold the HBAs Service Parameters */
 
 	mp = kmalloc(sizeof (struct lpfc_dmabuf), GFP_KERNEL);
+
 	if (mp)
+	{
 		mp->virt = lpfc_mbuf_alloc(phba, 0, &mp->phys);
-	if (!mp || !mp->virt) {
+	}
+
+	if (!mp || !mp->virt)
+	{
 		kfree(mp);
 		mb->mbxCommand = MBX_READ_SPARM64;
 		/* READ_SPARAM: no buffers */
 		lpfc_printf_log(phba, KERN_WARNING, LOG_MBOX,
-			        "0301 READ_SPARAM: no buffers\n");
+						"0301 READ_SPARAM: no buffers\n");
 		return (1);
 	}
+
 	INIT_LIST_HEAD(&mp->list);
 	mb->mbxCommand = MBX_READ_SPARM64;
 	mb->un.varRdSparm.un.sp64.tus.f.bdeSize = sizeof (struct serv_parm);
 	mb->un.varRdSparm.un.sp64.addrHigh = putPaddrHigh(mp->phys);
 	mb->un.varRdSparm.un.sp64.addrLow = putPaddrLow(mp->phys);
+
 	if (phba->sli_rev >= LPFC_SLI_REV3)
+	{
 		mb->un.varRdSparm.vpi = phba->vpi_ids[vpi];
+	}
 
 	/* save address for completion */
 	pmb->context1 = mp;
@@ -641,8 +683,8 @@ lpfc_read_sparam(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb, int vpi)
  * N_Port/F_Port (DID) login.
  **/
 void
-lpfc_unreg_did(struct lpfc_hba * phba, uint16_t vpi, uint32_t did,
-	       LPFC_MBOXQ_t * pmb)
+lpfc_unreg_did(struct lpfc_hba *phba, uint16_t vpi, uint32_t did,
+			   LPFC_MBOXQ_t *pmb)
 {
 	MAILBOX_t *mb;
 
@@ -651,9 +693,12 @@ lpfc_unreg_did(struct lpfc_hba * phba, uint16_t vpi, uint32_t did,
 
 	mb->un.varUnregDID.did = did;
 	mb->un.varUnregDID.vpi = vpi;
+
 	if ((vpi != 0xffff) &&
-	    (phba->sli_rev == LPFC_SLI_REV4))
+		(phba->sli_rev == LPFC_SLI_REV4))
+	{
 		mb->un.varUnregDID.vpi = phba->vpi_ids[vpi];
+	}
 
 	mb->mbxCommand = MBX_UNREG_D_ID;
 	mb->mbxOwner = OWN_HOST;
@@ -674,7 +719,7 @@ lpfc_unreg_did(struct lpfc_hba * phba, uint16_t vpi, uint32_t did,
  * parameters.
  **/
 void
-lpfc_read_config(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
+lpfc_read_config(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 {
 	MAILBOX_t *mb;
 
@@ -699,7 +744,7 @@ lpfc_read_config(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
  * This routine prepares the mailbox command for reading out HBA link status.
  **/
 void
-lpfc_read_lnk_stat(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
+lpfc_read_lnk_stat(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 {
 	MAILBOX_t *mb;
 
@@ -737,7 +782,7 @@ lpfc_read_lnk_stat(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
  **/
 int
 lpfc_reg_rpi(struct lpfc_hba *phba, uint16_t vpi, uint32_t did,
-	     uint8_t *param, LPFC_MBOXQ_t *pmb, uint16_t rpi)
+			 uint8_t *param, LPFC_MBOXQ_t *pmb, uint16_t rpi)
 {
 	MAILBOX_t *mb = &pmb->u.mb;
 	uint8_t *sparam;
@@ -746,25 +791,38 @@ lpfc_reg_rpi(struct lpfc_hba *phba, uint16_t vpi, uint32_t did,
 	memset(pmb, 0, sizeof (LPFC_MBOXQ_t));
 
 	mb->un.varRegLogin.rpi = 0;
+
 	if (phba->sli_rev == LPFC_SLI_REV4)
+	{
 		mb->un.varRegLogin.rpi = phba->sli4_hba.rpi_ids[rpi];
+	}
+
 	if (phba->sli_rev >= LPFC_SLI_REV3)
+	{
 		mb->un.varRegLogin.vpi = phba->vpi_ids[vpi];
+	}
+
 	mb->un.varRegLogin.did = did;
 	mb->mbxOwner = OWN_HOST;
 	/* Get a buffer to hold NPorts Service Parameters */
 	mp = kmalloc(sizeof (struct lpfc_dmabuf), GFP_KERNEL);
+
 	if (mp)
+	{
 		mp->virt = lpfc_mbuf_alloc(phba, 0, &mp->phys);
-	if (!mp || !mp->virt) {
+	}
+
+	if (!mp || !mp->virt)
+	{
 		kfree(mp);
 		mb->mbxCommand = MBX_REG_LOGIN64;
 		/* REG_LOGIN: no buffers */
 		lpfc_printf_log(phba, KERN_WARNING, LOG_MBOX,
-				"0302 REG_LOGIN: no buffers, VPI:%d DID:x%x, "
-				"rpi x%x\n", vpi, did, rpi);
+						"0302 REG_LOGIN: no buffers, VPI:%d DID:x%x, "
+						"rpi x%x\n", vpi, did, rpi);
 		return 1;
 	}
+
 	INIT_LIST_HEAD(&mp->list);
 	sparam = mp->virt;
 
@@ -801,7 +859,7 @@ lpfc_reg_rpi(struct lpfc_hba *phba, uint16_t vpi, uint32_t did,
  **/
 void
 lpfc_unreg_login(struct lpfc_hba *phba, uint16_t vpi, uint32_t rpi,
-		 LPFC_MBOXQ_t * pmb)
+				 LPFC_MBOXQ_t *pmb)
 {
 	MAILBOX_t *mb;
 
@@ -810,8 +868,11 @@ lpfc_unreg_login(struct lpfc_hba *phba, uint16_t vpi, uint32_t rpi,
 
 	mb->un.varUnregLogin.rpi = rpi;
 	mb->un.varUnregLogin.rsvd1 = 0;
+
 	if (phba->sli_rev >= LPFC_SLI_REV3)
+	{
 		mb->un.varUnregLogin.vpi = phba->vpi_ids[vpi];
+	}
 
 	mb->mbxCommand = MBX_UNREG_LOGIN;
 	mb->mbxOwner = OWN_HOST;
@@ -834,7 +895,9 @@ lpfc_sli4_unreg_all_rpis(struct lpfc_vport *vport)
 	int rc;
 
 	mbox = mempool_alloc(phba->mbox_mem_pool, GFP_KERNEL);
-	if (mbox) {
+
+	if (mbox)
+	{
 		/*
 		 * For SLI4 functions, the rpi field is overloaded for
 		 * the vport context unreg all.  This routine passes
@@ -843,14 +906,17 @@ lpfc_sli4_unreg_all_rpis(struct lpfc_vport *vport)
 		 * expected value for SLI4.
 		 */
 		lpfc_unreg_login(phba, vport->vpi, phba->vpi_ids[vport->vpi],
-				 mbox);
+						 mbox);
 		mbox->u.mb.un.varUnregLogin.rsvd1 = 0x4000;
 		mbox->vport = vport;
 		mbox->mbox_cmpl = lpfc_sli_def_mbox_cmpl;
 		mbox->context1 = NULL;
 		rc = lpfc_sli_issue_mbox(phba, mbox, MBX_NOWAIT);
+
 		if (rc == MBX_NOT_FINISHED)
+		{
 			mempool_free(mbox, phba->mbox_mem_pool);
+		}
 	}
 }
 
@@ -876,21 +942,30 @@ lpfc_reg_vpi(struct lpfc_vport *vport, LPFC_MBOXQ_t *pmb)
 	struct lpfc_hba *phba = vport->phba;
 
 	memset(pmb, 0, sizeof (LPFC_MBOXQ_t));
+
 	/*
 	 * Set the re-reg VPI bit for f/w to update the MAC address.
 	 */
 	if ((phba->sli_rev == LPFC_SLI_REV4) &&
 		!(vport->fc_flag & FC_VPORT_NEEDS_REG_VPI))
+	{
 		mb->un.varRegVpi.upd = 1;
+	}
 
 	mb->un.varRegVpi.vpi = phba->vpi_ids[vport->vpi];
 	mb->un.varRegVpi.sid = vport->fc_myDID;
+
 	if (phba->sli_rev == LPFC_SLI_REV4)
+	{
 		mb->un.varRegVpi.vfi = phba->sli4_hba.vfi_ids[vport->vfi];
+	}
 	else
+	{
 		mb->un.varRegVpi.vfi = vport->vfi + vport->phba->vfi_base;
+	}
+
 	memcpy(mb->un.varRegVpi.wwn, &vport->fc_portname,
-	       sizeof(struct lpfc_name));
+		   sizeof(struct lpfc_name));
 	mb->un.varRegVpi.wwn[0] = cpu_to_le32(mb->un.varRegVpi.wwn[0]);
 	mb->un.varRegVpi.wwn[1] = cpu_to_le32(mb->un.varRegVpi.wwn[1]);
 
@@ -923,9 +998,13 @@ lpfc_unreg_vpi(struct lpfc_hba *phba, uint16_t vpi, LPFC_MBOXQ_t *pmb)
 	memset(pmb, 0, sizeof (LPFC_MBOXQ_t));
 
 	if (phba->sli_rev == LPFC_SLI_REV3)
+	{
 		mb->un.varUnregVpi.vpi = phba->vpi_ids[vpi];
+	}
 	else if (phba->sli_rev >= LPFC_SLI_REV4)
+	{
 		mb->un.varUnregVpi.sli4_vpi = phba->vpi_ids[vpi];
+	}
 
 	mb->mbxCommand = MBX_UNREG_VPI;
 	mb->mbxOwner = OWN_HOST;
@@ -941,7 +1020,7 @@ lpfc_unreg_vpi(struct lpfc_hba *phba, uint16_t vpi, LPFC_MBOXQ_t *pmb)
  * Block (PCB).
  **/
 static void
-lpfc_config_pcb_setup(struct lpfc_hba * phba)
+lpfc_config_pcb_setup(struct lpfc_hba *phba)
 {
 	struct lpfc_sli *psli = &phba->sli;
 	struct lpfc_sli_ring *pring;
@@ -953,19 +1032,22 @@ lpfc_config_pcb_setup(struct lpfc_hba * phba)
 
 	pcbp->maxRing = (psli->num_rings - 1);
 
-	for (i = 0; i < psli->num_rings; i++) {
+	for (i = 0; i < psli->num_rings; i++)
+	{
 		pring = &psli->ring[i];
 
 		pring->sli.sli3.sizeCiocb =
 			phba->sli_rev == 3 ? SLI3_IOCB_CMD_SIZE :
-							SLI2_IOCB_CMD_SIZE;
+			SLI2_IOCB_CMD_SIZE;
 		pring->sli.sli3.sizeRiocb =
 			phba->sli_rev == 3 ? SLI3_IOCB_RSP_SIZE :
-							SLI2_IOCB_RSP_SIZE;
+			SLI2_IOCB_RSP_SIZE;
+
 		/* A ring MUST have both cmd and rsp entries defined to be
 		   valid */
 		if ((pring->sli.sli3.numCiocb == 0) ||
-			(pring->sli.sli3.numRiocb == 0)) {
+			(pring->sli.sli3.numRiocb == 0))
+		{
 			pcbp->rdsc[i].cmdEntries = 0;
 			pcbp->rdsc[i].rspEntries = 0;
 			pcbp->rdsc[i].cmdAddrHigh = 0;
@@ -976,12 +1058,13 @@ lpfc_config_pcb_setup(struct lpfc_hba * phba)
 			pring->sli.sli3.rspringaddr = NULL;
 			continue;
 		}
+
 		/* Command ring setup for ring */
 		pring->sli.sli3.cmdringaddr = (void *)&phba->IOCBs[iocbCnt];
 		pcbp->rdsc[i].cmdEntries = pring->sli.sli3.numCiocb;
 
 		offset = (uint8_t *) &phba->IOCBs[iocbCnt] -
-			 (uint8_t *) phba->slim2p.virt;
+				 (uint8_t *) phba->slim2p.virt;
 		pdma_addr = phba->slim2p.phys + offset;
 		pcbp->rdsc[i].cmdAddrHigh = putPaddrHigh(pdma_addr);
 		pcbp->rdsc[i].cmdAddrLow = putPaddrLow(pdma_addr);
@@ -992,7 +1075,7 @@ lpfc_config_pcb_setup(struct lpfc_hba * phba)
 
 		pcbp->rdsc[i].rspEntries = pring->sli.sli3.numRiocb;
 		offset = (uint8_t *)&phba->IOCBs[iocbCnt] -
-			 (uint8_t *)phba->slim2p.virt;
+				 (uint8_t *)phba->slim2p.virt;
 		pdma_addr = phba->slim2p.phys + offset;
 		pcbp->rdsc[i].rspAddrHigh = putPaddrHigh(pdma_addr);
 		pcbp->rdsc[i].rspAddrLow = putPaddrLow(pdma_addr);
@@ -1015,7 +1098,7 @@ lpfc_config_pcb_setup(struct lpfc_hba * phba)
  * information.
  **/
 void
-lpfc_read_rev(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
+lpfc_read_rev(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 {
 	MAILBOX_t *mb = &pmb->u.mb;
 	memset(pmb, 0, sizeof (LPFC_MBOXQ_t));
@@ -1032,17 +1115,20 @@ lpfc_sli4_swap_str(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 	MAILBOX_t *mb = &pmb->u.mb;
 	struct lpfc_mqe *mqe;
 
-	switch (mb->mbxCommand) {
-	case  MBX_READ_REV:
-		 mqe = &pmb->u.mqe;
-		lpfc_sli_pcimem_bcopy(mqe->un.read_rev.fw_name,
-				 mqe->un.read_rev.fw_name, 16);
-		lpfc_sli_pcimem_bcopy(mqe->un.read_rev.ulp_fw_name,
-				 mqe->un.read_rev.ulp_fw_name, 16);
-		break;
-	default:
-		break;
+	switch (mb->mbxCommand)
+	{
+		case  MBX_READ_REV:
+			mqe = &pmb->u.mqe;
+			lpfc_sli_pcimem_bcopy(mqe->un.read_rev.fw_name,
+								  mqe->un.read_rev.fw_name, 16);
+			lpfc_sli_pcimem_bcopy(mqe->un.read_rev.ulp_fw_name,
+								  mqe->un.read_rev.ulp_fw_name, 16);
+			break;
+
+		default:
+			break;
 	}
+
 	return;
 }
 
@@ -1058,7 +1144,7 @@ lpfc_sli4_swap_str(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
  **/
 static void
 lpfc_build_hbq_profile2(struct config_hbq_var *hbqmb,
-			struct lpfc_hbq_init  *hbq_desc)
+						struct lpfc_hbq_init  *hbq_desc)
 {
 	hbqmb->profiles.profile2.seqlenbcnt = hbq_desc->seqlenbcnt;
 	hbqmb->profiles.profile2.maxlen     = hbq_desc->maxlen;
@@ -1077,14 +1163,14 @@ lpfc_build_hbq_profile2(struct config_hbq_var *hbqmb,
  **/
 static void
 lpfc_build_hbq_profile3(struct config_hbq_var *hbqmb,
-			struct lpfc_hbq_init  *hbq_desc)
+						struct lpfc_hbq_init  *hbq_desc)
 {
 	hbqmb->profiles.profile3.seqlenbcnt = hbq_desc->seqlenbcnt;
 	hbqmb->profiles.profile3.maxlen     = hbq_desc->maxlen;
 	hbqmb->profiles.profile3.cmdcodeoff = hbq_desc->cmdcodeoff;
 	hbqmb->profiles.profile3.seqlenoff  = hbq_desc->seqlenoff;
 	memcpy(&hbqmb->profiles.profile3.cmdmatch, hbq_desc->cmdmatch,
-	       sizeof(hbqmb->profiles.profile3.cmdmatch));
+		   sizeof(hbqmb->profiles.profile3.cmdmatch));
 }
 
 /**
@@ -1100,14 +1186,14 @@ lpfc_build_hbq_profile3(struct config_hbq_var *hbqmb,
  **/
 static void
 lpfc_build_hbq_profile5(struct config_hbq_var *hbqmb,
-			struct lpfc_hbq_init  *hbq_desc)
+						struct lpfc_hbq_init  *hbq_desc)
 {
 	hbqmb->profiles.profile5.seqlenbcnt = hbq_desc->seqlenbcnt;
 	hbqmb->profiles.profile5.maxlen     = hbq_desc->maxlen;
 	hbqmb->profiles.profile5.cmdcodeoff = hbq_desc->cmdcodeoff;
 	hbqmb->profiles.profile5.seqlenoff  = hbq_desc->seqlenoff;
 	memcpy(&hbqmb->profiles.profile5.cmdmatch, hbq_desc->cmdmatch,
-	       sizeof(hbqmb->profiles.profile5.cmdmatch));
+		   sizeof(hbqmb->profiles.profile5.cmdmatch));
 }
 
 /**
@@ -1126,8 +1212,8 @@ lpfc_build_hbq_profile5(struct config_hbq_var *hbqmb,
  **/
 void
 lpfc_config_hbq(struct lpfc_hba *phba, uint32_t id,
-		 struct lpfc_hbq_init *hbq_desc,
-		uint32_t hbq_entry_index, LPFC_MBOXQ_t *pmb)
+				struct lpfc_hbq_init *hbq_desc,
+				uint32_t hbq_entry_index, LPFC_MBOXQ_t *pmb)
 {
 	int i;
 	MAILBOX_t *mb = &pmb->u.mb;
@@ -1153,28 +1239,37 @@ lpfc_config_hbq(struct lpfc_hba *phba, uint32_t id,
 						       * for LogEntry
 						       * buffers */
 	hbqmb->hbqaddrLow = putPaddrLow(phba->hbqslimp.phys) +
-		hbq_entry_index * sizeof(struct lpfc_hbq_entry);
+						hbq_entry_index * sizeof(struct lpfc_hbq_entry);
 	hbqmb->hbqaddrHigh = putPaddrHigh(phba->hbqslimp.phys);
 
 	mb->mbxCommand = MBX_CONFIG_HBQ;
 	mb->mbxOwner = OWN_HOST;
 
-				/* Copy info for profiles 2,3,5. Other
-				 * profiles this area is reserved
-				 */
+	/* Copy info for profiles 2,3,5. Other
+	 * profiles this area is reserved
+	 */
 	if (hbq_desc->profile == 2)
+	{
 		lpfc_build_hbq_profile2(hbqmb, hbq_desc);
+	}
 	else if (hbq_desc->profile == 3)
+	{
 		lpfc_build_hbq_profile3(hbqmb, hbq_desc);
+	}
 	else if (hbq_desc->profile == 5)
+	{
 		lpfc_build_hbq_profile5(hbqmb, hbq_desc);
+	}
 
 	/* Return if no rctl / type masks for this HBQ */
 	if (!hbq_desc->mask_count)
+	{
 		return;
+	}
 
 	/* Otherwise we setup specific rctl / type masks for this HBQ */
-	for (i = 0; i < hbq_desc->mask_count; i++) {
+	for (i = 0; i < hbq_desc->mask_count; i++)
+	{
 		hbqmb->hbqMasks[i].tmatch = hbq_desc->hbqMasks[i].tmatch;
 		hbqmb->hbqMasks[i].tmask  = hbq_desc->hbqMasks[i].tmask;
 		hbqmb->hbqMasks[i].rctlmatch = hbq_desc->hbqMasks[i].rctlmatch;
@@ -1202,7 +1297,7 @@ lpfc_config_hbq(struct lpfc_hba *phba, uint32_t id,
  * This routine prepares the mailbox command for configuring IOCB ring.
  **/
 void
-lpfc_config_ring(struct lpfc_hba * phba, int ring, LPFC_MBOXQ_t * pmb)
+lpfc_config_ring(struct lpfc_hba *phba, int ring, LPFC_MBOXQ_t *pmb)
 {
 	int i;
 	MAILBOX_t *mb = &pmb->u.mb;
@@ -1223,18 +1318,26 @@ lpfc_config_ring(struct lpfc_hba * phba, int ring, LPFC_MBOXQ_t * pmb)
 	mb->mbxOwner = OWN_HOST;
 
 	/* Is this ring configured for a specific profile */
-	if (pring->prt[0].profile) {
+	if (pring->prt[0].profile)
+	{
 		mb->un.varCfgRing.profile = pring->prt[0].profile;
 		return;
 	}
 
 	/* Otherwise we setup specific rctl / type masks for this ring */
-	for (i = 0; i < pring->num_mask; i++) {
+	for (i = 0; i < pring->num_mask; i++)
+	{
 		mb->un.varCfgRing.rrRegs[i].rval = pring->prt[i].rctl;
+
 		if (mb->un.varCfgRing.rrRegs[i].rval != FC_RCTL_ELS_REQ)
+		{
 			mb->un.varCfgRing.rrRegs[i].rmask = 0xff;
+		}
 		else
+		{
 			mb->un.varCfgRing.rrRegs[i].rmask = 0xfe;
+		}
+
 		mb->un.varCfgRing.rrRegs[i].tval = pring->prt[i].type;
 		mb->un.varCfgRing.rrRegs[i].tmask = 0xff;
 	}
@@ -1284,27 +1387,45 @@ lpfc_config_port(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 
 	/* If HBA supports SLI=3 ask for it */
 
-	if (phba->sli_rev == LPFC_SLI_REV3 && phba->vpd.sli3Feat.cerbm) {
+	if (phba->sli_rev == LPFC_SLI_REV3 && phba->vpd.sli3Feat.cerbm)
+	{
 		if (phba->cfg_enable_bg)
-			mb->un.varCfgPort.cbg = 1; /* configure BlockGuard */
+		{
+			mb->un.varCfgPort.cbg = 1;    /* configure BlockGuard */
+		}
+
 		if (phba->cfg_enable_dss)
-			mb->un.varCfgPort.cdss = 1; /* Configure Security */
+		{
+			mb->un.varCfgPort.cdss = 1;    /* Configure Security */
+		}
+
 		mb->un.varCfgPort.cerbm = 1; /* Request HBQs */
 		mb->un.varCfgPort.ccrp = 1; /* Command Ring Polling */
 		mb->un.varCfgPort.max_hbq = lpfc_sli_hbq_count();
+
 		if (phba->max_vpi && phba->cfg_enable_npiv &&
-		    phba->vpd.sli3Feat.cmv) {
+			phba->vpd.sli3Feat.cmv)
+		{
 			mb->un.varCfgPort.max_vpi = LPFC_MAX_VPI;
 			mb->un.varCfgPort.cmv = 1;
-		} else
+		}
+		else
+		{
 			mb->un.varCfgPort.max_vpi = phba->max_vpi = 0;
-	} else
+		}
+	}
+	else
+	{
 		phba->sli_rev = LPFC_SLI_REV2;
+	}
+
 	mb->un.varCfgPort.sli_mode = phba->sli_rev;
 
 	/* If this is an SLI3 port, configure async status notification. */
 	if (phba->sli_rev == LPFC_SLI_REV3)
+	{
 		mb->un.varCfgPort.casabt = 1;
+	}
 
 	/* Now setup pcb */
 	phba->pcb->type = TYPE_NATIVE_SLI2;
@@ -1367,49 +1488,65 @@ lpfc_config_port(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 	 *
 	 */
 
-	if (phba->cfg_hostmem_hgp && phba->sli_rev != 3) {
+	if (phba->cfg_hostmem_hgp && phba->sli_rev != 3)
+	{
 		phba->host_gp = &phba->mbox->us.s2.host[0];
 		phba->hbq_put = NULL;
 		offset = (uint8_t *)&phba->mbox->us.s2.host -
-			(uint8_t *)phba->slim2p.virt;
+				 (uint8_t *)phba->slim2p.virt;
 		pdma_addr = phba->slim2p.phys + offset;
 		phba->pcb->hgpAddrHigh = putPaddrHigh(pdma_addr);
 		phba->pcb->hgpAddrLow = putPaddrLow(pdma_addr);
-	} else {
+	}
+	else
+	{
 		/* Always Host Group Pointer is in SLIM */
 		mb->un.varCfgPort.hps = 1;
 
-		if (phba->sli_rev == 3) {
+		if (phba->sli_rev == 3)
+		{
 			phba->host_gp = &mb_slim->us.s3.host[0];
 			phba->hbq_put = &mb_slim->us.s3.hbq_put[0];
-		} else {
+		}
+		else
+		{
 			phba->host_gp = &mb_slim->us.s2.host[0];
 			phba->hbq_put = NULL;
 		}
 
 		/* mask off BAR0's flag bits 0 - 3 */
 		phba->pcb->hgpAddrLow = (bar_low & PCI_BASE_ADDRESS_MEM_MASK) +
-			(void __iomem *)phba->host_gp -
-			(void __iomem *)phba->MBslimaddr;
+								(void __iomem *)phba->host_gp -
+								(void __iomem *)phba->MBslimaddr;
+
 		if (bar_low & PCI_BASE_ADDRESS_MEM_TYPE_64)
+		{
 			phba->pcb->hgpAddrHigh = bar_high;
+		}
 		else
+		{
 			phba->pcb->hgpAddrHigh = 0;
+		}
+
 		/* write HGP data to SLIM at the required longword offset */
 		memset(&hgp, 0, sizeof(struct lpfc_hgp));
 
-		for (i = 0; i < phba->sli.num_rings; i++) {
+		for (i = 0; i < phba->sli.num_rings; i++)
+		{
 			lpfc_memcpy_to_slim(phba->host_gp + i, &hgp,
-				    sizeof(*phba->host_gp));
+								sizeof(*phba->host_gp));
 		}
 	}
 
 	/* Setup Port Group offset */
 	if (phba->sli_rev == 3)
 		pgp_offset = offsetof(struct lpfc_sli2_slim,
-				      mbx.us.s3_pgp.port);
+							  mbx.us.s3_pgp.port);
 	else
+	{
 		pgp_offset = offsetof(struct lpfc_sli2_slim, mbx.us.s2.port);
+	}
+
 	pdma_addr = phba->slim2p.phys + pgp_offset;
 	phba->pcb->pgpAddrHigh = putPaddrHigh(pdma_addr);
 	phba->pcb->pgpAddrLow = putPaddrLow(pdma_addr);
@@ -1418,7 +1555,8 @@ lpfc_config_port(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 	lpfc_config_pcb_setup(phba);
 
 	/* special handling for LC HBAs */
-	if (lpfc_is_LC_HBA(phba->pcidev->device)) {
+	if (lpfc_is_LC_HBA(phba->pcidev->device))
+	{
 		uint32_t hbainit[5];
 
 		lpfc_hba_init(phba, hbainit);
@@ -1446,7 +1584,7 @@ lpfc_config_port(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
  * preparation for a graceful shutdown.
  **/
 void
-lpfc_kill_board(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
+lpfc_kill_board(struct lpfc_hba *phba, LPFC_MBOXQ_t *pmb)
 {
 	MAILBOX_t *mb = &pmb->u.mb;
 
@@ -1467,7 +1605,7 @@ lpfc_kill_board(struct lpfc_hba * phba, LPFC_MBOXQ_t * pmb)
  * one mailbox command at a time.
  **/
 void
-lpfc_mbox_put(struct lpfc_hba * phba, LPFC_MBOXQ_t * mbq)
+lpfc_mbox_put(struct lpfc_hba *phba, LPFC_MBOXQ_t *mbq)
 {
 	struct lpfc_sli *psli;
 
@@ -1495,14 +1633,17 @@ lpfc_mbox_put(struct lpfc_hba * phba, LPFC_MBOXQ_t * mbq)
  *    pointer to the driver internal queue element for mailbox command.
  **/
 LPFC_MBOXQ_t *
-lpfc_mbox_get(struct lpfc_hba * phba)
+lpfc_mbox_get(struct lpfc_hba *phba)
 {
 	LPFC_MBOXQ_t *mbq = NULL;
 	struct lpfc_sli *psli = &phba->sli;
 
 	list_remove_head((&psli->mboxq), mbq, LPFC_MBOXQ_t, list);
+
 	if (mbq)
+	{
 		psli->mboxq_cnt--;
+	}
 
 	return mbq;
 }
@@ -1563,15 +1704,18 @@ lpfc_mbox_cmd_check(struct lpfc_hba *phba, LPFC_MBOXQ_t *mboxq)
 	 * vport specified.
 	 */
 	if (mboxq->mbox_cmpl && mboxq->mbox_cmpl != lpfc_sli_def_mbox_cmpl &&
-	    mboxq->mbox_cmpl != lpfc_sli_wake_mbox_wait) {
-		if (!mboxq->vport) {
+		mboxq->mbox_cmpl != lpfc_sli_wake_mbox_wait)
+	{
+		if (!mboxq->vport)
+		{
 			lpfc_printf_log(phba, KERN_ERR, LOG_MBOX | LOG_VPORT,
-					"1814 Mbox x%x failed, no vport\n",
-					mboxq->u.mb.mbxCommand);
+							"1814 Mbox x%x failed, no vport\n",
+							mboxq->u.mb.mbxCommand);
 			dump_stack();
 			return -ENODEV;
 		}
 	}
+
 	return 0;
 }
 
@@ -1590,11 +1734,15 @@ lpfc_mbox_dev_check(struct lpfc_hba *phba)
 {
 	/* If the PCI channel is in offline state, do not issue mbox */
 	if (unlikely(pci_channel_offline(phba->pcidev)))
+	{
 		return -ENODEV;
+	}
 
 	/* If the HBA is in error state, do not issue mbox */
 	if (phba->link_state == LPFC_HBA_ERROR)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -1616,49 +1764,59 @@ lpfc_mbox_tmo_val(struct lpfc_hba *phba, LPFC_MBOXQ_t *mboxq)
 	MAILBOX_t *mbox = &mboxq->u.mb;
 	uint8_t subsys, opcode;
 
-	switch (mbox->mbxCommand) {
-	case MBX_WRITE_NV:	/* 0x03 */
-	case MBX_DUMP_MEMORY:	/* 0x17 */
-	case MBX_UPDATE_CFG:	/* 0x1B */
-	case MBX_DOWN_LOAD:	/* 0x1C */
-	case MBX_DEL_LD_ENTRY:	/* 0x1D */
-	case MBX_WRITE_VPARMS:	/* 0x32 */
-	case MBX_LOAD_AREA:	/* 0x81 */
-	case MBX_WRITE_WWN:     /* 0x98 */
-	case MBX_LOAD_EXP_ROM:	/* 0x9C */
-	case MBX_ACCESS_VDATA:	/* 0xA5 */
-		return LPFC_MBOX_TMO_FLASH_CMD;
-	case MBX_SLI4_CONFIG:	/* 0x9b */
-		subsys = lpfc_sli_config_mbox_subsys_get(phba, mboxq);
-		opcode = lpfc_sli_config_mbox_opcode_get(phba, mboxq);
-		if (subsys == LPFC_MBOX_SUBSYSTEM_COMMON) {
-			switch (opcode) {
-			case LPFC_MBOX_OPCODE_READ_OBJECT:
-			case LPFC_MBOX_OPCODE_WRITE_OBJECT:
-			case LPFC_MBOX_OPCODE_READ_OBJECT_LIST:
-			case LPFC_MBOX_OPCODE_DELETE_OBJECT:
-			case LPFC_MBOX_OPCODE_GET_PROFILE_LIST:
-			case LPFC_MBOX_OPCODE_SET_ACT_PROFILE:
-			case LPFC_MBOX_OPCODE_GET_PROFILE_CONFIG:
-			case LPFC_MBOX_OPCODE_SET_PROFILE_CONFIG:
-			case LPFC_MBOX_OPCODE_GET_FACTORY_PROFILE_CONFIG:
-			case LPFC_MBOX_OPCODE_GET_PROFILE_CAPACITIES:
-			case LPFC_MBOX_OPCODE_SEND_ACTIVATION:
-			case LPFC_MBOX_OPCODE_RESET_LICENSES:
-			case LPFC_MBOX_OPCODE_SET_BOOT_CONFIG:
-			case LPFC_MBOX_OPCODE_GET_VPD_DATA:
-			case LPFC_MBOX_OPCODE_SET_PHYSICAL_LINK_CONFIG:
-				return LPFC_MBOX_SLI4_CONFIG_EXTENDED_TMO;
+	switch (mbox->mbxCommand)
+	{
+		case MBX_WRITE_NV:	/* 0x03 */
+		case MBX_DUMP_MEMORY:	/* 0x17 */
+		case MBX_UPDATE_CFG:	/* 0x1B */
+		case MBX_DOWN_LOAD:	/* 0x1C */
+		case MBX_DEL_LD_ENTRY:	/* 0x1D */
+		case MBX_WRITE_VPARMS:	/* 0x32 */
+		case MBX_LOAD_AREA:	/* 0x81 */
+		case MBX_WRITE_WWN:     /* 0x98 */
+		case MBX_LOAD_EXP_ROM:	/* 0x9C */
+		case MBX_ACCESS_VDATA:	/* 0xA5 */
+			return LPFC_MBOX_TMO_FLASH_CMD;
+
+		case MBX_SLI4_CONFIG:	/* 0x9b */
+			subsys = lpfc_sli_config_mbox_subsys_get(phba, mboxq);
+			opcode = lpfc_sli_config_mbox_opcode_get(phba, mboxq);
+
+			if (subsys == LPFC_MBOX_SUBSYSTEM_COMMON)
+			{
+				switch (opcode)
+				{
+					case LPFC_MBOX_OPCODE_READ_OBJECT:
+					case LPFC_MBOX_OPCODE_WRITE_OBJECT:
+					case LPFC_MBOX_OPCODE_READ_OBJECT_LIST:
+					case LPFC_MBOX_OPCODE_DELETE_OBJECT:
+					case LPFC_MBOX_OPCODE_GET_PROFILE_LIST:
+					case LPFC_MBOX_OPCODE_SET_ACT_PROFILE:
+					case LPFC_MBOX_OPCODE_GET_PROFILE_CONFIG:
+					case LPFC_MBOX_OPCODE_SET_PROFILE_CONFIG:
+					case LPFC_MBOX_OPCODE_GET_FACTORY_PROFILE_CONFIG:
+					case LPFC_MBOX_OPCODE_GET_PROFILE_CAPACITIES:
+					case LPFC_MBOX_OPCODE_SEND_ACTIVATION:
+					case LPFC_MBOX_OPCODE_RESET_LICENSES:
+					case LPFC_MBOX_OPCODE_SET_BOOT_CONFIG:
+					case LPFC_MBOX_OPCODE_GET_VPD_DATA:
+					case LPFC_MBOX_OPCODE_SET_PHYSICAL_LINK_CONFIG:
+						return LPFC_MBOX_SLI4_CONFIG_EXTENDED_TMO;
+				}
 			}
-		}
-		if (subsys == LPFC_MBOX_SUBSYSTEM_FCOE) {
-			switch (opcode) {
-			case LPFC_MBOX_OPCODE_FCOE_SET_FCLINK_SETTINGS:
-				return LPFC_MBOX_SLI4_CONFIG_EXTENDED_TMO;
+
+			if (subsys == LPFC_MBOX_SUBSYSTEM_FCOE)
+			{
+				switch (opcode)
+				{
+					case LPFC_MBOX_OPCODE_FCOE_SET_FCLINK_SETTINGS:
+						return LPFC_MBOX_SLI4_CONFIG_EXTENDED_TMO;
+				}
 			}
-		}
-		return LPFC_MBOX_SLI4_CONFIG_TMO;
+
+			return LPFC_MBOX_SLI4_CONFIG_TMO;
 	}
+
 	return LPFC_MBOX_TMO;
 }
 
@@ -1674,12 +1832,12 @@ lpfc_mbox_tmo_val(struct lpfc_hba *phba, LPFC_MBOXQ_t *mboxq)
  **/
 void
 lpfc_sli4_mbx_sge_set(struct lpfcMboxq *mbox, uint32_t sgentry,
-		      dma_addr_t phyaddr, uint32_t length)
+					  dma_addr_t phyaddr, uint32_t length)
 {
 	struct lpfc_mbx_nembed_cmd *nembed_sge;
 
 	nembed_sge = (struct lpfc_mbx_nembed_cmd *)
-				&mbox->u.mqe.un.nembed_cmd;
+				 &mbox->u.mqe.un.nembed_cmd;
 	nembed_sge->sge[sgentry].pa_lo = putPaddrLow(phyaddr);
 	nembed_sge->sge[sgentry].pa_hi = putPaddrHigh(phyaddr);
 	nembed_sge->sge[sgentry].length = length;
@@ -1695,12 +1853,12 @@ lpfc_sli4_mbx_sge_set(struct lpfcMboxq *mbox, uint32_t sgentry,
  **/
 void
 lpfc_sli4_mbx_sge_get(struct lpfcMboxq *mbox, uint32_t sgentry,
-		      struct lpfc_mbx_sge *sge)
+					  struct lpfc_mbx_sge *sge)
 {
 	struct lpfc_mbx_nembed_cmd *nembed_sge;
 
 	nembed_sge = (struct lpfc_mbx_nembed_cmd *)
-				&mbox->u.mqe.un.nembed_cmd;
+				 &mbox->u.mqe.un.nembed_cmd;
 	sge->pa_lo = nembed_sge->sge[sgentry].pa_lo;
 	sge->pa_hi = nembed_sge->sge[sgentry].pa_hi;
 	sge->length = nembed_sge->sge[sgentry].length;
@@ -1724,25 +1882,31 @@ lpfc_sli4_mbox_cmd_free(struct lpfc_hba *phba, struct lpfcMboxq *mbox)
 	sli4_cfg = &mbox->u.mqe.un.sli4_config;
 
 	/* For embedded mbox command, just free the mbox command */
-	if (bf_get(lpfc_mbox_hdr_emb, &sli4_cfg->header.cfg_mhdr)) {
+	if (bf_get(lpfc_mbox_hdr_emb, &sli4_cfg->header.cfg_mhdr))
+	{
 		mempool_free(mbox, phba->mbox_mem_pool);
 		return;
 	}
 
 	/* For non-embedded mbox command, we need to free the pages first */
 	sgecount = bf_get(lpfc_mbox_hdr_sge_cnt, &sli4_cfg->header.cfg_mhdr);
+
 	/* There is nothing we can do if there is no sge address array */
-	if (unlikely(!mbox->sge_array)) {
+	if (unlikely(!mbox->sge_array))
+	{
 		mempool_free(mbox, phba->mbox_mem_pool);
 		return;
 	}
+
 	/* Each non-embedded DMA memory was allocated in the length of a page */
-	for (sgentry = 0; sgentry < sgecount; sgentry++) {
+	for (sgentry = 0; sgentry < sgecount; sgentry++)
+	{
 		lpfc_sli4_mbx_sge_get(mbox, sgentry, &sge);
 		phyaddr = getPaddr(sge.pa_hi, sge.pa_lo);
 		dma_free_coherent(&phba->pcidev->dev, SLI4_PAGE_SIZE,
-				  mbox->sge_array->addr[sgentry], phyaddr);
+						  mbox->sge_array->addr[sgentry], phyaddr);
 	}
+
 	/* Free the sge address array memory */
 	kfree(mbox->sge_array);
 	/* Finally, free the mailbox command itself */
@@ -1765,7 +1929,7 @@ lpfc_sli4_mbox_cmd_free(struct lpfc_hba *phba, struct lpfcMboxq *mbox)
  **/
 int
 lpfc_sli4_config(struct lpfc_hba *phba, struct lpfcMboxq *mbox,
-		 uint8_t subsystem, uint8_t opcode, uint32_t length, bool emb)
+				 uint8_t subsystem, uint8_t opcode, uint32_t length, bool emb)
 {
 	struct lpfc_mbx_sli4_config *sli4_config;
 	union lpfc_sli4_cfg_shdr *cfg_shdr = NULL;
@@ -1783,57 +1947,74 @@ lpfc_sli4_config(struct lpfc_hba *phba, struct lpfcMboxq *mbox,
 	sli4_config = &mbox->u.mqe.un.sli4_config;
 
 	/* Setup for the embedded mbox command */
-	if (emb) {
+	if (emb)
+	{
 		/* Set up main header fields */
 		bf_set(lpfc_mbox_hdr_emb, &sli4_config->header.cfg_mhdr, 1);
 		sli4_config->header.cfg_mhdr.payload_length = length;
 		/* Set up sub-header fields following main header */
 		bf_set(lpfc_mbox_hdr_opcode,
-			&sli4_config->header.cfg_shdr.request, opcode);
+			   &sli4_config->header.cfg_shdr.request, opcode);
 		bf_set(lpfc_mbox_hdr_subsystem,
-			&sli4_config->header.cfg_shdr.request, subsystem);
+			   &sli4_config->header.cfg_shdr.request, subsystem);
 		sli4_config->header.cfg_shdr.request.request_length =
 			length - LPFC_MBX_CMD_HDR_LENGTH;
 		return length;
 	}
 
 	/* Setup for the non-embedded mbox command */
-	pcount = (SLI4_PAGE_ALIGN(length))/SLI4_PAGE_SIZE;
+	pcount = (SLI4_PAGE_ALIGN(length)) / SLI4_PAGE_SIZE;
 	pcount = (pcount > LPFC_SLI4_MBX_SGE_MAX_PAGES) ?
-				LPFC_SLI4_MBX_SGE_MAX_PAGES : pcount;
+			 LPFC_SLI4_MBX_SGE_MAX_PAGES : pcount;
 	/* Allocate record for keeping SGE virtual addresses */
 	mbox->sge_array = kzalloc(sizeof(struct lpfc_mbx_nembed_sge_virt),
-				  GFP_KERNEL);
-	if (!mbox->sge_array) {
+							  GFP_KERNEL);
+
+	if (!mbox->sge_array)
+	{
 		lpfc_printf_log(phba, KERN_ERR, LOG_MBOX,
-				"2527 Failed to allocate non-embedded SGE "
-				"array.\n");
+						"2527 Failed to allocate non-embedded SGE "
+						"array.\n");
 		return 0;
 	}
-	for (pagen = 0, alloc_len = 0; pagen < pcount; pagen++) {
+
+	for (pagen = 0, alloc_len = 0; pagen < pcount; pagen++)
+	{
 		/* The DMA memory is always allocated in the length of a
 		 * page even though the last SGE might not fill up to a
 		 * page, this is used as a priori size of SLI4_PAGE_SIZE for
 		 * the later DMA memory free.
 		 */
 		viraddr = dma_zalloc_coherent(&phba->pcidev->dev,
-					      SLI4_PAGE_SIZE, &phyaddr,
-					      GFP_KERNEL);
+									  SLI4_PAGE_SIZE, &phyaddr,
+									  GFP_KERNEL);
+
 		/* In case of malloc fails, proceed with whatever we have */
 		if (!viraddr)
+		{
 			break;
+		}
+
 		mbox->sge_array->addr[pagen] = viraddr;
+
 		/* Keep the first page for later sub-header construction */
 		if (pagen == 0)
+		{
 			cfg_shdr = (union lpfc_sli4_cfg_shdr *)viraddr;
+		}
+
 		resid_len = length - alloc_len;
-		if (resid_len > SLI4_PAGE_SIZE) {
+
+		if (resid_len > SLI4_PAGE_SIZE)
+		{
 			lpfc_sli4_mbx_sge_set(mbox, pagen, phyaddr,
-					      SLI4_PAGE_SIZE);
+								  SLI4_PAGE_SIZE);
 			alloc_len += SLI4_PAGE_SIZE;
-		} else {
+		}
+		else
+		{
 			lpfc_sli4_mbx_sge_set(mbox, pagen, phyaddr,
-					      resid_len);
+								  resid_len);
 			alloc_len = length;
 		}
 	}
@@ -1843,16 +2024,19 @@ lpfc_sli4_config(struct lpfc_hba *phba, struct lpfcMboxq *mbox,
 	bf_set(lpfc_mbox_hdr_sge_cnt, &sli4_config->header.cfg_mhdr, pagen);
 
 	/* Set up sub-header fields into the first page */
-	if (pagen > 0) {
+	if (pagen > 0)
+	{
 		bf_set(lpfc_mbox_hdr_opcode, &cfg_shdr->request, opcode);
 		bf_set(lpfc_mbox_hdr_subsystem, &cfg_shdr->request, subsystem);
 		cfg_shdr->request.request_length =
-				alloc_len - sizeof(union  lpfc_sli4_cfg_shdr);
+			alloc_len - sizeof(union  lpfc_sli4_cfg_shdr);
 	}
+
 	/* The sub-header is in DMA memory, which needs endian converstion */
 	if (cfg_shdr)
 		lpfc_sli_pcimem_bcopy(cfg_shdr, cfg_shdr,
-				      sizeof(union  lpfc_sli4_cfg_shdr));
+							  sizeof(union  lpfc_sli4_cfg_shdr));
+
 	return alloc_len;
 }
 
@@ -1873,18 +2057,23 @@ lpfc_sli4_config(struct lpfc_hba *phba, struct lpfcMboxq *mbox,
  **/
 int
 lpfc_sli4_mbox_rsrc_extent(struct lpfc_hba *phba, struct lpfcMboxq *mbox,
-			   uint16_t exts_count, uint16_t rsrc_type, bool emb)
+						   uint16_t exts_count, uint16_t rsrc_type, bool emb)
 {
 	uint8_t opcode = 0;
 	struct lpfc_mbx_nembed_rsrc_extent *n_rsrc_extnt = NULL;
 	void *virtaddr = NULL;
 
 	/* Set up SLI4 ioctl command header fields */
-	if (emb == LPFC_SLI4_MBX_NEMBED) {
+	if (emb == LPFC_SLI4_MBX_NEMBED)
+	{
 		/* Get the first SGE entry from the non-embedded DMA memory */
 		virtaddr = mbox->sge_array->addr[0];
+
 		if (virtaddr == NULL)
+		{
 			return 1;
+		}
+
 		n_rsrc_extnt = (struct lpfc_mbx_nembed_rsrc_extent *) virtaddr;
 	}
 
@@ -1894,39 +2083,45 @@ lpfc_sli4_mbox_rsrc_extent(struct lpfc_hba *phba, struct lpfcMboxq *mbox,
 	 */
 	if (emb == LPFC_SLI4_MBX_EMBED)
 		bf_set(lpfc_mbx_alloc_rsrc_extents_type,
-		       &mbox->u.mqe.un.alloc_rsrc_extents.u.req,
-		       rsrc_type);
-	else {
+			   &mbox->u.mqe.un.alloc_rsrc_extents.u.req,
+			   rsrc_type);
+	else
+	{
 		/* This is DMA data.  Byteswap is required. */
 		bf_set(lpfc_mbx_alloc_rsrc_extents_type,
-		       n_rsrc_extnt, rsrc_type);
+			   n_rsrc_extnt, rsrc_type);
 		lpfc_sli_pcimem_bcopy(&n_rsrc_extnt->word4,
-				      &n_rsrc_extnt->word4,
-				      sizeof(uint32_t));
+							  &n_rsrc_extnt->word4,
+							  sizeof(uint32_t));
 	}
 
 	/* Complete the initialization for the particular Opcode. */
 	opcode = lpfc_sli_config_mbox_opcode_get(phba, mbox);
-	switch (opcode) {
-	case LPFC_MBOX_OPCODE_ALLOC_RSRC_EXTENT:
-		if (emb == LPFC_SLI4_MBX_EMBED)
-			bf_set(lpfc_mbx_alloc_rsrc_extents_cnt,
-			       &mbox->u.mqe.un.alloc_rsrc_extents.u.req,
-			       exts_count);
-		else
-			bf_set(lpfc_mbx_alloc_rsrc_extents_cnt,
-			       n_rsrc_extnt, exts_count);
-		break;
-	case LPFC_MBOX_OPCODE_GET_ALLOC_RSRC_EXTENT:
-	case LPFC_MBOX_OPCODE_GET_RSRC_EXTENT_INFO:
-	case LPFC_MBOX_OPCODE_DEALLOC_RSRC_EXTENT:
-		/* Initialization is complete.*/
-		break;
-	default:
-		lpfc_printf_log(phba, KERN_ERR, LOG_MBOX,
-				"2929 Resource Extent Opcode x%x is "
-				"unsupported\n", opcode);
-		return 1;
+
+	switch (opcode)
+	{
+		case LPFC_MBOX_OPCODE_ALLOC_RSRC_EXTENT:
+			if (emb == LPFC_SLI4_MBX_EMBED)
+				bf_set(lpfc_mbx_alloc_rsrc_extents_cnt,
+					   &mbox->u.mqe.un.alloc_rsrc_extents.u.req,
+					   exts_count);
+			else
+				bf_set(lpfc_mbx_alloc_rsrc_extents_cnt,
+					   n_rsrc_extnt, exts_count);
+
+			break;
+
+		case LPFC_MBOX_OPCODE_GET_ALLOC_RSRC_EXTENT:
+		case LPFC_MBOX_OPCODE_GET_RSRC_EXTENT_INFO:
+		case LPFC_MBOX_OPCODE_DEALLOC_RSRC_EXTENT:
+			/* Initialization is complete.*/
+			break;
+
+		default:
+			lpfc_printf_log(phba, KERN_ERR, LOG_MBOX,
+							"2929 Resource Extent Opcode x%x is "
+							"unsupported\n", opcode);
+			return 1;
 	}
 
 	return 0;
@@ -1949,18 +2144,25 @@ lpfc_sli_config_mbox_subsys_get(struct lpfc_hba *phba, LPFC_MBOXQ_t *mbox)
 	union lpfc_sli4_cfg_shdr *cfg_shdr;
 
 	if (mbox->u.mb.mbxCommand != MBX_SLI4_CONFIG)
+	{
 		return LPFC_MBOX_SUBSYSTEM_NA;
+	}
+
 	sli4_cfg = &mbox->u.mqe.un.sli4_config;
 
 	/* For embedded mbox command, get opcode from embedded sub-header*/
-	if (bf_get(lpfc_mbox_hdr_emb, &sli4_cfg->header.cfg_mhdr)) {
+	if (bf_get(lpfc_mbox_hdr_emb, &sli4_cfg->header.cfg_mhdr))
+	{
 		cfg_shdr = &mbox->u.mqe.un.sli4_config.header.cfg_shdr;
 		return bf_get(lpfc_mbox_hdr_subsystem, &cfg_shdr->request);
 	}
 
 	/* For non-embedded mbox command, get opcode from first dma page */
 	if (unlikely(!mbox->sge_array))
+	{
 		return LPFC_MBOX_SUBSYSTEM_NA;
+	}
+
 	cfg_shdr = (union lpfc_sli4_cfg_shdr *)mbox->sge_array->addr[0];
 	return bf_get(lpfc_mbox_hdr_subsystem, &cfg_shdr->request);
 }
@@ -1982,18 +2184,25 @@ lpfc_sli_config_mbox_opcode_get(struct lpfc_hba *phba, LPFC_MBOXQ_t *mbox)
 	union lpfc_sli4_cfg_shdr *cfg_shdr;
 
 	if (mbox->u.mb.mbxCommand != MBX_SLI4_CONFIG)
+	{
 		return LPFC_MBOX_OPCODE_NA;
+	}
+
 	sli4_cfg = &mbox->u.mqe.un.sli4_config;
 
 	/* For embedded mbox command, get opcode from embedded sub-header*/
-	if (bf_get(lpfc_mbox_hdr_emb, &sli4_cfg->header.cfg_mhdr)) {
+	if (bf_get(lpfc_mbox_hdr_emb, &sli4_cfg->header.cfg_mhdr))
+	{
 		cfg_shdr = &mbox->u.mqe.un.sli4_config.header.cfg_shdr;
 		return bf_get(lpfc_mbox_hdr_opcode, &cfg_shdr->request);
 	}
 
 	/* For non-embedded mbox command, get opcode from first dma page */
 	if (unlikely(!mbox->sge_array))
+	{
 		return LPFC_MBOX_OPCODE_NA;
+	}
+
 	cfg_shdr = (union lpfc_sli4_cfg_shdr *)mbox->sge_array->addr[0];
 	return bf_get(lpfc_mbox_hdr_opcode, &cfg_shdr->request);
 }
@@ -2011,8 +2220,8 @@ lpfc_sli_config_mbox_opcode_get(struct lpfc_hba *phba, LPFC_MBOXQ_t *mbox)
  **/
 int
 lpfc_sli4_mbx_read_fcf_rec(struct lpfc_hba *phba,
-			   struct lpfcMboxq *mboxq,
-			   uint16_t fcf_index)
+						   struct lpfcMboxq *mboxq,
+						   uint16_t fcf_index)
 {
 	void *virt_addr;
 	uint8_t *bytep;
@@ -2021,21 +2230,24 @@ lpfc_sli4_mbx_read_fcf_rec(struct lpfc_hba *phba,
 	struct lpfc_mbx_read_fcf_tbl *read_fcf;
 
 	if (!mboxq)
+	{
 		return -ENOMEM;
+	}
 
 	req_len = sizeof(struct fcf_record) +
-		  sizeof(union lpfc_sli4_cfg_shdr) + 2 * sizeof(uint32_t);
+			  sizeof(union lpfc_sli4_cfg_shdr) + 2 * sizeof(uint32_t);
 
 	/* Set up READ_FCF SLI4_CONFIG mailbox-ioctl command */
 	alloc_len = lpfc_sli4_config(phba, mboxq, LPFC_MBOX_SUBSYSTEM_FCOE,
-			LPFC_MBOX_OPCODE_FCOE_READ_FCF_TABLE, req_len,
-			LPFC_SLI4_MBX_NEMBED);
+								 LPFC_MBOX_OPCODE_FCOE_READ_FCF_TABLE, req_len,
+								 LPFC_SLI4_MBX_NEMBED);
 
-	if (alloc_len < req_len) {
+	if (alloc_len < req_len)
+	{
 		lpfc_printf_log(phba, KERN_ERR, LOG_MBOX,
-				"0291 Allocated DMA memory size (x%x) is "
-				"less than the requested DMA memory "
-				"size (x%x)\n", alloc_len, req_len);
+						"0291 Allocated DMA memory size (x%x) is "
+						"less than the requested DMA memory "
+						"size (x%x)\n", alloc_len, req_len);
 		return -ENOMEM;
 	}
 
@@ -2075,11 +2287,15 @@ lpfc_request_features(struct lpfc_hba *phba, struct lpfcMboxq *mboxq)
 
 	/* Enable DIF (block guard) only if configured to do so. */
 	if (phba->cfg_enable_bg)
+	{
 		bf_set(lpfc_mbx_rq_ftr_rq_dif, &mboxq->u.mqe.un.req_ftrs, 1);
+	}
 
 	/* Enable NPIV only if configured to do so. */
 	if (phba->max_vpi && phba->cfg_enable_npiv)
+	{
 		bf_set(lpfc_mbx_rq_ftr_rq_npiv, &mboxq->u.mqe.un.req_ftrs, 1);
+	}
 
 	return;
 }
@@ -2108,11 +2324,11 @@ lpfc_init_vfi(struct lpfcMboxq *mbox, struct lpfc_vport *vport)
 	bf_set(lpfc_init_vfi_vt, init_vfi, 1);
 	bf_set(lpfc_init_vfi_vp, init_vfi, 1);
 	bf_set(lpfc_init_vfi_vfi, init_vfi,
-	       vport->phba->sli4_hba.vfi_ids[vport->vfi]);
+		   vport->phba->sli4_hba.vfi_ids[vport->vfi]);
 	bf_set(lpfc_init_vfi_vpi, init_vfi,
-	       vport->phba->vpi_ids[vport->vpi]);
+		   vport->phba->vpi_ids[vport->vpi]);
 	bf_set(lpfc_init_vfi_fcfi, init_vfi,
-	       vport->phba->fcf.fcfi);
+		   vport->phba->fcf.fcfi);
 }
 
 /**
@@ -2137,7 +2353,7 @@ lpfc_reg_vfi(struct lpfcMboxq *mbox, struct lpfc_vport *vport, dma_addr_t phys)
 	bf_set(lpfc_mqe_command, &mbox->u.mqe, MBX_REG_VFI);
 	bf_set(lpfc_reg_vfi_vp, reg_vfi, 1);
 	bf_set(lpfc_reg_vfi_vfi, reg_vfi,
-	       phba->sli4_hba.vfi_ids[vport->vfi]);
+		   phba->sli4_hba.vfi_ids[vport->vfi]);
 	bf_set(lpfc_reg_vfi_fcfi, reg_vfi, phba->fcf.fcfi);
 	bf_set(lpfc_reg_vfi_vpi, reg_vfi, phba->vpi_ids[vport->vpi]);
 	memcpy(reg_vfi->wwn, &vport->fc_portname, sizeof(struct lpfc_name));
@@ -2145,31 +2361,36 @@ lpfc_reg_vfi(struct lpfcMboxq *mbox, struct lpfc_vport *vport, dma_addr_t phys)
 	reg_vfi->wwn[1] = cpu_to_le32(reg_vfi->wwn[1]);
 	reg_vfi->e_d_tov = phba->fc_edtov;
 	reg_vfi->r_a_tov = phba->fc_ratov;
-	if (phys) {
+
+	if (phys)
+	{
 		reg_vfi->bde.addrHigh = putPaddrHigh(phys);
 		reg_vfi->bde.addrLow = putPaddrLow(phys);
 		reg_vfi->bde.tus.f.bdeSize = sizeof(vport->fc_sparam);
 		reg_vfi->bde.tus.f.bdeFlags = BUFF_TYPE_BDE_64;
 	}
+
 	bf_set(lpfc_reg_vfi_nport_id, reg_vfi, vport->fc_myDID);
 
 	/* Only FC supports upd bit */
 	if ((phba->sli4_hba.lnk_info.lnk_tp == LPFC_LNK_TYPE_FC) &&
-	    (vport->fc_flag & FC_VFI_REGISTERED) &&
-	    (!phba->fc_topology_changed)) {
+		(vport->fc_flag & FC_VFI_REGISTERED) &&
+		(!phba->fc_topology_changed))
+	{
 		bf_set(lpfc_reg_vfi_vp, reg_vfi, 0);
 		bf_set(lpfc_reg_vfi_upd, reg_vfi, 1);
 	}
+
 	lpfc_printf_vlog(vport, KERN_INFO, LOG_MBOX,
-			"3134 Register VFI, mydid:x%x, fcfi:%d, "
-			" vfi:%d, vpi:%d, fc_pname:%x%x fc_flag:x%x"
-			" port_state:x%x topology chg:%d\n",
-			vport->fc_myDID,
-			phba->fcf.fcfi,
-			phba->sli4_hba.vfi_ids[vport->vfi],
-			phba->vpi_ids[vport->vpi],
-			reg_vfi->wwn[0], reg_vfi->wwn[1], vport->fc_flag,
-			vport->port_state, phba->fc_topology_changed);
+					 "3134 Register VFI, mydid:x%x, fcfi:%d, "
+					 " vfi:%d, vpi:%d, fc_pname:%x%x fc_flag:x%x"
+					 " port_state:x%x topology chg:%d\n",
+					 vport->fc_myDID,
+					 phba->fcf.fcfi,
+					 phba->sli4_hba.vfi_ids[vport->vfi],
+					 phba->vpi_ids[vport->vpi],
+					 reg_vfi->wwn[0], reg_vfi->wwn[1], vport->fc_flag,
+					 vport->port_state, phba->fc_topology_changed);
 }
 
 /**
@@ -2190,9 +2411,9 @@ lpfc_init_vpi(struct lpfc_hba *phba, struct lpfcMboxq *mbox, uint16_t vpi)
 	memset(mbox, 0, sizeof(*mbox));
 	bf_set(lpfc_mqe_command, &mbox->u.mqe, MBX_INIT_VPI);
 	bf_set(lpfc_init_vpi_vpi, &mbox->u.mqe.un.init_vpi,
-	       phba->vpi_ids[vpi]);
+		   phba->vpi_ids[vpi]);
 	bf_set(lpfc_init_vpi_vfi, &mbox->u.mqe.un.init_vpi,
-	       phba->sli4_hba.vfi_ids[phba->pport->vfi]);
+		   phba->sli4_hba.vfi_ids[phba->pport->vfi]);
 }
 
 /**
@@ -2212,7 +2433,7 @@ lpfc_unreg_vfi(struct lpfcMboxq *mbox, struct lpfc_vport *vport)
 	memset(mbox, 0, sizeof(*mbox));
 	bf_set(lpfc_mqe_command, &mbox->u.mqe, MBX_UNREG_VFI);
 	bf_set(lpfc_unreg_vfi_vfi, &mbox->u.mqe.un.unreg_vfi,
-	       vport->phba->sli4_hba.vfi_ids[vport->vfi]);
+		   vport->phba->sli4_hba.vfi_ids[vport->vfi]);
 }
 
 /**
@@ -2233,15 +2454,19 @@ lpfc_sli4_dump_cfg_rg23(struct lpfc_hba *phba, struct lpfcMboxq *mbox)
 	mb = &mbox->u.mb;
 
 	mp = kmalloc(sizeof(struct lpfc_dmabuf), GFP_KERNEL);
-	if (mp)
-		mp->virt = lpfc_mbuf_alloc(phba, 0, &mp->phys);
 
-	if (!mp || !mp->virt) {
+	if (mp)
+	{
+		mp->virt = lpfc_mbuf_alloc(phba, 0, &mp->phys);
+	}
+
+	if (!mp || !mp->virt)
+	{
 		kfree(mp);
 		/* dump config region 23 failed to allocate memory */
 		lpfc_printf_log(phba, KERN_WARNING, LOG_MBOX,
-			"2569 lpfc dump config region 23: memory"
-			" allocation failed\n");
+						"2569 lpfc dump config region 23: memory"
+						" allocation failed\n");
 		return 1;
 	}
 
@@ -2266,11 +2491,14 @@ lpfc_mbx_cmpl_rdp_link_stat(struct lpfc_hba *phba, LPFC_MBOXQ_t *mboxq)
 	MAILBOX_t *mb;
 	int rc = FAILURE;
 	struct lpfc_rdp_context *rdp_context =
-			(struct lpfc_rdp_context *)(mboxq->context2);
+		(struct lpfc_rdp_context *)(mboxq->context2);
 
 	mb = &mboxq->u.mb;
+
 	if (mb->mbxStatus)
+	{
 		goto mbx_failed;
+	}
 
 	memcpy(&rdp_context->link_stat, &mb->un.varRdLnk, sizeof(READ_LNK_VAR));
 
@@ -2286,13 +2514,15 @@ lpfc_mbx_cmpl_rdp_page_a2(struct lpfc_hba *phba, LPFC_MBOXQ_t *mbox)
 {
 	struct lpfc_dmabuf *mp = (struct lpfc_dmabuf *) mbox->context1;
 	struct lpfc_rdp_context *rdp_context =
-			(struct lpfc_rdp_context *)(mbox->context2);
+		(struct lpfc_rdp_context *)(mbox->context2);
 
 	if (bf_get(lpfc_mqe_status, &mbox->u.mqe))
+	{
 		goto error_mbuf_free;
+	}
 
 	lpfc_sli_bemem_bcopy(mp->virt, &rdp_context->page_a2,
-				DMP_SFF_PAGE_A2_SIZE);
+						 DMP_SFF_PAGE_A2_SIZE);
 
 	/* We don't need dma buffer for link stat. */
 	lpfc_mbuf_free(phba, mp->virt, mp->phys);
@@ -2303,8 +2533,11 @@ lpfc_mbx_cmpl_rdp_page_a2(struct lpfc_hba *phba, LPFC_MBOXQ_t *mbox)
 	mbox->vport = rdp_context->ndlp->vport;
 	mbox->mbox_cmpl = lpfc_mbx_cmpl_rdp_link_stat;
 	mbox->context2 = (struct lpfc_rdp_context *) rdp_context;
+
 	if (lpfc_sli_issue_mbox(phba, mbox, MBX_NOWAIT) == MBX_NOT_FINISHED)
+	{
 		goto error_cmd_free;
+	}
 
 	return;
 
@@ -2322,13 +2555,15 @@ lpfc_mbx_cmpl_rdp_page_a0(struct lpfc_hba *phba, LPFC_MBOXQ_t *mbox)
 	int rc;
 	struct lpfc_dmabuf *mp = (struct lpfc_dmabuf *) (mbox->context1);
 	struct lpfc_rdp_context *rdp_context =
-			(struct lpfc_rdp_context *)(mbox->context2);
+		(struct lpfc_rdp_context *)(mbox->context2);
 
 	if (bf_get(lpfc_mqe_status, &mbox->u.mqe))
+	{
 		goto error;
+	}
 
 	lpfc_sli_bemem_bcopy(mp->virt, &rdp_context->page_a0,
-				DMP_SFF_PAGE_A0_SIZE);
+						 DMP_SFF_PAGE_A0_SIZE);
 
 	memset(mbox, 0, sizeof(*mbox));
 
@@ -2341,21 +2576,24 @@ lpfc_mbx_cmpl_rdp_page_a0(struct lpfc_hba *phba, LPFC_MBOXQ_t *mbox)
 
 	bf_set(lpfc_mqe_command, &mbox->u.mqe, MBX_DUMP_MEMORY);
 	bf_set(lpfc_mbx_memory_dump_type3_type,
-		&mbox->u.mqe.un.mem_dump_type3, DMP_LMSD);
+		   &mbox->u.mqe.un.mem_dump_type3, DMP_LMSD);
 	bf_set(lpfc_mbx_memory_dump_type3_link,
-		&mbox->u.mqe.un.mem_dump_type3, phba->sli4_hba.physical_port);
+		   &mbox->u.mqe.un.mem_dump_type3, phba->sli4_hba.physical_port);
 	bf_set(lpfc_mbx_memory_dump_type3_page_no,
-		&mbox->u.mqe.un.mem_dump_type3, DMP_PAGE_A2);
+		   &mbox->u.mqe.un.mem_dump_type3, DMP_PAGE_A2);
 	bf_set(lpfc_mbx_memory_dump_type3_length,
-		&mbox->u.mqe.un.mem_dump_type3, DMP_SFF_PAGE_A2_SIZE);
+		   &mbox->u.mqe.un.mem_dump_type3, DMP_SFF_PAGE_A2_SIZE);
 	mbox->u.mqe.un.mem_dump_type3.addr_lo = putPaddrLow(mp->phys);
 	mbox->u.mqe.un.mem_dump_type3.addr_hi = putPaddrHigh(mp->phys);
 
 	mbox->mbox_cmpl = lpfc_mbx_cmpl_rdp_page_a2;
 	mbox->context2 = (struct lpfc_rdp_context *) rdp_context;
 	rc = lpfc_sli_issue_mbox(phba, mbox, MBX_NOWAIT);
+
 	if (rc == MBX_NOT_FINISHED)
+	{
 		goto error;
+	}
 
 	return;
 
@@ -2383,12 +2621,17 @@ lpfc_sli4_dump_page_a0(struct lpfc_hba *phba, struct lpfcMboxq *mbox)
 	memset(mbox, 0, sizeof(*mbox));
 
 	mp = kmalloc(sizeof(struct lpfc_dmabuf), GFP_KERNEL);
+
 	if (mp)
+	{
 		mp->virt = lpfc_mbuf_alloc(phba, 0, &mp->phys);
-	if (!mp || !mp->virt) {
+	}
+
+	if (!mp || !mp->virt)
+	{
 		kfree(mp);
 		lpfc_printf_log(phba, KERN_WARNING, LOG_MBOX,
-			"3569 dump type 3 page 0xA0 allocation failed\n");
+						"3569 dump type 3 page 0xA0 allocation failed\n");
 		return 1;
 	}
 
@@ -2400,13 +2643,13 @@ lpfc_sli4_dump_page_a0(struct lpfc_hba *phba, struct lpfcMboxq *mbox)
 	mbox->context1 = mp;
 
 	bf_set(lpfc_mbx_memory_dump_type3_type,
-		&mbox->u.mqe.un.mem_dump_type3, DMP_LMSD);
+		   &mbox->u.mqe.un.mem_dump_type3, DMP_LMSD);
 	bf_set(lpfc_mbx_memory_dump_type3_link,
-		&mbox->u.mqe.un.mem_dump_type3, phba->sli4_hba.physical_port);
+		   &mbox->u.mqe.un.mem_dump_type3, phba->sli4_hba.physical_port);
 	bf_set(lpfc_mbx_memory_dump_type3_page_no,
-		&mbox->u.mqe.un.mem_dump_type3, DMP_PAGE_A0);
+		   &mbox->u.mqe.un.mem_dump_type3, DMP_PAGE_A0);
 	bf_set(lpfc_mbx_memory_dump_type3_length,
-		&mbox->u.mqe.un.mem_dump_type3, DMP_SFF_PAGE_A0_SIZE);
+		   &mbox->u.mqe.un.mem_dump_type3, DMP_SFF_PAGE_A0_SIZE);
 	mbox->u.mqe.un.mem_dump_type3.addr_lo = putPaddrLow(mp->phys);
 	mbox->u.mqe.un.mem_dump_type3.addr_hi = putPaddrHigh(mp->phys);
 
@@ -2439,13 +2682,15 @@ lpfc_reg_fcfi(struct lpfc_hba *phba, struct lpfcMboxq *mbox)
 	bf_set(lpfc_reg_fcfi_rq_id2, reg_fcfi, REG_FCF_INVALID_QID);
 	bf_set(lpfc_reg_fcfi_rq_id3, reg_fcfi, REG_FCF_INVALID_QID);
 	bf_set(lpfc_reg_fcfi_info_index, reg_fcfi,
-	       phba->fcf.current_rec.fcf_indx);
+		   phba->fcf.current_rec.fcf_indx);
 	/* reg_fcf addr mode is bit wise inverted value of fcf addr_mode */
 	bf_set(lpfc_reg_fcfi_mam, reg_fcfi, (~phba->fcf.addr_mode) & 0x3);
-	if (phba->fcf.current_rec.vlan_id != LPFC_FCOE_NULL_VID) {
+
+	if (phba->fcf.current_rec.vlan_id != LPFC_FCOE_NULL_VID)
+	{
 		bf_set(lpfc_reg_fcfi_vv, reg_fcfi, 1);
 		bf_set(lpfc_reg_fcfi_vlan_tag, reg_fcfi,
-		       phba->fcf.current_rec.vlan_id);
+			   phba->fcf.current_rec.vlan_id);
 	}
 }
 
@@ -2483,7 +2728,7 @@ lpfc_resume_rpi(struct lpfcMboxq *mbox, struct lpfc_nodelist *ndlp)
 	resume_rpi = &mbox->u.mqe.un.resume_rpi;
 	bf_set(lpfc_mqe_command, &mbox->u.mqe, MBX_RESUME_RPI);
 	bf_set(lpfc_resume_rpi_index, resume_rpi,
-	       phba->sli4_hba.rpi_ids[ndlp->nlp_rpi]);
+		   phba->sli4_hba.rpi_ids[ndlp->nlp_rpi]);
 	bf_set(lpfc_resume_rpi_ii, resume_rpi, RESUME_INDEX_RPI);
 	resume_rpi->event_tag = ndlp->phba->fc_eventTag;
 }

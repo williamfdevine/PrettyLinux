@@ -39,19 +39,22 @@
 #define BD2802_PATTERN_FULL		0x07
 #define BD2802_PATTERN_HALF		0x03
 
-enum led_ids {
+enum led_ids
+{
 	LED1,
 	LED2,
 	LED_NUM,
 };
 
-enum led_colors {
+enum led_colors
+{
 	RED,
 	GREEN,
 	BLUE,
 };
 
-enum led_bits {
+enum led_bits
+{
 	BD2802_OFF,
 	BD2802_BLINK,
 	BD2802_ON,
@@ -62,13 +65,15 @@ enum led_bits {
  * State '1' : 'blink'
  * State '2' : 'on'.
  */
-struct led_state {
-	unsigned r:2;
-	unsigned g:2;
-	unsigned b:2;
+struct led_state
+{
+	unsigned r: 2;
+	unsigned g: 2;
+	unsigned b: 2;
 };
 
-struct bd2802_led {
+struct bd2802_led
+{
 	struct bd2802_led_platform_data	*pdata;
 	struct i2c_client		*client;
 	struct rw_semaphore		rwsem;
@@ -109,25 +114,31 @@ struct bd2802_led {
 /*--------------------------------------------------------------*/
 
 static inline int bd2802_is_rgb_off(struct bd2802_led *led, enum led_ids id,
-							enum led_colors color)
+									enum led_colors color)
 {
-	switch (color) {
-	case RED:
-		return !led->led[id].r;
-	case GREEN:
-		return !led->led[id].g;
-	case BLUE:
-		return !led->led[id].b;
-	default:
-		dev_err(&led->client->dev, "%s: Invalid color\n", __func__);
-		return -EINVAL;
+	switch (color)
+	{
+		case RED:
+			return !led->led[id].r;
+
+		case GREEN:
+			return !led->led[id].g;
+
+		case BLUE:
+			return !led->led[id].b;
+
+		default:
+			dev_err(&led->client->dev, "%s: Invalid color\n", __func__);
+			return -EINVAL;
 	}
 }
 
 static inline int bd2802_is_led_off(struct bd2802_led *led, enum led_ids id)
 {
 	if (led->led[id].r || led->led[id].g || led->led[id].b)
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -138,7 +149,9 @@ static inline int bd2802_is_all_off(struct bd2802_led *led)
 
 	for (i = 0; i < LED_NUM; i++)
 		if (!bd2802_is_led_off(led, i))
+		{
 			return 0;
+		}
 
 	return 1;
 }
@@ -149,7 +162,7 @@ static inline u8 bd2802_get_base_offset(enum led_ids id, enum led_colors color)
 }
 
 static inline u8 bd2802_get_reg_addr(enum led_ids id, enum led_colors color,
-								u8 reg_offset)
+									 u8 reg_offset)
 {
 	return reg_offset + bd2802_get_base_offset(id, color);
 }
@@ -162,48 +175,62 @@ static inline u8 bd2802_get_reg_addr(enum led_ids id, enum led_colors color,
 static int bd2802_write_byte(struct i2c_client *client, u8 reg, u8 val)
 {
 	int ret = i2c_smbus_write_byte_data(client, reg, val);
+
 	if (ret >= 0)
+	{
 		return 0;
+	}
 
 	dev_err(&client->dev, "%s: reg 0x%x, val 0x%x, err %d\n",
-						__func__, reg, val, ret);
+			__func__, reg, val, ret);
 
 	return ret;
 }
 
 static void bd2802_update_state(struct bd2802_led *led, enum led_ids id,
-				enum led_colors color, enum led_bits led_bit)
+								enum led_colors color, enum led_bits led_bit)
 {
 	int i;
 	u8 value;
 
-	for (i = 0; i < LED_NUM; i++) {
-		if (i == id) {
-			switch (color) {
-			case RED:
-				led->led[i].r = led_bit;
-				break;
-			case GREEN:
-				led->led[i].g = led_bit;
-				break;
-			case BLUE:
-				led->led[i].b = led_bit;
-				break;
-			default:
-				dev_err(&led->client->dev,
-					"%s: Invalid color\n", __func__);
-				return;
+	for (i = 0; i < LED_NUM; i++)
+	{
+		if (i == id)
+		{
+			switch (color)
+			{
+				case RED:
+					led->led[i].r = led_bit;
+					break;
+
+				case GREEN:
+					led->led[i].g = led_bit;
+					break;
+
+				case BLUE:
+					led->led[i].b = led_bit;
+					break;
+
+				default:
+					dev_err(&led->client->dev,
+							"%s: Invalid color\n", __func__);
+					return;
 			}
 		}
 	}
 
 	if (led_bit == BD2802_BLINK || led_bit == BD2802_ON)
+	{
 		return;
+	}
 
 	if (!bd2802_is_led_off(led, id))
+	{
 		return;
+	}
 
-	if (bd2802_is_all_off(led) && !led->adf_on) {
+	if (bd2802_is_all_off(led) && !led->adf_on)
+	{
 		gpio_set_value(led->pdata->reset_gpio, 0);
 		return;
 	}
@@ -241,21 +268,28 @@ static void bd2802_enable(struct bd2802_led *led, enum led_ids id)
 	u8 value, other_led_on;
 
 	other_led_on = !bd2802_is_led_off(led, other_led);
+
 	if (id == LED1)
+	{
 		value = LED_CTL(other_led_on, 1);
+	}
 	else
+	{
 		value = LED_CTL(1 , other_led_on);
+	}
 
 	bd2802_write_byte(led->client, BD2802_REG_CONTROL, value);
 }
 
 static void bd2802_set_on(struct bd2802_led *led, enum led_ids id,
-							enum led_colors color)
+						  enum led_colors color)
 {
 	u8 reg;
 
 	if (bd2802_is_all_off(led) && !led->adf_on)
+	{
 		bd2802_reset_cancel(led);
+	}
 
 	reg = bd2802_get_reg_addr(id, color, BD2802_REG_CURRENT1SETUP);
 	bd2802_write_byte(led->client, reg, led->rgb_current);
@@ -269,12 +303,14 @@ static void bd2802_set_on(struct bd2802_led *led, enum led_ids id,
 }
 
 static void bd2802_set_blink(struct bd2802_led *led, enum led_ids id,
-							enum led_colors color)
+							 enum led_colors color)
 {
 	u8 reg;
 
 	if (bd2802_is_all_off(led) && !led->adf_on)
+	{
 		bd2802_reset_cancel(led);
+	}
 
 	reg = bd2802_get_reg_addr(id, color, BD2802_REG_CURRENT1SETUP);
 	bd2802_write_byte(led->client, reg, BD2802_CURRENT_000);
@@ -288,18 +324,23 @@ static void bd2802_set_blink(struct bd2802_led *led, enum led_ids id,
 }
 
 static void bd2802_turn_on(struct bd2802_led *led, enum led_ids id,
-				enum led_colors color, enum led_bits led_bit)
+						   enum led_colors color, enum led_bits led_bit)
 {
-	if (led_bit == BD2802_OFF) {
+	if (led_bit == BD2802_OFF)
+	{
 		dev_err(&led->client->dev,
-					"Only 'blink' and 'on' are allowed\n");
+				"Only 'blink' and 'on' are allowed\n");
 		return;
 	}
 
 	if (led_bit == BD2802_BLINK)
+	{
 		bd2802_set_blink(led, id, color);
+	}
 	else
+	{
 		bd2802_set_on(led, id, color);
+	}
 }
 
 static void bd2802_turn_off(struct bd2802_led *led, enum led_ids id,
@@ -308,7 +349,9 @@ static void bd2802_turn_off(struct bd2802_led *led, enum led_ids id,
 	u8 reg;
 
 	if (bd2802_is_rgb_off(led, id, color))
+	{
 		return;
+	}
 
 	reg = bd2802_get_reg_addr(id, color, BD2802_REG_CURRENT1SETUP);
 	bd2802_write_byte(led->client, reg, BD2802_CURRENT_000);
@@ -319,26 +362,26 @@ static void bd2802_turn_off(struct bd2802_led *led, enum led_ids id,
 }
 
 #define BD2802_SET_REGISTER(reg_addr, reg_name)				\
-static ssize_t bd2802_store_reg##reg_addr(struct device *dev,		\
-	struct device_attribute *attr, const char *buf, size_t count)	\
-{									\
-	struct bd2802_led *led = i2c_get_clientdata(to_i2c_client(dev));\
-	unsigned long val;						\
-	int ret;							\
-	if (!count)							\
-		return -EINVAL;						\
-	ret = kstrtoul(buf, 16, &val);					\
-	if (ret)							\
-		return ret;						\
-	down_write(&led->rwsem);					\
-	bd2802_write_byte(led->client, reg_addr, (u8) val);		\
-	up_write(&led->rwsem);						\
-	return count;							\
-}									\
-static struct device_attribute bd2802_reg##reg_addr##_attr = {		\
-	.attr = {.name = reg_name, .mode = 0644},			\
-	.store = bd2802_store_reg##reg_addr,				\
-};
+	static ssize_t bd2802_store_reg##reg_addr(struct device *dev,		\
+			struct device_attribute *attr, const char *buf, size_t count)	\
+	{									\
+		struct bd2802_led *led = i2c_get_clientdata(to_i2c_client(dev));\
+		unsigned long val;						\
+		int ret;							\
+		if (!count)							\
+			return -EINVAL;						\
+		ret = kstrtoul(buf, 16, &val);					\
+		if (ret)							\
+			return ret;						\
+		down_write(&led->rwsem);					\
+		bd2802_write_byte(led->client, reg_addr, (u8) val);		\
+		up_write(&led->rwsem);						\
+		return count;							\
+	}									\
+	static struct device_attribute bd2802_reg##reg_addr##_attr = {		\
+		.attr = {.name = reg_name, .mode = 0644},			\
+				.store = bd2802_store_reg##reg_addr,				\
+	};
 
 BD2802_SET_REGISTER(0x00, "0x00");
 BD2802_SET_REGISTER(0x01, "0x01");
@@ -363,7 +406,8 @@ BD2802_SET_REGISTER(0x13, "0x13");
 BD2802_SET_REGISTER(0x14, "0x14");
 BD2802_SET_REGISTER(0x15, "0x15");
 
-static struct device_attribute *bd2802_addr_attributes[] = {
+static struct device_attribute *bd2802_addr_attributes[] =
+{
 	&bd2802_reg0x00_attr,
 	&bd2802_reg0x01_attr,
 	&bd2802_reg0x02_attr,
@@ -392,10 +436,13 @@ static void bd2802_enable_adv_conf(struct bd2802_led *led)
 {
 	int i, ret;
 
-	for (i = 0; i < ARRAY_SIZE(bd2802_addr_attributes); i++) {
+	for (i = 0; i < ARRAY_SIZE(bd2802_addr_attributes); i++)
+	{
 		ret = device_create_file(&led->client->dev,
-						bd2802_addr_attributes[i]);
-		if (ret) {
+								 bd2802_addr_attributes[i]);
+
+		if (ret)
+		{
 			dev_err(&led->client->dev, "failed: sysfs file %s\n",
 					bd2802_addr_attributes[i]->attr.name);
 			goto failed_remove_files;
@@ -403,16 +450,19 @@ static void bd2802_enable_adv_conf(struct bd2802_led *led)
 	}
 
 	if (bd2802_is_all_off(led))
+	{
 		bd2802_reset_cancel(led);
+	}
 
 	led->adf_on = 1;
 
 	return;
 
 failed_remove_files:
+
 	for (i--; i >= 0; i--)
 		device_remove_file(&led->client->dev,
-						bd2802_addr_attributes[i]);
+						   bd2802_addr_attributes[i]);
 }
 
 static void bd2802_disable_adv_conf(struct bd2802_led *led)
@@ -421,49 +471,66 @@ static void bd2802_disable_adv_conf(struct bd2802_led *led)
 
 	for (i = 0; i < ARRAY_SIZE(bd2802_addr_attributes); i++)
 		device_remove_file(&led->client->dev,
-						bd2802_addr_attributes[i]);
+						   bd2802_addr_attributes[i]);
 
 	if (bd2802_is_all_off(led))
+	{
 		gpio_set_value(led->pdata->reset_gpio, 0);
+	}
 
 	led->adf_on = 0;
 }
 
 static ssize_t bd2802_show_adv_conf(struct device *dev,
-	struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	struct bd2802_led *led = i2c_get_clientdata(to_i2c_client(dev));
 	ssize_t ret;
 
 	down_read(&led->rwsem);
+
 	if (led->adf_on)
+	{
 		ret = sprintf(buf, "on\n");
+	}
 	else
+	{
 		ret = sprintf(buf, "off\n");
+	}
+
 	up_read(&led->rwsem);
 
 	return ret;
 }
 
 static ssize_t bd2802_store_adv_conf(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+									 struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct bd2802_led *led = i2c_get_clientdata(to_i2c_client(dev));
 
 	if (!count)
+	{
 		return -EINVAL;
+	}
 
 	down_write(&led->rwsem);
+
 	if (!led->adf_on && !strncmp(buf, "on", 2))
+	{
 		bd2802_enable_adv_conf(led);
+	}
 	else if (led->adf_on && !strncmp(buf, "off", 3))
+	{
 		bd2802_disable_adv_conf(led);
+	}
+
 	up_write(&led->rwsem);
 
 	return count;
 }
 
-static struct device_attribute bd2802_adv_conf_attr = {
+static struct device_attribute bd2802_adv_conf_attr =
+{
 	.attr = {
 		.name = "advanced_configuration",
 		.mode = 0644,
@@ -473,80 +540,81 @@ static struct device_attribute bd2802_adv_conf_attr = {
 };
 
 #define BD2802_CONTROL_ATTR(attr_name, name_str)			\
-static ssize_t bd2802_show_##attr_name(struct device *dev,		\
-	struct device_attribute *attr, char *buf)			\
-{									\
-	struct bd2802_led *led = i2c_get_clientdata(to_i2c_client(dev));\
-	ssize_t ret;							\
-	down_read(&led->rwsem);						\
-	ret = sprintf(buf, "0x%02x\n", led->attr_name);			\
-	up_read(&led->rwsem);						\
-	return ret;							\
-}									\
-static ssize_t bd2802_store_##attr_name(struct device *dev,		\
-	struct device_attribute *attr, const char *buf, size_t count)	\
-{									\
-	struct bd2802_led *led = i2c_get_clientdata(to_i2c_client(dev));\
-	unsigned long val;						\
-	int ret;							\
-	if (!count)							\
-		return -EINVAL;						\
-	ret = kstrtoul(buf, 16, &val);					\
-	if (ret)							\
-		return ret;						\
-	down_write(&led->rwsem);					\
-	led->attr_name = val;						\
-	up_write(&led->rwsem);						\
-	return count;							\
-}									\
-static struct device_attribute bd2802_##attr_name##_attr = {		\
-	.attr = {							\
-		.name = name_str,					\
-		.mode = 0644,						\
-	},								\
-	.show = bd2802_show_##attr_name,				\
-	.store = bd2802_store_##attr_name,				\
-};
+	static ssize_t bd2802_show_##attr_name(struct device *dev,		\
+										   struct device_attribute *attr, char *buf)			\
+	{									\
+		struct bd2802_led *led = i2c_get_clientdata(to_i2c_client(dev));\
+		ssize_t ret;							\
+		down_read(&led->rwsem);						\
+		ret = sprintf(buf, "0x%02x\n", led->attr_name);			\
+		up_read(&led->rwsem);						\
+		return ret;							\
+	}									\
+	static ssize_t bd2802_store_##attr_name(struct device *dev,		\
+											struct device_attribute *attr, const char *buf, size_t count)	\
+	{									\
+		struct bd2802_led *led = i2c_get_clientdata(to_i2c_client(dev));\
+		unsigned long val;						\
+		int ret;							\
+		if (!count)							\
+			return -EINVAL;						\
+		ret = kstrtoul(buf, 16, &val);					\
+		if (ret)							\
+			return ret;						\
+		down_write(&led->rwsem);					\
+		led->attr_name = val;						\
+		up_write(&led->rwsem);						\
+		return count;							\
+	}									\
+	static struct device_attribute bd2802_##attr_name##_attr = {		\
+		.attr = {							\
+											.name = name_str,					\
+											.mode = 0644,						\
+				},								\
+				.show = bd2802_show_##attr_name,				\
+						.store = bd2802_store_##attr_name,				\
+	};
 
 BD2802_CONTROL_ATTR(wave_pattern, "wave_pattern");
 BD2802_CONTROL_ATTR(rgb_current, "rgb_current");
 
-static struct device_attribute *bd2802_attributes[] = {
+static struct device_attribute *bd2802_attributes[] =
+{
 	&bd2802_adv_conf_attr,
 	&bd2802_wave_pattern_attr,
 	&bd2802_rgb_current_attr,
 };
 
 #define BD2802_CONTROL_RGBS(name, id, clr)				\
-static int bd2802_set_##name##_brightness(struct led_classdev *led_cdev,\
-					enum led_brightness value)	\
-{									\
-	struct bd2802_led *led =					\
-		container_of(led_cdev, struct bd2802_led, cdev_##name);	\
-	led->led_id = id;						\
-	led->color = clr;						\
-	if (value == LED_OFF) {						\
-		led->state = BD2802_OFF;				\
-		bd2802_turn_off(led, led->led_id, led->color);		\
-	} else {							\
-		led->state = BD2802_ON;					\
-		bd2802_turn_on(led, led->led_id, led->color, BD2802_ON);\
-	}								\
-	return 0;							\
-}									\
-static int bd2802_set_##name##_blink(struct led_classdev *led_cdev,	\
-		unsigned long *delay_on, unsigned long *delay_off)	\
-{									\
-	struct bd2802_led *led =					\
-		container_of(led_cdev, struct bd2802_led, cdev_##name);	\
-	if (*delay_on == 0 || *delay_off == 0)				\
-		return -EINVAL;						\
-	led->led_id = id;						\
-	led->color = clr;						\
-	led->state = BD2802_BLINK;					\
-	bd2802_turn_on(led, led->led_id, led->color, BD2802_BLINK);	\
-	return 0;							\
-}
+	static int bd2802_set_##name##_brightness(struct led_classdev *led_cdev,\
+			enum led_brightness value)	\
+	{									\
+		struct bd2802_led *led =					\
+				container_of(led_cdev, struct bd2802_led, cdev_##name);	\
+		led->led_id = id;						\
+		led->color = clr;						\
+		if (value == LED_OFF) {						\
+			led->state = BD2802_OFF;				\
+			bd2802_turn_off(led, led->led_id, led->color);		\
+		} else {							\
+			led->state = BD2802_ON;					\
+			bd2802_turn_on(led, led->led_id, led->color, BD2802_ON);\
+		}								\
+		return 0;							\
+	}									\
+	static int bd2802_set_##name##_blink(struct led_classdev *led_cdev,	\
+										 unsigned long *delay_on, unsigned long *delay_off)	\
+	{									\
+		struct bd2802_led *led =					\
+				container_of(led_cdev, struct bd2802_led, cdev_##name);	\
+		if (*delay_on == 0 || *delay_off == 0)				\
+			return -EINVAL;						\
+		led->led_id = id;						\
+		led->color = clr;						\
+		led->state = BD2802_BLINK;					\
+		bd2802_turn_on(led, led->led_id, led->color, BD2802_BLINK);	\
+		return 0;							\
+	}
 
 BD2802_CONTROL_RGBS(led1r, LED1, RED);
 BD2802_CONTROL_RGBS(led1g, LED1, GREEN);
@@ -565,9 +633,11 @@ static int bd2802_register_led_classdev(struct bd2802_led *led)
 	led->cdev_led1r.blink_set = bd2802_set_led1r_blink;
 
 	ret = led_classdev_register(&led->client->dev, &led->cdev_led1r);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&led->client->dev, "couldn't register LED %s\n",
-							led->cdev_led1r.name);
+				led->cdev_led1r.name);
 		goto failed_unregister_led1_R;
 	}
 
@@ -577,9 +647,11 @@ static int bd2802_register_led_classdev(struct bd2802_led *led)
 	led->cdev_led1g.blink_set = bd2802_set_led1g_blink;
 
 	ret = led_classdev_register(&led->client->dev, &led->cdev_led1g);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&led->client->dev, "couldn't register LED %s\n",
-							led->cdev_led1g.name);
+				led->cdev_led1g.name);
 		goto failed_unregister_led1_G;
 	}
 
@@ -589,9 +661,11 @@ static int bd2802_register_led_classdev(struct bd2802_led *led)
 	led->cdev_led1b.blink_set = bd2802_set_led1b_blink;
 
 	ret = led_classdev_register(&led->client->dev, &led->cdev_led1b);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&led->client->dev, "couldn't register LED %s\n",
-							led->cdev_led1b.name);
+				led->cdev_led1b.name);
 		goto failed_unregister_led1_B;
 	}
 
@@ -601,9 +675,11 @@ static int bd2802_register_led_classdev(struct bd2802_led *led)
 	led->cdev_led2r.blink_set = bd2802_set_led2r_blink;
 
 	ret = led_classdev_register(&led->client->dev, &led->cdev_led2r);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&led->client->dev, "couldn't register LED %s\n",
-							led->cdev_led2r.name);
+				led->cdev_led2r.name);
 		goto failed_unregister_led2_R;
 	}
 
@@ -613,9 +689,11 @@ static int bd2802_register_led_classdev(struct bd2802_led *led)
 	led->cdev_led2g.blink_set = bd2802_set_led2g_blink;
 
 	ret = led_classdev_register(&led->client->dev, &led->cdev_led2g);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&led->client->dev, "couldn't register LED %s\n",
-							led->cdev_led2g.name);
+				led->cdev_led2g.name);
 		goto failed_unregister_led2_G;
 	}
 
@@ -626,9 +704,11 @@ static int bd2802_register_led_classdev(struct bd2802_led *led)
 	led->cdev_led2b.flags |= LED_CORE_SUSPENDRESUME;
 
 	ret = led_classdev_register(&led->client->dev, &led->cdev_led2b);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&led->client->dev, "couldn't register LED %s\n",
-							led->cdev_led2b.name);
+				led->cdev_led2b.name);
 		goto failed_unregister_led2_B;
 	}
 
@@ -660,15 +740,18 @@ static void bd2802_unregister_led_classdev(struct bd2802_led *led)
 }
 
 static int bd2802_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct bd2802_led *led;
 	struct bd2802_led_platform_data *pdata;
 	int ret, i;
 
 	led = devm_kzalloc(&client->dev, sizeof(struct bd2802_led), GFP_KERNEL);
+
 	if (!led)
+	{
 		return -ENOMEM;
+	}
 
 	led->client = client;
 	pdata = led->pdata = dev_get_platdata(&client->dev);
@@ -682,11 +765,16 @@ static int bd2802_probe(struct i2c_client *client,
 
 	/* Detect BD2802GU */
 	ret = bd2802_write_byte(client, BD2802_REG_CLKSETUP, 0x00);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed to detect device\n");
 		return ret;
-	} else
+	}
+	else
+	{
 		dev_info(&client->dev, "return 0x%02x\n", ret);
+	}
 
 	/* To save the power, reset BD2802 after detecting */
 	gpio_set_value(led->pdata->reset_gpio, 0);
@@ -697,10 +785,13 @@ static int bd2802_probe(struct i2c_client *client,
 
 	init_rwsem(&led->rwsem);
 
-	for (i = 0; i < ARRAY_SIZE(bd2802_attributes); i++) {
+	for (i = 0; i < ARRAY_SIZE(bd2802_attributes); i++)
+	{
 		ret = device_create_file(&led->client->dev,
-						bd2802_attributes[i]);
-		if (ret) {
+								 bd2802_attributes[i]);
+
+		if (ret)
+		{
 			dev_err(&led->client->dev, "failed: sysfs file %s\n",
 					bd2802_attributes[i]->attr.name);
 			goto failed_unregister_dev_file;
@@ -708,14 +799,21 @@ static int bd2802_probe(struct i2c_client *client,
 	}
 
 	ret = bd2802_register_led_classdev(led);
+
 	if (ret < 0)
+	{
 		goto failed_unregister_dev_file;
+	}
 
 	return 0;
 
 failed_unregister_dev_file:
+
 	for (i--; i >= 0; i--)
+	{
 		device_remove_file(&led->client->dev, bd2802_attributes[i]);
+	}
+
 	return ret;
 }
 
@@ -726,10 +824,16 @@ static int bd2802_remove(struct i2c_client *client)
 
 	gpio_set_value(led->pdata->reset_gpio, 0);
 	bd2802_unregister_led_classdev(led);
+
 	if (led->adf_on)
+	{
 		bd2802_disable_adv_conf(led);
+	}
+
 	for (i = 0; i < ARRAY_SIZE(bd2802_attributes); i++)
+	{
 		device_remove_file(&led->client->dev, bd2802_attributes[i]);
+	}
 
 	return 0;
 }
@@ -739,13 +843,22 @@ static void bd2802_restore_state(struct bd2802_led *led)
 {
 	int i;
 
-	for (i = 0; i < LED_NUM; i++) {
+	for (i = 0; i < LED_NUM; i++)
+	{
 		if (led->led[i].r)
+		{
 			bd2802_turn_on(led, i, RED, led->led[i].r);
+		}
+
 		if (led->led[i].g)
+		{
 			bd2802_turn_on(led, i, GREEN, led->led[i].g);
+		}
+
 		if (led->led[i].b)
+		{
 			bd2802_turn_on(led, i, BLUE, led->led[i].b);
+		}
 	}
 }
 
@@ -764,7 +877,8 @@ static int bd2802_resume(struct device *dev)
 	struct i2c_client *client = to_i2c_client(dev);
 	struct bd2802_led *led = i2c_get_clientdata(client);
 
-	if (!bd2802_is_all_off(led) || led->adf_on) {
+	if (!bd2802_is_all_off(led) || led->adf_on)
+	{
 		bd2802_reset_cancel(led);
 		bd2802_restore_state(led);
 	}
@@ -775,13 +889,15 @@ static int bd2802_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(bd2802_pm, bd2802_suspend, bd2802_resume);
 
-static const struct i2c_device_id bd2802_id[] = {
+static const struct i2c_device_id bd2802_id[] =
+{
 	{ "BD2802", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, bd2802_id);
 
-static struct i2c_driver bd2802_i2c_driver = {
+static struct i2c_driver bd2802_i2c_driver =
+{
 	.driver	= {
 		.name	= "BD2802",
 		.pm	= &bd2802_pm,

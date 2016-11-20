@@ -16,9 +16,9 @@
  * Little inline functions that simplify calling the policy methods.
  */
 static inline int policy_map(struct dm_cache_policy *p, dm_oblock_t oblock,
-			     bool can_block, bool can_migrate, bool discarded_oblock,
-			     struct bio *bio, struct policy_locker *locker,
-			     struct policy_result *result)
+							 bool can_block, bool can_migrate, bool discarded_oblock,
+							 struct bio *bio, struct policy_locker *locker,
+							 struct policy_result *result)
 {
 	return p->map(p, oblock, can_block, can_migrate, discarded_oblock, bio, locker, result);
 }
@@ -32,32 +32,36 @@ static inline int policy_lookup(struct dm_cache_policy *p, dm_oblock_t oblock, d
 static inline void policy_set_dirty(struct dm_cache_policy *p, dm_oblock_t oblock)
 {
 	if (p->set_dirty)
+	{
 		p->set_dirty(p, oblock);
+	}
 }
 
 static inline void policy_clear_dirty(struct dm_cache_policy *p, dm_oblock_t oblock)
 {
 	if (p->clear_dirty)
+	{
 		p->clear_dirty(p, oblock);
+	}
 }
 
 static inline int policy_load_mapping(struct dm_cache_policy *p,
-				      dm_oblock_t oblock, dm_cblock_t cblock,
-				      uint32_t hint, bool hint_valid)
+									  dm_oblock_t oblock, dm_cblock_t cblock,
+									  uint32_t hint, bool hint_valid)
 {
 	return p->load_mapping(p, oblock, cblock, hint, hint_valid);
 }
 
 static inline uint32_t policy_get_hint(struct dm_cache_policy *p,
-				       dm_cblock_t cblock)
+									   dm_cblock_t cblock)
 {
 	return p->get_hint ? p->get_hint(p, cblock) : 0;
 }
 
 static inline int policy_writeback_work(struct dm_cache_policy *p,
-					dm_oblock_t *oblock,
-					dm_cblock_t *cblock,
-					bool critical_only)
+										dm_oblock_t *oblock,
+										dm_cblock_t *cblock,
+										bool critical_only)
 {
 	return p->writeback_work ? p->writeback_work(p, oblock, cblock, critical_only) : -ENOENT;
 }
@@ -73,7 +77,7 @@ static inline int policy_remove_cblock(struct dm_cache_policy *p, dm_cblock_t cb
 }
 
 static inline void policy_force_mapping(struct dm_cache_policy *p,
-					dm_oblock_t current_oblock, dm_oblock_t new_oblock)
+										dm_oblock_t current_oblock, dm_oblock_t new_oblock)
 {
 	return p->force_mapping(p, current_oblock, new_oblock);
 }
@@ -86,15 +90,20 @@ static inline dm_cblock_t policy_residency(struct dm_cache_policy *p)
 static inline void policy_tick(struct dm_cache_policy *p, bool can_block)
 {
 	if (p->tick)
+	{
 		return p->tick(p, can_block);
+	}
 }
 
 static inline int policy_emit_config_values(struct dm_cache_policy *p, char *result,
-					    unsigned maxlen, ssize_t *sz_ptr)
+		unsigned maxlen, ssize_t *sz_ptr)
 {
 	ssize_t sz = *sz_ptr;
+
 	if (p->emit_config_values)
+	{
 		return p->emit_config_values(p, result, maxlen, sz_ptr);
+	}
 
 	DMEMIT("0 ");
 	*sz_ptr = sz;
@@ -102,7 +111,7 @@ static inline int policy_emit_config_values(struct dm_cache_policy *p, char *res
 }
 
 static inline int policy_set_config_value(struct dm_cache_policy *p,
-					  const char *key, const char *value)
+		const char *key, const char *value)
 {
 	return p->set_config_value ? p->set_config_value(p, key, value) : -EINVAL;
 }
@@ -140,7 +149,7 @@ static inline void free_bitset(unsigned long *bits)
  * Creates a new cache policy given a policy name, a cache size, an origin size and the block size.
  */
 struct dm_cache_policy *dm_cache_policy_create(const char *name, dm_cblock_t cache_size,
-					       sector_t origin_size, sector_t block_size);
+		sector_t origin_size, sector_t block_size);
 
 /*
  * Destroys the policy.  This drops references to the policy module as well

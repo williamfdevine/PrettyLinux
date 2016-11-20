@@ -53,14 +53,16 @@ int cycles_with_mmcr2(void)
 
 	/* Make sure we loop until we take at least one EBB */
 	while ((ebb_state.stats.ebb_count < 20 && !bad_mmcr2) ||
-		ebb_state.stats.ebb_count < 1)
+		   ebb_state.stats.ebb_count < 1)
 	{
 		mtspr(SPRN_MMCR2, expected[i % 2]);
 
 		FAIL_IF(core_busy_loop());
 
 		val = mfspr(SPRN_MMCR2);
-		if (val != expected[i % 2]) {
+
+		if (val != expected[i % 2])
+		{
 			bad_mmcr2 = true;
 			actual = val;
 		}
@@ -80,7 +82,9 @@ int cycles_with_mmcr2(void)
 	FAIL_IF(ebb_state.stats.ebb_count == 0);
 
 	if (bad_mmcr2)
+	{
 		printf("Bad MMCR2 value seen is 0x%lx\n", actual);
+	}
 
 	FAIL_IF(bad_mmcr2);
 

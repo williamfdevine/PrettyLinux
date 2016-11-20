@@ -245,7 +245,8 @@ struct usbhs_priv;
 /*
  *		struct
  */
-struct usbhs_priv {
+struct usbhs_priv
+{
 
 	void __iomem *base;
 	unsigned int irq;
@@ -323,7 +324,7 @@ int usbhs_frame_get_num(struct usbhs_priv *priv);
  * device config
  */
 int usbhs_set_device_config(struct usbhs_priv *priv, int devnum, u16 upphub,
-			   u16 hubport, u16 speed);
+							u16 hubport, u16 speed);
 
 /*
  * interrupt functions

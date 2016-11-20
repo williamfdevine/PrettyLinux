@@ -22,7 +22,8 @@
 #define IPSET_MAX_COMMENT_SIZE	255
 
 /* Message types and commands */
-enum ipset_cmd {
+enum ipset_cmd
+{
 	IPSET_CMD_NONE,
 	IPSET_CMD_PROTOCOL,	/* 1: Return protocol version */
 	IPSET_CMD_CREATE,	/* 2: Create a new (empty) set */
@@ -51,7 +52,8 @@ enum ipset_cmd {
 };
 
 /* Attributes at command level */
-enum {
+enum
+{
 	IPSET_ATTR_UNSPEC,
 	IPSET_ATTR_PROTOCOL,	/* 1: Protocol version */
 	IPSET_ATTR_SETNAME,	/* 2: Name of the set */
@@ -70,7 +72,8 @@ enum {
 #define IPSET_ATTR_CMD_MAX	(__IPSET_ATTR_CMD_MAX - 1)
 
 /* CADT specific attributes */
-enum {
+enum
+{
 	IPSET_ATTR_IP = IPSET_ATTR_UNSPEC + 1,
 	IPSET_ATTR_IP_FROM = IPSET_ATTR_IP,
 	IPSET_ATTR_IP_TO,	/* 2 */
@@ -104,7 +107,8 @@ enum {
 #define IPSET_ATTR_CREATE_MAX	(__IPSET_ATTR_CREATE_MAX - 1)
 
 /* ADT specific attributes */
-enum {
+enum
+{
 	IPSET_ATTR_ETHER = IPSET_ATTR_CADT_MAX + 1,
 	IPSET_ATTR_NAME,
 	IPSET_ATTR_NAMEREF,
@@ -124,7 +128,8 @@ enum {
 #define IPSET_ATTR_ADT_MAX	(__IPSET_ATTR_ADT_MAX - 1)
 
 /* IP specific attributes */
-enum {
+enum
+{
 	IPSET_ATTR_IPADDR_IPV4 = IPSET_ATTR_UNSPEC + 1,
 	IPSET_ATTR_IPADDR_IPV6,
 	__IPSET_ATTR_IPADDR_MAX,
@@ -132,7 +137,8 @@ enum {
 #define IPSET_ATTR_IPADDR_MAX	(__IPSET_ATTR_IPADDR_MAX - 1)
 
 /* Error codes */
-enum ipset_errno {
+enum ipset_errno
+{
 	IPSET_ERR_PRIVATE = 4096,
 	IPSET_ERR_PROTOCOL,
 	IPSET_ERR_FIND_TYPE,
@@ -158,7 +164,8 @@ enum ipset_errno {
 };
 
 /* Flags at command level or match/target flags, lower half of cmdattrs*/
-enum ipset_cmd_flags {
+enum ipset_cmd_flags
+{
 	IPSET_FLAG_BIT_EXIST	= 0,
 	IPSET_FLAG_EXIST	= (1 << IPSET_FLAG_BIT_EXIST),
 	IPSET_FLAG_BIT_LIST_SETNAME = 1,
@@ -185,7 +192,8 @@ enum ipset_cmd_flags {
 };
 
 /* Flags at CADT attribute level, upper half of cmdattrs */
-enum ipset_cadt_flags {
+enum ipset_cadt_flags
+{
 	IPSET_FLAG_BIT_BEFORE	= 0,
 	IPSET_FLAG_BEFORE	= (1 << IPSET_FLAG_BIT_BEFORE),
 	IPSET_FLAG_BIT_PHYSDEV	= 1,
@@ -204,14 +212,16 @@ enum ipset_cadt_flags {
 };
 
 /* The flag bits which correspond to the non-extension create flags */
-enum ipset_create_flags {
+enum ipset_create_flags
+{
 	IPSET_CREATE_FLAG_BIT_FORCEADD = 0,
 	IPSET_CREATE_FLAG_FORCEADD = (1 << IPSET_CREATE_FLAG_BIT_FORCEADD),
 	IPSET_CREATE_FLAG_BIT_MAX = 7,
 };
 
 /* Commands with settype-specific attributes */
-enum ipset_adt {
+enum ipset_adt
+{
 	IPSET_ADD,
 	IPSET_DEL,
 	IPSET_TEST,
@@ -227,7 +237,8 @@ typedef __u16 ip_set_id_t;
 
 #define IPSET_INVALID_ID		65535
 
-enum ip_set_dim {
+enum ip_set_dim
+{
 	IPSET_DIM_ZERO = 0,
 	IPSET_DIM_ONE,
 	IPSET_DIM_TWO,
@@ -241,7 +252,8 @@ enum ip_set_dim {
 };
 
 /* Option flags for kernel operations */
-enum ip_set_kopt {
+enum ip_set_kopt
+{
 	IPSET_INV_MATCH = (1 << IPSET_DIM_ZERO),
 	IPSET_DIM_ONE_SRC = (1 << IPSET_DIM_ONE),
 	IPSET_DIM_TWO_SRC = (1 << IPSET_DIM_TWO),
@@ -249,7 +261,8 @@ enum ip_set_kopt {
 	IPSET_RETURN_NOMATCH = (1 << IPSET_BIT_RETURN_NOMATCH),
 };
 
-enum {
+enum
+{
 	IPSET_COUNTER_NONE = 0,
 	IPSET_COUNTER_EQ,
 	IPSET_COUNTER_NE,
@@ -258,12 +271,14 @@ enum {
 };
 
 /* Backward compatibility for set match v3 */
-struct ip_set_counter_match0 {
+struct ip_set_counter_match0
+{
 	__u8 op;
 	__u64 value;
 };
 
-struct ip_set_counter_match {
+struct ip_set_counter_match
+{
 	__aligned_u64 value;
 	__u8 op;
 };
@@ -272,13 +287,15 @@ struct ip_set_counter_match {
 
 #define SO_IP_SET		83
 
-union ip_set_name_index {
+union ip_set_name_index
+{
 	char name[IPSET_MAXNAMELEN];
 	ip_set_id_t index;
 };
 
 #define IP_SET_OP_GET_BYNAME	0x00000006	/* Get set index by name */
-struct ip_set_req_get_set {
+struct ip_set_req_get_set
+{
 	unsigned int op;
 	unsigned int version;
 	union ip_set_name_index set;
@@ -288,7 +305,8 @@ struct ip_set_req_get_set {
 /* Uses ip_set_req_get_set */
 
 #define IP_SET_OP_GET_FNAME	0x00000008	/* Get set index and family */
-struct ip_set_req_get_set_family {
+struct ip_set_req_get_set_family
+{
 	unsigned int op;
 	unsigned int version;
 	unsigned int family;
@@ -296,7 +314,8 @@ struct ip_set_req_get_set_family {
 };
 
 #define IP_SET_OP_VERSION	0x00000100	/* Ask kernel version */
-struct ip_set_req_version {
+struct ip_set_req_version
+{
 	unsigned int op;
 	unsigned int version;
 };

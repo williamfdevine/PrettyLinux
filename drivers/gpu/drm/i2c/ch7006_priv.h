@@ -35,7 +35,8 @@
 typedef int64_t fixed;
 #define fixed1 (1LL << 32)
 
-enum ch7006_tv_norm {
+enum ch7006_tv_norm
+{
 	TV_NORM_PAL,
 	TV_NORM_PAL_M,
 	TV_NORM_PAL_N,
@@ -46,7 +47,8 @@ enum ch7006_tv_norm {
 	NUM_TV_NORMS
 };
 
-struct ch7006_tv_norm_info {
+struct ch7006_tv_norm_info
+{
 	fixed vrefresh;
 	int vdisplay;
 	int vtotal;
@@ -59,7 +61,8 @@ struct ch7006_tv_norm_info {
 	int voffset;
 };
 
-struct ch7006_mode {
+struct ch7006_mode
+{
 	struct drm_display_mode mode;
 
 	int enc_hdisp;
@@ -72,11 +75,13 @@ struct ch7006_mode {
 	uint32_t valid_norms;
 };
 
-struct ch7006_state {
+struct ch7006_state
+{
 	uint8_t regs[0x26];
 };
 
-struct ch7006_priv {
+struct ch7006_priv
+{
 	struct ch7006_encoder_params params;
 	const struct ch7006_mode *mode;
 
@@ -106,12 +111,12 @@ extern int ch7006_debug;
 extern char *ch7006_tv_norm;
 extern int ch7006_scale;
 
-extern const char * const ch7006_tv_norm_names[];
+extern const char *const ch7006_tv_norm_names[];
 extern const struct ch7006_tv_norm_info ch7006_tv_norms[];
 extern const struct ch7006_mode ch7006_modes[];
 
 const struct ch7006_mode *ch7006_lookup_mode(struct drm_encoder *encoder,
-					     const struct drm_display_mode *drm_mode);
+		const struct drm_display_mode *drm_mode);
 
 void ch7006_setup_levels(struct drm_encoder *encoder);
 void ch7006_setup_subcarrier(struct drm_encoder *encoder);
@@ -123,36 +128,36 @@ void ch7006_write(struct i2c_client *client, uint8_t addr, uint8_t val);
 uint8_t ch7006_read(struct i2c_client *client, uint8_t addr);
 
 void ch7006_state_load(struct i2c_client *client,
-		       struct ch7006_state *state);
+					   struct ch7006_state *state);
 void ch7006_state_save(struct i2c_client *client,
-		       struct ch7006_state *state);
+					   struct ch7006_state *state);
 
 /* Some helper macros */
 
 #define ch7006_dbg(client, format, ...) do {				\
 		if (ch7006_debug)					\
 			dev_printk(KERN_DEBUG, &client->dev,		\
-				   "%s: " format, __func__, ## __VA_ARGS__); \
+					   "%s: " format, __func__, ## __VA_ARGS__); \
 	} while (0)
 #define ch7006_info(client, format, ...) \
-				dev_info(&client->dev, format, __VA_ARGS__)
+	dev_info(&client->dev, format, __VA_ARGS__)
 #define ch7006_err(client, format, ...) \
-				dev_err(&client->dev, format, __VA_ARGS__)
+	dev_err(&client->dev, format, __VA_ARGS__)
 
 #define __mask(src, bitfield) \
-		(((2 << (1 ? bitfield)) - 1) & ~((1 << (0 ? bitfield)) - 1))
+	(((2 << (1 ? bitfield)) - 1) & ~((1 << (0 ? bitfield)) - 1))
 #define mask(bitfield) __mask(bitfield)
 
 #define __bitf(src, bitfield, x) \
-		(((x) >> (src) << (0 ? bitfield)) &  __mask(src, bitfield))
+	(((x) >> (src) << (0 ? bitfield)) &  __mask(src, bitfield))
 #define bitf(bitfield, x) __bitf(bitfield, x)
 #define bitfs(bitfield, s) __bitf(bitfield, bitfield##_##s)
 #define setbitf(state, reg, bitfield, x)				\
 	state->regs[reg] = (state->regs[reg] & ~mask(reg##_##bitfield))	\
-		| bitf(reg##_##bitfield, x)
+					   | bitf(reg##_##bitfield, x)
 
 #define __unbitf(src, bitfield, x) \
-		((x & __mask(src, bitfield)) >> (0 ? bitfield) << (src))
+	((x & __mask(src, bitfield)) >> (0 ? bitfield) << (src))
 #define unbitf(bitfield, x) __unbitf(bitfield, x)
 
 static inline int interpolate(int y0, int y1, int y2, int x)
@@ -162,7 +167,7 @@ static inline int interpolate(int y0, int y1, int y2, int x)
 
 static inline int32_t round_fixed(fixed x)
 {
-	return (x + fixed1/2) >> 32;
+	return (x + fixed1 / 2) >> 32;
 }
 
 #define ch7006_load_reg(client, state, reg) ch7006_write(client, reg, state->regs[reg])

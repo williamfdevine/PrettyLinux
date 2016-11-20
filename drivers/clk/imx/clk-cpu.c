@@ -14,7 +14,8 @@
 #include <linux/slab.h>
 #include "clk.h"
 
-struct clk_cpu {
+struct clk_cpu
+{
 	struct clk_hw	hw;
 	struct clk	*div;
 	struct clk	*mux;
@@ -28,7 +29,7 @@ static inline struct clk_cpu *to_clk_cpu(struct clk_hw *hw)
 }
 
 static unsigned long clk_cpu_recalc_rate(struct clk_hw *hw,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_cpu *cpu = to_clk_cpu(hw);
 
@@ -36,7 +37,7 @@ static unsigned long clk_cpu_recalc_rate(struct clk_hw *hw,
 }
 
 static long clk_cpu_round_rate(struct clk_hw *hw, unsigned long rate,
-			       unsigned long *prate)
+							   unsigned long *prate)
 {
 	struct clk_cpu *cpu = to_clk_cpu(hw);
 
@@ -44,22 +45,28 @@ static long clk_cpu_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int clk_cpu_set_rate(struct clk_hw *hw, unsigned long rate,
-			    unsigned long parent_rate)
+							unsigned long parent_rate)
 {
 	struct clk_cpu *cpu = to_clk_cpu(hw);
 	int ret;
 
 	/* switch to PLL bypass clock */
 	ret = clk_set_parent(cpu->mux, cpu->step);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* reprogram PLL */
 	ret = clk_set_rate(cpu->pll, rate);
-	if (ret) {
+
+	if (ret)
+	{
 		clk_set_parent(cpu->mux, cpu->pll);
 		return ret;
 	}
+
 	/* switch back to PLL clock */
 	clk_set_parent(cpu->mux, cpu->pll);
 
@@ -69,23 +76,27 @@ static int clk_cpu_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-static const struct clk_ops clk_cpu_ops = {
+static const struct clk_ops clk_cpu_ops =
+{
 	.recalc_rate	= clk_cpu_recalc_rate,
 	.round_rate	= clk_cpu_round_rate,
 	.set_rate	= clk_cpu_set_rate,
 };
 
 struct clk *imx_clk_cpu(const char *name, const char *parent_name,
-		struct clk *div, struct clk *mux, struct clk *pll,
-		struct clk *step)
+						struct clk *div, struct clk *mux, struct clk *pll,
+						struct clk *step)
 {
 	struct clk_cpu *cpu;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	cpu = kzalloc(sizeof(*cpu), GFP_KERNEL);
+
 	if (!cpu)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	cpu->div = div;
 	cpu->mux = mux;
@@ -101,8 +112,11 @@ struct clk *imx_clk_cpu(const char *name, const char *parent_name,
 	cpu->hw.init = &init;
 
 	clk = clk_register(NULL, &cpu->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(cpu);
+	}
 
 	return clk;
 }

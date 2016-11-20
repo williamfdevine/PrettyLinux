@@ -21,7 +21,8 @@
 
 #include <linux/types.h>
 
-struct nig_stats {
+struct nig_stats
+{
 	u32 brb_discard;
 	u32 brb_packet;
 	u32 brb_truncate;
@@ -42,7 +43,8 @@ struct nig_stats {
 	u32 egress_mac_pkt1_hi;
 };
 
-enum bnx2x_stats_event {
+enum bnx2x_stats_event
+{
 	STATS_EVENT_PMF = 0,
 	STATS_EVENT_LINK_UP,
 	STATS_EVENT_UPDATE,
@@ -50,13 +52,15 @@ enum bnx2x_stats_event {
 	STATS_EVENT_MAX
 };
 
-enum bnx2x_stats_state {
+enum bnx2x_stats_state
+{
 	STATS_STATE_DISABLED = 0,
 	STATS_STATE_ENABLED,
 	STATS_STATE_MAX
 };
 
-struct bnx2x_eth_stats {
+struct bnx2x_eth_stats
+{
 	u32 total_bytes_received_hi;
 	u32 total_bytes_received_lo;
 	u32 total_bytes_transmitted_hi;
@@ -209,7 +213,8 @@ struct bnx2x_eth_stats {
 	u32 eee_tx_lpi;
 };
 
-struct bnx2x_eth_q_stats {
+struct bnx2x_eth_q_stats
+{
 	u32 total_unicast_bytes_received_hi;
 	u32 total_unicast_bytes_received_lo;
 	u32 total_broadcast_bytes_received_hi;
@@ -268,12 +273,14 @@ struct bnx2x_eth_q_stats {
 	u32 driver_filtered_tx_pkt;
 };
 
-struct bnx2x_eth_stats_old {
+struct bnx2x_eth_stats_old
+{
 	u32 rx_stat_dot3statsframestoolong_hi;
 	u32 rx_stat_dot3statsframestoolong_lo;
 };
 
-struct bnx2x_eth_q_stats_old {
+struct bnx2x_eth_q_stats_old
+{
 	/* Fields to perserve over fw reset*/
 	u32 total_unicast_bytes_received_hi;
 	u32 total_unicast_bytes_received_lo;
@@ -320,15 +327,17 @@ struct bnx2x_eth_q_stats_old {
 	u32 driver_filtered_tx_pkt_old;
 };
 
-struct bnx2x_net_stats_old {
-	 u32 rx_dropped;
+struct bnx2x_net_stats_old
+{
+	u32 rx_dropped;
 };
 
-struct bnx2x_fw_port_stats_old {
-	 u32 mac_filter_discard;
-	 u32 mf_tag_discard;
-	 u32 brb_truncate_discard;
-	 u32 mac_discard;
+struct bnx2x_fw_port_stats_old
+{
+	u32 mac_filter_discard;
+	u32 mf_tag_discard;
+	u32 brb_truncate_discard;
+	u32 mac_discard;
 };
 
 /****************************************************************************
@@ -347,12 +356,12 @@ struct bnx2x_fw_port_stats_old {
 
 /* The _force is for cases where high value is 0 */
 #define ADD_64_LE(s_hi, a_hi_le, s_lo, a_lo_le) \
-		ADD_64(s_hi, le32_to_cpu(a_hi_le), \
-		       s_lo, le32_to_cpu(a_lo_le))
+	ADD_64(s_hi, le32_to_cpu(a_hi_le), \
+		   s_lo, le32_to_cpu(a_lo_le))
 
 #define ADD_64_LE16(s_hi, a_hi_le, s_lo, a_lo_le) \
-		ADD_64(s_hi, le16_to_cpu(a_hi_le), \
-		       s_lo, le16_to_cpu(a_lo_le))
+	ADD_64(s_hi, le16_to_cpu(a_hi_le), \
+		   s_lo, le16_to_cpu(a_lo_le))
 
 /* difference = minuend - subtrahend */
 #define DIFF_64(d_hi, m_hi, s_hi, d_lo, m_lo, s_lo) \
@@ -385,19 +394,19 @@ struct bnx2x_fw_port_stats_old {
 #define UPDATE_STAT64(s, t) \
 	do { \
 		DIFF_64(diff.hi, new->s##_hi, pstats->mac_stx[0].t##_hi, \
-			diff.lo, new->s##_lo, pstats->mac_stx[0].t##_lo); \
+				diff.lo, new->s##_lo, pstats->mac_stx[0].t##_lo); \
 		pstats->mac_stx[0].t##_hi = new->s##_hi; \
 		pstats->mac_stx[0].t##_lo = new->s##_lo; \
 		ADD_64(pstats->mac_stx[1].t##_hi, diff.hi, \
-		       pstats->mac_stx[1].t##_lo, diff.lo); \
+			   pstats->mac_stx[1].t##_lo, diff.lo); \
 	} while (0)
 
 #define UPDATE_STAT64_NIG(s, t) \
 	do { \
 		DIFF_64(diff.hi, new->s##_hi, old->s##_hi, \
-			diff.lo, new->s##_lo, old->s##_lo); \
+				diff.lo, new->s##_lo, old->s##_lo); \
 		ADD_64(estats->t##_hi, diff.hi, \
-		       estats->t##_lo, diff.lo); \
+			   estats->t##_lo, diff.lo); \
 	} while (0)
 
 /* sum[hi:lo] += add */
@@ -410,20 +419,20 @@ struct bnx2x_fw_port_stats_old {
 #define ADD_STAT64(diff, t) \
 	do { \
 		ADD_64(pstats->mac_stx[1].t##_hi, new->diff##_hi, \
-		       pstats->mac_stx[1].t##_lo, new->diff##_lo); \
+			   pstats->mac_stx[1].t##_lo, new->diff##_lo); \
 	} while (0)
 
 #define UPDATE_EXTEND_STAT(s) \
 	do { \
 		ADD_EXTEND_64(pstats->mac_stx[1].s##_hi, \
-			      pstats->mac_stx[1].s##_lo, \
-			      new->s); \
+					  pstats->mac_stx[1].s##_lo, \
+					  new->s); \
 	} while (0)
 
 #define UPDATE_EXTEND_TSTAT_X(s, t, size) \
 	do { \
 		diff = le##size##_to_cpu(tclient->s) - \
-		       le##size##_to_cpu(old_tclient->s); \
+			   le##size##_to_cpu(old_tclient->s); \
 		old_tclient->s = tclient->s; \
 		ADD_EXTEND_64(qstats->t##_hi, qstats->t##_lo, diff); \
 	} while (0)
@@ -460,7 +469,7 @@ struct bnx2x_fw_port_stats_old {
 	do { \
 		qstats->t##_lo = qstats_old->t##_lo + le32_to_cpu(s.lo); \
 		qstats->t##_hi = qstats_old->t##_hi + le32_to_cpu(s.hi) \
-			+ ((qstats->t##_lo < qstats_old->t##_lo) ? 1 : 0); \
+						 + ((qstats->t##_lo < qstats_old->t##_lo) ? 1 : 0); \
 	} while (0)
 
 #define UPDATE_QSTAT_OLD(f) \
@@ -471,9 +480,9 @@ struct bnx2x_fw_port_stats_old {
 #define UPDATE_ESTAT_QSTAT_64(s) \
 	do { \
 		ADD_64(estats->s##_hi, qstats->s##_hi, \
-		       estats->s##_lo, qstats->s##_lo); \
+			   estats->s##_lo, qstats->s##_lo); \
 		SUB_64(estats->s##_hi, qstats_old->s##_hi_old, \
-		       estats->s##_lo, qstats_old->s##_lo_old); \
+			   estats->s##_lo, qstats_old->s##_lo_old); \
 		qstats_old->s##_hi_old = qstats->s##_hi; \
 		qstats_old->s##_lo_old = qstats->s##_lo; \
 	} while (0)
@@ -488,9 +497,9 @@ struct bnx2x_fw_port_stats_old {
 #define UPDATE_FSTAT_QSTAT(s) \
 	do { \
 		ADD_64(fstats->s##_hi, qstats->s##_hi, \
-		       fstats->s##_lo, qstats->s##_lo); \
+			   fstats->s##_lo, qstats->s##_lo); \
 		SUB_64(fstats->s##_hi, qstats_old->s##_hi, \
-		       fstats->s##_lo, qstats_old->s##_lo); \
+			   fstats->s##_lo, qstats_old->s##_lo); \
 		estats->s##_hi = fstats->s##_hi; \
 		estats->s##_lo = fstats->s##_lo; \
 		qstats_old->s##_hi = qstats->s##_hi; \
@@ -510,9 +519,9 @@ struct bnx2x_fw_port_stats_old {
 #define UPDATE_ESTAT(s, t) \
 	do { \
 		SUB_64(estats->s##_hi, estats_old->t##_hi, \
-		       estats->s##_lo, estats_old->t##_lo); \
+			   estats->s##_lo, estats_old->t##_lo); \
 		ADD_64(estats->s##_hi, estats->t##_hi, \
-		       estats->s##_lo, estats->t##_lo); \
+			   estats->s##_lo, estats->t##_lo); \
 		estats_old->t##_hi = estats->t##_hi; \
 		estats_old->t##_lo = estats->t##_lo; \
 	} while (0)
@@ -542,8 +551,8 @@ void bnx2x_memset_stats(struct bnx2x *bp);
 void bnx2x_stats_init(struct bnx2x *bp);
 void bnx2x_stats_handle(struct bnx2x *bp, enum bnx2x_stats_event event);
 int bnx2x_stats_safe_exec(struct bnx2x *bp,
-			  void (func_to_exec)(void *cookie),
-			  void *cookie);
+						  void (func_to_exec)(void *cookie),
+						  void *cookie);
 
 /**
  * bnx2x_save_statistics - save statistics when unloading.
@@ -553,5 +562,5 @@ int bnx2x_stats_safe_exec(struct bnx2x *bp,
 void bnx2x_save_statistics(struct bnx2x *bp);
 
 void bnx2x_afex_collect_stats(struct bnx2x *bp, void *void_afex_stats,
-			      u32 stats_type);
+							  u32 stats_type);
 #endif /* BNX2X_STATS_H */

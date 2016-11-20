@@ -44,13 +44,16 @@ static int usbip_host_driver_open(struct usbip_host_driver *hdriver)
 	INIT_LIST_HEAD(&hdriver->edev_list);
 
 	ret = usbip_generic_driver_open(hdriver);
+
 	if (ret)
 		err("please load " USBIP_CORE_MOD_NAME ".ko and "
-		    USBIP_HOST_DRV_NAME ".ko!");
+			USBIP_HOST_DRV_NAME ".ko!");
+
 	return ret;
 }
 
-struct usbip_host_driver host_driver = {
+struct usbip_host_driver host_driver =
+{
 	.edev_list = LIST_HEAD_INIT(host_driver.edev_list),
 	.udev_subsystem = "usb",
 	.ops = {

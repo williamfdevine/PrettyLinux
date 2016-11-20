@@ -18,14 +18,16 @@
 
 #define MRP_MVRP_ADDRESS	{ 0x01, 0x80, 0xc2, 0x00, 0x00, 0x21 }
 
-enum mvrp_attributes {
+enum mvrp_attributes
+{
 	MVRP_ATTR_INVALID,
 	MVRP_ATTR_VID,
 	__MVRP_ATTR_MAX
 };
 #define MVRP_ATTR_MAX	(__MVRP_ATTR_MAX - 1)
 
-static struct mrp_application vlan_mrp_app __read_mostly = {
+static struct mrp_application vlan_mrp_app __read_mostly =
+{
 	.type		= MRP_APPLICATION_MVRP,
 	.maxattr	= MVRP_ATTR_MAX,
 	.pkttype.type	= htons(ETH_P_MVRP),
@@ -39,9 +41,12 @@ int vlan_mvrp_request_join(const struct net_device *dev)
 	__be16 vlan_id = htons(vlan->vlan_id);
 
 	if (vlan->vlan_proto != htons(ETH_P_8021Q))
+	{
 		return 0;
+	}
+
 	return mrp_request_join(vlan->real_dev, &vlan_mrp_app,
-				&vlan_id, sizeof(vlan_id), MVRP_ATTR_VID);
+							&vlan_id, sizeof(vlan_id), MVRP_ATTR_VID);
 }
 
 void vlan_mvrp_request_leave(const struct net_device *dev)
@@ -50,9 +55,12 @@ void vlan_mvrp_request_leave(const struct net_device *dev)
 	__be16 vlan_id = htons(vlan->vlan_id);
 
 	if (vlan->vlan_proto != htons(ETH_P_8021Q))
+	{
 		return;
+	}
+
 	mrp_request_leave(vlan->real_dev, &vlan_mrp_app,
-			  &vlan_id, sizeof(vlan_id), MVRP_ATTR_VID);
+					  &vlan_id, sizeof(vlan_id), MVRP_ATTR_VID);
 }
 
 int vlan_mvrp_init_applicant(struct net_device *dev)

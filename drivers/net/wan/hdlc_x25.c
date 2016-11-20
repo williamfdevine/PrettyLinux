@@ -33,7 +33,8 @@ static void x25_connect_disconnect(struct net_device *dev, int reason, int code)
 	struct sk_buff *skb;
 	unsigned char *ptr;
 
-	if ((skb = dev_alloc_skb(1)) == NULL) {
+	if ((skb = dev_alloc_skb(1)) == NULL)
+	{
 		netdev_err(dev, "out of memory\n");
 		return;
 	}
@@ -68,7 +69,9 @@ static int x25_data_indication(struct net_device *dev, struct sk_buff *skb)
 	skb_push(skb, 1);
 
 	if (skb_cow(skb, 1))
+	{
 		return NET_RX_DROP;
+	}
 
 	ptr  = skb->data;
 	*ptr = X25_IFACE_DATA;
@@ -93,37 +96,50 @@ static netdev_tx_t x25_xmit(struct sk_buff *skb, struct net_device *dev)
 
 
 	/* X.25 to LAPB */
-	switch (skb->data[0]) {
-	case X25_IFACE_DATA:	/* Data to be transmitted */
-		skb_pull(skb, 1);
-		if ((result = lapb_data_request(dev, skb)) != LAPB_OK)
-			dev_kfree_skb(skb);
-		return NETDEV_TX_OK;
+	switch (skb->data[0])
+	{
+		case X25_IFACE_DATA:	/* Data to be transmitted */
+			skb_pull(skb, 1);
 
-	case X25_IFACE_CONNECT:
-		if ((result = lapb_connect_request(dev))!= LAPB_OK) {
-			if (result == LAPB_CONNECTED)
-				/* Send connect confirm. msg to level 3 */
-				x25_connected(dev, 0);
-			else
-				netdev_err(dev, "LAPB connect request failed, error code = %i\n",
-					   result);
-		}
-		break;
+			if ((result = lapb_data_request(dev, skb)) != LAPB_OK)
+			{
+				dev_kfree_skb(skb);
+			}
 
-	case X25_IFACE_DISCONNECT:
-		if ((result = lapb_disconnect_request(dev)) != LAPB_OK) {
-			if (result == LAPB_NOTCONNECTED)
-				/* Send disconnect confirm. msg to level 3 */
-				x25_disconnected(dev, 0);
-			else
-				netdev_err(dev, "LAPB disconnect request failed, error code = %i\n",
-					   result);
-		}
-		break;
+			return NETDEV_TX_OK;
 
-	default:		/* to be defined */
-		break;
+		case X25_IFACE_CONNECT:
+			if ((result = lapb_connect_request(dev)) != LAPB_OK)
+			{
+				if (result == LAPB_CONNECTED)
+					/* Send connect confirm. msg to level 3 */
+				{
+					x25_connected(dev, 0);
+				}
+				else
+					netdev_err(dev, "LAPB connect request failed, error code = %i\n",
+							   result);
+			}
+
+			break;
+
+		case X25_IFACE_DISCONNECT:
+			if ((result = lapb_disconnect_request(dev)) != LAPB_OK)
+			{
+				if (result == LAPB_NOTCONNECTED)
+					/* Send disconnect confirm. msg to level 3 */
+				{
+					x25_disconnected(dev, 0);
+				}
+				else
+					netdev_err(dev, "LAPB disconnect request failed, error code = %i\n",
+							   result);
+			}
+
+			break;
+
+		default:		/* to be defined */
+			break;
 	}
 
 	dev_kfree_skb(skb);
@@ -135,7 +151,8 @@ static netdev_tx_t x25_xmit(struct sk_buff *skb, struct net_device *dev)
 static int x25_open(struct net_device *dev)
 {
 	int result;
-	static const struct lapb_register_struct cb = {
+	static const struct lapb_register_struct cb =
+	{
 		.connect_confirmation = x25_connected,
 		.connect_indication = x25_connected,
 		.disconnect_confirmation = x25_disconnected,
@@ -145,8 +162,12 @@ static int x25_open(struct net_device *dev)
 	};
 
 	result = lapb_register(dev, &cb);
+
 	if (result != LAPB_OK)
+	{
 		return result;
+	}
+
 	return 0;
 }
 
@@ -163,13 +184,16 @@ static int x25_rx(struct sk_buff *skb)
 {
 	struct net_device *dev = skb->dev;
 
-	if ((skb = skb_share_check(skb, GFP_ATOMIC)) == NULL) {
+	if ((skb = skb_share_check(skb, GFP_ATOMIC)) == NULL)
+	{
 		dev->stats.rx_dropped++;
 		return NET_RX_DROP;
 	}
 
 	if (lapb_data_received(dev, skb) == LAPB_OK)
+	{
 		return NET_RX_SUCCESS;
+	}
 
 	dev->stats.rx_errors++;
 	dev_kfree_skb_any(skb);
@@ -177,7 +201,8 @@ static int x25_rx(struct sk_buff *skb)
 }
 
 
-static struct hdlc_proto proto = {
+static struct hdlc_proto proto =
+{
 	.open		= x25_open,
 	.close		= x25_close,
 	.ioctl		= x25_ioctl,
@@ -192,30 +217,44 @@ static int x25_ioctl(struct net_device *dev, struct ifreq *ifr)
 	hdlc_device *hdlc = dev_to_hdlc(dev);
 	int result;
 
-	switch (ifr->ifr_settings.type) {
-	case IF_GET_PROTO:
-		if (dev_to_hdlc(dev)->proto != &proto)
-			return -EINVAL;
-		ifr->ifr_settings.type = IF_PROTO_X25;
-		return 0; /* return protocol only, no settable parameters */
+	switch (ifr->ifr_settings.type)
+	{
+		case IF_GET_PROTO:
+			if (dev_to_hdlc(dev)->proto != &proto)
+			{
+				return -EINVAL;
+			}
 
-	case IF_PROTO_X25:
-		if (!capable(CAP_NET_ADMIN))
-			return -EPERM;
+			ifr->ifr_settings.type = IF_PROTO_X25;
+			return 0; /* return protocol only, no settable parameters */
 
-		if (dev->flags & IFF_UP)
-			return -EBUSY;
+		case IF_PROTO_X25:
+			if (!capable(CAP_NET_ADMIN))
+			{
+				return -EPERM;
+			}
 
-		result=hdlc->attach(dev, ENCODING_NRZ,PARITY_CRC16_PR1_CCITT);
-		if (result)
-			return result;
+			if (dev->flags & IFF_UP)
+			{
+				return -EBUSY;
+			}
 
-		if ((result = attach_hdlc_protocol(dev, &proto, 0)))
-			return result;
-		dev->type = ARPHRD_X25;
-		call_netdevice_notifiers(NETDEV_POST_TYPE_CHANGE, dev);
-		netif_dormant_off(dev);
-		return 0;
+			result = hdlc->attach(dev, ENCODING_NRZ, PARITY_CRC16_PR1_CCITT);
+
+			if (result)
+			{
+				return result;
+			}
+
+			if ((result = attach_hdlc_protocol(dev, &proto, 0)))
+			{
+				return result;
+			}
+
+			dev->type = ARPHRD_X25;
+			call_netdevice_notifiers(NETDEV_POST_TYPE_CHANGE, dev);
+			netif_dormant_off(dev);
+			return 0;
 	}
 
 	return -EINVAL;

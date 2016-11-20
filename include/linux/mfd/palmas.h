@@ -34,7 +34,7 @@
 #define TPS65917_RESERVED		-1
 
 #define is_palmas(a)	(((a) == PALMAS_CHIP_OLD_ID) || \
-			((a) == PALMAS_CHIP_ID))
+						 ((a) == PALMAS_CHIP_ID))
 #define is_palmas_charger(a) ((a) == PALMAS_CHIP_CHARGER_ID)
 
 /**
@@ -48,7 +48,7 @@
  */
 #define PALMAS_PMIC_FEATURE_SMPS10_BOOST	BIT(0)
 #define PALMAS_PMIC_HAS(b, f)			\
-			((b)->features & PALMAS_PMIC_FEATURE_ ## f)
+	((b)->features & PALMAS_PMIC_FEATURE_ ## f)
 
 struct palmas_pmic;
 struct palmas_gpadc;
@@ -57,13 +57,15 @@ struct palmas_usb;
 struct palmas_pmic_driver_data;
 struct palmas_pmic_platform_data;
 
-enum palmas_usb_state {
+enum palmas_usb_state
+{
 	PALMAS_USB_STATE_DISCONNECT,
 	PALMAS_USB_STATE_VBUS,
 	PALMAS_USB_STATE_ID,
 };
 
-struct palmas {
+struct palmas
+{
 	struct device *dev;
 
 	struct i2c_client *i2c_clients[PALMAS_NUM_CLIENTS];
@@ -94,16 +96,18 @@ struct palmas {
 };
 
 #define PALMAS_EXT_REQ (PALMAS_EXT_CONTROL_ENABLE1 |	\
-			PALMAS_EXT_CONTROL_ENABLE2 |	\
-			PALMAS_EXT_CONTROL_NSLEEP)
+						PALMAS_EXT_CONTROL_ENABLE2 |	\
+						PALMAS_EXT_CONTROL_NSLEEP)
 
-struct palmas_sleep_requestor_info {
+struct palmas_sleep_requestor_info
+{
 	int id;
 	int reg_offset;
 	int bit_pos;
 };
 
-struct palmas_regs_info {
+struct palmas_regs_info
+{
 	char	*name;
 	char	*sname;
 	u8	vsel_addr;
@@ -112,7 +116,8 @@ struct palmas_regs_info {
 	int	sleep_id;
 };
 
-struct palmas_pmic_driver_data {
+struct palmas_pmic_driver_data
+{
 	int smps_start;
 	int smps_end;
 	int ldo_begin;
@@ -123,24 +128,26 @@ struct palmas_pmic_driver_data {
 	struct of_regulator_match *palmas_matches;
 	struct palmas_sleep_requestor_info *sleep_req_info;
 	int (*smps_register)(struct palmas_pmic *pmic,
-			     struct palmas_pmic_driver_data *ddata,
-			     struct palmas_pmic_platform_data *pdata,
-			     const char *pdev_name,
-			     struct regulator_config config);
+						 struct palmas_pmic_driver_data *ddata,
+						 struct palmas_pmic_platform_data *pdata,
+						 const char *pdev_name,
+						 struct regulator_config config);
 	int (*ldo_register)(struct palmas_pmic *pmic,
-			    struct palmas_pmic_driver_data *ddata,
-			    struct palmas_pmic_platform_data *pdata,
-			    const char *pdev_name,
-			    struct regulator_config config);
+						struct palmas_pmic_driver_data *ddata,
+						struct palmas_pmic_platform_data *pdata,
+						const char *pdev_name,
+						struct regulator_config config);
 };
 
-struct palmas_adc_wakeup_property {
+struct palmas_adc_wakeup_property
+{
 	int adc_channel_number;
 	int adc_high_threshold;
 	int adc_low_threshold;
 };
 
-struct palmas_gpadc_platform_data {
+struct palmas_gpadc_platform_data
+{
 	/* Channel 3 current source is only enabled during conversion */
 	int ch3_current;	/* 0: off; 1: 10uA; 2: 400uA; 3: 800 uA */
 
@@ -162,7 +169,8 @@ struct palmas_gpadc_platform_data {
 	struct palmas_adc_wakeup_property *adc_wakeup2_data;
 };
 
-struct palmas_reg_init {
+struct palmas_reg_init
+{
 	/* warm_rest controls the voltage levels after a warm reset
 	 *
 	 * 0: reload default values from OTP on warm reset
@@ -208,7 +216,8 @@ struct palmas_reg_init {
 
 };
 
-enum palmas_regulators {
+enum palmas_regulators
+{
 	/* SMPS regulators */
 	PALMAS_REG_SMPS12,
 	PALMAS_REG_SMPS123,
@@ -243,7 +252,8 @@ enum palmas_regulators {
 	PALMAS_NUM_REGS,
 };
 
-enum tps65917_regulators {
+enum tps65917_regulators
+{
 	/* SMPS regulators */
 	TPS65917_REG_SMPS1,
 	TPS65917_REG_SMPS2,
@@ -265,7 +275,8 @@ enum tps65917_regulators {
 };
 
 /* External controll signal name */
-enum {
+enum
+{
 	PALMAS_EXT_CONTROL_ENABLE1      = 0x1,
 	PALMAS_EXT_CONTROL_ENABLE2      = 0x2,
 	PALMAS_EXT_CONTROL_NSLEEP       = 0x4,
@@ -276,7 +287,8 @@ enum {
  * enabling/disabling it rather than register write through i2c.
  * Add the external controlled requestor ID for different resources.
  */
-enum palmas_external_requestor_id {
+enum palmas_external_requestor_id
+{
 	PALMAS_EXTERNAL_REQSTR_ID_REGEN1,
 	PALMAS_EXTERNAL_REQSTR_ID_REGEN2,
 	PALMAS_EXTERNAL_REQSTR_ID_SYSEN1,
@@ -308,7 +320,8 @@ enum palmas_external_requestor_id {
 	PALMAS_EXTERNAL_REQSTR_ID_MAX,
 };
 
-enum tps65917_external_requestor_id {
+enum tps65917_external_requestor_id
+{
 	TPS65917_EXTERNAL_REQSTR_ID_REGEN1,
 	TPS65917_EXTERNAL_REQSTR_ID_REGEN2,
 	TPS65917_EXTERNAL_REQSTR_ID_REGEN3,
@@ -326,7 +339,8 @@ enum tps65917_external_requestor_id {
 	TPS65917_EXTERNAL_REQSTR_ID_MAX,
 };
 
-struct palmas_pmic_platform_data {
+struct palmas_pmic_platform_data
+{
 	/* An array of pointers to regulator init data indexed by regulator
 	 * ID
 	 */
@@ -344,12 +358,14 @@ struct palmas_pmic_platform_data {
 	bool enable_ldo8_tracking;
 };
 
-struct palmas_usb_platform_data {
+struct palmas_usb_platform_data
+{
 	/* Do we enable the wakeup comparator on probe */
 	int wakeup;
 };
 
-struct palmas_resource_platform_data {
+struct palmas_resource_platform_data
+{
 	int regen1_mode_sleep;
 	int regen2_mode_sleep;
 	int sysen1_mode_sleep;
@@ -383,12 +399,14 @@ struct palmas_resource_platform_data {
 	u8 enable2_ldo2;
 };
 
-struct palmas_clk_platform_data {
+struct palmas_clk_platform_data
+{
 	int clk32kg_mode_sleep;
 	int clk32kgaudio_mode_sleep;
 };
 
-struct palmas_platform_data {
+struct palmas_platform_data
+{
 	int irq_flags;
 	int gpio_base;
 
@@ -410,7 +428,8 @@ struct palmas_platform_data {
 	struct palmas_clk_platform_data *clk_pdata;
 };
 
-struct palmas_gpadc_calibration {
+struct palmas_gpadc_calibration
+{
 	s32 gain;
 	s32 gain_error;
 	s32 offset_error;
@@ -418,7 +437,8 @@ struct palmas_gpadc_calibration {
 
 #define PALMAS_DATASHEET_NAME(_name)	"palmas-gpadc-chan-"#_name
 
-struct palmas_gpadc_result {
+struct palmas_gpadc_result
+{
 	s32 raw_code;
 	s32 corrected_code;
 	s32 result;
@@ -427,7 +447,8 @@ struct palmas_gpadc_result {
 #define PALMAS_MAX_CHANNELS 16
 
 /* Define the tps65917 IRQ numbers */
-enum tps65917_irqs {
+enum tps65917_irqs
+{
 	/* INT1 registers */
 	TPS65917_RESERVED1,
 	TPS65917_PWRON_IRQ,
@@ -469,7 +490,8 @@ enum tps65917_irqs {
 };
 
 /* Define the palmas IRQ numbers */
-enum palmas_irqs {
+enum palmas_irqs
+{
 	/* INT1 registers */
 	PALMAS_CHARG_DET_N_VBUS_OVV_IRQ,
 	PALMAS_PWRON_IRQ,
@@ -511,7 +533,8 @@ enum palmas_irqs {
 };
 
 /* Palmas GPADC Channels */
-enum {
+enum
+{
 	PALMAS_ADC_CH_IN0,
 	PALMAS_ADC_CH_IN1,
 	PALMAS_ADC_CH_IN2,
@@ -532,7 +555,8 @@ enum {
 };
 
 /* Palmas GPADC Channel0 Current Source */
-enum {
+enum
+{
 	PALMAS_ADC_CH0_CURRENT_SRC_0,
 	PALMAS_ADC_CH0_CURRENT_SRC_5,
 	PALMAS_ADC_CH0_CURRENT_SRC_15,
@@ -540,14 +564,16 @@ enum {
 };
 
 /* Palmas GPADC Channel3 Current Source */
-enum {
+enum
+{
 	PALMAS_ADC_CH3_CURRENT_SRC_0,
 	PALMAS_ADC_CH3_CURRENT_SRC_10,
 	PALMAS_ADC_CH3_CURRENT_SRC_400,
 	PALMAS_ADC_CH3_CURRENT_SRC_800,
 };
 
-struct palmas_pmic {
+struct palmas_pmic
+{
 	struct palmas *palmas;
 	struct device *dev;
 	struct regulator_desc desc[PALMAS_NUM_REGS];
@@ -563,12 +589,14 @@ struct palmas_pmic {
 	unsigned int current_reg_mode[PALMAS_REG_SMPS10_OUT1];
 };
 
-struct palmas_resource {
+struct palmas_resource
+{
 	struct palmas *palmas;
 	struct device *dev;
 };
 
-struct palmas_usb {
+struct palmas_usb
+{
 	struct palmas *palmas;
 	struct device *dev;
 
@@ -596,7 +624,8 @@ struct palmas_usb {
 
 #define comparator_to_palmas(x) container_of((x), struct palmas_usb, comparator)
 
-enum usb_irq_events {
+enum usb_irq_events
+{
 	/* Wakeup events from INT3 */
 	PALMAS_USB_ID_WAKEPUP,
 	PALMAS_USB_VBUS_WAKEUP,
@@ -3750,7 +3779,7 @@ enum usb_irq_events {
 #define TPS65917_REGEN3_CTRL					0x13
 
 static inline int palmas_read(struct palmas *palmas, unsigned int base,
-		unsigned int reg, unsigned int *val)
+							  unsigned int reg, unsigned int *val)
 {
 	unsigned int addr = PALMAS_BASE_TO_REG(base, reg);
 	int slave_id = PALMAS_BASE_TO_SLAVE(base);
@@ -3759,7 +3788,7 @@ static inline int palmas_read(struct palmas *palmas, unsigned int base,
 }
 
 static inline int palmas_write(struct palmas *palmas, unsigned int base,
-		unsigned int reg, unsigned int value)
+							   unsigned int reg, unsigned int value)
 {
 	unsigned int addr = PALMAS_BASE_TO_REG(base, reg);
 	int slave_id = PALMAS_BASE_TO_SLAVE(base);
@@ -3768,27 +3797,27 @@ static inline int palmas_write(struct palmas *palmas, unsigned int base,
 }
 
 static inline int palmas_bulk_write(struct palmas *palmas, unsigned int base,
-	unsigned int reg, const void *val, size_t val_count)
+									unsigned int reg, const void *val, size_t val_count)
 {
 	unsigned int addr = PALMAS_BASE_TO_REG(base, reg);
 	int slave_id = PALMAS_BASE_TO_SLAVE(base);
 
 	return regmap_bulk_write(palmas->regmap[slave_id], addr,
-			val, val_count);
+							 val, val_count);
 }
 
 static inline int palmas_bulk_read(struct palmas *palmas, unsigned int base,
-		unsigned int reg, void *val, size_t val_count)
+								   unsigned int reg, void *val, size_t val_count)
 {
 	unsigned int addr = PALMAS_BASE_TO_REG(base, reg);
 	int slave_id = PALMAS_BASE_TO_SLAVE(base);
 
 	return regmap_bulk_read(palmas->regmap[slave_id], addr,
-		val, val_count);
+							val, val_count);
 }
 
 static inline int palmas_update_bits(struct palmas *palmas, unsigned int base,
-	unsigned int reg, unsigned int mask, unsigned int val)
+									 unsigned int reg, unsigned int mask, unsigned int val)
 {
 	unsigned int addr = PALMAS_BASE_TO_REG(base, reg);
 	int slave_id = PALMAS_BASE_TO_SLAVE(base);
@@ -3803,7 +3832,7 @@ static inline int palmas_irq_get_virq(struct palmas *palmas, int irq)
 
 
 int palmas_ext_control_req_config(struct palmas *palmas,
-	enum palmas_external_requestor_id ext_control_req_id,
-	int ext_ctrl, bool enable);
+								  enum palmas_external_requestor_id ext_control_req_id,
+								  int ext_ctrl, bool enable);
 
 #endif /*  __LINUX_MFD_PALMAS_H */

@@ -49,7 +49,7 @@
  */
 
 int lovsub_object_init(const struct lu_env *env, struct lu_object *obj,
-		       const struct lu_object_conf *conf)
+					   const struct lu_object_conf *conf)
 {
 	struct lovsub_device  *dev   = lu2lovsub_dev(obj->lo_dev);
 	struct lu_object      *below;
@@ -59,13 +59,18 @@ int lovsub_object_init(const struct lu_env *env, struct lu_object *obj,
 
 	under = &dev->acid_next->cd_lu_dev;
 	below = under->ld_ops->ldo_object_alloc(env, obj->lo_header, under);
-	if (below) {
+
+	if (below)
+	{
 		lu_object_add(obj, below);
 		cl_object_page_init(lu2cl(obj), sizeof(struct lovsub_page));
 		result = 0;
-	} else {
+	}
+	else
+	{
 		result = -ENOMEM;
 	}
+
 	return result;
 }
 
@@ -77,7 +82,8 @@ static void lovsub_object_free(const struct lu_env *env, struct lu_object *obj)
 	/* We can't assume lov was assigned here, because of the shadow
 	 * object handling in lu_object_find.
 	 */
-	if (lov) {
+	if (lov)
+	{
 		LASSERT(lov->lo_type == LLT_RAID0);
 		LASSERT(lov->u.raid0.lo_sub[los->lso_index] == los);
 		spin_lock(&lov->u.raid0.lo_sub_lock);
@@ -91,7 +97,7 @@ static void lovsub_object_free(const struct lu_env *env, struct lu_object *obj)
 }
 
 static int lovsub_object_print(const struct lu_env *env, void *cookie,
-			       lu_printer_t p, const struct lu_object *obj)
+							   lu_printer_t p, const struct lu_object *obj)
 {
 	struct lovsub_object *los = lu2lovsub(obj);
 
@@ -99,7 +105,7 @@ static int lovsub_object_print(const struct lu_env *env, void *cookie,
 }
 
 static int lovsub_attr_update(const struct lu_env *env, struct cl_object *obj,
-			      const struct cl_attr *attr, unsigned int valid)
+							  const struct cl_attr *attr, unsigned int valid)
 {
 	struct lov_object *lov = cl2lovsub(obj)->lso_super;
 
@@ -108,22 +114,24 @@ static int lovsub_attr_update(const struct lu_env *env, struct cl_object *obj,
 }
 
 static int lovsub_object_glimpse(const struct lu_env *env,
-				 const struct cl_object *obj,
-				 struct ost_lvb *lvb)
+								 const struct cl_object *obj,
+								 struct ost_lvb *lvb)
 {
 	struct lovsub_object *los = cl2lovsub(obj);
 
 	return cl_object_glimpse(env, &los->lso_super->lo_cl, lvb);
 }
 
-static const struct cl_object_operations lovsub_ops = {
+static const struct cl_object_operations lovsub_ops =
+{
 	.coo_page_init = lovsub_page_init,
 	.coo_lock_init = lovsub_lock_init,
 	.coo_attr_update = lovsub_attr_update,
 	.coo_glimpse   = lovsub_object_glimpse
 };
 
-static const struct lu_object_operations lovsub_lu_obj_ops = {
+static const struct lu_object_operations lovsub_lu_obj_ops =
+{
 	.loo_object_init      = lovsub_object_init,
 	.loo_object_delete    = NULL,
 	.loo_object_release   = NULL,
@@ -133,14 +141,16 @@ static const struct lu_object_operations lovsub_lu_obj_ops = {
 };
 
 struct lu_object *lovsub_object_alloc(const struct lu_env *env,
-				      const struct lu_object_header *unused,
-				      struct lu_device *dev)
+									  const struct lu_object_header *unused,
+									  struct lu_device *dev)
 {
 	struct lovsub_object *los;
 	struct lu_object     *obj;
 
 	los = kmem_cache_zalloc(lovsub_object_kmem, GFP_NOFS);
-	if (los) {
+
+	if (los)
+	{
 		struct cl_object_header *hdr;
 
 		obj = lovsub2lu(los);
@@ -150,9 +160,12 @@ struct lu_object *lovsub_object_alloc(const struct lu_env *env,
 		lu_object_add_top(&hdr->coh_lu, obj);
 		los->lso_cl.co_ops = &lovsub_ops;
 		obj->lo_ops = &lovsub_lu_obj_ops;
-	} else {
+	}
+	else
+	{
 		obj = NULL;
 	}
+
 	return obj;
 }
 

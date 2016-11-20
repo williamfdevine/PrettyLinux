@@ -68,15 +68,18 @@ mt7601u_ampdu_stat_read(struct seq_file *file, void *data)
 #undef stat_printf
 
 	seq_puts(file, "Aggregations stats:\n");
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		for (j = 0; j < 8; j++)
 			seq_printf(file, "%08llx ",
-				   dev->stats.aggr_n[i * 8 + j]);
+					   dev->stats.aggr_n[i * 8 + j]);
+
 		seq_putc(file, '\n');
 	}
 
 	seq_printf(file, "recent average AMPDU len: %d\n",
-		   atomic_read(&dev->avg_ampdu_len));
+			   atomic_read(&dev->avg_ampdu_len));
 
 	return 0;
 }
@@ -87,7 +90,8 @@ mt7601u_ampdu_stat_open(struct inode *inode, struct file *f)
 	return single_open(f, mt7601u_ampdu_stat_read, inode->i_private);
 }
 
-static const struct file_operations fops_ampdu_stat = {
+static const struct file_operations fops_ampdu_stat =
+{
 	.open = mt7601u_ampdu_stat_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
@@ -104,36 +108,42 @@ mt7601u_eeprom_param_read(struct seq_file *file, void *data)
 
 	seq_printf(file, "RF freq offset: %hhx\n", dev->ee->rf_freq_off);
 	seq_printf(file, "RSSI offset: %hhx %hhx\n",
-		   dev->ee->rssi_offset[0], dev->ee->rssi_offset[1]);
+			   dev->ee->rssi_offset[0], dev->ee->rssi_offset[1]);
 	seq_printf(file, "Reference temp: %hhx\n", dev->ee->ref_temp);
 	seq_printf(file, "LNA gain: %hhx\n", dev->ee->lna_gain);
 	seq_printf(file, "Reg channels: %hhu-%hhu\n", dev->ee->reg.start,
-		   dev->ee->reg.start + dev->ee->reg.num - 1);
+			   dev->ee->reg.start + dev->ee->reg.num - 1);
 
 	seq_puts(file, "Per rate power:\n");
+
 	for (i = 0; i < 2; i++)
 		seq_printf(file, "\t raw:%02hhx bw20:%02hhx bw40:%02hhx\n",
-			   rp->cck[i].raw, rp->cck[i].bw20, rp->cck[i].bw40);
+				   rp->cck[i].raw, rp->cck[i].bw20, rp->cck[i].bw40);
+
 	for (i = 0; i < 4; i++)
 		seq_printf(file, "\t raw:%02hhx bw20:%02hhx bw40:%02hhx\n",
-			   rp->ofdm[i].raw, rp->ofdm[i].bw20, rp->ofdm[i].bw40);
+				   rp->ofdm[i].raw, rp->ofdm[i].bw20, rp->ofdm[i].bw40);
+
 	for (i = 0; i < 4; i++)
 		seq_printf(file, "\t raw:%02hhx bw20:%02hhx bw40:%02hhx\n",
-			   rp->ht[i].raw, rp->ht[i].bw20, rp->ht[i].bw40);
+				   rp->ht[i].raw, rp->ht[i].bw20, rp->ht[i].bw40);
 
 	seq_puts(file, "Per channel power:\n");
+
 	for (i = 0; i < 7; i++)
 		seq_printf(file, "\t tx_power  ch%u:%02hhx ch%u:%02hhx\n",
-			   i * 2 + 1, dev->ee->chan_pwr[i * 2],
-			   i * 2 + 2, dev->ee->chan_pwr[i * 2 + 1]);
+				   i * 2 + 1, dev->ee->chan_pwr[i * 2],
+				   i * 2 + 2, dev->ee->chan_pwr[i * 2 + 1]);
 
 	if (!dev->ee->tssi_enabled)
+	{
 		return 0;
+	}
 
 	seq_puts(file, "TSSI:\n");
 	seq_printf(file, "\t slope:%02hhx\n", td->slope);
 	seq_printf(file, "\t offset=%02hhx %02hhx %02hhx\n",
-		   td->offset[0], td->offset[1], td->offset[2]);
+			   td->offset[0], td->offset[1], td->offset[2]);
 	seq_printf(file, "\t delta_off:%08x\n", td->tx0_delta_offset);
 
 	return 0;
@@ -145,7 +155,8 @@ mt7601u_eeprom_param_open(struct inode *inode, struct file *f)
 	return single_open(f, mt7601u_eeprom_param_read, inode->i_private);
 }
 
-static const struct file_operations fops_eeprom_param = {
+static const struct file_operations fops_eeprom_param =
+{
 	.open = mt7601u_eeprom_param_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
@@ -157,16 +168,19 @@ void mt7601u_init_debugfs(struct mt7601u_dev *dev)
 	struct dentry *dir;
 
 	dir = debugfs_create_dir("mt7601u", dev->hw->wiphy->debugfsdir);
+
 	if (!dir)
+	{
 		return;
+	}
 
 	debugfs_create_u8("temperature", S_IRUSR, dir, &dev->raw_temp);
 	debugfs_create_u32("temp_mode", S_IRUSR, dir, &dev->temp_mode);
 
 	debugfs_create_u32("regidx", S_IRUSR | S_IWUSR, dir, &dev->debugfs_reg);
 	debugfs_create_file("regval", S_IRUSR | S_IWUSR, dir, dev,
-			    &fops_regval);
+						&fops_regval);
 	debugfs_create_file("ampdu_stat", S_IRUSR, dir, dev, &fops_ampdu_stat);
 	debugfs_create_file("eeprom_param", S_IRUSR, dir, dev,
-			    &fops_eeprom_param);
+						&fops_eeprom_param);
 }

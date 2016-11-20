@@ -44,14 +44,16 @@ static u_int16_t ports[MAX_PORTS];
 static unsigned int ports_c;
 module_param_array(ports, ushort, &ports_c, 0400);
 
-struct sane_request {
+struct sane_request
+{
 	__be32 RPC_code;
 #define SANE_NET_START      7   /* RPC code */
 
 	__be32 handle;
 };
 
-struct sane_reply_net_start {
+struct sane_reply_net_start
+{
 	__be32 status;
 #define SANE_STATUS_SUCCESS 0
 
@@ -61,9 +63,9 @@ struct sane_reply_net_start {
 };
 
 static int help(struct sk_buff *skb,
-		unsigned int protoff,
-		struct nf_conn *ct,
-		enum ip_conntrack_info ctinfo)
+				unsigned int protoff,
+				struct nf_conn *ct,
+				enum ip_conntrack_info ctinfo)
 {
 	unsigned int dataoff, datalen;
 	const struct tcphdr *th;
@@ -79,18 +81,26 @@ static int help(struct sk_buff *skb,
 
 	/* Until there's been traffic both ways, don't look in packets. */
 	if (ctinfo != IP_CT_ESTABLISHED &&
-	    ctinfo != IP_CT_ESTABLISHED_REPLY)
+		ctinfo != IP_CT_ESTABLISHED_REPLY)
+	{
 		return NF_ACCEPT;
+	}
 
 	/* Not a full tcp header? */
 	th = skb_header_pointer(skb, protoff, sizeof(_tcph), &_tcph);
+
 	if (th == NULL)
+	{
 		return NF_ACCEPT;
+	}
 
 	/* No data? */
 	dataoff = protoff + th->doff * 4;
+
 	if (dataoff >= skb->len)
+	{
 		return NF_ACCEPT;
+	}
 
 	datalen = skb->len - dataoff;
 
@@ -98,12 +108,17 @@ static int help(struct sk_buff *skb,
 	sb_ptr = skb_header_pointer(skb, dataoff, datalen, sane_buffer);
 	BUG_ON(sb_ptr == NULL);
 
-	if (dir == IP_CT_DIR_ORIGINAL) {
+	if (dir == IP_CT_DIR_ORIGINAL)
+	{
 		if (datalen != sizeof(struct sane_request))
+		{
 			goto out;
+		}
 
 		req = sb_ptr;
-		if (req->RPC_code != htonl(SANE_NET_START)) {
+
+		if (req->RPC_code != htonl(SANE_NET_START))
+		{
 			/* Not an interesting command */
 			ct_sane_info->state = SANE_STATE_NORMAL;
 			goto out;
@@ -116,30 +131,39 @@ static int help(struct sk_buff *skb,
 
 	/* Is it a reply to an uninteresting command? */
 	if (ct_sane_info->state != SANE_STATE_START_REQUESTED)
+	{
 		goto out;
+	}
 
 	/* It's a reply to SANE_NET_START. */
 	ct_sane_info->state = SANE_STATE_NORMAL;
 
-	if (datalen < sizeof(struct sane_reply_net_start)) {
+	if (datalen < sizeof(struct sane_reply_net_start))
+	{
 		pr_debug("NET_START reply too short\n");
 		goto out;
 	}
 
 	reply = sb_ptr;
-	if (reply->status != htonl(SANE_STATUS_SUCCESS)) {
+
+	if (reply->status != htonl(SANE_STATUS_SUCCESS))
+	{
 		/* saned refused the command */
 		pr_debug("unsuccessful SANE_STATUS = %u\n",
-			 ntohl(reply->status));
+				 ntohl(reply->status));
 		goto out;
 	}
 
 	/* Invalid saned reply? Ignore it. */
 	if (reply->zero != 0)
+	{
 		goto out;
+	}
 
 	exp = nf_ct_expect_alloc(ct);
-	if (exp == NULL) {
+
+	if (exp == NULL)
+	{
 		nf_ct_helper_log(skb, ct, "cannot alloc expectation");
 		ret = NF_DROP;
 		goto out;
@@ -147,14 +171,15 @@ static int help(struct sk_buff *skb,
 
 	tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
 	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3num(ct),
-			  &tuple->src.u3, &tuple->dst.u3,
-			  IPPROTO_TCP, NULL, &reply->port);
+					  &tuple->src.u3, &tuple->dst.u3,
+					  IPPROTO_TCP, NULL, &reply->port);
 
 	pr_debug("expect: ");
 	nf_ct_dump_tuple(&exp->tuple);
 
 	/* Can't expect this?  Best to drop packet now. */
-	if (nf_ct_expect_related(exp) != 0) {
+	if (nf_ct_expect_related(exp) != 0)
+	{
 		nf_ct_helper_log(skb, ct, "cannot add expectation");
 		ret = NF_DROP;
 	}
@@ -168,7 +193,8 @@ out:
 
 static struct nf_conntrack_helper sane[MAX_PORTS * 2] __read_mostly;
 
-static const struct nf_conntrack_expect_policy sane_exp_policy = {
+static const struct nf_conntrack_expect_policy sane_exp_policy =
+{
 	.max_expected	= 1,
 	.timeout	= 5 * 60,
 };
@@ -185,29 +211,37 @@ static int __init nf_conntrack_sane_init(void)
 	int i, ret = 0;
 
 	sane_buffer = kmalloc(65536, GFP_KERNEL);
+
 	if (!sane_buffer)
+	{
 		return -ENOMEM;
+	}
 
 	if (ports_c == 0)
+	{
 		ports[ports_c++] = SANE_PORT;
+	}
 
 	/* FIXME should be configurable whether IPv4 and IPv6 connections
 		 are tracked or not - YK */
-	for (i = 0; i < ports_c; i++) {
+	for (i = 0; i < ports_c; i++)
+	{
 		nf_ct_helper_init(&sane[2 * i], AF_INET, IPPROTO_TCP, "sane",
-				  SANE_PORT, ports[i], ports[i],
-				  &sane_exp_policy, 0,
-				  sizeof(struct nf_ct_sane_master), help, NULL,
-				  THIS_MODULE);
+						  SANE_PORT, ports[i], ports[i],
+						  &sane_exp_policy, 0,
+						  sizeof(struct nf_ct_sane_master), help, NULL,
+						  THIS_MODULE);
 		nf_ct_helper_init(&sane[2 * i + 1], AF_INET6, IPPROTO_TCP, "sane",
-				  SANE_PORT, ports[i], ports[i],
-				  &sane_exp_policy, 0,
-				  sizeof(struct nf_ct_sane_master), help, NULL,
-				  THIS_MODULE);
+						  SANE_PORT, ports[i], ports[i],
+						  &sane_exp_policy, 0,
+						  sizeof(struct nf_ct_sane_master), help, NULL,
+						  THIS_MODULE);
 	}
 
 	ret = nf_conntrack_helpers_register(sane, ports_c * 2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("failed to register helpers\n");
 		kfree(sane_buffer);
 		return ret;

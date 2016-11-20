@@ -74,12 +74,15 @@ int ide_device_get(ide_drive_t *drive)
 	struct module *module;
 
 	if (!get_device(&drive->gendev))
+	{
 		return -ENXIO;
+	}
 
 	host_dev = drive->hwif->host->dev[0];
 	module = host_dev ? host_dev->driver->owner : NULL;
 
-	if (module && !try_module_get(module)) {
+	if (module && !try_module_get(module))
+	{
 		put_device(&drive->gendev);
 		return -ENXIO;
 	}
@@ -136,7 +139,9 @@ static int generic_ide_remove(struct device *dev)
 	struct ide_driver *drv = to_ide_driver(dev->driver);
 
 	if (drv->remove)
+	{
 		drv->remove(drive);
+	}
 
 	return 0;
 }
@@ -147,10 +152,13 @@ static void generic_ide_shutdown(struct device *dev)
 	struct ide_driver *drv = to_ide_driver(dev->driver);
 
 	if (dev->driver && drv->shutdown)
+	{
 		drv->shutdown(drive);
+	}
 }
 
-struct bus_type ide_bus_type = {
+struct bus_type ide_bus_type =
+{
 	.name		= "ide",
 	.match		= ide_bus_match,
 	.uevent		= ide_uevent,
@@ -183,23 +191,32 @@ static int ide_set_dev_param_mask(const char *s, const struct kernel_param *kp)
 
 	/* controller . device (0 or 1) [ : 1 (set) | 0 (clear) ] */
 	if (sscanf(s, "%u.%u:%u", &a, &b, &j) != 3 &&
-	    sscanf(s, "%u.%u", &a, &b) != 2)
+		sscanf(s, "%u.%u", &a, &b) != 2)
+	{
 		return -EINVAL;
+	}
 
 	i = a * MAX_DRIVES + b;
 
 	if (i >= MAX_HWIFS * MAX_DRIVES || j > 1)
+	{
 		return -EINVAL;
+	}
 
 	if (j)
+	{
 		*dev_param_mask |= (1 << i);
+	}
 	else
+	{
 		*dev_param_mask &= ~(1 << i);
+	}
 
 	return 0;
 }
 
-static const struct kernel_param_ops param_ops_ide_dev_mask = {
+static const struct kernel_param_ops param_ops_ide_dev_mask =
+{
 	.set = ide_set_dev_param_mask
 };
 
@@ -235,7 +252,8 @@ static unsigned int ide_cdroms;
 module_param_named(cdrom, ide_cdroms, ide_dev_mask, 0);
 MODULE_PARM_DESC(cdrom, "force device as a CD-ROM");
 
-struct chs_geom {
+struct chs_geom
+{
 	unsigned int	cyl;
 	u8		head;
 	u8		sect;
@@ -251,21 +269,31 @@ static int ide_set_disk_chs(const char *str, struct kernel_param *kp)
 	/* controller . device (0 or 1) : Cylinders , Heads , Sectors */
 	/* controller . device (0 or 1) : 1 (use CHS) | 0 (ignore CHS) */
 	if (sscanf(str, "%u.%u:%u,%u,%u", &a, &b, &c, &h, &s) != 5 &&
-	    sscanf(str, "%u.%u:%u", &a, &b, &j) != 3)
+		sscanf(str, "%u.%u:%u", &a, &b, &j) != 3)
+	{
 		return -EINVAL;
+	}
 
 	i = a * MAX_DRIVES + b;
 
 	if (i >= MAX_HWIFS * MAX_DRIVES || j > 1)
+	{
 		return -EINVAL;
+	}
 
 	if (c > INT_MAX || h > 255 || s > 255)
+	{
 		return -EINVAL;
+	}
 
 	if (j)
+	{
 		ide_disks |= (1 << i);
+	}
 	else
+	{
 		ide_disks &= ~(1 << i);
+	}
 
 	ide_disks_chs[i].cyl  = c;
 	ide_disks_chs[i].head = h;
@@ -281,44 +309,57 @@ static void ide_dev_apply_params(ide_drive_t *drive, u8 unit)
 {
 	int i = drive->hwif->index * MAX_DRIVES + unit;
 
-	if (ide_nodma & (1 << i)) {
+	if (ide_nodma & (1 << i))
+	{
 		printk(KERN_INFO "ide: disallowing DMA for %s\n", drive->name);
 		drive->dev_flags |= IDE_DFLAG_NODMA;
 	}
-	if (ide_noflush & (1 << i)) {
+
+	if (ide_noflush & (1 << i))
+	{
 		printk(KERN_INFO "ide: disabling flush requests for %s\n",
-				 drive->name);
+			   drive->name);
 		drive->dev_flags |= IDE_DFLAG_NOFLUSH;
 	}
-	if (ide_nohpa & (1 << i)) {
+
+	if (ide_nohpa & (1 << i))
+	{
 		printk(KERN_INFO "ide: disabling Host Protected Area for %s\n",
-				 drive->name);
+			   drive->name);
 		drive->dev_flags |= IDE_DFLAG_NOHPA;
 	}
-	if (ide_noprobe & (1 << i)) {
+
+	if (ide_noprobe & (1 << i))
+	{
 		printk(KERN_INFO "ide: skipping probe for %s\n", drive->name);
 		drive->dev_flags |= IDE_DFLAG_NOPROBE;
 	}
-	if (ide_nowerr & (1 << i)) {
+
+	if (ide_nowerr & (1 << i))
+	{
 		printk(KERN_INFO "ide: ignoring the ATA_DF bit for %s\n",
-				 drive->name);
+			   drive->name);
 		drive->bad_wstat = BAD_R_STAT;
 	}
-	if (ide_cdroms & (1 << i)) {
+
+	if (ide_cdroms & (1 << i))
+	{
 		printk(KERN_INFO "ide: forcing %s as a CD-ROM\n", drive->name);
 		drive->dev_flags |= IDE_DFLAG_PRESENT;
 		drive->media = ide_cdrom;
 		/* an ATAPI device ignores DRDY */
 		drive->ready_stat = 0;
 	}
-	if (ide_disks & (1 << i)) {
+
+	if (ide_disks & (1 << i))
+	{
 		drive->cyl  = drive->bios_cyl  = ide_disks_chs[i].cyl;
 		drive->head = drive->bios_head = ide_disks_chs[i].head;
 		drive->sect = drive->bios_sect = ide_disks_chs[i].sect;
 
 		printk(KERN_INFO "ide: forcing %s as a disk (%d/%d/%d)\n",
-				 drive->name,
-				 drive->cyl, drive->head, drive->sect);
+			   drive->name,
+			   drive->cyl, drive->head, drive->sect);
 
 		drive->dev_flags |= IDE_DFLAG_FORCED_GEOM | IDE_DFLAG_PRESENT;
 		drive->media = ide_disk;
@@ -335,15 +376,23 @@ static int ide_set_ignore_cable(const char *s, struct kernel_param *kp)
 	/* controller (ignore) */
 	/* controller : 1 (ignore) | 0 (use) */
 	if (sscanf(s, "%d:%d", &i, &j) != 2 && sscanf(s, "%d", &i) != 1)
+	{
 		return -EINVAL;
+	}
 
 	if (i >= MAX_HWIFS || j < 0 || j > 1)
+	{
 		return -EINVAL;
+	}
 
 	if (j)
+	{
 		ide_ignore_cable |= (1 << i);
+	}
 	else
+	{
 		ide_ignore_cable &= ~(1 << i);
+	}
 
 	return 0;
 }
@@ -356,14 +405,15 @@ void ide_port_apply_params(ide_hwif_t *hwif)
 	ide_drive_t *drive;
 	int i;
 
-	if (ide_ignore_cable & (1 << hwif->index)) {
+	if (ide_ignore_cable & (1 << hwif->index))
+	{
 		printk(KERN_INFO "ide: ignoring cable detection for %s\n",
-				 hwif->name);
+			   hwif->name);
 		hwif->cbl = ATA_CBL_PATA40_SHORT;
 	}
 
 	ide_port_for_each_dev(i, drive, hwif)
-		ide_dev_apply_params(drive, i);
+	ide_dev_apply_params(drive, i);
 }
 
 /*
@@ -376,13 +426,17 @@ static int __init ide_init(void)
 	printk(KERN_INFO "Uniform Multi-Platform E-IDE driver\n");
 
 	ret = bus_register(&ide_bus_type);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_WARNING "IDE: bus_register error: %d\n", ret);
 		return ret;
 	}
 
 	ide_port_class = class_create(THIS_MODULE, "ide_port");
-	if (IS_ERR(ide_port_class)) {
+
+	if (IS_ERR(ide_port_class))
+	{
 		ret = PTR_ERR(ide_port_class);
 		goto out_port_class;
 	}

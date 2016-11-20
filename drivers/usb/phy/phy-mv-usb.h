@@ -58,18 +58,21 @@
 #define T_A_SRP_RSPNS		10
 #define T_A_DRV_RSM		5
 
-enum otg_function {
+enum otg_function
+{
 	OTG_B_DEVICE = 0,
 	OTG_A_DEVICE
 };
 
-enum mv_otg_timer {
+enum mv_otg_timer
+{
 	A_WAIT_BCON_TIMER = 0,
 	OTG_TIMER_NUM
 };
 
 /* PXA OTG state machine */
-struct mv_otg_ctrl {
+struct mv_otg_ctrl
+{
 	/* internal variables */
 	u8 a_set_b_hnp_en;	/* A-Device set b_hnp_en */
 	u8 b_srp_done;
@@ -106,7 +109,8 @@ struct mv_otg_ctrl {
 
 #define VUSBHS_MAX_PORTS	8
 
-struct mv_otg_regs {
+struct mv_otg_regs
+{
 	u32 usbcmd;		/* Command register */
 	u32 usbsts;		/* Status register */
 	u32 usbintr;		/* Interrupt enable */
@@ -135,7 +139,8 @@ struct mv_otg_regs {
 	u32 ier;		/* Interrupt Enable */
 };
 
-struct mv_otg {
+struct mv_otg
+{
 	struct usb_phy phy;
 	struct mv_otg_ctrl otg_ctrl;
 

@@ -30,7 +30,8 @@
 /*
  * ELS Command codes - byte 0 of the frame payload
  */
-enum fc_els_cmd {
+enum fc_els_cmd
+{
 	ELS_LS_RJT =	0x01,	/* ESL reject */
 	ELS_LS_ACC =	0x02,	/* ESL Accept */
 	ELS_PLOGI =	0x03,	/* N_Port login */
@@ -98,72 +99,73 @@ enum fc_els_cmd {
  * Please keep this in sync with the above definitions.
  */
 #define	FC_ELS_CMDS_INIT {			\
-	[ELS_LS_RJT] =	"LS_RJT",		\
-	[ELS_LS_ACC] =	"LS_ACC",		\
-	[ELS_PLOGI] =	"PLOGI",		\
-	[ELS_FLOGI] =	"FLOGI",		\
-	[ELS_LOGO] =	"LOGO",			\
-	[ELS_ABTX] =	"ABTX",			\
-	[ELS_RCS] =	"RCS",			\
-	[ELS_RES] =	"RES",			\
-	[ELS_RSS] =	"RSS",			\
-	[ELS_RSI] =	"RSI",			\
-	[ELS_ESTS] =	"ESTS",			\
-	[ELS_ESTC] =	"ESTC",			\
-	[ELS_ADVC] =	"ADVC",			\
-	[ELS_RTV] =	"RTV",			\
-	[ELS_RLS] =	"RLS",			\
-	[ELS_ECHO] =	"ECHO",			\
-	[ELS_TEST] =	"TEST",			\
-	[ELS_RRQ] =	"RRQ",			\
-	[ELS_REC] =	"REC",			\
-	[ELS_SRR] =	"SRR",			\
-	[ELS_PRLI] =	"PRLI",			\
-	[ELS_PRLO] =	"PRLO",			\
-	[ELS_SCN] =	"SCN",			\
-	[ELS_TPLS] =	"TPLS",			\
-	[ELS_TPRLO] =	"TPRLO",		\
-	[ELS_LCLM] =	"LCLM",			\
-	[ELS_GAID] =	"GAID",			\
-	[ELS_FACT] =	"FACT",			\
-	[ELS_FDACDT] =	"FDACDT",		\
-	[ELS_NACT] =	"NACT",			\
-	[ELS_NDACT] =	"NDACT",		\
-	[ELS_QOSR] =	"QOSR",			\
-	[ELS_RVCS] =	"RVCS",			\
-	[ELS_PDISC] =	"PDISC",		\
-	[ELS_FDISC] =	"FDISC",		\
-	[ELS_ADISC] =	"ADISC",		\
-	[ELS_RNC] =	"RNC",			\
-	[ELS_FARP_REQ] = "FARP_REQ",		\
-	[ELS_FARP_REPL] =  "FARP_REPL",		\
-	[ELS_RPS] =	"RPS",			\
-	[ELS_RPL] =	"RPL",			\
-	[ELS_RPBC] =	"RPBC",			\
-	[ELS_FAN] =	"FAN",			\
-	[ELS_RSCN] =	"RSCN",			\
-	[ELS_SCR] =	"SCR",			\
-	[ELS_RNFT] =	"RNFT",			\
-	[ELS_CSR] =	"CSR",			\
-	[ELS_CSU] =	"CSU",			\
-	[ELS_LINIT] =	"LINIT",		\
-	[ELS_LSTS] =	"LSTS",			\
-	[ELS_RNID] =	"RNID",			\
-	[ELS_RLIR] =	"RLIR",			\
-	[ELS_LIRR] =	"LIRR",			\
-	[ELS_SRL] =	"SRL",			\
-	[ELS_SBRP] =	"SBRP",			\
-	[ELS_RPSC] =	"RPSC",			\
-	[ELS_QSA] =	"QSA",			\
-	[ELS_EVFP] =	"EVFP",			\
-	[ELS_LKA] =	"LKA",			\
-	[ELS_AUTH_ELS] = "AUTH_ELS",		\
-}
+		[ELS_LS_RJT] =	"LS_RJT",		\
+						[ELS_LS_ACC] =	"LS_ACC",		\
+										[ELS_PLOGI] =	"PLOGI",		\
+												[ELS_FLOGI] =	"FLOGI",		\
+														[ELS_LOGO] =	"LOGO",			\
+																[ELS_ABTX] =	"ABTX",			\
+																		[ELS_RCS] =	"RCS",			\
+																				[ELS_RES] =	"RES",			\
+																						[ELS_RSS] =	"RSS",			\
+																								[ELS_RSI] =	"RSI",			\
+																										[ELS_ESTS] =	"ESTS",			\
+																												[ELS_ESTC] =	"ESTC",			\
+																														[ELS_ADVC] =	"ADVC",			\
+																																[ELS_RTV] =	"RTV",			\
+																																		[ELS_RLS] =	"RLS",			\
+																																				[ELS_ECHO] =	"ECHO",			\
+																																						[ELS_TEST] =	"TEST",			\
+																																								[ELS_RRQ] =	"RRQ",			\
+																																										[ELS_REC] =	"REC",			\
+																																												[ELS_SRR] =	"SRR",			\
+																																														[ELS_PRLI] =	"PRLI",			\
+																																																[ELS_PRLO] =	"PRLO",			\
+																																																		[ELS_SCN] =	"SCN",			\
+																																																				[ELS_TPLS] =	"TPLS",			\
+																																																						[ELS_TPRLO] =	"TPRLO",		\
+																																																								[ELS_LCLM] =	"LCLM",			\
+																																																										[ELS_GAID] =	"GAID",			\
+																																																												[ELS_FACT] =	"FACT",			\
+																																																														[ELS_FDACDT] =	"FDACDT",		\
+																																																																[ELS_NACT] =	"NACT",			\
+																																																																		[ELS_NDACT] =	"NDACT",		\
+																																																																				[ELS_QOSR] =	"QOSR",			\
+																																																																						[ELS_RVCS] =	"RVCS",			\
+																																																																								[ELS_PDISC] =	"PDISC",		\
+																																																																										[ELS_FDISC] =	"FDISC",		\
+																																																																												[ELS_ADISC] =	"ADISC",		\
+																																																																														[ELS_RNC] =	"RNC",			\
+																																																																																[ELS_FARP_REQ] = "FARP_REQ",		\
+																																																																																		[ELS_FARP_REPL] =  "FARP_REPL",		\
+																																																																																				[ELS_RPS] =	"RPS",			\
+																																																																																						[ELS_RPL] =	"RPL",			\
+																																																																																								[ELS_RPBC] =	"RPBC",			\
+																																																																																										[ELS_FAN] =	"FAN",			\
+																																																																																												[ELS_RSCN] =	"RSCN",			\
+																																																																																														[ELS_SCR] =	"SCR",			\
+																																																																																																[ELS_RNFT] =	"RNFT",			\
+																																																																																																		[ELS_CSR] =	"CSR",			\
+																																																																																																				[ELS_CSU] =	"CSU",			\
+																																																																																																						[ELS_LINIT] =	"LINIT",		\
+																																																																																																								[ELS_LSTS] =	"LSTS",			\
+																																																																																																										[ELS_RNID] =	"RNID",			\
+																																																																																																												[ELS_RLIR] =	"RLIR",			\
+																																																																																																														[ELS_LIRR] =	"LIRR",			\
+																																																																																																																[ELS_SRL] =	"SRL",			\
+																																																																																																																		[ELS_SBRP] =	"SBRP",			\
+																																																																																																																				[ELS_RPSC] =	"RPSC",			\
+																																																																																																																						[ELS_QSA] =	"QSA",			\
+																																																																																																																								[ELS_EVFP] =	"EVFP",			\
+																																																																																																																										[ELS_LKA] =	"LKA",			\
+																																																																																																																												[ELS_AUTH_ELS] = "AUTH_ELS",		\
+	}
 
 /*
  * LS_ACC payload.
  */
-struct fc_els_ls_acc {
+struct fc_els_ls_acc
+{
 	__u8          la_cmd;		/* command code ELS_LS_ACC */
 	__u8          la_resv[3];	/* reserved */
 };
@@ -171,7 +173,8 @@ struct fc_els_ls_acc {
 /*
  * ELS reject payload.
  */
-struct fc_els_ls_rjt {
+struct fc_els_ls_rjt
+{
 	__u8	er_cmd;		/* command code ELS_LS_RJT */
 	__u8	er_resv[4];	/* reserved must be zero */
 	__u8	er_reason;	/* reason (enum fc_els_rjt_reason below) */
@@ -182,7 +185,8 @@ struct fc_els_ls_rjt {
 /*
  * ELS reject reason codes (er_reason).
  */
-enum fc_els_rjt_reason {
+enum fc_els_rjt_reason
+{
 	ELS_RJT_NONE =		0,	/* no reject - not to be sent */
 	ELS_RJT_INVAL =		0x01,	/* invalid ELS command code */
 	ELS_RJT_LOGIC =		0x03,	/* logical error */
@@ -199,7 +203,8 @@ enum fc_els_rjt_reason {
 /*
  * reason code explanation (er_explan).
  */
-enum fc_els_rjt_explan {
+enum fc_els_rjt_explan
+{
 	ELS_EXPL_NONE =		0x00,	/* No additional explanation */
 	ELS_EXPL_SPP_OPT_ERR =	0x01,	/* service parameter error - options */
 	ELS_EXPL_SPP_ICTL_ERR =	0x03,	/* service parm error - initiator ctl */
@@ -220,18 +225,22 @@ enum fc_els_rjt_explan {
 /*
  * Common service parameters (N ports).
  */
-struct fc_els_csp {
+struct fc_els_csp
+{
 	__u8		sp_hi_ver;	/* highest version supported (obs.) */
 	__u8		sp_lo_ver;	/* highest version supported (obs.) */
 	__be16		sp_bb_cred;	/* buffer-to-buffer credits */
 	__be16		sp_features;	/* common feature flags */
 	__be16		sp_bb_data;	/* b-b state number and data field sz */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__be16	_sp_tot_seq; /* total concurrent sequences */
 			__be16	_sp_rel_off; /* rel. offset by info cat */
 		} sp_plogi;
-		struct {
+		struct
+		{
 			__be32	_sp_r_a_tov; /* resource alloc. timeout msec */
 		} sp_flogi_acc;
 	} sp_u;
@@ -275,7 +284,8 @@ struct fc_els_csp {
 /*
  * Class-specific service parameters.
  */
-struct fc_els_cssp {
+struct fc_els_cssp
+{
 	__be16		cp_class;	/* class flags */
 	__be16		cp_init;	/* initiator flags */
 	__be16		cp_recip;	/* recipient flags */
@@ -311,7 +321,8 @@ struct fc_els_cssp {
  * NFC_ELS_FLOGI: Fabric login request.
  * NFC_ELS_PLOGI: Port login request (same format).
  */
-struct fc_els_flogi {
+struct fc_els_flogi
+{
 	__u8		fl_cmd;		/* command */
 	__u8		_fl_resvd[3];	/* must be zero */
 	struct fc_els_csp fl_csp;	/* common service parameters */
@@ -324,7 +335,8 @@ struct fc_els_flogi {
 /*
  * Process login service parameter page.
  */
-struct fc_els_spp {
+struct fc_els_spp
+{
 	__u8		spp_type;	/* type code or common service params */
 	__u8		spp_type_ext;	/* type code extension */
 	__u8		spp_flags;
@@ -345,7 +357,8 @@ struct fc_els_spp {
 /*
  * SPP response code in spp_flags - lower 4 bits.
  */
-enum fc_els_spp_resp {
+enum fc_els_spp_resp
+{
 	FC_SPP_RESP_ACK	=	1,	/* request executed */
 	FC_SPP_RESP_RES =	2,	/* unable due to lack of resources */
 	FC_SPP_RESP_INIT =	3,	/* initialization not complete */
@@ -359,7 +372,8 @@ enum fc_els_spp_resp {
 /*
  * ELS_RRQ - Reinstate Recovery Qualifier
  */
-struct fc_els_rrq {
+struct fc_els_rrq
+{
 	__u8		rrq_cmd;	/* command (0x12) */
 	__u8		rrq_zero[3];	/* specified as zero - part of cmd */
 	__u8		rrq_resvd;	/* reserved */
@@ -371,7 +385,8 @@ struct fc_els_rrq {
 /*
  * ELS_REC - Read exchange concise.
  */
-struct fc_els_rec {
+struct fc_els_rec
+{
 	__u8		rec_cmd;	/* command (0x13) */
 	__u8		rec_zero[3];	/* specified as zero - part of cmd */
 	__u8		rec_resvd;	/* reserved */
@@ -383,7 +398,8 @@ struct fc_els_rec {
 /*
  * ELS_REC LS_ACC payload.
  */
-struct fc_els_rec_acc {
+struct fc_els_rec_acc
+{
 	__u8		reca_cmd;	/* accept (0x02) */
 	__u8		reca_zero[3];	/* specified as zero - part of cmd */
 	__be16		reca_ox_id;	/* originator exchange ID */
@@ -399,7 +415,8 @@ struct fc_els_rec_acc {
 /*
  * ELS_PRLI - Process login request and response.
  */
-struct fc_els_prli {
+struct fc_els_prli
+{
 	__u8		prli_cmd;	/* command */
 	__u8		prli_spp_len;	/* length of each serv. parm. page */
 	__be16		prli_len;	/* length of entire payload */
@@ -409,7 +426,8 @@ struct fc_els_prli {
 /*
  * ELS_PRLO - Process logout request and response.
  */
-struct fc_els_prlo {
+struct fc_els_prlo
+{
 	__u8            prlo_cmd;       /* command */
 	__u8            prlo_obs;       /* obsolete, but shall be set to 10h */
 	__be16          prlo_len;       /* payload length */
@@ -418,7 +436,8 @@ struct fc_els_prlo {
 /*
  * ELS_ADISC payload
  */
-struct fc_els_adisc {
+struct fc_els_adisc
+{
 	__u8		adisc_cmd;
 	__u8		adisc_resv[3];
 	__u8            adisc_resv1;
@@ -432,7 +451,8 @@ struct fc_els_adisc {
 /*
  * ELS_LOGO - process or fabric logout.
  */
-struct fc_els_logo {
+struct fc_els_logo
+{
 	__u8		fl_cmd;		/* command code */
 	__u8		fl_zero[3];	/* specified as zero - part of cmd */
 	__u8		fl_resvd;	/* reserved */
@@ -443,7 +463,8 @@ struct fc_els_logo {
 /*
  * ELS_RTV - read timeout value.
  */
-struct fc_els_rtv {
+struct fc_els_rtv
+{
 	__u8		rtv_cmd;	/* command code 0x0e */
 	__u8		rtv_zero[3];	/* specified as zero - part of cmd */
 };
@@ -451,7 +472,8 @@ struct fc_els_rtv {
 /*
  * LS_ACC for ELS_RTV - read timeout value.
  */
-struct fc_els_rtv_acc {
+struct fc_els_rtv_acc
+{
 	__u8		rtv_cmd;	/* command code 0x02 */
 	__u8		rtv_zero[3];	/* specified as zero - part of cmd */
 	__be32		rtv_r_a_tov;	/* resource allocation timeout value */
@@ -468,13 +490,15 @@ struct fc_els_rtv_acc {
 /*
  * ELS_SCR - state change registration payload.
  */
-struct fc_els_scr {
+struct fc_els_scr
+{
 	__u8		scr_cmd;	/* command code */
 	__u8		scr_resv[6];	/* reserved */
 	__u8		scr_reg_func;	/* registration function (see below) */
 };
 
-enum fc_els_scr_func {
+enum fc_els_scr_func
+{
 	ELS_SCRF_FAB =	1,	/* fabric-detected registration */
 	ELS_SCRF_NPORT = 2,	/* Nx_Port-detected registration */
 	ELS_SCRF_FULL =	3,	/* full registration */
@@ -484,7 +508,8 @@ enum fc_els_scr_func {
 /*
  * ELS_RSCN - registered state change notification payload.
  */
-struct fc_els_rscn {
+struct fc_els_rscn
+{
 	__u8		rscn_cmd;	/* RSCN opcode (0x61) */
 	__u8		rscn_page_len;	/* page length (4) */
 	__be16		rscn_plen;	/* payload length including this word */
@@ -492,7 +517,8 @@ struct fc_els_rscn {
 	/* followed by 4-byte generic affected Port_ID pages */
 };
 
-struct fc_els_rscn_page {
+struct fc_els_rscn_page
+{
 	__u8		rscn_page_flags; /* event and address format */
 	__u8		rscn_fid[3];	/* fabric ID */
 };
@@ -502,7 +528,8 @@ struct fc_els_rscn_page {
 #define	ELS_RSCN_ADDR_FMT_BIT	0	/* shift count for address format */
 #define	ELS_RSCN_ADDR_FMT_MASK	0x3	/* mask for address format */
 
-enum fc_els_rscn_ev_qual {
+enum fc_els_rscn_ev_qual
+{
 	ELS_EV_QUAL_NONE = 0,		/* unspecified */
 	ELS_EV_QUAL_NS_OBJ = 1,		/* changed name server object */
 	ELS_EV_QUAL_PORT_ATTR = 2,	/* changed port attribute */
@@ -511,7 +538,8 @@ enum fc_els_rscn_ev_qual {
 	ELS_EV_QUAL_REM_OBJ = 5,	/* removed object */
 };
 
-enum fc_els_rscn_addr_fmt {
+enum fc_els_rscn_addr_fmt
+{
 	ELS_ADDR_FMT_PORT = 0,	/* rscn_fid is a port address */
 	ELS_ADDR_FMT_AREA = 1,	/* rscn_fid is a area address */
 	ELS_ADDR_FMT_DOM = 2,	/* rscn_fid is a domain address */
@@ -521,7 +549,8 @@ enum fc_els_rscn_addr_fmt {
 /*
  * ELS_RNID - request Node ID.
  */
-struct fc_els_rnid {
+struct fc_els_rnid
+{
 	__u8		rnid_cmd;	/* RNID opcode (0x78) */
 	__u8		rnid_resv[3];	/* reserved */
 	__u8		rnid_fmt;	/* data format */
@@ -531,7 +560,8 @@ struct fc_els_rnid {
 /*
  * Node Identification Data formats (rnid_fmt)
  */
-enum fc_els_rnid_fmt {
+enum fc_els_rnid_fmt
+{
 	ELS_RNIDF_NONE = 0,		/* no specific identification data */
 	ELS_RNIDF_GEN = 0xdf,		/* general topology discovery format */
 };
@@ -539,7 +569,8 @@ enum fc_els_rnid_fmt {
 /*
  * ELS_RNID response.
  */
-struct fc_els_rnid_resp {
+struct fc_els_rnid_resp
+{
 	__u8		rnid_cmd;	/* response code (LS_ACC) */
 	__u8		rnid_resv[3];	/* reserved */
 	__u8		rnid_fmt;	/* data format */
@@ -548,12 +579,14 @@ struct fc_els_rnid_resp {
 	__u8		rnid_sid_len;	/* specific ID data length */
 };
 
-struct fc_els_rnid_cid {
+struct fc_els_rnid_cid
+{
 	__be64		rnid_wwpn;	/* N port name */
 	__be64		rnid_wwnn;	/* node name */
 };
 
-struct fc_els_rnid_gen {
+struct fc_els_rnid_gen
+{
 	__u8		rnid_vend_id[16]; /* vendor-unique ID */
 	__be32		rnid_atype;	/* associated type (see below) */
 	__be32		rnid_phys_port;	/* physical port number */
@@ -566,7 +599,8 @@ struct fc_els_rnid_gen {
 	__be16		rnid_vend_spec;	/* vendor-specific field */
 };
 
-enum fc_els_rnid_atype {
+enum fc_els_rnid_atype
+{
 	ELS_RNIDA_UNK =		0x01,	/* unknown */
 	ELS_RNIDA_OTHER =	0x02,	/* none of the following */
 	ELS_RNIDA_HUB =		0x03,
@@ -596,7 +630,8 @@ enum fc_els_rnid_atype {
 	ELS_RNIDA_MF_VIRT =	1UL << 21,	/* virtualization device */
 };
 
-enum fc_els_rnid_mgmt {
+enum fc_els_rnid_mgmt
+{
 	ELS_RNIDM_SNMP =	0,
 	ELS_RNIDM_TELNET =	1,
 	ELS_RNIDM_HTTP =	2,
@@ -604,7 +639,8 @@ enum fc_els_rnid_mgmt {
 	ELS_RNIDM_XML =		4,	/* HTTP + XML */
 };
 
-enum fc_els_rnid_ipver {
+enum fc_els_rnid_ipver
+{
 	ELS_RNIDIP_NONE =	0,	/* no IP support or node mgmt. */
 	ELS_RNIDIP_V4 =		1,	/* IPv4 */
 	ELS_RNIDIP_V6 =		2,	/* IPv6 */
@@ -613,7 +649,8 @@ enum fc_els_rnid_ipver {
 /*
  * ELS RPL - Read Port List.
  */
-struct fc_els_rpl {
+struct fc_els_rpl
+{
 	__u8		rpl_cmd;	/* command */
 	__u8		rpl_resv[5];	/* reserved - must be zero */
 	__be16		rpl_max_size;	/* maximum response size or zero */
@@ -624,7 +661,8 @@ struct fc_els_rpl {
 /*
  * Port number block in RPL response.
  */
-struct fc_els_pnb {
+struct fc_els_pnb
+{
 	__be32		pnb_phys_pn;	/* physical port number */
 	__u8		pnb_resv;	/* reserved */
 	__u8		pnb_port_id[3];	/* port ID */
@@ -634,7 +672,8 @@ struct fc_els_pnb {
 /*
  * RPL LS_ACC response.
  */
-struct fc_els_rpl_resp {
+struct fc_els_rpl_resp
+{
 	__u8		rpl_cmd;	/* ELS_LS_ACC */
 	__u8		rpl_resv1;	/* reserved - must be zero */
 	__be16		rpl_plen;	/* payload length */
@@ -648,7 +687,8 @@ struct fc_els_rpl_resp {
 /*
  * Link Error Status Block.
  */
-struct fc_els_lesb {
+struct fc_els_lesb
+{
 	__be32		lesb_link_fail;	/* link failure count */
 	__be32		lesb_sync_loss;	/* loss of synchronization count */
 	__be32		lesb_sig_loss;	/* loss of signal count */
@@ -660,14 +700,16 @@ struct fc_els_lesb {
 /*
  * ELS RPS - Read Port Status Block request.
  */
-struct fc_els_rps {
+struct fc_els_rps
+{
 	__u8		rps_cmd;	/* command */
 	__u8		rps_resv[2];	/* reserved - must be zero */
 	__u8		rps_flag;	/* flag - see below */
 	__be64		rps_port_spec;	/* port selection */
 };
 
-enum fc_els_rps_flag {
+enum fc_els_rps_flag
+{
 	FC_ELS_RPS_DID =	0x00,	/* port identified by D_ID of req. */
 	FC_ELS_RPS_PPN =	0x01,	/* port_spec is physical port number */
 	FC_ELS_RPS_WWPN =	0x02,	/* port_spec is port WWN */
@@ -676,7 +718,8 @@ enum fc_els_rps_flag {
 /*
  * ELS RPS LS_ACC response.
  */
-struct fc_els_rps_resp {
+struct fc_els_rps_resp
+{
 	__u8		rps_cmd;	/* command - LS_ACC */
 	__u8		rps_resv[2];	/* reserved - must be zero */
 	__u8		rps_flag;	/* flag - see below */
@@ -685,11 +728,13 @@ struct fc_els_rps_resp {
 	struct fc_els_lesb rps_lesb;	/* link error status block */
 };
 
-enum fc_els_rps_resp_flag {
+enum fc_els_rps_resp_flag
+{
 	FC_ELS_RPS_LPEV =	0x01,	/* L_port extension valid */
 };
 
-enum fc_els_rps_resp_status {
+enum fc_els_rps_resp_status
+{
 	FC_ELS_RPS_PTP =	1 << 5,	/* point-to-point connection */
 	FC_ELS_RPS_LOOP =	1 << 4,	/* loop mode */
 	FC_ELS_RPS_FAB =	1 << 3,	/* fabric present */
@@ -701,7 +746,8 @@ enum fc_els_rps_resp_status {
 /*
  * ELS LIRR - Link Incident Record Registration request.
  */
-struct fc_els_lirr {
+struct fc_els_lirr
+{
 	__u8		lirr_cmd;	/* command */
 	__u8		lirr_resv[3];	/* reserved - must be zero */
 	__u8		lirr_func;	/* registration function */
@@ -709,7 +755,8 @@ struct fc_els_lirr {
 	__u8		lirr_resv2[2];	/* reserved - must be zero */
 };
 
-enum fc_els_lirr_func {
+enum fc_els_lirr_func
+{
 	ELS_LIRR_SET_COND = 	0x01,	/* set - conditionally receive */
 	ELS_LIRR_SET_UNCOND = 	0x02,	/* set - unconditionally receive */
 	ELS_LIRR_CLEAR = 	0xff	/* clear registration */
@@ -718,14 +765,16 @@ enum fc_els_lirr_func {
 /*
  * ELS SRL - Scan Remote Loop request.
  */
-struct fc_els_srl {
+struct fc_els_srl
+{
 	__u8		srl_cmd;	/* command */
 	__u8		srl_resv[3];	/* reserved - must be zero */
 	__u8		srl_flag;	/* flag - see below */
 	__u8		srl_flag_param[3];	/* flag parameter */
 };
 
-enum fc_els_srl_flag {
+enum fc_els_srl_flag
+{
 	FC_ELS_SRL_ALL =	0x00,	/* scan all FL ports */
 	FC_ELS_SRL_ONE =	0x01,	/* scan specified loop */
 	FC_ELS_SRL_EN_PER =	0x02,	/* enable periodic scanning (param) */
@@ -735,7 +784,8 @@ enum fc_els_srl_flag {
 /*
  * ELS RLS - Read Link Error Status Block request.
  */
-struct fc_els_rls {
+struct fc_els_rls
+{
 	__u8		rls_cmd;	/* command */
 	__u8		rls_resv[4];	/* reserved - must be zero */
 	__u8		rls_port_id[3];	/* port ID */
@@ -744,7 +794,8 @@ struct fc_els_rls {
 /*
  * ELS RLS LS_ACC Response.
  */
-struct fc_els_rls_resp {
+struct fc_els_rls_resp
+{
 	__u8		rls_cmd;	/* ELS_LS_ACC */
 	__u8		rls_resv[3];	/* reserved - must be zero */
 	struct fc_els_lesb rls_lesb;	/* link error status block */
@@ -754,7 +805,8 @@ struct fc_els_rls_resp {
  * ELS RLIR - Registered Link Incident Report.
  * This is followed by the CLIR and the CLID, described below.
  */
-struct fc_els_rlir {
+struct fc_els_rlir
+{
 	__u8		rlir_cmd;	/* command */
 	__u8		rlir_resv[3];	/* reserved - must be zero */
 	__u8		rlir_fmt;	/* format (FC4-type if type specific) */
@@ -766,7 +818,8 @@ struct fc_els_rlir {
 /*
  * CLIR - Common Link Incident Record Data. - Sent via RLIR.
  */
-struct fc_els_clir {
+struct fc_els_clir
+{
 	__be64		clir_wwpn;	/* incident port name */
 	__be64		clir_wwnn;	/* incident port node name */
 	__u8		clir_port_type;	/* incident port type */
@@ -785,7 +838,8 @@ struct fc_els_clir {
 /*
  * CLIR clir_ts_fmt - time stamp format values.
  */
-enum fc_els_clir_ts_fmt {
+enum fc_els_clir_ts_fmt
+{
 	ELS_CLIR_TS_UNKNOWN = 	0,	/* time stamp field unknown */
 	ELS_CLIR_TS_SEC_FRAC = 	1,	/* time in seconds and fractions */
 	ELS_CLIR_TS_CSU =	2,	/* time in clock synch update format */
@@ -794,7 +848,8 @@ enum fc_els_clir_ts_fmt {
 /*
  * Common Link Incident Descriptor - sent via RLIR.
  */
-struct fc_els_clid {
+struct fc_els_clid
+{
 	__u8		clid_iq;	/* incident qualifier flags */
 	__u8		clid_ic;	/* incident code */
 	__be16		clid_epai;	/* domain/area of ISL */
@@ -803,7 +858,8 @@ struct fc_els_clid {
 /*
  * CLID incident qualifier flags.
  */
-enum fc_els_clid_iq {
+enum fc_els_clid_iq
+{
 	ELS_CLID_SWITCH =	0x20,	/* incident port is a switch node */
 	ELS_CLID_E_PORT =	0x10,	/* incident is an ISL (E) port */
 	ELS_CLID_SEV_MASK =	0x0c,	/* severity 2-bit field mask */
@@ -817,7 +873,8 @@ enum fc_els_clid_iq {
 /*
  * CLID incident code.
  */
-enum fc_els_clid_ic {
+enum fc_els_clid_ic
+{
 	ELS_CLID_IC_IMPL =	1,	/* implicit incident */
 	ELS_CLID_IC_BER =	2,	/* bit-error-rate threshold exceeded */
 	ELS_CLID_IC_LOS =	3,	/* loss of synch or signal */

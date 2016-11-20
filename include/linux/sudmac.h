@@ -15,7 +15,8 @@
 #include <linux/types.h>
 
 /* Used by slave DMA clients to request DMA to/from a specific peripheral */
-struct sudmac_slave {
+struct sudmac_slave
+{
 	struct shdma_slave	shdma_slave;	/* Set by the platform */
 };
 
@@ -23,18 +24,21 @@ struct sudmac_slave {
  * Supplied by platforms to specify, how a DMA channel has to be configured for
  * a certain peripheral
  */
-struct sudmac_slave_config {
+struct sudmac_slave_config
+{
 	int		slave_id;
 };
 
-struct sudmac_channel {
+struct sudmac_channel
+{
 	unsigned long	offset;
 	unsigned long	config;
 	unsigned long	wait;		/* The configuable range is 0 to 3 */
 	unsigned long	dint_end_bit;
 };
 
-struct sudmac_pdata {
+struct sudmac_pdata
+{
 	const struct sudmac_slave_config *slave;
 	int slave_num;
 	const struct sudmac_channel *channel;

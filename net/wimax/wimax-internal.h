@@ -31,7 +31,7 @@
 #ifdef __KERNEL__
 
 #ifdef pr_fmt
-#undef pr_fmt
+	#undef pr_fmt
 #endif
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -55,11 +55,20 @@ static inline __must_check
 int wimax_dev_is_ready(struct wimax_dev *wimax_dev)
 {
 	if (wimax_dev->state == __WIMAX_ST_NULL)
-		return -EINVAL;	/* Device is not even registered! */
+	{
+		return -EINVAL;    /* Device is not even registered! */
+	}
+
 	if (wimax_dev->state == WIMAX_ST_DOWN)
+	{
 		return -ENOMEDIUM;
+	}
+
 	if (wimax_dev->state == __WIMAX_ST_QUIESCING)
+	{
 		return -ESHUTDOWN;
+	}
+
 	return 0;
 }
 

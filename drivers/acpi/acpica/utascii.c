@@ -64,8 +64,10 @@ u8 acpi_ut_valid_nameseg(char *name)
 
 	/* Validate each character in the signature */
 
-	for (i = 0; i < ACPI_NAME_SIZE; i++) {
-		if (!acpi_ut_valid_name_char(name[i], i)) {
+	for (i = 0; i < ACPI_NAME_SIZE; i++)
+	{
+		if (!acpi_ut_valid_name_char(name[i], i))
+		{
 			return (FALSE);
 		}
 	}
@@ -95,11 +97,13 @@ u8 acpi_ut_valid_name_char(char character, u32 position)
 {
 
 	if (!((character >= 'A' && character <= 'Z') ||
-	      (character >= '0' && character <= '9') || (character == '_'))) {
+		  (character >= '0' && character <= '9') || (character == '_')))
+	{
 
 		/* Allow a '!' in the last position */
 
-		if (character == '!' && position == 3) {
+		if (character == '!' && position == 3)
+		{
 			return (TRUE);
 		}
 
@@ -127,13 +131,17 @@ void acpi_ut_check_and_repair_ascii(u8 *name, char *repaired_name, u32 count)
 {
 	u32 i;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		repaired_name[i] = (char)name[i];
 
-		if (!name[i]) {
+		if (!name[i])
+		{
 			return;
 		}
-		if (!isprint(name[i])) {
+
+		if (!isprint(name[i]))
+		{
 			repaired_name[i] = ' ';
 		}
 	}

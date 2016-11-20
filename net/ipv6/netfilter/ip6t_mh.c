@@ -40,10 +40,14 @@ static bool mh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
 
 	/* Must not be a fragment. */
 	if (par->fragoff != 0)
+	{
 		return false;
+	}
 
 	mh = skb_header_pointer(skb, par->thoff, sizeof(_mh), &_mh);
-	if (mh == NULL) {
+
+	if (mh == NULL)
+	{
 		/* We've been asked to examine this packet, and we
 		   can't.  Hence, no choice but to drop. */
 		pr_debug("Dropping evil MH tinygram.\n");
@@ -51,15 +55,16 @@ static bool mh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
 		return false;
 	}
 
-	if (mh->ip6mh_proto != IPPROTO_NONE) {
+	if (mh->ip6mh_proto != IPPROTO_NONE)
+	{
 		pr_debug("Dropping invalid MH Payload Proto: %u\n",
-			 mh->ip6mh_proto);
+				 mh->ip6mh_proto);
 		par->hotdrop = true;
 		return false;
 	}
 
 	return type_match(mhinfo->types[0], mhinfo->types[1], mh->ip6mh_type,
-			  !!(mhinfo->invflags & IP6T_MH_INV_TYPE));
+					  !!(mhinfo->invflags & IP6T_MH_INV_TYPE));
 }
 
 static int mh_mt6_check(const struct xt_mtchk_param *par)
@@ -70,7 +75,8 @@ static int mh_mt6_check(const struct xt_mtchk_param *par)
 	return (mhinfo->invflags & ~IP6T_MH_INV_MASK) ? -EINVAL : 0;
 }
 
-static struct xt_match mh_mt6_reg __read_mostly = {
+static struct xt_match mh_mt6_reg __read_mostly =
+{
 	.name		= "mh",
 	.family		= NFPROTO_IPV6,
 	.checkentry	= mh_mt6_check,

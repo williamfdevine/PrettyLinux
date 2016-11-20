@@ -20,7 +20,8 @@
 #include <asm/runlatch.h>
 #include <asm/plpar_wrappers.h>
 
-struct cpuidle_driver pseries_idle_driver = {
+struct cpuidle_driver pseries_idle_driver =
+{
 	.name             = "pseries_idle",
 	.owner            = THIS_MODULE,
 };
@@ -51,13 +52,16 @@ static inline void idle_loop_epilog(unsigned long in_purr)
 	get_lppaca()->idle = 0;
 
 	if (irqs_disabled())
+	{
 		local_irq_enable();
+	}
+
 	ppc64_runlatch_on();
 }
 
 static int snooze_loop(struct cpuidle_device *dev,
-			struct cpuidle_driver *drv,
-			int index)
+					   struct cpuidle_driver *drv,
+					   int index)
 {
 	unsigned long in_purr;
 	u64 snooze_exit_time;
@@ -67,11 +71,15 @@ static int snooze_loop(struct cpuidle_device *dev,
 	set_thread_flag(TIF_POLLING_NRFLAG);
 	snooze_exit_time = get_tb() + snooze_timeout;
 
-	while (!need_resched()) {
+	while (!need_resched())
+	{
 		HMT_low();
 		HMT_very_low();
+
 		if (snooze_timeout_en && get_tb() > snooze_exit_time)
+		{
 			break;
+		}
 	}
 
 	HMT_medium();
@@ -90,19 +98,24 @@ static void check_and_cede_processor(void)
 	 * also checks if no interrupt has occurred while we
 	 * were soft-disabled
 	 */
-	if (prep_irq_for_idle()) {
+	if (prep_irq_for_idle())
+	{
 		cede_processor();
 #ifdef CONFIG_TRACE_IRQFLAGS
+
 		/* Ensure that H_CEDE returns with IRQs on */
 		if (WARN_ON(!(mfmsr() & MSR_EE)))
+		{
 			__hard_irq_enable();
+		}
+
 #endif
 	}
 }
 
 static int dedicated_cede_loop(struct cpuidle_device *dev,
-				struct cpuidle_driver *drv,
-				int index)
+							   struct cpuidle_driver *drv,
+							   int index)
 {
 	unsigned long in_purr;
 
@@ -120,8 +133,8 @@ static int dedicated_cede_loop(struct cpuidle_device *dev,
 }
 
 static int shared_cede_loop(struct cpuidle_device *dev,
-			struct cpuidle_driver *drv,
-			int index)
+							struct cpuidle_driver *drv,
+							int index)
 {
 	unsigned long in_purr;
 
@@ -144,42 +157,49 @@ static int shared_cede_loop(struct cpuidle_device *dev,
 /*
  * States for dedicated partition case.
  */
-static struct cpuidle_state dedicated_states[] = {
+static struct cpuidle_state dedicated_states[] =
+{
 	{ /* Snooze */
 		.name = "snooze",
 		.desc = "snooze",
 		.exit_latency = 0,
 		.target_residency = 0,
-		.enter = &snooze_loop },
+		.enter = &snooze_loop
+	},
 	{ /* CEDE */
 		.name = "CEDE",
 		.desc = "CEDE",
 		.exit_latency = 10,
 		.target_residency = 100,
-		.enter = &dedicated_cede_loop },
+		.enter = &dedicated_cede_loop
+	},
 };
 
 /*
  * States for shared partition case.
  */
-static struct cpuidle_state shared_states[] = {
+static struct cpuidle_state shared_states[] =
+{
 	{ /* Shared Cede */
 		.name = "Shared Cede",
 		.desc = "Shared Cede",
 		.exit_latency = 0,
 		.target_residency = 0,
-		.enter = &shared_cede_loop },
+		.enter = &shared_cede_loop
+	},
 };
 
 static int pseries_cpuidle_cpu_online(unsigned int cpu)
 {
 	struct cpuidle_device *dev = per_cpu(cpuidle_devices, cpu);
 
-	if (dev && cpuidle_get_driver()) {
+	if (dev && cpuidle_get_driver())
+	{
 		cpuidle_pause_and_lock();
 		cpuidle_enable_device(dev);
 		cpuidle_resume_and_unlock();
 	}
+
 	return 0;
 }
 
@@ -187,11 +207,13 @@ static int pseries_cpuidle_cpu_dead(unsigned int cpu)
 {
 	struct cpuidle_device *dev = per_cpu(cpuidle_devices, cpu);
 
-	if (dev && cpuidle_get_driver()) {
+	if (dev && cpuidle_get_driver())
+	{
 		cpuidle_pause_and_lock();
 		cpuidle_disable_device(dev);
 		cpuidle_resume_and_unlock();
 	}
+
 	return 0;
 }
 
@@ -205,10 +227,13 @@ static int pseries_cpuidle_driver_init(void)
 
 	drv->state_count = 0;
 
-	for (idle_state = 0; idle_state < max_idle_state; ++idle_state) {
+	for (idle_state = 0; idle_state < max_idle_state; ++idle_state)
+	{
 		/* Is the state not enabled? */
 		if (cpuidle_state_table[idle_state].enter == NULL)
+		{
 			continue;
+		}
 
 		drv->states[drv->state_count] =	/* structure copy */
 			cpuidle_state_table[idle_state];
@@ -227,24 +252,35 @@ static int pseries_idle_probe(void)
 {
 
 	if (cpuidle_disable != IDLE_NO_OVERRIDE)
+	{
 		return -ENODEV;
+	}
 
-	if (firmware_has_feature(FW_FEATURE_SPLPAR)) {
-		if (lppaca_shared_proc(get_lppaca())) {
+	if (firmware_has_feature(FW_FEATURE_SPLPAR))
+	{
+		if (lppaca_shared_proc(get_lppaca()))
+		{
 			cpuidle_state_table = shared_states;
 			max_idle_state = ARRAY_SIZE(shared_states);
-		} else {
+		}
+		else
+		{
 			cpuidle_state_table = dedicated_states;
 			max_idle_state = ARRAY_SIZE(dedicated_states);
 		}
-	} else
+	}
+	else
+	{
 		return -ENODEV;
+	}
 
-	if (max_idle_state > 1) {
+	if (max_idle_state > 1)
+	{
 		snooze_timeout_en = true;
 		snooze_timeout = cpuidle_state_table[1].target_residency *
-				 tb_ticks_per_usec;
+						 tb_ticks_per_usec;
 	}
+
 	return 0;
 }
 
@@ -253,23 +289,28 @@ static int __init pseries_processor_idle_init(void)
 	int retval;
 
 	retval = pseries_idle_probe();
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	pseries_cpuidle_driver_init();
 	retval = cpuidle_register(&pseries_idle_driver, NULL);
-	if (retval) {
+
+	if (retval)
+	{
 		printk(KERN_DEBUG "Registration of pseries driver failed.\n");
 		return retval;
 	}
 
 	retval = cpuhp_setup_state_nocalls(CPUHP_AP_ONLINE_DYN,
-					   "cpuidle/pseries:online",
-					   pseries_cpuidle_cpu_online, NULL);
+									   "cpuidle/pseries:online",
+									   pseries_cpuidle_cpu_online, NULL);
 	WARN_ON(retval < 0);
 	retval = cpuhp_setup_state_nocalls(CPUHP_CPUIDLE_DEAD,
-					   "cpuidle/pseries:DEAD", NULL,
-					   pseries_cpuidle_cpu_dead);
+									   "cpuidle/pseries:DEAD", NULL,
+									   pseries_cpuidle_cpu_dead);
 	WARN_ON(retval < 0);
 	printk(KERN_DEBUG "pseries_idle_driver registered\n");
 	return 0;

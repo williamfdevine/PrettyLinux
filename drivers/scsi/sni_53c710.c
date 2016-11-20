@@ -58,7 +58,8 @@ MODULE_ALIAS("platform:snirm_53c710");
 
 #define SNIRM710_CLOCK	32
 
-static struct scsi_host_template snirm710_template = {
+static struct scsi_host_template snirm710_template =
+{
 	.name		= "SNI RM SCSI 53c710",
 	.proc_name	= "snirm_53c710",
 	.this_id	= 7,
@@ -73,12 +74,17 @@ static int snirm710_probe(struct platform_device *dev)
 	struct  resource *res;
 
 	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	base = res->start;
 	hostdata = kzalloc(sizeof(*hostdata), GFP_KERNEL);
-	if (!hostdata) {
+
+	if (!hostdata)
+	{
 		dev_printk(KERN_ERR, dev, "Failed to allocate host data\n");
 		return -ENOMEM;
 	}
@@ -94,12 +100,18 @@ static int snirm710_probe(struct platform_device *dev)
 	hostdata->burst_length = 4;
 
 	host = NCR_700_detect(&snirm710_template, hostdata, &dev->dev);
+
 	if (!host)
+	{
 		goto out_kfree;
+	}
+
 	host->this_id = 7;
 	host->base = base;
 	host->irq = platform_get_irq(dev, 0);
-	if(request_irq(host->irq, NCR_700_intr, IRQF_SHARED, "snirm710", host)) {
+
+	if (request_irq(host->irq, NCR_700_intr, IRQF_SHARED, "snirm710", host))
+	{
 		printk(KERN_ERR "snirm710: request_irq failed!\n");
 		goto out_put_host;
 	}
@@ -109,9 +121,9 @@ static int snirm710_probe(struct platform_device *dev)
 
 	return 0;
 
- out_put_host:
+out_put_host:
 	scsi_host_put(host);
- out_kfree:
+out_kfree:
 	iounmap(hostdata->base);
 	kfree(hostdata);
 	return -ENODEV;
@@ -132,7 +144,8 @@ static int __exit snirm710_driver_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver snirm710_driver = {
+static struct platform_driver snirm710_driver =
+{
 	.probe	= snirm710_probe,
 	.remove	= snirm710_driver_remove,
 	.driver	= {

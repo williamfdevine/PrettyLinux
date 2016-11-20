@@ -42,7 +42,8 @@
 #define MAX_OFFSET		15
 #define MAX_TARGETS		16
 
-typedef struct {
+typedef struct
+{
 	unsigned short base;
 	unsigned short vec;
 } i91u_config;
@@ -338,7 +339,8 @@ typedef struct {
 /************************************************************************/
 /*              Scatter-Gather Element Structure                        */
 /************************************************************************/
-struct sg_entry {
+struct sg_entry
+{
 	u32 data;		/* Data Pointer */
 	u32 len;		/* Data Length */
 };
@@ -346,7 +348,8 @@ struct sg_entry {
 /***********************************************************************
 		SCSI Control Block
 ************************************************************************/
-struct scsi_ctrl_blk {
+struct scsi_ctrl_blk
+{
 	struct scsi_ctrl_blk *next;
 	u8 status;	/*4 */
 	u8 next_state;	/*5 */
@@ -462,7 +465,8 @@ struct scsi_ctrl_blk {
 		Target Device Control Structure
 **********************************************************************/
 
-struct target_control {
+struct target_control
+{
 	u16 flags;
 	u8 js_period;
 	u8 sconfig0;
@@ -495,7 +499,8 @@ struct target_control {
 /***********************************************************************
 	      Host Adapter Control Structure
 ************************************************************************/
-struct initio_host {
+struct initio_host
+{
 	u16 addr;		/* 00 */
 	u16 bios_addr;		/* 02 */
 	u8 irq;			/* 04 */
@@ -558,7 +563,8 @@ struct initio_host {
 	Serial EEProm
 *******************************************************************/
 
-typedef struct _NVRAM_SCSI {	/* SCSI channel configuration   */
+typedef struct _NVRAM_SCSI  	/* SCSI channel configuration   */
+{
 	u8 NVM_ChSCSIID;	/* 0Ch -> Channel SCSI ID       */
 	u8 NVM_ChConfig1;	/* 0Dh -> Channel config 1      */
 	u8 NVM_ChConfig2;	/* 0Eh -> Channel config 2      */
@@ -582,8 +588,9 @@ typedef struct _NVRAM_SCSI {	/* SCSI channel configuration   */
 	u8 NVM_TargFConfig;	/* 1Fh -> Target F configuration */
 } NVRAM_SCSI;
 
-typedef struct _NVRAM {
-/*----------header ---------------*/
+typedef struct _NVRAM
+{
+	/*----------header ---------------*/
 	u16 NVM_Signature;	/* 0,1: Signature */
 	u8 NVM_Size;		/* 2:   Size of data structure */
 	u8 NVM_Revision;	/* 3:   Revision of data structure */

@@ -27,15 +27,15 @@ struct clk;
 struct reset_control;
 
 #ifdef CONFIG_PM_SLEEP
-enum tegra_suspend_mode tegra_pmc_get_suspend_mode(void);
-void tegra_pmc_set_suspend_mode(enum tegra_suspend_mode mode);
-void tegra_pmc_enter_suspend_mode(enum tegra_suspend_mode mode);
+	enum tegra_suspend_mode tegra_pmc_get_suspend_mode(void);
+	void tegra_pmc_set_suspend_mode(enum tegra_suspend_mode mode);
+	void tegra_pmc_enter_suspend_mode(enum tegra_suspend_mode mode);
 #endif /* CONFIG_PM_SLEEP */
 
 #ifdef CONFIG_SMP
-bool tegra_pmc_cpu_is_powered(unsigned int cpuid);
-int tegra_pmc_cpu_power_on(unsigned int cpuid);
-int tegra_pmc_cpu_remove_clamping(unsigned int cpuid);
+	bool tegra_pmc_cpu_is_powered(unsigned int cpuid);
+	int tegra_pmc_cpu_power_on(unsigned int cpuid);
+	int tegra_pmc_cpu_remove_clamping(unsigned int cpuid);
 #endif /* CONFIG_SMP */
 
 /*
@@ -116,7 +116,7 @@ int tegra_powergate_remove_clamping(unsigned int id);
 
 /* Must be called with clk disabled, and returns with clk enabled */
 int tegra_powergate_sequence_power_up(unsigned int id, struct clk *clk,
-				      struct reset_control *rst);
+									  struct reset_control *rst);
 
 int tegra_io_rail_power_on(unsigned int id);
 int tegra_io_rail_power_off(unsigned int id);
@@ -142,8 +142,8 @@ static inline int tegra_powergate_remove_clamping(unsigned int id)
 }
 
 static inline int tegra_powergate_sequence_power_up(unsigned int id,
-						    struct clk *clk,
-						    struct reset_control *rst)
+		struct clk *clk,
+		struct reset_control *rst)
 {
 	return -ENOSYS;
 }

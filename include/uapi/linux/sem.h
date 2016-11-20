@@ -20,7 +20,8 @@
 #define SEM_INFO 19
 
 /* Obsolete, used only for backwards compatibility and libc5 compiles */
-struct semid_ds {
+struct semid_ds
+{
 	struct ipc_perm	sem_perm;		/* permissions .. see ipc.h */
 	__kernel_time_t	sem_otime;		/* last semop time */
 	__kernel_time_t	sem_ctime;		/* last change time */
@@ -35,14 +36,16 @@ struct semid_ds {
 #include <asm/sembuf.h>
 
 /* semop system calls takes an array of these. */
-struct sembuf {
+struct sembuf
+{
 	unsigned short  sem_num;	/* semaphore index in array */
 	short		sem_op;		/* semaphore operation */
 	short		sem_flg;	/* operation flags */
 };
 
 /* arg for semctl system calls. */
-union semun {
+union semun
+{
 	int val;			/* value for SETVAL */
 	struct semid_ds __user *buf;	/* buffer for IPC_STAT & IPC_SET */
 	unsigned short __user *array;	/* array for GETALL & SETALL */
@@ -50,7 +53,8 @@ union semun {
 	void __user *__pad;
 };
 
-struct  seminfo {
+struct  seminfo
+{
 	int semmap;
 	int semmni;
 	int semmns;

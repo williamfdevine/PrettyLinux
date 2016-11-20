@@ -22,7 +22,8 @@ typedef void (bio_end_io_t) (struct bio *);
  * main unit of I/O for the block layer and lower layers (ie drivers and
  * stacking drivers)
  */
-struct bio {
+struct bio
+{
 	struct bio		*bi_next;	/* request queue link */
 	struct block_device	*bi_bdev;
 	int			bi_error;
@@ -60,7 +61,8 @@ struct bio {
 	struct io_context	*bi_ioc;
 	struct cgroup_subsys_state *bi_css;
 #endif
-	union {
+	union
+	{
 #if defined(CONFIG_BLK_DEV_INTEGRITY)
 		struct bio_integrity_payload *bi_integrity; /* data integrity */
 #endif
@@ -93,18 +95,18 @@ struct bio {
 #define bio_op(bio)	((bio)->bi_opf >> BIO_OP_SHIFT)
 
 #define bio_set_op_attrs(bio, op, op_flags) do {			\
-	if (__builtin_constant_p(op))					\
-		BUILD_BUG_ON((op) + 0U >= (1U << REQ_OP_BITS));		\
-	else								\
-		WARN_ON_ONCE((op) + 0U >= (1U << REQ_OP_BITS));		\
-	if (__builtin_constant_p(op_flags))				\
-		BUILD_BUG_ON((op_flags) + 0U >= (1U << BIO_OP_SHIFT));	\
-	else								\
-		WARN_ON_ONCE((op_flags) + 0U >= (1U << BIO_OP_SHIFT));	\
-	(bio)->bi_opf = bio_flags(bio);					\
-	(bio)->bi_opf |= (((op) + 0U) << BIO_OP_SHIFT);			\
-	(bio)->bi_opf |= (op_flags);					\
-} while (0)
+		if (__builtin_constant_p(op))					\
+			BUILD_BUG_ON((op) + 0U >= (1U << REQ_OP_BITS));		\
+		else								\
+			WARN_ON_ONCE((op) + 0U >= (1U << REQ_OP_BITS));		\
+		if (__builtin_constant_p(op_flags))				\
+			BUILD_BUG_ON((op_flags) + 0U >= (1U << BIO_OP_SHIFT));	\
+		else								\
+			WARN_ON_ONCE((op_flags) + 0U >= (1U << BIO_OP_SHIFT));	\
+		(bio)->bi_opf = bio_flags(bio);					\
+		(bio)->bi_opf |= (((op) + 0U) << BIO_OP_SHIFT);			\
+		(bio)->bi_opf |= (op_flags);					\
+	} while (0)
 
 #define BIO_RESET_BYTES		offsetof(struct bio, bi_max_vecs)
 
@@ -148,7 +150,8 @@ struct bio {
  * Request flags.  For use in the cmd_flags field of struct request, and in
  * bi_opf of struct bio.  Note that some flags are only valid in either one.
  */
-enum rq_flag_bits {
+enum rq_flag_bits
+{
 	/* common flags */
 	__REQ_FAILFAST_DEV,	/* no driver retries of device errors */
 	__REQ_FAILFAST_TRANSPORT, /* no driver retries of transport errors */
@@ -236,7 +239,8 @@ enum rq_flag_bits {
 #define REQ_HASHED		(1ULL << __REQ_HASHED)
 #define REQ_MQ_INFLIGHT		(1ULL << __REQ_MQ_INFLIGHT)
 
-enum req_op {
+enum req_op
+{
 	REQ_OP_READ,
 	REQ_OP_WRITE,
 	REQ_OP_DISCARD,		/* request to discard sectors */

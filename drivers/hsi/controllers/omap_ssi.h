@@ -46,16 +46,19 @@
  * @divisor: TX divider
  * @arb_mode: Arbitration mode for TX frame (Round robin, priority)
  */
-struct omap_ssm_ctx {
+struct omap_ssm_ctx
+{
 	u32	mode;
 	u32	channels;
 	u32	frame_size;
-	union	{
-			u32	timeout; /* Rx Only */
-			struct	{
-					u32	arb_mode;
-					u32	divisor;
-			}; /* Tx only */
+	union
+	{
+		u32	timeout; /* Rx Only */
+		struct
+		{
+			u32	arb_mode;
+			u32	divisor;
+		}; /* Tx only */
 	};
 };
 
@@ -85,7 +88,8 @@ struct omap_ssm_ctx {
  * @sst: Context for the synchronous serial transmitter
  * @ssr: Context for the synchronous serial receiver
  */
-struct omap_ssi_port {
+struct omap_ssi_port
+{
 	struct device		*dev;
 	struct device           *pdev;
 	dma_addr_t		sst_dma;
@@ -103,7 +107,7 @@ struct omap_ssi_port {
 	unsigned int		irq;
 	int			wake_irq;
 	struct gpio_desc	*wake_gpio;
-	bool			wktest:1; /* FIXME: HACK to be removed */
+	bool			wktest: 1; /* FIXME: HACK to be removed */
 	unsigned long		flags;
 	unsigned int		wk_refcount;
 	struct work_struct	work;
@@ -123,7 +127,8 @@ struct omap_ssi_port {
  * @msg: Pointer to the HSI message being served
  * @sg: Pointer to the current sg entry being served
  */
-struct gdd_trn {
+struct gdd_trn
+{
 	struct hsi_msg		*msg;
 	struct scatterlist	*sg;
 };
@@ -147,7 +152,8 @@ struct gdd_trn {
  * @port: Array of pointers of the ports of the controller
  * @dir: Debugfs SSI root directory
  */
-struct omap_ssi_controller {
+struct omap_ssi_controller
+{
 	struct device		*dev;
 	void __iomem		*sys;
 	void __iomem		*gdd;
@@ -170,7 +176,7 @@ struct omap_ssi_controller {
 };
 
 void omap_ssi_port_update_fclk(struct hsi_controller *ssi,
-			       struct omap_ssi_port *omap_port);
+							   struct omap_ssi_port *omap_port);
 
 extern struct platform_driver ssi_port_pdriver;
 

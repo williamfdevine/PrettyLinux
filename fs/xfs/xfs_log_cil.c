@@ -50,7 +50,7 @@ xlog_cil_ticket_alloc(
 	struct xlog_ticket *tic;
 
 	tic = xlog_ticket_alloc(log, 0, 1, XFS_TRANSACTION, 0,
-				KM_SLEEP|KM_NOFS);
+							KM_SLEEP | KM_NOFS);
 
 	/*
 	 * set the current reservation to zero so we know to steal the basic
@@ -83,8 +83,8 @@ xlog_cil_iovec_space(
 	uint	niovecs)
 {
 	return round_up((sizeof(struct xfs_log_vec) +
-					niovecs * sizeof(struct xfs_log_iovec)),
-			sizeof(uint64_t));
+					 niovecs * sizeof(struct xfs_log_iovec)),
+					sizeof(uint64_t));
 }
 
 /*
@@ -140,7 +140,8 @@ xlog_cil_alloc_shadow_bufs(
 {
 	struct xfs_log_item_desc *lidp;
 
-	list_for_each_entry(lidp, &tp->t_items, lid_trans) {
+	list_for_each_entry(lidp, &tp->t_items, lid_trans)
+	{
 		struct xfs_log_item *lip = lidp->lid_item;
 		struct xfs_log_vec *lv;
 		int	niovecs = 0;
@@ -150,7 +151,9 @@ xlog_cil_alloc_shadow_bufs(
 
 		/* Skip items which aren't dirty in this transaction. */
 		if (!(lidp->lid_flags & XFS_LID_DIRTY))
+		{
 			continue;
+		}
 
 		/* get number of vecs and size of data to be stored */
 		lip->li_ops->iop_size(lip, &niovecs, &nbytes);
@@ -160,7 +163,8 @@ xlog_cil_alloc_shadow_bufs(
 		 * them. We need a logvec to track the object, but we do not
 		 * need an iovec or buffer to be allocated for copying data.
 		 */
-		if (niovecs == XFS_LOG_VEC_ORDERED) {
+		if (niovecs == XFS_LOG_VEC_ORDERED)
+		{
 			ordered = true;
 			niovecs = 0;
 			nbytes = 0;
@@ -188,7 +192,8 @@ xlog_cil_alloc_shadow_bufs(
 		 * reallocate it.
 		 */
 		if (!lip->li_lv_shadow ||
-		    buf_size > lip->li_lv_shadow->lv_size) {
+			buf_size > lip->li_lv_shadow->lv_size)
+		{
 
 			/*
 			 * We free and allocate here as a realloc would copy
@@ -199,23 +204,37 @@ xlog_cil_alloc_shadow_bufs(
 			 */
 			kmem_free(lip->li_lv_shadow);
 
-			lv = kmem_alloc(buf_size, KM_SLEEP|KM_NOFS);
+			lv = kmem_alloc(buf_size, KM_SLEEP | KM_NOFS);
 			memset(lv, 0, xlog_cil_iovec_space(niovecs));
 
 			lv->lv_item = lip;
 			lv->lv_size = buf_size;
+
 			if (ordered)
+			{
 				lv->lv_buf_len = XFS_LOG_VEC_ORDERED;
+			}
 			else
+			{
 				lv->lv_iovecp = (struct xfs_log_iovec *)&lv[1];
+			}
+
 			lip->li_lv_shadow = lv;
-		} else {
+		}
+		else
+		{
 			/* same or smaller, optimise common overwrite case */
 			lv = lip->li_lv_shadow;
+
 			if (ordered)
+			{
 				lv->lv_buf_len = XFS_LOG_VEC_ORDERED;
+			}
 			else
+			{
 				lv->lv_buf_len = 0;
+			}
+
 			lv->lv_bytes = 0;
 			lv->lv_next = NULL;
 		}
@@ -243,7 +262,8 @@ xfs_cil_prepare_item(
 	int			*diff_iovecs)
 {
 	/* Account for the new LV being passed in */
-	if (lv->lv_buf_len != XFS_LOG_VEC_ORDERED) {
+	if (lv->lv_buf_len != XFS_LOG_VEC_ORDERED)
+	{
 		*diff_len += lv->lv_bytes;
 		*diff_iovecs += lv->lv_niovecs;
 	}
@@ -255,10 +275,13 @@ xfs_cil_prepare_item(
 	 * buffer for later freeing. In both cases we are now switching to the
 	 * shadow buffer, so update the the pointer to it appropriately.
 	 */
-	if (!old_lv) {
+	if (!old_lv)
+	{
 		lv->lv_item->li_ops->iop_pin(lv->lv_item);
 		lv->lv_item->li_lv_shadow = NULL;
-	} else if (old_lv != lv) {
+	}
+	else if (old_lv != lv)
+	{
 		ASSERT(lv->lv_buf_len != XFS_LOG_VEC_ORDERED);
 
 		*diff_len -= old_lv->lv_bytes;
@@ -276,7 +299,9 @@ xfs_cil_prepare_item(
 	 * the item is being committed into.
 	 */
 	if (!lv->lv_item->li_seq)
+	{
 		lv->lv_item->li_seq = log->l_cilp->xc_ctx->sequence;
+	}
 }
 
 /*
@@ -318,12 +343,14 @@ xlog_cil_insert_format_items(
 
 
 	/* Bail out if we didn't find a log item.  */
-	if (list_empty(&tp->t_items)) {
+	if (list_empty(&tp->t_items))
+	{
 		ASSERT(0);
 		return;
 	}
 
-	list_for_each_entry(lidp, &tp->t_items, lid_trans) {
+	list_for_each_entry(lidp, &tp->t_items, lid_trans)
+	{
 		struct xfs_log_item *lip = lidp->lid_item;
 		struct xfs_log_vec *lv;
 		struct xfs_log_vec *old_lv = NULL;
@@ -332,29 +359,40 @@ xlog_cil_insert_format_items(
 
 		/* Skip items which aren't dirty in this transaction. */
 		if (!(lidp->lid_flags & XFS_LID_DIRTY))
+		{
 			continue;
+		}
 
 		/*
 		 * The formatting size information is already attached to
 		 * the shadow lv on the log item.
 		 */
 		shadow = lip->li_lv_shadow;
+
 		if (shadow->lv_buf_len == XFS_LOG_VEC_ORDERED)
+		{
 			ordered = true;
+		}
 
 		/* Skip items that do not have any vectors for writing */
 		if (!shadow->lv_niovecs && !ordered)
+		{
 			continue;
+		}
 
 		/* compare to existing item size */
 		old_lv = lip->li_lv;
-		if (lip->li_lv && shadow->lv_size <= lip->li_lv->lv_size) {
+
+		if (lip->li_lv && shadow->lv_size <= lip->li_lv->lv_size)
+		{
 			/* same or smaller, optimise common overwrite case */
 			lv = lip->li_lv;
 			lv->lv_next = NULL;
 
 			if (ordered)
+			{
 				goto insert;
+			}
 
 			/*
 			 * set the item up as though it is a new insertion so
@@ -370,12 +408,16 @@ xlog_cil_insert_format_items(
 			lv->lv_buf_len = 0;
 			lv->lv_bytes = 0;
 			lv->lv_buf = (char *)lv +
-					xlog_cil_iovec_space(lv->lv_niovecs);
-		} else {
+						 xlog_cil_iovec_space(lv->lv_niovecs);
+		}
+		else
+		{
 			/* switch to shadow buffer! */
 			lv = shadow;
 			lv->lv_item = lip;
-			if (ordered) {
+
+			if (ordered)
+			{
 				/* track as an ordered logvec */
 				ASSERT(lip->li_lv == NULL);
 				goto insert;
@@ -422,12 +464,15 @@ xlog_cil_insert_items(
 	 * the transaction commit.
 	 */
 	spin_lock(&cil->xc_cil_lock);
-	list_for_each_entry(lidp, &tp->t_items, lid_trans) {
+	list_for_each_entry(lidp, &tp->t_items, lid_trans)
+	{
 		struct xfs_log_item	*lip = lidp->lid_item;
 
 		/* Skip items which aren't dirty in this transaction. */
 		if (!(lidp->lid_flags & XFS_LID_DIRTY))
+		{
 			continue;
+		}
 
 		/*
 		 * Only move the item if it isn't already at the tail. This is
@@ -435,7 +480,9 @@ xlog_cil_insert_items(
 		 * an item that is already the only item in the CIL.
 		 */
 		if (!list_is_last(&lip->li_cil, &cil->xc_cil))
+		{
 			list_move_tail(&lip->li_cil, &cil->xc_cil);
+		}
 	}
 
 	/* account for space used by new iovec headers  */
@@ -444,7 +491,9 @@ xlog_cil_insert_items(
 
 	/* attach the transaction to the CIL if it has any busy extents */
 	if (!list_empty(&tp->t_busy))
+	{
 		list_splice_init(&tp->t_busy, &ctx->busy_extents);
+	}
 
 	/*
 	 * Now transfer enough transaction reservation to the context ticket
@@ -453,15 +502,18 @@ xlog_cil_insert_items(
 	 * steal from tickets so we can correctly determine the space used
 	 * during the transaction commit.
 	 */
-	if (ctx->ticket->t_curr_res == 0) {
+	if (ctx->ticket->t_curr_res == 0)
+	{
 		ctx->ticket->t_curr_res = ctx->ticket->t_unit_res;
 		tp->t_ticket->t_curr_res -= ctx->ticket->t_unit_res;
 	}
 
 	/* do we need space for more log record headers? */
 	iclog_space = log->l_iclog_size - log->l_iclog_hsize;
+
 	if (len > 0 && (ctx->space_used / iclog_space !=
-				(ctx->space_used + len) / iclog_space)) {
+					(ctx->space_used + len) / iclog_space))
+	{
 		int hdrs;
 
 		hdrs = (len + iclog_space - 1) / iclog_space;
@@ -472,6 +524,7 @@ xlog_cil_insert_items(
 		tp->t_ticket->t_curr_res -= hdrs;
 		ASSERT(tp->t_ticket->t_curr_res >= len);
 	}
+
 	tp->t_ticket->t_curr_res -= len;
 	ctx->space_used += len;
 
@@ -484,7 +537,8 @@ xlog_cil_free_logvec(
 {
 	struct xfs_log_vec	*lv;
 
-	for (lv = log_vector; lv; ) {
+	for (lv = log_vector; lv; )
+	{
 		struct xfs_log_vec *next = lv->lv_next;
 		kmem_free(lv);
 		lv = next;
@@ -505,11 +559,11 @@ xlog_cil_committed(
 	struct xfs_mount	*mp = ctx->cil->xc_log->l_mp;
 
 	xfs_trans_committed_bulk(ctx->cil->xc_log->l_ailp, ctx->lv_chain,
-					ctx->start_lsn, abort);
+							 ctx->start_lsn, abort);
 
 	xfs_extent_busy_sort(&ctx->busy_extents);
 	xfs_extent_busy_clear(mp, &ctx->busy_extents,
-			     (mp->m_flags & XFS_MOUNT_DISCARD) && !abort);
+						  (mp->m_flags & XFS_MOUNT_DISCARD) && !abort);
 
 	/*
 	 * If we are aborting the commit, wake up anyone waiting on the
@@ -518,14 +572,19 @@ xlog_cil_committed(
 	 * will never happen because we aborted it.
 	 */
 	spin_lock(&ctx->cil->xc_push_lock);
+
 	if (abort)
+	{
 		wake_up_all(&ctx->cil->xc_commit_wait);
+	}
+
 	list_del(&ctx->committing);
 	spin_unlock(&ctx->cil->xc_push_lock);
 
 	xlog_cil_free_logvec(ctx->lv_chain);
 
-	if (!list_empty(&ctx->busy_extents)) {
+	if (!list_empty(&ctx->busy_extents))
+	{
 		ASSERT(mp->m_flags & XFS_MOUNT_DISCARD);
 
 		xfs_discard_extents(mp, &ctx->busy_extents);
@@ -568,9 +627,11 @@ xlog_cil_push(
 	xfs_lsn_t		push_seq;
 
 	if (!cil)
+	{
 		return 0;
+	}
 
-	new_ctx = kmem_zalloc(sizeof(*new_ctx), KM_SLEEP|KM_NOFS);
+	new_ctx = kmem_zalloc(sizeof(*new_ctx), KM_SLEEP | KM_NOFS);
 	new_ctx->ticket = xlog_cil_ticket_alloc(log);
 
 	down_write(&cil->xc_ctx_lock);
@@ -585,7 +646,8 @@ xlog_cil_push(
 	 * move on to a new sequence number and so we have to be able to push
 	 * this sequence again later.
 	 */
-	if (list_empty(&cil->xc_cil)) {
+	if (list_empty(&cil->xc_cil))
+	{
 		cil->xc_push_seq = 0;
 		spin_unlock(&cil->xc_push_lock);
 		goto out_skip;
@@ -593,7 +655,8 @@ xlog_cil_push(
 
 
 	/* check for a previously pushed seqeunce */
-	if (push_seq < cil->xc_ctx->sequence) {
+	if (push_seq < cil->xc_ctx->sequence)
+	{
 		spin_unlock(&cil->xc_push_lock);
 		goto out_skip;
 	}
@@ -633,16 +696,24 @@ xlog_cil_push(
 	 */
 	lv = NULL;
 	num_iovecs = 0;
-	while (!list_empty(&cil->xc_cil)) {
+
+	while (!list_empty(&cil->xc_cil))
+	{
 		struct xfs_log_item	*item;
 
 		item = list_first_entry(&cil->xc_cil,
-					struct xfs_log_item, li_cil);
+								struct xfs_log_item, li_cil);
 		list_del_init(&item->li_cil);
+
 		if (!ctx->lv_chain)
+		{
 			ctx->lv_chain = item->li_lv;
+		}
 		else
+		{
 			lv->lv_next = item->li_lv;
+		}
+
 		lv = item->li_lv;
 		item->li_lv = NULL;
 		num_iovecs += lv->lv_niovecs;
@@ -714,8 +785,11 @@ xlog_cil_push(
 	lvhdr.lv_next = ctx->lv_chain;
 
 	error = xlog_write(log, &lvhdr, tic, &ctx->start_lsn, NULL, 0);
+
 	if (error)
+	{
 		goto out_abort_free_ticket;
+	}
 
 	/*
 	 * now that we've written the checkpoint into the log, strictly
@@ -723,13 +797,15 @@ xlog_cil_push(
 	 */
 restart:
 	spin_lock(&cil->xc_push_lock);
-	list_for_each_entry(new_ctx, &cil->xc_committing, committing) {
+	list_for_each_entry(new_ctx, &cil->xc_committing, committing)
+	{
 		/*
 		 * Avoid getting stuck in this loop because we were woken by the
 		 * shutdown, but then went back to sleep once already in the
 		 * shutdown state.
 		 */
-		if (XLOG_FORCED_SHUTDOWN(log)) {
+		if (XLOG_FORCED_SHUTDOWN(log))
+		{
 			spin_unlock(&cil->xc_push_lock);
 			goto out_abort_free_ticket;
 		}
@@ -739,8 +815,12 @@ restart:
 		 * Don't wait for our own sequence, either.
 		 */
 		if (new_ctx->sequence >= ctx->sequence)
+		{
 			continue;
-		if (!new_ctx->commit_lsn) {
+		}
+
+		if (!new_ctx->commit_lsn)
+		{
 			/*
 			 * It is still being pushed! Wait for the push to
 			 * complete, then start again from the beginning.
@@ -753,15 +833,21 @@ restart:
 
 	/* xfs_log_done always frees the ticket on error. */
 	commit_lsn = xfs_log_done(log->l_mp, tic, &commit_iclog, false);
+
 	if (commit_lsn == -1)
+	{
 		goto out_abort;
+	}
 
 	/* attach all the transactions w/ busy extents to iclog */
 	ctx->log_cb.cb_func = xlog_cil_committed;
 	ctx->log_cb.cb_arg = ctx;
 	error = xfs_log_notify(log->l_mp, commit_iclog, &ctx->log_cb);
+
 	if (error)
+	{
 		goto out_abort;
+	}
 
 	/*
 	 * now the checkpoint commit is complete and we've attached the
@@ -794,7 +880,7 @@ xlog_cil_push_work(
 	struct work_struct	*work)
 {
 	struct xfs_cil		*cil = container_of(work, struct xfs_cil,
-							xc_push_work);
+											xc_push_work);
 	xlog_cil_push(cil->xc_log);
 }
 
@@ -822,13 +908,18 @@ xlog_cil_push_background(
 	 * space available yet.
 	 */
 	if (cil->xc_ctx->space_used < XLOG_CIL_SPACE_LIMIT(log))
+	{
 		return;
+	}
 
 	spin_lock(&cil->xc_push_lock);
-	if (cil->xc_push_seq < cil->xc_current_sequence) {
+
+	if (cil->xc_push_seq < cil->xc_current_sequence)
+	{
 		cil->xc_push_seq = cil->xc_current_sequence;
 		queue_work(log->l_mp->m_cil_workqueue, &cil->xc_push_work);
 	}
+
 	spin_unlock(&cil->xc_push_lock);
 
 }
@@ -847,7 +938,9 @@ xlog_cil_push_now(
 	struct xfs_cil	*cil = log->l_cilp;
 
 	if (!cil)
+	{
 		return;
+	}
 
 	ASSERT(push_seq && push_seq <= cil->xc_current_sequence);
 
@@ -859,7 +952,9 @@ xlog_cil_push_now(
 	 * there's no work we need to do.
 	 */
 	spin_lock(&cil->xc_push_lock);
-	if (list_empty(&cil->xc_cil) || push_seq <= cil->xc_push_seq) {
+
+	if (list_empty(&cil->xc_cil) || push_seq <= cil->xc_push_seq)
+	{
 		spin_unlock(&cil->xc_push_lock);
 		return;
 	}
@@ -877,8 +972,12 @@ xlog_cil_empty(
 	bool		empty = false;
 
 	spin_lock(&cil->xc_push_lock);
+
 	if (list_empty(&cil->xc_cil))
+	{
 		empty = true;
+	}
+
 	spin_unlock(&cil->xc_push_lock);
 	return empty;
 }
@@ -920,11 +1019,16 @@ xfs_log_commit_cil(
 
 	/* check we didn't blow the reservation */
 	if (tp->t_ticket->t_curr_res < 0)
+	{
 		xlog_print_tic_res(mp, tp->t_ticket);
+	}
 
 	tp->t_commit_lsn = cil->xc_ctx->sequence;
+
 	if (commit_lsn)
+	{
 		*commit_lsn = tp->t_commit_lsn;
+	}
 
 	xfs_log_done(mp, tp->t_ticket, NULL, regrant);
 	xfs_trans_unreserve_and_mod_sb(tp);
@@ -983,17 +1087,25 @@ restart:
 	 * on commits for those as well.
 	 */
 	spin_lock(&cil->xc_push_lock);
-	list_for_each_entry(ctx, &cil->xc_committing, committing) {
+	list_for_each_entry(ctx, &cil->xc_committing, committing)
+	{
 		/*
 		 * Avoid getting stuck in this loop because we were woken by the
 		 * shutdown, but then went back to sleep once already in the
 		 * shutdown state.
 		 */
 		if (XLOG_FORCED_SHUTDOWN(log))
+		{
 			goto out_shutdown;
+		}
+
 		if (ctx->sequence > sequence)
+		{
 			continue;
-		if (!ctx->commit_lsn) {
+		}
+
+		if (!ctx->commit_lsn)
+		{
 			/*
 			 * It is still being pushed! Wait for the push to
 			 * complete, then start again from the beginning.
@@ -1001,8 +1113,12 @@ restart:
 			xlog_wait(&cil->xc_commit_wait, &cil->xc_push_lock);
 			goto restart;
 		}
+
 		if (ctx->sequence != sequence)
+		{
 			continue;
+		}
+
 		/* found it! */
 		commit_lsn = ctx->commit_lsn;
 	}
@@ -1023,7 +1139,8 @@ restart:
 	 * we would have found the context on the committing list.
 	 */
 	if (sequence == cil->xc_current_sequence &&
-	    !list_empty(&cil->xc_cil)) {
+		!list_empty(&cil->xc_cil))
+	{
 		spin_unlock(&cil->xc_push_lock);
 		goto restart;
 	}
@@ -1059,7 +1176,9 @@ xfs_log_item_in_current_chkpt(
 	struct xfs_cil_ctx *ctx;
 
 	if (list_empty(&lip->li_cil))
+	{
 		return false;
+	}
 
 	ctx = lip->li_mountp->m_log->l_cilp->xc_ctx;
 
@@ -1069,7 +1188,10 @@ xfs_log_item_in_current_chkpt(
 	 * current sequence, we're in a new checkpoint.
 	 */
 	if (XFS_LSN_CMP(lip->li_seq, ctx->sequence) != 0)
+	{
 		return false;
+	}
+
 	return true;
 }
 
@@ -1083,12 +1205,17 @@ xlog_cil_init(
 	struct xfs_cil	*cil;
 	struct xfs_cil_ctx *ctx;
 
-	cil = kmem_zalloc(sizeof(*cil), KM_SLEEP|KM_MAYFAIL);
-	if (!cil)
-		return -ENOMEM;
+	cil = kmem_zalloc(sizeof(*cil), KM_SLEEP | KM_MAYFAIL);
 
-	ctx = kmem_zalloc(sizeof(*ctx), KM_SLEEP|KM_MAYFAIL);
-	if (!ctx) {
+	if (!cil)
+	{
+		return -ENOMEM;
+	}
+
+	ctx = kmem_zalloc(sizeof(*ctx), KM_SLEEP | KM_MAYFAIL);
+
+	if (!ctx)
+	{
 		kmem_free(cil);
 		return -ENOMEM;
 	}
@@ -1117,9 +1244,13 @@ void
 xlog_cil_destroy(
 	struct xlog	*log)
 {
-	if (log->l_cilp->xc_ctx) {
+	if (log->l_cilp->xc_ctx)
+	{
 		if (log->l_cilp->xc_ctx->ticket)
+		{
 			xfs_log_ticket_put(log->l_cilp->xc_ctx->ticket);
+		}
+
 		kmem_free(log->l_cilp->xc_ctx);
 	}
 

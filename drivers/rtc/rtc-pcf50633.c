@@ -41,7 +41,8 @@
 #define PCF50633_REG_RTCMTA	0x65 /* Alarm Month */
 #define PCF50633_REG_RTCYRA	0x66 /* Alarm Year */
 
-enum pcf50633_time_indexes {
+enum pcf50633_time_indexes
+{
 	PCF50633_TI_SEC,
 	PCF50633_TI_MIN,
 	PCF50633_TI_HOUR,
@@ -52,11 +53,13 @@ enum pcf50633_time_indexes {
 	PCF50633_TI_EXTENT /* always last */
 };
 
-struct pcf50633_time {
+struct pcf50633_time
+{
 	u_int8_t time[PCF50633_TI_EXTENT];
 };
 
-struct pcf50633_rtc {
+struct pcf50633_rtc
+{
 	int alarm_enabled;
 	int alarm_pending;
 
@@ -93,12 +96,18 @@ pcf50633_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
 	int err;
 
 	if (enabled)
+	{
 		err = pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_ALARM);
+	}
 	else
+	{
 		err = pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_ALARM);
+	}
 
 	if (err < 0)
+	{
 		return err;
+	}
 
 	rtc->alarm_enabled = enabled;
 
@@ -114,26 +123,28 @@ static int pcf50633_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	rtc = dev_get_drvdata(dev);
 
 	ret = pcf50633_read_block(rtc->pcf, PCF50633_REG_RTCSC,
-					    PCF50633_TI_EXTENT,
-					    &pcf_tm.time[0]);
-	if (ret != PCF50633_TI_EXTENT) {
+							  PCF50633_TI_EXTENT,
+							  &pcf_tm.time[0]);
+
+	if (ret != PCF50633_TI_EXTENT)
+	{
 		dev_err(dev, "Failed to read time\n");
 		return -EIO;
 	}
 
 	dev_dbg(dev, "PCF_TIME: %02x.%02x.%02x %02x:%02x:%02x\n",
-		pcf_tm.time[PCF50633_TI_DAY],
-		pcf_tm.time[PCF50633_TI_MONTH],
-		pcf_tm.time[PCF50633_TI_YEAR],
-		pcf_tm.time[PCF50633_TI_HOUR],
-		pcf_tm.time[PCF50633_TI_MIN],
-		pcf_tm.time[PCF50633_TI_SEC]);
+			pcf_tm.time[PCF50633_TI_DAY],
+			pcf_tm.time[PCF50633_TI_MONTH],
+			pcf_tm.time[PCF50633_TI_YEAR],
+			pcf_tm.time[PCF50633_TI_HOUR],
+			pcf_tm.time[PCF50633_TI_MIN],
+			pcf_tm.time[PCF50633_TI_SEC]);
 
 	pcf2rtc_time(tm, &pcf_tm);
 
 	dev_dbg(dev, "RTC_TIME: %u.%u.%u %u:%u:%u\n",
-		tm->tm_mday, tm->tm_mon, tm->tm_year,
-		tm->tm_hour, tm->tm_min, tm->tm_sec);
+			tm->tm_mday, tm->tm_mon, tm->tm_year,
+			tm->tm_hour, tm->tm_min, tm->tm_sec);
 
 	return rtc_valid_tm(tm);
 }
@@ -147,32 +158,36 @@ static int pcf50633_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	rtc = dev_get_drvdata(dev);
 
 	dev_dbg(dev, "RTC_TIME: %u.%u.%u %u:%u:%u\n",
-		tm->tm_mday, tm->tm_mon, tm->tm_year,
-		tm->tm_hour, tm->tm_min, tm->tm_sec);
+			tm->tm_mday, tm->tm_mon, tm->tm_year,
+			tm->tm_hour, tm->tm_min, tm->tm_sec);
 
 	rtc2pcf_time(&pcf_tm, tm);
 
 	dev_dbg(dev, "PCF_TIME: %02x.%02x.%02x %02x:%02x:%02x\n",
-		pcf_tm.time[PCF50633_TI_DAY],
-		pcf_tm.time[PCF50633_TI_MONTH],
-		pcf_tm.time[PCF50633_TI_YEAR],
-		pcf_tm.time[PCF50633_TI_HOUR],
-		pcf_tm.time[PCF50633_TI_MIN],
-		pcf_tm.time[PCF50633_TI_SEC]);
+			pcf_tm.time[PCF50633_TI_DAY],
+			pcf_tm.time[PCF50633_TI_MONTH],
+			pcf_tm.time[PCF50633_TI_YEAR],
+			pcf_tm.time[PCF50633_TI_HOUR],
+			pcf_tm.time[PCF50633_TI_MIN],
+			pcf_tm.time[PCF50633_TI_SEC]);
 
 
 	alarm_masked = pcf50633_irq_mask_get(rtc->pcf, PCF50633_IRQ_ALARM);
 
 	if (!alarm_masked)
+	{
 		pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_ALARM);
+	}
 
 	/* Returns 0 on success */
 	ret = pcf50633_write_block(rtc->pcf, PCF50633_REG_RTCSC,
-					     PCF50633_TI_EXTENT,
-					     &pcf_tm.time[0]);
+							   PCF50633_TI_EXTENT,
+							   &pcf_tm.time[0]);
 
 	if (!alarm_masked)
+	{
 		pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_ALARM);
+	}
 
 	return ret;
 }
@@ -189,8 +204,10 @@ static int pcf50633_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	alrm->pending = rtc->alarm_pending;
 
 	ret = pcf50633_read_block(rtc->pcf, PCF50633_REG_RTCSCA,
-				PCF50633_TI_EXTENT, &pcf_tm.time[0]);
-	if (ret != PCF50633_TI_EXTENT) {
+							  PCF50633_TI_EXTENT, &pcf_tm.time[0]);
+
+	if (ret != PCF50633_TI_EXTENT)
+	{
 		dev_err(dev, "Failed to read time\n");
 		return -EIO;
 	}
@@ -217,22 +234,31 @@ static int pcf50633_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 
 	/* disable alarm interrupt */
 	if (!alarm_masked)
+	{
 		pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_ALARM);
+	}
 
 	/* Returns 0 on success */
 	ret = pcf50633_write_block(rtc->pcf, PCF50633_REG_RTCSCA,
-				PCF50633_TI_EXTENT, &pcf_tm.time[0]);
+							   PCF50633_TI_EXTENT, &pcf_tm.time[0]);
+
 	if (!alrm->enabled)
+	{
 		rtc->alarm_pending = 0;
+	}
 
 	if (!alarm_masked || alrm->enabled)
+	{
 		pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_ALARM);
+	}
+
 	rtc->alarm_enabled = alrm->enabled;
 
 	return ret;
 }
 
-static const struct rtc_class_ops pcf50633_rtc_ops = {
+static const struct rtc_class_ops pcf50633_rtc_ops =
+{
 	.read_time		= pcf50633_rtc_read_time,
 	.set_time		= pcf50633_rtc_set_time,
 	.read_alarm		= pcf50633_rtc_read_alarm,
@@ -253,19 +279,24 @@ static int pcf50633_rtc_probe(struct platform_device *pdev)
 	struct pcf50633_rtc *rtc;
 
 	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
+
 	if (!rtc)
+	{
 		return -ENOMEM;
+	}
 
 	rtc->pcf = dev_to_pcf50633(pdev->dev.parent);
 	platform_set_drvdata(pdev, rtc);
 	rtc->rtc_dev = devm_rtc_device_register(&pdev->dev, "pcf50633-rtc",
-				&pcf50633_rtc_ops, THIS_MODULE);
+											&pcf50633_rtc_ops, THIS_MODULE);
 
 	if (IS_ERR(rtc->rtc_dev))
+	{
 		return PTR_ERR(rtc->rtc_dev);
+	}
 
 	pcf50633_register_irq(rtc->pcf, PCF50633_IRQ_ALARM,
-					pcf50633_rtc_irq, rtc);
+						  pcf50633_rtc_irq, rtc);
 	return 0;
 }
 
@@ -279,7 +310,8 @@ static int pcf50633_rtc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pcf50633_rtc_driver = {
+static struct platform_driver pcf50633_rtc_driver =
+{
 	.driver = {
 		.name = "pcf50633-rtc",
 	},

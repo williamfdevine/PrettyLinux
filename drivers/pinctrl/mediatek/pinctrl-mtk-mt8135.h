@@ -18,7 +18,8 @@
 #include <linux/pinctrl/pinctrl.h>
 #include "pinctrl-mtk-common.h"
 
-static const struct mtk_desc_pin mtk_pins_mt8135[] = {
+static const struct mtk_desc_pin mtk_pins_mt8135[] =
+{
 	MTK_PIN(
 		PINCTRL_PIN(0, "MSDC0_DAT7"),
 		"D21", "mt8135",

@@ -80,13 +80,13 @@ void ocrdma_get_guid(struct ocrdma_dev *dev, u8 *guid)
 	guid[7] = mac_addr[5];
 }
 static enum rdma_link_layer ocrdma_link_layer(struct ib_device *device,
-					      u8 port_num)
+		u8 port_num)
 {
 	return IB_LINK_LAYER_ETHERNET;
 }
 
 static int ocrdma_port_immutable(struct ib_device *ibdev, u8 port_num,
-			         struct ib_port_immutable *immutable)
+								 struct ib_port_immutable *immutable)
 {
 	struct ib_port_attr attr;
 	struct ocrdma_dev *dev;
@@ -94,21 +94,28 @@ static int ocrdma_port_immutable(struct ib_device *ibdev, u8 port_num,
 
 	dev = get_ocrdma_dev(ibdev);
 	err = ocrdma_query_port(ibdev, port_num, &attr);
+
 	if (err)
+	{
 		return err;
+	}
 
 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
 	immutable->gid_tbl_len = attr.gid_tbl_len;
 	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE;
+
 	if (ocrdma_is_udp_encap_supported(dev))
+	{
 		immutable->core_cap_flags |= RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP;
+	}
+
 	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
 
 	return 0;
 }
 
 static void get_dev_fw_str(struct ib_device *device, char *str,
-			   size_t str_len)
+						   size_t str_len)
 {
 	struct ocrdma_dev *dev = get_ocrdma_dev(device);
 
@@ -121,35 +128,35 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
 	ocrdma_get_guid(dev, (u8 *)&dev->ibdev.node_guid);
 	BUILD_BUG_ON(sizeof(OCRDMA_NODE_DESC) > IB_DEVICE_NODE_DESC_MAX);
 	memcpy(dev->ibdev.node_desc, OCRDMA_NODE_DESC,
-	       sizeof(OCRDMA_NODE_DESC));
+		   sizeof(OCRDMA_NODE_DESC));
 	dev->ibdev.owner = THIS_MODULE;
 	dev->ibdev.uverbs_abi_ver = OCRDMA_ABI_VERSION;
 	dev->ibdev.uverbs_cmd_mask =
-	    OCRDMA_UVERBS(GET_CONTEXT) |
-	    OCRDMA_UVERBS(QUERY_DEVICE) |
-	    OCRDMA_UVERBS(QUERY_PORT) |
-	    OCRDMA_UVERBS(ALLOC_PD) |
-	    OCRDMA_UVERBS(DEALLOC_PD) |
-	    OCRDMA_UVERBS(REG_MR) |
-	    OCRDMA_UVERBS(DEREG_MR) |
-	    OCRDMA_UVERBS(CREATE_COMP_CHANNEL) |
-	    OCRDMA_UVERBS(CREATE_CQ) |
-	    OCRDMA_UVERBS(RESIZE_CQ) |
-	    OCRDMA_UVERBS(DESTROY_CQ) |
-	    OCRDMA_UVERBS(REQ_NOTIFY_CQ) |
-	    OCRDMA_UVERBS(CREATE_QP) |
-	    OCRDMA_UVERBS(MODIFY_QP) |
-	    OCRDMA_UVERBS(QUERY_QP) |
-	    OCRDMA_UVERBS(DESTROY_QP) |
-	    OCRDMA_UVERBS(POLL_CQ) |
-	    OCRDMA_UVERBS(POST_SEND) |
-	    OCRDMA_UVERBS(POST_RECV);
+		OCRDMA_UVERBS(GET_CONTEXT) |
+		OCRDMA_UVERBS(QUERY_DEVICE) |
+		OCRDMA_UVERBS(QUERY_PORT) |
+		OCRDMA_UVERBS(ALLOC_PD) |
+		OCRDMA_UVERBS(DEALLOC_PD) |
+		OCRDMA_UVERBS(REG_MR) |
+		OCRDMA_UVERBS(DEREG_MR) |
+		OCRDMA_UVERBS(CREATE_COMP_CHANNEL) |
+		OCRDMA_UVERBS(CREATE_CQ) |
+		OCRDMA_UVERBS(RESIZE_CQ) |
+		OCRDMA_UVERBS(DESTROY_CQ) |
+		OCRDMA_UVERBS(REQ_NOTIFY_CQ) |
+		OCRDMA_UVERBS(CREATE_QP) |
+		OCRDMA_UVERBS(MODIFY_QP) |
+		OCRDMA_UVERBS(QUERY_QP) |
+		OCRDMA_UVERBS(DESTROY_QP) |
+		OCRDMA_UVERBS(POLL_CQ) |
+		OCRDMA_UVERBS(POST_SEND) |
+		OCRDMA_UVERBS(POST_RECV);
 
 	dev->ibdev.uverbs_cmd_mask |=
-	    OCRDMA_UVERBS(CREATE_AH) |
-	     OCRDMA_UVERBS(MODIFY_AH) |
-	     OCRDMA_UVERBS(QUERY_AH) |
-	     OCRDMA_UVERBS(DESTROY_AH);
+		OCRDMA_UVERBS(CREATE_AH) |
+		OCRDMA_UVERBS(MODIFY_AH) |
+		OCRDMA_UVERBS(QUERY_AH) |
+		OCRDMA_UVERBS(DESTROY_AH);
 
 	dev->ibdev.node_type = RDMA_NODE_IB_CA;
 	dev->ibdev.phys_port_cnt = 1;
@@ -204,13 +211,14 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
 	dev->ibdev.get_port_immutable = ocrdma_port_immutable;
 	dev->ibdev.get_dev_fw_str     = get_dev_fw_str;
 
-	if (ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R) {
+	if (ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R)
+	{
 		dev->ibdev.uverbs_cmd_mask |=
-		     OCRDMA_UVERBS(CREATE_SRQ) |
-		     OCRDMA_UVERBS(MODIFY_SRQ) |
-		     OCRDMA_UVERBS(QUERY_SRQ) |
-		     OCRDMA_UVERBS(DESTROY_SRQ) |
-		     OCRDMA_UVERBS(POST_SRQ_RECV);
+			OCRDMA_UVERBS(CREATE_SRQ) |
+			OCRDMA_UVERBS(MODIFY_SRQ) |
+			OCRDMA_UVERBS(QUERY_SRQ) |
+			OCRDMA_UVERBS(DESTROY_SRQ) |
+			OCRDMA_UVERBS(POST_SRQ_RECV);
 
 		dev->ibdev.create_srq = ocrdma_create_srq;
 		dev->ibdev.modify_srq = ocrdma_modify_srq;
@@ -218,6 +226,7 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
 		dev->ibdev.destroy_srq = ocrdma_destroy_srq;
 		dev->ibdev.post_srq_recv = ocrdma_post_srq_recv;
 	}
+
 	return ib_register_device(&dev->ibdev, NULL);
 }
 
@@ -225,24 +234,35 @@ static int ocrdma_alloc_resources(struct ocrdma_dev *dev)
 {
 	mutex_init(&dev->dev_lock);
 	dev->cq_tbl = kzalloc(sizeof(struct ocrdma_cq *) *
-			      OCRDMA_MAX_CQ, GFP_KERNEL);
-	if (!dev->cq_tbl)
-		goto alloc_err;
+						  OCRDMA_MAX_CQ, GFP_KERNEL);
 
-	if (dev->attr.max_qp) {
+	if (!dev->cq_tbl)
+	{
+		goto alloc_err;
+	}
+
+	if (dev->attr.max_qp)
+	{
 		dev->qp_tbl = kzalloc(sizeof(struct ocrdma_qp *) *
-				      OCRDMA_MAX_QP, GFP_KERNEL);
+							  OCRDMA_MAX_QP, GFP_KERNEL);
+
 		if (!dev->qp_tbl)
+		{
 			goto alloc_err;
+		}
 	}
 
 	dev->stag_arr = kzalloc(sizeof(u64) * OCRDMA_MAX_STAG, GFP_KERNEL);
+
 	if (dev->stag_arr == NULL)
+	{
 		goto alloc_err;
+	}
 
 	ocrdma_alloc_pd_pool(dev);
 
-	if (!ocrdma_alloc_stats_resources(dev)) {
+	if (!ocrdma_alloc_stats_resources(dev))
+	{
 		pr_err("%s: stats resource allocation failed\n", __func__);
 		goto alloc_err;
 	}
@@ -265,7 +285,7 @@ static void ocrdma_free_resources(struct ocrdma_dev *dev)
 
 /* OCRDMA sysfs interface */
 static ssize_t show_rev(struct device *device, struct device_attribute *attr,
-			char *buf)
+						char *buf)
 {
 	struct ocrdma_dev *dev = dev_get_drvdata(device);
 
@@ -273,7 +293,7 @@ static ssize_t show_rev(struct device *device, struct device_attribute *attr,
 }
 
 static ssize_t show_hca_type(struct device *device,
-			     struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	struct ocrdma_dev *dev = dev_get_drvdata(device);
 
@@ -283,7 +303,8 @@ static ssize_t show_hca_type(struct device *device,
 static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
 static DEVICE_ATTR(hca_type, S_IRUGO, show_hca_type, NULL);
 
-static struct device_attribute *ocrdma_attributes[] = {
+static struct device_attribute *ocrdma_attributes[] =
+{
 	&dev_attr_hw_rev,
 	&dev_attr_hca_type
 };
@@ -293,7 +314,9 @@ static void ocrdma_remove_sysfiles(struct ocrdma_dev *dev)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(ocrdma_attributes); i++)
+	{
 		device_remove_file(&dev->ibdev.dev, ocrdma_attributes[i]);
+	}
 }
 
 static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
@@ -303,40 +326,64 @@ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
 	struct ocrdma_dev *dev;
 
 	dev = (struct ocrdma_dev *)ib_alloc_device(sizeof(struct ocrdma_dev));
-	if (!dev) {
+
+	if (!dev)
+	{
 		pr_err("Unable to allocate ib device\n");
 		return NULL;
 	}
+
 	dev->mbx_cmd = kzalloc(sizeof(struct ocrdma_mqe_emb_cmd), GFP_KERNEL);
+
 	if (!dev->mbx_cmd)
+	{
 		goto idr_err;
+	}
 
 	memcpy(&dev->nic_info, dev_info, sizeof(*dev_info));
 	dev->id = idr_alloc(&ocrdma_dev_id, NULL, 0, 0, GFP_KERNEL);
+
 	if (dev->id < 0)
+	{
 		goto idr_err;
+	}
 
 	status = ocrdma_init_hw(dev);
+
 	if (status)
+	{
 		goto init_err;
+	}
 
 	status = ocrdma_alloc_resources(dev);
+
 	if (status)
+	{
 		goto alloc_err;
+	}
 
 	ocrdma_init_service_level(dev);
 	status = ocrdma_register_device(dev);
+
 	if (status)
+	{
 		goto alloc_err;
+	}
 
 	/* Query Link state and update */
 	status = ocrdma_mbx_get_link_speed(dev, NULL, &lstate);
+
 	if (!status)
+	{
 		ocrdma_update_link_state(dev, lstate);
+	}
 
 	for (i = 0; i < ARRAY_SIZE(ocrdma_attributes); i++)
 		if (device_create_file(&dev->ibdev.dev, ocrdma_attributes[i]))
+		{
 			goto sysfs_err;
+		}
+
 	/* Init stats */
 	ocrdma_add_port_stats(dev);
 	/* Interrupt Moderation */
@@ -344,11 +391,11 @@ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
 	schedule_delayed_work(&dev->eqd_work, msecs_to_jiffies(1000));
 
 	pr_info("%s %s: %s \"%s\" port %d\n",
-		dev_name(&dev->nic_info.pdev->dev), hca_name(dev),
-		port_speed_string(dev), dev->model_number,
-		dev->hba_port_num);
+			dev_name(&dev->nic_info.pdev->dev), hca_name(dev),
+			port_speed_string(dev), dev->model_number,
+			dev->hba_port_num);
 	pr_info("%s ocrdma%d driver loaded successfully\n",
-		dev_name(&dev->nic_info.pdev->dev), dev->id);
+			dev_name(&dev->nic_info.pdev->dev), dev->id);
 	return dev;
 
 sysfs_err:
@@ -422,30 +469,41 @@ static void ocrdma_shutdown(struct ocrdma_dev *dev)
  */
 static void ocrdma_event_handler(struct ocrdma_dev *dev, u32 event)
 {
-	switch (event) {
-	case BE_DEV_SHUTDOWN:
-		ocrdma_shutdown(dev);
-		break;
-	default:
-		break;
+	switch (event)
+	{
+		case BE_DEV_SHUTDOWN:
+			ocrdma_shutdown(dev);
+			break;
+
+		default:
+			break;
 	}
 }
 
 void ocrdma_update_link_state(struct ocrdma_dev *dev, u8 lstate)
 {
-	if (!(dev->flags & OCRDMA_FLAGS_LINK_STATUS_INIT)) {
+	if (!(dev->flags & OCRDMA_FLAGS_LINK_STATUS_INIT))
+	{
 		dev->flags |= OCRDMA_FLAGS_LINK_STATUS_INIT;
+
 		if (!lstate)
+		{
 			return;
+		}
 	}
 
 	if (!lstate)
+	{
 		ocrdma_dispatch_port_error(dev);
+	}
 	else
+	{
 		ocrdma_dispatch_port_active(dev);
+	}
 }
 
-static struct ocrdma_driver ocrdma_drv = {
+static struct ocrdma_driver ocrdma_drv =
+{
 	.name			= "ocrdma_driver",
 	.add			= ocrdma_add,
 	.remove			= ocrdma_remove,
@@ -460,8 +518,11 @@ static int __init ocrdma_init_module(void)
 	ocrdma_init_debugfs();
 
 	status = be_roce_register_driver(&ocrdma_drv);
+
 	if (status)
+	{
 		goto err_be_reg;
+	}
 
 	return 0;
 

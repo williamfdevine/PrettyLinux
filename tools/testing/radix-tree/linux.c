@@ -21,7 +21,7 @@ void mempool_free(void *element, mempool_t *pool)
 }
 
 mempool_t *mempool_create(int min_nr, mempool_alloc_t *alloc_fn,
-			mempool_free_t *free_fn, void *pool_data)
+						  mempool_free_t *free_fn, void *pool_data)
 {
 	mempool_t *ret = malloc(sizeof(*ret));
 
@@ -34,8 +34,12 @@ mempool_t *mempool_create(int min_nr, mempool_alloc_t *alloc_fn,
 void *kmem_cache_alloc(struct kmem_cache *cachep, int flags)
 {
 	void *ret = malloc(cachep->size);
+
 	if (cachep->ctor)
+	{
 		cachep->ctor(ret);
+	}
+
 	uatomic_inc(&nr_allocated);
 	return ret;
 }
@@ -50,7 +54,7 @@ void kmem_cache_free(struct kmem_cache *cachep, void *objp)
 
 struct kmem_cache *
 kmem_cache_create(const char *name, size_t size, size_t offset,
-	unsigned long flags, void (*ctor)(void *))
+				  unsigned long flags, void (*ctor)(void *))
 {
 	struct kmem_cache *ret = malloc(sizeof(*ret));
 

@@ -19,21 +19,26 @@ static inline struct iw_spy_data *get_spydata(struct net_device *dev)
 {
 	/* This is the new way */
 	if (dev->wireless_data)
+	{
 		return dev->wireless_data->spy_data;
+	}
+
 	return NULL;
 }
 
-int iw_handler_set_spy(struct net_device *	dev,
-		       struct iw_request_info *	info,
-		       union iwreq_data *	wrqu,
-		       char *			extra)
+int iw_handler_set_spy(struct net_device 	*dev,
+					   struct iw_request_info 	*info,
+					   union iwreq_data 	*wrqu,
+					   char 			*extra)
 {
-	struct iw_spy_data *	spydata = get_spydata(dev);
-	struct sockaddr *	address = (struct sockaddr *) extra;
+	struct iw_spy_data 	*spydata = get_spydata(dev);
+	struct sockaddr 	*address = (struct sockaddr *) extra;
 
 	/* Make sure driver is not buggy or using the old API */
 	if (!spydata)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/* Disable spy collection while we copy the addresses.
 	 * While we copy addresses, any call to wireless_spy_update()
@@ -49,16 +54,18 @@ int iw_handler_set_spy(struct net_device *	dev,
 	smp_wmb();
 
 	/* Are there are addresses to copy? */
-	if (wrqu->data.length > 0) {
+	if (wrqu->data.length > 0)
+	{
 		int i;
 
 		/* Copy addresses */
 		for (i = 0; i < wrqu->data.length; i++)
 			memcpy(spydata->spy_address[i], address[i].sa_data,
-			       ETH_ALEN);
+				   ETH_ALEN);
+
 		/* Reset stats */
 		memset(spydata->spy_stat, 0,
-		       sizeof(struct iw_quality) * IW_MAX_SPY);
+			   sizeof(struct iw_quality) * IW_MAX_SPY);
 	}
 
 	/* Make sure above is updated before re-enabling */
@@ -71,34 +78,42 @@ int iw_handler_set_spy(struct net_device *	dev,
 }
 EXPORT_SYMBOL(iw_handler_set_spy);
 
-int iw_handler_get_spy(struct net_device *	dev,
-		       struct iw_request_info *	info,
-		       union iwreq_data *	wrqu,
-		       char *			extra)
+int iw_handler_get_spy(struct net_device 	*dev,
+					   struct iw_request_info 	*info,
+					   union iwreq_data 	*wrqu,
+					   char 			*extra)
 {
-	struct iw_spy_data *	spydata = get_spydata(dev);
-	struct sockaddr *	address = (struct sockaddr *) extra;
+	struct iw_spy_data 	*spydata = get_spydata(dev);
+	struct sockaddr 	*address = (struct sockaddr *) extra;
 	int			i;
 
 	/* Make sure driver is not buggy or using the old API */
 	if (!spydata)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	wrqu->data.length = spydata->spy_number;
 
 	/* Copy addresses. */
-	for (i = 0; i < spydata->spy_number; i++) 	{
+	for (i = 0; i < spydata->spy_number; i++)
+	{
 		memcpy(address[i].sa_data, spydata->spy_address[i], ETH_ALEN);
 		address[i].sa_family = AF_UNIX;
 	}
+
 	/* Copy stats to the user buffer (just after). */
 	if (spydata->spy_number > 0)
 		memcpy(extra  + (sizeof(struct sockaddr) *spydata->spy_number),
-		       spydata->spy_stat,
-		       sizeof(struct iw_quality) * spydata->spy_number);
+			   spydata->spy_stat,
+			   sizeof(struct iw_quality) * spydata->spy_number);
+
 	/* Reset updated flags. */
 	for (i = 0; i < spydata->spy_number; i++)
+	{
 		spydata->spy_stat[i].updated &= ~IW_QUAL_ALL_UPDATED;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(iw_handler_get_spy);
@@ -107,21 +122,23 @@ EXPORT_SYMBOL(iw_handler_get_spy);
 /*
  * Standard Wireless Handler : set spy threshold
  */
-int iw_handler_set_thrspy(struct net_device *	dev,
-			  struct iw_request_info *info,
-			  union iwreq_data *	wrqu,
-			  char *		extra)
+int iw_handler_set_thrspy(struct net_device 	*dev,
+						  struct iw_request_info *info,
+						  union iwreq_data 	*wrqu,
+						  char 		*extra)
 {
-	struct iw_spy_data *	spydata = get_spydata(dev);
-	struct iw_thrspy *	threshold = (struct iw_thrspy *) extra;
+	struct iw_spy_data 	*spydata = get_spydata(dev);
+	struct iw_thrspy 	*threshold = (struct iw_thrspy *) extra;
 
 	/* Make sure driver is not buggy or using the old API */
 	if (!spydata)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/* Just do it */
 	memcpy(&(spydata->spy_thr_low), &(threshold->low),
-	       2 * sizeof(struct iw_quality));
+		   2 * sizeof(struct iw_quality));
 
 	/* Clear flag */
 	memset(spydata->spy_thr_under, '\0', sizeof(spydata->spy_thr_under));
@@ -134,21 +151,23 @@ EXPORT_SYMBOL(iw_handler_set_thrspy);
 /*
  * Standard Wireless Handler : get spy threshold
  */
-int iw_handler_get_thrspy(struct net_device *	dev,
-			  struct iw_request_info *info,
-			  union iwreq_data *	wrqu,
-			  char *		extra)
+int iw_handler_get_thrspy(struct net_device 	*dev,
+						  struct iw_request_info *info,
+						  union iwreq_data 	*wrqu,
+						  char 		*extra)
 {
-	struct iw_spy_data *	spydata = get_spydata(dev);
-	struct iw_thrspy *	threshold = (struct iw_thrspy *) extra;
+	struct iw_spy_data 	*spydata = get_spydata(dev);
+	struct iw_thrspy 	*threshold = (struct iw_thrspy *) extra;
 
 	/* Make sure driver is not buggy or using the old API */
 	if (!spydata)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/* Just do it */
 	memcpy(&(threshold->low), &(spydata->spy_thr_low),
-	       2 * sizeof(struct iw_quality));
+		   2 * sizeof(struct iw_quality));
 
 	return 0;
 }
@@ -158,10 +177,10 @@ EXPORT_SYMBOL(iw_handler_get_thrspy);
 /*
  * Prepare and send a Spy Threshold event
  */
-static void iw_send_thrspy_event(struct net_device *	dev,
-				 struct iw_spy_data *	spydata,
-				 unsigned char *	address,
-				 struct iw_quality *	wstats)
+static void iw_send_thrspy_event(struct net_device 	*dev,
+								 struct iw_spy_data 	*spydata,
+								 unsigned char 	*address,
+								 struct iw_quality 	*wstats)
 {
 	union iwreq_data	wrqu;
 	struct iw_thrspy	threshold;
@@ -176,7 +195,7 @@ static void iw_send_thrspy_event(struct net_device *	dev,
 	memcpy(&(threshold.qual), wstats, sizeof(struct iw_quality));
 	/* Copy also thresholds */
 	memcpy(&(threshold.low), &(spydata->spy_thr_low),
-	       2 * sizeof(struct iw_quality));
+		   2 * sizeof(struct iw_quality));
 
 	/* Send event to user space */
 	wireless_send_event(dev, SIOCGIWTHRSPY, &wrqu, (char *) &threshold);
@@ -189,23 +208,26 @@ static void iw_send_thrspy_event(struct net_device *	dev,
  * small, this is good enough. If we wanted to support larger number of
  * spy addresses, we should use something more efficient...
  */
-void wireless_spy_update(struct net_device *	dev,
-			 unsigned char *	address,
-			 struct iw_quality *	wstats)
+void wireless_spy_update(struct net_device 	*dev,
+						 unsigned char 	*address,
+						 struct iw_quality 	*wstats)
 {
-	struct iw_spy_data *	spydata = get_spydata(dev);
+	struct iw_spy_data 	*spydata = get_spydata(dev);
 	int			i;
 	int			match = -1;
 
 	/* Make sure driver is not buggy or using the old API */
 	if (!spydata)
+	{
 		return;
+	}
 
 	/* Update all records that match */
 	for (i = 0; i < spydata->spy_number; i++)
-		if (ether_addr_equal(address, spydata->spy_address[i])) {
+		if (ether_addr_equal(address, spydata->spy_address[i]))
+		{
 			memcpy(&(spydata->spy_stat[i]), wstats,
-			       sizeof(struct iw_quality));
+				   sizeof(struct iw_quality));
 			match = i;
 		}
 
@@ -213,18 +235,24 @@ void wireless_spy_update(struct net_device *	dev,
 	 * To avoid event storms, we have a simple hysteresis : we generate
 	 * event only when we go under the low threshold or above the
 	 * high threshold. */
-	if (match >= 0) {
-		if (spydata->spy_thr_under[match]) {
-			if (wstats->level > spydata->spy_thr_high.level) {
+	if (match >= 0)
+	{
+		if (spydata->spy_thr_under[match])
+		{
+			if (wstats->level > spydata->spy_thr_high.level)
+			{
 				spydata->spy_thr_under[match] = 0;
 				iw_send_thrspy_event(dev, spydata,
-						     address, wstats);
+									 address, wstats);
 			}
-		} else {
-			if (wstats->level < spydata->spy_thr_low.level) {
+		}
+		else
+		{
+			if (wstats->level < spydata->spy_thr_low.level)
+			{
 				spydata->spy_thr_under[match] = 1;
 				iw_send_thrspy_event(dev, spydata,
-						     address, wstats);
+									 address, wstats);
 			}
 		}
 	}

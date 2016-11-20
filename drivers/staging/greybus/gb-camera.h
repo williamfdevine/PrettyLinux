@@ -28,7 +28,8 @@
  *            the associated virtual channel and data type(s) will not exceed
  *            this size.
  */
-struct gb_camera_stream {
+struct gb_camera_stream
+{
 	unsigned int width;
 	unsigned int height;
 	enum v4l2_mbus_pixelcode pixel_code;
@@ -42,7 +43,8 @@ struct gb_camera_stream {
  * @num_lanes: number of CSI data lanes
  * @clk_freq: CSI clock frequency in Hz
  */
-struct gb_camera_csi_params {
+struct gb_camera_csi_params
+{
 	unsigned int num_lanes;
 	unsigned int clk_freq;
 };
@@ -87,14 +89,15 @@ struct gb_camera_csi_params {
  *         frames. All queued capture requests with IDs higher than the returned
  *         ID will be dropped without being processed.
  */
-struct gb_camera_ops {
+struct gb_camera_ops
+{
 	ssize_t (*capabilities)(void *priv, char *buf, size_t len);
 	int (*configure_streams)(void *priv, unsigned int *nstreams,
-			unsigned int *flags, struct gb_camera_stream *streams,
-			struct gb_camera_csi_params *csi_params);
+							 unsigned int *flags, struct gb_camera_stream *streams,
+							 struct gb_camera_csi_params *csi_params);
 	int (*capture)(void *priv, u32 request_id,
-			unsigned int streams, unsigned int num_frames,
-			size_t settings_size, const void *settings);
+				   unsigned int streams, unsigned int num_frames,
+				   size_t settings_size, const void *settings);
 	int (*flush)(void *priv, u32 *request_id);
 };
 
@@ -107,7 +110,8 @@ struct gb_camera_ops {
  * @release: Module release function.
  * @list: List entry in the camera modules list.
  */
-struct gb_camera_module {
+struct gb_camera_module
+{
 	void *priv;
 	const struct gb_camera_ops *ops;
 
@@ -119,7 +123,7 @@ struct gb_camera_module {
 
 #define gb_camera_call(f, op, args...)      \
 	(!(f) ? -ENODEV : (((f)->ops->op) ?  \
-	(f)->ops->op((f)->priv, ##args) : -ENOIOCTLCMD))
+					   (f)->ops->op((f)->priv, ##args) : -ENOIOCTLCMD))
 
 int gb_camera_register(struct gb_camera_module *module);
 int gb_camera_unregister(struct gb_camera_module *module);

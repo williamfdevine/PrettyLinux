@@ -96,7 +96,8 @@
  * track panel specific parameters for common init
  */
 
-struct auok190x_init_data {
+struct auok190x_init_data
+{
 	char *id;
 	struct auok190x_board *board;
 
@@ -110,20 +111,20 @@ struct auok190x_init_data {
 extern void auok190x_send_command_nowait(struct auok190xfb_par *par, u16 data);
 extern int auok190x_send_command(struct auok190xfb_par *par, u16 data);
 extern void auok190x_send_cmdargs_nowait(struct auok190xfb_par *par, u16 cmd,
-					 int argc, u16 *argv);
+		int argc, u16 *argv);
 extern int auok190x_send_cmdargs(struct auok190xfb_par *par, u16 cmd,
-				  int argc, u16 *argv);
+								 int argc, u16 *argv);
 extern void auok190x_send_cmdargs_pixels_nowait(struct auok190xfb_par *par,
-						u16 cmd, int argc, u16 *argv,
-						int size, u16 *data);
+		u16 cmd, int argc, u16 *argv,
+		int size, u16 *data);
 extern int auok190x_send_cmdargs_pixels(struct auok190xfb_par *par, u16 cmd,
-					int argc, u16 *argv, int size,
-					u16 *data);
+										int argc, u16 *argv, int size,
+										u16 *data);
 extern int auok190x_read_cmdargs(struct auok190xfb_par *par, u16 cmd,
-				  int argc, u16 *argv);
+								 int argc, u16 *argv);
 
 extern int auok190x_common_probe(struct platform_device *pdev,
-				 struct auok190x_init_data *init);
+								 struct auok190x_init_data *init);
 extern int auok190x_common_remove(struct platform_device *pdev);
 
 extern const struct dev_pm_ops auok190x_pm;

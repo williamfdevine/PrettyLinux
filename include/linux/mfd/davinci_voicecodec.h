@@ -86,12 +86,14 @@ struct regmap;
 
 #define DAVINCI_VC_CELLS		2
 
-enum davinci_vc_cells {
+enum davinci_vc_cells
+{
 	DAVINCI_VC_VCIF_CELL,
 	DAVINCI_VC_CQ93VC_CELL,
 };
 
-struct davinci_vcif {
+struct davinci_vcif
+{
 	struct platform_device	*pdev;
 	u32 dma_tx_channel;
 	u32 dma_rx_channel;
@@ -101,7 +103,8 @@ struct davinci_vcif {
 
 struct davinci_vc;
 
-struct davinci_vc {
+struct davinci_vc
+{
 	/* Device data */
 	struct device *dev;
 	struct platform_device *pdev;

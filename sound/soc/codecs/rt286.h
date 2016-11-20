@@ -193,7 +193,8 @@
 #define RT286_SCLK_S_MCLK	0
 #define RT286_SCLK_S_PLL	1
 
-enum {
+enum
+{
 	RT286_AIF1,
 	RT286_AIF2,
 	RT286_AIFS,

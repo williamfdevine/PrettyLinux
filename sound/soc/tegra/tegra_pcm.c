@@ -38,10 +38,11 @@
 
 #include "tegra_pcm.h"
 
-static const struct snd_pcm_hardware tegra_pcm_hardware = {
+static const struct snd_pcm_hardware tegra_pcm_hardware =
+{
 	.info			= SNDRV_PCM_INFO_MMAP |
-				  SNDRV_PCM_INFO_MMAP_VALID |
-				  SNDRV_PCM_INFO_INTERLEAVED,
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_INTERLEAVED,
 	.period_bytes_min	= 1024,
 	.period_bytes_max	= PAGE_SIZE,
 	.periods_min		= 2,
@@ -50,7 +51,8 @@ static const struct snd_pcm_hardware tegra_pcm_hardware = {
 	.fifo_size		= 4,
 };
 
-static const struct snd_dmaengine_pcm_config tegra_dmaengine_pcm_config = {
+static const struct snd_dmaengine_pcm_config tegra_dmaengine_pcm_config =
+{
 	.pcm_hardware = &tegra_pcm_hardware,
 	.prepare_slave_config = snd_dmaengine_pcm_prepare_slave_config,
 	.prealloc_buffer_size = PAGE_SIZE * 8,
@@ -63,8 +65,8 @@ int tegra_pcm_platform_register(struct device *dev)
 EXPORT_SYMBOL_GPL(tegra_pcm_platform_register);
 
 int tegra_pcm_platform_register_with_chan_names(struct device *dev,
-				struct snd_dmaengine_pcm_config *config,
-				char *txdmachan, char *rxdmachan)
+		struct snd_dmaengine_pcm_config *config,
+		char *txdmachan, char *rxdmachan)
 {
 	*config = tegra_dmaengine_pcm_config;
 	config->dma_dev = dev->parent;

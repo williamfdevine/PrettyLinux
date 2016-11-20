@@ -12,7 +12,8 @@
 #define POLY1305_KEY_SIZE	32
 #define POLY1305_DIGEST_SIZE	16
 
-struct poly1305_desc_ctx {
+struct poly1305_desc_ctx
+{
 	/* key */
 	u32 r[5];
 	/* finalize key */
@@ -31,11 +32,11 @@ struct poly1305_desc_ctx {
 
 int crypto_poly1305_init(struct shash_desc *desc);
 int crypto_poly1305_setkey(struct crypto_shash *tfm,
-			   const u8 *key, unsigned int keylen);
+						   const u8 *key, unsigned int keylen);
 unsigned int crypto_poly1305_setdesckey(struct poly1305_desc_ctx *dctx,
-					const u8 *src, unsigned int srclen);
+										const u8 *src, unsigned int srclen);
 int crypto_poly1305_update(struct shash_desc *desc,
-			   const u8 *src, unsigned int srclen);
+						   const u8 *src, unsigned int srclen);
 int crypto_poly1305_final(struct shash_desc *desc, u8 *dst);
 
 #endif

@@ -110,7 +110,8 @@
 #define EP93XXFB_MAX_XRES			1024
 #define EP93XXFB_MAX_YRES			768
 
-struct ep93xx_fbi {
+struct ep93xx_fbi
+{
 	struct ep93xxfb_mach_info	*mach_info;
 	struct clk			*clk;
 	struct resource			*res;
@@ -121,16 +122,16 @@ struct ep93xx_fbi {
 static int check_screenpage_bug = 1;
 module_param(check_screenpage_bug, int, 0644);
 MODULE_PARM_DESC(check_screenpage_bug,
-		 "Check for bit 27 screen page bug. Default = 1");
+				 "Check for bit 27 screen page bug. Default = 1");
 
 static inline unsigned int ep93xxfb_readl(struct ep93xx_fbi *fbi,
-					  unsigned int off)
+		unsigned int off)
 {
 	return __raw_readl(fbi->mmio_base + off);
 }
 
 static inline void ep93xxfb_writel(struct ep93xx_fbi *fbi,
-				   unsigned int val, unsigned int off)
+								   unsigned int val, unsigned int off)
 {
 	__raw_writel(val, fbi->mmio_base + off);
 }
@@ -139,7 +140,7 @@ static inline void ep93xxfb_writel(struct ep93xx_fbi *fbi,
  * Write to one of the locked raster registers.
  */
 static inline void ep93xxfb_out_locked(struct ep93xx_fbi *fbi,
-				       unsigned int val, unsigned int reg)
+									   unsigned int val, unsigned int reg)
 {
 	/*
 	 * We don't need a lock or delay here since the raster register
@@ -167,61 +168,62 @@ static int ep93xxfb_set_pixelmode(struct fb_info *info)
 	info->var.transp.offset = 0;
 	info->var.transp.length = 0;
 
-	switch (info->var.bits_per_pixel) {
-	case 8:
-		val = EP93XXFB_PIXELMODE_8BPP | EP93XXFB_PIXELMODE_COLOR_LUT |
-			EP93XXFB_PIXELMODE_SHIFT_1P_18B;
+	switch (info->var.bits_per_pixel)
+	{
+		case 8:
+			val = EP93XXFB_PIXELMODE_8BPP | EP93XXFB_PIXELMODE_COLOR_LUT |
+				  EP93XXFB_PIXELMODE_SHIFT_1P_18B;
 
-		info->var.red.offset	= 0;
-		info->var.red.length	= 8;
-		info->var.green.offset	= 0;
-		info->var.green.length	= 8;
-		info->var.blue.offset	= 0;
-		info->var.blue.length	= 8;
-		info->fix.visual 	= FB_VISUAL_PSEUDOCOLOR;
-		break;
+			info->var.red.offset	= 0;
+			info->var.red.length	= 8;
+			info->var.green.offset	= 0;
+			info->var.green.length	= 8;
+			info->var.blue.offset	= 0;
+			info->var.blue.length	= 8;
+			info->fix.visual 	= FB_VISUAL_PSEUDOCOLOR;
+			break;
 
-	case 16:
-		val = EP93XXFB_PIXELMODE_16BPP | EP93XXFB_PIXELMODE_COLOR_555 |
-			EP93XXFB_PIXELMODE_SHIFT_1P_18B;
+		case 16:
+			val = EP93XXFB_PIXELMODE_16BPP | EP93XXFB_PIXELMODE_COLOR_555 |
+				  EP93XXFB_PIXELMODE_SHIFT_1P_18B;
 
-		info->var.red.offset	= 11;
-		info->var.red.length	= 5;
-		info->var.green.offset	= 5;
-		info->var.green.length	= 6;
-		info->var.blue.offset	= 0;
-		info->var.blue.length	= 5;
-		info->fix.visual 	= FB_VISUAL_TRUECOLOR;
-		break;
+			info->var.red.offset	= 11;
+			info->var.red.length	= 5;
+			info->var.green.offset	= 5;
+			info->var.green.length	= 6;
+			info->var.blue.offset	= 0;
+			info->var.blue.length	= 5;
+			info->fix.visual 	= FB_VISUAL_TRUECOLOR;
+			break;
 
-	case 24:
-		val = EP93XXFB_PIXELMODE_24BPP | EP93XXFB_PIXELMODE_COLOR_888 |
-			EP93XXFB_PIXELMODE_SHIFT_1P_24B;
+		case 24:
+			val = EP93XXFB_PIXELMODE_24BPP | EP93XXFB_PIXELMODE_COLOR_888 |
+				  EP93XXFB_PIXELMODE_SHIFT_1P_24B;
 
-		info->var.red.offset	= 16;
-		info->var.red.length	= 8;
-		info->var.green.offset	= 8;
-		info->var.green.length	= 8;
-		info->var.blue.offset	= 0;
-		info->var.blue.length	= 8;
-		info->fix.visual 	= FB_VISUAL_TRUECOLOR;
-		break;
+			info->var.red.offset	= 16;
+			info->var.red.length	= 8;
+			info->var.green.offset	= 8;
+			info->var.green.length	= 8;
+			info->var.blue.offset	= 0;
+			info->var.blue.length	= 8;
+			info->fix.visual 	= FB_VISUAL_TRUECOLOR;
+			break;
 
-	case 32:
-		val = EP93XXFB_PIXELMODE_32BPP | EP93XXFB_PIXELMODE_COLOR_888 |
-			EP93XXFB_PIXELMODE_SHIFT_1P_24B;
+		case 32:
+			val = EP93XXFB_PIXELMODE_32BPP | EP93XXFB_PIXELMODE_COLOR_888 |
+				  EP93XXFB_PIXELMODE_SHIFT_1P_24B;
 
-		info->var.red.offset	= 16;
-		info->var.red.length	= 8;
-		info->var.green.offset	= 8;
-		info->var.green.length	= 8;
-		info->var.blue.offset	= 0;
-		info->var.blue.length	= 8;
-		info->fix.visual 	= FB_VISUAL_TRUECOLOR;
-		break;
+			info->var.red.offset	= 16;
+			info->var.red.length	= 8;
+			info->var.green.offset	= 8;
+			info->var.green.length	= 8;
+			info->var.blue.offset	= 0;
+			info->var.blue.length	= 8;
+			info->fix.visual 	= FB_VISUAL_TRUECOLOR;
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	ep93xxfb_writel(fbi, val, EP93XXFB_PIXELMODE);
@@ -234,10 +236,10 @@ static void ep93xxfb_set_timing(struct fb_info *info)
 	unsigned int vlines_total, hclks_total, start, stop;
 
 	vlines_total = info->var.yres + info->var.upper_margin +
-		info->var.lower_margin + info->var.vsync_len - 1;
+				   info->var.lower_margin + info->var.vsync_len - 1;
 
 	hclks_total = info->var.xres + info->var.left_margin +
-		info->var.right_margin + info->var.hsync_len - 1;
+				  info->var.right_margin + info->var.hsync_len - 1;
 
 	ep93xxfb_out_locked(fbi, vlines_total, EP93XXFB_VLINES_TOTAL);
 	ep93xxfb_out_locked(fbi, hclks_total, EP93XXFB_HCLKS_TOTAL);
@@ -280,25 +282,28 @@ static int ep93xxfb_set_par(struct fb_info *info)
 	ep93xxfb_set_timing(info);
 
 	info->fix.line_length = info->var.xres_virtual *
-		info->var.bits_per_pixel / 8;
+							info->var.bits_per_pixel / 8;
 
 	ep93xxfb_writel(fbi, info->fix.smem_start, EP93XXFB_SCREEN_PAGE);
 	ep93xxfb_writel(fbi, info->var.yres - 1, EP93XXFB_SCREEN_LINES);
 	ep93xxfb_writel(fbi, ((info->var.xres * info->var.bits_per_pixel)
-			      / 32) - 1, EP93XXFB_LINE_LENGTH);
+						  / 32) - 1, EP93XXFB_LINE_LENGTH);
 	ep93xxfb_writel(fbi, info->fix.line_length / 4, EP93XXFB_VLINE_STEP);
 	ep93xxfb_set_video_attribs(info);
 	return 0;
 }
 
 static int ep93xxfb_check_var(struct fb_var_screeninfo *var,
-			      struct fb_info *info)
+							  struct fb_info *info)
 {
 	int err;
 
 	err = ep93xxfb_set_pixelmode(info);
+
 	if (err)
+	{
 		return err;
+	}
 
 	var->xres = max_t(unsigned int, var->xres, EP93XXFB_MIN_XRES);
 	var->xres = min_t(unsigned int, var->xres, EP93XXFB_MAX_XRES);
@@ -315,9 +320,10 @@ static int ep93xxfb_mmap(struct fb_info *info, struct vm_area_struct *vma)
 {
 	unsigned int offset = vma->vm_pgoff << PAGE_SHIFT;
 
-	if (offset < info->fix.smem_len) {
+	if (offset < info->fix.smem_len)
+	{
 		return dma_mmap_wc(info->dev, vma, info->screen_base,
-				   info->fix.smem_start, info->fix.smem_len);
+						   info->fix.smem_start, info->fix.smem_len);
 	}
 
 	return -EINVAL;
@@ -328,18 +334,27 @@ static int ep93xxfb_blank(int blank_mode, struct fb_info *info)
 	struct ep93xx_fbi *fbi = info->par;
 	unsigned int attribs = ep93xxfb_readl(fbi, EP93XXFB_ATTRIBS);
 
-	if (blank_mode) {
+	if (blank_mode)
+	{
 		if (fbi->mach_info->blank)
+		{
 			fbi->mach_info->blank(blank_mode, info);
+		}
+
 		ep93xxfb_out_locked(fbi, attribs & ~EP93XXFB_ENABLE,
-				    EP93XXFB_ATTRIBS);
+							EP93XXFB_ATTRIBS);
 		clk_disable(fbi->clk);
-	} else {
+	}
+	else
+	{
 		clk_enable(fbi->clk);
 		ep93xxfb_out_locked(fbi, attribs | EP93XXFB_ENABLE,
-				    EP93XXFB_ATTRIBS);
+							EP93XXFB_ATTRIBS);
+
 		if (fbi->mach_info->blank)
+		{
 			fbi->mach_info->blank(blank_mode, info);
+		}
 	}
 
 	return 0;
@@ -351,62 +366,72 @@ static inline int ep93xxfb_convert_color(int val, int width)
 }
 
 static int ep93xxfb_setcolreg(unsigned int regno, unsigned int red,
-			      unsigned int green, unsigned int blue,
-			      unsigned int transp, struct fb_info *info)
+							  unsigned int green, unsigned int blue,
+							  unsigned int transp, struct fb_info *info)
 {
 	struct ep93xx_fbi *fbi = info->par;
 	unsigned int *pal = info->pseudo_palette;
 	unsigned int ctrl, i, rgb, lut_current, lut_stat;
 
-	switch (info->fix.visual) {
-	case FB_VISUAL_PSEUDOCOLOR:
-		if (regno > 255)
-			return 1;
-		rgb = ((red & 0xff00) << 8) | (green & 0xff00) |
-			((blue & 0xff00) >> 8);
-
-		pal[regno] = rgb;
-		ep93xxfb_writel(fbi, rgb, (EP93XXFB_COLOR_LUT + (regno << 2)));
-		ctrl = ep93xxfb_readl(fbi, EP93XXFB_LUT_SW_CONTROL);
-		lut_stat = !!(ctrl & EP93XXFB_LUT_SW_CONTROL_SSTAT);
-		lut_current = !!(ctrl & EP93XXFB_LUT_SW_CONTROL_SWTCH);
-
-		if (lut_stat == lut_current) {
-			for (i = 0; i < 256; i++) {
-				ep93xxfb_writel(fbi, pal[i],
-					EP93XXFB_COLOR_LUT + (i << 2));
+	switch (info->fix.visual)
+	{
+		case FB_VISUAL_PSEUDOCOLOR:
+			if (regno > 255)
+			{
+				return 1;
 			}
 
-			ep93xxfb_writel(fbi,
-					ctrl ^ EP93XXFB_LUT_SW_CONTROL_SWTCH,
-					EP93XXFB_LUT_SW_CONTROL);
-		}
-		break;
+			rgb = ((red & 0xff00) << 8) | (green & 0xff00) |
+				  ((blue & 0xff00) >> 8);
 
-	case FB_VISUAL_TRUECOLOR:
-		if (regno > 16)
+			pal[regno] = rgb;
+			ep93xxfb_writel(fbi, rgb, (EP93XXFB_COLOR_LUT + (regno << 2)));
+			ctrl = ep93xxfb_readl(fbi, EP93XXFB_LUT_SW_CONTROL);
+			lut_stat = !!(ctrl & EP93XXFB_LUT_SW_CONTROL_SSTAT);
+			lut_current = !!(ctrl & EP93XXFB_LUT_SW_CONTROL_SWTCH);
+
+			if (lut_stat == lut_current)
+			{
+				for (i = 0; i < 256; i++)
+				{
+					ep93xxfb_writel(fbi, pal[i],
+									EP93XXFB_COLOR_LUT + (i << 2));
+				}
+
+				ep93xxfb_writel(fbi,
+								ctrl ^ EP93XXFB_LUT_SW_CONTROL_SWTCH,
+								EP93XXFB_LUT_SW_CONTROL);
+			}
+
+			break;
+
+		case FB_VISUAL_TRUECOLOR:
+			if (regno > 16)
+			{
+				return 1;
+			}
+
+			red = ep93xxfb_convert_color(red, info->var.red.length);
+			green = ep93xxfb_convert_color(green, info->var.green.length);
+			blue = ep93xxfb_convert_color(blue, info->var.blue.length);
+			transp = ep93xxfb_convert_color(transp,
+											info->var.transp.length);
+
+			pal[regno] = (red << info->var.red.offset) |
+						 (green << info->var.green.offset) |
+						 (blue << info->var.blue.offset) |
+						 (transp << info->var.transp.offset);
+			break;
+
+		default:
 			return 1;
-
-		red = ep93xxfb_convert_color(red, info->var.red.length);
-		green = ep93xxfb_convert_color(green, info->var.green.length);
-		blue = ep93xxfb_convert_color(blue, info->var.blue.length);
-		transp = ep93xxfb_convert_color(transp,
-						info->var.transp.length);
-
-		pal[regno] = (red << info->var.red.offset) |
-			(green << info->var.green.offset) |
-			(blue << info->var.blue.offset) |
-			(transp << info->var.transp.offset);
-		break;
-
-	default:
-		return 1;
 	}
 
 	return 0;
 }
 
-static struct fb_ops ep93xxfb_ops = {
+static struct fb_ops ep93xxfb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_check_var	= ep93xxfb_check_var,
 	.fb_set_par	= ep93xxfb_set_par,
@@ -428,8 +453,11 @@ static int ep93xxfb_alloc_videomem(struct fb_info *info)
 	fb_size = EP93XXFB_MAX_XRES * EP93XXFB_MAX_YRES * 2;
 
 	virt_addr = dma_alloc_wc(info->dev, fb_size, &phys_addr, GFP_KERNEL);
+
 	if (!virt_addr)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * There is a bug in the ep93xx framebuffer which causes problems
@@ -439,10 +467,11 @@ static int ep93xxfb_alloc_videomem(struct fb_info *info)
 	 * have confirmed the problem exists on my hardware (ep9315) at
 	 * least.
 	 */
-	if (check_screenpage_bug && phys_addr & (1 << 27)) {
+	if (check_screenpage_bug && phys_addr & (1 << 27))
+	{
 		dev_err(info->dev, "ep93xx framebuffer bug. phys addr (0x%x) "
-			"has bit 27 set: cannot init framebuffer\n",
-			phys_addr);
+				"has bit 27 set: cannot init framebuffer\n",
+				phys_addr);
 
 		dma_free_coherent(info->dev, fb_size, virt_addr, phys_addr);
 		return -ENOMEM;
@@ -459,7 +488,7 @@ static void ep93xxfb_dealloc_videomem(struct fb_info *info)
 {
 	if (info->screen_base)
 		dma_free_coherent(info->dev, info->fix.smem_len,
-				  info->screen_base, info->fix.smem_start);
+						  info->screen_base, info->fix.smem_start);
 }
 
 static int ep93xxfb_probe(struct platform_device *pdev)
@@ -472,11 +501,16 @@ static int ep93xxfb_probe(struct platform_device *pdev)
 	int err;
 
 	if (!mach_info)
+	{
 		return -EINVAL;
+	}
 
 	info = framebuffer_alloc(sizeof(struct ep93xx_fbi), &pdev->dev);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	info->dev = &pdev->dev;
 	platform_set_drvdata(pdev, info);
@@ -484,15 +518,23 @@ static int ep93xxfb_probe(struct platform_device *pdev)
 	fbi->mach_info = mach_info;
 
 	err = fb_alloc_cmap(&info->cmap, 256, 0);
+
 	if (err)
+	{
 		goto failed_cmap;
+	}
 
 	err = ep93xxfb_alloc_videomem(info);
+
 	if (err)
+	{
 		goto failed_videomem;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		err = -ENXIO;
 		goto failed_resource;
 	}
@@ -508,8 +550,10 @@ static int ep93xxfb_probe(struct platform_device *pdev)
 	 */
 	fbi->res = res;
 	fbi->mmio_base = devm_ioremap(&pdev->dev, res->start,
-				      resource_size(res));
-	if (!fbi->mmio_base) {
+								  resource_size(res));
+
+	if (!fbi->mmio_base)
+	{
 		err = -ENXIO;
 		goto failed_resource;
 	}
@@ -527,25 +571,36 @@ static int ep93xxfb_probe(struct platform_device *pdev)
 
 	fb_get_options("ep93xx-fb", &video_mode);
 	err = fb_find_mode(&info->var, info, video_mode,
-			   NULL, 0, NULL, 16);
-	if (err == 0) {
+					   NULL, 0, NULL, 16);
+
+	if (err == 0)
+	{
 		dev_err(info->dev, "No suitable video mode found\n");
 		err = -EINVAL;
 		goto failed_resource;
 	}
 
-	if (mach_info->setup) {
+	if (mach_info->setup)
+	{
 		err = mach_info->setup(pdev);
+
 		if (err)
+		{
 			goto failed_resource;
+		}
 	}
 
 	err = ep93xxfb_check_var(&info->var, info);
+
 	if (err)
+	{
 		goto failed_check;
+	}
 
 	fbi->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(fbi->clk)) {
+
+	if (IS_ERR(fbi->clk))
+	{
 		err = PTR_ERR(fbi->clk);
 		fbi->clk = NULL;
 		goto failed_check;
@@ -555,16 +610,23 @@ static int ep93xxfb_probe(struct platform_device *pdev)
 	clk_enable(fbi->clk);
 
 	err = register_framebuffer(info);
+
 	if (err)
+	{
 		goto failed_check;
+	}
 
 	dev_info(info->dev, "registered. Mode = %dx%d-%d\n",
-		 info->var.xres, info->var.yres, info->var.bits_per_pixel);
+			 info->var.xres, info->var.yres, info->var.bits_per_pixel);
 	return 0;
 
 failed_check:
+
 	if (fbi->mach_info->teardown)
+	{
 		fbi->mach_info->teardown(pdev);
+	}
+
 failed_resource:
 	ep93xxfb_dealloc_videomem(info);
 failed_videomem:
@@ -586,14 +648,17 @@ static int ep93xxfb_remove(struct platform_device *pdev)
 	fb_dealloc_cmap(&info->cmap);
 
 	if (fbi->mach_info->teardown)
+	{
 		fbi->mach_info->teardown(pdev);
+	}
 
 	kfree(info);
 
 	return 0;
 }
 
-static struct platform_driver ep93xxfb_driver = {
+static struct platform_driver ep93xxfb_driver =
+{
 	.probe		= ep93xxfb_probe,
 	.remove		= ep93xxfb_remove,
 	.driver = {
@@ -605,5 +670,5 @@ module_platform_driver(ep93xxfb_driver);
 MODULE_DESCRIPTION("EP93XX Framebuffer Driver");
 MODULE_ALIAS("platform:ep93xx-fb");
 MODULE_AUTHOR("Ryan Mallon, "
-	      "H Hartley Sweeten <hsweeten@visionengravers.com");
+			  "H Hartley Sweeten <hsweeten@visionengravers.com");
 MODULE_LICENSE("GPL");

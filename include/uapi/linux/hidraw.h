@@ -18,12 +18,14 @@
 #include <linux/hid.h>
 #include <linux/types.h>
 
-struct hidraw_report_descriptor {
+struct hidraw_report_descriptor
+{
 	__u32 size;
 	__u8 value[HID_MAX_DESCRIPTOR_SIZE];
 };
 
-struct hidraw_devinfo {
+struct hidraw_devinfo
+{
 	__u32 bustype;
 	__s16 vendor;
 	__s16 product;

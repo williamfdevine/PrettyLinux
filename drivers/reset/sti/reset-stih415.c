@@ -54,7 +54,8 @@ static const char stih415_lpm[] = "st,stih415-lpm-syscfg";
 #define SYSCFG_31	0x7c /* Softreset Ethernet 1 */
 #define LPM_SYSCFG_1	0x4 /* Softreset IRB */
 
-static const struct syscfg_reset_channel_data stih415_powerdowns[] = {
+static const struct syscfg_reset_channel_data stih415_powerdowns[] =
+{
 	[STIH415_EMISS_POWERDOWN]	= STIH415_PDN_FRONT(0),
 	[STIH415_NAND_POWERDOWN]	= STIH415_PDN_FRONT(1),
 	[STIH415_KEYSCAN_POWERDOWN]	= STIH415_PDN_FRONT(2),
@@ -66,7 +67,8 @@ static const struct syscfg_reset_channel_data stih415_powerdowns[] = {
 	[STIH415_PCIE_POWERDOWN]	= STIH415_PDN_REAR(5, 8),
 };
 
-static const struct syscfg_reset_channel_data stih415_softresets[] = {
+static const struct syscfg_reset_channel_data stih415_softresets[] =
+{
 	[STIH415_ETH0_SOFTRESET] = STIH415_SRST_FRONT(SYSCFG_166, 0),
 	[STIH415_ETH1_SOFTRESET] = STIH415_SRST_SBC(SYSCFG_31, 0),
 	[STIH415_IRB_SOFTRESET]	 = STIH415_SRST_LPM(LPM_SYSCFG_1, 6),
@@ -76,28 +78,36 @@ static const struct syscfg_reset_channel_data stih415_softresets[] = {
 	[STIH415_KEYSCAN_SOFTRESET] = STIH415_SRST_LPM(LPM_SYSCFG_1, 8),
 };
 
-static struct syscfg_reset_controller_data stih415_powerdown_controller = {
+static struct syscfg_reset_controller_data stih415_powerdown_controller =
+{
 	.wait_for_ack = true,
 	.nr_channels = ARRAY_SIZE(stih415_powerdowns),
 	.channels = stih415_powerdowns,
 };
 
-static struct syscfg_reset_controller_data stih415_softreset_controller = {
+static struct syscfg_reset_controller_data stih415_softreset_controller =
+{
 	.wait_for_ack = false,
 	.active_low = true,
 	.nr_channels = ARRAY_SIZE(stih415_softresets),
 	.channels = stih415_softresets,
 };
 
-static const struct of_device_id stih415_reset_match[] = {
-	{ .compatible = "st,stih415-powerdown",
-	  .data = &stih415_powerdown_controller, },
-	{ .compatible = "st,stih415-softreset",
-	  .data = &stih415_softreset_controller, },
+static const struct of_device_id stih415_reset_match[] =
+{
+	{
+		.compatible = "st,stih415-powerdown",
+		.data = &stih415_powerdown_controller,
+	},
+	{
+		.compatible = "st,stih415-softreset",
+		.data = &stih415_softreset_controller,
+	},
 	{},
 };
 
-static struct platform_driver stih415_reset_driver = {
+static struct platform_driver stih415_reset_driver =
+{
 	.probe = syscfg_reset_probe,
 	.driver = {
 		.name = "reset-stih415",

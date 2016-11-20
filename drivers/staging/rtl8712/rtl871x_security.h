@@ -40,17 +40,19 @@
 #define _WPA2_IE_ID_	0x30
 
 #ifndef Ndis802_11AuthModeWPA2
-#define Ndis802_11AuthModeWPA2 (Ndis802_11AuthModeWPANone + 1)
+	#define Ndis802_11AuthModeWPA2 (Ndis802_11AuthModeWPANone + 1)
 #endif
 
 #ifndef Ndis802_11AuthModeWPA2PSK
-#define Ndis802_11AuthModeWPA2PSK (Ndis802_11AuthModeWPANone + 2)
+	#define Ndis802_11AuthModeWPA2PSK (Ndis802_11AuthModeWPANone + 2)
 #endif
 
-union pn48 {
+union pn48
+{
 	u64 val;
 #if defined(__BIG_ENDIAN)
-	struct {
+	struct
+	{
 		u8 TSC7;
 		u8 TSC6;
 		u8 TSC5;
@@ -61,7 +63,8 @@ union pn48 {
 		u8 TSC0;
 	} _byte_;
 #else
-	struct {
+	struct
+	{
 		u8 TSC0;
 		u8 TSC1;
 		u8 TSC2;
@@ -74,12 +77,14 @@ union pn48 {
 #endif
 };
 
-union Keytype {
+union Keytype
+{
 	u8 skey[16];
 	u32 lkey[4];
 };
 
-struct RT_PMKID_LIST {
+struct RT_PMKID_LIST
+{
 	u8 bUsed;
 	u8 Bssid[6];
 	u8 PMKID[16];
@@ -88,7 +93,8 @@ struct RT_PMKID_LIST {
 	u16 ssid_length;
 };
 
-struct security_priv {
+struct security_priv
+{
 	u32 AuthAlgrthm;		/* 802.11 auth, could be open, shared,
 					 * 8021x and authswitch
 					 */
@@ -113,7 +119,7 @@ struct security_priv {
 	union pn48 Grprxpn;		/* PN48 used for Grp Key recv. */
 	u8 wps_hw_pbc_pressed;/*for hw pbc pressed*/
 	u8 wps_phase;/*for wps*/
-	u8 wps_ie[MAX_WPA_IE_LEN<<2];
+	u8 wps_ie[MAX_WPA_IE_LEN << 2];
 	int wps_ie_len;
 	u8	binstallGrpkey;
 	u8	busetkipkey;
@@ -150,57 +156,58 @@ struct security_priv {
 };
 
 #define GET_ENCRY_ALGO(psecuritypriv, psta, encry_algo, bmcst) \
-do { \
-	switch (psecuritypriv->AuthAlgrthm) { \
-	case 0: \
-	case 1: \
-	case 3: \
-		encry_algo = (u8)psecuritypriv->PrivacyAlgrthm; \
-		break; \
-	case 2: \
-		if (bmcst) \
-			encry_algo = (u8)psecuritypriv->XGrpPrivacy; \
-		else \
-			encry_algo = (u8)psta->XPrivacy; \
-		break; \
-	} \
-} while (0)
+	do { \
+		switch (psecuritypriv->AuthAlgrthm) { \
+			case 0: \
+			case 1: \
+			case 3: \
+				encry_algo = (u8)psecuritypriv->PrivacyAlgrthm; \
+				break; \
+			case 2: \
+				if (bmcst) \
+					encry_algo = (u8)psecuritypriv->XGrpPrivacy; \
+				else \
+					encry_algo = (u8)psta->XPrivacy; \
+				break; \
+		} \
+	} while (0)
 #define SET_ICE_IV_LEN(iv_len, icv_len, encrypt)\
-do {\
-	switch (encrypt) { \
-	case _WEP40_: \
-	case _WEP104_: \
-		iv_len = 4; \
-		icv_len = 4; \
-		break; \
-	case _TKIP_: \
-		iv_len = 8; \
-		icv_len = 4; \
-		break; \
-	case _AES_: \
-		iv_len = 8; \
-		icv_len = 8; \
-		break; \
-	default: \
-		iv_len = 0; \
-		icv_len = 0; \
-		break; \
-	} \
-} while (0)
+	do {\
+		switch (encrypt) { \
+			case _WEP40_: \
+			case _WEP104_: \
+				iv_len = 4; \
+				icv_len = 4; \
+				break; \
+			case _TKIP_: \
+				iv_len = 8; \
+				icv_len = 4; \
+				break; \
+			case _AES_: \
+				iv_len = 8; \
+				icv_len = 8; \
+				break; \
+			default: \
+				iv_len = 0; \
+				icv_len = 0; \
+				break; \
+		} \
+	} while (0)
 #define GET_TKIP_PN(iv, txpn) \
-do {\
-	txpn._byte_.TSC0 = iv[2];\
-	txpn._byte_.TSC1 = iv[0];\
-	txpn._byte_.TSC2 = iv[4];\
-	txpn._byte_.TSC3 = iv[5];\
-	txpn._byte_.TSC4 = iv[6];\
-	txpn._byte_.TSC5 = iv[7];\
-} while (0)
+	do {\
+		txpn._byte_.TSC0 = iv[2];\
+		txpn._byte_.TSC1 = iv[0];\
+		txpn._byte_.TSC2 = iv[4];\
+		txpn._byte_.TSC3 = iv[5];\
+		txpn._byte_.TSC4 = iv[6];\
+		txpn._byte_.TSC5 = iv[7];\
+	} while (0)
 
 #define ROL32(A, n) (((A) << (n)) | (((A)>>(32-(n)))  & ((1UL << (n)) - 1)))
 #define ROR32(A, n) ROL32((A), 32 - (n))
 
-struct mic_data {
+struct mic_data
+{
 	u32  K0, K1;         /* Key */
 	u32  L, R;           /* Current state */
 	u32  M;              /* Message accumulator (single word) */

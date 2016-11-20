@@ -22,27 +22,27 @@ static inline int __debug_locks_off(void)
 extern int debug_locks_off(void);
 
 #define DEBUG_LOCKS_WARN_ON(c)						\
-({									\
-	int __ret = 0;							\
-									\
-	if (!oops_in_progress && unlikely(c)) {				\
-		if (debug_locks_off() && !debug_locks_silent)		\
-			WARN(1, "DEBUG_LOCKS_WARN_ON(%s)", #c);		\
-		__ret = 1;						\
-	}								\
-	__ret;								\
-})
+	({									\
+		int __ret = 0;							\
+		\
+		if (!oops_in_progress && unlikely(c)) {				\
+			if (debug_locks_off() && !debug_locks_silent)		\
+				WARN(1, "DEBUG_LOCKS_WARN_ON(%s)", #c);		\
+			__ret = 1;						\
+		}								\
+		__ret;								\
+	})
 
 #ifdef CONFIG_SMP
-# define SMP_DEBUG_LOCKS_WARN_ON(c)			DEBUG_LOCKS_WARN_ON(c)
+	#define SMP_DEBUG_LOCKS_WARN_ON(c)			DEBUG_LOCKS_WARN_ON(c)
 #else
-# define SMP_DEBUG_LOCKS_WARN_ON(c)			do { } while (0)
+	#define SMP_DEBUG_LOCKS_WARN_ON(c)			do { } while (0)
 #endif
 
 #ifdef CONFIG_DEBUG_LOCKING_API_SELFTESTS
-  extern void locking_selftest(void);
+	extern void locking_selftest(void);
 #else
-# define locking_selftest()	do { } while (0)
+	#define locking_selftest()	do { } while (0)
 #endif
 
 struct task_struct;

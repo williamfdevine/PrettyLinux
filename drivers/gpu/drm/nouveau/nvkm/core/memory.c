@@ -26,7 +26,7 @@
 
 void
 nvkm_memory_ctor(const struct nvkm_memory_func *func,
-		 struct nvkm_memory *memory)
+				 struct nvkm_memory *memory)
 {
 	memory->func = func;
 }
@@ -35,9 +35,14 @@ void
 nvkm_memory_del(struct nvkm_memory **pmemory)
 {
 	struct nvkm_memory *memory = *pmemory;
-	if (memory && !WARN_ON(!memory->func)) {
+
+	if (memory && !WARN_ON(!memory->func))
+	{
 		if (memory->func->dtor)
+		{
 			*pmemory = memory->func->dtor(memory);
+		}
+
 		kfree(*pmemory);
 		*pmemory = NULL;
 	}
@@ -45,19 +50,24 @@ nvkm_memory_del(struct nvkm_memory **pmemory)
 
 int
 nvkm_memory_new(struct nvkm_device *device, enum nvkm_memory_target target,
-		u64 size, u32 align, bool zero,
-		struct nvkm_memory **pmemory)
+				u64 size, u32 align, bool zero,
+				struct nvkm_memory **pmemory)
 {
 	struct nvkm_instmem *imem = device->imem;
 	struct nvkm_memory *memory;
 	int ret = -ENOSYS;
 
 	if (unlikely(target != NVKM_MEM_TARGET_INST || !imem))
+	{
 		return -ENOSYS;
+	}
 
 	ret = nvkm_instobj_new(imem, size, align, zero, &memory);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*pmemory = memory;
 	return 0;

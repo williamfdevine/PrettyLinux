@@ -44,7 +44,8 @@ EXPORT_SYMBOL_GPL(hest_disable);
 
 static struct acpi_table_hest *__read_mostly hest_tab;
 
-static const int hest_esrc_len_tab[ACPI_HEST_TYPE_RESERVED] = {
+static const int hest_esrc_len_tab[ACPI_HEST_TYPE_RESERVED] =
+{
 	[ACPI_HEST_TYPE_IA32_CHECK] = -1,	/* need further calculation */
 	[ACPI_HEST_TYPE_IA32_CORRECTED_CHECK] = -1,
 	[ACPI_HEST_TYPE_IA32_NMI] = sizeof(struct acpi_hest_ia_nmi),
@@ -60,21 +61,27 @@ static int hest_esrc_len(struct acpi_hest_header *hest_hdr)
 	int len;
 
 	if (hest_type >= ACPI_HEST_TYPE_RESERVED)
+	{
 		return 0;
+	}
 
 	len = hest_esrc_len_tab[hest_type];
 
-	if (hest_type == ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) {
+	if (hest_type == ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
+	{
 		struct acpi_hest_ia_corrected *cmc;
 		cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
 		len = sizeof(*cmc) + cmc->num_hardware_banks *
-			sizeof(struct acpi_hest_ia_error_bank);
-	} else if (hest_type == ACPI_HEST_TYPE_IA32_CHECK) {
+			  sizeof(struct acpi_hest_ia_error_bank);
+	}
+	else if (hest_type == ACPI_HEST_TYPE_IA32_CHECK)
+	{
 		struct acpi_hest_ia_machine_check *mc;
 		mc = (struct acpi_hest_ia_machine_check *)hest_hdr;
 		len = sizeof(*mc) + mc->num_hardware_banks *
-			sizeof(struct acpi_hest_ia_error_bank);
+			  sizeof(struct acpi_hest_ia_error_bank);
 	}
+
 	BUG_ON(len == -1);
 
 	return len;
@@ -86,29 +93,40 @@ int apei_hest_parse(apei_hest_func_t func, void *data)
 	int i, rc, len;
 
 	if (hest_disable || !hest_tab)
+	{
 		return -EINVAL;
+	}
 
 	hest_hdr = (struct acpi_hest_header *)(hest_tab + 1);
-	for (i = 0; i < hest_tab->error_source_count; i++) {
+
+	for (i = 0; i < hest_tab->error_source_count; i++)
+	{
 		len = hest_esrc_len(hest_hdr);
-		if (!len) {
+
+		if (!len)
+		{
 			pr_warning(FW_WARN HEST_PFX
-				   "Unknown or unused hardware error source "
-				   "type: %d for hardware error source: %d.\n",
-				   hest_hdr->type, hest_hdr->source_id);
+					   "Unknown or unused hardware error source "
+					   "type: %d for hardware error source: %d.\n",
+					   hest_hdr->type, hest_hdr->source_id);
 			return -EINVAL;
 		}
+
 		if ((void *)hest_hdr + len >
-		    (void *)hest_tab + hest_tab->header.length) {
+			(void *)hest_tab + hest_tab->header.length)
+		{
 			pr_warning(FW_BUG HEST_PFX
-		"Table contents overflow for hardware error source: %d.\n",
-				hest_hdr->source_id);
+					   "Table contents overflow for hardware error source: %d.\n",
+					   hest_hdr->source_id);
 			return -EINVAL;
 		}
 
 		rc = func(hest_hdr, data);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		hest_hdr = (void *)hest_hdr + len;
 	}
@@ -126,7 +144,8 @@ static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
 	return arch_apei_enable_cmcff(hest_hdr, data);
 }
 
-struct ghes_arr {
+struct ghes_arr
+{
 	struct platform_device **ghes_devs;
 	unsigned int count;
 };
@@ -136,7 +155,10 @@ static int __init hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void 
 	int *count = data;
 
 	if (hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR)
+	{
 		(*count)++;
+	}
+
 	return 0;
 }
 
@@ -147,31 +169,50 @@ static int __init hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
 	int rc, i;
 
 	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
+	{
 		return 0;
+	}
 
 	if (!((struct acpi_hest_generic *)hest_hdr)->enabled)
+	{
 		return 0;
-	for (i = 0; i < ghes_arr->count; i++) {
+	}
+
+	for (i = 0; i < ghes_arr->count; i++)
+	{
 		struct acpi_hest_header *hdr;
 		ghes_dev = ghes_arr->ghes_devs[i];
 		hdr = *(struct acpi_hest_header **)ghes_dev->dev.platform_data;
-		if (hdr->source_id == hest_hdr->source_id) {
+
+		if (hdr->source_id == hest_hdr->source_id)
+		{
 			pr_warning(FW_WARN HEST_PFX "Duplicated hardware error source ID: %d.\n",
-				   hdr->source_id);
+					   hdr->source_id);
 			return -EIO;
 		}
 	}
+
 	ghes_dev = platform_device_alloc("GHES", hest_hdr->source_id);
+
 	if (!ghes_dev)
+	{
 		return -ENOMEM;
+	}
 
 	rc = platform_device_add_data(ghes_dev, &hest_hdr, sizeof(void *));
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	rc = platform_device_add(ghes_dev);
+
 	if (rc)
+	{
 		goto err;
+	}
+
 	ghes_arr->ghes_devs[ghes_arr->count++] = ghes_dev;
 
 	return 0;
@@ -187,18 +228,29 @@ static int __init hest_ghes_dev_register(unsigned int ghes_count)
 
 	ghes_arr.count = 0;
 	ghes_arr.ghes_devs = kmalloc(sizeof(void *) * ghes_count, GFP_KERNEL);
+
 	if (!ghes_arr.ghes_devs)
+	{
 		return -ENOMEM;
+	}
 
 	rc = apei_hest_parse(hest_parse_ghes, &ghes_arr);
+
 	if (rc)
+	{
 		goto err;
+	}
+
 out:
 	kfree(ghes_arr.ghes_devs);
 	return rc;
 err:
+
 	for (i = 0; i < ghes_arr.count; i++)
+	{
 		platform_device_unregister(ghes_arr.ghes_devs[i]);
+	}
+
 	goto out;
 }
 
@@ -216,16 +268,21 @@ void __init acpi_hest_init(void)
 	int rc = -ENODEV;
 	unsigned int ghes_count = 0;
 
-	if (hest_disable) {
+	if (hest_disable)
+	{
 		pr_info(HEST_PFX "Table parsing disabled.\n");
 		return;
 	}
 
 	status = acpi_get_table(ACPI_SIG_HEST, 0,
-				(struct acpi_table_header **)&hest_tab);
+							(struct acpi_table_header **)&hest_tab);
+
 	if (status == AE_NOT_FOUND)
+	{
 		goto err;
-	else if (ACPI_FAILURE(status)) {
+	}
+	else if (ACPI_FAILURE(status))
+	{
 		const char *msg = acpi_format_exception(status);
 		pr_err(HEST_PFX "Failed to get table, %s\n", msg);
 		rc = -EINVAL;
@@ -233,15 +290,25 @@ void __init acpi_hest_init(void)
 	}
 
 	if (!acpi_disable_cmcff)
+	{
 		apei_hest_parse(hest_parse_cmc, NULL);
+	}
 
-	if (!ghes_disable) {
+	if (!ghes_disable)
+	{
 		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
+
 		if (rc)
+		{
 			goto err;
+		}
+
 		rc = hest_ghes_dev_register(ghes_count);
+
 		if (rc)
+		{
 			goto err;
+		}
 	}
 
 	pr_info(HEST_PFX "Table parsing has been initialized.\n");

@@ -41,7 +41,8 @@
 
 #define ATMEL_STS_OK 1
 
-struct priv_data {
+struct priv_data
+{
 	size_t len;
 	/* This is the amount we read on the first try. 25 was chosen to fit a
 	 * fair number of read responses in the buffer so a 2nd retry can be
@@ -58,13 +59,15 @@ static int i2c_atmel_send(struct tpm_chip *chip, u8 *buf, size_t len)
 	priv->len = 0;
 
 	if (len <= 2)
+	{
 		return -EIO;
+	}
 
 	status = i2c_master_send(client, buf, len);
 
 	dev_dbg(&chip->dev,
-		"%s(buf=%*ph len=%0zx) -> sts=%d\n", __func__,
-		(int)min_t(size_t, 64, len), buf, len, status);
+			"%s(buf=%*ph len=%0zx) -> sts=%d\n", __func__,
+			(int)min_t(size_t, 64, len), buf, len, status);
 	return status;
 }
 
@@ -78,29 +81,35 @@ static int i2c_atmel_recv(struct tpm_chip *chip, u8 *buf, size_t count)
 	int rc;
 
 	if (priv->len == 0)
+	{
 		return -EIO;
+	}
 
 	/* Get the message size from the message header, if we didn't get the
 	 * whole message in read_status then we need to re-read the
 	 * message. */
 	expected_len = be32_to_cpu(hdr->length);
-	if (expected_len > count)
-		return -ENOMEM;
 
-	if (priv->len >= expected_len) {
+	if (expected_len > count)
+	{
+		return -ENOMEM;
+	}
+
+	if (priv->len >= expected_len)
+	{
 		dev_dbg(&chip->dev,
-			"%s early(buf=%*ph count=%0zx) -> ret=%d\n", __func__,
-			(int)min_t(size_t, 64, expected_len), buf, count,
-			expected_len);
+				"%s early(buf=%*ph count=%0zx) -> ret=%d\n", __func__,
+				(int)min_t(size_t, 64, expected_len), buf, count,
+				expected_len);
 		memcpy(buf, priv->buffer, expected_len);
 		return expected_len;
 	}
 
 	rc = i2c_master_recv(client, buf, expected_len);
 	dev_dbg(&chip->dev,
-		"%s reread(buf=%*ph count=%0zx) -> ret=%d\n", __func__,
-		(int)min_t(size_t, 64, expected_len), buf, count,
-		expected_len);
+			"%s reread(buf=%*ph count=%0zx) -> ret=%d\n", __func__,
+			(int)min_t(size_t, 64, expected_len), buf, count,
+			expected_len);
 	return rc;
 }
 
@@ -126,9 +135,12 @@ static u8 i2c_atmel_read_status(struct tpm_chip *chip)
 	 * until another command is issued. */
 	rc = i2c_master_recv(client, priv->buffer, sizeof(priv->buffer));
 	dev_dbg(&chip->dev,
-		"%s: sts=%d", __func__, rc);
+			"%s: sts=%d", __func__, rc);
+
 	if (rc <= 0)
+	{
 		return 0;
+	}
 
 	priv->len = rc;
 
@@ -140,7 +152,8 @@ static bool i2c_atmel_req_canceled(struct tpm_chip *chip, u8 status)
 	return false;
 }
 
-static const struct tpm_class_ops i2c_atmel = {
+static const struct tpm_class_ops i2c_atmel =
+{
 	.flags = TPM_OPS_AUTO_STARTUP,
 	.status = i2c_atmel_read_status,
 	.recv = i2c_atmel_recv,
@@ -152,22 +165,30 @@ static const struct tpm_class_ops i2c_atmel = {
 };
 
 static int i2c_atmel_probe(struct i2c_client *client,
-			   const struct i2c_device_id *id)
+						   const struct i2c_device_id *id)
 {
 	struct tpm_chip *chip;
 	struct device *dev = &client->dev;
 	struct priv_data *priv;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		return -ENODEV;
+	}
 
 	chip = tpmm_chip_alloc(dev, &i2c_atmel);
+
 	if (IS_ERR(chip))
+	{
 		return PTR_ERR(chip);
+	}
 
 	priv = devm_kzalloc(dev, sizeof(struct priv_data), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	/* Default timeouts */
 	chip->timeout_a = msecs_to_jiffies(TPM_I2C_SHORT_TIMEOUT);
@@ -192,14 +213,16 @@ static int i2c_atmel_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id i2c_atmel_id[] = {
+static const struct i2c_device_id i2c_atmel_id[] =
+{
 	{I2C_DRIVER_NAME, 0},
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, i2c_atmel_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id i2c_atmel_of_match[] = {
+static const struct of_device_id i2c_atmel_of_match[] =
+{
 	{.compatible = "atmel,at97sc3204t"},
 	{},
 };
@@ -208,7 +231,8 @@ MODULE_DEVICE_TABLE(of, i2c_atmel_of_match);
 
 static SIMPLE_DEV_PM_OPS(i2c_atmel_pm_ops, tpm_pm_suspend, tpm_pm_resume);
 
-static struct i2c_driver i2c_atmel_driver = {
+static struct i2c_driver i2c_atmel_driver =
+{
 	.id_table = i2c_atmel_id,
 	.probe = i2c_atmel_probe,
 	.remove = i2c_atmel_remove,

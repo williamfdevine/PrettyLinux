@@ -16,7 +16,8 @@
  * the first element of the structure is the backend number and the rest
  * is per-backend specific
  */
-struct atm_backend_ppp {
+struct atm_backend_ppp
+{
 	atm_backend_t	backend_num;	/* ATM_BACKEND_PPP */
 	int		encaps;		/* PPPOATM_ENCAPS_* */
 };

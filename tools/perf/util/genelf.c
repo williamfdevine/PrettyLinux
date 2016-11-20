@@ -31,33 +31,36 @@
 
 #ifdef HAVE_LIBCRYPTO
 
-#define BUILD_ID_MD5
-#undef BUILD_ID_SHA	/* does not seem to work well when linked with Java */
-#undef BUILD_ID_URANDOM /* different uuid for each run */
+	#define BUILD_ID_MD5
+	#undef BUILD_ID_SHA	/* does not seem to work well when linked with Java */
+	#undef BUILD_ID_URANDOM /* different uuid for each run */
 
-#ifdef BUILD_ID_SHA
-#include <openssl/sha.h>
+	#ifdef BUILD_ID_SHA
+		#include <openssl/sha.h>
+	#endif
+
+	#ifdef BUILD_ID_MD5
+		#include <openssl/md5.h>
+	#endif
 #endif
 
-#ifdef BUILD_ID_MD5
-#include <openssl/md5.h>
-#endif
-#endif
 
-
-typedef struct {
-  unsigned int namesz;  /* Size of entry's owner string */
-  unsigned int descsz;  /* Size of the note descriptor */
-  unsigned int type;    /* Interpretation of the descriptor */
-  char         name[0]; /* Start of the name+desc data */
+typedef struct
+{
+	unsigned int namesz;  /* Size of entry's owner string */
+	unsigned int descsz;  /* Size of the note descriptor */
+	unsigned int type;    /* Interpretation of the descriptor */
+	char         name[0]; /* Start of the name+desc data */
 } Elf_Note;
 
-struct options {
+struct options
+{
 	char *output;
 	int fd;
 };
 
-static char shd_string_table[] = {
+static char shd_string_table[] =
+{
 	0,
 	'.', 't', 'e', 'x', 't', 0,			/*  1 */
 	'.', 's', 'h', 's', 't', 'r', 't', 'a', 'b', 0, /*  7 */
@@ -69,63 +72,74 @@ static char shd_string_table[] = {
 	'.', 'd', 'e', 'b', 'u', 'g', '_', 'a', 'b', 'b', 'r', 'e', 'v', 0, /* 76 */
 };
 
-static struct buildid_note {
+static struct buildid_note
+{
 	Elf_Note desc;		/* descsz: size of build-id, must be multiple of 4 */
 	char	 name[4];	/* GNU\0 */
 	char	 build_id[20];
 } bnote;
 
-static Elf_Sym symtab[]={
+static Elf_Sym symtab[] =
+{
 	/* symbol 0 MUST be the undefined symbol */
-	{ .st_name  = 0, /* index in sym_string table */
-	  .st_info  = ELF_ST_TYPE(STT_NOTYPE),
-	  .st_shndx = 0, /* for now */
-	  .st_value = 0x0,
-	  .st_other = ELF_ST_VIS(STV_DEFAULT),
-	  .st_size  = 0,
+	{
+		.st_name  = 0, /* index in sym_string table */
+		.st_info  = ELF_ST_TYPE(STT_NOTYPE),
+		.st_shndx = 0, /* for now */
+		.st_value = 0x0,
+		.st_other = ELF_ST_VIS(STV_DEFAULT),
+		.st_size  = 0,
 	},
-	{ .st_name  = 1, /* index in sym_string table */
-	  .st_info  = ELF_ST_BIND(STB_LOCAL) | ELF_ST_TYPE(STT_FUNC),
-	  .st_shndx = 1,
-	  .st_value = 0, /* for now */
-	  .st_other = ELF_ST_VIS(STV_DEFAULT),
-	  .st_size  = 0, /* for now */
+	{
+		.st_name  = 1, /* index in sym_string table */
+		.st_info  = ELF_ST_BIND(STB_LOCAL) | ELF_ST_TYPE(STT_FUNC),
+		.st_shndx = 1,
+		.st_value = 0, /* for now */
+		.st_other = ELF_ST_VIS(STV_DEFAULT),
+		.st_size  = 0, /* for now */
 	}
 };
 
 #ifdef BUILD_ID_URANDOM
 static void
 gen_build_id(struct buildid_note *note,
-	     unsigned long load_addr __maybe_unused,
-	     const void *code __maybe_unused,
-	     size_t csize __maybe_unused)
+			 unsigned long load_addr __maybe_unused,
+			 const void *code __maybe_unused,
+			 size_t csize __maybe_unused)
 {
 	int fd;
 	size_t sz = sizeof(note->build_id);
 	ssize_t sret;
 
 	fd = open("/dev/urandom", O_RDONLY);
+
 	if (fd == -1)
+	{
 		err(1, "cannot access /dev/urandom for builid");
+	}
 
 	sret = read(fd, note->build_id, sz);
 
 	close(fd);
 
 	if (sret != (ssize_t)sz)
+	{
 		memset(note->build_id, 0, sz);
+	}
 }
 #endif
 
 #ifdef BUILD_ID_SHA
 static void
 gen_build_id(struct buildid_note *note,
-	     unsigned long load_addr __maybe_unused,
-	     const void *code,
-	     size_t csize)
+			 unsigned long load_addr __maybe_unused,
+			 const void *code,
+			 size_t csize)
 {
 	if (sizeof(note->build_id) < SHA_DIGEST_LENGTH)
+	{
 		errx(1, "build_id too small for SHA1");
+	}
 
 	SHA1(code, csize, (unsigned char *)note->build_id);
 }
@@ -138,7 +152,9 @@ gen_build_id(struct buildid_note *note, unsigned long load_addr, const void *cod
 	MD5_CTX context;
 
 	if (sizeof(note->build_id) < 16)
+	{
 		errx(1, "build_id too small for MD5");
+	}
 
 	MD5_Init(&context);
 	MD5_Update(&context, &load_addr, sizeof(load_addr));
@@ -156,8 +172,8 @@ gen_build_id(struct buildid_note *note, unsigned long load_addr, const void *cod
  */
 int
 jit_write_elf(int fd, uint64_t load_addr, const char *sym,
-	      const void *code, int csize,
-	      void *debug, int nr_debug_entries)
+			  const void *code, int csize,
+			  void *debug, int nr_debug_entries)
 {
 	Elf *e;
 	Elf_Data *d;
@@ -168,13 +184,16 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	int symlen;
 	int retval = -1;
 
-	if (elf_version(EV_CURRENT) == EV_NONE) {
+	if (elf_version(EV_CURRENT) == EV_NONE)
+	{
 		warnx("ELF initialization failed");
 		return -1;
 	}
 
 	e = elf_begin(fd, ELF_C_WRITE, NULL);
-	if (!e) {
+
+	if (!e)
+	{
 		warnx("elf_begin failed");
 		goto error;
 	}
@@ -183,7 +202,9 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	 * setup ELF header
 	 */
 	ehdr = elf_newehdr(e);
-	if (!ehdr) {
+
+	if (!ehdr)
+	{
 		warnx("cannot get ehdr");
 		goto error;
 	}
@@ -194,19 +215,23 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	ehdr->e_type = ET_DYN;
 	ehdr->e_entry = GEN_ELF_TEXT_OFFSET;
 	ehdr->e_version = EV_CURRENT;
-	ehdr->e_shstrndx= 2; /* shdr index for section name */
+	ehdr->e_shstrndx = 2; /* shdr index for section name */
 
 	/*
 	 * setup text section
 	 */
 	scn = elf_newscn(e);
-	if (!scn) {
+
+	if (!scn)
+	{
 		warnx("cannot create section");
 		goto error;
 	}
 
 	d = elf_newdata(scn);
-	if (!d) {
+
+	if (!d)
+	{
 		warnx("cannot get new data");
 		goto error;
 	}
@@ -219,7 +244,9 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	d->d_version = EV_CURRENT;
 
 	shdr = elf_getshdr(scn);
-	if (!shdr) {
+
+	if (!shdr)
+	{
 		warnx("cannot get section header");
 		goto error;
 	}
@@ -234,13 +261,17 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	 * setup section headers string table
 	 */
 	scn = elf_newscn(e);
-	if (!scn) {
+
+	if (!scn)
+	{
 		warnx("cannot create section");
 		goto error;
 	}
 
 	d = elf_newdata(scn);
-	if (!d) {
+
+	if (!d)
+	{
 		warnx("cannot get new data");
 		goto error;
 	}
@@ -253,7 +284,9 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	d->d_version = EV_CURRENT;
 
 	shdr = elf_getshdr(scn);
-	if (!shdr) {
+
+	if (!shdr)
+	{
 		warnx("cannot get section header");
 		goto error;
 	}
@@ -270,13 +303,17 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	symtab[1].st_value = GEN_ELF_TEXT_OFFSET;
 
 	scn = elf_newscn(e);
-	if (!scn) {
+
+	if (!scn)
+	{
 		warnx("cannot create section");
 		goto error;
 	}
 
 	d = elf_newdata(scn);
-	if (!d) {
+
+	if (!d)
+	{
 		warnx("cannot get new data");
 		goto error;
 	}
@@ -289,7 +326,9 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	d->d_version = EV_CURRENT;
 
 	shdr = elf_getshdr(scn);
-	if (!shdr) {
+
+	if (!shdr)
+	{
 		warnx("cannot get section header");
 		goto error;
 	}
@@ -306,20 +345,27 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	 */
 	symlen = 2 + strlen(sym);
 	strsym = calloc(1, symlen);
-	if (!strsym) {
+
+	if (!strsym)
+	{
 		warnx("cannot allocate strsym");
 		goto error;
 	}
+
 	strcpy(strsym + 1, sym);
 
 	scn = elf_newscn(e);
-	if (!scn) {
+
+	if (!scn)
+	{
 		warnx("cannot create section");
 		goto error;
 	}
 
 	d = elf_newdata(scn);
-	if (!d) {
+
+	if (!d)
+	{
 		warnx("cannot get new data");
 		goto error;
 	}
@@ -332,7 +378,9 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	d->d_version = EV_CURRENT;
 
 	shdr = elf_getshdr(scn);
-	if (!shdr) {
+
+	if (!shdr)
+	{
 		warnx("cannot get section header");
 		goto error;
 	}
@@ -346,13 +394,17 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	 * setup build-id section
 	 */
 	scn = elf_newscn(e);
-	if (!scn) {
+
+	if (!scn)
+	{
 		warnx("cannot create section");
 		goto error;
 	}
 
 	d = elf_newdata(scn);
-	if (!d) {
+
+	if (!d)
+	{
 		warnx("cannot get new data");
 		goto error;
 	}
@@ -374,7 +426,9 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	d->d_version = EV_CURRENT;
 
 	shdr = elf_getshdr(scn);
-	if (!shdr) {
+
+	if (!shdr)
+	{
 		warnx("cannot get section header");
 		goto error;
 	}
@@ -386,12 +440,19 @@ jit_write_elf(int fd, uint64_t load_addr, const char *sym,
 	shdr->sh_size = sizeof(bnote);
 	shdr->sh_entsize = 0;
 
-	if (debug && nr_debug_entries) {
+	if (debug && nr_debug_entries)
+	{
 		retval = jit_add_debug_info(e, load_addr, debug, nr_debug_entries);
+
 		if (retval)
+		{
 			goto error;
-	} else {
-		if (elf_update(e, ELF_C_WRITE) < 0) {
+		}
+	}
+	else
+	{
+		if (elf_update(e, ELF_C_WRITE) < 0)
+		{
 			warnx("elf_update 4 failed");
 			goto error;
 		}
@@ -409,10 +470,11 @@ error:
 
 #ifndef JVMTI
 
-static unsigned char x86_code[] = {
-    0xBB, 0x2A, 0x00, 0x00, 0x00, /* movl $42, %ebx */
-    0xB8, 0x01, 0x00, 0x00, 0x00, /* movl $1, %eax */
-    0xCD, 0x80            /* int $0x80 */
+static unsigned char x86_code[] =
+{
+	0xBB, 0x2A, 0x00, 0x00, 0x00, /* movl $42, %ebx */
+	0xB8, 0x01, 0x00, 0x00, 0x00, /* movl $1, %eax */
+	0xCD, 0x80            /* int $0x80 */
 };
 
 static struct options options;
@@ -421,28 +483,37 @@ int main(int argc, char **argv)
 {
 	int c, fd, ret;
 
-	while ((c = getopt(argc, argv, "o:h")) != -1) {
-		switch (c) {
-		case 'o':
-			options.output = optarg;
-			break;
-		case 'h':
-			printf("Usage: genelf -o output_file [-h]\n");
-			return 0;
-		default:
-			errx(1, "unknown option");
+	while ((c = getopt(argc, argv, "o:h")) != -1)
+	{
+		switch (c)
+		{
+			case 'o':
+				options.output = optarg;
+				break;
+
+			case 'h':
+				printf("Usage: genelf -o output_file [-h]\n");
+				return 0;
+
+			default:
+				errx(1, "unknown option");
 		}
 	}
 
-	fd = open(options.output, O_CREAT|O_TRUNC|O_RDWR, 0666);
+	fd = open(options.output, O_CREAT | O_TRUNC | O_RDWR, 0666);
+
 	if (fd == -1)
+	{
 		err(1, "cannot create file %s", options.output);
+	}
 
 	ret = jit_write_elf(fd, "main", x86_code, sizeof(x86_code));
 	close(fd);
 
 	if (ret != 0)
+	{
 		unlink(options.output);
+	}
 
 	return ret;
 }

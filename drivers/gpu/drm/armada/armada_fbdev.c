@@ -17,7 +17,8 @@
 #include "armada_fb.h"
 #include "armada_gem.h"
 
-static /*const*/ struct fb_ops armada_fb_ops = {
+static /*const*/ struct fb_ops armada_fb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_check_var	= drm_fb_helper_check_var,
 	.fb_set_par	= drm_fb_helper_set_par,
@@ -32,7 +33,7 @@ static /*const*/ struct fb_ops armada_fb_ops = {
 };
 
 static int armada_fb_create(struct drm_fb_helper *fbh,
-	struct drm_fb_helper_surface_size *sizes)
+							struct drm_fb_helper_surface_size *sizes)
 {
 	struct drm_device *dev = fbh->dev;
 	struct drm_mode_fb_cmd2 mode;
@@ -47,23 +48,29 @@ static int armada_fb_create(struct drm_fb_helper *fbh,
 	mode.height = sizes->surface_height;
 	mode.pitches[0] = armada_pitch(mode.width, sizes->surface_bpp);
 	mode.pixel_format = drm_mode_legacy_fb_format(sizes->surface_bpp,
-					sizes->surface_depth);
+						sizes->surface_depth);
 
 	size = mode.pitches[0] * mode.height;
 	obj = armada_gem_alloc_private_object(dev, size);
-	if (!obj) {
+
+	if (!obj)
+	{
 		DRM_ERROR("failed to allocate fb memory\n");
 		return -ENOMEM;
 	}
 
 	ret = armada_gem_linear_back(dev, obj);
-	if (ret) {
+
+	if (ret)
+	{
 		drm_gem_object_unreference_unlocked(&obj->obj);
 		return ret;
 	}
 
 	ptr = armada_gem_map_object(dev, obj);
-	if (!ptr) {
+
+	if (!ptr)
+	{
 		drm_gem_object_unreference_unlocked(&obj->obj);
 		return -ENOMEM;
 	}
@@ -77,10 +84,14 @@ static int armada_fb_create(struct drm_fb_helper *fbh,
 	drm_gem_object_unreference_unlocked(&obj->obj);
 
 	if (IS_ERR(dfb))
+	{
 		return PTR_ERR(dfb);
+	}
 
 	info = drm_fb_helper_alloc_fbi(fbh);
-	if (IS_ERR(info)) {
+
+	if (IS_ERR(info))
+	{
 		ret = PTR_ERR(info);
 		goto err_fballoc;
 	}
@@ -99,30 +110,36 @@ static int armada_fb_create(struct drm_fb_helper *fbh,
 	drm_fb_helper_fill_var(info, fbh, sizes->fb_width, sizes->fb_height);
 
 	DRM_DEBUG_KMS("allocated %dx%d %dbpp fb: 0x%08llx\n",
-		dfb->fb.width, dfb->fb.height, dfb->fb.bits_per_pixel,
-		(unsigned long long)obj->phys_addr);
+				  dfb->fb.width, dfb->fb.height, dfb->fb.bits_per_pixel,
+				  (unsigned long long)obj->phys_addr);
 
 	return 0;
 
- err_fballoc:
+err_fballoc:
 	dfb->fb.funcs->destroy(&dfb->fb);
 	return ret;
 }
 
 static int armada_fb_probe(struct drm_fb_helper *fbh,
-	struct drm_fb_helper_surface_size *sizes)
+						   struct drm_fb_helper_surface_size *sizes)
 {
 	int ret = 0;
 
-	if (!fbh->fb) {
+	if (!fbh->fb)
+	{
 		ret = armada_fb_create(fbh, sizes);
+
 		if (ret == 0)
+		{
 			ret = 1;
+		}
 	}
+
 	return ret;
 }
 
-static const struct drm_fb_helper_funcs armada_fb_helper_funcs = {
+static const struct drm_fb_helper_funcs armada_fb_helper_funcs =
+{
 	.gamma_set	= armada_drm_crtc_gamma_set,
 	.gamma_get	= armada_drm_crtc_gamma_get,
 	.fb_probe	= armada_fb_probe,
@@ -135,36 +152,45 @@ int armada_fbdev_init(struct drm_device *dev)
 	int ret;
 
 	fbh = devm_kzalloc(dev->dev, sizeof(*fbh), GFP_KERNEL);
+
 	if (!fbh)
+	{
 		return -ENOMEM;
+	}
 
 	priv->fbdev = fbh;
 
 	drm_fb_helper_prepare(dev, fbh, &armada_fb_helper_funcs);
 
 	ret = drm_fb_helper_init(dev, fbh, 1, 1);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("failed to initialize drm fb helper\n");
 		goto err_fb_helper;
 	}
 
 	ret = drm_fb_helper_single_add_all_connectors(fbh);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("failed to add fb connectors\n");
 		goto err_fb_setup;
 	}
 
 	ret = drm_fb_helper_initial_config(fbh, 32);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("failed to set initial config\n");
 		goto err_fb_setup;
 	}
 
 	return 0;
- err_fb_setup:
+err_fb_setup:
 	drm_fb_helper_release_fbi(fbh);
 	drm_fb_helper_fini(fbh);
- err_fb_helper:
+err_fb_helper:
 	priv->fbdev = NULL;
 	return ret;
 }
@@ -174,7 +200,9 @@ void armada_fbdev_lastclose(struct drm_device *dev)
 	struct armada_private *priv = dev->dev_private;
 
 	if (priv->fbdev)
+	{
 		drm_fb_helper_restore_fbdev_mode_unlocked(priv->fbdev);
+	}
 }
 
 void armada_fbdev_fini(struct drm_device *dev)
@@ -182,14 +210,17 @@ void armada_fbdev_fini(struct drm_device *dev)
 	struct armada_private *priv = dev->dev_private;
 	struct drm_fb_helper *fbh = priv->fbdev;
 
-	if (fbh) {
+	if (fbh)
+	{
 		drm_fb_helper_unregister_fbi(fbh);
 		drm_fb_helper_release_fbi(fbh);
 
 		drm_fb_helper_fini(fbh);
 
 		if (fbh->fb)
+		{
 			fbh->fb->funcs->destroy(fbh->fb);
+		}
 
 		priv->fbdev = NULL;
 	}

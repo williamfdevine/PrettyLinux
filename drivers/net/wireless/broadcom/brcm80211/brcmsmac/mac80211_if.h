@@ -33,7 +33,8 @@
 /* softmac ioctl definitions */
 #define BRCMS_SET_SHORTSLOT_OVERRIDE		146
 
-struct brcms_timer {
+struct brcms_timer
+{
 	struct delayed_work dly_wrk;
 	struct brcms_info *wl;
 	void (*fn) (void *);	/* function called upon expiration */
@@ -47,20 +48,23 @@ struct brcms_timer {
 #endif
 };
 
-struct brcms_if {
+struct brcms_if
+{
 	uint subunit;		/* WDS/BSS unit */
 	struct pci_dev *pci_dev;
 };
 
 #define MAX_FW_IMAGES		4
-struct brcms_firmware {
+struct brcms_firmware
+{
 	u32 fw_cnt;
 	const struct firmware *fw_bin[MAX_FW_IMAGES];
 	const struct firmware *fw_hdr[MAX_FW_IMAGES];
 	u32 hdr_num_entries[MAX_FW_IMAGES];
 };
 
-struct brcms_info {
+struct brcms_info
+{
 	struct brcms_pub *pub;		/* pointer to public wlc state */
 	struct brcms_c_info *wlc;	/* pointer to private common data */
 	u32 magic;
@@ -96,13 +100,13 @@ void brcms_intrsrestore(struct brcms_info *wl, u32 macintmask);
 int brcms_up(struct brcms_info *wl);
 void brcms_down(struct brcms_info *wl);
 void brcms_txflowcontrol(struct brcms_info *wl, struct brcms_if *wlif,
-			 bool state, int prio);
+						 bool state, int prio);
 bool brcms_rfkill_set_hw_state(struct brcms_info *wl);
 
 /* timer functions */
 struct brcms_timer *brcms_init_timer(struct brcms_info *wl,
-				     void (*fn) (void *arg), void *arg,
-				     const char *name);
+									 void (*fn) (void *arg), void *arg,
+									 const char *name);
 void brcms_free_timer(struct brcms_timer *timer);
 void brcms_add_timer(struct brcms_timer *timer, uint ms, int periodic);
 bool brcms_del_timer(struct brcms_timer *timer);

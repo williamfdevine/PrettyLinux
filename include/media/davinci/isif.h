@@ -24,7 +24,8 @@
 #include <media/davinci/vpfe_types.h>
 
 /* isif float type S8Q8/U8Q8 */
-struct isif_float_8 {
+struct isif_float_8
+{
 	/* 8 bit integer part */
 	__u8 integer;
 	/* 8 bit decimal part */
@@ -32,7 +33,8 @@ struct isif_float_8 {
 };
 
 /* isif float type U16Q16/S16Q16 */
-struct isif_float_16 {
+struct isif_float_16
+{
 	/* 16 bit integer part */
 	__u16 integer;
 	/* 16 bit decimal part */
@@ -43,7 +45,8 @@ struct isif_float_16 {
  *   Vertical Defect Correction parameters
  ***********************************************************************/
 /* Defect Correction (DFC) table entry */
-struct isif_vdfc_entry {
+struct isif_vdfc_entry
+{
 	/* vertical position of defect */
 	__u16 pos_vert;
 	/* horizontal position of defect */
@@ -66,7 +69,8 @@ struct isif_vdfc_entry {
 };
 
 #define ISIF_VDFC_TABLE_SIZE		8
-struct isif_dfc {
+struct isif_dfc
+{
 	/* enable vertical defect correction */
 	__u8 en;
 	/* Defect level subtraction. Just fed through if saturating */
@@ -101,7 +105,8 @@ struct isif_dfc {
 	struct isif_vdfc_entry table[ISIF_VDFC_TABLE_SIZE];
 };
 
-struct isif_horz_bclamp {
+struct isif_horz_bclamp
+{
 
 	/* Horizontal clamp disabled. Only vertical clamp value is subtracted */
 #define	ISIF_HORZ_BC_DISABLE		0
@@ -152,7 +157,8 @@ struct isif_horz_bclamp {
 /************************************************************************
  *  Black Clamp parameters
  ***********************************************************************/
-struct isif_vert_bclamp {
+struct isif_vert_bclamp
+{
 	/* Reset value used is the clamp value calculated */
 #define	ISIF_VERT_BC_USE_HORZ_CLAMP_VAL		0
 	/* Reset value used is reset_clamp_val configured */
@@ -174,7 +180,8 @@ struct isif_vert_bclamp {
 	__u16 ob_start_v;
 };
 
-struct isif_black_clamp {
+struct isif_black_clamp
+{
 	/*
 	 * This offset value is added irrespective of the clamp enable status.
 	 * S13
@@ -202,7 +209,8 @@ struct isif_black_clamp {
 ** Color Space Conversion (CSC)
 *************************************************************************/
 #define ISIF_CSC_NUM_COEFF	16
-struct isif_color_space_conv {
+struct isif_color_space_conv
+{
 	/* Enable color space conversion */
 	__u8 en;
 	/*
@@ -216,7 +224,8 @@ struct isif_color_space_conv {
 /*************************************************************************
 **  Black  Compensation parameters
 *************************************************************************/
-struct isif_black_comp {
+struct isif_black_comp
+{
 	/* Comp for Red */
 	__s8 r_comp;
 	/* Comp for Gr */
@@ -230,7 +239,8 @@ struct isif_black_comp {
 /*************************************************************************
 **  Gain parameters
 *************************************************************************/
-struct isif_gain {
+struct isif_gain
+{
 	/* Gain for Red or ye */
 	struct isif_float_16 r_ye;
 	/* Gain for Gr or cy */
@@ -245,7 +255,8 @@ struct isif_gain {
 /*************************************************************************
 **  Linearization parameters
 *************************************************************************/
-struct isif_linearize {
+struct isif_linearize
+{
 	/* Enable or Disable linearization of data */
 	__u8 en;
 	/* Shift value applied */
@@ -261,7 +272,8 @@ struct isif_linearize {
 #define	ISIF_GREEN_RED	1
 #define ISIF_GREEN_BLUE	2
 #define ISIF_BLUE	3
-struct isif_col_pat {
+struct isif_col_pat
+{
 	__u8 olop;
 	__u8 olep;
 	__u8 elop;
@@ -271,7 +283,8 @@ struct isif_col_pat {
 /*************************************************************************
 **  Data formatter parameters
 *************************************************************************/
-struct isif_fmtplen {
+struct isif_fmtplen
+{
 	/*
 	 * number of program entries for SET0, range 1 - 16
 	 * when fmtmode is ISIF_SPLIT, 1 - 8 when fmtmode is
@@ -298,7 +311,8 @@ struct isif_fmtplen {
 	__u16 plen3;
 };
 
-struct isif_fmt_cfg {
+struct isif_fmt_cfg
+{
 #define ISIF_SPLIT		0
 #define ISIF_COMBINE		1
 	/* Split or combine or line alternate */
@@ -315,7 +329,8 @@ struct isif_fmt_cfg {
 	__u8 addrinc;
 };
 
-struct isif_fmt_addr_ptr {
+struct isif_fmt_addr_ptr
+{
 	/* Initial address */
 	__u32 init_addr;
 	/* output line number */
@@ -326,14 +341,16 @@ struct isif_fmt_addr_ptr {
 	__u8 out_line;
 };
 
-struct isif_fmtpgm_ap {
+struct isif_fmtpgm_ap
+{
 	/* program address pointer */
 	__u8 pgm_aptr;
 	/* program address increment or decrement */
 	__u8 pgmupdt;
 };
 
-struct isif_data_formatter {
+struct isif_data_formatter
+{
 	/* Enable/Disable data formatter */
 	__u8 en;
 	/* data formatter configuration */
@@ -352,7 +369,8 @@ struct isif_data_formatter {
 	struct isif_fmtpgm_ap fmtpgm_ap[32];
 };
 
-struct isif_df_csc {
+struct isif_df_csc
+{
 	/* Color Space Conversion confguration, 0 - csc, 1 - df */
 	__u8 df_or_csc;
 	/* csc configuration valid if df_or_csc is 0 */
@@ -369,7 +387,8 @@ struct isif_df_csc {
 	__u32 num_lines;
 };
 
-struct isif_gain_offsets_adj {
+struct isif_gain_offsets_adj
+{
 	/* Gain adjustment per color */
 	struct isif_gain gain;
 	/* Offset adjustment */
@@ -388,7 +407,8 @@ struct isif_gain_offsets_adj {
 	__u8 offset_h3a_en;
 };
 
-struct isif_cul {
+struct isif_cul
+{
 	/* Horizontal Cull pattern for odd lines */
 	__u8 hcpat_odd;
 	/* Horizontal Cull pattern for even lines */
@@ -399,7 +419,8 @@ struct isif_cul {
 	__u8 en_lpf;
 };
 
-struct isif_compress {
+struct isif_compress
+{
 #define ISIF_ALAW		0
 #define ISIF_DPCM		1
 #define ISIF_NO_COMPRESSION	2
@@ -414,7 +435,8 @@ struct isif_compress {
 };
 
 /* all the stuff in this struct will be provided by userland */
-struct isif_config_params_raw {
+struct isif_config_params_raw
+{
 	/* Linearization parameters for image sensor data input */
 	struct isif_linearize linearize;
 	/* Data formatter or CSC */
@@ -451,7 +473,8 @@ struct isif_config_params_raw {
 };
 
 #ifdef __KERNEL__
-struct isif_ycbcr_config {
+struct isif_ycbcr_config
+{
 	/* isif pixel format */
 	enum ccdc_pixfmt pix_fmt;
 	/* isif frame format */
@@ -471,7 +494,8 @@ struct isif_ycbcr_config {
 };
 
 /* MSB of image data connected to sensor port */
-enum isif_data_msb {
+enum isif_data_msb
+{
 	ISIF_BIT_MSB_15,
 	ISIF_BIT_MSB_14,
 	ISIF_BIT_MSB_13,
@@ -483,12 +507,14 @@ enum isif_data_msb {
 	ISIF_BIT_MSB_7
 };
 
-enum isif_cfa_pattern {
+enum isif_cfa_pattern
+{
 	ISIF_CFA_PAT_MOSAIC,
 	ISIF_CFA_PAT_STRIPE
 };
 
-struct isif_params_raw {
+struct isif_params_raw
+{
 	/* isif pixel format */
 	enum ccdc_pixfmt pix_fmt;
 	/* isif frame format */
@@ -518,7 +544,8 @@ struct isif_params_raw {
 	struct isif_config_params_raw config_params;
 };
 
-enum isif_data_pack {
+enum isif_data_pack
+{
 	ISIF_PACK_16BIT,
 	ISIF_PACK_12BIT,
 	ISIF_PACK_8BIT

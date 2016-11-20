@@ -10,7 +10,8 @@
 #include <linux/version.h>
 #include "bpf_helpers.h"
 
-struct bpf_map_def SEC("maps") dnat_map = {
+struct bpf_map_def SEC("maps") dnat_map =
+{
 	.type = BPF_MAP_TYPE_HASH,
 	.key_size = sizeof(struct sockaddr_in),
 	.value_size = sizeof(struct sockaddr_in),
@@ -34,17 +35,24 @@ int bpf_prog1(struct pt_regs *ctx)
 	int sockaddr_len = (int)PT_REGS_PARM3(ctx);
 
 	if (sockaddr_len > sizeof(orig_addr))
+	{
 		return 0;
+	}
 
 	if (bpf_probe_read(&orig_addr, sizeof(orig_addr), sockaddr_arg) != 0)
+	{
 		return 0;
+	}
 
 	mapped_addr = bpf_map_lookup_elem(&dnat_map, &orig_addr);
-	if (mapped_addr != NULL) {
+
+	if (mapped_addr != NULL)
+	{
 		memcpy(&new_addr, mapped_addr, sizeof(new_addr));
 		bpf_probe_write_user(sockaddr_arg, &new_addr,
-				     sizeof(new_addr));
+							 sizeof(new_addr));
 	}
+
 	return 0;
 }
 

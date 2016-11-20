@@ -63,8 +63,11 @@ int fork_cleanup(void)
 	/* Don't need to actually take any EBBs */
 
 	pid = fork();
+
 	if (pid == 0)
+	{
 		exit(child());
+	}
 
 	/* Child does the actual testing */
 	FAIL_IF(wait_for_child(pid));

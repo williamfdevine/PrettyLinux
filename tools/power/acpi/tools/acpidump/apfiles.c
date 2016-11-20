@@ -64,14 +64,17 @@ static int ap_is_existing_file(char *pathname)
 #ifndef _GNU_EFI
 	struct stat stat_info;
 
-	if (!stat(pathname, &stat_info)) {
+	if (!stat(pathname, &stat_info))
+	{
 		fprintf(stderr,
-			"Target path already exists, overwrite? [y|n] ");
+				"Target path already exists, overwrite? [y|n] ");
 
-		if (getchar() != 'y') {
+		if (getchar() != 'y')
+		{
 			return (-1);
 		}
 	}
+
 #endif
 
 	return 0;
@@ -96,14 +99,17 @@ int ap_open_output_file(char *pathname)
 
 	/* If file exists, prompt for overwrite */
 
-	if (ap_is_existing_file(pathname) != 0) {
+	if (ap_is_existing_file(pathname) != 0)
+	{
 		return (-1);
 	}
 
 	/* Point stdout to the file */
 
 	file = fopen(pathname, "w");
-	if (!file) {
+
+	if (!file)
+	{
 		fprintf(stderr, "Could not open output file: %s\n", pathname);
 		return (-1);
 	}
@@ -143,9 +149,12 @@ int ap_write_to_binary_file(struct acpi_table_header *table, u32 instance)
 
 	/* Construct lower-case filename from the table local signature */
 
-	if (ACPI_VALIDATE_RSDP_SIG(table->signature)) {
+	if (ACPI_VALIDATE_RSDP_SIG(table->signature))
+	{
 		ACPI_MOVE_NAME(filename, ACPI_RSDP_NAME);
-	} else {
+	}
+	else
+	{
 		ACPI_MOVE_NAME(filename, table->signature);
 	}
 
@@ -157,32 +166,38 @@ int ap_write_to_binary_file(struct acpi_table_header *table, u32 instance)
 
 	/* Handle multiple SSDts - create different filenames for each */
 
-	if (instance > 0) {
+	if (instance > 0)
+	{
 		snprintf(instance_str, sizeof(instance_str), "%u", instance);
 		strcat(filename, instance_str);
 	}
 
 	strcat(filename, FILE_SUFFIX_BINARY_TABLE);
 
-	if (gbl_verbose_mode) {
+	if (gbl_verbose_mode)
+	{
 		fprintf(stderr,
-			"Writing [%4.4s] to binary file: %s 0x%X (%u) bytes\n",
-			table->signature, filename, table->length,
-			table->length);
+				"Writing [%4.4s] to binary file: %s 0x%X (%u) bytes\n",
+				table->signature, filename, table->length,
+				table->length);
 	}
 
 	/* Open the file and dump the entire table in binary mode */
 
 	file = fopen(filename, "wb");
-	if (!file) {
+
+	if (!file)
+	{
 		fprintf(stderr, "Could not open output file: %s\n", filename);
 		return (-1);
 	}
 
 	actual = fwrite(table, 1, table_length, file);
-	if (actual != table_length) {
+
+	if (actual != table_length)
+	{
 		fprintf(stderr, "Error writing binary output file: %s\n",
-			filename);
+				filename);
 		fclose(file);
 		return (-1);
 	}
@@ -205,7 +220,7 @@ int ap_write_to_binary_file(struct acpi_table_header *table, u32 instance)
  ******************************************************************************/
 
 struct acpi_table_header *ap_get_table_from_file(char *pathname,
-						 u32 *out_file_size)
+		u32 *out_file_size)
 {
 	struct acpi_table_header *buffer = NULL;
 	ACPI_FILE file;
@@ -215,7 +230,9 @@ struct acpi_table_header *ap_get_table_from_file(char *pathname,
 	/* Must use binary mode */
 
 	file = fopen(pathname, "rb");
-	if (!file) {
+
+	if (!file)
+	{
 		fprintf(stderr, "Could not open input file: %s\n", pathname);
 		return (NULL);
 	}
@@ -223,26 +240,32 @@ struct acpi_table_header *ap_get_table_from_file(char *pathname,
 	/* Need file size to allocate a buffer */
 
 	file_size = cm_get_file_size(file);
-	if (file_size == ACPI_UINT32_MAX) {
+
+	if (file_size == ACPI_UINT32_MAX)
+	{
 		fprintf(stderr,
-			"Could not get input file size: %s\n", pathname);
+				"Could not get input file size: %s\n", pathname);
 		goto cleanup;
 	}
 
 	/* Allocate a buffer for the entire file */
 
 	buffer = ACPI_ALLOCATE_ZEROED(file_size);
-	if (!buffer) {
+
+	if (!buffer)
+	{
 		fprintf(stderr,
-			"Could not allocate file buffer of size: %u\n",
-			file_size);
+				"Could not allocate file buffer of size: %u\n",
+				file_size);
 		goto cleanup;
 	}
 
 	/* Read the entire file */
 
 	actual = fread(buffer, 1, file_size, file);
-	if (actual != file_size) {
+
+	if (actual != file_size)
+	{
 		fprintf(stderr, "Could not read input file: %s\n", pathname);
 		ACPI_FREE(buffer);
 		buffer = NULL;

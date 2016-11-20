@@ -87,21 +87,26 @@
  */
 
 static const char *const hmc5843_meas_conf_modes[] = {"normal", "positivebias",
-						      "negativebias"};
+													  "negativebias"
+													 };
 
 static const char *const hmc5983_meas_conf_modes[] = {"normal", "positivebias",
-						      "negativebias",
-						      "disabled"};
+													  "negativebias",
+													  "disabled"
+													 };
 /* Scaling factors: 10000000/Gain */
-static const int hmc5843_regval_to_nanoscale[] = {
+static const int hmc5843_regval_to_nanoscale[] =
+{
 	6173, 7692, 10309, 12821, 18868, 21739, 25641, 35714
 };
 
-static const int hmc5883_regval_to_nanoscale[] = {
+static const int hmc5883_regval_to_nanoscale[] =
+{
 	7812, 9766, 13021, 16287, 24096, 27701, 32573, 45662
 };
 
-static const int hmc5883l_regval_to_nanoscale[] = {
+static const int hmc5883l_regval_to_nanoscale[] =
+{
 	7299, 9174, 12195, 15152, 22727, 25641, 30303, 43478
 };
 
@@ -118,22 +123,26 @@ static const int hmc5883l_regval_to_nanoscale[] = {
  * 6		| 50			| 75
  * 7		| Not used		| Not used
  */
-static const int hmc5843_regval_to_samp_freq[][2] = {
+static const int hmc5843_regval_to_samp_freq[][2] =
+{
 	{0, 500000}, {1, 0}, {2, 0}, {5, 0}, {10, 0}, {20, 0}, {50, 0}
 };
 
-static const int hmc5883_regval_to_samp_freq[][2] = {
+static const int hmc5883_regval_to_samp_freq[][2] =
+{
 	{0, 750000}, {1, 500000}, {3, 0}, {7, 500000}, {15, 0}, {30, 0},
 	{75, 0}
 };
 
-static const int hmc5983_regval_to_samp_freq[][2] = {
+static const int hmc5983_regval_to_samp_freq[][2] =
+{
 	{0, 750000}, {1, 500000}, {3, 0}, {7, 500000}, {15, 0}, {30, 0},
 	{75, 0}, {220, 0}
 };
 
 /* Describe chip variants */
-struct hmc5843_chip_info {
+struct hmc5843_chip_info
+{
 	const struct iio_chan_spec *channels;
 	const int (*regval_to_samp_freq)[2];
 	const int n_regval_to_samp_freq;
@@ -148,7 +157,7 @@ static s32 hmc5843_set_mode(struct hmc5843_data *data, u8 operating_mode)
 
 	mutex_lock(&data->lock);
 	ret = regmap_update_bits(data->regmap, HMC5843_MODE_REG,
-				 HMC5843_MODE_MASK, operating_mode);
+							 HMC5843_MODE_MASK, operating_mode);
 	mutex_unlock(&data->lock);
 
 	return ret;
@@ -160,16 +169,25 @@ static int hmc5843_wait_measurement(struct hmc5843_data *data)
 	unsigned int val;
 	int ret;
 
-	while (tries-- > 0) {
+	while (tries-- > 0)
+	{
 		ret = regmap_read(data->regmap, HMC5843_STATUS_REG, &val);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		if (val & HMC5843_DATA_READY)
+		{
 			break;
+		}
+
 		msleep(20);
 	}
 
-	if (tries < 0) {
+	if (tries < 0)
+	{
 		dev_err(data->dev, "data not ready\n");
 		return -EIO;
 	}
@@ -179,22 +197,28 @@ static int hmc5843_wait_measurement(struct hmc5843_data *data)
 
 /* Return the measurement value from the specified channel */
 static int hmc5843_read_measurement(struct hmc5843_data *data,
-				    int idx, int *val)
+									int idx, int *val)
 {
 	__be16 values[3];
 	int ret;
 
 	mutex_lock(&data->lock);
 	ret = hmc5843_wait_measurement(data);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		mutex_unlock(&data->lock);
 		return ret;
 	}
+
 	ret = regmap_bulk_read(data->regmap, HMC5843_DATA_OUT_MSB_REGS,
-			       values, sizeof(values));
+						   values, sizeof(values));
 	mutex_unlock(&data->lock);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*val = sign_extend32(be16_to_cpu(values[idx]), 15);
 	return IIO_VAL_INT;
@@ -206,7 +230,7 @@ static int hmc5843_set_meas_conf(struct hmc5843_data *data, u8 meas_conf)
 
 	mutex_lock(&data->lock);
 	ret = regmap_update_bits(data->regmap, HMC5843_CONFIG_REG_A,
-				 HMC5843_MEAS_CONF_MASK, meas_conf);
+							 HMC5843_MEAS_CONF_MASK, meas_conf);
 	mutex_unlock(&data->lock);
 
 	return ret;
@@ -214,50 +238,57 @@ static int hmc5843_set_meas_conf(struct hmc5843_data *data, u8 meas_conf)
 
 static
 int hmc5843_show_measurement_configuration(struct iio_dev *indio_dev,
-					   const struct iio_chan_spec *chan)
+		const struct iio_chan_spec *chan)
 {
 	struct hmc5843_data *data = iio_priv(indio_dev);
 	unsigned int val;
 	int ret;
 
 	ret = regmap_read(data->regmap, HMC5843_CONFIG_REG_A, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return val & HMC5843_MEAS_CONF_MASK;
 }
 
 static
 int hmc5843_set_measurement_configuration(struct iio_dev *indio_dev,
-					  const struct iio_chan_spec *chan,
-					  unsigned int meas_conf)
+		const struct iio_chan_spec *chan,
+		unsigned int meas_conf)
 {
 	struct hmc5843_data *data = iio_priv(indio_dev);
 
 	return hmc5843_set_meas_conf(data, meas_conf);
 }
 
-static const struct iio_enum hmc5843_meas_conf_enum = {
+static const struct iio_enum hmc5843_meas_conf_enum =
+{
 	.items = hmc5843_meas_conf_modes,
 	.num_items = ARRAY_SIZE(hmc5843_meas_conf_modes),
 	.get = hmc5843_show_measurement_configuration,
 	.set = hmc5843_set_measurement_configuration,
 };
 
-static const struct iio_chan_spec_ext_info hmc5843_ext_info[] = {
+static const struct iio_chan_spec_ext_info hmc5843_ext_info[] =
+{
 	IIO_ENUM("meas_conf", true, &hmc5843_meas_conf_enum),
 	IIO_ENUM_AVAILABLE("meas_conf", &hmc5843_meas_conf_enum),
 	{ },
 };
 
-static const struct iio_enum hmc5983_meas_conf_enum = {
+static const struct iio_enum hmc5983_meas_conf_enum =
+{
 	.items = hmc5983_meas_conf_modes,
 	.num_items = ARRAY_SIZE(hmc5983_meas_conf_modes),
 	.get = hmc5843_show_measurement_configuration,
 	.set = hmc5843_set_measurement_configuration,
 };
 
-static const struct iio_chan_spec_ext_info hmc5983_ext_info[] = {
+static const struct iio_chan_spec_ext_info hmc5983_ext_info[] =
+{
 	IIO_ENUM("meas_conf", true, &hmc5983_meas_conf_enum),
 	IIO_ENUM_AVAILABLE("meas_conf", &hmc5983_meas_conf_enum),
 	{ },
@@ -265,7 +296,7 @@ static const struct iio_chan_spec_ext_info hmc5983_ext_info[] = {
 
 static
 ssize_t hmc5843_show_samp_freq_avail(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct hmc5843_data *data = iio_priv(dev_to_iio_dev(dev));
 	size_t len = 0;
@@ -273,8 +304,8 @@ ssize_t hmc5843_show_samp_freq_avail(struct device *dev,
 
 	for (i = 0; i < data->variant->n_regval_to_samp_freq; i++)
 		len += scnprintf(buf + len, PAGE_SIZE - len,
-			"%d.%d ", data->variant->regval_to_samp_freq[i][0],
-			data->variant->regval_to_samp_freq[i][1]);
+						 "%d.%d ", data->variant->regval_to_samp_freq[i][0],
+						 data->variant->regval_to_samp_freq[i][1]);
 
 	/* replace trailing space by newline */
 	buf[len - 1] = '\n';
@@ -290,22 +321,24 @@ static int hmc5843_set_samp_freq(struct hmc5843_data *data, u8 rate)
 
 	mutex_lock(&data->lock);
 	ret = regmap_update_bits(data->regmap, HMC5843_CONFIG_REG_A,
-				 HMC5843_RATE_MASK,
-				 rate << HMC5843_RATE_OFFSET);
+							 HMC5843_RATE_MASK,
+							 rate << HMC5843_RATE_OFFSET);
 	mutex_unlock(&data->lock);
 
 	return ret;
 }
 
 static int hmc5843_get_samp_freq_index(struct hmc5843_data *data,
-				       int val, int val2)
+									   int val, int val2)
 {
 	int i;
 
 	for (i = 0; i < data->variant->n_regval_to_samp_freq; i++)
 		if (val == data->variant->regval_to_samp_freq[i][0] &&
-		    val2 == data->variant->regval_to_samp_freq[i][1])
+			val2 == data->variant->regval_to_samp_freq[i][1])
+		{
 			return i;
+		}
 
 	return -EINVAL;
 }
@@ -316,16 +349,16 @@ static int hmc5843_set_range_gain(struct hmc5843_data *data, u8 range)
 
 	mutex_lock(&data->lock);
 	ret = regmap_update_bits(data->regmap, HMC5843_CONFIG_REG_B,
-				 HMC5843_RANGE_GAIN_MASK,
-				 range << HMC5843_RANGE_GAIN_OFFSET);
+							 HMC5843_RANGE_GAIN_MASK,
+							 range << HMC5843_RANGE_GAIN_OFFSET);
 	mutex_unlock(&data->lock);
 
 	return ret;
 }
 
 static ssize_t hmc5843_show_scale_avail(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
+										struct device_attribute *attr,
+										char *buf)
 {
 	struct hmc5843_data *data = iio_priv(dev_to_iio_dev(dev));
 
@@ -334,7 +367,7 @@ static ssize_t hmc5843_show_scale_avail(struct device *dev,
 
 	for (i = 0; i < data->variant->n_regval_to_nanoscale; i++)
 		len += scnprintf(buf + len, PAGE_SIZE - len,
-			"0.%09d ", data->variant->regval_to_nanoscale[i]);
+						 "0.%09d ", data->variant->regval_to_nanoscale[i]);
 
 	/* replace trailing space by newline */
 	buf[len - 1] = '\n';
@@ -343,89 +376,117 @@ static ssize_t hmc5843_show_scale_avail(struct device *dev,
 }
 
 static IIO_DEVICE_ATTR(scale_available, S_IRUGO,
-	hmc5843_show_scale_avail, NULL, 0);
+					   hmc5843_show_scale_avail, NULL, 0);
 
 static int hmc5843_get_scale_index(struct hmc5843_data *data, int val, int val2)
 {
 	int i;
 
 	if (val)
+	{
 		return -EINVAL;
+	}
 
 	for (i = 0; i < data->variant->n_regval_to_nanoscale; i++)
 		if (val2 == data->variant->regval_to_nanoscale[i])
+		{
 			return i;
+		}
 
 	return -EINVAL;
 }
 
 static int hmc5843_read_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int *val, int *val2, long mask)
+							struct iio_chan_spec const *chan,
+							int *val, int *val2, long mask)
 {
 	struct hmc5843_data *data = iio_priv(indio_dev);
 	unsigned int rval;
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		return hmc5843_read_measurement(data, chan->scan_index, val);
-	case IIO_CHAN_INFO_SCALE:
-		ret = regmap_read(data->regmap, HMC5843_CONFIG_REG_B, &rval);
-		if (ret < 0)
-			return ret;
-		rval >>= HMC5843_RANGE_GAIN_OFFSET;
-		*val = 0;
-		*val2 = data->variant->regval_to_nanoscale[rval];
-		return IIO_VAL_INT_PLUS_NANO;
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		ret = regmap_read(data->regmap, HMC5843_CONFIG_REG_A, &rval);
-		if (ret < 0)
-			return ret;
-		rval >>= HMC5843_RATE_OFFSET;
-		*val = data->variant->regval_to_samp_freq[rval][0];
-		*val2 = data->variant->regval_to_samp_freq[rval][1];
-		return IIO_VAL_INT_PLUS_MICRO;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			return hmc5843_read_measurement(data, chan->scan_index, val);
+
+		case IIO_CHAN_INFO_SCALE:
+			ret = regmap_read(data->regmap, HMC5843_CONFIG_REG_B, &rval);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			rval >>= HMC5843_RANGE_GAIN_OFFSET;
+			*val = 0;
+			*val2 = data->variant->regval_to_nanoscale[rval];
+			return IIO_VAL_INT_PLUS_NANO;
+
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			ret = regmap_read(data->regmap, HMC5843_CONFIG_REG_A, &rval);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			rval >>= HMC5843_RATE_OFFSET;
+			*val = data->variant->regval_to_samp_freq[rval][0];
+			*val2 = data->variant->regval_to_samp_freq[rval][1];
+			return IIO_VAL_INT_PLUS_MICRO;
 	}
+
 	return -EINVAL;
 }
 
 static int hmc5843_write_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int val, int val2, long mask)
+							 struct iio_chan_spec const *chan,
+							 int val, int val2, long mask)
 {
 	struct hmc5843_data *data = iio_priv(indio_dev);
 	int rate, range;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		rate = hmc5843_get_samp_freq_index(data, val, val2);
-		if (rate < 0)
-			return -EINVAL;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			rate = hmc5843_get_samp_freq_index(data, val, val2);
 
-		return hmc5843_set_samp_freq(data, rate);
-	case IIO_CHAN_INFO_SCALE:
-		range = hmc5843_get_scale_index(data, val, val2);
-		if (range < 0)
-			return -EINVAL;
+			if (rate < 0)
+			{
+				return -EINVAL;
+			}
 
-		return hmc5843_set_range_gain(data, range);
-	default:
-		return -EINVAL;
+			return hmc5843_set_samp_freq(data, rate);
+
+		case IIO_CHAN_INFO_SCALE:
+			range = hmc5843_get_scale_index(data, val, val2);
+
+			if (range < 0)
+			{
+				return -EINVAL;
+			}
+
+			return hmc5843_set_range_gain(data, range);
+
+		default:
+			return -EINVAL;
 	}
 }
 
 static int hmc5843_write_raw_get_fmt(struct iio_dev *indio_dev,
-				     struct iio_chan_spec const *chan,
-				     long mask)
+									 struct iio_chan_spec const *chan,
+									 long mask)
 {
-	switch (mask) {
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		return IIO_VAL_INT_PLUS_MICRO;
-	case IIO_CHAN_INFO_SCALE:
-		return IIO_VAL_INT_PLUS_NANO;
-	default:
-		return -EINVAL;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			return IIO_VAL_INT_PLUS_MICRO;
+
+		case IIO_CHAN_INFO_SCALE:
+			return IIO_VAL_INT_PLUS_NANO;
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -438,20 +499,25 @@ static irqreturn_t hmc5843_trigger_handler(int irq, void *p)
 
 	mutex_lock(&data->lock);
 	ret = hmc5843_wait_measurement(data);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		mutex_unlock(&data->lock);
 		goto done;
 	}
 
 	ret = regmap_bulk_read(data->regmap, HMC5843_DATA_OUT_MSB_REGS,
-			       data->buffer, 3 * sizeof(__be16));
+						   data->buffer, 3 * sizeof(__be16));
 
 	mutex_unlock(&data->lock);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	iio_push_to_buffers_with_timestamp(indio_dev, data->buffer,
-					   iio_get_time_ns(indio_dev));
+									   iio_get_time_ns(indio_dev));
 
 done:
 	iio_trigger_notify_done(indio_dev->trig);
@@ -462,40 +528,41 @@ done:
 #define HMC5843_CHANNEL(axis, idx)					\
 	{								\
 		.type = IIO_MAGN,					\
-		.modified = 1,						\
-		.channel2 = IIO_MOD_##axis,				\
-		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
-		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) |	\
-			BIT(IIO_CHAN_INFO_SAMP_FREQ),			\
-		.scan_index = idx,					\
-		.scan_type = {						\
-			.sign = 's',					\
-			.realbits = 16,					\
-			.storagebits = 16,				\
-			.endianness = IIO_BE,				\
-		},							\
-		.ext_info = hmc5843_ext_info,	\
+				.modified = 1,						\
+							.channel2 = IIO_MOD_##axis,				\
+										.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
+												.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) |	\
+														BIT(IIO_CHAN_INFO_SAMP_FREQ),			\
+														.scan_index = idx,					\
+																.scan_type = {						\
+																									.sign = 's',					\
+																									.realbits = 16,					\
+																									.storagebits = 16,				\
+																									.endianness = IIO_BE,				\
+																			 },							\
+																		.ext_info = hmc5843_ext_info,	\
 	}
 
 #define HMC5983_CHANNEL(axis, idx)					\
 	{								\
 		.type = IIO_MAGN,					\
-		.modified = 1,						\
-		.channel2 = IIO_MOD_##axis,				\
-		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
-		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) |	\
-			BIT(IIO_CHAN_INFO_SAMP_FREQ),			\
-		.scan_index = idx,					\
-		.scan_type = {						\
-			.sign = 's',					\
-			.realbits = 16,					\
-			.storagebits = 16,				\
-			.endianness = IIO_BE,				\
-		},							\
-		.ext_info = hmc5983_ext_info,	\
+				.modified = 1,						\
+							.channel2 = IIO_MOD_##axis,				\
+										.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
+												.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) |	\
+														BIT(IIO_CHAN_INFO_SAMP_FREQ),			\
+														.scan_index = idx,					\
+																.scan_type = {						\
+																									.sign = 's',					\
+																									.realbits = 16,					\
+																									.storagebits = 16,				\
+																									.endianness = IIO_BE,				\
+																			 },							\
+																		.ext_info = hmc5983_ext_info,	\
 	}
 
-static const struct iio_chan_spec hmc5843_channels[] = {
+static const struct iio_chan_spec hmc5843_channels[] =
+{
 	HMC5843_CHANNEL(X, 0),
 	HMC5843_CHANNEL(Y, 1),
 	HMC5843_CHANNEL(Z, 2),
@@ -503,66 +570,71 @@ static const struct iio_chan_spec hmc5843_channels[] = {
 };
 
 /* Beware: Y and Z are exchanged on HMC5883 and 5983 */
-static const struct iio_chan_spec hmc5883_channels[] = {
+static const struct iio_chan_spec hmc5883_channels[] =
+{
 	HMC5843_CHANNEL(X, 0),
 	HMC5843_CHANNEL(Z, 1),
 	HMC5843_CHANNEL(Y, 2),
 	IIO_CHAN_SOFT_TIMESTAMP(3),
 };
 
-static const struct iio_chan_spec hmc5983_channels[] = {
+static const struct iio_chan_spec hmc5983_channels[] =
+{
 	HMC5983_CHANNEL(X, 0),
 	HMC5983_CHANNEL(Z, 1),
 	HMC5983_CHANNEL(Y, 2),
 	IIO_CHAN_SOFT_TIMESTAMP(3),
 };
 
-static struct attribute *hmc5843_attributes[] = {
+static struct attribute *hmc5843_attributes[] =
+{
 	&iio_dev_attr_scale_available.dev_attr.attr,
 	&iio_dev_attr_sampling_frequency_available.dev_attr.attr,
 	NULL
 };
 
-static const struct attribute_group hmc5843_group = {
+static const struct attribute_group hmc5843_group =
+{
 	.attrs = hmc5843_attributes,
 };
 
-static const struct hmc5843_chip_info hmc5843_chip_info_tbl[] = {
+static const struct hmc5843_chip_info hmc5843_chip_info_tbl[] =
+{
 	[HMC5843_ID] = {
 		.channels = hmc5843_channels,
 		.regval_to_samp_freq = hmc5843_regval_to_samp_freq,
 		.n_regval_to_samp_freq =
-				ARRAY_SIZE(hmc5843_regval_to_samp_freq),
+		ARRAY_SIZE(hmc5843_regval_to_samp_freq),
 		.regval_to_nanoscale = hmc5843_regval_to_nanoscale,
 		.n_regval_to_nanoscale =
-				ARRAY_SIZE(hmc5843_regval_to_nanoscale),
+		ARRAY_SIZE(hmc5843_regval_to_nanoscale),
 	},
 	[HMC5883_ID] = {
 		.channels = hmc5883_channels,
 		.regval_to_samp_freq = hmc5883_regval_to_samp_freq,
 		.n_regval_to_samp_freq =
-				ARRAY_SIZE(hmc5883_regval_to_samp_freq),
+		ARRAY_SIZE(hmc5883_regval_to_samp_freq),
 		.regval_to_nanoscale = hmc5883_regval_to_nanoscale,
 		.n_regval_to_nanoscale =
-				ARRAY_SIZE(hmc5883_regval_to_nanoscale),
+		ARRAY_SIZE(hmc5883_regval_to_nanoscale),
 	},
 	[HMC5883L_ID] = {
 		.channels = hmc5883_channels,
 		.regval_to_samp_freq = hmc5883_regval_to_samp_freq,
 		.n_regval_to_samp_freq =
-				ARRAY_SIZE(hmc5883_regval_to_samp_freq),
+		ARRAY_SIZE(hmc5883_regval_to_samp_freq),
 		.regval_to_nanoscale = hmc5883l_regval_to_nanoscale,
 		.n_regval_to_nanoscale =
-				ARRAY_SIZE(hmc5883l_regval_to_nanoscale),
+		ARRAY_SIZE(hmc5883l_regval_to_nanoscale),
 	},
 	[HMC5983_ID] = {
 		.channels = hmc5983_channels,
 		.regval_to_samp_freq = hmc5983_regval_to_samp_freq,
 		.n_regval_to_samp_freq =
-				ARRAY_SIZE(hmc5983_regval_to_samp_freq),
+		ARRAY_SIZE(hmc5983_regval_to_samp_freq),
 		.regval_to_nanoscale = hmc5883l_regval_to_nanoscale,
 		.n_regval_to_nanoscale =
-				ARRAY_SIZE(hmc5883l_regval_to_nanoscale),
+		ARRAY_SIZE(hmc5883l_regval_to_nanoscale),
 	}
 };
 
@@ -572,27 +644,45 @@ static int hmc5843_init(struct hmc5843_data *data)
 	u8 id[3];
 
 	ret = regmap_bulk_read(data->regmap, HMC5843_ID_REG,
-			       id, ARRAY_SIZE(id));
+						   id, ARRAY_SIZE(id));
+
 	if (ret < 0)
+	{
 		return ret;
-	if (id[0] != 'H' || id[1] != '4' || id[2] != '3') {
+	}
+
+	if (id[0] != 'H' || id[1] != '4' || id[2] != '3')
+	{
 		dev_err(data->dev, "no HMC5843/5883/5883L/5983 sensor\n");
 		return -ENODEV;
 	}
 
 	ret = hmc5843_set_meas_conf(data, HMC5843_MEAS_CONF_NORMAL);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = hmc5843_set_samp_freq(data, HMC5843_RATE_DEFAULT);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = hmc5843_set_range_gain(data, HMC5843_RANGE_GAIN_DEFAULT);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return hmc5843_set_mode(data, HMC5843_MODE_CONVERSION_CONTINUOUS);
 }
 
-static const struct iio_info hmc5843_info = {
+static const struct iio_info hmc5843_info =
+{
 	.attrs = &hmc5843_group,
 	.read_raw = &hmc5843_read_raw,
 	.write_raw = &hmc5843_write_raw,
@@ -605,27 +695,30 @@ static const unsigned long hmc5843_scan_masks[] = {0x7, 0};
 int hmc5843_common_suspend(struct device *dev)
 {
 	return hmc5843_set_mode(iio_priv(dev_get_drvdata(dev)),
-				HMC5843_MODE_SLEEP);
+							HMC5843_MODE_SLEEP);
 }
 EXPORT_SYMBOL(hmc5843_common_suspend);
 
 int hmc5843_common_resume(struct device *dev)
 {
 	return hmc5843_set_mode(iio_priv(dev_get_drvdata(dev)),
-		HMC5843_MODE_CONVERSION_CONTINUOUS);
+							HMC5843_MODE_CONVERSION_CONTINUOUS);
 }
 EXPORT_SYMBOL(hmc5843_common_resume);
 
 int hmc5843_common_probe(struct device *dev, struct regmap *regmap,
-			 enum hmc5843_ids id, const char *name)
+						 enum hmc5843_ids id, const char *name)
 {
 	struct hmc5843_data *data;
 	struct iio_dev *indio_dev;
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(dev, sizeof(*data));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	dev_set_drvdata(dev, indio_dev);
 
@@ -645,17 +738,26 @@ int hmc5843_common_probe(struct device *dev, struct regmap *regmap,
 	indio_dev->available_scan_masks = hmc5843_scan_masks;
 
 	ret = hmc5843_init(data);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = iio_triggered_buffer_setup(indio_dev, NULL,
-					 hmc5843_trigger_handler, NULL);
+									 hmc5843_trigger_handler, NULL);
+
 	if (ret < 0)
+	{
 		goto buffer_setup_err;
+	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret < 0)
+	{
 		goto buffer_cleanup;
+	}
 
 	return 0;
 

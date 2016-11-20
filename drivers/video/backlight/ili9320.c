@@ -27,8 +27,8 @@
 
 
 static inline int ili9320_write_spi(struct ili9320 *ili,
-				    unsigned int reg,
-				    unsigned int value)
+									unsigned int reg,
+									unsigned int value)
 {
 	struct ili9320_spi *spi = &ili->access.spi;
 	unsigned char *addr = spi->buffer_addr;
@@ -59,16 +59,20 @@ int ili9320_write(struct ili9320 *ili, unsigned int reg, unsigned int value)
 EXPORT_SYMBOL_GPL(ili9320_write);
 
 int ili9320_write_regs(struct ili9320 *ili,
-		       const struct ili9320_reg *values,
-		       int nr_values)
+					   const struct ili9320_reg *values,
+					   int nr_values)
 {
 	int index;
 	int ret;
 
-	for (index = 0; index < nr_values; index++, values++) {
+	for (index = 0; index < nr_values; index++, values++)
+	{
 		ret = ili9320_write(ili, values->address, values->value);
+
 		if (ret != 0)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -96,7 +100,9 @@ static inline int ili9320_init_chip(struct ili9320 *lcd)
 	ili9320_reset(lcd);
 
 	ret = lcd->client->init(lcd, lcd->platdata);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(lcd->dev, "failed to initialise display\n");
 		return ret;
 	}
@@ -108,7 +114,9 @@ static inline int ili9320_init_chip(struct ili9320 *lcd)
 static inline int ili9320_power_on(struct ili9320 *lcd)
 {
 	if (!lcd->initialised)
+	{
 		ili9320_init_chip(lcd);
+	}
 
 	lcd->display1 |= (ILI9320_DISPLAY1_D(3) | ILI9320_DISPLAY1_BASEE);
 	ili9320_write(lcd, ILI9320_DISPLAY1, lcd->display1);
@@ -133,14 +141,22 @@ static int ili9320_power(struct ili9320 *lcd, int power)
 	dev_dbg(lcd->dev, "power %d => %d\n", lcd->power, power);
 
 	if (POWER_IS_ON(power) && !POWER_IS_ON(lcd->power))
+	{
 		ret = ili9320_power_on(lcd);
+	}
 	else if (!POWER_IS_ON(power) && POWER_IS_ON(lcd->power))
+	{
 		ret = ili9320_power_off(lcd);
+	}
 
 	if (ret == 0)
+	{
 		lcd->power = power;
+	}
 	else
+	{
 		dev_warn(lcd->dev, "failed to set power mode %d\n", power);
+	}
 
 	return ret;
 }
@@ -164,13 +180,14 @@ static int ili9320_get_power(struct lcd_device *ld)
 	return lcd->power;
 }
 
-static struct lcd_ops ili9320_ops = {
+static struct lcd_ops ili9320_ops =
+{
 	.get_power	= ili9320_get_power,
 	.set_power	= ili9320_set_power,
 };
 
 static void ili9320_setup_spi(struct ili9320 *ili,
-					struct spi_device *dev)
+							  struct spi_device *dev)
 {
 	struct ili9320_spi *spi = &ili->access.spi;
 
@@ -196,7 +213,7 @@ static void ili9320_setup_spi(struct ili9320 *ili,
 }
 
 int ili9320_probe_spi(struct spi_device *spi,
-				struct ili9320_client *client)
+					  struct ili9320_client *client)
 {
 	struct ili9320_platdata *cfg = dev_get_platdata(&spi->dev);
 	struct device *dev = &spi->dev;
@@ -206,12 +223,14 @@ int ili9320_probe_spi(struct spi_device *spi,
 
 	/* verify we where given some information */
 
-	if (cfg == NULL) {
+	if (cfg == NULL)
+	{
 		dev_err(dev, "no platform data supplied\n");
 		return -EINVAL;
 	}
 
-	if (cfg->hsize <= 0 || cfg->vsize <= 0 || cfg->reset == NULL) {
+	if (cfg->hsize <= 0 || cfg->vsize <= 0 || cfg->reset == NULL)
+	{
 		dev_err(dev, "invalid platform data supplied\n");
 		return -EINVAL;
 	}
@@ -219,8 +238,11 @@ int ili9320_probe_spi(struct spi_device *spi,
 	/* allocate and initialse our state */
 
 	ili = devm_kzalloc(&spi->dev, sizeof(struct ili9320), GFP_KERNEL);
+
 	if (ili == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	ili->access.spi.id = ILI9320_SPI_IDCODE | ILI9320_SPI_ID(1);
 
@@ -234,8 +256,10 @@ int ili9320_probe_spi(struct spi_device *spi,
 	ili9320_setup_spi(ili, spi);
 
 	lcd = devm_lcd_device_register(&spi->dev, "ili9320", dev, ili,
-					&ili9320_ops);
-	if (IS_ERR(lcd)) {
+								   &ili9320_ops);
+
+	if (IS_ERR(lcd))
+	{
 		dev_err(dev, "failed to register lcd device\n");
 		return PTR_ERR(lcd);
 	}
@@ -245,7 +269,9 @@ int ili9320_probe_spi(struct spi_device *spi,
 	dev_info(dev, "initialising %s\n", client->name);
 
 	ret = ili9320_power(ili, FB_BLANK_UNBLANK);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(dev, "failed to set lcd power state\n");
 		return ret;
 	}
@@ -268,10 +294,11 @@ int ili9320_suspend(struct ili9320 *lcd)
 
 	ret = ili9320_power(lcd, FB_BLANK_POWERDOWN);
 
-	if (lcd->platdata->suspend == ILI9320_SUSPEND_DEEP) {
+	if (lcd->platdata->suspend == ILI9320_SUSPEND_DEEP)
+	{
 		ili9320_write(lcd, ILI9320_POWER1, lcd->power1 |
-			      ILI9320_POWER1_SLP |
-			      ILI9320_POWER1_DSTB);
+					  ILI9320_POWER1_SLP |
+					  ILI9320_POWER1_DSTB);
 		lcd->initialised = 0;
 	}
 
@@ -284,7 +311,9 @@ int ili9320_resume(struct ili9320 *lcd)
 	dev_info(lcd->dev, "resuming from power state %d\n", lcd->power);
 
 	if (lcd->platdata->suspend == ILI9320_SUSPEND_DEEP)
+	{
 		ili9320_write(lcd, ILI9320_POWER1, 0x00);
+	}
 
 	return ili9320_power(lcd, FB_BLANK_UNBLANK);
 }

@@ -28,7 +28,8 @@
  *
  ********************************************/
 
-struct sdio_cmd52 {
+struct sdio_cmd52
+{
 	u32 read_write:		1;
 	u32 function:		3;
 	u32 raw:		1;
@@ -36,7 +37,8 @@ struct sdio_cmd52 {
 	u32 data:		8;
 };
 
-struct sdio_cmd53 {
+struct sdio_cmd53
+{
 	u32 read_write:		1;
 	u32 function:		3;
 	u32 block_mode:		1;
@@ -54,7 +56,8 @@ struct sdio_cmd53 {
 
 #define WILC_MAC_INDICATE_SCAN		0x2
 
-struct tx_complete_data {
+struct tx_complete_data
+{
 	int size;
 	void *buff;
 	u8 *bssid;
@@ -74,7 +77,8 @@ typedef void (*wilc_tx_complete_func_t)(void *, int);
 #define MAX_SSID_LEN            33
 #define MAX_RATES_SUPPORTED     12
 
-typedef enum {
+typedef enum
+{
 	SUPP_RATES_IE		= 1,
 	EXT_SUPP_RATES_IE	= 50,
 	HT_CAPABILITY_IE	= 45,
@@ -84,13 +88,15 @@ typedef enum {
 	P2P_IE			= 221,
 } BEACON_IE;
 
-typedef enum {
+typedef enum
+{
 	INFRASTRUCTURE		= 0,
 	INDEPENDENT,
 	AP,
 } BSSTYPE_T;
 
-typedef enum {
+typedef enum
+{
 	RATE_AUTO		= 0,
 	RATE_1MB		= 1,
 	RATE_2MB		= 2,
@@ -106,14 +112,16 @@ typedef enum {
 	RATE_54MB		= 54
 } TX_RATE_T;
 
-typedef enum {
+typedef enum
+{
 	B_ONLY_MODE		= 0,    /* 1, 2 M, otherwise 5, 11 M */
 	G_ONLY_MODE,			/* 6,12,24 otherwise 9,18,36,48,54 */
 	G_MIXED_11B_1_MODE,		/* 1,2,5.5,11 otherwise all on */
 	G_MIXED_11B_2_MODE,		/* 1,2,5,11,6,12,24 otherwise all on */
 } G_OPERATING_MODE_T;
 
-typedef enum {
+typedef enum
+{
 	G_SHORT_PREAMBLE	= 0,	/* Short Preamble */
 	G_LONG_PREAMBLE		= 1,	/* Long Preamble */
 	G_AUTO_PREAMBLE		= 2,	/* Auto Preamble Selection */
@@ -123,12 +131,14 @@ typedef enum {
 #define MAC_DISCONNECTED	0
 
 #define SCAN_DONE		TRUE
-typedef enum {
+typedef enum
+{
 	PASSIVE_SCAN		= 0,
 	ACTIVE_SCAN		= 1,
 } SCANTYPE_T;
 
-typedef enum {
+typedef enum
+{
 	NO_POWERSAVE		= 0,
 	MIN_FAST_PS		= 1,
 	MAX_FAST_PS		= 2,
@@ -136,23 +146,27 @@ typedef enum {
 	MAX_PSPOLL_PS		= 4
 } USER_PS_MODE_T;
 
-typedef enum {
+typedef enum
+{
 	CHIP_WAKEDUP		= 0,
 	CHIP_SLEEPING_AUTO      = 1,
 	CHIP_SLEEPING_MANUAL	= 2
 } CHIP_PS_STATE_T;
 
-typedef enum {
+typedef enum
+{
 	ACQUIRE_ONLY            = 0,
 	ACQUIRE_AND_WAKEUP	= 1,
 } BUS_ACQUIRE_T;
 
-typedef enum {
+typedef enum
+{
 	RELEASE_ONLY		= 0,
 	RELEASE_ALLOW_SLEEP	= 1,
 } BUS_RELEASE_T;
 
-typedef enum {
+typedef enum
+{
 	NO_SECURITY		= 0,
 	WEP_40			= 0x3,
 	WEP_104			= 0x7,
@@ -164,55 +178,64 @@ typedef enum {
 	WPA2_AES_TKIP		= 0x71,	/* Aes or Tkip */
 } SECURITY_T;
 
-enum AUTHTYPE {
+enum AUTHTYPE
+{
 	OPEN_SYSTEM		= 1,
 	SHARED_KEY		= 2,
 	ANY			= 3,
 	IEEE8021		= 5
 };
 
-enum SITESURVEY {
+enum SITESURVEY
+{
 	SITE_SURVEY_1CH		= 0,
 	SITE_SURVEY_ALL_CH	= 1,
 	SITE_SURVEY_OFF		= 2
 };
 
-typedef enum {
+typedef enum
+{
 	NORMAL_ACK		= 0,
 	NO_ACK,
 } ACK_POLICY_T;
 
-typedef enum {
+typedef enum
+{
 	DONT_RESET		= 0,
 	DO_RESET		= 1,
 	NO_REQUEST		= 2,
 } RESET_REQ_T;
 
-typedef enum {
+typedef enum
+{
 	REKEY_DISABLE		= 1,
 	REKEY_TIME_BASE,
 	REKEY_PKT_BASE,
 	REKEY_TIME_PKT_BASE
 } RSNA_REKEY_POLICY_T;
 
-typedef enum {
+typedef enum
+{
 	FILTER_NO		= 0x00,
 	FILTER_AP_ONLY		= 0x01,
 	FILTER_STA_ONLY		= 0x02
 } SCAN_CLASS_FITLER_T;
 
-typedef enum {
+typedef enum
+{
 	PRI_HIGH_RSSI		= 0x00,
 	PRI_LOW_RSSI		= 0x04,
 	PRI_DETECT		= 0x08
 } SCAN_PRI_T;
 
-typedef enum {
+typedef enum
+{
 	CH_FILTER_OFF		= 0x00,
 	CH_FILTER_ON		= 0x10
 } CH_FILTER_T;
 
-typedef enum {
+typedef enum
+{
 	AUTO_PROT		= 0,	/* Auto */
 	NO_PROT,			/* Do not use any protection */
 	ERP_PROT,			/* Protect all ERP frame exchanges */
@@ -220,38 +243,44 @@ typedef enum {
 	GF_PROT,			/* Protect all GF frame exchanges  */
 } N_PROTECTION_MODE_T;
 
-typedef enum {
+typedef enum
+{
 	G_SELF_CTS_PROT,
 	G_RTS_CTS_PROT,
 } G_PROTECTION_MODE_T;
 
-typedef enum {
+typedef enum
+{
 	HT_MIXED_MODE		= 1,
 	HT_ONLY_20MHZ_MODE,
 	HT_ONLY_20_40MHZ_MODE,
 } N_OPERATING_MODE_T;
 
-typedef enum {
+typedef enum
+{
 	NO_DETECT		= 0,
 	DETECT_ONLY		= 1,
 	DETECT_PROTECT		= 2,
 	DETECT_PROTECT_REPORT	= 3,
 } N_OBSS_DETECTION_T;
 
-typedef enum {
+typedef enum
+{
 	RTS_CTS_NONHT_PROT	= 0,	/* RTS-CTS at non-HT rate */
 	FIRST_FRAME_NONHT_PROT,		/* First frame at non-HT rate */
 	LSIG_TXOP_PROT,                 /* LSIG TXOP Protection */
 	FIRST_FRAME_MIXED_PROT,		/* First frame at Mixed format */
 } N_PROTECTION_TYPE_T;
 
-typedef enum {
+typedef enum
+{
 	STATIC_MODE		= 1,
 	DYNAMIC_MODE		= 2,
 	MIMO_MODE		= 3,	/* power save disable */
 } N_SMPS_MODE_T;
 
-typedef enum {
+typedef enum
+{
 	DISABLE_SELF_CTS,
 	ENABLE_SELF_CTS,
 	DISABLE_TX_ABORT,
@@ -260,7 +289,8 @@ typedef enum {
 	SW_TRIGGER_ABORT,
 } TX_ABORT_OPTION_T;
 
-enum wid_type {
+enum wid_type
+{
 	WID_CHAR		= 0,
 	WID_SHORT		= 1,
 	WID_INT			= 2,
@@ -273,14 +303,16 @@ enum wid_type {
 	WID_TYPE_FORCE_32BIT	= 0xFFFFFFFF
 };
 
-struct wid {
+struct wid
+{
 	u16 id;
 	enum wid_type type;
 	s32 size;
 	s8 *val;
 };
 
-typedef enum {
+typedef enum
+{
 	WID_NIL				= 0xffff,
 
 	/*

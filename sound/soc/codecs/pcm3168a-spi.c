@@ -23,8 +23,11 @@ static int pcm3168a_spi_probe(struct spi_device *spi)
 	struct regmap *regmap;
 
 	regmap = devm_regmap_init_spi(spi, &pcm3168a_regmap);
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
 
 	return pcm3168a_probe(&spi->dev, regmap);
 }
@@ -36,19 +39,22 @@ static int pcm3168a_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id pcm3168a_spi_id[] = {
+static const struct spi_device_id pcm3168a_spi_id[] =
+{
 	{ "pcm3168a", },
 	{ },
 };
 MODULE_DEVICE_TABLE(spi, pcm3168a_spi_id);
 
-static const struct of_device_id pcm3168a_of_match[] = {
+static const struct of_device_id pcm3168a_of_match[] =
+{
 	{ .compatible = "ti,pcm3168a", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, pcm3168a_of_match);
 
-static struct spi_driver pcm3168a_spi_driver = {
+static struct spi_driver pcm3168a_spi_driver =
+{
 	.probe		= pcm3168a_spi_probe,
 	.remove		= pcm3168a_spi_remove,
 	.id_table	= pcm3168a_spi_id,

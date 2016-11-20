@@ -54,12 +54,13 @@ static inline void pm_vt_switch_unregister(struct device *dev)
 struct device;
 
 #ifdef CONFIG_PM
-extern const char power_group_name[];		/* = "power" */
+	extern const char power_group_name[];		/* = "power" */
 #else
-#define power_group_name	NULL
+	#define power_group_name	NULL
 #endif
 
-typedef struct pm_message {
+typedef struct pm_message
+{
 	int event;
 } pm_message_t;
 
@@ -292,7 +293,8 @@ typedef struct pm_message {
  *
  */
 
-struct dev_pm_ops {
+struct dev_pm_ops
+{
 	int (*prepare)(struct device *dev);
 	void (*complete)(struct device *dev);
 	int (*suspend)(struct device *dev);
@@ -321,11 +323,11 @@ struct dev_pm_ops {
 #ifdef CONFIG_PM_SLEEP
 #define SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
 	.suspend = suspend_fn, \
-	.resume = resume_fn, \
-	.freeze = suspend_fn, \
-	.thaw = resume_fn, \
-	.poweroff = suspend_fn, \
-	.restore = resume_fn,
+			   .resume = resume_fn, \
+						 .freeze = suspend_fn, \
+								   .thaw = resume_fn, \
+										   .poweroff = suspend_fn, \
+												   .restore = resume_fn,
 #else
 #define SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn)
 #endif
@@ -333,11 +335,11 @@ struct dev_pm_ops {
 #ifdef CONFIG_PM_SLEEP
 #define SET_LATE_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
 	.suspend_late = suspend_fn, \
-	.resume_early = resume_fn, \
-	.freeze_late = suspend_fn, \
-	.thaw_early = resume_fn, \
-	.poweroff_late = suspend_fn, \
-	.restore_early = resume_fn,
+					.resume_early = resume_fn, \
+									.freeze_late = suspend_fn, \
+											.thaw_early = resume_fn, \
+													.poweroff_late = suspend_fn, \
+															.restore_early = resume_fn,
 #else
 #define SET_LATE_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn)
 #endif
@@ -345,11 +347,11 @@ struct dev_pm_ops {
 #ifdef CONFIG_PM_SLEEP
 #define SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
 	.suspend_noirq = suspend_fn, \
-	.resume_noirq = resume_fn, \
-	.freeze_noirq = suspend_fn, \
-	.thaw_noirq = resume_fn, \
-	.poweroff_noirq = suspend_fn, \
-	.restore_noirq = resume_fn,
+					 .resume_noirq = resume_fn, \
+									 .freeze_noirq = suspend_fn, \
+											 .thaw_noirq = resume_fn, \
+													 .poweroff_noirq = suspend_fn, \
+															 .restore_noirq = resume_fn,
 #else
 #define SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn)
 #endif
@@ -357,8 +359,8 @@ struct dev_pm_ops {
 #ifdef CONFIG_PM
 #define SET_RUNTIME_PM_OPS(suspend_fn, resume_fn, idle_fn) \
 	.runtime_suspend = suspend_fn, \
-	.runtime_resume = resume_fn, \
-	.runtime_idle = idle_fn,
+					   .runtime_resume = resume_fn, \
+										 .runtime_idle = idle_fn,
 #else
 #define SET_RUNTIME_PM_OPS(suspend_fn, resume_fn, idle_fn)
 #endif
@@ -368,9 +370,9 @@ struct dev_pm_ops {
  * to RAM and hibernation.
  */
 #define SIMPLE_DEV_PM_OPS(name, suspend_fn, resume_fn) \
-const struct dev_pm_ops name = { \
-	SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
-}
+	const struct dev_pm_ops name = { \
+		SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
+	}
 
 /*
  * Use this for defining a set of PM operations to be used in all situations
@@ -386,10 +388,10 @@ const struct dev_pm_ops name = { \
  * .runtime_resume(), respectively (and analogously for hibernation).
  */
 #define UNIVERSAL_DEV_PM_OPS(name, suspend_fn, resume_fn, idle_fn) \
-const struct dev_pm_ops name = { \
-	SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
-	SET_RUNTIME_PM_OPS(suspend_fn, resume_fn, idle_fn) \
-}
+	const struct dev_pm_ops name = { \
+		SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
+		SET_RUNTIME_PM_OPS(suspend_fn, resume_fn, idle_fn) \
+	}
 
 /**
  * PM_EVENT_ messages
@@ -475,15 +477,15 @@ const struct dev_pm_ops name = { \
 #define PMSG_RESTORE	((struct pm_message){ .event = PM_EVENT_RESTORE, })
 #define PMSG_RECOVER	((struct pm_message){ .event = PM_EVENT_RECOVER, })
 #define PMSG_USER_SUSPEND	((struct pm_message) \
-					{ .event = PM_EVENT_USER_SUSPEND, })
+{ .event = PM_EVENT_USER_SUSPEND, })
 #define PMSG_USER_RESUME	((struct pm_message) \
-					{ .event = PM_EVENT_USER_RESUME, })
+{ .event = PM_EVENT_USER_RESUME, })
 #define PMSG_REMOTE_RESUME	((struct pm_message) \
-					{ .event = PM_EVENT_REMOTE_RESUME, })
+{ .event = PM_EVENT_REMOTE_RESUME, })
 #define PMSG_AUTO_SUSPEND	((struct pm_message) \
-					{ .event = PM_EVENT_AUTO_SUSPEND, })
+{ .event = PM_EVENT_AUTO_SUSPEND, })
 #define PMSG_AUTO_RESUME	((struct pm_message) \
-					{ .event = PM_EVENT_AUTO_RESUME, })
+{ .event = PM_EVENT_AUTO_RESUME, })
 
 #define PMSG_IS_AUTO(msg)	(((msg).event & PM_EVENT_AUTO) != 0)
 
@@ -510,7 +512,8 @@ const struct dev_pm_ops name = { \
  *			executed.
  */
 
-enum rpm_status {
+enum rpm_status
+{
 	RPM_ACTIVE = 0,
 	RPM_RESUMING,
 	RPM_SUSPENDED,
@@ -532,7 +535,8 @@ enum rpm_status {
  * RPM_REQ_RESUME	Run the device bus type's ->runtime_resume() callback
  */
 
-enum rpm_request {
+enum rpm_request
+{
 	RPM_REQ_NONE = 0,
 	RPM_REQ_IDLE,
 	RPM_REQ_SUSPEND,
@@ -544,7 +548,8 @@ struct wakeup_source;
 struct wake_irq;
 struct pm_domain_data;
 
-struct pm_subsys_data {
+struct pm_subsys_data
+{
 	spinlock_t lock;
 	unsigned int refcount;
 #ifdef CONFIG_PM_CLK
@@ -555,26 +560,27 @@ struct pm_subsys_data {
 #endif
 };
 
-struct dev_pm_info {
+struct dev_pm_info
+{
 	pm_message_t		power_state;
-	unsigned int		can_wakeup:1;
-	unsigned int		async_suspend:1;
-	bool			is_prepared:1;	/* Owned by the PM core */
-	bool			is_suspended:1;	/* Ditto */
-	bool			is_noirq_suspended:1;
-	bool			is_late_suspended:1;
-	bool			early_init:1;	/* Owned by the PM core */
-	bool			direct_complete:1;	/* Owned by the PM core */
+	unsigned int		can_wakeup: 1;
+	unsigned int		async_suspend: 1;
+	bool			is_prepared: 1;	/* Owned by the PM core */
+	bool			is_suspended: 1;	/* Ditto */
+	bool			is_noirq_suspended: 1;
+	bool			is_late_suspended: 1;
+	bool			early_init: 1;	/* Owned by the PM core */
+	bool			direct_complete: 1;	/* Owned by the PM core */
 	spinlock_t		lock;
 #ifdef CONFIG_PM_SLEEP
 	struct list_head	entry;
 	struct completion	completion;
 	struct wakeup_source	*wakeup;
-	bool			wakeup_path:1;
-	bool			syscore:1;
-	bool			no_pm_callbacks:1;	/* Owned by the PM core */
+	bool			wakeup_path: 1;
+	bool			syscore: 1;
+	bool			no_pm_callbacks: 1;	/* Owned by the PM core */
 #else
-	unsigned int		should_wakeup:1;
+	unsigned int		should_wakeup: 1;
 #endif
 #ifdef CONFIG_PM
 	struct timer_list	suspend_timer;
@@ -584,18 +590,18 @@ struct dev_pm_info {
 	struct wake_irq		*wakeirq;
 	atomic_t		usage_count;
 	atomic_t		child_count;
-	unsigned int		disable_depth:3;
-	unsigned int		idle_notification:1;
-	unsigned int		request_pending:1;
-	unsigned int		deferred_resume:1;
-	unsigned int		run_wake:1;
-	unsigned int		runtime_auto:1;
-	bool			ignore_children:1;
-	unsigned int		no_callbacks:1;
-	unsigned int		irq_safe:1;
-	unsigned int		use_autosuspend:1;
-	unsigned int		timer_autosuspends:1;
-	unsigned int		memalloc_noio:1;
+	unsigned int		disable_depth: 3;
+	unsigned int		idle_notification: 1;
+	unsigned int		request_pending: 1;
+	unsigned int		deferred_resume: 1;
+	unsigned int		run_wake: 1;
+	unsigned int		runtime_auto: 1;
+	bool			ignore_children: 1;
+	unsigned int		no_callbacks: 1;
+	unsigned int		irq_safe: 1;
+	unsigned int		use_autosuspend: 1;
+	unsigned int		timer_autosuspends: 1;
+	unsigned int		memalloc_noio: 1;
 	enum rpm_request	request;
 	enum rpm_status		runtime_status;
 	int			runtime_error;
@@ -624,7 +630,8 @@ extern void dev_pm_put_subsys_data(struct device *dev);
  * @sync: Called after successful driver probe.
  * @dismiss: Called after unsuccessful driver probe and after driver removal.
  */
-struct dev_pm_domain {
+struct dev_pm_domain
+{
 	struct dev_pm_ops	ops;
 	void (*detach)(struct device *dev, bool power_off);
 	int (*activate)(struct device *dev);
@@ -779,7 +786,8 @@ static inline void dpm_for_each_dev(void *data, void (*fn)(struct device *, void
 #endif /* !CONFIG_PM_SLEEP */
 
 /* How to reorder dpm_list after device_move() */
-enum dpm_order {
+enum dpm_order
+{
 	DPM_ORDER_NONE,
 	DPM_ORDER_DEV_AFTER_PARENT,
 	DPM_ORDER_PARENT_BEFORE_DEV,

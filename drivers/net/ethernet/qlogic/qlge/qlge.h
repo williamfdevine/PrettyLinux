@@ -42,12 +42,12 @@
  * contain a buffer queue of the given length.
  */
 #define MAX_DB_PAGES_PER_BQ(x) \
-		(((x * sizeof(u64)) / DB_PAGE_SIZE) + \
-		(((x * sizeof(u64)) % DB_PAGE_SIZE) ? 1 : 0))
+	(((x * sizeof(u64)) / DB_PAGE_SIZE) + \
+	 (((x * sizeof(u64)) % DB_PAGE_SIZE) ? 1 : 0))
 
 #define RX_RING_SHADOW_SPACE	(sizeof(u64) + \
-		MAX_DB_PAGES_PER_BQ(NUM_SMALL_BUFFERS) * sizeof(u64) + \
-		MAX_DB_PAGES_PER_BQ(NUM_LARGE_BUFFERS) * sizeof(u64))
+								 MAX_DB_PAGES_PER_BQ(NUM_SMALL_BUFFERS) * sizeof(u64) + \
+								 MAX_DB_PAGES_PER_BQ(NUM_LARGE_BUFFERS) * sizeof(u64))
 #define LARGE_BUFFER_MAX_SIZE 8192
 #define LARGE_BUFFER_MIN_SIZE 2048
 
@@ -62,9 +62,9 @@
 #define TX_DESC_PER_IOCB 8
 
 #if ((MAX_SKB_FRAGS - TX_DESC_PER_IOCB) + 2) > 0
-#define TX_DESC_PER_OAL ((MAX_SKB_FRAGS - TX_DESC_PER_IOCB) + 2)
+	#define TX_DESC_PER_OAL ((MAX_SKB_FRAGS - TX_DESC_PER_IOCB) + 2)
 #else /* all other page sizes */
-#define TX_DESC_PER_OAL 0
+	#define TX_DESC_PER_OAL 0
 #endif
 
 /* Word shifting for converting 64-bit
@@ -81,12 +81,13 @@
  * is used for determining alternate NIC function's
  * PCI->func number.
  */
-enum {
+enum
+{
 	MPI_TEST_FUNC_PORT_CFG = 0x1002,
 	MPI_TEST_FUNC_PRB_CTL = 0x100e,
-		MPI_TEST_FUNC_PRB_EN = 0x18a20000,
+	MPI_TEST_FUNC_PRB_EN = 0x18a20000,
 	MPI_TEST_FUNC_RST_STS = 0x100a,
-		MPI_TEST_FUNC_RST_FRC = 0x00000003,
+	MPI_TEST_FUNC_RST_FRC = 0x00000003,
 	MPI_TEST_NIC_FUNC_MASK = 0x00000007,
 	MPI_TEST_NIC1_FUNCTION_ENABLE = (1 << 0),
 	MPI_TEST_NIC1_FUNCTION_MASK = 0x0000000e,
@@ -109,7 +110,8 @@ enum {
 /*
  * Processor Address Register (PROC_ADDR) bit definitions.
  */
-enum {
+enum
+{
 
 	/* Misc. stuff */
 	MAILBOX_COUNT = 16,
@@ -134,7 +136,8 @@ enum {
 /*
  * System Register (SYS) bit definitions.
  */
-enum {
+enum
+{
 	SYS_EFE = (1 << 0),
 	SYS_FAE = (1 << 1),
 	SYS_MDC = (1 << 2),
@@ -151,7 +154,8 @@ enum {
 /*
  *  Reset/Failover Register (RST_FO) bit definitions.
  */
-enum {
+enum
+{
 	RST_FO_TFO = (1 << 0),
 	RST_FO_RR_MASK = 0x00060000,
 	RST_FO_RR_CQ_CAM = 0x00000000,
@@ -167,7 +171,8 @@ enum {
 /*
  * Function Specific Control Register (FSC) bit definitions.
  */
-enum {
+enum
+{
 	FSC_DBRST_MASK = 0x00070000,
 	FSC_DBRST_256 = 0x00000000,
 	FSC_DBRST_512 = 0x00000001,
@@ -196,7 +201,8 @@ enum {
 /*
  *  Host Command Status Register (CSR) bit definitions.
  */
-enum {
+enum
+{
 	CSR_ERR_STS_MASK = 0x0000003f,
 	/*
 	 * There are no valued defined as of edit #15.
@@ -221,7 +227,8 @@ enum {
 /*
  *  Configuration Register (CFG) bit definitions.
  */
-enum {
+enum
+{
 	CFG_LRQ = (1 << 0),
 	CFG_DRQ = (1 << 1),
 	CFG_LR = (1 << 2),
@@ -236,7 +243,8 @@ enum {
 /*
  *  Status Register (STS) bit definitions.
  */
-enum {
+enum
+{
 	STS_FE = (1 << 0),
 	STS_PI = (1 << 1),
 	STS_PL0 = (1 << 2),
@@ -255,7 +263,8 @@ enum {
 /*
  * Interrupt Enable Register (INTR_EN) bit definitions.
  */
-enum {
+enum
+{
 	INTR_EN_INTR_MASK = 0x007f0000,
 	INTR_EN_TYPE_MASK = 0x03000000,
 	INTR_EN_TYPE_ENABLE = 0x00000100,
@@ -270,7 +279,8 @@ enum {
 /*
  * Interrupt Mask Register (INTR_MASK) bit definitions.
  */
-enum {
+enum
+{
 	INTR_MASK_PI = (1 << 0),
 	INTR_MASK_HL0 = (1 << 1),
 	INTR_MASK_LH0 = (1 << 2),
@@ -285,7 +295,8 @@ enum {
 /*
  *  Register (REV_ID) bit definitions.
  */
-enum {
+enum
+{
 	REV_ID_MASK = 0x0000000f,
 	REV_ID_NICROLL_SHIFT = 0,
 	REV_ID_NICREV_SHIFT = 4,
@@ -297,7 +308,8 @@ enum {
 /*
  *  Force ECC Error Register (FRC_ECC_ERR) bit definitions.
  */
-enum {
+enum
+{
 	FRC_ECC_ERR_VW = (1 << 12),
 	FRC_ECC_ERR_VB = (1 << 13),
 	FRC_ECC_ERR_NI = (1 << 14),
@@ -310,7 +322,8 @@ enum {
 /*
  *  Error Status Register (ERR_STS) bit definitions.
  */
-enum {
+enum
+{
 	ERR_STS_NOF = (1 << 0),
 	ERR_STS_NIF = (1 << 1),
 	ERR_STS_DRP = (1 << 2),
@@ -336,7 +349,8 @@ enum {
 /*
  *  RAM Debug Address Register (RAM_DBG_ADDR) bit definitions.
  */
-enum {
+enum
+{
 	RAM_DBG_ADDR_FW = (1 << 30),
 	RAM_DBG_ADDR_FR = (1 << 31),
 };
@@ -344,7 +358,8 @@ enum {
 /*
  * Semaphore Register (SEM) bit definitions.
  */
-enum {
+enum
+{
 	/*
 	 * Example:
 	 * reg = SEM_XGMAC0_MASK | (SEM_SET << SEM_XGMAC0_SHIFT)
@@ -373,7 +388,8 @@ enum {
 /*
  *  10G MAC Address  Register (XGMAC_ADDR) bit definitions.
  */
-enum {
+enum
+{
 	XGMAC_ADDR_RDY = (1 << 31),
 	XGMAC_ADDR_R = (1 << 30),
 	XGMAC_ADDR_XME = (1 << 29),
@@ -490,7 +506,8 @@ enum {
 /*
  *  Enhanced Transmission Schedule Registers (NIC_ETS,CNA_ETS) bit definitions.
  */
-enum {
+enum
+{
 	ETS_QUEUE_SHIFT = 29,
 	ETS_REF = (1 << 26),
 	ETS_RS = (1 << 27),
@@ -501,7 +518,8 @@ enum {
 /*
  *  Flash Address Register (FLASH_ADDR) bit definitions.
  */
-enum {
+enum
+{
 	FLASH_ADDR_RDY = (1 << 31),
 	FLASH_ADDR_R = (1 << 30),
 	FLASH_ADDR_ERR = (1 << 29),
@@ -510,7 +528,8 @@ enum {
 /*
  *  Stop CQ Processing Register (CQ_STOP) bit definitions.
  */
-enum {
+enum
+{
 	CQ_STOP_QUEUE_MASK = (0x007f0000),
 	CQ_STOP_TYPE_MASK = (0x03000000),
 	CQ_STOP_TYPE_START = 0x00000100,
@@ -522,7 +541,8 @@ enum {
 /*
  *  MAC Protocol Address Index Register (MAC_ADDR_IDX) bit definitions.
  */
-enum {
+enum
+{
 	MAC_ADDR_IDX_SHIFT = 4,
 	MAC_ADDR_TYPE_SHIFT = 16,
 	MAC_ADDR_TYPE_COUNT = 10,
@@ -572,14 +592,16 @@ enum {
 /*
  *  MAC Protocol Address Index Register (SPLT_HDR) bit definitions.
  */
-enum {
+enum
+{
 	SPLT_HDR_EP = (1 << 31),
 };
 
 /*
  *  FCoE Receive Configuration Register (FC_RCV_CFG) bit definitions.
  */
-enum {
+enum
+{
 	FC_RCV_CFG_ECT = (1 << 15),
 	FC_RCV_CFG_DFH = (1 << 20),
 	FC_RCV_CFG_DVF = (1 << 21),
@@ -593,7 +615,8 @@ enum {
 /*
  *  NIC Receive Configuration Register (NIC_RCV_CFG) bit definitions.
  */
-enum {
+enum
+{
 	NIC_RCV_CFG_PPE = (1 << 0),
 	NIC_RCV_CFG_VLAN_MASK = 0x00060000,
 	NIC_RCV_CFG_VLAN_ALL = 0x00000000,
@@ -609,7 +632,8 @@ enum {
 /*
  *   Mgmt Receive Configuration Register (MGMT_RCV_CFG) bit definitions.
  */
-enum {
+enum
+{
 	MGMT_RCV_CFG_ARP = (1 << 0),
 	MGMT_RCV_CFG_DHC = (1 << 1),
 	MGMT_RCV_CFG_DHS = (1 << 2),
@@ -634,7 +658,8 @@ enum {
 /*
  *  Routing Index Register (RT_IDX) bit definitions.
  */
-enum {
+enum
+{
 	RT_IDX_IDX_SHIFT = 8,
 	RT_IDX_TYPE_MASK = 0x000f0000,
 	RT_IDX_TYPE_SHIFT = 16,
@@ -713,7 +738,8 @@ enum {
 /*
  * Serdes Address Register (XG_SERDES_ADDR) bit definitions.
  */
-enum {
+enum
+{
 	XG_SERDES_ADDR_RDY = (1 << 31),
 	XG_SERDES_ADDR_R = (1 << 30),
 
@@ -744,7 +770,8 @@ enum {
 /*
  *  NIC Probe Mux Address Register (PRB_MX_ADDR) bit definitions.
  */
-enum {
+enum
+{
 	PRB_MX_ADDR_ARE = (1 << 16),
 	PRB_MX_ADDR_UP = (1 << 15),
 	PRB_MX_ADDR_SWP = (1 << 14),
@@ -794,7 +821,8 @@ enum {
 /*
  * Control Register Set Map
  */
-enum {
+enum
+{
 	PROC_ADDR = 0,		/* Use semaphore */
 	PROC_DATA = 0x04,	/* Use semaphore */
 	SYS = 0x08,
@@ -872,14 +900,15 @@ enum {
 #define SMALL_BUF_MAP_SIZE (SMALL_BUFFER_SIZE / 2)
 #define SPLT_SETTING  FSC_SH
 #define SPLT_LEN (SPLT_HDR_EP | \
-	min(SMALL_BUF_MAP_SIZE, 1023))
+				  min(SMALL_BUF_MAP_SIZE, 1023))
 #define QLGE_SB_PAD 32
 #endif
 
 /*
  * CAM output format.
  */
-enum {
+enum
+{
 	CAM_OUT_ROUTE_FC = 0,
 	CAM_OUT_ROUTE_NIC = 1,
 	CAM_OUT_FUNC_SHIFT = 2,
@@ -891,7 +920,8 @@ enum {
 /*
  * Mailbox  definitions
  */
-enum {
+enum
+{
 	/* Asynchronous Event Notifications */
 	AEN_SYS_ERR = 0x00008002,
 	AEN_LINK_UP = 0x00008011,
@@ -947,7 +977,7 @@ enum {
 	MB_CMD_GET_PORT_CFG = 0x00000123,
 	MB_CMD_GET_LINK_STS = 0x00000124,
 	MB_CMD_SET_LED_CFG = 0x00000125, /* Set LED Configuration Register */
-		QL_LED_BLINK = 0x03e803e8,
+	QL_LED_BLINK = 0x03e803e8,
 	MB_CMD_GET_LED_CFG = 0x00000126, /* Get LED Configuration Register */
 	MB_CMD_SET_MGMNT_TFK_CTL = 0x00000160, /* Set Mgmnt Traffic Control */
 	MB_SET_MPI_TFK_STOP = (1 << 0),
@@ -978,14 +1008,16 @@ enum {
 	MB_CMD_STS_PARAM_ERR = 0x00004006,	/* Parameter Error. */
 };
 
-struct mbox_params {
+struct mbox_params
+{
 	u32 mbox_in[MAILBOX_COUNT];
 	u32 mbox_out[MAILBOX_COUNT];
 	int in_count;
 	int out_count;
 };
 
-struct flash_params_8012 {
+struct flash_params_8012
+{
 	u8 dev_id_str[4];
 	__le16 size;
 	__le16 csum;
@@ -1002,7 +1034,8 @@ struct flash_params_8012 {
 #define FUNC1_FLASH_OFFSET 0x140600
 
 /* Flash related data structures. */
-struct flash_params_8000 {
+struct flash_params_8000
+{
 	u8 dev_id_str[4];	/* "8000" */
 	__le16 ver;
 	__le16 size;
@@ -1028,7 +1061,8 @@ struct flash_params_8000 {
 	u8 reserved2[4];
 };
 
-union flash_params {
+union flash_params
+{
 	struct flash_params_8012 flash_params_8012;
 	struct flash_params_8000 flash_params_8000;
 };
@@ -1036,7 +1070,8 @@ union flash_params {
 /*
  * doorbell space for the rx ring context
  */
-struct rx_doorbell_context {
+struct rx_doorbell_context
+{
 	u32 cnsmr_idx;		/* 0x00 */
 	u32 valid;		/* 0x04 */
 	u32 reserved[4];	/* 0x08-0x14 */
@@ -1047,7 +1082,8 @@ struct rx_doorbell_context {
 /*
  * doorbell space for the tx ring context
  */
-struct tx_doorbell_context {
+struct tx_doorbell_context
+{
 	u32 prod_idx;		/* 0x00 */
 	u32 valid;		/* 0x04 */
 	u32 reserved[4];	/* 0x08-0x14 */
@@ -1056,7 +1092,8 @@ struct tx_doorbell_context {
 };
 
 /* DATA STRUCTURES SHARED WITH HARDWARE. */
-struct tx_buf_desc {
+struct tx_buf_desc
+{
 	__le64 addr;
 	__le32 len;
 #define TX_DESC_LEN_MASK	0x000fffff
@@ -1074,7 +1111,8 @@ struct tx_buf_desc {
 #define OPCODE_IB_MPI_IOCB			0x21
 #define OPCODE_IB_AE_IOCB			0x3f
 
-struct ob_mac_iocb_req {
+struct ob_mac_iocb_req
+{
 	u8 opcode;
 	u8 flags1;
 #define OB_MAC_IOCB_REQ_OI	0x01
@@ -1097,7 +1135,8 @@ struct ob_mac_iocb_req {
 	struct tx_buf_desc tbd[TX_DESC_PER_IOCB];
 } __packed;
 
-struct ob_mac_iocb_rsp {
+struct ob_mac_iocb_rsp
+{
 	u8 opcode;		/* */
 	u8 flags1;		/* */
 #define OB_MAC_IOCB_RSP_OI	0x01	/* */
@@ -1114,7 +1153,8 @@ struct ob_mac_iocb_rsp {
 	__le32 reserved[13];
 } __packed;
 
-struct ob_mac_tso_iocb_req {
+struct ob_mac_tso_iocb_req
+{
 	u8 opcode;
 	u8 flags1;
 #define OB_MAC_TSO_IOCB_OI	0x01
@@ -1142,7 +1182,8 @@ struct ob_mac_tso_iocb_req {
 	struct tx_buf_desc tbd[TX_DESC_PER_IOCB];
 } __packed;
 
-struct ob_mac_tso_iocb_rsp {
+struct ob_mac_tso_iocb_rsp
+{
 	u8 opcode;
 	u8 flags1;
 #define OB_MAC_TSO_IOCB_RSP_OI	0x01
@@ -1159,7 +1200,8 @@ struct ob_mac_tso_iocb_rsp {
 	__le32 reserved2[13];
 } __packed;
 
-struct ib_mac_iocb_rsp {
+struct ib_mac_iocb_rsp
+{
 	u8 opcode;		/* 0x20 */
 	u8 flags1;
 #define IB_MAC_IOCB_RSP_OI	0x01	/* Overide intr delay */
@@ -1218,7 +1260,8 @@ struct ib_mac_iocb_rsp {
 	__le64 hdr_addr;	/* */
 } __packed;
 
-struct ib_ae_iocb_rsp {
+struct ib_ae_iocb_rsp
+{
 	u8 opcode;
 	u8 flags1;
 #define IB_AE_IOCB_RSP_OI		0x01
@@ -1243,7 +1286,8 @@ struct ib_ae_iocb_rsp {
  * These three structures are for generic
  * handling of ib and ob iocbs.
  */
-struct ql_net_rsp_iocb {
+struct ql_net_rsp_iocb
+{
 	u8 opcode;
 	u8 flags0;
 	__le16 length;
@@ -1251,7 +1295,8 @@ struct ql_net_rsp_iocb {
 	__le32 reserved[14];
 } __packed;
 
-struct net_req_iocb {
+struct net_req_iocb
+{
 	u8 opcode;
 	u8 flags0;
 	__le16 flags1;
@@ -1264,7 +1309,8 @@ struct net_req_iocb {
  * It is defined as:
  * "Work Queue Initialization Control Block"
  */
-struct wqicb {
+struct wqicb
+{
 	__le16 len;
 #define Q_LEN_V		(1 << 4)
 #define Q_LEN_CPP_CONT	0x0000
@@ -1290,7 +1336,8 @@ struct wqicb {
  * It is defined as:
  * "Completion Queue Initialization Control Block"
  */
-struct cqicb {
+struct cqicb
+{
 	u8 msix_vect;
 	u8 reserved1;
 	u8 reserved2;
@@ -1319,7 +1366,8 @@ struct cqicb {
 	__le16 sbq_len;		/* entry count */
 } __packed;
 
-struct ricb {
+struct ricb
+{
 	u8 base_cq;
 #define RSS_L4K 0x80
 	u8 flags;
@@ -1339,16 +1387,19 @@ struct ricb {
 
 /* SOFTWARE/DRIVER DATA STRUCTURES. */
 
-struct oal {
+struct oal
+{
 	struct tx_buf_desc oal[TX_DESC_PER_OAL];
 };
 
-struct map_list {
+struct map_list
+{
 	DEFINE_DMA_UNMAP_ADDR(mapaddr);
 	DEFINE_DMA_UNMAP_LEN(maplen);
 };
 
-struct tx_ring_desc {
+struct tx_ring_desc
+{
 	struct sk_buff *skb;
 	struct ob_mac_iocb_req *queue_entry;
 	u32 index;
@@ -1358,7 +1409,8 @@ struct tx_ring_desc {
 	struct tx_ring_desc *next;
 };
 
-struct page_chunk {
+struct page_chunk
+{
 	struct page *page;	/* master page */
 	char *va;		/* virt addr for this chunk */
 	u64 map;		/* mapping for master */
@@ -1366,8 +1418,10 @@ struct page_chunk {
 	unsigned int last_flag; /* flag set for last chunk in page */
 };
 
-struct bq_desc {
-	union {
+struct bq_desc
+{
+	union
+	{
 		struct page_chunk pg_chunk;
 		struct sk_buff *skb;
 	} p;
@@ -1379,7 +1433,8 @@ struct bq_desc {
 
 #define QL_TXQ_IDX(qdev, skb) (smp_processor_id()%(qdev->tx_ring_count))
 
-struct tx_ring {
+struct tx_ring
+{
 	/*
 	 * queue info.
 	 */
@@ -1409,13 +1464,15 @@ struct tx_ring {
 /*
  * Type of inbound queue.
  */
-enum {
+enum
+{
 	DEFAULT_Q = 2,		/* Handles slow queue and chip/MPI events. */
 	TX_Q = 3,		/* Handles outbound completions. */
 	RX_Q = 4,		/* Handles inbound completions. */
 };
 
-struct rx_ring {
+struct rx_ring
+{
 	struct cqicb cqicb;	/* The chip's completion queue init control block. */
 
 	/* Completion queue elements. */
@@ -1480,11 +1537,13 @@ struct rx_ring {
 /*
  * RSS Initialization Control Block
  */
-struct hash_id {
+struct hash_id
+{
 	u8 value[4];
 };
 
-struct nic_stats {
+struct nic_stats
+{
 	/*
 	 * These stats come from offset 200h to 278h
 	 * in the XGMAC register.
@@ -1568,7 +1627,8 @@ struct nic_stats {
 };
 
 /* Firmware coredump internal register address/length pairs. */
-enum {
+enum
+{
 	MPI_CORE_REGS_ADDR = 0x00030000,
 	MPI_CORE_REGS_CNT = 127,
 	MPI_CORE_SH_REGS_CNT = 16,
@@ -1604,7 +1664,8 @@ enum {
 };
 
 #define MPI_COREDUMP_COOKIE 0x5555aaaa
-struct mpi_coredump_global_header {
+struct mpi_coredump_global_header
+{
 	u32	cookie;
 	u8	idString[16];
 	u32	timeLo;
@@ -1614,7 +1675,8 @@ struct mpi_coredump_global_header {
 	u8	info[220];
 };
 
-struct mpi_coredump_segment_header {
+struct mpi_coredump_segment_header
+{
 	u32	cookie;
 	u32	segNum;
 	u32	segSize;
@@ -1623,7 +1685,8 @@ struct mpi_coredump_segment_header {
 };
 
 /* Firmware coredump header segment numbers. */
-enum {
+enum
+{
 	CORE_SEG_NUM = 1,
 	TEST_LOGIC_SEG_NUM = 2,
 	RMII_SEG_NUM = 3,
@@ -1696,7 +1759,7 @@ enum {
  */
 #define PRB_MX_ADDR_PRB_WORD_COUNT		(1 + (PRB_MX_ADDR_MAX_MUX * 2))
 #define PRB_MX_DUMP_TOT_COUNT		(PRB_MX_ADDR_PRB_WORD_COUNT * \
-							PRB_MX_ADDR_VALID_TOTAL)
+									 PRB_MX_ADDR_VALID_TOTAL)
 /* Each routing entry consists of 4 32-bit words.
  * They are route type, index, index word, and result.
  * There are 2 route blocks with 8 entries each and
@@ -1706,24 +1769,24 @@ enum {
 #define RT_IDX_DUMP_ENTRIES			48
 #define RT_IDX_DUMP_WORDS_PER_ENTRY	4
 #define RT_IDX_DUMP_TOT_WORDS		(RT_IDX_DUMP_ENTRIES * \
-						RT_IDX_DUMP_WORDS_PER_ENTRY)
+									 RT_IDX_DUMP_WORDS_PER_ENTRY)
 /* There are 10 address blocks in filter, each with
  * different entry counts and different word-count-per-entry.
  */
 #define MAC_ADDR_DUMP_ENTRIES \
 	((MAC_ADDR_MAX_CAM_ENTRIES * MAC_ADDR_MAX_CAM_WCOUNT) + \
-	(MAC_ADDR_MAX_MULTICAST_ENTRIES * MAC_ADDR_MAX_MULTICAST_WCOUNT) + \
-	(MAC_ADDR_MAX_VLAN_ENTRIES * MAC_ADDR_MAX_VLAN_WCOUNT) + \
-	(MAC_ADDR_MAX_MCAST_FLTR_ENTRIES * MAC_ADDR_MAX_MCAST_FLTR_WCOUNT) + \
-	(MAC_ADDR_MAX_FC_MAC_ENTRIES * MAC_ADDR_MAX_FC_MAC_WCOUNT) + \
-	(MAC_ADDR_MAX_MGMT_MAC_ENTRIES * MAC_ADDR_MAX_MGMT_MAC_WCOUNT) + \
-	(MAC_ADDR_MAX_MGMT_VLAN_ENTRIES * MAC_ADDR_MAX_MGMT_VLAN_WCOUNT) + \
-	(MAC_ADDR_MAX_MGMT_V4_ENTRIES * MAC_ADDR_MAX_MGMT_V4_WCOUNT) + \
-	(MAC_ADDR_MAX_MGMT_V6_ENTRIES * MAC_ADDR_MAX_MGMT_V6_WCOUNT) + \
-	(MAC_ADDR_MAX_MGMT_TU_DP_ENTRIES * MAC_ADDR_MAX_MGMT_TU_DP_WCOUNT))
+	 (MAC_ADDR_MAX_MULTICAST_ENTRIES * MAC_ADDR_MAX_MULTICAST_WCOUNT) + \
+	 (MAC_ADDR_MAX_VLAN_ENTRIES * MAC_ADDR_MAX_VLAN_WCOUNT) + \
+	 (MAC_ADDR_MAX_MCAST_FLTR_ENTRIES * MAC_ADDR_MAX_MCAST_FLTR_WCOUNT) + \
+	 (MAC_ADDR_MAX_FC_MAC_ENTRIES * MAC_ADDR_MAX_FC_MAC_WCOUNT) + \
+	 (MAC_ADDR_MAX_MGMT_MAC_ENTRIES * MAC_ADDR_MAX_MGMT_MAC_WCOUNT) + \
+	 (MAC_ADDR_MAX_MGMT_VLAN_ENTRIES * MAC_ADDR_MAX_MGMT_VLAN_WCOUNT) + \
+	 (MAC_ADDR_MAX_MGMT_V4_ENTRIES * MAC_ADDR_MAX_MGMT_V4_WCOUNT) + \
+	 (MAC_ADDR_MAX_MGMT_V6_ENTRIES * MAC_ADDR_MAX_MGMT_V6_WCOUNT) + \
+	 (MAC_ADDR_MAX_MGMT_TU_DP_ENTRIES * MAC_ADDR_MAX_MGMT_TU_DP_WCOUNT))
 #define MAC_ADDR_DUMP_WORDS_PER_ENTRY	2
 #define MAC_ADDR_DUMP_TOT_WORDS		(MAC_ADDR_DUMP_ENTRIES * \
-						MAC_ADDR_DUMP_WORDS_PER_ENTRY)
+									 MAC_ADDR_DUMP_WORDS_PER_ENTRY)
 /* Maximum of 4 functions whose semaphore registeres are
  * in the coredump.
  */
@@ -1734,14 +1797,16 @@ enum {
 #define SHADOW_OFFSET	0xb0000000
 #define SHADOW_REG_SHIFT	20
 
-struct ql_nic_misc {
+struct ql_nic_misc
+{
 	u32 rx_ring_count;
 	u32 tx_ring_count;
 	u32 intr_count;
 	u32 function;
 };
 
-struct ql_reg_dump {
+struct ql_reg_dump
+{
 
 	/* segment 0 */
 	struct mpi_coredump_global_header mpi_global_header;
@@ -1772,10 +1837,11 @@ struct ql_reg_dump {
 
 	/* segment 34 */
 	struct mpi_coredump_segment_header ets_seg_hdr;
-	u32 ets[8+2];
+	u32 ets[8 + 2];
 };
 
-struct ql_mpi_coredump {
+struct ql_mpi_coredump
+{
 	/* segment 0 */
 	struct mpi_coredump_global_header mpi_global_header;
 
@@ -1973,7 +2039,8 @@ struct ql_mpi_coredump {
  * to hook the interrupts.  It is also used in a single
  * irq environment as a context to the ISR.
  */
-struct intr_context {
+struct intr_context
+{
 	struct ql_adapter *qdev;
 	u32 intr;
 	u32 irq_mask;		/* Mask of which rings the vector services. */
@@ -1991,7 +2058,8 @@ struct intr_context {
 };
 
 /* adapter flags definitions. */
-enum {
+enum
+{
 	QL_ADAPTER_UP = 0,	/* Adapter has been brought up. */
 	QL_LEGACY_ENABLED = 1,
 	QL_MSI_ENABLED = 2,
@@ -2009,7 +2077,8 @@ enum {
 };
 
 /* link_status bit definitions */
-enum {
+enum
+{
 	STS_LOOPBACK_MASK = 0x00000700,
 	STS_LOOPBACK_PCS = 0x00000100,
 	STS_LOOPBACK_HSS = 0x00000200,
@@ -2030,7 +2099,8 @@ enum {
 };
 
 /* link_config bit definitions */
-enum {
+enum
+{
 	CFG_JUMBO_FRAME_SIZE = 0x00010000,
 	CFG_PAUSE_MASK = 0x00000060,
 	CFG_PAUSE_STD = 0x00000020,
@@ -2043,7 +2113,8 @@ enum {
 	CFG_DEFAULT_MAX_FRAME_SIZE = 0x00002580,
 };
 
-struct nic_operations {
+struct nic_operations
+{
 
 	int (*get_flash) (struct ql_adapter *);
 	int (*port_initialize) (struct ql_adapter *);
@@ -2053,7 +2124,8 @@ struct nic_operations {
  * The main Adapter structure definition.
  * This structure has all fields relevant to the hardware.
  */
-struct ql_adapter {
+struct ql_adapter
+{
 	struct ricb ricb;
 	unsigned long flags;
 	u32 wol;
@@ -2210,10 +2282,10 @@ int ql_sem_spinlock(struct ql_adapter *qdev, u32 sem_mask);
 void ql_sem_unlock(struct ql_adapter *qdev, u32 sem_mask);
 int ql_read_xgmac_reg(struct ql_adapter *qdev, u32 reg, u32 *data);
 int ql_get_mac_addr_reg(struct ql_adapter *qdev, u32 type, u16 index,
-			u32 *value);
+						u32 *value);
 int ql_get_routing_reg(struct ql_adapter *qdev, u32 index, u32 *value);
 int ql_write_cfg(struct ql_adapter *qdev, void *ptr, int size, u32 bit,
-		 u16 q_id);
+				 u16 q_id);
 void ql_queue_fw_error(struct ql_adapter *qdev);
 void ql_mpi_work(struct work_struct *work);
 void ql_mpi_reset_work(struct work_struct *work);
@@ -2234,7 +2306,7 @@ int ql_pause_mpi_risc(struct ql_adapter *qdev);
 int ql_hard_reset_mpi_risc(struct ql_adapter *qdev);
 int ql_soft_reset_mpi_risc(struct ql_adapter *qdev);
 int ql_dump_risc_ram_area(struct ql_adapter *qdev, void *buf, u32 ram_addr,
-			  int word_count);
+						  int word_count);
 int ql_core_dump(struct ql_adapter *qdev, struct ql_mpi_coredump *mpi_coredump);
 int ql_mb_about_fw(struct ql_adapter *qdev);
 int ql_mb_wol_set_magic(struct ql_adapter *qdev, u32 enable_wol);
@@ -2261,30 +2333,30 @@ int ql_clean_lb_rx_ring(struct rx_ring *rx_ring, int budget);
 /* #define QL_OB_DUMP */
 
 #ifdef QL_REG_DUMP
-void ql_dump_xgmac_control_regs(struct ql_adapter *qdev);
-void ql_dump_routing_entries(struct ql_adapter *qdev);
-void ql_dump_regs(struct ql_adapter *qdev);
-#define QL_DUMP_REGS(qdev) ql_dump_regs(qdev)
-#define QL_DUMP_ROUTE(qdev) ql_dump_routing_entries(qdev)
-#define QL_DUMP_XGMAC_CONTROL_REGS(qdev) ql_dump_xgmac_control_regs(qdev)
+	void ql_dump_xgmac_control_regs(struct ql_adapter *qdev);
+	void ql_dump_routing_entries(struct ql_adapter *qdev);
+	void ql_dump_regs(struct ql_adapter *qdev);
+	#define QL_DUMP_REGS(qdev) ql_dump_regs(qdev)
+	#define QL_DUMP_ROUTE(qdev) ql_dump_routing_entries(qdev)
+	#define QL_DUMP_XGMAC_CONTROL_REGS(qdev) ql_dump_xgmac_control_regs(qdev)
 #else
-#define QL_DUMP_REGS(qdev)
-#define QL_DUMP_ROUTE(qdev)
-#define QL_DUMP_XGMAC_CONTROL_REGS(qdev)
+	#define QL_DUMP_REGS(qdev)
+	#define QL_DUMP_ROUTE(qdev)
+	#define QL_DUMP_XGMAC_CONTROL_REGS(qdev)
 #endif
 
 #ifdef QL_STAT_DUMP
-void ql_dump_stat(struct ql_adapter *qdev);
-#define QL_DUMP_STAT(qdev) ql_dump_stat(qdev)
+	void ql_dump_stat(struct ql_adapter *qdev);
+	#define QL_DUMP_STAT(qdev) ql_dump_stat(qdev)
 #else
-#define QL_DUMP_STAT(qdev)
+	#define QL_DUMP_STAT(qdev)
 #endif
 
 #ifdef QL_DEV_DUMP
-void ql_dump_qdev(struct ql_adapter *qdev);
-#define QL_DUMP_QDEV(qdev) ql_dump_qdev(qdev)
+	void ql_dump_qdev(struct ql_adapter *qdev);
+	#define QL_DUMP_QDEV(qdev) ql_dump_qdev(qdev)
 #else
-#define QL_DUMP_QDEV(qdev)
+	#define QL_DUMP_QDEV(qdev)
 #endif
 
 #ifdef QL_CB_DUMP
@@ -2300,7 +2372,7 @@ void ql_dump_hw_cb(struct ql_adapter *qdev, int size, u32 bit, u16 q_id);
 #define QL_DUMP_CQICB(cqicb) ql_dump_cqicb(cqicb)
 #define QL_DUMP_RX_RING(rx_ring) ql_dump_rx_ring(rx_ring)
 #define QL_DUMP_HW_CB(qdev, size, bit, q_id) \
-		ql_dump_hw_cb(qdev, size, bit, q_id)
+	ql_dump_hw_cb(qdev, size, bit, q_id)
 #else
 #define QL_DUMP_RICB(ricb)
 #define QL_DUMP_WQICB(wqicb)
@@ -2311,28 +2383,28 @@ void ql_dump_hw_cb(struct ql_adapter *qdev, int size, u32 bit, u16 q_id);
 #endif
 
 #ifdef QL_OB_DUMP
-void ql_dump_tx_desc(struct tx_buf_desc *tbd);
-void ql_dump_ob_mac_iocb(struct ob_mac_iocb_req *ob_mac_iocb);
-void ql_dump_ob_mac_rsp(struct ob_mac_iocb_rsp *ob_mac_rsp);
-#define QL_DUMP_OB_MAC_IOCB(ob_mac_iocb) ql_dump_ob_mac_iocb(ob_mac_iocb)
-#define QL_DUMP_OB_MAC_RSP(ob_mac_rsp) ql_dump_ob_mac_rsp(ob_mac_rsp)
+	void ql_dump_tx_desc(struct tx_buf_desc *tbd);
+	void ql_dump_ob_mac_iocb(struct ob_mac_iocb_req *ob_mac_iocb);
+	void ql_dump_ob_mac_rsp(struct ob_mac_iocb_rsp *ob_mac_rsp);
+	#define QL_DUMP_OB_MAC_IOCB(ob_mac_iocb) ql_dump_ob_mac_iocb(ob_mac_iocb)
+	#define QL_DUMP_OB_MAC_RSP(ob_mac_rsp) ql_dump_ob_mac_rsp(ob_mac_rsp)
 #else
-#define QL_DUMP_OB_MAC_IOCB(ob_mac_iocb)
-#define QL_DUMP_OB_MAC_RSP(ob_mac_rsp)
+	#define QL_DUMP_OB_MAC_IOCB(ob_mac_iocb)
+	#define QL_DUMP_OB_MAC_RSP(ob_mac_rsp)
 #endif
 
 #ifdef QL_IB_DUMP
-void ql_dump_ib_mac_rsp(struct ib_mac_iocb_rsp *ib_mac_rsp);
-#define QL_DUMP_IB_MAC_RSP(ib_mac_rsp) ql_dump_ib_mac_rsp(ib_mac_rsp)
+	void ql_dump_ib_mac_rsp(struct ib_mac_iocb_rsp *ib_mac_rsp);
+	#define QL_DUMP_IB_MAC_RSP(ib_mac_rsp) ql_dump_ib_mac_rsp(ib_mac_rsp)
 #else
-#define QL_DUMP_IB_MAC_RSP(ib_mac_rsp)
+	#define QL_DUMP_IB_MAC_RSP(ib_mac_rsp)
 #endif
 
 #ifdef	QL_ALL_DUMP
-void ql_dump_all(struct ql_adapter *qdev);
-#define QL_DUMP_ALL(qdev) ql_dump_all(qdev)
+	void ql_dump_all(struct ql_adapter *qdev);
+	#define QL_DUMP_ALL(qdev) ql_dump_all(qdev)
 #else
-#define QL_DUMP_ALL(qdev)
+	#define QL_DUMP_ALL(qdev)
 #endif
 
 #endif /* _QLGE_H_ */

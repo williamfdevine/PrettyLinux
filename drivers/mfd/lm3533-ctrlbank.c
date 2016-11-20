@@ -44,9 +44,12 @@ int lm3533_ctrlbank_enable(struct lm3533_ctrlbank *cb)
 
 	mask = 1 << cb->id;
 	ret = lm3533_update(cb->lm3533, LM3533_REG_CTRLBANK_ENABLE,
-								mask, mask);
+						mask, mask);
+
 	if (ret)
+	{
 		dev_err(cb->dev, "failed to enable ctrlbank %d\n", cb->id);
+	}
 
 	return ret;
 }
@@ -61,8 +64,11 @@ int lm3533_ctrlbank_disable(struct lm3533_ctrlbank *cb)
 
 	mask = 1 << cb->id;
 	ret = lm3533_update(cb->lm3533, LM3533_REG_CTRLBANK_ENABLE, 0, mask);
+
 	if (ret)
+	{
 		dev_err(cb->dev, "failed to disable ctrlbank %d\n", cb->id);
+	}
 
 	return ret;
 }
@@ -80,51 +86,56 @@ int lm3533_ctrlbank_set_max_current(struct lm3533_ctrlbank *cb, u16 imax)
 	int ret;
 
 	if (imax < LM3533_MAX_CURRENT_MIN || imax > LM3533_MAX_CURRENT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	val = (imax - LM3533_MAX_CURRENT_MIN) / LM3533_MAX_CURRENT_STEP;
 
 	reg = lm3533_ctrlbank_get_reg(cb, LM3533_REG_MAX_CURRENT_BASE);
 	ret = lm3533_write(cb->lm3533, reg, val);
+
 	if (ret)
+	{
 		dev_err(cb->dev, "failed to set max current\n");
+	}
 
 	return ret;
 }
 EXPORT_SYMBOL_GPL(lm3533_ctrlbank_set_max_current);
 
 #define lm3533_ctrlbank_set(_name, _NAME)				\
-int lm3533_ctrlbank_set_##_name(struct lm3533_ctrlbank *cb, u8 val)	\
-{									\
-	u8 reg;								\
-	int ret;							\
-									\
-	if (val > LM3533_##_NAME##_MAX)					\
-		return -EINVAL;						\
-									\
-	reg = lm3533_ctrlbank_get_reg(cb, LM3533_REG_##_NAME##_BASE);	\
-	ret = lm3533_write(cb->lm3533, reg, val);			\
-	if (ret)							\
-		dev_err(cb->dev, "failed to set " #_name "\n");		\
-									\
-	return ret;							\
-}									\
-EXPORT_SYMBOL_GPL(lm3533_ctrlbank_set_##_name);
+	int lm3533_ctrlbank_set_##_name(struct lm3533_ctrlbank *cb, u8 val)	\
+	{									\
+		u8 reg;								\
+		int ret;							\
+		\
+		if (val > LM3533_##_NAME##_MAX)					\
+			return -EINVAL;						\
+		\
+		reg = lm3533_ctrlbank_get_reg(cb, LM3533_REG_##_NAME##_BASE);	\
+		ret = lm3533_write(cb->lm3533, reg, val);			\
+		if (ret)							\
+			dev_err(cb->dev, "failed to set " #_name "\n");		\
+		\
+		return ret;							\
+	}									\
+	EXPORT_SYMBOL_GPL(lm3533_ctrlbank_set_##_name);
 
 #define lm3533_ctrlbank_get(_name, _NAME)				\
-int lm3533_ctrlbank_get_##_name(struct lm3533_ctrlbank *cb, u8 *val)	\
-{									\
-	u8 reg;								\
-	int ret;							\
-									\
-	reg = lm3533_ctrlbank_get_reg(cb, LM3533_REG_##_NAME##_BASE);	\
-	ret = lm3533_read(cb->lm3533, reg, val);			\
-	if (ret)							\
-		dev_err(cb->dev, "failed to get " #_name "\n");		\
-									\
-	return ret;							\
-}									\
-EXPORT_SYMBOL_GPL(lm3533_ctrlbank_get_##_name);
+	int lm3533_ctrlbank_get_##_name(struct lm3533_ctrlbank *cb, u8 *val)	\
+	{									\
+		u8 reg;								\
+		int ret;							\
+		\
+		reg = lm3533_ctrlbank_get_reg(cb, LM3533_REG_##_NAME##_BASE);	\
+		ret = lm3533_read(cb->lm3533, reg, val);			\
+		if (ret)							\
+			dev_err(cb->dev, "failed to get " #_name "\n");		\
+		\
+		return ret;							\
+	}									\
+	EXPORT_SYMBOL_GPL(lm3533_ctrlbank_get_##_name);
 
 lm3533_ctrlbank_set(brightness, BRIGHTNESS);
 lm3533_ctrlbank_get(brightness, BRIGHTNESS);

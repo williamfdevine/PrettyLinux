@@ -20,7 +20,9 @@ ebt_dnat_tg(struct sk_buff *skb, const struct xt_action_param *par)
 	const struct ebt_nat_info *info = par->targinfo;
 
 	if (!skb_make_writable(skb, 0))
+	{
 		return EBT_DROP;
+	}
 
 	ether_addr_copy(eth_hdr(skb)->h_dest, info->mac);
 	return info->target;
@@ -32,26 +34,36 @@ static int ebt_dnat_tg_check(const struct xt_tgchk_param *par)
 	unsigned int hook_mask;
 
 	if (BASE_CHAIN && info->target == EBT_RETURN)
+	{
 		return -EINVAL;
+	}
 
 	hook_mask = par->hook_mask & ~(1 << NF_BR_NUMHOOKS);
+
 	if ((strcmp(par->table, "nat") != 0 ||
-	    (hook_mask & ~((1 << NF_BR_PRE_ROUTING) |
-	    (1 << NF_BR_LOCAL_OUT)))) &&
-	    (strcmp(par->table, "broute") != 0 ||
-	    hook_mask & ~(1 << NF_BR_BROUTING)))
+		 (hook_mask & ~((1 << NF_BR_PRE_ROUTING) |
+						(1 << NF_BR_LOCAL_OUT)))) &&
+		(strcmp(par->table, "broute") != 0 ||
+		 hook_mask & ~(1 << NF_BR_BROUTING)))
+	{
 		return -EINVAL;
+	}
+
 	if (INVALID_TARGET)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
-static struct xt_target ebt_dnat_tg_reg __read_mostly = {
+static struct xt_target ebt_dnat_tg_reg __read_mostly =
+{
 	.name		= "dnat",
 	.revision	= 0,
 	.family		= NFPROTO_BRIDGE,
 	.hooks		= (1 << NF_BR_NUMHOOKS) | (1 << NF_BR_PRE_ROUTING) |
-			  (1 << NF_BR_LOCAL_OUT) | (1 << NF_BR_BROUTING),
+	(1 << NF_BR_LOCAL_OUT) | (1 << NF_BR_BROUTING),
 	.target		= ebt_dnat_tg,
 	.checkentry	= ebt_dnat_tg_check,
 	.targetsize	= sizeof(struct ebt_nat_info),

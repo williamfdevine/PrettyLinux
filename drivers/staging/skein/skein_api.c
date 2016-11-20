@@ -51,37 +51,43 @@ int skein_init(struct skein_ctx *ctx, size_t hash_bit_len)
 	 */
 	x = ctx->m.s256.x;
 	x_len = ctx->skein_size / 8;
+
 	/*
 	 * If size is the same and hash bit length is zero then reuse
 	 * the save chaining variables.
 	 */
-	switch (ctx->skein_size) {
-	case SKEIN_256:
-		ret = skein_256_init_ext(&ctx->m.s256, hash_bit_len,
-					 tree_info, NULL, 0);
-		break;
-	case SKEIN_512:
-		ret = skein_512_init_ext(&ctx->m.s512, hash_bit_len,
-					 tree_info, NULL, 0);
-		break;
-	case SKEIN_1024:
-		ret = skein_1024_init_ext(&ctx->m.s1024, hash_bit_len,
-					  tree_info, NULL, 0);
-		break;
+	switch (ctx->skein_size)
+	{
+		case SKEIN_256:
+			ret = skein_256_init_ext(&ctx->m.s256, hash_bit_len,
+									 tree_info, NULL, 0);
+			break;
+
+		case SKEIN_512:
+			ret = skein_512_init_ext(&ctx->m.s512, hash_bit_len,
+									 tree_info, NULL, 0);
+			break;
+
+		case SKEIN_1024:
+			ret = skein_1024_init_ext(&ctx->m.s1024, hash_bit_len,
+									  tree_info, NULL, 0);
+			break;
 	}
 
-	if (ret == SKEIN_SUCCESS) {
+	if (ret == SKEIN_SUCCESS)
+	{
 		/*
 		 * Save chaining variables for this combination of size and
 		 * hash_bit_len
 		 */
 		memcpy(ctx->x_save, x, x_len);
 	}
+
 	return ret;
 }
 
 int skein_mac_init(struct skein_ctx *ctx, const u8 *key, size_t key_len,
-		   size_t hash_bit_len)
+				   size_t hash_bit_len)
 {
 	int ret = SKEIN_FAIL;
 	u64 *x = NULL;
@@ -95,32 +101,38 @@ int skein_mac_init(struct skein_ctx *ctx, const u8 *key, size_t key_len,
 
 	skein_assert_ret(hash_bit_len, SKEIN_BAD_HASHLEN);
 
-	switch (ctx->skein_size) {
-	case SKEIN_256:
-		ret = skein_256_init_ext(&ctx->m.s256, hash_bit_len,
-					 tree_info,
-					 (const u8 *)key, key_len);
+	switch (ctx->skein_size)
+	{
+		case SKEIN_256:
+			ret = skein_256_init_ext(&ctx->m.s256, hash_bit_len,
+									 tree_info,
+									 (const u8 *)key, key_len);
 
-		break;
-	case SKEIN_512:
-		ret = skein_512_init_ext(&ctx->m.s512, hash_bit_len,
-					 tree_info,
-					 (const u8 *)key, key_len);
-		break;
-	case SKEIN_1024:
-		ret = skein_1024_init_ext(&ctx->m.s1024, hash_bit_len,
-					  tree_info,
-					  (const u8 *)key, key_len);
+			break;
 
-		break;
+		case SKEIN_512:
+			ret = skein_512_init_ext(&ctx->m.s512, hash_bit_len,
+									 tree_info,
+									 (const u8 *)key, key_len);
+			break;
+
+		case SKEIN_1024:
+			ret = skein_1024_init_ext(&ctx->m.s1024, hash_bit_len,
+									  tree_info,
+									  (const u8 *)key, key_len);
+
+			break;
 	}
-	if (ret == SKEIN_SUCCESS) {
+
+	if (ret == SKEIN_SUCCESS)
+	{
 		/*
 		 * Save chaining variables for this combination of key,
 		 * key_len, hash_bit_len
 		 */
 		memcpy(ctx->x_save, x, x_len);
 	}
+
 	return ret;
 }
 
@@ -144,31 +156,35 @@ void skein_reset(struct skein_ctx *ctx)
 }
 
 int skein_update(struct skein_ctx *ctx, const u8 *msg,
-		 size_t msg_byte_cnt)
+				 size_t msg_byte_cnt)
 {
 	int ret = SKEIN_FAIL;
 
 	skein_assert_ret(ctx, SKEIN_FAIL);
 
-	switch (ctx->skein_size) {
-	case SKEIN_256:
-		ret = skein_256_update(&ctx->m.s256, (const u8 *)msg,
-				       msg_byte_cnt);
-		break;
-	case SKEIN_512:
-		ret = skein_512_update(&ctx->m.s512, (const u8 *)msg,
-				       msg_byte_cnt);
-		break;
-	case SKEIN_1024:
-		ret = skein_1024_update(&ctx->m.s1024, (const u8 *)msg,
-					msg_byte_cnt);
-		break;
+	switch (ctx->skein_size)
+	{
+		case SKEIN_256:
+			ret = skein_256_update(&ctx->m.s256, (const u8 *)msg,
+								   msg_byte_cnt);
+			break;
+
+		case SKEIN_512:
+			ret = skein_512_update(&ctx->m.s512, (const u8 *)msg,
+								   msg_byte_cnt);
+			break;
+
+		case SKEIN_1024:
+			ret = skein_1024_update(&ctx->m.s1024, (const u8 *)msg,
+									msg_byte_cnt);
+			break;
 	}
+
 	return ret;
 }
 
 int skein_update_bits(struct skein_ctx *ctx, const u8 *msg,
-		      size_t msg_bit_cnt)
+					  size_t msg_bit_cnt)
 {
 	/*
 	 * I've used the bit pad implementation from skein_test.c (see NIST CD)
@@ -184,11 +200,13 @@ int skein_update_bits(struct skein_ctx *ctx, const u8 *msg,
 	 * assert an error
 	 */
 	skein_assert_ret((ctx->m.h.T[1] & SKEIN_T1_FLAG_BIT_PAD) == 0 ||
-			 msg_bit_cnt == 0, SKEIN_FAIL);
+					 msg_bit_cnt == 0, SKEIN_FAIL);
 
 	/* if number of bits is a multiple of bytes - that's easy */
 	if ((msg_bit_cnt & 0x7) == 0)
+	{
 		return skein_update(ctx, msg, msg_bit_cnt >> 3);
+	}
 
 	skein_update(ctx, msg, (msg_bit_cnt >> 3) + 1);
 
@@ -222,16 +240,20 @@ int skein_final(struct skein_ctx *ctx, u8 *hash)
 
 	skein_assert_ret(ctx, SKEIN_FAIL);
 
-	switch (ctx->skein_size) {
-	case SKEIN_256:
-		ret = skein_256_final(&ctx->m.s256, (u8 *)hash);
-		break;
-	case SKEIN_512:
-		ret = skein_512_final(&ctx->m.s512, (u8 *)hash);
-		break;
-	case SKEIN_1024:
-		ret = skein_1024_final(&ctx->m.s1024, (u8 *)hash);
-		break;
+	switch (ctx->skein_size)
+	{
+		case SKEIN_256:
+			ret = skein_256_final(&ctx->m.s256, (u8 *)hash);
+			break;
+
+		case SKEIN_512:
+			ret = skein_512_final(&ctx->m.s512, (u8 *)hash);
+			break;
+
+		case SKEIN_1024:
+			ret = skein_1024_final(&ctx->m.s1024, (u8 *)hash);
+			break;
 	}
+
 	return ret;
 }

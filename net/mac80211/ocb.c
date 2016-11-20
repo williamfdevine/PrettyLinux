@@ -34,13 +34,14 @@
  *
  * These flags are used in @wrkq_flags field of &struct ieee80211_if_ocb
  */
-enum ocb_deferred_task_flags {
+enum ocb_deferred_task_flags
+{
 	OCB_WORK_HOUSEKEEPING,
 };
 
 void ieee80211_ocb_rx_no_sta(struct ieee80211_sub_if_data *sdata,
-			     const u8 *bssid, const u8 *addr,
-			     u32 supp_rates)
+							 const u8 *bssid, const u8 *addr,
+							 u32 supp_rates)
 {
 	struct ieee80211_if_ocb *ifocb = &sdata->u.ocb;
 	struct ieee80211_local *local = sdata->local;
@@ -53,9 +54,10 @@ void ieee80211_ocb_rx_no_sta(struct ieee80211_sub_if_data *sdata,
 	/* XXX: Consider removing the least recently used entry and
 	 *      allow new one to be added.
 	 */
-	if (local->num_sta >= IEEE80211_OCB_MAX_STA_ENTRIES) {
+	if (local->num_sta >= IEEE80211_OCB_MAX_STA_ENTRIES)
+	{
 		net_info_ratelimited("%s: No room for a new OCB STA entry %pM\n",
-				     sdata->name, addr);
+							 sdata->name, addr);
 		return;
 	}
 
@@ -63,17 +65,23 @@ void ieee80211_ocb_rx_no_sta(struct ieee80211_sub_if_data *sdata,
 
 	rcu_read_lock();
 	chanctx_conf = rcu_dereference(sdata->vif.chanctx_conf);
-	if (WARN_ON_ONCE(!chanctx_conf)) {
+
+	if (WARN_ON_ONCE(!chanctx_conf))
+	{
 		rcu_read_unlock();
 		return;
 	}
+
 	band = chanctx_conf->def.chan->band;
 	scan_width = cfg80211_chandef_to_scan_width(&chanctx_conf->def);
 	rcu_read_unlock();
 
 	sta = sta_info_alloc(sdata, addr, GFP_ATOMIC);
+
 	if (!sta)
+	{
 		return;
+	}
 
 	/* Add only mandatory rates for now */
 	sband = local->hw.wiphy->bands[band];
@@ -87,7 +95,7 @@ void ieee80211_ocb_rx_no_sta(struct ieee80211_sub_if_data *sdata,
 }
 
 static struct sta_info *ieee80211_ocb_finish_sta(struct sta_info *sta)
-	__acquires(RCU)
+__acquires(RCU)
 {
 	struct ieee80211_sub_if_data *sdata = sta->sdata;
 	u8 addr[ETH_ALEN];
@@ -95,7 +103,7 @@ static struct sta_info *ieee80211_ocb_finish_sta(struct sta_info *sta)
 	memcpy(addr, sta->sta.addr, ETH_ALEN);
 
 	ocb_dbg(sdata, "Adding new IBSS station %pM (dev=%s)\n",
-		addr, sdata->name);
+			addr, sdata->name);
 
 	sta_info_move_state(sta, IEEE80211_STA_AUTH);
 	sta_info_move_state(sta, IEEE80211_STA_ASSOC);
@@ -105,7 +113,10 @@ static struct sta_info *ieee80211_ocb_finish_sta(struct sta_info *sta)
 
 	/* If it fails, maybe we raced another insertion? */
 	if (sta_info_insert_rcu(sta))
+	{
 		return sta_info_get(sdata, addr);
+	}
+
 	return sta;
 }
 
@@ -118,7 +129,7 @@ static void ieee80211_ocb_housekeeping(struct ieee80211_sub_if_data *sdata)
 	ieee80211_sta_expire(sdata, IEEE80211_OCB_PEER_INACTIVITY_LIMIT);
 
 	mod_timer(&ifocb->housekeeping_timer,
-		  round_jiffies(jiffies + IEEE80211_OCB_HOUSEKEEPING_INTERVAL));
+			  round_jiffies(jiffies + IEEE80211_OCB_HOUSEKEEPING_INTERVAL));
 }
 
 void ieee80211_ocb_work(struct ieee80211_sub_if_data *sdata)
@@ -127,14 +138,18 @@ void ieee80211_ocb_work(struct ieee80211_sub_if_data *sdata)
 	struct sta_info *sta;
 
 	if (ifocb->joined != true)
+	{
 		return;
+	}
 
 	sdata_lock(sdata);
 
 	spin_lock_bh(&ifocb->incomplete_lock);
-	while (!list_empty(&ifocb->incomplete_stations)) {
+
+	while (!list_empty(&ifocb->incomplete_stations))
+	{
 		sta = list_first_entry(&ifocb->incomplete_stations,
-				       struct sta_info, list);
+							   struct sta_info, list);
 		list_del(&sta->list);
 		spin_unlock_bh(&ifocb->incomplete_lock);
 
@@ -142,10 +157,13 @@ void ieee80211_ocb_work(struct ieee80211_sub_if_data *sdata)
 		rcu_read_unlock();
 		spin_lock_bh(&ifocb->incomplete_lock);
 	}
+
 	spin_unlock_bh(&ifocb->incomplete_lock);
 
 	if (test_and_clear_bit(OCB_WORK_HOUSEKEEPING, &ifocb->wrkq_flags))
+	{
 		ieee80211_ocb_housekeeping(sdata);
+	}
 
 	sdata_unlock(sdata);
 }
@@ -166,14 +184,14 @@ void ieee80211_ocb_setup_sdata(struct ieee80211_sub_if_data *sdata)
 	struct ieee80211_if_ocb *ifocb = &sdata->u.ocb;
 
 	setup_timer(&ifocb->housekeeping_timer,
-		    ieee80211_ocb_housekeeping_timer,
-		    (unsigned long)sdata);
+				ieee80211_ocb_housekeeping_timer,
+				(unsigned long)sdata);
 	INIT_LIST_HEAD(&ifocb->incomplete_stations);
 	spin_lock_init(&ifocb->incomplete_lock);
 }
 
 int ieee80211_ocb_join(struct ieee80211_sub_if_data *sdata,
-		       struct ocb_setup *setup)
+					   struct ocb_setup *setup)
 {
 	struct ieee80211_local *local = sdata->local;
 	struct ieee80211_if_ocb *ifocb = &sdata->u.ocb;
@@ -181,7 +199,9 @@ int ieee80211_ocb_join(struct ieee80211_sub_if_data *sdata,
 	int err;
 
 	if (ifocb->joined == true)
+	{
 		return -EINVAL;
+	}
 
 	sdata->flags |= IEEE80211_SDATA_OPERATING_GMODE;
 	sdata->smps_mode = IEEE80211_SMPS_OFF;
@@ -189,10 +209,13 @@ int ieee80211_ocb_join(struct ieee80211_sub_if_data *sdata,
 
 	mutex_lock(&sdata->local->mtx);
 	err = ieee80211_vif_use_channel(sdata, &setup->chandef,
-					IEEE80211_CHANCTX_SHARED);
+									IEEE80211_CHANCTX_SHARED);
 	mutex_unlock(&sdata->local->mtx);
+
 	if (err)
+	{
 		return err;
+	}
 
 	ieee80211_bss_info_change_notify(sdata, changed);
 
@@ -215,15 +238,18 @@ int ieee80211_ocb_leave(struct ieee80211_sub_if_data *sdata)
 	sta_info_flush(sdata);
 
 	spin_lock_bh(&ifocb->incomplete_lock);
-	while (!list_empty(&ifocb->incomplete_stations)) {
+
+	while (!list_empty(&ifocb->incomplete_stations))
+	{
 		sta = list_first_entry(&ifocb->incomplete_stations,
-				       struct sta_info, list);
+							   struct sta_info, list);
 		list_del(&sta->list);
 		spin_unlock_bh(&ifocb->incomplete_lock);
 
 		sta_info_free(local, sta);
 		spin_lock_bh(&ifocb->incomplete_lock);
 	}
+
 	spin_unlock_bh(&ifocb->incomplete_lock);
 
 	netif_carrier_off(sdata->dev);

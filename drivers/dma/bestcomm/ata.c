@@ -31,7 +31,8 @@
 extern u32 bcom_ata_task[];
 
 /* ata task vars that need to be set before enabling the task */
-struct bcom_ata_var {
+struct bcom_ata_var
+{
 	u32 enable;		/* (u16*) address of task's control register */
 	u32 bd_base;		/* (struct bcom_bd*) beginning of ring buffer */
 	u32 bd_last;		/* (struct bcom_bd*) end of ring buffer */
@@ -40,7 +41,8 @@ struct bcom_ata_var {
 };
 
 /* ata task incs that need to be set before enabling the task */
-struct bcom_ata_inc {
+struct bcom_ata_inc
+{
 	u16 pad0;
 	s16 incr_bytes;
 	u16 pad1;
@@ -65,8 +67,11 @@ bcom_ata_init(int queue_len, int maxbufsize)
 	bcom_disable_prefetch();
 
 	tsk = bcom_task_alloc(queue_len, sizeof(struct bcom_ata_bd), 0);
+
 	if (!tsk)
+	{
 		return NULL;
+	}
 
 	tsk->flags = BCOM_FLAGS_NONE;
 
@@ -75,15 +80,16 @@ bcom_ata_init(int queue_len, int maxbufsize)
 	var = (struct bcom_ata_var *) bcom_task_var(tsk->tasknum);
 	inc = (struct bcom_ata_inc *) bcom_task_inc(tsk->tasknum);
 
-	if (bcom_load_image(tsk->tasknum, bcom_ata_task)) {
+	if (bcom_load_image(tsk->tasknum, bcom_ata_task))
+	{
 		bcom_task_free(tsk);
 		return NULL;
 	}
 
 	var->enable	= bcom_eng->regs_base +
-				offsetof(struct mpc52xx_sdma, tcr[tsk->tasknum]);
+				  offsetof(struct mpc52xx_sdma, tcr[tsk->tasknum]);
 	var->bd_base	= tsk->bd_pa;
-	var->bd_last	= tsk->bd_pa + ((tsk->num_bd-1) * tsk->bd_size);
+	var->bd_last	= tsk->bd_pa + ((tsk->num_bd - 1) * tsk->bd_size);
 	var->bd_start	= tsk->bd_pa;
 	var->buffer_size = maxbufsize;
 
@@ -94,7 +100,7 @@ bcom_ata_init(int queue_len, int maxbufsize)
 	out_8(&bcom_eng->regs->ipr[BCOM_INITIATOR_ATA_RX], BCOM_IPR_ATA_RX);
 	out_8(&bcom_eng->regs->ipr[BCOM_INITIATOR_ATA_TX], BCOM_IPR_ATA_TX);
 
-	out_be32(&bcom_eng->regs->IntPend, 1<<tsk->tasknum); /* Clear ints */
+	out_be32(&bcom_eng->regs->IntPend, 1 << tsk->tasknum); /* Clear ints */
 
 	return tsk;
 }

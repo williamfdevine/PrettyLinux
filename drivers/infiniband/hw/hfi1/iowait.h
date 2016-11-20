@@ -93,7 +93,8 @@ struct sdma_engine;
  * The wait_dma member along with the iow
  */
 
-struct iowait {
+struct iowait
+{
 	struct list_head list;
 	struct list_head tx_head;
 	int (*sleep)(
@@ -230,8 +231,8 @@ static inline int iowait_sdma_dec(struct iowait *wait)
 static inline void iowait_pio_drain(struct iowait *wait)
 {
 	wait_event_timeout(wait->wait_pio,
-			   !atomic_read(&wait->pio_busy),
-			   HZ);
+					   !atomic_read(&wait->pio_busy),
+					   HZ);
 }
 
 /**
@@ -274,8 +275,11 @@ static inline void iowait_drain_wakeup(struct iowait *wait)
 {
 	wake_up(&wait->wait_dma);
 	wake_up(&wait->wait_pio);
+
 	if (wait->sdma_drained)
+	{
 		wait->sdma_drained(wait);
+	}
 }
 
 /**
@@ -287,13 +291,15 @@ static inline struct sdma_txreq *iowait_get_txhead(struct iowait *wait)
 {
 	struct sdma_txreq *tx = NULL;
 
-	if (!list_empty(&wait->tx_head)) {
+	if (!list_empty(&wait->tx_head))
+	{
 		tx = list_first_entry(
-			&wait->tx_head,
-			struct sdma_txreq,
-			list);
+				 &wait->tx_head,
+				 struct sdma_txreq,
+				 list);
 		list_del_init(&tx->list);
 	}
+
 	return tx;
 }
 

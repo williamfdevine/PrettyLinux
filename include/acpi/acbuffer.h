@@ -63,7 +63,8 @@
 
 /* _FDE return value */
 
-struct acpi_fde_info {
+struct acpi_fde_info
+{
 	u32 floppy0;
 	u32 floppy1;
 	u32 floppy2;
@@ -75,7 +76,8 @@ struct acpi_fde_info {
  * _GRT return value
  * _SRT input value
  */
-struct acpi_grt_info {
+struct acpi_grt_info
+{
 	u16 year;
 	u8 month;
 	u8 day;
@@ -91,7 +93,8 @@ struct acpi_grt_info {
 
 /* _GTM return value */
 
-struct acpi_gtm_info {
+struct acpi_gtm_info
+{
 	u32 pio_speed0;
 	u32 dma_speed0;
 	u32 pio_speed1;
@@ -108,7 +111,8 @@ struct acpi_gtm_info {
  * Note: This structure is returned from the acpi_decode_pld_buffer
  * interface.
  */
-struct acpi_pld_info {
+struct acpi_pld_info
+{
 	u8 revision;
 	u8 ignore_color;
 	u8 red;

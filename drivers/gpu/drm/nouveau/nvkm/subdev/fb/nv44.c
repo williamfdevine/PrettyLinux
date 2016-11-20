@@ -28,7 +28,7 @@
 
 static void
 nv44_fb_tile_init(struct nvkm_fb *fb, int i, u32 addr, u32 size, u32 pitch,
-		  u32 flags, struct nvkm_fb_tile *tile)
+				  u32 flags, struct nvkm_fb_tile *tile)
 {
 	tile->addr  = 0x00000001; /* mode = vram */
 	tile->addr |= addr;
@@ -55,7 +55,8 @@ nv44_fb_init(struct nvkm_fb *fb)
 }
 
 static const struct nvkm_fb_func
-nv44_fb = {
+	nv44_fb =
+{
 	.init = nv44_fb_init,
 	.tile.regions = 12,
 	.tile.init = nv44_fb_tile_init,

@@ -42,7 +42,8 @@ gf119_disp_chan_uevent_init(struct nvkm_event *event, int types, int index)
 }
 
 const struct nvkm_event_func
-gf119_disp_chan_uevent = {
+	gf119_disp_chan_uevent =
+{
 	.ctor = nv50_disp_chan_uevent_ctor,
 	.init = gf119_disp_chan_uevent_init,
 	.fini = gf119_disp_chan_uevent_fini,

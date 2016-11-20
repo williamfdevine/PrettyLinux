@@ -36,13 +36,15 @@
 #include <net/rose.h>
 
 static int rose_header(struct sk_buff *skb, struct net_device *dev,
-		       unsigned short type,
-		       const void *daddr, const void *saddr, unsigned int len)
+					   unsigned short type,
+					   const void *daddr, const void *saddr, unsigned int len)
 {
 	unsigned char *buff = skb_push(skb, ROSE_MIN_LEN + 2);
 
 	if (daddr)
+	{
 		memcpy(buff + 7, daddr, dev->addr_len);
+	}
 
 	*buff++ = ROSE_GFI | ROSE_Q_BIT;
 	*buff++ = 0x00;
@@ -51,7 +53,9 @@ static int rose_header(struct sk_buff *skb, struct net_device *dev,
 	*buff++ = AX25_P_IP;
 
 	if (daddr != NULL)
+	{
 		return 37;
+	}
 
 	return -37;
 }
@@ -62,12 +66,18 @@ static int rose_set_mac_address(struct net_device *dev, void *addr)
 	int err;
 
 	if (!memcmp(dev->dev_addr, sa->sa_data, dev->addr_len))
+	{
 		return 0;
+	}
 
-	if (dev->flags & IFF_UP) {
+	if (dev->flags & IFF_UP)
+	{
 		err = rose_add_loopback_node((rose_address *)sa->sa_data);
+
 		if (err)
+		{
 			return err;
+		}
 
 		rose_del_loopback_node((rose_address *)dev->dev_addr);
 	}
@@ -82,8 +92,11 @@ static int rose_open(struct net_device *dev)
 	int err;
 
 	err = rose_add_loopback_node((rose_address *)dev->dev_addr);
+
 	if (err)
+	{
 		return err;
+	}
 
 	netif_start_queue(dev);
 
@@ -102,12 +115,14 @@ static netdev_tx_t rose_xmit(struct sk_buff *skb, struct net_device *dev)
 	struct net_device_stats *stats = &dev->stats;
 	unsigned int len = skb->len;
 
-	if (!netif_running(dev)) {
+	if (!netif_running(dev))
+	{
 		printk(KERN_ERR "ROSE: rose_xmit - called when iface is down\n");
 		return NETDEV_TX_BUSY;
 	}
 
-	if (!rose_route_frame(skb, NULL)) {
+	if (!rose_route_frame(skb, NULL))
+	{
 		dev_kfree_skb(skb);
 		stats->tx_errors++;
 		return NETDEV_TX_OK;
@@ -118,11 +133,13 @@ static netdev_tx_t rose_xmit(struct sk_buff *skb, struct net_device *dev)
 	return NETDEV_TX_OK;
 }
 
-static const struct header_ops rose_header_ops = {
+static const struct header_ops rose_header_ops =
+{
 	.create	= rose_header,
 };
 
-static const struct net_device_ops rose_netdev_ops = {
+static const struct net_device_ops rose_netdev_ops =
+{
 	.ndo_open		= rose_open,
 	.ndo_stop		= rose_close,
 	.ndo_start_xmit		= rose_xmit,

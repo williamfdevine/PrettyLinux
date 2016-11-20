@@ -92,7 +92,7 @@
  */
 /* page size */
 #ifdef PSIZE
-#undef PSIZE
+	#undef PSIZE
 #endif
 #define	PSIZE		4096	/* page size (in byte) */
 #define	L2PSIZE		12	/* log2(PSIZE) */
@@ -193,22 +193,22 @@
  */
 #define SUPER1_OFF	0x8000	/* primary superblock */
 #define AIMAP_OFF	(SUPER1_OFF + SIZE_OF_SUPER)
-					/*
-					 * Control page of aggregate inode map
-					 * followed by 1st extent of map
-					 */
+/*
+ * Control page of aggregate inode map
+ * followed by 1st extent of map
+ */
 #define AITBL_OFF	(AIMAP_OFF + (SIZE_OF_MAP_PAGE << 1))
-					/*
-					 * 1st extent of aggregate inode table
-					 */
+/*
+ * 1st extent of aggregate inode table
+ */
 #define SUPER2_OFF	(AITBL_OFF + INODE_EXTENT_SIZE)
-					/*
-					 * secondary superblock
-					 */
+/*
+ * secondary superblock
+ */
 #define BMAP_OFF	(SUPER2_OFF + SIZE_OF_SUPER)
-					/*
-					 * block allocation map
-					 */
+/*
+ * block allocation map
+ */
 
 /*
  * The following macro is used to indicate the number of reserved disk blocks at

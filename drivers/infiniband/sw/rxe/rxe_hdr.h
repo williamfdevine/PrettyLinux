@@ -38,7 +38,8 @@
  * the skbuff cb array. Must be at most 48 bytes. stored in control block of
  * sk_buff for received packets.
  */
-struct rxe_pkt_info {
+struct rxe_pkt_info
+{
 	struct rxe_dev		*rxe;		/* device that owns packet */
 	struct rxe_qp		*qp;		/* qp that owns packet */
 	struct rxe_send_wqe	*wqe;		/* send wqe */
@@ -78,7 +79,8 @@ struct rxe_pkt_info {
 /******************************************************************************
  * Base Transport Header
  ******************************************************************************/
-struct rxe_bth {
+struct rxe_bth
+{
 	u8			opcode;
 	u8			flags;
 	__be16			pkey;
@@ -127,9 +129,13 @@ static inline void __bth_set_se(void *arg, int se)
 	struct rxe_bth *bth = arg;
 
 	if (se)
+	{
 		bth->flags |= BTH_SE_MASK;
+	}
 	else
+	{
 		bth->flags &= ~BTH_SE_MASK;
+	}
 }
 
 static inline u8 __bth_mig(void *arg)
@@ -144,9 +150,13 @@ static inline void __bth_set_mig(void *arg, u8 mig)
 	struct rxe_bth *bth = arg;
 
 	if (mig)
+	{
 		bth->flags |= BTH_MIG_MASK;
+	}
 	else
+	{
 		bth->flags &= ~BTH_MIG_MASK;
+	}
 }
 
 static inline u8 __bth_pad(void *arg)
@@ -161,7 +171,7 @@ static inline void __bth_set_pad(void *arg, u8 pad)
 	struct rxe_bth *bth = arg;
 
 	bth->flags = (BTH_PAD_MASK & (pad << 4)) |
-			(~BTH_PAD_MASK & bth->flags);
+				 (~BTH_PAD_MASK & bth->flags);
 }
 
 static inline u8 __bth_tver(void *arg)
@@ -176,7 +186,7 @@ static inline void __bth_set_tver(void *arg, u8 tver)
 	struct rxe_bth *bth = arg;
 
 	bth->flags = (BTH_TVER_MASK & tver) |
-			(~BTH_TVER_MASK & bth->flags);
+				 (~BTH_TVER_MASK & bth->flags);
 }
 
 static inline u16 __bth_pkey(void *arg)
@@ -206,7 +216,7 @@ static inline void __bth_set_qpn(void *arg, u32 qpn)
 	u32 resvqpn = be32_to_cpu(bth->qpn);
 
 	bth->qpn = cpu_to_be32((BTH_QPN_MASK & qpn) |
-			       (~BTH_QPN_MASK & resvqpn));
+						   (~BTH_QPN_MASK & resvqpn));
 }
 
 static inline int __bth_fecn(void *arg)
@@ -221,9 +231,13 @@ static inline void __bth_set_fecn(void *arg, int fecn)
 	struct rxe_bth *bth = arg;
 
 	if (fecn)
+	{
 		bth->qpn |= cpu_to_be32(BTH_FECN_MASK);
+	}
 	else
+	{
 		bth->qpn &= ~cpu_to_be32(BTH_FECN_MASK);
+	}
 }
 
 static inline int __bth_becn(void *arg)
@@ -238,9 +252,13 @@ static inline void __bth_set_becn(void *arg, int becn)
 	struct rxe_bth *bth = arg;
 
 	if (becn)
+	{
 		bth->qpn |= cpu_to_be32(BTH_BECN_MASK);
+	}
 	else
+	{
 		bth->qpn &= ~cpu_to_be32(BTH_BECN_MASK);
+	}
 }
 
 static inline u8 __bth_resv6a(void *arg)
@@ -269,9 +287,13 @@ static inline void __bth_set_ack(void *arg, int ack)
 	struct rxe_bth *bth = arg;
 
 	if (ack)
+	{
 		bth->apsn |= cpu_to_be32(BTH_ACK_MASK);
+	}
 	else
+	{
 		bth->apsn &= ~cpu_to_be32(BTH_ACK_MASK);
+	}
 }
 
 static inline void __bth_set_resv7(void *arg)
@@ -294,7 +316,7 @@ static inline void __bth_set_psn(void *arg, u32 psn)
 	u32 apsn = be32_to_cpu(bth->apsn);
 
 	bth->apsn = cpu_to_be32((BTH_PSN_MASK & psn) |
-			(~BTH_PSN_MASK & apsn));
+							(~BTH_PSN_MASK & apsn));
 }
 
 static inline u8 bth_opcode(struct rxe_pkt_info *pkt)
@@ -423,29 +445,41 @@ static inline void bth_set_psn(struct rxe_pkt_info *pkt, u32 psn)
 }
 
 static inline void bth_init(struct rxe_pkt_info *pkt, u8 opcode, int se,
-			    int mig, int pad, u16 pkey, u32 qpn, int ack_req,
-			    u32 psn)
+							int mig, int pad, u16 pkey, u32 qpn, int ack_req,
+							u32 psn)
 {
 	struct rxe_bth *bth = (struct rxe_bth *)(pkt->hdr + pkt->offset);
 
 	bth->opcode = opcode;
 	bth->flags = (pad << 4) & BTH_PAD_MASK;
+
 	if (se)
+	{
 		bth->flags |= BTH_SE_MASK;
+	}
+
 	if (mig)
+	{
 		bth->flags |= BTH_MIG_MASK;
+	}
+
 	bth->pkey = cpu_to_be16(pkey);
 	bth->qpn = cpu_to_be32(qpn & BTH_QPN_MASK);
 	psn &= BTH_PSN_MASK;
+
 	if (ack_req)
+	{
 		psn |= BTH_ACK_MASK;
+	}
+
 	bth->apsn = cpu_to_be32(psn);
 }
 
 /******************************************************************************
  * Reliable Datagram Extended Transport Header
  ******************************************************************************/
-struct rxe_rdeth {
+struct rxe_rdeth
+{
 	__be32			een;
 };
 
@@ -468,19 +502,20 @@ static inline void __rdeth_set_een(void *arg, u32 een)
 static inline u8 rdeth_een(struct rxe_pkt_info *pkt)
 {
 	return __rdeth_een(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_RDETH]);
+					   + rxe_opcode[pkt->opcode].offset[RXE_RDETH]);
 }
 
 static inline void rdeth_set_een(struct rxe_pkt_info *pkt, u32 een)
 {
 	__rdeth_set_een(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_RDETH], een);
+					+ rxe_opcode[pkt->opcode].offset[RXE_RDETH], een);
 }
 
 /******************************************************************************
  * Datagram Extended Transport Header
  ******************************************************************************/
-struct rxe_deth {
+struct rxe_deth
+{
 	__be32			qkey;
 	__be32			sqp;
 };
@@ -519,31 +554,32 @@ static inline void __deth_set_sqp(void *arg, u32 sqp)
 static inline u32 deth_qkey(struct rxe_pkt_info *pkt)
 {
 	return __deth_qkey(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_DETH]);
+					   + rxe_opcode[pkt->opcode].offset[RXE_DETH]);
 }
 
 static inline void deth_set_qkey(struct rxe_pkt_info *pkt, u32 qkey)
 {
 	__deth_set_qkey(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_DETH], qkey);
+					+ rxe_opcode[pkt->opcode].offset[RXE_DETH], qkey);
 }
 
 static inline u32 deth_sqp(struct rxe_pkt_info *pkt)
 {
 	return __deth_sqp(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_DETH]);
+					  + rxe_opcode[pkt->opcode].offset[RXE_DETH]);
 }
 
 static inline void deth_set_sqp(struct rxe_pkt_info *pkt, u32 sqp)
 {
 	__deth_set_sqp(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_DETH], sqp);
+				   + rxe_opcode[pkt->opcode].offset[RXE_DETH], sqp);
 }
 
 /******************************************************************************
  * RDMA Extended Transport Header
  ******************************************************************************/
-struct rxe_reth {
+struct rxe_reth
+{
 	__be64			va;
 	__be32			rkey;
 	__be32			len;
@@ -594,43 +630,44 @@ static inline void __reth_set_len(void *arg, u32 len)
 static inline u64 reth_va(struct rxe_pkt_info *pkt)
 {
 	return __reth_va(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_RETH]);
+					 + rxe_opcode[pkt->opcode].offset[RXE_RETH]);
 }
 
 static inline void reth_set_va(struct rxe_pkt_info *pkt, u64 va)
 {
 	__reth_set_va(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_RETH], va);
+				  + rxe_opcode[pkt->opcode].offset[RXE_RETH], va);
 }
 
 static inline u32 reth_rkey(struct rxe_pkt_info *pkt)
 {
 	return __reth_rkey(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_RETH]);
+					   + rxe_opcode[pkt->opcode].offset[RXE_RETH]);
 }
 
 static inline void reth_set_rkey(struct rxe_pkt_info *pkt, u32 rkey)
 {
 	__reth_set_rkey(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_RETH], rkey);
+					+ rxe_opcode[pkt->opcode].offset[RXE_RETH], rkey);
 }
 
 static inline u32 reth_len(struct rxe_pkt_info *pkt)
 {
 	return __reth_len(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_RETH]);
+					  + rxe_opcode[pkt->opcode].offset[RXE_RETH]);
 }
 
 static inline void reth_set_len(struct rxe_pkt_info *pkt, u32 len)
 {
 	__reth_set_len(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_RETH], len);
+				   + rxe_opcode[pkt->opcode].offset[RXE_RETH], len);
 }
 
 /******************************************************************************
  * Atomic Extended Transport Header
  ******************************************************************************/
-struct rxe_atmeth {
+struct rxe_atmeth
+{
 	__be64			va;
 	__be32			rkey;
 	__be64			swap_add;
@@ -696,62 +733,64 @@ static inline void __atmeth_set_comp(void *arg, u64 comp)
 static inline u64 atmeth_va(struct rxe_pkt_info *pkt)
 {
 	return __atmeth_va(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH]);
+					   + rxe_opcode[pkt->opcode].offset[RXE_ATMETH]);
 }
 
 static inline void atmeth_set_va(struct rxe_pkt_info *pkt, u64 va)
 {
 	__atmeth_set_va(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH], va);
+					+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH], va);
 }
 
 static inline u32 atmeth_rkey(struct rxe_pkt_info *pkt)
 {
 	return __atmeth_rkey(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH]);
+						 + rxe_opcode[pkt->opcode].offset[RXE_ATMETH]);
 }
 
 static inline void atmeth_set_rkey(struct rxe_pkt_info *pkt, u32 rkey)
 {
 	__atmeth_set_rkey(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH], rkey);
+					  + rxe_opcode[pkt->opcode].offset[RXE_ATMETH], rkey);
 }
 
 static inline u64 atmeth_swap_add(struct rxe_pkt_info *pkt)
 {
 	return __atmeth_swap_add(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH]);
+							 + rxe_opcode[pkt->opcode].offset[RXE_ATMETH]);
 }
 
 static inline void atmeth_set_swap_add(struct rxe_pkt_info *pkt, u64 swap_add)
 {
 	__atmeth_set_swap_add(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH], swap_add);
+						  + rxe_opcode[pkt->opcode].offset[RXE_ATMETH], swap_add);
 }
 
 static inline u64 atmeth_comp(struct rxe_pkt_info *pkt)
 {
 	return __atmeth_comp(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH]);
+						 + rxe_opcode[pkt->opcode].offset[RXE_ATMETH]);
 }
 
 static inline void atmeth_set_comp(struct rxe_pkt_info *pkt, u64 comp)
 {
 	__atmeth_set_comp(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH], comp);
+					  + rxe_opcode[pkt->opcode].offset[RXE_ATMETH], comp);
 }
 
 /******************************************************************************
  * Ack Extended Transport Header
  ******************************************************************************/
-struct rxe_aeth {
+struct rxe_aeth
+{
 	__be32			smsn;
 };
 
 #define AETH_SYN_MASK		(0xff000000)
 #define AETH_MSN_MASK		(0x00ffffff)
 
-enum aeth_syndrome {
+enum aeth_syndrome
+{
 	AETH_TYPE_MASK		= 0xe0,
 	AETH_ACK		= 0x00,
 	AETH_RNR_NAK		= 0x20,
@@ -778,7 +817,7 @@ static inline void __aeth_set_syn(void *arg, u8 syn)
 	u32 smsn = be32_to_cpu(aeth->smsn);
 
 	aeth->smsn = cpu_to_be32((AETH_SYN_MASK & (syn << 24)) |
-			 (~AETH_SYN_MASK & smsn));
+							 (~AETH_SYN_MASK & smsn));
 }
 
 static inline u32 __aeth_msn(void *arg)
@@ -794,37 +833,38 @@ static inline void __aeth_set_msn(void *arg, u32 msn)
 	u32 smsn = be32_to_cpu(aeth->smsn);
 
 	aeth->smsn = cpu_to_be32((AETH_MSN_MASK & msn) |
-			 (~AETH_MSN_MASK & smsn));
+							 (~AETH_MSN_MASK & smsn));
 }
 
 static inline u8 aeth_syn(struct rxe_pkt_info *pkt)
 {
 	return __aeth_syn(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_AETH]);
+					  + rxe_opcode[pkt->opcode].offset[RXE_AETH]);
 }
 
 static inline void aeth_set_syn(struct rxe_pkt_info *pkt, u8 syn)
 {
 	__aeth_set_syn(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_AETH], syn);
+				   + rxe_opcode[pkt->opcode].offset[RXE_AETH], syn);
 }
 
 static inline u32 aeth_msn(struct rxe_pkt_info *pkt)
 {
 	return __aeth_msn(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_AETH]);
+					  + rxe_opcode[pkt->opcode].offset[RXE_AETH]);
 }
 
 static inline void aeth_set_msn(struct rxe_pkt_info *pkt, u32 msn)
 {
 	__aeth_set_msn(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_AETH], msn);
+				   + rxe_opcode[pkt->opcode].offset[RXE_AETH], msn);
 }
 
 /******************************************************************************
  * Atomic Ack Extended Transport Header
  ******************************************************************************/
-struct rxe_atmack {
+struct rxe_atmack
+{
 	__be64			orig;
 };
 
@@ -845,19 +885,20 @@ static inline void __atmack_set_orig(void *arg, u64 orig)
 static inline u64 atmack_orig(struct rxe_pkt_info *pkt)
 {
 	return __atmack_orig(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_ATMACK]);
+						 + rxe_opcode[pkt->opcode].offset[RXE_ATMACK]);
 }
 
 static inline void atmack_set_orig(struct rxe_pkt_info *pkt, u64 orig)
 {
 	__atmack_set_orig(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_ATMACK], orig);
+					  + rxe_opcode[pkt->opcode].offset[RXE_ATMACK], orig);
 }
 
 /******************************************************************************
  * Immediate Extended Transport Header
  ******************************************************************************/
-struct rxe_immdt {
+struct rxe_immdt
+{
 	__be32			imm;
 };
 
@@ -878,19 +919,20 @@ static inline void __immdt_set_imm(void *arg, __be32 imm)
 static inline __be32 immdt_imm(struct rxe_pkt_info *pkt)
 {
 	return __immdt_imm(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_IMMDT]);
+					   + rxe_opcode[pkt->opcode].offset[RXE_IMMDT]);
 }
 
 static inline void immdt_set_imm(struct rxe_pkt_info *pkt, __be32 imm)
 {
 	__immdt_set_imm(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_IMMDT], imm);
+					+ rxe_opcode[pkt->opcode].offset[RXE_IMMDT], imm);
 }
 
 /******************************************************************************
  * Invalidate Extended Transport Header
  ******************************************************************************/
-struct rxe_ieth {
+struct rxe_ieth
+{
 	__be32			rkey;
 };
 
@@ -911,16 +953,17 @@ static inline void __ieth_set_rkey(void *arg, u32 rkey)
 static inline u32 ieth_rkey(struct rxe_pkt_info *pkt)
 {
 	return __ieth_rkey(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_IETH]);
+					   + rxe_opcode[pkt->opcode].offset[RXE_IETH]);
 }
 
 static inline void ieth_set_rkey(struct rxe_pkt_info *pkt, u32 rkey)
 {
 	__ieth_set_rkey(pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_IETH], rkey);
+					+ rxe_opcode[pkt->opcode].offset[RXE_IETH], rkey);
 }
 
-enum rxe_hdr_length {
+enum rxe_hdr_length
+{
 	RXE_BTH_BYTES		= sizeof(struct rxe_bth),
 	RXE_DETH_BYTES		= sizeof(struct rxe_deth),
 	RXE_IMMDT_BYTES		= sizeof(struct rxe_immdt),
@@ -940,13 +983,13 @@ static inline size_t header_size(struct rxe_pkt_info *pkt)
 static inline void *payload_addr(struct rxe_pkt_info *pkt)
 {
 	return pkt->hdr + pkt->offset
-		+ rxe_opcode[pkt->opcode].offset[RXE_PAYLOAD];
+		   + rxe_opcode[pkt->opcode].offset[RXE_PAYLOAD];
 }
 
 static inline size_t payload_size(struct rxe_pkt_info *pkt)
 {
 	return pkt->paylen - rxe_opcode[pkt->opcode].offset[RXE_PAYLOAD]
-		- bth_pad(pkt) - RXE_ICRC_SIZE;
+		   - bth_pad(pkt) - RXE_ICRC_SIZE;
 }
 
 #endif /* RXE_HDR_H */

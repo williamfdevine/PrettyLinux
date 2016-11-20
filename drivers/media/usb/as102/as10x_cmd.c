@@ -34,23 +34,26 @@ int as10x_cmd_turn_on(struct as10x_bus_adapter_t *adap)
 
 	/* prepare command */
 	as10x_cmd_build(pcmd, (++adap->cmd_xid),
-			sizeof(pcmd->body.turn_on.req));
+					sizeof(pcmd->body.turn_on.req));
 
 	/* fill command */
 	pcmd->body.turn_on.req.proc_id = cpu_to_le16(CONTROL_PROC_TURNON);
 
 	/* send command */
-	if (adap->ops->xfer_cmd) {
+	if (adap->ops->xfer_cmd)
+	{
 		error = adap->ops->xfer_cmd(adap, (uint8_t *) pcmd,
-					    sizeof(pcmd->body.turn_on.req) +
-					    HEADER_SIZE,
-					    (uint8_t *) prsp,
-					    sizeof(prsp->body.turn_on.rsp) +
-					    HEADER_SIZE);
+									sizeof(pcmd->body.turn_on.req) +
+									HEADER_SIZE,
+									(uint8_t *) prsp,
+									sizeof(prsp->body.turn_on.rsp) +
+									HEADER_SIZE);
 	}
 
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	/* parse response */
 	error = as10x_rsp_parse(prsp, CONTROL_PROC_TURNON_RSP);
@@ -75,22 +78,25 @@ int as10x_cmd_turn_off(struct as10x_bus_adapter_t *adap)
 
 	/* prepare command */
 	as10x_cmd_build(pcmd, (++adap->cmd_xid),
-			sizeof(pcmd->body.turn_off.req));
+					sizeof(pcmd->body.turn_off.req));
 
 	/* fill command */
 	pcmd->body.turn_off.req.proc_id = cpu_to_le16(CONTROL_PROC_TURNOFF);
 
 	/* send command */
-	if (adap->ops->xfer_cmd) {
+	if (adap->ops->xfer_cmd)
+	{
 		error = adap->ops->xfer_cmd(
-			adap, (uint8_t *) pcmd,
-			sizeof(pcmd->body.turn_off.req) + HEADER_SIZE,
-			(uint8_t *) prsp,
-			sizeof(prsp->body.turn_off.rsp) + HEADER_SIZE);
+					adap, (uint8_t *) pcmd,
+					sizeof(pcmd->body.turn_off.req) + HEADER_SIZE,
+					(uint8_t *) prsp,
+					sizeof(prsp->body.turn_off.rsp) + HEADER_SIZE);
 	}
 
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	/* parse response */
 	error = as10x_rsp_parse(prsp, CONTROL_PROC_TURNOFF_RSP);
@@ -107,7 +113,7 @@ out:
  * Return 0 on success or negative value in case of error.
  */
 int as10x_cmd_set_tune(struct as10x_bus_adapter_t *adap,
-		       struct as10x_tune_args *ptune)
+					   struct as10x_tune_args *ptune)
 {
 	int error = AS10X_CMD_ERROR;
 	struct as10x_cmd_t *preq, *prsp;
@@ -117,7 +123,7 @@ int as10x_cmd_set_tune(struct as10x_bus_adapter_t *adap,
 
 	/* prepare command */
 	as10x_cmd_build(preq, (++adap->cmd_xid),
-			sizeof(preq->body.set_tune.req));
+					sizeof(preq->body.set_tune.req));
 
 	/* fill command */
 	preq->body.set_tune.req.proc_id = cpu_to_le16(CONTROL_PROC_SETTUNE);
@@ -134,18 +140,21 @@ int as10x_cmd_set_tune(struct as10x_bus_adapter_t *adap,
 		ptune->transmission_mode;
 
 	/* send command */
-	if (adap->ops->xfer_cmd) {
+	if (adap->ops->xfer_cmd)
+	{
 		error = adap->ops->xfer_cmd(adap,
-					    (uint8_t *) preq,
-					    sizeof(preq->body.set_tune.req)
-					    + HEADER_SIZE,
-					    (uint8_t *) prsp,
-					    sizeof(prsp->body.set_tune.rsp)
-					    + HEADER_SIZE);
+									(uint8_t *) preq,
+									sizeof(preq->body.set_tune.req)
+									+ HEADER_SIZE,
+									(uint8_t *) prsp,
+									sizeof(prsp->body.set_tune.rsp)
+									+ HEADER_SIZE);
 	}
 
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	/* parse response */
 	error = as10x_rsp_parse(prsp, CONTROL_PROC_SETTUNE_RSP);
@@ -162,7 +171,7 @@ out:
  * Return 0 on success or negative value in case of error.
  */
 int as10x_cmd_get_tune_status(struct as10x_bus_adapter_t *adap,
-			      struct as10x_tune_status *pstatus)
+							  struct as10x_tune_status *pstatus)
 {
 	int error = AS10X_CMD_ERROR;
 	struct as10x_cmd_t  *preq, *prsp;
@@ -172,29 +181,35 @@ int as10x_cmd_get_tune_status(struct as10x_bus_adapter_t *adap,
 
 	/* prepare command */
 	as10x_cmd_build(preq, (++adap->cmd_xid),
-			sizeof(preq->body.get_tune_status.req));
+					sizeof(preq->body.get_tune_status.req));
 
 	/* fill command */
 	preq->body.get_tune_status.req.proc_id =
 		cpu_to_le16(CONTROL_PROC_GETTUNESTAT);
 
 	/* send command */
-	if (adap->ops->xfer_cmd) {
+	if (adap->ops->xfer_cmd)
+	{
 		error = adap->ops->xfer_cmd(
-			adap,
-			(uint8_t *) preq,
-			sizeof(preq->body.get_tune_status.req) + HEADER_SIZE,
-			(uint8_t *) prsp,
-			sizeof(prsp->body.get_tune_status.rsp) + HEADER_SIZE);
+					adap,
+					(uint8_t *) preq,
+					sizeof(preq->body.get_tune_status.req) + HEADER_SIZE,
+					(uint8_t *) prsp,
+					sizeof(prsp->body.get_tune_status.rsp) + HEADER_SIZE);
 	}
 
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	/* parse response */
 	error = as10x_rsp_parse(prsp, CONTROL_PROC_GETTUNESTAT_RSP);
+
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	/* Response OK -> get response data */
 	pstatus->tune_state = prsp->body.get_tune_status.rsp.sts.tune_state;
@@ -224,30 +239,36 @@ int as10x_cmd_get_tps(struct as10x_bus_adapter_t *adap, struct as10x_tps *ptps)
 
 	/* prepare command */
 	as10x_cmd_build(pcmd, (++adap->cmd_xid),
-			sizeof(pcmd->body.get_tps.req));
+					sizeof(pcmd->body.get_tps.req));
 
 	/* fill command */
 	pcmd->body.get_tune_status.req.proc_id =
 		cpu_to_le16(CONTROL_PROC_GETTPS);
 
 	/* send command */
-	if (adap->ops->xfer_cmd) {
+	if (adap->ops->xfer_cmd)
+	{
 		error = adap->ops->xfer_cmd(adap,
-					    (uint8_t *) pcmd,
-					    sizeof(pcmd->body.get_tps.req) +
-					    HEADER_SIZE,
-					    (uint8_t *) prsp,
-					    sizeof(prsp->body.get_tps.rsp) +
-					    HEADER_SIZE);
+									(uint8_t *) pcmd,
+									sizeof(pcmd->body.get_tps.req) +
+									HEADER_SIZE,
+									(uint8_t *) prsp,
+									sizeof(prsp->body.get_tps.rsp) +
+									HEADER_SIZE);
 	}
 
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	/* parse response */
 	error = as10x_rsp_parse(prsp, CONTROL_PROC_GETTPS_RSP);
+
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	/* Response OK -> get response data */
 	ptps->modulation = prsp->body.get_tps.rsp.tps.modulation;
@@ -273,7 +294,7 @@ out:
  * Return 0 on success or negative value in case of error.
  */
 int as10x_cmd_get_demod_stats(struct as10x_bus_adapter_t *adap,
-			      struct as10x_demod_stats *pdemod_stats)
+							  struct as10x_demod_stats *pdemod_stats)
 {
 	int error = AS10X_CMD_ERROR;
 	struct as10x_cmd_t *pcmd, *prsp;
@@ -283,30 +304,36 @@ int as10x_cmd_get_demod_stats(struct as10x_bus_adapter_t *adap,
 
 	/* prepare command */
 	as10x_cmd_build(pcmd, (++adap->cmd_xid),
-			sizeof(pcmd->body.get_demod_stats.req));
+					sizeof(pcmd->body.get_demod_stats.req));
 
 	/* fill command */
 	pcmd->body.get_demod_stats.req.proc_id =
 		cpu_to_le16(CONTROL_PROC_GET_DEMOD_STATS);
 
 	/* send command */
-	if (adap->ops->xfer_cmd) {
+	if (adap->ops->xfer_cmd)
+	{
 		error = adap->ops->xfer_cmd(adap,
-				(uint8_t *) pcmd,
-				sizeof(pcmd->body.get_demod_stats.req)
-				+ HEADER_SIZE,
-				(uint8_t *) prsp,
-				sizeof(prsp->body.get_demod_stats.rsp)
-				+ HEADER_SIZE);
+									(uint8_t *) pcmd,
+									sizeof(pcmd->body.get_demod_stats.req)
+									+ HEADER_SIZE,
+									(uint8_t *) prsp,
+									sizeof(prsp->body.get_demod_stats.rsp)
+									+ HEADER_SIZE);
 	}
 
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	/* parse response */
 	error = as10x_rsp_parse(prsp, CONTROL_PROC_GET_DEMOD_STATS_RSP);
+
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	/* Response OK -> get response data */
 	pdemod_stats->frame_count =
@@ -333,7 +360,7 @@ out:
  * Return 0 on success or negative value in case of error.
  */
 int as10x_cmd_get_impulse_resp(struct as10x_bus_adapter_t *adap,
-			       uint8_t *is_ready)
+							   uint8_t *is_ready)
 {
 	int error = AS10X_CMD_ERROR;
 	struct as10x_cmd_t *pcmd, *prsp;
@@ -343,30 +370,36 @@ int as10x_cmd_get_impulse_resp(struct as10x_bus_adapter_t *adap,
 
 	/* prepare command */
 	as10x_cmd_build(pcmd, (++adap->cmd_xid),
-			sizeof(pcmd->body.get_impulse_rsp.req));
+					sizeof(pcmd->body.get_impulse_rsp.req));
 
 	/* fill command */
 	pcmd->body.get_impulse_rsp.req.proc_id =
 		cpu_to_le16(CONTROL_PROC_GET_IMPULSE_RESP);
 
 	/* send command */
-	if (adap->ops->xfer_cmd) {
+	if (adap->ops->xfer_cmd)
+	{
 		error = adap->ops->xfer_cmd(adap,
-					(uint8_t *) pcmd,
-					sizeof(pcmd->body.get_impulse_rsp.req)
-					+ HEADER_SIZE,
-					(uint8_t *) prsp,
-					sizeof(prsp->body.get_impulse_rsp.rsp)
-					+ HEADER_SIZE);
+									(uint8_t *) pcmd,
+									sizeof(pcmd->body.get_impulse_rsp.req)
+									+ HEADER_SIZE,
+									(uint8_t *) prsp,
+									sizeof(prsp->body.get_impulse_rsp.rsp)
+									+ HEADER_SIZE);
 	}
 
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	/* parse response */
 	error = as10x_rsp_parse(prsp, CONTROL_PROC_GET_IMPULSE_RESP_RSP);
+
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	/* Response OK -> get response data */
 	*is_ready = prsp->body.get_impulse_rsp.rsp.is_ready;
@@ -382,7 +415,7 @@ out:
  * @cmd_len:  length of the command
  */
 void as10x_cmd_build(struct as10x_cmd_t *pcmd,
-		     uint16_t xid, uint16_t cmd_len)
+					 uint16_t xid, uint16_t cmd_len)
 {
 	pcmd->header.req_id = cpu_to_le16(xid);
 	pcmd->header.prog = cpu_to_le16(SERVICE_PROG_ID);
@@ -405,7 +438,8 @@ int as10x_rsp_parse(struct as10x_cmd_t *prsp, uint16_t proc_id)
 	error = prsp->body.common.rsp.error;
 
 	if ((error == 0) &&
-	    (le16_to_cpu(prsp->body.common.rsp.proc_id) == proc_id)) {
+		(le16_to_cpu(prsp->body.common.rsp.proc_id) == proc_id))
+	{
 		return 0;
 	}
 

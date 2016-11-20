@@ -100,17 +100,20 @@
 struct fman; /* FMan data */
 
 /* Enum for defining port types */
-enum fman_port_type {
+enum fman_port_type
+{
 	FMAN_PORT_TYPE_TX = 0,	/* TX Port */
 	FMAN_PORT_TYPE_RX,	/* RX Port */
 };
 
-struct fman_rev_info {
+struct fman_rev_info
+{
 	u8 major;			/* Major revision */
 	u8 minor;			/* Minor revision */
 };
 
-enum fman_exceptions {
+enum fman_exceptions
+{
 	FMAN_EX_DMA_BUS_ERROR = 0,	/* DMA bus error. */
 	FMAN_EX_DMA_READ_ECC,		/* Read Buffer ECC error */
 	FMAN_EX_DMA_SYSTEM_WRITE_ECC,	/* Write Buffer ECC err on sys side */
@@ -131,7 +134,8 @@ enum fman_exceptions {
 };
 
 /* Parse results memory layout */
-struct fman_prs_result {
+struct fman_prs_result
+{
 	u8 lpid;		/* Logical port id */
 	u8 shimr;		/* Shim header result  */
 	u16 l2r;		/* Layer 2 result */
@@ -161,7 +165,8 @@ struct fman_prs_result {
 };
 
 /* A structure for defining buffer prefix area content. */
-struct fman_buffer_prefix_content {
+struct fman_buffer_prefix_content
+{
 	/* Number of bytes to be left at the beginning of the external
 	 * buffer; Note that the private-area will start from the base
 	 * of the buffer address.
@@ -188,7 +193,8 @@ struct fman_buffer_prefix_content {
 /* A structure of information about each of the external
  * buffer pools used by a port or storage-profile.
  */
-struct fman_ext_pool_params {
+struct fman_ext_pool_params
+{
 	u8 id;		    /* External buffer pool id */
 	u16 size;		    /* External buffer pool buffer size */
 };
@@ -197,14 +203,16 @@ struct fman_ext_pool_params {
  * buffer pools allocated in the BM and used by a port or a
  * storage-profile.
  */
-struct fman_ext_pools {
+struct fman_ext_pools
+{
 	u8 num_of_pools_used; /* Number of pools use by this port */
 	struct fman_ext_pool_params ext_buf_pool[FMAN_PORT_MAX_EXT_POOLS_NUM];
-					/* Parameters for each port */
+	/* Parameters for each port */
 };
 
 /* A structure for defining BM pool depletion criteria */
-struct fman_buf_pool_depletion {
+struct fman_buf_pool_depletion
+{
 	/* select mode in which pause frames will be sent after a
 	 * number of pools (all together!) are depleted
 	 */
@@ -228,20 +236,23 @@ struct fman_buf_pool_depletion {
 };
 
 /* Enum for inter-module interrupts registration */
-enum fman_event_modules {
+enum fman_event_modules
+{
 	FMAN_MOD_MAC = 0,		/* MAC event */
 	FMAN_MOD_FMAN_CTRL,	/* FMAN Controller */
 	FMAN_MOD_DUMMY_LAST
 };
 
 /* Enum for interrupts types */
-enum fman_intr_type {
+enum fman_intr_type
+{
 	FMAN_INTR_TYPE_ERR,
 	FMAN_INTR_TYPE_NORMAL
 };
 
 /* Enum for inter-module interrupts registration */
-enum fman_inter_module_event {
+enum fman_inter_module_event
+{
 	FMAN_EV_ERR_MAC0 = 0,	/* MAC 0 error event */
 	FMAN_EV_ERR_MAC1,		/* MAC 1 error event */
 	FMAN_EV_ERR_MAC2,		/* MAC 2 error event */
@@ -269,13 +280,15 @@ enum fman_inter_module_event {
 	FMAN_EV_CNT
 };
 
-struct fman_intr_src {
+struct fman_intr_src
+{
 	void (*isr_cb)(void *src_arg);
 	void *src_handle;
 };
 
 /* Structure for port-FM communication during fman_port_init. */
-struct fman_port_init_params {
+struct fman_port_init_params
+{
 	u8 port_id;			/* port Id */
 	enum fman_port_type port_type;	/* Port type */
 	u16 port_speed;			/* Port speed */
@@ -295,14 +308,14 @@ struct fman_port_init_params {
 void fman_get_revision(struct fman *fman, struct fman_rev_info *rev_info);
 
 void fman_register_intr(struct fman *fman, enum fman_event_modules mod,
-			u8 mod_id, enum fman_intr_type intr_type,
-			void (*f_isr)(void *h_src_arg), void *h_src_arg);
+						u8 mod_id, enum fman_intr_type intr_type,
+						void (*f_isr)(void *h_src_arg), void *h_src_arg);
 
 void fman_unregister_intr(struct fman *fman, enum fman_event_modules mod,
-			  u8 mod_id, enum fman_intr_type intr_type);
+						  u8 mod_id, enum fman_intr_type intr_type);
 
 int fman_set_port_params(struct fman *fman,
-			 struct fman_port_init_params *port_params);
+						 struct fman_port_init_params *port_params);
 
 int fman_reset_mac(struct fman *fman, u8 mac_id);
 

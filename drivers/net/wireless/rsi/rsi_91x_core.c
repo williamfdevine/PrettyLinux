@@ -30,13 +30,17 @@ static u8 rsi_determine_min_weight_queue(struct rsi_common *common)
 	u32 q_len = 0;
 	u8 ii = 0;
 
-	for (ii = 0; ii < NUM_EDCA_QUEUES; ii++) {
+	for (ii = 0; ii < NUM_EDCA_QUEUES; ii++)
+	{
 		q_len = skb_queue_len(&common->tx_queue[ii]);
-		if ((tx_qinfo[ii].pkt_contended) && q_len) {
+
+		if ((tx_qinfo[ii].pkt_contended) && q_len)
+		{
 			common->min_weight = tx_qinfo[ii].weight;
 			break;
 		}
 	}
+
 	return ii;
 }
 
@@ -54,20 +58,28 @@ static bool rsi_recalculate_weights(struct rsi_common *common)
 	u8 ii = 0;
 	u32 q_len = 0;
 
-	for (ii = 0; ii < NUM_EDCA_QUEUES; ii++) {
+	for (ii = 0; ii < NUM_EDCA_QUEUES; ii++)
+	{
 		q_len = skb_queue_len(&common->tx_queue[ii]);
+
 		/* Check for the need of contention */
-		if (q_len) {
-			if (tx_qinfo[ii].pkt_contended) {
+		if (q_len)
+		{
+			if (tx_qinfo[ii].pkt_contended)
+			{
 				tx_qinfo[ii].weight =
-				((tx_qinfo[ii].weight > common->min_weight) ?
-				 tx_qinfo[ii].weight - common->min_weight : 0);
-			} else {
+					((tx_qinfo[ii].weight > common->min_weight) ?
+					 tx_qinfo[ii].weight - common->min_weight : 0);
+			}
+			else
+			{
 				tx_qinfo[ii].pkt_contended = 1;
 				tx_qinfo[ii].weight = tx_qinfo[ii].wme_params;
 				recontend_queue = true;
 			}
-		} else { /* No packets so no contention */
+		}
+		else     /* No packets so no contention */
+		{
 			tx_qinfo[ii].weight = 0;
 			tx_qinfo[ii].pkt_contended = 0;
 		}
@@ -96,28 +108,42 @@ static u32 rsi_get_num_pkts_dequeue(struct rsi_common *common, u8 q_num)
 	struct ieee80211_rate rate;
 
 	rate.bitrate = RSI_RATE_MCS0 * 5 * 10; /* Convert to Kbps */
+
 	if (q_num == VI_Q)
+	{
 		txop = ((txop << 5) / 80);
+	}
 
 	if (skb_queue_len(&common->tx_queue[q_num]))
+	{
 		skb = skb_peek(&common->tx_queue[q_num]);
+	}
 	else
+	{
 		return 0;
+	}
 
-	do {
+	do
+	{
 		r_txop = ieee80211_generic_frame_duration(adapter->hw,
-							  adapter->vifs[0],
-							  common->band,
-							  skb->len, &rate);
+				 adapter->vifs[0],
+				 common->band,
+				 skb->len, &rate);
 		txop -= le16_to_cpu(r_txop);
 		pkt_cnt += 1;
+
 		/*checking if pkts are still there*/
 		if (skb_queue_len(&common->tx_queue[q_num]) - pkt_cnt)
+		{
 			skb = skb->next;
+		}
 		else
+		{
 			break;
+		}
 
-	} while (txop > 0);
+	}
+	while (txop > 0);
 
 	return pkt_cnt;
 }
@@ -136,16 +162,23 @@ static u8 rsi_core_determine_hal_queue(struct rsi_common *common)
 	u8 q_num = INVALID_QUEUE;
 	u8 ii = 0;
 
-	if (skb_queue_len(&common->tx_queue[MGMT_SOFT_Q])) {
+	if (skb_queue_len(&common->tx_queue[MGMT_SOFT_Q]))
+	{
 		if (!common->mgmt_q_block)
+		{
 			q_num = MGMT_SOFT_Q;
+		}
+
 		return q_num;
 	}
 
 	if (common->hw_data_qs_blocked)
+	{
 		return q_num;
+	}
 
-	if (common->pkt_cnt != 0) {
+	if (common->pkt_cnt != 0)
+	{
 		--common->pkt_cnt;
 		return common->selected_qnum;
 	}
@@ -158,30 +191,39 @@ get_queue_num:
 	ii = q_num;
 
 	/* Selecting the queue with least back off */
-	for (; ii < NUM_EDCA_QUEUES; ii++) {
+	for (; ii < NUM_EDCA_QUEUES; ii++)
+	{
 		q_len = skb_queue_len(&common->tx_queue[ii]);
+
 		if (((common->tx_qinfo[ii].pkt_contended) &&
-		     (common->tx_qinfo[ii].weight < common->min_weight)) &&
-		      q_len) {
+			 (common->tx_qinfo[ii].weight < common->min_weight)) &&
+			q_len)
+		{
 			common->min_weight = common->tx_qinfo[ii].weight;
 			q_num = ii;
 		}
 	}
 
 	if (q_num < NUM_EDCA_QUEUES)
+	{
 		common->tx_qinfo[q_num].pkt_contended = 0;
+	}
 
 	/* Adjust the back off values for all queues again */
 	recontend_queue = rsi_recalculate_weights(common);
 
 	q_len = skb_queue_len(&common->tx_queue[q_num]);
-	if (!q_len) {
+
+	if (!q_len)
+	{
 		/* If any queues are freshly contended and the selected queue
 		 * doesn't have any packets
 		 * then get the queue number again with fresh values
 		 */
 		if (recontend_queue)
+		{
 			goto get_queue_num;
+		}
 
 		q_num = INVALID_QUEUE;
 		return q_num;
@@ -190,7 +232,8 @@ get_queue_num:
 	common->selected_qnum = q_num;
 	q_len = skb_queue_len(&common->tx_queue[q_num]);
 
-	if (q_num == VO_Q || q_num == VI_Q) {
+	if (q_num == VO_Q || q_num == VI_Q)
+	{
 		common->pkt_cnt = rsi_get_num_pkts_dequeue(common, q_num);
 		common->pkt_cnt -= 1;
 	}
@@ -207,12 +250,14 @@ get_queue_num:
  * Return: None.
  */
 static void rsi_core_queue_pkt(struct rsi_common *common,
-			       struct sk_buff *skb)
+							   struct sk_buff *skb)
 {
 	u8 q_num = skb->priority;
-	if (q_num >= NUM_SOFT_QUEUES) {
+
+	if (q_num >= NUM_SOFT_QUEUES)
+	{
 		rsi_dbg(ERR_ZONE, "%s: Invalid Queue Number: q_num = %d\n",
-			__func__, q_num);
+				__func__, q_num);
 		dev_kfree_skb(skb);
 		return;
 	}
@@ -229,11 +274,12 @@ static void rsi_core_queue_pkt(struct rsi_common *common,
  * Return: Pointer to sk_buff structure.
  */
 static struct sk_buff *rsi_core_dequeue_pkt(struct rsi_common *common,
-					    u8 q_num)
+		u8 q_num)
 {
-	if (q_num >= NUM_SOFT_QUEUES) {
+	if (q_num >= NUM_SOFT_QUEUES)
+	{
 		rsi_dbg(ERR_ZONE, "%s: Invalid Queue Number: q_num = %d\n",
-			__func__, q_num);
+				__func__, q_num);
 		return NULL;
 	}
 
@@ -258,12 +304,15 @@ void rsi_core_qos_processor(struct rsi_common *common)
 	int status;
 
 	tstamp_1 = jiffies;
-	while (1) {
+
+	while (1)
+	{
 		q_num = rsi_core_determine_hal_queue(common);
 		rsi_dbg(DATA_TX_ZONE,
-			"%s: Queue number = %d\n", __func__, q_num);
+				"%s: Queue number = %d\n", __func__, q_num);
 
-		if (q_num == INVALID_QUEUE) {
+		if (q_num == INVALID_QUEUE)
+		{
 			rsi_dbg(DATA_TX_ZONE, "%s: No More Pkt\n", __func__);
 			break;
 		}
@@ -271,32 +320,42 @@ void rsi_core_qos_processor(struct rsi_common *common)
 		mutex_lock(&common->tx_rxlock);
 
 		status = adapter->check_hw_queue_status(adapter, q_num);
-		if ((status <= 0)) {
+
+		if ((status <= 0))
+		{
 			mutex_unlock(&common->tx_rxlock);
 			break;
 		}
 
 		if ((q_num < MGMT_SOFT_Q) &&
-		    ((skb_queue_len(&common->tx_queue[q_num])) <=
-		      MIN_DATA_QUEUE_WATER_MARK)) {
+			((skb_queue_len(&common->tx_queue[q_num])) <=
+			 MIN_DATA_QUEUE_WATER_MARK))
+		{
 			if (ieee80211_queue_stopped(adapter->hw, WME_AC(q_num)))
 				ieee80211_wake_queue(adapter->hw,
-						     WME_AC(q_num));
+									 WME_AC(q_num));
 		}
 
 		skb = rsi_core_dequeue_pkt(common, q_num);
-		if (skb == NULL) {
+
+		if (skb == NULL)
+		{
 			rsi_dbg(ERR_ZONE, "skb null\n");
 			mutex_unlock(&common->tx_rxlock);
 			break;
 		}
 
 		if (q_num == MGMT_SOFT_Q)
+		{
 			status = rsi_send_mgmt_pkt(common, skb);
+		}
 		else
+		{
 			status = rsi_send_data_pkt(common, skb);
+		}
 
-		if (status) {
+		if (status)
+		{
 			mutex_unlock(&common->tx_rxlock);
 			break;
 		}
@@ -307,7 +366,9 @@ void rsi_core_qos_processor(struct rsi_common *common)
 		mutex_unlock(&common->tx_rxlock);
 
 		if (tstamp_2 > tstamp_1 + (300 * HZ / 1000))
+		{
 			schedule();
+		}
 	}
 }
 
@@ -326,44 +387,59 @@ void rsi_core_xmit(struct rsi_common *common, struct sk_buff *skb)
 	struct ieee80211_hdr *tmp_hdr = NULL;
 	u8 q_num, tid = 0;
 
-	if ((!skb) || (!skb->len)) {
+	if ((!skb) || (!skb->len))
+	{
 		rsi_dbg(ERR_ZONE, "%s: Null skb/zero Length packet\n",
-			__func__);
+				__func__);
 		goto xmit_fail;
 	}
+
 	info = IEEE80211_SKB_CB(skb);
 	tx_params = (struct skb_info *)info->driver_data;
 	tmp_hdr = (struct ieee80211_hdr *)&skb->data[0];
 
-	if (common->fsm_state != FSM_MAC_INIT_DONE) {
+	if (common->fsm_state != FSM_MAC_INIT_DONE)
+	{
 		rsi_dbg(ERR_ZONE, "%s: FSM state not open\n", __func__);
 		goto xmit_fail;
 	}
 
 	if ((ieee80211_is_mgmt(tmp_hdr->frame_control)) ||
-	    (ieee80211_is_ctl(tmp_hdr->frame_control)) ||
-	    (ieee80211_is_qos_nullfunc(tmp_hdr->frame_control))) {
+		(ieee80211_is_ctl(tmp_hdr->frame_control)) ||
+		(ieee80211_is_qos_nullfunc(tmp_hdr->frame_control)))
+	{
 		q_num = MGMT_SOFT_Q;
 		skb->priority = q_num;
-	} else {
-		if (ieee80211_is_data_qos(tmp_hdr->frame_control)) {
+	}
+	else
+	{
+		if (ieee80211_is_data_qos(tmp_hdr->frame_control))
+		{
 			tid = (skb->data[24] & IEEE80211_QOS_TID);
 			skb->priority = TID_TO_WME_AC(tid);
-		} else {
+		}
+		else
+		{
 			tid = IEEE80211_NONQOS_TID;
 			skb->priority = BE_Q;
 		}
+
 		q_num = skb->priority;
 		tx_params->tid = tid;
 		tx_params->sta_id = 0;
 	}
 
 	if ((q_num != MGMT_SOFT_Q) &&
-	    ((skb_queue_len(&common->tx_queue[q_num]) + 1) >=
-	     DATA_QUEUE_WATER_MARK)) {
+		((skb_queue_len(&common->tx_queue[q_num]) + 1) >=
+		 DATA_QUEUE_WATER_MARK))
+	{
 		rsi_dbg(ERR_ZONE, "%s: sw queue full\n", __func__);
+
 		if (!ieee80211_queue_stopped(adapter->hw, WME_AC(q_num)))
+		{
 			ieee80211_stop_queue(adapter->hw, WME_AC(q_num));
+		}
+
 		rsi_set_event(&common->tx_thread.event);
 		goto xmit_fail;
 	}

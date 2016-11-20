@@ -30,7 +30,8 @@
 
 #include "vmwgfx_drv.h"
 
-enum vmw_cmdbuf_res_state {
+enum vmw_cmdbuf_res_state
+{
 	VMW_CMDBUF_RES_COMMITTED,
 	VMW_CMDBUF_RES_ADD,
 	VMW_CMDBUF_RES_DEL
@@ -41,7 +42,8 @@ enum vmw_cmdbuf_res_state {
  * type and provide a function to convert its ttm_base_object pointer to
  * a struct vmw_resource
  */
-struct vmw_user_resource_conv {
+struct vmw_user_resource_conv
+{
 	enum ttm_object_type object_type;
 	struct vmw_resource *(*base_obj_to_res)(struct ttm_base_object *base);
 	void (*res_free) (struct vmw_resource *res);
@@ -65,7 +67,8 @@ struct vmw_user_resource_conv {
  *                     callback to notify that a define or remove command
  *                     has been committed to the device.
  */
-struct vmw_res_func {
+struct vmw_res_func
+{
 	enum vmw_res_type res_type;
 	bool needs_backup;
 	const char *type_name;
@@ -75,20 +78,20 @@ struct vmw_res_func {
 	int (*create) (struct vmw_resource *res);
 	int (*destroy) (struct vmw_resource *res);
 	int (*bind) (struct vmw_resource *res,
-		     struct ttm_validate_buffer *val_buf);
+				 struct ttm_validate_buffer *val_buf);
 	int (*unbind) (struct vmw_resource *res,
-		       bool readback,
-		       struct ttm_validate_buffer *val_buf);
+				   bool readback,
+				   struct ttm_validate_buffer *val_buf);
 	void (*commit_notify)(struct vmw_resource *res,
-			      enum vmw_cmdbuf_res_state state);
+						  enum vmw_cmdbuf_res_state state);
 };
 
 int vmw_resource_alloc_id(struct vmw_resource *res);
 void vmw_resource_release_id(struct vmw_resource *res);
 int vmw_resource_init(struct vmw_private *dev_priv, struct vmw_resource *res,
-		      bool delay_id,
-		      void (*res_free) (struct vmw_resource *res),
-		      const struct vmw_res_func *func);
+					  bool delay_id,
+					  void (*res_free) (struct vmw_resource *res),
+					  const struct vmw_res_func *func);
 void vmw_resource_activate(struct vmw_resource *res,
-			   void (*hw_destroy) (struct vmw_resource *));
+						   void (*hw_destroy) (struct vmw_resource *));
 #endif

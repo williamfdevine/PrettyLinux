@@ -3,7 +3,8 @@
 /* Connection state tracking for netfilter.  This is separated from,
    but required by, the NAT layer; it can also be used by an iptables
    extension. */
-enum ip_conntrack_info {
+enum ip_conntrack_info
+{
 	/* Part of an established connection (either direction). */
 	IP_CT_ESTABLISHED,
 
@@ -12,7 +13,7 @@ enum ip_conntrack_info {
 	IP_CT_RELATED,
 
 	/* Started a new connection to track (only
-           IP_CT_DIR_ORIGINAL); may be a retransmission. */
+	       IP_CT_DIR_ORIGINAL); may be a retransmission. */
 	IP_CT_NEW,
 
 	/* >= this indicates reply direction */
@@ -36,7 +37,8 @@ enum ip_conntrack_info {
 #define NF_CT_STATE_UNTRACKED_BIT		(1 << (IP_CT_NUMBER + 1))
 
 /* Bitset representing status of connection. */
-enum ip_conntrack_status {
+enum ip_conntrack_status
+{
 	/* It's an expected connection: bit 0 set.  This bit never changed */
 	IPS_EXPECTED_BIT = 0,
 	IPS_EXPECTED = (1 << IPS_EXPECTED_BIT),
@@ -100,7 +102,8 @@ enum ip_conntrack_status {
 };
 
 /* Connection tracking event types */
-enum ip_conntrack_events {
+enum ip_conntrack_events
+{
 	IPCT_NEW,		/* new conntrack */
 	IPCT_RELATED,		/* related conntrack */
 	IPCT_DESTROY,		/* destroyed conntrack */
@@ -115,7 +118,8 @@ enum ip_conntrack_events {
 	IPCT_LABEL,		/* new connlabel has been set */
 };
 
-enum ip_conntrack_expect_events {
+enum ip_conntrack_expect_events
+{
 	IPEXP_NEW,		/* new expectation */
 	IPEXP_DESTROY,		/* destroyed expectation */
 };

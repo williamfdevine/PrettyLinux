@@ -38,7 +38,7 @@ static struct input_dev *input_dev;
 
 /* button handling code */
 static acpi_status acpi_atlas_button_setup(acpi_handle region_handle,
-		    u32 function, void *handler_context, void **return_context)
+		u32 function, void *handler_context, void **return_context)
 {
 	*return_context =
 		(function != ACPI_REGION_DEACTIVATE) ? handler_context : NULL;
@@ -47,13 +47,14 @@ static acpi_status acpi_atlas_button_setup(acpi_handle region_handle,
 }
 
 static acpi_status acpi_atlas_button_handler(u32 function,
-		      acpi_physical_address address,
-		      u32 bit_width, u64 *value,
-		      void *handler_context, void *region_context)
+		acpi_physical_address address,
+		u32 bit_width, u64 *value,
+		void *handler_context, void *region_context)
 {
 	acpi_status status;
 
-	if (function == ACPI_WRITE) {
+	if (function == ACPI_WRITE)
+	{
 		int code = address & 0x0f;
 		int key_down = !(address & 0x10);
 
@@ -62,9 +63,11 @@ static acpi_status acpi_atlas_button_handler(u32 function,
 		input_sync(input_dev);
 
 		status = AE_OK;
-	} else {
+	}
+	else
+	{
 		pr_warn("shrugged on unexpected function: function=%x,address=%lx,value=%x\n",
-			function, (unsigned long)address, (u32)*value);
+				function, (unsigned long)address, (u32)*value);
 		status = AE_BAD_PARAMETER;
 	}
 
@@ -78,7 +81,9 @@ static int atlas_acpi_button_add(struct acpi_device *device)
 	int err;
 
 	input_dev = input_allocate_device();
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		pr_err("unable to allocate input device\n");
 		return -ENOMEM;
 	}
@@ -92,16 +97,24 @@ static int atlas_acpi_button_add(struct acpi_device *device)
 
 	input_set_capability(input_dev, EV_MSC, MSC_SCAN);
 	__set_bit(EV_KEY, input_dev->evbit);
-	for (i = 0; i < ARRAY_SIZE(atlas_keymap); i++) {
-		if (i < 9) {
+
+	for (i = 0; i < ARRAY_SIZE(atlas_keymap); i++)
+	{
+		if (i < 9)
+		{
 			atlas_keymap[i] = KEY_F1 + i;
 			__set_bit(KEY_F1 + i, input_dev->keybit);
-		} else
+		}
+		else
+		{
 			atlas_keymap[i] = KEY_RESERVED;
+		}
 	}
 
 	err = input_register_device(input_dev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("couldn't register input device\n");
 		input_free_device(input_dev);
 		return err;
@@ -109,9 +122,11 @@ static int atlas_acpi_button_add(struct acpi_device *device)
 
 	/* hookup button handler */
 	status = acpi_install_address_space_handler(device->handle,
-				0x81, &acpi_atlas_button_handler,
-				&acpi_atlas_button_setup, device);
-	if (ACPI_FAILURE(status)) {
+			 0x81, &acpi_atlas_button_handler,
+			 &acpi_atlas_button_setup, device);
+
+	if (ACPI_FAILURE(status))
+	{
 		pr_err("error installing addr spc handler\n");
 		input_unregister_device(input_dev);
 		err = -EINVAL;
@@ -125,22 +140,27 @@ static int atlas_acpi_button_remove(struct acpi_device *device)
 	acpi_status status;
 
 	status = acpi_remove_address_space_handler(device->handle,
-				0x81, &acpi_atlas_button_handler);
+			 0x81, &acpi_atlas_button_handler);
+
 	if (ACPI_FAILURE(status))
+	{
 		pr_err("error removing addr spc handler\n");
+	}
 
 	input_unregister_device(input_dev);
 
 	return 0;
 }
 
-static const struct acpi_device_id atlas_device_ids[] = {
+static const struct acpi_device_id atlas_device_ids[] =
+{
 	{"ASIM0000", 0},
 	{"", 0},
 };
 MODULE_DEVICE_TABLE(acpi, atlas_device_ids);
 
-static struct acpi_driver atlas_acpi_driver = {
+static struct acpi_driver atlas_acpi_driver =
+{
 	.name	= ACPI_ATLAS_NAME,
 	.class	= ACPI_ATLAS_CLASS,
 	.owner	= THIS_MODULE,

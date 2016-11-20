@@ -62,7 +62,7 @@ ACPI_MODULE_NAME("exstorob")
  ******************************************************************************/
 acpi_status
 acpi_ex_store_buffer_to_buffer(union acpi_operand_object *source_desc,
-			       union acpi_operand_object *target_desc)
+							   union acpi_operand_object *target_desc)
 {
 	u32 length;
 	u8 *buffer;
@@ -71,7 +71,8 @@ acpi_ex_store_buffer_to_buffer(union acpi_operand_object *source_desc,
 
 	/* If Source and Target are the same, just return */
 
-	if (source_desc == target_desc) {
+	if (source_desc == target_desc)
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
@@ -85,9 +86,12 @@ acpi_ex_store_buffer_to_buffer(union acpi_operand_object *source_desc,
 	 * allocate a new buffer of the proper length
 	 */
 	if ((target_desc->buffer.length == 0) ||
-	    (target_desc->common.flags & AOPOBJ_STATIC_POINTER)) {
+		(target_desc->common.flags & AOPOBJ_STATIC_POINTER))
+	{
 		target_desc->buffer.pointer = ACPI_ALLOCATE(length);
-		if (!target_desc->buffer.pointer) {
+
+		if (!target_desc->buffer.pointer)
+		{
 			return_ACPI_STATUS(AE_NO_MEMORY);
 		}
 
@@ -96,12 +100,13 @@ acpi_ex_store_buffer_to_buffer(union acpi_operand_object *source_desc,
 
 	/* Copy source buffer to target buffer */
 
-	if (length <= target_desc->buffer.length) {
+	if (length <= target_desc->buffer.length)
+	{
 
 		/* Clear existing buffer and copy in the new one */
 
 		memset(target_desc->buffer.pointer, 0,
-		       target_desc->buffer.length);
+			   target_desc->buffer.length);
 		memcpy(target_desc->buffer.pointer, buffer, length);
 
 #ifdef ACPI_OBSOLETE_BEHAVIOR
@@ -119,22 +124,26 @@ acpi_ex_store_buffer_to_buffer(union acpi_operand_object *source_desc,
 		 * according to the ACPI spec. Integer-to-Buffer and Buffer-to-Buffer
 		 * copy must not truncate the original buffer.
 		 */
-		if (original_src_type == ACPI_TYPE_STRING) {
+		if (original_src_type == ACPI_TYPE_STRING)
+		{
 
 			/* Set the new length of the target */
 
 			target_desc->buffer.length = length;
 		}
+
 #endif
-	} else {
+	}
+	else
+	{
 		/* Truncate the source, copy only what will fit */
 
 		memcpy(target_desc->buffer.pointer, buffer,
-		       target_desc->buffer.length);
+			   target_desc->buffer.length);
 
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-				  "Truncating source buffer from %X to %X\n",
-				  length, target_desc->buffer.length));
+						  "Truncating source buffer from %X to %X\n",
+						  length, target_desc->buffer.length));
 	}
 
 	/* Copy flags */
@@ -159,7 +168,7 @@ acpi_ex_store_buffer_to_buffer(union acpi_operand_object *source_desc,
 
 acpi_status
 acpi_ex_store_string_to_string(union acpi_operand_object *source_desc,
-			       union acpi_operand_object *target_desc)
+							   union acpi_operand_object *target_desc)
 {
 	u32 length;
 	u8 *buffer;
@@ -168,7 +177,8 @@ acpi_ex_store_string_to_string(union acpi_operand_object *source_desc,
 
 	/* If Source and Target are the same, just return */
 
-	if (source_desc == target_desc) {
+	if (source_desc == target_desc)
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
@@ -182,21 +192,25 @@ acpi_ex_store_string_to_string(union acpi_operand_object *source_desc,
 	 * pointer is not a static pointer (part of an ACPI table)
 	 */
 	if ((length < target_desc->string.length) &&
-	    (!(target_desc->common.flags & AOPOBJ_STATIC_POINTER))) {
+		(!(target_desc->common.flags & AOPOBJ_STATIC_POINTER)))
+	{
 		/*
 		 * String will fit in existing non-static buffer.
 		 * Clear old string and copy in the new one
 		 */
 		memset(target_desc->string.pointer, 0,
-		       (acpi_size)target_desc->string.length + 1);
+			   (acpi_size)target_desc->string.length + 1);
 		memcpy(target_desc->string.pointer, buffer, length);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Free the current buffer, then allocate a new buffer
 		 * large enough to hold the value
 		 */
 		if (target_desc->string.pointer &&
-		    (!(target_desc->common.flags & AOPOBJ_STATIC_POINTER))) {
+			(!(target_desc->common.flags & AOPOBJ_STATIC_POINTER)))
+		{
 
 			/* Only free if not a pointer into the DSDT */
 
@@ -204,9 +218,10 @@ acpi_ex_store_string_to_string(union acpi_operand_object *source_desc,
 		}
 
 		target_desc->string.pointer =
-		    ACPI_ALLOCATE_ZEROED((acpi_size)length + 1);
+			ACPI_ALLOCATE_ZEROED((acpi_size)length + 1);
 
-		if (!target_desc->string.pointer) {
+		if (!target_desc->string.pointer)
+		{
 			return_ACPI_STATUS(AE_NO_MEMORY);
 		}
 

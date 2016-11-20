@@ -54,7 +54,8 @@
  * ping. We use one per CPU as a bag of interrupts assigned to this
  * CPU.
  */
-struct its_collection {
+struct its_collection
+{
 	u64			target_address;
 	u16			col_id;
 };
@@ -63,7 +64,8 @@ struct its_collection {
  * The ITS_BASER structure - contains memory information, cached
  * value of BASER register configuration and ITS page size.
  */
-struct its_baser {
+struct its_baser
+{
 	void		*base;
 	u64		val;
 	u32		order;
@@ -75,7 +77,8 @@ struct its_baser {
  * top-level MSI domain, the command queue, the collections, and the
  * list of devices writing to it.
  */
-struct its_node {
+struct its_node
+{
 	raw_spinlock_t		lock;
 	struct list_head	entry;
 	void __iomem		*base;
@@ -96,7 +99,8 @@ struct its_node {
 /* Convert page order to size in bytes */
 #define PAGE_ORDER_TO_SIZE(o)	(PAGE_SIZE << (o))
 
-struct event_lpi_map {
+struct event_lpi_map
+{
 	unsigned long		*lpi_map;
 	u16			*col_map;
 	irq_hw_number_t		lpi_base;
@@ -107,7 +111,8 @@ struct event_lpi_map {
  * The ITS view of a device - belongs to an ITS, a collection, owns an
  * interrupt translation table, and a list of interrupts.
  */
-struct its_device {
+struct its_device
+{
 	struct list_head	entry;
 	struct its_node		*its;
 	struct event_lpi_map	event_map;
@@ -125,7 +130,7 @@ static struct irq_domain *its_parent;
 #define gic_data_rdist_rd_base()	(gic_data_rdist()->rd_base)
 
 static struct its_collection *dev_event_to_col(struct its_device *its_dev,
-					       u32 event)
+		u32 event)
 {
 	struct its_node *its = its_dev->its;
 
@@ -136,46 +141,56 @@ static struct its_collection *dev_event_to_col(struct its_device *its_dev,
  * ITS command descriptors - parameters to be encoded in a command
  * block.
  */
-struct its_cmd_desc {
-	union {
-		struct {
+struct its_cmd_desc
+{
+	union
+	{
+		struct
+		{
 			struct its_device *dev;
 			u32 event_id;
 		} its_inv_cmd;
 
-		struct {
+		struct
+		{
 			struct its_device *dev;
 			u32 event_id;
 		} its_int_cmd;
 
-		struct {
+		struct
+		{
 			struct its_device *dev;
 			int valid;
 		} its_mapd_cmd;
 
-		struct {
+		struct
+		{
 			struct its_collection *col;
 			int valid;
 		} its_mapc_cmd;
 
-		struct {
+		struct
+		{
 			struct its_device *dev;
 			u32 phys_id;
 			u32 event_id;
 		} its_mapvi_cmd;
 
-		struct {
+		struct
+		{
 			struct its_device *dev;
 			struct its_collection *col;
 			u32 event_id;
 		} its_movi_cmd;
 
-		struct {
+		struct
+		{
 			struct its_device *dev;
 			u32 event_id;
 		} its_discard_cmd;
 
-		struct {
+		struct
+		{
 			struct its_collection *col;
 		} its_invall_cmd;
 	};
@@ -184,7 +199,8 @@ struct its_cmd_desc {
 /*
  * The ITS command block, which is what the ITS actually parses.
  */
-struct its_cmd_block {
+struct its_cmd_block
+{
 	u64	raw_cmd[4];
 };
 
@@ -192,7 +208,7 @@ struct its_cmd_block {
 #define ITS_CMD_QUEUE_NR_ENTRIES	(ITS_CMD_QUEUE_SZ / sizeof(struct its_cmd_block))
 
 typedef struct its_collection *(*its_cmd_builder_t)(struct its_cmd_block *,
-						    struct its_cmd_desc *);
+		struct its_cmd_desc *);
 
 static void its_encode_cmd(struct its_cmd_block *cmd, u8 cmd_nr)
 {
@@ -258,7 +274,7 @@ static inline void its_fixup_cmd(struct its_cmd_block *cmd)
 }
 
 static struct its_collection *its_build_mapd_cmd(struct its_cmd_block *cmd,
-						 struct its_cmd_desc *desc)
+		struct its_cmd_desc *desc)
 {
 	unsigned long itt_addr;
 	u8 size = ilog2(desc->its_mapd_cmd.dev->nr_ites);
@@ -278,7 +294,7 @@ static struct its_collection *its_build_mapd_cmd(struct its_cmd_block *cmd,
 }
 
 static struct its_collection *its_build_mapc_cmd(struct its_cmd_block *cmd,
-						 struct its_cmd_desc *desc)
+		struct its_cmd_desc *desc)
 {
 	its_encode_cmd(cmd, GITS_CMD_MAPC);
 	its_encode_collection(cmd, desc->its_mapc_cmd.col->col_id);
@@ -291,12 +307,12 @@ static struct its_collection *its_build_mapc_cmd(struct its_cmd_block *cmd,
 }
 
 static struct its_collection *its_build_mapvi_cmd(struct its_cmd_block *cmd,
-						  struct its_cmd_desc *desc)
+		struct its_cmd_desc *desc)
 {
 	struct its_collection *col;
 
 	col = dev_event_to_col(desc->its_mapvi_cmd.dev,
-			       desc->its_mapvi_cmd.event_id);
+						   desc->its_mapvi_cmd.event_id);
 
 	its_encode_cmd(cmd, GITS_CMD_MAPVI);
 	its_encode_devid(cmd, desc->its_mapvi_cmd.dev->device_id);
@@ -310,12 +326,12 @@ static struct its_collection *its_build_mapvi_cmd(struct its_cmd_block *cmd,
 }
 
 static struct its_collection *its_build_movi_cmd(struct its_cmd_block *cmd,
-						 struct its_cmd_desc *desc)
+		struct its_cmd_desc *desc)
 {
 	struct its_collection *col;
 
 	col = dev_event_to_col(desc->its_movi_cmd.dev,
-			       desc->its_movi_cmd.event_id);
+						   desc->its_movi_cmd.event_id);
 
 	its_encode_cmd(cmd, GITS_CMD_MOVI);
 	its_encode_devid(cmd, desc->its_movi_cmd.dev->device_id);
@@ -328,12 +344,12 @@ static struct its_collection *its_build_movi_cmd(struct its_cmd_block *cmd,
 }
 
 static struct its_collection *its_build_discard_cmd(struct its_cmd_block *cmd,
-						    struct its_cmd_desc *desc)
+		struct its_cmd_desc *desc)
 {
 	struct its_collection *col;
 
 	col = dev_event_to_col(desc->its_discard_cmd.dev,
-			       desc->its_discard_cmd.event_id);
+						   desc->its_discard_cmd.event_id);
 
 	its_encode_cmd(cmd, GITS_CMD_DISCARD);
 	its_encode_devid(cmd, desc->its_discard_cmd.dev->device_id);
@@ -345,12 +361,12 @@ static struct its_collection *its_build_discard_cmd(struct its_cmd_block *cmd,
 }
 
 static struct its_collection *its_build_inv_cmd(struct its_cmd_block *cmd,
-						struct its_cmd_desc *desc)
+		struct its_cmd_desc *desc)
 {
 	struct its_collection *col;
 
 	col = dev_event_to_col(desc->its_inv_cmd.dev,
-			       desc->its_inv_cmd.event_id);
+						   desc->its_inv_cmd.event_id);
 
 	its_encode_cmd(cmd, GITS_CMD_INV);
 	its_encode_devid(cmd, desc->its_inv_cmd.dev->device_id);
@@ -362,7 +378,7 @@ static struct its_collection *its_build_inv_cmd(struct its_cmd_block *cmd,
 }
 
 static struct its_collection *its_build_invall_cmd(struct its_cmd_block *cmd,
-						   struct its_cmd_desc *desc)
+		struct its_cmd_desc *desc)
 {
 	its_encode_cmd(cmd, GITS_CMD_INVALL);
 	its_encode_collection(cmd, desc->its_mapc_cmd.col->col_id);
@@ -373,7 +389,7 @@ static struct its_collection *its_build_invall_cmd(struct its_cmd_block *cmd,
 }
 
 static u64 its_cmd_ptr_to_offset(struct its_node *its,
-				 struct its_cmd_block *ptr)
+								 struct its_cmd_block *ptr)
 {
 	return (ptr - its->cmd_base) * sizeof(*ptr);
 }
@@ -388,7 +404,9 @@ static int its_queue_full(struct its_node *its)
 
 	/* This is incredibly unlikely to happen, unless the ITS locks up. */
 	if (((widx + 1) % ITS_CMD_QUEUE_NR_ENTRIES) == ridx)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -398,12 +416,16 @@ static struct its_cmd_block *its_allocate_entry(struct its_node *its)
 	struct its_cmd_block *cmd;
 	u32 count = 1000000;	/* 1s! */
 
-	while (its_queue_full(its)) {
+	while (its_queue_full(its))
+	{
 		count--;
-		if (!count) {
+
+		if (!count)
+		{
 			pr_err_ratelimited("ITS queue not draining\n");
 			return NULL;
 		}
+
 		cpu_relax();
 		udelay(1);
 	}
@@ -412,7 +434,9 @@ static struct its_cmd_block *its_allocate_entry(struct its_node *its)
 
 	/* Handle queue wrapping */
 	if (its->cmd_write == (its->cmd_base + ITS_CMD_QUEUE_NR_ENTRIES))
+	{
 		its->cmd_write = its->cmd_base;
+	}
 
 	return cmd;
 }
@@ -433,14 +457,18 @@ static void its_flush_cmd(struct its_node *its, struct its_cmd_block *cmd)
 	 * the ITS.
 	 */
 	if (its->flags & ITS_FLAGS_CMDQ_NEEDS_FLUSHING)
+	{
 		__flush_dcache_area(cmd, sizeof(*cmd));
+	}
 	else
+	{
 		dsb(ishst);
+	}
 }
 
 static void its_wait_for_range_completion(struct its_node *its,
-					  struct its_cmd_block *from,
-					  struct its_cmd_block *to)
+		struct its_cmd_block *from,
+		struct its_cmd_block *to)
 {
 	u64 rd_idx, from_idx, to_idx;
 	u32 count = 1000000;	/* 1s! */
@@ -448,24 +476,31 @@ static void its_wait_for_range_completion(struct its_node *its,
 	from_idx = its_cmd_ptr_to_offset(its, from);
 	to_idx = its_cmd_ptr_to_offset(its, to);
 
-	while (1) {
+	while (1)
+	{
 		rd_idx = readl_relaxed(its->base + GITS_CREADR);
+
 		if (rd_idx >= to_idx || rd_idx < from_idx)
+		{
 			break;
+		}
 
 		count--;
-		if (!count) {
+
+		if (!count)
+		{
 			pr_err_ratelimited("ITS queue timeout\n");
 			return;
 		}
+
 		cpu_relax();
 		udelay(1);
 	}
 }
 
 static void its_send_single_command(struct its_node *its,
-				    its_cmd_builder_t builder,
-				    struct its_cmd_desc *desc)
+									its_cmd_builder_t builder,
+									struct its_cmd_desc *desc)
 {
 	struct its_cmd_block *cmd, *sync_cmd, *next_cmd;
 	struct its_collection *sync_col;
@@ -474,20 +509,27 @@ static void its_send_single_command(struct its_node *its,
 	raw_spin_lock_irqsave(&its->lock, flags);
 
 	cmd = its_allocate_entry(its);
-	if (!cmd) {		/* We're soooooo screewed... */
+
+	if (!cmd)  		/* We're soooooo screewed... */
+	{
 		pr_err_ratelimited("ITS can't allocate, dropping command\n");
 		raw_spin_unlock_irqrestore(&its->lock, flags);
 		return;
 	}
+
 	sync_col = builder(cmd, desc);
 	its_flush_cmd(its, cmd);
 
-	if (sync_col) {
+	if (sync_col)
+	{
 		sync_cmd = its_allocate_entry(its);
-		if (!sync_cmd) {
+
+		if (!sync_cmd)
+		{
 			pr_err_ratelimited("ITS can't SYNC, skipping\n");
 			goto post;
 		}
+
 		its_encode_cmd(sync_cmd, GITS_CMD_SYNC);
 		its_encode_target(sync_cmd, sync_col->target_address);
 		its_fixup_cmd(sync_cmd);
@@ -522,7 +564,7 @@ static void its_send_mapd(struct its_device *dev, int valid)
 }
 
 static void its_send_mapc(struct its_node *its, struct its_collection *col,
-			  int valid)
+						  int valid)
 {
 	struct its_cmd_desc desc;
 
@@ -544,7 +586,7 @@ static void its_send_mapvi(struct its_device *dev, u32 irq_id, u32 id)
 }
 
 static void its_send_movi(struct its_device *dev,
-			  struct its_collection *col, u32 id)
+						  struct its_collection *col, u32 id)
 {
 	struct its_cmd_desc desc;
 
@@ -592,9 +634,13 @@ static void lpi_set_config(struct irq_data *d, bool enable)
 	u8 *cfg = page_address(gic_rdists->prop_page) + hwirq - 8192;
 
 	if (enable)
+	{
 		*cfg |= LPI_PROP_ENABLED;
+	}
 	else
+	{
 		*cfg &= ~LPI_PROP_ENABLED;
+	}
 
 	/*
 	 * Make the above write visible to the redistributors.
@@ -602,9 +648,14 @@ static void lpi_set_config(struct irq_data *d, bool enable)
 	 * Humpf...
 	 */
 	if (gic_rdists->flags & RDIST_FLAGS_PROPBASE_NEEDS_FLUSHING)
+	{
 		__flush_dcache_area(cfg, sizeof(*cfg));
+	}
 	else
+	{
 		dsb(ishst);
+	}
+
 	its_send_inv(its_dev, id);
 }
 
@@ -619,7 +670,7 @@ static void its_unmask_irq(struct irq_data *d)
 }
 
 static int its_set_affinity(struct irq_data *d, const struct cpumask *mask_val,
-			    bool force)
+							bool force)
 {
 	unsigned int cpu;
 	const struct cpumask *cpu_mask = cpu_online_mask;
@@ -627,19 +678,26 @@ static int its_set_affinity(struct irq_data *d, const struct cpumask *mask_val,
 	struct its_collection *target_col;
 	u32 id = its_get_event_id(d);
 
-       /* lpi cannot be routed to a redistributor that is on a foreign node */
-	if (its_dev->its->flags & ITS_FLAGS_WORKAROUND_CAVIUM_23144) {
-		if (its_dev->its->numa_node >= 0) {
+	/* lpi cannot be routed to a redistributor that is on a foreign node */
+	if (its_dev->its->flags & ITS_FLAGS_WORKAROUND_CAVIUM_23144)
+	{
+		if (its_dev->its->numa_node >= 0)
+		{
 			cpu_mask = cpumask_of_node(its_dev->its->numa_node);
+
 			if (!cpumask_intersects(mask_val, cpu_mask))
+			{
 				return -EINVAL;
+			}
 		}
 	}
 
 	cpu = cpumask_any_and(mask_val, cpu_mask);
 
 	if (cpu >= nr_cpu_ids)
+	{
 		return -EINVAL;
+	}
 
 	target_col = &its_dev->its->collections[cpu];
 	its_send_movi(its_dev, target_col, id);
@@ -664,7 +722,8 @@ static void its_irq_compose_msi_msg(struct irq_data *d, struct msi_msg *msg)
 	iommu_dma_map_msi_msg(d->irq, msg);
 }
 
-static struct irq_chip its_irq_chip = {
+static struct irq_chip its_irq_chip =
+{
 	.name			= "ITS",
 	.irq_mask		= its_mask_irq,
 	.irq_unmask		= its_unmask_irq,
@@ -705,8 +764,10 @@ static int __init its_lpi_init(u32 id_bits)
 	lpi_chunks = its_lpi_to_chunk(1UL << id_bits);
 
 	lpi_bitmap = kzalloc(BITS_TO_LONGS(lpi_chunks) * sizeof(long),
-			     GFP_KERNEL);
-	if (!lpi_bitmap) {
+						 GFP_KERNEL);
+
+	if (!lpi_bitmap)
+	{
 		lpi_chunks = 0;
 		return -ENOMEM;
 	}
@@ -726,25 +787,37 @@ static unsigned long *its_lpi_alloc_chunks(int nr_irqs, int *base, int *nr_ids)
 
 	spin_lock(&lpi_lock);
 
-	do {
+	do
+	{
 		chunk_id = bitmap_find_next_zero_area(lpi_bitmap, lpi_chunks,
-						      0, nr_chunks, 0);
+											  0, nr_chunks, 0);
+
 		if (chunk_id < lpi_chunks)
+		{
 			break;
+		}
 
 		nr_chunks--;
-	} while (nr_chunks > 0);
+	}
+	while (nr_chunks > 0);
 
 	if (!nr_chunks)
+	{
 		goto out;
+	}
 
 	bitmap = kzalloc(BITS_TO_LONGS(nr_chunks * IRQS_PER_CHUNK) * sizeof (long),
-			 GFP_ATOMIC);
+					 GFP_ATOMIC);
+
 	if (!bitmap)
+	{
 		goto out;
+	}
 
 	for (i = 0; i < nr_chunks; i++)
+	{
 		set_bit(chunk_id + i, lpi_bitmap);
+	}
 
 	*base = its_chunk_to_lpi(chunk_id);
 	*nr_ids = nr_chunks * IRQS_PER_CHUNK;
@@ -753,7 +826,9 @@ out:
 	spin_unlock(&lpi_lock);
 
 	if (!bitmap)
+	{
 		*base = *nr_ids = 0;
+	}
 
 	return bitmap;
 }
@@ -766,12 +841,17 @@ static void its_lpi_free(struct event_lpi_map *map)
 
 	spin_lock(&lpi_lock);
 
-	for (lpi = base; lpi < (base + nr_ids); lpi += IRQS_PER_CHUNK) {
+	for (lpi = base; lpi < (base + nr_ids); lpi += IRQS_PER_CHUNK)
+	{
 		int chunk = its_lpi_to_chunk(lpi);
 		BUG_ON(chunk > lpi_chunks);
-		if (test_bit(chunk, lpi_bitmap)) {
+
+		if (test_bit(chunk, lpi_bitmap))
+		{
 			clear_bit(chunk, lpi_bitmap);
-		} else {
+		}
+		else
+		{
 			pr_err("Bad LPI chunk %d\n", chunk);
 		}
 	}
@@ -802,8 +882,10 @@ static int __init its_alloc_lpi_tables(void)
 	phys_addr_t paddr;
 
 	gic_rdists->prop_page = alloc_pages(GFP_NOWAIT,
-					   get_order(LPI_PROPBASE_SZ));
-	if (!gic_rdists->prop_page) {
+										get_order(LPI_PROPBASE_SZ));
+
+	if (!gic_rdists->prop_page)
+	{
 		pr_err("Failed to allocate PROPBASE\n");
 		return -ENOMEM;
 	}
@@ -813,8 +895,8 @@ static int __init its_alloc_lpi_tables(void)
 
 	/* Priority 0xa0, Group-1, disabled */
 	memset(page_address(gic_rdists->prop_page),
-	       LPI_PROP_DEFAULT_PRIO | LPI_PROP_GROUP1,
-	       LPI_PROPBASE_SZ);
+		   LPI_PROP_DEFAULT_PRIO | LPI_PROP_GROUP1,
+		   LPI_PROPBASE_SZ);
 
 	/* Make sure the GIC will observe the written configuration */
 	__flush_dcache_area(page_address(gic_rdists->prop_page), LPI_PROPBASE_SZ);
@@ -822,7 +904,8 @@ static int __init its_alloc_lpi_tables(void)
 	return 0;
 }
 
-static const char *its_base_type_string[] = {
+static const char *its_base_type_string[] =
+{
 	[GITS_BASER_TYPE_DEVICE]	= "Devices",
 	[GITS_BASER_TYPE_VCPU]		= "Virtual CPUs",
 	[GITS_BASER_TYPE_CPU]		= "Physical CPUs",
@@ -840,7 +923,7 @@ static u64 its_read_baser(struct its_node *its, struct its_baser *baser)
 }
 
 static void its_write_baser(struct its_node *its, struct its_baser *baser,
-			    u64 val)
+							u64 val)
 {
 	u32 idx = baser - its->tables;
 
@@ -849,8 +932,8 @@ static void its_write_baser(struct its_node *its, struct its_baser *baser,
 }
 
 static int its_setup_baser(struct its_node *its, struct its_baser *baser,
-			   u64 cache, u64 shr, u32 psz, u32 order,
-			   bool indirect)
+						   u64 cache, u64 shr, u32 psz, u32 order,
+						   bool indirect)
 {
 	u64 val = its_read_baser(its, baser);
 	u64 esz = GITS_BASER_ENTRY_SIZE(val);
@@ -861,45 +944,54 @@ static int its_setup_baser(struct its_node *its, struct its_baser *baser,
 
 retry_alloc_baser:
 	alloc_pages = (PAGE_ORDER_TO_SIZE(order) / psz);
-	if (alloc_pages > GITS_BASER_PAGES_MAX) {
+
+	if (alloc_pages > GITS_BASER_PAGES_MAX)
+	{
 		pr_warn("ITS@%pa: %s too large, reduce ITS pages %u->%u\n",
-			&its->phys_base, its_base_type_string[type],
-			alloc_pages, GITS_BASER_PAGES_MAX);
+				&its->phys_base, its_base_type_string[type],
+				alloc_pages, GITS_BASER_PAGES_MAX);
 		alloc_pages = GITS_BASER_PAGES_MAX;
 		order = get_order(GITS_BASER_PAGES_MAX * psz);
 	}
 
 	base = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
+
 	if (!base)
+	{
 		return -ENOMEM;
+	}
 
 retry_baser:
 	val = (virt_to_phys(base)				 |
-		(type << GITS_BASER_TYPE_SHIFT)			 |
-		((esz - 1) << GITS_BASER_ENTRY_SIZE_SHIFT)	 |
-		((alloc_pages - 1) << GITS_BASER_PAGES_SHIFT)	 |
-		cache						 |
-		shr						 |
-		GITS_BASER_VALID);
+		   (type << GITS_BASER_TYPE_SHIFT)			 |
+		   ((esz - 1) << GITS_BASER_ENTRY_SIZE_SHIFT)	 |
+		   ((alloc_pages - 1) << GITS_BASER_PAGES_SHIFT)	 |
+		   cache						 |
+		   shr						 |
+		   GITS_BASER_VALID);
 
 	val |=	indirect ? GITS_BASER_INDIRECT : 0x0;
 
-	switch (psz) {
-	case SZ_4K:
-		val |= GITS_BASER_PAGE_SIZE_4K;
-		break;
-	case SZ_16K:
-		val |= GITS_BASER_PAGE_SIZE_16K;
-		break;
-	case SZ_64K:
-		val |= GITS_BASER_PAGE_SIZE_64K;
-		break;
+	switch (psz)
+	{
+		case SZ_4K:
+			val |= GITS_BASER_PAGE_SIZE_4K;
+			break;
+
+		case SZ_16K:
+			val |= GITS_BASER_PAGE_SIZE_16K;
+			break;
+
+		case SZ_64K:
+			val |= GITS_BASER_PAGE_SIZE_64K;
+			break;
 	}
 
 	its_write_baser(its, baser, val);
 	tmp = baser->val;
 
-	if ((val ^ tmp) & GITS_BASER_SHAREABILITY_MASK) {
+	if ((val ^ tmp) & GITS_BASER_SHAREABILITY_MASK)
+	{
 		/*
 		 * Shareability didn't stick. Just use
 		 * whatever the read reported, which is likely
@@ -908,14 +1000,18 @@ retry_baser:
 		 * non-cacheable as well.
 		 */
 		shr = tmp & GITS_BASER_SHAREABILITY_MASK;
-		if (!shr) {
+
+		if (!shr)
+		{
 			cache = GITS_BASER_nC;
 			__flush_dcache_area(base, PAGE_ORDER_TO_SIZE(order));
 		}
+
 		goto retry_baser;
 	}
 
-	if ((val ^ tmp) & GITS_BASER_PAGE_SIZE_MASK) {
+	if ((val ^ tmp) & GITS_BASER_PAGE_SIZE_MASK)
+	{
 		/*
 		 * Page size didn't stick. Let's try a smaller
 		 * size and retry. If we reach 4K, then
@@ -924,20 +1020,23 @@ retry_baser:
 		free_pages((unsigned long)base, order);
 		baser->base = NULL;
 
-		switch (psz) {
-		case SZ_16K:
-			psz = SZ_4K;
-			goto retry_alloc_baser;
-		case SZ_64K:
-			psz = SZ_16K;
-			goto retry_alloc_baser;
+		switch (psz)
+		{
+			case SZ_16K:
+				psz = SZ_4K;
+				goto retry_alloc_baser;
+
+			case SZ_64K:
+				psz = SZ_16K;
+				goto retry_alloc_baser;
 		}
 	}
 
-	if (val != tmp) {
+	if (val != tmp)
+	{
 		pr_err("ITS@%pa: %s doesn't stick: %lx %lx\n",
-		       &its->phys_base, its_base_type_string[type],
-		       (unsigned long) val, (unsigned long) tmp);
+			   &its->phys_base, its_base_type_string[type],
+			   (unsigned long) val, (unsigned long) tmp);
 		free_pages((unsigned long)base, order);
 		return -ENXIO;
 	}
@@ -948,17 +1047,17 @@ retry_baser:
 	tmp = indirect ? GITS_LVL1_ENTRY_SIZE : esz;
 
 	pr_info("ITS@%pa: allocated %d %s @%lx (%s, esz %d, psz %dK, shr %d)\n",
-		&its->phys_base, (int)(PAGE_ORDER_TO_SIZE(order) / tmp),
-		its_base_type_string[type],
-		(unsigned long)virt_to_phys(base),
-		indirect ? "indirect" : "flat", (int)esz,
-		psz / SZ_1K, (int)shr >> GITS_BASER_SHAREABILITY_SHIFT);
+			&its->phys_base, (int)(PAGE_ORDER_TO_SIZE(order) / tmp),
+			its_base_type_string[type],
+			(unsigned long)virt_to_phys(base),
+			indirect ? "indirect" : "flat", (int)esz,
+			psz / SZ_1K, (int)shr >> GITS_BASER_SHAREABILITY_SHIFT);
 
 	return 0;
 }
 
 static bool its_parse_baser_device(struct its_node *its, struct its_baser *baser,
-				   u32 psz, u32 *order)
+								   u32 psz, u32 *order)
 {
 	u64 esz = GITS_BASER_ENTRY_SIZE(its_read_baser(its, baser));
 	u64 val = GITS_BASER_InnerShareable | GITS_BASER_WaWb;
@@ -967,7 +1066,8 @@ static bool its_parse_baser_device(struct its_node *its, struct its_baser *baser
 	bool indirect = false;
 
 	/* No need to enable Indirection if memory requirement < (psz*2)bytes */
-	if ((esz << ids) > (psz * 2)) {
+	if ((esz << ids) > (psz * 2))
+	{
 		/*
 		 * Find out whether hw supports a single or two-level table by
 		 * table by reading bit at offset '62' after writing '1' to it.
@@ -975,7 +1075,8 @@ static bool its_parse_baser_device(struct its_node *its, struct its_baser *baser
 		its_write_baser(its, baser, val | GITS_BASER_INDIRECT);
 		indirect = !!(baser->val & GITS_BASER_INDIRECT);
 
-		if (indirect) {
+		if (indirect)
+		{
 			/*
 			 * The size of the lvl2 table is equal to ITS page size
 			 * which is 'psz'. For computing lvl1 table size,
@@ -996,11 +1097,13 @@ static bool its_parse_baser_device(struct its_node *its, struct its_baser *baser
 	 * feature is not supported by hardware.
 	 */
 	new_order = max_t(u32, get_order(esz << ids), new_order);
-	if (new_order >= MAX_ORDER) {
+
+	if (new_order >= MAX_ORDER)
+	{
 		new_order = MAX_ORDER - 1;
 		ids = ilog2(PAGE_ORDER_TO_SIZE(new_order) / esz);
 		pr_warn("ITS@%pa: Device Table too large, reduce ids %u->%u\n",
-			&its->phys_base, its->device_ids, ids);
+				&its->phys_base, its->device_ids, ids);
 	}
 
 	*order = new_order;
@@ -1012,10 +1115,12 @@ static void its_free_tables(struct its_node *its)
 {
 	int i;
 
-	for (i = 0; i < GITS_BASER_NR_REGS; i++) {
-		if (its->tables[i].base) {
+	for (i = 0; i < GITS_BASER_NR_REGS; i++)
+	{
+		if (its->tables[i].base)
+		{
 			free_pages((unsigned long)its->tables[i].base,
-				   its->tables[i].order);
+					   its->tables[i].order);
 			its->tables[i].base = NULL;
 		}
 	}
@@ -1030,7 +1135,8 @@ static int its_alloc_tables(struct its_node *its)
 	u32 psz = SZ_64K;
 	int err, i;
 
-	if (its->flags & ITS_FLAGS_WORKAROUND_CAVIUM_22375) {
+	if (its->flags & ITS_FLAGS_WORKAROUND_CAVIUM_22375)
+	{
 		/*
 		* erratum 22375: only alloc 8MB table size
 		* erratum 24313: ignore memory access type
@@ -1041,7 +1147,8 @@ static int its_alloc_tables(struct its_node *its)
 
 	its->device_ids = ids;
 
-	for (i = 0; i < GITS_BASER_NR_REGS; i++) {
+	for (i = 0; i < GITS_BASER_NR_REGS; i++)
+	{
 		struct its_baser *baser = its->tables + i;
 		u64 val = its_read_baser(its, baser);
 		u64 type = GITS_BASER_TYPE(val);
@@ -1049,13 +1156,19 @@ static int its_alloc_tables(struct its_node *its)
 		bool indirect = false;
 
 		if (type == GITS_BASER_TYPE_NONE)
+		{
 			continue;
+		}
 
 		if (type == GITS_BASER_TYPE_DEVICE)
+		{
 			indirect = its_parse_baser_device(its, baser, psz, &order);
+		}
 
 		err = its_setup_baser(its, baser, cache, shr, psz, order, indirect);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			its_free_tables(its);
 			return err;
 		}
@@ -1072,9 +1185,12 @@ static int its_alloc_tables(struct its_node *its)
 static int its_alloc_collections(struct its_node *its)
 {
 	its->collections = kzalloc(nr_cpu_ids * sizeof(*its->collections),
-				   GFP_KERNEL);
+							   GFP_KERNEL);
+
 	if (!its->collections)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -1087,17 +1203,21 @@ static void its_cpu_init_lpis(void)
 
 	/* If we didn't allocate the pending table yet, do it now */
 	pend_page = gic_data_rdist()->pend_page;
-	if (!pend_page) {
+
+	if (!pend_page)
+	{
 		phys_addr_t paddr;
 		/*
 		 * The pending pages have to be at least 64kB aligned,
 		 * hence the 'max(LPI_PENDBASE_SZ, SZ_64K)' below.
 		 */
 		pend_page = alloc_pages(GFP_NOWAIT | __GFP_ZERO,
-					get_order(max(LPI_PENDBASE_SZ, SZ_64K)));
-		if (!pend_page) {
+								get_order(max(LPI_PENDBASE_SZ, SZ_64K)));
+
+		if (!pend_page)
+		{
 			pr_err("Failed to allocate PENDBASE for CPU%d\n",
-			       smp_processor_id());
+				   smp_processor_id());
 			return;
 		}
 
@@ -1106,7 +1226,7 @@ static void its_cpu_init_lpis(void)
 
 		paddr = page_to_phys(pend_page);
 		pr_info("CPU%d: using LPI pending table @%pa\n",
-			smp_processor_id(), &paddr);
+				smp_processor_id(), &paddr);
 		gic_data_rdist()->pend_page = pend_page;
 	}
 
@@ -1122,44 +1242,48 @@ static void its_cpu_init_lpis(void)
 
 	/* set PROPBASE */
 	val = (page_to_phys(gic_rdists->prop_page) |
-	       GICR_PROPBASER_InnerShareable |
-	       GICR_PROPBASER_WaWb |
-	       ((LPI_NRBITS - 1) & GICR_PROPBASER_IDBITS_MASK));
+		   GICR_PROPBASER_InnerShareable |
+		   GICR_PROPBASER_WaWb |
+		   ((LPI_NRBITS - 1) & GICR_PROPBASER_IDBITS_MASK));
 
 	writeq_relaxed(val, rbase + GICR_PROPBASER);
 	tmp = readq_relaxed(rbase + GICR_PROPBASER);
 
-	if ((tmp ^ val) & GICR_PROPBASER_SHAREABILITY_MASK) {
-		if (!(tmp & GICR_PROPBASER_SHAREABILITY_MASK)) {
+	if ((tmp ^ val) & GICR_PROPBASER_SHAREABILITY_MASK)
+	{
+		if (!(tmp & GICR_PROPBASER_SHAREABILITY_MASK))
+		{
 			/*
 			 * The HW reports non-shareable, we must
 			 * remove the cacheability attributes as
 			 * well.
 			 */
 			val &= ~(GICR_PROPBASER_SHAREABILITY_MASK |
-				 GICR_PROPBASER_CACHEABILITY_MASK);
+					 GICR_PROPBASER_CACHEABILITY_MASK);
 			val |= GICR_PROPBASER_nC;
 			writeq_relaxed(val, rbase + GICR_PROPBASER);
 		}
+
 		pr_info_once("GIC: using cache flushing for LPI property table\n");
 		gic_rdists->flags |= RDIST_FLAGS_PROPBASE_NEEDS_FLUSHING;
 	}
 
 	/* set PENDBASE */
 	val = (page_to_phys(pend_page) |
-	       GICR_PENDBASER_InnerShareable |
-	       GICR_PENDBASER_WaWb);
+		   GICR_PENDBASER_InnerShareable |
+		   GICR_PENDBASER_WaWb);
 
 	writeq_relaxed(val, rbase + GICR_PENDBASER);
 	tmp = readq_relaxed(rbase + GICR_PENDBASER);
 
-	if (!(tmp & GICR_PENDBASER_SHAREABILITY_MASK)) {
+	if (!(tmp & GICR_PENDBASER_SHAREABILITY_MASK))
+	{
 		/*
 		 * The HW reports non-shareable, we must remove the
 		 * cacheability attributes as well.
 		 */
 		val &= ~(GICR_PENDBASER_SHAREABILITY_MASK |
-			 GICR_PENDBASER_CACHEABILITY_MASK);
+				 GICR_PENDBASER_CACHEABILITY_MASK);
 		val |= GICR_PENDBASER_nC;
 		writeq_relaxed(val, rbase + GICR_PENDBASER);
 	}
@@ -1181,30 +1305,38 @@ static void its_cpu_init_collection(void)
 	spin_lock(&its_lock);
 	cpu = smp_processor_id();
 
-	list_for_each_entry(its, &its_nodes, entry) {
+	list_for_each_entry(its, &its_nodes, entry)
+	{
 		u64 target;
 
 		/* avoid cross node collections and its mapping */
-		if (its->flags & ITS_FLAGS_WORKAROUND_CAVIUM_23144) {
+		if (its->flags & ITS_FLAGS_WORKAROUND_CAVIUM_23144)
+		{
 			struct device_node *cpu_node;
 
 			cpu_node = of_get_cpu_node(cpu, NULL);
+
 			if (its->numa_node != NUMA_NO_NODE &&
 				its->numa_node != of_node_to_nid(cpu_node))
+			{
 				continue;
+			}
 		}
 
 		/*
 		 * We now have to bind each collection to its target
 		 * redistributor.
 		 */
-		if (gic_read_typer(its->base + GITS_TYPER) & GITS_TYPER_PTA) {
+		if (gic_read_typer(its->base + GITS_TYPER) & GITS_TYPER_PTA)
+		{
 			/*
 			 * This ITS wants the physical address of the
 			 * redistributor.
 			 */
 			target = gic_data_rdist()->phys_base;
-		} else {
+		}
+		else
+		{
 			/*
 			 * This ITS wants a linear CPU number.
 			 */
@@ -1230,8 +1362,10 @@ static struct its_device *its_find_device(struct its_node *its, u32 dev_id)
 
 	raw_spin_lock_irqsave(&its->lock, flags);
 
-	list_for_each_entry(tmp, &its->its_device_list, entry) {
-		if (tmp->device_id == dev_id) {
+	list_for_each_entry(tmp, &its->its_device_list, entry)
+	{
+		if (tmp->device_id == dev_id)
+		{
 			its_dev = tmp;
 			break;
 		}
@@ -1246,9 +1380,12 @@ static struct its_baser *its_get_baser(struct its_node *its, u32 type)
 {
 	int i;
 
-	for (i = 0; i < GITS_BASER_NR_REGS; i++) {
+	for (i = 0; i < GITS_BASER_NR_REGS; i++)
+	{
 		if (GITS_BASER_TYPE(its->tables[i].val) == type)
+		{
 			return &its->tables[i];
+		}
 	}
 
 	return NULL;
@@ -1265,35 +1402,51 @@ static bool its_alloc_device_table(struct its_node *its, u32 dev_id)
 
 	/* Don't allow device id that exceeds ITS hardware limit */
 	if (!baser)
+	{
 		return (ilog2(dev_id) < its->device_ids);
+	}
 
 	/* Don't allow device id that exceeds single, flat table limit */
 	esz = GITS_BASER_ENTRY_SIZE(baser->val);
+
 	if (!(baser->val & GITS_BASER_INDIRECT))
+	{
 		return (dev_id < (PAGE_ORDER_TO_SIZE(baser->order) / esz));
+	}
 
 	/* Compute 1st level table index & check if that exceeds table limit */
 	idx = dev_id >> ilog2(baser->psz / esz);
+
 	if (idx >= (PAGE_ORDER_TO_SIZE(baser->order) / GITS_LVL1_ENTRY_SIZE))
+	{
 		return false;
+	}
 
 	table = baser->base;
 
 	/* Allocate memory for 2nd level table */
-	if (!table[idx]) {
+	if (!table[idx])
+	{
 		page = alloc_pages(GFP_KERNEL | __GFP_ZERO, get_order(baser->psz));
+
 		if (!page)
+		{
 			return false;
+		}
 
 		/* Flush Lvl2 table to PoC if hw doesn't support coherency */
 		if (!(baser->val & GITS_BASER_SHAREABILITY_MASK))
+		{
 			__flush_dcache_area(page_address(page), baser->psz);
+		}
 
 		table[idx] = cpu_to_le64(page_to_phys(page) | GITS_BASER_VALID);
 
 		/* Flush Lvl1 entry to PoC if hw doesn't support coherency */
 		if (!(baser->val & GITS_BASER_SHAREABILITY_MASK))
+		{
 			__flush_dcache_area(table + idx, GITS_LVL1_ENTRY_SIZE);
+		}
 
 		/* Ensure updated table contents are visible to ITS hardware */
 		dsb(sy);
@@ -1303,7 +1456,7 @@ static bool its_alloc_device_table(struct its_node *its, u32 dev_id)
 }
 
 static struct its_device *its_create_device(struct its_node *its, u32 dev_id,
-					    int nvecs)
+		int nvecs)
 {
 	struct its_device *dev;
 	unsigned long *lpi_map;
@@ -1316,7 +1469,9 @@ static struct its_device *its_create_device(struct its_node *its, u32 dev_id,
 	int sz;
 
 	if (!its_alloc_device_table(its, dev_id))
+	{
 		return NULL;
+	}
 
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
 	/*
@@ -1329,10 +1484,14 @@ static struct its_device *its_create_device(struct its_node *its, u32 dev_id,
 	sz = max(sz, ITS_ITT_ALIGN) + ITS_ITT_ALIGN - 1;
 	itt = kzalloc(sz, GFP_KERNEL);
 	lpi_map = its_lpi_alloc_chunks(nvecs, &lpi_base, &nr_lpis);
-	if (lpi_map)
-		col_map = kzalloc(sizeof(*col_map) * nr_lpis, GFP_KERNEL);
 
-	if (!dev || !itt || !lpi_map || !col_map) {
+	if (lpi_map)
+	{
+		col_map = kzalloc(sizeof(*col_map) * nr_lpis, GFP_KERNEL);
+	}
+
+	if (!dev || !itt || !lpi_map || !col_map)
+	{
 		kfree(dev);
 		kfree(itt);
 		kfree(lpi_map);
@@ -1378,9 +1537,12 @@ static int its_alloc_device_irq(struct its_device *dev, irq_hw_number_t *hwirq)
 	int idx;
 
 	idx = find_first_zero_bit(dev->event_map.lpi_map,
-				  dev->event_map.nr_lpis);
+							  dev->event_map.nr_lpis);
+
 	if (idx == dev->event_map.nr_lpis)
+	{
 		return -ENOSPC;
+	}
 
 	*hwirq = dev->event_map.lpi_base + idx;
 	set_bit(idx, dev->event_map.lpi_map);
@@ -1389,7 +1551,7 @@ static int its_alloc_device_irq(struct its_device *dev, irq_hw_number_t *hwirq)
 }
 
 static int its_msi_prepare(struct irq_domain *domain, struct device *dev,
-			   int nvec, msi_alloc_info_t *info)
+						   int nvec, msi_alloc_info_t *info)
 {
 	struct its_node *its;
 	struct its_device *its_dev;
@@ -1408,7 +1570,9 @@ static int its_msi_prepare(struct irq_domain *domain, struct device *dev,
 	its = msi_info->data;
 
 	its_dev = its_find_device(its, dev_id);
-	if (its_dev) {
+
+	if (its_dev)
+	{
 		/*
 		 * We already have seen this ID, probably through
 		 * another alias (PCI bridge of some sort). No need to
@@ -1419,8 +1583,11 @@ static int its_msi_prepare(struct irq_domain *domain, struct device *dev,
 	}
 
 	its_dev = its_create_device(its, dev_id, nvec);
+
 	if (!its_dev)
+	{
 		return -ENOMEM;
+	}
 
 	pr_debug("ITT %d entries, %d bits\n", nvec, ilog2(nvec));
 out:
@@ -1428,28 +1595,34 @@ out:
 	return 0;
 }
 
-static struct msi_domain_ops its_msi_domain_ops = {
+static struct msi_domain_ops its_msi_domain_ops =
+{
 	.msi_prepare	= its_msi_prepare,
 };
 
 static int its_irq_gic_domain_alloc(struct irq_domain *domain,
-				    unsigned int virq,
-				    irq_hw_number_t hwirq)
+									unsigned int virq,
+									irq_hw_number_t hwirq)
 {
 	struct irq_fwspec fwspec;
 
-	if (irq_domain_get_of_node(domain->parent)) {
+	if (irq_domain_get_of_node(domain->parent))
+	{
 		fwspec.fwnode = domain->parent->fwnode;
 		fwspec.param_count = 3;
 		fwspec.param[0] = GIC_IRQ_TYPE_LPI;
 		fwspec.param[1] = hwirq;
 		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
-	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
+	}
+	else if (is_fwnode_irqchip(domain->parent->fwnode))
+	{
 		fwspec.fwnode = domain->parent->fwnode;
 		fwspec.param_count = 2;
 		fwspec.param[0] = hwirq;
 		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 
@@ -1457,7 +1630,7 @@ static int its_irq_gic_domain_alloc(struct irq_domain *domain,
 }
 
 static int its_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
-				unsigned int nr_irqs, void *args)
+								unsigned int nr_irqs, void *args)
 {
 	msi_alloc_info_t *info = args;
 	struct its_device *its_dev = info->scratchpad[0].ptr;
@@ -1465,27 +1638,34 @@ static int its_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 	int err;
 	int i;
 
-	for (i = 0; i < nr_irqs; i++) {
+	for (i = 0; i < nr_irqs; i++)
+	{
 		err = its_alloc_device_irq(its_dev, &hwirq);
+
 		if (err)
+		{
 			return err;
+		}
 
 		err = its_irq_gic_domain_alloc(domain, virq + i, hwirq);
+
 		if (err)
+		{
 			return err;
+		}
 
 		irq_domain_set_hwirq_and_chip(domain, virq + i,
-					      hwirq, &its_irq_chip, its_dev);
+									  hwirq, &its_irq_chip, its_dev);
 		pr_debug("ID:%d pID:%d vID:%d\n",
-			 (int)(hwirq - its_dev->event_map.lpi_base),
-			 (int) hwirq, virq + i);
+				 (int)(hwirq - its_dev->event_map.lpi_base),
+				 (int) hwirq, virq + i);
 	}
 
 	return 0;
 }
 
 static void its_irq_domain_activate(struct irq_domain *domain,
-				    struct irq_data *d)
+									struct irq_data *d)
 {
 	struct its_device *its_dev = irq_data_get_irq_chip_data(d);
 	u32 event = its_get_event_id(d);
@@ -1493,7 +1673,9 @@ static void its_irq_domain_activate(struct irq_domain *domain,
 
 	/* get the cpu_mask of local node */
 	if (its_dev->its->numa_node >= 0)
+	{
 		cpu_mask = cpumask_of_node(its_dev->its->numa_node);
+	}
 
 	/* Bind the LPI to the first possible CPU */
 	its_dev->event_map.col_map[event] = cpumask_first(cpu_mask);
@@ -1503,7 +1685,7 @@ static void its_irq_domain_activate(struct irq_domain *domain,
 }
 
 static void its_irq_domain_deactivate(struct irq_domain *domain,
-				      struct irq_data *d)
+									  struct irq_data *d)
 {
 	struct its_device *its_dev = irq_data_get_irq_chip_data(d);
 	u32 event = its_get_event_id(d);
@@ -1513,13 +1695,14 @@ static void its_irq_domain_deactivate(struct irq_domain *domain,
 }
 
 static void its_irq_domain_free(struct irq_domain *domain, unsigned int virq,
-				unsigned int nr_irqs)
+								unsigned int nr_irqs)
 {
 	struct irq_data *d = irq_domain_get_irq_data(domain, virq);
 	struct its_device *its_dev = irq_data_get_irq_chip_data(d);
 	int i;
 
-	for (i = 0; i < nr_irqs; i++) {
+	for (i = 0; i < nr_irqs; i++)
+	{
 		struct irq_data *data = irq_domain_get_irq_data(domain,
 								virq + i);
 		u32 event = its_get_event_id(data);
@@ -1533,7 +1716,8 @@ static void its_irq_domain_free(struct irq_domain *domain, unsigned int virq,
 
 	/* If all interrupts have been freed, start mopping the floor */
 	if (bitmap_empty(its_dev->event_map.lpi_map,
-			 its_dev->event_map.nr_lpis)) {
+					 its_dev->event_map.nr_lpis))
+	{
 		its_lpi_free(&its_dev->event_map);
 
 		/* Unmap device/itt */
@@ -1544,7 +1728,8 @@ static void its_irq_domain_free(struct irq_domain *domain, unsigned int virq,
 	irq_domain_free_irqs_parent(domain, virq, nr_irqs);
 }
 
-static const struct irq_domain_ops its_domain_ops = {
+static const struct irq_domain_ops its_domain_ops =
+{
 	.alloc			= its_irq_domain_alloc,
 	.free			= its_irq_domain_free,
 	.activate		= its_irq_domain_activate,
@@ -1557,27 +1742,37 @@ static int its_force_quiescent(void __iomem *base)
 	u32 val;
 
 	val = readl_relaxed(base + GITS_CTLR);
+
 	/*
 	 * GIC architecture specification requires the ITS to be both
 	 * disabled and quiescent for writes to GITS_BASER<n> or
 	 * GITS_CBASER to not have UNPREDICTABLE results.
 	 */
 	if ((val & GITS_CTLR_QUIESCENT) && !(val & GITS_CTLR_ENABLE))
+	{
 		return 0;
+	}
 
 	/* Disable the generation of all interrupts to this ITS */
 	val &= ~GITS_CTLR_ENABLE;
 	writel_relaxed(val, base + GITS_CTLR);
 
 	/* Poll GITS_CTLR and wait until ITS becomes quiescent */
-	while (1) {
+	while (1)
+	{
 		val = readl_relaxed(base + GITS_CTLR);
+
 		if (val & GITS_CTLR_QUIESCENT)
+		{
 			return 0;
+		}
 
 		count--;
+
 		if (!count)
+		{
 			return -EBUSY;
+		}
 
 		cpu_relax();
 		udelay(1);
@@ -1598,7 +1793,8 @@ static void __maybe_unused its_enable_quirk_cavium_23144(void *data)
 	its->flags |= ITS_FLAGS_WORKAROUND_CAVIUM_23144;
 }
 
-static const struct gic_quirk its_quirks[] = {
+static const struct gic_quirk its_quirks[] =
+{
 #ifdef CONFIG_CAVIUM_ERRATUM_22375
 	{
 		.desc	= "ITS: Cavium errata 22375, 24313",
@@ -1632,11 +1828,16 @@ static int its_init_domain(struct fwnode_handle *handle, struct its_node *its)
 	struct msi_domain_info *info;
 
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	inner_domain = irq_domain_create_tree(handle, &its_domain_ops, its);
-	if (!inner_domain) {
+
+	if (!inner_domain)
+	{
 		kfree(info);
 		return -ENOMEM;
 	}
@@ -1651,7 +1852,7 @@ static int its_init_domain(struct fwnode_handle *handle, struct its_node *its)
 }
 
 static int __init its_probe_one(struct resource *res,
-				struct fwnode_handle *handle, int numa_node)
+								struct fwnode_handle *handle, int numa_node)
 {
 	struct its_node *its;
 	void __iomem *its_base;
@@ -1660,20 +1861,26 @@ static int __init its_probe_one(struct resource *res,
 	int err;
 
 	its_base = ioremap(res->start, resource_size(res));
-	if (!its_base) {
+
+	if (!its_base)
+	{
 		pr_warn("ITS@%pa: Unable to map ITS registers\n", &res->start);
 		return -ENOMEM;
 	}
 
 	val = readl_relaxed(its_base + GITS_PIDR2) & GIC_PIDR2_ARCH_MASK;
-	if (val != 0x30 && val != 0x40) {
+
+	if (val != 0x30 && val != 0x40)
+	{
 		pr_warn("ITS@%pa: No ITS detected, giving up\n", &res->start);
 		err = -ENODEV;
 		goto out_unmap;
 	}
 
 	err = its_force_quiescent(its_base);
-	if (err) {
+
+	if (err)
+	{
 		pr_warn("ITS@%pa: Failed to quiesce, giving up\n", &res->start);
 		goto out_unmap;
 	}
@@ -1681,7 +1888,9 @@ static int __init its_probe_one(struct resource *res,
 	pr_info("ITS %pR\n", res);
 
 	its = kzalloc(sizeof(*its), GFP_KERNEL);
-	if (!its) {
+
+	if (!its)
+	{
 		err = -ENOMEM;
 		goto out_unmap;
 	}
@@ -1695,43 +1904,55 @@ static int __init its_probe_one(struct resource *res,
 	its->numa_node = numa_node;
 
 	its->cmd_base = kzalloc(ITS_CMD_QUEUE_SZ, GFP_KERNEL);
-	if (!its->cmd_base) {
+
+	if (!its->cmd_base)
+	{
 		err = -ENOMEM;
 		goto out_free_its;
 	}
+
 	its->cmd_write = its->cmd_base;
 
 	its_enable_quirks(its);
 
 	err = its_alloc_tables(its);
+
 	if (err)
+	{
 		goto out_free_cmd;
+	}
 
 	err = its_alloc_collections(its);
+
 	if (err)
+	{
 		goto out_free_tables;
+	}
 
 	baser = (virt_to_phys(its->cmd_base)	|
-		 GITS_CBASER_WaWb		|
-		 GITS_CBASER_InnerShareable	|
-		 (ITS_CMD_QUEUE_SZ / SZ_4K - 1)	|
-		 GITS_CBASER_VALID);
+			 GITS_CBASER_WaWb		|
+			 GITS_CBASER_InnerShareable	|
+			 (ITS_CMD_QUEUE_SZ / SZ_4K - 1)	|
+			 GITS_CBASER_VALID);
 
 	writeq_relaxed(baser, its->base + GITS_CBASER);
 	tmp = readq_relaxed(its->base + GITS_CBASER);
 
-	if ((tmp ^ baser) & GITS_CBASER_SHAREABILITY_MASK) {
-		if (!(tmp & GITS_CBASER_SHAREABILITY_MASK)) {
+	if ((tmp ^ baser) & GITS_CBASER_SHAREABILITY_MASK)
+	{
+		if (!(tmp & GITS_CBASER_SHAREABILITY_MASK))
+		{
 			/*
 			 * The HW reports non-shareable, we must
 			 * remove the cacheability attributes as
 			 * well.
 			 */
 			baser &= ~(GITS_CBASER_SHAREABILITY_MASK |
-				   GITS_CBASER_CACHEABILITY_MASK);
+					   GITS_CBASER_CACHEABILITY_MASK);
 			baser |= GITS_CBASER_nC;
 			writeq_relaxed(baser, its->base + GITS_CBASER);
 		}
+
 		pr_info("ITS: using cache flushing for cmd queue\n");
 		its->flags |= ITS_FLAGS_CMDQ_NEEDS_FLUSHING;
 	}
@@ -1740,8 +1961,11 @@ static int __init its_probe_one(struct resource *res,
 	writel_relaxed(GITS_CTLR_ENABLE, its->base + GITS_CTLR);
 
 	err = its_init_domain(handle, its);
+
 	if (err)
+	{
 		goto out_free_tables;
+	}
 
 	spin_lock(&its_lock);
 	list_add(&its->entry, &its_nodes);
@@ -1768,11 +1992,14 @@ static bool gic_rdists_supports_plpis(void)
 
 int its_cpu_init(void)
 {
-	if (!list_empty(&its_nodes)) {
-		if (!gic_rdists_supports_plpis()) {
+	if (!list_empty(&its_nodes))
+	{
+		if (!gic_rdists_supports_plpis())
+		{
 			pr_info("CPU%d: LPIs not supported\n", smp_processor_id());
 			return -ENXIO;
 		}
+
 		its_cpu_init_lpis();
 		its_cpu_init_collection();
 	}
@@ -1780,7 +2007,8 @@ int its_cpu_init(void)
 	return 0;
 }
 
-static struct of_device_id its_device_id[] = {
+static struct of_device_id its_device_id[] =
+{
 	{	.compatible	= "arm,gic-v3-its",	},
 	{},
 };
@@ -1791,20 +2019,24 @@ static int __init its_of_probe(struct device_node *node)
 	struct resource res;
 
 	for (np = of_find_matching_node(node, its_device_id); np;
-	     np = of_find_matching_node(np, its_device_id)) {
-		if (!of_property_read_bool(np, "msi-controller")) {
+		 np = of_find_matching_node(np, its_device_id))
+	{
+		if (!of_property_read_bool(np, "msi-controller"))
+		{
 			pr_warn("%s: no msi-controller property, ITS ignored\n",
-				np->full_name);
+					np->full_name);
 			continue;
 		}
 
-		if (of_address_to_resource(np, 0, &res)) {
+		if (of_address_to_resource(np, 0, &res))
+		{
 			pr_warn("%s: no regs?\n", np->full_name);
 			continue;
 		}
 
 		its_probe_one(&res, &np->fwnode, of_node_to_nid(np));
 	}
+
 	return 0;
 }
 
@@ -1813,7 +2045,7 @@ static int __init its_of_probe(struct device_node *node)
 #define ACPI_GICV3_ITS_MEM_SIZE (SZ_128K)
 
 static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
-					  const unsigned long end)
+		const unsigned long end)
 {
 	struct acpi_madt_generic_translator *its_entry;
 	struct fwnode_handle *dom_handle;
@@ -1827,22 +2059,29 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
 	res.flags = IORESOURCE_MEM;
 
 	dom_handle = irq_domain_alloc_fwnode((void *)its_entry->base_address);
-	if (!dom_handle) {
+
+	if (!dom_handle)
+	{
 		pr_err("ITS@%pa: Unable to allocate GICv3 ITS domain token\n",
-		       &res.start);
+			   &res.start);
 		return -ENOMEM;
 	}
 
 	err = iort_register_domain_token(its_entry->translation_id, dom_handle);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("ITS@%pa: Unable to register GICv3 ITS domain token (ITS ID %d) to IORT\n",
-		       &res.start, its_entry->translation_id);
+			   &res.start, its_entry->translation_id);
 		goto dom_err;
 	}
 
 	err = its_probe_one(&res, dom_handle, NUMA_NO_NODE);
+
 	if (!err)
+	{
 		return 0;
+	}
 
 	iort_deregister_domain_token(its_entry->translation_id);
 dom_err:
@@ -1853,25 +2092,31 @@ dom_err:
 static void __init its_acpi_probe(void)
 {
 	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
-			      gic_acpi_parse_madt_its, 0);
+						  gic_acpi_parse_madt_its, 0);
 }
 #else
 static void __init its_acpi_probe(void) { }
 #endif
 
 int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
-		    struct irq_domain *parent_domain)
+					struct irq_domain *parent_domain)
 {
 	struct device_node *of_node;
 
 	its_parent = parent_domain;
 	of_node = to_of_node(handle);
-	if (of_node)
-		its_of_probe(of_node);
-	else
-		its_acpi_probe();
 
-	if (list_empty(&its_nodes)) {
+	if (of_node)
+	{
+		its_of_probe(of_node);
+	}
+	else
+	{
+		its_acpi_probe();
+	}
+
+	if (list_empty(&its_nodes))
+	{
 		pr_warn("ITS: No ITS available, not enabling LPIs\n");
 		return -ENXIO;
 	}

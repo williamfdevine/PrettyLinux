@@ -23,7 +23,7 @@ extern void thirty_two_instruction_loop(uint64_t loops);
 static bool counters_frozen = true;
 
 static int do_count_loop(struct event *event, uint64_t instructions,
-			 uint64_t overhead, bool report)
+						 uint64_t overhead, bool report)
 {
 	int64_t difference, expected;
 	double percentage;
@@ -42,12 +42,13 @@ static int do_count_loop(struct event *event, uint64_t instructions,
 
 	count_pmc(4, sample_period);
 
-	event->result.value = ebb_state.stats.pmc_count[4-1];
+	event->result.value = ebb_state.stats.pmc_count[4 - 1];
 	expected = instructions + overhead;
 	difference = event->result.value - expected;
 	percentage = (double)difference / event->result.value * 100;
 
-	if (report) {
+	if (report)
+	{
 		printf("Looped for %lu instructions, overhead %lu\n", instructions, overhead);
 		printf("Expected %lu\n", expected);
 		printf("Actual   %llu\n", event->result.value);
@@ -56,12 +57,17 @@ static int do_count_loop(struct event *event, uint64_t instructions,
 	}
 
 	if (difference < 0)
+	{
 		difference = -difference;
+	}
 
 	/* Tolerate a difference of up to 0.0001 % */
 	difference *= 10000 * 100;
+
 	if (difference / event->result.value)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -75,10 +81,13 @@ static uint64_t determine_overhead(struct event *event)
 	do_count_loop(event, 0, 0, false);
 	overhead = event->result.value;
 
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 100; i++)
+	{
 		do_count_loop(event, 0, 0, false);
 		current = event->result.value;
-		if (current < overhead) {
+
+		if (current < overhead)
+		{
 			printf("Replacing overhead %lu with %lu\n", overhead, current);
 			overhead = current;
 		}
@@ -92,7 +101,9 @@ static void pmc4_ebb_callee(void)
 	uint64_t val;
 
 	val = mfspr(SPRN_BESCR);
-	if (!(val & BESCR_PMEO)) {
+
+	if (!(val & BESCR_PMEO))
+	{
 		ebb_state.stats.spurious++;
 		goto out;
 	}
@@ -100,10 +111,15 @@ static void pmc4_ebb_callee(void)
 	ebb_state.stats.ebb_count++;
 	count_pmc(4, sample_period);
 out:
+
 	if (counters_frozen)
+	{
 		reset_ebb_with_clear_mask(MMCR0_PMAO);
+	}
 	else
+	{
 		reset_ebb();
+	}
 }
 
 int instruction_count(void)

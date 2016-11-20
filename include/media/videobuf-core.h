@@ -48,12 +48,14 @@ struct videobuf_queue;
  *
  */
 
-struct videobuf_mapping {
+struct videobuf_mapping
+{
 	unsigned int count;
 	struct videobuf_queue *q;
 };
 
-enum videobuf_state {
+enum videobuf_state
+{
 	VIDEOBUF_NEEDS_INIT = 0,
 	VIDEOBUF_PREPARED   = 1,
 	VIDEOBUF_QUEUED     = 2,
@@ -63,7 +65,8 @@ enum videobuf_state {
 	VIDEOBUF_IDLE       = 6,
 };
 
-struct videobuf_buffer {
+struct videobuf_buffer
+{
 	unsigned int            i;
 	u32                     magic;
 
@@ -102,37 +105,40 @@ struct videobuf_buffer {
 	void                    *priv;
 };
 
-struct videobuf_queue_ops {
+struct videobuf_queue_ops
+{
 	int (*buf_setup)(struct videobuf_queue *q,
-			 unsigned int *count, unsigned int *size);
+					 unsigned int *count, unsigned int *size);
 	int (*buf_prepare)(struct videobuf_queue *q,
-			   struct videobuf_buffer *vb,
-			   enum v4l2_field field);
+					   struct videobuf_buffer *vb,
+					   enum v4l2_field field);
 	void (*buf_queue)(struct videobuf_queue *q,
-			  struct videobuf_buffer *vb);
+					  struct videobuf_buffer *vb);
 	void (*buf_release)(struct videobuf_queue *q,
-			    struct videobuf_buffer *vb);
+						struct videobuf_buffer *vb);
 };
 
 #define MAGIC_QTYPE_OPS	0x12261003
 
 /* Helper operations - device type dependent */
-struct videobuf_qtype_ops {
+struct videobuf_qtype_ops
+{
 	u32                     magic;
 
 	struct videobuf_buffer *(*alloc_vb)(size_t size);
 	void *(*vaddr)		(struct videobuf_buffer *buf);
 	int (*iolock)		(struct videobuf_queue *q,
-				 struct videobuf_buffer *vb,
-				 struct v4l2_framebuffer *fbuf);
+						 struct videobuf_buffer *vb,
+						 struct v4l2_framebuffer *fbuf);
 	int (*sync)		(struct videobuf_queue *q,
-				 struct videobuf_buffer *buf);
+					 struct videobuf_buffer *buf);
 	int (*mmap_mapper)	(struct videobuf_queue *q,
-				 struct videobuf_buffer *buf,
-				 struct vm_area_struct *vma);
+						 struct videobuf_buffer *buf,
+						 struct vm_area_struct *vma);
 };
 
-struct videobuf_queue {
+struct videobuf_queue
+{
 	struct mutex               vb_lock;
 	struct mutex               *ext_lock;
 	spinlock_t                 *irqlock;
@@ -148,8 +154,8 @@ struct videobuf_queue {
 	const struct videobuf_queue_ops  *ops;
 	struct videobuf_qtype_ops  *int_ops;
 
-	unsigned int               streaming:1;
-	unsigned int               reading:1;
+	unsigned int               streaming: 1;
+	unsigned int               reading: 1;
 
 	/* capture via mmap() + ioctl(QBUF/DQBUF) */
 	struct list_head           stream;
@@ -165,47 +171,51 @@ struct videobuf_queue {
 static inline void videobuf_queue_lock(struct videobuf_queue *q)
 {
 	if (!q->ext_lock)
+	{
 		mutex_lock(&q->vb_lock);
+	}
 }
 
 static inline void videobuf_queue_unlock(struct videobuf_queue *q)
 {
 	if (!q->ext_lock)
+	{
 		mutex_unlock(&q->vb_lock);
+	}
 }
 
 int videobuf_waiton(struct videobuf_queue *q, struct videobuf_buffer *vb,
-		int non_blocking, int intr);
+					int non_blocking, int intr);
 int videobuf_iolock(struct videobuf_queue *q, struct videobuf_buffer *vb,
-		struct v4l2_framebuffer *fbuf);
+					struct v4l2_framebuffer *fbuf);
 
 struct videobuf_buffer *videobuf_alloc_vb(struct videobuf_queue *q);
 
 /* Used on videobuf-dvb */
 void *videobuf_queue_to_vaddr(struct videobuf_queue *q,
-			      struct videobuf_buffer *buf);
+							  struct videobuf_buffer *buf);
 
 void videobuf_queue_core_init(struct videobuf_queue *q,
-			 const struct videobuf_queue_ops *ops,
-			 struct device *dev,
-			 spinlock_t *irqlock,
-			 enum v4l2_buf_type type,
-			 enum v4l2_field field,
-			 unsigned int msize,
-			 void *priv,
-			 struct videobuf_qtype_ops *int_ops,
-			 struct mutex *ext_lock);
+							  const struct videobuf_queue_ops *ops,
+							  struct device *dev,
+							  spinlock_t *irqlock,
+							  enum v4l2_buf_type type,
+							  enum v4l2_field field,
+							  unsigned int msize,
+							  void *priv,
+							  struct videobuf_qtype_ops *int_ops,
+							  struct mutex *ext_lock);
 int  videobuf_queue_is_busy(struct videobuf_queue *q);
 void videobuf_queue_cancel(struct videobuf_queue *q);
 
 enum v4l2_field videobuf_next_field(struct videobuf_queue *q);
 int videobuf_reqbufs(struct videobuf_queue *q,
-		     struct v4l2_requestbuffers *req);
+					 struct v4l2_requestbuffers *req);
 int videobuf_querybuf(struct videobuf_queue *q, struct v4l2_buffer *b);
 int videobuf_qbuf(struct videobuf_queue *q,
-		  struct v4l2_buffer *b);
+				  struct v4l2_buffer *b);
 int videobuf_dqbuf(struct videobuf_queue *q,
-		   struct v4l2_buffer *b, int nonblocking);
+				   struct v4l2_buffer *b, int nonblocking);
 int videobuf_streamon(struct videobuf_queue *q);
 int videobuf_streamoff(struct videobuf_queue *q);
 
@@ -214,23 +224,23 @@ void videobuf_stop(struct videobuf_queue *q);
 int videobuf_read_start(struct videobuf_queue *q);
 void videobuf_read_stop(struct videobuf_queue *q);
 ssize_t videobuf_read_stream(struct videobuf_queue *q,
-			     char __user *data, size_t count, loff_t *ppos,
-			     int vbihack, int nonblocking);
+							 char __user *data, size_t count, loff_t *ppos,
+							 int vbihack, int nonblocking);
 ssize_t videobuf_read_one(struct videobuf_queue *q,
-			  char __user *data, size_t count, loff_t *ppos,
-			  int nonblocking);
+						  char __user *data, size_t count, loff_t *ppos,
+						  int nonblocking);
 unsigned int videobuf_poll_stream(struct file *file,
-				  struct videobuf_queue *q,
-				  poll_table *wait);
+								  struct videobuf_queue *q,
+								  poll_table *wait);
 
 int videobuf_mmap_setup(struct videobuf_queue *q,
-			unsigned int bcount, unsigned int bsize,
-			enum v4l2_memory memory);
+						unsigned int bcount, unsigned int bsize,
+						enum v4l2_memory memory);
 int __videobuf_mmap_setup(struct videobuf_queue *q,
-			unsigned int bcount, unsigned int bsize,
-			enum v4l2_memory memory);
+						  unsigned int bcount, unsigned int bsize,
+						  enum v4l2_memory memory);
 int videobuf_mmap_free(struct videobuf_queue *q);
 int videobuf_mmap_mapper(struct videobuf_queue *q,
-			 struct vm_area_struct *vma);
+						 struct vm_area_struct *vma);
 
 #endif

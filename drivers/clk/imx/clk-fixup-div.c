@@ -26,7 +26,8 @@
  * The imx fixup divider clock is a subclass of basic clk_divider
  * with an addtional fixup hook.
  */
-struct clk_fixup_div {
+struct clk_fixup_div
+{
 	struct clk_divider divider;
 	const struct clk_ops *ops;
 	void (*fixup)(u32 *val);
@@ -40,7 +41,7 @@ static inline struct clk_fixup_div *to_clk_fixup_div(struct clk_hw *hw)
 }
 
 static unsigned long clk_fixup_div_recalc_rate(struct clk_hw *hw,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_fixup_div *fixup_div = to_clk_fixup_div(hw);
 
@@ -48,7 +49,7 @@ static unsigned long clk_fixup_div_recalc_rate(struct clk_hw *hw,
 }
 
 static long clk_fixup_div_round_rate(struct clk_hw *hw, unsigned long rate,
-			       unsigned long *prate)
+									 unsigned long *prate)
 {
 	struct clk_fixup_div *fixup_div = to_clk_fixup_div(hw);
 
@@ -56,7 +57,7 @@ static long clk_fixup_div_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int clk_fixup_div_set_rate(struct clk_hw *hw, unsigned long rate,
-			    unsigned long parent_rate)
+								  unsigned long parent_rate)
 {
 	struct clk_fixup_div *fixup_div = to_clk_fixup_div(hw);
 	struct clk_divider *div = to_clk_divider(hw);
@@ -70,7 +71,9 @@ static int clk_fixup_div_set_rate(struct clk_hw *hw, unsigned long rate,
 	value = divider - 1;
 
 	if (value > div_mask(div))
+	{
 		value = div_mask(div);
+	}
 
 	spin_lock_irqsave(div->lock, flags);
 
@@ -85,26 +88,32 @@ static int clk_fixup_div_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-static const struct clk_ops clk_fixup_div_ops = {
+static const struct clk_ops clk_fixup_div_ops =
+{
 	.recalc_rate = clk_fixup_div_recalc_rate,
 	.round_rate = clk_fixup_div_round_rate,
 	.set_rate = clk_fixup_div_set_rate,
 };
 
 struct clk *imx_clk_fixup_divider(const char *name, const char *parent,
-				  void __iomem *reg, u8 shift, u8 width,
-				  void (*fixup)(u32 *val))
+								  void __iomem *reg, u8 shift, u8 width,
+								  void (*fixup)(u32 *val))
 {
 	struct clk_fixup_div *fixup_div;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	if (!fixup)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	fixup_div = kzalloc(sizeof(*fixup_div), GFP_KERNEL);
+
 	if (!fixup_div)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &clk_fixup_div_ops;
@@ -121,8 +130,11 @@ struct clk *imx_clk_fixup_divider(const char *name, const char *parent,
 	fixup_div->fixup = fixup;
 
 	clk = clk_register(NULL, &fixup_div->divider.hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(fixup_div);
+	}
 
 	return clk;
 }

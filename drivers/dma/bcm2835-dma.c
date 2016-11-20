@@ -49,14 +49,16 @@
 #define BCM2835_DMA_MAX_DMA_CHAN_SUPPORTED 14
 #define BCM2835_DMA_CHAN_NAME_SIZE 8
 
-struct bcm2835_dmadev {
+struct bcm2835_dmadev
+{
 	struct dma_device ddev;
 	spinlock_t lock;
 	void __iomem *base;
 	struct device_dma_parameters dma_parms;
 };
 
-struct bcm2835_dma_cb {
+struct bcm2835_dma_cb
+{
 	uint32_t info;
 	uint32_t src;
 	uint32_t dst;
@@ -66,12 +68,14 @@ struct bcm2835_dma_cb {
 	uint32_t pad[2];
 };
 
-struct bcm2835_cb_entry {
+struct bcm2835_cb_entry
+{
 	struct bcm2835_dma_cb *cb;
 	dma_addr_t paddr;
 };
 
-struct bcm2835_chan {
+struct bcm2835_chan
+{
 	struct virt_dma_chan vc;
 	struct list_head node;
 
@@ -89,7 +93,8 @@ struct bcm2835_chan {
 	bool is_lite_channel;
 };
 
-struct bcm2835_desc {
+struct bcm2835_desc
+{
 	struct bcm2835_chan *c;
 	struct virt_dma_desc vd;
 	enum dma_transfer_direction dir;
@@ -187,7 +192,7 @@ static inline size_t bcm2835_dma_max_frame_length(struct bcm2835_chan *c)
 
 /* how many frames of max_len size do we need to transfer len bytes */
 static inline size_t bcm2835_dma_frames_for_length(size_t len,
-						   size_t max_len)
+		size_t max_len)
 {
 	return DIV_ROUND_UP(len, max_len);
 }
@@ -203,7 +208,7 @@ static inline struct bcm2835_chan *to_bcm2835_dma_chan(struct dma_chan *c)
 }
 
 static inline struct bcm2835_desc *to_bcm2835_dma_desc(
-		struct dma_async_tx_descriptor *t)
+	struct dma_async_tx_descriptor *t)
 {
 	return container_of(t, struct bcm2835_desc, vd.tx);
 }
@@ -214,7 +219,7 @@ static void bcm2835_dma_free_cb_chain(struct bcm2835_desc *desc)
 
 	for (i = 0; i < desc->frames; i++)
 		dma_pool_free(desc->c->cb_pool, desc->cb_list[i].cb,
-			      desc->cb_list[i].paddr);
+					  desc->cb_list[i].paddr);
 
 	kfree(desc);
 }
@@ -240,7 +245,9 @@ static void bcm2835_dma_create_cb_set_length(
 
 	/* finished if we have no period_length */
 	if (!period_len)
+	{
 		return;
+	}
 
 	/*
 	 * period_len means: that we need to generate
@@ -252,7 +259,9 @@ static void bcm2835_dma_create_cb_set_length(
 
 	/* have we filled in period_length yet? */
 	if (*total_len + control_block->length < period_len)
+	{
 		return;
+	}
 
 	/* calculate the length that remains to reach period_length */
 	control_block->length = period_len - *total_len;
@@ -275,8 +284,8 @@ static inline size_t bcm2835_dma_count_frames_for_sg(
 	size_t plength = bcm2835_dma_max_frame_length(c);
 
 	for_each_sg(sgl, sgent, sg_len, i)
-		frames += bcm2835_dma_frames_for_length(
-			sg_dma_len(sgent), plength);
+	frames += bcm2835_dma_frames_for_length(
+				  sg_dma_len(sgent), plength);
 
 	return frames;
 }
@@ -315,13 +324,18 @@ static struct bcm2835_desc *bcm2835_dma_create_cb_chain(
 	struct bcm2835_dma_cb *control_block;
 
 	if (!frames)
+	{
 		return NULL;
+	}
 
 	/* allocate and setup the descriptor. */
 	d = kzalloc(sizeof(*d) + frames * sizeof(struct bcm2835_cb_entry),
-		    gfp);
+				gfp);
+
 	if (!d)
+	{
 		return NULL;
+	}
 
 	d->c = c;
 	d->dir = direction;
@@ -331,12 +345,16 @@ static struct bcm2835_desc *bcm2835_dma_create_cb_chain(
 	 * Iterate over all frames, create a control block
 	 * for each frame and link them together.
 	 */
-	for (frame = 0, total_len = 0; frame < frames; d->frames++, frame++) {
+	for (frame = 0, total_len = 0; frame < frames; d->frames++, frame++)
+	{
 		cb_entry = &d->cb_list[frame];
 		cb_entry->cb = dma_pool_alloc(c->cb_pool, gfp,
-					      &cb_entry->paddr);
+									  &cb_entry->paddr);
+
 		if (!cb_entry->cb)
+		{
 			goto error_cb;
+		}
 
 		/* fill in the control block */
 		control_block = cb_entry->cb;
@@ -345,8 +363,10 @@ static struct bcm2835_desc *bcm2835_dma_create_cb_chain(
 		control_block->dst = dst;
 		control_block->stride = 0;
 		control_block->next = 0;
+
 		/* set up length in control_block if requested */
-		if (buf_len) {
+		if (buf_len)
+		{
 			/* calculate length honoring period_length */
 			bcm2835_dma_create_cb_set_length(
 				c, control_block,
@@ -359,13 +379,20 @@ static struct bcm2835_desc *bcm2835_dma_create_cb_chain(
 
 		/* link this the last controlblock */
 		if (frame)
+		{
 			d->cb_list[frame - 1].cb->next = cb_entry->paddr;
+		}
 
 		/* update src and dst and length */
 		if (src && (info & BCM2835_DMA_S_INC))
+		{
 			src += control_block->length;
+		}
+
 		if (dst && (info & BCM2835_DMA_D_INC))
+		{
 			dst += control_block->length;
+		}
 
 		/* Length of total transfer */
 		d->size += control_block->length;
@@ -376,7 +403,9 @@ static struct bcm2835_desc *bcm2835_dma_create_cb_chain(
 
 	/* detect a size missmatch */
 	if (buf_len && (d->size != buf_len))
+	{
 		goto error_cb;
+	}
 
 	return d;
 error_cb:
@@ -399,14 +428,21 @@ static void bcm2835_dma_fill_cb_chain_with_sg(
 	struct scatterlist *sgent;
 
 	max_len = bcm2835_dma_max_frame_length(c);
-	for_each_sg(sgl, sgent, sg_len, i) {
+	for_each_sg(sgl, sgent, sg_len, i)
+	{
 		for (addr = sg_dma_address(sgent), len = sg_dma_len(sgent);
-		     len > 0;
-		     addr += cb->cb->length, len -= cb->cb->length, cb++) {
+			 len > 0;
+			 addr += cb->cb->length, len -= cb->cb->length, cb++)
+		{
 			if (direction == DMA_DEV_TO_MEM)
+			{
 				cb->cb->dst = addr;
+			}
 			else
+			{
 				cb->cb->src = addr;
+			}
+
 			cb->cb->length = min(len, max_len);
 		}
 	}
@@ -418,31 +454,39 @@ static int bcm2835_dma_abort(void __iomem *chan_base)
 	long int timeout = 10000;
 
 	cs = readl(chan_base + BCM2835_DMA_CS);
+
 	if (!(cs & BCM2835_DMA_ACTIVE))
+	{
 		return 0;
+	}
 
 	/* Write 0 to the active bit - Pause the DMA */
 	writel(0, chan_base + BCM2835_DMA_CS);
 
 	/* Wait for any current AXI transfer to complete */
-	while ((cs & BCM2835_DMA_ISPAUSED) && --timeout) {
+	while ((cs & BCM2835_DMA_ISPAUSED) && --timeout)
+	{
 		cpu_relax();
 		cs = readl(chan_base + BCM2835_DMA_CS);
 	}
 
 	/* We'll un-pause when we set of our next DMA */
 	if (!timeout)
+	{
 		return -ETIMEDOUT;
+	}
 
 	if (!(cs & BCM2835_DMA_ACTIVE))
+	{
 		return 0;
+	}
 
 	/* Terminate the control block chain */
 	writel(0, chan_base + BCM2835_DMA_NEXTCB);
 
 	/* Abort the whole DMA */
 	writel(BCM2835_DMA_ABORT | BCM2835_DMA_ACTIVE,
-	       chan_base + BCM2835_DMA_CS);
+		   chan_base + BCM2835_DMA_CS);
 
 	return 0;
 }
@@ -452,7 +496,8 @@ static void bcm2835_dma_start_desc(struct bcm2835_chan *c)
 	struct virt_dma_desc *vd = vchan_next_desc(&c->vc);
 	struct bcm2835_desc *d;
 
-	if (!vd) {
+	if (!vd)
+	{
 		c->desc = NULL;
 		return;
 	}
@@ -472,12 +517,16 @@ static irqreturn_t bcm2835_dma_callback(int irq, void *data)
 	unsigned long flags;
 
 	/* check the shared interrupt */
-	if (c->irq_flags & IRQF_SHARED) {
+	if (c->irq_flags & IRQF_SHARED)
+	{
 		/* check if the interrupt is enabled */
 		flags = readl(c->chan_base + BCM2835_DMA_CS);
+
 		/* if not set then we are not the reason for the irq */
 		if (!(flags & BCM2835_DMA_INT))
+		{
 			return IRQ_NONE;
+		}
 	}
 
 	spin_lock_irqsave(&c->vc.lock, flags);
@@ -487,15 +536,19 @@ static irqreturn_t bcm2835_dma_callback(int irq, void *data)
 
 	d = c->desc;
 
-	if (d) {
-		if (d->cyclic) {
+	if (d)
+	{
+		if (d->cyclic)
+		{
 			/* call the cyclic callback */
 			vchan_cyclic_callback(&d->vd);
 
 			/* Keep the DMA engine running */
 			writel(BCM2835_DMA_ACTIVE,
-			       c->chan_base + BCM2835_DMA_CS);
-		} else {
+				   c->chan_base + BCM2835_DMA_CS);
+		}
+		else
+		{
 			vchan_cookie_complete(&c->desc->vd);
 			bcm2835_dma_start_desc(c);
 		}
@@ -514,14 +567,16 @@ static int bcm2835_dma_alloc_chan_resources(struct dma_chan *chan)
 	dev_dbg(dev, "Allocating DMA channel %d\n", c->ch);
 
 	c->cb_pool = dma_pool_create(dev_name(dev), dev,
-				     sizeof(struct bcm2835_dma_cb), 0, 0);
-	if (!c->cb_pool) {
+								 sizeof(struct bcm2835_dma_cb), 0, 0);
+
+	if (!c->cb_pool)
+	{
 		dev_err(dev, "unable to allocate descriptor pool\n");
 		return -ENOMEM;
 	}
 
 	return request_irq(c->irq_number, bcm2835_dma_callback,
-			   c->irq_flags, "DMA IRQ", c);
+					   c->irq_flags, "DMA IRQ", c);
 }
 
 static void bcm2835_dma_free_chan_resources(struct dma_chan *chan)
@@ -545,27 +600,36 @@ static size_t bcm2835_dma_desc_size_pos(struct bcm2835_desc *d, dma_addr_t addr)
 	unsigned int i;
 	size_t size;
 
-	for (size = i = 0; i < d->frames; i++) {
+	for (size = i = 0; i < d->frames; i++)
+	{
 		struct bcm2835_dma_cb *control_block = d->cb_list[i].cb;
 		size_t this_size = control_block->length;
 		dma_addr_t dma;
 
 		if (d->dir == DMA_DEV_TO_MEM)
+		{
 			dma = control_block->dst;
+		}
 		else
+		{
 			dma = control_block->src;
+		}
 
 		if (size)
+		{
 			size += this_size;
+		}
 		else if (addr >= dma && addr < dma + this_size)
+		{
 			size += dma + this_size - addr;
+		}
 	}
 
 	return size;
 }
 
 static enum dma_status bcm2835_dma_tx_status(struct dma_chan *chan,
-	dma_cookie_t cookie, struct dma_tx_state *txstate)
+		dma_cookie_t cookie, struct dma_tx_state *txstate)
 {
 	struct bcm2835_chan *c = to_bcm2835_dma_chan(chan);
 	struct virt_dma_desc *vd;
@@ -573,27 +637,42 @@ static enum dma_status bcm2835_dma_tx_status(struct dma_chan *chan,
 	unsigned long flags;
 
 	ret = dma_cookie_status(chan, cookie, txstate);
+
 	if (ret == DMA_COMPLETE || !txstate)
+	{
 		return ret;
+	}
 
 	spin_lock_irqsave(&c->vc.lock, flags);
 	vd = vchan_find_desc(&c->vc, cookie);
-	if (vd) {
+
+	if (vd)
+	{
 		txstate->residue =
 			bcm2835_dma_desc_size(to_bcm2835_dma_desc(&vd->tx));
-	} else if (c->desc && c->desc->vd.tx.cookie == cookie) {
+	}
+	else if (c->desc && c->desc->vd.tx.cookie == cookie)
+	{
 		struct bcm2835_desc *d = c->desc;
 		dma_addr_t pos;
 
 		if (d->dir == DMA_MEM_TO_DEV)
+		{
 			pos = readl(c->chan_base + BCM2835_DMA_SOURCE_AD);
+		}
 		else if (d->dir == DMA_DEV_TO_MEM)
+		{
 			pos = readl(c->chan_base + BCM2835_DMA_DEST_AD);
+		}
 		else
+		{
 			pos = 0;
+		}
 
 		txstate->residue = bcm2835_dma_desc_size_pos(d, pos);
-	} else {
+	}
+	else
+	{
 		txstate->residue = 0;
 	}
 
@@ -608,8 +687,11 @@ static void bcm2835_dma_issue_pending(struct dma_chan *chan)
 	unsigned long flags;
 
 	spin_lock_irqsave(&c->vc.lock, flags);
+
 	if (vchan_issue_pending(&c->vc) && !c->desc)
+	{
 		bcm2835_dma_start_desc(c);
+	}
 
 	spin_unlock_irqrestore(&c->vc.lock, flags);
 }
@@ -627,17 +709,22 @@ static struct dma_async_tx_descriptor *bcm2835_dma_prep_dma_memcpy(
 
 	/* if src, dst or len is not given return with an error */
 	if (!src || !dst || !len)
+	{
 		return NULL;
+	}
 
 	/* calculate number of frames */
 	frames = bcm2835_dma_frames_for_length(len, max_len);
 
 	/* allocate the CB chain - this also fills in the pointers */
 	d = bcm2835_dma_create_cb_chain(chan, DMA_MEM_TO_MEM, false,
-					info, extra, frames,
-					src, dst, len, 0, GFP_KERNEL);
+									info, extra, frames,
+									src, dst, len, 0, GFP_KERNEL);
+
 	if (!d)
+	{
 		return NULL;
+	}
 
 	return vchan_tx_prep(&c->vc, &d->vd, flags);
 }
@@ -655,23 +742,35 @@ static struct dma_async_tx_descriptor *bcm2835_dma_prep_slave_sg(
 	u32 extra = BCM2835_DMA_INT_EN;
 	size_t frames;
 
-	if (!is_slave_direction(direction)) {
+	if (!is_slave_direction(direction))
+	{
 		dev_err(chan->device->dev,
-			"%s: bad direction?\n", __func__);
+				"%s: bad direction?\n", __func__);
 		return NULL;
 	}
 
 	if (c->dreq != 0)
+	{
 		info |= BCM2835_DMA_PER_MAP(c->dreq);
+	}
 
-	if (direction == DMA_DEV_TO_MEM) {
+	if (direction == DMA_DEV_TO_MEM)
+	{
 		if (c->cfg.src_addr_width != DMA_SLAVE_BUSWIDTH_4_BYTES)
+		{
 			return NULL;
+		}
+
 		src = c->cfg.src_addr;
 		info |= BCM2835_DMA_S_DREQ | BCM2835_DMA_D_INC;
-	} else {
+	}
+	else
+	{
 		if (c->cfg.dst_addr_width != DMA_SLAVE_BUSWIDTH_4_BYTES)
+		{
 			return NULL;
+		}
+
 		dst = c->cfg.dst_addr;
 		info |= BCM2835_DMA_D_DREQ | BCM2835_DMA_S_INC;
 	}
@@ -681,15 +780,18 @@ static struct dma_async_tx_descriptor *bcm2835_dma_prep_slave_sg(
 
 	/* allocate the CB chain */
 	d = bcm2835_dma_create_cb_chain(chan, direction, false,
-					info, extra,
-					frames, src, dst, 0, 0,
-					GFP_KERNEL);
+									info, extra,
+									frames, src, dst, 0, 0,
+									GFP_KERNEL);
+
 	if (!d)
+	{
 		return NULL;
+	}
 
 	/* fill in frames with scatterlist pointers */
 	bcm2835_dma_fill_cb_chain_with_sg(chan, direction, d->cb_list,
-					  sgl, sg_len);
+									  sgl, sg_len);
 
 	return vchan_tx_prep(&c->vc, &d->vd, flags);
 }
@@ -708,14 +810,16 @@ static struct dma_async_tx_descriptor *bcm2835_dma_prep_dma_cyclic(
 	size_t frames;
 
 	/* Grab configuration */
-	if (!is_slave_direction(direction)) {
+	if (!is_slave_direction(direction))
+	{
 		dev_err(chan->device->dev, "%s: bad direction?\n", __func__);
 		return NULL;
 	}
 
-	if (!buf_len) {
+	if (!buf_len)
+	{
 		dev_err(chan->device->dev,
-			"%s: bad buffer length (= 0)\n", __func__);
+				"%s: bad buffer length (= 0)\n", __func__);
 		return NULL;
 	}
 
@@ -725,22 +829,33 @@ static struct dma_async_tx_descriptor *bcm2835_dma_prep_dma_cyclic(
 	 */
 	if (buf_len % period_len)
 		dev_warn_once(chan->device->dev,
-			      "%s: buffer_length (%zd) is not a multiple of period_len (%zd)\n",
-			      __func__, buf_len, period_len);
+					  "%s: buffer_length (%zd) is not a multiple of period_len (%zd)\n",
+					  __func__, buf_len, period_len);
 
 	/* Setup DREQ channel */
 	if (c->dreq != 0)
+	{
 		info |= BCM2835_DMA_PER_MAP(c->dreq);
+	}
 
-	if (direction == DMA_DEV_TO_MEM) {
+	if (direction == DMA_DEV_TO_MEM)
+	{
 		if (c->cfg.src_addr_width != DMA_SLAVE_BUSWIDTH_4_BYTES)
+		{
 			return NULL;
+		}
+
 		src = c->cfg.src_addr;
 		dst = buf_addr;
 		info |= BCM2835_DMA_S_DREQ | BCM2835_DMA_D_INC;
-	} else {
+	}
+	else
+	{
 		if (c->cfg.dst_addr_width != DMA_SLAVE_BUSWIDTH_4_BYTES)
+		{
 			return NULL;
+		}
+
 		dst = c->cfg.dst_addr;
 		src = buf_addr;
 		info |= BCM2835_DMA_D_DREQ | BCM2835_DMA_S_INC;
@@ -748,9 +863,9 @@ static struct dma_async_tx_descriptor *bcm2835_dma_prep_dma_cyclic(
 
 	/* calculate number of frames */
 	frames = /* number of periods */
-		 DIV_ROUND_UP(buf_len, period_len) *
-		 /* number of frames per period */
-		 bcm2835_dma_frames_for_length(period_len, max_len);
+		DIV_ROUND_UP(buf_len, period_len) *
+		/* number of frames per period */
+		bcm2835_dma_frames_for_length(period_len, max_len);
 
 	/*
 	 * allocate the CB chain
@@ -758,11 +873,14 @@ static struct dma_async_tx_descriptor *bcm2835_dma_prep_dma_cyclic(
 	 * implementation calls prep_dma_cyclic with interrupts disabled.
 	 */
 	d = bcm2835_dma_create_cb_chain(chan, direction, true,
-					info, extra,
-					frames, src, dst, buf_len,
-					period_len, GFP_NOWAIT);
+									info, extra,
+									frames, src, dst, buf_len,
+									period_len, GFP_NOWAIT);
+
 	if (!d)
+	{
 		return NULL;
+	}
 
 	/* wrap around into a loop */
 	d->cb_list[d->frames - 1].cb->next = d->cb_list[0].paddr;
@@ -771,15 +889,16 @@ static struct dma_async_tx_descriptor *bcm2835_dma_prep_dma_cyclic(
 }
 
 static int bcm2835_dma_slave_config(struct dma_chan *chan,
-				    struct dma_slave_config *cfg)
+									struct dma_slave_config *cfg)
 {
 	struct bcm2835_chan *c = to_bcm2835_dma_chan(chan);
 
 	if ((cfg->direction == DMA_DEV_TO_MEM &&
-	     cfg->src_addr_width != DMA_SLAVE_BUSWIDTH_4_BYTES) ||
-	    (cfg->direction == DMA_MEM_TO_DEV &&
-	     cfg->dst_addr_width != DMA_SLAVE_BUSWIDTH_4_BYTES) ||
-	    !is_slave_direction(cfg->direction)) {
+		 cfg->src_addr_width != DMA_SLAVE_BUSWIDTH_4_BYTES) ||
+		(cfg->direction == DMA_MEM_TO_DEV &&
+		 cfg->dst_addr_width != DMA_SLAVE_BUSWIDTH_4_BYTES) ||
+		!is_slave_direction(cfg->direction))
+	{
 		return -EINVAL;
 	}
 
@@ -808,22 +927,28 @@ static int bcm2835_dma_terminate_all(struct dma_chan *chan)
 	 * after bcm_dma_abort() returns (even if it does, it will see
 	 * c->desc is NULL and exit.)
 	 */
-	if (c->desc) {
+	if (c->desc)
+	{
 		bcm2835_dma_desc_free(&c->desc->vd);
 		c->desc = NULL;
 		bcm2835_dma_abort(c->chan_base);
 
 		/* Wait for stopping */
-		while (--timeout) {
+		while (--timeout)
+		{
 			if (!(readl(c->chan_base + BCM2835_DMA_CS) &
-						BCM2835_DMA_ACTIVE))
+				  BCM2835_DMA_ACTIVE))
+			{
 				break;
+			}
 
 			cpu_relax();
 		}
 
 		if (!timeout)
+		{
 			dev_err(d->ddev.dev, "DMA transfer could not be terminated\n");
+		}
 	}
 
 	vchan_get_all_descriptors(&c->vc, &head);
@@ -834,13 +959,16 @@ static int bcm2835_dma_terminate_all(struct dma_chan *chan)
 }
 
 static int bcm2835_dma_chan_init(struct bcm2835_dmadev *d, int chan_id,
-				 int irq, unsigned int irq_flags)
+								 int irq, unsigned int irq_flags)
 {
 	struct bcm2835_chan *c;
 
 	c = devm_kzalloc(d->ddev.dev, sizeof(*c), GFP_KERNEL);
+
 	if (!c)
+	{
 		return -ENOMEM;
+	}
 
 	c->vc.desc_free = bcm2835_dma_desc_free;
 	vchan_init(&c->vc, &d->ddev);
@@ -854,7 +982,9 @@ static int bcm2835_dma_chan_init(struct bcm2835_dmadev *d, int chan_id,
 	/* check in DEBUG register if this is a LITE channel */
 	if (readl(c->chan_base + BCM2835_DMA_DEBUG) &
 		BCM2835_DMA_DEBUG_LITE)
+	{
 		c->is_lite_channel = true;
+	}
 
 	return 0;
 }
@@ -864,27 +994,32 @@ static void bcm2835_dma_free(struct bcm2835_dmadev *od)
 	struct bcm2835_chan *c, *next;
 
 	list_for_each_entry_safe(c, next, &od->ddev.channels,
-				 vc.chan.device_node) {
+							 vc.chan.device_node)
+	{
 		list_del(&c->vc.chan.device_node);
 		tasklet_kill(&c->vc.task);
 	}
 }
 
-static const struct of_device_id bcm2835_dma_of_match[] = {
+static const struct of_device_id bcm2835_dma_of_match[] =
+{
 	{ .compatible = "brcm,bcm2835-dma", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, bcm2835_dma_of_match);
 
 static struct dma_chan *bcm2835_dma_xlate(struct of_phandle_args *spec,
-					   struct of_dma *ofdma)
+		struct of_dma *ofdma)
 {
 	struct bcm2835_dmadev *d = ofdma->of_dma_data;
 	struct dma_chan *chan;
 
 	chan = dma_get_any_slave_channel(&d->ddev);
+
 	if (!chan)
+	{
 		return NULL;
+	}
 
 	/* Set DREQ from param */
 	to_bcm2835_dma_chan(chan)->dreq = spec->args[0];
@@ -905,23 +1040,34 @@ static int bcm2835_dma_probe(struct platform_device *pdev)
 	char chan_name[BCM2835_DMA_CHAN_NAME_SIZE];
 
 	if (!pdev->dev.dma_mask)
+	{
 		pdev->dev.dma_mask = &pdev->dev.coherent_dma_mask;
+	}
 
 	rc = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	od = devm_kzalloc(&pdev->dev, sizeof(*od), GFP_KERNEL);
+
 	if (!od)
+	{
 		return -ENOMEM;
+	}
 
 	pdev->dev.dma_parms = &od->dma_parms;
 	dma_set_max_seg_size(&pdev->dev, 0x3FFFFFFF);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	od->base = base;
 
@@ -942,7 +1088,7 @@ static int bcm2835_dma_probe(struct platform_device *pdev)
 	od->ddev.src_addr_widths = BIT(DMA_SLAVE_BUSWIDTH_4_BYTES);
 	od->ddev.dst_addr_widths = BIT(DMA_SLAVE_BUSWIDTH_4_BYTES);
 	od->ddev.directions = BIT(DMA_DEV_TO_MEM) | BIT(DMA_MEM_TO_DEV) |
-			      BIT(DMA_MEM_TO_MEM);
+						  BIT(DMA_MEM_TO_MEM);
 	od->ddev.residue_granularity = DMA_RESIDUE_GRANULARITY_BURST;
 	od->ddev.dev = &pdev->dev;
 	INIT_LIST_HEAD(&od->ddev.channels);
@@ -952,17 +1098,20 @@ static int bcm2835_dma_probe(struct platform_device *pdev)
 
 	/* Request DMA channel mask from device tree */
 	if (of_property_read_u32(pdev->dev.of_node,
-			"brcm,dma-channel-mask",
-			&chans_available)) {
+							 "brcm,dma-channel-mask",
+							 &chans_available))
+	{
 		dev_err(&pdev->dev, "Failed to get channel mask\n");
 		rc = -EINVAL;
 		goto err_no_dma;
 	}
 
 	/* get irqs for each channel that we support */
-	for (i = 0; i <= BCM2835_DMA_MAX_DMA_CHAN_SUPPORTED; i++) {
+	for (i = 0; i <= BCM2835_DMA_MAX_DMA_CHAN_SUPPORTED; i++)
+	{
 		/* skip masked out channels */
-		if (!(chans_available & (1 << i))) {
+		if (!(chans_available & (1 << i)))
+		{
 			irq[i] = -1;
 			continue;
 		}
@@ -970,12 +1119,15 @@ static int bcm2835_dma_probe(struct platform_device *pdev)
 		/* get the named irq */
 		snprintf(chan_name, sizeof(chan_name), "dma%i", i);
 		irq[i] = platform_get_irq_byname(pdev, chan_name);
+
 		if (irq[i] >= 0)
+		{
 			continue;
+		}
 
 		/* legacy device tree case handling */
 		dev_warn_once(&pdev->dev,
-			      "missing interrupt-names property in device tree - legacy interpretation is used\n");
+					  "missing interrupt-names property in device tree - legacy interpretation is used\n");
 		/*
 		 * in case of channel >= 11
 		 * use the 11th interrupt and that is shared
@@ -984,39 +1136,51 @@ static int bcm2835_dma_probe(struct platform_device *pdev)
 	}
 
 	/* get irqs for each channel */
-	for (i = 0; i <= BCM2835_DMA_MAX_DMA_CHAN_SUPPORTED; i++) {
+	for (i = 0; i <= BCM2835_DMA_MAX_DMA_CHAN_SUPPORTED; i++)
+	{
 		/* skip channels without irq */
 		if (irq[i] < 0)
+		{
 			continue;
+		}
 
 		/* check if there are other channels that also use this irq */
 		irq_flags = 0;
+
 		for (j = 0; j <= BCM2835_DMA_MAX_DMA_CHAN_SUPPORTED; j++)
-			if ((i != j) && (irq[j] == irq[i])) {
+			if ((i != j) && (irq[j] == irq[i]))
+			{
 				irq_flags = IRQF_SHARED;
 				break;
 			}
 
 		/* initialize the channel */
 		rc = bcm2835_dma_chan_init(od, i, irq[i], irq_flags);
+
 		if (rc)
+		{
 			goto err_no_dma;
+		}
 	}
 
 	dev_dbg(&pdev->dev, "Initialized %i DMA channels\n", i);
 
 	/* Device-tree DMA controller registration */
 	rc = of_dma_controller_register(pdev->dev.of_node,
-			bcm2835_dma_xlate, od);
-	if (rc) {
+									bcm2835_dma_xlate, od);
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "Failed to register DMA controller\n");
 		goto err_no_dma;
 	}
 
 	rc = dma_async_device_register(&od->ddev);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev,
-			"Failed to register slave DMA engine device: %d\n", rc);
+				"Failed to register slave DMA engine device: %d\n", rc);
 		goto err_no_dma;
 	}
 
@@ -1039,7 +1203,8 @@ static int bcm2835_dma_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver bcm2835_dma_driver = {
+static struct platform_driver bcm2835_dma_driver =
+{
 	.probe	= bcm2835_dma_probe,
 	.remove	= bcm2835_dma_remove,
 	.driver = {

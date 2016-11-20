@@ -43,13 +43,14 @@
 static struct usb_interface *pintf;
 
 static int r871xu_drv_init(struct usb_interface *pusb_intf,
-			   const struct usb_device_id *pdid);
+						   const struct usb_device_id *pdid);
 
 static void r871xu_dev_remove(struct usb_interface *pusb_intf);
 
-static struct usb_device_id rtl871x_usb_id_tbl[] = {
+static struct usb_device_id rtl871x_usb_id_tbl[] =
+{
 
-/* RTL8188SU */
+	/* RTL8188SU */
 	/* Realtek */
 	{USB_DEVICE(0x0BDA, 0x8171)},
 	{USB_DEVICE(0x0bda, 0x8173)},
@@ -104,7 +105,7 @@ static struct usb_device_id rtl871x_usb_id_tbl[] = {
 	{USB_DEVICE(0x25D4, 0x4CA1)},
 	{USB_DEVICE(0x25D4, 0x4CAB)},
 
-/* RTL8191SU */
+	/* RTL8191SU */
 	/* Realtek */
 	{USB_DEVICE(0x0BDA, 0x8172)},
 	{USB_DEVICE(0x0BDA, 0x8192)},
@@ -160,7 +161,7 @@ static struct usb_device_id rtl871x_usb_id_tbl[] = {
 	{USB_DEVICE(0x13D3, 0x3310)},
 	{USB_DEVICE(0x13D3, 0x3325)},
 
-/* RTL8192SU */
+	/* RTL8192SU */
 	/* Realtek */
 	{USB_DEVICE(0x0BDA, 0x8174)},
 	/* Belkin */
@@ -176,27 +177,45 @@ static struct usb_device_id rtl871x_usb_id_tbl[] = {
 
 MODULE_DEVICE_TABLE(usb, rtl871x_usb_id_tbl);
 
-static struct specific_device_id specific_device_id_tbl[] = {
-	{.idVendor = 0x0b05, .idProduct = 0x1791,
-		 .flags = SPEC_DEV_ID_DISABLE_HT},
-	{.idVendor = 0x0df6, .idProduct = 0x0059,
-		 .flags = SPEC_DEV_ID_DISABLE_HT},
-	{.idVendor = 0x13d3, .idProduct = 0x3306,
-		 .flags = SPEC_DEV_ID_DISABLE_HT},
-	{.idVendor = 0x13D3, .idProduct = 0x3311,
-		 .flags = SPEC_DEV_ID_DISABLE_HT},
-	{.idVendor = 0x13d3, .idProduct = 0x3335,
-		 .flags = SPEC_DEV_ID_DISABLE_HT},
-	{.idVendor = 0x13d3, .idProduct = 0x3336,
-		 .flags = SPEC_DEV_ID_DISABLE_HT},
-	{.idVendor = 0x13d3, .idProduct = 0x3340,
-		 .flags = SPEC_DEV_ID_DISABLE_HT},
-	{.idVendor = 0x13d3, .idProduct = 0x3341,
-		 .flags = SPEC_DEV_ID_DISABLE_HT},
+static struct specific_device_id specific_device_id_tbl[] =
+{
+	{
+		.idVendor = 0x0b05, .idProduct = 0x1791,
+		.flags = SPEC_DEV_ID_DISABLE_HT
+	},
+	{
+		.idVendor = 0x0df6, .idProduct = 0x0059,
+		.flags = SPEC_DEV_ID_DISABLE_HT
+	},
+	{
+		.idVendor = 0x13d3, .idProduct = 0x3306,
+		.flags = SPEC_DEV_ID_DISABLE_HT
+	},
+	{
+		.idVendor = 0x13D3, .idProduct = 0x3311,
+		.flags = SPEC_DEV_ID_DISABLE_HT
+	},
+	{
+		.idVendor = 0x13d3, .idProduct = 0x3335,
+		.flags = SPEC_DEV_ID_DISABLE_HT
+	},
+	{
+		.idVendor = 0x13d3, .idProduct = 0x3336,
+		.flags = SPEC_DEV_ID_DISABLE_HT
+	},
+	{
+		.idVendor = 0x13d3, .idProduct = 0x3340,
+		.flags = SPEC_DEV_ID_DISABLE_HT
+	},
+	{
+		.idVendor = 0x13d3, .idProduct = 0x3341,
+		.flags = SPEC_DEV_ID_DISABLE_HT
+	},
 	{}
 };
 
-struct drv_priv {
+struct drv_priv
+{
 	struct usb_driver r871xu_drv;
 	int drv_registered;
 };
@@ -208,14 +227,21 @@ static int r871x_suspend(struct usb_interface *pusb_intf, pm_message_t state)
 	struct _adapter *padapter = netdev_priv(pnetdev);
 
 	netdev_info(pnetdev, "Suspending...\n");
-	if (!pnetdev || !netif_running(pnetdev)) {
+
+	if (!pnetdev || !netif_running(pnetdev))
+	{
 		netdev_info(pnetdev, "Unable to suspend\n");
 		return 0;
 	}
+
 	padapter->bSuspended = true;
 	rtl871x_intf_stop(padapter);
+
 	if (pnetdev->netdev_ops->ndo_stop)
+	{
 		pnetdev->netdev_ops->ndo_stop(pnetdev);
+	}
+
 	mdelay(10);
 	netif_device_detach(pnetdev);
 	return 0;
@@ -224,7 +250,9 @@ static int r871x_suspend(struct usb_interface *pusb_intf, pm_message_t state)
 static void rtl871x_intf_resume(struct _adapter *padapter)
 {
 	if (padapter->dvobjpriv.inirp_init)
+	{
 		padapter->dvobjpriv.inirp_init(padapter);
+	}
 }
 
 static int r871x_resume(struct usb_interface *pusb_intf)
@@ -233,13 +261,20 @@ static int r871x_resume(struct usb_interface *pusb_intf)
 	struct _adapter *padapter = netdev_priv(pnetdev);
 
 	netdev_info(pnetdev,  "Resuming...\n");
-	if (!pnetdev || !netif_running(pnetdev)) {
+
+	if (!pnetdev || !netif_running(pnetdev))
+	{
 		netdev_info(pnetdev, "Unable to resume\n");
 		return 0;
 	}
+
 	netif_device_attach(pnetdev);
+
 	if (pnetdev->netdev_ops->ndo_open)
+	{
 		pnetdev->netdev_ops->ndo_open(pnetdev);
+	}
+
 	padapter->bSuspended = false;
 	rtl871x_intf_resume(padapter);
 	return 0;
@@ -253,7 +288,8 @@ static int r871x_reset_resume(struct usb_interface *pusb_intf)
 
 #endif
 
-static struct drv_priv drvpriv = {
+static struct drv_priv drvpriv =
+{
 	.r871xu_drv.name = "r8712u",
 	.r871xu_drv.id_table = rtl871x_usb_id_tbl,
 	.r871xu_drv.probe = r871xu_drv_init,
@@ -278,17 +314,25 @@ static uint r8712_usb_dvobj_init(struct _adapter *padapter)
 	phost_iface = &pintf->altsetting[0];
 	piface_desc = &phost_iface->desc;
 	pdvobjpriv->nr_endpoint = piface_desc->bNumEndpoints;
-	if (pusbd->speed == USB_SPEED_HIGH) {
+
+	if (pusbd->speed == USB_SPEED_HIGH)
+	{
 		pdvobjpriv->ishighspeed = true;
 		dev_info(&pusbd->dev, "r8712u: USB_SPEED_HIGH with %d endpoints\n",
-			 pdvobjpriv->nr_endpoint);
-	} else {
+				 pdvobjpriv->nr_endpoint);
+	}
+	else
+	{
 		pdvobjpriv->ishighspeed = false;
 		dev_info(&pusbd->dev, "r8712u: USB_SPEED_LOW with %d endpoints\n",
-			 pdvobjpriv->nr_endpoint);
+				 pdvobjpriv->nr_endpoint);
 	}
+
 	if ((r8712_alloc_io_queue(padapter)) == _FAIL)
+	{
 		status = _FAIL;
+	}
+
 	return status;
 }
 
@@ -299,7 +343,8 @@ static void r8712_usb_dvobj_deinit(struct _adapter *padapter)
 void rtl871x_intf_stop(struct _adapter *padapter)
 {
 	/*disable_hw_interrupt*/
-	if (!padapter->bSurpriseRemoved) {
+	if (!padapter->bSurpriseRemoved)
+	{
 		/*device still exists, so driver can do i/o operation
 		 * TODO:
 		 */
@@ -307,7 +352,10 @@ void rtl871x_intf_stop(struct _adapter *padapter)
 
 	/* cancel in irp */
 	if (padapter->dvobjpriv.inirp_deinit)
+	{
 		padapter->dvobjpriv.inirp_deinit(padapter);
+	}
+
 	/* cancel out irp */
 	r8712_usb_write_port_cancel(padapter);
 	/* TODO:cancel other irps */
@@ -315,7 +363,8 @@ void rtl871x_intf_stop(struct _adapter *padapter)
 
 void r871x_dev_unload(struct _adapter *padapter)
 {
-	if (padapter->bup) {
+	if (padapter->bup)
+	{
 		/*s1.*/
 		padapter->bDriverStopped = true;
 
@@ -326,33 +375,39 @@ void r871x_dev_unload(struct _adapter *padapter)
 		r8712_stop_drv_threads(padapter);
 
 		/*s5.*/
-		if (!padapter->bSurpriseRemoved) {
+		if (!padapter->bSurpriseRemoved)
+		{
 			padapter->hw_init_completed = false;
 			rtl8712_hal_deinit(padapter);
 		}
 
 		/*s6.*/
 		if (padapter->dvobj_deinit)
+		{
 			padapter->dvobj_deinit(padapter);
+		}
+
 		padapter->bup = false;
 	}
 }
 
 static void disable_ht_for_spec_devid(const struct usb_device_id *pdid,
-				      struct _adapter *padapter)
+									  struct _adapter *padapter)
 {
 	u16 vid, pid;
 	u32 flags;
 	int i;
 	int num = ARRAY_SIZE(specific_device_id_tbl);
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		vid = specific_device_id_tbl[i].idVendor;
 		pid = specific_device_id_tbl[i].idProduct;
 		flags = specific_device_id_tbl[i].flags;
 
 		if ((pdid->idVendor == vid) && (pdid->idProduct == pid) &&
-		    (flags & SPEC_DEV_ID_DISABLE_HT)) {
+			(flags & SPEC_DEV_ID_DISABLE_HT))
+		{
 			padapter->registrypriv.ht_enable = 0;
 			padapter->registrypriv.cbw40_enable = 0;
 			padapter->registrypriv.ampdu_enable = 0;
@@ -360,7 +415,8 @@ static void disable_ht_for_spec_devid(const struct usb_device_id *pdid,
 	}
 }
 
-static const struct device_type wlan_type = {
+static const struct device_type wlan_type =
+{
 	.name = "wlan",
 };
 
@@ -371,7 +427,7 @@ static const struct device_type wlan_type = {
  * to support. We accept the new device by returning 0.
  */
 static int r871xu_drv_init(struct usb_interface *pusb_intf,
-			   const struct usb_device_id *pdid)
+						   const struct usb_device_id *pdid)
 {
 	uint status;
 	struct _adapter *padapter = NULL;
@@ -388,8 +444,12 @@ static int r871xu_drv_init(struct usb_interface *pusb_intf,
 	pintf = pusb_intf;
 	/* step 1. */
 	pnetdev = r8712_init_netdev();
+
 	if (!pnetdev)
+	{
 		goto error;
+	}
+
 	padapter = netdev_priv(pnetdev);
 	disable_ht_for_spec_devid(pdid, padapter);
 	pdvobjpriv = &padapter->dvobjpriv;
@@ -405,20 +465,32 @@ static int r871xu_drv_init(struct usb_interface *pusb_intf,
 	padapter->halpriv.hal_bus_init = r8712_usb_hal_bus_init;
 	padapter->dvobjpriv.inirp_init = r8712_usb_inirp_init;
 	padapter->dvobjpriv.inirp_deinit = r8712_usb_inirp_deinit;
+
 	/* step 3.
 	 * initialize the dvobj_priv
 	 */
-	if (!padapter->dvobj_init) {
+	if (!padapter->dvobj_init)
+	{
 		goto error;
-	} else {
-		status = padapter->dvobj_init(padapter);
-		if (status != _SUCCESS)
-			goto error;
 	}
+	else
+	{
+		status = padapter->dvobj_init(padapter);
+
+		if (status != _SUCCESS)
+		{
+			goto error;
+		}
+	}
+
 	/* step 4. */
 	status = r8712_init_drv_sw(padapter);
+
 	if (status == _FAIL)
+	{
 		goto error;
+	}
+
 	/* step 5. read efuse/eeprom data and get mac_addr */
 	{
 		int i, offset;
@@ -430,11 +502,12 @@ static int r871xu_drv_init(struct usb_interface *pusb_intf,
 
 		/* To check system boot selection.*/
 		dev_info(&udev->dev, "r8712u: Boot from %s: Autoload %s\n",
-			 (tmpU1b & _9356SEL) ? "EEPROM" : "EFUSE",
-			 (tmpU1b & _EEPROM_EN) ? "OK" : "Failed");
+				 (tmpU1b & _9356SEL) ? "EEPROM" : "EFUSE",
+				 (tmpU1b & _EEPROM_EN) ? "OK" : "Failed");
 
 		/* To check autoload success or not.*/
-		if (tmpU1b & _EEPROM_EN) {
+		if (tmpU1b & _EEPROM_EN)
+		{
 			AutoloadFail = true;
 			/* The following operations prevent Efuse leakage by
 			 * turning on 2.5V.
@@ -443,139 +516,172 @@ static int r871xu_drv_init(struct usb_interface *pusb_intf,
 			r8712_write8(padapter, EFUSE_TEST + 3, tmpU1b | 0x80);
 			msleep(20);
 			r8712_write8(padapter, EFUSE_TEST + 3,
-				     (tmpU1b & (~BIT(7))));
+						 (tmpU1b & (~BIT(7))));
 
 			/* Retrieve Chip version.
 			 * Recognize IC version by Reg0x4 BIT15.
 			 */
 			tmpU1b = (u8)((r8712_read32(padapter, PMC_FSM) >> 15) &
-						    0x1F);
+						  0x1F);
+
 			if (tmpU1b == 0x3)
 				padapter->registrypriv.chip_version =
-				     RTL8712_3rdCUT;
+					RTL8712_3rdCUT;
 			else
 				padapter->registrypriv.chip_version =
-				     (tmpU1b >> 1) + 1;
-			switch (padapter->registrypriv.chip_version) {
-			case RTL8712_1stCUT:
-			case RTL8712_2ndCUT:
-			case RTL8712_3rdCUT:
-				break;
-			default:
-				padapter->registrypriv.chip_version =
-				     RTL8712_2ndCUT;
-				break;
+					(tmpU1b >> 1) + 1;
+
+			switch (padapter->registrypriv.chip_version)
+			{
+				case RTL8712_1stCUT:
+				case RTL8712_2ndCUT:
+				case RTL8712_3rdCUT:
+					break;
+
+				default:
+					padapter->registrypriv.chip_version =
+						RTL8712_2ndCUT;
+					break;
 			}
 
 			for (i = 0, offset = 0; i < 128; i += 8, offset++)
 				r8712_efuse_pg_packet_read(padapter, offset,
-						     &pdata[i]);
+										   &pdata[i]);
 
-			if (!r8712_initmac || !mac_pton(r8712_initmac, mac)) {
+			if (!r8712_initmac || !mac_pton(r8712_initmac, mac))
+			{
 				/* Use the mac address stored in the Efuse
 				 * offset = 0x12 for usb in efuse
 				 */
 				ether_addr_copy(mac, &pdata[0x12]);
 			}
+
 			eeprom_CustomerID = pdata[0x52];
-			switch (eeprom_CustomerID) {
-			case EEPROM_CID_ALPHA:
-				padapter->eeprompriv.CustomerID =
-						 RT_CID_819x_ALPHA;
-				break;
-			case EEPROM_CID_CAMEO:
-				padapter->eeprompriv.CustomerID =
-						 RT_CID_819x_CAMEO;
-				break;
-			case EEPROM_CID_SITECOM:
-				padapter->eeprompriv.CustomerID =
-						 RT_CID_819x_Sitecom;
-				break;
-			case EEPROM_CID_COREGA:
-				padapter->eeprompriv.CustomerID =
-						 RT_CID_COREGA;
-				break;
-			case EEPROM_CID_Senao:
-				padapter->eeprompriv.CustomerID =
-						 RT_CID_819x_Senao;
-				break;
-			case EEPROM_CID_EDIMAX_BELKIN:
-				padapter->eeprompriv.CustomerID =
-						 RT_CID_819x_Edimax_Belkin;
-				break;
-			case EEPROM_CID_SERCOMM_BELKIN:
-				padapter->eeprompriv.CustomerID =
-						 RT_CID_819x_Sercomm_Belkin;
-				break;
-			case EEPROM_CID_WNC_COREGA:
-				padapter->eeprompriv.CustomerID =
-						 RT_CID_819x_WNC_COREGA;
-				break;
-			case EEPROM_CID_WHQL:
-				break;
-			case EEPROM_CID_NetCore:
-				padapter->eeprompriv.CustomerID =
-						 RT_CID_819x_Netcore;
-				break;
-			case EEPROM_CID_CAMEO1:
-				padapter->eeprompriv.CustomerID =
-						 RT_CID_819x_CAMEO1;
-				break;
-			case EEPROM_CID_CLEVO:
-				padapter->eeprompriv.CustomerID =
-						 RT_CID_819x_CLEVO;
-				break;
-			default:
-				padapter->eeprompriv.CustomerID =
-						 RT_CID_DEFAULT;
-				break;
+
+			switch (eeprom_CustomerID)
+			{
+				case EEPROM_CID_ALPHA:
+					padapter->eeprompriv.CustomerID =
+						RT_CID_819x_ALPHA;
+					break;
+
+				case EEPROM_CID_CAMEO:
+					padapter->eeprompriv.CustomerID =
+						RT_CID_819x_CAMEO;
+					break;
+
+				case EEPROM_CID_SITECOM:
+					padapter->eeprompriv.CustomerID =
+						RT_CID_819x_Sitecom;
+					break;
+
+				case EEPROM_CID_COREGA:
+					padapter->eeprompriv.CustomerID =
+						RT_CID_COREGA;
+					break;
+
+				case EEPROM_CID_Senao:
+					padapter->eeprompriv.CustomerID =
+						RT_CID_819x_Senao;
+					break;
+
+				case EEPROM_CID_EDIMAX_BELKIN:
+					padapter->eeprompriv.CustomerID =
+						RT_CID_819x_Edimax_Belkin;
+					break;
+
+				case EEPROM_CID_SERCOMM_BELKIN:
+					padapter->eeprompriv.CustomerID =
+						RT_CID_819x_Sercomm_Belkin;
+					break;
+
+				case EEPROM_CID_WNC_COREGA:
+					padapter->eeprompriv.CustomerID =
+						RT_CID_819x_WNC_COREGA;
+					break;
+
+				case EEPROM_CID_WHQL:
+					break;
+
+				case EEPROM_CID_NetCore:
+					padapter->eeprompriv.CustomerID =
+						RT_CID_819x_Netcore;
+					break;
+
+				case EEPROM_CID_CAMEO1:
+					padapter->eeprompriv.CustomerID =
+						RT_CID_819x_CAMEO1;
+					break;
+
+				case EEPROM_CID_CLEVO:
+					padapter->eeprompriv.CustomerID =
+						RT_CID_819x_CLEVO;
+					break;
+
+				default:
+					padapter->eeprompriv.CustomerID =
+						RT_CID_DEFAULT;
+					break;
 			}
+
 			dev_info(&udev->dev, "r8712u: CustomerID = 0x%.4x\n",
-				 padapter->eeprompriv.CustomerID);
+					 padapter->eeprompriv.CustomerID);
+
 			/* Led mode */
-			switch (padapter->eeprompriv.CustomerID) {
-			case RT_CID_DEFAULT:
-			case RT_CID_819x_ALPHA:
-			case RT_CID_819x_CAMEO:
-				padapter->ledpriv.LedStrategy = SW_LED_MODE1;
-				padapter->ledpriv.bRegUseLed = true;
-				break;
-			case RT_CID_819x_Sitecom:
-				padapter->ledpriv.LedStrategy = SW_LED_MODE2;
-				padapter->ledpriv.bRegUseLed = true;
-				break;
-			case RT_CID_COREGA:
-			case RT_CID_819x_Senao:
-				padapter->ledpriv.LedStrategy = SW_LED_MODE3;
-				padapter->ledpriv.bRegUseLed = true;
-				break;
-			case RT_CID_819x_Edimax_Belkin:
-				padapter->ledpriv.LedStrategy = SW_LED_MODE4;
-				padapter->ledpriv.bRegUseLed = true;
-				break;
-			case RT_CID_819x_Sercomm_Belkin:
-				padapter->ledpriv.LedStrategy = SW_LED_MODE5;
-				padapter->ledpriv.bRegUseLed = true;
-				break;
-			case RT_CID_819x_WNC_COREGA:
-				padapter->ledpriv.LedStrategy = SW_LED_MODE6;
-				padapter->ledpriv.bRegUseLed = true;
-				break;
-			default:
-				padapter->ledpriv.LedStrategy = SW_LED_MODE0;
-				padapter->ledpriv.bRegUseLed = false;
-				break;
+			switch (padapter->eeprompriv.CustomerID)
+			{
+				case RT_CID_DEFAULT:
+				case RT_CID_819x_ALPHA:
+				case RT_CID_819x_CAMEO:
+					padapter->ledpriv.LedStrategy = SW_LED_MODE1;
+					padapter->ledpriv.bRegUseLed = true;
+					break;
+
+				case RT_CID_819x_Sitecom:
+					padapter->ledpriv.LedStrategy = SW_LED_MODE2;
+					padapter->ledpriv.bRegUseLed = true;
+					break;
+
+				case RT_CID_COREGA:
+				case RT_CID_819x_Senao:
+					padapter->ledpriv.LedStrategy = SW_LED_MODE3;
+					padapter->ledpriv.bRegUseLed = true;
+					break;
+
+				case RT_CID_819x_Edimax_Belkin:
+					padapter->ledpriv.LedStrategy = SW_LED_MODE4;
+					padapter->ledpriv.bRegUseLed = true;
+					break;
+
+				case RT_CID_819x_Sercomm_Belkin:
+					padapter->ledpriv.LedStrategy = SW_LED_MODE5;
+					padapter->ledpriv.bRegUseLed = true;
+					break;
+
+				case RT_CID_819x_WNC_COREGA:
+					padapter->ledpriv.LedStrategy = SW_LED_MODE6;
+					padapter->ledpriv.bRegUseLed = true;
+					break;
+
+				default:
+					padapter->ledpriv.LedStrategy = SW_LED_MODE0;
+					padapter->ledpriv.bRegUseLed = false;
+					break;
 			}
-		} else {
+		}
+		else
+		{
 			AutoloadFail = false;
 		}
+
 		if (((mac[0] == 0xff) && (mac[1] == 0xff) &&
-		     (mac[2] == 0xff) && (mac[3] == 0xff) &&
-		     (mac[4] == 0xff) && (mac[5] == 0xff)) ||
-		    ((mac[0] == 0x00) && (mac[1] == 0x00) &&
-		     (mac[2] == 0x00) && (mac[3] == 0x00) &&
-		     (mac[4] == 0x00) && (mac[5] == 0x00)) ||
-		     (!AutoloadFail)) {
+			 (mac[2] == 0xff) && (mac[3] == 0xff) &&
+			 (mac[4] == 0xff) && (mac[5] == 0xff)) ||
+			((mac[0] == 0x00) && (mac[1] == 0x00) &&
+			 (mac[2] == 0x00) && (mac[3] == 0x00) &&
+			 (mac[4] == 0x00) && (mac[5] == 0x00)) ||
+			(!AutoloadFail))
+		{
 			mac[0] = 0x00;
 			mac[1] = 0xe0;
 			mac[2] = 0x4c;
@@ -583,31 +689,46 @@ static int r871xu_drv_init(struct usb_interface *pusb_intf,
 			mac[4] = 0x00;
 			mac[5] = 0x00;
 		}
-		if (r8712_initmac) {
+
+		if (r8712_initmac)
+		{
 			/* Make sure the user did not select a multicast
 			 * address by setting bit 1 of first octet.
 			 */
 			mac[0] &= 0xFE;
 			dev_info(&udev->dev,
-				"r8712u: MAC Address from user = %pM\n", mac);
-		} else
+					 "r8712u: MAC Address from user = %pM\n", mac);
+		}
+		else
 			dev_info(&udev->dev,
-				"r8712u: MAC Address from efuse = %pM\n", mac);
+					 "r8712u: MAC Address from efuse = %pM\n", mac);
+
 		ether_addr_copy(pnetdev->dev_addr, mac);
 	}
+
 	/* step 6. Load the firmware asynchronously */
 	if (rtl871x_load_fw(padapter))
+	{
 		goto error;
+	}
+
 	spin_lock_init(&padapter->lockRxFF0Filter);
 	mutex_init(&padapter->mutex_start);
 	return 0;
 error:
 	usb_put_dev(udev);
 	usb_set_intfdata(pusb_intf, NULL);
+
 	if (padapter && padapter->dvobj_deinit != NULL)
+	{
 		padapter->dvobj_deinit(padapter);
+	}
+
 	if (pnetdev)
+	{
 		free_netdev(pnetdev);
+	}
+
 	return -ENODEV;
 }
 
@@ -619,15 +740,20 @@ static void r871xu_dev_remove(struct usb_interface *pusb_intf)
 	struct net_device *pnetdev = usb_get_intfdata(pusb_intf);
 	struct usb_device *udev = interface_to_usbdev(pusb_intf);
 
-	if (pnetdev) {
+	if (pnetdev)
+	{
 		struct _adapter *padapter = netdev_priv(pnetdev);
 
 		usb_set_intfdata(pusb_intf, NULL);
 		release_firmware(padapter->fw);
 		/* never exit with a firmware callback pending */
 		wait_for_completion(&padapter->rtl8712_fw_ready);
+
 		if (drvpriv.drv_registered)
+		{
 			padapter->bSurpriseRemoved = true;
+		}
+
 		unregister_netdev(pnetdev); /* will call netdev_close() */
 		flush_scheduled_work();
 		udelay(1);
@@ -641,12 +767,15 @@ static void r871xu_dev_remove(struct usb_interface *pusb_intf)
 		 */
 		usb_put_dev(udev);
 	}
+
 	/* If we didn't unplug usb dongle and remove/insert module, driver
 	 * fails on sitesurvey for the first time when device is up.
 	 * Reset usb port for sitesurvey fail issue.
 	 */
 	if (udev->state != USB_STATE_NOTATTACHED)
+	{
 		usb_reset_device(udev);
+	}
 }
 
 static int __init r8712u_drv_entry(void)

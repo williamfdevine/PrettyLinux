@@ -87,7 +87,8 @@
 #define MDC_GLOBAL_CONFIG_A_SYS_DAT_WIDTH_SHIFT		0
 #define MDC_GLOBAL_CONFIG_A_SYS_DAT_WIDTH_MASK		0xff
 
-struct mdc_hw_list_desc {
+struct mdc_hw_list_desc
+{
 	u32 gen_conf;
 	u32 readport_conf;
 	u32 read_addr;
@@ -103,7 +104,8 @@ struct mdc_hw_list_desc {
 	struct mdc_hw_list_desc *next_desc;
 };
 
-struct mdc_tx_desc {
+struct mdc_tx_desc
+{
 	struct mdc_chan *chan;
 	struct virt_dma_desc vd;
 	dma_addr_t list_phys;
@@ -116,7 +118,8 @@ struct mdc_tx_desc {
 	unsigned int list_cmds_done;
 };
 
-struct mdc_chan {
+struct mdc_chan
+{
 	struct mdc_dma *mdma;
 	struct virt_dma_chan vc;
 	struct dma_slave_config config;
@@ -127,12 +130,14 @@ struct mdc_chan {
 	unsigned int chan_nr;
 };
 
-struct mdc_dma_soc_data {
+struct mdc_dma_soc_data
+{
 	void (*enable_chan)(struct mdc_chan *mchan);
 	void (*disable_chan)(struct mdc_chan *mchan);
 };
 
-struct mdc_dma {
+struct mdc_dma
+{
 	struct dma_device dma_dev;
 	void __iomem *regs;
 	struct clk *clk;
@@ -191,30 +196,30 @@ static inline unsigned int to_mdc_width(unsigned int bytes)
 }
 
 static inline void mdc_set_read_width(struct mdc_hw_list_desc *ldesc,
-				      unsigned int bytes)
+									  unsigned int bytes)
 {
 	ldesc->gen_conf |= to_mdc_width(bytes) <<
-		MDC_GENERAL_CONFIG_WIDTH_R_SHIFT;
+					   MDC_GENERAL_CONFIG_WIDTH_R_SHIFT;
 }
 
 static inline void mdc_set_write_width(struct mdc_hw_list_desc *ldesc,
-				       unsigned int bytes)
+									   unsigned int bytes)
 {
 	ldesc->gen_conf |= to_mdc_width(bytes) <<
-		MDC_GENERAL_CONFIG_WIDTH_W_SHIFT;
+					   MDC_GENERAL_CONFIG_WIDTH_W_SHIFT;
 }
 
 static void mdc_list_desc_config(struct mdc_chan *mchan,
-				 struct mdc_hw_list_desc *ldesc,
-				 enum dma_transfer_direction dir,
-				 dma_addr_t src, dma_addr_t dst, size_t len)
+								 struct mdc_hw_list_desc *ldesc,
+								 enum dma_transfer_direction dir,
+								 dma_addr_t src, dma_addr_t dst, size_t len)
 {
 	struct mdc_dma *mdma = mchan->mdma;
 	unsigned int max_burst, burst_size;
 
 	ldesc->gen_conf = MDC_GENERAL_CONFIG_IEN | MDC_GENERAL_CONFIG_LIST_IEN |
-		MDC_GENERAL_CONFIG_LEVEL_INT | MDC_GENERAL_CONFIG_PHYSICAL_W |
-		MDC_GENERAL_CONFIG_PHYSICAL_R;
+					  MDC_GENERAL_CONFIG_LEVEL_INT | MDC_GENERAL_CONFIG_PHYSICAL_W |
+					  MDC_GENERAL_CONFIG_PHYSICAL_R;
 	ldesc->readport_conf =
 		(mchan->thread << MDC_READ_PORT_CONFIG_STHREAD_SHIFT) |
 		(mchan->thread << MDC_READ_PORT_CONFIG_RTHREAD_SHIFT) |
@@ -225,38 +230,48 @@ static void mdc_list_desc_config(struct mdc_chan *mchan,
 	ldesc->node_addr = 0;
 	ldesc->cmds_done = 0;
 	ldesc->ctrl_status = MDC_CONTROL_AND_STATUS_LIST_EN |
-		MDC_CONTROL_AND_STATUS_EN;
+						 MDC_CONTROL_AND_STATUS_EN;
 	ldesc->next_desc = NULL;
 
 	if (IS_ALIGNED(dst, mdma->bus_width) &&
-	    IS_ALIGNED(src, mdma->bus_width))
+		IS_ALIGNED(src, mdma->bus_width))
+	{
 		max_burst = mdma->bus_width * mdma->max_burst_mult;
+	}
 	else
+	{
 		max_burst = mdma->bus_width * (mdma->max_burst_mult - 1);
+	}
 
-	if (dir == DMA_MEM_TO_DEV) {
+	if (dir == DMA_MEM_TO_DEV)
+	{
 		ldesc->gen_conf |= MDC_GENERAL_CONFIG_INC_R;
 		ldesc->readport_conf |= MDC_READ_PORT_CONFIG_DREQ_ENABLE;
 		mdc_set_read_width(ldesc, mdma->bus_width);
 		mdc_set_write_width(ldesc, mchan->config.dst_addr_width);
 		burst_size = min(max_burst, mchan->config.dst_maxburst *
-				 mchan->config.dst_addr_width);
-	} else if (dir == DMA_DEV_TO_MEM) {
+						 mchan->config.dst_addr_width);
+	}
+	else if (dir == DMA_DEV_TO_MEM)
+	{
 		ldesc->gen_conf |= MDC_GENERAL_CONFIG_INC_W;
 		ldesc->readport_conf |= MDC_READ_PORT_CONFIG_DREQ_ENABLE;
 		mdc_set_read_width(ldesc, mchan->config.src_addr_width);
 		mdc_set_write_width(ldesc, mdma->bus_width);
 		burst_size = min(max_burst, mchan->config.src_maxburst *
-				 mchan->config.src_addr_width);
-	} else {
+						 mchan->config.src_addr_width);
+	}
+	else
+	{
 		ldesc->gen_conf |= MDC_GENERAL_CONFIG_INC_R |
-			MDC_GENERAL_CONFIG_INC_W;
+						   MDC_GENERAL_CONFIG_INC_W;
 		mdc_set_read_width(ldesc, mdma->bus_width);
 		mdc_set_write_width(ldesc, mdma->bus_width);
 		burst_size = max_burst;
 	}
+
 	ldesc->readport_conf |= (burst_size - 1) <<
-		MDC_READ_PORT_CONFIG_BURST_SIZE_SHIFT;
+							MDC_READ_PORT_CONFIG_BURST_SIZE_SHIFT;
 }
 
 static void mdc_list_desc_free(struct mdc_tx_desc *mdesc)
@@ -267,7 +282,9 @@ static void mdc_list_desc_free(struct mdc_tx_desc *mdesc)
 
 	curr = mdesc->list;
 	curr_phys = mdesc->list_phys;
-	while (curr) {
+
+	while (curr)
+	{
 		next = curr->next_desc;
 		next_phys = curr->node_addr;
 		dma_pool_free(mdma->desc_pool, curr, curr_phys);
@@ -295,25 +312,38 @@ static struct dma_async_tx_descriptor *mdc_prep_dma_memcpy(
 	dma_addr_t curr_phys, prev_phys;
 
 	if (!len)
+	{
 		return NULL;
+	}
 
 	mdesc = kzalloc(sizeof(*mdesc), GFP_NOWAIT);
+
 	if (!mdesc)
+	{
 		return NULL;
+	}
+
 	mdesc->chan = mchan;
 	mdesc->list_xfer_size = len;
 
-	while (len > 0) {
+	while (len > 0)
+	{
 		size_t xfer_size;
 
 		curr = dma_pool_alloc(mdma->desc_pool, GFP_NOWAIT, &curr_phys);
-		if (!curr)
-			goto free_desc;
 
-		if (prev) {
+		if (!curr)
+		{
+			goto free_desc;
+		}
+
+		if (prev)
+		{
 			prev->node_addr = curr_phys;
 			prev->next_desc = curr;
-		} else {
+		}
+		else
+		{
 			mdesc->list_phys = curr_phys;
 			mdesc->list = curr;
 		}
@@ -321,7 +351,7 @@ static struct dma_async_tx_descriptor *mdc_prep_dma_memcpy(
 		xfer_size = min_t(size_t, mdma->max_xfer_size, len);
 
 		mdc_list_desc_config(mchan, curr, DMA_MEM_TO_MEM, src, dest,
-				     xfer_size);
+							 xfer_size);
 
 		prev = curr;
 		prev_phys = curr_phys;
@@ -341,27 +371,35 @@ free_desc:
 }
 
 static int mdc_check_slave_width(struct mdc_chan *mchan,
-				 enum dma_transfer_direction dir)
+								 enum dma_transfer_direction dir)
 {
 	enum dma_slave_buswidth width;
 
 	if (dir == DMA_MEM_TO_DEV)
+	{
 		width = mchan->config.dst_addr_width;
+	}
 	else
+	{
 		width = mchan->config.src_addr_width;
+	}
 
-	switch (width) {
-	case DMA_SLAVE_BUSWIDTH_1_BYTE:
-	case DMA_SLAVE_BUSWIDTH_2_BYTES:
-	case DMA_SLAVE_BUSWIDTH_4_BYTES:
-	case DMA_SLAVE_BUSWIDTH_8_BYTES:
-		break;
-	default:
-		return -EINVAL;
+	switch (width)
+	{
+		case DMA_SLAVE_BUSWIDTH_1_BYTE:
+		case DMA_SLAVE_BUSWIDTH_2_BYTES:
+		case DMA_SLAVE_BUSWIDTH_4_BYTES:
+		case DMA_SLAVE_BUSWIDTH_8_BYTES:
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	if (width > mchan->mdma->bus_width)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -378,55 +416,76 @@ static struct dma_async_tx_descriptor *mdc_prep_dma_cyclic(
 	dma_addr_t curr_phys, prev_phys;
 
 	if (!buf_len && !period_len)
+	{
 		return NULL;
+	}
 
 	if (!is_slave_direction(dir))
+	{
 		return NULL;
+	}
 
 	if (mdc_check_slave_width(mchan, dir) < 0)
+	{
 		return NULL;
+	}
 
 	mdesc = kzalloc(sizeof(*mdesc), GFP_NOWAIT);
+
 	if (!mdesc)
+	{
 		return NULL;
+	}
+
 	mdesc->chan = mchan;
 	mdesc->cyclic = true;
 	mdesc->list_xfer_size = buf_len;
 	mdesc->list_period_len = DIV_ROUND_UP(period_len,
-					      mdma->max_xfer_size);
+										  mdma->max_xfer_size);
 
-	while (buf_len > 0) {
+	while (buf_len > 0)
+	{
 		size_t remainder = min(period_len, buf_len);
 
-		while (remainder > 0) {
+		while (remainder > 0)
+		{
 			size_t xfer_size;
 
 			curr = dma_pool_alloc(mdma->desc_pool, GFP_NOWAIT,
-					      &curr_phys);
-			if (!curr)
-				goto free_desc;
+								  &curr_phys);
 
-			if (!prev) {
+			if (!curr)
+			{
+				goto free_desc;
+			}
+
+			if (!prev)
+			{
 				mdesc->list_phys = curr_phys;
 				mdesc->list = curr;
-			} else {
+			}
+			else
+			{
 				prev->node_addr = curr_phys;
 				prev->next_desc = curr;
 			}
 
 			xfer_size = min_t(size_t, mdma->max_xfer_size,
-					  remainder);
+							  remainder);
 
-			if (dir == DMA_MEM_TO_DEV) {
+			if (dir == DMA_MEM_TO_DEV)
+			{
 				mdc_list_desc_config(mchan, curr, dir,
-						     buf_addr,
-						     mchan->config.dst_addr,
-						     xfer_size);
-			} else {
+									 buf_addr,
+									 mchan->config.dst_addr,
+									 xfer_size);
+			}
+			else
+			{
 				mdc_list_desc_config(mchan, curr, dir,
-						     mchan->config.src_addr,
-						     buf_addr,
-						     xfer_size);
+									 mchan->config.src_addr,
+									 buf_addr,
+									 xfer_size);
 			}
 
 			prev = curr;
@@ -438,6 +497,7 @@ static struct dma_async_tx_descriptor *mdc_prep_dma_cyclic(
 			remainder -= xfer_size;
 		}
 	}
+
 	prev->node_addr = mdesc->list_phys;
 
 	return vchan_tx_prep(&mchan->vc, &mdesc->vd, flags);
@@ -462,50 +522,71 @@ static struct dma_async_tx_descriptor *mdc_prep_slave_sg(
 	unsigned int i;
 
 	if (!sgl)
+	{
 		return NULL;
+	}
 
 	if (!is_slave_direction(dir))
+	{
 		return NULL;
+	}
 
 	if (mdc_check_slave_width(mchan, dir) < 0)
+	{
 		return NULL;
+	}
 
 	mdesc = kzalloc(sizeof(*mdesc), GFP_NOWAIT);
+
 	if (!mdesc)
+	{
 		return NULL;
+	}
+
 	mdesc->chan = mchan;
 
-	for_each_sg(sgl, sg, sg_len, i) {
+	for_each_sg(sgl, sg, sg_len, i)
+	{
 		dma_addr_t buf = sg_dma_address(sg);
 		size_t buf_len = sg_dma_len(sg);
 
-		while (buf_len > 0) {
+		while (buf_len > 0)
+		{
 			size_t xfer_size;
 
 			curr = dma_pool_alloc(mdma->desc_pool, GFP_NOWAIT,
-					      &curr_phys);
-			if (!curr)
-				goto free_desc;
+								  &curr_phys);
 
-			if (!prev) {
+			if (!curr)
+			{
+				goto free_desc;
+			}
+
+			if (!prev)
+			{
 				mdesc->list_phys = curr_phys;
 				mdesc->list = curr;
-			} else {
+			}
+			else
+			{
 				prev->node_addr = curr_phys;
 				prev->next_desc = curr;
 			}
 
 			xfer_size = min_t(size_t, mdma->max_xfer_size,
-					  buf_len);
+							  buf_len);
 
-			if (dir == DMA_MEM_TO_DEV) {
+			if (dir == DMA_MEM_TO_DEV)
+			{
 				mdc_list_desc_config(mchan, curr, dir, buf,
-						     mchan->config.dst_addr,
-						     xfer_size);
-			} else {
+									 mchan->config.dst_addr,
+									 xfer_size);
+			}
+			else
+			{
 				mdc_list_desc_config(mchan, curr, dir,
-						     mchan->config.src_addr,
-						     buf, xfer_size);
+									 mchan->config.src_addr,
+									 buf, xfer_size);
 			}
 
 			prev = curr;
@@ -534,8 +615,11 @@ static void mdc_issue_desc(struct mdc_chan *mchan)
 	u32 val;
 
 	vd = vchan_next_desc(&mchan->vc);
+
 	if (!vd)
+	{
 		return;
+	}
 
 	list_del(&vd->node);
 
@@ -543,18 +627,18 @@ static void mdc_issue_desc(struct mdc_chan *mchan)
 	mchan->desc = mdesc;
 
 	dev_dbg(mdma2dev(mdma), "Issuing descriptor on channel %d\n",
-		mchan->chan_nr);
+			mchan->chan_nr);
 
 	mdma->soc->enable_chan(mchan);
 
 	val = mdc_chan_readl(mchan, MDC_GENERAL_CONFIG);
 	val |= MDC_GENERAL_CONFIG_LIST_IEN | MDC_GENERAL_CONFIG_IEN |
-		MDC_GENERAL_CONFIG_LEVEL_INT | MDC_GENERAL_CONFIG_PHYSICAL_W |
-		MDC_GENERAL_CONFIG_PHYSICAL_R;
+		   MDC_GENERAL_CONFIG_LEVEL_INT | MDC_GENERAL_CONFIG_PHYSICAL_W |
+		   MDC_GENERAL_CONFIG_PHYSICAL_R;
 	mdc_chan_writel(mchan, val, MDC_GENERAL_CONFIG);
 	val = (mchan->thread << MDC_READ_PORT_CONFIG_STHREAD_SHIFT) |
-		(mchan->thread << MDC_READ_PORT_CONFIG_RTHREAD_SHIFT) |
-		(mchan->thread << MDC_READ_PORT_CONFIG_WTHREAD_SHIFT);
+		  (mchan->thread << MDC_READ_PORT_CONFIG_RTHREAD_SHIFT) |
+		  (mchan->thread << MDC_READ_PORT_CONFIG_WTHREAD_SHIFT);
 	mdc_chan_writel(mchan, val, MDC_READ_PORT_CONFIG);
 	mdc_chan_writel(mchan, mdesc->list_phys, MDC_LIST_NODE_ADDRESS);
 	val = mdc_chan_readl(mchan, MDC_CONTROL_AND_STATUS);
@@ -568,13 +652,17 @@ static void mdc_issue_pending(struct dma_chan *chan)
 	unsigned long flags;
 
 	spin_lock_irqsave(&mchan->vc.lock, flags);
+
 	if (vchan_issue_pending(&mchan->vc) && !mchan->desc)
+	{
 		mdc_issue_desc(mchan);
+	}
+
 	spin_unlock_irqrestore(&mchan->vc.lock, flags);
 }
 
 static enum dma_status mdc_tx_status(struct dma_chan *chan,
-	dma_cookie_t cookie, struct dma_tx_state *txstate)
+									 dma_cookie_t cookie, struct dma_tx_state *txstate)
 {
 	struct mdc_chan *mchan = to_mdc_chan(chan);
 	struct mdc_tx_desc *mdesc;
@@ -584,18 +672,27 @@ static enum dma_status mdc_tx_status(struct dma_chan *chan,
 	int ret;
 
 	ret = dma_cookie_status(chan, cookie, txstate);
+
 	if (ret == DMA_COMPLETE)
+	{
 		return ret;
+	}
 
 	if (!txstate)
+	{
 		return ret;
+	}
 
 	spin_lock_irqsave(&mchan->vc.lock, flags);
 	vd = vchan_find_desc(&mchan->vc, cookie);
-	if (vd) {
+
+	if (vd)
+	{
 		mdesc = to_mdc_desc(&vd->tx);
 		bytes = mdesc->list_xfer_size;
-	} else if (mchan->desc && mchan->desc->vd.tx.cookie == cookie) {
+	}
+	else if (mchan->desc && mchan->desc->vd.tx.cookie == cookie)
+	{
 		struct mdc_hw_list_desc *ldesc;
 		u32 val1, val2, done, processed, residue;
 		int i, cmds;
@@ -606,44 +703,59 @@ static enum dma_status mdc_tx_status(struct dma_chan *chan,
 		 * Determine the number of commands that haven't been
 		 * processed (handled by the IRQ handler) yet.
 		 */
-		do {
+		do
+		{
 			val1 = mdc_chan_readl(mchan, MDC_CMDS_PROCESSED) &
-				~MDC_CMDS_PROCESSED_INT_ACTIVE;
+				   ~MDC_CMDS_PROCESSED_INT_ACTIVE;
 			residue = mdc_chan_readl(mchan,
-						 MDC_ACTIVE_TRANSFER_SIZE);
+									 MDC_ACTIVE_TRANSFER_SIZE);
 			val2 = mdc_chan_readl(mchan, MDC_CMDS_PROCESSED) &
-				~MDC_CMDS_PROCESSED_INT_ACTIVE;
-		} while (val1 != val2);
+				   ~MDC_CMDS_PROCESSED_INT_ACTIVE;
+		}
+		while (val1 != val2);
 
 		done = (val1 >> MDC_CMDS_PROCESSED_CMDS_DONE_SHIFT) &
-			MDC_CMDS_PROCESSED_CMDS_DONE_MASK;
+			   MDC_CMDS_PROCESSED_CMDS_DONE_MASK;
 		processed = (val1 >> MDC_CMDS_PROCESSED_CMDS_PROCESSED_SHIFT) &
-			MDC_CMDS_PROCESSED_CMDS_PROCESSED_MASK;
+					MDC_CMDS_PROCESSED_CMDS_PROCESSED_MASK;
 		cmds = (done - processed) %
-			(MDC_CMDS_PROCESSED_CMDS_DONE_MASK + 1);
+			   (MDC_CMDS_PROCESSED_CMDS_DONE_MASK + 1);
 
 		/*
 		 * If the command loaded event hasn't been processed yet, then
 		 * the difference above includes an extra command.
 		 */
 		if (!mdesc->cmd_loaded)
+		{
 			cmds--;
+		}
 		else
+		{
 			cmds += mdesc->list_cmds_done;
+		}
 
 		bytes = mdesc->list_xfer_size;
 		ldesc = mdesc->list;
-		for (i = 0; i < cmds; i++) {
+
+		for (i = 0; i < cmds; i++)
+		{
 			bytes -= ldesc->xfer_size + 1;
 			ldesc = ldesc->next_desc;
 		}
-		if (ldesc) {
+
+		if (ldesc)
+		{
 			if (residue != MDC_TRANSFER_SIZE_MASK)
+			{
 				bytes -= ldesc->xfer_size - residue;
+			}
 			else
+			{
 				bytes -= ldesc->xfer_size + 1;
+			}
 		}
 	}
+
 	spin_unlock_irqrestore(&mchan->vc.lock, flags);
 
 	dma_set_residue(txstate, bytes);
@@ -659,20 +771,22 @@ static unsigned int mdc_get_new_events(struct mdc_chan *mchan)
 	val = mdc_chan_readl(mchan, MDC_CMDS_PROCESSED);
 	processed = (val >> MDC_CMDS_PROCESSED_CMDS_PROCESSED_SHIFT) &
 				MDC_CMDS_PROCESSED_CMDS_PROCESSED_MASK;
+
 	/*
 	 * CMDS_DONE may have incremented between reading CMDS_PROCESSED
 	 * and clearing INT_ACTIVE.  Re-read CMDS_PROCESSED to ensure we
 	 * didn't miss a command completion.
 	 */
-	do {
+	do
+	{
 		val = mdc_chan_readl(mchan, MDC_CMDS_PROCESSED);
 
 		done1 = (val >> MDC_CMDS_PROCESSED_CMDS_DONE_SHIFT) &
-			MDC_CMDS_PROCESSED_CMDS_DONE_MASK;
+				MDC_CMDS_PROCESSED_CMDS_DONE_MASK;
 
 		val &= ~((MDC_CMDS_PROCESSED_CMDS_PROCESSED_MASK <<
-			  MDC_CMDS_PROCESSED_CMDS_PROCESSED_SHIFT) |
-			 MDC_CMDS_PROCESSED_INT_ACTIVE);
+				  MDC_CMDS_PROCESSED_CMDS_PROCESSED_SHIFT) |
+				 MDC_CMDS_PROCESSED_INT_ACTIVE);
 
 		val |= done1 << MDC_CMDS_PROCESSED_CMDS_PROCESSED_SHIFT;
 
@@ -681,14 +795,17 @@ static unsigned int mdc_get_new_events(struct mdc_chan *mchan)
 		val = mdc_chan_readl(mchan, MDC_CMDS_PROCESSED);
 
 		done2 = (val >> MDC_CMDS_PROCESSED_CMDS_DONE_SHIFT) &
-			MDC_CMDS_PROCESSED_CMDS_DONE_MASK;
-	} while (done1 != done2);
+				MDC_CMDS_PROCESSED_CMDS_DONE_MASK;
+	}
+	while (done1 != done2);
 
 	if (done1 >= processed)
+	{
 		ret = done1 - processed;
+	}
 	else
 		ret = ((MDC_CMDS_PROCESSED_CMDS_PROCESSED_MASK + 1) -
-			processed) + done1;
+			   processed) + done1;
 
 	return ret;
 }
@@ -703,7 +820,7 @@ static int mdc_terminate_all(struct dma_chan *chan)
 	spin_lock_irqsave(&mchan->vc.lock, flags);
 
 	mdc_chan_writel(mchan, MDC_CONTROL_AND_STATUS_CANCEL,
-			MDC_CONTROL_AND_STATUS);
+					MDC_CONTROL_AND_STATUS);
 
 	mdesc = mchan->desc;
 	mchan->desc = NULL;
@@ -714,14 +831,17 @@ static int mdc_terminate_all(struct dma_chan *chan)
 	spin_unlock_irqrestore(&mchan->vc.lock, flags);
 
 	if (mdesc)
+	{
 		mdc_desc_free(&mdesc->vd);
+	}
+
 	vchan_dma_desc_free_list(&mchan->vc, &head);
 
 	return 0;
 }
 
 static int mdc_slave_config(struct dma_chan *chan,
-			    struct dma_slave_config *config)
+							struct dma_slave_config *config)
 {
 	struct mdc_chan *mchan = to_mdc_chan(chan);
 	unsigned long flags;
@@ -756,39 +876,53 @@ static irqreturn_t mdc_chan_irq(int irq, void *dev_id)
 	new_events = mdc_get_new_events(mchan);
 
 	if (!new_events)
-		goto out;
-
-	mdesc = mchan->desc;
-	if (!mdesc) {
-		dev_warn(mdma2dev(mchan->mdma),
-			 "IRQ with no active descriptor on channel %d\n",
-			 mchan->chan_nr);
+	{
 		goto out;
 	}
 
-	for (i = 0; i < new_events; i++) {
+	mdesc = mchan->desc;
+
+	if (!mdesc)
+	{
+		dev_warn(mdma2dev(mchan->mdma),
+				 "IRQ with no active descriptor on channel %d\n",
+				 mchan->chan_nr);
+		goto out;
+	}
+
+	for (i = 0; i < new_events; i++)
+	{
 		/*
 		 * The first interrupt in a transfer indicates that the
 		 * command list has been loaded, not that a command has
 		 * been completed.
 		 */
-		if (!mdesc->cmd_loaded) {
+		if (!mdesc->cmd_loaded)
+		{
 			mdesc->cmd_loaded = true;
 			continue;
 		}
 
 		mdesc->list_cmds_done++;
-		if (mdesc->cyclic) {
+
+		if (mdesc->cyclic)
+		{
 			mdesc->list_cmds_done %= mdesc->list_len;
+
 			if (mdesc->list_cmds_done % mdesc->list_period_len == 0)
+			{
 				vchan_cyclic_callback(&mdesc->vd);
-		} else if (mdesc->list_cmds_done == mdesc->list_len) {
+			}
+		}
+		else if (mdesc->list_cmds_done == mdesc->list_len)
+		{
 			mchan->desc = NULL;
 			vchan_cookie_complete(&mdesc->vd);
 			mdc_issue_desc(mchan);
 			break;
 		}
 	}
+
 out:
 	spin_unlock(&mchan->vc.lock);
 
@@ -796,20 +930,27 @@ out:
 }
 
 static struct dma_chan *mdc_of_xlate(struct of_phandle_args *dma_spec,
-				     struct of_dma *ofdma)
+									 struct of_dma *ofdma)
 {
 	struct mdc_dma *mdma = ofdma->of_dma_data;
 	struct dma_chan *chan;
 
 	if (dma_spec->args_count != 3)
+	{
 		return NULL;
+	}
 
-	list_for_each_entry(chan, &mdma->dma_dev.channels, device_node) {
+	list_for_each_entry(chan, &mdma->dma_dev.channels, device_node)
+	{
 		struct mdc_chan *mchan = to_mdc_chan(chan);
 
 		if (!(dma_spec->args[1] & BIT(mchan->chan_nr)))
+		{
 			continue;
-		if (dma_get_slave_channel(chan)) {
+		}
+
+		if (dma_get_slave_channel(chan))
+		{
 			mchan->periph = dma_spec->args[0];
 			mchan->thread = dma_spec->args[2];
 			return chan;
@@ -828,11 +969,11 @@ static void pistachio_mdc_enable_chan(struct mdc_chan *mchan)
 	struct mdc_dma *mdma = mchan->mdma;
 
 	regmap_update_bits(mdma->periph_regs,
-			   PISTACHIO_CR_PERIPH_DMA_ROUTE(mchan->chan_nr),
-			   PISTACHIO_CR_PERIPH_DMA_ROUTE_MASK <<
-			   PISTACHIO_CR_PERIPH_DMA_ROUTE_SHIFT(mchan->chan_nr),
-			   mchan->periph <<
-			   PISTACHIO_CR_PERIPH_DMA_ROUTE_SHIFT(mchan->chan_nr));
+					   PISTACHIO_CR_PERIPH_DMA_ROUTE(mchan->chan_nr),
+					   PISTACHIO_CR_PERIPH_DMA_ROUTE_MASK <<
+					   PISTACHIO_CR_PERIPH_DMA_ROUTE_SHIFT(mchan->chan_nr),
+					   mchan->periph <<
+					   PISTACHIO_CR_PERIPH_DMA_ROUTE_SHIFT(mchan->chan_nr));
 }
 
 static void pistachio_mdc_disable_chan(struct mdc_chan *mchan)
@@ -840,18 +981,20 @@ static void pistachio_mdc_disable_chan(struct mdc_chan *mchan)
 	struct mdc_dma *mdma = mchan->mdma;
 
 	regmap_update_bits(mdma->periph_regs,
-			   PISTACHIO_CR_PERIPH_DMA_ROUTE(mchan->chan_nr),
-			   PISTACHIO_CR_PERIPH_DMA_ROUTE_MASK <<
-			   PISTACHIO_CR_PERIPH_DMA_ROUTE_SHIFT(mchan->chan_nr),
-			   0);
+					   PISTACHIO_CR_PERIPH_DMA_ROUTE(mchan->chan_nr),
+					   PISTACHIO_CR_PERIPH_DMA_ROUTE_MASK <<
+					   PISTACHIO_CR_PERIPH_DMA_ROUTE_SHIFT(mchan->chan_nr),
+					   0);
 }
 
-static const struct mdc_dma_soc_data pistachio_mdc_data = {
+static const struct mdc_dma_soc_data pistachio_mdc_data =
+{
 	.enable_chan = pistachio_mdc_enable_chan,
 	.disable_chan = pistachio_mdc_disable_chan,
 };
 
-static const struct of_device_id mdc_dma_of_match[] = {
+static const struct of_device_id mdc_dma_of_match[] =
+{
 	{ .compatible = "img,pistachio-mdc-dma", .data = &pistachio_mdc_data, },
 	{ },
 };
@@ -866,29 +1009,45 @@ static int mdc_dma_probe(struct platform_device *pdev)
 	int ret;
 
 	mdma = devm_kzalloc(&pdev->dev, sizeof(*mdma), GFP_KERNEL);
+
 	if (!mdma)
+	{
 		return -ENOMEM;
+	}
+
 	platform_set_drvdata(pdev, mdma);
 
 	mdma->soc = of_device_get_match_data(&pdev->dev);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mdma->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(mdma->regs))
+	{
 		return PTR_ERR(mdma->regs);
+	}
 
 	mdma->periph_regs = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
-							    "img,cr-periph");
+						"img,cr-periph");
+
 	if (IS_ERR(mdma->periph_regs))
+	{
 		return PTR_ERR(mdma->periph_regs);
+	}
 
 	mdma->clk = devm_clk_get(&pdev->dev, "sys");
+
 	if (IS_ERR(mdma->clk))
+	{
 		return PTR_ERR(mdma->clk);
+	}
 
 	ret = clk_prepare_enable(mdma->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dma_cap_zero(mdma->dma_dev.cap_mask);
 	dma_cap_set(DMA_SLAVE, mdma->dma_dev.cap_mask);
@@ -898,13 +1057,13 @@ static int mdc_dma_probe(struct platform_device *pdev)
 
 	val = mdc_readl(mdma, MDC_GLOBAL_CONFIG_A);
 	mdma->nr_channels = (val >> MDC_GLOBAL_CONFIG_A_DMA_CONTEXTS_SHIFT) &
-		MDC_GLOBAL_CONFIG_A_DMA_CONTEXTS_MASK;
+						MDC_GLOBAL_CONFIG_A_DMA_CONTEXTS_MASK;
 	mdma->nr_threads =
 		1 << ((val >> MDC_GLOBAL_CONFIG_A_THREAD_ID_WIDTH_SHIFT) &
-		      MDC_GLOBAL_CONFIG_A_THREAD_ID_WIDTH_MASK);
+			  MDC_GLOBAL_CONFIG_A_THREAD_ID_WIDTH_MASK);
 	mdma->bus_width =
 		(1 << ((val >> MDC_GLOBAL_CONFIG_A_SYS_DAT_WIDTH_SHIFT) &
-		       MDC_GLOBAL_CONFIG_A_SYS_DAT_WIDTH_MASK)) / 8;
+			   MDC_GLOBAL_CONFIG_A_SYS_DAT_WIDTH_MASK)) / 8;
 	/*
 	 * Although transfer sizes of up to MDC_TRANSFER_SIZE_MASK + 1 bytes
 	 * are supported, this makes it possible for the value reported in
@@ -917,12 +1076,15 @@ static int mdc_dma_probe(struct platform_device *pdev)
 	mdma->max_xfer_size = MDC_TRANSFER_SIZE_MASK + 1 - mdma->bus_width;
 
 	of_property_read_u32(pdev->dev.of_node, "dma-channels",
-			     &mdma->nr_channels);
+						 &mdma->nr_channels);
 	ret = of_property_read_u32(pdev->dev.of_node,
-				   "img,max-burst-multiplier",
-				   &mdma->max_burst_mult);
+							   "img,max-burst-multiplier",
+							   &mdma->max_burst_mult);
+
 	if (ret)
+	{
 		goto disable_clk;
+	}
 
 	mdma->dma_dev.dev = &pdev->dev;
 	mdma->dma_dev.device_prep_slave_sg = mdc_prep_slave_sg;
@@ -936,50 +1098,68 @@ static int mdc_dma_probe(struct platform_device *pdev)
 
 	mdma->dma_dev.directions = BIT(DMA_DEV_TO_MEM) | BIT(DMA_MEM_TO_DEV);
 	mdma->dma_dev.residue_granularity = DMA_RESIDUE_GRANULARITY_BURST;
-	for (i = 1; i <= mdma->bus_width; i <<= 1) {
+
+	for (i = 1; i <= mdma->bus_width; i <<= 1)
+	{
 		mdma->dma_dev.src_addr_widths |= BIT(i);
 		mdma->dma_dev.dst_addr_widths |= BIT(i);
 	}
 
 	INIT_LIST_HEAD(&mdma->dma_dev.channels);
-	for (i = 0; i < mdma->nr_channels; i++) {
+
+	for (i = 0; i < mdma->nr_channels; i++)
+	{
 		struct mdc_chan *mchan = &mdma->channels[i];
 
 		mchan->mdma = mdma;
 		mchan->chan_nr = i;
 		mchan->irq = platform_get_irq(pdev, i);
-		if (mchan->irq < 0) {
+
+		if (mchan->irq < 0)
+		{
 			ret = mchan->irq;
 			goto disable_clk;
 		}
+
 		ret = devm_request_irq(&pdev->dev, mchan->irq, mdc_chan_irq,
-				       IRQ_TYPE_LEVEL_HIGH,
-				       dev_name(&pdev->dev), mchan);
+							   IRQ_TYPE_LEVEL_HIGH,
+							   dev_name(&pdev->dev), mchan);
+
 		if (ret < 0)
+		{
 			goto disable_clk;
+		}
 
 		mchan->vc.desc_free = mdc_desc_free;
 		vchan_init(&mchan->vc, &mdma->dma_dev);
 	}
 
 	mdma->desc_pool = dmam_pool_create(dev_name(&pdev->dev), &pdev->dev,
-					   sizeof(struct mdc_hw_list_desc),
-					   4, 0);
-	if (!mdma->desc_pool) {
+									   sizeof(struct mdc_hw_list_desc),
+									   4, 0);
+
+	if (!mdma->desc_pool)
+	{
 		ret = -ENOMEM;
 		goto disable_clk;
 	}
 
 	ret = dma_async_device_register(&mdma->dma_dev);
+
 	if (ret)
+	{
 		goto disable_clk;
+	}
 
 	ret = of_dma_controller_register(pdev->dev.of_node, mdc_of_xlate, mdma);
+
 	if (ret)
+	{
 		goto unregister;
+	}
 
 	dev_info(&pdev->dev, "MDC with %u channels and %u threads\n",
-		 mdma->nr_channels, mdma->nr_threads);
+			 mdma->nr_channels, mdma->nr_threads);
 
 	return 0;
 
@@ -999,7 +1179,8 @@ static int mdc_dma_remove(struct platform_device *pdev)
 	dma_async_device_unregister(&mdma->dma_dev);
 
 	list_for_each_entry_safe(mchan, next, &mdma->dma_dev.channels,
-				 vc.chan.device_node) {
+							 vc.chan.device_node)
+	{
 		list_del(&mchan->vc.chan.device_node);
 
 		devm_free_irq(&pdev->dev, mchan->irq, mchan);
@@ -1012,7 +1193,8 @@ static int mdc_dma_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver mdc_dma_driver = {
+static struct platform_driver mdc_dma_driver =
+{
 	.driver = {
 		.name = "img-mdc-dma",
 		.of_match_table = of_match_ptr(mdc_dma_of_match),

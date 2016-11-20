@@ -23,12 +23,14 @@
 #include <linux/hrtimer.h>
 #include <linux/workqueue.h>
 
-struct arch_timer_kvm {
+struct arch_timer_kvm
+{
 	/* Virtual offset */
 	cycle_t			cntvoff;
 };
 
-struct arch_timer_cpu {
+struct arch_timer_cpu
+{
 	/* Registers: control register, timer value */
 	u32				cntv_ctl;	/* Saved/restored */
 	cycle_t				cntv_cval;	/* Saved/restored */
@@ -61,7 +63,7 @@ int kvm_timer_hyp_init(void);
 int kvm_timer_enable(struct kvm_vcpu *vcpu);
 void kvm_timer_init(struct kvm *kvm);
 int kvm_timer_vcpu_reset(struct kvm_vcpu *vcpu,
-			 const struct kvm_irq_level *irq);
+						 const struct kvm_irq_level *irq);
 void kvm_timer_vcpu_init(struct kvm_vcpu *vcpu);
 void kvm_timer_flush_hwstate(struct kvm_vcpu *vcpu);
 void kvm_timer_sync_hwstate(struct kvm_vcpu *vcpu);

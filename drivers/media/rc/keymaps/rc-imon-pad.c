@@ -18,7 +18,8 @@
  * same remote to different hex codes, and the silkscreened names
  * vary a bit between the SoundGraph and Antec remotes... ugh.
  */
-static struct rc_map_table imon_pad[] = {
+static struct rc_map_table imon_pad[] =
+{
 	/* keys sorted mostly by frequency of use to optimize lookups */
 	{ 0x2a8195b7, KEY_REWIND },
 	{ 0x298315b7, KEY_REWIND },
@@ -130,7 +131,8 @@ static struct rc_map_table imon_pad[] = {
 	{ 0x29b715b7, KEY_DASHBOARD }, /* AppLauncher */
 };
 
-static struct rc_map_list imon_pad_map = {
+static struct rc_map_list imon_pad_map =
+{
 	.map = {
 		.scan    = imon_pad,
 		.size    = ARRAY_SIZE(imon_pad),

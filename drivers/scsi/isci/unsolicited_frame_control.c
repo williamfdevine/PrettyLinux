@@ -106,7 +106,8 @@ void sci_unsolicited_frame_control_construct(struct isci_host *ihost)
 	 * Program the actual used UF buffers into the UF address table and
 	 * the controller's array of UFs.
 	 */
-	for (i = 0; i < SCU_MAX_UNSOLICITED_FRAMES; i++) {
+	for (i = 0; i < SCU_MAX_UNSOLICITED_FRAMES; i++)
+	{
 		uf = &uf_control->buffers.array[i];
 
 		uf_control->address_table.array[i] = dma;
@@ -126,10 +127,11 @@ void sci_unsolicited_frame_control_construct(struct isci_host *ihost)
 }
 
 enum sci_status sci_unsolicited_frame_control_get_header(struct sci_unsolicited_frame_control *uf_control,
-							 u32 frame_index,
-							 void **frame_header)
+		u32 frame_index,
+		void **frame_header)
 {
-	if (frame_index < SCU_MAX_UNSOLICITED_FRAMES) {
+	if (frame_index < SCU_MAX_UNSOLICITED_FRAMES)
+	{
 		/* Skip the first word in the frame since this is a controll word used
 		 * by the hardware.
 		 */
@@ -142,10 +144,11 @@ enum sci_status sci_unsolicited_frame_control_get_header(struct sci_unsolicited_
 }
 
 enum sci_status sci_unsolicited_frame_control_get_buffer(struct sci_unsolicited_frame_control *uf_control,
-							 u32 frame_index,
-							 void **frame_buffer)
+		u32 frame_index,
+		void **frame_buffer)
 {
-	if (frame_index < SCU_MAX_UNSOLICITED_FRAMES) {
+	if (frame_index < SCU_MAX_UNSOLICITED_FRAMES)
+	{
 		*frame_buffer = uf_control->buffers.array[frame_index].buffer;
 
 		return SCI_SUCCESS;
@@ -155,7 +158,7 @@ enum sci_status sci_unsolicited_frame_control_get_buffer(struct sci_unsolicited_
 }
 
 bool sci_unsolicited_frame_control_release_frame(struct sci_unsolicited_frame_control *uf_control,
-						 u32 frame_index)
+		u32 frame_index)
 {
 	u32 frame_get;
 	u32 frame_cycle;
@@ -169,21 +172,27 @@ bool sci_unsolicited_frame_control_release_frame(struct sci_unsolicited_frame_co
 	 * be released (i.e. update the get pointer)
 	 */
 	while (lower_32_bits(uf_control->address_table.array[frame_get]) == 0 &&
-	       upper_32_bits(uf_control->address_table.array[frame_get]) == 0 &&
-	       frame_get < SCU_MAX_UNSOLICITED_FRAMES)
+		   upper_32_bits(uf_control->address_table.array[frame_get]) == 0 &&
+		   frame_get < SCU_MAX_UNSOLICITED_FRAMES)
+	{
 		frame_get++;
+	}
 
 	/*
 	 * The table has a NULL entry as it's last element.  This is
 	 * illegal.
 	 */
 	BUG_ON(frame_get >= SCU_MAX_UNSOLICITED_FRAMES);
+
 	if (frame_index >= SCU_MAX_UNSOLICITED_FRAMES)
+	{
 		return false;
+	}
 
 	uf_control->buffers.array[frame_index].state = UNSOLICITED_FRAME_RELEASED;
 
-	if (frame_get != frame_index) {
+	if (frame_get != frame_index)
+	{
 		/*
 		 * Frames remain in use until we advance the get pointer
 		 * so there is nothing we can do here
@@ -195,14 +204,19 @@ bool sci_unsolicited_frame_control_release_frame(struct sci_unsolicited_frame_co
 	 * The frame index is equal to the current get pointer so we
 	 * can now free up all of the frame entries that
 	 */
-	while (uf_control->buffers.array[frame_get].state == UNSOLICITED_FRAME_RELEASED) {
+	while (uf_control->buffers.array[frame_get].state == UNSOLICITED_FRAME_RELEASED)
+	{
 		uf_control->buffers.array[frame_get].state = UNSOLICITED_FRAME_EMPTY;
 
-		if (frame_get+1 == SCU_MAX_UNSOLICITED_FRAMES-1) {
+		if (frame_get + 1 == SCU_MAX_UNSOLICITED_FRAMES - 1)
+		{
 			frame_cycle ^= SCU_MAX_UNSOLICITED_FRAMES;
 			frame_get = 0;
-		} else
+		}
+		else
+		{
 			frame_get++;
+		}
 	}
 
 	uf_control->get = SCU_UFQGP_GEN_BIT(ENABLE_BIT) | frame_cycle | frame_get;

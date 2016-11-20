@@ -1,5 +1,6 @@
-uint32_t gt215_pmu_data[] = {
-/* 0x0000: proc_kern */
+uint32_t gt215_pmu_data[] =
+{
+	/* 0x0000: proc_kern */
 	0x52544e49,
 	0x00000000,
 	0x00000000,
@@ -22,7 +23,7 @@ uint32_t gt215_pmu_data[] = {
 	0x00000000,
 	0x00000000,
 	0x00000000,
-/* 0x0058: proc_list_head */
+	/* 0x0058: proc_list_head */
 	0x54534f48,
 	0x0000050a,
 	0x000004a7,
@@ -155,12 +156,12 @@ uint32_t gt215_pmu_data[] = {
 	0x00000000,
 	0x00000000,
 	0x00000000,
-/* 0x0268: proc_list_tail */
-/* 0x0268: time_prev */
+	/* 0x0268: proc_list_tail */
+	/* 0x0268: time_prev */
 	0x00000000,
-/* 0x026c: time_next */
+	/* 0x026c: time_next */
 	0x00000000,
-/* 0x0270: fifo_queue */
+	/* 0x0270: fifo_queue */
 	0x00000000,
 	0x00000000,
 	0x00000000,
@@ -193,7 +194,7 @@ uint32_t gt215_pmu_data[] = {
 	0x00000000,
 	0x00000000,
 	0x00000000,
-/* 0x02f0: rfifo_queue */
+	/* 0x02f0: rfifo_queue */
 	0x00000000,
 	0x00000000,
 	0x00000000,
@@ -226,11 +227,11 @@ uint32_t gt215_pmu_data[] = {
 	0x00000000,
 	0x00000000,
 	0x00000000,
-/* 0x0370: memx_func_head */
+	/* 0x0370: memx_func_head */
 	0x00000001,
 	0x00000000,
 	0x00000549,
-/* 0x037c: memx_func_next */
+	/* 0x037c: memx_func_next */
 	0x00000002,
 	0x00000000,
 	0x000005a0,
@@ -249,12 +250,12 @@ uint32_t gt215_pmu_data[] = {
 	0x00000007,
 	0x00000000,
 	0x00000676,
-/* 0x03c4: memx_func_tail */
-/* 0x03c4: memx_ts_start */
+	/* 0x03c4: memx_func_tail */
+	/* 0x03c4: memx_ts_start */
 	0x00000000,
-/* 0x03c8: memx_ts_end */
+	/* 0x03c8: memx_ts_end */
 	0x00000000,
-/* 0x03cc: memx_data_head */
+	/* 0x03cc: memx_data_head */
 	0x00000000,
 	0x00000000,
 	0x00000000,
@@ -767,8 +768,8 @@ uint32_t gt215_pmu_data[] = {
 	0x00000000,
 	0x00000000,
 	0x00000000,
-/* 0x0bcc: memx_data_tail */
-/* 0x0bcc: memx_train_head */
+	/* 0x0bcc: memx_data_tail */
+	/* 0x0bcc: memx_train_head */
 	0x00000000,
 	0x00000000,
 	0x00000000,
@@ -833,8 +834,8 @@ uint32_t gt215_pmu_data[] = {
 	0x00000000,
 	0x00000000,
 	0x00000000,
-/* 0x0ccc: memx_train_tail */
-/* 0x0ccc: i2c_scl_map */
+	/* 0x0ccc: memx_train_tail */
+	/* 0x0ccc: i2c_scl_map */
 	0x00001000,
 	0x00004000,
 	0x00010000,
@@ -845,7 +846,7 @@ uint32_t gt215_pmu_data[] = {
 	0x01000000,
 	0x04000000,
 	0x10000000,
-/* 0x0cf4: i2c_sda_map */
+	/* 0x0cf4: i2c_sda_map */
 	0x00002000,
 	0x00008000,
 	0x00020000,
@@ -856,7 +857,7 @@ uint32_t gt215_pmu_data[] = {
 	0x02000000,
 	0x08000000,
 	0x20000000,
-/* 0x0d1c: i2c_ctrl */
+	/* 0x0d1c: i2c_ctrl */
 	0x0000e138,
 	0x0000e150,
 	0x0000e168,
@@ -916,9 +917,10 @@ uint32_t gt215_pmu_data[] = {
 	0x00000000,
 };
 
-uint32_t gt215_pmu_code[] = {
+uint32_t gt215_pmu_code[] =
+{
 	0x03920ef5,
-/* 0x0004: rd32 */
+	/* 0x0004: rd32 */
 	0x07a007f1,
 	0xd00604b6,
 	0x04bd000e,
@@ -926,7 +928,7 @@ uint32_t gt215_pmu_code[] = {
 	0xf101d3f0,
 	0xb607ac07,
 	0x0dd00604,
-/* 0x0023: rd32_wait */
+	/* 0x0023: rd32_wait */
 	0xf104bd00,
 	0xb607acd7,
 	0xddcf06d4,
@@ -935,7 +937,7 @@ uint32_t gt215_pmu_code[] = {
 	0x07a4d7f1,
 	0xcf06d4b6,
 	0x00f800dd,
-/* 0x0040: wr32 */
+	/* 0x0040: wr32 */
 	0x07a007f1,
 	0xd00604b6,
 	0x04bd000e,
@@ -946,29 +948,29 @@ uint32_t gt215_pmu_code[] = {
 	0xf101d3f0,
 	0xb607ac07,
 	0x0dd00604,
-/* 0x006b: wr32_wait */
+	/* 0x006b: wr32_wait */
 	0xf104bd00,
 	0xb607acd7,
 	0xddcf06d4,
 	0x00d4f100,
 	0xf21bf470,
-/* 0x007e: nsec */
+	/* 0x007e: nsec */
 	0x90f900f8,
 	0x87f080f9,
 	0x0684b62c,
-/* 0x008b: nsec_loop */
+	/* 0x008b: nsec_loop */
 	0xf00088cf,
 	0x94b62c97,
 	0x0099cf06,
 	0xb80298bb,
 	0x1ef4069e,
 	0xfc80fcf1,
-/* 0x00a3: wait */
+	/* 0x00a3: wait */
 	0xf900f890,
 	0xf080f990,
 	0x84b62c87,
 	0x0088cf06,
-/* 0x00b0: wait_loop */
+	/* 0x00b0: wait_loop */
 	0xf402eeb9,
 	0xdab90421,
 	0x04adfd02,
@@ -978,9 +980,9 @@ uint32_t gt215_pmu_code[] = {
 	0xbb0099cf,
 	0x9bb80298,
 	0xdf1ef406,
-/* 0x00d4: wait_done */
+	/* 0x00d4: wait_done */
 	0x90fc80fc,
-/* 0x00da: intr_watchdog */
+	/* 0x00da: intr_watchdog */
 	0xe99800f8,
 	0x0096b003,
 	0x982a0bf4,
@@ -989,18 +991,18 @@ uint32_t gt215_pmu_code[] = {
 	0xf501d7f0,
 	0xbd02d121,
 	0x150ef494,
-/* 0x00f8: intr_watchdog_next_time */
+	/* 0x00f8: intr_watchdog_next_time */
 	0xb09b0a98,
 	0x0bf400a6,
 	0x069ab809,
-/* 0x0107: intr_watchdog_next_time_set */
+	/* 0x0107: intr_watchdog_next_time_set */
 	0x80061cf4,
-/* 0x010a: intr_watchdog_next_proc */
+	/* 0x010a: intr_watchdog_next_proc */
 	0xe9809b09,
 	0x58e0b603,
 	0x0268e6b1,
 	0xf8c61bf4,
-/* 0x0119: intr */
+	/* 0x0119: intr */
 	0xbd00f900,
 	0xf980f904,
 	0xf9a0f990,
@@ -1026,7 +1028,7 @@ uint32_t gt215_pmu_code[] = {
 	0x04b63407,
 	0x0009d006,
 	0x098004bd,
-/* 0x017d: intr_skip_watchdog */
+	/* 0x017d: intr_skip_watchdog */
 	0x0089e49a,
 	0x480bf408,
 	0x068897f1,
@@ -1043,11 +1045,11 @@ uint32_t gt215_pmu_code[] = {
 	0xc007f1c0,
 	0x0604b604,
 	0xbd000cd0,
-/* 0x01bd: intr_subintr_skip_fifo */
+	/* 0x01bd: intr_subintr_skip_fifo */
 	0x8807f104,
 	0x0604b606,
 	0xbd0009d0,
-/* 0x01c9: intr_skip_subintr */
+	/* 0x01c9: intr_skip_subintr */
 	0xe097f104,
 	0xfd90bd00,
 	0x07f00489,
@@ -1060,7 +1062,7 @@ uint32_t gt215_pmu_code[] = {
 	0x90fca0fc,
 	0x00fc80fc,
 	0xf80032f4,
-/* 0x01f9: ticks_from_ns */
+	/* 0x01f9: ticks_from_ns */
 	0xf9c0f901,
 	0xcbd7f1b0,
 	0x00d3f000,
@@ -1071,10 +1073,10 @@ uint32_t gt215_pmu_code[] = {
 	0xd7f103e8,
 	0xd3f000cb,
 	0x0b21f500,
-/* 0x0221: ticks_from_ns_quit */
+	/* 0x0221: ticks_from_ns_quit */
 	0x02ceb904,
 	0xc0fcb0fc,
-/* 0x022a: ticks_from_us */
+	/* 0x022a: ticks_from_us */
 	0xc0f900f8,
 	0xd7f1b0f9,
 	0xd3f000cb,
@@ -1082,13 +1084,13 @@ uint32_t gt215_pmu_code[] = {
 	0x02ceb904,
 	0xf400b4b0,
 	0xe4bd050b,
-/* 0x0244: ticks_from_us_quit */
+	/* 0x0244: ticks_from_us_quit */
 	0xc0fcb0fc,
-/* 0x024a: ticks_to_us */
+	/* 0x024a: ticks_to_us */
 	0xd7f100f8,
 	0xd3f000cb,
 	0xecedff00,
-/* 0x0256: timer */
+	/* 0x0256: timer */
 	0x90f900f8,
 	0x32f480f9,
 	0x03f89810,
@@ -1111,19 +1113,19 @@ uint32_t gt215_pmu_code[] = {
 	0xf406e0b8,
 	0xe8b8090b,
 	0x111cf406,
-/* 0x02ac: timer_reset */
+	/* 0x02ac: timer_reset */
 	0xb63407f0,
 	0x0ed00604,
 	0x8004bd00,
-/* 0x02ba: timer_enable */
+	/* 0x02ba: timer_enable */
 	0x87f09a0e,
 	0x3807f001,
 	0xd00604b6,
 	0x04bd0008,
-/* 0x02c8: timer_done */
+	/* 0x02c8: timer_done */
 	0xfc1031f4,
 	0xf890fc80,
-/* 0x02d1: send_proc */
+	/* 0x02d1: send_proc */
 	0xf980f900,
 	0x05e89890,
 	0xf004e998,
@@ -1138,25 +1140,25 @@ uint32_t gt215_pmu_code[] = {
 	0xb6038b80,
 	0x94f00190,
 	0x04e98007,
-/* 0x030b: send_done */
+	/* 0x030b: send_done */
 	0xfc0231f4,
 	0xf880fc90,
-/* 0x0311: find */
+	/* 0x0311: find */
 	0xf080f900,
 	0x31f45887,
-/* 0x0319: find_loop */
+	/* 0x0319: find_loop */
 	0x008a9801,
 	0xf406aeb8,
 	0x80b6100b,
 	0x6886b158,
 	0xf01bf402,
-/* 0x032f: find_done */
+	/* 0x032f: find_done */
 	0xb90132f4,
 	0x80fc028e,
-/* 0x0336: send */
+	/* 0x0336: send */
 	0x21f500f8,
 	0x01f40311,
-/* 0x033f: recv */
+	/* 0x033f: recv */
 	0xf900f897,
 	0x9880f990,
 	0xe99805e8,
@@ -1177,9 +1179,9 @@ uint32_t gt215_pmu_code[] = {
 	0xf0fca5f9,
 	0xf400f8fe,
 	0xf0fc0131,
-/* 0x038c: recv_done */
+	/* 0x038c: recv_done */
 	0x90fc80fc,
-/* 0x0392: init */
+	/* 0x0392: init */
 	0x17f100f8,
 	0x14b60108,
 	0x0011cf06,
@@ -1206,12 +1208,12 @@ uint32_t gt215_pmu_code[] = {
 	0xb63807f0,
 	0x01d00604,
 	0xf004bd00,
-/* 0x03fa: init_proc */
+	/* 0x03fa: init_proc */
 	0xf19858f7,
 	0x0016b001,
 	0xf9fa0bf4,
 	0x58f0b615,
-/* 0x040b: mulu32_32_64 */
+	/* 0x040b: mulu32_32_64 */
 	0xf9f20ef4,
 	0xf920f910,
 	0x9540f930,
@@ -1233,7 +1235,7 @@ uint32_t gt215_pmu_code[] = {
 	0x40fc00b3,
 	0x20fc30fc,
 	0x00f810fc,
-/* 0x045c: host_send */
+	/* 0x045c: host_send */
 	0x04b017f1,
 	0xcf0614b6,
 	0x27f10011,
@@ -1252,13 +1254,13 @@ uint32_t gt215_pmu_code[] = {
 	0x04b604b0,
 	0x000ed006,
 	0x0ef404bd,
-/* 0x04a5: host_send_done */
-/* 0x04a7: host_recv */
+	/* 0x04a5: host_send_done */
+	/* 0x04a7: host_recv */
 	0xf100f8ba,
 	0xf14e4917,
 	0xb8525413,
 	0x0bf406e1,
-/* 0x04b5: host_recv_wait */
+	/* 0x04b5: host_recv_wait */
 	0xcc17f1aa,
 	0x0614b604,
 	0xf10011cf,
@@ -1280,7 +1282,7 @@ uint32_t gt215_pmu_code[] = {
 	0x0007f040,
 	0xd00604b6,
 	0x04bd0002,
-/* 0x050a: host_init */
+	/* 0x050a: host_init */
 	0x17f100f8,
 	0x14b60080,
 	0x7015f110,
@@ -1297,7 +1299,7 @@ uint32_t gt215_pmu_code[] = {
 	0xb604c407,
 	0x01d00604,
 	0xf804bd00,
-/* 0x0549: memx_func_enter */
+	/* 0x0549: memx_func_enter */
 	0x1087f100,
 	0x028eb916,
 	0xb90421f4,
@@ -1312,7 +1314,7 @@ uint32_t gt215_pmu_code[] = {
 	0x07f10467,
 	0x04b607e0,
 	0x0006d006,
-/* 0x0582: memx_func_enter_wait */
+	/* 0x0582: memx_func_enter_wait */
 	0x67f104bd,
 	0x64b607c0,
 	0x0066cf06,
@@ -1321,14 +1323,14 @@ uint32_t gt215_pmu_code[] = {
 	0x0664b62c,
 	0x800066cf,
 	0x00f8f106,
-/* 0x05a0: memx_func_leave */
+	/* 0x05a0: memx_func_leave */
 	0xb62c67f0,
 	0x66cf0664,
 	0xf2068000,
 	0xf10467f0,
 	0xb607e407,
 	0x06d00604,
-/* 0x05bb: memx_func_leave_wait */
+	/* 0x05bb: memx_func_leave_wait */
 	0xf104bd00,
 	0xb607c067,
 	0x66cf0664,
@@ -1343,29 +1345,29 @@ uint32_t gt215_pmu_code[] = {
 	0xfc70f980,
 	0xf4e0fcd0,
 	0x00f84021,
-/* 0x05f0: memx_func_wait_vblank */
+	/* 0x05f0: memx_func_wait_vblank */
 	0xb0001698,
 	0x0bf40066,
 	0x0166b013,
 	0xf4060bf4,
-/* 0x0602: memx_func_wait_vblank_head1 */
+	/* 0x0602: memx_func_wait_vblank_head1 */
 	0x77f12e0e,
 	0x0ef40020,
-/* 0x0609: memx_func_wait_vblank_head0 */
+	/* 0x0609: memx_func_wait_vblank_head0 */
 	0x0877f107,
-/* 0x060d: memx_func_wait_vblank_0 */
+	/* 0x060d: memx_func_wait_vblank_0 */
 	0xc467f100,
 	0x0664b607,
 	0xfd0066cf,
 	0x1bf40467,
-/* 0x061d: memx_func_wait_vblank_1 */
+	/* 0x061d: memx_func_wait_vblank_1 */
 	0xc467f1f3,
 	0x0664b607,
 	0xfd0066cf,
 	0x0bf40467,
-/* 0x062d: memx_func_wait_vblank_fini */
+	/* 0x062d: memx_func_wait_vblank_fini */
 	0x0410b6f3,
-/* 0x0632: memx_func_wr32 */
+	/* 0x0632: memx_func_wr32 */
 	0x169800f8,
 	0x01159800,
 	0xf90810b6,
@@ -1373,7 +1375,7 @@ uint32_t gt215_pmu_code[] = {
 	0xf4e0fcd0,
 	0x42b64021,
 	0xe91bf402,
-/* 0x064e: memx_func_wait */
+	/* 0x064e: memx_func_wait */
 	0x87f000f8,
 	0x0684b62c,
 	0x980088cf,
@@ -1381,11 +1383,11 @@ uint32_t gt215_pmu_code[] = {
 	0x021c9801,
 	0xb6031b98,
 	0x21f41010,
-/* 0x066b: memx_func_delay */
+	/* 0x066b: memx_func_delay */
 	0x9800f8a3,
 	0x10b6001e,
 	0x7e21f404,
-/* 0x0676: memx_func_train */
+	/* 0x0676: memx_func_train */
 	0x57f100f8,
 	0x77f10003,
 	0x97f10000,
@@ -1394,7 +1396,7 @@ uint32_t gt215_pmu_code[] = {
 	0xb90421f4,
 	0xe7f102d8,
 	0x21f42710,
-/* 0x0695: memx_func_train_loop_outer */
+	/* 0x0695: memx_func_train_loop_outer */
 	0x0158e07e,
 	0x0083f101,
 	0xe097f102,
@@ -1403,7 +1405,7 @@ uint32_t gt215_pmu_code[] = {
 	0xe0fcd0fc,
 	0xf94021f4,
 	0x0067f150,
-/* 0x06b5: memx_func_train_loop_inner */
+	/* 0x06b5: memx_func_train_loop_inner */
 	0x1187f100,
 	0x9068ff11,
 	0xfd109894,
@@ -1436,7 +1438,7 @@ uint32_t gt215_pmu_code[] = {
 	0x000057f1,
 	0xffff97f1,
 	0x830093f1,
-/* 0x0734: memx_func_train_loop_4x */
+	/* 0x0734: memx_func_train_loop_4x */
 	0x0080a7f1,
 	0xb910a3f0,
 	0x21f402ae,
@@ -1473,11 +1475,11 @@ uint32_t gt215_pmu_code[] = {
 	0xb650fcff,
 	0x56700150,
 	0xd41ef507,
-/* 0x07c7: memx_exec */
+	/* 0x07c7: memx_exec */
 	0xf900f8fe,
 	0xb9d0f9e0,
 	0xb2b902c1,
-/* 0x07d1: memx_exec_next */
+	/* 0x07d1: memx_exec_next */
 	0x00139802,
 	0xe70410b6,
 	0xe701f034,
@@ -1493,82 +1495,82 @@ uint32_t gt215_pmu_code[] = {
 	0xfc00bbcf,
 	0xf5e0fcd0,
 	0xf8033621,
-/* 0x080d: memx_info */
+	/* 0x080d: memx_info */
 	0x01c67000,
-/* 0x0813: memx_info_data */
+	/* 0x0813: memx_info_data */
 	0xf10e0bf4,
 	0xf103ccc7,
 	0xf40800b7,
-/* 0x081e: memx_info_train */
+	/* 0x081e: memx_info_train */
 	0xc7f10b0e,
 	0xb7f10bcc,
-/* 0x0826: memx_info_send */
+	/* 0x0826: memx_info_send */
 	0x21f50100,
 	0x00f80336,
-/* 0x082c: memx_recv */
+	/* 0x082c: memx_recv */
 	0xf401d6b0,
 	0xd6b0980b,
 	0xd80bf400,
-/* 0x083a: memx_init */
+	/* 0x083a: memx_init */
 	0x00f800f8,
-/* 0x083c: perf_recv */
-/* 0x083e: perf_init */
+	/* 0x083c: perf_recv */
+	/* 0x083e: perf_init */
 	0x00f800f8,
-/* 0x0840: i2c_drive_scl */
+	/* 0x0840: i2c_drive_scl */
 	0xf40036b0,
 	0x07f1110b,
 	0x04b607e0,
 	0x0001d006,
 	0x00f804bd,
-/* 0x0854: i2c_drive_scl_lo */
+	/* 0x0854: i2c_drive_scl_lo */
 	0x07e407f1,
 	0xd00604b6,
 	0x04bd0001,
-/* 0x0862: i2c_drive_sda */
+	/* 0x0862: i2c_drive_sda */
 	0x36b000f8,
 	0x110bf400,
 	0x07e007f1,
 	0xd00604b6,
 	0x04bd0002,
-/* 0x0876: i2c_drive_sda_lo */
+	/* 0x0876: i2c_drive_sda_lo */
 	0x07f100f8,
 	0x04b607e4,
 	0x0002d006,
 	0x00f804bd,
-/* 0x0884: i2c_sense_scl */
+	/* 0x0884: i2c_sense_scl */
 	0xf10132f4,
 	0xb607c437,
 	0x33cf0634,
 	0x0431fd00,
 	0xf4060bf4,
-/* 0x089a: i2c_sense_scl_done */
+	/* 0x089a: i2c_sense_scl_done */
 	0x00f80131,
-/* 0x089c: i2c_sense_sda */
+	/* 0x089c: i2c_sense_sda */
 	0xf10132f4,
 	0xb607c437,
 	0x33cf0634,
 	0x0432fd00,
 	0xf4060bf4,
-/* 0x08b2: i2c_sense_sda_done */
+	/* 0x08b2: i2c_sense_sda_done */
 	0x00f80131,
-/* 0x08b4: i2c_raise_scl */
+	/* 0x08b4: i2c_raise_scl */
 	0x47f140f9,
 	0x37f00898,
 	0x4021f501,
-/* 0x08c1: i2c_raise_scl_wait */
+	/* 0x08c1: i2c_raise_scl_wait */
 	0xe8e7f108,
 	0x7e21f403,
 	0x088421f5,
 	0xb60901f4,
 	0x1bf40142,
-/* 0x08d5: i2c_raise_scl_done */
+	/* 0x08d5: i2c_raise_scl_done */
 	0xf840fcef,
-/* 0x08d9: i2c_start */
+	/* 0x08d9: i2c_start */
 	0x8421f500,
 	0x0d11f408,
 	0x089c21f5,
 	0xf40611f4,
-/* 0x08ea: i2c_start_rep */
+	/* 0x08ea: i2c_start_rep */
 	0x37f0300e,
 	0x4021f500,
 	0x0137f008,
@@ -1580,7 +1582,7 @@ uint32_t gt215_pmu_code[] = {
 	0xfc0475fd,
 	0xb421f550,
 	0x0464b608,
-/* 0x0917: i2c_start_send */
+	/* 0x0917: i2c_start_send */
 	0xf01f11f4,
 	0x21f50037,
 	0xe7f10862,
@@ -1588,9 +1590,9 @@ uint32_t gt215_pmu_code[] = {
 	0x0037f07e,
 	0x084021f5,
 	0x1388e7f1,
-/* 0x0933: i2c_start_out */
+	/* 0x0933: i2c_start_out */
 	0xf87e21f4,
-/* 0x0935: i2c_stop */
+	/* 0x0935: i2c_stop */
 	0x0037f000,
 	0x084021f5,
 	0xf50037f0,
@@ -1604,7 +1606,7 @@ uint32_t gt215_pmu_code[] = {
 	0xf1086221,
 	0xf41388e7,
 	0x00f87e21,
-/* 0x0968: i2c_bitw */
+	/* 0x0968: i2c_bitw */
 	0x086221f5,
 	0x03e8e7f1,
 	0xbb7e21f4,
@@ -1620,9 +1622,9 @@ uint32_t gt215_pmu_code[] = {
 	0x0037f07e,
 	0x084021f5,
 	0x1388e7f1,
-/* 0x09a7: i2c_bitw_out */
+	/* 0x09a7: i2c_bitw_out */
 	0xf87e21f4,
-/* 0x09a9: i2c_bitr */
+	/* 0x09a9: i2c_bitr */
 	0x0137f000,
 	0x086221f5,
 	0x03e8e7f1,
@@ -1640,11 +1642,11 @@ uint32_t gt215_pmu_code[] = {
 	0x88e7f108,
 	0x7e21f413,
 	0xf4013cf0,
-/* 0x09ee: i2c_bitr_done */
+	/* 0x09ee: i2c_bitr_done */
 	0x00f80131,
-/* 0x09f0: i2c_get_byte */
+	/* 0x09f0: i2c_get_byte */
 	0xf00057f0,
-/* 0x09f6: i2c_get_byte_next */
+	/* 0x09f6: i2c_get_byte_next */
 	0x54b60847,
 	0x0076bb01,
 	0xf90465b6,
@@ -1664,10 +1666,10 @@ uint32_t gt215_pmu_code[] = {
 	0xfc0475fd,
 	0x6821f550,
 	0x0464b609,
-/* 0x0a40: i2c_get_byte_done */
-/* 0x0a42: i2c_put_byte */
+	/* 0x0a40: i2c_get_byte_done */
+	/* 0x0a42: i2c_put_byte */
 	0x47f000f8,
-/* 0x0a45: i2c_put_byte_next */
+	/* 0x0a45: i2c_put_byte_next */
 	0x0142b608,
 	0xbb3854ff,
 	0x65b60076,
@@ -1689,9 +1691,9 @@ uint32_t gt215_pmu_code[] = {
 	0xbb0f11f4,
 	0x36b00076,
 	0x061bf401,
-/* 0x0a9b: i2c_put_byte_done */
+	/* 0x0a9b: i2c_put_byte_done */
 	0xf80132f4,
-/* 0x0a9d: i2c_addr */
+	/* 0x0a9d: i2c_addr */
 	0x0076bb00,
 	0xf90465b6,
 	0x04659450,
@@ -1709,23 +1711,23 @@ uint32_t gt215_pmu_code[] = {
 	0x75fd50bd,
 	0xf550fc04,
 	0xb60a4221,
-/* 0x0ae2: i2c_addr_done */
+	/* 0x0ae2: i2c_addr_done */
 	0x00f80464,
-/* 0x0ae4: i2c_acquire_addr */
+	/* 0x0ae4: i2c_acquire_addr */
 	0xb6f8cec7,
 	0xe0b702e4,
 	0xee980d1c,
-/* 0x0af3: i2c_acquire */
+	/* 0x0af3: i2c_acquire */
 	0xf500f800,
 	0xf40ae421,
 	0xd9f00421,
 	0x4021f403,
-/* 0x0b02: i2c_release */
+	/* 0x0b02: i2c_release */
 	0x21f500f8,
 	0x21f40ae4,
 	0x03daf004,
 	0xf84021f4,
-/* 0x0b11: i2c_recv */
+	/* 0x0b11: i2c_recv */
 	0x0132f400,
 	0xb6f8c1c7,
 	0x16b00214,
@@ -1791,7 +1793,7 @@ uint32_t gt215_pmu_code[] = {
 	0x093521f5,
 	0xb90464b6,
 	0x74bd025b,
-/* 0x0c17: i2c_recv_not_rd08 */
+	/* 0x0c17: i2c_recv_not_rd08 */
 	0xb0430ef4,
 	0x1bf401d6,
 	0x0057f03d,
@@ -1808,18 +1810,18 @@ uint32_t gt215_pmu_code[] = {
 	0xc774bd09,
 	0x1bf408c5,
 	0x0232f409,
-/* 0x0c57: i2c_recv_not_wr08 */
-/* 0x0c57: i2c_recv_done */
+	/* 0x0c57: i2c_recv_not_wr08 */
+	/* 0x0c57: i2c_recv_done */
 	0xc7030ef4,
 	0x21f5f8ce,
 	0xe0fc0b02,
 	0x12f4d0fc,
 	0x027cb90a,
 	0x033621f5,
-/* 0x0c6c: i2c_recv_exit */
-/* 0x0c6e: i2c_init */
+	/* 0x0c6c: i2c_recv_exit */
+	/* 0x0c6e: i2c_init */
 	0x00f800f8,
-/* 0x0c70: test_recv */
+	/* 0x0c70: test_recv */
 	0x05d817f1,
 	0xcf0614b6,
 	0x10b60011,
@@ -1829,12 +1831,12 @@ uint32_t gt215_pmu_code[] = {
 	0x00e7f104,
 	0x4fe3f1d9,
 	0x5621f513,
-/* 0x0c97: test_init */
+	/* 0x0c97: test_init */
 	0xf100f802,
 	0xf50800e7,
 	0xf8025621,
-/* 0x0ca1: idle_recv */
-/* 0x0ca3: idle */
+	/* 0x0ca1: idle_recv */
+	/* 0x0ca3: idle */
 	0xf400f800,
 	0x17f10031,
 	0x14b605d4,
@@ -1842,17 +1844,17 @@ uint32_t gt215_pmu_code[] = {
 	0xf10110b6,
 	0xb605d407,
 	0x01d00604,
-/* 0x0cbf: idle_loop */
+	/* 0x0cbf: idle_loop */
 	0xf004bd00,
 	0x32f45817,
-/* 0x0cc5: idle_proc */
-/* 0x0cc5: idle_proc_exec */
+	/* 0x0cc5: idle_proc */
+	/* 0x0cc5: idle_proc_exec */
 	0xb910f902,
 	0x21f5021e,
 	0x10fc033f,
 	0xf40911f4,
 	0x0ef40231,
-/* 0x0cd9: idle_proc_next */
+	/* 0x0cd9: idle_proc_next */
 	0x5810b6ef,
 	0xf4061fb8,
 	0x02f4e61b,

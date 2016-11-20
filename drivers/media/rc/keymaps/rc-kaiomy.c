@@ -17,7 +17,8 @@
    Mauro Carvalho Chehab <mchehab@infradead.org>
  */
 
-static struct rc_map_table kaiomy[] = {
+static struct rc_map_table kaiomy[] =
+{
 	{ 0x43, KEY_POWER2},
 	{ 0x01, KEY_LIST},
 	{ 0x0b, KEY_ZOOM},
@@ -62,7 +63,8 @@ static struct rc_map_table kaiomy[] = {
 	{ 0x1f, KEY_BLUE},
 };
 
-static struct rc_map_list kaiomy_map = {
+static struct rc_map_list kaiomy_map =
+{
 	.map = {
 		.scan    = kaiomy,
 		.size    = ARRAY_SIZE(kaiomy),

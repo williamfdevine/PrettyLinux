@@ -66,7 +66,8 @@ struct netlbl_lsm_secattr;
 extern int selinux_enabled;
 
 /* Policy capabilities */
-enum {
+enum
+{
 	POLICYDB_CAPABILITY_NETPEER,
 	POLICYDB_CAPABILITY_OPENPERM,
 	POLICYDB_CAPABILITY_REDHAT1,
@@ -98,7 +99,8 @@ size_t security_policydb_len(void);
 int security_policycap_supported(unsigned int req_cap);
 
 #define SEL_VEC_MAX 32
-struct av_decision {
+struct av_decision
+{
 	u32 allowed;
 	u32 auditallow;
 	u32 auditdeny;
@@ -112,11 +114,13 @@ struct av_decision {
 
 #define security_xperm_set(perms, x) (perms[x >> 5] |= 1 << (x & 0x1f))
 #define security_xperm_test(perms, x) (1 & (perms[x >> 5] >> (x & 0x1f)))
-struct extended_perms_data {
+struct extended_perms_data
+{
 	u32 p[8];
 };
 
-struct extended_perms_decision {
+struct extended_perms_decision
+{
 	u8 used;
 	u8 driver;
 	struct extended_perms_data *allowed;
@@ -124,7 +128,8 @@ struct extended_perms_decision {
 	struct extended_perms_data *dontaudit;
 };
 
-struct extended_perms {
+struct extended_perms
+{
 	u16 len;	/* length associated decision chain */
 	struct extended_perms_data drivers; /* flag drivers that are used */
 };
@@ -133,66 +138,66 @@ struct extended_perms {
 #define AVD_FLAGS_PERMISSIVE	0x0001
 
 void security_compute_av(u32 ssid, u32 tsid,
-			 u16 tclass, struct av_decision *avd,
-			 struct extended_perms *xperms);
+						 u16 tclass, struct av_decision *avd,
+						 struct extended_perms *xperms);
 
 void security_compute_xperms_decision(u32 ssid, u32 tsid, u16 tclass,
-			 u8 driver, struct extended_perms_decision *xpermd);
+									  u8 driver, struct extended_perms_decision *xpermd);
 
 void security_compute_av_user(u32 ssid, u32 tsid,
-			     u16 tclass, struct av_decision *avd);
+							  u16 tclass, struct av_decision *avd);
 
 int security_transition_sid(u32 ssid, u32 tsid, u16 tclass,
-			    const struct qstr *qstr, u32 *out_sid);
+							const struct qstr *qstr, u32 *out_sid);
 
 int security_transition_sid_user(u32 ssid, u32 tsid, u16 tclass,
-				 const char *objname, u32 *out_sid);
+								 const char *objname, u32 *out_sid);
 
 int security_member_sid(u32 ssid, u32 tsid,
-	u16 tclass, u32 *out_sid);
+						u16 tclass, u32 *out_sid);
 
 int security_change_sid(u32 ssid, u32 tsid,
-	u16 tclass, u32 *out_sid);
+						u16 tclass, u32 *out_sid);
 
 int security_sid_to_context(u32 sid, char **scontext,
-	u32 *scontext_len);
+							u32 *scontext_len);
 
 int security_sid_to_context_force(u32 sid, char **scontext, u32 *scontext_len);
 
 int security_context_to_sid(const char *scontext, u32 scontext_len,
-			    u32 *out_sid, gfp_t gfp);
+							u32 *out_sid, gfp_t gfp);
 
 int security_context_str_to_sid(const char *scontext, u32 *out_sid, gfp_t gfp);
 
 int security_context_to_sid_default(const char *scontext, u32 scontext_len,
-				    u32 *out_sid, u32 def_sid, gfp_t gfp_flags);
+									u32 *out_sid, u32 def_sid, gfp_t gfp_flags);
 
 int security_context_to_sid_force(const char *scontext, u32 scontext_len,
-				  u32 *sid);
+								  u32 *sid);
 
 int security_get_user_sids(u32 callsid, char *username,
-			   u32 **sids, u32 *nel);
+						   u32 **sids, u32 *nel);
 
 int security_port_sid(u8 protocol, u16 port, u32 *out_sid);
 
 int security_netif_sid(char *name, u32 *if_sid);
 
 int security_node_sid(u16 domain, void *addr, u32 addrlen,
-	u32 *out_sid);
+					  u32 *out_sid);
 
 int security_validate_transition(u32 oldsid, u32 newsid, u32 tasksid,
-				 u16 tclass);
+								 u16 tclass);
 
 int security_validate_transition_user(u32 oldsid, u32 newsid, u32 tasksid,
-				      u16 tclass);
+									  u16 tclass);
 
 int security_bounded_transition(u32 oldsid, u32 newsid);
 
 int security_sid_mls_copy(u32 sid, u32 mls_sid, u32 *new_sid);
 
 int security_net_peersid_resolve(u32 nlbl_sid, u32 nlbl_type,
-				 u32 xfrm_sid,
-				 u32 *peer_sid);
+								 u32 xfrm_sid,
+								 u32 *peer_sid);
 
 int security_get_classes(char ***classes, int *nclasses);
 int security_get_permissions(char *class, char ***perms, int *nperms);
@@ -211,24 +216,24 @@ int security_get_allow_unknown(void);
 int security_fs_use(struct super_block *sb);
 
 int security_genfs_sid(const char *fstype, char *name, u16 sclass,
-	u32 *sid);
+					   u32 *sid);
 
 #ifdef CONFIG_NETLABEL
 int security_netlbl_secattr_to_sid(struct netlbl_lsm_secattr *secattr,
-				   u32 *sid);
+								   u32 *sid);
 
 int security_netlbl_sid_to_secattr(u32 sid,
-				   struct netlbl_lsm_secattr *secattr);
+								   struct netlbl_lsm_secattr *secattr);
 #else
 static inline int security_netlbl_secattr_to_sid(
-					    struct netlbl_lsm_secattr *secattr,
-					    u32 *sid)
+	struct netlbl_lsm_secattr *secattr,
+	u32 *sid)
 {
 	return -EIDRM;
 }
 
 static inline int security_netlbl_sid_to_secattr(u32 sid,
-					   struct netlbl_lsm_secattr *secattr)
+		struct netlbl_lsm_secattr *secattr)
 {
 	return -ENOENT;
 }
@@ -242,7 +247,8 @@ const char *security_get_initial_sid_context(u32 sid);
 extern struct page *selinux_kernel_status_page(void);
 
 #define SELINUX_KERNEL_STATUS_VERSION	1
-struct selinux_kernel_status {
+struct selinux_kernel_status
+{
 	u32	version;	/* version number of thie structure */
 	u32	sequence;	/* sequence number of seqlock logic */
 	u32	enforcing;	/* current setting of enforcing mode */

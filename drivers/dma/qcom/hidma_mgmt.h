@@ -13,7 +13,8 @@
  * GNU General Public License for more details.
  */
 
-struct hidma_mgmt_dev {
+struct hidma_mgmt_dev
+{
 	u8 hw_version_major;
 	u8 hw_version_minor;
 

@@ -19,7 +19,8 @@
  * which has a label saying is "Model PC-39"
  */
 
-static struct rc_map_table asus_pc39[] = {
+static struct rc_map_table asus_pc39[] =
+{
 	/* Keys 0 to 9 */
 	{ 0x082a, KEY_0 },
 	{ 0x0816, KEY_1 },
@@ -66,7 +67,8 @@ static struct rc_map_table asus_pc39[] = {
 	{ 0x083e, KEY_DVD },		/* dvd */
 };
 
-static struct rc_map_list asus_pc39_map = {
+static struct rc_map_list asus_pc39_map =
+{
 	.map = {
 		.scan    = asus_pc39,
 		.size    = ARRAY_SIZE(asus_pc39),

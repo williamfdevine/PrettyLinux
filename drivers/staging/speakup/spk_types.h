@@ -18,14 +18,16 @@
 #include <linux/io.h>		/* for inb_p, outb_p, inb, outb, etc... */
 #include <linux/device.h>
 
-enum var_type_t {
+enum var_type_t
+{
 	VAR_NUM = 0,
 	VAR_TIME,
 	VAR_STRING,
 	VAR_PROC
 };
 
-enum {
+enum
+{
 	E_DEFAULT = 0,
 	E_SET,
 	E_INC,
@@ -33,7 +35,8 @@ enum {
 	E_NEW_DEFAULT,
 };
 
-enum var_id_t {
+enum var_id_t
+{
 	VERSION = 0, SYNTH, SILENT, SYNTH_DIRECT,
 	KEYMAP, CHARS,
 	PUNC_SOME, PUNC_MOST, PUNC_ALL,
@@ -49,11 +52,12 @@ enum var_id_t {
 };
 
 typedef int (*special_func)(struct vc_data *vc, u_char type, u_char ch,
-		u_short key);
+							u_short key);
 
 #define COLOR_BUFFER_SIZE 160
 
-struct spk_highlight_color_track {
+struct spk_highlight_color_track
+{
 	/* Count of each background color */
 	unsigned int bgcount[8];
 	/* Buffer for characters drawn with each background color */
@@ -66,7 +70,8 @@ struct spk_highlight_color_track {
 	ulong cy;
 };
 
-struct st_spk_t {
+struct st_spk_t
+{
 	u_long reading_x, cursor_x;
 	u_long reading_y, cursor_y;
 	u_long reading_pos, cursor_pos;
@@ -100,7 +105,8 @@ struct st_spk_t {
 #define spk_old_attr (speakup_console[vc->vc_num]->old_attr)
 #define spk_parked (speakup_console[vc->vc_num]->parked)
 
-struct st_var_header {
+struct st_var_header
+{
 	char *name;
 	enum var_id_t var_id;
 	enum var_type_t var_type;
@@ -108,7 +114,8 @@ struct st_var_header {
 	void *data; /* ptr to the vars data */
 };
 
-struct num_var_t {
+struct num_var_t
+{
 	char *synth_fmt;
 	int default_val;
 	int low;
@@ -118,37 +125,44 @@ struct num_var_t {
 	int value; /* current value */
 };
 
-struct punc_var_t {
+struct punc_var_t
+{
 	enum var_id_t var_id;
 	short value;
 };
 
-struct string_var_t {
+struct string_var_t
+{
 	char *default_val;
 };
 
-struct var_t {
+struct var_t
+{
 	enum var_id_t var_id;
-	union {
+	union
+	{
 		struct num_var_t n;
 		struct string_var_t s;
 	} u;
 };
 
-struct st_bits_data { /* punc, repeats, word delim bits */
+struct st_bits_data   /* punc, repeats, word delim bits */
+{
 	char *name;
 	char *value;
 	short mask;
 };
 
-struct synth_indexing {
+struct synth_indexing
+{
 	char *command;
 	unsigned char lowindex;
 	unsigned char highindex;
 	unsigned char currindex;
 };
 
-struct spk_synth {
+struct spk_synth
+{
 	const char *name;
 	const char *version;
 	const char *long_name;
@@ -169,7 +183,7 @@ struct spk_synth {
 	int (*probe)(struct spk_synth *synth);
 	void (*release)(void);
 	const char *(*synth_immediate)(struct spk_synth *synth,
-					const char *buff);
+								   const char *buff);
 	void (*catch_up)(struct spk_synth *synth);
 	void (*flush)(struct spk_synth *synth);
 	int (*is_alive)(struct spk_synth *synth);
@@ -191,13 +205,15 @@ struct spk_synth {
 #define module_spk_synth(__spk_synth) \
 	module_driver(__spk_synth, synth_add, synth_remove)
 
-struct speakup_info_t {
+struct speakup_info_t
+{
 	spinlock_t spinlock;
 	int port_tts;
 	int flushing;
 };
 
-struct bleep {
+struct bleep
+{
 	short freq;
 	unsigned long jiffies;
 	int active;

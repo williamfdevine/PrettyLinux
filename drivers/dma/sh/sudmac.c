@@ -23,7 +23,8 @@
 #include <linux/slab.h>
 #include <linux/sudmac.h>
 
-struct sudmac_chan {
+struct sudmac_chan
+{
 	struct shdma_chan shdma_chan;
 	void __iomem *base;
 	char dev_id[16];	/* unique name per DMAC of channel */
@@ -33,18 +34,21 @@ struct sudmac_chan {
 	u32 dint_end_bit;
 };
 
-struct sudmac_device {
+struct sudmac_device
+{
 	struct shdma_dev shdma_dev;
 	struct sudmac_pdata *pdata;
 	void __iomem *chan_reg;
 };
 
-struct sudmac_regs {
+struct sudmac_regs
+{
 	u32 base_addr;
 	u32 base_byte_count;
 };
 
-struct sudmac_desc {
+struct sudmac_desc
+{
 	struct sudmac_regs hw;
 	struct shdma_desc shdma_desc;
 };
@@ -52,7 +56,7 @@ struct sudmac_desc {
 #define to_chan(schan) container_of(schan, struct sudmac_chan, shdma_chan)
 #define to_desc(sdesc) container_of(sdesc, struct sudmac_desc, shdma_desc)
 #define to_sdev(sc) container_of(sc->shdma_chan.dma_chan.device, \
-				 struct sudmac_device, shdma_dev.dma_dev)
+								 struct sudmac_device, shdma_dev.dma_dev)
 
 /* SUDMAC register */
 #define SUDMAC_CH0CFG		0x00
@@ -94,13 +98,15 @@ static bool sudmac_is_busy(struct sudmac_chan *sc)
 	u32 den = sudmac_readl(sc, SUDMAC_CH0DEN + sc->offset);
 
 	if (den)
-		return true; /* working */
+	{
+		return true;    /* working */
+	}
 
 	return false; /* waiting */
 }
 
 static void sudmac_set_reg(struct sudmac_chan *sc, struct sudmac_regs *hw,
-			   struct shdma_desc *sdesc)
+						   struct shdma_desc *sdesc)
 {
 	sudmac_writel(sc, sc->cfg, SUDMAC_CH0CFG + sc->offset);
 	sudmac_writel(sc, hw->base_addr, SUDMAC_CH0BA + sc->offset);
@@ -116,7 +122,7 @@ static void sudmac_start(struct sudmac_chan *sc)
 }
 
 static void sudmac_start_xfer(struct shdma_chan *schan,
-			      struct shdma_desc *sdesc)
+							  struct shdma_desc *sdesc)
 {
 	struct sudmac_chan *sc = to_chan(schan);
 	struct sudmac_desc *sd = to_desc(sdesc);
@@ -146,19 +152,23 @@ static const struct sudmac_slave_config *sudmac_find_slave(
 
 	for (i = 0, cfg = pdata->slave; i < pdata->slave_num; i++, cfg++)
 		if (cfg->slave_id == slave_id)
+		{
 			return cfg;
+		}
 
 	return NULL;
 }
 
 static int sudmac_set_slave(struct shdma_chan *schan, int slave_id,
-			    dma_addr_t slave_addr, bool try)
+							dma_addr_t slave_addr, bool try)
 {
 	struct sudmac_chan *sc = to_chan(schan);
 	const struct sudmac_slave_config *cfg = sudmac_find_slave(sc, slave_id);
 
 	if (!cfg)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -173,22 +183,29 @@ static inline void sudmac_dma_halt(struct sudmac_chan *sc)
 }
 
 static int sudmac_desc_setup(struct shdma_chan *schan,
-			     struct shdma_desc *sdesc,
-			     dma_addr_t src, dma_addr_t dst, size_t *len)
+							 struct shdma_desc *sdesc,
+							 dma_addr_t src, dma_addr_t dst, size_t *len)
 {
 	struct sudmac_chan *sc = to_chan(schan);
 	struct sudmac_desc *sd = to_desc(sdesc);
 
 	dev_dbg(sc->shdma_chan.dev, "%s: src=%pad, dst=%pad, len=%zu\n",
-		__func__, &src, &dst, *len);
+			__func__, &src, &dst, *len);
 
 	if (*len > schan->max_xfer_len)
+	{
 		*len = schan->max_xfer_len;
+	}
 
 	if (dst)
+	{
 		sd->hw.base_addr = dst;
+	}
 	else if (src)
+	{
 		sd->hw.base_addr = src;
+	}
+
 	sd->hw.base_byte_count = *len;
 
 	return 0;
@@ -207,7 +224,9 @@ static bool sudmac_chan_irq(struct shdma_chan *schan, int irq)
 	u32 dintsts = sudmac_readl(sc, SUDMAC_DINTSTS);
 
 	if (!(dintsts & sc->dint_end_bit))
+	{
 		return false;
+	}
 
 	/* DMA stop */
 	sudmac_dma_halt(sc);
@@ -216,7 +235,7 @@ static bool sudmac_chan_irq(struct shdma_chan *schan, int irq)
 }
 
 static size_t sudmac_get_partial(struct shdma_chan *schan,
-				 struct shdma_desc *sdesc)
+								 struct shdma_desc *sdesc)
 {
 	struct sudmac_chan *sc = to_chan(schan);
 	struct sudmac_desc *sd = to_desc(sdesc);
@@ -226,7 +245,7 @@ static size_t sudmac_get_partial(struct shdma_chan *schan,
 }
 
 static bool sudmac_desc_completed(struct shdma_chan *schan,
-				  struct shdma_desc *sdesc)
+								  struct shdma_desc *sdesc)
 {
 	struct sudmac_chan *sc = to_chan(schan);
 	struct sudmac_desc *sd = to_desc(sdesc);
@@ -236,7 +255,7 @@ static bool sudmac_desc_completed(struct shdma_chan *schan,
 }
 
 static int sudmac_chan_probe(struct sudmac_device *su_dev, int id, int irq,
-			     unsigned long flags)
+							 unsigned long flags)
 {
 	struct shdma_dev *sdev = &su_dev->shdma_dev;
 	struct platform_device *pdev = to_platform_device(sdev->dma_dev.dev);
@@ -245,8 +264,11 @@ static int sudmac_chan_probe(struct sudmac_device *su_dev, int id, int irq,
 	int err;
 
 	sc = devm_kzalloc(&pdev->dev, sizeof(struct sudmac_chan), GFP_KERNEL);
+
 	if (!sc)
+	{
 		return -ENOMEM;
+	}
 
 	schan = &sc->shdma_chan;
 	schan->max_xfer_len = 64 * 1024 * 1024 - 1;
@@ -257,28 +279,44 @@ static int sudmac_chan_probe(struct sudmac_device *su_dev, int id, int irq,
 
 	/* get platform_data */
 	sc->offset = su_dev->pdata->channel->offset;
+
 	if (su_dev->pdata->channel->config & SUDMAC_TX_BUFFER_MODE)
+	{
 		sc->cfg |= SUDMAC_SENDBUFM;
+	}
+
 	if (su_dev->pdata->channel->config & SUDMAC_RX_END_MODE)
+	{
 		sc->cfg |= SUDMAC_RCVENDM;
+	}
+
 	sc->cfg |= (su_dev->pdata->channel->wait << 4) & SUDMAC_LBA_WAIT;
 
 	if (su_dev->pdata->channel->dint_end_bit & SUDMAC_DMA_BIT_CH0)
+	{
 		sc->dint_end_bit |= SUDMAC_CH0ENDE;
+	}
+
 	if (su_dev->pdata->channel->dint_end_bit & SUDMAC_DMA_BIT_CH1)
+	{
 		sc->dint_end_bit |= SUDMAC_CH1ENDE;
+	}
 
 	/* set up channel irq */
 	if (pdev->id >= 0)
 		snprintf(sc->dev_id, sizeof(sc->dev_id), "sudmac%d.%d",
-			 pdev->id, id);
+				 pdev->id, id);
 	else
+	{
 		snprintf(sc->dev_id, sizeof(sc->dev_id), "sudmac%d", id);
+	}
 
 	err = shdma_request_irq(schan, irq, flags, sc->dev_id);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(sdev->dma_dev.dev,
-			"DMA channel %d request_irq failed %d\n", id, err);
+				"DMA channel %d request_irq failed %d\n", id, err);
 		goto err_no_irq;
 	}
 
@@ -295,7 +333,8 @@ static void sudmac_chan_remove(struct sudmac_device *su_dev)
 	struct shdma_chan *schan;
 	int i;
 
-	shdma_for_each_chan(schan, &su_dev->shdma_dev, i) {
+	shdma_for_each_chan(schan, &su_dev->shdma_dev, i)
+	{
 		BUG_ON(!schan);
 
 		shdma_chan_remove(schan);
@@ -313,7 +352,8 @@ static struct shdma_desc *sudmac_embedded_desc(void *buf, int i)
 	return &((struct sudmac_desc *)buf)[i].shdma_desc;
 }
 
-static const struct shdma_ops sudmac_shdma_ops = {
+static const struct shdma_ops sudmac_shdma_ops =
+{
 	.desc_completed = sudmac_desc_completed,
 	.halt_channel = sudmac_halt,
 	.channel_busy = sudmac_channel_busy,
@@ -337,32 +377,46 @@ static int sudmac_probe(struct platform_device *pdev)
 
 	/* get platform data */
 	if (!pdata)
+	{
 		return -ENODEV;
+	}
 
 	irq_res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+
 	if (!irq_res)
+	{
 		return -ENODEV;
+	}
 
 	err = -ENOMEM;
 	su_dev = devm_kzalloc(&pdev->dev, sizeof(struct sudmac_device),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!su_dev)
+	{
 		return err;
+	}
 
 	dma_dev = &su_dev->shdma_dev.dma_dev;
 
 	chan = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	su_dev->chan_reg = devm_ioremap_resource(&pdev->dev, chan);
+
 	if (IS_ERR(su_dev->chan_reg))
+	{
 		return PTR_ERR(su_dev->chan_reg);
+	}
 
 	dma_cap_set(DMA_SLAVE, dma_dev->cap_mask);
 
 	su_dev->shdma_dev.ops = &sudmac_shdma_ops;
 	su_dev->shdma_dev.desc_size = sizeof(struct sudmac_desc);
 	err = shdma_init(&pdev->dev, &su_dev->shdma_dev, pdata->channel_num);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* platform data */
 	su_dev->pdata = dev_get_platdata(&pdev->dev);
@@ -370,15 +424,22 @@ static int sudmac_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, su_dev);
 
 	/* Create DMA Channel */
-	for (i = 0; i < pdata->channel_num; i++) {
+	for (i = 0; i < pdata->channel_num; i++)
+	{
 		err = sudmac_chan_probe(su_dev, i, irq_res->start, IRQF_SHARED);
+
 		if (err)
+		{
 			goto chan_probe_err;
+		}
 	}
 
 	err = dma_async_device_register(&su_dev->shdma_dev.dma_dev);
+
 	if (err < 0)
+	{
 		goto chan_probe_err;
+	}
 
 	return err;
 
@@ -402,7 +463,8 @@ static int sudmac_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver sudmac_driver = {
+static struct platform_driver sudmac_driver =
+{
 	.driver		= {
 		.name	= SUDMAC_DRV_NAME,
 	},

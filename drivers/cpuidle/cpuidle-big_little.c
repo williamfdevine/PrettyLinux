@@ -27,7 +27,7 @@
 #include "dt_idle_states.h"
 
 static int bl_enter_powerdown(struct cpuidle_device *dev,
-			      struct cpuidle_driver *drv, int idx);
+							  struct cpuidle_driver *drv, int idx);
 
 /*
  * NB: Owing to current menu governor behaviour big and LITTLE
@@ -59,7 +59,8 @@ static int bl_enter_powerdown(struct cpuidle_device *dev,
  * of L2 lines are dirty and require cleaning to DRAM, and takes into
  * account leakage static power values related to the vexpress TC2 testchip.
  */
-static struct cpuidle_driver bl_idle_little_driver = {
+static struct cpuidle_driver bl_idle_little_driver =
+{
 	.name = "little_idle",
 	.owner = THIS_MODULE,
 	.states[0] = ARM_CPUIDLE_WFI_STATE,
@@ -74,13 +75,17 @@ static struct cpuidle_driver bl_idle_little_driver = {
 	.state_count = 2,
 };
 
-static const struct of_device_id bl_idle_state_match[] __initconst = {
-	{ .compatible = "arm,idle-state",
-	  .data = bl_enter_powerdown },
+static const struct of_device_id bl_idle_state_match[] __initconst =
+{
+	{
+		.compatible = "arm,idle-state",
+		.data = bl_enter_powerdown
+	},
 	{ },
 };
 
-static struct cpuidle_driver bl_idle_big_driver = {
+static struct cpuidle_driver bl_idle_big_driver =
+{
 	.name = "big_idle",
 	.owner = THIS_MODULE,
 	.states[0] = ARM_CPUIDLE_WFI_STATE,
@@ -124,7 +129,7 @@ static int notrace bl_powerdown_finisher(unsigned long arg)
  * specified target state selected by the governor.
  */
 static int bl_enter_powerdown(struct cpuidle_device *dev,
-				struct cpuidle_driver *drv, int idx)
+							  struct cpuidle_driver *drv, int idx)
 {
 	cpu_pm_enter();
 
@@ -144,19 +149,26 @@ static int __init bl_idle_driver_init(struct cpuidle_driver *drv, int part_id)
 	int cpu;
 
 	cpumask = kzalloc(cpumask_size(), GFP_KERNEL);
+
 	if (!cpumask)
+	{
 		return -ENOMEM;
+	}
 
 	for_each_possible_cpu(cpu)
-		if (smp_cpuid_part(cpu) == part_id)
-			cpumask_set_cpu(cpu, cpumask);
+
+	if (smp_cpuid_part(cpu) == part_id)
+	{
+		cpumask_set_cpu(cpu, cpumask);
+	}
 
 	drv->cpumask = cpumask;
 
 	return 0;
 }
 
-static const struct of_device_id compatible_machine_match[] = {
+static const struct of_device_id compatible_machine_match[] =
+{
 	{ .compatible = "arm,vexpress,v2p-ca15_a7" },
 	{ .compatible = "samsung,exynos5420" },
 	{ .compatible = "samsung,exynos5800" },
@@ -169,16 +181,22 @@ static int __init bl_idle_init(void)
 	struct device_node *root = of_find_node_by_path("/");
 
 	if (!root)
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * Initialize the driver just for a compliant set of machines
 	 */
 	if (!of_match_node(compatible_machine_match, root))
+	{
 		return -ENODEV;
+	}
 
 	if (!mcpm_is_available())
+	{
 		return -EUNATCH;
+	}
 
 	/*
 	 * For now the differentiation between little and big cores
@@ -187,32 +205,50 @@ static int __init bl_idle_init(void)
 	 * evolve in the future with a more generic matching approach.
 	 */
 	ret = bl_idle_driver_init(&bl_idle_little_driver,
-				  ARM_CPU_PART_CORTEX_A7);
+							  ARM_CPU_PART_CORTEX_A7);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = bl_idle_driver_init(&bl_idle_big_driver, ARM_CPU_PART_CORTEX_A15);
+
 	if (ret)
+	{
 		goto out_uninit_little;
+	}
 
 	/* Start at index 1, index 0 standard WFI */
 	ret = dt_init_idle_driver(&bl_idle_big_driver, bl_idle_state_match, 1);
+
 	if (ret < 0)
+	{
 		goto out_uninit_big;
+	}
 
 	/* Start at index 1, index 0 standard WFI */
 	ret = dt_init_idle_driver(&bl_idle_little_driver,
-				  bl_idle_state_match, 1);
+							  bl_idle_state_match, 1);
+
 	if (ret < 0)
+	{
 		goto out_uninit_big;
+	}
 
 	ret = cpuidle_register(&bl_idle_little_driver, NULL);
+
 	if (ret)
+	{
 		goto out_uninit_big;
+	}
 
 	ret = cpuidle_register(&bl_idle_big_driver, NULL);
+
 	if (ret)
+	{
 		goto out_unregister_little;
+	}
 
 	return 0;
 

@@ -40,7 +40,8 @@ long tm_signal_self_context_load(pid_t pid, long *gprs, double *fps, vector int 
 static sig_atomic_t fail;
 
 static long gps[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
-					 -1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18};
+					  -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16, -17, -18
+					};
 
 static void signal_usr1(int signum, siginfo_t *info, void *uc)
 {
@@ -48,12 +49,14 @@ static void signal_usr1(int signum, siginfo_t *info, void *uc)
 	ucontext_t *ucp = uc;
 	ucontext_t *tm_ucp = ucp->uc_link;
 
-	for (i = 0; i < NV_GPR_REGS && !fail; i++) {
+	for (i = 0; i < NV_GPR_REGS && !fail; i++)
+	{
 		fail = (ucp->uc_mcontext.gp_regs[i + 14] != gps[i]);
 		fail |= (tm_ucp->uc_mcontext.gp_regs[i + 14] != gps[i + NV_GPR_REGS]);
+
 		if (fail)
 			printf("Failed on %d GPR %lu or %lu\n", i,
-					ucp->uc_mcontext.gp_regs[i + 14], tm_ucp->uc_mcontext.gp_regs[i + 14]);
+				   ucp->uc_mcontext.gp_regs[i + 14], tm_ucp->uc_mcontext.gp_regs[i + 14]);
 	}
 }
 
@@ -69,13 +72,17 @@ static int tm_signal_context_chk_gpr()
 	act.sa_sigaction = signal_usr1;
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = SA_SIGINFO;
-	if (sigaction(SIGUSR1, &act, NULL) < 0) {
+
+	if (sigaction(SIGUSR1, &act, NULL) < 0)
+	{
 		perror("sigaction sigusr1");
 		exit(1);
 	}
 
 	i = 0;
-	while (i < MAX_ATTEMPT && !fail) {
+
+	while (i < MAX_ATTEMPT && !fail)
+	{
 		rc = tm_signal_self_context_load(pid, gps, NULL, NULL, NULL);
 		FAIL_IF(rc != pid);
 		i++;

@@ -93,7 +93,8 @@
  */
 #define MAX_TX_FIFO_THRESHOLD   ((4096 / 64) - 1)
 
-struct ath_tx_status {
+struct ath_tx_status
+{
 	u32 ts_tstamp;
 	u16 ts_seqnum;
 	u8 ts_status;
@@ -120,7 +121,8 @@ struct ath_tx_status {
 	u32 duration;
 };
 
-struct ath_rx_status {
+struct ath_rx_status
+{
 	u32 rs_tstamp;
 	u16 rs_datalen;
 	u8 rs_status;
@@ -146,7 +148,8 @@ struct ath_rx_status {
 	u32 flag; /* see enum mac80211_rx_flags */
 };
 
-struct ath_htc_rx_status {
+struct ath_htc_rx_status
+{
 	__be64 rs_tstamp;
 	__be16 rs_datalen;
 	u8 rs_status;
@@ -188,7 +191,8 @@ struct ath_htc_rx_status {
 #define ATH9K_RXKEYIX_INVALID	((u8)-1)
 #define ATH9K_TXKEYIX_INVALID	((u8)-1)
 
-enum ath9k_phyerr {
+enum ath9k_phyerr
+{
 	ATH9K_PHYERR_UNDERRUN             = 0,  /* Transmit underrun */
 	ATH9K_PHYERR_TIMING               = 1,  /* Timing error */
 	ATH9K_PHYERR_PARITY               = 2,  /* Illegal parity */
@@ -227,7 +231,8 @@ enum ath9k_phyerr {
 	ATH9K_PHYERR_MAX                  = 39,
 };
 
-struct ath_desc {
+struct ath_desc
+{
 	u32 ds_link;
 	u32 ds_data;
 	u32 ds_ctl0;
@@ -267,13 +272,16 @@ struct ath_desc {
 
 #define ATH9K_RXDESC_INTREQ		0x0020
 
-struct ar5416_desc {
+struct ar5416_desc
+{
 	u32 ds_link;
 	u32 ds_data;
 	u32 ds_ctl0;
 	u32 ds_ctl1;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 ctl2;
 			u32 ctl3;
 			u32 ctl4;
@@ -295,7 +303,8 @@ struct ar5416_desc {
 			u32 status8;
 			u32 status9;
 		} tx;
-		struct {
+		struct
+		{
 			u32 status0;
 			u32 status1;
 			u32 status2;
@@ -574,7 +583,8 @@ struct ar5416_desc {
 #define AR_DecryptBusyErr   0x40000000
 #define AR_KeyMiss          0x80000000
 
-enum ath9k_tx_queue {
+enum ath9k_tx_queue
+{
 	ATH9K_TX_QUEUE_INACTIVE = 0,
 	ATH9K_TX_QUEUE_DATA,
 	ATH9K_TX_QUEUE_BEACON,
@@ -588,7 +598,8 @@ enum ath9k_tx_queue {
 /* Used as a queue subtype instead of a WMM AC */
 #define ATH9K_WME_UPSD	4
 
-enum ath9k_tx_queue_flags {
+enum ath9k_tx_queue_flags
+{
 	TXQ_FLAG_TXINT_ENABLE = 0x0001,
 	TXQ_FLAG_TXDESCINT_ENABLE = 0x0002,
 	TXQ_FLAG_TXEOLINT_ENABLE = 0x0004,
@@ -604,7 +615,8 @@ enum ath9k_tx_queue_flags {
 
 #define ATH9K_DECOMP_MASK_SIZE     128
 
-enum ath9k_pkt_type {
+enum ath9k_pkt_type
+{
 	ATH9K_PKT_TYPE_NORMAL = 0,
 	ATH9K_PKT_TYPE_ATIM,
 	ATH9K_PKT_TYPE_PSPOLL,
@@ -614,7 +626,8 @@ enum ath9k_pkt_type {
 	ATH9K_PKT_TYPE_GRP_POLL,
 };
 
-struct ath9k_tx_queue_info {
+struct ath9k_tx_queue_info
+{
 	u32 tqi_ver;
 	enum ath9k_tx_queue tqi_type;
 	int tqi_subtype;
@@ -633,7 +646,8 @@ struct ath9k_tx_queue_info {
 	u32 tqi_intFlags;
 };
 
-enum ath9k_rx_filter {
+enum ath9k_rx_filter
+{
 	ATH9K_RX_FILTER_UCAST = 0x00000001,
 	ATH9K_RX_FILTER_MCAST = 0x00000002,
 	ATH9K_RX_FILTER_BCAST = 0x00000004,
@@ -658,7 +672,8 @@ enum ath9k_rx_filter {
 #define ATH9K_RATESERIES_HALFGI   0x0004
 #define ATH9K_RATESERIES_STBC     0x0008
 
-struct ath9k_11n_rate_series {
+struct ath9k_11n_rate_series
+{
 	u32 Tries;
 	u32 Rate;
 	u32 PktDuration;
@@ -666,21 +681,24 @@ struct ath9k_11n_rate_series {
 	u32 RateFlags;
 };
 
-enum aggr_type {
+enum aggr_type
+{
 	AGGR_BUF_NONE,
 	AGGR_BUF_FIRST,
 	AGGR_BUF_MIDDLE,
 	AGGR_BUF_LAST,
 };
 
-enum ath9k_key_type {
+enum ath9k_key_type
+{
 	ATH9K_KEY_TYPE_CLEAR,
 	ATH9K_KEY_TYPE_WEP,
 	ATH9K_KEY_TYPE_AES,
 	ATH9K_KEY_TYPE_TKIP,
 };
 
-struct ath_tx_info {
+struct ath_tx_info
+{
 	u8 qcu;
 
 	bool is_first;
@@ -719,17 +737,17 @@ bool ath9k_hw_updatetxtriglevel(struct ath_hw *ah, bool bIncTrigLevel);
 bool ath9k_hw_stop_dma_queue(struct ath_hw *ah, u32 q);
 void ath9k_hw_abort_tx_dma(struct ath_hw *ah);
 bool ath9k_hw_set_txq_props(struct ath_hw *ah, int q,
-			    const struct ath9k_tx_queue_info *qinfo);
+							const struct ath9k_tx_queue_info *qinfo);
 bool ath9k_hw_get_txq_props(struct ath_hw *ah, int q,
-			    struct ath9k_tx_queue_info *qinfo);
+							struct ath9k_tx_queue_info *qinfo);
 int ath9k_hw_setuptxqueue(struct ath_hw *ah, enum ath9k_tx_queue type,
-			  const struct ath9k_tx_queue_info *qinfo);
+						  const struct ath9k_tx_queue_info *qinfo);
 bool ath9k_hw_releasetxqueue(struct ath_hw *ah, u32 q);
 bool ath9k_hw_resettxqueue(struct ath_hw *ah, u32 q);
 int ath9k_hw_rxprocdesc(struct ath_hw *ah, struct ath_desc *ds,
-			struct ath_rx_status *rs);
+						struct ath_rx_status *rs);
 void ath9k_hw_setuprxdesc(struct ath_hw *ah, struct ath_desc *ds,
-			  u32 size, u32 flags);
+						  u32 size, u32 flags);
 bool ath9k_hw_setrxabort(struct ath_hw *ah, bool set);
 void ath9k_hw_putrxbuf(struct ath_hw *ah, u32 rxdp);
 void ath9k_hw_startpcureceive(struct ath_hw *ah, bool is_scanning);

@@ -24,7 +24,8 @@
 
 struct nfc_hci_dev;
 
-struct nfc_hci_ops {
+struct nfc_hci_ops
+{
 	int (*open) (struct nfc_hci_dev *hdev);
 	void (*close) (struct nfc_hci_dev *hdev);
 	int (*load_session) (struct nfc_hci_dev *hdev);
@@ -36,32 +37,32 @@ struct nfc_hci_ops {
 	 */
 	int (*xmit) (struct nfc_hci_dev *hdev, struct sk_buff *skb);
 	int (*start_poll) (struct nfc_hci_dev *hdev,
-			   u32 im_protocols, u32 tm_protocols);
+					   u32 im_protocols, u32 tm_protocols);
 	void (*stop_poll) (struct nfc_hci_dev *hdev);
 	int (*dep_link_up)(struct nfc_hci_dev *hdev, struct nfc_target *target,
-			   u8 comm_mode, u8 *gb, size_t gb_len);
+					   u8 comm_mode, u8 *gb, size_t gb_len);
 	int (*dep_link_down)(struct nfc_hci_dev *hdev);
 	int (*target_from_gate) (struct nfc_hci_dev *hdev, u8 gate,
-				 struct nfc_target *target);
+							 struct nfc_target *target);
 	int (*complete_target_discovered) (struct nfc_hci_dev *hdev, u8 gate,
-					   struct nfc_target *target);
+									   struct nfc_target *target);
 	int (*im_transceive) (struct nfc_hci_dev *hdev,
-			      struct nfc_target *target, struct sk_buff *skb,
-			      data_exchange_cb_t cb, void *cb_context);
+						  struct nfc_target *target, struct sk_buff *skb,
+						  data_exchange_cb_t cb, void *cb_context);
 	int (*tm_send)(struct nfc_hci_dev *hdev, struct sk_buff *skb);
 	int (*check_presence)(struct nfc_hci_dev *hdev,
-			      struct nfc_target *target);
+						  struct nfc_target *target);
 	int (*event_received)(struct nfc_hci_dev *hdev, u8 pipe, u8 event,
-			      struct sk_buff *skb);
+						  struct sk_buff *skb);
 	void (*cmd_received)(struct nfc_hci_dev *hdev, u8 pipe, u8 cmd,
-			    struct sk_buff *skb);
+						 struct sk_buff *skb);
 	int (*fw_download)(struct nfc_hci_dev *hdev, const char *firmware_name);
 	int (*discover_se)(struct nfc_hci_dev *dev);
 	int (*enable_se)(struct nfc_hci_dev *dev, u32 se_idx);
 	int (*disable_se)(struct nfc_hci_dev *dev, u32 se_idx);
 	int (*se_io)(struct nfc_hci_dev *dev, u32 se_idx,
-		      u8 *apdu, size_t apdu_length,
-		      se_io_cb_t cb, void *cb_context);
+				 u8 *apdu, size_t apdu_length,
+				 se_io_cb_t cb, void *cb_context);
 };
 
 /* Pipes */
@@ -72,12 +73,14 @@ struct nfc_hci_ops {
 #define NFC_HCI_LINK_MGMT_PIPE	0x00
 #define NFC_HCI_ADMIN_PIPE	0x01
 
-struct nfc_hci_gate {
+struct nfc_hci_gate
+{
 	u8 gate;
 	u8 pipe;
 };
 
-struct nfc_hci_pipe {
+struct nfc_hci_pipe
+{
 	u8 gate;
 	u8 dest_host;
 };
@@ -88,7 +91,8 @@ struct nfc_hci_pipe {
  * the pipe identifier is 7 bits long.
  */
 #define NFC_HCI_MAX_PIPES		127
-struct nfc_hci_init_data {
+struct nfc_hci_init_data
+{
 	u8 gate_count;
 	struct nfc_hci_gate gates[NFC_HCI_MAX_CUSTOM_GATES];
 	char session_id[9];
@@ -104,11 +108,13 @@ typedef int (*xmit) (struct sk_buff *skb, void *cb_data);
  *
  * NFC_HCI_QUIRK_SHORT_CLEAR - send HCI_ADM_CLEAR_ALL_PIPE cmd with no params
  */
-enum {
+enum
+{
 	NFC_HCI_QUIRK_SHORT_CLEAR	= 0,
 };
 
-struct nfc_hci_dev {
+struct nfc_hci_dev
+{
 	struct nfc_dev *ndev;
 
 	u32 max_data_link_payload;
@@ -164,13 +170,13 @@ struct nfc_hci_dev {
 
 /* hci device allocation */
 struct nfc_hci_dev *nfc_hci_allocate_device(struct nfc_hci_ops *ops,
-					    struct nfc_hci_init_data *init_data,
-					    unsigned long quirks,
-					    u32 protocols,
-					    const char *llc_name,
-					    int tx_headroom,
-					    int tx_tailroom,
-					    int max_link_payload);
+		struct nfc_hci_init_data *init_data,
+		unsigned long quirks,
+		u32 protocols,
+		const char *llc_name,
+		int tx_headroom,
+		int tx_tailroom,
+		int max_link_payload);
 void nfc_hci_free_device(struct nfc_hci_dev *hdev);
 
 int nfc_hci_register_device(struct nfc_hci_dev *hdev);
@@ -180,8 +186,8 @@ void nfc_hci_set_clientdata(struct nfc_hci_dev *hdev, void *clientdata);
 void *nfc_hci_get_clientdata(struct nfc_hci_dev *hdev);
 
 static inline int nfc_hci_set_vendor_cmds(struct nfc_hci_dev *hdev,
-					  struct nfc_vendor_cmd *cmds,
-					  int n_cmds)
+		struct nfc_vendor_cmd *cmds,
+		int n_cmds)
 {
 	return nfc_set_vendor_cmds(hdev->ndev, cmds, n_cmds);
 }
@@ -258,29 +264,29 @@ void nfc_hci_reset_pipes_per_host(struct nfc_hci_dev *hdev, u8 host);
 
 /* receiving messages from lower layer */
 void nfc_hci_resp_received(struct nfc_hci_dev *hdev, u8 result,
-			   struct sk_buff *skb);
+						   struct sk_buff *skb);
 void nfc_hci_cmd_received(struct nfc_hci_dev *hdev, u8 pipe, u8 cmd,
-			  struct sk_buff *skb);
+						  struct sk_buff *skb);
 void nfc_hci_event_received(struct nfc_hci_dev *hdev, u8 pipe, u8 event,
-			    struct sk_buff *skb);
+							struct sk_buff *skb);
 void nfc_hci_recv_frame(struct nfc_hci_dev *hdev, struct sk_buff *skb);
 
 /* connecting to gates and sending hci instructions */
 int nfc_hci_connect_gate(struct nfc_hci_dev *hdev, u8 dest_host, u8 dest_gate,
-			 u8 pipe);
+						 u8 pipe);
 int nfc_hci_disconnect_gate(struct nfc_hci_dev *hdev, u8 gate);
 int nfc_hci_disconnect_all_gates(struct nfc_hci_dev *hdev);
 int nfc_hci_get_param(struct nfc_hci_dev *hdev, u8 gate, u8 idx,
-		      struct sk_buff **skb);
+					  struct sk_buff **skb);
 int nfc_hci_set_param(struct nfc_hci_dev *hdev, u8 gate, u8 idx,
-		      const u8 *param, size_t param_len);
+					  const u8 *param, size_t param_len);
 int nfc_hci_send_cmd(struct nfc_hci_dev *hdev, u8 gate, u8 cmd,
-		     const u8 *param, size_t param_len, struct sk_buff **skb);
+					 const u8 *param, size_t param_len, struct sk_buff **skb);
 int nfc_hci_send_cmd_async(struct nfc_hci_dev *hdev, u8 gate, u8 cmd,
-			   const u8 *param, size_t param_len,
-			   data_exchange_cb_t cb, void *cb_context);
+						   const u8 *param, size_t param_len,
+						   data_exchange_cb_t cb, void *cb_context);
 int nfc_hci_send_event(struct nfc_hci_dev *hdev, u8 gate, u8 event,
-		       const u8 *param, size_t param_len);
+					   const u8 *param, size_t param_len);
 int nfc_hci_target_discovered(struct nfc_hci_dev *hdev, u8 gate);
 u32 nfc_hci_sak_to_protocol(u8 sak);
 

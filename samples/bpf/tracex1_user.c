@@ -11,7 +11,8 @@ int main(int ac, char **argv)
 
 	snprintf(filename, sizeof(filename), "%s_kern.o", argv[0]);
 
-	if (load_bpf_file(filename)) {
+	if (load_bpf_file(filename))
+	{
 		printf("%s", bpf_log_buf);
 		return 1;
 	}

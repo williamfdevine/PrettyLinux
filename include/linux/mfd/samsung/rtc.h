@@ -18,7 +18,8 @@
 #ifndef __LINUX_MFD_SEC_RTC_H
 #define __LINUX_MFD_SEC_RTC_H
 
-enum s5m_rtc_reg {
+enum s5m_rtc_reg
+{
 	S5M_RTC_SEC,
 	S5M_RTC_MIN,
 	S5M_RTC_HOUR,
@@ -52,7 +53,8 @@ enum s5m_rtc_reg {
 	S5M_RTC_REG_MAX,
 };
 
-enum s2mps_rtc_reg {
+enum s2mps_rtc_reg
+{
 	S2MPS_RTC_CTRL,
 	S2MPS_WTSR_SMPL_CNTL,
 	S2MPS_RTC_UDR_CON,
@@ -141,7 +143,8 @@ enum s2mps_rtc_reg {
 #define WTSR_ENABLE_SHIFT	6
 #define WTSR_ENABLE_MASK	(1 << WTSR_ENABLE_SHIFT)
 
-enum {
+enum
+{
 	RTC_SEC = 0,
 	RTC_MIN,
 	RTC_HOUR,

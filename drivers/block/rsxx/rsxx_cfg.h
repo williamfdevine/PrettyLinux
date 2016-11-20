@@ -35,24 +35,28 @@
  */
 #define RSXX_CFG_VERSION	4
 
-struct card_cfg_hdr {
+struct card_cfg_hdr
+{
 	__u32	version;
 	__u32	crc;
 };
 
-struct card_cfg_data {
+struct card_cfg_data
+{
 	__u32	block_size;
 	__u32	stripe_size;
 	__u32	vendor_id;
 	__u32	cache_order;
-	struct {
+	struct
+	{
 		__u32	mode;	/* Disabled, manual, auto-tune... */
 		__u32	count;	/* Number of intr to coalesce     */
 		__u32	latency;/* Max wait time (in ns)          */
 	} intr_coal;
 };
 
-struct rsxx_card_cfg {
+struct rsxx_card_cfg
+{
 	struct card_cfg_hdr	hdr;
 	struct card_cfg_data	data;
 };

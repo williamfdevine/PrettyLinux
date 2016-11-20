@@ -23,7 +23,8 @@
 #ifndef _TWL4030_MADC_H
 #define _TWL4030_MADC_H
 
-struct twl4030_madc_conversion_method {
+struct twl4030_madc_conversion_method
+{
 	u8 sel;
 	u8 avg;
 	u8 rbase;
@@ -42,7 +43,8 @@ struct twl4030_madc_conversion_method {
  * @raw:	Return raw value, do not convert it
  */
 
-struct twl4030_madc_request {
+struct twl4030_madc_request
+{
 	unsigned long channels;
 	bool do_avg;
 	u16 method;
@@ -54,14 +56,16 @@ struct twl4030_madc_request {
 	void (*func_cb)(int len, int channels, int *buf);
 };
 
-enum conversion_methods {
+enum conversion_methods
+{
 	TWL4030_MADC_RT,
 	TWL4030_MADC_SW1,
 	TWL4030_MADC_SW2,
 	TWL4030_MADC_NUM_METHODS
 };
 
-enum sample_type {
+enum sample_type
+{
 	TWL4030_MADC_WAIT,
 	TWL4030_MADC_IRQ_ONESHOT,
 	TWL4030_MADC_IRQ_REARM
@@ -135,7 +139,8 @@ enum sample_type {
 #define TWL4030_REG_GPBR1		0x0c
 #define TWL4030_GPBR1_MADC_HFCLK_EN	(1 << 7)
 
-struct twl4030_madc_user_parms {
+struct twl4030_madc_user_parms
+{
 	int channel;
 	int average;
 	int status;

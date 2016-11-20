@@ -23,7 +23,8 @@ extern struct bio_set *xfs_ioend_bioset;
 /*
  * Types of I/O for bmap clustering and I/O completion tracking.
  */
-enum {
+enum
+{
 	XFS_IO_INVALID,		/* initial state */
 	XFS_IO_DELALLOC,	/* covers delalloc region */
 	XFS_IO_UNWRITTEN,	/* covers allocated but uninitialized data */
@@ -41,7 +42,8 @@ enum {
 /*
  * Structure for buffered I/O completions.
  */
-struct xfs_ioend {
+struct xfs_ioend
+{
 	struct list_head	io_list;	/* next ioend in chain */
 	unsigned int		io_type;	/* delalloc / unwritten */
 	struct inode		*io_inode;	/* file being written to */
@@ -56,14 +58,14 @@ struct xfs_ioend {
 extern const struct address_space_operations xfs_address_space_operations;
 
 int	xfs_get_blocks(struct inode *inode, sector_t offset,
-		       struct buffer_head *map_bh, int create);
+				   struct buffer_head *map_bh, int create);
 int	xfs_get_blocks_direct(struct inode *inode, sector_t offset,
-			      struct buffer_head *map_bh, int create);
+						  struct buffer_head *map_bh, int create);
 int	xfs_get_blocks_dax_fault(struct inode *inode, sector_t offset,
-			         struct buffer_head *map_bh, int create);
+							 struct buffer_head *map_bh, int create);
 
 int	xfs_end_io_direct_write(struct kiocb *iocb, loff_t offset,
-		ssize_t size, void *private);
+							ssize_t size, void *private);
 int	xfs_setfilesize(struct xfs_inode *ip, xfs_off_t offset, size_t size);
 
 extern void xfs_count_page_state(struct page *, int *, int *);

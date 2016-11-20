@@ -57,7 +57,8 @@
  * can utilize this callback to initialize the state of it correctly.
  */
 
-static struct page_ext_operations *page_ext_ops[] = {
+static struct page_ext_operations *page_ext_ops[] =
+{
 	&debug_guardpage_ops,
 #ifdef CONFIG_PAGE_POISONING
 	&page_poisoning_ops,
@@ -79,10 +80,12 @@ static bool __init invoke_need_callbacks(void)
 	int entries = ARRAY_SIZE(page_ext_ops);
 	bool need = false;
 
-	for (i = 0; i < entries; i++) {
-		if (page_ext_ops[i]->need && page_ext_ops[i]->need()) {
+	for (i = 0; i < entries; i++)
+	{
+		if (page_ext_ops[i]->need && page_ext_ops[i]->need())
+		{
 			page_ext_ops[i]->offset = sizeof(struct page_ext) +
-						extra_mem;
+									  extra_mem;
 			extra_mem += page_ext_ops[i]->size;
 			need = true;
 		}
@@ -96,9 +99,12 @@ static void __init invoke_init_callbacks(void)
 	int i;
 	int entries = ARRAY_SIZE(page_ext_ops);
 
-	for (i = 0; i < entries; i++) {
+	for (i = 0; i < entries; i++)
+	{
 		if (page_ext_ops[i]->init)
+		{
 			page_ext_ops[i]->init();
+		}
 	}
 }
 
@@ -128,6 +134,7 @@ struct page_ext *lookup_page_ext(struct page *page)
 
 	base = NODE_DATA(page_to_nid(page))->node_page_ext;
 #if defined(CONFIG_DEBUG_VM) || defined(CONFIG_PAGE_POISONING)
+
 	/*
 	 * The sanity checks the page allocator does upon freeing a
 	 * page can reach here before the page_ext arrays are
@@ -138,10 +145,13 @@ struct page_ext *lookup_page_ext(struct page *page)
 	 * works as expected when enabled
 	 */
 	if (unlikely(!base))
+	{
 		return NULL;
+	}
+
 #endif
 	index = pfn - round_down(node_start_pfn(page_to_nid(page)),
-					MAX_ORDER_NR_PAGES);
+							 MAX_ORDER_NR_PAGES);
 	return get_entry(base, index);
 }
 
@@ -152,8 +162,11 @@ static int __init alloc_node_page_ext(int nid)
 	unsigned long nr_pages;
 
 	nr_pages = NODE_DATA(nid)->node_spanned_pages;
+
 	if (!nr_pages)
+	{
 		return 0;
+	}
 
 	/*
 	 * Need extra space if node range is not aligned with
@@ -162,15 +175,21 @@ static int __init alloc_node_page_ext(int nid)
 	 */
 	if (!IS_ALIGNED(node_start_pfn(nid), MAX_ORDER_NR_PAGES) ||
 		!IS_ALIGNED(node_end_pfn(nid), MAX_ORDER_NR_PAGES))
+	{
 		nr_pages += MAX_ORDER_NR_PAGES;
+	}
 
 	table_size = get_entry_size() * nr_pages;
 
 	base = memblock_virt_alloc_try_nid_nopanic(
-			table_size, PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
-			BOOTMEM_ALLOC_ACCESSIBLE, nid);
+			   table_size, PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
+			   BOOTMEM_ALLOC_ACCESSIBLE, nid);
+
 	if (!base)
+	{
 		return -ENOMEM;
+	}
+
 	NODE_DATA(nid)->node_page_ext = base;
 	total_usage += table_size;
 	return 0;
@@ -182,12 +201,18 @@ void __init page_ext_init_flatmem(void)
 	int nid, fail;
 
 	if (!invoke_need_callbacks())
+	{
 		return;
+	}
 
-	for_each_online_node(nid)  {
+	for_each_online_node(nid)
+	{
 		fail = alloc_node_page_ext(nid);
+
 		if (fail)
+		{
 			goto fail;
+		}
 	}
 	pr_info("allocated %ld bytes of page_ext\n", total_usage);
 	invoke_init_callbacks();
@@ -205,6 +230,7 @@ struct page_ext *lookup_page_ext(struct page *page)
 	unsigned long pfn = page_to_pfn(page);
 	struct mem_section *section = __pfn_to_section(pfn);
 #if defined(CONFIG_DEBUG_VM) || defined(CONFIG_PAGE_POISONING)
+
 	/*
 	 * The sanity checks the page allocator does upon freeing a
 	 * page can reach here before the page_ext arrays are
@@ -215,7 +241,10 @@ struct page_ext *lookup_page_ext(struct page *page)
 	 * works as expected when enabled
 	 */
 	if (!section->page_ext)
+	{
 		return NULL;
+	}
+
 #endif
 	return get_entry(section->page_ext, pfn);
 }
@@ -226,15 +255,21 @@ static void *__meminit alloc_page_ext(size_t size, int nid)
 	void *addr = NULL;
 
 	addr = alloc_pages_exact_nid(nid, size, flags);
-	if (addr) {
+
+	if (addr)
+	{
 		kmemleak_alloc(addr, size, 1, flags);
 		return addr;
 	}
 
 	if (node_state(nid, N_HIGH_MEMORY))
+	{
 		addr = vzalloc_node(size, nid);
+	}
 	else
+	{
 		addr = vzalloc(size);
+	}
 
 	return addr;
 }
@@ -248,7 +283,9 @@ static int __meminit init_section_page_ext(unsigned long pfn, int nid)
 	section = __pfn_to_section(pfn);
 
 	if (section->page_ext)
+	{
 		return 0;
+	}
 
 	table_size = get_entry_size() * PAGES_PER_SECTION;
 	base = alloc_page_ext(table_size, nid);
@@ -260,7 +297,8 @@ static int __meminit init_section_page_ext(unsigned long pfn, int nid)
 	 */
 	kmemleak_not_leak(base);
 
-	if (!base) {
+	if (!base)
+	{
 		pr_err("page ext allocation failure\n");
 		return -ENOMEM;
 	}
@@ -277,9 +315,12 @@ static int __meminit init_section_page_ext(unsigned long pfn, int nid)
 #ifdef CONFIG_MEMORY_HOTPLUG
 static void free_page_ext(void *addr)
 {
-	if (is_vmalloc_addr(addr)) {
+	if (is_vmalloc_addr(addr))
+	{
 		vfree(addr);
-	} else {
+	}
+	else
+	{
 		struct page *page = virt_to_page(addr);
 		size_t table_size;
 
@@ -296,16 +337,20 @@ static void __free_page_ext(unsigned long pfn)
 	struct page_ext *base;
 
 	ms = __pfn_to_section(pfn);
+
 	if (!ms || !ms->page_ext)
+	{
 		return;
+	}
+
 	base = get_entry(ms->page_ext, pfn);
 	free_page_ext(base);
 	ms->page_ext = NULL;
 }
 
 static int __meminit online_page_ext(unsigned long start_pfn,
-				unsigned long nr_pages,
-				int nid)
+									 unsigned long nr_pages,
+									 int nid)
 {
 	unsigned long start, end, pfn;
 	int fail = 0;
@@ -313,7 +358,8 @@ static int __meminit online_page_ext(unsigned long start_pfn,
 	start = SECTION_ALIGN_DOWN(start_pfn);
 	end = SECTION_ALIGN_UP(start_pfn + nr_pages);
 
-	if (nid == -1) {
+	if (nid == -1)
+	{
 		/*
 		 * In this case, "nid" already exists and contains valid memory.
 		 * "start_pfn" passed to us is a pfn which is an arg for
@@ -323,23 +369,32 @@ static int __meminit online_page_ext(unsigned long start_pfn,
 		VM_BUG_ON(!node_state(nid, N_ONLINE));
 	}
 
-	for (pfn = start; !fail && pfn < end; pfn += PAGES_PER_SECTION) {
+	for (pfn = start; !fail && pfn < end; pfn += PAGES_PER_SECTION)
+	{
 		if (!pfn_present(pfn))
+		{
 			continue;
+		}
+
 		fail = init_section_page_ext(pfn, nid);
 	}
+
 	if (!fail)
+	{
 		return 0;
+	}
 
 	/* rollback */
 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION)
+	{
 		__free_page_ext(pfn);
+	}
 
 	return -ENOMEM;
 }
 
 static int __meminit offline_page_ext(unsigned long start_pfn,
-				unsigned long nr_pages, int nid)
+									  unsigned long nr_pages, int nid)
 {
 	unsigned long start, end, pfn;
 
@@ -347,35 +402,43 @@ static int __meminit offline_page_ext(unsigned long start_pfn,
 	end = SECTION_ALIGN_UP(start_pfn + nr_pages);
 
 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION)
+	{
 		__free_page_ext(pfn);
+	}
+
 	return 0;
 
 }
 
 static int __meminit page_ext_callback(struct notifier_block *self,
-			       unsigned long action, void *arg)
+									   unsigned long action, void *arg)
 {
 	struct memory_notify *mn = arg;
 	int ret = 0;
 
-	switch (action) {
-	case MEM_GOING_ONLINE:
-		ret = online_page_ext(mn->start_pfn,
-				   mn->nr_pages, mn->status_change_nid);
-		break;
-	case MEM_OFFLINE:
-		offline_page_ext(mn->start_pfn,
-				mn->nr_pages, mn->status_change_nid);
-		break;
-	case MEM_CANCEL_ONLINE:
-		offline_page_ext(mn->start_pfn,
-				mn->nr_pages, mn->status_change_nid);
-		break;
-	case MEM_GOING_OFFLINE:
-		break;
-	case MEM_ONLINE:
-	case MEM_CANCEL_OFFLINE:
-		break;
+	switch (action)
+	{
+		case MEM_GOING_ONLINE:
+			ret = online_page_ext(mn->start_pfn,
+								  mn->nr_pages, mn->status_change_nid);
+			break;
+
+		case MEM_OFFLINE:
+			offline_page_ext(mn->start_pfn,
+							 mn->nr_pages, mn->status_change_nid);
+			break;
+
+		case MEM_CANCEL_ONLINE:
+			offline_page_ext(mn->start_pfn,
+							 mn->nr_pages, mn->status_change_nid);
+			break;
+
+		case MEM_GOING_OFFLINE:
+			break;
+
+		case MEM_ONLINE:
+		case MEM_CANCEL_OFFLINE:
+			break;
 	}
 
 	return notifier_from_errno(ret);
@@ -389,23 +452,31 @@ void __init page_ext_init(void)
 	int nid;
 
 	if (!invoke_need_callbacks())
+	{
 		return;
+	}
 
-	for_each_node_state(nid, N_MEMORY) {
+	for_each_node_state(nid, N_MEMORY)
+	{
 		unsigned long start_pfn, end_pfn;
 
 		start_pfn = node_start_pfn(nid);
 		end_pfn = node_end_pfn(nid);
+
 		/*
 		 * start_pfn and end_pfn may not be aligned to SECTION and the
 		 * page->flags of out of node pages are not initialized.  So we
 		 * scan [start_pfn, the biggest section's pfn < end_pfn) here.
 		 */
 		for (pfn = start_pfn; pfn < end_pfn;
-			pfn = ALIGN(pfn + 1, PAGES_PER_SECTION)) {
+			 pfn = ALIGN(pfn + 1, PAGES_PER_SECTION))
+		{
 
 			if (!pfn_valid(pfn))
+			{
 				continue;
+			}
+
 			/*
 			 * Nodes's pfns can be overlapping.
 			 * We know some arch can have a nodes layout such as
@@ -415,9 +486,14 @@ void __init page_ext_init(void)
 			 * Take into account DEFERRED_STRUCT_PAGE_INIT.
 			 */
 			if (early_pfn_to_nid(pfn) != nid)
+			{
 				continue;
+			}
+
 			if (init_section_page_ext(pfn, nid))
+			{
 				goto oom;
+			}
 		}
 	}
 	hotplug_memory_notifier(page_ext_callback, 0);

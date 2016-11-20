@@ -18,7 +18,8 @@
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
-static struct fb_info fb_info = {
+static struct fb_info fb_info =
+{
 	.fix = {
 		.id		= "HP300 ",
 		.type		= FB_TYPE_PACKED_PIXELS,
@@ -56,7 +57,8 @@ static unsigned char fb_bitmask;
 #define WWIDTH		0x4102
 #define WMOVE		0x409c
 
-static struct fb_var_screeninfo hpfb_defined = {
+static struct fb_var_screeninfo hpfb_defined =
+{
 	.red		= {
 		.length = 8,
 	},
@@ -73,14 +75,14 @@ static struct fb_var_screeninfo hpfb_defined = {
 };
 
 static int hpfb_setcolreg(unsigned regno, unsigned red, unsigned green,
-			  unsigned blue, unsigned transp,
-			  struct fb_info *info)
+						  unsigned blue, unsigned transp,
+						  struct fb_info *info)
 {
 	/* use MSBs */
-	unsigned char _red  =red>>8;
-	unsigned char _green=green>>8;
-	unsigned char _blue =blue>>8;
-	unsigned char _regno=regno;
+	unsigned char _red  = red >> 8;
+	unsigned char _green = green >> 8;
+	unsigned char _blue = blue >> 8;
+	unsigned char _regno = regno;
 
 	/*
 	 *  Set a single color register. The values supplied are
@@ -90,9 +92,11 @@ static int hpfb_setcolreg(unsigned regno, unsigned red, unsigned green,
 	 */
 
 	if (regno >= info->cmap.len)
+	{
 		return 1;
-	
-	while (in_be16(fb_regs + 0x6002) & 0x4) udelay(1);
+	}
+
+	while (in_be16(fb_regs + 0x6002) & 0x4) { udelay(1); }
 
 	out_be16(fb_regs + 0x60ba, 0xff);
 
@@ -104,7 +108,8 @@ static int hpfb_setcolreg(unsigned regno, unsigned red, unsigned green,
 
 	udelay(100);
 
-	while (in_be16(fb_regs + 0x6002) & 0x4) udelay(1);
+	while (in_be16(fb_regs + 0x6002) & 0x4) { udelay(1); }
+
 	out_be16(fb_regs + 0x60b2, 0);
 	out_be16(fb_regs + 0x60b4, 0);
 	out_be16(fb_regs + 0x60b6, 0);
@@ -124,15 +129,20 @@ static int hpfb_blank(int blank, struct fb_info *info)
 
 static void topcat_blit(int x0, int y0, int x1, int y1, int w, int h, int rr)
 {
-	if (rr >= 0) {
+	if (rr >= 0)
+	{
 		while (in_8(fb_regs + BUSY) & fb_bitmask)
 			;
 	}
+
 	out_8(fb_regs + TC_FBEN, fb_bitmask);
-	if (rr >= 0) {
+
+	if (rr >= 0)
+	{
 		out_8(fb_regs + TC_WEN, fb_bitmask);
 		out_8(fb_regs + WMRR, rr);
 	}
+
 	out_be16(fb_regs + SOURCE_X, x0);
 	out_be16(fb_regs + SOURCE_Y, y0);
 	out_be16(fb_regs + DEST_X, x1);
@@ -142,7 +152,7 @@ static void topcat_blit(int x0, int y0, int x1, int y1, int w, int h, int rr)
 	out_8(fb_regs + WMOVE, fb_bitmask);
 }
 
-static void hpfb_copyarea(struct fb_info *info, const struct fb_copyarea *area) 
+static void hpfb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 {
 	topcat_blit(area->sx, area->sy, area->dx, area->dy, area->width, area->height, RR_COPY);
 }
@@ -183,7 +193,8 @@ static int hpfb_sync(struct fb_info *info)
 	return 0;
 }
 
-static struct fb_ops hpfb_ops = {
+static struct fb_ops hpfb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_setcolreg	= hpfb_setcolreg,
 	.fb_blank	= hpfb_blank,
@@ -216,22 +227,25 @@ static int hpfb_init_one(unsigned long phys_base, unsigned long virt_base)
 
 	fb_info.fix.smem_start = (in_8(fb_regs + fboff) << 16);
 
-	if (phys_base >= DIOII_BASE) {
+	if (phys_base >= DIOII_BASE)
+	{
 		fb_info.fix.smem_start += phys_base;
 	}
 
-	if (DIO_SECID(fb_regs) != DIO_ID2_TOPCAT) {
+	if (DIO_SECID(fb_regs) != DIO_ID2_TOPCAT)
+	{
 		/* This is the magic incantation the HP X server uses to make Catseye boards work. */
-		while (in_be16(fb_regs+0x4800) & 1)
+		while (in_be16(fb_regs + 0x4800) & 1)
 			;
-		out_be16(fb_regs+0x4800, 0);	/* Catseye status */
-		out_be16(fb_regs+0x4510, 0);	/* VB */
-		out_be16(fb_regs+0x4512, 0);	/* TCNTRL */
-		out_be16(fb_regs+0x4514, 0);	/* ACNTRL */
-		out_be16(fb_regs+0x4516, 0);	/* PNCNTRL */
-		out_be16(fb_regs+0x4206, 0x90);	/* RUG Command/Status */
-		out_be16(fb_regs+0x60a2, 0);	/* Overlay Mask */
-		out_be16(fb_regs+0x60bc, 0);	/* Ram Select */
+
+		out_be16(fb_regs + 0x4800, 0);	/* Catseye status */
+		out_be16(fb_regs + 0x4510, 0);	/* VB */
+		out_be16(fb_regs + 0x4512, 0);	/* TCNTRL */
+		out_be16(fb_regs + 0x4514, 0);	/* ACNTRL */
+		out_be16(fb_regs + 0x4516, 0);	/* PNCNTRL */
+		out_be16(fb_regs + 0x4206, 0x90);	/* RUG Command/Status */
+		out_be16(fb_regs + 0x60a2, 0);	/* Overlay Mask */
+		out_be16(fb_regs + 0x60bc, 0);	/* Ram Select */
 	}
 
 	/*
@@ -242,7 +256,7 @@ static int hpfb_init_one(unsigned long phys_base, unsigned long virt_base)
 	fb_height = (in_8(fb_regs + HPFB_FBHMSB) << 8) | in_8(fb_regs + HPFB_FBHLSB);
 	fb_info.fix.smem_len = fb_width * fb_height;
 	fb_start = (unsigned long)ioremap_wt(fb_info.fix.smem_start,
-					     fb_info.fix.smem_len);
+										 fb_info.fix.smem_len);
 	hpfb_defined.xres = (in_8(fb_regs + HPFB_DWMSB) << 8) | in_8(fb_regs + HPFB_DWLSB);
 	hpfb_defined.yres = (in_8(fb_regs + HPFB_DHMSB) << 8) | in_8(fb_regs + HPFB_DHLSB);
 	hpfb_defined.xres_virtual = hpfb_defined.xres;
@@ -250,9 +264,9 @@ static int hpfb_init_one(unsigned long phys_base, unsigned long virt_base)
 	hpfb_defined.bits_per_pixel = in_8(fb_regs + HPFB_NUMPLANES);
 
 	printk(KERN_INFO "hpfb: framebuffer at 0x%lx, mapped to 0x%lx, size %dk\n",
-	       fb_info.fix.smem_start, fb_start, fb_info.fix.smem_len/1024);
+		   fb_info.fix.smem_start, fb_start, fb_info.fix.smem_len / 1024);
 	printk(KERN_INFO "hpfb: mode is %dx%dx%d, linelength=%d\n",
-	       hpfb_defined.xres, hpfb_defined.yres, hpfb_defined.bits_per_pixel, fb_info.fix.line_length);
+		   hpfb_defined.xres, hpfb_defined.yres, hpfb_defined.bits_per_pixel, fb_info.fix.line_length);
 
 	/*
 	 *	Give the hardware a bit of a prod and work out how many bits per
@@ -282,21 +296,32 @@ static int hpfb_init_one(unsigned long phys_base, unsigned long virt_base)
 	 *	Let there be consoles..
 	 */
 	if (DIO_SECID(fb_regs) == DIO_ID2_TOPCAT)
+	{
 		strcat(fb_info.fix.id, "Topcat");
+	}
 	else
+	{
 		strcat(fb_info.fix.id, "Catseye");
+	}
+
 	fb_info.fbops = &hpfb_ops;
 	fb_info.flags = FBINFO_DEFAULT;
 	fb_info.var   = hpfb_defined;
 	fb_info.screen_base = (char *)fb_start;
 
 	ret = fb_alloc_cmap(&fb_info.cmap, 1 << hpfb_defined.bits_per_pixel, 0);
+
 	if (ret < 0)
+	{
 		goto unmap_screen_base;
+	}
 
 	ret = register_framebuffer(&fb_info);
+
 	if (ret < 0)
+	{
 		goto dealloc_cmap;
+	}
 
 	fb_info(&fb_info, "%s frame buffer device\n", fb_info.fix.id);
 
@@ -306,7 +331,9 @@ dealloc_cmap:
 	fb_dealloc_cmap(&fb_info.cmap);
 
 unmap_screen_base:
-	if (fb_info.screen_base) {
+
+	if (fb_info.screen_base)
+	{
 		iounmap(fb_info.screen_base);
 		fb_info.screen_base = NULL;
 	}
@@ -314,15 +341,15 @@ unmap_screen_base:
 	return ret;
 }
 
-/* 
+/*
  * Check that the secondary ID indicates that we have some hope of working with this
  * framebuffer.  The catseye boards are pretty much like topcats and we can muddle through.
  */
 
 #define topcat_sid_ok(x)  (((x) == DIO_ID2_LRCATSEYE) || ((x) == DIO_ID2_HRCCATSEYE)    \
-			   || ((x) == DIO_ID2_HRMCATSEYE) || ((x) == DIO_ID2_TOPCAT))
+						   || ((x) == DIO_ID2_HRMCATSEYE) || ((x) == DIO_ID2_TOPCAT))
 
-/* 
+/*
  * Initialise the framebuffer
  */
 static int hpfb_dio_probe(struct dio_dev *d, const struct dio_device_id *ent)
@@ -330,48 +357,70 @@ static int hpfb_dio_probe(struct dio_dev *d, const struct dio_device_id *ent)
 	unsigned long paddr, vaddr;
 
 	paddr = d->resource.start;
-	if (!request_mem_region(d->resource.start, resource_size(&d->resource), d->name))
-                return -EBUSY;
 
-	if (d->scode >= DIOII_SCBASE) {
+	if (!request_mem_region(d->resource.start, resource_size(&d->resource), d->name))
+	{
+		return -EBUSY;
+	}
+
+	if (d->scode >= DIOII_SCBASE)
+	{
 		vaddr = (unsigned long)ioremap(paddr, resource_size(&d->resource));
-	} else {
+	}
+	else
+	{
 		vaddr = paddr + DIO_VIRADDRBASE;
 	}
+
 	printk(KERN_INFO "Topcat found at DIO select code %d "
-	       "(secondary id %02x)\n", d->scode, (d->id >> 8) & 0xff);
-	if (hpfb_init_one(paddr, vaddr)) {
+		   "(secondary id %02x)\n", d->scode, (d->id >> 8) & 0xff);
+
+	if (hpfb_init_one(paddr, vaddr))
+	{
 		if (d->scode >= DIOII_SCBASE)
+		{
 			iounmap((void *)vaddr);
+		}
+
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 
 static void hpfb_remove_one(struct dio_dev *d)
 {
 	unregister_framebuffer(&fb_info);
+
 	if (d->scode >= DIOII_SCBASE)
+	{
 		iounmap((void *)fb_regs);
+	}
+
 	release_mem_region(d->resource.start, resource_size(&d->resource));
 	fb_dealloc_cmap(&fb_info.cmap);
+
 	if (fb_info.screen_base)
+	{
 		iounmap(fb_info.screen_base);
+	}
 }
 
-static struct dio_device_id hpfb_dio_tbl[] = {
-    { DIO_ENCODE_ID(DIO_ID_FBUFFER, DIO_ID2_LRCATSEYE) },
-    { DIO_ENCODE_ID(DIO_ID_FBUFFER, DIO_ID2_HRCCATSEYE) },
-    { DIO_ENCODE_ID(DIO_ID_FBUFFER, DIO_ID2_HRMCATSEYE) },
-    { DIO_ENCODE_ID(DIO_ID_FBUFFER, DIO_ID2_TOPCAT) },
-    { 0 }
+static struct dio_device_id hpfb_dio_tbl[] =
+{
+	{ DIO_ENCODE_ID(DIO_ID_FBUFFER, DIO_ID2_LRCATSEYE) },
+	{ DIO_ENCODE_ID(DIO_ID_FBUFFER, DIO_ID2_HRCCATSEYE) },
+	{ DIO_ENCODE_ID(DIO_ID_FBUFFER, DIO_ID2_HRMCATSEYE) },
+	{ DIO_ENCODE_ID(DIO_ID_FBUFFER, DIO_ID2_TOPCAT) },
+	{ 0 }
 };
 
-static struct dio_driver hpfb_driver = {
-    .name      = "hpfb",
-    .id_table  = hpfb_dio_tbl,
-    .probe     = hpfb_dio_probe,
-    .remove    = hpfb_remove_one,
+static struct dio_driver hpfb_driver =
+{
+	.name      = "hpfb",
+	.id_table  = hpfb_dio_tbl,
+	.probe     = hpfb_dio_probe,
+	.remove    = hpfb_remove_one,
 };
 
 int __init hpfb_init(void)
@@ -393,28 +442,42 @@ int __init hpfb_init(void)
 #define INTFBPADDR 0x560000
 
 	if (!MACH_IS_HP300)
+	{
 		return -ENODEV;
+	}
 
 	if (fb_get_options("hpfb", NULL))
+	{
 		return -ENODEV;
+	}
 
 	err = dio_register_driver(&hpfb_driver);
+
 	if (err)
+	{
 		return err;
+	}
 
 	fs = get_fs();
 	set_fs(KERNEL_DS);
 	err = get_user(i, (unsigned char *)INTFBVADDR + DIO_IDOFF);
 	set_fs(fs);
 
-	if (!err && (i == DIO_ID_FBUFFER) && topcat_sid_ok(sid = DIO_SECID(INTFBVADDR))) {
+	if (!err && (i == DIO_ID_FBUFFER) && topcat_sid_ok(sid = DIO_SECID(INTFBVADDR)))
+	{
 		if (!request_mem_region(INTFBPADDR, DIO_DEVSIZE, "Internal Topcat"))
+		{
 			return -EBUSY;
+		}
+
 		printk(KERN_INFO "Internal Topcat found (secondary id %02x)\n", sid);
-		if (hpfb_init_one(INTFBPADDR, INTFBVADDR)) {
+
+		if (hpfb_init_one(INTFBPADDR, INTFBVADDR))
+		{
 			return -ENOMEM;
 		}
 	}
+
 	return 0;
 }
 

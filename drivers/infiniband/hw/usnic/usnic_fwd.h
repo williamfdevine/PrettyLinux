@@ -43,7 +43,8 @@
 #include "usnic_common_pkt_hdr.h"
 #include "vnic_devcmd.h"
 
-struct usnic_fwd_dev {
+struct usnic_fwd_dev
+{
 	struct pci_dev			*pdev;
 	struct net_device		*netdev;
 	spinlock_t			lock;
@@ -56,16 +57,18 @@ struct usnic_fwd_dev {
 	char				mac[ETH_ALEN];
 	unsigned int			mtu;
 	__be32				inaddr;
-	char				name[IFNAMSIZ+1];
+	char				name[IFNAMSIZ + 1];
 };
 
-struct usnic_fwd_flow {
+struct usnic_fwd_flow
+{
 	uint32_t			flow_id;
 	struct usnic_fwd_dev		*ufdev;
 	unsigned int			vnic_idx;
 };
 
-struct usnic_filter_action {
+struct usnic_filter_action
+{
 	int				vnic_idx;
 	struct filter_action		action;
 };
@@ -86,40 +89,42 @@ void usnic_fwd_set_mtu(struct usnic_fwd_dev *ufdev, unsigned int mtu);
  * NETDEV_DOWN is seen, flow will no longer function and must be
  * immediately freed by calling usnic_dealloc_flow.
  */
-struct usnic_fwd_flow*
+struct usnic_fwd_flow *
 usnic_fwd_alloc_flow(struct usnic_fwd_dev *ufdev, struct filter *filter,
-				struct usnic_filter_action *action);
+					 struct usnic_filter_action *action);
 int usnic_fwd_dealloc_flow(struct usnic_fwd_flow *flow);
 int usnic_fwd_enable_qp(struct usnic_fwd_dev *ufdev, int vnic_idx, int qp_idx);
 int usnic_fwd_disable_qp(struct usnic_fwd_dev *ufdev, int vnic_idx, int qp_idx);
 
 static inline void usnic_fwd_init_usnic_filter(struct filter *filter,
-						uint32_t usnic_id)
+		uint32_t usnic_id)
 {
 	filter->type = FILTER_USNIC_ID;
 	filter->u.usnic.ethtype = USNIC_ROCE_ETHERTYPE;
 	filter->u.usnic.flags = FILTER_FIELD_USNIC_ETHTYPE |
-				FILTER_FIELD_USNIC_ID |
-				FILTER_FIELD_USNIC_PROTO;
+							FILTER_FIELD_USNIC_ID |
+							FILTER_FIELD_USNIC_PROTO;
 	filter->u.usnic.proto_version = (USNIC_ROCE_GRH_VER <<
-					 USNIC_ROCE_GRH_VER_SHIFT) |
-					 USNIC_PROTO_VER;
+									 USNIC_ROCE_GRH_VER_SHIFT) |
+									USNIC_PROTO_VER;
 	filter->u.usnic.usnic_id = usnic_id;
 }
 
 static inline void usnic_fwd_init_udp_filter(struct filter *filter,
-						uint32_t daddr, uint16_t dport)
+		uint32_t daddr, uint16_t dport)
 {
 	filter->type = FILTER_IPV4_5TUPLE;
 	filter->u.ipv4.flags = FILTER_FIELD_5TUP_PROTO;
 	filter->u.ipv4.protocol = PROTO_UDP;
 
-	if (daddr) {
+	if (daddr)
+	{
 		filter->u.ipv4.flags |= FILTER_FIELD_5TUP_DST_AD;
 		filter->u.ipv4.dst_addr = daddr;
 	}
 
-	if (dport) {
+	if (dport)
+	{
 		filter->u.ipv4.flags |= FILTER_FIELD_5TUP_DST_PT;
 		filter->u.ipv4.dst_port = dport;
 	}

@@ -812,8 +812,8 @@
 #define WM8991_BCLK_DIV 3
 
 #define SOC_WM899X_OUTPGA_SINGLE_R_TLV(xname, reg, shift, max, invert,\
-					 tlv_array) \
-	SOC_SINGLE_EXT_TLV(xname, reg, shift, max, invert, \
-		snd_soc_get_volsw, wm899x_outpga_put_volsw_vu, tlv_array)
+									   tlv_array) \
+SOC_SINGLE_EXT_TLV(xname, reg, shift, max, invert, \
+				   snd_soc_get_volsw, wm899x_outpga_put_volsw_vu, tlv_array)
 
 #endif /* _WM8991_H */

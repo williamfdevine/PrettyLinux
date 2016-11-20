@@ -136,13 +136,15 @@ isl38xx_w32_flush(void __iomem *base, u32 val, unsigned long offset)
  */
 #define MAX_FRAGMENT_SIZE_RX	                1600
 
-typedef struct {
+typedef struct
+{
 	__le32 address;		/* physical address on host */
 	__le16 size;		/* packet size */
 	__le16 flags;		/* set of bit-wise flags */
 } isl38xx_fragment;
 
-struct isl38xx_cb {
+struct isl38xx_cb
+{
 	__le32 driver_curr_frag[ISL38XX_CB_QCOUNT];
 	__le32 device_curr_frag[ISL38XX_CB_QCOUNT];
 	isl38xx_fragment rx_data_low[ISL38XX_CB_RX_QSIZE];
@@ -162,7 +164,7 @@ void isl38xx_disable_interrupts(void __iomem *);
 void isl38xx_enable_common_interrupts(void __iomem *);
 
 void isl38xx_handle_sleep_request(isl38xx_control_block *, int *,
-				  void __iomem *);
+								  void __iomem *);
 void isl38xx_handle_wakeup(isl38xx_control_block *, int *, void __iomem *);
 void isl38xx_trigger_device(int, void __iomem *);
 void isl38xx_interface_reset(void __iomem *, dma_addr_t);

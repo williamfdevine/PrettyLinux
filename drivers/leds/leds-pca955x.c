@@ -55,20 +55,23 @@
 #define PCA955X_LS_BLINK0	0x2	/* Blink at PWM0 rate */
 #define PCA955X_LS_BLINK1	0x3	/* Blink at PWM1 rate */
 
-enum pca955x_type {
+enum pca955x_type
+{
 	pca9550,
 	pca9551,
 	pca9552,
 	pca9553,
 };
 
-struct pca955x_chipdef {
+struct pca955x_chipdef
+{
 	int			bits;
 	u8			slv_addr;	/* 7-bit slave address mask */
 	int			slv_addr_shift;	/* Number of bits to ignore */
 };
 
-static struct pca955x_chipdef pca955x_chipdefs[] = {
+static struct pca955x_chipdef pca955x_chipdefs[] =
+{
 	[pca9550] = {
 		.bits		= 2,
 		.slv_addr	= /* 110000x */ 0x60,
@@ -91,7 +94,8 @@ static struct pca955x_chipdef pca955x_chipdefs[] = {
 	},
 };
 
-static const struct i2c_device_id pca955x_id[] = {
+static const struct i2c_device_id pca955x_id[] =
+{
 	{ "pca9550", pca9550 },
 	{ "pca9551", pca9551 },
 	{ "pca9552", pca9552 },
@@ -100,14 +104,16 @@ static const struct i2c_device_id pca955x_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, pca955x_id);
 
-struct pca955x {
+struct pca955x
+{
 	struct mutex lock;
 	struct pca955x_led *leds;
 	struct pca955x_chipdef	*chipdef;
 	struct i2c_client	*client;
 };
 
-struct pca955x_led {
+struct pca955x_led
+{
 	struct pca955x	*pca955x;
 	struct led_classdev	led_cdev;
 	int			led_num;	/* 0 .. 15 potentially */
@@ -133,7 +139,7 @@ static inline int pca95xx_num_led_regs(int bits)
 static inline u8 pca955x_ledsel(u8 oldval, int led_num, int state)
 {
 	return (oldval & (~(0x3 << (led_num << 1)))) |
-		((state & 0x3) << (led_num << 1));
+		   ((state & 0x3) << (led_num << 1));
 }
 
 /*
@@ -145,8 +151,8 @@ static void pca955x_write_psc(struct i2c_client *client, int n, u8 val)
 	struct pca955x *pca955x = i2c_get_clientdata(client);
 
 	i2c_smbus_write_byte_data(client,
-		pca95xx_num_input_regs(pca955x->chipdef->bits) + 2*n,
-		val);
+							  pca95xx_num_input_regs(pca955x->chipdef->bits) + 2 * n,
+							  val);
 }
 
 /*
@@ -161,8 +167,8 @@ static void pca955x_write_pwm(struct i2c_client *client, int n, u8 val)
 	struct pca955x *pca955x = i2c_get_clientdata(client);
 
 	i2c_smbus_write_byte_data(client,
-		pca95xx_num_input_regs(pca955x->chipdef->bits) + 1 + 2*n,
-		val);
+							  pca95xx_num_input_regs(pca955x->chipdef->bits) + 1 + 2 * n,
+							  val);
 }
 
 /*
@@ -174,8 +180,8 @@ static void pca955x_write_ls(struct i2c_client *client, int n, u8 val)
 	struct pca955x *pca955x = i2c_get_clientdata(client);
 
 	i2c_smbus_write_byte_data(client,
-		pca95xx_num_input_regs(pca955x->chipdef->bits) + 4 + n,
-		val);
+							  pca95xx_num_input_regs(pca955x->chipdef->bits) + 4 + n,
+							  val);
 }
 
 /*
@@ -187,11 +193,11 @@ static u8 pca955x_read_ls(struct i2c_client *client, int n)
 	struct pca955x *pca955x = i2c_get_clientdata(client);
 
 	return (u8) i2c_smbus_read_byte_data(client,
-		pca95xx_num_input_regs(pca955x->chipdef->bits) + 4 + n);
+										 pca95xx_num_input_regs(pca955x->chipdef->bits) + 4 + n);
 }
 
 static int pca955x_led_set(struct led_classdev *led_cdev,
-			    enum led_brightness value)
+						   enum led_brightness value)
 {
 	struct pca955x_led *pca955x_led;
 	struct pca955x *pca955x;
@@ -209,28 +215,32 @@ static int pca955x_led_set(struct led_classdev *led_cdev,
 
 	ls = pca955x_read_ls(pca955x->client, chip_ls);
 
-	switch (value) {
-	case LED_FULL:
-		ls = pca955x_ledsel(ls, ls_led, PCA955X_LS_LED_ON);
-		break;
-	case LED_OFF:
-		ls = pca955x_ledsel(ls, ls_led, PCA955X_LS_LED_OFF);
-		break;
-	case LED_HALF:
-		ls = pca955x_ledsel(ls, ls_led, PCA955X_LS_BLINK0);
-		break;
-	default:
-		/*
-		 * Use PWM1 for all other values.  This has the unwanted
-		 * side effect of making all LEDs on the chip share the
-		 * same brightness level if set to a value other than
-		 * OFF, HALF, or FULL.  But, this is probably better than
-		 * just turning off for all other values.
-		 */
-		pca955x_write_pwm(pca955x->client, 1,
-				255 - value);
-		ls = pca955x_ledsel(ls, ls_led, PCA955X_LS_BLINK1);
-		break;
+	switch (value)
+	{
+		case LED_FULL:
+			ls = pca955x_ledsel(ls, ls_led, PCA955X_LS_LED_ON);
+			break;
+
+		case LED_OFF:
+			ls = pca955x_ledsel(ls, ls_led, PCA955X_LS_LED_OFF);
+			break;
+
+		case LED_HALF:
+			ls = pca955x_ledsel(ls, ls_led, PCA955X_LS_BLINK0);
+			break;
+
+		default:
+			/*
+			 * Use PWM1 for all other values.  This has the unwanted
+			 * side effect of making all LEDs on the chip share the
+			 * same brightness level if set to a value other than
+			 * OFF, HALF, or FULL.  But, this is probably better than
+			 * just turning off for all other values.
+			 */
+			pca955x_write_pwm(pca955x->client, 1,
+							  255 - value);
+			ls = pca955x_ledsel(ls, ls_led, PCA955X_LS_BLINK1);
+			break;
 	}
 
 	pca955x_write_ls(pca955x->client, chip_ls, ls);
@@ -241,7 +251,7 @@ static int pca955x_led_set(struct led_classdev *led_cdev,
 }
 
 static int pca955x_probe(struct i2c_client *client,
-					const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct pca955x *pca955x;
 	struct pca955x_led *pca955x_led;
@@ -256,21 +266,26 @@ static int pca955x_probe(struct i2c_client *client,
 
 	/* Make sure the slave address / chip type combo given is possible */
 	if ((client->addr & ~((1 << chip->slv_addr_shift) - 1)) !=
-	    chip->slv_addr) {
+		chip->slv_addr)
+	{
 		dev_err(&client->dev, "invalid slave address %02x\n",
 				client->addr);
 		return -ENODEV;
 	}
 
 	dev_info(&client->dev, "leds-pca955x: Using %s %d-bit LED driver at "
-			"slave address 0x%02x\n",
-			id->name, chip->bits, client->addr);
+			 "slave address 0x%02x\n",
+			 id->name, chip->bits, client->addr);
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C))
+	{
 		return -EIO;
+	}
 
-	if (pdata) {
-		if (pdata->num_leds != chip->bits) {
+	if (pdata)
+	{
+		if (pdata->num_leds != chip->bits)
+		{
 			dev_err(&client->dev, "board info claims %d LEDs"
 					" on a %d-bit chip\n",
 					pdata->num_leds, chip->bits);
@@ -279,13 +294,19 @@ static int pca955x_probe(struct i2c_client *client,
 	}
 
 	pca955x = devm_kzalloc(&client->dev, sizeof(*pca955x), GFP_KERNEL);
+
 	if (!pca955x)
+	{
 		return -ENOMEM;
+	}
 
 	pca955x->leds = devm_kzalloc(&client->dev,
-			sizeof(*pca955x_led) * chip->bits, GFP_KERNEL);
+								 sizeof(*pca955x_led) * chip->bits, GFP_KERNEL);
+
 	if (!pca955x->leds)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, pca955x);
 
@@ -293,40 +314,50 @@ static int pca955x_probe(struct i2c_client *client,
 	pca955x->client = client;
 	pca955x->chipdef = chip;
 
-	for (i = 0; i < chip->bits; i++) {
+	for (i = 0; i < chip->bits; i++)
+	{
 		pca955x_led = &pca955x->leds[i];
 		pca955x_led->led_num = i;
 		pca955x_led->pca955x = pca955x;
 
 		/* Platform data can specify LED names and default triggers */
-		if (pdata) {
+		if (pdata)
+		{
 			if (pdata->leds[i].name)
 				snprintf(pca955x_led->name,
-					sizeof(pca955x_led->name), "pca955x:%s",
-					pdata->leds[i].name);
+						 sizeof(pca955x_led->name), "pca955x:%s",
+						 pdata->leds[i].name);
+
 			if (pdata->leds[i].default_trigger)
 				pca955x_led->led_cdev.default_trigger =
 					pdata->leds[i].default_trigger;
-		} else {
+		}
+		else
+		{
 			snprintf(pca955x_led->name, sizeof(pca955x_led->name),
-				 "pca955x:%d", i);
+					 "pca955x:%d", i);
 		}
 
 		pca955x_led->led_cdev.name = pca955x_led->name;
 		pca955x_led->led_cdev.brightness_set_blocking = pca955x_led_set;
 
 		err = led_classdev_register(&client->dev,
-					&pca955x_led->led_cdev);
+									&pca955x_led->led_cdev);
+
 		if (err < 0)
+		{
 			goto exit;
+		}
 	}
 
 	/* Turn off LEDs */
 	for (i = 0; i < pca95xx_num_led_regs(chip->bits); i++)
+	{
 		pca955x_write_ls(client, i, 0x55);
+	}
 
 	/* PWM0 is used for half brightness or 50% duty cycle */
-	pca955x_write_pwm(client, 0, 255-LED_HALF);
+	pca955x_write_pwm(client, 0, 255 - LED_HALF);
 
 	/* PWM1 is used for variable brightness, default to OFF */
 	pca955x_write_pwm(client, 1, 0);
@@ -338,8 +369,11 @@ static int pca955x_probe(struct i2c_client *client,
 	return 0;
 
 exit:
+
 	while (i--)
+	{
 		led_classdev_unregister(&pca955x->leds[i].led_cdev);
+	}
 
 	return err;
 }
@@ -350,12 +384,15 @@ static int pca955x_remove(struct i2c_client *client)
 	int i;
 
 	for (i = 0; i < pca955x->chipdef->bits; i++)
+	{
 		led_classdev_unregister(&pca955x->leds[i].led_cdev);
+	}
 
 	return 0;
 }
 
-static struct i2c_driver pca955x_driver = {
+static struct i2c_driver pca955x_driver =
+{
 	.driver = {
 		.name	= "leds-pca955x",
 	},

@@ -38,23 +38,27 @@ int mdfld_get_panel_type(struct drm_device *dev, int pipe)
 }
 
 static void mdfld_init_panel(struct drm_device *dev, int mipi_pipe,
-								int p_type)
+							 int p_type)
 {
-	switch (p_type) {
-	case TPO_VID:
-		mdfld_dsi_output_init(dev, mipi_pipe, &mdfld_tpo_vid_funcs);
-		break;
-	case TC35876X:
-		tc35876x_init(dev);
-		mdfld_dsi_output_init(dev, mipi_pipe, &mdfld_tc35876x_funcs);
-		break;
-	case TMD_VID:
-		mdfld_dsi_output_init(dev, mipi_pipe, &mdfld_tmd_vid_funcs);
-		break;
-	case HDMI:
-/*		if (dev_priv->mdfld_hdmi_present)
-			mdfld_hdmi_init(dev, &dev_priv->mode_dev); */
-		break;
+	switch (p_type)
+	{
+		case TPO_VID:
+			mdfld_dsi_output_init(dev, mipi_pipe, &mdfld_tpo_vid_funcs);
+			break;
+
+		case TC35876X:
+			tc35876x_init(dev);
+			mdfld_dsi_output_init(dev, mipi_pipe, &mdfld_tc35876x_funcs);
+			break;
+
+		case TMD_VID:
+			mdfld_dsi_output_init(dev, mipi_pipe, &mdfld_tmd_vid_funcs);
+			break;
+
+		case HDMI:
+			/*		if (dev_priv->mdfld_hdmi_present)
+						mdfld_hdmi_init(dev, &dev_priv->mode_dev); */
+			break;
 	}
 }
 

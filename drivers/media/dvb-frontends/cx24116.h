@@ -23,7 +23,8 @@
 
 #include <linux/dvb/frontend.h>
 
-struct cx24116_config {
+struct cx24116_config
+{
 	/* the demodulator's i2c address */
 	u8 demod_address;
 
@@ -34,7 +35,7 @@ struct cx24116_config {
 	int (*reset_device)(struct dvb_frontend *fe);
 
 	/* Need to set MPEG parameters */
-	u8 mpg_clk_pos_pol:0x02;
+	u8 mpg_clk_pos_pol: 0x02;
 
 	/* max bytes I2C provider can write at once */
 	u16 i2c_wr_max;

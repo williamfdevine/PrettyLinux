@@ -249,14 +249,16 @@
  * and cellular headsets (GND + speaker output + microphone input).
  * It is recommended to enable MIC bias for this function to work properly.
  * For more information, please refer to the datasheet. */
-enum {
+enum
+{
 	AIC3X_HEADSET_DETECT_OFF	= 0,
 	AIC3X_HEADSET_DETECT_STEREO	= 1,
 	AIC3X_HEADSET_DETECT_CELLULAR   = 2,
 	AIC3X_HEADSET_DETECT_BOTH	= 3
 };
 
-enum {
+enum
+{
 	AIC3X_HEADSET_DEBOUNCE_16MS	= 0,
 	AIC3X_HEADSET_DEBOUNCE_32MS	= 1,
 	AIC3X_HEADSET_DEBOUNCE_64MS	= 2,
@@ -265,7 +267,8 @@ enum {
 	AIC3X_HEADSET_DEBOUNCE_512MS	= 5
 };
 
-enum {
+enum
+{
 	AIC3X_BUTTON_DEBOUNCE_0MS	= 0,
 	AIC3X_BUTTON_DEBOUNCE_8MS	= 1,
 	AIC3X_BUTTON_DEBOUNCE_16MS	= 2,

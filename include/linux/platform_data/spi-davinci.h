@@ -23,7 +23,8 @@
 
 #define SPI_INTERN_CS	0xFF
 
-enum {
+enum
+{
 	SPI_VERSION_1, /* For DM355/DM365/DM6467 */
 	SPI_VERSION_2, /* For DA8xx */
 };
@@ -44,7 +45,8 @@ enum {
  * @dma_event_q: DMA event queue to use if SPI_IO_TYPE_DMA is used for any
  *		device on the bus.
  */
-struct davinci_spi_platform_data {
+struct davinci_spi_platform_data
+{
 	u8			version;
 	u8			num_chipselect;
 	u8			intr_line;
@@ -72,7 +74,8 @@ struct davinci_spi_platform_data {
  * @c2edelay:	chip-select active to SPI ENAn signal active time. Measured in
  *		number of SPI clocks.
  */
-struct davinci_spi_config {
+struct davinci_spi_config
+{
 	u8	wdelay;
 	u8	odd_parity;
 	u8	parity_enable;

@@ -51,12 +51,14 @@ DEFINE_SPINLOCK(dma_spin_lock);
  * DMA4 is reserved for cascading.
  */
 
-struct dma_chan {
+struct dma_chan
+{
 	int  lock;
 	const char *device_id;
 };
 
-static struct dma_chan dma_chan_busy[MAX_DMA_CHANNELS] = {
+static struct dma_chan dma_chan_busy[MAX_DMA_CHANNELS] =
+{
 	[4] = { 1, "cascade" },
 };
 
@@ -66,13 +68,17 @@ static struct dma_chan dma_chan_busy[MAX_DMA_CHANNELS] = {
  * @dmanr: DMA channel number
  * @device_id: reserving device ID string, used in /proc/dma
  */
-int request_dma(unsigned int dmanr, const char * device_id)
+int request_dma(unsigned int dmanr, const char *device_id)
 {
 	if (dmanr >= MAX_DMA_CHANNELS)
+	{
 		return -EINVAL;
+	}
 
 	if (xchg(&dma_chan_busy[dmanr].lock, 1) != 0)
+	{
 		return -EBUSY;
+	}
 
 	dma_chan_busy[dmanr].device_id = device_id;
 
@@ -86,12 +92,14 @@ int request_dma(unsigned int dmanr, const char * device_id)
  */
 void free_dma(unsigned int dmanr)
 {
-	if (dmanr >= MAX_DMA_CHANNELS) {
+	if (dmanr >= MAX_DMA_CHANNELS)
+	{
 		printk(KERN_WARNING "Trying to free DMA%d\n", dmanr);
 		return;
 	}
 
-	if (xchg(&dma_chan_busy[dmanr].lock, 0) == 0) {
+	if (xchg(&dma_chan_busy[dmanr].lock, 0) == 0)
+	{
 		printk(KERN_WARNING "Trying to free free DMA%d\n", dmanr);
 		return;
 	}
@@ -118,12 +126,15 @@ static int proc_dma_show(struct seq_file *m, void *v)
 {
 	int i;
 
-	for (i = 0 ; i < MAX_DMA_CHANNELS ; i++) {
-		if (dma_chan_busy[i].lock) {
+	for (i = 0 ; i < MAX_DMA_CHANNELS ; i++)
+	{
+		if (dma_chan_busy[i].lock)
+		{
 			seq_printf(m, "%2d: %s\n", i,
-				   dma_chan_busy[i].device_id);
+					   dma_chan_busy[i].device_id);
 		}
 	}
+
 	return 0;
 }
 #else
@@ -139,7 +150,8 @@ static int proc_dma_open(struct inode *inode, struct file *file)
 	return single_open(file, proc_dma_show, NULL);
 }
 
-static const struct file_operations proc_dma_operations = {
+static const struct file_operations proc_dma_operations =
+{
 	.open		= proc_dma_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

@@ -27,7 +27,8 @@
  * @supplied_to:	Array of battery names to which this chargers supplies power
  * @num_supplicants:	Number of entries in the supplied_to array
  */
-struct gpio_charger_platform_data {
+struct gpio_charger_platform_data
+{
 	const char *name;
 	enum power_supply_type type;
 

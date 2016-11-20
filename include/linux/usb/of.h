@@ -15,9 +15,9 @@
 enum usb_dr_mode of_usb_get_dr_mode_by_phy(struct device_node *np, int arg0);
 bool of_usb_host_tpl_support(struct device_node *np);
 int of_usb_update_otg_caps(struct device_node *np,
-			struct usb_otg_caps *otg_caps);
+						   struct usb_otg_caps *otg_caps);
 struct device_node *usb_of_get_child_node(struct device_node *parent,
-			int portnum);
+		int portnum);
 #else
 static inline enum usb_dr_mode
 of_usb_get_dr_mode_by_phy(struct device_node *np, int arg0)
@@ -29,12 +29,12 @@ static inline bool of_usb_host_tpl_support(struct device_node *np)
 	return false;
 }
 static inline int of_usb_update_otg_caps(struct device_node *np,
-				struct usb_otg_caps *otg_caps)
+		struct usb_otg_caps *otg_caps)
 {
 	return 0;
 }
 static inline struct device_node *usb_of_get_child_node
-		(struct device_node *parent, int portnum)
+(struct device_node *parent, int portnum)
 {
 	return NULL;
 }

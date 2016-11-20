@@ -35,7 +35,8 @@
 #include "hyperv_vmbus.h"
 
 
-struct vmbus_connection vmbus_connection = {
+struct vmbus_connection vmbus_connection =
+{
 	.conn_state		= DISCONNECTED,
 	.next_gpadl_handle	= ATOMIC_INIT(0xE1E10),
 };
@@ -48,27 +49,28 @@ EXPORT_SYMBOL_GPL(vmbus_proto_version);
 
 static __u32 vmbus_get_next_version(__u32 current_version)
 {
-	switch (current_version) {
-	case (VERSION_WIN7):
-		return VERSION_WS2008;
+	switch (current_version)
+	{
+		case (VERSION_WIN7):
+			return VERSION_WS2008;
 
-	case (VERSION_WIN8):
-		return VERSION_WIN7;
+		case (VERSION_WIN8):
+			return VERSION_WIN7;
 
-	case (VERSION_WIN8_1):
-		return VERSION_WIN8;
+		case (VERSION_WIN8_1):
+			return VERSION_WIN8;
 
-	case (VERSION_WIN10):
-		return VERSION_WIN8_1;
+		case (VERSION_WIN10):
+			return VERSION_WIN8_1;
 
-	case (VERSION_WS2008):
-	default:
-		return VERSION_INVAL;
+		case (VERSION_WS2008):
+		default:
+			return VERSION_INVAL;
 	}
 }
 
 static int vmbus_negotiate_version(struct vmbus_channel_msginfo *msginfo,
-					__u32 version)
+								   __u32 version)
 {
 	int ret = 0;
 	struct vmbus_channel_initiate_contact *msg;
@@ -83,6 +85,7 @@ static int vmbus_negotiate_version(struct vmbus_channel_msginfo *msginfo,
 	msg->interrupt_page = virt_to_phys(vmbus_connection.int_page);
 	msg->monitor_page1 = virt_to_phys(vmbus_connection.monitor_pages[0]);
 	msg->monitor_page2 = virt_to_phys(vmbus_connection.monitor_pages[1]);
+
 	/*
 	 * We want all channel messages to be delivered on CPU 0.
 	 * This has been the behavior pre-win8. This is not
@@ -92,10 +95,13 @@ static int vmbus_negotiate_version(struct vmbus_channel_msginfo *msginfo,
 	 * all the CPUs. This is needed for kexec to work correctly where
 	 * the CPU attempting to connect may not be CPU 0.
 	 */
-	if (version >= VERSION_WIN8_1) {
+	if (version >= VERSION_WIN8_1)
+	{
 		msg->target_vcpu = hv_context.vp_index[get_cpu()];
 		put_cpu();
-	} else {
+	}
+	else
+	{
 		msg->target_vcpu = 0;
 	}
 
@@ -105,17 +111,19 @@ static int vmbus_negotiate_version(struct vmbus_channel_msginfo *msginfo,
 	 */
 	spin_lock_irqsave(&vmbus_connection.channelmsg_lock, flags);
 	list_add_tail(&msginfo->msglistentry,
-		      &vmbus_connection.chn_msg_list);
+				  &vmbus_connection.chn_msg_list);
 
 	spin_unlock_irqrestore(&vmbus_connection.channelmsg_lock, flags);
 
 	ret = vmbus_post_msg(msg,
-			       sizeof(struct vmbus_channel_initiate_contact));
-	if (ret != 0) {
+						 sizeof(struct vmbus_channel_initiate_contact));
+
+	if (ret != 0)
+	{
 		spin_lock_irqsave(&vmbus_connection.channelmsg_lock, flags);
 		list_del(&msginfo->msglistentry);
 		spin_unlock_irqrestore(&vmbus_connection.channelmsg_lock,
-					flags);
+							   flags);
 		return ret;
 	}
 
@@ -127,9 +135,12 @@ static int vmbus_negotiate_version(struct vmbus_channel_msginfo *msginfo,
 	spin_unlock_irqrestore(&vmbus_connection.channelmsg_lock, flags);
 
 	/* Check if successful */
-	if (msginfo->response.version_response.version_supported) {
+	if (msginfo->response.version_response.version_supported)
+	{
 		vmbus_connection.conn_state = CONNECTED;
-	} else {
+	}
+	else
+	{
 		return -ECONNREFUSED;
 	}
 
@@ -148,7 +159,9 @@ int vmbus_connect(void)
 	/* Initialize the vmbus connection */
 	vmbus_connection.conn_state = CONNECTING;
 	vmbus_connection.work_queue = create_workqueue("hv_vmbus_con");
-	if (!vmbus_connection.work_queue) {
+
+	if (!vmbus_connection.work_queue)
+	{
 		ret = -ENOMEM;
 		goto cleanup;
 	}
@@ -164,8 +177,10 @@ int vmbus_connect(void)
 	 * abstraction stuff
 	 */
 	vmbus_connection.int_page =
-	(void *)__get_free_pages(GFP_KERNEL|__GFP_ZERO, 0);
-	if (vmbus_connection.int_page == NULL) {
+		(void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, 0);
+
+	if (vmbus_connection.int_page == NULL)
+	{
 		ret = -ENOMEM;
 		goto cleanup;
 	}
@@ -173,24 +188,28 @@ int vmbus_connect(void)
 	vmbus_connection.recv_int_page = vmbus_connection.int_page;
 	vmbus_connection.send_int_page =
 		(void *)((unsigned long)vmbus_connection.int_page +
-			(PAGE_SIZE >> 1));
+				 (PAGE_SIZE >> 1));
 
 	/*
 	 * Setup the monitor notification facility. The 1st page for
 	 * parent->child and the 2nd page for child->parent
 	 */
-	vmbus_connection.monitor_pages[0] = (void *)__get_free_pages((GFP_KERNEL|__GFP_ZERO), 0);
-	vmbus_connection.monitor_pages[1] = (void *)__get_free_pages((GFP_KERNEL|__GFP_ZERO), 0);
+	vmbus_connection.monitor_pages[0] = (void *)__get_free_pages((GFP_KERNEL | __GFP_ZERO), 0);
+	vmbus_connection.monitor_pages[1] = (void *)__get_free_pages((GFP_KERNEL | __GFP_ZERO), 0);
+
 	if ((vmbus_connection.monitor_pages[0] == NULL) ||
-	    (vmbus_connection.monitor_pages[1] == NULL)) {
+		(vmbus_connection.monitor_pages[1] == NULL))
+	{
 		ret = -ENOMEM;
 		goto cleanup;
 	}
 
 	msginfo = kzalloc(sizeof(*msginfo) +
-			  sizeof(struct vmbus_channel_initiate_contact),
-			  GFP_KERNEL);
-	if (msginfo == NULL) {
+					  sizeof(struct vmbus_channel_initiate_contact),
+					  GFP_KERNEL);
+
+	if (msginfo == NULL)
+	{
 		ret = -ENOMEM;
 		goto cleanup;
 	}
@@ -204,26 +223,35 @@ int vmbus_connect(void)
 
 	version = VERSION_CURRENT;
 
-	do {
+	do
+	{
 		ret = vmbus_negotiate_version(msginfo, version);
+
 		if (ret == -ETIMEDOUT)
+		{
 			goto cleanup;
+		}
 
 		if (vmbus_connection.conn_state == CONNECTED)
+		{
 			break;
+		}
 
 		version = vmbus_get_next_version(version);
-	} while (version != VERSION_INVAL);
+	}
+	while (version != VERSION_INVAL);
 
 	if (version == VERSION_INVAL)
+	{
 		goto cleanup;
+	}
 
 	vmbus_proto_version = version;
 	pr_info("Hyper-V Host Build:%d-%d.%d-%d-%d.%d; Vmbus version:%d.%d\n",
-		    host_info_eax, host_info_ebx >> 16,
-		    host_info_ebx & 0xFFFF, host_info_ecx,
-		    host_info_edx >> 24, host_info_edx & 0xFFFFFF,
-		    version >> 16, version & 0xFFFF);
+			host_info_eax, host_info_ebx >> 16,
+			host_info_ebx & 0xFFFF, host_info_ecx,
+			host_info_edx >> 24, host_info_edx & 0xFFFFFF,
+			version >> 16, version & 0xFFFF);
 
 	kfree(msginfo);
 	return 0;
@@ -246,12 +274,14 @@ void vmbus_disconnect(void)
 	 */
 	vmbus_initiate_unload(false);
 
-	if (vmbus_connection.work_queue) {
+	if (vmbus_connection.work_queue)
+	{
 		drain_workqueue(vmbus_connection.work_queue);
 		destroy_workqueue(vmbus_connection.work_queue);
 	}
 
-	if (vmbus_connection.int_page) {
+	if (vmbus_connection.int_page)
+	{
 		free_pages((unsigned long)vmbus_connection.int_page, 0);
 		vmbus_connection.int_page = NULL;
 	}
@@ -275,8 +305,10 @@ static struct vmbus_channel *pcpu_relid2channel(u32 relid)
 	int cpu = smp_processor_id();
 	struct list_head *pcpu_head = &hv_context.percpu_list[cpu];
 
-	list_for_each_entry(channel, pcpu_head, percpu_list) {
-		if (channel->offermsg.child_relid == relid) {
+	list_for_each_entry(channel, pcpu_head, percpu_list)
+	{
+		if (channel->offermsg.child_relid == relid)
+		{
 			found_channel = channel;
 			break;
 		}
@@ -298,18 +330,25 @@ struct vmbus_channel *relid2channel(u32 relid)
 
 	BUG_ON(!mutex_is_locked(&vmbus_connection.channel_mutex));
 
-	list_for_each_entry(channel, &vmbus_connection.chn_list, listentry) {
-		if (channel->offermsg.child_relid == relid) {
+	list_for_each_entry(channel, &vmbus_connection.chn_list, listentry)
+	{
+		if (channel->offermsg.child_relid == relid)
+		{
 			found_channel = channel;
 			break;
-		} else if (!list_empty(&channel->sc_list)) {
+		}
+		else if (!list_empty(&channel->sc_list))
+		{
 			/*
 			 * Deal with sub-channels.
 			 */
-			list_for_each_safe(cur, tmp, &channel->sc_list) {
+			list_for_each_safe(cur, tmp, &channel->sc_list)
+			{
 				cur_sc = list_entry(cur, struct vmbus_channel,
-							sc_list);
-				if (cur_sc->offermsg.child_relid == relid) {
+									sc_list);
+
+				if (cur_sc->offermsg.child_relid == relid)
+				{
 					found_channel = cur_sc;
 					break;
 				}
@@ -337,7 +376,9 @@ static void process_chn_event(u32 relid)
 	channel = pcpu_relid2channel(relid);
 
 	if (!channel)
+	{
 		return;
+	}
 
 	/*
 	 * A channel once created is persistent even when there
@@ -348,7 +389,8 @@ static void process_chn_event(u32 relid)
 	 * care of orderly unloading of the driver.
 	 */
 
-	if (channel->onchannel_callback != NULL) {
+	if (channel->onchannel_callback != NULL)
+	{
 		arg = channel->channel_callback_context;
 		read_state = channel->batched_reading;
 		/*
@@ -363,15 +405,25 @@ static void process_chn_event(u32 relid)
 		 *    available to read. In this case we repeat the process.
 		 */
 
-		do {
+		do
+		{
 			if (read_state)
+			{
 				hv_begin_read(&channel->inbound);
+			}
+
 			channel->onchannel_callback(arg);
+
 			if (read_state)
+			{
 				bytes_to_read = hv_end_read(&channel->inbound);
+			}
 			else
+			{
 				bytes_to_read = 0;
-		} while (read_state && (bytes_to_read != 0));
+			}
+		}
+		while (read_state && (bytes_to_read != 0));
 	}
 }
 
@@ -389,10 +441,13 @@ void vmbus_on_event(unsigned long data)
 	int cpu = smp_processor_id();
 	union hv_synic_event_flags *event;
 
-	if (vmbus_proto_version < VERSION_WIN8) {
+	if (vmbus_proto_version < VERSION_WIN8)
+	{
 		maxdword = MAX_NUM_CHANNELS_SUPPORTED >> 5;
 		recv_int_page = vmbus_connection.recv_int_page;
-	} else {
+	}
+	else
+	{
 		/*
 		 * When the host is win8 and beyond, the event page
 		 * can be directly checked to get the id of the channel
@@ -401,7 +456,7 @@ void vmbus_on_event(unsigned long data)
 		maxdword = HV_EVENT_FLAGS_DWORD_COUNT;
 		page_addr = hv_context.synic_event_page[cpu];
 		event = (union hv_synic_event_flags *)page_addr +
-						 VMBUS_MESSAGE_SINT;
+				VMBUS_MESSAGE_SINT;
 		recv_int_page = event->flags32;
 	}
 
@@ -409,13 +464,22 @@ void vmbus_on_event(unsigned long data)
 
 	/* Check events */
 	if (!recv_int_page)
+	{
 		return;
-	for (dword = 0; dword < maxdword; dword++) {
+	}
+
+	for (dword = 0; dword < maxdword; dword++)
+	{
 		if (!recv_int_page[dword])
+		{
 			continue;
-		for (bit = 0; bit < 32; bit++) {
+		}
+
+		for (bit = 0; bit < 32; bit++)
+		{
 			if (sync_test_and_clear_bit(bit,
-				(unsigned long *)&recv_int_page[dword])) {
+										(unsigned long *)&recv_int_page[dword]))
+			{
 				relid = (dword << 5) + bit;
 
 				if (relid == 0)
@@ -423,7 +487,9 @@ void vmbus_on_event(unsigned long data)
 					 * Special case - vmbus
 					 * channel protocol msg
 					 */
+				{
 					continue;
+				}
 
 				process_chn_event(relid);
 			}
@@ -449,33 +515,42 @@ int vmbus_post_msg(void *buffer, size_t buflen)
 	 * insufficient resources. Retry the operation a couple of
 	 * times before giving up.
 	 */
-	while (retries < 20) {
+	while (retries < 20)
+	{
 		ret = hv_post_message(conn_id, 1, buffer, buflen);
 
-		switch (ret) {
-		case HV_STATUS_INVALID_CONNECTION_ID:
-			/*
-			 * We could get this if we send messages too
-			 * frequently.
-			 */
-			ret = -EAGAIN;
-			break;
-		case HV_STATUS_INSUFFICIENT_MEMORY:
-		case HV_STATUS_INSUFFICIENT_BUFFERS:
-			ret = -ENOMEM;
-			break;
-		case HV_STATUS_SUCCESS:
-			return ret;
-		default:
-			pr_err("hv_post_msg() failed; error code:%d\n", ret);
-			return -EINVAL;
+		switch (ret)
+		{
+			case HV_STATUS_INVALID_CONNECTION_ID:
+				/*
+				 * We could get this if we send messages too
+				 * frequently.
+				 */
+				ret = -EAGAIN;
+				break;
+
+			case HV_STATUS_INSUFFICIENT_MEMORY:
+			case HV_STATUS_INSUFFICIENT_BUFFERS:
+				ret = -ENOMEM;
+				break;
+
+			case HV_STATUS_SUCCESS:
+				return ret;
+
+			default:
+				pr_err("hv_post_msg() failed; error code:%d\n", ret);
+				return -EINVAL;
 		}
 
 		retries++;
 		udelay(usec);
+
 		if (usec < 2048)
+		{
 			usec *= 2;
+		}
 	}
+
 	return ret;
 }
 
@@ -486,11 +561,12 @@ void vmbus_set_event(struct vmbus_channel *channel)
 {
 	u32 child_relid = channel->offermsg.child_relid;
 
-	if (!channel->is_dedicated_interrupt) {
+	if (!channel->is_dedicated_interrupt)
+	{
 		/* Each u32 represents 32 channels */
 		sync_set_bit(child_relid & 31,
-			(unsigned long *)vmbus_connection.send_int_page +
-			(child_relid >> 5));
+					 (unsigned long *)vmbus_connection.send_int_page +
+					 (child_relid >> 5));
 	}
 
 	hv_do_hypercall(HVCALL_SIGNAL_EVENT, channel->sig_event, NULL);

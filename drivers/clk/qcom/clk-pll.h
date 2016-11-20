@@ -24,7 +24,8 @@
  * @n: N value
  * @ibits: internal values
  */
-struct pll_freq_tbl {
+struct pll_freq_tbl
+{
 	unsigned long freq;
 	u16 l;
 	u16 m;
@@ -44,7 +45,8 @@ struct pll_freq_tbl {
  * @freq_tbl: PLL frequency table
  * @hw: handle between common and hardware-specific interfaces
  */
-struct clk_pll {
+struct clk_pll
+{
 	u32	l_reg;
 	u32	m_reg;
 	u32	n_reg;
@@ -66,7 +68,8 @@ extern const struct clk_ops clk_pll_sr2_ops;
 
 #define to_clk_pll(_hw) container_of(to_clk_regmap(_hw), struct clk_pll, clkr)
 
-struct pll_config {
+struct pll_config
+{
 	u16 l;
 	u32 m;
 	u32 n;
@@ -82,8 +85,8 @@ struct pll_config {
 };
 
 void clk_pll_configure_sr(struct clk_pll *pll, struct regmap *regmap,
-		const struct pll_config *config, bool fsm_mode);
+						  const struct pll_config *config, bool fsm_mode);
 void clk_pll_configure_sr_hpm_lp(struct clk_pll *pll, struct regmap *regmap,
-		const struct pll_config *config, bool fsm_mode);
+								 const struct pll_config *config, bool fsm_mode);
 
 #endif

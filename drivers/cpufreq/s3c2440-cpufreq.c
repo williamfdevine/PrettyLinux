@@ -65,56 +65,77 @@ static int s3c2440_cpufreq_calcdivs(struct s3c_cpufreq_config *cfg)
 	hclk_max = cfg->max.hclk;
 
 	s3c_freq_dbg("%s: fclk is %lu, armclk %lu, max hclk %lu\n",
-		     __func__, fclk, armclk, hclk_max);
+				 __func__, fclk, armclk, hclk_max);
 
-	if (armclk > fclk) {
+	if (armclk > fclk)
+	{
 		pr_warn("%s: armclk > fclk\n", __func__);
 		armclk = fclk;
 	}
 
 	/* if we are in DVS, we need HCLK to be <= ARMCLK */
 	if (armclk < fclk && armclk < hclk_max)
+	{
 		hclk_max = armclk;
+	}
 
-	for (hdiv = 1; hdiv < 9; hdiv++) {
+	for (hdiv = 1; hdiv < 9; hdiv++)
+	{
 		if (hdiv == 5 || hdiv == 7)
+		{
 			hdiv++;
+		}
 
 		hclk = (fclk / hdiv);
+
 		if (hclk <= hclk_max || within_khz(hclk, hclk_max))
+		{
 			break;
+		}
 	}
 
 	s3c_freq_dbg("%s: hclk %lu, div %d\n", __func__, hclk, hdiv);
 
 	if (hdiv > 8)
+	{
 		goto invalid;
+	}
 
 	pdiv = (hclk > cfg->max.pclk) ? 2 : 1;
 
 	if ((hclk / pdiv) > cfg->max.pclk)
+	{
 		pdiv++;
+	}
 
 	s3c_freq_dbg("%s: pdiv %d\n", __func__, pdiv);
 
 	if (pdiv > 2)
+	{
 		goto invalid;
+	}
 
 	pdiv *= hdiv;
 
 	/* calculate a valid armclk */
 
 	if (armclk < hclk)
+	{
 		armclk = hclk;
+	}
 
 	/* if we're running armclk lower than fclk, this really means
 	 * that the system should go into dvs mode, which means that
 	 * armclk is connected to hclk. */
-	if (armclk < fclk) {
+	if (armclk < fclk)
+	{
 		cfg->divs.dvs = 1;
 		armclk = hclk;
-	} else
+	}
+	else
+	{
 		cfg->divs.dvs = 0;
+	}
 
 	cfg->freq.armclk = armclk;
 
@@ -125,12 +146,12 @@ static int s3c2440_cpufreq_calcdivs(struct s3c_cpufreq_config *cfg)
 
 	return 0;
 
- invalid:
+invalid:
 	return -EINVAL;
 }
 
 #define CAMDIVN_HCLK_HALF (S3C2440_CAMDIVN_HCLK3_HALF | \
-			   S3C2440_CAMDIVN_HCLK4_HALF)
+						   S3C2440_CAMDIVN_HCLK4_HALF)
 
 /**
  * s3c2440_cpufreq_setdivs - set the cpu frequency divider settings
@@ -144,7 +165,7 @@ static void s3c2440_cpufreq_setdivs(struct s3c_cpufreq_config *cfg)
 	unsigned long clkdiv, camdiv;
 
 	s3c_freq_dbg("%s: divsiors: h=%d, p=%d\n", __func__,
-		     cfg->divs.h_divisor, cfg->divs.p_divisor);
+				 cfg->divs.h_divisor, cfg->divs.p_divisor);
 
 	clkdiv = __raw_readl(S3C2410_CLKDIVN);
 	camdiv = __raw_readl(S3C2440_CAMDIVN);
@@ -152,33 +173,38 @@ static void s3c2440_cpufreq_setdivs(struct s3c_cpufreq_config *cfg)
 	clkdiv &= ~(S3C2440_CLKDIVN_HDIVN_MASK | S3C2440_CLKDIVN_PDIVN);
 	camdiv &= ~CAMDIVN_HCLK_HALF;
 
-	switch (cfg->divs.h_divisor) {
-	case 1:
-		clkdiv |= S3C2440_CLKDIVN_HDIVN_1;
-		break;
+	switch (cfg->divs.h_divisor)
+	{
+		case 1:
+			clkdiv |= S3C2440_CLKDIVN_HDIVN_1;
+			break;
 
-	case 2:
-		clkdiv |= S3C2440_CLKDIVN_HDIVN_2;
-		break;
+		case 2:
+			clkdiv |= S3C2440_CLKDIVN_HDIVN_2;
+			break;
 
-	case 6:
-		camdiv |= S3C2440_CAMDIVN_HCLK3_HALF;
-	case 3:
-		clkdiv |= S3C2440_CLKDIVN_HDIVN_3_6;
-		break;
+		case 6:
+			camdiv |= S3C2440_CAMDIVN_HCLK3_HALF;
 
-	case 8:
-		camdiv |= S3C2440_CAMDIVN_HCLK4_HALF;
-	case 4:
-		clkdiv |= S3C2440_CLKDIVN_HDIVN_4_8;
-		break;
+		case 3:
+			clkdiv |= S3C2440_CLKDIVN_HDIVN_3_6;
+			break;
 
-	default:
-		BUG();	/* we don't expect to get here. */
+		case 8:
+			camdiv |= S3C2440_CAMDIVN_HCLK4_HALF;
+
+		case 4:
+			clkdiv |= S3C2440_CLKDIVN_HDIVN_4_8;
+			break;
+
+		default:
+			BUG();	/* we don't expect to get here. */
 	}
 
 	if (cfg->divs.p_divisor != cfg->divs.h_divisor)
+	{
 		clkdiv |= S3C2440_CLKDIVN_PDIVN;
+	}
 
 	/* todo - set pclk. */
 
@@ -197,24 +223,30 @@ static void s3c2440_cpufreq_setdivs(struct s3c_cpufreq_config *cfg)
 }
 
 static int run_freq_for(unsigned long max_hclk, unsigned long fclk,
-			int *divs,
-			struct cpufreq_frequency_table *table,
-			size_t table_size)
+						int *divs,
+						struct cpufreq_frequency_table *table,
+						size_t table_size)
 {
 	unsigned long freq;
 	int index = 0;
 	int div;
 
-	for (div = *divs; div > 0; div = *divs++) {
+	for (div = *divs; div > 0; div = *divs++)
+	{
 		freq = fclk / div;
 
 		if (freq > max_hclk && div != 1)
+		{
 			continue;
+		}
 
 		freq /= 1000; /* table is in kHz */
 		index = s3c_cpufreq_addfreq(table, index, table_size, freq);
+
 		if (index < 0)
+		{
 			break;
+		}
 	}
 
 	return index;
@@ -223,8 +255,8 @@ static int run_freq_for(unsigned long max_hclk, unsigned long fclk,
 static int hclk_divs[] = { 1, 2, 3, 4, 6, 8, -1 };
 
 static int s3c2440_cpufreq_calctable(struct s3c_cpufreq_config *cfg,
-				     struct cpufreq_frequency_table *table,
-				     size_t table_size)
+									 struct cpufreq_frequency_table *table,
+									 size_t table_size)
 {
 	int ret;
 
@@ -232,16 +264,17 @@ static int s3c2440_cpufreq_calctable(struct s3c_cpufreq_config *cfg,
 	WARN_ON(cfg->board == NULL);
 
 	ret = run_freq_for(cfg->info->max.hclk,
-			   cfg->info->max.fclk,
-			   hclk_divs,
-			   table, table_size);
+					   cfg->info->max.fclk,
+					   hclk_divs,
+					   table, table_size);
 
 	s3c_freq_dbg("%s: returning %d\n", __func__, ret);
 
 	return ret;
 }
 
-static struct s3c_cpufreq_info s3c2440_cpufreq_info = {
+static struct s3c_cpufreq_info s3c2440_cpufreq_info =
+{
 	.max		= {
 		.fclk	= 400000000,
 		.hclk	= 133333333,
@@ -267,14 +300,15 @@ static struct s3c_cpufreq_info s3c2440_cpufreq_info = {
 };
 
 static int s3c2440_cpufreq_add(struct device *dev,
-			       struct subsys_interface *sif)
+							   struct subsys_interface *sif)
 {
 	xtal = s3c_cpufreq_clk_get(NULL, "xtal");
 	hclk = s3c_cpufreq_clk_get(NULL, "hclk");
 	fclk = s3c_cpufreq_clk_get(NULL, "fclk");
 	armclk = s3c_cpufreq_clk_get(NULL, "armclk");
 
-	if (IS_ERR(xtal) || IS_ERR(hclk) || IS_ERR(fclk) || IS_ERR(armclk)) {
+	if (IS_ERR(xtal) || IS_ERR(hclk) || IS_ERR(fclk) || IS_ERR(armclk))
+	{
 		pr_err("%s: failed to get clocks\n", __func__);
 		return -ENOENT;
 	}
@@ -282,7 +316,8 @@ static int s3c2440_cpufreq_add(struct device *dev,
 	return s3c_cpufreq_register(&s3c2440_cpufreq_info);
 }
 
-static struct subsys_interface s3c2440_cpufreq_interface = {
+static struct subsys_interface s3c2440_cpufreq_interface =
+{
 	.name		= "s3c2440_cpufreq",
 	.subsys		= &s3c2440_subsys,
 	.add_dev	= s3c2440_cpufreq_add,
@@ -296,7 +331,8 @@ static int s3c2440_cpufreq_init(void)
 /* arch_initcall adds the clocks we need, so use subsys_initcall. */
 subsys_initcall(s3c2440_cpufreq_init);
 
-static struct subsys_interface s3c2442_cpufreq_interface = {
+static struct subsys_interface s3c2442_cpufreq_interface =
+{
 	.name		= "s3c2442_cpufreq",
 	.subsys		= &s3c2442_subsys,
 	.add_dev	= s3c2440_cpufreq_add,

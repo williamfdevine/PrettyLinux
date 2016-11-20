@@ -45,8 +45,9 @@ static s32 atlx_read_phy_reg(struct atl1_hw *hw, u16 reg_addr, u16 *phy_data);
 static u32 atlx_hash_mc_addr(struct atl1_hw *hw, u8 *mc_addr);
 static void atlx_set_mac_addr(struct atl1_hw *hw);
 
-static struct atlx_spi_flash_dev flash_table[] = {
-/*	MFR_NAME  WRSR  READ  PRGM  WREN  WRDI  RDSR  RDID  SEC_ERS CHIP_ERS */
+static struct atlx_spi_flash_dev flash_table[] =
+{
+	/*	MFR_NAME  WRSR  READ  PRGM  WREN  WRDI  RDSR  RDID  SEC_ERS CHIP_ERS */
 	{"Atmel", 0x00, 0x03, 0x02, 0x06, 0x04, 0x05, 0x15, 0x52,   0x62},
 	{"SST",   0x01, 0x03, 0x02, 0x06, 0x04, 0x05, 0x90, 0x20,   0x60},
 	{"ST",    0x01, 0x03, 0x02, 0x06, 0x04, 0x05, 0xAB, 0xD8,   0xC7},
@@ -54,13 +55,15 @@ static struct atlx_spi_flash_dev flash_table[] = {
 
 static int atlx_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
 {
-	switch (cmd) {
-	case SIOCGMIIPHY:
-	case SIOCGMIIREG:
-	case SIOCSMIIREG:
-		return atlx_mii_ioctl(netdev, ifr, cmd);
-	default:
-		return -EOPNOTSUPP;
+	switch (cmd)
+	{
+		case SIOCGMIIPHY:
+		case SIOCGMIIREG:
+		case SIOCSMIIREG:
+			return atlx_mii_ioctl(netdev, ifr, cmd);
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
@@ -77,10 +80,14 @@ static int atlx_set_mac(struct net_device *netdev, void *p)
 	struct sockaddr *addr = p;
 
 	if (netif_running(netdev))
+	{
 		return -EBUSY;
+	}
 
 	if (!is_valid_ether_addr(addr->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	memcpy(netdev->dev_addr, addr->sa_data, netdev->addr_len);
 	memcpy(adapter->hw.mac_addr, addr->sa_data, netdev->addr_len);
@@ -101,16 +108,19 @@ static void atlx_check_for_link(struct atlx_adapter *adapter)
 	spin_unlock(&adapter->lock);
 
 	/* notify upper layer link down ASAP */
-	if (!(phy_data & BMSR_LSTATUS)) {
+	if (!(phy_data & BMSR_LSTATUS))
+	{
 		/* Link Down */
-		if (netif_carrier_ok(netdev)) {
+		if (netif_carrier_ok(netdev))
+		{
 			/* old link state: Up */
 			dev_info(&adapter->pdev->dev, "%s link is down\n",
-				netdev->name);
+					 netdev->name);
 			adapter->link_speed = SPEED_0;
 			netif_carrier_off(netdev);
 		}
 	}
+
 	schedule_work(&adapter->link_chg_task);
 }
 
@@ -133,13 +143,20 @@ static void atlx_set_multi(struct net_device *netdev)
 
 	/* Check for Promiscuous and All Multicast modes */
 	rctl = ioread32(hw->hw_addr + REG_MAC_CTRL);
+
 	if (netdev->flags & IFF_PROMISC)
+	{
 		rctl |= MAC_CTRL_PROMIS_EN;
-	else if (netdev->flags & IFF_ALLMULTI) {
+	}
+	else if (netdev->flags & IFF_ALLMULTI)
+	{
 		rctl |= MAC_CTRL_MC_ALL_EN;
 		rctl &= ~MAC_CTRL_PROMIS_EN;
-	} else
+	}
+	else
+	{
 		rctl &= ~(MAC_CTRL_PROMIS_EN | MAC_CTRL_MC_ALL_EN);
+	}
 
 	iowrite32(rctl, hw->hw_addr + REG_MAC_CTRL);
 
@@ -148,14 +165,15 @@ static void atlx_set_multi(struct net_device *netdev)
 	iowrite32(0, (hw->hw_addr + REG_RX_HASH_TABLE) + (1 << 2));
 
 	/* compute mc addresses' hash value ,and put it into hash table */
-	netdev_for_each_mc_addr(ha, netdev) {
+	netdev_for_each_mc_addr(ha, netdev)
+	{
 		hash_value = atlx_hash_mc_addr(hw, ha->addr);
 		atlx_hash_set(hw, hash_value);
 	}
 }
 
 static inline void atlx_imr_set(struct atlx_adapter *adapter,
-				unsigned int imr)
+								unsigned int imr)
 {
 	iowrite32(imr, adapter->hw.hw_addr + REG_IMR);
 	ioread32(adapter->hw.hw_addr + REG_IMR);
@@ -220,17 +238,20 @@ static void atlx_link_chg_task(struct work_struct *work)
 
 static void __atlx_vlan_mode(netdev_features_t features, u32 *ctrl)
 {
-	if (features & NETIF_F_HW_VLAN_CTAG_RX) {
+	if (features & NETIF_F_HW_VLAN_CTAG_RX)
+	{
 		/* enable VLAN tag insert/strip */
 		*ctrl |= MAC_CTRL_RMV_VLAN;
-	} else {
+	}
+	else
+	{
 		/* disable VLAN tag insert/strip */
 		*ctrl &= ~MAC_CTRL_RMV_VLAN;
 	}
 }
 
 static void atlx_vlan_mode(struct net_device *netdev,
-	netdev_features_t features)
+						   netdev_features_t features)
 {
 	struct atlx_adapter *adapter = netdev_priv(netdev);
 	unsigned long flags;
@@ -251,27 +272,33 @@ static void atlx_restore_vlan(struct atlx_adapter *adapter)
 }
 
 static netdev_features_t atlx_fix_features(struct net_device *netdev,
-	netdev_features_t features)
+		netdev_features_t features)
 {
 	/*
 	 * Since there is no support for separate rx/tx vlan accel
 	 * enable/disable make sure tx flag is always in same state as rx.
 	 */
 	if (features & NETIF_F_HW_VLAN_CTAG_RX)
+	{
 		features |= NETIF_F_HW_VLAN_CTAG_TX;
+	}
 	else
+	{
 		features &= ~NETIF_F_HW_VLAN_CTAG_TX;
+	}
 
 	return features;
 }
 
 static int atlx_set_features(struct net_device *netdev,
-	netdev_features_t features)
+							 netdev_features_t features)
 {
 	netdev_features_t changed = netdev->features ^ features;
 
 	if (changed & NETIF_F_HW_VLAN_CTAG_RX)
+	{
 		atlx_vlan_mode(netdev, features);
+	}
 
 	return 0;
 }

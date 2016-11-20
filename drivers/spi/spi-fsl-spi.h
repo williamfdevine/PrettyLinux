@@ -24,7 +24,8 @@
 #define __SPI_FSL_SPI_H__
 
 /* SPI Controller registers */
-struct fsl_spi_reg {
+struct fsl_spi_reg
+{
 	__be32 cap; /* TYPE_GRLIB specific */
 	u8 res1[0x1C];
 	__be32 mode;
@@ -59,7 +60,7 @@ struct fsl_spi_reg {
  *	SPI MODE 0 (inactive low, phase middle, MSB, 8-bit length, slow clk
  */
 #define	SPMODE_INIT_VAL (SPMODE_CI_INACTIVEHIGH | SPMODE_DIV16 | SPMODE_REV | \
-			 SPMODE_MS | SPMODE_LEN(7) | SPMODE_PM(0xf))
+						 SPMODE_MS | SPMODE_LEN(7) | SPMODE_PM(0xf))
 
 /* SPIE register values */
 #define	SPIE_NE		0x00000200	/* Not empty */

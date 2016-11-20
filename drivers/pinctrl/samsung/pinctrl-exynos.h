@@ -36,7 +36,7 @@
 #define EXYNOS_SVC_GROUP_MASK		0x1f
 #define EXYNOS_SVC_NUM_MASK		7
 #define EXYNOS_SVC_GROUP(x)		((x >> EXYNOS_SVC_GROUP_SHIFT) & \
-						EXYNOS_SVC_GROUP_MASK)
+								 EXYNOS_SVC_GROUP_MASK)
 
 /* Exynos specific external interrupt trigger types */
 #define EXYNOS_EINT_LEVEL_LOW		0
@@ -53,30 +53,30 @@
 #define EXYNOS_PIN_BANK_EINTN(pins, reg, id)		\
 	{						\
 		.type		= &bank_type_off,	\
-		.pctl_offset	= reg,			\
-		.nr_pins	= pins,			\
-		.eint_type	= EINT_TYPE_NONE,	\
-		.name		= id			\
+					  .pctl_offset	= reg,			\
+										.nr_pins	= pins,			\
+												.eint_type	= EINT_TYPE_NONE,	\
+														.name		= id			\
 	}
 
 #define EXYNOS_PIN_BANK_EINTG(pins, reg, id, offs)	\
 	{						\
 		.type		= &bank_type_off,	\
-		.pctl_offset	= reg,			\
-		.nr_pins	= pins,			\
-		.eint_type	= EINT_TYPE_GPIO,	\
-		.eint_offset	= offs,			\
-		.name		= id			\
+					  .pctl_offset	= reg,			\
+										.nr_pins	= pins,			\
+												.eint_type	= EINT_TYPE_GPIO,	\
+														.eint_offset	= offs,			\
+																.name		= id			\
 	}
 
 #define EXYNOS_PIN_BANK_EINTW(pins, reg, id, offs)	\
 	{						\
 		.type		= &bank_type_alive,	\
-		.pctl_offset	= reg,			\
-		.nr_pins	= pins,			\
-		.eint_type	= EINT_TYPE_WKUP,	\
-		.eint_offset	= offs,			\
-		.name		= id			\
+					  .pctl_offset	= reg,			\
+										.nr_pins	= pins,			\
+												.eint_type	= EINT_TYPE_WKUP,	\
+														.eint_offset	= offs,			\
+																.name		= id			\
 	}
 
 /**
@@ -85,7 +85,8 @@
  * @irq: interrupt number within the domain.
  * @bank: bank responsible for this interrupt
  */
-struct exynos_weint_data {
+struct exynos_weint_data
+{
 	unsigned int irq;
 	struct samsung_pin_bank *bank;
 };
@@ -96,7 +97,8 @@ struct exynos_weint_data {
  * @nr_banks: count of banks being part of the mux
  * @banks: array of banks being part of the mux
  */
-struct exynos_muxed_weint_data {
+struct exynos_muxed_weint_data
+{
 	unsigned int nr_banks;
 	struct samsung_pin_bank *banks[];
 };

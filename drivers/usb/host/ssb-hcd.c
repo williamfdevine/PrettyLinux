@@ -32,7 +32,8 @@ MODULE_LICENSE("GPL");
 
 #define SSB_HCD_TMSLOW_HOSTMODE	(1 << 29)
 
-struct ssb_hcd_device {
+struct ssb_hcd_device
+{
 	struct platform_device *ehci_dev;
 	struct platform_device *ohci_dev;
 
@@ -42,20 +43,24 @@ struct ssb_hcd_device {
 static void ssb_hcd_5354wa(struct ssb_device *dev)
 {
 #ifdef CONFIG_SSB_DRIVER_MIPS
+
 	/* Work around for 5354 failures */
-	if (dev->id.revision == 2 && dev->bus->chip_id == 0x5354) {
+	if (dev->id.revision == 2 && dev->bus->chip_id == 0x5354)
+	{
 		/* Change syn01 reg */
 		ssb_write32(dev, 0x894, 0x00fe00fe);
 
 		/* Change syn03 reg */
 		ssb_write32(dev, 0x89c, ssb_read32(dev, 0x89c) | 0x1);
 	}
+
 #endif
 }
 
 static void ssb_hcd_usb20wa(struct ssb_device *dev)
 {
-	if (dev->id.coreid == SSB_DEV_USB20_HOST) {
+	if (dev->id.coreid == SSB_DEV_USB20_HOST)
+	{
 		/*
 		 * USB 2.0 special considerations:
 		 *
@@ -86,7 +91,9 @@ static u32 ssb_hcd_init_chip(struct ssb_device *dev)
 
 	if (dev->id.coreid == SSB_DEV_USB11_HOSTDEV)
 		/* Put the device into host-mode. */
+	{
 		flags |= SSB_HCD_TMSLOW_HOSTMODE;
+	}
 
 	ssb_device_enable(dev, flags);
 
@@ -95,10 +102,12 @@ static u32 ssb_hcd_init_chip(struct ssb_device *dev)
 	return flags;
 }
 
-static const struct usb_ehci_pdata ehci_pdata = {
+static const struct usb_ehci_pdata ehci_pdata =
+{
 };
 
-static const struct usb_ohci_pdata ohci_pdata = {
+static const struct usb_ohci_pdata ohci_pdata =
+{
 };
 
 static struct platform_device *ssb_hcd_create_pdev(struct ssb_device *dev, bool ohci, u32 addr, u32 len)
@@ -117,28 +126,42 @@ static struct platform_device *ssb_hcd_create_pdev(struct ssb_device *dev, bool 
 	hci_res[1].flags = IORESOURCE_IRQ;
 
 	hci_dev = platform_device_alloc(ohci ? "ohci-platform" :
-					"ehci-platform" , 0);
+									"ehci-platform" , 0);
+
 	if (!hci_dev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	hci_dev->dev.parent = dev->dev;
 	hci_dev->dev.dma_mask = &hci_dev->dev.coherent_dma_mask;
 
 	ret = platform_device_add_resources(hci_dev, hci_res,
-					    ARRAY_SIZE(hci_res));
+										ARRAY_SIZE(hci_res));
+
 	if (ret)
+	{
 		goto err_alloc;
+	}
+
 	if (ohci)
 		ret = platform_device_add_data(hci_dev, &ohci_pdata,
-					       sizeof(ohci_pdata));
+									   sizeof(ohci_pdata));
 	else
 		ret = platform_device_add_data(hci_dev, &ehci_pdata,
-					       sizeof(ehci_pdata));
+									   sizeof(ehci_pdata));
+
 	if (ret)
+	{
 		goto err_alloc;
+	}
+
 	ret = platform_device_add(hci_dev);
+
 	if (ret)
+	{
 		goto err_alloc;
+	}
 
 	return hci_dev;
 
@@ -148,7 +171,7 @@ err_alloc:
 }
 
 static int ssb_hcd_probe(struct ssb_device *dev,
-				   const struct ssb_device_id *id)
+						 const struct ssb_device_id *id)
 {
 	int err, tmp;
 	int start, len;
@@ -158,18 +181,26 @@ static int ssb_hcd_probe(struct ssb_device *dev,
 
 	/* USBcores are only connected on embedded devices. */
 	chipid_top = (dev->bus->chip_id & 0xFF00);
+
 	if (chipid_top != 0x4700 && chipid_top != 0x5300)
+	{
 		return -ENODEV;
+	}
 
 	/* TODO: Probably need checks here; is the core connected? */
 
 	if (dma_set_mask_and_coherent(dev->dma_dev, DMA_BIT_MASK(32)))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	usb_dev = devm_kzalloc(dev->dev, sizeof(struct ssb_hcd_device),
-			       GFP_KERNEL);
+						   GFP_KERNEL);
+
 	if (!usb_dev)
+	{
 		return -ENOMEM;
+	}
 
 	/* We currently always attach SSB_DEV_USB11_HOSTDEV
 	 * as HOST OHCI. If we want to attach it as Client device,
@@ -182,13 +213,19 @@ static int ssb_hcd_probe(struct ssb_device *dev,
 	start = ssb_admatch_base(tmp);
 	len = (coreid == SSB_DEV_USB20_HOST) ? 0x800 : ssb_admatch_size(tmp);
 	usb_dev->ohci_dev = ssb_hcd_create_pdev(dev, true, start, len);
-	if (IS_ERR(usb_dev->ohci_dev))
-		return PTR_ERR(usb_dev->ohci_dev);
 
-	if (coreid == SSB_DEV_USB20_HOST) {
+	if (IS_ERR(usb_dev->ohci_dev))
+	{
+		return PTR_ERR(usb_dev->ohci_dev);
+	}
+
+	if (coreid == SSB_DEV_USB20_HOST)
+	{
 		start = ssb_admatch_base(tmp) + 0x800; /* ehci core offset */
 		usb_dev->ehci_dev = ssb_hcd_create_pdev(dev, false, start, len);
-		if (IS_ERR(usb_dev->ehci_dev)) {
+
+		if (IS_ERR(usb_dev->ehci_dev))
+		{
 			err = PTR_ERR(usb_dev->ehci_dev);
 			goto err_unregister_ohci_dev;
 		}
@@ -209,9 +246,14 @@ static void ssb_hcd_remove(struct ssb_device *dev)
 	struct platform_device *ehci_dev = usb_dev->ehci_dev;
 
 	if (ohci_dev)
+	{
 		platform_device_unregister(ohci_dev);
+	}
+
 	if (ehci_dev)
+	{
 		platform_device_unregister(ehci_dev);
+	}
 
 	ssb_device_disable(dev, 0);
 }
@@ -244,7 +286,8 @@ static int ssb_hcd_resume(struct ssb_device *dev)
 #define ssb_hcd_resume	NULL
 #endif /* CONFIG_PM */
 
-static const struct ssb_device_id ssb_hcd_table[] = {
+static const struct ssb_device_id ssb_hcd_table[] =
+{
 	SSB_DEVICE(SSB_VENDOR_BROADCOM, SSB_DEV_USB11_HOSTDEV, SSB_ANY_REV),
 	SSB_DEVICE(SSB_VENDOR_BROADCOM, SSB_DEV_USB11_HOST, SSB_ANY_REV),
 	SSB_DEVICE(SSB_VENDOR_BROADCOM, SSB_DEV_USB20_HOST, SSB_ANY_REV),
@@ -252,7 +295,8 @@ static const struct ssb_device_id ssb_hcd_table[] = {
 };
 MODULE_DEVICE_TABLE(ssb, ssb_hcd_table);
 
-static struct ssb_driver ssb_hcd_driver = {
+static struct ssb_driver ssb_hcd_driver =
+{
 	.name		= KBUILD_MODNAME,
 	.id_table	= ssb_hcd_table,
 	.probe		= ssb_hcd_probe,

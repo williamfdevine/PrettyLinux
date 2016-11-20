@@ -37,15 +37,15 @@
 
 #define SUN4I_BACKEND_DISSIZE_REG		0x808
 #define SUN4I_BACKEND_DISSIZE(w, h)			(((((h) - 1) & 0xffff) << 16) | \
-							 (((w) - 1) & 0xffff))
+		(((w) - 1) & 0xffff))
 
 #define SUN4I_BACKEND_LAYSIZE_REG(l)		(0x810 + (0x4 * (l)))
 #define SUN4I_BACKEND_LAYSIZE(w, h)			(((((h) - 1) & 0x1fff) << 16) | \
-							 (((w) - 1) & 0x1fff))
+		(((w) - 1) & 0x1fff))
 
 #define SUN4I_BACKEND_LAYCOOR_REG(l)		(0x820 + (0x4 * (l)))
 #define SUN4I_BACKEND_LAYCOOR(x, y)			((((u32)(y) & 0xffff) << 16) | \
-							 ((u32)(x) & 0xffff))
+		((u32)(x) & 0xffff))
 
 #define SUN4I_BACKEND_LAYLINEWIDTH_REG(l)	(0x840 + (0x4 * (l)))
 
@@ -138,7 +138,8 @@
 #define SUN4I_BACKEND_HWCCOLORTAB_OFF		0x4c00
 #define SUN4I_BACKEND_PIPE_OFF(p)		(0x5000 + (0x400 * (p)))
 
-struct sun4i_backend {
+struct sun4i_backend
+{
 	struct regmap		*regs;
 
 	struct reset_control	*reset;
@@ -157,12 +158,12 @@ void sun4i_backend_disable_color_correction(struct sun4i_backend *backend);
 void sun4i_backend_commit(struct sun4i_backend *backend);
 
 void sun4i_backend_layer_enable(struct sun4i_backend *backend,
-				int layer, bool enable);
+								int layer, bool enable);
 int sun4i_backend_update_layer_coord(struct sun4i_backend *backend,
-				     int layer, struct drm_plane *plane);
+									 int layer, struct drm_plane *plane);
 int sun4i_backend_update_layer_formats(struct sun4i_backend *backend,
-				       int layer, struct drm_plane *plane);
+									   int layer, struct drm_plane *plane);
 int sun4i_backend_update_layer_buffer(struct sun4i_backend *backend,
-				      int layer, struct drm_plane *plane);
+									  int layer, struct drm_plane *plane);
 
 #endif /* _SUN4I_BACKEND_H_ */

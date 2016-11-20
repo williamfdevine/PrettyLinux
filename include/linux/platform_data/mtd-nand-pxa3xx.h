@@ -17,7 +17,8 @@
 
 /* The max num of chip select current support */
 #define NUM_CHIP_SELECT		(2)
-struct pxa3xx_nand_platform_data {
+struct pxa3xx_nand_platform_data
+{
 
 	/* the data flash bus is shared between the Static Memory
 	 * Controller and the Data Flash Controller,  the arbiter

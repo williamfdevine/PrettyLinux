@@ -36,57 +36,77 @@
 static inline void ehn_desc_rx_set_on_ring(struct dma_desc *p, int end)
 {
 	p->des1 |= ((BUF_SIZE_8KiB - 1) << ERDES1_BUFFER2_SIZE_SHIFT)
-		   & ERDES1_BUFFER2_SIZE_MASK;
+			   & ERDES1_BUFFER2_SIZE_MASK;
 
 	if (end)
+	{
 		p->des1 |= ERDES1_END_RING;
+	}
 }
 
 static inline void enh_desc_end_tx_desc_on_ring(struct dma_desc *p, int end)
 {
 	if (end)
+	{
 		p->des0 |= ETDES0_END_RING;
+	}
 	else
+	{
 		p->des0 &= ~ETDES0_END_RING;
+	}
 }
 
 static inline void enh_set_tx_desc_len_on_ring(struct dma_desc *p, int len)
 {
-	if (unlikely(len > BUF_SIZE_4KiB)) {
+	if (unlikely(len > BUF_SIZE_4KiB))
+	{
 		p->des1 |= (((len - BUF_SIZE_4KiB) << ETDES1_BUFFER2_SIZE_SHIFT)
-			    & ETDES1_BUFFER2_SIZE_MASK) | (BUF_SIZE_4KiB
-			    & ETDES1_BUFFER1_SIZE_MASK);
-	} else
+					& ETDES1_BUFFER2_SIZE_MASK) | (BUF_SIZE_4KiB
+							& ETDES1_BUFFER1_SIZE_MASK);
+	}
+	else
+	{
 		p->des1 |= (len & ETDES1_BUFFER1_SIZE_MASK);
+	}
 }
 
 /* Normal descriptors */
 static inline void ndesc_rx_set_on_ring(struct dma_desc *p, int end)
 {
 	p->des1 |= ((BUF_SIZE_2KiB - 1) << RDES1_BUFFER2_SIZE_SHIFT)
-		    & RDES1_BUFFER2_SIZE_MASK;
+			   & RDES1_BUFFER2_SIZE_MASK;
 
 	if (end)
+	{
 		p->des1 |= RDES1_END_RING;
+	}
 }
 
 static inline void ndesc_end_tx_desc_on_ring(struct dma_desc *p, int end)
 {
 	if (end)
+	{
 		p->des1 |= TDES1_END_RING;
+	}
 	else
+	{
 		p->des1 &= ~TDES1_END_RING;
+	}
 }
 
 static inline void norm_set_tx_desc_len_on_ring(struct dma_desc *p, int len)
 {
-	if (unlikely(len > BUF_SIZE_2KiB)) {
+	if (unlikely(len > BUF_SIZE_2KiB))
+	{
 		unsigned int buffer1 = (BUF_SIZE_2KiB - 1)
-					& TDES1_BUFFER1_SIZE_MASK;
+							   & TDES1_BUFFER1_SIZE_MASK;
 		p->des1 |= ((((len - buffer1) << TDES1_BUFFER2_SIZE_SHIFT)
-			    & TDES1_BUFFER2_SIZE_MASK) | buffer1);
-	} else
+					 & TDES1_BUFFER2_SIZE_MASK) | buffer1);
+	}
+	else
+	{
 		p->des1 |= (len & TDES1_BUFFER1_SIZE_MASK);
+	}
 }
 
 /* Specific functions used for Chain mode */

@@ -29,7 +29,9 @@ static int ohci_sm501_start(struct usb_hcd *hcd)
 	int ret;
 
 	ret = ohci_run(hcd_to_ohci(hcd));
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "can't start %s", hcd->self.bus_name);
 		ohci_stop(hcd);
 	}
@@ -39,7 +41,8 @@ static int ohci_sm501_start(struct usb_hcd *hcd)
 
 /*-------------------------------------------------------------------------*/
 
-static const struct hc_driver ohci_sm501_hc_driver = {
+static const struct hc_driver ohci_sm501_hc_driver =
+{
 	.description =		hcd_name,
 	.product_desc =		"SM501 OHCI",
 	.hcd_priv_size =	sizeof(struct ohci_hcd),
@@ -93,17 +96,23 @@ static int ohci_hcd_sm501_drv_probe(struct platform_device *pdev)
 	struct usb_hcd *hcd = NULL;
 
 	irq = retval = platform_get_irq(pdev, 0);
+
 	if (retval < 0)
+	{
 		goto err0;
+	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-	if (mem == NULL) {
+
+	if (mem == NULL)
+	{
 		dev_err(dev, "no resource definition for memory\n");
 		retval = -ENOENT;
 		goto err0;
 	}
 
-	if (!request_mem_region(mem->start, resource_size(mem), pdev->name)) {
+	if (!request_mem_region(mem->start, resource_size(mem), pdev->name))
+	{
 		dev_err(dev, "request_mem_region failed\n");
 		retval = -EBUSY;
 		goto err0;
@@ -124,10 +133,11 @@ static int ohci_hcd_sm501_drv_probe(struct platform_device *pdev)
 	 */
 
 	if (!dma_declare_coherent_memory(dev, mem->start,
-					 mem->start - mem->parent->start,
-					 resource_size(mem),
-					 DMA_MEMORY_MAP |
-					 DMA_MEMORY_EXCLUSIVE)) {
+									 mem->start - mem->parent->start,
+									 resource_size(mem),
+									 DMA_MEMORY_MAP |
+									 DMA_MEMORY_EXCLUSIVE))
+	{
 		dev_err(dev, "cannot declare coherent memory\n");
 		retval = -ENXIO;
 		goto err1;
@@ -135,14 +145,18 @@ static int ohci_hcd_sm501_drv_probe(struct platform_device *pdev)
 
 	/* allocate, reserve and remap resources for registers */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(dev, "no resource definition for registers\n");
 		retval = -ENOENT;
 		goto err2;
 	}
 
 	hcd = usb_create_hcd(driver, &pdev->dev, dev_name(&pdev->dev));
-	if (!hcd) {
+
+	if (!hcd)
+	{
 		retval = -ENOMEM;
 		goto err2;
 	}
@@ -150,14 +164,17 @@ static int ohci_hcd_sm501_drv_probe(struct platform_device *pdev)
 	hcd->rsrc_start = res->start;
 	hcd->rsrc_len = resource_size(res);
 
-	if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len,	pdev->name)) {
+	if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len,	pdev->name))
+	{
 		dev_err(dev, "request_mem_region failed\n");
 		retval = -EBUSY;
 		goto err3;
 	}
 
 	hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
-	if (hcd->regs == NULL) {
+
+	if (hcd->regs == NULL)
+	{
 		dev_err(dev, "cannot remap registers\n");
 		retval = -ENXIO;
 		goto err4;
@@ -166,8 +183,12 @@ static int ohci_hcd_sm501_drv_probe(struct platform_device *pdev)
 	ohci_hcd_init(hcd_to_ohci(hcd));
 
 	retval = usb_add_hcd(hcd, irq, IRQF_SHARED);
+
 	if (retval)
+	{
 		goto err5;
+	}
+
 	device_wakeup_enable(hcd->self.controller);
 
 	/* enable power and unmask interrupts */
@@ -200,8 +221,11 @@ static int ohci_hcd_sm501_drv_remove(struct platform_device *pdev)
 	usb_put_hcd(hcd);
 	dma_release_declared_memory(&pdev->dev);
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+
 	if (mem)
+	{
 		release_mem_region(mem->start, resource_size(mem));
+	}
 
 	/* mask interrupts and disable power */
 
@@ -223,12 +247,18 @@ static int ohci_sm501_suspend(struct platform_device *pdev, pm_message_t msg)
 	int ret;
 
 	if (time_before(jiffies, ohci->next_statechange))
+	{
 		msleep(5);
+	}
+
 	ohci->next_statechange = jiffies;
 
 	ret = ohci_suspend(hcd, do_wakeup);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	sm501_unit_power(dev->parent, SM501_GATE_USB_HOST, 0);
 	return ret;
@@ -241,7 +271,10 @@ static int ohci_sm501_resume(struct platform_device *pdev)
 	struct ohci_hcd	*ohci = hcd_to_ohci(hcd);
 
 	if (time_before(jiffies, ohci->next_statechange))
+	{
 		msleep(5);
+	}
+
 	ohci->next_statechange = jiffies;
 
 	sm501_unit_power(dev->parent, SM501_GATE_USB_HOST, 1);
@@ -258,7 +291,8 @@ static int ohci_sm501_resume(struct platform_device *pdev)
 /*
  * Driver definition to register with the SM501 bus
  */
-static struct platform_driver ohci_hcd_sm501_driver = {
+static struct platform_driver ohci_hcd_sm501_driver =
+{
 	.probe		= ohci_hcd_sm501_drv_probe,
 	.remove		= ohci_hcd_sm501_drv_remove,
 	.shutdown	= usb_hcd_platform_shutdown,

@@ -36,7 +36,8 @@ enum regulator_type;
  * The n-th bit in the bitfield describes the state of the n-th GPIO
  * from the gpios-array defined in gpio_regulator_config below.
  */
-struct gpio_regulator_state {
+struct gpio_regulator_state
+{
 	int value;
 	int gpios;
 };
@@ -66,12 +67,13 @@ struct gpio_regulator_state {
  * information that must be passed by platform code to the
  * gpio-voltage regulator driver.
  */
-struct gpio_regulator_config {
+struct gpio_regulator_config
+{
 	const char *supply_name;
 
 	int enable_gpio;
-	unsigned enable_high:1;
-	unsigned enabled_at_boot:1;
+	unsigned enable_high: 1;
+	unsigned enabled_at_boot: 1;
 	unsigned startup_delay;
 
 	struct gpio *gpios;

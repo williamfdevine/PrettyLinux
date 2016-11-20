@@ -42,16 +42,21 @@ EXPORT_SYMBOL_GPL(file_ra_state_init);
  *   an error
  */
 static void read_cache_pages_invalidate_page(struct address_space *mapping,
-					     struct page *page)
+		struct page *page)
 {
-	if (page_has_private(page)) {
+	if (page_has_private(page))
+	{
 		if (!trylock_page(page))
+		{
 			BUG();
+		}
+
 		page->mapping = mapping;
 		do_invalidatepage(page, 0, PAGE_SIZE);
 		page->mapping = NULL;
 		unlock_page(page);
 	}
+
 	put_page(page);
 }
 
@@ -59,11 +64,12 @@ static void read_cache_pages_invalidate_page(struct address_space *mapping,
  * release a list of pages, invalidating them first if need be
  */
 static void read_cache_pages_invalidate_pages(struct address_space *mapping,
-					      struct list_head *pages)
+		struct list_head *pages)
 {
 	struct page *victim;
 
-	while (!list_empty(pages)) {
+	while (!list_empty(pages))
+	{
 		victim = lru_to_page(pages);
 		list_del(&victim->lru);
 		read_cache_pages_invalidate_page(mapping, victim);
@@ -81,35 +87,43 @@ static void read_cache_pages_invalidate_pages(struct address_space *mapping,
  * Hides the details of the LRU cache etc from the filesystems.
  */
 int read_cache_pages(struct address_space *mapping, struct list_head *pages,
-			int (*filler)(void *, struct page *), void *data)
+					 int (*filler)(void *, struct page *), void *data)
 {
 	struct page *page;
 	int ret = 0;
 
-	while (!list_empty(pages)) {
+	while (!list_empty(pages))
+	{
 		page = lru_to_page(pages);
 		list_del(&page->lru);
+
 		if (add_to_page_cache_lru(page, mapping, page->index,
-				readahead_gfp_mask(mapping))) {
+								  readahead_gfp_mask(mapping)))
+		{
 			read_cache_pages_invalidate_page(mapping, page);
 			continue;
 		}
+
 		put_page(page);
 
 		ret = filler(data, page);
-		if (unlikely(ret)) {
+
+		if (unlikely(ret))
+		{
 			read_cache_pages_invalidate_pages(mapping, pages);
 			break;
 		}
+
 		task_io_account_read(PAGE_SIZE);
 	}
+
 	return ret;
 }
 
 EXPORT_SYMBOL(read_cache_pages);
 
 static int read_pages(struct address_space *mapping, struct file *filp,
-		struct list_head *pages, unsigned int nr_pages, gfp_t gfp)
+					  struct list_head *pages, unsigned int nr_pages, gfp_t gfp)
 {
 	struct blk_plug plug;
 	unsigned page_idx;
@@ -117,20 +131,27 @@ static int read_pages(struct address_space *mapping, struct file *filp,
 
 	blk_start_plug(&plug);
 
-	if (mapping->a_ops->readpages) {
+	if (mapping->a_ops->readpages)
+	{
 		ret = mapping->a_ops->readpages(filp, mapping, pages, nr_pages);
 		/* Clean up the remaining pages */
 		put_pages_list(pages);
 		goto out;
 	}
 
-	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
+	for (page_idx = 0; page_idx < nr_pages; page_idx++)
+	{
 		struct page *page = lru_to_page(pages);
 		list_del(&page->lru);
+
 		if (!add_to_page_cache_lru(page, mapping, page->index, gfp))
+		{
 			mapping->a_ops->readpage(filp, page);
+		}
+
 		put_page(page);
 	}
+
 	ret = 0;
 
 out:
@@ -148,8 +169,8 @@ out:
  * Returns the number of pages requested, or the maximum amount of I/O allowed.
  */
 int __do_page_cache_readahead(struct address_space *mapping, struct file *filp,
-			pgoff_t offset, unsigned long nr_to_read,
-			unsigned long lookahead_size)
+							  pgoff_t offset, unsigned long nr_to_read,
+							  unsigned long lookahead_size)
 {
 	struct inode *inode = mapping->host;
 	struct page *page;
@@ -161,32 +182,48 @@ int __do_page_cache_readahead(struct address_space *mapping, struct file *filp,
 	gfp_t gfp_mask = readahead_gfp_mask(mapping);
 
 	if (isize == 0)
+	{
 		goto out;
+	}
 
 	end_index = ((isize - 1) >> PAGE_SHIFT);
 
 	/*
 	 * Preallocate as many pages as we will need.
 	 */
-	for (page_idx = 0; page_idx < nr_to_read; page_idx++) {
+	for (page_idx = 0; page_idx < nr_to_read; page_idx++)
+	{
 		pgoff_t page_offset = offset + page_idx;
 
 		if (page_offset > end_index)
+		{
 			break;
+		}
 
 		rcu_read_lock();
 		page = radix_tree_lookup(&mapping->page_tree, page_offset);
 		rcu_read_unlock();
+
 		if (page && !radix_tree_exceptional_entry(page))
+		{
 			continue;
+		}
 
 		page = __page_cache_alloc(gfp_mask);
+
 		if (!page)
+		{
 			break;
+		}
+
 		page->index = page_offset;
 		list_add(&page->lru, &page_pool);
+
 		if (page_idx == nr_to_read - lookahead_size)
+		{
 			SetPageReadahead(page);
+		}
+
 		ret++;
 	}
 
@@ -196,7 +233,10 @@ int __do_page_cache_readahead(struct address_space *mapping, struct file *filp,
 	 * will then handle the error.
 	 */
 	if (ret)
+	{
 		read_pages(mapping, filp, &page_pool, ret, gfp_mask);
+	}
+
 	BUG_ON(!list_empty(&page_pool));
 out:
 	return ret;
@@ -207,27 +247,38 @@ out:
  * memory at once.
  */
 int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
-		pgoff_t offset, unsigned long nr_to_read)
+							   pgoff_t offset, unsigned long nr_to_read)
 {
 	if (unlikely(!mapping->a_ops->readpage && !mapping->a_ops->readpages))
+	{
 		return -EINVAL;
+	}
 
 	nr_to_read = min(nr_to_read, inode_to_bdi(mapping->host)->ra_pages);
-	while (nr_to_read) {
+
+	while (nr_to_read)
+	{
 		int err;
 
 		unsigned long this_chunk = (2 * 1024 * 1024) / PAGE_SIZE;
 
 		if (this_chunk > nr_to_read)
+		{
 			this_chunk = nr_to_read;
+		}
+
 		err = __do_page_cache_readahead(mapping, filp,
-						offset, this_chunk, 0);
+										offset, this_chunk, 0);
+
 		if (err < 0)
+		{
 			return err;
+		}
 
 		offset += this_chunk;
 		nr_to_read -= this_chunk;
 	}
+
 	return 0;
 }
 
@@ -242,11 +293,17 @@ static unsigned long get_init_ra_size(unsigned long size, unsigned long max)
 	unsigned long newsize = roundup_pow_of_two(size);
 
 	if (newsize <= max / 32)
+	{
 		newsize = newsize * 4;
+	}
 	else if (newsize <= max / 4)
+	{
 		newsize = newsize * 2;
+	}
 	else
+	{
 		newsize = max;
+	}
 
 	return newsize;
 }
@@ -256,15 +313,19 @@ static unsigned long get_init_ra_size(unsigned long size, unsigned long max)
  *  return it as the new window size.
  */
 static unsigned long get_next_ra_size(struct file_ra_state *ra,
-						unsigned long max)
+									  unsigned long max)
 {
 	unsigned long cur = ra->size;
 	unsigned long newsize;
 
 	if (cur < max / 16)
+	{
 		newsize = 4 * cur;
+	}
 	else
+	{
 		newsize = 2 * cur;
+	}
 
 	return min(newsize, max);
 }
@@ -315,7 +376,7 @@ static unsigned long get_next_ra_size(struct file_ra_state *ra,
  * 	- thrashing threshold in memory tight systems
  */
 static pgoff_t count_history_pages(struct address_space *mapping,
-				   pgoff_t offset, unsigned long max)
+								   pgoff_t offset, unsigned long max)
 {
 	pgoff_t head;
 
@@ -330,10 +391,10 @@ static pgoff_t count_history_pages(struct address_space *mapping,
  * page cache context based read-ahead
  */
 static int try_context_readahead(struct address_space *mapping,
-				 struct file_ra_state *ra,
-				 pgoff_t offset,
-				 unsigned long req_size,
-				 unsigned long max)
+								 struct file_ra_state *ra,
+								 pgoff_t offset,
+								 unsigned long req_size,
+								 unsigned long max)
 {
 	pgoff_t size;
 
@@ -344,14 +405,18 @@ static int try_context_readahead(struct address_space *mapping,
 	 * it could be a random read
 	 */
 	if (size <= req_size)
+	{
 		return 0;
+	}
 
 	/*
 	 * starts from beginning of file:
 	 * it is a strong indication of long-run stream (or whole-file-read)
 	 */
 	if (size >= offset)
+	{
 		size *= 2;
+	}
 
 	ra->start = offset;
 	ra->size = min(size + req_size, max);
@@ -365,9 +430,9 @@ static int try_context_readahead(struct address_space *mapping,
  */
 static unsigned long
 ondemand_readahead(struct address_space *mapping,
-		   struct file_ra_state *ra, struct file *filp,
-		   bool hit_readahead_marker, pgoff_t offset,
-		   unsigned long req_size)
+				   struct file_ra_state *ra, struct file *filp,
+				   bool hit_readahead_marker, pgoff_t offset,
+				   unsigned long req_size)
 {
 	unsigned long max = ra->ra_pages;
 	pgoff_t prev_offset;
@@ -376,14 +441,17 @@ ondemand_readahead(struct address_space *mapping,
 	 * start of file
 	 */
 	if (!offset)
+	{
 		goto initial_readahead;
+	}
 
 	/*
 	 * It's the expected callback offset, assume sequential access.
 	 * Ramp up sizes, and push forward the readahead window.
 	 */
 	if ((offset == (ra->start + ra->size - ra->async_size) ||
-	     offset == (ra->start + ra->size))) {
+		 offset == (ra->start + ra->size)))
+	{
 		ra->start += ra->size;
 		ra->size = get_next_ra_size(ra, max);
 		ra->async_size = ra->size;
@@ -396,7 +464,8 @@ ondemand_readahead(struct address_space *mapping,
 	 * Query the pagecache for async_size, which normally equals to
 	 * readahead size. Ramp it up and use it as the new readahead size.
 	 */
-	if (hit_readahead_marker) {
+	if (hit_readahead_marker)
+	{
 		pgoff_t start;
 
 		rcu_read_lock();
@@ -404,7 +473,9 @@ ondemand_readahead(struct address_space *mapping,
 		rcu_read_unlock();
 
 		if (!start || start - offset > max)
+		{
 			return 0;
+		}
 
 		ra->start = start;
 		ra->size = start - offset;	/* old async_size */
@@ -418,7 +489,9 @@ ondemand_readahead(struct address_space *mapping,
 	 * oversize read
 	 */
 	if (req_size > max)
+	{
 		goto initial_readahead;
+	}
 
 	/*
 	 * sequential cache miss
@@ -426,15 +499,20 @@ ondemand_readahead(struct address_space *mapping,
 	 * unaligned reads: (offset - prev_offset) == 0
 	 */
 	prev_offset = (unsigned long long)ra->prev_pos >> PAGE_SHIFT;
+
 	if (offset - prev_offset <= 1UL)
+	{
 		goto initial_readahead;
+	}
 
 	/*
 	 * Query the page cache and look for the traces(cached history pages)
 	 * that a sequential stream would leave behind.
 	 */
 	if (try_context_readahead(mapping, ra, offset, req_size, max))
+	{
 		goto readit;
+	}
 
 	/*
 	 * standalone, small random read
@@ -448,12 +526,14 @@ initial_readahead:
 	ra->async_size = ra->size > req_size ? ra->size - req_size : ra->size;
 
 readit:
+
 	/*
 	 * Will this read hit the readahead marker made by itself?
 	 * If so, trigger the readahead marker hit now, and merge
 	 * the resulted next readahead window into the current one.
 	 */
-	if (offset == ra->start && ra->size == ra->async_size) {
+	if (offset == ra->start && ra->size == ra->async_size)
+	{
 		ra->async_size = get_next_ra_size(ra, max);
 		ra->size += ra->async_size;
 	}
@@ -476,15 +556,18 @@ readit:
  * performance.
  */
 void page_cache_sync_readahead(struct address_space *mapping,
-			       struct file_ra_state *ra, struct file *filp,
-			       pgoff_t offset, unsigned long req_size)
+							   struct file_ra_state *ra, struct file *filp,
+							   pgoff_t offset, unsigned long req_size)
 {
 	/* no read-ahead */
 	if (!ra->ra_pages)
+	{
 		return;
+	}
 
 	/* be dumb */
-	if (filp && (filp->f_mode & FMODE_RANDOM)) {
+	if (filp && (filp->f_mode & FMODE_RANDOM))
+	{
 		force_page_cache_readahead(mapping, filp, offset, req_size);
 		return;
 	}
@@ -511,19 +594,23 @@ EXPORT_SYMBOL_GPL(page_cache_sync_readahead);
  */
 void
 page_cache_async_readahead(struct address_space *mapping,
-			   struct file_ra_state *ra, struct file *filp,
-			   struct page *page, pgoff_t offset,
-			   unsigned long req_size)
+						   struct file_ra_state *ra, struct file *filp,
+						   struct page *page, pgoff_t offset,
+						   unsigned long req_size)
 {
 	/* no read-ahead */
 	if (!ra->ra_pages)
+	{
 		return;
+	}
 
 	/*
 	 * Same bit is used for PG_readahead and PG_reclaim.
 	 */
 	if (PageWriteback(page))
+	{
 		return;
+	}
 
 	ClearPageReadahead(page);
 
@@ -531,7 +618,9 @@ page_cache_async_readahead(struct address_space *mapping,
 	 * Defer asynchronous read-ahead on IO congestion.
 	 */
 	if (inode_read_congested(mapping->host))
+	{
 		return;
+	}
 
 	/* do read-ahead */
 	ondemand_readahead(mapping, ra, filp, true, offset, req_size);
@@ -540,10 +629,12 @@ EXPORT_SYMBOL_GPL(page_cache_async_readahead);
 
 static ssize_t
 do_readahead(struct address_space *mapping, struct file *filp,
-	     pgoff_t index, unsigned long nr)
+			 pgoff_t index, unsigned long nr)
 {
 	if (!mapping || !mapping->a_ops)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Readahead doesn't make sense for DAX inodes, but we don't want it
@@ -551,7 +642,9 @@ do_readahead(struct address_space *mapping, struct file *filp,
 	 * don't do any work.
 	 */
 	if (dax_mapping(mapping))
+	{
 		return 0;
+	}
 
 	return force_page_cache_readahead(mapping, filp, index, nr);
 }
@@ -563,15 +656,20 @@ SYSCALL_DEFINE3(readahead, int, fd, loff_t, offset, size_t, count)
 
 	ret = -EBADF;
 	f = fdget(fd);
-	if (f.file) {
-		if (f.file->f_mode & FMODE_READ) {
+
+	if (f.file)
+	{
+		if (f.file->f_mode & FMODE_READ)
+		{
 			struct address_space *mapping = f.file->f_mapping;
 			pgoff_t start = offset >> PAGE_SHIFT;
 			pgoff_t end = (offset + count - 1) >> PAGE_SHIFT;
 			unsigned long len = end - start + 1;
 			ret = do_readahead(mapping, f.file, start, len);
 		}
+
 		fdput(f);
 	}
+
 	return ret;
 }

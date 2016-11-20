@@ -61,7 +61,8 @@
 
 #define IR_HIX5HD2_NAME		"hix5hd2-ir"
 
-struct hix5hd2_ir_priv {
+struct hix5hd2_ir_priv
+{
 	int			irq;
 	void __iomem		*base;
 	struct device		*dev;
@@ -76,13 +77,18 @@ static void hix5hd2_ir_enable(struct hix5hd2_ir_priv *dev, bool on)
 	u32 val;
 
 	regmap_read(dev->regmap, IR_CLK, &val);
-	if (on) {
+
+	if (on)
+	{
 		val &= ~IR_CLK_RESET;
 		val |= IR_CLK_ENABLE;
-	} else {
+	}
+	else
+	{
 		val &= ~IR_CLK_ENABLE;
 		val |= IR_CLK_RESET;
 	}
+
 	regmap_write(dev->regmap, IR_CLK, val);
 }
 
@@ -92,10 +98,15 @@ static int hix5hd2_ir_config(struct hix5hd2_ir_priv *priv)
 	u32 val, rate;
 
 	writel_relaxed(0x01, priv->base + IR_ENABLE);
-	while (readl_relaxed(priv->base + IR_BUSY)) {
-		if (timeout--) {
+
+	while (readl_relaxed(priv->base + IR_BUSY))
+	{
+		if (timeout--)
+		{
 			udelay(1);
-		} else {
+		}
+		else
+		{
 			dev_err(priv->dev, "IR_BUSY timeout\n");
 			return -ETIMEDOUT;
 		}
@@ -106,7 +117,7 @@ static int hix5hd2_ir_config(struct hix5hd2_ir_priv *priv)
 	val = IR_CFG_SYMBOL_MAXWIDTH & IR_CFG_WIDTH_MASK << IR_CFG_WIDTH_SHIFT;
 	val |= IR_CFG_SYMBOL_FMT & IR_CFG_FORMAT_MASK << IR_CFG_FORMAT_SHIFT;
 	val |= (IR_CFG_INT_THRESHOLD - 1) & IR_CFG_INT_LEVEL_MASK
-	       << IR_CFG_INT_LEVEL_SHIFT;
+		   << IR_CFG_INT_LEVEL_SHIFT;
 	val |= IR_CFG_MODE_RAW;
 	val |= (rate - 1) & IR_CFG_FREQ_MASK << IR_CFG_FREQ_SHIFT;
 	writel_relaxed(val, priv->base + IR_CONFIG);
@@ -140,7 +151,9 @@ static irqreturn_t hix5hd2_ir_rx_interrupt(int irq, void *data)
 	struct hix5hd2_ir_priv *priv = data;
 
 	irq_sr = readl_relaxed(priv->base + IR_INTS);
-	if (irq_sr & INTMS_OVERFLOW) {
+
+	if (irq_sr & INTMS_OVERFLOW)
+	{
 		/*
 		 * we must read IR_DATAL first, then we can clean up
 		 * IR_INTS availably since logic would not clear
@@ -148,19 +161,25 @@ static irqreturn_t hix5hd2_ir_rx_interrupt(int irq, void *data)
 		 */
 		ir_raw_event_reset(priv->rdev);
 		symb_num = readl_relaxed(priv->base + IR_DATAH);
+
 		for (i = 0; i < symb_num; i++)
+		{
 			readl_relaxed(priv->base + IR_DATAL);
+		}
 
 		writel_relaxed(INT_CLR_OVERFLOW, priv->base + IR_INTC);
 		dev_info(priv->dev, "overflow, level=%d\n",
-			 IR_CFG_INT_THRESHOLD);
+				 IR_CFG_INT_THRESHOLD);
 	}
 
-	if ((irq_sr & INTMS_SYMBRCV) || (irq_sr & INTMS_TIMEOUT)) {
+	if ((irq_sr & INTMS_SYMBRCV) || (irq_sr & INTMS_TIMEOUT))
+	{
 		DEFINE_IR_RAW_EVENT(ev);
 
 		symb_num = readl_relaxed(priv->base + IR_DATAH);
-		for (i = 0; i < symb_num; i++) {
+
+		for (i = 0; i < symb_num; i++)
+		{
 			symb_val = readl_relaxed(priv->base + IR_DATAL);
 			data_l = ((symb_val & 0xffff) * 10);
 			data_h =  ((symb_val >> 16) & 0xffff) * 10;
@@ -170,19 +189,27 @@ static irqreturn_t hix5hd2_ir_rx_interrupt(int irq, void *data)
 			ev.pulse = true;
 			ir_raw_event_store(priv->rdev, &ev);
 
-			if (symb_time < IR_CFG_SYMBOL_MAXWIDTH) {
+			if (symb_time < IR_CFG_SYMBOL_MAXWIDTH)
+			{
 				ev.duration = US_TO_NS(data_h);
 				ev.pulse = false;
 				ir_raw_event_store(priv->rdev, &ev);
-			} else {
+			}
+			else
+			{
 				ir_raw_event_set_idle(priv->rdev, true);
 			}
 		}
 
 		if (irq_sr & INTMS_SYMBRCV)
+		{
 			writel_relaxed(INT_CLR_RCV, priv->base + IR_INTC);
+		}
+
 		if (irq_sr & INTMS_TIMEOUT)
+		{
 			writel_relaxed(INT_CLR_TIMEOUT, priv->base + IR_INTC);
+		}
 	}
 
 	/* Empty software fifo */
@@ -201,37 +228,53 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
 	int ret;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->regmap = syscon_regmap_lookup_by_phandle(node,
-						       "hisilicon,power-syscon");
-	if (IS_ERR(priv->regmap)) {
+				   "hisilicon,power-syscon");
+
+	if (IS_ERR(priv->regmap))
+	{
 		dev_err(dev, "no power-reg\n");
 		return -EINVAL;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(priv->base))
+	{
 		return PTR_ERR(priv->base);
+	}
 
 	priv->irq = platform_get_irq(pdev, 0);
-	if (priv->irq < 0) {
+
+	if (priv->irq < 0)
+	{
 		dev_err(dev, "irq can not get\n");
 		return priv->irq;
 	}
 
 	rdev = rc_allocate_device();
+
 	if (!rdev)
+	{
 		return -ENOMEM;
+	}
 
 	priv->clock = devm_clk_get(dev, NULL);
-	if (IS_ERR(priv->clock)) {
+
+	if (IS_ERR(priv->clock))
+	{
 		dev_err(dev, "clock not found\n");
 		ret = PTR_ERR(priv->clock);
 		goto err;
 	}
+
 	clk_prepare_enable(priv->clock);
 	priv->rate = clk_get_rate(priv->clock);
 
@@ -242,7 +285,7 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
 	rdev->close = hix5hd2_ir_close;
 	rdev->driver_name = IR_HIX5HD2_NAME;
 	map_name = of_get_property(node, "linux,rc-map-name", NULL);
-	rdev->map_name = map_name ?: RC_MAP_EMPTY;
+	rdev->map_name = map_name ? : RC_MAP_EMPTY;
 	rdev->input_name = IR_HIX5HD2_NAME;
 	rdev->input_phys = IR_HIX5HD2_NAME "/input0";
 	rdev->input_id.bustype = BUS_HOST;
@@ -253,11 +296,15 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
 	rdev->timeout = US_TO_NS(IR_CFG_SYMBOL_MAXWIDTH * 10);
 
 	ret = rc_register_device(rdev);
+
 	if (ret < 0)
+	{
 		goto clkerr;
+	}
 
 	if (devm_request_irq(dev, priv->irq, hix5hd2_ir_rx_interrupt,
-			     0, pdev->name, priv) < 0) {
+						 0, pdev->name, priv) < 0)
+	{
 		dev_err(dev, "IRQ %d register failed\n", priv->irq);
 		ret = -EINVAL;
 		goto regerr;
@@ -317,15 +364,17 @@ static int hix5hd2_ir_resume(struct device *dev)
 #endif
 
 static SIMPLE_DEV_PM_OPS(hix5hd2_ir_pm_ops, hix5hd2_ir_suspend,
-			 hix5hd2_ir_resume);
+						 hix5hd2_ir_resume);
 
-static const struct of_device_id hix5hd2_ir_table[] = {
+static const struct of_device_id hix5hd2_ir_table[] =
+{
 	{ .compatible = "hisilicon,hix5hd2-ir", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, hix5hd2_ir_table);
 
-static struct platform_driver hix5hd2_ir_driver = {
+static struct platform_driver hix5hd2_ir_driver =
+{
 	.driver = {
 		.name = IR_HIX5HD2_NAME,
 		.of_match_table = hix5hd2_ir_table,

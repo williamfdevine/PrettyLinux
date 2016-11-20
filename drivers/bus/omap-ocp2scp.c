@@ -44,16 +44,20 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
 	struct resource *res;
 	struct device_node *np = pdev->dev.of_node;
 
-	if (np) {
+	if (np)
+	{
 		ret = of_platform_populate(np, NULL, NULL, &pdev->dev);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&pdev->dev,
-			    "failed to add resources for ocp2scp child\n");
+					"failed to add resources for ocp2scp child\n");
 			goto err0;
 		}
 	}
 
 	pm_runtime_enable(&pdev->dev);
+
 	/*
 	 * As per AM572x TRM: http://www.ti.com/lit/ug/spruhz6/spruhz6.pdf
 	 * under section 26.3.2.2, table 26-26 OCP2SCP TIMING Caution;
@@ -67,11 +71,15 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
 	 * Read path of OCP2SCP is not working properly due to low reset value
 	 * of SYNC2 parameter in OCP2SCP. Suggested reset value is 0x6 or more.
 	 */
-	if (!of_device_is_compatible(np, "ti,am437x-ocp2scp")) {
+	if (!of_device_is_compatible(np, "ti,am437x-ocp2scp"))
+	{
 		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 		regs = devm_ioremap_resource(&pdev->dev, res);
+
 		if (IS_ERR(regs))
+		{
 			goto err0;
+		}
 
 		pm_runtime_get_sync(&pdev->dev);
 		reg = readl_relaxed(regs + OCP2SCP_TIMING);
@@ -98,7 +106,8 @@ static int omap_ocp2scp_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id omap_ocp2scp_id_table[] = {
+static const struct of_device_id omap_ocp2scp_id_table[] =
+{
 	{ .compatible = "ti,omap-ocp2scp" },
 	{ .compatible = "ti,am437x-ocp2scp" },
 	{}
@@ -106,7 +115,8 @@ static const struct of_device_id omap_ocp2scp_id_table[] = {
 MODULE_DEVICE_TABLE(of, omap_ocp2scp_id_table);
 #endif
 
-static struct platform_driver omap_ocp2scp_driver = {
+static struct platform_driver omap_ocp2scp_driver =
+{
 	.probe		= omap_ocp2scp_probe,
 	.remove		= omap_ocp2scp_remove,
 	.driver		= {

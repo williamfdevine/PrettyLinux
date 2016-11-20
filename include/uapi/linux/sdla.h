@@ -55,10 +55,11 @@
 #define SDLA_WRITEMEM			(FRAD_LAST_IOCTL + 5)
 #define SDLA_READMEM			(FRAD_LAST_IOCTL + 6)
 
-struct sdla_mem {
-   int  addr;
-   int  len;
-   void __user *data;
+struct sdla_mem
+{
+	int  addr;
+	int  len;
+	void __user *data;
 };
 
 #define SDLA_START			(FRAD_LAST_IOCTL + 7)
@@ -78,38 +79,40 @@ struct sdla_mem {
 #define SDLA_MAX_DLCI			24
 
 /* this should be the same as frad_conf */
-struct sdla_conf {
-   short station;
-   short config;
-   short kbaud;
-   short clocking;
-   short max_frm;
-   short T391;
-   short T392;
-   short N391;
-   short N392;
-   short N393;
-   short CIR_fwd;
-   short Bc_fwd;
-   short Be_fwd;
-   short CIR_bwd;
-   short Bc_bwd;
-   short Be_bwd;
+struct sdla_conf
+{
+	short station;
+	short config;
+	short kbaud;
+	short clocking;
+	short max_frm;
+	short T391;
+	short T392;
+	short N391;
+	short N392;
+	short N393;
+	short CIR_fwd;
+	short Bc_fwd;
+	short Be_fwd;
+	short CIR_bwd;
+	short Bc_bwd;
+	short Be_bwd;
 };
 
 /* this should be the same as dlci_conf */
-struct sdla_dlci_conf {
-   short config;
-   short CIR_fwd;
-   short Bc_fwd;
-   short Be_fwd;
-   short CIR_bwd;
-   short Bc_bwd;
-   short Be_bwd; 
-   short Tc_fwd;
-   short Tc_bwd;
-   short Tf_max;
-   short Tb_max;
+struct sdla_dlci_conf
+{
+	short config;
+	short CIR_fwd;
+	short Bc_fwd;
+	short Be_fwd;
+	short CIR_bwd;
+	short Bc_bwd;
+	short Be_bwd;
+	short Tc_fwd;
+	short Tc_bwd;
+	short Tf_max;
+	short Tb_max;
 };
 
 

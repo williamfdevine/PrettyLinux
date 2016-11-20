@@ -35,31 +35,31 @@
 /**** Echogals: Darla20, Gina20, Layla20, and Darla24 ****/
 #if defined(ECHOGALS_FAMILY)
 
-#define NUM_ASIC_TESTS		5
-#define READ_DSP_TIMEOUT	1000000L	/* one second */
+	#define NUM_ASIC_TESTS		5
+	#define READ_DSP_TIMEOUT	1000000L	/* one second */
 
-/**** Echo24: Gina24, Layla24, Mona, Mia, Mia-midi ****/
+	/**** Echo24: Gina24, Layla24, Mona, Mia, Mia-midi ****/
 #elif defined(ECHO24_FAMILY)
 
-#define DSP_56361			/* Some Echo24 cards use the 56361 DSP */
-#define READ_DSP_TIMEOUT	100000L		/* .1 second */
+	#define DSP_56361			/* Some Echo24 cards use the 56361 DSP */
+	#define READ_DSP_TIMEOUT	100000L		/* .1 second */
 
-/**** 3G: Gina3G, Layla3G ****/
+	/**** 3G: Gina3G, Layla3G ****/
 #elif defined(ECHO3G_FAMILY)
 
-#define DSP_56361
-#define READ_DSP_TIMEOUT 	100000L		/* .1 second */
-#define MIN_MTC_1X_RATE		32000
+	#define DSP_56361
+	#define READ_DSP_TIMEOUT 	100000L		/* .1 second */
+	#define MIN_MTC_1X_RATE		32000
 
-/**** Indigo: Indigo, Indigo IO, Indigo DJ ****/
+	/**** Indigo: Indigo, Indigo IO, Indigo DJ ****/
 #elif defined(INDIGO_FAMILY)
 
-#define DSP_56361
-#define READ_DSP_TIMEOUT	100000L		/* .1 second */
+	#define DSP_56361
+	#define READ_DSP_TIMEOUT	100000L		/* .1 second */
 
 #else
 
-#error No family is defined
+	#error No family is defined
 
 #endif
 
@@ -103,7 +103,7 @@
 #define CHI32_STATUS_IRQ		0x00000040
 
 
-/* 
+/*
  *
  * DSP commands sent via slave mode; these are sent to the DSP by write_dsp()
  *
@@ -188,45 +188,45 @@ SET_LAYLA24_FREQUENCY_REG command.
 
 #ifndef DSP_56361
 
-#define DSP_VC_ACK_INT				0x8073
-#define DSP_VC_SET_VMIXER_GAIN			0x0000	/* Not used, only for compile */
-#define DSP_VC_START_TRANSFER			0x0075	/* Handshke rqd. */
-#define DSP_VC_METERS_ON			0x0079
-#define DSP_VC_METERS_OFF			0x007b
-#define DSP_VC_UPDATE_OUTVOL			0x007d	/* Handshke rqd. */
-#define DSP_VC_UPDATE_INGAIN			0x007f	/* Handshke rqd. */
-#define DSP_VC_ADD_AUDIO_BUFFER			0x0081	/* Handshke rqd. */
-#define DSP_VC_TEST_ASIC			0x00eb
-#define DSP_VC_UPDATE_CLOCKS			0x00ef	/* Handshke rqd. */
-#define DSP_VC_SET_LAYLA_SAMPLE_RATE		0x00f1	/* Handshke rqd. */
-#define DSP_VC_SET_GD_AUDIO_STATE		0x00f1	/* Handshke rqd. */
-#define DSP_VC_WRITE_CONTROL_REG		0x00f1	/* Handshke rqd. */
-#define DSP_VC_MIDI_WRITE			0x00f5	/* Handshke rqd. */
-#define DSP_VC_STOP_TRANSFER			0x00f7	/* Handshke rqd. */
-#define DSP_VC_UPDATE_FLAGS			0x00fd	/* Handshke rqd. */
-#define DSP_VC_GO_COMATOSE			0x00f9
+	#define DSP_VC_ACK_INT				0x8073
+	#define DSP_VC_SET_VMIXER_GAIN			0x0000	/* Not used, only for compile */
+	#define DSP_VC_START_TRANSFER			0x0075	/* Handshke rqd. */
+	#define DSP_VC_METERS_ON			0x0079
+	#define DSP_VC_METERS_OFF			0x007b
+	#define DSP_VC_UPDATE_OUTVOL			0x007d	/* Handshke rqd. */
+	#define DSP_VC_UPDATE_INGAIN			0x007f	/* Handshke rqd. */
+	#define DSP_VC_ADD_AUDIO_BUFFER			0x0081	/* Handshke rqd. */
+	#define DSP_VC_TEST_ASIC			0x00eb
+	#define DSP_VC_UPDATE_CLOCKS			0x00ef	/* Handshke rqd. */
+	#define DSP_VC_SET_LAYLA_SAMPLE_RATE		0x00f1	/* Handshke rqd. */
+	#define DSP_VC_SET_GD_AUDIO_STATE		0x00f1	/* Handshke rqd. */
+	#define DSP_VC_WRITE_CONTROL_REG		0x00f1	/* Handshke rqd. */
+	#define DSP_VC_MIDI_WRITE			0x00f5	/* Handshke rqd. */
+	#define DSP_VC_STOP_TRANSFER			0x00f7	/* Handshke rqd. */
+	#define DSP_VC_UPDATE_FLAGS			0x00fd	/* Handshke rqd. */
+	#define DSP_VC_GO_COMATOSE			0x00f9
 
 #else /* !DSP_56361 */
 
-/* Vector commands for families that use either the 56301 or 56361 */
-#define DSP_VC_ACK_INT				0x80F5
-#define DSP_VC_SET_VMIXER_GAIN			0x00DB	/* Handshke rqd. */
-#define DSP_VC_START_TRANSFER			0x00DD	/* Handshke rqd. */
-#define DSP_VC_METERS_ON			0x00EF
-#define DSP_VC_METERS_OFF			0x00F1
-#define DSP_VC_UPDATE_OUTVOL			0x00E3	/* Handshke rqd. */
-#define DSP_VC_UPDATE_INGAIN			0x00E5	/* Handshke rqd. */
-#define DSP_VC_ADD_AUDIO_BUFFER			0x00E1	/* Handshke rqd. */
-#define DSP_VC_TEST_ASIC			0x00ED
-#define DSP_VC_UPDATE_CLOCKS			0x00E9	/* Handshke rqd. */
-#define DSP_VC_SET_LAYLA24_FREQUENCY_REG	0x00E9	/* Handshke rqd. */
-#define DSP_VC_SET_LAYLA_SAMPLE_RATE		0x00EB	/* Handshke rqd. */
-#define DSP_VC_SET_GD_AUDIO_STATE		0x00EB	/* Handshke rqd. */
-#define DSP_VC_WRITE_CONTROL_REG		0x00EB	/* Handshke rqd. */
-#define DSP_VC_MIDI_WRITE			0x00E7	/* Handshke rqd. */
-#define DSP_VC_STOP_TRANSFER			0x00DF	/* Handshke rqd. */
-#define DSP_VC_UPDATE_FLAGS			0x00FB	/* Handshke rqd. */
-#define DSP_VC_GO_COMATOSE			0x00d9
+	/* Vector commands for families that use either the 56301 or 56361 */
+	#define DSP_VC_ACK_INT				0x80F5
+	#define DSP_VC_SET_VMIXER_GAIN			0x00DB	/* Handshke rqd. */
+	#define DSP_VC_START_TRANSFER			0x00DD	/* Handshke rqd. */
+	#define DSP_VC_METERS_ON			0x00EF
+	#define DSP_VC_METERS_OFF			0x00F1
+	#define DSP_VC_UPDATE_OUTVOL			0x00E3	/* Handshke rqd. */
+	#define DSP_VC_UPDATE_INGAIN			0x00E5	/* Handshke rqd. */
+	#define DSP_VC_ADD_AUDIO_BUFFER			0x00E1	/* Handshke rqd. */
+	#define DSP_VC_TEST_ASIC			0x00ED
+	#define DSP_VC_UPDATE_CLOCKS			0x00E9	/* Handshke rqd. */
+	#define DSP_VC_SET_LAYLA24_FREQUENCY_REG	0x00E9	/* Handshke rqd. */
+	#define DSP_VC_SET_LAYLA_SAMPLE_RATE		0x00EB	/* Handshke rqd. */
+	#define DSP_VC_SET_GD_AUDIO_STATE		0x00EB	/* Handshke rqd. */
+	#define DSP_VC_WRITE_CONTROL_REG		0x00EB	/* Handshke rqd. */
+	#define DSP_VC_MIDI_WRITE			0x00E7	/* Handshke rqd. */
+	#define DSP_VC_STOP_TRANSFER			0x00DF	/* Handshke rqd. */
+	#define DSP_VC_UPDATE_FLAGS			0x00FB	/* Handshke rqd. */
+	#define DSP_VC_GO_COMATOSE			0x00d9
 
 #endif /* !DSP_56361 */
 
@@ -369,7 +369,7 @@ SET_LAYLA24_FREQUENCY_REG command.
  * via input and output pipes.  LE means little-endian,
  * BE means big-endian.
  *
- * DSP_AUDIOFORM_MS_8   
+ * DSP_AUDIOFORM_MS_8
  *
  *    8-bit mono unsigned samples.  For playback,
  *    mono data is duplicated out the left and right channels
@@ -388,10 +388,10 @@ SET_LAYLA24_FREQUENCY_REG command.
  *    they would be stored in memory like this: 33 22 11 66 55 44.
  *
  * DSP_AUDIOFORM_MS_32LE
- * 
- *    24-bit signed little-endian mono samples in a 32-bit 
- *    container.  In other words, each sample is a 32-bit signed 
- *    integer, where the actual audio data is left-justified 
+ *
+ *    24-bit signed little-endian mono samples in a 32-bit
+ *    container.  In other words, each sample is a 32-bit signed
+ *    integer, where the actual audio data is left-justified
  *    in the 32 bits and only the 24 most significant bits are valid.
  *
  * DSP_AUDIOFORM_SS_8
@@ -435,8 +435,8 @@ SET_LAYLA24_FREQUENCY_REG command.
  * Super-interleave is defined as interleaving by 4 or more.  Darla20 and Gina20
  * do not support super interleave.
  *
- * 16 bit, 24 bit, and 32 bit little endian samples are supported for super 
- * interleave.  The interleave factor must be even.  16 - way interleave is the 
+ * 16 bit, 24 bit, and 32 bit little endian samples are supported for super
+ * interleave.  The interleave factor must be even.  16 - way interleave is the
  * current maximum, so you can interleave by 4, 6, 8, 10, 12, 14, and 16.
  *
  * The actual format code is derived by taking the define below and or-ing with
@@ -626,7 +626,8 @@ sg_entry struct is read by the DSP, so all values must be little-endian. */
 
 #define MAX_SGLIST_ENTRIES 512
 
-struct sg_entry {
+struct sg_entry
+{
 	u32 addr;
 	u32 size;
 };
@@ -642,7 +643,8 @@ struct sg_entry {
 
  ****************************************************************************/
 
-struct comm_page {		/*				Base	Length*/
+struct comm_page  		/*				Base	Length*/
+{
 	u32 comm_size;		/* size of this object		0x000	4 */
 	u32 flags;		/* See Appendix A below		0x004	4 */
 	u32 unused;		/* Unused entry			0x008	4 */
@@ -653,25 +655,25 @@ struct comm_page {		/*				Base	Length*/
 	u32 cmd_reset;		/* Chs. to reset mask		0x01c	4 */
 	u16 audio_format[DSP_MAXPIPES];	/* Chs. audio format	0x020	32*2 */
 	struct sg_entry sglist_addr[DSP_MAXPIPES];
-				/* Chs. Physical sglist addrs	0x060	32*8 */
+	/* Chs. Physical sglist addrs	0x060	32*8 */
 	u32 position[DSP_MAXPIPES];
-				/* Positions for ea. ch.	0x160	32*4 */
+	/* Positions for ea. ch.	0x160	32*4 */
 	s8 vu_meter[DSP_MAXPIPES];
-				/* VU meters			0x1e0	32*1 */
+	/* VU meters			0x1e0	32*1 */
 	s8 peak_meter[DSP_MAXPIPES];
-				/* Peak meters			0x200	32*1 */
+	/* Peak meters			0x200	32*1 */
 	s8 line_out_level[DSP_MAXAUDIOOUTPUTS];
-				/* Output gain			0x220	16*1 */
+	/* Output gain			0x220	16*1 */
 	s8 line_in_level[DSP_MAXAUDIOINPUTS];
-				/* Input gain			0x230	16*1 */
+	/* Input gain			0x230	16*1 */
 	s8 monitors[MONITOR_ARRAY_SIZE];
-				/* Monitor map			0x240	0x180 */
+	/* Monitor map			0x240	0x180 */
 	u32 play_coeff[MAX_PLAY_TAPS];
-			/* Gina/Darla play filters - obsolete	0x3c0	168*4 */
+	/* Gina/Darla play filters - obsolete	0x3c0	168*4 */
 	u32 rec_coeff[MAX_REC_TAPS];
-			/* Gina/Darla record filters - obsolete	0x660	192*4 */
+	/* Gina/Darla record filters - obsolete	0x660	192*4 */
 	u16 midi_input[MIDI_IN_BUFFER_SIZE];
-			/* MIDI input data transfer buffer	0x960	256*2 */
+	/* MIDI input data transfer buffer	0x960	256*2 */
 	u8 gd_clock_state;	/* Chg Gina/Darla clock state	0xb60	1 */
 	u8 gd_spdif_status;	/* Chg. Gina/Darla S/PDIF state	0xb61	1 */
 	u8 gd_resampler_state;	/* Should always be 3		0xb62	1 */
@@ -683,16 +685,16 @@ struct comm_page {		/*				Base	Length*/
 	u32 ext_box_status;	/* External box status		0xb70	4 */
 	u32 cmd_add_buffer;	/* Pipes to add (obsolete)	0xb74	4 */
 	u32 midi_out_free_count;
-			/* # of bytes free in MIDI output FIFO	0xb78	4 */
+	/* # of bytes free in MIDI output FIFO	0xb78	4 */
 	u32 unused2;		/* Cyclic pipes			0xb7c	4 */
 	u32 control_register;
-			/* Mona, Gina24, Layla24, 3G ctrl reg	0xb80	4 */
+	/* Mona, Gina24, Layla24, 3G ctrl reg	0xb80	4 */
 	u32 e3g_frq_register;	/* 3G frequency register	0xb84	4 */
 	u8 filler[24];		/* filler			0xb88	24*1 */
 	s8 vmixer[VMIXER_ARRAY_SIZE];
-				/* Vmixer levels		0xba0	64*1 */
+	/* Vmixer levels		0xba0	64*1 */
 	u8 midi_output[MIDI_OUT_BUFFER_SIZE];
-				/* MIDI output data		0xbe0	32*1 */
+	/* MIDI output data		0xbe0	32*1 */
 };
 
 #endif /* _ECHO_DSP_ */

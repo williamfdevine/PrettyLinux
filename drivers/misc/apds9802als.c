@@ -37,23 +37,32 @@
 
 #define DRIVER_NAME "apds9802als"
 
-struct als_data {
+struct als_data
+{
 	struct mutex mutex;
 };
 
 static ssize_t als_sensing_range_show(struct device *dev,
-			struct device_attribute *attr,  char *buf)
+									  struct device_attribute *attr,  char *buf)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	int  val;
 
 	val = i2c_smbus_read_byte_data(client, 0x81);
+
 	if (val < 0)
+	{
 		return val;
+	}
+
 	if (val & 1)
+	{
 		return sprintf(buf, "4095\n");
+	}
 	else
+	{
 		return sprintf(buf, "65535\n");
+	}
 }
 
 static int als_wait_for_data_ready(struct device *dev)
@@ -62,12 +71,15 @@ static int als_wait_for_data_ready(struct device *dev)
 	int ret;
 	int retry = 10;
 
-	do {
+	do
+	{
 		msleep(30);
 		ret = i2c_smbus_read_byte_data(client, 0x86);
-	} while (!(ret & 0x80) && retry--);
+	}
+	while (!(ret & 0x80) && retry--);
 
-	if (retry < 0) {
+	if (retry < 0)
+	{
 		dev_warn(dev, "timeout waiting for data ready\n");
 		return -ETIMEDOUT;
 	}
@@ -76,7 +88,7 @@ static int als_wait_for_data_ready(struct device *dev)
 }
 
 static ssize_t als_lux0_input_data_show(struct device *dev,
-			struct device_attribute *attr, char *buf)
+										struct device_attribute *attr, char *buf)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct als_data *data = i2c_get_clientdata(client);
@@ -94,17 +106,26 @@ static ssize_t als_lux0_input_data_show(struct device *dev,
 	i2c_smbus_write_byte_data(client, 0x81, temp | 0x08);
 
 	ret_val = als_wait_for_data_ready(dev);
+
 	if (ret_val < 0)
+	{
 		goto failed;
+	}
 
 	temp = i2c_smbus_read_byte_data(client, 0x8C); /* LSB data */
-	if (temp < 0) {
+
+	if (temp < 0)
+	{
 		ret_val = temp;
 		goto failed;
 	}
+
 	ret_val = i2c_smbus_read_byte_data(client, 0x8D); /* MSB data */
+
 	if (ret_val < 0)
+	{
 		goto failed;
+	}
 
 	mutex_unlock(&data->mutex);
 	pm_runtime_put_sync(dev);
@@ -118,7 +139,7 @@ failed:
 }
 
 static ssize_t als_sensing_range_store(struct device *dev,
-		struct device_attribute *attr, const  char *buf, size_t count)
+									   struct device_attribute *attr, const  char *buf, size_t count)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct als_data *data = i2c_get_clientdata(client);
@@ -126,15 +147,24 @@ static ssize_t als_sensing_range_store(struct device *dev,
 	unsigned long val;
 
 	ret_val = kstrtoul(buf, 10, &val);
+
 	if (ret_val)
+	{
 		return ret_val;
+	}
 
 	if (val < 4096)
+	{
 		val = 1;
+	}
 	else if (val < 65536)
+	{
 		val = 2;
+	}
 	else
+	{
 		return -ERANGE;
+	}
 
 	pm_runtime_get_sync(dev);
 
@@ -143,25 +173,34 @@ static ssize_t als_sensing_range_store(struct device *dev,
 	mutex_lock(&data->mutex);
 
 	ret_val = i2c_smbus_read_byte_data(client, 0x81);
+
 	if (ret_val < 0)
+	{
 		goto fail;
+	}
 
 	/* Reset the bits before setting them */
 	ret_val = ret_val & 0xFA;
 
 	if (val == 1) /* Setting detection range up to 4k LUX */
+	{
 		ret_val = (ret_val | 0x01);
+	}
 	else /* Setting detection range up to 64k LUX*/
+	{
 		ret_val = (ret_val | 0x00);
+	}
 
 	ret_val = i2c_smbus_write_byte_data(client, 0x81, ret_val);
 
-	if (ret_val >= 0) {
+	if (ret_val >= 0)
+	{
 		/* All OK */
 		mutex_unlock(&data->mutex);
 		pm_runtime_put_sync(dev);
 		return count;
 	}
+
 fail:
 	mutex_unlock(&data->mutex);
 	pm_runtime_put_sync(dev);
@@ -175,12 +214,21 @@ static int als_set_power_state(struct i2c_client *client, bool on_off)
 
 	mutex_lock(&data->mutex);
 	ret_val = i2c_smbus_read_byte_data(client, 0x80);
+
 	if (ret_val < 0)
+	{
 		goto fail;
+	}
+
 	if (on_off)
+	{
 		ret_val = ret_val | 0x01;
+	}
 	else
+	{
 		ret_val = ret_val & 0xFE;
+	}
+
 	ret_val = i2c_smbus_write_byte_data(client, 0x80, ret_val);
 fail:
 	mutex_unlock(&data->mutex);
@@ -188,16 +236,18 @@ fail:
 }
 
 static DEVICE_ATTR(lux0_sensor_range, S_IRUGO | S_IWUSR,
-	als_sensing_range_show, als_sensing_range_store);
+				   als_sensing_range_show, als_sensing_range_store);
 static DEVICE_ATTR(lux0_input, S_IRUGO, als_lux0_input_data_show, NULL);
 
-static struct attribute *mid_att_als[] = {
+static struct attribute *mid_att_als[] =
+{
 	&dev_attr_lux0_sensor_range.attr,
 	&dev_attr_lux0_input.attr,
 	NULL
 };
 
-static struct attribute_group m_als_gr = {
+static struct attribute_group m_als_gr =
+{
 	.name = "apds9802als",
 	.attrs = mid_att_als
 };
@@ -207,14 +257,20 @@ static int als_set_default_config(struct i2c_client *client)
 	int ret_val;
 	/* Write the command and then switch on */
 	ret_val = i2c_smbus_write_byte_data(client, 0x80, 0x01);
-	if (ret_val < 0) {
+
+	if (ret_val < 0)
+	{
 		dev_err(&client->dev, "failed default switch on write\n");
 		return ret_val;
 	}
+
 	/* detection range: 1~64K Lux, maunal measurement */
 	ret_val = i2c_smbus_write_byte_data(client, 0x81, 0x08);
+
 	if (ret_val < 0)
+	{
 		dev_err(&client->dev, "failed default LUX on write\n");
+	}
 
 	/*  We always get 0 for the 1st measurement after system power on,
 	 *  so make sure it is finished before user asks for data.
@@ -225,22 +281,28 @@ static int als_set_default_config(struct i2c_client *client)
 }
 
 static int apds9802als_probe(struct i2c_client *client,
-			     const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	int res;
 	struct als_data *data;
 
 	data = kzalloc(sizeof(struct als_data), GFP_KERNEL);
-	if (data == NULL) {
+
+	if (data == NULL)
+	{
 		dev_err(&client->dev, "Memory allocation failed\n");
 		return -ENOMEM;
 	}
+
 	i2c_set_clientdata(client, data);
 	res = sysfs_create_group(&client->dev.kobj, &m_als_gr);
-	if (res) {
+
+	if (res)
+	{
 		dev_err(&client->dev, "device create file failed\n");
 		goto als_error1;
 	}
+
 	dev_info(&client->dev, "ALS chip found\n");
 	als_set_default_config(client);
 	mutex_init(&data->mutex);
@@ -290,7 +352,7 @@ static int apds9802als_resume(struct device *dev)
 }
 
 static UNIVERSAL_DEV_PM_OPS(apds9802als_pm_ops, apds9802als_suspend,
-	apds9802als_resume, NULL);
+							apds9802als_resume, NULL);
 
 #define APDS9802ALS_PM_OPS (&apds9802als_pm_ops)
 
@@ -298,14 +360,16 @@ static UNIVERSAL_DEV_PM_OPS(apds9802als_pm_ops, apds9802als_suspend,
 #define APDS9802ALS_PM_OPS NULL
 #endif	/* CONFIG_PM */
 
-static struct i2c_device_id apds9802als_id[] = {
+static struct i2c_device_id apds9802als_id[] =
+{
 	{ DRIVER_NAME, 0 },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(i2c, apds9802als_id);
 
-static struct i2c_driver apds9802als_driver = {
+static struct i2c_driver apds9802als_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 		.pm = APDS9802ALS_PM_OPS,

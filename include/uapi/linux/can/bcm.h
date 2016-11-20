@@ -47,7 +47,8 @@
 #include <linux/types.h>
 #include <linux/can.h>
 
-struct bcm_timeval {
+struct bcm_timeval
+{
 	long tv_sec;
 	long tv_usec;
 };
@@ -63,7 +64,8 @@ struct bcm_timeval {
  * @nframes:   number of frames appended to the message head.
  * @frames:    array of CAN frames.
  */
-struct bcm_msg_head {
+struct bcm_msg_head
+{
 	__u32 opcode;
 	__u32 flags;
 	__u32 count;
@@ -73,7 +75,8 @@ struct bcm_msg_head {
 	struct can_frame frames[0];
 };
 
-enum {
+enum
+{
 	TX_SETUP = 1,	/* create (cyclic) transmission task */
 	TX_DELETE,	/* remove (cyclic) transmission task */
 	TX_READ,	/* read properties of (cyclic) transmission task */

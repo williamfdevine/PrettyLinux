@@ -43,7 +43,8 @@
  * Data Buffer Descriptor. Data buffers must be aligned on 32 byte
  * boundary for both, receive and transmit.
  */
-struct db_dest {
+struct db_dest
+{
 	struct db_dest *pnext;
 	u32 *vaddr;
 	dma_addr_t dma_addr;
@@ -53,14 +54,16 @@ struct db_dest {
  * The transmit and receive descriptors are memory
  * mapped registers.
  */
-struct tx_dma {
+struct tx_dma
+{
 	u32 status;
 	u32 buff_stat;
 	u32 len;
 	u32 pad;
 };
 
-struct rx_dma {
+struct rx_dma
+{
 	u32 status;
 	u32 buff_stat;
 	u32 pad[2];
@@ -70,7 +73,8 @@ struct rx_dma {
 /*
  * MAC control registers, memory mapped.
  */
-struct mac_reg {
+struct mac_reg
+{
 	u32 control;
 	u32 mac_addr_high;
 	u32 mac_addr_low;
@@ -84,9 +88,10 @@ struct mac_reg {
 };
 
 
-struct au1000_private {
+struct au1000_private
+{
 	struct db_dest *pDBfree;
-	struct db_dest db[NUM_RX_BUFFS+NUM_TX_BUFFS];
+	struct db_dest db[NUM_RX_BUFFS + NUM_TX_BUFFS];
 	struct rx_dma *rx_dma_ring[NUM_RX_DMA];
 	struct tx_dma *tx_dma_ring[NUM_TX_DMA];
 	struct db_dest *rx_db_inuse[NUM_RX_DMA];

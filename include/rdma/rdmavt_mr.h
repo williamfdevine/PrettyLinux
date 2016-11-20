@@ -57,7 +57,8 @@
  * A segment is a linear region of low physical memory.
  * Used by the verbs layer.
  */
-struct rvt_seg {
+struct rvt_seg
+{
 	void *vaddr;
 	size_t length;
 };
@@ -65,11 +66,13 @@ struct rvt_seg {
 /* The number of rvt_segs that fit in a page. */
 #define RVT_SEGSZ     (PAGE_SIZE / sizeof(struct rvt_seg))
 
-struct rvt_segarray {
+struct rvt_segarray
+{
 	struct rvt_seg segs[RVT_SEGSZ];
 };
 
-struct rvt_mregion {
+struct rvt_mregion
+{
 	struct ib_pd *pd;       /* shares refcnt of ibmr.pd */
 	u64 user_base;          /* User's address for this region */
 	u64 iova;               /* IB start address of this region */
@@ -89,7 +92,8 @@ struct rvt_mregion {
 
 #define RVT_MAX_LKEY_TABLE_BITS 23
 
-struct rvt_lkey_table {
+struct rvt_lkey_table
+{
 	spinlock_t lock; /* protect changes in this struct */
 	u32 next;               /* next unused index (speeds search) */
 	u32 gen;                /* generation count */
@@ -101,7 +105,8 @@ struct rvt_lkey_table {
  * These keep track of the copy progress within a memory region.
  * Used by the verbs layer.
  */
-struct rvt_sge {
+struct rvt_sge
+{
 	struct rvt_mregion *mr;
 	void *vaddr;            /* kernel virtual address of segment */
 	u32 sge_length;         /* length of the SGE */
@@ -110,7 +115,8 @@ struct rvt_sge {
 	u16 n;                  /* current index: mr->map[m]->segs[n] */
 };
 
-struct rvt_sge_state {
+struct rvt_sge_state
+{
 	struct rvt_sge *sg_list;      /* next SGE to be used if any */
 	struct rvt_sge sge;   /* progress state for the current SGE */
 	u32 total_len;
@@ -120,7 +126,9 @@ struct rvt_sge_state {
 static inline void rvt_put_mr(struct rvt_mregion *mr)
 {
 	if (unlikely(atomic_dec_and_test(&mr->refcount)))
+	{
 		complete(&mr->comp);
+	}
 }
 
 static inline void rvt_get_mr(struct rvt_mregion *mr)
@@ -130,10 +138,14 @@ static inline void rvt_get_mr(struct rvt_mregion *mr)
 
 static inline void rvt_put_ss(struct rvt_sge_state *ss)
 {
-	while (ss->num_sge) {
+	while (ss->num_sge)
+	{
 		rvt_put_mr(ss->sge.mr);
+
 		if (--ss->num_sge)
+		{
 			ss->sge = *ss->sg_list++;
+		}
 	}
 }
 

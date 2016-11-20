@@ -86,7 +86,8 @@ struct si_dte_data
 	bool enable_dte_by_default;
 };
 
-struct si_clock_registers {
+struct si_clock_registers
+{
 	u32 cg_spll_func_cntl;
 	u32 cg_spll_func_cntl_2;
 	u32 cg_spll_func_cntl_3;
@@ -104,12 +105,14 @@ struct si_clock_registers {
 	u32 mpll_ss2;
 };
 
-struct si_mc_reg_entry {
+struct si_mc_reg_entry
+{
 	u32 mclk_max;
 	u32 mc_data[SMC_SISLANDS_MC_REGISTER_ARRAY_SIZE];
 };
 
-struct si_mc_reg_table {
+struct si_mc_reg_table
+{
 	u8 last;
 	u8 num_entries;
 	u16 valid_flag;
@@ -139,7 +142,8 @@ struct si_leakage_voltage
 
 #define SISLANDS_MAX_HARDWARE_POWERLEVELS 5
 
-struct si_ulv_param {
+struct si_ulv_param
+{
 	bool supported;
 	u32 cg_ulv_control;
 	u32 cg_ulv_parameter;
@@ -148,7 +152,8 @@ struct si_ulv_param {
 	bool one_pcie_lane_in_ulv;
 };
 
-struct si_power_info {
+struct si_power_info
+{
 	/* must be first! */
 	struct ni_power_info ni;
 	struct si_clock_registers clock_registers;

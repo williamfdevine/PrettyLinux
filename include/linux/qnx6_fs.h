@@ -38,7 +38,8 @@
  * This is the original qnx6 inode layout on disk.
  * Each inode is 128 byte long.
  */
-struct qnx6_inode_entry {
+struct qnx6_inode_entry
+{
 	__fs64		di_size;
 	__fs32		di_uid;
 	__fs32		di_gid;
@@ -60,7 +61,8 @@ struct qnx6_inode_entry {
  * If more characters or special characters required it is stored
  * in the longfilenames structure.
  */
-struct qnx6_dir_entry {
+struct qnx6_dir_entry
+{
 	__fs32		de_inode;
 	__u8		de_size;
 	char		de_fname[QNX6_SHORT_NAME_MAX];
@@ -69,7 +71,8 @@ struct qnx6_dir_entry {
 /*
  * Longfilename direntries have a different structure
  */
-struct qnx6_long_dir_entry {
+struct qnx6_long_dir_entry
+{
 	__fs32		de_inode;
 	__u8		de_size;
 	__u8		de_unknown[3];
@@ -77,12 +80,14 @@ struct qnx6_long_dir_entry {
 	__fs32		de_checksum;
 };
 
-struct qnx6_long_filename {
+struct qnx6_long_filename
+{
 	__fs16		lf_size;
 	__u8		lf_fname[QNX6_LONG_NAME_MAX];
 };
 
-struct qnx6_root_node {
+struct qnx6_root_node
+{
 	__fs64		size;
 	__fs32		ptr[QNX6_NO_DIRECT_POINTERS];
 	__u8		levels;
@@ -90,7 +95,8 @@ struct qnx6_root_node {
 	__u8		spare[6];
 };
 
-struct qnx6_super_block {
+struct qnx6_super_block
+{
 	__fs32		sb_magic;
 	__fs32		sb_checksum;
 	__fs64		sb_serial;
@@ -113,7 +119,8 @@ struct qnx6_super_block {
 };
 
 /* Audi MMI 3G superblock layout is different to plain qnx6 */
-struct qnx6_mmi_super_block {
+struct qnx6_mmi_super_block
+{
 	__fs32		sb_magic;
 	__fs32		sb_checksum;
 	__fs64		sb_serial;

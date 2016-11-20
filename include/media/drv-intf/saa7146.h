@@ -30,10 +30,10 @@ extern unsigned int saa7146_debug;
 #define ERR(fmt, ...)	pr_err("%s: " fmt, __func__, ##__VA_ARGS__)
 
 #define _DBG(mask, fmt, ...)						\
-do {									\
-	if (DEBUG_VARIABLE & mask)					\
-		pr_debug("%s(): " fmt, __func__, ##__VA_ARGS__);	\
-} while (0)
+	do {									\
+		if (DEBUG_VARIABLE & mask)					\
+			pr_debug("%s(): " fmt, __func__, ##__VA_ARGS__);	\
+	} while (0)
 
 /* simple debug messages */
 #define DEB_S(fmt, ...)		_DBG(0x01, fmt, ##__VA_ARGS__)
@@ -60,7 +60,8 @@ struct saa7146_extension;
 struct saa7146_vv;
 
 /* saa7146 page table */
-struct saa7146_pgtable {
+struct saa7146_pgtable
+{
 	unsigned int	size;
 	__le32		*cpu;
 	dma_addr_t	dma;
@@ -71,7 +72,8 @@ struct saa7146_pgtable {
 	int		nents;
 };
 
-struct saa7146_pci_extension_data {
+struct saa7146_pci_extension_data
+{
 	struct saa7146_extension *ext;
 	void *ext_priv;			/* most likely a name string */
 };
@@ -79,10 +81,10 @@ struct saa7146_pci_extension_data {
 #define MAKE_EXTENSION_PCI(x_var, x_vendor, x_device)		\
 	{							\
 		.vendor    = PCI_VENDOR_ID_PHILIPS,		\
-		.device	   = PCI_DEVICE_ID_PHILIPS_SAA7146,	\
-		.subvendor = x_vendor,				\
-		.subdevice = x_device,				\
-		.driver_data = (unsigned long)& x_var,		\
+					 .device	   = PCI_DEVICE_ID_PHILIPS_SAA7146,	\
+								  .subvendor = x_vendor,				\
+											   .subdevice = x_device,				\
+													   .driver_data = (unsigned long)& x_var,		\
 	}
 
 struct saa7146_extension
@@ -101,10 +103,10 @@ struct saa7146_extension
 	/* extension functions */
 	int (*probe)(struct saa7146_dev *);
 	int (*attach)(struct saa7146_dev *, struct saa7146_pci_extension_data *);
-	int (*detach)(struct saa7146_dev*);
+	int (*detach)(struct saa7146_dev *);
 
 	u32	irq_mask;	/* mask to indicate, which irq-events are handled by the extension */
-	void	(*irq_func)(struct saa7146_dev*, u32* irq_mask);
+	void	(*irq_func)(struct saa7146_dev *, u32 *irq_mask);
 };
 
 struct saa7146_dma
@@ -164,12 +166,13 @@ static inline struct saa7146_dev *to_saa7146_dev(struct v4l2_device *v4l2_dev)
 int saa7146_i2c_adapter_prepare(struct saa7146_dev *dev, struct i2c_adapter *i2c_adapter, u32 bitrate);
 
 /* from saa7146_core.c */
-int saa7146_register_extension(struct saa7146_extension*);
-int saa7146_unregister_extension(struct saa7146_extension*);
-struct saa7146_format* saa7146_format_by_fourcc(struct saa7146_dev *dev, int fourcc);
+int saa7146_register_extension(struct saa7146_extension *);
+int saa7146_unregister_extension(struct saa7146_extension *);
+struct saa7146_format *saa7146_format_by_fourcc(struct saa7146_dev *dev, int fourcc);
 int saa7146_pgtable_alloc(struct pci_dev *pci, struct saa7146_pgtable *pt);
 void saa7146_pgtable_free(struct pci_dev *pci, struct saa7146_pgtable *pt);
-int saa7146_pgtable_build_single(struct pci_dev *pci, struct saa7146_pgtable *pt, struct scatterlist *list, int length );
+int saa7146_pgtable_build_single(struct pci_dev *pci, struct saa7146_pgtable *pt, struct scatterlist *list,
+								 int length );
 void *saa7146_vmalloc_build_pgtable(struct pci_dev *pci, long length, struct saa7146_pgtable *pt);
 void saa7146_vfree_destroy_pgtable(struct pci_dev *pci, void *mem, struct saa7146_pgtable *pt);
 void saa7146_setgpio(struct saa7146_dev *dev, int port, u32 data);

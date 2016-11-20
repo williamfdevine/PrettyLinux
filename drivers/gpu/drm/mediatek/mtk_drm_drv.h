@@ -28,7 +28,8 @@ struct drm_fb_helper;
 struct drm_property;
 struct regmap;
 
-struct mtk_drm_private {
+struct mtk_drm_private
+{
 	struct drm_device *drm;
 	struct device *dma_dev;
 
@@ -41,7 +42,8 @@ struct mtk_drm_private {
 	struct device_node *comp_node[DDP_COMPONENT_ID_MAX];
 	struct mtk_ddp_comp *ddp_comp[DDP_COMPONENT_ID_MAX];
 
-	struct {
+	struct
+	{
 		struct drm_atomic_state *state;
 		struct work_struct work;
 		struct mutex lock;

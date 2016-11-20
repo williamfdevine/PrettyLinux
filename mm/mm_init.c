@@ -18,7 +18,7 @@
 int __meminitdata mminit_loglevel;
 
 #ifndef SECTIONS_SHIFT
-#define SECTIONS_SHIFT	0
+	#define SECTIONS_SHIFT	0
 #endif
 
 /* The zonelists are simply reported, validation is manual. */
@@ -27,9 +27,12 @@ void __init mminit_verify_zonelist(void)
 	int nid;
 
 	if (mminit_loglevel < MMINIT_VERIFY)
+	{
 		return;
+	}
 
-	for_each_online_node(nid) {
+	for_each_online_node(nid)
+	{
 		pg_data_t *pgdat = NODE_DATA(nid);
 		struct zone *zone;
 		struct zoneref *z;
@@ -37,23 +40,29 @@ void __init mminit_verify_zonelist(void)
 		int i, listid, zoneid;
 
 		BUG_ON(MAX_ZONELISTS > 2);
-		for (i = 0; i < MAX_ZONELISTS * MAX_NR_ZONES; i++) {
+
+		for (i = 0; i < MAX_ZONELISTS * MAX_NR_ZONES; i++)
+		{
 
 			/* Identify the zone and nodelist */
 			zoneid = i % MAX_NR_ZONES;
 			listid = i / MAX_NR_ZONES;
 			zonelist = &pgdat->node_zonelists[listid];
 			zone = &pgdat->node_zones[zoneid];
+
 			if (!populated_zone(zone))
+			{
 				continue;
+			}
 
 			/* Print information about the zonelist */
 			printk(KERN_DEBUG "mminit::zonelist %s %d:%s = ",
-				listid > 0 ? "thisnode" : "general", nid,
-				zone->name);
+				   listid > 0 ? "thisnode" : "general", nid,
+				   zone->name);
 
 			/* Iterate the zonelist */
-			for_each_zone_zonelist(zone, z, zonelist, zoneid) {
+			for_each_zone_zonelist(zone, z, zonelist, zoneid)
+			{
 #ifdef CONFIG_NUMA
 				pr_cont("%d:%s ", zone->node, zone->name);
 #else
@@ -73,60 +82,65 @@ void __init mminit_verify_pageflags_layout(void)
 	shift = 8 * sizeof(unsigned long);
 	width = shift - SECTIONS_WIDTH - NODES_WIDTH - ZONES_WIDTH - LAST_CPUPID_SHIFT;
 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_widths",
-		"Section %d Node %d Zone %d Lastcpupid %d Flags %d\n",
-		SECTIONS_WIDTH,
-		NODES_WIDTH,
-		ZONES_WIDTH,
-		LAST_CPUPID_WIDTH,
-		NR_PAGEFLAGS);
+				   "Section %d Node %d Zone %d Lastcpupid %d Flags %d\n",
+				   SECTIONS_WIDTH,
+				   NODES_WIDTH,
+				   ZONES_WIDTH,
+				   LAST_CPUPID_WIDTH,
+				   NR_PAGEFLAGS);
 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_shifts",
-		"Section %d Node %d Zone %d Lastcpupid %d\n",
-		SECTIONS_SHIFT,
-		NODES_SHIFT,
-		ZONES_SHIFT,
-		LAST_CPUPID_SHIFT);
+				   "Section %d Node %d Zone %d Lastcpupid %d\n",
+				   SECTIONS_SHIFT,
+				   NODES_SHIFT,
+				   ZONES_SHIFT,
+				   LAST_CPUPID_SHIFT);
 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_pgshifts",
-		"Section %lu Node %lu Zone %lu Lastcpupid %lu\n",
-		(unsigned long)SECTIONS_PGSHIFT,
-		(unsigned long)NODES_PGSHIFT,
-		(unsigned long)ZONES_PGSHIFT,
-		(unsigned long)LAST_CPUPID_PGSHIFT);
+				   "Section %lu Node %lu Zone %lu Lastcpupid %lu\n",
+				   (unsigned long)SECTIONS_PGSHIFT,
+				   (unsigned long)NODES_PGSHIFT,
+				   (unsigned long)ZONES_PGSHIFT,
+				   (unsigned long)LAST_CPUPID_PGSHIFT);
 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_nodezoneid",
-		"Node/Zone ID: %lu -> %lu\n",
-		(unsigned long)(ZONEID_PGOFF + ZONEID_SHIFT),
-		(unsigned long)ZONEID_PGOFF);
+				   "Node/Zone ID: %lu -> %lu\n",
+				   (unsigned long)(ZONEID_PGOFF + ZONEID_SHIFT),
+				   (unsigned long)ZONEID_PGOFF);
 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_usage",
-		"location: %d -> %d layout %d -> %d unused %d -> %d page-flags\n",
-		shift, width, width, NR_PAGEFLAGS, NR_PAGEFLAGS, 0);
+				   "location: %d -> %d layout %d -> %d unused %d -> %d page-flags\n",
+				   shift, width, width, NR_PAGEFLAGS, NR_PAGEFLAGS, 0);
 #ifdef NODE_NOT_IN_PAGE_FLAGS
 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_nodeflags",
-		"Node not in page flags");
+				   "Node not in page flags");
 #endif
 #ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_nodeflags",
-		"Last cpupid not in page flags");
+				   "Last cpupid not in page flags");
 #endif
 
-	if (SECTIONS_WIDTH) {
+	if (SECTIONS_WIDTH)
+	{
 		shift -= SECTIONS_WIDTH;
 		BUG_ON(shift != SECTIONS_PGSHIFT);
 	}
-	if (NODES_WIDTH) {
+
+	if (NODES_WIDTH)
+	{
 		shift -= NODES_WIDTH;
 		BUG_ON(shift != NODES_PGSHIFT);
 	}
-	if (ZONES_WIDTH) {
+
+	if (ZONES_WIDTH)
+	{
 		shift -= ZONES_WIDTH;
 		BUG_ON(shift != ZONES_PGSHIFT);
 	}
 
 	/* Check for bitmask overlaps */
 	or_mask = (ZONES_MASK << ZONES_PGSHIFT) |
-			(NODES_MASK << NODES_PGSHIFT) |
-			(SECTIONS_MASK << SECTIONS_PGSHIFT);
+			  (NODES_MASK << NODES_PGSHIFT) |
+			  (SECTIONS_MASK << SECTIONS_PGSHIFT);
 	add_mask = (ZONES_MASK << ZONES_PGSHIFT) +
-			(NODES_MASK << NODES_PGSHIFT) +
-			(SECTIONS_MASK << SECTIONS_PGSHIFT);
+			   (NODES_MASK << NODES_PGSHIFT) +
+			   (SECTIONS_MASK << SECTIONS_PGSHIFT);
 	BUG_ON(or_mask != add_mask);
 }
 
@@ -148,28 +162,32 @@ static void __meminit mm_compute_batch(void)
 {
 	u64 memsized_batch;
 	s32 nr = num_present_cpus();
-	s32 batch = max_t(s32, nr*2, 32);
+	s32 batch = max_t(s32, nr * 2, 32);
 
 	/* batch size set to 0.4% of (total memory/#cpus), or max int32 */
-	memsized_batch = min_t(u64, (totalram_pages/nr)/256, 0x7fffffff);
+	memsized_batch = min_t(u64, (totalram_pages / nr) / 256, 0x7fffffff);
 
 	vm_committed_as_batch = max_t(s32, memsized_batch, batch);
 }
 
 static int __meminit mm_compute_batch_notifier(struct notifier_block *self,
-					unsigned long action, void *arg)
+		unsigned long action, void *arg)
 {
-	switch (action) {
-	case MEM_ONLINE:
-	case MEM_OFFLINE:
-		mm_compute_batch();
-	default:
-		break;
+	switch (action)
+	{
+		case MEM_ONLINE:
+		case MEM_OFFLINE:
+			mm_compute_batch();
+
+		default:
+			break;
 	}
+
 	return NOTIFY_OK;
 }
 
-static struct notifier_block compute_batch_nb __meminitdata = {
+static struct notifier_block compute_batch_nb __meminitdata =
+{
 	.notifier_call = mm_compute_batch_notifier,
 	.priority = IPC_CALLBACK_PRI, /* use lowest priority */
 };
@@ -189,8 +207,11 @@ __initcall(mm_compute_batch_init);
 static int __init mm_sysfs_init(void)
 {
 	mm_kobj = kobject_create_and_add("mm", kernel_kobj);
+
 	if (!mm_kobj)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }

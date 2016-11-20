@@ -35,10 +35,10 @@ static int m41t94_set_time(struct device *dev, struct rtc_time *tm)
 	u8 buf[8]; /* write cmd + 7 registers */
 
 	dev_dbg(dev, "%s secs=%d, mins=%d, "
-		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-		"write", tm->tm_sec, tm->tm_min,
-		tm->tm_hour, tm->tm_mday,
-		tm->tm_mon, tm->tm_year, tm->tm_wday);
+			"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
+			"write", tm->tm_sec, tm->tm_min,
+			tm->tm_hour, tm->tm_mday,
+			tm->tm_mon, tm->tm_year, tm->tm_wday);
 
 	buf[0] = 0x80 | M41T94_REG_SECONDS; /* write time + date */
 	buf[M41T94_REG_SECONDS] = bin2bcd(tm->tm_sec);
@@ -49,8 +49,12 @@ static int m41t94_set_time(struct device *dev, struct rtc_time *tm)
 	buf[M41T94_REG_MONTH]   = bin2bcd(tm->tm_mon + 1);
 
 	buf[M41T94_REG_HOURS] |= M41T94_BIT_CEB;
+
 	if (tm->tm_year >= 100)
+	{
 		buf[M41T94_REG_HOURS] |= M41T94_BIT_CB;
+	}
+
 	buf[M41T94_REG_YEAR] = bin2bcd(tm->tm_year % 100);
 
 	return spi_write(spi, buf, 8);
@@ -64,9 +68,14 @@ static int m41t94_read_time(struct device *dev, struct rtc_time *tm)
 
 	/* clear halt update bit */
 	ret = spi_w8r8(spi, M41T94_REG_HT);
+
 	if (ret < 0)
+	{
 		return ret;
-	if (ret & M41T94_BIT_HALT) {
+	}
+
+	if (ret & M41T94_BIT_HALT)
+	{
 		buf[0] = 0x80 | M41T94_REG_HT;
 		buf[1] = ret & ~M41T94_BIT_HALT;
 		spi_write(spi, buf, 2);
@@ -74,9 +83,14 @@ static int m41t94_read_time(struct device *dev, struct rtc_time *tm)
 
 	/* clear stop bit */
 	ret = spi_w8r8(spi, M41T94_REG_SECONDS);
+
 	if (ret < 0)
+	{
 		return ret;
-	if (ret & M41T94_BIT_STOP) {
+	}
+
+	if (ret & M41T94_BIT_STOP)
+	{
 		buf[0] = 0x80 | M41T94_REG_SECONDS;
 		buf[1] = ret & ~M41T94_BIT_STOP;
 		spi_write(spi, buf, 2);
@@ -90,20 +104,24 @@ static int m41t94_read_time(struct device *dev, struct rtc_time *tm)
 	tm->tm_mday = bcd2bin(spi_w8r8(spi, M41T94_REG_DAY));
 	tm->tm_mon  = bcd2bin(spi_w8r8(spi, M41T94_REG_MONTH)) - 1;
 	tm->tm_year = bcd2bin(spi_w8r8(spi, M41T94_REG_YEAR));
+
 	if ((hour & M41T94_BIT_CB) || !(hour & M41T94_BIT_CEB))
+	{
 		tm->tm_year += 100;
+	}
 
 	dev_dbg(dev, "%s secs=%d, mins=%d, "
-		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-		"read", tm->tm_sec, tm->tm_min,
-		tm->tm_hour, tm->tm_mday,
-		tm->tm_mon, tm->tm_year, tm->tm_wday);
+			"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
+			"read", tm->tm_sec, tm->tm_min,
+			tm->tm_hour, tm->tm_mday,
+			tm->tm_mon, tm->tm_year, tm->tm_wday);
 
 	/* initial clock setting can be undefined */
 	return rtc_valid_tm(tm);
 }
 
-static const struct rtc_class_ops m41t94_rtc_ops = {
+static const struct rtc_class_ops m41t94_rtc_ops =
+{
 	.read_time	= m41t94_read_time,
 	.set_time	= m41t94_set_time,
 };
@@ -119,22 +137,28 @@ static int m41t94_probe(struct spi_device *spi)
 	spi_setup(spi);
 
 	res = spi_w8r8(spi, M41T94_REG_SECONDS);
-	if (res < 0) {
+
+	if (res < 0)
+	{
 		dev_err(&spi->dev, "not found.\n");
 		return res;
 	}
 
 	rtc = devm_rtc_device_register(&spi->dev, m41t94_driver.driver.name,
-					&m41t94_rtc_ops, THIS_MODULE);
+								   &m41t94_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	spi_set_drvdata(spi, rtc);
 
 	return 0;
 }
 
-static struct spi_driver m41t94_driver = {
+static struct spi_driver m41t94_driver =
+{
 	.driver = {
 		.name	= "rtc-m41t94",
 	},

@@ -35,13 +35,15 @@ MODULE_SUPPORTED_DEVICE(DRIVER_NAME);
 MODULE_LICENSE("GPL");
 MODULE_VERSION("2.1");
 
-struct uflash_dev {
+struct uflash_dev
+{
 	const char		*name;	/* device name */
 	struct map_info 	map;	/* mtd map info */
 	struct mtd_info		*mtd;	/* mtd info */
 };
 
-struct map_info uflash_map_templ = {
+struct map_info uflash_map_templ =
+{
 	.name =		"SUNW,???-????",
 	.size =		UFLASH_WINDOW_SIZE,
 	.bankwidth =	UFLASH_BUSWIDTH,
@@ -51,18 +53,21 @@ int uflash_devinit(struct platform_device *op, struct device_node *dp)
 {
 	struct uflash_dev *up;
 
-	if (op->resource[1].flags) {
+	if (op->resource[1].flags)
+	{
 		/* Non-CFI userflash device-- once I find one we
 		 * can work on supporting it.
 		 */
 		printk(KERN_ERR PFX "Unsupported device at %s, 0x%llx\n",
-		       dp->full_name, (unsigned long long)op->resource[0].start);
+			   dp->full_name, (unsigned long long)op->resource[0].start);
 
 		return -ENODEV;
 	}
 
 	up = kzalloc(sizeof(struct uflash_dev), GFP_KERNEL);
-	if (!up) {
+
+	if (!up)
+	{
 		printk(KERN_ERR PFX "Cannot allocate struct uflash_dev\n");
 		return -ENOMEM;
 	}
@@ -73,14 +78,19 @@ int uflash_devinit(struct platform_device *op, struct device_node *dp)
 	up->map.size = resource_size(&op->resource[0]);
 
 	up->name = of_get_property(dp, "model", NULL);
+
 	if (up->name && 0 < strlen(up->name))
+	{
 		up->map.name = up->name;
+	}
 
 	up->map.phys = op->resource[0].start;
 
 	up->map.virt = of_ioremap(&op->resource[0], 0, up->map.size,
-				  DRIVER_NAME);
-	if (!up->map.virt) {
+							  DRIVER_NAME);
+
+	if (!up->map.virt)
+	{
 		printk(KERN_ERR PFX "Failed to map device.\n");
 		kfree(up);
 
@@ -91,7 +101,9 @@ int uflash_devinit(struct platform_device *op, struct device_node *dp)
 
 	/* MTD registration */
 	up->mtd = do_map_probe("cfi_probe", &up->map);
-	if (!up->mtd) {
+
+	if (!up->mtd)
+	{
 		of_iounmap(&op->resource[0], up->map.virt, up->map.size);
 		kfree(up);
 
@@ -115,7 +127,9 @@ static int uflash_probe(struct platform_device *op)
 	 * be used by this driver.
 	 */
 	if (!of_find_property(dp, "user", NULL))
+	{
 		return -ENODEV;
+	}
 
 	return uflash_devinit(op, dp);
 }
@@ -124,11 +138,14 @@ static int uflash_remove(struct platform_device *op)
 {
 	struct uflash_dev *up = dev_get_drvdata(&op->dev);
 
-	if (up->mtd) {
+	if (up->mtd)
+	{
 		mtd_device_unregister(up->mtd);
 		map_destroy(up->mtd);
 	}
-	if (up->map.virt) {
+
+	if (up->map.virt)
+	{
 		of_iounmap(&op->resource[0], up->map.virt, up->map.size);
 		up->map.virt = NULL;
 	}
@@ -138,7 +155,8 @@ static int uflash_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id uflash_match[] = {
+static const struct of_device_id uflash_match[] =
+{
 	{
 		.name = UFLASH_OBPNAME,
 	},
@@ -147,7 +165,8 @@ static const struct of_device_id uflash_match[] = {
 
 MODULE_DEVICE_TABLE(of, uflash_match);
 
-static struct platform_driver uflash_driver = {
+static struct platform_driver uflash_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 		.of_match_table = uflash_match,

@@ -40,7 +40,8 @@
  *
  */
 
-struct p9_idpool {
+struct p9_idpool
+{
 	spinlock_t lock;
 	struct idr pool;
 };
@@ -55,8 +56,11 @@ struct p9_idpool *p9_idpool_create(void)
 	struct p9_idpool *p;
 
 	p = kmalloc(sizeof(struct p9_idpool), GFP_KERNEL);
+
 	if (!p)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	spin_lock_init(&p->lock);
 	idr_init(&p->pool);
@@ -98,8 +102,11 @@ int p9_idpool_get(struct p9_idpool *p)
 
 	spin_unlock_irqrestore(&p->lock, flags);
 	idr_preload_end();
+
 	if (i < 0)
+	{
 		return -1;
+	}
 
 	p9_debug(P9_DEBUG_MUX, " id %d pool %p\n", i, p);
 	return i;

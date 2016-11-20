@@ -50,27 +50,35 @@ static void bsg_destroy_job(struct bsg_job *job)
  * The LLD should call this when the bsg job has completed.
  */
 void bsg_job_done(struct bsg_job *job, int result,
-		  unsigned int reply_payload_rcv_len)
+				  unsigned int reply_payload_rcv_len)
 {
 	struct request *req = job->req;
 	struct request *rsp = req->next_rq;
 	int err;
 
 	err = job->req->errors = result;
+
 	if (err < 0)
 		/* we're only returning the result field in the reply */
+	{
 		job->req->sense_len = sizeof(u32);
+	}
 	else
+	{
 		job->req->sense_len = job->reply_len;
+	}
+
 	/* we assume all request payload was transferred, residual == 0 */
 	req->resid_len = 0;
 
-	if (rsp) {
+	if (rsp)
+	{
 		WARN_ON(reply_payload_rcv_len > rsp->resid_len);
 
 		/* set reply (bidi) residual */
 		rsp->resid_len -= min(reply_payload_rcv_len, rsp->resid_len);
 	}
+
 	blk_complete_request(req);
 }
 EXPORT_SYMBOL_GPL(bsg_job_done);
@@ -94,8 +102,12 @@ static int bsg_map_buffer(struct bsg_buffer *buf, struct request *req)
 	BUG_ON(!req->nr_phys_segments);
 
 	buf->sg_list = kzalloc(sz, GFP_KERNEL);
+
 	if (!buf->sg_list)
+	{
 		return -ENOMEM;
+	}
+
 	sg_init_table(buf->sg_list, req->nr_phys_segments);
 	buf->sg_cnt = blk_rq_map_sg(req->q, req, buf->sg_list);
 	buf->payload_len = blk_rq_bytes(req);
@@ -117,28 +129,46 @@ static int bsg_create_job(struct device *dev, struct request *req)
 	BUG_ON(req->special);
 
 	job = kzalloc(sizeof(struct bsg_job) + q->bsg_job_size, GFP_KERNEL);
+
 	if (!job)
+	{
 		return -ENOMEM;
+	}
 
 	req->special = job;
 	job->req = req;
+
 	if (q->bsg_job_size)
+	{
 		job->dd_data = (void *)&job[1];
+	}
+
 	job->request = req->cmd;
 	job->request_len = req->cmd_len;
 	job->reply = req->sense;
 	job->reply_len = SCSI_SENSE_BUFFERSIZE;	/* Size of sense buffer
 						 * allocated */
-	if (req->bio) {
+
+	if (req->bio)
+	{
 		ret = bsg_map_buffer(&job->request_payload, req);
+
 		if (ret)
+		{
 			goto failjob_rls_job;
+		}
 	}
-	if (rsp && rsp->bio) {
+
+	if (rsp && rsp->bio)
+	{
 		ret = bsg_map_buffer(&job->reply_payload, rsp);
+
 		if (ret)
+		{
 			goto failjob_rls_rqst_payload;
+		}
 	}
+
 	job->dev = dev;
 	/* take a reference for the request */
 	get_device(job->dev);
@@ -168,16 +198,25 @@ void bsg_request_fn(struct request_queue *q)
 	int ret;
 
 	if (!get_device(dev))
+	{
 		return;
+	}
 
-	while (1) {
+	while (1)
+	{
 		req = blk_fetch_request(q);
+
 		if (!req)
+		{
 			break;
+		}
+
 		spin_unlock_irq(q->queue_lock);
 
 		ret = bsg_create_job(dev, req);
-		if (ret) {
+
+		if (ret)
+		{
 			req->errors = ret;
 			blk_end_request_all(req, ret);
 			spin_lock_irq(q->queue_lock);
@@ -187,8 +226,11 @@ void bsg_request_fn(struct request_queue *q)
 		job = req->special;
 		ret = q->bsg_job_fn(job);
 		spin_lock_irq(q->queue_lock);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 
 	spin_unlock_irq(q->queue_lock);
@@ -209,7 +251,7 @@ EXPORT_SYMBOL_GPL(bsg_request_fn);
  * as the request_fn.
  */
 int bsg_setup_queue(struct device *dev, struct request_queue *q,
-		    char *name, bsg_job_fn *job_fn, int dd_job_size)
+					char *name, bsg_job_fn *job_fn, int dd_job_size)
 {
 	int ret;
 
@@ -221,9 +263,11 @@ int bsg_setup_queue(struct device *dev, struct request_queue *q,
 	blk_queue_rq_timeout(q, BLK_DEFAULT_SG_TIMEOUT);
 
 	ret = bsg_register_queue(q, dev, name, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "%s: bsg interface failed to "
-		       "initialize - register queue\n", dev->kobj.name);
+			   "initialize - register queue\n", dev->kobj.name);
 		return ret;
 	}
 

@@ -26,14 +26,16 @@
  * I know the null-terminator is redundant since namelen is stored, but
  * I am maintaining compatibility with OS/2 where possible.
  */
-struct jfs_ea {
+struct jfs_ea
+{
 	u8 flag;	/* Unused? */
 	u8 namelen;	/* Length of name */
 	__le16 valuelen;	/* Length of value */
 	char name[0];	/* Attribute name (includes null-terminator) */
 };			/* Value immediately follows name */
 
-struct jfs_ea_list {
+struct jfs_ea_list
+{
 	__le32 size;		/* overall size */
 	struct jfs_ea ea[0];	/* Variable length list */
 };
@@ -55,7 +57,7 @@ struct jfs_ea_list {
 	((struct jfs_ea *) (((char *) (ealist)) + EALIST_SIZE(ealist)))
 
 extern int __jfs_setxattr(tid_t, struct inode *, const char *, const void *,
-			  size_t, int);
+						  size_t, int);
 extern ssize_t __jfs_getxattr(struct inode *, const char *, void *, size_t);
 extern ssize_t jfs_listxattr(struct dentry *, char *, size_t);
 
@@ -63,10 +65,10 @@ extern const struct xattr_handler *jfs_xattr_handlers[];
 
 #ifdef CONFIG_JFS_SECURITY
 extern int jfs_init_security(tid_t, struct inode *, struct inode *,
-			     const struct qstr *);
+							 const struct qstr *);
 #else
 static inline int jfs_init_security(tid_t tid, struct inode *inode,
-				    struct inode *dir, const struct qstr *qstr)
+									struct inode *dir, const struct qstr *qstr)
 {
 	return 0;
 }

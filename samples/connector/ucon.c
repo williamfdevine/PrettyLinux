@@ -49,9 +49,9 @@
 #define CN_TEST_VAL		0x456
 
 #ifdef DEBUG
-#define ulog(f, a...) fprintf(stdout, f, ##a)
+	#define ulog(f, a...) fprintf(stdout, f, ##a)
 #else
-#define ulog(f, a...) do {} while (0)
+	#define ulog(f, a...) do {} while (0)
 #endif
 
 static int need_exit;
@@ -77,14 +77,15 @@ static int netlink_send(int s, struct cn_msg *msg)
 	m = NLMSG_DATA(nlh);
 #if 0
 	ulog("%s: [%08x.%08x] len=%u, seq=%u, ack=%u.\n",
-	       __func__, msg->id.idx, msg->id.val, msg->len, msg->seq, msg->ack);
+		 __func__, msg->id.idx, msg->id.val, msg->len, msg->seq, msg->ack);
 #endif
 	memcpy(m, msg, sizeof(*m) + msg->len);
 
 	err = send(s, nlh, size, 0);
+
 	if (err == -1)
 		ulog("Failed to send: %s [%d].\n",
-			strerror(errno), errno);
+			 strerror(errno), errno);
 
 	return err;
 }
@@ -121,37 +122,47 @@ int main(int argc, char *argv[])
 	struct pollfd pfd;
 	bool send_msgs = false;
 
-	while ((s = getopt(argc, argv, "hs")) != -1) {
-		switch (s) {
-		case 's':
-			send_msgs = true;
-			break;
+	while ((s = getopt(argc, argv, "hs")) != -1)
+	{
+		switch (s)
+		{
+			case 's':
+				send_msgs = true;
+				break;
 
-		case 'h':
-			usage();
-			return 0;
+			case 'h':
+				usage();
+				return 0;
 
-		default:
-			/* getopt() outputs an error for us */
-			usage();
-			return 1;
+			default:
+				/* getopt() outputs an error for us */
+				usage();
+				return 1;
 		}
 	}
 
-	if (argc != optind) {
+	if (argc != optind)
+	{
 		out = fopen(argv[optind], "a+");
-		if (!out) {
+
+		if (!out)
+		{
 			ulog("Unable to open %s for writing: %s\n",
-				argv[1], strerror(errno));
+				 argv[1], strerror(errno));
 			out = stdout;
 		}
-	} else
+	}
+	else
+	{
 		out = stdout;
+	}
 
 	memset(buf, 0, sizeof(buf));
 
 	s = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_CONNECTOR);
-	if (s == -1) {
+
+	if (s == -1)
+	{
 		perror("socket");
 		return -1;
 	}
@@ -162,7 +173,8 @@ int main(int argc, char *argv[])
 
 	ulog("subscribing to %u.%u\n", CN_TEST_IDX, CN_TEST_VAL);
 
-	if (bind(s, (struct sockaddr *)&l_local, sizeof(struct sockaddr_nl)) == -1) {
+	if (bind(s, (struct sockaddr *)&l_local, sizeof(struct sockaddr_nl)) == -1)
+	{
 		perror("bind");
 		close(s);
 		return -1;
@@ -174,7 +186,9 @@ int main(int argc, char *argv[])
 		setsockopt(s, SOL_NETLINK, NETLINK_ADD_MEMBERSHIP, &on, sizeof(on));
 	}
 #endif
-	if (send_msgs) {
+
+	if (send_msgs)
+	{
 		int i, j;
 
 		memset(buf, 0, sizeof(buf));
@@ -187,8 +201,10 @@ int main(int argc, char *argv[])
 		data->ack = 0;
 		data->len = 0;
 
-		for (j=0; j<10; ++j) {
-			for (i=0; i<1000; ++i) {
+		for (j = 0; j < 10; ++j)
+		{
+			for (i = 0; i < 1000; ++i)
+			{
 				len = netlink_send(s, data);
 			}
 
@@ -201,47 +217,62 @@ int main(int argc, char *argv[])
 
 	pfd.fd = s;
 
-	while (!need_exit) {
+	while (!need_exit)
+	{
 		pfd.events = POLLIN;
 		pfd.revents = 0;
-		switch (poll(&pfd, 1, -1)) {
+
+		switch (poll(&pfd, 1, -1))
+		{
 			case 0:
 				need_exit = 1;
 				break;
+
 			case -1:
-				if (errno != EINTR) {
+				if (errno != EINTR)
+				{
 					need_exit = 1;
 					break;
 				}
+
 				continue;
 		}
+
 		if (need_exit)
+		{
 			break;
+		}
 
 		memset(buf, 0, sizeof(buf));
 		len = recv(s, buf, sizeof(buf), 0);
-		if (len == -1) {
+
+		if (len == -1)
+		{
 			perror("recv buf");
 			close(s);
 			return -1;
 		}
+
 		reply = (struct nlmsghdr *)buf;
 
-		switch (reply->nlmsg_type) {
-		case NLMSG_ERROR:
-			fprintf(out, "Error message received.\n");
-			fflush(out);
-			break;
-		case NLMSG_DONE:
-			data = (struct cn_msg *)NLMSG_DATA(reply);
+		switch (reply->nlmsg_type)
+		{
+			case NLMSG_ERROR:
+				fprintf(out, "Error message received.\n");
+				fflush(out);
+				break;
 
-			time(&tm);
-			fprintf(out, "%.24s : [%x.%x] [%08u.%08u].\n",
-				ctime(&tm), data->id.idx, data->id.val, data->seq, data->ack);
-			fflush(out);
-			break;
-		default:
-			break;
+			case NLMSG_DONE:
+				data = (struct cn_msg *)NLMSG_DATA(reply);
+
+				time(&tm);
+				fprintf(out, "%.24s : [%x.%x] [%08u.%08u].\n",
+						ctime(&tm), data->id.idx, data->id.val, data->seq, data->ack);
+				fflush(out);
+				break;
+
+			default:
+				break;
 		}
 	}
 

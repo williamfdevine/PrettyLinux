@@ -13,7 +13,8 @@
 struct device;
 struct regulator;
 
-enum stmpe_block {
+enum stmpe_block
+{
 	STMPE_BLOCK_GPIO	= 1 << 0,
 	STMPE_BLOCK_KEYPAD	= 1 << 1,
 	STMPE_BLOCK_TOUCHSCREEN	= 1 << 2,
@@ -22,7 +23,8 @@ enum stmpe_block {
 	STMPE_BLOCK_ROTATOR	= 1 << 5,
 };
 
-enum stmpe_partnum {
+enum stmpe_partnum
+{
 	STMPE610,
 	STMPE801,
 	STMPE811,
@@ -38,7 +40,8 @@ enum stmpe_partnum {
  * For registers whose locations differ on variants,  the correct address is
  * obtained by indexing stmpe->regs with one of the following.
  */
-enum {
+enum
+{
 	STMPE_IDX_CHIP_ID,
 	STMPE_IDX_SYS_CTRL,
 	STMPE_IDX_SYS_CTRL2,
@@ -105,7 +108,8 @@ struct stmpe_platform_data;
  * @oldier: cache of IER registers for bus_lock
  * @pdata: platform data
  */
-struct stmpe {
+struct stmpe
+{
 	struct regulator *vcc;
 	struct regulator *vio;
 	struct mutex lock;
@@ -128,12 +132,12 @@ struct stmpe {
 extern int stmpe_reg_write(struct stmpe *stmpe, u8 reg, u8 data);
 extern int stmpe_reg_read(struct stmpe *stmpe, u8 reg);
 extern int stmpe_block_read(struct stmpe *stmpe, u8 reg, u8 length,
-			    u8 *values);
+							u8 *values);
 extern int stmpe_block_write(struct stmpe *stmpe, u8 reg, u8 length,
-			     const u8 *values);
+							 const u8 *values);
 extern int stmpe_set_bits(struct stmpe *stmpe, u8 reg, u8 mask, u8 val);
 extern int stmpe_set_altfunc(struct stmpe *stmpe, u32 pins,
-			     enum stmpe_block block);
+							 enum stmpe_block block);
 extern int stmpe_enable(struct stmpe *stmpe, unsigned int blocks);
 extern int stmpe_disable(struct stmpe *stmpe, unsigned int blocks);
 

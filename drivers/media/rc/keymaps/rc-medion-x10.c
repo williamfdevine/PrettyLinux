@@ -24,7 +24,8 @@
 #include <linux/module.h>
 #include <media/rc-map.h>
 
-static struct rc_map_table medion_x10[] = {
+static struct rc_map_table medion_x10[] =
+{
 	{ 0x2c, KEY_TV },    /* TV */
 	{ 0x2d, KEY_VCR },   /* VCR */
 	{ 0x04, KEY_DVD },   /* DVD */
@@ -91,7 +92,8 @@ static struct rc_map_table medion_x10[] = {
 	{ 0x02, KEY_POWER }, /* POWER */
 };
 
-static struct rc_map_list medion_x10_map = {
+static struct rc_map_list medion_x10_map =
+{
 	.map = {
 		.scan    = medion_x10,
 		.size    = ARRAY_SIZE(medion_x10),

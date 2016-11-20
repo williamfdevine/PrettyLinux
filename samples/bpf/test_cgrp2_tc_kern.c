@@ -13,14 +13,16 @@
 #include "bpf_helpers.h"
 
 /* copy of 'struct ethhdr' without __packed */
-struct eth_hdr {
+struct eth_hdr
+{
 	unsigned char   h_dest[ETH_ALEN];
 	unsigned char   h_source[ETH_ALEN];
 	unsigned short  h_proto;
 };
 
 #define PIN_GLOBAL_NS		2
-struct bpf_elf_map {
+struct bpf_elf_map
+{
 	__u32 type;
 	__u32 size_key;
 	__u32 size_value;
@@ -30,7 +32,8 @@ struct bpf_elf_map {
 	__u32 pinning;
 };
 
-struct bpf_elf_map SEC("maps") test_cgrp2_array_pin = {
+struct bpf_elf_map SEC("maps") test_cgrp2_array_pin =
+{
 	.type		= BPF_MAP_TYPE_CGROUP_ARRAY,
 	.size_key	= sizeof(uint32_t),
 	.size_value	= sizeof(uint32_t),
@@ -51,17 +54,24 @@ int handle_egress(struct __sk_buff *skb)
 
 	/* single length check */
 	if (data + sizeof(*eth) + sizeof(*ip6h) > data_end)
+	{
 		return TC_ACT_OK;
+	}
 
 	if (eth->h_proto != htons(ETH_P_IPV6) ||
-	    ip6h->nexthdr != IPPROTO_ICMPV6) {
+		ip6h->nexthdr != IPPROTO_ICMPV6)
+	{
 		bpf_trace_printk(dont_care_msg, sizeof(dont_care_msg),
-				 eth->h_proto, ip6h->nexthdr);
+						 eth->h_proto, ip6h->nexthdr);
 		return TC_ACT_OK;
-	} else if (bpf_skb_under_cgroup(skb, &test_cgrp2_array_pin, 0) != 1) {
+	}
+	else if (bpf_skb_under_cgroup(skb, &test_cgrp2_array_pin, 0) != 1)
+	{
 		bpf_trace_printk(pass_msg, sizeof(pass_msg));
 		return TC_ACT_OK;
-	} else {
+	}
+	else
+	{
 		bpf_trace_printk(reject_msg, sizeof(reject_msg));
 		return TC_ACT_SHOT;
 	}

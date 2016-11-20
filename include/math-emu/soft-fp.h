@@ -28,7 +28,7 @@
 
 /* Allow sfp-machine to have its own byte order definitions. */
 #ifndef __BYTE_ORDER
-#include <endian.h>
+	#include <endian.h>
 #endif
 
 #define _FP_WORKBITS		3
@@ -38,140 +38,140 @@
 #define _FP_WORK_STICKY		((_FP_W_TYPE)1 << 0)
 
 #ifndef FP_RND_NEAREST
-# define FP_RND_NEAREST		0
-# define FP_RND_ZERO		1
-# define FP_RND_PINF		2
-# define FP_RND_MINF		3
-#ifndef FP_ROUNDMODE
-# define FP_ROUNDMODE		FP_RND_NEAREST
-#endif
+	#define FP_RND_NEAREST		0
+	#define FP_RND_ZERO		1
+	#define FP_RND_PINF		2
+	#define FP_RND_MINF		3
+	#ifndef FP_ROUNDMODE
+		#define FP_ROUNDMODE		FP_RND_NEAREST
+	#endif
 #endif
 
 /* By default don't care about exceptions. */
 #ifndef FP_EX_INVALID
-#define FP_EX_INVALID		0
+	#define FP_EX_INVALID		0
 #endif
 #ifndef FP_EX_INVALID_SNAN
-#define FP_EX_INVALID_SNAN	0
+	#define FP_EX_INVALID_SNAN	0
 #endif
 /* inf - inf */
 #ifndef FP_EX_INVALID_ISI
-#define FP_EX_INVALID_ISI	0
+	#define FP_EX_INVALID_ISI	0
 #endif
 /* inf / inf */
 #ifndef FP_EX_INVALID_IDI
-#define FP_EX_INVALID_IDI	0
+	#define FP_EX_INVALID_IDI	0
 #endif
 /* 0 / 0 */
 #ifndef FP_EX_INVALID_ZDZ
-#define FP_EX_INVALID_ZDZ	0
+	#define FP_EX_INVALID_ZDZ	0
 #endif
 /* inf * 0 */
 #ifndef FP_EX_INVALID_IMZ
-#define FP_EX_INVALID_IMZ	0
+	#define FP_EX_INVALID_IMZ	0
 #endif
 #ifndef FP_EX_OVERFLOW
-#define FP_EX_OVERFLOW		0
+	#define FP_EX_OVERFLOW		0
 #endif
 #ifndef FP_EX_UNDERFLOW
-#define FP_EX_UNDERFLOW		
+	#define FP_EX_UNDERFLOW
 #endif
 #ifndef FP_EX_DIVZERO
-#define FP_EX_DIVZERO		0
+	#define FP_EX_DIVZERO		0
 #endif
 #ifndef FP_EX_INEXACT
-#define FP_EX_INEXACT		0
+	#define FP_EX_INEXACT		0
 #endif
 #ifndef FP_EX_DENORM
-#define FP_EX_DENORM		0
+	#define FP_EX_DENORM		0
 #endif
 
 #ifdef _FP_DECL_EX
 #define FP_DECL_EX					\
-  int _fex = 0;						\
-  _FP_DECL_EX
+	int _fex = 0;						\
+	_FP_DECL_EX
 #else
 #define FP_DECL_EX int _fex = 0
 #endif
-  
+
 #ifndef FP_INIT_ROUNDMODE
-#define FP_INIT_ROUNDMODE do {} while (0)
+	#define FP_INIT_ROUNDMODE do {} while (0)
 #endif
 
 #ifndef FP_HANDLE_EXCEPTIONS
-#define FP_HANDLE_EXCEPTIONS do {} while (0)
+	#define FP_HANDLE_EXCEPTIONS do {} while (0)
 #endif
 
 /* By default we never flush denormal input operands to signed zero. */
 #ifndef FP_DENORM_ZERO
-#define FP_DENORM_ZERO 0
+	#define FP_DENORM_ZERO 0
 #endif
 
 #ifndef FP_INHIBIT_RESULTS
-/* By default we write the results always.
- * sfp-machine may override this and e.g.
- * check if some exceptions are unmasked
- * and inhibit it in such a case.
- */
-#define FP_INHIBIT_RESULTS 0
+	/* By default we write the results always.
+	* sfp-machine may override this and e.g.
+	* check if some exceptions are unmasked
+	* and inhibit it in such a case.
+	*/
+	#define FP_INHIBIT_RESULTS 0
 #endif
 
 #ifndef FP_TRAPPING_EXCEPTIONS
-#define FP_TRAPPING_EXCEPTIONS 0
+	#define FP_TRAPPING_EXCEPTIONS 0
 #endif
 
 #define FP_SET_EXCEPTION(ex)				\
-  _fex |= (ex)
-  
+	_fex |= (ex)
+
 #define FP_UNSET_EXCEPTION(ex)				\
-  _fex &= ~(ex)
+	_fex &= ~(ex)
 
 #define FP_CUR_EXCEPTIONS				\
-  (_fex)
+	(_fex)
 
 #define FP_CLEAR_EXCEPTIONS				\
-  _fex = 0
+	_fex = 0
 
 #define _FP_ROUND_NEAREST(wc, X)			\
-do {							\
-    if ((_FP_FRAC_LOW_##wc(X) & 15) != _FP_WORK_ROUND)	\
-      _FP_FRAC_ADDI_##wc(X, _FP_WORK_ROUND);		\
-} while (0)
+	do {							\
+		if ((_FP_FRAC_LOW_##wc(X) & 15) != _FP_WORK_ROUND)	\
+			_FP_FRAC_ADDI_##wc(X, _FP_WORK_ROUND);		\
+	} while (0)
 
 #define _FP_ROUND_ZERO(wc, X)		0
 
 #define _FP_ROUND_PINF(wc, X)				\
-do {							\
-    if (!X##_s && (_FP_FRAC_LOW_##wc(X) & 7))		\
-      _FP_FRAC_ADDI_##wc(X, _FP_WORK_LSB);		\
-} while (0)
+	do {							\
+		if (!X##_s && (_FP_FRAC_LOW_##wc(X) & 7))		\
+			_FP_FRAC_ADDI_##wc(X, _FP_WORK_LSB);		\
+	} while (0)
 
 #define _FP_ROUND_MINF(wc, X)				\
-do {							\
-    if (X##_s && (_FP_FRAC_LOW_##wc(X) & 7))		\
-      _FP_FRAC_ADDI_##wc(X, _FP_WORK_LSB);		\
-} while (0)
+	do {							\
+		if (X##_s && (_FP_FRAC_LOW_##wc(X) & 7))		\
+			_FP_FRAC_ADDI_##wc(X, _FP_WORK_LSB);		\
+	} while (0)
 
 #define _FP_ROUND(wc, X)			\
-do {						\
-	if (_FP_FRAC_LOW_##wc(X) & 7)		\
-	  FP_SET_EXCEPTION(FP_EX_INEXACT);	\
-	switch (FP_ROUNDMODE)			\
-	{					\
-	  case FP_RND_NEAREST:			\
-	    _FP_ROUND_NEAREST(wc,X);		\
-	    break;				\
-	  case FP_RND_ZERO:			\
-	    _FP_ROUND_ZERO(wc,X);		\
-	    break;				\
-	  case FP_RND_PINF:			\
-	    _FP_ROUND_PINF(wc,X);		\
-	    break;				\
-	  case FP_RND_MINF:			\
-	    _FP_ROUND_MINF(wc,X);		\
-	    break;				\
-	}					\
-} while (0)
+	do {						\
+		if (_FP_FRAC_LOW_##wc(X) & 7)		\
+			FP_SET_EXCEPTION(FP_EX_INEXACT);	\
+		switch (FP_ROUNDMODE)			\
+		{					\
+			case FP_RND_NEAREST:			\
+				_FP_ROUND_NEAREST(wc,X);		\
+				break;				\
+			case FP_RND_ZERO:			\
+				_FP_ROUND_ZERO(wc,X);		\
+				break;				\
+			case FP_RND_PINF:			\
+				_FP_ROUND_PINF(wc,X);		\
+				break;				\
+			case FP_RND_MINF:			\
+				_FP_ROUND_MINF(wc,X);		\
+				break;				\
+		}					\
+	} while (0)
 
 #define FP_CLS_NORMAL		0
 #define FP_CLS_ZERO		1
@@ -195,13 +195,13 @@ typedef int DItype __attribute__((mode(DI)));
 typedef unsigned int USItype __attribute__((mode(SI)));
 typedef unsigned int UDItype __attribute__((mode(DI)));
 #if _FP_W_TYPE_SIZE == 32
-typedef unsigned int UHWtype __attribute__((mode(HI)));
+	typedef unsigned int UHWtype __attribute__((mode(HI)));
 #elif _FP_W_TYPE_SIZE == 64
-typedef USItype UHWtype;
+	typedef USItype UHWtype;
 #endif
 
 #ifndef umul_ppmm
-#include <stdlib/longlong.h>
+	#include <stdlib/longlong.h>
 #endif
 
 #endif /* __MATH_EMU_SOFT_FP_H__ */

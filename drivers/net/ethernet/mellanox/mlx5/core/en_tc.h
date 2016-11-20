@@ -39,12 +39,12 @@ int mlx5e_tc_init(struct mlx5e_priv *priv);
 void mlx5e_tc_cleanup(struct mlx5e_priv *priv);
 
 int mlx5e_configure_flower(struct mlx5e_priv *priv, __be16 protocol,
-			   struct tc_cls_flower_offload *f);
+						   struct tc_cls_flower_offload *f);
 int mlx5e_delete_flower(struct mlx5e_priv *priv,
-			struct tc_cls_flower_offload *f);
+						struct tc_cls_flower_offload *f);
 
 int mlx5e_stats_flower(struct mlx5e_priv *priv,
-		       struct tc_cls_flower_offload *f);
+					   struct tc_cls_flower_offload *f);
 
 static inline int mlx5e_tc_num_filters(struct mlx5e_priv *priv)
 {

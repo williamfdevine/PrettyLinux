@@ -18,7 +18,8 @@ struct iio_dma_buffer_queue;
 struct iio_dma_buffer_ops;
 struct device;
 
-struct iio_buffer_block {
+struct iio_buffer_block
+{
 	u32 size;
 	u32 bytes_used;
 };
@@ -31,7 +32,8 @@ struct iio_buffer_block {
  * @IIO_BLOCK_STATE_DONE: Block is on the outgoing queue
  * @IIO_BLOCK_STATE_DEAD: Block has been marked as to be freed
  */
-enum iio_block_state {
+enum iio_block_state
+{
 	IIO_BLOCK_STATE_DEQUEUED,
 	IIO_BLOCK_STATE_QUEUED,
 	IIO_BLOCK_STATE_ACTIVE,
@@ -50,7 +52,8 @@ enum iio_block_state {
  * @kref: kref used to manage the lifetime of block
  * @state: Current state of the block
  */
-struct iio_dma_buffer_block {
+struct iio_dma_buffer_block
+{
 	/* May only be accessed by the owner of the block */
 	struct list_head head;
 	size_t bytes_used;
@@ -80,7 +83,8 @@ struct iio_dma_buffer_block {
  * @pos: Read offset in the active block
  * @block_size: Size of each block
  */
-struct iio_dma_buffer_queue_fileio {
+struct iio_dma_buffer_queue_fileio
+{
 	struct iio_dma_buffer_block *blocks[2];
 	struct iio_dma_buffer_block *active_block;
 	size_t pos;
@@ -103,7 +107,8 @@ struct iio_dma_buffer_queue_fileio {
  * @active: Whether the buffer is currently active
  * @fileio: FileIO state
  */
-struct iio_dma_buffer_queue {
+struct iio_dma_buffer_queue
+{
 	struct iio_buffer buffer;
 	struct device *dev;
 	const struct iio_dma_buffer_ops *ops;
@@ -123,29 +128,30 @@ struct iio_dma_buffer_queue {
  * @submit: Called when a block is submitted to the DMA controller
  * @abort: Should abort all pending transfers
  */
-struct iio_dma_buffer_ops {
+struct iio_dma_buffer_ops
+{
 	int (*submit)(struct iio_dma_buffer_queue *queue,
-		struct iio_dma_buffer_block *block);
+				  struct iio_dma_buffer_block *block);
 	void (*abort)(struct iio_dma_buffer_queue *queue);
 };
 
 void iio_dma_buffer_block_done(struct iio_dma_buffer_block *block);
 void iio_dma_buffer_block_list_abort(struct iio_dma_buffer_queue *queue,
-	struct list_head *list);
+									 struct list_head *list);
 
 int iio_dma_buffer_enable(struct iio_buffer *buffer,
-	struct iio_dev *indio_dev);
+						  struct iio_dev *indio_dev);
 int iio_dma_buffer_disable(struct iio_buffer *buffer,
-	struct iio_dev *indio_dev);
+						   struct iio_dev *indio_dev);
 int iio_dma_buffer_read(struct iio_buffer *buffer, size_t n,
-	char __user *user_buffer);
+						char __user *user_buffer);
 size_t iio_dma_buffer_data_available(struct iio_buffer *buffer);
 int iio_dma_buffer_set_bytes_per_datum(struct iio_buffer *buffer, size_t bpd);
 int iio_dma_buffer_set_length(struct iio_buffer *buffer, int length);
 int iio_dma_buffer_request_update(struct iio_buffer *buffer);
 
 int iio_dma_buffer_init(struct iio_dma_buffer_queue *queue,
-	struct device *dma_dev, const struct iio_dma_buffer_ops *ops);
+						struct device *dma_dev, const struct iio_dma_buffer_ops *ops);
 void iio_dma_buffer_exit(struct iio_dma_buffer_queue *queue);
 void iio_dma_buffer_release(struct iio_dma_buffer_queue *queue);
 

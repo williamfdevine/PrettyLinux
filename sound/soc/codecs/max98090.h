@@ -1507,17 +1507,20 @@
 #define M98090_REVA			0x40
 #define M98091_REVA			0x50
 
-enum max98090_type {
+enum max98090_type
+{
 	MAX98090,
 	MAX98091,
 };
 
-struct max98090_cdata {
+struct max98090_cdata
+{
 	unsigned int rate;
 	unsigned int fmt;
 };
 
-struct max98090_priv {
+struct max98090_priv
+{
 	struct regmap *regmap;
 	struct snd_soc_codec *codec;
 	enum max98090_type devtype;
@@ -1547,6 +1550,6 @@ struct max98090_priv {
 };
 
 int max98090_mic_detect(struct snd_soc_codec *codec,
-	struct snd_soc_jack *jack);
+						struct snd_soc_jack *jack);
 
 #endif

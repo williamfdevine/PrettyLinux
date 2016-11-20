@@ -46,7 +46,7 @@
 #define EHEA_HUGEPAGE_PFN_MASK ((EHEA_HUGEPAGE_SIZE - 1) >> PAGE_SHIFT)
 
 #if ((1UL << SECTION_SIZE_BITS) < EHEA_SECTSIZE)
-#error eHEA module cannot work if kernel sectionsize < ehea sectionsize
+	#error eHEA module cannot work if kernel sectionsize < ehea sectionsize
 #endif
 
 /* Some abbreviations used here:
@@ -69,7 +69,8 @@
 #define EHEA_WR_ID_INDEX   EHEA_BMASK_IBM(24, 47)
 #define EHEA_WR_ID_REFILL  EHEA_BMASK_IBM(48, 63)
 
-struct ehea_vsgentry {
+struct ehea_vsgentry
+{
 	u64 vaddr;
 	u32 l_key;
 	u32 len;
@@ -97,7 +98,8 @@ struct ehea_vsgentry {
 /* sizeof(struct ehea_swqe) less the union */
 #define SWQE_HEADER_SIZE		32
 
-struct ehea_swqe {
+struct ehea_swqe
+{
 	u64 wr_id;
 	u16 tx_control;
 	u16 vlan_tag;
@@ -114,29 +116,34 @@ struct ehea_swqe {
 	u16 reserved4;
 	u16 mss;
 	u32 reserved5;
-	union {
+	union
+	{
 		/*  Send WQE Format 1 */
-		struct {
+		struct
+		{
 			struct ehea_vsgentry sg_list[EHEA_MAX_WQE_SG_ENTRIES];
 		} no_immediate_data;
 
 		/*  Send WQE Format 2 */
-		struct {
+		struct
+		{
 			struct ehea_vsgentry sg_entry;
 			/* 0x30 */
 			u8 immediate_data[SWQE2_MAX_IMM];
 			/* 0xd0 */
-			struct ehea_vsgentry sg_list[EHEA_MAX_WQE_SG_ENTRIES-1];
+			struct ehea_vsgentry sg_list[EHEA_MAX_WQE_SG_ENTRIES - 1];
 		} immdata_desc __packed;
 
 		/*  Send WQE Format 3 */
-		struct {
+		struct
+		{
 			u8 immediate_data[SWQE3_MAX_IMM];
 		} immdata_nodesc;
 	} u;
 };
 
-struct ehea_rwqe {
+struct ehea_rwqe
+{
 	u64 wr_id;		/* work request ID */
 	u8 reserved1[5];
 	u8 data_segments;
@@ -159,7 +166,8 @@ struct ehea_rwqe {
 /* Defines which bad send cqe stati lead to a port reset */
 #define EHEA_CQE_STAT_RESET_MASK   0x0002
 
-struct ehea_cqe {
+struct ehea_cqe
+{
 	u64 wr_id;		/* work request ID from WQE */
 	u8 type;
 	u8 valid;
@@ -200,7 +208,8 @@ struct ehea_cqe {
 #define EHEA_AER_RESET_MASK   0xFFFFFFFFFEFFFFFFULL
 #define EHEA_AERR_RESET_MASK  0xFFFFFFFFFFFFFFFFULL
 
-struct ehea_eqe {
+struct ehea_eqe
+{
 	u64 entry;
 };
 
@@ -212,7 +221,10 @@ static inline void *hw_qeit_calc(struct hw_queue *queue, u64 q_offset)
 	struct ehea_page *current_page;
 
 	if (q_offset >= queue->queue_length)
+	{
 		q_offset -= queue->queue_length;
+	}
+
 	current_page = (queue->queue_pages)[q_offset >> EHEA_PAGESHIFT];
 	return &current_page->entries[q_offset & (EHEA_PAGESIZE - 1)];
 }
@@ -225,7 +237,9 @@ static inline void *hw_qeit_get(struct hw_queue *queue)
 static inline void hw_qeit_inc(struct hw_queue *queue)
 {
 	queue->current_q_offset += queue->qe_size;
-	if (queue->current_q_offset >= queue->queue_length) {
+
+	if (queue->current_q_offset >= queue->queue_length)
+	{
 		queue->current_q_offset = 0;
 		/* toggle the valid flag */
 		queue->toggle_state = (~queue->toggle_state) & 1;
@@ -245,14 +259,19 @@ static inline void *hw_qeit_get_inc_valid(struct hw_queue *queue)
 	u8 valid = retvalue->valid;
 	void *pref;
 
-	if ((valid >> 7) == (queue->toggle_state & 1)) {
+	if ((valid >> 7) == (queue->toggle_state & 1))
+	{
 		/* this is a good one */
 		hw_qeit_inc(queue);
 		pref = hw_qeit_calc(queue, queue->current_q_offset);
 		prefetch(pref);
 		prefetch(pref + 128);
-	} else
+	}
+	else
+	{
 		retvalue = NULL;
+	}
+
 	return retvalue;
 }
 
@@ -267,8 +286,12 @@ static inline void *hw_qeit_get_valid(struct hw_queue *queue)
 	prefetch(pref + 128);
 	prefetch(pref + 256);
 	valid = retvalue->valid;
+
 	if (!((valid >> 7) == (queue->toggle_state & 1)))
+	{
 		retvalue = NULL;
+	}
+
 	return retvalue;
 }
 
@@ -285,10 +308,13 @@ static inline void *hw_qeit_eq_get_inc(struct hw_queue *queue)
 
 	retvalue = hw_qeit_get(queue);
 	queue->current_q_offset += queue->qe_size;
-	if (queue->current_q_offset > last_entry_in_q) {
+
+	if (queue->current_q_offset > last_entry_in_q)
+	{
 		queue->current_q_offset = 0;
 		queue->toggle_state = (~queue->toggle_state) & 1;
 	}
+
 	return retvalue;
 }
 
@@ -296,30 +322,42 @@ static inline void *hw_eqit_eq_get_inc_valid(struct hw_queue *queue)
 {
 	void *retvalue = hw_qeit_get(queue);
 	u32 qe = *(u8 *)retvalue;
+
 	if ((qe >> 7) == (queue->toggle_state & 1))
+	{
 		hw_qeit_eq_get_inc(queue);
+	}
 	else
+	{
 		retvalue = NULL;
+	}
+
 	return retvalue;
 }
 
 static inline struct ehea_rwqe *ehea_get_next_rwqe(struct ehea_qp *qp,
-						   int rq_nr)
+		int rq_nr)
 {
 	struct hw_queue *queue;
 
 	if (rq_nr == 1)
+	{
 		queue = &qp->hw_rqueue1;
+	}
 	else if (rq_nr == 2)
+	{
 		queue = &qp->hw_rqueue2;
+	}
 	else
+	{
 		queue = &qp->hw_rqueue3;
+	}
 
 	return hw_qeit_get_inc(queue);
 }
 
 static inline struct ehea_swqe *ehea_get_swqe(struct ehea_qp *my_qp,
-					      int *wqe_index)
+		int *wqe_index)
 {
 	struct hw_queue *queue = &my_qp->hw_squeue;
 	struct ehea_swqe *wqe_p;
@@ -362,38 +400,39 @@ static inline struct ehea_cqe *ehea_poll_cq(struct ehea_cq *my_cq)
 #define EHEA_CQ_REGISTER_ORIG 0
 #define EHEA_EQ_REGISTER_ORIG 0
 
-enum ehea_eq_type {
+enum ehea_eq_type
+{
 	EHEA_EQ = 0,		/* event queue              */
 	EHEA_NEQ		/* notification event queue */
 };
 
 struct ehea_eq *ehea_create_eq(struct ehea_adapter *adapter,
-			       enum ehea_eq_type type,
-			       const u32 length, const u8 eqe_gen);
+							   enum ehea_eq_type type,
+							   const u32 length, const u8 eqe_gen);
 
 int ehea_destroy_eq(struct ehea_eq *eq);
 
 struct ehea_eqe *ehea_poll_eq(struct ehea_eq *eq);
 
 struct ehea_cq *ehea_create_cq(struct ehea_adapter *adapter, int cqe,
-			       u64 eq_handle, u32 cq_token);
+							   u64 eq_handle, u32 cq_token);
 
 int ehea_destroy_cq(struct ehea_cq *cq);
 
 struct ehea_qp *ehea_create_qp(struct ehea_adapter *adapter, u32 pd,
-			       struct ehea_qp_init_attr *init_attr);
+							   struct ehea_qp_init_attr *init_attr);
 
 int ehea_destroy_qp(struct ehea_qp *qp);
 
 int ehea_reg_kernel_mr(struct ehea_adapter *adapter, struct ehea_mr *mr);
 
 int ehea_gen_smr(struct ehea_adapter *adapter, struct ehea_mr *old_mr,
-		 struct ehea_mr *shared_mr);
+				 struct ehea_mr *shared_mr);
 
 int ehea_rem_mr(struct ehea_mr *mr);
 
 u64 ehea_error_data(struct ehea_adapter *adapter, u64 res_handle,
-		    u64 *aer, u64 *aerr);
+					u64 *aer, u64 *aerr);
 
 int ehea_add_sect_bmap(unsigned long pfn, unsigned long nr_pages);
 int ehea_rem_sect_bmap(unsigned long pfn, unsigned long nr_pages);

@@ -47,17 +47,19 @@
  * io regions, irqs and dma channels
  */
 
-static const char* cardname = "ETRAX 100LX built-in ethernet controller";
+static const char *cardname = "ETRAX 100LX built-in ethernet controller";
 
 /* A default ethernet address. Highlevel SW will set the real one later */
 
-static struct sockaddr default_mac = {
+static struct sockaddr default_mac =
+{
 	0,
 	{ 0x00, 0x40, 0x8C, 0xCD, 0x00, 0x00 }
 };
 
 /* Information that need to be kept for each board. */
-struct net_local {
+struct net_local
+{
 	struct mii_if_info mii_if;
 
 	/* Tx control lock.  This protects the transmit buffer ring
@@ -74,15 +76,15 @@ struct net_local {
 typedef struct etrax_eth_descr
 {
 	etrax_dma_descr descr;
-	struct sk_buff* skb;
+	struct sk_buff *skb;
 } etrax_eth_descr;
 
 /* Some transceivers requires special handling */
 struct transceiver_ops
 {
 	unsigned int oui;
-	void (*check_speed)(struct net_device* dev);
-	void (*check_duplex)(struct net_device* dev);
+	void (*check_speed)(struct net_device *dev);
+	void (*check_duplex)(struct net_device *dev);
 };
 
 /* Duplex settings */
@@ -148,9 +150,9 @@ enum duplex
 
 /* Define some macros to access ETRAX 100 registers */
 #define SETF(var, reg, field, val) var = (var & ~IO_MASK_(reg##_, field##_)) | \
-					  IO_FIELD_(reg##_, field##_, val)
+		IO_FIELD_(reg##_, field##_, val)
 #define SETS(var, reg, field, val) var = (var & ~IO_MASK_(reg##_, field##_)) | \
-					  IO_STATE_(reg##_, field##_, _##val)
+		IO_STATE_(reg##_, field##_, _##val)
 
 static etrax_eth_descr *myNextRxDesc;  /* Points to the next descriptor to
                                           to be processed */
@@ -158,9 +160,9 @@ static etrax_eth_descr *myLastRxDesc;  /* The last processed descriptor */
 
 static etrax_eth_descr RxDescList[NBR_OF_RX_DESC] __attribute__ ((aligned(32)));
 
-static etrax_eth_descr* myFirstTxDesc; /* First packet not yet sent */
-static etrax_eth_descr* myLastTxDesc;  /* End of send queue */
-static etrax_eth_descr* myNextTxDesc;  /* Next descriptor to use */
+static etrax_eth_descr *myFirstTxDesc; /* First packet not yet sent */
+static etrax_eth_descr *myLastTxDesc;  /* End of send queue */
+static etrax_eth_descr *myNextTxDesc;  /* Next descriptor to use */
 static etrax_eth_descr TxDescList[NBR_OF_TX_DESC] __attribute__ ((aligned(32)));
 
 static unsigned int network_rec_config_shadow = 0;
@@ -193,20 +195,20 @@ static irqreturn_t e100nw_interrupt(int irq, void *dev_id);
 static void e100_rx(struct net_device *dev);
 static int e100_close(struct net_device *dev);
 static int e100_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd);
-static int e100_set_config(struct net_device* dev, struct ifmap* map);
+static int e100_set_config(struct net_device *dev, struct ifmap *map);
 static void e100_tx_timeout(struct net_device *dev);
 static struct net_device_stats *e100_get_stats(struct net_device *dev);
 static void set_multicast_list(struct net_device *dev);
-static void e100_hardware_send_packet(struct net_local* np, char *buf, int length);
+static void e100_hardware_send_packet(struct net_local *np, char *buf, int length);
 static void update_rx_stats(struct net_device_stats *);
 static void update_tx_stats(struct net_device_stats *);
-static int e100_probe_transceiver(struct net_device* dev);
+static int e100_probe_transceiver(struct net_device *dev);
 
 static void e100_check_speed(unsigned long priv);
-static void e100_set_speed(struct net_device* dev, unsigned long speed);
+static void e100_set_speed(struct net_device *dev, unsigned long speed);
 static void e100_check_duplex(unsigned long priv);
-static void e100_set_duplex(struct net_device* dev, enum duplex);
-static void e100_negotiate(struct net_device* dev);
+static void e100_set_duplex(struct net_device *dev, enum duplex);
+static void e100_negotiate(struct net_device *dev);
 
 static int e100_get_mdio_reg(struct net_device *dev, int phy_id, int location);
 static void e100_set_mdio_reg(struct net_device *dev, int phy_id, int location, int value);
@@ -214,27 +216,27 @@ static void e100_set_mdio_reg(struct net_device *dev, int phy_id, int location, 
 static void e100_send_mdio_cmd(unsigned short cmd, int write_cmd);
 static void e100_send_mdio_bit(unsigned char bit);
 static unsigned char e100_receive_mdio_bit(void);
-static void e100_reset_transceiver(struct net_device* net);
+static void e100_reset_transceiver(struct net_device *net);
 
 static void e100_clear_network_leds(unsigned long dummy);
 static void e100_set_network_leds(int active);
 
 static const struct ethtool_ops e100_ethtool_ops;
 #if defined(CONFIG_ETRAX_NO_PHY)
-static void dummy_check_speed(struct net_device* dev);
-static void dummy_check_duplex(struct net_device* dev);
+	static void dummy_check_speed(struct net_device *dev);
+	static void dummy_check_duplex(struct net_device *dev);
 #else
-static void broadcom_check_speed(struct net_device* dev);
-static void broadcom_check_duplex(struct net_device* dev);
-static void tdk_check_speed(struct net_device* dev);
-static void tdk_check_duplex(struct net_device* dev);
-static void intel_check_speed(struct net_device* dev);
-static void intel_check_duplex(struct net_device* dev);
-static void generic_check_speed(struct net_device* dev);
-static void generic_check_duplex(struct net_device* dev);
+	static void broadcom_check_speed(struct net_device *dev);
+	static void broadcom_check_duplex(struct net_device *dev);
+	static void tdk_check_speed(struct net_device *dev);
+	static void tdk_check_duplex(struct net_device *dev);
+	static void intel_check_speed(struct net_device *dev);
+	static void intel_check_duplex(struct net_device *dev);
+	static void generic_check_speed(struct net_device *dev);
+	static void generic_check_duplex(struct net_device *dev);
 #endif
 #ifdef CONFIG_NET_POLL_CONTROLLER
-static void e100_netpoll(struct net_device* dev);
+	static void e100_netpoll(struct net_device *dev);
 #endif
 
 static int autoneg_normal = 1;
@@ -247,14 +249,15 @@ struct transceiver_ops transceivers[] =
 	{0x1018, broadcom_check_speed, broadcom_check_duplex},  /* Broadcom */
 	{0xC039, tdk_check_speed, tdk_check_duplex},            /* TDK 2120 */
 	{0x039C, tdk_check_speed, tdk_check_duplex},            /* TDK 2120C */
-        {0x04de, intel_check_speed, intel_check_duplex},     	/* Intel LXT972A*/
+	{0x04de, intel_check_speed, intel_check_duplex},     	/* Intel LXT972A*/
 	{0x0000, generic_check_speed, generic_check_duplex}     /* Generic, must be last */
 #endif
 };
 
-struct transceiver_ops* transceiver = &transceivers[0];
+struct transceiver_ops *transceiver = &transceivers[0];
 
-static const struct net_device_ops e100_netdev_ops = {
+static const struct net_device_ops e100_netdev_ops =
+{
 	.ndo_open		= e100_open,
 	.ndo_stop		= e100_close,
 	.ndo_start_xmit		= e100_send_packet,
@@ -285,20 +288,24 @@ static int __init
 etrax_ethernet_init(void)
 {
 	struct net_device *dev;
-        struct net_local* np;
+	struct net_local *np;
 	int i, err;
 
 	printk(KERN_INFO
-	       "ETRAX 100LX 10/100MBit ethernet v2.0 (c) 1998-2007 Axis Communications AB\n");
+		   "ETRAX 100LX 10/100MBit ethernet v2.0 (c) 1998-2007 Axis Communications AB\n");
 
-	if (cris_request_io_interface(if_eth, cardname)) {
+	if (cris_request_io_interface(if_eth, cardname))
+	{
 		printk(KERN_CRIT "etrax_ethernet_init failed to get IO interface\n");
 		return -EBUSY;
 	}
 
 	dev = alloc_etherdev(sizeof(struct net_local));
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	np = netdev_priv(dev);
 
@@ -325,14 +332,19 @@ etrax_ethernet_init(void)
 
 	/* Initialise receive descriptors */
 
-	for (i = 0; i < NBR_OF_RX_DESC; i++) {
+	for (i = 0; i < NBR_OF_RX_DESC; i++)
+	{
 		/* Allocate two extra cachelines to make sure that buffer used
 		 * by DMA does not share cacheline with any other data (to
 		 * avoid cache bug)
 		 */
 		RxDescList[i].skb = dev_alloc_skb(MAX_MEDIA_DATA_SIZE + 2 * L1_CACHE_BYTES);
+
 		if (!RxDescList[i].skb)
+		{
 			return -ENOMEM;
+		}
+
 		RxDescList[i].descr.ctrl   = 0;
 		RxDescList[i].descr.sw_len = MAX_MEDIA_DATA_SIZE;
 		RxDescList[i].descr.next   = virt_to_phys(&RxDescList[i + 1]);
@@ -347,7 +359,8 @@ etrax_ethernet_init(void)
 	rx_queue_len = 0;
 
 	/* Initialize transmit descriptors */
-	for (i = 0; i < NBR_OF_TX_DESC; i++) {
+	for (i = 0; i < NBR_OF_TX_DESC; i++)
+	{
 		TxDescList[i].descr.ctrl   = 0;
 		TxDescList[i].descr.sw_len = 0;
 		TxDescList[i].descr.next   = virt_to_phys(&TxDescList[i + 1].descr);
@@ -370,7 +383,9 @@ etrax_ethernet_init(void)
 
 	/* Register device */
 	err = register_netdev(dev);
-	if (err) {
+
+	if (err)
+	{
 		free_netdev(dev);
 		return err;
 	}
@@ -393,10 +408,10 @@ etrax_ethernet_init(void)
 	full_duplex = 0;
 	current_duplex = autoneg;
 	duplex_timer.expires = jiffies + NET_DUPLEX_CHECK_INTERVAL;
-        duplex_timer.data = (unsigned long)dev;
+	duplex_timer.data = (unsigned long)dev;
 	duplex_timer.function = e100_check_duplex;
 
-        /* Initialize mii interface */
+	/* Initialize mii interface */
 	np->mii_if.phy_id_mask = 0x1f;
 	np->mii_if.reg_num_mask = 0x1f;
 	np->mii_if.dev = dev;
@@ -436,7 +451,7 @@ e100_set_mac_address(struct net_device *dev, void *p)
 	 */
 
 	*R_NETWORK_SA_0 = dev->dev_addr[0] | (dev->dev_addr[1] << 8) |
-		(dev->dev_addr[2] << 16) | (dev->dev_addr[3] << 24);
+					  (dev->dev_addr[2] << 16) | (dev->dev_addr[3] << 24);
 	*R_NETWORK_SA_1 = dev->dev_addr[4] | (dev->dev_addr[5] << 8);
 	*R_NETWORK_SA_2 = 0;
 
@@ -491,21 +506,24 @@ e100_open(struct net_device *dev)
 	/* allocate the irq corresponding to the receiving DMA */
 
 	if (request_irq(NETWORK_DMA_RX_IRQ_NBR, e100rxtx_interrupt, 0, cardname,
-			(void *)dev)) {
+					(void *)dev))
+	{
 		goto grace_exit0;
 	}
 
 	/* allocate the irq corresponding to the transmitting DMA */
 
 	if (request_irq(NETWORK_DMA_TX_IRQ_NBR, e100rxtx_interrupt, 0,
-			cardname, (void *)dev)) {
+					cardname, (void *)dev))
+	{
 		goto grace_exit1;
 	}
 
 	/* allocate the irq corresponding to the network errors etc */
 
 	if (request_irq(NETWORK_STATUS_IRQ_NBR, e100nw_interrupt, 0,
-			cardname, (void *)dev)) {
+					cardname, (void *)dev))
+	{
 		goto grace_exit2;
 	}
 
@@ -515,23 +533,25 @@ e100_open(struct net_device *dev)
 	 */
 
 	if (cris_request_dma(NETWORK_TX_DMA_NBR,
-	                     cardname,
-	                     DMA_VERBOSE_ON_ERROR,
-	                     dma_eth)) {
+						 cardname,
+						 DMA_VERBOSE_ON_ERROR,
+						 dma_eth))
+	{
 		goto grace_exit3;
-        }
+	}
 
 	if (cris_request_dma(NETWORK_RX_DMA_NBR,
-	                     cardname,
-	                     DMA_VERBOSE_ON_ERROR,
-	                     dma_eth)) {
+						 cardname,
+						 DMA_VERBOSE_ON_ERROR,
+						 dma_eth))
+	{
 		goto grace_exit4;
-        }
+	}
 
 	/* give the HW an idea of what MAC address we want */
 
 	*R_NETWORK_SA_0 = dev->dev_addr[0] | (dev->dev_addr[1] << 8) |
-		(dev->dev_addr[2] << 16) | (dev->dev_addr[3] << 24);
+					  (dev->dev_addr[2] << 16) | (dev->dev_addr[3] << 24);
 	*R_NETWORK_SA_1 = dev->dev_addr[4] | (dev->dev_addr[5] << 8);
 	*R_NETWORK_SA_2 = 0;
 
@@ -600,7 +620,9 @@ e100_open(struct net_device *dev)
 
 	/* Probe for transceiver */
 	if (e100_probe_transceiver(dev))
+	{
 		goto grace_exit5;
+	}
 
 	/* Start duplex/speed timers */
 	add_timer(&speed_timer);
@@ -629,62 +651,67 @@ grace_exit0:
 
 #if defined(CONFIG_ETRAX_NO_PHY)
 static void
-dummy_check_speed(struct net_device* dev)
+dummy_check_speed(struct net_device *dev)
 {
 	current_speed = 100;
 }
 #else
 static void
-generic_check_speed(struct net_device* dev)
+generic_check_speed(struct net_device *dev)
 {
 	unsigned long data;
 	struct net_local *np = netdev_priv(dev);
 
 	data = e100_get_mdio_reg(dev, np->mii_if.phy_id, MII_ADVERTISE);
+
 	if ((data & ADVERTISE_100FULL) ||
-	    (data & ADVERTISE_100HALF))
+		(data & ADVERTISE_100HALF))
+	{
 		current_speed = 100;
+	}
 	else
+	{
 		current_speed = 10;
+	}
 }
 
 static void
-tdk_check_speed(struct net_device* dev)
+tdk_check_speed(struct net_device *dev)
 {
 	unsigned long data;
 	struct net_local *np = netdev_priv(dev);
 
 	data = e100_get_mdio_reg(dev, np->mii_if.phy_id,
-				 MDIO_TDK_DIAGNOSTIC_REG);
+							 MDIO_TDK_DIAGNOSTIC_REG);
 	current_speed = (data & MDIO_TDK_DIAGNOSTIC_RATE ? 100 : 10);
 }
 
 static void
-broadcom_check_speed(struct net_device* dev)
+broadcom_check_speed(struct net_device *dev)
 {
 	unsigned long data;
 	struct net_local *np = netdev_priv(dev);
 
 	data = e100_get_mdio_reg(dev, np->mii_if.phy_id,
-				 MDIO_AUX_CTRL_STATUS_REG);
+							 MDIO_AUX_CTRL_STATUS_REG);
 	current_speed = (data & MDIO_BC_SPEED ? 100 : 10);
 }
 
 static void
-intel_check_speed(struct net_device* dev)
+intel_check_speed(struct net_device *dev)
 {
 	unsigned long data;
 	struct net_local *np = netdev_priv(dev);
 
 	data = e100_get_mdio_reg(dev, np->mii_if.phy_id,
-				 MDIO_INT_STATUS_REG_2);
+							 MDIO_INT_STATUS_REG_2);
 	current_speed = (data & MDIO_INT_SPEED ? 100 : 10);
 }
 #endif
 static void
 e100_check_speed(unsigned long priv)
 {
-	struct net_device* dev = (struct net_device*)priv;
+	struct net_device *dev = (struct net_device *)priv;
 	struct net_local *np = netdev_priv(dev);
 	static int led_initiated = 0;
 	unsigned long data;
@@ -693,21 +720,33 @@ e100_check_speed(unsigned long priv)
 	spin_lock(&np->transceiver_lock);
 
 	data = e100_get_mdio_reg(dev, np->mii_if.phy_id, MII_BMSR);
-	if (!(data & BMSR_LSTATUS)) {
+
+	if (!(data & BMSR_LSTATUS))
+	{
 		current_speed = 0;
-	} else {
+	}
+	else
+	{
 		transceiver->check_speed(dev);
 	}
 
 	spin_lock(&np->led_lock);
-	if ((old_speed != current_speed) || !led_initiated) {
+
+	if ((old_speed != current_speed) || !led_initiated)
+	{
 		led_initiated = 1;
 		e100_set_network_leds(NO_NETWORK_ACTIVITY);
+
 		if (current_speed)
+		{
 			netif_carrier_on(dev);
+		}
 		else
+		{
 			netif_carrier_off(dev);
+		}
 	}
+
 	spin_unlock(&np->led_lock);
 
 	/* Reinitialize the timer. */
@@ -718,85 +757,121 @@ e100_check_speed(unsigned long priv)
 }
 
 static void
-e100_negotiate(struct net_device* dev)
+e100_negotiate(struct net_device *dev)
 {
 	struct net_local *np = netdev_priv(dev);
 	unsigned short data = e100_get_mdio_reg(dev, np->mii_if.phy_id,
-						MII_ADVERTISE);
+											MII_ADVERTISE);
 
 	/* Discard old speed and duplex settings */
 	data &= ~(ADVERTISE_100HALF | ADVERTISE_100FULL |
-	          ADVERTISE_10HALF | ADVERTISE_10FULL);
+			  ADVERTISE_10HALF | ADVERTISE_10FULL);
 
-	switch (current_speed_selection) {
+	switch (current_speed_selection)
+	{
 		case 10:
 			if (current_duplex == full)
+			{
 				data |= ADVERTISE_10FULL;
+			}
 			else if (current_duplex == half)
+			{
 				data |= ADVERTISE_10HALF;
+			}
 			else
+			{
 				data |= ADVERTISE_10HALF | ADVERTISE_10FULL;
+			}
+
 			break;
 
 		case 100:
-			 if (current_duplex == full)
+			if (current_duplex == full)
+			{
 				data |= ADVERTISE_100FULL;
+			}
 			else if (current_duplex == half)
+			{
 				data |= ADVERTISE_100HALF;
+			}
 			else
+			{
 				data |= ADVERTISE_100HALF | ADVERTISE_100FULL;
+			}
+
 			break;
 
 		case 0: /* Auto */
-			 if (current_duplex == full)
+			if (current_duplex == full)
+			{
 				data |= ADVERTISE_100FULL | ADVERTISE_10FULL;
+			}
 			else if (current_duplex == half)
+			{
 				data |= ADVERTISE_100HALF | ADVERTISE_10HALF;
+			}
 			else
 				data |= ADVERTISE_10HALF | ADVERTISE_10FULL |
-				  ADVERTISE_100HALF | ADVERTISE_100FULL;
+						ADVERTISE_100HALF | ADVERTISE_100FULL;
+
 			break;
 
 		default: /* assume autoneg speed and duplex */
 			data |= ADVERTISE_10HALF | ADVERTISE_10FULL |
-				  ADVERTISE_100HALF | ADVERTISE_100FULL;
+					ADVERTISE_100HALF | ADVERTISE_100FULL;
 			break;
 	}
 
 	e100_set_mdio_reg(dev, np->mii_if.phy_id, MII_ADVERTISE, data);
 
 	data = e100_get_mdio_reg(dev, np->mii_if.phy_id, MII_BMCR);
-	if (autoneg_normal) {
+
+	if (autoneg_normal)
+	{
 		/* Renegotiate with link partner */
 		data |= BMCR_ANENABLE | BMCR_ANRESTART;
-	} else {
+	}
+	else
+	{
 		/* Don't negotiate speed or duplex */
 		data &= ~(BMCR_ANENABLE | BMCR_ANRESTART);
 
 		/* Set speed and duplex static */
 		if (current_speed_selection == 10)
+		{
 			data &= ~BMCR_SPEED100;
+		}
 		else
+		{
 			data |= BMCR_SPEED100;
+		}
 
 		if (current_duplex != full)
+		{
 			data &= ~BMCR_FULLDPLX;
+		}
 		else
+		{
 			data |= BMCR_FULLDPLX;
+		}
 	}
+
 	e100_set_mdio_reg(dev, np->mii_if.phy_id, MII_BMCR, data);
 }
 
 static void
-e100_set_speed(struct net_device* dev, unsigned long speed)
+e100_set_speed(struct net_device *dev, unsigned long speed)
 {
 	struct net_local *np = netdev_priv(dev);
 
 	spin_lock(&np->transceiver_lock);
-	if (speed != current_speed_selection) {
+
+	if (speed != current_speed_selection)
+	{
 		current_speed_selection = speed;
 		e100_negotiate(dev);
 	}
+
 	spin_unlock(&np->transceiver_lock);
 }
 
@@ -810,7 +885,9 @@ e100_check_duplex(unsigned long priv)
 	spin_lock(&np->transceiver_lock);
 	old_duplex = full_duplex;
 	transceiver->check_duplex(dev);
-	if (old_duplex != full_duplex) {
+
+	if (old_duplex != full_duplex)
+	{
 		/* Duplex changed */
 		SETF(network_rec_config_shadow, R_NETWORK_REC_CONFIG, duplex, full_duplex);
 		*R_NETWORK_REC_CONFIG = network_rec_config_shadow;
@@ -824,73 +901,81 @@ e100_check_duplex(unsigned long priv)
 }
 #if defined(CONFIG_ETRAX_NO_PHY)
 static void
-dummy_check_duplex(struct net_device* dev)
+dummy_check_duplex(struct net_device *dev)
 {
 	full_duplex = 1;
 }
 #else
 static void
-generic_check_duplex(struct net_device* dev)
+generic_check_duplex(struct net_device *dev)
 {
 	unsigned long data;
 	struct net_local *np = netdev_priv(dev);
 
 	data = e100_get_mdio_reg(dev, np->mii_if.phy_id, MII_ADVERTISE);
+
 	if ((data & ADVERTISE_10FULL) ||
-	    (data & ADVERTISE_100FULL))
+		(data & ADVERTISE_100FULL))
+	{
 		full_duplex = 1;
+	}
 	else
+	{
 		full_duplex = 0;
+	}
 }
 
 static void
-tdk_check_duplex(struct net_device* dev)
+tdk_check_duplex(struct net_device *dev)
 {
 	unsigned long data;
 	struct net_local *np = netdev_priv(dev);
 
 	data = e100_get_mdio_reg(dev, np->mii_if.phy_id,
-				 MDIO_TDK_DIAGNOSTIC_REG);
+							 MDIO_TDK_DIAGNOSTIC_REG);
 	full_duplex = (data & MDIO_TDK_DIAGNOSTIC_DPLX) ? 1 : 0;
 }
 
 static void
-broadcom_check_duplex(struct net_device* dev)
+broadcom_check_duplex(struct net_device *dev)
 {
 	unsigned long data;
 	struct net_local *np = netdev_priv(dev);
 
 	data = e100_get_mdio_reg(dev, np->mii_if.phy_id,
-				 MDIO_AUX_CTRL_STATUS_REG);
+							 MDIO_AUX_CTRL_STATUS_REG);
 	full_duplex = (data & MDIO_BC_FULL_DUPLEX_IND) ? 1 : 0;
 }
 
 static void
-intel_check_duplex(struct net_device* dev)
+intel_check_duplex(struct net_device *dev)
 {
 	unsigned long data;
 	struct net_local *np = netdev_priv(dev);
 
 	data = e100_get_mdio_reg(dev, np->mii_if.phy_id,
-				 MDIO_INT_STATUS_REG_2);
+							 MDIO_INT_STATUS_REG_2);
 	full_duplex = (data & MDIO_INT_FULL_DUPLEX_IND) ? 1 : 0;
 }
 #endif
 static void
-e100_set_duplex(struct net_device* dev, enum duplex new_duplex)
+e100_set_duplex(struct net_device *dev, enum duplex new_duplex)
 {
 	struct net_local *np = netdev_priv(dev);
 
 	spin_lock(&np->transceiver_lock);
-	if (new_duplex != current_duplex) {
+
+	if (new_duplex != current_duplex)
+	{
 		current_duplex = new_duplex;
 		e100_negotiate(dev);
 	}
+
 	spin_unlock(&np->transceiver_lock);
 }
 
 static int
-e100_probe_transceiver(struct net_device* dev)
+e100_probe_transceiver(struct net_device *dev)
 {
 	int ret = 0;
 
@@ -898,19 +983,24 @@ e100_probe_transceiver(struct net_device* dev)
 	unsigned int phyid_high;
 	unsigned int phyid_low;
 	unsigned int oui;
-	struct transceiver_ops* ops = NULL;
+	struct transceiver_ops *ops = NULL;
 	struct net_local *np = netdev_priv(dev);
 
 	spin_lock(&np->transceiver_lock);
 
 	/* Probe MDIO physical address */
 	for (np->mii_if.phy_id = 0; np->mii_if.phy_id <= 31;
-	     np->mii_if.phy_id++) {
+		 np->mii_if.phy_id++)
+	{
 		if (e100_get_mdio_reg(dev,
-				      np->mii_if.phy_id, MII_BMSR) != 0xffff)
+							  np->mii_if.phy_id, MII_BMSR) != 0xffff)
+		{
 			break;
+		}
 	}
-	if (np->mii_if.phy_id == 32) {
+
+	if (np->mii_if.phy_id == 32)
+	{
 		ret = -ENODEV;
 		goto out;
 	}
@@ -920,10 +1010,14 @@ e100_probe_transceiver(struct net_device* dev)
 	phyid_low = e100_get_mdio_reg(dev, np->mii_if.phy_id, MII_PHYSID2);
 	oui = (phyid_high << 6) | (phyid_low >> 10);
 
-	for (ops = &transceivers[0]; ops->oui; ops++) {
+	for (ops = &transceivers[0]; ops->oui; ops++)
+	{
 		if (ops->oui == oui)
+		{
 			break;
+		}
 	}
+
 	transceiver = ops;
 out:
 	spin_unlock(&np->transceiver_lock);
@@ -940,14 +1034,15 @@ e100_get_mdio_reg(struct net_device *dev, int phy_id, int location)
 
 	/* Start of frame, OP Code, Physical Address, Register Address */
 	cmd = (MDIO_START << 14) | (MDIO_READ << 12) | (phy_id << 7) |
-		(location << 2);
+		  (location << 2);
 
 	e100_send_mdio_cmd(cmd, 0);
 
 	data = 0;
 
 	/* Data... */
-	for (bitCounter=15; bitCounter>=0 ; bitCounter--) {
+	for (bitCounter = 15; bitCounter >= 0 ; bitCounter--)
+	{
 		data |= (e100_receive_mdio_bit() << bitCounter);
 	}
 
@@ -961,12 +1056,13 @@ e100_set_mdio_reg(struct net_device *dev, int phy_id, int location, int value)
 	unsigned short cmd;
 
 	cmd = (MDIO_START << 14) | (MDIO_WRITE << 12) | (phy_id << 7) |
-	      (location << 2);
+		  (location << 2);
 
 	e100_send_mdio_cmd(cmd, 1);
 
 	/* Data... */
-	for (bitCounter=15; bitCounter>=0 ; bitCounter--) {
+	for (bitCounter = 15; bitCounter >= 0 ; bitCounter--)
+	{
 		e100_send_mdio_bit(GET_BIT(bitCounter, value));
 	}
 
@@ -979,18 +1075,26 @@ e100_send_mdio_cmd(unsigned short cmd, int write_cmd)
 	unsigned char data = 0x2;
 
 	/* Preamble */
-	for (bitCounter = 31; bitCounter>= 0; bitCounter--)
+	for (bitCounter = 31; bitCounter >= 0; bitCounter--)
+	{
 		e100_send_mdio_bit(GET_BIT(bitCounter, MDIO_PREAMBLE));
+	}
 
 	for (bitCounter = 15; bitCounter >= 2; bitCounter--)
+	{
 		e100_send_mdio_bit(GET_BIT(bitCounter, cmd));
+	}
 
 	/* Turnaround */
 	for (bitCounter = 1; bitCounter >= 0 ; bitCounter--)
 		if (write_cmd)
+		{
 			e100_send_mdio_bit(GET_BIT(bitCounter, data));
+		}
 		else
+		{
 			e100_receive_mdio_bit();
+		}
 }
 
 static void
@@ -1020,7 +1124,7 @@ e100_receive_mdio_bit(void)
 }
 
 static void
-e100_reset_transceiver(struct net_device* dev)
+e100_reset_transceiver(struct net_device *dev)
 {
 	struct net_local *np = netdev_priv(dev);
 	unsigned short cmd;
@@ -1035,7 +1139,8 @@ e100_reset_transceiver(struct net_device* dev)
 
 	data |= 0x8000;
 
-	for (bitCounter = 15; bitCounter >= 0 ; bitCounter--) {
+	for (bitCounter = 15; bitCounter >= 0 ; bitCounter--)
+	{
 		e100_send_mdio_bit(GET_BIT(bitCounter, data));
 	}
 }
@@ -1053,7 +1158,7 @@ e100_tx_timeout(struct net_device *dev)
 	spin_lock_irqsave(&np->lock, flags);
 
 	printk(KERN_WARNING "%s: transmit timed out, %s?\n", dev->name,
-	       tx_done(dev) ? "IRQ problem" : "network cable problem");
+		   tx_done(dev) ? "IRQ problem" : "network cable problem");
 
 	/* remember we got an error */
 
@@ -1069,7 +1174,8 @@ e100_tx_timeout(struct net_device *dev)
 	e100_reset_transceiver(dev);
 
 	/* and get rid of the packets that never got an interrupt */
-	while (myFirstTxDesc != myNextTxDesc) {
+	while (myFirstTxDesc != myNextTxDesc)
+	{
 		dev_kfree_skb(myFirstTxDesc->skb);
 		myFirstTxDesc->skb = 0;
 		myFirstTxDesc = phys_to_virt(myFirstTxDesc->descr.next);
@@ -1113,7 +1219,8 @@ e100_send_packet(struct sk_buff *skb, struct net_device *dev)
 	myNextTxDesc = phys_to_virt(myNextTxDesc->descr.next);
 
 	/* Stop queue if full */
-	if (myNextTxDesc == myFirstTxDesc) {
+	if (myNextTxDesc == myFirstTxDesc)
+	{
 		netif_stop_queue(dev);
 	}
 
@@ -1141,7 +1248,8 @@ e100rxtx_interrupt(int irq, void *dev_id)
 	irqbits = *R_IRQ_MASK2_RD;
 
 	/* Handle received packets */
-	if (irqbits & IO_STATE(R_IRQ_MASK2_RD, dma1_eop, active)) {
+	if (irqbits & IO_STATE(R_IRQ_MASK2_RD, dma1_eop, active))
+	{
 		/* acknowledge the eop interrupt */
 
 		*R_DMA_CH1_CLR_INTR = IO_STATE(R_DMA_CH1_CLR_INTR, clr_eop, do);
@@ -1149,7 +1257,8 @@ e100rxtx_interrupt(int irq, void *dev_id)
 		/* check if one or more complete packets were indeed received */
 
 		while ((*R_DMA_CH1_FIRST != virt_to_phys(myNextRxDesc)) &&
-		       (myNextRxDesc != myLastRxDesc)) {
+			   (myNextRxDesc != myLastRxDesc))
+		{
 			/* Take out the buffer and give it to the OS, then
 			 * allocate a new buffer to put a packet in.
 			 */
@@ -1169,7 +1278,8 @@ e100rxtx_interrupt(int irq, void *dev_id)
 
 	/* Report any packets that have been sent */
 	while (virt_to_phys(myFirstTxDesc) != *R_DMA_CH0_FIRST &&
-	       (netif_queue_stopped(dev) || myFirstTxDesc != myNextTxDesc)) {
+		   (netif_queue_stopped(dev) || myFirstTxDesc != myNextTxDesc))
+	{
 		dev->stats.tx_bytes += myFirstTxDesc->skb->len;
 		dev->stats.tx_packets++;
 
@@ -1178,11 +1288,12 @@ e100rxtx_interrupt(int irq, void *dev_id)
 		dev_kfree_skb_irq(myFirstTxDesc->skb);
 		myFirstTxDesc->skb = 0;
 		myFirstTxDesc = phys_to_virt(myFirstTxDesc->descr.next);
-                /* Wake up queue. */
+		/* Wake up queue. */
 		netif_wake_queue(dev);
 	}
 
-	if (irqbits & IO_STATE(R_IRQ_MASK2_RD, dma0_eop, active)) {
+	if (irqbits & IO_STATE(R_IRQ_MASK2_RD, dma0_eop, active))
+	{
 		/* acknowledge the eop interrupt. */
 		*R_DMA_CH0_CLR_INTR = IO_STATE(R_DMA_CH0_CLR_INTR, clr_eop, do);
 	}
@@ -1197,7 +1308,8 @@ e100nw_interrupt(int irq, void *dev_id)
 	unsigned long irqbits = *R_IRQ_MASK0_RD;
 
 	/* check for underrun irq */
-	if (irqbits & IO_STATE(R_IRQ_MASK0_RD, underrun, active)) {
+	if (irqbits & IO_STATE(R_IRQ_MASK0_RD, underrun, active))
+	{
 		SETS(network_tr_ctrl_shadow, R_NETWORK_TR_CTRL, clr_error, clr);
 		*R_NETWORK_TR_CTRL = network_tr_ctrl_shadow;
 		SETS(network_tr_ctrl_shadow, R_NETWORK_TR_CTRL, clr_error, nop);
@@ -1206,18 +1318,22 @@ e100nw_interrupt(int irq, void *dev_id)
 	}
 
 	/* check for overrun irq */
-	if (irqbits & IO_STATE(R_IRQ_MASK0_RD, overrun, active)) {
+	if (irqbits & IO_STATE(R_IRQ_MASK0_RD, overrun, active))
+	{
 		update_rx_stats(&dev->stats); /* this will ack the irq */
 		D(printk("ethernet receiver overrun!\n"));
 	}
+
 	/* check for excessive collision irq */
-	if (irqbits & IO_STATE(R_IRQ_MASK0_RD, excessive_col, active)) {
+	if (irqbits & IO_STATE(R_IRQ_MASK0_RD, excessive_col, active))
+	{
 		SETS(network_tr_ctrl_shadow, R_NETWORK_TR_CTRL, clr_error, clr);
 		*R_NETWORK_TR_CTRL = network_tr_ctrl_shadow;
 		SETS(network_tr_ctrl_shadow, R_NETWORK_TR_CTRL, clr_error, nop);
 		dev->stats.tx_errors++;
 		D(printk("ethernet excessive collisions!\n"));
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -1234,15 +1350,18 @@ e100_rx(struct net_device *dev)
 #endif
 	etrax_eth_descr *prevRxDesc;  /* The descriptor right before myNextRxDesc */
 	spin_lock(&np->led_lock);
-	if (!led_active && time_after(jiffies, led_next_time)) {
+
+	if (!led_active && time_after(jiffies, led_next_time))
+	{
 		/* light the network leds depending on the current speed. */
 		e100_set_network_leds(NETWORK_ACTIVITY);
 
 		/* Set the earliest time we may clear the LED */
 		led_next_time = jiffies + NET_FLASH_TIME;
 		led_active = 1;
-		mod_timer(&clear_led_timer, jiffies + HZ/10);
+		mod_timer(&clear_led_timer, jiffies + HZ / 10);
 	}
+
 	spin_unlock(&np->led_lock);
 
 	length = myNextRxDesc->descr.hw_len - 4;
@@ -1252,18 +1371,24 @@ e100_rx(struct net_device *dev)
 	printk("Got a packet of length %d:\n", length);
 	/* dump the first bytes in the packet */
 	skb_data_ptr = (unsigned char *)phys_to_virt(myNextRxDesc->descr.buf);
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		printk("%d: %.2x %.2x %.2x %.2x %.2x %.2x %.2x %.2x\n", i * 8,
-		       skb_data_ptr[0],skb_data_ptr[1],skb_data_ptr[2],skb_data_ptr[3],
-		       skb_data_ptr[4],skb_data_ptr[5],skb_data_ptr[6],skb_data_ptr[7]);
+			   skb_data_ptr[0], skb_data_ptr[1], skb_data_ptr[2], skb_data_ptr[3],
+			   skb_data_ptr[4], skb_data_ptr[5], skb_data_ptr[6], skb_data_ptr[7]);
 		skb_data_ptr += 8;
 	}
+
 #endif
 
-	if (length < RX_COPYBREAK) {
+	if (length < RX_COPYBREAK)
+	{
 		/* Small packet, copy data */
 		skb = dev_alloc_skb(length - ETHER_HEAD_LEN);
-		if (!skb) {
+
+		if (!skb)
+		{
 			dev->stats.rx_errors++;
 			printk(KERN_NOTICE "%s: Memory squeeze, dropping packet.\n", dev->name);
 			goto update_nextrxdesc;
@@ -1274,14 +1399,15 @@ e100_rx(struct net_device *dev)
 
 #ifdef ETHDEBUG
 		printk("head = 0x%x, data = 0x%x, tail = 0x%x, end = 0x%x\n",
-		       skb->head, skb->data, skb_tail_pointer(skb),
-		       skb_end_pointer(skb));
+			   skb->head, skb->data, skb_tail_pointer(skb),
+			   skb_end_pointer(skb));
 		printk("copying packet to 0x%x.\n", skb_data_ptr);
 #endif
 
 		memcpy(skb_data_ptr, phys_to_virt(myNextRxDesc->descr.buf), length);
 	}
-	else {
+	else
+	{
 		/* Large packet, send directly to upper layers and allocate new
 		 * memory (aligned to cache line boundary to avoid bug).
 		 * Before sending the skb to upper layers we must make sure
@@ -1289,11 +1415,14 @@ e100_rx(struct net_device *dev)
 		 */
 		int align;
 		struct sk_buff *new_skb = dev_alloc_skb(MAX_MEDIA_DATA_SIZE + 2 * L1_CACHE_BYTES);
-		if (!new_skb) {
+
+		if (!new_skb)
+		{
 			dev->stats.rx_errors++;
 			printk(KERN_NOTICE "%s: Memory squeeze, dropping packet.\n", dev->name);
 			goto update_nextrxdesc;
 		}
+
 		skb = myNextRxDesc->skb;
 		align = (int)phys_to_virt(myNextRxDesc->descr.buf) - (int)skb->data;
 		skb_put(skb, length + align);
@@ -1307,7 +1436,7 @@ e100_rx(struct net_device *dev)
 	/* Send the packet to the upper layers */
 	netif_rx(skb);
 
-  update_nextrxdesc:
+update_nextrxdesc:
 	/* Prepare for next packet */
 	myNextRxDesc->descr.status = 0;
 	prevRxDesc = myNextRxDesc;
@@ -1316,7 +1445,8 @@ e100_rx(struct net_device *dev)
 	rx_queue_len++;
 
 	/* Check if descriptors should be returned */
-	if (rx_queue_len == RX_QUEUE_THRESHOLD) {
+	if (rx_queue_len == RX_QUEUE_THRESHOLD)
+	{
 		flush_etrax_cache();
 		prevRxDesc->descr.ctrl |= d_eol;
 		myLastRxDesc->descr.ctrl &= ~d_eol;
@@ -1376,47 +1506,61 @@ e100_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	struct mii_ioctl_data *data = if_mii(ifr);
 	struct net_local *np = netdev_priv(dev);
 	int rc = 0;
-        int old_autoneg;
+	int old_autoneg;
 
 	spin_lock(&np->lock); /* Preempt protection */
-	switch (cmd) {
+
+	switch (cmd)
+	{
 		/* The ioctls below should be considered obsolete but are */
 		/* still present for compatibility with old scripts/apps  */
 		case SET_ETH_SPEED_10:                  /* 10 Mbps */
 			e100_set_speed(dev, 10);
 			break;
+
 		case SET_ETH_SPEED_100:                /* 100 Mbps */
 			e100_set_speed(dev, 100);
 			break;
+
 		case SET_ETH_SPEED_AUTO:        /* Auto-negotiate speed */
 			e100_set_speed(dev, 0);
 			break;
+
 		case SET_ETH_DUPLEX_HALF:       /* Half duplex */
 			e100_set_duplex(dev, half);
 			break;
+
 		case SET_ETH_DUPLEX_FULL:       /* Full duplex */
 			e100_set_duplex(dev, full);
 			break;
+
 		case SET_ETH_DUPLEX_AUTO:       /* Auto-negotiate duplex */
 			e100_set_duplex(dev, autoneg);
 			break;
-	        case SET_ETH_AUTONEG:
+
+		case SET_ETH_AUTONEG:
 			old_autoneg = autoneg_normal;
-		        autoneg_normal = *(int*)data;
+			autoneg_normal = *(int *)data;
+
 			if (autoneg_normal != old_autoneg)
+			{
 				e100_negotiate(dev);
+			}
+
 			break;
+
 		default:
 			rc = generic_mii_ioctl(&np->mii_if, if_mii(ifr),
-						cmd, NULL);
+								   cmd, NULL);
 			break;
 	}
+
 	spin_unlock(&np->lock);
 	return rc;
 }
 
 static int e100_get_settings(struct net_device *dev,
-			     struct ethtool_cmd *cmd)
+							 struct ethtool_cmd *cmd)
 {
 	struct net_local *np = netdev_priv(dev);
 	int err;
@@ -1427,26 +1571,29 @@ static int e100_get_settings(struct net_device *dev,
 
 	/* The PHY may support 1000baseT, but the Etrax100 does not.  */
 	cmd->supported &= ~(SUPPORTED_1000baseT_Half
-			    | SUPPORTED_1000baseT_Full);
+						| SUPPORTED_1000baseT_Full);
 	return err;
 }
 
 static int e100_set_settings(struct net_device *dev,
-			     struct ethtool_cmd *ecmd)
+							 struct ethtool_cmd *ecmd)
 {
-	if (ecmd->autoneg == AUTONEG_ENABLE) {
+	if (ecmd->autoneg == AUTONEG_ENABLE)
+	{
 		e100_set_duplex(dev, autoneg);
 		e100_set_speed(dev, 0);
-	} else {
+	}
+	else
+	{
 		e100_set_duplex(dev, ecmd->duplex == DUPLEX_HALF ? half : full);
-		e100_set_speed(dev, ecmd->speed == SPEED_10 ? 10: 100);
+		e100_set_speed(dev, ecmd->speed == SPEED_10 ? 10 : 100);
 	}
 
 	return 0;
 }
 
 static void e100_get_drvinfo(struct net_device *dev,
-			     struct ethtool_drvinfo *info)
+							 struct ethtool_drvinfo *info)
 {
 	strlcpy(info->driver, "ETRAX 100LX", sizeof(info->driver));
 	strlcpy(info->version, "$Revision: 1.31 $", sizeof(info->version));
@@ -1457,11 +1604,15 @@ static void e100_get_drvinfo(struct net_device *dev,
 static int e100_nway_reset(struct net_device *dev)
 {
 	if (current_duplex == autoneg && current_speed_selection == 0)
+	{
 		e100_negotiate(dev);
+	}
+
 	return 0;
 }
 
-static const struct ethtool_ops e100_ethtool_ops = {
+static const struct ethtool_ops e100_ethtool_ops =
+{
 	.get_settings	= e100_get_settings,
 	.set_settings	= e100_set_settings,
 	.get_drvinfo	= e100_get_drvinfo,
@@ -1476,31 +1627,37 @@ e100_set_config(struct net_device *dev, struct ifmap *map)
 
 	spin_lock(&np->lock); /* Preempt protection */
 
-	switch(map->port) {
+	switch (map->port)
+	{
 		case IF_PORT_UNKNOWN:
 			/* Use autoneg */
 			e100_set_speed(dev, 0);
 			e100_set_duplex(dev, autoneg);
 			break;
+
 		case IF_PORT_10BASET:
 			e100_set_speed(dev, 10);
 			e100_set_duplex(dev, autoneg);
 			break;
+
 		case IF_PORT_100BASET:
 		case IF_PORT_100BASETX:
 			e100_set_speed(dev, 100);
 			e100_set_duplex(dev, autoneg);
 			break;
+
 		case IF_PORT_100BASEFX:
 		case IF_PORT_10BASE2:
 		case IF_PORT_AUI:
 			spin_unlock(&np->lock);
 			return -EOPNOTSUPP;
+
 		default:
 			printk(KERN_ERR "%s: Invalid media selected", dev->name);
 			spin_unlock(&np->lock);
 			return -EINVAL;
 	}
+
 	spin_unlock(&np->lock);
 	return 0;
 }
@@ -1561,7 +1718,9 @@ set_multicast_list(struct net_device *dev)
 	unsigned long int hi_bits;
 
 	spin_lock(&lp->lock);
-	if (dev->flags & IFF_PROMISC) {
+
+	if (dev->flags & IFF_PROMISC)
+	{
 		/* promiscuous mode */
 		lo_bits = 0xfffffffful;
 		hi_bits = 0xfffffffful;
@@ -1569,7 +1728,9 @@ set_multicast_list(struct net_device *dev)
 		/* Enable individual receive */
 		SETS(network_rec_config_shadow, R_NETWORK_REC_CONFIG, individual, receive);
 		*R_NETWORK_REC_CONFIG = network_rec_config_shadow;
-	} else if (dev->flags & IFF_ALLMULTI) {
+	}
+	else if (dev->flags & IFF_ALLMULTI)
+	{
 		/* enable all multicasts */
 		lo_bits = 0xfffffffful;
 		hi_bits = 0xfffffffful;
@@ -1577,7 +1738,9 @@ set_multicast_list(struct net_device *dev)
 		/* Disable individual receive */
 		SETS(network_rec_config_shadow, R_NETWORK_REC_CONFIG, individual, discard);
 		*R_NETWORK_REC_CONFIG =  network_rec_config_shadow;
-	} else if (num_addr == 0) {
+	}
+	else if (num_addr == 0)
+	{
 		/* Normal, clear the mc list */
 		lo_bits = 0x00000000ul;
 		hi_bits = 0x00000000ul;
@@ -1585,7 +1748,9 @@ set_multicast_list(struct net_device *dev)
 		/* Disable individual receive */
 		SETS(network_rec_config_shadow, R_NETWORK_REC_CONFIG, individual, discard);
 		*R_NETWORK_REC_CONFIG =  network_rec_config_shadow;
-	} else {
+	}
+	else
+	{
 		/* MC mode, receive normal and MC packets */
 		char hash_ix;
 		struct netdev_hw_addr *ha;
@@ -1593,7 +1758,8 @@ set_multicast_list(struct net_device *dev)
 
 		lo_bits = 0x00000000ul;
 		hi_bits = 0x00000000ul;
-		netdev_for_each_mc_addr(ha, dev) {
+		netdev_for_each_mc_addr(ha, dev)
+		{
 			/* Calculate the hash index for the GA registers */
 
 			hash_ix = 0;
@@ -1618,9 +1784,12 @@ set_multicast_list(struct net_device *dev)
 
 			hash_ix &= 0x3f;
 
-			if (hash_ix >= 32) {
-				hi_bits |= (1 << (hash_ix-32));
-			} else {
+			if (hash_ix >= 32)
+			{
+				hi_bits |= (1 << (hash_ix - 32));
+			}
+			else
+			{
 				lo_bits |= (1 << hash_ix);
 			}
 		}
@@ -1628,6 +1797,7 @@ set_multicast_list(struct net_device *dev)
 		SETS(network_rec_config_shadow, R_NETWORK_REC_CONFIG, individual, discard);
 		*R_NETWORK_REC_CONFIG = network_rec_config_shadow;
 	}
+
 	*R_NETWORK_GA_0 = lo_bits;
 	*R_NETWORK_GA_1 = hi_bits;
 	spin_unlock(&lp->lock);
@@ -1639,15 +1809,18 @@ e100_hardware_send_packet(struct net_local *np, char *buf, int length)
 	D(printk("e100 send pack, buf 0x%x len %d\n", buf, length));
 
 	spin_lock(&np->led_lock);
-	if (!led_active && time_after(jiffies, led_next_time)) {
+
+	if (!led_active && time_after(jiffies, led_next_time))
+	{
 		/* light the network leds depending on the current speed. */
 		e100_set_network_leds(NETWORK_ACTIVITY);
 
 		/* Set the earliest time we may clear the LED */
 		led_next_time = jiffies + NET_FLASH_TIME;
 		led_active = 1;
-		mod_timer(&clear_led_timer, jiffies + HZ/10);
+		mod_timer(&clear_led_timer, jiffies + HZ / 10);
 	}
+
 	spin_unlock(&np->led_lock);
 
 	/* configure the tx dma descriptor */
@@ -1655,9 +1828,9 @@ e100_hardware_send_packet(struct net_local *np, char *buf, int length)
 	myNextTxDesc->descr.ctrl = d_eop | d_eol | d_wait;
 	myNextTxDesc->descr.buf = virt_to_phys(buf);
 
-        /* Move end of list */
-        myLastTxDesc->descr.ctrl &= ~d_eol;
-        myLastTxDesc = myNextTxDesc;
+	/* Move end of list */
+	myLastTxDesc->descr.ctrl &= ~d_eol;
+	myLastTxDesc = myNextTxDesc;
 
 	/* Restart DMA channel */
 	*R_DMA_CH0_CMD = IO_STATE(R_DMA_CH0_CMD, cmd, restart);
@@ -1671,7 +1844,8 @@ e100_clear_network_leds(unsigned long dummy)
 
 	spin_lock(&np->led_lock);
 
-	if (led_active && time_after(jiffies, led_next_time)) {
+	if (led_active && time_after(jiffies, led_next_time))
+	{
 		e100_set_network_leds(NO_NETWORK_ACTIVITY);
 
 		/* Set the earliest time we may set the LED */
@@ -1693,23 +1867,31 @@ e100_set_network_leds(int active)
 #error "Define either CONFIG_ETRAX_NETWORK_LED_ON_WHEN_LINK or CONFIG_ETRAX_NETWORK_LED_ON_WHEN_ACTIVITY"
 #endif
 
-	if (!current_speed) {
+	if (!current_speed)
+	{
 		/* Make LED red, link is down */
 		CRIS_LED_NETWORK_SET(CRIS_LED_OFF);
-	} else if (light_leds) {
-		if (current_speed == 10) {
+	}
+	else if (light_leds)
+	{
+		if (current_speed == 10)
+		{
 			CRIS_LED_NETWORK_SET(CRIS_LED_ORANGE);
-		} else {
+		}
+		else
+		{
 			CRIS_LED_NETWORK_SET(CRIS_LED_GREEN);
 		}
-	} else {
+	}
+	else
+	{
 		CRIS_LED_NETWORK_SET(CRIS_LED_OFF);
 	}
 }
 
 #ifdef CONFIG_NET_POLL_CONTROLLER
 static void
-e100_netpoll(struct net_device* netdev)
+e100_netpoll(struct net_device *netdev)
 {
 	e100rxtx_interrupt(NETWORK_DMA_TX_IRQ_NBR, netdev);
 }
@@ -1722,18 +1904,22 @@ etrax_init_module(void)
 }
 
 static int __init
-e100_boot_setup(char* str)
+e100_boot_setup(char *str)
 {
 	struct sockaddr sa = {0};
 	int i;
 
 	/* Parse the colon separated Ethernet station address */
-	for (i = 0; i <  ETH_ALEN; i++) {
+	for (i = 0; i <  ETH_ALEN; i++)
+	{
 		unsigned int tmp;
-		if (sscanf(str + 3*i, "%2x", &tmp) != 1) {
+
+		if (sscanf(str + 3 * i, "%2x", &tmp) != 1)
+		{
 			printk(KERN_WARNING "Malformed station address");
 			return 0;
 		}
+
 		sa.sa_data[i] = (char)tmp;
 	}
 

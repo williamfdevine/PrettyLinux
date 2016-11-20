@@ -13,7 +13,8 @@
 #include <linux/netdevice.h>
 
 /* Driver specific data */
-struct orinoco_pci_card {
+struct orinoco_pci_card
+{
 	void __iomem *bridge_io;
 	void __iomem *attr_io;
 };
@@ -40,18 +41,23 @@ static int orinoco_pci_resume(struct pci_dev *pdev)
 
 	pci_set_power_state(pdev, PCI_D0);
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "%s: pci_enable_device failed on resume\n",
-		       dev->name);
+			   dev->name);
 		return err;
 	}
+
 	pci_restore_state(pdev);
 
 	err = request_irq(pdev->irq, orinoco_interrupt, IRQF_SHARED,
-			  dev->name, priv);
-	if (err) {
+					  dev->name, priv);
+
+	if (err)
+	{
 		printk(KERN_ERR "%s: cannot re-allocate IRQ on resume\n",
-		       dev->name);
+			   dev->name);
 		pci_disable_device(pdev);
 		return -EBUSY;
 	}

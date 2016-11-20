@@ -14,7 +14,8 @@
 
 #include <linux/regulator/driver.h>
 
-struct mc13xxx_regulator {
+struct mc13xxx_regulator
+{
 	struct regulator_desc desc;
 	int reg;
 	int enable_bit;
@@ -23,7 +24,8 @@ struct mc13xxx_regulator {
 	int vsel_mask;
 };
 
-struct mc13xxx_regulator_priv {
+struct mc13xxx_regulator_priv
+{
 	struct mc13xxx *mc13xxx;
 	u32 powermisc_pwgt_state;
 	struct mc13xxx_regulator *mc13xxx_regulators;
@@ -58,51 +60,51 @@ extern struct regulator_ops mc13xxx_fixed_regulator_ops;
 
 #define MC13xxx_DEFINE(prefix, _name, _reg, _vsel_reg, _voltages, _ops)	\
 	[prefix ## _name] = {				\
-		.desc = {						\
-			.name = #_name,					\
-			.n_voltages = ARRAY_SIZE(_voltages),		\
-			.volt_table =  _voltages,			\
-			.ops = &_ops,			\
-			.type = REGULATOR_VOLTAGE,			\
-			.id = prefix ## _name,		\
-			.owner = THIS_MODULE,				\
-		},							\
-		.reg = prefix ## _reg,				\
-		.enable_bit = prefix ## _reg ## _ ## _name ## EN,	\
-		.vsel_reg = prefix ## _vsel_reg,			\
-		.vsel_shift = prefix ## _vsel_reg ## _ ## _name ## VSEL,\
-		.vsel_mask = prefix ## _vsel_reg ## _ ## _name ## VSEL_M,\
-	}
+										.desc = {						\
+																		.name = #_name,					\
+																		.n_voltages = ARRAY_SIZE(_voltages),		\
+																		.volt_table =  _voltages,			\
+																		.ops = &_ops,			\
+																		.type = REGULATOR_VOLTAGE,			\
+																		.id = prefix ## _name,		\
+																		.owner = THIS_MODULE,				\
+												},							\
+										.reg = prefix ## _reg,				\
+										.enable_bit = prefix ## _reg ## _ ## _name ## EN,	\
+										.vsel_reg = prefix ## _vsel_reg,			\
+										.vsel_shift = prefix ## _vsel_reg ## _ ## _name ## VSEL,\
+										.vsel_mask = prefix ## _vsel_reg ## _ ## _name ## VSEL_M,\
+						}
 
 #define MC13xxx_FIXED_DEFINE(prefix, _name, _reg, _voltages, _ops)	\
 	[prefix ## _name] = {				\
-		.desc = {						\
-			.name = #_name,					\
-			.n_voltages = ARRAY_SIZE(_voltages),		\
-			.volt_table =  _voltages,			\
-			.ops = &_ops,		\
-			.type = REGULATOR_VOLTAGE,			\
-			.id = prefix ## _name,		\
-			.owner = THIS_MODULE,				\
-		},							\
-		.reg = prefix ## _reg,				\
-		.enable_bit = prefix ## _reg ## _ ## _name ## EN,	\
-	}
+										.desc = {						\
+																		.name = #_name,					\
+																		.n_voltages = ARRAY_SIZE(_voltages),		\
+																		.volt_table =  _voltages,			\
+																		.ops = &_ops,		\
+																		.type = REGULATOR_VOLTAGE,			\
+																		.id = prefix ## _name,		\
+																		.owner = THIS_MODULE,				\
+												},							\
+										.reg = prefix ## _reg,				\
+										.enable_bit = prefix ## _reg ## _ ## _name ## EN,	\
+						}
 
 #define MC13xxx_GPO_DEFINE(prefix, _name, _reg,  _voltages, _ops)	\
 	[prefix ## _name] = {				\
-		.desc = {						\
-			.name = #_name,					\
-			.n_voltages = ARRAY_SIZE(_voltages),		\
-			.volt_table =  _voltages,			\
-			.ops = &_ops,		\
-			.type = REGULATOR_VOLTAGE,			\
-			.id = prefix ## _name,		\
-			.owner = THIS_MODULE,				\
-		},							\
-		.reg = prefix ## _reg,				\
-		.enable_bit = prefix ## _reg ## _ ## _name ## EN,	\
-	}
+										.desc = {						\
+																		.name = #_name,					\
+																		.n_voltages = ARRAY_SIZE(_voltages),		\
+																		.volt_table =  _voltages,			\
+																		.ops = &_ops,		\
+																		.type = REGULATOR_VOLTAGE,			\
+																		.id = prefix ## _name,		\
+																		.owner = THIS_MODULE,				\
+												},							\
+										.reg = prefix ## _reg,				\
+										.enable_bit = prefix ## _reg ## _ ## _name ## EN,	\
+						}
 
 #define MC13xxx_DEFINE_SW(_name, _reg, _vsel_reg, _voltages, ops)	\
 	MC13xxx_DEFINE(SW, _name, _reg, _vsel_reg, _voltages, ops)

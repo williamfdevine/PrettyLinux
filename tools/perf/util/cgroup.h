@@ -5,7 +5,8 @@
 
 struct option;
 
-struct cgroup_sel {
+struct cgroup_sel
+{
 	char *name;
 	int fd;
 	atomic_t refcnt;

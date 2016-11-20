@@ -44,7 +44,8 @@ struct smiapp_sensor;
  *			 access may be done by the caller (default read
  *			 value is zero), else negative error code on error
  */
-struct smiapp_quirk {
+struct smiapp_quirk
+{
 	int (*limits)(struct smiapp_sensor *sensor);
 	int (*post_poweron)(struct smiapp_sensor *sensor);
 	int (*pre_streamon)(struct smiapp_sensor *sensor);
@@ -52,24 +53,25 @@ struct smiapp_quirk {
 	unsigned long (*pll_flags)(struct smiapp_sensor *sensor);
 	int (*init)(struct smiapp_sensor *sensor);
 	int (*reg_access)(struct smiapp_sensor *sensor, bool write, u32 *reg,
-			  u32 *val);
+					  u32 *val);
 	unsigned long flags;
 };
 
 #define SMIAPP_QUIRK_FLAG_8BIT_READ_ONLY			(1 << 0)
 
-struct smiapp_reg_8 {
+struct smiapp_reg_8
+{
 	u16 reg;
 	u8 val;
 };
 
 void smiapp_replace_limit(struct smiapp_sensor *sensor,
-			  u32 limit, u32 val);
+						  u32 limit, u32 val);
 
 #define SMIAPP_MK_QUIRK_REG_8(_reg, _val) \
 	{				\
 		.reg = (u16)_reg,	\
-		.val = _val,		\
+			   .val = _val,		\
 	}
 
 #define smiapp_call_quirk(sensor, _quirk, ...)				\

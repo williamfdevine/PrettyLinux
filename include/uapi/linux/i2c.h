@@ -65,11 +65,12 @@
  * adapters which are known to support the specific mangling options they
  * need (one or more of IGNORE_NAK, NO_RD_ACK, NOSTART, and REV_DIR_ADDR).
  */
-struct i2c_msg {
+struct i2c_msg
+{
 	__u16 addr;	/* slave address			*/
 	__u16 flags;
 #define I2C_M_RD		0x0001	/* read data, from slave to master */
-					/* I2C_M_RD is guaranteed to be 0x0001! */
+	/* I2C_M_RD is guaranteed to be 0x0001! */
 #define I2C_M_TEN		0x0010	/* this is a ten bit chip address */
 #define I2C_M_RECV_LEN		0x0400	/* length will be first received byte */
 #define I2C_M_NO_RD_ACK		0x0800	/* if I2C_FUNC_PROTOCOL_MANGLING */
@@ -105,34 +106,35 @@ struct i2c_msg {
 #define I2C_FUNC_SMBUS_HOST_NOTIFY	0x10000000
 
 #define I2C_FUNC_SMBUS_BYTE		(I2C_FUNC_SMBUS_READ_BYTE | \
-					 I2C_FUNC_SMBUS_WRITE_BYTE)
+								 I2C_FUNC_SMBUS_WRITE_BYTE)
 #define I2C_FUNC_SMBUS_BYTE_DATA	(I2C_FUNC_SMBUS_READ_BYTE_DATA | \
-					 I2C_FUNC_SMBUS_WRITE_BYTE_DATA)
+									 I2C_FUNC_SMBUS_WRITE_BYTE_DATA)
 #define I2C_FUNC_SMBUS_WORD_DATA	(I2C_FUNC_SMBUS_READ_WORD_DATA | \
-					 I2C_FUNC_SMBUS_WRITE_WORD_DATA)
+									 I2C_FUNC_SMBUS_WRITE_WORD_DATA)
 #define I2C_FUNC_SMBUS_BLOCK_DATA	(I2C_FUNC_SMBUS_READ_BLOCK_DATA | \
-					 I2C_FUNC_SMBUS_WRITE_BLOCK_DATA)
+									 I2C_FUNC_SMBUS_WRITE_BLOCK_DATA)
 #define I2C_FUNC_SMBUS_I2C_BLOCK	(I2C_FUNC_SMBUS_READ_I2C_BLOCK | \
-					 I2C_FUNC_SMBUS_WRITE_I2C_BLOCK)
+									 I2C_FUNC_SMBUS_WRITE_I2C_BLOCK)
 
 #define I2C_FUNC_SMBUS_EMUL		(I2C_FUNC_SMBUS_QUICK | \
-					 I2C_FUNC_SMBUS_BYTE | \
-					 I2C_FUNC_SMBUS_BYTE_DATA | \
-					 I2C_FUNC_SMBUS_WORD_DATA | \
-					 I2C_FUNC_SMBUS_PROC_CALL | \
-					 I2C_FUNC_SMBUS_WRITE_BLOCK_DATA | \
-					 I2C_FUNC_SMBUS_I2C_BLOCK | \
-					 I2C_FUNC_SMBUS_PEC)
+								 I2C_FUNC_SMBUS_BYTE | \
+								 I2C_FUNC_SMBUS_BYTE_DATA | \
+								 I2C_FUNC_SMBUS_WORD_DATA | \
+								 I2C_FUNC_SMBUS_PROC_CALL | \
+								 I2C_FUNC_SMBUS_WRITE_BLOCK_DATA | \
+								 I2C_FUNC_SMBUS_I2C_BLOCK | \
+								 I2C_FUNC_SMBUS_PEC)
 
 /*
  * Data for SMBus Messages
  */
 #define I2C_SMBUS_BLOCK_MAX	32	/* As specified in SMBus standard */
-union i2c_smbus_data {
+union i2c_smbus_data
+{
 	__u8 byte;
 	__u16 word;
 	__u8 block[I2C_SMBUS_BLOCK_MAX + 2]; /* block[0] is used for length */
-			       /* and one more for user-space compatibility */
+	/* and one more for user-space compatibility */
 };
 
 /* i2c_smbus_xfer read or write markers */

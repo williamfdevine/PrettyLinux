@@ -45,14 +45,16 @@
  * register a pci_driver, because someone else might one day
  * want to register another driver on the same PCI id.
  */
-static const struct pci_device_id pci_tbl[] = {
+static const struct pci_device_id pci_tbl[] =
+{
 	{ PCI_VDEVICE(AMD, 0x7443), 0, },
 	{ PCI_VDEVICE(AMD, 0x746b), 0, },
 	{ 0, },	/* terminate list */
 };
 MODULE_DEVICE_TABLE(pci, pci_tbl);
 
-struct amd768_priv {
+struct amd768_priv
+{
 	void __iomem *iobase;
 	struct pci_dev *pcidev;
 };
@@ -70,17 +72,27 @@ static int amd_rng_read(struct hwrng *rng, void *buf, size_t max, bool wait)
 	 * New random numbers are generated approximately 128 microseconds
 	 * after RNGDATA is read
 	 */
-	while (read < max) {
-		if (ioread32(priv->iobase + RNGDONE) == 0) {
-			if (wait) {
+	while (read < max)
+	{
+		if (ioread32(priv->iobase + RNGDONE) == 0)
+		{
+			if (wait)
+			{
 				/* Delay given by datasheet */
 				usleep_range(128, 196);
+
 				if (timeout-- == 0)
+				{
 					return read;
-			} else {
+				}
+			}
+			else
+			{
 				return 0;
 			}
-		} else {
+		}
+		else
+		{
 			*data = ioread32(priv->iobase + RNGDATA);
 			data++;
 			read += 4;
@@ -116,7 +128,8 @@ static void amd_rng_cleanup(struct hwrng *rng)
 	pci_write_config_byte(priv->pcidev, 0x40, rnen);
 }
 
-static struct hwrng amd_rng = {
+static struct hwrng amd_rng =
+{
 	.name		= "amd",
 	.init		= amd_rng_init,
 	.cleanup	= amd_rng_cleanup,
@@ -131,37 +144,53 @@ static int __init mod_init(void)
 	u32 pmbase;
 	struct amd768_priv *priv;
 
-	for_each_pci_dev(pdev) {
+	for_each_pci_dev(pdev)
+	{
 		ent = pci_match_id(pci_tbl, pdev);
+
 		if (ent)
+		{
 			goto found;
+		}
 	}
 	/* Device not found. */
 	return -ENODEV;
 
 found:
 	err = pci_read_config_dword(pdev, 0x58, &pmbase);
+
 	if (err)
+	{
 		return err;
+	}
 
 	pmbase &= 0x0000FF00;
+
 	if (pmbase == 0)
+	{
 		return -EIO;
+	}
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	if (!devm_request_region(&pdev->dev, pmbase + PMBASE_OFFSET,
-				PMBASE_SIZE, DRV_NAME)) {
+							 PMBASE_SIZE, DRV_NAME))
+	{
 		dev_err(&pdev->dev, DRV_NAME " region 0x%x already in use!\n",
-			pmbase + 0xF0);
+				pmbase + 0xF0);
 		return -EBUSY;
 	}
 
 	priv->iobase = devm_ioport_map(&pdev->dev, pmbase + PMBASE_OFFSET,
-			PMBASE_SIZE);
-	if (!priv->iobase) {
+								   PMBASE_SIZE);
+
+	if (!priv->iobase)
+	{
 		pr_err(DRV_NAME "Cannot map ioport\n");
 		return -ENOMEM;
 	}

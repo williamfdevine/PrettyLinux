@@ -42,7 +42,8 @@
 
 #define NIDS_MAX	32
 
-struct uuid_nid_data {
+struct uuid_nid_data
+{
 	struct list_head       un_list;
 	struct obd_uuid  un_uuid;
 	int	      un_nid_count;
@@ -73,10 +74,14 @@ int lustre_uuid_to_peer(const char *uuid, lnet_nid_t *peer_nid, int index)
 
 	obd_str2uuid(&tmp, uuid);
 	spin_lock(&g_uuid_lock);
-	list_for_each_entry(data, &g_uuid_list, un_list) {
-		if (obd_uuid_equals(&data->un_uuid, &tmp)) {
+	list_for_each_entry(data, &g_uuid_list, un_list)
+	{
+		if (obd_uuid_equals(&data->un_uuid, &tmp))
+		{
 			if (index >= data->un_nid_count)
+			{
 				break;
+			}
 
 			rc = 0;
 			*peer_nid = data->un_nids[index];
@@ -99,44 +104,64 @@ int class_add_uuid(const char *uuid, __u64 nid)
 	LASSERT(nid != 0);  /* valid newconfig NID is never zero */
 
 	if (strlen(uuid) > UUID_MAX - 1)
+	{
 		return -EOVERFLOW;
+	}
 
 	data = kzalloc(sizeof(*data), GFP_NOFS);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	obd_str2uuid(&data->un_uuid, uuid);
 	data->un_nids[0] = nid;
 	data->un_nid_count = 1;
 
 	spin_lock(&g_uuid_lock);
-	list_for_each_entry(entry, &g_uuid_list, un_list) {
-		if (obd_uuid_equals(&entry->un_uuid, &data->un_uuid)) {
+	list_for_each_entry(entry, &g_uuid_list, un_list)
+	{
+		if (obd_uuid_equals(&entry->un_uuid, &data->un_uuid))
+		{
 			int i;
 
 			found = 1;
+
 			for (i = 0; i < entry->un_nid_count; i++)
 				if (nid == entry->un_nids[i])
+				{
 					break;
+				}
 
-			if (i == entry->un_nid_count) {
+			if (i == entry->un_nid_count)
+			{
 				LASSERT(entry->un_nid_count < NIDS_MAX);
 				entry->un_nids[entry->un_nid_count++] = nid;
 			}
+
 			break;
 		}
 	}
+
 	if (!found)
+	{
 		list_add(&data->un_list, &g_uuid_list);
+	}
+
 	spin_unlock(&g_uuid_lock);
 
-	if (found) {
+	if (found)
+	{
 		CDEBUG(D_INFO, "found uuid %s %s cnt=%d\n", uuid,
-		       libcfs_nid2str(nid), entry->un_nid_count);
+			   libcfs_nid2str(nid), entry->un_nid_count);
 		kfree(data);
-	} else {
+	}
+	else
+	{
 		CDEBUG(D_INFO, "add uuid %s %s\n", uuid, libcfs_nid2str(nid));
 	}
+
 	return 0;
 }
 
@@ -148,33 +173,42 @@ int class_del_uuid(const char *uuid)
 	struct uuid_nid_data *temp;
 
 	spin_lock(&g_uuid_lock);
-	if (uuid) {
+
+	if (uuid)
+	{
 		struct obd_uuid tmp;
 
 		obd_str2uuid(&tmp, uuid);
-		list_for_each_entry(data, &g_uuid_list, un_list) {
-			if (obd_uuid_equals(&data->un_uuid, &tmp)) {
+		list_for_each_entry(data, &g_uuid_list, un_list)
+		{
+			if (obd_uuid_equals(&data->un_uuid, &tmp))
+			{
 				list_move(&data->un_list, &deathrow);
 				break;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		list_splice_init(&g_uuid_list, &deathrow);
 	}
+
 	spin_unlock(&g_uuid_lock);
 
-	if (uuid && list_empty(&deathrow)) {
+	if (uuid && list_empty(&deathrow))
+	{
 		CDEBUG(D_INFO, "Try to delete a non-existent uuid %s\n", uuid);
 		return -EINVAL;
 	}
 
-	list_for_each_entry_safe(data, temp, &deathrow, un_list) {
+	list_for_each_entry_safe(data, temp, &deathrow, un_list)
+	{
 		list_del(&data->un_list);
 
 		CDEBUG(D_INFO, "del uuid %s %s/%d\n",
-		       obd_uuid2str(&data->un_uuid),
-		       libcfs_nid2str(data->un_nids[0]),
-		       data->un_nid_count);
+			   obd_uuid2str(&data->un_uuid),
+			   libcfs_nid2str(data->un_nids[0]),
+			   data->un_nid_count);
 
 		kfree(data);
 	}
@@ -189,22 +223,28 @@ int class_check_uuid(struct obd_uuid *uuid, __u64 nid)
 	int found = 0;
 
 	CDEBUG(D_INFO, "check if uuid %s has %s.\n",
-	       obd_uuid2str(uuid), libcfs_nid2str(nid));
+		   obd_uuid2str(uuid), libcfs_nid2str(nid));
 
 	spin_lock(&g_uuid_lock);
-	list_for_each_entry(entry, &g_uuid_list, un_list) {
+	list_for_each_entry(entry, &g_uuid_list, un_list)
+	{
 		int i;
 
 		if (!obd_uuid_equals(&entry->un_uuid, uuid))
+		{
 			continue;
+		}
 
 		/* found the uuid, check if it has @nid */
-		for (i = 0; i < entry->un_nid_count; i++) {
-			if (entry->un_nids[i] == nid) {
+		for (i = 0; i < entry->un_nid_count; i++)
+		{
+			if (entry->un_nids[i] == nid)
+			{
 				found = 1;
 				break;
 			}
 		}
+
 		break;
 	}
 	spin_unlock(&g_uuid_lock);

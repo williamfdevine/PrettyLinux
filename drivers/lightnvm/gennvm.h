@@ -20,7 +20,8 @@
 
 #include <linux/lightnvm.h>
 
-struct gen_lun {
+struct gen_lun
+{
 	struct nvm_lun vlun;
 
 	int reserved_blocks;
@@ -34,7 +35,8 @@ struct gen_lun {
 					 */
 };
 
-struct gen_dev {
+struct gen_dev
+{
 	struct nvm_dev *dev;
 
 	int nr_luns;
@@ -45,14 +47,15 @@ struct gen_dev {
 	struct list_head targets;
 };
 
-struct gen_area {
+struct gen_area
+{
 	struct list_head list;
 	sector_t begin;
 	sector_t end;	/* end is excluded */
 };
 
 #define gen_for_each_lun(bm, lun, i) \
-		for ((i) = 0, lun = &(bm)->luns[0]; \
-			(i) < (bm)->nr_luns; (i)++, lun = &(bm)->luns[(i)])
+	for ((i) = 0, lun = &(bm)->luns[0]; \
+		 (i) < (bm)->nr_luns; (i)++, lun = &(bm)->luns[(i)])
 
 #endif /* GENNVM_H_ */

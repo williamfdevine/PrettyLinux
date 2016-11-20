@@ -24,7 +24,8 @@
 
 /* our context */
 
-struct s3c24xx_gpio_led {
+struct s3c24xx_gpio_led
+{
 	struct led_classdev		 cdev;
 	struct s3c24xx_led_platdata	*pdata;
 };
@@ -35,7 +36,7 @@ static inline struct s3c24xx_gpio_led *to_gpio(struct led_classdev *led_cdev)
 }
 
 static void s3c24xx_led_set(struct led_classdev *led_cdev,
-			    enum led_brightness value)
+							enum led_brightness value)
 {
 	struct s3c24xx_gpio_led *led = to_gpio(led_cdev);
 	struct s3c24xx_led_platdata *pd = led->pdata;
@@ -46,11 +47,16 @@ static void s3c24xx_led_set(struct led_classdev *led_cdev,
 
 	gpio_set_value(pd->gpio, state);
 
-	if (pd->flags & S3C24XX_LEDF_TRISTATE) {
+	if (pd->flags & S3C24XX_LEDF_TRISTATE)
+	{
 		if (value)
+		{
 			gpio_direction_output(pd->gpio, state);
+		}
 		else
+		{
 			gpio_direction_input(pd->gpio);
+		}
 	}
 }
 
@@ -61,9 +67,12 @@ static int s3c24xx_led_probe(struct platform_device *dev)
 	int ret;
 
 	led = devm_kzalloc(&dev->dev, sizeof(struct s3c24xx_gpio_led),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!led)
+	{
 		return -ENOMEM;
+	}
 
 	led->cdev.brightness_set = s3c24xx_led_set;
 	led->cdev.default_trigger = pdata->def_trigger;
@@ -73,29 +82,38 @@ static int s3c24xx_led_probe(struct platform_device *dev)
 	led->pdata = pdata;
 
 	ret = devm_gpio_request(&dev->dev, pdata->gpio, "S3C24XX_LED");
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* no point in having a pull-up if we are always driving */
 
 	s3c_gpio_setpull(pdata->gpio, S3C_GPIO_PULL_NONE);
 
 	if (pdata->flags & S3C24XX_LEDF_TRISTATE)
+	{
 		gpio_direction_input(pdata->gpio);
+	}
 	else
 		gpio_direction_output(pdata->gpio,
-			pdata->flags & S3C24XX_LEDF_ACTLOW ? 1 : 0);
+							  pdata->flags & S3C24XX_LEDF_ACTLOW ? 1 : 0);
 
 	/* register our new led device */
 
 	ret = devm_led_classdev_register(&dev->dev, &led->cdev);
+
 	if (ret < 0)
+	{
 		dev_err(&dev->dev, "led_classdev_register failed\n");
+	}
 
 	return ret;
 }
 
-static struct platform_driver s3c24xx_led_driver = {
+static struct platform_driver s3c24xx_led_driver =
+{
 	.probe		= s3c24xx_led_probe,
 	.driver		= {
 		.name		= "s3c24xx_led",

@@ -33,7 +33,8 @@
 #define MT2131_IF2              44000
 #define MT2131_FREF             16000
 
-struct mt2131_priv {
+struct mt2131_priv
+{
 	struct mt2131_config *cfg;
 	struct i2c_adapter   *i2c;
 

@@ -87,10 +87,12 @@ acpi_status acpi_ev_gpe_initialize(void)
 	ACPI_FUNCTION_TRACE(ev_gpe_initialize);
 
 	ACPI_DEBUG_PRINT_RAW((ACPI_DB_INIT,
-			      "Initializing General Purpose Events (GPEs):\n"));
+						  "Initializing General Purpose Events (GPEs):\n"));
 
 	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
@@ -120,32 +122,35 @@ acpi_status acpi_ev_gpe_initialize(void)
 	 * particular block is not supported.
 	 */
 	if (acpi_gbl_FADT.gpe0_block_length &&
-	    acpi_gbl_FADT.xgpe0_block.address) {
+		acpi_gbl_FADT.xgpe0_block.address)
+	{
 
 		/* GPE block 0 exists (has both length and address > 0) */
 
 		register_count0 = (u16)(acpi_gbl_FADT.gpe0_block_length / 2);
 		gpe_number_max =
-		    (register_count0 * ACPI_GPE_REGISTER_WIDTH) - 1;
+			(register_count0 * ACPI_GPE_REGISTER_WIDTH) - 1;
 
 		/* Install GPE Block 0 */
 
 		status = acpi_ev_create_gpe_block(acpi_gbl_fadt_gpe_device,
-						  acpi_gbl_FADT.xgpe0_block.
-						  address,
-						  acpi_gbl_FADT.xgpe0_block.
-						  space_id, register_count0, 0,
-						  acpi_gbl_FADT.sci_interrupt,
-						  &acpi_gbl_gpe_fadt_blocks[0]);
+										  acpi_gbl_FADT.xgpe0_block.
+										  address,
+										  acpi_gbl_FADT.xgpe0_block.
+										  space_id, register_count0, 0,
+										  acpi_gbl_FADT.sci_interrupt,
+										  &acpi_gbl_gpe_fadt_blocks[0]);
 
-		if (ACPI_FAILURE(status)) {
+		if (ACPI_FAILURE(status))
+		{
 			ACPI_EXCEPTION((AE_INFO, status,
-					"Could not create GPE Block 0"));
+							"Could not create GPE Block 0"));
 		}
 	}
 
 	if (acpi_gbl_FADT.gpe1_block_length &&
-	    acpi_gbl_FADT.xgpe1_block.address) {
+		acpi_gbl_FADT.xgpe1_block.address)
+	{
 
 		/* GPE block 1 exists (has both length and address > 0) */
 
@@ -154,36 +159,40 @@ acpi_status acpi_ev_gpe_initialize(void)
 		/* Check for GPE0/GPE1 overlap (if both banks exist) */
 
 		if ((register_count0) &&
-		    (gpe_number_max >= acpi_gbl_FADT.gpe1_base)) {
+			(gpe_number_max >= acpi_gbl_FADT.gpe1_base))
+		{
 			ACPI_ERROR((AE_INFO,
-				    "GPE0 block (GPE 0 to %u) overlaps the GPE1 block "
-				    "(GPE %u to %u) - Ignoring GPE1",
-				    gpe_number_max, acpi_gbl_FADT.gpe1_base,
-				    acpi_gbl_FADT.gpe1_base +
-				    ((register_count1 *
-				      ACPI_GPE_REGISTER_WIDTH) - 1)));
+						"GPE0 block (GPE 0 to %u) overlaps the GPE1 block "
+						"(GPE %u to %u) - Ignoring GPE1",
+						gpe_number_max, acpi_gbl_FADT.gpe1_base,
+						acpi_gbl_FADT.gpe1_base +
+						((register_count1 *
+						  ACPI_GPE_REGISTER_WIDTH) - 1)));
 
 			/* Ignore GPE1 block by setting the register count to zero */
 
 			register_count1 = 0;
-		} else {
+		}
+		else
+		{
 			/* Install GPE Block 1 */
 
 			status =
-			    acpi_ev_create_gpe_block(acpi_gbl_fadt_gpe_device,
-						     acpi_gbl_FADT.xgpe1_block.
-						     address,
-						     acpi_gbl_FADT.xgpe1_block.
-						     space_id, register_count1,
-						     acpi_gbl_FADT.gpe1_base,
-						     acpi_gbl_FADT.
-						     sci_interrupt,
-						     &acpi_gbl_gpe_fadt_blocks
-						     [1]);
+				acpi_ev_create_gpe_block(acpi_gbl_fadt_gpe_device,
+										 acpi_gbl_FADT.xgpe1_block.
+										 address,
+										 acpi_gbl_FADT.xgpe1_block.
+										 space_id, register_count1,
+										 acpi_gbl_FADT.gpe1_base,
+										 acpi_gbl_FADT.
+										 sci_interrupt,
+										 &acpi_gbl_gpe_fadt_blocks
+										 [1]);
 
-			if (ACPI_FAILURE(status)) {
+			if (ACPI_FAILURE(status))
+			{
 				ACPI_EXCEPTION((AE_INFO, status,
-						"Could not create GPE Block 1"));
+								"Could not create GPE Block 1"));
 			}
 
 			/*
@@ -191,18 +200,19 @@ acpi_status acpi_ev_gpe_initialize(void)
 			 * space. However, GPE0 always starts at GPE number zero.
 			 */
 			gpe_number_max = acpi_gbl_FADT.gpe1_base +
-			    ((register_count1 * ACPI_GPE_REGISTER_WIDTH) - 1);
+							 ((register_count1 * ACPI_GPE_REGISTER_WIDTH) - 1);
 		}
 	}
 
 	/* Exit if there are no GPE registers */
 
-	if ((register_count0 + register_count1) == 0) {
+	if ((register_count0 + register_count1) == 0)
+	{
 
 		/* GPEs are not required by ACPI, this is OK */
 
 		ACPI_DEBUG_PRINT((ACPI_DB_INIT,
-				  "There are no GPE blocks defined in the FADT\n"));
+						  "There are no GPE blocks defined in the FADT\n"));
 		status = AE_OK;
 		goto cleanup;
 	}
@@ -243,7 +253,9 @@ void acpi_ev_update_gpes(acpi_owner_id table_owner_id)
 	 * gpe_block lists.
 	 */
 	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return;
 	}
 
@@ -254,24 +266,30 @@ void acpi_ev_update_gpes(acpi_owner_id table_owner_id)
 	/* Walk the interrupt level descriptor list */
 
 	gpe_xrupt_info = acpi_gbl_gpe_xrupt_list_head;
-	while (gpe_xrupt_info) {
+
+	while (gpe_xrupt_info)
+	{
 
 		/* Walk all Gpe Blocks attached to this interrupt level */
 
 		gpe_block = gpe_xrupt_info->gpe_block_list_head;
-		while (gpe_block) {
+
+		while (gpe_block)
+		{
 			walk_info.gpe_block = gpe_block;
 			walk_info.gpe_device = gpe_block->node;
 
 			status = acpi_ns_walk_namespace(ACPI_TYPE_METHOD,
-							walk_info.gpe_device,
-							ACPI_UINT32_MAX,
-							ACPI_NS_WALK_NO_UNLOCK,
-							acpi_ev_match_gpe_method,
-							NULL, &walk_info, NULL);
-			if (ACPI_FAILURE(status)) {
+											walk_info.gpe_device,
+											ACPI_UINT32_MAX,
+											ACPI_NS_WALK_NO_UNLOCK,
+											acpi_ev_match_gpe_method,
+											NULL, &walk_info, NULL);
+
+			if (ACPI_FAILURE(status))
+			{
 				ACPI_EXCEPTION((AE_INFO, status,
-						"While decoding _Lxx/_Exx methods"));
+								"While decoding _Lxx/_Exx methods"));
 			}
 
 			gpe_block = gpe_block->next;
@@ -280,7 +298,8 @@ void acpi_ev_update_gpes(acpi_owner_id table_owner_id)
 		gpe_xrupt_info = gpe_xrupt_info->next;
 	}
 
-	if (walk_info.count) {
+	if (walk_info.count)
+	{
 		ACPI_INFO(("Enabled %u new GPEs", walk_info.count));
 	}
 
@@ -316,12 +335,12 @@ void acpi_ev_update_gpes(acpi_owner_id table_owner_id)
 
 acpi_status
 acpi_ev_match_gpe_method(acpi_handle obj_handle,
-			 u32 level, void *context, void **return_value)
+						 u32 level, void *context, void **return_value)
 {
 	struct acpi_namespace_node *method_node =
-	    ACPI_CAST_PTR(struct acpi_namespace_node, obj_handle);
+		ACPI_CAST_PTR(struct acpi_namespace_node, obj_handle);
 	struct acpi_gpe_walk_info *walk_info =
-	    ACPI_CAST_PTR(struct acpi_gpe_walk_info, context);
+		ACPI_CAST_PTR(struct acpi_gpe_walk_info, context);
 	struct acpi_gpe_event_info *gpe_event_info;
 	acpi_status status;
 	u32 gpe_number;
@@ -334,7 +353,8 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
 	/* Check if requested owner_id matches this owner_id */
 
 	if ((walk_info->execute_by_owner_id) &&
-	    (method_node->owner_id != walk_info->owner_id)) {
+		(method_node->owner_id != walk_info->owner_id))
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
@@ -348,7 +368,8 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
 
 	/* 2) Name must begin with an underscore */
 
-	if (name[0] != '_') {
+	if (name[0] != '_')
+	{
 		return_ACPI_STATUS(AE_OK);	/* Ignore this method */
 	}
 
@@ -356,37 +377,40 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
 	 * 3) Edge/Level determination is based on the 2nd character
 	 *    of the method name
 	 */
-	switch (name[1]) {
-	case 'L':
+	switch (name[1])
+	{
+		case 'L':
 
-		type = ACPI_GPE_LEVEL_TRIGGERED;
-		break;
+			type = ACPI_GPE_LEVEL_TRIGGERED;
+			break;
 
-	case 'E':
+		case 'E':
 
-		type = ACPI_GPE_EDGE_TRIGGERED;
-		break;
+			type = ACPI_GPE_EDGE_TRIGGERED;
+			break;
 
-	default:
+		default:
 
-		/* Unknown method type, just ignore it */
+			/* Unknown method type, just ignore it */
 
-		ACPI_DEBUG_PRINT((ACPI_DB_LOAD,
-				  "Ignoring unknown GPE method type: %s "
-				  "(name not of form _Lxx or _Exx)", name));
-		return_ACPI_STATUS(AE_OK);
+			ACPI_DEBUG_PRINT((ACPI_DB_LOAD,
+							  "Ignoring unknown GPE method type: %s "
+							  "(name not of form _Lxx or _Exx)", name));
+			return_ACPI_STATUS(AE_OK);
 	}
 
 	/* 4) The last two characters of the name are the hex GPE Number */
 
 	status = acpi_ut_ascii_to_hex_byte(&name[2], &temp_gpe_number);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 
 		/* Conversion failed; invalid method, just ignore it */
 
 		ACPI_DEBUG_PRINT((ACPI_DB_LOAD,
-				  "Could not extract GPE number from name: %s "
-				  "(name is not of form _Lxx or _Exx)", name));
+						  "Could not extract GPE number from name: %s "
+						  "(name is not of form _Lxx or _Exx)", name));
 		return_ACPI_STATUS(AE_OK);
 	}
 
@@ -394,8 +418,10 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
 
 	gpe_number = (u32)temp_gpe_number;
 	gpe_event_info =
-	    acpi_ev_low_get_gpe_info(gpe_number, walk_info->gpe_block);
-	if (!gpe_event_info) {
+		acpi_ev_low_get_gpe_info(gpe_number, walk_info->gpe_block);
+
+	if (!gpe_event_info)
+	{
 		/*
 		 * This gpe_number is not valid for this GPE block, just ignore it.
 		 * However, it may be valid for a different GPE block, since GPE0
@@ -405,9 +431,10 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
 	}
 
 	if ((ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags) ==
-	     ACPI_GPE_DISPATCH_HANDLER) ||
-	    (ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags) ==
-	     ACPI_GPE_DISPATCH_RAW_HANDLER)) {
+		 ACPI_GPE_DISPATCH_HANDLER) ||
+		(ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags) ==
+		 ACPI_GPE_DISPATCH_RAW_HANDLER))
+	{
 
 		/* If there is already a handler, ignore this GPE method */
 
@@ -415,16 +442,19 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
 	}
 
 	if (ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags) ==
-	    ACPI_GPE_DISPATCH_METHOD) {
+		ACPI_GPE_DISPATCH_METHOD)
+	{
 		/*
 		 * If there is already a method, ignore this method. But check
 		 * for a type mismatch (if both the _Lxx AND _Exx exist)
 		 */
-		if (type != (gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK)) {
+		if (type != (gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK))
+		{
 			ACPI_ERROR((AE_INFO,
-				    "For GPE 0x%.2X, found both _L%2.2X and _E%2.2X methods",
-				    gpe_number, gpe_number, gpe_number));
+						"For GPE 0x%.2X, found both _L%2.2X and _E%2.2X methods",
+						gpe_number, gpe_number, gpe_number));
 		}
+
 		return_ACPI_STATUS(AE_OK);
 	}
 
@@ -441,8 +471,8 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
 	gpe_event_info->dispatch.method_node = method_node;
 
 	ACPI_DEBUG_PRINT((ACPI_DB_LOAD,
-			  "Registered GPE method %s as GPE number 0x%.2X\n",
-			  name, gpe_number));
+					  "Registered GPE method %s as GPE number 0x%.2X\n",
+					  name, gpe_number));
 	return_ACPI_STATUS(AE_OK);
 }
 

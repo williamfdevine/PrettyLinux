@@ -33,7 +33,7 @@ MODULE_PARM_DESC(aoe_deadsecs, "After aoe_deadsecs seconds, give up and fail dev
 static int aoe_maxout = 64;
 module_param(aoe_maxout, int, 0644);
 MODULE_PARM_DESC(aoe_maxout,
-	"Only aoe_maxout outstanding packets for every MAC on eX.Y.");
+				 "Only aoe_maxout outstanding packets for every MAC on eX.Y.");
 
 /* The number of online cpus during module initialization gives us a
  * convenient heuristic cap on the parallelism used for ktio threads
@@ -51,7 +51,8 @@ static wait_queue_head_t *ktiowq;
 static struct ktstate *kts;
 
 /* io completion queue */
-struct iocq_ktio {
+struct iocq_ktio
+{
 	struct list_head head;
 	spinlock_t lock;
 };
@@ -65,13 +66,16 @@ new_skb(ulong len)
 	struct sk_buff *skb;
 
 	skb = alloc_skb(len + MAX_HEADER, GFP_ATOMIC);
-	if (skb) {
+
+	if (skb)
+	{
 		skb_reserve(skb, MAX_HEADER);
 		skb_reset_mac_header(skb);
 		skb_reset_network_header(skb);
 		skb->protocol = __constant_htons(ETH_P_AOE);
 		skb_checksum_none_assert(skb);
 	}
+
 	return skb;
 }
 
@@ -82,9 +86,12 @@ getframe_deferred(struct aoedev *d, u32 tag)
 	struct frame *f;
 
 	head = &d->rexmitq;
-	list_for_each_safe(pos, nx, head) {
+	list_for_each_safe(pos, nx, head)
+	{
 		f = list_entry(pos, struct frame, head);
-		if (f->tag == tag) {
+
+		if (f->tag == tag)
+		{
 			list_del(pos);
 			return f;
 		}
@@ -101,9 +108,12 @@ getframe(struct aoedev *d, u32 tag)
 
 	n = tag % NFACTIVE;
 	head = &d->factive[n];
-	list_for_each_safe(pos, nx, head) {
+	list_for_each_safe(pos, nx, head)
+	{
 		f = list_entry(pos, struct frame, head);
-		if (f->tag == tag) {
+
+		if (f->tag == tag)
+		{
 			list_del(pos);
 			return f;
 		}
@@ -160,10 +170,17 @@ ifrotate(struct aoetgt *t)
 
 	ifp = t->ifp;
 	ifp++;
+
 	if (ifp >= &t->ifs[NAOEIFS] || ifp->nd == NULL)
+	{
 		ifp = t->ifs;
+	}
+
 	if (ifp->nd == NULL)
+	{
 		return NULL;
+	}
+
 	return t->ifp = ifp;
 }
 
@@ -178,13 +195,17 @@ skb_pool_get(struct aoedev *d)
 {
 	struct sk_buff *skb = skb_peek(&d->skbpool);
 
-	if (skb && atomic_read(&skb_shinfo(skb)->dataref) == 1) {
+	if (skb && atomic_read(&skb_shinfo(skb)->dataref) == 1)
+	{
 		__skb_unlink(skb, &d->skbpool);
 		return skb;
 	}
+
 	if (skb_queue_len(&d->skbpool) < NSKBPOOLMAX &&
-	    (skb = new_skb(ETH_ZLEN)))
+		(skb = new_skb(ETH_ZLEN)))
+	{
 		return skb;
+	}
 
 	return NULL;
 }
@@ -209,33 +230,52 @@ newtframe(struct aoedev *d, struct aoetgt *t)
 	struct sk_buff *skb;
 	struct list_head *pos;
 
-	if (list_empty(&t->ffree)) {
-		if (t->falloc >= NSKBPOOLMAX*2)
+	if (list_empty(&t->ffree))
+	{
+		if (t->falloc >= NSKBPOOLMAX * 2)
+		{
 			return NULL;
+		}
+
 		f = kcalloc(1, sizeof(*f), GFP_ATOMIC);
+
 		if (f == NULL)
+		{
 			return NULL;
+		}
+
 		t->falloc++;
 		f->t = t;
-	} else {
+	}
+	else
+	{
 		pos = t->ffree.next;
 		list_del(pos);
 		f = list_entry(pos, struct frame, head);
 	}
 
 	skb = f->skb;
-	if (skb == NULL) {
+
+	if (skb == NULL)
+	{
 		f->skb = skb = new_skb(ETH_ZLEN);
-		if (!skb) {
+
+		if (!skb)
+		{
 bail:			aoe_freetframe(f);
 			return NULL;
 		}
 	}
 
-	if (atomic_read(&skb_shinfo(skb)->dataref) != 1) {
+	if (atomic_read(&skb_shinfo(skb)->dataref) != 1)
+	{
 		skb = skb_pool_get(d);
+
 		if (skb == NULL)
+		{
 			goto bail;
+		}
+
 		skb_pool_put(d, f->skb);
 		f->skb = skb;
 	}
@@ -255,41 +295,64 @@ newframe(struct aoedev *d)
 	int use_tainted;
 	int has_untainted;
 
-	if (!d->targets || !d->targets[0]) {
+	if (!d->targets || !d->targets[0])
+	{
 		printk(KERN_ERR "aoe: NULL TARGETS!\n");
 		return NULL;
 	}
+
 	tt = d->tgt;	/* last used target */
-	for (use_tainted = 0, has_untainted = 0;;) {
+
+	for (use_tainted = 0, has_untainted = 0;;)
+	{
 		tt++;
+
 		if (tt >= &d->targets[d->ntargets] || !*tt)
+		{
 			tt = d->targets;
+		}
+
 		t = *tt;
-		if (!t->taint) {
+
+		if (!t->taint)
+		{
 			has_untainted = 1;
 			totout += t->nout;
 		}
+
 		if (t->nout < t->maxout
-		&& (use_tainted || !t->taint)
-		&& t->ifp->nd) {
+			&& (use_tainted || !t->taint)
+			&& t->ifp->nd)
+		{
 			f = newtframe(d, t);
-			if (f) {
+
+			if (f)
+			{
 				ifrotate(t);
 				d->tgt = tt;
 				return f;
 			}
 		}
-		if (tt == d->tgt) {	/* we've looped and found nada */
+
+		if (tt == d->tgt)  	/* we've looped and found nada */
+		{
 			if (!use_tainted && !has_untainted)
+			{
 				use_tainted = 1;
+			}
 			else
+			{
 				break;
+			}
 		}
 	}
-	if (totout == 0) {
+
+	if (totout == 0)
+	{
 		d->kicked++;
 		d->flags |= DEVFL_KICKME;
 	}
+
 	return NULL;
 }
 
@@ -300,8 +363,8 @@ skb_fillup(struct sk_buff *skb, struct bio *bio, struct bvec_iter iter)
 	struct bio_vec bv;
 
 	__bio_for_each_segment(bv, bio, iter, iter)
-		skb_fill_page_desc(skb, frag++, bv.bv_page,
-				   bv.bv_offset, bv.bv_len);
+	skb_fill_page_desc(skb, frag++, bv.bv_page,
+					   bv.bv_offset, bv.bv_len);
 }
 
 static void
@@ -342,21 +405,29 @@ ata_rw_frameinit(struct frame *f)
 	/* set up ata header */
 	ah->scnt = f->iter.bi_size >> 9;
 	put_lba(ah, f->iter.bi_sector);
-	if (t->d->flags & DEVFL_EXT) {
+
+	if (t->d->flags & DEVFL_EXT)
+	{
 		ah->aflags |= AOEAFL_EXT;
-	} else {
+	}
+	else
+	{
 		extbit = 0;
 		ah->lba3 &= 0x0f;
 		ah->lba3 |= 0xe0;	/* LBA bit + obsolete 0xa0 */
 	}
-	if (f->buf && bio_data_dir(f->buf->bio) == WRITE) {
+
+	if (f->buf && bio_data_dir(f->buf->bio) == WRITE)
+	{
 		skb_fillup(skb, f->buf->bio, f->iter);
 		ah->aflags |= AOEAFL_WRITE;
 		skb->len += f->iter.bi_size;
 		skb->data_len = f->iter.bi_size;
 		skb->truesize += f->iter.bi_size;
 		t->wpkts++;
-	} else {
+	}
+	else
+	{
 		t->rpkts++;
 		writebit = 0;
 	}
@@ -374,22 +445,31 @@ aoecmd_ata_rw(struct aoedev *d)
 	struct sk_buff_head queue;
 
 	buf = nextbuf(d);
+
 	if (buf == NULL)
+	{
 		return 0;
+	}
+
 	f = newframe(d);
+
 	if (f == NULL)
+	{
 		return 0;
+	}
 
 	/* initialize the headers & frame */
 	f->buf = buf;
 	f->iter = buf->iter;
 	f->iter.bi_size = min_t(unsigned long,
-				d->maxbcnt ?: DEFAULTBCNT,
-				f->iter.bi_size);
+							d->maxbcnt ? : DEFAULTBCNT,
+							f->iter.bi_size);
 	bio_advance_iter(buf->bio, &buf->iter, f->iter.bi_size);
 
 	if (!buf->iter.bi_size)
+	{
 		d->ip.buf = NULL;
+	}
 
 	/* mark all tracking fields and load out */
 	buf->nframesout += 1;
@@ -397,13 +477,16 @@ aoecmd_ata_rw(struct aoedev *d)
 	ata_rw_frameinit(f);
 
 	skb = skb_clone(f->skb, GFP_ATOMIC);
-	if (skb) {
+
+	if (skb)
+	{
 		do_gettimeofday(&f->sent);
 		f->sent_jiffs = (u32) jiffies;
 		__skb_queue_head_init(&queue);
 		__skb_queue_tail(&queue, skb);
 		aoenet_xmit(&queue);
 	}
+
 	return 1;
 }
 
@@ -419,21 +502,28 @@ aoecmd_cfg_pkts(ushort aoemajor, unsigned char aoeminor, struct sk_buff_head *qu
 	struct net_device *ifp;
 
 	rcu_read_lock();
-	for_each_netdev_rcu(&init_net, ifp) {
+	for_each_netdev_rcu(&init_net, ifp)
+	{
 		dev_hold(ifp);
-		if (!is_aoe_netif(ifp))
-			goto cont;
 
-		skb = new_skb(sizeof *h + sizeof *ch);
-		if (skb == NULL) {
+		if (!is_aoe_netif(ifp))
+		{
+			goto cont;
+		}
+
+		skb = new_skb(sizeof * h + sizeof * ch);
+
+		if (skb == NULL)
+		{
 			printk(KERN_INFO "aoe: skb alloc failure\n");
 			goto cont;
 		}
-		skb_put(skb, sizeof *h + sizeof *ch);
+
+		skb_put(skb, sizeof * h + sizeof * ch);
 		skb->dev = ifp;
 		__skb_queue_tail(queue, skb);
 		h = (struct aoe_hdr *) skb_mac_header(skb);
-		memset(h, 0, sizeof *h + sizeof *ch);
+		memset(h, 0, sizeof * h + sizeof * ch);
 
 		memset(h->dst, 0xff, sizeof h->dst);
 		memcpy(h->src, ifp->dev_addr, sizeof h->src);
@@ -462,20 +552,24 @@ resend(struct aoedev *d, struct frame *f)
 	t = f->t;
 	n = newtag(d);
 	skb = f->skb;
-	if (ifrotate(t) == NULL) {
+
+	if (ifrotate(t) == NULL)
+	{
 		/* probably can't happen, but set it up to fail anyway */
 		pr_info("aoe: resend: no interfaces to rotate to.\n");
 		ktcomplete(f, NULL);
 		return;
 	}
+
 	h = (struct aoe_hdr *) skb_mac_header(skb);
 
-	if (!(f->flags & FFL_PROBE)) {
+	if (!(f->flags & FFL_PROBE))
+	{
 		snprintf(buf, sizeof(buf),
-			"%15s e%ld.%d oldtag=%08x@%08lx newtag=%08x s=%pm d=%pm nout=%d\n",
-			"retransmit", d->aoemajor, d->aoeminor,
-			f->tag, jiffies, n,
-			h->src, h->dst, t->nout);
+				 "%15s e%ld.%d oldtag=%08x@%08lx newtag=%08x s=%pm d=%pm nout=%d\n",
+				 "retransmit", d->aoemajor, d->aoeminor,
+				 f->tag, jiffies, n,
+				 h->src, h->dst, t->nout);
 		aoechr_error(buf);
 	}
 
@@ -487,8 +581,12 @@ resend(struct aoedev *d, struct frame *f)
 
 	skb->dev = t->ifp->nd;
 	skb = skb_clone(skb, GFP_ATOMIC);
+
 	if (skb == NULL)
+	{
 		return;
+	}
+
 	do_gettimeofday(&f->sent);
 	f->sent_jiffs = (u32) jiffies;
 	__skb_queue_head_init(&queue);
@@ -507,7 +605,9 @@ tsince_hr(struct frame *f)
 	n += (now.tv_sec - f->sent.tv_sec) * USEC_PER_SEC;
 
 	if (n < 0)
+	{
 		n = -n;
+	}
 
 	/* For relatively long periods, use jiffies to avoid
 	 * discrepancies caused by updates to the system time.
@@ -520,7 +620,8 @@ tsince_hr(struct frame *f)
 	 * $3 = 4
 	 * (gdb)
 	 */
-	if (n > USEC_PER_SEC / 4) {
+	if (n > USEC_PER_SEC / 4)
+	{
 		n = ((u32) jiffies) - f->sent_jiffs;
 		n *= USEC_PER_SEC / HZ;
 	}
@@ -535,8 +636,12 @@ tsince(u32 tag)
 
 	n = jiffies & 0xffff;
 	n -= tag & 0xffff;
+
 	if (n < 0)
-		n += 1<<16;
+	{
+		n += 1 << 16;
+	}
+
 	return jiffies_to_usecs(n + 1);
 }
 
@@ -547,9 +652,13 @@ getif(struct aoetgt *t, struct net_device *nd)
 
 	p = t->ifs;
 	e = p + NAOEIFS;
+
 	for (; p < e; p++)
 		if (p->nd == nd)
+		{
 			return p;
+		}
+
 	return NULL;
 }
 
@@ -562,8 +671,8 @@ ejectif(struct aoetgt *t, struct aoeif *ifp)
 
 	nd = ifp->nd;
 	e = t->ifs + NAOEIFS - 1;
-	n = (e - ifp) * sizeof *ifp;
-	memmove(ifp, ifp+1, n);
+	n = (e - ifp) * sizeof * ifp;
+	memmove(ifp, ifp + 1, n);
 	e->nd = NULL;
 	dev_put(nd);
 }
@@ -575,9 +684,14 @@ reassign_frame(struct frame *f)
 	struct sk_buff *skb;
 
 	nf = newframe(f->t->d);
+
 	if (!nf)
+	{
 		return NULL;
-	if (nf->t == f->t) {
+	}
+
+	if (nf->t == f->t)
+	{
 		aoe_freetframe(nf);
 		return NULL;
 	}
@@ -607,32 +721,45 @@ probe(struct aoetgt *t)
 
 	d = t->d;
 	f = newtframe(d, t);
-	if (!f) {
+
+	if (!f)
+	{
 		pr_err("%s %pm for e%ld.%d: %s\n",
-			"aoe: cannot probe remote address",
-			t->addr,
-			(long) d->aoemajor, d->aoeminor,
-			"no frame available");
+			   "aoe: cannot probe remote address",
+			   t->addr,
+			   (long) d->aoemajor, d->aoeminor,
+			   "no frame available");
 		return;
 	}
+
 	f->flags |= FFL_PROBE;
 	ifrotate(t);
 	f->iter.bi_size = t->d->maxbcnt ? t->d->maxbcnt : DEFAULTBCNT;
 	ata_rw_frameinit(f);
 	skb = f->skb;
-	for (frag = 0, n = f->iter.bi_size; n > 0; ++frag, n -= m) {
+
+	for (frag = 0, n = f->iter.bi_size; n > 0; ++frag, n -= m)
+	{
 		if (n < PAGE_SIZE)
+		{
 			m = n;
+		}
 		else
+		{
 			m = PAGE_SIZE;
+		}
+
 		skb_fill_page_desc(skb, frag, empty_page, 0, m);
 	}
+
 	skb->len += f->iter.bi_size;
 	skb->data_len = f->iter.bi_size;
 	skb->truesize += f->iter.bi_size;
 
 	skb = skb_clone(f->skb, GFP_ATOMIC);
-	if (skb) {
+
+	if (skb)
+	{
 		do_gettimeofday(&f->sent);
 		f->sent_jiffs = (u32) jiffies;
 		__skb_queue_head_init(&queue);
@@ -648,8 +775,11 @@ rto(struct aoedev *d)
 
 	t = 2 * d->rttavg >> RTTSCALE;
 	t += 8 * d->rttdev >> RTTDSCALE;
+
 	if (t == 0)
+	{
 		t = 1;
+	}
 
 	return t;
 }
@@ -667,32 +797,46 @@ rexmit_deferred(struct aoedev *d)
 	count_targets(d, &untainted);
 
 	head = &d->rexmitq;
-	list_for_each_safe(pos, nx, head) {
+	list_for_each_safe(pos, nx, head)
+	{
 		f = list_entry(pos, struct frame, head);
 		t = f->t;
-		if (t->taint) {
-			if (!(f->flags & FFL_PROBE)) {
+
+		if (t->taint)
+		{
+			if (!(f->flags & FFL_PROBE))
+			{
 				nf = reassign_frame(f);
-				if (nf) {
+
+				if (nf)
+				{
 					if (t->nout_probes == 0
-					&& untainted > 0) {
+						&& untainted > 0)
+					{
 						probe(t);
 						t->nout_probes++;
 					}
+
 					list_replace(&f->head, &nf->head);
 					pos = &nf->head;
 					aoe_freetframe(f);
 					f = nf;
 					t = f->t;
 				}
-			} else if (untainted < 1) {
+			}
+			else if (untainted < 1)
+			{
 				/* don't probe w/o other untainted aoetgts */
 				goto stop_probe;
-			} else if (tsince_hr(f) < t->taint * rto(d)) {
+			}
+			else if (tsince_hr(f) < t->taint * rto(d))
+			{
 				/* reprobe slowly when taint is high */
 				continue;
 			}
-		} else if (f->flags & FFL_PROBE) {
+		}
+		else if (f->flags & FFL_PROBE)
+		{
 stop_probe:		/* don't probe untainted aoetgts */
 			list_del(pos);
 			aoe_freetframe(f);
@@ -700,12 +844,20 @@ stop_probe:		/* don't probe untainted aoetgts */
 			f->t->d->flags |= DEVFL_KICKME;
 			continue;
 		}
+
 		if (t->nout >= t->maxout)
+		{
 			continue;
+		}
+
 		list_del(pos);
 		t->nout++;
+
 		if (f->flags & FFL_PROBE)
+		{
 			t->nout_probes++;
+		}
+
 		since = tsince_hr(f);
 		f->waited += since;
 		f->waited_total += since;
@@ -723,10 +875,16 @@ scorn(struct aoetgt *t)
 
 	n = t->taint++;
 	t->taint += t->taint * 2;
+
 	if (n > t->taint)
+	{
 		t->taint = n;
+	}
+
 	if (t->taint > MAX_TAINT)
+	{
 		t->taint = MAX_TAINT;
+	}
 }
 
 static int
@@ -736,10 +894,15 @@ count_targets(struct aoedev *d, int *untainted)
 
 	for (i = good = 0; i < d->ntargets && d->targets[i]; ++i)
 		if (d->targets[i]->taint == 0)
+		{
 			good++;
+		}
 
 	if (untainted)
+	{
 		*untainted = good;
+	}
+
 	return i;
 }
 
@@ -767,33 +930,43 @@ rexmit_timer(ulong vp)
 
 	utgts = count_targets(d, NULL);
 
-	if (d->flags & DEVFL_TKILL) {
+	if (d->flags & DEVFL_TKILL)
+	{
 		spin_unlock_irqrestore(&d->lock, flags);
 		return;
 	}
 
 	/* collect all frames to rexmit into flist */
-	for (i = 0; i < NFACTIVE; i++) {
+	for (i = 0; i < NFACTIVE; i++)
+	{
 		head = &d->factive[i];
-		list_for_each_safe(pos, nx, head) {
+		list_for_each_safe(pos, nx, head)
+		{
 			f = list_entry(pos, struct frame, head);
+
 			if (tsince_hr(f) < timeout)
-				break;	/* end of expired frames */
+			{
+				break;    /* end of expired frames */
+			}
+
 			/* move to flist for later processing */
 			list_move_tail(pos, &flist);
 		}
 	}
 
 	/* process expired frames */
-	while (!list_empty(&flist)) {
+	while (!list_empty(&flist))
+	{
 		pos = flist.next;
 		f = list_entry(pos, struct frame, head);
 		since = tsince_hr(f);
 		n = f->waited_total + since;
 		n /= USEC_PER_SEC;
+
 		if (aoe_deadsecs
-		&& n > aoe_deadsecs
-		&& !(f->flags & FFL_PROBE)) {
+			&& n > aoe_deadsecs
+			&& !(f->flags & FFL_PROBE))
+		{
 			/* Waited too long.  Device failure.
 			 * Hang all frames on first hash bucket for downdev
 			 * to clean up.
@@ -806,32 +979,45 @@ rexmit_timer(ulong vp)
 		t = f->t;
 		n = f->waited + since;
 		n /= USEC_PER_SEC;
-		if (aoe_deadsecs && utgts > 0
-		&& (n > aoe_deadsecs / utgts || n > HARD_SCORN_SECS))
-			scorn(t); /* avoid this target */
 
-		if (t->maxout != 1) {
+		if (aoe_deadsecs && utgts > 0
+			&& (n > aoe_deadsecs / utgts || n > HARD_SCORN_SECS))
+		{
+			scorn(t);    /* avoid this target */
+		}
+
+		if (t->maxout != 1)
+		{
 			t->ssthresh = t->maxout / 2;
 			t->maxout = 1;
 		}
 
-		if (f->flags & FFL_PROBE) {
+		if (f->flags & FFL_PROBE)
+		{
 			t->nout_probes--;
-		} else {
+		}
+		else
+		{
 			ifp = getif(t, f->skb->dev);
+
 			if (ifp && ++ifp->lost > (t->nframes << 1)
-			&& (ifp != t->ifs || t->ifs[1].nd)) {
+				&& (ifp != t->ifs || t->ifs[1].nd))
+			{
 				ejectif(t, ifp);
 				ifp = NULL;
 			}
 		}
+
 		list_move_tail(pos, &d->rexmitq);
 		t->nout--;
 	}
+
 	rexmit_deferred(d);
 
 out:
-	if ((d->flags & DEVFL_KICKME) && d->blkq) {
+
+	if ((d->flags & DEVFL_KICKME) && d->blkq)
+	{
 		d->flags &= ~DEVFL_KICKME;
 		d->blkq->request_fn(d->blkq);
 	}
@@ -849,7 +1035,7 @@ rqbiocnt(struct request *r)
 	unsigned long n = 0;
 
 	__rq_for_each_bio(bio, r)
-		n++;
+	n++;
 	return n;
 }
 
@@ -871,31 +1057,52 @@ nextbuf(struct aoedev *d)
 	struct bio *bio;
 
 	q = d->blkq;
+
 	if (q == NULL)
-		return NULL;	/* initializing */
+	{
+		return NULL;    /* initializing */
+	}
+
 	if (d->ip.buf)
+	{
 		return d->ip.buf;
+	}
+
 	rq = d->ip.rq;
-	if (rq == NULL) {
+
+	if (rq == NULL)
+	{
 		rq = blk_peek_request(q);
+
 		if (rq == NULL)
+		{
 			return NULL;
+		}
+
 		blk_start_request(rq);
 		d->ip.rq = rq;
 		d->ip.nxbio = rq->bio;
 		rq->special = (void *) rqbiocnt(rq);
 	}
+
 	buf = mempool_alloc(d->bufpool, GFP_ATOMIC);
-	if (buf == NULL) {
+
+	if (buf == NULL)
+	{
 		pr_err("aoe: nextbuf: unable to mempool_alloc!\n");
 		return NULL;
 	}
+
 	bio = d->ip.nxbio;
 	bufinit(buf, rq, bio);
 	bio = bio->bi_next;
 	d->ip.nxbio = bio;
+
 	if (bio == NULL)
+	{
 		d->ip.rq = NULL;
+	}
+
 	return d->ip.buf = buf;
 }
 
@@ -904,6 +1111,7 @@ void
 aoecmd_work(struct aoedev *d)
 {
 	rexmit_deferred(d);
+
 	while (aoecmd_ata_rw(d))
 		;
 }
@@ -918,17 +1126,23 @@ aoecmd_sleepwork(struct work_struct *work)
 	u64 ssize;
 
 	if (d->flags & DEVFL_GDALLOC)
+	{
 		aoeblk_gdalloc(d);
+	}
 
-	if (d->flags & DEVFL_NEWSIZE) {
+	if (d->flags & DEVFL_NEWSIZE)
+	{
 		ssize = get_capacity(d->gd);
 		bd = bdget_disk(d->gd, 0);
-		if (bd) {
+
+		if (bd)
+		{
 			inode_lock(bd->bd_inode);
-			i_size_write(bd->bd_inode, (loff_t)ssize<<9);
+			i_size_write(bd->bd_inode, (loff_t)ssize << 9);
 			inode_unlock(bd->bd_inode);
 			bdput(bd);
 		}
+
 		spin_lock_irq(&d->lock);
 		d->flags |= DEVFL_UP;
 		d->flags &= ~DEVFL_NEWSIZE;
@@ -941,7 +1155,8 @@ ata_ident_fixstring(u16 *id, int ns)
 {
 	u16 s;
 
-	while (ns-- > 0) {
+	while (ns-- > 0)
+	{
 		s = *id;
 		*id++ = s >> 8 | s << 8;
 	}
@@ -959,7 +1174,8 @@ ataid_complete(struct aoedev *d, struct aoetgt *t, unsigned char *id)
 	/* word 86: command set/feature enabled */
 	n |= get_unaligned_le16(&id[86 << 1]);
 
-	if (n & (1<<10)) {	/* bit 10: LBA 48 */
+	if (n & (1 << 10))  	/* bit 10: LBA 48 */
+	{
 		d->flags |= DEVFL_EXT;
 
 		/* word 100: number lba48 sectors */
@@ -970,7 +1186,9 @@ ataid_complete(struct aoedev *d, struct aoetgt *t, unsigned char *id)
 		d->geo.cylinders /= (255 * 63);
 		d->geo.heads = 255;
 		d->geo.sectors = 63;
-	} else {
+	}
+	else
+	{
 		d->flags &= ~DEVFL_EXT;
 
 		/* number lba28 sectors */
@@ -982,26 +1200,36 @@ ataid_complete(struct aoedev *d, struct aoetgt *t, unsigned char *id)
 		d->geo.sectors = get_unaligned_le16(&id[56 << 1]);
 	}
 
-	ata_ident_fixstring((u16 *) &id[10<<1], 10);	/* serial */
-	ata_ident_fixstring((u16 *) &id[23<<1], 4);	/* firmware */
-	ata_ident_fixstring((u16 *) &id[27<<1], 20);	/* model */
+	ata_ident_fixstring((u16 *) &id[10 << 1], 10);	/* serial */
+	ata_ident_fixstring((u16 *) &id[23 << 1], 4);	/* firmware */
+	ata_ident_fixstring((u16 *) &id[27 << 1], 20);	/* model */
 	memcpy(d->ident, id, sizeof(d->ident));
 
 	if (d->ssize != ssize)
 		printk(KERN_INFO
-			"aoe: %pm e%ld.%d v%04x has %llu sectors\n",
-			t->addr,
-			d->aoemajor, d->aoeminor,
-			d->fw_ver, (long long)ssize);
+			   "aoe: %pm e%ld.%d v%04x has %llu sectors\n",
+			   t->addr,
+			   d->aoemajor, d->aoeminor,
+			   d->fw_ver, (long long)ssize);
+
 	d->ssize = ssize;
 	d->geo.start = 0;
-	if (d->flags & (DEVFL_GDALLOC|DEVFL_NEWSIZE))
+
+	if (d->flags & (DEVFL_GDALLOC | DEVFL_NEWSIZE))
+	{
 		return;
-	if (d->gd != NULL) {
+	}
+
+	if (d->gd != NULL)
+	{
 		set_capacity(d->gd, ssize);
 		d->flags |= DEVFL_NEWSIZE;
-	} else
+	}
+	else
+	{
 		d->flags |= DEVFL_GDALLOC;
+	}
+
 	schedule_work(&d->work);
 }
 
@@ -1015,16 +1243,26 @@ calc_rttavg(struct aoedev *d, struct aoetgt *t, int rtt)
 	/* cf. Congestion Avoidance and Control, Jacobson & Karels, 1988 */
 	n -= d->rttavg >> RTTSCALE;
 	d->rttavg += n;
+
 	if (n < 0)
+	{
 		n = -n;
+	}
+
 	n -= d->rttdev >> RTTDSCALE;
 	d->rttdev += n;
 
 	if (!t || t->maxout >= t->nframes)
+	{
 		return;
+	}
+
 	if (t->maxout < t->ssthresh)
+	{
 		t->maxout += 1;
-	else if (t->nout == t->maxout && t->next_cwnd-- == 0) {
+	}
+	else if (t->nout == t->maxout && t->next_cwnd-- == 0)
+	{
 		t->maxout += 1;
 		t->next_cwnd = t->maxout;
 	}
@@ -1037,9 +1275,13 @@ gettgt(struct aoedev *d, char *addr)
 
 	t = d->targets;
 	e = t + d->ntargets;
+
 	for (; t < e && *t; t++)
 		if (memcmp((*t)->addr, addr, sizeof((*t)->addr)) == 0)
+		{
 			return *t;
+		}
+
 	return NULL;
 }
 
@@ -1051,7 +1293,8 @@ bvcpy(struct sk_buff *skb, struct bio *bio, struct bvec_iter iter, long cnt)
 
 	iter.bi_size = cnt;
 
-	__bio_for_each_segment(bv, bio, iter, iter) {
+	__bio_for_each_segment(bv, bio, iter, iter)
+	{
 		char *p = page_address(bv.bv_page) + bv.bv_offset;
 		skb_copy_bits(skb, soff, p, bv.bv_len);
 		soff += bv.bv_len;
@@ -1066,16 +1309,24 @@ aoe_end_request(struct aoedev *d, struct request *rq, int fastfail)
 	struct request_queue *q;
 
 	q = d->blkq;
+
 	if (rq == d->ip.rq)
+	{
 		d->ip.rq = NULL;
-	do {
+	}
+
+	do
+	{
 		bio = rq->bio;
 		bok = !fastfail && !bio->bi_error;
-	} while (__blk_end_request(rq, bok ? 0 : -EIO, bio->bi_iter.bi_size));
+	}
+	while (__blk_end_request(rq, bok ? 0 : -EIO, bio->bi_iter.bi_size));
 
 	/* cf. http://lkml.org/lkml/2006/10/31/28 */
 	if (!fastfail)
+	{
 		__blk_run_queue(q);
+	}
 }
 
 static void
@@ -1085,13 +1336,19 @@ aoe_end_buf(struct aoedev *d, struct buf *buf)
 	unsigned long n;
 
 	if (buf == d->ip.buf)
+	{
 		d->ip.buf = NULL;
+	}
+
 	rq = buf->rq;
 	mempool_free(buf, d->bufpool);
 	n = (unsigned long) rq->special;
 	rq->special = (void *) --n;
+
 	if (n == 0)
+	{
 		aoe_end_request(d, rq, 0);
+	}
 }
 
 static void
@@ -1108,89 +1365,127 @@ ktiocomplete(struct frame *f)
 	int untainted;
 
 	if (f == NULL)
+	{
 		return;
+	}
 
 	t = f->t;
 	d = t->d;
 	skb = f->r_skb;
 	buf = f->buf;
+
 	if (f->flags & FFL_PROBE)
+	{
 		goto out;
+	}
+
 	if (!skb)		/* just fail the buf. */
+	{
 		goto noskb;
+	}
 
 	hout = (struct aoe_hdr *) skb_mac_header(f->skb);
-	ahout = (struct aoe_atahdr *) (hout+1);
+	ahout = (struct aoe_atahdr *) (hout + 1);
 
 	hin = (struct aoe_hdr *) skb->data;
 	skb_pull(skb, sizeof(*hin));
 	ahin = (struct aoe_atahdr *) skb->data;
 	skb_pull(skb, sizeof(*ahin));
-	if (ahin->cmdstat & 0xa9) {	/* these bits cleared on success */
+
+	if (ahin->cmdstat & 0xa9)  	/* these bits cleared on success */
+	{
 		pr_err("aoe: ata error cmd=%2.2Xh stat=%2.2Xh from e%ld.%d\n",
-			ahout->cmdstat, ahin->cmdstat,
-			d->aoemajor, d->aoeminor);
-noskb:		if (buf)
+			   ahout->cmdstat, ahin->cmdstat,
+			   d->aoemajor, d->aoeminor);
+noskb:
+
+		if (buf)
+		{
 			buf->bio->bi_error = -EIO;
+		}
+
 		goto out;
 	}
 
 	n = ahout->scnt << 9;
-	switch (ahout->cmdstat) {
-	case ATA_CMD_PIO_READ:
-	case ATA_CMD_PIO_READ_EXT:
-		if (skb->len < n) {
-			pr_err("%s e%ld.%d.  skb->len=%d need=%ld\n",
-				"aoe: runt data size in read from",
-				(long) d->aoemajor, d->aoeminor,
-			       skb->len, n);
-			buf->bio->bi_error = -EIO;
+
+	switch (ahout->cmdstat)
+	{
+		case ATA_CMD_PIO_READ:
+		case ATA_CMD_PIO_READ_EXT:
+			if (skb->len < n)
+			{
+				pr_err("%s e%ld.%d.  skb->len=%d need=%ld\n",
+					   "aoe: runt data size in read from",
+					   (long) d->aoemajor, d->aoeminor,
+					   skb->len, n);
+				buf->bio->bi_error = -EIO;
+				break;
+			}
+
+			if (n > f->iter.bi_size)
+			{
+				pr_err_ratelimited("%s e%ld.%d.  bytes=%ld need=%u\n",
+								   "aoe: too-large data size in read from",
+								   (long) d->aoemajor, d->aoeminor,
+								   n, f->iter.bi_size);
+				buf->bio->bi_error = -EIO;
+				break;
+			}
+
+			bvcpy(skb, f->buf->bio, f->iter, n);
+
+		case ATA_CMD_PIO_WRITE:
+		case ATA_CMD_PIO_WRITE_EXT:
+			spin_lock_irq(&d->lock);
+			ifp = getif(t, skb->dev);
+
+			if (ifp)
+			{
+				ifp->lost = 0;
+			}
+
+			spin_unlock_irq(&d->lock);
 			break;
-		}
-		if (n > f->iter.bi_size) {
-			pr_err_ratelimited("%s e%ld.%d.  bytes=%ld need=%u\n",
-				"aoe: too-large data size in read from",
-				(long) d->aoemajor, d->aoeminor,
-				n, f->iter.bi_size);
-			buf->bio->bi_error = -EIO;
+
+		case ATA_CMD_ID_ATA:
+			if (skb->len < 512)
+			{
+				pr_info("%s e%ld.%d.  skb->len=%d need=512\n",
+						"aoe: runt data size in ataid from",
+						(long) d->aoemajor, d->aoeminor,
+						skb->len);
+				break;
+			}
+
+			if (skb_linearize(skb))
+			{
+				break;
+			}
+
+			spin_lock_irq(&d->lock);
+			ataid_complete(d, t, skb->data);
+			spin_unlock_irq(&d->lock);
 			break;
-		}
-		bvcpy(skb, f->buf->bio, f->iter, n);
-	case ATA_CMD_PIO_WRITE:
-	case ATA_CMD_PIO_WRITE_EXT:
-		spin_lock_irq(&d->lock);
-		ifp = getif(t, skb->dev);
-		if (ifp)
-			ifp->lost = 0;
-		spin_unlock_irq(&d->lock);
-		break;
-	case ATA_CMD_ID_ATA:
-		if (skb->len < 512) {
-			pr_info("%s e%ld.%d.  skb->len=%d need=512\n",
-				"aoe: runt data size in ataid from",
-				(long) d->aoemajor, d->aoeminor,
-				skb->len);
-			break;
-		}
-		if (skb_linearize(skb))
-			break;
-		spin_lock_irq(&d->lock);
-		ataid_complete(d, t, skb->data);
-		spin_unlock_irq(&d->lock);
-		break;
-	default:
-		pr_info("aoe: unrecognized ata command %2.2Xh for %d.%d\n",
-			ahout->cmdstat,
-			be16_to_cpu(get_unaligned(&hin->major)),
-			hin->minor);
+
+		default:
+			pr_info("aoe: unrecognized ata command %2.2Xh for %d.%d\n",
+					ahout->cmdstat,
+					be16_to_cpu(get_unaligned(&hin->major)),
+					hin->minor);
 	}
+
 out:
 	spin_lock_irq(&d->lock);
+
 	if (t->taint > 0
-	&& --t->taint > 0
-	&& t->nout_probes == 0) {
+		&& --t->taint > 0
+		&& t->nout_probes == 0)
+	{
 		count_targets(d, &untainted);
-		if (untainted > 0) {
+
+		if (untainted > 0)
+		{
 			probe(t);
 			t->nout_probes++;
 		}
@@ -1199,7 +1494,9 @@ out:
 	aoe_freetframe(f);
 
 	if (buf && --buf->nframesout == 0 && buf->iter.bi_size == 0)
+	{
 		aoe_end_buf(d, buf);
+	}
 
 	spin_unlock_irq(&d->lock);
 	aoedev_put(d);
@@ -1217,11 +1514,18 @@ ktio(int id)
 	int i;
 	int actual_id;
 
-	for (i = 0; ; ++i) {
+	for (i = 0; ; ++i)
+	{
 		if (i == MAXIOC)
+		{
 			return 1;
+		}
+
 		if (list_empty(&iocq[id].head))
+		{
 			return 0;
+		}
+
 		pos = iocq[id].head.next;
 		list_del(pos);
 		f = list_entry(pos, struct frame, head);
@@ -1231,14 +1535,20 @@ ktio(int id)
 		/* Figure out if extra threads are required. */
 		actual_id = f->t->d->aoeminor % ncpus;
 
-		if (!kts[actual_id].active) {
+		if (!kts[actual_id].active)
+		{
 			BUG_ON(id != 0);
 			mutex_lock(&ktio_spawn_lock);
+
 			if (!kts[actual_id].active
 				&& aoe_ktstart(&kts[actual_id]) == 0)
+			{
 				kts[actual_id].active = 1;
+			}
+
 			mutex_unlock(&ktio_spawn_lock);
 		}
+
 		spin_lock_irq(&iocq[id].lock);
 	}
 }
@@ -1254,20 +1564,32 @@ kthread(void *vp)
 	current->flags |= PF_NOFREEZE;
 	set_user_nice(current, -10);
 	complete(&k->rendez);	/* tell spawner we're running */
-	do {
+
+	do
+	{
 		spin_lock_irq(k->lock);
 		more = k->fn(k->id);
-		if (!more) {
+
+		if (!more)
+		{
 			add_wait_queue(k->waitq, &wait);
 			__set_current_state(TASK_INTERRUPTIBLE);
 		}
+
 		spin_unlock_irq(k->lock);
-		if (!more) {
+
+		if (!more)
+		{
 			schedule();
 			remove_wait_queue(k->waitq, &wait);
-		} else
+		}
+		else
+		{
 			cond_resched();
-	} while (!kthread_should_stop());
+		}
+	}
+	while (!kthread_should_stop());
+
 	complete(&k->rendez);	/* tell spawner we're stopping */
 	return 0;
 }
@@ -1286,8 +1608,12 @@ aoe_ktstart(struct ktstate *k)
 
 	init_completion(&k->rendez);
 	task = kthread_run(kthread, k, "%s", k->name);
+
 	if (task == NULL || IS_ERR(task))
+	{
 		return -ENOMEM;
+	}
+
 	k->task = task;
 	wait_for_completion(&k->rendez); /* allow kthread to start */
 	init_completion(&k->rendez);	/* for waiting for exit later */
@@ -1304,7 +1630,9 @@ ktcomplete(struct frame *f, struct sk_buff *skb)
 	f->r_skb = skb;
 	id = f->t->d->aoeminor % ncpus;
 	spin_lock_irqsave(&iocq[id].lock, flags);
-	if (!kts[id].active) {
+
+	if (!kts[id].active)
+	{
 		spin_unlock_irqrestore(&iocq[id].lock, flags);
 		/* The thread with id has not been spawned yet,
 		 * so delegate the work to the main thread and
@@ -1313,6 +1641,7 @@ ktcomplete(struct frame *f, struct sk_buff *skb)
 		id = 0;
 		spin_lock_irqsave(&iocq[id].lock, flags);
 	}
+
 	list_add_tail(&f->head, &iocq[id].head);
 	spin_unlock_irqrestore(&iocq[id].lock, flags);
 	wake_up(&ktiowq[id]);
@@ -1332,10 +1661,12 @@ aoecmd_ata_rsp(struct sk_buff *skb)
 	h = (struct aoe_hdr *) skb->data;
 	aoemajor = be16_to_cpu(get_unaligned(&h->major));
 	d = aoedev_by_aoeaddr(aoemajor, h->minor, 0);
-	if (d == NULL) {
+
+	if (d == NULL)
+	{
 		snprintf(ebuf, sizeof ebuf, "aoecmd_ata_rsp: ata response "
-			"for unknown device %d.%d\n",
-			aoemajor, h->minor);
+				 "for unknown device %d.%d\n",
+				 aoemajor, h->minor);
 		aoechr_error(ebuf);
 		return skb;
 	}
@@ -1344,32 +1675,44 @@ aoecmd_ata_rsp(struct sk_buff *skb)
 
 	n = be32_to_cpu(get_unaligned(&h->tag));
 	f = getframe(d, n);
-	if (f) {
+
+	if (f)
+	{
 		calc_rttavg(d, f->t, tsince_hr(f));
 		f->t->nout--;
+
 		if (f->flags & FFL_PROBE)
+		{
 			f->t->nout_probes--;
-	} else {
+		}
+	}
+	else
+	{
 		f = getframe_deferred(d, n);
-		if (f) {
+
+		if (f)
+		{
 			calc_rttavg(d, NULL, tsince_hr(f));
-		} else {
+		}
+		else
+		{
 			calc_rttavg(d, NULL, tsince(n));
 			spin_unlock_irqrestore(&d->lock, flags);
 			aoedev_put(d);
 			snprintf(ebuf, sizeof(ebuf),
-				 "%15s e%d.%d    tag=%08x@%08lx s=%pm d=%pm\n",
-				 "unexpected rsp",
-				 get_unaligned_be16(&h->major),
-				 h->minor,
-				 get_unaligned_be32(&h->tag),
-				 jiffies,
-				 h->src,
-				 h->dst);
+					 "%15s e%d.%d    tag=%08x@%08lx s=%pm d=%pm\n",
+					 "unexpected rsp",
+					 get_unaligned_be16(&h->major),
+					 h->minor,
+					 get_unaligned_be32(&h->tag),
+					 jiffies,
+					 h->src,
+					 h->dst);
 			aoechr_error(ebuf);
 			return skb;
 		}
 	}
+
 	aoecmd_work(d);
 
 	spin_unlock_irqrestore(&d->lock, flags);
@@ -1403,16 +1746,19 @@ aoecmd_ata_id(struct aoedev *d)
 	struct aoetgt *t;
 
 	f = newframe(d);
+
 	if (f == NULL)
+	{
 		return NULL;
+	}
 
 	t = *d->tgt;
 
 	/* initialize the headers & frame */
 	skb = f->skb;
 	h = (struct aoe_hdr *) skb_mac_header(skb);
-	ah = (struct aoe_atahdr *) (h+1);
-	skb_put(skb, sizeof *h + sizeof *ah);
+	ah = (struct aoe_atahdr *) (h + 1);
+	skb_put(skb, sizeof * h + sizeof * ah);
 	memset(h, 0, skb->len);
 	f->tag = aoehdr_atainit(d, t, h);
 	fhash(f);
@@ -1432,7 +1778,9 @@ aoecmd_ata_id(struct aoedev *d)
 	d->timer.function = rexmit_timer;
 
 	skb = skb_clone(skb, GFP_ATOMIC);
-	if (skb) {
+
+	if (skb)
+	{
 		do_gettimeofday(&f->sent);
 		f->sent_jiffs = (u32) jiffies;
 	}
@@ -1449,8 +1797,12 @@ grow_targets(struct aoedev *d)
 	oldn = d->ntargets;
 	newn = oldn * 2;
 	tt = kcalloc(newn, sizeof(*d->targets), GFP_ATOMIC);
+
 	if (!tt)
+	{
 		return NULL;
+	}
+
 	memmove(tt, d->targets, sizeof(*d->targets) * oldn);
 	d->tgt = tt + (d->tgt - d->targets);
 	kfree(d->targets);
@@ -1467,17 +1819,27 @@ addtgt(struct aoedev *d, char *addr, ulong nframes)
 
 	tt = d->targets;
 	te = tt + d->ntargets;
+
 	for (; tt < te && *tt; tt++)
 		;
 
-	if (tt == te) {
+	if (tt == te)
+	{
 		tt = grow_targets(d);
+
 		if (!tt)
+		{
 			goto nomem;
+		}
 	}
+
 	t = kzalloc(sizeof(*t), GFP_ATOMIC);
+
 	if (!t)
+	{
 		goto nomem;
+	}
+
 	t->nframes = nframes;
 	t->d = d;
 	memcpy(t->addr, addr, sizeof t->addr);
@@ -1487,7 +1849,7 @@ addtgt(struct aoedev *d, char *addr, ulong nframes)
 	INIT_LIST_HEAD(&t->ffree);
 	return *tt = t;
 
- nomem:
+nomem:
 	pr_info("aoe: cannot allocate memory to add target\n");
 	return NULL;
 }
@@ -1500,13 +1862,18 @@ setdbcnt(struct aoedev *d)
 
 	t = d->targets;
 	e = t + d->ntargets;
+
 	for (; t < e && *t; t++)
 		if (bcnt == 0 || bcnt > (*t)->minbcnt)
+		{
 			bcnt = (*t)->minbcnt;
-	if (bcnt != d->maxbcnt) {
+		}
+
+	if (bcnt != d->maxbcnt)
+	{
 		d->maxbcnt = bcnt;
 		pr_info("aoe: e%ld.%d: setting %d byte data frames\n",
-			d->aoemajor, d->aoeminor, bcnt);
+				d->aoemajor, d->aoeminor, bcnt);
 	}
 }
 
@@ -1521,24 +1888,38 @@ setifbcnt(struct aoetgt *t, struct net_device *nd, int bcnt)
 	minbcnt = bcnt;
 	p = t->ifs;
 	e = p + NAOEIFS;
-	for (; p < e; p++) {
+
+	for (; p < e; p++)
+	{
 		if (p->nd == NULL)
-			break;		/* end of the valid interfaces */
-		if (p->nd == nd) {
+		{
+			break;    /* end of the valid interfaces */
+		}
+
+		if (p->nd == nd)
+		{
 			p->bcnt = bcnt;	/* we're updating */
 			nd = NULL;
-		} else if (minbcnt > p->bcnt)
-			minbcnt = p->bcnt; /* find the min interface */
+		}
+		else if (minbcnt > p->bcnt)
+		{
+			minbcnt = p->bcnt;    /* find the min interface */
+		}
 	}
-	if (nd) {
-		if (p == e) {
+
+	if (nd)
+	{
+		if (p == e)
+		{
 			pr_err("aoe: device setifbcnt failure; too many interfaces.\n");
 			return;
 		}
+
 		dev_hold(nd);
 		p->nd = nd;
 		p->bcnt = bcnt;
 	}
+
 	t->minbcnt = minbcnt;
 	setdbcnt(d);
 }
@@ -1557,35 +1938,46 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
 
 	sl = NULL;
 	h = (struct aoe_hdr *) skb_mac_header(skb);
-	ch = (struct aoe_cfghdr *) (h+1);
+	ch = (struct aoe_cfghdr *) (h + 1);
 
 	/*
 	 * Enough people have their dip switches set backwards to
 	 * warrant a loud message for this special case.
 	 */
 	aoemajor = get_unaligned_be16(&h->major);
-	if (aoemajor == 0xfff) {
+
+	if (aoemajor == 0xfff)
+	{
 		printk(KERN_ERR "aoe: Warning: shelf address is all ones.  "
-			"Check shelf dip switches.\n");
+			   "Check shelf dip switches.\n");
 		return;
 	}
-	if (aoemajor == 0xffff) {
+
+	if (aoemajor == 0xffff)
+	{
 		pr_info("aoe: e%ld.%d: broadcast shelf number invalid\n",
-			aoemajor, (int) h->minor);
+				aoemajor, (int) h->minor);
 		return;
 	}
-	if (h->minor == 0xff) {
+
+	if (h->minor == 0xff)
+	{
 		pr_info("aoe: e%ld.%d: broadcast slot number invalid\n",
-			aoemajor, (int) h->minor);
+				aoemajor, (int) h->minor);
 		return;
 	}
 
 	n = be16_to_cpu(ch->bufcnt);
+
 	if (n > aoe_maxout)	/* keep it reasonable */
+	{
 		n = aoe_maxout;
+	}
 
 	d = aoedev_by_aoeaddr(aoemajor, h->minor, 1);
-	if (d == NULL) {
+
+	if (d == NULL)
+	{
 		pr_info("aoe: device allocation failure\n");
 		return;
 	}
@@ -1593,32 +1985,51 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
 	spin_lock_irqsave(&d->lock, flags);
 
 	t = gettgt(d, h->src);
-	if (t) {
+
+	if (t)
+	{
 		t->nframes = n;
+
 		if (n < t->maxout)
+		{
 			aoecmd_wreset(t);
-	} else {
-		t = addtgt(d, h->src, n);
-		if (!t)
-			goto bail;
+		}
 	}
+	else
+	{
+		t = addtgt(d, h->src, n);
+
+		if (!t)
+		{
+			goto bail;
+		}
+	}
+
 	n = skb->dev->mtu;
 	n -= sizeof(struct aoe_hdr) + sizeof(struct aoe_atahdr);
 	n /= 512;
+
 	if (n > ch->scnt)
+	{
 		n = ch->scnt;
+	}
+
 	n = n ? n * 512 : DEFAULTBCNT;
 	setifbcnt(t, skb->dev, n);
 
 	/* don't change users' perspective */
-	if (d->nopen == 0) {
+	if (d->nopen == 0)
+	{
 		d->fw_ver = be16_to_cpu(ch->fwver);
 		sl = aoecmd_ata_id(d);
 	}
+
 bail:
 	spin_unlock_irqrestore(&d->lock, flags);
 	aoedev_put(d);
-	if (sl) {
+
+	if (sl)
+	{
 		__skb_queue_head_init(&queue);
 		__skb_queue_tail(&queue, sl);
 		aoenet_xmit(&queue);
@@ -1644,19 +2055,28 @@ aoecmd_cleanslate(struct aoedev *d)
 
 	t = d->targets;
 	te = t + d->ntargets;
+
 	for (; t < te && *t; t++)
+	{
 		aoecmd_wreset(*t);
+	}
 }
 
 void
 aoe_failbuf(struct aoedev *d, struct buf *buf)
 {
 	if (buf == NULL)
+	{
 		return;
+	}
+
 	buf->iter.bi_size = 0;
 	buf->bio->bi_error = -EIO;
+
 	if (buf->nframesout == 0)
+	{
 		aoe_end_buf(d, buf);
+	}
 }
 
 void
@@ -1664,9 +2084,12 @@ aoe_flush_iocq(void)
 {
 	int i;
 
-	for (i = 0; i < ncpus; i++) {
+	for (i = 0; i < ncpus; i++)
+	{
 		if (kts[i].active)
+		{
 			aoe_flush_iocq_by_index(i);
+		}
 	}
 }
 
@@ -1683,17 +2106,22 @@ aoe_flush_iocq_by_index(int id)
 	spin_lock_irqsave(&iocq[id].lock, flags);
 	list_splice_init(&iocq[id].head, &flist);
 	spin_unlock_irqrestore(&iocq[id].lock, flags);
-	while (!list_empty(&flist)) {
+
+	while (!list_empty(&flist))
+	{
 		pos = flist.next;
 		list_del(pos);
 		f = list_entry(pos, struct frame, head);
 		d = f->t->d;
 		skb = f->r_skb;
 		spin_lock_irqsave(&d->lock, flags);
-		if (f->buf) {
+
+		if (f->buf)
+		{
 			f->buf->nframesout--;
 			aoe_failbuf(d, f->buf);
 		}
+
 		aoe_freetframe(f);
 		spin_unlock_irqrestore(&d->lock, flags);
 		dev_kfree_skb(skb);
@@ -1710,31 +2138,43 @@ aoecmd_init(void)
 
 	/* get_zeroed_page returns page with ref count 1 */
 	p = (void *) get_zeroed_page(GFP_KERNEL);
+
 	if (!p)
+	{
 		return -ENOMEM;
+	}
+
 	empty_page = virt_to_page(p);
 
 	ncpus = num_online_cpus();
 
 	iocq = kcalloc(ncpus, sizeof(struct iocq_ktio), GFP_KERNEL);
+
 	if (!iocq)
+	{
 		return -ENOMEM;
+	}
 
 	kts = kcalloc(ncpus, sizeof(struct ktstate), GFP_KERNEL);
-	if (!kts) {
+
+	if (!kts)
+	{
 		ret = -ENOMEM;
 		goto kts_fail;
 	}
 
 	ktiowq = kcalloc(ncpus, sizeof(wait_queue_head_t), GFP_KERNEL);
-	if (!ktiowq) {
+
+	if (!ktiowq)
+	{
 		ret = -ENOMEM;
 		goto ktiowq_fail;
 	}
 
 	mutex_init(&ktio_spawn_lock);
 
-	for (i = 0; i < ncpus; i++) {
+	for (i = 0; i < ncpus; i++)
+	{
 		INIT_LIST_HEAD(&iocq[i].head);
 		spin_lock_init(&iocq[i].lock);
 		init_waitqueue_head(&ktiowq[i]);
@@ -1745,11 +2185,15 @@ aoecmd_init(void)
 		kts[i].id = i;
 		kts[i].active = 0;
 	}
+
 	kts[0].active = 1;
-	if (aoe_ktstart(&kts[0])) {
+
+	if (aoe_ktstart(&kts[0]))
+	{
 		ret = -ENOMEM;
 		goto ktstart_fail;
 	}
+
 	return 0;
 
 ktstart_fail:
@@ -1769,7 +2213,9 @@ aoecmd_exit(void)
 
 	for (i = 0; i < ncpus; i++)
 		if (kts[i].active)
+		{
 			aoe_ktstop(&kts[i]);
+		}
 
 	aoe_flush_iocq();
 

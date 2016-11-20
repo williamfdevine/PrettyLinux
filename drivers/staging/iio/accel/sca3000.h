@@ -180,7 +180,8 @@
  * @tx:			dma-able transmit buffer
  * @rx:			dma-able receive buffer
  **/
-struct sca3000_state {
+struct sca3000_state
+{
 	struct spi_device		*us;
 	const struct sca3000_chip_info	*info;
 	struct work_struct		interrupt_handler_ws;
@@ -206,7 +207,8 @@ struct sca3000_state {
  * This structure is used to hold information about the functionality of a given
  * sca3000 variant.
  **/
-struct sca3000_chip_info {
+struct sca3000_chip_info
+{
 	unsigned int		scale;
 	bool			temp_output;
 	int			measurement_mode_freq;
@@ -219,8 +221,8 @@ struct sca3000_chip_info {
 };
 
 int sca3000_read_data_short(struct sca3000_state *st,
-			    u8 reg_address_high,
-			    int len);
+							u8 reg_address_high,
+							int len);
 
 /**
  * sca3000_write_reg() write a single register

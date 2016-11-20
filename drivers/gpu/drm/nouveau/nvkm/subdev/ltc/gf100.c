@@ -40,13 +40,17 @@ gf100_ltc_cbc_wait(struct nvkm_ltc *ltc)
 {
 	struct nvkm_device *device = ltc->subdev.device;
 	int c, s;
-	for (c = 0; c < ltc->ltc_nr; c++) {
-		for (s = 0; s < ltc->lts_nr; s++) {
+
+	for (c = 0; c < ltc->ltc_nr; c++)
+	{
+		for (s = 0; s < ltc->lts_nr; s++)
+		{
 			const u32 addr = 0x1410c8 + (c * 0x2000) + (s * 0x400);
 			nvkm_msec(device, 2000,
-				if (!nvkm_rd32(device, addr))
-					break;
-			);
+
+					  if (!nvkm_rd32(device, addr))
+					  break;
+					 );
 		}
 	}
 }
@@ -71,7 +75,8 @@ gf100_ltc_zbc_clear_depth(struct nvkm_ltc *ltc, int i, const u32 depth)
 }
 
 const struct nvkm_bitfield
-gf100_ltc_lts_intr_name[] = {
+	gf100_ltc_lts_intr_name[] =
+{
 	{ 0x00000001, "IDLE_ERROR_IQ" },
 	{ 0x00000002, "IDLE_ERROR_CBC" },
 	{ 0x00000004, "IDLE_ERROR_TSTG" },
@@ -98,7 +103,8 @@ gf100_ltc_lts_intr(struct nvkm_ltc *ltc, int c, int s)
 	u32 stat = intr & 0x0000ffff;
 	char msg[128];
 
-	if (stat) {
+	if (stat)
+	{
 		nvkm_snprintbf(msg, sizeof(msg), gf100_ltc_lts_intr_name, stat);
 		nvkm_error(subdev, "LTC%d_LTS%d: %08x [%s]\n", c, s, stat, msg);
 	}
@@ -113,10 +119,16 @@ gf100_ltc_intr(struct nvkm_ltc *ltc)
 	u32 mask;
 
 	mask = nvkm_rd32(device, 0x00017c);
-	while (mask) {
+
+	while (mask)
+	{
 		u32 s, c = __ffs(mask);
+
 		for (s = 0; s < ltc->lts_nr; s++)
+		{
 			gf100_ltc_lts_intr(ltc, c, s);
+		}
+
 		mask &= ~(1 << c);
 	}
 }
@@ -131,7 +143,9 @@ gf100_ltc_invalidate(struct nvkm_ltc *ltc)
 	taken = nvkm_wait_msec(device, 2000, 0x70004, 0x00000003, 0x00000000);
 
 	if (taken > 0)
+	{
 		nvkm_debug(&ltc->subdev, "LTC invalidate took %lld ns\n", taken);
+	}
 }
 
 void
@@ -144,7 +158,9 @@ gf100_ltc_flush(struct nvkm_ltc *ltc)
 	taken = nvkm_wait_msec(device, 2000, 0x70010, 0x00000003, 0x00000000);
 
 	if (taken > 0)
+	{
 		nvkm_debug(&ltc->subdev, "LTC flush took %lld ns\n", taken);
+	}
 }
 
 /* TODO: Figure out tag memory details and drop the over-cautious allocation.
@@ -157,15 +173,20 @@ gf100_ltc_oneinit_tag_ram(struct nvkm_ltc *ltc)
 	int ret;
 
 	/* No VRAM, no tags for now. */
-	if (!ram) {
+	if (!ram)
+	{
 		ltc->num_tags = 0;
 		goto mm_init;
 	}
 
 	/* tags for 1/4 of VRAM should be enough (8192/4 per GiB of VRAM) */
 	ltc->num_tags = (ram->size >> 17) / 4;
+
 	if (ltc->num_tags > (1 << 17))
-		ltc->num_tags = 1 << 17; /* we have 17 bits in PTE */
+	{
+		ltc->num_tags = 1 << 17;    /* we have 17 bits in PTE */
+	}
+
 	ltc->num_tags = (ltc->num_tags + 63) & ~63; /* round up to 64 */
 
 	tag_align = ltc->ltc_nr * 0x800;
@@ -184,10 +205,14 @@ gf100_ltc_oneinit_tag_ram(struct nvkm_ltc *ltc)
 	tag_size  = (tag_size + 0xfff) >> 12; /* round up */
 
 	ret = nvkm_mm_tail(&ram->vram, 1, 1, tag_size, tag_size, 1,
-			   &ltc->tag_ram);
-	if (ret) {
+					   &ltc->tag_ram);
+
+	if (ret)
+	{
 		ltc->num_tags = 0;
-	} else {
+	}
+	else
+	{
 		u64 tag_base = ((u64)ltc->tag_ram->offset << 12) + tag_margin;
 
 		tag_base += tag_align - 1;
@@ -209,10 +234,14 @@ gf100_ltc_oneinit(struct nvkm_ltc *ltc)
 	const u32 slice = nvkm_rd32(device, 0x17e8dc) >> 28;
 	int i;
 
-	for (i = 0; i < parts; i++) {
+	for (i = 0; i < parts; i++)
+	{
 		if (!(mask & (1 << i)))
+		{
 			ltc->ltc_nr++;
+		}
 	}
+
 	ltc->lts_nr = slice;
 
 	return gf100_ltc_oneinit_tag_ram(ltc);
@@ -231,7 +260,8 @@ gf100_ltc_init(struct nvkm_ltc *ltc)
 }
 
 static const struct nvkm_ltc_func
-gf100_ltc = {
+	gf100_ltc =
+{
 	.oneinit = gf100_ltc_oneinit,
 	.init = gf100_ltc_init,
 	.intr = gf100_ltc_intr,

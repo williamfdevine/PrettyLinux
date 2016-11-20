@@ -18,12 +18,15 @@
 #include "cs42xx8.h"
 
 static int cs42xx8_i2c_probe(struct i2c_client *i2c,
-			     const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	int ret = cs42xx8_probe(&i2c->dev,
-			devm_regmap_init_i2c(i2c, &cs42xx8_regmap_config));
+							devm_regmap_init_i2c(i2c, &cs42xx8_regmap_config));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pm_runtime_enable(&i2c->dev);
 	pm_request_idle(&i2c->dev);
@@ -39,14 +42,16 @@ static int cs42xx8_i2c_remove(struct i2c_client *i2c)
 	return 0;
 }
 
-static struct i2c_device_id cs42xx8_i2c_id[] = {
-	{"cs42448", (kernel_ulong_t)&cs42448_data},
-	{"cs42888", (kernel_ulong_t)&cs42888_data},
+static struct i2c_device_id cs42xx8_i2c_id[] =
+{
+	{"cs42448", (kernel_ulong_t) &cs42448_data},
+	{"cs42888", (kernel_ulong_t) &cs42888_data},
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, cs42xx8_i2c_id);
 
-static struct i2c_driver cs42xx8_i2c_driver = {
+static struct i2c_driver cs42xx8_i2c_driver =
+{
 	.driver = {
 		.name = "cs42xx8",
 		.pm = &cs42xx8_pm,

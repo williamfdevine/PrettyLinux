@@ -23,7 +23,8 @@
 #define R2059_RCCAL_MASTER			0x17f
 
 /* Values for various registers uploaded on channel switching */
-struct b43_phy_ht_channeltab_e_radio2059 {
+struct b43_phy_ht_channeltab_e_radio2059
+{
 	/* The channel frequency in MHz */
 	u16 freq;
 	/* Values for radio registers */

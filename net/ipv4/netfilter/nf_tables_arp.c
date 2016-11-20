@@ -16,8 +16,8 @@
 
 static unsigned int
 nft_do_chain_arp(void *priv,
-		  struct sk_buff *skb,
-		  const struct nf_hook_state *state)
+				 struct sk_buff *skb,
+				 const struct nf_hook_state *state)
 {
 	struct nft_pktinfo pkt;
 
@@ -26,7 +26,8 @@ nft_do_chain_arp(void *priv,
 	return nft_do_chain(&pkt, priv);
 }
 
-static struct nft_af_info nft_af_arp __read_mostly = {
+static struct nft_af_info nft_af_arp __read_mostly =
+{
 	.family		= NFPROTO_ARP,
 	.nhooks		= NF_ARP_NUMHOOKS,
 	.owner		= THIS_MODULE,
@@ -41,13 +42,18 @@ static struct nft_af_info nft_af_arp __read_mostly = {
 static int nf_tables_arp_init_net(struct net *net)
 {
 	net->nft.arp = kmalloc(sizeof(struct nft_af_info), GFP_KERNEL);
-	if (net->nft.arp== NULL)
+
+	if (net->nft.arp == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(net->nft.arp, &nft_af_arp, sizeof(nft_af_arp));
 
 	if (nft_register_afinfo(net, net->nft.arp) < 0)
+	{
 		goto err;
+	}
 
 	return 0;
 err:
@@ -61,19 +67,21 @@ static void nf_tables_arp_exit_net(struct net *net)
 	kfree(net->nft.arp);
 }
 
-static struct pernet_operations nf_tables_arp_net_ops = {
+static struct pernet_operations nf_tables_arp_net_ops =
+{
 	.init   = nf_tables_arp_init_net,
 	.exit   = nf_tables_arp_exit_net,
 };
 
-static const struct nf_chain_type filter_arp = {
+static const struct nf_chain_type filter_arp =
+{
 	.name		= "filter",
 	.type		= NFT_CHAIN_T_DEFAULT,
 	.family		= NFPROTO_ARP,
 	.owner		= THIS_MODULE,
 	.hook_mask	= (1 << NF_ARP_IN) |
-			  (1 << NF_ARP_OUT) |
-			  (1 << NF_ARP_FORWARD),
+	(1 << NF_ARP_OUT) |
+	(1 << NF_ARP_FORWARD),
 };
 
 static int __init nf_tables_arp_init(void)
@@ -81,12 +89,18 @@ static int __init nf_tables_arp_init(void)
 	int ret;
 
 	ret = nft_register_chain_type(&filter_arp);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = register_pernet_subsys(&nf_tables_arp_net_ops);
+
 	if (ret < 0)
+	{
 		nft_unregister_chain_type(&filter_arp);
+	}
 
 	return ret;
 }

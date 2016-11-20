@@ -48,7 +48,8 @@
  *    the order defined by dwarf.
  */
 
-struct pt_regs_offset {
+struct pt_regs_offset
+{
 	const char *name;
 	int offset;
 };
@@ -56,16 +57,17 @@ struct pt_regs_offset {
 #define REG_OFFSET_END {.name = NULL, .offset = 0}
 
 #ifdef __x86_64__
-# define REG_OFFSET_NAME_64(n, r) {.name = n, .offset = offsetof(struct pt_regs, r)}
-# define REG_OFFSET_NAME_32(n, r) {.name = n, .offset = -1}
+	#define REG_OFFSET_NAME_64(n, r) {.name = n, .offset = offsetof(struct pt_regs, r)}
+	#define REG_OFFSET_NAME_32(n, r) {.name = n, .offset = -1}
 #else
-# define REG_OFFSET_NAME_64(n, r) {.name = n, .offset = -1}
-# define REG_OFFSET_NAME_32(n, r) {.name = n, .offset = offsetof(struct pt_regs, r)}
+	#define REG_OFFSET_NAME_64(n, r) {.name = n, .offset = -1}
+	#define REG_OFFSET_NAME_32(n, r) {.name = n, .offset = offsetof(struct pt_regs, r)}
 #endif
 
 /* TODO: switching by dwarf address size */
 #ifndef __x86_64__
-static const struct pt_regs_offset x86_32_regoffset_table[] = {
+static const struct pt_regs_offset x86_32_regoffset_table[] =
+{
 	REG_OFFSET_NAME_32("%ax",	eax),
 	REG_OFFSET_NAME_32("%cx",	ecx),
 	REG_OFFSET_NAME_32("%dx",	edx),
@@ -79,7 +81,8 @@ static const struct pt_regs_offset x86_32_regoffset_table[] = {
 
 #define regoffset_table x86_32_regoffset_table
 #else
-static const struct pt_regs_offset x86_64_regoffset_table[] = {
+static const struct pt_regs_offset x86_64_regoffset_table[] =
+{
 	REG_OFFSET_NAME_64("%ax",	rax),
 	REG_OFFSET_NAME_64("%dx",	rdx),
 	REG_OFFSET_NAME_64("%cx",	rcx),
@@ -122,8 +125,12 @@ const char *get_arch_regstr(unsigned int n)
 int regs_query_register_offset(const char *name)
 {
 	const struct pt_regs_offset *roff;
+
 	for (roff = regoffset_table; roff->name != NULL; roff++)
 		if (!strcmp(roff->name, name))
+		{
 			return roff->offset;
+		}
+
 	return -EINVAL;
 }

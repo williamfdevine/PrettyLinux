@@ -383,16 +383,16 @@
 	 (DIV_ROUND_UP((mbw) * (mbh), 32) * 16))
 #define S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V6(w, h)	(((w) * 192) + 64)
 #define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V6(w, h) \
-			((w) * 144 + 8192 * (h) + 49216 + 1048576)
+	((w) * 144 + 8192 * (h) + 49216 + 1048576)
 #define S5P_FIMV_SCRATCH_BUF_SIZE_VC1_DEC_V6(w, h) \
-						(2096 * ((w) + (h) + 1))
+	(2096 * ((w) + (h) + 1))
 #define S5P_FIMV_SCRATCH_BUF_SIZE_H263_DEC_V6(w, h)	((w) * 400)
 #define S5P_FIMV_SCRATCH_BUF_SIZE_VP8_DEC_V6(w, h) \
-			((w) * 32 + (h) * 128 + (((w) + 1) / 2) * 64 + 2112)
+	((w) * 32 + (h) * 128 + (((w) + 1) / 2) * 64 + 2112)
 #define S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V6(w, h) \
-			(((w) * 64) + (((w) + 1) * 16) + (4096 * 16))
+	(((w) * 64) + (((w) + 1) * 16) + (4096 * 16))
 #define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_ENC_V6(w, h) \
-			(((w) * 16) + (((w) + 1) * 16))
+	(((w) * 16) + (((w) + 1) * 16))
 
 /* MFC Context buffer sizes */
 #define MFC_CTX_BUF_SIZE_V6		(28 * SZ_1K)	/*  28KB */

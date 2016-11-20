@@ -73,8 +73,8 @@ extern const struct mvs_dispatch mvs_94xx_dispatch;
 
 #define for_each_phy(__lseq_mask, __mc, __lseq)			\
 	for ((__mc) = (__lseq_mask), (__lseq) = 0;		\
-					(__mc) != 0 ;		\
-					(++__lseq), (__mc) >>= 1)
+		 (__mc) != 0 ;		\
+		 (++__lseq), (__mc) >>= 1)
 
 #define MVS_PHY_ID (1U << sas_phy->id)
 #define MV_INIT_DELAYED_WORK(w, f, d)	INIT_DELAYED_WORK(w, f)
@@ -91,12 +91,14 @@ extern const struct mvs_dispatch mvs_94xx_dispatch;
 #define SATA_RECEIVED_DMA_FIS(reg_set)	\
 	(SATA_RECEIVED_FIS_LIST(reg_set) + 0x00)
 
-enum dev_status {
+enum dev_status
+{
 	MVS_DEV_NORMAL = 0x0,
 	MVS_DEV_EH	= 0x1,
 };
 
-enum dev_reset {
+enum dev_reset
+{
 	MVS_SOFT_RESET	= 0,
 	MVS_HARD_RESET	= 1,
 	MVS_PHY_TUNE	= 2,
@@ -105,7 +107,8 @@ enum dev_reset {
 struct mvs_info;
 struct mvs_prv_info;
 
-struct mvs_dispatch {
+struct mvs_dispatch
+{
 	char *name;
 	int (*chip_init)(struct mvs_info *mvi);
 	int (*spi_init)(struct mvs_info *mvi);
@@ -136,7 +139,7 @@ struct mvs_dispatch {
 	void (*command_active)(struct mvs_info *mvi, u32 slot_idx);
 	void (*clear_srs_irq)(struct mvs_info *mvi, u8 reg_set, u8 clear_all);
 	void (*issue_stop)(struct mvs_info *mvi, enum mvs_port_type type,
-				u32 tfs);
+					   u32 tfs);
 	void (*start_delivery)(struct mvs_info *mvi, u32 tx);
 	u32 (*rx_update)(struct mvs_info *mvi);
 	void (*int_full)(struct mvs_info *mvi);
@@ -148,10 +151,10 @@ struct mvs_dispatch {
 	void (*detect_porttype)(struct mvs_info *mvi, int i);
 	int (*oob_done)(struct mvs_info *mvi, int i);
 	void (*fix_phy_info)(struct mvs_info *mvi, int i,
-				struct sas_identify_frame *id);
+						 struct sas_identify_frame *id);
 	void (*phy_work_around)(struct mvs_info *mvi, int i);
 	void (*phy_set_link_rate)(struct mvs_info *mvi, u32 phy_id,
-				struct sas_phy_linkrates *rates);
+							  struct sas_phy_linkrates *rates);
 	u32 (*phy_max_link_rate)(void);
 	void (*phy_disable)(struct mvs_info *mvi, u32 phy_id);
 	void (*phy_enable)(struct mvs_info *mvi, u32 phy_id);
@@ -166,19 +169,20 @@ struct mvs_dispatch {
 						u8       read,
 						u8       length,
 						u32      addr
-						);
+					   );
 	int (*spi_issuecmd)(struct mvs_info *mvi, u32 cmd);
 	int (*spi_waitdataready)(struct mvs_info *mvi, u32 timeout);
 	void (*dma_fix)(struct mvs_info *mvi, u32 phy_mask,
-				int buf_len, int from, void *prd);
+					int buf_len, int from, void *prd);
 	void (*tune_interrupt)(struct mvs_info *mvi, u32 time);
 	void (*non_spec_ncq_error)(struct mvs_info *mvi);
 	int (*gpio_write)(struct mvs_prv_info *mvs_prv, u8 reg_type,
-			u8 reg_index, u8 reg_count, u8 *write_data);
+					  u8 reg_index, u8 reg_count, u8 *write_data);
 
 };
 
-struct mvs_chip_info {
+struct mvs_chip_info
+{
 	u32 		n_host;
 	u32 		n_phy;
 	u32 		fis_offs;
@@ -194,12 +198,14 @@ struct mvs_chip_info {
 	(mvi->chip->fis_offs + (mvi->chip->fis_count * 0x100))
 #define MVS_CHIP_DISP		(mvi->chip->dispatch)
 
-struct mvs_err_info {
+struct mvs_err_info
+{
 	__le32			flags;
 	__le32			flags2;
 };
 
-struct mvs_cmd_hdr {
+struct mvs_cmd_hdr
+{
 	__le32			flags;	/* PRD tbl len; SAS, SATA ctl */
 	__le32			lens;	/* cmd, max resp frame len */
 	__le32			tags;	/* targ port xfer tag; tag */
@@ -211,14 +217,16 @@ struct mvs_cmd_hdr {
 	__le32			reserved[4];
 };
 
-struct mvs_port {
+struct mvs_port
+{
 	struct asd_sas_port	sas_port;
 	u8			port_attached;
 	u8			wide_port_phymap;
 	struct list_head	list;
 };
 
-struct mvs_phy {
+struct mvs_phy
+{
 	struct mvs_info 		*mvi;
 	struct mvs_port		*port;
 	struct asd_sas_phy	sas_phy;
@@ -242,7 +250,8 @@ struct mvs_phy {
 	enum sas_linkrate	maximum_linkrate;
 };
 
-struct mvs_device {
+struct mvs_device
+{
 	struct list_head		dev_entry;
 	enum sas_device_type dev_type;
 	struct mvs_info *mvi_info;
@@ -257,30 +266,32 @@ struct mvs_device {
 };
 
 /* Generate  PHY tunning parameters */
-struct phy_tuning {
+struct phy_tuning
+{
 	/* 1 bit,  transmitter emphasis enable	*/
-	u8	trans_emp_en:1;
+	u8	trans_emp_en: 1;
 	/* 4 bits, transmitter emphasis amplitude */
-	u8	trans_emp_amp:4;
+	u8	trans_emp_amp: 4;
 	/* 3 bits, reserved space */
-	u8	Reserved_2bit_1:3;
+	u8	Reserved_2bit_1: 3;
 	/* 5 bits, transmitter amplitude */
-	u8	trans_amp:5;
+	u8	trans_amp: 5;
 	/* 2 bits, transmitter amplitude adjust */
-	u8	trans_amp_adj:2;
+	u8	trans_amp_adj: 2;
 	/* 1 bit, reserved space */
-	u8	resv_2bit_2:1;
+	u8	resv_2bit_2: 1;
 	/* 2 bytes, reserved space */
 	u8	reserved[2];
 };
 
-struct ffe_control {
+struct ffe_control
+{
 	/* 4 bits,  FFE Capacitor Select  (value range 0~F)  */
-	u8 ffe_cap_sel:4;
+	u8 ffe_cap_sel: 4;
 	/* 3 bits,  FFE Resistor Select (value range 0~7) */
-	u8 ffe_rss_sel:3;
+	u8 ffe_rss_sel: 3;
 	/* 1 bit reserve*/
-	u8 reserved:1;
+	u8 reserved: 1;
 };
 
 /*
@@ -288,7 +299,8 @@ struct ffe_control {
  * The data area is valid only Signature="MRVL".
  * If any member fills with 0xFF, the member is invalid.
  */
-struct hba_info_page {
+struct hba_info_page
+{
 	/* Dword 0 */
 	/* 4 bytes, structure signature,should be "MRVL" at first initial */
 	u8 signature[4];
@@ -323,9 +335,11 @@ struct hba_info_page {
 	u32 reserved3[10];
 };	/* total 256 bytes */
 
-struct mvs_slot_info {
+struct mvs_slot_info
+{
 	struct list_head entry;
-	union {
+	union
+	{
 		struct sas_task *task;
 		void *tdata;
 	};
@@ -344,7 +358,8 @@ struct mvs_slot_info {
 	void *open_frame;
 };
 
-struct mvs_info {
+struct mvs_info
+{
 	unsigned long flags;
 
 	/* host-wide lock */
@@ -417,7 +432,8 @@ struct mvs_info {
 	struct mvs_slot_info slot_info[0];
 };
 
-struct mvs_prv_info{
+struct mvs_prv_info
+{
 	u8 n_host;
 	u8 n_phy;
 	u8 scan_finished;
@@ -426,7 +442,8 @@ struct mvs_prv_info{
 	struct tasklet_struct mv_tasklet;
 };
 
-struct mvs_wq {
+struct mvs_wq
+{
 	struct delayed_work work_q;
 	struct mvs_info *mvi;
 	void *data;
@@ -434,7 +451,8 @@ struct mvs_wq {
 	struct list_head entry;
 };
 
-struct mvs_task_exec_info {
+struct mvs_task_exec_info
+{
 	struct sas_task *task;
 	struct mvs_cmd_hdr *hdr;
 	struct mvs_port *port;
@@ -453,16 +471,16 @@ void mvs_iounmap(void __iomem *regs);
 int mvs_ioremap(struct mvs_info *mvi, int bar, int bar_ex);
 void mvs_phys_reset(struct mvs_info *mvi, u32 phy_mask, int hard);
 int mvs_phy_control(struct asd_sas_phy *sas_phy, enum phy_func func,
-			void *funcdata);
+					void *funcdata);
 void mvs_set_sas_addr(struct mvs_info *mvi, int port_id, u32 off_lo,
-		      u32 off_hi, u64 sas_addr);
+					  u32 off_hi, u64 sas_addr);
 void mvs_scan_start(struct Scsi_Host *shost);
 int mvs_scan_finished(struct Scsi_Host *shost, unsigned long time);
 int mvs_queue_command(struct sas_task *task, gfp_t gfp_flags);
 int mvs_abort_task(struct sas_task *task);
 int mvs_abort_task_set(struct domain_device *dev, u8 *lun);
 int mvs_clear_aca(struct domain_device *dev, u8 *lun);
-int mvs_clear_task_set(struct domain_device *dev, u8 * lun);
+int mvs_clear_task_set(struct domain_device *dev, u8 *lun);
 void mvs_port_formed(struct asd_sas_phy *sas_phy);
 void mvs_port_deformed(struct asd_sas_phy *sas_phy);
 int mvs_dev_found(struct domain_device *dev);
@@ -472,14 +490,14 @@ int mvs_slot_complete(struct mvs_info *mvi, u32 rx_desc, u32 flags);
 int mvs_I_T_nexus_reset(struct domain_device *dev);
 int mvs_query_task(struct sas_task *task);
 void mvs_release_task(struct mvs_info *mvi,
-			struct domain_device *dev);
+					  struct domain_device *dev);
 void mvs_do_release_task(struct mvs_info *mvi, int phy_no,
-			struct domain_device *dev);
+						 struct domain_device *dev);
 void mvs_int_port(struct mvs_info *mvi, int phy_no, u32 events);
 void mvs_update_phyinfo(struct mvs_info *mvi, int i, int get_st);
 int mvs_int_rx(struct mvs_info *mvi, bool self_clear);
 struct mvs_device *mvs_find_dev_by_reg_set(struct mvs_info *mvi, u8 reg_set);
 int mvs_gpio_write(struct sas_ha_struct *, u8 reg_type, u8 reg_index,
-			u8 reg_count, u8 *write_data);
+				   u8 reg_count, u8 *write_data);
 #endif
 

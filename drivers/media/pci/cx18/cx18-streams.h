@@ -34,9 +34,9 @@ void cx18_stream_rotate_idx_mdls(struct cx18 *cx);
 static inline bool cx18_stream_enabled(struct cx18_stream *s)
 {
 	return s->video_dev.v4l2_dev ||
-	       (s->dvb && s->dvb->enabled) ||
-	       (s->type == CX18_ENC_STREAM_TYPE_IDX &&
-		s->cx->stream_buffers[CX18_ENC_STREAM_TYPE_IDX] != 0);
+		   (s->dvb && s->dvb->enabled) ||
+		   (s->type == CX18_ENC_STREAM_TYPE_IDX &&
+			s->cx->stream_buffers[CX18_ENC_STREAM_TYPE_IDX] != 0);
 }
 
 /* Related to submission of mdls to firmware */
@@ -46,7 +46,7 @@ static inline void cx18_stream_load_fw_queue(struct cx18_stream *s)
 }
 
 static inline void cx18_stream_put_mdl_fw(struct cx18_stream *s,
-					  struct cx18_mdl *mdl)
+		struct cx18_mdl *mdl)
 {
 	/* Put mdl on q_free; the out work handler will move mdl(s) to q_busy */
 	cx18_enqueue(s, mdl, &s->q_free);

@@ -61,24 +61,27 @@
 #define NELR_PORTSTATE_CHG	EHEA_BMASK_IBM(63, 63)
 
 static inline void hcp_epas_ctor(struct h_epas *epas, u64 paddr_kernel,
-				 u64 paddr_user)
+								 u64 paddr_user)
 {
 	/* To support 64k pages we must round to 64k page boundary */
 	epas->kernel.addr = ioremap((paddr_kernel & PAGE_MASK), PAGE_SIZE) +
-			    (paddr_kernel & ~PAGE_MASK);
+						(paddr_kernel & ~PAGE_MASK);
 	epas->user.addr = paddr_user;
 }
 
 static inline void hcp_epas_dtor(struct h_epas *epas)
 {
 	if (epas->kernel.addr)
+	{
 		iounmap((void __iomem *)((u64)epas->kernel.addr & PAGE_MASK));
+	}
 
 	epas->user.addr = 0;
 	epas->kernel.addr = 0;
 }
 
-struct hcp_modify_qp_cb0 {
+struct hcp_modify_qp_cb0
+{
 	u64 qp_ctl_reg;		/* 00 */
 	u32 max_swqe;		/* 02 */
 	u32 max_rwqe;		/* 03 */
@@ -99,7 +102,7 @@ struct hcp_modify_qp_cb0 {
 
 /* Queue Pair Control Register Status Bits */
 #define H_QP_CR_ENABLED		    0x8000000000000000ULL /* QP enabled */
-							  /* QP States: */
+/* QP States: */
 #define H_QP_CR_STATE_RESET	    0x0000010000000000ULL /*  Reset */
 #define H_QP_CR_STATE_INITIALIZED   0x0000020000000000ULL /*  Initialized */
 #define H_QP_CR_STATE_RDY2RCV	    0x0000030000000000ULL /*  Ready to recv */
@@ -107,7 +110,8 @@ struct hcp_modify_qp_cb0 {
 #define H_QP_CR_STATE_ERROR	    0x0000800000000000ULL /*  Error */
 #define H_QP_CR_RES_STATE 	    0x0000007F00000000ULL /* Resultant state */
 
-struct hcp_modify_qp_cb1 {
+struct hcp_modify_qp_cb1
+{
 	u32 qpn;		/* 00 */
 	u32 qp_asyn_ev_eq_nb;	/* 01 */
 	u64 sq_cq_handle;	/* 02 */
@@ -130,7 +134,8 @@ struct hcp_modify_qp_cb1 {
 #define H_QPCB1_SGEL_NB_RQ2     EHEA_BMASK_IBM(6, 6)
 #define H_QPCB1_SGEL_NB_RQ3     EHEA_BMASK_IBM(7, 7)
 
-struct hcp_query_ehea {
+struct hcp_query_ehea
+{
 	u32 cur_num_qps;		/* 00 */
 	u32 cur_num_cqs;		/* 01 */
 	u32 cur_num_eqs;		/* 02 */
@@ -177,7 +182,8 @@ struct hcp_query_ehea {
 #define H_PORT_CB6	 6
 #define H_PORT_CB7	 7
 
-struct hcp_ehea_port_cb0 {
+struct hcp_ehea_port_cb0
+{
 	u64 port_mac_addr;
 	u64 port_rc;
 	u64 reserved0;
@@ -226,13 +232,15 @@ struct hcp_ehea_port_cb0 {
 
 #define H_PORT_CB1_ALL          0x8000000000000000ULL
 
-struct hcp_ehea_port_cb1 {
+struct hcp_ehea_port_cb1
+{
 	u64 vlan_filter[64];
 };
 
 #define H_PORT_CB2_ALL          0xFFE0000000000000ULL
 
-struct hcp_ehea_port_cb2 {
+struct hcp_ehea_port_cb2
+{
 	u64 rxo;
 	u64 rxucp;
 	u64 rxufd;
@@ -246,7 +254,8 @@ struct hcp_ehea_port_cb2 {
 	u64 txbcp;
 };
 
-struct hcp_ehea_port_cb3 {
+struct hcp_ehea_port_cb3
+{
 	u64 vlan_bc_filter[64];
 	u64 vlan_mc_filter[64];
 	u64 vlan_un_filter[64];
@@ -257,7 +266,8 @@ struct hcp_ehea_port_cb3 {
 #define H_PORT_CB4_JUMBO        0x1000000000000000ULL
 #define H_PORT_CB4_SPEED        0x8000000000000000ULL
 
-struct hcp_ehea_port_cb4 {
+struct hcp_ehea_port_cb4
+{
 	u32 port_speed;
 	u32 pause_frame;
 	u32 ens_port_op_state;
@@ -269,7 +279,8 @@ struct hcp_ehea_port_cb4 {
 #define H_PORT_CB5_RCU		0x0001000000000000ULL
 #define PXS_RCU			EHEA_BMASK_IBM(61, 63)
 
-struct hcp_ehea_port_cb5 {
+struct hcp_ehea_port_cb5
+{
 	u64 prc;	        /* 00 */
 	u64 uaa;		/* 01 */
 	u64 macvc;		/* 02 */
@@ -299,7 +310,8 @@ struct hcp_ehea_port_cb5 {
 
 #define H_PORT_CB6_ALL  0xFFFFFE7FFFFF8000ULL
 
-struct hcp_ehea_port_cb6 {
+struct hcp_ehea_port_cb6
+{
 	u64 rxo;		/* 00 */
 	u64 rx64;		/* 01 */
 	u64 rx65;		/* 02 */
@@ -353,43 +365,44 @@ struct hcp_ehea_port_cb6 {
 
 #define H_PORT_CB7_DUCQPN 0x8000000000000000ULL
 
-struct hcp_ehea_port_cb7 {
+struct hcp_ehea_port_cb7
+{
 	u64 def_uc_qpn;
 };
 
 u64 ehea_h_query_ehea_qp(const u64 adapter_handle,
-			 const u8 qp_category,
-			 const u64 qp_handle, const u64 sel_mask,
-			 void *cb_addr);
+						 const u8 qp_category,
+						 const u64 qp_handle, const u64 sel_mask,
+						 void *cb_addr);
 
 u64 ehea_h_modify_ehea_qp(const u64 adapter_handle,
-			  const u8 cat,
-			  const u64 qp_handle,
-			  const u64 sel_mask,
-			  void *cb_addr,
-			  u64 *inv_attr_id,
-			  u64 *proc_mask, u16 *out_swr, u16 *out_rwr);
+						  const u8 cat,
+						  const u64 qp_handle,
+						  const u64 sel_mask,
+						  void *cb_addr,
+						  u64 *inv_attr_id,
+						  u64 *proc_mask, u16 *out_swr, u16 *out_rwr);
 
 u64 ehea_h_alloc_resource_eq(const u64 adapter_handle,
-			     struct ehea_eq_attr *eq_attr, u64 *eq_handle);
+							 struct ehea_eq_attr *eq_attr, u64 *eq_handle);
 
 u64 ehea_h_alloc_resource_cq(const u64 adapter_handle,
-			     struct ehea_cq_attr *cq_attr,
-			     u64 *cq_handle, struct h_epas *epas);
+							 struct ehea_cq_attr *cq_attr,
+							 u64 *cq_handle, struct h_epas *epas);
 
 u64 ehea_h_alloc_resource_qp(const u64 adapter_handle,
-			     struct ehea_qp_init_attr *init_attr,
-			     const u32 pd,
-			     u64 *qp_handle, struct h_epas *h_epas);
+							 struct ehea_qp_init_attr *init_attr,
+							 const u32 pd,
+							 u64 *qp_handle, struct h_epas *h_epas);
 
 #define H_REG_RPAGE_PAGE_SIZE          EHEA_BMASK_IBM(48, 55)
 #define H_REG_RPAGE_QT                 EHEA_BMASK_IBM(62, 63)
 
 u64 ehea_h_register_rpage(const u64 adapter_handle,
-			  const u8 pagesize,
-			  const u8 queue_type,
-			  const u64 resource_handle,
-			  const u64 log_pageaddr, u64 count);
+						  const u8 pagesize,
+						  const u8 queue_type,
+						  const u64 resource_handle,
+						  const u64 log_pageaddr, u64 count);
 
 #define H_DISABLE_GET_EHEA_WQE_P  1
 #define H_DISABLE_GET_SQ_WQE_P    2
@@ -401,19 +414,19 @@ u64 ehea_h_disable_and_get_hea(const u64 adapter_handle, const u64 qp_handle);
 #define NORMAL_FREE 0
 
 u64 ehea_h_free_resource(const u64 adapter_handle, const u64 res_handle,
-			 u64 force_bit);
+						 u64 force_bit);
 
 u64 ehea_h_alloc_resource_mr(const u64 adapter_handle, const u64 vaddr,
-			     const u64 length, const u32 access_ctrl,
-			     const u32 pd, u64 *mr_handle, u32 *lkey);
+							 const u64 length, const u32 access_ctrl,
+							 const u32 pd, u64 *mr_handle, u32 *lkey);
 
 u64 ehea_h_register_rpage_mr(const u64 adapter_handle, const u64 mr_handle,
-			     const u8 pagesize, const u8 queue_type,
-			     const u64 log_pageaddr, const u64 count);
+							 const u8 pagesize, const u8 queue_type,
+							 const u64 log_pageaddr, const u64 count);
 
 u64 ehea_h_register_smr(const u64 adapter_handle, const u64 orig_mr_handle,
-			const u64 vaddr_in, const u32 access_ctrl, const u32 pd,
-			struct ehea_mr *mr);
+						const u64 vaddr_in, const u32 access_ctrl, const u32 pd,
+						struct ehea_mr *mr);
 
 u64 ehea_h_query_ehea(const u64 adapter_handle, void *cb_addr);
 
@@ -422,12 +435,12 @@ u64 ehea_h_query_ehea(const u64 adapter_handle, void *cb_addr);
 #define H_MEHEAPORT_PN		EHEA_BMASK_IBM(48, 63)
 
 u64 ehea_h_query_ehea_port(const u64 adapter_handle, const u16 port_num,
-			   const u8 cb_cat, const u64 select_mask,
-			   void *cb_addr);
+						   const u8 cb_cat, const u64 select_mask,
+						   void *cb_addr);
 
 u64 ehea_h_modify_ehea_port(const u64 adapter_handle, const u16 port_num,
-			    const u8 cb_cat, const u64 select_mask,
-			    void *cb_addr);
+							const u8 cb_cat, const u64 select_mask,
+							void *cb_addr);
 
 #define H_REGBCMC_PN            EHEA_BMASK_IBM(48, 63)
 #define H_REGBCMC_REGTYPE       EHEA_BMASK_IBM(60, 63)
@@ -435,13 +448,13 @@ u64 ehea_h_modify_ehea_port(const u64 adapter_handle, const u16 port_num,
 #define H_REGBCMC_VLANID        EHEA_BMASK_IBM(52, 63)
 
 u64 ehea_h_reg_dereg_bcmc(const u64 adapter_handle, const u16 port_num,
-			  const u8 reg_type, const u64 mc_mac_addr,
-			  const u16 vlan_id, const u32 hcall_id);
+						  const u8 reg_type, const u64 mc_mac_addr,
+						  const u16 vlan_id, const u32 hcall_id);
 
 u64 ehea_h_reset_events(const u64 adapter_handle, const u64 neq_handle,
-			const u64 event_mask);
+						const u64 event_mask);
 
 u64 ehea_h_error_data(const u64 adapter_handle, const u64 ressource_handle,
-		      void *rblock);
+					  void *rblock);
 
 #endif	/* __EHEA_PHYP_H__ */

@@ -39,18 +39,19 @@
  * @bitoriend2:	Bit orientation (1=MSB first)
  * @bitinvd2:	Secondary decoder bit inversion switch (1=don't invert)
  */
-struct img_ir_control {
-	unsigned decoden:1;
-	unsigned code_type:2;
-	unsigned hdrtog:1;
-	unsigned ldrdec:1;
-	unsigned decodinpol:1;
-	unsigned bitorien:1;
-	unsigned d1validsel:1;
-	unsigned bitinv:1;
-	unsigned decodend2:1;
-	unsigned bitoriend2:1;
-	unsigned bitinvd2:1;
+struct img_ir_control
+{
+	unsigned decoden: 1;
+	unsigned code_type: 2;
+	unsigned hdrtog: 1;
+	unsigned ldrdec: 1;
+	unsigned decodinpol: 1;
+	unsigned bitorien: 1;
+	unsigned d1validsel: 1;
+	unsigned bitinv: 1;
+	unsigned decodend2: 1;
+	unsigned bitoriend2: 1;
+	unsigned bitinvd2: 1;
 };
 
 /**
@@ -60,7 +61,8 @@ struct img_ir_control {
  *		preprocessing step, so it is normally not explicitly initialised
  *		and is taken care of by the tolerance)
  */
-struct img_ir_timing_range {
+struct img_ir_timing_range
+{
 	u16 min;
 	u16 max;
 };
@@ -70,7 +72,8 @@ struct img_ir_timing_range {
  * @pulse:	Timing range for the length of the pulse in this symbol
  * @space:	Timing range for the length of the space in this symbol
  */
-struct img_ir_symbol_timing {
+struct img_ir_symbol_timing
+{
 	struct img_ir_timing_range pulse;
 	struct img_ir_timing_range space;
 };
@@ -81,7 +84,8 @@ struct img_ir_symbol_timing {
  * @maxlen:	Maximum number of bits of data
  * @ft_min:	Minimum free time after message
  */
-struct img_ir_free_timing {
+struct img_ir_free_timing
+{
 	/* measured in bits */
 	u8 minlen;
 	u8 maxlen;
@@ -97,7 +101,8 @@ struct img_ir_free_timing {
  * @s11:	One symbol timing data for secondary (no leader symbol) decoder
  * @ft:		Free time symbol timing data
  */
-struct img_ir_timings {
+struct img_ir_timings
+{
 	struct img_ir_symbol_timing ldr, s00, s01, s10, s11;
 	struct img_ir_free_timing ft;
 };
@@ -109,7 +114,8 @@ struct img_ir_timings {
  * @minlen:	Additional minimum number of bits.
  * @maxlen:	Additional maximum number of bits.
  */
-struct img_ir_filter {
+struct img_ir_filter
+{
 	u64 data;
 	u64 mask;
 	u8 minlen;
@@ -125,7 +131,8 @@ struct img_ir_filter {
  * @s11:	One symbol timing register value for secondary decoder
  * @ft:		Free time symbol timing register value
  */
-struct img_ir_timing_regvals {
+struct img_ir_timing_regvals
+{
 	u32 ldr, s00, s01, s10, s11, ft;
 };
 
@@ -140,7 +147,8 @@ struct img_ir_timing_regvals {
  *		handler if IMG_IR_SCANCODE is returned).
  * @toggle:	Toggle bit (defaults to 0).
  */
-struct img_ir_scancode_req {
+struct img_ir_scancode_req
+{
 	enum rc_type protocol;
 	u32 scancode;
 	u8 toggle;
@@ -165,7 +173,8 @@ struct img_ir_scancode_req {
  *		filter. The minlen and maxlen fields will have been initialised
  *		to the maximum range.
  */
-struct img_ir_decoder {
+struct img_ir_decoder
+{
 	/* core description */
 	u64				type;
 	unsigned int			tolerance;
@@ -177,9 +186,9 @@ struct img_ir_decoder {
 
 	/* scancode logic */
 	int (*scancode)(int len, u64 raw, u64 enabled_protocols,
-			struct img_ir_scancode_req *request);
+					struct img_ir_scancode_req *request);
 	int (*filter)(const struct rc_scancode_filter *in,
-		      struct img_ir_filter *out, u64 protocols);
+				  struct img_ir_filter *out, u64 protocols);
 };
 
 extern struct img_ir_decoder img_ir_nec;
@@ -196,7 +205,8 @@ extern struct img_ir_decoder img_ir_rc6;
  * @timings:	Processed primary timings.
  * @rtimings:	Processed repeat timings.
  */
-struct img_ir_reg_timings {
+struct img_ir_reg_timings
+{
 	u32				ctrl;
 	struct img_ir_timing_regvals	timings;
 	struct img_ir_timing_regvals	rtimings;
@@ -206,7 +216,8 @@ struct img_ir_priv;
 
 #ifdef CONFIG_IR_IMG_HW
 
-enum img_ir_mode {
+enum img_ir_mode
+{
 	IMG_IR_M_NORMAL,
 	IMG_IR_M_REPEATING,
 #ifdef CONFIG_PM_SLEEP
@@ -233,7 +244,8 @@ enum img_ir_mode {
  * @suspend_irqen:	Saved IRQ enable mask over suspend.
  * @quirk_suspend_irq:	Saved IRQ enable mask over quirk suspend timer.
  */
-struct img_ir_priv_hw {
+struct img_ir_priv_hw
+{
 	unsigned int			ct_quirks[4];
 	struct rc_dev			*rdev;
 	struct notifier_block		clk_nb;
@@ -263,16 +275,17 @@ int img_ir_probe_hw(struct img_ir_priv *priv);
 void img_ir_remove_hw(struct img_ir_priv *priv);
 
 #ifdef CONFIG_PM_SLEEP
-int img_ir_suspend(struct device *dev);
-int img_ir_resume(struct device *dev);
+	int img_ir_suspend(struct device *dev);
+	int img_ir_resume(struct device *dev);
 #else
-#define img_ir_suspend NULL
-#define img_ir_resume NULL
+	#define img_ir_suspend NULL
+	#define img_ir_resume NULL
 #endif
 
 #else
 
-struct img_ir_priv_hw {
+struct img_ir_priv_hw
+{
 };
 
 static inline bool img_ir_hw_enabled(struct img_ir_priv_hw *hw)

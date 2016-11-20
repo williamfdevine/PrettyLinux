@@ -17,7 +17,8 @@
 #include <linux/of_address.h>
 #include <linux/slab.h>
 
-struct rz_cpg {
+struct rz_cpg
+{
 	struct clk_onecell_data data;
 	void __iomem *reg;
 };
@@ -50,14 +51,15 @@ static u16 __init rz_cpg_read_mode_pins(void)
 	return modes;
 }
 
-static struct clk * __init
+static struct clk *__init
 rz_cpg_register_clock(struct device_node *np, struct rz_cpg *cpg, const char *name)
 {
 	u32 val;
 	unsigned mult;
 	static const unsigned frqcr_tab[4] = { 3, 2, 0, 1 };
 
-	if (strcmp(name, "pll") == 0) {
+	if (strcmp(name, "pll") == 0)
+	{
 		unsigned int cpg_mode = MD_CLK(rz_cpg_read_mode_pins());
 		const char *parent_name = of_clk_get_parent_name(np, cpg_mode);
 
@@ -68,18 +70,26 @@ rz_cpg_register_clock(struct device_node *np, struct rz_cpg *cpg, const char *na
 
 	/* If mapping regs failed, skip non-pll clocks. System will boot anyhow */
 	if (!cpg->reg)
+	{
 		return ERR_PTR(-ENXIO);
+	}
 
 	/* FIXME:"i" and "g" are variable clocks with non-integer dividers (e.g. 2/3)
 	 * and the constraint that always g <= i. To get the rz platform started,
 	 * let them run at fixed current speed and implement the details later.
 	 */
 	if (strcmp(name, "i") == 0)
+	{
 		val = (clk_readl(cpg->reg + CPG_FRQCR) >> 8) & 3;
+	}
 	else if (strcmp(name, "g") == 0)
+	{
 		val = clk_readl(cpg->reg + CPG_FRQCR2) & 3;
+	}
 	else
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	mult = frqcr_tab[val];
 	return clk_register_fixed_factor(NULL, name, "pll", 0, mult, 3);
@@ -93,8 +103,11 @@ static void __init rz_cpg_clocks_init(struct device_node *np)
 	int num_clks;
 
 	num_clks = of_property_count_strings(np, "clock-output-names");
+
 	if (WARN(num_clks <= 0, "can't count CPG clocks\n"))
+	{
 		return;
+	}
 
 	cpg = kzalloc(sizeof(*cpg), GFP_KERNEL);
 	clks = kzalloc(num_clks * sizeof(*clks), GFP_KERNEL);
@@ -105,18 +118,22 @@ static void __init rz_cpg_clocks_init(struct device_node *np)
 
 	cpg->reg = of_iomap(np, 0);
 
-	for (i = 0; i < num_clks; ++i) {
+	for (i = 0; i < num_clks; ++i)
+	{
 		const char *name;
 		struct clk *clk;
 
 		of_property_read_string_index(np, "clock-output-names", i, &name);
 
 		clk = rz_cpg_register_clock(np, cpg, name);
+
 		if (IS_ERR(clk))
 			pr_err("%s: failed to register %s %s clock (%ld)\n",
-			       __func__, np->name, name, PTR_ERR(clk));
+				   __func__, np->name, name, PTR_ERR(clk));
 		else
+		{
 			cpg->data.clks[i] = clk;
+		}
 	}
 
 	of_clk_add_provider(np, of_clk_src_onecell_get, &cpg->data);

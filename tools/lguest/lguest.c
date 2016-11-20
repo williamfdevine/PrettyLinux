@@ -45,7 +45,7 @@
 #include <linux/pci_regs.h>
 
 #ifndef VIRTIO_F_ANY_LAYOUT
-#define VIRTIO_F_ANY_LAYOUT		27
+	#define VIRTIO_F_ANY_LAYOUT		27
 #endif
 
 /*L:110
@@ -81,7 +81,7 @@ typedef uint8_t u8;
 
 #define BRIDGE_PFX "bridge:"
 #ifndef SIOCBRADDIF
-#define SIOCBRADDIF	0x89a2		/* add interface to bridge      */
+	#define SIOCBRADDIF	0x89a2		/* add interface to bridge      */
 #endif
 /* We can have up to 256 pages for devices. */
 #define DEVICE_PAGES 256
@@ -111,7 +111,8 @@ static unsigned int __thread cpu_id;
 #define MAX_PCI_DEVICES 32
 
 /* This is our list of devices. */
-struct device_list {
+struct device_list
+{
 	/* Counter to assign interrupt numbers. */
 	unsigned int next_irq;
 
@@ -129,12 +130,14 @@ static struct device_list devices;
  * Just like struct virtio_pci_cfg_cap in uapi/linux/virtio_pci.h,
  * but uses a u32 explicitly for the data.
  */
-struct virtio_pci_cfg_cap_u32 {
+struct virtio_pci_cfg_cap_u32
+{
 	struct virtio_pci_cap cap;
 	u32 pci_cfg_data; /* Data for BAR access. */
 };
 
-struct virtio_pci_mmio {
+struct virtio_pci_mmio
+{
 	struct virtio_pci_common_cfg cfg;
 	u16 notify;
 	u8 isr;
@@ -143,7 +146,8 @@ struct virtio_pci_mmio {
 };
 
 /* This is the layout (little-endian) of the PCI config space. */
-struct pci_config {
+struct pci_config
+{
 	u16 vendor_id, device_id;
 	u16 command, status;
 	u8 revid, prog_if, subclass, class;
@@ -165,7 +169,8 @@ struct pci_config {
 };
 
 /* The device structure describes a single device. */
-struct device {
+struct device
+{
 	/* The name of this device, for --verbose. */
 	const char *name;
 
@@ -179,7 +184,8 @@ struct device {
 	bool wrote_features_ok;
 
 	/* PCI configuration */
-	union {
+	union
+	{
 		struct pci_config config;
 		u32 config_words[sizeof(struct pci_config) / sizeof(u32)];
 	};
@@ -199,7 +205,8 @@ struct device {
 };
 
 /* The virtqueue structure describes a queue attached to a device. */
-struct virtqueue {
+struct virtqueue
+{
 	struct virtqueue *next;
 
 	/* Which device owns me. */
@@ -265,7 +272,7 @@ static struct termios orig_term;
 	errx(1, "%s: bad driver: " fmt, (d)->name, ## __VA_ARGS__)
 #define bad_driver_vq(vq, fmt, ...)			       \
 	errx(1, "%s vq %s: bad driver: " fmt, (vq)->dev->name, \
-	     vq->name, ## __VA_ARGS__)
+		 vq->name, ## __VA_ARGS__)
 
 /* Is this iovec empty? */
 static bool iov_empty(const struct iovec iov[], unsigned int num_iov)
@@ -274,31 +281,41 @@ static bool iov_empty(const struct iovec iov[], unsigned int num_iov)
 
 	for (i = 0; i < num_iov; i++)
 		if (iov[i].iov_len)
+		{
 			return false;
+		}
+
 	return true;
 }
 
 /* Take len bytes from the front of this iovec. */
 static void iov_consume(struct device *d,
-			struct iovec iov[], unsigned num_iov,
-			void *dest, unsigned len)
+						struct iovec iov[], unsigned num_iov,
+						void *dest, unsigned len)
 {
 	unsigned int i;
 
-	for (i = 0; i < num_iov; i++) {
+	for (i = 0; i < num_iov; i++)
+	{
 		unsigned int used;
 
 		used = iov[i].iov_len < len ? iov[i].iov_len : len;
-		if (dest) {
+
+		if (dest)
+		{
 			memcpy(dest, iov[i].iov_base, used);
 			dest += used;
 		}
+
 		iov[i].iov_base += used;
 		iov[i].iov_len -= used;
 		len -= used;
 	}
+
 	if (len != 0)
+	{
 		bad_driver(d, "iovec too short!");
+	}
 }
 
 /*L:100
@@ -335,8 +352,12 @@ static unsigned long to_guest_phys(const void *addr)
 static int open_or_die(const char *name, int flags)
 {
 	int fd = open(name, flags);
+
 	if (fd < 0)
+	{
 		err(1, "Failed to open %s", name);
+	}
+
 	return fd;
 }
 
@@ -351,15 +372,19 @@ static void *map_zeroed_pages(unsigned int num)
 	 * copied). We allocate an extra two pages PROT_NONE to act as guard
 	 * pages against read/write attempts that exceed allocated space.
 	 */
-	addr = mmap(NULL, getpagesize() * (num+2),
-		    PROT_NONE, MAP_PRIVATE, fd, 0);
+	addr = mmap(NULL, getpagesize() * (num + 2),
+				PROT_NONE, MAP_PRIVATE, fd, 0);
 
 	if (addr == MAP_FAILED)
+	{
 		err(1, "Mmapping %u pages of /dev/zero", num);
+	}
 
 	if (mprotect(addr + getpagesize(), getpagesize() * num,
-		     PROT_READ|PROT_WRITE) == -1)
+				 PROT_READ | PROT_WRITE) == -1)
+	{
 		err(1, "mprotect rw %u pages failed", num);
+	}
 
 	/*
 	 * One neat mmap feature is that you can close the fd, and it
@@ -378,7 +403,9 @@ static unsigned long get_mmio_region(size_t size)
 	size_t i;
 
 	if (!size)
+	{
 		return addr;
+	}
 
 	/* Size has to be a power of 2 (and multiple of 16) */
 	for (i = 1; i < size; i <<= 1);
@@ -406,14 +433,19 @@ static void map_at(int fd, void *addr, unsigned long offset, unsigned long len)
 	 * done to it.  This allows us to share untouched memory between
 	 * Guests.
 	 */
-	if (mmap(addr, len, PROT_READ|PROT_WRITE,
-		 MAP_FIXED|MAP_PRIVATE, fd, offset) != MAP_FAILED)
+	if (mmap(addr, len, PROT_READ | PROT_WRITE,
+			 MAP_FIXED | MAP_PRIVATE, fd, offset) != MAP_FAILED)
+	{
 		return;
+	}
 
 	/* pread does a seek and a read in one shot: saves a few lines. */
 	r = pread(fd, addr, len, offset);
+
 	if (r != len)
+	{
 		err(1, "Reading offset %lu len %lu gave %zi", offset, len, r);
+	}
 }
 
 /*
@@ -437,10 +469,12 @@ static unsigned long map_elf(int elf_fd, const Elf32_Ehdr *ehdr)
 	 * reasonable number of correctly-sized program headers.
 	 */
 	if (ehdr->e_type != ET_EXEC
-	    || ehdr->e_machine != EM_386
-	    || ehdr->e_phentsize != sizeof(Elf32_Phdr)
-	    || ehdr->e_phnum < 1 || ehdr->e_phnum > 65536U/sizeof(Elf32_Phdr))
+		|| ehdr->e_machine != EM_386
+		|| ehdr->e_phentsize != sizeof(Elf32_Phdr)
+		|| ehdr->e_phnum < 1 || ehdr->e_phnum > 65536U / sizeof(Elf32_Phdr))
+	{
 		errx(1, "Malformed elf header");
+	}
 
 	/*
 	 * An ELF executable contains an ELF header and a number of "program"
@@ -450,25 +484,33 @@ static unsigned long map_elf(int elf_fd, const Elf32_Ehdr *ehdr)
 
 	/* We read in all the program headers at once: */
 	if (lseek(elf_fd, ehdr->e_phoff, SEEK_SET) < 0)
+	{
 		err(1, "Seeking to program headers");
+	}
+
 	if (read(elf_fd, phdr, sizeof(phdr)) != sizeof(phdr))
+	{
 		err(1, "Reading program headers");
+	}
 
 	/*
 	 * Try all the headers: there are usually only three.  A read-only one,
 	 * a read-write one, and a "note" section which we don't load.
 	 */
-	for (i = 0; i < ehdr->e_phnum; i++) {
+	for (i = 0; i < ehdr->e_phnum; i++)
+	{
 		/* If this isn't a loadable segment, we ignore it */
 		if (phdr[i].p_type != PT_LOAD)
+		{
 			continue;
+		}
 
 		verbose("Section %i: size %i addr %p\n",
-			i, phdr[i].p_memsz, (void *)phdr[i].p_paddr);
+				i, phdr[i].p_memsz, (void *)phdr[i].p_paddr);
 
 		/* We map this section of the file at its physical address. */
 		map_at(elf_fd, from_guest_phys(phdr[i].p_paddr),
-		       phdr[i].p_offset, phdr[i].p_filesz);
+			   phdr[i].p_offset, phdr[i].p_filesz);
 	}
 
 	/* The entry point is given in the ELF header. */
@@ -500,14 +542,18 @@ static unsigned long load_bzimage(int fd)
 
 	/* Inside the setup_hdr, we expect the magic "HdrS" */
 	if (memcmp(&boot.hdr.header, "HdrS", 4) != 0)
+	{
 		errx(1, "This doesn't look like a bzImage to me");
+	}
 
 	/* Skip over the extra sectors of the header. */
-	lseek(fd, (boot.hdr.setup_sects+1) * 512, SEEK_SET);
+	lseek(fd, (boot.hdr.setup_sects + 1) * 512, SEEK_SET);
 
 	/* Now read everything into memory. in nice big chunks. */
 	while ((r = read(fd, p, 65536)) > 0)
+	{
 		p += r;
+	}
 
 	/* Finally, code32_start tells us where to enter the kernel. */
 	return boot.hdr.code32_start;
@@ -524,11 +570,15 @@ static unsigned long load_kernel(int fd)
 
 	/* Read in the first few bytes. */
 	if (read(fd, &hdr, sizeof(hdr)) != sizeof(hdr))
+	{
 		err(1, "Reading kernel");
+	}
 
 	/* If it's an ELF file, it starts with "\177ELF" */
 	if (memcmp(hdr.e_ident, ELFMAG, SELFMAG) == 0)
+	{
 		return map_elf(fd, &hdr);
+	}
 
 	/* Otherwise we assume it's a bzImage, and try to load it. */
 	return load_bzimage(fd);
@@ -544,7 +594,7 @@ static unsigned long load_kernel(int fd)
 static inline unsigned long page_align(unsigned long addr)
 {
 	/* Add upwards and truncate downwards. */
-	return ((addr + getpagesize()-1) & ~(getpagesize()-1));
+	return ((addr + getpagesize() - 1) & ~(getpagesize() - 1));
 }
 
 /*L:180
@@ -563,9 +613,12 @@ static unsigned long load_initrd(const char *name, unsigned long mem)
 	unsigned long len;
 
 	ifd = open_or_die(name, O_RDONLY);
+
 	/* fstat() is needed to get the file size. */
 	if (fstat(ifd, &st) < 0)
+	{
 		err(1, "fstat() on initrd '%s'", name);
+	}
 
 	/*
 	 * We map the initrd at the top of memory, but mmap wants it to be
@@ -578,7 +631,7 @@ static unsigned long load_initrd(const char *name, unsigned long mem)
 	 * little odd, but quite useful.
 	 */
 	close(ifd);
-	verbose("mapped initrd %s size=%lu @ %p\n", name, len, (void*)mem-len);
+	verbose("mapped initrd %s size=%lu @ %p\n", name, len, (void *)mem - len);
 
 	/* We return the initrd size. */
 	return len;
@@ -593,14 +646,18 @@ static void concat(char *dst, char *args[])
 {
 	unsigned int i, len = 0;
 
-	for (i = 0; args[i]; i++) {
-		if (i) {
-			strcat(dst+len, " ");
+	for (i = 0; args[i]; i++)
+	{
+		if (i)
+		{
+			strcat(dst + len, " ");
 			len++;
 		}
-		strcpy(dst+len, args[i]);
+
+		strcpy(dst + len, args[i]);
 		len += strlen(args[i]);
 	}
+
 	/* In case it's empty. */
 	dst[len] = '\0';
 }
@@ -614,15 +671,19 @@ static void concat(char *dst, char *args[])
 static void tell_kernel(unsigned long start)
 {
 	unsigned long args[] = { LHREQ_INITIALIZE,
-				 (unsigned long)guest_base,
-				 guest_limit / getpagesize(), start,
-				 (guest_mmio+getpagesize()-1) / getpagesize() };
+							 (unsigned long)guest_base,
+							 guest_limit / getpagesize(), start,
+							 (guest_mmio + getpagesize() - 1) / getpagesize()
+						   };
 	verbose("Guest: %p - %p (%#lx, MMIO %#lx)\n",
-		guest_base, guest_base + guest_limit,
-		guest_limit, guest_mmio);
+			guest_base, guest_base + guest_limit,
+			guest_limit, guest_mmio);
 	lguest_fd = open_or_die("/dev/lguest", O_RDWR);
+
 	if (write(lguest_fd, args, sizeof(args)) < 0)
+	{
 		err(1, "Writing to /dev/lguest");
+	}
 }
 /*:*/
 
@@ -635,8 +696,8 @@ static void tell_kernel(unsigned long start)
  * if something funny is going on:
  */
 static void *_check_pointer(struct device *d,
-			    unsigned long addr, unsigned int size,
-			    unsigned int line)
+							unsigned long addr, unsigned int size,
+							unsigned int line)
 {
 	/*
 	 * Check if the requested address and size exceeds the allocated memory,
@@ -644,7 +705,8 @@ static void *_check_pointer(struct device *d,
 	 */
 	if ((addr + size) > guest_limit || (addr + size) < addr)
 		bad_driver(d, "%s:%i: Invalid address %#lx",
-			   __FILE__, line, addr);
+				   __FILE__, line, addr);
+
 	/*
 	 * We return a pointer for the caller's convenience, now we know it's
 	 * safe to use.
@@ -660,13 +722,15 @@ static void *_check_pointer(struct device *d,
  * at the end.
  */
 static unsigned next_desc(struct device *d, struct vring_desc *desc,
-			  unsigned int i, unsigned int max)
+						  unsigned int i, unsigned int max)
 {
 	unsigned int next;
 
 	/* If this descriptor says it doesn't chain, we're done. */
 	if (!(desc[i].flags & VRING_DESC_F_NEXT))
+	{
 		return max;
+	}
 
 	/* Check they're not leading us off end of descriptors. */
 	next = desc[i].next;
@@ -674,7 +738,9 @@ static unsigned next_desc(struct device *d, struct vring_desc *desc,
 	wmb();
 
 	if (next >= max)
+	{
 		bad_driver(d, "Desc next is %u", next);
+	}
 
 	return next;
 }
@@ -689,17 +755,22 @@ static void trigger_irq(struct virtqueue *vq)
 
 	/* Don't inform them if nothing used. */
 	if (!vq->pending_used)
+	{
 		return;
+	}
+
 	vq->pending_used = 0;
 
 	/*
 	 * 2.4.7.1:
 	 *
 	 *  If the VIRTIO_F_EVENT_IDX feature bit is not negotiated:
-	 *    The driver MUST set flags to 0 or 1. 
+	 *    The driver MUST set flags to 0 or 1.
 	 */
 	if (vq->vring.avail->flags > 1)
+	{
 		bad_driver_vq(vq, "avail->flags = %u\n", vq->vring.avail->flags);
+	}
 
 	/*
 	 * 2.4.7.2:
@@ -711,7 +782,8 @@ static void trigger_irq(struct virtqueue *vq)
 	 *         - If flags is 1, the device SHOULD NOT send an interrupt.
 	 *         - If flags is 0, the device MUST send an interrupt.
 	 */
-	if (vq->vring.avail->flags & VRING_AVAIL_F_NO_INTERRUPT) {
+	if (vq->vring.avail->flags & VRING_AVAIL_F_NO_INTERRUPT)
+	{
 		return;
 	}
 
@@ -726,7 +798,9 @@ static void trigger_irq(struct virtqueue *vq)
 
 	/* Send the Guest an interrupt tell them we used something up. */
 	if (write(lguest_fd, buf, sizeof(buf)) != 0)
+	{
 		err(1, "Triggering irq %i", vq->dev->config.irq_line);
+	}
 }
 
 /*
@@ -738,8 +812,8 @@ static void trigger_irq(struct virtqueue *vq)
  * This function waits if necessary, and returns the descriptor number found.
  */
 static unsigned wait_for_vq_desc(struct virtqueue *vq,
-				 struct iovec iov[],
-				 unsigned int *out_num, unsigned int *in_num)
+								 struct iovec iov[],
+								 unsigned int *out_num, unsigned int *in_num)
 {
 	unsigned int i, head, max;
 	struct vring_desc *desc;
@@ -754,7 +828,8 @@ static unsigned wait_for_vq_desc(struct virtqueue *vq,
 	 */
 
 	/* There's nothing available? */
-	while (last_avail == vq->vring.avail->idx) {
+	while (last_avail == vq->vring.avail->idx)
+	{
 		u64 event;
 
 		/*
@@ -771,14 +846,18 @@ static unsigned wait_for_vq_desc(struct virtqueue *vq,
 		 * sure it's written, then check again.
 		 */
 		mb();
-		if (last_avail != vq->vring.avail->idx) {
+
+		if (last_avail != vq->vring.avail->idx)
+		{
 			vq->vring.used->flags |= VRING_USED_F_NO_NOTIFY;
 			break;
 		}
 
 		/* Nothing new?  Wait for eventfd to tell us they refilled. */
 		if (read(vq->eventfd, &event, sizeof(event)) != sizeof(event))
+		{
 			errx(1, "Event read failed?");
+		}
 
 		/* We don't need to be notified again. */
 		vq->vring.used->flags |= VRING_USED_F_NO_NOTIFY;
@@ -787,9 +866,9 @@ static unsigned wait_for_vq_desc(struct virtqueue *vq,
 	/* Check it isn't doing very strange things with descriptor numbers. */
 	if ((u16)(vq->vring.avail->idx - last_avail) > vq->vring.num)
 		bad_driver_vq(vq, "Guest moved used index from %u to %u",
-			      last_avail, vq->vring.avail->idx);
+					  last_avail, vq->vring.avail->idx);
 
-	/* 
+	/*
 	 * Make sure we read the descriptor number *after* we read the ring
 	 * update; don't let the cpu or compiler change the order.
 	 */
@@ -804,7 +883,9 @@ static unsigned wait_for_vq_desc(struct virtqueue *vq,
 
 	/* If their number is silly, that's a fatal mistake. */
 	if (head >= vq->vring.num)
+	{
 		bad_driver_vq(vq, "Guest says index %u is available", head);
+	}
 
 	/* When we start there are none of either input nor output. */
 	*out_num = *in_num = 0;
@@ -819,13 +900,15 @@ static unsigned wait_for_vq_desc(struct virtqueue *vq,
 	 * that: no rmb() required.
 	 */
 
-	do {
+	do
+	{
 		/*
 		 * If this is an indirect entry, then this buffer contains a
 		 * descriptor table which we handle as if it's any normal
 		 * descriptor chain.
 		 */
-		if (desc[i].flags & VRING_DESC_F_INDIRECT) {
+		if (desc[i].flags & VRING_DESC_F_INDIRECT)
+		{
 			/* 2.4.5.3.1:
 			 *
 			 *  The driver MUST NOT set the VIRTQ_DESC_F_INDIRECT
@@ -833,8 +916,10 @@ static unsigned wait_for_vq_desc(struct virtqueue *vq,
 			 *  negotiated.
 			 */
 			if (!(vq->dev->features_accepted &
-			      (1<<VIRTIO_RING_F_INDIRECT_DESC)))
+				  (1 << VIRTIO_RING_F_INDIRECT_DESC)))
+			{
 				bad_driver_vq(vq, "vq indirect not negotiated");
+			}
 
 			/*
 			 * 2.4.5.3.1:
@@ -844,7 +929,9 @@ static unsigned wait_for_vq_desc(struct virtqueue *vq,
 			 *   table per descriptor).
 			 */
 			if (desc != vq->vring.desc)
+			{
 				bad_driver_vq(vq, "Indirect within indirect");
+			}
 
 			/*
 			 * Proposed update VIRTIO-134 spells this out:
@@ -853,11 +940,14 @@ static unsigned wait_for_vq_desc(struct virtqueue *vq,
 			 *   and VIRTQ_DESC_F_NEXT in flags.
 			 */
 			if (desc[i].flags & VRING_DESC_F_NEXT)
+			{
 				bad_driver_vq(vq, "indirect and next together");
+			}
 
 			if (desc[i].len % sizeof(struct vring_desc))
 				bad_driver_vq(vq,
-					      "Invalid size for indirect table");
+							  "Invalid size for indirect table");
+
 			/*
 			 * 2.4.5.3.2:
 			 *
@@ -879,31 +969,39 @@ static unsigned wait_for_vq_desc(struct virtqueue *vq,
 			 */
 			if (max > vq->pci_config.queue_size)
 				bad_driver_vq(vq,
-					      "indirect has too many entries");
+							  "indirect has too many entries");
 		}
 
 		/* Grab the first descriptor, and check it's OK. */
 		iov[*out_num + *in_num].iov_len = desc[i].len;
 		iov[*out_num + *in_num].iov_base
 			= check_pointer(vq->dev, desc[i].addr, desc[i].len);
+
 		/* If this is an input descriptor, increment that count. */
 		if (desc[i].flags & VRING_DESC_F_WRITE)
+		{
 			(*in_num)++;
-		else {
+		}
+		else
+		{
 			/*
 			 * If it's an output descriptor, they're all supposed
 			 * to come before any input descriptors.
 			 */
 			if (*in_num)
 				bad_driver_vq(vq,
-					      "Descriptor has out after in");
+							  "Descriptor has out after in");
+
 			(*out_num)++;
 		}
 
 		/* If we've got too many, that implies a descriptor loop. */
 		if (*out_num + *in_num > max)
+		{
 			bad_driver_vq(vq, "Looped descriptor");
-	} while ((i = next_desc(vq->dev, desc, i, max)) != max);
+		}
+	}
+	while ((i = next_desc(vq->dev, desc, i, max)) != max);
 
 	return head;
 }
@@ -942,7 +1040,8 @@ static void add_used_and_trigger(struct virtqueue *vq, unsigned head, int len)
  *
  * We associate some data with the console for our exit hack.
  */
-struct console_abort {
+struct console_abort
+{
 	/* How many times have they hit ^C? */
 	int count;
 	/* When did they start? */
@@ -959,20 +1058,28 @@ static void console_input(struct virtqueue *vq)
 
 	/* Make sure there's a descriptor available. */
 	head = wait_for_vq_desc(vq, iov, &out_num, &in_num);
+
 	if (out_num)
+	{
 		bad_driver_vq(vq, "Output buffers in console in queue?");
+	}
 
 	/* Read into it.  This is where we usually wait. */
 	len = readv(STDIN_FILENO, iov, in_num);
-	if (len <= 0) {
+
+	if (len <= 0)
+	{
 		/* Ran out of input? */
 		warnx("Failed to get console input, ignoring console.");
+
 		/*
 		 * For simplicity, dying threads kill the whole Launcher.  So
 		 * just nap here.
 		 */
 		for (;;)
+		{
 			pause();
+		}
 	}
 
 	/* Tell the Guest we used a buffer. */
@@ -986,20 +1093,29 @@ static void console_input(struct virtqueue *vq)
 	 * that we get three within about a second, so they can't be too
 	 * slow.
 	 */
-	if (len != 1 || ((char *)iov[0].iov_base)[0] != 3) {
+	if (len != 1 || ((char *)iov[0].iov_base)[0] != 3)
+	{
 		abort->count = 0;
 		return;
 	}
 
 	abort->count++;
+
 	if (abort->count == 1)
+	{
 		gettimeofday(&abort->start, NULL);
-	else if (abort->count == 3) {
+	}
+	else if (abort->count == 3)
+	{
 		struct timeval now;
 		gettimeofday(&now, NULL);
+
 		/* Kill all Launcher processes with SIGINT, like normal ^C */
-		if (now.tv_sec <= abort->start.tv_sec+1)
+		if (now.tv_sec <= abort->start.tv_sec + 1)
+		{
 			kill(0, SIGINT);
+		}
+
 		abort->count = 0;
 	}
 }
@@ -1012,16 +1128,23 @@ static void console_output(struct virtqueue *vq)
 
 	/* We usually wait in here, for the Guest to give us something. */
 	head = wait_for_vq_desc(vq, iov, &out, &in);
+
 	if (in)
+	{
 		bad_driver_vq(vq, "Input buffers in console output queue?");
+	}
 
 	/* writev can return a partial write, so we loop here. */
-	while (!iov_empty(iov, out)) {
+	while (!iov_empty(iov, out))
+	{
 		int len = writev(STDOUT_FILENO, iov, out);
-		if (len <= 0) {
+
+		if (len <= 0)
+		{
 			warn("Write to stdout gave %i (%d)", len, errno);
 			break;
 		}
+
 		iov_consume(vq->dev, iov, out, NULL, len);
 	}
 
@@ -1038,7 +1161,8 @@ static void console_output(struct virtqueue *vq)
  * Handling output for network is also simple: we get all the output buffers
  * and write them to /dev/net/tun.
  */
-struct net_info {
+struct net_info
+{
 	int tunfd;
 };
 
@@ -1050,14 +1174,20 @@ static void net_output(struct virtqueue *vq)
 
 	/* We usually wait in here for the Guest to give us a packet. */
 	head = wait_for_vq_desc(vq, iov, &out, &in);
+
 	if (in)
+	{
 		bad_driver_vq(vq, "Input buffers in net output queue?");
+	}
+
 	/*
 	 * Send the whole thing through to /dev/net/tun.  It expects the exact
 	 * same format: what a coincidence!
 	 */
 	if (writev(net_info->tunfd, iov, out) < 0)
+	{
 		warnx("Write to tun failed (%d)?", errno);
+	}
 
 	/*
 	 * Done with that one; wait_for_vq_desc() will send the interrupt if
@@ -1078,7 +1208,7 @@ static bool will_block(int fd)
 	struct timeval zero = { 0, 0 };
 	FD_ZERO(&fdset);
 	FD_SET(fd, &fdset);
-	return select(fd+1, &fdset, NULL, NULL, &zero) != 1;
+	return select(fd + 1, &fdset, NULL, NULL, &zero) != 1;
 }
 
 /*
@@ -1098,23 +1228,31 @@ static void net_input(struct virtqueue *vq)
 	 * send an interrupt if they're out of descriptors.
 	 */
 	head = wait_for_vq_desc(vq, iov, &out, &in);
+
 	if (out)
+	{
 		bad_driver_vq(vq, "Output buffers in net input queue?");
+	}
 
 	/*
 	 * If it looks like we'll block reading from the tun device, send them
 	 * an interrupt.
 	 */
 	if (vq->pending_used && will_block(net_info->tunfd))
+	{
 		trigger_irq(vq);
+	}
 
 	/*
 	 * Read in the packet.  This is where we normally wait (when there's no
 	 * incoming network traffic).
 	 */
 	len = readv(net_info->tunfd, iov, in);
+
 	if (len <= 0)
+	{
 		warn("Failed to read from tun (%d).", errno);
+	}
 
 	/*
 	 * Mark that packet buffer as used, but don't interrupt here.  We want
@@ -1130,7 +1268,10 @@ static int do_thread(void *_vq)
 	struct virtqueue *vq = _vq;
 
 	for (;;)
+	{
 		vq->service(vq);
+	}
+
 	return 0;
 }
 
@@ -1164,22 +1305,26 @@ static void reset_device(struct device *dev)
 	/*
 	 * 4.1.4.3.1:
 	 *
-	 *   The device MUST present a 0 in queue_enable on reset. 
+	 *   The device MUST present a 0 in queue_enable on reset.
 	 *
 	 * This means we set it here, and reset the saved ones in every vq.
 	 */
 	dev->mmio->cfg.queue_enable = 0;
 
 	/* Get rid of the virtqueue threads */
-	for (vq = dev->vq; vq; vq = vq->next) {
+	for (vq = dev->vq; vq; vq = vq->next)
+	{
 		vq->last_avail_idx = 0;
 		reset_vq_pci_config(vq);
-		if (vq->thread != (pid_t)-1) {
+
+		if (vq->thread != (pid_t) - 1)
+		{
 			kill(vq->thread, SIGTERM);
 			waitpid(vq->thread, NULL, 0);
-			vq->thread = (pid_t)-1;
+			vq->thread = (pid_t) - 1;
 		}
 	}
+
 	dev->running = false;
 	dev->wrote_features_ok = false;
 
@@ -1191,16 +1336,23 @@ static void cleanup_devices(void)
 {
 	unsigned int i;
 
-	for (i = 1; i < MAX_PCI_DEVICES; i++) {
+	for (i = 1; i < MAX_PCI_DEVICES; i++)
+	{
 		struct device *d = devices.pci[i];
+
 		if (!d)
+		{
 			continue;
+		}
+
 		reset_device(d);
 	}
 
 	/* If we saved off the original terminal settings, restore them now. */
-	if (orig_term.c_lflag & (ISIG|ICANON|ECHO))
+	if (orig_term.c_lflag & (ISIG | ICANON | ECHO))
+	{
 		tcsetattr(STDIN_FILENO, TCSANOW, &orig_term);
+	}
 }
 
 /*L:217
@@ -1227,8 +1379,10 @@ static void init_pci_host_bridge(void)
  * Not really portable, but does help readability: this is what the Guest
  * writes to the PCI_CONFIG_ADDR IO port.
  */
-union pci_config_addr {
-	struct {
+union pci_config_addr
+{
+	struct
+	{
 		unsigned mbz: 2;
 		unsigned offset: 6;
 		unsigned funcnum: 3;
@@ -1275,16 +1429,24 @@ static void iowrite(u16 off, u32 v, u32 mask, u32 *dst)
 static struct device *dev_and_reg(u32 *reg)
 {
 	if (!pci_config_addr.bits.enabled)
+	{
 		return NULL;
+	}
 
 	if (pci_config_addr.bits.funcnum != 0)
+	{
 		return NULL;
+	}
 
 	if (pci_config_addr.bits.busnum != 0)
+	{
 		return NULL;
+	}
 
 	if (pci_config_addr.bits.offset * 4 >= sizeof(struct pci_config))
+	{
 		return NULL;
+	}
 
 	*reg = pci_config_addr.bits.offset;
 	return find_pci_device(pci_config_addr.bits.devnum);
@@ -1295,22 +1457,28 @@ static struct device *dev_and_reg(u32 *reg)
  * only fault if they try to write with some invalid bar/offset/length.
  */
 static bool valid_bar_access(struct device *d,
-			     struct virtio_pci_cfg_cap_u32 *cfg_access)
+							 struct virtio_pci_cfg_cap_u32 *cfg_access)
 {
 	/* We only have 1 bar (BAR0) */
 	if (cfg_access->cap.bar != 0)
+	{
 		return false;
+	}
 
 	/* Check it's within BAR0. */
 	if (cfg_access->cap.offset >= d->mmio_size
-	    || cfg_access->cap.offset + cfg_access->cap.length > d->mmio_size)
+		|| cfg_access->cap.offset + cfg_access->cap.length > d->mmio_size)
+	{
 		return false;
+	}
 
 	/* Check length is 1, 2 or 4. */
 	if (cfg_access->cap.length != 1
-	    && cfg_access->cap.length != 2
-	    && cfg_access->cap.length != 4)
+		&& cfg_access->cap.length != 2
+		&& cfg_access->cap.length != 4)
+	{
 		return false;
+	}
 
 	/*
 	 * 4.1.4.7.2:
@@ -1319,7 +1487,9 @@ static bool valid_bar_access(struct device *d,
 	 *  cap.length (ie. all accesses MUST be aligned).
 	 */
 	if (cfg_access->cap.offset % cfg_access->cap.length != 0)
+	{
 		return false;
+	}
 
 	/* Return pointer into word in BAR0. */
 	return true;
@@ -1334,14 +1504,14 @@ static bool is_pci_addr_port(u16 port)
 static bool pci_addr_iowrite(u16 port, u32 mask, u32 val)
 {
 	iowrite(port - PCI_CONFIG_ADDR, val, mask,
-		&pci_config_addr.val);
+			&pci_config_addr.val);
 	verbose("PCI%s: %#x/%x: bus %u dev %u func %u reg %u\n",
-		pci_config_addr.bits.enabled ? "" : " DISABLED",
-		val, mask,
-		pci_config_addr.bits.busnum,
-		pci_config_addr.bits.devnum,
-		pci_config_addr.bits.funcnum,
-		pci_config_addr.bits.offset);
+			pci_config_addr.bits.enabled ? "" : " DISABLED",
+			val, mask,
+			pci_config_addr.bits.busnum,
+			pci_config_addr.bits.devnum,
+			pci_config_addr.bits.funcnum,
+			pci_config_addr.bits.offset);
 	return true;
 }
 
@@ -1365,7 +1535,9 @@ static bool pci_data_iowrite(u16 port, u32 mask, u32 val)
 
 	/* Complain if they don't belong to a device. */
 	if (!d)
+	{
 		return false;
+	}
 
 	/* They can do 1 byte writes, etc. */
 	portoff = port - PCI_CONFIG_DATA;
@@ -1374,36 +1546,52 @@ static bool pci_data_iowrite(u16 port, u32 mask, u32 val)
 	 * PCI uses a weird way to determine the BAR size: the OS
 	 * writes all 1's, and sees which ones stick.
 	 */
-	if (&d->config_words[reg] == &d->config.bar[0]) {
+	if (&d->config_words[reg] == &d->config.bar[0])
+	{
 		int i;
 
 		iowrite(portoff, val, mask, &d->config.bar[0]);
+
 		for (i = 0; (1 << i) < d->mmio_size; i++)
+		{
 			d->config.bar[0] &= ~(1 << i);
+		}
+
 		return true;
-	} else if ((&d->config_words[reg] > &d->config.bar[0]
-		    && &d->config_words[reg] <= &d->config.bar[6])
-		   || &d->config_words[reg] == &d->config.expansion_rom_addr) {
+	}
+	else if ((&d->config_words[reg] > &d->config.bar[0]
+			  && &d->config_words[reg] <= &d->config.bar[6])
+			 || &d->config_words[reg] == &d->config.expansion_rom_addr)
+	{
 		/* Allow writing to any other BAR, or expansion ROM */
 		iowrite(portoff, val, mask, &d->config_words[reg]);
 		return true;
 		/* We let them overide latency timer and cacheline size */
-	} else if (&d->config_words[reg] == (void *)&d->config.cacheline_size) {
+	}
+	else if (&d->config_words[reg] == (void *)&d->config.cacheline_size)
+	{
 		/* Only let them change the first two fields. */
 		if (mask == 0xFFFFFFFF)
+		{
 			mask = 0xFFFF;
+		}
+
 		iowrite(portoff, val, mask, &d->config_words[reg]);
 		return true;
-	} else if (&d->config_words[reg] == (void *)&d->config.command
-		   && mask == 0xFFFF) {
+	}
+	else if (&d->config_words[reg] == (void *)&d->config.command
+			 && mask == 0xFFFF)
+	{
 		/* Ignore command writes. */
 		return true;
-	} else if (&d->config_words[reg]
-		   == (void *)&d->config.cfg_access.cap.bar
-		   || &d->config_words[reg]
-		   == &d->config.cfg_access.cap.length
-		   || &d->config_words[reg]
-		   == &d->config.cfg_access.cap.offset) {
+	}
+	else if (&d->config_words[reg]
+			 == (void *)&d->config.cfg_access.cap.bar
+			 || &d->config_words[reg]
+			 == &d->config.cfg_access.cap.length
+			 || &d->config_words[reg]
+			 == &d->config.cfg_access.cap.offset)
+	{
 
 		/*
 		 * The VIRTIO_PCI_CAP_PCI_CFG capability
@@ -1413,7 +1601,9 @@ static bool pci_data_iowrite(u16 port, u32 mask, u32 val)
 		 */
 		iowrite(portoff, val, mask, &d->config_words[reg]);
 		return true;
-	} else if (&d->config_words[reg] == &d->config.cfg_access.pci_cfg_data) {
+	}
+	else if (&d->config_words[reg] == &d->config.cfg_access.pci_cfg_data)
+	{
 		u32 write_mask;
 
 		/*
@@ -1427,7 +1617,9 @@ static bool pci_data_iowrite(u16 port, u32 mask, u32 val)
 
 		/* Must be bar 0 */
 		if (!valid_bar_access(d, &d->config.cfg_access))
+		{
 			return false;
+		}
 
 		iowrite(portoff, val, mask, &d->config.cfg_access.pci_cfg_data);
 
@@ -1435,16 +1627,16 @@ static bool pci_data_iowrite(u16 port, u32 mask, u32 val)
 		 * Now emulate a write.  The mask we use is set by
 		 * len, *not* this write!
 		 */
-		write_mask = (1ULL<<(8*d->config.cfg_access.cap.length)) - 1;
+		write_mask = (1ULL << (8 * d->config.cfg_access.cap.length)) - 1;
 		verbose("Window writing %#x/%#x to bar %u, offset %u len %u\n",
-			d->config.cfg_access.pci_cfg_data, write_mask,
-			d->config.cfg_access.cap.bar,
-			d->config.cfg_access.cap.offset,
-			d->config.cfg_access.cap.length);
+				d->config.cfg_access.pci_cfg_data, write_mask,
+				d->config.cfg_access.cap.bar,
+				d->config.cfg_access.cap.offset,
+				d->config.cfg_access.cap.length);
 
 		emulate_mmio_write(d, d->config.cfg_access.cap.offset,
-				   d->config.cfg_access.pci_cfg_data,
-				   write_mask);
+						   d->config.cfg_access.pci_cfg_data,
+						   write_mask);
 		return true;
 	}
 
@@ -1466,10 +1658,13 @@ static void pci_data_ioread(u16 port, u32 mask, u32 *val)
 	struct device *d = dev_and_reg(&reg);
 
 	if (!d)
+	{
 		return;
+	}
 
 	/* Read through the PCI MMIO access window is special */
-	if (&d->config_words[reg] == &d->config.cfg_access.pci_cfg_data) {
+	if (&d->config_words[reg] == &d->config.cfg_access.pci_cfg_data)
+	{
 		u32 read_mask;
 
 		/*
@@ -1483,26 +1678,27 @@ static void pci_data_ioread(u16 port, u32 mask, u32 *val)
 		/* Must be bar 0 */
 		if (!valid_bar_access(d, &d->config.cfg_access))
 			bad_driver(d,
-			     "Invalid cfg_access to bar%u, offset %u len %u",
-			     d->config.cfg_access.cap.bar,
-			     d->config.cfg_access.cap.offset,
-			     d->config.cfg_access.cap.length);
+					   "Invalid cfg_access to bar%u, offset %u len %u",
+					   d->config.cfg_access.cap.bar,
+					   d->config.cfg_access.cap.offset,
+					   d->config.cfg_access.cap.length);
 
 		/*
 		 * Read into the window.  The mask we use is set by
 		 * len, *not* this read!
 		 */
-		read_mask = (1ULL<<(8*d->config.cfg_access.cap.length))-1;
+		read_mask = (1ULL << (8 * d->config.cfg_access.cap.length)) - 1;
 		d->config.cfg_access.pci_cfg_data
 			= emulate_mmio_read(d,
-					    d->config.cfg_access.cap.offset,
-					    read_mask);
+								d->config.cfg_access.cap.offset,
+								read_mask);
 		verbose("Window read %#x/%#x from bar %u, offset %u len %u\n",
-			d->config.cfg_access.pci_cfg_data, read_mask,
-			d->config.cfg_access.cap.bar,
-			d->config.cfg_access.cap.offset,
-			d->config.cfg_access.cap.length);
+				d->config.cfg_access.pci_cfg_data, read_mask,
+				d->config.cfg_access.cap.bar,
+				d->config.cfg_access.cap.offset,
+				d->config.cfg_access.cap.length);
 	}
+
 	ioread(port - PCI_CONFIG_DATA, d->config_words[reg], mask, val);
 }
 
@@ -1525,9 +1721,14 @@ static u32 getreg_off(size_t offset)
 	unsigned long args[] = { LHREQ_GETREG, offset };
 
 	if (pwrite(lguest_fd, args, sizeof(args), cpu_id) < 0)
+	{
 		err(1, "Getting register %u", offset);
+	}
+
 	if (pread(lguest_fd, &r, sizeof(r), cpu_id) != sizeof(r))
+	{
 		err(1, "Reading register %u", offset);
+	}
 
 	return r;
 }
@@ -1537,7 +1738,9 @@ static void setreg_off(size_t offset, u32 val)
 	unsigned long args[] = { LHREQ_SETREG, offset, val };
 
 	if (pwrite(lguest_fd, args, sizeof(args), cpu_id) < 0)
+	{
 		err(1, "Setting register %u", offset);
+	}
 }
 
 /* Get register by instruction encoding */
@@ -1545,18 +1748,29 @@ static u32 getreg_num(unsigned regnum, u32 mask)
 {
 	/* 8 bit ops use regnums 4-7 for high parts of word */
 	if (mask == 0xFF && (regnum & 0x4))
+	{
 		return getreg_num(regnum & 0x3, 0xFFFF) >> 8;
-
-	switch (regnum) {
-	case 0: return getreg(eax) & mask;
-	case 1: return getreg(ecx) & mask;
-	case 2: return getreg(edx) & mask;
-	case 3: return getreg(ebx) & mask;
-	case 4: return getreg(esp) & mask;
-	case 5: return getreg(ebp) & mask;
-	case 6: return getreg(esi) & mask;
-	case 7: return getreg(edi) & mask;
 	}
+
+	switch (regnum)
+	{
+		case 0: return getreg(eax) & mask;
+
+		case 1: return getreg(ecx) & mask;
+
+		case 2: return getreg(edx) & mask;
+
+		case 3: return getreg(ebx) & mask;
+
+		case 4: return getreg(esp) & mask;
+
+		case 5: return getreg(ebp) & mask;
+
+		case 6: return getreg(esi) & mask;
+
+		case 7: return getreg(edi) & mask;
+	}
+
 	abort();
 }
 
@@ -1567,23 +1781,33 @@ static void setreg_num(unsigned regnum, u32 val, u32 mask)
 	assert(~(val & ~mask));
 
 	/* 8 bit ops use regnums 4-7 for high parts of word */
-	if (mask == 0xFF && (regnum & 0x4)) {
+	if (mask == 0xFF && (regnum & 0x4))
+	{
 		/* Construct the 16 bits we want. */
 		val = (val << 8) | getreg_num(regnum & 0x3, 0xFF);
 		setreg_num(regnum & 0x3, val, 0xFFFF);
 		return;
 	}
 
-	switch (regnum) {
-	case 0: setreg(eax, val | (getreg(eax) & ~mask)); return;
-	case 1: setreg(ecx, val | (getreg(ecx) & ~mask)); return;
-	case 2: setreg(edx, val | (getreg(edx) & ~mask)); return;
-	case 3: setreg(ebx, val | (getreg(ebx) & ~mask)); return;
-	case 4: setreg(esp, val | (getreg(esp) & ~mask)); return;
-	case 5: setreg(ebp, val | (getreg(ebp) & ~mask)); return;
-	case 6: setreg(esi, val | (getreg(esi) & ~mask)); return;
-	case 7: setreg(edi, val | (getreg(edi) & ~mask)); return;
+	switch (regnum)
+	{
+		case 0: setreg(eax, val | (getreg(eax) & ~mask)); return;
+
+		case 1: setreg(ecx, val | (getreg(ecx) & ~mask)); return;
+
+		case 2: setreg(edx, val | (getreg(edx) & ~mask)); return;
+
+		case 3: setreg(ebx, val | (getreg(ebx) & ~mask)); return;
+
+		case 4: setreg(esp, val | (getreg(esp) & ~mask)); return;
+
+		case 5: setreg(ebp, val | (getreg(ebp) & ~mask)); return;
+
+		case 6: setreg(esi, val | (getreg(esi) & ~mask)); return;
+
+		case 7: setreg(edi, val | (getreg(edi) & ~mask)); return;
 	}
+
 	abort();
 }
 
@@ -1591,23 +1815,32 @@ static void setreg_num(unsigned regnum, u32 val, u32 mask)
 static u32 insn_displacement_len(u8 mod_reg_rm)
 {
 	/* Switch on the mod bits */
-	switch (mod_reg_rm >> 6) {
-	case 0:
-		/* If mod == 0, and r/m == 101, 16-bit displacement follows */
-		if ((mod_reg_rm & 0x7) == 0x5)
-			return 2;
-		/* Normally, mod == 0 means no literal displacement */
-		return 0;
-	case 1:
-		/* One byte displacement */
-		return 1;
-	case 2:
-		/* Four byte displacement */
-		return 4;
-	case 3:
-		/* Register mode */
-		return 0;
+	switch (mod_reg_rm >> 6)
+	{
+		case 0:
+
+			/* If mod == 0, and r/m == 101, 16-bit displacement follows */
+			if ((mod_reg_rm & 0x7) == 0x5)
+			{
+				return 2;
+			}
+
+			/* Normally, mod == 0 means no literal displacement */
+			return 0;
+
+		case 1:
+			/* One byte displacement */
+			return 1;
+
+		case 2:
+			/* Four byte displacement */
+			return 4;
+
+		case 3:
+			/* Register mode */
+			return 0;
 	}
+
 	abort();
 }
 
@@ -1628,7 +1861,9 @@ static void emulate_insn(const u8 insn[])
 	 * level.
 	 */
 	if ((getreg(xcs) & 3) != 0x1)
+	{
 		goto no_emulate;
+	}
 
 	/* Decoding x86 instructions is icky. */
 
@@ -1638,7 +1873,8 @@ static void emulate_insn(const u8 insn[])
 	 * code isn't paravirtualized, and it tries to disable interrupts.
 	 * Ignore it, which will Mostly Work.
 	 */
-	if (insn[insnlen] == 0xfa) {
+	if (insn[insnlen] == 0xfa)
+	{
 		/* "cli", or Clear Interrupt Enable instruction.  Skip it. */
 		insnlen = 1;
 		goto skip_insn;
@@ -1647,7 +1883,8 @@ static void emulate_insn(const u8 insn[])
 	/*
 	 * 0x66 is an "operand prefix".  It means a 16, not 32 bit in/out.
 	 */
-	if (insn[insnlen] == 0x66) {
+	if (insn[insnlen] == 0x66)
+	{
 		small_operand = 1;
 		/* The instruction is 1 byte so far, read the next byte. */
 		insnlen = 1;
@@ -1660,37 +1897,48 @@ static void emulate_insn(const u8 insn[])
 	 * Now we can ignore the lower bit and decode the 4 opcodes
 	 * we need to emulate.
 	 */
-	switch (insn[insnlen] & 0xFE) {
-	case 0xE4: /* in     <next byte>,%al */
-		port = insn[insnlen+1];
-		insnlen += 2;
-		in = 1;
-		break;
-	case 0xEC: /* in     (%dx),%al */
-		port = getreg(edx) & 0xFFFF;
-		insnlen += 1;
-		in = 1;
-		break;
-	case 0xE6: /* out    %al,<next byte> */
-		port = insn[insnlen+1];
-		insnlen += 2;
-		break;
-	case 0xEE: /* out    %al,(%dx) */
-		port = getreg(edx) & 0xFFFF;
-		insnlen += 1;
-		break;
-	default:
-		/* OK, we don't know what this is, can't emulate. */
-		goto no_emulate;
+	switch (insn[insnlen] & 0xFE)
+	{
+		case 0xE4: /* in     <next byte>,%al */
+			port = insn[insnlen + 1];
+			insnlen += 2;
+			in = 1;
+			break;
+
+		case 0xEC: /* in     (%dx),%al */
+			port = getreg(edx) & 0xFFFF;
+			insnlen += 1;
+			in = 1;
+			break;
+
+		case 0xE6: /* out    %al,<next byte> */
+			port = insn[insnlen + 1];
+			insnlen += 2;
+			break;
+
+		case 0xEE: /* out    %al,(%dx) */
+			port = getreg(edx) & 0xFFFF;
+			insnlen += 1;
+			break;
+
+		default:
+			/* OK, we don't know what this is, can't emulate. */
+			goto no_emulate;
 	}
 
 	/* Set a mask of the 1, 2 or 4 bytes, depending on size of IO */
 	if (byte_access)
+	{
 		mask = 0xFF;
+	}
 	else if (small_operand)
+	{
 		mask = 0xFFFF;
+	}
 	else
+	{
 		mask = 0xFFFFFFFF;
+	}
 
 	/*
 	 * If it was an "IN" instruction, they expect the result to be read
@@ -1698,14 +1946,21 @@ static void emulate_insn(const u8 insn[])
 	 */
 	eax = getreg(eax);
 
-	if (in) {
+	if (in)
+	{
 		/* This is the PS/2 keyboard status; 1 means ready for output */
 		if (port == 0x64)
+		{
 			val = 1;
+		}
 		else if (is_pci_addr_port(port))
+		{
 			pci_addr_ioread(port, mask, &val);
+		}
 		else if (is_pci_data_port(port))
+		{
 			pci_data_ioread(port, mask, &val);
+		}
 
 		/* Clear the bits we're about to read */
 		eax &= ~mask;
@@ -1713,20 +1968,30 @@ static void emulate_insn(const u8 insn[])
 		eax |= val & mask;
 		/* Now update the register. */
 		setreg(eax, eax);
-	} else {
-		if (is_pci_addr_port(port)) {
+	}
+	else
+	{
+		if (is_pci_addr_port(port))
+		{
 			if (!pci_addr_iowrite(port, mask, eax))
+			{
 				goto bad_io;
-		} else if (is_pci_data_port(port)) {
-			if (!pci_data_iowrite(port, mask, eax))
-				goto bad_io;
+			}
 		}
+		else if (is_pci_data_port(port))
+		{
+			if (!pci_data_iowrite(port, mask, eax))
+			{
+				goto bad_io;
+			}
+		}
+
 		/* There are many other ports, eg. CMOS clock, serial
 		 * and parallel ports, so we ignore them all. */
 	}
 
 	verbose("IO %s of %x to %u: %#08x\n",
-		in ? "IN" : "OUT", mask, port, eax);
+			in ? "IN" : "OUT", mask, port, eax);
 skip_insn:
 	/* Finally, we've "done" the instruction, so move past it. */
 	setreg(eip, getreg(eip) + insnlen);
@@ -1734,30 +1999,44 @@ skip_insn:
 
 bad_io:
 	warnx("Attempt to %s port %u (%#x mask)",
-	      in ? "read from" : "write to", port, mask);
+		  in ? "read from" : "write to", port, mask);
 
 no_emulate:
+
 	/* Inject trap into Guest. */
 	if (write(lguest_fd, args, sizeof(args)) < 0)
+	{
 		err(1, "Reinjecting trap 13 for fault at %#x", getreg(eip));
+	}
 }
 
 static struct device *find_mmio_region(unsigned long paddr, u32 *off)
 {
 	unsigned int i;
 
-	for (i = 1; i < MAX_PCI_DEVICES; i++) {
+	for (i = 1; i < MAX_PCI_DEVICES; i++)
+	{
 		struct device *d = devices.pci[i];
 
 		if (!d)
+		{
 			continue;
+		}
+
 		if (paddr < d->mmio_addr)
+		{
 			continue;
+		}
+
 		if (paddr >= d->mmio_addr + d->mmio_size)
+		{
 			continue;
+		}
+
 		*off = paddr - d->mmio_addr;
 		return d;
 	}
+
 	return NULL;
 }
 
@@ -1767,25 +2046,27 @@ static struct virtqueue *vq_by_num(struct device *d, u32 num)
 	struct virtqueue *vq = d->vq;
 
 	while (num-- && vq)
+	{
 		vq = vq->next;
+	}
 
 	return vq;
 }
 
 static void save_vq_config(const struct virtio_pci_common_cfg *cfg,
-			   struct virtqueue *vq)
+						   struct virtqueue *vq)
 {
 	vq->pci_config = *cfg;
 }
 
 static void restore_vq_config(struct virtio_pci_common_cfg *cfg,
-			      struct virtqueue *vq)
+							  struct virtqueue *vq)
 {
 	/* Only restore the per-vq part */
 	size_t off = offsetof(struct virtio_pci_common_cfg, queue_size);
 
 	memcpy((void *)cfg + off, (void *)&vq->pci_config + off,
-	       sizeof(*cfg) - off);
+		   sizeof(*cfg) - off);
 }
 
 /*
@@ -1800,9 +2081,11 @@ static void check_virtqueue(struct device *d, struct virtqueue *vq)
 {
 	/* Because lguest is 32 bit, all the descriptor high bits must be 0 */
 	if (vq->pci_config.queue_desc_hi
-	    || vq->pci_config.queue_avail_hi
-	    || vq->pci_config.queue_used_hi)
+		|| vq->pci_config.queue_avail_hi
+		|| vq->pci_config.queue_used_hi)
+	{
 		bad_driver_vq(vq, "invalid 64-bit queue address");
+	}
 
 	/*
 	 * 2.4.1:
@@ -1812,25 +2095,27 @@ static void check_virtqueue(struct device *d, struct virtqueue *vq)
 	 *  value in the above table.
 	 */
 	if (vq->pci_config.queue_desc_lo % 16
-	    || vq->pci_config.queue_avail_lo % 2
-	    || vq->pci_config.queue_used_lo % 4)
+		|| vq->pci_config.queue_avail_lo % 2
+		|| vq->pci_config.queue_used_lo % 4)
+	{
 		bad_driver_vq(vq, "invalid alignment in queue addresses");
+	}
 
 	/* Initialize the virtqueue and check they're all in range. */
 	vq->vring.num = vq->pci_config.queue_size;
 	vq->vring.desc = check_pointer(vq->dev,
-				       vq->pci_config.queue_desc_lo,
-				       sizeof(*vq->vring.desc) * vq->vring.num);
+								   vq->pci_config.queue_desc_lo,
+								   sizeof(*vq->vring.desc) * vq->vring.num);
 	vq->vring.avail = check_pointer(vq->dev,
-					vq->pci_config.queue_avail_lo,
-					sizeof(*vq->vring.avail)
-					+ (sizeof(vq->vring.avail->ring[0])
-					   * vq->vring.num));
+									vq->pci_config.queue_avail_lo,
+									sizeof(*vq->vring.avail)
+									+ (sizeof(vq->vring.avail->ring[0])
+									   * vq->vring.num));
 	vq->vring.used = check_pointer(vq->dev,
-				       vq->pci_config.queue_used_lo,
-				       sizeof(*vq->vring.used)
-				       + (sizeof(vq->vring.used->ring[0])
-					  * vq->vring.num));
+								   vq->pci_config.queue_used_lo,
+								   sizeof(*vq->vring.used)
+								   + (sizeof(vq->vring.used->ring[0])
+									  * vq->vring.num));
 
 	/*
 	 * 2.4.9.1:
@@ -1840,7 +2125,7 @@ static void check_virtqueue(struct device *d, struct virtqueue *vq)
 	 */
 	if (vq->vring.used->flags != 0)
 		bad_driver_vq(vq, "invalid initial used.flags %#x",
-			      vq->vring.used->flags);
+					  vq->vring.used->flags);
 }
 
 static void start_virtqueue(struct virtqueue *vq)
@@ -1853,25 +2138,34 @@ static void start_virtqueue(struct virtqueue *vq)
 
 	/* Create a zero-initialized eventfd. */
 	vq->eventfd = eventfd(0, 0);
+
 	if (vq->eventfd < 0)
+	{
 		err(1, "Creating eventfd");
+	}
 
 	/*
 	 * CLONE_VM: because it has to access the Guest memory, and SIGCHLD so
 	 * we get a signal if it dies.
 	 */
 	vq->thread = clone(do_thread, stack + 32768, CLONE_VM | SIGCHLD, vq);
-	if (vq->thread == (pid_t)-1)
+
+	if (vq->thread == (pid_t) - 1)
+	{
 		err(1, "Creating clone");
+	}
 }
 
 static void start_virtqueues(struct device *d)
 {
 	struct virtqueue *vq;
 
-	for (vq = d->vq; vq; vq = vq->next) {
+	for (vq = d->vq; vq; vq = vq->next)
+	{
 		if (vq->pci_config.queue_enable)
+		{
 			start_virtqueue(vq);
+		}
 	}
 }
 
@@ -1879,264 +2173,341 @@ static void emulate_mmio_write(struct device *d, u32 off, u32 val, u32 mask)
 {
 	struct virtqueue *vq;
 
-	switch (off) {
-	case offsetof(struct virtio_pci_mmio, cfg.device_feature_select):
-		/*
-		 * 4.1.4.3.1:
-		 *
-		 * The device MUST present the feature bits it is offering in
-		 * device_feature, starting at bit device_feature_select ∗ 32
-		 * for any device_feature_select written by the driver
-		 */
-		if (val == 0)
-			d->mmio->cfg.device_feature = d->features;
-		else if (val == 1)
-			d->mmio->cfg.device_feature = (d->features >> 32);
-		else
-			d->mmio->cfg.device_feature = 0;
-		goto feature_write_through32;
-	case offsetof(struct virtio_pci_mmio, cfg.guest_feature_select):
-		if (val > 1)
-			bad_driver(d, "Unexpected driver select %u", val);
-		goto feature_write_through32;
-	case offsetof(struct virtio_pci_mmio, cfg.guest_feature):
-		if (d->mmio->cfg.guest_feature_select == 0) {
-			d->features_accepted &= ~((u64)0xFFFFFFFF);
-			d->features_accepted |= val;
-		} else {
-			assert(d->mmio->cfg.guest_feature_select == 1);
-			d->features_accepted &= 0xFFFFFFFF;
-			d->features_accepted |= ((u64)val) << 32;
-		}
-		/*
-		 * 2.2.1:
-		 *
-		 *   The driver MUST NOT accept a feature which the device did
-		 *   not offer
-		 */
-		if (d->features_accepted & ~d->features)
-			bad_driver(d, "over-accepted features %#llx of %#llx",
-				   d->features_accepted, d->features);
-		goto feature_write_through32;
-	case offsetof(struct virtio_pci_mmio, cfg.device_status): {
-		u8 prev;
+	switch (off)
+	{
+		case offsetof(struct virtio_pci_mmio, cfg.device_feature_select):
 
-		verbose("%s: device status -> %#x\n", d->name, val);
-		/*
-		 * 4.1.4.3.1:
-		 * 
-		 *  The device MUST reset when 0 is written to device_status,
-		 *  and present a 0 in device_status once that is done.
-		 */
-		if (val == 0) {
-			reset_device(d);
-			goto write_through8;
-		}
+			/*
+			 * 4.1.4.3.1:
+			 *
+			 * The device MUST present the feature bits it is offering in
+			 * device_feature, starting at bit device_feature_select ∗ 32
+			 * for any device_feature_select written by the driver
+			 */
+			if (val == 0)
+			{
+				d->mmio->cfg.device_feature = d->features;
+			}
+			else if (val == 1)
+			{
+				d->mmio->cfg.device_feature = (d->features >> 32);
+			}
+			else
+			{
+				d->mmio->cfg.device_feature = 0;
+			}
 
-		/* 2.1.1: The driver MUST NOT clear a device status bit. */
-		if (d->mmio->cfg.device_status & ~val)
-			bad_driver(d, "unset of device status bit %#x -> %#x",
-				   d->mmio->cfg.device_status, val);
+			goto feature_write_through32;
 
-		/*
-		 * 2.1.2:
-		 *
-		 *  The device MUST NOT consume buffers or notify the driver
-		 *  before DRIVER_OK.
-		 */
-		if (val & VIRTIO_CONFIG_S_DRIVER_OK
-		    && !(d->mmio->cfg.device_status & VIRTIO_CONFIG_S_DRIVER_OK))
-			start_virtqueues(d);
+		case offsetof(struct virtio_pci_mmio, cfg.guest_feature_select):
+			if (val > 1)
+			{
+				bad_driver(d, "Unexpected driver select %u", val);
+			}
 
-		/*
-		 * 3.1.1:
-		 *
-		 *   The driver MUST follow this sequence to initialize a device:
-		 *   - Reset the device.
-		 *   - Set the ACKNOWLEDGE status bit: the guest OS has
-                 *     notice the device.
-		 *   - Set the DRIVER status bit: the guest OS knows how
-                 *     to drive the device.
-		 *   - Read device feature bits, and write the subset
-		 *     of feature bits understood by the OS and driver
-		 *     to the device. During this step the driver MAY
-		 *     read (but MUST NOT write) the device-specific
-		 *     configuration fields to check that it can
-		 *     support the device before accepting it.
-		 *   - Set the FEATURES_OK status bit.  The driver
-		 *     MUST not accept new feature bits after this
-		 *     step.
-		 *   - Re-read device status to ensure the FEATURES_OK
-		 *     bit is still set: otherwise, the device does
-		 *     not support our subset of features and the
-		 *     device is unusable.
-		 *   - Perform device-specific setup, including
-		 *     discovery of virtqueues for the device,
-		 *     optional per-bus setup, reading and possibly
-		 *     writing the device’s virtio configuration
-		 *     space, and population of virtqueues.
-		 *   - Set the DRIVER_OK status bit. At this point the
-                 *     device is “live”.
-		 */
-		prev = 0;
-		switch (val & ~d->mmio->cfg.device_status) {
-		case VIRTIO_CONFIG_S_DRIVER_OK:
-			prev |= VIRTIO_CONFIG_S_FEATURES_OK; /* fall thru */
-		case VIRTIO_CONFIG_S_FEATURES_OK:
-			prev |= VIRTIO_CONFIG_S_DRIVER; /* fall thru */
-		case VIRTIO_CONFIG_S_DRIVER:
-			prev |= VIRTIO_CONFIG_S_ACKNOWLEDGE; /* fall thru */
-		case VIRTIO_CONFIG_S_ACKNOWLEDGE:
-			break;
-		default:
-			bad_driver(d, "unknown device status bit %#x -> %#x",
-				   d->mmio->cfg.device_status, val);
-		}
-		if (d->mmio->cfg.device_status != prev)
-			bad_driver(d, "unexpected status transition %#x -> %#x",
-				   d->mmio->cfg.device_status, val);
+			goto feature_write_through32;
 
-		/* If they just wrote FEATURES_OK, we make sure they read */
-		switch (val & ~d->mmio->cfg.device_status) {
-		case VIRTIO_CONFIG_S_FEATURES_OK:
-			d->wrote_features_ok = true;
-			break;
-		case VIRTIO_CONFIG_S_DRIVER_OK:
-			if (d->wrote_features_ok)
-				bad_driver(d, "did not re-read FEATURES_OK");
-			break;
-		}
-		goto write_through8;
-	}
-	case offsetof(struct virtio_pci_mmio, cfg.queue_select):
-		vq = vq_by_num(d, val);
-		/*
-		 * 4.1.4.3.1:
-		 *
-		 *  The device MUST present a 0 in queue_size if the virtqueue
-		 *  corresponding to the current queue_select is unavailable.
-		 */
-		if (!vq) {
-			d->mmio->cfg.queue_size = 0;
+		case offsetof(struct virtio_pci_mmio, cfg.guest_feature):
+			if (d->mmio->cfg.guest_feature_select == 0)
+			{
+				d->features_accepted &= ~((u64)0xFFFFFFFF);
+				d->features_accepted |= val;
+			}
+			else
+			{
+				assert(d->mmio->cfg.guest_feature_select == 1);
+				d->features_accepted &= 0xFFFFFFFF;
+				d->features_accepted |= ((u64)val) << 32;
+			}
+
+			/*
+			 * 2.2.1:
+			 *
+			 *   The driver MUST NOT accept a feature which the device did
+			 *   not offer
+			 */
+			if (d->features_accepted & ~d->features)
+				bad_driver(d, "over-accepted features %#llx of %#llx",
+						   d->features_accepted, d->features);
+
+			goto feature_write_through32;
+
+		case offsetof(struct virtio_pci_mmio, cfg.device_status):
+			{
+				u8 prev;
+
+				verbose("%s: device status -> %#x\n", d->name, val);
+
+				/*
+				 * 4.1.4.3.1:
+				 *
+				 *  The device MUST reset when 0 is written to device_status,
+				 *  and present a 0 in device_status once that is done.
+				 */
+				if (val == 0)
+				{
+					reset_device(d);
+					goto write_through8;
+				}
+
+				/* 2.1.1: The driver MUST NOT clear a device status bit. */
+				if (d->mmio->cfg.device_status & ~val)
+					bad_driver(d, "unset of device status bit %#x -> %#x",
+							   d->mmio->cfg.device_status, val);
+
+				/*
+				 * 2.1.2:
+				 *
+				 *  The device MUST NOT consume buffers or notify the driver
+				 *  before DRIVER_OK.
+				 */
+				if (val & VIRTIO_CONFIG_S_DRIVER_OK
+					&& !(d->mmio->cfg.device_status & VIRTIO_CONFIG_S_DRIVER_OK))
+				{
+					start_virtqueues(d);
+				}
+
+				/*
+				 * 3.1.1:
+				 *
+				 *   The driver MUST follow this sequence to initialize a device:
+				 *   - Reset the device.
+				 *   - Set the ACKNOWLEDGE status bit: the guest OS has
+				         *     notice the device.
+				 *   - Set the DRIVER status bit: the guest OS knows how
+				         *     to drive the device.
+				 *   - Read device feature bits, and write the subset
+				 *     of feature bits understood by the OS and driver
+				 *     to the device. During this step the driver MAY
+				 *     read (but MUST NOT write) the device-specific
+				 *     configuration fields to check that it can
+				 *     support the device before accepting it.
+				 *   - Set the FEATURES_OK status bit.  The driver
+				 *     MUST not accept new feature bits after this
+				 *     step.
+				 *   - Re-read device status to ensure the FEATURES_OK
+				 *     bit is still set: otherwise, the device does
+				 *     not support our subset of features and the
+				 *     device is unusable.
+				 *   - Perform device-specific setup, including
+				 *     discovery of virtqueues for the device,
+				 *     optional per-bus setup, reading and possibly
+				 *     writing the device’s virtio configuration
+				 *     space, and population of virtqueues.
+				 *   - Set the DRIVER_OK status bit. At this point the
+				         *     device is “live”.
+				 */
+				prev = 0;
+
+				switch (val & ~d->mmio->cfg.device_status)
+				{
+					case VIRTIO_CONFIG_S_DRIVER_OK:
+						prev |= VIRTIO_CONFIG_S_FEATURES_OK; /* fall thru */
+
+					case VIRTIO_CONFIG_S_FEATURES_OK:
+						prev |= VIRTIO_CONFIG_S_DRIVER; /* fall thru */
+
+					case VIRTIO_CONFIG_S_DRIVER:
+						prev |= VIRTIO_CONFIG_S_ACKNOWLEDGE; /* fall thru */
+
+					case VIRTIO_CONFIG_S_ACKNOWLEDGE:
+						break;
+
+					default:
+						bad_driver(d, "unknown device status bit %#x -> %#x",
+								   d->mmio->cfg.device_status, val);
+				}
+
+				if (d->mmio->cfg.device_status != prev)
+					bad_driver(d, "unexpected status transition %#x -> %#x",
+							   d->mmio->cfg.device_status, val);
+
+				/* If they just wrote FEATURES_OK, we make sure they read */
+				switch (val & ~d->mmio->cfg.device_status)
+				{
+					case VIRTIO_CONFIG_S_FEATURES_OK:
+						d->wrote_features_ok = true;
+						break;
+
+					case VIRTIO_CONFIG_S_DRIVER_OK:
+						if (d->wrote_features_ok)
+						{
+							bad_driver(d, "did not re-read FEATURES_OK");
+						}
+
+						break;
+				}
+
+				goto write_through8;
+			}
+
+		case offsetof(struct virtio_pci_mmio, cfg.queue_select):
+			vq = vq_by_num(d, val);
+
+			/*
+			 * 4.1.4.3.1:
+			 *
+			 *  The device MUST present a 0 in queue_size if the virtqueue
+			 *  corresponding to the current queue_select is unavailable.
+			 */
+			if (!vq)
+			{
+				d->mmio->cfg.queue_size = 0;
+				goto write_through16;
+			}
+
+			/* Save registers for old vq, if it was a valid vq */
+			if (d->mmio->cfg.queue_size)
+				save_vq_config(&d->mmio->cfg,
+							   vq_by_num(d, d->mmio->cfg.queue_select));
+
+			/* Restore the registers for the queue they asked for */
+			restore_vq_config(&d->mmio->cfg, vq);
 			goto write_through16;
-		}
-		/* Save registers for old vq, if it was a valid vq */
-		if (d->mmio->cfg.queue_size)
-			save_vq_config(&d->mmio->cfg,
-				       vq_by_num(d, d->mmio->cfg.queue_select));
-		/* Restore the registers for the queue they asked for */
-		restore_vq_config(&d->mmio->cfg, vq);
-		goto write_through16;
-	case offsetof(struct virtio_pci_mmio, cfg.queue_size):
-		/*
-		 * 4.1.4.3.2:
-		 *
-		 *  The driver MUST NOT write a value which is not a power of 2
-		 *  to queue_size.
-		 */
-		if (val & (val-1))
-			bad_driver(d, "invalid queue size %u", val);
-		if (d->mmio->cfg.queue_enable)
-			bad_driver(d, "changing queue size on live device");
-		goto write_through16;
-	case offsetof(struct virtio_pci_mmio, cfg.queue_msix_vector):
-		bad_driver(d, "attempt to set MSIX vector to %u", val);
-	case offsetof(struct virtio_pci_mmio, cfg.queue_enable): {
-		struct virtqueue *vq = vq_by_num(d, d->mmio->cfg.queue_select);
 
-		/*
-		 * 4.1.4.3.2:
-		 *
-		 *  The driver MUST NOT write a 0 to queue_enable.
-		 */
-		if (val != 1)
-			bad_driver(d, "setting queue_enable to %u", val);
+		case offsetof(struct virtio_pci_mmio, cfg.queue_size):
 
-		/*
-		 * 3.1.1:
-		 *
-		 *  7. Perform device-specific setup, including discovery of
-		 *     virtqueues for the device, optional per-bus setup,
-		 *     reading and possibly writing the device’s virtio
-		 *     configuration space, and population of virtqueues.
-		 *  8. Set the DRIVER_OK status bit.
-		 *
-		 * All our devices require all virtqueues to be enabled, so
-		 * they should have done that before setting DRIVER_OK.
-		 */
-		if (d->mmio->cfg.device_status & VIRTIO_CONFIG_S_DRIVER_OK)
-			bad_driver(d, "enabling vq after DRIVER_OK");
+			/*
+			 * 4.1.4.3.2:
+			 *
+			 *  The driver MUST NOT write a value which is not a power of 2
+			 *  to queue_size.
+			 */
+			if (val & (val - 1))
+			{
+				bad_driver(d, "invalid queue size %u", val);
+			}
 
-		d->mmio->cfg.queue_enable = val;
-		save_vq_config(&d->mmio->cfg, vq);
-		check_virtqueue(d, vq);
-		goto write_through16;
-	}
-	case offsetof(struct virtio_pci_mmio, cfg.queue_notify_off):
-		bad_driver(d, "attempt to write to queue_notify_off");
-	case offsetof(struct virtio_pci_mmio, cfg.queue_desc_lo):
-	case offsetof(struct virtio_pci_mmio, cfg.queue_desc_hi):
-	case offsetof(struct virtio_pci_mmio, cfg.queue_avail_lo):
-	case offsetof(struct virtio_pci_mmio, cfg.queue_avail_hi):
-	case offsetof(struct virtio_pci_mmio, cfg.queue_used_lo):
-	case offsetof(struct virtio_pci_mmio, cfg.queue_used_hi):
-		/*
-		 * 4.1.4.3.2:
-		 *
-		 *  The driver MUST configure the other virtqueue fields before
-		 *  enabling the virtqueue with queue_enable.
-		 */
-		if (d->mmio->cfg.queue_enable)
-			bad_driver(d, "changing queue on live device");
+			if (d->mmio->cfg.queue_enable)
+			{
+				bad_driver(d, "changing queue size on live device");
+			}
 
-		/*
-		 * 3.1.1:
-		 *
-		 *  The driver MUST follow this sequence to initialize a device:
-		 *...
-		 *  5. Set the FEATURES_OK status bit. The driver MUST not
-		 *  accept new feature bits after this step.
-		 */
-		if (!(d->mmio->cfg.device_status & VIRTIO_CONFIG_S_FEATURES_OK))
-			bad_driver(d, "setting up vq before FEATURES_OK");
+			goto write_through16;
 
-		/*
-		 *  6. Re-read device status to ensure the FEATURES_OK bit is
-		 *     still set...
-		 */
-		if (d->wrote_features_ok)
-			bad_driver(d, "didn't re-read FEATURES_OK before setup");
+		case offsetof(struct virtio_pci_mmio, cfg.queue_msix_vector):
+			bad_driver(d, "attempt to set MSIX vector to %u", val);
 
-		goto write_through32;
-	case offsetof(struct virtio_pci_mmio, notify):
-		vq = vq_by_num(d, val);
-		if (!vq)
-			bad_driver(d, "Invalid vq notification on %u", val);
-		/* Notify the process handling this vq by adding 1 to eventfd */
-		write(vq->eventfd, "\1\0\0\0\0\0\0\0", 8);
-		goto write_through16;
-	case offsetof(struct virtio_pci_mmio, isr):
-		bad_driver(d, "Unexpected write to isr");
-	/* Weird corner case: write to emerg_wr of console */
-	case sizeof(struct virtio_pci_mmio)
-		+ offsetof(struct virtio_console_config, emerg_wr):
-		if (strcmp(d->name, "console") == 0) {
-			char c = val;
-			write(STDOUT_FILENO, &c, 1);
+		case offsetof(struct virtio_pci_mmio, cfg.queue_enable):
+			{
+				struct virtqueue *vq = vq_by_num(d, d->mmio->cfg.queue_select);
+
+				/*
+				 * 4.1.4.3.2:
+				 *
+				 *  The driver MUST NOT write a 0 to queue_enable.
+				 */
+				if (val != 1)
+				{
+					bad_driver(d, "setting queue_enable to %u", val);
+				}
+
+				/*
+				 * 3.1.1:
+				 *
+				 *  7. Perform device-specific setup, including discovery of
+				 *     virtqueues for the device, optional per-bus setup,
+				 *     reading and possibly writing the device’s virtio
+				 *     configuration space, and population of virtqueues.
+				 *  8. Set the DRIVER_OK status bit.
+				 *
+				 * All our devices require all virtqueues to be enabled, so
+				 * they should have done that before setting DRIVER_OK.
+				 */
+				if (d->mmio->cfg.device_status & VIRTIO_CONFIG_S_DRIVER_OK)
+				{
+					bad_driver(d, "enabling vq after DRIVER_OK");
+				}
+
+				d->mmio->cfg.queue_enable = val;
+				save_vq_config(&d->mmio->cfg, vq);
+				check_virtqueue(d, vq);
+				goto write_through16;
+			}
+
+		case offsetof(struct virtio_pci_mmio, cfg.queue_notify_off):
+			bad_driver(d, "attempt to write to queue_notify_off");
+
+		case offsetof(struct virtio_pci_mmio, cfg.queue_desc_lo):
+		case offsetof(struct virtio_pci_mmio, cfg.queue_desc_hi):
+		case offsetof(struct virtio_pci_mmio, cfg.queue_avail_lo):
+		case offsetof(struct virtio_pci_mmio, cfg.queue_avail_hi):
+		case offsetof(struct virtio_pci_mmio, cfg.queue_used_lo):
+		case offsetof(struct virtio_pci_mmio, cfg.queue_used_hi):
+
+			/*
+			 * 4.1.4.3.2:
+			 *
+			 *  The driver MUST configure the other virtqueue fields before
+			 *  enabling the virtqueue with queue_enable.
+			 */
+			if (d->mmio->cfg.queue_enable)
+			{
+				bad_driver(d, "changing queue on live device");
+			}
+
+			/*
+			 * 3.1.1:
+			 *
+			 *  The driver MUST follow this sequence to initialize a device:
+			 *...
+			 *  5. Set the FEATURES_OK status bit. The driver MUST not
+			 *  accept new feature bits after this step.
+			 */
+			if (!(d->mmio->cfg.device_status & VIRTIO_CONFIG_S_FEATURES_OK))
+			{
+				bad_driver(d, "setting up vq before FEATURES_OK");
+			}
+
+			/*
+			 *  6. Re-read device status to ensure the FEATURES_OK bit is
+			 *     still set...
+			 */
+			if (d->wrote_features_ok)
+			{
+				bad_driver(d, "didn't re-read FEATURES_OK before setup");
+			}
+
 			goto write_through32;
-		}
+
+		case offsetof(struct virtio_pci_mmio, notify):
+			vq = vq_by_num(d, val);
+
+			if (!vq)
+			{
+				bad_driver(d, "Invalid vq notification on %u", val);
+			}
+
+			/* Notify the process handling this vq by adding 1 to eventfd */
+			write(vq->eventfd, "\1\0\0\0\0\0\0\0", 8);
+			goto write_through16;
+
+		case offsetof(struct virtio_pci_mmio, isr):
+			bad_driver(d, "Unexpected write to isr");
+
+		/* Weird corner case: write to emerg_wr of console */
+		case sizeof(struct virtio_pci_mmio)
+				+ offsetof(struct virtio_console_config, emerg_wr):
+			if (strcmp(d->name, "console") == 0)
+			{
+				char c = val;
+				write(STDOUT_FILENO, &c, 1);
+				goto write_through32;
+			}
+
 		/* Fall through... */
-	default:
-		/*
-		 * 4.1.4.3.2:
-		 *
-		 *   The driver MUST NOT write to device_feature, num_queues,
-		 *   config_generation or queue_notify_off.
-		 */
-		bad_driver(d, "Unexpected write to offset %u", off);
+		default:
+			/*
+			 * 4.1.4.3.2:
+			 *
+			 *   The driver MUST NOT write to device_feature, num_queues,
+			 *   config_generation or queue_notify_off.
+			 */
+			bad_driver(d, "Unexpected write to offset %u", off);
 	}
 
 feature_write_through32:
+
 	/*
 	 * 3.1.1:
 	 *
@@ -2152,9 +2523,14 @@ feature_write_through32:
 	 *     accept new feature bits after this step.
 	 */
 	if (!(d->mmio->cfg.device_status & VIRTIO_CONFIG_S_DRIVER))
+	{
 		bad_driver(d, "feature write before VIRTIO_CONFIG_S_DRIVER");
+	}
+
 	if (d->mmio->cfg.device_status & VIRTIO_CONFIG_S_FEATURES_OK)
+	{
 		bad_driver(d, "feature write after VIRTIO_CONFIG_S_FEATURES_OK");
+	}
 
 	/*
 	 * 4.1.3.1:
@@ -2164,25 +2540,32 @@ feature_write_through32:
 	 *  16-bit fields and 8-bit accesses for 8-bit fields.
 	 */
 write_through32:
-	if (mask != 0xFFFFFFFF) {
+
+	if (mask != 0xFFFFFFFF)
+	{
 		bad_driver(d, "non-32-bit write to offset %u (%#x)",
-			   off, getreg(eip));
+				   off, getreg(eip));
 		return;
 	}
+
 	memcpy((char *)d->mmio + off, &val, 4);
 	return;
 
 write_through16:
+
 	if (mask != 0xFFFF)
 		bad_driver(d, "non-16-bit write to offset %u (%#x)",
-			   off, getreg(eip));
+				   off, getreg(eip));
+
 	memcpy((char *)d->mmio + off, &val, 2);
 	return;
 
 write_through8:
+
 	if (mask != 0xFF)
 		bad_driver(d, "non-8-bit write to offset %u (%#x)",
-			   off, getreg(eip));
+				   off, getreg(eip));
+
 	memcpy((char *)d->mmio + off, &val, 1);
 	return;
 }
@@ -2192,98 +2575,123 @@ static u32 emulate_mmio_read(struct device *d, u32 off, u32 mask)
 	u8 isr;
 	u32 val = 0;
 
-	switch (off) {
-	case offsetof(struct virtio_pci_mmio, cfg.device_feature_select):
-	case offsetof(struct virtio_pci_mmio, cfg.device_feature):
-	case offsetof(struct virtio_pci_mmio, cfg.guest_feature_select):
-	case offsetof(struct virtio_pci_mmio, cfg.guest_feature):
-		/*
-		 * 3.1.1:
-		 *
-		 *   The driver MUST follow this sequence to initialize a device:
-		 *...
-		 *   - Set the DRIVER status bit: the guest OS knows how
-		 *     to drive the device.
-		 *   - Read device feature bits, and write the subset
-		 *     of feature bits understood by the OS and driver
-		 *     to the device.
-		 */
-		if (!(d->mmio->cfg.device_status & VIRTIO_CONFIG_S_DRIVER))
-			bad_driver(d,
-				   "feature read before VIRTIO_CONFIG_S_DRIVER");
-		goto read_through32;
-	case offsetof(struct virtio_pci_mmio, cfg.msix_config):
-		bad_driver(d, "read of msix_config");
-	case offsetof(struct virtio_pci_mmio, cfg.num_queues):
-		goto read_through16;
-	case offsetof(struct virtio_pci_mmio, cfg.device_status):
-		/* As they did read, any write of FEATURES_OK is now fine. */
-		d->wrote_features_ok = false;
-		goto read_through8;
-	case offsetof(struct virtio_pci_mmio, cfg.config_generation):
-		/*
-		 * 4.1.4.3.1:
-		 *
-		 *  The device MUST present a changed config_generation after
-		 *  the driver has read a device-specific configuration value
-		 *  which has changed since any part of the device-specific
-		 *  configuration was last read.
-		 *
-		 * This is simple: none of our devices change config, so this
-		 * is always 0.
-		 */
-		goto read_through8;
-	case offsetof(struct virtio_pci_mmio, notify):
-		/*
-		 * 3.1.1:
-		 *
-		 *   The driver MUST NOT notify the device before setting
-		 *   DRIVER_OK.
-		 */
-		if (!(d->mmio->cfg.device_status & VIRTIO_CONFIG_S_DRIVER_OK))
-			bad_driver(d, "notify before VIRTIO_CONFIG_S_DRIVER_OK");
-		goto read_through16;
-	case offsetof(struct virtio_pci_mmio, isr):
-		if (mask != 0xFF)
-			bad_driver(d, "non-8-bit read from offset %u (%#x)",
-				   off, getreg(eip));
-		isr = d->mmio->isr;
-		/*
-		 * 4.1.4.5.1:
-		 *
-		 *  The device MUST reset ISR status to 0 on driver read. 
-		 */
-		d->mmio->isr = 0;
-		return isr;
-	case offsetof(struct virtio_pci_mmio, padding):
-		bad_driver(d, "read from padding (%#x)", getreg(eip));
-	default:
-		/* Read from device config space, beware unaligned overflow */
-		if (off > d->mmio_size - 4)
-			bad_driver(d, "read past end (%#x)", getreg(eip));
+	switch (off)
+	{
+		case offsetof(struct virtio_pci_mmio, cfg.device_feature_select):
+		case offsetof(struct virtio_pci_mmio, cfg.device_feature):
+		case offsetof(struct virtio_pci_mmio, cfg.guest_feature_select):
+		case offsetof(struct virtio_pci_mmio, cfg.guest_feature):
 
-		/*
-		 * 3.1.1:
-		 *  The driver MUST follow this sequence to initialize a device:
-		 *...
-		 *  3. Set the DRIVER status bit: the guest OS knows how to
-		 *  drive the device.
-		 *  4. Read device feature bits, and write the subset of
-		 *  feature bits understood by the OS and driver to the
-		 *  device. During this step the driver MAY read (but MUST NOT
-		 *  write) the device-specific configuration fields to check
-		 *  that it can support the device before accepting it.
-		 */
-		if (!(d->mmio->cfg.device_status & VIRTIO_CONFIG_S_DRIVER))
-			bad_driver(d,
-				   "config read before VIRTIO_CONFIG_S_DRIVER");
+			/*
+			 * 3.1.1:
+			 *
+			 *   The driver MUST follow this sequence to initialize a device:
+			 *...
+			 *   - Set the DRIVER status bit: the guest OS knows how
+			 *     to drive the device.
+			 *   - Read device feature bits, and write the subset
+			 *     of feature bits understood by the OS and driver
+			 *     to the device.
+			 */
+			if (!(d->mmio->cfg.device_status & VIRTIO_CONFIG_S_DRIVER))
+				bad_driver(d,
+						   "feature read before VIRTIO_CONFIG_S_DRIVER");
 
-		if (mask == 0xFFFFFFFF)
 			goto read_through32;
-		else if (mask == 0xFFFF)
+
+		case offsetof(struct virtio_pci_mmio, cfg.msix_config):
+			bad_driver(d, "read of msix_config");
+
+		case offsetof(struct virtio_pci_mmio, cfg.num_queues):
 			goto read_through16;
-		else
+
+		case offsetof(struct virtio_pci_mmio, cfg.device_status):
+			/* As they did read, any write of FEATURES_OK is now fine. */
+			d->wrote_features_ok = false;
 			goto read_through8;
+
+		case offsetof(struct virtio_pci_mmio, cfg.config_generation):
+			/*
+			 * 4.1.4.3.1:
+			 *
+			 *  The device MUST present a changed config_generation after
+			 *  the driver has read a device-specific configuration value
+			 *  which has changed since any part of the device-specific
+			 *  configuration was last read.
+			 *
+			 * This is simple: none of our devices change config, so this
+			 * is always 0.
+			 */
+			goto read_through8;
+
+		case offsetof(struct virtio_pci_mmio, notify):
+
+			/*
+			 * 3.1.1:
+			 *
+			 *   The driver MUST NOT notify the device before setting
+			 *   DRIVER_OK.
+			 */
+			if (!(d->mmio->cfg.device_status & VIRTIO_CONFIG_S_DRIVER_OK))
+			{
+				bad_driver(d, "notify before VIRTIO_CONFIG_S_DRIVER_OK");
+			}
+
+			goto read_through16;
+
+		case offsetof(struct virtio_pci_mmio, isr):
+			if (mask != 0xFF)
+				bad_driver(d, "non-8-bit read from offset %u (%#x)",
+						   off, getreg(eip));
+
+			isr = d->mmio->isr;
+			/*
+			 * 4.1.4.5.1:
+			 *
+			 *  The device MUST reset ISR status to 0 on driver read.
+			 */
+			d->mmio->isr = 0;
+			return isr;
+
+		case offsetof(struct virtio_pci_mmio, padding):
+			bad_driver(d, "read from padding (%#x)", getreg(eip));
+
+		default:
+
+			/* Read from device config space, beware unaligned overflow */
+			if (off > d->mmio_size - 4)
+			{
+				bad_driver(d, "read past end (%#x)", getreg(eip));
+			}
+
+			/*
+			 * 3.1.1:
+			 *  The driver MUST follow this sequence to initialize a device:
+			 *...
+			 *  3. Set the DRIVER status bit: the guest OS knows how to
+			 *  drive the device.
+			 *  4. Read device feature bits, and write the subset of
+			 *  feature bits understood by the OS and driver to the
+			 *  device. During this step the driver MAY read (but MUST NOT
+			 *  write) the device-specific configuration fields to check
+			 *  that it can support the device before accepting it.
+			 */
+			if (!(d->mmio->cfg.device_status & VIRTIO_CONFIG_S_DRIVER))
+				bad_driver(d,
+						   "config read before VIRTIO_CONFIG_S_DRIVER");
+
+			if (mask == 0xFFFFFFFF)
+			{
+				goto read_through32;
+			}
+			else if (mask == 0xFFFF)
+			{
+				goto read_through16;
+			}
+			else
+			{
+				goto read_through8;
+			}
 	}
 
 	/*
@@ -2294,23 +2702,29 @@ static u32 emulate_mmio_read(struct device *d, u32 off, u32 mask)
 	 *  16-bit fields and 8-bit accesses for 8-bit fields.
 	 */
 read_through32:
+
 	if (mask != 0xFFFFFFFF)
 		bad_driver(d, "non-32-bit read to offset %u (%#x)",
-			   off, getreg(eip));
+				   off, getreg(eip));
+
 	memcpy(&val, (char *)d->mmio + off, 4);
 	return val;
 
 read_through16:
+
 	if (mask != 0xFFFF)
 		bad_driver(d, "non-16-bit read to offset %u (%#x)",
-			   off, getreg(eip));
+				   off, getreg(eip));
+
 	memcpy(&val, (char *)d->mmio + off, 2);
 	return val;
 
 read_through8:
+
 	if (mask != 0xFF)
 		bad_driver(d, "non-8-bit read to offset %u (%#x)",
-			   off, getreg(eip));
+				   off, getreg(eip));
+
 	memcpy(&val, (char *)d->mmio + off, 1);
 	return val;
 }
@@ -2321,48 +2735,61 @@ static void emulate_mmio(unsigned long paddr, const u8 *insn)
 	struct device *d = find_mmio_region(paddr, &off);
 	unsigned long args[] = { LHREQ_TRAP, 14 };
 
-	if (!d) {
+	if (!d)
+	{
 		warnx("MMIO touching %#08lx (not a device)", paddr);
 		goto reinject;
 	}
 
 	/* Prefix makes it a 16 bit op */
-	if (insn[0] == 0x66) {
+	if (insn[0] == 0x66)
+	{
 		mask = 0xFFFF;
 		insnlen++;
 	}
 
 	/* iowrite */
-	if (insn[insnlen] == 0x89) {
+	if (insn[insnlen] == 0x89)
+	{
 		/* Next byte is r/m byte: bits 3-5 are register. */
-		val = getreg_num((insn[insnlen+1] >> 3) & 0x7, mask);
+		val = getreg_num((insn[insnlen + 1] >> 3) & 0x7, mask);
 		emulate_mmio_write(d, off, val, mask);
-		insnlen += 2 + insn_displacement_len(insn[insnlen+1]);
-	} else if (insn[insnlen] == 0x8b) { /* ioread */
+		insnlen += 2 + insn_displacement_len(insn[insnlen + 1]);
+	}
+	else if (insn[insnlen] == 0x8b)     /* ioread */
+	{
 		/* Next byte is r/m byte: bits 3-5 are register. */
 		val = emulate_mmio_read(d, off, mask);
-		setreg_num((insn[insnlen+1] >> 3) & 0x7, val, mask);
-		insnlen += 2 + insn_displacement_len(insn[insnlen+1]);
-	} else if (insn[0] == 0x88) { /* 8-bit iowrite */
+		setreg_num((insn[insnlen + 1] >> 3) & 0x7, val, mask);
+		insnlen += 2 + insn_displacement_len(insn[insnlen + 1]);
+	}
+	else if (insn[0] == 0x88)     /* 8-bit iowrite */
+	{
 		mask = 0xff;
 		/* Next byte is r/m byte: bits 3-5 are register. */
 		val = getreg_num((insn[1] >> 3) & 0x7, mask);
 		emulate_mmio_write(d, off, val, mask);
 		insnlen = 2 + insn_displacement_len(insn[1]);
-	} else if (insn[0] == 0x8a) { /* 8-bit ioread */
+	}
+	else if (insn[0] == 0x8a)     /* 8-bit ioread */
+	{
 		mask = 0xff;
 		val = emulate_mmio_read(d, off, mask);
 		setreg_num((insn[1] >> 3) & 0x7, val, mask);
 		insnlen = 2 + insn_displacement_len(insn[1]);
-	} else {
+	}
+	else
+	{
 		warnx("Unknown MMIO instruction touching %#08lx:"
-		     " %02x %02x %02x %02x at %u",
-		     paddr, insn[0], insn[1], insn[2], insn[3], getreg(eip));
-	reinject:
+			  " %02x %02x %02x %02x at %u",
+			  paddr, insn[0], insn[1], insn[2], insn[3], getreg(eip));
+reinject:
+
 		/* Inject trap into Guest. */
 		if (write(lguest_fd, args, sizeof(args)) < 0)
 			err(1, "Reinjecting trap 14 for fault at %#x",
-			    getreg(eip));
+				getreg(eip));
+
 		return;
 	}
 
@@ -2378,8 +2805,8 @@ static void emulate_mmio(unsigned long paddr, const u8 *insn)
  * routines to allocate and manage them.
  */
 static void add_pci_virtqueue(struct device *dev,
-			      void (*service)(struct virtqueue *),
-			      const char *name)
+							  void (*service)(struct virtqueue *),
+							  const char *name)
 {
 	struct virtqueue **i, *vq = malloc(sizeof(*vq));
 
@@ -2394,7 +2821,7 @@ static void add_pci_virtqueue(struct device *dev,
 	 * once it's running.
 	 */
 	vq->service = service;
-	vq->thread = (pid_t)-1;
+	vq->thread = (pid_t) - 1;
 
 	/* Initialize the configuration. */
 	reset_vq_pci_config(vq);
@@ -2408,6 +2835,7 @@ static void add_pci_virtqueue(struct device *dev,
 	 * second.
 	 */
 	for (i = &dev->vq; *i; i = &(*i)->next);
+
 	*i = vq;
 }
 
@@ -2462,7 +2890,7 @@ static void set_device_config(struct device *dev, const void *conf, size_t len)
 }
 
 static void init_cap(struct virtio_pci_cap *cap, size_t caplen, int type,
-		     size_t bar_offset, size_t bar_bytes, u8 next)
+					 size_t bar_offset, size_t bar_bytes, u8 next)
 {
 	cap->cap_vndr = PCI_CAP_ID_VNDR;
 	cap->cap_next = next;
@@ -2479,7 +2907,7 @@ static void init_cap(struct virtio_pci_cap *cap, size_t caplen, int type,
  * standard (and PCI standard).
  */
 static void init_pci_config(struct pci_config *pci, u16 type,
-			    u8 class, u8 subclass)
+							u8 class, u8 subclass)
 {
 	size_t bar_offset, bar_len;
 
@@ -2491,7 +2919,7 @@ static void init_pci_config(struct pci_config *pci, u16 type,
 	 *
 	 * 2.1.2:
 	 *
-	 *   The device MUST initialize device status to 0 upon reset. 
+	 *   The device MUST initialize device status to 0 upon reset.
 	 */
 	memset(pci, 0, sizeof(*pci));
 
@@ -2546,8 +2974,8 @@ static void init_pci_config(struct pci_config *pci, u16 type,
 	bar_offset = offsetof(struct virtio_pci_mmio, cfg);
 	bar_len = sizeof(((struct virtio_pci_mmio *)0)->cfg);
 	init_cap(&pci->common, sizeof(pci->common), VIRTIO_PCI_CAP_COMMON_CFG,
-		 bar_offset, bar_len,
-		 offsetof(struct pci_config, notify));
+			 bar_offset, bar_len,
+			 offsetof(struct pci_config, notify));
 
 	/*
 	 * 4.1.4.4.1:
@@ -2575,9 +3003,9 @@ static void init_pci_config(struct pci_config *pci, u16 type,
 	assert(bar_len >= 2);
 
 	init_cap(&pci->notify.cap, sizeof(pci->notify),
-		 VIRTIO_PCI_CAP_NOTIFY_CFG,
-		 bar_offset, bar_len,
-		 offsetof(struct pci_config, isr));
+			 VIRTIO_PCI_CAP_NOTIFY_CFG,
+			 bar_offset, bar_len,
+			 offsetof(struct pci_config, isr));
 
 	bar_offset += bar_len;
 	bar_len = sizeof(((struct virtio_pci_mmio *)0)->isr);
@@ -2588,9 +3016,9 @@ static void init_pci_config(struct pci_config *pci, u16 type,
 	 *  capability.
 	 */
 	init_cap(&pci->isr, sizeof(pci->isr),
-		 VIRTIO_PCI_CAP_ISR_CFG,
-		 bar_offset, bar_len,
-		 offsetof(struct pci_config, cfg_access));
+			 VIRTIO_PCI_CAP_ISR_CFG,
+			 bar_offset, bar_len,
+			 offsetof(struct pci_config, cfg_access));
 
 	/*
 	 * 4.1.4.7.1:
@@ -2600,8 +3028,8 @@ static void init_pci_config(struct pci_config *pci, u16 type,
 	 */
 	/* This doesn't have any presence in the BAR */
 	init_cap(&pci->cfg_access.cap, sizeof(pci->cfg_access),
-		 VIRTIO_PCI_CAP_PCI_CFG,
-		 0, 0, 0);
+			 VIRTIO_PCI_CAP_PCI_CFG,
+			 0, 0, 0);
 
 	bar_offset += bar_len + sizeof(((struct virtio_pci_mmio *)0)->padding);
 	assert(bar_offset == sizeof(struct virtio_pci_mmio));
@@ -2612,7 +3040,7 @@ static void init_pci_config(struct pci_config *pci, u16 type,
 	 * we never expose this if we don't call set_device_config().
 	 */
 	init_cap(&pci->device, sizeof(pci->device), VIRTIO_PCI_CAP_DEVICE_CFG,
-		 bar_offset, 0, 0);
+			 bar_offset, 0, 0);
 }
 
 /*
@@ -2624,7 +3052,7 @@ static void init_pci_config(struct pci_config *pci, u16 type,
  * See what I mean about userspace being boring?
  */
 static struct device *new_pci_device(const char *name, u16 type,
-				     u8 class, u8 subclass)
+									 u8 class, u8 subclass)
 {
 	struct device *dev = malloc(sizeof(*dev));
 
@@ -2639,10 +3067,12 @@ static struct device *new_pci_device(const char *name, u16 type,
 	dev->features_accepted = 0;
 
 	if (devices.device_num + 1 >= MAX_PCI_DEVICES)
+	{
 		errx(1, "Can only handle 31 PCI devices");
+	}
 
 	init_pci_config(&dev->config, type, class, subclass);
-	assert(!devices.pci[devices.device_num+1]);
+	assert(!devices.pci[devices.device_num + 1]);
 	devices.pci[++devices.device_num] = dev;
 
 	return dev;
@@ -2658,13 +3088,14 @@ static void setup_console(void)
 	struct virtio_console_config conf;
 
 	/* If we can save the initial standard input settings... */
-	if (tcgetattr(STDIN_FILENO, &orig_term) == 0) {
+	if (tcgetattr(STDIN_FILENO, &orig_term) == 0)
+	{
 		struct termios term = orig_term;
 		/*
 		 * Then we turn off echo, line buffering and ^C etc: We want a
 		 * raw input stream to the Guest.
 		 */
-		term.c_lflag &= ~(ISIG|ICANON|ECHO);
+		term.c_lflag &= ~(ISIG | ICANON | ECHO);
 		tcsetattr(STDIN_FILENO, TCSANOW, &term);
 	}
 
@@ -2714,16 +3145,23 @@ static u32 str2ip(const char *ipaddr)
 	unsigned int b[4];
 
 	if (sscanf(ipaddr, "%u.%u.%u.%u", &b[0], &b[1], &b[2], &b[3]) != 4)
+	{
 		errx(1, "Failed to parse IP address '%s'", ipaddr);
+	}
+
 	return (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3];
 }
 
 static void str2mac(const char *macaddr, unsigned char mac[6])
 {
 	unsigned int m[6];
+
 	if (sscanf(macaddr, "%02x:%02x:%02x:%02x:%02x:%02x",
-		   &m[0], &m[1], &m[2], &m[3], &m[4], &m[5]) != 6)
+			   &m[0], &m[1], &m[2], &m[3], &m[4], &m[5]) != 6)
+	{
 		errx(1, "Failed to parse mac address '%s'", macaddr);
+	}
+
 	mac[0] = m[0];
 	mac[1] = m[1];
 	mac[2] = m[2];
@@ -2745,17 +3183,25 @@ static void add_to_bridge(int fd, const char *if_name, const char *br_name)
 	struct ifreq ifr;
 
 	if (!*br_name)
+	{
 		errx(1, "must specify bridge name");
+	}
 
 	ifidx = if_nametoindex(if_name);
+
 	if (!ifidx)
+	{
 		errx(1, "interface %s does not exist!", if_name);
+	}
 
 	strncpy(ifr.ifr_name, br_name, IFNAMSIZ);
-	ifr.ifr_name[IFNAMSIZ-1] = '\0';
+	ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 	ifr.ifr_ifindex = ifidx;
+
 	if (ioctl(fd, SIOCBRADDIF, &ifr) < 0)
+	{
 		err(1, "can't add %s to bridge %s", if_name, br_name);
+	}
 }
 
 /*
@@ -2775,11 +3221,18 @@ static void configure_device(int fd, const char *tapif, u32 ipaddr)
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = htonl(ipaddr);
 	memcpy(&ifr.ifr_addr, &sin, sizeof(sin));
+
 	if (ioctl(fd, SIOCSIFADDR, &ifr) != 0)
+	{
 		err(1, "Setting %s interface address", tapif);
+	}
+
 	ifr.ifr_flags = IFF_UP;
+
 	if (ioctl(fd, SIOCSIFFLAGS, &ifr) != 0)
+	{
 		err(1, "Bringing interface %s up", tapif);
+	}
 }
 
 static int get_tun_device(char tapif[IFNAMSIZ])
@@ -2800,12 +3253,17 @@ static int get_tun_device(char tapif[IFNAMSIZ])
 	netfd = open_or_die("/dev/net/tun", O_RDWR);
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI | IFF_VNET_HDR;
 	strcpy(ifr.ifr_name, "tap%d");
+
 	if (ioctl(netfd, TUNSETIFF, &ifr) != 0)
+	{
 		err(1, "configuring /dev/net/tun");
+	}
 
 	if (ioctl(netfd, TUNSETOFFLOAD,
-		  TUN_F_CSUM|TUN_F_TSO4|TUN_F_TSO6|TUN_F_TSO_ECN) != 0)
+			  TUN_F_CSUM | TUN_F_TSO4 | TUN_F_TSO6 | TUN_F_TSO_ECN) != 0)
+	{
 		err(1, "Could not set features for tun device");
+	}
 
 	/*
 	 * We don't need checksums calculated for packets coming in this
@@ -2822,8 +3280,11 @@ static int get_tun_device(char tapif[IFNAMSIZ])
 	 * virtio_net_hdr_mrg_rxbuf in the legacy system).
 	 */
 	vnet_hdr_sz = sizeof(struct virtio_net_hdr_v1);
+
 	if (ioctl(netfd, TUNSETVNETHDRSZ, &vnet_hdr_sz) != 0)
+	{
 		err(1, "Setting tun header size to %u", vnet_hdr_sz);
+	}
 
 	memcpy(tapif, ifr.ifr_name, IFNAMSIZ);
 	return netfd;
@@ -2860,28 +3321,38 @@ static void setup_tun_net(char *arg)
 	 * tap interface, connect to the bridge etc.  Any socket will do!
 	 */
 	ipfd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+
 	if (ipfd < 0)
+	{
 		err(1, "opening IP socket");
+	}
 
 	/* If the command line was --tunnet=bridge:<name> do bridging. */
-	if (!strncmp(BRIDGE_PFX, arg, strlen(BRIDGE_PFX))) {
+	if (!strncmp(BRIDGE_PFX, arg, strlen(BRIDGE_PFX)))
+	{
 		arg += strlen(BRIDGE_PFX);
 		bridging = true;
 	}
 
 	/* A mac address may follow the bridge name or IP address */
 	p = strchr(arg, ':');
-	if (p) {
-		str2mac(p+1, conf.mac);
+
+	if (p)
+	{
+		str2mac(p + 1, conf.mac);
 		add_pci_feature(dev, VIRTIO_NET_F_MAC);
 		*p = '\0';
 	}
 
 	/* arg is now either an IP address or a bridge name */
 	if (bridging)
+	{
 		add_to_bridge(ipfd, tapif, arg);
+	}
 	else
+	{
 		ip = str2ip(arg);
+	}
 
 	/* Set up the tun device. */
 	configure_device(ipfd, tapif, ip);
@@ -2904,15 +3375,16 @@ static void setup_tun_net(char *arg)
 
 	if (bridging)
 		verbose("device %u: tun %s attached to bridge: %s\n",
-			devices.device_num, tapif, arg);
+				devices.device_num, tapif, arg);
 	else
 		verbose("device %u: tun %s: %s\n",
-			devices.device_num, tapif, arg);
+				devices.device_num, tapif, arg);
 }
 /*:*/
 
 /* This hangs off device->priv. */
-struct vblk_info {
+struct vblk_info
+{
 	/* The size of the file. */
 	off64_t len;
 
@@ -2956,15 +3428,21 @@ static void blk_request(struct virtqueue *vq)
 
 	/* Find and trim end of iov input array, for our status byte. */
 	in = NULL;
-	for (i = out_num + in_num - 1; i >= out_num; i--) {
-		if (iov[i].iov_len > 0) {
+
+	for (i = out_num + in_num - 1; i >= out_num; i--)
+	{
+		if (iov[i].iov_len > 0)
+		{
 			in = iov[i].iov_base + iov[i].iov_len - 1;
 			iov[i].iov_len--;
 			break;
 		}
 	}
+
 	if (!in)
+	{
 		bad_driver_vq(vq, "Bad virtblk cmd with no room for status");
+	}
 
 	/*
 	 * For historical reasons, block operations are expressed in 512 byte
@@ -2972,7 +3450,8 @@ static void blk_request(struct virtqueue *vq)
 	 */
 	off = out.sector * 512;
 
-	if (out.type & VIRTIO_BLK_T_OUT) {
+	if (out.type & VIRTIO_BLK_T_OUT)
+	{
 		/*
 		 * Write
 		 *
@@ -2980,7 +3459,9 @@ static void blk_request(struct virtqueue *vq)
 		 * if they try to write past end.
 		 */
 		if (lseek64(vblk->fd, off, SEEK_SET) != off)
+		{
 			err(1, "Bad seek to sector %llu", out.sector);
+		}
 
 		ret = writev(vblk->fd, iov, out_num);
 		verbose("WRITE to sector %llu: %i\n", out.sector, ret);
@@ -2990,7 +3471,8 @@ static void blk_request(struct virtqueue *vq)
 		 * make sure they didn't try to write over the end of the block
 		 * file (possibly extending it).
 		 */
-		if (ret > 0 && off + ret > vblk->len) {
+		if (ret > 0 && off + ret > vblk->len)
+		{
 			/* Trim it back to the correct length */
 			ftruncate64(vblk->fd, vblk->len);
 			/* Die, bad Guest, die. */
@@ -2999,13 +3481,17 @@ static void blk_request(struct virtqueue *vq)
 
 		wlen = sizeof(*in);
 		*in = (ret >= 0 ? VIRTIO_BLK_S_OK : VIRTIO_BLK_S_IOERR);
-	} else if (out.type & VIRTIO_BLK_T_FLUSH) {
+	}
+	else if (out.type & VIRTIO_BLK_T_FLUSH)
+	{
 		/* Flush */
 		ret = fdatasync(vblk->fd);
 		verbose("FLUSH fdatasync: %i\n", ret);
 		wlen = sizeof(*in);
 		*in = (ret >= 0 ? VIRTIO_BLK_S_OK : VIRTIO_BLK_S_IOERR);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Read
 		 *
@@ -3013,13 +3499,19 @@ static void blk_request(struct virtqueue *vq)
 		 * if they try to read past end.
 		 */
 		if (lseek64(vblk->fd, off, SEEK_SET) != off)
+		{
 			err(1, "Bad seek to sector %llu", out.sector);
+		}
 
 		ret = readv(vblk->fd, iov + out_num, in_num);
-		if (ret >= 0) {
+
+		if (ret >= 0)
+		{
 			wlen = sizeof(*in) + ret;
 			*in = VIRTIO_BLK_S_OK;
-		} else {
+		}
+		else
+		{
 			wlen = sizeof(*in);
 			*in = VIRTIO_BLK_S_IOERR;
 		}
@@ -3046,7 +3538,7 @@ static void setup_block_file(const char *filename)
 	vblk = dev->priv = malloc(sizeof(*vblk));
 
 	/* First we open the file and store the length. */
-	vblk->fd = open_or_die(filename, O_RDWR|O_LARGEFILE);
+	vblk->fd = open_or_die(filename, O_RDWR | O_LARGEFILE);
 	vblk->len = lseek64(vblk->fd, 0, SEEK_END);
 
 	/* Tell Guest how many sectors this device has. */
@@ -3062,7 +3554,7 @@ static void setup_block_file(const char *filename)
 	set_device_config(dev, &conf, sizeof(struct virtio_blk_config));
 
 	verbose("device %u: virtblock %llu sectors\n",
-		devices.device_num, le64_to_cpu(conf.capacity));
+			devices.device_num, le64_to_cpu(conf.capacity));
 }
 
 /*L:211
@@ -3073,7 +3565,8 @@ static void setup_block_file(const char *filename)
  *
  * The same logic applies, however.
  */
-struct rng_info {
+struct rng_info
+{
 	int rfd;
 };
 
@@ -3086,17 +3579,25 @@ static void rng_input(struct virtqueue *vq)
 
 	/* First we need a buffer from the Guests's virtqueue. */
 	head = wait_for_vq_desc(vq, iov, &out_num, &in_num);
+
 	if (out_num)
+	{
 		bad_driver_vq(vq, "Output buffers in rng?");
+	}
 
 	/*
 	 * Just like the console write, we loop to cover the whole iovec.
 	 * In this case, short reads actually happen quite a bit.
 	 */
-	while (!iov_empty(iov, in_num)) {
+	while (!iov_empty(iov, in_num))
+	{
 		len = readv(rng_info->rfd, iov, in_num);
+
 		if (len <= 0)
+		{
 			err(1, "Read from /dev/urandom gave %i", len);
+		}
+
 		iov_consume(vq->dev, iov, in_num, NULL, len);
 		totlen += len;
 	}
@@ -3140,7 +3641,9 @@ static void __attribute__((noreturn)) restart_guest(void)
 	 * stderr.
 	 */
 	for (i = 3; i < FD_SETSIZE; i++)
+	{
 		close(i);
+	}
 
 	/* Reset all the devices (kills all threads). */
 	cleanup_devices();
@@ -3155,35 +3658,50 @@ static void __attribute__((noreturn)) restart_guest(void)
  */
 static void __attribute__((noreturn)) run_guest(void)
 {
-	for (;;) {
+	for (;;)
+	{
 		struct lguest_pending notify;
 		int readval;
 
 		/* We read from the /dev/lguest device to run the Guest. */
 		readval = pread(lguest_fd, &notify, sizeof(notify), cpu_id);
-		if (readval == sizeof(notify)) {
-			if (notify.trap == 13) {
+
+		if (readval == sizeof(notify))
+		{
+			if (notify.trap == 13)
+			{
 				verbose("Emulating instruction at %#x\n",
-					getreg(eip));
+						getreg(eip));
 				emulate_insn(notify.insn);
-			} else if (notify.trap == 14) {
+			}
+			else if (notify.trap == 14)
+			{
 				verbose("Emulating MMIO at %#x\n",
-					getreg(eip));
+						getreg(eip));
 				emulate_mmio(notify.addr, notify.insn);
-			} else
+			}
+			else
 				errx(1, "Unknown trap %i addr %#08x\n",
-				     notify.trap, notify.addr);
-		/* ENOENT means the Guest died.  Reading tells us why. */
-		} else if (errno == ENOENT) {
+					 notify.trap, notify.addr);
+
+			/* ENOENT means the Guest died.  Reading tells us why. */
+		}
+		else if (errno == ENOENT)
+		{
 			char reason[1024] = { 0 };
-			pread(lguest_fd, reason, sizeof(reason)-1, cpu_id);
+			pread(lguest_fd, reason, sizeof(reason) - 1, cpu_id);
 			errx(1, "%s", reason);
-		/* ERESTART means that we need to reboot the guest */
-		} else if (errno == ERESTART) {
+			/* ERESTART means that we need to reboot the guest */
+		}
+		else if (errno == ERESTART)
+		{
 			restart_guest();
-		/* Anything else means a bug or incompatible change. */
-		} else
+			/* Anything else means a bug or incompatible change. */
+		}
+		else
+		{
 			err(1, "Running guest failed");
+		}
 	}
 }
 /*L:240
@@ -3195,7 +3713,8 @@ static void __attribute__((noreturn)) run_guest(void)
  * "make Host".
 :*/
 
-static struct option opts[] = {
+static struct option opts[] =
+{
 	{ "verbose", 0, NULL, 'v' },
 	{ "tunnet", 1, NULL, 't' },
 	{ "block", 1, NULL, 'b' },
@@ -3208,9 +3727,9 @@ static struct option opts[] = {
 static void usage(void)
 {
 	errx(1, "Usage: lguest [--verbose] "
-	     "[--tunnet=(<ipaddr>:<macaddr>|bridge:<bridgename>:<macaddr>)\n"
-	     "|--block=<filename>|--initrd=<filename>]...\n"
-	     "<mem-in-mb> vmlinux [args...]");
+		 "[--tunnet=(<ipaddr>:<macaddr>|bridge:<bridgename>:<macaddr>)\n"
+		 "|--block=<filename>|--initrd=<filename>]...\n"
+		 "<mem-in-mb> vmlinux [args...]");
 }
 
 /*L:105 The main routine is where the real work begins: */
@@ -3249,8 +3768,10 @@ int main(int argc, char *argv[])
 	 * line.  So we quickly look through the arguments to find the amount
 	 * of memory now.
 	 */
-	for (i = 1; i < argc; i++) {
-		if (argv[i][0] != '-') {
+	for (i = 1; i < argc; i++)
+	{
+		if (argv[i][0] != '-')
+		{
 			mem = atoi(argv[i]) * 1024 * 1024;
 			/*
 			 * We start by mapping anonymous pages over all of
@@ -3259,9 +3780,9 @@ int main(int argc, char *argv[])
 			 * tries to access it.
 			 */
 			guest_base = map_zeroed_pages(mem / getpagesize()
-						      + DEVICE_PAGES);
+										  + DEVICE_PAGES);
 			guest_limit = mem;
-			guest_max = guest_mmio = mem + DEVICE_PAGES*getpagesize();
+			guest_max = guest_mmio = mem + DEVICE_PAGES * getpagesize();
 			break;
 		}
 	}
@@ -3273,42 +3794,58 @@ int main(int argc, char *argv[])
 	setup_console();
 
 	/* The options are fairly straight-forward */
-	while ((c = getopt_long(argc, argv, "v", opts, NULL)) != EOF) {
-		switch (c) {
-		case 'v':
-			verbose = true;
-			break;
-		case 't':
-			setup_tun_net(optarg);
-			break;
-		case 'b':
-			setup_block_file(optarg);
-			break;
-		case 'r':
-			setup_rng();
-			break;
-		case 'i':
-			initrd_name = optarg;
-			break;
-		case 'u':
-			user_details = getpwnam(optarg);
-			if (!user_details)
-				err(1, "getpwnam failed, incorrect username?");
-			break;
-		case 'c':
-			chroot_path = optarg;
-			break;
-		default:
-			warnx("Unknown argument %s", argv[optind]);
-			usage();
+	while ((c = getopt_long(argc, argv, "v", opts, NULL)) != EOF)
+	{
+		switch (c)
+		{
+			case 'v':
+				verbose = true;
+				break;
+
+			case 't':
+				setup_tun_net(optarg);
+				break;
+
+			case 'b':
+				setup_block_file(optarg);
+				break;
+
+			case 'r':
+				setup_rng();
+				break;
+
+			case 'i':
+				initrd_name = optarg;
+				break;
+
+			case 'u':
+				user_details = getpwnam(optarg);
+
+				if (!user_details)
+				{
+					err(1, "getpwnam failed, incorrect username?");
+				}
+
+				break;
+
+			case 'c':
+				chroot_path = optarg;
+				break;
+
+			default:
+				warnx("Unknown argument %s", argv[optind]);
+				usage();
 		}
 	}
+
 	/*
 	 * After the other arguments we expect memory and kernel image name,
 	 * followed by command line arguments for the kernel.
 	 */
 	if (optind + 2 > argc)
+	{
 		usage();
+	}
 
 	verbose("Guest base is at %p\n", guest_base);
 
@@ -3316,13 +3853,14 @@ int main(int argc, char *argv[])
 	init_pci_host_bridge();
 
 	/* Now we load the kernel */
-	start = load_kernel(open_or_die(argv[optind+1], O_RDONLY));
+	start = load_kernel(open_or_die(argv[optind + 1], O_RDONLY));
 
 	/* Boot information is stashed at physical address 0 */
 	boot = from_guest_phys(0);
 
 	/* Map the initrd image if requested (at top of physical memory) */
-	if (initrd_name) {
+	if (initrd_name)
+	{
 		initrd_size = load_initrd(initrd_name, mem);
 		/*
 		 * These are the location in the Linux boot header where the
@@ -3346,7 +3884,7 @@ int main(int argc, char *argv[])
 	 */
 	boot->hdr.cmd_line_ptr = to_guest_phys(boot + 1);
 	/* We use a simple helper to copy the arguments separated by spaces. */
-	concat((char *)(boot + 1), argv+optind+2);
+	concat((char *)(boot + 1), argv + optind + 2);
 
 	/* Set kernel alignment to 16M (CONFIG_PHYSICAL_ALIGN) */
 	boot->hdr.kernel_alignment = 0x1000000;
@@ -3373,18 +3911,24 @@ int main(int argc, char *argv[])
 	signal(SIGCHLD, kill_launcher);
 
 	/* If requested, chroot to a directory */
-	if (chroot_path) {
+	if (chroot_path)
+	{
 		if (chroot(chroot_path) != 0)
+		{
 			err(1, "chroot(\"%s\") failed", chroot_path);
+		}
 
 		if (chdir("/") != 0)
+		{
 			err(1, "chdir(\"/\") failed");
+		}
 
 		verbose("chroot done\n");
 	}
 
 	/* If requested, drop privileges */
-	if (user_details) {
+	if (user_details)
+	{
 		uid_t u;
 		gid_t g;
 
@@ -3392,13 +3936,19 @@ int main(int argc, char *argv[])
 		g = user_details->pw_gid;
 
 		if (initgroups(user_details->pw_name, g) != 0)
+		{
 			err(1, "initgroups failed");
+		}
 
 		if (setresgid(g, g, g) != 0)
+		{
 			err(1, "setresgid failed");
+		}
 
 		if (setresuid(u, u, u) != 0)
+		{
 			err(1, "setresuid failed");
+		}
 
 		verbose("Dropping privileges completed\n");
 	}

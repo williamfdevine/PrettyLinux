@@ -12,7 +12,8 @@
 
 static int __net_init iptable_raw_table_init(struct net *net);
 
-static const struct xt_table packet_raw = {
+static const struct xt_table packet_raw =
+{
 	.name = "raw",
 	.valid_hooks =  RAW_VALID_HOOKS,
 	.me = THIS_MODULE,
@@ -24,13 +25,15 @@ static const struct xt_table packet_raw = {
 /* The work comes in here from netfilter.c. */
 static unsigned int
 iptable_raw_hook(void *priv, struct sk_buff *skb,
-		 const struct nf_hook_state *state)
+				 const struct nf_hook_state *state)
 {
 	if (state->hook == NF_INET_LOCAL_OUT &&
-	    (skb->len < sizeof(struct iphdr) ||
-	     ip_hdrlen(skb) < sizeof(struct iphdr)))
+		(skb->len < sizeof(struct iphdr) ||
+		 ip_hdrlen(skb) < sizeof(struct iphdr)))
 		/* root is playing with raw sockets. */
+	{
 		return NF_ACCEPT;
+	}
 
 	return ipt_do_table(skb, state, state->net->ipv4.iptable_raw);
 }
@@ -43,13 +46,19 @@ static int __net_init iptable_raw_table_init(struct net *net)
 	int ret;
 
 	if (net->ipv4.iptable_raw)
+	{
 		return 0;
+	}
 
 	repl = ipt_alloc_initial_table(&packet_raw);
+
 	if (repl == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	ret = ipt_register_table(net, &packet_raw, repl, rawtable_ops,
-				 &net->ipv4.iptable_raw);
+							 &net->ipv4.iptable_raw);
 	kfree(repl);
 	return ret;
 }
@@ -57,12 +66,16 @@ static int __net_init iptable_raw_table_init(struct net *net)
 static void __net_exit iptable_raw_net_exit(struct net *net)
 {
 	if (!net->ipv4.iptable_raw)
+	{
 		return;
+	}
+
 	ipt_unregister_table(net, net->ipv4.iptable_raw, rawtable_ops);
 	net->ipv4.iptable_raw = NULL;
 }
 
-static struct pernet_operations iptable_raw_net_ops = {
+static struct pernet_operations iptable_raw_net_ops =
+{
 	.exit = iptable_raw_net_exit,
 };
 
@@ -71,17 +84,24 @@ static int __init iptable_raw_init(void)
 	int ret;
 
 	rawtable_ops = xt_hook_ops_alloc(&packet_raw, iptable_raw_hook);
+
 	if (IS_ERR(rawtable_ops))
+	{
 		return PTR_ERR(rawtable_ops);
+	}
 
 	ret = register_pernet_subsys(&iptable_raw_net_ops);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		kfree(rawtable_ops);
 		return ret;
 	}
 
 	ret = iptable_raw_table_init(&init_net);
-	if (ret) {
+
+	if (ret)
+	{
 		unregister_pernet_subsys(&iptable_raw_net_ops);
 		kfree(rawtable_ops);
 	}

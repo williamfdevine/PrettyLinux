@@ -55,8 +55,8 @@
  * so it can be in the stack. See WUSB1.0[8.6.2.4] for more details.
  */
 int uwb_rc_scan(struct uwb_rc *rc,
-		unsigned channel, enum uwb_scan_type type,
-		unsigned bpst_offset)
+				unsigned channel, enum uwb_scan_type type,
+				unsigned bpst_offset)
 {
 	int result;
 	struct uwb_rc_cmd_scan *cmd;
@@ -64,8 +64,12 @@ int uwb_rc_scan(struct uwb_rc *rc,
 
 	result = -ENOMEM;
 	cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
+
 	if (cmd == NULL)
+	{
 		goto error_kzalloc;
+	}
+
 	mutex_lock(&rc->uwb_dev.mutex);
 	cmd->rccb.bCommandType = UWB_RC_CET_GENERAL;
 	cmd->rccb.wCommand = cpu_to_le16(UWB_RC_CMD_SCAN);
@@ -75,16 +79,22 @@ int uwb_rc_scan(struct uwb_rc *rc,
 	reply.rceb.bEventType = UWB_RC_CET_GENERAL;
 	reply.rceb.wEvent = UWB_RC_CMD_SCAN;
 	result = uwb_rc_cmd(rc, "SCAN", &cmd->rccb, sizeof(*cmd),
-			    &reply.rceb, sizeof(reply));
+						&reply.rceb, sizeof(reply));
+
 	if (result < 0)
+	{
 		goto error_cmd;
-	if (reply.bResultCode != UWB_RC_RES_SUCCESS) {
+	}
+
+	if (reply.bResultCode != UWB_RC_RES_SUCCESS)
+	{
 		dev_err(&rc->uwb_dev.dev,
-			"SCAN: command execution failed: %s (%d)\n",
-			uwb_rc_strerror(reply.bResultCode), reply.bResultCode);
+				"SCAN: command execution failed: %s (%d)\n",
+				uwb_rc_strerror(reply.bResultCode), reply.bResultCode);
 		result = -EIO;
 		goto error_cmd;
 	}
+
 	rc->scanning = channel;
 	rc->scan_type = type;
 error_cmd:
@@ -98,7 +108,7 @@ error_kzalloc:
  * Print scanning state
  */
 static ssize_t uwb_rc_scan_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	struct uwb_dev *uwb_dev = to_uwb_dev(dev);
 	struct uwb_rc *rc = uwb_dev->rc;
@@ -114,8 +124,8 @@ static ssize_t uwb_rc_scan_show(struct device *dev,
  *
  */
 static ssize_t uwb_rc_scan_store(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t size)
+								 struct device_attribute *attr,
+								 const char *buf, size_t size)
 {
 	struct uwb_dev *uwb_dev = to_uwb_dev(dev);
 	struct uwb_rc *rc = uwb_dev->rc;
@@ -125,8 +135,11 @@ static ssize_t uwb_rc_scan_store(struct device *dev,
 	ssize_t result = -EINVAL;
 
 	result = sscanf(buf, "%u %u %u\n", &channel, &type, &bpst_offset);
+
 	if (result >= 2 && type < UWB_SCAN_TOP)
+	{
 		result = uwb_rc_scan(rc, channel, type, bpst_offset);
+	}
 
 	return result < 0 ? result : size;
 }

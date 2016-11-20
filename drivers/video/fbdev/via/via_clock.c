@@ -31,27 +31,27 @@
 #include "debug.h"
 
 static const char *via_slap = "Please slap VIA Technologies to motivate them "
-	"releasing full documentation for your platform!\n";
+							  "releasing full documentation for your platform!\n";
 
 static inline u32 cle266_encode_pll(struct via_pll_config pll)
 {
 	return (pll.multiplier << 8)
-		| (pll.rshift << 6)
-		| pll.divisor;
+		   | (pll.rshift << 6)
+		   | pll.divisor;
 }
 
 static inline u32 k800_encode_pll(struct via_pll_config pll)
 {
 	return ((pll.divisor - 2) << 16)
-		| (pll.rshift << 10)
-		| (pll.multiplier - 2);
+		   | (pll.rshift << 10)
+		   | (pll.multiplier - 2);
 }
 
 static inline u32 vx855_encode_pll(struct via_pll_config pll)
 {
 	return (pll.divisor << 16)
-		| (pll.rshift << 10)
-		| pll.multiplier;
+		   | (pll.rshift << 10)
+		   | pll.multiplier;
 }
 
 static inline void cle266_set_primary_pll_encoded(u32 data)
@@ -141,15 +141,18 @@ static void set_primary_pll_state(u8 state)
 {
 	u8 value;
 
-	switch (state) {
-	case VIA_STATE_ON:
-		value = 0x20;
-		break;
-	case VIA_STATE_OFF:
-		value = 0x00;
-		break;
-	default:
-		return;
+	switch (state)
+	{
+		case VIA_STATE_ON:
+			value = 0x20;
+			break;
+
+		case VIA_STATE_OFF:
+			value = 0x00;
+			break;
+
+		default:
+			return;
 	}
 
 	via_write_reg_mask(VIASR, 0x2D, value, 0x30);
@@ -159,15 +162,18 @@ static void set_secondary_pll_state(u8 state)
 {
 	u8 value;
 
-	switch (state) {
-	case VIA_STATE_ON:
-		value = 0x08;
-		break;
-	case VIA_STATE_OFF:
-		value = 0x00;
-		break;
-	default:
-		return;
+	switch (state)
+	{
+		case VIA_STATE_ON:
+			value = 0x08;
+			break;
+
+		case VIA_STATE_OFF:
+			value = 0x00;
+			break;
+
+		default:
+			return;
 	}
 
 	via_write_reg_mask(VIASR, 0x2D, value, 0x0C);
@@ -177,15 +183,18 @@ static void set_engine_pll_state(u8 state)
 {
 	u8 value;
 
-	switch (state) {
-	case VIA_STATE_ON:
-		value = 0x02;
-		break;
-	case VIA_STATE_OFF:
-		value = 0x00;
-		break;
-	default:
-		return;
+	switch (state)
+	{
+		case VIA_STATE_ON:
+			value = 0x02;
+			break;
+
+		case VIA_STATE_OFF:
+			value = 0x00;
+			break;
+
+		default:
+			return;
 	}
 
 	via_write_reg_mask(VIASR, 0x2D, value, 0x03);
@@ -195,15 +204,18 @@ static void set_primary_clock_state(u8 state)
 {
 	u8 value;
 
-	switch (state) {
-	case VIA_STATE_ON:
-		value = 0x20;
-		break;
-	case VIA_STATE_OFF:
-		value = 0x00;
-		break;
-	default:
-		return;
+	switch (state)
+	{
+		case VIA_STATE_ON:
+			value = 0x20;
+			break;
+
+		case VIA_STATE_OFF:
+			value = 0x00;
+			break;
+
+		default:
+			return;
 	}
 
 	via_write_reg_mask(VIASR, 0x1B, value, 0x30);
@@ -213,15 +225,18 @@ static void set_secondary_clock_state(u8 state)
 {
 	u8 value;
 
-	switch (state) {
-	case VIA_STATE_ON:
-		value = 0x80;
-		break;
-	case VIA_STATE_OFF:
-		value = 0x00;
-		break;
-	default:
-		return;
+	switch (state)
+	{
+		case VIA_STATE_ON:
+			value = 0x80;
+			break;
+
+		case VIA_STATE_OFF:
+			value = 0x00;
+			break;
+
+		default:
+			return;
 	}
 
 	via_write_reg_mask(VIASR, 0x1B, value, 0xC0);
@@ -231,29 +246,37 @@ static inline u8 set_clock_source_common(enum via_clksrc source, bool use_pll)
 {
 	u8 data = 0;
 
-	switch (source) {
-	case VIA_CLKSRC_X1:
-		data = 0x00;
-		break;
-	case VIA_CLKSRC_TVX1:
-		data = 0x02;
-		break;
-	case VIA_CLKSRC_TVPLL:
-		data = 0x04; /* 0x06 should be the same */
-		break;
-	case VIA_CLKSRC_DVP1TVCLKR:
-		data = 0x0A;
-		break;
-	case VIA_CLKSRC_CAP0:
-		data = 0xC;
-		break;
-	case VIA_CLKSRC_CAP1:
-		data = 0x0E;
-		break;
+	switch (source)
+	{
+		case VIA_CLKSRC_X1:
+			data = 0x00;
+			break;
+
+		case VIA_CLKSRC_TVX1:
+			data = 0x02;
+			break;
+
+		case VIA_CLKSRC_TVPLL:
+			data = 0x04; /* 0x06 should be the same */
+			break;
+
+		case VIA_CLKSRC_DVP1TVCLKR:
+			data = 0x0A;
+			break;
+
+		case VIA_CLKSRC_CAP0:
+			data = 0xC;
+			break;
+
+		case VIA_CLKSRC_CAP1:
+			data = 0x0E;
+			break;
 	}
 
 	if (!use_pll)
+	{
 		data |= 1;
+	}
 
 	return data;
 }
@@ -296,63 +319,67 @@ static void noop_set_clock_state(u8 state)
 
 void via_clock_init(struct via_clock *clock, int gfx_chip)
 {
-	switch (gfx_chip) {
-	case UNICHROME_CLE266:
-	case UNICHROME_K400:
-		clock->set_primary_clock_state = dummy_set_clock_state;
-		clock->set_primary_clock_source = dummy_set_clock_source;
-		clock->set_primary_pll_state = dummy_set_pll_state;
-		clock->set_primary_pll = cle266_set_primary_pll;
+	switch (gfx_chip)
+	{
+		case UNICHROME_CLE266:
+		case UNICHROME_K400:
+			clock->set_primary_clock_state = dummy_set_clock_state;
+			clock->set_primary_clock_source = dummy_set_clock_source;
+			clock->set_primary_pll_state = dummy_set_pll_state;
+			clock->set_primary_pll = cle266_set_primary_pll;
 
-		clock->set_secondary_clock_state = dummy_set_clock_state;
-		clock->set_secondary_clock_source = dummy_set_clock_source;
-		clock->set_secondary_pll_state = dummy_set_pll_state;
-		clock->set_secondary_pll = cle266_set_secondary_pll;
+			clock->set_secondary_clock_state = dummy_set_clock_state;
+			clock->set_secondary_clock_source = dummy_set_clock_source;
+			clock->set_secondary_pll_state = dummy_set_pll_state;
+			clock->set_secondary_pll = cle266_set_secondary_pll;
 
-		clock->set_engine_pll_state = dummy_set_pll_state;
-		clock->set_engine_pll = dummy_set_pll;
-		break;
-	case UNICHROME_K800:
-	case UNICHROME_PM800:
-	case UNICHROME_CN700:
-	case UNICHROME_CX700:
-	case UNICHROME_CN750:
-	case UNICHROME_K8M890:
-	case UNICHROME_P4M890:
-	case UNICHROME_P4M900:
-	case UNICHROME_VX800:
-		clock->set_primary_clock_state = set_primary_clock_state;
-		clock->set_primary_clock_source = set_primary_clock_source;
-		clock->set_primary_pll_state = set_primary_pll_state;
-		clock->set_primary_pll = k800_set_primary_pll;
+			clock->set_engine_pll_state = dummy_set_pll_state;
+			clock->set_engine_pll = dummy_set_pll;
+			break;
 
-		clock->set_secondary_clock_state = set_secondary_clock_state;
-		clock->set_secondary_clock_source = set_secondary_clock_source;
-		clock->set_secondary_pll_state = set_secondary_pll_state;
-		clock->set_secondary_pll = k800_set_secondary_pll;
+		case UNICHROME_K800:
+		case UNICHROME_PM800:
+		case UNICHROME_CN700:
+		case UNICHROME_CX700:
+		case UNICHROME_CN750:
+		case UNICHROME_K8M890:
+		case UNICHROME_P4M890:
+		case UNICHROME_P4M900:
+		case UNICHROME_VX800:
+			clock->set_primary_clock_state = set_primary_clock_state;
+			clock->set_primary_clock_source = set_primary_clock_source;
+			clock->set_primary_pll_state = set_primary_pll_state;
+			clock->set_primary_pll = k800_set_primary_pll;
 
-		clock->set_engine_pll_state = set_engine_pll_state;
-		clock->set_engine_pll = k800_set_engine_pll;
-		break;
-	case UNICHROME_VX855:
-	case UNICHROME_VX900:
-		clock->set_primary_clock_state = set_primary_clock_state;
-		clock->set_primary_clock_source = set_primary_clock_source;
-		clock->set_primary_pll_state = set_primary_pll_state;
-		clock->set_primary_pll = vx855_set_primary_pll;
+			clock->set_secondary_clock_state = set_secondary_clock_state;
+			clock->set_secondary_clock_source = set_secondary_clock_source;
+			clock->set_secondary_pll_state = set_secondary_pll_state;
+			clock->set_secondary_pll = k800_set_secondary_pll;
 
-		clock->set_secondary_clock_state = set_secondary_clock_state;
-		clock->set_secondary_clock_source = set_secondary_clock_source;
-		clock->set_secondary_pll_state = set_secondary_pll_state;
-		clock->set_secondary_pll = vx855_set_secondary_pll;
+			clock->set_engine_pll_state = set_engine_pll_state;
+			clock->set_engine_pll = k800_set_engine_pll;
+			break;
 
-		clock->set_engine_pll_state = set_engine_pll_state;
-		clock->set_engine_pll = vx855_set_engine_pll;
-		break;
+		case UNICHROME_VX855:
+		case UNICHROME_VX900:
+			clock->set_primary_clock_state = set_primary_clock_state;
+			clock->set_primary_clock_source = set_primary_clock_source;
+			clock->set_primary_pll_state = set_primary_pll_state;
+			clock->set_primary_pll = vx855_set_primary_pll;
+
+			clock->set_secondary_clock_state = set_secondary_clock_state;
+			clock->set_secondary_clock_source = set_secondary_clock_source;
+			clock->set_secondary_pll_state = set_secondary_pll_state;
+			clock->set_secondary_pll = vx855_set_secondary_pll;
+
+			clock->set_engine_pll_state = set_engine_pll_state;
+			clock->set_engine_pll = vx855_set_engine_pll;
+			break;
 
 	}
 
-	if (machine_is_olpc()) {
+	if (machine_is_olpc())
+	{
 		/* The OLPC XO-1.5 cannot suspend/resume reliably if the
 		 * IGA1/IGA2 clocks are set as on or off (memory rot
 		 * occasionally happens during suspend under such

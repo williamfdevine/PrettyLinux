@@ -19,7 +19,8 @@
 
 #include "exynos-pmu.h"
 
-struct exynos_pmu_context {
+struct exynos_pmu_context
+{
 	struct device *dev;
 	const struct exynos_pmu_data *pmu_data;
 };
@@ -43,33 +44,42 @@ void exynos_sys_powerdown_conf(enum sys_powerdown mode)
 	const struct exynos_pmu_data *pmu_data;
 
 	if (!pmu_context)
+	{
 		return;
+	}
 
 	pmu_data = pmu_context->pmu_data;
 
 	if (pmu_data->powerdown_conf)
+	{
 		pmu_data->powerdown_conf(mode);
+	}
 
-	if (pmu_data->pmu_config) {
+	if (pmu_data->pmu_config)
+	{
 		for (i = 0; (pmu_data->pmu_config[i].offset != PMU_TABLE_END); i++)
 			pmu_raw_writel(pmu_data->pmu_config[i].val[mode],
-					pmu_data->pmu_config[i].offset);
+						   pmu_data->pmu_config[i].offset);
 	}
 
 	if (pmu_data->powerdown_conf_extra)
+	{
 		pmu_data->powerdown_conf_extra(mode);
+	}
 
-	if (pmu_data->pmu_config_extra) {
+	if (pmu_data->pmu_config_extra)
+	{
 		for (i = 0; pmu_data->pmu_config_extra[i].offset != PMU_TABLE_END; i++)
 			pmu_raw_writel(pmu_data->pmu_config_extra[i].val[mode],
-					pmu_data->pmu_config_extra[i].offset);
+						   pmu_data->pmu_config_extra[i].offset);
 	}
 }
 
 /*
  * PMU platform driver and devicetree bindings.
  */
-static const struct of_device_id exynos_pmu_of_device_ids[] = {
+static const struct of_device_id exynos_pmu_of_device_ids[] =
+{
 	{
 		.compatible = "samsung,exynos3250-pmu",
 		.data = &exynos3250_pmu_data,
@@ -100,16 +110,22 @@ static int exynos_pmu_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pmu_base_addr = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(pmu_base_addr))
+	{
 		return PTR_ERR(pmu_base_addr);
+	}
 
 	pmu_context = devm_kzalloc(&pdev->dev,
-			sizeof(struct exynos_pmu_context),
-			GFP_KERNEL);
-	if (!pmu_context) {
+							   sizeof(struct exynos_pmu_context),
+							   GFP_KERNEL);
+
+	if (!pmu_context)
+	{
 		dev_err(dev, "Cannot allocate memory.\n");
 		return -ENOMEM;
 	}
+
 	pmu_context->dev = dev;
 
 	match = of_match_node(exynos_pmu_of_device_ids, dev->of_node);
@@ -117,7 +133,9 @@ static int exynos_pmu_probe(struct platform_device *pdev)
 	pmu_context->pmu_data = match->data;
 
 	if (pmu_context->pmu_data->pmu_init)
+	{
 		pmu_context->pmu_data->pmu_init();
+	}
 
 	platform_set_drvdata(pdev, pmu_context);
 
@@ -125,7 +143,8 @@ static int exynos_pmu_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver exynos_pmu_driver = {
+static struct platform_driver exynos_pmu_driver =
+{
 	.driver  = {
 		.name   = "exynos-pmu",
 		.of_match_table = exynos_pmu_of_device_ids,

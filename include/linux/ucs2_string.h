@@ -13,6 +13,6 @@ int ucs2_strncmp(const ucs2_char_t *a, const ucs2_char_t *b, size_t len);
 
 unsigned long ucs2_utf8size(const ucs2_char_t *src);
 unsigned long ucs2_as_utf8(u8 *dest, const ucs2_char_t *src,
-			   unsigned long maxlength);
+						   unsigned long maxlength);
 
 #endif /* _LINUX_UCS2_STRING_H_ */

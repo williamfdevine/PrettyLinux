@@ -70,13 +70,20 @@ static int libipw_networks_allocate(struct libipw_device *ieee)
 {
 	int i, j;
 
-	for (i = 0; i < MAX_NETWORK_COUNT; i++) {
+	for (i = 0; i < MAX_NETWORK_COUNT; i++)
+	{
 		ieee->networks[i] = kzalloc(sizeof(struct libipw_network),
-					    GFP_KERNEL);
-		if (!ieee->networks[i]) {
+									GFP_KERNEL);
+
+		if (!ieee->networks[i])
+		{
 			LIBIPW_ERROR("Out of memory allocating beacons\n");
+
 			for (j = 0; j < i; j++)
+			{
 				kfree(ieee->networks[j]);
+			}
+
 			return -ENOMEM;
 		}
 	}
@@ -89,18 +96,21 @@ static inline void libipw_networks_free(struct libipw_device *ieee)
 	int i;
 
 	for (i = 0; i < MAX_NETWORK_COUNT; i++)
+	{
 		kfree(ieee->networks[i]);
+	}
 }
 
 void libipw_networks_age(struct libipw_device *ieee,
-                            unsigned long age_secs)
+						 unsigned long age_secs)
 {
 	struct libipw_network *network = NULL;
 	unsigned long flags;
 	unsigned long age_jiffies = msecs_to_jiffies(age_secs * MSEC_PER_SEC);
 
 	spin_lock_irqsave(&ieee->lock, flags);
-	list_for_each_entry(network, &ieee->network_list, list) {
+	list_for_each_entry(network, &ieee->network_list, list)
+	{
 		network->last_scanned -= age_jiffies;
 	}
 	spin_unlock_irqrestore(&ieee->lock, flags);
@@ -113,15 +123,19 @@ static void libipw_networks_initialize(struct libipw_device *ieee)
 
 	INIT_LIST_HEAD(&ieee->network_free_list);
 	INIT_LIST_HEAD(&ieee->network_list);
+
 	for (i = 0; i < MAX_NETWORK_COUNT; i++)
 		list_add_tail(&ieee->networks[i]->list,
-			      &ieee->network_free_list);
+					  &ieee->network_free_list);
 }
 
 int libipw_change_mtu(struct net_device *dev, int new_mtu)
 {
 	if ((new_mtu < 68) || (new_mtu > LIBIPW_DATA_LEN))
+	{
 		return -EINVAL;
+	}
+
 	dev->mtu = new_mtu;
 	return 0;
 }
@@ -136,16 +150,22 @@ struct net_device *alloc_libipw(int sizeof_priv, int monitor)
 	LIBIPW_DEBUG_INFO("Initializing...\n");
 
 	dev = alloc_etherdev(sizeof(struct libipw_device) + sizeof_priv);
+
 	if (!dev)
+	{
 		goto failed;
+	}
 
 	ieee = netdev_priv(dev);
 
 	ieee->dev = dev;
 
-	if (!monitor) {
+	if (!monitor)
+	{
 		ieee->wdev.wiphy = wiphy_new(&libipw_config_ops, 0);
-		if (!ieee->wdev.wiphy) {
+
+		if (!ieee->wdev.wiphy)
+		{
 			LIBIPW_ERROR("Unable to allocate wiphy.\n");
 			goto failed_free_netdev;
 		}
@@ -161,14 +181,17 @@ struct net_device *alloc_libipw(int sizeof_priv, int monitor)
 		ieee->wdev.wiphy->max_scan_ssids = 1;
 		ieee->wdev.wiphy->max_scan_ie_len = 0;
 		ieee->wdev.wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION)
-						| BIT(NL80211_IFTYPE_ADHOC);
+											| BIT(NL80211_IFTYPE_ADHOC);
 	}
 
 	err = libipw_networks_allocate(ieee);
-	if (err) {
+
+	if (err)
+	{
 		LIBIPW_ERROR("Unable to allocate beacon storage: %d\n", err);
 		goto failed_free_wiphy;
 	}
+
 	libipw_networks_initialize(ieee);
 
 	/* Default fragmentation threshold is maximum payload size */
@@ -201,8 +224,12 @@ struct net_device *alloc_libipw(int sizeof_priv, int monitor)
 	return dev;
 
 failed_free_wiphy:
+
 	if (!monitor)
+	{
 		wiphy_free(ieee->wdev.wiphy);
+	}
+
 failed_free_netdev:
 	free_netdev(dev);
 failed:
@@ -220,7 +247,9 @@ void free_libipw(struct net_device *dev, int monitor)
 
 	/* free cfg80211 resources */
 	if (!monitor)
+	{
 		wiphy_free(ieee->wdev.wiphy);
+	}
 
 	free_netdev(dev);
 }
@@ -245,25 +274,32 @@ static int debug_level_proc_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t debug_level_proc_write(struct file *file,
-		const char __user *buffer, size_t count, loff_t *pos)
+									  const char __user *buffer, size_t count, loff_t *pos)
 {
 	char buf[] = "0x00000000\n";
 	size_t len = min(sizeof(buf) - 1, count);
 	unsigned long val;
 
 	if (copy_from_user(buf, buffer, len))
+	{
 		return count;
+	}
+
 	buf[len] = 0;
+
 	if (sscanf(buf, "%li", &val) != 1)
 		printk(KERN_INFO DRV_NAME
-		       ": %s is not in hex or decimal form.\n", buf);
+			   ": %s is not in hex or decimal form.\n", buf);
 	else
+	{
 		libipw_debug_level = val;
+	}
 
 	return strnlen(buf, len);
 }
 
-static const struct file_operations debug_level_proc_fops = {
+static const struct file_operations debug_level_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= debug_level_proc_open,
 	.read		= seq_read,
@@ -280,18 +316,24 @@ static int __init libipw_init(void)
 
 	libipw_debug_level = debug;
 	libipw_proc = proc_mkdir(DRV_PROCNAME, init_net.proc_net);
-	if (libipw_proc == NULL) {
+
+	if (libipw_proc == NULL)
+	{
 		LIBIPW_ERROR("Unable to create " DRV_PROCNAME
-				" proc directory\n");
+					 " proc directory\n");
 		return -EIO;
 	}
+
 	e = proc_create("debug_level", S_IRUGO | S_IWUSR, libipw_proc,
-			&debug_level_proc_fops);
-	if (!e) {
+					&debug_level_proc_fops);
+
+	if (!e)
+	{
 		remove_proc_entry(DRV_PROCNAME, init_net.proc_net);
 		libipw_proc = NULL;
 		return -EIO;
 	}
+
 #endif				/* CONFIG_LIBIPW_DEBUG */
 
 	printk(KERN_INFO DRV_NAME ": " DRV_DESCRIPTION ", " DRV_VERSION "\n");
@@ -303,18 +345,21 @@ static int __init libipw_init(void)
 static void __exit libipw_exit(void)
 {
 #ifdef CONFIG_LIBIPW_DEBUG
-	if (libipw_proc) {
+
+	if (libipw_proc)
+	{
 		remove_proc_entry("debug_level", libipw_proc);
 		remove_proc_entry(DRV_PROCNAME, init_net.proc_net);
 		libipw_proc = NULL;
 	}
+
 #endif				/* CONFIG_LIBIPW_DEBUG */
 }
 
 #ifdef CONFIG_LIBIPW_DEBUG
-#include <linux/moduleparam.h>
-module_param(debug, int, 0444);
-MODULE_PARM_DESC(debug, "debug output mask");
+	#include <linux/moduleparam.h>
+	module_param(debug, int, 0444);
+	MODULE_PARM_DESC(debug, "debug output mask");
 #endif				/* CONFIG_LIBIPW_DEBUG */
 
 module_exit(libipw_exit);

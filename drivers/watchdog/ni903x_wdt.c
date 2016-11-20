@@ -44,7 +44,8 @@
 
 #define NIWD_NAME		"ni903x_wdt"
 
-struct ni903x_wdt {
+struct ni903x_wdt
+{
 	struct device *dev;
 	u16 io_base;
 	struct watchdog_device wdd;
@@ -53,14 +54,14 @@ struct ni903x_wdt {
 static unsigned int timeout;
 module_param(timeout, uint, 0);
 MODULE_PARM_DESC(timeout,
-		 "Watchdog timeout in seconds. (default="
-		 __MODULE_STRING(NIWD_DEFAULT_TIMEOUT) ")");
+				 "Watchdog timeout in seconds. (default="
+				 __MODULE_STRING(NIWD_DEFAULT_TIMEOUT) ")");
 
 static int nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, int, S_IRUGO);
 MODULE_PARM_DESC(nowayout,
-		 "Watchdog cannot be stopped once started (default="
-		 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static void ni903x_start(struct ni903x_wdt *wdt)
 {
@@ -71,7 +72,7 @@ static void ni903x_start(struct ni903x_wdt *wdt)
 }
 
 static int ni903x_wdd_set_timeout(struct watchdog_device *wdd,
-				  unsigned int timeout)
+								  unsigned int timeout)
 {
 	struct ni903x_wdt *wdt = watchdog_get_drvdata(wdd);
 	u32 counter = timeout * (1000000000 / NIWD_PERIOD_NS);
@@ -120,7 +121,7 @@ static int ni903x_wdd_start(struct watchdog_device *wdd)
 	struct ni903x_wdt *wdt = watchdog_get_drvdata(wdd);
 
 	outb(NIWD_CONTROL_RESET | NIWD_CONTROL_PROC_RESET,
-	     wdt->io_base + NIWD_CONTROL);
+		 wdt->io_base + NIWD_CONTROL);
 
 	ni903x_wdd_set_timeout(wdd, wdd->timeout);
 	ni903x_start(wdt);
@@ -142,42 +143,48 @@ static acpi_status ni903x_resources(struct acpi_resource *res, void *data)
 	struct ni903x_wdt *wdt = data;
 	u16 io_size;
 
-	switch (res->type) {
-	case ACPI_RESOURCE_TYPE_IO:
-		if (wdt->io_base != 0) {
-			dev_err(wdt->dev, "too many IO resources\n");
-			return AE_ERROR;
-		}
+	switch (res->type)
+	{
+		case ACPI_RESOURCE_TYPE_IO:
+			if (wdt->io_base != 0)
+			{
+				dev_err(wdt->dev, "too many IO resources\n");
+				return AE_ERROR;
+			}
 
-		wdt->io_base = res->data.io.minimum;
-		io_size = res->data.io.address_length;
+			wdt->io_base = res->data.io.minimum;
+			io_size = res->data.io.address_length;
 
-		if (io_size < NIWD_IO_SIZE) {
-			dev_err(wdt->dev, "memory region too small\n");
-			return AE_ERROR;
-		}
+			if (io_size < NIWD_IO_SIZE)
+			{
+				dev_err(wdt->dev, "memory region too small\n");
+				return AE_ERROR;
+			}
 
-		if (!devm_request_region(wdt->dev, wdt->io_base, io_size,
-					 NIWD_NAME)) {
-			dev_err(wdt->dev, "failed to get memory region\n");
-			return AE_ERROR;
-		}
+			if (!devm_request_region(wdt->dev, wdt->io_base, io_size,
+									 NIWD_NAME))
+			{
+				dev_err(wdt->dev, "failed to get memory region\n");
+				return AE_ERROR;
+			}
 
-		return AE_OK;
+			return AE_OK;
 
-	case ACPI_RESOURCE_TYPE_END_TAG:
-	default:
-		/* Ignore unsupported resources, e.g. IRQ */
-		return AE_OK;
+		case ACPI_RESOURCE_TYPE_END_TAG:
+		default:
+			/* Ignore unsupported resources, e.g. IRQ */
+			return AE_OK;
 	}
 }
 
-static const struct watchdog_info ni903x_wdd_info = {
+static const struct watchdog_info ni903x_wdd_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 	.identity = "NI Watchdog",
 };
 
-static const struct watchdog_ops ni903x_wdd_ops = {
+static const struct watchdog_ops ni903x_wdd_ops =
+{
 	.owner = THIS_MODULE,
 	.start = ni903x_wdd_start,
 	.stop = ni903x_wdd_stop,
@@ -195,15 +202,20 @@ static int ni903x_acpi_add(struct acpi_device *device)
 	int ret;
 
 	wdt = devm_kzalloc(dev, sizeof(*wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	device->driver_data = wdt;
 	wdt->dev = dev;
 
 	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
-				     ni903x_resources, wdt);
-	if (ACPI_FAILURE(status) || wdt->io_base == 0) {
+								 ni903x_resources, wdt);
+
+	if (ACPI_FAILURE(status) || wdt->io_base == 0)
+	{
 		dev_err(dev, "failed to get resources\n");
 		return -ENODEV;
 	}
@@ -218,21 +230,26 @@ static int ni903x_acpi_add(struct acpi_device *device)
 	watchdog_set_drvdata(wdd, wdt);
 	watchdog_set_nowayout(wdd, nowayout);
 	ret = watchdog_init_timeout(wdd, timeout, dev);
+
 	if (ret)
+	{
 		dev_err(dev, "unable to set timeout value, using default\n");
+	}
 
 	ret = watchdog_register_device(wdd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to register watchdog\n");
 		return ret;
 	}
 
 	/* Switch from boot mode to user mode */
 	outb(NIWD_CONTROL_RESET | NIWD_CONTROL_MODE,
-	     wdt->io_base + NIWD_CONTROL);
+		 wdt->io_base + NIWD_CONTROL);
 
 	dev_dbg(dev, "io_base=0x%04X, timeout=%d, nowayout=%d\n",
-		wdt->io_base, timeout, nowayout);
+			wdt->io_base, timeout, nowayout);
 
 	return 0;
 }
@@ -247,13 +264,15 @@ static int ni903x_acpi_remove(struct acpi_device *device)
 	return 0;
 }
 
-static const struct acpi_device_id ni903x_device_ids[] = {
+static const struct acpi_device_id ni903x_device_ids[] =
+{
 	{"NIC775C", 0},
 	{"", 0},
 };
 MODULE_DEVICE_TABLE(acpi, ni903x_device_ids);
 
-static struct acpi_driver ni903x_acpi_driver = {
+static struct acpi_driver ni903x_acpi_driver =
+{
 	.name = NIWD_NAME,
 	.ids = ni903x_device_ids,
 	.ops = {

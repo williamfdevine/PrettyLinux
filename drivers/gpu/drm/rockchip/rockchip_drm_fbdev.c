@@ -24,10 +24,10 @@
 
 #define PREFERRED_BPP		32
 #define to_drm_private(x) \
-		container_of(x, struct rockchip_drm_private, fbdev_helper)
+	container_of(x, struct rockchip_drm_private, fbdev_helper)
 
 static int rockchip_fbdev_mmap(struct fb_info *info,
-			       struct vm_area_struct *vma)
+							   struct vm_area_struct *vma)
 {
 	struct drm_fb_helper *helper = info->par;
 	struct rockchip_drm_private *private = to_drm_private(helper);
@@ -35,7 +35,8 @@ static int rockchip_fbdev_mmap(struct fb_info *info,
 	return rockchip_gem_mmap_buf(private->fbdev_bo, vma);
 }
 
-static struct fb_ops rockchip_drm_fbdev_ops = {
+static struct fb_ops rockchip_drm_fbdev_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_mmap	= rockchip_fbdev_mmap,
 	.fb_fillrect	= drm_fb_helper_cfb_fillrect,
@@ -49,7 +50,7 @@ static struct fb_ops rockchip_drm_fbdev_ops = {
 };
 
 static int rockchip_drm_fbdev_create(struct drm_fb_helper *helper,
-				     struct drm_fb_helper_surface_size *sizes)
+									 struct drm_fb_helper_surface_size *sizes)
 {
 	struct rockchip_drm_private *private = to_drm_private(helper);
 	struct drm_mode_fb_cmd2 mode_cmd = { 0 };
@@ -68,26 +69,33 @@ static int rockchip_drm_fbdev_create(struct drm_fb_helper *helper,
 	mode_cmd.height = sizes->surface_height;
 	mode_cmd.pitches[0] = sizes->surface_width * bytes_per_pixel;
 	mode_cmd.pixel_format = drm_mode_legacy_fb_format(sizes->surface_bpp,
-		sizes->surface_depth);
+							sizes->surface_depth);
 
 	size = mode_cmd.pitches[0] * mode_cmd.height;
 
 	rk_obj = rockchip_gem_create_object(dev, size, true);
+
 	if (IS_ERR(rk_obj))
+	{
 		return -ENOMEM;
+	}
 
 	private->fbdev_bo = &rk_obj->base;
 
 	fbi = drm_fb_helper_alloc_fbi(helper);
-	if (IS_ERR(fbi)) {
+
+	if (IS_ERR(fbi))
+	{
 		dev_err(dev->dev, "Failed to create framebuffer info.\n");
 		ret = PTR_ERR(fbi);
 		goto err_rockchip_gem_free_object;
 	}
 
 	helper->fb = rockchip_drm_framebuffer_init(dev, &mode_cmd,
-						   private->fbdev_bo);
-	if (IS_ERR(helper->fb)) {
+				 private->fbdev_bo);
+
+	if (IS_ERR(helper->fb))
+	{
 		dev_err(dev->dev, "Failed to allocate DRM framebuffer.\n");
 		ret = PTR_ERR(helper->fb);
 		goto err_release_fbi;
@@ -110,8 +118,8 @@ static int rockchip_drm_fbdev_create(struct drm_fb_helper *helper,
 	fbi->fix.smem_len = rk_obj->base.size;
 
 	DRM_DEBUG_KMS("FB [%dx%d]-%d kvaddr=%p offset=%ld size=%zu\n",
-		      fb->width, fb->height, fb->depth, rk_obj->kvaddr,
-		      offset, size);
+				  fb->width, fb->height, fb->depth, rk_obj->kvaddr,
+				  offset, size);
 
 	fbi->skip_vt_switch = true;
 
@@ -124,7 +132,8 @@ err_rockchip_gem_free_object:
 	return ret;
 }
 
-static const struct drm_fb_helper_funcs rockchip_drm_fb_helper_funcs = {
+static const struct drm_fb_helper_funcs rockchip_drm_fb_helper_funcs =
+{
 	.fb_probe = rockchip_drm_fbdev_create,
 };
 
@@ -136,7 +145,9 @@ int rockchip_drm_fbdev_init(struct drm_device *dev)
 	int ret;
 
 	if (!dev->mode_config.num_crtc || !dev->mode_config.num_connector)
+	{
 		return -EINVAL;
+	}
 
 	num_crtc = dev->mode_config.num_crtc;
 
@@ -145,22 +156,28 @@ int rockchip_drm_fbdev_init(struct drm_device *dev)
 	drm_fb_helper_prepare(dev, helper, &rockchip_drm_fb_helper_funcs);
 
 	ret = drm_fb_helper_init(dev, helper, num_crtc, ROCKCHIP_MAX_CONNECTOR);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev->dev, "Failed to initialize drm fb helper - %d.\n",
-			ret);
+				ret);
 		return ret;
 	}
 
 	ret = drm_fb_helper_single_add_all_connectors(helper);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev->dev, "Failed to add connectors - %d.\n", ret);
 		goto err_drm_fb_helper_fini;
 	}
 
 	ret = drm_fb_helper_initial_config(helper, PREFERRED_BPP);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev->dev, "Failed to set initial hw config - %d.\n",
-			ret);
+				ret);
 		goto err_drm_fb_helper_fini;
 	}
 
@@ -182,7 +199,9 @@ void rockchip_drm_fbdev_fini(struct drm_device *dev)
 	drm_fb_helper_release_fbi(helper);
 
 	if (helper->fb)
+	{
 		drm_framebuffer_unreference(helper->fb);
+	}
 
 	drm_fb_helper_fini(helper);
 }

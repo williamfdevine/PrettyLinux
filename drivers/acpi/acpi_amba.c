@@ -22,7 +22,8 @@
 
 #include "internal.h"
 
-static const struct acpi_device_id amba_id_list[] = {
+static const struct acpi_device_id amba_id_list[] =
+{
 	{"ARMH0061", 0}, /* PL061 GPIO Device */
 	{"", 0},
 };
@@ -33,14 +34,16 @@ static void amba_register_dummy_clk(void)
 
 	/* If clock already registered */
 	if (amba_dummy_clk)
+	{
 		return;
+	}
 
 	amba_dummy_clk = clk_register_fixed_rate(NULL, "apb_pclk", NULL, 0, 0);
 	clk_register_clkdev(amba_dummy_clk, "apb_pclk", NULL);
 }
 
 static int amba_handler_attach(struct acpi_device *adev,
-				const struct acpi_device_id *id)
+							   const struct acpi_device_id *id)
 {
 	struct amba_device *dev;
 	struct resource_entry *rentry;
@@ -51,35 +54,51 @@ static int amba_handler_attach(struct acpi_device *adev,
 
 	/* If the ACPI node already has a physical device attached, skip it. */
 	if (adev->physical_node_count)
+	{
 		return 0;
+	}
 
 	dev = amba_device_alloc(dev_name(&adev->dev), 0, 0);
-	if (!dev) {
+
+	if (!dev)
+	{
 		dev_err(&adev->dev, "%s(): amba_device_alloc() failed\n",
-			__func__);
+				__func__);
 		return -ENOMEM;
 	}
 
 	INIT_LIST_HEAD(&resource_list);
 	ret = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
-	if (ret < 0)
-		goto err_free;
 
-	list_for_each_entry(rentry, &resource_list, node) {
-		switch (resource_type(rentry->res)) {
-		case IORESOURCE_MEM:
-			if (!address_found) {
-				dev->res = *rentry->res;
-				address_found = true;
-			}
-			break;
-		case IORESOURCE_IRQ:
-			if (irq_no < AMBA_NR_IRQS)
-				dev->irq[irq_no++] = rentry->res->start;
-			break;
-		default:
-			dev_warn(&adev->dev, "Invalid resource\n");
-			break;
+	if (ret < 0)
+	{
+		goto err_free;
+	}
+
+	list_for_each_entry(rentry, &resource_list, node)
+	{
+		switch (resource_type(rentry->res))
+		{
+			case IORESOURCE_MEM:
+				if (!address_found)
+				{
+					dev->res = *rentry->res;
+					address_found = true;
+				}
+
+				break;
+
+			case IORESOURCE_IRQ:
+				if (irq_no < AMBA_NR_IRQS)
+				{
+					dev->irq[irq_no++] = rentry->res->start;
+				}
+
+				break;
+
+			default:
+				dev_warn(&adev->dev, "Invalid resource\n");
+				break;
 		}
 	}
 
@@ -91,14 +110,18 @@ static int amba_handler_attach(struct acpi_device *adev,
 	 * the amba device we are about to create.
 	 */
 	if (adev->parent)
+	{
 		dev->dev.parent = acpi_get_first_physical_node(adev->parent);
+	}
 
 	ACPI_COMPANION_SET(&dev->dev, adev);
 
 	ret = amba_device_add(dev, &iomem_resource);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&adev->dev, "%s(): amba_device_add() failed (%d)\n",
-		       __func__, ret);
+				__func__, ret);
 		goto err_free;
 	}
 
@@ -109,7 +132,8 @@ err_free:
 	return ret;
 }
 
-static struct acpi_scan_handler amba_handler = {
+static struct acpi_scan_handler amba_handler =
+{
 	.ids = amba_id_list,
 	.attach = amba_handler_attach,
 };

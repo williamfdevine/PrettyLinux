@@ -70,7 +70,8 @@
 #define REG_ROUTE_LOCATION__MASK	0x0700
 #define REG_ROUTE_LOCATION(n)		MASK_VAL(REG_ROUTE_LOCATION__MASK, (n))
 
-struct efm32_spi_ddata {
+struct efm32_spi_ddata
+{
 	struct spi_bitbang bitbang;
 
 	spinlock_t lock;
@@ -95,7 +96,7 @@ struct efm32_spi_ddata {
 	dev_vdbg(ddata_to_dev(ddata), format, ##arg)
 
 static void efm32_spi_write32(struct efm32_spi_ddata *ddata,
-		u32 value, unsigned offset)
+							  u32 value, unsigned offset)
 {
 	writel_relaxed(value, ddata->base + offset);
 }
@@ -114,29 +115,35 @@ static void efm32_spi_chipselect(struct spi_device *spi, int is_on)
 }
 
 static int efm32_spi_setup_transfer(struct spi_device *spi,
-		struct spi_transfer *t)
+									struct spi_transfer *t)
 {
 	struct efm32_spi_ddata *ddata = spi_master_get_devdata(spi->master);
 
-	unsigned bpw = t->bits_per_word ?: spi->bits_per_word;
-	unsigned speed = t->speed_hz ?: spi->max_speed_hz;
+	unsigned bpw = t->bits_per_word ? : spi->bits_per_word;
+	unsigned speed = t->speed_hz ? : spi->max_speed_hz;
 	unsigned long clkfreq = clk_get_rate(ddata->clk);
 	u32 clkdiv;
 
 	efm32_spi_write32(ddata, REG_CTRL_SYNC | REG_CTRL_MSBF |
-			(spi->mode & SPI_CPHA ? REG_CTRL_CLKPHA : 0) |
-			(spi->mode & SPI_CPOL ? REG_CTRL_CLKPOL : 0), REG_CTRL);
+					  (spi->mode & SPI_CPHA ? REG_CTRL_CLKPHA : 0) |
+					  (spi->mode & SPI_CPOL ? REG_CTRL_CLKPOL : 0), REG_CTRL);
 
 	efm32_spi_write32(ddata,
-			REG_FRAME_DATABITS(bpw), REG_FRAME);
+					  REG_FRAME_DATABITS(bpw), REG_FRAME);
 
 	if (2 * speed >= clkfreq)
+	{
 		clkdiv = 0;
+	}
 	else
+	{
 		clkdiv = 64 * (DIV_ROUND_UP(2 * clkfreq, speed) - 4);
+	}
 
 	if (clkdiv > (1U << 21))
+	{
 		return -EINVAL;
+	}
 
 	efm32_spi_write32(ddata, clkdiv, REG_CLKDIV);
 	efm32_spi_write32(ddata, REG_CMD_MASTEREN, REG_CMD);
@@ -149,7 +156,8 @@ static void efm32_spi_tx_u8(struct efm32_spi_ddata *ddata)
 {
 	u8 val = 0;
 
-	if (ddata->tx_buf) {
+	if (ddata->tx_buf)
+	{
 		val = *ddata->tx_buf;
 		ddata->tx_buf++;
 	}
@@ -164,7 +172,8 @@ static void efm32_spi_rx_u8(struct efm32_spi_ddata *ddata)
 	u32 rxdata = efm32_spi_read32(ddata, REG_RXDATAX);
 	efm32_spi_vdbg(ddata, "%s: rx 0x%x\n", __func__, rxdata);
 
-	if (ddata->rx_buf) {
+	if (ddata->rx_buf)
+	{
 		*ddata->rx_buf = rxdata;
 		ddata->rx_buf++;
 	}
@@ -175,8 +184,9 @@ static void efm32_spi_rx_u8(struct efm32_spi_ddata *ddata)
 static void efm32_spi_filltx(struct efm32_spi_ddata *ddata)
 {
 	while (ddata->tx_len &&
-			ddata->tx_len + 2 > ddata->rx_len &&
-			efm32_spi_read32(ddata, REG_STATUS) & REG_STATUS_TXBL) {
+		   ddata->tx_len + 2 > ddata->rx_len &&
+		   efm32_spi_read32(ddata, REG_STATUS) & REG_STATUS_TXBL)
+	{
 		efm32_spi_tx_u8(ddata);
 	}
 }
@@ -189,12 +199,14 @@ static int efm32_spi_txrx_bufs(struct spi_device *spi, struct spi_transfer *t)
 	spin_lock_irq(&ddata->lock);
 
 	if (ddata->tx_buf || ddata->rx_buf)
+	{
 		goto out_unlock;
+	}
 
 	ddata->tx_buf = t->tx_buf;
 	ddata->rx_buf = t->rx_buf;
 	ddata->tx_len = ddata->rx_len =
-		t->len * DIV_ROUND_UP(t->bits_per_word, 8);
+						t->len * DIV_ROUND_UP(t->bits_per_word, 8);
 
 	efm32_spi_filltx(ddata);
 
@@ -227,14 +239,16 @@ static irqreturn_t efm32_spi_rxirq(int irq, void *data)
 	spin_lock(&ddata->lock);
 
 	while (ddata->rx_len > 0 &&
-			efm32_spi_read32(ddata, REG_STATUS) &
-			REG_STATUS_RXDATAV) {
+		   efm32_spi_read32(ddata, REG_STATUS) &
+		   REG_STATUS_RXDATAV)
+	{
 		efm32_spi_rx_u8(ddata);
 
 		ret = IRQ_HANDLED;
 	}
 
-	if (!ddata->rx_len) {
+	if (!ddata->rx_len)
+	{
 		u32 ien = efm32_spi_read32(ddata, REG_IEN);
 
 		ien &= ~REG_IF_RXDATAV;
@@ -254,19 +268,20 @@ static irqreturn_t efm32_spi_txirq(int irq, void *data)
 	struct efm32_spi_ddata *ddata = data;
 
 	efm32_spi_vdbg(ddata,
-			"%s: txlen = %u, rxlen = %u, if=0x%08x, stat=0x%08x\n",
-			__func__, ddata->tx_len, ddata->rx_len,
-			efm32_spi_read32(ddata, REG_IF),
-			efm32_spi_read32(ddata, REG_STATUS));
+				   "%s: txlen = %u, rxlen = %u, if=0x%08x, stat=0x%08x\n",
+				   __func__, ddata->tx_len, ddata->rx_len,
+				   efm32_spi_read32(ddata, REG_IF),
+				   efm32_spi_read32(ddata, REG_STATUS));
 
 	spin_lock(&ddata->lock);
 
 	efm32_spi_filltx(ddata);
 
 	efm32_spi_vdbg(ddata, "%s: txlen = %u, rxlen = %u\n",
-			__func__, ddata->tx_len, ddata->rx_len);
+				   __func__, ddata->tx_len, ddata->rx_len);
 
-	if (!ddata->tx_len) {
+	if (!ddata->tx_len)
+	{
 		u32 ien = efm32_spi_read32(ddata, REG_IEN);
 
 		ien &= ~REG_IF_TXBL;
@@ -288,7 +303,7 @@ static u32 efm32_spi_get_configured_location(struct efm32_spi_ddata *ddata)
 }
 
 static void efm32_spi_probe_dt(struct platform_device *pdev,
-		struct spi_master *master, struct efm32_spi_ddata *ddata)
+							   struct spi_master *master, struct efm32_spi_ddata *ddata)
 {
 	struct device_node *np = pdev->dev.of_node;
 	u32 location;
@@ -298,15 +313,22 @@ static void efm32_spi_probe_dt(struct platform_device *pdev,
 
 	if (ret)
 		/* fall back to wrongly namespaced property */
+	{
 		ret = of_property_read_u32(np, "efm32,location", &location);
+	}
 
 	if (ret)
 		/* fall back to old and (wrongly) generic property "location" */
+	{
 		ret = of_property_read_u32(np, "location", &location);
+	}
 
-	if (!ret) {
+	if (!ret)
+	{
 		dev_dbg(&pdev->dev, "using location %u\n", location);
-	} else {
+	}
+	else
+	{
 		/* default to location configured in hardware */
 		location = efm32_spi_get_configured_location(ddata);
 
@@ -326,19 +348,27 @@ static int efm32_spi_probe(struct platform_device *pdev)
 	int num_cs, i;
 
 	if (!np)
+	{
 		return -EINVAL;
+	}
 
 	num_cs = of_gpio_named_count(np, "cs-gpios");
+
 	if (num_cs < 0)
+	{
 		return num_cs;
+	}
 
 	master = spi_alloc_master(&pdev->dev,
-			sizeof(*ddata) + num_cs * sizeof(unsigned));
-	if (!master) {
+							  sizeof(*ddata) + num_cs * sizeof(unsigned));
+
+	if (!master)
+	{
 		dev_dbg(&pdev->dev,
 				"failed to allocate spi master controller\n");
 		return -ENOMEM;
 	}
+
 	platform_set_drvdata(pdev, master);
 
 	master->dev.of_node = pdev->dev.of_node;
@@ -358,24 +388,32 @@ static int efm32_spi_probe(struct platform_device *pdev)
 	init_completion(&ddata->done);
 
 	ddata->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(ddata->clk)) {
+
+	if (IS_ERR(ddata->clk))
+	{
 		ret = PTR_ERR(ddata->clk);
 		dev_err(&pdev->dev, "failed to get clock: %d\n", ret);
 		goto err;
 	}
 
-	for (i = 0; i < num_cs; ++i) {
+	for (i = 0; i < num_cs; ++i)
+	{
 		ret = of_get_named_gpio(np, "cs-gpios", i);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&pdev->dev, "failed to get csgpio#%u (%d)\n",
 					i, ret);
 			goto err;
 		}
+
 		ddata->csgpio[i] = ret;
 		dev_dbg(&pdev->dev, "csgpio#%u = %u\n", i, ddata->csgpio[i]);
 		ret = devm_gpio_request_one(&pdev->dev, ddata->csgpio[i],
-				GPIOF_OUT_INIT_LOW, DRIVER_NAME);
-		if (ret < 0) {
+									GPIOF_OUT_INIT_LOW, DRIVER_NAME);
+
+		if (ret < 0)
+		{
 			dev_err(&pdev->dev,
 					"failed to configure csgpio#%u (%d)\n",
 					i, ret);
@@ -384,26 +422,33 @@ static int efm32_spi_probe(struct platform_device *pdev)
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		ret = -ENODEV;
 		dev_err(&pdev->dev, "failed to determine base address\n");
 		goto err;
 	}
 
-	if (resource_size(res) < 0x60) {
+	if (resource_size(res) < 0x60)
+	{
 		ret = -EINVAL;
 		dev_err(&pdev->dev, "memory resource too small\n");
 		goto err;
 	}
 
 	ddata->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(ddata->base)) {
+
+	if (IS_ERR(ddata->base))
+	{
 		ret = PTR_ERR(ddata->base);
 		goto err;
 	}
 
 	ret = platform_get_irq(pdev, 0);
-	if (ret <= 0) {
+
+	if (ret <= 0)
+	{
 		dev_err(&pdev->dev, "failed to get rx irq (%d)\n", ret);
 		goto err;
 	}
@@ -411,13 +456,18 @@ static int efm32_spi_probe(struct platform_device *pdev)
 	ddata->rxirq = ret;
 
 	ret = platform_get_irq(pdev, 1);
+
 	if (ret <= 0)
+	{
 		ret = ddata->rxirq + 1;
+	}
 
 	ddata->txirq = ret;
 
 	ret = clk_prepare_enable(ddata->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to enable clock (%d)\n", ret);
 		goto err;
 	}
@@ -426,25 +476,31 @@ static int efm32_spi_probe(struct platform_device *pdev)
 
 	efm32_spi_write32(ddata, 0, REG_IEN);
 	efm32_spi_write32(ddata, REG_ROUTE_TXPEN | REG_ROUTE_RXPEN |
-			REG_ROUTE_CLKPEN |
-			REG_ROUTE_LOCATION(ddata->pdata.location), REG_ROUTE);
+					  REG_ROUTE_CLKPEN |
+					  REG_ROUTE_LOCATION(ddata->pdata.location), REG_ROUTE);
 
 	ret = request_irq(ddata->rxirq, efm32_spi_rxirq,
-			0, DRIVER_NAME " rx", ddata);
-	if (ret) {
+					  0, DRIVER_NAME " rx", ddata);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register rxirq (%d)\n", ret);
 		goto err_disable_clk;
 	}
 
 	ret = request_irq(ddata->txirq, efm32_spi_txirq,
-			0, DRIVER_NAME " tx", ddata);
-	if (ret) {
+					  0, DRIVER_NAME " tx", ddata);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register txirq (%d)\n", ret);
 		goto err_free_rx_irq;
 	}
 
 	ret = spi_bitbang_start(&ddata->bitbang);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "spi_bitbang_start failed (%d)\n", ret);
 
 		free_irq(ddata->txirq, ddata);
@@ -476,7 +532,8 @@ static int efm32_spi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id efm32_spi_dt_ids[] = {
+static const struct of_device_id efm32_spi_dt_ids[] =
+{
 	{
 		.compatible = "energymicro,efm32-spi",
 	}, {
@@ -488,7 +545,8 @@ static const struct of_device_id efm32_spi_dt_ids[] = {
 };
 MODULE_DEVICE_TABLE(of, efm32_spi_dt_ids);
 
-static struct platform_driver efm32_spi_driver = {
+static struct platform_driver efm32_spi_driver =
+{
 	.probe = efm32_spi_probe,
 	.remove = efm32_spi_remove,
 

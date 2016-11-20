@@ -41,10 +41,10 @@
 #include <net/mac80211.h>
 
 #ifdef SIOCETHTOOL
-#define DEVICE_ETHTOOL_IOCTL_SUPPORT
-#include <linux/ethtool.h>
+	#define DEVICE_ETHTOOL_IOCTL_SUPPORT
+	#include <linux/ethtool.h>
 #else
-#undef DEVICE_ETHTOOL_IOCTL_SUPPORT
+	#undef DEVICE_ETHTOOL_IOCTL_SUPPORT
 #endif
 
 #define RATE_1M		0
@@ -187,7 +187,8 @@
 #define DEVICE_INIT_DXPL	0x2 /* Dx to D0 power lost init */
 
 /* Device init */
-struct vnt_cmd_card_init {
+struct vnt_cmd_card_init
+{
 	u8 init_class;
 	u8 exist_sw_net_addr;
 	u8 sw_net_addr[6];
@@ -195,7 +196,8 @@ struct vnt_cmd_card_init {
 	u8 long_retry_limit;
 };
 
-struct vnt_rsp_card_init {
+struct vnt_rsp_card_init
+{
 	u8 status;
 	u8 net_addr[6];
 	u8 rf_type;
@@ -208,14 +210,16 @@ struct vnt_rsp_card_init {
 /*
  * Enum of context types for SendPacket
  */
-enum {
+enum
+{
 	CONTEXT_DATA_PACKET = 1,
 	CONTEXT_MGMT_PACKET,
 	CONTEXT_BEACON_PACKET
 };
 
 /* RCB (Receive Control Block) */
-struct vnt_rcb {
+struct vnt_rcb
+{
 	void *priv;
 	struct urb *urb;
 	struct sk_buff *skb;
@@ -223,7 +227,8 @@ struct vnt_rcb {
 };
 
 /* used to track bulk out irps */
-struct vnt_usb_send_context {
+struct vnt_usb_send_context
+{
 	void *priv;
 	struct sk_buff *skb;
 	struct urb *urb;
@@ -244,14 +249,16 @@ struct vnt_usb_send_context {
 /*
  * Structure to keep track of USB interrupt packets
  */
-struct vnt_interrupt_buffer {
+struct vnt_interrupt_buffer
+{
 	u8 *data_buf;
 	bool in_use;
 };
 
 /*++ NDIS related */
 
-enum {
+enum
+{
 	STATUS_SUCCESS = 0,
 	STATUS_FAILURE,
 	STATUS_RESOURCES,
@@ -262,7 +269,8 @@ enum {
 #define DEVICE_FLAGS_UNPLUG		0
 #define DEVICE_FLAGS_DISCONNECTED	1
 
-struct vnt_private {
+struct vnt_private
+{
 	/* mac80211 */
 	struct ieee80211_hw *hw;
 	struct ieee80211_vif *vif;
@@ -395,11 +403,11 @@ struct vnt_private {
 };
 
 #define ADD_ONE_WITH_WRAP_AROUND(uVar, uModulo) {	\
-	if ((uVar) >= ((uModulo) - 1))			\
-		(uVar) = 0;				\
-	else						\
-		(uVar)++;				\
-}
+		if ((uVar) >= ((uModulo) - 1))			\
+			(uVar) = 0;				\
+		else						\
+			(uVar)++;				\
+	}
 
 int vnt_init(struct vnt_private *priv);
 

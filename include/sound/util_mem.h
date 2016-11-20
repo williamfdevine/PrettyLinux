@@ -25,7 +25,8 @@
 /*
  * memory block
  */
-struct snd_util_memblk {
+struct snd_util_memblk
+{
 	unsigned int size;		/* size of this block */
 	unsigned int offset;		/* zero-offset of this block */
 	struct list_head list;		/* link */
@@ -36,7 +37,8 @@ struct snd_util_memblk {
 /*
  * memory management information
  */
-struct snd_util_memhdr {
+struct snd_util_memhdr
+{
 	unsigned int size;		/* size of whole data */
 	struct list_head block;		/* block linked-list header */
 	int nblocks;			/* # of allocated blocks */
@@ -58,7 +60,7 @@ int snd_util_mem_avail(struct snd_util_memhdr *hdr);
 struct snd_util_memblk *__snd_util_mem_alloc(struct snd_util_memhdr *hdr, int size);
 void __snd_util_mem_free(struct snd_util_memhdr *hdr, struct snd_util_memblk *blk);
 struct snd_util_memblk *__snd_util_memblk_new(struct snd_util_memhdr *hdr,
-					      unsigned int units,
-					      struct list_head *prev);
+		unsigned int units,
+		struct list_head *prev);
 
 #endif /* __SOUND_UTIL_MEM_H */

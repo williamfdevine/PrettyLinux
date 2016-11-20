@@ -45,15 +45,16 @@ struct regulator_init_data;
  * information that must be passed by platform code to the fixed
  * voltage regulator driver.
  */
-struct fixed_voltage_config {
+struct fixed_voltage_config
+{
 	const char *supply_name;
 	const char *input_supply;
 	int microvolts;
 	int gpio;
 	unsigned startup_delay;
-	unsigned gpio_is_open_drain:1;
-	unsigned enable_high:1;
-	unsigned enabled_at_boot:1;
+	unsigned gpio_is_open_drain: 1;
+	unsigned enable_high: 1;
+	unsigned enabled_at_boot: 1;
 	struct regulator_init_data *init_data;
 };
 
@@ -71,6 +72,6 @@ static inline struct platform_device *regulator_register_always_on(int id, const
 #endif
 
 #define regulator_register_fixed(id, s, ns) regulator_register_always_on(id, \
-						"fixed-dummy", s, ns, 0)
+		"fixed-dummy", s, ns, 0)
 
 #endif

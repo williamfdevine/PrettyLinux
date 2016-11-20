@@ -31,7 +31,8 @@
 
 /* board config info */
 
-struct cx25821_board cx25821_boards[] = {
+struct cx25821_board cx25821_boards[] =
+{
 	[UNKNOWN_BOARD] = {
 		.name = "UNKNOWN/GENERIC",
 		/* Ensure safe default for unknown boards */

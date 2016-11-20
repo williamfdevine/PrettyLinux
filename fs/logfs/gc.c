@@ -41,24 +41,27 @@ static u8 root_distance(struct super_block *sb, gc_level_t __gc_level)
 	struct logfs_super *super = logfs_super(sb);
 	u8 gc_level = (__force u8)__gc_level;
 
-	switch (gc_level) {
-	case 0: /* fall through */
-	case 1: /* fall through */
-	case 2: /* fall through */
-	case 3:
-		/* file data or indirect blocks */
-		return super->s_ifile_levels + super->s_iblock_levels - gc_level;
-	case 6: /* fall through */
-	case 7: /* fall through */
-	case 8: /* fall through */
-	case 9:
-		/* inode file data or indirect blocks */
-		return super->s_ifile_levels - (gc_level - 6);
-	default:
-		printk(KERN_ERR"LOGFS: segment of unknown level %x found\n",
-				gc_level);
-		WARN_ON(1);
-		return super->s_ifile_levels + super->s_iblock_levels;
+	switch (gc_level)
+	{
+		case 0: /* fall through */
+		case 1: /* fall through */
+		case 2: /* fall through */
+		case 3:
+			/* file data or indirect blocks */
+			return super->s_ifile_levels + super->s_iblock_levels - gc_level;
+
+		case 6: /* fall through */
+		case 7: /* fall through */
+		case 8: /* fall through */
+		case 9:
+			/* inode file data or indirect blocks */
+			return super->s_ifile_levels - (gc_level - 6);
+
+		default:
+			printk(KERN_ERR"LOGFS: segment of unknown level %x found\n",
+				   gc_level);
+			WARN_ON(1);
+			return super->s_ifile_levels + super->s_iblock_levels;
 	}
 }
 
@@ -71,14 +74,21 @@ static int segment_is_reserved(struct super_block *sb, u32 segno)
 
 	/* Some segments are reserved.  Just pretend they were all valid */
 	reserved = btree_lookup32(&super->s_reserved_segments, segno);
+
 	if (reserved)
+	{
 		return 1;
+	}
 
 	/* Currently open segments */
-	for_each_area(i) {
+	for_each_area(i)
+	{
 		area = super->s_area[i];
+
 		if (area->a_is_open && area->a_segno == segno)
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -94,15 +104,18 @@ static void logfs_mark_segment_bad(struct super_block *sb, u32 segno)
  * are counted, the segment header is not.
  */
 static u32 logfs_valid_bytes(struct super_block *sb, u32 segno, u32 *ec,
-		gc_level_t *gc_level)
+							 gc_level_t *gc_level)
 {
 	struct logfs_segment_entry se;
 	u32 ec_level;
 
 	logfs_get_segment_entry(sb, segno, &se);
+
 	if (se.ec_level == cpu_to_be32(BADSEG) ||
-			se.valid == cpu_to_be32(RESERVED))
+		se.valid == cpu_to_be32(RESERVED))
+	{
 		return RESERVED;
+	}
 
 	ec_level = be32_to_cpu(se.ec_level);
 	*ec = ec_level >> 4;
@@ -111,7 +124,7 @@ static u32 logfs_valid_bytes(struct super_block *sb, u32 segno, u32 *ec,
 }
 
 static void logfs_cleanse_block(struct super_block *sb, u64 ofs, u64 ino,
-		u64 bix, gc_level_t gc_level)
+								u64 bix, gc_level_t gc_level)
 {
 	struct inode *inode;
 	int err, cookie;
@@ -139,23 +152,29 @@ static u32 logfs_gc_segment(struct super_block *sb, u32 segno)
 	BUG_ON(err);
 	gc_level = GC_LEVEL(sh.level);
 	logical_segno = be32_to_cpu(sh.segno);
-	if (sh.crc != logfs_crc32(&sh, sizeof(sh), 4)) {
+
+	if (sh.crc != logfs_crc32(&sh, sizeof(sh), 4))
+	{
 		logfs_mark_segment_bad(sb, segno);
 		cleaned = -1;
 		goto out;
 	}
 
 	for (seg_ofs = LOGFS_SEGMENT_HEADERSIZE;
-			seg_ofs + sizeof(oh) < super->s_segsize; ) {
+		 seg_ofs + sizeof(oh) < super->s_segsize; )
+	{
 		ofs = dev_ofs(sb, logical_segno, seg_ofs);
 		err = wbuf_read(sb, dev_ofs(sb, segno, seg_ofs), sizeof(oh),
-				&oh);
+						&oh);
 		BUG_ON(err);
 
 		if (!memchr_inv(&oh, 0xff, sizeof(oh)))
+		{
 			break;
+		}
 
-		if (oh.crc != logfs_crc32(&oh, sizeof(oh) - 4, 4)) {
+		if (oh.crc != logfs_crc32(&oh, sizeof(oh) - 4, 4))
+		{
 			logfs_mark_segment_bad(sb, segno);
 			cleaned = super->s_segsize - 1;
 			goto out;
@@ -165,22 +184,28 @@ static u32 logfs_gc_segment(struct super_block *sb, u32 segno)
 		bix = be64_to_cpu(oh.bix);
 		len = sizeof(oh) + be16_to_cpu(oh.len);
 		valid = logfs_is_valid_block(sb, ofs, ino, bix, gc_level);
-		if (valid == 1) {
+
+		if (valid == 1)
+		{
 			logfs_cleanse_block(sb, ofs, ino, bix, gc_level);
 			cleaned += len;
-		} else if (valid == 2) {
+		}
+		else if (valid == 2)
+		{
 			/* Will be invalid upon journal commit */
 			cleaned += len;
 		}
+
 		seg_ofs += len;
 	}
+
 out:
 	btree_remove32(&super->s_reserved_segments, segno);
 	return cleaned;
 }
 
 static struct gc_candidate *add_list(struct gc_candidate *cand,
-		struct candidate_list *list)
+									 struct candidate_list *list)
 {
 	struct rb_node **p = &list->rb_tree.rb_node;
 	struct rb_node *parent = NULL;
@@ -188,27 +213,40 @@ static struct gc_candidate *add_list(struct gc_candidate *cand,
 	int comp;
 
 	cand->list = list;
-	while (*p) {
+
+	while (*p)
+	{
 		parent = *p;
 		cur = rb_entry(parent, struct gc_candidate, rb_node);
 
 		if (list->sort_by_ec)
+		{
 			comp = cand->erase_count < cur->erase_count;
+		}
 		else
+		{
 			comp = cand->valid < cur->valid;
+		}
 
 		if (comp)
+		{
 			p = &parent->rb_left;
+		}
 		else
+		{
 			p = &parent->rb_right;
+		}
 	}
+
 	rb_link_node(&cand->rb_node, parent, p);
 	rb_insert_color(&cand->rb_node, &list->rb_tree);
 
-	if (list->count <= list->maxcount) {
+	if (list->count <= list->maxcount)
+	{
 		list->count++;
 		return NULL;
 	}
+
 	cand = rb_entry(rb_last(&list->rb_tree), struct gc_candidate, rb_node);
 	rb_erase(&cand->rb_node, &list->rb_tree);
 	cand->list = NULL;
@@ -241,8 +279,12 @@ u32 get_best_cand(struct super_block *sb, struct candidate_list *list, u32 *ec)
 	cand = rb_entry(rb_first(&list->rb_tree), struct gc_candidate, rb_node);
 	remove_from_list(cand);
 	segno = cand->segno;
+
 	if (ec)
+	{
 		*ec = cand->erase_count;
+	}
+
 	free_candidate(sb, cand);
 	return segno;
 }
@@ -270,40 +312,56 @@ static void __add_candidate(struct super_block *sb, struct gc_candidate *cand)
 	struct logfs_super *super = logfs_super(sb);
 	u32 full = super->s_segsize - LOGFS_SEGMENT_RESERVE;
 
-	if (cand->valid == 0) {
+	if (cand->valid == 0)
+	{
 		/* 100% free segments */
 		log_gc_noisy("add reserve segment %x (ec %x) at %llx\n",
-				cand->segno, cand->erase_count,
-				dev_ofs(sb, cand->segno, 0));
+					 cand->segno, cand->erase_count,
+					 dev_ofs(sb, cand->segno, 0));
 		cand = add_list(cand, &super->s_reserve_list);
-		if (cand) {
+
+		if (cand)
+		{
 			log_gc_noisy("add free segment %x (ec %x) at %llx\n",
-					cand->segno, cand->erase_count,
-					dev_ofs(sb, cand->segno, 0));
+						 cand->segno, cand->erase_count,
+						 dev_ofs(sb, cand->segno, 0));
 			cand = add_list(cand, &super->s_free_list);
 		}
-	} else {
+	}
+	else
+	{
 		/* good candidates for Garbage Collection */
 		if (cand->valid < full)
+		{
 			cand = add_list(cand, &super->s_low_list[cand->dist]);
+		}
+
 		/* good candidates for wear leveling,
 		 * segments that were recently written get ignored */
 		if (cand)
+		{
 			cand = add_list(cand, &super->s_ec_list);
+		}
 	}
+
 	if (cand)
+	{
 		free_candidate(sb, cand);
+	}
 }
 
 static int add_candidate(struct super_block *sb, u32 segno, u32 valid, u32 ec,
-		u8 dist)
+						 u8 dist)
 {
 	struct logfs_super *super = logfs_super(sb);
 	struct gc_candidate *cand;
 
 	cand = kmalloc(sizeof(*cand), GFP_NOFS);
+
 	if (!cand)
+	{
 		return -ENOMEM;
+	}
 
 	cand->segno = segno;
 	cand->valid = valid;
@@ -321,7 +379,9 @@ static void remove_segment_from_lists(struct super_block *sb, u32 segno)
 	struct gc_candidate *cand;
 
 	cand = btree_lookup32(&super->s_cand_tree, segno);
-	if (cand) {
+
+	if (cand)
+	{
 		remove_from_list(cand);
 		free_candidate(sb, cand);
 	}
@@ -334,12 +394,17 @@ static void scan_segment(struct super_block *sb, u32 segno)
 	u8 dist;
 
 	if (segment_is_reserved(sb, segno))
+	{
 		return;
+	}
 
 	remove_segment_from_lists(sb, segno);
 	valid = logfs_valid_bytes(sb, segno, &ec, &gc_level);
+
 	if (valid == RESERVED)
+	{
 		return;
+	}
 
 	dist = root_distance(sb, gc_level);
 	add_candidate(sb, segno, valid, ec, dist);
@@ -348,7 +413,10 @@ static void scan_segment(struct super_block *sb, u32 segno)
 static struct gc_candidate *first_in_list(struct candidate_list *list)
 {
 	if (list->count == 0)
+	{
 		return NULL;
+	}
+
 	return rb_entry(rb_first(&list->rb_tree), struct gc_candidate, rb_node);
 }
 
@@ -369,15 +437,26 @@ static struct gc_candidate *get_candidate(struct super_block *sb)
 
 	max_dist = min(no_free_segments(sb), LOGFS_NO_AREAS - 1);
 
-	for (i = max_dist; i >= 0; i--) {
+	for (i = max_dist; i >= 0; i--)
+	{
 		this = first_in_list(&super->s_low_list[i]);
+
 		if (!this)
+		{
 			continue;
+		}
+
 		if (!cand)
+		{
 			cand = this;
+		}
+
 		if (this->valid + LOGFS_MAX_OBJECTSIZE <= cand->valid)
+		{
 			cand = this;
+		}
 	}
+
 	return cand;
 }
 
@@ -388,7 +467,8 @@ static int __logfs_gc_once(struct super_block *sb, struct gc_candidate *cand)
 	u32 cleaned, valid, segno, ec;
 	u8 dist;
 
-	if (!cand) {
+	if (!cand)
+	{
 		log_gc("GC attempted, but no candidate found\n");
 		return 0;
 	}
@@ -398,12 +478,12 @@ static int __logfs_gc_once(struct super_block *sb, struct gc_candidate *cand)
 	valid = logfs_valid_bytes(sb, segno, &ec, &gc_level);
 	free_candidate(sb, cand);
 	log_gc("GC segment #%02x at %llx, %x required, %x free, %x valid, %llx free\n",
-			segno, (u64)segno << super->s_segshift,
-			dist, no_free_segments(sb), valid,
-			super->s_free_bytes);
+		   segno, (u64)segno << super->s_segshift,
+		   dist, no_free_segments(sb), valid,
+		   super->s_free_bytes);
 	cleaned = logfs_gc_segment(sb, segno);
 	log_gc("GC segment #%02x complete - now %x valid\n", segno,
-			valid - cleaned);
+		   valid - cleaned);
 	BUG_ON(cleaned != valid);
 	return 1;
 }
@@ -413,8 +493,12 @@ static int logfs_gc_once(struct super_block *sb)
 	struct gc_candidate *cand;
 
 	cand = get_candidate(sb);
+
 	if (cand)
+	{
 		remove_from_list(cand);
+	}
+
 	return __logfs_gc_once(sb, cand);
 }
 
@@ -426,9 +510,13 @@ static int logfs_scan_some(struct super_block *sb)
 	int i, ret = 0;
 
 	segno = super->s_sweeper;
-	for (i = SCAN_RATIO; i > 0; i--) {
+
+	for (i = SCAN_RATIO; i > 0; i--)
+	{
 		segno++;
-		if (segno >= super->s_no_segs) {
+
+		if (segno >= super->s_no_segs)
+		{
 			segno = 0;
 			ret = 1;
 			/* Break out of the loop.  We want to read a single
@@ -440,6 +528,7 @@ static int logfs_scan_some(struct super_block *sb)
 
 		scan_segment(sb, segno);
 	}
+
 	super->s_sweeper = segno;
 	return ret;
 }
@@ -465,28 +554,46 @@ static void __logfs_gc_pass(struct super_block *sb, int target)
 	 * things get out of hand.
 	 */
 	if (super->s_shadow_tree.no_shadowed_segments >= MAX_OBJ_ALIASES)
+	{
 		logfs_write_anchor(sb);
+	}
 
 	if (no_free_segments(sb) >= target &&
-			super->s_no_object_aliases < MAX_OBJ_ALIASES)
+		super->s_no_object_aliases < MAX_OBJ_ALIASES)
+	{
 		return;
+	}
 
 	log_gc("__logfs_gc_pass(%x)\n", target);
-	for (round = 0; round < SCAN_ROUNDS; ) {
+
+	for (round = 0; round < SCAN_ROUNDS; )
+	{
 		if (no_free_segments(sb) >= target)
+		{
 			goto write_alias;
+		}
 
 		/* Sync in-memory state with on-medium state in case they
 		 * diverged */
 		logfs_write_anchor(sb);
 		round += logfs_scan_some(sb);
+
 		if (no_free_segments(sb) >= target)
+		{
 			goto write_alias;
+		}
+
 		progress = logfs_gc_once(sb);
+
 		if (progress)
+		{
 			last_progress = round;
+		}
 		else if (round - last_progress > 2)
+		{
 			break;
+		}
+
 		continue;
 
 		/*
@@ -500,15 +607,21 @@ static void __logfs_gc_pass(struct super_block *sb, int target)
 		 * consume free segments.
 		 */
 write_alias:
+
 		if (super->s_no_object_aliases < MAX_OBJ_ALIASES)
+		{
 			return;
-		if (list_empty(&super->s_object_alias)) {
+		}
+
+		if (list_empty(&super->s_object_alias))
+		{
 			/* All aliases are still in btree */
 			return;
 		}
+
 		log_gc("Write back one alias\n");
 		block = list_entry(super->s_object_alias.next,
-				struct logfs_block, alias_list);
+						   struct logfs_block, alias_list);
 		block->ops->write_block(block);
 		/*
 		 * To round off the nasty goto logic, we reset round here.  It
@@ -518,6 +631,7 @@ write_alias:
 		 */
 		round = 0;
 	}
+
 	LOGFS_BUG(sb);
 }
 
@@ -525,10 +639,12 @@ static int wl_ratelimit(struct super_block *sb, u64 *next_event)
 {
 	struct logfs_super *super = logfs_super(sb);
 
-	if (*next_event < super->s_gec) {
+	if (*next_event < super->s_gec)
+	{
 		*next_event = super->s_gec + WL_RATELIMIT;
 		return 0;
 	}
+
 	return 1;
 }
 
@@ -538,16 +654,26 @@ static void logfs_wl_pass(struct super_block *sb)
 	struct gc_candidate *wl_cand, *free_cand;
 
 	if (wl_ratelimit(sb, &super->s_wl_gec_ostore))
+	{
 		return;
+	}
 
 	wl_cand = first_in_list(&super->s_ec_list);
-	if (!wl_cand)
-		return;
-	free_cand = first_in_list(&super->s_free_list);
-	if (!free_cand)
-		return;
 
-	if (wl_cand->erase_count < free_cand->erase_count + WL_DELTA) {
+	if (!wl_cand)
+	{
+		return;
+	}
+
+	free_cand = first_in_list(&super->s_free_list);
+
+	if (!free_cand)
+	{
+		return;
+	}
+
+	if (wl_cand->erase_count < free_cand->erase_count + WL_DELTA)
+	{
 		remove_from_list(wl_cand);
 		__logfs_gc_once(sb, wl_cand);
 	}
@@ -583,21 +709,28 @@ static void logfs_journal_wl_pass(struct super_block *sb)
 	int i;
 
 	if (wl_ratelimit(sb, &super->s_wl_gec_journal))
+	{
 		return;
+	}
 
-	if (super->s_reserve_list.count < super->s_no_journal_segs) {
+	if (super->s_reserve_list.count < super->s_no_journal_segs)
+	{
 		/* Reserve is not full enough to move complete journal */
 		return;
 	}
 
 	journal_for_each(i)
-		if (super->s_journal_seg[i])
-			min_journal_ec = min(min_journal_ec,
-					super->s_journal_ec[i]);
+
+	if (super->s_journal_seg[i])
+		min_journal_ec = min(min_journal_ec,
+							 super->s_journal_ec[i]);
+
 	cand = rb_entry(rb_first(&super->s_free_list.rb_tree),
-			struct gc_candidate, rb_node);
+					struct gc_candidate, rb_node);
 	max_reserve_ec = cand->erase_count;
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		struct logfs_segment_entry se;
 		u32 segno = seg_no(sb, super->s_sb_ofs[i]);
 		u32 ec;
@@ -607,7 +740,8 @@ static void logfs_journal_wl_pass(struct super_block *sb)
 		max_reserve_ec = max(max_reserve_ec, ec);
 	}
 
-	if (min_journal_ec > max_reserve_ec + 2 * WL_DELTA) {
+	if (min_journal_ec > max_reserve_ec + 2 * WL_DELTA)
+	{
 		do_logfs_journal_wl_pass(sb);
 	}
 }
@@ -621,8 +755,11 @@ void logfs_gc_pass(struct super_block *sb)
 	 * objects.
 	 */
 	if (super->s_dirty_used_bytes + super->s_dirty_free_bytes
-			+ LOGFS_MAX_OBJECTSIZE >= super->s_free_bytes)
+		+ LOGFS_MAX_OBJECTSIZE >= super->s_free_bytes)
+	{
 		logfs_write_anchor(sb);
+	}
+
 	__logfs_gc_pass(sb, super->s_total_levels);
 	logfs_wl_pass(sb);
 	logfs_journal_wl_pass(sb);
@@ -638,10 +775,14 @@ static int check_area(struct super_block *sb, int i)
 	u64 ofs = dev_ofs(sb, area->a_segno, area->a_written_bytes);
 
 	if (!area->a_is_open)
+	{
 		return 0;
+	}
 
 	if (super->s_devops->can_write_buf(sb, ofs) == 0)
+	{
 		return 0;
+	}
 
 	printk(KERN_INFO"LogFS: Possibly incomplete write at %llx\n", ofs);
 	/*
@@ -655,8 +796,12 @@ static int check_area(struct super_block *sb, int i)
 	area->a_is_open = 0;
 	valid = logfs_valid_bytes(sb, segno, &ec, &gc_level);
 	cleaned = logfs_gc_segment(sb, segno);
+
 	if (cleaned != valid)
+	{
 		return -EIO;
+	}
+
 	return 0;
 }
 
@@ -664,16 +809,20 @@ int logfs_check_areas(struct super_block *sb)
 {
 	int i, err;
 
-	for_each_area(i) {
+	for_each_area(i)
+	{
 		err = check_area(sb, i);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 	return 0;
 }
 
 static void logfs_init_candlist(struct candidate_list *list, int maxcount,
-		int sort_by_ec)
+								int sort_by_ec)
 {
 	list->count = 0;
 	list->maxcount = maxcount;
@@ -689,24 +838,26 @@ int logfs_init_gc(struct super_block *sb)
 	btree_init_mempool32(&super->s_cand_tree, super->s_btree_pool);
 	logfs_init_candlist(&super->s_free_list, LIST_SIZE + SCAN_RATIO, 1);
 	logfs_init_candlist(&super->s_reserve_list,
-			super->s_bad_seg_reserve, 1);
+						super->s_bad_seg_reserve, 1);
 	for_each_area(i)
-		logfs_init_candlist(&super->s_low_list[i], LIST_SIZE, 0);
+	logfs_init_candlist(&super->s_low_list[i], LIST_SIZE, 0);
 	logfs_init_candlist(&super->s_ec_list, LIST_SIZE, 1);
 	return 0;
 }
 
 static void logfs_cleanup_list(struct super_block *sb,
-		struct candidate_list *list)
+							   struct candidate_list *list)
 {
 	struct gc_candidate *cand;
 
-	while (list->count) {
+	while (list->count)
+	{
 		cand = rb_entry(list->rb_tree.rb_node, struct gc_candidate,
-				rb_node);
+						rb_node);
 		remove_from_list(cand);
 		free_candidate(sb, cand);
 	}
+
 	BUG_ON(list->rb_tree.rb_node);
 }
 
@@ -716,7 +867,9 @@ void logfs_cleanup_gc(struct super_block *sb)
 	int i;
 
 	if (!super->s_free_list.count)
+	{
 		return;
+	}
 
 	/*
 	 * FIXME: The btree may still contain a single empty node.  So we
@@ -727,6 +880,6 @@ void logfs_cleanup_gc(struct super_block *sb)
 	logfs_cleanup_list(sb, &super->s_free_list);
 	logfs_cleanup_list(sb, &super->s_reserve_list);
 	for_each_area(i)
-		logfs_cleanup_list(sb, &super->s_low_list[i]);
+	logfs_cleanup_list(sb, &super->s_low_list[i]);
 	logfs_cleanup_list(sb, &super->s_ec_list);
 }

@@ -24,7 +24,8 @@
 #include "priv.h"
 
 static const struct nvkm_volt_func
-nv40_volt = {
+	nv40_volt =
+{
 	.vid_get = nvkm_voltgpio_get,
 	.vid_set = nvkm_voltgpio_set,
 };
@@ -37,8 +38,11 @@ nv40_volt_new(struct nvkm_device *device, int index, struct nvkm_volt **pvolt)
 
 	ret = nvkm_volt_new_(&nv40_volt, device, index, &volt);
 	*pvolt = volt;
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return nvkm_voltgpio_init(volt);
 }

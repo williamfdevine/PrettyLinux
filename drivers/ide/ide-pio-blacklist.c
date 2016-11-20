@@ -9,10 +9,12 @@
 #include <linux/string.h>
 #include <linux/ide.h>
 
-static struct ide_pio_info {
+static struct ide_pio_info
+{
 	const char	*name;
 	int		pio;
-} ide_pio_blacklist [] = {
+} ide_pio_blacklist [] =
+{
 	{ "Conner Peripherals 540MB - CFS540A", 3 },
 
 	{ "WDC AC2700",  3 },
@@ -87,9 +89,13 @@ int ide_scan_pio_blacklist(char *model)
 {
 	struct ide_pio_info *p;
 
-	for (p = ide_pio_blacklist; p->name != NULL; p++) {
+	for (p = ide_pio_blacklist; p->name != NULL; p++)
+	{
 		if (strncmp(p->name, model, strlen(p->name)) == 0)
+		{
 			return p->pio;
+		}
 	}
+
 	return -1;
 }

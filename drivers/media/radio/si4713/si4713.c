@@ -97,7 +97,7 @@ MODULE_VERSION("0.0.1");
 #define lsb(x)                  ((u8)((u16) x &  0x00FF))
 #define compose_u16(msb, lsb)	(((u16)msb << 8) | lsb)
 #define check_command_failed(status)	(!(status & SI4713_CTS) || \
-					(status & SI4713_ERR))
+		(status & SI4713_ERR))
 /* mute definition */
 #define set_mute(p)	((p & 1) | ((p & 1) << 1));
 
@@ -119,7 +119,8 @@ MODULE_VERSION("0.0.1");
  *	device	release
  *	value	time (us)
  */
-static long limiter_times[] = {
+static long limiter_times[] =
+{
 	2000,	250,
 	1000,	500,
 	510,	1000,
@@ -147,7 +148,8 @@ static long limiter_times[] = {
  *	device	release
  *	value	time (us)
  */
-static unsigned long acomp_rtimes[] = {
+static unsigned long acomp_rtimes[] =
+{
 	0,	100000,
 	1,	200000,
 	2,	350000,
@@ -160,20 +162,22 @@ static unsigned long acomp_rtimes[] = {
  *	device	preemphasis
  *	value	value (v4l2)
  */
-static unsigned long preemphasis_values[] = {
+static unsigned long preemphasis_values[] =
+{
 	FMPE_DISABLED,	V4L2_PREEMPHASIS_DISABLED,
 	FMPE_EU,	V4L2_PREEMPHASIS_50_uS,
 	FMPE_USA,	V4L2_PREEMPHASIS_75_uS,
 };
 
 static int usecs_to_dev(unsigned long usecs, unsigned long const array[],
-			int size)
+						int size)
 {
 	int i;
 	int rval = -EINVAL;
 
 	for (i = 0; i < size / 2; i++)
-		if (array[(i * 2) + 1] >= usecs) {
+		if (array[(i * 2) + 1] >= usecs)
+		{
 			rval = array[i * 2];
 			break;
 		}
@@ -187,7 +191,7 @@ static irqreturn_t si4713_handler(int irq, void *dev)
 	struct si4713_device *sdev = dev;
 
 	v4l2_dbg(2, debug, &sdev->sd,
-			"%s: sending signal to completion work.\n", __func__);
+			 "%s: sending signal to completion work.\n", __func__);
 	complete(&sdev->work);
 
 	return IRQ_HANDLED;
@@ -204,8 +208,8 @@ static irqreturn_t si4713_handler(int irq, void *dev)
  * @usecs: amount of time to wait before reading the response (in usecs)
  */
 static int si4713_send_command(struct si4713_device *sdev, const u8 command,
-				const u8 args[], const int argn,
-				u8 response[], const int respn, const int usecs)
+							   const u8 args[], const int argn,
+							   u8 response[], const int respn, const int usecs)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&sdev->sd);
 	unsigned long until_jiffies;
@@ -213,7 +217,9 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
 	int err;
 
 	if (!client->adapter)
+	{
 		return -ENODEV;
+	}
 
 	/* First send the command and its arguments */
 	data1[0] = command;
@@ -221,43 +227,60 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
 	DBG_BUFFER(&sdev->sd, "Parameters", data1, argn + 1);
 
 	err = i2c_master_send(client, data1, argn + 1);
-	if (err != argn + 1) {
+
+	if (err != argn + 1)
+	{
 		v4l2_err(&sdev->sd, "Error while sending command 0x%02x\n",
-			command);
+				 command);
 		return err < 0 ? err : -EIO;
 	}
 
 	until_jiffies = jiffies + usecs_to_jiffies(usecs) + 1;
 
 	/* Wait response from interrupt */
-	if (client->irq) {
+	if (client->irq)
+	{
 		if (!wait_for_completion_timeout(&sdev->work,
-				usecs_to_jiffies(usecs) + 1))
+										 usecs_to_jiffies(usecs) + 1))
 			v4l2_warn(&sdev->sd,
-				"(%s) Device took too much time to answer.\n",
-				__func__);
+					  "(%s) Device took too much time to answer.\n",
+					  __func__);
 	}
 
-	do {
+	do
+	{
 		err = i2c_master_recv(client, response, respn);
-		if (err != respn) {
+
+		if (err != respn)
+		{
 			v4l2_err(&sdev->sd,
-				"Error %d while reading response for command 0x%02x\n",
-				err, command);
+					 "Error %d while reading response for command 0x%02x\n",
+					 err, command);
 			return err < 0 ? err : -EIO;
 		}
 
 		DBG_BUFFER(&sdev->sd, "Response", response, respn);
+
 		if (!check_command_failed(response[0]))
+		{
 			return 0;
+		}
 
 		if (client->irq)
+		{
 			return -EBUSY;
+		}
+
 		if (usecs <= 1000)
+		{
 			usleep_range(usecs, 1000);
+		}
 		else
+		{
 			usleep_range(1000, 2000);
-	} while (time_is_after_jiffies(until_jiffies));
+		}
+	}
+	while (time_is_after_jiffies(until_jiffies));
 
 	return -EBUSY;
 }
@@ -277,24 +300,27 @@ static int si4713_read_property(struct si4713_device *sdev, u16 prop, u32 *pv)
 	 *	.Second byte = property's MSB
 	 *	.Third byte = property's LSB
 	 */
-	const u8 args[SI4713_GET_PROP_NARGS] = {
+	const u8 args[SI4713_GET_PROP_NARGS] =
+	{
 		0x00,
 		msb(prop),
 		lsb(prop),
 	};
 
 	err = si4713_send_command(sdev, SI4713_CMD_GET_PROPERTY,
-				  args, ARRAY_SIZE(args), val,
-				  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
+							  args, ARRAY_SIZE(args), val,
+							  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
 
 	if (err < 0)
+	{
 		return err;
+	}
 
 	*pv = compose_u16(val[2], val[3]);
 
 	v4l2_dbg(1, debug, &sdev->sd,
-			"%s: property=0x%02x value=0x%02x status=0x%02x\n",
-			__func__, prop, *pv, val[0]);
+			 "%s: property=0x%02x value=0x%02x status=0x%02x\n",
+			 __func__, prop, *pv, val[0]);
 
 	return err;
 }
@@ -316,7 +342,8 @@ static int si4713_write_property(struct si4713_device *sdev, u16 prop, u16 val)
 	 *	.Fourth byte = value's MSB
 	 *	.Fifth byte = value's LSB
 	 */
-	const u8 args[SI4713_SET_PROP_NARGS] = {
+	const u8 args[SI4713_SET_PROP_NARGS] =
+	{
 		0x00,
 		msb(prop),
 		lsb(prop),
@@ -325,16 +352,18 @@ static int si4713_write_property(struct si4713_device *sdev, u16 prop, u16 val)
 	};
 
 	rval = si4713_send_command(sdev, SI4713_CMD_SET_PROPERTY,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					DEFAULT_TIMEOUT);
+							   args, ARRAY_SIZE(args),
+							   resp, ARRAY_SIZE(resp),
+							   DEFAULT_TIMEOUT);
 
 	if (rval < 0)
+	{
 		return rval;
+	}
 
 	v4l2_dbg(1, debug, &sdev->sd,
-			"%s: property=0x%02x value=0x%02x status=0x%02x\n",
-			__func__, prop, val, resp[0]);
+			 "%s: property=0x%02x value=0x%02x status=0x%02x\n",
+			 __func__, prop, val, resp[0]);
 
 	/*
 	 * As there is no command response for SET_PROPERTY,
@@ -359,67 +388,90 @@ static int si4713_powerup(struct si4713_device *sdev)
 	 *	.First byte = Enabled interrupts and boot function
 	 *	.Second byte = Input operation mode
 	 */
-	u8 args[SI4713_PWUP_NARGS] = {
+	u8 args[SI4713_PWUP_NARGS] =
+	{
 		SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
 		SI4713_PWUP_OPMOD_ANALOG,
 	};
 
 	if (sdev->power_state)
+	{
 		return 0;
+	}
 
-	if (sdev->vdd) {
+	if (sdev->vdd)
+	{
 		err = regulator_enable(sdev->vdd);
-		if (err) {
+
+		if (err)
+		{
 			v4l2_err(&sdev->sd, "Failed to enable vdd: %d\n", err);
 			return err;
 		}
 	}
 
-	if (sdev->vio) {
+	if (sdev->vio)
+	{
 		err = regulator_enable(sdev->vio);
-		if (err) {
+
+		if (err)
+		{
 			v4l2_err(&sdev->sd, "Failed to enable vio: %d\n", err);
 			return err;
 		}
 	}
 
-	if (sdev->gpio_reset) {
+	if (sdev->gpio_reset)
+	{
 		udelay(50);
 		gpiod_set_value(sdev->gpio_reset, 1);
 	}
 
 	if (client->irq)
+	{
 		args[0] |= SI4713_PWUP_CTSIEN;
+	}
 
 	err = si4713_send_command(sdev, SI4713_CMD_POWER_UP,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					TIMEOUT_POWER_UP);
+							  args, ARRAY_SIZE(args),
+							  resp, ARRAY_SIZE(resp),
+							  TIMEOUT_POWER_UP);
 
-	if (!err) {
+	if (!err)
+	{
 		v4l2_dbg(1, debug, &sdev->sd, "Powerup response: 0x%02x\n",
-				resp[0]);
+				 resp[0]);
 		v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
 		sdev->power_state = POWER_ON;
 
 		if (client->irq)
 			err = si4713_write_property(sdev, SI4713_GPO_IEN,
-						SI4713_STC_INT | SI4713_CTS);
+										SI4713_STC_INT | SI4713_CTS);
+
 		return err;
 	}
+
 	gpiod_set_value(sdev->gpio_reset, 0);
 
 
-	if (sdev->vdd) {
+	if (sdev->vdd)
+	{
 		err = regulator_disable(sdev->vdd);
+
 		if (err)
+		{
 			v4l2_err(&sdev->sd, "Failed to disable vdd: %d\n", err);
+		}
 	}
 
-	if (sdev->vio) {
+	if (sdev->vio)
+	{
 		err = regulator_disable(sdev->vio);
+
 		if (err)
+		{
 			v4l2_err(&sdev->sd, "Failed to disable vio: %d\n", err);
+		}
 	}
 
 	return err;
@@ -435,35 +487,48 @@ static int si4713_powerdown(struct si4713_device *sdev)
 	u8 resp[SI4713_PWDN_NRESP];
 
 	if (!sdev->power_state)
+	{
 		return 0;
+	}
 
 	err = si4713_send_command(sdev, SI4713_CMD_POWER_DOWN,
-					NULL, 0,
-					resp, ARRAY_SIZE(resp),
-					DEFAULT_TIMEOUT);
+							  NULL, 0,
+							  resp, ARRAY_SIZE(resp),
+							  DEFAULT_TIMEOUT);
 
-	if (!err) {
+	if (!err)
+	{
 		v4l2_dbg(1, debug, &sdev->sd, "Power down response: 0x%02x\n",
-				resp[0]);
+				 resp[0]);
 		v4l2_dbg(1, debug, &sdev->sd, "Device in reset mode\n");
+
 		if (sdev->gpio_reset)
+		{
 			gpiod_set_value(sdev->gpio_reset, 0);
+		}
 
-		if (sdev->vdd) {
+		if (sdev->vdd)
+		{
 			err = regulator_disable(sdev->vdd);
-			if (err) {
+
+			if (err)
+			{
 				v4l2_err(&sdev->sd,
-					"Failed to disable vdd: %d\n", err);
+						 "Failed to disable vdd: %d\n", err);
 			}
 		}
 
-		if (sdev->vio) {
+		if (sdev->vio)
+		{
 			err = regulator_disable(sdev->vio);
-			if (err) {
+
+			if (err)
+			{
 				v4l2_err(&sdev->sd,
-					"Failed to disable vio: %d\n", err);
+						 "Failed to disable vio: %d\n", err);
 			}
 		}
+
 		sdev->power_state = POWER_OFF;
 	}
 
@@ -481,20 +546,26 @@ static int si4713_checkrev(struct si4713_device *sdev)
 	u8 resp[SI4713_GETREV_NRESP];
 
 	rval = si4713_send_command(sdev, SI4713_CMD_GET_REV,
-					NULL, 0,
-					resp, ARRAY_SIZE(resp),
-					DEFAULT_TIMEOUT);
+							   NULL, 0,
+							   resp, ARRAY_SIZE(resp),
+							   DEFAULT_TIMEOUT);
 
 	if (rval < 0)
+	{
 		return rval;
+	}
 
-	if (resp[1] == SI4713_PRODUCT_NUMBER) {
+	if (resp[1] == SI4713_PRODUCT_NUMBER)
+	{
 		v4l2_info(&sdev->sd, "chip found @ 0x%02x (%s)\n",
-				client->addr << 1, client->adapter->name);
-	} else {
+				  client->addr << 1, client->adapter->name);
+	}
+	else
+	{
 		v4l2_err(&sdev->sd, "Invalid product number 0x%X\n", resp[1]);
 		rval = -EINVAL;
 	}
+
 	return rval;
 }
 
@@ -512,27 +583,36 @@ static int si4713_wait_stc(struct si4713_device *sdev, const int usecs)
 	int err;
 
 	if (client->irq &&
-	    !wait_for_completion_timeout(&sdev->work, usecs_to_jiffies(usecs) + 1))
+		!wait_for_completion_timeout(&sdev->work, usecs_to_jiffies(usecs) + 1))
 		v4l2_warn(&sdev->sd,
-			"(%s) Device took too much time to answer.\n", __func__);
+				  "(%s) Device took too much time to answer.\n", __func__);
 
-	for (;;) {
+	for (;;)
+	{
 		/* Clear status bits */
 		err = si4713_send_command(sdev, SI4713_CMD_GET_INT_STATUS,
-				NULL, 0,
-				resp, ARRAY_SIZE(resp),
-				DEFAULT_TIMEOUT);
+								  NULL, 0,
+								  resp, ARRAY_SIZE(resp),
+								  DEFAULT_TIMEOUT);
+
 		/* The USB device returns errors when it waits for the
 		 * STC bit to be set. Hence polling */
-		if (err >= 0) {
+		if (err >= 0)
+		{
 			v4l2_dbg(1, debug, &sdev->sd,
-				"%s: status bits: 0x%02x\n", __func__, resp[0]);
+					 "%s: status bits: 0x%02x\n", __func__, resp[0]);
 
 			if (resp[0] & SI4713_STC_INT)
+			{
 				return 0;
+			}
 		}
+
 		if (jiffies_to_usecs(jiffies - start_jiffies) > usecs)
+		{
 			return err < 0 ? err : -EIO;
+		}
+
 		/* We sleep here for 3-4 ms in order to avoid flooding the device
 		 * with USB requests. The si4713 USB driver was developed
 		 * by reverse engineering the Windows USB driver. The windows
@@ -557,26 +637,32 @@ static int si4713_tx_tune_freq(struct si4713_device *sdev, u16 frequency)
 	 *	.Second byte = frequency's MSB
 	 *	.Third byte = frequency's LSB
 	 */
-	const u8 args[SI4713_TXFREQ_NARGS] = {
+	const u8 args[SI4713_TXFREQ_NARGS] =
+	{
 		0x00,
 		msb(frequency),
 		lsb(frequency),
 	};
 
 	err = si4713_send_command(sdev, SI4713_CMD_TX_TUNE_FREQ,
-				  args, ARRAY_SIZE(args), val,
-				  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
+							  args, ARRAY_SIZE(args), val,
+							  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
 
 	if (err < 0)
+	{
 		return err;
+	}
 
 	v4l2_dbg(1, debug, &sdev->sd,
-			"%s: frequency=0x%02x status=0x%02x\n", __func__,
-			frequency, val[0]);
+			 "%s: frequency=0x%02x status=0x%02x\n", __func__,
+			 frequency, val[0]);
 
 	err = si4713_wait_stc(sdev, TIMEOUT_TX_TUNE);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return compose_u16(args[1], args[2]);
 }
@@ -593,7 +679,7 @@ static int si4713_tx_tune_freq(struct si4713_device *sdev, u16 frequency)
  * @antcap: value of antenna tuning capacitor (0 - 191)
  */
 static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
-				u8 antcap)
+								u8 antcap)
 {
 	int err;
 	u8 val[SI4713_TXPWR_NRESP];
@@ -603,7 +689,8 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
 	 *	.Third byte = power
 	 *	.Fourth byte = antcap
 	 */
-	u8 args[SI4713_TXPWR_NARGS] = {
+	u8 args[SI4713_TXPWR_NARGS] =
+	{
 		0x00,
 		0x00,
 		power,
@@ -612,18 +699,22 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
 
 	/* Map power values 1-87 to MIN_POWER (88) */
 	if (power > 0 && power < SI4713_MIN_POWER)
+	{
 		args[2] = power = SI4713_MIN_POWER;
+	}
 
 	err = si4713_send_command(sdev, SI4713_CMD_TX_TUNE_POWER,
-				  args, ARRAY_SIZE(args), val,
-				  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
+							  args, ARRAY_SIZE(args), val,
+							  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
 
 	if (err < 0)
+	{
 		return err;
+	}
 
 	v4l2_dbg(1, debug, &sdev->sd,
-			"%s: power=0x%02x antcap=0x%02x status=0x%02x\n",
-			__func__, power, antcap, val[0]);
+			 "%s: power=0x%02x antcap=0x%02x status=0x%02x\n",
+			 __func__, power, antcap, val[0]);
 
 	return si4713_wait_stc(sdev, TIMEOUT_TX_TUNE_POWER);
 }
@@ -641,7 +732,7 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
  * @antcap: value of antenna tuning capacitor (0 - 191)
  */
 static int si4713_tx_tune_measure(struct si4713_device *sdev, u16 frequency,
-					u8 antcap)
+								  u8 antcap)
 {
 	int err;
 	u8 val[SI4713_TXMEA_NRESP];
@@ -651,7 +742,8 @@ static int si4713_tx_tune_measure(struct si4713_device *sdev, u16 frequency,
 	 *	.Third byte = frequency's LSB
 	 *	.Fourth byte = antcap
 	 */
-	const u8 args[SI4713_TXMEA_NARGS] = {
+	const u8 args[SI4713_TXMEA_NARGS] =
+	{
 		0x00,
 		msb(frequency),
 		lsb(frequency),
@@ -661,18 +753,22 @@ static int si4713_tx_tune_measure(struct si4713_device *sdev, u16 frequency,
 	sdev->tune_rnl = DEFAULT_TUNE_RNL;
 
 	if (antcap > SI4713_MAX_ANTCAP)
+	{
 		return -EDOM;
+	}
 
 	err = si4713_send_command(sdev, SI4713_CMD_TX_TUNE_MEASURE,
-				  args, ARRAY_SIZE(args), val,
-				  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
+							  args, ARRAY_SIZE(args), val,
+							  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
 
 	if (err < 0)
+	{
 		return err;
+	}
 
 	v4l2_dbg(1, debug, &sdev->sd,
-			"%s: frequency=0x%02x antcap=0x%02x status=0x%02x\n",
-			__func__, frequency, antcap, val[0]);
+			 "%s: frequency=0x%02x antcap=0x%02x status=0x%02x\n",
+			 __func__, frequency, antcap, val[0]);
 
 	return si4713_wait_stc(sdev, TIMEOUT_TX_TUNE);
 }
@@ -692,33 +788,35 @@ static int si4713_tx_tune_measure(struct si4713_device *sdev, u16 frequency,
  * @noise: returned noise level
  */
 static int si4713_tx_tune_status(struct si4713_device *sdev, u8 intack,
-					u16 *frequency,	u8 *power,
-					u8 *antcap, u8 *noise)
+								 u16 *frequency,	u8 *power,
+								 u8 *antcap, u8 *noise)
 {
 	int err;
 	u8 val[SI4713_TXSTATUS_NRESP];
 	/*
 	 *	.First byte = intack bit
 	 */
-	const u8 args[SI4713_TXSTATUS_NARGS] = {
+	const u8 args[SI4713_TXSTATUS_NARGS] =
+	{
 		intack & SI4713_INTACK_MASK,
 	};
 
 	err = si4713_send_command(sdev, SI4713_CMD_TX_TUNE_STATUS,
-				  args, ARRAY_SIZE(args), val,
-				  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
+							  args, ARRAY_SIZE(args), val,
+							  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
 
-	if (!err) {
+	if (!err)
+	{
 		v4l2_dbg(1, debug, &sdev->sd,
-			"%s: status=0x%02x\n", __func__, val[0]);
+				 "%s: status=0x%02x\n", __func__, val[0]);
 		*frequency = compose_u16(val[2], val[3]);
 		sdev->frequency = *frequency;
 		*power = val[5];
 		*antcap = val[6];
 		*noise = val[7];
 		v4l2_dbg(1, debug, &sdev->sd, "%s: response: %d x 10 kHz "
-				"(power %d, antcap %d, rnl %d)\n", __func__,
-				*frequency, *power, *antcap, *noise);
+				 "(power %d, antcap %d, rnl %d)\n", __func__,
+				 *frequency, *power, *antcap, *noise);
 	}
 
 	return err;
@@ -735,12 +833,13 @@ static int si4713_tx_tune_status(struct si4713_device *sdev, u8 intack,
  *          number of used circular buffer blocks.
  */
 static int si4713_tx_rds_buff(struct si4713_device *sdev, u8 mode, u16 rdsb,
-				u16 rdsc, u16 rdsd, s8 *cbleft)
+							  u16 rdsc, u16 rdsd, s8 *cbleft)
 {
 	int err;
 	u8 val[SI4713_RDSBUFF_NRESP];
 
-	const u8 args[SI4713_RDSBUFF_NARGS] = {
+	const u8 args[SI4713_RDSBUFF_NARGS] =
+	{
 		mode & SI4713_RDSBUFF_MODE_MASK,
 		msb(rdsb),
 		lsb(rdsb),
@@ -751,17 +850,18 @@ static int si4713_tx_rds_buff(struct si4713_device *sdev, u8 mode, u16 rdsb,
 	};
 
 	err = si4713_send_command(sdev, SI4713_CMD_TX_RDS_BUFF,
-				  args, ARRAY_SIZE(args), val,
-				  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
+							  args, ARRAY_SIZE(args), val,
+							  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
 
-	if (!err) {
+	if (!err)
+	{
 		v4l2_dbg(1, debug, &sdev->sd,
-			"%s: status=0x%02x\n", __func__, val[0]);
+				 "%s: status=0x%02x\n", __func__, val[0]);
 		*cbleft = (s8)val[2] - val[3];
 		v4l2_dbg(1, debug, &sdev->sd, "%s: response: interrupts"
-				" 0x%02x cb avail: %d cb used %d fifo avail"
-				" %d fifo used %d\n", __func__, val[1],
-				val[2], val[3], val[4], val[5]);
+				 " 0x%02x cb avail: %d cb used %d fifo avail"
+				 " %d fifo used %d\n", __func__, val[1],
+				 val[2], val[3], val[4], val[5]);
 	}
 
 	return err;
@@ -774,12 +874,13 @@ static int si4713_tx_rds_buff(struct si4713_device *sdev, u8 mode, u16 rdsb,
  * @pschar: assumed 4 size char array to be loaded into the program service
  */
 static int si4713_tx_rds_ps(struct si4713_device *sdev, u8 psid,
-				unsigned char *pschar)
+							unsigned char *pschar)
 {
 	int err;
 	u8 val[SI4713_RDSPS_NRESP];
 
-	const u8 args[SI4713_RDSPS_NARGS] = {
+	const u8 args[SI4713_RDSPS_NARGS] =
+	{
 		psid & SI4713_RDSPS_PSID_MASK,
 		pschar[0],
 		pschar[1],
@@ -788,11 +889,13 @@ static int si4713_tx_rds_ps(struct si4713_device *sdev, u8 psid,
 	};
 
 	err = si4713_send_command(sdev, SI4713_CMD_TX_RDS_PS,
-				  args, ARRAY_SIZE(args), val,
-				  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
+							  args, ARRAY_SIZE(args), val,
+							  ARRAY_SIZE(val), DEFAULT_TIMEOUT);
 
 	if (err < 0)
+	{
 		return err;
+	}
 
 	v4l2_dbg(1, debug, &sdev->sd, "%s: status=0x%02x\n", __func__, val[0]);
 
@@ -802,7 +905,10 @@ static int si4713_tx_rds_ps(struct si4713_device *sdev, u8 psid,
 static int si4713_set_power_state(struct si4713_device *sdev, u8 value)
 {
 	if (value)
+	{
 		return si4713_powerup(sdev);
+	}
+
 	return si4713_powerdown(sdev);
 }
 
@@ -814,7 +920,7 @@ static int si4713_set_mute(struct si4713_device *sdev, u16 mute)
 
 	if (sdev->power_state)
 		rval = si4713_write_property(sdev,
-				SI4713_TX_LINE_INPUT_MUTE, mute);
+									 SI4713_TX_LINE_INPUT_MUTE, mute);
 
 	return rval;
 }
@@ -826,34 +932,51 @@ static int si4713_set_rds_ps_name(struct si4713_device *sdev, char *ps_name)
 
 	/* We want to clear the whole thing */
 	if (!strlen(ps_name))
+	{
 		memset(ps_name, 0, MAX_RDS_PS_NAME + 1);
+	}
 
-	if (sdev->power_state) {
+	if (sdev->power_state)
+	{
 		/* Write the new ps name and clear the padding */
-		for (i = 0; i < MAX_RDS_PS_NAME; i += (RDS_BLOCK / 2)) {
+		for (i = 0; i < MAX_RDS_PS_NAME; i += (RDS_BLOCK / 2))
+		{
 			rval = si4713_tx_rds_ps(sdev, (i / (RDS_BLOCK / 2)),
-						ps_name + i);
+									ps_name + i);
+
 			if (rval < 0)
+			{
 				return rval;
+			}
 		}
 
 		/* Setup the size to be sent */
 		if (strlen(ps_name))
+		{
 			len = strlen(ps_name) - 1;
+		}
 		else
+		{
 			len = 1;
+		}
 
 		rval = si4713_write_property(sdev,
-				SI4713_TX_RDS_PS_MESSAGE_COUNT,
-				rds_ps_nblocks(len));
+									 SI4713_TX_RDS_PS_MESSAGE_COUNT,
+									 rds_ps_nblocks(len));
+
 		if (rval < 0)
+		{
 			return rval;
+		}
 
 		rval = si4713_write_property(sdev,
-				SI4713_TX_RDS_PS_REPEAT_COUNT,
-				DEFAULT_RDS_PS_REPEAT_COUNT * 2);
+									 SI4713_TX_RDS_PS_REPEAT_COUNT,
+									 DEFAULT_RDS_PS_REPEAT_COUNT * 2);
+
 		if (rval < 0)
+		{
 			return rval;
+		}
 	}
 
 	return rval;
@@ -868,23 +991,34 @@ static int si4713_set_rds_radio_text(struct si4713_device *sdev, const char *rt)
 	s8 left;
 
 	if (!sdev->power_state)
+	{
 		return rval;
+	}
 
 	rval = si4713_tx_rds_buff(sdev, RDS_BLOCK_CLEAR, 0, 0, 0, &left);
+
 	if (rval < 0)
+	{
 		return rval;
+	}
 
 	if (!strlen(rt))
+	{
 		return rval;
+	}
 
-	do {
+	do
+	{
 		/* RDS spec says that if the last block isn't used,
 		 * then apply a carriage return
 		 */
-		if (t_index < (RDS_RADIOTEXT_INDEX_MAX * RDS_RADIOTEXT_BLK_SIZE)) {
-			for (i = 0; i < RDS_RADIOTEXT_BLK_SIZE; i++) {
+		if (t_index < (RDS_RADIOTEXT_INDEX_MAX * RDS_RADIOTEXT_BLK_SIZE))
+		{
+			for (i = 0; i < RDS_RADIOTEXT_BLK_SIZE; i++)
+			{
 				if (!rt[t_index + i] ||
-				    rt[t_index + i] == RDS_CARRIAGE_RETURN) {
+					rt[t_index + i] == RDS_CARRIAGE_RETURN)
+				{
 					rt = cr;
 					cr_inserted = 1;
 					break;
@@ -893,18 +1027,24 @@ static int si4713_set_rds_radio_text(struct si4713_device *sdev, const char *rt)
 		}
 
 		rval = si4713_tx_rds_buff(sdev, RDS_BLOCK_LOAD,
-				compose_u16(RDS_RADIOTEXT_2A, b_index++),
-				compose_u16(rt[t_index], rt[t_index + 1]),
-				compose_u16(rt[t_index + 2], rt[t_index + 3]),
-				&left);
+								  compose_u16(RDS_RADIOTEXT_2A, b_index++),
+								  compose_u16(rt[t_index], rt[t_index + 1]),
+								  compose_u16(rt[t_index + 2], rt[t_index + 3]),
+								  &left);
+
 		if (rval < 0)
+		{
 			return rval;
+		}
 
 		t_index += RDS_RADIOTEXT_BLK_SIZE;
 
 		if (cr_inserted)
+		{
 			break;
-	} while (left > 0);
+		}
+	}
+	while (left > 0);
 
 	return rval;
 }
@@ -923,13 +1063,15 @@ static int si4713_update_tune_status(struct si4713_device *sdev)
 	rval = si4713_tx_tune_status(sdev, 0x00, &f, &p, &a, &n);
 
 	if (rval < 0)
+	{
 		goto exit;
+	}
 
-/*	TODO: check that power_level and antenna_capacitor really are not
-	changed by the hardware. If they are, then these controls should become
-	volatiles.
-	sdev->power_level = p;
-	sdev->antenna_capacitor = a;*/
+	/*	TODO: check that power_level and antenna_capacitor really are not
+		changed by the hardware. If they are, then these controls should become
+		volatiles.
+		sdev->power_level = p;
+		sdev->antenna_capacitor = a;*/
 	sdev->tune_rnl = n;
 
 exit:
@@ -942,116 +1084,136 @@ static int si4713_choose_econtrol_action(struct si4713_device *sdev, u32 id,
 {
 	s32 rval = 0;
 
-	switch (id) {
-	/* FM_TX class controls */
-	case V4L2_CID_RDS_TX_PI:
-		*property = SI4713_TX_RDS_PI;
-		*mul = 1;
-		break;
-	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
-		*property = SI4713_TX_ACOMP_THRESHOLD;
-		*mul = 1;
-		break;
-	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
-		*property = SI4713_TX_ACOMP_GAIN;
-		*mul = 1;
-		break;
-	case V4L2_CID_PILOT_TONE_FREQUENCY:
-		*property = SI4713_TX_PILOT_FREQUENCY;
-		*mul = 1;
-		break;
-	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
-		*property = SI4713_TX_ACOMP_ATTACK_TIME;
-		*mul = ATTACK_TIME_UNIT;
-		break;
-	case V4L2_CID_PILOT_TONE_DEVIATION:
-		*property = SI4713_TX_PILOT_DEVIATION;
-		*mul = 10;
-		break;
-	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
-		*property = SI4713_TX_AUDIO_DEVIATION;
-		*mul = 10;
-		break;
-	case V4L2_CID_RDS_TX_DEVIATION:
-		*property = SI4713_TX_RDS_DEVIATION;
-		*mul = 1;
-		break;
+	switch (id)
+	{
+		/* FM_TX class controls */
+		case V4L2_CID_RDS_TX_PI:
+			*property = SI4713_TX_RDS_PI;
+			*mul = 1;
+			break;
 
-	case V4L2_CID_RDS_TX_PTY:
-		*property = SI4713_TX_RDS_PS_MISC;
-		*bit = 5;
-		*mask = 0x1F << 5;
-		break;
-	case V4L2_CID_RDS_TX_DYNAMIC_PTY:
-		*property = SI4713_TX_RDS_PS_MISC;
-		*bit = 15;
-		*mask = 1 << 15;
-		break;
-	case V4L2_CID_RDS_TX_COMPRESSED:
-		*property = SI4713_TX_RDS_PS_MISC;
-		*bit = 14;
-		*mask = 1 << 14;
-		break;
-	case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:
-		*property = SI4713_TX_RDS_PS_MISC;
-		*bit = 13;
-		*mask = 1 << 13;
-		break;
-	case V4L2_CID_RDS_TX_MONO_STEREO:
-		*property = SI4713_TX_RDS_PS_MISC;
-		*bit = 12;
-		*mask = 1 << 12;
-		break;
-	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:
-		*property = SI4713_TX_RDS_PS_MISC;
-		*bit = 10;
-		*mask = 1 << 10;
-		break;
-	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT:
-		*property = SI4713_TX_RDS_PS_MISC;
-		*bit = 4;
-		*mask = 1 << 4;
-		break;
-	case V4L2_CID_RDS_TX_MUSIC_SPEECH:
-		*property = SI4713_TX_RDS_PS_MISC;
-		*bit = 3;
-		*mask = 1 << 3;
-		break;
-	case V4L2_CID_AUDIO_LIMITER_ENABLED:
-		*property = SI4713_TX_ACOMP_ENABLE;
-		*bit = 1;
-		*mask = 1 << 1;
-		break;
-	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
-		*property = SI4713_TX_ACOMP_ENABLE;
-		*bit = 0;
-		*mask = 1 << 0;
-		break;
-	case V4L2_CID_PILOT_TONE_ENABLED:
-		*property = SI4713_TX_COMPONENT_ENABLE;
-		*bit = 0;
-		*mask = 1 << 0;
-		break;
+		case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
+			*property = SI4713_TX_ACOMP_THRESHOLD;
+			*mul = 1;
+			break;
 
-	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
-		*property = SI4713_TX_LIMITER_RELEASE_TIME;
-		*table = limiter_times;
-		*size = ARRAY_SIZE(limiter_times);
-		break;
-	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
-		*property = SI4713_TX_ACOMP_RELEASE_TIME;
-		*table = acomp_rtimes;
-		*size = ARRAY_SIZE(acomp_rtimes);
-		break;
-	case V4L2_CID_TUNE_PREEMPHASIS:
-		*property = SI4713_TX_PREEMPHASIS;
-		*table = preemphasis_values;
-		*size = ARRAY_SIZE(preemphasis_values);
-		break;
+		case V4L2_CID_AUDIO_COMPRESSION_GAIN:
+			*property = SI4713_TX_ACOMP_GAIN;
+			*mul = 1;
+			break;
 
-	default:
-		rval = -EINVAL;
-		break;
+		case V4L2_CID_PILOT_TONE_FREQUENCY:
+			*property = SI4713_TX_PILOT_FREQUENCY;
+			*mul = 1;
+			break;
+
+		case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
+			*property = SI4713_TX_ACOMP_ATTACK_TIME;
+			*mul = ATTACK_TIME_UNIT;
+			break;
+
+		case V4L2_CID_PILOT_TONE_DEVIATION:
+			*property = SI4713_TX_PILOT_DEVIATION;
+			*mul = 10;
+			break;
+
+		case V4L2_CID_AUDIO_LIMITER_DEVIATION:
+			*property = SI4713_TX_AUDIO_DEVIATION;
+			*mul = 10;
+			break;
+
+		case V4L2_CID_RDS_TX_DEVIATION:
+			*property = SI4713_TX_RDS_DEVIATION;
+			*mul = 1;
+			break;
+
+		case V4L2_CID_RDS_TX_PTY:
+			*property = SI4713_TX_RDS_PS_MISC;
+			*bit = 5;
+			*mask = 0x1F << 5;
+			break;
+
+		case V4L2_CID_RDS_TX_DYNAMIC_PTY:
+			*property = SI4713_TX_RDS_PS_MISC;
+			*bit = 15;
+			*mask = 1 << 15;
+			break;
+
+		case V4L2_CID_RDS_TX_COMPRESSED:
+			*property = SI4713_TX_RDS_PS_MISC;
+			*bit = 14;
+			*mask = 1 << 14;
+			break;
+
+		case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:
+			*property = SI4713_TX_RDS_PS_MISC;
+			*bit = 13;
+			*mask = 1 << 13;
+			break;
+
+		case V4L2_CID_RDS_TX_MONO_STEREO:
+			*property = SI4713_TX_RDS_PS_MISC;
+			*bit = 12;
+			*mask = 1 << 12;
+			break;
+
+		case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:
+			*property = SI4713_TX_RDS_PS_MISC;
+			*bit = 10;
+			*mask = 1 << 10;
+			break;
+
+		case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT:
+			*property = SI4713_TX_RDS_PS_MISC;
+			*bit = 4;
+			*mask = 1 << 4;
+			break;
+
+		case V4L2_CID_RDS_TX_MUSIC_SPEECH:
+			*property = SI4713_TX_RDS_PS_MISC;
+			*bit = 3;
+			*mask = 1 << 3;
+			break;
+
+		case V4L2_CID_AUDIO_LIMITER_ENABLED:
+			*property = SI4713_TX_ACOMP_ENABLE;
+			*bit = 1;
+			*mask = 1 << 1;
+			break;
+
+		case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
+			*property = SI4713_TX_ACOMP_ENABLE;
+			*bit = 0;
+			*mask = 1 << 0;
+			break;
+
+		case V4L2_CID_PILOT_TONE_ENABLED:
+			*property = SI4713_TX_COMPONENT_ENABLE;
+			*bit = 0;
+			*mask = 1 << 0;
+			break;
+
+		case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
+			*property = SI4713_TX_LIMITER_RELEASE_TIME;
+			*table = limiter_times;
+			*size = ARRAY_SIZE(limiter_times);
+			break;
+
+		case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
+			*property = SI4713_TX_ACOMP_RELEASE_TIME;
+			*table = acomp_rtimes;
+			*size = ARRAY_SIZE(acomp_rtimes);
+			break;
+
+		case V4L2_CID_TUNE_PREEMPHASIS:
+			*property = SI4713_TX_PREEMPHASIS;
+			*table = preemphasis_values;
+			*size = ARRAY_SIZE(preemphasis_values);
+			break;
+
+		default:
+			rval = -EINVAL;
+			break;
 	}
 
 	return rval;
@@ -1076,12 +1238,21 @@ static int si4713_setup(struct si4713_device *sdev)
 	rval = si4713_s_frequency(&sdev->sd, &f);
 
 	vm.index = 0;
+
 	if (sdev->stereo)
+	{
 		vm.txsubchans = V4L2_TUNER_SUB_STEREO;
+	}
 	else
+	{
 		vm.txsubchans = V4L2_TUNER_SUB_MONO;
+	}
+
 	if (sdev->rds_enabled)
+	{
 		vm.txsubchans |= V4L2_TUNER_SUB_RDS;
+	}
+
 	si4713_s_modulator(&sdev->sd, &vm);
 
 	return rval;
@@ -1096,16 +1267,25 @@ static int si4713_initialize(struct si4713_device *sdev)
 	int rval;
 
 	rval = si4713_set_power_state(sdev, POWER_ON);
+
 	if (rval < 0)
+	{
 		return rval;
+	}
 
 	rval = si4713_checkrev(sdev);
+
 	if (rval < 0)
+	{
 		return rval;
+	}
 
 	rval = si4713_set_power_state(sdev, POWER_OFF);
+
 	if (rval < 0)
+	{
 		return rval;
+	}
 
 	sdev->frequency = DEFAULT_FREQUENCY;
 	sdev->stereo = 1;
@@ -1129,100 +1309,160 @@ static int si4713_s_ctrl(struct v4l2_ctrl *ctrl)
 	int ret = 0;
 
 	if (ctrl->id != V4L2_CID_AUDIO_MUTE)
+	{
 		return -EINVAL;
-	if (ctrl->is_new) {
-		if (ctrl->val) {
+	}
+
+	if (ctrl->is_new)
+	{
+		if (ctrl->val)
+		{
 			ret = si4713_set_mute(sdev, ctrl->val);
+
 			if (!ret)
+			{
 				ret = si4713_set_power_state(sdev, POWER_DOWN);
+			}
+
 			return ret;
 		}
+
 		ret = si4713_set_power_state(sdev, POWER_UP);
+
 		if (!ret)
+		{
 			ret = si4713_set_mute(sdev, ctrl->val);
+		}
+
 		if (!ret)
+		{
 			ret = si4713_setup(sdev);
+		}
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		force = true;
 	}
 
 	if (!sdev->power_state)
+	{
 		return 0;
+	}
 
-	for (c = 1; !ret && c < ctrl->ncontrols; c++) {
+	for (c = 1; !ret && c < ctrl->ncontrols; c++)
+	{
 		ctrl = ctrl->cluster[c];
 
 		if (!force && !ctrl->is_new)
+		{
 			continue;
+		}
 
-		switch (ctrl->id) {
-		case V4L2_CID_RDS_TX_PS_NAME:
-			ret = si4713_set_rds_ps_name(sdev, ctrl->p_new.p_char);
-			break;
-
-		case V4L2_CID_RDS_TX_RADIO_TEXT:
-			ret = si4713_set_rds_radio_text(sdev, ctrl->p_new.p_char);
-			break;
-
-		case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-			/* don't handle this control if we force setting all
-			 * controls since in that case it will be handled by
-			 * V4L2_CID_TUNE_POWER_LEVEL. */
-			if (force)
+		switch (ctrl->id)
+		{
+			case V4L2_CID_RDS_TX_PS_NAME:
+				ret = si4713_set_rds_ps_name(sdev, ctrl->p_new.p_char);
 				break;
+
+			case V4L2_CID_RDS_TX_RADIO_TEXT:
+				ret = si4713_set_rds_radio_text(sdev, ctrl->p_new.p_char);
+				break;
+
+			case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+
+				/* don't handle this control if we force setting all
+				 * controls since in that case it will be handled by
+				 * V4L2_CID_TUNE_POWER_LEVEL. */
+				if (force)
+				{
+					break;
+				}
+
 			/* fall through */
-		case V4L2_CID_TUNE_POWER_LEVEL:
-			ret = si4713_tx_tune_power(sdev,
-				sdev->tune_pwr_level->val, sdev->tune_ant_cap->val);
-			if (!ret) {
-				/* Make sure we don't set this twice */
-				sdev->tune_ant_cap->is_new = false;
-				sdev->tune_pwr_level->is_new = false;
-			}
-			break;
+			case V4L2_CID_TUNE_POWER_LEVEL:
+				ret = si4713_tx_tune_power(sdev,
+										   sdev->tune_pwr_level->val, sdev->tune_ant_cap->val);
 
-		case V4L2_CID_RDS_TX_ALT_FREQS_ENABLE:
-		case V4L2_CID_RDS_TX_ALT_FREQS:
-			if (sdev->rds_alt_freqs_enable->val) {
-				val = sdev->rds_alt_freqs->p_new.p_u32[0];
-				val = val / 100 - 876 + 0xe101;
-			} else {
-				val = 0xe0e0;
-			}
-			ret = si4713_write_property(sdev, SI4713_TX_RDS_PS_AF, val);
-			break;
+				if (!ret)
+				{
+					/* Make sure we don't set this twice */
+					sdev->tune_ant_cap->is_new = false;
+					sdev->tune_pwr_level->is_new = false;
+				}
 
-		default:
-			ret = si4713_choose_econtrol_action(sdev, ctrl->id, &bit,
-					&mask, &property, &mul, &table, &size);
-			if (ret < 0)
 				break;
 
-			val = ctrl->val;
-			if (mul) {
-				val = val / mul;
-			} else if (table) {
-				ret = usecs_to_dev(val, table, size);
-				if (ret < 0)
-					break;
-				val = ret;
-				ret = 0;
-			}
+			case V4L2_CID_RDS_TX_ALT_FREQS_ENABLE:
+			case V4L2_CID_RDS_TX_ALT_FREQS:
+				if (sdev->rds_alt_freqs_enable->val)
+				{
+					val = sdev->rds_alt_freqs->p_new.p_u32[0];
+					val = val / 100 - 876 + 0xe101;
+				}
+				else
+				{
+					val = 0xe0e0;
+				}
 
-			if (mask) {
-				ret = si4713_read_property(sdev, property, &val);
-				if (ret < 0)
-					break;
-				val = set_bits(val, ctrl->val, bit, mask);
-			}
-
-			ret = si4713_write_property(sdev, property, val);
-			if (ret < 0)
+				ret = si4713_write_property(sdev, SI4713_TX_RDS_PS_AF, val);
 				break;
-			if (mask)
+
+			default:
+				ret = si4713_choose_econtrol_action(sdev, ctrl->id, &bit,
+													&mask, &property, &mul, &table, &size);
+
+				if (ret < 0)
+				{
+					break;
+				}
+
 				val = ctrl->val;
-			break;
+
+				if (mul)
+				{
+					val = val / mul;
+				}
+				else if (table)
+				{
+					ret = usecs_to_dev(val, table, size);
+
+					if (ret < 0)
+					{
+						break;
+					}
+
+					val = ret;
+					ret = 0;
+				}
+
+				if (mask)
+				{
+					ret = si4713_read_property(sdev, property, &val);
+
+					if (ret < 0)
+					{
+						break;
+					}
+
+					val = set_bits(val, ctrl->val, bit, mask);
+				}
+
+				ret = si4713_write_property(sdev, property, val);
+
+				if (ret < 0)
+				{
+					break;
+				}
+
+				if (mask)
+				{
+					val = ctrl->val;
+				}
+
+				break;
 		}
 	}
 
@@ -1238,28 +1478,40 @@ static long si4713_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 	int rval = 0;
 
 	if (!arg)
+	{
 		return -EINVAL;
+	}
 
-	switch (cmd) {
-	case SI4713_IOC_MEASURE_RNL:
-		frequency = v4l2_to_si4713(rnl->frequency);
+	switch (cmd)
+	{
+		case SI4713_IOC_MEASURE_RNL:
+			frequency = v4l2_to_si4713(rnl->frequency);
 
-		if (sdev->power_state) {
-			/* Set desired measurement frequency */
-			rval = si4713_tx_tune_measure(sdev, frequency, 0);
-			if (rval < 0)
-				return rval;
-			/* get results from tune status */
-			rval = si4713_update_tune_status(sdev);
-			if (rval < 0)
-				return rval;
-		}
-		rnl->rnl = sdev->tune_rnl;
-		break;
+			if (sdev->power_state)
+			{
+				/* Set desired measurement frequency */
+				rval = si4713_tx_tune_measure(sdev, frequency, 0);
 
-	default:
-		/* nothing */
-		rval = -ENOIOCTLCMD;
+				if (rval < 0)
+				{
+					return rval;
+				}
+
+				/* get results from tune status */
+				rval = si4713_update_tune_status(sdev);
+
+				if (rval < 0)
+				{
+					return rval;
+				}
+			}
+
+			rnl->rnl = sdev->tune_rnl;
+			break;
+
+		default:
+			/* nothing */
+			rval = -ENOIOCTLCMD;
 	}
 
 	return rval;
@@ -1272,41 +1524,57 @@ static int si4713_g_modulator(struct v4l2_subdev *sd, struct v4l2_modulator *vm)
 	int rval = 0;
 
 	if (!sdev)
+	{
 		return -ENODEV;
+	}
 
 	if (vm->index > 0)
+	{
 		return -EINVAL;
+	}
 
 	strncpy(vm->name, "FM Modulator", 32);
 	vm->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_LOW |
-		V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_CONTROLS;
+					 V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_CONTROLS;
 
 	/* Report current frequency range limits */
 	vm->rangelow = si4713_to_v4l2(FREQ_RANGE_LOW);
 	vm->rangehigh = si4713_to_v4l2(FREQ_RANGE_HIGH);
 
-	if (sdev->power_state) {
+	if (sdev->power_state)
+	{
 		u32 comp_en = 0;
 
 		rval = si4713_read_property(sdev, SI4713_TX_COMPONENT_ENABLE,
-						&comp_en);
+									&comp_en);
+
 		if (rval < 0)
+		{
 			return rval;
+		}
 
 		sdev->stereo = get_status_bit(comp_en, 1, 1 << 1);
 	}
 
 	/* Report current audio mode: mono or stereo */
 	if (sdev->stereo)
+	{
 		vm->txsubchans = V4L2_TUNER_SUB_STEREO;
+	}
 	else
+	{
 		vm->txsubchans = V4L2_TUNER_SUB_MONO;
+	}
 
 	/* Report rds feature status */
 	if (sdev->rds_enabled)
+	{
 		vm->txsubchans |= V4L2_TUNER_SUB_RDS;
+	}
 	else
+	{
 		vm->txsubchans &= ~V4L2_TUNER_SUB_RDS;
+	}
 
 	return rval;
 }
@@ -1320,34 +1588,51 @@ static int si4713_s_modulator(struct v4l2_subdev *sd, const struct v4l2_modulato
 	u32 p;
 
 	if (!sdev)
+	{
 		return -ENODEV;
+	}
 
 	if (vm->index > 0)
+	{
 		return -EINVAL;
+	}
 
 	/* Set audio mode: mono or stereo */
 	if (vm->txsubchans & V4L2_TUNER_SUB_STEREO)
+	{
 		stereo = 1;
+	}
 	else if (vm->txsubchans & V4L2_TUNER_SUB_MONO)
+	{
 		stereo = 0;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	rds = !!(vm->txsubchans & V4L2_TUNER_SUB_RDS);
 
-	if (sdev->power_state) {
+	if (sdev->power_state)
+	{
 		rval = si4713_read_property(sdev,
-						SI4713_TX_COMPONENT_ENABLE, &p);
+									SI4713_TX_COMPONENT_ENABLE, &p);
+
 		if (rval < 0)
+		{
 			return rval;
+		}
 
 		p = set_bits(p, stereo, 1, 1 << 1);
 		p = set_bits(p, rds, 2, 1 << 2);
 
 		rval = si4713_write_property(sdev,
-						SI4713_TX_COMPONENT_ENABLE, p);
+									 SI4713_TX_COMPONENT_ENABLE, p);
+
 		if (rval < 0)
+		{
 			return rval;
+		}
 	}
 
 	sdev->stereo = stereo;
@@ -1363,15 +1648,21 @@ static int si4713_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
 	int rval = 0;
 
 	if (f->tuner)
+	{
 		return -EINVAL;
+	}
 
-	if (sdev->power_state) {
+	if (sdev->power_state)
+	{
 		u16 freq;
 		u8 p, a, n;
 
 		rval = si4713_tx_tune_status(sdev, 0x00, &freq, &p, &a, &n);
+
 		if (rval < 0)
+		{
 			return rval;
+		}
 
 		sdev->frequency = freq;
 	}
@@ -1389,44 +1680,57 @@ static int si4713_s_frequency(struct v4l2_subdev *sd, const struct v4l2_frequenc
 	u16 frequency = v4l2_to_si4713(f->frequency);
 
 	if (f->tuner)
+	{
 		return -EINVAL;
+	}
 
 	/* Check frequency range */
 	frequency = clamp_t(u16, frequency, FREQ_RANGE_LOW, FREQ_RANGE_HIGH);
 
-	if (sdev->power_state) {
+	if (sdev->power_state)
+	{
 		rval = si4713_tx_tune_freq(sdev, frequency);
+
 		if (rval < 0)
+		{
 			return rval;
+		}
+
 		frequency = rval;
 		rval = 0;
 	}
+
 	sdev->frequency = frequency;
 
 	return rval;
 }
 
-static const struct v4l2_ctrl_ops si4713_ctrl_ops = {
+static const struct v4l2_ctrl_ops si4713_ctrl_ops =
+{
 	.s_ctrl = si4713_s_ctrl,
 };
 
-static const struct v4l2_subdev_core_ops si4713_subdev_core_ops = {
+static const struct v4l2_subdev_core_ops si4713_subdev_core_ops =
+{
 	.ioctl		= si4713_ioctl,
 };
 
-static const struct v4l2_subdev_tuner_ops si4713_subdev_tuner_ops = {
+static const struct v4l2_subdev_tuner_ops si4713_subdev_tuner_ops =
+{
 	.g_frequency	= si4713_g_frequency,
 	.s_frequency	= si4713_s_frequency,
 	.g_modulator	= si4713_g_modulator,
 	.s_modulator	= si4713_s_modulator,
 };
 
-static const struct v4l2_subdev_ops si4713_subdev_ops = {
+static const struct v4l2_subdev_ops si4713_subdev_ops =
+{
 	.core		= &si4713_subdev_core_ops,
 	.tuner		= &si4713_subdev_tuner_ops,
 };
 
-static const struct v4l2_ctrl_config si4713_alt_freqs_ctrl = {
+static const struct v4l2_ctrl_config si4713_alt_freqs_ctrl =
+{
 	.id = V4L2_CID_RDS_TX_ALT_FREQS,
 	.type = V4L2_CTRL_TYPE_U32,
 	.min = 87600,
@@ -1442,7 +1746,7 @@ static const struct v4l2_ctrl_config si4713_alt_freqs_ctrl = {
  */
 /* si4713_probe - probe for the device */
 static int si4713_probe(struct i2c_client *client,
-					const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct si4713_device *sdev;
 	struct v4l2_ctrl_handler *hdl;
@@ -1453,35 +1757,49 @@ static int si4713_probe(struct i2c_client *client,
 	int rval;
 
 	sdev = devm_kzalloc(&client->dev, sizeof(*sdev), GFP_KERNEL);
-	if (!sdev) {
+
+	if (!sdev)
+	{
 		dev_err(&client->dev, "Failed to alloc video device.\n");
 		rval = -ENOMEM;
 		goto exit;
 	}
 
 	sdev->gpio_reset = devm_gpiod_get_optional(&client->dev, "reset",
-						   GPIOD_OUT_LOW);
-	if (IS_ERR(sdev->gpio_reset)) {
+					   GPIOD_OUT_LOW);
+
+	if (IS_ERR(sdev->gpio_reset))
+	{
 		rval = PTR_ERR(sdev->gpio_reset);
 		dev_err(&client->dev, "Failed to request gpio: %d\n", rval);
 		goto exit;
 	}
 
 	sdev->vdd = devm_regulator_get_optional(&client->dev, "vdd");
-	if (IS_ERR(sdev->vdd)) {
+
+	if (IS_ERR(sdev->vdd))
+	{
 		rval = PTR_ERR(sdev->vdd);
+
 		if (rval == -EPROBE_DEFER)
+		{
 			goto exit;
+		}
 
 		dev_dbg(&client->dev, "no vdd regulator found: %d\n", rval);
 		sdev->vdd = NULL;
 	}
 
 	sdev->vio = devm_regulator_get_optional(&client->dev, "vio");
-	if (IS_ERR(sdev->vio)) {
+
+	if (IS_ERR(sdev->vio))
+	{
 		rval = PTR_ERR(sdev->vio);
+
 		if (rval == -EPROBE_DEFER)
+		{
 			goto exit;
+		}
 
 		dev_dbg(&client->dev, "no vio regulator found: %d\n", rval);
 		sdev->vio = NULL;
@@ -1494,135 +1812,155 @@ static int si4713_probe(struct i2c_client *client,
 	hdl = &sdev->ctrl_handler;
 	v4l2_ctrl_handler_init(hdl, 20);
 	sdev->mute = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_AUDIO_MUTE, 0, 1, 1, DEFAULT_MUTE);
+								   V4L2_CID_AUDIO_MUTE, 0, 1, 1, DEFAULT_MUTE);
 
 	sdev->rds_pi = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_PI, 0, 0xffff, 1, DEFAULT_RDS_PI);
+									 V4L2_CID_RDS_TX_PI, 0, 0xffff, 1, DEFAULT_RDS_PI);
 	sdev->rds_pty = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_PTY, 0, 31, 1, DEFAULT_RDS_PTY);
+									  V4L2_CID_RDS_TX_PTY, 0, 31, 1, DEFAULT_RDS_PTY);
 	sdev->rds_compressed = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_COMPRESSED, 0, 1, 1, 0);
+						   V4L2_CID_RDS_TX_COMPRESSED, 0, 1, 1, 0);
 	sdev->rds_art_head = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_ARTIFICIAL_HEAD, 0, 1, 1, 0);
+										   V4L2_CID_RDS_TX_ARTIFICIAL_HEAD, 0, 1, 1, 0);
 	sdev->rds_stereo = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_MONO_STEREO, 0, 1, 1, 1);
+										 V4L2_CID_RDS_TX_MONO_STEREO, 0, 1, 1, 1);
 	sdev->rds_tp = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_TRAFFIC_PROGRAM, 0, 1, 1, 0);
+									 V4L2_CID_RDS_TX_TRAFFIC_PROGRAM, 0, 1, 1, 0);
 	sdev->rds_ta = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT, 0, 1, 1, 0);
+									 V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT, 0, 1, 1, 0);
 	sdev->rds_ms = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_MUSIC_SPEECH, 0, 1, 1, 1);
+									 V4L2_CID_RDS_TX_MUSIC_SPEECH, 0, 1, 1, 1);
 	sdev->rds_dyn_pty = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_DYNAMIC_PTY, 0, 1, 1, 0);
+										  V4L2_CID_RDS_TX_DYNAMIC_PTY, 0, 1, 1, 0);
 	sdev->rds_alt_freqs_enable = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_ALT_FREQS_ENABLE, 0, 1, 1, 0);
+								 V4L2_CID_RDS_TX_ALT_FREQS_ENABLE, 0, 1, 1, 0);
 	sdev->rds_alt_freqs = v4l2_ctrl_new_custom(hdl, &si4713_alt_freqs_ctrl, NULL);
 	sdev->rds_deviation = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_DEVIATION, 0, MAX_RDS_DEVIATION,
-			10, DEFAULT_RDS_DEVIATION);
+											V4L2_CID_RDS_TX_DEVIATION, 0, MAX_RDS_DEVIATION,
+											10, DEFAULT_RDS_DEVIATION);
 	/*
 	 * Report step as 8. From RDS spec, psname
 	 * should be 8. But there are receivers which scroll strings
 	 * sized as 8xN.
 	 */
 	sdev->rds_ps_name = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_PS_NAME, 0, MAX_RDS_PS_NAME, 8, 0);
+										  V4L2_CID_RDS_TX_PS_NAME, 0, MAX_RDS_PS_NAME, 8, 0);
 	/*
 	 * Report step as 32 (2A block). From RDS spec,
 	 * radio text should be 32 for 2A block. But there are receivers
 	 * which scroll strings sized as 32xN. Setting default to 32.
 	 */
 	sdev->rds_radio_text = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_RDS_TX_RADIO_TEXT, 0, MAX_RDS_RADIO_TEXT, 32, 0);
+						   V4L2_CID_RDS_TX_RADIO_TEXT, 0, MAX_RDS_RADIO_TEXT, 32, 0);
 
 	sdev->limiter_enabled = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_AUDIO_LIMITER_ENABLED, 0, 1, 1, 1);
+							V4L2_CID_AUDIO_LIMITER_ENABLED, 0, 1, 1, 1);
 	sdev->limiter_release_time = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_AUDIO_LIMITER_RELEASE_TIME, 250,
-			MAX_LIMITER_RELEASE_TIME, 10, DEFAULT_LIMITER_RTIME);
+								 V4L2_CID_AUDIO_LIMITER_RELEASE_TIME, 250,
+								 MAX_LIMITER_RELEASE_TIME, 10, DEFAULT_LIMITER_RTIME);
 	sdev->limiter_deviation = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_AUDIO_LIMITER_DEVIATION, 0,
-			MAX_LIMITER_DEVIATION, 10, DEFAULT_LIMITER_DEV);
+							  V4L2_CID_AUDIO_LIMITER_DEVIATION, 0,
+							  MAX_LIMITER_DEVIATION, 10, DEFAULT_LIMITER_DEV);
 
 	sdev->compression_enabled = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_AUDIO_COMPRESSION_ENABLED, 0, 1, 1, 1);
+								V4L2_CID_AUDIO_COMPRESSION_ENABLED, 0, 1, 1, 1);
 	sdev->compression_gain = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_AUDIO_COMPRESSION_GAIN, 0, MAX_ACOMP_GAIN, 1,
-			DEFAULT_ACOMP_GAIN);
+							 V4L2_CID_AUDIO_COMPRESSION_GAIN, 0, MAX_ACOMP_GAIN, 1,
+							 DEFAULT_ACOMP_GAIN);
 	sdev->compression_threshold = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_AUDIO_COMPRESSION_THRESHOLD,
-			MIN_ACOMP_THRESHOLD, MAX_ACOMP_THRESHOLD, 1,
-			DEFAULT_ACOMP_THRESHOLD);
+								  V4L2_CID_AUDIO_COMPRESSION_THRESHOLD,
+								  MIN_ACOMP_THRESHOLD, MAX_ACOMP_THRESHOLD, 1,
+								  DEFAULT_ACOMP_THRESHOLD);
 	sdev->compression_attack_time = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME, 0,
-			MAX_ACOMP_ATTACK_TIME, 500, DEFAULT_ACOMP_ATIME);
+									V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME, 0,
+									MAX_ACOMP_ATTACK_TIME, 500, DEFAULT_ACOMP_ATIME);
 	sdev->compression_release_time = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME, 100000,
-			MAX_ACOMP_RELEASE_TIME, 100000, DEFAULT_ACOMP_RTIME);
+									 V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME, 100000,
+									 MAX_ACOMP_RELEASE_TIME, 100000, DEFAULT_ACOMP_RTIME);
 
 	sdev->pilot_tone_enabled = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_PILOT_TONE_ENABLED, 0, 1, 1, 1);
+							   V4L2_CID_PILOT_TONE_ENABLED, 0, 1, 1, 1);
 	sdev->pilot_tone_deviation = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_PILOT_TONE_DEVIATION, 0, MAX_PILOT_DEVIATION,
-			10, DEFAULT_PILOT_DEVIATION);
+								 V4L2_CID_PILOT_TONE_DEVIATION, 0, MAX_PILOT_DEVIATION,
+								 10, DEFAULT_PILOT_DEVIATION);
 	sdev->pilot_tone_freq = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_PILOT_TONE_FREQUENCY, 0, MAX_PILOT_FREQUENCY,
-			1, DEFAULT_PILOT_FREQUENCY);
+							V4L2_CID_PILOT_TONE_FREQUENCY, 0, MAX_PILOT_FREQUENCY,
+							1, DEFAULT_PILOT_FREQUENCY);
 
 	sdev->tune_preemphasis = v4l2_ctrl_new_std_menu(hdl, &si4713_ctrl_ops,
-			V4L2_CID_TUNE_PREEMPHASIS,
-			V4L2_PREEMPHASIS_75_uS, 0, V4L2_PREEMPHASIS_50_uS);
+							 V4L2_CID_TUNE_PREEMPHASIS,
+							 V4L2_PREEMPHASIS_75_uS, 0, V4L2_PREEMPHASIS_50_uS);
 	sdev->tune_pwr_level = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_TUNE_POWER_LEVEL, 0, SI4713_MAX_POWER,
-			1, DEFAULT_POWER_LEVEL);
+						   V4L2_CID_TUNE_POWER_LEVEL, 0, SI4713_MAX_POWER,
+						   1, DEFAULT_POWER_LEVEL);
 	sdev->tune_ant_cap = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-			V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, SI4713_MAX_ANTCAP,
-			1, 0);
+										   V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, SI4713_MAX_ANTCAP,
+										   1, 0);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		rval = hdl->error;
 		goto free_ctrls;
 	}
+
 	v4l2_ctrl_cluster(29, &sdev->mute);
 	sdev->sd.ctrl_handler = hdl;
 
-	if (client->irq) {
+	if (client->irq)
+	{
 		rval = devm_request_irq(&client->dev, client->irq,
-			si4713_handler, IRQF_TRIGGER_FALLING,
-			client->name, sdev);
-		if (rval < 0) {
+								si4713_handler, IRQF_TRIGGER_FALLING,
+								client->name, sdev);
+
+		if (rval < 0)
+		{
 			v4l2_err(&sdev->sd, "Could not request IRQ\n");
 			goto free_ctrls;
 		}
+
 		v4l2_dbg(1, debug, &sdev->sd, "IRQ requested.\n");
-	} else {
+	}
+	else
+	{
 		v4l2_warn(&sdev->sd, "IRQ not configured. Using timeouts.\n");
 	}
 
 	rval = si4713_initialize(sdev);
-	if (rval < 0) {
+
+	if (rval < 0)
+	{
 		v4l2_err(&sdev->sd, "Failed to probe device information.\n");
 		goto free_ctrls;
 	}
 
 	if (!np && (!pdata || !pdata->is_platform_device))
+	{
 		return 0;
+	}
 
 	si4713_pdev = platform_device_alloc("radio-si4713", -1);
-	if (!si4713_pdev) {
+
+	if (!si4713_pdev)
+	{
 		rval = -ENOMEM;
 		goto put_main_pdev;
 	}
 
 	si4713_pdev_pdata.subdev = client;
 	rval = platform_device_add_data(si4713_pdev, &si4713_pdev_pdata,
-					sizeof(si4713_pdev_pdata));
+									sizeof(si4713_pdev_pdata));
+
 	if (rval)
+	{
 		goto put_main_pdev;
+	}
 
 	rval = platform_device_add(si4713_pdev);
+
 	if (rval)
+	{
 		goto put_main_pdev;
+	}
 
 	sdev->pd = si4713_pdev;
 
@@ -1646,7 +1984,9 @@ static int si4713_remove(struct i2c_client *client)
 	platform_device_unregister(sdev->pd);
 
 	if (sdev->power_state)
+	{
 		si4713_set_power_state(sdev, POWER_DOWN);
+	}
 
 	v4l2_device_unregister_subdev(sd);
 	v4l2_ctrl_handler_free(sd->ctrl_handler);
@@ -1655,13 +1995,15 @@ static int si4713_remove(struct i2c_client *client)
 }
 
 /* si4713_i2c_driver - i2c driver interface */
-static const struct i2c_device_id si4713_id[] = {
+static const struct i2c_device_id si4713_id[] =
+{
 	{ "si4713" , 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, si4713_id);
 
-static struct i2c_driver si4713_i2c_driver = {
+static struct i2c_driver si4713_i2c_driver =
+{
 	.driver		= {
 		.name	= "si4713",
 	},

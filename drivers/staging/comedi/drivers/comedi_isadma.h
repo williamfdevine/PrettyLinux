@@ -36,7 +36,8 @@ struct comedi_device;
  * @size:	transfer size (in bytes)
  * @mode:	DMA_MODE_READ or DMA_MODE_WRITE
  */
-struct comedi_isadma_desc {
+struct comedi_isadma_desc
+{
 	void *virt_addr;
 	dma_addr_t hw_addr;
 	unsigned int chan;
@@ -53,7 +54,8 @@ struct comedi_isadma_desc {
  * @chan:	the first DMA channel requested
  * @chan2:	the second DMA channel requested
  */
-struct comedi_isadma {
+struct comedi_isadma
+{
 	struct comedi_isadma_desc *desc;
 	int n_desc;
 	int cur_dma;
@@ -66,14 +68,14 @@ struct comedi_isadma {
 void comedi_isadma_program(struct comedi_isadma_desc *);
 unsigned int comedi_isadma_disable(unsigned int dma_chan);
 unsigned int comedi_isadma_disable_on_sample(unsigned int dma_chan,
-					     unsigned int size);
+		unsigned int size);
 unsigned int comedi_isadma_poll(struct comedi_isadma *);
 void comedi_isadma_set_mode(struct comedi_isadma_desc *, char dma_dir);
 
 struct comedi_isadma *comedi_isadma_alloc(struct comedi_device *,
-					  int n_desc, unsigned int dma_chan1,
-					  unsigned int dma_chan2,
-					  unsigned int maxsize, char dma_dir);
+		int n_desc, unsigned int dma_chan1,
+		unsigned int dma_chan2,
+		unsigned int maxsize, char dma_dir);
 void comedi_isadma_free(struct comedi_isadma *);
 
 #else	/* !IS_ENABLED(CONFIG_ISA_DMA_API) */
@@ -99,14 +101,14 @@ static inline unsigned int comedi_isadma_poll(struct comedi_isadma *dma)
 }
 
 static inline void comedi_isadma_set_mode(struct comedi_isadma_desc *desc,
-					  char dma_dir)
+		char dma_dir)
 {
 }
 
 static inline struct comedi_isadma *
 comedi_isadma_alloc(struct comedi_device *dev, int n_desc,
-		    unsigned int dma_chan1, unsigned int dma_chan2,
-		    unsigned int maxsize, char dma_dir)
+					unsigned int dma_chan1, unsigned int dma_chan2,
+					unsigned int maxsize, char dma_dir)
 {
 	return NULL;
 }

@@ -9,7 +9,8 @@
 #ifndef __GBPHY_H
 #define __GBPHY_H
 
-struct gbphy_device {
+struct gbphy_device
+{
 	u32 id;
 	struct greybus_descriptor_cport *cport_desc;
 	struct gb_bundle *bundle;
@@ -28,17 +29,19 @@ static inline void gb_gbphy_set_data(struct gbphy_device *gdev, void *data)
 	dev_set_drvdata(&gdev->dev, data);
 }
 
-struct gbphy_device_id {
+struct gbphy_device_id
+{
 	__u8 protocol_id;
 };
 
 #define GBPHY_PROTOCOL(p)		\
 	.protocol_id	= (p),
 
-struct gbphy_driver {
+struct gbphy_driver
+{
 	const char *name;
 	int (*probe)(struct gbphy_device *,
-		     const struct gbphy_device_id *id);
+				 const struct gbphy_device_id *id);
 	void (*remove)(struct gbphy_device *);
 	const struct gbphy_device_id *id_table;
 
@@ -47,7 +50,7 @@ struct gbphy_driver {
 #define to_gbphy_driver(d) container_of(d, struct gbphy_driver, driver)
 
 int gb_gbphy_register_driver(struct gbphy_driver *driver,
-			     struct module *owner, const char *mod_name);
+							 struct module *owner, const char *mod_name);
 void gb_gbphy_deregister_driver(struct gbphy_driver *driver);
 
 #define gb_gbphy_register(driver) \
@@ -73,7 +76,9 @@ static inline int gbphy_runtime_get_sync(struct gbphy_device *gbphy_dev)
 	int ret;
 
 	ret = pm_runtime_get_sync(dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "pm_runtime_get_sync failed: %d\n", ret);
 		pm_runtime_put_noidle(dev);
 		return ret;

@@ -25,14 +25,16 @@
 
 #define MAX_PORTS	3
 
-struct serial_card_type {
+struct serial_card_type
+{
 	unsigned int	num_ports;
 	unsigned int	uartclk;
 	unsigned int	type;
 	unsigned int	offset[MAX_PORTS];
 };
 
-struct serial_card_info {
+struct serial_card_info
+{
 	unsigned int	num_ports;
 	int		ports[MAX_PORTS];
 	void __iomem *vaddr;
@@ -48,14 +50,19 @@ serial_card_probe(struct expansion_card *ec, const struct ecard_id *id)
 	unsigned int i;
 
 	info = kzalloc(sizeof(struct serial_card_info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	info->num_ports = type->num_ports;
 
 	bus_addr = ecard_resource_start(ec, type->type);
 	info->vaddr = ecardm_iomap(ec, type->type, 0, 0);
-	if (!info->vaddr) {
+
+	if (!info->vaddr)
+	{
 		kfree(info);
 		return -ENOMEM;
 	}
@@ -70,7 +77,8 @@ serial_card_probe(struct expansion_card *ec, const struct ecard_id *id)
 	uart.port.regshift	= 2;
 	uart.port.dev	= &ec->dev;
 
-	for (i = 0; i < info->num_ports; i++) {
+	for (i = 0; i < info->num_ports; i++)
+	{
 		uart.port.membase = info->vaddr + type->offset[i];
 		uart.port.mapbase = bus_addr + type->offset[i];
 
@@ -89,32 +97,38 @@ static void serial_card_remove(struct expansion_card *ec)
 
 	for (i = 0; i < info->num_ports; i++)
 		if (info->ports[i] > 0)
+		{
 			serial8250_unregister_port(info->ports[i]);
+		}
 
 	kfree(info);
 }
 
-static struct serial_card_type atomwide_type = {
+static struct serial_card_type atomwide_type =
+{
 	.num_ports	= 3,
 	.uartclk	= 7372800,
 	.type		= ECARD_RES_IOCSLOW,
 	.offset		= { 0x2800, 0x2400, 0x2000 },
 };
 
-static struct serial_card_type serport_type = {
+static struct serial_card_type serport_type =
+{
 	.num_ports	= 2,
 	.uartclk	= 3686400,
 	.type		= ECARD_RES_IOCSLOW,
 	.offset		= { 0x2000, 0x2020 },
 };
 
-static const struct ecard_id serial_cids[] = {
+static const struct ecard_id serial_cids[] =
+{
 	{ MANU_ATOMWIDE,	PROD_ATOMWIDE_3PSERIAL,	&atomwide_type	},
 	{ MANU_SERPORT,		PROD_SERPORT_DSPORT,	&serport_type	},
 	{ 0xffff, 0xffff }
 };
 
-static struct ecard_driver serial_card_driver = {
+static struct ecard_driver serial_card_driver =
+{
 	.probe		= serial_card_probe,
 	.remove		= serial_card_remove,
 	.id_table	= serial_cids,

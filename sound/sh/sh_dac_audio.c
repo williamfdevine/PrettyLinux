@@ -51,7 +51,8 @@ module_param(id, charp, 0444);
 MODULE_PARM_DESC(id, "ID string for SuperH DAC audio.");
 
 /* main struct */
-struct snd_sh_dac {
+struct snd_sh_dac
+{
 	struct snd_card *card;
 	struct snd_pcm_substream *substream;
 	struct hrtimer hrtimer;
@@ -69,7 +70,7 @@ struct snd_sh_dac {
 static void dac_audio_start_timer(struct snd_sh_dac *chip)
 {
 	hrtimer_start(&chip->hrtimer, chip->wakeups_per_second,
-		      HRTIMER_MODE_REL);
+				  HRTIMER_MODE_REL);
 }
 
 static void dac_audio_stop_timer(struct snd_sh_dac *chip)
@@ -93,20 +94,21 @@ static void dac_audio_set_rate(struct snd_sh_dac *chip)
 
 /* PCM INTERFACE */
 
-static struct snd_pcm_hardware snd_sh_dac_pcm_hw = {
+static struct snd_pcm_hardware snd_sh_dac_pcm_hw =
+{
 	.info			= (SNDRV_PCM_INFO_MMAP |
-					SNDRV_PCM_INFO_MMAP_VALID |
-					SNDRV_PCM_INFO_INTERLEAVED |
-					SNDRV_PCM_INFO_HALF_DUPLEX),
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_INTERLEAVED |
+	SNDRV_PCM_INFO_HALF_DUPLEX),
 	.formats		= SNDRV_PCM_FMTBIT_U8,
 	.rates			= SNDRV_PCM_RATE_8000,
 	.rate_min		= 8000,
 	.rate_max		= 8000,
 	.channels_min		= 1,
 	.channels_max		= 1,
-	.buffer_bytes_max	= (48*1024),
+	.buffer_bytes_max	= (48 * 1024),
 	.period_bytes_min	= 1,
-	.period_bytes_max	= (48*1024),
+	.period_bytes_max	= (48 * 1024),
 	.periods_min		= 1,
 	.periods_max		= 1024,
 };
@@ -141,10 +143,10 @@ static int snd_sh_dac_pcm_close(struct snd_pcm_substream *substream)
 }
 
 static int snd_sh_dac_pcm_hw_params(struct snd_pcm_substream *substream,
-				struct snd_pcm_hw_params *hw_params)
+									struct snd_pcm_hw_params *hw_params)
 {
 	return snd_pcm_lib_malloc_pages(substream,
-			params_buffer_bytes(hw_params));
+									params_buffer_bytes(hw_params));
 }
 
 static int snd_sh_dac_pcm_hw_free(struct snd_pcm_substream *substream)
@@ -167,25 +169,28 @@ static int snd_sh_dac_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 {
 	struct snd_sh_dac *chip = snd_pcm_substream_chip(substream);
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-		dac_audio_start_timer(chip);
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-		chip->buffer_begin = chip->buffer_end = chip->data_buffer;
-		chip->processed = 0;
-		chip->empty = 1;
-		dac_audio_stop_timer(chip);
-		break;
-	default:
-		 return -EINVAL;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+			dac_audio_start_timer(chip);
+			break;
+
+		case SNDRV_PCM_TRIGGER_STOP:
+			chip->buffer_begin = chip->buffer_end = chip->data_buffer;
+			chip->processed = 0;
+			chip->empty = 1;
+			dac_audio_stop_timer(chip);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int snd_sh_dac_pcm_copy(struct snd_pcm_substream *substream, int channel,
-	snd_pcm_uframes_t pos, void __user *src, snd_pcm_uframes_t count)
+							   snd_pcm_uframes_t pos, void __user *src, snd_pcm_uframes_t count)
 {
 	/* channel is not used (interleaved data) */
 	struct snd_sh_dac *chip = snd_pcm_substream_chip(substream);
@@ -194,15 +199,20 @@ static int snd_sh_dac_pcm_copy(struct snd_pcm_substream *substream, int channel,
 	ssize_t b_pos = frames_to_bytes(runtime , pos);
 
 	if (count < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (!count)
+	{
 		return 0;
+	}
 
 	memcpy_toio(chip->data_buffer + b_pos, src, b_count);
 	chip->buffer_end = chip->data_buffer + b_pos + b_count;
 
-	if (chip->empty) {
+	if (chip->empty)
+	{
 		chip->empty = 0;
 		dac_audio_start_timer(chip);
 	}
@@ -211,8 +221,8 @@ static int snd_sh_dac_pcm_copy(struct snd_pcm_substream *substream, int channel,
 }
 
 static int snd_sh_dac_pcm_silence(struct snd_pcm_substream *substream,
-				  int channel, snd_pcm_uframes_t pos,
-				  snd_pcm_uframes_t count)
+								  int channel, snd_pcm_uframes_t pos,
+								  snd_pcm_uframes_t count)
 {
 	/* channel is not used (interleaved data) */
 	struct snd_sh_dac *chip = snd_pcm_substream_chip(substream);
@@ -221,15 +231,20 @@ static int snd_sh_dac_pcm_silence(struct snd_pcm_substream *substream,
 	ssize_t b_pos = frames_to_bytes(runtime , pos);
 
 	if (count < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (!count)
+	{
 		return 0;
+	}
 
 	memset_io(chip->data_buffer + b_pos, 0, b_count);
 	chip->buffer_end = chip->data_buffer + b_pos + b_count;
 
-	if (chip->empty) {
+	if (chip->empty)
+	{
 		chip->empty = 0;
 		dac_audio_start_timer(chip);
 	}
@@ -247,7 +262,8 @@ snd_pcm_uframes_t snd_sh_dac_pcm_pointer(struct snd_pcm_substream *substream)
 }
 
 /* pcm ops */
-static struct snd_pcm_ops snd_sh_dac_pcm_ops = {
+static struct snd_pcm_ops snd_sh_dac_pcm_ops =
+{
 	.open		= snd_sh_dac_pcm_open,
 	.close		= snd_sh_dac_pcm_close,
 	.ioctl		= snd_pcm_lib_ioctl,
@@ -268,8 +284,11 @@ static int snd_sh_dac_pcm(struct snd_sh_dac *chip, int device)
 
 	/* device should be always 0 for us */
 	err = snd_pcm_new(chip->card, "SH_DAC PCM", device, 1, 0, &pcm);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	pcm->private_data = chip;
 	strcpy(pcm->name, "SH_DAC PCM");
@@ -277,9 +296,9 @@ static int snd_sh_dac_pcm(struct snd_sh_dac *chip, int device)
 
 	/* buffer size=48K */
 	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_CONTINUOUS,
-					  snd_dma_continuous_data(GFP_KERNEL),
-							48 * 1024,
-							48 * 1024);
+										  snd_dma_continuous_data(GFP_KERNEL),
+										  48 * 1024,
+										  48 * 1024);
 
 	return 0;
 }
@@ -313,53 +332,64 @@ static int snd_sh_dac_dev_free(struct snd_device *device)
 static enum hrtimer_restart sh_dac_audio_timer(struct hrtimer *handle)
 {
 	struct snd_sh_dac *chip = container_of(handle, struct snd_sh_dac,
-					       hrtimer);
+										   hrtimer);
 	struct snd_pcm_runtime *runtime = chip->substream->runtime;
 	ssize_t b_ps = frames_to_bytes(runtime, runtime->period_size);
 
-	if (!chip->empty) {
+	if (!chip->empty)
+	{
 		sh_dac_output(*chip->buffer_begin, chip->pdata->channel);
 		chip->buffer_begin++;
 
 		chip->processed++;
-		if (chip->processed >= b_ps) {
+
+		if (chip->processed >= b_ps)
+		{
 			chip->processed -= b_ps;
 			snd_pcm_period_elapsed(chip->substream);
 		}
 
 		if (chip->buffer_begin == (chip->data_buffer +
-					   chip->buffer_size - 1))
+								   chip->buffer_size - 1))
+		{
 			chip->buffer_begin = chip->data_buffer;
+		}
 
 		if (chip->buffer_begin == chip->buffer_end)
+		{
 			chip->empty = 1;
+		}
 
 	}
 
 	if (!chip->empty)
 		hrtimer_start(&chip->hrtimer, chip->wakeups_per_second,
-			      HRTIMER_MODE_REL);
+					  HRTIMER_MODE_REL);
 
 	return HRTIMER_NORESTART;
 }
 
 /* create  --  chip-specific constructor for the cards components */
 static int snd_sh_dac_create(struct snd_card *card,
-			     struct platform_device *devptr,
-			     struct snd_sh_dac **rchip)
+							 struct platform_device *devptr,
+							 struct snd_sh_dac **rchip)
 {
 	struct snd_sh_dac *chip;
 	int err;
 
-	static struct snd_device_ops ops = {
-		   .dev_free = snd_sh_dac_dev_free,
+	static struct snd_device_ops ops =
+	{
+		.dev_free = snd_sh_dac_dev_free,
 	};
 
 	*rchip = NULL;
 
 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
+
 	if (chip == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	chip->card = card;
 
@@ -373,13 +403,17 @@ static int snd_sh_dac_create(struct snd_card *card,
 	chip->pdata = devptr->dev.platform_data;
 
 	chip->data_buffer = kmalloc(chip->pdata->buffer_size, GFP_KERNEL);
-	if (chip->data_buffer == NULL) {
+
+	if (chip->data_buffer == NULL)
+	{
 		kfree(chip);
 		return -ENOMEM;
 	}
 
 	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		snd_sh_dac_free(chip);
 		return err;
 	}
@@ -397,26 +431,37 @@ static int snd_sh_dac_probe(struct platform_device *devptr)
 	int err;
 
 	err = snd_card_new(&devptr->dev, index, id, THIS_MODULE, 0, &card);
-	if (err < 0) {
-			snd_printk(KERN_ERR "cannot allocate the card\n");
-			return err;
+
+	if (err < 0)
+	{
+		snd_printk(KERN_ERR "cannot allocate the card\n");
+		return err;
 	}
 
 	err = snd_sh_dac_create(card, devptr, &chip);
+
 	if (err < 0)
+	{
 		goto probe_error;
+	}
 
 	err = snd_sh_dac_pcm(chip, 0);
+
 	if (err < 0)
+	{
 		goto probe_error;
+	}
 
 	strcpy(card->driver, "snd_sh_dac");
 	strcpy(card->shortname, "SuperH DAC audio driver");
 	printk(KERN_INFO "%s %s", card->longname, card->shortname);
 
 	err = snd_card_register(card);
+
 	if (err < 0)
+	{
 		goto probe_error;
+	}
 
 	snd_printk("ALSA driver for SuperH DAC audio");
 
@@ -431,7 +476,8 @@ probe_error:
 /*
  * "driver" definition
  */
-static struct platform_driver sh_dac_driver = {
+static struct platform_driver sh_dac_driver =
+{
 	.probe	= snd_sh_dac_probe,
 	.remove = snd_sh_dac_remove,
 	.driver = {

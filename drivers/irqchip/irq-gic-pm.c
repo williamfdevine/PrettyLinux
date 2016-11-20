@@ -23,7 +23,8 @@
 #include <linux/pm_runtime.h>
 #include <linux/slab.h>
 
-struct gic_clk_data {
+struct gic_clk_data
+{
 	unsigned int num_clocks;
 	const char *const *clocks;
 };
@@ -34,8 +35,11 @@ static int gic_runtime_resume(struct device *dev)
 	int ret;
 
 	ret = pm_clk_resume(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * On the very first resume, the pointer to the driver data
@@ -44,7 +48,9 @@ static int gic_runtime_resume(struct device *dev)
 	 * the pointer is not valid just return.
 	 */
 	if (!gic)
+	{
 		return 0;
+	}
 
 	gic_dist_restore(gic);
 	gic_cpu_restore(gic);
@@ -68,17 +74,25 @@ static int gic_get_clocks(struct device *dev, const struct gic_clk_data *data)
 	int ret;
 
 	if (!dev || !data)
+	{
 		return -EINVAL;
+	}
 
 	ret = pm_clk_create(dev);
-	if (ret)
-		return ret;
 
-	for (i = 0; i < data->num_clocks; i++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 0; i < data->num_clocks; i++)
+	{
 		ret = of_pm_clk_add_clk(dev, data->clocks[i]);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "failed to add clock %s\n",
-				data->clocks[i]);
+					data->clocks[i]);
 			pm_clk_destroy(dev);
 			return ret;
 		}
@@ -95,30 +109,43 @@ static int gic_probe(struct platform_device *pdev)
 	int ret, irq;
 
 	data = of_device_get_match_data(&pdev->dev);
-	if (!data) {
+
+	if (!data)
+	{
 		dev_err(&pdev->dev, "no device match found\n");
 		return -ENODEV;
 	}
 
 	irq = irq_of_parse_and_map(dev->of_node, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		dev_err(dev, "no parent interrupt found!\n");
 		return -EINVAL;
 	}
 
 	ret = gic_get_clocks(dev, data);
+
 	if (ret)
+	{
 		goto irq_dispose;
+	}
 
 	pm_runtime_enable(dev);
 
 	ret = pm_runtime_get_sync(dev);
+
 	if (ret < 0)
+	{
 		goto rpm_disable;
+	}
 
 	ret = gic_of_init_child(dev, &gic, irq);
+
 	if (ret)
+	{
 		goto rpm_put;
+	}
 
 	platform_set_drvdata(pdev, gic);
 
@@ -139,27 +166,32 @@ irq_dispose:
 	return ret;
 }
 
-static const struct dev_pm_ops gic_pm_ops = {
+static const struct dev_pm_ops gic_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(gic_runtime_suspend,
-			   gic_runtime_resume, NULL)
+	gic_runtime_resume, NULL)
 };
 
-static const char * const gic400_clocks[] = {
+static const char *const gic400_clocks[] =
+{
 	"clk",
 };
 
-static const struct gic_clk_data gic400_data = {
+static const struct gic_clk_data gic400_data =
+{
 	.num_clocks = ARRAY_SIZE(gic400_clocks),
 	.clocks = gic400_clocks,
 };
 
-static const struct of_device_id gic_match[] = {
+static const struct of_device_id gic_match[] =
+{
 	{ .compatible = "nvidia,tegra210-agic",	.data = &gic400_data },
 	{},
 };
 MODULE_DEVICE_TABLE(of, gic_match);
 
-static struct platform_driver gic_driver = {
+static struct platform_driver gic_driver =
+{
 	.probe		= gic_probe,
 	.driver		= {
 		.name	= "gic",

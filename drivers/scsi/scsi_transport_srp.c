@@ -34,7 +34,8 @@
 #include <scsi/scsi_transport_srp.h>
 #include "scsi_priv.h"
 
-struct srp_host_attrs {
+struct srp_host_attrs
+{
 	atomic_t next_port_id;
 };
 #define to_srp_host_attrs(host)	((struct srp_host_attrs *)(host)->shost_data)
@@ -42,7 +43,8 @@ struct srp_host_attrs {
 #define SRP_HOST_ATTRS 0
 #define SRP_RPORT_ATTRS 8
 
-struct srp_internal {
+struct srp_internal
+{
 	struct scsi_transport_template t;
 	struct srp_function_template *f;
 
@@ -82,25 +84,43 @@ static inline struct srp_rport *shost_to_rport(struct Scsi_Host *shost)
 int srp_tmo_valid(int reconnect_delay, int fast_io_fail_tmo, int dev_loss_tmo)
 {
 	if (reconnect_delay < 0 && fast_io_fail_tmo < 0 && dev_loss_tmo < 0)
+	{
 		return -EINVAL;
+	}
+
 	if (reconnect_delay == 0)
+	{
 		return -EINVAL;
+	}
+
 	if (fast_io_fail_tmo > SCSI_DEVICE_BLOCK_MAX_TIMEOUT)
+	{
 		return -EINVAL;
+	}
+
 	if (fast_io_fail_tmo < 0 &&
-	    dev_loss_tmo > SCSI_DEVICE_BLOCK_MAX_TIMEOUT)
+		dev_loss_tmo > SCSI_DEVICE_BLOCK_MAX_TIMEOUT)
+	{
 		return -EINVAL;
+	}
+
 	if (dev_loss_tmo >= LONG_MAX / HZ)
+	{
 		return -EINVAL;
+	}
+
 	if (fast_io_fail_tmo >= 0 && dev_loss_tmo >= 0 &&
-	    fast_io_fail_tmo >= dev_loss_tmo)
+		fast_io_fail_tmo >= dev_loss_tmo)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(srp_tmo_valid);
 
 static int srp_host_setup(struct transport_container *tc, struct device *dev,
-			  struct device *cdev)
+						  struct device *cdev)
 {
 	struct Scsi_Host *shost = dev_to_shost(dev);
 	struct srp_host_attrs *srp_host = to_srp_host_attrs(shost);
@@ -110,10 +130,10 @@ static int srp_host_setup(struct transport_container *tc, struct device *dev,
 }
 
 static DECLARE_TRANSPORT_CLASS(srp_host_class, "srp_host", srp_host_setup,
-			       NULL, NULL);
+							   NULL, NULL);
 
 static DECLARE_TRANSPORT_CLASS(srp_rport_class, "srp_remote_ports",
-			       NULL, NULL, NULL);
+							   NULL, NULL, NULL);
 
 #define SRP_PID(p) \
 	(p)->port_id[0], (p)->port_id[1], (p)->port_id[2], (p)->port_id[3], \
@@ -126,7 +146,7 @@ static DECLARE_TRANSPORT_CLASS(srp_rport_class, "srp_remote_ports",
 
 static ssize_t
 show_srp_rport_id(struct device *dev, struct device_attribute *attr,
-		  char *buf)
+				  char *buf)
 {
 	struct srp_rport *rport = transport_class_to_srp_rport(dev);
 	return sprintf(buf, SRP_PID_FMT "\n", SRP_PID(rport));
@@ -134,44 +154,51 @@ show_srp_rport_id(struct device *dev, struct device_attribute *attr,
 
 static DEVICE_ATTR(port_id, S_IRUGO, show_srp_rport_id, NULL);
 
-static const struct {
+static const struct
+{
 	u32 value;
 	char *name;
-} srp_rport_role_names[] = {
+} srp_rport_role_names[] =
+{
 	{SRP_RPORT_ROLE_INITIATOR, "SRP Initiator"},
 	{SRP_RPORT_ROLE_TARGET, "SRP Target"},
 };
 
 static ssize_t
 show_srp_rport_roles(struct device *dev, struct device_attribute *attr,
-		     char *buf)
+					 char *buf)
 {
 	struct srp_rport *rport = transport_class_to_srp_rport(dev);
 	int i;
 	char *name = NULL;
 
 	for (i = 0; i < ARRAY_SIZE(srp_rport_role_names); i++)
-		if (srp_rport_role_names[i].value == rport->roles) {
+		if (srp_rport_role_names[i].value == rport->roles)
+		{
 			name = srp_rport_role_names[i].name;
 			break;
 		}
+
 	return sprintf(buf, "%s\n", name ? : "unknown");
 }
 
 static DEVICE_ATTR(roles, S_IRUGO, show_srp_rport_roles, NULL);
 
 static ssize_t store_srp_rport_delete(struct device *dev,
-				      struct device_attribute *attr,
-				      const char *buf, size_t count)
+									  struct device_attribute *attr,
+									  const char *buf, size_t count)
 {
 	struct srp_rport *rport = transport_class_to_srp_rport(dev);
 	struct Scsi_Host *shost = dev_to_shost(dev);
 	struct srp_internal *i = to_srp_internal(shost->transportt);
 
-	if (i->f->rport_delete) {
+	if (i->f->rport_delete)
+	{
 		i->f->rport_delete(rport);
 		return count;
-	} else {
+	}
+	else
+	{
 		return -ENOSYS;
 	}
 }
@@ -179,10 +206,11 @@ static ssize_t store_srp_rport_delete(struct device *dev,
 static DEVICE_ATTR(delete, S_IWUSR, NULL, store_srp_rport_delete);
 
 static ssize_t show_srp_rport_state(struct device *dev,
-				    struct device_attribute *attr,
-				    char *buf)
+									struct device_attribute *attr,
+									char *buf)
 {
-	static const char *const state_name[] = {
+	static const char *const state_name[] =
+	{
 		[SRP_RPORT_RUNNING]	= "running",
 		[SRP_RPORT_BLOCKED]	= "blocked",
 		[SRP_RPORT_FAIL_FAST]	= "fail-fast",
@@ -192,8 +220,8 @@ static ssize_t show_srp_rport_state(struct device *dev,
 	enum srp_rport_state state = rport->state;
 
 	return sprintf(buf, "%s\n",
-		       (unsigned)state < ARRAY_SIZE(state_name) ?
-		       state_name[state] : "???");
+				   (unsigned)state < ARRAY_SIZE(state_name) ?
+				   state_name[state] : "???");
 }
 
 static DEVICE_ATTR(state, S_IRUGO, show_srp_rport_state, NULL);
@@ -208,16 +236,20 @@ int srp_parse_tmo(int *tmo, const char *buf)
 	int res = 0;
 
 	if (strncmp(buf, "off", 3) != 0)
+	{
 		res = kstrtoint(buf, 0, tmo);
+	}
 	else
+	{
 		*tmo = -1;
+	}
 
 	return res;
 }
 EXPORT_SYMBOL(srp_parse_tmo);
 
 static ssize_t show_reconnect_delay(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	struct srp_rport *rport = transport_class_to_srp_rport(dev);
 
@@ -225,27 +257,38 @@ static ssize_t show_reconnect_delay(struct device *dev,
 }
 
 static ssize_t store_reconnect_delay(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, const size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, const size_t count)
 {
 	struct srp_rport *rport = transport_class_to_srp_rport(dev);
 	int res, delay;
 
 	res = srp_parse_tmo(&delay, buf);
+
 	if (res)
+	{
 		goto out;
+	}
+
 	res = srp_tmo_valid(delay, rport->fast_io_fail_tmo,
-			    rport->dev_loss_tmo);
+						rport->dev_loss_tmo);
+
 	if (res)
+	{
 		goto out;
+	}
 
 	if (rport->reconnect_delay <= 0 && delay > 0 &&
-	    rport->state != SRP_RPORT_RUNNING) {
+		rport->state != SRP_RPORT_RUNNING)
+	{
 		queue_delayed_work(system_long_wq, &rport->reconnect_work,
-				   delay * HZ);
-	} else if (delay <= 0) {
+						   delay * HZ);
+	}
+	else if (delay <= 0)
+	{
 		cancel_delayed_work(&rport->reconnect_work);
 	}
+
 	rport->reconnect_delay = delay;
 	res = count;
 
@@ -254,10 +297,10 @@ out:
 }
 
 static DEVICE_ATTR(reconnect_delay, S_IRUGO | S_IWUSR, show_reconnect_delay,
-		   store_reconnect_delay);
+				   store_reconnect_delay);
 
 static ssize_t show_failed_reconnects(struct device *dev,
-				      struct device_attribute *attr, char *buf)
+									  struct device_attribute *attr, char *buf)
 {
 	struct srp_rport *rport = transport_class_to_srp_rport(dev);
 
@@ -267,8 +310,8 @@ static ssize_t show_failed_reconnects(struct device *dev,
 static DEVICE_ATTR(failed_reconnects, S_IRUGO, show_failed_reconnects, NULL);
 
 static ssize_t show_srp_rport_fast_io_fail_tmo(struct device *dev,
-					       struct device_attribute *attr,
-					       char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	struct srp_rport *rport = transport_class_to_srp_rport(dev);
 
@@ -276,20 +319,28 @@ static ssize_t show_srp_rport_fast_io_fail_tmo(struct device *dev,
 }
 
 static ssize_t store_srp_rport_fast_io_fail_tmo(struct device *dev,
-						struct device_attribute *attr,
-						const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct srp_rport *rport = transport_class_to_srp_rport(dev);
 	int res;
 	int fast_io_fail_tmo;
 
 	res = srp_parse_tmo(&fast_io_fail_tmo, buf);
+
 	if (res)
+	{
 		goto out;
+	}
+
 	res = srp_tmo_valid(rport->reconnect_delay, fast_io_fail_tmo,
-			    rport->dev_loss_tmo);
+						rport->dev_loss_tmo);
+
 	if (res)
+	{
 		goto out;
+	}
+
 	rport->fast_io_fail_tmo = fast_io_fail_tmo;
 	res = count;
 
@@ -298,12 +349,12 @@ out:
 }
 
 static DEVICE_ATTR(fast_io_fail_tmo, S_IRUGO | S_IWUSR,
-		   show_srp_rport_fast_io_fail_tmo,
-		   store_srp_rport_fast_io_fail_tmo);
+				   show_srp_rport_fast_io_fail_tmo,
+				   store_srp_rport_fast_io_fail_tmo);
 
 static ssize_t show_srp_rport_dev_loss_tmo(struct device *dev,
-					   struct device_attribute *attr,
-					   char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	struct srp_rport *rport = transport_class_to_srp_rport(dev);
 
@@ -311,20 +362,28 @@ static ssize_t show_srp_rport_dev_loss_tmo(struct device *dev,
 }
 
 static ssize_t store_srp_rport_dev_loss_tmo(struct device *dev,
-					    struct device_attribute *attr,
-					    const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct srp_rport *rport = transport_class_to_srp_rport(dev);
 	int res;
 	int dev_loss_tmo;
 
 	res = srp_parse_tmo(&dev_loss_tmo, buf);
+
 	if (res)
+	{
 		goto out;
+	}
+
 	res = srp_tmo_valid(rport->reconnect_delay, rport->fast_io_fail_tmo,
-			    dev_loss_tmo);
+						dev_loss_tmo);
+
 	if (res)
+	{
 		goto out;
+	}
+
 	rport->dev_loss_tmo = dev_loss_tmo;
 	res = count;
 
@@ -333,44 +392,58 @@ out:
 }
 
 static DEVICE_ATTR(dev_loss_tmo, S_IRUGO | S_IWUSR,
-		   show_srp_rport_dev_loss_tmo,
-		   store_srp_rport_dev_loss_tmo);
+				   show_srp_rport_dev_loss_tmo,
+				   store_srp_rport_dev_loss_tmo);
 
 static int srp_rport_set_state(struct srp_rport *rport,
-			       enum srp_rport_state new_state)
+							   enum srp_rport_state new_state)
 {
 	enum srp_rport_state old_state = rport->state;
 
 	lockdep_assert_held(&rport->mutex);
 
-	switch (new_state) {
-	case SRP_RPORT_RUNNING:
-		switch (old_state) {
-		case SRP_RPORT_LOST:
-			goto invalid;
-		default:
-			break;
-		}
-		break;
-	case SRP_RPORT_BLOCKED:
-		switch (old_state) {
+	switch (new_state)
+	{
 		case SRP_RPORT_RUNNING:
+			switch (old_state)
+			{
+				case SRP_RPORT_LOST:
+					goto invalid;
+
+				default:
+					break;
+			}
+
 			break;
-		default:
-			goto invalid;
-		}
-		break;
-	case SRP_RPORT_FAIL_FAST:
-		switch (old_state) {
+
+		case SRP_RPORT_BLOCKED:
+			switch (old_state)
+			{
+				case SRP_RPORT_RUNNING:
+					break;
+
+				default:
+					goto invalid;
+			}
+
+			break;
+
+		case SRP_RPORT_FAIL_FAST:
+			switch (old_state)
+			{
+				case SRP_RPORT_LOST:
+					goto invalid;
+
+				default:
+					break;
+			}
+
+			break;
+
 		case SRP_RPORT_LOST:
-			goto invalid;
-		default:
 			break;
-		}
-		break;
-	case SRP_RPORT_LOST:
-		break;
 	}
+
 	rport->state = new_state;
 	return 0;
 
@@ -385,20 +458,23 @@ invalid:
 static void srp_reconnect_work(struct work_struct *work)
 {
 	struct srp_rport *rport = container_of(to_delayed_work(work),
-					struct srp_rport, reconnect_work);
+										   struct srp_rport, reconnect_work);
 	struct Scsi_Host *shost = rport_to_shost(rport);
 	int delay, res;
 
 	res = srp_reconnect_rport(rport);
-	if (res != 0) {
+
+	if (res != 0)
+	{
 		shost_printk(KERN_ERR, shost,
-			     "reconnect attempt %d failed (%d)\n",
-			     ++rport->failed_reconnects, res);
+					 "reconnect attempt %d failed (%d)\n",
+					 ++rport->failed_reconnects, res);
 		delay = rport->reconnect_delay *
-			min(100, max(1, rport->failed_reconnects - 10));
+				min(100, max(1, rport->failed_reconnects - 10));
+
 		if (delay > 0)
 			queue_delayed_work(system_long_wq,
-					   &rport->reconnect_work, delay * HZ);
+							   &rport->reconnect_work, delay * HZ);
 	}
 }
 
@@ -414,7 +490,8 @@ static int scsi_request_fn_active(struct Scsi_Host *shost)
 	struct request_queue *q;
 	int request_fn_active = 0;
 
-	shost_for_each_device(sdev, shost) {
+	shost_for_each_device(sdev, shost)
+	{
 		q = sdev->request_queue;
 
 		spin_lock_irq(q->queue_lock);
@@ -429,7 +506,9 @@ static int scsi_request_fn_active(struct Scsi_Host *shost)
 static void srp_wait_for_queuecommand(struct Scsi_Host *shost)
 {
 	while (scsi_request_fn_active(shost))
+	{
 		msleep(20);
+	}
 }
 
 static void __rport_fail_io_fast(struct srp_rport *rport)
@@ -440,12 +519,17 @@ static void __rport_fail_io_fast(struct srp_rport *rport)
 	lockdep_assert_held(&rport->mutex);
 
 	if (srp_rport_set_state(rport, SRP_RPORT_FAIL_FAST))
+	{
 		return;
+	}
+
 	scsi_target_unblock(rport->dev.parent, SDEV_TRANSPORT_OFFLINE);
 
 	/* Involve the LLD if possible to terminate all I/O on the rport. */
 	i = to_srp_internal(shost->transportt);
-	if (i->f->terminate_rport_io) {
+
+	if (i->f->terminate_rport_io)
+	{
 		srp_wait_for_queuecommand(shost);
 		i->f->terminate_rport_io(rport);
 	}
@@ -458,15 +542,19 @@ static void __rport_fail_io_fast(struct srp_rport *rport)
 static void rport_fast_io_fail_timedout(struct work_struct *work)
 {
 	struct srp_rport *rport = container_of(to_delayed_work(work),
-					struct srp_rport, fast_io_fail_work);
+										   struct srp_rport, fast_io_fail_work);
 	struct Scsi_Host *shost = rport_to_shost(rport);
 
 	pr_info("fast_io_fail_tmo expired for SRP %s / %s.\n",
-		dev_name(&rport->dev), dev_name(&shost->shost_gendev));
+			dev_name(&rport->dev), dev_name(&shost->shost_gendev));
 
 	mutex_lock(&rport->mutex);
+
 	if (rport->state == SRP_RPORT_BLOCKED)
+	{
 		__rport_fail_io_fast(rport);
+	}
+
 	mutex_unlock(&rport->mutex);
 }
 
@@ -477,12 +565,12 @@ static void rport_fast_io_fail_timedout(struct work_struct *work)
 static void rport_dev_loss_timedout(struct work_struct *work)
 {
 	struct srp_rport *rport = container_of(to_delayed_work(work),
-					struct srp_rport, dev_loss_work);
+										   struct srp_rport, dev_loss_work);
 	struct Scsi_Host *shost = rport_to_shost(rport);
 	struct srp_internal *i = to_srp_internal(shost->transportt);
 
 	pr_info("dev_loss_tmo expired for SRP %s / %s.\n",
-		dev_name(&rport->dev), dev_name(&shost->shost_gendev));
+			dev_name(&rport->dev), dev_name(&shost->shost_gendev));
 
 	mutex_lock(&rport->mutex);
 	WARN_ON(srp_rport_set_state(rport, SRP_RPORT_LOST) != 0);
@@ -503,26 +591,33 @@ static void __srp_start_tl_fail_timers(struct srp_rport *rport)
 	fast_io_fail_tmo = rport->fast_io_fail_tmo;
 	dev_loss_tmo = rport->dev_loss_tmo;
 	pr_debug("%s current state: %d\n", dev_name(&shost->shost_gendev),
-		 rport->state);
+			 rport->state);
 
 	if (rport->state == SRP_RPORT_LOST)
+	{
 		return;
+	}
+
 	if (delay > 0)
 		queue_delayed_work(system_long_wq, &rport->reconnect_work,
-				   1UL * delay * HZ);
+						   1UL * delay * HZ);
+
 	if ((fast_io_fail_tmo >= 0 || dev_loss_tmo >= 0) &&
-	    srp_rport_set_state(rport, SRP_RPORT_BLOCKED) == 0) {
+		srp_rport_set_state(rport, SRP_RPORT_BLOCKED) == 0)
+	{
 		pr_debug("%s new state: %d\n", dev_name(&shost->shost_gendev),
-			 rport->state);
+				 rport->state);
 		scsi_target_block(&shost->shost_gendev);
+
 		if (fast_io_fail_tmo >= 0)
 			queue_delayed_work(system_long_wq,
-					   &rport->fast_io_fail_work,
-					   1UL * fast_io_fail_tmo * HZ);
+							   &rport->fast_io_fail_work,
+							   1UL * fast_io_fail_tmo * HZ);
+
 		if (dev_loss_tmo >= 0)
 			queue_delayed_work(system_long_wq,
-					   &rport->dev_loss_work,
-					   1UL * dev_loss_tmo * HZ);
+							   &rport->dev_loss_work,
+							   1UL * dev_loss_tmo * HZ);
 	}
 }
 
@@ -573,14 +668,20 @@ int srp_reconnect_rport(struct srp_rport *rport)
 	pr_debug("SCSI host %s\n", dev_name(&shost->shost_gendev));
 
 	res = mutex_lock_interruptible(&rport->mutex);
+
 	if (res)
+	{
 		goto out;
+	}
+
 	scsi_target_block(&shost->shost_gendev);
 	srp_wait_for_queuecommand(shost);
 	res = rport->state != SRP_RPORT_LOST ? i->f->reconnect(rport) : -ENODEV;
 	pr_debug("%s (state %d): transport.reconnect() returned %d\n",
-		 dev_name(&shost->shost_gendev), rport->state, res);
-	if (res == 0) {
+			 dev_name(&shost->shost_gendev), rport->state, res);
+
+	if (res == 0)
+	{
 		cancel_delayed_work(&rport->fast_io_fail_work);
 		cancel_delayed_work(&rport->dev_loss_work);
 
@@ -594,10 +695,16 @@ int srp_reconnect_rport(struct srp_rport *rport)
 		 */
 		spin_lock_irq(shost->host_lock);
 		__shost_for_each_device(sdev, shost)
-			if (sdev->sdev_state == SDEV_OFFLINE)
-				sdev->sdev_state = SDEV_RUNNING;
+
+		if (sdev->sdev_state == SDEV_OFFLINE)
+		{
+			sdev->sdev_state = SDEV_RUNNING;
+		}
+
 		spin_unlock_irq(shost->host_lock);
-	} else if (rport->state == SRP_RPORT_RUNNING) {
+	}
+	else if (rport->state == SRP_RPORT_RUNNING)
+	{
 		/*
 		 * srp_reconnect_rport() has been invoked with fast_io_fail
 		 * and dev_loss off. Mark the port as failed and start the TL
@@ -605,12 +712,15 @@ int srp_reconnect_rport(struct srp_rport *rport)
 		 */
 		__rport_fail_io_fast(rport);
 		scsi_target_unblock(&shost->shost_gendev,
-				    SDEV_TRANSPORT_OFFLINE);
+							SDEV_TRANSPORT_OFFLINE);
 		__srp_start_tl_fail_timers(rport);
-	} else if (rport->state != SRP_RPORT_BLOCKED) {
-		scsi_target_unblock(&shost->shost_gendev,
-				    SDEV_TRANSPORT_OFFLINE);
 	}
+	else if (rport->state != SRP_RPORT_BLOCKED)
+	{
+		scsi_target_unblock(&shost->shost_gendev,
+							SDEV_TRANSPORT_OFFLINE);
+	}
+
 	mutex_unlock(&rport->mutex);
 
 out:
@@ -638,8 +748,8 @@ static enum blk_eh_timer_return srp_timed_out(struct scsi_cmnd *scmd)
 
 	pr_debug("timeout for sdev %s\n", dev_name(&sdev->sdev_gendev));
 	return rport->fast_io_fail_tmo < 0 && rport->dev_loss_tmo < 0 &&
-		i->f->reset_timer_if_blocked && scsi_device_blocked(sdev) ?
-		BLK_EH_RESET_TIMER : BLK_EH_NOT_HANDLED;
+		   i->f->reset_timer_if_blocked && scsi_device_blocked(sdev) ?
+		   BLK_EH_RESET_TIMER : BLK_EH_NOT_HANDLED;
 }
 
 static void srp_rport_release(struct device *dev)
@@ -656,19 +766,27 @@ static int scsi_is_srp_rport(const struct device *dev)
 }
 
 static int srp_rport_match(struct attribute_container *cont,
-			   struct device *dev)
+						   struct device *dev)
 {
 	struct Scsi_Host *shost;
 	struct srp_internal *i;
 
 	if (!scsi_is_srp_rport(dev))
+	{
 		return 0;
+	}
 
 	shost = dev_to_shost(dev->parent);
+
 	if (!shost->transportt)
+	{
 		return 0;
+	}
+
 	if (shost->transportt->host_attrs.ac.class != &srp_host_class.class)
+	{
 		return 0;
+	}
 
 	i = to_srp_internal(shost->transportt);
 	return &i->rport_attr_cont.ac == cont;
@@ -680,13 +798,21 @@ static int srp_host_match(struct attribute_container *cont, struct device *dev)
 	struct srp_internal *i;
 
 	if (!scsi_is_host_device(dev))
+	{
 		return 0;
+	}
 
 	shost = dev_to_shost(dev);
+
 	if (!shost->transportt)
+	{
 		return 0;
+	}
+
 	if (shost->transportt->host_attrs.ac.class != &srp_host_class.class)
+	{
 		return 0;
+	}
 
 	i = to_srp_internal(shost->transportt);
 	return &i->t.host_attrs.ac == cont;
@@ -720,7 +846,7 @@ EXPORT_SYMBOL(srp_rport_put);
  * Publishes a port to the rest of the system.
  */
 struct srp_rport *srp_rport_add(struct Scsi_Host *shost,
-				struct srp_rport_identifiers *ids)
+								struct srp_rport_identifiers *ids)
 {
 	struct srp_rport *rport;
 	struct device *parent = &shost->shost_gendev;
@@ -728,8 +854,11 @@ struct srp_rport *srp_rport_add(struct Scsi_Host *shost,
 	int id, ret;
 
 	rport = kzalloc(sizeof(*rport), GFP_KERNEL);
+
 	if (!rport)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	mutex_init(&rport->mutex);
 
@@ -743,13 +872,14 @@ struct srp_rport *srp_rport_add(struct Scsi_Host *shost,
 
 	if (i->f->reconnect)
 		rport->reconnect_delay = i->f->reconnect_delay ?
-			*i->f->reconnect_delay : 10;
+								 *i->f->reconnect_delay : 10;
+
 	INIT_DELAYED_WORK(&rport->reconnect_work, srp_reconnect_work);
 	rport->fast_io_fail_tmo = i->f->fast_io_fail_tmo ?
-		*i->f->fast_io_fail_tmo : 15;
+							  *i->f->fast_io_fail_tmo : 15;
 	rport->dev_loss_tmo = i->f->dev_loss_tmo ? *i->f->dev_loss_tmo : 60;
 	INIT_DELAYED_WORK(&rport->fast_io_fail_work,
-			  rport_fast_io_fail_timedout);
+					  rport_fast_io_fail_timedout);
 	INIT_DELAYED_WORK(&rport->dev_loss_work, rport_dev_loss_timedout);
 
 	id = atomic_inc_return(&to_srp_host_attrs(shost)->next_port_id);
@@ -758,7 +888,9 @@ struct srp_rport *srp_rport_add(struct Scsi_Host *shost,
 	transport_setup_device(&rport->dev);
 
 	ret = device_add(&rport->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		transport_destroy_device(&rport->dev);
 		put_device(&rport->dev);
 		return ERR_PTR(ret);
@@ -792,7 +924,10 @@ EXPORT_SYMBOL_GPL(srp_rport_del);
 static int do_srp_rport_del(struct device *dev, void *data)
 {
 	if (scsi_is_srp_rport(dev))
+	{
 		srp_rport_del(dev_to_rport(dev));
+	}
+
 	return 0;
 }
 
@@ -820,8 +955,12 @@ EXPORT_SYMBOL_GPL(srp_remove_host);
 void srp_stop_rport_timers(struct srp_rport *rport)
 {
 	mutex_lock(&rport->mutex);
+
 	if (rport->state == SRP_RPORT_BLOCKED)
+	{
 		__rport_fail_io_fast(rport);
+	}
+
 	srp_rport_set_state(rport, SRP_RPORT_LOST);
 	mutex_unlock(&rport->mutex);
 
@@ -832,7 +971,7 @@ void srp_stop_rport_timers(struct srp_rport *rport)
 EXPORT_SYMBOL_GPL(srp_stop_rport_timers);
 
 static int srp_tsk_mgmt_response(struct Scsi_Host *shost, u64 nexus, u64 tm_id,
-				 int result)
+								 int result)
 {
 	struct srp_internal *i = to_srp_internal(shost->transportt);
 	return i->f->tsk_mgmt_response(shost, nexus, tm_id, result);
@@ -855,8 +994,11 @@ srp_attach_transport(struct srp_function_template *ft)
 	struct srp_internal *i;
 
 	i = kzalloc(sizeof(*i), GFP_KERNEL);
+
 	if (!i)
+	{
 		return NULL;
+	}
 
 	i->t.eh_timed_out = srp_timed_out;
 
@@ -877,17 +1019,25 @@ srp_attach_transport(struct srp_function_template *ft)
 	count = 0;
 	i->rport_attrs[count++] = &dev_attr_port_id;
 	i->rport_attrs[count++] = &dev_attr_roles;
-	if (ft->has_rport_state) {
+
+	if (ft->has_rport_state)
+	{
 		i->rport_attrs[count++] = &dev_attr_state;
 		i->rport_attrs[count++] = &dev_attr_fast_io_fail_tmo;
 		i->rport_attrs[count++] = &dev_attr_dev_loss_tmo;
 	}
-	if (ft->reconnect) {
+
+	if (ft->reconnect)
+	{
 		i->rport_attrs[count++] = &dev_attr_reconnect_delay;
 		i->rport_attrs[count++] = &dev_attr_failed_reconnects;
 	}
+
 	if (ft->rport_delete)
+	{
 		i->rport_attrs[count++] = &dev_attr_delete;
+	}
+
 	i->rport_attrs[count++] = NULL;
 	BUG_ON(count > ARRAY_SIZE(i->rport_attrs));
 
@@ -919,11 +1069,18 @@ static __init int srp_transport_init(void)
 	int ret;
 
 	ret = transport_class_register(&srp_host_class);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = transport_class_register(&srp_rport_class);
+
 	if (ret)
+	{
 		goto unregister_host_class;
+	}
 
 	return 0;
 unregister_host_class:

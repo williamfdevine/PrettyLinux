@@ -13,9 +13,9 @@
  * recurse past the end of THREAD_SIZE by default.
  */
 #if defined(CONFIG_FRAME_WARN) && (CONFIG_FRAME_WARN > 0)
-#define REC_STACK_SIZE (CONFIG_FRAME_WARN / 2)
+	#define REC_STACK_SIZE (CONFIG_FRAME_WARN / 2)
 #else
-#define REC_STACK_SIZE (THREAD_SIZE / 8)
+	#define REC_STACK_SIZE (THREAD_SIZE / 8)
 #endif
 #define REC_NUM_DEFAULT ((THREAD_SIZE / REC_STACK_SIZE) * 2)
 
@@ -29,19 +29,28 @@ static int recursive_loop(int remaining)
 
 	/* Make sure compiler does not optimize this away. */
 	memset(buf, (remaining & 0xff) | 0x1, REC_STACK_SIZE);
+
 	if (!remaining)
+	{
 		return 0;
+	}
 	else
+	{
 		return recursive_loop(remaining - 1);
+	}
 }
 
 /* If the depth is negative, use the default, otherwise keep parameter. */
 void __init lkdtm_bugs_init(int *recur_param)
 {
 	if (*recur_param < 0)
+	{
 		*recur_param = recur_count;
+	}
 	else
+	{
 		recur_count = *recur_param;
+	}
 }
 
 void lkdtm_PANIC(void)
@@ -90,23 +99,33 @@ void lkdtm_UNALIGNED_LOAD_STORE_WRITE(void)
 	u32 val = 0x12345678;
 
 	p = (u32 *)(data + 1);
+
 	if (*p == 0)
+	{
 		val = 0x87654321;
+	}
+
 	*p = val;
 }
 
 void lkdtm_SOFTLOCKUP(void)
 {
 	preempt_disable();
+
 	for (;;)
+	{
 		cpu_relax();
+	}
 }
 
 void lkdtm_HARDLOCKUP(void)
 {
 	local_irq_disable();
+
 	for (;;)
+	{
 		cpu_relax();
+	}
 }
 
 void lkdtm_SPINLOCKUP(void)

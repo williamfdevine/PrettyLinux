@@ -40,7 +40,8 @@
  * Description:
  * An enumeration of the osd display layers.
  */
-enum osd_layer {
+enum osd_layer
+{
 	WIN_OSD0,
 	WIN_VID0,
 	WIN_OSD1,
@@ -55,7 +56,8 @@ enum osd_layer {
  * Description:
  * An enumeration of the OSD Window layers.
  */
-enum osd_win_layer {
+enum osd_win_layer
+{
 	OSDWIN_OSD0,
 	OSDWIN_OSD1,
 };
@@ -76,7 +78,8 @@ enum osd_win_layer {
  * Description:
  * An enumeration of the DaVinci pixel formats.
  */
-enum osd_pix_format {
+enum osd_pix_format
+{
 	PIXFMT_1BPP = 0,
 	PIXFMT_2BPP,
 	PIXFMT_4BPP,
@@ -98,7 +101,8 @@ enum osd_pix_format {
  * Description:
  * An enumeration of the available horizontal expansion ratios.
  */
-enum osd_h_exp_ratio {
+enum osd_h_exp_ratio
+{
 	H_EXP_OFF,
 	H_EXP_9_OVER_8,
 	H_EXP_3_OVER_2,
@@ -112,7 +116,8 @@ enum osd_h_exp_ratio {
  * Description:
  * An enumeration of the available vertical expansion ratios.
  */
-enum osd_v_exp_ratio {
+enum osd_v_exp_ratio
+{
 	V_EXP_OFF,
 	V_EXP_6_OVER_5,
 };
@@ -126,7 +131,8 @@ enum osd_v_exp_ratio {
  * Description:
  * An enumeration of the available zoom factors.
  */
-enum osd_zoom_factor {
+enum osd_zoom_factor
+{
 	ZOOM_X1,
 	ZOOM_X2,
 	ZOOM_X4,
@@ -140,7 +146,8 @@ enum osd_zoom_factor {
  * Description:
  * An enumeration of the available Color Lookup Tables (CLUTs).
  */
-enum osd_clut {
+enum osd_clut
+{
 	ROM_CLUT,
 	RAM_CLUT,
 };
@@ -153,7 +160,8 @@ enum osd_clut {
  * Description:
  * An enumeration of the ROM Color Lookup Table (CLUT) options.
  */
-enum osd_rom_clut {
+enum osd_rom_clut
+{
 	ROM_CLUT0,
 	ROM_CLUT1,
 };
@@ -172,7 +180,8 @@ enum osd_rom_clut {
  * Description:
  * An enumeration of the DaVinci pixel blending factor options.
  */
-enum osd_blending_factor {
+enum osd_blending_factor
+{
 	OSD_0_VID_8,
 	OSD_1_VID_7,
 	OSD_2_VID_6,
@@ -193,7 +202,8 @@ enum osd_blending_factor {
  * Description:
  * An enumeration of the DaVinci pixel blinking interval options.
  */
-enum osd_blink_interval {
+enum osd_blink_interval
+{
 	BLINK_X1,
 	BLINK_X2,
 	BLINK_X3,
@@ -211,7 +221,8 @@ enum osd_blink_interval {
  * @H_WIDTH_24: horizontal line width is 24 pixels
  * @H_WIDTH_28: horizontal line width is 28 pixels
  */
-enum osd_cursor_h_width {
+enum osd_cursor_h_width
+{
 	H_WIDTH_1,
 	H_WIDTH_4,
 	H_WIDTH_8,
@@ -233,7 +244,8 @@ enum osd_cursor_h_width {
  * @V_WIDTH_12: vertical line width is 12 lines
  * @V_WIDTH_14: vertical line width is 14 lines
  */
-enum osd_cursor_v_width {
+enum osd_cursor_v_width
+{
 	V_WIDTH_1,
 	V_WIDTH_2,
 	V_WIDTH_4,
@@ -260,7 +272,8 @@ enum osd_cursor_v_width {
  * A structure describing the configuration parameters of the hardware
  * rectangular cursor.
  */
-struct osd_cursor_config {
+struct osd_cursor_config
+{
 	unsigned xsize;
 	unsigned ysize;
 	unsigned xpos;
@@ -287,7 +300,8 @@ struct osd_cursor_config {
  * (OSD) or video layer related to how the image is stored in memory.
  * @line_length must be a multiple of the cache line size (32 bytes).
  */
-struct osd_layer_config {
+struct osd_layer_config
+{
 	enum osd_pix_format pixfmt;
 	unsigned line_length;
 	unsigned xsize;
@@ -298,7 +312,8 @@ struct osd_layer_config {
 };
 
 /* parameters that apply on a per-window (OSD or video) basis */
-struct osd_window_state {
+struct osd_window_state
+{
 	int is_allocated;
 	int is_enabled;
 	unsigned long fb_base_phys;
@@ -308,7 +323,8 @@ struct osd_window_state {
 };
 
 /* parameters that apply on a per-OSD-window basis */
-struct osd_osdwin_state {
+struct osd_osdwin_state
+{
 	enum osd_clut clut;
 	enum osd_blending_factor blend;
 	int colorkey_blending;
@@ -319,42 +335,45 @@ struct osd_osdwin_state {
 };
 
 /* hardware rectangular cursor parameters */
-struct osd_cursor_state {
+struct osd_cursor_state
+{
 	int is_enabled;
 	struct osd_cursor_config config;
 };
 
 struct osd_state;
 
-struct vpbe_osd_ops {
+struct vpbe_osd_ops
+{
 	int (*initialize)(struct osd_state *sd);
 	int (*request_layer)(struct osd_state *sd, enum osd_layer layer);
 	void (*release_layer)(struct osd_state *sd, enum osd_layer layer);
 	int (*enable_layer)(struct osd_state *sd, enum osd_layer layer,
-			    int otherwin);
+						int otherwin);
 	void (*disable_layer)(struct osd_state *sd, enum osd_layer layer);
 	int (*set_layer_config)(struct osd_state *sd, enum osd_layer layer,
-				struct osd_layer_config *lconfig);
+							struct osd_layer_config *lconfig);
 	void (*get_layer_config)(struct osd_state *sd, enum osd_layer layer,
-				 struct osd_layer_config *lconfig);
+							 struct osd_layer_config *lconfig);
 	void (*start_layer)(struct osd_state *sd, enum osd_layer layer,
-			    unsigned long fb_base_phys,
-			    unsigned long cbcr_ofst);
+						unsigned long fb_base_phys,
+						unsigned long cbcr_ofst);
 	void (*set_left_margin)(struct osd_state *sd, u32 val);
 	void (*set_top_margin)(struct osd_state *sd, u32 val);
 	void (*set_interpolation_filter)(struct osd_state *sd, int filter);
 	int (*set_vid_expansion)(struct osd_state *sd,
-					enum osd_h_exp_ratio h_exp,
-					enum osd_v_exp_ratio v_exp);
+							 enum osd_h_exp_ratio h_exp,
+							 enum osd_v_exp_ratio v_exp);
 	void (*get_vid_expansion)(struct osd_state *sd,
-					enum osd_h_exp_ratio *h_exp,
-					enum osd_v_exp_ratio *v_exp);
+							  enum osd_h_exp_ratio *h_exp,
+							  enum osd_v_exp_ratio *v_exp);
 	void (*set_zoom)(struct osd_state *sd, enum osd_layer layer,
-				enum osd_zoom_factor h_zoom,
-				enum osd_zoom_factor v_zoom);
+					 enum osd_zoom_factor h_zoom,
+					 enum osd_zoom_factor v_zoom);
 };
 
-struct osd_state {
+struct osd_state
+{
 	enum vpbe_version vpbe_type;
 	spinlock_t lock;
 	struct device *dev;
@@ -388,7 +407,8 @@ struct osd_state {
 	struct vpbe_osd_ops ops;
 };
 
-struct osd_platform_data {
+struct osd_platform_data
+{
 	int  field_inv_wa_enable;
 };
 

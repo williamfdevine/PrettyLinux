@@ -35,7 +35,8 @@
 #define NUM_PRESETS 13
 #define NUM_CHIPS 5
 
-struct	dump_header {
+struct	dump_header
+{
 	u32 header_size; /* Size in DWORDs excluding this field */
 	u32 version;
 	u32 preset;
@@ -43,14 +44,16 @@ struct	dump_header {
 };
 
 #define  BNX2X_DUMP_VERSION 0x61111111
-struct reg_addr {
+struct reg_addr
+{
 	u32 addr;
 	u32 size;
 	u32 chips;
 	u32 presets;
 };
 
-struct wreg_addr {
+struct wreg_addr
+{
 	u32 addr;
 	u32 size;
 	u32 read_regs_count;
@@ -64,7 +67,8 @@ struct wreg_addr {
 #define PAGE_WRITE_REGS_E2 1
 static const u32 page_vals_e2[] = {0, 128};
 static const u32 page_write_regs_e2[] = {328476};
-static const struct reg_addr page_read_regs_e2[] = {
+static const struct reg_addr page_read_regs_e2[] =
+{
 	{0x58000, 4608, DUMP_CHIP_E2, 0x30}
 };
 
@@ -73,11 +77,13 @@ static const struct reg_addr page_read_regs_e2[] = {
 #define PAGE_WRITE_REGS_E3 1
 static const u32 page_vals_e3[] = {0, 128};
 static const u32 page_write_regs_e3[] = {328476};
-static const struct reg_addr page_read_regs_e3[] = {
+static const struct reg_addr page_read_regs_e3[] =
+{
 	{0x58000, 4608, DUMP_CHIP_E3A0 | DUMP_CHIP_E3B0, 0x30}
 };
 
-static const struct reg_addr reg_addrs[] = {
+static const struct reg_addr reg_addrs[] =
+{
 	{ 0x2000, 1, 0x1f, 0xfff},
 	{ 0x2004, 1, 0x1f, 0x1fff},
 	{ 0x2008, 25, 0x1f, 0xfff},
@@ -1898,7 +1904,8 @@ static const struct reg_addr reg_addrs[] = {
 
 #define REGS_COUNT ARRAY_SIZE(reg_addrs)
 
-static const struct reg_addr idle_reg_addrs[] = {
+static const struct reg_addr idle_reg_addrs[] =
+{
 	{ 0x2104, 1, 0x1f, 0xfff},
 	{ 0x2110, 2, 0x1f, 0xfff},
 	{ 0x211c, 8, 0x1f, 0xfff},
@@ -2173,46 +2180,77 @@ static const struct reg_addr idle_reg_addrs[] = {
 
 #define IDLE_REGS_COUNT ARRAY_SIZE(idle_reg_addrs)
 
-static const u32 read_reg_e1[] = {
-	0x1b1000};
+static const u32 read_reg_e1[] =
+{
+	0x1b1000
+};
 
-static const struct wreg_addr wreg_addr_e1 = {
-	0x1b0c00, 192, 1, read_reg_e1, 0x1f, 0x1fff};
+static const struct wreg_addr wreg_addr_e1 =
+{
+	0x1b0c00, 192, 1, read_reg_e1, 0x1f, 0x1fff
+};
 
-static const u32 read_reg_e1h[] = {
-	0x1b1040, 0x1b1000};
+static const u32 read_reg_e1h[] =
+{
+	0x1b1040, 0x1b1000
+};
 
-static const struct wreg_addr wreg_addr_e1h = {
-	0x1b0c00, 256, 2, read_reg_e1h, 0x1f, 0x1fff};
+static const struct wreg_addr wreg_addr_e1h =
+{
+	0x1b0c00, 256, 2, read_reg_e1h, 0x1f, 0x1fff
+};
 
-static const u32 read_reg_e2[] = {
-	0x1b1040, 0x1b1000};
+static const u32 read_reg_e2[] =
+{
+	0x1b1040, 0x1b1000
+};
 
-static const struct wreg_addr wreg_addr_e2 = {
-	0x1b0c00, 128, 2, read_reg_e2, 0x1f, 0x1fff};
+static const struct wreg_addr wreg_addr_e2 =
+{
+	0x1b0c00, 128, 2, read_reg_e2, 0x1f, 0x1fff
+};
 
-static const u32 read_reg_e3[] = {
-	0x1b1040, 0x1b1000};
+static const u32 read_reg_e3[] =
+{
+	0x1b1040, 0x1b1000
+};
 
-static const struct wreg_addr wreg_addr_e3 = {
-	0x1b0c00, 128, 2, read_reg_e3, 0x1f, 0x1fff};
+static const struct wreg_addr wreg_addr_e3 =
+{
+	0x1b0c00, 128, 2, read_reg_e3, 0x1f, 0x1fff
+};
 
-static const u32 read_reg_e3b0[] = {
-	0x1b1040, 0x1b1000};
+static const u32 read_reg_e3b0[] =
+{
+	0x1b1040, 0x1b1000
+};
 
-static const struct wreg_addr wreg_addr_e3b0 = {
-	0x1b0c00, 128, 2, read_reg_e3b0, 0x1f, 0x1fff};
+static const struct wreg_addr wreg_addr_e3b0 =
+{
+	0x1b0c00, 128, 2, read_reg_e3b0, 0x1f, 0x1fff
+};
 
-static const unsigned int dump_num_registers[NUM_CHIPS][NUM_PRESETS] = {
-	{19758, 17543, 26951, 18705, 17287, 26695, 19812, 31367, 40775, 19788,
-	 25223, 34631, 19074},
-	{31750, 18273, 32253, 30697, 18017, 31997, 31804, 32097, 46077, 31780,
-	 25953, 39933, 35895},
-	{36527, 17928, 33697, 35474, 18700, 34466, 36581, 31752, 47521, 36557,
-	 25608, 41377, 43903},
-	{45239, 17936, 34387, 44186, 18708, 35156, 45293, 31760, 48211, 45269,
-	 25616, 42067, 43903},
-	{45302, 17999, 34802, 44249, 18771, 35571, 45356, 31823, 48626, 45332,
-	 25679, 42482, 43903}
+static const unsigned int dump_num_registers[NUM_CHIPS][NUM_PRESETS] =
+{
+	{
+		19758, 17543, 26951, 18705, 17287, 26695, 19812, 31367, 40775, 19788,
+		25223, 34631, 19074
+	},
+	{
+		31750, 18273, 32253, 30697, 18017, 31997, 31804, 32097, 46077, 31780,
+		25953, 39933, 35895
+	},
+	{
+		36527, 17928, 33697, 35474, 18700, 34466, 36581, 31752, 47521, 36557,
+		25608, 41377, 43903
+	},
+	{
+		45239, 17936, 34387, 44186, 18708, 35156, 45293, 31760, 48211, 45269,
+		25616, 42067, 43903
+	},
+	{
+		45302, 17999, 34802, 44249, 18771, 35571, 45356, 31823, 48626, 45332,
+		25679, 42482, 43903
+	}
 };
 #endif

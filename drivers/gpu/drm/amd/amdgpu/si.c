@@ -952,7 +952,8 @@ static void si_smc_wreg(struct amdgpu_device *adev, u32 reg, u32 v)
 	spin_unlock_irqrestore(&adev->smc_idx_lock, flags);
 }
 
-static struct amdgpu_allowed_register_entry si_allowed_read_registers[] = {
+static struct amdgpu_allowed_register_entry si_allowed_read_registers[] =
+{
 	{GRBM_STATUS, false},
 	{GB_ADDR_CONFIG, false},
 	{MC_ARB_RAMCFG, false},
@@ -994,40 +995,52 @@ static struct amdgpu_allowed_register_entry si_allowed_read_registers[] = {
 };
 
 static uint32_t si_read_indexed_register(struct amdgpu_device *adev,
-					  u32 se_num, u32 sh_num,
-					  u32 reg_offset)
+		u32 se_num, u32 sh_num,
+		u32 reg_offset)
 {
 	uint32_t val;
 
 	mutex_lock(&adev->grbm_idx_mutex);
+
 	if (se_num != 0xffffffff || sh_num != 0xffffffff)
+	{
 		amdgpu_gfx_select_se_sh(adev, se_num, sh_num, 0xffffffff);
+	}
 
 	val = RREG32(reg_offset);
 
 	if (se_num != 0xffffffff || sh_num != 0xffffffff)
+	{
 		amdgpu_gfx_select_se_sh(adev, 0xffffffff, 0xffffffff, 0xffffffff);
+	}
+
 	mutex_unlock(&adev->grbm_idx_mutex);
 	return val;
 }
 
 static int si_read_register(struct amdgpu_device *adev, u32 se_num,
-			     u32 sh_num, u32 reg_offset, u32 *value)
+							u32 sh_num, u32 reg_offset, u32 *value)
 {
 	uint32_t i;
 
 	*value = 0;
-	for (i = 0; i < ARRAY_SIZE(si_allowed_read_registers); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(si_allowed_read_registers); i++)
+	{
 		if (reg_offset != si_allowed_read_registers[i].reg_offset)
+		{
 			continue;
+		}
 
 		if (!si_allowed_read_registers[i].untouched)
 			*value = si_allowed_read_registers[i].grbm_indexed ?
-				 si_read_indexed_register(adev, se_num,
-							   sh_num, reg_offset) :
-				 RREG32(reg_offset);
+					 si_read_indexed_register(adev, se_num,
+											  sh_num, reg_offset) :
+					 RREG32(reg_offset);
+
 		return 0;
 	}
+
 	return -EINVAL;
 }
 
@@ -1041,37 +1054,46 @@ static bool si_read_disabled_bios(struct amdgpu_device *adev)
 	bool r;
 
 	bus_cntl = RREG32(R600_BUS_CNTL);
-	if (adev->mode_info.num_crtc) {
+
+	if (adev->mode_info.num_crtc)
+	{
 		d1vga_control = RREG32(AVIVO_D1VGA_CONTROL);
 		d2vga_control = RREG32(AVIVO_D2VGA_CONTROL);
 		vga_render_control = RREG32(VGA_RENDER_CONTROL);
 	}
+
 	rom_cntl = RREG32(R600_ROM_CNTL);
 
 	/* enable the rom */
 	WREG32(R600_BUS_CNTL, (bus_cntl & ~R600_BIOS_ROM_DIS));
-	if (adev->mode_info.num_crtc) {
+
+	if (adev->mode_info.num_crtc)
+	{
 		/* Disable VGA mode */
 		WREG32(AVIVO_D1VGA_CONTROL,
-		       (d1vga_control & ~(AVIVO_DVGA_CONTROL_MODE_ENABLE |
-					  AVIVO_DVGA_CONTROL_TIMING_SELECT)));
+			   (d1vga_control & ~(AVIVO_DVGA_CONTROL_MODE_ENABLE |
+								  AVIVO_DVGA_CONTROL_TIMING_SELECT)));
 		WREG32(AVIVO_D2VGA_CONTROL,
-		       (d2vga_control & ~(AVIVO_DVGA_CONTROL_MODE_ENABLE |
-					  AVIVO_DVGA_CONTROL_TIMING_SELECT)));
+			   (d2vga_control & ~(AVIVO_DVGA_CONTROL_MODE_ENABLE |
+								  AVIVO_DVGA_CONTROL_TIMING_SELECT)));
 		WREG32(VGA_RENDER_CONTROL,
-		       (vga_render_control & C_000300_VGA_VSTATUS_CNTL));
+			   (vga_render_control & C_000300_VGA_VSTATUS_CNTL));
 	}
+
 	WREG32(R600_ROM_CNTL, rom_cntl | R600_SCK_OVERWRITE);
 
 	r = amdgpu_read_bios(adev);
 
 	/* restore regs */
 	WREG32(R600_BUS_CNTL, bus_cntl);
-	if (adev->mode_info.num_crtc) {
+
+	if (adev->mode_info.num_crtc)
+	{
 		WREG32(AVIVO_D1VGA_CONTROL, d1vga_control);
 		WREG32(AVIVO_D2VGA_CONTROL, d2vga_control);
 		WREG32(VGA_RENDER_CONTROL, vga_render_control);
 	}
+
 	WREG32(R600_ROM_CNTL, rom_cntl);
 	return r;
 }
@@ -1087,27 +1109,38 @@ static void si_vga_set_state(struct amdgpu_device *adev, bool state)
 	uint32_t temp;
 
 	temp = RREG32(CONFIG_CNTL);
-	if (state == false) {
-		temp &= ~(1<<0);
-		temp |= (1<<1);
-	} else {
-		temp &= ~(1<<1);
+
+	if (state == false)
+	{
+		temp &= ~(1 << 0);
+		temp |= (1 << 1);
 	}
+	else
+	{
+		temp &= ~(1 << 1);
+	}
+
 	WREG32(CONFIG_CNTL, temp);
 }
 
 static u32 si_get_xclk(struct amdgpu_device *adev)
 {
-        u32 reference_clock = adev->clock.spll.reference_freq;
+	u32 reference_clock = adev->clock.spll.reference_freq;
 	u32 tmp;
 
 	tmp = RREG32(CG_CLKPIN_CNTL_2);
+
 	if (tmp & MUX_TCLK_TO_XCLK)
+	{
 		return TCLK;
+	}
 
 	tmp = RREG32(CG_CLKPIN_CNTL);
+
 	if (tmp & XTALIN_DIVIDE)
+	{
 		return reference_clock / 4;
+	}
 
 	return reference_clock;
 }
@@ -1121,7 +1154,9 @@ static int si_set_uvd_clocks(struct amdgpu_device *adev, u32 vclk, u32 dclk)
 static void si_detect_hw_virtualization(struct amdgpu_device *adev)
 {
 	if (is_virtual_machine()) /* passthrough mode */
+	{
 		adev->virtualization.virtual_caps |= AMDGPU_PASSTHROUGH_MODE;
+	}
 }
 
 static const struct amdgpu_asic_funcs si_asic_funcs =
@@ -1139,7 +1174,7 @@ static const struct amdgpu_asic_funcs si_asic_funcs =
 static uint32_t si_get_rev_id(struct amdgpu_device *adev)
 {
 	return (RREG32(CC_DRM_ID_STRAPS) & CC_DRM_ID_STRAPS__ATI_REV_ID_MASK)
-		>> CC_DRM_ID_STRAPS__ATI_REV_ID__SHIFT;
+		   >> CC_DRM_ID_STRAPS__ATI_REV_ID__SHIFT;
 }
 
 static int si_common_early_init(void *handle)
@@ -1161,103 +1196,108 @@ static int si_common_early_init(void *handle)
 
 	adev->rev_id = si_get_rev_id(adev);
 	adev->external_rev_id = 0xFF;
-	switch (adev->asic_type) {
-	case CHIP_TAHITI:
-		adev->cg_flags =
-			AMD_CG_SUPPORT_GFX_MGCG |
-			AMD_CG_SUPPORT_GFX_MGLS |
-			/*AMD_CG_SUPPORT_GFX_CGCG |*/
-			AMD_CG_SUPPORT_GFX_CGLS |
-			AMD_CG_SUPPORT_GFX_CGTS |
-			AMD_CG_SUPPORT_GFX_CP_LS |
-			AMD_CG_SUPPORT_MC_MGCG |
-			AMD_CG_SUPPORT_SDMA_MGCG |
-			AMD_CG_SUPPORT_BIF_LS |
-			AMD_CG_SUPPORT_VCE_MGCG |
-			AMD_CG_SUPPORT_UVD_MGCG |
-			AMD_CG_SUPPORT_HDP_LS |
-			AMD_CG_SUPPORT_HDP_MGCG;
+
+	switch (adev->asic_type)
+	{
+		case CHIP_TAHITI:
+			adev->cg_flags =
+				AMD_CG_SUPPORT_GFX_MGCG |
+				AMD_CG_SUPPORT_GFX_MGLS |
+				/*AMD_CG_SUPPORT_GFX_CGCG |*/
+				AMD_CG_SUPPORT_GFX_CGLS |
+				AMD_CG_SUPPORT_GFX_CGTS |
+				AMD_CG_SUPPORT_GFX_CP_LS |
+				AMD_CG_SUPPORT_MC_MGCG |
+				AMD_CG_SUPPORT_SDMA_MGCG |
+				AMD_CG_SUPPORT_BIF_LS |
+				AMD_CG_SUPPORT_VCE_MGCG |
+				AMD_CG_SUPPORT_UVD_MGCG |
+				AMD_CG_SUPPORT_HDP_LS |
+				AMD_CG_SUPPORT_HDP_MGCG;
 			adev->pg_flags = 0;
-		break;
-	case CHIP_PITCAIRN:
-		adev->cg_flags =
-			AMD_CG_SUPPORT_GFX_MGCG |
-			AMD_CG_SUPPORT_GFX_MGLS |
-			/*AMD_CG_SUPPORT_GFX_CGCG |*/
-			AMD_CG_SUPPORT_GFX_CGLS |
-			AMD_CG_SUPPORT_GFX_CGTS |
-			AMD_CG_SUPPORT_GFX_CP_LS |
-			AMD_CG_SUPPORT_GFX_RLC_LS |
-			AMD_CG_SUPPORT_MC_LS |
-			AMD_CG_SUPPORT_MC_MGCG |
-			AMD_CG_SUPPORT_SDMA_MGCG |
-			AMD_CG_SUPPORT_BIF_LS |
-			AMD_CG_SUPPORT_VCE_MGCG |
-			AMD_CG_SUPPORT_UVD_MGCG |
-			AMD_CG_SUPPORT_HDP_LS |
-			AMD_CG_SUPPORT_HDP_MGCG;
-		adev->pg_flags = 0;
-		break;
+			break;
 
-	case CHIP_VERDE:
-		adev->cg_flags =
-			AMD_CG_SUPPORT_GFX_MGCG |
-			AMD_CG_SUPPORT_GFX_MGLS |
-			AMD_CG_SUPPORT_GFX_CGLS |
-			AMD_CG_SUPPORT_GFX_CGTS |
-			AMD_CG_SUPPORT_GFX_CGTS_LS |
-			AMD_CG_SUPPORT_GFX_CP_LS |
-			AMD_CG_SUPPORT_MC_LS |
-			AMD_CG_SUPPORT_MC_MGCG |
-			AMD_CG_SUPPORT_SDMA_MGCG |
-			AMD_CG_SUPPORT_SDMA_LS |
-			AMD_CG_SUPPORT_BIF_LS |
-			AMD_CG_SUPPORT_VCE_MGCG |
-			AMD_CG_SUPPORT_UVD_MGCG |
-			AMD_CG_SUPPORT_HDP_LS |
-			AMD_CG_SUPPORT_HDP_MGCG;
-		adev->pg_flags = 0;
-		//???
-		adev->external_rev_id = adev->rev_id + 0x14;
-		break;
-	case CHIP_OLAND:
-		adev->cg_flags =
-			AMD_CG_SUPPORT_GFX_MGCG |
-			AMD_CG_SUPPORT_GFX_MGLS |
-			/*AMD_CG_SUPPORT_GFX_CGCG |*/
-			AMD_CG_SUPPORT_GFX_CGLS |
-			AMD_CG_SUPPORT_GFX_CGTS |
-			AMD_CG_SUPPORT_GFX_CP_LS |
-			AMD_CG_SUPPORT_GFX_RLC_LS |
-			AMD_CG_SUPPORT_MC_LS |
-			AMD_CG_SUPPORT_MC_MGCG |
-			AMD_CG_SUPPORT_SDMA_MGCG |
-			AMD_CG_SUPPORT_BIF_LS |
-			AMD_CG_SUPPORT_UVD_MGCG |
-			AMD_CG_SUPPORT_HDP_LS |
-			AMD_CG_SUPPORT_HDP_MGCG;
-		adev->pg_flags = 0;
-		break;
-	case CHIP_HAINAN:
-		adev->cg_flags =
-			AMD_CG_SUPPORT_GFX_MGCG |
-			AMD_CG_SUPPORT_GFX_MGLS |
-			/*AMD_CG_SUPPORT_GFX_CGCG |*/
-			AMD_CG_SUPPORT_GFX_CGLS |
-			AMD_CG_SUPPORT_GFX_CGTS |
-			AMD_CG_SUPPORT_GFX_CP_LS |
-			AMD_CG_SUPPORT_GFX_RLC_LS |
-			AMD_CG_SUPPORT_MC_LS |
-			AMD_CG_SUPPORT_MC_MGCG |
-			AMD_CG_SUPPORT_SDMA_MGCG |
-			AMD_CG_SUPPORT_BIF_LS |
-			AMD_CG_SUPPORT_HDP_LS |
-			AMD_CG_SUPPORT_HDP_MGCG;
-		adev->pg_flags = 0;
-		break;
+		case CHIP_PITCAIRN:
+			adev->cg_flags =
+				AMD_CG_SUPPORT_GFX_MGCG |
+				AMD_CG_SUPPORT_GFX_MGLS |
+				/*AMD_CG_SUPPORT_GFX_CGCG |*/
+				AMD_CG_SUPPORT_GFX_CGLS |
+				AMD_CG_SUPPORT_GFX_CGTS |
+				AMD_CG_SUPPORT_GFX_CP_LS |
+				AMD_CG_SUPPORT_GFX_RLC_LS |
+				AMD_CG_SUPPORT_MC_LS |
+				AMD_CG_SUPPORT_MC_MGCG |
+				AMD_CG_SUPPORT_SDMA_MGCG |
+				AMD_CG_SUPPORT_BIF_LS |
+				AMD_CG_SUPPORT_VCE_MGCG |
+				AMD_CG_SUPPORT_UVD_MGCG |
+				AMD_CG_SUPPORT_HDP_LS |
+				AMD_CG_SUPPORT_HDP_MGCG;
+			adev->pg_flags = 0;
+			break;
 
-	default:
-		return -EINVAL;
+		case CHIP_VERDE:
+			adev->cg_flags =
+				AMD_CG_SUPPORT_GFX_MGCG |
+				AMD_CG_SUPPORT_GFX_MGLS |
+				AMD_CG_SUPPORT_GFX_CGLS |
+				AMD_CG_SUPPORT_GFX_CGTS |
+				AMD_CG_SUPPORT_GFX_CGTS_LS |
+				AMD_CG_SUPPORT_GFX_CP_LS |
+				AMD_CG_SUPPORT_MC_LS |
+				AMD_CG_SUPPORT_MC_MGCG |
+				AMD_CG_SUPPORT_SDMA_MGCG |
+				AMD_CG_SUPPORT_SDMA_LS |
+				AMD_CG_SUPPORT_BIF_LS |
+				AMD_CG_SUPPORT_VCE_MGCG |
+				AMD_CG_SUPPORT_UVD_MGCG |
+				AMD_CG_SUPPORT_HDP_LS |
+				AMD_CG_SUPPORT_HDP_MGCG;
+			adev->pg_flags = 0;
+			//???
+			adev->external_rev_id = adev->rev_id + 0x14;
+			break;
+
+		case CHIP_OLAND:
+			adev->cg_flags =
+				AMD_CG_SUPPORT_GFX_MGCG |
+				AMD_CG_SUPPORT_GFX_MGLS |
+				/*AMD_CG_SUPPORT_GFX_CGCG |*/
+				AMD_CG_SUPPORT_GFX_CGLS |
+				AMD_CG_SUPPORT_GFX_CGTS |
+				AMD_CG_SUPPORT_GFX_CP_LS |
+				AMD_CG_SUPPORT_GFX_RLC_LS |
+				AMD_CG_SUPPORT_MC_LS |
+				AMD_CG_SUPPORT_MC_MGCG |
+				AMD_CG_SUPPORT_SDMA_MGCG |
+				AMD_CG_SUPPORT_BIF_LS |
+				AMD_CG_SUPPORT_UVD_MGCG |
+				AMD_CG_SUPPORT_HDP_LS |
+				AMD_CG_SUPPORT_HDP_MGCG;
+			adev->pg_flags = 0;
+			break;
+
+		case CHIP_HAINAN:
+			adev->cg_flags =
+				AMD_CG_SUPPORT_GFX_MGCG |
+				AMD_CG_SUPPORT_GFX_MGLS |
+				/*AMD_CG_SUPPORT_GFX_CGCG |*/
+				AMD_CG_SUPPORT_GFX_CGLS |
+				AMD_CG_SUPPORT_GFX_CGTS |
+				AMD_CG_SUPPORT_GFX_CP_LS |
+				AMD_CG_SUPPORT_GFX_RLC_LS |
+				AMD_CG_SUPPORT_MC_LS |
+				AMD_CG_SUPPORT_MC_MGCG |
+				AMD_CG_SUPPORT_SDMA_MGCG |
+				AMD_CG_SUPPORT_BIF_LS |
+				AMD_CG_SUPPORT_HDP_LS |
+				AMD_CG_SUPPORT_HDP_MGCG;
+			adev->pg_flags = 0;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -1276,70 +1316,75 @@ static int si_common_sw_fini(void *handle)
 
 static void si_init_golden_registers(struct amdgpu_device *adev)
 {
-	switch (adev->asic_type) {
-	case CHIP_TAHITI:
-		amdgpu_program_register_sequence(adev,
-						 tahiti_golden_registers,
-						 (const u32)ARRAY_SIZE(tahiti_golden_registers));
-		amdgpu_program_register_sequence(adev,
-						 tahiti_golden_rlc_registers,
-						 (const u32)ARRAY_SIZE(tahiti_golden_rlc_registers));
-		amdgpu_program_register_sequence(adev,
-						 tahiti_mgcg_cgcg_init,
-						 (const u32)ARRAY_SIZE(tahiti_mgcg_cgcg_init));
-		amdgpu_program_register_sequence(adev,
-						 tahiti_golden_registers2,
-						 (const u32)ARRAY_SIZE(tahiti_golden_registers2));
-		break;
-	case CHIP_PITCAIRN:
-		amdgpu_program_register_sequence(adev,
-						 pitcairn_golden_registers,
-						 (const u32)ARRAY_SIZE(pitcairn_golden_registers));
-		amdgpu_program_register_sequence(adev,
-						 pitcairn_golden_rlc_registers,
-						 (const u32)ARRAY_SIZE(pitcairn_golden_rlc_registers));
-		amdgpu_program_register_sequence(adev,
-						 pitcairn_mgcg_cgcg_init,
-						 (const u32)ARRAY_SIZE(pitcairn_mgcg_cgcg_init));
-	case CHIP_VERDE:
-		amdgpu_program_register_sequence(adev,
-						 verde_golden_registers,
-						 (const u32)ARRAY_SIZE(verde_golden_registers));
-		amdgpu_program_register_sequence(adev,
-						 verde_golden_rlc_registers,
-						 (const u32)ARRAY_SIZE(verde_golden_rlc_registers));
-		amdgpu_program_register_sequence(adev,
-						 verde_mgcg_cgcg_init,
-						 (const u32)ARRAY_SIZE(verde_mgcg_cgcg_init));
-		amdgpu_program_register_sequence(adev,
-						 verde_pg_init,
-						 (const u32)ARRAY_SIZE(verde_pg_init));
-		break;
-	case CHIP_OLAND:
-		amdgpu_program_register_sequence(adev,
-						 oland_golden_registers,
-						 (const u32)ARRAY_SIZE(oland_golden_registers));
-		amdgpu_program_register_sequence(adev,
-						 oland_golden_rlc_registers,
-						 (const u32)ARRAY_SIZE(oland_golden_rlc_registers));
-		amdgpu_program_register_sequence(adev,
-						 oland_mgcg_cgcg_init,
-						 (const u32)ARRAY_SIZE(oland_mgcg_cgcg_init));
-	case CHIP_HAINAN:
-		amdgpu_program_register_sequence(adev,
-						 hainan_golden_registers,
-						 (const u32)ARRAY_SIZE(hainan_golden_registers));
-		amdgpu_program_register_sequence(adev,
-						 hainan_golden_registers2,
-						 (const u32)ARRAY_SIZE(hainan_golden_registers2));
-		amdgpu_program_register_sequence(adev,
-						 hainan_mgcg_cgcg_init,
-						 (const u32)ARRAY_SIZE(hainan_mgcg_cgcg_init));
-		break;
+	switch (adev->asic_type)
+	{
+		case CHIP_TAHITI:
+			amdgpu_program_register_sequence(adev,
+											 tahiti_golden_registers,
+											 (const u32)ARRAY_SIZE(tahiti_golden_registers));
+			amdgpu_program_register_sequence(adev,
+											 tahiti_golden_rlc_registers,
+											 (const u32)ARRAY_SIZE(tahiti_golden_rlc_registers));
+			amdgpu_program_register_sequence(adev,
+											 tahiti_mgcg_cgcg_init,
+											 (const u32)ARRAY_SIZE(tahiti_mgcg_cgcg_init));
+			amdgpu_program_register_sequence(adev,
+											 tahiti_golden_registers2,
+											 (const u32)ARRAY_SIZE(tahiti_golden_registers2));
+			break;
+
+		case CHIP_PITCAIRN:
+			amdgpu_program_register_sequence(adev,
+											 pitcairn_golden_registers,
+											 (const u32)ARRAY_SIZE(pitcairn_golden_registers));
+			amdgpu_program_register_sequence(adev,
+											 pitcairn_golden_rlc_registers,
+											 (const u32)ARRAY_SIZE(pitcairn_golden_rlc_registers));
+			amdgpu_program_register_sequence(adev,
+											 pitcairn_mgcg_cgcg_init,
+											 (const u32)ARRAY_SIZE(pitcairn_mgcg_cgcg_init));
+
+		case CHIP_VERDE:
+			amdgpu_program_register_sequence(adev,
+											 verde_golden_registers,
+											 (const u32)ARRAY_SIZE(verde_golden_registers));
+			amdgpu_program_register_sequence(adev,
+											 verde_golden_rlc_registers,
+											 (const u32)ARRAY_SIZE(verde_golden_rlc_registers));
+			amdgpu_program_register_sequence(adev,
+											 verde_mgcg_cgcg_init,
+											 (const u32)ARRAY_SIZE(verde_mgcg_cgcg_init));
+			amdgpu_program_register_sequence(adev,
+											 verde_pg_init,
+											 (const u32)ARRAY_SIZE(verde_pg_init));
+			break;
+
+		case CHIP_OLAND:
+			amdgpu_program_register_sequence(adev,
+											 oland_golden_registers,
+											 (const u32)ARRAY_SIZE(oland_golden_registers));
+			amdgpu_program_register_sequence(adev,
+											 oland_golden_rlc_registers,
+											 (const u32)ARRAY_SIZE(oland_golden_rlc_registers));
+			amdgpu_program_register_sequence(adev,
+											 oland_mgcg_cgcg_init,
+											 (const u32)ARRAY_SIZE(oland_mgcg_cgcg_init));
+
+		case CHIP_HAINAN:
+			amdgpu_program_register_sequence(adev,
+											 hainan_golden_registers,
+											 (const u32)ARRAY_SIZE(hainan_golden_registers));
+			amdgpu_program_register_sequence(adev,
+											 hainan_golden_registers2,
+											 (const u32)ARRAY_SIZE(hainan_golden_registers2));
+			amdgpu_program_register_sequence(adev,
+											 hainan_mgcg_cgcg_init,
+											 (const u32)ARRAY_SIZE(hainan_mgcg_cgcg_init));
+			break;
 
 
-	default:
-		BUG();
+		default:
+			BUG();
 	}
 }
 
@@ -1352,48 +1397,75 @@ static void si_pcie_gen3_enable(struct amdgpu_device *adev)
 	u16 tmp16;
 
 	if (pci_is_root_bus(adev->pdev->bus))
+	{
 		return;
+	}
 
 	if (amdgpu_pcie_gen2 == 0)
+	{
 		return;
+	}
 
 	if (adev->flags & AMD_IS_APU)
+	{
 		return;
+	}
 
 	ret = drm_pcie_get_speed_cap_mask(adev->ddev, &mask);
+
 	if (ret != 0)
+	{
 		return;
+	}
 
 	if (!(mask & (DRM_PCIE_SPEED_50 | DRM_PCIE_SPEED_80)))
+	{
 		return;
+	}
 
 	speed_cntl = RREG32_PCIE_PORT(PCIE_LC_SPEED_CNTL);
 	current_data_rate = (speed_cntl & LC_CURRENT_DATA_RATE_MASK) >>
-		LC_CURRENT_DATA_RATE_SHIFT;
-	if (mask & DRM_PCIE_SPEED_80) {
-		if (current_data_rate == 2) {
+						LC_CURRENT_DATA_RATE_SHIFT;
+
+	if (mask & DRM_PCIE_SPEED_80)
+	{
+		if (current_data_rate == 2)
+		{
 			DRM_INFO("PCIE gen 3 link speeds already enabled\n");
 			return;
 		}
+
 		DRM_INFO("enabling PCIE gen 3 link speeds, disable with amdgpu.pcie_gen2=0\n");
-	} else if (mask & DRM_PCIE_SPEED_50) {
-		if (current_data_rate == 1) {
+	}
+	else if (mask & DRM_PCIE_SPEED_50)
+	{
+		if (current_data_rate == 1)
+		{
 			DRM_INFO("PCIE gen 2 link speeds already enabled\n");
 			return;
 		}
+
 		DRM_INFO("enabling PCIE gen 2 link speeds, disable with amdgpu.pcie_gen2=0\n");
 	}
 
 	bridge_pos = pci_pcie_cap(root);
+
 	if (!bridge_pos)
+	{
 		return;
+	}
 
 	gpu_pos = pci_pcie_cap(adev->pdev);
-	if (!gpu_pos)
-		return;
 
-	if (mask & DRM_PCIE_SPEED_80) {
-		if (current_data_rate != 2) {
+	if (!gpu_pos)
+	{
+		return;
+	}
+
+	if (mask & DRM_PCIE_SPEED_80)
+	{
+		if (current_data_rate != 2)
+		{
 			u16 bridge_cfg, gpu_cfg;
 			u16 bridge_cfg2, gpu_cfg2;
 			u32 max_lw, current_lw, tmp;
@@ -1411,9 +1483,12 @@ static void si_pcie_gen3_enable(struct amdgpu_device *adev)
 			max_lw = (tmp & LC_DETECTED_LINK_WIDTH_MASK) >> LC_DETECTED_LINK_WIDTH_SHIFT;
 			current_lw = (tmp & LC_OPERATING_LINK_WIDTH_MASK) >> LC_OPERATING_LINK_WIDTH_SHIFT;
 
-			if (current_lw < max_lw) {
+			if (current_lw < max_lw)
+			{
 				tmp = RREG32_PCIE_PORT(PCIE_LC_LINK_WIDTH_CNTL);
-				if (tmp & LC_RENEGOTIATION_SUPPORT) {
+
+				if (tmp & LC_RENEGOTIATION_SUPPORT)
+				{
 					tmp &= ~(LC_LINK_WIDTH_MASK | LC_UPCONFIGURE_DIS);
 					tmp |= (max_lw << LC_LINK_WIDTH_SHIFT);
 					tmp |= LC_UPCONFIGURE_SUPPORT | LC_RENEGOTIATE_EN | LC_RECONFIG_NOW;
@@ -1421,10 +1496,14 @@ static void si_pcie_gen3_enable(struct amdgpu_device *adev)
 				}
 			}
 
-			for (i = 0; i < 10; i++) {
+			for (i = 0; i < 10; i++)
+			{
 				pci_read_config_word(adev->pdev, gpu_pos + PCI_EXP_DEVSTA, &tmp16);
+
 				if (tmp16 & PCI_EXP_DEVSTA_TRPND)
+				{
 					break;
+				}
 
 				pci_read_config_word(root, bridge_pos + PCI_EXP_LNKCTL, &bridge_cfg);
 				pci_read_config_word(adev->pdev, gpu_pos + PCI_EXP_LNKCTL, &gpu_cfg);
@@ -1475,22 +1554,35 @@ static void si_pcie_gen3_enable(struct amdgpu_device *adev)
 
 	pci_read_config_word(adev->pdev, gpu_pos + PCI_EXP_LNKCTL2, &tmp16);
 	tmp16 &= ~0xf;
+
 	if (mask & DRM_PCIE_SPEED_80)
+	{
 		tmp16 |= 3;
+	}
 	else if (mask & DRM_PCIE_SPEED_50)
+	{
 		tmp16 |= 2;
+	}
 	else
+	{
 		tmp16 |= 1;
+	}
+
 	pci_write_config_word(adev->pdev, gpu_pos + PCI_EXP_LNKCTL2, tmp16);
 
 	speed_cntl = RREG32_PCIE_PORT(PCIE_LC_SPEED_CNTL);
 	speed_cntl |= LC_INITIATE_LINK_SPEED_CHANGE;
 	WREG32_PCIE_PORT(PCIE_LC_SPEED_CNTL, speed_cntl);
 
-	for (i = 0; i < adev->usec_timeout; i++) {
+	for (i = 0; i < adev->usec_timeout; i++)
+	{
 		speed_cntl = RREG32_PCIE_PORT(PCIE_LC_SPEED_CNTL);
+
 		if ((speed_cntl & LC_INITIATE_LINK_SPEED_CHANGE) == 0)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 }
@@ -1545,198 +1637,316 @@ static void si_program_aspm(struct amdgpu_device *adev)
 	bool disable_clkreq = false;
 
 	if (amdgpu_aspm == 0)
+	{
 		return;
+	}
 
 	if (adev->flags & AMD_IS_APU)
+	{
 		return;
+	}
+
 	orig = data = RREG32_PCIE_PORT(PCIE_LC_N_FTS_CNTL);
 	data &= ~LC_XMIT_N_FTS_MASK;
 	data |= LC_XMIT_N_FTS(0x24) | LC_XMIT_N_FTS_OVERRIDE_EN;
+
 	if (orig != data)
+	{
 		WREG32_PCIE_PORT(PCIE_LC_N_FTS_CNTL, data);
+	}
 
 	orig = data = RREG32_PCIE_PORT(PCIE_LC_CNTL3);
 	data |= LC_GO_TO_RECOVERY;
+
 	if (orig != data)
+	{
 		WREG32_PCIE_PORT(PCIE_LC_CNTL3, data);
+	}
 
 	orig = data = RREG32_PCIE(PCIE_P_CNTL);
 	data |= P_IGNORE_EDB_ERR;
+
 	if (orig != data)
+	{
 		WREG32_PCIE(PCIE_P_CNTL, data);
+	}
 
 	orig = data = RREG32_PCIE_PORT(PCIE_LC_CNTL);
 	data &= ~(LC_L0S_INACTIVITY_MASK | LC_L1_INACTIVITY_MASK);
 	data |= LC_PMI_TO_L1_DIS;
-	if (!disable_l0s)
-		data |= LC_L0S_INACTIVITY(7);
 
-	if (!disable_l1) {
+	if (!disable_l0s)
+	{
+		data |= LC_L0S_INACTIVITY(7);
+	}
+
+	if (!disable_l1)
+	{
 		data |= LC_L1_INACTIVITY(7);
 		data &= ~LC_PMI_TO_L1_DIS;
-		if (orig != data)
-			WREG32_PCIE_PORT(PCIE_LC_CNTL, data);
 
-		if (!disable_plloff_in_l1) {
+		if (orig != data)
+		{
+			WREG32_PCIE_PORT(PCIE_LC_CNTL, data);
+		}
+
+		if (!disable_plloff_in_l1)
+		{
 			bool clk_req_support;
 
-			orig = data = si_pif_phy0_rreg(adev,PB0_PIF_PWRDOWN_0);
+			orig = data = si_pif_phy0_rreg(adev, PB0_PIF_PWRDOWN_0);
 			data &= ~(PLL_POWER_STATE_IN_OFF_0_MASK | PLL_POWER_STATE_IN_TXS2_0_MASK);
 			data |= PLL_POWER_STATE_IN_OFF_0(7) | PLL_POWER_STATE_IN_TXS2_0(7);
+
 			if (orig != data)
-				si_pif_phy0_wreg(adev,PB0_PIF_PWRDOWN_0, data);
-
-			orig = data = si_pif_phy0_rreg(adev,PB0_PIF_PWRDOWN_1);
-			data &= ~(PLL_POWER_STATE_IN_OFF_1_MASK | PLL_POWER_STATE_IN_TXS2_1_MASK);
-			data |= PLL_POWER_STATE_IN_OFF_1(7) | PLL_POWER_STATE_IN_TXS2_1(7);
-			if (orig != data)
-				si_pif_phy0_wreg(adev,PB0_PIF_PWRDOWN_1, data);
-
-			orig = data = si_pif_phy1_rreg(adev,PB1_PIF_PWRDOWN_0);
-			data &= ~(PLL_POWER_STATE_IN_OFF_0_MASK | PLL_POWER_STATE_IN_TXS2_0_MASK);
-			data |= PLL_POWER_STATE_IN_OFF_0(7) | PLL_POWER_STATE_IN_TXS2_0(7);
-			if (orig != data)
-				si_pif_phy1_wreg(adev,PB1_PIF_PWRDOWN_0, data);
-
-			orig = data = si_pif_phy1_rreg(adev,PB1_PIF_PWRDOWN_1);
-			data &= ~(PLL_POWER_STATE_IN_OFF_1_MASK | PLL_POWER_STATE_IN_TXS2_1_MASK);
-			data |= PLL_POWER_STATE_IN_OFF_1(7) | PLL_POWER_STATE_IN_TXS2_1(7);
-			if (orig != data)
-				si_pif_phy1_wreg(adev,PB1_PIF_PWRDOWN_1, data);
-
-			if ((adev->family != CHIP_OLAND) && (adev->family != CHIP_HAINAN)) {
-				orig = data = si_pif_phy0_rreg(adev,PB0_PIF_PWRDOWN_0);
-				data &= ~PLL_RAMP_UP_TIME_0_MASK;
-				if (orig != data)
-					si_pif_phy0_wreg(adev,PB0_PIF_PWRDOWN_0, data);
-
-				orig = data = si_pif_phy0_rreg(adev,PB0_PIF_PWRDOWN_1);
-				data &= ~PLL_RAMP_UP_TIME_1_MASK;
-				if (orig != data)
-					si_pif_phy0_wreg(adev,PB0_PIF_PWRDOWN_1, data);
-
-				orig = data = si_pif_phy0_rreg(adev,PB0_PIF_PWRDOWN_2);
-				data &= ~PLL_RAMP_UP_TIME_2_MASK;
-				if (orig != data)
-					si_pif_phy0_wreg(adev,PB0_PIF_PWRDOWN_2, data);
-
-				orig = data = si_pif_phy0_rreg(adev,PB0_PIF_PWRDOWN_3);
-				data &= ~PLL_RAMP_UP_TIME_3_MASK;
-				if (orig != data)
-					si_pif_phy0_wreg(adev,PB0_PIF_PWRDOWN_3, data);
-
-				orig = data = si_pif_phy1_rreg(adev,PB1_PIF_PWRDOWN_0);
-				data &= ~PLL_RAMP_UP_TIME_0_MASK;
-				if (orig != data)
-					si_pif_phy1_wreg(adev,PB1_PIF_PWRDOWN_0, data);
-
-				orig = data = si_pif_phy1_rreg(adev,PB1_PIF_PWRDOWN_1);
-				data &= ~PLL_RAMP_UP_TIME_1_MASK;
-				if (orig != data)
-					si_pif_phy1_wreg(adev,PB1_PIF_PWRDOWN_1, data);
-
-				orig = data = si_pif_phy1_rreg(adev,PB1_PIF_PWRDOWN_2);
-				data &= ~PLL_RAMP_UP_TIME_2_MASK;
-				if (orig != data)
-					si_pif_phy1_wreg(adev,PB1_PIF_PWRDOWN_2, data);
-
-				orig = data = si_pif_phy1_rreg(adev,PB1_PIF_PWRDOWN_3);
-				data &= ~PLL_RAMP_UP_TIME_3_MASK;
-				if (orig != data)
-					si_pif_phy1_wreg(adev,PB1_PIF_PWRDOWN_3, data);
+			{
+				si_pif_phy0_wreg(adev, PB0_PIF_PWRDOWN_0, data);
 			}
+
+			orig = data = si_pif_phy0_rreg(adev, PB0_PIF_PWRDOWN_1);
+			data &= ~(PLL_POWER_STATE_IN_OFF_1_MASK | PLL_POWER_STATE_IN_TXS2_1_MASK);
+			data |= PLL_POWER_STATE_IN_OFF_1(7) | PLL_POWER_STATE_IN_TXS2_1(7);
+
+			if (orig != data)
+			{
+				si_pif_phy0_wreg(adev, PB0_PIF_PWRDOWN_1, data);
+			}
+
+			orig = data = si_pif_phy1_rreg(adev, PB1_PIF_PWRDOWN_0);
+			data &= ~(PLL_POWER_STATE_IN_OFF_0_MASK | PLL_POWER_STATE_IN_TXS2_0_MASK);
+			data |= PLL_POWER_STATE_IN_OFF_0(7) | PLL_POWER_STATE_IN_TXS2_0(7);
+
+			if (orig != data)
+			{
+				si_pif_phy1_wreg(adev, PB1_PIF_PWRDOWN_0, data);
+			}
+
+			orig = data = si_pif_phy1_rreg(adev, PB1_PIF_PWRDOWN_1);
+			data &= ~(PLL_POWER_STATE_IN_OFF_1_MASK | PLL_POWER_STATE_IN_TXS2_1_MASK);
+			data |= PLL_POWER_STATE_IN_OFF_1(7) | PLL_POWER_STATE_IN_TXS2_1(7);
+
+			if (orig != data)
+			{
+				si_pif_phy1_wreg(adev, PB1_PIF_PWRDOWN_1, data);
+			}
+
+			if ((adev->family != CHIP_OLAND) && (adev->family != CHIP_HAINAN))
+			{
+				orig = data = si_pif_phy0_rreg(adev, PB0_PIF_PWRDOWN_0);
+				data &= ~PLL_RAMP_UP_TIME_0_MASK;
+
+				if (orig != data)
+				{
+					si_pif_phy0_wreg(adev, PB0_PIF_PWRDOWN_0, data);
+				}
+
+				orig = data = si_pif_phy0_rreg(adev, PB0_PIF_PWRDOWN_1);
+				data &= ~PLL_RAMP_UP_TIME_1_MASK;
+
+				if (orig != data)
+				{
+					si_pif_phy0_wreg(adev, PB0_PIF_PWRDOWN_1, data);
+				}
+
+				orig = data = si_pif_phy0_rreg(adev, PB0_PIF_PWRDOWN_2);
+				data &= ~PLL_RAMP_UP_TIME_2_MASK;
+
+				if (orig != data)
+				{
+					si_pif_phy0_wreg(adev, PB0_PIF_PWRDOWN_2, data);
+				}
+
+				orig = data = si_pif_phy0_rreg(adev, PB0_PIF_PWRDOWN_3);
+				data &= ~PLL_RAMP_UP_TIME_3_MASK;
+
+				if (orig != data)
+				{
+					si_pif_phy0_wreg(adev, PB0_PIF_PWRDOWN_3, data);
+				}
+
+				orig = data = si_pif_phy1_rreg(adev, PB1_PIF_PWRDOWN_0);
+				data &= ~PLL_RAMP_UP_TIME_0_MASK;
+
+				if (orig != data)
+				{
+					si_pif_phy1_wreg(adev, PB1_PIF_PWRDOWN_0, data);
+				}
+
+				orig = data = si_pif_phy1_rreg(adev, PB1_PIF_PWRDOWN_1);
+				data &= ~PLL_RAMP_UP_TIME_1_MASK;
+
+				if (orig != data)
+				{
+					si_pif_phy1_wreg(adev, PB1_PIF_PWRDOWN_1, data);
+				}
+
+				orig = data = si_pif_phy1_rreg(adev, PB1_PIF_PWRDOWN_2);
+				data &= ~PLL_RAMP_UP_TIME_2_MASK;
+
+				if (orig != data)
+				{
+					si_pif_phy1_wreg(adev, PB1_PIF_PWRDOWN_2, data);
+				}
+
+				orig = data = si_pif_phy1_rreg(adev, PB1_PIF_PWRDOWN_3);
+				data &= ~PLL_RAMP_UP_TIME_3_MASK;
+
+				if (orig != data)
+				{
+					si_pif_phy1_wreg(adev, PB1_PIF_PWRDOWN_3, data);
+				}
+			}
+
 			orig = data = RREG32_PCIE_PORT(PCIE_LC_LINK_WIDTH_CNTL);
 			data &= ~LC_DYN_LANES_PWR_STATE_MASK;
 			data |= LC_DYN_LANES_PWR_STATE(3);
+
 			if (orig != data)
+			{
 				WREG32_PCIE_PORT(PCIE_LC_LINK_WIDTH_CNTL, data);
+			}
 
-			orig = data = si_pif_phy0_rreg(adev,PB0_PIF_CNTL);
+			orig = data = si_pif_phy0_rreg(adev, PB0_PIF_CNTL);
 			data &= ~LS2_EXIT_TIME_MASK;
-			if ((adev->family == CHIP_OLAND) || (adev->family == CHIP_HAINAN))
-				data |= LS2_EXIT_TIME(5);
-			if (orig != data)
-				si_pif_phy0_wreg(adev,PB0_PIF_CNTL, data);
 
-			orig = data = si_pif_phy1_rreg(adev,PB1_PIF_CNTL);
-			data &= ~LS2_EXIT_TIME_MASK;
 			if ((adev->family == CHIP_OLAND) || (adev->family == CHIP_HAINAN))
+			{
 				data |= LS2_EXIT_TIME(5);
+			}
+
 			if (orig != data)
-				si_pif_phy1_wreg(adev,PB1_PIF_CNTL, data);
+			{
+				si_pif_phy0_wreg(adev, PB0_PIF_CNTL, data);
+			}
+
+			orig = data = si_pif_phy1_rreg(adev, PB1_PIF_CNTL);
+			data &= ~LS2_EXIT_TIME_MASK;
+
+			if ((adev->family == CHIP_OLAND) || (adev->family == CHIP_HAINAN))
+			{
+				data |= LS2_EXIT_TIME(5);
+			}
+
+			if (orig != data)
+			{
+				si_pif_phy1_wreg(adev, PB1_PIF_CNTL, data);
+			}
 
 			if (!disable_clkreq &&
-			    !pci_is_root_bus(adev->pdev->bus)) {
+				!pci_is_root_bus(adev->pdev->bus))
+			{
 				struct pci_dev *root = adev->pdev->bus->self;
 				u32 lnkcap;
 
 				clk_req_support = false;
 				pcie_capability_read_dword(root, PCI_EXP_LNKCAP, &lnkcap);
+
 				if (lnkcap & PCI_EXP_LNKCAP_CLKPM)
+				{
 					clk_req_support = true;
-			} else {
+				}
+			}
+			else
+			{
 				clk_req_support = false;
 			}
 
-			if (clk_req_support) {
+			if (clk_req_support)
+			{
 				orig = data = RREG32_PCIE_PORT(PCIE_LC_CNTL2);
 				data |= LC_ALLOW_PDWN_IN_L1 | LC_ALLOW_PDWN_IN_L23;
+
 				if (orig != data)
+				{
 					WREG32_PCIE_PORT(PCIE_LC_CNTL2, data);
+				}
 
 				orig = data = RREG32(THM_CLK_CNTL);
 				data &= ~(CMON_CLK_SEL_MASK | TMON_CLK_SEL_MASK);
 				data |= CMON_CLK_SEL(1) | TMON_CLK_SEL(1);
+
 				if (orig != data)
+				{
 					WREG32(THM_CLK_CNTL, data);
+				}
 
 				orig = data = RREG32(MISC_CLK_CNTL);
 				data &= ~(DEEP_SLEEP_CLK_SEL_MASK | ZCLK_SEL_MASK);
 				data |= DEEP_SLEEP_CLK_SEL(1) | ZCLK_SEL(1);
+
 				if (orig != data)
+				{
 					WREG32(MISC_CLK_CNTL, data);
+				}
 
 				orig = data = RREG32(CG_CLKPIN_CNTL);
 				data &= ~BCLK_AS_XCLK;
+
 				if (orig != data)
+				{
 					WREG32(CG_CLKPIN_CNTL, data);
+				}
 
 				orig = data = RREG32(CG_CLKPIN_CNTL_2);
 				data &= ~FORCE_BIF_REFCLK_EN;
+
 				if (orig != data)
+				{
 					WREG32(CG_CLKPIN_CNTL_2, data);
+				}
 
 				orig = data = RREG32(MPLL_BYPASSCLK_SEL);
 				data &= ~MPLL_CLKOUT_SEL_MASK;
 				data |= MPLL_CLKOUT_SEL(4);
+
 				if (orig != data)
+				{
 					WREG32(MPLL_BYPASSCLK_SEL, data);
+				}
 
 				orig = data = RREG32(SPLL_CNTL_MODE);
 				data &= ~SPLL_REFCLK_SEL_MASK;
+
 				if (orig != data)
+				{
 					WREG32(SPLL_CNTL_MODE, data);
+				}
 			}
 		}
-	} else {
+	}
+	else
+	{
 		if (orig != data)
+		{
 			WREG32_PCIE_PORT(PCIE_LC_CNTL, data);
+		}
 	}
 
 	orig = data = RREG32_PCIE(PCIE_CNTL2);
 	data |= SLV_MEM_LS_EN | MST_MEM_LS_EN | REPLAY_MEM_LS_EN;
-	if (orig != data)
-		WREG32_PCIE(PCIE_CNTL2, data);
 
-	if (!disable_l0s) {
+	if (orig != data)
+	{
+		WREG32_PCIE(PCIE_CNTL2, data);
+	}
+
+	if (!disable_l0s)
+	{
 		data = RREG32_PCIE_PORT(PCIE_LC_N_FTS_CNTL);
-		if((data & LC_N_FTS_MASK) == LC_N_FTS_MASK) {
+
+		if ((data & LC_N_FTS_MASK) == LC_N_FTS_MASK)
+		{
 			data = RREG32_PCIE(PCIE_LC_STATUS1);
-			if ((data & LC_REVERSE_XMIT) && (data & LC_REVERSE_RCVR)) {
+
+			if ((data & LC_REVERSE_XMIT) && (data & LC_REVERSE_RCVR))
+			{
 				orig = data = RREG32_PCIE_PORT(PCIE_LC_CNTL);
 				data &= ~LC_L0S_INACTIVITY_MASK;
+
 				if (orig != data)
+				{
 					WREG32_PCIE_PORT(PCIE_LC_CNTL, data);
+				}
 			}
 		}
 	}
@@ -1749,8 +1959,11 @@ static void si_fix_pci_max_read_req_size(struct amdgpu_device *adev)
 
 	readrq = pcie_get_readrq(adev->pdev);
 	v = ffs(readrq) - 8;
+
 	if ((v == 0) || (v == 6) || (v == 7))
+	{
 		pcie_set_readrq(adev->pdev, 512);
+	}
 }
 
 static int si_common_hw_init(void *handle)
@@ -1800,18 +2013,19 @@ static int si_common_soft_reset(void *handle)
 }
 
 static int si_common_set_clockgating_state(void *handle,
-					    enum amd_clockgating_state state)
+		enum amd_clockgating_state state)
 {
 	return 0;
 }
 
 static int si_common_set_powergating_state(void *handle,
-					    enum amd_powergating_state state)
+		enum amd_powergating_state state)
 {
 	return 0;
 }
 
-const struct amd_ip_funcs si_common_ip_funcs = {
+const struct amd_ip_funcs si_common_ip_funcs =
+{
 	.name = "si_common",
 	.early_init = si_common_early_init,
 	.late_init = NULL,
@@ -1879,21 +2093,21 @@ static const struct amdgpu_ip_block_version verde_ip_blocks[] =
 		.rev = 0,
 		.funcs = &si_dma_ip_funcs,
 	},
-/*	{
-		.type = AMD_IP_BLOCK_TYPE_UVD,
-		.major = 3,
-		.minor = 1,
-		.rev = 0,
-		.funcs = &si_null_ip_funcs,
-	},
-	{
-		.type = AMD_IP_BLOCK_TYPE_VCE,
-		.major = 1,
-		.minor = 0,
-		.rev = 0,
-		.funcs = &si_null_ip_funcs,
-	},
-	*/
+	/*	{
+			.type = AMD_IP_BLOCK_TYPE_UVD,
+			.major = 3,
+			.minor = 1,
+			.rev = 0,
+			.funcs = &si_null_ip_funcs,
+		},
+		{
+			.type = AMD_IP_BLOCK_TYPE_VCE,
+			.major = 1,
+			.minor = 0,
+			.rev = 0,
+			.funcs = &si_null_ip_funcs,
+		},
+		*/
 };
 
 
@@ -1945,21 +2159,25 @@ static const struct amdgpu_ip_block_version hainan_ip_blocks[] =
 
 int si_set_ip_blocks(struct amdgpu_device *adev)
 {
-	switch (adev->asic_type) {
-	case CHIP_VERDE:
-	case CHIP_TAHITI:
-	case CHIP_PITCAIRN:
-	case CHIP_OLAND:
-		adev->ip_blocks = verde_ip_blocks;
-		adev->num_ip_blocks = ARRAY_SIZE(verde_ip_blocks);
-		break;
-	case CHIP_HAINAN:
-		adev->ip_blocks = hainan_ip_blocks;
-		adev->num_ip_blocks = ARRAY_SIZE(hainan_ip_blocks);
-		break;
-	default:
-		BUG();
+	switch (adev->asic_type)
+	{
+		case CHIP_VERDE:
+		case CHIP_TAHITI:
+		case CHIP_PITCAIRN:
+		case CHIP_OLAND:
+			adev->ip_blocks = verde_ip_blocks;
+			adev->num_ip_blocks = ARRAY_SIZE(verde_ip_blocks);
+			break;
+
+		case CHIP_HAINAN:
+			adev->ip_blocks = hainan_ip_blocks;
+			adev->num_ip_blocks = ARRAY_SIZE(hainan_ip_blocks);
+			break;
+
+		default:
+			BUG();
 	}
+
 	return 0;
 }
 

@@ -31,7 +31,7 @@
 /* DRM encoder functions */
 
 static void ch7006_encoder_set_config(struct drm_encoder *encoder,
-				      void *params)
+									  void *params)
 {
 	struct ch7006_priv *priv = to_ch7006_priv(encoder);
 
@@ -59,7 +59,10 @@ static void  ch7006_encoder_dpms(struct drm_encoder *encoder, int mode)
 	ch7006_dbg(client, "\n");
 
 	if (mode == priv->last_dpms)
+	{
 		return;
+	}
+
 	priv->last_dpms = mode;
 
 	ch7006_setup_power_state(encoder);
@@ -88,8 +91,8 @@ static void ch7006_encoder_restore(struct drm_encoder *encoder)
 }
 
 static bool ch7006_encoder_mode_fixup(struct drm_encoder *encoder,
-				      const struct drm_display_mode *mode,
-				      struct drm_display_mode *adjusted_mode)
+									  const struct drm_display_mode *mode,
+									  struct drm_display_mode *adjusted_mode)
 {
 	struct ch7006_priv *priv = to_ch7006_priv(encoder);
 
@@ -102,17 +105,21 @@ static bool ch7006_encoder_mode_fixup(struct drm_encoder *encoder,
 }
 
 static int ch7006_encoder_mode_valid(struct drm_encoder *encoder,
-				     struct drm_display_mode *mode)
+									 struct drm_display_mode *mode)
 {
 	if (ch7006_lookup_mode(encoder, mode))
+	{
 		return MODE_OK;
+	}
 	else
+	{
 		return MODE_BAD;
+	}
 }
 
 static void ch7006_encoder_mode_set(struct drm_encoder *encoder,
-				     struct drm_display_mode *drm_mode,
-				     struct drm_display_mode *adjusted_mode)
+									struct drm_display_mode *drm_mode,
+									struct drm_display_mode *adjusted_mode)
 {
 	struct i2c_client *client = drm_i2c_encoder_get_client(encoder);
 	struct ch7006_priv *priv = to_ch7006_priv(encoder);
@@ -128,40 +135,64 @@ static void ch7006_encoder_mode_set(struct drm_encoder *encoder,
 	regs[CH7006_DISPMODE] = norm->dispmode | mode->dispmode;
 	regs[CH7006_BWIDTH] = 0;
 	regs[CH7006_INPUT_FORMAT] = bitf(CH7006_INPUT_FORMAT_FORMAT,
-					 params->input_format);
+									 params->input_format);
 
 	regs[CH7006_CLKMODE] = CH7006_CLKMODE_SUBC_LOCK
-		| bitf(CH7006_CLKMODE_XCM, params->xcm)
-		| bitf(CH7006_CLKMODE_PCM, params->pcm);
+						   | bitf(CH7006_CLKMODE_XCM, params->xcm)
+						   | bitf(CH7006_CLKMODE_PCM, params->pcm);
+
 	if (params->clock_mode)
+	{
 		regs[CH7006_CLKMODE] |= CH7006_CLKMODE_MASTER;
+	}
+
 	if (params->clock_edge)
+	{
 		regs[CH7006_CLKMODE] |= CH7006_CLKMODE_POS_EDGE;
+	}
 
 	start_active = (drm_mode->htotal & ~0x7) - (drm_mode->hsync_start & ~0x7);
 	regs[CH7006_POV] = bitf(CH7006_POV_START_ACTIVE_8, start_active);
 	regs[CH7006_START_ACTIVE] = bitf(CH7006_START_ACTIVE_0, start_active);
 
 	regs[CH7006_INPUT_SYNC] = 0;
+
 	if (params->sync_direction)
+	{
 		regs[CH7006_INPUT_SYNC] |= CH7006_INPUT_SYNC_OUTPUT;
+	}
+
 	if (params->sync_encoding)
+	{
 		regs[CH7006_INPUT_SYNC] |= CH7006_INPUT_SYNC_EMBEDDED;
+	}
+
 	if (drm_mode->flags & DRM_MODE_FLAG_PVSYNC)
+	{
 		regs[CH7006_INPUT_SYNC] |= CH7006_INPUT_SYNC_PVSYNC;
+	}
+
 	if (drm_mode->flags & DRM_MODE_FLAG_PHSYNC)
+	{
 		regs[CH7006_INPUT_SYNC] |= CH7006_INPUT_SYNC_PHSYNC;
+	}
 
 	regs[CH7006_DETECT] = 0;
 	regs[CH7006_BCLKOUT] = 0;
 
 	regs[CH7006_SUBC_INC3] = 0;
+
 	if (params->pout_level)
+	{
 		regs[CH7006_SUBC_INC3] |= CH7006_SUBC_INC3_POUT_3_3V;
+	}
 
 	regs[CH7006_SUBC_INC4] = 0;
+
 	if (params->active_detect)
+	{
 		regs[CH7006_SUBC_INC4] |= CH7006_SUBC_INC4_DS_INPUT;
+	}
 
 	regs[CH7006_PLL_CONTROL] = priv->saved_state.regs[CH7006_PLL_CONTROL];
 
@@ -175,7 +206,7 @@ static void ch7006_encoder_mode_set(struct drm_encoder *encoder,
 }
 
 static enum drm_connector_status ch7006_encoder_detect(struct drm_encoder *encoder,
-						       struct drm_connector *connector)
+		struct drm_connector *connector)
 {
 	struct i2c_client *client = drm_i2c_encoder_get_client(encoder);
 	struct ch7006_priv *priv = to_ch7006_priv(encoder);
@@ -189,7 +220,7 @@ static enum drm_connector_status ch7006_encoder_detect(struct drm_encoder *encod
 	ch7006_save_reg(client, state, CH7006_CLKMODE);
 
 	ch7006_write(client, CH7006_POWER, CH7006_POWER_RESET |
-					   bitfs(CH7006_POWER_LEVEL, NORMAL));
+				 bitfs(CH7006_POWER_LEVEL, NORMAL));
 	ch7006_write(client, CH7006_CLKMODE, CH7006_CLKMODE_MASTER);
 
 	ch7006_write(client, CH7006_DETECT, CH7006_DETECT_SENSE);
@@ -202,40 +233,51 @@ static enum drm_connector_status ch7006_encoder_detect(struct drm_encoder *encod
 	ch7006_load_reg(client, state, CH7006_POWER);
 	ch7006_load_reg(client, state, CH7006_DETECT);
 
-	if ((det & (CH7006_DETECT_SVIDEO_Y_TEST|
-		    CH7006_DETECT_SVIDEO_C_TEST|
-		    CH7006_DETECT_CVBS_TEST)) == 0)
+	if ((det & (CH7006_DETECT_SVIDEO_Y_TEST |
+				CH7006_DETECT_SVIDEO_C_TEST |
+				CH7006_DETECT_CVBS_TEST)) == 0)
+	{
 		priv->subconnector = DRM_MODE_SUBCONNECTOR_SCART;
-	else if ((det & (CH7006_DETECT_SVIDEO_Y_TEST|
-			 CH7006_DETECT_SVIDEO_C_TEST)) == 0)
+	}
+	else if ((det & (CH7006_DETECT_SVIDEO_Y_TEST |
+					 CH7006_DETECT_SVIDEO_C_TEST)) == 0)
+	{
 		priv->subconnector = DRM_MODE_SUBCONNECTOR_SVIDEO;
+	}
 	else if ((det & CH7006_DETECT_CVBS_TEST) == 0)
+	{
 		priv->subconnector = DRM_MODE_SUBCONNECTOR_Composite;
+	}
 	else
+	{
 		priv->subconnector = DRM_MODE_SUBCONNECTOR_Unknown;
+	}
 
 	drm_object_property_set_value(&connector->base,
-			encoder->dev->mode_config.tv_subconnector_property,
-							priv->subconnector);
+								  encoder->dev->mode_config.tv_subconnector_property,
+								  priv->subconnector);
 
 	return priv->subconnector ? connector_status_connected :
-					connector_status_disconnected;
+		   connector_status_disconnected;
 }
 
 static int ch7006_encoder_get_modes(struct drm_encoder *encoder,
-				    struct drm_connector *connector)
+									struct drm_connector *connector)
 {
 	struct ch7006_priv *priv = to_ch7006_priv(encoder);
 	const struct ch7006_mode *mode;
 	int n = 0;
 
-	for (mode = ch7006_modes; mode->mode.clock; mode++) {
-		if (~mode->valid_scales & 1<<priv->scale ||
-		    ~mode->valid_norms & 1<<priv->norm)
+	for (mode = ch7006_modes; mode->mode.clock; mode++)
+	{
+		if (~mode->valid_scales & 1 << priv->scale ||
+			~mode->valid_norms & 1 << priv->norm)
+		{
 			continue;
+		}
 
 		drm_mode_probed_add(connector,
-				drm_mode_duplicate(encoder->dev, &mode->mode));
+							drm_mode_duplicate(encoder->dev, &mode->mode));
 
 		n++;
 	}
@@ -244,7 +286,7 @@ static int ch7006_encoder_get_modes(struct drm_encoder *encoder,
 }
 
 static int ch7006_encoder_create_resources(struct drm_encoder *encoder,
-					   struct drm_connector *connector)
+		struct drm_connector *connector)
 {
 	struct ch7006_priv *priv = to_ch7006_priv(encoder);
 	struct drm_device *dev = encoder->dev;
@@ -253,35 +295,38 @@ static int ch7006_encoder_create_resources(struct drm_encoder *encoder,
 	drm_mode_create_tv_properties(dev, NUM_TV_NORMS, ch7006_tv_norm_names);
 
 	priv->scale_property = drm_property_create_range(dev, 0, "scale", 0, 2);
+
 	if (!priv->scale_property)
+	{
 		return -ENOMEM;
+	}
 
 	drm_object_attach_property(&connector->base, conf->tv_select_subconnector_property,
-				      priv->select_subconnector);
+							   priv->select_subconnector);
 	drm_object_attach_property(&connector->base, conf->tv_subconnector_property,
-				      priv->subconnector);
+							   priv->subconnector);
 	drm_object_attach_property(&connector->base, conf->tv_left_margin_property,
-				      priv->hmargin);
+							   priv->hmargin);
 	drm_object_attach_property(&connector->base, conf->tv_bottom_margin_property,
-				      priv->vmargin);
+							   priv->vmargin);
 	drm_object_attach_property(&connector->base, conf->tv_mode_property,
-				      priv->norm);
+							   priv->norm);
 	drm_object_attach_property(&connector->base, conf->tv_brightness_property,
-				      priv->brightness);
+							   priv->brightness);
 	drm_object_attach_property(&connector->base, conf->tv_contrast_property,
-				      priv->contrast);
+							   priv->contrast);
 	drm_object_attach_property(&connector->base, conf->tv_flicker_reduction_property,
-				      priv->flicker);
+							   priv->flicker);
 	drm_object_attach_property(&connector->base, priv->scale_property,
-				      priv->scale);
+							   priv->scale);
 
 	return 0;
 }
 
 static int ch7006_encoder_set_property(struct drm_encoder *encoder,
-				       struct drm_connector *connector,
-				       struct drm_property *property,
-				       uint64_t val)
+									   struct drm_connector *connector,
+									   struct drm_property *property,
+									   uint64_t val)
 {
 	struct i2c_client *client = drm_i2c_encoder_get_client(encoder);
 	struct ch7006_priv *priv = to_ch7006_priv(encoder);
@@ -292,14 +337,17 @@ static int ch7006_encoder_set_property(struct drm_encoder *encoder,
 
 	ch7006_dbg(client, "\n");
 
-	if (property == conf->tv_select_subconnector_property) {
+	if (property == conf->tv_select_subconnector_property)
+	{
 		priv->select_subconnector = val;
 
 		ch7006_setup_power_state(encoder);
 
 		ch7006_load_reg(client, state, CH7006_POWER);
 
-	} else if (property == conf->tv_left_margin_property) {
+	}
+	else if (property == conf->tv_left_margin_property)
+	{
 		priv->hmargin = val;
 
 		ch7006_setup_properties(encoder);
@@ -307,7 +355,9 @@ static int ch7006_encoder_set_property(struct drm_encoder *encoder,
 		ch7006_load_reg(client, state, CH7006_POV);
 		ch7006_load_reg(client, state, CH7006_HPOS);
 
-	} else if (property == conf->tv_bottom_margin_property) {
+	}
+	else if (property == conf->tv_bottom_margin_property)
+	{
 		priv->vmargin = val;
 
 		ch7006_setup_properties(encoder);
@@ -315,60 +365,80 @@ static int ch7006_encoder_set_property(struct drm_encoder *encoder,
 		ch7006_load_reg(client, state, CH7006_POV);
 		ch7006_load_reg(client, state, CH7006_VPOS);
 
-	} else if (property == conf->tv_mode_property) {
+	}
+	else if (property == conf->tv_mode_property)
+	{
 		if (connector->dpms != DRM_MODE_DPMS_OFF)
+		{
 			return -EINVAL;
+		}
 
 		priv->norm = val;
 
 		modes_changed = true;
 
-	} else if (property == conf->tv_brightness_property) {
+	}
+	else if (property == conf->tv_brightness_property)
+	{
 		priv->brightness = val;
 
 		ch7006_setup_levels(encoder);
 
 		ch7006_load_reg(client, state, CH7006_BLACK_LEVEL);
 
-	} else if (property == conf->tv_contrast_property) {
+	}
+	else if (property == conf->tv_contrast_property)
+	{
 		priv->contrast = val;
 
 		ch7006_setup_properties(encoder);
 
 		ch7006_load_reg(client, state, CH7006_CONTRAST);
 
-	} else if (property == conf->tv_flicker_reduction_property) {
+	}
+	else if (property == conf->tv_flicker_reduction_property)
+	{
 		priv->flicker = val;
 
 		ch7006_setup_properties(encoder);
 
 		ch7006_load_reg(client, state, CH7006_FFILTER);
 
-	} else if (property == priv->scale_property) {
+	}
+	else if (property == priv->scale_property)
+	{
 		if (connector->dpms != DRM_MODE_DPMS_OFF)
+		{
 			return -EINVAL;
+		}
 
 		priv->scale = val;
 
 		modes_changed = true;
 
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 
-	if (modes_changed) {
+	if (modes_changed)
+	{
 		drm_helper_probe_single_connector_modes(connector, 0, 0);
 
 		/* Disable the crtc to ensure a full modeset is
 		 * performed whenever it's turned on again. */
 		if (crtc)
+		{
 			drm_crtc_force_disable(crtc);
+		}
 	}
 
 	return 0;
 }
 
-static const struct drm_encoder_slave_funcs ch7006_encoder_funcs = {
+static const struct drm_encoder_slave_funcs ch7006_encoder_funcs =
+{
 	.set_config = ch7006_encoder_set_config,
 	.destroy = ch7006_encoder_destroy,
 	.dpms = ch7006_encoder_dpms,
@@ -395,12 +465,18 @@ static int ch7006_probe(struct i2c_client *client, const struct i2c_device_id *i
 	ch7006_dbg(client, "\n");
 
 	ret = i2c_master_send(client, &addr, sizeof(addr));
+
 	if (ret < 0)
+	{
 		goto fail;
+	}
 
 	ret = i2c_master_recv(client, &val, sizeof(val));
+
 	if (ret < 0)
+	{
 		goto fail;
+	}
 
 	ch7006_info(client, "Detected version ID: %x\n", val);
 
@@ -436,8 +512,8 @@ static int ch7006_resume(struct device *dev)
 }
 
 static int ch7006_encoder_init(struct i2c_client *client,
-			       struct drm_device *dev,
-			       struct drm_encoder_slave *encoder)
+							   struct drm_device *dev,
+							   struct drm_encoder_slave *encoder)
 {
 	struct ch7006_priv *priv;
 	int i;
@@ -445,8 +521,11 @@ static int ch7006_encoder_init(struct i2c_client *client,
 	ch7006_dbg(client, "\n");
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	encoder->slave_priv = priv;
 	encoder->slave_funcs = &ch7006_encoder_funcs;
@@ -463,9 +542,12 @@ static int ch7006_encoder_init(struct i2c_client *client,
 	priv->last_dpms = -1;
 	priv->chip_version = ch7006_read(client, CH7006_VERSION_ID);
 
-	if (ch7006_tv_norm) {
-		for (i = 0; i < NUM_TV_NORMS; i++) {
-			if (!strcmp(ch7006_tv_norm_names[i], ch7006_tv_norm)) {
+	if (ch7006_tv_norm)
+	{
+		for (i = 0; i < NUM_TV_NORMS; i++)
+		{
+			if (!strcmp(ch7006_tv_norm_names[i], ch7006_tv_norm))
+			{
 				priv->norm = i;
 				break;
 			}
@@ -473,29 +555,34 @@ static int ch7006_encoder_init(struct i2c_client *client,
 
 		if (i == NUM_TV_NORMS)
 			ch7006_err(client, "Invalid TV norm setting \"%s\".\n",
-				   ch7006_tv_norm);
+					   ch7006_tv_norm);
 	}
 
 	if (ch7006_scale >= 0 && ch7006_scale <= 2)
+	{
 		priv->scale = ch7006_scale;
+	}
 	else
 		ch7006_err(client, "Invalid scale setting \"%d\".\n",
-			   ch7006_scale);
+				   ch7006_scale);
 
 	return 0;
 }
 
-static struct i2c_device_id ch7006_ids[] = {
+static struct i2c_device_id ch7006_ids[] =
+{
 	{ "ch7006", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ch7006_ids);
 
-static const struct dev_pm_ops ch7006_pm_ops = {
+static const struct dev_pm_ops ch7006_pm_ops =
+{
 	.resume = ch7006_resume,
 };
 
-static struct drm_i2c_encoder_driver ch7006_driver = {
+static struct drm_i2c_encoder_driver ch7006_driver =
+{
 	.i2c_driver = {
 		.probe = ch7006_probe,
 		.remove = ch7006_remove,
@@ -531,15 +618,15 @@ MODULE_PARM_DESC(debug, "Enable debug output.");
 char *ch7006_tv_norm;
 module_param_named(tv_norm, ch7006_tv_norm, charp, 0600);
 MODULE_PARM_DESC(tv_norm, "Default TV norm.\n"
-		 "\t\tSupported: PAL, PAL-M, PAL-N, PAL-Nc, PAL-60, NTSC-M, NTSC-J.\n"
-		 "\t\tDefault: PAL");
+				 "\t\tSupported: PAL, PAL-M, PAL-N, PAL-Nc, PAL-60, NTSC-M, NTSC-J.\n"
+				 "\t\tDefault: PAL");
 
 int ch7006_scale = 1;
 module_param_named(scale, ch7006_scale, int, 0600);
 MODULE_PARM_DESC(scale, "Default scale.\n"
-		 "\t\tSupported: 0 -> Select video modes with a higher blanking ratio.\n"
-		 "\t\t\t1 -> Select default video modes.\n"
-		 "\t\t\t2 -> Select video modes with a lower blanking ratio.");
+				 "\t\tSupported: 0 -> Select video modes with a higher blanking ratio.\n"
+				 "\t\t\t1 -> Select default video modes.\n"
+				 "\t\t\t2 -> Select video modes with a lower blanking ratio.");
 
 MODULE_AUTHOR("Francisco Jerez <currojerez@riseup.net>");
 MODULE_DESCRIPTION("Chrontel ch7006 TV encoder driver");

@@ -25,27 +25,31 @@
 
 #define SND_PS3_DRIVER_NAME "snd_ps3"
 
-enum snd_ps3_out_channel {
+enum snd_ps3_out_channel
+{
 	SND_PS3_OUT_SPDIF_0,
 	SND_PS3_OUT_SPDIF_1,
 	SND_PS3_OUT_SERIAL_0,
 	SND_PS3_OUT_DEVS
 };
 
-enum snd_ps3_dma_filltype {
+enum snd_ps3_dma_filltype
+{
 	SND_PS3_DMA_FILLTYPE_FIRSTFILL,
 	SND_PS3_DMA_FILLTYPE_RUNNING,
 	SND_PS3_DMA_FILLTYPE_SILENT_FIRSTFILL,
 	SND_PS3_DMA_FILLTYPE_SILENT_RUNNING
 };
 
-enum snd_ps3_ch {
+enum snd_ps3_ch
+{
 	SND_PS3_CH_L = 0,
 	SND_PS3_CH_R = 1,
 	SND_PS3_CH_MAX = 2
 };
 
-struct snd_ps3_avsetting_info {
+struct snd_ps3_avsetting_info
+{
 	uint32_t avs_audio_ch;     /* fixed */
 	uint32_t avs_audio_rate;
 	uint32_t avs_audio_width;
@@ -57,7 +61,8 @@ struct snd_ps3_avsetting_info {
  * PS3 audio 'card' instance
  * there should be only ONE hardware.
  */
-struct snd_ps3_card_info {
+struct snd_ps3_card_info
+{
 	struct ps3_system_bus_device *ps3_dev;
 	struct snd_card *card;
 
@@ -80,14 +85,14 @@ struct snd_ps3_card_info {
 
 	/* dma buffer management */
 	spinlock_t dma_lock;
-		/* dma_lock start */
-		void * dma_start_vaddr[2]; /* 0 for L, 1 for R */
-		dma_addr_t dma_start_bus_addr[2];
-		size_t dma_buffer_size;
-		void * dma_last_transfer_vaddr[2];
-		void * dma_next_transfer_vaddr[2];
-		int    silent;
-		/* dma_lock end */
+	/* dma_lock start */
+	void *dma_start_vaddr[2];  /* 0 for L, 1 for R */
+	dma_addr_t dma_start_bus_addr[2];
+	size_t dma_buffer_size;
+	void *dma_last_transfer_vaddr[2];
+	void *dma_next_transfer_vaddr[2];
+	int    silent;
+	/* dma_lock end */
 
 	int running;
 

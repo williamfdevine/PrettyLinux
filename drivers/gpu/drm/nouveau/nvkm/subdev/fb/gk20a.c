@@ -32,7 +32,8 @@ gk20a_fb_init(struct nvkm_fb *fb)
 }
 
 static const struct nvkm_fb_func
-gk20a_fb = {
+	gk20a_fb =
+{
 	.oneinit = gf100_fb_oneinit,
 	.init = gk20a_fb_init,
 	.init_page = gf100_fb_init_page,

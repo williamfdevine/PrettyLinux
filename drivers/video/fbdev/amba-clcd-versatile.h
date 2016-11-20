@@ -7,10 +7,10 @@
 
 #if defined(CONFIG_PLAT_VERSATILE_CLCD) && defined(CONFIG_OF)
 int versatile_clcd_init_panel(struct clcd_fb *fb,
-			      struct device_node *endpoint);
+							  struct device_node *endpoint);
 #else
 static inline int versatile_clcd_init_panel(struct clcd_fb *fb,
-				struct device_node *endpoint)
+		struct device_node *endpoint)
 {
 	return 0;
 }

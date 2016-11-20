@@ -33,9 +33,9 @@
 #define BIO_DEBUG
 
 #ifdef BIO_DEBUG
-#define BIO_BUG_ON	BUG_ON
+	#define BIO_BUG_ON	BUG_ON
 #else
-#define BIO_BUG_ON
+	#define BIO_BUG_ON
 #endif
 
 #define BIO_MAX_PAGES		256
@@ -68,10 +68,12 @@
 static inline bool bio_has_data(struct bio *bio)
 {
 	if (bio &&
-	    bio->bi_iter.bi_size &&
-	    bio_op(bio) != REQ_OP_DISCARD &&
-	    bio_op(bio) != REQ_OP_SECURE_ERASE)
+		bio->bi_iter.bi_size &&
+		bio_op(bio) != REQ_OP_DISCARD &&
+		bio_op(bio) != REQ_OP_SECURE_ERASE)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -79,17 +81,21 @@ static inline bool bio_has_data(struct bio *bio)
 static inline bool bio_no_advance_iter(struct bio *bio)
 {
 	return bio_op(bio) == REQ_OP_DISCARD ||
-	       bio_op(bio) == REQ_OP_SECURE_ERASE ||
-	       bio_op(bio) == REQ_OP_WRITE_SAME;
+		   bio_op(bio) == REQ_OP_SECURE_ERASE ||
+		   bio_op(bio) == REQ_OP_WRITE_SAME;
 }
 
 static inline bool bio_is_rw(struct bio *bio)
 {
 	if (!bio_has_data(bio))
+	{
 		return false;
+	}
 
 	if (bio_no_advance_iter(bio))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -97,7 +103,9 @@ static inline bool bio_is_rw(struct bio *bio)
 static inline bool bio_mergeable(struct bio *bio)
 {
 	if (bio->bi_opf & REQ_NOMERGE_FLAGS)
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -105,15 +113,21 @@ static inline bool bio_mergeable(struct bio *bio)
 static inline unsigned int bio_cur_bytes(struct bio *bio)
 {
 	if (bio_has_data(bio))
+	{
 		return bio_iovec(bio).bv_len;
+	}
 	else /* dataless requests such as discard */
+	{
 		return bio->bi_iter.bi_size;
+	}
 }
 
 static inline void *bio_data(struct bio *bio)
 {
 	if (bio_has_data(bio))
+	{
 		return page_address(bio_page(bio)) + bio_offset(bio);
+	}
 
 	return NULL;
 }
@@ -132,7 +146,7 @@ static inline void *bio_data(struct bio *bio)
  */
 #define __bio_kmap_atomic(bio, iter)				\
 	(kmap_atomic(bio_iter_iovec((bio), (iter)).bv_page) +	\
-		bio_iter_iovec((bio), (iter)).bv_offset)
+	 bio_iter_iovec((bio), (iter)).bv_offset)
 
 #define __bio_kunmap_atomic(addr)	kunmap_atomic(addr)
 
@@ -165,21 +179,25 @@ static inline void *bio_data(struct bio *bio)
 	for (i = 0, bvl = (bio)->bi_io_vec; i < (bio)->bi_vcnt; i++, bvl++)
 
 static inline void bio_advance_iter(struct bio *bio, struct bvec_iter *iter,
-				    unsigned bytes)
+									unsigned bytes)
 {
 	iter->bi_sector += bytes >> 9;
 
 	if (bio_no_advance_iter(bio))
+	{
 		iter->bi_size -= bytes;
+	}
 	else
+	{
 		bvec_iter_advance(bio->bi_io_vec, iter, bytes);
+	}
 }
 
 #define __bio_for_each_segment(bvl, bio, iter, start)			\
 	for (iter = (start);						\
-	     (iter).bi_size &&						\
-		((bvl = bio_iter_iovec((bio), (iter))), 1);		\
-	     bio_advance_iter((bio), &(iter), (bvl).bv_len))
+		 (iter).bi_size &&						\
+		 ((bvl = bio_iter_iovec((bio), (iter))), 1);		\
+		 bio_advance_iter((bio), &(iter), (bvl).bv_len))
 
 #define bio_for_each_segment(bvl, bio, iter)				\
 	__bio_for_each_segment(bvl, bio, iter, (bio)->bi_iter)
@@ -198,16 +216,22 @@ static inline unsigned bio_segments(struct bio *bio)
 	 */
 
 	if (bio_op(bio) == REQ_OP_DISCARD)
+	{
 		return 1;
+	}
 
 	if (bio_op(bio) == REQ_OP_SECURE_ERASE)
+	{
 		return 1;
+	}
 
 	if (bio_op(bio) == REQ_OP_WRITE_SAME)
+	{
 		return 1;
+	}
 
 	bio_for_each_segment(bv, bio, iter)
-		segs++;
+	segs++;
 
 	return segs;
 }
@@ -235,10 +259,12 @@ static inline void bio_get(struct bio *bio)
 
 static inline void bio_cnt_set(struct bio *bio, unsigned int count)
 {
-	if (count != 1) {
+	if (count != 1)
+	{
 		bio->bi_flags |= (1 << BIO_REFFED);
 		smp_mb__before_atomic();
 	}
+
 	atomic_set(&bio->__bi_cnt, count);
 }
 
@@ -267,7 +293,8 @@ static inline void bio_get_last_bvec(struct bio *bio, struct bio_vec *bv)
 	struct bvec_iter iter = bio->bi_iter;
 	int idx;
 
-	if (unlikely(!bio_multiple_segments(bio))) {
+	if (unlikely(!bio_multiple_segments(bio)))
+	{
 		*bv = bio_iovec(bio);
 		return;
 	}
@@ -275,9 +302,13 @@ static inline void bio_get_last_bvec(struct bio *bio, struct bio_vec *bv)
 	bio_advance_iter(bio, &iter, iter.bi_size);
 
 	if (!iter.bi_bvec_done)
+	{
 		idx = iter.bi_idx - 1;
+	}
 	else	/* in the middle of bvec */
+	{
 		idx = iter.bi_idx;
+	}
 
 	*bv = bio->bi_io_vec[idx];
 
@@ -286,10 +317,13 @@ static inline void bio_get_last_bvec(struct bio *bio, struct bio_vec *bv)
 	 * if this bio ends in the middle of one io vector
 	 */
 	if (iter.bi_bvec_done)
+	{
 		bv->bv_len = iter.bi_bvec_done;
+	}
 }
 
-enum bip_flags {
+enum bip_flags
+{
 	BIP_BLOCK_INTEGRITY	= 1 << 0, /* block layer owns integrity data */
 	BIP_MAPPED_INTEGRITY	= 1 << 1, /* ref tag has been remapped */
 	BIP_CTRL_NOCHECK	= 1 << 2, /* disable HBA integrity checking */
@@ -300,7 +334,8 @@ enum bip_flags {
 /*
  * bio integrity payload
  */
-struct bio_integrity_payload {
+struct bio_integrity_payload
+{
 	struct bio		*bip_bio;	/* parent bio */
 
 	struct bvec_iter	bip_iter;
@@ -323,7 +358,9 @@ struct bio_integrity_payload {
 static inline struct bio_integrity_payload *bio_integrity(struct bio *bio)
 {
 	if (bio->bi_opf & REQ_INTEGRITY)
+	{
 		return bio->bi_integrity;
+	}
 
 	return NULL;
 }
@@ -333,7 +370,9 @@ static inline bool bio_integrity_flagged(struct bio *bio, enum bip_flags flag)
 	struct bio_integrity_payload *bip = bio_integrity(bio);
 
 	if (bip)
+	{
 		return bip->bip_flags & flag;
+	}
 
 	return false;
 }
@@ -344,7 +383,7 @@ static inline sector_t bip_get_seed(struct bio_integrity_payload *bip)
 }
 
 static inline void bip_set_seed(struct bio_integrity_payload *bip,
-				sector_t seed)
+								sector_t seed)
 {
 	bip->bip_iter.bi_sector = seed;
 }
@@ -353,7 +392,7 @@ static inline void bip_set_seed(struct bio_integrity_payload *bip,
 
 extern void bio_trim(struct bio *bio, int offset, int size);
 extern struct bio *bio_split(struct bio *bio, int sectors,
-			     gfp_t gfp, struct bio_set *bs);
+							 gfp_t gfp, struct bio_set *bs);
 
 /**
  * bio_next_split - get next @sectors from a bio, splitting if necessary
@@ -366,10 +405,12 @@ extern struct bio *bio_split(struct bio *bio, int sectors,
  * than @sectors, returns the original bio unchanged.
  */
 static inline struct bio *bio_next_split(struct bio *bio, int sectors,
-					 gfp_t gfp, struct bio_set *bs)
+		gfp_t gfp, struct bio_set *bs)
 {
 	if (sectors >= bio_sectors(bio))
+	{
 		return bio;
+	}
 
 	return bio_split(bio, sectors, gfp, bs);
 }
@@ -427,27 +468,27 @@ extern void bio_init(struct bio *);
 extern void bio_reset(struct bio *);
 void bio_chain(struct bio *, struct bio *);
 
-extern int bio_add_page(struct bio *, struct page *, unsigned int,unsigned int);
+extern int bio_add_page(struct bio *, struct page *, unsigned int, unsigned int);
 extern int bio_add_pc_page(struct request_queue *, struct bio *, struct page *,
-			   unsigned int, unsigned int);
+						   unsigned int, unsigned int);
 struct rq_map_data;
 extern struct bio *bio_map_user_iov(struct request_queue *,
-				    const struct iov_iter *, gfp_t);
+									const struct iov_iter *, gfp_t);
 extern void bio_unmap_user(struct bio *);
 extern struct bio *bio_map_kern(struct request_queue *, void *, unsigned int,
-				gfp_t);
+								gfp_t);
 extern struct bio *bio_copy_kern(struct request_queue *, void *, unsigned int,
-				 gfp_t, int);
+								 gfp_t, int);
 extern void bio_set_pages_dirty(struct bio *bio);
 extern void bio_check_pages_dirty(struct bio *bio);
 
 void generic_start_io_acct(int rw, unsigned long sectors,
-			   struct hd_struct *part);
+						   struct hd_struct *part);
 void generic_end_io_acct(int rw, struct hd_struct *part,
-			 unsigned long start_time);
+						 unsigned long start_time);
 
 #ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
-# error	"You should define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform"
+	# error	"You should define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform"
 #endif
 #if ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
 extern void bio_flush_dcache_pages(struct bio *bi);
@@ -462,9 +503,9 @@ extern int bio_alloc_pages(struct bio *bio, gfp_t gfp);
 extern void bio_free_pages(struct bio *bio);
 
 extern struct bio *bio_copy_user_iov(struct request_queue *,
-				     struct rq_map_data *,
-				     const struct iov_iter *,
-				     gfp_t);
+									 struct rq_map_data *,
+									 const struct iov_iter *,
+									 gfp_t);
 extern int bio_uncopy_user(struct bio *);
 void zero_fill_bio(struct bio *bio);
 extern struct bio_vec *bvec_alloc(gfp_t, int, unsigned long *, mempool_t *);
@@ -478,11 +519,11 @@ void bio_disassociate_task(struct bio *bio);
 void bio_clone_blkcg_association(struct bio *dst, struct bio *src);
 #else	/* CONFIG_BLK_CGROUP */
 static inline int bio_associate_blkcg(struct bio *bio,
-			struct cgroup_subsys_state *blkcg_css) { return 0; }
+									  struct cgroup_subsys_state *blkcg_css) { return 0; }
 static inline int bio_associate_current(struct bio *bio) { return -ENOENT; }
 static inline void bio_disassociate_task(struct bio *bio) { }
 static inline void bio_clone_blkcg_association(struct bio *dst,
-			struct bio *src) { }
+		struct bio *src) { }
 #endif	/* CONFIG_BLK_CGROUP */
 
 #ifdef CONFIG_HIGHMEM
@@ -527,7 +568,7 @@ static inline void bvec_kunmap_irq(char *buffer, unsigned long *flags)
 #endif
 
 static inline char *__bio_kmap_irq(struct bio *bio, struct bvec_iter iter,
-				   unsigned long *flags)
+								   unsigned long *flags)
 {
 	return bvec_kmap_irq(&bio_iter_iovec(bio, iter), flags);
 }
@@ -544,7 +585,8 @@ static inline char *__bio_kmap_irq(struct bio *bio, struct bvec_iter iter,
  * member of the bio.  The bio_list also caches the last list member to allow
  * fast access to the tail.
  */
-struct bio_list {
+struct bio_list
+{
 	struct bio *head;
 	struct bio *tail;
 };
@@ -570,7 +612,7 @@ static inline unsigned bio_list_size(const struct bio_list *bl)
 	struct bio *bio;
 
 	bio_list_for_each(bio, bl)
-		sz++;
+	sz++;
 
 	return sz;
 }
@@ -580,9 +622,13 @@ static inline void bio_list_add(struct bio_list *bl, struct bio *bio)
 	bio->bi_next = NULL;
 
 	if (bl->tail)
+	{
 		bl->tail->bi_next = bio;
+	}
 	else
+	{
 		bl->head = bio;
+	}
 
 	bl->tail = bio;
 }
@@ -594,32 +640,46 @@ static inline void bio_list_add_head(struct bio_list *bl, struct bio *bio)
 	bl->head = bio;
 
 	if (!bl->tail)
+	{
 		bl->tail = bio;
+	}
 }
 
 static inline void bio_list_merge(struct bio_list *bl, struct bio_list *bl2)
 {
 	if (!bl2->head)
+	{
 		return;
+	}
 
 	if (bl->tail)
+	{
 		bl->tail->bi_next = bl2->head;
+	}
 	else
+	{
 		bl->head = bl2->head;
+	}
 
 	bl->tail = bl2->tail;
 }
 
 static inline void bio_list_merge_head(struct bio_list *bl,
-				       struct bio_list *bl2)
+									   struct bio_list *bl2)
 {
 	if (!bl2->head)
+	{
 		return;
+	}
 
 	if (bl->head)
+	{
 		bl2->tail->bi_next = bl->head;
+	}
 	else
+	{
 		bl->tail = bl2->tail;
+	}
 
 	bl->head = bl2->head;
 }
@@ -633,10 +693,14 @@ static inline struct bio *bio_list_pop(struct bio_list *bl)
 {
 	struct bio *bio = bl->head;
 
-	if (bio) {
+	if (bio)
+	{
 		bl->head = bl->head->bi_next;
+
 		if (!bl->head)
+		{
 			bl->tail = NULL;
+		}
 
 		bio->bi_next = NULL;
 	}
@@ -672,7 +736,8 @@ static inline void bio_inc_remaining(struct bio *bio)
  */
 #define BIO_POOL_SIZE 2
 
-struct bio_set {
+struct bio_set
+{
 	struct kmem_cache *bio_slab;
 	unsigned int front_pad;
 
@@ -693,7 +758,8 @@ struct bio_set {
 	struct workqueue_struct	*rescue_workqueue;
 };
 
-struct biovec_slab {
+struct biovec_slab
+{
 	int nr_vecs;
 	char *name;
 	struct kmem_cache *slab;
@@ -712,7 +778,7 @@ struct biovec_slab {
 
 #define bio_for_each_integrity_vec(_bvl, _bio, _iter)			\
 	for_each_bio(_bio)						\
-		bip_for_each_vec(_bvl, _bio->bi_integrity, _iter)
+	bip_for_each_vec(_bvl, _bio->bi_integrity, _iter)
 
 extern struct bio_integrity_payload *bio_integrity_alloc(struct bio *, gfp_t, unsigned int);
 extern void bio_integrity_free(struct bio *);
@@ -760,19 +826,19 @@ static inline void bio_integrity_free(struct bio *bio)
 }
 
 static inline int bio_integrity_clone(struct bio *bio, struct bio *bio_src,
-				      gfp_t gfp_mask)
+									  gfp_t gfp_mask)
 {
 	return 0;
 }
 
 static inline void bio_integrity_advance(struct bio *bio,
-					 unsigned int bytes_done)
+		unsigned int bytes_done)
 {
 	return;
 }
 
 static inline void bio_integrity_trim(struct bio *bio, unsigned int offset,
-				      unsigned int sectors)
+									  unsigned int sectors)
 {
 	return;
 }
@@ -787,14 +853,14 @@ static inline bool bio_integrity_flagged(struct bio *bio, enum bip_flags flag)
 	return false;
 }
 
-static inline void *bio_integrity_alloc(struct bio * bio, gfp_t gfp,
-								unsigned int nr)
+static inline void *bio_integrity_alloc(struct bio *bio, gfp_t gfp,
+										unsigned int nr)
 {
 	return ERR_PTR(-EINVAL);
 }
 
 static inline int bio_integrity_add_page(struct bio *bio, struct page *page,
-					unsigned int len, unsigned int offset)
+		unsigned int len, unsigned int offset)
 {
 	return 0;
 }

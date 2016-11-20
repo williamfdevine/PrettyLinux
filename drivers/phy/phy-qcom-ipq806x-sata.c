@@ -23,7 +23,8 @@
 #include <linux/platform_device.h>
 #include <linux/phy/phy.h>
 
-struct qcom_ipq806x_sata_phy {
+struct qcom_ipq806x_sata_phy
+{
 	void __iomem *mmio;
 	struct clk *cfg_clk;
 	struct device *dev;
@@ -69,23 +70,23 @@ static int qcom_ipq806x_sata_phy_init(struct phy *generic_phy)
 	writel_relaxed(reg, phy->mmio + SATA_PHY_P0_PARAM3);
 
 	reg = readl_relaxed(phy->mmio + SATA_PHY_P0_PARAM0) &
-			~(SATA_PHY_P0_PARAM0_P0_TX_PREEMPH_GEN3_MASK |
-			  SATA_PHY_P0_PARAM0_P0_TX_PREEMPH_GEN2_MASK |
-			  SATA_PHY_P0_PARAM0_P0_TX_PREEMPH_GEN1_MASK);
+		  ~(SATA_PHY_P0_PARAM0_P0_TX_PREEMPH_GEN3_MASK |
+			SATA_PHY_P0_PARAM0_P0_TX_PREEMPH_GEN2_MASK |
+			SATA_PHY_P0_PARAM0_P0_TX_PREEMPH_GEN1_MASK);
 	reg |= SATA_PHY_P0_PARAM0_P0_TX_PREEMPH_GEN3(0xf);
 	writel_relaxed(reg, phy->mmio + SATA_PHY_P0_PARAM0);
 
 	reg = readl_relaxed(phy->mmio + SATA_PHY_P0_PARAM1) &
-			~(SATA_PHY_P0_PARAM1_P0_TX_AMPLITUDE_GEN3_MASK |
-			  SATA_PHY_P0_PARAM1_P0_TX_AMPLITUDE_GEN2_MASK |
-			  SATA_PHY_P0_PARAM1_P0_TX_AMPLITUDE_GEN1_MASK);
+		  ~(SATA_PHY_P0_PARAM1_P0_TX_AMPLITUDE_GEN3_MASK |
+			SATA_PHY_P0_PARAM1_P0_TX_AMPLITUDE_GEN2_MASK |
+			SATA_PHY_P0_PARAM1_P0_TX_AMPLITUDE_GEN1_MASK);
 	reg |= SATA_PHY_P0_PARAM1_P0_TX_AMPLITUDE_GEN3(0x55) |
-		SATA_PHY_P0_PARAM1_P0_TX_AMPLITUDE_GEN2(0x55) |
-		SATA_PHY_P0_PARAM1_P0_TX_AMPLITUDE_GEN1(0x55);
+		   SATA_PHY_P0_PARAM1_P0_TX_AMPLITUDE_GEN2(0x55) |
+		   SATA_PHY_P0_PARAM1_P0_TX_AMPLITUDE_GEN1(0x55);
 	writel_relaxed(reg, phy->mmio + SATA_PHY_P0_PARAM1);
 
 	reg = readl_relaxed(phy->mmio + SATA_PHY_P0_PARAM2) &
-		~SATA_PHY_P0_PARAM2_RX_EQ_MASK;
+		  ~SATA_PHY_P0_PARAM2_RX_EQ_MASK;
 	reg |= SATA_PHY_P0_PARAM2_RX_EQ(0x3);
 	writel_relaxed(reg, phy->mmio + SATA_PHY_P0_PARAM2);
 
@@ -126,7 +127,8 @@ static int qcom_ipq806x_sata_phy_exit(struct phy *generic_phy)
 	return 0;
 }
 
-static const struct phy_ops qcom_ipq806x_sata_phy_ops = {
+static const struct phy_ops qcom_ipq806x_sata_phy_ops =
+{
 	.init		= qcom_ipq806x_sata_phy_init,
 	.exit		= qcom_ipq806x_sata_phy_exit,
 	.owner		= THIS_MODULE,
@@ -142,16 +144,24 @@ static int qcom_ipq806x_sata_phy_probe(struct platform_device *pdev)
 	int ret;
 
 	phy = devm_kzalloc(dev, sizeof(*phy), GFP_KERNEL);
+
 	if (!phy)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	phy->mmio = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(phy->mmio))
+	{
 		return PTR_ERR(phy->mmio);
+	}
 
 	generic_phy = devm_phy_create(dev, NULL, &qcom_ipq806x_sata_phy_ops);
-	if (IS_ERR(generic_phy)) {
+
+	if (IS_ERR(generic_phy))
+	{
 		dev_err(dev, "%s: failed to create phy\n", __func__);
 		return PTR_ERR(generic_phy);
 	}
@@ -161,17 +171,24 @@ static int qcom_ipq806x_sata_phy_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, phy);
 
 	phy->cfg_clk = devm_clk_get(dev, "cfg");
-	if (IS_ERR(phy->cfg_clk)) {
+
+	if (IS_ERR(phy->cfg_clk))
+	{
 		dev_err(dev, "Failed to get sata cfg clock\n");
 		return PTR_ERR(phy->cfg_clk);
 	}
 
 	ret = clk_prepare_enable(phy->cfg_clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
-	if (IS_ERR(phy_provider)) {
+
+	if (IS_ERR(phy_provider))
+	{
 		clk_disable_unprepare(phy->cfg_clk);
 		dev_err(dev, "%s: failed to register phy\n", __func__);
 		return PTR_ERR(phy_provider);
@@ -189,13 +206,15 @@ static int qcom_ipq806x_sata_phy_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id qcom_ipq806x_sata_phy_of_match[] = {
+static const struct of_device_id qcom_ipq806x_sata_phy_of_match[] =
+{
 	{ .compatible = "qcom,ipq806x-sata-phy" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, qcom_ipq806x_sata_phy_of_match);
 
-static struct platform_driver qcom_ipq806x_sata_phy_driver = {
+static struct platform_driver qcom_ipq806x_sata_phy_driver =
+{
 	.probe	= qcom_ipq806x_sata_phy_probe,
 	.remove	= qcom_ipq806x_sata_phy_remove,
 	.driver = {

@@ -73,24 +73,24 @@ void netxen_nic_set_link_parameters(struct netxen_adapter *adapter);
 	((config_word) &= ~(1 << 5))
 
 #define netxen_gb_get_tx_synced(config_word)	\
-		_netxen_crb_get_bit((config_word), 1)
+	_netxen_crb_get_bit((config_word), 1)
 #define netxen_gb_get_rx_synced(config_word)	\
-		_netxen_crb_get_bit((config_word), 3)
+	_netxen_crb_get_bit((config_word), 3)
 #define netxen_gb_get_tx_flowctl(config_word)	\
-		_netxen_crb_get_bit((config_word), 4)
+	_netxen_crb_get_bit((config_word), 4)
 #define netxen_gb_get_rx_flowctl(config_word)	\
-		_netxen_crb_get_bit((config_word), 5)
+	_netxen_crb_get_bit((config_word), 5)
 #define netxen_gb_get_soft_reset(config_word)	\
-		_netxen_crb_get_bit((config_word), 31)
+	_netxen_crb_get_bit((config_word), 31)
 
 #define netxen_gb_get_stationaddress_low(config_word) ((config_word) >> 16)
 
 #define netxen_gb_set_mii_mgmt_clockselect(config_word, val)	\
-		((config_word) |= ((val) & 0x07))
+	((config_word) |= ((val) & 0x07))
 #define netxen_gb_mii_mgmt_reset(config_word)	\
-		((config_word) |= 1 << 31)
+	((config_word) |= 1 << 31)
 #define netxen_gb_mii_mgmt_unset(config_word)	\
-		((config_word) &= ~(1 << 31))
+	((config_word) &= ~(1 << 31))
 
 /*
  * NIU GB MII Mgmt Command Register (applies to GB0, GB1, GB2, GB3)
@@ -99,11 +99,11 @@ void netxen_nic_set_link_parameters(struct netxen_adapter *adapter);
  */
 
 #define netxen_gb_mii_mgmt_set_read_cycle(config_word)	\
-		((config_word) |= 1 << 0)
+	((config_word) |= 1 << 0)
 #define netxen_gb_mii_mgmt_reg_addr(config_word, val)	\
-		((config_word) |= ((val) & 0x1F))
+	((config_word) |= ((val) & 0x1F))
 #define netxen_gb_mii_mgmt_phy_addr(config_word, val)	\
-		((config_word) |= (((val) & 0x1F) << 8))
+	((config_word) |= (((val) & 0x1F) << 8))
 
 /*
  * NIU GB MII Mgmt Indicators Register (applies to GB0, GB1, GB2, GB3)
@@ -113,11 +113,11 @@ void netxen_nic_set_link_parameters(struct netxen_adapter *adapter);
  * Bit 2 : notvalid => :mgmt result data not yet valid, 0:idle
  */
 #define netxen_get_gb_mii_mgmt_busy(config_word)	\
-		_netxen_crb_get_bit(config_word, 0)
+	_netxen_crb_get_bit(config_word, 0)
 #define netxen_get_gb_mii_mgmt_scanning(config_word)	\
-		_netxen_crb_get_bit(config_word, 1)
+	_netxen_crb_get_bit(config_word, 1)
 #define netxen_get_gb_mii_mgmt_notvalid(config_word)	\
-		_netxen_crb_get_bit(config_word, 2)
+	_netxen_crb_get_bit(config_word, 2)
 /*
  * NIU XG Pause Ctl Register
  *
@@ -230,16 +230,16 @@ void netxen_nic_set_link_parameters(struct netxen_adapter *adapter);
 #define netxen_get_phy_speed(config_word) (((config_word) >> 14) & 0x03)
 
 #define netxen_set_phy_speed(config_word, val)	\
-		((config_word) |= ((val & 0x03) << 14))
+	((config_word) |= ((val & 0x03) << 14))
 #define netxen_set_phy_duplex(config_word)	\
-		((config_word) |= 1 << 13)
+	((config_word) |= 1 << 13)
 #define netxen_clear_phy_duplex(config_word)	\
-		((config_word) &= ~(1 << 13))
+	((config_word) &= ~(1 << 13))
 
 #define netxen_get_phy_link(config_word)	\
-		_netxen_crb_get_bit(config_word, 10)
+	_netxen_crb_get_bit(config_word, 10)
 #define netxen_get_phy_duplex(config_word)	\
-		_netxen_crb_get_bit(config_word, 13)
+	_netxen_crb_get_bit(config_word, 13)
 
 /*
  * NIU Mode Register.
@@ -249,7 +249,7 @@ void netxen_nic_set_link_parameters(struct netxen_adapter *adapter);
  */
 
 #define netxen_get_niu_enable_ge(config_word)	\
-		_netxen_crb_get_bit(config_word, 1)
+	_netxen_crb_get_bit(config_word, 1)
 
 #define NETXEN_NIU_NON_PROMISC_MODE	0
 #define NETXEN_NIU_PROMISC_MODE		1
@@ -269,16 +269,18 @@ void netxen_nic_set_link_parameters(struct netxen_adapter *adapter);
  */
 
 #define netxen_xg_soft_reset(config_word)	\
-		((config_word) |= 1 << 4)
+	((config_word) |= 1 << 4)
 
-typedef struct {
+typedef struct
+{
 	unsigned valid;
 	unsigned start_128M;
 	unsigned end_128M;
 	unsigned start_2M;
 } crb_128M_2M_sub_block_map_t;
 
-typedef struct {
+typedef struct
+{
 	crb_128M_2M_sub_block_map_t sub_block[16];
 } crb_128M_2M_block_map_t;
 

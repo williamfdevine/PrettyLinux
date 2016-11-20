@@ -28,15 +28,17 @@
 
 #include "8255.h"
 
-struct pcl724_board {
+struct pcl724_board
+{
 	const char *name;
 	unsigned int io_range;
-	unsigned int can_have96:1;
-	unsigned int is_pet48:1;
+	unsigned int can_have96: 1;
+	unsigned int is_pet48: 1;
 	int numofports;
 };
 
-static const struct pcl724_board boardtypes[] = {
+static const struct pcl724_board boardtypes[] =
+{
 	{
 		.name		= "pcl724",
 		.io_range	= 0x04,
@@ -76,23 +78,26 @@ static const struct pcl724_board boardtypes[] = {
 };
 
 static int pcl724_8255mapped_io(struct comedi_device *dev,
-				int dir, int port, int data,
-				unsigned long iobase)
+								int dir, int port, int data,
+								unsigned long iobase)
 {
 	int movport = I8255_SIZE * (iobase >> 12);
 
 	iobase &= 0x0fff;
 
 	outb(port + movport, iobase);
-	if (dir) {
+
+	if (dir)
+	{
 		outb(data, iobase + 1);
 		return 0;
 	}
+
 	return inb(iobase + 1);
 }
 
 static int pcl724_attach(struct comedi_device *dev,
-			 struct comedi_devconfig *it)
+						 struct comedi_devconfig *it)
 {
 	const struct pcl724_board *board = dev->board_ptr;
 	struct comedi_subdevice *s;
@@ -107,36 +112,52 @@ static int pcl724_attach(struct comedi_device *dev,
 
 	/* Handle PCL-724 in 96 DIO configuration */
 	if (board->can_have96 &&
-	    (it->options[2] == 1 || it->options[2] == 96)) {
+		(it->options[2] == 1 || it->options[2] == 96))
+	{
 		iorange = 0x10;
 		n_subdevices = 4;
 	}
 
 	ret = comedi_request_region(dev, it->options[0], iorange);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = comedi_alloc_subdevices(dev, n_subdevices);
-	if (ret)
-		return ret;
 
-	for (i = 0; i < dev->n_subdevices; i++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 0; i < dev->n_subdevices; i++)
+	{
 		s = &dev->subdevices[i];
-		if (board->is_pet48) {
+
+		if (board->is_pet48)
+		{
 			iobase = dev->iobase + (i * 0x1000);
 			ret = subdev_8255_init(dev, s, pcl724_8255mapped_io,
-					       iobase);
-		} else {
+								   iobase);
+		}
+		else
+		{
 			ret = subdev_8255_init(dev, s, NULL, i * I8255_SIZE);
 		}
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
 }
 
-static struct comedi_driver pcl724_driver = {
+static struct comedi_driver pcl724_driver =
+{
 	.driver_name	= "pcl724",
 	.module		= THIS_MODULE,
 	.attach		= pcl724_attach,

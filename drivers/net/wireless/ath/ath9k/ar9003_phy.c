@@ -35,12 +35,12 @@
 #define AR9300_11NG_HT_TS_SHIFT		28
 
 static const int firstep_table[] =
-/* level:  0   1   2   3   4   5   6   7   8  */
-	{ -4, -2,  0,  2,  4,  6,  8, 10, 12 }; /* lvl 0-8, default 2 */
+	/* level:  0   1   2   3   4   5   6   7   8  */
+{ -4, -2,  0,  2,  4,  6,  8, 10, 12 }; /* lvl 0-8, default 2 */
 
 static const int cycpwrThr1_table[] =
-/* level:  0   1   2   3   4   5   6   7   8  */
-	{ -6, -4, -2,  0,  2,  4,  6,  8 };     /* lvl 0-7, default 3 */
+	/* level:  0   1   2   3   4   5   6   7   8  */
+{ -6, -4, -2,  0,  2,  4,  6,  8 };     /* lvl 0-7, default 3 */
 
 /*
  * register values to turn OFDM weak signal detection OFF
@@ -56,7 +56,8 @@ static const int m2ThreshLowExt_off = 127;
 static const int m1ThreshExt_off = 127;
 static const int m2ThreshExt_off = 127;
 
-static const u8 ofdm2pwr[] = {
+static const u8 ofdm2pwr[] =
+{
 	ALL_TARGET_LEGACY_6_24,
 	ALL_TARGET_LEGACY_6_24,
 	ALL_TARGET_LEGACY_6_24,
@@ -67,7 +68,8 @@ static const u8 ofdm2pwr[] = {
 	ALL_TARGET_LEGACY_54
 };
 
-static const u8 mcs2pwr_ht20[] = {
+static const u8 mcs2pwr_ht20[] =
+{
 	ALL_TARGET_HT20_0_8_16,
 	ALL_TARGET_HT20_1_3_9_11_17_19,
 	ALL_TARGET_HT20_1_3_9_11_17_19,
@@ -94,7 +96,8 @@ static const u8 mcs2pwr_ht20[] = {
 	ALL_TARGET_HT20_23
 };
 
-static const u8 mcs2pwr_ht40[] = {
+static const u8 mcs2pwr_ht40[] =
+{
 	ALL_TARGET_HT40_0_8_16,
 	ALL_TARGET_HT40_1_3_9_11_17_19,
 	ALL_TARGET_HT40_1_3_9_11_17_19,
@@ -156,17 +159,25 @@ static int ar9003_hw_set_channel(struct ath_hw *ah, struct ath9k_channel *chan)
 	ath9k_hw_get_channel_centers(ah, chan, &centers);
 	freq = centers.synth_center;
 
-	if (freq < 4800) {     /* 2 GHz, fractional mode */
-		if (AR_SREV_9330(ah)) {
+	if (freq < 4800)       /* 2 GHz, fractional mode */
+	{
+		if (AR_SREV_9330(ah))
+		{
 			if (ah->is_clk_25mhz)
+			{
 				div = 75;
+			}
 			else
+			{
 				div = 120;
+			}
 
 			channelSel = (freq * 4) / div;
 			chan_frac = (((freq * 4) % div) * 0x20000) / div;
 			channelSel = (channelSel << 17) | chan_frac;
-		} else if (AR_SREV_9485(ah) || AR_SREV_9565(ah)) {
+		}
+		else if (AR_SREV_9485(ah) || AR_SREV_9565(ah))
+		{
 			/*
 			 * freq_ref = 40 / (refdiva >> amoderefsel);
 			 * where refdiva=1 and amoderefsel=0
@@ -176,41 +187,61 @@ static int ar9003_hw_set_channel(struct ath_hw *ah, struct ath9k_channel *chan)
 			channelSel = (freq * 4) / 120;
 			chan_frac = (((freq * 4) % 120) * 0x20000) / 120;
 			channelSel = (channelSel << 17) | chan_frac;
-		} else if (AR_SREV_9340(ah)) {
-			if (ah->is_clk_25mhz) {
+		}
+		else if (AR_SREV_9340(ah))
+		{
+			if (ah->is_clk_25mhz)
+			{
 				channelSel = (freq * 2) / 75;
 				chan_frac = (((freq * 2) % 75) * 0x20000) / 75;
 				channelSel = (channelSel << 17) | chan_frac;
-			} else {
+			}
+			else
+			{
 				channelSel = CHANSEL_2G(freq) >> 1;
 			}
-		} else if (AR_SREV_9550(ah) || AR_SREV_9531(ah) ||
-			   AR_SREV_9561(ah)) {
+		}
+		else if (AR_SREV_9550(ah) || AR_SREV_9531(ah) ||
+				 AR_SREV_9561(ah))
+		{
 			if (ah->is_clk_25mhz)
+			{
 				div = 75;
+			}
 			else
+			{
 				div = 120;
+			}
 
 			channelSel = (freq * 4) / div;
 			chan_frac = (((freq * 4) % div) * 0x20000) / div;
 			channelSel = (channelSel << 17) | chan_frac;
-		} else {
+		}
+		else
+		{
 			channelSel = CHANSEL_2G(freq);
 		}
+
 		/* Set to 2G mode */
 		bMode = 1;
-	} else {
+	}
+	else
+	{
 		if ((AR_SREV_9340(ah) || AR_SREV_9550(ah) ||
-		     AR_SREV_9531(ah) || AR_SREV_9561(ah)) &&
-		    ah->is_clk_25mhz) {
+			 AR_SREV_9531(ah) || AR_SREV_9561(ah)) &&
+			ah->is_clk_25mhz)
+		{
 			channelSel = freq / 75;
 			chan_frac = ((freq % 75) * 0x20000) / 75;
 			channelSel = (channelSel << 17) | chan_frac;
-		} else {
+		}
+		else
+		{
 			channelSel = CHANSEL_5G(freq);
 			/* Doubler is ON, so, divide channelSel by 2. */
 			channelSel >>= 1;
 		}
+
 		/* Set to 5G mode */
 		bMode = 0;
 	}
@@ -225,17 +256,17 @@ static int ar9003_hw_set_channel(struct ath_hw *ah, struct ath9k_channel *chan)
 
 	/* Enable Long shift Select for Synthesizer */
 	REG_RMW_FIELD(ah, AR_PHY_65NM_CH0_SYNTH4,
-		      AR_PHY_SYNTH4_LONG_SHIFT_SELECT, 1);
+				  AR_PHY_SYNTH4_LONG_SHIFT_SELECT, 1);
 
 	/* Program Synth. setting */
 	reg32 = (channelSel << 2) | (fracMode << 30) |
-		(aModeRefSel << 28) | (loadSynthChannel << 31);
+			(aModeRefSel << 28) | (loadSynthChannel << 31);
 	REG_WRITE(ah, AR_PHY_65NM_CH0_SYNTH7, reg32);
 
 	/* Toggle Load Synth channel bit */
 	loadSynthChannel = 1;
 	reg32 = (channelSel << 2) | (fracMode << 30) |
-		(aModeRefSel << 28) | (loadSynthChannel << 31);
+			(aModeRefSel << 28) | (loadSynthChannel << 31);
 	REG_WRITE(ah, AR_PHY_65NM_CH0_SYNTH7, reg32);
 
 	ah->curchan = chan;
@@ -254,7 +285,7 @@ static int ar9003_hw_set_channel(struct ath_hw *ah, struct ath9k_channel *chan)
  * Spur mitigation for MRC CCK
  */
 static void ar9003_hw_spur_mitigate_mrc_cck(struct ath_hw *ah,
-					    struct ath9k_channel *chan)
+		struct ath9k_channel *chan)
 {
 	static const u32 spur_freq[4] = { 2420, 2440, 2464, 2480 };
 	int cur_bb_spur, negative = 0, cck_spur_freq;
@@ -268,248 +299,293 @@ static void ar9003_hw_spur_mitigate_mrc_cck(struct ath_hw *ah,
 	 */
 
 	if (AR_SREV_9485(ah) || AR_SREV_9340(ah) || AR_SREV_9330(ah) ||
-	    AR_SREV_9550(ah) || AR_SREV_9561(ah)) {
+		AR_SREV_9550(ah) || AR_SREV_9561(ah))
+	{
 		if (spur_fbin_ptr[0] == 0) /* No spur */
+		{
 			return;
+		}
+
 		max_spur_cnts = 5;
-		if (IS_CHAN_HT40(chan)) {
+
+		if (IS_CHAN_HT40(chan))
+		{
 			range = 19;
+
 			if (REG_READ_FIELD(ah, AR_PHY_GEN_CTRL,
-					   AR_PHY_GC_DYN2040_PRI_CH) == 0)
+							   AR_PHY_GC_DYN2040_PRI_CH) == 0)
+			{
 				synth_freq = chan->channel + 10;
+			}
 			else
+			{
 				synth_freq = chan->channel - 10;
-		} else {
+			}
+		}
+		else
+		{
 			range = 10;
 			synth_freq = chan->channel;
 		}
-	} else {
+	}
+	else
+	{
 		range = AR_SREV_9462(ah) ? 5 : 10;
 		max_spur_cnts = 4;
 		synth_freq = chan->channel;
 	}
 
-	for (i = 0; i < max_spur_cnts; i++) {
+	for (i = 0; i < max_spur_cnts; i++)
+	{
 		if (AR_SREV_9462(ah) && (i == 0 || i == 3))
+		{
 			continue;
+		}
 
 		negative = 0;
+
 		if (AR_SREV_9485(ah) || AR_SREV_9340(ah) || AR_SREV_9330(ah) ||
-		    AR_SREV_9550(ah) || AR_SREV_9561(ah))
+			AR_SREV_9550(ah) || AR_SREV_9561(ah))
 			cur_bb_spur = ath9k_hw_fbin2freq(spur_fbin_ptr[i],
-							 IS_CHAN_2GHZ(chan));
+											 IS_CHAN_2GHZ(chan));
 		else
+		{
 			cur_bb_spur = spur_freq[i];
+		}
 
 		cur_bb_spur -= synth_freq;
-		if (cur_bb_spur < 0) {
+
+		if (cur_bb_spur < 0)
+		{
 			negative = 1;
 			cur_bb_spur = -cur_bb_spur;
 		}
-		if (cur_bb_spur < range) {
+
+		if (cur_bb_spur < range)
+		{
 			cck_spur_freq = (int)((cur_bb_spur << 19) / 11);
 
 			if (negative == 1)
+			{
 				cck_spur_freq = -cck_spur_freq;
+			}
 
 			cck_spur_freq = cck_spur_freq & 0xfffff;
 
 			REG_RMW_FIELD(ah, AR_PHY_AGC_CONTROL,
-				      AR_PHY_AGC_CONTROL_YCOK_MAX, 0x7);
+						  AR_PHY_AGC_CONTROL_YCOK_MAX, 0x7);
 			REG_RMW_FIELD(ah, AR_PHY_CCK_SPUR_MIT,
-				      AR_PHY_CCK_SPUR_MIT_SPUR_RSSI_THR, 0x7f);
+						  AR_PHY_CCK_SPUR_MIT_SPUR_RSSI_THR, 0x7f);
 			REG_RMW_FIELD(ah, AR_PHY_CCK_SPUR_MIT,
-				      AR_PHY_CCK_SPUR_MIT_SPUR_FILTER_TYPE,
-				      0x2);
+						  AR_PHY_CCK_SPUR_MIT_SPUR_FILTER_TYPE,
+						  0x2);
 			REG_RMW_FIELD(ah, AR_PHY_CCK_SPUR_MIT,
-				      AR_PHY_CCK_SPUR_MIT_USE_CCK_SPUR_MIT,
-				      0x1);
+						  AR_PHY_CCK_SPUR_MIT_USE_CCK_SPUR_MIT,
+						  0x1);
 			REG_RMW_FIELD(ah, AR_PHY_CCK_SPUR_MIT,
-				      AR_PHY_CCK_SPUR_MIT_CCK_SPUR_FREQ,
-				      cck_spur_freq);
+						  AR_PHY_CCK_SPUR_MIT_CCK_SPUR_FREQ,
+						  cck_spur_freq);
 
 			return;
 		}
 	}
 
 	REG_RMW_FIELD(ah, AR_PHY_AGC_CONTROL,
-		      AR_PHY_AGC_CONTROL_YCOK_MAX, 0x5);
+				  AR_PHY_AGC_CONTROL_YCOK_MAX, 0x5);
 	REG_RMW_FIELD(ah, AR_PHY_CCK_SPUR_MIT,
-		      AR_PHY_CCK_SPUR_MIT_USE_CCK_SPUR_MIT, 0x0);
+				  AR_PHY_CCK_SPUR_MIT_USE_CCK_SPUR_MIT, 0x0);
 	REG_RMW_FIELD(ah, AR_PHY_CCK_SPUR_MIT,
-		      AR_PHY_CCK_SPUR_MIT_CCK_SPUR_FREQ, 0x0);
+				  AR_PHY_CCK_SPUR_MIT_CCK_SPUR_FREQ, 0x0);
 }
 
 /* Clean all spur register fields */
 static void ar9003_hw_spur_ofdm_clear(struct ath_hw *ah)
 {
 	REG_RMW_FIELD(ah, AR_PHY_TIMING4,
-		      AR_PHY_TIMING4_ENABLE_SPUR_FILTER, 0);
+				  AR_PHY_TIMING4_ENABLE_SPUR_FILTER, 0);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING11,
-		      AR_PHY_TIMING11_SPUR_FREQ_SD, 0);
+				  AR_PHY_TIMING11_SPUR_FREQ_SD, 0);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING11,
-		      AR_PHY_TIMING11_SPUR_DELTA_PHASE, 0);
+				  AR_PHY_TIMING11_SPUR_DELTA_PHASE, 0);
 	REG_RMW_FIELD(ah, AR_PHY_SFCORR_EXT,
-		      AR_PHY_SFCORR_EXT_SPUR_SUBCHANNEL_SD, 0);
+				  AR_PHY_SFCORR_EXT_SPUR_SUBCHANNEL_SD, 0);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING11,
-		      AR_PHY_TIMING11_USE_SPUR_FILTER_IN_AGC, 0);
+				  AR_PHY_TIMING11_USE_SPUR_FILTER_IN_AGC, 0);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING11,
-		      AR_PHY_TIMING11_USE_SPUR_FILTER_IN_SELFCOR, 0);
+				  AR_PHY_TIMING11_USE_SPUR_FILTER_IN_SELFCOR, 0);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING4,
-		      AR_PHY_TIMING4_ENABLE_SPUR_RSSI, 0);
+				  AR_PHY_TIMING4_ENABLE_SPUR_RSSI, 0);
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_REG,
-		      AR_PHY_SPUR_REG_EN_VIT_SPUR_RSSI, 0);
+				  AR_PHY_SPUR_REG_EN_VIT_SPUR_RSSI, 0);
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_REG,
-		      AR_PHY_SPUR_REG_ENABLE_NF_RSSI_SPUR_MIT, 0);
+				  AR_PHY_SPUR_REG_ENABLE_NF_RSSI_SPUR_MIT, 0);
 
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_REG,
-		      AR_PHY_SPUR_REG_ENABLE_MASK_PPM, 0);
+				  AR_PHY_SPUR_REG_ENABLE_MASK_PPM, 0);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING4,
-		      AR_PHY_TIMING4_ENABLE_PILOT_MASK, 0);
+				  AR_PHY_TIMING4_ENABLE_PILOT_MASK, 0);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING4,
-		      AR_PHY_TIMING4_ENABLE_CHAN_MASK, 0);
+				  AR_PHY_TIMING4_ENABLE_CHAN_MASK, 0);
 	REG_RMW_FIELD(ah, AR_PHY_PILOT_SPUR_MASK,
-		      AR_PHY_PILOT_SPUR_MASK_CF_PILOT_MASK_IDX_A, 0);
+				  AR_PHY_PILOT_SPUR_MASK_CF_PILOT_MASK_IDX_A, 0);
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_MASK_A,
-		      AR_PHY_SPUR_MASK_A_CF_PUNC_MASK_IDX_A, 0);
+				  AR_PHY_SPUR_MASK_A_CF_PUNC_MASK_IDX_A, 0);
 	REG_RMW_FIELD(ah, AR_PHY_CHAN_SPUR_MASK,
-		      AR_PHY_CHAN_SPUR_MASK_CF_CHAN_MASK_IDX_A, 0);
+				  AR_PHY_CHAN_SPUR_MASK_CF_CHAN_MASK_IDX_A, 0);
 	REG_RMW_FIELD(ah, AR_PHY_PILOT_SPUR_MASK,
-		      AR_PHY_PILOT_SPUR_MASK_CF_PILOT_MASK_A, 0);
+				  AR_PHY_PILOT_SPUR_MASK_CF_PILOT_MASK_A, 0);
 	REG_RMW_FIELD(ah, AR_PHY_CHAN_SPUR_MASK,
-		      AR_PHY_CHAN_SPUR_MASK_CF_CHAN_MASK_A, 0);
+				  AR_PHY_CHAN_SPUR_MASK_CF_CHAN_MASK_A, 0);
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_MASK_A,
-		      AR_PHY_SPUR_MASK_A_CF_PUNC_MASK_A, 0);
+				  AR_PHY_SPUR_MASK_A_CF_PUNC_MASK_A, 0);
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_REG,
-		      AR_PHY_SPUR_REG_MASK_RATE_CNTL, 0);
+				  AR_PHY_SPUR_REG_MASK_RATE_CNTL, 0);
 }
 
 static void ar9003_hw_spur_ofdm(struct ath_hw *ah,
-				int freq_offset,
-				int spur_freq_sd,
-				int spur_delta_phase,
-				int spur_subchannel_sd,
-				int range,
-				int synth_freq)
+								int freq_offset,
+								int spur_freq_sd,
+								int spur_delta_phase,
+								int spur_subchannel_sd,
+								int range,
+								int synth_freq)
 {
 	int mask_index = 0;
 
 	/* OFDM Spur mitigation */
 	REG_RMW_FIELD(ah, AR_PHY_TIMING4,
-		 AR_PHY_TIMING4_ENABLE_SPUR_FILTER, 0x1);
+				  AR_PHY_TIMING4_ENABLE_SPUR_FILTER, 0x1);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING11,
-		      AR_PHY_TIMING11_SPUR_FREQ_SD, spur_freq_sd);
+				  AR_PHY_TIMING11_SPUR_FREQ_SD, spur_freq_sd);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING11,
-		      AR_PHY_TIMING11_SPUR_DELTA_PHASE, spur_delta_phase);
+				  AR_PHY_TIMING11_SPUR_DELTA_PHASE, spur_delta_phase);
 	REG_RMW_FIELD(ah, AR_PHY_SFCORR_EXT,
-		      AR_PHY_SFCORR_EXT_SPUR_SUBCHANNEL_SD, spur_subchannel_sd);
+				  AR_PHY_SFCORR_EXT_SPUR_SUBCHANNEL_SD, spur_subchannel_sd);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING11,
-		      AR_PHY_TIMING11_USE_SPUR_FILTER_IN_AGC, 0x1);
+				  AR_PHY_TIMING11_USE_SPUR_FILTER_IN_AGC, 0x1);
 
 	if (!(AR_SREV_9565(ah) && range == 10 && synth_freq == 2437))
 		REG_RMW_FIELD(ah, AR_PHY_TIMING11,
-			      AR_PHY_TIMING11_USE_SPUR_FILTER_IN_SELFCOR, 0x1);
+					  AR_PHY_TIMING11_USE_SPUR_FILTER_IN_SELFCOR, 0x1);
 
 	REG_RMW_FIELD(ah, AR_PHY_TIMING4,
-		      AR_PHY_TIMING4_ENABLE_SPUR_RSSI, 0x1);
+				  AR_PHY_TIMING4_ENABLE_SPUR_RSSI, 0x1);
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_REG,
-		      AR_PHY_SPUR_REG_SPUR_RSSI_THRESH, 34);
+				  AR_PHY_SPUR_REG_SPUR_RSSI_THRESH, 34);
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_REG,
-		      AR_PHY_SPUR_REG_EN_VIT_SPUR_RSSI, 1);
+				  AR_PHY_SPUR_REG_EN_VIT_SPUR_RSSI, 1);
 
 	if (!AR_SREV_9340(ah) &&
-	    REG_READ_FIELD(ah, AR_PHY_MODE,
-			   AR_PHY_MODE_DYNAMIC) == 0x1)
+		REG_READ_FIELD(ah, AR_PHY_MODE,
+					   AR_PHY_MODE_DYNAMIC) == 0x1)
 		REG_RMW_FIELD(ah, AR_PHY_SPUR_REG,
-			      AR_PHY_SPUR_REG_ENABLE_NF_RSSI_SPUR_MIT, 1);
+					  AR_PHY_SPUR_REG_ENABLE_NF_RSSI_SPUR_MIT, 1);
 
 	mask_index = (freq_offset << 4) / 5;
+
 	if (mask_index < 0)
+	{
 		mask_index = mask_index - 1;
+	}
 
 	mask_index = mask_index & 0x7f;
 
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_REG,
-		      AR_PHY_SPUR_REG_ENABLE_MASK_PPM, 0x1);
+				  AR_PHY_SPUR_REG_ENABLE_MASK_PPM, 0x1);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING4,
-		      AR_PHY_TIMING4_ENABLE_PILOT_MASK, 0x1);
+				  AR_PHY_TIMING4_ENABLE_PILOT_MASK, 0x1);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING4,
-		      AR_PHY_TIMING4_ENABLE_CHAN_MASK, 0x1);
+				  AR_PHY_TIMING4_ENABLE_CHAN_MASK, 0x1);
 	REG_RMW_FIELD(ah, AR_PHY_PILOT_SPUR_MASK,
-		      AR_PHY_PILOT_SPUR_MASK_CF_PILOT_MASK_IDX_A, mask_index);
+				  AR_PHY_PILOT_SPUR_MASK_CF_PILOT_MASK_IDX_A, mask_index);
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_MASK_A,
-		      AR_PHY_SPUR_MASK_A_CF_PUNC_MASK_IDX_A, mask_index);
+				  AR_PHY_SPUR_MASK_A_CF_PUNC_MASK_IDX_A, mask_index);
 	REG_RMW_FIELD(ah, AR_PHY_CHAN_SPUR_MASK,
-		      AR_PHY_CHAN_SPUR_MASK_CF_CHAN_MASK_IDX_A, mask_index);
+				  AR_PHY_CHAN_SPUR_MASK_CF_CHAN_MASK_IDX_A, mask_index);
 	REG_RMW_FIELD(ah, AR_PHY_PILOT_SPUR_MASK,
-		      AR_PHY_PILOT_SPUR_MASK_CF_PILOT_MASK_A, 0xc);
+				  AR_PHY_PILOT_SPUR_MASK_CF_PILOT_MASK_A, 0xc);
 	REG_RMW_FIELD(ah, AR_PHY_CHAN_SPUR_MASK,
-		      AR_PHY_CHAN_SPUR_MASK_CF_CHAN_MASK_A, 0xc);
+				  AR_PHY_CHAN_SPUR_MASK_CF_CHAN_MASK_A, 0xc);
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_MASK_A,
-		      AR_PHY_SPUR_MASK_A_CF_PUNC_MASK_A, 0xa0);
+				  AR_PHY_SPUR_MASK_A_CF_PUNC_MASK_A, 0xa0);
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_REG,
-		      AR_PHY_SPUR_REG_MASK_RATE_CNTL, 0xff);
+				  AR_PHY_SPUR_REG_MASK_RATE_CNTL, 0xff);
 }
 
 static void ar9003_hw_spur_ofdm_9565(struct ath_hw *ah,
-				     int freq_offset)
+									 int freq_offset)
 {
 	int mask_index = 0;
 
 	mask_index = (freq_offset << 4) / 5;
+
 	if (mask_index < 0)
+	{
 		mask_index = mask_index - 1;
+	}
 
 	mask_index = mask_index & 0x7f;
 
 	REG_RMW_FIELD(ah, AR_PHY_PILOT_SPUR_MASK,
-		      AR_PHY_PILOT_SPUR_MASK_CF_PILOT_MASK_IDX_B,
-		      mask_index);
+				  AR_PHY_PILOT_SPUR_MASK_CF_PILOT_MASK_IDX_B,
+				  mask_index);
 
 	/* A == B */
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_MASK_B,
-		      AR_PHY_SPUR_MASK_A_CF_PUNC_MASK_IDX_A,
-		      mask_index);
+				  AR_PHY_SPUR_MASK_A_CF_PUNC_MASK_IDX_A,
+				  mask_index);
 
 	REG_RMW_FIELD(ah, AR_PHY_CHAN_SPUR_MASK,
-		      AR_PHY_CHAN_SPUR_MASK_CF_CHAN_MASK_IDX_B,
-		      mask_index);
+				  AR_PHY_CHAN_SPUR_MASK_CF_CHAN_MASK_IDX_B,
+				  mask_index);
 	REG_RMW_FIELD(ah, AR_PHY_PILOT_SPUR_MASK,
-		      AR_PHY_PILOT_SPUR_MASK_CF_PILOT_MASK_B, 0xe);
+				  AR_PHY_PILOT_SPUR_MASK_CF_PILOT_MASK_B, 0xe);
 	REG_RMW_FIELD(ah, AR_PHY_CHAN_SPUR_MASK,
-		      AR_PHY_CHAN_SPUR_MASK_CF_CHAN_MASK_B, 0xe);
+				  AR_PHY_CHAN_SPUR_MASK_CF_CHAN_MASK_B, 0xe);
 
 	/* A == B */
 	REG_RMW_FIELD(ah, AR_PHY_SPUR_MASK_B,
-		      AR_PHY_SPUR_MASK_A_CF_PUNC_MASK_A, 0xa0);
+				  AR_PHY_SPUR_MASK_A_CF_PUNC_MASK_A, 0xa0);
 }
 
 static void ar9003_hw_spur_ofdm_work(struct ath_hw *ah,
-				     struct ath9k_channel *chan,
-				     int freq_offset,
-				     int range,
-				     int synth_freq)
+									 struct ath9k_channel *chan,
+									 int freq_offset,
+									 int range,
+									 int synth_freq)
 {
 	int spur_freq_sd = 0;
 	int spur_subchannel_sd = 0;
 	int spur_delta_phase = 0;
 
-	if (IS_CHAN_HT40(chan)) {
-		if (freq_offset < 0) {
+	if (IS_CHAN_HT40(chan))
+	{
+		if (freq_offset < 0)
+		{
 			if (REG_READ_FIELD(ah, AR_PHY_GEN_CTRL,
-					   AR_PHY_GC_DYN2040_PRI_CH) == 0x0)
+							   AR_PHY_GC_DYN2040_PRI_CH) == 0x0)
+			{
 				spur_subchannel_sd = 1;
+			}
 			else
+			{
 				spur_subchannel_sd = 0;
+			}
 
 			spur_freq_sd = ((freq_offset + 10) << 9) / 11;
 
-		} else {
+		}
+		else
+		{
 			if (REG_READ_FIELD(ah, AR_PHY_GEN_CTRL,
-			    AR_PHY_GC_DYN2040_PRI_CH) == 0x0)
+							   AR_PHY_GC_DYN2040_PRI_CH) == 0x0)
+			{
 				spur_subchannel_sd = 0;
+			}
 			else
+			{
 				spur_subchannel_sd = 1;
+			}
 
 			spur_freq_sd = ((freq_offset - 10) << 9) / 11;
 
@@ -517,9 +593,11 @@ static void ar9003_hw_spur_ofdm_work(struct ath_hw *ah,
 
 		spur_delta_phase = (freq_offset << 17) / 5;
 
-	} else {
+	}
+	else
+	{
 		spur_subchannel_sd = 0;
-		spur_freq_sd = (freq_offset << 9) /11;
+		spur_freq_sd = (freq_offset << 9) / 11;
 		spur_delta_phase = (freq_offset << 18) / 5;
 	}
 
@@ -527,64 +605,83 @@ static void ar9003_hw_spur_ofdm_work(struct ath_hw *ah,
 	spur_delta_phase = spur_delta_phase & 0xfffff;
 
 	ar9003_hw_spur_ofdm(ah,
-			    freq_offset,
-			    spur_freq_sd,
-			    spur_delta_phase,
-			    spur_subchannel_sd,
-			    range, synth_freq);
+						freq_offset,
+						spur_freq_sd,
+						spur_delta_phase,
+						spur_subchannel_sd,
+						range, synth_freq);
 }
 
 /* Spur mitigation for OFDM */
 static void ar9003_hw_spur_mitigate_ofdm(struct ath_hw *ah,
-					 struct ath9k_channel *chan)
+		struct ath9k_channel *chan)
 {
 	int synth_freq;
 	int range = 10;
 	int freq_offset = 0;
 	int mode;
-	u8* spurChansPtr;
+	u8 *spurChansPtr;
 	unsigned int i;
 	struct ar9300_eeprom *eep = &ah->eeprom.ar9300_eep;
 
-	if (IS_CHAN_5GHZ(chan)) {
+	if (IS_CHAN_5GHZ(chan))
+	{
 		spurChansPtr = &(eep->modalHeader5G.spurChans[0]);
 		mode = 0;
 	}
-	else {
+	else
+	{
 		spurChansPtr = &(eep->modalHeader2G.spurChans[0]);
 		mode = 1;
 	}
 
 	if (spurChansPtr[0] == 0)
-		return; /* No spur in the mode */
+	{
+		return;    /* No spur in the mode */
+	}
 
-	if (IS_CHAN_HT40(chan)) {
+	if (IS_CHAN_HT40(chan))
+	{
 		range = 19;
+
 		if (REG_READ_FIELD(ah, AR_PHY_GEN_CTRL,
-				   AR_PHY_GC_DYN2040_PRI_CH) == 0x0)
+						   AR_PHY_GC_DYN2040_PRI_CH) == 0x0)
+		{
 			synth_freq = chan->channel - 10;
+		}
 		else
+		{
 			synth_freq = chan->channel + 10;
-	} else {
+		}
+	}
+	else
+	{
 		range = 10;
 		synth_freq = chan->channel;
 	}
 
 	ar9003_hw_spur_ofdm_clear(ah);
 
-	for (i = 0; i < AR_EEPROM_MODAL_SPURS && spurChansPtr[i]; i++) {
+	for (i = 0; i < AR_EEPROM_MODAL_SPURS && spurChansPtr[i]; i++)
+	{
 		freq_offset = ath9k_hw_fbin2freq(spurChansPtr[i], mode);
 		freq_offset -= synth_freq;
-		if (abs(freq_offset) < range) {
-			ar9003_hw_spur_ofdm_work(ah, chan, freq_offset,
-						 range, synth_freq);
 
-			if (AR_SREV_9565(ah) && (i < 4)) {
+		if (abs(freq_offset) < range)
+		{
+			ar9003_hw_spur_ofdm_work(ah, chan, freq_offset,
+									 range, synth_freq);
+
+			if (AR_SREV_9565(ah) && (i < 4))
+			{
 				freq_offset = ath9k_hw_fbin2freq(spurChansPtr[i + 1],
-								 mode);
+												 mode);
 				freq_offset -= synth_freq;
+
 				if (abs(freq_offset) < range)
+				{
 					ar9003_hw_spur_ofdm_9565(ah, freq_offset);
+				}
 			}
 
 			break;
@@ -593,24 +690,31 @@ static void ar9003_hw_spur_mitigate_ofdm(struct ath_hw *ah,
 }
 
 static void ar9003_hw_spur_mitigate(struct ath_hw *ah,
-				    struct ath9k_channel *chan)
+									struct ath9k_channel *chan)
 {
 	if (!AR_SREV_9565(ah))
+	{
 		ar9003_hw_spur_mitigate_mrc_cck(ah, chan);
+	}
+
 	ar9003_hw_spur_mitigate_ofdm(ah, chan);
 }
 
 static u32 ar9003_hw_compute_pll_control_soc(struct ath_hw *ah,
-					     struct ath9k_channel *chan)
+		struct ath9k_channel *chan)
 {
 	u32 pll;
 
 	pll = SM(0x5, AR_RTC_9300_SOC_PLL_REFDIV);
 
 	if (chan && IS_CHAN_HALF_RATE(chan))
+	{
 		pll |= SM(0x1, AR_RTC_9300_SOC_PLL_CLKSEL);
+	}
 	else if (chan && IS_CHAN_QUARTER_RATE(chan))
+	{
 		pll |= SM(0x2, AR_RTC_9300_SOC_PLL_CLKSEL);
+	}
 
 	pll |= SM(0x2c, AR_RTC_9300_SOC_PLL_DIV_INT);
 
@@ -618,16 +722,20 @@ static u32 ar9003_hw_compute_pll_control_soc(struct ath_hw *ah,
 }
 
 static u32 ar9003_hw_compute_pll_control(struct ath_hw *ah,
-					 struct ath9k_channel *chan)
+		struct ath9k_channel *chan)
 {
 	u32 pll;
 
 	pll = SM(0x5, AR_RTC_9300_PLL_REFDIV);
 
 	if (chan && IS_CHAN_HALF_RATE(chan))
+	{
 		pll |= SM(0x1, AR_RTC_9300_PLL_CLKSEL);
+	}
 	else if (chan && IS_CHAN_QUARTER_RATE(chan))
+	{
 		pll |= SM(0x2, AR_RTC_9300_PLL_CLKSEL);
+	}
 
 	pll |= SM(0x2c, AR_RTC_9300_PLL_DIV);
 
@@ -635,7 +743,7 @@ static u32 ar9003_hw_compute_pll_control(struct ath_hw *ah,
 }
 
 static void ar9003_hw_set_channel_regs(struct ath_hw *ah,
-				       struct ath9k_channel *chan)
+									   struct ath9k_channel *chan)
 {
 	u32 phymode;
 	u32 enableDacFifo = 0;
@@ -647,14 +755,20 @@ static void ar9003_hw_set_channel_regs(struct ath_hw *ah,
 	phymode = AR_PHY_GC_HT_EN | AR_PHY_GC_SHORT_GI_40 | enableDacFifo;
 
 	if (!AR_SREV_9561(ah))
+	{
 		phymode |= AR_PHY_GC_SINGLE_HT_LTF1;
+	}
 
 	/* Configure baseband for dynamic 20/40 operation */
-	if (IS_CHAN_HT40(chan)) {
+	if (IS_CHAN_HT40(chan))
+	{
 		phymode |= AR_PHY_GC_DYN2040_EN;
+
 		/* Configure control (primary) channel at +-10MHz */
 		if (IS_CHAN_HT40PLUS(chan))
+		{
 			phymode |= AR_PHY_GC_DYN2040_PRI_CH;
+		}
 
 	}
 
@@ -675,7 +789,7 @@ static void ar9003_hw_set_channel_regs(struct ath_hw *ah,
 }
 
 static void ar9003_hw_init_bb(struct ath_hw *ah,
-			      struct ath9k_channel *chan)
+							  struct ath9k_channel *chan)
 {
 	u32 synthDelay;
 
@@ -695,13 +809,15 @@ void ar9003_hw_set_chain_masks(struct ath_hw *ah, u8 rx, u8 tx)
 {
 	if (ah->caps.tx_chainmask == 5 || ah->caps.rx_chainmask == 5)
 		REG_SET_BIT(ah, AR_PHY_ANALOG_SWAP,
-			    AR_PHY_SWAP_ALT_CHAIN);
+					AR_PHY_SWAP_ALT_CHAIN);
 
 	REG_WRITE(ah, AR_PHY_RX_CHAINMASK, rx);
 	REG_WRITE(ah, AR_PHY_CAL_CHAINMASK, rx);
 
 	if ((ah->caps.hw_caps & ATH9K_HW_CAP_APM) && (tx == 0x7))
+	{
 		tx = 3;
+	}
 
 	REG_WRITE(ah, AR_SELFGEN_MASK, tx);
 }
@@ -729,51 +845,67 @@ static void ar9003_hw_override_ini(struct ath_hw *ah)
 	 */
 	val = REG_READ(ah, AR_PCU_MISC_MODE2) & (~AR_ADHOC_MCAST_KEYID_ENABLE);
 	val |= AR_AGG_WEP_ENABLE_FIX |
-	       AR_AGG_WEP_ENABLE |
-	       AR_PCU_MISC_MODE2_CFP_IGNORE;
+		   AR_AGG_WEP_ENABLE |
+		   AR_PCU_MISC_MODE2_CFP_IGNORE;
 	REG_WRITE(ah, AR_PCU_MISC_MODE2, val);
 
-	if (AR_SREV_9462(ah) || AR_SREV_9565(ah)) {
+	if (AR_SREV_9462(ah) || AR_SREV_9565(ah))
+	{
 		REG_WRITE(ah, AR_GLB_SWREG_DISCONT_MODE,
-			  AR_GLB_SWREG_DISCONT_EN_BT_WLAN);
+				  AR_GLB_SWREG_DISCONT_EN_BT_WLAN);
 
 		if (REG_READ_FIELD(ah, AR_PHY_TX_IQCAL_CONTROL_0,
-				   AR_PHY_TX_IQCAL_CONTROL_0_ENABLE_TXIQ_CAL))
+						   AR_PHY_TX_IQCAL_CONTROL_0_ENABLE_TXIQ_CAL))
+		{
 			ah->enabled_cals |= TX_IQ_CAL;
+		}
 		else
+		{
 			ah->enabled_cals &= ~TX_IQ_CAL;
+		}
 
 	}
 
 	if (REG_READ(ah, AR_PHY_CL_CAL_CTL) & AR_PHY_CL_CAL_ENABLE)
+	{
 		ah->enabled_cals |= TX_CL_CAL;
+	}
 	else
+	{
 		ah->enabled_cals &= ~TX_CL_CAL;
+	}
 
 	if (AR_SREV_9340(ah) || AR_SREV_9531(ah) || AR_SREV_9550(ah) ||
-	    AR_SREV_9561(ah)) {
-		if (ah->is_clk_25mhz) {
+		AR_SREV_9561(ah))
+	{
+		if (ah->is_clk_25mhz)
+		{
 			REG_WRITE(ah, AR_RTC_DERIVED_CLK, 0x17c << 1);
 			REG_WRITE(ah, AR_SLP32_MODE, 0x0010f3d7);
 			REG_WRITE(ah, AR_SLP32_INC, 0x0001e7ae);
-		} else {
+		}
+		else
+		{
 			REG_WRITE(ah, AR_RTC_DERIVED_CLK, 0x261 << 1);
 			REG_WRITE(ah, AR_SLP32_MODE, 0x0010f400);
 			REG_WRITE(ah, AR_SLP32_INC, 0x0001e800);
 		}
+
 		udelay(100);
 	}
 }
 
 static void ar9003_hw_prog_ini(struct ath_hw *ah,
-			       struct ar5416IniArray *iniArr,
-			       int column)
+							   struct ar5416IniArray *iniArr,
+							   int column)
 {
 	unsigned int i, regWrites = 0;
 
 	/* New INI format: Array may be undefined (pre, core, post arrays) */
 	if (!iniArr->ia_array)
+	{
 		return;
+	}
 
 	/*
 	 * New INI format: Pre, core, and post arrays for a given subsystem
@@ -781,9 +913,12 @@ static void ar9003_hw_prog_ini(struct ath_hw *ah,
 	 * the array is non-modal and force the column to 1.
 	 */
 	if (column >= iniArr->ia_columns)
+	{
 		column = 1;
+	}
 
-	for (i = 0; i < iniArr->ia_rows; i++) {
+	for (i = 0; i < iniArr->ia_rows; i++)
+	{
 		u32 reg = INI_RA(iniArr, i, 0);
 		u32 val = INI_RA(iniArr, i, column);
 
@@ -794,38 +929,56 @@ static void ar9003_hw_prog_ini(struct ath_hw *ah,
 }
 
 static int ar9550_hw_get_modes_txgain_index(struct ath_hw *ah,
-					    struct ath9k_channel *chan)
+		struct ath9k_channel *chan)
 {
 	int ret;
 
-	if (IS_CHAN_2GHZ(chan)) {
+	if (IS_CHAN_2GHZ(chan))
+	{
 		if (IS_CHAN_HT40(chan))
+		{
 			return 7;
+		}
 		else
+		{
 			return 8;
+		}
 	}
 
 	if (chan->channel <= 5350)
+	{
 		ret = 1;
+	}
 	else if ((chan->channel > 5350) && (chan->channel <= 5600))
+	{
 		ret = 3;
+	}
 	else
+	{
 		ret = 5;
+	}
 
 	if (IS_CHAN_HT40(chan))
+	{
 		ret++;
+	}
 
 	return ret;
 }
 
 static int ar9561_hw_get_modes_txgain_index(struct ath_hw *ah,
-					    struct ath9k_channel *chan)
+		struct ath9k_channel *chan)
 {
-	if (IS_CHAN_2GHZ(chan)) {
+	if (IS_CHAN_2GHZ(chan))
+	{
 		if (IS_CHAN_HT40(chan))
+		{
 			return 1;
+		}
 		else
+		{
 			return 2;
+		}
 	}
 
 	return 0;
@@ -833,75 +986,82 @@ static int ar9561_hw_get_modes_txgain_index(struct ath_hw *ah,
 
 static void ar9003_doubler_fix(struct ath_hw *ah)
 {
-	if (AR_SREV_9300(ah) || AR_SREV_9580(ah) || AR_SREV_9550(ah)) {
+	if (AR_SREV_9300(ah) || AR_SREV_9580(ah) || AR_SREV_9550(ah))
+	{
 		REG_RMW(ah, AR_PHY_65NM_CH0_RXTX2,
-			1 << AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK_S |
-			1 << AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S, 0);
+				1 << AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK_S |
+				1 << AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S, 0);
 		REG_RMW(ah, AR_PHY_65NM_CH1_RXTX2,
-			1 << AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK_S |
-			1 << AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S, 0);
+				1 << AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK_S |
+				1 << AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S, 0);
 		REG_RMW(ah, AR_PHY_65NM_CH2_RXTX2,
-			1 << AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK_S |
-			1 << AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S, 0);
+				1 << AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK_S |
+				1 << AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S, 0);
 
 		udelay(200);
 
 		REG_CLR_BIT(ah, AR_PHY_65NM_CH0_RXTX2,
-			    AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK);
+					AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK);
 		REG_CLR_BIT(ah, AR_PHY_65NM_CH1_RXTX2,
-			    AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK);
+					AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK);
 		REG_CLR_BIT(ah, AR_PHY_65NM_CH2_RXTX2,
-			    AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK);
+					AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK);
 
 		udelay(1);
 
 		REG_RMW_FIELD(ah, AR_PHY_65NM_CH0_RXTX2,
-			      AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK, 1);
+					  AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK, 1);
 		REG_RMW_FIELD(ah, AR_PHY_65NM_CH1_RXTX2,
-			      AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK, 1);
+					  AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK, 1);
 		REG_RMW_FIELD(ah, AR_PHY_65NM_CH2_RXTX2,
-			      AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK, 1);
+					  AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK, 1);
 
 		udelay(200);
 
 		REG_RMW_FIELD(ah, AR_PHY_65NM_CH0_SYNTH12,
-			      AR_PHY_65NM_CH0_SYNTH12_VREFMUL3, 0xf);
+					  AR_PHY_65NM_CH0_SYNTH12_VREFMUL3, 0xf);
 
 		REG_RMW(ah, AR_PHY_65NM_CH0_RXTX2, 0,
-			1 << AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK_S |
-			1 << AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S);
+				1 << AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK_S |
+				1 << AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S);
 		REG_RMW(ah, AR_PHY_65NM_CH1_RXTX2, 0,
-			1 << AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK_S |
-			1 << AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S);
+				1 << AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK_S |
+				1 << AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S);
 		REG_RMW(ah, AR_PHY_65NM_CH2_RXTX2, 0,
-			1 << AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK_S |
-			1 << AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S);
+				1 << AR_PHY_65NM_CH0_RXTX2_SYNTHON_MASK_S |
+				1 << AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S);
 	}
 }
 
 static int ar9003_hw_process_ini(struct ath_hw *ah,
-				 struct ath9k_channel *chan)
+								 struct ath9k_channel *chan)
 {
 	unsigned int regWrites = 0, i;
 	u32 modesIndex;
 
 	if (IS_CHAN_5GHZ(chan))
+	{
 		modesIndex = IS_CHAN_HT40(chan) ? 2 : 1;
+	}
 	else
+	{
 		modesIndex = IS_CHAN_HT40(chan) ? 3 : 4;
+	}
 
 	/*
 	 * SOC, MAC, BB, RADIO initvals.
 	 */
-	for (i = 0; i < ATH_INI_NUM_SPLIT; i++) {
+	for (i = 0; i < ATH_INI_NUM_SPLIT; i++)
+	{
 		ar9003_hw_prog_ini(ah, &ah->iniSOC[i], modesIndex);
 		ar9003_hw_prog_ini(ah, &ah->iniMac[i], modesIndex);
 		ar9003_hw_prog_ini(ah, &ah->iniBB[i], modesIndex);
 		ar9003_hw_prog_ini(ah, &ah->iniRadio[i], modesIndex);
+
 		if (i == ATH_INI_POST && AR_SREV_9462_20_OR_LATER(ah))
 			ar9003_hw_prog_ini(ah,
-					   &ah->ini_radio_post_sys2ant,
-					   modesIndex);
+							   &ah->ini_radio_post_sys2ant,
+							   modesIndex);
 	}
 
 	ar9003_doubler_fix(ah);
@@ -911,53 +1071,64 @@ static int ar9003_hw_process_ini(struct ath_hw *ah,
 	 */
 	REG_WRITE_ARRAY(&ah->iniModesRxGain, 1, regWrites);
 
-	if (AR_SREV_9462_20_OR_LATER(ah)) {
+	if (AR_SREV_9462_20_OR_LATER(ah))
+	{
 		/*
 		 * CUS217 mix LNA mode.
 		 */
-		if (ar9003_hw_get_rx_gain_idx(ah) == 2) {
+		if (ar9003_hw_get_rx_gain_idx(ah) == 2)
+		{
 			REG_WRITE_ARRAY(&ah->ini_modes_rxgain_bb_core,
-					1, regWrites);
+							1, regWrites);
 			REG_WRITE_ARRAY(&ah->ini_modes_rxgain_bb_postamble,
-					modesIndex, regWrites);
+							modesIndex, regWrites);
 		}
 
 		/*
 		 * 5G-XLNA
 		 */
 		if ((ar9003_hw_get_rx_gain_idx(ah) == 2) ||
-		    (ar9003_hw_get_rx_gain_idx(ah) == 3)) {
+			(ar9003_hw_get_rx_gain_idx(ah) == 3))
+		{
 			REG_WRITE_ARRAY(&ah->ini_modes_rxgain_xlna,
-					modesIndex, regWrites);
+							modesIndex, regWrites);
 		}
 	}
 
 	if (AR_SREV_9550(ah) || AR_SREV_9561(ah))
 		REG_WRITE_ARRAY(&ah->ini_modes_rx_gain_bounds, modesIndex,
-				regWrites);
+						regWrites);
 
 	if (AR_SREV_9561(ah) && (ar9003_hw_get_rx_gain_idx(ah) == 0))
 		REG_WRITE_ARRAY(&ah->ini_modes_rxgain_xlna,
-				modesIndex, regWrites);
+						modesIndex, regWrites);
+
 	/*
 	 * TXGAIN initvals.
 	 */
-	if (AR_SREV_9550(ah) || AR_SREV_9531(ah) || AR_SREV_9561(ah)) {
+	if (AR_SREV_9550(ah) || AR_SREV_9531(ah) || AR_SREV_9561(ah))
+	{
 		int modes_txgain_index = 1;
 
 		if (AR_SREV_9550(ah))
+		{
 			modes_txgain_index = ar9550_hw_get_modes_txgain_index(ah, chan);
+		}
 
 		if (AR_SREV_9561(ah))
 			modes_txgain_index =
 				ar9561_hw_get_modes_txgain_index(ah, chan);
 
 		if (modes_txgain_index < 0)
+		{
 			return -EINVAL;
+		}
 
 		REG_WRITE_ARRAY(&ah->iniModesTxGain, modes_txgain_index,
-				regWrites);
-	} else {
+						regWrites);
+	}
+	else
+	{
 		REG_WRITE_ARRAY(&ah->iniModesTxGain, modesIndex, regWrites);
 	}
 
@@ -967,7 +1138,7 @@ static int ar9003_hw_process_ini(struct ath_hw *ah,
 	 */
 	if (IS_CHAN_A_FAST_CLOCK(ah, chan))
 		REG_WRITE_ARRAY(&ah->iniModesFastClock,
-				modesIndex, regWrites);
+						modesIndex, regWrites);
 
 	/*
 	 * Clock frequency initvals.
@@ -977,12 +1148,13 @@ static int ar9003_hw_process_ini(struct ath_hw *ah,
 	/*
 	 * JAPAN regulatory.
 	 */
-	if (chan->channel == 2484) {
+	if (chan->channel == 2484)
+	{
 		ar9003_hw_prog_ini(ah, &ah->iniCckfirJapan2484, 1);
 
 		if (AR_SREV_9531(ah))
 			REG_RMW_FIELD(ah, AR_PHY_FCAL_2_0,
-				      AR_PHY_FLC_PWR_THRESH, 0);
+						  AR_PHY_FLC_PWR_THRESH, 0);
 	}
 
 	ah->modes_index = modesIndex;
@@ -995,24 +1167,32 @@ static int ar9003_hw_process_ini(struct ath_hw *ah,
 }
 
 static void ar9003_hw_set_rfmode(struct ath_hw *ah,
-				 struct ath9k_channel *chan)
+								 struct ath9k_channel *chan)
 {
 	u32 rfMode = 0;
 
 	if (chan == NULL)
+	{
 		return;
+	}
 
 	if (IS_CHAN_2GHZ(chan))
+	{
 		rfMode |= AR_PHY_MODE_DYNAMIC;
+	}
 	else
+	{
 		rfMode |= AR_PHY_MODE_OFDM;
+	}
 
 	if (IS_CHAN_A_FAST_CLOCK(ah, chan))
+	{
 		rfMode |= (AR_PHY_MODE_DYNAMIC | AR_PHY_MODE_DYN_CCK_DISABLE);
+	}
 
 	if (IS_CHAN_HALF_RATE(chan) || IS_CHAN_QUARTER_RATE(chan))
 		REG_RMW_FIELD(ah, AR_PHY_FRAME_CTL,
-			      AR_PHY_FRAME_CTL_CF_OVERLAP_WINDOW, 3);
+					  AR_PHY_FRAME_CTL_CF_OVERLAP_WINDOW, 3);
 
 	REG_WRITE(ah, AR_PHY_MODE, rfMode);
 }
@@ -1023,7 +1203,7 @@ static void ar9003_hw_mark_phy_inactive(struct ath_hw *ah)
 }
 
 static void ar9003_hw_set_delta_slope(struct ath_hw *ah,
-				      struct ath9k_channel *chan)
+									  struct ath9k_channel *chan)
 {
 	u32 coef_scaled, ds_coef_exp, ds_coef_man;
 	u32 clockMhzScaled = 0x64000000;
@@ -1034,9 +1214,13 @@ static void ar9003_hw_set_delta_slope(struct ath_hw *ah,
 	 * scale for selected channel bandwidth
 	 */
 	if (IS_CHAN_HALF_RATE(chan))
+	{
 		clockMhzScaled = clockMhzScaled >> 1;
+	}
 	else if (IS_CHAN_QUARTER_RATE(chan))
+	{
 		clockMhzScaled = clockMhzScaled >> 2;
+	}
 
 	/*
 	 * ALGO -> coef = 1e8/fcarrier*fclock/40;
@@ -1046,12 +1230,12 @@ static void ar9003_hw_set_delta_slope(struct ath_hw *ah,
 	coef_scaled = clockMhzScaled / centers.synth_center;
 
 	ath9k_hw_get_delta_slope_vals(ah, coef_scaled, &ds_coef_man,
-				      &ds_coef_exp);
+								  &ds_coef_exp);
 
 	REG_RMW_FIELD(ah, AR_PHY_TIMING3,
-		      AR_PHY_TIMING3_DSC_MAN, ds_coef_man);
+				  AR_PHY_TIMING3_DSC_MAN, ds_coef_man);
 	REG_RMW_FIELD(ah, AR_PHY_TIMING3,
-		      AR_PHY_TIMING3_DSC_EXP, ds_coef_exp);
+				  AR_PHY_TIMING3_DSC_EXP, ds_coef_exp);
 
 	/*
 	 * For Short GI,
@@ -1060,20 +1244,20 @@ static void ar9003_hw_set_delta_slope(struct ath_hw *ah,
 	coef_scaled = (9 * coef_scaled) / 10;
 
 	ath9k_hw_get_delta_slope_vals(ah, coef_scaled, &ds_coef_man,
-				      &ds_coef_exp);
+								  &ds_coef_exp);
 
 	/* for short gi */
 	REG_RMW_FIELD(ah, AR_PHY_SGI_DELTA,
-		      AR_PHY_SGI_DSC_MAN, ds_coef_man);
+				  AR_PHY_SGI_DSC_MAN, ds_coef_man);
 	REG_RMW_FIELD(ah, AR_PHY_SGI_DELTA,
-		      AR_PHY_SGI_DSC_EXP, ds_coef_exp);
+				  AR_PHY_SGI_DSC_EXP, ds_coef_exp);
 }
 
 static bool ar9003_hw_rfbus_req(struct ath_hw *ah)
 {
 	REG_WRITE(ah, AR_PHY_RFBUS_REQ, AR_PHY_RFBUS_REQ_EN);
 	return ath9k_hw_wait(ah, AR_PHY_RFBUS_GRANT, AR_PHY_RFBUS_GRANT_EN,
-			     AR_PHY_RFBUS_GRANT_EN, AH_WAIT_TIMEOUT);
+						 AR_PHY_RFBUS_GRANT_EN, AH_WAIT_TIMEOUT);
 }
 
 /*
@@ -1090,7 +1274,7 @@ static void ar9003_hw_rfbus_done(struct ath_hw *ah)
 }
 
 static bool ar9003_hw_ani_control(struct ath_hw *ah,
-				  enum ath9k_ani_cmd cmd, int param)
+								  enum ath9k_ani_cmd cmd, int param)
 {
 	struct ath_common *common = ath9k_hw_common(ah);
 	struct ath9k_channel *chan = ah->curchan;
@@ -1102,269 +1286,346 @@ static bool ar9003_hw_ani_control(struct ath_hw *ah,
 	int m1ThreshExt, m2ThreshExt;
 	s32 value, value2;
 
-	switch (cmd & ah->ani_function) {
-	case ATH9K_ANI_OFDM_WEAK_SIGNAL_DETECTION:{
-		/*
-		 * on == 1 means ofdm weak signal detection is ON
-		 * on == 1 is the default, for less noise immunity
-		 *
-		 * on == 0 means ofdm weak signal detection is OFF
-		 * on == 0 means more noise imm
-		 */
-		u32 on = param ? 1 : 0;
+	switch (cmd & ah->ani_function)
+	{
+		case ATH9K_ANI_OFDM_WEAK_SIGNAL_DETECTION:
+			{
+				/*
+				 * on == 1 means ofdm weak signal detection is ON
+				 * on == 1 is the default, for less noise immunity
+				 *
+				 * on == 0 means ofdm weak signal detection is OFF
+				 * on == 0 means more noise imm
+				 */
+				u32 on = param ? 1 : 0;
 
-		if (AR_SREV_9462(ah) || AR_SREV_9565(ah))
-			goto skip_ws_det;
+				if (AR_SREV_9462(ah) || AR_SREV_9565(ah))
+				{
+					goto skip_ws_det;
+				}
 
-		m1ThreshLow = on ?
-			aniState->iniDef.m1ThreshLow : m1ThreshLow_off;
-		m2ThreshLow = on ?
-			aniState->iniDef.m2ThreshLow : m2ThreshLow_off;
-		m1Thresh = on ?
-			aniState->iniDef.m1Thresh : m1Thresh_off;
-		m2Thresh = on ?
-			aniState->iniDef.m2Thresh : m2Thresh_off;
-		m2CountThr = on ?
-			aniState->iniDef.m2CountThr : m2CountThr_off;
-		m2CountThrLow = on ?
-			aniState->iniDef.m2CountThrLow : m2CountThrLow_off;
-		m1ThreshLowExt = on ?
-			aniState->iniDef.m1ThreshLowExt : m1ThreshLowExt_off;
-		m2ThreshLowExt = on ?
-			aniState->iniDef.m2ThreshLowExt : m2ThreshLowExt_off;
-		m1ThreshExt = on ?
-			aniState->iniDef.m1ThreshExt : m1ThreshExt_off;
-		m2ThreshExt = on ?
-			aniState->iniDef.m2ThreshExt : m2ThreshExt_off;
+				m1ThreshLow = on ?
+							  aniState->iniDef.m1ThreshLow : m1ThreshLow_off;
+				m2ThreshLow = on ?
+							  aniState->iniDef.m2ThreshLow : m2ThreshLow_off;
+				m1Thresh = on ?
+						   aniState->iniDef.m1Thresh : m1Thresh_off;
+				m2Thresh = on ?
+						   aniState->iniDef.m2Thresh : m2Thresh_off;
+				m2CountThr = on ?
+							 aniState->iniDef.m2CountThr : m2CountThr_off;
+				m2CountThrLow = on ?
+								aniState->iniDef.m2CountThrLow : m2CountThrLow_off;
+				m1ThreshLowExt = on ?
+								 aniState->iniDef.m1ThreshLowExt : m1ThreshLowExt_off;
+				m2ThreshLowExt = on ?
+								 aniState->iniDef.m2ThreshLowExt : m2ThreshLowExt_off;
+				m1ThreshExt = on ?
+							  aniState->iniDef.m1ThreshExt : m1ThreshExt_off;
+				m2ThreshExt = on ?
+							  aniState->iniDef.m2ThreshExt : m2ThreshExt_off;
 
-		REG_RMW_FIELD(ah, AR_PHY_SFCORR_LOW,
-			      AR_PHY_SFCORR_LOW_M1_THRESH_LOW,
-			      m1ThreshLow);
-		REG_RMW_FIELD(ah, AR_PHY_SFCORR_LOW,
-			      AR_PHY_SFCORR_LOW_M2_THRESH_LOW,
-			      m2ThreshLow);
-		REG_RMW_FIELD(ah, AR_PHY_SFCORR,
-			      AR_PHY_SFCORR_M1_THRESH,
-			      m1Thresh);
-		REG_RMW_FIELD(ah, AR_PHY_SFCORR,
-			      AR_PHY_SFCORR_M2_THRESH,
-			      m2Thresh);
-		REG_RMW_FIELD(ah, AR_PHY_SFCORR,
-			      AR_PHY_SFCORR_M2COUNT_THR,
-			      m2CountThr);
-		REG_RMW_FIELD(ah, AR_PHY_SFCORR_LOW,
-			      AR_PHY_SFCORR_LOW_M2COUNT_THR_LOW,
-			      m2CountThrLow);
-		REG_RMW_FIELD(ah, AR_PHY_SFCORR_EXT,
-			      AR_PHY_SFCORR_EXT_M1_THRESH_LOW,
-			      m1ThreshLowExt);
-		REG_RMW_FIELD(ah, AR_PHY_SFCORR_EXT,
-			      AR_PHY_SFCORR_EXT_M2_THRESH_LOW,
-			      m2ThreshLowExt);
-		REG_RMW_FIELD(ah, AR_PHY_SFCORR_EXT,
-			      AR_PHY_SFCORR_EXT_M1_THRESH,
-			      m1ThreshExt);
-		REG_RMW_FIELD(ah, AR_PHY_SFCORR_EXT,
-			      AR_PHY_SFCORR_EXT_M2_THRESH,
-			      m2ThreshExt);
+				REG_RMW_FIELD(ah, AR_PHY_SFCORR_LOW,
+							  AR_PHY_SFCORR_LOW_M1_THRESH_LOW,
+							  m1ThreshLow);
+				REG_RMW_FIELD(ah, AR_PHY_SFCORR_LOW,
+							  AR_PHY_SFCORR_LOW_M2_THRESH_LOW,
+							  m2ThreshLow);
+				REG_RMW_FIELD(ah, AR_PHY_SFCORR,
+							  AR_PHY_SFCORR_M1_THRESH,
+							  m1Thresh);
+				REG_RMW_FIELD(ah, AR_PHY_SFCORR,
+							  AR_PHY_SFCORR_M2_THRESH,
+							  m2Thresh);
+				REG_RMW_FIELD(ah, AR_PHY_SFCORR,
+							  AR_PHY_SFCORR_M2COUNT_THR,
+							  m2CountThr);
+				REG_RMW_FIELD(ah, AR_PHY_SFCORR_LOW,
+							  AR_PHY_SFCORR_LOW_M2COUNT_THR_LOW,
+							  m2CountThrLow);
+				REG_RMW_FIELD(ah, AR_PHY_SFCORR_EXT,
+							  AR_PHY_SFCORR_EXT_M1_THRESH_LOW,
+							  m1ThreshLowExt);
+				REG_RMW_FIELD(ah, AR_PHY_SFCORR_EXT,
+							  AR_PHY_SFCORR_EXT_M2_THRESH_LOW,
+							  m2ThreshLowExt);
+				REG_RMW_FIELD(ah, AR_PHY_SFCORR_EXT,
+							  AR_PHY_SFCORR_EXT_M1_THRESH,
+							  m1ThreshExt);
+				REG_RMW_FIELD(ah, AR_PHY_SFCORR_EXT,
+							  AR_PHY_SFCORR_EXT_M2_THRESH,
+							  m2ThreshExt);
 skip_ws_det:
-		if (on)
-			REG_SET_BIT(ah, AR_PHY_SFCORR_LOW,
-				    AR_PHY_SFCORR_LOW_USE_SELF_CORR_LOW);
-		else
-			REG_CLR_BIT(ah, AR_PHY_SFCORR_LOW,
-				    AR_PHY_SFCORR_LOW_USE_SELF_CORR_LOW);
 
-		if (on != aniState->ofdmWeakSigDetect) {
-			ath_dbg(common, ANI,
-				"** ch %d: ofdm weak signal: %s=>%s\n",
-				chan->channel,
-				aniState->ofdmWeakSigDetect ?
-				"on" : "off",
-				on ? "on" : "off");
-			if (on)
-				ah->stats.ast_ani_ofdmon++;
-			else
-				ah->stats.ast_ani_ofdmoff++;
-			aniState->ofdmWeakSigDetect = on;
-		}
-		break;
-	}
-	case ATH9K_ANI_FIRSTEP_LEVEL:{
-		u32 level = param;
+				if (on)
+					REG_SET_BIT(ah, AR_PHY_SFCORR_LOW,
+								AR_PHY_SFCORR_LOW_USE_SELF_CORR_LOW);
+				else
+					REG_CLR_BIT(ah, AR_PHY_SFCORR_LOW,
+								AR_PHY_SFCORR_LOW_USE_SELF_CORR_LOW);
 
-		if (level >= ARRAY_SIZE(firstep_table)) {
-			ath_dbg(common, ANI,
-				"ATH9K_ANI_FIRSTEP_LEVEL: level out of range (%u > %zu)\n",
-				level, ARRAY_SIZE(firstep_table));
+				if (on != aniState->ofdmWeakSigDetect)
+				{
+					ath_dbg(common, ANI,
+							"** ch %d: ofdm weak signal: %s=>%s\n",
+							chan->channel,
+							aniState->ofdmWeakSigDetect ?
+							"on" : "off",
+							on ? "on" : "off");
+
+					if (on)
+					{
+						ah->stats.ast_ani_ofdmon++;
+					}
+					else
+					{
+						ah->stats.ast_ani_ofdmoff++;
+					}
+
+					aniState->ofdmWeakSigDetect = on;
+				}
+
+				break;
+			}
+
+		case ATH9K_ANI_FIRSTEP_LEVEL:
+			{
+				u32 level = param;
+
+				if (level >= ARRAY_SIZE(firstep_table))
+				{
+					ath_dbg(common, ANI,
+							"ATH9K_ANI_FIRSTEP_LEVEL: level out of range (%u > %zu)\n",
+							level, ARRAY_SIZE(firstep_table));
+					return false;
+				}
+
+				/*
+				 * make register setting relative to default
+				 * from INI file & cap value
+				 */
+				value = firstep_table[level] -
+						firstep_table[ATH9K_ANI_FIRSTEP_LVL] +
+						aniState->iniDef.firstep;
+
+				if (value < ATH9K_SIG_FIRSTEP_SETTING_MIN)
+				{
+					value = ATH9K_SIG_FIRSTEP_SETTING_MIN;
+				}
+
+				if (value > ATH9K_SIG_FIRSTEP_SETTING_MAX)
+				{
+					value = ATH9K_SIG_FIRSTEP_SETTING_MAX;
+				}
+
+				REG_RMW_FIELD(ah, AR_PHY_FIND_SIG,
+							  AR_PHY_FIND_SIG_FIRSTEP,
+							  value);
+				/*
+				 * we need to set first step low register too
+				 * make register setting relative to default
+				 * from INI file & cap value
+				 */
+				value2 = firstep_table[level] -
+						 firstep_table[ATH9K_ANI_FIRSTEP_LVL] +
+						 aniState->iniDef.firstepLow;
+
+				if (value2 < ATH9K_SIG_FIRSTEP_SETTING_MIN)
+				{
+					value2 = ATH9K_SIG_FIRSTEP_SETTING_MIN;
+				}
+
+				if (value2 > ATH9K_SIG_FIRSTEP_SETTING_MAX)
+				{
+					value2 = ATH9K_SIG_FIRSTEP_SETTING_MAX;
+				}
+
+				REG_RMW_FIELD(ah, AR_PHY_FIND_SIG_LOW,
+							  AR_PHY_FIND_SIG_LOW_FIRSTEP_LOW, value2);
+
+				if (level != aniState->firstepLevel)
+				{
+					ath_dbg(common, ANI,
+							"** ch %d: level %d=>%d[def:%d] firstep[level]=%d ini=%d\n",
+							chan->channel,
+							aniState->firstepLevel,
+							level,
+							ATH9K_ANI_FIRSTEP_LVL,
+							value,
+							aniState->iniDef.firstep);
+					ath_dbg(common, ANI,
+							"** ch %d: level %d=>%d[def:%d] firstep_low[level]=%d ini=%d\n",
+							chan->channel,
+							aniState->firstepLevel,
+							level,
+							ATH9K_ANI_FIRSTEP_LVL,
+							value2,
+							aniState->iniDef.firstepLow);
+
+					if (level > aniState->firstepLevel)
+					{
+						ah->stats.ast_ani_stepup++;
+					}
+					else if (level < aniState->firstepLevel)
+					{
+						ah->stats.ast_ani_stepdown++;
+					}
+
+					aniState->firstepLevel = level;
+				}
+
+				break;
+			}
+
+		case ATH9K_ANI_SPUR_IMMUNITY_LEVEL:
+			{
+				u32 level = param;
+
+				if (level >= ARRAY_SIZE(cycpwrThr1_table))
+				{
+					ath_dbg(common, ANI,
+							"ATH9K_ANI_SPUR_IMMUNITY_LEVEL: level out of range (%u > %zu)\n",
+							level, ARRAY_SIZE(cycpwrThr1_table));
+					return false;
+				}
+
+				/*
+				 * make register setting relative to default
+				 * from INI file & cap value
+				 */
+				value = cycpwrThr1_table[level] -
+						cycpwrThr1_table[ATH9K_ANI_SPUR_IMMUNE_LVL] +
+						aniState->iniDef.cycpwrThr1;
+
+				if (value < ATH9K_SIG_SPUR_IMM_SETTING_MIN)
+				{
+					value = ATH9K_SIG_SPUR_IMM_SETTING_MIN;
+				}
+
+				if (value > ATH9K_SIG_SPUR_IMM_SETTING_MAX)
+				{
+					value = ATH9K_SIG_SPUR_IMM_SETTING_MAX;
+				}
+
+				REG_RMW_FIELD(ah, AR_PHY_TIMING5,
+							  AR_PHY_TIMING5_CYCPWR_THR1,
+							  value);
+
+				/*
+				 * set AR_PHY_EXT_CCA for extension channel
+				 * make register setting relative to default
+				 * from INI file & cap value
+				 */
+				value2 = cycpwrThr1_table[level] -
+						 cycpwrThr1_table[ATH9K_ANI_SPUR_IMMUNE_LVL] +
+						 aniState->iniDef.cycpwrThr1Ext;
+
+				if (value2 < ATH9K_SIG_SPUR_IMM_SETTING_MIN)
+				{
+					value2 = ATH9K_SIG_SPUR_IMM_SETTING_MIN;
+				}
+
+				if (value2 > ATH9K_SIG_SPUR_IMM_SETTING_MAX)
+				{
+					value2 = ATH9K_SIG_SPUR_IMM_SETTING_MAX;
+				}
+
+				REG_RMW_FIELD(ah, AR_PHY_EXT_CCA,
+							  AR_PHY_EXT_CYCPWR_THR1, value2);
+
+				if (level != aniState->spurImmunityLevel)
+				{
+					ath_dbg(common, ANI,
+							"** ch %d: level %d=>%d[def:%d] cycpwrThr1[level]=%d ini=%d\n",
+							chan->channel,
+							aniState->spurImmunityLevel,
+							level,
+							ATH9K_ANI_SPUR_IMMUNE_LVL,
+							value,
+							aniState->iniDef.cycpwrThr1);
+					ath_dbg(common, ANI,
+							"** ch %d: level %d=>%d[def:%d] cycpwrThr1Ext[level]=%d ini=%d\n",
+							chan->channel,
+							aniState->spurImmunityLevel,
+							level,
+							ATH9K_ANI_SPUR_IMMUNE_LVL,
+							value2,
+							aniState->iniDef.cycpwrThr1Ext);
+
+					if (level > aniState->spurImmunityLevel)
+					{
+						ah->stats.ast_ani_spurup++;
+					}
+					else if (level < aniState->spurImmunityLevel)
+					{
+						ah->stats.ast_ani_spurdown++;
+					}
+
+					aniState->spurImmunityLevel = level;
+				}
+
+				break;
+			}
+
+		case ATH9K_ANI_MRC_CCK:
+			{
+				/*
+				 * is_on == 1 means MRC CCK ON (default, less noise imm)
+				 * is_on == 0 means MRC CCK is OFF (more noise imm)
+				 */
+				bool is_on = param ? 1 : 0;
+
+				if (ah->caps.rx_chainmask == 1)
+				{
+					break;
+				}
+
+				REG_RMW_FIELD(ah, AR_PHY_MRC_CCK_CTRL,
+							  AR_PHY_MRC_CCK_ENABLE, is_on);
+				REG_RMW_FIELD(ah, AR_PHY_MRC_CCK_CTRL,
+							  AR_PHY_MRC_CCK_MUX_REG, is_on);
+
+				if (is_on != aniState->mrcCCK)
+				{
+					ath_dbg(common, ANI, "** ch %d: MRC CCK: %s=>%s\n",
+							chan->channel,
+							aniState->mrcCCK ? "on" : "off",
+							is_on ? "on" : "off");
+
+					if (is_on)
+					{
+						ah->stats.ast_ani_ccklow++;
+					}
+					else
+					{
+						ah->stats.ast_ani_cckhigh++;
+					}
+
+					aniState->mrcCCK = is_on;
+				}
+
+				break;
+			}
+
+		default:
+			ath_dbg(common, ANI, "invalid cmd %u\n", cmd);
 			return false;
-		}
-
-		/*
-		 * make register setting relative to default
-		 * from INI file & cap value
-		 */
-		value = firstep_table[level] -
-			firstep_table[ATH9K_ANI_FIRSTEP_LVL] +
-			aniState->iniDef.firstep;
-		if (value < ATH9K_SIG_FIRSTEP_SETTING_MIN)
-			value = ATH9K_SIG_FIRSTEP_SETTING_MIN;
-		if (value > ATH9K_SIG_FIRSTEP_SETTING_MAX)
-			value = ATH9K_SIG_FIRSTEP_SETTING_MAX;
-		REG_RMW_FIELD(ah, AR_PHY_FIND_SIG,
-			      AR_PHY_FIND_SIG_FIRSTEP,
-			      value);
-		/*
-		 * we need to set first step low register too
-		 * make register setting relative to default
-		 * from INI file & cap value
-		 */
-		value2 = firstep_table[level] -
-			 firstep_table[ATH9K_ANI_FIRSTEP_LVL] +
-			 aniState->iniDef.firstepLow;
-		if (value2 < ATH9K_SIG_FIRSTEP_SETTING_MIN)
-			value2 = ATH9K_SIG_FIRSTEP_SETTING_MIN;
-		if (value2 > ATH9K_SIG_FIRSTEP_SETTING_MAX)
-			value2 = ATH9K_SIG_FIRSTEP_SETTING_MAX;
-
-		REG_RMW_FIELD(ah, AR_PHY_FIND_SIG_LOW,
-			      AR_PHY_FIND_SIG_LOW_FIRSTEP_LOW, value2);
-
-		if (level != aniState->firstepLevel) {
-			ath_dbg(common, ANI,
-				"** ch %d: level %d=>%d[def:%d] firstep[level]=%d ini=%d\n",
-				chan->channel,
-				aniState->firstepLevel,
-				level,
-				ATH9K_ANI_FIRSTEP_LVL,
-				value,
-				aniState->iniDef.firstep);
-			ath_dbg(common, ANI,
-				"** ch %d: level %d=>%d[def:%d] firstep_low[level]=%d ini=%d\n",
-				chan->channel,
-				aniState->firstepLevel,
-				level,
-				ATH9K_ANI_FIRSTEP_LVL,
-				value2,
-				aniState->iniDef.firstepLow);
-			if (level > aniState->firstepLevel)
-				ah->stats.ast_ani_stepup++;
-			else if (level < aniState->firstepLevel)
-				ah->stats.ast_ani_stepdown++;
-			aniState->firstepLevel = level;
-		}
-		break;
-	}
-	case ATH9K_ANI_SPUR_IMMUNITY_LEVEL:{
-		u32 level = param;
-
-		if (level >= ARRAY_SIZE(cycpwrThr1_table)) {
-			ath_dbg(common, ANI,
-				"ATH9K_ANI_SPUR_IMMUNITY_LEVEL: level out of range (%u > %zu)\n",
-				level, ARRAY_SIZE(cycpwrThr1_table));
-			return false;
-		}
-		/*
-		 * make register setting relative to default
-		 * from INI file & cap value
-		 */
-		value = cycpwrThr1_table[level] -
-			cycpwrThr1_table[ATH9K_ANI_SPUR_IMMUNE_LVL] +
-			aniState->iniDef.cycpwrThr1;
-		if (value < ATH9K_SIG_SPUR_IMM_SETTING_MIN)
-			value = ATH9K_SIG_SPUR_IMM_SETTING_MIN;
-		if (value > ATH9K_SIG_SPUR_IMM_SETTING_MAX)
-			value = ATH9K_SIG_SPUR_IMM_SETTING_MAX;
-		REG_RMW_FIELD(ah, AR_PHY_TIMING5,
-			      AR_PHY_TIMING5_CYCPWR_THR1,
-			      value);
-
-		/*
-		 * set AR_PHY_EXT_CCA for extension channel
-		 * make register setting relative to default
-		 * from INI file & cap value
-		 */
-		value2 = cycpwrThr1_table[level] -
-			 cycpwrThr1_table[ATH9K_ANI_SPUR_IMMUNE_LVL] +
-			 aniState->iniDef.cycpwrThr1Ext;
-		if (value2 < ATH9K_SIG_SPUR_IMM_SETTING_MIN)
-			value2 = ATH9K_SIG_SPUR_IMM_SETTING_MIN;
-		if (value2 > ATH9K_SIG_SPUR_IMM_SETTING_MAX)
-			value2 = ATH9K_SIG_SPUR_IMM_SETTING_MAX;
-		REG_RMW_FIELD(ah, AR_PHY_EXT_CCA,
-			      AR_PHY_EXT_CYCPWR_THR1, value2);
-
-		if (level != aniState->spurImmunityLevel) {
-			ath_dbg(common, ANI,
-				"** ch %d: level %d=>%d[def:%d] cycpwrThr1[level]=%d ini=%d\n",
-				chan->channel,
-				aniState->spurImmunityLevel,
-				level,
-				ATH9K_ANI_SPUR_IMMUNE_LVL,
-				value,
-				aniState->iniDef.cycpwrThr1);
-			ath_dbg(common, ANI,
-				"** ch %d: level %d=>%d[def:%d] cycpwrThr1Ext[level]=%d ini=%d\n",
-				chan->channel,
-				aniState->spurImmunityLevel,
-				level,
-				ATH9K_ANI_SPUR_IMMUNE_LVL,
-				value2,
-				aniState->iniDef.cycpwrThr1Ext);
-			if (level > aniState->spurImmunityLevel)
-				ah->stats.ast_ani_spurup++;
-			else if (level < aniState->spurImmunityLevel)
-				ah->stats.ast_ani_spurdown++;
-			aniState->spurImmunityLevel = level;
-		}
-		break;
-	}
-	case ATH9K_ANI_MRC_CCK:{
-		/*
-		 * is_on == 1 means MRC CCK ON (default, less noise imm)
-		 * is_on == 0 means MRC CCK is OFF (more noise imm)
-		 */
-		bool is_on = param ? 1 : 0;
-
-		if (ah->caps.rx_chainmask == 1)
-			break;
-
-		REG_RMW_FIELD(ah, AR_PHY_MRC_CCK_CTRL,
-			      AR_PHY_MRC_CCK_ENABLE, is_on);
-		REG_RMW_FIELD(ah, AR_PHY_MRC_CCK_CTRL,
-			      AR_PHY_MRC_CCK_MUX_REG, is_on);
-		if (is_on != aniState->mrcCCK) {
-			ath_dbg(common, ANI, "** ch %d: MRC CCK: %s=>%s\n",
-				chan->channel,
-				aniState->mrcCCK ? "on" : "off",
-				is_on ? "on" : "off");
-			if (is_on)
-				ah->stats.ast_ani_ccklow++;
-			else
-				ah->stats.ast_ani_cckhigh++;
-			aniState->mrcCCK = is_on;
-		}
-	break;
-	}
-	default:
-		ath_dbg(common, ANI, "invalid cmd %u\n", cmd);
-		return false;
 	}
 
 	ath_dbg(common, ANI,
-		"ANI parameters: SI=%d, ofdmWS=%s FS=%d MRCcck=%s listenTime=%d ofdmErrs=%d cckErrs=%d\n",
-		aniState->spurImmunityLevel,
-		aniState->ofdmWeakSigDetect ? "on" : "off",
-		aniState->firstepLevel,
-		aniState->mrcCCK ? "on" : "off",
-		aniState->listenTime,
-		aniState->ofdmPhyErrCount,
-		aniState->cckPhyErrCount);
+			"ANI parameters: SI=%d, ofdmWS=%s FS=%d MRCcck=%s listenTime=%d ofdmErrs=%d cckErrs=%d\n",
+			aniState->spurImmunityLevel,
+			aniState->ofdmWeakSigDetect ? "on" : "off",
+			aniState->firstepLevel,
+			aniState->mrcCCK ? "on" : "off",
+			aniState->listenTime,
+			aniState->ofdmPhyErrCount,
+			aniState->cckPhyErrCount);
 	return true;
 }
 
 static void ar9003_hw_do_getnf(struct ath_hw *ah,
-			      int16_t nfarray[NUM_NF_READINGS])
+							   int16_t nfarray[NUM_NF_READINGS])
 {
 #define AR_PHY_CH_MINCCA_PWR	0x1FF00000
 #define AR_PHY_CH_MINCCA_PWR_S	20
@@ -1374,17 +1635,20 @@ static void ar9003_hw_do_getnf(struct ath_hw *ah,
 	int16_t nf;
 	int i;
 
-	for (i = 0; i < AR9300_MAX_CHAINS; i++) {
-		if (ah->rxchainmask & BIT(i)) {
+	for (i = 0; i < AR9300_MAX_CHAINS; i++)
+	{
+		if (ah->rxchainmask & BIT(i))
+		{
 			nf = MS(REG_READ(ah, ah->nf_regs[i]),
-					 AR_PHY_CH_MINCCA_PWR);
+					AR_PHY_CH_MINCCA_PWR);
 			nfarray[i] = sign_extend32(nf, 8);
 
-			if (IS_CHAN_HT40(ah->curchan)) {
+			if (IS_CHAN_HT40(ah->curchan))
+			{
 				u8 ext_idx = AR9300_MAX_CHAINS + i;
 
 				nf = MS(REG_READ(ah, ah->nf_regs[ext_idx]),
-						 AR_PHY_CH_EXT_MINCCA_PWR);
+						AR_PHY_CH_EXT_MINCCA_PWR);
 				nfarray[ext_idx] = sign_extend32(nf, 8);
 			}
 		}
@@ -1401,9 +1665,12 @@ static void ar9003_hw_set_nf_limits(struct ath_hw *ah)
 	ah->nf_5g.nominal = AR_PHY_CCA_NOM_VAL_9300_5GHZ;
 
 	if (AR_SREV_9330(ah))
+	{
 		ah->nf_2g.nominal = AR_PHY_CCA_NOM_VAL_9330_2GHZ;
+	}
 
-	if (AR_SREV_9462(ah) || AR_SREV_9565(ah)) {
+	if (AR_SREV_9462(ah) || AR_SREV_9565(ah))
+	{
 		ah->nf_2g.min = AR_PHY_CCA_MIN_GOOD_VAL_9462_2GHZ;
 		ah->nf_2g.nominal = AR_PHY_CCA_NOM_VAL_9462_2GHZ;
 		ah->nf_5g.min = AR_PHY_CCA_MIN_GOOD_VAL_9462_5GHZ;
@@ -1428,10 +1695,10 @@ static void ar9003_hw_ani_cache_ini_regs(struct ath_hw *ah)
 	iniDef = &aniState->iniDef;
 
 	ath_dbg(common, ANI, "ver %d.%d opmode %u chan %d Mhz\n",
-		ah->hw_version.macVersion,
-		ah->hw_version.macRev,
-		ah->opmode,
-		chan->channel);
+			ah->hw_version.macVersion,
+			ah->hw_version.macRev,
+			ah->opmode,
+			chan->channel);
 
 	val = REG_READ(ah, AR_PHY_SFCORR);
 	iniDef->m1Thresh = MS(val, AR_PHY_SFCORR_M1_THRESH);
@@ -1449,17 +1716,17 @@ static void ar9003_hw_ani_cache_ini_regs(struct ath_hw *ah)
 	iniDef->m1ThreshLowExt = MS(val, AR_PHY_SFCORR_EXT_M1_THRESH_LOW);
 	iniDef->m2ThreshLowExt = MS(val, AR_PHY_SFCORR_EXT_M2_THRESH_LOW);
 	iniDef->firstep = REG_READ_FIELD(ah,
-					 AR_PHY_FIND_SIG,
-					 AR_PHY_FIND_SIG_FIRSTEP);
+									 AR_PHY_FIND_SIG,
+									 AR_PHY_FIND_SIG_FIRSTEP);
 	iniDef->firstepLow = REG_READ_FIELD(ah,
-					    AR_PHY_FIND_SIG_LOW,
-					    AR_PHY_FIND_SIG_LOW_FIRSTEP_LOW);
+										AR_PHY_FIND_SIG_LOW,
+										AR_PHY_FIND_SIG_LOW_FIRSTEP_LOW);
 	iniDef->cycpwrThr1 = REG_READ_FIELD(ah,
-					    AR_PHY_TIMING5,
-					    AR_PHY_TIMING5_CYCPWR_THR1);
+										AR_PHY_TIMING5,
+										AR_PHY_TIMING5_CYCPWR_THR1);
 	iniDef->cycpwrThr1Ext = REG_READ_FIELD(ah,
-					       AR_PHY_EXT_CCA,
-					       AR_PHY_EXT_CYCPWR_THR1);
+										   AR_PHY_EXT_CCA,
+										   AR_PHY_EXT_CYCPWR_THR1);
 
 	/* these levels just got reset to defaults by the INI */
 	aniState->spurImmunityLevel = ATH9K_ANI_SPUR_IMMUNE_LVL;
@@ -1469,12 +1736,13 @@ static void ar9003_hw_ani_cache_ini_regs(struct ath_hw *ah)
 }
 
 static void ar9003_hw_set_radar_params(struct ath_hw *ah,
-				       struct ath_hw_radar_conf *conf)
+									   struct ath_hw_radar_conf *conf)
 {
 	unsigned int regWrites = 0;
 	u32 radar_0 = 0, radar_1;
 
-	if (!conf) {
+	if (!conf)
+	{
 		REG_CLR_BIT(ah, AR_PHY_RADAR_0, AR_PHY_RADAR_0_ENA);
 		return;
 	}
@@ -1488,7 +1756,7 @@ static void ar9003_hw_set_radar_params(struct ath_hw *ah,
 
 	radar_1 = REG_READ(ah, AR_PHY_RADAR_1);
 	radar_1 &= ~(AR_PHY_RADAR_1_MAXLEN | AR_PHY_RADAR_1_RELSTEP_THRESH |
-		     AR_PHY_RADAR_1_RELPWR_THRESH);
+				 AR_PHY_RADAR_1_RELPWR_THRESH);
 	radar_1 |= AR_PHY_RADAR_1_MAX_RRSSI;
 	radar_1 |= AR_PHY_RADAR_1_BLOCK_CHECK;
 	radar_1 |= SM(conf->pulse_maxlen, AR_PHY_RADAR_1_MAXLEN);
@@ -1497,14 +1765,20 @@ static void ar9003_hw_set_radar_params(struct ath_hw *ah,
 
 	REG_WRITE(ah, AR_PHY_RADAR_0, radar_0);
 	REG_WRITE(ah, AR_PHY_RADAR_1, radar_1);
-	if (conf->ext_channel)
-		REG_SET_BIT(ah, AR_PHY_RADAR_EXT, AR_PHY_RADAR_EXT_ENA);
-	else
-		REG_CLR_BIT(ah, AR_PHY_RADAR_EXT, AR_PHY_RADAR_EXT_ENA);
 
-	if (AR_SREV_9300(ah) || AR_SREV_9340(ah) || AR_SREV_9580(ah)) {
+	if (conf->ext_channel)
+	{
+		REG_SET_BIT(ah, AR_PHY_RADAR_EXT, AR_PHY_RADAR_EXT_ENA);
+	}
+	else
+	{
+		REG_CLR_BIT(ah, AR_PHY_RADAR_EXT, AR_PHY_RADAR_EXT_ENA);
+	}
+
+	if (AR_SREV_9300(ah) || AR_SREV_9340(ah) || AR_SREV_9580(ah))
+	{
 		REG_WRITE_ARRAY(&ah->ini_dfs,
-				IS_CHAN_HT40(ah->curchan) ? 2 : 1, regWrites);
+						IS_CHAN_HT40(ah->curchan) ? 2 : 1, regWrites);
 	}
 }
 
@@ -1523,31 +1797,38 @@ static void ar9003_hw_set_radar_conf(struct ath_hw *ah)
 }
 
 static void ar9003_hw_antdiv_comb_conf_get(struct ath_hw *ah,
-					   struct ath_hw_antcomb_conf *antconf)
+		struct ath_hw_antcomb_conf *antconf)
 {
 	u32 regval;
 
 	regval = REG_READ(ah, AR_PHY_MC_GAIN_CTRL);
 	antconf->main_lna_conf = (regval & AR_PHY_ANT_DIV_MAIN_LNACONF) >>
-				  AR_PHY_ANT_DIV_MAIN_LNACONF_S;
+							 AR_PHY_ANT_DIV_MAIN_LNACONF_S;
 	antconf->alt_lna_conf = (regval & AR_PHY_ANT_DIV_ALT_LNACONF) >>
-				 AR_PHY_ANT_DIV_ALT_LNACONF_S;
+							AR_PHY_ANT_DIV_ALT_LNACONF_S;
 	antconf->fast_div_bias = (regval & AR_PHY_ANT_FAST_DIV_BIAS) >>
-				  AR_PHY_ANT_FAST_DIV_BIAS_S;
+							 AR_PHY_ANT_FAST_DIV_BIAS_S;
 
-	if (AR_SREV_9330_11(ah)) {
+	if (AR_SREV_9330_11(ah))
+	{
 		antconf->lna1_lna2_switch_delta = -1;
 		antconf->lna1_lna2_delta = -9;
 		antconf->div_group = 1;
-	} else if (AR_SREV_9485(ah)) {
+	}
+	else if (AR_SREV_9485(ah))
+	{
 		antconf->lna1_lna2_switch_delta = -1;
 		antconf->lna1_lna2_delta = -9;
 		antconf->div_group = 2;
-	} else if (AR_SREV_9565(ah)) {
+	}
+	else if (AR_SREV_9565(ah))
+	{
 		antconf->lna1_lna2_switch_delta = 3;
 		antconf->lna1_lna2_delta = -9;
 		antconf->div_group = 3;
-	} else {
+	}
+	else
+	{
 		antconf->lna1_lna2_switch_delta = -1;
 		antconf->lna1_lna2_delta = -3;
 		antconf->div_group = 0;
@@ -1555,26 +1836,26 @@ static void ar9003_hw_antdiv_comb_conf_get(struct ath_hw *ah,
 }
 
 static void ar9003_hw_antdiv_comb_conf_set(struct ath_hw *ah,
-				   struct ath_hw_antcomb_conf *antconf)
+		struct ath_hw_antcomb_conf *antconf)
 {
 	u32 regval;
 
 	regval = REG_READ(ah, AR_PHY_MC_GAIN_CTRL);
 	regval &= ~(AR_PHY_ANT_DIV_MAIN_LNACONF |
-		    AR_PHY_ANT_DIV_ALT_LNACONF |
-		    AR_PHY_ANT_FAST_DIV_BIAS |
-		    AR_PHY_ANT_DIV_MAIN_GAINTB |
-		    AR_PHY_ANT_DIV_ALT_GAINTB);
+				AR_PHY_ANT_DIV_ALT_LNACONF |
+				AR_PHY_ANT_FAST_DIV_BIAS |
+				AR_PHY_ANT_DIV_MAIN_GAINTB |
+				AR_PHY_ANT_DIV_ALT_GAINTB);
 	regval |= ((antconf->main_lna_conf << AR_PHY_ANT_DIV_MAIN_LNACONF_S)
-		   & AR_PHY_ANT_DIV_MAIN_LNACONF);
+			   & AR_PHY_ANT_DIV_MAIN_LNACONF);
 	regval |= ((antconf->alt_lna_conf << AR_PHY_ANT_DIV_ALT_LNACONF_S)
-		   & AR_PHY_ANT_DIV_ALT_LNACONF);
+			   & AR_PHY_ANT_DIV_ALT_LNACONF);
 	regval |= ((antconf->fast_div_bias << AR_PHY_ANT_FAST_DIV_BIAS_S)
-		   & AR_PHY_ANT_FAST_DIV_BIAS);
+			   & AR_PHY_ANT_FAST_DIV_BIAS);
 	regval |= ((antconf->main_gaintb << AR_PHY_ANT_DIV_MAIN_GAINTB_S)
-		   & AR_PHY_ANT_DIV_MAIN_GAINTB);
+			   & AR_PHY_ANT_DIV_MAIN_GAINTB);
 	regval |= ((antconf->alt_gaintb << AR_PHY_ANT_DIV_ALT_GAINTB_S)
-		   & AR_PHY_ANT_DIV_ALT_GAINTB);
+			   & AR_PHY_ANT_DIV_ALT_GAINTB);
 
 	REG_WRITE(ah, AR_PHY_MC_GAIN_CTRL, regval);
 }
@@ -1588,17 +1869,23 @@ static void ar9003_hw_set_bt_ant_diversity(struct ath_hw *ah, bool enable)
 	u32 regval;
 
 	if (!AR_SREV_9485(ah) && !AR_SREV_9565(ah))
+	{
 		return;
+	}
 
-	if (AR_SREV_9485(ah)) {
+	if (AR_SREV_9485(ah))
+	{
 		regval = ar9003_hw_ant_ctrl_common_2_get(ah,
-						 IS_CHAN_2GHZ(ah->curchan));
-		if (enable) {
+				 IS_CHAN_2GHZ(ah->curchan));
+
+		if (enable)
+		{
 			regval &= ~AR_SWITCH_TABLE_COM2_ALL;
 			regval |= ah->config.ant_ctrl_comm2g_switch_enable;
 		}
+
 		REG_RMW_FIELD(ah, AR_PHY_SWITCH_COM_2,
-			      AR_SWITCH_TABLE_COM2_ALL, regval);
+					  AR_SWITCH_TABLE_COM2_ALL, regval);
 	}
 
 	ant_div_ctl1 = ah->eep_ops->get_eeprom(ah, EEP_ANT_DIV_CTL1);
@@ -1612,15 +1899,19 @@ static void ar9003_hw_set_bt_ant_diversity(struct ath_hw *ah, bool enable)
 	regval |= (ant_div_ctl1 & 0x3f) << AR_ANT_DIV_CTRL_ALL_S;
 	REG_WRITE(ah, AR_PHY_MC_GAIN_CTRL, regval);
 
-	if (AR_SREV_9485_11_OR_LATER(ah)) {
+	if (AR_SREV_9485_11_OR_LATER(ah))
+	{
 		/*
 		 * Enable LNA diversity.
 		 */
 		regval = REG_READ(ah, AR_PHY_MC_GAIN_CTRL);
 		regval &= ~AR_PHY_ANT_DIV_LNADIV;
 		regval |= ((ant_div_ctl1 >> 6) & 0x1) << AR_PHY_ANT_DIV_LNADIV_S;
+
 		if (enable)
+		{
 			regval |= AR_ANT_DIV_ENABLE;
+		}
 
 		REG_WRITE(ah, AR_PHY_MC_GAIN_CTRL, regval);
 
@@ -1630,60 +1921,69 @@ static void ar9003_hw_set_bt_ant_diversity(struct ath_hw *ah, bool enable)
 		regval = REG_READ(ah, AR_PHY_CCK_DETECT);
 		regval &= ~AR_FAST_DIV_ENABLE;
 		regval |= ((ant_div_ctl1 >> 7) & 0x1) << AR_FAST_DIV_ENABLE_S;
+
 		if (enable)
+		{
 			regval |= AR_FAST_DIV_ENABLE;
+		}
 
 		REG_WRITE(ah, AR_PHY_CCK_DETECT, regval);
 
-		if (pCap->hw_caps & ATH9K_HW_CAP_ANT_DIV_COMB) {
+		if (pCap->hw_caps & ATH9K_HW_CAP_ANT_DIV_COMB)
+		{
 			regval = REG_READ(ah, AR_PHY_MC_GAIN_CTRL);
 			regval &= (~(AR_PHY_ANT_DIV_MAIN_LNACONF |
-				     AR_PHY_ANT_DIV_ALT_LNACONF |
-				     AR_PHY_ANT_DIV_ALT_GAINTB |
-				     AR_PHY_ANT_DIV_MAIN_GAINTB));
+						 AR_PHY_ANT_DIV_ALT_LNACONF |
+						 AR_PHY_ANT_DIV_ALT_GAINTB |
+						 AR_PHY_ANT_DIV_MAIN_GAINTB));
 			/*
 			 * Set MAIN to LNA1 and ALT to LNA2 at the
 			 * beginning.
 			 */
 			regval |= (ATH_ANT_DIV_COMB_LNA1 <<
-				   AR_PHY_ANT_DIV_MAIN_LNACONF_S);
+					   AR_PHY_ANT_DIV_MAIN_LNACONF_S);
 			regval |= (ATH_ANT_DIV_COMB_LNA2 <<
-				   AR_PHY_ANT_DIV_ALT_LNACONF_S);
+					   AR_PHY_ANT_DIV_ALT_LNACONF_S);
 			REG_WRITE(ah, AR_PHY_MC_GAIN_CTRL, regval);
 		}
-	} else if (AR_SREV_9565(ah)) {
-		if (enable) {
+	}
+	else if (AR_SREV_9565(ah))
+	{
+		if (enable)
+		{
 			REG_SET_BIT(ah, AR_PHY_MC_GAIN_CTRL,
-				    AR_ANT_DIV_ENABLE);
+						AR_ANT_DIV_ENABLE);
 			REG_SET_BIT(ah, AR_PHY_MC_GAIN_CTRL,
-				    (1 << AR_PHY_ANT_SW_RX_PROT_S));
+						(1 << AR_PHY_ANT_SW_RX_PROT_S));
 			REG_SET_BIT(ah, AR_PHY_CCK_DETECT,
-				    AR_FAST_DIV_ENABLE);
+						AR_FAST_DIV_ENABLE);
 			REG_SET_BIT(ah, AR_PHY_RESTART,
-				    AR_PHY_RESTART_ENABLE_DIV_M2FLAG);
+						AR_PHY_RESTART_ENABLE_DIV_M2FLAG);
 			REG_SET_BIT(ah, AR_BTCOEX_WL_LNADIV,
-				    AR_BTCOEX_WL_LNADIV_FORCE_ON);
-		} else {
+						AR_BTCOEX_WL_LNADIV_FORCE_ON);
+		}
+		else
+		{
 			REG_CLR_BIT(ah, AR_PHY_MC_GAIN_CTRL,
-				    AR_ANT_DIV_ENABLE);
+						AR_ANT_DIV_ENABLE);
 			REG_CLR_BIT(ah, AR_PHY_MC_GAIN_CTRL,
-				    (1 << AR_PHY_ANT_SW_RX_PROT_S));
+						(1 << AR_PHY_ANT_SW_RX_PROT_S));
 			REG_CLR_BIT(ah, AR_PHY_CCK_DETECT,
-				    AR_FAST_DIV_ENABLE);
+						AR_FAST_DIV_ENABLE);
 			REG_CLR_BIT(ah, AR_PHY_RESTART,
-				    AR_PHY_RESTART_ENABLE_DIV_M2FLAG);
+						AR_PHY_RESTART_ENABLE_DIV_M2FLAG);
 			REG_CLR_BIT(ah, AR_BTCOEX_WL_LNADIV,
-				    AR_BTCOEX_WL_LNADIV_FORCE_ON);
+						AR_BTCOEX_WL_LNADIV_FORCE_ON);
 
 			regval = REG_READ(ah, AR_PHY_MC_GAIN_CTRL);
 			regval &= ~(AR_PHY_ANT_DIV_MAIN_LNACONF |
-				    AR_PHY_ANT_DIV_ALT_LNACONF |
-				    AR_PHY_ANT_DIV_MAIN_GAINTB |
-				    AR_PHY_ANT_DIV_ALT_GAINTB);
+						AR_PHY_ANT_DIV_ALT_LNACONF |
+						AR_PHY_ANT_DIV_MAIN_GAINTB |
+						AR_PHY_ANT_DIV_ALT_GAINTB);
 			regval |= (ATH_ANT_DIV_COMB_LNA1 <<
-				   AR_PHY_ANT_DIV_MAIN_LNACONF_S);
+					   AR_PHY_ANT_DIV_MAIN_LNACONF_S);
 			regval |= (ATH_ANT_DIV_COMB_LNA2 <<
-				   AR_PHY_ANT_DIV_ALT_LNACONF_S);
+					   AR_PHY_ANT_DIV_ALT_LNACONF_S);
 			REG_WRITE(ah, AR_PHY_MC_GAIN_CTRL, regval);
 		}
 	}
@@ -1692,20 +1992,25 @@ static void ar9003_hw_set_bt_ant_diversity(struct ath_hw *ah, bool enable)
 #endif
 
 static int ar9003_hw_fast_chan_change(struct ath_hw *ah,
-				      struct ath9k_channel *chan,
-				      u8 *ini_reloaded)
+									  struct ath9k_channel *chan,
+									  u8 *ini_reloaded)
 {
 	unsigned int regWrites = 0;
 	u32 modesIndex, txgain_index;
 
 	if (IS_CHAN_5GHZ(chan))
+	{
 		modesIndex = IS_CHAN_HT40(chan) ? 2 : 1;
+	}
 	else
+	{
 		modesIndex = IS_CHAN_HT40(chan) ? 3 : 4;
+	}
 
 	txgain_index = AR_SREV_9531(ah) ? 1 : modesIndex;
 
-	if (modesIndex == ah->modes_index) {
+	if (modesIndex == ah->modes_index)
+	{
 		*ini_reloaded = false;
 		goto set_rfmode;
 	}
@@ -1717,19 +2022,21 @@ static int ar9003_hw_fast_chan_change(struct ath_hw *ah,
 
 	if (AR_SREV_9462_20_OR_LATER(ah))
 		ar9003_hw_prog_ini(ah, &ah->ini_radio_post_sys2ant,
-				   modesIndex);
+						   modesIndex);
 
 	REG_WRITE_ARRAY(&ah->iniModesTxGain, txgain_index, regWrites);
 
-	if (AR_SREV_9462_20_OR_LATER(ah)) {
+	if (AR_SREV_9462_20_OR_LATER(ah))
+	{
 		/*
 		 * CUS217 mix LNA mode.
 		 */
-		if (ar9003_hw_get_rx_gain_idx(ah) == 2) {
+		if (ar9003_hw_get_rx_gain_idx(ah) == 2)
+		{
 			REG_WRITE_ARRAY(&ah->ini_modes_rxgain_bb_core,
-					1, regWrites);
+							1, regWrites);
 			REG_WRITE_ARRAY(&ah->ini_modes_rxgain_bb_postamble,
-					modesIndex, regWrites);
+							modesIndex, regWrites);
 		}
 	}
 
@@ -1738,16 +2045,22 @@ static int ar9003_hw_fast_chan_change(struct ath_hw *ah,
 	 * different modal values.
 	 */
 	if (IS_CHAN_A_FAST_CLOCK(ah, chan))
+	{
 		REG_WRITE_ARRAY(&ah->iniModesFastClock, modesIndex, regWrites);
+	}
 
 	if (AR_SREV_9565(ah))
+	{
 		REG_WRITE_ARRAY(&ah->iniModesFastClock, 1, regWrites);
+	}
 
 	/*
 	 * JAPAN regulatory.
 	 */
 	if (chan->channel == 2484)
+	{
 		ar9003_hw_prog_ini(ah, &ah->iniCckfirJapan2484, 1);
+	}
 
 	ah->modes_index = modesIndex;
 	*ini_reloaded = true;
@@ -1758,13 +2071,14 @@ set_rfmode:
 }
 
 static void ar9003_hw_spectral_scan_config(struct ath_hw *ah,
-					   struct ath_spec_scan *param)
+		struct ath_spec_scan *param)
 {
 	u8 count;
 
-	if (!param->enabled) {
+	if (!param->enabled)
+	{
 		REG_CLR_BIT(ah, AR_PHY_SPECTRAL_SCAN,
-			    AR_PHY_SPECTRAL_SCAN_ENABLE);
+					AR_PHY_SPECTRAL_SCAN_ENABLE);
 		return;
 	}
 
@@ -1776,24 +2090,29 @@ static void ar9003_hw_spectral_scan_config(struct ath_hw *ah,
 	 * and fix otherwise.
 	 */
 	count = param->count;
+
 	if (param->endless)
+	{
 		count = 0;
+	}
 	else if (param->count == 0)
+	{
 		count = 1;
+	}
 
 	if (param->short_repeat)
 		REG_SET_BIT(ah, AR_PHY_SPECTRAL_SCAN,
-			    AR_PHY_SPECTRAL_SCAN_SHORT_REPEAT);
+					AR_PHY_SPECTRAL_SCAN_SHORT_REPEAT);
 	else
 		REG_CLR_BIT(ah, AR_PHY_SPECTRAL_SCAN,
-			    AR_PHY_SPECTRAL_SCAN_SHORT_REPEAT);
+					AR_PHY_SPECTRAL_SCAN_SHORT_REPEAT);
 
 	REG_RMW_FIELD(ah, AR_PHY_SPECTRAL_SCAN,
-		      AR_PHY_SPECTRAL_SCAN_COUNT, count);
+				  AR_PHY_SPECTRAL_SCAN_COUNT, count);
 	REG_RMW_FIELD(ah, AR_PHY_SPECTRAL_SCAN,
-		      AR_PHY_SPECTRAL_SCAN_PERIOD, param->period);
+				  AR_PHY_SPECTRAL_SCAN_PERIOD, param->period);
 	REG_RMW_FIELD(ah, AR_PHY_SPECTRAL_SCAN,
-		      AR_PHY_SPECTRAL_SCAN_FFT_PERIOD, param->fft_period);
+				  AR_PHY_SPECTRAL_SCAN_FFT_PERIOD, param->fft_period);
 
 	return;
 }
@@ -1802,7 +2121,7 @@ static void ar9003_hw_spectral_scan_trigger(struct ath_hw *ah)
 {
 	/* Activate spectral scan */
 	REG_SET_BIT(ah, AR_PHY_SPECTRAL_SCAN,
-		    AR_PHY_SPECTRAL_SCAN_ACTIVE);
+				AR_PHY_SPECTRAL_SCAN_ACTIVE);
 }
 
 static void ar9003_hw_spectral_scan_wait(struct ath_hw *ah)
@@ -1811,8 +2130,9 @@ static void ar9003_hw_spectral_scan_wait(struct ath_hw *ah)
 
 	/* Poll for spectral scan complete */
 	if (!ath9k_hw_wait(ah, AR_PHY_SPECTRAL_SCAN,
-			   AR_PHY_SPECTRAL_SCAN_ACTIVE,
-			   0, AH_WAIT_TIMEOUT)) {
+					   AR_PHY_SPECTRAL_SCAN_ACTIVE,
+					   0, AH_WAIT_TIMEOUT))
+	{
 		ath_err(common, "spectral scan wait failed\n");
 		return;
 	}
@@ -1845,8 +2165,11 @@ static void ar9003_hw_tx99_set_txpower(struct ath_hw *ah, u8 txpower)
 	unsigned int i;
 
 	txpower = txpower <= MAX_RATE_POWER ? txpower : MAX_RATE_POWER;
+
 	for (i = 0; i < ar9300RateSize; i++)
+	{
 		p_pwr_array[i] = txpower;
+	}
 
 	ar9003_hw_tx_power_regwrite(ah, p_pwr_array);
 }
@@ -1856,17 +2179,18 @@ static void ar9003_hw_init_txpower_cck(struct ath_hw *ah, u8 *rate_array)
 	ah->tx_power[0] = rate_array[ALL_TARGET_LEGACY_1L_5L];
 	ah->tx_power[1] = rate_array[ALL_TARGET_LEGACY_1L_5L];
 	ah->tx_power[2] = min(rate_array[ALL_TARGET_LEGACY_1L_5L],
-			      rate_array[ALL_TARGET_LEGACY_5S]);
+						  rate_array[ALL_TARGET_LEGACY_5S]);
 	ah->tx_power[3] = min(rate_array[ALL_TARGET_LEGACY_11L],
-			      rate_array[ALL_TARGET_LEGACY_11S]);
+						  rate_array[ALL_TARGET_LEGACY_11S]);
 }
 
 static void ar9003_hw_init_txpower_ofdm(struct ath_hw *ah, u8 *rate_array,
-					int offset)
+										int offset)
 {
 	int i, j;
 
-	for (i = offset; i < offset + AR9300_OFDM_RATES; i++) {
+	for (i = offset; i < offset + AR9300_OFDM_RATES; i++)
+	{
 		/* OFDM rate to power table idx */
 		j = ofdm2pwr[i - offset];
 		ah->tx_power[i] = rate_array[j];
@@ -1874,25 +2198,28 @@ static void ar9003_hw_init_txpower_ofdm(struct ath_hw *ah, u8 *rate_array,
 }
 
 static void ar9003_hw_init_txpower_ht(struct ath_hw *ah, u8 *rate_array,
-				      int ss_offset, int ds_offset,
-				      int ts_offset, bool is_40)
+									  int ss_offset, int ds_offset,
+									  int ts_offset, bool is_40)
 {
 	int i, j, mcs_idx = 0;
 	const u8 *mcs2pwr = (is_40) ? mcs2pwr_ht40 : mcs2pwr_ht20;
 
-	for (i = ss_offset; i < ss_offset + AR9300_HT_SS_RATES; i++) {
+	for (i = ss_offset; i < ss_offset + AR9300_HT_SS_RATES; i++)
+	{
 		j = mcs2pwr[mcs_idx];
 		ah->tx_power[i] = rate_array[j];
 		mcs_idx++;
 	}
 
-	for (i = ds_offset; i < ds_offset + AR9300_HT_DS_RATES; i++) {
+	for (i = ds_offset; i < ds_offset + AR9300_HT_DS_RATES; i++)
+	{
 		j = mcs2pwr[mcs_idx];
 		ah->tx_power[i] = rate_array[j];
 		mcs_idx++;
 	}
 
-	for (i = ts_offset; i < ts_offset + AR9300_HT_TS_RATES; i++) {
+	for (i = ts_offset; i < ts_offset + AR9300_HT_TS_RATES; i++)
+	{
 		j = mcs2pwr[mcs_idx];
 		ah->tx_power[i] = rate_array[j];
 		mcs_idx++;
@@ -1900,47 +2227,54 @@ static void ar9003_hw_init_txpower_ht(struct ath_hw *ah, u8 *rate_array,
 }
 
 static void ar9003_hw_init_txpower_stbc(struct ath_hw *ah, int ss_offset,
-					int ds_offset, int ts_offset)
+										int ds_offset, int ts_offset)
 {
 	memcpy(&ah->tx_power_stbc[ss_offset], &ah->tx_power[ss_offset],
-	       AR9300_HT_SS_RATES);
+		   AR9300_HT_SS_RATES);
 	memcpy(&ah->tx_power_stbc[ds_offset], &ah->tx_power[ds_offset],
-	       AR9300_HT_DS_RATES);
+		   AR9300_HT_DS_RATES);
 	memcpy(&ah->tx_power_stbc[ts_offset], &ah->tx_power[ts_offset],
-	       AR9300_HT_TS_RATES);
+		   AR9300_HT_TS_RATES);
 }
 
 void ar9003_hw_init_rate_txpower(struct ath_hw *ah, u8 *rate_array,
-				 struct ath9k_channel *chan)
+								 struct ath9k_channel *chan)
 {
-	if (IS_CHAN_5GHZ(chan)) {
+	if (IS_CHAN_5GHZ(chan))
+	{
 		ar9003_hw_init_txpower_ofdm(ah, rate_array,
-					    AR9300_11NA_OFDM_SHIFT);
-		if (IS_CHAN_HT20(chan) || IS_CHAN_HT40(chan)) {
+									AR9300_11NA_OFDM_SHIFT);
+
+		if (IS_CHAN_HT20(chan) || IS_CHAN_HT40(chan))
+		{
 			ar9003_hw_init_txpower_ht(ah, rate_array,
-						  AR9300_11NA_HT_SS_SHIFT,
-						  AR9300_11NA_HT_DS_SHIFT,
-						  AR9300_11NA_HT_TS_SHIFT,
-						  IS_CHAN_HT40(chan));
+									  AR9300_11NA_HT_SS_SHIFT,
+									  AR9300_11NA_HT_DS_SHIFT,
+									  AR9300_11NA_HT_TS_SHIFT,
+									  IS_CHAN_HT40(chan));
 			ar9003_hw_init_txpower_stbc(ah,
-						    AR9300_11NA_HT_SS_SHIFT,
-						    AR9300_11NA_HT_DS_SHIFT,
-						    AR9300_11NA_HT_TS_SHIFT);
+										AR9300_11NA_HT_SS_SHIFT,
+										AR9300_11NA_HT_DS_SHIFT,
+										AR9300_11NA_HT_TS_SHIFT);
 		}
-	} else {
+	}
+	else
+	{
 		ar9003_hw_init_txpower_cck(ah, rate_array);
 		ar9003_hw_init_txpower_ofdm(ah, rate_array,
-					    AR9300_11NG_OFDM_SHIFT);
-		if (IS_CHAN_HT20(chan) || IS_CHAN_HT40(chan)) {
+									AR9300_11NG_OFDM_SHIFT);
+
+		if (IS_CHAN_HT20(chan) || IS_CHAN_HT40(chan))
+		{
 			ar9003_hw_init_txpower_ht(ah, rate_array,
-						  AR9300_11NG_HT_SS_SHIFT,
-						  AR9300_11NG_HT_DS_SHIFT,
-						  AR9300_11NG_HT_TS_SHIFT,
-						  IS_CHAN_HT40(chan));
+									  AR9300_11NG_HT_SS_SHIFT,
+									  AR9300_11NG_HT_DS_SHIFT,
+									  AR9300_11NG_HT_TS_SHIFT,
+									  IS_CHAN_HT40(chan));
 			ar9003_hw_init_txpower_stbc(ah,
-						    AR9300_11NG_HT_SS_SHIFT,
-						    AR9300_11NG_HT_DS_SHIFT,
-						    AR9300_11NG_HT_TS_SHIFT);
+										AR9300_11NG_HT_SS_SHIFT,
+										AR9300_11NG_HT_DS_SHIFT,
+										AR9300_11NG_HT_TS_SHIFT);
 		}
 	}
 }
@@ -1949,7 +2283,8 @@ void ar9003_hw_attach_phy_ops(struct ath_hw *ah)
 {
 	struct ath_hw_private_ops *priv_ops = ath9k_hw_private_ops(ah);
 	struct ath_hw_ops *ops = ath9k_hw_ops(ah);
-	static const u32 ar9300_cca_regs[6] = {
+	static const u32 ar9300_cca_regs[6] =
+	{
 		AR_PHY_CCA_0,
 		AR_PHY_CCA_1,
 		AR_PHY_CCA_2,
@@ -1962,10 +2297,14 @@ void ar9003_hw_attach_phy_ops(struct ath_hw *ah)
 	priv_ops->spur_mitigate_freq = ar9003_hw_spur_mitigate;
 
 	if (AR_SREV_9340(ah) || AR_SREV_9550(ah) || AR_SREV_9531(ah) ||
-	    AR_SREV_9561(ah))
+		AR_SREV_9561(ah))
+	{
 		priv_ops->compute_pll_control = ar9003_hw_compute_pll_control_soc;
+	}
 	else
+	{
 		priv_ops->compute_pll_control = ar9003_hw_compute_pll_control;
+	}
 
 	priv_ops->set_channel_regs = ar9003_hw_set_channel_regs;
 	priv_ops->init_bb = ar9003_hw_init_bb;
@@ -2029,35 +2368,44 @@ bool ar9003_hw_bb_watchdog_check(struct ath_hw *ah)
 {
 	u32 val;
 
-	switch(ah->bb_watchdog_last_status) {
-	case 0x04000539:
-		val = REG_READ(ah, AR_PHY_RADAR_0);
-		val &= (~AR_PHY_RADAR_0_FIRPWR);
-		val |= SM(0x7f, AR_PHY_RADAR_0_FIRPWR);
-		REG_WRITE(ah, AR_PHY_RADAR_0, val);
-		udelay(1);
-		val = REG_READ(ah, AR_PHY_RADAR_0);
-		val &= ~AR_PHY_RADAR_0_FIRPWR;
-		val |= SM(AR9300_DFS_FIRPWR, AR_PHY_RADAR_0_FIRPWR);
-		REG_WRITE(ah, AR_PHY_RADAR_0, val);
+	switch (ah->bb_watchdog_last_status)
+	{
+		case 0x04000539:
+			val = REG_READ(ah, AR_PHY_RADAR_0);
+			val &= (~AR_PHY_RADAR_0_FIRPWR);
+			val |= SM(0x7f, AR_PHY_RADAR_0_FIRPWR);
+			REG_WRITE(ah, AR_PHY_RADAR_0, val);
+			udelay(1);
+			val = REG_READ(ah, AR_PHY_RADAR_0);
+			val &= ~AR_PHY_RADAR_0_FIRPWR;
+			val |= SM(AR9300_DFS_FIRPWR, AR_PHY_RADAR_0_FIRPWR);
+			REG_WRITE(ah, AR_PHY_RADAR_0, val);
 
-		return false;
-	case 0x1300000a:
-		return false;
-	case 0x0400000a:
-	case 0x04000b09:
-		return true;
-	case 0x04000409:
-		if (AR_SREV_9340(ah) || AR_SREV_9531(ah) || AR_SREV_9561(ah))
 			return false;
-		else
+
+		case 0x1300000a:
+			return false;
+
+		case 0x0400000a:
+		case 0x04000b09:
 			return true;
-	default:
-		/*
-		 * For any other unknown signatures, do a
-		 * full chip reset.
-		 */
-		return true;
+
+		case 0x04000409:
+			if (AR_SREV_9340(ah) || AR_SREV_9531(ah) || AR_SREV_9561(ah))
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+
+		default:
+			/*
+			 * For any other unknown signatures, do a
+			 * full chip reset.
+			 */
+			return true;
 	}
 }
 EXPORT_SYMBOL(ar9003_hw_bb_watchdog_check);
@@ -2068,18 +2416,19 @@ void ar9003_hw_bb_watchdog_config(struct ath_hw *ah)
 	u32 idle_tmo_ms = ah->bb_watchdog_timeout_ms;
 	u32 val, idle_count;
 
-	if (!idle_tmo_ms) {
+	if (!idle_tmo_ms)
+	{
 		/* disable IRQ, disable chip-reset for BB panic */
 		REG_WRITE(ah, AR_PHY_WATCHDOG_CTL_2,
-			  REG_READ(ah, AR_PHY_WATCHDOG_CTL_2) &
-			  ~(AR_PHY_WATCHDOG_RST_ENABLE |
-			    AR_PHY_WATCHDOG_IRQ_ENABLE));
+				  REG_READ(ah, AR_PHY_WATCHDOG_CTL_2) &
+				  ~(AR_PHY_WATCHDOG_RST_ENABLE |
+					AR_PHY_WATCHDOG_IRQ_ENABLE));
 
 		/* disable watchdog in non-IDLE mode, disable in IDLE mode */
 		REG_WRITE(ah, AR_PHY_WATCHDOG_CTL_1,
-			  REG_READ(ah, AR_PHY_WATCHDOG_CTL_1) &
-			  ~(AR_PHY_WATCHDOG_NON_IDLE_ENABLE |
-			    AR_PHY_WATCHDOG_IDLE_ENABLE));
+				  REG_READ(ah, AR_PHY_WATCHDOG_CTL_1) &
+				  ~(AR_PHY_WATCHDOG_NON_IDLE_ENABLE |
+					AR_PHY_WATCHDOG_IDLE_ENABLE));
 
 		ath_dbg(common, RESET, "Disabled BB Watchdog\n");
 		return;
@@ -2088,12 +2437,14 @@ void ar9003_hw_bb_watchdog_config(struct ath_hw *ah)
 	/* enable IRQ, disable chip-reset for BB watchdog */
 	val = REG_READ(ah, AR_PHY_WATCHDOG_CTL_2) & AR_PHY_WATCHDOG_CNTL2_MASK;
 	REG_WRITE(ah, AR_PHY_WATCHDOG_CTL_2,
-		  (val | AR_PHY_WATCHDOG_IRQ_ENABLE) &
-		  ~AR_PHY_WATCHDOG_RST_ENABLE);
+			  (val | AR_PHY_WATCHDOG_IRQ_ENABLE) &
+			  ~AR_PHY_WATCHDOG_RST_ENABLE);
 
 	/* bound limit to 10 secs */
 	if (idle_tmo_ms > 10000)
+	{
 		idle_tmo_ms = 10000;
+	}
 
 	/*
 	 * The time unit for watchdog event is 2^15 44/88MHz cycles.
@@ -2105,20 +2456,23 @@ void ar9003_hw_bb_watchdog_config(struct ath_hw *ah)
 	 * be common for both 2 GHz and 5 GHz.
 	 */
 	idle_count = (100 * idle_tmo_ms) / 74;
+
 	if (ah->curchan && IS_CHAN_HT40(ah->curchan))
+	{
 		idle_count = (100 * idle_tmo_ms) / 37;
+	}
 
 	/*
 	 * enable watchdog in non-IDLE mode, disable in IDLE mode,
 	 * set idle time-out.
 	 */
 	REG_WRITE(ah, AR_PHY_WATCHDOG_CTL_1,
-		  AR_PHY_WATCHDOG_NON_IDLE_ENABLE |
-		  AR_PHY_WATCHDOG_IDLE_MASK |
-		  (AR_PHY_WATCHDOG_NON_IDLE_MASK & (idle_count << 2)));
+			  AR_PHY_WATCHDOG_NON_IDLE_ENABLE |
+			  AR_PHY_WATCHDOG_IDLE_MASK |
+			  (AR_PHY_WATCHDOG_NON_IDLE_MASK & (idle_count << 2)));
 
 	ath_dbg(common, RESET, "Enabled BB Watchdog timeout (%u ms)\n",
-		idle_tmo_ms);
+			idle_tmo_ms);
 }
 
 void ar9003_hw_bb_watchdog_read(struct ath_hw *ah)
@@ -2134,7 +2488,7 @@ void ar9003_hw_bb_watchdog_read(struct ath_hw *ah)
 	 * sure we write 0 to the watchdog status bit.
 	 */
 	REG_WRITE(ah, AR_PHY_WATCHDOG_STATUS,
-		  ah->bb_watchdog_last_status & ~AR_PHY_WATCHDOG_STATUS_CLR);
+			  ah->bb_watchdog_last_status & ~AR_PHY_WATCHDOG_STATUS_CLR);
 }
 
 void ar9003_hw_bb_watchdog_dbg_info(struct ath_hw *ah)
@@ -2143,34 +2497,37 @@ void ar9003_hw_bb_watchdog_dbg_info(struct ath_hw *ah)
 	u32 status;
 
 	if (likely(!(common->debug_mask & ATH_DBG_RESET)))
+	{
 		return;
+	}
 
 	status = ah->bb_watchdog_last_status;
 	ath_dbg(common, RESET,
-		"\n==== BB update: BB status=0x%08x ====\n", status);
+			"\n==== BB update: BB status=0x%08x ====\n", status);
 	ath_dbg(common, RESET,
-		"** BB state: wd=%u det=%u rdar=%u rOFDM=%d rCCK=%u tOFDM=%u tCCK=%u agc=%u src=%u **\n",
-		MS(status, AR_PHY_WATCHDOG_INFO),
-		MS(status, AR_PHY_WATCHDOG_DET_HANG),
-		MS(status, AR_PHY_WATCHDOG_RADAR_SM),
-		MS(status, AR_PHY_WATCHDOG_RX_OFDM_SM),
-		MS(status, AR_PHY_WATCHDOG_RX_CCK_SM),
-		MS(status, AR_PHY_WATCHDOG_TX_OFDM_SM),
-		MS(status, AR_PHY_WATCHDOG_TX_CCK_SM),
-		MS(status, AR_PHY_WATCHDOG_AGC_SM),
-		MS(status, AR_PHY_WATCHDOG_SRCH_SM));
+			"** BB state: wd=%u det=%u rdar=%u rOFDM=%d rCCK=%u tOFDM=%u tCCK=%u agc=%u src=%u **\n",
+			MS(status, AR_PHY_WATCHDOG_INFO),
+			MS(status, AR_PHY_WATCHDOG_DET_HANG),
+			MS(status, AR_PHY_WATCHDOG_RADAR_SM),
+			MS(status, AR_PHY_WATCHDOG_RX_OFDM_SM),
+			MS(status, AR_PHY_WATCHDOG_RX_CCK_SM),
+			MS(status, AR_PHY_WATCHDOG_TX_OFDM_SM),
+			MS(status, AR_PHY_WATCHDOG_TX_CCK_SM),
+			MS(status, AR_PHY_WATCHDOG_AGC_SM),
+			MS(status, AR_PHY_WATCHDOG_SRCH_SM));
 
 	ath_dbg(common, RESET, "** BB WD cntl: cntl1=0x%08x cntl2=0x%08x **\n",
-		REG_READ(ah, AR_PHY_WATCHDOG_CTL_1),
-		REG_READ(ah, AR_PHY_WATCHDOG_CTL_2));
+			REG_READ(ah, AR_PHY_WATCHDOG_CTL_1),
+			REG_READ(ah, AR_PHY_WATCHDOG_CTL_2));
 	ath_dbg(common, RESET, "** BB mode: BB_gen_controls=0x%08x **\n",
-		REG_READ(ah, AR_PHY_GEN_CTRL));
+			REG_READ(ah, AR_PHY_GEN_CTRL));
 
 #define PCT(_field) (common->cc_survey._field * 100 / common->cc_survey.cycles)
+
 	if (common->cc_survey.cycles)
 		ath_dbg(common, RESET,
-			"** BB busy times: rx_clear=%d%%, rx_frame=%d%%, tx_frame=%d%% **\n",
-			PCT(rx_busy), PCT(rx_frame), PCT(tx_frame));
+				"** BB busy times: rx_clear=%d%%, rx_frame=%d%%, tx_frame=%d%% **\n",
+				PCT(rx_busy), PCT(rx_frame), PCT(tx_frame));
 
 	ath_dbg(common, RESET, "==== BB update: done ====\n\n");
 }
@@ -2188,7 +2545,8 @@ void ar9003_hw_disable_phy_restart(struct ath_hw *ah)
 	 */
 	result = MS(ah->bb_watchdog_last_status, AR_PHY_WATCHDOG_RX_OFDM_SM);
 
-	if ((result == 0xb) || ah->bb_hang_rx_ofdm) {
+	if ((result == 0xb) || ah->bb_hang_rx_ofdm)
+	{
 		ah->bb_hang_rx_ofdm = true;
 		val = REG_READ(ah, AR_PHY_RESTART);
 		val &= ~AR_PHY_RESTART_ENA;

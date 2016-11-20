@@ -94,7 +94,8 @@
 
 static struct platform_driver tegra_ahb_driver;
 
-static const u32 tegra_ahb_gizmo[] = {
+static const u32 tegra_ahb_gizmo[] =
+{
 	AHB_ARBITRATION_DISABLE,
 	AHB_ARBITRATION_PRIORITY_CTRL,
 	AHB_GIZMO_AHB_MEM,
@@ -126,7 +127,8 @@ static const u32 tegra_ahb_gizmo[] = {
 	AHB_ARBITRATION_AHB_MEM_WRQUE_MST_ID,
 };
 
-struct tegra_ahb {
+struct tegra_ahb
+{
 	void __iomem	*regs;
 	struct device	*dev;
 	u32		ctx[0];
@@ -158,9 +160,13 @@ int tegra_ahb_enable_smmu(struct device_node *dn)
 	struct tegra_ahb *ahb;
 
 	dev = driver_find_device(&tegra_ahb_driver.driver, NULL, dn,
-				 tegra_ahb_match_by_smmu);
+							 tegra_ahb_match_by_smmu);
+
 	if (!dev)
+	{
 		return -EPROBE_DEFER;
+	}
+
 	ahb = dev_get_drvdata(dev);
 	val = gizmo_readl(ahb, AHB_ARBITRATION_XBAR_CTRL);
 	val |= AHB_ARBITRATION_XBAR_CTRL_SMMU_INIT_DONE;
@@ -177,7 +183,10 @@ static int tegra_ahb_suspend(struct device *dev)
 	struct tegra_ahb *ahb = dev_get_drvdata(dev);
 
 	for (i = 0; i < ARRAY_SIZE(tegra_ahb_gizmo); i++)
+	{
 		ahb->ctx[i] = gizmo_readl(ahb, tegra_ahb_gizmo[i]);
+	}
+
 	return 0;
 }
 
@@ -187,14 +196,17 @@ static int tegra_ahb_resume(struct device *dev)
 	struct tegra_ahb *ahb = dev_get_drvdata(dev);
 
 	for (i = 0; i < ARRAY_SIZE(tegra_ahb_gizmo); i++)
+	{
 		gizmo_writel(ahb, ahb->ctx[i], tegra_ahb_gizmo[i]);
+	}
+
 	return 0;
 }
 #endif
 
 static UNIVERSAL_DEV_PM_OPS(tegra_ahb_pm,
-			    tegra_ahb_suspend,
-			    tegra_ahb_resume, NULL);
+							tegra_ahb_suspend,
+							tegra_ahb_resume, NULL);
 
 static void tegra_ahb_gizmo_init(struct tegra_ahb *ahb)
 {
@@ -218,41 +230,41 @@ static void tegra_ahb_gizmo_init(struct tegra_ahb *ahb)
 
 	val = gizmo_readl(ahb, AHB_ARBITRATION_PRIORITY_CTRL);
 	val |= PRIORITY_SELECT_USB |
-		PRIORITY_SELECT_USB2 |
-		PRIORITY_SELECT_USB3 |
-		AHB_PRIORITY_WEIGHT(7);
+		   PRIORITY_SELECT_USB2 |
+		   PRIORITY_SELECT_USB3 |
+		   AHB_PRIORITY_WEIGHT(7);
 	gizmo_writel(ahb, val, AHB_ARBITRATION_PRIORITY_CTRL);
 
 	val = gizmo_readl(ahb, AHB_MEM_PREFETCH_CFG1);
 	val &= ~MST_ID(~0);
 	val |= PREFETCH_ENB |
-		AHBDMA_MST_ID |
-		ADDR_BNDRY(0xc) |
-		INACTIVITY_TIMEOUT(0x1000);
+		   AHBDMA_MST_ID |
+		   ADDR_BNDRY(0xc) |
+		   INACTIVITY_TIMEOUT(0x1000);
 	gizmo_writel(ahb, val, AHB_MEM_PREFETCH_CFG1);
 
 	val = gizmo_readl(ahb, AHB_MEM_PREFETCH_CFG2);
 	val &= ~MST_ID(~0);
 	val |= PREFETCH_ENB |
-		USB_MST_ID |
-		ADDR_BNDRY(0xc) |
-		INACTIVITY_TIMEOUT(0x1000);
+		   USB_MST_ID |
+		   ADDR_BNDRY(0xc) |
+		   INACTIVITY_TIMEOUT(0x1000);
 	gizmo_writel(ahb, val, AHB_MEM_PREFETCH_CFG2);
 
 	val = gizmo_readl(ahb, AHB_MEM_PREFETCH_CFG3);
 	val &= ~MST_ID(~0);
 	val |= PREFETCH_ENB |
-		USB3_MST_ID |
-		ADDR_BNDRY(0xc) |
-		INACTIVITY_TIMEOUT(0x1000);
+		   USB3_MST_ID |
+		   ADDR_BNDRY(0xc) |
+		   INACTIVITY_TIMEOUT(0x1000);
 	gizmo_writel(ahb, val, AHB_MEM_PREFETCH_CFG3);
 
 	val = gizmo_readl(ahb, AHB_MEM_PREFETCH_CFG4);
 	val &= ~MST_ID(~0);
 	val |= PREFETCH_ENB |
-		USB2_MST_ID |
-		ADDR_BNDRY(0xc) |
-		INACTIVITY_TIMEOUT(0x1000);
+		   USB2_MST_ID |
+		   ADDR_BNDRY(0xc) |
+		   INACTIVITY_TIMEOUT(0x1000);
 	gizmo_writel(ahb, val, AHB_MEM_PREFETCH_CFG4);
 }
 
@@ -264,22 +276,29 @@ static int tegra_ahb_probe(struct platform_device *pdev)
 
 	bytes = sizeof(*ahb) + sizeof(u32) * ARRAY_SIZE(tegra_ahb_gizmo);
 	ahb = devm_kzalloc(&pdev->dev, bytes, GFP_KERNEL);
+
 	if (!ahb)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	/* Correct the IP block base address if necessary */
 	if (res &&
-	    (res->start & INCORRECT_BASE_ADDR_LOW_BYTE) ==
-	    INCORRECT_BASE_ADDR_LOW_BYTE) {
+		(res->start & INCORRECT_BASE_ADDR_LOW_BYTE) ==
+		INCORRECT_BASE_ADDR_LOW_BYTE)
+	{
 		dev_warn(&pdev->dev, "incorrect AHB base address in DT data - enabling workaround\n");
 		res->start -= INCORRECT_BASE_ADDR_LOW_BYTE;
 	}
 
 	ahb->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(ahb->regs))
+	{
 		return PTR_ERR(ahb->regs);
+	}
 
 	ahb->dev = &pdev->dev;
 	platform_set_drvdata(pdev, ahb);
@@ -287,13 +306,15 @@ static int tegra_ahb_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id tegra_ahb_of_match[] = {
+static const struct of_device_id tegra_ahb_of_match[] =
+{
 	{ .compatible = "nvidia,tegra30-ahb", },
 	{ .compatible = "nvidia,tegra20-ahb", },
 	{},
 };
 
-static struct platform_driver tegra_ahb_driver = {
+static struct platform_driver tegra_ahb_driver =
+{
 	.probe = tegra_ahb_probe,
 	.driver = {
 		.name = DRV_NAME,

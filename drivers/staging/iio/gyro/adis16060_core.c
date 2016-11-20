@@ -30,7 +30,8 @@
  * @buf:		transmit or receive buffer
  * @buf_lock:		mutex to protect tx and rx
  **/
-struct adis16060_state {
+struct adis16060_state
+{
 	struct spi_device		*us_w;
 	struct spi_device		*us_r;
 	struct mutex			buf_lock;
@@ -69,44 +70,54 @@ static int adis16060_spi_read(struct iio_dev *indio_dev, u16 *val)
 	 */
 	if (!ret)
 		*val = ((st->buf[0] & 0x3) << 12) |
-			(st->buf[1] << 4) |
-			((st->buf[2] >> 4) & 0xF);
+			   (st->buf[1] << 4) |
+			   ((st->buf[2] >> 4) & 0xF);
+
 	mutex_unlock(&st->buf_lock);
 
 	return ret;
 }
 
 static int adis16060_read_raw(struct iio_dev *indio_dev,
-			      struct iio_chan_spec const *chan,
-			      int *val, int *val2,
-			      long mask)
+							  struct iio_chan_spec const *chan,
+							  int *val, int *val2,
+							  long mask)
 {
 	u16 tval = 0;
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		/* Take the iio_dev status lock */
-		mutex_lock(&indio_dev->mlock);
-		ret = adis16060_spi_write(indio_dev, chan->address);
-		if (ret < 0)
-			goto out_unlock;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			/* Take the iio_dev status lock */
+			mutex_lock(&indio_dev->mlock);
+			ret = adis16060_spi_write(indio_dev, chan->address);
 
-		ret = adis16060_spi_read(indio_dev, &tval);
-		if (ret < 0)
-			goto out_unlock;
+			if (ret < 0)
+			{
+				goto out_unlock;
+			}
 
-		mutex_unlock(&indio_dev->mlock);
-		*val = tval;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_OFFSET:
-		*val = -7;
-		*val2 = 461117;
-		return IIO_VAL_INT_PLUS_MICRO;
-	case IIO_CHAN_INFO_SCALE:
-		*val = 0;
-		*val2 = 34000;
-		return IIO_VAL_INT_PLUS_MICRO;
+			ret = adis16060_spi_read(indio_dev, &tval);
+
+			if (ret < 0)
+			{
+				goto out_unlock;
+			}
+
+			mutex_unlock(&indio_dev->mlock);
+			*val = tval;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_OFFSET:
+			*val = -7;
+			*val2 = 461117;
+			return IIO_VAL_INT_PLUS_MICRO;
+
+		case IIO_CHAN_INFO_SCALE:
+			*val = 0;
+			*val2 = 34000;
+			return IIO_VAL_INT_PLUS_MICRO;
 	}
 
 	return -EINVAL;
@@ -116,12 +127,14 @@ out_unlock:
 	return ret;
 }
 
-static const struct iio_info adis16060_info = {
+static const struct iio_info adis16060_info =
+{
 	.read_raw = &adis16060_read_raw,
 	.driver_module = THIS_MODULE,
 };
 
-static const struct iio_chan_spec adis16060_channels[] = {
+static const struct iio_chan_spec adis16060_channels[] =
+{
 	{
 		.type = IIO_ANGL_VEL,
 		.modified = 1,
@@ -158,8 +171,12 @@ static int adis16060_r_probe(struct spi_device *spi)
 
 	/* setup the industrialio driver allocated elements */
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
+
 	/* this is only used for removal purposes */
 	spi_set_drvdata(spi, indio_dev);
 	st = iio_priv(indio_dev);
@@ -174,8 +191,11 @@ static int adis16060_r_probe(struct spi_device *spi)
 	indio_dev->num_channels = ARRAY_SIZE(adis16060_channels);
 
 	ret = devm_iio_device_register(&spi->dev, indio_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	adis16060_iio_dev = indio_dev;
 	return 0;
@@ -187,10 +207,12 @@ static int adis16060_w_probe(struct spi_device *spi)
 	struct iio_dev *indio_dev = adis16060_iio_dev;
 	struct adis16060_state *st;
 
-	if (!indio_dev) {
+	if (!indio_dev)
+	{
 		ret =  -ENODEV;
 		goto error_ret;
 	}
+
 	st = iio_priv(indio_dev);
 	spi_set_drvdata(spi, indio_dev);
 	st->us_w = spi;
@@ -205,14 +227,16 @@ static int adis16060_w_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver adis16060_r_driver = {
+static struct spi_driver adis16060_r_driver =
+{
 	.driver = {
 		.name = "adis16060_r",
 	},
 	.probe = adis16060_r_probe,
 };
 
-static struct spi_driver adis16060_w_driver = {
+static struct spi_driver adis16060_w_driver =
+{
 	.driver = {
 		.name = "adis16060_w",
 	},
@@ -225,11 +249,16 @@ static __init int adis16060_init(void)
 	int ret;
 
 	ret = spi_register_driver(&adis16060_r_driver);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = spi_register_driver(&adis16060_w_driver);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		spi_unregister_driver(&adis16060_r_driver);
 		return ret;
 	}

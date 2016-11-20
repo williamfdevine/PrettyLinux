@@ -117,7 +117,7 @@
 
 #define FNIC_FLAGS_NONE			(0)
 #define FNIC_FLAGS_FWRESET		(__FNIC_FLAGS_FWRESET | \
-					__FNIC_FLAGS_BLOCK_IO)
+								 __FNIC_FLAGS_BLOCK_IO)
 
 #define FNIC_FLAGS_IO_BLOCKED		(__FNIC_FLAGS_BLOCK_IO)
 
@@ -135,42 +135,44 @@ extern unsigned int fnic_log_level;
 #define FNIC_ISR_LOGGING 0x08
 
 #define FNIC_CHECK_LOGGING(LEVEL, CMD)				\
-do {								\
-	if (unlikely(fnic_log_level & LEVEL))			\
-		do {						\
-			CMD;					\
-		} while (0);					\
-} while (0)
+	do {								\
+		if (unlikely(fnic_log_level & LEVEL))			\
+			do {						\
+				CMD;					\
+			} while (0);					\
+	} while (0)
 
 #define FNIC_MAIN_DBG(kern_level, host, fmt, args...)		\
 	FNIC_CHECK_LOGGING(FNIC_MAIN_LOGGING,			\
-			 shost_printk(kern_level, host, fmt, ##args);)
+					   shost_printk(kern_level, host, fmt, ##args);)
 
 #define FNIC_FCS_DBG(kern_level, host, fmt, args...)		\
 	FNIC_CHECK_LOGGING(FNIC_FCS_LOGGING,			\
-			 shost_printk(kern_level, host, fmt, ##args);)
+					   shost_printk(kern_level, host, fmt, ##args);)
 
 #define FNIC_SCSI_DBG(kern_level, host, fmt, args...)		\
 	FNIC_CHECK_LOGGING(FNIC_SCSI_LOGGING,			\
-			 shost_printk(kern_level, host, fmt, ##args);)
+					   shost_printk(kern_level, host, fmt, ##args);)
 
 #define FNIC_ISR_DBG(kern_level, host, fmt, args...)		\
 	FNIC_CHECK_LOGGING(FNIC_ISR_LOGGING,			\
-			 shost_printk(kern_level, host, fmt, ##args);)
+					   shost_printk(kern_level, host, fmt, ##args);)
 
 #define FNIC_MAIN_NOTE(kern_level, host, fmt, args...)          \
 	shost_printk(kern_level, host, fmt, ##args)
 
 extern const char *fnic_state_str[];
 
-enum fnic_intx_intr_index {
+enum fnic_intx_intr_index
+{
 	FNIC_INTX_WQ_RQ_COPYWQ,
 	FNIC_INTX_ERR,
 	FNIC_INTX_NOTIFY,
 	FNIC_INTX_INTR_MAX,
 };
 
-enum fnic_msix_intr_index {
+enum fnic_msix_intr_index
+{
 	FNIC_MSIX_RQ,
 	FNIC_MSIX_WQ,
 	FNIC_MSIX_WQ_COPY,
@@ -178,14 +180,16 @@ enum fnic_msix_intr_index {
 	FNIC_MSIX_INTR_MAX,
 };
 
-struct fnic_msix_entry {
+struct fnic_msix_entry
+{
 	int requested;
 	char devname[IFNAMSIZ];
 	irqreturn_t (*isr)(int, void *);
 	void *devid;
 };
 
-enum fnic_state {
+enum fnic_state
+{
 	FNIC_IN_FC_MODE = 0,
 	FNIC_IN_FC_TRANS_ETH_MODE,
 	FNIC_IN_ETH_MODE,
@@ -199,20 +203,23 @@ enum fnic_state {
 
 struct mempool;
 
-enum fnic_evt {
+enum fnic_evt
+{
 	FNIC_EVT_START_VLAN_DISC = 1,
 	FNIC_EVT_START_FCF_DISC = 2,
 	FNIC_EVT_MAX,
 };
 
-struct fnic_event {
+struct fnic_event
+{
 	struct list_head list;
 	struct fnic *fnic;
 	enum fnic_evt event;
 };
 
 /* Per-instance private data structure */
-struct fnic {
+struct fnic
+{
 	struct fc_lport *lport;
 	struct fcoe_ctlr ctlr;		/* FIP FCoE controller structure */
 	struct vnic_dev_bar bar0;
@@ -241,9 +248,9 @@ struct fnic {
 	atomic64_t io_cmpl_skip;
 	struct fnic_stats fnic_stats;
 
-	u32 vlan_hw_insert:1;	        /* let hw insert the tag */
-	u32 in_remove:1;                /* fnic device in removal */
-	u32 stop_rx_link_events:1;      /* stop proc. rx frames, link events */
+	u32 vlan_hw_insert: 1;	       /* let hw insert the tag */
+	u32 in_remove: 1;               /* fnic device in removal */
+	u32 stop_rx_link_events: 1;     /* stop proc. rx frames, link events */
 
 	struct completion *remove_wait; /* device remove thread blocks */
 
@@ -353,7 +360,7 @@ int fnic_wq_copy_cmpl_handler(struct fnic *fnic, int);
 int fnic_wq_cmpl_handler(struct fnic *fnic, int);
 int fnic_flogi_reg_handler(struct fnic *fnic, u32);
 void fnic_wq_copy_cleanup_handler(struct vnic_wq_copy *wq,
-				  struct fcpio_host_req *desc);
+								  struct fcpio_host_req *desc);
 int fnic_fw_reset_handler(struct fnic *fnic);
 void fnic_terminate_rport_io(struct fc_rport *);
 const char *fnic_state_to_str(unsigned int state);

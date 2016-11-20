@@ -1,7 +1,8 @@
 #ifndef __NVIF_CLA06F_H__
 #define __NVIF_CLA06F_H__
 
-struct kepler_channel_gpfifo_a_v0 {
+struct kepler_channel_gpfifo_a_v0
+{
 	__u8  version;
 	__u8  pad01[5];
 	__u16 chid;

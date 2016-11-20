@@ -51,17 +51,19 @@
 #define i40e_flush(a)		readl((a)->hw_addr + I40E_GLGEN_STAT)
 
 /* memory allocation tracking */
-struct i40e_dma_mem {
+struct i40e_dma_mem
+{
 	void *va;
 	dma_addr_t pa;
 	u32 size;
 } __packed;
 
 #define i40e_allocate_dma_mem(h, m, unused, s, a) \
-			i40e_allocate_dma_mem_d(h, m, s, a)
+	i40e_allocate_dma_mem_d(h, m, s, a)
 #define i40e_free_dma_mem(h, m) i40e_free_dma_mem_d(h, m)
 
-struct i40e_virt_mem {
+struct i40e_virt_mem
+{
 	void *va;
 	u32 size;
 } __packed;
@@ -70,15 +72,15 @@ struct i40e_virt_mem {
 #define i40e_free_virt_mem(h, m) i40e_free_virt_mem_d(h, m)
 
 #define i40e_debug(h, m, s, ...)                                \
-do {                                                            \
-	if (((m) & (h)->debug_mask))                            \
-		pr_info("i40e %02x.%x " s,                      \
-			(h)->bus.device, (h)->bus.func,         \
-			##__VA_ARGS__);                         \
-} while (0)
+	do {                                                            \
+		if (((m) & (h)->debug_mask))                            \
+			pr_info("i40e %02x.%x " s,                      \
+					(h)->bus.device, (h)->bus.func,         \
+					##__VA_ARGS__);                         \
+	} while (0)
 
 typedef enum i40e_status_code i40e_status;
 #ifdef CONFIG_I40E_FCOE
-#define I40E_FCOE
+	#define I40E_FCOE
 #endif
 #endif /* _I40E_OSDEP_H_ */

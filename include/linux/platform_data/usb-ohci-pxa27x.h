@@ -3,7 +3,8 @@
 
 struct device;
 
-struct pxaohci_platform_data {
+struct pxaohci_platform_data
+{
 	int (*init)(struct device *);
 	void (*exit)(struct device *);
 

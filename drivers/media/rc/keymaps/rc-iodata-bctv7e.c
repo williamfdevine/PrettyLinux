@@ -15,7 +15,8 @@
 
 /* IO-DATA BCTV7E Remote */
 
-static struct rc_map_table iodata_bctv7e[] = {
+static struct rc_map_table iodata_bctv7e[] =
+{
 	{ 0x40, KEY_TV },
 	{ 0x20, KEY_RADIO },		/* FM */
 	{ 0x60, KEY_EPG },
@@ -63,7 +64,8 @@ static struct rc_map_table iodata_bctv7e[] = {
 	{ 0x01, KEY_NEXT },		/* skip >| */
 };
 
-static struct rc_map_list iodata_bctv7e_map = {
+static struct rc_map_list iodata_bctv7e_map =
+{
 	.map = {
 		.scan    = iodata_bctv7e,
 		.size    = ARRAY_SIZE(iodata_bctv7e),

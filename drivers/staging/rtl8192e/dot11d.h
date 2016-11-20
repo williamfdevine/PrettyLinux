@@ -17,13 +17,15 @@
 
 #include "rtllib.h"
 
-struct chnl_txpow_triple {
+struct chnl_txpow_triple
+{
 	u8 FirstChnl;
 	u8  NumChnls;
 	u8  MaxTxPowerInDbm;
 };
 
-enum dot11d_state {
+enum dot11d_state
+{
 	DOT11D_STATE_NONE = 0,
 	DOT11D_STATE_LEARNED,
 	DOT11D_STATE_DONE,
@@ -39,7 +41,8 @@ enum dot11d_state {
  * @CountryIeSrcAddr - Source AP of the country IE
  */
 
-struct rt_dot11d_info {
+struct rt_dot11d_info
+{
 	bool bEnabled;
 
 	u16 CountryIeLen;
@@ -59,21 +62,21 @@ static inline void cpMacAddr(unsigned char *des, unsigned char *src)
 }
 
 #define GET_DOT11D_INFO(__pIeeeDev)			\
-	 ((struct rt_dot11d_info *)((__pIeeeDev)->pDot11dInfo))
+	((struct rt_dot11d_info *)((__pIeeeDev)->pDot11dInfo))
 
 #define IS_DOT11D_ENABLE(__pIeeeDev)			\
-	 (GET_DOT11D_INFO(__pIeeeDev)->bEnabled)
+	(GET_DOT11D_INFO(__pIeeeDev)->bEnabled)
 #define IS_COUNTRY_IE_VALID(__pIeeeDev)			\
 	(GET_DOT11D_INFO(__pIeeeDev)->CountryIeLen > 0)
 
 #define IS_EQUAL_CIE_SRC(__pIeeeDev, __pTa)		\
-	 ether_addr_equal_unaligned( \
-		GET_DOT11D_INFO(__pIeeeDev)->CountryIeSrcAddr, __pTa)
+	ether_addr_equal_unaligned( \
+								GET_DOT11D_INFO(__pIeeeDev)->CountryIeSrcAddr, __pTa)
 #define UPDATE_CIE_SRC(__pIeeeDev, __pTa)		\
 	cpMacAddr(GET_DOT11D_INFO(__pIeeeDev)->CountryIeSrcAddr, __pTa)
 
 #define GET_CIE_WATCHDOG(__pIeeeDev)				\
-	 (GET_DOT11D_INFO(__pIeeeDev)->CountryIeWatchdog)
+	(GET_DOT11D_INFO(__pIeeeDev)->CountryIeWatchdog)
 static inline void RESET_CIE_WATCHDOG(struct rtllib_device *__pIeeeDev)
 {
 	GET_CIE_WATCHDOG(__pIeeeDev) = 0;
@@ -85,7 +88,7 @@ void dot11d_init(struct rtllib_device *dev);
 void Dot11d_Channelmap(u8 channel_plan, struct rtllib_device *ieee);
 void Dot11d_Reset(struct rtllib_device *dev);
 void Dot11d_UpdateCountryIe(struct rtllib_device *dev, u8 *pTaddr,
-			    u16 CoutryIeLen, u8 *pCoutryIe);
+							u16 CoutryIeLen, u8 *pCoutryIe);
 void DOT11D_ScanComplete(struct rtllib_device *dev);
 
 #endif

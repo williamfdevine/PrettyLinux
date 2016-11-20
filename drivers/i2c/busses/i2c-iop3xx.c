@@ -74,13 +74,18 @@ iop3xx_i2c_enable(struct i2c_algo_iop3xx_data *iop3xx_adap)
 	 * on IOP3XX to avoid data corruption on the bus.
 	 */
 #if defined(CONFIG_ARCH_IOP32X) || defined(CONFIG_ARCH_IOP33X)
-	if (iop3xx_adap->id == 0) {
+
+	if (iop3xx_adap->id == 0)
+	{
 		gpio_set_value(7, 0);
 		gpio_set_value(6, 0);
-	} else {
+	}
+	else
+	{
 		gpio_set_value(5, 0);
 		gpio_set_value(4, 0);
 	}
+
 #endif
 	/* NB SR bits not same position as CR IE bits :-( */
 	iop3xx_adap->SR_enabled =
@@ -88,7 +93,7 @@ iop3xx_i2c_enable(struct i2c_algo_iop3xx_data *iop3xx_adap)
 		IOP3XX_ISR_RXFULL | IOP3XX_ISR_TXEMPTY;
 
 	cr |= IOP3XX_ICR_ALD_IE | IOP3XX_ICR_BERR_IE |
-		IOP3XX_ICR_RXFULL_IE | IOP3XX_ICR_TXEMPTY_IE;
+		  IOP3XX_ICR_RXFULL_IE | IOP3XX_ICR_TXEMPTY_IE;
 
 	__raw_writel(cr, iop3xx_adap->ioaddr + CR_OFFSET);
 }
@@ -99,7 +104,7 @@ iop3xx_i2c_transaction_cleanup(struct i2c_algo_iop3xx_data *iop3xx_adap)
 	unsigned long cr = __raw_readl(iop3xx_adap->ioaddr + CR_OFFSET);
 
 	cr &= ~(IOP3XX_ICR_MSTART | IOP3XX_ICR_TBYTE |
-		IOP3XX_ICR_MSTOP | IOP3XX_ICR_SCLEN);
+			IOP3XX_ICR_MSTOP | IOP3XX_ICR_SCLEN);
 
 	__raw_writel(cr, iop3xx_adap->ioaddr + CR_OFFSET);
 }
@@ -114,11 +119,13 @@ iop3xx_i2c_irq_handler(int this_irq, void *dev_id)
 	struct i2c_algo_iop3xx_data *iop3xx_adap = dev_id;
 	u32 sr = __raw_readl(iop3xx_adap->ioaddr + SR_OFFSET);
 
-	if ((sr &= iop3xx_adap->SR_enabled)) {
+	if ((sr &= iop3xx_adap->SR_enabled))
+	{
 		__raw_writel(sr, iop3xx_adap->ioaddr + SR_OFFSET);
 		iop3xx_adap->SR_received |= sr;
 		wake_up_interruptible(&iop3xx_adap->waitq);
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -128,12 +135,16 @@ iop3xx_i2c_error(u32 sr)
 {
 	int rc = 0;
 
-	if ((sr & IOP3XX_ISR_BERRD)) {
-		if ( !rc ) rc = -I2C_ERR_BERR;
+	if ((sr & IOP3XX_ISR_BERRD))
+	{
+		if ( !rc ) { rc = -I2C_ERR_BERR; }
 	}
-	if ((sr & IOP3XX_ISR_ALD)) {
-		if ( !rc ) rc = -I2C_ERR_ALD;
+
+	if ((sr & IOP3XX_ISR_ALD))
+	{
+		if ( !rc ) { rc = -I2C_ERR_ALD; }
 	}
+
 	return rc;
 }
 
@@ -160,28 +171,34 @@ typedef int (* compare_func)(unsigned test, unsigned mask);
 
 static int
 iop3xx_i2c_wait_event(struct i2c_algo_iop3xx_data *iop3xx_adap,
-			  unsigned flags, unsigned* status,
-			  compare_func compare)
+					  unsigned flags, unsigned *status,
+					  compare_func compare)
 {
 	unsigned sr = 0;
 	int interrupted;
 	int done;
 	int rc = 0;
 
-	do {
+	do
+	{
 		interrupted = wait_event_interruptible_timeout (
-			iop3xx_adap->waitq,
-			(done = compare( sr = iop3xx_i2c_get_srstat(iop3xx_adap) ,flags )),
-			1 * HZ
-			);
-		if ((rc = iop3xx_i2c_error(sr)) < 0) {
+						  iop3xx_adap->waitq,
+						  (done = compare( sr = iop3xx_i2c_get_srstat(iop3xx_adap) , flags )),
+						  1 * HZ
+					  );
+
+		if ((rc = iop3xx_i2c_error(sr)) < 0)
+		{
 			*status = sr;
 			return rc;
-		} else if (!interrupted) {
+		}
+		else if (!interrupted)
+		{
 			*status = sr;
 			return -ETIMEDOUT;
 		}
-	} while(!done);
+	}
+	while (!done);
 
 	*status = sr;
 
@@ -207,30 +224,30 @@ static int
 iop3xx_i2c_wait_tx_done(struct i2c_algo_iop3xx_data *iop3xx_adap, int *status)
 {
 	return iop3xx_i2c_wait_event(
-		iop3xx_adap,
-	        IOP3XX_ISR_TXEMPTY | IOP3XX_ISR_ALD | IOP3XX_ISR_BERRD,
-		status, any_bits_set);
+			   iop3xx_adap,
+			   IOP3XX_ISR_TXEMPTY | IOP3XX_ISR_ALD | IOP3XX_ISR_BERRD,
+			   status, any_bits_set);
 }
 
 static int
 iop3xx_i2c_wait_rx_done(struct i2c_algo_iop3xx_data *iop3xx_adap, int *status)
 {
 	return iop3xx_i2c_wait_event(
-		iop3xx_adap,
-		IOP3XX_ISR_RXFULL | IOP3XX_ISR_ALD | IOP3XX_ISR_BERRD,
-		status,	any_bits_set);
+			   iop3xx_adap,
+			   IOP3XX_ISR_RXFULL | IOP3XX_ISR_ALD | IOP3XX_ISR_BERRD,
+			   status,	any_bits_set);
 }
 
 static int
 iop3xx_i2c_wait_idle(struct i2c_algo_iop3xx_data *iop3xx_adap, int *status)
 {
 	return iop3xx_i2c_wait_event(
-		iop3xx_adap, IOP3XX_ISR_UNITBUSY, status, all_bits_clear);
+			   iop3xx_adap, IOP3XX_ISR_UNITBUSY, status, all_bits_clear);
 }
 
 static int
 iop3xx_i2c_send_target_addr(struct i2c_algo_iop3xx_data *iop3xx_adap,
-				struct i2c_msg* msg)
+							struct i2c_msg *msg)
 {
 	unsigned long cr = __raw_readl(iop3xx_adap->ioaddr + CR_OFFSET);
 	int status;
@@ -239,7 +256,8 @@ iop3xx_i2c_send_target_addr(struct i2c_algo_iop3xx_data *iop3xx_adap,
 	/* avoid writing to my slave address (hangs on 80331),
 	 * forbidden in Intel developer manual
 	 */
-	if (msg->addr == MYSAR) {
+	if (msg->addr == MYSAR)
+	{
 		return -EBUSY;
 	}
 
@@ -256,7 +274,7 @@ iop3xx_i2c_send_target_addr(struct i2c_algo_iop3xx_data *iop3xx_adap,
 
 static int
 iop3xx_i2c_write_byte(struct i2c_algo_iop3xx_data *iop3xx_adap, char byte,
-				int stop)
+					  int stop)
 {
 	unsigned long cr = __raw_readl(iop3xx_adap->ioaddr + CR_OFFSET);
 	int status;
@@ -264,11 +282,16 @@ iop3xx_i2c_write_byte(struct i2c_algo_iop3xx_data *iop3xx_adap, char byte,
 
 	__raw_writel(byte, iop3xx_adap->ioaddr + DBR_OFFSET);
 	cr &= ~IOP3XX_ICR_MSTART;
-	if (stop) {
+
+	if (stop)
+	{
 		cr |= IOP3XX_ICR_MSTOP;
-	} else {
+	}
+	else
+	{
 		cr &= ~IOP3XX_ICR_MSTOP;
 	}
+
 	cr |= IOP3XX_ICR_TBYTE;
 	__raw_writel(cr, iop3xx_adap->ioaddr + CR_OFFSET);
 	rc = iop3xx_i2c_wait_tx_done(iop3xx_adap, &status);
@@ -277,8 +300,8 @@ iop3xx_i2c_write_byte(struct i2c_algo_iop3xx_data *iop3xx_adap, char byte,
 }
 
 static int
-iop3xx_i2c_read_byte(struct i2c_algo_iop3xx_data *iop3xx_adap, char* byte,
-				int stop)
+iop3xx_i2c_read_byte(struct i2c_algo_iop3xx_data *iop3xx_adap, char *byte,
+					 int stop)
 {
 	unsigned long cr = __raw_readl(iop3xx_adap->ioaddr + CR_OFFSET);
 	int status;
@@ -286,11 +309,15 @@ iop3xx_i2c_read_byte(struct i2c_algo_iop3xx_data *iop3xx_adap, char* byte,
 
 	cr &= ~IOP3XX_ICR_MSTART;
 
-	if (stop) {
+	if (stop)
+	{
 		cr |= IOP3XX_ICR_MSTOP | IOP3XX_ICR_NACK;
-	} else {
+	}
+	else
+	{
 		cr &= ~(IOP3XX_ICR_MSTOP | IOP3XX_ICR_NACK);
 	}
+
 	cr |= IOP3XX_ICR_TBYTE;
 	__raw_writel(cr, iop3xx_adap->ioaddr + CR_OFFSET);
 
@@ -309,7 +336,10 @@ iop3xx_i2c_writebytes(struct i2c_adapter *i2c_adap, const char *buf, int count)
 	int rc = 0;
 
 	for (ii = 0; rc == 0 && ii != count; ++ii)
-		rc = iop3xx_i2c_write_byte(iop3xx_adap, buf[ii], ii==count-1);
+	{
+		rc = iop3xx_i2c_write_byte(iop3xx_adap, buf[ii], ii == count - 1);
+	}
+
 	return rc;
 }
 
@@ -321,7 +351,9 @@ iop3xx_i2c_readbytes(struct i2c_adapter *i2c_adap, char *buf, int count)
 	int rc = 0;
 
 	for (ii = 0; rc == 0 && ii != count; ++ii)
-		rc = iop3xx_i2c_read_byte(iop3xx_adap, &buf[ii], ii==count-1);
+	{
+		rc = iop3xx_i2c_read_byte(iop3xx_adap, &buf[ii], ii == count - 1);
+	}
 
 	return rc;
 }
@@ -334,19 +366,24 @@ iop3xx_i2c_readbytes(struct i2c_adapter *i2c_adap, char *buf, int count)
  * condition.
  */
 static int
-iop3xx_i2c_handle_msg(struct i2c_adapter *i2c_adap, struct i2c_msg* pmsg)
+iop3xx_i2c_handle_msg(struct i2c_adapter *i2c_adap, struct i2c_msg *pmsg)
 {
 	struct i2c_algo_iop3xx_data *iop3xx_adap = i2c_adap->algo_data;
 	int rc;
 
 	rc = iop3xx_i2c_send_target_addr(iop3xx_adap, pmsg);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		return rc;
 	}
 
-	if ((pmsg->flags&I2C_M_RD)) {
+	if ((pmsg->flags & I2C_M_RD))
+	{
 		return iop3xx_i2c_readbytes(i2c_adap, pmsg->buf, pmsg->len);
-	} else {
+	}
+	else
+	{
 		return iop3xx_i2c_writebytes(i2c_adap, pmsg->buf, pmsg->len);
 	}
 }
@@ -356,7 +393,7 @@ iop3xx_i2c_handle_msg(struct i2c_adapter *i2c_adap, struct i2c_msg* pmsg)
  */
 static int
 iop3xx_i2c_master_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs,
-				int num)
+					   int num)
 {
 	struct i2c_algo_iop3xx_data *iop3xx_adap = i2c_adap->algo_data;
 	int im = 0;
@@ -367,14 +404,17 @@ iop3xx_i2c_master_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs,
 	iop3xx_i2c_reset(iop3xx_adap);
 	iop3xx_i2c_enable(iop3xx_adap);
 
-	for (im = 0; ret == 0 && im != num; im++) {
+	for (im = 0; ret == 0 && im != num; im++)
+	{
 		ret = iop3xx_i2c_handle_msg(i2c_adap, &msgs[im]);
 	}
 
 	iop3xx_i2c_transaction_cleanup(iop3xx_adap);
 
-	if(ret)
+	if (ret)
+	{
 		return ret;
+	}
 
 	return im;
 }
@@ -385,7 +425,8 @@ iop3xx_i2c_func(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
 }
 
-static const struct i2c_algorithm iop3xx_i2c_algo = {
+static const struct i2c_algorithm iop3xx_i2c_algo =
+{
 	.master_xfer	= iop3xx_i2c_master_xfer,
 	.functionality	= iop3xx_i2c_func,
 };
@@ -403,7 +444,7 @@ iop3xx_i2c_remove(struct platform_device *pdev)
 	 * Disable the actual HW unit
 	 */
 	cr &= ~(IOP3XX_ICR_ALD_IE | IOP3XX_ICR_BERR_IE |
-		IOP3XX_ICR_RXFULL_IE | IOP3XX_ICR_TXEMPTY_IE);
+			IOP3XX_ICR_RXFULL_IE | IOP3XX_ICR_TXEMPTY_IE);
 	__raw_writel(cr, adapter_data->ioaddr + CR_OFFSET);
 
 	iounmap(adapter_data->ioaddr);
@@ -423,24 +464,31 @@ iop3xx_i2c_probe(struct platform_device *pdev)
 	struct i2c_algo_iop3xx_data *adapter_data;
 
 	new_adapter = kzalloc(sizeof(struct i2c_adapter), GFP_KERNEL);
-	if (!new_adapter) {
+
+	if (!new_adapter)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	adapter_data = kzalloc(sizeof(struct i2c_algo_iop3xx_data), GFP_KERNEL);
-	if (!adapter_data) {
+
+	if (!adapter_data)
+	{
 		ret = -ENOMEM;
 		goto free_adapter;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		ret = -ENODEV;
 		goto free_both;
 	}
 
-	if (!request_mem_region(res->start, IOP3XX_I2C_IO_SIZE, pdev->name)) {
+	if (!request_mem_region(res->start, IOP3XX_I2C_IO_SIZE, pdev->name))
+	{
 		ret = -EBUSY;
 		goto free_both;
 	}
@@ -449,20 +497,26 @@ iop3xx_i2c_probe(struct platform_device *pdev)
 	adapter_data->id = i2c_id++;
 
 	adapter_data->ioaddr = ioremap(res->start, IOP3XX_I2C_IO_SIZE);
-	if (!adapter_data->ioaddr) {
+
+	if (!adapter_data->ioaddr)
+	{
 		ret = -ENOMEM;
 		goto release_region;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		ret = -ENXIO;
 		goto unmap;
 	}
-	ret = request_irq(irq, iop3xx_i2c_irq_handler, 0,
-				pdev->name, adapter_data);
 
-	if (ret) {
+	ret = request_irq(irq, iop3xx_i2c_irq_handler, 0,
+					  pdev->name, adapter_data);
+
+	if (ret)
+	{
 		ret = -EIO;
 		goto unmap;
 	}
@@ -509,7 +563,8 @@ out:
 }
 
 
-static struct platform_driver iop3xx_i2c_driver = {
+static struct platform_driver iop3xx_i2c_driver =
+{
 	.probe		= iop3xx_i2c_probe,
 	.remove		= iop3xx_i2c_remove,
 	.driver		= {

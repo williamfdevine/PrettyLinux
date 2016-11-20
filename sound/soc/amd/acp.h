@@ -67,7 +67,8 @@
 #define CAPTURE_START_DMA_DESCR_CH15 6
 #define CAPTURE_END_DMA_DESCR_CH15 7
 
-enum acp_dma_priority_level {
+enum acp_dma_priority_level
+{
 	/* 0x0 Specifies the DMA channel is given normal priority */
 	ACP_DMA_PRIORITY_LEVEL_NORMAL = 0x0,
 	/* 0x1 Specifies the DMA channel is given high priority */
@@ -75,7 +76,8 @@ enum acp_dma_priority_level {
 	ACP_DMA_PRIORITY_LEVEL_FORCESIZE = 0xFF
 };
 
-struct audio_substream_data {
+struct audio_substream_data
+{
 	struct page *pg;
 	unsigned int order;
 	u16 num_of_pages;
@@ -84,7 +86,8 @@ struct audio_substream_data {
 	void __iomem *acp_mmio;
 };
 
-enum {
+enum
+{
 	ACP_TILE_P1 = 0,
 	ACP_TILE_P2,
 	ACP_TILE_DSP0,
@@ -92,7 +95,8 @@ enum {
 	ACP_TILE_DSP2,
 };
 
-enum {
+enum
+{
 	ACP_DMA_ATTRIBUTES_SHAREDMEM_TO_DAGB_ONION = 0x0,
 	ACP_DMA_ATTRIBUTES_SHARED_MEM_TO_DAGB_GARLIC = 0x1,
 	ACP_DMA_ATTRIBUTES_DAGB_ONION_TO_SHAREDMEM = 0x8,
@@ -100,7 +104,8 @@ enum {
 	ACP_DMA_ATTRIBUTES_FORCE_SIZE = 0xF
 };
 
-typedef struct acp_dma_dscr_transfer {
+typedef struct acp_dma_dscr_transfer
+{
 	/* Specifies the source memory location for the DMA data transfer. */
 	u32 src;
 	/* Specifies the destination memory location to where the data will

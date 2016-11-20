@@ -3,7 +3,8 @@
 #include <core/engine.h>
 struct nvkm_client;
 
-struct nvkm_dmaobj {
+struct nvkm_dmaobj
+{
 	const struct nvkm_dmaobj_func *func;
 	struct nvkm_dma *dma;
 
@@ -17,7 +18,8 @@ struct nvkm_dmaobj {
 	u64 handle; /*XXX HANDLE MERGE */
 };
 
-struct nvkm_dma {
+struct nvkm_dma
+{
 	const struct nvkm_dma_func *func;
 	struct nvkm_engine engine;
 };

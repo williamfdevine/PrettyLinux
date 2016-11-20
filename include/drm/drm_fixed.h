@@ -27,7 +27,8 @@
 
 #include <linux/math64.h>
 
-typedef union dfixed {
+typedef union dfixed
+{
 	u32 full;
 } fixed20_12;
 
@@ -54,9 +55,13 @@ static inline u32 dfixed_ceil(fixed20_12 A)
 	u32 non_frac = dfixed_trunc(A);
 
 	if (A.full > dfixed_const(non_frac))
+	{
 		return dfixed_const(non_frac + 1);
+	}
 	else
+	{
 		return dfixed_const(non_frac);
+	}
 }
 
 static inline u32 dfixed_div(fixed20_12 A, fixed20_12 B)
@@ -89,9 +94,13 @@ static inline int drm_fixp2int(s64 a)
 static inline int drm_fixp2int_ceil(s64 a)
 {
 	if (a > 0)
+	{
 		return drm_fixp2int(a + DRM_FIXED_ALMOST_ONE);
+	}
 	else
+	{
 		return drm_fixp2int(a - DRM_FIXED_ALMOST_ONE);
+	}
 }
 
 static inline unsigned drm_fixp_msbset(s64 a)
@@ -100,7 +109,9 @@ static inline unsigned drm_fixp_msbset(s64 a)
 
 	for (shift = 62; shift > 0; --shift)
 		if (((a >> shift) & 1) != sign)
+		{
 			return shift;
+		}
 
 	return 0;
 }
@@ -110,20 +121,28 @@ static inline s64 drm_fixp_mul(s64 a, s64 b)
 	unsigned shift = drm_fixp_msbset(a) + drm_fixp_msbset(b);
 	s64 result;
 
-	if (shift > 61) {
+	if (shift > 61)
+	{
 		shift = shift - 61;
 		a >>= (shift >> 1) + (shift & 1);
 		b >>= shift >> 1;
-	} else
+	}
+	else
+	{
 		shift = 0;
+	}
 
 	result = a * b;
 
 	if (shift > DRM_FIXED_POINT)
+	{
 		return result << (shift - DRM_FIXED_POINT);
+	}
 
 	if (shift < DRM_FIXED_POINT)
+	{
 		return result >> (DRM_FIXED_POINT - shift);
+	}
 
 	return result;
 }
@@ -136,12 +155,16 @@ static inline s64 drm_fixp_div(s64 a, s64 b)
 	a <<= shift;
 
 	if (shift < DRM_FIXED_POINT)
+	{
 		b >>= (DRM_FIXED_POINT - shift);
+	}
 
 	result = div64_s64(a, b);
 
 	if (shift > DRM_FIXED_POINT)
+	{
 		return result >> (shift - DRM_FIXED_POINT);
+	}
 
 	return result;
 }
@@ -162,14 +185,18 @@ static inline s64 drm_fixp_from_fraction(s64 a, s64 b)
 	{
 		u32 i = DRM_FIXED_POINT;
 
-		do {
+		do
+		{
 			rem <<= 1;
 			res_abs <<= 1;
-			if (rem >= b_abs) {
+
+			if (rem >= b_abs)
+			{
 				res_abs |= 1;
 				rem -= b_abs;
 			}
-		} while (--i != 0);
+		}
+		while (--i != 0);
 	}
 
 	/* round up LSB */
@@ -180,8 +207,12 @@ static inline s64 drm_fixp_from_fraction(s64 a, s64 b)
 	}
 
 	res = (s64) res_abs;
+
 	if (a_neg ^ b_neg)
+	{
 		res = -res;
+	}
+
 	return res;
 }
 
@@ -192,18 +223,23 @@ static inline s64 drm_fixp_exp(s64 x)
 	u64 count = 1;
 
 	if (x < 0)
+	{
 		y = -1 * x;
+	}
 
 	term = y;
 
-	while (term >= tolerance) {
+	while (term >= tolerance)
+	{
 		sum = sum + term;
 		count = count + 1;
 		term = drm_fixp_mul(term, div64_s64(y, count));
 	}
 
 	if (x < 0)
+	{
 		sum = drm_fixp_div(DRM_FIXED_ONE, sum);
+	}
 
 	return sum;
 }

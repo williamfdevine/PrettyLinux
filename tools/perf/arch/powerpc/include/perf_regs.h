@@ -18,7 +18,8 @@ void perf_regs_load(u64 *regs);
 #define PERF_REG_IP     PERF_REG_POWERPC_NIP
 #define PERF_REG_SP     PERF_REG_POWERPC_R1
 
-static const char *reg_names[] = {
+static const char *reg_names[] =
+{
 	[PERF_REG_POWERPC_R0] = "r0",
 	[PERF_REG_POWERPC_R1] = "r1",
 	[PERF_REG_POWERPC_R2] = "r2",

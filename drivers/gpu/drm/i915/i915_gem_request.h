@@ -30,13 +30,15 @@
 #include "i915_gem.h"
 #include "i915_sw_fence.h"
 
-struct intel_wait {
+struct intel_wait
+{
 	struct rb_node node;
 	struct task_struct *tsk;
 	u32 seqno;
 };
 
-struct intel_signal_node {
+struct intel_signal_node
+{
 	struct rb_node node;
 	struct intel_wait wait;
 };
@@ -61,7 +63,8 @@ struct intel_signal_node {
  *
  * The requests are reference counted.
  */
-struct drm_i915_gem_request {
+struct drm_i915_gem_request
+{
 	struct fence fence;
 	spinlock_t lock;
 
@@ -152,11 +155,11 @@ static inline bool fence_is_i915(struct fence *fence)
 	return fence->ops == &i915_fence_ops;
 }
 
-struct drm_i915_gem_request * __must_check
+struct drm_i915_gem_request *__must_check
 i915_gem_request_alloc(struct intel_engine_cs *engine,
-		       struct i915_gem_context *ctx);
+					   struct i915_gem_context *ctx);
 int i915_gem_request_add_to_client(struct drm_i915_gem_request *req,
-				   struct drm_file *file);
+								   struct drm_file *file);
 void i915_gem_request_retire_upto(struct drm_i915_gem_request *req);
 
 static inline u32
@@ -199,21 +202,25 @@ i915_gem_request_put(struct drm_i915_gem_request *req)
 }
 
 static inline void i915_gem_request_assign(struct drm_i915_gem_request **pdst,
-					   struct drm_i915_gem_request *src)
+		struct drm_i915_gem_request *src)
 {
 	if (src)
+	{
 		i915_gem_request_get(src);
+	}
 
 	if (*pdst)
+	{
 		i915_gem_request_put(*pdst);
+	}
 
 	*pdst = src;
 }
 
 int
 i915_gem_request_await_object(struct drm_i915_gem_request *to,
-			      struct drm_i915_gem_object *obj,
-			      bool write);
+							  struct drm_i915_gem_object *obj,
+							  bool write);
 
 void __i915_add_request(struct drm_i915_gem_request *req, bool flush_caches);
 #define i915_add_request(req) \
@@ -227,10 +234,10 @@ struct intel_rps_client;
 #define IS_RPS_USER(p) (!IS_ERR_OR_NULL(p))
 
 int i915_wait_request(struct drm_i915_gem_request *req,
-		      unsigned int flags,
-		      s64 *timeout,
-		      struct intel_rps_client *rps)
-	__attribute__((nonnull(1)));
+					  unsigned int flags,
+					  s64 *timeout,
+					  struct intel_rps_client *rps)
+__attribute__((nonnull(1)));
 #define I915_WAIT_INTERRUPTIBLE	BIT(0)
 #define I915_WAIT_LOCKED	BIT(1) /* struct_mutex held, handle GPU reset */
 
@@ -248,23 +255,23 @@ static inline bool
 i915_gem_request_started(const struct drm_i915_gem_request *req)
 {
 	return i915_seqno_passed(intel_engine_get_seqno(req->engine),
-				 req->previous_seqno);
+							 req->previous_seqno);
 }
 
 static inline bool
 i915_gem_request_completed(const struct drm_i915_gem_request *req)
 {
 	return i915_seqno_passed(intel_engine_get_seqno(req->engine),
-				 req->fence.seqno);
+							 req->fence.seqno);
 }
 
 bool __i915_spin_request(const struct drm_i915_gem_request *request,
-			 int state, unsigned long timeout_us);
+						 int state, unsigned long timeout_us);
 static inline bool i915_spin_request(const struct drm_i915_gem_request *request,
-				     int state, unsigned long timeout_us)
+									 int state, unsigned long timeout_us)
 {
 	return (i915_gem_request_started(request) &&
-		__i915_spin_request(request, state, timeout_us));
+			__i915_spin_request(request, state, timeout_us));
 }
 
 /* We treat requests as fences. This is not be to confused with our
@@ -297,16 +304,17 @@ static inline bool i915_spin_request(const struct drm_i915_gem_request *request,
 struct i915_gem_active;
 
 typedef void (*i915_gem_retire_fn)(struct i915_gem_active *,
-				   struct drm_i915_gem_request *);
+								   struct drm_i915_gem_request *);
 
-struct i915_gem_active {
+struct i915_gem_active
+{
 	struct drm_i915_gem_request __rcu *request;
 	struct list_head link;
 	i915_gem_retire_fn retire;
 };
 
 void i915_gem_retire_noop(struct i915_gem_active *,
-			  struct drm_i915_gem_request *request);
+						  struct drm_i915_gem_request *request);
 
 /**
  * init_request_active - prepares the activity tracker for use
@@ -321,10 +329,10 @@ void i915_gem_retire_noop(struct i915_gem_active *,
  */
 static inline void
 init_request_active(struct i915_gem_active *active,
-		    i915_gem_retire_fn retire)
+					i915_gem_retire_fn retire)
 {
 	INIT_LIST_HEAD(&active->link);
-	active->retire = retire ?: i915_gem_retire_noop;
+	active->retire = retire ? : i915_gem_retire_noop;
 }
 
 /**
@@ -338,7 +346,7 @@ init_request_active(struct i915_gem_active *active,
  */
 static inline void
 i915_gem_active_set(struct i915_gem_active *active,
-		    struct drm_i915_gem_request *request)
+					struct drm_i915_gem_request *request)
 {
 	list_move(&active->link, &request->active_list);
 	rcu_assign_pointer(active->request, request);
@@ -368,7 +376,7 @@ static inline struct drm_i915_gem_request *
 i915_gem_active_raw(const struct i915_gem_active *active, struct mutex *mutex)
 {
 	return rcu_dereference_protected(active->request,
-					 lockdep_is_held(mutex));
+									 lockdep_is_held(mutex));
 }
 
 /**
@@ -385,8 +393,11 @@ i915_gem_active_peek(const struct i915_gem_active *active, struct mutex *mutex)
 	struct drm_i915_gem_request *request;
 
 	request = i915_gem_active_raw(active, mutex);
+
 	if (!request || i915_gem_request_completed(request))
+	{
 		return NULL;
+	}
 
 	return request;
 }
@@ -460,12 +471,16 @@ __i915_gem_active_get_rcu(const struct i915_gem_active *active)
 	 * reallocation, so that we can chase the dangling pointers!
 	 * See i915_gem_request_alloc().
 	 */
-	do {
+	do
+	{
 		struct drm_i915_gem_request *request;
 
 		request = rcu_dereference(active->request);
+
 		if (!request || i915_gem_request_completed(request))
+		{
 			return NULL;
+		}
 
 		/* An especially silly compiler could decide to recompute the
 		 * result of i915_gem_request_completed, more specifically
@@ -509,10 +524,13 @@ __i915_gem_active_get_rcu(const struct i915_gem_active *active)
 		 * rcu_assign_pointer().
 		 */
 		if (!request || request == rcu_access_pointer(active->request))
+		{
 			return rcu_pointer_handoff(request);
+		}
 
 		i915_gem_request_put(request);
-	} while (1);
+	}
+	while (1);
 }
 
 /**
@@ -561,7 +579,7 @@ i915_gem_active_isset(const struct i915_gem_active *active)
  */
 static inline bool
 i915_gem_active_is_idle(const struct i915_gem_active *active,
-			struct mutex *mutex)
+						struct mutex *mutex)
 {
 	return !i915_gem_active_peek(active, mutex);
 }
@@ -583,12 +601,15 @@ i915_gem_active_wait(const struct i915_gem_active *active, struct mutex *mutex)
 	struct drm_i915_gem_request *request;
 
 	request = i915_gem_active_peek(active, mutex);
+
 	if (!request)
+	{
 		return 0;
+	}
 
 	return i915_wait_request(request,
-				 I915_WAIT_INTERRUPTIBLE | I915_WAIT_LOCKED,
-				 NULL, NULL);
+							 I915_WAIT_INTERRUPTIBLE | I915_WAIT_LOCKED,
+							 NULL, NULL);
 }
 
 /**
@@ -615,15 +636,17 @@ i915_gem_active_wait(const struct i915_gem_active *active, struct mutex *mutex)
  */
 static inline int
 i915_gem_active_wait_unlocked(const struct i915_gem_active *active,
-			      unsigned int flags,
-			      s64 *timeout,
-			      struct intel_rps_client *rps)
+							  unsigned int flags,
+							  s64 *timeout,
+							  struct intel_rps_client *rps)
 {
 	struct drm_i915_gem_request *request;
 	int ret = 0;
 
 	request = i915_gem_active_get_unlocked(active);
-	if (request) {
+
+	if (request)
+	{
 		ret = i915_wait_request(request, flags, timeout, rps);
 		i915_gem_request_put(request);
 	}
@@ -642,20 +665,26 @@ i915_gem_active_wait_unlocked(const struct i915_gem_active *active,
  */
 static inline int __must_check
 i915_gem_active_retire(struct i915_gem_active *active,
-		       struct mutex *mutex)
+					   struct mutex *mutex)
 {
 	struct drm_i915_gem_request *request;
 	int ret;
 
 	request = i915_gem_active_raw(active, mutex);
+
 	if (!request)
+	{
 		return 0;
+	}
 
 	ret = i915_wait_request(request,
-				I915_WAIT_INTERRUPTIBLE | I915_WAIT_LOCKED,
-				NULL, NULL);
+							I915_WAIT_INTERRUPTIBLE | I915_WAIT_LOCKED,
+							NULL, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	list_del_init(&active->link);
 	RCU_INIT_POINTER(active->request, NULL);
@@ -671,14 +700,14 @@ i915_gem_active_retire(struct i915_gem_active *active,
 
 static inline uint32_t
 i915_gem_active_get_seqno(const struct i915_gem_active *active,
-			  struct mutex *mutex)
+						  struct mutex *mutex)
 {
 	return i915_gem_request_get_seqno(i915_gem_active_peek(active, mutex));
 }
 
 static inline struct intel_engine_cs *
 i915_gem_active_get_engine(const struct i915_gem_active *active,
-			   struct mutex *mutex)
+						   struct mutex *mutex)
 {
 	return i915_gem_request_get_engine(i915_gem_active_peek(active, mutex));
 }

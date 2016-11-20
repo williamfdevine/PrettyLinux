@@ -116,13 +116,15 @@
 #define INT_WRITE_OP_DONE_EN		(1 << 1)
 #define INT_READ_OP_EN			(1 << 0)
 
-enum mxcmci_type {
+enum mxcmci_type
+{
 	IMX21_MMC,
 	IMX31_MMC,
 	MPC512X_MMC,
 };
 
-struct mxcmci_host {
+struct mxcmci_host
+{
 	struct mmc_host		*mmc;
 	void __iomem		*base;
 	dma_addr_t		phys_base;
@@ -162,7 +164,8 @@ struct mxcmci_host {
 	enum mxcmci_type	devtype;
 };
 
-static const struct platform_device_id mxcmci_devtype[] = {
+static const struct platform_device_id mxcmci_devtype[] =
+{
 	{
 		.name = "imx21-mmc",
 		.driver_data = IMX21_MMC,
@@ -178,7 +181,8 @@ static const struct platform_device_id mxcmci_devtype[] = {
 };
 MODULE_DEVICE_TABLE(platform, mxcmci_devtype);
 
-static const struct of_device_id mxcmci_of_match[] = {
+static const struct of_device_id mxcmci_of_match[] =
+{
 	{
 		.compatible = "fsl,imx21-mmc",
 		.data = &mxcmci_devtype[IMX21_MMC],
@@ -207,50 +211,69 @@ static inline int is_mpc512x_mmc(struct mxcmci_host *host)
 static inline u32 mxcmci_readl(struct mxcmci_host *host, int reg)
 {
 	if (IS_ENABLED(CONFIG_PPC_MPC512x))
+	{
 		return ioread32be(host->base + reg);
+	}
 	else
+	{
 		return readl(host->base + reg);
+	}
 }
 
 static inline void mxcmci_writel(struct mxcmci_host *host, u32 val, int reg)
 {
 	if (IS_ENABLED(CONFIG_PPC_MPC512x))
+	{
 		iowrite32be(val, host->base + reg);
+	}
 	else
+	{
 		writel(val, host->base + reg);
+	}
 }
 
 static inline u16 mxcmci_readw(struct mxcmci_host *host, int reg)
 {
 	if (IS_ENABLED(CONFIG_PPC_MPC512x))
+	{
 		return ioread32be(host->base + reg);
+	}
 	else
+	{
 		return readw(host->base + reg);
+	}
 }
 
 static inline void mxcmci_writew(struct mxcmci_host *host, u16 val, int reg)
 {
 	if (IS_ENABLED(CONFIG_PPC_MPC512x))
+	{
 		iowrite32be(val, host->base + reg);
+	}
 	else
+	{
 		writew(val, host->base + reg);
+	}
 }
 
 static void mxcmci_set_clk_rate(struct mxcmci_host *host, unsigned int clk_ios);
 
 static void mxcmci_set_power(struct mxcmci_host *host, unsigned int vdd)
 {
-	if (!IS_ERR(host->mmc->supply.vmmc)) {
+	if (!IS_ERR(host->mmc->supply.vmmc))
+	{
 		if (host->power_mode == MMC_POWER_UP)
 			mmc_regulator_set_ocr(host->mmc,
-					      host->mmc->supply.vmmc, vdd);
+								  host->mmc->supply.vmmc, vdd);
 		else if (host->power_mode == MMC_POWER_OFF)
 			mmc_regulator_set_ocr(host->mmc,
-					      host->mmc->supply.vmmc, 0);
+								  host->mmc->supply.vmmc, 0);
 	}
 
 	if (host->pdata && host->pdata->setpower)
+	{
 		host->pdata->setpower(mmc_dev(host->mmc), vdd);
+	}
 }
 
 static inline int mxcmci_use_dma(struct mxcmci_host *host)
@@ -267,10 +290,12 @@ static void mxcmci_softreset(struct mxcmci_host *host)
 	/* reset sequence */
 	mxcmci_writew(host, STR_STP_CLK_RESET, MMC_REG_STR_STP_CLK);
 	mxcmci_writew(host, STR_STP_CLK_RESET | STR_STP_CLK_START_CLK,
-			MMC_REG_STR_STP_CLK);
+				  MMC_REG_STR_STP_CLK);
 
 	for (i = 0; i < 8; i++)
+	{
 		mxcmci_writew(host, STR_STP_CLK_START_CLK, MMC_REG_STR_STP_CLK);
+	}
 
 	mxcmci_writew(host, 0xff, MMC_REG_RES_TO);
 }
@@ -280,7 +305,8 @@ static inline void buffer_swap32(u32 *buf, int len)
 {
 	int i;
 
-	for (i = 0; i < ((len + 3) / 4); i++) {
+	for (i = 0; i < ((len + 3) / 4); i++)
+	{
 		*buf = swab32(*buf);
 		buf++;
 	}
@@ -292,7 +318,7 @@ static void mxcmci_swap_buffers(struct mmc_data *data)
 	int i;
 
 	for_each_sg(data->sg, sg, data->sg_len, i)
-		buffer_swap32(sg_virt(sg), sg->length);
+	buffer_swap32(sg_virt(sg), sg->length);
 }
 #else
 static inline void mxcmci_swap_buffers(struct mmc_data *data) {}
@@ -315,19 +341,26 @@ static int mxcmci_setup_data(struct mxcmci_host *host, struct mmc_data *data)
 	host->datasize = datasize;
 
 	if (!mxcmci_use_dma(host))
+	{
 		return 0;
+	}
 
-	for_each_sg(data->sg, sg, data->sg_len, i) {
-		if (sg->offset & 3 || sg->length & 3 || sg->length < 512) {
+	for_each_sg(data->sg, sg, data->sg_len, i)
+	{
+		if (sg->offset & 3 || sg->length & 3 || sg->length < 512)
+		{
 			host->do_dma = 0;
 			return 0;
 		}
 	}
 
-	if (data->flags & MMC_DATA_READ) {
+	if (data->flags & MMC_DATA_READ)
+	{
 		host->dma_dir = DMA_FROM_DEVICE;
 		slave_dirn = DMA_DEV_TO_MEM;
-	} else {
+	}
+	else
+	{
 		host->dma_dir = DMA_TO_DEVICE;
 		slave_dirn = DMA_MEM_TO_DEV;
 
@@ -335,20 +368,25 @@ static int mxcmci_setup_data(struct mxcmci_host *host, struct mmc_data *data)
 	}
 
 	nents = dma_map_sg(host->dma->device->dev, data->sg,
-				     data->sg_len,  host->dma_dir);
+					   data->sg_len,  host->dma_dir);
+
 	if (nents != data->sg_len)
+	{
 		return -EINVAL;
+	}
 
 	host->desc = dmaengine_prep_slave_sg(host->dma,
-		data->sg, data->sg_len, slave_dirn,
-		DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+										 data->sg, data->sg_len, slave_dirn,
+										 DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
 
-	if (!host->desc) {
+	if (!host->desc)
+	{
 		dma_unmap_sg(host->dma->device->dev, data->sg, data->sg_len,
-				host->dma_dir);
+					 host->dma_dir);
 		host->do_dma = 0;
 		return 0; /* Fall back to PIO */
 	}
+
 	wmb();
 
 	dmaengine_submit(host->desc);
@@ -377,7 +415,7 @@ static void mxcmci_dma_callback(void *data)
 }
 
 static int mxcmci_start_cmd(struct mxcmci_host *host, struct mmc_command *cmd,
-		unsigned int cmdat)
+							unsigned int cmdat)
 {
 	u32 int_cntr = host->default_irq_mask;
 	unsigned long flags;
@@ -385,40 +423,53 @@ static int mxcmci_start_cmd(struct mxcmci_host *host, struct mmc_command *cmd,
 	WARN_ON(host->cmd != NULL);
 	host->cmd = cmd;
 
-	switch (mmc_resp_type(cmd)) {
-	case MMC_RSP_R1: /* short CRC, OPCODE */
-	case MMC_RSP_R1B:/* short CRC, OPCODE, BUSY */
-		cmdat |= CMD_DAT_CONT_RESPONSE_48BIT_CRC;
-		break;
-	case MMC_RSP_R2: /* long 136 bit + CRC */
-		cmdat |= CMD_DAT_CONT_RESPONSE_136BIT;
-		break;
-	case MMC_RSP_R3: /* short */
-		cmdat |= CMD_DAT_CONT_RESPONSE_48BIT;
-		break;
-	case MMC_RSP_NONE:
-		break;
-	default:
-		dev_err(mmc_dev(host->mmc), "unhandled response type 0x%x\n",
-				mmc_resp_type(cmd));
-		cmd->error = -EINVAL;
-		return -EINVAL;
+	switch (mmc_resp_type(cmd))
+	{
+		case MMC_RSP_R1: /* short CRC, OPCODE */
+		case MMC_RSP_R1B:/* short CRC, OPCODE, BUSY */
+			cmdat |= CMD_DAT_CONT_RESPONSE_48BIT_CRC;
+			break;
+
+		case MMC_RSP_R2: /* long 136 bit + CRC */
+			cmdat |= CMD_DAT_CONT_RESPONSE_136BIT;
+			break;
+
+		case MMC_RSP_R3: /* short */
+			cmdat |= CMD_DAT_CONT_RESPONSE_48BIT;
+			break;
+
+		case MMC_RSP_NONE:
+			break;
+
+		default:
+			dev_err(mmc_dev(host->mmc), "unhandled response type 0x%x\n",
+					mmc_resp_type(cmd));
+			cmd->error = -EINVAL;
+			return -EINVAL;
 	}
 
 	int_cntr = INT_END_CMD_RES_EN;
 
-	if (mxcmci_use_dma(host)) {
-		if (host->dma_dir == DMA_FROM_DEVICE) {
+	if (mxcmci_use_dma(host))
+	{
+		if (host->dma_dir == DMA_FROM_DEVICE)
+		{
 			host->desc->callback = mxcmci_dma_callback;
 			host->desc->callback_param = host;
-		} else {
+		}
+		else
+		{
 			int_cntr |= INT_WRITE_OP_DONE_EN;
 		}
 	}
 
 	spin_lock_irqsave(&host->lock, flags);
+
 	if (host->use_sdio)
+	{
 		int_cntr |= INT_SDIO_IRQ_EN;
+	}
+
 	mxcmci_writel(host, int_cntr, MMC_REG_INT_CNTR);
 	spin_unlock_irqrestore(&host->lock, flags);
 
@@ -430,14 +481,18 @@ static int mxcmci_start_cmd(struct mxcmci_host *host, struct mmc_command *cmd,
 }
 
 static void mxcmci_finish_request(struct mxcmci_host *host,
-		struct mmc_request *req)
+								  struct mmc_request *req)
 {
 	u32 int_cntr = host->default_irq_mask;
 	unsigned long flags;
 
 	spin_lock_irqsave(&host->lock, flags);
+
 	if (host->use_sdio)
+	{
 		int_cntr |= INT_SDIO_IRQ_EN;
+	}
+
 	mxcmci_writel(host, int_cntr, MMC_REG_INT_CNTR);
 	spin_unlock_irqrestore(&host->lock, flags);
 
@@ -453,38 +508,54 @@ static int mxcmci_finish_data(struct mxcmci_host *host, unsigned int stat)
 	struct mmc_data *data = host->data;
 	int data_error;
 
-	if (mxcmci_use_dma(host)) {
+	if (mxcmci_use_dma(host))
+	{
 		dma_unmap_sg(host->dma->device->dev, data->sg, data->sg_len,
-				host->dma_dir);
+					 host->dma_dir);
 		mxcmci_swap_buffers(data);
 	}
 
-	if (stat & STATUS_ERR_MASK) {
+	if (stat & STATUS_ERR_MASK)
+	{
 		dev_dbg(mmc_dev(host->mmc), "request failed. status: 0x%08x\n",
 				stat);
-		if (stat & STATUS_CRC_READ_ERR) {
+
+		if (stat & STATUS_CRC_READ_ERR)
+		{
 			dev_err(mmc_dev(host->mmc), "%s: -EILSEQ\n", __func__);
 			data->error = -EILSEQ;
-		} else if (stat & STATUS_CRC_WRITE_ERR) {
+		}
+		else if (stat & STATUS_CRC_WRITE_ERR)
+		{
 			u32 err_code = (stat >> 9) & 0x3;
-			if (err_code == 2) { /* No CRC response */
+
+			if (err_code == 2)   /* No CRC response */
+			{
 				dev_err(mmc_dev(host->mmc),
-					"%s: No CRC -ETIMEDOUT\n", __func__);
+						"%s: No CRC -ETIMEDOUT\n", __func__);
 				data->error = -ETIMEDOUT;
-			} else {
+			}
+			else
+			{
 				dev_err(mmc_dev(host->mmc),
-					"%s: -EILSEQ\n", __func__);
+						"%s: -EILSEQ\n", __func__);
 				data->error = -EILSEQ;
 			}
-		} else if (stat & STATUS_TIME_OUT_READ) {
+		}
+		else if (stat & STATUS_TIME_OUT_READ)
+		{
 			dev_err(mmc_dev(host->mmc),
-				"%s: read -ETIMEDOUT\n", __func__);
+					"%s: read -ETIMEDOUT\n", __func__);
 			data->error = -ETIMEDOUT;
-		} else {
+		}
+		else
+		{
 			dev_err(mmc_dev(host->mmc), "%s: -EIO\n", __func__);
 			data->error = -EIO;
 		}
-	} else {
+	}
+	else
+	{
 		data->bytes_xfered = host->datasize;
 	}
 
@@ -502,24 +573,34 @@ static void mxcmci_read_response(struct mxcmci_host *host, unsigned int stat)
 	u32 a, b, c;
 
 	if (!cmd)
+	{
 		return;
+	}
 
-	if (stat & STATUS_TIME_OUT_RESP) {
+	if (stat & STATUS_TIME_OUT_RESP)
+	{
 		dev_dbg(mmc_dev(host->mmc), "CMD TIMEOUT\n");
 		cmd->error = -ETIMEDOUT;
-	} else if (stat & STATUS_RESP_CRC_ERR && cmd->flags & MMC_RSP_CRC) {
+	}
+	else if (stat & STATUS_RESP_CRC_ERR && cmd->flags & MMC_RSP_CRC)
+	{
 		dev_dbg(mmc_dev(host->mmc), "cmd crc error\n");
 		cmd->error = -EILSEQ;
 	}
 
-	if (cmd->flags & MMC_RSP_PRESENT) {
-		if (cmd->flags & MMC_RSP_136) {
-			for (i = 0; i < 4; i++) {
+	if (cmd->flags & MMC_RSP_PRESENT)
+	{
+		if (cmd->flags & MMC_RSP_136)
+		{
+			for (i = 0; i < 4; i++)
+			{
 				a = mxcmci_readw(host, MMC_REG_RES_FIFO);
 				b = mxcmci_readw(host, MMC_REG_RES_FIFO);
 				cmd->resp[i] = a << 16 | b;
 			}
-		} else {
+		}
+		else
+		{
 			a = mxcmci_readw(host, MMC_REG_RES_FIFO);
 			b = mxcmci_readw(host, MMC_REG_RES_FIFO);
 			c = mxcmci_readw(host, MMC_REG_RES_FIFO);
@@ -533,19 +614,30 @@ static int mxcmci_poll_status(struct mxcmci_host *host, u32 mask)
 	u32 stat;
 	unsigned long timeout = jiffies + HZ;
 
-	do {
+	do
+	{
 		stat = mxcmci_readl(host, MMC_REG_STATUS);
+
 		if (stat & STATUS_ERR_MASK)
+		{
 			return stat;
-		if (time_after(jiffies, timeout)) {
+		}
+
+		if (time_after(jiffies, timeout))
+		{
 			mxcmci_softreset(host);
 			mxcmci_set_clk_rate(host, host->clock);
 			return STATUS_TIME_OUT_READ;
 		}
+
 		if (stat & mask)
+		{
 			return 0;
+		}
+
 		cpu_relax();
-	} while (1);
+	}
+	while (1);
 }
 
 static int mxcmci_pull(struct mxcmci_host *host, void *_buf, int bytes)
@@ -553,23 +645,33 @@ static int mxcmci_pull(struct mxcmci_host *host, void *_buf, int bytes)
 	unsigned int stat;
 	u32 *buf = _buf;
 
-	while (bytes > 3) {
+	while (bytes > 3)
+	{
 		stat = mxcmci_poll_status(host,
-				STATUS_BUF_READ_RDY | STATUS_READ_OP_DONE);
+								  STATUS_BUF_READ_RDY | STATUS_READ_OP_DONE);
+
 		if (stat)
+		{
 			return stat;
+		}
+
 		*buf++ = cpu_to_le32(mxcmci_readl(host, MMC_REG_BUFFER_ACCESS));
 		bytes -= 4;
 	}
 
-	if (bytes) {
+	if (bytes)
+	{
 		u8 *b = (u8 *)buf;
 		u32 tmp;
 
 		stat = mxcmci_poll_status(host,
-				STATUS_BUF_READ_RDY | STATUS_READ_OP_DONE);
+								  STATUS_BUF_READ_RDY | STATUS_READ_OP_DONE);
+
 		if (stat)
+		{
 			return stat;
+		}
+
 		tmp = cpu_to_le32(mxcmci_readl(host, MMC_REG_BUFFER_ACCESS));
 		memcpy(b, &tmp, bytes);
 	}
@@ -582,21 +684,30 @@ static int mxcmci_push(struct mxcmci_host *host, void *_buf, int bytes)
 	unsigned int stat;
 	u32 *buf = _buf;
 
-	while (bytes > 3) {
+	while (bytes > 3)
+	{
 		stat = mxcmci_poll_status(host, STATUS_BUF_WRITE_RDY);
+
 		if (stat)
+		{
 			return stat;
+		}
+
 		mxcmci_writel(host, cpu_to_le32(*buf++), MMC_REG_BUFFER_ACCESS);
 		bytes -= 4;
 	}
 
-	if (bytes) {
+	if (bytes)
+	{
 		u8 *b = (u8 *)buf;
 		u32 tmp;
 
 		stat = mxcmci_poll_status(host, STATUS_BUF_WRITE_RDY);
+
 		if (stat)
+		{
 			return stat;
+		}
 
 		memcpy(&tmp, b, bytes);
 		mxcmci_writel(host, cpu_to_le32(tmp), MMC_REG_BUFFER_ACCESS);
@@ -614,43 +725,64 @@ static int mxcmci_transfer_data(struct mxcmci_host *host)
 	host->data = data;
 	host->datasize = 0;
 
-	if (data->flags & MMC_DATA_READ) {
-		for_each_sg(data->sg, sg, data->sg_len, i) {
+	if (data->flags & MMC_DATA_READ)
+	{
+		for_each_sg(data->sg, sg, data->sg_len, i)
+		{
 			stat = mxcmci_pull(host, sg_virt(sg), sg->length);
+
 			if (stat)
+			{
 				return stat;
+			}
+
 			host->datasize += sg->length;
 		}
-	} else {
-		for_each_sg(data->sg, sg, data->sg_len, i) {
+	}
+	else
+	{
+		for_each_sg(data->sg, sg, data->sg_len, i)
+		{
 			stat = mxcmci_push(host, sg_virt(sg), sg->length);
+
 			if (stat)
+			{
 				return stat;
+			}
+
 			host->datasize += sg->length;
 		}
 		stat = mxcmci_poll_status(host, STATUS_WRITE_OP_DONE);
+
 		if (stat)
+		{
 			return stat;
+		}
 	}
+
 	return 0;
 }
 
 static void mxcmci_datawork(struct work_struct *work)
 {
 	struct mxcmci_host *host = container_of(work, struct mxcmci_host,
-						  datawork);
+											datawork);
 	int datastat = mxcmci_transfer_data(host);
 
 	mxcmci_writel(host, STATUS_READ_OP_DONE | STATUS_WRITE_OP_DONE,
-		MMC_REG_STATUS);
+				  MMC_REG_STATUS);
 	mxcmci_finish_data(host, datastat);
 
-	if (host->req->stop) {
-		if (mxcmci_start_cmd(host, host->req->stop, 0)) {
+	if (host->req->stop)
+	{
+		if (mxcmci_start_cmd(host, host->req->stop, 0))
+		{
 			mxcmci_finish_request(host, host->req);
 			return;
 		}
-	} else {
+	}
+	else
+	{
 		mxcmci_finish_request(host, host->req);
 	}
 }
@@ -663,19 +795,24 @@ static void mxcmci_data_done(struct mxcmci_host *host, unsigned int stat)
 
 	spin_lock_irqsave(&host->lock, flags);
 
-	if (!host->data) {
+	if (!host->data)
+	{
 		spin_unlock_irqrestore(&host->lock, flags);
 		return;
 	}
 
-	if (!host->req) {
+	if (!host->req)
+	{
 		spin_unlock_irqrestore(&host->lock, flags);
 		return;
 	}
 
 	req = host->req;
+
 	if (!req->stop)
-		host->req = NULL; /* we will handle finish req below */
+	{
+		host->req = NULL;    /* we will handle finish req below */
+	}
 
 	data_error = mxcmci_finish_data(host, stat);
 
@@ -684,12 +821,16 @@ static void mxcmci_data_done(struct mxcmci_host *host, unsigned int stat)
 	mxcmci_read_response(host, stat);
 	host->cmd = NULL;
 
-	if (req->stop) {
-		if (mxcmci_start_cmd(host, req->stop, 0)) {
+	if (req->stop)
+	{
+		if (mxcmci_start_cmd(host, req->stop, 0))
+		{
 			mxcmci_finish_request(host, req);
 			return;
 		}
-	} else {
+	}
+	else
+	{
 		mxcmci_finish_request(host, req);
 	}
 }
@@ -699,7 +840,8 @@ static void mxcmci_cmd_done(struct mxcmci_host *host, unsigned int stat)
 	mxcmci_read_response(host, stat);
 	host->cmd = NULL;
 
-	if (!host->data && host->req) {
+	if (!host->data && host->req)
+	{
 		mxcmci_finish_request(host, host->req);
 		return;
 	}
@@ -709,7 +851,9 @@ static void mxcmci_cmd_done(struct mxcmci_host *host, unsigned int stat)
 	 * Don't do it in interrupt context though.
 	 */
 	if (!mxcmci_use_dma(host) && host->data)
+	{
 		schedule_work(&host->datawork);
+	}
 
 }
 
@@ -722,9 +866,9 @@ static irqreturn_t mxcmci_irq(int irq, void *devid)
 
 	stat = mxcmci_readl(host, MMC_REG_STATUS);
 	mxcmci_writel(host,
-		stat & ~(STATUS_SDIO_INT_ACTIVE | STATUS_DATA_TRANS_DONE |
-			 STATUS_WRITE_OP_DONE),
-		MMC_REG_STATUS);
+				  stat & ~(STATUS_SDIO_INT_ACTIVE | STATUS_DATA_TRANS_DONE |
+						   STATUS_WRITE_OP_DONE),
+				  MMC_REG_STATUS);
 
 	dev_dbg(mmc_dev(host->mmc), "%s: 0x%08x\n", __func__, stat);
 
@@ -733,24 +877,32 @@ static irqreturn_t mxcmci_irq(int irq, void *devid)
 	spin_unlock_irqrestore(&host->lock, flags);
 
 	if (mxcmci_use_dma(host) && (stat & (STATUS_WRITE_OP_DONE)))
+	{
 		mxcmci_writel(host, STATUS_WRITE_OP_DONE, MMC_REG_STATUS);
+	}
 
-	if (sdio_irq) {
+	if (sdio_irq)
+	{
 		mxcmci_writel(host, STATUS_SDIO_INT_ACTIVE, MMC_REG_STATUS);
 		mmc_signal_sdio_irq(host->mmc);
 	}
 
 	if (stat & STATUS_END_CMD_RESP)
+	{
 		mxcmci_cmd_done(host, stat);
+	}
 
-	if (mxcmci_use_dma(host) && (stat & STATUS_WRITE_OP_DONE)) {
+	if (mxcmci_use_dma(host) && (stat & STATUS_WRITE_OP_DONE))
+	{
 		del_timer(&host->watchdog);
 		mxcmci_data_done(host, stat);
 	}
 
 	if (host->default_irq_mask &&
-		  (stat & (STATUS_CARD_INSERTION | STATUS_CARD_REMOVAL)))
+		(stat & (STATUS_CARD_INSERTION | STATUS_CARD_REMOVAL)))
+	{
 		mmc_detect_change(host->mmc, msecs_to_jiffies(200));
+	}
 
 	return IRQ_HANDLED;
 }
@@ -767,11 +919,16 @@ static void mxcmci_request(struct mmc_host *mmc, struct mmc_request *req)
 	host->cmdat &= ~CMD_DAT_CONT_INIT;
 
 	if (host->dma)
+	{
 		host->do_dma = 1;
+	}
 
-	if (req->data) {
+	if (req->data)
+	{
 		error = mxcmci_setup_data(host, req->data);
-		if (error) {
+
+		if (error)
+		{
 			req->cmd->error = error;
 			goto out;
 		}
@@ -780,14 +937,19 @@ static void mxcmci_request(struct mmc_host *mmc, struct mmc_request *req)
 		cmdat |= CMD_DAT_CONT_DATA_ENABLE;
 
 		if (req->data->flags & MMC_DATA_WRITE)
+		{
 			cmdat |= CMD_DAT_CONT_WRITE;
+		}
 	}
 
 	error = mxcmci_start_cmd(host, req->cmd, cmdat);
 
 out:
+
 	if (error)
+	{
 		mxcmci_finish_request(host, req);
+	}
 }
 
 static void mxcmci_set_clk_rate(struct mxcmci_host *host, unsigned int clk_ios)
@@ -796,25 +958,38 @@ static void mxcmci_set_clk_rate(struct mxcmci_host *host, unsigned int clk_ios)
 	int prescaler = 0;
 	unsigned int clk_in = clk_get_rate(host->clk_per);
 
-	while (prescaler <= 0x800) {
-		for (divider = 1; divider <= 0xF; divider++) {
+	while (prescaler <= 0x800)
+	{
+		for (divider = 1; divider <= 0xF; divider++)
+		{
 			int x;
 
 			x = (clk_in / (divider + 1));
 
 			if (prescaler)
+			{
 				x /= (prescaler * 2);
+			}
 
 			if (x <= clk_ios)
+			{
 				break;
+			}
 		}
+
 		if (divider < 0x10)
+		{
 			break;
+		}
 
 		if (prescaler == 0)
+		{
 			prescaler = 1;
+		}
 		else
+		{
 			prescaler <<= 1;
+		}
 	}
 
 	mxcmci_writew(host, (prescaler << 4) | divider, MMC_REG_CLK_RATE);
@@ -849,16 +1024,23 @@ static void mxcmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	 * use burstlen of 16 (4 words) in 1 bit mode (--> reg value 16)
 	 */
 	if (ios->bus_width == MMC_BUS_WIDTH_4)
+	{
 		burstlen = 16;
+	}
 	else
+	{
 		burstlen = 4;
+	}
 
-	if (mxcmci_use_dma(host) && burstlen != host->burstlen) {
+	if (mxcmci_use_dma(host) && burstlen != host->burstlen)
+	{
 		host->burstlen = burstlen;
 		ret = mxcmci_setup_dma(mmc);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(mmc_dev(host->mmc),
-				"failed to config DMA channel. Falling back to PIO\n");
+					"failed to config DMA channel. Falling back to PIO\n");
 			dma_release_channel(host->dma);
 			host->do_dma = 0;
 			host->dma = NULL;
@@ -866,22 +1048,32 @@ static void mxcmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	}
 
 	if (ios->bus_width == MMC_BUS_WIDTH_4)
+	{
 		host->cmdat |= CMD_DAT_CONT_BUS_WIDTH_4;
+	}
 	else
+	{
 		host->cmdat &= ~CMD_DAT_CONT_BUS_WIDTH_4;
+	}
 
-	if (host->power_mode != ios->power_mode) {
+	if (host->power_mode != ios->power_mode)
+	{
 		host->power_mode = ios->power_mode;
 		mxcmci_set_power(host, ios->vdd);
 
 		if (ios->power_mode == MMC_POWER_ON)
+		{
 			host->cmdat |= CMD_DAT_CONT_INIT;
+		}
 	}
 
-	if (ios->clock) {
+	if (ios->clock)
+	{
 		mxcmci_set_clk_rate(host, ios->clock);
 		mxcmci_writew(host, STR_STP_CLK_START_CLK, MMC_REG_STR_STP_CLK);
-	} else {
+	}
+	else
+	{
 		mxcmci_writew(host, STR_STP_CLK_STOP_CLK, MMC_REG_STR_STP_CLK);
 	}
 
@@ -903,7 +1095,10 @@ static int mxcmci_get_ro(struct mmc_host *mmc)
 	struct mxcmci_host *host = mmc_priv(mmc);
 
 	if (host->pdata && host->pdata->get_ro)
+	{
 		return !!host->pdata->get_ro(mmc_dev(mmc));
+	}
+
 	/*
 	 * If board doesn't support read only detection (no mmc_gpio
 	 * context or gpio is invalid), then let the mmc core decide
@@ -923,9 +1118,13 @@ static void mxcmci_enable_sdio_irq(struct mmc_host *mmc, int enable)
 	int_cntr = mxcmci_readl(host, MMC_REG_INT_CNTR);
 
 	if (enable)
+	{
 		int_cntr |= INT_SDIO_IRQ_EN;
+	}
 	else
+	{
 		int_cntr &= ~INT_SDIO_IRQ_EN;
+	}
 
 	mxcmci_writel(host, int_cntr, MMC_REG_INT_CNTR);
 	spin_unlock_irqrestore(&host->lock, flags);
@@ -943,9 +1142,13 @@ static void mxcmci_init_card(struct mmc_host *host, struct mmc_card *card)
 	 */
 
 	if (is_imx31_mmc(mxcmci) && card->type == MMC_TYPE_SDIO)
+	{
 		host->caps &= ~MMC_CAP_4_BIT_DATA;
+	}
 	else
+	{
 		host->caps |= MMC_CAP_4_BIT_DATA;
+	}
 }
 
 static bool filter(struct dma_chan *chan, void *param)
@@ -953,7 +1156,9 @@ static bool filter(struct dma_chan *chan, void *param)
 	struct mxcmci_host *host = param;
 
 	if (!imx_dma_is_general_purpose(chan))
+	{
 		return false;
+	}
 
 	chan->private = &host->dma_data;
 
@@ -967,29 +1172,36 @@ static void mxcmci_watchdog(unsigned long data)
 	struct mmc_request *req = host->req;
 	unsigned int stat = mxcmci_readl(host, MMC_REG_STATUS);
 
-	if (host->dma_dir == DMA_FROM_DEVICE) {
+	if (host->dma_dir == DMA_FROM_DEVICE)
+	{
 		dmaengine_terminate_all(host->dma);
 		dev_err(mmc_dev(host->mmc),
-			"%s: read time out (status = 0x%08x)\n",
-			__func__, stat);
-	} else {
+				"%s: read time out (status = 0x%08x)\n",
+				__func__, stat);
+	}
+	else
+	{
 		dev_err(mmc_dev(host->mmc),
-			"%s: write time out (status = 0x%08x)\n",
-			__func__, stat);
+				"%s: write time out (status = 0x%08x)\n",
+				__func__, stat);
 		mxcmci_softreset(host);
 	}
 
 	/* Mark transfer as erroneus and inform the upper layers */
 
 	if (host->data)
+	{
 		host->data->error = -ETIMEDOUT;
+	}
+
 	host->req = NULL;
 	host->cmd = NULL;
 	host->data = NULL;
 	mmc_request_done(host->mmc, req);
 }
 
-static const struct mmc_host_ops mxcmci_ops = {
+static const struct mmc_host_ops mxcmci_ops =
+{
 	.request		= mxcmci_request,
 	.set_ios		= mxcmci_set_ios,
 	.get_ro			= mxcmci_get_ro,
@@ -1014,17 +1226,25 @@ static int mxcmci_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return -EINVAL;
+	}
 
 	mmc = mmc_alloc_host(sizeof(*host), &pdev->dev);
+
 	if (!mmc)
+	{
 		return -ENOMEM;
+	}
 
 	host = mmc_priv(mmc);
 
 	host->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(host->base)) {
+
+	if (IS_ERR(host->base))
+	{
 		ret = PTR_ERR(host->base);
 		goto out_free;
 	}
@@ -1032,15 +1252,23 @@ static int mxcmci_probe(struct platform_device *pdev)
 	host->phys_base = res->start;
 
 	ret = mmc_of_parse(mmc);
+
 	if (ret)
+	{
 		goto out_free;
+	}
+
 	mmc->ops = &mxcmci_ops;
 
 	/* For devicetree parsing, the bus width is read from devicetree */
 	if (pdata)
+	{
 		mmc->caps = MMC_CAP_4_BIT_DATA | MMC_CAP_SDIO_IRQ;
+	}
 	else
+	{
 		mmc->caps |= MMC_CAP_SDIO_IRQ;
+	}
 
 	/* MMC core transfer sizes tunable parameters */
 	mmc->max_blk_size = 2048;
@@ -1048,52 +1276,75 @@ static int mxcmci_probe(struct platform_device *pdev)
 	mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
 	mmc->max_seg_size = mmc->max_req_size;
 
-	if (of_id) {
+	if (of_id)
+	{
 		const struct platform_device_id *id_entry = of_id->data;
 		host->devtype = id_entry->driver_data;
-	} else {
+	}
+	else
+	{
 		host->devtype = pdev->id_entry->driver_data;
 	}
 
 	/* adjust max_segs after devtype detection */
 	if (!is_mpc512x_mmc(host))
+	{
 		mmc->max_segs = 64;
+	}
 
 	host->mmc = mmc;
 	host->pdata = pdata;
 	spin_lock_init(&host->lock);
 
 	if (pdata)
+	{
 		dat3_card_detect = pdata->dat3_card_detect;
+	}
 	else if (mmc_card_is_removable(mmc)
-			&& !of_property_read_bool(pdev->dev.of_node, "cd-gpios"))
+			 && !of_property_read_bool(pdev->dev.of_node, "cd-gpios"))
+	{
 		dat3_card_detect = true;
+	}
 
 	ret = mmc_regulator_get_supply(mmc);
-	if (ret == -EPROBE_DEFER)
-		goto out_free;
 
-	if (!mmc->ocr_avail) {
+	if (ret == -EPROBE_DEFER)
+	{
+		goto out_free;
+	}
+
+	if (!mmc->ocr_avail)
+	{
 		if (pdata && pdata->ocr_avail)
+		{
 			mmc->ocr_avail = pdata->ocr_avail;
+		}
 		else
+		{
 			mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
+		}
 	}
 
 	if (dat3_card_detect)
 		host->default_irq_mask =
 			INT_CARD_INSERTION_EN | INT_CARD_REMOVAL_EN;
 	else
+	{
 		host->default_irq_mask = 0;
+	}
 
 	host->clk_ipg = devm_clk_get(&pdev->dev, "ipg");
-	if (IS_ERR(host->clk_ipg)) {
+
+	if (IS_ERR(host->clk_ipg))
+	{
 		ret = PTR_ERR(host->clk_ipg);
 		goto out_free;
 	}
 
 	host->clk_per = devm_clk_get(&pdev->dev, "per");
-	if (IS_ERR(host->clk_per)) {
+
+	if (IS_ERR(host->clk_per))
+	{
 		ret = PTR_ERR(host->clk_per);
 		goto out_free;
 	}
@@ -1104,10 +1355,12 @@ static int mxcmci_probe(struct platform_device *pdev)
 	mxcmci_softreset(host);
 
 	host->rev_no = mxcmci_readw(host, MMC_REG_REV_NO);
-	if (host->rev_no != 0x400) {
+
+	if (host->rev_no != 0x400)
+	{
 		ret = -ENODEV;
 		dev_err(mmc_dev(host->mmc), "wrong rev.no. 0x%08x. aborting.\n",
-			host->rev_no);
+				host->rev_no);
 		goto out_clk_put;
 	}
 
@@ -1119,11 +1372,16 @@ static int mxcmci_probe(struct platform_device *pdev)
 
 	mxcmci_writel(host, host->default_irq_mask, MMC_REG_INT_CNTR);
 
-	if (!host->pdata) {
+	if (!host->pdata)
+	{
 		host->dma = dma_request_slave_channel(&pdev->dev, "rx-tx");
-	} else {
+	}
+	else
+	{
 		res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
-		if (res) {
+
+		if (res)
+		{
 			host->dmareq = res->start;
 			host->dma_data.peripheral_type = IMX_DMATYPE_SDHC;
 			host->dma_data.priority = DMA_PRIO_LOW;
@@ -1133,26 +1391,36 @@ static int mxcmci_probe(struct platform_device *pdev)
 			host->dma = dma_request_channel(mask, filter, host);
 		}
 	}
+
 	if (host->dma)
 		mmc->max_seg_size = dma_get_max_seg_size(
-				host->dma->device->dev);
+								host->dma->device->dev);
 	else
+	{
 		dev_info(mmc_dev(host->mmc), "dma not available. Using PIO\n");
+	}
 
 	INIT_WORK(&host->datawork, mxcmci_datawork);
 
 	ret = devm_request_irq(&pdev->dev, irq, mxcmci_irq, 0,
-			       dev_name(&pdev->dev), host);
+						   dev_name(&pdev->dev), host);
+
 	if (ret)
+	{
 		goto out_free_dma;
+	}
 
 	platform_set_drvdata(pdev, mmc);
 
-	if (host->pdata && host->pdata->init) {
+	if (host->pdata && host->pdata->init)
+	{
 		ret = host->pdata->init(&pdev->dev, mxcmci_detect_irq,
-				host->mmc);
+								host->mmc);
+
 		if (ret)
+		{
 			goto out_free_dma;
+		}
 	}
 
 	init_timer(&host->watchdog);
@@ -1164,8 +1432,11 @@ static int mxcmci_probe(struct platform_device *pdev)
 	return 0;
 
 out_free_dma:
+
 	if (host->dma)
+	{
 		dma_release_channel(host->dma);
+	}
 
 out_clk_put:
 	clk_disable_unprepare(host->clk_per);
@@ -1185,10 +1456,14 @@ static int mxcmci_remove(struct platform_device *pdev)
 	mmc_remove_host(mmc);
 
 	if (host->pdata && host->pdata->exit)
+	{
 		host->pdata->exit(&pdev->dev, mmc);
+	}
 
 	if (host->dma)
+	{
 		dma_release_channel(host->dma);
+	}
 
 	clk_disable_unprepare(host->clk_per);
 	clk_disable_unprepare(host->clk_ipg);
@@ -1220,7 +1495,8 @@ static int __maybe_unused mxcmci_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(mxcmci_pm_ops, mxcmci_suspend, mxcmci_resume);
 
-static struct platform_driver mxcmci_driver = {
+static struct platform_driver mxcmci_driver =
+{
 	.probe		= mxcmci_probe,
 	.remove		= mxcmci_remove,
 	.id_table	= mxcmci_devtype,

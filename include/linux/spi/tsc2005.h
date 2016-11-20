@@ -19,7 +19,8 @@
 
 #include <linux/types.h>
 
-struct tsc2005_platform_data {
+struct tsc2005_platform_data
+{
 	int		ts_pressure_max;
 	int		ts_pressure_fudge;
 	int		ts_x_max;

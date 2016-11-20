@@ -31,7 +31,7 @@
 
 mpi_limb_t
 mpihelp_sub_n(mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
-	      mpi_ptr_t s2_ptr, mpi_size_t size)
+			  mpi_ptr_t s2_ptr, mpi_size_t size)
 {
 	mpi_limb_t x, y, cy;
 	mpi_size_t j;
@@ -46,7 +46,9 @@ mpihelp_sub_n(mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
 	res_ptr -= j;
 
 	cy = 0;
-	do {
+
+	do
+	{
 		y = s2_ptr[j];
 		x = s1_ptr[j];
 		y += cy;	/* add previous carry to subtrahend */
@@ -54,7 +56,8 @@ mpihelp_sub_n(mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
 		y = x - y;	/* main subtract */
 		cy += y > x;	/* get out carry from the subtract, combine */
 		res_ptr[j] = y;
-	} while (++j);
+	}
+	while (++j);
 
 	return cy;
 }

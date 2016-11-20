@@ -45,21 +45,22 @@ u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb)
 	int crc;
 	int length;
 	int hdr_size = sizeof(struct udphdr) +
-		(skb->protocol == htons(ETH_P_IP) ?
-		sizeof(struct iphdr) : sizeof(struct ipv6hdr));
+				   (skb->protocol == htons(ETH_P_IP) ?
+					sizeof(struct iphdr) : sizeof(struct ipv6hdr));
 	/* pseudo header buffer size is calculate using ipv6 header size since
 	 * it is bigger than ipv4
 	 */
 	u8 pshdr[sizeof(struct udphdr) +
-		sizeof(struct ipv6hdr) +
-		RXE_BTH_BYTES];
+			 sizeof(struct ipv6hdr) +
+			 RXE_BTH_BYTES];
 
 	/* This seed is the result of computing a CRC with a seed of
 	 * 0xfffffff and 8 bytes of 0xff representing a masked LRH.
 	 */
 	crc = 0xdebb20e3;
 
-	if (skb->protocol == htons(ETH_P_IP)) { /* IPv4 */
+	if (skb->protocol == htons(ETH_P_IP))   /* IPv4 */
+	{
 		memcpy(pshdr, ip_hdr(skb), hdr_size);
 		ip4h = (struct iphdr *)pshdr;
 		udph = (struct udphdr *)(ip4h + 1);
@@ -67,7 +68,9 @@ u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb)
 		ip4h->ttl = 0xff;
 		ip4h->check = CSUM_MANGLED_0;
 		ip4h->tos = 0xff;
-	} else {				/* IPv6 */
+	}
+	else  				/* IPv6 */
+	{
 		memcpy(pshdr, ipv6_hdr(skb), hdr_size);
 		ip6h = (struct ipv6hdr *)pshdr;
 		udph = (struct udphdr *)(ip6h + 1);
@@ -76,6 +79,7 @@ u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb)
 		ip6h->priority = 0xf;
 		ip6h->hop_limit = 0xff;
 	}
+
 	udph->check = CSUM_MANGLED_0;
 
 	bth_offset += hdr_size;
@@ -91,6 +95,6 @@ u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb)
 
 	/* And finish to compute the CRC on the remainder of the headers. */
 	crc = crc32_le(crc, pkt->hdr + RXE_BTH_BYTES,
-		       rxe_opcode[pkt->opcode].length - RXE_BTH_BYTES);
+				   rxe_opcode[pkt->opcode].length - RXE_BTH_BYTES);
 	return crc;
 }

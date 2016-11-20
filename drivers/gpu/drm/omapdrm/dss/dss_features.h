@@ -26,7 +26,8 @@
 #define MAX_NUM_DSI		2
 
 /* DSS has feature id */
-enum dss_feat_id {
+enum dss_feat_id
+{
 	FEAT_LCDENABLEPOL,
 	FEAT_LCDENABLESIGNAL,
 	FEAT_PCKFREEENABLE,
@@ -65,7 +66,8 @@ enum dss_feat_id {
 };
 
 /* DSS register field id */
-enum dss_feat_reg_field {
+enum dss_feat_reg_field
+{
 	FEAT_REG_FIRHINC,
 	FEAT_REG_FIRVINC,
 	FEAT_REG_FIFOHIGHTHRESHOLD,
@@ -76,7 +78,8 @@ enum dss_feat_reg_field {
 	FEAT_REG_DISPC_CLK_SWITCH,
 };
 
-enum dss_range_param {
+enum dss_range_param
+{
 	FEAT_PARAM_DSS_FCK,
 	FEAT_PARAM_DSS_PCD,
 	FEAT_PARAM_DSIPLL_LPDIV,
@@ -90,7 +93,7 @@ unsigned long dss_feat_get_param_min(enum dss_range_param param);
 unsigned long dss_feat_get_param_max(enum dss_range_param param);
 enum omap_overlay_caps dss_feat_get_overlay_caps(enum omap_plane plane);
 bool dss_feat_color_mode_supported(enum omap_plane plane,
-		enum omap_color_mode color_mode);
+								   enum omap_color_mode color_mode);
 
 u32 dss_feat_get_buffer_size_unit(void);	/* in bytes */
 u32 dss_feat_get_burst_size_unit(void);		/* in bytes */

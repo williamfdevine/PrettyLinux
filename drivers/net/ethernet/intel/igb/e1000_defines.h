@@ -100,11 +100,11 @@
 
 /* Same mask, but for extended and packet split descriptors */
 #define E1000_RXDEXT_ERR_FRAME_ERR_MASK ( \
-	E1000_RXDEXT_STATERR_CE  |            \
-	E1000_RXDEXT_STATERR_SE  |            \
-	E1000_RXDEXT_STATERR_SEQ |            \
-	E1000_RXDEXT_STATERR_CXE |            \
-	E1000_RXDEXT_STATERR_RXE)
+		E1000_RXDEXT_STATERR_CE  |            \
+		E1000_RXDEXT_STATERR_SE  |            \
+		E1000_RXDEXT_STATERR_SEQ |            \
+		E1000_RXDEXT_STATERR_CXE |            \
+		E1000_RXDEXT_STATERR_RXE)
 
 #define E1000_MRQC_RSS_FIELD_IPV4_TCP          0x00010000
 #define E1000_MRQC_RSS_FIELD_IPV4              0x00020000
@@ -267,14 +267,14 @@
 
 /* 1000/H is not supported, nor spec-compliant. */
 #define E1000_ALL_SPEED_DUPLEX (ADVERTISE_10_HALF  |  ADVERTISE_10_FULL | \
-				ADVERTISE_100_HALF |  ADVERTISE_100_FULL | \
-						      ADVERTISE_1000_FULL)
+								ADVERTISE_100_HALF |  ADVERTISE_100_FULL | \
+								ADVERTISE_1000_FULL)
 #define E1000_ALL_NOT_GIG      (ADVERTISE_10_HALF  |  ADVERTISE_10_FULL | \
-				ADVERTISE_100_HALF |  ADVERTISE_100_FULL)
+								ADVERTISE_100_HALF |  ADVERTISE_100_FULL)
 #define E1000_ALL_100_SPEED    (ADVERTISE_100_HALF |  ADVERTISE_100_FULL)
 #define E1000_ALL_10_SPEED     (ADVERTISE_10_HALF  |  ADVERTISE_10_FULL)
 #define E1000_ALL_FULL_DUPLEX  (ADVERTISE_10_FULL  |  ADVERTISE_100_FULL | \
-						      ADVERTISE_1000_FULL)
+								ADVERTISE_1000_FULL)
 #define E1000_ALL_HALF_DUPLEX  (ADVERTISE_10_HALF  |  ADVERTISE_100_HALF)
 
 #define AUTONEG_ADVERTISE_SPEED_DEFAULT   E1000_ALL_SPEED_DUPLEX
@@ -402,12 +402,12 @@
  *   o LSC    = Link Status Change
  */
 #define IMS_ENABLE_MASK ( \
-	E1000_IMS_RXT0   |    \
-	E1000_IMS_TXDW   |    \
-	E1000_IMS_RXDMT0 |    \
-	E1000_IMS_RXSEQ  |    \
-	E1000_IMS_LSC    |    \
-	E1000_IMS_DOUTSYNC)
+						  E1000_IMS_RXT0   |    \
+						  E1000_IMS_TXDW   |    \
+						  E1000_IMS_RXDMT0 |    \
+						  E1000_IMS_RXSEQ  |    \
+						  E1000_IMS_LSC    |    \
+						  E1000_IMS_DOUTSYNC)
 
 /* Interrupt Mask Set */
 #define E1000_IMS_TXDW      E1000_ICR_TXDW      /* Transmit desc written back */
@@ -662,9 +662,9 @@
 #define CR_1000T_HD_CAPS         0x0100 /* Advertise 1000T HD capability */
 #define CR_1000T_FD_CAPS         0x0200 /* Advertise 1000T FD capability  */
 #define CR_1000T_MS_VALUE        0x0800 /* 1=Configure PHY as Master */
-					/* 0=Configure PHY as Slave */
+/* 0=Configure PHY as Slave */
 #define CR_1000T_MS_ENABLE       0x1000 /* 1=Master/Slave manual config value */
-					/* 0=Automatic Master/Slave config */
+/* 0=Automatic Master/Slave config */
 
 /* 1000BASE-T Status Register */
 #define SR_1000T_REMOTE_RX_STATUS 0x1000 /* Remote receiver OK */
@@ -828,9 +828,9 @@
 #define ID_LED_RESERVED_0000 0x0000
 #define ID_LED_RESERVED_FFFF 0xFFFF
 #define ID_LED_DEFAULT       ((ID_LED_OFF1_ON2  << 12) | \
-			      (ID_LED_OFF1_OFF2 <<  8) | \
-			      (ID_LED_DEF1_DEF2 <<  4) | \
-			      (ID_LED_DEF1_DEF2))
+							  (ID_LED_OFF1_OFF2 <<  8) | \
+							  (ID_LED_DEF1_DEF2 <<  4) | \
+							  (ID_LED_DEF1_DEF2))
 #define ID_LED_DEF1_DEF2     0x1
 #define ID_LED_DEF1_ON2      0x2
 #define ID_LED_DEF1_OFF2     0x3
@@ -880,7 +880,7 @@
 #define M88E1000_PSCR_POLARITY_REVERSAL 0x0002 /* 1=Polarity Reversal enabled */
 /* 1=CLK125 low, 0=CLK125 toggling */
 #define M88E1000_PSCR_MDI_MANUAL_MODE  0x0000  /* MDI Crossover Mode bits 6:5 */
-					       /* Manual MDI configuration */
+/* Manual MDI configuration */
 #define M88E1000_PSCR_MDIX_MANUAL_MODE 0x0020  /* Manual MDIX configuration */
 /* 1000BASE-T: Auto crossover, 100BASE-TX/10BASE-T: MDI Mode */
 #define M88E1000_PSCR_AUTO_X_1000T     0x0040

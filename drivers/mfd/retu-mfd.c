@@ -38,14 +38,16 @@
 /* Interrupt sources */
 #define RETU_INT_PWR		0		/* Power button */
 
-struct retu_dev {
+struct retu_dev
+{
 	struct regmap			*regmap;
 	struct device			*dev;
 	struct mutex			mutex;
 	struct regmap_irq_chip_data	*irq_data;
 };
 
-static struct resource retu_pwrbutton_res[] = {
+static struct resource retu_pwrbutton_res[] =
+{
 	{
 		.name	= "retu-pwrbutton",
 		.start	= RETU_INT_PWR,
@@ -54,7 +56,8 @@ static struct resource retu_pwrbutton_res[] = {
 	},
 };
 
-static const struct mfd_cell retu_devs[] = {
+static const struct mfd_cell retu_devs[] =
+{
 	{
 		.name		= "retu-wdt"
 	},
@@ -65,13 +68,15 @@ static const struct mfd_cell retu_devs[] = {
 	}
 };
 
-static struct regmap_irq retu_irqs[] = {
+static struct regmap_irq retu_irqs[] =
+{
 	[RETU_INT_PWR] = {
 		.mask = 1 << RETU_INT_PWR,
 	}
 };
 
-static struct regmap_irq_chip retu_irq_chip = {
+static struct regmap_irq_chip retu_irq_chip =
+{
 	.name		= "RETU",
 	.irqs		= retu_irqs,
 	.num_irqs	= ARRAY_SIZE(retu_irqs),
@@ -84,7 +89,8 @@ static struct regmap_irq_chip retu_irq_chip = {
 /* Retu device registered for the power off. */
 static struct retu_dev *retu_pm_power_off;
 
-static struct resource tahvo_usb_res[] = {
+static struct resource tahvo_usb_res[] =
+{
 	{
 		.name	= "tahvo-usb",
 		.start	= TAHVO_INT_VBUS,
@@ -93,7 +99,8 @@ static struct resource tahvo_usb_res[] = {
 	},
 };
 
-static const struct mfd_cell tahvo_devs[] = {
+static const struct mfd_cell tahvo_devs[] =
+{
 	{
 		.name		= "tahvo-usb",
 		.resources	= tahvo_usb_res,
@@ -101,13 +108,15 @@ static const struct mfd_cell tahvo_devs[] = {
 	},
 };
 
-static struct regmap_irq tahvo_irqs[] = {
+static struct regmap_irq tahvo_irqs[] =
+{
 	[TAHVO_INT_VBUS] = {
 		.mask = 1 << TAHVO_INT_VBUS,
 	}
 };
 
-static struct regmap_irq_chip tahvo_irq_chip = {
+static struct regmap_irq_chip tahvo_irq_chip =
+{
 	.name		= "TAHVO",
 	.irqs		= tahvo_irqs,
 	.num_irqs	= ARRAY_SIZE(tahvo_irqs),
@@ -117,13 +126,15 @@ static struct regmap_irq_chip tahvo_irq_chip = {
 	.ack_base	= RETU_REG_IDR,
 };
 
-static const struct retu_data {
+static const struct retu_data
+{
 	char			*chip_name;
 	char			*companion_name;
 	struct regmap_irq_chip	*irq_chip;
 	const struct mfd_cell	*children;
 	int			nchildren;
-} retu_data[] = {
+} retu_data[] =
+{
 	[0] = {
 		.chip_name	= "Retu",
 		.companion_name	= "Vilma",
@@ -181,13 +192,15 @@ static void retu_power_off(void)
 
 	/* Wait for poweroff */
 	for (;;)
+	{
 		cpu_relax();
+	}
 
 	mutex_unlock(&retu_pm_power_off->mutex);
 }
 
 static int retu_regmap_read(void *context, const void *reg, size_t reg_size,
-			    void *val, size_t val_size)
+							void *val, size_t val_size)
 {
 	int ret;
 	struct device *dev = context;
@@ -196,8 +209,11 @@ static int retu_regmap_read(void *context, const void *reg, size_t reg_size,
 	BUG_ON(reg_size != 1 || val_size != 2);
 
 	ret = i2c_smbus_read_word_data(i2c, *(u8 const *)reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*(u16 *)val = ret;
 	return 0;
@@ -216,13 +232,15 @@ static int retu_regmap_write(void *context, const void *data, size_t count)
 	return i2c_smbus_write_word_data(i2c, reg, val);
 }
 
-static struct regmap_bus retu_bus = {
+static struct regmap_bus retu_bus =
+{
 	.read = retu_regmap_read,
 	.write = retu_regmap_write,
 	.val_format_endian_default = REGMAP_ENDIAN_NATIVE,
 };
 
-static const struct regmap_config retu_config = {
+static const struct regmap_config retu_config =
+{
 	.reg_bits = 8,
 	.val_bits = 16,
 };
@@ -234,52 +252,72 @@ static int retu_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
 	int ret;
 
 	if (i2c->addr > ARRAY_SIZE(retu_data))
+	{
 		return -ENODEV;
+	}
+
 	rdat = &retu_data[i2c->addr - 1];
 
 	rdev = devm_kzalloc(&i2c->dev, sizeof(*rdev), GFP_KERNEL);
+
 	if (rdev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(i2c, rdev);
 	rdev->dev = &i2c->dev;
 	mutex_init(&rdev->mutex);
 	rdev->regmap = devm_regmap_init(&i2c->dev, &retu_bus, &i2c->dev,
-					&retu_config);
+									&retu_config);
+
 	if (IS_ERR(rdev->regmap))
+	{
 		return PTR_ERR(rdev->regmap);
+	}
 
 	ret = retu_read(rdev, RETU_REG_ASICR);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(rdev->dev, "could not read %s revision: %d\n",
-			rdat->chip_name, ret);
+				rdat->chip_name, ret);
 		return ret;
 	}
 
 	dev_info(rdev->dev, "%s%s%s v%d.%d found\n", rdat->chip_name,
-		 (ret & RETU_REG_ASICR_VILMA) ? " & " : "",
-		 (ret & RETU_REG_ASICR_VILMA) ? rdat->companion_name : "",
-		 (ret >> 4) & 0x7, ret & 0xf);
+			 (ret & RETU_REG_ASICR_VILMA) ? " & " : "",
+			 (ret & RETU_REG_ASICR_VILMA) ? rdat->companion_name : "",
+			 (ret >> 4) & 0x7, ret & 0xf);
 
 	/* Mask all interrupts. */
 	ret = retu_write(rdev, rdat->irq_chip->mask_base, 0xffff);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = regmap_add_irq_chip(rdev->regmap, i2c->irq, IRQF_ONESHOT, -1,
-				  rdat->irq_chip, &rdev->irq_data);
+							  rdat->irq_chip, &rdev->irq_data);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = mfd_add_devices(rdev->dev, -1, rdat->children, rdat->nchildren,
-			      NULL, regmap_irq_chip_get_base(rdev->irq_data),
-			      NULL);
-	if (ret < 0) {
+						  NULL, regmap_irq_chip_get_base(rdev->irq_data),
+						  NULL);
+
+	if (ret < 0)
+	{
 		regmap_del_irq_chip(i2c->irq, rdev->irq_data);
 		return ret;
 	}
 
-	if (i2c->addr == 1 && !pm_power_off) {
+	if (i2c->addr == 1 && !pm_power_off)
+	{
 		retu_pm_power_off = rdev;
 		pm_power_off	  = retu_power_off;
 	}
@@ -291,24 +329,28 @@ static int retu_remove(struct i2c_client *i2c)
 {
 	struct retu_dev *rdev = i2c_get_clientdata(i2c);
 
-	if (retu_pm_power_off == rdev) {
+	if (retu_pm_power_off == rdev)
+	{
 		pm_power_off	  = NULL;
 		retu_pm_power_off = NULL;
 	}
+
 	mfd_remove_devices(rdev->dev);
 	regmap_del_irq_chip(i2c->irq, rdev->irq_data);
 
 	return 0;
 }
 
-static const struct i2c_device_id retu_id[] = {
+static const struct i2c_device_id retu_id[] =
+{
 	{ "retu-mfd", 0 },
 	{ "tahvo-mfd", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, retu_id);
 
-static struct i2c_driver retu_driver = {
+static struct i2c_driver retu_driver =
+{
 	.driver		= {
 		.name = "retu-mfd",
 	},

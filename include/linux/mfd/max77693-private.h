@@ -29,7 +29,8 @@
 #define MAX77693_REG_INVALID		(0xff)
 
 /* Slave addr = 0xCC: PMIC, Charger, Flash LED */
-enum max77693_pmic_reg {
+enum max77693_pmic_reg
+{
 	MAX77693_LED_REG_IFLASH1			= 0x00,
 	MAX77693_LED_REG_IFLASH2			= 0x01,
 	MAX77693_LED_REG_ITORCH				= 0x02,
@@ -186,7 +187,8 @@ enum max77693_pmic_reg {
 #define CHG_DETAILS_01_TREG_MASK	BIT(7)
 
 /* MAX77693_CHG_REG_CHG_DETAILS_01/CHG field */
-enum max77693_charger_charging_state {
+enum max77693_charger_charging_state
+{
 	MAX77693_CHARGING_PREQUALIFICATION	= 0x0,
 	MAX77693_CHARGING_FAST_CONST_CURRENT,
 	MAX77693_CHARGING_FAST_CONST_VOLTAGE,
@@ -202,7 +204,8 @@ enum max77693_charger_charging_state {
 };
 
 /* MAX77693_CHG_REG_CHG_DETAILS_01/BAT field */
-enum max77693_charger_battery_state {
+enum max77693_charger_battery_state
+{
 	MAX77693_BATTERY_NOBAT			= 0x0,
 	/* Dead-battery or low-battery prequalification */
 	MAX77693_BATTERY_PREQUALIFICATION,
@@ -266,7 +269,8 @@ enum max77693_charger_battery_state {
 #define SAFEOUT_CTRL_ENSAFEOUT2_MASK	0x80
 
 /* Slave addr = 0x4A: MUIC */
-enum max77693_muic_reg {
+enum max77693_muic_reg
+{
 	MAX77693_MUIC_REG_ID		= 0x00,
 	MAX77693_MUIC_REG_INT1		= 0x01,
 	MAX77693_MUIC_REG_INT2		= 0x02,
@@ -363,13 +367,13 @@ enum max77693_muic_reg {
 #define COMP2SW_MASK			(0x7 << COMP2SW_SHIFT)
 #define COMP_SW_MASK			(COMP2SW_MASK | COMN1SW_MASK)
 #define MAX77693_CONTROL1_SW_USB	((1 << COMP2SW_SHIFT) \
-						| (1 << COMN1SW_SHIFT))
+									 | (1 << COMN1SW_SHIFT))
 #define MAX77693_CONTROL1_SW_AUDIO	((2 << COMP2SW_SHIFT) \
-						| (2 << COMN1SW_SHIFT))
+									 | (2 << COMN1SW_SHIFT))
 #define MAX77693_CONTROL1_SW_UART	((3 << COMP2SW_SHIFT) \
-						| (3 << COMN1SW_SHIFT))
+									 | (3 << COMN1SW_SHIFT))
 #define MAX77693_CONTROL1_SW_OPEN	((0 << COMP2SW_SHIFT) \
-						| (0 << COMN1SW_SHIFT))
+									 | (0 << COMN1SW_SHIFT))
 
 #define MAX77693_CONTROL2_LOWPWR_SHIFT		0
 #define MAX77693_CONTROL2_ADCEN_SHIFT		1
@@ -396,7 +400,8 @@ enum max77693_muic_reg {
 #define MAX77693_CONTROL3_ADCDBSET_MASK		(0x3 << MAX77693_CONTROL3_ADCDBSET_SHIFT)
 
 /* Slave addr = 0x90: Haptic */
-enum max77693_haptic_reg {
+enum max77693_haptic_reg
+{
 	MAX77693_HAPTIC_REG_STATUS		= 0x00,
 	MAX77693_HAPTIC_REG_CONFIG1		= 0x01,
 	MAX77693_HAPTIC_REG_CONFIG2		= 0x02,
@@ -427,7 +432,8 @@ enum max77693_haptic_reg {
 #define MAX77693_CONFIG2_MEN            6
 #define MAX77693_CONFIG2_HTYP           5
 
-enum max77693_irq_source {
+enum max77693_irq_source
+{
 	LED_INT = 0,
 	TOPSYS_INT,
 	CHG_INT,
@@ -443,7 +449,7 @@ enum max77693_irq_source {
 #define SRC_IRQ_FLASH			BIT(2)
 #define SRC_IRQ_MUIC			BIT(3)
 #define SRC_IRQ_ALL			(SRC_IRQ_CHARGER | SRC_IRQ_TOP \
-						| SRC_IRQ_FLASH | SRC_IRQ_MUIC)
+							 | SRC_IRQ_FLASH | SRC_IRQ_MUIC)
 
 #define LED_IRQ_FLED2_OPEN		BIT(0)
 #define LED_IRQ_FLED2_SHORT		BIT(1)
@@ -480,7 +486,8 @@ enum max77693_irq_source {
 #define MUIC_IRQ_INT3_CHG_ENABLED	BIT(4)
 #define MUIC_IRQ_INT3_BAT_DET		BIT(5)
 
-enum max77693_irq {
+enum max77693_irq
+{
 	/* PMIC - FLASH */
 	MAX77693_LED_IRQ_FLED2_OPEN,
 	MAX77693_LED_IRQ_FLED2_SHORT,
@@ -503,7 +510,8 @@ enum max77693_irq {
 	MAX77693_IRQ_NR,
 };
 
-enum max77693_irq_muic {
+enum max77693_irq_muic
+{
 	/* MUIC INT1 */
 	MAX77693_MUIC_IRQ_INT1_ADC,
 	MAX77693_MUIC_IRQ_INT1_ADC_LOW,

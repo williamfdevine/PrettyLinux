@@ -7,7 +7,8 @@
 /* softing firmware directory prefix */
 #define fw_dir "softing-4.6/"
 
-struct softing_platform_data {
+struct softing_platform_data
+{
 	unsigned int manf;
 	unsigned int prod;
 	/*
@@ -24,7 +25,8 @@ struct softing_platform_data {
 	unsigned int max_sjw;
 	unsigned long dpram_size;
 	const char *name;
-	struct {
+	struct
+	{
 		unsigned long offs;
 		unsigned long addr;
 		const char *fw;

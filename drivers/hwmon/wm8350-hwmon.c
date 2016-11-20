@@ -28,14 +28,15 @@
 #include <linux/mfd/wm8350/core.h>
 #include <linux/mfd/wm8350/comparator.h>
 
-static const char * const input_names[] = {
+static const char *const input_names[] =
+{
 	[WM8350_AUXADC_USB]  = "USB",
 	[WM8350_AUXADC_LINE] = "Line",
 	[WM8350_AUXADC_BATT] = "Battery",
 };
 
 static ssize_t show_voltage(struct device *dev,
-			    struct device_attribute *attr, char *buf)
+							struct device_attribute *attr, char *buf)
 {
 	struct wm8350 *wm8350 = dev_get_drvdata(dev);
 	int channel = to_sensor_dev_attr(attr)->index;
@@ -48,7 +49,7 @@ static ssize_t show_voltage(struct device *dev,
 }
 
 static ssize_t show_label(struct device *dev,
-			  struct device_attribute *attr, char *buf)
+						  struct device_attribute *attr, char *buf)
 {
 	int channel = to_sensor_dev_attr(attr)->index;
 
@@ -57,15 +58,16 @@ static ssize_t show_label(struct device *dev,
 
 #define WM8350_NAMED_VOLTAGE(id, name) \
 	static SENSOR_DEVICE_ATTR(in##id##_input, S_IRUGO, show_voltage,\
-				  NULL, name);		\
+							  NULL, name);		\
 	static SENSOR_DEVICE_ATTR(in##id##_label, S_IRUGO, show_label,	\
-				  NULL, name)
+							  NULL, name)
 
 WM8350_NAMED_VOLTAGE(0, WM8350_AUXADC_USB);
 WM8350_NAMED_VOLTAGE(1, WM8350_AUXADC_BATT);
 WM8350_NAMED_VOLTAGE(2, WM8350_AUXADC_LINE);
 
-static struct attribute *wm8350_attrs[] = {
+static struct attribute *wm8350_attrs[] =
+{
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_in0_label.dev_attr.attr,
 	&sensor_dev_attr_in1_input.dev_attr.attr,
@@ -84,12 +86,13 @@ static int wm8350_hwmon_probe(struct platform_device *pdev)
 	struct device *hwmon_dev;
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(&pdev->dev, "wm8350",
-							   wm8350,
-							   wm8350_groups);
+				wm8350,
+				wm8350_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static struct platform_driver wm8350_hwmon_driver = {
+static struct platform_driver wm8350_hwmon_driver =
+{
 	.probe = wm8350_hwmon_probe,
 	.driver = {
 		.name = "wm8350-hwmon",

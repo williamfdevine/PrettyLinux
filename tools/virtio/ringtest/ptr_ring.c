@@ -26,8 +26,12 @@ static void *kmalloc(unsigned size, gfp_t gfp)
 static void *kzalloc(unsigned size, gfp_t gfp)
 {
 	void *p = memalign(64, size);
+
 	if (!p)
+	{
 		return p;
+	}
+
 	memset(p, 0, size);
 
 	return p;
@@ -36,7 +40,9 @@ static void *kzalloc(unsigned size, gfp_t gfp)
 static void kfree(void *p)
 {
 	if (p)
+	{
 		free(p);
+	}
 }
 
 static void spin_lock_init(spinlock_t *lock)
@@ -105,7 +111,9 @@ int add_inbuf(unsigned len, void *buf, void *datap)
 	int ret;
 
 	ret = __ptr_ring_produce(&array, buf);
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		ret = 0;
 		headcnt++;
 	}
@@ -124,8 +132,11 @@ void *get_buf(unsigned *lenp, void **bufp)
 	void *datap;
 
 	if (tailcnt == headcnt || __ptr_ring_full(&array))
+	{
 		datap = NULL;
-	else {
+	}
+	else
+	{
 		datap = "Buffer\n";
 		++tailcnt;
 	}

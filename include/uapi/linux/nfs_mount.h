@@ -23,7 +23,8 @@
 #define NFS_MOUNT_VERSION	6
 #define NFS_MAX_CONTEXT_LEN	256
 
-struct nfs_mount_data {
+struct nfs_mount_data
+{
 	int		version;		/* 1 */
 	int		fd;			/* 1 */
 	struct nfs2_fh	old_root;		/* 1 */

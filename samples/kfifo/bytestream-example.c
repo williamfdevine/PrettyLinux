@@ -35,18 +35,19 @@ static DEFINE_MUTEX(write_lock);
  * Otherwise the fifo storage will be a part of the fifo structure.
  */
 #if 0
-#define DYNAMIC
+	#define DYNAMIC
 #endif
 
 #ifdef DYNAMIC
-static struct kfifo test;
+	static struct kfifo test;
 #else
-static DECLARE_KFIFO(test, unsigned char, FIFO_SIZE);
+	static DECLARE_KFIFO(test, unsigned char, FIFO_SIZE);
 #endif
 
-static const unsigned char expected_result[FIFO_SIZE] = {
-	 3,  4,  5,  6,  7,  8,  9,  0,
-	 1, 20, 21, 22, 23, 24, 25, 26,
+static const unsigned char expected_result[FIFO_SIZE] =
+{
+	3,  4,  5,  6,  7,  8,  9,  0,
+	1, 20, 21, 22, 23, 24, 25, 26,
 	27, 28, 29, 30, 31, 32, 33, 34,
 	35, 36, 37, 38, 39, 40, 41, 42,
 };
@@ -64,7 +65,9 @@ static int __init testfunc(void)
 
 	/* put values into the fifo */
 	for (i = 0; i != 10; i++)
+	{
 		kfifo_put(&test, i);
+	}
 
 	/* show the number of used elements */
 	printk(KERN_INFO "fifo len: %u\n", kfifo_len(&test));
@@ -92,34 +95,45 @@ static int __init testfunc(void)
 
 	/* show the first value without removing from the fifo */
 	if (kfifo_peek(&test, &i))
+	{
 		printk(KERN_INFO "%d\n", i);
+	}
 
 	/* check the correctness of all values in the fifo */
 	j = 0;
-	while (kfifo_get(&test, &i)) {
+
+	while (kfifo_get(&test, &i))
+	{
 		printk(KERN_INFO "item = %d\n", i);
-		if (i != expected_result[j++]) {
+
+		if (i != expected_result[j++])
+		{
 			printk(KERN_WARNING "value mismatch: test failed\n");
 			return -EIO;
 		}
 	}
-	if (j != ARRAY_SIZE(expected_result)) {
+
+	if (j != ARRAY_SIZE(expected_result))
+	{
 		printk(KERN_WARNING "size mismatch: test failed\n");
 		return -EIO;
 	}
+
 	printk(KERN_INFO "test passed\n");
 
 	return 0;
 }
 
 static ssize_t fifo_write(struct file *file, const char __user *buf,
-						size_t count, loff_t *ppos)
+						  size_t count, loff_t *ppos)
 {
 	int ret;
 	unsigned int copied;
 
 	if (mutex_lock_interruptible(&write_lock))
+	{
 		return -ERESTARTSYS;
+	}
 
 	ret = kfifo_from_user(&test, buf, count, &copied);
 
@@ -129,13 +143,15 @@ static ssize_t fifo_write(struct file *file, const char __user *buf,
 }
 
 static ssize_t fifo_read(struct file *file, char __user *buf,
-						size_t count, loff_t *ppos)
+						 size_t count, loff_t *ppos)
 {
 	int ret;
 	unsigned int copied;
 
 	if (mutex_lock_interruptible(&read_lock))
+	{
 		return -ERESTARTSYS;
+	}
 
 	ret = kfifo_to_user(&test, buf, count, &copied);
 
@@ -144,7 +160,8 @@ static ssize_t fifo_read(struct file *file, char __user *buf,
 	return ret ? ret : copied;
 }
 
-static const struct file_operations fifo_fops = {
+static const struct file_operations fifo_fops =
+{
 	.owner		= THIS_MODULE,
 	.read		= fifo_read,
 	.write		= fifo_write,
@@ -157,26 +174,33 @@ static int __init example_init(void)
 	int ret;
 
 	ret = kfifo_alloc(&test, FIFO_SIZE, GFP_KERNEL);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "error kfifo_alloc\n");
 		return ret;
 	}
+
 #else
 	INIT_KFIFO(test);
 #endif
-	if (testfunc() < 0) {
+
+	if (testfunc() < 0)
+	{
 #ifdef DYNAMIC
 		kfifo_free(&test);
 #endif
 		return -EIO;
 	}
 
-	if (proc_create(PROC_FIFO, 0, NULL, &fifo_fops) == NULL) {
+	if (proc_create(PROC_FIFO, 0, NULL, &fifo_fops) == NULL)
+	{
 #ifdef DYNAMIC
 		kfifo_free(&test);
 #endif
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 

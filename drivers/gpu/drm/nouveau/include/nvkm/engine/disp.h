@@ -4,7 +4,8 @@
 #include <core/engine.h>
 #include <core/event.h>
 
-struct nvkm_disp {
+struct nvkm_disp
+{
 	const struct nvkm_disp_func *func;
 	struct nvkm_engine engine;
 
@@ -16,7 +17,8 @@ struct nvkm_disp {
 	struct nvkm_event hpd;
 	struct nvkm_event vblank;
 
-	struct {
+	struct
+	{
 		int nr;
 	} head;
 };

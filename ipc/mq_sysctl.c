@@ -23,7 +23,7 @@ static void *get_mq(struct ctl_table *table)
 }
 
 static int proc_mq_dointvec(struct ctl_table *table, int write,
-			    void __user *buffer, size_t *lenp, loff_t *ppos)
+							void __user *buffer, size_t *lenp, loff_t *ppos)
 {
 	struct ctl_table mq_table;
 	memcpy(&mq_table, table, sizeof(mq_table));
@@ -33,14 +33,14 @@ static int proc_mq_dointvec(struct ctl_table *table, int write,
 }
 
 static int proc_mq_dointvec_minmax(struct ctl_table *table, int write,
-	void __user *buffer, size_t *lenp, loff_t *ppos)
+								   void __user *buffer, size_t *lenp, loff_t *ppos)
 {
 	struct ctl_table mq_table;
 	memcpy(&mq_table, table, sizeof(mq_table));
 	mq_table.data = get_mq(table);
 
 	return proc_dointvec_minmax(&mq_table, write, buffer,
-					lenp, ppos);
+								lenp, ppos);
 }
 #else
 #define proc_mq_dointvec NULL
@@ -53,7 +53,8 @@ static int msg_max_limit_max = HARD_MSGMAX;
 static int msg_maxsize_limit_min = MIN_MSGSIZEMAX;
 static int msg_maxsize_limit_max = HARD_MSGSIZEMAX;
 
-static struct ctl_table mq_sysctls[] = {
+static struct ctl_table mq_sysctls[] =
+{
 	{
 		.procname	= "queues_max",
 		.data		= &init_ipc_ns.mq_queues_max,
@@ -100,7 +101,8 @@ static struct ctl_table mq_sysctls[] = {
 	{}
 };
 
-static struct ctl_table mq_sysctl_dir[] = {
+static struct ctl_table mq_sysctl_dir[] =
+{
 	{
 		.procname	= "mqueue",
 		.mode		= 0555,
@@ -109,7 +111,8 @@ static struct ctl_table mq_sysctl_dir[] = {
 	{}
 };
 
-static struct ctl_table mq_sysctl_root[] = {
+static struct ctl_table mq_sysctl_root[] =
+{
 	{
 		.procname	= "fs",
 		.mode		= 0555,

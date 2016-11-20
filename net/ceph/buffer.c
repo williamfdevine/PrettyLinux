@@ -13,11 +13,16 @@ struct ceph_buffer *ceph_buffer_new(size_t len, gfp_t gfp)
 	struct ceph_buffer *b;
 
 	b = kmalloc(sizeof(*b), gfp);
+
 	if (!b)
+	{
 		return NULL;
+	}
 
 	b->vec.iov_base = ceph_kvmalloc(len, gfp);
-	if (!b->vec.iov_base) {
+
+	if (!b->vec.iov_base)
+	{
 		kfree(b);
 		return NULL;
 	}
@@ -49,8 +54,12 @@ int ceph_decode_buffer(struct ceph_buffer **b, void **p, void *end)
 	dout("decode_buffer len %d\n", (int)len);
 	ceph_decode_need(p, end, len, bad);
 	*b = ceph_buffer_new(len, GFP_NOFS);
+
 	if (!*b)
+	{
 		return -ENOMEM;
+	}
+
 	ceph_decode_copy(p, (*b)->vec.iov_base, len);
 	return 0;
 bad:

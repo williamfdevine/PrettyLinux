@@ -71,7 +71,7 @@
  */
 
 #if defined(CC_HAVE_ASM_GOTO) && defined(CONFIG_JUMP_LABEL)
-# define HAVE_JUMP_LABEL
+	#define HAVE_JUMP_LABEL
 #endif
 
 #ifndef __ASSEMBLY__
@@ -82,14 +82,15 @@
 extern bool static_key_initialized;
 
 #define STATIC_KEY_CHECK_USE() WARN(!static_key_initialized,		      \
-				    "%s used before call to jump_label_init", \
-				    __func__)
+									"%s used before call to jump_label_init", \
+									__func__)
 
 #ifdef HAVE_JUMP_LABEL
 
-struct static_key {
+struct static_key
+{
 	atomic_t enabled;
-/* Set lsb bit to 1 if branch is default true, 0 ot */
+	/* Set lsb bit to 1 if branch is default true, 0 ot */
 	struct jump_entry *entries;
 #ifdef CONFIG_MODULES
 	struct static_key_mod *next;
@@ -97,19 +98,21 @@ struct static_key {
 };
 
 #else
-struct static_key {
+struct static_key
+{
 	atomic_t enabled;
 };
 #endif	/* HAVE_JUMP_LABEL */
 #endif /* __ASSEMBLY__ */
 
 #ifdef HAVE_JUMP_LABEL
-#include <asm/jump_label.h>
+	#include <asm/jump_label.h>
 #endif
 
 #ifndef __ASSEMBLY__
 
-enum jump_label_type {
+enum jump_label_type
+{
 	JUMP_LABEL_NOP = 0,
 	JUMP_LABEL_JMP,
 };
@@ -139,9 +142,9 @@ extern void jump_label_init(void);
 extern void jump_label_lock(void);
 extern void jump_label_unlock(void);
 extern void arch_jump_label_transform(struct jump_entry *entry,
-				      enum jump_label_type type);
+									  enum jump_label_type type);
 extern void arch_jump_label_transform_static(struct jump_entry *entry,
-					     enum jump_label_type type);
+		enum jump_label_type type);
 extern int jump_label_text_reserved(void *start, void *end);
 extern void static_key_slow_inc(struct static_key *key);
 extern void static_key_slow_dec(struct static_key *key);
@@ -159,10 +162,10 @@ extern void static_key_disable(struct static_key *key);
  */
 #define STATIC_KEY_INIT_TRUE					\
 	{ .enabled = { 1 },					\
-	  .entries = (void *)JUMP_TYPE_TRUE }
+				 .entries = (void *)JUMP_TYPE_TRUE }
 #define STATIC_KEY_INIT_FALSE					\
 	{ .enabled = { 0 },					\
-	  .entries = (void *)JUMP_TYPE_FALSE }
+				 .entries = (void *)JUMP_TYPE_FALSE }
 
 #else  /* !HAVE_JUMP_LABEL */
 
@@ -182,14 +185,20 @@ static __always_inline void jump_label_init(void)
 static __always_inline bool static_key_false(struct static_key *key)
 {
 	if (unlikely(static_key_count(key) > 0))
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static __always_inline bool static_key_true(struct static_key *key)
 {
 	if (likely(static_key_count(key) > 0))
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -225,7 +234,9 @@ static inline void static_key_enable(struct static_key *key)
 	WARN_ON_ONCE(count < 0 || count > 1);
 
 	if (!count)
+	{
 		static_key_slow_inc(key);
+	}
 }
 
 static inline void static_key_disable(struct static_key *key)
@@ -235,7 +246,9 @@ static inline void static_key_disable(struct static_key *key)
 	WARN_ON_ONCE(count < 0 || count > 1);
 
 	if (count)
+	{
 		static_key_slow_dec(key);
+	}
 }
 
 #define STATIC_KEY_INIT_TRUE	{ .enabled = ATOMIC_INIT(1) }
@@ -255,11 +268,13 @@ static inline void static_key_disable(struct static_key *key)
  * All the below code is macros in order to play type games.
  */
 
-struct static_key_true {
+struct static_key_true
+{
 	struct static_key key;
 };
 
-struct static_key_false {
+struct static_key_false
+{
 	struct static_key key;
 };
 
@@ -291,13 +306,13 @@ struct static_key_false {
 extern bool ____wrong_branch_error(void);
 
 #define static_key_enabled(x)							\
-({										\
-	if (!__builtin_types_compatible_p(typeof(*x), struct static_key) &&	\
-	    !__builtin_types_compatible_p(typeof(*x), struct static_key_true) &&\
-	    !__builtin_types_compatible_p(typeof(*x), struct static_key_false))	\
-		____wrong_branch_error();					\
-	static_key_count((struct static_key *)x) > 0;				\
-})
+	({										\
+		if (!__builtin_types_compatible_p(typeof(*x), struct static_key) &&	\
+			!__builtin_types_compatible_p(typeof(*x), struct static_key_true) &&\
+			!__builtin_types_compatible_p(typeof(*x), struct static_key_false))	\
+			____wrong_branch_error();					\
+		static_key_count((struct static_key *)x) > 0;				\
+	})
 
 #ifdef HAVE_JUMP_LABEL
 
@@ -358,28 +373,28 @@ extern bool ____wrong_branch_error(void);
  */
 
 #define static_branch_likely(x)							\
-({										\
-	bool branch;								\
-	if (__builtin_types_compatible_p(typeof(*x), struct static_key_true))	\
-		branch = !arch_static_branch(&(x)->key, true);			\
-	else if (__builtin_types_compatible_p(typeof(*x), struct static_key_false)) \
-		branch = !arch_static_branch_jump(&(x)->key, true);		\
-	else									\
-		branch = ____wrong_branch_error();				\
-	branch;									\
-})
+	({										\
+		bool branch;								\
+		if (__builtin_types_compatible_p(typeof(*x), struct static_key_true))	\
+			branch = !arch_static_branch(&(x)->key, true);			\
+		else if (__builtin_types_compatible_p(typeof(*x), struct static_key_false)) \
+			branch = !arch_static_branch_jump(&(x)->key, true);		\
+		else									\
+			branch = ____wrong_branch_error();				\
+		branch;									\
+	})
 
 #define static_branch_unlikely(x)						\
-({										\
-	bool branch;								\
-	if (__builtin_types_compatible_p(typeof(*x), struct static_key_true))	\
-		branch = arch_static_branch_jump(&(x)->key, false);		\
-	else if (__builtin_types_compatible_p(typeof(*x), struct static_key_false)) \
-		branch = arch_static_branch(&(x)->key, false);			\
-	else									\
-		branch = ____wrong_branch_error();				\
-	branch;									\
-})
+	({										\
+		bool branch;								\
+		if (__builtin_types_compatible_p(typeof(*x), struct static_key_true))	\
+			branch = arch_static_branch_jump(&(x)->key, false);		\
+		else if (__builtin_types_compatible_p(typeof(*x), struct static_key_false)) \
+			branch = arch_static_branch(&(x)->key, false);			\
+		else									\
+			branch = ____wrong_branch_error();				\
+		branch;									\
+	})
 
 #else /* !HAVE_JUMP_LABEL */
 

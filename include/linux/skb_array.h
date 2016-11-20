@@ -21,12 +21,13 @@
 #define _LINUX_SKB_ARRAY_H 1
 
 #ifdef __KERNEL__
-#include <linux/ptr_ring.h>
-#include <linux/skbuff.h>
-#include <linux/if_vlan.h>
+	#include <linux/ptr_ring.h>
+	#include <linux/skbuff.h>
+	#include <linux/if_vlan.h>
 #endif
 
-struct skb_array {
+struct skb_array
+{
 	struct ptr_ring ring;
 };
 
@@ -114,14 +115,19 @@ static inline struct sk_buff *skb_array_consume_bh(struct skb_array *a)
 
 static inline int __skb_array_len_with_tag(struct sk_buff *skb)
 {
-	if (likely(skb)) {
+	if (likely(skb))
+	{
 		int len = skb->len;
 
 		if (skb_vlan_tag_present(skb))
+		{
 			len += VLAN_HLEN;
+		}
 
 		return len;
-	} else {
+	}
+	else
+	{
 		return 0;
 	}
 }
@@ -162,12 +168,12 @@ static inline int skb_array_resize(struct skb_array *a, int size, gfp_t gfp)
 }
 
 static inline int skb_array_resize_multiple(struct skb_array **rings,
-					    int nrings, int size, gfp_t gfp)
+		int nrings, int size, gfp_t gfp)
 {
 	BUILD_BUG_ON(offsetof(struct skb_array, ring));
 	return ptr_ring_resize_multiple((struct ptr_ring **)rings,
-					nrings, size, gfp,
-					__skb_array_destroy_skb);
+									nrings, size, gfp,
+									__skb_array_destroy_skb);
 }
 
 static inline void skb_array_cleanup(struct skb_array *a)

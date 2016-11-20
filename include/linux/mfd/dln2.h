@@ -3,7 +3,8 @@
 
 #define DLN2_CMD(cmd, id)		((cmd) | ((id) << 8))
 
-struct dln2_platform_data {
+struct dln2_platform_data
+{
 	u16 handle;		/* sub-driver handle (internally used only) */
 	u8 port;		/* I2C/SPI port */
 };
@@ -22,7 +23,7 @@ struct dln2_platform_data {
  */
 
 typedef void (*dln2_event_cb_t)(struct platform_device *pdev, u16 echo,
-				const void *data, int len);
+								const void *data, int len);
 
 /**
  * dl2n_register_event_cb - register a callback function for an event
@@ -34,7 +35,7 @@ typedef void (*dln2_event_cb_t)(struct platform_device *pdev, u16 echo,
  * @return 0 in case of success, negative value in case of error
  */
 int dln2_register_event_cb(struct platform_device *pdev, u16 event,
-			   dln2_event_cb_t event_cb);
+						   dln2_event_cb_t event_cb);
 
 /**
  * dln2_unregister_event_cb - unregister the callback function for an event
@@ -61,8 +62,8 @@ void dln2_unregister_event_cb(struct platform_device *pdev, u16 event);
  * @return 0 for success, negative value for errors
  */
 int dln2_transfer(struct platform_device *pdev, u16 cmd,
-		  const void *obuf, unsigned obuf_len,
-		  void *ibuf, unsigned *ibuf_len);
+				  const void *obuf, unsigned obuf_len,
+				  void *ibuf, unsigned *ibuf_len);
 
 /**
  * dln2_transfer_rx - variant of @dln2_transfer() where TX buffer is not needed
@@ -78,7 +79,7 @@ int dln2_transfer(struct platform_device *pdev, u16 cmd,
  */
 
 static inline int dln2_transfer_rx(struct platform_device *pdev, u16 cmd,
-				   void *ibuf, unsigned *ibuf_len)
+								   void *ibuf, unsigned *ibuf_len)
 {
 	return dln2_transfer(pdev, cmd, NULL, 0, ibuf, ibuf_len);
 }
@@ -95,7 +96,7 @@ static inline int dln2_transfer_rx(struct platform_device *pdev, u16 cmd,
  * @return 0 for success, negative value for errors
  */
 static inline int dln2_transfer_tx(struct platform_device *pdev, u16 cmd,
-				   const void *obuf, unsigned obuf_len)
+								   const void *obuf, unsigned obuf_len)
 {
 	return dln2_transfer(pdev, cmd, obuf, obuf_len, NULL, NULL);
 }

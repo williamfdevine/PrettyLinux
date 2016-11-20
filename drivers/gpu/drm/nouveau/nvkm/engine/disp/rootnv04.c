@@ -30,28 +30,32 @@
 #include <nvif/cl0046.h>
 #include <nvif/unpack.h>
 
-struct nv04_disp_root {
+struct nv04_disp_root
+{
 	struct nvkm_object object;
 	struct nvkm_disp *disp;
 };
 
 static int
 nv04_disp_scanoutpos(struct nv04_disp_root *root,
-		     void *data, u32 size, int head)
+					 void *data, u32 size, int head)
 {
 	struct nvkm_device *device = root->disp->engine.subdev.device;
 	struct nvkm_object *object = &root->object;
 	const u32 hoff = head * 0x2000;
-	union {
+	union
+	{
 		struct nv04_disp_scanoutpos_v0 v0;
 	} *args = data;
 	u32 line;
 	int ret = -ENOSYS;
 
 	nvif_ioctl(object, "disp scanoutpos size %d\n", size);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
+
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+	{
 		nvif_ioctl(object, "disp scanoutpos vers %d\n",
-			   args->v0.version);
+				   args->v0.version);
 		args->v0.vblanks = nvkm_rd32(device, 0x680800 + hoff) & 0xffff;
 		args->v0.vtotal  = nvkm_rd32(device, 0x680804 + hoff) & 0xffff;
 		args->v0.vblanke = args->v0.vtotal - 1;
@@ -66,15 +70,20 @@ nv04_disp_scanoutpos(struct nv04_disp_root *root,
 		 * fallback in the drm core.
 		 */
 		if (!args->v0.vtotal || !args->v0.htotal)
+		{
 			return -ENOTSUPP;
+		}
 
 		args->v0.time[0] = ktime_to_ns(ktime_get());
 		line = nvkm_rd32(device, 0x600868 + hoff);
 		args->v0.time[1] = ktime_to_ns(ktime_get());
 		args->v0.hline = (line & 0xffff0000) >> 16;
 		args->v0.vline = (line & 0x0000ffff);
-	} else
+	}
+	else
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -83,47 +92,61 @@ static int
 nv04_disp_mthd(struct nvkm_object *object, u32 mthd, void *data, u32 size)
 {
 	struct nv04_disp_root *root = nv04_disp_root(object);
-	union {
+	union
+	{
 		struct nv04_disp_mthd_v0 v0;
 	} *args = data;
 	int head, ret = -ENOSYS;
 
 	nvif_ioctl(object, "disp mthd size %d\n", size);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, true))) {
+
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, true)))
+	{
 		nvif_ioctl(object, "disp mthd vers %d mthd %02x head %d\n",
-			   args->v0.version, args->v0.method, args->v0.head);
+				   args->v0.version, args->v0.method, args->v0.head);
 		mthd = args->v0.method;
 		head = args->v0.head;
-	} else
+	}
+	else
+	{
 		return ret;
+	}
 
 	if (head < 0 || head >= 2)
+	{
 		return -ENXIO;
+	}
 
-	switch (mthd) {
-	case NV04_DISP_SCANOUTPOS:
-		return nv04_disp_scanoutpos(root, data, size, head);
-	default:
-		break;
+	switch (mthd)
+	{
+		case NV04_DISP_SCANOUTPOS:
+			return nv04_disp_scanoutpos(root, data, size, head);
+
+		default:
+			break;
 	}
 
 	return -EINVAL;
 }
 
 static const struct nvkm_object_func
-nv04_disp_root = {
+	nv04_disp_root =
+{
 	.mthd = nv04_disp_mthd,
 	.ntfy = nvkm_disp_ntfy,
 };
 
 static int
 nv04_disp_root_new(struct nvkm_disp *disp, const struct nvkm_oclass *oclass,
-		   void *data, u32 size, struct nvkm_object **pobject)
+				   void *data, u32 size, struct nvkm_object **pobject)
 {
 	struct nv04_disp_root *root;
 
 	if (!(root = kzalloc(sizeof(*root), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	root->disp = disp;
 	*pobject = &root->object;
 
@@ -132,7 +155,8 @@ nv04_disp_root_new(struct nvkm_disp *disp, const struct nvkm_oclass *oclass,
 }
 
 const struct nvkm_disp_oclass
-nv04_disp_root_oclass = {
+	nv04_disp_root_oclass =
+{
 	.base.oclass = NV04_DISP,
 	.base.minver = -1,
 	.base.maxver = -1,

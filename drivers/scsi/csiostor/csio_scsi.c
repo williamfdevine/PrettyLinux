@@ -63,7 +63,7 @@ int csio_lun_qdepth = 32;
 static int csio_ddp_descs = 128;
 
 static int csio_do_abrt_cls(struct csio_hw *,
-				      struct csio_ioreq *, bool);
+							struct csio_ioreq *, bool);
 
 static void csio_scsis_uninit(struct csio_ioreq *, enum csio_scsi_ev);
 static void csio_scsis_io_active(struct csio_ioreq *, enum csio_scsi_ev);
@@ -85,24 +85,30 @@ csio_scsi_match_io(struct csio_ioreq *ioreq, struct csio_scsi_level_data *sld)
 {
 	struct scsi_cmnd *scmnd = csio_scsi_cmnd(ioreq);
 
-	switch (sld->level) {
-	case CSIO_LEV_LUN:
-		if (scmnd == NULL)
+	switch (sld->level)
+	{
+		case CSIO_LEV_LUN:
+			if (scmnd == NULL)
+			{
+				return false;
+			}
+
+			return ((ioreq->lnode == sld->lnode) &&
+					(ioreq->rnode == sld->rnode) &&
+					((uint64_t)scmnd->device->lun == sld->oslun));
+
+		case CSIO_LEV_RNODE:
+			return ((ioreq->lnode == sld->lnode) &&
+					(ioreq->rnode == sld->rnode));
+
+		case CSIO_LEV_LNODE:
+			return (ioreq->lnode == sld->lnode);
+
+		case CSIO_LEV_ALL:
+			return true;
+
+		default:
 			return false;
-
-		return ((ioreq->lnode == sld->lnode) &&
-			(ioreq->rnode == sld->rnode) &&
-			((uint64_t)scmnd->device->lun == sld->oslun));
-
-	case CSIO_LEV_RNODE:
-		return ((ioreq->lnode == sld->lnode) &&
-				(ioreq->rnode == sld->rnode));
-	case CSIO_LEV_LNODE:
-		return (ioreq->lnode == sld->lnode);
-	case CSIO_LEV_ALL:
-		return true;
-	default:
-		return false;
 	}
 }
 
@@ -116,22 +122,27 @@ csio_scsi_match_io(struct csio_ioreq *ioreq, struct csio_scsi_level_data *sld)
  */
 static void
 csio_scsi_gather_active_ios(struct csio_scsim *scm,
-			    struct csio_scsi_level_data *sld,
-			    struct list_head *dest)
+							struct csio_scsi_level_data *sld,
+							struct list_head *dest)
 {
 	struct list_head *tmp, *next;
 
 	if (list_empty(&scm->active_q))
+	{
 		return;
+	}
 
 	/* Just splice the entire active_q into dest */
-	if (sld->level == CSIO_LEV_ALL) {
+	if (sld->level == CSIO_LEV_ALL)
+	{
 		list_splice_tail_init(&scm->active_q, dest);
 		return;
 	}
 
-	list_for_each_safe(tmp, next, &scm->active_q) {
-		if (csio_scsi_match_io((struct csio_ioreq *)tmp, sld)) {
+	list_for_each_safe(tmp, next, &scm->active_q)
+	{
+		if (csio_scsi_match_io((struct csio_ioreq *)tmp, sld))
+		{
 			list_del_init(tmp);
 			list_add_tail(tmp, dest);
 		}
@@ -141,14 +152,16 @@ csio_scsi_gather_active_ios(struct csio_scsim *scm,
 static inline bool
 csio_scsi_itnexus_loss_error(uint16_t error)
 {
-	switch (error) {
-	case FW_ERR_LINK_DOWN:
-	case FW_RDEV_NOT_READY:
-	case FW_ERR_RDEV_LOST:
-	case FW_ERR_RDEV_LOGO:
-	case FW_ERR_RDEV_IMPL_LOGO:
-		return 1;
+	switch (error)
+	{
+		case FW_ERR_LINK_DOWN:
+		case FW_RDEV_NOT_READY:
+		case FW_ERR_RDEV_LOST:
+		case FW_ERR_RDEV_LOGO:
+		case FW_ERR_RDEV_IMPL_LOGO:
+			return 1;
 	}
+
 	return 0;
 }
 
@@ -166,7 +179,8 @@ csio_scsi_fcp_cmnd(struct csio_ioreq *req, void *addr)
 	struct scsi_cmnd *scmnd = csio_scsi_cmnd(req);
 
 	/* Check for Task Management */
-	if (likely(scmnd->SCp.Message == 0)) {
+	if (likely(scmnd->SCp.Message == 0))
+	{
 		int_to_scsilun(scmnd->device->lun, &fcp_cmnd->fc_lun);
 		fcp_cmnd->fc_tm_flags = 0;
 		fcp_cmnd->fc_cmdref = 0;
@@ -177,12 +191,20 @@ csio_scsi_fcp_cmnd(struct csio_ioreq *req, void *addr)
 
 		if (req->nsge)
 			if (req->datadir == DMA_TO_DEVICE)
+			{
 				fcp_cmnd->fc_flags = FCP_CFL_WRDATA;
+			}
 			else
+			{
 				fcp_cmnd->fc_flags = FCP_CFL_RDDATA;
+			}
 		else
+		{
 			fcp_cmnd->fc_flags = 0;
-	} else {
+		}
+	}
+	else
+	{
 		memset(fcp_cmnd, 0, sizeof(*fcp_cmnd));
 		int_to_scsilun(scmnd->device->lun, &fcp_cmnd->fc_lun);
 		fcp_cmnd->fc_tm_flags = (uint8_t)scmnd->SCp.Message;
@@ -207,10 +229,10 @@ csio_scsi_init_cmd_wr(struct csio_ioreq *req, void *addr, uint32_t size)
 	uint8_t imm = csio_hw_to_scsim(hw)->proto_cmd_len;
 
 	wr->op_immdlen = cpu_to_be32(FW_WR_OP_V(FW_SCSI_CMD_WR) |
-					  FW_SCSI_CMD_WR_IMMDLEN(imm));
+								 FW_SCSI_CMD_WR_IMMDLEN(imm));
 	wr->flowid_len16 = cpu_to_be32(FW_WR_FLOWID_V(rn->flowid) |
-					    FW_WR_LEN16_V(
-						DIV_ROUND_UP(size, 16)));
+								   FW_WR_LEN16_V(
+									   DIV_ROUND_UP(size, 16)));
 
 	wr->cookie = (uintptr_t) req;
 	wr->iqid = cpu_to_be16(csio_q_physiqid(hw, req->iq_idx));
@@ -234,7 +256,7 @@ csio_scsi_init_cmd_wr(struct csio_ioreq *req, void *addr, uint32_t size)
 
 	/* Frame a FCP command */
 	csio_scsi_fcp_cmnd(req, (void *)((uintptr_t)addr +
-				    sizeof(struct fw_scsi_cmd_wr)));
+									 sizeof(struct fw_scsi_cmd_wr)));
 }
 
 #define CSIO_SCSI_CMD_WR_SZ(_imm)					\
@@ -242,7 +264,7 @@ csio_scsi_init_cmd_wr(struct csio_ioreq *req, void *addr, uint32_t size)
 	 ALIGN((_imm), 16))				/* Immed data */
 
 #define CSIO_SCSI_CMD_WR_SZ_16(_imm)					\
-			(ALIGN(CSIO_SCSI_CMD_WR_SZ((_imm)), 16))
+	(ALIGN(CSIO_SCSI_CMD_WR_SZ((_imm)), 16))
 
 /*
  * csio_scsi_cmd - Create a SCSI CMD WR.
@@ -260,13 +282,19 @@ csio_scsi_cmd(struct csio_ioreq *req)
 	uint32_t size = CSIO_SCSI_CMD_WR_SZ_16(scsim->proto_cmd_len);
 
 	req->drv_status = csio_wr_get(hw, req->eq_idx, size, &wrp);
-	if (unlikely(req->drv_status != 0))
-		return;
 
-	if (wrp.size1 >= size) {
+	if (unlikely(req->drv_status != 0))
+	{
+		return;
+	}
+
+	if (wrp.size1 >= size)
+	{
 		/* Initialize WR in one shot */
 		csio_scsi_init_cmd_wr(req, wrp.addr1, size);
-	} else {
+	}
+	else
+	{
 		uint8_t *tmpwr = csio_q_eq_wrap(hw, req->eq_idx);
 
 		/*
@@ -288,7 +316,7 @@ csio_scsi_cmd(struct csio_ioreq *req)
  */
 static inline void
 csio_scsi_init_ultptx_dsgl(struct csio_hw *hw, struct csio_ioreq *req,
-			   struct ulptx_sgl *sgl)
+						   struct ulptx_sgl *sgl)
 {
 	struct ulptx_sge_pair *sge_pair = NULL;
 	struct scatterlist *sgel;
@@ -299,49 +327,67 @@ csio_scsi_init_ultptx_dsgl(struct csio_hw *hw, struct csio_ioreq *req,
 	struct scsi_cmnd *scmnd = csio_scsi_cmnd(req);
 
 	sgl->cmd_nsge = htonl(ULPTX_CMD_V(ULP_TX_SC_DSGL) | ULPTX_MORE_F |
-				     ULPTX_NSGE_V(req->nsge));
+						  ULPTX_NSGE_V(req->nsge));
+
 	/* Now add the data SGLs */
-	if (likely(!req->dcopy)) {
-		scsi_for_each_sg(scmnd, sgel, req->nsge, i) {
-			if (i == 0) {
+	if (likely(!req->dcopy))
+	{
+		scsi_for_each_sg(scmnd, sgel, req->nsge, i)
+		{
+			if (i == 0)
+			{
 				sgl->addr0 = cpu_to_be64(sg_dma_address(sgel));
 				sgl->len0 = cpu_to_be32(sg_dma_len(sgel));
 				sge_pair = (struct ulptx_sge_pair *)(sgl + 1);
 				continue;
 			}
-			if ((i - 1) & 0x1) {
+
+			if ((i - 1) & 0x1)
+			{
 				sge_pair->addr[1] = cpu_to_be64(
-							sg_dma_address(sgel));
+										sg_dma_address(sgel));
 				sge_pair->len[1] = cpu_to_be32(
-							sg_dma_len(sgel));
+									   sg_dma_len(sgel));
 				sge_pair++;
-			} else {
+			}
+			else
+			{
 				sge_pair->addr[0] = cpu_to_be64(
-							sg_dma_address(sgel));
+										sg_dma_address(sgel));
 				sge_pair->len[0] = cpu_to_be32(
-							sg_dma_len(sgel));
+									   sg_dma_len(sgel));
 			}
 		}
-	} else {
+	}
+	else
+	{
 		/* Program sg elements with driver's DDP buffer */
 		xfer_len = scsi_bufflen(scmnd);
-		list_for_each(tmp, &req->gen_list) {
+		list_for_each(tmp, &req->gen_list)
+		{
 			dma_buf = (struct csio_dma_buf *)tmp;
-			if (i == 0) {
+
+			if (i == 0)
+			{
 				sgl->addr0 = cpu_to_be64(dma_buf->paddr);
 				sgl->len0 = cpu_to_be32(
-						min(xfer_len, dma_buf->len));
+								min(xfer_len, dma_buf->len));
 				sge_pair = (struct ulptx_sge_pair *)(sgl + 1);
-			} else if ((i - 1) & 0x1) {
+			}
+			else if ((i - 1) & 0x1)
+			{
 				sge_pair->addr[1] = cpu_to_be64(dma_buf->paddr);
 				sge_pair->len[1] = cpu_to_be32(
-						min(xfer_len, dma_buf->len));
+									   min(xfer_len, dma_buf->len));
 				sge_pair++;
-			} else {
+			}
+			else
+			{
 				sge_pair->addr[0] = cpu_to_be64(dma_buf->paddr);
 				sge_pair->len[0] = cpu_to_be32(
-						min(xfer_len, dma_buf->len));
+									   min(xfer_len, dma_buf->len));
 			}
+
 			xfer_len -= min(xfer_len, dma_buf->len);
 			i++;
 		}
@@ -368,9 +414,9 @@ csio_scsi_init_read_wr(struct csio_ioreq *req, void *wrp, uint32_t size)
 	struct scsi_cmnd *scmnd = csio_scsi_cmnd(req);
 
 	wr->op_immdlen = cpu_to_be32(FW_WR_OP_V(FW_SCSI_READ_WR) |
-				     FW_SCSI_READ_WR_IMMDLEN(imm));
+								 FW_SCSI_READ_WR_IMMDLEN(imm));
 	wr->flowid_len16 = cpu_to_be32(FW_WR_FLOWID_V(rn->flowid) |
-				       FW_WR_LEN16_V(DIV_ROUND_UP(size, 16)));
+								   FW_WR_LEN16_V(DIV_ROUND_UP(size, 16)));
 	wr->cookie = (uintptr_t)req;
 	wr->iqid = cpu_to_be16(csio_q_physiqid(hw, req->iq_idx));
 	wr->tmo_val = (uint8_t)(req->tmo);
@@ -391,11 +437,11 @@ csio_scsi_init_read_wr(struct csio_ioreq *req, void *wrp, uint32_t size)
 	wr->u.fcoe.r3_lo[0] = 0;
 	wr->u.fcoe.r3_lo[1] = 0;
 	csio_scsi_fcp_cmnd(req, (void *)((uintptr_t)wrp +
-					sizeof(struct fw_scsi_read_wr)));
+									 sizeof(struct fw_scsi_read_wr)));
 
 	/* Move WR pointer past command and immediate data */
 	sgl = (struct ulptx_sgl *)((uintptr_t)wrp +
-			      sizeof(struct fw_scsi_read_wr) + ALIGN(imm, 16));
+							   sizeof(struct fw_scsi_read_wr) + ALIGN(imm, 16));
 
 	/* Fill in the DSGL */
 	csio_scsi_init_ultptx_dsgl(hw, req, sgl);
@@ -421,9 +467,9 @@ csio_scsi_init_write_wr(struct csio_ioreq *req, void *wrp, uint32_t size)
 	struct scsi_cmnd *scmnd = csio_scsi_cmnd(req);
 
 	wr->op_immdlen = cpu_to_be32(FW_WR_OP_V(FW_SCSI_WRITE_WR) |
-				     FW_SCSI_WRITE_WR_IMMDLEN(imm));
+								 FW_SCSI_WRITE_WR_IMMDLEN(imm));
 	wr->flowid_len16 = cpu_to_be32(FW_WR_FLOWID_V(rn->flowid) |
-				       FW_WR_LEN16_V(DIV_ROUND_UP(size, 16)));
+								   FW_WR_LEN16_V(DIV_ROUND_UP(size, 16)));
 	wr->cookie = (uintptr_t)req;
 	wr->iqid = cpu_to_be16(csio_q_physiqid(hw, req->iq_idx));
 	wr->tmo_val = (uint8_t)(req->tmo);
@@ -444,11 +490,11 @@ csio_scsi_init_write_wr(struct csio_ioreq *req, void *wrp, uint32_t size)
 	wr->u.fcoe.r3_lo[0] = 0;
 	wr->u.fcoe.r3_lo[1] = 0;
 	csio_scsi_fcp_cmnd(req, (void *)((uintptr_t)wrp +
-					sizeof(struct fw_scsi_write_wr)));
+									 sizeof(struct fw_scsi_write_wr)));
 
 	/* Move WR pointer past command and immediate data */
 	sgl = (struct ulptx_sgl *)((uintptr_t)wrp +
-			      sizeof(struct fw_scsi_write_wr) + ALIGN(imm, 16));
+							   sizeof(struct fw_scsi_write_wr) + ALIGN(imm, 16));
 
 	/* Fill in the DSGL */
 	csio_scsi_init_ultptx_dsgl(hw, req, sgl);
@@ -456,16 +502,16 @@ csio_scsi_init_write_wr(struct csio_ioreq *req, void *wrp, uint32_t size)
 
 /* Calculate WR size needed for fw_scsi_read_wr/fw_scsi_write_wr */
 #define CSIO_SCSI_DATA_WRSZ(req, oper, sz, imm)				       \
-do {									       \
-	(sz) = sizeof(struct fw_scsi_##oper##_wr) +	/* WR size */          \
-	       ALIGN((imm), 16) +			/* Immed data */       \
-	       sizeof(struct ulptx_sgl);		/* ulptx_sgl */	       \
-									       \
-	if (unlikely((req)->nsge > 1))				               \
-		(sz) += (sizeof(struct ulptx_sge_pair) *		       \
-				(ALIGN(((req)->nsge - 1), 2) / 2));            \
-							/* Data SGE */	       \
-} while (0)
+	do {									       \
+		(sz) = sizeof(struct fw_scsi_##oper##_wr) +	/* WR size */          \
+			   ALIGN((imm), 16) +			/* Immed data */       \
+			   sizeof(struct ulptx_sgl);		/* ulptx_sgl */	       \
+		\
+		if (unlikely((req)->nsge > 1))				               \
+			(sz) += (sizeof(struct ulptx_sge_pair) *		       \
+					 (ALIGN(((req)->nsge - 1), 2) / 2));            \
+		/* Data SGE */	       \
+	} while (0)
 
 /*
  * csio_scsi_read - Create a SCSI READ WR.
@@ -487,11 +533,16 @@ csio_scsi_read(struct csio_ioreq *req)
 	size = ALIGN(size, 16);
 
 	req->drv_status = csio_wr_get(hw, req->eq_idx, size, &wrp);
-	if (likely(req->drv_status == 0)) {
-		if (likely(wrp.size1 >= size)) {
+
+	if (likely(req->drv_status == 0))
+	{
+		if (likely(wrp.size1 >= size))
+		{
 			/* Initialize WR in one shot */
 			csio_scsi_init_read_wr(req, wrp.addr1, size);
-		} else {
+		}
+		else
+		{
 			uint8_t *tmpwr = csio_q_eq_wrap(hw, req->eq_idx);
 			/*
 			 * Make a temporary copy of the WR and write back
@@ -524,11 +575,16 @@ csio_scsi_write(struct csio_ioreq *req)
 	size = ALIGN(size, 16);
 
 	req->drv_status = csio_wr_get(hw, req->eq_idx, size, &wrp);
-	if (likely(req->drv_status == 0)) {
-		if (likely(wrp.size1 >= size)) {
+
+	if (likely(req->drv_status == 0))
+	{
+		if (likely(wrp.size1 >= size))
+		{
 			/* Initialize WR in one shot */
 			csio_scsi_init_write_wr(req, wrp.addr1, size);
-		} else {
+		}
+		else
+		{
 			uint8_t *tmpwr = csio_q_eq_wrap(hw, req->eq_idx);
 			/*
 			 * Make a temporary copy of the WR and write back
@@ -566,25 +622,28 @@ csio_setup_ddp(struct csio_scsim *scsim, struct csio_ioreq *req)
 	uint32_t sg_len = 0;
 	uint32_t i;
 
-	scsi_for_each_sg(scmnd, sgel, req->nsge, i) {
+	scsi_for_each_sg(scmnd, sgel, req->nsge, i)
+	{
 		sg_addr = sg_dma_address(sgel);
 		sg_len	= sg_dma_len(sgel);
 
 		buf_off = sg_addr & (ddp_pagesz - 1);
 
 		/* Except 1st buffer,all buffer addr have to be Page aligned */
-		if (i != 0 && buf_off) {
+		if (i != 0 && buf_off)
+		{
 			csio_dbg(hw, "SGL addr not DDP aligned (%llx:%d)\n",
-				 sg_addr, sg_len);
+					 sg_addr, sg_len);
 			goto unaligned;
 		}
 
 		/* Except last buffer,all buffer must end on page boundary */
 		if ((i != (req->nsge - 1)) &&
-			((buf_off + sg_len) & (ddp_pagesz - 1))) {
+			((buf_off + sg_len) & (ddp_pagesz - 1)))
+		{
 			csio_dbg(hw,
-				 "SGL addr not ending on page boundary"
-				 "(%llx:%d)\n", sg_addr, sg_len);
+					 "SGL addr not ending on page boundary"
+					 "(%llx:%d)\n", sg_addr, sg_len);
 			goto unaligned;
 		}
 	}
@@ -608,29 +667,37 @@ unaligned:
 	xfer_len = scsi_bufflen(scmnd);
 
 	i = 0;
+
 	/* Allocate ddp buffers for this request */
-	while (alloc_len < xfer_len) {
+	while (alloc_len < xfer_len)
+	{
 		dma_buf = csio_get_scsi_ddp(scsim);
-		if (dma_buf == NULL || i > scsim->max_sge) {
+
+		if (dma_buf == NULL || i > scsim->max_sge)
+		{
 			req->drv_status = -EBUSY;
 			break;
 		}
+
 		alloc_len += dma_buf->len;
 		/* Added to IO req */
 		list_add_tail(&dma_buf->list, &req->gen_list);
 		i++;
 	}
 
-	if (!req->drv_status) {
+	if (!req->drv_status)
+	{
 		/* set number of ddp bufs used */
 		req->nsge = i;
 		csio_scsi_read(req);
 		return;
 	}
 
-	 /* release dma descs */
+	/* release dma descs */
 	if (i > 0)
+	{
 		csio_put_scsi_ddp_list(scsim, &req->gen_list, i);
+	}
 }
 
 /*
@@ -644,7 +711,7 @@ unaligned:
  */
 static inline void
 csio_scsi_init_abrt_cls_wr(struct csio_ioreq *req, void *addr, uint32_t size,
-			   bool abort)
+						   bool abort)
 {
 	struct csio_hw *hw = req->lnode->hwp;
 	struct csio_rnode *rn = req->rnode;
@@ -652,16 +719,16 @@ csio_scsi_init_abrt_cls_wr(struct csio_ioreq *req, void *addr, uint32_t size,
 
 	wr->op_immdlen = cpu_to_be32(FW_WR_OP_V(FW_SCSI_ABRT_CLS_WR));
 	wr->flowid_len16 = cpu_to_be32(FW_WR_FLOWID_V(rn->flowid) |
-					    FW_WR_LEN16_V(
-						DIV_ROUND_UP(size, 16)));
+								   FW_WR_LEN16_V(
+									   DIV_ROUND_UP(size, 16)));
 
 	wr->cookie = (uintptr_t) req;
 	wr->iqid = cpu_to_be16(csio_q_physiqid(hw, req->iq_idx));
 	wr->tmo_val = (uint8_t) req->tmo;
 	/* 0 for CHK_ALL_IO tells FW to look up t_cookie */
 	wr->sub_opcode_to_chk_all_io =
-				(FW_SCSI_ABRT_CLS_WR_SUB_OPCODE(abort) |
-				 FW_SCSI_ABRT_CLS_WR_CHK_ALL_IO(0));
+		(FW_SCSI_ABRT_CLS_WR_SUB_OPCODE(abort) |
+		 FW_SCSI_ABRT_CLS_WR_CHK_ALL_IO(0));
 	wr->r3[0] = 0;
 	wr->r3[1] = 0;
 	wr->r3[2] = 0;
@@ -678,13 +745,19 @@ csio_scsi_abrt_cls(struct csio_ioreq *req, bool abort)
 	uint32_t size = ALIGN(sizeof(struct fw_scsi_abrt_cls_wr), 16);
 
 	req->drv_status = csio_wr_get(hw, req->eq_idx, size, &wrp);
-	if (req->drv_status != 0)
-		return;
 
-	if (wrp.size1 >= size) {
+	if (req->drv_status != 0)
+	{
+		return;
+	}
+
+	if (wrp.size1 >= size)
+	{
 		/* Initialize WR in one shot */
 		csio_scsi_init_abrt_cls_wr(req, wrp.addr1, size, abort);
-	} else {
+	}
+	else
+	{
 		uint8_t *tmpwr = csio_q_eq_wrap(hw, req->eq_idx);
 		/*
 		 * Make a temporary copy of the WR and write back
@@ -705,67 +778,80 @@ csio_scsis_uninit(struct csio_ioreq *req, enum csio_scsi_ev evt)
 	struct csio_hw *hw = req->lnode->hwp;
 	struct csio_scsim *scsim = csio_hw_to_scsim(hw);
 
-	switch (evt) {
-	case CSIO_SCSIE_START_IO:
+	switch (evt)
+	{
+		case CSIO_SCSIE_START_IO:
 
-		if (req->nsge) {
-			if (req->datadir == DMA_TO_DEVICE) {
-				req->dcopy = 0;
-				csio_scsi_write(req);
-			} else
-				csio_setup_ddp(scsim, req);
-		} else {
+			if (req->nsge)
+			{
+				if (req->datadir == DMA_TO_DEVICE)
+				{
+					req->dcopy = 0;
+					csio_scsi_write(req);
+				}
+				else
+				{
+					csio_setup_ddp(scsim, req);
+				}
+			}
+			else
+			{
+				csio_scsi_cmd(req);
+			}
+
+			if (likely(req->drv_status == 0))
+			{
+				/* change state and enqueue on active_q */
+				csio_set_state(&req->sm, csio_scsis_io_active);
+				list_add_tail(&req->sm.sm_list, &scsim->active_q);
+				csio_wr_issue(hw, req->eq_idx, false);
+				CSIO_INC_STATS(scsim, n_active);
+
+				return;
+			}
+
+			break;
+
+		case CSIO_SCSIE_START_TM:
 			csio_scsi_cmd(req);
-		}
 
-		if (likely(req->drv_status == 0)) {
-			/* change state and enqueue on active_q */
-			csio_set_state(&req->sm, csio_scsis_io_active);
-			list_add_tail(&req->sm.sm_list, &scsim->active_q);
-			csio_wr_issue(hw, req->eq_idx, false);
-			CSIO_INC_STATS(scsim, n_active);
+			if (req->drv_status == 0)
+			{
+				/*
+				 * NOTE: We collect the affected I/Os prior to issuing
+				 * LUN reset, and not after it. This is to prevent
+				 * aborting I/Os that get issued after the LUN reset,
+				 * but prior to LUN reset completion (in the event that
+				 * the host stack has not blocked I/Os to a LUN that is
+				 * being reset.
+				 */
+				csio_set_state(&req->sm, csio_scsis_tm_active);
+				list_add_tail(&req->sm.sm_list, &scsim->active_q);
+				csio_wr_issue(hw, req->eq_idx, false);
+				CSIO_INC_STATS(scsim, n_tm_active);
+			}
 
 			return;
-		}
-		break;
 
-	case CSIO_SCSIE_START_TM:
-		csio_scsi_cmd(req);
-		if (req->drv_status == 0) {
+		case CSIO_SCSIE_ABORT:
+		case CSIO_SCSIE_CLOSE:
 			/*
-			 * NOTE: We collect the affected I/Os prior to issuing
-			 * LUN reset, and not after it. This is to prevent
-			 * aborting I/Os that get issued after the LUN reset,
-			 * but prior to LUN reset completion (in the event that
-			 * the host stack has not blocked I/Os to a LUN that is
-			 * being reset.
+			 * NOTE:
+			 * We could get here due to  :
+			 * - a window in the cleanup path of the SCSI module
+			 *   (csio_scsi_abort_io()). Please see NOTE in this function.
+			 * - a window in the time we tried to issue an abort/close
+			 *   of a request to FW, and the FW completed the request
+			 *   itself.
+			 *   Print a message for now, and return INVAL either way.
 			 */
-			csio_set_state(&req->sm, csio_scsis_tm_active);
-			list_add_tail(&req->sm.sm_list, &scsim->active_q);
-			csio_wr_issue(hw, req->eq_idx, false);
-			CSIO_INC_STATS(scsim, n_tm_active);
-		}
-		return;
+			req->drv_status = -EINVAL;
+			csio_warn(hw, "Trying to abort/close completed IO:%p!\n", req);
+			break;
 
-	case CSIO_SCSIE_ABORT:
-	case CSIO_SCSIE_CLOSE:
-		/*
-		 * NOTE:
-		 * We could get here due to  :
-		 * - a window in the cleanup path of the SCSI module
-		 *   (csio_scsi_abort_io()). Please see NOTE in this function.
-		 * - a window in the time we tried to issue an abort/close
-		 *   of a request to FW, and the FW completed the request
-		 *   itself.
-		 *   Print a message for now, and return INVAL either way.
-		 */
-		req->drv_status = -EINVAL;
-		csio_warn(hw, "Trying to abort/close completed IO:%p!\n", req);
-		break;
-
-	default:
-		csio_dbg(hw, "Unhandled event:%d sent to req:%p\n", evt, req);
-		CSIO_DB_ASSERT(0);
+		default:
+			csio_dbg(hw, "Unhandled event:%d sent to req:%p\n", evt, req);
+			CSIO_DB_ASSERT(0);
 	}
 }
 
@@ -776,68 +862,79 @@ csio_scsis_io_active(struct csio_ioreq *req, enum csio_scsi_ev evt)
 	struct csio_scsim *scm = csio_hw_to_scsim(hw);
 	struct csio_rnode *rn;
 
-	switch (evt) {
-	case CSIO_SCSIE_COMPLETED:
-		CSIO_DEC_STATS(scm, n_active);
-		list_del_init(&req->sm.sm_list);
-		csio_set_state(&req->sm, csio_scsis_uninit);
-		/*
-		 * In MSIX mode, with multiple queues, the SCSI compeltions
-		 * could reach us sooner than the FW events sent to indicate
-		 * I-T nexus loss (link down, remote device logo etc). We
-		 * dont want to be returning such I/Os to the upper layer
-		 * immediately, since we wouldnt have reported the I-T nexus
-		 * loss itself. This forces us to serialize such completions
-		 * with the reporting of the I-T nexus loss. Therefore, we
-		 * internally queue up such up such completions in the rnode.
-		 * The reporting of I-T nexus loss to the upper layer is then
-		 * followed by the returning of I/Os in this internal queue.
-		 * Having another state alongwith another queue helps us take
-		 * actions for events such as ABORT received while we are
-		 * in this rnode queue.
-		 */
-		if (unlikely(req->wr_status != FW_SUCCESS)) {
-			rn = req->rnode;
+	switch (evt)
+	{
+		case CSIO_SCSIE_COMPLETED:
+			CSIO_DEC_STATS(scm, n_active);
+			list_del_init(&req->sm.sm_list);
+			csio_set_state(&req->sm, csio_scsis_uninit);
+
 			/*
-			 * FW says remote device is lost, but rnode
-			 * doesnt reflect it.
+			 * In MSIX mode, with multiple queues, the SCSI compeltions
+			 * could reach us sooner than the FW events sent to indicate
+			 * I-T nexus loss (link down, remote device logo etc). We
+			 * dont want to be returning such I/Os to the upper layer
+			 * immediately, since we wouldnt have reported the I-T nexus
+			 * loss itself. This forces us to serialize such completions
+			 * with the reporting of the I-T nexus loss. Therefore, we
+			 * internally queue up such up such completions in the rnode.
+			 * The reporting of I-T nexus loss to the upper layer is then
+			 * followed by the returning of I/Os in this internal queue.
+			 * Having another state alongwith another queue helps us take
+			 * actions for events such as ABORT received while we are
+			 * in this rnode queue.
 			 */
-			if (csio_scsi_itnexus_loss_error(req->wr_status) &&
-						csio_is_rnode_ready(rn)) {
-				csio_set_state(&req->sm,
-						csio_scsis_shost_cmpl_await);
-				list_add_tail(&req->sm.sm_list,
-					      &rn->host_cmpl_q);
+			if (unlikely(req->wr_status != FW_SUCCESS))
+			{
+				rn = req->rnode;
+
+				/*
+				 * FW says remote device is lost, but rnode
+				 * doesnt reflect it.
+				 */
+				if (csio_scsi_itnexus_loss_error(req->wr_status) &&
+					csio_is_rnode_ready(rn))
+				{
+					csio_set_state(&req->sm,
+								   csio_scsis_shost_cmpl_await);
+					list_add_tail(&req->sm.sm_list,
+								  &rn->host_cmpl_q);
+				}
 			}
-		}
 
-		break;
+			break;
 
-	case CSIO_SCSIE_ABORT:
-		csio_scsi_abrt_cls(req, SCSI_ABORT);
-		if (req->drv_status == 0) {
-			csio_wr_issue(hw, req->eq_idx, false);
-			csio_set_state(&req->sm, csio_scsis_aborting);
-		}
-		break;
+		case CSIO_SCSIE_ABORT:
+			csio_scsi_abrt_cls(req, SCSI_ABORT);
 
-	case CSIO_SCSIE_CLOSE:
-		csio_scsi_abrt_cls(req, SCSI_CLOSE);
-		if (req->drv_status == 0) {
-			csio_wr_issue(hw, req->eq_idx, false);
-			csio_set_state(&req->sm, csio_scsis_closing);
-		}
-		break;
+			if (req->drv_status == 0)
+			{
+				csio_wr_issue(hw, req->eq_idx, false);
+				csio_set_state(&req->sm, csio_scsis_aborting);
+			}
 
-	case CSIO_SCSIE_DRVCLEANUP:
-		req->wr_status = FW_HOSTERROR;
-		CSIO_DEC_STATS(scm, n_active);
-		csio_set_state(&req->sm, csio_scsis_uninit);
-		break;
+			break;
 
-	default:
-		csio_dbg(hw, "Unhandled event:%d sent to req:%p\n", evt, req);
-		CSIO_DB_ASSERT(0);
+		case CSIO_SCSIE_CLOSE:
+			csio_scsi_abrt_cls(req, SCSI_CLOSE);
+
+			if (req->drv_status == 0)
+			{
+				csio_wr_issue(hw, req->eq_idx, false);
+				csio_set_state(&req->sm, csio_scsis_closing);
+			}
+
+			break;
+
+		case CSIO_SCSIE_DRVCLEANUP:
+			req->wr_status = FW_HOSTERROR;
+			CSIO_DEC_STATS(scm, n_active);
+			csio_set_state(&req->sm, csio_scsis_uninit);
+			break;
+
+		default:
+			csio_dbg(hw, "Unhandled event:%d sent to req:%p\n", evt, req);
+			CSIO_DB_ASSERT(0);
 	}
 }
 
@@ -847,40 +944,47 @@ csio_scsis_tm_active(struct csio_ioreq *req, enum csio_scsi_ev evt)
 	struct csio_hw *hw = req->lnode->hwp;
 	struct csio_scsim *scm = csio_hw_to_scsim(hw);
 
-	switch (evt) {
-	case CSIO_SCSIE_COMPLETED:
-		CSIO_DEC_STATS(scm, n_tm_active);
-		list_del_init(&req->sm.sm_list);
-		csio_set_state(&req->sm, csio_scsis_uninit);
+	switch (evt)
+	{
+		case CSIO_SCSIE_COMPLETED:
+			CSIO_DEC_STATS(scm, n_tm_active);
+			list_del_init(&req->sm.sm_list);
+			csio_set_state(&req->sm, csio_scsis_uninit);
 
-		break;
+			break;
 
-	case CSIO_SCSIE_ABORT:
-		csio_scsi_abrt_cls(req, SCSI_ABORT);
-		if (req->drv_status == 0) {
-			csio_wr_issue(hw, req->eq_idx, false);
-			csio_set_state(&req->sm, csio_scsis_aborting);
-		}
-		break;
+		case CSIO_SCSIE_ABORT:
+			csio_scsi_abrt_cls(req, SCSI_ABORT);
+
+			if (req->drv_status == 0)
+			{
+				csio_wr_issue(hw, req->eq_idx, false);
+				csio_set_state(&req->sm, csio_scsis_aborting);
+			}
+
+			break;
 
 
-	case CSIO_SCSIE_CLOSE:
-		csio_scsi_abrt_cls(req, SCSI_CLOSE);
-		if (req->drv_status == 0) {
-			csio_wr_issue(hw, req->eq_idx, false);
-			csio_set_state(&req->sm, csio_scsis_closing);
-		}
-		break;
+		case CSIO_SCSIE_CLOSE:
+			csio_scsi_abrt_cls(req, SCSI_CLOSE);
 
-	case CSIO_SCSIE_DRVCLEANUP:
-		req->wr_status = FW_HOSTERROR;
-		CSIO_DEC_STATS(scm, n_tm_active);
-		csio_set_state(&req->sm, csio_scsis_uninit);
-		break;
+			if (req->drv_status == 0)
+			{
+				csio_wr_issue(hw, req->eq_idx, false);
+				csio_set_state(&req->sm, csio_scsis_closing);
+			}
 
-	default:
-		csio_dbg(hw, "Unhandled event:%d sent to req:%p\n", evt, req);
-		CSIO_DB_ASSERT(0);
+			break;
+
+		case CSIO_SCSIE_DRVCLEANUP:
+			req->wr_status = FW_HOSTERROR;
+			CSIO_DEC_STATS(scm, n_tm_active);
+			csio_set_state(&req->sm, csio_scsis_uninit);
+			break;
+
+		default:
+			csio_dbg(hw, "Unhandled event:%d sent to req:%p\n", evt, req);
+			CSIO_DB_ASSERT(0);
 	}
 }
 
@@ -890,94 +994,99 @@ csio_scsis_aborting(struct csio_ioreq *req, enum csio_scsi_ev evt)
 	struct csio_hw *hw = req->lnode->hwp;
 	struct csio_scsim *scm = csio_hw_to_scsim(hw);
 
-	switch (evt) {
-	case CSIO_SCSIE_COMPLETED:
-		csio_dbg(hw,
-			 "ioreq %p recvd cmpltd (wr_status:%d) "
-			 "in aborting st\n", req, req->wr_status);
-		/*
-		 * Use -ECANCELED to explicitly tell the ABORTED event that
-		 * the original I/O was returned to driver by FW.
-		 * We dont really care if the I/O was returned with success by
-		 * FW (because the ABORT and completion of the I/O crossed each
-		 * other), or any other return value. Once we are in aborting
-		 * state, the success or failure of the I/O is unimportant to
-		 * us.
-		 */
-		req->drv_status = -ECANCELED;
-		break;
+	switch (evt)
+	{
+		case CSIO_SCSIE_COMPLETED:
+			csio_dbg(hw,
+					 "ioreq %p recvd cmpltd (wr_status:%d) "
+					 "in aborting st\n", req, req->wr_status);
+			/*
+			 * Use -ECANCELED to explicitly tell the ABORTED event that
+			 * the original I/O was returned to driver by FW.
+			 * We dont really care if the I/O was returned with success by
+			 * FW (because the ABORT and completion of the I/O crossed each
+			 * other), or any other return value. Once we are in aborting
+			 * state, the success or failure of the I/O is unimportant to
+			 * us.
+			 */
+			req->drv_status = -ECANCELED;
+			break;
 
-	case CSIO_SCSIE_ABORT:
-		CSIO_INC_STATS(scm, n_abrt_dups);
-		break;
+		case CSIO_SCSIE_ABORT:
+			CSIO_INC_STATS(scm, n_abrt_dups);
+			break;
 
-	case CSIO_SCSIE_ABORTED:
+		case CSIO_SCSIE_ABORTED:
 
-		csio_dbg(hw, "abort of %p return status:0x%x drv_status:%x\n",
-			 req, req->wr_status, req->drv_status);
-		/*
-		 * Check if original I/O WR completed before the Abort
-		 * completion.
-		 */
-		if (req->drv_status != -ECANCELED) {
-			csio_warn(hw,
-				  "Abort completed before original I/O,"
-				   " req:%p\n", req);
+			csio_dbg(hw, "abort of %p return status:0x%x drv_status:%x\n",
+					 req, req->wr_status, req->drv_status);
+
+			/*
+			 * Check if original I/O WR completed before the Abort
+			 * completion.
+			 */
+			if (req->drv_status != -ECANCELED)
+			{
+				csio_warn(hw,
+						  "Abort completed before original I/O,"
+						  " req:%p\n", req);
+				CSIO_DB_ASSERT(0);
+			}
+
+			/*
+			 * There are the following possible scenarios:
+			 * 1. The abort completed successfully, FW returned FW_SUCCESS.
+			 * 2. The completion of an I/O and the receipt of
+			 *    abort for that I/O by the FW crossed each other.
+			 *    The FW returned FW_EINVAL. The original I/O would have
+			 *    returned with FW_SUCCESS or any other SCSI error.
+			 * 3. The FW couldnt sent the abort out on the wire, as there
+			 *    was an I-T nexus loss (link down, remote device logged
+			 *    out etc). FW sent back an appropriate IT nexus loss status
+			 *    for the abort.
+			 * 4. FW sent an abort, but abort timed out (remote device
+			 *    didnt respond). FW replied back with
+			 *    FW_SCSI_ABORT_TIMEDOUT.
+			 * 5. FW couldnt genuinely abort the request for some reason,
+			 *    and sent us an error.
+			 *
+			 * The first 3 scenarios are treated as  succesful abort
+			 * operations by the host, while the last 2 are failed attempts
+			 * to abort. Manipulate the return value of the request
+			 * appropriately, so that host can convey these results
+			 * back to the upper layer.
+			 */
+			if ((req->wr_status == FW_SUCCESS) ||
+				(req->wr_status == FW_EINVAL) ||
+				csio_scsi_itnexus_loss_error(req->wr_status))
+			{
+				req->wr_status = FW_SCSI_ABORT_REQUESTED;
+			}
+
+			CSIO_DEC_STATS(scm, n_active);
+			list_del_init(&req->sm.sm_list);
+			csio_set_state(&req->sm, csio_scsis_uninit);
+			break;
+
+		case CSIO_SCSIE_DRVCLEANUP:
+			req->wr_status = FW_HOSTERROR;
+			CSIO_DEC_STATS(scm, n_active);
+			csio_set_state(&req->sm, csio_scsis_uninit);
+			break;
+
+		case CSIO_SCSIE_CLOSE:
+			/*
+			 * We can receive this event from the module
+			 * cleanup paths, if the FW forgot to reply to the ABORT WR
+			 * and left this ioreq in this state. For now, just ignore
+			 * the event. The CLOSE event is sent to this state, as
+			 * the LINK may have already gone down.
+			 */
+			break;
+
+		default:
+			csio_dbg(hw, "Unhandled event:%d sent to req:%p\n", evt, req);
 			CSIO_DB_ASSERT(0);
-		}
-
-		/*
-		 * There are the following possible scenarios:
-		 * 1. The abort completed successfully, FW returned FW_SUCCESS.
-		 * 2. The completion of an I/O and the receipt of
-		 *    abort for that I/O by the FW crossed each other.
-		 *    The FW returned FW_EINVAL. The original I/O would have
-		 *    returned with FW_SUCCESS or any other SCSI error.
-		 * 3. The FW couldnt sent the abort out on the wire, as there
-		 *    was an I-T nexus loss (link down, remote device logged
-		 *    out etc). FW sent back an appropriate IT nexus loss status
-		 *    for the abort.
-		 * 4. FW sent an abort, but abort timed out (remote device
-		 *    didnt respond). FW replied back with
-		 *    FW_SCSI_ABORT_TIMEDOUT.
-		 * 5. FW couldnt genuinely abort the request for some reason,
-		 *    and sent us an error.
-		 *
-		 * The first 3 scenarios are treated as  succesful abort
-		 * operations by the host, while the last 2 are failed attempts
-		 * to abort. Manipulate the return value of the request
-		 * appropriately, so that host can convey these results
-		 * back to the upper layer.
-		 */
-		if ((req->wr_status == FW_SUCCESS) ||
-		    (req->wr_status == FW_EINVAL) ||
-		    csio_scsi_itnexus_loss_error(req->wr_status))
-			req->wr_status = FW_SCSI_ABORT_REQUESTED;
-
-		CSIO_DEC_STATS(scm, n_active);
-		list_del_init(&req->sm.sm_list);
-		csio_set_state(&req->sm, csio_scsis_uninit);
-		break;
-
-	case CSIO_SCSIE_DRVCLEANUP:
-		req->wr_status = FW_HOSTERROR;
-		CSIO_DEC_STATS(scm, n_active);
-		csio_set_state(&req->sm, csio_scsis_uninit);
-		break;
-
-	case CSIO_SCSIE_CLOSE:
-		/*
-		 * We can receive this event from the module
-		 * cleanup paths, if the FW forgot to reply to the ABORT WR
-		 * and left this ioreq in this state. For now, just ignore
-		 * the event. The CLOSE event is sent to this state, as
-		 * the LINK may have already gone down.
-		 */
-		break;
-
-	default:
-		csio_dbg(hw, "Unhandled event:%d sent to req:%p\n", evt, req);
-		CSIO_DB_ASSERT(0);
 	}
 }
 
@@ -987,95 +1096,101 @@ csio_scsis_closing(struct csio_ioreq *req, enum csio_scsi_ev evt)
 	struct csio_hw *hw = req->lnode->hwp;
 	struct csio_scsim *scm = csio_hw_to_scsim(hw);
 
-	switch (evt) {
-	case CSIO_SCSIE_COMPLETED:
-		csio_dbg(hw,
-			 "ioreq %p recvd cmpltd (wr_status:%d) "
-			 "in closing st\n", req, req->wr_status);
-		/*
-		 * Use -ECANCELED to explicitly tell the CLOSED event that
-		 * the original I/O was returned to driver by FW.
-		 * We dont really care if the I/O was returned with success by
-		 * FW (because the CLOSE and completion of the I/O crossed each
-		 * other), or any other return value. Once we are in aborting
-		 * state, the success or failure of the I/O is unimportant to
-		 * us.
-		 */
-		req->drv_status = -ECANCELED;
-		break;
+	switch (evt)
+	{
+		case CSIO_SCSIE_COMPLETED:
+			csio_dbg(hw,
+					 "ioreq %p recvd cmpltd (wr_status:%d) "
+					 "in closing st\n", req, req->wr_status);
+			/*
+			 * Use -ECANCELED to explicitly tell the CLOSED event that
+			 * the original I/O was returned to driver by FW.
+			 * We dont really care if the I/O was returned with success by
+			 * FW (because the CLOSE and completion of the I/O crossed each
+			 * other), or any other return value. Once we are in aborting
+			 * state, the success or failure of the I/O is unimportant to
+			 * us.
+			 */
+			req->drv_status = -ECANCELED;
+			break;
 
-	case CSIO_SCSIE_CLOSED:
-		/*
-		 * Check if original I/O WR completed before the Close
-		 * completion.
-		 */
-		if (req->drv_status != -ECANCELED) {
-			csio_fatal(hw,
-				   "Close completed before original I/O,"
-				   " req:%p\n", req);
+		case CSIO_SCSIE_CLOSED:
+
+			/*
+			 * Check if original I/O WR completed before the Close
+			 * completion.
+			 */
+			if (req->drv_status != -ECANCELED)
+			{
+				csio_fatal(hw,
+						   "Close completed before original I/O,"
+						   " req:%p\n", req);
+				CSIO_DB_ASSERT(0);
+			}
+
+			/*
+			 * Either close succeeded, or we issued close to FW at the
+			 * same time FW compelted it to us. Either way, the I/O
+			 * is closed.
+			 */
+			CSIO_DB_ASSERT((req->wr_status == FW_SUCCESS) ||
+						   (req->wr_status == FW_EINVAL));
+			req->wr_status = FW_SCSI_CLOSE_REQUESTED;
+
+			CSIO_DEC_STATS(scm, n_active);
+			list_del_init(&req->sm.sm_list);
+			csio_set_state(&req->sm, csio_scsis_uninit);
+			break;
+
+		case CSIO_SCSIE_CLOSE:
+			break;
+
+		case CSIO_SCSIE_DRVCLEANUP:
+			req->wr_status = FW_HOSTERROR;
+			CSIO_DEC_STATS(scm, n_active);
+			csio_set_state(&req->sm, csio_scsis_uninit);
+			break;
+
+		default:
+			csio_dbg(hw, "Unhandled event:%d sent to req:%p\n", evt, req);
 			CSIO_DB_ASSERT(0);
-		}
-
-		/*
-		 * Either close succeeded, or we issued close to FW at the
-		 * same time FW compelted it to us. Either way, the I/O
-		 * is closed.
-		 */
-		CSIO_DB_ASSERT((req->wr_status == FW_SUCCESS) ||
-					(req->wr_status == FW_EINVAL));
-		req->wr_status = FW_SCSI_CLOSE_REQUESTED;
-
-		CSIO_DEC_STATS(scm, n_active);
-		list_del_init(&req->sm.sm_list);
-		csio_set_state(&req->sm, csio_scsis_uninit);
-		break;
-
-	case CSIO_SCSIE_CLOSE:
-		break;
-
-	case CSIO_SCSIE_DRVCLEANUP:
-		req->wr_status = FW_HOSTERROR;
-		CSIO_DEC_STATS(scm, n_active);
-		csio_set_state(&req->sm, csio_scsis_uninit);
-		break;
-
-	default:
-		csio_dbg(hw, "Unhandled event:%d sent to req:%p\n", evt, req);
-		CSIO_DB_ASSERT(0);
 	}
 }
 
 static void
 csio_scsis_shost_cmpl_await(struct csio_ioreq *req, enum csio_scsi_ev evt)
 {
-	switch (evt) {
-	case CSIO_SCSIE_ABORT:
-	case CSIO_SCSIE_CLOSE:
-		/*
-		 * Just succeed the abort request, and hope that
-		 * the remote device unregister path will cleanup
-		 * this I/O to the upper layer within a sane
-		 * amount of time.
-		 */
-		/*
-		 * A close can come in during a LINK DOWN. The FW would have
-		 * returned us the I/O back, but not the remote device lost
-		 * FW event. In this interval, if the I/O times out at the upper
-		 * layer, a close can come in. Take the same action as abort:
-		 * return success, and hope that the remote device unregister
-		 * path will cleanup this I/O. If the FW still doesnt send
-		 * the msg, the close times out, and the upper layer resorts
-		 * to the next level of error recovery.
-		 */
-		req->drv_status = 0;
-		break;
-	case CSIO_SCSIE_DRVCLEANUP:
-		csio_set_state(&req->sm, csio_scsis_uninit);
-		break;
-	default:
-		csio_dbg(req->lnode->hwp, "Unhandled event:%d sent to req:%p\n",
-			 evt, req);
-		CSIO_DB_ASSERT(0);
+	switch (evt)
+	{
+		case CSIO_SCSIE_ABORT:
+		case CSIO_SCSIE_CLOSE:
+			/*
+			 * Just succeed the abort request, and hope that
+			 * the remote device unregister path will cleanup
+			 * this I/O to the upper layer within a sane
+			 * amount of time.
+			 */
+			/*
+			 * A close can come in during a LINK DOWN. The FW would have
+			 * returned us the I/O back, but not the remote device lost
+			 * FW event. In this interval, if the I/O times out at the upper
+			 * layer, a close can come in. Take the same action as abort:
+			 * return success, and hope that the remote device unregister
+			 * path will cleanup this I/O. If the FW still doesnt send
+			 * the msg, the close times out, and the upper layer resorts
+			 * to the next level of error recovery.
+			 */
+			req->drv_status = 0;
+			break;
+
+		case CSIO_SCSIE_DRVCLEANUP:
+			csio_set_state(&req->sm, csio_scsis_uninit);
+			break;
+
+		default:
+			csio_dbg(req->lnode->hwp, "Unhandled event:%d sent to req:%p\n",
+					 evt, req);
+			CSIO_DB_ASSERT(0);
 	}
 }
 
@@ -1100,7 +1215,7 @@ csio_scsis_shost_cmpl_await(struct csio_ioreq *req, enum csio_scsi_ev evt)
  */
 struct csio_ioreq *
 csio_scsi_cmpl_handler(struct csio_hw *hw, void *wr, uint32_t len,
-		     struct csio_fl_dma_buf *flb, void *priv, uint8_t **scsiwr)
+					   struct csio_fl_dma_buf *flb, void *priv, uint8_t **scsiwr)
 {
 	struct csio_ioreq *ioreq = NULL;
 	struct cpl_fw6_msg *cpl;
@@ -1111,9 +1226,10 @@ csio_scsi_cmpl_handler(struct csio_hw *hw, void *wr, uint32_t len,
 	/* skip RSS header */
 	cpl = (struct cpl_fw6_msg *)((uintptr_t)wr + sizeof(__be64));
 
-	if (unlikely(cpl->opcode != CPL_FW6_MSG)) {
+	if (unlikely(cpl->opcode != CPL_FW6_MSG))
+	{
 		csio_warn(hw, "Error: Invalid CPL msg %x recvd on SCSI q\n",
-			  cpl->opcode);
+				  cpl->opcode);
 		CSIO_INC_STATS(scm, n_inval_cplop);
 		return NULL;
 	}
@@ -1123,10 +1239,11 @@ csio_scsi_cmpl_handler(struct csio_hw *hw, void *wr, uint32_t len,
 	*scsiwr = tempwr;
 
 	if (likely((*tempwr == FW_SCSI_READ_WR) ||
-			(*tempwr == FW_SCSI_WRITE_WR) ||
-			(*tempwr == FW_SCSI_CMD_WR))) {
+			   (*tempwr == FW_SCSI_WRITE_WR) ||
+			   (*tempwr == FW_SCSI_CMD_WR)))
+	{
 		ioreq = (struct csio_ioreq *)((uintptr_t)
-				 (((struct fw_scsi_read_wr *)tempwr)->cookie));
+									  (((struct fw_scsi_read_wr *)tempwr)->cookie));
 		CSIO_DB_ASSERT(virt_addr_valid(ioreq));
 
 		ioreq->wr_status = status;
@@ -1134,9 +1251,10 @@ csio_scsi_cmpl_handler(struct csio_hw *hw, void *wr, uint32_t len,
 		return ioreq;
 	}
 
-	if (*tempwr == FW_SCSI_ABRT_CLS_WR) {
+	if (*tempwr == FW_SCSI_ABRT_CLS_WR)
+	{
 		ioreq = (struct csio_ioreq *)((uintptr_t)
-			 (((struct fw_scsi_abrt_cls_wr *)tempwr)->cookie));
+									  (((struct fw_scsi_abrt_cls_wr *)tempwr)->cookie));
 		CSIO_DB_ASSERT(virt_addr_valid(ioreq));
 
 		ioreq->wr_status = status;
@@ -1164,7 +1282,8 @@ csio_scsi_cleanup_io_q(struct csio_scsim *scm, struct list_head *q)
 	struct scsi_cmnd *scmnd;
 
 	/* Call back the completion routines of the active_q */
-	list_for_each_safe(tmp, next, q) {
+	list_for_each_safe(tmp, next, q)
+	{
 		ioreq = (struct csio_ioreq *)tmp;
 		csio_scsi_drvcleanup(ioreq);
 		list_del_init(&ioreq->sm.sm_list);
@@ -1176,7 +1295,9 @@ csio_scsi_cleanup_io_q(struct csio_scsim *scm, struct list_head *q)
 		 * check to avoid accessing stale references.
 		 */
 		if (scmnd != NULL)
+		{
 			ioreq->io_cbfn(hw, ioreq);
+		}
 
 		spin_lock_irq(&scm->freelist_lock);
 		csio_put_scsi_ioreq(scm, ioreq);
@@ -1197,7 +1318,8 @@ csio_abrt_cls(struct csio_ioreq *ioreq, struct scsi_cmnd *scmnd)
 	struct csio_scsim *scsim = csio_hw_to_scsim(hw);
 	int rv;
 
-	if (csio_scsi_cmnd(ioreq) != scmnd) {
+	if (csio_scsi_cmnd(ioreq) != scmnd)
+	{
 		CSIO_INC_STATS(scsim, n_abrt_race_comp);
 		return;
 	}
@@ -1205,11 +1327,17 @@ csio_abrt_cls(struct csio_ioreq *ioreq, struct scsi_cmnd *scmnd)
 	ready = csio_is_lnode_ready(ln);
 
 	rv = csio_do_abrt_cls(hw, ioreq, (ready ? SCSI_ABORT : SCSI_CLOSE));
-	if (rv != 0) {
+
+	if (rv != 0)
+	{
 		if (ready)
+		{
 			CSIO_INC_STATS(scsim, n_abrt_busy_error);
+		}
 		else
+		{
 			CSIO_INC_STATS(scsim, n_cls_busy_error);
+		}
 	}
 }
 
@@ -1238,18 +1366,22 @@ csio_scsi_abort_io_q(struct csio_scsim *scm, struct list_head *q, uint32_t tmo)
 	struct scsi_cmnd *scmnd;
 
 	if (list_empty(q))
+	{
 		return 0;
+	}
 
 	csio_dbg(hw, "Aborting SCSI I/Os\n");
 
 	/* Now abort/close I/Os in the queue passed */
-	list_for_each_safe(tmp, next, q) {
+	list_for_each_safe(tmp, next, q)
+	{
 		scmnd = csio_scsi_cmnd((struct csio_ioreq *)tmp);
 		csio_abrt_cls((struct csio_ioreq *)tmp, scmnd);
 	}
 
 	/* Wait till all active I/Os are completed/aborted/closed */
-	while (!list_empty(q) && count--) {
+	while (!list_empty(q) && count--)
+	{
 		spin_unlock_irq(&hw->lock);
 		msleep(CSIO_SCSI_ABORT_Q_POLL_MS);
 		spin_lock_irq(&hw->lock);
@@ -1257,7 +1389,9 @@ csio_scsi_abort_io_q(struct csio_scsim *scm, struct list_head *q, uint32_t tmo)
 
 	/* all aborts completed */
 	if (list_empty(q))
+	{
 		return 0;
+	}
 
 	return -ETIMEDOUT;
 }
@@ -1278,10 +1412,13 @@ csio_scsim_cleanup_io(struct csio_scsim *scm, bool abort)
 
 	/* No I/Os pending */
 	if (list_empty(&scm->active_q))
+	{
 		return 0;
+	}
 
 	/* Wait until all active I/Os are completed */
-	while (!list_empty(&scm->active_q) && count--) {
+	while (!list_empty(&scm->active_q) && count--)
+	{
 		spin_unlock_irq(&hw->lock);
 		msleep(CSIO_SCSI_ABORT_Q_POLL_MS);
 		spin_lock_irq(&hw->lock);
@@ -1289,13 +1426,20 @@ csio_scsim_cleanup_io(struct csio_scsim *scm, bool abort)
 
 	/* all I/Os completed */
 	if (list_empty(&scm->active_q))
+	{
 		return 0;
+	}
 
 	/* Else abort */
-	if (abort) {
+	if (abort)
+	{
 		rv = csio_scsi_abort_io_q(scm, &scm->active_q, 30000);
+
 		if (rv == 0)
+		{
 			return rv;
+		}
+
 		csio_dbg(hw, "Some I/O aborts timed out, cleaning up..\n");
 	}
 
@@ -1331,10 +1475,13 @@ csio_scsim_cleanup_io_lnode(struct csio_scsim *scm, struct csio_lnode *ln)
 
 	/* No I/Os pending on this lnode  */
 	if (list_empty(&ln->cmpl_q))
+	{
 		return 0;
+	}
 
 	/* Wait until all active I/Os on this lnode are completed */
-	while (!list_empty(&ln->cmpl_q) && count--) {
+	while (!list_empty(&ln->cmpl_q) && count--)
+	{
 		spin_unlock_irq(&hw->lock);
 		msleep(CSIO_SCSI_ABORT_Q_POLL_MS);
 		spin_lock_irq(&hw->lock);
@@ -1342,13 +1489,17 @@ csio_scsim_cleanup_io_lnode(struct csio_scsim *scm, struct csio_lnode *ln)
 
 	/* all I/Os completed */
 	if (list_empty(&ln->cmpl_q))
+	{
 		return 0;
+	}
 
 	csio_dbg(hw, "Some I/Os pending on ln:%p, aborting them..\n", ln);
 
 	/* I/Os are pending, abort them */
 	rv = csio_scsi_abort_io_q(scm, &ln->cmpl_q, 30000);
-	if (rv != 0) {
+
+	if (rv != 0)
+	{
 		csio_dbg(hw, "Some I/O aborts timed out, cleaning up..\n");
 		csio_scsi_cleanup_io_q(scm, &ln->cmpl_q);
 	}
@@ -1360,30 +1511,36 @@ csio_scsim_cleanup_io_lnode(struct csio_scsim *scm, struct csio_lnode *ln)
 
 static ssize_t
 csio_show_hw_state(struct device *dev,
-		   struct device_attribute *attr, char *buf)
+				   struct device_attribute *attr, char *buf)
 {
 	struct csio_lnode *ln = shost_priv(class_to_shost(dev));
 	struct csio_hw *hw = csio_lnode_to_hw(ln);
 
 	if (csio_is_hw_ready(hw))
+	{
 		return snprintf(buf, PAGE_SIZE, "ready\n");
+	}
 	else
+	{
 		return snprintf(buf, PAGE_SIZE, "not ready\n");
+	}
 }
 
 /* Device reset */
 static ssize_t
 csio_device_reset(struct device *dev,
-		   struct device_attribute *attr, const char *buf, size_t count)
+				  struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct csio_lnode *ln = shost_priv(class_to_shost(dev));
 	struct csio_hw *hw = csio_lnode_to_hw(ln);
 
 	if (*buf != '1')
+	{
 		return -EINVAL;
+	}
 
 	/* Delete NPIV lnodes */
-	 csio_lnodes_exit(hw, 1);
+	csio_lnodes_exit(hw, 1);
 
 	/* Block upper IOs */
 	csio_lnodes_block_request(hw);
@@ -1400,16 +1557,20 @@ csio_device_reset(struct device *dev,
 /* disable port */
 static ssize_t
 csio_disable_port(struct device *dev,
-		   struct device_attribute *attr, const char *buf, size_t count)
+				  struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct csio_lnode *ln = shost_priv(class_to_shost(dev));
 	struct csio_hw *hw = csio_lnode_to_hw(ln);
 	bool disable;
 
 	if (*buf == '1' || *buf == '0')
+	{
 		disable = (*buf == '1') ? true : false;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	/* Block upper IOs */
 	csio_lnodes_block_by_port(hw, ln->portid);
@@ -1426,7 +1587,7 @@ csio_disable_port(struct device *dev,
 /* Show debug level */
 static ssize_t
 csio_show_dbg_level(struct device *dev,
-		   struct device_attribute *attr, char *buf)
+					struct device_attribute *attr, char *buf)
 {
 	struct csio_lnode *ln = shost_priv(class_to_shost(dev));
 
@@ -1436,17 +1597,21 @@ csio_show_dbg_level(struct device *dev,
 /* Store debug level */
 static ssize_t
 csio_store_dbg_level(struct device *dev,
-		   struct device_attribute *attr, const char *buf, size_t count)
+					 struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct csio_lnode *ln = shost_priv(class_to_shost(dev));
 	struct csio_hw *hw = csio_lnode_to_hw(ln);
 	uint32_t dbg_level = 0;
 
 	if (!isdigit(buf[0]))
+	{
 		return -EINVAL;
+	}
 
 	if (sscanf(buf, "%i", &dbg_level))
+	{
 		return -EINVAL;
+	}
 
 	ln->params.log_level = dbg_level;
 	hw->params.log_level = dbg_level;
@@ -1458,9 +1623,10 @@ static DEVICE_ATTR(hw_state, S_IRUGO, csio_show_hw_state, NULL);
 static DEVICE_ATTR(device_reset, S_IWUSR, NULL, csio_device_reset);
 static DEVICE_ATTR(disable_port, S_IWUSR, NULL, csio_disable_port);
 static DEVICE_ATTR(dbg_level, S_IRUGO | S_IWUSR, csio_show_dbg_level,
-		  csio_store_dbg_level);
+				   csio_store_dbg_level);
 
-static struct device_attribute *csio_fcoe_lport_attrs[] = {
+static struct device_attribute *csio_fcoe_lport_attrs[] =
+{
 	&dev_attr_hw_state,
 	&dev_attr_device_reset,
 	&dev_attr_disable_port,
@@ -1470,7 +1636,7 @@ static struct device_attribute *csio_fcoe_lport_attrs[] = {
 
 static ssize_t
 csio_show_num_reg_rnodes(struct device *dev,
-		     struct device_attribute *attr, char *buf)
+						 struct device_attribute *attr, char *buf)
 {
 	struct csio_lnode *ln = shost_priv(class_to_shost(dev));
 
@@ -1479,7 +1645,8 @@ csio_show_num_reg_rnodes(struct device *dev,
 
 static DEVICE_ATTR(num_reg_rnodes, S_IRUGO, csio_show_num_reg_rnodes, NULL);
 
-static struct device_attribute *csio_fcoe_vport_attrs[] = {
+static struct device_attribute *csio_fcoe_vport_attrs[] =
+{
 	&dev_attr_num_reg_rnodes,
 	&dev_attr_dbg_level,
 	NULL,
@@ -1504,15 +1671,18 @@ csio_scsi_copy_to_sgl(struct csio_hw *hw, struct csio_ioreq *req)
 	dma_buf = (struct csio_dma_buf *)csio_list_next(&req->gen_list);
 
 	/* Copy data from driver buffer to SGs of SCSI CMD */
-	while (bytes_left > 0 && sg && dma_buf) {
-		if (buf_off >= dma_buf->len) {
+	while (bytes_left > 0 && sg && dma_buf)
+	{
+		if (buf_off >= dma_buf->len)
+		{
 			buf_off = 0;
 			dma_buf = (struct csio_dma_buf *)
-					csio_list_next(dma_buf);
+					  csio_list_next(dma_buf);
 			continue;
 		}
 
-		if (start_off >= sg->length) {
+		if (start_off >= sg->length)
+		{
 			start_off -= sg->length;
 			sg = sg_next(sg);
 			continue;
@@ -1521,19 +1691,21 @@ csio_scsi_copy_to_sgl(struct csio_hw *hw, struct csio_ioreq *req)
 		buf_addr = dma_buf->vaddr + buf_off;
 		sg_off = sg->offset + start_off;
 		bytes_copy = min((dma_buf->len - buf_off),
-				sg->length - start_off);
+						 sg->length - start_off);
 		bytes_copy = min((uint32_t)(PAGE_SIZE - (sg_off & ~PAGE_MASK)),
-				 bytes_copy);
+						 bytes_copy);
 
 		sg_addr = kmap_atomic(sg_page(sg) + (sg_off >> PAGE_SHIFT));
-		if (!sg_addr) {
+
+		if (!sg_addr)
+		{
 			csio_err(hw, "failed to kmap sg:%p of ioreq:%p\n",
-				sg, req);
+					 sg, req);
 			break;
 		}
 
 		csio_dbg(hw, "copy_to_sgl:sg_addr %p sg_off %d buf %p len %d\n",
-				sg_addr, sg_off, buf_addr, bytes_copy);
+				 sg_addr, sg_off, buf_addr, bytes_copy);
 		memcpy(sg_addr + (sg_off & ~PAGE_MASK), buf_addr, bytes_copy);
 		kunmap_atomic(sg_addr);
 
@@ -1543,9 +1715,13 @@ csio_scsi_copy_to_sgl(struct csio_hw *hw, struct csio_ioreq *req)
 	}
 
 	if (bytes_left > 0)
+	{
 		return DID_ERROR;
+	}
 	else
+	{
 		return DID_OK;
+	}
 }
 
 /*
@@ -1568,153 +1744,179 @@ csio_scsi_err_handler(struct csio_hw *hw, struct csio_ioreq *req)
 	struct csio_rnode *rn = (struct csio_rnode *)(cmnd->device->hostdata);
 
 
-	switch (req->wr_status) {
-	case FW_HOSTERROR:
-		if (unlikely(!csio_is_hw_ready(hw)))
-			return;
-
-		host_status = DID_ERROR;
-		CSIO_INC_STATS(scm, n_hosterror);
-
-		break;
-	case FW_SCSI_RSP_ERR:
-		dma_buf = &req->dma_buf;
-		fcp_resp = (struct fcp_resp_with_ext *)dma_buf->vaddr;
-		rsp_info = (struct fcp_resp_rsp_info *)(fcp_resp + 1);
-		flags = fcp_resp->resp.fr_flags;
-		scsi_status = fcp_resp->resp.fr_status;
-
-		if (flags & FCP_RSP_LEN_VAL) {
-			rsp_len = be32_to_cpu(fcp_resp->ext.fr_rsp_len);
-			if ((rsp_len != 0 && rsp_len != 4 && rsp_len != 8) ||
-				(rsp_info->rsp_code != FCP_TMF_CMPL)) {
-				host_status = DID_ERROR;
-				goto out;
+	switch (req->wr_status)
+	{
+		case FW_HOSTERROR:
+			if (unlikely(!csio_is_hw_ready(hw)))
+			{
+				return;
 			}
-		}
 
-		if ((flags & FCP_SNS_LEN_VAL) && fcp_resp->ext.fr_sns_len) {
-			sns_len = be32_to_cpu(fcp_resp->ext.fr_sns_len);
-			if (sns_len > SCSI_SENSE_BUFFERSIZE)
-				sns_len = SCSI_SENSE_BUFFERSIZE;
-
-			memcpy(cmnd->sense_buffer,
-			       &rsp_info->_fr_resvd[0] + rsp_len, sns_len);
-			CSIO_INC_STATS(scm, n_autosense);
-		}
-
-		scsi_set_resid(cmnd, 0);
-
-		/* Under run */
-		if (flags & FCP_RESID_UNDER) {
-			scsi_set_resid(cmnd,
-				       be32_to_cpu(fcp_resp->ext.fr_resid));
-
-			if (!(flags & FCP_SNS_LEN_VAL) &&
-			    (scsi_status == SAM_STAT_GOOD) &&
-			    ((scsi_bufflen(cmnd) - scsi_get_resid(cmnd))
-							< cmnd->underflow))
-				host_status = DID_ERROR;
-		} else if (flags & FCP_RESID_OVER)
 			host_status = DID_ERROR;
+			CSIO_INC_STATS(scm, n_hosterror);
 
-		CSIO_INC_STATS(scm, n_rsperror);
-		break;
+			break;
 
-	case FW_SCSI_OVER_FLOW_ERR:
-		csio_warn(hw,
-			  "Over-flow error,cmnd:0x%x expected len:0x%x"
-			  " resid:0x%x\n", cmnd->cmnd[0],
-			  scsi_bufflen(cmnd), scsi_get_resid(cmnd));
-		host_status = DID_ERROR;
-		CSIO_INC_STATS(scm, n_ovflerror);
-		break;
+		case FW_SCSI_RSP_ERR:
+			dma_buf = &req->dma_buf;
+			fcp_resp = (struct fcp_resp_with_ext *)dma_buf->vaddr;
+			rsp_info = (struct fcp_resp_rsp_info *)(fcp_resp + 1);
+			flags = fcp_resp->resp.fr_flags;
+			scsi_status = fcp_resp->resp.fr_status;
 
-	case FW_SCSI_UNDER_FLOW_ERR:
-		csio_warn(hw,
-			  "Under-flow error,cmnd:0x%x expected"
-			  " len:0x%x resid:0x%x lun:0x%llx ssn:0x%x\n",
-			  cmnd->cmnd[0], scsi_bufflen(cmnd),
-			  scsi_get_resid(cmnd), cmnd->device->lun,
-			  rn->flowid);
-		host_status = DID_ERROR;
-		CSIO_INC_STATS(scm, n_unflerror);
-		break;
+			if (flags & FCP_RSP_LEN_VAL)
+			{
+				rsp_len = be32_to_cpu(fcp_resp->ext.fr_rsp_len);
 
-	case FW_SCSI_ABORT_REQUESTED:
-	case FW_SCSI_ABORTED:
-	case FW_SCSI_CLOSE_REQUESTED:
-		csio_dbg(hw, "Req %p cmd:%p op:%x %s\n", req, cmnd,
-			     cmnd->cmnd[0],
-			    (req->wr_status == FW_SCSI_CLOSE_REQUESTED) ?
-			    "closed" : "aborted");
-		/*
-		 * csio_eh_abort_handler checks this value to
-		 * succeed or fail the abort request.
-		 */
-		host_status = DID_REQUEUE;
-		if (req->wr_status == FW_SCSI_CLOSE_REQUESTED)
-			CSIO_INC_STATS(scm, n_closed);
-		else
-			CSIO_INC_STATS(scm, n_aborted);
-		break;
+				if ((rsp_len != 0 && rsp_len != 4 && rsp_len != 8) ||
+					(rsp_info->rsp_code != FCP_TMF_CMPL))
+				{
+					host_status = DID_ERROR;
+					goto out;
+				}
+			}
 
-	case FW_SCSI_ABORT_TIMEDOUT:
-		/* FW timed out the abort itself */
-		csio_dbg(hw, "FW timed out abort req:%p cmnd:%p status:%x\n",
-			 req, cmnd, req->wr_status);
-		host_status = DID_ERROR;
-		CSIO_INC_STATS(scm, n_abrt_timedout);
-		break;
+			if ((flags & FCP_SNS_LEN_VAL) && fcp_resp->ext.fr_sns_len)
+			{
+				sns_len = be32_to_cpu(fcp_resp->ext.fr_sns_len);
 
-	case FW_RDEV_NOT_READY:
-		/*
-		 * In firmware, a RDEV can get into this state
-		 * temporarily, before moving into dissapeared/lost
-		 * state. So, the driver should complete the request equivalent
-		 * to device-disappeared!
-		 */
-		CSIO_INC_STATS(scm, n_rdev_nr_error);
-		host_status = DID_ERROR;
-		break;
+				if (sns_len > SCSI_SENSE_BUFFERSIZE)
+				{
+					sns_len = SCSI_SENSE_BUFFERSIZE;
+				}
 
-	case FW_ERR_RDEV_LOST:
-		CSIO_INC_STATS(scm, n_rdev_lost_error);
-		host_status = DID_ERROR;
-		break;
+				memcpy(cmnd->sense_buffer,
+					   &rsp_info->_fr_resvd[0] + rsp_len, sns_len);
+				CSIO_INC_STATS(scm, n_autosense);
+			}
 
-	case FW_ERR_RDEV_LOGO:
-		CSIO_INC_STATS(scm, n_rdev_logo_error);
-		host_status = DID_ERROR;
-		break;
+			scsi_set_resid(cmnd, 0);
 
-	case FW_ERR_RDEV_IMPL_LOGO:
-		host_status = DID_ERROR;
-		break;
+			/* Under run */
+			if (flags & FCP_RESID_UNDER)
+			{
+				scsi_set_resid(cmnd,
+							   be32_to_cpu(fcp_resp->ext.fr_resid));
 
-	case FW_ERR_LINK_DOWN:
-		CSIO_INC_STATS(scm, n_link_down_error);
-		host_status = DID_ERROR;
-		break;
+				if (!(flags & FCP_SNS_LEN_VAL) &&
+					(scsi_status == SAM_STAT_GOOD) &&
+					((scsi_bufflen(cmnd) - scsi_get_resid(cmnd))
+					 < cmnd->underflow))
+				{
+					host_status = DID_ERROR;
+				}
+			}
+			else if (flags & FCP_RESID_OVER)
+			{
+				host_status = DID_ERROR;
+			}
 
-	case FW_FCOE_NO_XCHG:
-		CSIO_INC_STATS(scm, n_no_xchg_error);
-		host_status = DID_ERROR;
-		break;
+			CSIO_INC_STATS(scm, n_rsperror);
+			break;
 
-	default:
-		csio_err(hw, "Unknown SCSI FW WR status:%d req:%p cmnd:%p\n",
-			    req->wr_status, req, cmnd);
-		CSIO_DB_ASSERT(0);
+		case FW_SCSI_OVER_FLOW_ERR:
+			csio_warn(hw,
+					  "Over-flow error,cmnd:0x%x expected len:0x%x"
+					  " resid:0x%x\n", cmnd->cmnd[0],
+					  scsi_bufflen(cmnd), scsi_get_resid(cmnd));
+			host_status = DID_ERROR;
+			CSIO_INC_STATS(scm, n_ovflerror);
+			break;
 
-		CSIO_INC_STATS(scm, n_unknown_error);
-		host_status = DID_ERROR;
-		break;
+		case FW_SCSI_UNDER_FLOW_ERR:
+			csio_warn(hw,
+					  "Under-flow error,cmnd:0x%x expected"
+					  " len:0x%x resid:0x%x lun:0x%llx ssn:0x%x\n",
+					  cmnd->cmnd[0], scsi_bufflen(cmnd),
+					  scsi_get_resid(cmnd), cmnd->device->lun,
+					  rn->flowid);
+			host_status = DID_ERROR;
+			CSIO_INC_STATS(scm, n_unflerror);
+			break;
+
+		case FW_SCSI_ABORT_REQUESTED:
+		case FW_SCSI_ABORTED:
+		case FW_SCSI_CLOSE_REQUESTED:
+			csio_dbg(hw, "Req %p cmd:%p op:%x %s\n", req, cmnd,
+					 cmnd->cmnd[0],
+					 (req->wr_status == FW_SCSI_CLOSE_REQUESTED) ?
+					 "closed" : "aborted");
+			/*
+			 * csio_eh_abort_handler checks this value to
+			 * succeed or fail the abort request.
+			 */
+			host_status = DID_REQUEUE;
+
+			if (req->wr_status == FW_SCSI_CLOSE_REQUESTED)
+			{
+				CSIO_INC_STATS(scm, n_closed);
+			}
+			else
+			{
+				CSIO_INC_STATS(scm, n_aborted);
+			}
+
+			break;
+
+		case FW_SCSI_ABORT_TIMEDOUT:
+			/* FW timed out the abort itself */
+			csio_dbg(hw, "FW timed out abort req:%p cmnd:%p status:%x\n",
+					 req, cmnd, req->wr_status);
+			host_status = DID_ERROR;
+			CSIO_INC_STATS(scm, n_abrt_timedout);
+			break;
+
+		case FW_RDEV_NOT_READY:
+			/*
+			 * In firmware, a RDEV can get into this state
+			 * temporarily, before moving into dissapeared/lost
+			 * state. So, the driver should complete the request equivalent
+			 * to device-disappeared!
+			 */
+			CSIO_INC_STATS(scm, n_rdev_nr_error);
+			host_status = DID_ERROR;
+			break;
+
+		case FW_ERR_RDEV_LOST:
+			CSIO_INC_STATS(scm, n_rdev_lost_error);
+			host_status = DID_ERROR;
+			break;
+
+		case FW_ERR_RDEV_LOGO:
+			CSIO_INC_STATS(scm, n_rdev_logo_error);
+			host_status = DID_ERROR;
+			break;
+
+		case FW_ERR_RDEV_IMPL_LOGO:
+			host_status = DID_ERROR;
+			break;
+
+		case FW_ERR_LINK_DOWN:
+			CSIO_INC_STATS(scm, n_link_down_error);
+			host_status = DID_ERROR;
+			break;
+
+		case FW_FCOE_NO_XCHG:
+			CSIO_INC_STATS(scm, n_no_xchg_error);
+			host_status = DID_ERROR;
+			break;
+
+		default:
+			csio_err(hw, "Unknown SCSI FW WR status:%d req:%p cmnd:%p\n",
+					 req->wr_status, req, cmnd);
+			CSIO_DB_ASSERT(0);
+
+			CSIO_INC_STATS(scm, n_unknown_error);
+			host_status = DID_ERROR;
+			break;
 	}
 
 out:
+
 	if (req->nsge > 0)
+	{
 		scsi_dma_unmap(cmnd);
+	}
 
 	cmnd->result = (((host_status) << 16) | scsi_status);
 	cmnd->scsi_done(cmnd);
@@ -1737,18 +1939,25 @@ csio_scsi_cbfn(struct csio_hw *hw, struct csio_ioreq *req)
 	uint8_t scsi_status = SAM_STAT_GOOD;
 	uint32_t host_status = DID_OK;
 
-	if (likely(req->wr_status == FW_SUCCESS)) {
-		if (req->nsge > 0) {
+	if (likely(req->wr_status == FW_SUCCESS))
+	{
+		if (req->nsge > 0)
+		{
 			scsi_dma_unmap(cmnd);
+
 			if (req->dcopy)
+			{
 				host_status = csio_scsi_copy_to_sgl(hw, req);
+			}
 		}
 
 		cmnd->result = (((host_status) << 16) | scsi_status);
 		cmnd->scsi_done(cmnd);
 		csio_scsi_cmnd(req) = NULL;
 		CSIO_INC_STATS(csio_hw_to_scsim(hw), n_tot_success);
-	} else {
+	}
+	else
+	{
 		/* Error handling */
 		csio_scsi_err_handler(hw, req);
 	}
@@ -1785,20 +1994,27 @@ csio_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmnd)
 	struct fc_rport *rport = starget_to_rport(scsi_target(cmnd->device));
 
 	if (!blk_rq_cpu_valid(cmnd->request))
+	{
 		cpu = smp_processor_id();
+	}
 	else
+	{
 		cpu = cmnd->request->cpu;
+	}
 
 	sqset = &hw->sqset[ln->portid][cpu];
 
 	nr = fc_remote_port_chkready(rport);
-	if (nr) {
+
+	if (nr)
+	{
 		cmnd->result = nr;
 		CSIO_INC_STATS(scsim, n_rn_nr_error);
 		goto err_done;
 	}
 
-	if (unlikely(!csio_is_hw_ready(hw))) {
+	if (unlikely(!csio_is_hw_ready(hw)))
+	{
 		cmnd->result = (DID_REQUEUE << 16);
 		CSIO_INC_STATS(scsim, n_hw_nr_error);
 		goto err_done;
@@ -1806,25 +2022,30 @@ csio_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmnd)
 
 	/* Get req->nsge, if there are SG elements to be mapped  */
 	nsge = scsi_dma_map(cmnd);
-	if (unlikely(nsge < 0)) {
+
+	if (unlikely(nsge < 0))
+	{
 		CSIO_INC_STATS(scsim, n_dmamap_error);
 		goto err;
 	}
 
 	/* Do we support so many mappings? */
-	if (unlikely(nsge > scsim->max_sge)) {
+	if (unlikely(nsge > scsim->max_sge))
+	{
 		csio_warn(hw,
-			  "More SGEs than can be supported."
-			  " SGEs: %d, Max SGEs: %d\n", nsge, scsim->max_sge);
+				  "More SGEs than can be supported."
+				  " SGEs: %d, Max SGEs: %d\n", nsge, scsim->max_sge);
 		CSIO_INC_STATS(scsim, n_unsupp_sge_error);
 		goto err_dma_unmap;
 	}
 
 	/* Get a free ioreq structure - SM is already set to uninit */
 	ioreq = csio_get_scsi_ioreq_lock(hw, scsim);
-	if (!ioreq) {
+
+	if (!ioreq)
+	{
 		csio_err(hw, "Out of I/O request elements. Active #:%d\n",
-			 scsim->stats.n_active);
+				 scsim->stats.n_active);
 		CSIO_INC_STATS(scsim, n_no_req_error);
 		goto err_dma_unmap;
 	}
@@ -1840,14 +2061,20 @@ csio_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmnd)
 	ioreq->tmo		= 0;
 	ioreq->datadir		= cmnd->sc_data_direction;
 
-	if (cmnd->sc_data_direction == DMA_TO_DEVICE) {
+	if (cmnd->sc_data_direction == DMA_TO_DEVICE)
+	{
 		CSIO_INC_STATS(ln, n_output_requests);
 		ln->stats.n_output_bytes += scsi_bufflen(cmnd);
-	} else if (cmnd->sc_data_direction == DMA_FROM_DEVICE) {
+	}
+	else if (cmnd->sc_data_direction == DMA_FROM_DEVICE)
+	{
 		CSIO_INC_STATS(ln, n_input_requests);
 		ln->stats.n_input_bytes += scsi_bufflen(cmnd);
-	} else
+	}
+	else
+	{
 		CSIO_INC_STATS(ln, n_control_requests);
+	}
 
 	/* Set cbfn */
 	ioreq->io_cbfn = csio_scsi_cbfn;
@@ -1861,9 +2088,10 @@ csio_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmnd)
 	retval = csio_scsi_start_io(ioreq);
 	spin_unlock_irqrestore(&hw->lock, flags);
 
-	if (retval != 0) {
+	if (retval != 0)
+	{
 		csio_err(hw, "ioreq: %p couldnt be started, status:%d\n",
-			 ioreq, retval);
+				 ioreq, retval);
 		CSIO_INC_STATS(scsim, n_busy_error);
 		goto err_put_req;
 	}
@@ -1873,8 +2101,12 @@ csio_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmnd)
 err_put_req:
 	csio_put_scsi_ioreq_lock(hw, scsim, ioreq);
 err_dma_unmap:
+
 	if (nsge > 0)
+	{
 		scsi_dma_unmap(cmnd);
+	}
+
 err:
 	return rv;
 
@@ -1901,9 +2133,13 @@ csio_do_abrt_cls(struct csio_hw *hw, struct csio_ioreq *ioreq, bool abort)
 	ioreq->eq_idx = sqset->eq_idx;
 
 	if (abort == SCSI_ABORT)
+	{
 		rv = csio_scsi_abort(ioreq);
+	}
 	else
+	{
 		rv = csio_scsi_close(ioreq);
+	}
 
 	return rv;
 }
@@ -1921,23 +2157,32 @@ csio_eh_abort_handler(struct scsi_cmnd *cmnd)
 	struct csio_rnode *rn = (struct csio_rnode *)(cmnd->device->hostdata);
 
 	ret = fc_block_scsi_eh(cmnd);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ioreq = (struct csio_ioreq *)cmnd->host_scribble;
+
 	if (!ioreq)
+	{
 		return SUCCESS;
+	}
 
 	if (!rn)
+	{
 		return FAILED;
+	}
 
 	csio_dbg(hw,
-		 "Request to abort ioreq:%p cmd:%p cdb:%08llx"
-		 " ssni:0x%x lun:%llu iq:0x%x\n",
-		ioreq, cmnd, *((uint64_t *)cmnd->cmnd), rn->flowid,
-		cmnd->device->lun, csio_q_physiqid(hw, ioreq->iq_idx));
+			 "Request to abort ioreq:%p cmd:%p cdb:%08llx"
+			 " ssni:0x%x lun:%llu iq:0x%x\n",
+			 ioreq, cmnd, *((uint64_t *)cmnd->cmnd), rn->flowid,
+			 cmnd->device->lun, csio_q_physiqid(hw, ioreq->iq_idx));
 
-	if (((struct scsi_cmnd *)csio_scsi_cmnd(ioreq)) != cmnd) {
+	if (((struct scsi_cmnd *)csio_scsi_cmnd(ioreq)) != cmnd)
+	{
 		CSIO_INC_STATS(scsim, n_abrt_race_comp);
 		return SUCCESS;
 	}
@@ -1950,17 +2195,24 @@ csio_eh_abort_handler(struct scsi_cmnd *cmnd)
 	rv = csio_do_abrt_cls(hw, ioreq, (ready ? SCSI_ABORT : SCSI_CLOSE));
 	spin_unlock_irq(&hw->lock);
 
-	if (rv != 0) {
-		if (rv == -EINVAL) {
+	if (rv != 0)
+	{
+		if (rv == -EINVAL)
+		{
 			/* Return success, if abort/close request issued on
 			 * already completed IO
 			 */
 			return SUCCESS;
 		}
+
 		if (ready)
+		{
 			CSIO_INC_STATS(scsim, n_abrt_busy_error);
+		}
 		else
+		{
 			CSIO_INC_STATS(scsim, n_cls_busy_error);
+		}
 
 		goto inval_scmnd;
 	}
@@ -1968,14 +2220,18 @@ csio_eh_abort_handler(struct scsi_cmnd *cmnd)
 	wait_for_completion_timeout(&ioreq->cmplobj, msecs_to_jiffies(tmo));
 
 	/* FW didnt respond to abort within our timeout */
-	if (((struct scsi_cmnd *)csio_scsi_cmnd(ioreq)) == cmnd) {
+	if (((struct scsi_cmnd *)csio_scsi_cmnd(ioreq)) == cmnd)
+	{
 
 		csio_err(hw, "Abort timed out -- req: %p\n", ioreq);
 		CSIO_INC_STATS(scsim, n_abrt_timedout);
 
 inval_scmnd:
+
 		if (ioreq->nsge > 0)
+		{
 			scsi_dma_unmap(cmnd);
+		}
 
 		spin_lock_irq(&hw->lock);
 		csio_scsi_cmnd(ioreq) = NULL;
@@ -1988,17 +2244,20 @@ inval_scmnd:
 	}
 
 	/* FW successfully aborted the request */
-	if (host_byte(cmnd->result) == DID_REQUEUE) {
+	if (host_byte(cmnd->result) == DID_REQUEUE)
+	{
 		csio_info(hw,
-			"Aborted SCSI command to (%d:%llu) serial#:0x%lx\n",
-			cmnd->device->id, cmnd->device->lun,
-			cmnd->serial_number);
+				  "Aborted SCSI command to (%d:%llu) serial#:0x%lx\n",
+				  cmnd->device->id, cmnd->device->lun,
+				  cmnd->serial_number);
 		return SUCCESS;
-	} else {
+	}
+	else
+	{
 		csio_info(hw,
-			"Failed to abort SCSI command, (%d:%llu) serial#:0x%lx\n",
-			cmnd->device->id, cmnd->device->lun,
-			cmnd->serial_number);
+				  "Failed to abort SCSI command, (%d:%llu) serial#:0x%lx\n",
+				  cmnd->device->id, cmnd->device->lun,
+				  cmnd->serial_number);
 		return FAILED;
 	}
 }
@@ -2022,7 +2281,7 @@ csio_tm_cbfn(struct csio_hw *hw, struct csio_ioreq *req)
 	struct fcp_resp_rsp_info *rsp_info;
 
 	csio_dbg(hw, "req: %p in csio_tm_cbfn status: %d\n",
-		      req, req->wr_status);
+			 req, req->wr_status);
 
 	/* Cache FW return status */
 	cmnd->SCp.Status = req->wr_status;
@@ -2038,7 +2297,8 @@ csio_tm_cbfn(struct csio_hw *hw, struct csio_ioreq *req)
 	 * If a target were to just ignore setting flags, we treat
 	 * the TM operation as success, and FW returns FW_SUCCESS.
 	 */
-	if (req->wr_status == FW_SCSI_RSP_ERR) {
+	if (req->wr_status == FW_SCSI_RSP_ERR)
+	{
 		dma_buf = &req->dma_buf;
 		fcp_resp = (struct fcp_resp_with_ext *)dma_buf->vaddr;
 		rsp_info = (struct fcp_resp_rsp_info *)(fcp_resp + 1);
@@ -2048,7 +2308,9 @@ csio_tm_cbfn(struct csio_hw *hw, struct csio_ioreq *req)
 		/* Modify return status if flags indicate success */
 		if (flags & FCP_RSP_LEN_VAL)
 			if (rsp_info->rsp_code == FCP_TMF_CMPL)
+			{
 				cmnd->SCp.Status = FW_SUCCESS;
+			}
 
 		csio_dbg(hw, "TM FCP rsp code: %d\n", rsp_info->rsp_code);
 	}
@@ -2073,23 +2335,29 @@ csio_eh_lun_reset_handler(struct scsi_cmnd *cmnd)
 	struct csio_scsi_level_data sld;
 
 	if (!rn)
+	{
 		goto fail;
+	}
 
 	csio_dbg(hw, "Request to reset LUN:%llu (ssni:0x%x tgtid:%d)\n",
-		      cmnd->device->lun, rn->flowid, rn->scsi_id);
+			 cmnd->device->lun, rn->flowid, rn->scsi_id);
 
-	if (!csio_is_lnode_ready(ln)) {
+	if (!csio_is_lnode_ready(ln))
+	{
 		csio_err(hw,
-			 "LUN reset cannot be issued on non-ready"
-			 " local node vnpi:0x%x (LUN:%llu)\n",
-			 ln->vnp_flowid, cmnd->device->lun);
+				 "LUN reset cannot be issued on non-ready"
+				 " local node vnpi:0x%x (LUN:%llu)\n",
+				 ln->vnp_flowid, cmnd->device->lun);
 		goto fail;
 	}
 
 	/* Lnode is ready, now wait on rport node readiness */
 	ret = fc_block_scsi_eh(cmnd);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * If we have blocked in the previous call, at this point, either the
@@ -2098,20 +2366,22 @@ csio_eh_lun_reset_handler(struct scsi_cmnd *cmnd)
 	 * the former case, since LUN reset is a TMF I/O on the wire, and we
 	 * need a valid session to issue it.
 	 */
-	if (fc_remote_port_chkready(rn->rport)) {
+	if (fc_remote_port_chkready(rn->rport))
+	{
 		csio_err(hw,
-			 "LUN reset cannot be issued on non-ready"
-			 " remote node ssni:0x%x (LUN:%llu)\n",
-			 rn->flowid, cmnd->device->lun);
+				 "LUN reset cannot be issued on non-ready"
+				 " remote node ssni:0x%x (LUN:%llu)\n",
+				 rn->flowid, cmnd->device->lun);
 		goto fail;
 	}
 
 	/* Get a free ioreq structure - SM is already set to uninit */
 	ioreq = csio_get_scsi_ioreq_lock(hw, scsim);
 
-	if (!ioreq) {
+	if (!ioreq)
+	{
 		csio_err(hw, "Out of IO request elements. Active # :%d\n",
-			 scsim->stats.n_active);
+				 scsim->stats.n_active);
 		goto fail;
 	}
 
@@ -2150,23 +2420,28 @@ csio_eh_lun_reset_handler(struct scsi_cmnd *cmnd)
 	retval = csio_scsi_start_tm(ioreq);
 	spin_unlock_irqrestore(&hw->lock, flags);
 
-	if (retval != 0) {
+	if (retval != 0)
+	{
 		csio_err(hw, "Failed to issue LUN reset, req:%p, status:%d\n",
-			    ioreq, retval);
+				 ioreq, retval);
 		goto fail_ret_ioreq;
 	}
 
 	csio_dbg(hw, "Waiting max %d secs for LUN reset completion\n",
-		    count * (CSIO_SCSI_TM_POLL_MS / 1000));
+			 count * (CSIO_SCSI_TM_POLL_MS / 1000));
+
 	/* Wait for completion */
 	while ((((struct scsi_cmnd *)csio_scsi_cmnd(ioreq)) == cmnd)
-								&& count--)
+		   && count--)
+	{
 		msleep(CSIO_SCSI_TM_POLL_MS);
+	}
 
 	/* LUN reset timed-out */
-	if (((struct scsi_cmnd *)csio_scsi_cmnd(ioreq)) == cmnd) {
+	if (((struct scsi_cmnd *)csio_scsi_cmnd(ioreq)) == cmnd)
+	{
 		csio_err(hw, "LUN reset (%d:%llu) timed out\n",
-			 cmnd->device->id, cmnd->device->lun);
+				 cmnd->device->id, cmnd->device->lun);
 
 		spin_lock_irq(&hw->lock);
 		csio_scsi_drvcleanup(ioreq);
@@ -2177,9 +2452,10 @@ csio_eh_lun_reset_handler(struct scsi_cmnd *cmnd)
 	}
 
 	/* LUN reset returned, check cached status */
-	if (cmnd->SCp.Status != FW_SUCCESS) {
+	if (cmnd->SCp.Status != FW_SUCCESS)
+	{
 		csio_err(hw, "LUN reset failed (%d:%llu), status: %d\n",
-			 cmnd->device->id, cmnd->device->lun, cmnd->SCp.Status);
+				 cmnd->device->id, cmnd->device->lun, cmnd->SCp.Status);
 		goto fail;
 	}
 
@@ -2196,10 +2472,11 @@ csio_eh_lun_reset_handler(struct scsi_cmnd *cmnd)
 	spin_unlock_irq(&hw->lock);
 
 	/* Aborts may have timed out */
-	if (retval != 0) {
+	if (retval != 0)
+	{
 		csio_err(hw,
-			 "Attempt to abort I/Os during LUN reset of %llu"
-			 " returned %d\n", cmnd->device->lun, retval);
+				 "Attempt to abort I/Os during LUN reset of %llu"
+				 " returned %d\n", cmnd->device->lun, retval);
 		/* Return I/Os back to active_q */
 		spin_lock_irq(&hw->lock);
 		list_splice_tail_init(&local_q, &scsim->active_q);
@@ -2210,7 +2487,7 @@ csio_eh_lun_reset_handler(struct scsi_cmnd *cmnd)
 	CSIO_INC_STATS(rn, n_lun_rst);
 
 	csio_info(hw, "LUN reset occurred (%d:%llu)\n",
-		  cmnd->device->id, cmnd->device->lun);
+			  cmnd->device->id, cmnd->device->lun);
 
 	return SUCCESS;
 
@@ -2227,7 +2504,9 @@ csio_slave_alloc(struct scsi_device *sdev)
 	struct fc_rport *rport = starget_to_rport(scsi_target(sdev));
 
 	if (!rport || fc_remote_port_chkready(rport))
+	{
 		return -ENXIO;
+	}
 
 	sdev->hostdata = *((struct csio_lnode **)(rport->dd_data));
 
@@ -2254,18 +2533,22 @@ csio_scan_finished(struct Scsi_Host *shost, unsigned long time)
 	int rv = 1;
 
 	spin_lock_irq(shost->host_lock);
+
 	if (!ln->hwp || csio_list_deleted(&ln->sm.sm_list))
+	{
 		goto out;
+	}
 
 	rv = csio_scan_done(ln, jiffies, time, csio_max_scan_tmo * HZ,
-			    csio_delta_scan_tmo * HZ);
+						csio_delta_scan_tmo * HZ);
 out:
 	spin_unlock_irq(shost->host_lock);
 
 	return rv;
 }
 
-struct scsi_host_template csio_fcoe_shost_template = {
+struct scsi_host_template csio_fcoe_shost_template =
+{
 	.module			= THIS_MODULE,
 	.name			= CSIO_DRV_DESC,
 	.proc_name		= KBUILD_MODNAME,
@@ -2284,7 +2567,8 @@ struct scsi_host_template csio_fcoe_shost_template = {
 	.max_sectors		= CSIO_MAX_SECTOR_SIZE,
 };
 
-struct scsi_host_template csio_fcoe_shost_vport_template = {
+struct scsi_host_template csio_fcoe_shost_vport_template =
+{
 	.module			= THIS_MODULE,
 	.name			= CSIO_DRV_DESC,
 	.proc_name		= KBUILD_MODNAME,
@@ -2316,7 +2600,7 @@ struct scsi_host_template csio_fcoe_shost_vport_template = {
  */
 static int
 csio_scsi_alloc_ddp_bufs(struct csio_scsim *scm, struct csio_hw *hw,
-			 int buf_size, int num_buf)
+						 int buf_size, int num_buf)
 {
 	int n = 0;
 	struct list_head *tmp;
@@ -2324,35 +2608,45 @@ csio_scsi_alloc_ddp_bufs(struct csio_scsim *scm, struct csio_hw *hw,
 	uint32_t unit_size = 0;
 
 	if (!num_buf)
+	{
 		return 0;
+	}
 
 	if (!buf_size)
+	{
 		return -EINVAL;
+	}
 
 	INIT_LIST_HEAD(&scm->ddp_freelist);
 
 	/* Align buf size to page size */
 	buf_size = (buf_size + PAGE_SIZE - 1) & PAGE_MASK;
+
 	/* Initialize dma descriptors */
-	for (n = 0; n < num_buf; n++) {
+	for (n = 0; n < num_buf; n++)
+	{
 		/* Set unit size to request size */
 		unit_size = buf_size;
 		ddp_desc = kzalloc(sizeof(struct csio_dma_buf), GFP_KERNEL);
-		if (!ddp_desc) {
+
+		if (!ddp_desc)
+		{
 			csio_err(hw,
-				 "Failed to allocate ddp descriptors,"
-				 " Num allocated = %d.\n",
-				 scm->stats.n_free_ddp);
+					 "Failed to allocate ddp descriptors,"
+					 " Num allocated = %d.\n",
+					 scm->stats.n_free_ddp);
 			goto no_mem;
 		}
 
 		/* Allocate Dma buffers for DDP */
 		ddp_desc->vaddr = pci_alloc_consistent(hw->pdev, unit_size,
-							&ddp_desc->paddr);
-		if (!ddp_desc->vaddr) {
+											   &ddp_desc->paddr);
+
+		if (!ddp_desc->vaddr)
+		{
 			csio_err(hw,
-				 "SCSI response DMA buffer (ddp) allocation"
-				 " failed!\n");
+					 "SCSI response DMA buffer (ddp) allocation"
+					 " failed!\n");
 			kfree(ddp_desc);
 			goto no_mem;
 		}
@@ -2367,11 +2661,12 @@ csio_scsi_alloc_ddp_bufs(struct csio_scsim *scm, struct csio_hw *hw,
 	return 0;
 no_mem:
 	/* release dma descs back to freelist and free dma memory */
-	list_for_each(tmp, &scm->ddp_freelist) {
+	list_for_each(tmp, &scm->ddp_freelist)
+	{
 		ddp_desc = (struct csio_dma_buf *) tmp;
 		tmp = csio_list_prev(tmp);
 		pci_free_consistent(hw->pdev, ddp_desc->len, ddp_desc->vaddr,
-				    ddp_desc->paddr);
+							ddp_desc->paddr);
 		list_del_init(&ddp_desc->list);
 		kfree(ddp_desc);
 	}
@@ -2394,11 +2689,12 @@ csio_scsi_free_ddp_bufs(struct csio_scsim *scm, struct csio_hw *hw)
 	struct csio_dma_buf *ddp_desc;
 
 	/* release dma descs back to freelist and free dma memory */
-	list_for_each(tmp, &scm->ddp_freelist) {
+	list_for_each(tmp, &scm->ddp_freelist)
+	{
 		ddp_desc = (struct csio_dma_buf *) tmp;
 		tmp = csio_list_prev(tmp);
 		pci_free_consistent(hw->pdev, ddp_desc->len, ddp_desc->vaddr,
-				    ddp_desc->paddr);
+							ddp_desc->paddr);
 		list_del_init(&ddp_desc->list);
 		kfree(ddp_desc);
 	}
@@ -2429,14 +2725,18 @@ csio_scsim_init(struct csio_scsim *scm, struct csio_hw *hw)
 
 	/* Pre-allocate ioreqs and initialize them */
 	INIT_LIST_HEAD(&scm->ioreq_freelist);
-	for (i = 0; i < csio_scsi_ioreqs; i++) {
+
+	for (i = 0; i < csio_scsi_ioreqs; i++)
+	{
 
 		ioreq = kzalloc(sizeof(struct csio_ioreq), GFP_KERNEL);
-		if (!ioreq) {
+
+		if (!ioreq)
+		{
 			csio_err(hw,
-				 "I/O request element allocation failed, "
-				 " Num allocated = %d.\n",
-				 scm->stats.n_free_ioreq);
+					 "I/O request element allocation failed, "
+					 " Num allocated = %d.\n",
+					 scm->stats.n_free_ioreq);
 
 			goto free_ioreq;
 		}
@@ -2444,11 +2744,13 @@ csio_scsim_init(struct csio_scsim *scm, struct csio_hw *hw)
 		/* Allocate Dma buffers for Response Payload */
 		dma_buf = &ioreq->dma_buf;
 		dma_buf->vaddr = pci_pool_alloc(hw->scsi_pci_pool, GFP_KERNEL,
-						&dma_buf->paddr);
-		if (!dma_buf->vaddr) {
+										&dma_buf->paddr);
+
+		if (!dma_buf->vaddr)
+		{
 			csio_err(hw,
-				 "SCSI response DMA buffer allocation"
-				 " failed!\n");
+					 "SCSI response DMA buffer allocation"
+					 " failed!\n");
 			kfree(ioreq);
 			goto free_ioreq;
 		}
@@ -2465,26 +2767,30 @@ csio_scsim_init(struct csio_scsim *scm, struct csio_hw *hw)
 	}
 
 	if (csio_scsi_alloc_ddp_bufs(scm, hw, PAGE_SIZE, csio_ddp_descs))
+	{
 		goto free_ioreq;
+	}
 
 	return 0;
 
 free_ioreq:
+
 	/*
 	 * Free up existing allocations, since an error
 	 * from here means we are returning for good
 	 */
-	while (!list_empty(&scm->ioreq_freelist)) {
+	while (!list_empty(&scm->ioreq_freelist))
+	{
 		struct csio_sm *tmp;
 
 		tmp = list_first_entry(&scm->ioreq_freelist,
-				       struct csio_sm, sm_list);
+							   struct csio_sm, sm_list);
 		list_del_init(&tmp->sm_list);
 		ioreq = (struct csio_ioreq *)tmp;
 
 		dma_buf = &ioreq->dma_buf;
 		pci_pool_free(hw->scsi_pci_pool, dma_buf->vaddr,
-			      dma_buf->paddr);
+					  dma_buf->paddr);
 
 		kfree(ioreq);
 	}
@@ -2505,17 +2811,18 @@ csio_scsim_exit(struct csio_scsim *scm)
 	struct csio_ioreq *ioreq;
 	struct csio_dma_buf *dma_buf;
 
-	while (!list_empty(&scm->ioreq_freelist)) {
+	while (!list_empty(&scm->ioreq_freelist))
+	{
 		struct csio_sm *tmp;
 
 		tmp = list_first_entry(&scm->ioreq_freelist,
-				       struct csio_sm, sm_list);
+							   struct csio_sm, sm_list);
 		list_del_init(&tmp->sm_list);
 		ioreq = (struct csio_ioreq *)tmp;
 
 		dma_buf = &ioreq->dma_buf;
 		pci_pool_free(scm->hw->scsi_pci_pool, dma_buf->vaddr,
-			      dma_buf->paddr);
+					  dma_buf->paddr);
 
 		kfree(ioreq);
 	}

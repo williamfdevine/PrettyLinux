@@ -61,7 +61,8 @@ struct net;
  * grep ARCH_HAS_SOCKET_TYPE include/asm-* /socket.h, at least MIPS
  * overrides this enum for binary compat reasons.
  */
-enum sock_type {
+enum sock_type
+{
 	SOCK_STREAM	= 1,
 	SOCK_DGRAM	= 2,
 	SOCK_RAW	= 3,
@@ -79,18 +80,20 @@ enum sock_type {
 /* Flags for socket, socketpair, accept4 */
 #define SOCK_CLOEXEC	O_CLOEXEC
 #ifndef SOCK_NONBLOCK
-#define SOCK_NONBLOCK	O_NONBLOCK
+	#define SOCK_NONBLOCK	O_NONBLOCK
 #endif
 
 #endif /* ARCH_HAS_SOCKET_TYPES */
 
-enum sock_shutdown_cmd {
+enum sock_shutdown_cmd
+{
 	SHUT_RD,
 	SHUT_WR,
 	SHUT_RDWR,
 };
 
-struct socket_wq {
+struct socket_wq
+{
 	/* Note: wait MUST be first field of socket_wq */
 	wait_queue_head_t	wait;
 	struct fasync_struct	*fasync_list;
@@ -108,7 +111,8 @@ struct socket_wq {
  *  @sk: internal networking protocol agnostic socket representation
  *  @wq: wait queue for several uses
  */
-struct socket {
+struct socket
+{
 	socket_state		state;
 
 	kmemcheck_bitfield_begin(type);
@@ -131,47 +135,48 @@ struct msghdr;
 struct module;
 struct sk_buff;
 typedef int (*sk_read_actor_t)(read_descriptor_t *, struct sk_buff *,
-			       unsigned int, size_t);
+							   unsigned int, size_t);
 
-struct proto_ops {
+struct proto_ops
+{
 	int		family;
 	struct module	*owner;
 	int		(*release)   (struct socket *sock);
 	int		(*bind)	     (struct socket *sock,
-				      struct sockaddr *myaddr,
-				      int sockaddr_len);
+						  struct sockaddr *myaddr,
+						  int sockaddr_len);
 	int		(*connect)   (struct socket *sock,
-				      struct sockaddr *vaddr,
-				      int sockaddr_len, int flags);
+						  struct sockaddr *vaddr,
+						  int sockaddr_len, int flags);
 	int		(*socketpair)(struct socket *sock1,
-				      struct socket *sock2);
+						  struct socket *sock2);
 	int		(*accept)    (struct socket *sock,
-				      struct socket *newsock, int flags);
+						  struct socket *newsock, int flags);
 	int		(*getname)   (struct socket *sock,
-				      struct sockaddr *addr,
-				      int *sockaddr_len, int peer);
+						  struct sockaddr *addr,
+						  int *sockaddr_len, int peer);
 	unsigned int	(*poll)	     (struct file *file, struct socket *sock,
-				      struct poll_table_struct *wait);
+								  struct poll_table_struct *wait);
 	int		(*ioctl)     (struct socket *sock, unsigned int cmd,
-				      unsigned long arg);
+						  unsigned long arg);
 #ifdef CONFIG_COMPAT
 	int	 	(*compat_ioctl) (struct socket *sock, unsigned int cmd,
-				      unsigned long arg);
+							 unsigned long arg);
 #endif
 	int		(*listen)    (struct socket *sock, int len);
 	int		(*shutdown)  (struct socket *sock, int flags);
 	int		(*setsockopt)(struct socket *sock, int level,
-				      int optname, char __user *optval, unsigned int optlen);
+						  int optname, char __user *optval, unsigned int optlen);
 	int		(*getsockopt)(struct socket *sock, int level,
-				      int optname, char __user *optval, int __user *optlen);
+						  int optname, char __user *optval, int __user *optlen);
 #ifdef CONFIG_COMPAT
 	int		(*compat_setsockopt)(struct socket *sock, int level,
-				      int optname, char __user *optval, unsigned int optlen);
+								 int optname, char __user *optval, unsigned int optlen);
 	int		(*compat_getsockopt)(struct socket *sock, int level,
-				      int optname, char __user *optval, int __user *optlen);
+								 int optname, char __user *optval, int __user *optlen);
 #endif
 	int		(*sendmsg)   (struct socket *sock, struct msghdr *m,
-				      size_t total_len);
+						  size_t total_len);
 	/* Notes for implementing recvmsg:
 	 * ===============================
 	 * msg->msg_namelen should get updated by the recvmsg handlers
@@ -181,33 +186,35 @@ struct proto_ops {
 	 * a minimum size of sizeof(struct sockaddr_storage).
 	 */
 	int		(*recvmsg)   (struct socket *sock, struct msghdr *m,
-				      size_t total_len, int flags);
+						  size_t total_len, int flags);
 	int		(*mmap)	     (struct file *file, struct socket *sock,
-				      struct vm_area_struct * vma);
+						  struct vm_area_struct *vma);
 	ssize_t		(*sendpage)  (struct socket *sock, struct page *page,
-				      int offset, size_t size, int flags);
+							  int offset, size_t size, int flags);
 	ssize_t 	(*splice_read)(struct socket *sock,  loff_t *ppos,
-				       struct pipe_inode_info *pipe, size_t len, unsigned int flags);
+							   struct pipe_inode_info *pipe, size_t len, unsigned int flags);
 	int		(*set_peek_off)(struct sock *sk, int val);
 	int		(*peek_len)(struct socket *sock);
 	int		(*read_sock)(struct sock *sk, read_descriptor_t *desc,
-				     sk_read_actor_t recv_actor);
+						 sk_read_actor_t recv_actor);
 };
 
 #define DECLARE_SOCKADDR(type, dst, src)	\
 	type dst = ({ __sockaddr_check_size(sizeof(*dst)); (type) src; })
 
-struct net_proto_family {
+struct net_proto_family
+{
 	int		family;
 	int		(*create)(struct net *net, struct socket *sock,
-				  int protocol, int kern);
+					  int protocol, int kern);
 	struct module	*owner;
 };
 
 struct iovec;
 struct kvec;
 
-enum {
+enum
+{
 	SOCK_WAKE_IO,
 	SOCK_WAKE_WAITD,
 	SOCK_WAKE_SPACE,
@@ -218,7 +225,7 @@ int sock_wake_async(struct socket_wq *sk_wq, int how, int band);
 int sock_register(const struct net_proto_family *fam);
 void sock_unregister(int family);
 int __sock_create(struct net *net, int family, int type, int proto,
-		  struct socket **res, int kern);
+				  struct socket **res, int kern);
 int sock_create(int family, int type, int proto, struct socket **res);
 int sock_create_kern(struct net *net, int family, int type, int proto, struct socket **res);
 int sock_create_lite(int family, int type, int proto, struct socket **res);
@@ -233,10 +240,10 @@ struct socket *sock_from_file(struct file *file, int *err);
 int net_ratelimit(void);
 
 #define net_ratelimited_function(function, ...)			\
-do {								\
-	if (net_ratelimit())					\
-		function(__VA_ARGS__);				\
-} while (0)
+	do {								\
+		if (net_ratelimit())					\
+			function(__VA_ARGS__);				\
+	} while (0)
 
 #define net_emerg_ratelimited(fmt, ...)				\
 	net_ratelimited_function(pr_emerg, fmt, ##__VA_ARGS__)
@@ -254,13 +261,13 @@ do {								\
 	net_ratelimited_function(pr_info, fmt, ##__VA_ARGS__)
 #if defined(CONFIG_DYNAMIC_DEBUG)
 #define net_dbg_ratelimited(fmt, ...)					\
-do {									\
-	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
-	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&	\
-	    net_ratelimit())						\
-		__dynamic_pr_debug(&descriptor, pr_fmt(fmt),		\
-		                   ##__VA_ARGS__);			\
-} while (0)
+	do {									\
+		DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
+		if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&	\
+			net_ratelimit())						\
+			__dynamic_pr_debug(&descriptor, pr_fmt(fmt),		\
+							   ##__VA_ARGS__);			\
+	} while (0)
 #elif defined(DEBUG)
 #define net_dbg_ratelimited(fmt, ...)				\
 	net_ratelimited_function(pr_debug, fmt, ##__VA_ARGS__)
@@ -276,25 +283,25 @@ do {									\
 	get_random_once((buf), (nbytes))
 
 int kernel_sendmsg(struct socket *sock, struct msghdr *msg, struct kvec *vec,
-		   size_t num, size_t len);
+				   size_t num, size_t len);
 int kernel_recvmsg(struct socket *sock, struct msghdr *msg, struct kvec *vec,
-		   size_t num, size_t len, int flags);
+				   size_t num, size_t len, int flags);
 
 int kernel_bind(struct socket *sock, struct sockaddr *addr, int addrlen);
 int kernel_listen(struct socket *sock, int backlog);
 int kernel_accept(struct socket *sock, struct socket **newsock, int flags);
 int kernel_connect(struct socket *sock, struct sockaddr *addr, int addrlen,
-		   int flags);
+				   int flags);
 int kernel_getsockname(struct socket *sock, struct sockaddr *addr,
-		       int *addrlen);
+					   int *addrlen);
 int kernel_getpeername(struct socket *sock, struct sockaddr *addr,
-		       int *addrlen);
+					   int *addrlen);
 int kernel_getsockopt(struct socket *sock, int level, int optname, char *optval,
-		      int *optlen);
+					  int *optlen);
 int kernel_setsockopt(struct socket *sock, int level, int optname, char *optval,
-		      unsigned int optlen);
+					  unsigned int optlen);
 int kernel_sendpage(struct socket *sock, struct page *page, int offset,
-		    size_t size, int flags);
+					size_t size, int flags);
 int kernel_sock_ioctl(struct socket *sock, int cmd, unsigned long arg);
 int kernel_sock_shutdown(struct socket *sock, enum sock_shutdown_cmd how);
 
@@ -306,9 +313,9 @@ int kernel_sock_shutdown(struct socket *sock, enum sock_shutdown_cmd how);
 
 #define MODULE_ALIAS_NET_PF_PROTO_TYPE(pf, proto, type) \
 	MODULE_ALIAS("net-pf-" __stringify(pf) "-proto-" __stringify(proto) \
-		     "-type-" __stringify(type))
+				 "-type-" __stringify(type))
 
 #define MODULE_ALIAS_NET_PF_PROTO_NAME(pf, proto, name) \
 	MODULE_ALIAS("net-pf-" __stringify(pf) "-proto-" __stringify(proto) \
-		     name)
+				 name)
 #endif	/* _LINUX_NET_H */

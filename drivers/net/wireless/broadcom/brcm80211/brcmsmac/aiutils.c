@@ -31,57 +31,57 @@
 #include "aiutils.h"
 
 /* slow_clk_ctl */
- /* slow clock source mask */
+/* slow clock source mask */
 #define SCC_SS_MASK		0x00000007
- /* source of slow clock is LPO */
+/* source of slow clock is LPO */
 #define	SCC_SS_LPO		0x00000000
- /* source of slow clock is crystal */
+/* source of slow clock is crystal */
 #define	SCC_SS_XTAL		0x00000001
- /* source of slow clock is PCI */
+/* source of slow clock is PCI */
 #define	SCC_SS_PCI		0x00000002
- /* LPOFreqSel, 1: 160Khz, 0: 32KHz */
+/* LPOFreqSel, 1: 160Khz, 0: 32KHz */
 #define SCC_LF			0x00000200
- /* LPOPowerDown, 1: LPO is disabled, 0: LPO is enabled */
+/* LPOPowerDown, 1: LPO is disabled, 0: LPO is enabled */
 #define SCC_LP			0x00000400
- /* ForceSlowClk, 1: sb/cores running on slow clock, 0: power logic control */
+/* ForceSlowClk, 1: sb/cores running on slow clock, 0: power logic control */
 #define SCC_FS			0x00000800
- /* IgnorePllOffReq, 1/0:
-  *  power logic ignores/honors PLL clock disable requests from core
-  */
+/* IgnorePllOffReq, 1/0:
+ *  power logic ignores/honors PLL clock disable requests from core
+ */
 #define SCC_IP			0x00001000
- /* XtalControlEn, 1/0:
-  *  power logic does/doesn't disable crystal when appropriate
-  */
+/* XtalControlEn, 1/0:
+ *  power logic does/doesn't disable crystal when appropriate
+ */
 #define SCC_XC			0x00002000
- /* XtalPU (RO), 1/0: crystal running/disabled */
+/* XtalPU (RO), 1/0: crystal running/disabled */
 #define SCC_XP			0x00004000
- /* ClockDivider (SlowClk = 1/(4+divisor)) */
+/* ClockDivider (SlowClk = 1/(4+divisor)) */
 #define SCC_CD_MASK		0xffff0000
 #define SCC_CD_SHIFT		16
 
 /* system_clk_ctl */
- /* ILPen: Enable Idle Low Power */
+/* ILPen: Enable Idle Low Power */
 #define	SYCC_IE			0x00000001
- /* ALPen: Enable Active Low Power */
+/* ALPen: Enable Active Low Power */
 #define	SYCC_AE			0x00000002
- /* ForcePLLOn */
+/* ForcePLLOn */
 #define	SYCC_FP			0x00000004
- /* Force ALP (or HT if ALPen is not set */
+/* Force ALP (or HT if ALPen is not set */
 #define	SYCC_AR			0x00000008
- /* Force HT */
+/* Force HT */
 #define	SYCC_HR			0x00000010
- /* ClkDiv  (ILP = 1/(4 * (divisor + 1)) */
+/* ClkDiv  (ILP = 1/(4 * (divisor + 1)) */
 #define SYCC_CD_MASK		0xffff0000
 #define SYCC_CD_SHIFT		16
 
 #define CST4329_SPROM_OTP_SEL_MASK	0x00000003
- /* OTP is powered up, use def. CIS, no SPROM */
+/* OTP is powered up, use def. CIS, no SPROM */
 #define CST4329_DEFCIS_SEL		0
- /* OTP is powered up, SPROM is present */
+/* OTP is powered up, SPROM is present */
 #define CST4329_SPROM_SEL		1
- /* OTP is powered up, no SPROM */
+/* OTP is powered up, no SPROM */
 #define CST4329_OTP_SEL			2
- /* OTP is powered down, SPROM is present */
+/* OTP is powered down, SPROM is present */
 #define CST4329_OTP_PWRDN		3
 
 #define CST4329_SPI_SDIO_MODE_MASK	0x00000004
@@ -89,9 +89,9 @@
 
 /* 43224 chip-specific ChipControl register bits */
 #define CCTRL43224_GPIO_TOGGLE          0x8000
- /* 12 mA drive strength */
+/* 12 mA drive strength */
 #define CCTRL_43224A0_12MA_LED_DRIVE    0x00F000F0
- /* 12 mA drive strength for later 43224s */
+/* 12 mA drive strength for later 43224s */
 #define CCTRL_43224B0_12MA_LED_DRIVE    0xF0
 
 /* 43236 Chip specific ChipStatus register bits */
@@ -107,37 +107,37 @@
 #define CST43236_BOOT_FROM_INVALID	3
 
 /* 4331 chip-specific ChipControl register bits */
- /* 0 disable */
+/* 0 disable */
 #define CCTRL4331_BT_COEXIST		(1<<0)
- /* 0 SECI is disabled (JTAG functional) */
+/* 0 SECI is disabled (JTAG functional) */
 #define CCTRL4331_SECI			(1<<1)
- /* 0 disable */
+/* 0 disable */
 #define CCTRL4331_EXT_LNA		(1<<2)
- /* sprom/gpio13-15 mux */
+/* sprom/gpio13-15 mux */
 #define CCTRL4331_SPROM_GPIO13_15       (1<<3)
- /* 0 ext pa disable, 1 ext pa enabled */
+/* 0 ext pa disable, 1 ext pa enabled */
 #define CCTRL4331_EXTPA_EN		(1<<4)
- /* set drive out GPIO_CLK on sprom_cs pin */
+/* set drive out GPIO_CLK on sprom_cs pin */
 #define CCTRL4331_GPIOCLK_ON_SPROMCS	(1<<5)
- /* use sprom_cs pin as PCIE mdio interface */
+/* use sprom_cs pin as PCIE mdio interface */
 #define CCTRL4331_PCIE_MDIO_ON_SPROMCS	(1<<6)
- /* aband extpa will be at gpio2/5 and sprom_dout */
+/* aband extpa will be at gpio2/5 and sprom_dout */
 #define CCTRL4331_EXTPA_ON_GPIO2_5	(1<<7)
- /* override core control on pipe_AuxClkEnable */
+/* override core control on pipe_AuxClkEnable */
 #define CCTRL4331_OVR_PIPEAUXCLKEN	(1<<8)
- /* override core control on pipe_AuxPowerDown */
+/* override core control on pipe_AuxPowerDown */
 #define CCTRL4331_OVR_PIPEAUXPWRDOWN	(1<<9)
- /* pcie_auxclkenable */
+/* pcie_auxclkenable */
 #define CCTRL4331_PCIE_AUXCLKEN		(1<<10)
- /* pcie_pipe_pllpowerdown */
+/* pcie_pipe_pllpowerdown */
 #define CCTRL4331_PCIE_PIPE_PLLDOWN	(1<<11)
- /* enable bt_shd0 at gpio4 */
+/* enable bt_shd0 at gpio4 */
 #define CCTRL4331_BT_SHD0_ON_GPIO4	(1<<16)
- /* enable bt_shd1 at gpio5 */
+/* enable bt_shd1 at gpio5 */
 #define CCTRL4331_BT_SHD1_ON_GPIO5	(1<<17)
 
 /* 4331 Chip specific ChipStatus register bits */
- /* crystal frequency 20/40Mhz */
+/* crystal frequency 20/40Mhz */
 #define	CST4331_XTAL_FREQ		0x00000001
 #define	CST4331_SPROM_PRESENT		0x00000002
 #define	CST4331_OTP_PRESENT		0x00000004
@@ -148,25 +148,25 @@
 #define	CST4319_SPI_CPULESSUSB		0x00000001
 #define	CST4319_SPI_CLK_POL		0x00000002
 #define	CST4319_SPI_CLK_PH		0x00000008
- /* gpio [7:6], SDIO CIS selection */
+/* gpio [7:6], SDIO CIS selection */
 #define	CST4319_SPROM_OTP_SEL_MASK	0x000000c0
 #define	CST4319_SPROM_OTP_SEL_SHIFT	6
- /* use default CIS, OTP is powered up */
+/* use default CIS, OTP is powered up */
 #define	CST4319_DEFCIS_SEL		0x00000000
- /* use SPROM, OTP is powered up */
+/* use SPROM, OTP is powered up */
 #define	CST4319_SPROM_SEL		0x00000040
- /* use OTP, OTP is powered up */
+/* use OTP, OTP is powered up */
 #define	CST4319_OTP_SEL			0x00000080
- /* use SPROM, OTP is powered down */
+/* use SPROM, OTP is powered down */
 #define	CST4319_OTP_PWRDN		0x000000c0
- /* gpio [8], sdio/usb mode */
+/* gpio [8], sdio/usb mode */
 #define	CST4319_SDIO_USB_MODE		0x00000100
 #define	CST4319_REMAP_SEL_MASK		0x00000600
 #define	CST4319_ILPDIV_EN		0x00000800
 #define	CST4319_XTAL_PD_POL		0x00001000
 #define	CST4319_LPO_SEL			0x00002000
 #define	CST4319_RES_INIT_MODE		0x0000c000
- /* PALDO is configured with external PNP */
+/* PALDO is configured with external PNP */
 #define	CST4319_PALDO_EXTPNP		0x00010000
 #define	CST4319_CBUCK_MODE_MASK		0x00060000
 #define CST4319_CBUCK_MODE_BURST	0x00020000
@@ -198,7 +198,7 @@
 #define	CST4313_SPROM_OTP_SEL_SHIFT		0
 
 /* 4313 Chip specific ChipControl register bits */
- /* 12 mA drive strengh for later 4313 */
+/* 12 mA drive strengh for later 4313 */
 #define CCTRL_4313_12MA_LED_DRIVE    0x00000007
 
 /* Manufacturer Ids */
@@ -320,9 +320,10 @@
 
 #define	GOODCOREADDR(x, b) \
 	(((x) >= (b)) && ((x) < ((b) + SI_MAXCORES * SI_CORE_SIZE)) && \
-		IS_ALIGNED((x), SI_CORE_SIZE))
+	 IS_ALIGNED((x), SI_CORE_SIZE))
 
-struct aidmp {
+struct aidmp
+{
 	u32 oobselina30;	/* 0x000 */
 	u32 oobselina74;	/* 0x004 */
 	u32 PAD[6];
@@ -445,7 +446,9 @@ ai_buscore_setup(struct si_info *sii, struct bcma_device *cc)
 {
 	/* no cores found, bail out */
 	if (cc->bus->nr_cores == 0)
+	{
 		return false;
+	}
 
 	/* get chipcommon rev */
 	sii->pub.ccrev = cc->id.rev;
@@ -457,9 +460,10 @@ ai_buscore_setup(struct si_info *sii, struct bcma_device *cc)
 	sii->pub.cccaps = bcma_read32(cc, CHIPCREGOFFS(capabilities));
 
 	/* get pmu rev and caps */
-	if (ai_get_cccaps(&sii->pub) & CC_CAP_PMU) {
+	if (ai_get_cccaps(&sii->pub) & CC_CAP_PMU)
+	{
 		sii->pub.pmucaps = bcma_read32(cc,
-					       CHIPCREGOFFS(pmucapabilities));
+									   CHIPCREGOFFS(pmucapabilities));
 		sii->pub.pmurev = sii->pub.pmucaps & PCAP_REV_MASK;
 	}
 
@@ -467,7 +471,7 @@ ai_buscore_setup(struct si_info *sii, struct bcma_device *cc)
 }
 
 static struct si_info *ai_doattach(struct si_info *sii,
-				   struct bcma_bus *pbus)
+								   struct bcma_bus *pbus)
 {
 	struct si_pub *sih = &sii->pub;
 	struct bcma_device *cc;
@@ -485,20 +489,23 @@ static struct si_info *ai_doattach(struct si_info *sii,
 	sih->boardtype = pbus->boardinfo.type;
 
 	if (!ai_buscore_setup(sii, cc))
+	{
 		goto exit;
+	}
 
 	/* === NVRAM, clock is ready === */
 	bcma_write32(cc, CHIPCREGOFFS(gpiopullup), 0);
 	bcma_write32(cc, CHIPCREGOFFS(gpiopulldown), 0);
 
 	/* PMU specific initializations */
-	if (ai_get_cccaps(sih) & CC_CAP_PMU) {
+	if (ai_get_cccaps(sih) & CC_CAP_PMU)
+	{
 		(void)si_pmu_measure_alpclk(sih);
 	}
 
 	return sii;
 
- exit:
+exit:
 
 	return NULL;
 }
@@ -513,10 +520,14 @@ ai_attach(struct bcma_bus *pbus)
 
 	/* alloc struct si_info */
 	sii = kzalloc(sizeof(struct si_info), GFP_ATOMIC);
-	if (sii == NULL)
-		return NULL;
 
-	if (ai_doattach(sii, pbus) == NULL) {
+	if (sii == NULL)
+	{
+		return NULL;
+	}
+
+	if (ai_doattach(sii, pbus) == NULL)
+	{
 		kfree(sii);
 		return NULL;
 	}
@@ -532,7 +543,9 @@ void ai_detach(struct si_pub *sih)
 	sii = container_of(sih, struct si_info, pub);
 
 	if (sii == NULL)
+	{
 		return;
+	}
 
 	kfree(sii);
 }
@@ -551,7 +564,9 @@ uint ai_cc_reg(struct si_pub *sih, uint regoff, u32 mask, u32 val)
 
 	/* mask and set */
 	if (mask || val)
+	{
 		bcma_maskset32(cc, regoff, ~mask, val);
+	}
 
 	/* readback */
 	w = bcma_read32(cc, regoff);
@@ -570,7 +585,7 @@ static uint ai_slowclk_src(struct si_pub *sih, struct bcma_device *cc)
 * precondition: we've established the chip has dynamic clk control
 */
 static uint ai_slowclk_freq(struct si_pub *sih, bool max_freq,
-			    struct bcma_device *cc)
+							struct bcma_device *cc)
 {
 	uint div;
 
@@ -595,12 +610,15 @@ ai_clkctl_setdelay(struct si_pub *sih, struct bcma_device *cc)
 	 */
 
 	slowclk = ai_slowclk_src(sih, cc);
+
 	if (slowclk != SCC_SS_XTAL)
+	{
 		pll_delay += XTAL_ON_DELAY;
+	}
 
 	/* Starting with 4318 it is ILP that is used for the delays */
 	slowmaxfreq =
-	    ai_slowclk_freq(sih, false, cc);
+		ai_slowclk_freq(sih, false, cc);
 
 	pll_on_delay = ((slowmaxfreq * pll_delay) + 999999) / 1000000;
 	fref_sel_delay = ((slowmaxfreq * FREF_DELAY) + 999999) / 1000000;
@@ -616,15 +634,20 @@ void ai_clkctl_init(struct si_pub *sih)
 	struct bcma_device *cc;
 
 	if (!(ai_get_cccaps(sih) & CC_CAP_PWR_CTL))
+	{
 		return;
+	}
 
 	cc = sii->icbus->drv_cc.core;
+
 	if (cc == NULL)
+	{
 		return;
+	}
 
 	/* set all Instaclk chip ILP to 1 MHz */
 	bcma_maskset32(cc, CHIPCREGOFFS(system_clk_ctl), SYCC_CD_MASK,
-		       (ILP_DIV_1MHZ << SYCC_CD_SHIFT));
+				   (ILP_DIV_1MHZ << SYCC_CD_SHIFT));
 
 	ai_clkctl_setdelay(sih, cc);
 }
@@ -641,21 +664,28 @@ u16 ai_clkctl_fast_pwrup_delay(struct si_pub *sih)
 	u16 fpdelay;
 
 	sii = container_of(sih, struct si_info, pub);
-	if (ai_get_cccaps(sih) & CC_CAP_PMU) {
+
+	if (ai_get_cccaps(sih) & CC_CAP_PMU)
+	{
 		fpdelay = si_pmu_fast_pwrup_delay(sih);
 		return fpdelay;
 	}
 
 	if (!(ai_get_cccaps(sih) & CC_CAP_PWR_CTL))
+	{
 		return 0;
+	}
 
 	fpdelay = 0;
 	cc = sii->icbus->drv_cc.core;
-	if (cc) {
+
+	if (cc)
+	{
 		slowminfreq = ai_slowclk_freq(sih, false, cc);
 		fpdelay = (((bcma_read32(cc, CHIPCREGOFFS(pll_on_delay)) + 2)
-			    * 1000000) + (slowminfreq - 1)) / slowminfreq;
+					* 1000000) + (slowminfreq - 1)) / slowminfreq;
 	}
+
 	return fpdelay;
 }
 
@@ -700,11 +730,16 @@ bool ai_deviceremoved(struct si_pub *sih)
 	sii = container_of(sih, struct si_info, pub);
 
 	if (sii->icbus->hosttype != BCMA_HOSTTYPE_PCI)
+	{
 		return false;
+	}
 
 	pci_read_config_dword(sii->pcibus, PCI_VENDOR_ID, &w);
+
 	if ((w & 0xFFFF) != PCI_VENDOR_ID_BROADCOM)
+	{
 		return true;
+	}
 
 	return false;
 }

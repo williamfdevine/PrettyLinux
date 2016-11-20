@@ -115,7 +115,8 @@
 
 /*****************************************************************************/
 
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;
 
 	/* A pointer to the currently connected sensor */
@@ -130,21 +131,25 @@ struct sd {
 	/* Camera rotation polling thread for "flipable" cams */
 	struct task_struct *rotation_thread;
 
-	struct { /* auto-white-bal + green/red/blue balance control cluster */
+	struct   /* auto-white-bal + green/red/blue balance control cluster */
+	{
 		struct v4l2_ctrl *auto_white_bal;
 		struct v4l2_ctrl *red_bal;
 		struct v4l2_ctrl *blue_bal;
 		struct v4l2_ctrl *green_bal;
 	};
-	struct { /* autoexpo / expo cluster */
+	struct   /* autoexpo / expo cluster */
+	{
 		struct v4l2_ctrl *autoexpo;
 		struct v4l2_ctrl *expo;
 	};
-	struct { /* autogain / gain cluster */
+	struct   /* autogain / gain cluster */
+	{
 		struct v4l2_ctrl *autogain;
 		struct v4l2_ctrl *gain;
 	};
-	struct { /* hflip/vflip cluster */
+	struct   /* hflip/vflip cluster */
+	{
 		struct v4l2_ctrl *hflip;
 		struct v4l2_ctrl *vflip;
 	};
@@ -157,9 +162,9 @@ int m5602_write_bridge(
 	struct sd *sd, const u8 address, const u8 i2c_data);
 
 int m5602_write_sensor(struct sd *sd, const u8 address,
-		       u8 *i2c_data, const u8 len);
+					   u8 *i2c_data, const u8 len);
 
 int m5602_read_sensor(struct sd *sd, const u8 address,
-		      u8 *i2c_data, const u8 len);
+					  u8 *i2c_data, const u8 len);
 
 #endif

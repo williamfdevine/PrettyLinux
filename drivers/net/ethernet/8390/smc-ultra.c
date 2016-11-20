@@ -81,31 +81,34 @@ static unsigned int ultra_portlist[] __initdata =
 static int ultra_probe1(struct net_device *dev, int ioaddr);
 
 #ifdef __ISAPNP__
-static int ultra_probe_isapnp(struct net_device *dev);
+	static int ultra_probe_isapnp(struct net_device *dev);
 #endif
 
 static int ultra_open(struct net_device *dev);
 static void ultra_reset_8390(struct net_device *dev);
 static void ultra_get_8390_hdr(struct net_device *dev, struct e8390_pkt_hdr *hdr,
-						int ring_page);
+							   int ring_page);
 static void ultra_block_input(struct net_device *dev, int count,
-						  struct sk_buff *skb, int ring_offset);
+							  struct sk_buff *skb, int ring_offset);
 static void ultra_block_output(struct net_device *dev, int count,
-							const unsigned char *buf, const int start_page);
+							   const unsigned char *buf, const int start_page);
 static void ultra_pio_get_hdr(struct net_device *dev, struct e8390_pkt_hdr *hdr,
-						int ring_page);
+							  int ring_page);
 static void ultra_pio_input(struct net_device *dev, int count,
-						  struct sk_buff *skb, int ring_offset);
+							struct sk_buff *skb, int ring_offset);
 static void ultra_pio_output(struct net_device *dev, int count,
 							 const unsigned char *buf, const int start_page);
 static int ultra_close_card(struct net_device *dev);
 
 #ifdef __ISAPNP__
-static struct isapnp_device_id ultra_device_ids[] __initdata = {
-        {       ISAPNP_VENDOR('S','M','C'), ISAPNP_FUNCTION(0x8416),
-                ISAPNP_VENDOR('S','M','C'), ISAPNP_FUNCTION(0x8416),
-                (long) "SMC EtherEZ (8416)" },
-        { }	/* terminate list */
+static struct isapnp_device_id ultra_device_ids[] __initdata =
+{
+	{
+		ISAPNP_VENDOR('S', 'M', 'C'), ISAPNP_FUNCTION(0x8416),
+		ISAPNP_VENDOR('S', 'M', 'C'), ISAPNP_FUNCTION(0x8416),
+		(long) "SMC EtherEZ (8416)"
+	},
+	{ }	/* terminate list */
 };
 
 MODULE_DEVICE_TABLE(isapnp, ultra_device_ids);
@@ -144,40 +147,58 @@ static int __init do_ultra_probe(struct net_device *dev)
 	int irq = dev->irq;
 
 	if (base_addr > 0x1ff)		/* Check a single specified location. */
+	{
 		return ultra_probe1(dev, base_addr);
+	}
 	else if (base_addr != 0)	/* Don't probe at all. */
+	{
 		return -ENXIO;
+	}
 
 #ifdef __ISAPNP__
+
 	/* Look for any installed ISAPnP cards */
 	if (isapnp_present() && (ultra_probe_isapnp(dev) == 0))
+	{
 		return 0;
+	}
+
 #endif
 
-	for (i = 0; ultra_portlist[i]; i++) {
+	for (i = 0; ultra_portlist[i]; i++)
+	{
 		dev->irq = irq;
+
 		if (ultra_probe1(dev, ultra_portlist[i]) == 0)
+		{
 			return 0;
+		}
 	}
 
 	return -ENODEV;
 }
 
 #ifndef MODULE
-struct net_device * __init ultra_probe(int unit)
+struct net_device *__init ultra_probe(int unit)
 {
 	struct net_device *dev = alloc_ei_netdev();
 	int err;
 
 	if (!dev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	sprintf(dev->name, "eth%d", unit);
 	netdev_boot_setup_check(dev);
 
 	err = do_ultra_probe(dev);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	return dev;
 out:
 	free_netdev(dev);
@@ -185,7 +206,8 @@ out:
 }
 #endif
 
-static const struct net_device_ops ultra_netdev_ops = {
+static const struct net_device_ops ultra_netdev_ops =
+{
 	.ndo_open		= ultra_open,
 	.ndo_stop		= ultra_close_card,
 
@@ -215,11 +237,14 @@ static int __init ultra_probe1(struct net_device *dev, int ioaddr)
 	struct ei_device *ei_local = netdev_priv(dev);
 
 	if (!request_region(ioaddr, ULTRA_IO_EXTENT, DRV_NAME))
+	{
 		return -EBUSY;
+	}
 
 	/* Check the ID nibble. */
 	if ((idreg & 0xF0) != 0x20 			/* SMC Ultra */
-		&& (idreg & 0xF0) != 0x40) {		/* SMC EtherEZ */
+		&& (idreg & 0xF0) != 0x40)  		/* SMC EtherEZ */
+	{
 		retval = -ENODEV;
 		goto out;
 	}
@@ -228,22 +253,30 @@ static int __init ultra_probe1(struct net_device *dev, int ioaddr)
 	outb(reg4, ioaddr + 4);
 
 	for (i = 0; i < 8; i++)
+	{
 		checksum += inb(ioaddr + 8 + i);
-	if ((checksum & 0xff) != 0xFF) {
+	}
+
+	if ((checksum & 0xff) != 0xFF)
+	{
 		retval = -ENODEV;
 		goto out;
 	}
 
 	if ((ultra_msg_enable & NETIF_MSG_DRV) && (version_printed++ == 0))
+	{
 		netdev_info(dev, version);
+	}
 
 	model_name = (idreg & 0xF0) == 0x20 ? "SMC Ultra" : "SMC EtherEZ";
 
 	for (i = 0; i < 6; i++)
+	{
 		dev->dev_addr[i] = inb(ioaddr + 8 + i);
+	}
 
 	netdev_info(dev, "%s at %#3x, %pM", model_name,
-		    ioaddr, dev->dev_addr);
+				ioaddr, dev->dev_addr);
 
 	/* Switch from the station address to the alternate register set and
 	   read the useful registers there. */
@@ -259,30 +292,35 @@ static int __init ultra_probe1(struct net_device *dev, int ioaddr)
 	   can find the card after a warm boot. */
 	outb(reg4, ioaddr + 4);
 
-	if (dev->irq < 2) {
+	if (dev->irq < 2)
+	{
 		unsigned char irqmap[] = {0, 9, 3, 5, 7, 10, 11, 15};
 		int irq;
 
 		/* The IRQ bits are split. */
 		irq = irqmap[((irqreg & 0x40) >> 4) + ((irqreg & 0x0c) >> 2)];
 
-		if (irq == 0) {
+		if (irq == 0)
+		{
 			pr_cont(", failed to detect IRQ line.\n");
 			retval =  -EAGAIN;
 			goto out;
 		}
+
 		dev->irq = irq;
 		eeprom_irq = 1;
 	}
 
 	/* The 8390 isn't at the base address, so fake the offset */
-	dev->base_addr = ioaddr+ULTRA_NIC_OFFSET;
+	dev->base_addr = ioaddr + ULTRA_NIC_OFFSET;
 
 	{
-		static const int addr_tbl[4] = {
+		static const int addr_tbl[4] =
+		{
 			0x0C0000, 0x0E0000, 0xFC0000, 0xFE0000
 		};
-		static const short num_pages_tbl[4] = {
+		static const short num_pages_tbl[4] =
+		{
 			0x20, 0x40, 0x80, 0xff
 		};
 
@@ -296,29 +334,35 @@ static int __init ultra_probe1(struct net_device *dev, int ioaddr)
 	ei_status.rx_start_page = START_PG + TX_PAGES;
 	ei_status.stop_page = num_pages;
 
-	ei_status.mem = ioremap(dev->mem_start, (ei_status.stop_page - START_PG)*256);
-	if (!ei_status.mem) {
+	ei_status.mem = ioremap(dev->mem_start, (ei_status.stop_page - START_PG) * 256);
+
+	if (!ei_status.mem)
+	{
 		pr_cont(", failed to ioremap.\n");
 		retval =  -ENOMEM;
 		goto out;
 	}
 
-	dev->mem_end = dev->mem_start + (ei_status.stop_page - START_PG)*256;
+	dev->mem_end = dev->mem_start + (ei_status.stop_page - START_PG) * 256;
 
-	if (piomode) {
+	if (piomode)
+	{
 		pr_cont(", %s IRQ %d programmed-I/O mode.\n",
-			eeprom_irq ? "EEPROM" : "assigned ", dev->irq);
+				eeprom_irq ? "EEPROM" : "assigned ", dev->irq);
 		ei_status.block_input = &ultra_pio_input;
 		ei_status.block_output = &ultra_pio_output;
 		ei_status.get_8390_hdr = &ultra_pio_get_hdr;
-	} else {
+	}
+	else
+	{
 		pr_cont(", %s IRQ %d memory %#lx-%#lx.\n",
-			eeprom_irq ? "" : "assigned ", dev->irq, dev->mem_start,
-			dev->mem_end-1);
+				eeprom_irq ? "" : "assigned ", dev->irq, dev->mem_start,
+				dev->mem_end - 1);
 		ei_status.block_input = &ultra_block_input;
 		ei_status.block_output = &ultra_block_output;
 		ei_status.get_8390_hdr = &ultra_get_8390_hdr;
 	}
+
 	ei_status.reset_8390 = &ultra_reset_8390;
 
 	dev->netdev_ops = &ultra_netdev_ops;
@@ -326,8 +370,12 @@ static int __init ultra_probe1(struct net_device *dev, int ioaddr)
 	ei_local->msg_enable = ultra_msg_enable;
 
 	retval = register_netdev(dev);
+
 	if (retval)
+	{
 		goto out;
+	}
+
 	return 0;
 out:
 	release_region(ioaddr, ULTRA_IO_EXTENT);
@@ -337,49 +385,66 @@ out:
 #ifdef __ISAPNP__
 static int __init ultra_probe_isapnp(struct net_device *dev)
 {
-        int i;
+	int i;
 
-        for (i = 0; ultra_device_ids[i].vendor != 0; i++) {
+	for (i = 0; ultra_device_ids[i].vendor != 0; i++)
+	{
 		struct pnp_dev *idev = NULL;
 
-                while ((idev = pnp_find_dev(NULL,
-                                            ultra_device_ids[i].vendor,
-                                            ultra_device_ids[i].function,
-                                            idev))) {
-                        /* Avoid already found cards from previous calls */
-                        if (pnp_device_attach(idev) < 0)
-                        	continue;
-                        if (pnp_activate_dev(idev) < 0) {
-                              __again:
-                        	pnp_device_detach(idev);
-                        	continue;
-                        }
+		while ((idev = pnp_find_dev(NULL,
+									ultra_device_ids[i].vendor,
+									ultra_device_ids[i].function,
+									idev)))
+		{
+			/* Avoid already found cards from previous calls */
+			if (pnp_device_attach(idev) < 0)
+			{
+				continue;
+			}
+
+			if (pnp_activate_dev(idev) < 0)
+			{
+__again:
+				pnp_device_detach(idev);
+				continue;
+			}
+
 			/* if no io and irq, search for next */
 			if (!pnp_port_valid(idev, 0) || !pnp_irq_valid(idev, 0))
+			{
 				goto __again;
-                        /* found it */
+			}
+
+			/* found it */
 			dev->base_addr = pnp_port_start(idev, 0);
 			dev->irq = pnp_irq(idev, 0);
 			netdev_info(dev,
-				    "smc-ultra.c: ISAPnP reports %s at i/o %#lx, irq %d.\n",
-				    (char *) ultra_device_ids[i].driver_data,
-				    dev->base_addr, dev->irq);
-                        if (ultra_probe1(dev, dev->base_addr) != 0) {      /* Shouldn't happen. */
+						"smc-ultra.c: ISAPnP reports %s at i/o %#lx, irq %d.\n",
+						(char *) ultra_device_ids[i].driver_data,
+						dev->base_addr, dev->irq);
+
+			if (ultra_probe1(dev, dev->base_addr) != 0)        /* Shouldn't happen. */
+			{
 				netdev_err(dev,
-					   "smc-ultra.c: Probe of ISAPnP card at %#lx failed.\n",
-					   dev->base_addr);
+						   "smc-ultra.c: Probe of ISAPnP card at %#lx failed.\n",
+						   dev->base_addr);
 				pnp_device_detach(idev);
 				return -ENXIO;
-                        }
-                        ei_status.priv = (unsigned long)idev;
-                        break;
-                }
-                if (!idev)
-                        continue;
-                return 0;
-        }
+			}
 
-        return -ENODEV;
+			ei_status.priv = (unsigned long)idev;
+			break;
+		}
+
+		if (!idev)
+		{
+			continue;
+		}
+
+		return 0;
+	}
+
+	return -ENODEV;
 }
 #endif
 
@@ -389,11 +454,15 @@ ultra_open(struct net_device *dev)
 	int retval;
 	int ioaddr = dev->base_addr - ULTRA_NIC_OFFSET; /* ASIC addr */
 	unsigned char irq2reg[] = {0, 0, 0x04, 0x08, 0, 0x0C, 0, 0x40,
-				   0, 0x04, 0x44, 0x48, 0, 0, 0, 0x4C, };
+							   0, 0x04, 0x44, 0x48, 0, 0, 0, 0x4C,
+							  };
 
 	retval = request_irq(dev->irq, ei_interrupt, 0, dev->name, dev);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	outb(0x00, ioaddr);	/* Disable shared memory for safety. */
 	outb(0x80, ioaddr + 5);
@@ -402,14 +471,19 @@ ultra_open(struct net_device *dev)
 	outb((inb(ioaddr + 13) & ~0x4C) | irq2reg[dev->irq], ioaddr + 13);
 	outb(inb(ioaddr + 4) & 0x7f, ioaddr + 4);
 
-	if (ei_status.block_input == &ultra_pio_input) {
+	if (ei_status.block_input == &ultra_pio_input)
+	{
 		outb(0x11, ioaddr + 6);		/* Enable interrupts and PIO. */
 		outb(0x01, ioaddr + 0x19);  	/* Enable ring read auto-wrap. */
-	} else
-		outb(0x01, ioaddr + 6);		/* Enable interrupts and memory. */
+	}
+	else
+	{
+		outb(0x01, ioaddr + 6);    /* Enable interrupts and memory. */
+	}
+
 	/* Set the early receive warning level in window 0 high enough not
 	   to receive ERW interrupts. */
-	outb_p(E8390_NODMA+E8390_PAGE0, dev->base_addr);
+	outb_p(E8390_NODMA + E8390_PAGE0, dev->base_addr);
 	outb(0xff, dev->base_addr + EN0_ERWCNT);
 	ei_open(dev);
 	return 0;
@@ -427,10 +501,15 @@ ultra_reset_8390(struct net_device *dev)
 
 	outb(0x00, cmd_port);	/* Disable shared memory for safety. */
 	outb(0x80, cmd_port + 5);
+
 	if (ei_status.block_input == &ultra_pio_input)
-		outb(0x11, cmd_port + 6);		/* Enable interrupts and PIO. */
+	{
+		outb(0x11, cmd_port + 6);    /* Enable interrupts and PIO. */
+	}
 	else
-		outb(0x01, cmd_port + 6);		/* Enable interrupts and memory. */
+	{
+		outb(0x01, cmd_port + 6);    /* Enable interrupts and memory. */
+	}
 
 	netif_dbg(ei_local, hw, dev, "reset done\n");
 }
@@ -442,7 +521,7 @@ ultra_reset_8390(struct net_device *dev)
 static void
 ultra_get_8390_hdr(struct net_device *dev, struct e8390_pkt_hdr *hdr, int ring_page)
 {
-	void __iomem *hdr_start = ei_status.mem + ((ring_page - START_PG)<<8);
+	void __iomem *hdr_start = ei_status.mem + ((ring_page - START_PG) << 8);
 
 	outb(ULTRA_MEMENB, dev->base_addr - ULTRA_NIC_OFFSET);	/* shmem on */
 #ifdef __BIG_ENDIAN
@@ -451,7 +530,7 @@ ultra_get_8390_hdr(struct net_device *dev, struct e8390_pkt_hdr *hdr, int ring_p
 	memcpy_fromio(hdr, hdr_start, sizeof(struct e8390_pkt_hdr));
 	hdr->count = le16_to_cpu(hdr->count);
 #else
-	((unsigned int*)hdr)[0] = readl(hdr_start);
+	((unsigned int *)hdr)[0] = readl(hdr_start);
 #endif
 	outb(0x00, dev->base_addr - ULTRA_NIC_OFFSET); /* shmem off */
 }
@@ -462,18 +541,21 @@ ultra_get_8390_hdr(struct net_device *dev, struct e8390_pkt_hdr *hdr, int ring_p
 static void
 ultra_block_input(struct net_device *dev, int count, struct sk_buff *skb, int ring_offset)
 {
-	void __iomem *xfer_start = ei_status.mem + ring_offset - (START_PG<<8);
+	void __iomem *xfer_start = ei_status.mem + ring_offset - (START_PG << 8);
 
 	/* Enable shared memory. */
 	outb(ULTRA_MEMENB, dev->base_addr - ULTRA_NIC_OFFSET);
 
-	if (ring_offset + count > ei_status.stop_page*256) {
+	if (ring_offset + count > ei_status.stop_page * 256)
+	{
 		/* We must wrap the input move. */
-		int semi_count = ei_status.stop_page*256 - ring_offset;
+		int semi_count = ei_status.stop_page * 256 - ring_offset;
 		memcpy_fromio(skb->data, xfer_start, semi_count);
 		count -= semi_count;
 		memcpy_fromio(skb->data + semi_count, ei_status.mem + TX_PAGES * 256, count);
-	} else {
+	}
+	else
+	{
 		memcpy_fromio(skb->data, xfer_start, count);
 	}
 
@@ -482,9 +564,9 @@ ultra_block_input(struct net_device *dev, int count, struct sk_buff *skb, int ri
 
 static void
 ultra_block_output(struct net_device *dev, int count, const unsigned char *buf,
-				int start_page)
+				   int start_page)
 {
-	void __iomem *shmem = ei_status.mem + ((start_page - START_PG)<<8);
+	void __iomem *shmem = ei_status.mem + ((start_page - START_PG) << 8);
 
 	/* Enable shared memory. */
 	outb(ULTRA_MEMENB, dev->base_addr - ULTRA_NIC_OFFSET);
@@ -503,35 +585,35 @@ ultra_block_output(struct net_device *dev, int count, const unsigned char *buf,
    This is no problem for us, as the 8390 code ensures that we are single
    threaded. */
 static void ultra_pio_get_hdr(struct net_device *dev, struct e8390_pkt_hdr *hdr,
-						int ring_page)
+							  int ring_page)
 {
 	int ioaddr = dev->base_addr - ULTRA_NIC_OFFSET; /* ASIC addr */
 	outb(0x00, ioaddr + IOPA);	/* Set the address, LSB first. */
 	outb(ring_page, ioaddr + IOPA);
-	insw(ioaddr + IOPD, hdr, sizeof(struct e8390_pkt_hdr)>>1);
+	insw(ioaddr + IOPD, hdr, sizeof(struct e8390_pkt_hdr) >> 1);
 }
 
 static void ultra_pio_input(struct net_device *dev, int count,
-						  struct sk_buff *skb, int ring_offset)
+							struct sk_buff *skb, int ring_offset)
 {
 	int ioaddr = dev->base_addr - ULTRA_NIC_OFFSET; /* ASIC addr */
-    char *buf = skb->data;
+	char *buf = skb->data;
 
 	/* For now set the address again, although it should already be correct. */
 	outb(ring_offset, ioaddr + IOPA);	/* Set the address, LSB first. */
 	outb(ring_offset >> 8, ioaddr + IOPA);
 	/* We know skbuffs are padded to at least word alignment. */
-	insw(ioaddr + IOPD, buf, (count+1)>>1);
+	insw(ioaddr + IOPD, buf, (count + 1) >> 1);
 }
 
 static void ultra_pio_output(struct net_device *dev, int count,
-							const unsigned char *buf, const int start_page)
+							 const unsigned char *buf, const int start_page)
 {
 	int ioaddr = dev->base_addr - ULTRA_NIC_OFFSET; /* ASIC addr */
 	outb(0x00, ioaddr + IOPA);	/* Set the address, LSB first. */
 	outb(start_page, ioaddr + IOPA);
 	/* An extra odd byte is OK here as well. */
-	outsw(ioaddr + IOPD, buf, (count+1)>>1);
+	outsw(ioaddr + IOPD, buf, (count + 1) >> 1);
 }
 
 static int
@@ -564,7 +646,7 @@ static int irq[MAX_ULTRA_CARDS];
 
 module_param_array(io, int, NULL, 0);
 module_param_array(irq, int, NULL, 0);
-module_param_named(msg_enable, ultra_msg_enable, uint, (S_IRUSR|S_IRGRP|S_IROTH));
+module_param_named(msg_enable, ultra_msg_enable, uint, (S_IRUSR | S_IRGRP | S_IROTH));
 MODULE_PARM_DESC(io, "I/O base address(es)");
 MODULE_PARM_DESC(irq, "IRQ number(s) (assigned)");
 MODULE_PARM_DESC(msg_enable, "Debug message level (see linux/netdevice.h for bitmap)");
@@ -579,26 +661,41 @@ init_module(void)
 	struct net_device *dev;
 	int this_dev, found = 0;
 
-	for (this_dev = 0; this_dev < MAX_ULTRA_CARDS; this_dev++) {
-		if (io[this_dev] == 0)  {
-			if (this_dev != 0) break; /* only autoprobe 1st one */
+	for (this_dev = 0; this_dev < MAX_ULTRA_CARDS; this_dev++)
+	{
+		if (io[this_dev] == 0)
+		{
+			if (this_dev != 0) { break; } /* only autoprobe 1st one */
+
 			printk(KERN_NOTICE "smc-ultra.c: Presently autoprobing (not recommended) for a single card.\n");
 		}
+
 		dev = alloc_ei_netdev();
+
 		if (!dev)
+		{
 			break;
+		}
+
 		dev->irq = irq[this_dev];
 		dev->base_addr = io[this_dev];
-		if (do_ultra_probe(dev) == 0) {
+
+		if (do_ultra_probe(dev) == 0)
+		{
 			dev_ultra[found++] = dev;
 			continue;
 		}
+
 		free_netdev(dev);
 		printk(KERN_WARNING "smc-ultra.c: No SMC Ultra card found (i/o = 0x%x).\n", io[this_dev]);
 		break;
 	}
+
 	if (found)
+	{
 		return 0;
+	}
+
 	return -ENXIO;
 }
 
@@ -607,8 +704,12 @@ static void cleanup_card(struct net_device *dev)
 	/* NB: ultra_close_card() does free_irq */
 #ifdef __ISAPNP__
 	struct pnp_dev *idev = (struct pnp_dev *)ei_status.priv;
+
 	if (idev)
+	{
 		pnp_device_detach(idev);
+	}
+
 #endif
 	release_region(dev->base_addr - ULTRA_NIC_OFFSET, ULTRA_IO_EXTENT);
 	iounmap(ei_status.mem);
@@ -619,9 +720,12 @@ cleanup_module(void)
 {
 	int this_dev;
 
-	for (this_dev = 0; this_dev < MAX_ULTRA_CARDS; this_dev++) {
+	for (this_dev = 0; this_dev < MAX_ULTRA_CARDS; this_dev++)
+	{
 		struct net_device *dev = dev_ultra[this_dev];
-		if (dev) {
+
+		if (dev)
+		{
 			unregister_netdev(dev);
 			cleanup_card(dev);
 			free_netdev(dev);

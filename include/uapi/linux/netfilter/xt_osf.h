@@ -38,7 +38,8 @@
 #define XT_OSF_TTL_LESS		1	/* Check if ip TTL is less than fingerprint one */
 #define XT_OSF_TTL_NOCHECK	2	/* Do not compare ip and fingerprint TTL at all */
 
-struct xt_osf_info {
+struct xt_osf_info
+{
 	char			genre[MAXGENRELEN];
 	__u32			len;
 	__u32			flags;
@@ -51,7 +52,8 @@ struct xt_osf_info {
  * It is used to implement a state machine for the different wildcard values
  * of the MSS and window sizes.
  */
-struct xt_osf_wc {
+struct xt_osf_wc
+{
 	__u32			wc;
 	__u32			val;
 };
@@ -60,12 +62,14 @@ struct xt_osf_wc {
  * This struct represents IANA options
  * http://www.iana.org/assignments/tcp-parameters
  */
-struct xt_osf_opt {
+struct xt_osf_opt
+{
 	__u16			kind, length;
 	struct xt_osf_wc	wc;
 };
 
-struct xt_osf_user_finger {
+struct xt_osf_user_finger
+{
 	struct xt_osf_wc	wss;
 
 	__u8			ttl, df;
@@ -80,7 +84,8 @@ struct xt_osf_user_finger {
 	struct xt_osf_opt	opt[MAX_IPOPTLEN];
 };
 
-struct xt_osf_nlmsg {
+struct xt_osf_nlmsg
+{
 	struct xt_osf_user_finger	f;
 	struct iphdr		ip;
 	struct tcphdr		tcp;
@@ -88,7 +93,8 @@ struct xt_osf_nlmsg {
 
 /* Defines for IANA option kinds */
 
-enum iana_options {
+enum iana_options
+{
 	OSFOPT_EOL = 0,		/* End of options */
 	OSFOPT_NOP, 		/* NOP */
 	OSFOPT_MSS, 		/* Maximum segment size */
@@ -110,7 +116,8 @@ enum iana_options {
  * plain numeric value. Can also be made as plain numeric value which
  * is not a multiple of specified value.
  */
-enum xt_osf_window_size_options {
+enum xt_osf_window_size_options
+{
 	OSF_WSS_PLAIN	= 0,
 	OSF_WSS_MSS,
 	OSF_WSS_MTU,
@@ -121,13 +128,15 @@ enum xt_osf_window_size_options {
 /*
  * Add/remove fingerprint from the kernel.
  */
-enum xt_osf_msg_types {
+enum xt_osf_msg_types
+{
 	OSF_MSG_ADD,
 	OSF_MSG_REMOVE,
 	OSF_MSG_MAX,
 };
 
-enum xt_osf_attr_type {
+enum xt_osf_attr_type
+{
 	OSF_ATTR_UNSPEC,
 	OSF_ATTR_FINGER,
 	OSF_ATTR_MAX,

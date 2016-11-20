@@ -49,7 +49,8 @@
 #define FOR_CPU		0
 
 /* ARC EMAC register set combines entries for MAC and MDIO */
-enum {
+enum
+{
 	R_ID = 0,
 	R_STATUS,
 	R_ENABLE,
@@ -78,7 +79,8 @@ enum {
  * @info:	Contains status information on the buffer itself.
  * @data:	32-bit byte addressable pointer to the packet data.
  */
-struct arc_emac_bd {
+struct arc_emac_bd
+{
 	__le32 info;
 	dma_addr_t data;
 };
@@ -96,13 +98,15 @@ struct arc_emac_bd {
  * @addr:	Start address of DMA-mapped memory region.
  * @len:	Length of DMA-mapped memory region.
  */
-struct buffer_state {
+struct buffer_state
+{
 	struct sk_buff *skb;
 	DEFINE_DMA_UNMAP_ADDR(addr);
 	DEFINE_DMA_UNMAP_LEN(len);
 };
 
-struct arc_emac_mdio_bus_data {
+struct arc_emac_mdio_bus_data
+{
 	struct gpio_desc *reset_gpio;
 	int msec;
 };
@@ -127,7 +131,8 @@ struct arc_emac_mdio_bus_data {
  * @duplex:	PHY's last set duplex mode.
  * @speed:	PHY's last set speed.
  */
-struct arc_emac_priv {
+struct arc_emac_priv
+{
 	const char *drv_name;
 	const char *drv_version;
 	void (*set_mac_speed)(void *priv, unsigned int speed);

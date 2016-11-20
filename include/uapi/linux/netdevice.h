@@ -45,14 +45,15 @@
 #define NET_NAME_RENAMED	4	/* renamed by user-space */
 
 /* Media selection options. */
-enum {
-        IF_PORT_UNKNOWN = 0,
-        IF_PORT_10BASE2,
-        IF_PORT_10BASET,
-        IF_PORT_AUI,
-        IF_PORT_100BASET,
-        IF_PORT_100BASETX,
-        IF_PORT_100BASEFX
+enum
+{
+	IF_PORT_UNKNOWN = 0,
+	IF_PORT_10BASE2,
+	IF_PORT_10BASET,
+	IF_PORT_AUI,
+	IF_PORT_100BASET,
+	IF_PORT_100BASETX,
+	IF_PORT_100BASEFX
 };
 
 /* hardware address assignment types */

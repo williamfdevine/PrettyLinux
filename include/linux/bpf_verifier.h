@@ -10,25 +10,28 @@
 #include <linux/bpf.h> /* for enum bpf_reg_type */
 #include <linux/filter.h> /* for MAX_BPF_STACK */
 
- /* Just some arbitrary values so we can safely do math without overflowing and
-  * are obviously wrong for any sort of memory access.
-  */
+/* Just some arbitrary values so we can safely do math without overflowing and
+ * are obviously wrong for any sort of memory access.
+ */
 #define BPF_REGISTER_MAX_RANGE (1024 * 1024 * 1024)
 #define BPF_REGISTER_MIN_RANGE -(1024 * 1024 * 1024)
 
-struct bpf_reg_state {
+struct bpf_reg_state
+{
 	enum bpf_reg_type type;
 	/*
 	 * Used to determine if any memory access using this register will
 	 * result in a bad access.
 	 */
 	u64 min_value, max_value;
-	union {
+	union
+	{
 		/* valid when type == CONST_IMM | PTR_TO_STACK | UNKNOWN_VALUE */
 		s64 imm;
 
 		/* valid when type == PTR_TO_PACKET* */
-		struct {
+		struct
+		{
 			u32 id;
 			u16 off;
 			u16 range;
@@ -41,7 +44,8 @@ struct bpf_reg_state {
 	};
 };
 
-enum bpf_stack_slot_type {
+enum bpf_stack_slot_type
+{
 	STACK_INVALID,    /* nothing was stored in this stack slot */
 	STACK_SPILL,      /* register spilled into stack */
 	STACK_MISC	  /* BPF program wrote some data into this slot */
@@ -52,34 +56,39 @@ enum bpf_stack_slot_type {
 /* state of the program:
  * type of all registers and stack info
  */
-struct bpf_verifier_state {
+struct bpf_verifier_state
+{
 	struct bpf_reg_state regs[MAX_BPF_REG];
 	u8 stack_slot_type[MAX_BPF_STACK];
 	struct bpf_reg_state spilled_regs[MAX_BPF_STACK / BPF_REG_SIZE];
 };
 
 /* linked list of verifier states used to prune search */
-struct bpf_verifier_state_list {
+struct bpf_verifier_state_list
+{
 	struct bpf_verifier_state state;
 	struct bpf_verifier_state_list *next;
 };
 
-struct bpf_insn_aux_data {
+struct bpf_insn_aux_data
+{
 	enum bpf_reg_type ptr_type;	/* pointer type for load/store insns */
 };
 
 #define MAX_USED_MAPS 64 /* max number of maps accessed by one eBPF program */
 
 struct bpf_verifier_env;
-struct bpf_ext_analyzer_ops {
+struct bpf_ext_analyzer_ops
+{
 	int (*insn_hook)(struct bpf_verifier_env *env,
-			 int insn_idx, int prev_insn_idx);
+					 int insn_idx, int prev_insn_idx);
 };
 
 /* single container for all structs
  * one verifier_env per bpf_check() call
  */
-struct bpf_verifier_env {
+struct bpf_verifier_env
+{
 	struct bpf_prog *prog;		/* eBPF program being verified */
 	struct bpf_verifier_stack_elem *head; /* stack of verifier states to be processed */
 	int stack_size;			/* number of states to be processed */
@@ -97,6 +106,6 @@ struct bpf_verifier_env {
 };
 
 int bpf_analyzer(struct bpf_prog *prog, const struct bpf_ext_analyzer_ops *ops,
-		 void *priv);
+				 void *priv);
 
 #endif /* _LINUX_BPF_VERIFIER_H */

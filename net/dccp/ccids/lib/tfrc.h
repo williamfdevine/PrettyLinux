@@ -21,10 +21,10 @@
 #include "packet_history.h"
 
 #ifdef CONFIG_IP_DCCP_TFRC_DEBUG
-extern bool tfrc_debug;
-#define tfrc_pr_debug(format, a...)	DCCP_PR_DEBUG(tfrc_debug, format, ##a)
+	extern bool tfrc_debug;
+	#define tfrc_pr_debug(format, a...)	DCCP_PR_DEBUG(tfrc_debug, format, ##a)
 #else
-#define tfrc_pr_debug(format, a...)
+	#define tfrc_pr_debug(format, a...)
 #endif
 
 /* integer-arithmetic divisions of type (a * 1000000)/b */
@@ -38,11 +38,13 @@ static inline u32 scaled_div32(u64 a, u64 b)
 {
 	u64 result = scaled_div(a, b);
 
-	if (result > UINT_MAX) {
+	if (result > UINT_MAX)
+	{
 		DCCP_CRIT("Overflow: %llu/%llu > UINT_MAX",
-			  (unsigned long long)a, (unsigned long long)b);
+				  (unsigned long long)a, (unsigned long long)b);
 		return UINT_MAX;
 	}
+
 	return result;
 }
 
@@ -68,10 +70,10 @@ int tfrc_li_init(void);
 void tfrc_li_exit(void);
 
 #ifdef CONFIG_IP_DCCP_TFRC_LIB
-int tfrc_lib_init(void);
-void tfrc_lib_exit(void);
+	int tfrc_lib_init(void);
+	void tfrc_lib_exit(void);
 #else
-#define tfrc_lib_init() (0)
-#define tfrc_lib_exit()
+	#define tfrc_lib_init() (0)
+	#define tfrc_lib_exit()
 #endif
 #endif /* _TFRC_H_ */

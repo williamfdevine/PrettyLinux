@@ -41,7 +41,8 @@
 #ifndef EDMA_H_
 #define EDMA_H_
 
-enum dma_event_q {
+enum dma_event_q
+{
 	EVENTQ_0 = 0,
 	EVENTQ_1 = 1,
 	EVENTQ_2 = 2,
@@ -55,7 +56,8 @@ enum dma_event_q {
 
 #define EDMA_FILTER_PARAM(ctlr, chan)	((int[]) { EDMA_CTLR_CHAN(ctlr, chan) })
 
-struct edma_rsv_info {
+struct edma_rsv_info
+{
 
 	const s16	(*rsv_chans)[2];
 	const s16	(*rsv_slots)[2];
@@ -64,7 +66,8 @@ struct edma_rsv_info {
 struct dma_slave_map;
 
 /* platform_data for EDMA driver */
-struct edma_soc_info {
+struct edma_soc_info
+{
 	/*
 	 * Default queue is expected to be a low-priority queue.
 	 * This way, long transfers on the default queue started

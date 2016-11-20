@@ -22,8 +22,12 @@ static int cfvidl_transmit(struct cflayer *layr, struct cfpkt *pkt);
 struct cflayer *cfvidl_create(u8 channel_id, struct dev_info *dev_info)
 {
 	struct cfsrvl *vid = kzalloc(sizeof(struct cfsrvl), GFP_ATOMIC);
+
 	if (!vid)
+	{
 		return NULL;
+	}
+
 	caif_assert(offsetof(struct cfsrvl, layer) == 0);
 
 	cfsrvl_init(vid, channel_id, dev_info, false);
@@ -36,11 +40,14 @@ struct cflayer *cfvidl_create(u8 channel_id, struct dev_info *dev_info)
 static int cfvidl_receive(struct cflayer *layr, struct cfpkt *pkt)
 {
 	u32 videoheader;
-	if (cfpkt_extr_head(pkt, &videoheader, 4) < 0) {
+
+	if (cfpkt_extr_head(pkt, &videoheader, 4) < 0)
+	{
 		pr_err("Packet is erroneous!\n");
 		cfpkt_destroy(pkt);
 		return -EPROTO;
 	}
+
 	return layr->up->receive(layr->up, pkt);
 }
 
@@ -51,7 +58,8 @@ static int cfvidl_transmit(struct cflayer *layr, struct cfpkt *pkt)
 	u32 videoheader = 0;
 	int ret;
 
-	if (!cfsrvl_ready(service, &ret)) {
+	if (!cfsrvl_ready(service, &ret))
+	{
 		cfpkt_destroy(pkt);
 		return ret;
 	}

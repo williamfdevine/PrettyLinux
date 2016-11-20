@@ -15,14 +15,16 @@
 
 #include <linux/compat.h>
 
-struct compat_iw_point {
+struct compat_iw_point
+{
 	compat_caddr_t pointer;
 	__u16 length;
 	__u16 flags;
 };
 #endif
 #ifdef CONFIG_COMPAT
-struct __compat_iw_event {
+struct __compat_iw_event
+{
 	__u16		len;			/* Real length of this stuff */
 	__u16		cmd;			/* Wireless IOCTL */
 	compat_caddr_t	pointer;

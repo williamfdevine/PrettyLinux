@@ -13,7 +13,8 @@
  * will take an invariant amount of time regardless of the
  * state of the STM.
  */
-enum {
+enum
+{
 	STM_OPTION_GUARANTEED = 0,
 	STM_OPTION_INVARIANT,
 };

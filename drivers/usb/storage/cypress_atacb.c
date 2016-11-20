@@ -40,12 +40,13 @@ MODULE_LICENSE("GPL");
  * The table of devices
  */
 #define UNUSUAL_DEV(id_vendor, id_product, bcdDeviceMin, bcdDeviceMax, \
-		    vendorName, productName, useProtocol, useTransport, \
-		    initFunction, flags) \
+					vendorName, productName, useProtocol, useTransport, \
+					initFunction, flags) \
 { USB_DEVICE_VER(id_vendor, id_product, bcdDeviceMin, bcdDeviceMax), \
-  .driver_info = (flags) }
+	.driver_info = (flags) }
 
-static struct usb_device_id cypress_usb_ids[] = {
+static struct usb_device_id cypress_usb_ids[] =
+{
 #	include "unusual_cypress.h"
 	{ }		/* Terminating entry */
 };
@@ -57,17 +58,18 @@ MODULE_DEVICE_TABLE(usb, cypress_usb_ids);
  * The flags table
  */
 #define UNUSUAL_DEV(idVendor, idProduct, bcdDeviceMin, bcdDeviceMax, \
-		    vendor_name, product_name, use_protocol, use_transport, \
-		    init_function, Flags) \
+					vendor_name, product_name, use_protocol, use_transport, \
+					init_function, Flags) \
 { \
 	.vendorName = vendor_name,	\
-	.productName = product_name,	\
-	.useProtocol = use_protocol,	\
-	.useTransport = use_transport,	\
-	.initFunction = init_function,	\
+				  .productName = product_name,	\
+								 .useProtocol = use_protocol,	\
+										 .useTransport = use_transport,	\
+												 .initFunction = init_function,	\
 }
 
-static struct us_unusual_dev cypress_unusual_dev_list[] = {
+static struct us_unusual_dev cypress_unusual_dev_list[] =
+{
 #	include "unusual_cypress.h"
 	{ }		/* Terminating entry */
 };
@@ -86,7 +88,8 @@ static void cypress_atacb_passthrough(struct scsi_cmnd *srb, struct us_data *us)
 {
 	unsigned char save_cmnd[MAX_COMMAND_SIZE];
 
-	if (likely(srb->cmnd[0] != ATA_16 && srb->cmnd[0] != ATA_12)) {
+	if (likely(srb->cmnd[0] != ATA_16 && srb->cmnd[0] != ATA_12))
+	{
 		usb_stor_transparent_scsi_command(srb, us);
 		return;
 	}
@@ -96,15 +99,20 @@ static void cypress_atacb_passthrough(struct scsi_cmnd *srb, struct us_data *us)
 
 	/* check if we support the command */
 	if (save_cmnd[1] >> 5) /* MULTIPLE_COUNT */
+	{
 		goto invalid_fld;
+	}
+
 	/* check protocol */
-	switch ((save_cmnd[1] >> 1) & 0xf) {
-	case 3: /*no DATA */
-	case 4: /* PIO in */
-	case 5: /* PIO out */
-		break;
-	default:
-		goto invalid_fld;
+	switch ((save_cmnd[1] >> 1) & 0xf)
+	{
+		case 3: /*no DATA */
+		case 4: /* PIO in */
+		case 5: /* PIO out */
+			break;
+
+		default:
+			goto invalid_fld;
 	}
 
 	/* first build the ATACB command */
@@ -123,7 +131,8 @@ static void cypress_atacb_passthrough(struct scsi_cmnd *srb, struct us_data *us)
 				  */
 	srb->cmnd[4] = 1; /* TransferBlockCount : 512 */
 
-	if (save_cmnd[0] == ATA_16) {
+	if (save_cmnd[0] == ATA_16)
+	{
 		srb->cmnd[ 6] = save_cmnd[ 4]; /* features */
 		srb->cmnd[ 7] = save_cmnd[ 6]; /* sector count */
 		srb->cmnd[ 8] = save_cmnd[ 8]; /* lba low */
@@ -132,13 +141,18 @@ static void cypress_atacb_passthrough(struct scsi_cmnd *srb, struct us_data *us)
 		srb->cmnd[11] = save_cmnd[13]; /* device */
 		srb->cmnd[12] = save_cmnd[14]; /* command */
 
-		if (save_cmnd[1] & 0x01) {/* extended bit set for LBA48 */
+		if (save_cmnd[1] & 0x01)  /* extended bit set for LBA48 */
+		{
 			/* this could be supported by atacb2 */
 			if (save_cmnd[3] || save_cmnd[5] || save_cmnd[7] || save_cmnd[9]
-					|| save_cmnd[11])
+				|| save_cmnd[11])
+			{
 				goto invalid_fld;
+			}
 		}
-	} else { /* ATA12 */
+	}
+	else     /* ATA12 */
+	{
 		srb->cmnd[ 6] = save_cmnd[3]; /* features */
 		srb->cmnd[ 7] = save_cmnd[4]; /* sector count */
 		srb->cmnd[ 8] = save_cmnd[5]; /* lba low */
@@ -148,21 +162,27 @@ static void cypress_atacb_passthrough(struct scsi_cmnd *srb, struct us_data *us)
 		srb->cmnd[12] = save_cmnd[9]; /* command */
 
 	}
+
 	/* Filter SET_FEATURES - XFER MODE command */
 	if ((srb->cmnd[12] == ATA_CMD_SET_FEATURES)
-			&& (srb->cmnd[6] == SETFEATURES_XFER))
+		&& (srb->cmnd[6] == SETFEATURES_XFER))
+	{
 		goto invalid_fld;
+	}
 
 	if (srb->cmnd[12] == ATA_CMD_ID_ATA || srb->cmnd[12] == ATA_CMD_ID_ATAPI)
-		srb->cmnd[2] |= (1<<7); /* set  IdentifyPacketDevice for these cmds */
+	{
+		srb->cmnd[2] |= (1 << 7);    /* set  IdentifyPacketDevice for these cmds */
+	}
 
 
 	usb_stor_transparent_scsi_command(srb, us);
 
 	/* if the device doesn't support ATACB */
 	if (srb->result == SAM_STAT_CHECK_CONDITION &&
-			memcmp(srb->sense_buffer, usb_stor_sense_invalidCDB,
-				sizeof(usb_stor_sense_invalidCDB)) == 0) {
+		memcmp(srb->sense_buffer, usb_stor_sense_invalidCDB,
+			   sizeof(usb_stor_sense_invalidCDB)) == 0)
+	{
 		usb_stor_dbg(us, "cypress atacb not supported ???\n");
 		goto end;
 	}
@@ -172,8 +192,9 @@ static void cypress_atacb_passthrough(struct scsi_cmnd *srb, struct us_data *us)
 	 * build the special sense
 	 */
 	if ((srb->result != (DID_ERROR << 16) &&
-				srb->result != (DID_ABORT << 16)) &&
-			save_cmnd[2] & 0x20) {
+		 srb->result != (DID_ABORT << 16)) &&
+		save_cmnd[2] & 0x20)
+	{
 		struct scsi_eh_save ses;
 		unsigned char regs[8];
 		unsigned char *sb = srb->sense_buffer;
@@ -196,9 +217,12 @@ static void cypress_atacb_passthrough(struct scsi_cmnd *srb, struct us_data *us)
 		memcpy(regs, srb->sense_buffer, sizeof(regs));
 		tmp_result = srb->result;
 		scsi_eh_restore_cmnd(srb, &ses);
+
 		/* we fail to get registers, report invalid command */
 		if (tmp_result != SAM_STAT_GOOD)
+		{
 			goto invalid_fld;
+		}
 
 		/* build the sense */
 		memset(sb, 0, SCSI_SENSE_BUFFERSIZE);
@@ -235,45 +259,56 @@ static void cypress_atacb_passthrough(struct scsi_cmnd *srb, struct us_data *us)
 
 		srb->result = (DRIVER_SENSE << 24) | SAM_STAT_CHECK_CONDITION;
 	}
+
 	goto end;
 invalid_fld:
 	srb->result = (DRIVER_SENSE << 24) | SAM_STAT_CHECK_CONDITION;
 
 	memcpy(srb->sense_buffer,
-			usb_stor_sense_invalidCDB,
-			sizeof(usb_stor_sense_invalidCDB));
+		   usb_stor_sense_invalidCDB,
+		   sizeof(usb_stor_sense_invalidCDB));
 end:
 	memcpy(srb->cmnd, save_cmnd, sizeof(save_cmnd));
+
 	if (srb->cmnd[0] == ATA_12)
+	{
 		srb->cmd_len = 12;
+	}
 }
 
 static struct scsi_host_template cypress_host_template;
 
 static int cypress_probe(struct usb_interface *intf,
-			 const struct usb_device_id *id)
+						 const struct usb_device_id *id)
 {
 	struct us_data *us;
 	int result;
 	struct usb_device *device;
 
 	result = usb_stor_probe1(&us, intf, id,
-			(id - cypress_usb_ids) + cypress_unusual_dev_list,
-			&cypress_host_template);
+							 (id - cypress_usb_ids) + cypress_unusual_dev_list,
+							 &cypress_host_template);
+
 	if (result)
+	{
 		return result;
+	}
 
 	/*
 	 * Among CY7C68300 chips, the A revision does not support Cypress ATACB
 	 * Filter out this revision from EEPROM default descriptor values
 	 */
 	device = interface_to_usbdev(intf);
+
 	if (device->descriptor.iManufacturer != 0x38 ||
-	    device->descriptor.iProduct != 0x4e ||
-	    device->descriptor.iSerialNumber != 0x64) {
+		device->descriptor.iProduct != 0x4e ||
+		device->descriptor.iSerialNumber != 0x64)
+	{
 		us->protocol_name = "Transparent SCSI with Cypress ATACB";
 		us->proto_handler = cypress_atacb_passthrough;
-	} else {
+	}
+	else
+	{
 		us->protocol_name = "Transparent SCSI";
 		us->proto_handler = usb_stor_transparent_scsi_command;
 	}
@@ -282,7 +317,8 @@ static int cypress_probe(struct usb_interface *intf,
 	return result;
 }
 
-static struct usb_driver cypress_driver = {
+static struct usb_driver cypress_driver =
+{
 	.name =		DRV_NAME,
 	.probe =	cypress_probe,
 	.disconnect =	usb_stor_disconnect,

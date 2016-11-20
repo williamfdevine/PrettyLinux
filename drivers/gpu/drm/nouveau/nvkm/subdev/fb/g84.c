@@ -25,7 +25,8 @@
 #include "ram.h"
 
 static const struct nv50_fb_func
-g84_fb = {
+	g84_fb =
+{
 	.ram_new = nv50_ram_new,
 	.trap = 0x001d07ff,
 };

@@ -31,7 +31,8 @@
 
 #define SPI_WAIT_HANDSHAKE	1
 
-struct nfcmrvl_spi_drv_data {
+struct nfcmrvl_spi_drv_data
+{
 	unsigned long flags;
 	struct spi_device *spi;
 	struct nci_spi *nci_spi;
@@ -48,7 +49,8 @@ static irqreturn_t nfcmrvl_spi_int_irq_thread_fn(int irq, void *drv_data_ptr)
 	 * Special case where we are waiting for SPI_INT deassertion to start a
 	 * transfer.
 	 */
-	if (test_and_clear_bit(SPI_WAIT_HANDSHAKE, &drv_data->flags)) {
+	if (test_and_clear_bit(SPI_WAIT_HANDSHAKE, &drv_data->flags))
+	{
 		complete(&drv_data->handshake_completion);
 		return IRQ_HANDLED;
 	}
@@ -56,13 +58,17 @@ static irqreturn_t nfcmrvl_spi_int_irq_thread_fn(int irq, void *drv_data_ptr)
 	/* Normal case, SPI_INT deasserted by slave to trigger a master read */
 
 	skb = nci_spi_read(drv_data->nci_spi);
-	if (!skb) {
+
+	if (!skb)
+	{
 		nfc_err(&drv_data->spi->dev, "failed to read spi packet");
 		return IRQ_HANDLED;
 	}
 
 	if (nfcmrvl_nci_recv_frame(drv_data->priv, skb) < 0)
+	{
 		nfc_err(&drv_data->spi->dev, "corrupted RX packet");
+	}
 
 	return IRQ_HANDLED;
 }
@@ -78,7 +84,7 @@ static int nfcmrvl_spi_nci_close(struct nfcmrvl_private *priv)
 }
 
 static int nfcmrvl_spi_nci_send(struct nfcmrvl_private *priv,
-				struct sk_buff *skb)
+								struct sk_buff *skb)
 {
 	struct nfcmrvl_spi_drv_data *drv_data = priv->drv_data;
 	int err;
@@ -95,16 +101,19 @@ static int nfcmrvl_spi_nci_send(struct nfcmrvl_private *priv,
 
 	/* Send the SPI packet */
 	err = nci_spi_send(drv_data->nci_spi, &drv_data->handshake_completion,
-			   skb);
-	if (err != 0) {
+					   skb);
+
+	if (err != 0)
+	{
 		nfc_err(priv->dev, "spi_send failed %d", err);
 		kfree_skb(skb);
 	}
+
 	return err;
 }
 
 static void nfcmrvl_spi_nci_update_config(struct nfcmrvl_private *priv,
-					  const void *param)
+		const void *param)
 {
 	struct nfcmrvl_spi_drv_data *drv_data = priv->drv_data;
 	const struct nfcmrvl_fw_spi_config *config = param;
@@ -112,7 +121,8 @@ static void nfcmrvl_spi_nci_update_config(struct nfcmrvl_private *priv,
 	drv_data->nci_spi->xfer_speed_hz = config->clk;
 }
 
-static struct nfcmrvl_if_ops spi_ops = {
+static struct nfcmrvl_if_ops spi_ops =
+{
 	.nci_open = nfcmrvl_spi_nci_open,
 	.nci_close = nfcmrvl_spi_nci_close,
 	.nci_send = nfcmrvl_spi_nci_send,
@@ -120,21 +130,26 @@ static struct nfcmrvl_if_ops spi_ops = {
 };
 
 static int nfcmrvl_spi_parse_dt(struct device_node *node,
-				struct nfcmrvl_platform_data *pdata)
+								struct nfcmrvl_platform_data *pdata)
 {
 	int ret;
 
 	ret = nfcmrvl_parse_dt(node, pdata);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("Failed to get generic entries\n");
 		return ret;
 	}
 
 	ret = irq_of_parse_and_map(node, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("Unable to get irq, error: %d\n", ret);
 		return ret;
 	}
+
 	pdata->irq = ret;
 
 	return 0;
@@ -148,8 +163,11 @@ static int nfcmrvl_spi_probe(struct spi_device *spi)
 	int ret = 0;
 
 	drv_data = devm_kzalloc(&spi->dev, sizeof(*drv_data), GFP_KERNEL);
+
 	if (!drv_data)
+	{
 		return -ENOMEM;
+	}
 
 	drv_data->spi = spi;
 	drv_data->priv = NULL;
@@ -159,31 +177,40 @@ static int nfcmrvl_spi_probe(struct spi_device *spi)
 
 	if (!pdata && spi->dev.of_node)
 		if (nfcmrvl_spi_parse_dt(spi->dev.of_node, &config) == 0)
+		{
 			pdata = &config;
+		}
 
 	if (!pdata)
+	{
 		return -EINVAL;
+	}
 
 	ret = devm_request_threaded_irq(&drv_data->spi->dev, pdata->irq,
-					NULL, nfcmrvl_spi_int_irq_thread_fn,
-					IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-					"nfcmrvl_spi_int", drv_data);
-	if (ret < 0) {
+									NULL, nfcmrvl_spi_int_irq_thread_fn,
+									IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+									"nfcmrvl_spi_int", drv_data);
+
+	if (ret < 0)
+	{
 		nfc_err(&drv_data->spi->dev, "Unable to register IRQ handler");
 		return -ENODEV;
 	}
 
 	drv_data->priv = nfcmrvl_nci_register_dev(NFCMRVL_PHY_SPI,
-						  drv_data, &spi_ops,
-						  &drv_data->spi->dev,
-						  pdata);
+					 drv_data, &spi_ops,
+					 &drv_data->spi->dev,
+					 pdata);
+
 	if (IS_ERR(drv_data->priv))
+	{
 		return PTR_ERR(drv_data->priv);
+	}
 
 	drv_data->priv->support_fw_dnld = true;
 
 	drv_data->nci_spi = nci_spi_allocate_spi(drv_data->spi, 0, 10,
-						 drv_data->priv->ndev);
+						drv_data->priv->ndev);
 
 	/* Init completion for slave handshake */
 	init_completion(&drv_data->handshake_completion);
@@ -198,19 +225,22 @@ static int nfcmrvl_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct of_device_id of_nfcmrvl_spi_match[] = {
+static const struct of_device_id of_nfcmrvl_spi_match[] =
+{
 	{ .compatible = "marvell,nfc-spi", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, of_nfcmrvl_spi_match);
 
-static const struct spi_device_id nfcmrvl_spi_id_table[] = {
+static const struct spi_device_id nfcmrvl_spi_id_table[] =
+{
 	{ "nfcmrvl_spi", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(spi, nfcmrvl_spi_id_table);
 
-static struct spi_driver nfcmrvl_spi_driver = {
+static struct spi_driver nfcmrvl_spi_driver =
+{
 	.probe		= nfcmrvl_spi_probe,
 	.remove		= nfcmrvl_spi_remove,
 	.id_table	= nfcmrvl_spi_id_table,

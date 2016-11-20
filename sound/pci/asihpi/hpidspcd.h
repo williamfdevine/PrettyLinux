@@ -33,7 +33,8 @@ Functions for reading DSP code to load into DSP
 /*#ifndef DISABLE_PRAGMA_PACK1 */
 /*#pragma pack(push, 1) */
 /*#endif */
-struct code_header {
+struct code_header
+{
 	/** Size in bytes including header */
 	u32 size;
 	/** File type tag "CODE" == 0x45444F43 */
@@ -53,7 +54,8 @@ struct code_header {
 compile_time_assert((sizeof(struct code_header) == 20), code_header_size);
 
 /** Descriptor for dspcode from firmware loader */
-struct dsp_code {
+struct dsp_code
+{
 	/** copy of  file header */
 	struct code_header header;
 	/** Expected number of words in the whole dsp code,INCL header */
@@ -88,9 +90,9 @@ void hpi_dsp_code_rewind(struct dsp_code *ps_dsp_code);
 	\return 0 for success, or error code if eof, or block length exceeded
 */
 short hpi_dsp_code_read_word(struct dsp_code *ps_dsp_code,
-				      /**< DSP code descriptor */
-	u32 *pword /**< Where to store the read word */
-	);
+							 /**< DSP code descriptor */
+							 u32 *pword /**< Where to store the read word */
+							);
 
 /** Get a block of dsp code into an internal buffer, and provide a pointer to
 that buffer. (If dsp code is already an array in memory, it is referenced,
@@ -99,8 +101,8 @@ not copied.)
 \return Error if requested number of words are not available
 */
 short hpi_dsp_code_read_block(size_t words_requested,
-	struct dsp_code *ps_dsp_code,
-	/* Pointer to store (Pointer to code buffer) */
-	u32 **ppblock);
+							  struct dsp_code *ps_dsp_code,
+							  /* Pointer to store (Pointer to code buffer) */
+							  u32 **ppblock);
 
 #endif

@@ -34,7 +34,8 @@
 #define LIO_MAX_BOOTCMD_LEN 1024
 #define LIO_MAX_IMAGES 16
 #define LIO_NIC_MAGIC 0x434E4943     /* "CNIC" */
-struct octeon_firmware_desc {
+struct octeon_firmware_desc
+{
 	__be64 addr;
 	__be32 len;
 	__be32 crc32;         /* crc32 of image */
@@ -44,7 +45,8 @@ struct octeon_firmware_desc {
  * as described by the desc field.
  * Numeric fields are in network byte order.
  */
-struct octeon_firmware_file_header {
+struct octeon_firmware_file_header
+{
 	__be32 magic;
 	char version[LIO_MAX_FIRMWARE_VERSION_LEN];
 	char bootcmd[LIO_MAX_BOOTCMD_LEN];

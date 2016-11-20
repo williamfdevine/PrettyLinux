@@ -37,7 +37,8 @@
 /*
  * host adapter status/error codes
  */
-enum HostBusAdapterStatus {
+enum HostBusAdapterStatus
+{
 	BTSTAT_SUCCESS       = 0x00,  /* CCB complete normally with no errors */
 	BTSTAT_LINKED_COMMAND_COMPLETED           = 0x0a,
 	BTSTAT_LINKED_COMMAND_COMPLETED_WITH_FLAG = 0x0b,
@@ -74,7 +75,8 @@ enum HostBusAdapterStatus {
 /*
  * SCSI device status values.
  */
-enum ScsiDeviceStatus {
+enum ScsiDeviceStatus
+{
 	SDSTAT_GOOD  = 0x00, /* No errors. */
 	SDSTAT_CHECK = 0x02, /* Check condition. */
 };
@@ -85,7 +87,8 @@ enum ScsiDeviceStatus {
  * These registers are accessible both via i/o space and mm i/o.
  */
 
-enum PVSCSIRegOffset {
+enum PVSCSIRegOffset
+{
 	PVSCSI_REG_OFFSET_COMMAND        =    0x0,
 	PVSCSI_REG_OFFSET_COMMAND_DATA   =    0x4,
 	PVSCSI_REG_OFFSET_COMMAND_STATUS =    0x8,
@@ -104,7 +107,8 @@ enum PVSCSIRegOffset {
  * Virtual h/w commands.
  */
 
-enum PVSCSICommands {
+enum PVSCSICommands
+{
 	PVSCSI_CMD_FIRST             = 0, /* has to be first */
 
 	PVSCSI_CMD_ADAPTER_RESET     = 1,
@@ -125,7 +129,8 @@ enum PVSCSICommands {
  * Command descriptor for PVSCSI_CMD_RESET_DEVICE --
  */
 
-struct PVSCSICmdDescResetDevice {
+struct PVSCSICmdDescResetDevice
+{
 	u32	target;
 	u8	lun[8];
 } __packed;
@@ -134,7 +139,8 @@ struct PVSCSICmdDescResetDevice {
  * Command descriptor for PVSCSI_CMD_CONFIG --
  */
 
-struct PVSCSICmdDescConfigCmd {
+struct PVSCSICmdDescConfigCmd
+{
 	u64 cmpAddr;
 	u64 configPageAddress;
 	u32 configPageNum;
@@ -145,17 +151,20 @@ struct PVSCSICmdDescConfigCmd {
  * Command descriptor for PVSCSI_CMD_SETUP_REQCALLTHRESHOLD --
  */
 
-struct PVSCSICmdDescSetupReqCall {
+struct PVSCSICmdDescSetupReqCall
+{
 	u32 enable;
 } __packed;
 
-enum PVSCSIConfigPageType {
+enum PVSCSIConfigPageType
+{
 	PVSCSI_CONFIG_PAGE_CONTROLLER = 0x1958,
 	PVSCSI_CONFIG_PAGE_PHY        = 0x1959,
 	PVSCSI_CONFIG_PAGE_DEVICE     = 0x195a,
 };
 
-enum PVSCSIConfigPageAddressType {
+enum PVSCSIConfigPageAddressType
+{
 	PVSCSI_CONFIG_CONTROLLER_ADDRESS = 0x2120,
 	PVSCSI_CONFIG_BUSTARGET_ADDRESS  = 0x2121,
 	PVSCSI_CONFIG_PHY_ADDRESS        = 0x2122,
@@ -168,7 +177,8 @@ enum PVSCSIConfigPageAddressType {
  * - _pad should be 0.
  */
 
-struct PVSCSICmdDescAbortCmd {
+struct PVSCSICmdDescAbortCmd
+{
 	u64	context;
 	u32	target;
 	u32	_pad;
@@ -185,7 +195,8 @@ struct PVSCSICmdDescAbortCmd {
  */
 
 #define PVSCSI_SETUP_RINGS_MAX_NUM_PAGES        32
-struct PVSCSICmdDescSetupRings {
+struct PVSCSICmdDescSetupRings
+{
 	u32	reqRingNumPages;
 	u32	cmpRingNumPages;
 	u64	ringsStatePPN;
@@ -214,13 +225,15 @@ struct PVSCSICmdDescSetupRings {
 
 #define PVSCSI_SETUP_MSG_RING_MAX_NUM_PAGES  16
 
-struct PVSCSICmdDescSetupMsgRing {
+struct PVSCSICmdDescSetupMsgRing
+{
 	u32	numPages;
 	u32	_pad;
 	u64	ringPPNs[PVSCSI_SETUP_MSG_RING_MAX_NUM_PAGES];
 } __packed;
 
-enum PVSCSIMsgType {
+enum PVSCSIMsgType
+{
 	PVSCSI_MSG_DEV_ADDED          = 0,
 	PVSCSI_MSG_DEV_REMOVED        = 1,
 	PVSCSI_MSG_LAST               = 2,
@@ -235,12 +248,14 @@ enum PVSCSIMsgType {
  * - the content of args depend on the type of event being delivered.
  */
 
-struct PVSCSIRingMsgDesc {
+struct PVSCSIRingMsgDesc
+{
 	u32	type;
 	u32	args[31];
 } __packed;
 
-struct PVSCSIMsgDescDevStatusChanged {
+struct PVSCSIMsgDescDevStatusChanged
+{
 	u32	type;  /* PVSCSI_MSG_DEV _ADDED / _REMOVED */
 	u32	bus;
 	u32	target;
@@ -260,7 +275,8 @@ struct PVSCSIMsgDescDevStatusChanged {
  *   cache-line.
  */
 
-struct PVSCSIRingsState {
+struct PVSCSIRingsState
+{
 	u32	reqProdIdx;
 	u32	reqConsIdx;
 	u32	reqNumEntriesLog2;
@@ -320,7 +336,8 @@ struct PVSCSIRingsState {
 #define PVSCSI_FLAG_CMD_DIR_TOHOST          (1 << 3)
 #define PVSCSI_FLAG_CMD_DIR_TODEVICE        (1 << 4)
 
-struct PVSCSIRingReqDesc {
+struct PVSCSIRingReqDesc
+{
 	u64	context;
 	u64	dataAddr;
 	u64	dataLen;
@@ -353,7 +370,8 @@ struct PVSCSIRingReqDesc {
  *     * length is undefined, assumed to be 0.
  */
 
-struct PVSCSISGElement {
+struct PVSCSISGElement
+{
 	u64	addr;
 	u32	length;
 	u32	flags;
@@ -373,7 +391,8 @@ struct PVSCSISGElement {
  * - _pad should be zero.
  */
 
-struct PVSCSIRingCmpDesc {
+struct PVSCSIRingCmpDesc
+{
 	u64	context;
 	u64	dataLen;
 	u32	senseLen;
@@ -382,7 +401,8 @@ struct PVSCSIRingCmpDesc {
 	u32	_pad[2];
 } __packed;
 
-struct PVSCSIConfigPageHeader {
+struct PVSCSIConfigPageHeader
+{
 	u32 pageNum;
 	u16 numDwords;
 	u16 hostStatus;
@@ -390,7 +410,8 @@ struct PVSCSIConfigPageHeader {
 	u16 reserved[3];
 } __packed;
 
-struct PVSCSIConfigPageController {
+struct PVSCSIConfigPageController
+{
 	struct PVSCSIConfigPageHeader header;
 	u64 nodeWWN; /* Device name as defined in the SAS spec. */
 	u16 manufacturer[64];
@@ -436,7 +457,7 @@ struct PVSCSIConfigPageController {
 #define PVSCSI_MAX_NUM_PAGES_MSG_RING   PVSCSI_SETUP_MSG_RING_MAX_NUM_PAGES
 
 #define PVSCSI_MAX_NUM_REQ_ENTRIES_PER_PAGE \
-				(PAGE_SIZE / sizeof(struct PVSCSIRingReqDesc))
+	(PAGE_SIZE / sizeof(struct PVSCSIRingReqDesc))
 
 #define PVSCSI_MAX_REQ_QUEUE_DEPTH \
 	(PVSCSI_MAX_NUM_PAGES_REQ_RING * PVSCSI_MAX_NUM_REQ_ENTRIES_PER_PAGE)
@@ -447,7 +468,8 @@ struct PVSCSIConfigPageController {
 #define PVSCSI_MEM_SPACE_KICK_IO_NUM_PAGES     2
 #define PVSCSI_MEM_SPACE_MSIX_NUM_PAGES        2
 
-enum PVSCSIMemSpace {
+enum PVSCSIMemSpace
+{
 	PVSCSI_MEM_SPACE_COMMAND_PAGE		= 0,
 	PVSCSI_MEM_SPACE_INTR_STATUS_PAGE	= 1,
 	PVSCSI_MEM_SPACE_MISC_PAGE		= 2,

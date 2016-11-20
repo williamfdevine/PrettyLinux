@@ -84,7 +84,8 @@
 
 #define NVM_HW_SECTION_NUM_FAMILY_9000		10
 
-static const struct iwl_base_params iwl9000_base_params = {
+static const struct iwl_base_params iwl9000_base_params =
+{
 	.eeprom_size = OTP_LOW_IMAGE_SIZE_FAMILY_9000,
 	.num_of_queues = 31,
 	.shadow_ram_support = true,
@@ -95,13 +96,15 @@ static const struct iwl_base_params iwl9000_base_params = {
 	.pcie_l1_allowed = true,
 };
 
-static const struct iwl_ht_params iwl9000_ht_params = {
+static const struct iwl_ht_params iwl9000_ht_params =
+{
 	.stbc = true,
 	.ldpc = true,
 	.ht40_bands = BIT(NL80211_BAND_2GHZ) | BIT(NL80211_BAND_5GHZ),
 };
 
-static const struct iwl_tt_params iwl9000_tt_params = {
+static const struct iwl_tt_params iwl9000_tt_params =
+{
 	.ct_kill_entry = 115,
 	.ct_kill_exit = 93,
 	.ct_kill_duration = 5,
@@ -124,29 +127,30 @@ static const struct iwl_tt_params iwl9000_tt_params = {
 
 #define IWL_DEVICE_9000							\
 	.ucode_api_max = IWL9000_UCODE_API_MAX,				\
-	.ucode_api_min = IWL9000_UCODE_API_MIN,				\
-	.device_family = IWL_DEVICE_FAMILY_8000,			\
-	.max_inst_size = IWL60_RTC_INST_SIZE,				\
-	.max_data_size = IWL60_RTC_DATA_SIZE,				\
-	.base_params = &iwl9000_base_params,				\
-	.led_mode = IWL_LED_RF_STATE,					\
-	.nvm_hw_section_num = NVM_HW_SECTION_NUM_FAMILY_9000,		\
-	.non_shared_ant = ANT_A,					\
-	.dccm_offset = IWL9000_DCCM_OFFSET,				\
-	.dccm_len = IWL9000_DCCM_LEN,					\
-	.dccm2_offset = IWL9000_DCCM2_OFFSET,				\
-	.dccm2_len = IWL9000_DCCM2_LEN,					\
-	.smem_offset = IWL9000_SMEM_OFFSET,				\
-	.smem_len = IWL9000_SMEM_LEN,					\
-	.features = IWL_TX_CSUM_NETIF_FLAGS | NETIF_F_RXCSUM,		\
-	.thermal_params = &iwl9000_tt_params,				\
-	.apmg_not_supported = true,					\
-	.mq_rx_supported = true,					\
-	.vht_mu_mimo_supported = true,					\
-	.mac_addr_from_csr = true,					\
-	.rf_id = true
+					 .ucode_api_min = IWL9000_UCODE_API_MIN,				\
+									  .device_family = IWL_DEVICE_FAMILY_8000,			\
+											  .max_inst_size = IWL60_RTC_INST_SIZE,				\
+													  .max_data_size = IWL60_RTC_DATA_SIZE,				\
+															  .base_params = &iwl9000_base_params,				\
+																	  .led_mode = IWL_LED_RF_STATE,					\
+																			  .nvm_hw_section_num = NVM_HW_SECTION_NUM_FAMILY_9000,		\
+																					  .non_shared_ant = ANT_A,					\
+																							  .dccm_offset = IWL9000_DCCM_OFFSET,				\
+																									  .dccm_len = IWL9000_DCCM_LEN,					\
+																											  .dccm2_offset = IWL9000_DCCM2_OFFSET,				\
+																													  .dccm2_len = IWL9000_DCCM2_LEN,					\
+																															  .smem_offset = IWL9000_SMEM_OFFSET,				\
+																																	  .smem_len = IWL9000_SMEM_LEN,					\
+																																			  .features = IWL_TX_CSUM_NETIF_FLAGS | NETIF_F_RXCSUM,		\
+																																					  .thermal_params = &iwl9000_tt_params,				\
+																																							  .apmg_not_supported = true,					\
+																																									  .mq_rx_supported = true,					\
+																																											  .vht_mu_mimo_supported = true,					\
+																																													  .mac_addr_from_csr = true,					\
+																																															  .rf_id = true
 
-const struct iwl_cfg iwl9160_2ac_cfg = {
+const struct iwl_cfg iwl9160_2ac_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless AC 9160",
 	.fw_name_pre = IWL9260_FW_PRE,
 	IWL_DEVICE_9000,
@@ -156,7 +160,8 @@ const struct iwl_cfg iwl9160_2ac_cfg = {
 	.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
 };
 
-const struct iwl_cfg iwl9260_2ac_cfg = {
+const struct iwl_cfg iwl9260_2ac_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless AC 9260",
 	.fw_name_pre = IWL9260_FW_PRE,
 	IWL_DEVICE_9000,
@@ -166,7 +171,8 @@ const struct iwl_cfg iwl9260_2ac_cfg = {
 	.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
 };
 
-const struct iwl_cfg iwl9270_2ac_cfg = {
+const struct iwl_cfg iwl9270_2ac_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless AC 9270",
 	.fw_name_pre = IWL9260_FW_PRE,
 	IWL_DEVICE_9000,
@@ -176,7 +182,8 @@ const struct iwl_cfg iwl9270_2ac_cfg = {
 	.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
 };
 
-const struct iwl_cfg iwl9460_2ac_cfg = {
+const struct iwl_cfg iwl9460_2ac_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless AC 9460",
 	.fw_name_pre = IWL9000_FW_PRE,
 	IWL_DEVICE_9000,
@@ -187,7 +194,8 @@ const struct iwl_cfg iwl9460_2ac_cfg = {
 	.integrated = true,
 };
 
-const struct iwl_cfg iwl9560_2ac_cfg = {
+const struct iwl_cfg iwl9560_2ac_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless AC 9560",
 	.fw_name_pre = IWL9000_FW_PRE,
 	IWL_DEVICE_9000,
@@ -202,7 +210,8 @@ const struct iwl_cfg iwl9560_2ac_cfg = {
  * TODO the struct below is for internal testing only this should be
  * removed by EO 2016~
  */
-const struct iwl_cfg iwl9000lc_2ac_cfg = {
+const struct iwl_cfg iwl9000lc_2ac_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless AC 9000",
 	.fw_name_pre = IWL9000LC_FW_PRE,
 	IWL_DEVICE_9000,

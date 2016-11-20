@@ -38,22 +38,25 @@
 
 #include "../../include/linux/libcfs/libcfs.h"	/* LASSERT. */
 
-struct interval_node {
+struct interval_node
+{
 	struct interval_node   *in_left;
 	struct interval_node   *in_right;
 	struct interval_node   *in_parent;
-	unsigned		in_color:1,
-				in_intree:1, /** set if the node is in tree */
-				in_res1:30;
+	unsigned		in_color: 1,
+					in_intree: 1, /** set if the node is in tree */
+					in_res1: 30;
 	__u8		    in_res2[4];  /** tags, 8-bytes aligned */
 	__u64		   in_max_high;
-	struct interval_node_extent {
+	struct interval_node_extent
+	{
 		__u64 start;
 		__u64 end;
 	} in_extent;
 };
 
-enum interval_iter {
+enum interval_iter
+{
 	INTERVAL_ITER_CONT = 1,
 	INTERVAL_ITER_STOP = 2
 };
@@ -74,7 +77,7 @@ static inline __u64 interval_high(struct interval_node *node)
 }
 
 static inline void interval_set(struct interval_node *node,
-				__u64 start, __u64 end)
+								__u64 start, __u64 end)
 {
 	LASSERT(start <= end);
 	node->in_extent.start = start;
@@ -93,10 +96,10 @@ static inline void interval_set(struct interval_node *node,
  *    before the callback being called.
  */
 typedef enum interval_iter (*interval_callback_t)(struct interval_node *node,
-						  void *args);
+		void *args);
 
 struct interval_node *interval_insert(struct interval_node *node,
-				      struct interval_node **root);
+									  struct interval_node **root);
 void interval_erase(struct interval_node *node, struct interval_node **root);
 
 /*
@@ -104,7 +107,7 @@ void interval_erase(struct interval_node *node, struct interval_node **root);
  * extents.
  */
 enum interval_iter interval_search(struct interval_node *root,
-				   struct interval_node_extent *ex,
-				   interval_callback_t func, void *data);
+								   struct interval_node_extent *ex,
+								   interval_callback_t func, void *data);
 
 #endif

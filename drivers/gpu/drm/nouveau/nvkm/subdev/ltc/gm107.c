@@ -40,11 +40,14 @@ gm107_ltc_cbc_wait(struct nvkm_ltc *ltc)
 {
 	struct nvkm_device *device = ltc->subdev.device;
 	int c, s;
-	for (c = 0; c < ltc->ltc_nr; c++) {
-		for (s = 0; s < ltc->lts_nr; s++) {
+
+	for (c = 0; c < ltc->ltc_nr; c++)
+	{
+		for (s = 0; s < ltc->lts_nr; s++)
+		{
 			const u32 addr = 0x14046c + (c * 0x2000) + (s * 0x200);
 			nvkm_wait_msec(device, 2000, addr,
-				       0x00000004, 0x00000000);
+						   0x00000004, 0x00000000);
 		}
 	}
 }
@@ -78,7 +81,8 @@ gm107_ltc_intr_lts(struct nvkm_ltc *ltc, int c, int s)
 	u16 stat = intr & 0x0000ffff;
 	char msg[128];
 
-	if (stat) {
+	if (stat)
+	{
 		nvkm_snprintbf(msg, sizeof(msg), gf100_ltc_lts_intr_name, stat);
 		nvkm_error(subdev, "LTC%d_LTS%d: %08x [%s]\n", c, s, intr, msg);
 	}
@@ -93,10 +97,16 @@ gm107_ltc_intr(struct nvkm_ltc *ltc)
 	u32 mask;
 
 	mask = nvkm_rd32(device, 0x00017c);
-	while (mask) {
+
+	while (mask)
+	{
 		u32 s, c = __ffs(mask);
+
 		for (s = 0; s < ltc->lts_nr; s++)
+		{
 			gm107_ltc_intr_lts(ltc, c, s);
+		}
+
 		mask &= ~(1 << c);
 	}
 }
@@ -110,10 +120,14 @@ gm107_ltc_oneinit(struct nvkm_ltc *ltc)
 	const u32 slice = nvkm_rd32(device, 0x17e280) >> 28;
 	int i;
 
-	for (i = 0; i < parts; i++) {
+	for (i = 0; i < parts; i++)
+	{
 		if (!(mask & (1 << i)))
+		{
 			ltc->ltc_nr++;
+		}
 	}
+
 	ltc->lts_nr = slice;
 
 	return gf100_ltc_oneinit_tag_ram(ltc);
@@ -131,7 +145,8 @@ gm107_ltc_init(struct nvkm_ltc *ltc)
 }
 
 static const struct nvkm_ltc_func
-gm107_ltc = {
+	gm107_ltc =
+{
 	.oneinit = gm107_ltc_oneinit,
 	.init = gm107_ltc_init,
 	.intr = gm107_ltc_intr,

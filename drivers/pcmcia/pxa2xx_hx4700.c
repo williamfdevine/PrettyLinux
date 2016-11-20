@@ -17,7 +17,8 @@
 
 #include "soc_common.h"
 
-static struct gpio gpios[] = {
+static struct gpio gpios[] =
+{
 	{ GPIO114_HX4700_CF_RESET,    GPIOF_OUT_INIT_LOW,   "CF reset"        },
 	{ EGPIO4_CF_3V3_ON,           GPIOF_OUT_INIT_LOW,   "CF 3.3V enable"  },
 };
@@ -27,8 +28,11 @@ static int hx4700_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 	int ret;
 
 	ret = gpio_request_array(gpios, ARRAY_SIZE(gpios));
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/*
 	 * IRQ type must be set before soc_pcmcia_hw_init() calls request_irq().
@@ -54,25 +58,28 @@ static void hx4700_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 }
 
 static void hx4700_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
-	struct pcmcia_state *state)
+									   struct pcmcia_state *state)
 {
 	state->vs_3v = 1;
 	state->vs_Xv = 0;
 }
 
 static int hx4700_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
-	const socket_state_t *state)
+		const socket_state_t *state)
 {
-	switch (state->Vcc) {
-	case 0:
-		gpio_set_value(EGPIO4_CF_3V3_ON, 0);
-		break;
-	case 33:
-		gpio_set_value(EGPIO4_CF_3V3_ON, 1);
-		break;
-	default:
-		printk(KERN_ERR "pcmcia: Unsupported Vcc: %d\n", state->Vcc);
-		return -EINVAL;
+	switch (state->Vcc)
+	{
+		case 0:
+			gpio_set_value(EGPIO4_CF_3V3_ON, 0);
+			break;
+
+		case 33:
+			gpio_set_value(EGPIO4_CF_3V3_ON, 1);
+			break;
+
+		default:
+			printk(KERN_ERR "pcmcia: Unsupported Vcc: %d\n", state->Vcc);
+			return -EINVAL;
 	}
 
 	gpio_set_value(GPIO114_HX4700_CF_RESET, (state->flags & SS_RESET) != 0);
@@ -80,7 +87,8 @@ static int hx4700_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 	return 0;
 }
 
-static struct pcmcia_low_level hx4700_pcmcia_ops = {
+static struct pcmcia_low_level hx4700_pcmcia_ops =
+{
 	.owner          = THIS_MODULE,
 	.nr             = 1,
 	.hw_init        = hx4700_pcmcia_hw_init,
@@ -96,12 +104,17 @@ static int __init hx4700_pcmcia_init(void)
 	struct platform_device *pdev;
 
 	if (!machine_is_h4700())
+	{
 		return -ENODEV;
+	}
 
 	pdev = platform_device_register_data(NULL, "pxa2xx-pcmcia", -1,
-		&hx4700_pcmcia_ops, sizeof(hx4700_pcmcia_ops));
+										 &hx4700_pcmcia_ops, sizeof(hx4700_pcmcia_ops));
+
 	if (IS_ERR(pdev))
+	{
 		return PTR_ERR(pdev);
+	}
 
 	hx4700_pcmcia_device = pdev;
 

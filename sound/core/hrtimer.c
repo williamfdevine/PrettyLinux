@@ -35,7 +35,8 @@ MODULE_ALIAS("snd-timer-" __stringify(SNDRV_TIMER_GLOBAL_HRTIMER));
 #define NANO_SEC	1000000000UL	/* 10^9 in sec */
 static unsigned int resolution;
 
-struct snd_hrtimer {
+struct snd_hrtimer
+{
 	struct snd_timer *timer;
 	struct hrtimer hrt;
 	bool in_callback;
@@ -50,27 +51,36 @@ static enum hrtimer_restart snd_hrtimer_callback(struct hrtimer *hrt)
 	enum hrtimer_restart ret = HRTIMER_NORESTART;
 
 	spin_lock(&t->lock);
+
 	if (!t->running)
-		goto out; /* fast path */
+	{
+		goto out;    /* fast path */
+	}
+
 	stime->in_callback = true;
 	ticks = t->sticks;
 	spin_unlock(&t->lock);
 
 	/* calculate the drift */
 	delta = ktime_sub(hrt->base->get_time(), hrtimer_get_expires(hrt));
+
 	if (delta.tv64 > 0)
+	{
 		ticks += ktime_divns(delta, ticks * resolution);
+	}
 
 	snd_timer_interrupt(stime->timer, ticks);
 
 	spin_lock(&t->lock);
-	if (t->running) {
+
+	if (t->running)
+	{
 		hrtimer_add_expires_ns(hrt, t->sticks * resolution);
 		ret = HRTIMER_RESTART;
 	}
 
 	stime->in_callback = false;
- out:
+out:
 	spin_unlock(&t->lock);
 	return ret;
 }
@@ -80,8 +90,12 @@ static int snd_hrtimer_open(struct snd_timer *t)
 	struct snd_hrtimer *stime;
 
 	stime = kzalloc(sizeof(*stime), GFP_KERNEL);
+
 	if (!stime)
+	{
 		return -ENOMEM;
+	}
+
 	hrtimer_init(&stime->hrt, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	stime->timer = t;
 	stime->hrt.function = snd_hrtimer_callback;
@@ -93,7 +107,8 @@ static int snd_hrtimer_close(struct snd_timer *t)
 {
 	struct snd_hrtimer *stime = t->private_data;
 
-	if (stime) {
+	if (stime)
+	{
 		spin_lock_irq(&t->lock);
 		t->running = 0; /* just to be sure */
 		stime->in_callback = 1; /* skip start/stop */
@@ -103,6 +118,7 @@ static int snd_hrtimer_close(struct snd_timer *t)
 		kfree(stime);
 		t->private_data = NULL;
 	}
+
 	return 0;
 }
 
@@ -111,9 +127,12 @@ static int snd_hrtimer_start(struct snd_timer *t)
 	struct snd_hrtimer *stime = t->private_data;
 
 	if (stime->in_callback)
+	{
 		return 0;
+	}
+
 	hrtimer_start(&stime->hrt, ns_to_ktime(t->sticks * resolution),
-		      HRTIMER_MODE_REL);
+				  HRTIMER_MODE_REL);
 	return 0;
 }
 
@@ -122,12 +141,16 @@ static int snd_hrtimer_stop(struct snd_timer *t)
 	struct snd_hrtimer *stime = t->private_data;
 
 	if (stime->in_callback)
+	{
 		return 0;
+	}
+
 	hrtimer_try_to_cancel(&stime->hrt);
 	return 0;
 }
 
-static struct snd_timer_hardware hrtimer_hw = {
+static struct snd_timer_hardware hrtimer_hw =
+{
 	.flags =	SNDRV_TIMER_HW_AUTO | SNDRV_TIMER_HW_TASKLET,
 	.open =		snd_hrtimer_open,
 	.close =	snd_hrtimer_close,
@@ -150,9 +173,12 @@ static int __init snd_hrtimer_init(void)
 
 	/* Create a new timer and set up the fields */
 	err = snd_timer_global_new("hrtimer", SNDRV_TIMER_GLOBAL_HRTIMER,
-				   &timer);
+							   &timer);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	timer->module = THIS_MODULE;
 	strcpy(timer->name, "HR timer");
@@ -161,10 +187,13 @@ static int __init snd_hrtimer_init(void)
 	timer->hw.ticks = NANO_SEC / resolution;
 
 	err = snd_timer_global_register(timer);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		snd_timer_global_free(timer);
 		return err;
 	}
+
 	mytimer = timer; /* remember this */
 
 	return 0;
@@ -172,7 +201,8 @@ static int __init snd_hrtimer_init(void)
 
 static void __exit snd_hrtimer_exit(void)
 {
-	if (mytimer) {
+	if (mytimer)
+	{
 		snd_timer_global_free(mytimer);
 		mytimer = NULL;
 	}

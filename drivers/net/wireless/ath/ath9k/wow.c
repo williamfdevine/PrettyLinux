@@ -16,14 +16,16 @@
 
 #include "ath9k.h"
 
-static const struct wiphy_wowlan_support ath9k_wowlan_support_legacy = {
+static const struct wiphy_wowlan_support ath9k_wowlan_support_legacy =
+{
 	.flags = WIPHY_WOWLAN_MAGIC_PKT | WIPHY_WOWLAN_DISCONNECT,
 	.n_patterns = MAX_NUM_USER_PATTERN,
 	.pattern_min_len = 1,
 	.pattern_max_len = MAX_PATTERN_SIZE,
 };
 
-static const struct wiphy_wowlan_support ath9k_wowlan_support = {
+static const struct wiphy_wowlan_support ath9k_wowlan_support =
+{
 	.flags = WIPHY_WOWLAN_MAGIC_PKT | WIPHY_WOWLAN_DISCONNECT,
 	.n_patterns = MAX_NUM_PATTERN - 2,
 	.pattern_min_len = 1,
@@ -31,18 +33,23 @@ static const struct wiphy_wowlan_support ath9k_wowlan_support = {
 };
 
 static u8 ath9k_wow_map_triggers(struct ath_softc *sc,
-				 struct cfg80211_wowlan *wowlan)
+								 struct cfg80211_wowlan *wowlan)
 {
 	u8 wow_triggers = 0;
 
 	if (wowlan->disconnect)
 		wow_triggers |= AH_WOW_LINK_CHANGE |
-				AH_WOW_BEACON_MISS;
+						AH_WOW_BEACON_MISS;
+
 	if (wowlan->magic_pkt)
+	{
 		wow_triggers |= AH_WOW_MAGIC_PATTERN_EN;
+	}
 
 	if (wowlan->n_patterns)
+	{
 		wow_triggers |= AH_WOW_USER_PATTERN_EN;
+	}
 
 	return wow_triggers;
 }
@@ -89,7 +96,9 @@ static int ath9k_wow_add_disassoc_deauth_pattern(struct ath_softc *sc)
 
 	/* Fill out the mask with all FF's */
 	for (i = 0; i < MAX_PATTERN_MASK_SIZE; i++)
+	{
 		dis_deauth_mask[i] = 0xff;
+	}
 
 	/* copy the first byte of frame control field */
 	dis_deauth_pattern[byte_cnt] = 0xa0;
@@ -118,9 +127,12 @@ static int ath9k_wow_add_disassoc_deauth_pattern(struct ath_softc *sc)
 	dis_deauth_mask[2] = 0xc0;
 
 	ret = ath9k_hw_wow_apply_pattern(ah, dis_deauth_pattern, dis_deauth_mask,
-					 pattern_count, byte_cnt);
+									 pattern_count, byte_cnt);
+
 	if (ret)
+	{
 		goto exit;
+	}
 
 	pattern_count++;
 	/*
@@ -130,13 +142,13 @@ static int ath9k_wow_add_disassoc_deauth_pattern(struct ath_softc *sc)
 	dis_deauth_pattern[0] = 0xC0;
 
 	ret = ath9k_hw_wow_apply_pattern(ah, dis_deauth_pattern, dis_deauth_mask,
-					 pattern_count, byte_cnt);
+									 pattern_count, byte_cnt);
 exit:
 	return ret;
 }
 
 static int ath9k_wow_add_pattern(struct ath_softc *sc,
-				 struct cfg80211_wowlan *wowlan)
+								 struct cfg80211_wowlan *wowlan)
 {
 	struct ath_hw *ah = sc->sc_ah;
 	struct cfg80211_pkt_pattern *patterns = wowlan->patterns;
@@ -145,7 +157,8 @@ static int ath9k_wow_add_pattern(struct ath_softc *sc,
 	int mask_len, ret = 0;
 	s8 i = 0;
 
-	for (i = 0; i < wowlan->n_patterns; i++) {
+	for (i = 0; i < wowlan->n_patterns; i++)
+	{
 		mask_len = DIV_ROUND_UP(patterns[i].pattern_len, 8);
 		memset(wow_pattern, 0, MAX_PATTERN_SIZE);
 		memset(wow_mask, 0, MAX_PATTERN_SIZE);
@@ -153,19 +166,22 @@ static int ath9k_wow_add_pattern(struct ath_softc *sc,
 		memcpy(wow_mask, patterns[i].mask, mask_len);
 
 		ret = ath9k_hw_wow_apply_pattern(ah,
-						 wow_pattern,
-						 wow_mask,
-						 i + 2,
-						 patterns[i].pattern_len);
+										 wow_pattern,
+										 wow_mask,
+										 i + 2,
+										 patterns[i].pattern_len);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 
 	return ret;
 }
 
 int ath9k_suspend(struct ieee80211_hw *hw,
-		  struct cfg80211_wowlan *wowlan)
+				  struct cfg80211_wowlan *wowlan)
 {
 	struct ath_softc *sc = hw->priv;
 	struct ath_hw *ah = sc->sc_ah;
@@ -177,41 +193,49 @@ int ath9k_suspend(struct ieee80211_hw *hw,
 
 	mutex_lock(&sc->mutex);
 
-	if (test_bit(ATH_OP_INVALID, &common->op_flags)) {
+	if (test_bit(ATH_OP_INVALID, &common->op_flags))
+	{
 		ath_err(common, "Device not present\n");
 		ret = -ENODEV;
 		goto fail_wow;
 	}
 
-	if (WARN_ON(!wowlan)) {
+	if (WARN_ON(!wowlan))
+	{
 		ath_err(common, "None of the WoW triggers enabled\n");
 		ret = -EINVAL;
 		goto fail_wow;
 	}
 
-	if (sc->cur_chan->nvifs > 1) {
+	if (sc->cur_chan->nvifs > 1)
+	{
 		ath_dbg(common, WOW, "WoW for multivif is not yet supported\n");
 		ret = 1;
 		goto fail_wow;
 	}
 
-	if (ath9k_is_chanctx_enabled()) {
-		if (test_bit(ATH_OP_MULTI_CHANNEL, &common->op_flags)) {
+	if (ath9k_is_chanctx_enabled())
+	{
+		if (test_bit(ATH_OP_MULTI_CHANNEL, &common->op_flags))
+		{
 			ath_dbg(common, WOW,
-				"Multi-channel WOW is not supported\n");
+					"Multi-channel WOW is not supported\n");
 			ret = 1;
 			goto fail_wow;
 		}
 	}
 
-	if (!test_bit(ATH_OP_PRIM_STA_VIF, &common->op_flags)) {
+	if (!test_bit(ATH_OP_PRIM_STA_VIF, &common->op_flags))
+	{
 		ath_dbg(common, WOW, "None of the STA vifs are associated\n");
 		ret = 1;
 		goto fail_wow;
 	}
 
 	triggers = ath9k_wow_map_triggers(sc, wowlan);
-	if (!triggers) {
+
+	if (!triggers)
+	{
 		ath_dbg(common, WOW, "No valid WoW triggers\n");
 		ret = 1;
 		goto fail_wow;
@@ -229,17 +253,22 @@ int ath9k_suspend(struct ieee80211_hw *hw,
 	 * frame by default.
 	 */
 	ret = ath9k_wow_add_disassoc_deauth_pattern(sc);
-	if (ret) {
+
+	if (ret)
+	{
 		ath_err(common,
-			"Unable to add disassoc/deauth pattern: %d\n", ret);
+				"Unable to add disassoc/deauth pattern: %d\n", ret);
 		goto fail_wow;
 	}
 
-	if (triggers & AH_WOW_USER_PATTERN_EN) {
+	if (triggers & AH_WOW_USER_PATTERN_EN)
+	{
 		ret = ath9k_wow_add_pattern(sc, wowlan);
-		if (ret) {
+
+		if (ret)
+		{
 			ath_err(common,
-				"Unable to add user pattern: %d\n", ret);
+					"Unable to add user pattern: %d\n", ret);
 			goto fail_wow;
 		}
 	}
@@ -321,7 +350,7 @@ void ath9k_set_wakeup(struct ieee80211_hw *hw, bool enabled)
 	mutex_unlock(&sc->mutex);
 
 	ath_dbg(common, WOW, "WoW wakeup source is %s\n",
-		(enabled) ? "enabled" : "disabled");
+			(enabled) ? "enabled" : "disabled");
 }
 
 void ath9k_init_wow(struct ieee80211_hw *hw)
@@ -329,11 +358,16 @@ void ath9k_init_wow(struct ieee80211_hw *hw)
 	struct ath_softc *sc = hw->priv;
 	struct ath_hw *ah = sc->sc_ah;
 
-	if ((sc->driver_data & ATH9K_PCI_WOW) || sc->force_wow) {
+	if ((sc->driver_data & ATH9K_PCI_WOW) || sc->force_wow)
+	{
 		if (AR_SREV_9462_20_OR_LATER(ah) || AR_SREV_9565_11_OR_LATER(ah))
+		{
 			hw->wiphy->wowlan = &ath9k_wowlan_support;
+		}
 		else
+		{
 			hw->wiphy->wowlan = &ath9k_wowlan_support_legacy;
+		}
 
 		device_init_wakeup(sc->dev, 1);
 	}
@@ -344,5 +378,7 @@ void ath9k_deinit_wow(struct ieee80211_hw *hw)
 	struct ath_softc *sc = hw->priv;
 
 	if ((sc->driver_data & ATH9K_PCI_WOW) || sc->force_wow)
+	{
 		device_init_wakeup(sc->dev, 0);
+	}
 }

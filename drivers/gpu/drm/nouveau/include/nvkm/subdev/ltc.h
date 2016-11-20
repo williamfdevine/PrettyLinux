@@ -5,7 +5,8 @@
 
 #define NVKM_LTC_MAX_ZBC_CNT 16
 
-struct nvkm_ltc {
+struct nvkm_ltc
+{
 	const struct nvkm_ltc_func *func;
 	struct nvkm_subdev subdev;
 

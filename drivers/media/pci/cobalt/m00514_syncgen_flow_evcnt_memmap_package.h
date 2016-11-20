@@ -23,7 +23,8 @@
  * Register Block
  * M00514_SYNCGEN_FLOW_EVCNT_MEMMAP_PACKAGE_VHD_REGMAP
  *******************************************************************/
-struct m00514_syncgen_flow_evcnt_regmap {
+struct m00514_syncgen_flow_evcnt_regmap
+{
 	uint32_t control;                            /* Reg 0x0000, Default=0x0 */
 	uint32_t sync_generator_h_sync_length;       /* Reg 0x0004, Default=0x0 */
 	uint32_t sync_generator_h_backporch_length;  /* Reg 0x0008, Default=0x0 */

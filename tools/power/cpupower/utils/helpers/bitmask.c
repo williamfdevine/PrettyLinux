@@ -25,14 +25,21 @@ struct bitmask *bitmask_alloc(unsigned int n)
 	struct bitmask *bmp;
 
 	bmp = malloc(sizeof(*bmp));
+
 	if (bmp == 0)
+	{
 		return 0;
+	}
+
 	bmp->size = n;
 	bmp->maskp = calloc(longsperbits(n), sizeof(unsigned long));
-	if (bmp->maskp == 0) {
+
+	if (bmp->maskp == 0)
+	{
 		free(bmp);
 		return 0;
 	}
+
 	return bmp;
 }
 
@@ -40,7 +47,10 @@ struct bitmask *bitmask_alloc(unsigned int n)
 void bitmask_free(struct bitmask *bmp)
 {
 	if (bmp == 0)
+	{
 		return;
+	}
+
 	free(bmp->maskp);
 	bmp->maskp = (unsigned long *)0xdeadcdef;  /* double free tripwire */
 	free(bmp);
@@ -61,19 +71,26 @@ void bitmask_free(struct bitmask *bmp)
 static unsigned int _getbit(const struct bitmask *bmp, unsigned int n)
 {
 	if (n < bmp->size)
-		return (bmp->maskp[n/bitsperlong] >> (n % bitsperlong)) & 1;
+	{
+		return (bmp->maskp[n / bitsperlong] >> (n % bitsperlong)) & 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 /* Set bit n in bitmask bmp to value v (0 or 1) */
 static void _setbit(struct bitmask *bmp, unsigned int n, unsigned int v)
 {
-	if (n < bmp->size) {
+	if (n < bmp->size)
+	{
 		if (v)
-			bmp->maskp[n/bitsperlong] |= 1UL << (n % bitsperlong);
+		{
+			bmp->maskp[n / bitsperlong] |= 1UL << (n % bitsperlong);
+		}
 		else
-			bmp->maskp[n/bitsperlong] &=
+			bmp->maskp[n / bitsperlong] &=
 				~(1UL << (n % bitsperlong));
 	}
 }
@@ -98,15 +115,21 @@ static void _setbit(struct bitmask *bmp, unsigned int n, unsigned int v)
 static int scan_was_ok(int sret, char nextc, const char *ok_next_chars)
 {
 	return sret == 1 ||
-		(sret == 2 && strchr(ok_next_chars, nextc) != NULL);
+		   (sret == 2 && strchr(ok_next_chars, nextc) != NULL);
 }
 
 static const char *nexttoken(const char *q,  int sep)
 {
 	if (q)
+	{
 		q = strchr(q, sep);
+	}
+
 	if (q)
+	{
 		q++;
+	}
+
 	return q;
 }
 
@@ -121,8 +144,12 @@ struct bitmask *bitmask_setbit(struct bitmask *bmp, unsigned int i)
 struct bitmask *bitmask_setall(struct bitmask *bmp)
 {
 	unsigned int i;
+
 	for (i = 0; i < bmp->size; i++)
+	{
 		_setbit(bmp, i, 1);
+	}
+
 	return bmp;
 }
 
@@ -130,8 +157,12 @@ struct bitmask *bitmask_setall(struct bitmask *bmp)
 struct bitmask *bitmask_clearall(struct bitmask *bmp)
 {
 	unsigned int i;
+
 	for (i = 0; i < bmp->size; i++)
+	{
 		_setbit(bmp, i, 0);
+	}
+
 	return bmp;
 }
 
@@ -139,9 +170,13 @@ struct bitmask *bitmask_clearall(struct bitmask *bmp)
 int bitmask_isallclear(const struct bitmask *bmp)
 {
 	unsigned int i;
+
 	for (i = 0; i < bmp->size; i++)
 		if (_getbit(bmp, i))
+		{
 			return 0;
+		}
+
 	return 1;
 }
 
@@ -162,9 +197,13 @@ unsigned int bitmask_last(const struct bitmask *bmp)
 {
 	unsigned int i;
 	unsigned int m = bmp->size;
+
 	for (i = 0; i < bmp->size; i++)
 		if (_getbit(bmp, i))
+		{
 			m = i;
+		}
+
 	return m;
 }
 
@@ -172,9 +211,13 @@ unsigned int bitmask_last(const struct bitmask *bmp)
 unsigned int bitmask_next(const struct bitmask *bmp, unsigned int i)
 {
 	unsigned int n;
+
 	for (n = i; n < bmp->size; n++)
 		if (_getbit(bmp, n))
+		{
 			break;
+		}
+
 	return n;
 }
 
@@ -195,7 +238,9 @@ int bitmask_parselist(const char *buf, struct bitmask *bmp)
 	bitmask_clearall(bmp);
 
 	q = buf;
-	while (p = q, q = nexttoken(q, ','), p) {
+
+	while (p = q, q = nexttoken(q, ','), p)
+	{
 		unsigned int a;		/* begin of range */
 		unsigned int b;		/* end of range */
 		unsigned int s;		/* stride */
@@ -204,32 +249,56 @@ int bitmask_parselist(const char *buf, struct bitmask *bmp)
 		int sret;		/* sscanf return (number of matches) */
 
 		sret = sscanf(p, "%u%c", &a, &nextc);
+
 		if (!scan_was_ok(sret, nextc, ",-"))
+		{
 			goto err;
+		}
+
 		b = a;
 		s = 1;
 		c1 = nexttoken(p, '-');
 		c2 = nexttoken(p, ',');
-		if (c1 != NULL && (c2 == NULL || c1 < c2)) {
+
+		if (c1 != NULL && (c2 == NULL || c1 < c2))
+		{
 			sret = sscanf(c1, "%u%c", &b, &nextc);
+
 			if (!scan_was_ok(sret, nextc, ",:"))
+			{
 				goto err;
+			}
+
 			c1 = nexttoken(c1, ':');
-			if (c1 != NULL && (c2 == NULL || c1 < c2)) {
+
+			if (c1 != NULL && (c2 == NULL || c1 < c2))
+			{
 				sret = sscanf(c1, "%u%c", &s, &nextc);
+
 				if (!scan_was_ok(sret, nextc, ","))
+				{
 					goto err;
+				}
 			}
 		}
+
 		if (!(a <= b))
+		{
 			goto err;
+		}
+
 		if (b >= bmp->size)
+		{
 			goto err;
-		while (a <= b) {
+		}
+
+		while (a <= b)
+		{
 			_setbit(bmp, a, 1);
 			a += s;
 		}
 	}
+
 	return 0;
 err:
 	bitmask_clearall(bmp);
@@ -248,12 +317,18 @@ err:
 static inline int emit(char *buf, int buflen, int rbot, int rtop, int len)
 {
 	if (len > 0)
+	{
 		len += snprintf(buf + len, max(buflen - len, 0), ",");
+	}
+
 	if (rbot == rtop)
+	{
 		len += snprintf(buf + len, max(buflen - len, 0), "%d", rbot);
+	}
 	else
 		len += snprintf(buf + len, max(buflen - len, 0), "%d-%d",
-				rbot, rtop);
+						rbot, rtop);
+
 	return len;
 }
 
@@ -278,15 +353,23 @@ int bitmask_displaylist(char *buf, int buflen, const struct bitmask *bmp)
 	unsigned int cur, rbot, rtop;
 
 	if (buflen > 0)
+	{
 		*buf = 0;
+	}
+
 	rbot = cur = bitmask_first(bmp);
-	while (cur < bmp->size) {
+
+	while (cur < bmp->size)
+	{
 		rtop = cur;
-		cur = bitmask_next(bmp, cur+1);
-		if (cur >= bmp->size || cur > rtop + 1) {
+		cur = bitmask_next(bmp, cur + 1);
+
+		if (cur >= bmp->size || cur > rtop + 1)
+		{
 			len = emit(buf, buflen, rbot, rtop, len);
 			rbot = cur;
 		}
 	}
+
 	return len;
 }

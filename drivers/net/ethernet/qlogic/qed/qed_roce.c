@@ -67,44 +67,47 @@
 #include "qed_ll2.h"
 
 void qed_async_roce_event(struct qed_hwfn *p_hwfn,
-			  struct event_ring_entry *p_eqe)
+						  struct event_ring_entry *p_eqe)
 {
 	struct qed_rdma_info *p_rdma_info = p_hwfn->p_rdma_info;
 
 	p_rdma_info->events.affiliated_event(p_rdma_info->events.context,
-					     p_eqe->opcode, &p_eqe->data);
+										 p_eqe->opcode, &p_eqe->data);
 }
 
 static int qed_rdma_bmap_alloc(struct qed_hwfn *p_hwfn,
-			       struct qed_bmap *bmap, u32 max_count)
+							   struct qed_bmap *bmap, u32 max_count)
 {
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "max_count = %08x\n", max_count);
 
 	bmap->max_count = max_count;
 
 	bmap->bitmap = kzalloc(BITS_TO_LONGS(max_count) * sizeof(long),
-			       GFP_KERNEL);
-	if (!bmap->bitmap) {
+						   GFP_KERNEL);
+
+	if (!bmap->bitmap)
+	{
 		DP_NOTICE(p_hwfn,
-			  "qed bmap alloc failed: cannot allocate memory (bitmap)\n");
+				  "qed bmap alloc failed: cannot allocate memory (bitmap)\n");
 		return -ENOMEM;
 	}
 
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "Allocated bitmap %p\n",
-		   bmap->bitmap);
+			   bmap->bitmap);
 	return 0;
 }
 
 static int qed_rdma_bmap_alloc_id(struct qed_hwfn *p_hwfn,
-				  struct qed_bmap *bmap, u32 *id_num)
+								  struct qed_bmap *bmap, u32 *id_num)
 {
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "bmap = %p\n", bmap);
 
 	*id_num = find_first_zero_bit(bmap->bitmap, bmap->max_count);
 
-	if (*id_num >= bmap->max_count) {
+	if (*id_num >= bmap->max_count)
+	{
 		DP_NOTICE(p_hwfn, "no id available max_count=%d\n",
-			  bmap->max_count);
+				  bmap->max_count);
 		return -EINVAL;
 	}
 
@@ -114,16 +117,21 @@ static int qed_rdma_bmap_alloc_id(struct qed_hwfn *p_hwfn,
 }
 
 static void qed_bmap_release_id(struct qed_hwfn *p_hwfn,
-				struct qed_bmap *bmap, u32 id_num)
+								struct qed_bmap *bmap, u32 id_num)
 {
 	bool b_acquired;
 
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "id_num = %08x", id_num);
+
 	if (id_num >= bmap->max_count)
+	{
 		return;
+	}
 
 	b_acquired = test_and_clear_bit(id_num, bmap->bitmap);
-	if (!b_acquired) {
+
+	if (!b_acquired)
+	{
 		DP_NOTICE(p_hwfn, "ID %d already released\n", id_num);
 		return;
 	}
@@ -136,8 +144,8 @@ static u32 qed_rdma_get_sb_id(void *p_hwfn, u32 rel_sb_id)
 }
 
 static int qed_rdma_alloc(struct qed_hwfn *p_hwfn,
-			  struct qed_ptt *p_ptt,
-			  struct qed_rdma_start_in_params *params)
+						  struct qed_ptt *p_ptt,
+						  struct qed_rdma_start_in_params *params)
 {
 	struct qed_rdma_info *p_rdma_info;
 	u32 num_cons, num_tasks;
@@ -147,10 +155,12 @@ static int qed_rdma_alloc(struct qed_hwfn *p_hwfn,
 
 	/* Allocate a struct with current pf rdma info */
 	p_rdma_info = kzalloc(sizeof(*p_rdma_info), GFP_KERNEL);
-	if (!p_rdma_info) {
+
+	if (!p_rdma_info)
+	{
 		DP_NOTICE(p_hwfn,
-			  "qed rdma alloc failed: cannot allocate memory (rdma info). rc = %d\n",
-			  rc);
+				  "qed rdma alloc failed: cannot allocate memory (rdma info). rc = %d\n",
+				  rc);
 		return rc;
 	}
 
@@ -158,7 +168,7 @@ static int qed_rdma_alloc(struct qed_hwfn *p_hwfn,
 	p_rdma_info->proto = PROTOCOLID_ROCE;
 
 	num_cons = qed_cxt_get_proto_cid_count(p_hwfn, p_rdma_info->proto,
-					       NULL);
+										   NULL);
 
 	p_rdma_info->num_qps = num_cons / 2;
 
@@ -174,37 +184,45 @@ static int qed_rdma_alloc(struct qed_hwfn *p_hwfn,
 
 	/* Allocate a struct with device params and fill it */
 	p_rdma_info->dev = kzalloc(sizeof(*p_rdma_info->dev), GFP_KERNEL);
-	if (!p_rdma_info->dev) {
+
+	if (!p_rdma_info->dev)
+	{
 		DP_NOTICE(p_hwfn,
-			  "qed rdma alloc failed: cannot allocate memory (rdma info dev). rc = %d\n",
-			  rc);
+				  "qed rdma alloc failed: cannot allocate memory (rdma info dev). rc = %d\n",
+				  rc);
 		goto free_rdma_info;
 	}
 
 	/* Allocate a struct with port params and fill it */
 	p_rdma_info->port = kzalloc(sizeof(*p_rdma_info->port), GFP_KERNEL);
-	if (!p_rdma_info->port) {
+
+	if (!p_rdma_info->port)
+	{
 		DP_NOTICE(p_hwfn,
-			  "qed rdma alloc failed: cannot allocate memory (rdma info port). rc = %d\n",
-			  rc);
+				  "qed rdma alloc failed: cannot allocate memory (rdma info port). rc = %d\n",
+				  rc);
 		goto free_rdma_dev;
 	}
 
 	/* Allocate bit map for pd's */
 	rc = qed_rdma_bmap_alloc(p_hwfn, &p_rdma_info->pd_map, RDMA_MAX_PDS);
-	if (rc) {
+
+	if (rc)
+	{
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-			   "Failed to allocate pd_map, rc = %d\n",
-			   rc);
+				   "Failed to allocate pd_map, rc = %d\n",
+				   rc);
 		goto free_rdma_port;
 	}
 
 	/* Allocate DPI bitmap */
 	rc = qed_rdma_bmap_alloc(p_hwfn, &p_rdma_info->dpi_map,
-				 p_hwfn->dpi_count);
-	if (rc) {
+							 p_hwfn->dpi_count);
+
+	if (rc)
+	{
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-			   "Failed to allocate DPI bitmap, rc = %d\n", rc);
+				   "Failed to allocate DPI bitmap, rc = %d\n", rc);
 		goto free_pd_map;
 	}
 
@@ -212,10 +230,12 @@ static int qed_rdma_alloc(struct qed_hwfn *p_hwfn,
 	 * twice the number of QPs.
 	 */
 	rc = qed_rdma_bmap_alloc(p_hwfn, &p_rdma_info->cq_map,
-				 p_rdma_info->num_qps * 2);
-	if (rc) {
+							 p_rdma_info->num_qps * 2);
+
+	if (rc)
+	{
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-			   "Failed to allocate cq bitmap, rc = %d\n", rc);
+				   "Failed to allocate cq bitmap, rc = %d\n", rc);
 		goto free_dpi_map;
 	}
 
@@ -224,27 +244,33 @@ static int qed_rdma_alloc(struct qed_hwfn *p_hwfn,
 	 * The maximum number of CQs is bounded to  twice the number of QPs.
 	 */
 	rc = qed_rdma_bmap_alloc(p_hwfn, &p_rdma_info->toggle_bits,
-				 p_rdma_info->num_qps * 2);
-	if (rc) {
+							 p_rdma_info->num_qps * 2);
+
+	if (rc)
+	{
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-			   "Failed to allocate toogle bits, rc = %d\n", rc);
+				   "Failed to allocate toogle bits, rc = %d\n", rc);
 		goto free_cq_map;
 	}
 
 	/* Allocate bitmap for itids */
 	rc = qed_rdma_bmap_alloc(p_hwfn, &p_rdma_info->tid_map,
-				 p_rdma_info->num_mrs);
-	if (rc) {
+							 p_rdma_info->num_mrs);
+
+	if (rc)
+	{
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-			   "Failed to allocate itids bitmaps, rc = %d\n", rc);
+				   "Failed to allocate itids bitmaps, rc = %d\n", rc);
 		goto free_toggle_map;
 	}
 
 	/* Allocate bitmap for cids used for qps. */
 	rc = qed_rdma_bmap_alloc(p_hwfn, &p_rdma_info->cid_map, num_cons);
-	if (rc) {
+
+	if (rc)
+	{
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-			   "Failed to allocate cid bitmap, rc = %d\n", rc);
+				   "Failed to allocate cid bitmap, rc = %d\n", rc);
 		goto free_tid_map;
 	}
 
@@ -308,7 +334,7 @@ static void qed_rdma_get_guid(struct qed_hwfn *p_hwfn, u8 *guid)
 }
 
 static void qed_rdma_init_events(struct qed_hwfn *p_hwfn,
-				 struct qed_rdma_start_in_params *params)
+								 struct qed_rdma_start_in_params *params)
 {
 	struct qed_rdma_events *events;
 
@@ -320,7 +346,7 @@ static void qed_rdma_init_events(struct qed_hwfn *p_hwfn,
 }
 
 static void qed_rdma_init_devinfo(struct qed_hwfn *p_hwfn,
-				  struct qed_rdma_start_in_params *params)
+								  struct qed_rdma_start_in_params *params)
 {
 	struct qed_rdma_device *dev = p_hwfn->p_rdma_info->dev;
 	struct qed_dev *cdev = p_hwfn->cdev;
@@ -332,22 +358,24 @@ static void qed_rdma_init_devinfo(struct qed_hwfn *p_hwfn,
 	dev->vendor_part_id = cdev->device_id;
 	dev->hw_ver = 0;
 	dev->fw_ver = (FW_MAJOR_VERSION << 24) | (FW_MINOR_VERSION << 16) |
-		      (FW_REVISION_VERSION << 8) | (FW_ENGINEERING_VERSION);
+				  (FW_REVISION_VERSION << 8) | (FW_ENGINEERING_VERSION);
 
 	qed_rdma_get_guid(p_hwfn, (u8 *)&dev->sys_image_guid);
 	dev->node_guid = dev->sys_image_guid;
 
 	dev->max_sge = min_t(u32, RDMA_MAX_SGE_PER_SQ_WQE,
-			     RDMA_MAX_SGE_PER_RQ_WQE);
+						 RDMA_MAX_SGE_PER_RQ_WQE);
 
 	if (cdev->rdma_max_sge)
+	{
 		dev->max_sge = min_t(u32, cdev->rdma_max_sge, dev->max_sge);
+	}
 
 	dev->max_inline = ROCE_REQ_MAX_INLINE_DATA_SIZE;
 
 	dev->max_inline = (cdev->rdma_max_inline) ?
-			  min_t(u32, cdev->rdma_max_inline, dev->max_inline) :
-			  dev->max_inline;
+					  min_t(u32, cdev->rdma_max_inline, dev->max_inline) :
+					  dev->max_inline;
 
 	dev->max_wqe = QED_RDMA_MAX_WQE;
 	dev->max_cnq = (u8)FEAT_NUM(p_hwfn, QED_RDMA_CNQ);
@@ -376,9 +404,13 @@ static void qed_rdma_init_devinfo(struct qed_hwfn *p_hwfn,
 	 * 32 is the size of cq element in bytes
 	 */
 	if (params->cq_mode == QED_RDMA_CQ_MODE_32_BITS)
+	{
 		dev->max_cqe = QED_RDMA_MAX_CQE_32_BIT;
+	}
 	else
+	{
 		dev->max_cqe = QED_RDMA_MAX_CQE_16_BIT;
+	}
 
 	dev->max_mw = 0;
 	dev->max_fmr = QED_RDMA_MAX_FMR;
@@ -387,11 +419,11 @@ static void qed_rdma_init_devinfo(struct qed_hwfn *p_hwfn,
 	dev->max_pkey = QED_RDMA_MAX_P_KEY;
 
 	dev->max_qp_resp_rd_atomic_resc = RDMA_RING_PAGE_SIZE /
-					  (RDMA_RESP_RD_ATOMIC_ELM_SIZE * 2);
+									  (RDMA_RESP_RD_ATOMIC_ELM_SIZE * 2);
 	dev->max_qp_req_rd_atomic_resc = RDMA_RING_PAGE_SIZE /
-					 RDMA_REQ_RD_ATOMIC_ELM_SIZE;
+									 RDMA_REQ_RD_ATOMIC_ELM_SIZE;
 	dev->max_dev_resp_rd_atomic_resc = dev->max_qp_resp_rd_atomic_resc *
-					   p_hwfn->p_rdma_info->num_qps;
+									   p_hwfn->p_rdma_info->num_qps;
 	dev->page_size_caps = QED_RDMA_PAGE_SIZE_CAPS;
 	dev->dev_ack_delay = QED_RDMA_ACK_DELAY;
 	dev->max_pd = RDMA_MAX_PDS;
@@ -411,11 +443,13 @@ static void qed_rdma_init_devinfo(struct qed_hwfn *p_hwfn,
 
 	/* Check atomic operations support in PCI configuration space. */
 	pci_read_config_dword(cdev->pdev,
-			      cdev->pdev->pcie_cap + PCI_EXP_DEVCTL2,
-			      &pci_status_control);
+						  cdev->pdev->pcie_cap + PCI_EXP_DEVCTL2,
+						  &pci_status_control);
 
 	if (pci_status_control & PCI_EXP_DEVCTL2_LTR_EN)
+	{
 		SET_FIELD(dev->dev_caps, QED_RDMA_DEV_CAP_ATOMIC_OP, 1);
+	}
 }
 
 static void qed_rdma_init_port(struct qed_hwfn *p_hwfn)
@@ -424,12 +458,12 @@ static void qed_rdma_init_port(struct qed_hwfn *p_hwfn)
 	struct qed_rdma_device *dev = p_hwfn->p_rdma_info->dev;
 
 	port->port_state = p_hwfn->mcp_info->link_output.link_up ?
-			   QED_RDMA_PORT_UP : QED_RDMA_PORT_DOWN;
+					   QED_RDMA_PORT_UP : QED_RDMA_PORT_DOWN;
 
 	port->max_msg_size = min_t(u64,
-				   (dev->max_mr_mw_fmr_size *
-				    p_hwfn->cdev->rdma_max_sge),
-				   BIT(31));
+							   (dev->max_mr_mw_fmr_size *
+								p_hwfn->cdev->rdma_max_sge),
+							   BIT(31));
 
 	port->pkey_bad_counter = 0;
 }
@@ -450,9 +484,10 @@ static int qed_rdma_init_hw(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt)
 	 */
 	ll2_ethertype_en = qed_rd(p_hwfn, p_ptt, PRS_REG_LIGHT_L2_ETHERTYPE_EN);
 	qed_wr(p_hwfn, p_ptt, PRS_REG_LIGHT_L2_ETHERTYPE_EN,
-	       (ll2_ethertype_en | 0x01));
+		   (ll2_ethertype_en | 0x01));
 
-	if (qed_cxt_get_proto_cid_start(p_hwfn, PROTOCOLID_ROCE) % 2) {
+	if (qed_cxt_get_proto_cid_start(p_hwfn, PROTOCOLID_ROCE) % 2)
+	{
 		DP_NOTICE(p_hwfn, "The first RoCE's cid should be even\n");
 		return -EINVAL;
 	}
@@ -462,8 +497,8 @@ static int qed_rdma_init_hw(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt)
 }
 
 static int qed_rdma_start_fw(struct qed_hwfn *p_hwfn,
-			     struct qed_rdma_start_in_params *params,
-			     struct qed_ptt *p_ptt)
+							 struct qed_rdma_start_in_params *params,
+							 struct qed_ptt *p_ptt)
 {
 	struct rdma_init_func_ramrod_data *p_ramrod;
 	struct qed_rdma_cnq_params *p_cnq_pbl_list;
@@ -485,23 +520,31 @@ static int qed_rdma_start_fw(struct qed_hwfn *p_hwfn,
 	init_data.comp_mode = QED_SPQ_MODE_EBLOCK;
 
 	rc = qed_sp_init_request(p_hwfn, &p_ent, RDMA_RAMROD_FUNC_INIT,
-				 p_hwfn->p_rdma_info->proto, &init_data);
+							 p_hwfn->p_rdma_info->proto, &init_data);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	p_ramrod = &p_ent->ramrod.roce_init_func.rdma;
 
 	p_params_header = &p_ramrod->params_header;
 	p_params_header->cnq_start_offset = (u8)RESC_START(p_hwfn,
-							   QED_RDMA_CNQ_RAM);
+										QED_RDMA_CNQ_RAM);
 	p_params_header->num_cnqs = params->desired_cnq;
 
 	if (params->cq_mode == QED_RDMA_CQ_MODE_16_BITS)
+	{
 		p_params_header->cq_ring_mode = 1;
+	}
 	else
+	{
 		p_params_header->cq_ring_mode = 0;
+	}
 
-	for (cnq_id = 0; cnq_id < params->desired_cnq; cnq_id++) {
+	for (cnq_id = 0; cnq_id < params->desired_cnq; cnq_id++)
+	{
 		sb_id = qed_rdma_get_sb_id(p_hwfn, cnq_id);
 		p_cnq_params = &p_ramrod->cnq_params[cnq_id];
 		p_cnq_pbl_list = &params->cnq_pbl_list[cnq_id];
@@ -512,12 +555,12 @@ static int qed_rdma_start_fw(struct qed_hwfn *p_hwfn,
 		p_cnq_params->num_pbl_pages = p_cnq_pbl_list->num_pbl_pages;
 
 		DMA_REGPAIR_LE(p_cnq_params->pbl_base_addr,
-			       p_cnq_pbl_list->pbl_ptr);
+					   p_cnq_pbl_list->pbl_ptr);
 
 		/* we assume here that cnq_id and qz_offset are the same */
 		p_cnq_params->queue_zone_num =
 			cpu_to_le16(p_hwfn->p_rdma_info->queue_zone_base +
-				    cnq_id);
+						cnq_id);
 	}
 
 	return qed_spq_post(p_hwfn, p_ent, NULL);
@@ -532,10 +575,13 @@ static int qed_rdma_alloc_tid(void *rdma_cxt, u32 *itid)
 
 	spin_lock_bh(&p_hwfn->p_rdma_info->lock);
 	rc = qed_rdma_bmap_alloc_id(p_hwfn,
-				    &p_hwfn->p_rdma_info->tid_map, itid);
+								&p_hwfn->p_rdma_info->tid_map, itid);
 	spin_unlock_bh(&p_hwfn->p_rdma_info->lock);
+
 	if (rc)
+	{
 		goto out;
+	}
 
 	rc = qed_cxt_dynamic_ilt_alloc(p_hwfn, QED_ELEM_TASK, *itid);
 out:
@@ -555,9 +601,11 @@ static int qed_rdma_reserve_lkey(struct qed_hwfn *p_hwfn)
 	 * ramrod should be passed on it.
 	 */
 	qed_rdma_alloc_tid(p_hwfn, &dev->reserved_lkey);
-	if (dev->reserved_lkey != RDMA_RESERVED_LKEY) {
+
+	if (dev->reserved_lkey != RDMA_RESERVED_LKEY)
+	{
 		DP_NOTICE(p_hwfn,
-			  "Reserved lkey should be equal to RDMA_RESERVED_LKEY\n");
+				  "Reserved lkey should be equal to RDMA_RESERVED_LKEY\n");
 		return -EINVAL;
 	}
 
@@ -565,8 +613,8 @@ static int qed_rdma_reserve_lkey(struct qed_hwfn *p_hwfn)
 }
 
 static int qed_rdma_setup(struct qed_hwfn *p_hwfn,
-			  struct qed_ptt *p_ptt,
-			  struct qed_rdma_start_in_params *params)
+						  struct qed_ptt *p_ptt,
+						  struct qed_rdma_start_in_params *params)
 {
 	int rc;
 
@@ -579,12 +627,18 @@ static int qed_rdma_setup(struct qed_hwfn *p_hwfn,
 	qed_rdma_init_events(p_hwfn, params);
 
 	rc = qed_rdma_reserve_lkey(p_hwfn);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = qed_rdma_init_hw(p_hwfn, p_ptt);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return qed_rdma_start_fw(p_hwfn, params, p_ptt);
 }
@@ -602,7 +656,9 @@ static int qed_rdma_stop(void *rdma_cxt)
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "RDMA stop\n");
 
 	p_ptt = qed_ptt_acquire(p_hwfn);
-	if (!p_ptt) {
+
+	if (!p_ptt)
+	{
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "Failed to acquire PTT\n");
 		return rc;
 	}
@@ -616,7 +672,7 @@ static int qed_rdma_stop(void *rdma_cxt)
 	ll2_ethertype_en = qed_rd(p_hwfn, p_ptt, PRS_REG_LIGHT_L2_ETHERTYPE_EN);
 
 	qed_wr(p_hwfn, p_ptt, PRS_REG_LIGHT_L2_ETHERTYPE_EN,
-	       (ll2_ethertype_en & 0xFFFE));
+		   (ll2_ethertype_en & 0xFFFE));
 
 	qed_ptt_release(p_hwfn, p_ptt);
 
@@ -627,9 +683,12 @@ static int qed_rdma_stop(void *rdma_cxt)
 
 	/* Stop RoCE */
 	rc = qed_sp_init_request(p_hwfn, &p_ent, RDMA_RAMROD_FUNC_CLOSE,
-				 p_hwfn->p_rdma_info->proto, &init_data);
+							 p_hwfn->p_rdma_info->proto, &init_data);
+
 	if (rc)
+	{
 		goto out;
+	}
 
 	p_ramrod = &p_ent->ramrod.rdma_close_func;
 
@@ -646,7 +705,7 @@ out:
 }
 
 static int qed_rdma_add_user(void *rdma_cxt,
-			     struct qed_rdma_add_user_out_params *out_params)
+							 struct qed_rdma_add_user_out_params *out_params)
 {
 	struct qed_hwfn *p_hwfn = (struct qed_hwfn *)rdma_cxt;
 	u32 dpi_start_offset;
@@ -658,7 +717,7 @@ static int qed_rdma_add_user(void *rdma_cxt,
 	/* Allocate DPI */
 	spin_lock_bh(&p_hwfn->p_rdma_info->lock);
 	rc = qed_rdma_bmap_alloc_id(p_hwfn, &p_hwfn->p_rdma_info->dpi_map,
-				    &returned_id);
+								&returned_id);
 	spin_unlock_bh(&p_hwfn->p_rdma_info->lock);
 
 	out_params->dpi = (u16)returned_id;
@@ -667,12 +726,12 @@ static int qed_rdma_add_user(void *rdma_cxt,
 	dpi_start_offset = p_hwfn->dpi_start_offset;
 
 	out_params->dpi_addr = (u64)((u8 __iomem *)p_hwfn->doorbells +
-				     dpi_start_offset +
-				     ((out_params->dpi) * p_hwfn->dpi_size));
+								 dpi_start_offset +
+								 ((out_params->dpi) * p_hwfn->dpi_size));
 
 	out_params->dpi_phys_addr = p_hwfn->cdev->db_phys_addr +
-				    dpi_start_offset +
-				    ((out_params->dpi) * p_hwfn->dpi_size);
+								dpi_start_offset +
+								((out_params->dpi) * p_hwfn->dpi_size);
 
 	out_params->dpi_size = p_hwfn->dpi_size;
 
@@ -689,7 +748,7 @@ static struct qed_rdma_port *qed_rdma_query_port(void *rdma_cxt)
 
 	/* Link may have changed */
 	p_port->port_state = p_hwfn->mcp_info->link_output.link_up ?
-			     QED_RDMA_PORT_UP : QED_RDMA_PORT_DOWN;
+						 QED_RDMA_PORT_UP : QED_RDMA_PORT_DOWN;
 
 	p_port->link_speed = p_hwfn->mcp_info->link_output.speed;
 
@@ -726,7 +785,7 @@ static void qed_rdma_cnq_prod_update(void *rdma_cxt, u8 qz_offset, u16 prod)
 	p_hwfn = (struct qed_hwfn *)rdma_cxt;
 	qz_num = p_hwfn->p_rdma_info->queue_zone_base + qz_offset;
 	addr = GTT_BAR0_MAP_REG_USDM_RAM +
-	       USTORM_COMMON_QUEUE_CONS_OFFSET(qz_num);
+		   USTORM_COMMON_QUEUE_CONS_OFFSET(qz_num);
 
 	REG_WR16(p_hwfn, addr, prod);
 
@@ -735,7 +794,7 @@ static void qed_rdma_cnq_prod_update(void *rdma_cxt, u8 qz_offset, u16 prod)
 }
 
 static int qed_fill_rdma_dev_info(struct qed_dev *cdev,
-				  struct qed_dev_rdma_info *info)
+								  struct qed_dev_rdma_info *info)
 {
 	memset(info, 0, sizeof(*info));
 
@@ -751,10 +810,12 @@ static int qed_rdma_get_sb_start(struct qed_dev *cdev)
 	int feat_num;
 
 	if (cdev->num_hwfns > 1)
+	{
 		feat_num = FEAT_NUM(QED_LEADING_HWFN(cdev), QED_PF_L2_QUE);
+	}
 	else
 		feat_num = FEAT_NUM(QED_LEADING_HWFN(cdev), QED_PF_L2_QUE) *
-			   cdev->num_hwfns;
+				   cdev->num_hwfns;
 
 	return feat_num;
 }
@@ -774,17 +835,22 @@ static int qed_rdma_set_int(struct qed_dev *cdev, u16 cnt)
 	/* Mark the fastpath as free/used */
 	cdev->int_params.fp_initialized = cnt ? true : false;
 
-	if (cdev->int_params.out.int_mode != QED_INT_MODE_MSIX) {
+	if (cdev->int_params.out.int_mode != QED_INT_MODE_MSIX)
+	{
 		DP_ERR(cdev,
-		       "qed roce supports only MSI-X interrupts (detected %d).\n",
-		       cdev->int_params.out.int_mode);
+			   "qed roce supports only MSI-X interrupts (detected %d).\n",
+			   cdev->int_params.out.int_mode);
 		return -EINVAL;
-	} else if (cdev->int_params.fp_msix_cnt) {
+	}
+	else if (cdev->int_params.fp_msix_cnt)
+	{
 		limit = cdev->int_params.rdma_msix_cnt;
 	}
 
 	if (!limit)
+	{
 		return -ENOMEM;
+	}
 
 	return min_t(int, cnt, limit);
 }
@@ -793,20 +859,22 @@ static int qed_rdma_get_int(struct qed_dev *cdev, struct qed_int_info *info)
 {
 	memset(info, 0, sizeof(*info));
 
-	if (!cdev->int_params.fp_initialized) {
+	if (!cdev->int_params.fp_initialized)
+	{
 		DP_INFO(cdev,
-			"Protocol driver requested interrupt information, but its support is not yet configured\n");
+				"Protocol driver requested interrupt information, but its support is not yet configured\n");
 		return -EINVAL;
 	}
 
-	if (cdev->int_params.out.int_mode == QED_INT_MODE_MSIX) {
+	if (cdev->int_params.out.int_mode == QED_INT_MODE_MSIX)
+	{
 		int msix_base = cdev->int_params.rdma_msix_base;
 
 		info->msix_cnt = cdev->int_params.rdma_msix_cnt;
 		info->msix = &cdev->int_params.msix_table[msix_base];
 
 		DP_VERBOSE(cdev, QED_MSG_RDMA, "msix_cnt = %d msix_base=%d\n",
-			   info->msix_cnt, msix_base);
+				   info->msix_cnt, msix_base);
 	}
 
 	return 0;
@@ -823,7 +891,7 @@ static int qed_rdma_alloc_pd(void *rdma_cxt, u16 *pd)
 	/* Allocates an unused protection domain */
 	spin_lock_bh(&p_hwfn->p_rdma_info->lock);
 	rc = qed_rdma_bmap_alloc_id(p_hwfn,
-				    &p_hwfn->p_rdma_info->pd_map, &returned_id);
+								&p_hwfn->p_rdma_info->pd_map, &returned_id);
 	spin_unlock_bh(&p_hwfn->p_rdma_info->lock);
 
 	*pd = (u16)returned_id;
@@ -860,18 +928,18 @@ qed_rdma_toggle_bit_create_resize_cq(struct qed_hwfn *p_hwfn, u16 icid)
 
 	spin_lock_bh(&p_info->lock);
 	toggle_bit = !test_and_change_bit(bmap_id,
-					  p_info->toggle_bits.bitmap);
+	p_info->toggle_bits.bitmap);
 	spin_unlock_bh(&p_info->lock);
 
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "QED_RDMA_TOGGLE_BIT_= %d\n",
-		   toggle_bit);
+	toggle_bit);
 
 	return toggle_bit;
 }
 
 static int qed_rdma_create_cq(void *rdma_cxt,
-			      struct qed_rdma_create_cq_in_params *params,
-			      u16 *icid)
+							  struct qed_rdma_create_cq_in_params *params,
+							  u16 *icid)
 {
 	struct qed_hwfn *p_hwfn = (struct qed_hwfn *)rdma_cxt;
 	struct qed_rdma_info *p_info = p_hwfn->p_rdma_info;
@@ -883,27 +951,31 @@ static int qed_rdma_create_cq(void *rdma_cxt,
 	int rc;
 
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "cq_handle = %08x%08x\n",
-		   params->cq_handle_hi, params->cq_handle_lo);
+			   params->cq_handle_hi, params->cq_handle_lo);
 
 	/* Allocate icid */
 	spin_lock_bh(&p_info->lock);
 	rc = qed_rdma_bmap_alloc_id(p_hwfn,
-				    &p_info->cq_map, &returned_id);
+								&p_info->cq_map, &returned_id);
 	spin_unlock_bh(&p_info->lock);
 
-	if (rc) {
+	if (rc)
+	{
 		DP_NOTICE(p_hwfn, "Can't create CQ, rc = %d\n", rc);
 		return rc;
 	}
 
 	start_cid = qed_cxt_get_proto_cid_start(p_hwfn,
-						p_info->proto);
+											p_info->proto);
 	*icid = returned_id + start_cid;
 
 	/* Check if icid requires a page allocation */
 	rc = qed_cxt_dynamic_ilt_alloc(p_hwfn, QED_ELEM_CXT, *icid);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	/* Get SPQ entry */
 	memset(&init_data, 0, sizeof(init_data));
@@ -913,10 +985,13 @@ static int qed_rdma_create_cq(void *rdma_cxt,
 
 	/* Send create CQ ramrod */
 	rc = qed_sp_init_request(p_hwfn, &p_ent,
-				 RDMA_RAMROD_CREATE_CQ,
-				 p_info->proto, &init_data);
+							 RDMA_RAMROD_CREATE_CQ,
+							 p_info->proto, &init_data);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	p_ramrod = &p_ent->ramrod.rdma_create_cq;
 
@@ -928,7 +1003,7 @@ static int qed_rdma_create_cq(void *rdma_cxt,
 	DMA_REGPAIR_LE(p_ramrod->pbl_addr, params->pbl_ptr);
 	p_ramrod->pbl_num_pages = cpu_to_le16(params->pbl_num_pages);
 	p_ramrod->cnq_id = (u8)RESC_START(p_hwfn, QED_RDMA_CNQ_RAM) +
-			   params->cnq_id;
+					   params->cnq_id;
 	p_ramrod->int_timeout = params->int_timeout;
 
 	/* toggle the bit for every resize or create cq for a given icid */
@@ -937,7 +1012,9 @@ static int qed_rdma_create_cq(void *rdma_cxt,
 	p_ramrod->toggle_bit = toggle_bit;
 
 	rc = qed_spq_post(p_hwfn, p_ent, NULL);
-	if (rc) {
+
+	if (rc)
+	{
 		/* restore toggle bit */
 		qed_rdma_toggle_bit_create_resize_cq(p_hwfn, *icid);
 		goto err;
@@ -956,8 +1033,8 @@ err:
 
 static int
 qed_rdma_destroy_cq(void *rdma_cxt,
-		    struct qed_rdma_destroy_cq_in_params *in_params,
-		    struct qed_rdma_destroy_cq_out_params *out_params)
+					struct qed_rdma_destroy_cq_in_params *in_params,
+					struct qed_rdma_destroy_cq_out_params *out_params)
 {
 	struct qed_hwfn *p_hwfn = (struct qed_hwfn *)rdma_cxt;
 	struct rdma_destroy_cq_output_params *p_ramrod_res;
@@ -970,13 +1047,15 @@ qed_rdma_destroy_cq(void *rdma_cxt,
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "icid = %08x\n", in_params->icid);
 
 	p_ramrod_res =
-	    (struct rdma_destroy_cq_output_params *)
-	    dma_alloc_coherent(&p_hwfn->cdev->pdev->dev,
-			       sizeof(struct rdma_destroy_cq_output_params),
-			       &ramrod_res_phys, GFP_KERNEL);
-	if (!p_ramrod_res) {
+		(struct rdma_destroy_cq_output_params *)
+		dma_alloc_coherent(&p_hwfn->cdev->pdev->dev,
+						   sizeof(struct rdma_destroy_cq_output_params),
+						   &ramrod_res_phys, GFP_KERNEL);
+
+	if (!p_ramrod_res)
+	{
 		DP_NOTICE(p_hwfn,
-			  "qed destroy cq failed: cannot allocate memory (ramrod)\n");
+				  "qed destroy cq failed: cannot allocate memory (ramrod)\n");
 		return rc;
 	}
 
@@ -988,33 +1067,39 @@ qed_rdma_destroy_cq(void *rdma_cxt,
 
 	/* Send destroy CQ ramrod */
 	rc = qed_sp_init_request(p_hwfn, &p_ent,
-				 RDMA_RAMROD_DESTROY_CQ,
-				 p_hwfn->p_rdma_info->proto, &init_data);
+							 RDMA_RAMROD_DESTROY_CQ,
+							 p_hwfn->p_rdma_info->proto, &init_data);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	p_ramrod = &p_ent->ramrod.rdma_destroy_cq;
 	DMA_REGPAIR_LE(p_ramrod->output_params_addr, ramrod_res_phys);
 
 	rc = qed_spq_post(p_hwfn, p_ent, NULL);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	out_params->num_cq_notif = le16_to_cpu(p_ramrod_res->cnq_num);
 
 	dma_free_coherent(&p_hwfn->cdev->pdev->dev,
-			  sizeof(struct rdma_destroy_cq_output_params),
-			  p_ramrod_res, ramrod_res_phys);
+					  sizeof(struct rdma_destroy_cq_output_params),
+					  p_ramrod_res, ramrod_res_phys);
 
 	/* Free icid */
 	spin_lock_bh(&p_hwfn->p_rdma_info->lock);
 
 	qed_bmap_release_id(p_hwfn,
-			    &p_hwfn->p_rdma_info->cq_map,
-			    (in_params->icid -
-			     qed_cxt_get_proto_cid_start(p_hwfn,
-							 p_hwfn->
-							 p_rdma_info->proto)));
+						&p_hwfn->p_rdma_info->cq_map,
+						(in_params->icid -
+						 qed_cxt_get_proto_cid_start(p_hwfn,
+								 p_hwfn->
+								 p_rdma_info->proto)));
 
 	spin_unlock_bh(&p_hwfn->p_rdma_info->lock);
 
@@ -1022,8 +1107,8 @@ qed_rdma_destroy_cq(void *rdma_cxt,
 	return rc;
 
 err:	dma_free_coherent(&p_hwfn->cdev->pdev->dev,
-			  sizeof(struct rdma_destroy_cq_output_params),
-			  p_ramrod_res, ramrod_res_phys);
+							  sizeof(struct rdma_destroy_cq_output_params),
+							  p_ramrod_res, ramrod_res_phys);
 
 	return rc;
 }
@@ -1036,11 +1121,12 @@ static void qed_rdma_set_fw_mac(u16 *p_fw_mac, u8 *p_qed_mac)
 }
 
 static void qed_rdma_copy_gids(struct qed_rdma_qp *qp, __le32 *src_gid,
-			       __le32 *dst_gid)
+							   __le32 *dst_gid)
 {
 	u32 i;
 
-	if (qp->roce_mode == ROCE_V2_IPV4) {
+	if (qp->roce_mode == ROCE_V2_IPV4)
+	{
 		/* The IPv4 addresses shall be aligned to the highest word.
 		 * The lower words must be zero.
 		 */
@@ -1048,9 +1134,12 @@ static void qed_rdma_copy_gids(struct qed_rdma_qp *qp, __le32 *src_gid,
 		memset(dst_gid, 0, sizeof(union qed_gid));
 		src_gid[3] = cpu_to_le32(qp->sgid.ipv4_addr);
 		dst_gid[3] = cpu_to_le32(qp->dgid.ipv4_addr);
-	} else {
+	}
+	else
+	{
 		/* GIDs and IPv6 addresses coincide in location and size */
-		for (i = 0; i < ARRAY_SIZE(qp->sgid.dwords); i++) {
+		for (i = 0; i < ARRAY_SIZE(qp->sgid.dwords); i++)
+		{
 			src_gid[i] = cpu_to_le32(qp->sgid.dwords[i]);
 			dst_gid[i] = cpu_to_le32(qp->dgid.dwords[i]);
 		}
@@ -1061,20 +1150,25 @@ static enum roce_flavor qed_roce_mode_to_flavor(enum roce_mode roce_mode)
 {
 	enum roce_flavor flavor;
 
-	switch (roce_mode) {
-	case ROCE_V1:
-		flavor = PLAIN_ROCE;
-		break;
-	case ROCE_V2_IPV4:
-		flavor = RROCE_IPV4;
-		break;
-	case ROCE_V2_IPV6:
-		flavor = ROCE_V2_IPV6;
-		break;
-	default:
-		flavor = MAX_ROCE_MODE;
-		break;
+	switch (roce_mode)
+	{
+		case ROCE_V1:
+			flavor = PLAIN_ROCE;
+			break;
+
+		case ROCE_V2_IPV4:
+			flavor = RROCE_IPV4;
+			break;
+
+		case ROCE_V2_IPV6:
+			flavor = ROCE_V2_IPV6;
+			break;
+
+		default:
+			flavor = MAX_ROCE_MODE;
+			break;
 	}
+
 	return flavor;
 }
 
@@ -1087,41 +1181,53 @@ static int qed_roce_alloc_cid(struct qed_hwfn *p_hwfn, u16 *cid)
 
 	spin_lock_bh(&p_hwfn->p_rdma_info->lock);
 	rc = qed_rdma_bmap_alloc_id(p_hwfn, &p_rdma_info->cid_map,
-				    &responder_icid);
-	if (rc) {
+								&responder_icid);
+
+	if (rc)
+	{
 		spin_unlock_bh(&p_rdma_info->lock);
 		return rc;
 	}
 
 	rc = qed_rdma_bmap_alloc_id(p_hwfn, &p_rdma_info->cid_map,
-				    &requester_icid);
+								&requester_icid);
 
 	spin_unlock_bh(&p_rdma_info->lock);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	/* the two icid's should be adjacent */
-	if ((requester_icid - responder_icid) != 1) {
+	if ((requester_icid - responder_icid) != 1)
+	{
 		DP_NOTICE(p_hwfn, "Failed to allocate two adjacent qp's'\n");
 		rc = -EINVAL;
 		goto err;
 	}
 
 	responder_icid += qed_cxt_get_proto_cid_start(p_hwfn,
-						      p_rdma_info->proto);
+					  p_rdma_info->proto);
 	requester_icid += qed_cxt_get_proto_cid_start(p_hwfn,
-						      p_rdma_info->proto);
+					  p_rdma_info->proto);
 
 	/* If these icids require a new ILT line allocate DMA-able context for
 	 * an ILT page
 	 */
 	rc = qed_cxt_dynamic_ilt_alloc(p_hwfn, QED_ELEM_CXT, responder_icid);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	rc = qed_cxt_dynamic_ilt_alloc(p_hwfn, QED_ELEM_CXT, requester_icid);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	*cid = (u16)responder_icid;
 	return rc;
@@ -1133,12 +1239,12 @@ err:
 
 	spin_unlock_bh(&p_rdma_info->lock);
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-		   "Allocate CID - failed, rc = %d\n", rc);
+			   "Allocate CID - failed, rc = %d\n", rc);
 	return rc;
 }
 
 static int qed_roce_sp_create_responder(struct qed_hwfn *p_hwfn,
-					struct qed_rdma_qp *qp)
+										struct qed_rdma_qp *qp)
 {
 	struct roce_create_qp_resp_ramrod_data *p_ramrod;
 	struct qed_sp_init_data init_data;
@@ -1153,13 +1259,15 @@ static int qed_roce_sp_create_responder(struct qed_hwfn *p_hwfn,
 	/* Allocate DMA-able memory for IRQ */
 	qp->irq_num_pages = 1;
 	qp->irq = dma_alloc_coherent(&p_hwfn->cdev->pdev->dev,
-				     RDMA_RING_PAGE_SIZE,
-				     &qp->irq_phys_addr, GFP_KERNEL);
-	if (!qp->irq) {
+								 RDMA_RING_PAGE_SIZE,
+								 &qp->irq_phys_addr, GFP_KERNEL);
+
+	if (!qp->irq)
+	{
 		rc = -ENOMEM;
 		DP_NOTICE(p_hwfn,
-			  "qed create responder failed: cannot allocate memory (irq). rc = %d\n",
-			  rc);
+				  "qed create responder failed: cannot allocate memory (irq). rc = %d\n",
+				  rc);
 		return rc;
 	}
 
@@ -1170,9 +1278,12 @@ static int qed_roce_sp_create_responder(struct qed_hwfn *p_hwfn,
 	init_data.comp_mode = QED_SPQ_MODE_EBLOCK;
 
 	rc = qed_sp_init_request(p_hwfn, &p_ent, ROCE_RAMROD_CREATE_QP,
-				 PROTOCOLID_ROCE, &init_data);
+							 PROTOCOLID_ROCE, &init_data);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	p_ramrod = &p_ent->ramrod.roce_create_qp_resp;
 
@@ -1180,34 +1291,34 @@ static int qed_roce_sp_create_responder(struct qed_hwfn *p_hwfn,
 
 	roce_flavor = qed_roce_mode_to_flavor(qp->roce_mode);
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_RESP_RAMROD_DATA_ROCE_FLAVOR, roce_flavor);
+			  ROCE_CREATE_QP_RESP_RAMROD_DATA_ROCE_FLAVOR, roce_flavor);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_RESP_RAMROD_DATA_RDMA_RD_EN,
-		  qp->incoming_rdma_read_en);
+			  ROCE_CREATE_QP_RESP_RAMROD_DATA_RDMA_RD_EN,
+			  qp->incoming_rdma_read_en);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_RESP_RAMROD_DATA_RDMA_WR_EN,
-		  qp->incoming_rdma_write_en);
+			  ROCE_CREATE_QP_RESP_RAMROD_DATA_RDMA_WR_EN,
+			  qp->incoming_rdma_write_en);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_RESP_RAMROD_DATA_ATOMIC_EN,
-		  qp->incoming_atomic_en);
+			  ROCE_CREATE_QP_RESP_RAMROD_DATA_ATOMIC_EN,
+			  qp->incoming_atomic_en);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_RESP_RAMROD_DATA_E2E_FLOW_CONTROL_EN,
-		  qp->e2e_flow_control_en);
+			  ROCE_CREATE_QP_RESP_RAMROD_DATA_E2E_FLOW_CONTROL_EN,
+			  qp->e2e_flow_control_en);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_RESP_RAMROD_DATA_SRQ_FLG, qp->use_srq);
+			  ROCE_CREATE_QP_RESP_RAMROD_DATA_SRQ_FLG, qp->use_srq);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_RESP_RAMROD_DATA_RESERVED_KEY_EN,
-		  qp->fmr_and_reserved_lkey);
+			  ROCE_CREATE_QP_RESP_RAMROD_DATA_RESERVED_KEY_EN,
+			  qp->fmr_and_reserved_lkey);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_RESP_RAMROD_DATA_MIN_RNR_NAK_TIMER,
-		  qp->min_rnr_nak_timer);
+			  ROCE_CREATE_QP_RESP_RAMROD_DATA_MIN_RNR_NAK_TIMER,
+			  qp->min_rnr_nak_timer);
 
 	p_ramrod->max_ird = qp->max_rd_atomic_resp;
 	p_ramrod->traffic_class = qp->traffic_class_tos;
@@ -1229,7 +1340,7 @@ static int qed_roce_sp_create_responder(struct qed_hwfn *p_hwfn,
 	p_ramrod->qp_handle_for_cqe.lo = cpu_to_le32(qp->qp_handle.lo);
 	p_ramrod->stats_counter_id = p_hwfn->rel_pf_id;
 	p_ramrod->cq_cid = cpu_to_le32((p_hwfn->hw_info.opaque_fid << 16) |
-				       qp->rq_cq_id);
+								   qp->rq_cq_id);
 
 	memset(&qm_params, 0, sizeof(qm_params));
 	qm_params.roce.qpid = qp->icid >> 1;
@@ -1247,15 +1358,17 @@ static int qed_roce_sp_create_responder(struct qed_hwfn *p_hwfn,
 	p_ramrod->srq_id.opaque_fid = cpu_to_le16(p_hwfn->hw_info.opaque_fid);
 
 	p_ramrod->stats_counter_id = RESC_START(p_hwfn, QED_RDMA_STATS_QUEUE) +
-				     qp->stats_queue;
+								 qp->stats_queue;
 
 	rc = qed_spq_post(p_hwfn, p_ent, NULL);
 
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "rc = %d physical_queue0 = 0x%x\n",
-		   rc, physical_queue0);
+			   rc, physical_queue0);
 
 	if (rc)
+	{
 		goto err;
+	}
 
 	qp->resp_offloaded = true;
 
@@ -1264,14 +1377,14 @@ static int qed_roce_sp_create_responder(struct qed_hwfn *p_hwfn,
 err:
 	DP_NOTICE(p_hwfn, "create responder - failed, rc = %d\n", rc);
 	dma_free_coherent(&p_hwfn->cdev->pdev->dev,
-			  qp->irq_num_pages * RDMA_RING_PAGE_SIZE,
-			  qp->irq, qp->irq_phys_addr);
+					  qp->irq_num_pages * RDMA_RING_PAGE_SIZE,
+					  qp->irq, qp->irq_phys_addr);
 
 	return rc;
 }
 
 static int qed_roce_sp_create_requester(struct qed_hwfn *p_hwfn,
-					struct qed_rdma_qp *qp)
+										struct qed_rdma_qp *qp)
 {
 	struct roce_create_qp_req_ramrod_data *p_ramrod;
 	struct qed_sp_init_data init_data;
@@ -1286,13 +1399,15 @@ static int qed_roce_sp_create_requester(struct qed_hwfn *p_hwfn,
 	/* Allocate DMA-able memory for ORQ */
 	qp->orq_num_pages = 1;
 	qp->orq = dma_alloc_coherent(&p_hwfn->cdev->pdev->dev,
-				     RDMA_RING_PAGE_SIZE,
-				     &qp->orq_phys_addr, GFP_KERNEL);
-	if (!qp->orq) {
+								 RDMA_RING_PAGE_SIZE,
+								 &qp->orq_phys_addr, GFP_KERNEL);
+
+	if (!qp->orq)
+	{
 		rc = -ENOMEM;
 		DP_NOTICE(p_hwfn,
-			  "qed create requester failed: cannot allocate memory (orq). rc = %d\n",
-			  rc);
+				  "qed create requester failed: cannot allocate memory (orq). rc = %d\n",
+				  rc);
 		return rc;
 	}
 
@@ -1303,10 +1418,13 @@ static int qed_roce_sp_create_requester(struct qed_hwfn *p_hwfn,
 	init_data.comp_mode = QED_SPQ_MODE_EBLOCK;
 
 	rc = qed_sp_init_request(p_hwfn, &p_ent,
-				 ROCE_RAMROD_CREATE_QP,
-				 PROTOCOLID_ROCE, &init_data);
+							 ROCE_RAMROD_CREATE_QP,
+							 PROTOCOLID_ROCE, &init_data);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	p_ramrod = &p_ent->ramrod.roce_create_qp_req;
 
@@ -1314,21 +1432,21 @@ static int qed_roce_sp_create_requester(struct qed_hwfn *p_hwfn,
 
 	roce_flavor = qed_roce_mode_to_flavor(qp->roce_mode);
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_REQ_RAMROD_DATA_ROCE_FLAVOR, roce_flavor);
+			  ROCE_CREATE_QP_REQ_RAMROD_DATA_ROCE_FLAVOR, roce_flavor);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_REQ_RAMROD_DATA_FMR_AND_RESERVED_EN,
-		  qp->fmr_and_reserved_lkey);
+			  ROCE_CREATE_QP_REQ_RAMROD_DATA_FMR_AND_RESERVED_EN,
+			  qp->fmr_and_reserved_lkey);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_REQ_RAMROD_DATA_SIGNALED_COMP, qp->signal_all);
+			  ROCE_CREATE_QP_REQ_RAMROD_DATA_SIGNALED_COMP, qp->signal_all);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_REQ_RAMROD_DATA_ERR_RETRY_CNT, qp->retry_cnt);
+			  ROCE_CREATE_QP_REQ_RAMROD_DATA_ERR_RETRY_CNT, qp->retry_cnt);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_REQ_RAMROD_DATA_RNR_NAK_CNT,
-		  qp->rnr_retry_cnt);
+			  ROCE_CREATE_QP_REQ_RAMROD_DATA_RNR_NAK_CNT,
+			  qp->rnr_retry_cnt);
 
 	p_ramrod->max_ord = qp->max_rd_atomic_req;
 	p_ramrod->traffic_class = qp->traffic_class_tos;
@@ -1351,7 +1469,7 @@ static int qed_roce_sp_create_requester(struct qed_hwfn *p_hwfn,
 	p_ramrod->qp_handle_for_cqe.lo = cpu_to_le32(qp->qp_handle.lo);
 	p_ramrod->stats_counter_id = p_hwfn->rel_pf_id;
 	p_ramrod->cq_cid = cpu_to_le32((p_hwfn->hw_info.opaque_fid << 16) |
-				       qp->sq_cq_id);
+								   qp->sq_cq_id);
 
 	memset(&qm_params, 0, sizeof(qm_params));
 	qm_params.roce.qpid = qp->icid >> 1;
@@ -1366,14 +1484,16 @@ static int qed_roce_sp_create_requester(struct qed_hwfn *p_hwfn,
 	p_ramrod->udp_src_port = qp->udp_src_port;
 	p_ramrod->vlan_id = cpu_to_le16(qp->vlan_id);
 	p_ramrod->stats_counter_id = RESC_START(p_hwfn, QED_RDMA_STATS_QUEUE) +
-				     qp->stats_queue;
+								 qp->stats_queue;
 
 	rc = qed_spq_post(p_hwfn, p_ent, NULL);
 
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "rc = %d\n", rc);
 
 	if (rc)
+	{
 		goto err;
+	}
 
 	qp->req_offloaded = true;
 
@@ -1382,14 +1502,14 @@ static int qed_roce_sp_create_requester(struct qed_hwfn *p_hwfn,
 err:
 	DP_NOTICE(p_hwfn, "Create requested - failed, rc = %d\n", rc);
 	dma_free_coherent(&p_hwfn->cdev->pdev->dev,
-			  qp->orq_num_pages * RDMA_RING_PAGE_SIZE,
-			  qp->orq, qp->orq_phys_addr);
+					  qp->orq_num_pages * RDMA_RING_PAGE_SIZE,
+					  qp->orq, qp->orq_phys_addr);
 	return rc;
 }
 
 static int qed_roce_sp_modify_responder(struct qed_hwfn *p_hwfn,
-					struct qed_rdma_qp *qp,
-					bool move_to_err, u32 modify_flags)
+										struct qed_rdma_qp *qp,
+										bool move_to_err, u32 modify_flags)
 {
 	struct roce_modify_qp_resp_ramrod_data *p_ramrod;
 	struct qed_sp_init_data init_data;
@@ -1399,7 +1519,9 @@ static int qed_roce_sp_modify_responder(struct qed_hwfn *p_hwfn,
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "icid = %08x\n", qp->icid);
 
 	if (move_to_err && !qp->resp_offloaded)
+	{
 		return 0;
+	}
 
 	/* Get SPQ entry */
 	memset(&init_data, 0, sizeof(init_data));
@@ -1408,9 +1530,11 @@ static int qed_roce_sp_modify_responder(struct qed_hwfn *p_hwfn,
 	init_data.comp_mode = QED_SPQ_MODE_EBLOCK;
 
 	rc = qed_sp_init_request(p_hwfn, &p_ent,
-				 ROCE_EVENT_MODIFY_QP,
-				 PROTOCOLID_ROCE, &init_data);
-	if (rc) {
+							 ROCE_EVENT_MODIFY_QP,
+							 PROTOCOLID_ROCE, &init_data);
+
+	if (rc)
+	{
 		DP_NOTICE(p_hwfn, "rc = %d\n", rc);
 		return rc;
 	}
@@ -1420,52 +1544,52 @@ static int qed_roce_sp_modify_responder(struct qed_hwfn *p_hwfn,
 	p_ramrod->flags = 0;
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_RESP_RAMROD_DATA_MOVE_TO_ERR_FLG, move_to_err);
+			  ROCE_MODIFY_QP_RESP_RAMROD_DATA_MOVE_TO_ERR_FLG, move_to_err);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_RESP_RAMROD_DATA_RDMA_RD_EN,
-		  qp->incoming_rdma_read_en);
+			  ROCE_MODIFY_QP_RESP_RAMROD_DATA_RDMA_RD_EN,
+			  qp->incoming_rdma_read_en);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_RESP_RAMROD_DATA_RDMA_WR_EN,
-		  qp->incoming_rdma_write_en);
+			  ROCE_MODIFY_QP_RESP_RAMROD_DATA_RDMA_WR_EN,
+			  qp->incoming_rdma_write_en);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_RESP_RAMROD_DATA_ATOMIC_EN,
-		  qp->incoming_atomic_en);
+			  ROCE_MODIFY_QP_RESP_RAMROD_DATA_ATOMIC_EN,
+			  qp->incoming_atomic_en);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_CREATE_QP_RESP_RAMROD_DATA_E2E_FLOW_CONTROL_EN,
-		  qp->e2e_flow_control_en);
+			  ROCE_CREATE_QP_RESP_RAMROD_DATA_E2E_FLOW_CONTROL_EN,
+			  qp->e2e_flow_control_en);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_RESP_RAMROD_DATA_RDMA_OPS_EN_FLG,
-		  GET_FIELD(modify_flags,
-			    QED_RDMA_MODIFY_QP_VALID_RDMA_OPS_EN));
+			  ROCE_MODIFY_QP_RESP_RAMROD_DATA_RDMA_OPS_EN_FLG,
+			  GET_FIELD(modify_flags,
+						QED_RDMA_MODIFY_QP_VALID_RDMA_OPS_EN));
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_RESP_RAMROD_DATA_P_KEY_FLG,
-		  GET_FIELD(modify_flags, QED_ROCE_MODIFY_QP_VALID_PKEY));
+			  ROCE_MODIFY_QP_RESP_RAMROD_DATA_P_KEY_FLG,
+			  GET_FIELD(modify_flags, QED_ROCE_MODIFY_QP_VALID_PKEY));
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_RESP_RAMROD_DATA_ADDRESS_VECTOR_FLG,
-		  GET_FIELD(modify_flags,
-			    QED_ROCE_MODIFY_QP_VALID_ADDRESS_VECTOR));
+			  ROCE_MODIFY_QP_RESP_RAMROD_DATA_ADDRESS_VECTOR_FLG,
+			  GET_FIELD(modify_flags,
+						QED_ROCE_MODIFY_QP_VALID_ADDRESS_VECTOR));
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_RESP_RAMROD_DATA_MAX_IRD_FLG,
-		  GET_FIELD(modify_flags,
-			    QED_RDMA_MODIFY_QP_VALID_MAX_RD_ATOMIC_RESP));
+			  ROCE_MODIFY_QP_RESP_RAMROD_DATA_MAX_IRD_FLG,
+			  GET_FIELD(modify_flags,
+						QED_RDMA_MODIFY_QP_VALID_MAX_RD_ATOMIC_RESP));
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_RESP_RAMROD_DATA_MIN_RNR_NAK_TIMER_FLG,
-		  GET_FIELD(modify_flags,
-			    QED_ROCE_MODIFY_QP_VALID_MIN_RNR_NAK_TIMER));
+			  ROCE_MODIFY_QP_RESP_RAMROD_DATA_MIN_RNR_NAK_TIMER_FLG,
+			  GET_FIELD(modify_flags,
+						QED_ROCE_MODIFY_QP_VALID_MIN_RNR_NAK_TIMER));
 
 	p_ramrod->fields = 0;
 	SET_FIELD(p_ramrod->fields,
-		  ROCE_MODIFY_QP_RESP_RAMROD_DATA_MIN_RNR_NAK_TIMER,
-		  qp->min_rnr_nak_timer);
+			  ROCE_MODIFY_QP_RESP_RAMROD_DATA_MIN_RNR_NAK_TIMER,
+			  qp->min_rnr_nak_timer);
 
 	p_ramrod->max_ird = qp->max_rd_atomic_resp;
 	p_ramrod->traffic_class = qp->traffic_class_tos;
@@ -1481,9 +1605,9 @@ static int qed_roce_sp_modify_responder(struct qed_hwfn *p_hwfn,
 }
 
 static int qed_roce_sp_modify_requester(struct qed_hwfn *p_hwfn,
-					struct qed_rdma_qp *qp,
-					bool move_to_sqd,
-					bool move_to_err, u32 modify_flags)
+										struct qed_rdma_qp *qp,
+										bool move_to_sqd,
+										bool move_to_err, u32 modify_flags)
 {
 	struct roce_modify_qp_req_ramrod_data *p_ramrod;
 	struct qed_sp_init_data init_data;
@@ -1493,7 +1617,9 @@ static int qed_roce_sp_modify_requester(struct qed_hwfn *p_hwfn,
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "icid = %08x\n", qp->icid);
 
 	if (move_to_err && !(qp->req_offloaded))
+	{
 		return 0;
+	}
 
 	/* Get SPQ entry */
 	memset(&init_data, 0, sizeof(init_data));
@@ -1502,9 +1628,11 @@ static int qed_roce_sp_modify_requester(struct qed_hwfn *p_hwfn,
 	init_data.comp_mode = QED_SPQ_MODE_EBLOCK;
 
 	rc = qed_sp_init_request(p_hwfn, &p_ent,
-				 ROCE_EVENT_MODIFY_QP,
-				 PROTOCOLID_ROCE, &init_data);
-	if (rc) {
+							 ROCE_EVENT_MODIFY_QP,
+							 PROTOCOLID_ROCE, &init_data);
+
+	if (rc)
+	{
 		DP_NOTICE(p_hwfn, "rc = %d\n", rc);
 		return rc;
 	}
@@ -1514,50 +1642,50 @@ static int qed_roce_sp_modify_requester(struct qed_hwfn *p_hwfn,
 	p_ramrod->flags = 0;
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_REQ_RAMROD_DATA_MOVE_TO_ERR_FLG, move_to_err);
+			  ROCE_MODIFY_QP_REQ_RAMROD_DATA_MOVE_TO_ERR_FLG, move_to_err);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_REQ_RAMROD_DATA_MOVE_TO_SQD_FLG, move_to_sqd);
+			  ROCE_MODIFY_QP_REQ_RAMROD_DATA_MOVE_TO_SQD_FLG, move_to_sqd);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_REQ_RAMROD_DATA_EN_SQD_ASYNC_NOTIFY,
-		  qp->sqd_async);
+			  ROCE_MODIFY_QP_REQ_RAMROD_DATA_EN_SQD_ASYNC_NOTIFY,
+			  qp->sqd_async);
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_REQ_RAMROD_DATA_P_KEY_FLG,
-		  GET_FIELD(modify_flags, QED_ROCE_MODIFY_QP_VALID_PKEY));
+			  ROCE_MODIFY_QP_REQ_RAMROD_DATA_P_KEY_FLG,
+			  GET_FIELD(modify_flags, QED_ROCE_MODIFY_QP_VALID_PKEY));
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_REQ_RAMROD_DATA_ADDRESS_VECTOR_FLG,
-		  GET_FIELD(modify_flags,
-			    QED_ROCE_MODIFY_QP_VALID_ADDRESS_VECTOR));
+			  ROCE_MODIFY_QP_REQ_RAMROD_DATA_ADDRESS_VECTOR_FLG,
+			  GET_FIELD(modify_flags,
+						QED_ROCE_MODIFY_QP_VALID_ADDRESS_VECTOR));
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_REQ_RAMROD_DATA_MAX_ORD_FLG,
-		  GET_FIELD(modify_flags,
-			    QED_RDMA_MODIFY_QP_VALID_MAX_RD_ATOMIC_REQ));
+			  ROCE_MODIFY_QP_REQ_RAMROD_DATA_MAX_ORD_FLG,
+			  GET_FIELD(modify_flags,
+						QED_RDMA_MODIFY_QP_VALID_MAX_RD_ATOMIC_REQ));
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_REQ_RAMROD_DATA_RNR_NAK_CNT_FLG,
-		  GET_FIELD(modify_flags,
-			    QED_ROCE_MODIFY_QP_VALID_RNR_RETRY_CNT));
+			  ROCE_MODIFY_QP_REQ_RAMROD_DATA_RNR_NAK_CNT_FLG,
+			  GET_FIELD(modify_flags,
+						QED_ROCE_MODIFY_QP_VALID_RNR_RETRY_CNT));
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_REQ_RAMROD_DATA_ERR_RETRY_CNT_FLG,
-		  GET_FIELD(modify_flags, QED_ROCE_MODIFY_QP_VALID_RETRY_CNT));
+			  ROCE_MODIFY_QP_REQ_RAMROD_DATA_ERR_RETRY_CNT_FLG,
+			  GET_FIELD(modify_flags, QED_ROCE_MODIFY_QP_VALID_RETRY_CNT));
 
 	SET_FIELD(p_ramrod->flags,
-		  ROCE_MODIFY_QP_REQ_RAMROD_DATA_ACK_TIMEOUT_FLG,
-		  GET_FIELD(modify_flags,
-			    QED_ROCE_MODIFY_QP_VALID_ACK_TIMEOUT));
+			  ROCE_MODIFY_QP_REQ_RAMROD_DATA_ACK_TIMEOUT_FLG,
+			  GET_FIELD(modify_flags,
+						QED_ROCE_MODIFY_QP_VALID_ACK_TIMEOUT));
 
 	p_ramrod->fields = 0;
 	SET_FIELD(p_ramrod->fields,
-		  ROCE_MODIFY_QP_REQ_RAMROD_DATA_ERR_RETRY_CNT, qp->retry_cnt);
+			  ROCE_MODIFY_QP_REQ_RAMROD_DATA_ERR_RETRY_CNT, qp->retry_cnt);
 
 	SET_FIELD(p_ramrod->fields,
-		  ROCE_MODIFY_QP_REQ_RAMROD_DATA_RNR_NAK_CNT,
-		  qp->rnr_retry_cnt);
+			  ROCE_MODIFY_QP_REQ_RAMROD_DATA_RNR_NAK_CNT,
+			  qp->rnr_retry_cnt);
 
 	p_ramrod->max_ord = qp->max_rd_atomic_req;
 	p_ramrod->traffic_class = qp->traffic_class_tos;
@@ -1574,8 +1702,8 @@ static int qed_roce_sp_modify_requester(struct qed_hwfn *p_hwfn,
 }
 
 static int qed_roce_sp_destroy_qp_responder(struct qed_hwfn *p_hwfn,
-					    struct qed_rdma_qp *qp,
-					    u32 *num_invalidated_mw)
+		struct qed_rdma_qp *qp,
+		u32 *num_invalidated_mw)
 {
 	struct roce_destroy_qp_resp_output_params *p_ramrod_res;
 	struct roce_destroy_qp_resp_ramrod_data *p_ramrod;
@@ -1587,7 +1715,9 @@ static int qed_roce_sp_destroy_qp_responder(struct qed_hwfn *p_hwfn,
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "icid = %08x\n", qp->icid);
 
 	if (!qp->resp_offloaded)
+	{
 		return 0;
+	}
 
 	/* Get SPQ entry */
 	memset(&init_data, 0, sizeof(init_data));
@@ -1596,37 +1726,44 @@ static int qed_roce_sp_destroy_qp_responder(struct qed_hwfn *p_hwfn,
 	init_data.comp_mode = QED_SPQ_MODE_EBLOCK;
 
 	rc = qed_sp_init_request(p_hwfn, &p_ent,
-				 ROCE_RAMROD_DESTROY_QP,
-				 PROTOCOLID_ROCE, &init_data);
+							 ROCE_RAMROD_DESTROY_QP,
+							 PROTOCOLID_ROCE, &init_data);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	p_ramrod = &p_ent->ramrod.roce_destroy_qp_resp;
 
 	p_ramrod_res = (struct roce_destroy_qp_resp_output_params *)
-	    dma_alloc_coherent(&p_hwfn->cdev->pdev->dev, sizeof(*p_ramrod_res),
-			       &ramrod_res_phys, GFP_KERNEL);
+				   dma_alloc_coherent(&p_hwfn->cdev->pdev->dev, sizeof(*p_ramrod_res),
+									  &ramrod_res_phys, GFP_KERNEL);
 
-	if (!p_ramrod_res) {
+	if (!p_ramrod_res)
+	{
 		rc = -ENOMEM;
 		DP_NOTICE(p_hwfn,
-			  "qed destroy responder failed: cannot allocate memory (ramrod). rc = %d\n",
-			  rc);
+				  "qed destroy responder failed: cannot allocate memory (ramrod). rc = %d\n",
+				  rc);
 		return rc;
 	}
 
 	DMA_REGPAIR_LE(p_ramrod->output_params_addr, ramrod_res_phys);
 
 	rc = qed_spq_post(p_hwfn, p_ent, NULL);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	*num_invalidated_mw = le32_to_cpu(p_ramrod_res->num_invalidated_mw);
 
 	/* Free IRQ - only if ramrod succeeded, in case FW is still using it */
 	dma_free_coherent(&p_hwfn->cdev->pdev->dev,
-			  qp->irq_num_pages * RDMA_RING_PAGE_SIZE,
-			  qp->irq, qp->irq_phys_addr);
+					  qp->irq_num_pages * RDMA_RING_PAGE_SIZE,
+					  qp->irq, qp->irq_phys_addr);
 
 	qp->resp_offloaded = false;
 
@@ -1634,15 +1771,15 @@ static int qed_roce_sp_destroy_qp_responder(struct qed_hwfn *p_hwfn,
 
 err:
 	dma_free_coherent(&p_hwfn->cdev->pdev->dev,
-			  sizeof(struct roce_destroy_qp_resp_output_params),
-			  p_ramrod_res, ramrod_res_phys);
+					  sizeof(struct roce_destroy_qp_resp_output_params),
+					  p_ramrod_res, ramrod_res_phys);
 
 	return rc;
 }
 
 static int qed_roce_sp_destroy_qp_requester(struct qed_hwfn *p_hwfn,
-					    struct qed_rdma_qp *qp,
-					    u32 *num_bound_mw)
+		struct qed_rdma_qp *qp,
+		u32 *num_bound_mw)
 {
 	struct roce_destroy_qp_req_output_params *p_ramrod_res;
 	struct roce_destroy_qp_req_ramrod_data *p_ramrod;
@@ -1654,15 +1791,19 @@ static int qed_roce_sp_destroy_qp_requester(struct qed_hwfn *p_hwfn,
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "icid = %08x\n", qp->icid);
 
 	if (!qp->req_offloaded)
+	{
 		return 0;
+	}
 
 	p_ramrod_res = (struct roce_destroy_qp_req_output_params *)
-		       dma_alloc_coherent(&p_hwfn->cdev->pdev->dev,
-					  sizeof(*p_ramrod_res),
-					  &ramrod_res_phys, GFP_KERNEL);
-	if (!p_ramrod_res) {
+				   dma_alloc_coherent(&p_hwfn->cdev->pdev->dev,
+									  sizeof(*p_ramrod_res),
+									  &ramrod_res_phys, GFP_KERNEL);
+
+	if (!p_ramrod_res)
+	{
 		DP_NOTICE(p_hwfn,
-			  "qed destroy requester failed: cannot allocate memory (ramrod)\n");
+				  "qed destroy requester failed: cannot allocate memory (ramrod)\n");
 		return rc;
 	}
 
@@ -1673,23 +1814,29 @@ static int qed_roce_sp_destroy_qp_requester(struct qed_hwfn *p_hwfn,
 	init_data.comp_mode = QED_SPQ_MODE_EBLOCK;
 
 	rc = qed_sp_init_request(p_hwfn, &p_ent, ROCE_RAMROD_DESTROY_QP,
-				 PROTOCOLID_ROCE, &init_data);
+							 PROTOCOLID_ROCE, &init_data);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	p_ramrod = &p_ent->ramrod.roce_destroy_qp_req;
 	DMA_REGPAIR_LE(p_ramrod->output_params_addr, ramrod_res_phys);
 
 	rc = qed_spq_post(p_hwfn, p_ent, NULL);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	*num_bound_mw = le32_to_cpu(p_ramrod_res->num_bound_mw);
 
 	/* Free ORQ - only if ramrod succeeded, in case FW is still using it */
 	dma_free_coherent(&p_hwfn->cdev->pdev->dev,
-			  qp->orq_num_pages * RDMA_RING_PAGE_SIZE,
-			  qp->orq, qp->orq_phys_addr);
+					  qp->orq_num_pages * RDMA_RING_PAGE_SIZE,
+					  qp->orq, qp->orq_phys_addr);
 
 	qp->req_offloaded = false;
 
@@ -1697,14 +1844,14 @@ static int qed_roce_sp_destroy_qp_requester(struct qed_hwfn *p_hwfn,
 
 err:
 	dma_free_coherent(&p_hwfn->cdev->pdev->dev, sizeof(*p_ramrod_res),
-			  p_ramrod_res, ramrod_res_phys);
+					  p_ramrod_res, ramrod_res_phys);
 
 	return rc;
 }
 
 static int qed_roce_query_qp(struct qed_hwfn *p_hwfn,
-			     struct qed_rdma_qp *qp,
-			     struct qed_rdma_query_qp_out_params *out_params)
+							 struct qed_rdma_qp *qp,
+							 struct qed_rdma_query_qp_out_params *out_params)
 {
 	struct roce_query_qp_resp_output_params *p_resp_ramrod_res;
 	struct roce_query_qp_req_output_params *p_req_ramrod_res;
@@ -1719,7 +1866,8 @@ static int qed_roce_query_qp(struct qed_hwfn *p_hwfn,
 	bool sq_draining;
 	int rc = -ENOMEM;
 
-	if ((!(qp->resp_offloaded)) && (!(qp->req_offloaded))) {
+	if ((!(qp->resp_offloaded)) && (!(qp->req_offloaded)))
+	{
 		/* We can't send ramrod to the fw since this qp wasn't offloaded
 		 * to the fw yet
 		 */
@@ -1732,20 +1880,23 @@ static int qed_roce_query_qp(struct qed_hwfn *p_hwfn,
 		return 0;
 	}
 
-	if (!(qp->resp_offloaded)) {
+	if (!(qp->resp_offloaded))
+	{
 		DP_NOTICE(p_hwfn,
-			  "The responder's qp should be offloded before requester's\n");
+				  "The responder's qp should be offloded before requester's\n");
 		return -EINVAL;
 	}
 
 	/* Send a query responder ramrod to FW to get RQ-PSN and state */
 	p_resp_ramrod_res = (struct roce_query_qp_resp_output_params *)
-	    dma_alloc_coherent(&p_hwfn->cdev->pdev->dev,
-			       sizeof(*p_resp_ramrod_res),
-			       &resp_ramrod_res_phys, GFP_KERNEL);
-	if (!p_resp_ramrod_res) {
+						dma_alloc_coherent(&p_hwfn->cdev->pdev->dev,
+										   sizeof(*p_resp_ramrod_res),
+										   &resp_ramrod_res_phys, GFP_KERNEL);
+
+	if (!p_resp_ramrod_res)
+	{
 		DP_NOTICE(p_hwfn,
-			  "qed query qp failed: cannot allocate memory (ramrod)\n");
+				  "qed query qp failed: cannot allocate memory (ramrod)\n");
 		return rc;
 	}
 
@@ -1755,31 +1906,40 @@ static int qed_roce_query_qp(struct qed_hwfn *p_hwfn,
 	init_data.opaque_fid = p_hwfn->hw_info.opaque_fid;
 	init_data.comp_mode = QED_SPQ_MODE_EBLOCK;
 	rc = qed_sp_init_request(p_hwfn, &p_ent, ROCE_RAMROD_QUERY_QP,
-				 PROTOCOLID_ROCE, &init_data);
+							 PROTOCOLID_ROCE, &init_data);
+
 	if (rc)
+	{
 		goto err_resp;
+	}
 
 	p_resp_ramrod = &p_ent->ramrod.roce_query_qp_resp;
 	DMA_REGPAIR_LE(p_resp_ramrod->output_params_addr, resp_ramrod_res_phys);
 
 	rc = qed_spq_post(p_hwfn, p_ent, NULL);
+
 	if (rc)
+	{
 		goto err_resp;
+	}
 
 	dma_free_coherent(&p_hwfn->cdev->pdev->dev, sizeof(*p_resp_ramrod_res),
-			  p_resp_ramrod_res, resp_ramrod_res_phys);
+					  p_resp_ramrod_res, resp_ramrod_res_phys);
 
 	out_params->rq_psn = le32_to_cpu(p_resp_ramrod_res->psn);
 	rq_err_state = GET_FIELD(le32_to_cpu(p_resp_ramrod_res->err_flag),
-				 ROCE_QUERY_QP_RESP_OUTPUT_PARAMS_ERROR_FLG);
+							 ROCE_QUERY_QP_RESP_OUTPUT_PARAMS_ERROR_FLG);
 
-	if (!(qp->req_offloaded)) {
+	if (!(qp->req_offloaded))
+	{
 		/* Don't send query qp for the requester */
 		out_params->sq_psn = qp->sq_psn;
 		out_params->draining = false;
 
 		if (rq_err_state)
+		{
 			qp->cur_state = QED_ROCE_QP_STATE_ERR;
+		}
 
 		out_params->state = qp->cur_state;
 
@@ -1788,60 +1948,75 @@ static int qed_roce_query_qp(struct qed_hwfn *p_hwfn,
 
 	/* Send a query requester ramrod to FW to get SQ-PSN and state */
 	p_req_ramrod_res = (struct roce_query_qp_req_output_params *)
-			   dma_alloc_coherent(&p_hwfn->cdev->pdev->dev,
-					      sizeof(*p_req_ramrod_res),
-					      &req_ramrod_res_phys,
-					      GFP_KERNEL);
-	if (!p_req_ramrod_res) {
+					   dma_alloc_coherent(&p_hwfn->cdev->pdev->dev,
+										  sizeof(*p_req_ramrod_res),
+										  &req_ramrod_res_phys,
+										  GFP_KERNEL);
+
+	if (!p_req_ramrod_res)
+	{
 		rc = -ENOMEM;
 		DP_NOTICE(p_hwfn,
-			  "qed query qp failed: cannot allocate memory (ramrod)\n");
+				  "qed query qp failed: cannot allocate memory (ramrod)\n");
 		return rc;
 	}
 
 	/* Get SPQ entry */
 	init_data.cid = qp->icid + 1;
 	rc = qed_sp_init_request(p_hwfn, &p_ent, ROCE_RAMROD_QUERY_QP,
-				 PROTOCOLID_ROCE, &init_data);
+							 PROTOCOLID_ROCE, &init_data);
+
 	if (rc)
+	{
 		goto err_req;
+	}
 
 	p_req_ramrod = &p_ent->ramrod.roce_query_qp_req;
 	DMA_REGPAIR_LE(p_req_ramrod->output_params_addr, req_ramrod_res_phys);
 
 	rc = qed_spq_post(p_hwfn, p_ent, NULL);
+
 	if (rc)
+	{
 		goto err_req;
+	}
 
 	dma_free_coherent(&p_hwfn->cdev->pdev->dev, sizeof(*p_req_ramrod_res),
-			  p_req_ramrod_res, req_ramrod_res_phys);
+					  p_req_ramrod_res, req_ramrod_res_phys);
 
 	out_params->sq_psn = le32_to_cpu(p_req_ramrod_res->psn);
 	sq_err_state = GET_FIELD(le32_to_cpu(p_req_ramrod_res->flags),
-				 ROCE_QUERY_QP_REQ_OUTPUT_PARAMS_ERR_FLG);
+							 ROCE_QUERY_QP_REQ_OUTPUT_PARAMS_ERR_FLG);
 	sq_draining =
 		GET_FIELD(le32_to_cpu(p_req_ramrod_res->flags),
-			  ROCE_QUERY_QP_REQ_OUTPUT_PARAMS_SQ_DRAINING_FLG);
+				  ROCE_QUERY_QP_REQ_OUTPUT_PARAMS_SQ_DRAINING_FLG);
 
 	out_params->draining = false;
 
 	if (rq_err_state)
+	{
 		qp->cur_state = QED_ROCE_QP_STATE_ERR;
+	}
 	else if (sq_err_state)
+	{
 		qp->cur_state = QED_ROCE_QP_STATE_SQE;
+	}
 	else if (sq_draining)
+	{
 		out_params->draining = true;
+	}
+
 	out_params->state = qp->cur_state;
 
 	return 0;
 
 err_req:
 	dma_free_coherent(&p_hwfn->cdev->pdev->dev, sizeof(*p_req_ramrod_res),
-			  p_req_ramrod_res, req_ramrod_res_phys);
+					  p_req_ramrod_res, req_ramrod_res_phys);
 	return rc;
 err_resp:
 	dma_free_coherent(&p_hwfn->cdev->pdev->dev, sizeof(*p_resp_ramrod_res),
-			  p_resp_ramrod_res, resp_ramrod_res_phys);
+					  p_resp_ramrod_res, resp_ramrod_res_phys);
 	return rc;
 }
 
@@ -1854,40 +2029,48 @@ static int qed_roce_destroy_qp(struct qed_hwfn *p_hwfn, struct qed_rdma_qp *qp)
 
 	/* Destroys the specified QP */
 	if ((qp->cur_state != QED_ROCE_QP_STATE_RESET) &&
-	    (qp->cur_state != QED_ROCE_QP_STATE_ERR) &&
-	    (qp->cur_state != QED_ROCE_QP_STATE_INIT)) {
+		(qp->cur_state != QED_ROCE_QP_STATE_ERR) &&
+		(qp->cur_state != QED_ROCE_QP_STATE_INIT))
+	{
 		DP_NOTICE(p_hwfn,
-			  "QP must be in error, reset or init state before destroying it\n");
+				  "QP must be in error, reset or init state before destroying it\n");
 		return -EINVAL;
 	}
 
 	rc = qed_roce_sp_destroy_qp_responder(p_hwfn, qp, &num_invalidated_mw);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Send destroy requester ramrod */
 	rc = qed_roce_sp_destroy_qp_requester(p_hwfn, qp, &num_bound_mw);
-	if (rc)
-		return rc;
 
-	if (num_invalidated_mw != num_bound_mw) {
+	if (rc)
+	{
+		return rc;
+	}
+
+	if (num_invalidated_mw != num_bound_mw)
+	{
 		DP_NOTICE(p_hwfn,
-			  "number of invalidate memory windows is different from bounded ones\n");
+				  "number of invalidate memory windows is different from bounded ones\n");
 		return -EINVAL;
 	}
 
 	spin_lock_bh(&p_hwfn->p_rdma_info->lock);
 
 	start_cid = qed_cxt_get_proto_cid_start(p_hwfn,
-						p_hwfn->p_rdma_info->proto);
+											p_hwfn->p_rdma_info->proto);
 
 	/* Release responder's icid */
 	qed_bmap_release_id(p_hwfn, &p_hwfn->p_rdma_info->cid_map,
-			    qp->icid - start_cid);
+						qp->icid - start_cid);
 
 	/* Release requester's icid */
 	qed_bmap_release_id(p_hwfn, &p_hwfn->p_rdma_info->cid_map,
-			    qp->icid + 1 - start_cid);
+						qp->icid + 1 - start_cid);
 
 	spin_unlock_bh(&p_hwfn->p_rdma_info->lock);
 
@@ -1895,8 +2078,8 @@ static int qed_roce_destroy_qp(struct qed_hwfn *p_hwfn, struct qed_rdma_qp *qp)
 }
 
 static int qed_rdma_query_qp(void *rdma_cxt,
-			     struct qed_rdma_qp *qp,
-			     struct qed_rdma_query_qp_out_params *out_params)
+							 struct qed_rdma_qp *qp,
+							 struct qed_rdma_query_qp_out_params *out_params)
 {
 	struct qed_hwfn *p_hwfn = (struct qed_hwfn *)rdma_cxt;
 	int rc;
@@ -1949,36 +2132,41 @@ static int qed_rdma_destroy_qp(void *rdma_cxt, struct qed_rdma_qp *qp)
 
 static struct qed_rdma_qp *
 qed_rdma_create_qp(void *rdma_cxt,
-		   struct qed_rdma_create_qp_in_params *in_params,
-		   struct qed_rdma_create_qp_out_params *out_params)
+				   struct qed_rdma_create_qp_in_params *in_params,
+				   struct qed_rdma_create_qp_out_params *out_params)
 {
 	struct qed_hwfn *p_hwfn = (struct qed_hwfn *)rdma_cxt;
 	struct qed_rdma_qp *qp;
 	u8 max_stats_queues;
 	int rc;
 
-	if (!rdma_cxt || !in_params || !out_params || !p_hwfn->p_rdma_info) {
+	if (!rdma_cxt || !in_params || !out_params || !p_hwfn->p_rdma_info)
+	{
 		DP_ERR(p_hwfn->cdev,
-		       "qed roce create qp failed due to NULL entry (rdma_cxt=%p, in=%p, out=%p, roce_info=?\n",
-		       rdma_cxt, in_params, out_params);
+			   "qed roce create qp failed due to NULL entry (rdma_cxt=%p, in=%p, out=%p, roce_info=?\n",
+			   rdma_cxt, in_params, out_params);
 		return NULL;
 	}
 
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-		   "qed rdma create qp called with qp_handle = %08x%08x\n",
-		   in_params->qp_handle_hi, in_params->qp_handle_lo);
+			   "qed rdma create qp called with qp_handle = %08x%08x\n",
+			   in_params->qp_handle_hi, in_params->qp_handle_lo);
 
 	/* Some sanity checks... */
 	max_stats_queues = p_hwfn->p_rdma_info->dev->max_stats_queues;
-	if (in_params->stats_queue >= max_stats_queues) {
+
+	if (in_params->stats_queue >= max_stats_queues)
+	{
 		DP_ERR(p_hwfn->cdev,
-		       "qed rdma create qp failed due to invalid statistics queue %d. maximum is %d\n",
-		       in_params->stats_queue, max_stats_queues);
+			   "qed rdma create qp failed due to invalid statistics queue %d. maximum is %d\n",
+			   in_params->stats_queue, max_stats_queues);
 		return NULL;
 	}
 
 	qp = kzalloc(sizeof(*qp), GFP_KERNEL);
-	if (!qp) {
+
+	if (!qp)
+	{
 		DP_NOTICE(p_hwfn, "Failed to allocate qed_rdma_qp\n");
 		return NULL;
 	}
@@ -1988,7 +2176,8 @@ qed_rdma_create_qp(void *rdma_cxt,
 
 	DP_INFO(p_hwfn, "ROCE qpid=%x\n", qp->qpid);
 
-	if (rc) {
+	if (rc)
+	{
 		kfree(qp);
 		return NULL;
 	}
@@ -2023,9 +2212,9 @@ qed_rdma_create_qp(void *rdma_cxt,
 }
 
 static int qed_roce_modify_qp(struct qed_hwfn *p_hwfn,
-			      struct qed_rdma_qp *qp,
-			      enum qed_roce_qp_state prev_state,
-			      struct qed_rdma_modify_qp_in_params *params)
+							  struct qed_rdma_qp *qp,
+							  enum qed_roce_qp_state prev_state,
+							  struct qed_rdma_modify_qp_in_params *params)
 {
 	u32 num_invalidated_mw = 0, num_bound_mw = 0;
 	int rc = 0;
@@ -2034,90 +2223,126 @@ static int qed_roce_modify_qp(struct qed_hwfn *p_hwfn,
 	 * next state
 	 */
 	if (((prev_state == QED_ROCE_QP_STATE_INIT) ||
-	     (prev_state == QED_ROCE_QP_STATE_RESET)) &&
-	    (qp->cur_state == QED_ROCE_QP_STATE_RTR)) {
+		 (prev_state == QED_ROCE_QP_STATE_RESET)) &&
+		(qp->cur_state == QED_ROCE_QP_STATE_RTR))
+	{
 		/* Init->RTR or Reset->RTR */
 		rc = qed_roce_sp_create_responder(p_hwfn, qp);
 		return rc;
-	} else if ((prev_state == QED_ROCE_QP_STATE_RTR) &&
-		   (qp->cur_state == QED_ROCE_QP_STATE_RTS)) {
+	}
+	else if ((prev_state == QED_ROCE_QP_STATE_RTR) &&
+			 (qp->cur_state == QED_ROCE_QP_STATE_RTS))
+	{
 		/* RTR-> RTS */
 		rc = qed_roce_sp_create_requester(p_hwfn, qp);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		/* Send modify responder ramrod */
 		rc = qed_roce_sp_modify_responder(p_hwfn, qp, false,
-						  params->modify_flags);
+										  params->modify_flags);
 		return rc;
-	} else if ((prev_state == QED_ROCE_QP_STATE_RTS) &&
-		   (qp->cur_state == QED_ROCE_QP_STATE_RTS)) {
+	}
+	else if ((prev_state == QED_ROCE_QP_STATE_RTS) &&
+			 (qp->cur_state == QED_ROCE_QP_STATE_RTS))
+	{
 		/* RTS->RTS */
 		rc = qed_roce_sp_modify_responder(p_hwfn, qp, false,
-						  params->modify_flags);
+										  params->modify_flags);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		rc = qed_roce_sp_modify_requester(p_hwfn, qp, false, false,
-						  params->modify_flags);
+										  params->modify_flags);
 		return rc;
-	} else if ((prev_state == QED_ROCE_QP_STATE_RTS) &&
-		   (qp->cur_state == QED_ROCE_QP_STATE_SQD)) {
+	}
+	else if ((prev_state == QED_ROCE_QP_STATE_RTS) &&
+			 (qp->cur_state == QED_ROCE_QP_STATE_SQD))
+	{
 		/* RTS->SQD */
 		rc = qed_roce_sp_modify_requester(p_hwfn, qp, true, false,
-						  params->modify_flags);
+										  params->modify_flags);
 		return rc;
-	} else if ((prev_state == QED_ROCE_QP_STATE_SQD) &&
-		   (qp->cur_state == QED_ROCE_QP_STATE_SQD)) {
+	}
+	else if ((prev_state == QED_ROCE_QP_STATE_SQD) &&
+			 (qp->cur_state == QED_ROCE_QP_STATE_SQD))
+	{
 		/* SQD->SQD */
 		rc = qed_roce_sp_modify_responder(p_hwfn, qp, false,
-						  params->modify_flags);
+										  params->modify_flags);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		rc = qed_roce_sp_modify_requester(p_hwfn, qp, false, false,
-						  params->modify_flags);
+										  params->modify_flags);
 		return rc;
-	} else if ((prev_state == QED_ROCE_QP_STATE_SQD) &&
-		   (qp->cur_state == QED_ROCE_QP_STATE_RTS)) {
+	}
+	else if ((prev_state == QED_ROCE_QP_STATE_SQD) &&
+			 (qp->cur_state == QED_ROCE_QP_STATE_RTS))
+	{
 		/* SQD->RTS */
 		rc = qed_roce_sp_modify_responder(p_hwfn, qp, false,
-						  params->modify_flags);
+										  params->modify_flags);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		rc = qed_roce_sp_modify_requester(p_hwfn, qp, false, false,
-						  params->modify_flags);
+										  params->modify_flags);
 
 		return rc;
-	} else if (qp->cur_state == QED_ROCE_QP_STATE_ERR ||
-		   qp->cur_state == QED_ROCE_QP_STATE_SQE) {
+	}
+	else if (qp->cur_state == QED_ROCE_QP_STATE_ERR ||
+			 qp->cur_state == QED_ROCE_QP_STATE_SQE)
+	{
 		/* ->ERR */
 		rc = qed_roce_sp_modify_responder(p_hwfn, qp, true,
-						  params->modify_flags);
+										  params->modify_flags);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		rc = qed_roce_sp_modify_requester(p_hwfn, qp, false, true,
-						  params->modify_flags);
+										  params->modify_flags);
 		return rc;
-	} else if (qp->cur_state == QED_ROCE_QP_STATE_RESET) {
+	}
+	else if (qp->cur_state == QED_ROCE_QP_STATE_RESET)
+	{
 		/* Any state -> RESET */
 
 		rc = qed_roce_sp_destroy_qp_responder(p_hwfn, qp,
-						      &num_invalidated_mw);
+											  &num_invalidated_mw);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		rc = qed_roce_sp_destroy_qp_requester(p_hwfn, qp,
-						      &num_bound_mw);
+											  &num_bound_mw);
 
-		if (num_invalidated_mw != num_bound_mw) {
+		if (num_invalidated_mw != num_bound_mw)
+		{
 			DP_NOTICE(p_hwfn,
-				  "number of invalidate memory windows is different from bounded ones\n");
+					  "number of invalidate memory windows is different from bounded ones\n");
 			return -EINVAL;
 		}
-	} else {
+	}
+	else
+	{
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "0\n");
 	}
 
@@ -2125,23 +2350,25 @@ static int qed_roce_modify_qp(struct qed_hwfn *p_hwfn,
 }
 
 static int qed_rdma_modify_qp(void *rdma_cxt,
-			      struct qed_rdma_qp *qp,
-			      struct qed_rdma_modify_qp_in_params *params)
+							  struct qed_rdma_qp *qp,
+							  struct qed_rdma_modify_qp_in_params *params)
 {
 	struct qed_hwfn *p_hwfn = (struct qed_hwfn *)rdma_cxt;
 	enum qed_roce_qp_state prev_state;
 	int rc = 0;
 
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "icid = %08x params->new_state=%d\n",
-		   qp->icid, params->new_state);
+			   qp->icid, params->new_state);
 
-	if (rc) {
+	if (rc)
+	{
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "rc = %d\n", rc);
 		return rc;
 	}
 
 	if (GET_FIELD(params->modify_flags,
-		      QED_RDMA_MODIFY_QP_VALID_RDMA_OPS_EN)) {
+				  QED_RDMA_MODIFY_QP_VALID_RDMA_OPS_EN))
+	{
 		qp->incoming_rdma_read_en = params->incoming_rdma_read_en;
 		qp->incoming_rdma_write_en = params->incoming_rdma_write_en;
 		qp->incoming_atomic_en = params->incoming_atomic_en;
@@ -2149,16 +2376,29 @@ static int qed_rdma_modify_qp(void *rdma_cxt,
 
 	/* Update QP structure with the updated values */
 	if (GET_FIELD(params->modify_flags, QED_ROCE_MODIFY_QP_VALID_ROCE_MODE))
+	{
 		qp->roce_mode = params->roce_mode;
+	}
+
 	if (GET_FIELD(params->modify_flags, QED_ROCE_MODIFY_QP_VALID_PKEY))
+	{
 		qp->pkey = params->pkey;
+	}
+
 	if (GET_FIELD(params->modify_flags,
-		      QED_ROCE_MODIFY_QP_VALID_E2E_FLOW_CONTROL_EN))
+				  QED_ROCE_MODIFY_QP_VALID_E2E_FLOW_CONTROL_EN))
+	{
 		qp->e2e_flow_control_en = params->e2e_flow_control_en;
+	}
+
 	if (GET_FIELD(params->modify_flags, QED_ROCE_MODIFY_QP_VALID_DEST_QP))
+	{
 		qp->dest_qp = params->dest_qp;
+	}
+
 	if (GET_FIELD(params->modify_flags,
-		      QED_ROCE_MODIFY_QP_VALID_ADDRESS_VECTOR)) {
+				  QED_ROCE_MODIFY_QP_VALID_ADDRESS_VECTOR))
+	{
 		/* Indicates that the following parameters have changed:
 		 * Traffic class, flow label, hop limit, source GID,
 		 * destination GID, loopback indicator
@@ -2174,45 +2414,75 @@ static int qed_rdma_modify_qp(void *rdma_cxt,
 		qp->mtu = params->mtu;
 		qp->lb_indication = params->lb_indication;
 		memcpy((u8 *)&qp->remote_mac_addr[0],
-		       (u8 *)&params->remote_mac_addr[0], ETH_ALEN);
-		if (params->use_local_mac) {
+			   (u8 *)&params->remote_mac_addr[0], ETH_ALEN);
+
+		if (params->use_local_mac)
+		{
 			memcpy((u8 *)&qp->local_mac_addr[0],
-			       (u8 *)&params->local_mac_addr[0], ETH_ALEN);
-		} else {
+				   (u8 *)&params->local_mac_addr[0], ETH_ALEN);
+		}
+		else
+		{
 			memcpy((u8 *)&qp->local_mac_addr[0],
-			       (u8 *)&p_hwfn->hw_info.hw_mac_addr, ETH_ALEN);
+				   (u8 *)&p_hwfn->hw_info.hw_mac_addr, ETH_ALEN);
 		}
 	}
+
 	if (GET_FIELD(params->modify_flags, QED_ROCE_MODIFY_QP_VALID_RQ_PSN))
+	{
 		qp->rq_psn = params->rq_psn;
+	}
+
 	if (GET_FIELD(params->modify_flags, QED_ROCE_MODIFY_QP_VALID_SQ_PSN))
+	{
 		qp->sq_psn = params->sq_psn;
+	}
+
 	if (GET_FIELD(params->modify_flags,
-		      QED_RDMA_MODIFY_QP_VALID_MAX_RD_ATOMIC_REQ))
+				  QED_RDMA_MODIFY_QP_VALID_MAX_RD_ATOMIC_REQ))
+	{
 		qp->max_rd_atomic_req = params->max_rd_atomic_req;
+	}
+
 	if (GET_FIELD(params->modify_flags,
-		      QED_RDMA_MODIFY_QP_VALID_MAX_RD_ATOMIC_RESP))
+				  QED_RDMA_MODIFY_QP_VALID_MAX_RD_ATOMIC_RESP))
+	{
 		qp->max_rd_atomic_resp = params->max_rd_atomic_resp;
+	}
+
 	if (GET_FIELD(params->modify_flags,
-		      QED_ROCE_MODIFY_QP_VALID_ACK_TIMEOUT))
+				  QED_ROCE_MODIFY_QP_VALID_ACK_TIMEOUT))
+	{
 		qp->ack_timeout = params->ack_timeout;
+	}
+
 	if (GET_FIELD(params->modify_flags, QED_ROCE_MODIFY_QP_VALID_RETRY_CNT))
+	{
 		qp->retry_cnt = params->retry_cnt;
+	}
+
 	if (GET_FIELD(params->modify_flags,
-		      QED_ROCE_MODIFY_QP_VALID_RNR_RETRY_CNT))
+				  QED_ROCE_MODIFY_QP_VALID_RNR_RETRY_CNT))
+	{
 		qp->rnr_retry_cnt = params->rnr_retry_cnt;
+	}
+
 	if (GET_FIELD(params->modify_flags,
-		      QED_ROCE_MODIFY_QP_VALID_MIN_RNR_NAK_TIMER))
+				  QED_ROCE_MODIFY_QP_VALID_MIN_RNR_NAK_TIMER))
+	{
 		qp->min_rnr_nak_timer = params->min_rnr_nak_timer;
+	}
 
 	qp->sqd_async = params->sqd_async;
 
 	prev_state = qp->cur_state;
+
 	if (GET_FIELD(params->modify_flags,
-		      QED_RDMA_MODIFY_QP_VALID_NEW_STATE)) {
+				  QED_RDMA_MODIFY_QP_VALID_NEW_STATE))
+	{
 		qp->cur_state = params->new_state;
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "qp->cur_state=%d\n",
-			   qp->cur_state);
+				   qp->cur_state);
 	}
 
 	rc = qed_roce_modify_qp(p_hwfn, qp, prev_state, params);
@@ -2223,7 +2493,7 @@ static int qed_rdma_modify_qp(void *rdma_cxt,
 
 static int
 qed_rdma_register_tid(void *rdma_cxt,
-		      struct qed_rdma_register_tid_in_params *params)
+					  struct qed_rdma_register_tid_in_params *params)
 {
 	struct qed_hwfn *p_hwfn = (struct qed_hwfn *)rdma_cxt;
 	struct rdma_register_tid_ramrod_data *p_ramrod;
@@ -2241,117 +2511,134 @@ qed_rdma_register_tid(void *rdma_cxt,
 	init_data.comp_mode = QED_SPQ_MODE_EBLOCK;
 
 	rc = qed_sp_init_request(p_hwfn, &p_ent, RDMA_RAMROD_REGISTER_MR,
-				 p_hwfn->p_rdma_info->proto, &init_data);
-	if (rc) {
+							 p_hwfn->p_rdma_info->proto, &init_data);
+
+	if (rc)
+	{
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "rc = %d\n", rc);
 		return rc;
 	}
 
 	if (p_hwfn->p_rdma_info->last_tid < params->itid)
+	{
 		p_hwfn->p_rdma_info->last_tid = params->itid;
+	}
 
 	p_ramrod = &p_ent->ramrod.rdma_register_tid;
 
 	p_ramrod->flags = 0;
 	SET_FIELD(p_ramrod->flags,
-		  RDMA_REGISTER_TID_RAMROD_DATA_TWO_LEVEL_PBL,
-		  params->pbl_two_level);
+			  RDMA_REGISTER_TID_RAMROD_DATA_TWO_LEVEL_PBL,
+			  params->pbl_two_level);
 
 	SET_FIELD(p_ramrod->flags,
-		  RDMA_REGISTER_TID_RAMROD_DATA_ZERO_BASED, params->zbva);
+			  RDMA_REGISTER_TID_RAMROD_DATA_ZERO_BASED, params->zbva);
 
 	SET_FIELD(p_ramrod->flags,
-		  RDMA_REGISTER_TID_RAMROD_DATA_PHY_MR, params->phy_mr);
+			  RDMA_REGISTER_TID_RAMROD_DATA_PHY_MR, params->phy_mr);
 
 	/* Don't initialize D/C field, as it may override other bits. */
 	if (!(params->tid_type == QED_RDMA_TID_FMR) && !(params->dma_mr))
 		SET_FIELD(p_ramrod->flags,
-			  RDMA_REGISTER_TID_RAMROD_DATA_PAGE_SIZE_LOG,
-			  params->page_size_log - 12);
+				  RDMA_REGISTER_TID_RAMROD_DATA_PAGE_SIZE_LOG,
+				  params->page_size_log - 12);
 
 	SET_FIELD(p_ramrod->flags,
-		  RDMA_REGISTER_TID_RAMROD_DATA_MAX_ID,
-		  p_hwfn->p_rdma_info->last_tid);
+			  RDMA_REGISTER_TID_RAMROD_DATA_MAX_ID,
+			  p_hwfn->p_rdma_info->last_tid);
 
 	SET_FIELD(p_ramrod->flags,
-		  RDMA_REGISTER_TID_RAMROD_DATA_REMOTE_READ,
-		  params->remote_read);
+			  RDMA_REGISTER_TID_RAMROD_DATA_REMOTE_READ,
+			  params->remote_read);
 
 	SET_FIELD(p_ramrod->flags,
-		  RDMA_REGISTER_TID_RAMROD_DATA_REMOTE_WRITE,
-		  params->remote_write);
+			  RDMA_REGISTER_TID_RAMROD_DATA_REMOTE_WRITE,
+			  params->remote_write);
 
 	SET_FIELD(p_ramrod->flags,
-		  RDMA_REGISTER_TID_RAMROD_DATA_REMOTE_ATOMIC,
-		  params->remote_atomic);
+			  RDMA_REGISTER_TID_RAMROD_DATA_REMOTE_ATOMIC,
+			  params->remote_atomic);
 
 	SET_FIELD(p_ramrod->flags,
-		  RDMA_REGISTER_TID_RAMROD_DATA_LOCAL_WRITE,
-		  params->local_write);
+			  RDMA_REGISTER_TID_RAMROD_DATA_LOCAL_WRITE,
+			  params->local_write);
 
 	SET_FIELD(p_ramrod->flags,
-		  RDMA_REGISTER_TID_RAMROD_DATA_LOCAL_READ, params->local_read);
+			  RDMA_REGISTER_TID_RAMROD_DATA_LOCAL_READ, params->local_read);
 
 	SET_FIELD(p_ramrod->flags,
-		  RDMA_REGISTER_TID_RAMROD_DATA_ENABLE_MW_BIND,
-		  params->mw_bind);
+			  RDMA_REGISTER_TID_RAMROD_DATA_ENABLE_MW_BIND,
+			  params->mw_bind);
 
 	SET_FIELD(p_ramrod->flags1,
-		  RDMA_REGISTER_TID_RAMROD_DATA_PBL_PAGE_SIZE_LOG,
-		  params->pbl_page_size_log - 12);
+			  RDMA_REGISTER_TID_RAMROD_DATA_PBL_PAGE_SIZE_LOG,
+			  params->pbl_page_size_log - 12);
 
 	SET_FIELD(p_ramrod->flags2,
-		  RDMA_REGISTER_TID_RAMROD_DATA_DMA_MR, params->dma_mr);
+			  RDMA_REGISTER_TID_RAMROD_DATA_DMA_MR, params->dma_mr);
 
-	switch (params->tid_type) {
-	case QED_RDMA_TID_REGISTERED_MR:
-		tid_type = RDMA_TID_REGISTERED_MR;
-		break;
-	case QED_RDMA_TID_FMR:
-		tid_type = RDMA_TID_FMR;
-		break;
-	case QED_RDMA_TID_MW_TYPE1:
-		tid_type = RDMA_TID_MW_TYPE1;
-		break;
-	case QED_RDMA_TID_MW_TYPE2A:
-		tid_type = RDMA_TID_MW_TYPE2A;
-		break;
-	default:
-		rc = -EINVAL;
-		DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "rc = %d\n", rc);
-		return rc;
+	switch (params->tid_type)
+	{
+		case QED_RDMA_TID_REGISTERED_MR:
+			tid_type = RDMA_TID_REGISTERED_MR;
+			break;
+
+		case QED_RDMA_TID_FMR:
+			tid_type = RDMA_TID_FMR;
+			break;
+
+		case QED_RDMA_TID_MW_TYPE1:
+			tid_type = RDMA_TID_MW_TYPE1;
+			break;
+
+		case QED_RDMA_TID_MW_TYPE2A:
+			tid_type = RDMA_TID_MW_TYPE2A;
+			break;
+
+		default:
+			rc = -EINVAL;
+			DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "rc = %d\n", rc);
+			return rc;
 	}
+
 	SET_FIELD(p_ramrod->flags1,
-		  RDMA_REGISTER_TID_RAMROD_DATA_TID_TYPE, tid_type);
+			  RDMA_REGISTER_TID_RAMROD_DATA_TID_TYPE, tid_type);
 
 	p_ramrod->itid = cpu_to_le32(params->itid);
 	p_ramrod->key = params->key;
 	p_ramrod->pd = cpu_to_le16(params->pd);
 	p_ramrod->length_hi = (u8)(params->length >> 32);
 	p_ramrod->length_lo = DMA_LO_LE(params->length);
-	if (params->zbva) {
+
+	if (params->zbva)
+	{
 		/* Lower 32 bits of the registered MR address.
 		 * In case of zero based MR, will hold FBO
 		 */
 		p_ramrod->va.hi = 0;
 		p_ramrod->va.lo = cpu_to_le32(params->fbo);
-	} else {
+	}
+	else
+	{
 		DMA_REGPAIR_LE(p_ramrod->va, params->vaddr);
 	}
+
 	DMA_REGPAIR_LE(p_ramrod->pbl_base, params->pbl_ptr);
 
 	/* DIF */
-	if (params->dif_enabled) {
+	if (params->dif_enabled)
+	{
 		SET_FIELD(p_ramrod->flags2,
-			  RDMA_REGISTER_TID_RAMROD_DATA_DIF_ON_HOST_FLG, 1);
+				  RDMA_REGISTER_TID_RAMROD_DATA_DIF_ON_HOST_FLG, 1);
 		DMA_REGPAIR_LE(p_ramrod->dif_error_addr,
-			       params->dif_error_addr);
+					   params->dif_error_addr);
 		DMA_REGPAIR_LE(p_ramrod->dif_runt_addr, params->dif_runt_addr);
 	}
 
 	rc = qed_spq_post(p_hwfn, p_ent, &fw_return_code);
 
-	if (fw_return_code != RDMA_RETURN_OK) {
+	if (fw_return_code != RDMA_RETURN_OK)
+	{
 		DP_NOTICE(p_hwfn, "fw_return_code = %d\n", fw_return_code);
 		return -EINVAL;
 	}
@@ -2378,8 +2665,10 @@ static int qed_rdma_deregister_tid(void *rdma_cxt, u32 itid)
 	init_data.comp_mode = QED_SPQ_MODE_EBLOCK;
 
 	rc = qed_sp_init_request(p_hwfn, &p_ent, RDMA_RAMROD_DEREGISTER_MR,
-				 p_hwfn->p_rdma_info->proto, &init_data);
-	if (rc) {
+							 p_hwfn->p_rdma_info->proto, &init_data);
+
+	if (rc)
+	{
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "rc = %d\n", rc);
 		return rc;
 	}
@@ -2388,31 +2677,40 @@ static int qed_rdma_deregister_tid(void *rdma_cxt, u32 itid)
 	p_ramrod->itid = cpu_to_le32(itid);
 
 	rc = qed_spq_post(p_hwfn, p_ent, &fw_return_code);
-	if (rc) {
+
+	if (rc)
+	{
 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA, "rc = %d\n", rc);
 		return rc;
 	}
 
-	if (fw_return_code == RDMA_RETURN_DEREGISTER_MR_BAD_STATE_ERR) {
+	if (fw_return_code == RDMA_RETURN_DEREGISTER_MR_BAD_STATE_ERR)
+	{
 		DP_NOTICE(p_hwfn, "fw_return_code = %d\n", fw_return_code);
 		return -EINVAL;
-	} else if (fw_return_code == RDMA_RETURN_NIG_DRAIN_REQ) {
+	}
+	else if (fw_return_code == RDMA_RETURN_NIG_DRAIN_REQ)
+	{
 		/* Bit indicating that the TID is in use and a nig drain is
 		 * required before sending the ramrod again
 		 */
 		p_ptt = qed_ptt_acquire(p_hwfn);
-		if (!p_ptt) {
+
+		if (!p_ptt)
+		{
 			rc = -EBUSY;
 			DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-				   "Failed to acquire PTT\n");
+					   "Failed to acquire PTT\n");
 			return rc;
 		}
 
 		rc = qed_mcp_drain(p_hwfn, p_ptt);
-		if (rc) {
+
+		if (rc)
+		{
 			qed_ptt_release(p_hwfn, p_ptt);
 			DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-				   "Drain failed\n");
+					   "Drain failed\n");
 			return rc;
 		}
 
@@ -2420,25 +2718,30 @@ static int qed_rdma_deregister_tid(void *rdma_cxt, u32 itid)
 
 		/* Resend the ramrod */
 		rc = qed_sp_init_request(p_hwfn, &p_ent,
-					 RDMA_RAMROD_DEREGISTER_MR,
-					 p_hwfn->p_rdma_info->proto,
-					 &init_data);
-		if (rc) {
+								 RDMA_RAMROD_DEREGISTER_MR,
+								 p_hwfn->p_rdma_info->proto,
+								 &init_data);
+
+		if (rc)
+		{
 			DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-				   "Failed to init sp-element\n");
+					   "Failed to init sp-element\n");
 			return rc;
 		}
 
 		rc = qed_spq_post(p_hwfn, p_ent, &fw_return_code);
-		if (rc) {
+
+		if (rc)
+		{
 			DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-				   "Ramrod failed\n");
+					   "Ramrod failed\n");
 			return rc;
 		}
 
-		if (fw_return_code != RDMA_RETURN_OK) {
+		if (fw_return_code != RDMA_RETURN_OK)
+		{
 			DP_NOTICE(p_hwfn, "fw_return_code = %d\n",
-				  fw_return_code);
+					  fw_return_code);
 			return rc;
 		}
 	}
@@ -2460,8 +2763,8 @@ static void qed_rdma_dpm_conf(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt)
 
 	qed_wr(p_hwfn, p_ptt, DORQ_REG_PF_DPM_ENABLE, val);
 	DP_VERBOSE(p_hwfn, (QED_MSG_DCB | QED_MSG_RDMA),
-		   "Changing DPM_EN state to %d (DCBX=%d, DB_BAR=%d)\n",
-		   val, p_hwfn->dcbx_no_edpm, p_hwfn->db_bar_no_edpm);
+			   "Changing DPM_EN state to %d (DCBX=%d, DB_BAR=%d)\n",
+			   val, p_hwfn->dcbx_no_edpm, p_hwfn->db_bar_no_edpm);
 }
 
 void qed_rdma_dpm_bar(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt)
@@ -2472,26 +2775,35 @@ void qed_rdma_dpm_bar(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt)
 }
 
 static int qed_rdma_start(void *rdma_cxt,
-			  struct qed_rdma_start_in_params *params)
+						  struct qed_rdma_start_in_params *params)
 {
 	struct qed_hwfn *p_hwfn = (struct qed_hwfn *)rdma_cxt;
 	struct qed_ptt *p_ptt;
 	int rc = -EBUSY;
 
 	DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
-		   "desired_cnq = %08x\n", params->desired_cnq);
+			   "desired_cnq = %08x\n", params->desired_cnq);
 
 	p_ptt = qed_ptt_acquire(p_hwfn);
+
 	if (!p_ptt)
+	{
 		goto err;
+	}
 
 	rc = qed_rdma_alloc(p_hwfn, p_ptt, params);
+
 	if (rc)
+	{
 		goto err1;
+	}
 
 	rc = qed_rdma_setup(p_hwfn, p_ptt, params);
+
 	if (rc)
+	{
 		goto err2;
+	}
 
 	qed_ptt_release(p_hwfn, p_ptt);
 
@@ -2507,7 +2819,7 @@ err:
 }
 
 static int qed_rdma_init(struct qed_dev *cdev,
-			 struct qed_rdma_start_in_params *params)
+						 struct qed_rdma_start_in_params *params)
 {
 	return qed_rdma_start(QED_LEADING_HWFN(cdev), params);
 }
@@ -2524,10 +2836,10 @@ static void qed_rdma_remove_user(void *rdma_cxt, u16 dpi)
 }
 
 void qed_ll2b_complete_tx_gsi_packet(struct qed_hwfn *p_hwfn,
-				     u8 connection_handle,
-				     void *cookie,
-				     dma_addr_t first_frag_addr,
-				     bool b_last_fragment, bool b_last_packet)
+									 u8 connection_handle,
+									 void *cookie,
+									 dma_addr_t first_frag_addr,
+									 bool b_last_fragment, bool b_last_packet)
 {
 	struct qed_roce_ll2_packet *packet = cookie;
 	struct qed_roce_ll2_info *roce_ll2 = p_hwfn->ll2;
@@ -2536,26 +2848,26 @@ void qed_ll2b_complete_tx_gsi_packet(struct qed_hwfn *p_hwfn,
 }
 
 void qed_ll2b_release_tx_gsi_packet(struct qed_hwfn *p_hwfn,
-				    u8 connection_handle,
-				    void *cookie,
-				    dma_addr_t first_frag_addr,
-				    bool b_last_fragment, bool b_last_packet)
+									u8 connection_handle,
+									void *cookie,
+									dma_addr_t first_frag_addr,
+									bool b_last_fragment, bool b_last_packet)
 {
 	qed_ll2b_complete_tx_gsi_packet(p_hwfn, connection_handle,
-					cookie, first_frag_addr,
-					b_last_fragment, b_last_packet);
+									cookie, first_frag_addr,
+									b_last_fragment, b_last_packet);
 }
 
 void qed_ll2b_complete_rx_gsi_packet(struct qed_hwfn *p_hwfn,
-				     u8 connection_handle,
-				     void *cookie,
-				     dma_addr_t rx_buf_addr,
-				     u16 data_length,
-				     u8 data_length_error,
-				     u16 parse_flags,
-				     u16 vlan,
-				     u32 src_mac_addr_hi,
-				     u16 src_mac_addr_lo, bool b_last_packet)
+									 u8 connection_handle,
+									 void *cookie,
+									 dma_addr_t rx_buf_addr,
+									 u16 data_length,
+									 u8 data_length_error,
+									 u16 parse_flags,
+									 u16 vlan,
+									 u32 src_mac_addr_hi,
+									 u16 src_mac_addr_lo, bool b_last_packet)
 {
 	struct qed_roce_ll2_info *roce_ll2 = p_hwfn->ll2;
 	struct qed_roce_ll2_rx_params params;
@@ -2563,10 +2875,10 @@ void qed_ll2b_complete_rx_gsi_packet(struct qed_hwfn *p_hwfn,
 	struct qed_roce_ll2_packet pkt;
 
 	DP_VERBOSE(cdev,
-		   QED_MSG_LL2,
-		   "roce ll2 rx complete: bus_addr=%p, len=%d, data_len_err=%d\n",
-		   (void *)(uintptr_t)rx_buf_addr,
-		   data_length, data_length_error);
+			   QED_MSG_LL2,
+			   "roce ll2 rx complete: bus_addr=%p, len=%d, data_len_err=%d\n",
+			   (void *)(uintptr_t)rx_buf_addr,
+			   data_length, data_length_error);
 
 	memset(&pkt, 0, sizeof(pkt));
 	pkt.n_seg = 1;
@@ -2578,10 +2890,11 @@ void qed_ll2b_complete_rx_gsi_packet(struct qed_hwfn *p_hwfn,
 	*((u32 *)&params.smac[0]) = ntohl(src_mac_addr_hi);
 	*((u16 *)&params.smac[4]) = ntohs(src_mac_addr_lo);
 
-	if (data_length_error) {
+	if (data_length_error)
+	{
 		DP_ERR(cdev,
-		       "roce ll2 rx complete: data length error %d, length=%d\n",
-		       data_length_error, data_length);
+			   "roce ll2 rx complete: data length error %d, length=%d\n",
+			   data_length_error, data_length);
 		params.rc = -EINVAL;
 	}
 
@@ -2589,75 +2902,89 @@ void qed_ll2b_complete_rx_gsi_packet(struct qed_hwfn *p_hwfn,
 }
 
 static int qed_roce_ll2_set_mac_filter(struct qed_dev *cdev,
-				       u8 *old_mac_address,
-				       u8 *new_mac_address)
+									   u8 *old_mac_address,
+									   u8 *new_mac_address)
 {
 	struct qed_hwfn *hwfn = QED_LEADING_HWFN(cdev);
 	struct qed_ptt *p_ptt;
 	int rc = 0;
 
-	if (!hwfn->ll2 || hwfn->ll2->handle == QED_LL2_UNUSED_HANDLE) {
+	if (!hwfn->ll2 || hwfn->ll2->handle == QED_LL2_UNUSED_HANDLE)
+	{
 		DP_ERR(cdev,
-		       "qed roce mac filter failed - roce_info/ll2 NULL\n");
+			   "qed roce mac filter failed - roce_info/ll2 NULL\n");
 		return -EINVAL;
 	}
 
 	p_ptt = qed_ptt_acquire(QED_LEADING_HWFN(cdev));
-	if (!p_ptt) {
+
+	if (!p_ptt)
+	{
 		DP_ERR(cdev,
-		       "qed roce ll2 mac filter set: failed to acquire PTT\n");
+			   "qed roce ll2 mac filter set: failed to acquire PTT\n");
 		return -EINVAL;
 	}
 
 	mutex_lock(&hwfn->ll2->lock);
+
 	if (old_mac_address)
 		qed_llh_remove_mac_filter(QED_LEADING_HWFN(cdev), p_ptt,
-					  old_mac_address);
+								  old_mac_address);
+
 	if (new_mac_address)
 		rc = qed_llh_add_mac_filter(QED_LEADING_HWFN(cdev), p_ptt,
-					    new_mac_address);
+									new_mac_address);
+
 	mutex_unlock(&hwfn->ll2->lock);
 
 	qed_ptt_release(QED_LEADING_HWFN(cdev), p_ptt);
 
 	if (rc)
 		DP_ERR(cdev,
-		       "qed roce ll2 mac filter set: failed to add mac filter\n");
+			   "qed roce ll2 mac filter set: failed to add mac filter\n");
 
 	return rc;
 }
 
 static int qed_roce_ll2_start(struct qed_dev *cdev,
-			      struct qed_roce_ll2_params *params)
+							  struct qed_roce_ll2_params *params)
 {
 	struct qed_hwfn *hwfn = QED_LEADING_HWFN(cdev);
 	struct qed_roce_ll2_info *roce_ll2;
 	struct qed_ll2_info ll2_params;
 	int rc;
 
-	if (!params) {
+	if (!params)
+	{
 		DP_ERR(cdev, "qed roce ll2 start: failed due to NULL params\n");
 		return -EINVAL;
 	}
-	if (!params->cbs.tx_cb || !params->cbs.rx_cb) {
+
+	if (!params->cbs.tx_cb || !params->cbs.rx_cb)
+	{
 		DP_ERR(cdev,
-		       "qed roce ll2 start: failed due to NULL tx/rx. tx_cb=%p, rx_cb=%p\n",
-		       params->cbs.tx_cb, params->cbs.rx_cb);
+			   "qed roce ll2 start: failed due to NULL tx/rx. tx_cb=%p, rx_cb=%p\n",
+			   params->cbs.tx_cb, params->cbs.rx_cb);
 		return -EINVAL;
 	}
-	if (!is_valid_ether_addr(params->mac_address)) {
+
+	if (!is_valid_ether_addr(params->mac_address))
+	{
 		DP_ERR(cdev,
-		       "qed roce ll2 start: failed due to invalid Ethernet address %pM\n",
-		       params->mac_address);
+			   "qed roce ll2 start: failed due to invalid Ethernet address %pM\n",
+			   params->mac_address);
 		return -EINVAL;
 	}
 
 	/* Initialize */
 	roce_ll2 = kzalloc(sizeof(*roce_ll2), GFP_ATOMIC);
-	if (!roce_ll2) {
+
+	if (!roce_ll2)
+	{
 		DP_ERR(cdev, "qed roce ll2 start: failed memory allocation\n");
 		return -ENOMEM;
 	}
+
 	memset(roce_ll2, 0, sizeof(*roce_ll2));
 	roce_ll2->handle = QED_LL2_UNUSED_HANDLE;
 	roce_ll2->cbs = params->cbs;
@@ -2675,32 +3002,39 @@ static int qed_roce_ll2_start(struct qed_dev *cdev,
 	ll2_params.gsi_enable = true;
 
 	rc = qed_ll2_acquire_connection(QED_LEADING_HWFN(cdev), &ll2_params,
-					params->max_rx_buffers,
-					params->max_tx_buffers,
-					&roce_ll2->handle);
-	if (rc) {
+									params->max_rx_buffers,
+									params->max_tx_buffers,
+									&roce_ll2->handle);
+
+	if (rc)
+	{
 		DP_ERR(cdev,
-		       "qed roce ll2 start: failed to acquire LL2 connection (rc=%d)\n",
-		       rc);
+			   "qed roce ll2 start: failed to acquire LL2 connection (rc=%d)\n",
+			   rc);
 		goto err;
 	}
 
 	rc = qed_ll2_establish_connection(QED_LEADING_HWFN(cdev),
-					  roce_ll2->handle);
-	if (rc) {
+									  roce_ll2->handle);
+
+	if (rc)
+	{
 		DP_ERR(cdev,
-		       "qed roce ll2 start: failed to establish LL2 connection (rc=%d)\n",
-		       rc);
+			   "qed roce ll2 start: failed to establish LL2 connection (rc=%d)\n",
+			   rc);
 		goto err1;
 	}
 
 	hwfn->ll2 = roce_ll2;
 
 	rc = qed_roce_ll2_set_mac_filter(cdev, NULL, params->mac_address);
-	if (rc) {
+
+	if (rc)
+	{
 		hwfn->ll2 = NULL;
 		goto err2;
 	}
+
 	ether_addr_copy(roce_ll2->mac_address, params->mac_address);
 
 	return 0;
@@ -2720,7 +3054,8 @@ static int qed_roce_ll2_stop(struct qed_dev *cdev)
 	struct qed_roce_ll2_info *roce_ll2 = hwfn->ll2;
 	int rc;
 
-	if (roce_ll2->handle == QED_LL2_UNUSED_HANDLE) {
+	if (roce_ll2->handle == QED_LL2_UNUSED_HANDLE)
+	{
 		DP_ERR(cdev, "qed roce ll2 stop: cannot stop an unused LL2\n");
 		return -EINVAL;
 	}
@@ -2730,11 +3065,12 @@ static int qed_roce_ll2_stop(struct qed_dev *cdev)
 	eth_zero_addr(roce_ll2->mac_address);
 
 	rc = qed_ll2_terminate_connection(QED_LEADING_HWFN(cdev),
-					  roce_ll2->handle);
+									  roce_ll2->handle);
+
 	if (rc)
 		DP_ERR(cdev,
-		       "qed roce ll2 stop: failed to terminate LL2 connection (rc=%d)\n",
-		       rc);
+			   "qed roce ll2 stop: failed to terminate LL2 connection (rc=%d)\n",
+			   rc);
 
 	qed_ll2_release_connection(QED_LEADING_HWFN(cdev), roce_ll2->handle);
 
@@ -2746,8 +3082,8 @@ static int qed_roce_ll2_stop(struct qed_dev *cdev)
 }
 
 static int qed_roce_ll2_tx(struct qed_dev *cdev,
-			   struct qed_roce_ll2_packet *pkt,
-			   struct qed_roce_ll2_tx_params *params)
+						   struct qed_roce_ll2_packet *pkt,
+						   struct qed_roce_ll2_tx_params *params)
 {
 	struct qed_hwfn *hwfn = QED_LEADING_HWFN(cdev);
 	struct qed_roce_ll2_info *roce_ll2 = hwfn->ll2;
@@ -2756,42 +3092,50 @@ static int qed_roce_ll2_tx(struct qed_dev *cdev,
 	int rc;
 	int i;
 
-	if (!pkt || !params) {
+	if (!pkt || !params)
+	{
 		DP_ERR(cdev,
-		       "roce ll2 tx: failed tx because one of the following is NULL - drv=%p, pkt=%p, params=%p\n",
-		       cdev, pkt, params);
+			   "roce ll2 tx: failed tx because one of the following is NULL - drv=%p, pkt=%p, params=%p\n",
+			   cdev, pkt, params);
 		return -EINVAL;
 	}
 
 	qed_roce_flavor = (pkt->roce_mode == ROCE_V1) ? QED_LL2_ROCE
-						      : QED_LL2_RROCE;
+					  : QED_LL2_RROCE;
 
 	if (pkt->roce_mode == ROCE_V2_IPV4)
+	{
 		flags |= BIT(CORE_TX_BD_FLAGS_IP_CSUM_SHIFT);
+	}
 
 	/* Tx header */
 	rc = qed_ll2_prepare_tx_packet(QED_LEADING_HWFN(cdev), roce_ll2->handle,
-				       1 + pkt->n_seg, 0, flags, 0,
-				       qed_roce_flavor, pkt->header.baddr,
-				       pkt->header.len, pkt, 1);
-	if (rc) {
+								   1 + pkt->n_seg, 0, flags, 0,
+								   qed_roce_flavor, pkt->header.baddr,
+								   pkt->header.len, pkt, 1);
+
+	if (rc)
+	{
 		DP_ERR(cdev, "roce ll2 tx: header failed (rc=%d)\n", rc);
 		return QED_ROCE_TX_HEAD_FAILURE;
 	}
 
 	/* Tx payload */
-	for (i = 0; i < pkt->n_seg; i++) {
+	for (i = 0; i < pkt->n_seg; i++)
+	{
 		rc = qed_ll2_set_fragment_of_tx_packet(QED_LEADING_HWFN(cdev),
-						       roce_ll2->handle,
-						       pkt->payload[i].baddr,
-						       pkt->payload[i].len);
-		if (rc) {
+											   roce_ll2->handle,
+											   pkt->payload[i].baddr,
+											   pkt->payload[i].len);
+
+		if (rc)
+		{
 			/* If failed not much to do here, partial packet has
 			 * been posted * we can't free memory, will need to wait
 			 * for completion
 			 */
 			DP_ERR(cdev,
-			       "roce ll2 tx: payload failed (rc=%d)\n", rc);
+				   "roce ll2 tx: payload failed (rc=%d)\n", rc);
 			return QED_ROCE_TX_FRAG_FAILURE;
 		}
 	}
@@ -2800,13 +3144,13 @@ static int qed_roce_ll2_tx(struct qed_dev *cdev,
 }
 
 static int qed_roce_ll2_post_rx_buffer(struct qed_dev *cdev,
-				       struct qed_roce_ll2_buffer *buf,
-				       u64 cookie, u8 notify_fw)
+									   struct qed_roce_ll2_buffer *buf,
+									   u64 cookie, u8 notify_fw)
 {
 	return qed_ll2_post_rx_buffer(QED_LEADING_HWFN(cdev),
-				      QED_LEADING_HWFN(cdev)->ll2->handle,
-				      buf->baddr, buf->len,
-				      (void *)(uintptr_t)cookie, notify_fw);
+								  QED_LEADING_HWFN(cdev)->ll2->handle,
+								  buf->baddr, buf->len,
+								  (void *)(uintptr_t)cookie, notify_fw);
 }
 
 static int qed_roce_ll2_stats(struct qed_dev *cdev, struct qed_ll2_stats *stats)
@@ -2815,10 +3159,11 @@ static int qed_roce_ll2_stats(struct qed_dev *cdev, struct qed_ll2_stats *stats)
 	struct qed_roce_ll2_info *roce_ll2 = hwfn->ll2;
 
 	return qed_ll2_get_stats(QED_LEADING_HWFN(cdev),
-				 roce_ll2->handle, stats);
+							 roce_ll2->handle, stats);
 }
 
-static const struct qed_rdma_ops qed_rdma_ops_pass = {
+static const struct qed_rdma_ops qed_rdma_ops_pass =
+{
 	.common = &qed_common_ops_pass,
 	.fill_dev_info = &qed_fill_rdma_dev_info,
 	.rdma_get_rdma_ctx = &qed_rdma_get_rdma_ctx,

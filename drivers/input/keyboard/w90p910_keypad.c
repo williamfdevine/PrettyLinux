@@ -45,7 +45,8 @@
 #define W90P910_NUM_COLS	8
 #define W90P910_ROW_SHIFT	3
 
-struct w90p910_keypad {
+struct w90p910_keypad
+{
 	const struct w90p910_keypad_platform_data *pdata;
 	struct clk *clk;
 	struct input_dev *input_dev;
@@ -55,7 +56,7 @@ struct w90p910_keypad {
 };
 
 static void w90p910_keypad_scan_matrix(struct w90p910_keypad *keypad,
-							unsigned int status)
+									   unsigned int status)
 {
 	struct input_dev *input_dev = keypad->input_dev;
 	unsigned int row = KGET_RAW(status);
@@ -82,7 +83,9 @@ static irqreturn_t w90p910_keypad_irq_handler(int irq, void *dev_id)
 	val = INTTR | IS1KEY;
 
 	if (kstatus & val)
+	{
 		w90p910_keypad_scan_matrix(keypad, kstatus);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -120,7 +123,7 @@ static void w90p910_keypad_close(struct input_dev *dev)
 static int w90p910_keypad_probe(struct platform_device *pdev)
 {
 	const struct w90p910_keypad_platform_data *pdata =
-						dev_get_platdata(&pdev->dev);
+		dev_get_platdata(&pdev->dev);
 	const struct matrix_keymap_data *keymap_data;
 	struct w90p910_keypad *keypad;
 	struct input_dev *input_dev;
@@ -128,7 +131,8 @@ static int w90p910_keypad_probe(struct platform_device *pdev)
 	int irq;
 	int error;
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "no platform data defined\n");
 		return -EINVAL;
 	}
@@ -136,14 +140,18 @@ static int w90p910_keypad_probe(struct platform_device *pdev)
 	keymap_data = pdata->keymap_data;
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "failed to get keypad irq\n");
 		return -ENXIO;
 	}
 
 	keypad = kzalloc(sizeof(struct w90p910_keypad), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!keypad || !input_dev) {
+
+	if (!keypad || !input_dev)
+	{
 		dev_err(&pdev->dev, "failed to allocate driver data\n");
 		error = -ENOMEM;
 		goto failed_free;
@@ -154,28 +162,36 @@ static int w90p910_keypad_probe(struct platform_device *pdev)
 	keypad->irq = irq;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(&pdev->dev, "failed to get I/O memory\n");
 		error = -ENXIO;
 		goto failed_free;
 	}
 
 	res = request_mem_region(res->start, resource_size(res), pdev->name);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(&pdev->dev, "failed to request I/O memory\n");
 		error = -EBUSY;
 		goto failed_free;
 	}
 
 	keypad->mmio_base = ioremap(res->start, resource_size(res));
-	if (keypad->mmio_base == NULL) {
+
+	if (keypad->mmio_base == NULL)
+	{
 		dev_err(&pdev->dev, "failed to remap I/O memory\n");
 		error = -ENXIO;
 		goto failed_free_res;
 	}
 
 	keypad->clk = clk_get(&pdev->dev, NULL);
-	if (IS_ERR(keypad->clk)) {
+
+	if (IS_ERR(keypad->clk))
+	{
 		dev_err(&pdev->dev, "failed to get keypad clock\n");
 		error = PTR_ERR(keypad->clk);
 		goto failed_free_io;
@@ -191,16 +207,20 @@ static int w90p910_keypad_probe(struct platform_device *pdev)
 	input_dev->dev.parent = &pdev->dev;
 
 	error = matrix_keypad_build_keymap(keymap_data, NULL,
-					   W90P910_NUM_ROWS, W90P910_NUM_COLS,
-					   keypad->keymap, input_dev);
-	if (error) {
+									   W90P910_NUM_ROWS, W90P910_NUM_COLS,
+									   keypad->keymap, input_dev);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to build keymap\n");
 		goto failed_put_clk;
 	}
 
 	error = request_irq(keypad->irq, w90p910_keypad_irq_handler,
-			    0, pdev->name, keypad);
-	if (error) {
+						0, pdev->name, keypad);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to request IRQ\n");
 		goto failed_put_clk;
 	}
@@ -211,7 +231,9 @@ static int w90p910_keypad_probe(struct platform_device *pdev)
 
 	/* Register the input device */
 	error = input_register_device(input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to register input device\n");
 		goto failed_free_irq;
 	}
@@ -253,7 +275,8 @@ static int w90p910_keypad_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver w90p910_keypad_driver = {
+static struct platform_driver w90p910_keypad_driver =
+{
 	.probe		= w90p910_keypad_probe,
 	.remove		= w90p910_keypad_remove,
 	.driver		= {

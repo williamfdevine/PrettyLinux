@@ -58,20 +58,26 @@ static int v1_read_dqblk(struct dquot *dquot)
 	struct v1_disk_dqblk dqblk;
 
 	if (!sb_dqopt(dquot->dq_sb)->files[type])
+	{
 		return -EINVAL;
+	}
 
 	/* Set structure to 0s in case read fails/is after end of file */
 	memset(&dqblk, 0, sizeof(struct v1_disk_dqblk));
 	dquot->dq_sb->s_op->quota_read(dquot->dq_sb, type, (char *)&dqblk,
-			sizeof(struct v1_disk_dqblk),
-			v1_dqoff(from_kqid(&init_user_ns, dquot->dq_id)));
+								   sizeof(struct v1_disk_dqblk),
+								   v1_dqoff(from_kqid(&init_user_ns, dquot->dq_id)));
 
 	v1_disk2mem_dqblk(&dquot->dq_dqb, &dqblk);
+
 	if (dquot->dq_dqb.dqb_bhardlimit == 0 &&
-	    dquot->dq_dqb.dqb_bsoftlimit == 0 &&
-	    dquot->dq_dqb.dqb_ihardlimit == 0 &&
-	    dquot->dq_dqb.dqb_isoftlimit == 0)
+		dquot->dq_dqb.dqb_bsoftlimit == 0 &&
+		dquot->dq_dqb.dqb_ihardlimit == 0 &&
+		dquot->dq_dqb.dqb_isoftlimit == 0)
+	{
 		set_bit(DQ_FAKE_B, &dquot->dq_flags);
+	}
+
 	dqstats_inc(DQST_READS);
 
 	return 0;
@@ -84,24 +90,35 @@ static int v1_commit_dqblk(struct dquot *dquot)
 	struct v1_disk_dqblk dqblk;
 
 	v1_mem2disk_dqblk(&dqblk, &dquot->dq_dqb);
+
 	if (((type == USRQUOTA) && uid_eq(dquot->dq_id.uid, GLOBAL_ROOT_UID)) ||
-	    ((type == GRPQUOTA) && gid_eq(dquot->dq_id.gid, GLOBAL_ROOT_GID))) {
+		((type == GRPQUOTA) && gid_eq(dquot->dq_id.gid, GLOBAL_ROOT_GID)))
+	{
 		dqblk.dqb_btime =
 			sb_dqopt(dquot->dq_sb)->info[type].dqi_bgrace;
 		dqblk.dqb_itime =
 			sb_dqopt(dquot->dq_sb)->info[type].dqi_igrace;
 	}
+
 	ret = 0;
+
 	if (sb_dqopt(dquot->dq_sb)->files[type])
 		ret = dquot->dq_sb->s_op->quota_write(dquot->dq_sb, type,
-			(char *)&dqblk, sizeof(struct v1_disk_dqblk),
-			v1_dqoff(from_kqid(&init_user_ns, dquot->dq_id)));
-	if (ret != sizeof(struct v1_disk_dqblk)) {
+											  (char *)&dqblk, sizeof(struct v1_disk_dqblk),
+											  v1_dqoff(from_kqid(&init_user_ns, dquot->dq_id)));
+
+	if (ret != sizeof(struct v1_disk_dqblk))
+	{
 		quota_error(dquot->dq_sb, "dquota write failed");
+
 		if (ret >= 0)
+		{
 			ret = -EIO;
+		}
+
 		goto out;
 	}
+
 	ret = 0;
 
 out:
@@ -112,12 +129,13 @@ out:
 
 /* Magics of new quota format */
 #define V2_INITQMAGICS {\
-	0xd9c01f11,     /* USRQUOTA */\
-	0xd9c01927      /* GRPQUOTA */\
-}
+		0xd9c01f11,     /* USRQUOTA */\
+		0xd9c01927      /* GRPQUOTA */\
+	}
 
 /* Header of new quota format */
-struct v2_disk_dqheader {
+struct v2_disk_dqheader
+{
 	__le32 dqh_magic;        /* Magic number identifying file */
 	__le32 dqh_version;      /* File version */
 };
@@ -126,32 +144,47 @@ static int v1_check_quota_file(struct super_block *sb, int type)
 {
 	struct inode *inode = sb_dqopt(sb)->files[type];
 	ulong blocks;
-	size_t off; 
+	size_t off;
 	struct v2_disk_dqheader dqhead;
 	ssize_t size;
 	loff_t isize;
 	static const uint quota_magics[] = V2_INITQMAGICS;
 
 	isize = i_size_read(inode);
+
 	if (!isize)
+	{
 		return 0;
+	}
+
 	blocks = isize >> BLOCK_SIZE_BITS;
 	off = isize & (BLOCK_SIZE - 1);
+
 	if ((blocks % sizeof(struct v1_disk_dqblk) * BLOCK_SIZE + off) %
-	    sizeof(struct v1_disk_dqblk))
+		sizeof(struct v1_disk_dqblk))
+	{
 		return 0;
+	}
+
 	/* Doublecheck whether we didn't get file with new format - with old
 	 * quotactl() this could happen */
 	size = sb->s_op->quota_read(sb, type, (char *)&dqhead,
-				    sizeof(struct v2_disk_dqheader), 0);
+								sizeof(struct v2_disk_dqheader), 0);
+
 	if (size != sizeof(struct v2_disk_dqheader))
-		return 1;	/* Probably not new format */
+	{
+		return 1;    /* Probably not new format */
+	}
+
 	if (le32_to_cpu(dqhead.dqh_magic) != quota_magics[type])
-		return 1;	/* Definitely not new format */
+	{
+		return 1;    /* Definitely not new format */
+	}
+
 	printk(KERN_INFO
-	       "VFS: %s: Refusing to turn on old quota format on given file."
-	       " It probably contains newer quota format.\n", sb->s_id);
-        return 0;		/* Seems like a new format file -> refuse it */
+		   "VFS: %s: Refusing to turn on old quota format on given file."
+		   " It probably contains newer quota format.\n", sb->s_id);
+	return 0;		/* Seems like a new format file -> refuse it */
 }
 
 static int v1_read_file_info(struct super_block *sb, int type)
@@ -161,20 +194,26 @@ static int v1_read_file_info(struct super_block *sb, int type)
 	int ret;
 
 	ret = sb->s_op->quota_read(sb, type, (char *)&dqblk,
-				sizeof(struct v1_disk_dqblk), v1_dqoff(0));
-	if (ret != sizeof(struct v1_disk_dqblk)) {
+							   sizeof(struct v1_disk_dqblk), v1_dqoff(0));
+
+	if (ret != sizeof(struct v1_disk_dqblk))
+	{
 		if (ret >= 0)
+		{
 			ret = -EIO;
+		}
+
 		goto out;
 	}
+
 	ret = 0;
 	/* limits are stored as unsigned 32-bit data */
 	dqopt->info[type].dqi_max_spc_limit = 0xffffffffULL << QUOTABLOCK_BITS;
 	dqopt->info[type].dqi_max_ino_limit = 0xffffffff;
 	dqopt->info[type].dqi_igrace =
-			dqblk.dqb_itime ? dqblk.dqb_itime : MAX_IQ_TIME;
+		dqblk.dqb_itime ? dqblk.dqb_itime : MAX_IQ_TIME;
 	dqopt->info[type].dqi_bgrace =
-			dqblk.dqb_btime ? dqblk.dqb_btime : MAX_DQ_TIME;
+		dqblk.dqb_btime ? dqblk.dqb_btime : MAX_DQ_TIME;
 out:
 	return ret;
 }
@@ -187,25 +226,38 @@ static int v1_write_file_info(struct super_block *sb, int type)
 
 	dqopt->info[type].dqi_flags &= ~DQF_INFO_DIRTY;
 	ret = sb->s_op->quota_read(sb, type, (char *)&dqblk,
-				sizeof(struct v1_disk_dqblk), v1_dqoff(0));
-	if (ret != sizeof(struct v1_disk_dqblk)) {
+							   sizeof(struct v1_disk_dqblk), v1_dqoff(0));
+
+	if (ret != sizeof(struct v1_disk_dqblk))
+	{
 		if (ret >= 0)
+		{
 			ret = -EIO;
+		}
+
 		goto out;
 	}
+
 	dqblk.dqb_itime = dqopt->info[type].dqi_igrace;
 	dqblk.dqb_btime = dqopt->info[type].dqi_bgrace;
 	ret = sb->s_op->quota_write(sb, type, (char *)&dqblk,
-	      sizeof(struct v1_disk_dqblk), v1_dqoff(0));
+								sizeof(struct v1_disk_dqblk), v1_dqoff(0));
+
 	if (ret == sizeof(struct v1_disk_dqblk))
+	{
 		ret = 0;
+	}
 	else if (ret > 0)
+	{
 		ret = -EIO;
+	}
+
 out:
 	return ret;
 }
 
-static const struct quota_format_ops v1_format_ops = {
+static const struct quota_format_ops v1_format_ops =
+{
 	.check_quota_file	= v1_check_quota_file,
 	.read_file_info		= v1_read_file_info,
 	.write_file_info	= v1_write_file_info,
@@ -214,7 +266,8 @@ static const struct quota_format_ops v1_format_ops = {
 	.commit_dqblk		= v1_commit_dqblk,
 };
 
-static struct quota_format_type v1_quota_format = {
+static struct quota_format_type v1_quota_format =
+{
 	.qf_fmt_id	= QFMT_VFS_OLD,
 	.qf_ops		= &v1_format_ops,
 	.qf_owner	= THIS_MODULE
@@ -222,12 +275,12 @@ static struct quota_format_type v1_quota_format = {
 
 static int __init init_v1_quota_format(void)
 {
-        return register_quota_format(&v1_quota_format);
+	return register_quota_format(&v1_quota_format);
 }
 
 static void __exit exit_v1_quota_format(void)
 {
-        unregister_quota_format(&v1_quota_format);
+	unregister_quota_format(&v1_quota_format);
 }
 
 module_init(init_v1_quota_format);

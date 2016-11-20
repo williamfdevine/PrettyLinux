@@ -14,7 +14,7 @@
 
 /* ORANGEFS_VERSION is a ./configure define */
 #ifndef ORANGEFS_VERSION
-#define ORANGEFS_VERSION "upstream"
+	#define ORANGEFS_VERSION "upstream"
 #endif
 
 /*
@@ -40,9 +40,10 @@ MODULE_PARM_DESC(module_parm_debug_mask, "debugging level (see orangefs-debug.h 
 MODULE_PARM_DESC(op_timeout_secs, "Operation timeout in seconds");
 MODULE_PARM_DESC(slot_timeout_secs, "Slot timeout in seconds");
 MODULE_PARM_DESC(hash_table_size,
-		 "size of hash table for operations in progress");
+				 "size of hash table for operations in progress");
 
-static struct file_system_type orangefs_fs_type = {
+static struct file_system_type orangefs_fs_type =
+{
 	.name = "pvfs2",
 	.mount = orangefs_mount,
 	.kill_sb = orangefs_kill_sb,
@@ -83,26 +84,40 @@ static int __init orangefs_init(void)
 	ret = bdi_init(&orangefs_backing_dev_info);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (op_timeout_secs < 0)
+	{
 		op_timeout_secs = 0;
+	}
 
 	if (slot_timeout_secs < 0)
+	{
 		slot_timeout_secs = 0;
+	}
 
 	/* initialize global book keeping data structures */
 	ret = op_cache_initialize();
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	ret = orangefs_inode_cache_initialize();
+
 	if (ret < 0)
+	{
 		goto cleanup_op;
+	}
 
 	orangefs_htable_ops_in_progress =
-	    kcalloc(hash_table_size, sizeof(struct list_head), GFP_KERNEL);
-	if (!orangefs_htable_ops_in_progress) {
+		kcalloc(hash_table_size, sizeof(struct list_head), GFP_KERNEL);
+
+	if (!orangefs_htable_ops_in_progress)
+	{
 		gossip_err("Failed to initialize op hashtable");
 		ret = -ENOMEM;
 		goto cleanup_inode;
@@ -110,11 +125,16 @@ static int __init orangefs_init(void)
 
 	/* initialize a doubly linked at each hash table index */
 	for (i = 0; i < hash_table_size; i++)
+	{
 		INIT_LIST_HEAD(&orangefs_htable_ops_in_progress[i]);
+	}
 
 	ret = fsid_key_table_initialize();
+
 	if (ret < 0)
+	{
 		goto cleanup_progress_table;
+	}
 
 	/*
 	 * Build the contents of /sys/kernel/debug/orangefs/debug-help
@@ -130,31 +150,44 @@ static int __init orangefs_init(void)
 	 * called.
 	 */
 	ret = orangefs_prepare_debugfs_help_string(1);
+
 	if (ret)
+	{
 		goto cleanup_key_table;
+	}
 
 	ret = orangefs_debugfs_init(module_parm_debug_mask);
+
 	if (ret)
+	{
 		goto debugfs_init_failed;
+	}
 
 	ret = orangefs_sysfs_init();
+
 	if (ret)
+	{
 		goto sysfs_init_failed;
+	}
 
 	/* Initialize the orangefsdev subsystem. */
 	ret = orangefs_dev_init();
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		gossip_err("%s: could not initialize device subsystem %d!\n",
-			   __func__,
-			   ret);
+				   __func__,
+				   ret);
 		goto cleanup_device;
 	}
 
 	ret = register_filesystem(&orangefs_fs_type);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		pr_info("%s: module version %s loaded\n",
-			__func__,
-			ORANGEFS_VERSION);
+				__func__,
+				ORANGEFS_VERSION);
 		ret = 0;
 		goto out;
 	}
@@ -199,8 +232,11 @@ static void __exit orangefs_exit(void)
 	fsid_key_table_finalize();
 	orangefs_dev_cleanup();
 	BUG_ON(!list_empty(&orangefs_request_list));
+
 	for (i = 0; i < hash_table_size; i++)
+	{
 		BUG_ON(!list_empty(&orangefs_htable_ops_in_progress[i]));
+	}
 
 	orangefs_inode_cache_finalize();
 	op_cache_finalize();
@@ -220,22 +256,24 @@ void purge_inprogress_ops(void)
 {
 	int i;
 
-	for (i = 0; i < hash_table_size; i++) {
+	for (i = 0; i < hash_table_size; i++)
+	{
 		struct orangefs_kernel_op_s *op;
 		struct orangefs_kernel_op_s *next;
 
 		spin_lock(&orangefs_htable_ops_in_progress_lock);
 		list_for_each_entry_safe(op,
-					 next,
-					 &orangefs_htable_ops_in_progress[i],
-					 list) {
+								 next,
+								 &orangefs_htable_ops_in_progress[i],
+								 list)
+		{
 			set_op_state_purged(op);
 			gossip_debug(GOSSIP_DEV_DEBUG,
-				     "%s: op:%s: op_state:%d: process:%s:\n",
-				     __func__,
-				     get_opname_string(op),
-				     op->op_state,
-				     current->comm);
+						 "%s: op:%s: op_state:%d: process:%s:\n",
+						 __func__,
+						 get_opname_string(op),
+						 op->op_state,
+						 current->comm);
 		}
 		spin_unlock(&orangefs_htable_ops_in_progress_lock);
 	}

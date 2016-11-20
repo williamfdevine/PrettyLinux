@@ -37,7 +37,8 @@
  * @sg_segments_kobj: /sys/fs/<nilfs>/<device>/segments
  * @sg_segments_kobj_unregister: completion state
  */
-struct nilfs_sysfs_dev_subgroups {
+struct nilfs_sysfs_dev_subgroups
+{
 	/* /sys/fs/<nilfs>/<device>/superblock */
 	struct kobject sg_superblock_kobj;
 	struct completion sg_superblock_kobj_unregister;
@@ -60,24 +61,24 @@ struct nilfs_sysfs_dev_subgroups {
 };
 
 #define NILFS_COMMON_ATTR_STRUCT(name) \
-struct nilfs_##name##_attr { \
-	struct attribute attr; \
-	ssize_t (*show)(struct kobject *, struct attribute *, \
-			char *); \
-	ssize_t (*store)(struct kobject *, struct attribute *, \
-			 const char *, size_t); \
-}
+	struct nilfs_##name##_attr { \
+		struct attribute attr; \
+		ssize_t (*show)(struct kobject *, struct attribute *, \
+						char *); \
+		ssize_t (*store)(struct kobject *, struct attribute *, \
+						 const char *, size_t); \
+	}
 
 NILFS_COMMON_ATTR_STRUCT(feature);
 
 #define NILFS_DEV_ATTR_STRUCT(name) \
-struct nilfs_##name##_attr { \
-	struct attribute attr; \
-	ssize_t (*show)(struct nilfs_##name##_attr *, struct the_nilfs *, \
-			char *); \
-	ssize_t (*store)(struct nilfs_##name##_attr *, struct the_nilfs *, \
-			 const char *, size_t); \
-}
+	struct nilfs_##name##_attr { \
+		struct attribute attr; \
+		ssize_t (*show)(struct nilfs_##name##_attr *, struct the_nilfs *, \
+						char *); \
+		ssize_t (*store)(struct nilfs_##name##_attr *, struct the_nilfs *, \
+						 const char *, size_t); \
+	}
 
 NILFS_DEV_ATTR_STRUCT(dev);
 NILFS_DEV_ATTR_STRUCT(segments);
@@ -87,19 +88,19 @@ NILFS_DEV_ATTR_STRUCT(superblock);
 NILFS_DEV_ATTR_STRUCT(segctor);
 
 #define NILFS_CP_ATTR_STRUCT(name) \
-struct nilfs_##name##_attr { \
-	struct attribute attr; \
-	ssize_t (*show)(struct nilfs_##name##_attr *, struct nilfs_root *, \
-			char *); \
-	ssize_t (*store)(struct nilfs_##name##_attr *, struct nilfs_root *, \
-			 const char *, size_t); \
-}
+	struct nilfs_##name##_attr { \
+		struct attribute attr; \
+		ssize_t (*show)(struct nilfs_##name##_attr *, struct nilfs_root *, \
+						char *); \
+		ssize_t (*store)(struct nilfs_##name##_attr *, struct nilfs_root *, \
+						 const char *, size_t); \
+	}
 
 NILFS_CP_ATTR_STRUCT(snapshot);
 
 #define NILFS_ATTR(type, name, mode, show, store) \
 	static struct nilfs_##type##_attr nilfs_##type##_attr_##name = \
-		__ATTR(name, mode, show, store)
+			__ATTR(name, mode, show, store)
 
 #define NILFS_INFO_ATTR(type, name) \
 	NILFS_ATTR(type, name, 0444, NULL, NULL)
@@ -107,8 +108,8 @@ NILFS_CP_ATTR_STRUCT(snapshot);
 	NILFS_ATTR(type, name, 0444, nilfs_##type##_##name##_show, NULL)
 #define NILFS_RW_ATTR(type, name) \
 	NILFS_ATTR(type, name, 0644, \
-		    nilfs_##type##_##name##_show, \
-		    nilfs_##type##_##name##_store)
+			   nilfs_##type##_##name##_show, \
+			   nilfs_##type##_##name##_store)
 
 #define NILFS_FEATURE_INFO_ATTR(name) \
 	NILFS_INFO_ATTR(feature, name)

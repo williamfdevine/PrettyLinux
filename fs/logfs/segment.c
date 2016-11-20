@@ -19,8 +19,12 @@ static int logfs_mark_segment_bad(struct super_block *sb, u32 segno)
 	int err;
 
 	err = btree_insert32(head, segno, (void *)1, GFP_NOFS);
+
 	if (err)
+	{
 		return err;
+	}
+
 	logfs_super(sb)->s_bad_segments++;
 	/* FIXME: write to journal */
 	return 0;
@@ -33,7 +37,7 @@ int logfs_erase_segment(struct super_block *sb, u32 segno, int ensure_erase)
 	super->s_gec++;
 
 	return super->s_devops->erase(sb, (u64)segno << super->s_segshift,
-			super->s_segsize, ensure_erase);
+								  super->s_segsize, ensure_erase);
 }
 
 static s64 logfs_get_free_bytes(struct logfs_area *area, size_t bytes)
@@ -50,7 +54,7 @@ static s64 logfs_get_free_bytes(struct logfs_area *area, size_t bytes)
 }
 
 static struct page *get_mapping_page(struct super_block *sb, pgoff_t index,
-		int use_filler)
+									 int use_filler)
 {
 	struct logfs_super *super = logfs_super(sb);
 	struct address_space *mapping = super->s_mapping_inode->i_mapping;
@@ -58,47 +62,65 @@ static struct page *get_mapping_page(struct super_block *sb, pgoff_t index,
 	struct page *page;
 
 	BUG_ON(mapping_gfp_constraint(mapping, __GFP_FS));
+
 	if (use_filler)
+	{
 		page = read_cache_page(mapping, index, filler, sb);
-	else {
-		page = find_or_create_page(mapping, index, GFP_NOFS);
-		if (page)
-			unlock_page(page);
 	}
+	else
+	{
+		page = find_or_create_page(mapping, index, GFP_NOFS);
+
+		if (page)
+		{
+			unlock_page(page);
+		}
+	}
+
 	return page;
 }
 
 int __logfs_buf_write(struct logfs_area *area, u64 ofs, void *buf, size_t len,
-		int use_filler)
+					  int use_filler)
 {
 	pgoff_t index = ofs >> PAGE_SHIFT;
 	struct page *page;
-	long offset = ofs & (PAGE_SIZE-1);
+	long offset = ofs & (PAGE_SIZE - 1);
 	long copylen;
 
 	/* Only logfs_wbuf_recover may use len==0 */
 	BUG_ON(!len && !use_filler);
-	do {
+
+	do
+	{
 		copylen = min((ulong)len, PAGE_SIZE - offset);
 
 		page = get_mapping_page(area->a_sb, index, use_filler);
+
 		if (IS_ERR(page))
+		{
 			return PTR_ERR(page);
+		}
+
 		BUG_ON(!page); /* FIXME: reserve a pool */
 		SetPageUptodate(page);
 		memcpy(page_address(page) + offset, buf, copylen);
 
-		if (!PagePrivate(page)) {
+		if (!PagePrivate(page))
+		{
 			SetPagePrivate(page);
 			get_page(page);
 		}
+
 		put_page(page);
 
 		buf += copylen;
 		len -= copylen;
 		offset = 0;
 		index++;
-	} while (len);
+	}
+	while (len);
+
 	return 0;
 }
 
@@ -108,17 +130,21 @@ static void pad_partial_page(struct logfs_area *area)
 	struct page *page;
 	u64 ofs = dev_ofs(sb, area->a_segno, area->a_used_bytes);
 	pgoff_t index = ofs >> PAGE_SHIFT;
-	long offset = ofs & (PAGE_SIZE-1);
+	long offset = ofs & (PAGE_SIZE - 1);
 	u32 len = PAGE_SIZE - offset;
 
-	if (len % PAGE_SIZE) {
+	if (len % PAGE_SIZE)
+	{
 		page = get_mapping_page(sb, index, 0);
 		BUG_ON(!page); /* FIXME: reserve a pool */
 		memset(page_address(page) + offset, 0xff, len);
-		if (!PagePrivate(page)) {
+
+		if (!PagePrivate(page))
+		{
 			SetPagePrivate(page);
 			get_page(page);
 		}
+
 		put_page(page);
 	}
 }
@@ -133,15 +159,19 @@ static void pad_full_pages(struct logfs_area *area)
 	pgoff_t no_indizes = len >> PAGE_SHIFT;
 	struct page *page;
 
-	while (no_indizes) {
+	while (no_indizes)
+	{
 		page = get_mapping_page(sb, index, 0);
 		BUG_ON(!page); /* FIXME: reserve a pool */
 		SetPageUptodate(page);
 		memset(page_address(page), 0xff, PAGE_SIZE);
-		if (!PagePrivate(page)) {
+
+		if (!PagePrivate(page))
+		{
 			SetPagePrivate(page);
 			get_page(page);
 		}
+
 		put_page(page);
 		index++;
 		no_indizes--;
@@ -155,8 +185,11 @@ static void pad_full_pages(struct logfs_area *area)
 static void pad_wbuf(struct logfs_area *area, int final)
 {
 	pad_partial_page(area);
+
 	if (final)
+	{
 		pad_full_pages(area);
+	}
 }
 
 /*
@@ -165,7 +198,7 @@ static void pad_wbuf(struct logfs_area *area, int final)
  * indirect blocks.  So always use it through accessor functions.
  */
 static void *alias_tree_lookup(struct super_block *sb, u64 ino, u64 bix,
-		level_t level)
+							   level_t level)
 {
 	struct btree_head128 *head = &logfs_super(sb)->s_object_alias_tree;
 	pgoff_t index = logfs_pack_index(bix, level);
@@ -174,7 +207,7 @@ static void *alias_tree_lookup(struct super_block *sb, u64 ino, u64 bix,
 }
 
 static int alias_tree_insert(struct super_block *sb, u64 ino, u64 bix,
-		level_t level, void *val)
+							 level_t level, void *val)
 {
 	struct btree_head128 *head = &logfs_super(sb)->s_object_alias_tree;
 	pgoff_t index = logfs_pack_index(bix, level);
@@ -183,28 +216,33 @@ static int alias_tree_insert(struct super_block *sb, u64 ino, u64 bix,
 }
 
 static int btree_write_alias(struct super_block *sb, struct logfs_block *block,
-		write_alias_t *write_one_alias)
+							 write_alias_t *write_one_alias)
 {
 	struct object_alias_item *item;
 	int err;
 
-	list_for_each_entry(item, &block->item_list, list) {
+	list_for_each_entry(item, &block->item_list, list)
+	{
 		err = write_alias_journal(sb, block->ino, block->bix,
-				block->level, item->child_no, item->val);
+								  block->level, item->child_no, item->val);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 	return 0;
 }
 
-static const struct logfs_block_ops btree_block_ops = {
+static const struct logfs_block_ops btree_block_ops =
+{
 	.write_block	= btree_write_block,
 	.free_block	= __free_block,
 	.write_alias	= btree_write_alias,
 };
 
 int logfs_load_object_aliases(struct super_block *sb,
-		struct logfs_obj_alias *oa, int count)
+							  struct logfs_obj_alias *oa, int count)
 {
 	struct logfs_super *super = logfs_super(sb);
 	struct logfs_block *block;
@@ -215,10 +253,16 @@ int logfs_load_object_aliases(struct super_block *sb,
 
 	super->s_flags |= LOGFS_SB_FLAG_OBJ_ALIAS;
 	count /= sizeof(*oa);
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		item = mempool_alloc(super->s_alias_pool, GFP_NOFS);
+
 		if (!item)
+		{
 			return -ENOMEM;
+		}
+
 		memset(item, 0, sizeof(*item));
 
 		super->s_no_object_aliases++;
@@ -230,68 +274,87 @@ int logfs_load_object_aliases(struct super_block *sb,
 		level = LEVEL(oa[i].level);
 
 		log_aliases("logfs_load_object_aliases(%llx, %llx, %x, %x) %llx\n",
-				ino, bix, level, item->child_no,
-				be64_to_cpu(item->val));
+					ino, bix, level, item->child_no,
+					be64_to_cpu(item->val));
 		block = alias_tree_lookup(sb, ino, bix, level);
-		if (!block) {
+
+		if (!block)
+		{
 			block = __alloc_block(sb, ino, bix, level);
 			block->ops = &btree_block_ops;
 			err = alias_tree_insert(sb, ino, bix, level, block);
 			BUG_ON(err); /* mempool empty */
 		}
-		if (test_and_set_bit(item->child_no, block->alias_map)) {
+
+		if (test_and_set_bit(item->child_no, block->alias_map))
+		{
 			printk(KERN_ERR"LogFS: Alias collision detected\n");
 			return -EIO;
 		}
+
 		list_move_tail(&block->alias_list, &super->s_object_alias);
 		list_add(&item->list, &block->item_list);
 	}
+
 	return 0;
 }
 
 static void kill_alias(void *_block, unsigned long ignore0,
-		u64 ignore1, u64 ignore2, size_t ignore3)
+					   u64 ignore1, u64 ignore2, size_t ignore3)
 {
 	struct logfs_block *block = _block;
 	struct super_block *sb = block->sb;
 	struct logfs_super *super = logfs_super(sb);
 	struct object_alias_item *item;
 
-	while (!list_empty(&block->item_list)) {
+	while (!list_empty(&block->item_list))
+	{
 		item = list_entry(block->item_list.next, typeof(*item), list);
 		list_del(&item->list);
 		mempool_free(item, super->s_alias_pool);
 	}
+
 	block->ops->free_block(sb, block);
 }
 
 static int obj_type(struct inode *inode, level_t level)
 {
-	if (level == 0) {
+	if (level == 0)
+	{
 		if (S_ISDIR(inode->i_mode))
+		{
 			return OBJ_DENTRY;
+		}
+
 		if (inode->i_ino == LOGFS_INO_MASTER)
+		{
 			return OBJ_INODE;
+		}
 	}
+
 	return OBJ_BLOCK;
 }
 
 static int obj_len(struct super_block *sb, int obj_type)
 {
-	switch (obj_type) {
-	case OBJ_DENTRY:
-		return sizeof(struct logfs_disk_dentry);
-	case OBJ_INODE:
-		return sizeof(struct logfs_disk_inode);
-	case OBJ_BLOCK:
-		return sb->s_blocksize;
-	default:
-		BUG();
+	switch (obj_type)
+	{
+		case OBJ_DENTRY:
+			return sizeof(struct logfs_disk_dentry);
+
+		case OBJ_INODE:
+			return sizeof(struct logfs_disk_inode);
+
+		case OBJ_BLOCK:
+			return sb->s_blocksize;
+
+		default:
+			BUG();
 	}
 }
 
 static int __logfs_segment_write(struct inode *inode, void *buf,
-		struct logfs_shadow *shadow, int type, int len, int compr)
+								 struct logfs_shadow *shadow, int type, int len, int compr)
 {
 	struct logfs_area *area;
 	struct super_block *sb = inode->i_sb;
@@ -300,9 +363,13 @@ static int __logfs_segment_write(struct inode *inode, void *buf,
 	int acc_len;
 
 	if (shadow->gc_level == 0)
+	{
 		acc_len = len;
+	}
 	else
+	{
 		acc_len = obj_len(sb, type);
+	}
 
 	area = get_area(sb, shadow->gc_level);
 	ofs = logfs_get_free_bytes(area, len + LOGFS_OBJECT_HEADERSIZE);
@@ -333,7 +400,7 @@ static int __logfs_segment_write(struct inode *inode, void *buf,
 }
 
 static s64 logfs_segment_write_compress(struct inode *inode, void *buf,
-		struct logfs_shadow *shadow, int type, int len)
+										struct logfs_shadow *shadow, int type, int len)
 {
 	struct super_block *sb = inode->i_sb;
 	void *compressor_buf = logfs_super(sb)->s_compressed_je;
@@ -343,13 +410,17 @@ static s64 logfs_segment_write_compress(struct inode *inode, void *buf,
 	mutex_lock(&logfs_super(sb)->s_journal_mutex);
 	compr_len = logfs_compress(buf, compressor_buf, len, len);
 
-	if (compr_len >= 0) {
+	if (compr_len >= 0)
+	{
 		ret = __logfs_segment_write(inode, compressor_buf, shadow,
-				type, compr_len, COMPR_ZLIB);
-	} else {
-		ret = __logfs_segment_write(inode, buf, shadow, type, len,
-				COMPR_NONE);
+									type, compr_len, COMPR_ZLIB);
 	}
+	else
+	{
+		ret = __logfs_segment_write(inode, buf, shadow, type, len,
+									COMPR_NONE);
+	}
+
 	mutex_unlock(&logfs_super(sb)->s_journal_mutex);
 	return ret;
 }
@@ -361,7 +432,7 @@ static s64 logfs_segment_write_compress(struct inode *inode, void *buf,
  * Returns an errno or zero.
  */
 int logfs_segment_write(struct inode *inode, struct page *page,
-		struct logfs_shadow *shadow)
+						struct logfs_shadow *shadow)
 {
 	struct super_block *sb = inode->i_sb;
 	struct logfs_super *super = logfs_super(sb);
@@ -372,7 +443,9 @@ int logfs_segment_write(struct inode *inode, struct page *page,
 	super->s_flags |= LOGFS_SB_FLAG_DIRTY;
 	BUG_ON(super->s_flags & LOGFS_SB_FLAG_SHUTDOWN);
 	do_compress = logfs_inode(inode)->li_flags & LOGFS_IF_COMPRESSED;
-	if (shadow->gc_level != 0) {
+
+	if (shadow->gc_level != 0)
+	{
 		/* temporarily disable compression for indirect blocks */
 		do_compress = 0;
 	}
@@ -380,18 +453,20 @@ int logfs_segment_write(struct inode *inode, struct page *page,
 	type = obj_type(inode, shrink_level(shadow->gc_level));
 	len = obj_len(sb, type);
 	buf = kmap(page);
+
 	if (do_compress)
 		ret = logfs_segment_write_compress(inode, buf, shadow, type,
-				len);
+										   len);
 	else
 		ret = __logfs_segment_write(inode, buf, shadow, type, len,
-				COMPR_NONE);
+									COMPR_NONE);
+
 	kunmap(page);
 
 	log_segment("logfs_segment_write(%llx, %llx, %x) %llx->%llx %x->%x\n",
-			shadow->ino, shadow->bix, shadow->gc_level,
-			shadow->old_ofs, shadow->new_ofs,
-			shadow->old_len, shadow->new_len);
+				shadow->ino, shadow->bix, shadow->gc_level,
+				shadow->old_ofs, shadow->new_ofs,
+				shadow->old_len, shadow->new_len);
 	/* this BUG_ON did catch a locking bug.  useful */
 	BUG_ON(!(shadow->new_ofs & (super->s_segsize - 1)));
 	return ret;
@@ -401,15 +476,20 @@ int wbuf_read(struct super_block *sb, u64 ofs, size_t len, void *buf)
 {
 	pgoff_t index = ofs >> PAGE_SHIFT;
 	struct page *page;
-	long offset = ofs & (PAGE_SIZE-1);
+	long offset = ofs & (PAGE_SIZE - 1);
 	long copylen;
 
-	while (len) {
+	while (len)
+	{
 		copylen = min((ulong)len, PAGE_SIZE - offset);
 
 		page = get_mapping_page(sb, index, 1);
+
 		if (IS_ERR(page))
+		{
 			return PTR_ERR(page);
+		}
+
 		memcpy(buf, page_address(page) + offset, copylen);
 		put_page(page);
 
@@ -418,6 +498,7 @@ int wbuf_read(struct super_block *sb, u64 ofs, size_t len, void *buf)
 		offset = 0;
 		index++;
 	}
+
 	return 0;
 }
 
@@ -429,51 +510,65 @@ int wbuf_read(struct super_block *sb, u64 ofs, size_t len, void *buf)
 static int check_pos(struct super_block *sb, u64 pos1, u64 pos2, level_t level)
 {
 	return	(pos1 & logfs_block_mask(sb, level)) !=
-		(pos2 & logfs_block_mask(sb, level));
+			(pos2 & logfs_block_mask(sb, level));
 }
 
 #if 0
 static int read_seg_header(struct super_block *sb, u64 ofs,
-		struct logfs_segment_header *sh)
+						   struct logfs_segment_header *sh)
 {
 	__be32 crc;
 	int err;
 
 	err = wbuf_read(sb, ofs, sizeof(*sh), sh);
+
 	if (err)
+	{
 		return err;
+	}
+
 	crc = logfs_crc32(sh, sizeof(*sh), 4);
-	if (crc != sh->crc) {
+
+	if (crc != sh->crc)
+	{
 		printk(KERN_ERR"LOGFS: header crc error at %llx: expected %x, "
-				"got %x\n", ofs, be32_to_cpu(sh->crc),
-				be32_to_cpu(crc));
+			   "got %x\n", ofs, be32_to_cpu(sh->crc),
+			   be32_to_cpu(crc));
 		return -EIO;
 	}
+
 	return 0;
 }
 #endif
 
 static int read_obj_header(struct super_block *sb, u64 ofs,
-		struct logfs_object_header *oh)
+						   struct logfs_object_header *oh)
 {
 	__be32 crc;
 	int err;
 
 	err = wbuf_read(sb, ofs, sizeof(*oh), oh);
+
 	if (err)
+	{
 		return err;
+	}
+
 	crc = logfs_crc32(oh, sizeof(*oh) - 4, 4);
-	if (crc != oh->crc) {
+
+	if (crc != oh->crc)
+	{
 		printk(KERN_ERR"LOGFS: header crc error at %llx: expected %x, "
-				"got %x\n", ofs, be32_to_cpu(oh->crc),
-				be32_to_cpu(crc));
+			   "got %x\n", ofs, be32_to_cpu(oh->crc),
+			   be32_to_cpu(crc));
 		return -EIO;
 	}
+
 	return 0;
 }
 
 static void move_btree_to_page(struct inode *inode, struct page *page,
-		__be64 *data)
+							   __be64 *data)
 {
 	struct super_block *sb = inode->i_sb;
 	struct logfs_super *super = logfs_super(sb);
@@ -482,26 +577,34 @@ static void move_btree_to_page(struct inode *inode, struct page *page,
 	struct object_alias_item *item, *next;
 
 	if (!(super->s_flags & LOGFS_SB_FLAG_OBJ_ALIAS))
+	{
 		return;
+	}
 
 	block = btree_remove128(head, inode->i_ino, page->index);
+
 	if (!block)
+	{
 		return;
+	}
 
 	log_blockmove("move_btree_to_page(%llx, %llx, %x)\n",
-			block->ino, block->bix, block->level);
-	list_for_each_entry_safe(item, next, &block->item_list, list) {
+				  block->ino, block->bix, block->level);
+	list_for_each_entry_safe(item, next, &block->item_list, list)
+	{
 		data[item->child_no] = item->val;
 		list_del(&item->list);
 		mempool_free(item, super->s_alias_pool);
 	}
 	block->page = page;
 
-	if (!PagePrivate(page)) {
+	if (!PagePrivate(page))
+	{
 		SetPagePrivate(page);
 		get_page(page);
 		set_page_private(page, (unsigned long) block);
 	}
+
 	block->ops = &indirect_block_ops;
 	initialize_block_counters(page, block, data, 0);
 }
@@ -512,7 +615,7 @@ static void move_btree_to_page(struct inode *inode, struct page *page,
  * TODO: Complain to gcc folks about this and upgrade compiler.
  */
 static unsigned long fnb(const unsigned long *addr,
-		unsigned long size, unsigned long offset)
+						 unsigned long size, unsigned long offset)
 {
 	return find_next_bit(addr, size, offset);
 }
@@ -527,18 +630,24 @@ void move_page_to_btree(struct page *page)
 	__be64 *child;
 	int err;
 
-	if (super->s_flags & LOGFS_SB_FLAG_SHUTDOWN) {
+	if (super->s_flags & LOGFS_SB_FLAG_SHUTDOWN)
+	{
 		block->ops->free_block(sb, block);
 		return;
 	}
+
 	log_blockmove("move_page_to_btree(%llx, %llx, %x)\n",
-			block->ino, block->bix, block->level);
+				  block->ino, block->bix, block->level);
 	super->s_flags |= LOGFS_SB_FLAG_OBJ_ALIAS;
 
-	for (pos = 0; ; pos++) {
+	for (pos = 0; ; pos++)
+	{
 		pos = fnb(block->alias_map, LOGFS_BLOCK_FACTOR, pos);
+
 		if (pos >= LOGFS_BLOCK_FACTOR)
+		{
 			break;
+		}
 
 		item = mempool_alloc(super->s_alias_pool, GFP_NOFS);
 		BUG_ON(!item); /* mempool empty */
@@ -550,22 +659,25 @@ void move_page_to_btree(struct page *page)
 		item->child_no = pos;
 		list_add(&item->list, &block->item_list);
 	}
+
 	block->page = NULL;
 
-	if (PagePrivate(page)) {
+	if (PagePrivate(page))
+	{
 		ClearPagePrivate(page);
 		put_page(page);
 		set_page_private(page, 0);
 	}
+
 	block->ops = &btree_block_ops;
 	err = alias_tree_insert(block->sb, block->ino, block->bix, block->level,
-			block);
+							block);
 	BUG_ON(err); /* mempool empty */
 	ClearPageUptodate(page);
 }
 
 static int __logfs_segment_read(struct inode *inode, void *buf,
-		u64 ofs, u64 bix, level_t level)
+								u64 ofs, u64 bix, level_t level)
 {
 	struct super_block *sb = inode->i_sb;
 	void *compressor_buf = logfs_super(sb)->s_compressed_je;
@@ -576,12 +688,17 @@ static int __logfs_segment_read(struct inode *inode, void *buf,
 
 	block_len = obj_len(sb, obj_type(inode, level));
 	err = read_obj_header(sb, ofs, &oh);
+
 	if (err)
+	{
 		goto out_err;
+	}
 
 	err = -EIO;
+
 	if (be64_to_cpu(oh.ino) != inode->i_ino
-			|| check_pos(sb, be64_to_cpu(oh.bix), bix, level)) {
+		|| check_pos(sb, be64_to_cpu(oh.bix), bix, level))
+	{
 		printk(KERN_ERR"LOGFS: (ino, bix) don't match at %llx: "
 				"expected (%lx, %llx), got (%llx, %llx)\n",
 				ofs, inode->i_ino, bix,

@@ -20,7 +20,8 @@
 
 #include <linux/rwsem.h>
 
-typedef struct {
+typedef struct
+{
 	struct rw_semaphore	mr_lock;
 #if defined(DEBUG) || defined(XFS_WARN)
 	int			mr_writer;
@@ -59,7 +60,10 @@ static inline int mrtryaccess(mrlock_t *mrp)
 static inline int mrtryupdate(mrlock_t *mrp)
 {
 	if (!down_write_trylock(&mrp->mr_lock))
+	{
 		return 0;
+	}
+
 #if defined(DEBUG) || defined(XFS_WARN)
 	mrp->mr_writer = 1;
 #endif

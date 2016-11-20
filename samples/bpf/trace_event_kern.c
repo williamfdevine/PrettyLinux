@@ -11,20 +11,23 @@
 #include <uapi/linux/perf_event.h>
 #include "bpf_helpers.h"
 
-struct key_t {
+struct key_t
+{
 	char comm[TASK_COMM_LEN];
 	u32 kernstack;
 	u32 userstack;
 };
 
-struct bpf_map_def SEC("maps") counts = {
+struct bpf_map_def SEC("maps") counts =
+{
 	.type = BPF_MAP_TYPE_HASH,
 	.key_size = sizeof(struct key_t),
 	.value_size = sizeof(u64),
 	.max_entries = 10000,
 };
 
-struct bpf_map_def SEC("maps") stackmap = {
+struct bpf_map_def SEC("maps") stackmap =
+{
 	.type = BPF_MAP_TYPE_STACK_TRACE,
 	.key_size = sizeof(u32),
 	.value_size = PERF_MAX_STACK_DEPTH * sizeof(u64),
@@ -44,21 +47,32 @@ int bpf_prog1(struct bpf_perf_event_data *ctx)
 
 	if (ctx->sample_period < 10000)
 		/* ignore warmup */
+	{
 		return 0;
+	}
+
 	bpf_get_current_comm(&key.comm, sizeof(key.comm));
 	key.kernstack = bpf_get_stackid(ctx, &stackmap, KERN_STACKID_FLAGS);
 	key.userstack = bpf_get_stackid(ctx, &stackmap, USER_STACKID_FLAGS);
-	if ((int)key.kernstack < 0 && (int)key.userstack < 0) {
+
+	if ((int)key.kernstack < 0 && (int)key.userstack < 0)
+	{
 		bpf_trace_printk(fmt, sizeof(fmt), cpu, ctx->sample_period,
-				 ctx->regs.ip);
+						 ctx->regs.ip);
 		return 0;
 	}
 
 	val = bpf_map_lookup_elem(&counts, &key);
+
 	if (val)
+	{
 		(*val)++;
+	}
 	else
+	{
 		bpf_map_update_elem(&counts, &key, &one, BPF_NOEXIST);
+	}
+
 	return 0;
 }
 

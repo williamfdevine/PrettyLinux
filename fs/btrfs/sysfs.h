@@ -6,7 +6,8 @@
  */
 extern u64 btrfs_debugfs_test;
 
-enum btrfs_feature_set {
+enum btrfs_feature_set
+{
 	FEAT_COMPAT,
 	FEAT_COMPAT_RO,
 	FEAT_INCOMPAT,
@@ -14,11 +15,11 @@ enum btrfs_feature_set {
 };
 
 #define __INIT_KOBJ_ATTR(_name, _mode, _show, _store)			\
-{									\
-	.attr	= { .name = __stringify(_name), .mode = _mode },	\
-	.show	= _show,						\
-	.store	= _store,						\
-}
+	{									\
+		.attr	= { .name = __stringify(_name), .mode = _mode },	\
+				  .show	= _show,						\
+							.store	= _store,						\
+	}
 
 #define BTRFS_ATTR_RW(_name, _show, _store)			\
 	static struct kobj_attribute btrfs_attr_##_name =		\
@@ -37,20 +38,21 @@ enum btrfs_feature_set {
 #define BTRFS_RAID_ATTR_PTR(_name)    (&btrfs_raid_attr_##_name.attr)
 
 
-struct btrfs_feature_attr {
+struct btrfs_feature_attr
+{
 	struct kobj_attribute kobj_attr;
 	enum btrfs_feature_set feature_set;
 	u64 feature_bit;
 };
 
 #define BTRFS_FEAT_ATTR(_name, _feature_set, _prefix, _feature_bit)	     \
-static struct btrfs_feature_attr btrfs_attr_##_name = {			     \
-	.kobj_attr = __INIT_KOBJ_ATTR(_name, S_IRUGO,			     \
-				      btrfs_feature_attr_show,		     \
-				      btrfs_feature_attr_store),	     \
-	.feature_set	= _feature_set,					     \
-	.feature_bit	= _prefix ##_## _feature_bit,			     \
-}
+	static struct btrfs_feature_attr btrfs_attr_##_name = {			     \
+		.kobj_attr = __INIT_KOBJ_ATTR(_name, S_IRUGO,			     \
+									  btrfs_feature_attr_show,		     \
+									  btrfs_feature_attr_store),	     \
+					 .feature_set	= _feature_set,					     \
+									   .feature_bit	= _prefix ##_## _feature_bit,			     \
+	}
 #define BTRFS_FEAT_ATTR_PTR(_name)    (&btrfs_attr_##_name.kobj_attr.attr)
 
 #define BTRFS_FEAT_ATTR_COMPAT(name, feature) \
@@ -79,18 +81,18 @@ attr_to_btrfs_feature_attr(struct attribute *attr)
 }
 
 char *btrfs_printable_features(enum btrfs_feature_set set, u64 flags);
-extern const char * const btrfs_feature_set_names[3];
+extern const char *const btrfs_feature_set_names[3];
 extern struct kobj_type space_info_ktype;
 extern struct kobj_type btrfs_raid_ktype;
 int btrfs_sysfs_add_device_link(struct btrfs_fs_devices *fs_devices,
-		struct btrfs_device *one_device);
+								struct btrfs_device *one_device);
 int btrfs_sysfs_rm_device_link(struct btrfs_fs_devices *fs_devices,
-                struct btrfs_device *one_device);
+							   struct btrfs_device *one_device);
 int btrfs_sysfs_add_fsid(struct btrfs_fs_devices *fs_devs,
-				struct kobject *parent);
+						 struct kobject *parent);
 int btrfs_sysfs_add_device(struct btrfs_fs_devices *fs_devs);
 void btrfs_sysfs_remove_fsid(struct btrfs_fs_devices *fs_devs);
 void btrfs_sysfs_feature_update(struct btrfs_fs_info *fs_info,
-		u64 bit, enum btrfs_feature_set set);
+								u64 bit, enum btrfs_feature_set set);
 
 #endif /* _BTRFS_SYSFS_H_ */

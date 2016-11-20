@@ -35,12 +35,14 @@
 *                                                                            *
 \****************************************************************************/
 
-struct nv_fifo_info {
+struct nv_fifo_info
+{
 	int lwm;
 	int burst;
 };
 
-struct nv_sim_state {
+struct nv_sim_state
+{
 	int pclk_khz;
 	int mclk_khz;
 	int nvclk_khz;
@@ -77,7 +79,8 @@ nv04_calc_arb(struct nv_fifo_info *fifo, struct nv_sim_state *arb)
 	mclk_extra = 3;
 	found = 0;
 
-	while (!found) {
+	while (!found)
+	{
 		found = 1;
 
 		mclk_loop = mclks + mclk_extra;
@@ -96,12 +99,17 @@ nv04_calc_arb(struct nv_fifo_info *fifo, struct nv_sim_state *arb)
 		m1 = clwm + cbs - 512;
 		p1 = m1 * pclk_freq / mclk_freq;
 		p1 = p1 * bpp / 8;
-		if ((p1 < m1 && m1 > 0) || clwm > 519) {
+
+		if ((p1 < m1 && m1 > 0) || clwm > 519)
+		{
 			found = !mclk_extra;
 			mclk_extra--;
 		}
+
 		if (clwm < 384)
+		{
 			clwm = 384;
+		}
 
 		fifo->lwm = clwm;
 		fifo->burst = cbs;
@@ -134,47 +142,49 @@ nv10_calc_arb(struct nv_fifo_info *fifo, struct nv_sim_state *arb)
 	pclks = 4;	/* lwm detect. */
 
 	nvclks = 3	/* lwm -> sync. */
-		+ 2	/* fbi bus cycles (1 req + 1 busy) */
-		+ 1	/* 2 edge sync.  may be very close to edge so
+			 + 2	/* fbi bus cycles (1 req + 1 busy) */
+			 + 1	/* 2 edge sync.  may be very close to edge so
 			 * just put one. */
-		+ 1	/* fbi_d_rdv_n */
-		+ 1	/* Fbi_d_rdata */
-		+ 1;	/* crtfifo load */
+			 + 1	/* fbi_d_rdv_n */
+			 + 1	/* Fbi_d_rdata */
+			 + 1;	/* crtfifo load */
 
 	mclks = 1	/* 2 edge sync.  may be very close to edge so
 			 * just put one. */
-		+ 1	/* arb_hp_req */
-		+ 5	/* tiling pipeline */
-		+ 2	/* latency fifo */
-		+ 2	/* memory request to fbio block */
-		+ 7;	/* data returned from fbio block */
+			+ 1	/* arb_hp_req */
+			+ 5	/* tiling pipeline */
+			+ 2	/* latency fifo */
+			+ 2	/* memory request to fbio block */
+			+ 7;	/* data returned from fbio block */
 
 	/* Need to accumulate 256 bits for read */
 	mclks += (arb->memory_type == 0 ? 2 : 1)
-		* arb->memory_width / 32;
+			 * arb->memory_width / 32;
 
 	fill_lat = mclks * 1000 * 1000 / mclk_freq   /* minimum mclk latency */
-		+ nvclks * 1000 * 1000 / nvclk_freq  /* nvclk latency */
-		+ pclks * 1000 * 1000 / pclk_freq;   /* pclk latency */
+			   + nvclks * 1000 * 1000 / nvclk_freq  /* nvclk latency */
+			   + pclks * 1000 * 1000 / pclk_freq;   /* pclk latency */
 
 	/* Conditional FIFO refill latency. */
 
 	xclks = 2 * arb->mem_page_miss + mclks /* Extra latency due to
 						* the overlay. */
-		+ 2 * arb->mem_page_miss       /* Extra pagemiss latency. */
-		+ (arb->bpp == 32 ? 8 : 4);    /* Margin of error. */
+			+ 2 * arb->mem_page_miss       /* Extra pagemiss latency. */
+			+ (arb->bpp == 32 ? 8 : 4);    /* Margin of error. */
 
 	extra_lat = xclks * 1000 * 1000 / mclk_freq;
 
 	if (arb->two_heads)
 		/* Account for another CRTC. */
+	{
 		extra_lat += fill_lat + extra_lat + burst_lat;
+	}
 
 	/* FIFO burst */
 
 	/* Max burst not leading to overflows. */
 	max_burst_o = (1 + fifo_len - extra_lat * drain_rate / (1000 * 1000))
-		* (fill_rate / 1000) / ((fill_rate - drain_rate) / 1000);
+				  * (fill_rate / 1000) / ((fill_rate - drain_rate) / 1000);
 	fifo->burst = min(max_burst_o, 1024);
 
 	/* Max burst value with an acceptable latency. */
@@ -187,15 +197,15 @@ nv10_calc_arb(struct nv_fifo_info *fifo, struct nv_sim_state *arb)
 
 	min_lwm = (fill_lat + extra_lat) * drain_rate / (1000 * 1000) + 1;
 	max_lwm = fifo_len - fifo->burst
-		+ fill_lat * drain_rate / (1000 * 1000)
-		+ fifo->burst * drain_rate / fill_rate;
+			  + fill_lat * drain_rate / (1000 * 1000)
+			  + fifo->burst * drain_rate / fill_rate;
 
 	fifo->lwm = min_lwm + 10 * (max_lwm - min_lwm) / 100; /* Empirical. */
 }
 
 static void
 nv04_update_arb(struct drm_device *dev, int VClk, int bpp,
-		int *burst, int *lwm)
+				int *burst, int *lwm)
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
 	struct nvif_object *device = &nouveau_drm(dev)->device.object;
@@ -210,8 +220,10 @@ nv04_update_arb(struct drm_device *dev, int VClk, int bpp,
 	sim_data.nvclk_khz = NVClk;
 	sim_data.bpp = bpp;
 	sim_data.two_heads = nv_two_heads(dev);
+
 	if ((dev->pdev->device & 0xffff) == 0x01a0 /*CHIPSET_NFORCE*/ ||
-	    (dev->pdev->device & 0xffff) == 0x01f0 /*CHIPSET_NFORCE2*/) {
+		(dev->pdev->device & 0xffff) == 0x01f0 /*CHIPSET_NFORCE2*/)
+	{
 		uint32_t type;
 
 		pci_read_config_dword(pci_get_bus_and_slot(0, 1), 0x7c, &type);
@@ -220,7 +232,9 @@ nv04_update_arb(struct drm_device *dev, int VClk, int bpp,
 		sim_data.memory_width = 64;
 		sim_data.mem_latency = 3;
 		sim_data.mem_page_miss = 10;
-	} else {
+	}
+	else
+	{
 		sim_data.memory_type = nvif_rd32(device, NV04_PFB_CFG0) & 0x1;
 		sim_data.memory_width = (nvif_rd32(device, NV_PEXTDEV_BOOT_0) & 0x10) ? 128 : 64;
 		sim_data.mem_latency = cfg1 & 0xf;
@@ -228,9 +242,13 @@ nv04_update_arb(struct drm_device *dev, int VClk, int bpp,
 	}
 
 	if (drm->device.info.family == NV_DEVICE_INFO_V0_TNT)
+	{
 		nv04_calc_arb(&fifo_data, &sim_data);
+	}
 	else
+	{
 		nv10_calc_arb(&fifo_data, &sim_data);
+	}
 
 	*burst = ilog2(fifo_data.burst >> 4);
 	*lwm = fifo_data.lwm >> 3;
@@ -255,11 +273,17 @@ nouveau_calc_arb(struct drm_device *dev, int vclk, int bpp, int *burst, int *lwm
 	struct nouveau_drm *drm = nouveau_drm(dev);
 
 	if (drm->device.info.family < NV_DEVICE_INFO_V0_KELVIN)
+	{
 		nv04_update_arb(dev, vclk, bpp, burst, lwm);
+	}
 	else if ((dev->pdev->device & 0xfff0) == 0x0240 /*CHIPSET_C51*/ ||
-		 (dev->pdev->device & 0xfff0) == 0x03d0 /*CHIPSET_C512*/) {
+			 (dev->pdev->device & 0xfff0) == 0x03d0 /*CHIPSET_C512*/)
+	{
 		*burst = 128;
 		*lwm = 0x0480;
-	} else
+	}
+	else
+	{
 		nv20_update_arb(burst, lwm);
+	}
 }

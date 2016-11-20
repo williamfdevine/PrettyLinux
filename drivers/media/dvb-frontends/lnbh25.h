@@ -31,7 +31,8 @@
 /* DSQIN input pin is set to receive external 22 kHz TTL signal source */
 #define LNBH25_EXTM	0x04
 
-struct lnbh25_config {
+struct lnbh25_config
+{
 	u8	i2c_address;
 	u8	data2_config;
 };

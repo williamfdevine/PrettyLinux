@@ -25,15 +25,15 @@
 
 #ifdef VERBOSE
 #define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
-				 __func__, ## args)
+									__func__, ## args)
 #else
 #define VDBG(stuff...)	do {} while (0)
 #endif
 
 #ifdef VERBOSE
-#define MPC_LOC printk("Current Location [%s]:[%d]\n", __FILE__, __LINE__)
+	#define MPC_LOC printk("Current Location [%s]:[%d]\n", __FILE__, __LINE__)
 #else
-#define MPC_LOC do {} while (0)
+	#define MPC_LOC do {} while (0)
 #endif
 
 #define PROTO_UNDEF	(0)
@@ -52,7 +52,8 @@
 
 #define T_HOST_REQ_POLL		(1500)	/* 1500ms, HNP polling interval */
 
-enum otg_fsm_timer {
+enum otg_fsm_timer
+{
 	/* Standard OTG timers */
 	A_WAIT_VRISE,
 	A_WAIT_VFALL,
@@ -148,7 +149,8 @@ enum otg_fsm_timer {
  *		overcurrent condition and causes the A-device to transition
  *		to a_wait_vfall
  */
-struct otg_fsm {
+struct otg_fsm
+{
 	/* Input */
 	int id;
 	int adp_change;
@@ -213,7 +215,8 @@ struct otg_fsm {
 	bool state_changed;
 };
 
-struct otg_fsm_ops {
+struct otg_fsm_ops
+{
 	void	(*chrg_vbus)(struct otg_fsm *fsm, int on);
 	void	(*drv_vbus)(struct otg_fsm *fsm, int on);
 	void	(*loc_conn)(struct otg_fsm *fsm, int on);
@@ -231,7 +234,10 @@ struct otg_fsm_ops {
 static inline int otg_chrg_vbus(struct otg_fsm *fsm, int on)
 {
 	if (!fsm->ops->chrg_vbus)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	fsm->ops->chrg_vbus(fsm, on);
 	return 0;
 }
@@ -239,74 +245,107 @@ static inline int otg_chrg_vbus(struct otg_fsm *fsm, int on)
 static inline int otg_drv_vbus(struct otg_fsm *fsm, int on)
 {
 	if (!fsm->ops->drv_vbus)
+	{
 		return -EOPNOTSUPP;
-	if (fsm->drv_vbus != on) {
+	}
+
+	if (fsm->drv_vbus != on)
+	{
 		fsm->drv_vbus = on;
 		fsm->ops->drv_vbus(fsm, on);
 	}
+
 	return 0;
 }
 
 static inline int otg_loc_conn(struct otg_fsm *fsm, int on)
 {
 	if (!fsm->ops->loc_conn)
+	{
 		return -EOPNOTSUPP;
-	if (fsm->loc_conn != on) {
+	}
+
+	if (fsm->loc_conn != on)
+	{
 		fsm->loc_conn = on;
 		fsm->ops->loc_conn(fsm, on);
 	}
+
 	return 0;
 }
 
 static inline int otg_loc_sof(struct otg_fsm *fsm, int on)
 {
 	if (!fsm->ops->loc_sof)
+	{
 		return -EOPNOTSUPP;
-	if (fsm->loc_sof != on) {
+	}
+
+	if (fsm->loc_sof != on)
+	{
 		fsm->loc_sof = on;
 		fsm->ops->loc_sof(fsm, on);
 	}
+
 	return 0;
 }
 
 static inline int otg_start_pulse(struct otg_fsm *fsm)
 {
 	if (!fsm->ops->start_pulse)
+	{
 		return -EOPNOTSUPP;
-	if (!fsm->data_pulse) {
+	}
+
+	if (!fsm->data_pulse)
+	{
 		fsm->data_pulse = 1;
 		fsm->ops->start_pulse(fsm);
 	}
+
 	return 0;
 }
 
 static inline int otg_start_adp_prb(struct otg_fsm *fsm)
 {
 	if (!fsm->ops->start_adp_prb)
+	{
 		return -EOPNOTSUPP;
-	if (!fsm->adp_prb) {
+	}
+
+	if (!fsm->adp_prb)
+	{
 		fsm->adp_sns = 0;
 		fsm->adp_prb = 1;
 		fsm->ops->start_adp_prb(fsm);
 	}
+
 	return 0;
 }
 
 static inline int otg_start_adp_sns(struct otg_fsm *fsm)
 {
 	if (!fsm->ops->start_adp_sns)
+	{
 		return -EOPNOTSUPP;
-	if (!fsm->adp_sns) {
+	}
+
+	if (!fsm->adp_sns)
+	{
 		fsm->adp_sns = 1;
 		fsm->ops->start_adp_sns(fsm);
 	}
+
 	return 0;
 }
 
 static inline int otg_add_timer(struct otg_fsm *fsm, enum otg_fsm_timer timer)
 {
 	if (!fsm->ops->add_timer)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	fsm->ops->add_timer(fsm, timer);
 	return 0;
 }
@@ -314,7 +353,10 @@ static inline int otg_add_timer(struct otg_fsm *fsm, enum otg_fsm_timer timer)
 static inline int otg_del_timer(struct otg_fsm *fsm, enum otg_fsm_timer timer)
 {
 	if (!fsm->ops->del_timer)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	fsm->ops->del_timer(fsm, timer);
 	return 0;
 }
@@ -322,14 +364,20 @@ static inline int otg_del_timer(struct otg_fsm *fsm, enum otg_fsm_timer timer)
 static inline int otg_start_host(struct otg_fsm *fsm, int on)
 {
 	if (!fsm->ops->start_host)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	return fsm->ops->start_host(fsm, on);
 }
 
 static inline int otg_start_gadget(struct otg_fsm *fsm, int on)
 {
 	if (!fsm->ops->start_gadget)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	return fsm->ops->start_gadget(fsm, on);
 }
 

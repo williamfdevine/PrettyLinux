@@ -19,7 +19,8 @@
 
 #define GSI_VENDOR_OPENCLOSE 0xB0
 
-static const struct usb_device_id id_table[] = {
+static const struct usb_device_id id_table[] =
+{
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x1D50, 0x6062, 0xFF, 0xFF, 0xFF) },
 	{ },
 };
@@ -36,32 +37,37 @@ static int usb_gsi_openclose(struct usb_serial_port *port, int value)
 	struct usb_device *dev = port->serial->dev;
 
 	return usb_control_msg(
-		dev,
-		usb_sndctrlpipe(dev, 0), /* Send to EP0OUT */
-		GSI_VENDOR_OPENCLOSE,
-		USB_DIR_OUT|USB_TYPE_VENDOR|USB_RECIP_INTERFACE,
-		value, /* wValue = device is open(1) or closed(0) */
-		port->serial->interface->cur_altsetting->desc.bInterfaceNumber,
-		NULL, 0,  /* There is no data stage */
-		5000); /* Timeout till operation fails */
+			   dev,
+			   usb_sndctrlpipe(dev, 0), /* Send to EP0OUT */
+			   GSI_VENDOR_OPENCLOSE,
+			   USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+			   value, /* wValue = device is open(1) or closed(0) */
+			   port->serial->interface->cur_altsetting->desc.bInterfaceNumber,
+			   NULL, 0,  /* There is no data stage */
+			   5000); /* Timeout till operation fails */
 }
 
 static int wishbone_serial_open(struct tty_struct *tty,
-				struct usb_serial_port *port)
+								struct usb_serial_port *port)
 {
 	int retval;
 
 	retval = usb_gsi_openclose(port, 1);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&port->serial->dev->dev,
-		       "Could not mark device as open (%d)\n",
-		       retval);
+				"Could not mark device as open (%d)\n",
+				retval);
 		return retval;
 	}
 
 	retval = usb_serial_generic_open(tty, port);
+
 	if (retval)
+	{
 		usb_gsi_openclose(port, 0);
+	}
 
 	return retval;
 }
@@ -72,7 +78,8 @@ static void wishbone_serial_close(struct usb_serial_port *port)
 	usb_gsi_openclose(port, 0);
 }
 
-static struct usb_serial_driver wishbone_serial_device = {
+static struct usb_serial_driver wishbone_serial_device =
+{
 	.driver = {
 		.owner =	THIS_MODULE,
 		.name =		"wishbone_serial",
@@ -83,7 +90,8 @@ static struct usb_serial_driver wishbone_serial_device = {
 	.close =		&wishbone_serial_close,
 };
 
-static struct usb_serial_driver * const serial_drivers[] = {
+static struct usb_serial_driver *const serial_drivers[] =
+{
 	&wishbone_serial_device, NULL
 };
 

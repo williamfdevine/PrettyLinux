@@ -13,24 +13,33 @@ static void test_one(char *s1, char *s2)
 {
 	unsigned long offset, size;
 
-	for (offset = 0; offset < SIZE; offset++) {
-		for (size = 0; size < (SIZE-offset); size++) {
+	for (offset = 0; offset < SIZE; offset++)
+	{
+		for (size = 0; size < (SIZE - offset); size++)
+		{
 			int x, y;
 			unsigned long i;
 
-			y = memcmp(s1+offset, s2+offset, size);
-			x = test_memcmp(s1+offset, s2+offset, size);
+			y = memcmp(s1 + offset, s2 + offset, size);
+			x = test_memcmp(s1 + offset, s2 + offset, size);
 
 			if (((x ^ y) < 0) &&	/* Trick to compare sign */
-				((x | y) != 0)) { /* check for zero */
+				((x | y) != 0))   /* check for zero */
+			{
 				printf("memcmp returned %d, should have returned %d (offset %ld size %ld)\n", x, y, offset, size);
 
-				for (i = offset; i < offset+size; i++)
+				for (i = offset; i < offset + size; i++)
+				{
 					printf("%02x ", s1[i]);
+				}
+
 				printf("\n");
 
-				for (i = offset; i < offset+size; i++)
+				for (i = offset; i < offset + size; i++)
+				{
 					printf("%02x ", s2[i]);
+				}
+
 				printf("\n");
 				abort();
 			}
@@ -45,25 +54,32 @@ static int testcase(void)
 	unsigned long i;
 
 	s1 = memalign(128, SIZE);
-	if (!s1) {
+
+	if (!s1)
+	{
 		perror("memalign");
 		exit(1);
 	}
 
 	s2 = memalign(128, SIZE);
-	if (!s2) {
+
+	if (!s2)
+	{
 		perror("memalign");
 		exit(1);
 	}
 
 	srandom(1);
 
-	for (i = 0; i < ITERATIONS; i++) {
+	for (i = 0; i < ITERATIONS; i++)
+	{
 		unsigned long j;
 		unsigned long change;
 
 		for (j = 0; j < SIZE; j++)
+		{
 			s1[j] = random();
+		}
 
 		memcpy(s2, s1, SIZE);
 
@@ -76,17 +92,21 @@ static int testcase(void)
 
 	srandom(1);
 
-	for (i = 0; i < ITERATIONS; i++) {
+	for (i = 0; i < ITERATIONS; i++)
+	{
 		unsigned long j;
 		unsigned long change;
 
 		for (j = 0; j < SIZE; j++)
+		{
 			s1[j] = random();
+		}
 
 		memcpy(s2, s1, SIZE);
 
 		/* change multiple bytes, 1/8 of total */
-		for (j = 0; j < SIZE / 8; j++) {
+		for (j = 0; j < SIZE / 8; j++)
+		{
 			change = random() % SIZE;
 			s2[change] = random() & 0xff;
 		}

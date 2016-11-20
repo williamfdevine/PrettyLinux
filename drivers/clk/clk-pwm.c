@@ -14,7 +14,8 @@
 #include <linux/platform_device.h>
 #include <linux/pwm.h>
 
-struct clk_pwm {
+struct clk_pwm
+{
 	struct clk_hw hw;
 	struct pwm_device *pwm;
 	u32 fixed_rate;
@@ -40,14 +41,15 @@ static void clk_pwm_unprepare(struct clk_hw *hw)
 }
 
 static unsigned long clk_pwm_recalc_rate(struct clk_hw *hw,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_pwm *clk_pwm = to_clk_pwm(hw);
 
 	return clk_pwm->fixed_rate;
 }
 
-static const struct clk_ops clk_pwm_ops = {
+static const struct clk_ops clk_pwm_ops =
+{
 	.prepare = clk_pwm_prepare,
 	.unprepare = clk_pwm_unprepare,
 	.recalc_rate = clk_pwm_recalc_rate,
@@ -64,26 +66,37 @@ static int clk_pwm_probe(struct platform_device *pdev)
 	int ret;
 
 	clk_pwm = devm_kzalloc(&pdev->dev, sizeof(*clk_pwm), GFP_KERNEL);
+
 	if (!clk_pwm)
+	{
 		return -ENOMEM;
+	}
 
 	pwm = devm_pwm_get(&pdev->dev, NULL);
+
 	if (IS_ERR(pwm))
+	{
 		return PTR_ERR(pwm);
+	}
 
 	pwm_get_args(pwm, &pargs);
-	if (!pargs.period) {
+
+	if (!pargs.period)
+	{
 		dev_err(&pdev->dev, "invalid PWM period\n");
 		return -EINVAL;
 	}
 
 	if (of_property_read_u32(node, "clock-frequency", &clk_pwm->fixed_rate))
+	{
 		clk_pwm->fixed_rate = NSEC_PER_SEC / pargs.period;
+	}
 
 	if (pargs.period != NSEC_PER_SEC / clk_pwm->fixed_rate &&
-	    pargs.period != DIV_ROUND_UP(NSEC_PER_SEC, clk_pwm->fixed_rate)) {
+		pargs.period != DIV_ROUND_UP(NSEC_PER_SEC, clk_pwm->fixed_rate))
+	{
 		dev_err(&pdev->dev,
-			"clock-frequency does not match PWM period\n");
+				"clock-frequency does not match PWM period\n");
 		return -EINVAL;
 	}
 
@@ -93,8 +106,11 @@ static int clk_pwm_probe(struct platform_device *pdev)
 	 */
 	pwm_apply_args(pwm);
 	ret = pwm_config(pwm, (pargs.period + 1) >> 1, pargs.period);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	clk_name = node->name;
 	of_property_read_string(node, "clock-output-names", &clk_name);
@@ -107,8 +123,11 @@ static int clk_pwm_probe(struct platform_device *pdev)
 	clk_pwm->pwm = pwm;
 	clk_pwm->hw.init = &init;
 	ret = devm_clk_hw_register(&pdev->dev, &clk_pwm->hw);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return of_clk_add_hw_provider(node, of_clk_hw_simple_get, &clk_pwm->hw);
 }
@@ -120,13 +139,15 @@ static int clk_pwm_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id clk_pwm_dt_ids[] = {
+static const struct of_device_id clk_pwm_dt_ids[] =
+{
 	{ .compatible = "pwm-clock" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, clk_pwm_dt_ids);
 
-static struct platform_driver clk_pwm_driver = {
+static struct platform_driver clk_pwm_driver =
+{
 	.probe = clk_pwm_probe,
 	.remove = clk_pwm_remove,
 	.driver = {

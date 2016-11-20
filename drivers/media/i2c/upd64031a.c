@@ -48,7 +48,8 @@ module_param(debug, int, 0644);
 MODULE_PARM_DESC(debug, "Debug level (0-1)");
 
 
-enum {
+enum
+{
 	R00 = 0, R01, R02, R03, R04,
 	R05, R06, R07, R08, R09,
 	R0A, R0B, R0C, R0D, R0E, R0F,
@@ -59,7 +60,8 @@ enum {
 	TOT_REGS
 };
 
-struct upd64031a_state {
+struct upd64031a_state
+{
 	struct v4l2_subdev sd;
 	u8 regs[TOT_REGS];
 	u8 gr_mode;
@@ -73,7 +75,8 @@ static inline struct upd64031a_state *to_state(struct v4l2_subdev *sd)
 	return container_of(sd, struct upd64031a_state, sd);
 }
 
-static u8 upd64031a_init[] = {
+static u8 upd64031a_init[] =
+{
 	0x00, 0xb8, 0x48, 0xd2, 0xe6,
 	0x03, 0x10, 0x0b, 0xaf, 0x7f,
 	0x00, 0x00, 0x1d, 0x5e, 0x00,
@@ -88,7 +91,10 @@ static u8 upd64031a_read(struct v4l2_subdev *sd, u8 reg)
 	u8 buf[2];
 
 	if (reg >= sizeof(buf))
+	{
 		return 0xff;
+	}
+
 	i2c_master_recv(client, buf, 2);
 	return buf[reg];
 }
@@ -103,8 +109,11 @@ static void upd64031a_write(struct v4l2_subdev *sd, u8 reg, u8 val)
 	buf[0] = reg;
 	buf[1] = val;
 	v4l2_dbg(1, debug, sd, "write reg: %02X val: %02X\n", reg, val);
+
 	if (i2c_master_send(client, buf, 2) != 2)
+	{
 		v4l2_err(sd, "I/O error write 0x%02x/0x%02x\n", reg, val);
+	}
 }
 
 /* ------------------------------------------------------------------------ */
@@ -124,7 +133,7 @@ static int upd64031a_s_frequency(struct v4l2_subdev *sd, const struct v4l2_frequ
 /* ------------------------------------------------------------------------ */
 
 static int upd64031a_s_routing(struct v4l2_subdev *sd,
-			       u32 input, u32 output, u32 config)
+							   u32 input, u32 output, u32 config)
 {
 	struct upd64031a_state *state = to_state(sd);
 	u8 r00, r05, r08;
@@ -137,9 +146,9 @@ static int upd64031a_s_routing(struct v4l2_subdev *sd,
 		(input & UPD64031A_VERTICAL_EXTERNAL) << 2;
 	r00 = (state->regs[R00] & ~GR_MODE_MASK) | state->gr_mode;
 	r05 = (state->regs[R00] & ~SYNC_CIRCUIT_MASK) |
-		state->ext_comp_sync | state->ext_vert_sync;
+		  state->ext_comp_sync | state->ext_vert_sync;
 	r08 = (state->regs[R08] & ~DIRECT_3DYCS_CONNECT_MASK) |
-		state->direct_3dycs_connect;
+		  state->direct_3dycs_connect;
 	upd64031a_write(sd, R00, r00);
 	upd64031a_write(sd, R05, r05);
 	upd64031a_write(sd, R08, r08);
@@ -149,7 +158,7 @@ static int upd64031a_s_routing(struct v4l2_subdev *sd,
 static int upd64031a_log_status(struct v4l2_subdev *sd)
 {
 	v4l2_info(sd, "Status: SA00=0x%02x SA01=0x%02x\n",
-			upd64031a_read(sd, 0), upd64031a_read(sd, 1));
+			  upd64031a_read(sd, 0), upd64031a_read(sd, 1));
 	return 0;
 }
 
@@ -170,7 +179,8 @@ static int upd64031a_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_re
 
 /* ----------------------------------------------------------------------- */
 
-static const struct v4l2_subdev_core_ops upd64031a_core_ops = {
+static const struct v4l2_subdev_core_ops upd64031a_core_ops =
+{
 	.log_status = upd64031a_log_status,
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register = upd64031a_g_register,
@@ -178,15 +188,18 @@ static const struct v4l2_subdev_core_ops upd64031a_core_ops = {
 #endif
 };
 
-static const struct v4l2_subdev_tuner_ops upd64031a_tuner_ops = {
+static const struct v4l2_subdev_tuner_ops upd64031a_tuner_ops =
+{
 	.s_frequency = upd64031a_s_frequency,
 };
 
-static const struct v4l2_subdev_video_ops upd64031a_video_ops = {
+static const struct v4l2_subdev_video_ops upd64031a_video_ops =
+{
 	.s_routing = upd64031a_s_routing,
 };
 
-static const struct v4l2_subdev_ops upd64031a_ops = {
+static const struct v4l2_subdev_ops upd64031a_ops =
+{
 	.core = &upd64031a_core_ops,
 	.tuner = &upd64031a_tuner_ops,
 	.video = &upd64031a_video_ops,
@@ -197,29 +210,39 @@ static const struct v4l2_subdev_ops upd64031a_ops = {
 /* i2c implementation */
 
 static int upd64031a_probe(struct i2c_client *client,
-			   const struct i2c_device_id *id)
+						   const struct i2c_device_id *id)
 {
 	struct upd64031a_state *state;
 	struct v4l2_subdev *sd;
 	int i;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -EIO;
+	}
 
 	v4l_info(client, "chip found @ 0x%x (%s)\n",
-			client->addr << 1, client->adapter->name);
+			 client->addr << 1, client->adapter->name);
 
 	state = devm_kzalloc(&client->dev, sizeof(*state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	sd = &state->sd;
 	v4l2_i2c_subdev_init(sd, client, &upd64031a_ops);
 	memcpy(state->regs, upd64031a_init, sizeof(state->regs));
 	state->gr_mode = UPD64031A_GR_ON << 6;
 	state->direct_3dycs_connect = UPD64031A_3DYCS_COMPOSITE << 4;
 	state->ext_comp_sync = state->ext_vert_sync = 0;
+
 	for (i = 0; i < TOT_REGS; i++)
+	{
 		upd64031a_write(sd, i, state->regs[i]);
+	}
+
 	return 0;
 }
 
@@ -233,13 +256,15 @@ static int upd64031a_remove(struct i2c_client *client)
 
 /* ----------------------------------------------------------------------- */
 
-static const struct i2c_device_id upd64031a_id[] = {
+static const struct i2c_device_id upd64031a_id[] =
+{
 	{ "upd64031a", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, upd64031a_id);
 
-static struct i2c_driver upd64031a_driver = {
+static struct i2c_driver upd64031a_driver =
+{
 	.driver = {
 		.name	= "upd64031a",
 	},

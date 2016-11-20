@@ -65,7 +65,8 @@
 #define CSR_MODEL		0x17
 #define CSR_DIRECTORY_ID	0x20
 
-struct fw_csr_iterator {
+struct fw_csr_iterator
+{
 	const u32 *p;
 	const u32 *end;
 };
@@ -79,7 +80,8 @@ extern struct bus_type fw_bus_type;
 struct fw_card_driver;
 struct fw_node;
 
-struct fw_card {
+struct fw_card
+{
 	const struct fw_card_driver *driver;
 	struct device *device;
 	struct kref kref;
@@ -149,13 +151,15 @@ static inline void fw_card_put(struct fw_card *card)
 	kref_put(&card->kref, fw_card_release);
 }
 
-struct fw_attribute_group {
+struct fw_attribute_group
+{
 	struct attribute_group *groups[2];
 	struct attribute_group group;
 	struct attribute *attrs[13];
 };
 
-enum fw_device_state {
+enum fw_device_state
+{
 	FW_DEVICE_INITIALIZING,
 	FW_DEVICE_RUNNING,
 	FW_DEVICE_GONE,
@@ -179,7 +183,8 @@ enum fw_device_state {
  * was called on the last fw_unit.  Alternatively, they may be accessed while
  * holding fw_device_rwsem.
  */
-struct fw_device {
+struct fw_device
+{
 	atomic_t state;
 	struct fw_node *node;
 	int node_id;
@@ -194,11 +199,11 @@ struct fw_device {
 	const u32 *config_rom;
 	size_t config_rom_length;
 	int config_rom_retries;
-	unsigned is_local:1;
-	unsigned max_rec:4;
-	unsigned cmc:1;
-	unsigned irmc:1;
-	unsigned bc_implemented:2;
+	unsigned is_local: 1;
+	unsigned max_rec: 4;
+	unsigned cmc: 1;
+	unsigned irmc: 1;
+	unsigned bc_implemented: 2;
 
 	work_func_t workfn;
 	struct delayed_work work;
@@ -220,7 +225,8 @@ int fw_device_enable_phys_dma(struct fw_device *device);
 /*
  * fw_unit.directory must not be accessed after device_del(&fw_unit.device).
  */
-struct fw_unit {
+struct fw_unit
+{
 	struct device device;
 	const u32 *directory;
 	struct fw_attribute_group attribute_group;
@@ -250,7 +256,8 @@ static inline struct fw_device *fw_parent_device(struct fw_unit *unit)
 
 struct ieee1394_device_id;
 
-struct fw_driver {
+struct fw_driver
+{
 	struct device_driver driver;
 	int (*probe)(struct fw_unit *unit, const struct ieee1394_device_id *id);
 	/* Called when the parent device sits through a bus reset. */
@@ -263,10 +270,10 @@ struct fw_packet;
 struct fw_request;
 
 typedef void (*fw_packet_callback_t)(struct fw_packet *packet,
-				     struct fw_card *card, int status);
+									 struct fw_card *card, int status);
 typedef void (*fw_transaction_callback_t)(struct fw_card *card, int rcode,
-					  void *data, size_t length,
-					  void *callback_data);
+		void *data, size_t length,
+		void *callback_data);
 /*
  * This callback handles an inbound request subaction.  It is called in
  * RCU read-side context, therefore must not sleep.
@@ -280,14 +287,15 @@ typedef void (*fw_transaction_callback_t)(struct fw_card *card, int rcode,
  * takes care of that.
  */
 typedef void (*fw_address_callback_t)(struct fw_card *card,
-				      struct fw_request *request,
-				      int tcode, int destination, int source,
-				      int generation,
-				      unsigned long long offset,
-				      void *data, size_t length,
-				      void *callback_data);
+									  struct fw_request *request,
+									  int tcode, int destination, int source,
+									  int generation,
+									  unsigned long long offset,
+									  void *data, size_t length,
+									  void *callback_data);
 
-struct fw_packet {
+struct fw_packet
+{
 	int speed;
 	int generation;
 	u32 header[4];
@@ -312,7 +320,8 @@ struct fw_packet {
 	void *driver_data;
 };
 
-struct fw_transaction {
+struct fw_transaction
+{
 	int node_id; /* The generation is implied; it is always the current. */
 	int tlabel;
 	struct list_head link;
@@ -330,7 +339,8 @@ struct fw_transaction {
 	void *callback_data;
 };
 
-struct fw_address_handler {
+struct fw_address_handler
+{
 	u64 offset;
 	u64 length;
 	fw_address_callback_t address_callback;
@@ -338,7 +348,8 @@ struct fw_address_handler {
 	struct list_head link;
 };
 
-struct fw_address_region {
+struct fw_address_region
+{
 	u64 start;
 	u64 end;
 };
@@ -346,20 +357,20 @@ struct fw_address_region {
 extern const struct fw_address_region fw_high_memory_region;
 
 int fw_core_add_address_handler(struct fw_address_handler *handler,
-				const struct fw_address_region *region);
+								const struct fw_address_region *region);
 void fw_core_remove_address_handler(struct fw_address_handler *handler);
 void fw_send_response(struct fw_card *card,
-		      struct fw_request *request, int rcode);
+					  struct fw_request *request, int rcode);
 int fw_get_request_speed(struct fw_request *request);
 void fw_send_request(struct fw_card *card, struct fw_transaction *t,
-		     int tcode, int destination_id, int generation, int speed,
-		     unsigned long long offset, void *payload, size_t length,
-		     fw_transaction_callback_t callback, void *callback_data);
+					 int tcode, int destination_id, int generation, int speed,
+					 unsigned long long offset, void *payload, size_t length,
+					 fw_transaction_callback_t callback, void *callback_data);
 int fw_cancel_transaction(struct fw_card *card,
-			  struct fw_transaction *transaction);
+						  struct fw_transaction *transaction);
 int fw_run_transaction(struct fw_card *card, int tcode, int destination_id,
-		       int generation, int speed, unsigned long long offset,
-		       void *payload, size_t length);
+					   int generation, int speed, unsigned long long offset,
+					   void *payload, size_t length);
 const char *fw_rcode_string(int rcode);
 
 static inline int fw_stream_packet_destination_id(int tag, int channel, int sy)
@@ -368,9 +379,10 @@ static inline int fw_stream_packet_destination_id(int tag, int channel, int sy)
 }
 
 void fw_schedule_bus_reset(struct fw_card *card, bool delayed,
-			   bool short_reset);
+						   bool short_reset);
 
-struct fw_descriptor {
+struct fw_descriptor
+{
 	struct list_head link;
 	size_t length;
 	u32 immediate;
@@ -389,16 +401,17 @@ void fw_core_remove_descriptor(struct fw_descriptor *desc);
  * low-bandwidth streaming (e.g. audio) or more advanced
  * scatter-gather streaming (e.g. assembling video frame automatically).
  */
-struct fw_iso_packet {
+struct fw_iso_packet
+{
 	u16 payload_length;	/* Length of indirect payload		*/
-	u32 interrupt:1;	/* Generate interrupt on this packet	*/
-	u32 skip:1;		/* tx: Set to not send packet at all	*/
-				/* rx: Sync bit, wait for matching sy	*/
-	u32 tag:2;		/* tx: Tag in packet header		*/
-	u32 sy:4;		/* tx: Sy in packet header		*/
-	u32 header_length:8;	/* Length of immediate header		*/
-	u32 header[0];		/* tx: Top of 1394 isoch. data_block	*/
-};
+	u32 interrupt: 1;	/* Generate interrupt on this packet	*/
+		u32 skip: 1;		/* tx: Set to not send packet at all	*/
+		/* rx: Sync bit, wait for matching sy	*/
+		u32 tag: 2;		/* tx: Tag in packet header		*/
+		u32 sy: 4;		/* tx: Sy in packet header		*/
+		u32 header_length: 8;	/* Length of immediate header		*/
+		u32 header[0];		/* tx: Top of 1394 isoch. data_block	*/
+	};
 
 #define FW_ISO_CONTEXT_TRANSMIT			0
 #define FW_ISO_CONTEXT_RECEIVE			1
@@ -410,63 +423,66 @@ struct fw_iso_packet {
 #define FW_ISO_CONTEXT_MATCH_TAG3	 8
 #define FW_ISO_CONTEXT_MATCH_ALL_TAGS	15
 
-/*
- * An iso buffer is just a set of pages mapped for DMA in the
- * specified direction.  Since the pages are to be used for DMA, they
- * are not mapped into the kernel virtual address space.  We store the
- * DMA address in the page private. The helper function
- * fw_iso_buffer_map() will map the pages into a given vma.
- */
-struct fw_iso_buffer {
+	/*
+	 * An iso buffer is just a set of pages mapped for DMA in the
+	 * specified direction.  Since the pages are to be used for DMA, they
+	 * are not mapped into the kernel virtual address space.  We store the
+	 * DMA address in the page private. The helper function
+	 * fw_iso_buffer_map() will map the pages into a given vma.
+	 */
+	struct fw_iso_buffer
+{
 	enum dma_data_direction direction;
-	struct page **pages;
+	struct page * * pages;
 	int page_count;
 	int page_count_mapped;
 };
 
-int fw_iso_buffer_init(struct fw_iso_buffer *buffer, struct fw_card *card,
-		       int page_count, enum dma_data_direction direction);
-void fw_iso_buffer_destroy(struct fw_iso_buffer *buffer, struct fw_card *card);
-size_t fw_iso_buffer_lookup(struct fw_iso_buffer *buffer, dma_addr_t completed);
+int fw_iso_buffer_init(struct fw_iso_buffer * buffer, struct fw_card * card,
+					   int page_count, enum dma_data_direction direction);
+void fw_iso_buffer_destroy(struct fw_iso_buffer * buffer, struct fw_card * card);
+size_t fw_iso_buffer_lookup(struct fw_iso_buffer * buffer, dma_addr_t completed);
 
 struct fw_iso_context;
-typedef void (*fw_iso_callback_t)(struct fw_iso_context *context,
-				  u32 cycle, size_t header_length,
-				  void *header, void *data);
-typedef void (*fw_iso_mc_callback_t)(struct fw_iso_context *context,
-				     dma_addr_t completed, void *data);
-struct fw_iso_context {
-	struct fw_card *card;
+typedef void (*fw_iso_callback_t)(struct fw_iso_context * context,
+								  u32 cycle, size_t header_length,
+								  void *header, void *data);
+typedef void (*fw_iso_mc_callback_t)(struct fw_iso_context * context,
+									 dma_addr_t completed, void *data);
+struct fw_iso_context
+{
+	struct fw_card * card;
 	int type;
 	int channel;
 	int speed;
 	bool drop_overflow_headers;
 	size_t header_size;
-	union {
+	union
+	{
 		fw_iso_callback_t sc;
 		fw_iso_mc_callback_t mc;
 	} callback;
 	void *callback_data;
 };
 
-struct fw_iso_context *fw_iso_context_create(struct fw_card *card,
+struct fw_iso_context * fw_iso_context_create(struct fw_card * card,
 		int type, int channel, int speed, size_t header_size,
 		fw_iso_callback_t callback, void *callback_data);
-int fw_iso_context_set_channels(struct fw_iso_context *ctx, u64 *channels);
-int fw_iso_context_queue(struct fw_iso_context *ctx,
-			 struct fw_iso_packet *packet,
-			 struct fw_iso_buffer *buffer,
-			 unsigned long payload);
-void fw_iso_context_queue_flush(struct fw_iso_context *ctx);
-int fw_iso_context_flush_completions(struct fw_iso_context *ctx);
-int fw_iso_context_start(struct fw_iso_context *ctx,
-			 int cycle, int sync, int tags);
-int fw_iso_context_stop(struct fw_iso_context *ctx);
-void fw_iso_context_destroy(struct fw_iso_context *ctx);
-void fw_iso_resource_manage(struct fw_card *card, int generation,
-			    u64 channels_mask, int *channel, int *bandwidth,
-			    bool allocate);
+int fw_iso_context_set_channels(struct fw_iso_context * ctx, u64 * channels);
+int fw_iso_context_queue(struct fw_iso_context * ctx,
+						 struct fw_iso_packet * packet,
+						 struct fw_iso_buffer * buffer,
+						 unsigned long payload);
+void fw_iso_context_queue_flush(struct fw_iso_context * ctx);
+int fw_iso_context_flush_completions(struct fw_iso_context * ctx);
+int fw_iso_context_start(struct fw_iso_context * ctx,
+						 int cycle, int sync, int tags);
+int fw_iso_context_stop(struct fw_iso_context * ctx);
+void fw_iso_context_destroy(struct fw_iso_context * ctx);
+void fw_iso_resource_manage(struct fw_card * card, int generation,
+							u64 channels_mask, int *channel, int *bandwidth,
+							bool allocate);
 
-extern struct workqueue_struct *fw_workqueue;
+extern struct workqueue_struct * fw_workqueue;
 
 #endif /* _LINUX_FIREWIRE_H */

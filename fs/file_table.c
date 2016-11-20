@@ -32,7 +32,8 @@
 #include "internal.h"
 
 /* sysctl tunables... */
-struct files_stat_struct files_stat = {
+struct files_stat_struct files_stat =
+{
 	.max_files = NR_FILE
 };
 
@@ -77,14 +78,14 @@ EXPORT_SYMBOL_GPL(get_max_files);
  */
 #if defined(CONFIG_SYSCTL) && defined(CONFIG_PROC_FS)
 int proc_nr_files(struct ctl_table *table, int write,
-                     void __user *buffer, size_t *lenp, loff_t *ppos)
+				  void __user *buffer, size_t *lenp, loff_t *ppos)
 {
 	files_stat.nr_files = get_nr_files();
 	return proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
 }
 #else
 int proc_nr_files(struct ctl_table *table, int write,
-                     void __user *buffer, size_t *lenp, loff_t *ppos)
+				  void __user *buffer, size_t *lenp, loff_t *ppos)
 {
 	return -ENOSYS;
 }
@@ -110,23 +111,31 @@ struct file *get_empty_filp(void)
 	/*
 	 * Privileged users can go above max_files
 	 */
-	if (get_nr_files() >= files_stat.max_files && !capable(CAP_SYS_ADMIN)) {
+	if (get_nr_files() >= files_stat.max_files && !capable(CAP_SYS_ADMIN))
+	{
 		/*
 		 * percpu_counters are inaccurate.  Do an expensive check before
 		 * we go and fail.
 		 */
 		if (percpu_counter_sum_positive(&nr_files) >= files_stat.max_files)
+		{
 			goto over;
+		}
 	}
 
 	f = kmem_cache_zalloc(filp_cachep, GFP_KERNEL);
+
 	if (unlikely(!f))
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	percpu_counter_inc(&nr_files);
 	f->f_cred = get_cred(cred);
 	error = security_file_alloc(f);
-	if (unlikely(error)) {
+
+	if (unlikely(error))
+	{
 		file_free(f);
 		return ERR_PTR(error);
 	}
@@ -140,11 +149,14 @@ struct file *get_empty_filp(void)
 	return f;
 
 over:
+
 	/* Ran out of filps - report that */
-	if (get_nr_files() > old_max) {
+	if (get_nr_files() > old_max)
+	{
 		pr_info("VFS: file-max limit %lu reached\n", get_max_files());
 		old_max = get_nr_files();
 	}
+
 	return ERR_PTR(-ENFILE);
 }
 
@@ -156,27 +168,41 @@ over:
  * @fop: the 'struct file_operations' for the new file
  */
 struct file *alloc_file(struct path *path, fmode_t mode,
-		const struct file_operations *fop)
+						const struct file_operations *fop)
 {
 	struct file *file;
 
 	file = get_empty_filp();
+
 	if (IS_ERR(file))
+	{
 		return file;
+	}
 
 	file->f_path = *path;
 	file->f_inode = path->dentry->d_inode;
 	file->f_mapping = path->dentry->d_inode->i_mapping;
+
 	if ((mode & FMODE_READ) &&
-	     likely(fop->read || fop->read_iter))
+		likely(fop->read || fop->read_iter))
+	{
 		mode |= FMODE_CAN_READ;
+	}
+
 	if ((mode & FMODE_WRITE) &&
-	     likely(fop->write || fop->write_iter))
+		likely(fop->write || fop->write_iter))
+	{
 		mode |= FMODE_CAN_WRITE;
+	}
+
 	file->f_mode = mode;
 	file->f_op = fop;
+
 	if ((mode & (FMODE_READ | FMODE_WRITE)) == FMODE_READ)
+	{
 		i_readcount_inc(path->dentry->d_inode);
+	}
+
 	return file;
 }
 EXPORT_SYMBOL(alloc_file);
@@ -199,26 +225,43 @@ static void __fput(struct file *file)
 	eventpoll_release(file);
 	locks_remove_file(file);
 
-	if (unlikely(file->f_flags & FASYNC)) {
+	if (unlikely(file->f_flags & FASYNC))
+	{
 		if (file->f_op->fasync)
+		{
 			file->f_op->fasync(-1, file, 0);
+		}
 	}
+
 	ima_file_free(file);
+
 	if (file->f_op->release)
+	{
 		file->f_op->release(inode, file);
+	}
+
 	security_file_free(file);
+
 	if (unlikely(S_ISCHR(inode->i_mode) && inode->i_cdev != NULL &&
-		     !(file->f_mode & FMODE_PATH))) {
+				 !(file->f_mode & FMODE_PATH)))
+	{
 		cdev_put(inode->i_cdev);
 	}
+
 	fops_put(file->f_op);
 	put_pid(file->f_owner.pid);
+
 	if ((file->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_READ)
+	{
 		i_readcount_dec(inode);
-	if (file->f_mode & FMODE_WRITER) {
+	}
+
+	if (file->f_mode & FMODE_WRITER)
+	{
 		put_write_access(inode);
 		__mnt_drop_write(mnt);
 	}
+
 	file->f_path.dentry = NULL;
 	file->f_path.mnt = NULL;
 	file->f_inode = NULL;
@@ -233,7 +276,8 @@ static void delayed_fput(struct work_struct *unused)
 	struct llist_node *node = llist_del_all(&delayed_fput_list);
 	struct llist_node *next;
 
-	for (; node; node = next) {
+	for (; node; node = next)
+	{
 		next = llist_next(node);
 		__fput(llist_entry(node, struct file, f_u.fu_llist));
 	}
@@ -263,13 +307,19 @@ static DECLARE_DELAYED_WORK(delayed_fput_work, delayed_fput);
 
 void fput(struct file *file)
 {
-	if (atomic_long_dec_and_test(&file->f_count)) {
+	if (atomic_long_dec_and_test(&file->f_count))
+	{
 		struct task_struct *task = current;
 
-		if (likely(!in_interrupt() && !(task->flags & PF_KTHREAD))) {
+		if (likely(!in_interrupt() && !(task->flags & PF_KTHREAD)))
+		{
 			init_task_work(&file->f_u.fu_rcuhead, ____fput);
+
 			if (!task_work_add(task, &file->f_u.fu_rcuhead, true))
+			{
 				return;
+			}
+
 			/*
 			 * After this task has run exit_task_work(),
 			 * task_work_add() will fail.  Fall through to delayed
@@ -278,7 +328,9 @@ void fput(struct file *file)
 		}
 
 		if (llist_add(&file->f_u.fu_llist, &delayed_fput_list))
+		{
 			schedule_delayed_work(&delayed_fput_work, 1);
+		}
 	}
 }
 
@@ -292,7 +344,8 @@ void fput(struct file *file)
  */
 void __fput_sync(struct file *file)
 {
-	if (atomic_long_dec_and_test(&file->f_count)) {
+	if (atomic_long_dec_and_test(&file->f_count))
+	{
 		struct task_struct *task = current;
 		BUG_ON(!(task->flags & PF_KTHREAD));
 		__fput(file);
@@ -303,16 +356,17 @@ EXPORT_SYMBOL(fput);
 
 void put_filp(struct file *file)
 {
-	if (atomic_long_dec_and_test(&file->f_count)) {
+	if (atomic_long_dec_and_test(&file->f_count))
+	{
 		security_file_free(file);
 		file_free(file);
 	}
 }
 
 void __init files_init(void)
-{ 
+{
 	filp_cachep = kmem_cache_create("filp", sizeof(struct file), 0,
-			SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
+									SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
 	percpu_counter_init(&nr_files, 0, GFP_KERNEL);
 }
 
@@ -323,10 +377,10 @@ void __init files_init(void)
 void __init files_maxfiles_init(void)
 {
 	unsigned long n;
-	unsigned long memreserve = (totalram_pages - nr_free_pages()) * 3/2;
+	unsigned long memreserve = (totalram_pages - nr_free_pages()) * 3 / 2;
 
 	memreserve = min(memreserve, totalram_pages - 1);
 	n = ((totalram_pages - memreserve) * (PAGE_SIZE / 1024)) / 10;
 
 	files_stat.max_files = max_t(unsigned long, n, NR_FILE);
-} 
+}

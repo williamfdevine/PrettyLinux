@@ -25,8 +25,11 @@ static int cerf_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 	int ret;
 
 	ret = gpio_request_one(CERF_GPIO_CF_RESET, GPIOF_OUT_INIT_LOW, "CF_RESET");
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	skt->stat[SOC_STAT_CD].gpio = CERF_GPIO_CF_CD;
 	skt->stat[SOC_STAT_CD].name = "CF_CD";
@@ -47,18 +50,19 @@ static void cerf_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 
 static int
 cerf_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
-			     const socket_state_t *state)
+							 const socket_state_t *state)
 {
-	switch (state->Vcc) {
-	case 0:
-	case 50:
-	case 33:
-		break;
+	switch (state->Vcc)
+	{
+		case 0:
+		case 50:
+		case 33:
+			break;
 
-	default:
-		printk(KERN_ERR "%s(): unrecognized Vcc %u\n",
-			__func__, state->Vcc);
-		return -1;
+		default:
+			printk(KERN_ERR "%s(): unrecognized Vcc %u\n",
+				   __func__, state->Vcc);
+			return -1;
 	}
 
 	gpio_set_value(CERF_GPIO_CF_RESET, !!(state->flags & SS_RESET));
@@ -66,7 +70,8 @@ cerf_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 	return 0;
 }
 
-static struct pcmcia_low_level cerf_pcmcia_ops = { 
+static struct pcmcia_low_level cerf_pcmcia_ops =
+{
 	.owner			= THIS_MODULE,
 	.hw_init		= cerf_pcmcia_hw_init,
 	.hw_shutdown		= cerf_pcmcia_hw_shutdown,
@@ -79,7 +84,9 @@ int pcmcia_cerf_init(struct device *dev)
 	int ret = -ENODEV;
 
 	if (machine_is_cerf())
+	{
 		ret = sa11xx_drv_pcmcia_probe(dev, &cerf_pcmcia_ops, CERF_SOCKET, 1);
+	}
 
 	return ret;
 }

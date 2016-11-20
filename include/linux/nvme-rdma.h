@@ -14,11 +14,13 @@
 #ifndef _LINUX_NVME_RDMA_H
 #define _LINUX_NVME_RDMA_H
 
-enum nvme_rdma_cm_fmt {
+enum nvme_rdma_cm_fmt
+{
 	NVME_RDMA_CM_FMT_1_0 = 0x0,
 };
 
-enum nvme_rdma_cm_status {
+enum nvme_rdma_cm_status
+{
 	NVME_RDMA_CM_INVALID_LEN	= 0x01,
 	NVME_RDMA_CM_INVALID_RECFMT	= 0x02,
 	NVME_RDMA_CM_INVALID_QID	= 0x03,
@@ -37,7 +39,8 @@ enum nvme_rdma_cm_status {
  * @hrqsize:       host receive queue size to be created
  * @hsqsize:       host send queue size to be created
  */
-struct nvme_rdma_cm_req {
+struct nvme_rdma_cm_req
+{
 	__le16		recfmt;
 	__le16		qid;
 	__le16		hrqsize;
@@ -51,7 +54,8 @@ struct nvme_rdma_cm_req {
  * @recfmt:        format of the RDMA Private Data
  * @crqsize:       controller receive queue size
  */
-struct nvme_rdma_cm_rep {
+struct nvme_rdma_cm_rep
+{
 	__le16		recfmt;
 	__le16		crqsize;
 	u8		rsvd[28];
@@ -63,7 +67,8 @@ struct nvme_rdma_cm_rep {
  * @recfmt:        format of the RDMA Private Data
  * @fsts:          error status for the associated connect request
  */
-struct nvme_rdma_cm_rej {
+struct nvme_rdma_cm_rej
+{
 	__le16		recfmt;
 	__le16		sts;
 };

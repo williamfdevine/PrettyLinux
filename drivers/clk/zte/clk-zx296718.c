@@ -94,26 +94,30 @@
 
 static DEFINE_SPINLOCK(clk_lock);
 
-static struct zx_pll_config pll_cpu_table[] = {
+static struct zx_pll_config pll_cpu_table[] =
+{
 	PLL_RATE(1312000000, 0x00103621, 0x04aaaaaa),
 	PLL_RATE(1407000000, 0x00103a21, 0x04aaaaaa),
 	PLL_RATE(1503000000, 0x00103e21, 0x04aaaaaa),
 	PLL_RATE(1600000000, 0x00104221, 0x04aaaaaa),
 };
 
-PNAME(osc) = {
+PNAME(osc) =
+{
 	"osc24m",
 	"osc32k",
 };
 
-PNAME(dbg_wclk_p) = {
+PNAME(dbg_wclk_p) =
+{
 	"clk334m",
 	"clk466m",
 	"clk396m",
 	"clk250m",
 };
 
-PNAME(a72_coreclk_p) = {
+PNAME(a72_coreclk_p) =
+{
 	"osc24m",
 	"pll_mm0_1188m",
 	"pll_mm1_1296m",
@@ -124,7 +128,8 @@ PNAME(a72_coreclk_p) = {
 	"pll_vga_1800m",
 };
 
-PNAME(cpu_periclk_p) = {
+PNAME(cpu_periclk_p) =
+{
 	"osc24m",
 	"clk500m",
 	"clk594m",
@@ -135,7 +140,8 @@ PNAME(cpu_periclk_p) = {
 	"clk125m",
 };
 
-PNAME(a53_coreclk_p) = {
+PNAME(a53_coreclk_p) =
+{
 	"osc24m",
 	"clk1000m",
 	"pll_mm0_1188m",
@@ -146,7 +152,8 @@ PNAME(a53_coreclk_p) = {
 	"pll_audio_1800m",
 };
 
-PNAME(sec_wclk_p) = {
+PNAME(sec_wclk_p) =
+{
 	"osc24m",
 	"clk396m",
 	"clk334m",
@@ -157,7 +164,8 @@ PNAME(sec_wclk_p) = {
 	"clk99m",
 };
 
-PNAME(sd_nand_wclk_p) = {
+PNAME(sd_nand_wclk_p) =
+{
 	"osc24m",
 	"clk49m5",
 	"clk99m",
@@ -168,7 +176,8 @@ PNAME(sd_nand_wclk_p) = {
 	"clk216m",
 };
 
-PNAME(emmc_wclk_p) = {
+PNAME(emmc_wclk_p) =
+{
 	"osc24m",
 	"clk198m",
 	"clk99m",
@@ -179,17 +188,20 @@ PNAME(emmc_wclk_p) = {
 	"clk148m5",
 };
 
-PNAME(clk32_p) = {
+PNAME(clk32_p) =
+{
 	"osc32k",
 	"clk32k768",
 };
 
-PNAME(usb_ref24m_p) = {
+PNAME(usb_ref24m_p) =
+{
 	"osc32k",
 	"clk32k768",
 };
 
-PNAME(sys_noc_alck_p) = {
+PNAME(sys_noc_alck_p) =
+{
 	"osc24m",
 	"clk250m",
 	"clk198m",
@@ -200,7 +212,8 @@ PNAME(sys_noc_alck_p) = {
 	"clk240m",
 };
 
-PNAME(vde_aclk_p) = {
+PNAME(vde_aclk_p) =
+{
 	"clk334m",
 	"clk594m",
 	"clk500m",
@@ -211,7 +224,8 @@ PNAME(vde_aclk_p) = {
 	"clk294m",
 };
 
-PNAME(vce_aclk_p) = {
+PNAME(vce_aclk_p) =
+{
 	"clk334m",
 	"clk594m",
 	"clk500m",
@@ -222,7 +236,8 @@ PNAME(vce_aclk_p) = {
 	"clk294m",
 };
 
-PNAME(hde_aclk_p) = {
+PNAME(hde_aclk_p) =
+{
 	"clk334m",
 	"clk594m",
 	"clk500m",
@@ -233,7 +248,8 @@ PNAME(hde_aclk_p) = {
 	"clk294m",
 };
 
-PNAME(gpu_aclk_p) = {
+PNAME(gpu_aclk_p) =
+{
 	"clk334m",
 	"clk648m",
 	"clk594m",
@@ -244,14 +260,16 @@ PNAME(gpu_aclk_p) = {
 	"clk294m",
 };
 
-PNAME(sappu_aclk_p) = {
+PNAME(sappu_aclk_p) =
+{
 	"clk396m",
 	"clk500m",
 	"clk250m",
 	"clk148m5",
 };
 
-PNAME(sappu_wclk_p) = {
+PNAME(sappu_wclk_p) =
+{
 	"clk198m",
 	"clk396m",
 	"clk334m",
@@ -262,7 +280,8 @@ PNAME(sappu_wclk_p) = {
 	"clk99m",
 };
 
-PNAME(vou_aclk_p) = {
+PNAME(vou_aclk_p) =
+{
 	"clk334m",
 	"clk594m",
 	"clk500m",
@@ -273,7 +292,8 @@ PNAME(vou_aclk_p) = {
 	"clk294m",
 };
 
-PNAME(vou_main_wclk_p) = {
+PNAME(vou_main_wclk_p) =
+{
 	"clk108m",
 	"clk594m",
 	"clk297m",
@@ -284,7 +304,8 @@ PNAME(vou_main_wclk_p) = {
 	"clk_vga",
 };
 
-PNAME(vou_aux_wclk_p) = {
+PNAME(vou_aux_wclk_p) =
+{
 	"clk108m",
 	"clk148m5",
 	"clk74m25",
@@ -295,7 +316,8 @@ PNAME(vou_aux_wclk_p) = {
 	"clk"
 };
 
-PNAME(vou_ppu_wclk_p) = {
+PNAME(vou_ppu_wclk_p) =
+{
 	"clk334m",
 	"clk432m",
 	"clk396m",
@@ -306,12 +328,14 @@ PNAME(vou_ppu_wclk_p) = {
 	"clk99m",
 };
 
-PNAME(vga_i2c_wclk_p) = {
+PNAME(vga_i2c_wclk_p) =
+{
 	"osc24m",
 	"clk99m",
 };
 
-PNAME(viu_m0_aclk_p) = {
+PNAME(viu_m0_aclk_p) =
+{
 	"clk334m",
 	"clk432m",
 	"clk396m",
@@ -322,7 +346,8 @@ PNAME(viu_m0_aclk_p) = {
 	"osc24m",
 };
 
-PNAME(viu_m1_aclk_p) = {
+PNAME(viu_m1_aclk_p) =
+{
 	"clk198m",
 	"clk250m",
 	"clk297m",
@@ -333,7 +358,8 @@ PNAME(viu_m1_aclk_p) = {
 	"osc24m",
 };
 
-PNAME(viu_clk_p) = {
+PNAME(viu_clk_p) =
+{
 	"clk198m",
 	"clk334m",
 	"clk297m",
@@ -344,7 +370,8 @@ PNAME(viu_clk_p) = {
 	"clk148m5",
 };
 
-PNAME(viu_jpeg_clk_p) = {
+PNAME(viu_jpeg_clk_p) =
+{
 	"clk334m",
 	"clk480m",
 	"clk432m",
@@ -355,23 +382,27 @@ PNAME(viu_jpeg_clk_p) = {
 	"clk198m",
 };
 
-PNAME(ts_sys_clk_p) = {
+PNAME(ts_sys_clk_p) =
+{
 	"clk192m",
 	"clk167m",
 	"clk125m",
 	"clk99m",
 };
 
-PNAME(wdt_ares_p) = {
+PNAME(wdt_ares_p) =
+{
 	"osc24m",
 	"clk32k"
 };
 
-static struct clk_zx_pll zx296718_pll_clk[] = {
+static struct clk_zx_pll zx296718_pll_clk[] =
+{
 	ZX296718_PLL("pll_cpu",	"osc24m",	PLL_CPU_REG,	pll_cpu_table),
 };
 
-static struct zx_clk_fixed_factor top_ffactor_clk[] = {
+static struct zx_clk_fixed_factor top_ffactor_clk[] =
+{
 	FFACTOR(0, "clk4m",		"osc24m", 1, 6,  0),
 	FFACTOR(0, "clk2m",		"osc24m", 1, 12, 0),
 	/* pll cpu */
@@ -427,16 +458,19 @@ static struct zx_clk_fixed_factor top_ffactor_clk[] = {
 	FFACTOR(0, "emmc_mux_div2",	"emmc_mux", 1, 2, CLK_SET_RATE_PARENT),
 };
 
-static struct clk_div_table noc_div_table[] = {
+static struct clk_div_table noc_div_table[] =
+{
 	{ .val = 1, .div = 2, },
 	{ .val = 3, .div = 4, },
 };
-static struct zx_clk_div top_div_clk[] = {
+static struct zx_clk_div top_div_clk[] =
+{
 	DIV_T(0, "sys_noc_hclk", "sys_noc_aclk", TOP_CLK_DIV0, 0, 2, 0, noc_div_table),
 	DIV_T(0, "sys_noc_pclk", "sys_noc_aclk", TOP_CLK_DIV0, 4, 2, 0, noc_div_table),
 };
 
-static struct zx_clk_mux top_mux_clk[] = {
+static struct zx_clk_mux top_mux_clk[] =
+{
 	MUX(0, "dbg_mux",	 dbg_wclk_p,	  TOP_CLK_MUX0, 12, 2),
 	MUX(0, "a72_mux",	 a72_coreclk_p,	  TOP_CLK_MUX0, 8, 3),
 	MUX(0, "cpu_peri_mux",	 cpu_periclk_p,	  TOP_CLK_MUX0, 4, 3),
@@ -469,7 +503,8 @@ static struct zx_clk_mux top_mux_clk[] = {
 	MUX(0, "ts_sys_mux",	 ts_sys_clk_p,    TOP_CLK_MUX6, 16, 2),
 };
 
-static struct zx_clk_gate top_gate_clk[] = {
+static struct zx_clk_gate top_gate_clk[] =
+{
 	GATE(CPU_DBG_GATE,    "dbg_wclk",        "dbg_mux",        TOP_CLK_GATE0, 4, CLK_SET_RATE_PARENT, 0),
 	GATE(A72_GATE,        "a72_coreclk",     "a72_mux",        TOP_CLK_GATE0, 3, CLK_SET_RATE_PARENT, 0),
 	GATE(CPU_PERI_GATE,   "cpu_peri",        "cpu_peri_mux",   TOP_CLK_GATE0, 1, CLK_SET_RATE_PARENT, 0),
@@ -532,7 +567,8 @@ static struct zx_clk_gate top_gate_clk[] = {
 	GATE(TEMPSENSOR_GATE, "tempsensor_gate", "clk4m",          TOP_CLK_GATE5, 31,  0,                  0),
 };
 
-static struct clk_hw_onecell_data top_hw_onecell_data = {
+static struct clk_hw_onecell_data top_hw_onecell_data =
+{
 	.num = TOP_NR_CLKS,
 	.hws = {
 		[TOP_NR_CLKS - 1] = NULL,
@@ -545,79 +581,100 @@ static int __init top_clocks_init(struct device_node *np)
 	int i, ret;
 
 	reg_base = of_iomap(np, 0);
-	if (!reg_base) {
+
+	if (!reg_base)
+	{
 		pr_err("%s: Unable to map clk base\n", __func__);
 		return -ENXIO;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(zx296718_pll_clk); i++) {
+	for (i = 0; i < ARRAY_SIZE(zx296718_pll_clk); i++)
+	{
 		zx296718_pll_clk[i].reg_base += (uintptr_t)reg_base;
 		ret = clk_hw_register(NULL, &zx296718_pll_clk[i].hw);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("top clk %s init error!\n",
-				zx296718_pll_clk[i].hw.init->name);
+					zx296718_pll_clk[i].hw.init->name);
 		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(top_ffactor_clk); i++) {
+	for (i = 0; i < ARRAY_SIZE(top_ffactor_clk); i++)
+	{
 		if (top_ffactor_clk[i].id)
 			top_hw_onecell_data.hws[top_ffactor_clk[i].id] =
-					&top_ffactor_clk[i].factor.hw;
+				&top_ffactor_clk[i].factor.hw;
 
 		ret = clk_hw_register(NULL, &top_ffactor_clk[i].factor.hw);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("top clk %s init error!\n",
-				top_ffactor_clk[i].factor.hw.init->name);
+					top_ffactor_clk[i].factor.hw.init->name);
 		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(top_mux_clk); i++) {
+	for (i = 0; i < ARRAY_SIZE(top_mux_clk); i++)
+	{
 		if (top_mux_clk[i].id)
 			top_hw_onecell_data.hws[top_mux_clk[i].id] =
-					&top_mux_clk[i].mux.hw;
+				&top_mux_clk[i].mux.hw;
 
 		top_mux_clk[i].mux.reg += (uintptr_t)reg_base;
 		ret = clk_hw_register(NULL, &top_mux_clk[i].mux.hw);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("top clk %s init error!\n",
-				top_mux_clk[i].mux.hw.init->name);
+					top_mux_clk[i].mux.hw.init->name);
 		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(top_gate_clk); i++) {
+	for (i = 0; i < ARRAY_SIZE(top_gate_clk); i++)
+	{
 		if (top_gate_clk[i].id)
 			top_hw_onecell_data.hws[top_gate_clk[i].id] =
-					&top_gate_clk[i].gate.hw;
+				&top_gate_clk[i].gate.hw;
 
 		top_gate_clk[i].gate.reg += (uintptr_t)reg_base;
 		ret = clk_hw_register(NULL, &top_gate_clk[i].gate.hw);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("top clk %s init error!\n",
-				top_gate_clk[i].gate.hw.init->name);
+					top_gate_clk[i].gate.hw.init->name);
 		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(top_div_clk); i++) {
+	for (i = 0; i < ARRAY_SIZE(top_div_clk); i++)
+	{
 		if (top_div_clk[i].id)
 			top_hw_onecell_data.hws[top_div_clk[i].id] =
-					&top_div_clk[i].div.hw;
+				&top_div_clk[i].div.hw;
 
 		top_div_clk[i].div.reg += (uintptr_t)reg_base;
 		ret = clk_hw_register(NULL, &top_div_clk[i].div.hw);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("top clk %s init error!\n",
-				top_div_clk[i].div.hw.init->name);
+					top_div_clk[i].div.hw.init->name);
 		}
 	}
 
 	if (of_clk_add_hw_provider(np, of_clk_hw_onecell_get, &top_hw_onecell_data))
+	{
 		panic("could not register clk provider\n");
+	}
+
 	pr_info("top clk init over, nr:%d\n", TOP_NR_CLKS);
 
 	return 0;
 }
 
-static struct clk_div_table common_even_div_table[] = {
+static struct clk_div_table common_even_div_table[] =
+{
 	{ .val = 0, .div = 1, },
 	{ .val = 1, .div = 2, },
 	{ .val = 3, .div = 4, },
@@ -629,7 +686,8 @@ static struct clk_div_table common_even_div_table[] = {
 	{ .val = 15, .div = 16, },
 };
 
-static struct clk_div_table common_div_table[] = {
+static struct clk_div_table common_div_table[] =
+{
 	{ .val = 0, .div = 1, },
 	{ .val = 1, .div = 2, },
 	{ .val = 2, .div = 3, },
@@ -648,40 +706,47 @@ static struct clk_div_table common_div_table[] = {
 	{ .val = 15, .div = 16, },
 };
 
-PNAME(lsp0_wclk_common_p) = {
+PNAME(lsp0_wclk_common_p) =
+{
 	"lsp0_24m",
 	"lsp0_99m",
 };
 
-PNAME(lsp0_wclk_timer3_p) = {
+PNAME(lsp0_wclk_timer3_p) =
+{
 	"timer3_div",
 	"lsp0_32k"
 };
 
-PNAME(lsp0_wclk_timer4_p) = {
+PNAME(lsp0_wclk_timer4_p) =
+{
 	"timer4_div",
 	"lsp0_32k"
 };
 
-PNAME(lsp0_wclk_timer5_p) = {
+PNAME(lsp0_wclk_timer5_p) =
+{
 	"timer5_div",
 	"lsp0_32k"
 };
 
-PNAME(lsp0_wclk_spifc0_p) = {
+PNAME(lsp0_wclk_spifc0_p) =
+{
 	"lsp0_148m5",
 	"lsp0_24m",
 	"lsp0_99m",
 	"lsp0_74m25"
 };
 
-PNAME(lsp0_wclk_ssp_p) = {
+PNAME(lsp0_wclk_ssp_p) =
+{
 	"lsp0_148m5",
 	"lsp0_99m",
 	"lsp0_24m",
 };
 
-static struct zx_clk_mux lsp0_mux_clk[] = {
+static struct zx_clk_mux lsp0_mux_clk[] =
+{
 	MUX(0, "timer3_wclk_mux", lsp0_wclk_timer3_p, LSP0_TIMER3_CLK, 4, 1),
 	MUX(0, "timer4_wclk_mux", lsp0_wclk_timer4_p, LSP0_TIMER4_CLK, 4, 1),
 	MUX(0, "timer5_wclk_mux", lsp0_wclk_timer5_p, LSP0_TIMER5_CLK, 4, 1),
@@ -696,7 +761,8 @@ static struct zx_clk_mux lsp0_mux_clk[] = {
 	MUX(0, "i2c3_wclk_mux",   lsp0_wclk_common_p, LSP0_I2C3_CLK,   4, 1),
 };
 
-static struct zx_clk_gate lsp0_gate_clk[] = {
+static struct zx_clk_gate lsp0_gate_clk[] =
+{
 	GATE(LSP0_TIMER3_WCLK, "timer3_wclk", "timer3_wclk_mux", LSP0_TIMER3_CLK, 1, CLK_SET_RATE_PARENT, 0),
 	GATE(LSP0_TIMER4_WCLK, "timer4_wclk", "timer4_wclk_mux", LSP0_TIMER4_CLK, 1, CLK_SET_RATE_PARENT, 0),
 	GATE(LSP0_TIMER5_WCLK, "timer5_wclk", "timer5_wclk_mux", LSP0_TIMER5_CLK, 1, CLK_SET_RATE_PARENT, 0),
@@ -711,7 +777,8 @@ static struct zx_clk_gate lsp0_gate_clk[] = {
 	GATE(LSP0_I2C3_WCLK,   "i2c3_wclk",   "i2c3_wclk_mux",   LSP0_I2C3_CLK,   1, CLK_SET_RATE_PARENT, 0),
 };
 
-static struct zx_clk_div lsp0_div_clk[] = {
+static struct zx_clk_div lsp0_div_clk[] =
+{
 	DIV_T(0, "timer3_div", "lsp0_24m", LSP0_TIMER3_CLK,  12, 4, 0, common_even_div_table),
 	DIV_T(0, "timer4_div", "lsp0_24m", LSP0_TIMER4_CLK,  12, 4, 0, common_even_div_table),
 	DIV_T(0, "timer5_div", "lsp0_24m", LSP0_TIMER5_CLK,  12, 4, 0, common_even_div_table),
@@ -719,7 +786,8 @@ static struct zx_clk_div lsp0_div_clk[] = {
 	DIV_T(0, "ssp1_div", "ssp1_wclk_mux", LSP0_SSP1_CLK, 12, 4, 0, common_even_div_table),
 };
 
-static struct clk_hw_onecell_data lsp0_hw_onecell_data = {
+static struct clk_hw_onecell_data lsp0_hw_onecell_data =
+{
 	.num = LSP0_NR_CLKS,
 	.hws = {
 		[LSP0_NR_CLKS - 1] = NULL,
@@ -732,69 +800,86 @@ static int __init lsp0_clocks_init(struct device_node *np)
 	int i, ret;
 
 	reg_base = of_iomap(np, 0);
-	if (!reg_base) {
+
+	if (!reg_base)
+	{
 		pr_err("%s: Unable to map clk base\n", __func__);
 		return -ENXIO;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(lsp0_mux_clk); i++) {
+	for (i = 0; i < ARRAY_SIZE(lsp0_mux_clk); i++)
+	{
 		if (lsp0_mux_clk[i].id)
 			lsp0_hw_onecell_data.hws[lsp0_mux_clk[i].id] =
-					&lsp0_mux_clk[i].mux.hw;
+				&lsp0_mux_clk[i].mux.hw;
 
 		lsp0_mux_clk[i].mux.reg += (uintptr_t)reg_base;
 		ret = clk_hw_register(NULL, &lsp0_mux_clk[i].mux.hw);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("lsp0 clk %s init error!\n",
-				lsp0_mux_clk[i].mux.hw.init->name);
+					lsp0_mux_clk[i].mux.hw.init->name);
 		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(lsp0_gate_clk); i++) {
+	for (i = 0; i < ARRAY_SIZE(lsp0_gate_clk); i++)
+	{
 		if (lsp0_gate_clk[i].id)
 			lsp0_hw_onecell_data.hws[lsp0_gate_clk[i].id] =
-					&lsp0_gate_clk[i].gate.hw;
+				&lsp0_gate_clk[i].gate.hw;
 
 		lsp0_gate_clk[i].gate.reg += (uintptr_t)reg_base;
 		ret = clk_hw_register(NULL, &lsp0_gate_clk[i].gate.hw);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("lsp0 clk %s init error!\n",
-				lsp0_gate_clk[i].gate.hw.init->name);
+					lsp0_gate_clk[i].gate.hw.init->name);
 		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(lsp0_div_clk); i++) {
+	for (i = 0; i < ARRAY_SIZE(lsp0_div_clk); i++)
+	{
 		if (lsp0_div_clk[i].id)
 			lsp0_hw_onecell_data.hws[lsp0_div_clk[i].id] =
-					&lsp0_div_clk[i].div.hw;
+				&lsp0_div_clk[i].div.hw;
 
 		lsp0_div_clk[i].div.reg += (uintptr_t)reg_base;
 		ret = clk_hw_register(NULL, &lsp0_div_clk[i].div.hw);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("lsp0 clk %s init error!\n",
-				lsp0_div_clk[i].div.hw.init->name);
+					lsp0_div_clk[i].div.hw.init->name);
 		}
 	}
 
 	if (of_clk_add_hw_provider(np, of_clk_hw_onecell_get, &lsp0_hw_onecell_data))
+	{
 		panic("could not register clk provider\n");
+	}
+
 	pr_info("lsp0-clk init over:%d\n", LSP0_NR_CLKS);
 
 	return 0;
 }
 
-PNAME(lsp1_wclk_common_p) = {
+PNAME(lsp1_wclk_common_p) =
+{
 	"lsp1_24m",
 	"lsp1_99m",
 };
 
-PNAME(lsp1_wclk_ssp_p) = {
+PNAME(lsp1_wclk_ssp_p) =
+{
 	"lsp1_148m5",
 	"lsp1_99m",
 	"lsp1_24m",
 };
 
-static struct zx_clk_mux lsp1_mux_clk[] = {
+static struct zx_clk_mux lsp1_mux_clk[] =
+{
 	MUX(0, "uart4_wclk_mux", lsp1_wclk_common_p, LSP1_UART4_CLK, 4, 1),
 	MUX(0, "uart5_wclk_mux", lsp1_wclk_common_p, LSP1_UART5_CLK, 4, 1),
 	MUX(0, "pwm_wclk_mux",   lsp1_wclk_common_p, LSP1_PWM_CLK,   4, 1),
@@ -805,14 +890,16 @@ static struct zx_clk_mux lsp1_mux_clk[] = {
 	MUX(0, "usim1_wclk_mux", lsp1_wclk_common_p, LSP1_USIM1_CLK, 4, 1),
 };
 
-static struct zx_clk_div lsp1_div_clk[] = {
+static struct zx_clk_div lsp1_div_clk[] =
+{
 	DIV_T(0, "pwm_div",  "pwm_wclk_mux",  LSP1_PWM_CLK,  12, 4, CLK_SET_RATE_PARENT, common_div_table),
 	DIV_T(0, "ssp2_div", "ssp2_wclk_mux", LSP1_SSP2_CLK, 12, 4, CLK_SET_RATE_PARENT, common_even_div_table),
 	DIV_T(0, "ssp3_div", "ssp3_wclk_mux", LSP1_SSP3_CLK, 12, 4, CLK_SET_RATE_PARENT, common_even_div_table),
 	DIV_T(0, "ssp4_div", "ssp4_wclk_mux", LSP1_SSP4_CLK, 12, 4, CLK_SET_RATE_PARENT, common_even_div_table),
 };
 
-static struct zx_clk_gate lsp1_gate_clk[] = {
+static struct zx_clk_gate lsp1_gate_clk[] =
+{
 	GATE(LSP1_UART4_WCLK, "lsp1_uart4_wclk", "uart4_wclk_mux", LSP1_UART4_CLK, 1, CLK_SET_RATE_PARENT, 0),
 	GATE(LSP1_UART5_WCLK, "lsp1_uart5_wclk", "uart5_wclk_mux", LSP1_UART5_CLK, 1, CLK_SET_RATE_PARENT, 0),
 	GATE(LSP1_PWM_WCLK,   "lsp1_pwm_wclk",   "pwm_div",        LSP1_PWM_CLK,   1, CLK_SET_RATE_PARENT, 0),
@@ -824,7 +911,8 @@ static struct zx_clk_gate lsp1_gate_clk[] = {
 	GATE(LSP1_USIM1_WCLK, "lsp1_usim1_wclk", "usim1_wclk_mux", LSP1_USIM1_CLK, 1, CLK_SET_RATE_PARENT, 0),
 };
 
-static struct clk_hw_onecell_data lsp1_hw_onecell_data = {
+static struct clk_hw_onecell_data lsp1_hw_onecell_data =
+{
 	.num = LSP1_NR_CLKS,
 	.hws = {
 		[LSP1_NR_CLKS - 1] = NULL,
@@ -837,58 +925,73 @@ static int __init lsp1_clocks_init(struct device_node *np)
 	int i, ret;
 
 	reg_base = of_iomap(np, 0);
-	if (!reg_base) {
+
+	if (!reg_base)
+	{
 		pr_err("%s: Unable to map clk base\n", __func__);
 		return -ENXIO;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(lsp1_mux_clk); i++) {
+	for (i = 0; i < ARRAY_SIZE(lsp1_mux_clk); i++)
+	{
 		if (lsp1_mux_clk[i].id)
 			lsp1_hw_onecell_data.hws[lsp1_mux_clk[i].id] =
-					&lsp0_mux_clk[i].mux.hw;
+				&lsp0_mux_clk[i].mux.hw;
 
 		lsp1_mux_clk[i].mux.reg += (uintptr_t)reg_base;
 		ret = clk_hw_register(NULL, &lsp1_mux_clk[i].mux.hw);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("lsp1 clk %s init error!\n",
-				lsp1_mux_clk[i].mux.hw.init->name);
+					lsp1_mux_clk[i].mux.hw.init->name);
 		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(lsp1_gate_clk); i++) {
+	for (i = 0; i < ARRAY_SIZE(lsp1_gate_clk); i++)
+	{
 		if (lsp1_gate_clk[i].id)
 			lsp1_hw_onecell_data.hws[lsp1_gate_clk[i].id] =
-					&lsp1_gate_clk[i].gate.hw;
+				&lsp1_gate_clk[i].gate.hw;
 
 		lsp1_gate_clk[i].gate.reg += (uintptr_t)reg_base;
 		ret = clk_hw_register(NULL, &lsp1_gate_clk[i].gate.hw);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("lsp1 clk %s init error!\n",
-				lsp1_gate_clk[i].gate.hw.init->name);
+					lsp1_gate_clk[i].gate.hw.init->name);
 		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(lsp1_div_clk); i++) {
+	for (i = 0; i < ARRAY_SIZE(lsp1_div_clk); i++)
+	{
 		if (lsp1_div_clk[i].id)
 			lsp1_hw_onecell_data.hws[lsp1_div_clk[i].id] =
-					&lsp1_div_clk[i].div.hw;
+				&lsp1_div_clk[i].div.hw;
 
 		lsp1_div_clk[i].div.reg += (uintptr_t)reg_base;
 		ret = clk_hw_register(NULL, &lsp1_div_clk[i].div.hw);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("lsp1 clk %s init error!\n",
-				lsp1_div_clk[i].div.hw.init->name);
+					lsp1_div_clk[i].div.hw.init->name);
 		}
 	}
 
 	if (of_clk_add_hw_provider(np, of_clk_hw_onecell_get, &lsp1_hw_onecell_data))
+	{
 		panic("could not register clk provider\n");
+	}
+
 	pr_info("lsp1-clk init over, nr:%d\n", LSP1_NR_CLKS);
 
 	return 0;
 }
 
-static const struct of_device_id zx_clkc_match_table[] = {
+static const struct of_device_id zx_clkc_match_table[] =
+{
 	{ .compatible = "zte,zx296718-topcrm", .data = &top_clocks_init },
 	{ .compatible = "zte,zx296718-lsp0crm", .data = &lsp0_clocks_init },
 	{ .compatible = "zte,zx296718-lsp1crm", .data = &lsp1_clocks_init },
@@ -897,11 +1000,13 @@ static const struct of_device_id zx_clkc_match_table[] = {
 
 static int zx_clkc_probe(struct platform_device *pdev)
 {
-	int (*init_fn)(struct device_node *np);
+	int (*init_fn)(struct device_node * np);
 	struct device_node *np = pdev->dev.of_node;
 
 	init_fn = of_device_get_match_data(&pdev->dev);
-	if (!init_fn) {
+
+	if (!init_fn)
+	{
 		dev_err(&pdev->dev, "Error: No device match found\n");
 		return -ENODEV;
 	}
@@ -909,7 +1014,8 @@ static int zx_clkc_probe(struct platform_device *pdev)
 	return init_fn(np);
 }
 
-static struct platform_driver zx_clk_driver = {
+static struct platform_driver zx_clk_driver =
+{
 	.probe		= zx_clkc_probe,
 	.driver		= {
 		.name	= "zx296718-clkc",

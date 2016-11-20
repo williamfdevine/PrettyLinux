@@ -23,13 +23,14 @@
 
 /* Allow files to override DRV_NAME */
 #ifndef DRV_NAME
-#define DRV_NAME "rtllib_92e"
+	#define DRV_NAME "rtllib_92e"
 #endif
 
 extern u32 rt_global_debug_component;
 
 /* These are the defines for rt_global_debug_component */
-enum RTL_DEBUG {
+enum RTL_DEBUG
+{
 	COMP_TRACE		= (1 << 0),
 	COMP_DBG		= (1 << 1),
 	COMP_INIT		= (1 << 2),
@@ -59,9 +60,9 @@ enum RTL_DEBUG {
 };
 
 #define RT_TRACE(component, x, args...)		\
-do {			\
-	if (rt_global_debug_component & component) \
-		printk(KERN_DEBUG DRV_NAME ":" x "\n", ##args);\
-} while (0)
+	do {			\
+		if (rt_global_debug_component & component) \
+			printk(KERN_DEBUG DRV_NAME ":" x "\n", ##args);\
+	} while (0)
 
 #endif

@@ -6,7 +6,8 @@
 #include "internal.h"
 #include "nfs.h"
 
-static struct nfs_subversion nfs_v2 = {
+static struct nfs_subversion nfs_v2 =
+{
 	.owner = THIS_MODULE,
 	.nfs_fs   = &nfs_fs_type,
 	.rpc_vers = &nfs_version2,

@@ -39,7 +39,8 @@
 /* ForceFeedback */
 #define EFFECT_DIR_180_DEG	0x8000 /* range is 0 - 0xFFFF */
 
-struct vibra_info {
+struct vibra_info
+{
 	struct device		*dev;
 	struct input_dev	*input_dev;
 
@@ -71,9 +72,9 @@ static void vibra_enable(struct vibra_info *info)
 
 	/* turn H-Bridge on */
 	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE,
-			&reg, TWL4030_REG_VIBRA_CTL);
+					&reg, TWL4030_REG_VIBRA_CTL);
 	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
-			 (reg | TWL4030_VIBRA_EN), TWL4030_REG_VIBRA_CTL);
+					 (reg | TWL4030_VIBRA_EN), TWL4030_REG_VIBRA_CTL);
 
 	twl4030_audio_enable_resource(TWL4030_AUDIO_RES_APLL);
 
@@ -86,9 +87,9 @@ static void vibra_disable(struct vibra_info *info)
 
 	/* Power down H-Bridge */
 	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE,
-			&reg, TWL4030_REG_VIBRA_CTL);
+					&reg, TWL4030_REG_VIBRA_CTL);
 	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
-			 (reg & ~TWL4030_VIBRA_EN), TWL4030_REG_VIBRA_CTL);
+					 (reg & ~TWL4030_VIBRA_EN), TWL4030_REG_VIBRA_CTL);
 
 	twl4030_audio_disable_resource(TWL4030_AUDIO_RES_APLL);
 	twl4030_audio_disable_resource(TWL4030_AUDIO_RES_POWER);
@@ -99,7 +100,7 @@ static void vibra_disable(struct vibra_info *info)
 static void vibra_play_work(struct work_struct *work)
 {
 	struct vibra_info *info = container_of(work,
-			struct vibra_info, play_work);
+										   struct vibra_info, play_work);
 	int dir;
 	int pwm;
 	u8 reg;
@@ -108,39 +109,51 @@ static void vibra_play_work(struct work_struct *work)
 	pwm = info->speed;
 
 	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE,
-			&reg, TWL4030_REG_VIBRA_CTL);
-	if (pwm && (!info->coexist || !(reg & TWL4030_VIBRA_SEL))) {
+					&reg, TWL4030_REG_VIBRA_CTL);
+
+	if (pwm && (!info->coexist || !(reg & TWL4030_VIBRA_SEL)))
+	{
 
 		if (!info->enabled)
+		{
 			vibra_enable(info);
+		}
 
 		/* set vibra rotation direction */
 		twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE,
-				&reg, TWL4030_REG_VIBRA_CTL);
+						&reg, TWL4030_REG_VIBRA_CTL);
 		reg = (dir) ? (reg | TWL4030_VIBRA_DIR) :
-			(reg & ~TWL4030_VIBRA_DIR);
+			  (reg & ~TWL4030_VIBRA_DIR);
 		twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
-				 reg, TWL4030_REG_VIBRA_CTL);
+						 reg, TWL4030_REG_VIBRA_CTL);
 
 		/* set PWM, 1 = max, 255 = min */
 		twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
-				 256 - pwm, TWL4030_REG_VIBRA_SET);
-	} else {
+						 256 - pwm, TWL4030_REG_VIBRA_SET);
+	}
+	else
+	{
 		if (info->enabled)
+		{
 			vibra_disable(info);
+		}
 	}
 }
 
 /*** Input/ForceFeedback ***/
 
 static int vibra_play(struct input_dev *input, void *data,
-		      struct ff_effect *effect)
+					  struct ff_effect *effect)
 {
 	struct vibra_info *info = input_get_drvdata(input);
 
 	info->speed = effect->u.rumble.strong_magnitude >> 8;
+
 	if (!info->speed)
+	{
 		info->speed = effect->u.rumble.weak_magnitude >> 9;
+	}
+
 	info->direction = effect->direction < EFFECT_DIR_180_DEG ? 0 : 1;
 	schedule_work(&info->play_work);
 	return 0;
@@ -153,7 +166,9 @@ static void twl4030_vibra_close(struct input_dev *input)
 	cancel_work_sync(&info->play_work);
 
 	if (info->enabled)
+	{
 		vibra_disable(info);
+	}
 }
 
 /*** Module ***/
@@ -163,7 +178,9 @@ static int __maybe_unused twl4030_vibra_suspend(struct device *dev)
 	struct vibra_info *info = platform_get_drvdata(pdev);
 
 	if (info->enabled)
+	{
 		vibra_disable(info);
+	}
 
 	return 0;
 }
@@ -175,16 +192,20 @@ static int __maybe_unused twl4030_vibra_resume(struct device *dev)
 }
 
 static SIMPLE_DEV_PM_OPS(twl4030_vibra_pm_ops,
-			 twl4030_vibra_suspend, twl4030_vibra_resume);
+						 twl4030_vibra_suspend, twl4030_vibra_resume);
 
 static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
-			      struct device_node *node)
+										struct device_node *node)
 {
 	if (pdata && pdata->coexist)
+	{
 		return true;
+	}
 
 	node = of_find_node_by_name(node, "codec");
-	if (node) {
+
+	if (node)
+	{
 		of_node_put(node);
 		return true;
 	}
@@ -199,21 +220,27 @@ static int twl4030_vibra_probe(struct platform_device *pdev)
 	struct vibra_info *info;
 	int ret;
 
-	if (!pdata && !twl4030_core_node) {
+	if (!pdata && !twl4030_core_node)
+	{
 		dev_dbg(&pdev->dev, "platform_data not available\n");
 		return -EINVAL;
 	}
 
 	info = devm_kzalloc(&pdev->dev, sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	info->dev = &pdev->dev;
 	info->coexist = twl4030_vibra_check_coexist(pdata, twl4030_core_node);
 	INIT_WORK(&info->play_work, vibra_play_work);
 
 	info->input_dev = devm_input_allocate_device(&pdev->dev);
-	if (info->input_dev == NULL) {
+
+	if (info->input_dev == NULL)
+	{
 		dev_err(&pdev->dev, "couldn't allocate input device\n");
 		return -ENOMEM;
 	}
@@ -226,13 +253,17 @@ static int twl4030_vibra_probe(struct platform_device *pdev)
 	__set_bit(FF_RUMBLE, info->input_dev->ffbit);
 
 	ret = input_ff_create_memless(info->input_dev, NULL, vibra_play);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_dbg(&pdev->dev, "couldn't register vibrator to FF\n");
 		return ret;
 	}
 
 	ret = input_register_device(info->input_dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_dbg(&pdev->dev, "couldn't register input device\n");
 		goto err_iff;
 	}
@@ -247,7 +278,8 @@ err_iff:
 	return ret;
 }
 
-static struct platform_driver twl4030_vibra_driver = {
+static struct platform_driver twl4030_vibra_driver =
+{
 	.probe		= twl4030_vibra_probe,
 	.driver		= {
 		.name	= "twl4030-vibra",

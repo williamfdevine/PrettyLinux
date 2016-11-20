@@ -78,11 +78,13 @@
 #include <linux/kernel.h>
 #include <linux/list.h>
 
-struct plist_head {
+struct plist_head
+{
 	struct list_head node_list;
 };
 
-struct plist_node {
+struct plist_node
+{
 	int			prio;
 	struct list_head	prio_list;
 	struct list_head	node_list;
@@ -93,9 +95,9 @@ struct plist_node {
  * @head:	struct plist_head variable name
  */
 #define PLIST_HEAD_INIT(head)				\
-{							\
-	.node_list = LIST_HEAD_INIT((head).node_list)	\
-}
+	{							\
+		.node_list = LIST_HEAD_INIT((head).node_list)	\
+	}
 
 /**
  * PLIST_HEAD - declare and init plist_head
@@ -110,11 +112,11 @@ struct plist_node {
  * @__prio:	initial node priority
  */
 #define PLIST_NODE_INIT(node, __prio)			\
-{							\
-	.prio  = (__prio),				\
-	.prio_list = LIST_HEAD_INIT((node).prio_list),	\
-	.node_list = LIST_HEAD_INIT((node).node_list),	\
-}
+	{							\
+		.prio  = (__prio),				\
+				 .prio_list = LIST_HEAD_INIT((node).prio_list),	\
+							  .node_list = LIST_HEAD_INIT((node).node_list),	\
+	}
 
 /**
  * plist_head_init - dynamic struct plist_head initializer
@@ -149,7 +151,7 @@ extern void plist_requeue(struct plist_node *node, struct plist_head *head);
  * @head:	the head for your list
  */
 #define plist_for_each(pos, head)	\
-	 list_for_each_entry(pos, &(head)->node_list, node_list)
+	list_for_each_entry(pos, &(head)->node_list, node_list)
 
 /**
  * plist_for_each_continue - continue iteration over the plist
@@ -159,7 +161,7 @@ extern void plist_requeue(struct plist_node *node, struct plist_head *head);
  * Continue to iterate over plist, continuing after the current position.
  */
 #define plist_for_each_continue(pos, head)	\
-	 list_for_each_entry_continue(pos, &(head)->node_list, node_list)
+	list_for_each_entry_continue(pos, &(head)->node_list, node_list)
 
 /**
  * plist_for_each_safe - iterate safely over a plist of given type
@@ -170,7 +172,7 @@ extern void plist_requeue(struct plist_node *node, struct plist_head *head);
  * Iterate over a plist of given type, safe against removal of list entry.
  */
 #define plist_for_each_safe(pos, n, head)	\
-	 list_for_each_entry_safe(pos, n, &(head)->node_list, node_list)
+	list_for_each_entry_safe(pos, n, &(head)->node_list, node_list)
 
 /**
  * plist_for_each_entry	- iterate over list of given type
@@ -179,7 +181,7 @@ extern void plist_requeue(struct plist_node *node, struct plist_head *head);
  * @mem:	the name of the list_head within the struct
  */
 #define plist_for_each_entry(pos, head, mem)	\
-	 list_for_each_entry(pos, &(head)->node_list, mem.node_list)
+	list_for_each_entry(pos, &(head)->node_list, mem.node_list)
 
 /**
  * plist_for_each_entry_continue - continue iteration over list of given type
@@ -233,10 +235,10 @@ static inline int plist_node_empty(const struct plist_node *node)
  */
 #ifdef CONFIG_DEBUG_PI_LIST
 # define plist_first_entry(head, type, member)	\
-({ \
-	WARN_ON(plist_head_empty(head)); \
-	container_of(plist_first(head), type, member); \
-})
+	({ \
+		WARN_ON(plist_head_empty(head)); \
+		container_of(plist_first(head), type, member); \
+	})
 #else
 # define plist_first_entry(head, type, member)	\
 	container_of(plist_first(head), type, member)
@@ -250,10 +252,10 @@ static inline int plist_node_empty(const struct plist_node *node)
  */
 #ifdef CONFIG_DEBUG_PI_LIST
 # define plist_last_entry(head, type, member)	\
-({ \
-	WARN_ON(plist_head_empty(head)); \
-	container_of(plist_last(head), type, member); \
-})
+	({ \
+		WARN_ON(plist_head_empty(head)); \
+		container_of(plist_last(head), type, member); \
+	})
 #else
 # define plist_last_entry(head, type, member)	\
 	container_of(plist_last(head), type, member)
@@ -282,7 +284,7 @@ static inline int plist_node_empty(const struct plist_node *node)
 static inline struct plist_node *plist_first(const struct plist_head *head)
 {
 	return list_entry(head->node_list.next,
-			  struct plist_node, node_list);
+					  struct plist_node, node_list);
 }
 
 /**
@@ -294,7 +296,7 @@ static inline struct plist_node *plist_first(const struct plist_head *head)
 static inline struct plist_node *plist_last(const struct plist_head *head)
 {
 	return list_entry(head->node_list.prev,
-			  struct plist_node, node_list);
+					  struct plist_node, node_list);
 }
 
 #endif

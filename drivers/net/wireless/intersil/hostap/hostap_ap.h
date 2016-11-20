@@ -36,7 +36,8 @@
 /* Decrease TX rate after # consecutive dropped packets */
 #define WLAN_RATE_DECREASE_THRESHOLD 2
 
-struct sta_info {
+struct sta_info
+{
 	struct list_head list;
 	struct sta_info *hnext; /* next entry in hash table list */
 	atomic_t users; /* number of users (do not remove if > 0) */
@@ -81,12 +82,15 @@ struct sta_info {
 	local_info_t *local;
 
 #ifndef PRISM2_NO_KERNEL_IEEE80211_MGMT
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			char *challenge; /* shared key authentication
 					  * challenge */
 		} sta;
-		struct {
+		struct
+		{
 			int ssid_len;
 			unsigned char ssid[MAX_SSID_LEN + 1]; /* AP's ssid */
 			int channel;
@@ -122,7 +126,8 @@ struct sta_info {
 #define AP_DEAUTH_DELAY (HZ)
 
 /* ap_policy: whether to accept frames to/from other APs/IBSS */
-typedef enum {
+typedef enum
+{
 	AP_OTHER_AP_SKIP_ALL = 0,
 	AP_OTHER_AP_SAME_SSID = 1,
 	AP_OTHER_AP_ALL = 2,
@@ -134,12 +139,14 @@ typedef enum {
 
 
 /* MAC address-based restrictions */
-struct mac_entry {
+struct mac_entry
+{
 	struct list_head list;
 	u8 addr[6];
 };
 
-struct mac_restrictions {
+struct mac_restrictions
+{
 	enum { MAC_POLICY_OPEN = 0, MAC_POLICY_ALLOW, MAC_POLICY_DENY } policy;
 	unsigned int entries;
 	struct list_head mac_list;
@@ -147,21 +154,24 @@ struct mac_restrictions {
 };
 
 
-struct add_sta_proc_data {
+struct add_sta_proc_data
+{
 	u8 addr[ETH_ALEN];
 	struct add_sta_proc_data *next;
 };
 
 
 typedef enum { WDS_ADD, WDS_DEL } wds_oper_type;
-struct wds_oper_data {
+struct wds_oper_data
+{
 	wds_oper_type type;
 	u8 addr[ETH_ALEN];
 	struct wds_oper_data *next;
 };
 
 
-struct ap_data {
+struct ap_data
+{
 	int initialized; /* whether ap_data has been initialized */
 	local_info_t *local;
 	int bridge_packets; /* send packet to associated STAs directly to the
@@ -216,17 +226,19 @@ struct ap_data {
 
 
 void hostap_rx(struct net_device *dev, struct sk_buff *skb,
-	       struct hostap_80211_rx_status *rx_stats);
+			   struct hostap_80211_rx_status *rx_stats);
 void hostap_init_data(local_info_t *local);
 void hostap_init_ap_proc(local_info_t *local);
 void hostap_free_data(struct ap_data *ap);
 void hostap_check_sta_fw_version(struct ap_data *ap, int sta_fw_ver);
 
-typedef enum {
+typedef enum
+{
 	AP_TX_CONTINUE, AP_TX_DROP, AP_TX_RETRY, AP_TX_BUFFERED,
 	AP_TX_CONTINUE_NOT_AUTHORIZED
 } ap_tx_ret;
-struct hostap_tx_data {
+struct hostap_tx_data
+{
 	struct sk_buff *skb;
 	int host_encrypt;
 	struct lib80211_crypt_data *crypt;
@@ -236,28 +248,29 @@ ap_tx_ret hostap_handle_sta_tx(local_info_t *local, struct hostap_tx_data *tx);
 void hostap_handle_sta_release(void *ptr);
 void hostap_handle_sta_tx_exc(local_info_t *local, struct sk_buff *skb);
 int hostap_update_sta_ps(local_info_t *local, struct ieee80211_hdr *hdr);
-typedef enum {
+typedef enum
+{
 	AP_RX_CONTINUE, AP_RX_DROP, AP_RX_EXIT, AP_RX_CONTINUE_NOT_AUTHORIZED
 } ap_rx_ret;
 ap_rx_ret hostap_handle_sta_rx(local_info_t *local, struct net_device *dev,
-			       struct sk_buff *skb,
-			       struct hostap_80211_rx_status *rx_stats,
-			       int wds);
+							   struct sk_buff *skb,
+							   struct hostap_80211_rx_status *rx_stats,
+							   int wds);
 int hostap_handle_sta_crypto(local_info_t *local, struct ieee80211_hdr *hdr,
-			     struct lib80211_crypt_data **crypt,
-			     void **sta_ptr);
+							 struct lib80211_crypt_data **crypt,
+							 void **sta_ptr);
 int hostap_is_sta_assoc(struct ap_data *ap, u8 *sta_addr);
 int hostap_is_sta_authorized(struct ap_data *ap, u8 *sta_addr);
 int hostap_add_sta(struct ap_data *ap, u8 *sta_addr);
 int hostap_update_rx_stats(struct ap_data *ap, struct ieee80211_hdr *hdr,
-			   struct hostap_80211_rx_status *rx_stats);
+						   struct hostap_80211_rx_status *rx_stats);
 void hostap_update_rates(local_info_t *local);
 void hostap_add_wds_links(local_info_t *local);
 void hostap_wds_link_oper(local_info_t *local, u8 *addr, wds_oper_type type);
 
 #ifndef PRISM2_NO_KERNEL_IEEE80211_MGMT
 void hostap_deauth_all_stas(struct net_device *dev, struct ap_data *ap,
-			    int resend);
+							int resend);
 #endif /* PRISM2_NO_KERNEL_IEEE80211_MGMT */
 
 #endif /* HOSTAP_AP_H */

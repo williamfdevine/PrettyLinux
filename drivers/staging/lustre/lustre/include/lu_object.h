@@ -101,7 +101,8 @@ struct lu_env;
 /**
  * Operations common for data and meta-data devices.
  */
-struct lu_device_operations {
+struct lu_device_operations
+{
 	/**
 	 * Allocate object for the given device (without lower-layer
 	 * parts). This is called by lu_object_operations::loo_object_init()
@@ -135,15 +136,15 @@ struct lu_device_operations {
 	 *			     result->lo_ops != NULL);
 	 */
 	struct lu_object *(*ldo_object_alloc)(const struct lu_env *env,
-					      const struct lu_object_header *h,
-					      struct lu_device *d);
+										  const struct lu_object_header *h,
+										  struct lu_device *d);
 	/**
 	 * process config specific for device.
 	 */
 	int (*ldo_process_config)(const struct lu_env *env,
-				  struct lu_device *, struct lustre_cfg *);
+							  struct lu_device *, struct lustre_cfg *);
 	int (*ldo_recovery_complete)(const struct lu_env *,
-				     struct lu_device *);
+								 struct lu_device *);
 
 	/**
 	 * initialize local objects for device. this method called after layer has
@@ -152,15 +153,16 @@ struct lu_device_operations {
 	 */
 
 	int (*ldo_prepare)(const struct lu_env *,
-			   struct lu_device *parent,
-			   struct lu_device *dev);
+					   struct lu_device *parent,
+					   struct lu_device *dev);
 
 };
 
 /**
  * For lu_object_conf flags
  */
-enum loc_flags {
+enum loc_flags
+{
 	/* This is a new object to be allocated, or the file
 	 * corresponding to the object does not exists.
 	 */
@@ -172,7 +174,8 @@ enum loc_flags {
  * server this is not used, as server objects are full identified by fid. On
  * client configuration contains struct lustre_md.
  */
-struct lu_object_conf {
+struct lu_object_conf
+{
 	/**
 	 * Some hints for obj find and alloc.
 	 */
@@ -187,13 +190,14 @@ struct lu_object_conf {
  * output: possible implementations: printk, CDEBUG, sysfs/seq_file
  */
 typedef int (*lu_printer_t)(const struct lu_env *env,
-			    void *cookie, const char *format, ...)
-	__printf(3, 4);
+							void *cookie, const char *format, ...)
+__printf(3, 4);
 
 /**
  * Operations specific for particular lu_object.
  */
-struct lu_object_operations {
+struct lu_object_operations
+{
 	/**
 	 * Allocate lower-layer parts of the object by calling
 	 * lu_device_operations::ldo_object_alloc() of the corresponding
@@ -204,39 +208,39 @@ struct lu_object_operations {
 	 * object(s) it create into appropriate places of object stack.
 	 */
 	int (*loo_object_init)(const struct lu_env *env,
-			       struct lu_object *o,
-			       const struct lu_object_conf *conf);
+						   struct lu_object *o,
+						   const struct lu_object_conf *conf);
 	/**
 	 * Called (in top-to-bottom order) during object allocation after all
 	 * layers were allocated and initialized. Can be used to perform
 	 * initialization depending on lower layers.
 	 */
 	int (*loo_object_start)(const struct lu_env *env,
-				struct lu_object *o);
+							struct lu_object *o);
 	/**
 	 * Called before lu_object_operations::loo_object_free() to signal
 	 * that object is being destroyed. Dual to
 	 * lu_object_operations::loo_object_init().
 	 */
 	void (*loo_object_delete)(const struct lu_env *env,
-				  struct lu_object *o);
+							  struct lu_object *o);
 	/**
 	 * Dual to lu_device_operations::ldo_object_alloc(). Called when
 	 * object is removed from memory.
 	 */
 	void (*loo_object_free)(const struct lu_env *env,
-				struct lu_object *o);
+							struct lu_object *o);
 	/**
 	 * Called when last active reference to the object is released (and
 	 * object returns to the cache). This method is optional.
 	 */
 	void (*loo_object_release)(const struct lu_env *env,
-				   struct lu_object *o);
+							   struct lu_object *o);
 	/**
 	 * Optional debugging helper. Print given object.
 	 */
 	int (*loo_object_print)(const struct lu_env *env, void *cookie,
-				lu_printer_t p, const struct lu_object *o);
+							lu_printer_t p, const struct lu_object *o);
 	/**
 	 * Optional debugging method. Returns true iff method is internally
 	 * consistent.
@@ -252,7 +256,8 @@ struct lu_device_type;
 /**
  * Device: a layer in the server side abstraction stacking.
  */
-struct lu_device {
+struct lu_device
+{
 	/**
 	 * reference count. This is incremented, in particular, on each object
 	 * created at this layer.
@@ -291,7 +296,8 @@ struct lu_device_type_operations;
  * Tag bits for device type. They are used to distinguish certain groups of
  * device types.
  */
-enum lu_device_tag {
+enum lu_device_tag
+{
 	/** this is meta-data device */
 	LU_DEVICE_MD = (1 << 0),
 	/** this is data device */
@@ -303,7 +309,8 @@ enum lu_device_tag {
 /**
  * Type of device.
  */
-struct lu_device_type {
+struct lu_device_type
+{
 	/**
 	 * Tag bits. Taken from enum lu_device_tag. Never modified once set.
 	 */
@@ -339,34 +346,35 @@ struct lu_device_type {
 /**
  * Operations on a device type.
  */
-struct lu_device_type_operations {
+struct lu_device_type_operations
+{
 	/**
 	 * Allocate new device.
 	 */
 	struct lu_device *(*ldto_device_alloc)(const struct lu_env *env,
-					       struct lu_device_type *t,
-					       struct lustre_cfg *lcfg);
+										   struct lu_device_type *t,
+										   struct lustre_cfg *lcfg);
 	/**
 	 * Free device. Dual to
 	 * lu_device_type_operations::ldto_device_alloc(). Returns pointer to
 	 * the next device in the stack.
 	 */
 	struct lu_device *(*ldto_device_free)(const struct lu_env *,
-					      struct lu_device *);
+										  struct lu_device *);
 
 	/**
 	 * Initialize the devices after allocation
 	 */
 	int  (*ldto_device_init)(const struct lu_env *env,
-				 struct lu_device *, const char *,
-				 struct lu_device *);
+							 struct lu_device *, const char *,
+							 struct lu_device *);
 	/**
 	 * Finalize device. Dual to
 	 * lu_device_type_operations::ldto_device_init(). Returns pointer to
 	 * the next device in the stack.
 	 */
 	struct lu_device *(*ldto_device_fini)(const struct lu_env *env,
-					      struct lu_device *);
+										  struct lu_device *);
 	/**
 	 * Initialize device type. This is called on module load.
 	 */
@@ -394,7 +402,8 @@ static inline int lu_device_is_md(const struct lu_device *d)
 /**
  * Common object attributes.
  */
-struct lu_attr {
+struct lu_attr
+{
 	/** size in bytes */
 	__u64	  la_size;
 	/** modification time in seconds since Epoch */
@@ -430,7 +439,8 @@ struct lu_attr {
 };
 
 /** Bit-mask of valid attributes */
-enum la_valid {
+enum la_valid
+{
 	LA_ATIME = 1 << 0,
 	LA_MTIME = 1 << 1,
 	LA_CTIME = 1 << 2,
@@ -451,7 +461,8 @@ enum la_valid {
 /**
  * Layer in the layered object.
  */
-struct lu_object {
+struct lu_object
+{
 	/**
 	 * Header for this object.
 	 */
@@ -474,7 +485,8 @@ struct lu_object {
 	struct lu_ref_link                 lo_dev_ref;
 };
 
-enum lu_object_header_flags {
+enum lu_object_header_flags
+{
 	/**
 	 * Don't keep this object in cache. Object will be destroyed as soon
 	 * as last reference to it is released. This flag cannot be cleared
@@ -487,7 +499,8 @@ enum lu_object_header_flags {
 	LU_OBJECT_UNHASHED = 1,
 };
 
-enum lu_object_header_attr {
+enum lu_object_header_attr
+{
 	LOHA_EXISTS   = 1 << 0,
 	LOHA_REMOTE   = 1 << 1,
 	/**
@@ -508,7 +521,8 @@ enum lu_object_header_attr {
  * create calls. lu_object_operations::loo_exists() can be used to check
  * whether object is backed by persistent storage entity.
  */
-struct lu_object_header {
+struct lu_object_header
+{
 	/**
 	 * Fid, uniquely identifying this object.
 	 */
@@ -548,7 +562,8 @@ struct lu_object_header {
 
 struct fld;
 
-struct lu_site_bkt_data {
+struct lu_site_bkt_data
+{
 	/**
 	 * number of object in this bucket on the lsb_lru list.
 	 */
@@ -573,7 +588,8 @@ struct lu_site_bkt_data {
 	wait_queue_head_t	       lsb_marche_funebre;
 };
 
-enum {
+enum
+{
 	LU_SS_CREATED	 = 0,
 	LU_SS_CACHE_HIT,
 	LU_SS_CACHE_MISS,
@@ -594,7 +610,8 @@ enum {
  * lu_site has the same relation to lu_device as lu_object_header to
  * lu_object.
  */
-struct lu_site {
+struct lu_site
+{
 	/**
 	 * objects hash table
 	 */
@@ -667,7 +684,7 @@ void lu_device_fini(struct lu_device *d);
 int lu_object_header_init(struct lu_object_header *h);
 void lu_object_header_fini(struct lu_object_header *h);
 int lu_object_init(struct lu_object *o,
-		   struct lu_object_header *h, struct lu_device *d);
+				   struct lu_object_header *h, struct lu_device *d);
 void lu_object_fini(struct lu_object *o);
 void lu_object_add_top(struct lu_object_header *h, struct lu_object *o);
 void lu_object_add(struct lu_object *before, struct lu_object *o);
@@ -712,15 +729,15 @@ void lu_object_unhash(const struct lu_env *env, struct lu_object *o);
 int lu_site_purge(const struct lu_env *env, struct lu_site *s, int nr);
 
 void lu_site_print(const struct lu_env *env, struct lu_site *s, void *cookie,
-		   lu_printer_t printer);
+				   lu_printer_t printer);
 struct lu_object *lu_object_find_at(const struct lu_env *env,
-				    struct lu_device *dev,
-				    const struct lu_fid *f,
-				    const struct lu_object_conf *conf);
+									struct lu_device *dev,
+									const struct lu_fid *f,
+									const struct lu_object_conf *conf);
 struct lu_object *lu_object_find_slice(const struct lu_env *env,
-				       struct lu_device *dev,
-				       const struct lu_fid *f,
-				       const struct lu_object_conf *conf);
+									   struct lu_device *dev,
+									   const struct lu_fid *f,
+									   const struct lu_object_conf *conf);
 /** @} caching */
 
 /** \name helpers
@@ -767,45 +784,45 @@ lu_object_ops(const struct lu_object *o)
  * \a dtype.
  */
 struct lu_object *lu_object_locate(struct lu_object_header *h,
-				   const struct lu_device_type *dtype);
+								   const struct lu_device_type *dtype);
 
 /**
  * Printer function emitting messages through libcfs_debug_msg().
  */
 int lu_cdebug_printer(const struct lu_env *env,
-		      void *cookie, const char *format, ...);
+					  void *cookie, const char *format, ...);
 
 /**
  * Print object description followed by a user-supplied message.
  */
 #define LU_OBJECT_DEBUG(mask, env, object, format, ...)		   \
-do {								      \
-	if (cfs_cdebug_show(mask, DEBUG_SUBSYSTEM)) {		     \
-		LIBCFS_DEBUG_MSG_DATA_DECL(msgdata, mask, NULL);		\
-		lu_object_print(env, &msgdata, lu_cdebug_printer, object);\
-		CDEBUG(mask, format "\n", ## __VA_ARGS__);		    \
-	}								 \
-} while (0)
+	do {								      \
+		if (cfs_cdebug_show(mask, DEBUG_SUBSYSTEM)) {		     \
+			LIBCFS_DEBUG_MSG_DATA_DECL(msgdata, mask, NULL);		\
+			lu_object_print(env, &msgdata, lu_cdebug_printer, object);\
+			CDEBUG(mask, format "\n", ## __VA_ARGS__);		    \
+		}								 \
+	} while (0)
 
 /**
  * Print short object description followed by a user-supplied message.
  */
 #define LU_OBJECT_HEADER(mask, env, object, format, ...)		\
-do {								    \
-	if (cfs_cdebug_show(mask, DEBUG_SUBSYSTEM)) {		   \
-		LIBCFS_DEBUG_MSG_DATA_DECL(msgdata, mask, NULL);		\
-		lu_object_header_print(env, &msgdata, lu_cdebug_printer,\
-				       (object)->lo_header);	    \
-		lu_cdebug_printer(env, &msgdata, "\n");		 \
-		CDEBUG(mask, format, ## __VA_ARGS__);		  \
-	}							       \
-} while (0)
+	do {								    \
+		if (cfs_cdebug_show(mask, DEBUG_SUBSYSTEM)) {		   \
+			LIBCFS_DEBUG_MSG_DATA_DECL(msgdata, mask, NULL);		\
+			lu_object_header_print(env, &msgdata, lu_cdebug_printer,\
+								   (object)->lo_header);	    \
+			lu_cdebug_printer(env, &msgdata, "\n");		 \
+			CDEBUG(mask, format, ## __VA_ARGS__);		  \
+		}							       \
+	} while (0)
 
 void lu_object_print       (const struct lu_env *env, void *cookie,
-			    lu_printer_t printer, const struct lu_object *o);
+							lu_printer_t printer, const struct lu_object *o);
 void lu_object_header_print(const struct lu_env *env, void *cookie,
-			    lu_printer_t printer,
-			    const struct lu_object_header *hdr);
+							lu_printer_t printer,
+							const struct lu_object_header *hdr);
 
 /**
  * Check object consistency.
@@ -844,35 +861,36 @@ static inline __u32 lu_object_attr(const struct lu_object *o)
 }
 
 static inline void lu_object_ref_add(struct lu_object *o,
-				     const char *scope,
-				     const void *source)
+									 const char *scope,
+									 const void *source)
 {
 	lu_ref_add(&o->lo_header->loh_reference, scope, source);
 }
 
 static inline void lu_object_ref_add_at(struct lu_object *o,
-					struct lu_ref_link *link,
-					const char *scope,
-					const void *source)
+										struct lu_ref_link *link,
+										const char *scope,
+										const void *source)
 {
 	lu_ref_add_at(&o->lo_header->loh_reference, link, scope, source);
 }
 
 static inline void lu_object_ref_del(struct lu_object *o,
-				     const char *scope, const void *source)
+									 const char *scope, const void *source)
 {
 	lu_ref_del(&o->lo_header->loh_reference, scope, source);
 }
 
 static inline void lu_object_ref_del_at(struct lu_object *o,
-					struct lu_ref_link *link,
-					const char *scope, const void *source)
+										struct lu_ref_link *link,
+										const char *scope, const void *source)
 {
 	lu_ref_del_at(&o->lo_header->loh_reference, link, scope, source);
 }
 
 /** input params, should be filled out by mdt */
-struct lu_rdpg {
+struct lu_rdpg
+{
 	/** hash */
 	__u64		   rp_hash;
 	/** count in bytes */
@@ -885,7 +903,8 @@ struct lu_rdpg {
 	struct page	   **rp_pages;
 };
 
-enum lu_xattr_flags {
+enum lu_xattr_flags
+{
 	LU_XATTR_REPLACE = (1 << 0),
 	LU_XATTR_CREATE  = (1 << 1)
 };
@@ -897,7 +916,8 @@ enum lu_xattr_flags {
  */
 
 /** For lu_context health-checks */
-enum lu_context_state {
+enum lu_context_state
+{
 	LCS_INITIALIZED = 1,
 	LCS_ENTERED,
 	LCS_LEFT,
@@ -925,7 +945,8 @@ enum lu_context_state {
  *
  * \see lu_context_key
  */
-struct lu_context {
+struct lu_context
+{
 	/**
 	 * lu_context is used on the client side too. Yet we don't want to
 	 * allocate values of server-side keys for the client contexts and
@@ -969,7 +990,8 @@ struct lu_context {
  * lu_context_key interface. Similar to pthread_key.
  */
 
-enum lu_context_tag {
+enum lu_context_tag
+{
 	/**
 	 * Thread on md server
 	 */
@@ -1030,7 +1052,7 @@ enum lu_context_tag {
 	 * Contexts usable in cache shrinker thread.
 	 */
 	LCT_SHRINKER  = LCT_MD_THREAD | LCT_DT_THREAD | LCT_CL_THREAD |
-			LCT_NOREF
+					LCT_NOREF
 };
 
 /**
@@ -1069,7 +1091,8 @@ enum lu_context_tag {
  *
  * \see lu_context
  */
-struct lu_context_key {
+struct lu_context_key
+{
 	/**
 	 * Set of tags for which values of this key are to be instantiated.
 	 */
@@ -1079,21 +1102,21 @@ struct lu_context_key {
 	 * context. Returns pointer to new value of error pointer.
 	 */
 	void  *(*lct_init)(const struct lu_context *ctx,
-			   struct lu_context_key *key);
+					   struct lu_context_key *key);
 	/**
 	 * Value destructor. Called when context with previously allocated
 	 * value of this slot is destroyed. \a data is a value that was returned
 	 * by a matching call to lu_context_key::lct_init().
 	 */
 	void   (*lct_fini)(const struct lu_context *ctx,
-			   struct lu_context_key *key, void *data);
+					   struct lu_context_key *key, void *data);
 	/**
 	 * Optional method called on lu_context_exit() for all allocated
 	 * keys. Can be used by debugging code checking that locks are
 	 * released, etc.
 	 */
 	void   (*lct_exit)(const struct lu_context *ctx,
-			   struct lu_context_key *key, void *data);
+					   struct lu_context_key *key, void *data);
 	/**
 	 * Internal implementation detail: index within lu_context::lc_value[]
 	 * reserved for this key.
@@ -1116,26 +1139,26 @@ struct lu_context_key {
 
 #define LU_KEY_INIT(mod, type)				    \
 	static void *mod##_key_init(const struct lu_context *ctx, \
-				    struct lu_context_key *key)   \
+								struct lu_context_key *key)   \
 	{							 \
 		type *value;				      \
-								  \
+		\
 		CLASSERT(PAGE_SIZE >= sizeof(*value));        \
-								  \
+		\
 		value = kzalloc(sizeof(*value), GFP_NOFS);	\
 		if (!value)				\
 			value = ERR_PTR(-ENOMEM);		 \
-								  \
+		\
 		return value;				     \
 	}							 \
 	struct __##mod##__dummy_init {; } /* semicolon catcher */
 
 #define LU_KEY_FINI(mod, type)					      \
 	static void mod##_key_fini(const struct lu_context *ctx,	    \
-				    struct lu_context_key *key, void *data) \
+							   struct lu_context_key *key, void *data) \
 	{								   \
 		type *info = data;					  \
-									    \
+		\
 		kfree(info);					 \
 	}								   \
 	struct __##mod##__dummy_fini {; } /* semicolon catcher */
@@ -1147,19 +1170,19 @@ struct lu_context_key {
 #define LU_CONTEXT_KEY_DEFINE(mod, tags)		\
 	struct lu_context_key mod##_thread_key = {      \
 		.lct_tags = tags,		       \
-		.lct_init = mod##_key_init,	     \
-		.lct_fini = mod##_key_fini	      \
+					.lct_init = mod##_key_init,	     \
+								.lct_fini = mod##_key_fini	      \
 	}
 
 #define LU_CONTEXT_KEY_INIT(key)			\
-do {						    \
-	(key)->lct_owner = THIS_MODULE;		 \
-} while (0)
+	do {						    \
+		(key)->lct_owner = THIS_MODULE;		 \
+	} while (0)
 
 int lu_context_key_register(struct lu_context_key *key);
 void lu_context_key_degister(struct lu_context_key *key);
 void *lu_context_key_get(const struct lu_context *ctx,
-			 const struct lu_context_key *key);
+						 const struct lu_context_key *key);
 void lu_context_key_quiesce(struct lu_context_key *key);
 void lu_context_key_revive(struct lu_context_key *key);
 
@@ -1173,7 +1196,7 @@ void lu_context_key_revive(struct lu_context_key *key);
 	{							       \
 		struct lu_context_key *key = k;			 \
 		va_list args;					   \
-									\
+		\
 		va_start(args, k);				      \
 		do {						    \
 			LU_CONTEXT_KEY_INIT(key);		       \
@@ -1237,7 +1260,8 @@ void lu_context_key_quiesce_many(struct lu_context_key *k, ...);
 /**
  * Environment.
  */
-struct lu_env {
+struct lu_env
+{
 	/**
 	 * "Local" context, used to store data instead of stack.
 	 */
@@ -1263,7 +1287,8 @@ int lu_site_stats_print(const struct lu_site *s, struct seq_file *m);
 /**
  * Common name structure to be passed around for various name related methods.
  */
-struct lu_name {
+struct lu_name
+{
 	const char    *ln_name;
 	int	    ln_namelen;
 };
@@ -1280,15 +1305,16 @@ struct lu_name {
 static inline bool lu_name_is_valid_2(const char *name, size_t name_len)
 {
 	return name && name_len > 0 && name_len < INT_MAX &&
-	       name[name_len] == '\0' && strlen(name) == name_len &&
-	       !memchr(name, '/', name_len);
+		   name[name_len] == '\0' && strlen(name) == name_len &&
+		   !memchr(name, '/', name_len);
 }
 
 /**
  * Common buffer structure to be passed around for various xattr_{s,g}et()
  * methods.
  */
-struct lu_buf {
+struct lu_buf
+{
 	void   *lb_buf;
 	size_t	lb_len;
 };
@@ -1310,7 +1336,8 @@ int lu_global_init(void);
  */
 void lu_global_fini(void);
 
-struct lu_kmem_descr {
+struct lu_kmem_descr
+{
 	struct kmem_cache **ckd_cache;
 	const char       *ckd_name;
 	const size_t      ckd_size;

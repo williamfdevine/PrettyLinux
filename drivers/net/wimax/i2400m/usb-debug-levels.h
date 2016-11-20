@@ -30,7 +30,8 @@
 #include <linux/wimax/debug.h>
 
 /* List of all the enabled modules */
-enum d_module {
+enum d_module
+{
 	D_SUBMODULE_DECLARE(usb),
 	D_SUBMODULE_DECLARE(fw),
 	D_SUBMODULE_DECLARE(notif),

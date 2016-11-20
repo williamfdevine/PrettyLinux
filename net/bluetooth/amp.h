@@ -14,7 +14,8 @@
 #ifndef __AMP_H
 #define __AMP_H
 
-struct amp_ctrl {
+struct amp_ctrl
+{
 	struct list_head	list;
 	struct kref		kref;
 	__u8			id;
@@ -31,7 +32,7 @@ struct amp_ctrl *amp_ctrl_lookup(struct amp_mgr *mgr, u8 id);
 void amp_ctrl_list_flush(struct amp_mgr *mgr);
 
 struct hci_conn *phylink_add(struct hci_dev *hdev, struct amp_mgr *mgr,
-			     u8 remote_id, bool out);
+							 u8 remote_id, bool out);
 
 int phylink_gen_key(struct hci_conn *hcon, u8 *data, u8 *len, u8 *type);
 
@@ -39,11 +40,11 @@ void amp_read_loc_info(struct hci_dev *hdev, struct amp_mgr *mgr);
 void amp_read_loc_assoc_frag(struct hci_dev *hdev, u8 phy_handle);
 void amp_read_loc_assoc(struct hci_dev *hdev, struct amp_mgr *mgr);
 void amp_read_loc_assoc_final_data(struct hci_dev *hdev,
-				   struct hci_conn *hcon);
+								   struct hci_conn *hcon);
 void amp_create_phylink(struct hci_dev *hdev, struct amp_mgr *mgr,
-			struct hci_conn *hcon);
+						struct hci_conn *hcon);
 void amp_accept_phylink(struct hci_dev *hdev, struct amp_mgr *mgr,
-			struct hci_conn *hcon);
+						struct hci_conn *hcon);
 
 #if IS_ENABLED(CONFIG_BT_HS)
 void amp_create_logical_link(struct l2cap_chan *chan);

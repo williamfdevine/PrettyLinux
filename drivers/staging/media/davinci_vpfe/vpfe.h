@@ -31,19 +31,22 @@
 
 #define CAPTURE_DRV_NAME	"vpfe-capture"
 
-struct vpfe_route {
+struct vpfe_route
+{
 	__u32 input;
 	__u32 output;
 };
 
-enum vpfe_subdev_id {
+enum vpfe_subdev_id
+{
 	VPFE_SUBDEV_TVP5146 = 1,
 	VPFE_SUBDEV_MT9T031 = 2,
 	VPFE_SUBDEV_TVP7002 = 3,
 	VPFE_SUBDEV_MT9P031 = 4,
 };
 
-struct vpfe_ext_subdev_info {
+struct vpfe_ext_subdev_info
+{
 	/* v4l2 subdev */
 	struct v4l2_subdev *subdev;
 	/* Sub device module name */
@@ -61,14 +64,15 @@ struct vpfe_ext_subdev_info {
 	/* i2c subdevice board info */
 	struct i2c_board_info board_info;
 	/* Is this a camera sub device ? */
-	unsigned is_camera:1;
+	unsigned is_camera: 1;
 	/* check if sub dev supports routing */
-	unsigned can_route:1;
+	unsigned can_route: 1;
 	/* registered ? */
-	unsigned registered:1;
+	unsigned registered: 1;
 };
 
-struct vpfe_config {
+struct vpfe_config
+{
 	/* Number of sub devices connected to vpfe */
 	int num_subdevs;
 	/* information about each subdev */

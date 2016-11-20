@@ -4,7 +4,7 @@
  *
  *  SB16ASP/AWE32 CSP control
  *
- *   This program is free software; you can redistribute it and/or modify 
+ *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation; either version 2 of the License, or
  *   (at your option) any later version.
@@ -63,25 +63,29 @@
 #define SNDRV_SB_CSP_MAX_MICROCODE_FILE_SIZE	0x3000
 
 /* microcode header */
-struct snd_sb_csp_mc_header {
+struct snd_sb_csp_mc_header
+{
 	char codec_name[16];		/* id name of codec */
 	unsigned short func_req;	/* requested function */
 };
 
 /* microcode to be loaded */
-struct snd_sb_csp_microcode {
+struct snd_sb_csp_microcode
+{
 	struct snd_sb_csp_mc_header info;
 	unsigned char data[SNDRV_SB_CSP_MAX_MICROCODE_FILE_SIZE];
 };
 
 /* start CSP with sample_width in mono/stereo */
-struct snd_sb_csp_start {
+struct snd_sb_csp_start
+{
 	int sample_width;	/* sample width, look above */
 	int channels;		/* channels, look above */
 };
 
 /* CSP information */
-struct snd_sb_csp_info {
+struct snd_sb_csp_info
+{
 	char codec_name[16];		/* id name of codec */
 	unsigned short func_nr;		/* function number */
 	unsigned int acc_format;	/* accepted PCM formats */

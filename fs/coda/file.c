@@ -1,6 +1,6 @@
 /*
  * File operations for Coda.
- * Original version: (C) 1996 Peter Braam 
+ * Original version: (C) 1996 Peter Braam
  * Rewritten for Linux 2.1: (C) 1997 Carnegie Mellon University
  *
  * Carnegie Mellon encourages users of this code to contribute improvements
@@ -73,7 +73,9 @@ coda_file_mmap(struct file *coda_file, struct vm_area_struct *vma)
 	host_file = cfi->cfi_container;
 
 	if (!host_file->f_op->mmap)
+	{
 		return -ENODEV;
+	}
 
 	coda_inode = file_inode(coda_file);
 	host_inode = file_inode(host_file);
@@ -81,12 +83,16 @@ coda_file_mmap(struct file *coda_file, struct vm_area_struct *vma)
 	cii = ITOC(coda_inode);
 	spin_lock(&cii->c_lock);
 	coda_file->f_mapping = host_file->f_mapping;
+
 	if (coda_inode->i_mapping == &coda_inode->i_data)
+	{
 		coda_inode->i_mapping = host_inode->i_mapping;
+	}
 
 	/* only allow additional mmaps as long as userspace isn't changing
 	 * the container file on us! */
-	else if (coda_inode->i_mapping != host_inode->i_mapping) {
+	else if (coda_inode->i_mapping != host_inode->i_mapping)
+	{
 		spin_unlock(&cii->c_lock);
 		return -EBUSY;
 	}
@@ -108,15 +114,22 @@ int coda_open(struct inode *coda_inode, struct file *coda_file)
 	struct coda_file_info *cfi;
 
 	cfi = kmalloc(sizeof(struct coda_file_info), GFP_KERNEL);
+
 	if (!cfi)
+	{
 		return -ENOMEM;
+	}
 
 	error = venus_open(coda_inode->i_sb, coda_i2f(coda_inode), coda_flags,
-			   &host_file);
-	if (!host_file)
-		error = -EIO;
+					   &host_file);
 
-	if (error) {
+	if (!host_file)
+	{
+		error = -EIO;
+	}
+
+	if (error)
+	{
 		kfree(cfi);
 		return error;
 	}
@@ -145,18 +158,24 @@ int coda_release(struct inode *coda_inode, struct file *coda_file)
 	BUG_ON(!cfi || cfi->cfi_magic != CODA_MAGIC);
 
 	err = venus_close(coda_inode->i_sb, coda_i2f(coda_inode),
-			  coda_flags, coda_file->f_cred->fsuid);
+					  coda_flags, coda_file->f_cred->fsuid);
 
 	host_inode = file_inode(cfi->cfi_container);
 	cii = ITOC(coda_inode);
 
 	/* did we mmap this file? */
 	spin_lock(&cii->c_lock);
-	if (coda_inode->i_mapping == &host_inode->i_data) {
+
+	if (coda_inode->i_mapping == &host_inode->i_data)
+	{
 		cii->c_mapcount -= cfi->cfi_mapcount;
+
 		if (!cii->c_mapcount)
+		{
 			coda_inode->i_mapping = &coda_inode->i_data;
+		}
 	}
+
 	spin_unlock(&cii->c_lock);
 
 	fput(cfi->cfi_container);
@@ -176,12 +195,18 @@ int coda_fsync(struct file *coda_file, loff_t start, loff_t end, int datasync)
 	int err;
 
 	if (!(S_ISREG(coda_inode->i_mode) || S_ISDIR(coda_inode->i_mode) ||
-	      S_ISLNK(coda_inode->i_mode)))
+		  S_ISLNK(coda_inode->i_mode)))
+	{
 		return -EINVAL;
+	}
 
 	err = filemap_write_and_wait_range(coda_inode->i_mapping, start, end);
+
 	if (err)
+	{
 		return err;
+	}
+
 	inode_lock(coda_inode);
 
 	cfi = CODA_FTOC(coda_file);
@@ -189,14 +214,19 @@ int coda_fsync(struct file *coda_file, loff_t start, loff_t end, int datasync)
 	host_file = cfi->cfi_container;
 
 	err = vfs_fsync(host_file, datasync);
+
 	if (!err && !datasync)
+	{
 		err = venus_fsync(coda_inode->i_sb, coda_i2f(coda_inode));
+	}
+
 	inode_unlock(coda_inode);
 
 	return err;
 }
 
-const struct file_operations coda_file_operations = {
+const struct file_operations coda_file_operations =
+{
 	.llseek		= generic_file_llseek,
 	.read_iter	= coda_file_read_iter,
 	.write_iter	= coda_file_write_iter,

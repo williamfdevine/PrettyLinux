@@ -94,7 +94,8 @@
 #include <mach/generic.h>
 #include <mach/hardware.h>
 
-struct sa1100_dram_regs {
+struct sa1100_dram_regs
+{
 	int speed;
 	u32 mdcnfg;
 	u32 mdcas0;
@@ -105,7 +106,8 @@ struct sa1100_dram_regs {
 
 static struct cpufreq_driver sa1100_driver;
 
-static struct sa1100_dram_regs sa1100_dram_settings[] = {
+static struct sa1100_dram_regs sa1100_dram_settings[] =
+{
 	/*speed,     mdcnfg,     mdcas0,     mdcas1,     mdcas2,   clock freq */
 	{ 59000, 0x00dc88a3, 0xcccccccf, 0xfffffffc, 0xffffffff},/*  59.0 MHz */
 	{ 73700, 0x011490a3, 0xcccccccf, 0xfffffffc, 0xffffffff},/*  73.7 MHz */
@@ -131,20 +133,25 @@ static void sa1100_update_dram_timings(int current_speed, int new_speed)
 	struct sa1100_dram_regs *settings = sa1100_dram_settings;
 
 	/* find speed */
-	while (settings->speed != 0) {
+	while (settings->speed != 0)
+	{
 		if (new_speed == settings->speed)
+		{
 			break;
+		}
 
 		settings++;
 	}
 
-	if (settings->speed == 0) {
+	if (settings->speed == 0)
+	{
 		panic("%s: couldn't find dram setting for speed %d\n",
-		      __func__, new_speed);
+			  __func__, new_speed);
 	}
 
 	/* No risk, no fun: run with interrupts on! */
-	if (new_speed > current_speed) {
+	if (new_speed > current_speed)
+	{
 		/* We're going FASTER, so first relax the memory
 		 * timings before changing the core frequency
 		 */
@@ -159,7 +166,9 @@ static void sa1100_update_dram_timings(int current_speed, int new_speed)
 		MDCAS1 = settings->mdcas1;
 		MDCAS0 = settings->mdcas0;
 		MDCNFG = settings->mdcnfg;
-	} else {
+	}
+	else
+	{
 		/* We're going SLOWER: first decrease the core
 		 * frequency and then tighten the memory settings.
 		 */
@@ -185,12 +194,16 @@ static int sa1100_target(struct cpufreq_policy *policy, unsigned int ppcr)
 	new_freq = sa11x0_freq_table[ppcr].frequency;
 
 	if (new_freq > cur)
+	{
 		sa1100_update_dram_timings(cur, new_freq);
+	}
 
 	PPCR = ppcr;
 
 	if (new_freq < cur)
+	{
 		sa1100_update_dram_timings(cur, new_freq);
+	}
 
 	return 0;
 }
@@ -200,7 +213,8 @@ static int __init sa1100_cpu_init(struct cpufreq_policy *policy)
 	return cpufreq_generic_init(policy, sa11x0_freq_table, CPUFREQ_ETERNAL);
 }
 
-static struct cpufreq_driver sa1100_driver __refdata = {
+static struct cpufreq_driver sa1100_driver __refdata =
+{
 	.flags		= CPUFREQ_STICKY | CPUFREQ_NEED_INITIAL_FREQ_CHECK,
 	.verify		= cpufreq_generic_frequency_table_verify,
 	.target_index	= sa1100_target,
@@ -212,9 +226,13 @@ static struct cpufreq_driver sa1100_driver __refdata = {
 static int __init sa1100_dram_init(void)
 {
 	if (cpu_is_sa1100())
+	{
 		return cpufreq_register_driver(&sa1100_driver);
+	}
 	else
+	{
 		return -ENODEV;
+	}
 }
 
 arch_initcall(sa1100_dram_init);

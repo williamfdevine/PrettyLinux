@@ -21,7 +21,8 @@
 #include <media/davinci/vpfe_types.h>
 
 /* enum for No of pixel per line to be avg. in Black Clamping*/
-enum ccdc_sample_length {
+enum ccdc_sample_length
+{
 	CCDC_SAMPLE_1PIXELS,
 	CCDC_SAMPLE_2PIXELS,
 	CCDC_SAMPLE_4PIXELS,
@@ -30,7 +31,8 @@ enum ccdc_sample_length {
 };
 
 /* enum for No of lines in Black Clamping */
-enum ccdc_sample_line {
+enum ccdc_sample_line
+{
 	CCDC_SAMPLE_1LINES,
 	CCDC_SAMPLE_2LINES,
 	CCDC_SAMPLE_4LINES,
@@ -39,7 +41,8 @@ enum ccdc_sample_line {
 };
 
 /* enum for Alaw gamma width */
-enum ccdc_gamma_width {
+enum ccdc_gamma_width
+{
 	CCDC_GAMMA_BITS_15_6,	/* use bits 15-6 for gamma */
 	CCDC_GAMMA_BITS_14_5,
 	CCDC_GAMMA_BITS_13_4,
@@ -55,7 +58,8 @@ static inline u8 ccdc_gamma_width_max_bit(enum ccdc_gamma_width width)
 	return 15 - width;
 }
 
-enum ccdc_data_size {
+enum ccdc_data_size
+{
 	CCDC_DATA_16BITS,
 	CCDC_DATA_15BITS,
 	CCDC_DATA_14BITS,
@@ -73,7 +77,8 @@ static inline u8 ccdc_data_size_max_bit(enum ccdc_data_size sz)
 }
 
 /* structure for ALaw */
-struct ccdc_a_law {
+struct ccdc_a_law
+{
 	/* Enable/disable A-Law */
 	unsigned char enable;
 	/* Gamma Width Input */
@@ -81,7 +86,8 @@ struct ccdc_a_law {
 };
 
 /* structure for Black Clamping */
-struct ccdc_black_clamp {
+struct ccdc_black_clamp
+{
 	unsigned char enable;
 	/* only if bClampEnable is TRUE */
 	enum ccdc_sample_length sample_pixel;
@@ -96,7 +102,8 @@ struct ccdc_black_clamp {
 };
 
 /* structure for Black Level Compensation */
-struct ccdc_black_compensation {
+struct ccdc_black_compensation
+{
 	/* Constant value to subtract from Red component */
 	char r;
 	/* Constant value to subtract from Gr component */
@@ -108,7 +115,8 @@ struct ccdc_black_compensation {
 };
 
 /* structure for fault pixel correction */
-struct ccdc_fault_pixel {
+struct ccdc_fault_pixel
+{
 	/* Enable or Disable fault pixel correction */
 	unsigned char enable;
 	/* Number of fault pixel */
@@ -120,7 +128,8 @@ struct ccdc_fault_pixel {
 /* Structure for CCDC configuration parameters for raw capture mode passed
  * by application
  */
-struct ccdc_config_params_raw {
+struct ccdc_config_params_raw
+{
 	/* data size value from 8 to 16 bits */
 	enum ccdc_data_size data_sz;
 	/* Structure for Optional A-Law */
@@ -148,7 +157,8 @@ struct ccdc_config_params_raw {
 #define CCDC_WIN_VGA	{0, 0, (640 + NUM_EXTRAPIXELS), (480 + NUM_EXTRALINES)}
 
 /* Structure for CCDC configuration parameters for raw capture mode */
-struct ccdc_params_raw {
+struct ccdc_params_raw
+{
 	/* pixel format */
 	enum ccdc_pixfmt pix_fmt;
 	/* progressive or interlaced frame */
@@ -172,7 +182,8 @@ struct ccdc_params_raw {
 	struct ccdc_config_params_raw config_params;
 };
 
-struct ccdc_params_ycbcr {
+struct ccdc_params_ycbcr
+{
 	/* pixel format */
 	enum ccdc_pixfmt pix_fmt;
 	/* progressive or interlaced frame */

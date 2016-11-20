@@ -83,7 +83,8 @@
 
 #define IMX7D_ADC_TIMEOUT		msecs_to_jiffies(100)
 
-enum imx7d_adc_clk_pre_div {
+enum imx7d_adc_clk_pre_div
+{
 	IMX7D_ADC_ANALOG_CLK_PRE_DIV_4,
 	IMX7D_ADC_ANALOG_CLK_PRE_DIV_8,
 	IMX7D_ADC_ANALOG_CLK_PRE_DIV_16,
@@ -92,14 +93,16 @@ enum imx7d_adc_clk_pre_div {
 	IMX7D_ADC_ANALOG_CLK_PRE_DIV_128,
 };
 
-enum imx7d_adc_average_num {
+enum imx7d_adc_average_num
+{
 	IMX7D_ADC_AVERAGE_NUM_4,
 	IMX7D_ADC_AVERAGE_NUM_8,
 	IMX7D_ADC_AVERAGE_NUM_16,
 	IMX7D_ADC_AVERAGE_NUM_32,
 };
 
-struct imx7d_adc_feature {
+struct imx7d_adc_feature
+{
 	enum imx7d_adc_clk_pre_div clk_pre_div;
 	enum imx7d_adc_average_num avg_num;
 
@@ -108,7 +111,8 @@ struct imx7d_adc_feature {
 	bool average_en;
 };
 
-struct imx7d_adc {
+struct imx7d_adc
+{
 	struct device *dev;
 	void __iomem *regs;
 	struct clk *clk;
@@ -124,17 +128,19 @@ struct imx7d_adc {
 	struct completion completion;
 };
 
-struct imx7d_adc_analogue_core_clk {
+struct imx7d_adc_analogue_core_clk
+{
 	u32 pre_div;
 	u32 reg_config;
 };
 
 #define IMX7D_ADC_ANALOGUE_CLK_CONFIG(_pre_div, _reg_conf) {	\
-	.pre_div = (_pre_div),					\
-	.reg_config = (_reg_conf),				\
-}
+		.pre_div = (_pre_div),					\
+				   .reg_config = (_reg_conf),				\
+	}
 
-static const struct imx7d_adc_analogue_core_clk imx7d_adc_analogue_clk[] = {
+static const struct imx7d_adc_analogue_core_clk imx7d_adc_analogue_clk[] =
+{
 	IMX7D_ADC_ANALOGUE_CLK_CONFIG(4, IMX7D_REG_ADC_TIMER_UNIT_PRE_DIV_4),
 	IMX7D_ADC_ANALOGUE_CLK_CONFIG(8, IMX7D_REG_ADC_TIMER_UNIT_PRE_DIV_8),
 	IMX7D_ADC_ANALOGUE_CLK_CONFIG(16, IMX7D_REG_ADC_TIMER_UNIT_PRE_DIV_16),
@@ -144,15 +150,16 @@ static const struct imx7d_adc_analogue_core_clk imx7d_adc_analogue_clk[] = {
 };
 
 #define IMX7D_ADC_CHAN(_idx) {					\
-	.type = IIO_VOLTAGE,					\
-	.indexed = 1,						\
-	.channel = (_idx),					\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) |	\
-				BIT(IIO_CHAN_INFO_SAMP_FREQ),	\
-}
+		.type = IIO_VOLTAGE,					\
+				.indexed = 1,						\
+						   .channel = (_idx),					\
+									  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
+											  .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) |	\
+													  BIT(IIO_CHAN_INFO_SAMP_FREQ),	\
+	}
 
-static const struct iio_chan_spec imx7d_adc_iio_channels[] = {
+static const struct iio_chan_spec imx7d_adc_iio_channels[] =
+{
 	IMX7D_ADC_CHAN(0),
 	IMX7D_ADC_CHAN(1),
 	IMX7D_ADC_CHAN(2),
@@ -171,7 +178,8 @@ static const struct iio_chan_spec imx7d_adc_iio_channels[] = {
 	IMX7D_ADC_CHAN(15),
 };
 
-static const u32 imx7d_adc_average_num[] = {
+static const u32 imx7d_adc_average_num[] =
+{
 	IMX7D_REG_ADC_CH_CFG2_AVG_NUM_4,
 	IMX7D_REG_ADC_CH_CFG2_AVG_NUM_8,
 	IMX7D_REG_ADC_CH_CFG2_AVG_NUM_16,
@@ -198,12 +206,13 @@ static void imx7d_adc_sample_rate_set(struct imx7d_adc *info)
 	 * Before sample set, disable channel A,B,C,D. Here we
 	 * clear the bit 31 of register REG_ADC_CH_A\B\C\D_CFG1.
 	 */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		tmp_cfg1 =
 			readl(info->regs + i * IMX7D_EACH_CHANNEL_REG_OFFSET);
 		tmp_cfg1 &= ~IMX7D_REG_ADC_CH_CFG1_CHANNEL_EN;
 		writel(tmp_cfg1,
-		       info->regs + i * IMX7D_EACH_CHANNEL_REG_OFFSET);
+			   info->regs + i * IMX7D_EACH_CHANNEL_REG_OFFSET);
 	}
 
 	adc_analogure_clk = imx7d_adc_analogue_clk[adc_feature->clk_pre_div];
@@ -221,15 +230,15 @@ static void imx7d_adc_hw_init(struct imx7d_adc *info)
 	/* power up and enable adc analogue core */
 	cfg = readl(info->regs + IMX7D_REG_ADC_ADC_CFG);
 	cfg &= ~(IMX7D_REG_ADC_ADC_CFG_ADC_CLK_DOWN |
-		 IMX7D_REG_ADC_ADC_CFG_ADC_POWER_DOWN);
+			 IMX7D_REG_ADC_ADC_CFG_ADC_POWER_DOWN);
 	cfg |= IMX7D_REG_ADC_ADC_CFG_ADC_EN;
 	writel(cfg, info->regs + IMX7D_REG_ADC_ADC_CFG);
 
 	/* enable channel A,B,C,D interrupt */
 	writel(IMX7D_REG_ADC_INT_CHANNEL_INT_EN,
-	       info->regs + IMX7D_REG_ADC_INT_SIG_EN);
+		   info->regs + IMX7D_REG_ADC_INT_SIG_EN);
 	writel(IMX7D_REG_ADC_INT_CHANNEL_INT_EN,
-	       info->regs + IMX7D_REG_ADC_INT_EN);
+		   info->regs + IMX7D_REG_ADC_INT_EN);
 
 	imx7d_adc_sample_rate_set(info);
 }
@@ -244,9 +253,12 @@ static void imx7d_adc_channel_set(struct imx7d_adc *info)
 
 	/* the channel choose single conversion, and enable average mode */
 	cfg1 |= (IMX7D_REG_ADC_CH_CFG1_CHANNEL_EN |
-		 IMX7D_REG_ADC_CH_CFG1_CHANNEL_SINGLE);
+			 IMX7D_REG_ADC_CH_CFG1_CHANNEL_SINGLE);
+
 	if (info->adc_feature.average_en)
+	{
 		cfg1 |= IMX7D_REG_ADC_CH_CFG1_CHANNEL_AVG_EN;
+	}
 
 	/*
 	 * physical channel 0 chose logical channel A
@@ -261,7 +273,7 @@ static void imx7d_adc_channel_set(struct imx7d_adc *info)
 	 * channel chosen
 	 */
 	cfg2 = readl(info->regs + IMX7D_EACH_CHANNEL_REG_OFFSET * channel +
-		     IMX7D_REG_ADC_CHANNEL_CFG2_BASE);
+				 IMX7D_REG_ADC_CHANNEL_CFG2_BASE);
 
 	cfg2 |= imx7d_adc_average_num[info->adc_feature.avg_num];
 
@@ -270,7 +282,7 @@ static void imx7d_adc_channel_set(struct imx7d_adc *info)
 	 * the channel chosen
 	 */
 	writel(cfg2, info->regs + IMX7D_EACH_CHANNEL_REG_OFFSET * channel +
-	       IMX7D_REG_ADC_CHANNEL_CFG2_BASE);
+		   IMX7D_REG_ADC_CHANNEL_CFG2_BASE);
 	writel(cfg1, info->regs + IMX7D_EACH_CHANNEL_REG_OFFSET * channel);
 }
 
@@ -289,52 +301,57 @@ static u32 imx7d_adc_get_sample_rate(struct imx7d_adc *info)
 }
 
 static int imx7d_adc_read_raw(struct iio_dev *indio_dev,
-			struct iio_chan_spec const *chan,
-			int *val,
-			int *val2,
-			long mask)
+							  struct iio_chan_spec const *chan,
+							  int *val,
+							  int *val2,
+							  long mask)
 {
 	struct imx7d_adc *info = iio_priv(indio_dev);
 
 	u32 channel;
 	long ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		mutex_lock(&indio_dev->mlock);
-		reinit_completion(&info->completion);
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			mutex_lock(&indio_dev->mlock);
+			reinit_completion(&info->completion);
 
-		channel = chan->channel & 0x03;
-		info->channel = channel;
-		imx7d_adc_channel_set(info);
+			channel = chan->channel & 0x03;
+			info->channel = channel;
+			imx7d_adc_channel_set(info);
 
-		ret = wait_for_completion_interruptible_timeout
-				(&info->completion, IMX7D_ADC_TIMEOUT);
-		if (ret == 0) {
+			ret = wait_for_completion_interruptible_timeout
+				  (&info->completion, IMX7D_ADC_TIMEOUT);
+
+			if (ret == 0)
+			{
+				mutex_unlock(&indio_dev->mlock);
+				return -ETIMEDOUT;
+			}
+
+			if (ret < 0)
+			{
+				mutex_unlock(&indio_dev->mlock);
+				return ret;
+			}
+
+			*val = info->value;
 			mutex_unlock(&indio_dev->mlock);
-			return -ETIMEDOUT;
-		}
-		if (ret < 0) {
-			mutex_unlock(&indio_dev->mlock);
-			return ret;
-		}
+			return IIO_VAL_INT;
 
-		*val = info->value;
-		mutex_unlock(&indio_dev->mlock);
-		return IIO_VAL_INT;
+		case IIO_CHAN_INFO_SCALE:
+			info->vref_uv = regulator_get_voltage(info->vref);
+			*val = info->vref_uv / 1000;
+			*val2 = 12;
+			return IIO_VAL_FRACTIONAL_LOG2;
 
-	case IIO_CHAN_INFO_SCALE:
-		info->vref_uv = regulator_get_voltage(info->vref);
-		*val = info->vref_uv / 1000;
-		*val2 = 12;
-		return IIO_VAL_FRACTIONAL_LOG2;
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			*val = imx7d_adc_get_sample_rate(info);
+			return IIO_VAL_INT;
 
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		*val = imx7d_adc_get_sample_rate(info);
-		return IIO_VAL_INT;
-
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -352,13 +369,22 @@ static int imx7d_adc_read_data(struct imx7d_adc *info)
 	 * channel C and D is the same.
 	 */
 	if (channel < 2)
+	{
 		value = readl(info->regs + IMX7D_REG_ADC_CHA_B_CNV_RSLT);
+	}
 	else
+	{
 		value = readl(info->regs + IMX7D_REG_ADC_CHC_D_CNV_RSLT);
+	}
+
 	if (channel & 0x1)	/* channel B or D */
+	{
 		value = (value >> 16) & 0xFFF;
+	}
 	else			/* channel A or C */
+	{
 		value &= 0xFFF;
+	}
 
 	return value;
 }
@@ -369,7 +395,9 @@ static irqreturn_t imx7d_adc_isr(int irq, void *dev_id)
 	int status;
 
 	status = readl(info->regs + IMX7D_REG_ADC_INT_STATUS);
-	if (status & IMX7D_REG_ADC_INT_STATUS_CHANNEL_INT_STATUS) {
+
+	if (status & IMX7D_REG_ADC_INT_STATUS_CHANNEL_INT_STATUS)
+	{
 		info->value = imx7d_adc_read_data(info);
 		complete(&info->completion);
 
@@ -387,9 +415,10 @@ static irqreturn_t imx7d_adc_isr(int irq, void *dev_id)
 	 * If the channel A/B/C/D conversion timeout, report it and clear these
 	 * timeout flags.
 	 */
-	if (status & IMX7D_REG_ADC_INT_STATUS_CHANNEL_CONV_TIME_OUT) {
+	if (status & IMX7D_REG_ADC_INT_STATUS_CHANNEL_CONV_TIME_OUT)
+	{
 		pr_err("%s: ADC got conversion time out interrupt: 0x%08x\n",
-			dev_name(info->dev), status);
+			   dev_name(info->dev), status);
 		status &= ~IMX7D_REG_ADC_INT_STATUS_CHANNEL_CONV_TIME_OUT;
 		writel(status, info->regs + IMX7D_REG_ADC_INT_STATUS);
 	}
@@ -398,26 +427,30 @@ static irqreturn_t imx7d_adc_isr(int irq, void *dev_id)
 }
 
 static int imx7d_adc_reg_access(struct iio_dev *indio_dev,
-			unsigned reg, unsigned writeval,
-			unsigned *readval)
+								unsigned reg, unsigned writeval,
+								unsigned *readval)
 {
 	struct imx7d_adc *info = iio_priv(indio_dev);
 
 	if (!readval || reg % 4 || reg > IMX7D_REG_ADC_ADC_CFG)
+	{
 		return -EINVAL;
+	}
 
 	*readval = readl(info->regs + reg);
 
 	return 0;
 }
 
-static const struct iio_info imx7d_adc_iio_info = {
+static const struct iio_info imx7d_adc_iio_info =
+{
 	.driver_module = THIS_MODULE,
 	.read_raw = &imx7d_adc_read_raw,
 	.debugfs_reg_access = &imx7d_adc_reg_access,
 };
 
-static const struct of_device_id imx7d_adc_match[] = {
+static const struct of_device_id imx7d_adc_match[] =
+{
 	{ .compatible = "fsl,imx7d-adc", },
 	{ /* sentinel */ }
 };
@@ -429,7 +462,7 @@ static void imx7d_adc_power_down(struct imx7d_adc *info)
 
 	adc_cfg = readl(info->regs + IMX7D_REG_ADC_ADC_CFG);
 	adc_cfg |= IMX7D_REG_ADC_ADC_CFG_ADC_CLK_DOWN |
-		   IMX7D_REG_ADC_ADC_CFG_ADC_POWER_DOWN;
+			   IMX7D_REG_ADC_ADC_CFG_ADC_POWER_DOWN;
 	adc_cfg &= ~IMX7D_REG_ADC_ADC_CFG_ADC_EN;
 	writel(adc_cfg, info->regs + IMX7D_REG_ADC_ADC_CFG);
 }
@@ -443,7 +476,9 @@ static int imx7d_adc_probe(struct platform_device *pdev)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(*info));
-	if (!indio_dev) {
+
+	if (!indio_dev)
+	{
 		dev_err(&pdev->dev, "Failed allocating iio device\n");
 		return -ENOMEM;
 	}
@@ -453,39 +488,49 @@ static int imx7d_adc_probe(struct platform_device *pdev)
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	info->regs = devm_ioremap_resource(&pdev->dev, mem);
-	if (IS_ERR(info->regs)) {
+
+	if (IS_ERR(info->regs))
+	{
 		ret = PTR_ERR(info->regs);
 		dev_err(&pdev->dev,
-			"Failed to remap adc memory, err = %d\n", ret);
+				"Failed to remap adc memory, err = %d\n", ret);
 		return ret;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "No irq resource?\n");
 		return irq;
 	}
 
 	info->clk = devm_clk_get(&pdev->dev, "adc");
-	if (IS_ERR(info->clk)) {
+
+	if (IS_ERR(info->clk))
+	{
 		ret = PTR_ERR(info->clk);
 		dev_err(&pdev->dev, "Failed getting clock, err = %d\n", ret);
 		return ret;
 	}
 
 	info->vref = devm_regulator_get(&pdev->dev, "vref");
-	if (IS_ERR(info->vref)) {
+
+	if (IS_ERR(info->vref))
+	{
 		ret = PTR_ERR(info->vref);
 		dev_err(&pdev->dev,
-			"Failed getting reference voltage, err = %d\n", ret);
+				"Failed getting reference voltage, err = %d\n", ret);
 		return ret;
 	}
 
 	ret = regulator_enable(info->vref);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"Can't enable adc reference top voltage, err = %d\n",
-			ret);
+				"Can't enable adc reference top voltage, err = %d\n",
+				ret);
 		return ret;
 	}
 
@@ -501,16 +546,20 @@ static int imx7d_adc_probe(struct platform_device *pdev)
 	indio_dev->num_channels = ARRAY_SIZE(imx7d_adc_iio_channels);
 
 	ret = clk_prepare_enable(info->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"Could not prepare or enable the clock.\n");
+				"Could not prepare or enable the clock.\n");
 		goto error_adc_clk_enable;
 	}
 
 	ret = devm_request_irq(info->dev, irq,
-				imx7d_adc_isr, 0,
-				dev_name(&pdev->dev), info);
-	if (ret < 0) {
+						   imx7d_adc_isr, 0,
+						   dev_name(&pdev->dev), info);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed requesting irq, irq = %d\n", irq);
 		goto error_iio_device_register;
 	}
@@ -519,7 +568,9 @@ static int imx7d_adc_probe(struct platform_device *pdev)
 	imx7d_adc_hw_init(info);
 
 	ret = iio_device_register(indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		imx7d_adc_power_down(info);
 		dev_err(&pdev->dev, "Couldn't register the device.\n");
 		goto error_iio_device_register;
@@ -570,17 +621,21 @@ static int __maybe_unused imx7d_adc_resume(struct device *dev)
 	int ret;
 
 	ret = regulator_enable(info->vref);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(info->dev,
-			"Can't enable adc reference top voltage, err = %d\n",
-			ret);
+				"Can't enable adc reference top voltage, err = %d\n",
+				ret);
 		return ret;
 	}
 
 	ret = clk_prepare_enable(info->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(info->dev,
-			"Could not prepare or enable clock.\n");
+				"Could not prepare or enable clock.\n");
 		regulator_disable(info->vref);
 		return ret;
 	}
@@ -592,7 +647,8 @@ static int __maybe_unused imx7d_adc_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(imx7d_adc_pm_ops, imx7d_adc_suspend, imx7d_adc_resume);
 
-static struct platform_driver imx7d_adc_driver = {
+static struct platform_driver imx7d_adc_driver =
+{
 	.probe		= imx7d_adc_probe,
 	.remove		= imx7d_adc_remove,
 	.driver		= {

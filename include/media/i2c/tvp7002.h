@@ -44,7 +44,8 @@
  *@sog_polarity: Active high Sync on Green output polarity.
  *		0 - Normal operation, 1 - Operation with polarity inverted
  */
-struct tvp7002_config {
+struct tvp7002_config
+{
 	bool clk_polarity;
 	bool hs_polarity;
 	bool vs_polarity;

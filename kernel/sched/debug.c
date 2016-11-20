@@ -27,23 +27,25 @@ static DEFINE_SPINLOCK(sched_debug_lock);
  * to the console
  */
 #define SEQ_printf(m, x...)			\
- do {						\
-	if (m)					\
-		seq_printf(m, x);		\
-	else					\
-		printk(x);			\
- } while (0)
+	do {						\
+		if (m)					\
+			seq_printf(m, x);		\
+		else					\
+			printk(x);			\
+	} while (0)
 
 /*
  * Ease the printing of nsec fields:
  */
 static long long nsec_high(unsigned long long nsec)
 {
-	if ((long long)nsec < 0) {
+	if ((long long)nsec < 0)
+	{
 		nsec = -nsec;
 		do_div(nsec, 1000000);
 		return -nsec;
 	}
+
 	do_div(nsec, 1000000);
 
 	return nsec;
@@ -52,7 +54,9 @@ static long long nsec_high(unsigned long long nsec)
 static unsigned long nsec_low(unsigned long long nsec)
 {
 	if ((long long)nsec < 0)
+	{
 		nsec = -nsec;
+	}
 
 	return do_div(nsec, 1000000);
 }
@@ -62,7 +66,8 @@ static unsigned long nsec_low(unsigned long long nsec)
 #define SCHED_FEAT(name, enabled)	\
 	#name ,
 
-static const char * const sched_feat_names[] = {
+static const char *const sched_feat_names[] =
+{
 #include "features.h"
 };
 
@@ -72,11 +77,16 @@ static int sched_feat_show(struct seq_file *m, void *v)
 {
 	int i;
 
-	for (i = 0; i < __SCHED_FEAT_NR; i++) {
+	for (i = 0; i < __SCHED_FEAT_NR; i++)
+	{
 		if (!(sysctl_sched_features & (1UL << i)))
+		{
 			seq_puts(m, "NO_");
+		}
+
 		seq_printf(m, "%s ", sched_feat_names[i]);
 	}
+
 	seq_puts(m, "\n");
 
 	return 0;
@@ -90,7 +100,8 @@ static int sched_feat_show(struct seq_file *m, void *v)
 #define SCHED_FEAT(name, enabled)	\
 	jump_label_key__##enabled ,
 
-struct static_key sched_feat_keys[__SCHED_FEAT_NR] = {
+struct static_key sched_feat_keys[__SCHED_FEAT_NR] =
+{
 #include "features.h"
 };
 
@@ -115,20 +126,27 @@ static int sched_feat_set(char *cmp)
 	int i;
 	int neg = 0;
 
-	if (strncmp(cmp, "NO_", 3) == 0) {
+	if (strncmp(cmp, "NO_", 3) == 0)
+	{
 		neg = 1;
 		cmp += 3;
 	}
 
-	for (i = 0; i < __SCHED_FEAT_NR; i++) {
-		if (strcmp(cmp, sched_feat_names[i]) == 0) {
-			if (neg) {
+	for (i = 0; i < __SCHED_FEAT_NR; i++)
+	{
+		if (strcmp(cmp, sched_feat_names[i]) == 0)
+		{
+			if (neg)
+			{
 				sysctl_sched_features &= ~(1UL << i);
 				sched_feat_disable(i);
-			} else {
+			}
+			else
+			{
 				sysctl_sched_features |= (1UL << i);
 				sched_feat_enable(i);
 			}
+
 			break;
 		}
 	}
@@ -138,7 +156,7 @@ static int sched_feat_set(char *cmp)
 
 static ssize_t
 sched_feat_write(struct file *filp, const char __user *ubuf,
-		size_t cnt, loff_t *ppos)
+				 size_t cnt, loff_t *ppos)
 {
 	char buf[64];
 	char *cmp;
@@ -146,10 +164,14 @@ sched_feat_write(struct file *filp, const char __user *ubuf,
 	struct inode *inode;
 
 	if (cnt > 63)
+	{
 		cnt = 63;
+	}
 
 	if (copy_from_user(&buf, ubuf, cnt))
+	{
 		return -EFAULT;
+	}
 
 	buf[cnt] = 0;
 	cmp = strstrip(buf);
@@ -159,8 +181,11 @@ sched_feat_write(struct file *filp, const char __user *ubuf,
 	inode_lock(inode);
 	i = sched_feat_set(cmp);
 	inode_unlock(inode);
+
 	if (i == __SCHED_FEAT_NR)
+	{
 		return -EINVAL;
+	}
 
 	*ppos += cnt;
 
@@ -172,7 +197,8 @@ static int sched_feat_open(struct inode *inode, struct file *filp)
 	return single_open(filp, sched_feat_show, NULL);
 }
 
-static const struct file_operations sched_feat_fops = {
+static const struct file_operations sched_feat_fops =
+{
 	.open		= sched_feat_open,
 	.write		= sched_feat_write,
 	.read		= seq_read,
@@ -183,7 +209,7 @@ static const struct file_operations sched_feat_fops = {
 static __init int sched_init_debug(void)
 {
 	debugfs_create_file("sched_features", 0644, NULL, NULL,
-			&sched_feat_fops);
+						&sched_feat_fops);
 
 	return 0;
 }
@@ -193,7 +219,8 @@ late_initcall(sched_init_debug);
 
 #ifdef CONFIG_SYSCTL
 
-static struct ctl_table sd_ctl_dir[] = {
+static struct ctl_table sd_ctl_dir[] =
+{
 	{
 		.procname	= "sched_domain",
 		.mode		= 0555,
@@ -201,7 +228,8 @@ static struct ctl_table sd_ctl_dir[] = {
 	{}
 };
 
-static struct ctl_table sd_ctl_root[] = {
+static struct ctl_table sd_ctl_root[] =
+{
 	{
 		.procname	= "kernel",
 		.mode		= 0555,
@@ -228,11 +256,17 @@ static void sd_free_ctl_entry(struct ctl_table **tablep)
 	 * will always be set. In the lowest directory the names are
 	 * static strings and all have proc handlers.
 	 */
-	for (entry = *tablep; entry->mode; entry++) {
+	for (entry = *tablep; entry->mode; entry++)
+	{
 		if (entry->child)
+		{
 			sd_free_ctl_entry(&entry->child);
+		}
+
 		if (entry->proc_handler == NULL)
+		{
 			kfree(entry->procname);
+		}
 	}
 
 	kfree(*tablep);
@@ -240,13 +274,13 @@ static void sd_free_ctl_entry(struct ctl_table **tablep)
 }
 
 static int min_load_idx = 0;
-static int max_load_idx = CPU_LOAD_IDX_MAX-1;
+static int max_load_idx = CPU_LOAD_IDX_MAX - 1;
 
 static void
 set_table_entry(struct ctl_table *entry,
-		const char *procname, void *data, int maxlen,
-		umode_t mode, proc_handler *proc_handler,
-		bool load_idx)
+				const char *procname, void *data, int maxlen,
+				umode_t mode, proc_handler *proc_handler,
+				bool load_idx)
 {
 	entry->procname = procname;
 	entry->data = data;
@@ -254,7 +288,8 @@ set_table_entry(struct ctl_table *entry,
 	entry->mode = mode;
 	entry->proc_handler = proc_handler;
 
-	if (load_idx) {
+	if (load_idx)
+	{
 		entry->extra1 = &min_load_idx;
 		entry->extra2 = &max_load_idx;
 	}
@@ -266,36 +301,38 @@ sd_alloc_ctl_domain_table(struct sched_domain *sd)
 	struct ctl_table *table = sd_alloc_ctl_entry(14);
 
 	if (table == NULL)
+	{
 		return NULL;
+	}
 
 	set_table_entry(&table[0], "min_interval", &sd->min_interval,
-		sizeof(long), 0644, proc_doulongvec_minmax, false);
+					sizeof(long), 0644, proc_doulongvec_minmax, false);
 	set_table_entry(&table[1], "max_interval", &sd->max_interval,
-		sizeof(long), 0644, proc_doulongvec_minmax, false);
+					sizeof(long), 0644, proc_doulongvec_minmax, false);
 	set_table_entry(&table[2], "busy_idx", &sd->busy_idx,
-		sizeof(int), 0644, proc_dointvec_minmax, true);
+					sizeof(int), 0644, proc_dointvec_minmax, true);
 	set_table_entry(&table[3], "idle_idx", &sd->idle_idx,
-		sizeof(int), 0644, proc_dointvec_minmax, true);
+					sizeof(int), 0644, proc_dointvec_minmax, true);
 	set_table_entry(&table[4], "newidle_idx", &sd->newidle_idx,
-		sizeof(int), 0644, proc_dointvec_minmax, true);
+					sizeof(int), 0644, proc_dointvec_minmax, true);
 	set_table_entry(&table[5], "wake_idx", &sd->wake_idx,
-		sizeof(int), 0644, proc_dointvec_minmax, true);
+					sizeof(int), 0644, proc_dointvec_minmax, true);
 	set_table_entry(&table[6], "forkexec_idx", &sd->forkexec_idx,
-		sizeof(int), 0644, proc_dointvec_minmax, true);
+					sizeof(int), 0644, proc_dointvec_minmax, true);
 	set_table_entry(&table[7], "busy_factor", &sd->busy_factor,
-		sizeof(int), 0644, proc_dointvec_minmax, false);
+					sizeof(int), 0644, proc_dointvec_minmax, false);
 	set_table_entry(&table[8], "imbalance_pct", &sd->imbalance_pct,
-		sizeof(int), 0644, proc_dointvec_minmax, false);
+					sizeof(int), 0644, proc_dointvec_minmax, false);
 	set_table_entry(&table[9], "cache_nice_tries",
-		&sd->cache_nice_tries,
-		sizeof(int), 0644, proc_dointvec_minmax, false);
+					&sd->cache_nice_tries,
+					sizeof(int), 0644, proc_dointvec_minmax, false);
 	set_table_entry(&table[10], "flags", &sd->flags,
-		sizeof(int), 0644, proc_dointvec_minmax, false);
+					sizeof(int), 0644, proc_dointvec_minmax, false);
 	set_table_entry(&table[11], "max_newidle_lb_cost",
-		&sd->max_newidle_lb_cost,
-		sizeof(long), 0644, proc_doulongvec_minmax, false);
+					&sd->max_newidle_lb_cost,
+					sizeof(long), 0644, proc_doulongvec_minmax, false);
 	set_table_entry(&table[12], "name", sd->name,
-		CORENAME_MAX_SIZE, 0444, proc_dostring, false);
+					CORENAME_MAX_SIZE, 0444, proc_dostring, false);
 	/* &table[13] is terminator */
 
 	return table;
@@ -309,13 +346,17 @@ static struct ctl_table *sd_alloc_ctl_cpu_table(int cpu)
 	char buf[32];
 
 	for_each_domain(cpu, sd)
-		domain_num++;
+	domain_num++;
 	entry = table = sd_alloc_ctl_entry(domain_num + 1);
+
 	if (table == NULL)
+	{
 		return NULL;
+	}
 
 	i = 0;
-	for_each_domain(cpu, sd) {
+	for_each_domain(cpu, sd)
+	{
 		snprintf(buf, 32, "domain%d", i);
 		entry->procname = kstrdup(buf, GFP_KERNEL);
 		entry->mode = 0555;
@@ -337,9 +378,12 @@ void register_sched_domain_sysctl(void)
 	sd_ctl_dir[0].child = entry;
 
 	if (entry == NULL)
+	{
 		return;
+	}
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		snprintf(buf, 32, "cpu%d", i);
 		entry->procname = kstrdup(buf, GFP_KERNEL);
 		entry->mode = 0555;
@@ -356,8 +400,11 @@ void unregister_sched_domain_sysctl(void)
 {
 	unregister_sysctl_table(sd_sysctl_header);
 	sd_sysctl_header = NULL;
+
 	if (sd_ctl_dir[0].child)
+	{
 		sd_free_ctl_entry(&sd_ctl_dir[0].child);
+	}
 }
 #endif /* CONFIG_SYSCTL */
 #endif /* CONFIG_SMP */
@@ -377,12 +424,16 @@ static void print_cfs_group_stats(struct seq_file *m, int cpu, struct task_group
 	SEQ_printf(m, "  .%-30s: %lld.%06ld\n", #F, SPLIT_NS((long long)schedstat_val(F)))
 
 	if (!se)
+	{
 		return;
+	}
 
 	PN(se->exec_start);
 	PN(se->vruntime);
 	PN(se->sum_exec_runtime);
-	if (schedstat_enabled()) {
+
+	if (schedstat_enabled())
+	{
 		PN_SCHEDSTAT(se->statistics.wait_start);
 		PN_SCHEDSTAT(se->statistics.sleep_start);
 		PN_SCHEDSTAT(se->statistics.block_start);
@@ -394,6 +445,7 @@ static void print_cfs_group_stats(struct seq_file *m, int cpu, struct task_group
 		PN_SCHEDSTAT(se->statistics.wait_sum);
 		P_SCHEDSTAT(se->statistics.wait_count);
 	}
+
 	P(se->load.weight);
 #ifdef CONFIG_SMP
 	P(se->avg.load_avg);
@@ -413,7 +465,9 @@ static char group_path[PATH_MAX];
 static char *task_group_path(struct task_group *tg)
 {
 	if (autogroup_path(tg, group_path, PATH_MAX))
+	{
 		return group_path;
+	}
 
 	cgroup_path(tg->css.cgroup, group_path, PATH_MAX);
 	return group_path;
@@ -424,20 +478,24 @@ static void
 print_task(struct seq_file *m, struct rq *rq, struct task_struct *p)
 {
 	if (rq->curr == p)
+	{
 		SEQ_printf(m, "R");
+	}
 	else
+	{
 		SEQ_printf(m, " ");
+	}
 
 	SEQ_printf(m, "%15s %5d %9Ld.%06ld %9Ld %5d ",
-		p->comm, task_pid_nr(p),
-		SPLIT_NS(p->se.vruntime),
-		(long long)(p->nvcsw + p->nivcsw),
-		p->prio);
+			   p->comm, task_pid_nr(p),
+			   SPLIT_NS(p->se.vruntime),
+			   (long long)(p->nvcsw + p->nivcsw),
+			   p->prio);
 
 	SEQ_printf(m, "%9Ld.%06ld %9Ld.%06ld %9Ld.%06ld",
-		SPLIT_NS(schedstat_val_or_zero(p->se.statistics.wait_sum)),
-		SPLIT_NS(p->se.sum_exec_runtime),
-		SPLIT_NS(schedstat_val_or_zero(p->se.statistics.sum_sleep_runtime)));
+			   SPLIT_NS(schedstat_val_or_zero(p->se.statistics.wait_sum)),
+			   SPLIT_NS(p->se.sum_exec_runtime),
+			   SPLIT_NS(schedstat_val_or_zero(p->se.statistics.sum_sleep_runtime)));
 
 #ifdef CONFIG_NUMA_BALANCING
 	SEQ_printf(m, " %d %d", task_node(p), task_numa_group_id(p));
@@ -454,16 +512,19 @@ static void print_rq(struct seq_file *m, struct rq *rq, int rq_cpu)
 	struct task_struct *g, *p;
 
 	SEQ_printf(m,
-	"\nrunnable tasks:\n"
-	"            task   PID         tree-key  switches  prio"
-	"     wait-time             sum-exec        sum-sleep\n"
-	"------------------------------------------------------"
-	"----------------------------------------------------\n");
+			   "\nrunnable tasks:\n"
+			   "            task   PID         tree-key  switches  prio"
+			   "     wait-time             sum-exec        sum-sleep\n"
+			   "------------------------------------------------------"
+			   "----------------------------------------------------\n");
 
 	rcu_read_lock();
-	for_each_process_thread(g, p) {
+	for_each_process_thread(g, p)
+	{
 		if (task_cpu(p) != rq_cpu)
+		{
 			continue;
+		}
 
 		print_task(m, rq, p);
 	}
@@ -484,56 +545,64 @@ void print_cfs_rq(struct seq_file *m, int cpu, struct cfs_rq *cfs_rq)
 	SEQ_printf(m, "\ncfs_rq[%d]:\n", cpu);
 #endif
 	SEQ_printf(m, "  .%-30s: %Ld.%06ld\n", "exec_clock",
-			SPLIT_NS(cfs_rq->exec_clock));
+			   SPLIT_NS(cfs_rq->exec_clock));
 
 	raw_spin_lock_irqsave(&rq->lock, flags);
+
 	if (cfs_rq->rb_leftmost)
+	{
 		MIN_vruntime = (__pick_first_entity(cfs_rq))->vruntime;
+	}
+
 	last = __pick_last_entity(cfs_rq);
+
 	if (last)
+	{
 		max_vruntime = last->vruntime;
+	}
+
 	min_vruntime = cfs_rq->min_vruntime;
 	rq0_min_vruntime = cpu_rq(0)->cfs.min_vruntime;
 	raw_spin_unlock_irqrestore(&rq->lock, flags);
 	SEQ_printf(m, "  .%-30s: %Ld.%06ld\n", "MIN_vruntime",
-			SPLIT_NS(MIN_vruntime));
+			   SPLIT_NS(MIN_vruntime));
 	SEQ_printf(m, "  .%-30s: %Ld.%06ld\n", "min_vruntime",
-			SPLIT_NS(min_vruntime));
+			   SPLIT_NS(min_vruntime));
 	SEQ_printf(m, "  .%-30s: %Ld.%06ld\n", "max_vruntime",
-			SPLIT_NS(max_vruntime));
+			   SPLIT_NS(max_vruntime));
 	spread = max_vruntime - MIN_vruntime;
 	SEQ_printf(m, "  .%-30s: %Ld.%06ld\n", "spread",
-			SPLIT_NS(spread));
+			   SPLIT_NS(spread));
 	spread0 = min_vruntime - rq0_min_vruntime;
 	SEQ_printf(m, "  .%-30s: %Ld.%06ld\n", "spread0",
-			SPLIT_NS(spread0));
+			   SPLIT_NS(spread0));
 	SEQ_printf(m, "  .%-30s: %d\n", "nr_spread_over",
-			cfs_rq->nr_spread_over);
+			   cfs_rq->nr_spread_over);
 	SEQ_printf(m, "  .%-30s: %d\n", "nr_running", cfs_rq->nr_running);
 	SEQ_printf(m, "  .%-30s: %ld\n", "load", cfs_rq->load.weight);
 #ifdef CONFIG_SMP
 	SEQ_printf(m, "  .%-30s: %lu\n", "load_avg",
-			cfs_rq->avg.load_avg);
+			   cfs_rq->avg.load_avg);
 	SEQ_printf(m, "  .%-30s: %lu\n", "runnable_load_avg",
-			cfs_rq->runnable_load_avg);
+			   cfs_rq->runnable_load_avg);
 	SEQ_printf(m, "  .%-30s: %lu\n", "util_avg",
-			cfs_rq->avg.util_avg);
+			   cfs_rq->avg.util_avg);
 	SEQ_printf(m, "  .%-30s: %ld\n", "removed_load_avg",
-			atomic_long_read(&cfs_rq->removed_load_avg));
+			   atomic_long_read(&cfs_rq->removed_load_avg));
 	SEQ_printf(m, "  .%-30s: %ld\n", "removed_util_avg",
-			atomic_long_read(&cfs_rq->removed_util_avg));
+			   atomic_long_read(&cfs_rq->removed_util_avg));
 #ifdef CONFIG_FAIR_GROUP_SCHED
 	SEQ_printf(m, "  .%-30s: %lu\n", "tg_load_avg_contrib",
-			cfs_rq->tg_load_avg_contrib);
+			   cfs_rq->tg_load_avg_contrib);
 	SEQ_printf(m, "  .%-30s: %ld\n", "tg_load_avg",
-			atomic_long_read(&cfs_rq->tg->load_avg));
+			   atomic_long_read(&cfs_rq->tg->load_avg));
 #endif
 #endif
 #ifdef CONFIG_CFS_BANDWIDTH
 	SEQ_printf(m, "  .%-30s: %d\n", "throttled",
-			cfs_rq->throttled);
+			   cfs_rq->throttled);
 	SEQ_printf(m, "  .%-30s: %d\n", "throttle_count",
-			cfs_rq->throttle_count);
+			   cfs_rq->throttle_count);
 #endif
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
@@ -590,26 +659,26 @@ static void print_cpu(struct seq_file *m, int cpu)
 		unsigned int freq = cpu_khz ? : 1;
 
 		SEQ_printf(m, "cpu#%d, %u.%03u MHz\n",
-			   cpu, freq / 1000, (freq % 1000));
+				   cpu, freq / 1000, (freq % 1000));
 	}
 #else
 	SEQ_printf(m, "cpu#%d\n", cpu);
 #endif
 
 #define P(x)								\
-do {									\
-	if (sizeof(rq->x) == 4)						\
-		SEQ_printf(m, "  .%-30s: %ld\n", #x, (long)(rq->x));	\
-	else								\
-		SEQ_printf(m, "  .%-30s: %Ld\n", #x, (long long)(rq->x));\
-} while (0)
+	do {									\
+		if (sizeof(rq->x) == 4)						\
+			SEQ_printf(m, "  .%-30s: %ld\n", #x, (long)(rq->x));	\
+		else								\
+			SEQ_printf(m, "  .%-30s: %Ld\n", #x, (long long)(rq->x));\
+	} while (0)
 
 #define PN(x) \
 	SEQ_printf(m, "  .%-30s: %Ld.%06ld\n", #x, SPLIT_NS(rq->x))
 
 	P(nr_running);
 	SEQ_printf(m, "  .%-30s: %lu\n", "load",
-		   rq->load.weight);
+			   rq->load.weight);
 	P(nr_switches);
 	P(nr_load_updates);
 	P(nr_uninterruptible);
@@ -633,13 +702,16 @@ do {									\
 #endif
 
 #define P(n) SEQ_printf(m, "  .%-30s: %d\n", #n, schedstat_val(rq->n));
-	if (schedstat_enabled()) {
+
+	if (schedstat_enabled())
+	{
 		P(yld_count);
 		P(sched_count);
 		P(sched_goidle);
 		P(ttwu_count);
 		P(ttwu_local);
 	}
+
 #undef P
 
 	spin_lock_irqsave(&sched_debug_lock, flags);
@@ -652,7 +724,8 @@ do {									\
 	SEQ_printf(m, "\n");
 }
 
-static const char *sched_tunable_scaling_names[] = {
+static const char *sched_tunable_scaling_names[] =
+{
 	"none",
 	"logaritmic",
 	"linear"
@@ -670,9 +743,9 @@ static void sched_debug_header(struct seq_file *m)
 	local_irq_restore(flags);
 
 	SEQ_printf(m, "Sched Debug Version: v0.11, %s %.*s\n",
-		init_utsname()->release,
-		(int)strcspn(init_utsname()->version, " "),
-		init_utsname()->version);
+			   init_utsname()->release,
+			   (int)strcspn(init_utsname()->version, " "),
+			   init_utsname()->version);
 
 #define P(x) \
 	SEQ_printf(m, "%-40s: %Ld\n", #x, (long long)(x))
@@ -704,9 +777,9 @@ static void sched_debug_header(struct seq_file *m)
 #undef P
 
 	SEQ_printf(m, "  .%-40s: %d (%s)\n",
-		"sysctl_sched_tunable_scaling",
-		sysctl_sched_tunable_scaling,
-		sched_tunable_scaling_names[sysctl_sched_tunable_scaling]);
+			   "sysctl_sched_tunable_scaling",
+			   sysctl_sched_tunable_scaling,
+			   sched_tunable_scaling_names[sysctl_sched_tunable_scaling]);
 	SEQ_printf(m, "\n");
 }
 
@@ -715,9 +788,13 @@ static int sched_debug_show(struct seq_file *m, void *v)
 	int cpu = (unsigned long)(v - 2);
 
 	if (cpu != -1)
+	{
 		print_cpu(m, cpu);
+	}
 	else
+	{
 		sched_debug_header(m);
+	}
 
 	return 0;
 }
@@ -728,7 +805,7 @@ void sysrq_sched_debug_show(void)
 
 	sched_debug_header(NULL);
 	for_each_online_cpu(cpu)
-		print_cpu(NULL, cpu);
+	print_cpu(NULL, cpu);
 
 }
 
@@ -744,19 +821,28 @@ static void *sched_debug_start(struct seq_file *file, loff_t *offset)
 	unsigned long n = *offset;
 
 	if (n == 0)
+	{
 		return (void *) 1;
+	}
 
 	n--;
 
 	if (n > 0)
+	{
 		n = cpumask_next(n - 1, cpu_online_mask);
+	}
 	else
+	{
 		n = cpumask_first(cpu_online_mask);
+	}
 
 	*offset = n + 1;
 
 	if (n < nr_cpu_ids)
+	{
 		return (void *)(unsigned long)(n + 2);
+	}
+
 	return NULL;
 }
 
@@ -770,7 +856,8 @@ static void sched_debug_stop(struct seq_file *file, void *data)
 {
 }
 
-static const struct seq_operations sched_debug_sops = {
+static const struct seq_operations sched_debug_sops =
+{
 	.start = sched_debug_start,
 	.next = sched_debug_next,
 	.stop = sched_debug_stop,
@@ -793,7 +880,8 @@ static int sched_debug_open(struct inode *inode, struct file *filp)
 	return ret;
 }
 
-static const struct file_operations sched_debug_fops = {
+static const struct file_operations sched_debug_fops =
+{
 	.open		= sched_debug_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -805,8 +893,12 @@ static int __init init_sched_debug_procfs(void)
 	struct proc_dir_entry *pe;
 
 	pe = proc_create("sched_debug", 0444, NULL, &sched_debug_fops);
+
 	if (!pe)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -824,7 +916,7 @@ __initcall(init_sched_debug_procfs);
 
 #ifdef CONFIG_NUMA_BALANCING
 void print_numa_stats(struct seq_file *m, int node, unsigned long tsf,
-		unsigned long tpf, unsigned long gsf, unsigned long gpf)
+					  unsigned long tpf, unsigned long gsf, unsigned long gpf)
 {
 	SEQ_printf(m, "numa_faults node=%d ", node);
 	SEQ_printf(m, "task_private=%lu task_shared=%lu ", tsf, tpf);
@@ -839,12 +931,18 @@ static void sched_show_numa(struct task_struct *p, struct seq_file *m)
 	struct mempolicy *pol;
 
 	if (p->mm)
+	{
 		P(mm->numa_scan_seq);
+	}
 
 	task_lock(p);
 	pol = p->mempolicy;
+
 	if (pol && !(pol->flags & MPOL_F_MORON))
+	{
 		pol = NULL;
+	}
+
 	mpol_get(pol);
 	task_unlock(p);
 
@@ -852,7 +950,7 @@ static void sched_show_numa(struct task_struct *p, struct seq_file *m)
 	P(numa_preferred_nid);
 	P(total_numa_faults);
 	SEQ_printf(m, "current_node=%d, numa_group_id=%d\n",
-			task_node(p), task_numa_group_id(p));
+			   task_node(p), task_numa_group_id(p));
 	show_numa_stats(p, m);
 	mpol_put(pol);
 #endif
@@ -863,10 +961,10 @@ void proc_sched_show_task(struct task_struct *p, struct seq_file *m)
 	unsigned long nr_switches;
 
 	SEQ_printf(m, "%s (%d, #threads: %d)\n", p->comm, task_pid_nr(p),
-						get_nr_threads(p));
+			   get_nr_threads(p));
 	SEQ_printf(m,
-		"---------------------------------------------------------"
-		"----------\n");
+			   "---------------------------------------------------------"
+			   "----------\n");
 #define __P(F) \
 	SEQ_printf(m, "%-45s:%21Ld\n", #F, (long long)F)
 #define P(F) \
@@ -888,7 +986,8 @@ void proc_sched_show_task(struct task_struct *p, struct seq_file *m)
 
 	P(se.nr_migrations);
 
-	if (schedstat_enabled()) {
+	if (schedstat_enabled())
+	{
 		u64 avg_atom, avg_per_cpu;
 
 		PN_SCHEDSTAT(se.statistics.sum_sleep_runtime);
@@ -920,16 +1019,25 @@ void proc_sched_show_task(struct task_struct *p, struct seq_file *m)
 		P_SCHEDSTAT(se.statistics.nr_wakeups_idle);
 
 		avg_atom = p->se.sum_exec_runtime;
+
 		if (nr_switches)
+		{
 			avg_atom = div64_ul(avg_atom, nr_switches);
+		}
 		else
+		{
 			avg_atom = -1LL;
+		}
 
 		avg_per_cpu = p->se.sum_exec_runtime;
-		if (p->se.nr_migrations) {
+
+		if (p->se.nr_migrations)
+		{
 			avg_per_cpu = div64_u64(avg_per_cpu,
-						p->se.nr_migrations);
-		} else {
+									p->se.nr_migrations);
+		}
+		else
+		{
 			avg_per_cpu = -1LL;
 		}
 
@@ -939,9 +1047,9 @@ void proc_sched_show_task(struct task_struct *p, struct seq_file *m)
 
 	__P(nr_switches);
 	SEQ_printf(m, "%-45s:%21Ld\n",
-		   "nr_voluntary_switches", (long long)p->nvcsw);
+			   "nr_voluntary_switches", (long long)p->nvcsw);
 	SEQ_printf(m, "%-45s:%21Ld\n",
-		   "nr_involuntary_switches", (long long)p->nivcsw);
+			   "nr_involuntary_switches", (long long)p->nivcsw);
 
 	P(se.load.weight);
 #ifdef CONFIG_SMP
@@ -967,7 +1075,7 @@ void proc_sched_show_task(struct task_struct *p, struct seq_file *m)
 		t0 = cpu_clock(this_cpu);
 		t1 = cpu_clock(this_cpu);
 		SEQ_printf(m, "%-45s:%21Ld\n",
-			   "clock-delta", (long long)(t1-t0));
+				   "clock-delta", (long long)(t1 - t0));
 	}
 
 	sched_show_numa(p, m);

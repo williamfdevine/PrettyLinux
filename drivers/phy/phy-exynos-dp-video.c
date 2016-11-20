@@ -21,11 +21,13 @@
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
 
-struct exynos_dp_video_phy_drvdata {
+struct exynos_dp_video_phy_drvdata
+{
 	u32 phy_ctrl_offset;
 };
 
-struct exynos_dp_video_phy {
+struct exynos_dp_video_phy
+{
 	struct regmap *regs;
 	const struct exynos_dp_video_phy_drvdata *drvdata;
 };
@@ -36,7 +38,7 @@ static int exynos_dp_video_phy_power_on(struct phy *phy)
 
 	/* Disable power isolation on DP-PHY */
 	return regmap_update_bits(state->regs, state->drvdata->phy_ctrl_offset,
-				  EXYNOS5_PHY_ENABLE, EXYNOS5_PHY_ENABLE);
+							  EXYNOS5_PHY_ENABLE, EXYNOS5_PHY_ENABLE);
 }
 
 static int exynos_dp_video_phy_power_off(struct phy *phy)
@@ -45,24 +47,28 @@ static int exynos_dp_video_phy_power_off(struct phy *phy)
 
 	/* Enable power isolation on DP-PHY */
 	return regmap_update_bits(state->regs, state->drvdata->phy_ctrl_offset,
-				  EXYNOS5_PHY_ENABLE, 0);
+							  EXYNOS5_PHY_ENABLE, 0);
 }
 
-static const struct phy_ops exynos_dp_video_phy_ops = {
+static const struct phy_ops exynos_dp_video_phy_ops =
+{
 	.power_on	= exynos_dp_video_phy_power_on,
 	.power_off	= exynos_dp_video_phy_power_off,
 	.owner		= THIS_MODULE,
 };
 
-static const struct exynos_dp_video_phy_drvdata exynos5250_dp_video_phy = {
+static const struct exynos_dp_video_phy_drvdata exynos5250_dp_video_phy =
+{
 	.phy_ctrl_offset	= EXYNOS5_DPTX_PHY_CONTROL,
 };
 
-static const struct exynos_dp_video_phy_drvdata exynos5420_dp_video_phy = {
+static const struct exynos_dp_video_phy_drvdata exynos5420_dp_video_phy =
+{
 	.phy_ctrl_offset	= EXYNOS5420_DPTX_PHY_CONTROL,
 };
 
-static const struct of_device_id exynos_dp_video_phy_of_match[] = {
+static const struct of_device_id exynos_dp_video_phy_of_match[] =
+{
 	{
 		.compatible = "samsung,exynos5250-dp-video-phy",
 		.data = &exynos5250_dp_video_phy,
@@ -83,12 +89,17 @@ static int exynos_dp_video_phy_probe(struct platform_device *pdev)
 	struct phy *phy;
 
 	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
+
 	if (!state)
+	{
 		return -ENOMEM;
+	}
 
 	state->regs = syscon_regmap_lookup_by_phandle(dev->of_node,
-						      "samsung,pmu-syscon");
-	if (IS_ERR(state->regs)) {
+				  "samsung,pmu-syscon");
+
+	if (IS_ERR(state->regs))
+	{
 		dev_err(dev, "Failed to lookup PMU regmap\n");
 		return PTR_ERR(state->regs);
 	}
@@ -97,10 +108,13 @@ static int exynos_dp_video_phy_probe(struct platform_device *pdev)
 	state->drvdata = match->data;
 
 	phy = devm_phy_create(dev, NULL, &exynos_dp_video_phy_ops);
-	if (IS_ERR(phy)) {
+
+	if (IS_ERR(phy))
+	{
 		dev_err(dev, "failed to create Display Port PHY\n");
 		return PTR_ERR(phy);
 	}
+
 	phy_set_drvdata(phy, state);
 
 	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
@@ -108,7 +122,8 @@ static int exynos_dp_video_phy_probe(struct platform_device *pdev)
 	return PTR_ERR_OR_ZERO(phy_provider);
 }
 
-static struct platform_driver exynos_dp_video_phy_driver = {
+static struct platform_driver exynos_dp_video_phy_driver =
+{
 	.probe	= exynos_dp_video_phy_probe,
 	.driver = {
 		.name	= "exynos-dp-video-phy",

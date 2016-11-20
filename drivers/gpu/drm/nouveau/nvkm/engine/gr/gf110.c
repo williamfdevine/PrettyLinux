@@ -31,7 +31,8 @@
  ******************************************************************************/
 
 static const struct gf100_gr_init
-gf110_gr_init_sm_0[] = {
+	gf110_gr_init_sm_0[] =
+{
 	{ 0x419e00,   1, 0x04, 0x00000000 },
 	{ 0x419ea0,   1, 0x04, 0x00000000 },
 	{ 0x419ea4,   1, 0x04, 0x00000100 },
@@ -49,7 +50,8 @@ gf110_gr_init_sm_0[] = {
 };
 
 static const struct gf100_gr_pack
-gf110_gr_pack_mmio[] = {
+	gf110_gr_pack_mmio[] =
+{
 	{ gf100_gr_init_main_0 },
 	{ gf100_gr_init_fe_0 },
 	{ gf100_gr_init_pri_0 },
@@ -85,7 +87,8 @@ gf110_gr_pack_mmio[] = {
  ******************************************************************************/
 
 static const struct gf100_gr_func
-gf110_gr = {
+	gf110_gr =
+{
 	.init = gf100_gr_init,
 	.mmio = gf110_gr_pack_mmio,
 	.fecs.ucode = &gf100_gr_fecs_ucode,

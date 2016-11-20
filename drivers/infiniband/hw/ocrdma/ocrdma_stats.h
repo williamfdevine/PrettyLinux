@@ -49,7 +49,8 @@
 
 #define OCRDMA_MAX_DBGFS_MEM 4096
 
-enum OCRDMA_STATS_TYPE {
+enum OCRDMA_STATS_TYPE
+{
 	OCRDMA_RSRC_STATS,
 	OCRDMA_RXSTATS,
 	OCRDMA_WQESTATS,
@@ -70,6 +71,6 @@ void ocrdma_release_stats_resources(struct ocrdma_dev *dev);
 void ocrdma_rem_port_stats(struct ocrdma_dev *dev);
 void ocrdma_add_port_stats(struct ocrdma_dev *dev);
 int ocrdma_pma_counters(struct ocrdma_dev *dev,
-			struct ib_mad *out_mad);
+						struct ib_mad *out_mad);
 
 #endif	/* __OCRDMA_STATS_H__ */

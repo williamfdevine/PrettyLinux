@@ -32,7 +32,7 @@
 
 static struct page *dataptrs[NDISKS];
 static addr_conv_t addr_conv[NDISKS];
-static struct page *data[NDISKS+3];
+static struct page *data[NDISKS + 3];
 static struct page *spare;
 static struct page *recovi;
 static struct page *recovj;
@@ -48,7 +48,8 @@ static void makedata(int disks)
 {
 	int i;
 
-	for (i = 0; i < disks; i++) {
+	for (i = 0; i < disks; i++)
+	{
 		prandom_bytes(page_address(data[i]), PAGE_SIZE);
 		dataptrs[i] = data[i];
 	}
@@ -57,11 +58,17 @@ static void makedata(int disks)
 static char disk_type(int d, int disks)
 {
 	if (d == disks - 2)
+	{
 		return 'P';
+	}
 	else if (d == disks - 1)
+	{
 		return 'Q';
+	}
 	else
+	{
 		return 'D';
+	}
 }
 
 /* Recover two failed blocks. */
@@ -73,14 +80,20 @@ static void raid6_dual_recov(int disks, size_t bytes, int faila, int failb, stru
 	enum sum_check_flags result = ~0;
 
 	if (faila > failb)
+	{
 		swap(faila, failb);
+	}
 
-	if (failb == disks-1) {
-		if (faila == disks-2) {
+	if (failb == disks - 1)
+	{
+		if (faila == disks - 2)
+		{
 			/* P+Q failure.  Just rebuild the syndrome. */
 			init_async_submit(&submit, 0, NULL, NULL, NULL, addr_conv);
 			tx = async_gen_syndrome(ptrs, 0, disks, bytes, &submit);
-		} else {
+		}
+		else
+		{
 			struct page *blocks[disks];
 			struct page *dest;
 			int count = 0;
@@ -89,30 +102,41 @@ static void raid6_dual_recov(int disks, size_t bytes, int faila, int failb, stru
 			/* data+Q failure.  Reconstruct data from P,
 			 * then rebuild syndrome
 			 */
-			for (i = disks; i-- ; ) {
+			for (i = disks; i-- ; )
+			{
 				if (i == faila || i == failb)
+				{
 					continue;
+				}
+
 				blocks[count++] = ptrs[i];
 			}
+
 			dest = ptrs[faila];
 			init_async_submit(&submit, ASYNC_TX_XOR_ZERO_DST, NULL,
-					  NULL, NULL, addr_conv);
+							  NULL, NULL, addr_conv);
 			tx = async_xor(dest, blocks, 0, count, bytes, &submit);
 
 			init_async_submit(&submit, 0, tx, NULL, NULL, addr_conv);
 			tx = async_gen_syndrome(ptrs, 0, disks, bytes, &submit);
 		}
-	} else {
-		if (failb == disks-2) {
+	}
+	else
+	{
+		if (failb == disks - 2)
+		{
 			/* data+P failure. */
 			init_async_submit(&submit, 0, NULL, NULL, NULL, addr_conv);
 			tx = async_raid6_datap_recov(disks, bytes, faila, ptrs, &submit);
-		} else {
+		}
+		else
+		{
 			/* data+data failure. */
 			init_async_submit(&submit, 0, NULL, NULL, NULL, addr_conv);
 			tx = async_raid6_2data_recov(disks, bytes, faila, failb, ptrs, &submit);
 		}
 	}
+
 	init_completion(&cmp);
 	init_async_submit(&submit, ASYNC_TX_ACK, tx, callback, &cmp, addr_conv);
 	tx = async_syndrome_val(ptrs, 0, disks, bytes, &result, spare, &submit);
@@ -161,14 +185,14 @@ static int test(int disks, int *tests)
 	int i, j;
 
 	recovi = data[disks];
-	recovj = data[disks+1];
-	spare  = data[disks+2];
+	recovj = data[disks + 1];
+	spare  = data[disks + 2];
 
 	makedata(disks);
 
 	/* Nuke syndromes */
-	memset(page_address(data[disks-2]), 0xee, PAGE_SIZE);
-	memset(page_address(data[disks-1]), 0xee, PAGE_SIZE);
+	memset(page_address(data[disks - 2]), 0xee, PAGE_SIZE);
+	memset(page_address(data[disks - 1]), 0xee, PAGE_SIZE);
 
 	/* Generate assumed good syndrome */
 	init_completion(&cmp);
@@ -176,14 +200,17 @@ static int test(int disks, int *tests)
 	tx = async_gen_syndrome(dataptrs, 0, disks, PAGE_SIZE, &submit);
 	async_tx_issue_pending(tx);
 
-	if (wait_for_completion_timeout(&cmp, msecs_to_jiffies(3000)) == 0) {
+	if (wait_for_completion_timeout(&cmp, msecs_to_jiffies(3000)) == 0)
+	{
 		pr("error: initial gen_syndrome(%d) timed out\n", disks);
 		return 1;
 	}
 
 	pr("testing the %d-disk case...\n", disks);
-	for (i = 0; i < disks-1; i++)
-		for (j = i+1; j < disks; j++) {
+
+	for (i = 0; i < disks - 1; i++)
+		for (j = i + 1; j < disks; j++)
+		{
 			(*tests)++;
 			err += test_disks(i, j, disks);
 		}
@@ -198,24 +225,37 @@ static int raid6_test(void)
 	int tests = 0;
 	int i;
 
-	for (i = 0; i < NDISKS+3; i++) {
+	for (i = 0; i < NDISKS + 3; i++)
+	{
 		data[i] = alloc_page(GFP_KERNEL);
-		if (!data[i]) {
+
+		if (!data[i])
+		{
 			while (i--)
+			{
 				put_page(data[i]);
+			}
+
 			return -ENOMEM;
 		}
 	}
 
 	/* the 4-disk and 5-disk cases are special for the recovery code */
 	if (NDISKS > 4)
+	{
 		err += test(4, &tests);
+	}
+
 	if (NDISKS > 5)
+	{
 		err += test(5, &tests);
+	}
+
 	/* the 11 and 12 disk cases are special for ioatdma (p-disabled
 	 * q-continuation without extended descriptor)
 	 */
-	if (NDISKS > 12) {
+	if (NDISKS > 12)
+	{
 		err += test(11, &tests);
 		err += test(12, &tests);
 	}
@@ -225,7 +265,9 @@ static int raid6_test(void)
 	 * ops for continuation (assumes DMA_HAS_PQ_CONTINUE is not set)
 	 */
 	if (NDISKS > 24)
+	{
 		err += test(24, &tests);
+	}
 
 	err += test(NDISKS, &tests);
 
@@ -233,8 +275,10 @@ static int raid6_test(void)
 	pr("complete (%d tests, %d failure%s)\n",
 	   tests, err, err == 1 ? "" : "s");
 
-	for (i = 0; i < NDISKS+3; i++)
+	for (i = 0; i < NDISKS + 3; i++)
+	{
 		put_page(data[i]);
+	}
 
 	return 0;
 }

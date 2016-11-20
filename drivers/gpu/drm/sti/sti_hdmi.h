@@ -18,12 +18,14 @@
 
 struct sti_hdmi;
 
-struct hdmi_phy_ops {
+struct hdmi_phy_ops
+{
 	bool (*start)(struct sti_hdmi *hdmi);
 	void (*stop)(struct sti_hdmi *hdmi);
 };
 
-struct hdmi_audio_params {
+struct hdmi_audio_params
+{
 	bool enabled;
 	unsigned int sample_width;
 	unsigned int sample_rate;
@@ -31,19 +33,22 @@ struct hdmi_audio_params {
 };
 
 /* values for the framing mode property */
-enum sti_hdmi_modes {
+enum sti_hdmi_modes
+{
 	HDMI_MODE_HDMI,
 	HDMI_MODE_DVI,
 };
 
-static const struct drm_prop_enum_list hdmi_mode_names[] = {
+static const struct drm_prop_enum_list hdmi_mode_names[] =
+{
 	{ HDMI_MODE_HDMI, "hdmi" },
 	{ HDMI_MODE_DVI, "dvi" },
 };
 
 #define DEFAULT_HDMI_MODE HDMI_MODE_HDMI
 
-static const struct drm_prop_enum_list colorspace_mode_names[] = {
+static const struct drm_prop_enum_list colorspace_mode_names[] =
+{
 	{ HDMI_COLORSPACE_RGB, "rgb" },
 	{ HDMI_COLORSPACE_YUV422, "yuv422" },
 	{ HDMI_COLORSPACE_YUV444, "yuv444" },
@@ -78,7 +83,8 @@ static const struct drm_prop_enum_list colorspace_mode_names[] = {
  * @audio: hdmi audio parameters.
  * @drm_connector: hdmi connector
  */
-struct sti_hdmi {
+struct sti_hdmi
+{
 	struct device dev;
 	struct drm_device *drm_dev;
 	struct drm_display_mode mode;
@@ -119,7 +125,8 @@ void hdmi_write(struct sti_hdmi *hdmi, u32 val, int offset);
  * @max_tmds_freq: Upper bound of TMDS clock frequency this entry applies to
  * @config: SoC specific register configuration
  */
-struct hdmi_phy_config {
+struct hdmi_phy_config
+{
 	u32 min_tmds_freq;
 	u32 max_tmds_freq;
 	u32 config[4];

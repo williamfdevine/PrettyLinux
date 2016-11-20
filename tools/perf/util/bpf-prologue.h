@@ -15,18 +15,21 @@
 
 #ifdef HAVE_BPF_PROLOGUE
 int bpf__gen_prologue(struct probe_trace_arg *args, int nargs,
-		      struct bpf_insn *new_prog, size_t *new_cnt,
-		      size_t cnt_space);
+					  struct bpf_insn *new_prog, size_t *new_cnt,
+					  size_t cnt_space);
 #else
 static inline int
 bpf__gen_prologue(struct probe_trace_arg *args __maybe_unused,
-		  int nargs __maybe_unused,
-		  struct bpf_insn *new_prog __maybe_unused,
-		  size_t *new_cnt,
-		  size_t cnt_space __maybe_unused)
+				  int nargs __maybe_unused,
+				  struct bpf_insn *new_prog __maybe_unused,
+				  size_t *new_cnt,
+				  size_t cnt_space __maybe_unused)
 {
 	if (!new_cnt)
+	{
 		return -EINVAL;
+	}
+
 	*new_cnt = 0;
 	return -ENOTSUP;
 }

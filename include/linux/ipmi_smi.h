@@ -60,7 +60,8 @@ typedef struct ipmi_smi *ipmi_smi_t;
  * asynchronous data and messages and request them from the
  * interface.
  */
-struct ipmi_smi_msg {
+struct ipmi_smi_msg
+{
 	struct list_head link;
 
 	long    msgid;
@@ -77,7 +78,8 @@ struct ipmi_smi_msg {
 	void (*done)(struct ipmi_smi_msg *msg);
 };
 
-struct ipmi_smi_handlers {
+struct ipmi_smi_handlers
+{
 	struct module *owner;
 
 	/* The low-level interface cannot start sending messages to
@@ -85,7 +87,7 @@ struct ipmi_smi_handlers {
 	   not be NULL, the lower layer must take the interface from
 	   this call. */
 	int (*start_processing)(void       *send_info,
-				ipmi_smi_t new_intf);
+							ipmi_smi_t new_intf);
 
 	/*
 	 * Get the detailed private info of the low level interface and store
@@ -102,7 +104,7 @@ struct ipmi_smi_handlers {
 	   a time by the message handler, a new message will not be
 	   delivered until the previous message is returned. */
 	void (*sender)(void                *send_info,
-		       struct ipmi_smi_msg *msg);
+				   struct ipmi_smi_msg *msg);
 
 	/* Called by the upper layer to request that we try to get
 	   events from the BMC we are attached to. */
@@ -146,7 +148,8 @@ struct ipmi_smi_handlers {
 	void (*dec_usecount)(void *send_info);
 };
 
-struct ipmi_device_id {
+struct ipmi_device_id
+{
 	unsigned char device_id;
 	unsigned char device_revision;
 	unsigned char firmware_revision_1;
@@ -168,18 +171,26 @@ struct ipmi_device_id {
       netfn << 2, cmd, completion code, data
    as normally comes from a device interface. */
 static inline int ipmi_demangle_device_id(const unsigned char *data,
-					  unsigned int data_len,
-					  struct ipmi_device_id *id)
+		unsigned int data_len,
+		struct ipmi_device_id *id)
 {
 	if (data_len < 9)
+	{
 		return -EINVAL;
+	}
+
 	if (data[0] != IPMI_NETFN_APP_RESPONSE << 2 ||
-	    data[1] != IPMI_GET_DEVICE_ID_CMD)
+		data[1] != IPMI_GET_DEVICE_ID_CMD)
 		/* Strange, didn't get the response we expected. */
+	{
 		return -EINVAL;
+	}
+
 	if (data[2] != 0)
 		/* That's odd, it shouldn't be able to fail. */
+	{
 		return -EINVAL;
+	}
 
 	data += 3;
 	data_len -= 3;
@@ -189,19 +200,28 @@ static inline int ipmi_demangle_device_id(const unsigned char *data,
 	id->firmware_revision_2 = data[3];
 	id->ipmi_version = data[4];
 	id->additional_device_support = data[5];
-	if (data_len >= 11) {
+
+	if (data_len >= 11)
+	{
 		id->manufacturer_id = (data[6] | (data[7] << 8) |
-				       (data[8] << 16));
+							   (data[8] << 16));
 		id->product_id = data[9] | (data[10] << 8);
-	} else {
+	}
+	else
+	{
 		id->manufacturer_id = 0;
 		id->product_id = 0;
 	}
-	if (data_len >= 15) {
-		memcpy(id->aux_firmware_revision, data+11, 4);
+
+	if (data_len >= 15)
+	{
+		memcpy(id->aux_firmware_revision, data + 11, 4);
 		id->aux_firmware_revision_set = 1;
-	} else
+	}
+	else
+	{
 		id->aux_firmware_revision_set = 0;
+	}
 
 	return 0;
 }
@@ -213,10 +233,10 @@ static inline int ipmi_demangle_device_id(const unsigned char *data,
    is called, and the lower layer must get the interface from that
    call. */
 int ipmi_register_smi(const struct ipmi_smi_handlers *handlers,
-		      void                     *send_info,
-		      struct ipmi_device_id    *device_id,
-		      struct device            *dev,
-		      unsigned char            slave_addr);
+					  void                     *send_info,
+					  struct ipmi_device_id    *device_id,
+					  struct device            *dev,
+					  unsigned char            slave_addr);
 
 /*
  * Remove a low-level interface from the IPMI driver.  This will
@@ -231,7 +251,7 @@ int ipmi_unregister_smi(ipmi_smi_t intf);
  * an error response in the message response.
  */
 void ipmi_smi_msg_received(ipmi_smi_t          intf,
-			   struct ipmi_smi_msg *msg);
+						   struct ipmi_smi_msg *msg);
 
 /* The lower layer received a watchdog pre-timeout on interface. */
 void ipmi_smi_watchdog_pretimeout(ipmi_smi_t intf);
@@ -246,7 +266,7 @@ static inline void ipmi_free_smi_msg(struct ipmi_smi_msg *msg)
    directory for this interface.  Note that the entry will
    automatically be dstroyed when the interface is destroyed. */
 int ipmi_smi_add_proc_entry(ipmi_smi_t smi, char *name,
-			    const struct file_operations *proc_ops,
-			    void *data);
+							const struct file_operations *proc_ops,
+							void *data);
 
 #endif /* __LINUX_IPMI_SMI_H */

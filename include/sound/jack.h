@@ -49,7 +49,8 @@ struct input_dev;
  * Note that this must be kept in sync with the lookup table in
  * sound/core/jack.c.
  */
-enum snd_jack_types {
+enum snd_jack_types
+{
 	SND_JACK_HEADPHONE	= 0x0001,
 	SND_JACK_MICROPHONE	= 0x0002,
 	SND_JACK_HEADSET	= SND_JACK_HEADPHONE | SND_JACK_MICROPHONE,
@@ -71,7 +72,8 @@ enum snd_jack_types {
 /* Keep in sync with definitions above */
 #define SND_JACK_SWITCH_TYPES 6
 
-struct snd_jack {
+struct snd_jack
+{
 	struct list_head kctl_list;
 	struct snd_card *card;
 	const char *id;
@@ -89,23 +91,23 @@ struct snd_jack {
 #ifdef CONFIG_SND_JACK
 
 int snd_jack_new(struct snd_card *card, const char *id, int type,
-		 struct snd_jack **jack, bool initial_kctl, bool phantom_jack);
-int snd_jack_add_new_kctl(struct snd_jack *jack, const char * name, int mask);
+				 struct snd_jack **jack, bool initial_kctl, bool phantom_jack);
+int snd_jack_add_new_kctl(struct snd_jack *jack, const char *name, int mask);
 #ifdef CONFIG_SND_JACK_INPUT_DEV
 void snd_jack_set_parent(struct snd_jack *jack, struct device *parent);
 int snd_jack_set_key(struct snd_jack *jack, enum snd_jack_types type,
-		     int keytype);
+					 int keytype);
 #endif
 void snd_jack_report(struct snd_jack *jack, int status);
 
 #else
 static inline int snd_jack_new(struct snd_card *card, const char *id, int type,
-			       struct snd_jack **jack, bool initial_kctl, bool phantom_jack)
+							   struct snd_jack **jack, bool initial_kctl, bool phantom_jack)
 {
 	return 0;
 }
 
-static inline int snd_jack_add_new_kctl(struct snd_jack *jack, const char * name, int mask)
+static inline int snd_jack_add_new_kctl(struct snd_jack *jack, const char *name, int mask)
 {
 	return 0;
 }
@@ -118,13 +120,13 @@ static inline void snd_jack_report(struct snd_jack *jack, int status)
 
 #if !defined(CONFIG_SND_JACK) || !defined(CONFIG_SND_JACK_INPUT_DEV)
 static inline void snd_jack_set_parent(struct snd_jack *jack,
-				       struct device *parent)
+									   struct device *parent)
 {
 }
 
 static inline int snd_jack_set_key(struct snd_jack *jack,
-				   enum snd_jack_types type,
-				   int keytype)
+								   enum snd_jack_types type,
+								   int keytype)
 {
 	return 0;
 }

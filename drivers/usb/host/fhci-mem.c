@@ -42,15 +42,23 @@ static struct td *get_empty_td(struct fhci_hcd *fhci)
 {
 	struct td *td;
 
-	if (!list_empty(&fhci->empty_tds)) {
+	if (!list_empty(&fhci->empty_tds))
+	{
 		td = list_entry(fhci->empty_tds.next, struct td, node);
 		list_del(fhci->empty_tds.next);
-	} else {
+	}
+	else
+	{
 		td = kmalloc(sizeof(*td), GFP_ATOMIC);
+
 		if (!td)
+		{
 			fhci_err(fhci, "No memory to allocate to TD\n");
+		}
 		else
+		{
 			init_td(td);
+		}
 	}
 
 	return td;
@@ -66,15 +74,23 @@ struct ed *fhci_get_empty_ed(struct fhci_hcd *fhci)
 {
 	struct ed *ed;
 
-	if (!list_empty(&fhci->empty_eds)) {
+	if (!list_empty(&fhci->empty_eds))
+	{
 		ed = list_entry(fhci->empty_eds.next, struct ed, node);
 		list_del(fhci->empty_eds.next);
-	} else {
+	}
+	else
+	{
 		ed = kmalloc(sizeof(*ed), GFP_ATOMIC);
+
 		if (!ed)
+		{
 			fhci_err(fhci, "No memory to allocate to ED\n");
+		}
 		else
+		{
 			init_ed(ed);
+		}
 	}
 
 	return ed;
@@ -87,14 +103,16 @@ void fhci_recycle_empty_ed(struct fhci_hcd *fhci, struct ed *ed)
 }
 
 struct td *fhci_td_fill(struct fhci_hcd *fhci, struct urb *urb,
-			struct urb_priv *urb_priv, struct ed *ed, u16 index,
-			enum fhci_ta_type type, int toggle, u8 *data, u32 len,
-			u16 interval, u16 start_frame, bool ioc)
+						struct urb_priv *urb_priv, struct ed *ed, u16 index,
+						enum fhci_ta_type type, int toggle, u8 *data, u32 len,
+						u16 interval, u16 start_frame, bool ioc)
 {
 	struct td *td = get_empty_td(fhci);
 
 	if (!td)
+	{
 		return NULL;
+	}
 
 	td->urb = urb;
 	td->ed = ed;

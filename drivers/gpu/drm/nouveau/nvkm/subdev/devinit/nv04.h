@@ -4,13 +4,14 @@
 #include "priv.h"
 struct nvkm_pll_vals;
 
-struct nv04_devinit {
+struct nv04_devinit
+{
 	struct nvkm_devinit base;
 	int owner;
 };
 
 int nv04_devinit_new_(const struct nvkm_devinit_func *, struct nvkm_device *,
-		      int, struct nvkm_devinit **);
+					  int, struct nvkm_devinit **);
 void *nv04_devinit_dtor(struct nvkm_devinit *);
 void nv04_devinit_preinit(struct nvkm_devinit *);
 void nv04_devinit_fini(struct nvkm_devinit *);

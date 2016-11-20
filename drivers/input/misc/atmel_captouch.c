@@ -73,7 +73,8 @@
  * @prev_btn: Previous key state to detect button "press" or "release"
  * @xfer_buf: I2C transfer buffer
  */
-struct atmel_captouch_device {
+struct atmel_captouch_device
+{
 	struct i2c_client *client;
 	struct input_dev *input;
 	u32 num_btn;
@@ -89,7 +90,7 @@ struct atmel_captouch_device {
  * with address and length for verification.
  */
 static int atmel_read(struct atmel_captouch_device *capdev,
-			 u8 reg, u8 *data, size_t len)
+					  u8 reg, u8 *data, size_t len)
 {
 	struct i2c_client *client = capdev->client;
 	struct device *dev = &client->dev;
@@ -97,7 +98,9 @@ static int atmel_read(struct atmel_captouch_device *capdev,
 	int err;
 
 	if (len > sizeof(capdev->xfer_buf) - 2)
+	{
 		return -EINVAL;
+	}
 
 	capdev->xfer_buf[0] = reg;
 	capdev->xfer_buf[1] = len;
@@ -113,13 +116,17 @@ static int atmel_read(struct atmel_captouch_device *capdev,
 	msg[1].len = len + 2;
 
 	err = i2c_transfer(client->adapter, msg, ARRAY_SIZE(msg));
-	if (err != ARRAY_SIZE(msg))
-		return err < 0 ? err : -EIO;
 
-	if (capdev->xfer_buf[0] != reg) {
+	if (err != ARRAY_SIZE(msg))
+	{
+		return err < 0 ? err : -EIO;
+	}
+
+	if (capdev->xfer_buf[0] != reg)
+	{
 		dev_err(dev,
-			"I2C read error: register address does not match (%#02x vs %02x)\n",
-			capdev->xfer_buf[0], reg);
+				"I2C read error: register address does not match (%#02x vs %02x)\n",
+				capdev->xfer_buf[0], reg);
 		return -ECOMM;
 	}
 
@@ -143,7 +150,9 @@ static irqreturn_t atmel_captouch_isr(int irq, void *data)
 	u8 changed_btn;
 
 	error = atmel_read(capdev, REG_KEY_STATE, &new_btn, 1);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "failed to read button state: %d\n", error);
 		goto out;
 	}
@@ -153,11 +162,12 @@ static irqreturn_t atmel_captouch_isr(int irq, void *data)
 	changed_btn = new_btn ^ capdev->prev_btn;
 	capdev->prev_btn = new_btn;
 
-	for (i = 0; i < capdev->num_btn; i++) {
+	for (i = 0; i < capdev->num_btn; i++)
+	{
 		if (changed_btn & BIT(i))
 			input_report_key(capdev->input,
-					 capdev->keycodes[i],
-					 new_btn & BIT(i));
+							 capdev->keycodes[i],
+							 new_btn & BIT(i));
 	}
 
 	input_sync(capdev->input);
@@ -170,7 +180,7 @@ out:
  * Probe function to setup the device, input system and interrupt
  */
 static int atmel_captouch_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+								const struct i2c_device_id *id)
 {
 	struct atmel_captouch_device *capdev;
 	struct device *dev = &client->dev;
@@ -179,29 +189,37 @@ static int atmel_captouch_probe(struct i2c_client *client,
 	int err;
 
 	if (!i2c_check_functionality(client->adapter,
-				     I2C_FUNC_SMBUS_BYTE_DATA |
-					I2C_FUNC_SMBUS_WORD_DATA |
-					I2C_FUNC_SMBUS_I2C_BLOCK)) {
+								 I2C_FUNC_SMBUS_BYTE_DATA |
+								 I2C_FUNC_SMBUS_WORD_DATA |
+								 I2C_FUNC_SMBUS_I2C_BLOCK))
+	{
 		dev_err(dev, "needed i2c functionality is not supported\n");
 		return -EINVAL;
 	}
 
 	capdev = devm_kzalloc(dev, sizeof(*capdev), GFP_KERNEL);
+
 	if (!capdev)
+	{
 		return -ENOMEM;
+	}
 
 	capdev->client = client;
 	i2c_set_clientdata(client, capdev);
 
 	err = atmel_read(capdev, REG_KEY_STATE,
-			    &capdev->prev_btn, sizeof(capdev->prev_btn));
-	if (err) {
+					 &capdev->prev_btn, sizeof(capdev->prev_btn));
+
+	if (err)
+	{
 		dev_err(dev, "failed to read initial button state: %d\n", err);
 		return err;
 	}
 
 	capdev->input = devm_input_allocate_device(dev);
-	if (!capdev->input) {
+
+	if (!capdev->input)
+	{
 		dev_err(dev, "failed to allocate input device\n");
 		return -ENOMEM;
 	}
@@ -213,45 +231,61 @@ static int atmel_captouch_probe(struct i2c_client *client,
 	__set_bit(EV_KEY, capdev->input->evbit);
 
 	node = dev->of_node;
-	if (!node) {
+
+	if (!node)
+	{
 		dev_err(dev, "failed to find matching node in device tree\n");
 		return -EINVAL;
 	}
 
 	if (of_property_read_bool(node, "autorepeat"))
+	{
 		__set_bit(EV_REP, capdev->input->evbit);
+	}
 
 	capdev->num_btn = of_property_count_u32_elems(node, "linux,keymap");
+
 	if (capdev->num_btn > MAX_NUM_OF_BUTTONS)
+	{
 		capdev->num_btn = MAX_NUM_OF_BUTTONS;
+	}
 
 	err = of_property_read_u32_array(node, "linux,keycodes",
-					 capdev->keycodes,
-					 capdev->num_btn);
-	if (err) {
+									 capdev->keycodes,
+									 capdev->num_btn);
+
+	if (err)
+	{
 		dev_err(dev,
-			"failed to read linux,keycode property: %d\n", err);
+				"failed to read linux,keycode property: %d\n", err);
 		return err;
 	}
 
 	for (i = 0; i < capdev->num_btn; i++)
+	{
 		__set_bit(capdev->keycodes[i], capdev->input->keybit);
+	}
 
 	capdev->input->keycode = capdev->keycodes;
 	capdev->input->keycodesize = sizeof(capdev->keycodes[0]);
 	capdev->input->keycodemax = capdev->num_btn;
 
 	err = input_register_device(capdev->input);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = devm_request_threaded_irq(dev, client->irq,
-					NULL, atmel_captouch_isr,
-					IRQF_ONESHOT,
-					"atmel_captouch", capdev);
-	if (err) {
+									NULL, atmel_captouch_isr,
+									IRQF_ONESHOT,
+									"atmel_captouch", capdev);
+
+	if (err)
+	{
 		dev_err(dev, "failed to request irq %d: %d\n",
-			client->irq, err);
+				client->irq, err);
 		return err;
 	}
 
@@ -259,7 +293,8 @@ static int atmel_captouch_probe(struct i2c_client *client,
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id atmel_captouch_of_id[] = {
+static const struct of_device_id atmel_captouch_of_id[] =
+{
 	{
 		.compatible = "atmel,captouch",
 	},
@@ -268,13 +303,15 @@ static const struct of_device_id atmel_captouch_of_id[] = {
 MODULE_DEVICE_TABLE(of, atmel_captouch_of_id);
 #endif
 
-static const struct i2c_device_id atmel_captouch_id[] = {
+static const struct i2c_device_id atmel_captouch_id[] =
+{
 	{ "atmel_captouch", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, atmel_captouch_id);
 
-static struct i2c_driver atmel_captouch_driver = {
+static struct i2c_driver atmel_captouch_driver =
+{
 	.probe		= atmel_captouch_probe,
 	.id_table	= atmel_captouch_id,
 	.driver		= {

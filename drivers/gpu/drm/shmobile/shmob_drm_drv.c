@@ -35,7 +35,8 @@
 
 static int shmob_drm_init_interface(struct shmob_drm_device *sdev)
 {
-	static const u32 ldmt1r[] = {
+	static const u32 ldmt1r[] =
+	{
 		[SHMOB_DRM_IFACE_RGB8] = LDMT1R_MIFTYP_RGB8,
 		[SHMOB_DRM_IFACE_RGB9] = LDMT1R_MIFTYP_RGB9,
 		[SHMOB_DRM_IFACE_RGB12A] = LDMT1R_MIFTYP_RGB12A,
@@ -57,9 +58,10 @@ static int shmob_drm_init_interface(struct shmob_drm_device *sdev)
 		[SHMOB_DRM_IFACE_SYS24] = LDMT1R_IFM | LDMT1R_MIFTYP_SYS24,
 	};
 
-	if (sdev->pdata->iface.interface >= ARRAY_SIZE(ldmt1r)) {
+	if (sdev->pdata->iface.interface >= ARRAY_SIZE(ldmt1r))
+	{
 		dev_err(sdev->dev, "invalid interface type %u\n",
-			sdev->pdata->iface.interface);
+				sdev->pdata->iface.interface);
 		return -EINVAL;
 	}
 
@@ -68,30 +70,36 @@ static int shmob_drm_init_interface(struct shmob_drm_device *sdev)
 }
 
 static int shmob_drm_setup_clocks(struct shmob_drm_device *sdev,
-					    enum shmob_drm_clk_source clksrc)
+								  enum shmob_drm_clk_source clksrc)
 {
 	struct clk *clk;
 	char *clkname;
 
-	switch (clksrc) {
-	case SHMOB_DRM_CLK_BUS:
-		clkname = "bus_clk";
-		sdev->lddckr = LDDCKR_ICKSEL_BUS;
-		break;
-	case SHMOB_DRM_CLK_PERIPHERAL:
-		clkname = "peripheral_clk";
-		sdev->lddckr = LDDCKR_ICKSEL_MIPI;
-		break;
-	case SHMOB_DRM_CLK_EXTERNAL:
-		clkname = NULL;
-		sdev->lddckr = LDDCKR_ICKSEL_HDMI;
-		break;
-	default:
-		return -EINVAL;
+	switch (clksrc)
+	{
+		case SHMOB_DRM_CLK_BUS:
+			clkname = "bus_clk";
+			sdev->lddckr = LDDCKR_ICKSEL_BUS;
+			break;
+
+		case SHMOB_DRM_CLK_PERIPHERAL:
+			clkname = "peripheral_clk";
+			sdev->lddckr = LDDCKR_ICKSEL_MIPI;
+			break;
+
+		case SHMOB_DRM_CLK_EXTERNAL:
+			clkname = NULL;
+			sdev->lddckr = LDDCKR_ICKSEL_HDMI;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	clk = devm_clk_get(sdev->dev, clkname);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(sdev->dev, "cannot get dot clock %s\n", clkname);
 		return PTR_ERR(clk);
 	}
@@ -125,13 +133,16 @@ static int shmob_drm_load(struct drm_device *dev, unsigned long flags)
 	unsigned int i;
 	int ret;
 
-	if (pdata == NULL) {
+	if (pdata == NULL)
+	{
 		dev_err(dev->dev, "no platform data\n");
 		return -EINVAL;
 	}
 
 	sdev = devm_kzalloc(&pdev->dev, sizeof(*sdev), GFP_KERNEL);
-	if (sdev == NULL) {
+
+	if (sdev == NULL)
+	{
 		dev_err(dev->dev, "failed to allocate private data\n");
 		return -ENOMEM;
 	}
@@ -145,48 +156,67 @@ static int shmob_drm_load(struct drm_device *dev, unsigned long flags)
 
 	/* I/O resources and clocks */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(&pdev->dev, "failed to get memory resource\n");
 		return -EINVAL;
 	}
 
 	sdev->mmio = devm_ioremap_nocache(&pdev->dev, res->start,
-					  resource_size(res));
-	if (sdev->mmio == NULL) {
+									  resource_size(res));
+
+	if (sdev->mmio == NULL)
+	{
 		dev_err(&pdev->dev, "failed to remap memory resource\n");
 		return -ENOMEM;
 	}
 
 	ret = shmob_drm_setup_clocks(sdev, pdata->clk_source);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = shmob_drm_init_interface(sdev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = shmob_drm_modeset_init(sdev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to initialize mode setting\n");
 		return ret;
 	}
 
-	for (i = 0; i < 4; ++i) {
+	for (i = 0; i < 4; ++i)
+	{
 		ret = shmob_drm_plane_create(sdev, i);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&pdev->dev, "failed to create plane %u\n", i);
 			goto done;
 		}
 	}
 
 	ret = drm_vblank_init(dev, 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to initialize vblank\n");
 		goto done;
 	}
 
 	ret = drm_irq_install(dev, platform_get_irq(dev->platformdev, 0));
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to install IRQ handler\n");
 		goto done;
 	}
@@ -194,8 +224,11 @@ static int shmob_drm_load(struct drm_device *dev, unsigned long flags)
 	platform_set_drvdata(pdev, sdev);
 
 done:
+
 	if (ret)
+	{
 		shmob_drm_unload(dev);
+	}
 
 	return ret;
 }
@@ -216,7 +249,8 @@ static irqreturn_t shmob_drm_irq(int irq, void *arg)
 	lcdc_write(sdev, LDINTR, status ^ LDINTR_STATUS_MASK);
 	spin_unlock_irqrestore(&sdev->irq_lock, flags);
 
-	if (status & LDINTR_VES) {
+	if (status & LDINTR_VES)
+	{
 		drm_handle_vblank(dev, 0);
 		shmob_drm_crtc_finish_page_flip(&sdev->crtc);
 	}
@@ -240,7 +274,8 @@ static void shmob_drm_disable_vblank(struct drm_device *dev, unsigned int pipe)
 	shmob_drm_crtc_enable_vblank(sdev, false);
 }
 
-static const struct file_operations shmob_drm_fops = {
+static const struct file_operations shmob_drm_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= drm_open,
 	.release	= drm_release,
@@ -254,9 +289,10 @@ static const struct file_operations shmob_drm_fops = {
 	.mmap		= drm_gem_cma_mmap,
 };
 
-static struct drm_driver shmob_drm_driver = {
+static struct drm_driver shmob_drm_driver =
+{
 	.driver_features	= DRIVER_HAVE_IRQ | DRIVER_GEM | DRIVER_MODESET
-				| DRIVER_PRIME,
+	| DRIVER_PRIME,
 	.load			= shmob_drm_load,
 	.unload			= shmob_drm_unload,
 	.irq_handler		= shmob_drm_irq,
@@ -313,7 +349,8 @@ static int shmob_drm_pm_resume(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops shmob_drm_pm_ops = {
+static const struct dev_pm_ops shmob_drm_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(shmob_drm_pm_suspend, shmob_drm_pm_resume)
 };
 
@@ -335,7 +372,8 @@ static int shmob_drm_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver shmob_drm_platform_driver = {
+static struct platform_driver shmob_drm_platform_driver =
+{
 	.probe		= shmob_drm_probe,
 	.remove		= shmob_drm_remove,
 	.driver		= {

@@ -22,16 +22,20 @@
 #include "dt_idle_states.h"
 
 static int init_state_node(struct cpuidle_state *idle_state,
-			   const struct of_device_id *matches,
-			   struct device_node *state_node)
+						   const struct of_device_id *matches,
+						   struct device_node *state_node)
 {
 	int err;
 	const struct of_device_id *match_id;
 	const char *desc;
 
 	match_id = of_match_node(matches, state_node);
+
 	if (!match_id)
+	{
 		return -ENODEV;
+	}
+
 	/*
 	 * CPUidle drivers are expected to initialize the const void *data
 	 * pointer of the passed in struct of_device_id array to the idle
@@ -40,25 +44,32 @@ static int init_state_node(struct cpuidle_state *idle_state,
 	idle_state->enter = match_id->data;
 
 	err = of_property_read_u32(state_node, "wakeup-latency-us",
-				   &idle_state->exit_latency);
-	if (err) {
+							   &idle_state->exit_latency);
+
+	if (err)
+	{
 		u32 entry_latency, exit_latency;
 
 		err = of_property_read_u32(state_node, "entry-latency-us",
-					   &entry_latency);
-		if (err) {
+								   &entry_latency);
+
+		if (err)
+		{
 			pr_debug(" * %s missing entry-latency-us property\n",
-				 state_node->full_name);
+					 state_node->full_name);
 			return -EINVAL;
 		}
 
 		err = of_property_read_u32(state_node, "exit-latency-us",
-					   &exit_latency);
-		if (err) {
+								   &exit_latency);
+
+		if (err)
+		{
 			pr_debug(" * %s missing exit-latency-us property\n",
-				 state_node->full_name);
+					 state_node->full_name);
 			return -EINVAL;
 		}
+
 		/*
 		 * If wakeup-latency-us is missing, default to entry+exit
 		 * latencies as defined in idle states bindings
@@ -67,20 +78,29 @@ static int init_state_node(struct cpuidle_state *idle_state,
 	}
 
 	err = of_property_read_u32(state_node, "min-residency-us",
-				   &idle_state->target_residency);
-	if (err) {
+							   &idle_state->target_residency);
+
+	if (err)
+	{
 		pr_debug(" * %s missing min-residency-us property\n",
-			     state_node->full_name);
+				 state_node->full_name);
 		return -EINVAL;
 	}
 
 	err = of_property_read_string(state_node, "idle-state-name", &desc);
+
 	if (err)
+	{
 		desc = state_node->name;
+	}
 
 	idle_state->flags = 0;
+
 	if (of_property_read_bool(state_node, "local-timer-stop"))
+	{
 		idle_state->flags |= CPUIDLE_FLAG_TIMER_STOP;
+	}
+
 	/*
 	 * TODO:
 	 *	replace with kstrdup and pointer assignment when name
@@ -96,7 +116,7 @@ static int init_state_node(struct cpuidle_state *idle_state,
  * cpumask
  */
 static bool idle_state_valid(struct device_node *state_node, unsigned int idx,
-			     const cpumask_t *cpumask)
+							 const cpumask_t *cpumask)
 {
 	int cpu;
 	struct device_node *cpu_node, *curr_state_node;
@@ -110,17 +130,24 @@ static bool idle_state_valid(struct device_node *state_node, unsigned int idx,
 	 * away since we certainly hit a firmware misconfiguration.
 	 */
 	for (cpu = cpumask_next(cpumask_first(cpumask), cpumask);
-	     cpu < nr_cpu_ids; cpu = cpumask_next(cpu, cpumask)) {
+		 cpu < nr_cpu_ids; cpu = cpumask_next(cpu, cpumask))
+	{
 		cpu_node = of_cpu_device_node_get(cpu);
 		curr_state_node = of_parse_phandle(cpu_node, "cpu-idle-states",
-						   idx);
+										   idx);
+
 		if (state_node != curr_state_node)
+		{
 			valid = false;
+		}
 
 		of_node_put(curr_state_node);
 		of_node_put(cpu_node);
+
 		if (!valid)
+		{
 			break;
+		}
 	}
 
 	return valid;
@@ -149,8 +176,8 @@ static bool idle_state_valid(struct device_node *state_node, unsigned int idx,
  * Return: number of valid DT idle states parsed, <0 on failure
  */
 int dt_init_idle_driver(struct cpuidle_driver *drv,
-			const struct of_device_id *matches,
-			unsigned int start_idx)
+						const struct of_device_id *matches,
+						unsigned int start_idx)
 {
 	struct cpuidle_state *idle_state;
 	struct device_node *state_node, *cpu_node;
@@ -159,7 +186,10 @@ int dt_init_idle_driver(struct cpuidle_driver *drv,
 	unsigned int state_idx = start_idx;
 
 	if (state_idx >= CPUIDLE_STATE_MAX)
+	{
 		return -EINVAL;
+	}
+
 	/*
 	 * We get the idle states for the first logical cpu in the
 	 * driver mask (or cpu_possible_mask if the driver cpumask is not set)
@@ -169,47 +199,64 @@ int dt_init_idle_driver(struct cpuidle_driver *drv,
 	cpumask = drv->cpumask ? : cpu_possible_mask;
 	cpu_node = of_cpu_device_node_get(cpumask_first(cpumask));
 
-	for (i = 0; ; i++) {
+	for (i = 0; ; i++)
+	{
 		state_node = of_parse_phandle(cpu_node, "cpu-idle-states", i);
+
 		if (!state_node)
+		{
 			break;
+		}
 
 		if (!of_device_is_available(state_node))
+		{
 			continue;
+		}
 
-		if (!idle_state_valid(state_node, i, cpumask)) {
+		if (!idle_state_valid(state_node, i, cpumask))
+		{
 			pr_warn("%s idle state not valid, bailing out\n",
-				state_node->full_name);
+					state_node->full_name);
 			err = -EINVAL;
 			break;
 		}
 
-		if (state_idx == CPUIDLE_STATE_MAX) {
+		if (state_idx == CPUIDLE_STATE_MAX)
+		{
 			pr_warn("State index reached static CPU idle driver states array size\n");
 			break;
 		}
 
 		idle_state = &drv->states[state_idx++];
 		err = init_state_node(idle_state, matches, state_node);
-		if (err) {
+
+		if (err)
+		{
 			pr_err("Parsing idle state node %s failed with err %d\n",
-			       state_node->full_name, err);
+				   state_node->full_name, err);
 			err = -EINVAL;
 			break;
 		}
+
 		of_node_put(state_node);
 	}
 
 	of_node_put(state_node);
 	of_node_put(cpu_node);
+
 	if (err)
+	{
 		return err;
+	}
+
 	/*
 	 * Update the driver state count only if some valid DT idle states
 	 * were detected
 	 */
 	if (i)
+	{
 		drv->state_count = state_idx;
+	}
 
 	/*
 	 * Return the number of present and valid DT idle states, which can

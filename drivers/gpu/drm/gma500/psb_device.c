@@ -76,10 +76,12 @@ static int psb_backlight_setup(struct drm_device *dev)
 	uint32_t blc_pwm_precision_factor;
 
 	/* get bl_max_freq and pol from dev_priv*/
-	if (!dev_priv->lvds_bl) {
+	if (!dev_priv->lvds_bl)
+	{
 		dev_err(dev->dev, "Has no valid LVDS backlight info\n");
 		return -ENOENT;
 	}
+
 	bl_max_freq = dev_priv->lvds_bl->freq;
 	blc_pwm_precision_factor = PSB_BLC_PWM_PRECISION_FACTOR;
 
@@ -91,13 +93,17 @@ static int psb_backlight_setup(struct drm_device *dev)
 	value /= blc_pwm_precision_factor;
 
 	if (value > (unsigned long long)PSB_BLC_MAX_PWM_REG_FREQ ||
-		 value < (unsigned long long)PSB_BLC_MIN_PWM_REG_FREQ)
-				return -ERANGE;
-	else {
+		value < (unsigned long long)PSB_BLC_MIN_PWM_REG_FREQ)
+	{
+		return -ERANGE;
+	}
+	else
+	{
 		value &= PSB_BACKLIGHT_PWM_POLARITY_BIT_CLEAR;
 		REG_WRITE(BLC_PWM_CTL,
-			(value << PSB_BACKLIGHT_PWM_CTL_SHIFT) | (value));
+				  (value << PSB_BACKLIGHT_PWM_CTL_SHIFT) | (value));
 	}
+
 	return 0;
 }
 
@@ -108,14 +114,17 @@ static int psb_set_brightness(struct backlight_device *bd)
 
 	/* Percentage 1-100% being valid */
 	if (level < 1)
+	{
 		level = 1;
+	}
 
 	psb_intel_lvds_set_brightness(dev, level);
 	psb_brightness = level;
 	return 0;
 }
 
-static const struct backlight_ops psb_ops = {
+static const struct backlight_ops psb_ops =
+{
 	.get_brightness = psb_get_brightness,
 	.update_status  = psb_set_brightness,
 };
@@ -131,16 +140,22 @@ static int psb_backlight_init(struct drm_device *dev)
 	props.type = BACKLIGHT_PLATFORM;
 
 	psb_backlight_device = backlight_device_register("psb-bl",
-					NULL, (void *)dev, &psb_ops, &props);
+						   NULL, (void *)dev, &psb_ops, &props);
+
 	if (IS_ERR(psb_backlight_device))
+	{
 		return PTR_ERR(psb_backlight_device);
+	}
 
 	ret = psb_backlight_setup(dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		backlight_device_unregister(psb_backlight_device);
 		psb_backlight_device = NULL;
 		return ret;
 	}
+
 	psb_backlight_device->props.brightness = 100;
 	psb_backlight_device->props.max_brightness = 100;
 	backlight_update_status(psb_backlight_device);
@@ -196,14 +211,20 @@ static int psb_save_display_registers(struct drm_device *dev)
 
 	/* Save crtc and output state */
 	drm_modeset_lock_all(dev);
-	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
+	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head)
+	{
 		if (drm_helper_crtc_in_use(crtc))
+		{
 			dev_priv->ops->save_crtc(crtc);
+		}
 	}
 
 	list_for_each_entry(connector, &dev->mode_config.connector_list, base.head)
-		if (connector->save)
-			connector->save(&connector->base);
+
+	if (connector->save)
+	{
+		connector->save(&connector->base);
+	}
 
 	drm_modeset_unlock_all(dev);
 	return 0;
@@ -237,12 +258,18 @@ static int psb_restore_display_registers(struct drm_device *dev)
 
 	drm_modeset_lock_all(dev);
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head)
-		if (drm_helper_crtc_in_use(crtc))
-			dev_priv->ops->restore_crtc(crtc);
+
+	if (drm_helper_crtc_in_use(crtc))
+	{
+		dev_priv->ops->restore_crtc(crtc);
+	}
 
 	list_for_each_entry(connector, &dev->mode_config.connector_list, base.head)
-		if (connector->restore)
-			connector->restore(&connector->base);
+
+	if (connector->restore)
+	{
+		connector->restore(&connector->base);
+	}
 
 	drm_modeset_unlock_all(dev);
 	return 0;
@@ -259,7 +286,8 @@ static int psb_power_up(struct drm_device *dev)
 }
 
 /* Poulsbo */
-static const struct psb_offset psb_regmap[2] = {
+static const struct psb_offset psb_regmap[2] =
+{
 	{
 		.fp0 = FPA0,
 		.fp1 = FPA1,
@@ -328,7 +356,8 @@ static void psb_chip_teardown(struct drm_device *dev)
 	gma_intel_teardown_gmbus(dev);
 }
 
-const struct psb_ops psb_chip_ops = {
+const struct psb_ops psb_chip_ops =
+{
 	.name = "Poulsbo",
 	.accel_2d = 1,
 	.pipes = 2,

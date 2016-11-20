@@ -48,24 +48,27 @@ static unsigned int lcd_ac_prescale = 13;
  */
 static int
 clps7111fb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-		     u_int transp, struct fb_info *info)
+					 u_int transp, struct fb_info *info)
 {
 	unsigned int level, mask, shift, pal;
 
 	if (regno >= (1 << info->var.bits_per_pixel))
+	{
 		return 1;
+	}
 
 	/* gray = 0.30*R + 0.58*G + 0.11*B */
 	level = (red * 77 + green * 151 + blue * 28) >> 20;
 
 	/*
-	 * On an LCD, a high value is dark, while a low value is light. 
+	 * On an LCD, a high value is dark, while a low value is light.
 	 * So we invert the level.
 	 *
 	 * This isn't true on all machines, so we only do it on EDB7211.
 	 *  --rmk
 	 */
-	if (machine_is_edb7211()) {
+	if (machine_is_edb7211())
+	{
 		level = 15 - level;
 	}
 
@@ -85,7 +88,7 @@ clps7111fb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
 
 /*
  * Validate the purposed mode.
- */	
+ */
 static int
 clps7111fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 {
@@ -98,30 +101,35 @@ clps7111fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	var->green		= var->red;
 	var->blue		= var->red;
 
-	if (var->bits_per_pixel > 4) 
+	if (var->bits_per_pixel > 4)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 /*
  * Set the hardware state.
- */ 
-static int 
+ */
+static int
 clps7111fb_set_par(struct fb_info *info)
 {
 	unsigned int lcdcon, syscon, pixclock;
 
-	switch (info->var.bits_per_pixel) {
-	case 1:
-		info->fix.visual = FB_VISUAL_MONO01;
-		break;
-	case 2:
-		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
-		break;
-	case 4:
-		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
-		break;
+	switch (info->var.bits_per_pixel)
+	{
+		case 1:
+			info->fix.visual = FB_VISUAL_MONO01;
+			break;
+
+		case 2:
+			info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+			break;
+
+		case 4:
+			info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+			break;
 	}
 
 	info->fix.line_length = info->var.xres_virtual * info->var.bits_per_pixel / 8;
@@ -143,9 +151,14 @@ clps7111fb_set_par(struct fb_info *info)
 	lcdcon |= pixclock << 19;
 
 	if (info->var.bits_per_pixel == 4)
+	{
 		lcdcon |= LCDCON_GSMD;
+	}
+
 	if (info->var.bits_per_pixel >= 2)
+	{
 		lcdcon |= LCDCON_GSEN;
+	}
 
 	/*
 	 * LCDCON must only be changed while the LCD is disabled
@@ -161,14 +174,19 @@ static int clps7111fb_blank(int blank, struct fb_info *info)
 {
 	/* Enable/Disable LCD controller. */
 	if (blank)
+	{
 		clps_writel(clps_readl(SYSCON1) & ~SYSCON1_LCDEN, SYSCON1);
+	}
 	else
+	{
 		clps_writel(clps_readl(SYSCON1) | SYSCON1_LCDEN, SYSCON1);
+	}
 
 	return 0;
 }
 
-static struct fb_ops clps7111fb_ops = {
+static struct fb_ops clps7111fb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_check_var	= clps7111fb_check_var,
 	.fb_set_par	= clps7111fb_set_par,
@@ -198,24 +216,27 @@ static void clps711x_guess_lcd_params(struct fb_info *info)
 	 * in LCDCON to xres/yres/bpp/pixclock/acprescale
 	 */
 	syscon = clps_readl(SYSCON1);
-	if (syscon & SYSCON1_LCDEN) {
+
+	if (syscon & SYSCON1_LCDEN)
+	{
 		lcdcon = clps_readl(LCDCON);
 
 		/*
 		 * Decode GSMD and GSEN bits to bits per pixel
 		 */
-		switch (lcdcon & (LCDCON_GSMD | LCDCON_GSEN)) {
-		case LCDCON_GSMD | LCDCON_GSEN:
-			info->var.bits_per_pixel = 4;
-			break;
+		switch (lcdcon & (LCDCON_GSMD | LCDCON_GSEN))
+		{
+			case LCDCON_GSMD | LCDCON_GSEN:
+				info->var.bits_per_pixel = 4;
+				break;
 
-		case LCDCON_GSEN:
-			info->var.bits_per_pixel = 2;
-			break;
+			case LCDCON_GSEN:
+				info->var.bits_per_pixel = 2;
+				break;
 
-		default:
-			info->var.bits_per_pixel = 1;
-			break;
+			default:
+				info->var.bits_per_pixel = 1;
+				break;
 		}
 
 		/*
@@ -223,8 +244,8 @@ static void clps711x_guess_lcd_params(struct fb_info *info)
 		 */
 		info->var.xres_virtual = (((lcdcon >> 13) & 0x3f) + 1) * 16;
 		info->var.yres_virtual = (((lcdcon & 0x1fff) + 1) * 128) /
-					  (info->var.xres_virtual *
-					   info->var.bits_per_pixel);
+								 (info->var.xres_virtual *
+								  info->var.bits_per_pixel);
 
 		/*
 		 * Calculate pixclock
@@ -249,11 +270,13 @@ static void clps711x_guess_lcd_params(struct fb_info *info)
 	 * CLPS7110 - no on-board SRAM
 	 * EP7212   - 38400 bytes
 	 */
-	if (size <= 38400) {
+	if (size <= 38400)
+	{
 		printk(KERN_INFO "CLPS711xFB: could use on-board SRAM?\n");
 	}
 
-	if ((syscon & SYSCON1_LCDEN) == 0) {
+	if ((syscon & SYSCON1_LCDEN) == 0)
+	{
 		/*
 		 * The display isn't running.  Ensure that
 		 * the display memory is empty.
@@ -272,11 +295,16 @@ static int clps711x_fb_probe(struct platform_device *pdev)
 	int err = -ENOMEM;
 
 	if (fb_get_options("clps711xfb", NULL))
+	{
 		return -ENODEV;
+	}
 
 	cfb = kzalloc(sizeof(*cfb), GFP_KERNEL);
+
 	if (!cfb)
+	{
 		goto out;
+	}
 
 	strcpy(cfb->fix.id, "clps711x");
 
@@ -300,7 +328,8 @@ static int clps711x_fb_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver clps711x_fb_driver = {
+static struct platform_driver clps711x_fb_driver =
+{
 	.driver	= {
 		.name	= "video-clps711x",
 	},

@@ -22,15 +22,18 @@
 static int nerrs = 0;
 
 static void sethandler(int sig, void (*handler)(int, siginfo_t *, void *),
-		       int flags)
+					   int flags)
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_sigaction = handler;
 	sa.sa_flags = SA_SIGINFO | flags;
 	sigemptyset(&sa.sa_mask);
+
 	if (sigaction(sig, &sa, 0))
+	{
 		err(1, "sigaction");
+	}
 
 }
 
@@ -46,43 +49,64 @@ int main(void)
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
 	CPU_SET(0, &cpuset);
+
 	if (sched_setaffinity(0, sizeof(cpuset), &cpuset) != 0)
+	{
 		err(1, "sched_setaffinity to CPU 0");
+	}
 
 	/* Probe for iopl support.  Note that iopl(0) works even as nonroot. */
-	if (iopl(3) != 0) {
+	if (iopl(3) != 0)
+	{
 		printf("[OK]\tiopl(3) failed (%d) -- try running as root\n",
-		       errno);
+			   errno);
 		return 0;
 	}
 
 	/* Restore our original state prior to starting the test. */
 	if (iopl(0) != 0)
+	{
 		err(1, "iopl(0)");
+	}
 
 	pid_t child = fork();
-	if (child == -1)
-		err(1, "fork");
 
-	if (child == 0) {
+	if (child == -1)
+	{
+		err(1, "fork");
+	}
+
+	if (child == 0)
+	{
 		printf("\tchild: set IOPL to 3\n");
+
 		if (iopl(3) != 0)
+		{
 			err(1, "iopl");
+		}
 
 		printf("[RUN]\tchild: write to 0x80\n");
 		asm volatile ("outb %%al, $0x80" : : "a" (0));
 
 		return 0;
-	} else {
+	}
+	else
+	{
 		int status;
+
 		if (waitpid(child, &status, 0) != child ||
-		    !WIFEXITED(status)) {
+			!WIFEXITED(status))
+		{
 			printf("[FAIL]\tChild died\n");
 			nerrs++;
-		} else if (WEXITSTATUS(status) != 0) {
+		}
+		else if (WEXITSTATUS(status) != 0)
+		{
 			printf("[FAIL]\tChild failed\n");
 			nerrs++;
-		} else {
+		}
+		else
+		{
 			printf("[OK]\tChild succeeded\n");
 		}
 	}
@@ -90,9 +114,13 @@ int main(void)
 	printf("[RUN]\tparent: write to 0x80 (should fail)\n");
 
 	sethandler(SIGSEGV, sigsegv, 0);
-	if (sigsetjmp(jmpbuf, 1) != 0) {
+
+	if (sigsetjmp(jmpbuf, 1) != 0)
+	{
 		printf("[OK]\twrite was denied\n");
-	} else {
+	}
+	else
+	{
 		asm volatile ("outb %%al, $0x80" : : "a" (0));
 		printf("[FAIL]\twrite was allowed\n");
 		nerrs++;
@@ -100,32 +128,45 @@ int main(void)
 
 	/* Test the capability checks. */
 	printf("\tiopl(3)\n");
+
 	if (iopl(3) != 0)
+	{
 		err(1, "iopl(3)");
+	}
 
 	printf("\tDrop privileges\n");
-	if (setresuid(1, 1, 1) != 0) {
+
+	if (setresuid(1, 1, 1) != 0)
+	{
 		printf("[WARN]\tDropping privileges failed\n");
 		goto done;
 	}
 
 	printf("[RUN]\tiopl(3) unprivileged but with IOPL==3\n");
-	if (iopl(3) != 0) {
+
+	if (iopl(3) != 0)
+	{
 		printf("[FAIL]\tiopl(3) should work if iopl is already 3 even if unprivileged\n");
 		nerrs++;
 	}
 
 	printf("[RUN]\tiopl(0) unprivileged\n");
-	if (iopl(0) != 0) {
+
+	if (iopl(0) != 0)
+	{
 		printf("[FAIL]\tiopl(0) should work if iopl is already 3 even if unprivileged\n");
 		nerrs++;
 	}
 
 	printf("[RUN]\tiopl(3) unprivileged\n");
-	if (iopl(3) == 0) {
+
+	if (iopl(3) == 0)
+	{
 		printf("[FAIL]\tiopl(3) should fail if when unprivileged if iopl==0\n");
 		nerrs++;
-	} else {
+	}
+	else
+	{
 		printf("[OK]\tFailed as expected\n");
 	}
 

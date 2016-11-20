@@ -40,30 +40,31 @@ extern const unsigned char xfs_mode_to_ftype[];
 /*
  * directory operations vector for encode/decode routines
  */
-struct xfs_dir_ops {
+struct xfs_dir_ops
+{
 	int	(*sf_entsize)(struct xfs_dir2_sf_hdr *hdr, int len);
 	struct xfs_dir2_sf_entry *
-		(*sf_nextentry)(struct xfs_dir2_sf_hdr *hdr,
-				struct xfs_dir2_sf_entry *sfep);
+	(*sf_nextentry)(struct xfs_dir2_sf_hdr *hdr,
+					struct xfs_dir2_sf_entry *sfep);
 	__uint8_t (*sf_get_ftype)(struct xfs_dir2_sf_entry *sfep);
 	void	(*sf_put_ftype)(struct xfs_dir2_sf_entry *sfep,
-				__uint8_t ftype);
+							__uint8_t ftype);
 	xfs_ino_t (*sf_get_ino)(struct xfs_dir2_sf_hdr *hdr,
-				struct xfs_dir2_sf_entry *sfep);
+							struct xfs_dir2_sf_entry *sfep);
 	void	(*sf_put_ino)(struct xfs_dir2_sf_hdr *hdr,
-			      struct xfs_dir2_sf_entry *sfep,
-			      xfs_ino_t ino);
+						  struct xfs_dir2_sf_entry *sfep,
+						  xfs_ino_t ino);
 	xfs_ino_t (*sf_get_parent_ino)(struct xfs_dir2_sf_hdr *hdr);
 	void	(*sf_put_parent_ino)(struct xfs_dir2_sf_hdr *hdr,
-				     xfs_ino_t ino);
+								 xfs_ino_t ino);
 
 	int	(*data_entsize)(int len);
 	__uint8_t (*data_get_ftype)(struct xfs_dir2_data_entry *dep);
 	void	(*data_put_ftype)(struct xfs_dir2_data_entry *dep,
-				__uint8_t ftype);
-	__be16 * (*data_entry_tag_p)(struct xfs_dir2_data_entry *dep);
+							  __uint8_t ftype);
+	__be16 *(*data_entry_tag_p)(struct xfs_dir2_data_entry *dep);
 	struct xfs_dir2_data_free *
-		(*data_bestfree_p)(struct xfs_dir2_data_hdr *hdr);
+	(*data_bestfree_p)(struct xfs_dir2_data_hdr *hdr);
 
 	xfs_dir2_data_aoff_t data_dot_offset;
 	xfs_dir2_data_aoff_t data_dotdot_offset;
@@ -71,50 +72,50 @@ struct xfs_dir_ops {
 	size_t	data_entry_offset;
 
 	struct xfs_dir2_data_entry *
-		(*data_dot_entry_p)(struct xfs_dir2_data_hdr *hdr);
+	(*data_dot_entry_p)(struct xfs_dir2_data_hdr *hdr);
 	struct xfs_dir2_data_entry *
-		(*data_dotdot_entry_p)(struct xfs_dir2_data_hdr *hdr);
+	(*data_dotdot_entry_p)(struct xfs_dir2_data_hdr *hdr);
 	struct xfs_dir2_data_entry *
-		(*data_first_entry_p)(struct xfs_dir2_data_hdr *hdr);
+	(*data_first_entry_p)(struct xfs_dir2_data_hdr *hdr);
 	struct xfs_dir2_data_entry *
-		(*data_entry_p)(struct xfs_dir2_data_hdr *hdr);
+	(*data_entry_p)(struct xfs_dir2_data_hdr *hdr);
 	struct xfs_dir2_data_unused *
-		(*data_unused_p)(struct xfs_dir2_data_hdr *hdr);
+	(*data_unused_p)(struct xfs_dir2_data_hdr *hdr);
 
 	int	leaf_hdr_size;
 	void	(*leaf_hdr_to_disk)(struct xfs_dir2_leaf *to,
-				    struct xfs_dir3_icleaf_hdr *from);
+								struct xfs_dir3_icleaf_hdr *from);
 	void	(*leaf_hdr_from_disk)(struct xfs_dir3_icleaf_hdr *to,
-				      struct xfs_dir2_leaf *from);
+								  struct xfs_dir2_leaf *from);
 	int	(*leaf_max_ents)(struct xfs_da_geometry *geo);
 	struct xfs_dir2_leaf_entry *
-		(*leaf_ents_p)(struct xfs_dir2_leaf *lp);
+	(*leaf_ents_p)(struct xfs_dir2_leaf *lp);
 
 	int	node_hdr_size;
 	void	(*node_hdr_to_disk)(struct xfs_da_intnode *to,
-				    struct xfs_da3_icnode_hdr *from);
+								struct xfs_da3_icnode_hdr *from);
 	void	(*node_hdr_from_disk)(struct xfs_da3_icnode_hdr *to,
-				      struct xfs_da_intnode *from);
+								  struct xfs_da_intnode *from);
 	struct xfs_da_node_entry *
-		(*node_tree_p)(struct xfs_da_intnode *dap);
+	(*node_tree_p)(struct xfs_da_intnode *dap);
 
 	int	free_hdr_size;
 	void	(*free_hdr_to_disk)(struct xfs_dir2_free *to,
-				    struct xfs_dir3_icfree_hdr *from);
+								struct xfs_dir3_icfree_hdr *from);
 	void	(*free_hdr_from_disk)(struct xfs_dir3_icfree_hdr *to,
-				      struct xfs_dir2_free *from);
+								  struct xfs_dir2_free *from);
 	int	(*free_max_bests)(struct xfs_da_geometry *geo);
-	__be16 * (*free_bests_p)(struct xfs_dir2_free *free);
+	__be16 *(*free_bests_p)(struct xfs_dir2_free *free);
 	xfs_dir2_db_t (*db_to_fdb)(struct xfs_da_geometry *geo,
-				   xfs_dir2_db_t db);
+							   xfs_dir2_db_t db);
 	int	(*db_to_fdindex)(struct xfs_da_geometry *geo,
-				 xfs_dir2_db_t db);
+						 xfs_dir2_db_t db);
 };
 
 extern const struct xfs_dir_ops *
-	xfs_dir_get_ops(struct xfs_mount *mp, struct xfs_inode *dp);
+xfs_dir_get_ops(struct xfs_mount *mp, struct xfs_inode *dp);
 extern const struct xfs_dir_ops *
-	xfs_nondir_get_ops(struct xfs_mount *mp, struct xfs_inode *dp);
+xfs_nondir_get_ops(struct xfs_mount *mp, struct xfs_inode *dp);
 
 /*
  * Generic directory interface routines
@@ -125,24 +126,24 @@ extern void xfs_da_unmount(struct xfs_mount *mp);
 
 extern int xfs_dir_isempty(struct xfs_inode *dp);
 extern int xfs_dir_init(struct xfs_trans *tp, struct xfs_inode *dp,
-				struct xfs_inode *pdp);
+						struct xfs_inode *pdp);
 extern int xfs_dir_createname(struct xfs_trans *tp, struct xfs_inode *dp,
-				struct xfs_name *name, xfs_ino_t inum,
-				xfs_fsblock_t *first,
-				struct xfs_defer_ops *dfops, xfs_extlen_t tot);
+							  struct xfs_name *name, xfs_ino_t inum,
+							  xfs_fsblock_t *first,
+							  struct xfs_defer_ops *dfops, xfs_extlen_t tot);
 extern int xfs_dir_lookup(struct xfs_trans *tp, struct xfs_inode *dp,
-				struct xfs_name *name, xfs_ino_t *inum,
-				struct xfs_name *ci_name);
+						  struct xfs_name *name, xfs_ino_t *inum,
+						  struct xfs_name *ci_name);
 extern int xfs_dir_removename(struct xfs_trans *tp, struct xfs_inode *dp,
-				struct xfs_name *name, xfs_ino_t ino,
-				xfs_fsblock_t *first,
-				struct xfs_defer_ops *dfops, xfs_extlen_t tot);
+							  struct xfs_name *name, xfs_ino_t ino,
+							  xfs_fsblock_t *first,
+							  struct xfs_defer_ops *dfops, xfs_extlen_t tot);
 extern int xfs_dir_replace(struct xfs_trans *tp, struct xfs_inode *dp,
-				struct xfs_name *name, xfs_ino_t inum,
-				xfs_fsblock_t *first,
-				struct xfs_defer_ops *dfops, xfs_extlen_t tot);
+						   struct xfs_name *name, xfs_ino_t inum,
+						   xfs_fsblock_t *first,
+						   struct xfs_defer_ops *dfops, xfs_extlen_t tot);
 extern int xfs_dir_canenter(struct xfs_trans *tp, struct xfs_inode *dp,
-				struct xfs_name *name);
+							struct xfs_name *name);
 
 /*
  * Direct call from the bmap code, bypassing the generic directory layer.
@@ -155,27 +156,27 @@ extern int xfs_dir2_sf_to_block(struct xfs_da_args *args);
 extern int xfs_dir2_isblock(struct xfs_da_args *args, int *r);
 extern int xfs_dir2_isleaf(struct xfs_da_args *args, int *r);
 extern int xfs_dir2_shrink_inode(struct xfs_da_args *args, xfs_dir2_db_t db,
-				struct xfs_buf *bp);
+								 struct xfs_buf *bp);
 
 extern void xfs_dir2_data_freescan(struct xfs_inode *dp,
-		struct xfs_dir2_data_hdr *hdr, int *loghead);
+								   struct xfs_dir2_data_hdr *hdr, int *loghead);
 extern void xfs_dir2_data_log_entry(struct xfs_da_args *args,
-		struct xfs_buf *bp, struct xfs_dir2_data_entry *dep);
+									struct xfs_buf *bp, struct xfs_dir2_data_entry *dep);
 extern void xfs_dir2_data_log_header(struct xfs_da_args *args,
-		struct xfs_buf *bp);
+									 struct xfs_buf *bp);
 extern void xfs_dir2_data_log_unused(struct xfs_da_args *args,
-		struct xfs_buf *bp, struct xfs_dir2_data_unused *dup);
+									 struct xfs_buf *bp, struct xfs_dir2_data_unused *dup);
 extern void xfs_dir2_data_make_free(struct xfs_da_args *args,
-		struct xfs_buf *bp, xfs_dir2_data_aoff_t offset,
-		xfs_dir2_data_aoff_t len, int *needlogp, int *needscanp);
+									struct xfs_buf *bp, xfs_dir2_data_aoff_t offset,
+									xfs_dir2_data_aoff_t len, int *needlogp, int *needscanp);
 extern void xfs_dir2_data_use_free(struct xfs_da_args *args,
-		struct xfs_buf *bp, struct xfs_dir2_data_unused *dup,
-		xfs_dir2_data_aoff_t offset, xfs_dir2_data_aoff_t len,
-		int *needlogp, int *needscanp);
+								   struct xfs_buf *bp, struct xfs_dir2_data_unused *dup,
+								   xfs_dir2_data_aoff_t offset, xfs_dir2_data_aoff_t len,
+								   int *needlogp, int *needscanp);
 
 extern struct xfs_dir2_data_free *xfs_dir2_data_freefind(
-		struct xfs_dir2_data_hdr *hdr, struct xfs_dir2_data_free *bf,
-		struct xfs_dir2_data_unused *dup);
+	struct xfs_dir2_data_hdr *hdr, struct xfs_dir2_data_free *bf,
+	struct xfs_dir2_data_unused *dup);
 
 extern const struct xfs_buf_ops xfs_dir3_block_buf_ops;
 extern const struct xfs_buf_ops xfs_dir3_leafn_buf_ops;
@@ -248,7 +249,7 @@ xfs_dir2_dataptr_to_off(struct xfs_da_geometry *geo, xfs_dir2_dataptr_t dp)
  */
 static inline xfs_dir2_off_t
 xfs_dir2_db_off_to_byte(struct xfs_da_geometry *geo, xfs_dir2_db_t db,
-			xfs_dir2_data_aoff_t o)
+						xfs_dir2_data_aoff_t o)
 {
 	return ((xfs_dir2_off_t)db << geo->blklog) + o;
 }
@@ -276,7 +277,7 @@ xfs_dir2_byte_to_da(struct xfs_da_geometry *geo, xfs_dir2_off_t by)
  */
 static inline xfs_dir2_dataptr_t
 xfs_dir2_db_off_to_dataptr(struct xfs_da_geometry *geo, xfs_dir2_db_t db,
-			   xfs_dir2_data_aoff_t o)
+						   xfs_dir2_data_aoff_t o)
 {
 	return xfs_dir2_byte_to_dataptr(xfs_dir2_db_off_to_byte(geo, db, o));
 }
@@ -306,15 +307,15 @@ static inline struct xfs_dir2_block_tail *
 xfs_dir2_block_tail_p(struct xfs_da_geometry *geo, struct xfs_dir2_data_hdr *hdr)
 {
 	return ((struct xfs_dir2_block_tail *)
-		((char *)hdr + geo->blksize)) - 1;
+			((char *)hdr + geo->blksize)) - 1;
 }
 
 static inline struct xfs_dir2_leaf_tail *
 xfs_dir2_leaf_tail_p(struct xfs_da_geometry *geo, struct xfs_dir2_leaf *lp)
 {
 	return (struct xfs_dir2_leaf_tail *)
-		((char *)lp + geo->blksize -
-		  sizeof(struct xfs_dir2_leaf_tail));
+		   ((char *)lp + geo->blksize -
+			sizeof(struct xfs_dir2_leaf_tail));
 }
 
 #endif	/* __XFS_DIR2_H__ */

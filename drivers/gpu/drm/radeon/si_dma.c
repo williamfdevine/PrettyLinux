@@ -44,14 +44,20 @@ bool si_dma_is_lockup(struct radeon_device *rdev, struct radeon_ring *ring)
 	u32 mask;
 
 	if (ring->idx == R600_RING_TYPE_DMA_INDEX)
+	{
 		mask = RADEON_RESET_DMA;
+	}
 	else
+	{
 		mask = RADEON_RESET_DMA1;
+	}
 
-	if (!(reset_mask & mask)) {
+	if (!(reset_mask & mask))
+	{
 		radeon_ring_lockup_update(rdev, ring);
 		return false;
 	}
+
 	return radeon_ring_test_lockup(rdev, ring);
 }
 
@@ -67,17 +73,21 @@ bool si_dma_is_lockup(struct radeon_device *rdev, struct radeon_ring *ring)
  * Update PTEs by copying them from the GART using the DMA (SI).
  */
 void si_dma_vm_copy_pages(struct radeon_device *rdev,
-			  struct radeon_ib *ib,
-			  uint64_t pe, uint64_t src,
-			  unsigned count)
+						  struct radeon_ib *ib,
+						  uint64_t pe, uint64_t src,
+						  unsigned count)
 {
-	while (count) {
+	while (count)
+	{
 		unsigned bytes = count * 8;
+
 		if (bytes > 0xFFFF8)
+		{
 			bytes = 0xFFFF8;
+		}
 
 		ib->ptr[ib->length_dw++] = DMA_PACKET(DMA_PACKET_COPY,
-						      1, 0, 0, bytes);
+											  1, 0, 0, bytes);
 		ib->ptr[ib->length_dw++] = lower_32_bits(pe);
 		ib->ptr[ib->length_dw++] = lower_32_bits(src);
 		ib->ptr[ib->length_dw++] = upper_32_bits(pe) & 0xff;
@@ -103,31 +113,43 @@ void si_dma_vm_copy_pages(struct radeon_device *rdev,
  * Update PTEs by writing them manually using the DMA (SI).
  */
 void si_dma_vm_write_pages(struct radeon_device *rdev,
-			   struct radeon_ib *ib,
-			   uint64_t pe,
-			   uint64_t addr, unsigned count,
-			   uint32_t incr, uint32_t flags)
+						   struct radeon_ib *ib,
+						   uint64_t pe,
+						   uint64_t addr, unsigned count,
+						   uint32_t incr, uint32_t flags)
 {
 	uint64_t value;
 	unsigned ndw;
 
-	while (count) {
+	while (count)
+	{
 		ndw = count * 2;
+
 		if (ndw > 0xFFFFE)
+		{
 			ndw = 0xFFFFE;
+		}
 
 		/* for non-physically contiguous pages (system) */
 		ib->ptr[ib->length_dw++] = DMA_PACKET(DMA_PACKET_WRITE, 0, 0, 0, ndw);
 		ib->ptr[ib->length_dw++] = pe;
 		ib->ptr[ib->length_dw++] = upper_32_bits(pe) & 0xff;
-		for (; ndw > 0; ndw -= 2, --count, pe += 8) {
-			if (flags & R600_PTE_SYSTEM) {
+
+		for (; ndw > 0; ndw -= 2, --count, pe += 8)
+		{
+			if (flags & R600_PTE_SYSTEM)
+			{
 				value = radeon_vm_map_gart(rdev, addr);
-			} else if (flags & R600_PTE_VALID) {
+			}
+			else if (flags & R600_PTE_VALID)
+			{
 				value = addr;
-			} else {
+			}
+			else
+			{
 				value = 0;
 			}
+
 			addr += incr;
 			value |= flags;
 			ib->ptr[ib->length_dw++] = value;
@@ -150,23 +172,31 @@ void si_dma_vm_write_pages(struct radeon_device *rdev,
  * Update the page tables using the DMA (SI).
  */
 void si_dma_vm_set_pages(struct radeon_device *rdev,
-			 struct radeon_ib *ib,
-			 uint64_t pe,
-			 uint64_t addr, unsigned count,
-			 uint32_t incr, uint32_t flags)
+						 struct radeon_ib *ib,
+						 uint64_t pe,
+						 uint64_t addr, unsigned count,
+						 uint32_t incr, uint32_t flags)
 {
 	uint64_t value;
 	unsigned ndw;
 
-	while (count) {
+	while (count)
+	{
 		ndw = count * 2;
+
 		if (ndw > 0xFFFFE)
+		{
 			ndw = 0xFFFFE;
+		}
 
 		if (flags & R600_PTE_VALID)
+		{
 			value = addr;
+		}
 		else
+		{
 			value = 0;
+		}
 
 		/* for physically contiguous pages (vram) */
 		ib->ptr[ib->length_dw++] = DMA_PTE_PDE_PACKET(ndw);
@@ -185,15 +215,20 @@ void si_dma_vm_set_pages(struct radeon_device *rdev,
 }
 
 void si_dma_vm_flush(struct radeon_device *rdev, struct radeon_ring *ring,
-		     unsigned vm_id, uint64_t pd_addr)
+					 unsigned vm_id, uint64_t pd_addr)
 
 {
 	radeon_ring_write(ring, DMA_PACKET(DMA_PACKET_SRBM_WRITE, 0, 0, 0, 0));
-	if (vm_id < 8) {
+
+	if (vm_id < 8)
+	{
 		radeon_ring_write(ring, (0xf << 16) | ((VM_CONTEXT0_PAGE_TABLE_BASE_ADDR + (vm_id << 2)) >> 2));
-	} else {
+	}
+	else
+	{
 		radeon_ring_write(ring, (0xf << 16) | ((VM_CONTEXT8_PAGE_TABLE_BASE_ADDR + ((vm_id - 8) << 2)) >> 2));
 	}
+
 	radeon_ring_write(ring, pd_addr >> 12);
 
 	/* flush hdp cache */
@@ -229,9 +264,9 @@ void si_dma_vm_flush(struct radeon_device *rdev, struct radeon_ring *ring,
  * registered as the asic copy callback.
  */
 struct radeon_fence *si_copy_dma(struct radeon_device *rdev,
-				 uint64_t src_offset, uint64_t dst_offset,
-				 unsigned num_gpu_pages,
-				 struct reservation_object *resv)
+								 uint64_t src_offset, uint64_t dst_offset,
+								 unsigned num_gpu_pages,
+								 struct reservation_object *resv)
 {
 	struct radeon_fence *fence;
 	struct radeon_sync sync;
@@ -246,7 +281,9 @@ struct radeon_fence *si_copy_dma(struct radeon_device *rdev,
 	size_in_bytes = (num_gpu_pages << RADEON_GPU_PAGE_SHIFT);
 	num_loops = DIV_ROUND_UP(size_in_bytes, 0xfffff);
 	r = radeon_ring_lock(rdev, ring, num_loops * 5 + 11);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: moving bo (%d).\n", r);
 		radeon_sync_free(rdev, &sync, NULL);
 		return ERR_PTR(r);
@@ -255,10 +292,15 @@ struct radeon_fence *si_copy_dma(struct radeon_device *rdev,
 	radeon_sync_resv(rdev, &sync, resv, false);
 	radeon_sync_rings(rdev, &sync, ring->idx);
 
-	for (i = 0; i < num_loops; i++) {
+	for (i = 0; i < num_loops; i++)
+	{
 		cur_size_in_bytes = size_in_bytes;
+
 		if (cur_size_in_bytes > 0xFFFFF)
+		{
 			cur_size_in_bytes = 0xFFFFF;
+		}
+
 		size_in_bytes -= cur_size_in_bytes;
 		radeon_ring_write(ring, DMA_PACKET(DMA_PACKET_COPY, 1, 0, 0, cur_size_in_bytes));
 		radeon_ring_write(ring, lower_32_bits(dst_offset));
@@ -270,7 +312,9 @@ struct radeon_fence *si_copy_dma(struct radeon_device *rdev,
 	}
 
 	r = radeon_fence_emit(rdev, &fence, ring->idx);
-	if (r) {
+
+	if (r)
+	{
 		radeon_ring_unlock_undo(rdev, ring);
 		radeon_sync_free(rdev, &sync, NULL);
 		return ERR_PTR(r);

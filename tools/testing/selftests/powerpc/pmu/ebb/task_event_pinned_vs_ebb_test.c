@@ -48,14 +48,18 @@ int task_event_pinned_vs_ebb(void)
 	FAIL_IF(pipe(write_pipe.fds) == -1);
 
 	pid = fork();
-	if (pid == 0) {
+
+	if (pid == 0)
+	{
 		/* NB order of pipes looks reversed */
 		exit(ebb_child(write_pipe, read_pipe));
 	}
 
 	/* We setup the task event first */
 	rc = setup_child_event(&event, pid);
-	if (rc) {
+
+	if (rc)
+	{
 		kill_child_and_wait(pid);
 		return rc;
 	}
@@ -63,7 +67,9 @@ int task_event_pinned_vs_ebb(void)
 	/* Signal the child to install its EBB event and wait */
 	if (sync_with_child(read_pipe, write_pipe))
 		/* If it fails, wait for it to exit */
+	{
 		goto wait;
+	}
 
 	/* Signal the child to run */
 	FAIL_IF(sync_with_child(read_pipe, write_pipe));

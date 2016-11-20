@@ -15,40 +15,46 @@
 
 #define MINBLOCK_US	1
 
-struct key_t {
+struct key_t
+{
 	char waker[TASK_COMM_LEN];
 	char target[TASK_COMM_LEN];
 	u32 wret;
 	u32 tret;
 };
 
-struct bpf_map_def SEC("maps") counts = {
+struct bpf_map_def SEC("maps") counts =
+{
 	.type = BPF_MAP_TYPE_HASH,
 	.key_size = sizeof(struct key_t),
 	.value_size = sizeof(u64),
 	.max_entries = 10000,
 };
 
-struct bpf_map_def SEC("maps") start = {
+struct bpf_map_def SEC("maps") start =
+{
 	.type = BPF_MAP_TYPE_HASH,
 	.key_size = sizeof(u32),
 	.value_size = sizeof(u64),
 	.max_entries = 10000,
 };
 
-struct wokeby_t {
+struct wokeby_t
+{
 	char name[TASK_COMM_LEN];
 	u32 ret;
 };
 
-struct bpf_map_def SEC("maps") wokeby = {
+struct bpf_map_def SEC("maps") wokeby =
+{
 	.type = BPF_MAP_TYPE_HASH,
 	.key_size = sizeof(u32),
 	.value_size = sizeof(struct wokeby_t),
 	.max_entries = 10000,
 };
 
-struct bpf_map_def SEC("maps") stackmap = {
+struct bpf_map_def SEC("maps") stackmap =
+{
 	.type = BPF_MAP_TYPE_STACK_TRACE,
 	.key_size = sizeof(u32),
 	.value_size = PERF_MAX_STACK_DEPTH * sizeof(u64),
@@ -85,26 +91,35 @@ static inline int update_counts(void *ctx, u32 pid, u64 delta)
 	key.wret = 0;
 
 	woke = bpf_map_lookup_elem(&wokeby, &pid);
-	if (woke) {
+
+	if (woke)
+	{
 		key.wret = woke->ret;
 		__builtin_memcpy(&key.waker, woke->name, sizeof(key.waker));
 		bpf_map_delete_elem(&wokeby, &pid);
 	}
 
 	val = bpf_map_lookup_elem(&counts, &key);
-	if (!val) {
+
+	if (!val)
+	{
 		bpf_map_update_elem(&counts, &key, &zero, BPF_NOEXIST);
 		val = bpf_map_lookup_elem(&counts, &key);
+
 		if (!val)
+		{
 			return 0;
+		}
 	}
+
 	(*val) += delta;
 	return 0;
 }
 
 #if 1
 /* taken from /sys/kernel/debug/tracing/events/sched/sched_switch/format */
-struct sched_switch_args {
+struct sched_switch_args
+{
 	unsigned long long pad;
 	char prev_comm[16];
 	int prev_pid;
@@ -135,15 +150,21 @@ int oncpu(struct pt_regs *ctx)
 	/* calculate current thread's delta time */
 	pid = bpf_get_current_pid_tgid();
 	tsp = bpf_map_lookup_elem(&start, &pid);
+
 	if (!tsp)
 		/* missed start or filtered */
+	{
 		return 0;
+	}
 
 	delta = bpf_ktime_get_ns() - *tsp;
 	bpf_map_delete_elem(&start, &pid);
 	delta = delta / 1000;
+
 	if (delta < MINBLOCK_US)
+	{
 		return 0;
+	}
 
 	return update_counts(ctx, pid, delta);
 }

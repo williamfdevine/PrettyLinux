@@ -30,39 +30,51 @@ MODULE_DESCRIPTION("GSPCA/SPCA506 USB Camera Driver");
 MODULE_LICENSE("GPL");
 
 /* specific webcam descriptor */
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;	/* !! must be the first item */
 
 	char norme;
 	char channel;
 };
 
-static const struct v4l2_pix_format vga_mode[] = {
-	{160, 120, V4L2_PIX_FMT_SPCA505, V4L2_FIELD_NONE,
+static const struct v4l2_pix_format vga_mode[] =
+{
+	{
+		160, 120, V4L2_PIX_FMT_SPCA505, V4L2_FIELD_NONE,
 		.bytesperline = 160,
 		.sizeimage = 160 * 120 * 3 / 2,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 5},
-	{176, 144, V4L2_PIX_FMT_SPCA505, V4L2_FIELD_NONE,
+		.priv = 5
+	},
+	{
+		176, 144, V4L2_PIX_FMT_SPCA505, V4L2_FIELD_NONE,
 		.bytesperline = 176,
 		.sizeimage = 176 * 144 * 3 / 2,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 4},
-	{320, 240, V4L2_PIX_FMT_SPCA505, V4L2_FIELD_NONE,
+		.priv = 4
+	},
+	{
+		320, 240, V4L2_PIX_FMT_SPCA505, V4L2_FIELD_NONE,
 		.bytesperline = 320,
 		.sizeimage = 320 * 240 * 3 / 2,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 2},
-	{352, 288, V4L2_PIX_FMT_SPCA505, V4L2_FIELD_NONE,
+		.priv = 2
+	},
+	{
+		352, 288, V4L2_PIX_FMT_SPCA505, V4L2_FIELD_NONE,
 		.bytesperline = 352,
 		.sizeimage = 352 * 288 * 3 / 2,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 1},
-	{640, 480, V4L2_PIX_FMT_SPCA505, V4L2_FIELD_NONE,
+		.priv = 1
+	},
+	{
+		640, 480, V4L2_PIX_FMT_SPCA505, V4L2_FIELD_NONE,
 		.bytesperline = 640,
 		.sizeimage = 640 * 480 * 3 / 2,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0},
+		.priv = 0
+	},
 };
 
 #define SPCA50X_OFFSET_DATA 10
@@ -75,30 +87,30 @@ static const struct v4l2_pix_format vga_mode[] = {
 
 /* read 'len' bytes to gspca_dev->usb_buf */
 static void reg_r(struct gspca_dev *gspca_dev,
-		  __u16 req,
-		  __u16 index,
-		  __u16 length)
+				  __u16 req,
+				  __u16 index,
+				  __u16 length)
 {
 	usb_control_msg(gspca_dev->dev,
-			usb_rcvctrlpipe(gspca_dev->dev, 0),
-			req,
-			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			0,		/* value */
-			index, gspca_dev->usb_buf, length,
-			500);
+					usb_rcvctrlpipe(gspca_dev->dev, 0),
+					req,
+					USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+					0,		/* value */
+					index, gspca_dev->usb_buf, length,
+					500);
 }
 
 static void reg_w(struct usb_device *dev,
-		  __u16 req,
-		  __u16 value,
-		  __u16 index)
+				  __u16 req,
+				  __u16 value,
+				  __u16 index)
 {
 	usb_control_msg(dev,
-			usb_sndctrlpipe(dev, 0),
-			req,
-			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			value, index,
-			NULL, 0, 500);
+					usb_sndctrlpipe(dev, 0),
+					req,
+					USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+					value, index,
+					NULL, 0, 500);
 }
 
 static void spca506_Initi2c(struct gspca_dev *gspca_dev)
@@ -107,53 +119,75 @@ static void spca506_Initi2c(struct gspca_dev *gspca_dev)
 }
 
 static void spca506_WriteI2c(struct gspca_dev *gspca_dev, __u16 valeur,
-			     __u16 reg)
+							 __u16 reg)
 {
 	int retry = 60;
 
 	reg_w(gspca_dev->dev, 0x07, reg, 0x0001);
 	reg_w(gspca_dev->dev, 0x07, valeur, 0x0000);
-	while (retry--) {
+
+	while (retry--)
+	{
 		reg_r(gspca_dev, 0x07, 0x0003, 2);
+
 		if ((gspca_dev->usb_buf[0] | gspca_dev->usb_buf[1]) == 0x00)
+		{
 			break;
+		}
 	}
 }
 
 static void spca506_SetNormeInput(struct gspca_dev *gspca_dev,
-				 __u16 norme,
-				 __u16 channel)
+								  __u16 norme,
+								  __u16 channel)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
-/* fixme: check if channel == 0..3 and 6..9 (8 values) */
+	/* fixme: check if channel == 0..3 and 6..9 (8 values) */
 	__u8 setbit0 = 0x00;
 	__u8 setbit1 = 0x00;
 	__u8 videomask = 0x00;
 
 	PDEBUG(D_STREAM, "** Open Set Norme **");
 	spca506_Initi2c(gspca_dev);
+
 	/* NTSC bit0 -> 1(525 l) PAL SECAM bit0 -> 0 (625 l) */
 	/* Composite channel bit1 -> 1 S-video bit 1 -> 0 */
 	/* and exclude SAA7113 reserved channel set default 0 otherwise */
 	if (norme & V4L2_STD_NTSC)
+	{
 		setbit0 = 0x01;
+	}
+
 	if (channel == 4 || channel == 5 || channel > 9)
+	{
 		channel = 0;
+	}
+
 	if (channel < 4)
+	{
 		setbit1 = 0x02;
+	}
+
 	videomask = (0x48 | setbit0 | setbit1);
 	reg_w(gspca_dev->dev, 0x08, videomask, 0x0000);
 	spca506_WriteI2c(gspca_dev, (0xc0 | (channel & 0x0F)), 0x02);
 
 	if (norme & V4L2_STD_NTSC)
+	{
 		spca506_WriteI2c(gspca_dev, 0x33, 0x0e);
-					/* Chrominance Control NTSC N */
+	}
+	/* Chrominance Control NTSC N */
 	else if (norme & V4L2_STD_SECAM)
+	{
 		spca506_WriteI2c(gspca_dev, 0x53, 0x0e);
-					/* Chrominance Control SECAM */
+	}
+	/* Chrominance Control SECAM */
 	else
+	{
 		spca506_WriteI2c(gspca_dev, 0x03, 0x0e);
-					/* Chrominance Control PAL BGHIV */
+	}
+
+	/* Chrominance Control PAL BGHIV */
 
 	sd->norme = norme;
 	sd->channel = channel;
@@ -162,7 +196,7 @@ static void spca506_SetNormeInput(struct gspca_dev *gspca_dev,
 }
 
 static void spca506_GetNormeInput(struct gspca_dev *gspca_dev,
-				  __u16 *norme, __u16 *channel)
+								  __u16 *norme, __u16 *channel)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 
@@ -174,7 +208,7 @@ static void spca506_GetNormeInput(struct gspca_dev *gspca_dev,
 }
 
 static void spca506_Setsize(struct gspca_dev *gspca_dev, __u16 code,
-			    __u16 xmult, __u16 ymult)
+							__u16 xmult, __u16 ymult)
 {
 	struct usb_device *dev = gspca_dev->dev;
 
@@ -206,7 +240,7 @@ static void spca506_Setsize(struct gspca_dev *gspca_dev, __u16 code,
 
 /* this function is called at probe time */
 static int sd_config(struct gspca_dev *gspca_dev,
-			const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	struct cam *cam;
 
@@ -256,7 +290,7 @@ static int sd_init(struct gspca_dev *gspca_dev)
 	spca506_Initi2c(gspca_dev);
 	spca506_WriteI2c(gspca_dev, 0x08, 0x01);
 	spca506_WriteI2c(gspca_dev, 0xc0, 0x02);
-						/* input composite video */
+	/* input composite video */
 	spca506_WriteI2c(gspca_dev, 0x33, 0x03);
 	spca506_WriteI2c(gspca_dev, 0x00, 0x04);
 	spca506_WriteI2c(gspca_dev, 0x00, 0x05);
@@ -343,33 +377,33 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	/*sdca506_WriteI2c(value,register) */
 	spca506_Initi2c(gspca_dev);
 	spca506_WriteI2c(gspca_dev, 0x08, 0x01);	/* Increment Delay */
-/*	spca506_WriteI2c(gspca_dev, 0xc0, 0x02); * Analog Input Control 1 */
+	/*	spca506_WriteI2c(gspca_dev, 0xc0, 0x02); * Analog Input Control 1 */
 	spca506_WriteI2c(gspca_dev, 0x33, 0x03);
-						/* Analog Input Control 2 */
+	/* Analog Input Control 2 */
 	spca506_WriteI2c(gspca_dev, 0x00, 0x04);
-						/* Analog Input Control 3 */
+	/* Analog Input Control 3 */
 	spca506_WriteI2c(gspca_dev, 0x00, 0x05);
-						/* Analog Input Control 4 */
+	/* Analog Input Control 4 */
 	spca506_WriteI2c(gspca_dev, 0x0d, 0x06);
-					/* Horizontal Sync Start 0xe9-0x0d */
+	/* Horizontal Sync Start 0xe9-0x0d */
 	spca506_WriteI2c(gspca_dev, 0xf0, 0x07);
-					/* Horizontal Sync Stop  0x0d-0xf0 */
+	/* Horizontal Sync Stop  0x0d-0xf0 */
 
 	spca506_WriteI2c(gspca_dev, 0x98, 0x08);	/* Sync Control */
-/*		Defaults value			*/
+	/*		Defaults value			*/
 	spca506_WriteI2c(gspca_dev, 0x03, 0x09);	/* Luminance Control */
 	spca506_WriteI2c(gspca_dev, 0x80, 0x0a);
-						/* Luminance Brightness */
+	/* Luminance Brightness */
 	spca506_WriteI2c(gspca_dev, 0x47, 0x0b);	/* Luminance Contrast */
 	spca506_WriteI2c(gspca_dev, 0x48, 0x0c);
-						/* Chrominance Saturation */
+	/* Chrominance Saturation */
 	spca506_WriteI2c(gspca_dev, 0x00, 0x0d);
-						/* Chrominance Hue Control */
+	/* Chrominance Hue Control */
 	spca506_WriteI2c(gspca_dev, 0x2a, 0x0f);
-						/* Chrominance Gain Control */
+	/* Chrominance Gain Control */
 	/**************************************/
 	spca506_WriteI2c(gspca_dev, 0x00, 0x10);
-						/* Format/Delay Control */
+	/* Format/Delay Control */
 	spca506_WriteI2c(gspca_dev, 0x0c, 0x11);	/* Output Control 1 */
 	spca506_WriteI2c(gspca_dev, 0xb8, 0x12);	/* Output Control 2 */
 	spca506_WriteI2c(gspca_dev, 0x01, 0x13);	/* Output Control 3 */
@@ -425,23 +459,29 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	reg_w(dev, 0x05, 0x00, 0x0004);
 	reg_w(dev, 0x03, 0x10, 0x0001);
 	reg_w(dev, 0x03, 0x78, 0x0000);
-	switch (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv) {
-	case 0:
-		spca506_Setsize(gspca_dev, 0, 0x10, 0x10);
-		break;
-	case 1:
-		spca506_Setsize(gspca_dev, 1, 0x1a, 0x1a);
-		break;
-	case 2:
-		spca506_Setsize(gspca_dev, 2, 0x1c, 0x1c);
-		break;
-	case 4:
-		spca506_Setsize(gspca_dev, 4, 0x34, 0x34);
-		break;
-	default:
-/*	case 5: */
-		spca506_Setsize(gspca_dev, 5, 0x40, 0x40);
-		break;
+
+	switch (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv)
+	{
+		case 0:
+			spca506_Setsize(gspca_dev, 0, 0x10, 0x10);
+			break;
+
+		case 1:
+			spca506_Setsize(gspca_dev, 1, 0x1a, 0x1a);
+			break;
+
+		case 2:
+			spca506_Setsize(gspca_dev, 2, 0x1c, 0x1c);
+			break;
+
+		case 4:
+			spca506_Setsize(gspca_dev, 4, 0x34, 0x34);
+			break;
+
+		default:
+			/*	case 5: */
+			spca506_Setsize(gspca_dev, 5, 0x40, 0x40);
+			break;
 	}
 
 	/* compress setting and size */
@@ -465,24 +505,27 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
 }
 
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-			u8 *data,			/* isoc packet */
-			int len)			/* iso packet length */
+						u8 *data,			/* isoc packet */
+						int len)			/* iso packet length */
 {
-	switch (data[0]) {
-	case 0:				/* start of frame */
-		gspca_frame_add(gspca_dev, LAST_PACKET, NULL, 0);
-		data += SPCA50X_OFFSET_DATA;
-		len -= SPCA50X_OFFSET_DATA;
-		gspca_frame_add(gspca_dev, FIRST_PACKET, data, len);
-		break;
-	case 0xff:			/* drop */
-/*		gspca_dev->last_packet_type = DISCARD_PACKET; */
-		break;
-	default:
-		data += 1;
-		len -= 1;
-		gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
-		break;
+	switch (data[0])
+	{
+		case 0:				/* start of frame */
+			gspca_frame_add(gspca_dev, LAST_PACKET, NULL, 0);
+			data += SPCA50X_OFFSET_DATA;
+			len -= SPCA50X_OFFSET_DATA;
+			gspca_frame_add(gspca_dev, FIRST_PACKET, data, len);
+			break;
+
+		case 0xff:			/* drop */
+			/*		gspca_dev->last_packet_type = DISCARD_PACKET; */
+			break;
+
+		default:
+			data += 1;
+			len -= 1;
+			gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
+			break;
 	}
 }
 
@@ -522,26 +565,34 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 	gspca_dev->usb_err = 0;
 
 	if (!gspca_dev->streaming)
+	{
 		return 0;
-
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		setbrightness(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_CONTRAST:
-		setcontrast(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_SATURATION:
-		setcolors(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_HUE:
-		sethue(gspca_dev, ctrl->val);
-		break;
 	}
+
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			setbrightness(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_CONTRAST:
+			setcontrast(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_SATURATION:
+			setcolors(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_HUE:
+			sethue(gspca_dev, ctrl->val);
+			break;
+	}
+
 	return gspca_dev->usb_err;
 }
 
-static const struct v4l2_ctrl_ops sd_ctrl_ops = {
+static const struct v4l2_ctrl_ops sd_ctrl_ops =
+{
 	.s_ctrl = sd_s_ctrl,
 };
 
@@ -552,23 +603,26 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 	gspca_dev->vdev.ctrl_handler = hdl;
 	v4l2_ctrl_handler_init(hdl, 4);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
+					  V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_CONTRAST, 0, 255, 1, 0x47);
+					  V4L2_CID_CONTRAST, 0, 255, 1, 0x47);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_SATURATION, 0, 255, 1, 0x40);
+					  V4L2_CID_SATURATION, 0, 255, 1, 0x40);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_HUE, 0, 255, 1, 0);
+					  V4L2_CID_HUE, 0, 255, 1, 0);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		pr_err("Could not initialize controls\n");
 		return hdl->error;
 	}
+
 	return 0;
 }
 
 /* sub-driver description */
-static const struct sd_desc sd_desc = {
+static const struct sd_desc sd_desc =
+{
 	.name = MODULE_NAME,
 	.config = sd_config,
 	.init = sd_init,
@@ -579,10 +633,11 @@ static const struct sd_desc sd_desc = {
 };
 
 /* -- module initialisation -- */
-static const struct usb_device_id device_table[] = {
+static const struct usb_device_id device_table[] =
+{
 	{USB_DEVICE(0x06e1, 0xa190)},
-/*fixme: may be IntelPCCameraPro BRIDGE_SPCA505
-	{USB_DEVICE(0x0733, 0x0430)}, */
+	/*fixme: may be IntelPCCameraPro BRIDGE_SPCA505
+		{USB_DEVICE(0x0733, 0x0430)}, */
 	{USB_DEVICE(0x0734, 0x043b)},
 	{USB_DEVICE(0x99fa, 0x8988)},
 	{}
@@ -593,10 +648,11 @@ MODULE_DEVICE_TABLE(usb, device_table);
 static int sd_probe(struct usb_interface *intf, const struct usb_device_id *id)
 {
 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
-				THIS_MODULE);
+						   THIS_MODULE);
 }
 
-static struct usb_driver sd_driver = {
+static struct usb_driver sd_driver =
+{
 	.name = MODULE_NAME,
 	.id_table = device_table,
 	.probe = sd_probe,

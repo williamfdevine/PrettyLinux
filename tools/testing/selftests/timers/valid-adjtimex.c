@@ -73,51 +73,54 @@ int clear_time_state(void)
 #define NUM_FREQ_OUTOFRANGE 4
 #define NUM_FREQ_INVALID 2
 
-long valid_freq[NUM_FREQ_VALID] = {
-	-499<<16,
-	-450<<16,
-	-400<<16,
-	-350<<16,
-	-300<<16,
-	-250<<16,
-	-200<<16,
-	-150<<16,
-	-100<<16,
-	-75<<16,
-	-50<<16,
-	-25<<16,
-	-10<<16,
-	-5<<16,
-	-1<<16,
+long valid_freq[NUM_FREQ_VALID] =
+{
+	-499 << 16,
+	-450 << 16,
+	-400 << 16,
+	-350 << 16,
+	-300 << 16,
+	-250 << 16,
+	-200 << 16,
+	-150 << 16,
+	-100 << 16,
+	-75 << 16,
+	-50 << 16,
+	-25 << 16,
+	-10 << 16,
+	-5 << 16,
+	-1 << 16,
 	-1000,
-	1<<16,
-	5<<16,
-	10<<16,
-	25<<16,
-	50<<16,
-	75<<16,
-	100<<16,
-	150<<16,
-	200<<16,
-	250<<16,
-	300<<16,
-	350<<16,
-	400<<16,
-	450<<16,
-	499<<16,
+	1 << 16,
+	5 << 16,
+	10 << 16,
+	25 << 16,
+	50 << 16,
+	75 << 16,
+	100 << 16,
+	150 << 16,
+	200 << 16,
+	250 << 16,
+	300 << 16,
+	350 << 16,
+	400 << 16,
+	450 << 16,
+	499 << 16,
 };
 
-long outofrange_freq[NUM_FREQ_OUTOFRANGE] = {
-	-1000<<16,
-	-550<<16,
-	550<<16,
-	1000<<16,
+long outofrange_freq[NUM_FREQ_OUTOFRANGE] =
+{
+	-1000 << 16,
+	-550 << 16,
+	550 << 16,
+	1000 << 16,
 };
 
 #define LONG_MAX (~0UL>>1)
 #define LONG_MIN (-LONG_MAX - 1)
 
-long invalid_freq[NUM_FREQ_INVALID] = {
+long invalid_freq[NUM_FREQ_INVALID] =
+{
 	LONG_MAX,
 	LONG_MIN,
 };
@@ -134,58 +137,76 @@ int validate_freq(void)
 	/* Set the leap second insert flag */
 
 	printf("Testing ADJ_FREQ... ");
-	for (i = 0; i < NUM_FREQ_VALID; i++) {
+
+	for (i = 0; i < NUM_FREQ_VALID; i++)
+	{
 		tx.modes = ADJ_FREQUENCY;
 		tx.freq = valid_freq[i];
 
 		ret = adjtimex(&tx);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			printf("[FAIL]\n");
 			printf("Error: adjtimex(ADJ_FREQ, %ld - %ld ppm\n",
-				valid_freq[i], valid_freq[i]>>16);
+				   valid_freq[i], valid_freq[i] >> 16);
 			pass = -1;
 			goto out;
 		}
+
 		tx.modes = 0;
 		ret = adjtimex(&tx);
-		if (tx.freq != valid_freq[i]) {
+
+		if (tx.freq != valid_freq[i])
+		{
 			printf("Warning: freq value %ld not what we set it (%ld)!\n",
-					tx.freq, valid_freq[i]);
+				   tx.freq, valid_freq[i]);
 		}
 	}
-	for (i = 0; i < NUM_FREQ_OUTOFRANGE; i++) {
+
+	for (i = 0; i < NUM_FREQ_OUTOFRANGE; i++)
+	{
 		tx.modes = ADJ_FREQUENCY;
 		tx.freq = outofrange_freq[i];
 
 		ret = adjtimex(&tx);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			printf("[FAIL]\n");
 			printf("Error: adjtimex(ADJ_FREQ, %ld - %ld ppm\n",
-				outofrange_freq[i], outofrange_freq[i]>>16);
+				   outofrange_freq[i], outofrange_freq[i] >> 16);
 			pass = -1;
 			goto out;
 		}
+
 		tx.modes = 0;
 		ret = adjtimex(&tx);
-		if (tx.freq == outofrange_freq[i]) {
+
+		if (tx.freq == outofrange_freq[i])
+		{
 			printf("[FAIL]\n");
 			printf("ERROR: out of range value %ld actually set!\n",
-					tx.freq);
+				   tx.freq);
 			pass = -1;
 			goto out;
 		}
 	}
 
 
-	if (sizeof(long) == 8) { /* this case only applies to 64bit systems */
-		for (i = 0; i < NUM_FREQ_INVALID; i++) {
+	if (sizeof(long) == 8)   /* this case only applies to 64bit systems */
+	{
+		for (i = 0; i < NUM_FREQ_INVALID; i++)
+		{
 			tx.modes = ADJ_FREQUENCY;
 			tx.freq = invalid_freq[i];
 			ret = adjtimex(&tx);
-			if (ret >= 0) {
+
+			if (ret >= 0)
+			{
 				printf("[FAIL]\n");
 				printf("Error: No failure on invalid ADJ_FREQUENCY %ld\n",
-					invalid_freq[i]);
+					   invalid_freq[i]);
 				pass = -1;
 				goto out;
 			}
@@ -209,32 +230,41 @@ int set_offset(long long offset, int use_nano)
 	int ret;
 
 	tmx.modes = ADJ_SETOFFSET;
-	if (use_nano) {
+
+	if (use_nano)
+	{
 		tmx.modes |= ADJ_NANO;
 
 		tmx.time.tv_sec = offset / NSEC_PER_SEC;
 		tmx.time.tv_usec = offset % NSEC_PER_SEC;
 
-		if (offset < 0 && tmx.time.tv_usec) {
+		if (offset < 0 && tmx.time.tv_usec)
+		{
 			tmx.time.tv_sec -= 1;
 			tmx.time.tv_usec += NSEC_PER_SEC;
 		}
-	} else {
+	}
+	else
+	{
 		tmx.time.tv_sec = offset / USEC_PER_SEC;
 		tmx.time.tv_usec = offset % USEC_PER_SEC;
 
-		if (offset < 0 && tmx.time.tv_usec) {
+		if (offset < 0 && tmx.time.tv_usec)
+		{
 			tmx.time.tv_sec -= 1;
 			tmx.time.tv_usec += USEC_PER_SEC;
 		}
 	}
 
 	ret = clock_adjtime(CLOCK_REALTIME, &tmx);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printf("(sec: %ld  usec: %ld) ", tmx.time.tv_sec, tmx.time.tv_usec);
 		printf("[FAIL]\n");
 		return -1;
 	}
+
 	return 0;
 }
 
@@ -244,17 +274,23 @@ int set_bad_offset(long sec, long usec, int use_nano)
 	int ret;
 
 	tmx.modes = ADJ_SETOFFSET;
+
 	if (use_nano)
+	{
 		tmx.modes |= ADJ_NANO;
+	}
 
 	tmx.time.tv_sec = sec;
 	tmx.time.tv_usec = usec;
 	ret = clock_adjtime(CLOCK_REALTIME, &tmx);
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		printf("Invalid (sec: %ld  usec: %ld) did not fail! ", tmx.time.tv_sec, tmx.time.tv_usec);
 		printf("[FAIL]\n");
 		return -1;
 	}
+
 	return 0;
 }
 
@@ -264,64 +300,115 @@ int validate_set_offset(void)
 
 	/* Test valid values */
 	if (set_offset(NSEC_PER_SEC - 1, 1))
+	{
 		return -1;
+	}
 
 	if (set_offset(-NSEC_PER_SEC + 1, 1))
+	{
 		return -1;
+	}
 
 	if (set_offset(-NSEC_PER_SEC - 1, 1))
+	{
 		return -1;
+	}
 
 	if (set_offset(5 * NSEC_PER_SEC, 1))
+	{
 		return -1;
+	}
 
 	if (set_offset(-5 * NSEC_PER_SEC, 1))
+	{
 		return -1;
+	}
 
 	if (set_offset(5 * NSEC_PER_SEC + NSEC_PER_SEC / 2, 1))
+	{
 		return -1;
+	}
 
 	if (set_offset(-5 * NSEC_PER_SEC - NSEC_PER_SEC / 2, 1))
+	{
 		return -1;
+	}
 
 	if (set_offset(USEC_PER_SEC - 1, 0))
+	{
 		return -1;
+	}
 
 	if (set_offset(-USEC_PER_SEC + 1, 0))
+	{
 		return -1;
+	}
 
 	if (set_offset(-USEC_PER_SEC - 1, 0))
+	{
 		return -1;
+	}
 
 	if (set_offset(5 * USEC_PER_SEC, 0))
+	{
 		return -1;
+	}
 
 	if (set_offset(-5 * USEC_PER_SEC, 0))
+	{
 		return -1;
+	}
 
 	if (set_offset(5 * USEC_PER_SEC + USEC_PER_SEC / 2, 0))
+	{
 		return -1;
+	}
 
 	if (set_offset(-5 * USEC_PER_SEC - USEC_PER_SEC / 2, 0))
+	{
 		return -1;
+	}
 
 	/* Test invalid values */
 	if (set_bad_offset(0, -1, 1))
+	{
 		return -1;
+	}
+
 	if (set_bad_offset(0, -1, 0))
+	{
 		return -1;
+	}
+
 	if (set_bad_offset(0, 2 * NSEC_PER_SEC, 1))
+	{
 		return -1;
+	}
+
 	if (set_bad_offset(0, 2 * USEC_PER_SEC, 0))
+	{
 		return -1;
+	}
+
 	if (set_bad_offset(0, NSEC_PER_SEC, 1))
+	{
 		return -1;
+	}
+
 	if (set_bad_offset(0, USEC_PER_SEC, 0))
+	{
 		return -1;
+	}
+
 	if (set_bad_offset(0, -NSEC_PER_SEC, 1))
+	{
 		return -1;
+	}
+
 	if (set_bad_offset(0, -USEC_PER_SEC, 0))
+	{
 		return -1;
+	}
 
 	printf("[OK]\n");
 	return 0;
@@ -330,10 +417,14 @@ int validate_set_offset(void)
 int main(int argc, char **argv)
 {
 	if (validate_freq())
+	{
 		return ksft_exit_fail();
+	}
 
 	if (validate_set_offset())
+	{
 		return ksft_exit_fail();
+	}
 
 	return ksft_exit_pass();
 }

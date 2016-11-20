@@ -58,7 +58,7 @@ static void cmd64x_program_timings(ide_drive_t *drive, u8 mode)
 	int bus_speed = ide_pci_clk ? ide_pci_clk : 33;
 	const unsigned long T = 1000000 / bus_speed;
 	static const u8 recovery_values[] =
-		{15, 15, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 0};
+	{15, 15, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 0};
 	static const u8 setup_values[] = {0x40, 0x40, 0x40, 0x80, 0, 0xc0};
 	static const u8 arttim_regs[4] = {ARTTIM0, ARTTIM1, ARTTIM23, ARTTIM23};
 	static const u8 drwtim_regs[4] = {DRWTIM0, DRWTIM1, DRWTIM2, DRWTIM3};
@@ -71,12 +71,16 @@ static void cmd64x_program_timings(ide_drive_t *drive, u8 mode)
 	 * In case we've got too long recovery phase, try to lengthen
 	 * the active phase
 	 */
-	if (t.recover > 16) {
+	if (t.recover > 16)
+	{
 		t.active += t.recover - 16;
 		t.recover = 16;
 	}
+
 	if (t.active > 16)		/* shouldn't actually happen... */
+	{
 		t.active = 16;
+	}
 
 	/*
 	 * Convert values to internal chipset representation
@@ -86,7 +90,7 @@ static void cmd64x_program_timings(ide_drive_t *drive, u8 mode)
 
 	/* Program the active/recovery counts into the DRWTIM register */
 	pci_write_config_byte(dev, drwtim_regs[drive->dn],
-			      (t.active << 4) | t.recover);
+						  (t.active << 4) | t.recover);
 
 	/*
 	 * The primary channel has individual address setup timing registers
@@ -94,32 +98,42 @@ static void cmd64x_program_timings(ide_drive_t *drive, u8 mode)
 	 * The secondary channel has one common register and we have to select
 	 * the slowest address setup timing ourselves.
 	 */
-	if (hwif->channel) {
+	if (hwif->channel)
+	{
 		ide_drive_t *pair = ide_get_pair_dev(drive);
 
-		if (pair) {
+		if (pair)
+		{
 			struct ide_timing tp;
 
 			ide_timing_compute(pair, pair->pio_mode, &tp, T, 0);
 			ide_timing_merge(&t, &tp, &t, IDE_TIMING_SETUP);
-			if (pair->dma_mode) {
+
+			if (pair->dma_mode)
+			{
 				ide_timing_compute(pair, pair->dma_mode,
-						&tp, T, 0);
+								   &tp, T, 0);
 				ide_timing_merge(&tp, &t, &t, IDE_TIMING_SETUP);
 			}
 		}
 	}
 
 	if (t.setup > 5)		/* shouldn't actually happen... */
+	{
 		t.setup = 5;
+	}
 
 	/*
 	 * Program the address setup clocks into the ARTTIM registers.
 	 * Avoid clearing the secondary channel's interrupt bit.
 	 */
 	(void) pci_read_config_byte (dev, arttim_regs[drive->dn], &arttim);
+
 	if (hwif->channel)
+	{
 		arttim &= ~ARTTIM23_INTR_CH1;
+	}
+
 	arttim &= ~0xc0;
 	arttim |= setup_values[t.setup];
 	(void) pci_write_config_byte(dev, arttim_regs[drive->dn], arttim);
@@ -139,7 +153,9 @@ static void cmd64x_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	 * to prevent PIO5 from being programmed
 	 */
 	if (pio == 8 || pio == 9)
+	{
 		return;
+	}
 
 	cmd64x_program_timings(drive, XFER_PIO_0 + pio);
 }
@@ -154,30 +170,37 @@ static void cmd64x_set_dma_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	pci_read_config_byte(dev, pciU, &regU);
 	regU &= ~(unit ? 0xCA : 0x35);
 
-	switch(speed) {
-	case XFER_UDMA_5:
-		regU |= unit ? 0x0A : 0x05;
-		break;
-	case XFER_UDMA_4:
-		regU |= unit ? 0x4A : 0x15;
-		break;
-	case XFER_UDMA_3:
-		regU |= unit ? 0x8A : 0x25;
-		break;
-	case XFER_UDMA_2:
-		regU |= unit ? 0x42 : 0x11;
-		break;
-	case XFER_UDMA_1:
-		regU |= unit ? 0x82 : 0x21;
-		break;
-	case XFER_UDMA_0:
-		regU |= unit ? 0xC2 : 0x31;
-		break;
-	case XFER_MW_DMA_2:
-	case XFER_MW_DMA_1:
-	case XFER_MW_DMA_0:
-		cmd64x_program_timings(drive, speed);
-		break;
+	switch (speed)
+	{
+		case XFER_UDMA_5:
+			regU |= unit ? 0x0A : 0x05;
+			break;
+
+		case XFER_UDMA_4:
+			regU |= unit ? 0x4A : 0x15;
+			break;
+
+		case XFER_UDMA_3:
+			regU |= unit ? 0x8A : 0x25;
+			break;
+
+		case XFER_UDMA_2:
+			regU |= unit ? 0x42 : 0x11;
+			break;
+
+		case XFER_UDMA_1:
+			regU |= unit ? 0x82 : 0x21;
+			break;
+
+		case XFER_UDMA_0:
+			regU |= unit ? 0xC2 : 0x31;
+			break;
+
+		case XFER_MW_DMA_2:
+		case XFER_MW_DMA_1:
+		case XFER_MW_DMA_0:
+			cmd64x_program_timings(drive, speed);
+			break;
 	}
 
 	pci_write_config_byte(dev, pciU, regU);
@@ -194,7 +217,7 @@ static void cmd648_clear_irq(ide_drive_t *drive)
 
 	/* clear the interrupt bit */
 	outb((mrdmode & ~(MRDMODE_INTR_CH0 | MRDMODE_INTR_CH1)) | irq_mask,
-	     base + 1);
+		 base + 1);
 }
 
 static void cmd64x_clear_irq(ide_drive_t *drive)
@@ -216,11 +239,11 @@ static int cmd648_test_irq(ide_hwif_t *hwif)
 	struct pci_dev *dev	= to_pci_dev(hwif->dev);
 	unsigned long base	= pci_resource_start(dev, 4);
 	u8 irq_mask		= hwif->channel ? MRDMODE_INTR_CH1 :
-						  MRDMODE_INTR_CH0;
+					  MRDMODE_INTR_CH0;
 	u8 mrdmode		= inb(base + 1);
 
 	pr_debug("%s: mrdmode: 0x%02x irq_mask: 0x%02x\n",
-		 hwif->name, mrdmode, irq_mask);
+			 hwif->name, mrdmode, irq_mask);
 
 	return (mrdmode & irq_mask) ? 1 : 0;
 }
@@ -236,7 +259,7 @@ static int cmd64x_test_irq(ide_hwif_t *hwif)
 	(void) pci_read_config_byte(dev, irq_reg, &irq_stat);
 
 	pr_debug("%s: irq_stat: 0x%02x irq_mask: 0x%02x\n",
-		 hwif->name, irq_stat, irq_mask);
+			 hwif->name, irq_stat, irq_mask);
 
 	return (irq_stat & irq_mask) ? 1 : 0;
 }
@@ -290,17 +313,20 @@ static u8 cmd64x_cable_detect(ide_hwif_t *hwif)
 	struct pci_dev  *dev	= to_pci_dev(hwif->dev);
 	u8 bmidecsr = 0, mask	= hwif->channel ? 0x02 : 0x01;
 
-	switch (dev->device) {
-	case PCI_DEVICE_ID_CMD_648:
-	case PCI_DEVICE_ID_CMD_649:
- 		pci_read_config_byte(dev, BMIDECSR, &bmidecsr);
-		return (bmidecsr & mask) ? ATA_CBL_PATA80 : ATA_CBL_PATA40;
-	default:
-		return ATA_CBL_PATA40;
+	switch (dev->device)
+	{
+		case PCI_DEVICE_ID_CMD_648:
+		case PCI_DEVICE_ID_CMD_649:
+			pci_read_config_byte(dev, BMIDECSR, &bmidecsr);
+			return (bmidecsr & mask) ? ATA_CBL_PATA80 : ATA_CBL_PATA40;
+
+		default:
+			return ATA_CBL_PATA40;
 	}
 }
 
-static const struct ide_port_ops cmd64x_port_ops = {
+static const struct ide_port_ops cmd64x_port_ops =
+{
 	.set_pio_mode		= cmd64x_set_pio_mode,
 	.set_dma_mode		= cmd64x_set_dma_mode,
 	.clear_irq		= cmd64x_clear_irq,
@@ -308,7 +334,8 @@ static const struct ide_port_ops cmd64x_port_ops = {
 	.cable_detect		= cmd64x_cable_detect,
 };
 
-static const struct ide_port_ops cmd648_port_ops = {
+static const struct ide_port_ops cmd648_port_ops =
+{
 	.set_pio_mode		= cmd64x_set_pio_mode,
 	.set_dma_mode		= cmd64x_set_dma_mode,
 	.clear_irq		= cmd648_clear_irq,
@@ -316,7 +343,8 @@ static const struct ide_port_ops cmd648_port_ops = {
 	.cable_detect		= cmd64x_cable_detect,
 };
 
-static const struct ide_dma_ops cmd646_rev1_dma_ops = {
+static const struct ide_dma_ops cmd646_rev1_dma_ops =
+{
 	.dma_host_set		= ide_dma_host_set,
 	.dma_setup		= ide_dma_setup,
 	.dma_start		= ide_dma_start,
@@ -327,15 +355,16 @@ static const struct ide_dma_ops cmd646_rev1_dma_ops = {
 	.dma_sff_read_status	= ide_dma_sff_read_status,
 };
 
-static const struct ide_port_info cmd64x_chipsets[] = {
+static const struct ide_port_info cmd64x_chipsets[] =
+{
 	{	/* 0: CMD643 */
 		.name		= DRV_NAME,
 		.init_chipset	= init_chipset_cmd64x,
-		.enablebits	= {{0x00,0x00,0x00}, {0x51,0x08,0x08}},
+		.enablebits	= {{0x00, 0x00, 0x00}, {0x51, 0x08, 0x08}},
 		.port_ops	= &cmd64x_port_ops,
 		.host_flags	= IDE_HFLAG_CLEAR_SIMPLEX |
-				  IDE_HFLAG_ABUSE_PREFETCH |
-				  IDE_HFLAG_SERIALIZE,
+		IDE_HFLAG_ABUSE_PREFETCH |
+		IDE_HFLAG_SERIALIZE,
 		.pio_mask	= ATA_PIO5,
 		.mwdma_mask	= ATA_MWDMA2,
 		.udma_mask	= 0x00, /* no udma */
@@ -343,10 +372,10 @@ static const struct ide_port_info cmd64x_chipsets[] = {
 	{	/* 1: CMD646 */
 		.name		= DRV_NAME,
 		.init_chipset	= init_chipset_cmd64x,
-		.enablebits	= {{0x51,0x04,0x04}, {0x51,0x08,0x08}},
+		.enablebits	= {{0x51, 0x04, 0x04}, {0x51, 0x08, 0x08}},
 		.port_ops	= &cmd648_port_ops,
 		.host_flags	= IDE_HFLAG_ABUSE_PREFETCH |
-				  IDE_HFLAG_SERIALIZE,
+		IDE_HFLAG_SERIALIZE,
 		.pio_mask	= ATA_PIO5,
 		.mwdma_mask	= ATA_MWDMA2,
 		.udma_mask	= ATA_UDMA2,
@@ -354,7 +383,7 @@ static const struct ide_port_info cmd64x_chipsets[] = {
 	{	/* 2: CMD648 */
 		.name		= DRV_NAME,
 		.init_chipset	= init_chipset_cmd64x,
-		.enablebits	= {{0x51,0x04,0x04}, {0x51,0x08,0x08}},
+		.enablebits	= {{0x51, 0x04, 0x04}, {0x51, 0x08, 0x08}},
 		.port_ops	= &cmd648_port_ops,
 		.host_flags	= IDE_HFLAG_ABUSE_PREFETCH,
 		.pio_mask	= ATA_PIO5,
@@ -364,7 +393,7 @@ static const struct ide_port_info cmd64x_chipsets[] = {
 	{	/* 3: CMD649 */
 		.name		= DRV_NAME,
 		.init_chipset	= init_chipset_cmd64x,
-		.enablebits	= {{0x51,0x04,0x04}, {0x51,0x08,0x08}},
+		.enablebits	= {{0x51, 0x04, 0x04}, {0x51, 0x08, 0x08}},
 		.port_ops	= &cmd648_port_ops,
 		.host_flags	= IDE_HFLAG_ABUSE_PREFETCH,
 		.pio_mask	= ATA_PIO5,
@@ -380,7 +409,8 @@ static int cmd64x_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 
 	d = cmd64x_chipsets[idx];
 
-	if (idx == 1) {
+	if (idx == 1)
+	{
 		/*
 		 * UltraDMA only supported on PCI646U and PCI646U2, which
 		 * correspond to revisions 0x03, 0x05 and 0x07 respectively.
@@ -393,18 +423,24 @@ static int cmd64x_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 		 *
 		 * So we only do UltraDMA on revision 0x05 and 0x07 chipsets.
 		 */
-		if (dev->revision < 5) {
+		if (dev->revision < 5)
+		{
 			d.udma_mask = 0x00;
+
 			/*
 			 * The original PCI0646 didn't have the primary
 			 * channel enable bit, it appeared starting with
 			 * PCI0646U (i.e. revision ID 3).
 			 */
-			if (dev->revision < 3) {
+			if (dev->revision < 3)
+			{
 				d.enablebits[0].reg = 0;
 				d.port_ops = &cmd64x_port_ops;
+
 				if (dev->revision == 1)
+				{
 					d.dma_ops = &cmd646_rev1_dma_ops;
+				}
 			}
 		}
 	}
@@ -412,7 +448,8 @@ static int cmd64x_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	return ide_pci_init_one(dev, &d, NULL);
 }
 
-static const struct pci_device_id cmd64x_pci_tbl[] = {
+static const struct pci_device_id cmd64x_pci_tbl[] =
+{
 	{ PCI_VDEVICE(CMD, PCI_DEVICE_ID_CMD_643), 0 },
 	{ PCI_VDEVICE(CMD, PCI_DEVICE_ID_CMD_646), 1 },
 	{ PCI_VDEVICE(CMD, PCI_DEVICE_ID_CMD_648), 2 },
@@ -421,7 +458,8 @@ static const struct pci_device_id cmd64x_pci_tbl[] = {
 };
 MODULE_DEVICE_TABLE(pci, cmd64x_pci_tbl);
 
-static struct pci_driver cmd64x_pci_driver = {
+static struct pci_driver cmd64x_pci_driver =
+{
 	.name		= "CMD64x_IDE",
 	.id_table	= cmd64x_pci_tbl,
 	.probe		= cmd64x_init_one,

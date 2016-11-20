@@ -37,12 +37,15 @@
  */
 int ccw_device_set_options_mask(struct ccw_device *cdev, unsigned long flags)
 {
-       /*
+	/*
 	* The flag usage is mutal exclusive ...
 	*/
 	if ((flags & CCWDEV_EARLY_NOTIFICATION) &&
-	    (flags & CCWDEV_REPORT_ALL))
+		(flags & CCWDEV_REPORT_ALL))
+	{
 		return -EINVAL;
+	}
+
 	cdev->private->options.fast = (flags & CCWDEV_EARLY_NOTIFICATION) != 0;
 	cdev->private->options.repall = (flags & CCWDEV_REPORT_ALL) != 0;
 	cdev->private->options.pgroup = (flags & CCWDEV_DO_PATHGROUP) != 0;
@@ -62,16 +65,19 @@ int ccw_device_set_options_mask(struct ccw_device *cdev, unsigned long flags)
  */
 int ccw_device_set_options(struct ccw_device *cdev, unsigned long flags)
 {
-       /*
+	/*
 	* The flag usage is mutal exclusive ...
 	*/
 	if (((flags & CCWDEV_EARLY_NOTIFICATION) &&
-	    (flags & CCWDEV_REPORT_ALL)) ||
-	    ((flags & CCWDEV_EARLY_NOTIFICATION) &&
-	     cdev->private->options.repall) ||
-	    ((flags & CCWDEV_REPORT_ALL) &&
-	     cdev->private->options.fast))
+		 (flags & CCWDEV_REPORT_ALL)) ||
+		((flags & CCWDEV_EARLY_NOTIFICATION) &&
+		 cdev->private->options.repall) ||
+		((flags & CCWDEV_REPORT_ALL) &&
+		 cdev->private->options.fast))
+	{
 		return -EINVAL;
+	}
+
 	cdev->private->options.fast |= (flags & CCWDEV_EARLY_NOTIFICATION) != 0;
 	cdev->private->options.repall |= (flags & CCWDEV_REPORT_ALL) != 0;
 	cdev->private->options.pgroup |= (flags & CCWDEV_DO_PATHGROUP) != 0;
@@ -141,19 +147,35 @@ int ccw_device_clear(struct ccw_device *cdev, unsigned long intparm)
 	int ret;
 
 	if (!cdev || !cdev->dev.parent)
+	{
 		return -ENODEV;
+	}
+
 	sch = to_subchannel(cdev->dev.parent);
+
 	if (!sch->schib.pmcw.ena)
+	{
 		return -EINVAL;
+	}
+
 	if (cdev->private->state == DEV_STATE_NOT_OPER)
+	{
 		return -ENODEV;
+	}
+
 	if (cdev->private->state != DEV_STATE_ONLINE &&
-	    cdev->private->state != DEV_STATE_W4SENSE)
+		cdev->private->state != DEV_STATE_W4SENSE)
+	{
 		return -EINVAL;
+	}
 
 	ret = cio_clear(sch);
+
 	if (ret == 0)
+	{
 		cdev->private->intparm = intparm;
+	}
+
 	return ret;
 }
 
@@ -182,53 +204,85 @@ int ccw_device_clear(struct ccw_device *cdev, unsigned long intparm)
  *  Interrupts disabled, ccw device lock held
  */
 int ccw_device_start_key(struct ccw_device *cdev, struct ccw1 *cpa,
-			 unsigned long intparm, __u8 lpm, __u8 key,
-			 unsigned long flags)
+						 unsigned long intparm, __u8 lpm, __u8 key,
+						 unsigned long flags)
 {
 	struct subchannel *sch;
 	int ret;
 
 	if (!cdev || !cdev->dev.parent)
+	{
 		return -ENODEV;
+	}
+
 	sch = to_subchannel(cdev->dev.parent);
+
 	if (!sch->schib.pmcw.ena)
+	{
 		return -EINVAL;
+	}
+
 	if (cdev->private->state == DEV_STATE_NOT_OPER)
+	{
 		return -ENODEV;
-	if (cdev->private->state == DEV_STATE_VERIFY) {
+	}
+
+	if (cdev->private->state == DEV_STATE_VERIFY)
+	{
 		/* Remember to fake irb when finished. */
-		if (!cdev->private->flags.fake_irb) {
+		if (!cdev->private->flags.fake_irb)
+		{
 			cdev->private->flags.fake_irb = FAKE_CMD_IRB;
 			cdev->private->intparm = intparm;
 			return 0;
-		} else
+		}
+		else
 			/* There's already a fake I/O around. */
+		{
 			return -EBUSY;
+		}
 	}
+
 	if (cdev->private->state != DEV_STATE_ONLINE ||
-	    ((sch->schib.scsw.cmd.stctl & SCSW_STCTL_PRIM_STATUS) &&
-	     !(sch->schib.scsw.cmd.stctl & SCSW_STCTL_SEC_STATUS)) ||
-	    cdev->private->flags.doverify)
+		((sch->schib.scsw.cmd.stctl & SCSW_STCTL_PRIM_STATUS) &&
+		 !(sch->schib.scsw.cmd.stctl & SCSW_STCTL_SEC_STATUS)) ||
+		cdev->private->flags.doverify)
+	{
 		return -EBUSY;
+	}
+
 	ret = cio_set_options (sch, flags);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	/* Adjust requested path mask to exclude unusable paths. */
-	if (lpm) {
+	if (lpm)
+	{
 		lpm &= sch->lpm;
+
 		if (lpm == 0)
+		{
 			return -EACCES;
+		}
 	}
+
 	ret = cio_start_key (sch, cpa, lpm, key);
-	switch (ret) {
-	case 0:
-		cdev->private->intparm = intparm;
-		break;
-	case -EACCES:
-	case -ENODEV:
-		dev_fsm_event(cdev, DEV_EVENT_VERIFY);
-		break;
+
+	switch (ret)
+	{
+		case 0:
+			cdev->private->intparm = intparm;
+			break;
+
+		case -EACCES:
+		case -ENODEV:
+			dev_fsm_event(cdev, DEV_EVENT_VERIFY);
+			break;
 	}
+
 	return ret;
 }
 
@@ -262,17 +316,24 @@ int ccw_device_start_key(struct ccw_device *cdev, struct ccw1 *cpa,
  *  Interrupts disabled, ccw device lock held
  */
 int ccw_device_start_timeout_key(struct ccw_device *cdev, struct ccw1 *cpa,
-				 unsigned long intparm, __u8 lpm, __u8 key,
-				 unsigned long flags, int expires)
+								 unsigned long intparm, __u8 lpm, __u8 key,
+								 unsigned long flags, int expires)
 {
 	int ret;
 
 	if (!cdev)
+	{
 		return -ENODEV;
+	}
+
 	ccw_device_set_timeout(cdev, expires);
 	ret = ccw_device_start_key(cdev, cpa, intparm, lpm, key, flags);
+
 	if (ret != 0)
+	{
 		ccw_device_set_timeout(cdev, 0);
+	}
+
 	return ret;
 }
 
@@ -300,10 +361,10 @@ int ccw_device_start_timeout_key(struct ccw_device *cdev, struct ccw1 *cpa,
  *  Interrupts disabled, ccw device lock held
  */
 int ccw_device_start(struct ccw_device *cdev, struct ccw1 *cpa,
-		     unsigned long intparm, __u8 lpm, unsigned long flags)
+					 unsigned long intparm, __u8 lpm, unsigned long flags)
 {
 	return ccw_device_start_key(cdev, cpa, intparm, lpm,
-				    PAGE_DEFAULT_KEY, flags);
+								PAGE_DEFAULT_KEY, flags);
 }
 
 /**
@@ -335,12 +396,12 @@ int ccw_device_start(struct ccw_device *cdev, struct ccw1 *cpa,
  *  Interrupts disabled, ccw device lock held
  */
 int ccw_device_start_timeout(struct ccw_device *cdev, struct ccw1 *cpa,
-			     unsigned long intparm, __u8 lpm,
-			     unsigned long flags, int expires)
+							 unsigned long intparm, __u8 lpm,
+							 unsigned long flags, int expires)
 {
 	return ccw_device_start_timeout_key(cdev, cpa, intparm, lpm,
-					    PAGE_DEFAULT_KEY, flags,
-					    expires);
+										PAGE_DEFAULT_KEY, flags,
+										expires);
 }
 
 
@@ -366,19 +427,35 @@ int ccw_device_halt(struct ccw_device *cdev, unsigned long intparm)
 	int ret;
 
 	if (!cdev || !cdev->dev.parent)
+	{
 		return -ENODEV;
+	}
+
 	sch = to_subchannel(cdev->dev.parent);
+
 	if (!sch->schib.pmcw.ena)
+	{
 		return -EINVAL;
+	}
+
 	if (cdev->private->state == DEV_STATE_NOT_OPER)
+	{
 		return -ENODEV;
+	}
+
 	if (cdev->private->state != DEV_STATE_ONLINE &&
-	    cdev->private->state != DEV_STATE_W4SENSE)
+		cdev->private->state != DEV_STATE_W4SENSE)
+	{
 		return -EINVAL;
+	}
 
 	ret = cio_halt(sch);
+
 	if (ret == 0)
+	{
 		cdev->private->intparm = intparm;
+	}
+
 	return ret;
 }
 
@@ -400,15 +477,28 @@ int ccw_device_resume(struct ccw_device *cdev)
 	struct subchannel *sch;
 
 	if (!cdev || !cdev->dev.parent)
+	{
 		return -ENODEV;
+	}
+
 	sch = to_subchannel(cdev->dev.parent);
+
 	if (!sch->schib.pmcw.ena)
+	{
 		return -EINVAL;
+	}
+
 	if (cdev->private->state == DEV_STATE_NOT_OPER)
+	{
 		return -ENODEV;
+	}
+
 	if (cdev->private->state != DEV_STATE_ONLINE ||
-	    !(sch->schib.scsw.cmd.actl & SCSW_ACTL_SUSPENDED))
+		!(sch->schib.scsw.cmd.actl & SCSW_ACTL_SUSPENDED))
+	{
 		return -EINVAL;
+	}
+
 	return cio_resume(sch);
 }
 
@@ -431,10 +521,16 @@ struct ciw *ccw_device_get_ciw(struct ccw_device *cdev, __u32 ct)
 	int ciw_cnt;
 
 	if (cdev->private->flags.esid == 0)
+	{
 		return NULL;
+	}
+
 	for (ciw_cnt = 0; ciw_cnt < MAX_CIWS; ciw_cnt++)
 		if (cdev->private->senseid.ciw[ciw_cnt].ct == ct)
+		{
 			return cdev->private->senseid.ciw + ciw_cnt;
+		}
+
 	return NULL;
 }
 
@@ -450,7 +546,9 @@ __u8 ccw_device_get_path_mask(struct ccw_device *cdev)
 	struct subchannel *sch;
 
 	if (!cdev->dev.parent)
+	{
 		return 0;
+	}
 
 	sch = to_subchannel(cdev->dev.parent);
 	return sch->lpm;
@@ -465,7 +563,7 @@ __u8 ccw_device_get_path_mask(struct ccw_device *cdev)
  * data associated with the given channel path. Return %NULL on error.
  */
 struct channel_path_desc *ccw_device_get_chp_desc(struct ccw_device *cdev,
-						  int chp_idx)
+		int chp_idx)
 {
 	struct subchannel *sch;
 	struct chp_id chpid;
@@ -499,35 +597,57 @@ EXPORT_SYMBOL(ccw_device_get_id);
  * otherwise.
  */
 int ccw_device_tm_start_key(struct ccw_device *cdev, struct tcw *tcw,
-			    unsigned long intparm, u8 lpm, u8 key)
+							unsigned long intparm, u8 lpm, u8 key)
 {
 	struct subchannel *sch;
 	int rc;
 
 	sch = to_subchannel(cdev->dev.parent);
+
 	if (!sch->schib.pmcw.ena)
+	{
 		return -EINVAL;
-	if (cdev->private->state == DEV_STATE_VERIFY) {
+	}
+
+	if (cdev->private->state == DEV_STATE_VERIFY)
+	{
 		/* Remember to fake irb when finished. */
-		if (!cdev->private->flags.fake_irb) {
+		if (!cdev->private->flags.fake_irb)
+		{
 			cdev->private->flags.fake_irb = FAKE_TM_IRB;
 			cdev->private->intparm = intparm;
 			return 0;
-		} else
+		}
+		else
 			/* There's already a fake I/O around. */
+		{
 			return -EBUSY;
+		}
 	}
+
 	if (cdev->private->state != DEV_STATE_ONLINE)
+	{
 		return -EIO;
-	/* Adjust requested path mask to exclude unusable paths. */
-	if (lpm) {
-		lpm &= sch->lpm;
-		if (lpm == 0)
-			return -EACCES;
 	}
+
+	/* Adjust requested path mask to exclude unusable paths. */
+	if (lpm)
+	{
+		lpm &= sch->lpm;
+
+		if (lpm == 0)
+		{
+			return -EACCES;
+		}
+	}
+
 	rc = cio_tm_start_key(sch, tcw, lpm, key);
+
 	if (rc == 0)
+	{
 		cdev->private->intparm = intparm;
+	}
+
 	return rc;
 }
 EXPORT_SYMBOL(ccw_device_tm_start_key);
@@ -545,15 +665,19 @@ EXPORT_SYMBOL(ccw_device_tm_start_key);
  * otherwise.
  */
 int ccw_device_tm_start_timeout_key(struct ccw_device *cdev, struct tcw *tcw,
-				    unsigned long intparm, u8 lpm, u8 key,
-				    int expires)
+									unsigned long intparm, u8 lpm, u8 key,
+									int expires)
 {
 	int ret;
 
 	ccw_device_set_timeout(cdev, expires);
 	ret = ccw_device_tm_start_key(cdev, tcw, intparm, lpm, key);
+
 	if (ret != 0)
+	{
 		ccw_device_set_timeout(cdev, 0);
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL(ccw_device_tm_start_timeout_key);
@@ -569,10 +693,10 @@ EXPORT_SYMBOL(ccw_device_tm_start_timeout_key);
  * otherwise.
  */
 int ccw_device_tm_start(struct ccw_device *cdev, struct tcw *tcw,
-			unsigned long intparm, u8 lpm)
+						unsigned long intparm, u8 lpm)
 {
 	return ccw_device_tm_start_key(cdev, tcw, intparm, lpm,
-				       PAGE_DEFAULT_KEY);
+								   PAGE_DEFAULT_KEY);
 }
 EXPORT_SYMBOL(ccw_device_tm_start);
 
@@ -588,10 +712,10 @@ EXPORT_SYMBOL(ccw_device_tm_start);
  * otherwise.
  */
 int ccw_device_tm_start_timeout(struct ccw_device *cdev, struct tcw *tcw,
-			       unsigned long intparm, u8 lpm, int expires)
+								unsigned long intparm, u8 lpm, int expires)
 {
 	return ccw_device_tm_start_timeout_key(cdev, tcw, intparm, lpm,
-					       PAGE_DEFAULT_KEY, expires);
+										   PAGE_DEFAULT_KEY, expires);
 }
 EXPORT_SYMBOL(ccw_device_tm_start_timeout);
 
@@ -612,28 +736,46 @@ int ccw_device_get_mdc(struct ccw_device *cdev, u8 mask)
 
 	/* Adjust requested path mask to excluded varied off paths. */
 	if (mask)
+	{
 		mask &= sch->lpm;
+	}
 	else
+	{
 		mask = sch->lpm;
+	}
 
 	chp_id_init(&chpid);
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		if (!(mask & (0x80 >> i)))
+		{
 			continue;
+		}
+
 		chpid.id = sch->schib.pmcw.chpid[i];
 		chp = chpid_to_chp(chpid);
+
 		if (!chp)
+		{
 			continue;
+		}
 
 		mutex_lock(&chp->lock);
-		if (!chp->desc_fmt1.f) {
+
+		if (!chp->desc_fmt1.f)
+		{
 			mutex_unlock(&chp->lock);
 			return 0;
 		}
+
 		if (!chp->desc_fmt1.r)
+		{
 			mdc = 1;
+		}
+
 		mdc = mdc ? min_t(int, mdc, chp->desc_fmt1.mdc) :
-			    chp->desc_fmt1.mdc;
+			  chp->desc_fmt1.mdc;
 		mutex_unlock(&chp->lock);
 	}
 
@@ -653,12 +795,21 @@ int ccw_device_tm_intrg(struct ccw_device *cdev)
 	struct subchannel *sch = to_subchannel(cdev->dev.parent);
 
 	if (!sch->schib.pmcw.ena)
+	{
 		return -EINVAL;
+	}
+
 	if (cdev->private->state != DEV_STATE_ONLINE)
+	{
 		return -EIO;
+	}
+
 	if (!scsw_is_tm(&sch->schib.scsw) ||
-	    !(scsw_actl(&sch->schib.scsw) & SCSW_ACTL_START_PEND))
+		!(scsw_actl(&sch->schib.scsw) & SCSW_ACTL_START_PEND))
+	{
 		return -EINVAL;
+	}
+
 	return cio_tm_intrg(sch);
 }
 EXPORT_SYMBOL(ccw_device_tm_intrg);

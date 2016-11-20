@@ -41,7 +41,8 @@
 #define HS_CSR_EIM	0x0002
 #define HS_CSR_DHA	0x0001
 
-struct slot {
+struct slot
+{
 	u8 number;
 	unsigned int devfn;
 	struct pci_bus *bus;
@@ -51,7 +52,8 @@ struct slot {
 	struct list_head slot_list;
 };
 
-struct cpci_hp_controller_ops {
+struct cpci_hp_controller_ops
+{
 	int (*query_enum)(void);
 	int (*enable_irq)(void);
 	int (*disable_irq)(void);
@@ -61,7 +63,8 @@ struct cpci_hp_controller_ops {
 	int (*set_power)(struct slot *slot, int value);
 };
 
-struct cpci_hp_controller {
+struct cpci_hp_controller
+{
 	unsigned int irq;
 	unsigned long irq_flags;
 	char *devname;

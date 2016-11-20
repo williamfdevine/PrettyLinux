@@ -65,7 +65,8 @@
 #define I2C_READ_DONE		1
 #define I2C_TRANSACTION_DONE	2
 
-struct hdmi_i2c_dev {
+struct hdmi_i2c_dev
+{
 	struct i2c_adapter *adap;
 	struct mutex i2c_lock;
 	struct completion complete;
@@ -108,7 +109,7 @@ static int xfer_read(struct i2c_adapter *adap, struct i2c_msg *pmsg)
 
 	while (i2c_dev->status != I2C_TRANSACTION_DONE)
 		wait_for_completion_interruptible_timeout(&i2c_dev->complete,
-								10 * HZ);
+				10 * HZ);
 
 	return 0;
 }
@@ -122,8 +123,8 @@ static int xfer_write(struct i2c_adapter *adap, struct i2c_msg *pmsg)
 }
 
 static int oaktrail_hdmi_i2c_access(struct i2c_adapter *adap,
-				struct i2c_msg *pmsg,
-				int num)
+									struct i2c_msg *pmsg,
+									int num)
 {
 	struct oaktrail_hdmi_dev *hdmi_dev = i2c_get_adapdata(adap);
 	struct hdmi_i2c_dev *i2c_dev = hdmi_dev->i2c_dev;
@@ -136,13 +137,21 @@ static int oaktrail_hdmi_i2c_access(struct i2c_adapter *adap,
 
 	/* Enable irq */
 	hdmi_i2c_irq_enable(hdmi_dev);
-	for (i = 0; i < num; i++) {
-		if (pmsg->len && pmsg->buf) {
+
+	for (i = 0; i < num; i++)
+	{
+		if (pmsg->len && pmsg->buf)
+		{
 			if (pmsg->flags & I2C_M_RD)
+			{
 				xfer_read(adap, pmsg);
+			}
 			else
+			{
 				xfer_write(adap, pmsg);
+			}
 		}
+
 		pmsg++;         /* next message */
 	}
 
@@ -159,12 +168,14 @@ static u32 oaktrail_hdmi_i2c_func(struct i2c_adapter *adapter)
 	return I2C_FUNC_I2C | I2C_FUNC_10BIT_ADDR;
 }
 
-static const struct i2c_algorithm oaktrail_hdmi_i2c_algorithm = {
+static const struct i2c_algorithm oaktrail_hdmi_i2c_algorithm =
+{
 	.master_xfer	= oaktrail_hdmi_i2c_access,
 	.functionality  = oaktrail_hdmi_i2c_func,
 };
 
-static struct i2c_adapter oaktrail_hdmi_i2c_adapter = {
+static struct i2c_adapter oaktrail_hdmi_i2c_adapter =
+{
 	.name		= "oaktrail_hdmi_i2c",
 	.nr		= 3,
 	.owner		= THIS_MODULE,
@@ -181,10 +192,13 @@ static void hdmi_i2c_read(struct oaktrail_hdmi_dev *hdmi_dev)
 	int i, offset;
 
 	offset = i2c_dev->buf_offset;
-	for (i = 0; i < 0x10; i++) {
+
+	for (i = 0; i < 0x10; i++)
+	{
 		temp = HDMI_READ(HDMI_HI2CRDB0 + (i * 4));
 		memcpy(buf + (offset + i * 4), &temp, 4);
 	}
+
 	i2c_dev->buf_offset += (0x10 * 4);
 
 	/* clearing read buffer full intr */
@@ -228,16 +242,21 @@ static irqreturn_t oaktrail_hdmi_i2c_handler(int this_irq, void *dev)
 
 	stat = HDMI_READ(HDMI_HISR);
 
-	if (stat & HDMI_INTR_HPD) {
+	if (stat & HDMI_INTR_HPD)
+	{
 		HDMI_WRITE(HDMI_HISR, stat | HDMI_INTR_HPD);
 		HDMI_READ(HDMI_HISR);
 	}
 
 	if (stat & HDMI_INTR_I2C_FULL)
+	{
 		hdmi_i2c_read(hdmi_dev);
+	}
 
 	if (stat & HDMI_INTR_I2C_DONE)
+	{
 		hdmi_i2c_transaction_done(hdmi_dev);
+	}
 
 	complete(&i2c_dev->complete);
 
@@ -256,7 +275,9 @@ static void oaktrail_hdmi_i2c_gpio_fix(void)
 	u32 temp;
 
 	base = ioremap((resource_size_t)gpio_base, gpio_len);
-	if (base == NULL) {
+
+	if (base == NULL)
+	{
 		DRM_ERROR("gpio ioremap fail\n");
 		return;
 	}
@@ -279,7 +300,9 @@ int oaktrail_hdmi_i2c_init(struct pci_dev *dev)
 	hdmi_dev = pci_get_drvdata(dev);
 
 	i2c_dev = kzalloc(sizeof(struct hdmi_i2c_dev), GFP_KERNEL);
-	if (i2c_dev == NULL) {
+
+	if (i2c_dev == NULL)
+	{
 		DRM_ERROR("Can't allocate interface\n");
 		ret = -ENOMEM;
 		goto exit;
@@ -297,8 +320,10 @@ int oaktrail_hdmi_i2c_init(struct pci_dev *dev)
 
 	/* request irq */
 	ret = request_irq(dev->irq, oaktrail_hdmi_i2c_handler, IRQF_SHARED,
-			  oaktrail_hdmi_i2c_adapter.name, hdmi_dev);
-	if (ret) {
+					  oaktrail_hdmi_i2c_adapter.name, hdmi_dev);
+
+	if (ret)
+	{
 		DRM_ERROR("Failed to request IRQ for I2C controller\n");
 		goto err;
 	}

@@ -10,7 +10,7 @@
 #include <asm/io.h>
 
 #ifdef __sparc__
-#include <asm/fbio.h>
+	#include <asm/fbio.h>
 #endif
 
 #include <video/mach64.h>
@@ -56,10 +56,11 @@
  * definitation and CUR_VERT_POSN must be saturated to zero.
  */
 
-    /*
-     *  Hardware Cursor support.
-     */
-static const u8 cursor_bits_lookup[16] = {
+/*
+ *  Hardware Cursor support.
+ */
+static const u8 cursor_bits_lookup[16] =
+{
 	0x00, 0x40, 0x10, 0x50, 0x04, 0x44, 0x14, 0x54,
 	0x01, 0x41, 0x11, 0x51, 0x05, 0x45, 0x15, 0x55
 };
@@ -71,35 +72,52 @@ static int atyfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 	int x, y, h;
 
 #ifdef __sparc__
+
 	if (par->mmaped)
+	{
 		return -EPERM;
+	}
+
 #endif
+
 	if (par->asleep)
+	{
 		return -EPERM;
+	}
 
 	wait_for_fifo(1, par);
+
 	if (cursor->enable)
 		aty_st_le32(GEN_TEST_CNTL, aty_ld_le32(GEN_TEST_CNTL, par)
-			    | HWCURSOR_ENABLE, par);
+					| HWCURSOR_ENABLE, par);
 	else
 		aty_st_le32(GEN_TEST_CNTL, aty_ld_le32(GEN_TEST_CNTL, par)
-				& ~HWCURSOR_ENABLE, par);
+					& ~HWCURSOR_ENABLE, par);
 
 	/* set position */
-	if (cursor->set & FB_CUR_SETPOS) {
+	if (cursor->set & FB_CUR_SETPOS)
+	{
 		x = cursor->image.dx - cursor->hot.x - info->var.xoffset;
-		if (x < 0) {
+
+		if (x < 0)
+		{
 			xoff = -x;
 			x = 0;
-		} else {
+		}
+		else
+		{
 			xoff = 0;
 		}
 
 		y = cursor->image.dy - cursor->hot.y - info->var.yoffset;
-		if (y < 0) {
+
+		if (y < 0)
+		{
 			yoff = -y;
 			y = 0;
-		} else {
+		}
+		else
+		{
 			yoff = 0;
 		}
 
@@ -109,85 +127,98 @@ static int atyfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 		 * In doublescan mode, the cursor location
 		 * and heigh also needs to be doubled.
 		 */
-                if (par->crtc.gen_cntl & CRTC_DBL_SCAN_EN) {
-			y<<=1;
-			h<<=1;
+		if (par->crtc.gen_cntl & CRTC_DBL_SCAN_EN)
+		{
+			y <<= 1;
+			h <<= 1;
 		}
+
 		wait_for_fifo(3, par);
 		aty_st_le32(CUR_OFFSET, (info->fix.smem_len >> 3) + (yoff << 1), par);
 		aty_st_le32(CUR_HORZ_VERT_OFF,
-			    ((u32) (64 - h + yoff) << 16) | xoff, par);
+					((u32) (64 - h + yoff) << 16) | xoff, par);
 		aty_st_le32(CUR_HORZ_VERT_POSN, ((u32) y << 16) | x, par);
 	}
 
 	/* Set color map */
-	if (cursor->set & FB_CUR_SETCMAP) {
+	if (cursor->set & FB_CUR_SETCMAP)
+	{
 		u32 fg_idx, bg_idx, fg, bg;
 
 		fg_idx = cursor->image.fg_color;
 		bg_idx = cursor->image.bg_color;
 
 		fg = ((info->cmap.red[fg_idx] & 0xff) << 24) |
-		     ((info->cmap.green[fg_idx] & 0xff) << 16) |
-		     ((info->cmap.blue[fg_idx] & 0xff) << 8) | 0xff;
+			 ((info->cmap.green[fg_idx] & 0xff) << 16) |
+			 ((info->cmap.blue[fg_idx] & 0xff) << 8) | 0xff;
 
 		bg = ((info->cmap.red[bg_idx] & 0xff) << 24) |
-		     ((info->cmap.green[bg_idx] & 0xff) << 16) |
-		     ((info->cmap.blue[bg_idx] & 0xff) << 8);
+			 ((info->cmap.green[bg_idx] & 0xff) << 16) |
+			 ((info->cmap.blue[bg_idx] & 0xff) << 8);
 
 		wait_for_fifo(2, par);
 		aty_st_le32(CUR_CLR0, bg, par);
 		aty_st_le32(CUR_CLR1, fg, par);
 	}
 
-	if (cursor->set & (FB_CUR_SETSHAPE | FB_CUR_SETIMAGE)) {
-	    u8 *src = (u8 *)cursor->image.data;
-	    u8 *msk = (u8 *)cursor->mask;
-	    u8 __iomem *dst = (u8 __iomem *)info->sprite.addr;
-	    unsigned int width = (cursor->image.width + 7) >> 3;
-	    unsigned int height = cursor->image.height;
-	    unsigned int align = info->sprite.scan_align;
+	if (cursor->set & (FB_CUR_SETSHAPE | FB_CUR_SETIMAGE))
+	{
+		u8 *src = (u8 *)cursor->image.data;
+		u8 *msk = (u8 *)cursor->mask;
+		u8 __iomem *dst = (u8 __iomem *)info->sprite.addr;
+		unsigned int width = (cursor->image.width + 7) >> 3;
+		unsigned int height = cursor->image.height;
+		unsigned int align = info->sprite.scan_align;
 
-	    unsigned int i, j, offset;
-	    u8 m, b;
+		unsigned int i, j, offset;
+		u8 m, b;
 
-	    // Clear cursor image with 1010101010...
-	    fb_memset(dst, 0xaa, 1024);
+		// Clear cursor image with 1010101010...
+		fb_memset(dst, 0xaa, 1024);
 
-	    offset = align - width*2;
+		offset = align - width * 2;
 
-	    for (i = 0; i < height; i++) {
-		for (j = 0; j < width; j++) {
-			u16 l = 0xaaaa;
-			b = *src++;
-			m = *msk++;
-			switch (cursor->rop) {
-			case ROP_XOR:
-			    // Upper 4 bits of mask data
-			    l = cursor_bits_lookup[(b ^ m) >> 4] |
-			    // Lower 4 bits of mask
-				    (cursor_bits_lookup[(b ^ m) & 0x0f] << 8);
-			    break;
-			case ROP_COPY:
-			    // Upper 4 bits of mask data
-			    l = cursor_bits_lookup[(b & m) >> 4] |
-			    // Lower 4 bits of mask
-				    (cursor_bits_lookup[(b & m) & 0x0f] << 8);
-			    break;
+		for (i = 0; i < height; i++)
+		{
+			for (j = 0; j < width; j++)
+			{
+				u16 l = 0xaaaa;
+				b = *src++;
+				m = *msk++;
+
+				switch (cursor->rop)
+				{
+					case ROP_XOR:
+						// Upper 4 bits of mask data
+						l = cursor_bits_lookup[(b ^ m) >> 4] |
+							// Lower 4 bits of mask
+							(cursor_bits_lookup[(b ^ m) & 0x0f] << 8);
+						break;
+
+					case ROP_COPY:
+						// Upper 4 bits of mask data
+						l = cursor_bits_lookup[(b & m) >> 4] |
+							// Lower 4 bits of mask
+							(cursor_bits_lookup[(b & m) & 0x0f] << 8);
+						break;
+				}
+
+				/*
+				 * If cursor size is not a multiple of 8 characters
+				 * we must pad it with transparent pattern (0xaaaa).
+				 */
+				if ((j + 1) * 8 > cursor->image.width)
+				{
+					l = comp(l, 0xaaaa,
+							 (1 << ((cursor->image.width & 7) * 2)) - 1);
+				}
+
+				fb_writeb(l & 0xff, dst++);
+				fb_writeb(l >> 8, dst++);
 			}
-			/*
-			 * If cursor size is not a multiple of 8 characters
-			 * we must pad it with transparent pattern (0xaaaa).
-			 */
-			if ((j + 1) * 8 > cursor->image.width) {
-				l = comp(l, 0xaaaa,
-				    (1 << ((cursor->image.width & 7) * 2)) - 1);
-			}
-			fb_writeb(l & 0xff, dst++);
-			fb_writeb(l >> 8, dst++);
+
+			dst += offset;
 		}
-		dst += offset;
-	    }
 	}
 
 	return 0;
@@ -211,8 +242,12 @@ int aty_init_cursor(struct fb_info *info)
 	info->sprite.addr = (u8 *) addr;
 #endif
 #endif
+
 	if (!info->sprite.addr)
+	{
 		return -ENXIO;
+	}
+
 	info->sprite.size = PAGE_SIZE;
 	info->sprite.scan_align = 16;	/* Scratch pad 64 bytes wide */
 	info->sprite.buf_align = 16; 	/* and 64 lines tall. */

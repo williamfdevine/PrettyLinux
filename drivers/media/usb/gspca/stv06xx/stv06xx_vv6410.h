@@ -188,7 +188,8 @@ static int vv6410_set_vflip(struct gspca_dev *gspca_dev, __s32 val);
 static int vv6410_set_analog_gain(struct gspca_dev *gspca_dev, __s32 val);
 static int vv6410_set_exposure(struct gspca_dev *gspca_dev, __s32 val);
 
-const struct stv06xx_sensor stv06xx_sensor_vv6410 = {
+const struct stv06xx_sensor stv06xx_sensor_vv6410 =
+{
 	.name = "ST VV6410",
 	.i2c_flush = 5,
 	.i2c_addr = 0x20,
@@ -206,12 +207,14 @@ const struct stv06xx_sensor stv06xx_sensor_vv6410 = {
 };
 
 /* If NULL, only single value to write, stored in len */
-struct stv_init {
+struct stv_init
+{
 	u16 addr;
 	u8 data;
 };
 
-static const struct stv_init stv_bridge_init[] = {
+static const struct stv_init stv_bridge_init[] =
+{
 	/* This reg is written twice. Some kind of reset? */
 	{STV_RESET, 0x80},
 	{STV_RESET, 0x00},
@@ -230,7 +233,8 @@ static const struct stv_init stv_bridge_init[] = {
 	{0x153b, 0x01},
 };
 
-static const u8 vv6410_sensor_init[][2] = {
+static const u8 vv6410_sensor_init[][2] =
+{
 	/* Setup registers */
 	{VV6410_SETUP0,	VV6410_SOFT_RESET},
 	{VV6410_SETUP0,	VV6410_LOW_POWER_MODE},

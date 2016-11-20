@@ -22,7 +22,8 @@
 #include <asm/mach-au1x00/au1550nd.h>
 
 
-struct au1550nd_ctx {
+struct au1550nd_ctx
+{
 	struct nand_chip chip;
 
 	int cs;
@@ -113,7 +114,8 @@ static void au_write_buf(struct mtd_info *mtd, const u_char *buf, int len)
 	int i;
 	struct nand_chip *this = mtd_to_nand(mtd);
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		writeb(buf[i], this->IO_ADDR_W);
 		wmb(); /* drain writebuffer */
 	}
@@ -132,7 +134,8 @@ static void au_read_buf(struct mtd_info *mtd, u_char *buf, int len)
 	int i;
 	struct nand_chip *this = mtd_to_nand(mtd);
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		buf[i] = readb(this->IO_ADDR_R);
 		wmb(); /* drain writebuffer */
 	}
@@ -153,7 +156,8 @@ static void au_write_buf16(struct mtd_info *mtd, const u_char *buf, int len)
 	u16 *p = (u16 *) buf;
 	len >>= 1;
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		writew(p[i], this->IO_ADDR_W);
 		wmb(); /* drain writebuffer */
 	}
@@ -175,7 +179,8 @@ static void au_read_buf16(struct mtd_info *mtd, u_char *buf, int len)
 	u16 *p = (u16 *) buf;
 	len >>= 1;
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		p[i] = readw(this->IO_ADDR_R);
 		wmb(); /* drain writebuffer */
 	}
@@ -198,38 +203,39 @@ static void au1550_hwcontrol(struct mtd_info *mtd, int cmd)
 {
 	struct nand_chip *this = mtd_to_nand(mtd);
 	struct au1550nd_ctx *ctx = container_of(this, struct au1550nd_ctx,
-						chip);
+											chip);
 
-	switch (cmd) {
+	switch (cmd)
+	{
 
-	case NAND_CTL_SETCLE:
-		this->IO_ADDR_W = ctx->base + MEM_STNAND_CMD;
-		break;
+		case NAND_CTL_SETCLE:
+			this->IO_ADDR_W = ctx->base + MEM_STNAND_CMD;
+			break;
 
-	case NAND_CTL_CLRCLE:
-		this->IO_ADDR_W = ctx->base + MEM_STNAND_DATA;
-		break;
+		case NAND_CTL_CLRCLE:
+			this->IO_ADDR_W = ctx->base + MEM_STNAND_DATA;
+			break;
 
-	case NAND_CTL_SETALE:
-		this->IO_ADDR_W = ctx->base + MEM_STNAND_ADDR;
-		break;
+		case NAND_CTL_SETALE:
+			this->IO_ADDR_W = ctx->base + MEM_STNAND_ADDR;
+			break;
 
-	case NAND_CTL_CLRALE:
-		this->IO_ADDR_W = ctx->base + MEM_STNAND_DATA;
-		/* FIXME: Nobody knows why this is necessary,
-		 * but it works only that way */
-		udelay(1);
-		break;
+		case NAND_CTL_CLRALE:
+			this->IO_ADDR_W = ctx->base + MEM_STNAND_DATA;
+			/* FIXME: Nobody knows why this is necessary,
+			 * but it works only that way */
+			udelay(1);
+			break;
 
-	case NAND_CTL_SETNCE:
-		/* assert (force assert) chip enable */
-		alchemy_wrsmem((1 << (4 + ctx->cs)), AU1000_MEM_STNDCTL);
-		break;
+		case NAND_CTL_SETNCE:
+			/* assert (force assert) chip enable */
+			alchemy_wrsmem((1 << (4 + ctx->cs)), AU1000_MEM_STNDCTL);
+			break;
 
-	case NAND_CTL_CLRNCE:
-		/* deassert chip enable */
-		alchemy_wrsmem(0, AU1000_MEM_STNDCTL);
-		break;
+		case NAND_CTL_CLRNCE:
+			/* deassert chip enable */
+			alchemy_wrsmem(0, AU1000_MEM_STNDCTL);
+			break;
 	}
 
 	this->IO_ADDR_R = this->IO_ADDR_W;
@@ -269,53 +275,70 @@ static void au1550_command(struct mtd_info *mtd, unsigned command, int column, i
 {
 	struct nand_chip *this = mtd_to_nand(mtd);
 	struct au1550nd_ctx *ctx = container_of(this, struct au1550nd_ctx,
-						chip);
+											chip);
 	int ce_override = 0, i;
 	unsigned long flags = 0;
 
 	/* Begin command latch cycle */
 	au1550_hwcontrol(mtd, NAND_CTL_SETCLE);
+
 	/*
 	 * Write out the command to the device.
 	 */
-	if (command == NAND_CMD_SEQIN) {
+	if (command == NAND_CMD_SEQIN)
+	{
 		int readcmd;
 
-		if (column >= mtd->writesize) {
+		if (column >= mtd->writesize)
+		{
 			/* OOB area */
 			column -= mtd->writesize;
 			readcmd = NAND_CMD_READOOB;
-		} else if (column < 256) {
+		}
+		else if (column < 256)
+		{
 			/* First 256 bytes --> READ0 */
 			readcmd = NAND_CMD_READ0;
-		} else {
+		}
+		else
+		{
 			column -= 256;
 			readcmd = NAND_CMD_READ1;
 		}
+
 		ctx->write_byte(mtd, readcmd);
 	}
+
 	ctx->write_byte(mtd, command);
 
 	/* Set ALE and clear CLE to start address cycle */
 	au1550_hwcontrol(mtd, NAND_CTL_CLRCLE);
 
-	if (column != -1 || page_addr != -1) {
+	if (column != -1 || page_addr != -1)
+	{
 		au1550_hwcontrol(mtd, NAND_CTL_SETALE);
 
 		/* Serially input address */
-		if (column != -1) {
+		if (column != -1)
+		{
 			/* Adjust columns for 16 bit buswidth */
 			if (this->options & NAND_BUSWIDTH_16 &&
-					!nand_opcode_8bits(command))
+				!nand_opcode_8bits(command))
+			{
 				column >>= 1;
+			}
+
 			ctx->write_byte(mtd, column);
 		}
-		if (page_addr != -1) {
+
+		if (page_addr != -1)
+		{
 			ctx->write_byte(mtd, (u8)(page_addr & 0xff));
 
 			if (command == NAND_CMD_READ0 ||
-			    command == NAND_CMD_READ1 ||
-			    command == NAND_CMD_READOOB) {
+				command == NAND_CMD_READ1 ||
+				command == NAND_CMD_READOOB)
+			{
 				/*
 				 * NAND controller will release -CE after
 				 * the last address byte is written, so we'll
@@ -334,8 +357,9 @@ static void au1550_command(struct mtd_info *mtd, unsigned command, int column, i
 			/* One more address cycle for devices > 32MiB */
 			if (this->chipsize > (32 << 20))
 				ctx->write_byte(mtd,
-						((page_addr >> 16) & 0x0f));
+								((page_addr >> 16) & 0x0f));
 		}
+
 		/* Latch in address */
 		au1550_hwcontrol(mtd, NAND_CTL_CLRALE);
 	}
@@ -344,58 +368,70 @@ static void au1550_command(struct mtd_info *mtd, unsigned command, int column, i
 	 * Program and erase have their own busy handlers.
 	 * Status and sequential in need no delay.
 	 */
-	switch (command) {
+	switch (command)
+	{
 
-	case NAND_CMD_PAGEPROG:
-	case NAND_CMD_ERASE1:
-	case NAND_CMD_ERASE2:
-	case NAND_CMD_SEQIN:
-	case NAND_CMD_STATUS:
-		return;
+		case NAND_CMD_PAGEPROG:
+		case NAND_CMD_ERASE1:
+		case NAND_CMD_ERASE2:
+		case NAND_CMD_SEQIN:
+		case NAND_CMD_STATUS:
+			return;
 
-	case NAND_CMD_RESET:
-		break;
-
-	case NAND_CMD_READ0:
-	case NAND_CMD_READ1:
-	case NAND_CMD_READOOB:
-		/* Check if we're really driving -CE low (just in case) */
-		if (unlikely(!ce_override))
+		case NAND_CMD_RESET:
 			break;
 
-		/* Apply a short delay always to ensure that we do wait tWB. */
-		ndelay(100);
-		/* Wait for a chip to become ready... */
-		for (i = this->chip_delay; !this->dev_ready(mtd) && i > 0; --i)
-			udelay(1);
+		case NAND_CMD_READ0:
+		case NAND_CMD_READ1:
+		case NAND_CMD_READOOB:
 
-		/* Release -CE and re-enable interrupts. */
-		au1550_hwcontrol(mtd, NAND_CTL_CLRNCE);
-		local_irq_restore(flags);
-		return;
+			/* Check if we're really driving -CE low (just in case) */
+			if (unlikely(!ce_override))
+			{
+				break;
+			}
+
+			/* Apply a short delay always to ensure that we do wait tWB. */
+			ndelay(100);
+
+			/* Wait for a chip to become ready... */
+			for (i = this->chip_delay; !this->dev_ready(mtd) && i > 0; --i)
+			{
+				udelay(1);
+			}
+
+			/* Release -CE and re-enable interrupts. */
+			au1550_hwcontrol(mtd, NAND_CTL_CLRNCE);
+			local_irq_restore(flags);
+			return;
 	}
+
 	/* Apply this short delay always to ensure that we do wait tWB. */
 	ndelay(100);
 
-	while(!this->dev_ready(mtd));
+	while (!this->dev_ready(mtd));
 }
 
 static int find_nand_cs(unsigned long nand_base)
 {
 	void __iomem *base =
-			(void __iomem *)KSEG1ADDR(AU1000_STATIC_MEM_PHYS_ADDR);
+		(void __iomem *)KSEG1ADDR(AU1000_STATIC_MEM_PHYS_ADDR);
 	unsigned long addr, staddr, start, mask, end;
 	int i;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		addr = 0x1000 + (i * 0x10);			/* CSx */
 		staddr = __raw_readl(base + addr + 0x08);	/* STADDRx */
 		/* figure out the decoded range of this CS */
 		start = (staddr << 4) & 0xfffc0000;
 		mask = (staddr << 18) & 0xfffc0000;
 		end = (start | (start - 1)) & ~(start ^ mask);
+
 		if ((nand_base >= start) && (nand_base < end))
+		{
 			return i;
+		}
 	}
 
 	return -ENODEV;
@@ -411,29 +447,40 @@ static int au1550nd_probe(struct platform_device *pdev)
 	int ret, cs;
 
 	pd = dev_get_platdata(&pdev->dev);
-	if (!pd) {
+
+	if (!pd)
+	{
 		dev_err(&pdev->dev, "missing platform data\n");
 		return -ENODEV;
 	}
 
 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!r) {
+
+	if (!r)
+	{
 		dev_err(&pdev->dev, "no NAND memory resource\n");
 		ret = -ENODEV;
 		goto out1;
 	}
-	if (request_mem_region(r->start, resource_size(r), "au1550-nand")) {
+
+	if (request_mem_region(r->start, resource_size(r), "au1550-nand"))
+	{
 		dev_err(&pdev->dev, "cannot claim NAND memory area\n");
 		ret = -ENOMEM;
 		goto out1;
 	}
 
 	ctx->base = ioremap_nocache(r->start, 0x1000);
-	if (!ctx->base) {
+
+	if (!ctx->base)
+	{
 		dev_err(&pdev->dev, "cannot remap NAND memory area\n");
 		ret = -ENODEV;
 		goto out2;
@@ -445,11 +492,14 @@ static int au1550nd_probe(struct platform_device *pdev)
 
 	/* figure out which CS# r->start belongs to */
 	cs = find_nand_cs(r->start);
-	if (cs < 0) {
+
+	if (cs < 0)
+	{
 		dev_err(&pdev->dev, "cannot detect NAND chipselect\n");
 		ret = -ENODEV;
 		goto out3;
 	}
+
 	ctx->cs = cs;
 
 	this->dev_ready = au1550_device_ready;
@@ -462,7 +512,9 @@ static int au1550nd_probe(struct platform_device *pdev)
 	this->ecc.algo = NAND_ECC_HAMMING;
 
 	if (pd->devwidth)
+	{
 		this->options |= NAND_BUSWIDTH_16;
+	}
 
 	this->read_byte = (pd->devwidth) ? au_read_byte16 : au_read_byte;
 	ctx->write_byte = (pd->devwidth) ? au_write_byte16 : au_write_byte;
@@ -471,7 +523,9 @@ static int au1550nd_probe(struct platform_device *pdev)
 	this->read_buf = (pd->devwidth) ? au_read_buf16 : au_read_buf;
 
 	ret = nand_scan(mtd, 1);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "NAND scan failed with %d\n", ret);
 		goto out3;
 	}
@@ -503,7 +557,8 @@ static int au1550nd_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver au1550nd_driver = {
+static struct platform_driver au1550nd_driver =
+{
 	.driver = {
 		.name	= "au1550-nand",
 	},

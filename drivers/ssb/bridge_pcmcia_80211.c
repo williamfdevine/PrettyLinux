@@ -17,7 +17,8 @@
 
 #include "ssb_private.h"
 
-static const struct pcmcia_device_id ssb_host_pcmcia_tbl[] = {
+static const struct pcmcia_device_id ssb_host_pcmcia_tbl[] =
+{
 	PCMCIA_DEVICE_MANF_CARD(0x2D0, 0x448),
 	PCMCIA_DEVICE_MANF_CARD(0x2D0, 0x476),
 	PCMCIA_DEVICE_NULL,
@@ -32,35 +33,53 @@ static int ssb_host_pcmcia_probe(struct pcmcia_device *dev)
 	int res = 0;
 
 	ssb = kzalloc(sizeof(*ssb), GFP_KERNEL);
+
 	if (!ssb)
+	{
 		goto out_error;
+	}
 
 	err = -ENODEV;
 
 	dev->config_flags |= CONF_ENABLE_IRQ;
 
 	dev->resource[2]->flags |=  WIN_ENABLE | WIN_DATA_WIDTH_16 |
-			 WIN_USE_WAIT;
+								WIN_USE_WAIT;
 	dev->resource[2]->start = 0;
 	dev->resource[2]->end = SSB_CORE_SIZE;
 	res = pcmcia_request_window(dev, dev->resource[2], 250);
+
 	if (res != 0)
+	{
 		goto err_kfree_ssb;
+	}
 
 	res = pcmcia_map_mem_page(dev, dev->resource[2], 0);
+
 	if (res != 0)
+	{
 		goto err_disable;
+	}
 
 	if (!dev->irq)
+	{
 		goto err_disable;
+	}
 
 	res = pcmcia_enable_device(dev);
+
 	if (res != 0)
+	{
 		goto err_disable;
+	}
 
 	err = ssb_bus_pcmciabus_register(ssb, dev, dev->resource[2]->start);
+
 	if (err)
+	{
 		goto err_disable;
+	}
+
 	dev->priv = ssb;
 
 	return 0;
@@ -103,7 +122,8 @@ static int ssb_host_pcmcia_resume(struct pcmcia_device *dev)
 # define ssb_host_pcmcia_resume		NULL
 #endif /* CONFIG_PM */
 
-static struct pcmcia_driver ssb_host_pcmcia_driver = {
+static struct pcmcia_driver ssb_host_pcmcia_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "ssb-pcmcia",
 	.id_table	= ssb_host_pcmcia_tbl,

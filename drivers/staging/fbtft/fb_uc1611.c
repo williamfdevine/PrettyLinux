@@ -75,7 +75,9 @@ static int init_display(struct fbtft_par *par)
 	/* Set CS active high */
 	par->spi->mode |= SPI_CS_HIGH;
 	ret = spi_setup(par->spi);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(par->info->device, "Could not set SPI_CS_HIGH\n");
 		return ret;
 	}
@@ -113,38 +115,45 @@ static int init_display(struct fbtft_par *par)
 
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
-	switch (par->info->var.rotate) {
-	case 90:
-	case 270:
-		/* Set column address */
-		write_reg(par, ys & 0x0F);
-		write_reg(par, 0x10 | (ys >> 4));
+	switch (par->info->var.rotate)
+	{
+		case 90:
+		case 270:
+			/* Set column address */
+			write_reg(par, ys & 0x0F);
+			write_reg(par, 0x10 | (ys >> 4));
 
-		/* Set page address (divide xs by 2) (not used by driver) */
-		write_reg(par, 0x60 | ((xs >> 1) & 0x0F));
-		write_reg(par, 0x70 | (xs >> 5));
-		break;
-	default:
-		/* Set column address (not used by driver) */
-		write_reg(par, xs & 0x0F);
-		write_reg(par, 0x10 | (xs >> 4));
+			/* Set page address (divide xs by 2) (not used by driver) */
+			write_reg(par, 0x60 | ((xs >> 1) & 0x0F));
+			write_reg(par, 0x70 | (xs >> 5));
+			break;
 
-		/* Set page address (divide ys by 2) */
-		write_reg(par, 0x60 | ((ys >> 1) & 0x0F));
-		write_reg(par, 0x70 | (ys >> 5));
-		break;
+		default:
+			/* Set column address (not used by driver) */
+			write_reg(par, xs & 0x0F);
+			write_reg(par, 0x10 | (xs >> 4));
+
+			/* Set page address (divide ys by 2) */
+			write_reg(par, 0x60 | ((ys >> 1) & 0x0F));
+			write_reg(par, 0x70 | (ys >> 5));
+			break;
 	}
 }
 
 static int blank(struct fbtft_par *par, bool on)
 {
 	fbtft_par_dbg(DEBUG_BLANK, par, "%s(blank=%s)\n",
-		      __func__, on ? "true" : "false");
+				  __func__, on ? "true" : "false");
 
 	if (on)
+	{
 		write_reg(par, 0xA8 | 0x00);
+	}
 	else
+	{
 		write_reg(par, 0xA8 | 0x07);
+	}
+
 	return 0;
 }
 
@@ -161,59 +170,63 @@ static int set_var(struct fbtft_par *par)
 	par->info->var.transp.offset = 0;
 	par->info->var.transp.length = 0;
 
-	switch (par->info->var.rotate) {
-	case 90:
-		/* Set RAM address control */
-		write_reg(par, 0x88
-			| (0x0 & 0x1) << 2 /* Increment positively */
-			| (0x1 & 0x1) << 1 /* Increment page first */
-			| (0x1 & 0x1));    /* Wrap around (default) */
+	switch (par->info->var.rotate)
+	{
+		case 90:
+			/* Set RAM address control */
+			write_reg(par, 0x88
+					  | (0x0 & 0x1) << 2 /* Increment positively */
+					  | (0x1 & 0x1) << 1 /* Increment page first */
+					  | (0x1 & 0x1));    /* Wrap around (default) */
 
-		/* Set LCD mapping */
-		write_reg(par, 0xC0
-			| (0x0 & 0x1) << 2 /* Mirror Y OFF */
-			| (0x0 & 0x1) << 1 /* Mirror X OFF */
-			| (0x0 & 0x1));    /* MS nibble last (default) */
-		break;
-	case 180:
-		/* Set RAM address control */
-		write_reg(par, 0x88
-			| (0x0 & 0x1) << 2 /* Increment positively */
-			| (0x0 & 0x1) << 1 /* Increment column first */
-			| (0x1 & 0x1));    /* Wrap around (default) */
+			/* Set LCD mapping */
+			write_reg(par, 0xC0
+					  | (0x0 & 0x1) << 2 /* Mirror Y OFF */
+					  | (0x0 & 0x1) << 1 /* Mirror X OFF */
+					  | (0x0 & 0x1));    /* MS nibble last (default) */
+			break;
 
-		/* Set LCD mapping */
-		write_reg(par, 0xC0
-			| (0x1 & 0x1) << 2 /* Mirror Y ON */
-			| (0x0 & 0x1) << 1 /* Mirror X OFF */
-			| (0x0 & 0x1));    /* MS nibble last (default) */
-		break;
-	case 270:
-		/* Set RAM address control */
-		write_reg(par, 0x88
-			| (0x0 & 0x1) << 2 /* Increment positively */
-			| (0x1 & 0x1) << 1 /* Increment page first */
-			| (0x1 & 0x1));    /* Wrap around (default) */
+		case 180:
+			/* Set RAM address control */
+			write_reg(par, 0x88
+					  | (0x0 & 0x1) << 2 /* Increment positively */
+					  | (0x0 & 0x1) << 1 /* Increment column first */
+					  | (0x1 & 0x1));    /* Wrap around (default) */
 
-		/* Set LCD mapping */
-		write_reg(par, 0xC0
-			| (0x1 & 0x1) << 2 /* Mirror Y ON */
-			| (0x1 & 0x1) << 1 /* Mirror X ON */
-			| (0x0 & 0x1));    /* MS nibble last (default) */
-		break;
-	default:
-		/* Set RAM address control */
-		write_reg(par, 0x88
-			| (0x0 & 0x1) << 2 /* Increment positively */
-			| (0x0 & 0x1) << 1 /* Increment column first */
-			| (0x1 & 0x1));    /* Wrap around (default) */
+			/* Set LCD mapping */
+			write_reg(par, 0xC0
+					  | (0x1 & 0x1) << 2 /* Mirror Y ON */
+					  | (0x0 & 0x1) << 1 /* Mirror X OFF */
+					  | (0x0 & 0x1));    /* MS nibble last (default) */
+			break;
 
-		/* Set LCD mapping */
-		write_reg(par, 0xC0
-			| (0x0 & 0x1) << 2 /* Mirror Y OFF */
-			| (0x1 & 0x1) << 1 /* Mirror X ON */
-			| (0x0 & 0x1));    /* MS nibble last (default) */
-		break;
+		case 270:
+			/* Set RAM address control */
+			write_reg(par, 0x88
+					  | (0x0 & 0x1) << 2 /* Increment positively */
+					  | (0x1 & 0x1) << 1 /* Increment page first */
+					  | (0x1 & 0x1));    /* Wrap around (default) */
+
+			/* Set LCD mapping */
+			write_reg(par, 0xC0
+					  | (0x1 & 0x1) << 2 /* Mirror Y ON */
+					  | (0x1 & 0x1) << 1 /* Mirror X ON */
+					  | (0x0 & 0x1));    /* MS nibble last (default) */
+			break;
+
+		default:
+			/* Set RAM address control */
+			write_reg(par, 0x88
+					  | (0x0 & 0x1) << 2 /* Increment positively */
+					  | (0x0 & 0x1) << 1 /* Increment column first */
+					  | (0x1 & 0x1));    /* Wrap around (default) */
+
+			/* Set LCD mapping */
+			write_reg(par, 0xC0
+					  | (0x0 & 0x1) << 2 /* Mirror Y OFF */
+					  | (0x1 & 0x1) << 1 /* Mirror X ON */
+					  | (0x0 & 0x1));    /* MS nibble last (default) */
+			break;
 	}
 
 	return 0;
@@ -230,89 +243,116 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 	int x, y, i;
 	int ret = 0;
 
-	switch (par->pdata->display.buswidth) {
-	case 8:
-		switch (par->info->var.rotate) {
-		case 90:
-		case 270:
-			i = y_start * line_length;
-			for (y = y_start; y <= y_end; y++) {
-				for (x = 0; x < line_length; x += 2) {
-					*buf8 = vmem8[i] >> 4;
-					*buf8 |= vmem8[i + 1] & 0xF0;
-					buf8++;
-					i += 2;
-				}
-			}
-			break;
-		default:
-			/* Must be even because pages are two lines */
-			y_start &= 0xFE;
-			i = y_start * line_length;
-			for (y = y_start; y <= y_end; y += 2) {
-				for (x = 0; x < line_length; x++) {
-					*buf8 = vmem8[i] >> 4;
-					*buf8 |= vmem8[i + line_length] & 0xF0;
-					buf8++;
-					i++;
-				}
-				i += line_length;
-			}
-			break;
-		}
-		gpio_set_value(par->gpio.dc, 1);
+	switch (par->pdata->display.buswidth)
+	{
+		case 8:
+			switch (par->info->var.rotate)
+			{
+				case 90:
+				case 270:
+					i = y_start * line_length;
 
-		/* Write data */
-		ret = par->fbtftops.write(par, par->txbuf.buf, len / 2);
-		break;
-	case 9:
-		switch (par->info->var.rotate) {
-		case 90:
-		case 270:
-			i = y_start * line_length;
-			for (y = y_start; y <= y_end; y++) {
-				for (x = 0; x < line_length; x += 2) {
-					*buf16 = 0x100;
-					*buf16 |= vmem8[i] >> 4;
-					*buf16 |= vmem8[i + 1] & 0xF0;
-					buf16++;
-					i += 2;
-				}
-			}
-			break;
-		default:
-			/* Must be even because pages are two lines */
-			y_start &= 0xFE;
-			i = y_start * line_length;
-			for (y = y_start; y <= y_end; y += 2) {
-				for (x = 0; x < line_length; x++) {
-					*buf16 = 0x100;
-					*buf16 |= vmem8[i] >> 4;
-					*buf16 |= vmem8[i + line_length] & 0xF0;
-					buf16++;
-					i++;
-				}
-				i += line_length;
-			}
-			break;
-		}
+					for (y = y_start; y <= y_end; y++)
+					{
+						for (x = 0; x < line_length; x += 2)
+						{
+							*buf8 = vmem8[i] >> 4;
+							*buf8 |= vmem8[i + 1] & 0xF0;
+							buf8++;
+							i += 2;
+						}
+					}
 
-		/* Write data */
-		ret = par->fbtftops.write(par, par->txbuf.buf, len);
-		break;
-	default:
-		dev_err(par->info->device, "unsupported buswidth %d\n",
-			par->pdata->display.buswidth);
+					break;
+
+				default:
+					/* Must be even because pages are two lines */
+					y_start &= 0xFE;
+					i = y_start * line_length;
+
+					for (y = y_start; y <= y_end; y += 2)
+					{
+						for (x = 0; x < line_length; x++)
+						{
+							*buf8 = vmem8[i] >> 4;
+							*buf8 |= vmem8[i + line_length] & 0xF0;
+							buf8++;
+							i++;
+						}
+
+						i += line_length;
+					}
+
+					break;
+			}
+
+			gpio_set_value(par->gpio.dc, 1);
+
+			/* Write data */
+			ret = par->fbtftops.write(par, par->txbuf.buf, len / 2);
+			break;
+
+		case 9:
+			switch (par->info->var.rotate)
+			{
+				case 90:
+				case 270:
+					i = y_start * line_length;
+
+					for (y = y_start; y <= y_end; y++)
+					{
+						for (x = 0; x < line_length; x += 2)
+						{
+							*buf16 = 0x100;
+							*buf16 |= vmem8[i] >> 4;
+							*buf16 |= vmem8[i + 1] & 0xF0;
+							buf16++;
+							i += 2;
+						}
+					}
+
+					break;
+
+				default:
+					/* Must be even because pages are two lines */
+					y_start &= 0xFE;
+					i = y_start * line_length;
+
+					for (y = y_start; y <= y_end; y += 2)
+					{
+						for (x = 0; x < line_length; x++)
+						{
+							*buf16 = 0x100;
+							*buf16 |= vmem8[i] >> 4;
+							*buf16 |= vmem8[i + line_length] & 0xF0;
+							buf16++;
+							i++;
+						}
+
+						i += line_length;
+					}
+
+					break;
+			}
+
+			/* Write data */
+			ret = par->fbtftops.write(par, par->txbuf.buf, len);
+			break;
+
+		default:
+			dev_err(par->info->device, "unsupported buswidth %d\n",
+					par->pdata->display.buswidth);
 	}
 
 	if (ret < 0)
 		dev_err(par->info->device, "write failed and returned: %d\n",
-			ret);
+				ret);
 
 	return ret;
 }
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.txbuflen = -1,
 	.regwidth = 8,
 	.width = WIDTH,

@@ -27,7 +27,8 @@
 struct dvb_frontend;
 struct i2c_adapter;
 
-struct xc4000_config {
+struct xc4000_config
+{
 	u8	i2c_address;
 	/* if non-zero, power management is enabled by default */
 	u8	default_pm;
@@ -52,12 +53,12 @@ struct xc4000_config {
 
 #if IS_REACHABLE(CONFIG_MEDIA_TUNER_XC4000)
 extern struct dvb_frontend *xc4000_attach(struct dvb_frontend *fe,
-					  struct i2c_adapter *i2c,
-					  struct xc4000_config *cfg);
+		struct i2c_adapter *i2c,
+		struct xc4000_config *cfg);
 #else
 static inline struct dvb_frontend *xc4000_attach(struct dvb_frontend *fe,
-						 struct i2c_adapter *i2c,
-						 struct xc4000_config *cfg)
+		struct i2c_adapter *i2c,
+		struct xc4000_config *cfg)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

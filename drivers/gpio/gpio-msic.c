@@ -51,7 +51,8 @@
 
 #define MSIC_NUM_GPIO		24
 
-struct msic_gpio {
+struct msic_gpio
+{
 	struct platform_device	*pdev;
 	struct mutex		buslock;
 	struct gpio_chip	chip;
@@ -74,14 +75,24 @@ struct msic_gpio {
 static int msic_gpio_to_ireg(unsigned offset)
 {
 	if (offset >= MSIC_NUM_GPIO)
+	{
 		return -EINVAL;
+	}
 
 	if (offset < 8)
+	{
 		return INTEL_MSIC_GPIO0LV0CTLI - offset;
+	}
+
 	if (offset < 16)
+	{
 		return INTEL_MSIC_GPIO1LV0CTLI - offset + 8;
+	}
+
 	if (offset < 20)
+	{
 		return INTEL_MSIC_GPIO0HV0CTLI - offset + 16;
+	}
 
 	return INTEL_MSIC_GPIO1HV0CTLI - offset + 20;
 }
@@ -89,14 +100,24 @@ static int msic_gpio_to_ireg(unsigned offset)
 static int msic_gpio_to_oreg(unsigned offset)
 {
 	if (offset >= MSIC_NUM_GPIO)
+	{
 		return -EINVAL;
+	}
 
 	if (offset < 8)
+	{
 		return INTEL_MSIC_GPIO0LV0CTLO - offset;
+	}
+
 	if (offset < 16)
+	{
 		return INTEL_MSIC_GPIO1LV0CTLO - offset + 8;
+	}
+
 	if (offset < 20)
+	{
 		return INTEL_MSIC_GPIO0HV0CTLO - offset + 16;
+	}
 
 	return INTEL_MSIC_GPIO1HV0CTLO - offset + 20;
 }
@@ -106,14 +127,17 @@ static int msic_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 	int reg;
 
 	reg = msic_gpio_to_oreg(offset);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
 
 	return intel_msic_reg_update(reg, MSIC_GPIO_DIR_IN, MSIC_GPIO_DIR_MASK);
 }
 
 static int msic_gpio_direction_output(struct gpio_chip *chip,
-			unsigned offset, int value)
+									  unsigned offset, int value)
 {
 	int reg;
 	unsigned mask;
@@ -122,8 +146,11 @@ static int msic_gpio_direction_output(struct gpio_chip *chip,
 	mask = MSIC_GPIO_DIR_MASK | MSIC_GPIO_DOUT_MASK;
 
 	reg = msic_gpio_to_oreg(offset);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
 
 	return intel_msic_reg_update(reg, value, mask);
 }
@@ -135,12 +162,18 @@ static int msic_gpio_get(struct gpio_chip *chip, unsigned offset)
 	int reg;
 
 	reg = msic_gpio_to_ireg(offset);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
 
 	ret = intel_msic_reg_read(reg, &r);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return !!(r & MSIC_GPIO_DIN_MASK);
 }
@@ -150,8 +183,11 @@ static void msic_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	int reg;
 
 	reg = msic_gpio_to_oreg(offset);
+
 	if (reg < 0)
+	{
 		return;
+	}
 
 	intel_msic_reg_update(reg, !!value , MSIC_GPIO_DOUT_MASK);
 }
@@ -167,7 +203,9 @@ static int msic_irq_type(struct irq_data *data, unsigned type)
 	u32 gpio = data->irq - mg->irq_base;
 
 	if (gpio >= mg->chip.ngpio)
+	{
 		return -EINVAL;
+	}
 
 	/* mark for which gpio the trigger changed, protected by buslock */
 	mg->trig_change_mask |= (1 << gpio);
@@ -198,21 +236,31 @@ static void msic_bus_sync_unlock(struct irq_data *data)
 	/* We can only get one change at a time as the buslock covers the
 	   entire transaction. The irq_desc->lock is dropped before we are
 	   called but that is fine */
-	if (mg->trig_change_mask) {
+	if (mg->trig_change_mask)
+	{
 		offset = __ffs(mg->trig_change_mask);
 
 		reg = msic_gpio_to_ireg(offset);
+
 		if (reg < 0)
+		{
 			goto out;
+		}
 
 		if (mg->trig_type & IRQ_TYPE_EDGE_RISING)
+		{
 			trig |= MSIC_GPIO_TRIG_RISE;
+		}
+
 		if (mg->trig_type & IRQ_TYPE_EDGE_FALLING)
+		{
 			trig |= MSIC_GPIO_TRIG_FALL;
+		}
 
 		intel_msic_reg_update(reg, trig, MSIC_GPIO_INTCNT_MASK);
 		mg->trig_change_mask = 0;
 	}
+
 out:
 	mutex_unlock(&mg->buslock);
 }
@@ -222,7 +270,8 @@ static void msic_irq_unmask(struct irq_data *data) { }
 
 static void msic_irq_mask(struct irq_data *data) { }
 
-static struct irq_chip msic_irqchip = {
+static struct irq_chip msic_irqchip =
+{
 	.name			= "MSIC-GPIO",
 	.irq_mask		= msic_irq_mask,
 	.irq_unmask		= msic_irq_unmask,
@@ -242,16 +291,19 @@ static void msic_gpio_irq_handler(struct irq_desc *desc)
 	u8 pin;
 	unsigned long pending = 0;
 
-	for (i = 0; i < (mg->chip.ngpio / BITS_PER_BYTE); i++) {
+	for (i = 0; i < (mg->chip.ngpio / BITS_PER_BYTE); i++)
+	{
 		intel_msic_irq_read(msic, INTEL_MSIC_GPIO0LVIRQ + i, &pin);
 		pending = pin;
 
-		if (pending) {
+		if (pending)
+		{
 			for_each_set_bit(bitnr, &pending, BITS_PER_BYTE)
-				generic_handle_irq(mg->irq_base +
-						   (i * BITS_PER_BYTE) + bitnr);
+			generic_handle_irq(mg->irq_base +
+							   (i * BITS_PER_BYTE) + bitnr);
 		}
 	}
+
 	chip->irq_eoi(data);
 }
 
@@ -264,19 +316,24 @@ static int platform_msic_gpio_probe(struct platform_device *pdev)
 	int retval;
 	int i;
 
-	if (irq < 0) {
+	if (irq < 0)
+	{
 		dev_err(dev, "no IRQ line\n");
 		return -EINVAL;
 	}
 
-	if (!pdata || !pdata->gpio_base) {
+	if (!pdata || !pdata->gpio_base)
+	{
 		dev_err(dev, "incorrect or missing platform data\n");
 		return -EINVAL;
 	}
 
 	mg = kzalloc(sizeof(*mg), GFP_KERNEL);
+
 	if (!mg)
+	{
 		return -ENOMEM;
+	}
 
 	dev_set_drvdata(dev, mg);
 
@@ -297,17 +354,21 @@ static int platform_msic_gpio_probe(struct platform_device *pdev)
 	mutex_init(&mg->buslock);
 
 	retval = gpiochip_add_data(&mg->chip, mg);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(dev, "Adding MSIC gpio chip failed\n");
 		goto err;
 	}
 
-	for (i = 0; i < mg->chip.ngpio; i++) {
+	for (i = 0; i < mg->chip.ngpio; i++)
+	{
 		irq_set_chip_data(i + mg->irq_base, mg);
 		irq_set_chip_and_handler(i + mg->irq_base,
-					 &msic_irqchip,
-					 handle_simple_irq);
+								 &msic_irqchip,
+								 handle_simple_irq);
 	}
+
 	irq_set_chained_handler_and_data(mg->irq, msic_gpio_irq_handler, mg);
 
 	return 0;
@@ -316,7 +377,8 @@ err:
 	return retval;
 }
 
-static struct platform_driver platform_msic_gpio_driver = {
+static struct platform_driver platform_msic_gpio_driver =
+{
 	.driver = {
 		.name		= "msic_gpio",
 	},

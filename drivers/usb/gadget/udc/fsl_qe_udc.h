@@ -99,12 +99,12 @@
 #define USBER_ALL_CLEAR 	0x0fff
 
 #define USB_E_DEFAULT_DEVICE   (USB_E_RESET_MASK | USB_E_TXE4_MASK | \
-				USB_E_TXE3_MASK | USB_E_TXE2_MASK | \
-				USB_E_TXE1_MASK | USB_E_BSY_MASK | \
-				USB_E_TXB_MASK | USB_E_RXB_MASK)
+								USB_E_TXE3_MASK | USB_E_TXE2_MASK | \
+								USB_E_TXE1_MASK | USB_E_BSY_MASK | \
+								USB_E_TXB_MASK | USB_E_RXB_MASK)
 
 #define USB_E_TXE_MASK         (USB_E_TXE4_MASK | USB_E_TXE3_MASK|\
-				 USB_E_TXE2_MASK | USB_E_TXE1_MASK)
+								USB_E_TXE2_MASK | USB_E_TXE1_MASK)
 /* USB Status Register define */
 #define USB_IDLE_STATUS_MASK	0x01
 
@@ -114,7 +114,8 @@
 /* USB Frame Number Register */
 #define USB_USFRN_MASK		0xFFFF
 
-struct usb_device_para{
+struct usb_device_para
+{
 	u16	epptr[4];
 	u32	rstate;
 	u32	rptr;
@@ -128,7 +129,8 @@ struct usb_device_para{
 	u8	sofucrctemp;
 };
 
-struct usb_ep_para{
+struct usb_ep_para
+{
 	u16	rbase;
 	u16	tbase;
 	u8	rbmr;
@@ -156,8 +158,8 @@ struct usb_ep_para{
 #define ep_index(EP)		((EP)->ep.desc->bEndpointAddress & 0xF)
 #define ep_maxpacket(EP)	((EP)->ep.maxpacket)
 #define ep_is_in(EP)	((ep_index(EP) == 0) ? (EP->udc->ep0_dir == \
-			USB_DIR_IN) : ((EP)->ep.desc->bEndpointAddress \
-			& USB_DIR_IN) == USB_DIR_IN)
+						 USB_DIR_IN) : ((EP)->ep.desc->bEndpointAddress \
+										& USB_DIR_IN) == USB_DIR_IN)
 
 /* ep0 transfer state */
 #define WAIT_FOR_SETUP          0
@@ -175,7 +177,8 @@ struct usb_ep_para{
 /*-----------------------------------------------------------------------------
 	USB RX And TX DATA Frame
  -----------------------------------------------------------------------------*/
-struct qe_frame{
+struct qe_frame
+{
 	u8 *data;
 	u32 len;
 	u32 status;
@@ -253,16 +256,18 @@ static inline void qe_frame_init(struct qe_frame *frm)
 	INIT_LIST_HEAD(&(frm->node));
 }
 
-struct qe_req {
+struct qe_req
+{
 	struct usb_request req;
 	struct list_head queue;
 	/* ep_queue() func will add
 	 a request->queue into a udc_ep->queue 'd tail */
 	struct qe_ep *ep;
-	unsigned mapped:1;
+	unsigned mapped: 1;
 };
 
-struct qe_ep {
+struct qe_ep
+{
 	struct usb_ep ep;
 	struct list_head queue;
 	struct qe_udc *udc;
@@ -303,10 +308,10 @@ struct qe_ep {
 
 	char name[14];
 
-	unsigned double_buf:1;
-	unsigned stopped:1;
-	unsigned fnf:1;
-	unsigned has_dma:1;
+	unsigned double_buf: 1;
+	unsigned stopped: 1;
+	unsigned fnf: 1;
+	unsigned has_dma: 1;
 
 	u8 ackwait;
 	u8 dma_channel;
@@ -316,7 +321,8 @@ struct qe_ep {
 	struct timer_list timer;
 };
 
-struct qe_udc {
+struct qe_udc
+{
 	struct usb_gadget gadget;
 	struct usb_gadget_driver *driver;
 	struct device *dev;

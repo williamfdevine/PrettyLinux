@@ -58,26 +58,34 @@ static int vgem_gem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	struct page *page;
 
 	page = shmem_read_mapping_page(file_inode(obj->base.filp)->i_mapping,
-				       (vaddr - vma->vm_start) >> PAGE_SHIFT);
-	if (!IS_ERR(page)) {
+								   (vaddr - vma->vm_start) >> PAGE_SHIFT);
+
+	if (!IS_ERR(page))
+	{
 		vmf->page = page;
 		return 0;
-	} else switch (PTR_ERR(page)) {
-		case -ENOSPC:
-		case -ENOMEM:
-			return VM_FAULT_OOM;
-		case -EBUSY:
-			return VM_FAULT_RETRY;
-		case -EFAULT:
-		case -EINVAL:
-			return VM_FAULT_SIGBUS;
-		default:
-			WARN_ON_ONCE(PTR_ERR(page));
-			return VM_FAULT_SIGBUS;
 	}
+	else switch (PTR_ERR(page))
+		{
+			case -ENOSPC:
+			case -ENOMEM:
+				return VM_FAULT_OOM;
+
+			case -EBUSY:
+				return VM_FAULT_RETRY;
+
+			case -EFAULT:
+			case -EINVAL:
+				return VM_FAULT_SIGBUS;
+
+			default:
+				WARN_ON_ONCE(PTR_ERR(page));
+				return VM_FAULT_SIGBUS;
+		}
 }
 
-static const struct vm_operations_struct vgem_gem_vm_ops = {
+static const struct vm_operations_struct vgem_gem_vm_ops =
+{
 	.fault = vgem_gem_fault,
 	.open = drm_gem_vm_open,
 	.close = drm_gem_vm_close,
@@ -89,13 +97,18 @@ static int vgem_open(struct drm_device *dev, struct drm_file *file)
 	int ret;
 
 	vfile = kzalloc(sizeof(*vfile), GFP_KERNEL);
+
 	if (!vfile)
+	{
 		return -ENOMEM;
+	}
 
 	file->driver_priv = vfile;
 
 	ret = vgem_fence_open(vfile);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(vfile);
 		return ret;
 	}
@@ -114,25 +127,34 @@ static void vgem_preclose(struct drm_device *dev, struct drm_file *file)
 /* ioctls */
 
 static struct drm_gem_object *vgem_gem_create(struct drm_device *dev,
-					      struct drm_file *file,
-					      unsigned int *handle,
-					      unsigned long size)
+		struct drm_file *file,
+		unsigned int *handle,
+		unsigned long size)
 {
 	struct drm_vgem_gem_object *obj;
 	int ret;
 
 	obj = kzalloc(sizeof(*obj), GFP_KERNEL);
+
 	if (!obj)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	ret = drm_gem_object_init(dev, &obj->base, roundup(size, PAGE_SIZE));
+
 	if (ret)
+	{
 		goto err_free;
+	}
 
 	ret = drm_gem_handle_create(file, &obj->base, handle);
 	drm_gem_object_unreference_unlocked(&obj->base);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	return &obj->base;
 
@@ -143,19 +165,25 @@ err:
 }
 
 static int vgem_gem_dumb_create(struct drm_file *file, struct drm_device *dev,
-				struct drm_mode_create_dumb *args)
+								struct drm_mode_create_dumb *args)
 {
 	struct drm_gem_object *gem_object;
 	u64 pitch, size;
 
 	pitch = args->width * DIV_ROUND_UP(args->bpp, 8);
 	size = args->height * pitch;
+
 	if (size == 0)
+	{
 		return -EINVAL;
+	}
 
 	gem_object = vgem_gem_create(dev, file, &args->handle, size);
+
 	if (IS_ERR(gem_object))
+	{
 		return PTR_ERR(gem_object);
+	}
 
 	args->size = gem_object->size;
 	args->pitch = pitch;
@@ -166,23 +194,30 @@ static int vgem_gem_dumb_create(struct drm_file *file, struct drm_device *dev,
 }
 
 static int vgem_gem_dumb_map(struct drm_file *file, struct drm_device *dev,
-			     uint32_t handle, uint64_t *offset)
+							 uint32_t handle, uint64_t *offset)
 {
 	struct drm_gem_object *obj;
 	int ret;
 
 	obj = drm_gem_object_lookup(file, handle);
-	if (!obj)
-		return -ENOENT;
 
-	if (!obj->filp) {
+	if (!obj)
+	{
+		return -ENOENT;
+	}
+
+	if (!obj->filp)
+	{
 		ret = -EINVAL;
 		goto unref;
 	}
 
 	ret = drm_gem_create_mmap_offset(obj);
+
 	if (ret)
+	{
 		goto unref;
+	}
 
 	*offset = drm_vma_node_offset_addr(&obj->vma_node);
 unref:
@@ -191,9 +226,10 @@ unref:
 	return ret;
 }
 
-static struct drm_ioctl_desc vgem_ioctls[] = {
-	DRM_IOCTL_DEF_DRV(VGEM_FENCE_ATTACH, vgem_fence_attach_ioctl, DRM_AUTH|DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF_DRV(VGEM_FENCE_SIGNAL, vgem_fence_signal_ioctl, DRM_AUTH|DRM_RENDER_ALLOW),
+static struct drm_ioctl_desc vgem_ioctls[] =
+{
+	DRM_IOCTL_DEF_DRV(VGEM_FENCE_ATTACH, vgem_fence_attach_ioctl, DRM_AUTH | DRM_RENDER_ALLOW),
+	DRM_IOCTL_DEF_DRV(VGEM_FENCE_SIGNAL, vgem_fence_signal_ioctl, DRM_AUTH | DRM_RENDER_ALLOW),
 };
 
 static int vgem_mmap(struct file *filp, struct vm_area_struct *vma)
@@ -202,8 +238,11 @@ static int vgem_mmap(struct file *filp, struct vm_area_struct *vma)
 	int ret;
 
 	ret = drm_gem_mmap(filp, vma);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Keep the WC mmaping set by drm_gem_mmap() but our pages
 	 * are ordinary and not special.
@@ -212,7 +251,8 @@ static int vgem_mmap(struct file *filp, struct vm_area_struct *vma)
 	return 0;
 }
 
-static const struct file_operations vgem_driver_fops = {
+static const struct file_operations vgem_driver_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= drm_open,
 	.mmap		= vgem_mmap,
@@ -231,8 +271,11 @@ static int vgem_prime_pin(struct drm_gem_object *obj)
 	 * on coherent indirect access via the exported dma-address.
 	 */
 	pages = drm_gem_get_pages(obj);
+
 	if (IS_ERR(pages))
+	{
 		return PTR_ERR(pages);
+	}
 
 	drm_clflush_pages(pages, n_pages);
 	drm_gem_put_pages(obj, pages, true, false);
@@ -246,8 +289,11 @@ static struct sg_table *vgem_prime_get_sg_table(struct drm_gem_object *obj)
 	struct page **pages;
 
 	pages = drm_gem_get_pages(obj);
+
 	if (IS_ERR(pages))
+	{
 		return ERR_CAST(pages);
+	}
 
 	st = drm_prime_pages_to_sg(pages, obj->size >> PAGE_SHIFT);
 	drm_gem_put_pages(obj, pages, false, false);
@@ -262,8 +308,11 @@ static void *vgem_prime_vmap(struct drm_gem_object *obj)
 	void *addr;
 
 	pages = drm_gem_get_pages(obj);
+
 	if (IS_ERR(pages))
+	{
 		return NULL;
+	}
 
 	addr = vmap(pages, n_pages, 0, pgprot_writecombine(PAGE_KERNEL));
 	drm_gem_put_pages(obj, pages, false, false);
@@ -277,19 +326,26 @@ static void vgem_prime_vunmap(struct drm_gem_object *obj, void *vaddr)
 }
 
 static int vgem_prime_mmap(struct drm_gem_object *obj,
-			   struct vm_area_struct *vma)
+						   struct vm_area_struct *vma)
 {
 	int ret;
 
 	if (obj->size < vma->vm_end - vma->vm_start)
+	{
 		return -EINVAL;
+	}
 
 	if (!obj->filp)
+	{
 		return -ENODEV;
+	}
 
 	ret = obj->filp->f_op->mmap(obj->filp, vma);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	fput(vma->vm_file);
 	vma->vm_file = get_file(obj->filp);
@@ -299,7 +355,8 @@ static int vgem_prime_mmap(struct drm_gem_object *obj,
 	return 0;
 }
 
-static struct drm_driver vgem_driver = {
+static struct drm_driver vgem_driver =
+{
 	.driver_features		= DRIVER_GEM | DRIVER_PRIME,
 	.open				= vgem_open,
 	.preclose			= vgem_preclose,
@@ -334,14 +391,19 @@ static int __init vgem_init(void)
 	int ret;
 
 	vgem_device = drm_dev_alloc(&vgem_driver, NULL);
-	if (IS_ERR(vgem_device)) {
+
+	if (IS_ERR(vgem_device))
+	{
 		ret = PTR_ERR(vgem_device);
 		goto out;
 	}
 
 	ret  = drm_dev_register(vgem_device, 0);
+
 	if (ret)
+	{
 		goto out_unref;
+	}
 
 	return 0;
 

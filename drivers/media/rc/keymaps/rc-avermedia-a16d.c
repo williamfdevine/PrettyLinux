@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table avermedia_a16d[] = {
+static struct rc_map_table avermedia_a16d[] =
+{
 	{ 0x20, KEY_LIST},
 	{ 0x00, KEY_POWER},
 	{ 0x28, KEY_1},
@@ -50,7 +51,8 @@ static struct rc_map_table avermedia_a16d[] = {
 	{ 0x2a, KEY_MENU},
 };
 
-static struct rc_map_list avermedia_a16d_map = {
+static struct rc_map_list avermedia_a16d_map =
+{
 	.map = {
 		.scan    = avermedia_a16d,
 		.size    = ARRAY_SIZE(avermedia_a16d),

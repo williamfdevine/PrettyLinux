@@ -37,7 +37,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	CPL_PASS_OPEN_REQ     = 0x1,
 	CPL_PASS_ACCEPT_RPL   = 0x2,
 	CPL_ACT_OPEN_REQ      = 0x3,
@@ -109,7 +110,8 @@ enum {
 	NUM_CPL_CMDS
 };
 
-enum CPL_error {
+enum CPL_error
+{
 	CPL_ERR_NONE               = 0,
 	CPL_ERR_TCAM_PARITY        = 1,
 	CPL_ERR_TCAM_MISS          = 2,
@@ -133,14 +135,16 @@ enum CPL_error {
 	CPL_ERR_IWARP_FLM          = 50,
 };
 
-enum {
+enum
+{
 	CPL_CONN_POLICY_AUTO = 0,
 	CPL_CONN_POLICY_ASK  = 1,
 	CPL_CONN_POLICY_FILTER = 2,
 	CPL_CONN_POLICY_DENY = 3
 };
 
-enum {
+enum
+{
 	ULP_MODE_NONE          = 0,
 	ULP_MODE_ISCSI         = 2,
 	ULP_MODE_RDMA          = 4,
@@ -148,17 +152,20 @@ enum {
 	ULP_MODE_FCOE          = 6,
 };
 
-enum {
+enum
+{
 	ULP_CRC_HEADER = 1 << 0,
 	ULP_CRC_DATA   = 1 << 1
 };
 
-enum {
+enum
+{
 	CPL_ABORT_SEND_RST = 0,
 	CPL_ABORT_NO_RST,
 };
 
-enum {                     /* TX_PKT_XT checksum types */
+enum                       /* TX_PKT_XT checksum types */
+{
 	TX_CSUM_TCP    = 0,
 	TX_CSUM_UDP    = 1,
 	TX_CSUM_CRC16  = 4,
@@ -172,7 +179,8 @@ enum {                     /* TX_PKT_XT checksum types */
 	TX_CSUM_IP     = 12,
 };
 
-union opcode_tid {
+union opcode_tid
+{
 	__be32 opcode_tid;
 	u8 opcode;
 };
@@ -200,28 +208,30 @@ union opcode_tid {
 #define TID_QID_V(x) ((x) << TID_QID_S)
 #define TID_QID_G(x) (((x) >> TID_QID_S) & TID_QID_M)
 
-struct rss_header {
+struct rss_header
+{
 	u8 opcode;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	u8 channel:2;
-	u8 filter_hit:1;
-	u8 filter_tid:1;
-	u8 hash_type:2;
-	u8 ipv6:1;
-	u8 send2fw:1;
+	u8 channel: 2;
+	u8 filter_hit: 1;
+	u8 filter_tid: 1;
+	u8 hash_type: 2;
+	u8 ipv6: 1;
+	u8 send2fw: 1;
 #else
-	u8 send2fw:1;
-	u8 ipv6:1;
-	u8 hash_type:2;
-	u8 filter_tid:1;
-	u8 filter_hit:1;
-	u8 channel:2;
+	u8 send2fw: 1;
+	u8 ipv6: 1;
+	u8 hash_type: 2;
+	u8 filter_tid: 1;
+	u8 filter_hit: 1;
+	u8 channel: 2;
 #endif
 	__be16 qid;
 	__be32 hash_val;
 };
 
-struct work_request_hdr {
+struct work_request_hdr
+{
 	__be32 wr_hi;
 	__be32 wr_mid;
 	__be64 wr_lo;
@@ -291,7 +301,8 @@ struct work_request_hdr {
 #define T5_OPT_2_VALID_V(x) ((x) << T5_OPT_2_VALID_S)
 #define T5_OPT_2_VALID_F    T5_OPT_2_VALID_V(1U)
 
-struct cpl_pass_open_req {
+struct cpl_pass_open_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 local_port;
@@ -335,7 +346,8 @@ struct cpl_pass_open_req {
 #define CONN_POLICY_S    22
 #define CONN_POLICY_V(x) ((x) << CONN_POLICY_S)
 
-struct cpl_pass_open_req6 {
+struct cpl_pass_open_req6
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 local_port;
@@ -348,31 +360,34 @@ struct cpl_pass_open_req6 {
 	__be64 opt1;
 };
 
-struct cpl_pass_open_rpl {
+struct cpl_pass_open_rpl
+{
 	union opcode_tid ot;
 	u8 rsvd[3];
 	u8 status;
 };
 
-struct tcp_options {
+struct tcp_options
+{
 	__be16 mss;
 	__u8 wsf;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8:4;
-	__u8 unknown:1;
-	__u8:1;
-	__u8 sack:1;
-	__u8 tstamp:1;
+	__u8: 4;
+	__u8 unknown: 1;
+	__u8: 1;
+	__u8 sack: 1;
+	__u8 tstamp: 1;
 #else
-	__u8 tstamp:1;
-	__u8 sack:1;
-	__u8:1;
-	__u8 unknown:1;
-	__u8:4;
+	__u8 tstamp: 1;
+	__u8 sack: 1;
+	__u8: 1;
+	__u8 unknown: 1;
+	__u8: 4;
 #endif
 };
 
-struct cpl_pass_accept_req {
+struct cpl_pass_accept_req
+{
 	union opcode_tid ot;
 	__be16 rsvd;
 	__be16 len;
@@ -419,7 +434,8 @@ struct cpl_pass_accept_req {
 #define SYN_INTF_V(x) ((x) << SYN_INTF_S)
 #define SYN_INTF_G(x) (((x) >> SYN_INTF_S) & SYN_INTF_M)
 
-enum {                     /* TCP congestion control algorithms */
+enum                       /* TCP congestion control algorithms */
+{
 	CONG_ALG_RENO,
 	CONG_ALG_TAHOE,
 	CONG_ALG_NEWRENO,
@@ -435,7 +451,8 @@ enum {                     /* TCP congestion control algorithms */
 #define T5_ISS_V(x) ((x) << T5_ISS_S)
 #define T5_ISS_F    T5_ISS_V(1U)
 
-struct cpl_pass_accept_rpl {
+struct cpl_pass_accept_rpl
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 opt2;
@@ -470,7 +487,8 @@ struct cpl_pass_accept_rpl {
 #define SACK_EN_V(x) ((x) << SACK_EN_S)
 #define SACK_EN_F    SACK_EN_V(1U)
 
-struct cpl_t5_pass_accept_rpl {
+struct cpl_t5_pass_accept_rpl
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 opt2;
@@ -479,7 +497,8 @@ struct cpl_t5_pass_accept_rpl {
 	__be32 rsvd;
 };
 
-struct cpl_act_open_req {
+struct cpl_act_open_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 local_port;
@@ -495,7 +514,8 @@ struct cpl_act_open_req {
 #define FILTER_TUPLE_M  0xFFFFFFFFFF
 #define FILTER_TUPLE_V(x) ((x) << FILTER_TUPLE_S)
 #define FILTER_TUPLE_G(x) (((x) >> FILTER_TUPLE_S) & FILTER_TUPLE_M)
-struct cpl_t5_act_open_req {
+struct cpl_t5_act_open_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 local_port;
@@ -508,7 +528,8 @@ struct cpl_t5_act_open_req {
 	__be64 params;
 };
 
-struct cpl_t6_act_open_req {
+struct cpl_t6_act_open_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 local_port;
@@ -523,7 +544,8 @@ struct cpl_t6_act_open_req {
 	__be32 opt3;
 };
 
-struct cpl_act_open_req6 {
+struct cpl_act_open_req6
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 local_port;
@@ -537,7 +559,8 @@ struct cpl_act_open_req6 {
 	__be32 opt2;
 };
 
-struct cpl_t5_act_open_req6 {
+struct cpl_t5_act_open_req6
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 local_port;
@@ -552,7 +575,8 @@ struct cpl_t5_act_open_req6 {
 	__be64 params;
 };
 
-struct cpl_t6_act_open_req6 {
+struct cpl_t6_act_open_req6
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 local_port;
@@ -569,7 +593,8 @@ struct cpl_t6_act_open_req6 {
 	__be32 opt3;
 };
 
-struct cpl_act_open_rpl {
+struct cpl_act_open_rpl
+{
 	union opcode_tid ot;
 	__be32 atid_status;
 };
@@ -583,7 +608,8 @@ struct cpl_act_open_rpl {
 #define AOPEN_ATID_M    0xFFFFFF
 #define AOPEN_ATID_G(x) (((x) >> AOPEN_ATID_S) & AOPEN_ATID_M)
 
-struct cpl_pass_establish {
+struct cpl_pass_establish
+{
 	union opcode_tid ot;
 	__be32 rsvd;
 	__be32 tos_stid;
@@ -640,7 +666,8 @@ struct cpl_pass_establish {
 #define T6_ETH_HDR_LEN_V(x) ((x) << T6_ETH_HDR_LEN_S)
 #define T6_ETH_HDR_LEN_G(x) (((x) >> T6_ETH_HDR_LEN_S) & T6_ETH_HDR_LEN_M)
 
-struct cpl_act_establish {
+struct cpl_act_establish
+{
 	union opcode_tid ot;
 	__be32 rsvd;
 	__be32 tos_atid;
@@ -650,7 +677,8 @@ struct cpl_act_establish {
 	__be32 rcv_isn;
 };
 
-struct cpl_get_tcb {
+struct cpl_get_tcb
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 reply_ctrl;
@@ -669,7 +697,8 @@ struct cpl_get_tcb {
 #define NO_REPLY_V(x) ((x) << NO_REPLY_S)
 #define NO_REPLY_F    NO_REPLY_V(1U)
 
-struct cpl_set_tcb_field {
+struct cpl_set_tcb_field
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 reply_ctrl;
@@ -687,7 +716,8 @@ struct cpl_set_tcb_field {
 #define TCB_COOKIE_V(x) ((x) << TCB_COOKIE_S)
 #define TCB_COOKIE_G(x) (((x) >> TCB_COOKIE_S) & TCB_COOKIE_M)
 
-struct cpl_set_tcb_rpl {
+struct cpl_set_tcb_rpl
+{
 	union opcode_tid ot;
 	__be16 rsvd;
 	u8 cookie;
@@ -695,13 +725,15 @@ struct cpl_set_tcb_rpl {
 	__be64 oldval;
 };
 
-struct cpl_close_con_req {
+struct cpl_close_con_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 rsvd;
 };
 
-struct cpl_close_con_rpl {
+struct cpl_close_con_rpl
+{
 	union opcode_tid ot;
 	u8 rsvd[3];
 	u8 status;
@@ -709,7 +741,8 @@ struct cpl_close_con_rpl {
 	__be32 rcv_nxt;
 };
 
-struct cpl_close_listsvr_req {
+struct cpl_close_listsvr_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 reply_ctrl;
@@ -721,19 +754,22 @@ struct cpl_close_listsvr_req {
 #define LISTSVR_IPV6_V(x) ((x) << LISTSVR_IPV6_S)
 #define LISTSVR_IPV6_F    LISTSVR_IPV6_V(1U)
 
-struct cpl_close_listsvr_rpl {
+struct cpl_close_listsvr_rpl
+{
 	union opcode_tid ot;
 	u8 rsvd[3];
 	u8 status;
 };
 
-struct cpl_abort_req_rss {
+struct cpl_abort_req_rss
+{
 	union opcode_tid ot;
 	u8 rsvd[3];
 	u8 status;
 };
 
-struct cpl_abort_req {
+struct cpl_abort_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 rsvd0;
@@ -742,13 +778,15 @@ struct cpl_abort_req {
 	u8 rsvd2[6];
 };
 
-struct cpl_abort_rpl_rss {
+struct cpl_abort_rpl_rss
+{
 	union opcode_tid ot;
 	u8 rsvd[3];
 	u8 status;
 };
 
-struct cpl_abort_rpl {
+struct cpl_abort_rpl
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 rsvd0;
@@ -757,25 +795,29 @@ struct cpl_abort_rpl {
 	u8 rsvd2[6];
 };
 
-struct cpl_peer_close {
+struct cpl_peer_close
+{
 	union opcode_tid ot;
 	__be32 rcv_nxt;
 };
 
-struct cpl_tid_release {
+struct cpl_tid_release
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 rsvd;
 };
 
-struct cpl_tx_pkt_core {
+struct cpl_tx_pkt_core
+{
 	__be32 ctrl0;
 	__be16 pack;
 	__be16 len;
 	__be64 ctrl1;
 };
 
-struct cpl_tx_pkt {
+struct cpl_tx_pkt
+{
 	WR_HDR;
 	struct cpl_tx_pkt_core c;
 };
@@ -846,7 +888,8 @@ struct cpl_tx_pkt {
 #define TXPKT_L4CSUM_DIS_V(x) ((__u64)(x) << TXPKT_L4CSUM_DIS_S)
 #define TXPKT_L4CSUM_DIS_F    TXPKT_L4CSUM_DIS_V(1ULL)
 
-struct cpl_tx_pkt_lso_core {
+struct cpl_tx_pkt_lso_core
+{
 	__be32 lso_ctrl;
 	__be16 ipid_ofst;
 	__be16 mss;
@@ -883,13 +926,15 @@ struct cpl_tx_pkt_lso_core {
 #define LSO_T5_XFER_SIZE_S	   0
 #define LSO_T5_XFER_SIZE_V(x) ((x) << LSO_T5_XFER_SIZE_S)
 
-struct cpl_tx_pkt_lso {
+struct cpl_tx_pkt_lso
+{
 	WR_HDR;
 	struct cpl_tx_pkt_lso_core c;
 	/* encapsulated CPL (TX_PKT, TX_PKT_XT or TX_DATA) follows here */
 };
 
-struct cpl_iscsi_hdr {
+struct cpl_iscsi_hdr
+{
 	union opcode_tid ot;
 	__be16 pdu_len_ddp;
 	__be16 len;
@@ -909,12 +954,14 @@ struct cpl_iscsi_hdr {
 #define ISCSI_DDP_V(x) ((x) << ISCSI_DDP_S)
 #define ISCSI_DDP_F    ISCSI_DDP_V(1U)
 
-struct cpl_rx_data_ddp {
+struct cpl_rx_data_ddp
+{
 	union opcode_tid ot;
 	__be16 urg;
 	__be16 len;
 	__be32 seq;
-	union {
+	union
+	{
 		__be32 nxt_seq;
 		__be32 ddp_report;
 	};
@@ -924,7 +971,8 @@ struct cpl_rx_data_ddp {
 
 #define cpl_rx_iscsi_ddp cpl_rx_data_ddp
 
-struct cpl_iscsi_data {
+struct cpl_iscsi_data
+{
 	union opcode_tid ot;
 	__u8 rsvd0[2];
 	__be16 len;
@@ -934,7 +982,8 @@ struct cpl_iscsi_data {
 	__u8 status;
 };
 
-struct cpl_tx_data_iso {
+struct cpl_tx_data_iso
+{
 	__be32 op_to_scsi;
 	__u8   reserved1;
 	__u8   ahs_len;
@@ -1013,29 +1062,31 @@ struct cpl_tx_data_iso {
 	(((x) >> CPL_TX_DATA_ISO_SEGLEN_OFFSET_S) & \
 	 CPL_TX_DATA_ISO_SEGLEN_OFFSET_M)
 
-struct cpl_rx_data {
+struct cpl_rx_data
+{
 	union opcode_tid ot;
 	__be16 rsvd;
 	__be16 len;
 	__be32 seq;
 	__be16 urg;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	u8 dack_mode:2;
-	u8 psh:1;
-	u8 heartbeat:1;
-	u8 ddp_off:1;
-	u8 :3;
+	u8 dack_mode: 2;
+	u8 psh: 1;
+	u8 heartbeat: 1;
+	u8 ddp_off: 1;
+	u8 : 3;
 #else
-	u8 :3;
-	u8 ddp_off:1;
-	u8 heartbeat:1;
-	u8 psh:1;
-	u8 dack_mode:2;
+	u8 : 3;
+	u8 ddp_off: 1;
+	u8 heartbeat: 1;
+	u8 psh: 1;
+	u8 dack_mode: 2;
 #endif
 	u8 status;
 };
 
-struct cpl_rx_data_ack {
+struct cpl_rx_data_ack
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 credit_dack;
@@ -1058,21 +1109,22 @@ struct cpl_rx_data_ack {
 #define RX_DACK_CHANGE_V(x) ((x) << RX_DACK_CHANGE_S)
 #define RX_DACK_CHANGE_F    RX_DACK_CHANGE_V(1U)
 
-struct cpl_rx_pkt {
+struct cpl_rx_pkt
+{
 	struct rss_header rsshdr;
 	u8 opcode;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	u8 iff:4;
-	u8 csum_calc:1;
-	u8 ipmi_pkt:1;
-	u8 vlan_ex:1;
-	u8 ip_frag:1;
+	u8 iff: 4;
+	u8 csum_calc: 1;
+	u8 ipmi_pkt: 1;
+	u8 vlan_ex: 1;
+	u8 ip_frag: 1;
 #else
-	u8 ip_frag:1;
-	u8 vlan_ex:1;
-	u8 ipmi_pkt:1;
-	u8 csum_calc:1;
-	u8 iff:4;
+	u8 ip_frag: 1;
+	u8 vlan_ex: 1;
+	u8 ipmi_pkt: 1;
+	u8 csum_calc: 1;
+	u8 iff: 4;
 #endif
 	__be16 csum;
 	__be16 vlan;
@@ -1162,42 +1214,44 @@ struct cpl_rx_pkt {
 #define RXERR_CSUM_V(x) ((x) << RXERR_CSUM_S)
 #define RXERR_CSUM_F    RXERR_CSUM_V(1U)
 
-struct cpl_trace_pkt {
+struct cpl_trace_pkt
+{
 	u8 opcode;
 	u8 intf;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	u8 runt:4;
-	u8 filter_hit:4;
-	u8 :6;
-	u8 err:1;
-	u8 trunc:1;
+	u8 runt: 4;
+	u8 filter_hit: 4;
+	u8 : 6;
+	u8 err: 1;
+	u8 trunc: 1;
 #else
-	u8 filter_hit:4;
-	u8 runt:4;
-	u8 trunc:1;
-	u8 err:1;
-	u8 :6;
+	u8 filter_hit: 4;
+	u8 runt: 4;
+	u8 trunc: 1;
+	u8 err: 1;
+	u8 : 6;
 #endif
 	__be16 rsvd;
 	__be16 len;
 	__be64 tstamp;
 };
 
-struct cpl_t5_trace_pkt {
+struct cpl_t5_trace_pkt
+{
 	__u8 opcode;
 	__u8 intf;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 runt:4;
-	__u8 filter_hit:4;
-	__u8:6;
-	__u8 err:1;
-	__u8 trunc:1;
+	__u8 runt: 4;
+	__u8 filter_hit: 4;
+	__u8: 6;
+	__u8 err: 1;
+	__u8 trunc: 1;
 #else
-	__u8 filter_hit:4;
-	__u8 runt:4;
-	__u8 trunc:1;
-	__u8 err:1;
-	__u8:6;
+	__u8 filter_hit: 4;
+	__u8 runt: 4;
+	__u8 trunc: 1;
+	__u8 err: 1;
+	__u8: 6;
 #endif
 	__be16 rsvd;
 	__be16 len;
@@ -1205,7 +1259,8 @@ struct cpl_t5_trace_pkt {
 	__be64 rsvd1;
 };
 
-struct cpl_l2t_write_req {
+struct cpl_l2t_write_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 params;
@@ -1227,19 +1282,22 @@ struct cpl_l2t_write_req {
 
 #define CPL_L2T_VLAN_NONE 0xfff
 
-struct cpl_l2t_write_rpl {
+struct cpl_l2t_write_rpl
+{
 	union opcode_tid ot;
 	u8 status;
 	u8 rsvd[3];
 };
 
-struct cpl_rdma_terminate {
+struct cpl_rdma_terminate
+{
 	union opcode_tid ot;
 	__be16 rsvd;
 	__be16 len;
 };
 
-struct cpl_sge_egr_update {
+struct cpl_sge_egr_update
+{
 	__be32 opcode_qid;
 	__be16 cidx;
 	__be16 pidx;
@@ -1251,7 +1309,8 @@ struct cpl_sge_egr_update {
 #define EGR_QID_G(x) (((x) >> EGR_QID_S) & EGR_QID_M)
 
 /* cpl_fw*.type values */
-enum {
+enum
+{
 	FW_TYPE_CMD_RPL = 0,
 	FW_TYPE_WR_RPL = 1,
 	FW_TYPE_CQE = 2,
@@ -1259,7 +1318,8 @@ enum {
 	FW_TYPE_RSSCPL = 4,
 };
 
-struct cpl_fw4_pld {
+struct cpl_fw4_pld
+{
 	u8 opcode;
 	u8 rsvd0[3];
 	u8 type;
@@ -1269,14 +1329,16 @@ struct cpl_fw4_pld {
 	__be64 rsvd2;
 };
 
-struct cpl_fw6_pld {
+struct cpl_fw6_pld
+{
 	u8 opcode;
 	u8 rsvd[5];
 	__be16 len;
 	__be64 data[4];
 };
 
-struct cpl_fw4_msg {
+struct cpl_fw4_msg
+{
 	u8 opcode;
 	u8 type;
 	__be16 rsvd0;
@@ -1284,7 +1346,8 @@ struct cpl_fw4_msg {
 	__be64 data[2];
 };
 
-struct cpl_fw4_ack {
+struct cpl_fw4_ack
+{
 	union opcode_tid ot;
 	u8 credits;
 	u8 rsvd0[2];
@@ -1294,13 +1357,15 @@ struct cpl_fw4_ack {
 	__be64 rsvd1;
 };
 
-enum {
+enum
+{
 	CPL_FW4_ACK_FLAGS_SEQVAL	= 0x1,	/* seqn valid */
 	CPL_FW4_ACK_FLAGS_CH		= 0x2,	/* channel change complete */
 	CPL_FW4_ACK_FLAGS_FLOWC		= 0x4,	/* fw_flowc_wr complete */
 };
 
-struct cpl_fw6_msg {
+struct cpl_fw6_msg
+{
 	u8 opcode;
 	u8 type;
 	__be16 rsvd0;
@@ -1309,7 +1374,8 @@ struct cpl_fw6_msg {
 };
 
 /* cpl_fw6_msg.type values */
-enum {
+enum
+{
 	FW6_TYPE_CMD_RPL = 0,
 	FW6_TYPE_WR_RPL = 1,
 	FW6_TYPE_CQE = 2,
@@ -1317,7 +1383,8 @@ enum {
 	FW6_TYPE_RSSCPL = FW_TYPE_RSSCPL,
 };
 
-struct cpl_fw6_msg_ofld_connection_wr_rpl {
+struct cpl_fw6_msg_ofld_connection_wr_rpl
+{
 	__u64   cookie;
 	__be32  tid;    /* or atid in case of active failure */
 	__u8    t_state;
@@ -1325,7 +1392,8 @@ struct cpl_fw6_msg_ofld_connection_wr_rpl {
 	__u8    rsvd[2];
 };
 
-struct cpl_tx_data {
+struct cpl_tx_data
+{
 	union opcode_tid ot;
 	__be32 len;
 	__be32 rsvd;
@@ -1336,13 +1404,15 @@ struct cpl_tx_data {
 #define TX_FORCE_S	13
 #define TX_FORCE_V(x)	((x) << TX_FORCE_S)
 
-enum {
+enum
+{
 	ULP_TX_MEM_READ = 2,
 	ULP_TX_MEM_WRITE = 3,
 	ULP_TX_PKT = 4
 };
 
-enum {
+enum
+{
 	ULP_TX_SC_NOOP = 0x80,
 	ULP_TX_SC_IMM  = 0x81,
 	ULP_TX_SC_DSGL = 0x82,
@@ -1352,24 +1422,28 @@ enum {
 #define ULPTX_CMD_S    24
 #define ULPTX_CMD_V(x) ((x) << ULPTX_CMD_S)
 
-struct ulptx_sge_pair {
+struct ulptx_sge_pair
+{
 	__be32 len[2];
 	__be64 addr[2];
 };
 
-struct ulptx_sgl {
+struct ulptx_sgl
+{
 	__be32 cmd_nsge;
 	__be32 len0;
 	__be64 addr0;
 	struct ulptx_sge_pair sge[0];
 };
 
-struct ulptx_idata {
+struct ulptx_idata
+{
 	__be32 cmd_more;
 	__be32 len;
 };
 
-struct ulp_txpkt {
+struct ulp_txpkt
+{
 	__be32 cmd_dest;
 	__be32 len;
 };
@@ -1401,7 +1475,8 @@ struct ulp_txpkt {
 #define ULP_TX_SC_MORE_V(x) ((x) << ULP_TX_SC_MORE_S)
 #define ULP_TX_SC_MORE_F  ULP_TX_SC_MORE_V(1U)
 
-struct ulp_mem_io {
+struct ulp_mem_io
+{
 	WR_HDR;
 	__be32 cmd;
 	__be32 len16;             /* command length */
@@ -1443,7 +1518,8 @@ struct ulp_mem_io {
 #define ULPTX_NSGE_V(x) ((x) << ULPTX_NSGE_S)
 #define ULPTX_NSGE_G(x) (((x) >> ULPTX_NSGE_S) & ULPTX_NSGE_M)
 
-struct ulptx_sc_memrd {
+struct ulptx_sc_memrd
+{
 	__be32 cmd_to_len;
 	__be32 addr;
 };
@@ -1626,7 +1702,8 @@ struct ulptx_sc_memrd {
 #define SCMD_HDR_LEN_G(x)   \
 	(((x) >> SCMD_HDR_LEN_S) & SCMD_HDR_LEN_M)
 
-struct cpl_tx_sec_pdu {
+struct cpl_tx_sec_pdu
+{
 	__be32 op_ivinsrtofst;
 	__be32 pldlen;
 	__be32 aadstart_cipherstop_hi;
@@ -1767,7 +1844,8 @@ struct cpl_tx_sec_pdu {
 	(((x) >> CPL_TX_SEC_PDU_AUTHINSERT_S) & \
 	 CPL_TX_SEC_PDU_AUTHINSERT_M)
 
-struct cpl_rx_phys_dsgl {
+struct cpl_rx_phys_dsgl
+{
 	__be32 op_to_tid;
 	__be32 pcirlxorder_to_noofsgentr;
 	struct rss_header rss_hdr_int;

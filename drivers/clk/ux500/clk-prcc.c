@@ -24,7 +24,8 @@
 
 #define to_clk_prcc(_hw) container_of(_hw, struct clk_prcc, hw)
 
-struct clk_prcc {
+struct clk_prcc
+{
 	struct clk_hw hw;
 	void __iomem *base;
 	u32 cg_sel;
@@ -38,8 +39,11 @@ static int clk_prcc_pclk_enable(struct clk_hw *hw)
 	struct clk_prcc *clk = to_clk_prcc(hw);
 
 	writel(clk->cg_sel, (clk->base + PRCC_PCKEN));
+
 	while (!(readl(clk->base + PRCC_PCKSR) & clk->cg_sel))
+	{
 		cpu_relax();
+	}
 
 	clk->is_enabled = 1;
 	return 0;
@@ -58,8 +62,11 @@ static int clk_prcc_kclk_enable(struct clk_hw *hw)
 	struct clk_prcc *clk = to_clk_prcc(hw);
 
 	writel(clk->cg_sel, (clk->base + PRCC_KCKEN));
+
 	while (!(readl(clk->base + PRCC_KCKSR) & clk->cg_sel))
+	{
 		cpu_relax();
+	}
 
 	clk->is_enabled = 1;
 	return 0;
@@ -79,43 +86,51 @@ static int clk_prcc_is_enabled(struct clk_hw *hw)
 	return clk->is_enabled;
 }
 
-static struct clk_ops clk_prcc_pclk_ops = {
+static struct clk_ops clk_prcc_pclk_ops =
+{
 	.enable = clk_prcc_pclk_enable,
 	.disable = clk_prcc_pclk_disable,
 	.is_enabled = clk_prcc_is_enabled,
 };
 
-static struct clk_ops clk_prcc_kclk_ops = {
+static struct clk_ops clk_prcc_kclk_ops =
+{
 	.enable = clk_prcc_kclk_enable,
 	.disable = clk_prcc_kclk_disable,
 	.is_enabled = clk_prcc_is_enabled,
 };
 
 static struct clk *clk_reg_prcc(const char *name,
-				const char *parent_name,
-				resource_size_t phy_base,
-				u32 cg_sel,
-				unsigned long flags,
-				struct clk_ops *clk_prcc_ops)
+								const char *parent_name,
+								resource_size_t phy_base,
+								u32 cg_sel,
+								unsigned long flags,
+								struct clk_ops *clk_prcc_ops)
 {
 	struct clk_prcc *clk;
 	struct clk_init_data clk_prcc_init;
 	struct clk *clk_reg;
 
-	if (!name) {
+	if (!name)
+	{
 		pr_err("clk_prcc: %s invalid arguments passed\n", __func__);
 		return ERR_PTR(-EINVAL);
 	}
 
 	clk = kzalloc(sizeof(struct clk_prcc), GFP_KERNEL);
-	if (!clk) {
+
+	if (!clk)
+	{
 		pr_err("clk_prcc: %s could not allocate clk\n", __func__);
 		return ERR_PTR(-ENOMEM);
 	}
 
 	clk->base = ioremap(phy_base, SZ_4K);
+
 	if (!clk->base)
+	{
 		goto free_clk;
+	}
 
 	clk->cg_sel = cg_sel;
 	clk->is_enabled = 1;
@@ -128,8 +143,11 @@ static struct clk *clk_reg_prcc(const char *name,
 	clk->hw.init = &clk_prcc_init;
 
 	clk_reg = clk_register(NULL, &clk->hw);
+
 	if (IS_ERR_OR_NULL(clk_reg))
+	{
 		goto unmap_clk;
+	}
 
 	return clk_reg;
 
@@ -142,21 +160,21 @@ free_clk:
 }
 
 struct clk *clk_reg_prcc_pclk(const char *name,
-			      const char *parent_name,
-			      resource_size_t phy_base,
-			      u32 cg_sel,
-			      unsigned long flags)
+							  const char *parent_name,
+							  resource_size_t phy_base,
+							  u32 cg_sel,
+							  unsigned long flags)
 {
 	return clk_reg_prcc(name, parent_name, phy_base, cg_sel, flags,
-			&clk_prcc_pclk_ops);
+						&clk_prcc_pclk_ops);
 }
 
 struct clk *clk_reg_prcc_kclk(const char *name,
-			      const char *parent_name,
-			      resource_size_t phy_base,
-			      u32 cg_sel,
-			      unsigned long flags)
+							  const char *parent_name,
+							  resource_size_t phy_base,
+							  u32 cg_sel,
+							  unsigned long flags)
 {
 	return clk_reg_prcc(name, parent_name, phy_base, cg_sel, flags,
-			&clk_prcc_kclk_ops);
+						&clk_prcc_kclk_ops);
 }

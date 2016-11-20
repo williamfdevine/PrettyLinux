@@ -29,7 +29,8 @@
  *		it will be updated to the size required for the operation.
  * @__ctx:	Start of private context data
  */
-struct akcipher_request {
+struct akcipher_request
+{
 	struct crypto_async_request base;
 	struct scatterlist *src;
 	struct scatterlist *dst;
@@ -44,7 +45,8 @@ struct akcipher_request {
  *
  * @base:	Common crypto API algorithm data structure
  */
-struct crypto_akcipher {
+struct crypto_akcipher
+{
 	struct crypto_tfm base;
 };
 
@@ -89,15 +91,16 @@ struct crypto_akcipher {
  * @reqsize:	Request context size required by algorithm implementation
  * @base:	Common crypto API algorithm data structure
  */
-struct akcipher_alg {
+struct akcipher_alg
+{
 	int (*sign)(struct akcipher_request *req);
 	int (*verify)(struct akcipher_request *req);
 	int (*encrypt)(struct akcipher_request *req);
 	int (*decrypt)(struct akcipher_request *req);
 	int (*set_pub_key)(struct crypto_akcipher *tfm, const void *key,
-			   unsigned int keylen);
+					   unsigned int keylen);
 	int (*set_priv_key)(struct crypto_akcipher *tfm, const void *key,
-			    unsigned int keylen);
+						unsigned int keylen);
 	int (*max_size)(struct crypto_akcipher *tfm);
 	int (*init)(struct crypto_akcipher *tfm);
 	void (*exit)(struct crypto_akcipher *tfm);
@@ -128,7 +131,7 @@ struct akcipher_alg {
  *	   of an error, PTR_ERR() returns the error code.
  */
 struct crypto_akcipher *crypto_alloc_akcipher(const char *alg_name, u32 type,
-					      u32 mask);
+		u32 mask);
 
 static inline struct crypto_tfm *crypto_akcipher_tfm(
 	struct crypto_akcipher *tfm)
@@ -159,7 +162,7 @@ static inline unsigned int crypto_akcipher_reqsize(struct crypto_akcipher *tfm)
 }
 
 static inline void akcipher_request_set_tfm(struct akcipher_request *req,
-					    struct crypto_akcipher *tfm)
+		struct crypto_akcipher *tfm)
 {
 	req->base.tfm = crypto_akcipher_tfm(tfm);
 }
@@ -194,8 +197,11 @@ static inline struct akcipher_request *akcipher_request_alloc(
 	struct akcipher_request *req;
 
 	req = kmalloc(sizeof(*req) + crypto_akcipher_reqsize(tfm), gfp);
+
 	if (likely(req))
+	{
 		akcipher_request_set_tfm(req, tfm);
+	}
 
 	return req;
 }
@@ -222,9 +228,9 @@ static inline void akcipher_request_free(struct akcipher_request *req)
  * @data:	private data used by the caller
  */
 static inline void akcipher_request_set_callback(struct akcipher_request *req,
-						 u32 flgs,
-						 crypto_completion_t cmpl,
-						 void *data)
+		u32 flgs,
+		crypto_completion_t cmpl,
+		void *data)
 {
 	req->base.complete = cmpl;
 	req->base.data = data;
@@ -243,10 +249,10 @@ static inline void akcipher_request_set_callback(struct akcipher_request *req,
  * @dst_len:	size of the dst output scatter list
  */
 static inline void akcipher_request_set_crypt(struct akcipher_request *req,
-					      struct scatterlist *src,
-					      struct scatterlist *dst,
-					      unsigned int src_len,
-					      unsigned int dst_len)
+		struct scatterlist *src,
+		struct scatterlist *dst,
+		unsigned int src_len,
+		unsigned int dst_len)
 {
 	req->src = src;
 	req->dst = dst;
@@ -355,8 +361,8 @@ static inline int crypto_akcipher_verify(struct akcipher_request *req)
  * Return: zero on success; error code in case of error
  */
 static inline int crypto_akcipher_set_pub_key(struct crypto_akcipher *tfm,
-					      const void *key,
-					      unsigned int keylen)
+		const void *key,
+		unsigned int keylen)
 {
 	struct akcipher_alg *alg = crypto_akcipher_alg(tfm);
 
@@ -376,8 +382,8 @@ static inline int crypto_akcipher_set_pub_key(struct crypto_akcipher *tfm,
  * Return: zero on success; error code in case of error
  */
 static inline int crypto_akcipher_set_priv_key(struct crypto_akcipher *tfm,
-					       const void *key,
-					       unsigned int keylen)
+		const void *key,
+		unsigned int keylen)
 {
 	struct akcipher_alg *alg = crypto_akcipher_alg(tfm);
 

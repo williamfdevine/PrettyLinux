@@ -58,18 +58,18 @@
 
 #define	BOARD(line)  (((line) >> 4) & 0x3)
 
-	/*	isi kill queue bitmap	*/
+/*	isi kill queue bitmap	*/
 
 #define		ISICOM_KILLTX		0x01
 #define		ISICOM_KILLRX		0x02
 
-	/* isi_board status bitmap */
+/* isi_board status bitmap */
 
 #define		FIRMWARE_LOADED		0x0001
 #define		BOARD_ACTIVE		0x0002
 #define		BOARD_INIT		0x0004
 
- 	/* isi_port status bitmap  */
+/* isi_port status bitmap  */
 
 #define		ISI_CTS			0x1000
 #define		ISI_DSR			0x2000

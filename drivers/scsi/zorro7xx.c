@@ -28,17 +28,20 @@ MODULE_DESCRIPTION("Amiga Zorro NCR53C710 driver");
 MODULE_LICENSE("GPL");
 
 
-static struct scsi_host_template zorro7xx_scsi_driver_template = {
+static struct scsi_host_template zorro7xx_scsi_driver_template =
+{
 	.proc_name	= "zorro7xx",
 	.this_id	= 7,
 	.module		= THIS_MODULE,
 };
 
-static struct zorro_driver_data {
+static struct zorro_driver_data
+{
 	const char *name;
 	unsigned long offset;
 	int absolute;	/* offset is absolute address */
-} zorro7xx_driver_data[] = {
+} zorro7xx_driver_data[] =
+{
 	{ .name = "PowerUP 603e+", .offset = 0xf40000, .absolute = 1 },
 	{ .name = "WarpEngine 40xx", .offset = 0x40000 },
 	{ .name = "A4091", .offset = 0x800000 },
@@ -46,33 +49,34 @@ static struct zorro_driver_data {
 	{ 0 }
 };
 
-static struct zorro_device_id zorro7xx_zorro_tbl[] = {
+static struct zorro_device_id zorro7xx_zorro_tbl[] =
+{
 	{
 		.id = ZORRO_PROD_PHASE5_BLIZZARD_603E_PLUS,
-		.driver_data = (unsigned long)&zorro7xx_driver_data[0],
+		.driver_data = (unsigned long) &zorro7xx_driver_data[0],
 	},
 	{
 		.id = ZORRO_PROD_MACROSYSTEMS_WARP_ENGINE_40xx,
-		.driver_data = (unsigned long)&zorro7xx_driver_data[1],
+		.driver_data = (unsigned long) &zorro7xx_driver_data[1],
 	},
 	{
 		.id = ZORRO_PROD_CBM_A4091_1,
-		.driver_data = (unsigned long)&zorro7xx_driver_data[2],
+		.driver_data = (unsigned long) &zorro7xx_driver_data[2],
 	},
 	{
 		.id = ZORRO_PROD_CBM_A4091_2,
-		.driver_data = (unsigned long)&zorro7xx_driver_data[2],
+		.driver_data = (unsigned long) &zorro7xx_driver_data[2],
 	},
 	{
 		.id = ZORRO_PROD_GVP_GFORCE_040_060,
-		.driver_data = (unsigned long)&zorro7xx_driver_data[3],
+		.driver_data = (unsigned long) &zorro7xx_driver_data[3],
 	},
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(zorro, zorro7xx_zorro_tbl);
 
 static int zorro7xx_init_one(struct zorro_dev *z,
-			     const struct zorro_device_id *ent)
+							 const struct zorro_device_id *ent)
 {
 	struct Scsi_Host *host;
 	struct NCR_700_Host_Parameters *hostdata;
@@ -82,29 +86,39 @@ static int zorro7xx_init_one(struct zorro_dev *z,
 	board = zorro_resource_start(z);
 	zdd = (struct zorro_driver_data *)ent->driver_data;
 
-	if (zdd->absolute) {
+	if (zdd->absolute)
+	{
 		ioaddr = zdd->offset;
-	} else {
+	}
+	else
+	{
 		ioaddr = board + zdd->offset;
 	}
 
-	if (!zorro_request_device(z, zdd->name)) {
+	if (!zorro_request_device(z, zdd->name))
+	{
 		printk(KERN_ERR "zorro7xx: cannot reserve region 0x%lx, abort\n",
-		       board);
+			   board);
 		return -EBUSY;
 	}
 
 	hostdata = kzalloc(sizeof(struct NCR_700_Host_Parameters), GFP_KERNEL);
-	if (!hostdata) {
+
+	if (!hostdata)
+	{
 		printk(KERN_ERR "zorro7xx: Failed to allocate host data\n");
 		goto out_release;
 	}
 
 	/* Fill in the required pieces of hostdata */
 	if (ioaddr > 0x01000000)
+	{
 		hostdata->base = ioremap(ioaddr, zorro_resource_len(z));
+	}
 	else
+	{
 		hostdata->base = ZTWO_VADDR(ioaddr);
+	}
 
 	hostdata->clock = 50;
 	hostdata->chip710 = 1;
@@ -116,10 +130,12 @@ static int zorro7xx_init_one(struct zorro_dev *z,
 
 	/* and register the chip */
 	host = NCR_700_detect(&zorro7xx_scsi_driver_template, hostdata,
-			      &z->dev);
-	if (!host) {
+						  &z->dev);
+
+	if (!host)
+	{
 		printk(KERN_ERR "zorro7xx: No host detected; "
-				"board configuration problem?\n");
+			   "board configuration problem?\n");
 		goto out_free;
 	}
 
@@ -128,7 +144,8 @@ static int zorro7xx_init_one(struct zorro_dev *z,
 	host->irq = IRQ_AMIGA_PORTS;
 
 	if (request_irq(host->irq, NCR_700_intr, IRQF_SHARED, "zorro7xx-scsi",
-			host)) {
+					host))
+	{
 		printk(KERN_ERR "zorro7xx: request_irq failed\n");
 		goto out_put_host;
 	}
@@ -138,13 +155,17 @@ static int zorro7xx_init_one(struct zorro_dev *z,
 
 	return 0;
 
- out_put_host:
+out_put_host:
 	scsi_host_put(host);
- out_free:
+out_free:
+
 	if (ioaddr > 0x01000000)
+	{
 		iounmap(hostdata->base);
+	}
+
 	kfree(hostdata);
- out_release:
+out_release:
 	zorro_release_device(z);
 
 	return -ENODEV;
@@ -163,7 +184,8 @@ static void zorro7xx_remove_one(struct zorro_dev *z)
 	zorro_release_device(z);
 }
 
-static struct zorro_driver zorro7xx_driver = {
+static struct zorro_driver zorro7xx_driver =
+{
 	.name	  = "zorro7xx-scsi",
 	.id_table = zorro7xx_zorro_tbl,
 	.probe	  = zorro7xx_init_one,

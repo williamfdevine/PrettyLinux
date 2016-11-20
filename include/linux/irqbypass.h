@@ -45,14 +45,15 @@ struct irq_bypass_consumer;
  * participation in possible host bypass, for instance an interrupt vector
  * for a physical device assigned to a VM.
  */
-struct irq_bypass_producer {
+struct irq_bypass_producer
+{
 	struct list_head node;
 	void *token;
 	int irq;
 	int (*add_consumer)(struct irq_bypass_producer *,
-			    struct irq_bypass_consumer *);
+						struct irq_bypass_consumer *);
 	void (*del_consumer)(struct irq_bypass_producer *,
-			     struct irq_bypass_consumer *);
+						 struct irq_bypass_consumer *);
 	void (*stop)(struct irq_bypass_producer *);
 	void (*start)(struct irq_bypass_producer *);
 };
@@ -71,13 +72,14 @@ struct irq_bypass_producer {
  * support offloads to allow bypassing the host entirely or offload
  * portions of the interrupt handling to the VM.
  */
-struct irq_bypass_consumer {
+struct irq_bypass_consumer
+{
 	struct list_head node;
 	void *token;
 	int (*add_producer)(struct irq_bypass_consumer *,
-			    struct irq_bypass_producer *);
+						struct irq_bypass_producer *);
 	void (*del_producer)(struct irq_bypass_consumer *,
-			     struct irq_bypass_producer *);
+						 struct irq_bypass_producer *);
 	void (*stop)(struct irq_bypass_consumer *);
 	void (*start)(struct irq_bypass_consumer *);
 };

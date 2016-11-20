@@ -20,7 +20,7 @@ static void udp_ghid_setup(struct lowpan_nhc *nhc)
 }
 
 LOWPAN_NHC(ghc_udp, "RFC7400 UDP", NEXTHDR_UDP, 0,
-	   udp_ghid_setup, LOWPAN_GHC_UDP_IDLEN, NULL, NULL);
+		   udp_ghid_setup, LOWPAN_GHC_UDP_IDLEN, NULL, NULL);
 
 module_lowpan_nhc(ghc_udp);
 MODULE_DESCRIPTION("6LoWPAN generic header UDP compression");

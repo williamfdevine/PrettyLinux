@@ -1,7 +1,7 @@
 /* drivers/atm/idt77105.h - IDT77105 (PHY) declarations */
- 
+
 /* Written 1999 by Greg Banks, NEC Australia <gnb@linuxfan.com>. Based on suni.h */
- 
+
 
 #ifndef DRIVER_ATM_IDT77105_H
 #define DRIVER_ATM_IDT77105_H
@@ -76,15 +76,15 @@
 #define IDT77105_CTRSEL_RHEC	0x01	/* W, Rx HEC Error Counter */
 
 #ifdef __KERNEL__
-int idt77105_init(struct atm_dev *dev);
+	int idt77105_init(struct atm_dev *dev);
 #endif
 
 /*
  * Tunable parameters
  */
- 
+
 /* Time between samples of the hardware cell counters. Should be <= 1 sec */
-#define IDT77105_STATS_TIMER_PERIOD     (HZ) 
+#define IDT77105_STATS_TIMER_PERIOD     (HZ)
 /* Time between checks to see if the signal has been found again */
 #define IDT77105_RESTART_TIMER_PERIOD   (5 * HZ)
 

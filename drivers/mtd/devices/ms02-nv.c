@@ -40,7 +40,8 @@ MODULE_LICENSE("GPL");
  * boundary within a 0MiB up to 448MiB range.  We don't support a module
  * at 0MiB, though.
  */
-static ulong ms02nv_addrs[] __initdata = {
+static ulong ms02nv_addrs[] __initdata =
+{
 	0x07000000, 0x06800000, 0x06000000, 0x05800000, 0x05000000,
 	0x04800000, 0x04000000, 0x03800000, 0x03000000, 0x02800000,
 	0x02000000, 0x01800000, 0x01000000, 0x00800000
@@ -55,7 +56,7 @@ static struct mtd_info *root_ms02nv_mtd;
 
 
 static int ms02nv_read(struct mtd_info *mtd, loff_t from,
-			size_t len, size_t *retlen, u_char *buf)
+					   size_t len, size_t *retlen, u_char *buf)
 {
 	struct ms02nv_private *mp = mtd->priv;
 
@@ -65,7 +66,7 @@ static int ms02nv_read(struct mtd_info *mtd, loff_t from,
 }
 
 static int ms02nv_write(struct mtd_info *mtd, loff_t to,
-			size_t len, size_t *retlen, const u_char *buf)
+						size_t len, size_t *retlen, const u_char *buf)
 {
 	struct ms02nv_private *mp = mtd->priv;
 
@@ -92,15 +93,24 @@ static inline uint ms02nv_probe_one(ulong addr)
 	ms02nv_diagp = (ms02nv_uint *)(CKSEG1ADDR(addr + MS02NV_DIAG));
 	ms02nv_magicp = (ms02nv_uint *)(CKSEG1ADDR(addr + MS02NV_MAGIC));
 	err = get_dbe(ms02nv_magic, ms02nv_magicp);
+
 	if (err)
+	{
 		return 0;
+	}
+
 	if (ms02nv_magic != MS02NV_ID)
+	{
 		return 0;
+	}
 
 	ms02nv_diag = *ms02nv_diagp;
 	size = (ms02nv_diag & MS02NV_DIAG_SIZE_MASK) << MS02NV_DIAG_SIZE_SHIFT;
+
 	if (size > MS02NV_CSR)
+	{
 		size = MS02NV_CSR;
+	}
 
 	return size;
 }
@@ -122,40 +132,60 @@ static int __init ms02nv_init_one(ulong addr)
 
 	/* The module decodes 8MiB of address space. */
 	mod_res = kzalloc(sizeof(*mod_res), GFP_KERNEL);
+
 	if (!mod_res)
+	{
 		return -ENOMEM;
+	}
 
 	mod_res->name = ms02nv_name;
 	mod_res->start = addr;
 	mod_res->end = addr + MS02NV_SLOT_SIZE - 1;
 	mod_res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+
 	if (request_resource(&iomem_resource, mod_res) < 0)
+	{
 		goto err_out_mod_res;
+	}
 
 	size = ms02nv_probe_one(addr);
-	if (!size)
-		goto err_out_mod_res_rel;
 
-	if (!version_printed) {
+	if (!size)
+	{
+		goto err_out_mod_res_rel;
+	}
+
+	if (!version_printed)
+	{
 		printk(KERN_INFO "%s", version);
 		version_printed = 1;
 	}
 
 	ret = -ENOMEM;
 	mtd = kzalloc(sizeof(*mtd), GFP_KERNEL);
+
 	if (!mtd)
+	{
 		goto err_out_mod_res_rel;
+	}
+
 	mp = kzalloc(sizeof(*mp), GFP_KERNEL);
+
 	if (!mp)
+	{
 		goto err_out_mtd;
+	}
 
 	mtd->priv = mp;
 	mp->resource.module = mod_res;
 
 	/* Firmware's diagnostic NVRAM area. */
 	diag_res = kzalloc(sizeof(*diag_res), GFP_KERNEL);
+
 	if (!diag_res)
+	{
 		goto err_out_mp;
+	}
 
 	diag_res->name = ms02nv_res_diag_ram;
 	diag_res->start = addr;
@@ -167,8 +197,11 @@ static int __init ms02nv_init_one(ulong addr)
 
 	/* User-available general-purpose NVRAM area. */
 	user_res = kzalloc(sizeof(*user_res), GFP_KERNEL);
+
 	if (!user_res)
+	{
 		goto err_out_diag_res;
+	}
 
 	user_res->name = ms02nv_res_user_ram;
 	user_res->start = addr + MS02NV_RAM;
@@ -180,8 +213,11 @@ static int __init ms02nv_init_one(ulong addr)
 
 	/* Control and status register. */
 	csr_res = kzalloc(sizeof(*csr_res), GFP_KERNEL);
+
 	if (!csr_res)
+	{
 		goto err_out_user_res;
+	}
 
 	csr_res->name = ms02nv_res_csr;
 	csr_res->start = addr + MS02NV_CSR;
@@ -212,14 +248,16 @@ static int __init ms02nv_init_one(ulong addr)
 	mtd->writesize = 1;
 
 	ret = -EIO;
-	if (mtd_device_register(mtd, NULL, 0)) {
+
+	if (mtd_device_register(mtd, NULL, 0))
+	{
 		printk(KERN_ERR
-			"ms02-nv: Unable to register MTD device, aborting!\n");
+			   "ms02-nv: Unable to register MTD device, aborting!\n");
 		goto err_out_csr_res;
 	}
 
 	printk(KERN_INFO "mtd%d: %s at 0x%08lx, size %zuMiB.\n",
-		mtd->index, ms02nv_name, addr, size >> 20);
+		   mtd->index, ms02nv_name, addr, size >> 20);
 
 	mp->next = root_ms02nv_mtd;
 	root_ms02nv_mtd = mtd;
@@ -276,26 +314,39 @@ static int __init ms02nv_init(void)
 	int count = 0;
 	int i;
 
-	switch (mips_machtype) {
-	case MACH_DS5000_200:
-		csr = (volatile u32 *)CKSEG1ADDR(KN02_SLOT_BASE + KN02_CSR);
-		if (*csr & KN02_CSR_BNK32M)
-			stride = 2;
-		break;
-	case MACH_DS5000_2X0:
-	case MACH_DS5900:
-		csr = (volatile u32 *)CKSEG1ADDR(KN03_SLOT_BASE + IOASIC_MCR);
-		if (*csr & KN03_MCR_BNK32M)
-			stride = 2;
-		break;
-	default:
-		return -ENODEV;
-		break;
+	switch (mips_machtype)
+	{
+		case MACH_DS5000_200:
+			csr = (volatile u32 *)CKSEG1ADDR(KN02_SLOT_BASE + KN02_CSR);
+
+			if (*csr & KN02_CSR_BNK32M)
+			{
+				stride = 2;
+			}
+
+			break;
+
+		case MACH_DS5000_2X0:
+		case MACH_DS5900:
+			csr = (volatile u32 *)CKSEG1ADDR(KN03_SLOT_BASE + IOASIC_MCR);
+
+			if (*csr & KN03_MCR_BNK32M)
+			{
+				stride = 2;
+			}
+
+			break;
+
+		default:
+			return -ENODEV;
+			break;
 	}
 
 	for (i = 0; i < ARRAY_SIZE(ms02nv_addrs); i++)
 		if (!ms02nv_init_one(ms02nv_addrs[i] << stride))
+		{
 			count++;
+		}
 
 	return (count > 0) ? 0 : -ENODEV;
 }
@@ -303,7 +354,9 @@ static int __init ms02nv_init(void)
 static void __exit ms02nv_cleanup(void)
 {
 	while (root_ms02nv_mtd)
+	{
 		ms02nv_remove_one();
+	}
 }
 
 

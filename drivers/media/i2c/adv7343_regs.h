@@ -16,7 +16,8 @@
 #ifndef ADV7343_REGS_H
 #define ADV7343_REGS_H
 
-struct adv7343_std_info {
+struct adv7343_std_info
+{
 	u32 standard_val3;
 	u32 fsc_val;
 	v4l2_std_id stdid;

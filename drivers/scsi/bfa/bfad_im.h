@@ -24,7 +24,7 @@
 #define FCPI_NAME " fcpim"
 
 #ifndef KOBJ_NAME_LEN
-#define KOBJ_NAME_LEN           20
+	#define KOBJ_NAME_LEN           20
 #endif
 
 bfa_status_t bfad_im_module_init(void);
@@ -35,9 +35,9 @@ bfa_status_t bfad_im_port_new(struct bfad_s *bfad, struct bfad_port_s *port);
 void bfad_im_port_delete(struct bfad_s *bfad, struct bfad_port_s *port);
 void bfad_im_port_clean(struct bfad_im_port_s *im_port);
 int  bfad_im_scsi_host_alloc(struct bfad_s *bfad,
-		struct bfad_im_port_s *im_port, struct device *dev);
+							 struct bfad_im_port_s *im_port, struct device *dev);
 void bfad_im_scsi_host_free(struct bfad_s *bfad,
-				struct bfad_im_port_s *im_port);
+							struct bfad_im_port_s *im_port);
 u32 bfad_im_supported_speeds(struct bfa_s *bfa);
 
 #define MAX_FCP_TARGET 1024
@@ -52,11 +52,13 @@ u32 bfad_im_supported_speeds(struct bfa_s *bfa);
  */
 #define IO_DONE_BIT			0
 
-struct bfad_itnim_data_s {
+struct bfad_itnim_data_s
+{
 	struct bfad_itnim_s *itnim;
 };
 
-struct bfad_im_port_s {
+struct bfad_im_port_s
+{
 	struct bfad_s         *bfad;
 	struct bfad_port_s    *port;
 	struct work_struct port_delete_work;
@@ -69,7 +71,8 @@ struct bfad_im_port_s {
 	struct fc_vport *fc_vport;
 };
 
-enum bfad_itnim_state {
+enum bfad_itnim_state
+{
 	ITNIM_STATE_NONE,
 	ITNIM_STATE_ONLINE,
 	ITNIM_STATE_OFFLINE_PENDING,
@@ -81,7 +84,8 @@ enum bfad_itnim_state {
 /*
  * Per itnim data structure
  */
-struct bfad_itnim_s {
+struct bfad_itnim_s
+{
 	struct list_head list_entry;
 	struct bfa_fcs_itnim_s fcs_itnim;
 	struct work_struct itnim_work;
@@ -99,13 +103,15 @@ struct bfad_itnim_s {
 	unsigned long	last_queue_full_time;
 };
 
-enum bfad_binding_type {
+enum bfad_binding_type
+{
 	FCP_PWWN_BINDING = 0x1,
 	FCP_NWWN_BINDING = 0x2,
 	FCP_FCID_BINDING = 0x3,
 };
 
-struct bfad_fcp_binding {
+struct bfad_fcp_binding
+{
 	struct list_head list_entry;
 	enum bfad_binding_type binding_type;
 	u16        scsi_target_id;
@@ -114,7 +120,8 @@ struct bfad_fcp_binding {
 	wwn_t           pwwn;
 };
 
-struct bfad_im_s {
+struct bfad_im_s
+{
 	struct bfad_s         *bfad;
 	struct workqueue_struct *drv_workq;
 	char            drv_workq_name[KOBJ_NAME_LEN];
@@ -122,35 +129,35 @@ struct bfad_im_s {
 };
 
 #define bfad_get_aen_entry(_drv, _entry) do {				\
-	unsigned long	_flags;						\
-	spin_lock_irqsave(&(_drv)->bfad_aen_spinlock, _flags);		\
-	bfa_q_deq(&(_drv)->free_aen_q, &(_entry));			\
-	if (_entry)							\
-		list_add_tail(&(_entry)->qe, &(_drv)->active_aen_q);	\
-	spin_unlock_irqrestore(&(_drv)->bfad_aen_spinlock, _flags);	\
-} while (0)
+		unsigned long	_flags;						\
+		spin_lock_irqsave(&(_drv)->bfad_aen_spinlock, _flags);		\
+		bfa_q_deq(&(_drv)->free_aen_q, &(_entry));			\
+		if (_entry)							\
+			list_add_tail(&(_entry)->qe, &(_drv)->active_aen_q);	\
+		spin_unlock_irqrestore(&(_drv)->bfad_aen_spinlock, _flags);	\
+	} while (0)
 
 /* post fc_host vendor event */
 #define bfad_im_post_vendor_event(_entry, _drv, _cnt, _cat, _evt) do {	      \
-	do_gettimeofday(&(_entry)->aen_tv);				      \
-	(_entry)->bfad_num = (_drv)->inst_no;				      \
-	(_entry)->seq_num = (_cnt);					      \
-	(_entry)->aen_category = (_cat);				      \
-	(_entry)->aen_type = (_evt);					      \
-	if ((_drv)->bfad_flags & BFAD_FC4_PROBE_DONE)			      \
-		queue_work((_drv)->im->drv_workq,			      \
-			   &(_drv)->im->aen_im_notify_work);		      \
-} while (0)
+		do_gettimeofday(&(_entry)->aen_tv);				      \
+		(_entry)->bfad_num = (_drv)->inst_no;				      \
+		(_entry)->seq_num = (_cnt);					      \
+		(_entry)->aen_category = (_cat);				      \
+		(_entry)->aen_type = (_evt);					      \
+		if ((_drv)->bfad_flags & BFAD_FC4_PROBE_DONE)			      \
+			queue_work((_drv)->im->drv_workq,			      \
+					   &(_drv)->im->aen_im_notify_work);		      \
+	} while (0)
 
 struct Scsi_Host *bfad_scsi_host_alloc(struct bfad_im_port_s *im_port,
-				struct bfad_s *);
+									   struct bfad_s *);
 bfa_status_t bfad_thread_workq(struct bfad_s *bfad);
 void bfad_destroy_workq(struct bfad_im_s *im);
 void bfad_fc_host_init(struct bfad_im_port_s *im_port);
 void bfad_scsi_host_free(struct bfad_s *bfad,
-				 struct bfad_im_port_s *im_port);
+						 struct bfad_im_port_s *im_port);
 void bfad_ramp_up_qdepth(struct bfad_itnim_s *itnim,
-				 struct scsi_device *sdev);
+						 struct scsi_device *sdev);
 void bfad_handle_qfull(struct bfad_itnim_s *itnim, struct scsi_device *sdev);
 struct bfad_itnim_s *bfad_get_itnim(struct bfad_im_port_s *im_port, int id);
 
@@ -177,22 +184,22 @@ int bfad_im_bsg_timeout(struct fc_bsg_job *job);
  * sdev_bflags for the scsi_device associated with LUN #0.
  */
 #define bfad_reset_sdev_bflags(__im_port, __lunmask_cfg) do {		\
-	struct scsi_device *__sdev = NULL;				\
-	struct bfad_itnim_s *__itnim = NULL;				\
-	u32 scan_flags = BLIST_NOREPORTLUN | BLIST_SPARSELUN;		\
-	list_for_each_entry(__itnim, &((__im_port)->itnim_mapped_list),	\
-			    list_entry) {				\
-		__sdev = scsi_device_lookup((__im_port)->shost,		\
-					    __itnim->channel,		\
-					    __itnim->scsi_tgt_id, 0);	\
-		if (__sdev) {						\
-			if ((__lunmask_cfg) == BFA_TRUE)		\
-				__sdev->sdev_bflags |= scan_flags;	\
-			else						\
-				__sdev->sdev_bflags &= ~scan_flags;	\
-			scsi_device_put(__sdev);			\
-		}							\
-	}								\
-} while (0)
+		struct scsi_device *__sdev = NULL;				\
+		struct bfad_itnim_s *__itnim = NULL;				\
+		u32 scan_flags = BLIST_NOREPORTLUN | BLIST_SPARSELUN;		\
+		list_for_each_entry(__itnim, &((__im_port)->itnim_mapped_list),	\
+							list_entry) {				\
+			__sdev = scsi_device_lookup((__im_port)->shost,		\
+										__itnim->channel,		\
+										__itnim->scsi_tgt_id, 0);	\
+			if (__sdev) {						\
+				if ((__lunmask_cfg) == BFA_TRUE)		\
+					__sdev->sdev_bflags |= scan_flags;	\
+				else						\
+					__sdev->sdev_bflags &= ~scan_flags;	\
+				scsi_device_put(__sdev);			\
+			}							\
+		}								\
+	} while (0)
 
 #endif

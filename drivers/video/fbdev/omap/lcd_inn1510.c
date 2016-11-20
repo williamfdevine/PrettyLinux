@@ -28,7 +28,7 @@
 #include "omapfb.h"
 
 static int innovator1510_panel_init(struct lcd_panel *panel,
-				    struct omapfb_device *fbdev)
+									struct omapfb_device *fbdev)
 {
 	return 0;
 }
@@ -53,7 +53,8 @@ static unsigned long innovator1510_panel_get_caps(struct lcd_panel *panel)
 	return 0;
 }
 
-struct lcd_panel innovator1510_panel = {
+struct lcd_panel innovator1510_panel =
+{
 	.name		= "inn1510",
 	.config		= OMAP_LCDC_PANEL_TFT,
 
@@ -89,7 +90,7 @@ static int innovator1510_panel_remove(struct platform_device *pdev)
 }
 
 static int innovator1510_panel_suspend(struct platform_device *pdev,
-				       pm_message_t mesg)
+									   pm_message_t mesg)
 {
 	return 0;
 }
@@ -99,7 +100,8 @@ static int innovator1510_panel_resume(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver innovator1510_panel_driver = {
+static struct platform_driver innovator1510_panel_driver =
+{
 	.probe		= innovator1510_panel_probe,
 	.remove		= innovator1510_panel_remove,
 	.suspend	= innovator1510_panel_suspend,

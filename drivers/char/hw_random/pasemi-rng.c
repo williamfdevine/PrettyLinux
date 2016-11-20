@@ -48,13 +48,19 @@ static int pasemi_rng_data_present(struct hwrng *rng, int wait)
 	void __iomem *rng_regs = (void __iomem *)rng->priv;
 	int data, i;
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i++)
+	{
 		data = (in_le32(rng_regs + SDCRNG_CTL_REG)
-			& SDCRNG_CTL_FVLD_M) ? 1 : 0;
+				& SDCRNG_CTL_FVLD_M) ? 1 : 0;
+
 		if (data || !wait)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
+
 	return data;
 }
 
@@ -84,10 +90,11 @@ static void pasemi_rng_cleanup(struct hwrng *rng)
 
 	ctl = SDCRNG_CTL_RE | SDCRNG_CTL_CE;
 	out_le32(rng_regs + SDCRNG_CTL_REG,
-		 in_le32(rng_regs + SDCRNG_CTL_REG) & ~ctl);
+			 in_le32(rng_regs + SDCRNG_CTL_REG) & ~ctl);
 }
 
-static struct hwrng pasemi_rng = {
+static struct hwrng pasemi_rng =
+{
 	.name		= MODULE_NAME,
 	.init		= pasemi_rng_init,
 	.cleanup	= pasemi_rng_cleanup,
@@ -102,8 +109,11 @@ static int rng_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rng_regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(rng_regs))
+	{
 		return PTR_ERR(rng_regs);
+	}
 
 	pasemi_rng.priv = (unsigned long)rng_regs;
 
@@ -111,14 +121,16 @@ static int rng_probe(struct platform_device *pdev)
 	return devm_hwrng_register(&pdev->dev, &pasemi_rng);
 }
 
-static const struct of_device_id rng_match[] = {
+static const struct of_device_id rng_match[] =
+{
 	{ .compatible      = "1682m-rng", },
 	{ .compatible      = "pasemi,pwrficient-rng", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, rng_match);
 
-static struct platform_driver rng_driver = {
+static struct platform_driver rng_driver =
+{
 	.driver = {
 		.name = "pasemi-rng",
 		.of_match_table = rng_match,

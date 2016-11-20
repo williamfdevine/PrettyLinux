@@ -32,39 +32,45 @@
  * PSC_I2S_FORMATS: audio formats supported by the PSC I2S mode
  */
 #define PSC_I2S_FORMATS (SNDRV_PCM_FMTBIT_S8 | SNDRV_PCM_FMTBIT_S16_BE | \
-			 SNDRV_PCM_FMTBIT_S24_BE | SNDRV_PCM_FMTBIT_S32_BE)
+						 SNDRV_PCM_FMTBIT_S24_BE | SNDRV_PCM_FMTBIT_S32_BE)
 
 static int psc_i2s_hw_params(struct snd_pcm_substream *substream,
-				 struct snd_pcm_hw_params *params,
-				 struct snd_soc_dai *dai)
+							 struct snd_pcm_hw_params *params,
+							 struct snd_soc_dai *dai)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct psc_dma *psc_dma = snd_soc_dai_get_drvdata(rtd->cpu_dai);
 	u32 mode;
 
 	dev_dbg(psc_dma->dev, "%s(substream=%p) p_size=%i p_bytes=%i"
-		" periods=%i buffer_size=%i  buffer_bytes=%i\n",
-		__func__, substream, params_period_size(params),
-		params_period_bytes(params), params_periods(params),
-		params_buffer_size(params), params_buffer_bytes(params));
+			" periods=%i buffer_size=%i  buffer_bytes=%i\n",
+			__func__, substream, params_period_size(params),
+			params_period_bytes(params), params_periods(params),
+			params_buffer_size(params), params_buffer_bytes(params));
 
-	switch (params_format(params)) {
-	case SNDRV_PCM_FORMAT_S8:
-		mode = MPC52xx_PSC_SICR_SIM_CODEC_8;
-		break;
-	case SNDRV_PCM_FORMAT_S16_BE:
-		mode = MPC52xx_PSC_SICR_SIM_CODEC_16;
-		break;
-	case SNDRV_PCM_FORMAT_S24_BE:
-		mode = MPC52xx_PSC_SICR_SIM_CODEC_24;
-		break;
-	case SNDRV_PCM_FORMAT_S32_BE:
-		mode = MPC52xx_PSC_SICR_SIM_CODEC_32;
-		break;
-	default:
-		dev_dbg(psc_dma->dev, "invalid format\n");
-		return -EINVAL;
+	switch (params_format(params))
+	{
+		case SNDRV_PCM_FORMAT_S8:
+			mode = MPC52xx_PSC_SICR_SIM_CODEC_8;
+			break;
+
+		case SNDRV_PCM_FORMAT_S16_BE:
+			mode = MPC52xx_PSC_SICR_SIM_CODEC_16;
+			break;
+
+		case SNDRV_PCM_FORMAT_S24_BE:
+			mode = MPC52xx_PSC_SICR_SIM_CODEC_24;
+			break;
+
+		case SNDRV_PCM_FORMAT_S32_BE:
+			mode = MPC52xx_PSC_SICR_SIM_CODEC_32;
+			break;
+
+		default:
+			dev_dbg(psc_dma->dev, "invalid format\n");
+			return -EINVAL;
 	}
+
 	out_be32(&psc_dma->psc_regs->sicr, psc_dma->sicr | mode);
 
 	return 0;
@@ -85,11 +91,11 @@ static int psc_i2s_hw_params(struct snd_pcm_substream *substream,
  * @dir: SND_SOC_CLOCK_IN (clock slave) or SND_SOC_CLOCK_OUT (clock master)
  */
 static int psc_i2s_set_sysclk(struct snd_soc_dai *cpu_dai,
-			      int clk_id, unsigned int freq, int dir)
+							  int clk_id, unsigned int freq, int dir)
 {
 	struct psc_dma *psc_dma = snd_soc_dai_get_drvdata(cpu_dai);
 	dev_dbg(psc_dma->dev, "psc_i2s_set_sysclk(cpu_dai=%p, dir=%i)\n",
-				cpu_dai, dir);
+			cpu_dai, dir);
 	return (dir == SND_SOC_CLOCK_IN) ? 0 : -EINVAL;
 }
 
@@ -108,7 +114,7 @@ static int psc_i2s_set_fmt(struct snd_soc_dai *cpu_dai, unsigned int format)
 {
 	struct psc_dma *psc_dma = snd_soc_dai_get_drvdata(cpu_dai);
 	dev_dbg(psc_dma->dev, "psc_i2s_set_fmt(cpu_dai=%p, format=%i)\n",
-				cpu_dai, format);
+			cpu_dai, format);
 	return (format == SND_SOC_DAIFMT_I2S) ? 0 : -EINVAL;
 }
 
@@ -122,32 +128,35 @@ static int psc_i2s_set_fmt(struct snd_soc_dai *cpu_dai, unsigned int format)
 /**
  * psc_i2s_dai_template: template CPU Digital Audio Interface
  */
-static const struct snd_soc_dai_ops psc_i2s_dai_ops = {
+static const struct snd_soc_dai_ops psc_i2s_dai_ops =
+{
 	.hw_params	= psc_i2s_hw_params,
 	.set_sysclk	= psc_i2s_set_sysclk,
 	.set_fmt	= psc_i2s_set_fmt,
 };
 
 static struct snd_soc_dai_driver psc_i2s_dai[] = {{
-	.name = "mpc5200-psc-i2s.0",
-	.playback = {
-		.stream_name = "I2S Playback",
-		.channels_min = 2,
-		.channels_max = 2,
-		.rates = PSC_I2S_RATES,
-		.formats = PSC_I2S_FORMATS,
-	},
-	.capture = {
-		.stream_name = "I2S Capture",
-		.channels_min = 2,
-		.channels_max = 2,
-		.rates = PSC_I2S_RATES,
-		.formats = PSC_I2S_FORMATS,
-	},
-	.ops = &psc_i2s_dai_ops,
-} };
+		.name = "mpc5200-psc-i2s.0",
+		.playback = {
+			.stream_name = "I2S Playback",
+			.channels_min = 2,
+			.channels_max = 2,
+			.rates = PSC_I2S_RATES,
+			.formats = PSC_I2S_FORMATS,
+		},
+		.capture = {
+			.stream_name = "I2S Capture",
+			.channels_min = 2,
+			.channels_max = 2,
+			.rates = PSC_I2S_RATES,
+			.formats = PSC_I2S_FORMATS,
+		},
+		.ops = &psc_i2s_dai_ops,
+	}
+};
 
-static const struct snd_soc_component_driver psc_i2s_component = {
+static const struct snd_soc_component_driver psc_i2s_component =
+{
 	.name		= "mpc5200-i2s",
 };
 
@@ -163,12 +172,17 @@ static int psc_i2s_of_probe(struct platform_device *op)
 	struct mpc52xx_psc __iomem *regs;
 
 	rc = mpc5200_audio_dma_create(op);
+
 	if (rc != 0)
+	{
 		return rc;
+	}
 
 	rc = snd_soc_register_component(&op->dev, &psc_i2s_component,
-					psc_i2s_dai, ARRAY_SIZE(psc_i2s_dai));
-	if (rc != 0) {
+									psc_i2s_dai, ARRAY_SIZE(psc_i2s_dai));
+
+	if (rc != 0)
+	{
 		pr_err("Failed to register DAI\n");
 		return rc;
 	}
@@ -178,14 +192,16 @@ static int psc_i2s_of_probe(struct platform_device *op)
 
 	/* Configure the serial interface mode; defaulting to CODEC8 mode */
 	psc_dma->sicr = MPC52xx_PSC_SICR_DTS1 | MPC52xx_PSC_SICR_I2S |
-			MPC52xx_PSC_SICR_CLKPOL;
+					MPC52xx_PSC_SICR_CLKPOL;
 	out_be32(&psc_dma->psc_regs->sicr,
-		 psc_dma->sicr | MPC52xx_PSC_SICR_SIM_CODEC_8);
+			 psc_dma->sicr | MPC52xx_PSC_SICR_SIM_CODEC_8);
 
 	/* Check for the codec handle.  If it is not present then we
 	 * are done */
 	if (!of_get_property(op->dev.of_node, "codec-handle", NULL))
+	{
 		return 0;
+	}
 
 	/* Due to errata in the dma mode; need to line up enabling
 	 * the transmitter with a transition on the frame sync
@@ -194,16 +210,18 @@ static int psc_i2s_of_probe(struct platform_device *op)
 	/* first make sure it is low */
 	while ((in_8(&regs->ipcr_acr.ipcr) & 0x80) != 0)
 		;
+
 	/* then wait for the transition to high */
 	while ((in_8(&regs->ipcr_acr.ipcr) & 0x80) == 0)
 		;
+
 	/* Finally, enable the PSC.
 	 * Receiver must always be enabled; even when we only want
 	 * transmit.  (see 15.3.2.3 of MPC5200B User's Guide) */
 
 	/* Go */
 	out_8(&psc_dma->psc_regs->command,
-			MPC52xx_PSC_TX_ENABLE | MPC52xx_PSC_RX_ENABLE);
+		  MPC52xx_PSC_TX_ENABLE | MPC52xx_PSC_RX_ENABLE);
 
 	return 0;
 
@@ -217,14 +235,16 @@ static int psc_i2s_of_remove(struct platform_device *op)
 }
 
 /* Match table for of_platform binding */
-static const struct of_device_id psc_i2s_match[] = {
+static const struct of_device_id psc_i2s_match[] =
+{
 	{ .compatible = "fsl,mpc5200-psc-i2s", },
 	{ .compatible = "fsl,mpc5200b-psc-i2s", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, psc_i2s_match);
 
-static struct platform_driver psc_i2s_driver = {
+static struct platform_driver psc_i2s_driver =
+{
 	.probe = psc_i2s_of_probe,
 	.remove = psc_i2s_of_remove,
 	.driver = {

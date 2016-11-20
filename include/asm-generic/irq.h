@@ -7,7 +7,7 @@
  * so don't make it too big.
  */
 #ifndef NR_IRQS
-#define NR_IRQS 64
+	#define NR_IRQS 64
 #endif
 
 static inline int irq_canonicalize(int irq)

@@ -36,7 +36,8 @@
  * @flags: any combination of MX2_CAMERA_*
  * @clk: clock rate of the csi block / 2
  */
-struct mx2_camera_platform_data {
+struct mx2_camera_platform_data
+{
 	unsigned long flags;
 	unsigned long clk;
 };

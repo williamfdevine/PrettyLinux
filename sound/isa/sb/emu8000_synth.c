@@ -40,15 +40,22 @@ static int snd_emu8000_probe(struct device *_dev)
 	struct snd_emu8000 *hw;
 	struct snd_emux *emu;
 
-	hw = *(struct snd_emu8000**)SNDRV_SEQ_DEVICE_ARGPTR(dev);
+	hw = *(struct snd_emu8000 **)SNDRV_SEQ_DEVICE_ARGPTR(dev);
+
 	if (hw == NULL)
+	{
 		return -EINVAL;
+	}
 
 	if (hw->emu)
-		return -EBUSY; /* already exists..? */
+	{
+		return -EBUSY;    /* already exists..? */
+	}
 
 	if (snd_emux_new(&emu) < 0)
+	{
 		return -ENOMEM;
+	}
 
 	hw->emu = emu;
 	snd_emu8000_ops_setup(hw);
@@ -57,12 +64,16 @@ static int snd_emu8000_probe(struct device *_dev)
 	emu->max_voices = EMU8000_DRAM_VOICES;
 	emu->num_ports = hw->seq_ports;
 
-	if (hw->memhdr) {
+	if (hw->memhdr)
+	{
 		snd_printk(KERN_ERR "memhdr is already initialized!?\n");
 		snd_util_memhdr_free(hw->memhdr);
 	}
+
 	hw->memhdr = snd_util_memhdr_new(hw->mem_size);
-	if (hw->memhdr == NULL) {
+
+	if (hw->memhdr == NULL)
+	{
 		snd_emux_free(emu);
 		hw->emu = NULL;
 		return -ENOMEM;
@@ -74,7 +85,8 @@ static int snd_emu8000_probe(struct device *_dev)
 	emu->linear_panning = 1;
 	emu->hwdep_idx = 2; /* FIXED */
 
-	if (snd_emux_register(emu, dev->card, hw->index, "Emu8000") < 0) {
+	if (snd_emux_register(emu, dev->card, hw->index, "Emu8000") < 0)
+	{
 		snd_emux_free(emu);
 		snd_util_memhdr_free(hw->memhdr);
 		hw->emu = NULL;
@@ -83,7 +95,9 @@ static int snd_emu8000_probe(struct device *_dev)
 	}
 
 	if (hw->mem_size > 0)
+	{
 		snd_emu8000_pcm_new(dev->card, hw, 1);
+	}
 
 	dev->driver_data = hw;
 
@@ -100,11 +114,17 @@ static int snd_emu8000_remove(struct device *_dev)
 	struct snd_emu8000 *hw;
 
 	if (dev->driver_data == NULL)
-		return 0; /* no synth was allocated actually */
+	{
+		return 0;    /* no synth was allocated actually */
+	}
 
 	hw = dev->driver_data;
+
 	if (hw->pcm)
+	{
 		snd_device_free(dev->card, hw->pcm);
+	}
+
 	snd_emux_free(hw->emu);
 	snd_util_memhdr_free(hw->memhdr);
 	hw->emu = NULL;
@@ -116,7 +136,8 @@ static int snd_emu8000_remove(struct device *_dev)
  *  INIT part
  */
 
-static struct snd_seq_driver emu8000_driver = {
+static struct snd_seq_driver emu8000_driver =
+{
 	.driver = {
 		.name = KBUILD_MODNAME,
 		.probe = snd_emu8000_probe,

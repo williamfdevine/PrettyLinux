@@ -33,7 +33,8 @@
  * @out_len: The aggregate of the total length written to or read from
  *	the virtio device.
  */
-struct mic_copy_desc {
+struct mic_copy_desc
+{
 #ifdef __KERNEL__
 	struct iovec __user *iov;
 #else

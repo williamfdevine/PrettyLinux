@@ -20,14 +20,19 @@ void _intc_enable(struct irq_data *data, unsigned long handle)
 	unsigned long addr;
 	unsigned int cpu;
 
-	for (cpu = 0; cpu < SMP_NR(d, _INTC_ADDR_E(handle)); cpu++) {
+	for (cpu = 0; cpu < SMP_NR(d, _INTC_ADDR_E(handle)); cpu++)
+	{
 #ifdef CONFIG_SMP
+
 		if (!cpumask_test_cpu(cpu, irq_data_get_affinity_mask(data)))
+		{
 			continue;
+		}
+
 #endif
 		addr = INTC_REG(d, _INTC_ADDR_E(handle), cpu);
 		intc_enable_fns[_INTC_MODE(handle)](addr, handle, intc_reg_fns\
-						    [_INTC_FN(handle)], irq);
+											[_INTC_FN(handle)], irq);
 	}
 
 	intc_balancing_enable(irq);
@@ -48,14 +53,19 @@ static void intc_disable(struct irq_data *data)
 
 	intc_balancing_disable(irq);
 
-	for (cpu = 0; cpu < SMP_NR(d, _INTC_ADDR_D(handle)); cpu++) {
+	for (cpu = 0; cpu < SMP_NR(d, _INTC_ADDR_D(handle)); cpu++)
+	{
 #ifdef CONFIG_SMP
+
 		if (!cpumask_test_cpu(cpu, irq_data_get_affinity_mask(data)))
+		{
 			continue;
+		}
+
 #endif
 		addr = INTC_REG(d, _INTC_ADDR_D(handle), cpu);
-		intc_disable_fns[_INTC_MODE(handle)](addr, handle,intc_reg_fns\
-						     [_INTC_FN(handle)], irq);
+		intc_disable_fns[_INTC_MODE(handle)](addr, handle, intc_reg_fns\
+											 [_INTC_FN(handle)], irq);
 	}
 }
 
@@ -66,11 +76,13 @@ static void intc_disable(struct irq_data *data)
  * later tested in the enable/disable paths.
  */
 static int intc_set_affinity(struct irq_data *data,
-			     const struct cpumask *cpumask,
-			     bool force)
+							 const struct cpumask *cpumask,
+							 bool force)
 {
 	if (!cpumask_intersects(cpumask, cpu_online_mask))
+	{
 		return -1;
+	}
 
 	cpumask_copy(irq_data_get_affinity_mask(data), cpumask);
 
@@ -88,35 +100,40 @@ static void intc_mask_ack(struct irq_data *data)
 	intc_disable(data);
 
 	/* read register and write zero only to the associated bit */
-	if (handle) {
+	if (handle)
+	{
 		unsigned int value;
 
 		addr = (void __iomem *)INTC_REG(d, _INTC_ADDR_D(handle), 0);
 		value = intc_set_field_from_handle(0, 1, handle);
 
-		switch (_INTC_FN(handle)) {
-		case REG_FN_MODIFY_BASE + 0:	/* 8bit */
-			__raw_readb(addr);
-			__raw_writeb(0xff ^ value, addr);
-			break;
-		case REG_FN_MODIFY_BASE + 1:	/* 16bit */
-			__raw_readw(addr);
-			__raw_writew(0xffff ^ value, addr);
-			break;
-		case REG_FN_MODIFY_BASE + 3:	/* 32bit */
-			__raw_readl(addr);
-			__raw_writel(0xffffffff ^ value, addr);
-			break;
-		default:
-			BUG();
-			break;
+		switch (_INTC_FN(handle))
+		{
+			case REG_FN_MODIFY_BASE + 0:	/* 8bit */
+				__raw_readb(addr);
+				__raw_writeb(0xff ^ value, addr);
+				break;
+
+			case REG_FN_MODIFY_BASE + 1:	/* 16bit */
+				__raw_readw(addr);
+				__raw_writew(0xffff ^ value, addr);
+				break;
+
+			case REG_FN_MODIFY_BASE + 3:	/* 32bit */
+				__raw_readl(addr);
+				__raw_writel(0xffffffff ^ value, addr);
+				break;
+
+			default:
+				BUG();
+				break;
 		}
 	}
 }
 
 static struct intc_handle_int *intc_find_irq(struct intc_handle_int *hp,
-					     unsigned int nr_hp,
-					     unsigned int irq)
+		unsigned int nr_hp,
+		unsigned int irq)
 {
 	struct intc_handle_int key;
 
@@ -133,12 +150,18 @@ int intc_set_priority(unsigned int irq, unsigned int prio)
 	struct intc_handle_int *ihp;
 
 	if (!intc_get_prio_level(irq) || prio <= 1)
+	{
 		return -EINVAL;
+	}
 
 	ihp = intc_find_irq(d->prio, d->nr_prio, irq);
-	if (ihp) {
+
+	if (ihp)
+	{
 		if (prio >= (1 << _INTC_WIDTH(ihp->handle)))
+		{
 			return -EINVAL;
+		}
 
 		intc_set_prio_level(irq, prio);
 
@@ -148,15 +171,19 @@ int intc_set_priority(unsigned int irq, unsigned int prio)
 		 * priority level will be set during next enable()
 		 */
 		if (_INTC_FN(ihp->handle) != REG_FN_ERR)
+		{
 			_intc_enable(data, ihp->handle);
+		}
 	}
+
 	return 0;
 }
 
 #define SENSE_VALID_FLAG 0x80
 #define VALID(x) (x | SENSE_VALID_FLAG)
 
-static unsigned char intc_irq_sense_table[IRQ_TYPE_SENSE_MASK + 1] = {
+static unsigned char intc_irq_sense_table[IRQ_TYPE_SENSE_MASK + 1] =
+{
 	[IRQ_TYPE_EDGE_FALLING] = VALID(0),
 	[IRQ_TYPE_EDGE_RISING] = VALID(1),
 	[IRQ_TYPE_LEVEL_LOW] = VALID(2),
@@ -180,15 +207,21 @@ static int intc_set_type(struct irq_data *data, unsigned int type)
 	unsigned long addr;
 
 	if (!value)
+	{
 		return -EINVAL;
+	}
 
 	value &= ~SENSE_VALID_FLAG;
 
 	ihp = intc_find_irq(d->sense, d->nr_sense, irq);
-	if (ihp) {
+
+	if (ihp)
+	{
 		/* PINT has 2-bit sense registers, should fail on EDGE_BOTH */
 		if (value >= (1 << _INTC_WIDTH(ihp->handle)))
+		{
 			return -EINVAL;
+		}
 
 		addr = INTC_REG(d, _INTC_ADDR_E(ihp->handle), 0);
 		intc_reg_fns[_INTC_FN(ihp->handle)](addr, ihp->handle, value);
@@ -197,7 +230,8 @@ static int intc_set_type(struct irq_data *data, unsigned int type)
 	return 0;
 }
 
-struct irq_chip intc_irq_chip	= {
+struct irq_chip intc_irq_chip	=
+{
 	.irq_mask		= intc_disable,
 	.irq_unmask		= intc_enable,
 	.irq_mask_ack		= intc_mask_ack,

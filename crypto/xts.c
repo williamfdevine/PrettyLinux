@@ -25,21 +25,25 @@
 #include <crypto/b128ops.h>
 #include <crypto/gf128mul.h>
 
-struct priv {
+struct priv
+{
 	struct crypto_cipher *child;
 	struct crypto_cipher *tweak;
 };
 
 static int setkey(struct crypto_tfm *parent, const u8 *key,
-		  unsigned int keylen)
+				  unsigned int keylen)
 {
 	struct priv *ctx = crypto_tfm_ctx(parent);
 	struct crypto_cipher *child = ctx->tweak;
 	int err;
 
 	err = xts_check_key(parent, key, keylen);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* we need two cipher instances: one to compute the initial 'tweak'
 	 * by encrypting the IV (usually the 'plain' iv) and the other
@@ -48,31 +52,38 @@ static int setkey(struct crypto_tfm *parent, const u8 *key,
 	/* tweak cipher, uses Key2 i.e. the second half of *key */
 	crypto_cipher_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_cipher_set_flags(child, crypto_tfm_get_flags(parent) &
-				       CRYPTO_TFM_REQ_MASK);
-	err = crypto_cipher_setkey(child, key + keylen/2, keylen/2);
+							CRYPTO_TFM_REQ_MASK);
+	err = crypto_cipher_setkey(child, key + keylen / 2, keylen / 2);
+
 	if (err)
+	{
 		return err;
+	}
 
 	crypto_tfm_set_flags(parent, crypto_cipher_get_flags(child) &
-				     CRYPTO_TFM_RES_MASK);
+						 CRYPTO_TFM_RES_MASK);
 
 	child = ctx->child;
 
 	/* data cipher, uses Key1 i.e. the first half of *key */
 	crypto_cipher_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_cipher_set_flags(child, crypto_tfm_get_flags(parent) &
-				       CRYPTO_TFM_REQ_MASK);
-	err = crypto_cipher_setkey(child, key, keylen/2);
+							CRYPTO_TFM_REQ_MASK);
+	err = crypto_cipher_setkey(child, key, keylen / 2);
+
 	if (err)
+	{
 		return err;
+	}
 
 	crypto_tfm_set_flags(parent, crypto_cipher_get_flags(child) &
-				     CRYPTO_TFM_RES_MASK);
+						 CRYPTO_TFM_RES_MASK);
 
 	return 0;
 }
 
-struct sinfo {
+struct sinfo
+{
 	be128 *t;
 	struct crypto_tfm *tfm;
 	void (*fn)(struct crypto_tfm *, u8 *, const u8 *);
@@ -86,14 +97,15 @@ static inline void xts_round(struct sinfo *s, void *dst, const void *src)
 }
 
 static int crypt(struct blkcipher_desc *d,
-		 struct blkcipher_walk *w, struct priv *ctx,
-		 void (*tw)(struct crypto_tfm *, u8 *, const u8 *),
-		 void (*fn)(struct crypto_tfm *, u8 *, const u8 *))
+				 struct blkcipher_walk *w, struct priv *ctx,
+				 void (*tw)(struct crypto_tfm *, u8 *, const u8 *),
+				 void (*fn)(struct crypto_tfm *, u8 *, const u8 *))
 {
 	int err;
 	unsigned int avail;
 	const int bs = XTS_BLOCK_SIZE;
-	struct sinfo s = {
+	struct sinfo s =
+	{
 		.tfm = crypto_cipher_tfm(ctx->child),
 		.fn = fn
 	};
@@ -101,8 +113,11 @@ static int crypt(struct blkcipher_desc *d,
 	u8 *wdst;
 
 	err = blkcipher_walk_virt(d, w);
+
 	if (!w->nbytes)
+	{
 		return err;
+	}
 
 	s.t = (be128 *)w->iv;
 	avail = w->nbytes;
@@ -115,8 +130,10 @@ static int crypt(struct blkcipher_desc *d,
 
 	goto first;
 
-	for (;;) {
-		do {
+	for (;;)
+	{
+		do
+		{
 			gf128mul_x_ble(s.t, s.t);
 
 first:
@@ -124,11 +141,15 @@ first:
 
 			wsrc += bs;
 			wdst += bs;
-		} while ((avail -= bs) >= bs);
+		}
+		while ((avail -= bs) >= bs);
 
 		err = blkcipher_walk_done(d, w, avail);
+
 		if (!w->nbytes)
+		{
 			break;
+		}
 
 		avail = w->nbytes;
 
@@ -140,30 +161,30 @@ first:
 }
 
 static int encrypt(struct blkcipher_desc *desc, struct scatterlist *dst,
-		   struct scatterlist *src, unsigned int nbytes)
+				   struct scatterlist *src, unsigned int nbytes)
 {
 	struct priv *ctx = crypto_blkcipher_ctx(desc->tfm);
 	struct blkcipher_walk w;
 
 	blkcipher_walk_init(&w, dst, src, nbytes);
 	return crypt(desc, &w, ctx, crypto_cipher_alg(ctx->tweak)->cia_encrypt,
-		     crypto_cipher_alg(ctx->child)->cia_encrypt);
+				 crypto_cipher_alg(ctx->child)->cia_encrypt);
 }
 
 static int decrypt(struct blkcipher_desc *desc, struct scatterlist *dst,
-		   struct scatterlist *src, unsigned int nbytes)
+				   struct scatterlist *src, unsigned int nbytes)
 {
 	struct priv *ctx = crypto_blkcipher_ctx(desc->tfm);
 	struct blkcipher_walk w;
 
 	blkcipher_walk_init(&w, dst, src, nbytes);
 	return crypt(desc, &w, ctx, crypto_cipher_alg(ctx->tweak)->cia_encrypt,
-		     crypto_cipher_alg(ctx->child)->cia_decrypt);
+				 crypto_cipher_alg(ctx->child)->cia_decrypt);
 }
 
 int xts_crypt(struct blkcipher_desc *desc, struct scatterlist *sdst,
-	      struct scatterlist *ssrc, unsigned int nbytes,
-	      struct xts_crypt_req *req)
+			  struct scatterlist *ssrc, unsigned int nbytes,
+			  struct xts_crypt_req *req)
 {
 	const unsigned int bsize = XTS_BLOCK_SIZE;
 	const unsigned int max_blks = req->tbuflen / bsize;
@@ -179,8 +200,11 @@ int xts_crypt(struct blkcipher_desc *desc, struct scatterlist *sdst,
 
 	err = blkcipher_walk_virt(desc, &walk);
 	nbytes = walk.nbytes;
+
 	if (!nbytes)
+	{
 		return err;
+	}
 
 	nblocks = min(nbytes / bsize, max_blks);
 	src = (be128 *)walk.src.virt.addr;
@@ -192,9 +216,12 @@ int xts_crypt(struct blkcipher_desc *desc, struct scatterlist *sdst,
 	i = 0;
 	goto first;
 
-	for (;;) {
-		do {
-			for (i = 0; i < nblocks; i++) {
+	for (;;)
+	{
+		do
+		{
+			for (i = 0; i < nblocks; i++)
+			{
 				gf128mul_x_ble(&t_buf[i], t);
 first:
 				t = &t_buf[i];
@@ -205,24 +232,30 @@ first:
 
 			/* CC <- E(Key2,PP) */
 			req->crypt_fn(req->crypt_ctx, (u8 *)dst,
-				      nblocks * bsize);
+						  nblocks * bsize);
 
 			/* C <- T xor CC */
 			for (i = 0; i < nblocks; i++)
+			{
 				be128_xor(dst + i, dst + i, &t_buf[i]);
+			}
 
 			src += nblocks;
 			dst += nblocks;
 			nbytes -= nblocks * bsize;
 			nblocks = min(nbytes / bsize, max_blks);
-		} while (nblocks > 0);
+		}
+		while (nblocks > 0);
 
 		*(be128 *)walk.iv = *t;
 
 		err = blkcipher_walk_done(desc, &walk, nbytes);
 		nbytes = walk.nbytes;
+
 		if (!nbytes)
+		{
 			break;
+		}
 
 		nblocks = min(nbytes / bsize, max_blks);
 		src = (be128 *)walk.src.virt.addr;
@@ -242,10 +275,14 @@ static int init_tfm(struct crypto_tfm *tfm)
 	u32 *flags = &tfm->crt_flags;
 
 	cipher = crypto_spawn_cipher(spawn);
-	if (IS_ERR(cipher))
-		return PTR_ERR(cipher);
 
-	if (crypto_cipher_blocksize(cipher) != XTS_BLOCK_SIZE) {
+	if (IS_ERR(cipher))
+	{
+		return PTR_ERR(cipher);
+	}
+
+	if (crypto_cipher_blocksize(cipher) != XTS_BLOCK_SIZE)
+	{
 		*flags |= CRYPTO_TFM_RES_BAD_BLOCK_LEN;
 		crypto_free_cipher(cipher);
 		return -EINVAL;
@@ -254,13 +291,16 @@ static int init_tfm(struct crypto_tfm *tfm)
 	ctx->child = cipher;
 
 	cipher = crypto_spawn_cipher(spawn);
-	if (IS_ERR(cipher)) {
+
+	if (IS_ERR(cipher))
+	{
 		crypto_free_cipher(ctx->child);
 		return PTR_ERR(cipher);
 	}
 
 	/* this check isn't really needed, leave it here just in case */
-	if (crypto_cipher_blocksize(cipher) != XTS_BLOCK_SIZE) {
+	if (crypto_cipher_blocksize(cipher) != XTS_BLOCK_SIZE)
+	{
 		crypto_free_cipher(cipher);
 		crypto_free_cipher(ctx->child);
 		*flags |= CRYPTO_TFM_RES_BAD_BLOCK_LEN;
@@ -286,26 +326,39 @@ static struct crypto_instance *alloc(struct rtattr **tb)
 	int err;
 
 	err = crypto_check_attr_type(tb, CRYPTO_ALG_TYPE_BLKCIPHER);
+
 	if (err)
+	{
 		return ERR_PTR(err);
+	}
 
 	alg = crypto_get_attr_alg(tb, CRYPTO_ALG_TYPE_CIPHER,
-				  CRYPTO_ALG_TYPE_MASK);
+							  CRYPTO_ALG_TYPE_MASK);
+
 	if (IS_ERR(alg))
+	{
 		return ERR_CAST(alg);
+	}
 
 	inst = crypto_alloc_instance("xts", alg);
+
 	if (IS_ERR(inst))
+	{
 		goto out_put_alg;
+	}
 
 	inst->alg.cra_flags = CRYPTO_ALG_TYPE_BLKCIPHER;
 	inst->alg.cra_priority = alg->cra_priority;
 	inst->alg.cra_blocksize = alg->cra_blocksize;
 
 	if (alg->cra_alignmask < 7)
+	{
 		inst->alg.cra_alignmask = 7;
+	}
 	else
+	{
 		inst->alg.cra_alignmask = alg->cra_alignmask;
+	}
 
 	inst->alg.cra_type = &crypto_blkcipher_type;
 
@@ -335,7 +388,8 @@ static void free(struct crypto_instance *inst)
 	kfree(inst);
 }
 
-static struct crypto_template crypto_tmpl = {
+static struct crypto_template crypto_tmpl =
+{
 	.name = "xts",
 	.alloc = alloc,
 	.free = free,

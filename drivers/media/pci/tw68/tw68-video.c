@@ -41,7 +41,8 @@
  * as "planar".  These affect overlay mode, and are flagged with a field
  * ".planar" in the format.  Do we need to implement this in this driver?
  */
-static const struct tw68_format formats[] = {
+static const struct tw68_format formats[] =
+{
 	{
 		.name		= "15 bpp RGB, le",
 		.fourcc		= V4L2_PIX_FMT_RGB555,
@@ -82,7 +83,7 @@ static const struct tw68_format formats[] = {
 		.fourcc		= V4L2_PIX_FMT_RGB32,
 		.depth		= 32,
 		.twformat	= ColorFormatRGB32 | ColorFormatBSWAP |
-				  ColorFormatWSWAP,
+		ColorFormatWSWAP,
 	}, {
 		.name		= "4:2:2 packed, YUYV",
 		.fourcc		= V4L2_PIX_FMT_YUYV,
@@ -98,35 +99,36 @@ static const struct tw68_format formats[] = {
 #define FORMATS ARRAY_SIZE(formats)
 
 #define NORM_625_50			\
-		.h_delay	= 3,	\
-		.h_delay0	= 133,	\
-		.h_start	= 0,	\
-		.h_stop		= 719,	\
-		.v_delay	= 24,	\
-		.vbi_v_start_0	= 7,	\
-		.vbi_v_stop_0	= 22,	\
-		.video_v_start	= 24,	\
-		.video_v_stop	= 311,	\
-		.vbi_v_start_1	= 319
+	.h_delay	= 3,	\
+				  .h_delay0	= 133,	\
+								.h_start	= 0,	\
+										.h_stop		= 719,	\
+												.v_delay	= 24,	\
+														.vbi_v_start_0	= 7,	\
+																.vbi_v_stop_0	= 22,	\
+																		.video_v_start	= 24,	\
+																				.video_v_stop	= 311,	\
+																						.vbi_v_start_1	= 319
 
 #define NORM_525_60			\
-		.h_delay	= 8,	\
-		.h_delay0	= 138,	\
-		.h_start	= 0,	\
-		.h_stop		= 719,	\
-		.v_delay	= 22,	\
-		.vbi_v_start_0	= 10,	\
-		.vbi_v_stop_0	= 21,	\
-		.video_v_start	= 22,	\
-		.video_v_stop	= 262,	\
-		.vbi_v_start_1	= 273
+	.h_delay	= 8,	\
+				  .h_delay0	= 138,	\
+								.h_start	= 0,	\
+										.h_stop		= 719,	\
+												.v_delay	= 22,	\
+														.vbi_v_start_0	= 10,	\
+																.vbi_v_stop_0	= 21,	\
+																		.video_v_start	= 22,	\
+																				.video_v_stop	= 262,	\
+																						.vbi_v_start_1	= 273
 
 /*
  * The following table is searched by tw68_s_std, first for a specific
  * match, then for an entry which contains the desired id.  The table
  * entries should therefore be ordered in ascending order of specificity.
  */
-static const struct tw68_tvnorm tvnorms[] = {
+static const struct tw68_tvnorm tvnorms[] =
+{
 	{
 		.name		= "PAL", /* autodetect */
 		.id		= V4L2_STD_PAL,
@@ -217,7 +219,10 @@ static const struct tw68_format *format_by_fourcc(unsigned int fourcc)
 
 	for (i = 0; i < FORMATS; i++)
 		if (formats[i].fourcc == fourcc)
-			return formats+i;
+		{
+			return formats + i;
+		}
+
 	return NULL;
 }
 
@@ -229,7 +234,8 @@ static const struct tw68_format *format_by_fourcc(unsigned int fourcc)
  */
 static void set_tvnorm(struct tw68_dev *dev, const struct tw68_tvnorm *norm)
 {
-	if (norm != dev->tvnorm) {
+	if (norm != dev->tvnorm)
+	{
 		dev->width = 720;
 		dev->height = (norm->id & V4L2_STD_525_60) ? 480 : 576;
 		dev->tvnorm = norm;
@@ -267,7 +273,7 @@ static void set_tvnorm(struct tw68_dev *dev, const struct tw68_tvnorm *norm)
  *	@field		indicates Top, Bottom or Interlaced
  */
 static int tw68_set_scale(struct tw68_dev *dev, unsigned int width,
-			  unsigned int height, enum v4l2_field field)
+						  unsigned int height, enum v4l2_field field)
 {
 	const struct tw68_tvnorm *norm = dev->tvnorm;
 	/* set individually for debugging clarity */
@@ -276,23 +282,27 @@ static int tw68_set_scale(struct tw68_dev *dev, unsigned int width,
 	int comb;
 
 	if (V4L2_FIELD_HAS_BOTH(field))	/* if field is interlaced */
-		height /= 2;		/* we must set for 1-frame */
+	{
+		height /= 2;    /* we must set for 1-frame */
+	}
 
 	pr_debug("%s: width=%d, height=%d, both=%d\n"
-		 "  tvnorm h_delay=%d, h_start=%d, h_stop=%d, "
-		 "v_delay=%d, v_start=%d, v_stop=%d\n" , __func__,
-		width, height, V4L2_FIELD_HAS_BOTH(field),
-		norm->h_delay, norm->h_start, norm->h_stop,
-		norm->v_delay, norm->video_v_start,
-		norm->video_v_stop);
+			 "  tvnorm h_delay=%d, h_start=%d, h_stop=%d, "
+			 "v_delay=%d, v_start=%d, v_stop=%d\n" , __func__,
+			 width, height, V4L2_FIELD_HAS_BOTH(field),
+			 norm->h_delay, norm->h_start, norm->h_stop,
+			 norm->v_delay, norm->video_v_start,
+			 norm->video_v_stop);
 
-	switch (dev->vdecoder) {
-	case TW6800:
-		hdelay = norm->h_delay0;
-		break;
-	default:
-		hdelay = norm->h_delay;
-		break;
+	switch (dev->vdecoder)
+	{
+		case TW6800:
+			hdelay = norm->h_delay0;
+			break;
+
+		default:
+			hdelay = norm->h_delay;
+			break;
 	}
 
 	hdelay += norm->h_start;
@@ -305,21 +315,21 @@ static int tw68_set_scale(struct tw68_dev *dev, unsigned int width,
 	vscale = (vactive * 256) / height;
 
 	pr_debug("%s: %dx%d [%s%s,%s]\n", __func__,
-		width, height,
-		V4L2_FIELD_HAS_TOP(field)    ? "T" : "",
-		V4L2_FIELD_HAS_BOTTOM(field) ? "B" : "",
-		v4l2_norm_to_name(dev->tvnorm->id));
+			 width, height,
+			 V4L2_FIELD_HAS_TOP(field)    ? "T" : "",
+			 V4L2_FIELD_HAS_BOTTOM(field) ? "B" : "",
+			 v4l2_norm_to_name(dev->tvnorm->id));
 	pr_debug("%s: hactive=%d, hdelay=%d, hscale=%d; "
-		"vactive=%d, vdelay=%d, vscale=%d\n", __func__,
-		hactive, hdelay, hscale, vactive, vdelay, vscale);
+			 "vactive=%d, vdelay=%d, vscale=%d\n", __func__,
+			 hactive, hdelay, hscale, vactive, vdelay, vscale);
 
 	comb =	((vdelay & 0x300)  >> 2) |
-		((vactive & 0x300) >> 4) |
-		((hdelay & 0x300)  >> 6) |
-		((hactive & 0x300) >> 8);
+			((vactive & 0x300) >> 4) |
+			((hdelay & 0x300)  >> 6) |
+			((hactive & 0x300) >> 8);
 	pr_debug("%s: setting CROP_HI=%02x, VDELAY_LO=%02x, "
-		"VACTIVE_LO=%02x, HDELAY_LO=%02x, HACTIVE_LO=%02x\n",
-		__func__, comb, vdelay, vactive, hdelay, hactive);
+			 "VACTIVE_LO=%02x, HDELAY_LO=%02x, HACTIVE_LO=%02x\n",
+			 __func__, comb, vdelay, vactive, hdelay, hactive);
 	tw_writeb(TW68_CROP_HI, comb);
 	tw_writeb(TW68_VDELAY_LO, vdelay & 0xff);
 	tw_writeb(TW68_VACTIVE_LO, vactive & 0xff);
@@ -328,7 +338,7 @@ static int tw68_set_scale(struct tw68_dev *dev, unsigned int width,
 
 	comb = ((vscale & 0xf00) >> 4) | ((hscale & 0xf00) >> 8);
 	pr_debug("%s: setting SCALE_HI=%02x, VSCALE_LO=%02x, "
-		"HSCALE_LO=%02x\n", __func__, comb, vscale, hscale);
+			 "HSCALE_LO=%02x\n", __func__, comb, vscale, hscale);
 	tw_writeb(TW68_SCALE_HI, comb);
 	tw_writeb(TW68_VSCALE_LO, vscale);
 	tw_writeb(TW68_HSCALE_LO, hscale);
@@ -353,7 +363,7 @@ int tw68_video_start_dma(struct tw68_dev *dev, struct tw68_buf *buf)
 	tw_writel(TW68_INTSTAT, dev->board_virqmask);
 	/* Enable the risc engine and the fifo */
 	tw_andorl(TW68_DMAC, 0xff, dev->fmt->twformat |
-		ColorFormatGamma | TW68_DMAP_EN | TW68_FIFO_EN);
+			  ColorFormatGamma | TW68_DMAP_EN | TW68_FIFO_EN);
 	dev->pci_irqmask |= dev->board_virqmask;
 	tw_setl(TW68_INTMASK, dev->pci_irqmask);
 	return 0;
@@ -368,8 +378,12 @@ static int tw68_buffer_count(unsigned int size, unsigned int count)
 	unsigned int maxcount;
 
 	maxcount = (4 * 1024 * 1024) / roundup(size, PAGE_SIZE);
+
 	if (count > maxcount)
+	{
 		count = maxcount;
+	}
+
 	return count;
 }
 
@@ -377,24 +391,31 @@ static int tw68_buffer_count(unsigned int size, unsigned int count)
 /* vb2 queue operations                                          */
 
 static int tw68_queue_setup(struct vb2_queue *q,
-			   unsigned int *num_buffers, unsigned int *num_planes,
-			   unsigned int sizes[], struct device *alloc_devs[])
+							unsigned int *num_buffers, unsigned int *num_planes,
+							unsigned int sizes[], struct device *alloc_devs[])
 {
 	struct tw68_dev *dev = vb2_get_drv_priv(q);
 	unsigned tot_bufs = q->num_buffers + *num_buffers;
 	unsigned size = (dev->fmt->depth * dev->width * dev->height) >> 3;
 
 	if (tot_bufs < 2)
+	{
 		tot_bufs = 2;
+	}
+
 	tot_bufs = tw68_buffer_count(size, tot_bufs);
 	*num_buffers = tot_bufs - q->num_buffers;
+
 	/*
 	 * We allow create_bufs, but only if the sizeimage is >= as the
 	 * current sizeimage. The tw68_buffer_count calculation becomes quite
 	 * difficult otherwise.
 	 */
 	if (*num_planes)
+	{
 		return sizes[0] < size ? -EINVAL : 0;
+	}
+
 	*num_planes = 1;
 	sizes[0] = size;
 
@@ -436,11 +457,13 @@ static void tw68_buf_queue(struct vb2_buffer *vb)
 	buf->jmp[0] = cpu_to_le32(RISC_JUMP);
 	buf->jmp[1] = cpu_to_le32(buf->dma + 8);
 
-	if (!list_empty(&dev->active)) {
+	if (!list_empty(&dev->active))
+	{
 		prev = list_entry(dev->active.prev, struct tw68_buf, list);
 		buf->cpu[0] |= cpu_to_le32(RISC_INT_BIT);
 		prev->jmp[1] = cpu_to_le32(buf->dma);
 	}
+
 	list_add_tail(&buf->list, &dev->active);
 	spin_unlock_irqrestore(&dev->slock, flags);
 }
@@ -466,36 +489,47 @@ static int tw68_buf_prepare(struct vb2_buffer *vb)
 	unsigned size, bpl;
 
 	size = (dev->width * dev->height * dev->fmt->depth) >> 3;
+
 	if (vb2_plane_size(vb, 0) < size)
+	{
 		return -EINVAL;
+	}
+
 	vb2_set_plane_payload(vb, 0, size);
 
 	bpl = (dev->width * dev->fmt->depth) >> 3;
-	switch (dev->field) {
-	case V4L2_FIELD_TOP:
-		tw68_risc_buffer(dev->pci, buf, dma->sgl,
-				 0, UNSET, bpl, 0, dev->height);
-		break;
-	case V4L2_FIELD_BOTTOM:
-		tw68_risc_buffer(dev->pci, buf, dma->sgl,
-				 UNSET, 0, bpl, 0, dev->height);
-		break;
-	case V4L2_FIELD_SEQ_TB:
-		tw68_risc_buffer(dev->pci, buf, dma->sgl,
-				 0, bpl * (dev->height >> 1),
-				 bpl, 0, dev->height >> 1);
-		break;
-	case V4L2_FIELD_SEQ_BT:
-		tw68_risc_buffer(dev->pci, buf, dma->sgl,
-				 bpl * (dev->height >> 1), 0,
-				 bpl, 0, dev->height >> 1);
-		break;
-	case V4L2_FIELD_INTERLACED:
-	default:
-		tw68_risc_buffer(dev->pci, buf, dma->sgl,
-				 0, bpl, bpl, bpl, dev->height >> 1);
-		break;
+
+	switch (dev->field)
+	{
+		case V4L2_FIELD_TOP:
+			tw68_risc_buffer(dev->pci, buf, dma->sgl,
+							 0, UNSET, bpl, 0, dev->height);
+			break;
+
+		case V4L2_FIELD_BOTTOM:
+			tw68_risc_buffer(dev->pci, buf, dma->sgl,
+							 UNSET, 0, bpl, 0, dev->height);
+			break;
+
+		case V4L2_FIELD_SEQ_TB:
+			tw68_risc_buffer(dev->pci, buf, dma->sgl,
+							 0, bpl * (dev->height >> 1),
+							 bpl, 0, dev->height >> 1);
+			break;
+
+		case V4L2_FIELD_SEQ_BT:
+			tw68_risc_buffer(dev->pci, buf, dma->sgl,
+							 bpl * (dev->height >> 1), 0,
+							 bpl, 0, dev->height >> 1);
+			break;
+
+		case V4L2_FIELD_INTERLACED:
+		default:
+			tw68_risc_buffer(dev->pci, buf, dma->sgl,
+							 0, bpl, bpl, bpl, dev->height >> 1);
+			break;
 	}
+
 	return 0;
 }
 
@@ -526,7 +560,9 @@ static void tw68_stop_streaming(struct vb2_queue *q)
 
 	/* Stop risc & fifo */
 	tw_clearl(TW68_DMAC, TW68_DMAP_EN | TW68_FIFO_EN);
-	while (!list_empty(&dev->active)) {
+
+	while (!list_empty(&dev->active))
+	{
 		struct tw68_buf *buf =
 			container_of(dev->active.next, struct tw68_buf, list);
 
@@ -535,7 +571,8 @@ static void tw68_stop_streaming(struct vb2_queue *q)
 	}
 }
 
-static const struct vb2_ops tw68_video_qops = {
+static const struct vb2_ops tw68_video_qops =
+{
 	.queue_setup	= tw68_queue_setup,
 	.buf_queue	= tw68_buf_queue,
 	.buf_prepare	= tw68_buf_prepare,
@@ -553,33 +590,50 @@ static int tw68_s_ctrl(struct v4l2_ctrl *ctrl)
 	struct tw68_dev *dev =
 		container_of(ctrl->handler, struct tw68_dev, hdl);
 
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		tw_writeb(TW68_BRIGHT, ctrl->val);
-		break;
-	case V4L2_CID_HUE:
-		tw_writeb(TW68_HUE, ctrl->val);
-		break;
-	case V4L2_CID_CONTRAST:
-		tw_writeb(TW68_CONTRAST, ctrl->val);
-		break;
-	case V4L2_CID_SATURATION:
-		tw_writeb(TW68_SAT_U, ctrl->val);
-		tw_writeb(TW68_SAT_V, ctrl->val);
-		break;
-	case V4L2_CID_COLOR_KILLER:
-		if (ctrl->val)
-			tw_andorb(TW68_MISC2, 0xe0, 0xe0);
-		else
-			tw_andorb(TW68_MISC2, 0xe0, 0x00);
-		break;
-	case V4L2_CID_CHROMA_AGC:
-		if (ctrl->val)
-			tw_andorb(TW68_LOOP, 0x30, 0x20);
-		else
-			tw_andorb(TW68_LOOP, 0x30, 0x00);
-		break;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			tw_writeb(TW68_BRIGHT, ctrl->val);
+			break;
+
+		case V4L2_CID_HUE:
+			tw_writeb(TW68_HUE, ctrl->val);
+			break;
+
+		case V4L2_CID_CONTRAST:
+			tw_writeb(TW68_CONTRAST, ctrl->val);
+			break;
+
+		case V4L2_CID_SATURATION:
+			tw_writeb(TW68_SAT_U, ctrl->val);
+			tw_writeb(TW68_SAT_V, ctrl->val);
+			break;
+
+		case V4L2_CID_COLOR_KILLER:
+			if (ctrl->val)
+			{
+				tw_andorb(TW68_MISC2, 0xe0, 0xe0);
+			}
+			else
+			{
+				tw_andorb(TW68_MISC2, 0xe0, 0x00);
+			}
+
+			break;
+
+		case V4L2_CID_CHROMA_AGC:
+			if (ctrl->val)
+			{
+				tw_andorb(TW68_LOOP, 0x30, 0x20);
+			}
+			else
+			{
+				tw_andorb(TW68_LOOP, 0x30, 0x00);
+			}
+
+			break;
 	}
+
 	return 0;
 }
 
@@ -590,7 +644,7 @@ static int tw68_s_ctrl(struct v4l2_ctrl *ctrl)
  * does not interrogate any of the device registers.
  */
 static int tw68_g_fmt_vid_cap(struct file *file, void *priv,
-				struct v4l2_format *f)
+							  struct v4l2_format *f)
 {
 	struct tw68_dev *dev = video_drvdata(file);
 
@@ -608,7 +662,7 @@ static int tw68_g_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int tw68_try_fmt_vid_cap(struct file *file, void *priv,
-						struct v4l2_format *f)
+								struct v4l2_format *f)
 {
 	struct tw68_dev *dev = video_drvdata(file);
 	const struct tw68_format *fmt;
@@ -616,37 +670,56 @@ static int tw68_try_fmt_vid_cap(struct file *file, void *priv,
 	unsigned int maxh;
 
 	fmt = format_by_fourcc(f->fmt.pix.pixelformat);
+
 	if (NULL == fmt)
+	{
 		return -EINVAL;
+	}
 
 	field = f->fmt.pix.field;
 	maxh  = (dev->tvnorm->id & V4L2_STD_525_60) ? 480 : 576;
 
-	switch (field) {
-	case V4L2_FIELD_TOP:
-	case V4L2_FIELD_BOTTOM:
-		break;
-	case V4L2_FIELD_INTERLACED:
-	case V4L2_FIELD_SEQ_BT:
-	case V4L2_FIELD_SEQ_TB:
-		maxh = maxh * 2;
-		break;
-	default:
-		field = (f->fmt.pix.height > maxh / 2)
-			? V4L2_FIELD_INTERLACED
-			: V4L2_FIELD_BOTTOM;
-		break;
+	switch (field)
+	{
+		case V4L2_FIELD_TOP:
+		case V4L2_FIELD_BOTTOM:
+			break;
+
+		case V4L2_FIELD_INTERLACED:
+		case V4L2_FIELD_SEQ_BT:
+		case V4L2_FIELD_SEQ_TB:
+			maxh = maxh * 2;
+			break;
+
+		default:
+			field = (f->fmt.pix.height > maxh / 2)
+					? V4L2_FIELD_INTERLACED
+					: V4L2_FIELD_BOTTOM;
+			break;
 	}
 
 	f->fmt.pix.field = field;
+
 	if (f->fmt.pix.width  < 48)
+	{
 		f->fmt.pix.width  = 48;
+	}
+
 	if (f->fmt.pix.height < 32)
+	{
 		f->fmt.pix.height = 32;
+	}
+
 	if (f->fmt.pix.width > 720)
+	{
 		f->fmt.pix.width = 720;
+	}
+
 	if (f->fmt.pix.height > maxh)
+	{
 		f->fmt.pix.height = maxh;
+	}
+
 	f->fmt.pix.width &= ~0x03;
 	f->fmt.pix.bytesperline =
 		(f->fmt.pix.width * (fmt->depth)) >> 3;
@@ -663,14 +736,17 @@ static int tw68_try_fmt_vid_cap(struct file *file, void *priv,
  * the change takes place.
  */
 static int tw68_s_fmt_vid_cap(struct file *file, void *priv,
-					struct v4l2_format *f)
+							  struct v4l2_format *f)
 {
 	struct tw68_dev *dev = video_drvdata(file);
 	int err;
 
 	err = tw68_try_fmt_vid_cap(file, priv, f);
+
 	if (0 != err)
+	{
 		return err;
+	}
 
 	dev->fmt = format_by_fourcc(f->fmt.pix.pixelformat);
 	dev->width = f->fmt.pix.width;
@@ -680,34 +756,54 @@ static int tw68_s_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int tw68_enum_input(struct file *file, void *priv,
-					struct v4l2_input *i)
+						   struct v4l2_input *i)
 {
 	struct tw68_dev *dev = video_drvdata(file);
 	unsigned int n;
 
 	n = i->index;
+
 	if (n >= TW68_INPUT_MAX)
+	{
 		return -EINVAL;
+	}
+
 	i->index = n;
 	i->type = V4L2_INPUT_TYPE_CAMERA;
 	snprintf(i->name, sizeof(i->name), "Composite %d", n);
 
 	/* If the query is for the current input, get live data */
-	if (n == dev->input) {
+	if (n == dev->input)
+	{
 		int v1 = tw_readb(TW68_STATUS1);
 		int v2 = tw_readb(TW68_MVSN);
 
 		if (0 != (v1 & (1 << 7)))
+		{
 			i->status |= V4L2_IN_ST_NO_SYNC;
+		}
+
 		if (0 != (v1 & (1 << 6)))
+		{
 			i->status |= V4L2_IN_ST_NO_H_LOCK;
+		}
+
 		if (0 != (v1 & (1 << 2)))
+		{
 			i->status |= V4L2_IN_ST_NO_SIGNAL;
+		}
+
 		if (0 != (v1 & 1 << 1))
+		{
 			i->status |= V4L2_IN_ST_NO_COLOR;
+		}
+
 		if (0 != (v2 & (1 << 2)))
+		{
 			i->status |= V4L2_IN_ST_MACROVISION;
+		}
 	}
+
 	i->std = video_devdata(file)->tvnorms;
 	return 0;
 }
@@ -725,20 +821,23 @@ static int tw68_s_input(struct file *file, void *priv, unsigned int i)
 	struct tw68_dev *dev = video_drvdata(file);
 
 	if (i >= TW68_INPUT_MAX)
+	{
 		return -EINVAL;
+	}
+
 	dev->input = i;
 	tw_andorb(TW68_INFORM, 0x03 << 2, dev->input << 2);
 	return 0;
 }
 
 static int tw68_querycap(struct file *file, void  *priv,
-					struct v4l2_capability *cap)
+						 struct v4l2_capability *cap)
 {
 	struct tw68_dev *dev = video_drvdata(file);
 
 	strcpy(cap->driver, "tw68");
 	strlcpy(cap->card, "Techwell Capture Card",
-		sizeof(cap->card));
+			sizeof(cap->card));
 	sprintf(cap->bus_info, "PCI:%s", pci_name(dev->pci));
 	cap->device_caps =
 		V4L2_CAP_VIDEO_CAPTURE |
@@ -755,23 +854,34 @@ static int tw68_s_std(struct file *file, void *priv, v4l2_std_id id)
 	unsigned int i;
 
 	if (vb2_is_busy(&dev->vidq))
+	{
 		return -EBUSY;
+	}
 
 	/* Look for match on complete norm id (may have mult bits) */
-	for (i = 0; i < TVNORMS; i++) {
+	for (i = 0; i < TVNORMS; i++)
+	{
 		if (id == tvnorms[i].id)
+		{
 			break;
+		}
 	}
 
 	/* If no exact match, look for norm which contains this one */
-	if (i == TVNORMS) {
+	if (i == TVNORMS)
+	{
 		for (i = 0; i < TVNORMS; i++)
 			if (id & tvnorms[i].id)
+			{
 				break;
+			}
 	}
+
 	/* If still not matched, give up */
 	if (i == TVNORMS)
+	{
 		return -EINVAL;
+	}
 
 	set_tvnorm(dev, &tvnorms[i]);	/* do the actual setting */
 	return 0;
@@ -786,13 +896,15 @@ static int tw68_g_std(struct file *file, void *priv, v4l2_std_id *id)
 }
 
 static int tw68_enum_fmt_vid_cap(struct file *file, void  *priv,
-					struct v4l2_fmtdesc *f)
+								 struct v4l2_fmtdesc *f)
 {
 	if (f->index >= FORMATS)
+	{
 		return -EINVAL;
+	}
 
 	strlcpy(f->description, formats[f->index].name,
-		sizeof(f->description));
+			sizeof(f->description));
 
 	f->pixelformat = formats[f->index].fourcc;
 
@@ -810,33 +922,50 @@ static void tw68_dump_regs(struct tw68_dev *dev)
 	unsigned char *cptr;
 
 	pr_info("Full dump of TW68 registers:\n");
+
 	/* First we do the PCI regs, 8 4-byte regs per line */
-	for (i = 0; i < 0x100; i += 32) {
+	for (i = 0; i < 0x100; i += 32)
+	{
 		cptr = line;
 		cptr += sprintf(cptr, "%03x  ", i);
+
 		/* j steps through the next 4 words */
 		for (j = i; j < i + 16; j += 4)
+		{
 			cptr += sprintf(cptr, "%08x ", tw_readl(j));
+		}
+
 		*cptr++ = ' ';
+
 		for (; j < i + 32; j += 4)
+		{
 			cptr += sprintf(cptr, "%08x ", tw_readl(j));
+		}
+
 		*cptr++ = '\n';
 		*cptr = 0;
 		pr_info("%s", line);
 	}
+
 	/* Next the control regs, which are single-byte, address mod 4 */
-	while (i < 0x400) {
+	while (i < 0x400)
+	{
 		cptr = line;
 		cptr += sprintf(cptr, "%03x ", i);
+
 		/* Print out 4 groups of 4 bytes */
-		for (j = 0; j < 4; j++) {
-			for (k = 0; k < 4; k++) {
+		for (j = 0; j < 4; j++)
+		{
+			for (k = 0; k < 4; k++)
+			{
 				cptr += sprintf(cptr, "%02x ",
-					tw_readb(i));
+								tw_readb(i));
 				i += 4;
 			}
+
 			*cptr++ = ' ';
 		}
+
 		*cptr++ = '\n';
 		*cptr = 0;
 		pr_info("%s", line);
@@ -853,35 +982,47 @@ static int vidioc_log_status(struct file *file, void *priv)
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 static int vidioc_g_register(struct file *file, void *priv,
-			      struct v4l2_dbg_register *reg)
+							 struct v4l2_dbg_register *reg)
 {
 	struct tw68_dev *dev = video_drvdata(file);
 
 	if (reg->size == 1)
+	{
 		reg->val = tw_readb(reg->reg);
+	}
 	else
+	{
 		reg->val = tw_readl(reg->reg);
+	}
+
 	return 0;
 }
 
 static int vidioc_s_register(struct file *file, void *priv,
-				const struct v4l2_dbg_register *reg)
+							 const struct v4l2_dbg_register *reg)
 {
 	struct tw68_dev *dev = video_drvdata(file);
 
 	if (reg->size == 1)
+	{
 		tw_writeb(reg->reg, reg->val);
+	}
 	else
+	{
 		tw_writel(reg->reg & 0xffff, reg->val);
+	}
+
 	return 0;
 }
 #endif
 
-static const struct v4l2_ctrl_ops tw68_ctrl_ops = {
+static const struct v4l2_ctrl_ops tw68_ctrl_ops =
+{
 	.s_ctrl = tw68_s_ctrl,
 };
 
-static const struct v4l2_file_operations video_fops = {
+static const struct v4l2_file_operations video_fops =
+{
 	.owner			= THIS_MODULE,
 	.open			= v4l2_fh_open,
 	.release		= vb2_fop_release,
@@ -891,7 +1032,8 @@ static const struct v4l2_file_operations video_fops = {
 	.unlocked_ioctl		= video_ioctl2,
 };
 
-static const struct v4l2_ioctl_ops video_ioctl_ops = {
+static const struct v4l2_ioctl_ops video_ioctl_ops =
+{
 	.vidioc_querycap		= tw68_querycap,
 	.vidioc_enum_fmt_vid_cap	= tw68_enum_fmt_vid_cap,
 	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
@@ -918,7 +1060,8 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
 #endif
 };
 
-static struct video_device tw68_video_template = {
+static struct video_device tw68_video_template =
+{
 	.name			= "tw68_video",
 	.fops			= &video_fops,
 	.ioctl_ops		= &video_ioctl_ops,
@@ -939,22 +1082,25 @@ int tw68_video_init1(struct tw68_dev *dev)
 
 	v4l2_ctrl_handler_init(hdl, 6);
 	v4l2_ctrl_new_std(hdl, &tw68_ctrl_ops,
-			V4L2_CID_BRIGHTNESS, -128, 127, 1, 20);
+					  V4L2_CID_BRIGHTNESS, -128, 127, 1, 20);
 	v4l2_ctrl_new_std(hdl, &tw68_ctrl_ops,
-			V4L2_CID_CONTRAST, 0, 255, 1, 100);
+					  V4L2_CID_CONTRAST, 0, 255, 1, 100);
 	v4l2_ctrl_new_std(hdl, &tw68_ctrl_ops,
-			V4L2_CID_SATURATION, 0, 255, 1, 128);
+					  V4L2_CID_SATURATION, 0, 255, 1, 128);
 	/* NTSC only */
 	v4l2_ctrl_new_std(hdl, &tw68_ctrl_ops,
-			V4L2_CID_HUE, -128, 127, 1, 0);
+					  V4L2_CID_HUE, -128, 127, 1, 0);
 	v4l2_ctrl_new_std(hdl, &tw68_ctrl_ops,
-			V4L2_CID_COLOR_KILLER, 0, 1, 1, 0);
+					  V4L2_CID_COLOR_KILLER, 0, 1, 1, 0);
 	v4l2_ctrl_new_std(hdl, &tw68_ctrl_ops,
-			V4L2_CID_CHROMA_AGC, 0, 1, 1, 1);
-	if (hdl->error) {
+					  V4L2_CID_CHROMA_AGC, 0, 1, 1, 1);
+
+	if (hdl->error)
+	{
 		v4l2_ctrl_handler_free(hdl);
 		return hdl->error;
 	}
+
 	dev->v4l2_dev.ctrl_handler = hdl;
 	v4l2_ctrl_handler_setup(hdl);
 	return 0;
@@ -984,8 +1130,12 @@ int tw68_video_init2(struct tw68_dev *dev, int video_nr)
 	dev->vidq.min_buffers_needed = 2;
 	dev->vidq.dev = &dev->pci->dev;
 	ret = vb2_queue_init(&dev->vidq);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->vdev = tw68_video_template;
 	dev->vdev.v4l2_dev = &dev->v4l2_dev;
 	dev->vdev.lock = &dev->lock;
@@ -1003,13 +1153,15 @@ void tw68_irq_video_done(struct tw68_dev *dev, unsigned long status)
 
 	/* reset interrupts handled by this routine */
 	tw_writel(TW68_INTSTAT, status);
+
 	/*
 	 * Check most likely first
 	 *
 	 * DMAPI shows we have reached the end of the risc code
 	 * for the current buffer.
 	 */
-	if (status & TW68_DMAPI) {
+	if (status & TW68_DMAPI)
+	{
 		struct tw68_buf *buf;
 
 		spin_lock(&dev->slock);
@@ -1021,28 +1173,48 @@ void tw68_irq_video_done(struct tw68_dev *dev, unsigned long status)
 		buf->vb.sequence = dev->seqnr++;
 		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_DONE);
 		status &= ~(TW68_DMAPI);
+
 		if (0 == status)
+		{
 			return;
+		}
 	}
+
 	if (status & (TW68_VLOCK | TW68_HLOCK))
+	{
 		dev_dbg(&dev->pci->dev, "Lost sync\n");
+	}
+
 	if (status & TW68_PABORT)
+	{
 		dev_err(&dev->pci->dev, "PABORT interrupt\n");
+	}
+
 	if (status & TW68_DMAPERR)
+	{
 		dev_err(&dev->pci->dev, "DMAPERR interrupt\n");
+	}
+
 	/*
 	 * On TW6800, FDMIS is apparently generated if video input is switched
 	 * during operation.  Therefore, it is not enabled for that chip.
 	 */
 	if (status & TW68_FDMIS)
+	{
 		dev_dbg(&dev->pci->dev, "FDMIS interrupt\n");
-	if (status & TW68_FFOF) {
+	}
+
+	if (status & TW68_FFOF)
+	{
 		/* probably a logic error */
 		reg = tw_readl(TW68_DMAC) & TW68_FIFO_EN;
 		tw_clearl(TW68_DMAC, TW68_FIFO_EN);
 		dev_dbg(&dev->pci->dev, "FFOF interrupt\n");
 		tw_setl(TW68_DMAC, reg);
 	}
+
 	if (status & TW68_FFERR)
+	{
 		dev_dbg(&dev->pci->dev, "FFERR interrupt\n");
+	}
 }

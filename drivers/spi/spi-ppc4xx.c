@@ -93,7 +93,8 @@
 
 #define DRIVER_NAME	"spi_ppc4xx_of"
 
-struct spi_ppc4xx_regs {
+struct spi_ppc4xx_regs
+{
 	u8 mode;
 	u8 rxd;
 	u8 txd;
@@ -112,7 +113,8 @@ struct spi_ppc4xx_regs {
 };
 
 /* SPI Controller driver's private data. */
-struct ppc4xx_spi {
+struct ppc4xx_spi
+{
 	/* bitbang has to be first */
 	struct spi_bitbang bitbang;
 	struct completion done;
@@ -138,7 +140,8 @@ struct ppc4xx_spi {
 };
 
 /* need this so we can set the clock in the chipselect routine */
-struct spi_ppc4xx_cs {
+struct spi_ppc4xx_cs
+{
 	u8 mode;
 };
 
@@ -148,7 +151,7 @@ static int spi_ppc4xx_txrx(struct spi_device *spi, struct spi_transfer *t)
 	u8 data;
 
 	dev_dbg(&spi->dev, "txrx: tx %p, rx %p, len %d\n",
-		t->tx_buf, t->rx_buf, t->len);
+			t->tx_buf, t->rx_buf, t->len);
 
 	hw = spi_master_get_devdata(spi->master);
 
@@ -183,15 +186,21 @@ static int spi_ppc4xx_setupxfer(struct spi_device *spi, struct spi_transfer *t)
 	 * Modify the configuration if the transfer overrides it.  Do not allow
 	 * the transfer to overwrite the generic configuration with zeros.
 	 */
-	if (t) {
+	if (t)
+	{
 		if (t->bits_per_word)
+		{
 			bits_per_word = t->bits_per_word;
+		}
 
 		if (t->speed_hz)
+		{
 			speed = min(t->speed_hz, spi->max_speed_hz);
+		}
 	}
 
-	if (!speed || (speed > spi->max_speed_hz)) {
+	if (!speed || (speed > spi->max_speed_hz))
+	{
 		dev_err(&spi->dev, "invalid speed_hz (%d)\n", speed);
 		return -EINVAL;
 	}
@@ -202,19 +211,27 @@ static int spi_ppc4xx_setupxfer(struct spi_device *spi, struct spi_transfer *t)
 	/* Set the clock */
 	/* opb_freq was already divided by 4 */
 	scr = (hw->opb_freq / speed) - 1;
+
 	if (scr > 0)
+	{
 		cdm = min(scr, 0xff);
+	}
 
 	dev_dbg(&spi->dev, "setting pre-scaler to %d (hz %d)\n", cdm, speed);
 
 	if (in_8(&hw->regs->cdm) != cdm)
+	{
 		out_8(&hw->regs->cdm, cdm);
+	}
 
 	mutex_lock(&hw->bitbang.lock);
-	if (!hw->bitbang.busy) {
+
+	if (!hw->bitbang.busy)
+	{
 		hw->bitbang.chipselect(spi, BITBANG_CS_INACTIVE);
 		/* Need to ndelay here? */
 	}
+
 	mutex_unlock(&hw->bitbang.lock);
 
 	return 0;
@@ -224,15 +241,21 @@ static int spi_ppc4xx_setup(struct spi_device *spi)
 {
 	struct spi_ppc4xx_cs *cs = spi->controller_state;
 
-	if (!spi->max_speed_hz) {
+	if (!spi->max_speed_hz)
+	{
 		dev_err(&spi->dev, "invalid max_speed_hz (must be non-zero)\n");
 		return -EINVAL;
 	}
 
-	if (cs == NULL) {
-		cs = kzalloc(sizeof *cs, GFP_KERNEL);
+	if (cs == NULL)
+	{
+		cs = kzalloc(sizeof * cs, GFP_KERNEL);
+
 		if (!cs)
+		{
 			return -ENOMEM;
+		}
+
 		spi->controller_state = cs;
 	}
 
@@ -242,23 +265,29 @@ static int spi_ppc4xx_setup(struct spi_device *spi)
 	 */
 	cs->mode = SPI_PPC4XX_MODE_SPE;
 
-	switch (spi->mode & (SPI_CPHA | SPI_CPOL)) {
-	case SPI_MODE_0:
-		cs->mode |= SPI_CLK_MODE0;
-		break;
-	case SPI_MODE_1:
-		cs->mode |= SPI_CLK_MODE1;
-		break;
-	case SPI_MODE_2:
-		cs->mode |= SPI_CLK_MODE2;
-		break;
-	case SPI_MODE_3:
-		cs->mode |= SPI_CLK_MODE3;
-		break;
+	switch (spi->mode & (SPI_CPHA | SPI_CPOL))
+	{
+		case SPI_MODE_0:
+			cs->mode |= SPI_CLK_MODE0;
+			break;
+
+		case SPI_MODE_1:
+			cs->mode |= SPI_CLK_MODE1;
+			break;
+
+		case SPI_MODE_2:
+			cs->mode |= SPI_CLK_MODE2;
+			break;
+
+		case SPI_MODE_3:
+			cs->mode |= SPI_CLK_MODE3;
+			break;
 	}
 
 	if (spi->mode & SPI_LSB_FIRST)
+	{
 		cs->mode |= SPI_PPC4XX_MODE_RD;
+	}
 
 	return 0;
 }
@@ -275,11 +304,16 @@ static void spi_ppc4xx_chipsel(struct spi_device *spi, int value)
 	 */
 
 	if (!hw->master->num_chipselect || hw->gpios[cs] == -EEXIST)
+	{
 		return;
+	}
 
 	cspol = spi->mode & SPI_CS_HIGH ? 1 : 0;
+
 	if (value == BITBANG_CS_INACTIVE)
+	{
 		cspol = !cspol;
+	}
 
 	gpio_set_value(hw->gpios[cs], cspol);
 }
@@ -294,8 +328,11 @@ static irqreturn_t spi_ppc4xx_int(int irq, void *dev_id)
 	hw = (struct ppc4xx_spi *)dev_id;
 
 	status = in_8(&hw->regs->sr);
+
 	if (!status)
+	{
 		return IRQ_NONE;
+	}
 
 	/*
 	 * BSY de-asserts one cycle after the transfer is complete.  The
@@ -303,21 +340,28 @@ static irqreturn_t spi_ppc4xx_int(int irq, void *dev_id)
 	 * relationship is not documented, hence this code.
 	 */
 
-	if (unlikely(status & SPI_PPC4XX_SR_BSY)) {
+	if (unlikely(status & SPI_PPC4XX_SR_BSY))
+	{
 		u8 lstatus;
 		int cnt = 0;
 
 		dev_dbg(hw->dev, "got interrupt but spi still busy?\n");
-		do {
+
+		do
+		{
 			ndelay(10);
 			lstatus = in_8(&hw->regs->sr);
-		} while (++cnt < 100 && lstatus & SPI_PPC4XX_SR_BSY);
+		}
+		while (++cnt < 100 && lstatus & SPI_PPC4XX_SR_BSY);
 
-		if (cnt >= 100) {
+		if (cnt >= 100)
+		{
 			dev_err(hw->dev, "busywait: too many loops!\n");
 			complete(&hw->done);
 			return IRQ_HANDLED;
-		} else {
+		}
+		else
+		{
 			/* status is always 1 (RBR) here */
 			status = in_8(&hw->regs->sr);
 			dev_dbg(hw->dev, "loops %d status %x\n", cnt, status);
@@ -329,16 +373,22 @@ static irqreturn_t spi_ppc4xx_int(int irq, void *dev_id)
 
 	/* RBR triggered this interrupt.  Therefore, data must be ready. */
 	data = in_8(&hw->regs->rxd);
+
 	if (hw->rx)
+	{
 		hw->rx[count] = data;
+	}
 
 	count++;
 
-	if (count < hw->len) {
+	if (count < hw->len)
+	{
 		data = hw->tx ? hw->tx[count] : 0;
 		out_8(&hw->regs->txd, data);
 		out_8(&hw->regs->cr, SPI_PPC4XX_CR_STR);
-	} else {
+	}
+	else
+	{
 		complete(&hw->done);
 	}
 
@@ -364,11 +414,15 @@ static void spi_ppc4xx_enable(struct ppc4xx_spi *hw)
 
 static void free_gpios(struct ppc4xx_spi *hw)
 {
-	if (hw->master->num_chipselect) {
+	if (hw->master->num_chipselect)
+	{
 		int i;
+
 		for (i = 0; i < hw->master->num_chipselect; i++)
 			if (gpio_is_valid(hw->gpios[i]))
+			{
 				gpio_free(hw->gpios[i]);
+			}
 
 		kfree(hw->gpios);
 		hw->gpios = NULL;
@@ -391,9 +445,13 @@ static int spi_ppc4xx_of_probe(struct platform_device *op)
 	int num_gpios;
 	const unsigned int *clk;
 
-	master = spi_alloc_master(dev, sizeof *hw);
+	master = spi_alloc_master(dev, sizeof * hw);
+
 	if (master == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	master->dev.of_node = np;
 	platform_set_drvdata(op, master);
 	hw = spi_master_get_devdata(master);
@@ -408,36 +466,48 @@ static int spi_ppc4xx_of_probe(struct platform_device *op)
 	 * This includes both "null" gpio's and real ones.
 	 */
 	num_gpios = of_gpio_count(np);
-	if (num_gpios > 0) {
+
+	if (num_gpios > 0)
+	{
 		int i;
 
 		hw->gpios = kzalloc(sizeof(int) * num_gpios, GFP_KERNEL);
-		if (!hw->gpios) {
+
+		if (!hw->gpios)
+		{
 			ret = -ENOMEM;
 			goto free_master;
 		}
 
-		for (i = 0; i < num_gpios; i++) {
+		for (i = 0; i < num_gpios; i++)
+		{
 			int gpio;
 			enum of_gpio_flags flags;
 
 			gpio = of_get_gpio_flags(np, i, &flags);
 			hw->gpios[i] = gpio;
 
-			if (gpio_is_valid(gpio)) {
+			if (gpio_is_valid(gpio))
+			{
 				/* Real CS - set the initial state. */
 				ret = gpio_request(gpio, np->name);
-				if (ret < 0) {
+
+				if (ret < 0)
+				{
 					dev_err(dev, "can't request gpio "
 							"#%d: %d\n", i, ret);
 					goto free_gpios;
 				}
 
 				gpio_direction_output(gpio,
-						!!(flags & OF_GPIO_ACTIVE_LOW));
-			} else if (gpio == -EEXIST) {
+									  !!(flags & OF_GPIO_ACTIVE_LOW));
+			}
+			else if (gpio == -EEXIST)
+			{
 				; /* No CS, but that's OK. */
-			} else {
+			}
+			else
+			{
 				dev_err(dev, "invalid gpio #%d: %d\n", i, gpio);
 				ret = -EINVAL;
 				goto free_gpios;
@@ -465,33 +535,43 @@ static int spi_ppc4xx_of_probe(struct platform_device *op)
 
 	/* Get the clock for the OPB */
 	opbnp = of_find_compatible_node(NULL, NULL, "ibm,opb");
-	if (opbnp == NULL) {
+
+	if (opbnp == NULL)
+	{
 		dev_err(dev, "OPB: cannot find node\n");
 		ret = -ENODEV;
 		goto free_gpios;
 	}
+
 	/* Get the clock (Hz) for the OPB */
 	clk = of_get_property(opbnp, "clock-frequency", NULL);
-	if (clk == NULL) {
+
+	if (clk == NULL)
+	{
 		dev_err(dev, "OPB: no clock-frequency property set\n");
 		of_node_put(opbnp);
 		ret = -ENODEV;
 		goto free_gpios;
 	}
+
 	hw->opb_freq = *clk;
 	hw->opb_freq >>= 2;
 	of_node_put(opbnp);
 
 	ret = of_address_to_resource(np, 0, &resource);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "error while parsing device node resource\n");
 		goto free_gpios;
 	}
+
 	hw->mapbase = resource.start;
 	hw->mapsize = resource_size(&resource);
 
 	/* Sanity check */
-	if (hw->mapsize < sizeof(struct spi_ppc4xx_regs)) {
+	if (hw->mapsize < sizeof(struct spi_ppc4xx_regs))
+	{
 		dev_err(dev, "too small to map registers\n");
 		ret = -EINVAL;
 		goto free_gpios;
@@ -500,13 +580,16 @@ static int spi_ppc4xx_of_probe(struct platform_device *op)
 	/* Request IRQ */
 	hw->irqnum = irq_of_parse_and_map(np, 0);
 	ret = request_irq(hw->irqnum, spi_ppc4xx_int,
-			  0, "spi_ppc4xx_of", (void *)hw);
-	if (ret) {
+					  0, "spi_ppc4xx_of", (void *)hw);
+
+	if (ret)
+	{
 		dev_err(dev, "unable to allocate interrupt\n");
 		goto free_gpios;
 	}
 
-	if (!request_mem_region(hw->mapbase, hw->mapsize, DRIVER_NAME)) {
+	if (!request_mem_region(hw->mapbase, hw->mapsize, DRIVER_NAME))
+	{
 		dev_err(dev, "resource unavailable\n");
 		ret = -EBUSY;
 		goto request_mem_error;
@@ -514,7 +597,8 @@ static int spi_ppc4xx_of_probe(struct platform_device *op)
 
 	hw->regs = ioremap(hw->mapbase, sizeof(struct spi_ppc4xx_regs));
 
-	if (!hw->regs) {
+	if (!hw->regs)
+	{
 		dev_err(dev, "unable to memory map registers\n");
 		ret = -ENXIO;
 		goto map_io_error;
@@ -525,7 +609,9 @@ static int spi_ppc4xx_of_probe(struct platform_device *op)
 	/* Finally register our spi controller */
 	dev->dma_mask = 0;
 	ret = spi_bitbang_start(bbp);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to register SPI master\n");
 		goto unmap_regs;
 	}
@@ -563,14 +649,16 @@ static int spi_ppc4xx_of_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id spi_ppc4xx_of_match[] = {
+static const struct of_device_id spi_ppc4xx_of_match[] =
+{
 	{ .compatible = "ibm,ppc4xx-spi", },
 	{},
 };
 
 MODULE_DEVICE_TABLE(of, spi_ppc4xx_of_match);
 
-static struct platform_driver spi_ppc4xx_of_driver = {
+static struct platform_driver spi_ppc4xx_of_driver =
+{
 	.probe = spi_ppc4xx_of_probe,
 	.remove = spi_ppc4xx_of_remove,
 	.driver = {

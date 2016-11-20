@@ -17,20 +17,23 @@
  * A vpdma_buf tracks the size, DMA address and mapping status of each
  * driver DMA area.
  */
-struct vpdma_buf {
+struct vpdma_buf
+{
 	void			*addr;
 	dma_addr_t		dma_addr;
 	size_t			size;
 	bool			mapped;
 };
 
-struct vpdma_desc_list {
+struct vpdma_desc_list
+{
 	struct vpdma_buf buf;
 	void *next;
 	int type;
 };
 
-struct vpdma_data {
+struct vpdma_data
+{
 	void __iomem		*base;
 
 	struct platform_device	*pdev;
@@ -39,13 +42,15 @@ struct vpdma_data {
 	void (*cb)(struct platform_device *pdev);
 };
 
-enum vpdma_data_format_type {
+enum vpdma_data_format_type
+{
 	VPDMA_DATA_FMT_TYPE_YUV,
 	VPDMA_DATA_FMT_TYPE_RGB,
 	VPDMA_DATA_FMT_TYPE_MISC,
 };
 
-struct vpdma_data_format {
+struct vpdma_data_format
+{
 	enum vpdma_data_format_type type;
 	int data_type;
 	u8 depth;
@@ -63,7 +68,8 @@ struct vpdma_data_format {
 #define VPDMA_LIST_TYPE_SELF_MODIFYING	1
 #define VPDMA_LIST_TYPE_DOORBELL	2
 
-enum vpdma_yuv_formats {
+enum vpdma_yuv_formats
+{
 	VPDMA_DATA_FMT_Y444 = 0,
 	VPDMA_DATA_FMT_Y422,
 	VPDMA_DATA_FMT_Y420,
@@ -75,7 +81,8 @@ enum vpdma_yuv_formats {
 	VPDMA_DATA_FMT_CY422,
 };
 
-enum vpdma_rgb_formats {
+enum vpdma_rgb_formats
+{
 	VPDMA_DATA_FMT_RGB565 = 0,
 	VPDMA_DATA_FMT_ARGB16_1555,
 	VPDMA_DATA_FMT_ARGB16,
@@ -98,7 +105,8 @@ enum vpdma_rgb_formats {
 	VPDMA_DATA_FMT_BGRA32,
 };
 
-enum vpdma_misc_formats {
+enum vpdma_misc_formats
+{
 	VPDMA_DATA_FMT_MV = 0,
 };
 
@@ -106,7 +114,8 @@ extern const struct vpdma_data_format vpdma_yuv_fmts[];
 extern const struct vpdma_data_format vpdma_rgb_fmts[];
 extern const struct vpdma_data_format vpdma_misc_fmts[];
 
-enum vpdma_frame_start_event {
+enum vpdma_frame_start_event
+{
 	VPDMA_FSEVENT_HDMI_FID = 0,
 	VPDMA_FSEVENT_DVO2_FID,
 	VPDMA_FSEVENT_HDCOMP_FID,
@@ -120,7 +129,8 @@ enum vpdma_frame_start_event {
 /*
  * VPDMA channel numbers
  */
-enum vpdma_channel {
+enum vpdma_channel
+{
 	VPE_CHAN_LUMA1_IN,
 	VPE_CHAN_CHROMA1_IN,
 	VPE_CHAN_LUMA2_IN,
@@ -147,7 +157,8 @@ enum vpdma_channel {
 #define CFD_SC_CLIENT		4
 
 /* Address data block header format */
-struct vpdma_adb_hdr {
+struct vpdma_adb_hdr
+{
 	u32			offset;
 	u32			nwords;
 	u32			reserved0;
@@ -181,36 +192,36 @@ int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list);
 
 /* helpers for creating vpdma descriptors */
 void vpdma_add_cfd_block(struct vpdma_desc_list *list, int client,
-		struct vpdma_buf *blk, u32 dest_offset);
+						 struct vpdma_buf *blk, u32 dest_offset);
 void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
-		struct vpdma_buf *adb);
+					   struct vpdma_buf *adb);
 void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
-		enum vpdma_channel chan);
+								   enum vpdma_channel chan);
 void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
-		const struct v4l2_rect *c_rect,
-		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
-		enum vpdma_channel chan, u32 flags);
+					   const struct v4l2_rect *c_rect,
+					   const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+					   enum vpdma_channel chan, u32 flags);
 void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
-		const struct v4l2_rect *c_rect,
-		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
-		enum vpdma_channel chan, int field, u32 flags, int frame_width,
-		int frame_height, int start_h, int start_v);
+					  const struct v4l2_rect *c_rect,
+					  const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+					  enum vpdma_channel chan, int field, u32 flags, int frame_width,
+					  int frame_height, int start_h, int start_v);
 
 /* vpdma list interrupt management */
 void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
-		bool enable);
+									bool enable);
 void vpdma_clear_list_stat(struct vpdma_data *vpdma);
 
 /* vpdma client configuration */
 void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
-		enum vpdma_channel chan);
+						 enum vpdma_channel chan);
 void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
-		enum vpdma_frame_start_event fs_event, enum vpdma_channel chan);
+								 enum vpdma_frame_start_event fs_event, enum vpdma_channel chan);
 
 void vpdma_dump_regs(struct vpdma_data *vpdma);
 
 /* initialize vpdma, passed with VPE's platform device pointer */
 struct vpdma_data *vpdma_create(struct platform_device *pdev,
-		void (*cb)(struct platform_device *pdev));
+								void (*cb)(struct platform_device *pdev));
 
 #endif

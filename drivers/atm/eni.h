@@ -1,8 +1,8 @@
 /* drivers/atm/eni.h - Efficient Networks ENI155P device driver declarations */
- 
+
 /* Written 1995-2000 by Werner Almesberger, EPFL LRC/ICA */
- 
- 
+
+
 #ifndef DRIVER_ATM_ENI_H
 #define DRIVER_ATM_ENI_H
 
@@ -32,12 +32,14 @@
 #define ENI_ZEROES_SIZE	  4		/* need that many DMA-able zero bytes */
 
 
-struct eni_free {
+struct eni_free
+{
 	void __iomem *start;		/* counting in bytes */
 	int order;
 };
 
-struct eni_tx {
+struct eni_tx
+{
 	void __iomem *send;		/* base, 0 if unused */
 	int prescaler;			/* shaping prescaler */
 	int resolution;			/* shaping divider */
@@ -49,7 +51,8 @@ struct eni_tx {
 	struct sk_buff_head backlog;	/* queue of waiting TX buffers */
 };
 
-struct eni_vcc {
+struct eni_vcc
+{
 	int (*rx)(struct atm_vcc *vcc);	/* RX function, NULL if none */
 	void __iomem *recv;		/* receive buffer */
 	unsigned long words;		/* its size in words */
@@ -65,7 +68,8 @@ struct eni_vcc {
 					   discard information) */
 };
 
-struct eni_dev {
+struct eni_dev
+{
 	/*-------------------------------- spinlock */
 	spinlock_t lock;		/* sync with interrupt */
 	struct tasklet_struct task;	/* tasklet for interrupt work */
@@ -86,16 +90,17 @@ struct eni_dev {
 	struct sk_buff_head tx_queue;	/* PDUs currently being TX DMAed*/
 	wait_queue_head_t tx_wait;	/* for close */
 	int tx_bw;			/* remaining bandwidth */
-	u32 dma[TX_DMA_BUF*2];		/* DMA request scratch area */
-	struct eni_zero {		/* aligned "magic" zeroes */
+	u32 dma[TX_DMA_BUF * 2];		/* DMA request scratch area */
+	struct eni_zero  		/* aligned "magic" zeroes */
+	{
 		u32 *addr;
 		dma_addr_t dma;
 	} zero;
 	int tx_mult;			/* buffer size multiplier (percent) */
 	/*-------------------------------- RX part */
 	u32 serv_read;			/* host service read index */
-	struct atm_vcc *fast,*last_fast;/* queues of VCCs with pending PDUs */
-	struct atm_vcc *slow,*last_slow;
+	struct atm_vcc *fast, *last_fast; /* queues of VCCs with pending PDUs */
+	struct atm_vcc *slow, *last_slow;
 	struct atm_vcc **rx_map;	/* for fast lookups */
 	struct sk_buff_head rx_queue;	/* PDUs currently being RX-DMAed */
 	wait_queue_head_t rx_wait;	/* for close */
@@ -121,7 +126,8 @@ struct eni_dev {
 #define ENI_VCC(d) ((struct eni_vcc *) (d)->dev_data)
 
 
-struct eni_skb_prv {
+struct eni_skb_prv
+{
 	struct atm_skb_data _;		/* reserved */
 	unsigned long pos;		/* position of next descriptor */
 	int size;			/* PDU size in reassembly buffer */

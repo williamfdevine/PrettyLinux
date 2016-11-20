@@ -59,14 +59,18 @@ void tfiar_tfhar(void *in)
 	tfhar += 4;
 	mtspr(SPRN_TFHAR, tfhar);
 
-	for (i = 0; i < num_loops; i++)	{
+	for (i = 0; i < num_loops; i++)
+	{
 		tfhar_rd = mfspr(SPRN_TFHAR);
 		tfiar_rd = mfspr(SPRN_TFIAR);
-		if ( (tfhar != tfhar_rd) || (tfiar != tfiar_rd) ) {
+
+		if ( (tfhar != tfhar_rd) || (tfiar != tfiar_rd) )
+		{
 			passed = 0;
 			return;
 		}
 	}
+
 	return;
 }
 
@@ -75,7 +79,8 @@ void texasr(void *in)
 	unsigned long i;
 	uint64_t result = 0;
 
-	for (i = 0; i < num_loops; i++) {
+	for (i = 0; i < num_loops; i++)
+	{
 		asm __volatile__(
 			"tbegin.;"
 			"beq    3f ;"
@@ -86,13 +91,16 @@ void texasr(void *in)
 			"3: ;"
 			::: "memory");
 
-                /* Check the TEXASR */
-                result = mfspr(SPRN_TEXASR);
-		if ((result & TEXASR_FS) == 0) {
+		/* Check the TEXASR */
+		result = mfspr(SPRN_TEXASR);
+
+		if ((result & TEXASR_FS) == 0)
+		{
 			passed = 0;
 			return;
 		}
 	}
+
 	return;
 }
 
@@ -108,36 +116,57 @@ int test_tmspr()
 	thread_num = 10 * sysconf(_SC_NPROCESSORS_ONLN);
 
 	/* Test TFIAR and TFHAR */
-	for (i = 0 ; i < thread_num ; i += 2){
-		if (pthread_create(&thread, NULL, (void*)tfiar_tfhar, (void *)i))
+	for (i = 0 ; i < thread_num ; i += 2)
+	{
+		if (pthread_create(&thread, NULL, (void *)tfiar_tfhar, (void *)i))
+		{
 			return EXIT_FAILURE;
+		}
 	}
+
 	if (pthread_join(thread, NULL) != 0)
+	{
 		return EXIT_FAILURE;
+	}
 
 	/* Test TEXASR */
-	for (i = 0 ; i < thread_num ; i++){
-		if (pthread_create(&thread, NULL, (void*)texasr, (void *)i))
+	for (i = 0 ; i < thread_num ; i++)
+	{
+		if (pthread_create(&thread, NULL, (void *)texasr, (void *)i))
+		{
 			return EXIT_FAILURE;
+		}
 	}
+
 	if (pthread_join(thread, NULL) != 0)
+	{
 		return EXIT_FAILURE;
+	}
 
 	if (passed)
+	{
 		return 0;
+	}
 	else
+	{
 		return 1;
+	}
 }
 
 int main(int argc, char *argv[])
 {
-	if (argc > 1) {
-		if (strcmp(argv[1], "-h") == 0) {
+	if (argc > 1)
+	{
+		if (strcmp(argv[1], "-h") == 0)
+		{
 			printf("Syntax:\t [<num loops>]\n");
 			return 0;
-		} else {
+		}
+		else
+		{
 			num_loops = atoi(argv[1]);
 		}
 	}
+
 	return test_harness(test_tmspr, "tm_tmspr");
 }

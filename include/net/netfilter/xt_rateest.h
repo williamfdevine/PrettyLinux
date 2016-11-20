@@ -1,7 +1,8 @@
 #ifndef _XT_RATEEST_H
 #define _XT_RATEEST_H
 
-struct xt_rateest {
+struct xt_rateest
+{
 	/* keep lock and bstats on same cache line to speedup xt_rateest_tg() */
 	struct gnet_stats_basic_packed	bstats;
 	spinlock_t			lock;

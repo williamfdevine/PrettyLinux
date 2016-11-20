@@ -17,7 +17,8 @@
 
 struct ebb_state
 {
-	struct {
+	struct
+	{
 		u64 pmc_count[6];
 		volatile int ebb_count;
 		int spurious;

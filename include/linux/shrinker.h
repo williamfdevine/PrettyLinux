@@ -8,7 +8,8 @@
  * The 'gfpmask' refers to the allocation we are currently trying to
  * fulfil.
  */
-struct shrink_control {
+struct shrink_control
+{
 	gfp_t gfp_mask;
 
 	/*
@@ -46,11 +47,12 @@ struct shrink_control {
  *
  * @flags determine the shrinker abilities, like numa awareness
  */
-struct shrinker {
+struct shrinker
+{
 	unsigned long (*count_objects)(struct shrinker *,
-				       struct shrink_control *sc);
+								   struct shrink_control *sc);
 	unsigned long (*scan_objects)(struct shrinker *,
-				      struct shrink_control *sc);
+								  struct shrink_control *sc);
 
 	int seeks;	/* seeks to recreate an obj */
 	long batch;	/* reclaim batch size, 0 = default */

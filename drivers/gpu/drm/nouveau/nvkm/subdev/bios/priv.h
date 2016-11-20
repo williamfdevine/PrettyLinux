@@ -3,7 +3,8 @@
 #define nvkm_bios(p) container_of((p), struct nvkm_bios, subdev)
 #include <subdev/bios.h>
 
-struct nvbios_source {
+struct nvbios_source
+{
 	const char *name;
 	void *(*init)(struct nvkm_bios *, const char *);
 	void  (*fini)(void *);

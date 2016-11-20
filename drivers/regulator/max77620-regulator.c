@@ -35,7 +35,8 @@
 #define MAX77620_SD_SR_55			2
 #define MAX77620_SD_SR_100			3
 
-enum max77620_regulators {
+enum max77620_regulators
+{
 	MAX77620_REGULATOR_ID_SD0,
 	MAX77620_REGULATOR_ID_SD1,
 	MAX77620_REGULATOR_ID_SD2,
@@ -54,13 +55,15 @@ enum max77620_regulators {
 };
 
 /* Regulator types */
-enum max77620_regulator_type {
+enum max77620_regulator_type
+{
 	MAX77620_REGULATOR_TYPE_SD,
 	MAX77620_REGULATOR_TYPE_LDO_N,
 	MAX77620_REGULATOR_TYPE_LDO_P,
 };
 
-struct max77620_regulator_info {
+struct max77620_regulator_info
+{
 	u8 type;
 	u8 fps_addr;
 	u8 volt_addr;
@@ -72,7 +75,8 @@ struct max77620_regulator_info {
 	struct regulator_desc desc;
 };
 
-struct max77620_regulator_pdata {
+struct max77620_regulator_pdata
+{
 	struct regulator_init_data *reg_idata;
 	int active_fps_src;
 	int active_fps_pd_slot;
@@ -84,7 +88,8 @@ struct max77620_regulator_pdata {
 	int ramp_rate_setting;
 };
 
-struct max77620_regulator {
+struct max77620_regulator
+{
 	struct device *dev;
 	struct regmap *rmap;
 	struct max77620_regulator_info *rinfo[MAX77620_NUM_REGS];
@@ -96,20 +101,22 @@ struct max77620_regulator {
 
 #define fps_src_name(fps_src)	\
 	(fps_src == MAX77620_FPS_SRC_0 ? "FPS_SRC_0" :	\
-	fps_src == MAX77620_FPS_SRC_1 ? "FPS_SRC_1" :	\
-	fps_src == MAX77620_FPS_SRC_2 ? "FPS_SRC_2" : "FPS_SRC_NONE")
+	 fps_src == MAX77620_FPS_SRC_1 ? "FPS_SRC_1" :	\
+	 fps_src == MAX77620_FPS_SRC_2 ? "FPS_SRC_2" : "FPS_SRC_NONE")
 
 static int max77620_regulator_get_fps_src(struct max77620_regulator *pmic,
-					  int id)
+		int id)
 {
 	struct max77620_regulator_info *rinfo = pmic->rinfo[id];
 	unsigned int val;
 	int ret;
 
 	ret = regmap_read(pmic->rmap, rinfo->fps_addr, &val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(pmic->dev, "Reg 0x%02x read failed %d\n",
-			rinfo->fps_addr, ret);
+				rinfo->fps_addr, ret);
 		return ret;
 	}
 
@@ -117,54 +124,63 @@ static int max77620_regulator_get_fps_src(struct max77620_regulator *pmic,
 }
 
 static int max77620_regulator_set_fps_src(struct max77620_regulator *pmic,
-					  int fps_src, int id)
+		int fps_src, int id)
 {
 	struct max77620_regulator_info *rinfo = pmic->rinfo[id];
 	unsigned int val;
 	int ret;
 
 	if (!rinfo)
+	{
 		return 0;
+	}
 
-	switch (fps_src) {
-	case MAX77620_FPS_SRC_0:
-	case MAX77620_FPS_SRC_1:
-	case MAX77620_FPS_SRC_2:
-	case MAX77620_FPS_SRC_NONE:
-		break;
+	switch (fps_src)
+	{
+		case MAX77620_FPS_SRC_0:
+		case MAX77620_FPS_SRC_1:
+		case MAX77620_FPS_SRC_2:
+		case MAX77620_FPS_SRC_NONE:
+			break;
 
-	case MAX77620_FPS_SRC_DEF:
-		ret = regmap_read(pmic->rmap, rinfo->fps_addr, &val);
-		if (ret < 0) {
-			dev_err(pmic->dev, "Reg 0x%02x read failed %d\n",
-				rinfo->fps_addr, ret);
-			return ret;
-		}
-		ret = (val & MAX77620_FPS_SRC_MASK) >> MAX77620_FPS_SRC_SHIFT;
-		pmic->active_fps_src[id] = ret;
-		return 0;
+		case MAX77620_FPS_SRC_DEF:
+			ret = regmap_read(pmic->rmap, rinfo->fps_addr, &val);
 
-	default:
-		dev_err(pmic->dev, "Invalid FPS %d for regulator %d\n",
-			fps_src, id);
-		return -EINVAL;
+			if (ret < 0)
+			{
+				dev_err(pmic->dev, "Reg 0x%02x read failed %d\n",
+						rinfo->fps_addr, ret);
+				return ret;
+			}
+
+			ret = (val & MAX77620_FPS_SRC_MASK) >> MAX77620_FPS_SRC_SHIFT;
+			pmic->active_fps_src[id] = ret;
+			return 0;
+
+		default:
+			dev_err(pmic->dev, "Invalid FPS %d for regulator %d\n",
+					fps_src, id);
+			return -EINVAL;
 	}
 
 	ret = regmap_update_bits(pmic->rmap, rinfo->fps_addr,
-				 MAX77620_FPS_SRC_MASK,
-				 fps_src << MAX77620_FPS_SRC_SHIFT);
-	if (ret < 0) {
+							 MAX77620_FPS_SRC_MASK,
+							 fps_src << MAX77620_FPS_SRC_SHIFT);
+
+	if (ret < 0)
+	{
 		dev_err(pmic->dev, "Reg 0x%02x update failed %d\n",
-			rinfo->fps_addr, ret);
+				rinfo->fps_addr, ret);
 		return ret;
 	}
+
 	pmic->active_fps_src[id] = fps_src;
 
 	return 0;
 }
 
 static int max77620_regulator_set_fps_slots(struct max77620_regulator *pmic,
-					    int id, bool is_suspend)
+		int id, bool is_suspend)
 {
 	struct max77620_regulator_pdata *rpdata = &pmic->reg_pdata[id];
 	struct max77620_regulator_info *rinfo = pmic->rinfo[id];
@@ -175,31 +191,39 @@ static int max77620_regulator_set_fps_slots(struct max77620_regulator *pmic,
 	int ret = 0;
 
 	if (!rinfo)
+	{
 		return 0;
+	}
 
-	if (is_suspend) {
+	if (is_suspend)
+	{
 		pu = rpdata->suspend_fps_pu_slot;
 		pd = rpdata->suspend_fps_pd_slot;
 	}
 
 	/* FPS power up period setting */
-	if (pu >= 0) {
+	if (pu >= 0)
+	{
 		val |= (pu << MAX77620_FPS_PU_PERIOD_SHIFT);
 		mask |= MAX77620_FPS_PU_PERIOD_MASK;
 	}
 
 	/* FPS power down period setting */
-	if (pd >= 0) {
+	if (pd >= 0)
+	{
 		val |= (pd << MAX77620_FPS_PD_PERIOD_SHIFT);
 		mask |= MAX77620_FPS_PD_PERIOD_MASK;
 	}
 
-	if (mask) {
+	if (mask)
+	{
 		ret = regmap_update_bits(pmic->rmap, rinfo->fps_addr,
-					 mask, val);
-		if (ret < 0) {
+								 mask, val);
+
+		if (ret < 0)
+		{
 			dev_err(pmic->dev, "Reg 0x%02x update failed: %d\n",
-				rinfo->fps_addr, ret);
+					rinfo->fps_addr, ret);
 			return ret;
 		}
 	}
@@ -208,7 +232,7 @@ static int max77620_regulator_set_fps_slots(struct max77620_regulator *pmic,
 }
 
 static int max77620_regulator_set_power_mode(struct max77620_regulator *pmic,
-					     int power_mode, int id)
+		int power_mode, int id)
 {
 	struct max77620_regulator_info *rinfo = pmic->rinfo[id];
 	u8 mask = rinfo->power_mode_mask;
@@ -216,28 +240,33 @@ static int max77620_regulator_set_power_mode(struct max77620_regulator *pmic,
 	u8 addr;
 	int ret;
 
-	switch (rinfo->type) {
-	case MAX77620_REGULATOR_TYPE_SD:
-		addr = rinfo->cfg_addr;
-		break;
-	default:
-		addr = rinfo->volt_addr;
-		break;
+	switch (rinfo->type)
+	{
+		case MAX77620_REGULATOR_TYPE_SD:
+			addr = rinfo->cfg_addr;
+			break;
+
+		default:
+			addr = rinfo->volt_addr;
+			break;
 	}
 
 	ret = regmap_update_bits(pmic->rmap, addr, mask, power_mode << shift);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(pmic->dev, "Regulator %d mode set failed: %d\n",
-			id, ret);
+				id, ret);
 		return ret;
 	}
+
 	pmic->current_power_mode[id] = power_mode;
 
 	return ret;
 }
 
 static int max77620_regulator_get_power_mode(struct max77620_regulator *pmic,
-					     int id)
+		int id)
 {
 	struct max77620_regulator_info *rinfo = pmic->rinfo[id];
 	unsigned int val, addr;
@@ -245,19 +274,23 @@ static int max77620_regulator_get_power_mode(struct max77620_regulator *pmic,
 	u8 shift = rinfo->power_mode_shift;
 	int ret;
 
-	switch (rinfo->type) {
-	case MAX77620_REGULATOR_TYPE_SD:
-		addr = rinfo->cfg_addr;
-		break;
-	default:
-		addr = rinfo->volt_addr;
-		break;
+	switch (rinfo->type)
+	{
+		case MAX77620_REGULATOR_TYPE_SD:
+			addr = rinfo->cfg_addr;
+			break;
+
+		default:
+			addr = rinfo->volt_addr;
+			break;
 	}
 
 	ret = regmap_read(pmic->rmap, addr, &val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(pmic->dev, "Regulator %d: Reg 0x%02x read failed: %d\n",
-			id, addr, ret);
+				id, addr, ret);
 		return ret;
 	}
 
@@ -272,79 +305,112 @@ static int max77620_read_slew_rate(struct max77620_regulator *pmic, int id)
 	int ret;
 
 	ret = regmap_read(pmic->rmap, rinfo->cfg_addr, &rval);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(pmic->dev, "Register 0x%02x read failed: %d\n",
-			rinfo->cfg_addr, ret);
+				rinfo->cfg_addr, ret);
 		return ret;
 	}
 
-	switch (rinfo->type) {
-	case MAX77620_REGULATOR_TYPE_SD:
-		slew_rate = (rval >> MAX77620_SD_SR_SHIFT) & 0x3;
-		switch (slew_rate) {
-		case 0:
-			slew_rate = 13750;
+	switch (rinfo->type)
+	{
+		case MAX77620_REGULATOR_TYPE_SD:
+			slew_rate = (rval >> MAX77620_SD_SR_SHIFT) & 0x3;
+
+			switch (slew_rate)
+			{
+				case 0:
+					slew_rate = 13750;
+					break;
+
+				case 1:
+					slew_rate = 27500;
+					break;
+
+				case 2:
+					slew_rate = 55000;
+					break;
+
+				case 3:
+					slew_rate = 100000;
+					break;
+			}
+
+			rinfo->desc.ramp_delay = slew_rate;
 			break;
-		case 1:
-			slew_rate = 27500;
+
+		default:
+			slew_rate = rval & 0x1;
+
+			switch (slew_rate)
+			{
+				case 0:
+					slew_rate = 100000;
+					break;
+
+				case 1:
+					slew_rate = 5000;
+					break;
+			}
+
+			rinfo->desc.ramp_delay = slew_rate;
 			break;
-		case 2:
-			slew_rate = 55000;
-			break;
-		case 3:
-			slew_rate = 100000;
-			break;
-		}
-		rinfo->desc.ramp_delay = slew_rate;
-		break;
-	default:
-		slew_rate = rval & 0x1;
-		switch (slew_rate) {
-		case 0:
-			slew_rate = 100000;
-			break;
-		case 1:
-			slew_rate = 5000;
-			break;
-		}
-		rinfo->desc.ramp_delay = slew_rate;
-		break;
 	}
 
 	return 0;
 }
 
 static int max77620_set_slew_rate(struct max77620_regulator *pmic, int id,
-				  int slew_rate)
+								  int slew_rate)
 {
 	struct max77620_regulator_info *rinfo = pmic->rinfo[id];
 	unsigned int val;
 	int ret;
 	u8 mask;
 
-	if (rinfo->type == MAX77620_REGULATOR_TYPE_SD) {
+	if (rinfo->type == MAX77620_REGULATOR_TYPE_SD)
+	{
 		if (slew_rate <= 13750)
+		{
 			val = 0;
+		}
 		else if (slew_rate <= 27500)
+		{
 			val = 1;
+		}
 		else if (slew_rate <= 55000)
+		{
 			val = 2;
+		}
 		else
+		{
 			val = 3;
+		}
+
 		val <<= MAX77620_SD_SR_SHIFT;
 		mask = MAX77620_SD_SR_MASK;
-	} else {
+	}
+	else
+	{
 		if (slew_rate <= 5000)
+		{
 			val = 1;
+		}
 		else
+		{
 			val = 0;
+		}
+
 		mask = MAX77620_LDO_SLEW_RATE_MASK;
 	}
 
 	ret = regmap_update_bits(pmic->rmap, rinfo->cfg_addr, mask, val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(pmic->dev, "Regulator %d slew rate set failed: %d\n",
-			id, ret);
+				id, ret);
 		return ret;
 	}
 
@@ -358,48 +424,76 @@ static int max77620_init_pmic(struct max77620_regulator *pmic, int id)
 
 	/* Update power mode */
 	ret = max77620_regulator_get_power_mode(pmic, id);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	pmic->current_power_mode[id] = ret;
 	pmic->enable_power_mode[id] = MAX77620_POWER_MODE_NORMAL;
 
-	if (rpdata->active_fps_src == MAX77620_FPS_SRC_DEF) {
+	if (rpdata->active_fps_src == MAX77620_FPS_SRC_DEF)
+	{
 		ret = max77620_regulator_get_fps_src(pmic, id);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		rpdata->active_fps_src = ret;
 	}
 
-	 /* If rails are externally control of FPS then enable it always. */
-	if (rpdata->active_fps_src == MAX77620_FPS_SRC_NONE) {
+	/* If rails are externally control of FPS then enable it always. */
+	if (rpdata->active_fps_src == MAX77620_FPS_SRC_NONE)
+	{
 		ret = max77620_regulator_set_power_mode(pmic,
-					pmic->enable_power_mode[id], id);
+												pmic->enable_power_mode[id], id);
+
 		if (ret < 0)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		if (pmic->current_power_mode[id] !=
-		     pmic->enable_power_mode[id]) {
+			pmic->enable_power_mode[id])
+		{
 			ret = max77620_regulator_set_power_mode(pmic,
-					pmic->enable_power_mode[id], id);
+													pmic->enable_power_mode[id], id);
+
 			if (ret < 0)
+			{
 				return ret;
+			}
 		}
 	}
 
 	ret = max77620_regulator_set_fps_src(pmic, rpdata->active_fps_src, id);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = max77620_regulator_set_fps_slots(pmic, id, false);
-	if (ret < 0)
-		return ret;
 
-	if (rpdata->ramp_rate_setting) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (rpdata->ramp_rate_setting)
+	{
 		ret = max77620_set_slew_rate(pmic, id,
-					     rpdata->ramp_rate_setting);
+									 rpdata->ramp_rate_setting);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -411,7 +505,9 @@ static int max77620_regulator_enable(struct regulator_dev *rdev)
 	int id = rdev_get_id(rdev);
 
 	if (pmic->active_fps_src[id] != MAX77620_FPS_SRC_NONE)
+	{
 		return 0;
+	}
 
 	return max77620_regulator_set_power_mode(pmic,
 			pmic->enable_power_mode[id], id);
@@ -423,7 +519,9 @@ static int max77620_regulator_disable(struct regulator_dev *rdev)
 	int id = rdev_get_id(rdev);
 
 	if (pmic->active_fps_src[id] != MAX77620_FPS_SRC_NONE)
+	{
 		return 0;
+	}
 
 	return max77620_regulator_set_power_mode(pmic,
 			MAX77620_POWER_MODE_DISABLE, id);
@@ -436,20 +534,27 @@ static int max77620_regulator_is_enabled(struct regulator_dev *rdev)
 	int ret = 1;
 
 	if (pmic->active_fps_src[id] != MAX77620_FPS_SRC_NONE)
+	{
 		return 1;
+	}
 
 	ret = max77620_regulator_get_power_mode(pmic, id);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (ret != MAX77620_POWER_MODE_DISABLE)
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
 static int max77620_regulator_set_mode(struct regulator_dev *rdev,
-				       unsigned int mode)
+									   unsigned int mode)
 {
 	struct max77620_regulator *pmic = rdev_get_drvdata(rdev);
 	int id = rdev_get_id(rdev);
@@ -460,43 +565,52 @@ static int max77620_regulator_set_mode(struct regulator_dev *rdev,
 	int ret;
 	u8 val;
 
-	switch (mode) {
-	case REGULATOR_MODE_FAST:
-		fpwm = true;
-		power_mode = MAX77620_POWER_MODE_NORMAL;
-		break;
+	switch (mode)
+	{
+		case REGULATOR_MODE_FAST:
+			fpwm = true;
+			power_mode = MAX77620_POWER_MODE_NORMAL;
+			break;
 
-	case REGULATOR_MODE_NORMAL:
-		power_mode = MAX77620_POWER_MODE_NORMAL;
-		break;
+		case REGULATOR_MODE_NORMAL:
+			power_mode = MAX77620_POWER_MODE_NORMAL;
+			break;
 
-	case REGULATOR_MODE_IDLE:
-		power_mode = MAX77620_POWER_MODE_LPM;
-		break;
+		case REGULATOR_MODE_IDLE:
+			power_mode = MAX77620_POWER_MODE_LPM;
+			break;
 
-	default:
-		dev_err(pmic->dev, "Regulator %d mode %d is invalid\n",
-			id, mode);
-		return -EINVAL;
+		default:
+			dev_err(pmic->dev, "Regulator %d mode %d is invalid\n",
+					id, mode);
+			return -EINVAL;
 	}
 
 	if (rinfo->type != MAX77620_REGULATOR_TYPE_SD)
+	{
 		goto skip_fpwm;
+	}
 
 	val = (fpwm) ? MAX77620_SD_FPWM_MASK : 0;
 	ret = regmap_update_bits(pmic->rmap, rinfo->cfg_addr,
-				 MAX77620_SD_FPWM_MASK, val);
-	if (ret < 0) {
+							 MAX77620_SD_FPWM_MASK, val);
+
+	if (ret < 0)
+	{
 		dev_err(pmic->dev, "Reg 0x%02x update failed: %d\n",
-			rinfo->cfg_addr, ret);
+				rinfo->cfg_addr, ret);
 		return ret;
 	}
+
 	rpdata->current_mode = mode;
 
 skip_fpwm:
 	ret = max77620_regulator_set_power_mode(pmic, power_mode, id);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	pmic->enable_power_mode[id] = power_mode;
 
@@ -514,42 +628,57 @@ static unsigned int max77620_regulator_get_mode(struct regulator_dev *rdev)
 	unsigned int val;
 
 	ret = max77620_regulator_get_power_mode(pmic, id);
+
 	if (ret < 0)
+	{
 		return 0;
+	}
 
 	pm_mode = ret;
 
-	if (rinfo->type == MAX77620_REGULATOR_TYPE_SD) {
+	if (rinfo->type == MAX77620_REGULATOR_TYPE_SD)
+	{
 		ret = regmap_read(pmic->rmap, rinfo->cfg_addr, &val);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(pmic->dev, "Reg 0x%02x read failed: %d\n",
-				rinfo->cfg_addr, ret);
+					rinfo->cfg_addr, ret);
 			return ret;
 		}
+
 		fpwm = !!(val & MAX77620_SD_FPWM_MASK);
 	}
 
-	switch (pm_mode) {
-	case MAX77620_POWER_MODE_NORMAL:
-	case MAX77620_POWER_MODE_DISABLE:
-		if (fpwm)
-			reg_mode = REGULATOR_MODE_FAST;
-		else
-			reg_mode = REGULATOR_MODE_NORMAL;
-		break;
-	case MAX77620_POWER_MODE_LPM:
-	case MAX77620_POWER_MODE_GLPM:
-		reg_mode = REGULATOR_MODE_IDLE;
-		break;
-	default:
-		return 0;
+	switch (pm_mode)
+	{
+		case MAX77620_POWER_MODE_NORMAL:
+		case MAX77620_POWER_MODE_DISABLE:
+			if (fpwm)
+			{
+				reg_mode = REGULATOR_MODE_FAST;
+			}
+			else
+			{
+				reg_mode = REGULATOR_MODE_NORMAL;
+			}
+
+			break;
+
+		case MAX77620_POWER_MODE_LPM:
+		case MAX77620_POWER_MODE_GLPM:
+			reg_mode = REGULATOR_MODE_IDLE;
+			break;
+
+		default:
+			return 0;
 	}
 
 	return reg_mode;
 }
 
 static int max77620_regulator_set_ramp_delay(struct regulator_dev *rdev,
-					     int ramp_delay)
+		int ramp_delay)
 {
 	struct max77620_regulator *pmic = rdev_get_drvdata(rdev);
 	int id = rdev_get_id(rdev);
@@ -560,14 +689,16 @@ static int max77620_regulator_set_ramp_delay(struct regulator_dev *rdev,
 	 * do not configure anything and just return success.
 	 */
 	if (rpdata->ramp_rate_setting)
+	{
 		return 0;
+	}
 
 	return max77620_set_slew_rate(pmic, id, ramp_delay);
 }
 
 static int max77620_of_parse_cb(struct device_node *np,
-				const struct regulator_desc *desc,
-				struct regulator_config *config)
+								const struct regulator_desc *desc,
+								struct regulator_config *config)
 {
 	struct max77620_regulator *pmic = config->driver_data;
 	struct max77620_regulator_pdata *rpdata = &pmic->reg_pdata[desc->id];
@@ -581,18 +712,18 @@ static int max77620_of_parse_cb(struct device_node *np,
 	rpdata->active_fps_pu_slot = (!ret) ? pval : -1;
 
 	ret = of_property_read_u32(
-			np, "maxim,active-fps-power-down-slot", &pval);
+			  np, "maxim,active-fps-power-down-slot", &pval);
 	rpdata->active_fps_pd_slot = (!ret) ? pval : -1;
 
 	ret = of_property_read_u32(np, "maxim,suspend-fps-source", &pval);
 	rpdata->suspend_fps_src = (!ret) ? pval : -1;
 
 	ret = of_property_read_u32(
-			np, "maxim,suspend-fps-power-up-slot", &pval);
+			  np, "maxim,suspend-fps-power-up-slot", &pval);
 	rpdata->suspend_fps_pu_slot = (!ret) ? pval : -1;
 
 	ret = of_property_read_u32(
-			np, "maxim,suspend-fps-power-down-slot", &pval);
+			  np, "maxim,suspend-fps-power-down-slot", &pval);
 	rpdata->suspend_fps_pd_slot = (!ret) ? pval : -1;
 
 	ret = of_property_read_u32(np, "maxim,ramp-rate-setting", &pval);
@@ -601,7 +732,8 @@ static int max77620_of_parse_cb(struct device_node *np,
 	return max77620_init_pmic(pmic, desc->id);
 }
 
-static struct regulator_ops max77620_regulator_ops = {
+static struct regulator_ops max77620_regulator_ops =
+{
 	.is_enabled = max77620_regulator_is_enabled,
 	.enable = max77620_regulator_enable,
 	.disable = max77620_regulator_disable,
@@ -618,70 +750,71 @@ static struct regulator_ops max77620_regulator_ops = {
 
 #define MAX77620_SD_CNF2_ROVS_EN_NONE	0
 #define RAIL_SD(_id, _name, _sname, _volt_mask, _min_uV, _max_uV,	\
-		_step_uV, _rs_add, _rs_mask)				\
-	[MAX77620_REGULATOR_ID_##_id] = {				\
-		.type = MAX77620_REGULATOR_TYPE_SD,			\
-		.volt_addr = MAX77620_REG_##_id,			\
-		.cfg_addr = MAX77620_REG_##_id##_CFG,			\
-		.fps_addr = MAX77620_REG_FPS_##_id,			\
-		.remote_sense_addr = _rs_add,				\
-		.remote_sense_mask = MAX77620_SD_CNF2_ROVS_EN_##_rs_mask, \
-		.power_mode_mask = MAX77620_SD_POWER_MODE_MASK,		\
-		.power_mode_shift = MAX77620_SD_POWER_MODE_SHIFT,	\
-		.desc = {						\
-			.name = max77620_rails(_name),			\
-			.of_match = of_match_ptr(#_name),		\
-			.regulators_node = of_match_ptr("regulators"),	\
-			.of_parse_cb = max77620_of_parse_cb,		\
-			.supply_name = _sname,				\
-			.id = MAX77620_REGULATOR_ID_##_id,		\
-			.ops = &max77620_regulator_ops,			\
-			.n_voltages = ((_max_uV - _min_uV) / _step_uV) + 1, \
-			.min_uV = _min_uV,				\
-			.uV_step = _step_uV,				\
-			.enable_time = 500,				\
-			.vsel_mask = MAX77620_##_volt_mask##_VOLT_MASK,	\
-			.vsel_reg = MAX77620_REG_##_id,			\
-			.active_discharge_off = 0,			\
-			.active_discharge_on = MAX77620_SD_CFG1_ADE_ENABLE, \
-			.active_discharge_mask = MAX77620_SD_CFG1_ADE_MASK, \
-			.active_discharge_reg = MAX77620_REG_##_id##_CFG, \
-			.type = REGULATOR_VOLTAGE,			\
-		},							\
-	}
+				_step_uV, _rs_add, _rs_mask)				\
+[MAX77620_REGULATOR_ID_##_id] = {				\
+												.type = MAX77620_REGULATOR_TYPE_SD,			\
+												.volt_addr = MAX77620_REG_##_id,			\
+												.cfg_addr = MAX77620_REG_##_id##_CFG,			\
+												.fps_addr = MAX77620_REG_FPS_##_id,			\
+												.remote_sense_addr = _rs_add,				\
+												.remote_sense_mask = MAX77620_SD_CNF2_ROVS_EN_##_rs_mask, \
+												.power_mode_mask = MAX77620_SD_POWER_MODE_MASK,		\
+												.power_mode_shift = MAX77620_SD_POWER_MODE_SHIFT,	\
+												.desc = {						\
+																				.name = max77620_rails(_name),			\
+																				.of_match = of_match_ptr(#_name),		\
+																				.regulators_node = of_match_ptr("regulators"),	\
+																				.of_parse_cb = max77620_of_parse_cb,		\
+																				.supply_name = _sname,				\
+																				.id = MAX77620_REGULATOR_ID_##_id,		\
+																				.ops = &max77620_regulator_ops,			\
+																				.n_voltages = ((_max_uV - _min_uV) / _step_uV) + 1, \
+																				.min_uV = _min_uV,				\
+																				.uV_step = _step_uV,				\
+																				.enable_time = 500,				\
+																				.vsel_mask = MAX77620_##_volt_mask##_VOLT_MASK,	\
+																				.vsel_reg = MAX77620_REG_##_id,			\
+																				.active_discharge_off = 0,			\
+																				.active_discharge_on = MAX77620_SD_CFG1_ADE_ENABLE, \
+																				.active_discharge_mask = MAX77620_SD_CFG1_ADE_MASK, \
+																				.active_discharge_reg = MAX77620_REG_##_id##_CFG, \
+																				.type = REGULATOR_VOLTAGE,			\
+														},							\
+								}
 
 #define RAIL_LDO(_id, _name, _sname, _type, _min_uV, _max_uV, _step_uV) \
 	[MAX77620_REGULATOR_ID_##_id] = {				\
-		.type = MAX77620_REGULATOR_TYPE_LDO_##_type,		\
-		.volt_addr = MAX77620_REG_##_id##_CFG,			\
-		.cfg_addr = MAX77620_REG_##_id##_CFG2,			\
-		.fps_addr = MAX77620_REG_FPS_##_id,			\
-		.remote_sense_addr = 0xFF,				\
-		.power_mode_mask = MAX77620_LDO_POWER_MODE_MASK,	\
-		.power_mode_shift = MAX77620_LDO_POWER_MODE_SHIFT,	\
-		.desc = {						\
-			.name = max77620_rails(_name),			\
-			.of_match = of_match_ptr(#_name),		\
-			.regulators_node = of_match_ptr("regulators"),	\
-			.of_parse_cb = max77620_of_parse_cb,		\
-			.supply_name = _sname,				\
-			.id = MAX77620_REGULATOR_ID_##_id,		\
-			.ops = &max77620_regulator_ops,			\
-			.n_voltages = ((_max_uV - _min_uV) / _step_uV) + 1, \
-			.min_uV = _min_uV,				\
-			.uV_step = _step_uV,				\
-			.enable_time = 500,				\
-			.vsel_mask = MAX77620_LDO_VOLT_MASK,		\
-			.vsel_reg = MAX77620_REG_##_id##_CFG,		\
-			.active_discharge_off = 0,			\
-			.active_discharge_on = MAX77620_LDO_CFG2_ADE_ENABLE, \
-			.active_discharge_mask = MAX77620_LDO_CFG2_ADE_MASK, \
-			.active_discharge_reg = MAX77620_REG_##_id##_CFG2, \
-			.type = REGULATOR_VOLTAGE,			\
-		},							\
-	}
+													.type = MAX77620_REGULATOR_TYPE_LDO_##_type,		\
+													.volt_addr = MAX77620_REG_##_id##_CFG,			\
+													.cfg_addr = MAX77620_REG_##_id##_CFG2,			\
+													.fps_addr = MAX77620_REG_FPS_##_id,			\
+													.remote_sense_addr = 0xFF,				\
+													.power_mode_mask = MAX77620_LDO_POWER_MODE_MASK,	\
+													.power_mode_shift = MAX77620_LDO_POWER_MODE_SHIFT,	\
+													.desc = {						\
+																					.name = max77620_rails(_name),			\
+																					.of_match = of_match_ptr(#_name),		\
+																					.regulators_node = of_match_ptr("regulators"),	\
+																					.of_parse_cb = max77620_of_parse_cb,		\
+																					.supply_name = _sname,				\
+																					.id = MAX77620_REGULATOR_ID_##_id,		\
+																					.ops = &max77620_regulator_ops,			\
+																					.n_voltages = ((_max_uV - _min_uV) / _step_uV) + 1, \
+																					.min_uV = _min_uV,				\
+																					.uV_step = _step_uV,				\
+																					.enable_time = 500,				\
+																					.vsel_mask = MAX77620_LDO_VOLT_MASK,		\
+																					.vsel_reg = MAX77620_REG_##_id##_CFG,		\
+																					.active_discharge_off = 0,			\
+																					.active_discharge_on = MAX77620_LDO_CFG2_ADE_ENABLE, \
+																					.active_discharge_mask = MAX77620_LDO_CFG2_ADE_MASK, \
+																					.active_discharge_reg = MAX77620_REG_##_id##_CFG2, \
+																					.type = REGULATOR_VOLTAGE,			\
+															},							\
+									}
 
-static struct max77620_regulator_info max77620_regs_info[MAX77620_NUM_REGS] = {
+static struct max77620_regulator_info max77620_regs_info[MAX77620_NUM_REGS] =
+{
 	RAIL_SD(SD0, sd0, "in-sd0", SD0, 600000, 1400000, 12500, 0x22, SD0),
 	RAIL_SD(SD1, sd1, "in-sd1", SD1, 600000, 1550000, 12500, 0x22, SD1),
 	RAIL_SD(SD2, sd2, "in-sd2", SDX, 600000, 3787500, 12500, 0xFF, NONE),
@@ -698,7 +831,8 @@ static struct max77620_regulator_info max77620_regs_info[MAX77620_NUM_REGS] = {
 	RAIL_LDO(LDO8, ldo8, "in-ldo7-8", N, 800000, 3950000, 50000),
 };
 
-static struct max77620_regulator_info max20024_regs_info[MAX77620_NUM_REGS] = {
+static struct max77620_regulator_info max20024_regs_info[MAX77620_NUM_REGS] =
+{
 	RAIL_SD(SD0, sd0, "in-sd0", SD0, 800000, 1587500, 12500, 0x22, SD0),
 	RAIL_SD(SD1, sd1, "in-sd1", SD1, 600000, 3387500, 12500, 0x22, SD1),
 	RAIL_SD(SD2, sd2, "in-sd2", SDX, 600000, 3787500, 12500, 0xFF, NONE),
@@ -727,49 +861,65 @@ static int max77620_regulator_probe(struct platform_device *pdev)
 	int id;
 
 	pmic = devm_kzalloc(dev, sizeof(*pmic), GFP_KERNEL);
+
 	if (!pmic)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, pmic);
 	pmic->dev = dev;
 	pmic->rmap = max77620_chip->rmap;
-	if (!dev->of_node)
-		dev->of_node = pdev->dev.parent->of_node;
 
-	switch (max77620_chip->chip_id) {
-	case MAX77620:
-		rinfo = max77620_regs_info;
-		break;
-	default:
-		rinfo = max20024_regs_info;
-		break;
+	if (!dev->of_node)
+	{
+		dev->of_node = pdev->dev.parent->of_node;
+	}
+
+	switch (max77620_chip->chip_id)
+	{
+		case MAX77620:
+			rinfo = max77620_regs_info;
+			break;
+
+		default:
+			rinfo = max20024_regs_info;
+			break;
 	}
 
 	config.regmap = pmic->rmap;
 	config.dev = dev;
 	config.driver_data = pmic;
 
-	for (id = 0; id < MAX77620_NUM_REGS; id++) {
+	for (id = 0; id < MAX77620_NUM_REGS; id++)
+	{
 		struct regulator_dev *rdev;
 		struct regulator_desc *rdesc;
 
 		if ((max77620_chip->chip_id == MAX77620) &&
-		    (id == MAX77620_REGULATOR_ID_SD4))
+			(id == MAX77620_REGULATOR_ID_SD4))
+		{
 			continue;
+		}
 
 		rdesc = &rinfo[id].desc;
 		pmic->rinfo[id] = &max77620_regs_info[id];
 		pmic->enable_power_mode[id] = MAX77620_POWER_MODE_NORMAL;
 
 		ret = max77620_read_slew_rate(pmic, id);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		rdev = devm_regulator_register(dev, rdesc, &config);
-		if (IS_ERR(rdev)) {
+
+		if (IS_ERR(rdev))
+		{
 			ret = PTR_ERR(rdev);
 			dev_err(dev, "Regulator registration %s failed: %d\n",
-				rdesc->name, ret);
+					rdesc->name, ret);
 			return ret;
 		}
 	}
@@ -784,15 +934,19 @@ static int max77620_regulator_suspend(struct device *dev)
 	struct max77620_regulator_pdata *reg_pdata;
 	int id;
 
-	for (id = 0; id < MAX77620_NUM_REGS; id++) {
+	for (id = 0; id < MAX77620_NUM_REGS; id++)
+	{
 		reg_pdata = &pmic->reg_pdata[id];
 
 		max77620_regulator_set_fps_slots(pmic, id, true);
+
 		if (reg_pdata->suspend_fps_src < 0)
+		{
 			continue;
+		}
 
 		max77620_regulator_set_fps_src(pmic, reg_pdata->suspend_fps_src,
-					       id);
+									   id);
 	}
 
 	return 0;
@@ -804,33 +958,41 @@ static int max77620_regulator_resume(struct device *dev)
 	struct max77620_regulator_pdata *reg_pdata;
 	int id;
 
-	for (id = 0; id < MAX77620_NUM_REGS; id++) {
+	for (id = 0; id < MAX77620_NUM_REGS; id++)
+	{
 		reg_pdata = &pmic->reg_pdata[id];
 
 		max77620_regulator_set_fps_slots(pmic, id, false);
+
 		if (reg_pdata->active_fps_src < 0)
+		{
 			continue;
+		}
+
 		max77620_regulator_set_fps_src(pmic, reg_pdata->active_fps_src,
-					       id);
+									   id);
 	}
 
 	return 0;
 }
 #endif
 
-static const struct dev_pm_ops max77620_regulator_pm_ops = {
+static const struct dev_pm_ops max77620_regulator_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(max77620_regulator_suspend,
-				max77620_regulator_resume)
+	max77620_regulator_resume)
 };
 
-static const struct platform_device_id max77620_regulator_devtype[] = {
+static const struct platform_device_id max77620_regulator_devtype[] =
+{
 	{ .name = "max77620-pmic", },
 	{ .name = "max20024-pmic", },
 	{},
 };
 MODULE_DEVICE_TABLE(platform, max77620_regulator_devtype);
 
-static struct platform_driver max77620_regulator_driver = {
+static struct platform_driver max77620_regulator_driver =
+{
 	.probe = max77620_regulator_probe,
 	.id_table = max77620_regulator_devtype,
 	.driver = {

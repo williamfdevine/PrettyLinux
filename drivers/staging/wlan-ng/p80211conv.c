@@ -105,8 +105,8 @@ static const u8 oui_8021h[] = { 0x00, 0x00, 0xf8 };
 *----------------------------------------------------------------
 */
 int skb_ether_to_p80211(struct wlandevice *wlandev, u32 ethconv,
-			struct sk_buff *skb, union p80211_hdr *p80211_hdr,
-			struct p80211_metawep *p80211_wep)
+						struct sk_buff *skb, union p80211_hdr *p80211_hdr,
+						struct p80211_metawep *p80211_wep)
 {
 	__le16 fc;
 	u16 proto;
@@ -117,20 +117,26 @@ int skb_ether_to_p80211(struct wlandevice *wlandev, u32 ethconv,
 
 	memcpy(&e_hdr, skb->data, sizeof(e_hdr));
 
-	if (skb->len <= 0) {
+	if (skb->len <= 0)
+	{
 		pr_debug("zero-length skb!\n");
 		return 1;
 	}
 
-	if (ethconv == WLAN_ETHCONV_ENCAP) {	/* simplest case */
+	if (ethconv == WLAN_ETHCONV_ENCAP)  	/* simplest case */
+	{
 		pr_debug("ENCAP len: %d\n", skb->len);
 		/* here, we don't care what kind of ether frm. Just stick it */
 		/*  in the 80211 payload */
 		/* which is to say, leave the skb alone. */
-	} else {
+	}
+	else
+	{
 		/* step 1: classify ether frame, DIX or 802.3? */
 		proto = ntohs(e_hdr.type);
-		if (proto <= ETH_DATA_LEN) {
+
+		if (proto <= ETH_DATA_LEN)
+		{
 			pr_debug("802.3 len: %d\n", skb->len);
 			/* codes <= 1500 reserved for 802.3 lengths */
 			/* it's 802.3, pass ether payload unchanged,  */
@@ -140,7 +146,9 @@ int skb_ether_to_p80211(struct wlandevice *wlandev, u32 ethconv,
 
 			/*   leave off any PAD octets.  */
 			skb_trim(skb, proto);
-		} else {
+		}
+		else
+		{
 			pr_debug("DIXII len: %d\n", skb->len);
 			/* it's DIXII, time for some conversion */
 
@@ -149,22 +157,26 @@ int skb_ether_to_p80211(struct wlandevice *wlandev, u32 ethconv,
 
 			/* tack on SNAP */
 			e_snap =
-			    (struct wlan_snap *)skb_push(skb,
-				sizeof(struct wlan_snap));
+				(struct wlan_snap *)skb_push(skb,
+											 sizeof(struct wlan_snap));
 			e_snap->type = htons(proto);
+
 			if (ethconv == WLAN_ETHCONV_8021h &&
-			    p80211_stt_findproto(proto)) {
+				p80211_stt_findproto(proto))
+			{
 				memcpy(e_snap->oui, oui_8021h,
-				       WLAN_IEEE_OUI_LEN);
-			} else {
+					   WLAN_IEEE_OUI_LEN);
+			}
+			else
+			{
 				memcpy(e_snap->oui, oui_rfc1042,
-				       WLAN_IEEE_OUI_LEN);
+					   WLAN_IEEE_OUI_LEN);
 			}
 
 			/* tack on llc */
 			e_llc =
-			    (struct wlan_llc *)skb_push(skb,
-				sizeof(struct wlan_llc));
+				(struct wlan_llc *)skb_push(skb,
+											sizeof(struct wlan_llc));
 			e_llc->dsap = 0xAA;	/* SNAP, see IEEE 802 */
 			e_llc->ssap = 0xAA;
 			e_llc->ctl = 0x03;
@@ -174,51 +186,63 @@ int skb_ether_to_p80211(struct wlandevice *wlandev, u32 ethconv,
 	/* Set up the 802.11 header */
 	/* It's a data frame */
 	fc = cpu_to_le16(WLAN_SET_FC_FTYPE(WLAN_FTYPE_DATA) |
-			 WLAN_SET_FC_FSTYPE(WLAN_FSTYPE_DATAONLY));
+					 WLAN_SET_FC_FSTYPE(WLAN_FSTYPE_DATAONLY));
 
-	switch (wlandev->macmode) {
-	case WLAN_MACMODE_IBSS_STA:
-		memcpy(p80211_hdr->a3.a1, &e_hdr.daddr, ETH_ALEN);
-		memcpy(p80211_hdr->a3.a2, wlandev->netdev->dev_addr, ETH_ALEN);
-		memcpy(p80211_hdr->a3.a3, wlandev->bssid, ETH_ALEN);
-		break;
-	case WLAN_MACMODE_ESS_STA:
-		fc |= cpu_to_le16(WLAN_SET_FC_TODS(1));
-		memcpy(p80211_hdr->a3.a1, wlandev->bssid, ETH_ALEN);
-		memcpy(p80211_hdr->a3.a2, wlandev->netdev->dev_addr, ETH_ALEN);
-		memcpy(p80211_hdr->a3.a3, &e_hdr.daddr, ETH_ALEN);
-		break;
-	case WLAN_MACMODE_ESS_AP:
-		fc |= cpu_to_le16(WLAN_SET_FC_FROMDS(1));
-		memcpy(p80211_hdr->a3.a1, &e_hdr.daddr, ETH_ALEN);
-		memcpy(p80211_hdr->a3.a2, wlandev->bssid, ETH_ALEN);
-		memcpy(p80211_hdr->a3.a3, &e_hdr.saddr, ETH_ALEN);
-		break;
-	default:
-		netdev_err(wlandev->netdev,
-			   "Error: Converting eth to wlan in unknown mode.\n");
-		return 1;
+	switch (wlandev->macmode)
+	{
+		case WLAN_MACMODE_IBSS_STA:
+			memcpy(p80211_hdr->a3.a1, &e_hdr.daddr, ETH_ALEN);
+			memcpy(p80211_hdr->a3.a2, wlandev->netdev->dev_addr, ETH_ALEN);
+			memcpy(p80211_hdr->a3.a3, wlandev->bssid, ETH_ALEN);
+			break;
+
+		case WLAN_MACMODE_ESS_STA:
+			fc |= cpu_to_le16(WLAN_SET_FC_TODS(1));
+			memcpy(p80211_hdr->a3.a1, wlandev->bssid, ETH_ALEN);
+			memcpy(p80211_hdr->a3.a2, wlandev->netdev->dev_addr, ETH_ALEN);
+			memcpy(p80211_hdr->a3.a3, &e_hdr.daddr, ETH_ALEN);
+			break;
+
+		case WLAN_MACMODE_ESS_AP:
+			fc |= cpu_to_le16(WLAN_SET_FC_FROMDS(1));
+			memcpy(p80211_hdr->a3.a1, &e_hdr.daddr, ETH_ALEN);
+			memcpy(p80211_hdr->a3.a2, wlandev->bssid, ETH_ALEN);
+			memcpy(p80211_hdr->a3.a3, &e_hdr.saddr, ETH_ALEN);
+			break;
+
+		default:
+			netdev_err(wlandev->netdev,
+					   "Error: Converting eth to wlan in unknown mode.\n");
+			return 1;
 	}
 
 	p80211_wep->data = NULL;
 
 	if ((wlandev->hostwep & HOSTWEP_PRIVACYINVOKED) &&
-	    (wlandev->hostwep & HOSTWEP_ENCRYPT)) {
+		(wlandev->hostwep & HOSTWEP_ENCRYPT))
+	{
 		/* XXXX need to pick keynum other than default? */
 
 		p80211_wep->data = kmalloc(skb->len, GFP_ATOMIC);
+
 		if (!p80211_wep->data)
+		{
 			return -ENOMEM;
+		}
+
 		foo = wep_encrypt(wlandev, skb->data, p80211_wep->data,
-				  skb->len,
-				  (wlandev->hostwep & HOSTWEP_DEFAULTKEY_MASK),
-				  p80211_wep->iv, p80211_wep->icv);
-		if (foo) {
+						  skb->len,
+						  (wlandev->hostwep & HOSTWEP_DEFAULTKEY_MASK),
+						  p80211_wep->iv, p80211_wep->icv);
+
+		if (foo)
+		{
 			netdev_warn(wlandev->netdev,
-				    "Host en-WEP failed, dropping frame (%d).\n",
-				    foo);
+						"Host en-WEP failed, dropping frame (%d).\n",
+						foo);
 			return 2;
 		}
+
 		fc |= cpu_to_le16(WLAN_SET_FC_ISWEP(1));
 	}
 
@@ -233,7 +257,7 @@ int skb_ether_to_p80211(struct wlandevice *wlandev, u32 ethconv,
 
 /* jkriegl: from orinoco, modified */
 static void orinoco_spy_gather(struct wlandevice *wlandev, char *mac,
-			       struct p80211_rxmeta *rxmeta)
+							   struct p80211_rxmeta *rxmeta)
 {
 	int i;
 
@@ -241,14 +265,16 @@ static void orinoco_spy_gather(struct wlandevice *wlandev, char *mac,
 	 * source address with out list, and if match, get the stats...
 	 */
 
-	for (i = 0; i < wlandev->spy_number; i++) {
-		if (!memcmp(wlandev->spy_address[i], mac, ETH_ALEN)) {
+	for (i = 0; i < wlandev->spy_number; i++)
+	{
+		if (!memcmp(wlandev->spy_address[i], mac, ETH_ALEN))
+		{
 			wlandev->spy_stat[i].level = rxmeta->signal;
 			wlandev->spy_stat[i].noise = rxmeta->noise;
 			wlandev->spy_stat[i].qual =
-			    (rxmeta->signal >
-			     rxmeta->noise) ? (rxmeta->signal -
-					       rxmeta->noise) : 0;
+				(rxmeta->signal >
+				 rxmeta->noise) ? (rxmeta->signal -
+								   rxmeta->noise) : 0;
 			wlandev->spy_stat[i].updated = 0x7;
 		}
 	}
@@ -275,7 +301,7 @@ static void orinoco_spy_gather(struct wlandevice *wlandev, char *mac,
 *----------------------------------------------------------------
 */
 int skb_p80211_to_ether(struct wlandevice *wlandev, u32 ethconv,
-			struct sk_buff *skb)
+						struct sk_buff *skb)
 {
 	struct net_device *netdev = wlandev->netdev;
 	u16 fc;
@@ -297,23 +323,34 @@ int skb_p80211_to_ether(struct wlandevice *wlandev, u32 ethconv,
 
 	/* setup some vars for convenience */
 	fc = le16_to_cpu(w_hdr->a3.fc);
-	if ((WLAN_GET_FC_TODS(fc) == 0) && (WLAN_GET_FC_FROMDS(fc) == 0)) {
+
+	if ((WLAN_GET_FC_TODS(fc) == 0) && (WLAN_GET_FC_FROMDS(fc) == 0))
+	{
 		ether_addr_copy(daddr, w_hdr->a3.a1);
 		ether_addr_copy(saddr, w_hdr->a3.a2);
-	} else if ((WLAN_GET_FC_TODS(fc) == 0) &&
-		   (WLAN_GET_FC_FROMDS(fc) == 1)) {
+	}
+	else if ((WLAN_GET_FC_TODS(fc) == 0) &&
+			 (WLAN_GET_FC_FROMDS(fc) == 1))
+	{
 		ether_addr_copy(daddr, w_hdr->a3.a1);
 		ether_addr_copy(saddr, w_hdr->a3.a3);
-	} else if ((WLAN_GET_FC_TODS(fc) == 1) &&
-		   (WLAN_GET_FC_FROMDS(fc) == 0)) {
+	}
+	else if ((WLAN_GET_FC_TODS(fc) == 1) &&
+			 (WLAN_GET_FC_FROMDS(fc) == 0))
+	{
 		ether_addr_copy(daddr, w_hdr->a3.a3);
 		ether_addr_copy(saddr, w_hdr->a3.a2);
-	} else {
+	}
+	else
+	{
 		payload_offset = WLAN_HDR_A4_LEN;
-		if (payload_length < WLAN_HDR_A4_LEN - WLAN_HDR_A3_LEN) {
+
+		if (payload_length < WLAN_HDR_A4_LEN - WLAN_HDR_A3_LEN)
+		{
 			netdev_err(netdev, "A4 frame too short!\n");
 			return 1;
 		}
+
 		payload_length -= (WLAN_HDR_A4_LEN - WLAN_HDR_A3_LEN);
 		ether_addr_copy(daddr, w_hdr->a4.a3);
 		ether_addr_copy(saddr, w_hdr->a4.a4);
@@ -321,22 +358,27 @@ int skb_p80211_to_ether(struct wlandevice *wlandev, u32 ethconv,
 
 	/* perform de-wep if necessary.. */
 	if ((wlandev->hostwep & HOSTWEP_PRIVACYINVOKED) &&
-	    WLAN_GET_FC_ISWEP(fc) &&
-	    (wlandev->hostwep & HOSTWEP_DECRYPT)) {
-		if (payload_length <= 8) {
+		WLAN_GET_FC_ISWEP(fc) &&
+		(wlandev->hostwep & HOSTWEP_DECRYPT))
+	{
+		if (payload_length <= 8)
+		{
 			netdev_err(netdev,
-				   "WEP frame too short (%u).\n", skb->len);
+					   "WEP frame too short (%u).\n", skb->len);
 			return 1;
 		}
+
 		foo = wep_decrypt(wlandev, skb->data + payload_offset + 4,
-				  payload_length - 8, -1,
-				  skb->data + payload_offset,
-				  skb->data + payload_offset +
-				  payload_length - 4);
-		if (foo) {
+						  payload_length - 8, -1,
+						  skb->data + payload_offset,
+						  skb->data + payload_offset +
+						  payload_length - 4);
+
+		if (foo)
+		{
 			/* de-wep failed, drop skb. */
 			pr_debug("Host de-WEP failed, dropping frame (%d).\n",
-				 foo);
+					 foo);
 			wlandev->rx.decrypt_err++;
 			return 2;
 		}
@@ -355,22 +397,25 @@ int skb_p80211_to_ether(struct wlandevice *wlandev, u32 ethconv,
 
 	e_llc = (struct wlan_llc *)(skb->data + payload_offset);
 	e_snap =
-	    (struct wlan_snap *)(skb->data + payload_offset +
-		sizeof(struct wlan_llc));
+		(struct wlan_snap *)(skb->data + payload_offset +
+							 sizeof(struct wlan_llc));
 
 	/* Test for the various encodings */
 	if ((payload_length >= sizeof(struct wlan_ethhdr)) &&
-	    (e_llc->dsap != 0xaa || e_llc->ssap != 0xaa) &&
-	    ((!ether_addr_equal_unaligned(daddr, e_hdr->daddr)) ||
-	     (!ether_addr_equal_unaligned(saddr, e_hdr->saddr)))) {
+		(e_llc->dsap != 0xaa || e_llc->ssap != 0xaa) &&
+		((!ether_addr_equal_unaligned(daddr, e_hdr->daddr)) ||
+		 (!ether_addr_equal_unaligned(saddr, e_hdr->saddr))))
+	{
 		pr_debug("802.3 ENCAP len: %d\n", payload_length);
+
 		/* 802.3 Encapsulated */
 		/* Test for an overlength frame */
-		if (payload_length > (netdev->mtu + ETH_HLEN)) {
+		if (payload_length > (netdev->mtu + ETH_HLEN))
+		{
 			/* A bogus length ethfrm has been encap'd. */
 			/* Is someone trying an oflow attack? */
 			netdev_err(netdev, "ENCAP frame too large (%d > %d)\n",
-				   payload_length, netdev->mtu + ETH_HLEN);
+					   payload_length, netdev->mtu + ETH_HLEN);
 			return 1;
 		}
 
@@ -379,27 +424,30 @@ int skb_p80211_to_ether(struct wlandevice *wlandev, u32 ethconv,
 		/* chop off the 802.11 CRC */
 		skb_trim(skb, skb->len - WLAN_CRC_LEN);
 
-	} else if ((payload_length >= sizeof(struct wlan_llc) +
-		sizeof(struct wlan_snap)) &&
-		(e_llc->dsap == 0xaa) &&
-		(e_llc->ssap == 0xaa) &&
-		(e_llc->ctl == 0x03) &&
-		   (((memcmp(e_snap->oui, oui_rfc1042,
-		   WLAN_IEEE_OUI_LEN) == 0) &&
-		   (ethconv == WLAN_ETHCONV_8021h) &&
-		   (p80211_stt_findproto(le16_to_cpu(e_snap->type)))) ||
-		   (memcmp(e_snap->oui, oui_rfc1042, WLAN_IEEE_OUI_LEN) !=
-			0))) {
+	}
+	else if ((payload_length >= sizeof(struct wlan_llc) +
+			  sizeof(struct wlan_snap)) &&
+			 (e_llc->dsap == 0xaa) &&
+			 (e_llc->ssap == 0xaa) &&
+			 (e_llc->ctl == 0x03) &&
+			 (((memcmp(e_snap->oui, oui_rfc1042,
+					   WLAN_IEEE_OUI_LEN) == 0) &&
+			   (ethconv == WLAN_ETHCONV_8021h) &&
+			   (p80211_stt_findproto(le16_to_cpu(e_snap->type)))) ||
+			  (memcmp(e_snap->oui, oui_rfc1042, WLAN_IEEE_OUI_LEN) !=
+			   0)))
+	{
 		pr_debug("SNAP+RFC1042 len: %d\n", payload_length);
 		/* it's a SNAP + RFC1042 frame && protocol is in STT */
 		/* build 802.3 + RFC1042 */
 
 		/* Test for an overlength frame */
-		if (payload_length > netdev->mtu) {
+		if (payload_length > netdev->mtu)
+		{
 			/* A bogus length ethfrm has been sent. */
 			/* Is someone trying an oflow attack? */
 			netdev_err(netdev, "SNAP frame too large (%d > %d)\n",
-				   payload_length, netdev->mtu);
+					   payload_length, netdev->mtu);
 			return 1;
 		}
 
@@ -415,11 +463,13 @@ int skb_p80211_to_ether(struct wlandevice *wlandev, u32 ethconv,
 		/* chop off the 802.11 CRC */
 		skb_trim(skb, skb->len - WLAN_CRC_LEN);
 
-	} else if ((payload_length >= sizeof(struct wlan_llc) +
-		sizeof(struct wlan_snap)) &&
-		(e_llc->dsap == 0xaa) &&
-		(e_llc->ssap == 0xaa) &&
-		(e_llc->ctl == 0x03)) {
+	}
+	else if ((payload_length >= sizeof(struct wlan_llc) +
+			  sizeof(struct wlan_snap)) &&
+			 (e_llc->dsap == 0xaa) &&
+			 (e_llc->ssap == 0xaa) &&
+			 (e_llc->ctl == 0x03))
+	{
 		pr_debug("802.1h/RFC1042 len: %d\n", payload_length);
 		/* it's an 802.1h frame || (an RFC1042 && protocol not in STT)
 		 * build a DIXII + RFC894
@@ -427,14 +477,15 @@ int skb_p80211_to_ether(struct wlandevice *wlandev, u32 ethconv,
 
 		/* Test for an overlength frame */
 		if ((payload_length - sizeof(struct wlan_llc) -
-			sizeof(struct wlan_snap))
-			> netdev->mtu) {
+			 sizeof(struct wlan_snap))
+			> netdev->mtu)
+		{
 			/* A bogus length ethfrm has been sent. */
 			/* Is someone trying an oflow attack? */
 			netdev_err(netdev, "DIXII frame too large (%ld > %d)\n",
-				   (long int)(payload_length -
-				   sizeof(struct wlan_llc) -
-				   sizeof(struct wlan_snap)), netdev->mtu);
+					   (long int)(payload_length -
+								  sizeof(struct wlan_llc) -
+								  sizeof(struct wlan_snap)), netdev->mtu);
 			return 1;
 		}
 
@@ -455,7 +506,9 @@ int skb_p80211_to_ether(struct wlandevice *wlandev, u32 ethconv,
 
 		/* chop off the 802.11 CRC */
 		skb_trim(skb, skb->len - WLAN_CRC_LEN);
-	} else {
+	}
+	else
+	{
 		pr_debug("NON-ENCAP len: %d\n", payload_length);
 		/* any NON-ENCAP */
 		/* it's a generic 80211+LLC or IPX 'Raw 802.3' */
@@ -463,11 +516,12 @@ int skb_p80211_to_ether(struct wlandevice *wlandev, u32 ethconv,
 		/* allocate space and setup hostbuf */
 
 		/* Test for an overlength frame */
-		if (payload_length > netdev->mtu) {
+		if (payload_length > netdev->mtu)
+		{
 			/* A bogus length ethfrm has been sent. */
 			/* Is someone trying an oflow attack? */
 			netdev_err(netdev, "OTHER frame too large (%d > %d)\n",
-				   payload_length, netdev->mtu);
+					   payload_length, netdev->mtu);
 			return 1;
 		}
 
@@ -499,7 +553,7 @@ int skb_p80211_to_ether(struct wlandevice *wlandev, u32 ethconv,
 	/* jkriegl: only process signal/noise if requested by iwspy */
 	if (wlandev->spy_number)
 		orinoco_spy_gather(wlandev, eth_hdr(skb)->h_source,
-				   P80211SKB_RXMETA(skb));
+						   P80211SKB_RXMETA(skb));
 
 	/* Free the metadata */
 	p80211skb_rxmeta_detach(skb);
@@ -534,7 +588,9 @@ int p80211_stt_findproto(u16 proto)
 	 */
 
 	if (proto == ETH_P_AARP)	/* APPLETALK */
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -561,17 +617,24 @@ void p80211skb_rxmeta_detach(struct sk_buff *skb)
 	struct p80211_frmmeta *frmmeta;
 
 	/* Sanity checks */
-	if (!skb) {	/* bad skb */
+	if (!skb)  	/* bad skb */
+	{
 		pr_debug("Called w/ null skb.\n");
 		return;
 	}
+
 	frmmeta = P80211SKB_FRMMETA(skb);
-	if (!frmmeta) {	/* no magic */
+
+	if (!frmmeta)  	/* no magic */
+	{
 		pr_debug("Called w/ bad frmmeta magic.\n");
 		return;
 	}
+
 	rxmeta = frmmeta->rx;
-	if (!rxmeta) {	/* bad meta ptr */
+
+	if (!rxmeta)  	/* bad meta ptr */
+	{
 		pr_debug("Called w/ bad rxmeta ptr.\n");
 		return;
 	}
@@ -607,9 +670,10 @@ int p80211skb_rxmeta_attach(struct wlandevice *wlandev, struct sk_buff *skb)
 	struct p80211_frmmeta *frmmeta;
 
 	/* If these already have metadata, we error out! */
-	if (P80211SKB_RXMETA(skb)) {
+	if (P80211SKB_RXMETA(skb))
+	{
 		netdev_err(wlandev->netdev,
-			   "%s: RXmeta already attached!\n", wlandev->name);
+				   "%s: RXmeta already attached!\n", wlandev->name);
 		result = 0;
 		goto exit;
 	}
@@ -617,9 +681,10 @@ int p80211skb_rxmeta_attach(struct wlandevice *wlandev, struct sk_buff *skb)
 	/* Allocate the rxmeta */
 	rxmeta = kzalloc(sizeof(struct p80211_rxmeta), GFP_ATOMIC);
 
-	if (!rxmeta) {
+	if (!rxmeta)
+	{
 		netdev_err(wlandev->netdev,
-			   "%s: Failed to allocate rxmeta.\n", wlandev->name);
+				   "%s: Failed to allocate rxmeta.\n", wlandev->name);
 		result = 1;
 		goto exit;
 	}
@@ -659,10 +724,14 @@ void p80211skb_free(struct wlandevice *wlandev, struct sk_buff *skb)
 	struct p80211_frmmeta *meta;
 
 	meta = P80211SKB_FRMMETA(skb);
+
 	if (meta && meta->rx)
+	{
 		p80211skb_rxmeta_detach(skb);
+	}
 	else
 		netdev_err(wlandev->netdev,
-			   "Freeing an skb (%p) w/ no frmmeta.\n", skb);
+				   "Freeing an skb (%p) w/ no frmmeta.\n", skb);
+
 	dev_kfree_skb(skb);
 }

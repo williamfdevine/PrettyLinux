@@ -26,7 +26,8 @@
  * @quantization: quantization of the data (from enum v4l2_quantization)
  * @xfer_func:  transfer function of the data (from enum v4l2_xfer_func)
  */
-struct v4l2_mbus_framefmt {
+struct v4l2_mbus_framefmt
+{
 	__u32			width;
 	__u32			height;
 	__u32			code;
@@ -51,7 +52,8 @@ struct v4l2_mbus_framefmt {
 #define V4L2_MBUS_FROM_MEDIA_BUS_FMT(name)	\
 	V4L2_MBUS_FMT_ ## name = MEDIA_BUS_FMT_ ## name
 
-enum v4l2_mbus_pixelcode {
+enum v4l2_mbus_pixelcode
+{
 	V4L2_MBUS_FROM_MEDIA_BUS_FMT(FIXED),
 
 	V4L2_MBUS_FROM_MEDIA_BUS_FMT(RGB444_2X8_PADHI_BE),

@@ -32,18 +32,20 @@ static void TEA_transform(unsigned int buf[4], unsigned int const in[])
 	__u32 a = in[0], b = in[1], c = in[2], d = in[3];
 	int n = 16;
 
-	do {
+	do
+	{
 		sum += DELTA;
-		b0 += ((b1 << 4)+a) ^ (b1+sum) ^ ((b1 >> 5)+b);
-		b1 += ((b0 << 4)+c) ^ (b0+sum) ^ ((b0 >> 5)+d);
-	} while (--n);
+		b0 += ((b1 << 4) + a) ^ (b1 + sum) ^ ((b1 >> 5) + b);
+		b1 += ((b0 << 4) + c) ^ (b0 + sum) ^ ((b0 >> 5) + d);
+	}
+	while (--n);
 
 	buf[0] += b0;
 	buf[1] += b1;
 }
 
 static void str2hashbuf(const unsigned char *msg, size_t len,
-				unsigned int *buf, int num)
+						unsigned int *buf, int num)
 {
 	unsigned pad, val;
 	int i;
@@ -52,22 +54,38 @@ static void str2hashbuf(const unsigned char *msg, size_t len,
 	pad |= pad << 16;
 
 	val = pad;
+
 	if (len > num * 4)
+	{
 		len = num * 4;
-	for (i = 0; i < len; i++) {
+	}
+
+	for (i = 0; i < len; i++)
+	{
 		if ((i % 4) == 0)
+		{
 			val = pad;
+		}
+
 		val = msg[i] + (val << 8);
-		if ((i % 4) == 3) {
+
+		if ((i % 4) == 3)
+		{
 			*buf++ = val;
 			val = pad;
 			num--;
 		}
 	}
+
 	if (--num >= 0)
+	{
 		*buf++ = val;
+	}
+
 	while (--num >= 0)
+	{
 		*buf++ = pad;
+	}
 }
 
 f2fs_hash_t f2fs_dentry_hash(const struct qstr *name_info)
@@ -80,7 +98,9 @@ f2fs_hash_t f2fs_dentry_hash(const struct qstr *name_info)
 	size_t len = name_info->len;
 
 	if (is_dot_dotdot(name_info))
+	{
 		return 0;
+	}
 
 	/* Initialize the default seed for the hash checksum functions */
 	buf[0] = 0x67452301;
@@ -89,14 +109,21 @@ f2fs_hash_t f2fs_dentry_hash(const struct qstr *name_info)
 	buf[3] = 0x10325476;
 
 	p = name;
-	while (1) {
+
+	while (1)
+	{
 		str2hashbuf(p, len, in, 4);
 		TEA_transform(buf, in);
 		p += 16;
+
 		if (len <= 16)
+		{
 			break;
+		}
+
 		len -= 16;
 	}
+
 	hash = buf[0];
 	f2fs_hash = cpu_to_le32(hash & ~F2FS_HASH_COL_BIT);
 	return f2fs_hash;

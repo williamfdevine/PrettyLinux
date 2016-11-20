@@ -26,17 +26,18 @@
 #define SPT_COMMUNITY(b, s, e)				\
 	{						\
 		.barno = (b),				\
-		.padown_offset = SPT_PAD_OWN,		\
-		.padcfglock_offset = SPT_PADCFGLOCK,	\
-		.hostown_offset = SPT_HOSTSW_OWN,	\
-		.ie_offset = SPT_GPI_IE,		\
-		.gpp_size = 24,				\
-		.pin_base = (s),			\
-		.npins = ((e) - (s) + 1),		\
+				 .padown_offset = SPT_PAD_OWN,		\
+								  .padcfglock_offset = SPT_PADCFGLOCK,	\
+										  .hostown_offset = SPT_HOSTSW_OWN,	\
+												  .ie_offset = SPT_GPI_IE,		\
+														  .gpp_size = 24,				\
+																  .pin_base = (s),			\
+																		  .npins = ((e) - (s) + 1),		\
 	}
 
 /* Sunrisepoint-LP */
-static const struct pinctrl_pin_desc sptlp_pins[] = {
+static const struct pinctrl_pin_desc sptlp_pins[] =
+{
 	/* GPP_A */
 	PINCTRL_PIN(0, "RCINB"),
 	PINCTRL_PIN(1, "LAD_0"),
@@ -211,14 +212,17 @@ static const unsigned sptlp_i2c4_pins[] = { 128, 129 };
 static const unsigned sptlp_i2c4b_pins[] = { 85, 86 };
 static const unsigned sptlp_i2c5_pins[] = { 130, 131 };
 static const unsigned sptlp_ssp2_pins[] = { 120, 121, 122, 123 };
-static const unsigned sptlp_emmc_pins[] = {
+static const unsigned sptlp_emmc_pins[] =
+{
 	132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142,
 };
-static const unsigned sptlp_sd_pins[] = {
+static const unsigned sptlp_sd_pins[] =
+{
 	144, 145, 146, 147, 148, 149, 150, 151,
 };
 
-static const struct intel_pingroup sptlp_groups[] = {
+static const struct intel_pingroup sptlp_groups[] =
+{
 	PIN_GROUP("spi0_grp", sptlp_spi0_pins, 1),
 	PIN_GROUP("spi1_grp", sptlp_spi1_pins, 1),
 	PIN_GROUP("uart0_grp", sptlp_uart0_pins, 1),
@@ -236,22 +240,23 @@ static const struct intel_pingroup sptlp_groups[] = {
 	PIN_GROUP("sd_grp", sptlp_sd_pins, 1),
 };
 
-static const char * const sptlp_spi0_groups[] = { "spi0_grp" };
-static const char * const sptlp_spi1_groups[] = { "spi0_grp" };
-static const char * const sptlp_uart0_groups[] = { "uart0_grp" };
-static const char * const sptlp_uart1_groups[] = { "uart1_grp" };
-static const char * const sptlp_uart2_groups[] = { "uart2_grp" };
-static const char * const sptlp_i2c0_groups[] = { "i2c0_grp" };
-static const char * const sptlp_i2c1_groups[] = { "i2c1_grp" };
-static const char * const sptlp_i2c2_groups[] = { "i2c2_grp" };
-static const char * const sptlp_i2c3_groups[] = { "i2c3_grp" };
-static const char * const sptlp_i2c4_groups[] = { "i2c4_grp", "i2c4b_grp" };
-static const char * const sptlp_i2c5_groups[] = { "i2c5_grp" };
-static const char * const sptlp_ssp2_groups[] = { "ssp2_grp" };
-static const char * const sptlp_emmc_groups[] = { "emmc_grp" };
-static const char * const sptlp_sd_groups[] = { "sd_grp" };
+static const char *const sptlp_spi0_groups[] = { "spi0_grp" };
+static const char *const sptlp_spi1_groups[] = { "spi0_grp" };
+static const char *const sptlp_uart0_groups[] = { "uart0_grp" };
+static const char *const sptlp_uart1_groups[] = { "uart1_grp" };
+static const char *const sptlp_uart2_groups[] = { "uart2_grp" };
+static const char *const sptlp_i2c0_groups[] = { "i2c0_grp" };
+static const char *const sptlp_i2c1_groups[] = { "i2c1_grp" };
+static const char *const sptlp_i2c2_groups[] = { "i2c2_grp" };
+static const char *const sptlp_i2c3_groups[] = { "i2c3_grp" };
+static const char *const sptlp_i2c4_groups[] = { "i2c4_grp", "i2c4b_grp" };
+static const char *const sptlp_i2c5_groups[] = { "i2c5_grp" };
+static const char *const sptlp_ssp2_groups[] = { "ssp2_grp" };
+static const char *const sptlp_emmc_groups[] = { "emmc_grp" };
+static const char *const sptlp_sd_groups[] = { "sd_grp" };
 
-static const struct intel_function sptlp_functions[] = {
+static const struct intel_function sptlp_functions[] =
+{
 	FUNCTION("spi0", sptlp_spi0_groups),
 	FUNCTION("spi1", sptlp_spi1_groups),
 	FUNCTION("uart0", sptlp_uart0_groups),
@@ -268,13 +273,15 @@ static const struct intel_function sptlp_functions[] = {
 	FUNCTION("sd", sptlp_sd_groups),
 };
 
-static const struct intel_community sptlp_communities[] = {
+static const struct intel_community sptlp_communities[] =
+{
 	SPT_COMMUNITY(0, 0, 47),
 	SPT_COMMUNITY(1, 48, 119),
 	SPT_COMMUNITY(2, 120, 151),
 };
 
-static const struct intel_pinctrl_soc_data sptlp_soc_data = {
+static const struct intel_pinctrl_soc_data sptlp_soc_data =
+{
 	.pins = sptlp_pins,
 	.npins = ARRAY_SIZE(sptlp_pins),
 	.groups = sptlp_groups,
@@ -286,7 +293,8 @@ static const struct intel_pinctrl_soc_data sptlp_soc_data = {
 };
 
 /* Sunrisepoint-H */
-static const struct pinctrl_pin_desc spth_pins[] = {
+static const struct pinctrl_pin_desc spth_pins[] =
+{
 	/* GPP_A */
 	PINCTRL_PIN(0, "RCINB"),
 	PINCTRL_PIN(1, "LAD_0"),
@@ -499,7 +507,8 @@ static const unsigned spth_i2c0_pins[] = { 64, 65 };
 static const unsigned spth_i2c1_pins[] = { 66, 67 };
 static const unsigned spth_i2c2_pins[] = { 76, 95 };
 
-static const struct intel_pingroup spth_groups[] = {
+static const struct intel_pingroup spth_groups[] =
+{
 	PIN_GROUP("spi0_grp", spth_spi0_pins, 1),
 	PIN_GROUP("spi1_grp", spth_spi1_pins, 1),
 	PIN_GROUP("uart0_grp", spth_uart0_pins, 1),
@@ -510,16 +519,17 @@ static const struct intel_pingroup spth_groups[] = {
 	PIN_GROUP("i2c2_grp", spth_i2c2_pins, 2),
 };
 
-static const char * const spth_spi0_groups[] = { "spi0_grp" };
-static const char * const spth_spi1_groups[] = { "spi0_grp" };
-static const char * const spth_uart0_groups[] = { "uart0_grp" };
-static const char * const spth_uart1_groups[] = { "uart1_grp" };
-static const char * const spth_uart2_groups[] = { "uart2_grp" };
-static const char * const spth_i2c0_groups[] = { "i2c0_grp" };
-static const char * const spth_i2c1_groups[] = { "i2c1_grp" };
-static const char * const spth_i2c2_groups[] = { "i2c2_grp" };
+static const char *const spth_spi0_groups[] = { "spi0_grp" };
+static const char *const spth_spi1_groups[] = { "spi0_grp" };
+static const char *const spth_uart0_groups[] = { "uart0_grp" };
+static const char *const spth_uart1_groups[] = { "uart1_grp" };
+static const char *const spth_uart2_groups[] = { "uart2_grp" };
+static const char *const spth_i2c0_groups[] = { "i2c0_grp" };
+static const char *const spth_i2c1_groups[] = { "i2c1_grp" };
+static const char *const spth_i2c2_groups[] = { "i2c2_grp" };
 
-static const struct intel_function spth_functions[] = {
+static const struct intel_function spth_functions[] =
+{
 	FUNCTION("spi0", spth_spi0_groups),
 	FUNCTION("spi1", spth_spi1_groups),
 	FUNCTION("uart0", spth_uart0_groups),
@@ -530,13 +540,15 @@ static const struct intel_function spth_functions[] = {
 	FUNCTION("i2c2", spth_i2c2_groups),
 };
 
-static const struct intel_community spth_communities[] = {
+static const struct intel_community spth_communities[] =
+{
 	SPT_COMMUNITY(0, 0, 47),
 	SPT_COMMUNITY(1, 48, 180),
 	SPT_COMMUNITY(2, 181, 191),
 };
 
-static const struct intel_pinctrl_soc_data spth_soc_data = {
+static const struct intel_pinctrl_soc_data spth_soc_data =
+{
 	.pins = spth_pins,
 	.npins = ARRAY_SIZE(spth_pins),
 	.groups = spth_groups,
@@ -547,9 +559,10 @@ static const struct intel_pinctrl_soc_data spth_soc_data = {
 	.ncommunities = ARRAY_SIZE(spth_communities),
 };
 
-static const struct acpi_device_id spt_pinctrl_acpi_match[] = {
-	{ "INT344B", (kernel_ulong_t)&sptlp_soc_data },
-	{ "INT345D", (kernel_ulong_t)&spth_soc_data },
+static const struct acpi_device_id spt_pinctrl_acpi_match[] =
+{
+	{ "INT344B", (kernel_ulong_t) &sptlp_soc_data },
+	{ "INT345D", (kernel_ulong_t) &spth_soc_data },
 	{ }
 };
 MODULE_DEVICE_TABLE(acpi, spt_pinctrl_acpi_match);
@@ -560,19 +573,24 @@ static int spt_pinctrl_probe(struct platform_device *pdev)
 	const struct acpi_device_id *id;
 
 	id = acpi_match_device(spt_pinctrl_acpi_match, &pdev->dev);
+
 	if (!id || !id->driver_data)
+	{
 		return -ENODEV;
+	}
 
 	soc_data = (const struct intel_pinctrl_soc_data *)id->driver_data;
 	return intel_pinctrl_probe(pdev, soc_data);
 }
 
-static const struct dev_pm_ops spt_pinctrl_pm_ops = {
+static const struct dev_pm_ops spt_pinctrl_pm_ops =
+{
 	SET_LATE_SYSTEM_SLEEP_PM_OPS(intel_pinctrl_suspend,
-				     intel_pinctrl_resume)
+	intel_pinctrl_resume)
 };
 
-static struct platform_driver spt_pinctrl_driver = {
+static struct platform_driver spt_pinctrl_driver =
+{
 	.probe = spt_pinctrl_probe,
 	.remove = intel_pinctrl_remove,
 	.driver = {

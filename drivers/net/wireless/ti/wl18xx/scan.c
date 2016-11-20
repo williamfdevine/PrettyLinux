@@ -24,7 +24,7 @@
 #include "../wlcore/debug.h"
 
 static void wl18xx_adjust_channels(struct wl18xx_cmd_scan_params *cmd,
-				   struct wlcore_scan_channels *cmd_channels)
+								   struct wlcore_scan_channels *cmd_channels)
 {
 	memcpy(cmd->passive, cmd_channels->passive, sizeof(cmd->passive));
 	memcpy(cmd->active, cmd_channels->active, sizeof(cmd->active));
@@ -32,32 +32,39 @@ static void wl18xx_adjust_channels(struct wl18xx_cmd_scan_params *cmd,
 	cmd->passive_active = cmd_channels->passive_active;
 
 	memcpy(cmd->channels_2, cmd_channels->channels_2,
-	       sizeof(cmd->channels_2));
+		   sizeof(cmd->channels_2));
 	memcpy(cmd->channels_5, cmd_channels->channels_5,
-	       sizeof(cmd->channels_5));
+		   sizeof(cmd->channels_5));
 	/* channels_4 are not supported, so no need to copy them */
 }
 
 static int wl18xx_scan_send(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			    struct cfg80211_scan_request *req)
+							struct cfg80211_scan_request *req)
 {
 	struct wl18xx_cmd_scan_params *cmd;
 	struct wlcore_scan_channels *cmd_channels = NULL;
 	int ret;
 
 	cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
-	if (!cmd) {
+
+	if (!cmd)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	/* scan on the dev role if the regular one is not started */
 	if (wlcore_is_p2p_mgmt(wlvif))
+	{
 		cmd->role_id = wlvif->dev_role_id;
+	}
 	else
+	{
 		cmd->role_id = wlvif->role_id;
+	}
 
-	if (WARN_ON(cmd->role_id == WL12XX_INVALID_ROLE_ID)) {
+	if (WARN_ON(cmd->role_id == WL12XX_INVALID_ROLE_ID))
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -82,14 +89,16 @@ static int wl18xx_scan_send(struct wl1271 *wl, struct wl12xx_vif *wlvif,
 	WARN_ON(req->n_ssids > 1);
 
 	cmd_channels = kzalloc(sizeof(*cmd_channels), GFP_KERNEL);
-	if (!cmd_channels) {
+
+	if (!cmd_channels)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	wlcore_set_scan_chan_params(wl, cmd_channels, req->channels,
-				    req->n_channels, req->n_ssids,
-				    SCAN_TYPE_SEARCH);
+								req->n_channels, req->n_ssids,
+								SCAN_TYPE_SEARCH);
 	wl18xx_adjust_channels(cmd, cmd_channels);
 
 	/*
@@ -99,45 +108,54 @@ static int wl18xx_scan_send(struct wl1271 *wl, struct wl12xx_vif *wlvif,
 	cmd->total_cycles = 1;
 
 	if (req->no_cck)
+	{
 		cmd->rate = WL18XX_SCAN_RATE_6;
+	}
 
 	cmd->tag = WL1271_SCAN_DEFAULT_TAG;
 
-	if (req->n_ssids) {
+	if (req->n_ssids)
+	{
 		cmd->ssid_len = req->ssids[0].ssid_len;
 		memcpy(cmd->ssid, req->ssids[0].ssid, cmd->ssid_len);
 	}
 
 	/* TODO: per-band ies? */
-	if (cmd->active[0]) {
+	if (cmd->active[0])
+	{
 		u8 band = NL80211_BAND_2GHZ;
 		ret = wl12xx_cmd_build_probe_req(wl, wlvif,
-				 cmd->role_id, band,
-				 req->ssids ? req->ssids[0].ssid : NULL,
-				 req->ssids ? req->ssids[0].ssid_len : 0,
-				 req->ie,
-				 req->ie_len,
-				 NULL,
-				 0,
-				 false);
-		if (ret < 0) {
+										 cmd->role_id, band,
+										 req->ssids ? req->ssids[0].ssid : NULL,
+										 req->ssids ? req->ssids[0].ssid_len : 0,
+										 req->ie,
+										 req->ie_len,
+										 NULL,
+										 0,
+										 false);
+
+		if (ret < 0)
+		{
 			wl1271_error("2.4GHz PROBE request template failed");
 			goto out;
 		}
 	}
 
-	if (cmd->active[1] || cmd->dfs) {
+	if (cmd->active[1] || cmd->dfs)
+	{
 		u8 band = NL80211_BAND_5GHZ;
 		ret = wl12xx_cmd_build_probe_req(wl, wlvif,
-				 cmd->role_id, band,
-				 req->ssids ? req->ssids[0].ssid : NULL,
-				 req->ssids ? req->ssids[0].ssid_len : 0,
-				 req->ie,
-				 req->ie_len,
-				 NULL,
-				 0,
-				 false);
-		if (ret < 0) {
+										 cmd->role_id, band,
+										 req->ssids ? req->ssids[0].ssid : NULL,
+										 req->ssids ? req->ssids[0].ssid_len : 0,
+										 req->ie,
+										 req->ie_len,
+										 NULL,
+										 0,
+										 false);
+
+		if (ret < 0)
+		{
 			wl1271_error("5GHz PROBE request template failed");
 			goto out;
 		}
@@ -146,7 +164,9 @@ static int wl18xx_scan_send(struct wl1271 *wl, struct wl12xx_vif *wlvif,
 	wl1271_dump(DEBUG_SCAN, "SCAN: ", cmd, sizeof(*cmd));
 
 	ret = wl1271_cmd_send(wl, CMD_SCAN, cmd, sizeof(*cmd), 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		wl1271_error("SCAN failed");
 		goto out;
 	}
@@ -162,14 +182,14 @@ void wl18xx_scan_completed(struct wl1271 *wl, struct wl12xx_vif *wlvif)
 	wl->scan.failed = false;
 	cancel_delayed_work(&wl->scan_complete_work);
 	ieee80211_queue_delayed_work(wl->hw, &wl->scan_complete_work,
-				     msecs_to_jiffies(0));
+								 msecs_to_jiffies(0));
 }
 
 static
 int wl18xx_scan_sched_scan_config(struct wl1271 *wl,
-				  struct wl12xx_vif *wlvif,
-				  struct cfg80211_sched_scan_request *req,
-				  struct ieee80211_scan_ies *ies)
+								  struct wl12xx_vif *wlvif,
+								  struct cfg80211_sched_scan_request *req,
+								  struct ieee80211_scan_ies *ies)
 {
 	struct wl18xx_cmd_scan_params *cmd;
 	struct wlcore_scan_channels *cmd_channels = NULL;
@@ -180,18 +200,24 @@ int wl18xx_scan_sched_scan_config(struct wl1271 *wl,
 	wl1271_debug(DEBUG_CMD, "cmd sched_scan scan config");
 
 	filter_type = wlcore_scan_sched_scan_ssid_list(wl, wlvif, req);
+
 	if (filter_type < 0)
+	{
 		return filter_type;
+	}
 
 	cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
-	if (!cmd) {
+
+	if (!cmd)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	cmd->role_id = wlvif->role_id;
 
-	if (WARN_ON(cmd->role_id == WL12XX_INVALID_ROLE_ID)) {
+	if (WARN_ON(cmd->role_id == WL12XX_INVALID_ROLE_ID))
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -204,8 +230,12 @@ int wl18xx_scan_sched_scan_config(struct wl1271 *wl,
 	cmd->bss_type = SCAN_BSS_TYPE_ANY;
 
 	cmd->ssid_from_list = 1;
+
 	if (filter_type == SCAN_SSID_FILTER_LIST)
+	{
 		cmd->filter = 1;
+	}
+
 	cmd->add_broadcast = 0;
 
 	cmd->urgency = 0;
@@ -216,33 +246,39 @@ int wl18xx_scan_sched_scan_config(struct wl1271 *wl,
 	cmd->terminate_after = 0;
 
 	cmd_channels = kzalloc(sizeof(*cmd_channels), GFP_KERNEL);
-	if (!cmd_channels) {
+
+	if (!cmd_channels)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	/* configure channels */
 	wlcore_set_scan_chan_params(wl, cmd_channels, req->channels,
-				    req->n_channels, req->n_ssids,
-				    SCAN_TYPE_PERIODIC);
+								req->n_channels, req->n_ssids,
+								SCAN_TYPE_PERIODIC);
 	wl18xx_adjust_channels(cmd, cmd_channels);
 
 	if (c->num_short_intervals && c->long_interval &&
-	    c->long_interval > req->scan_plans[0].interval * MSEC_PER_SEC) {
+		c->long_interval > req->scan_plans[0].interval * MSEC_PER_SEC)
+	{
 		cmd->short_cycles_msec =
 			cpu_to_le16(req->scan_plans[0].interval * MSEC_PER_SEC);
 		cmd->long_cycles_msec = cpu_to_le16(c->long_interval);
 		cmd->short_cycles_count = c->num_short_intervals;
-	} else {
+	}
+	else
+	{
 		cmd->short_cycles_msec = 0;
 		cmd->long_cycles_msec =
 			cpu_to_le16(req->scan_plans[0].interval * MSEC_PER_SEC);
 		cmd->short_cycles_count = 0;
 	}
+
 	wl1271_debug(DEBUG_SCAN, "short_interval: %d, long_interval: %d, num_short: %d",
-		     le16_to_cpu(cmd->short_cycles_msec),
-		     le16_to_cpu(cmd->long_cycles_msec),
-		     cmd->short_cycles_count);
+				 le16_to_cpu(cmd->short_cycles_msec),
+				 le16_to_cpu(cmd->long_cycles_msec),
+				 cmd->short_cycles_count);
 
 	cmd->total_cycles = 0;
 
@@ -252,35 +288,41 @@ int wl18xx_scan_sched_scan_config(struct wl1271 *wl,
 	cmd->report_threshold = 1;
 	cmd->terminate_on_report = 0;
 
-	if (cmd->active[0]) {
+	if (cmd->active[0])
+	{
 		u8 band = NL80211_BAND_2GHZ;
 		ret = wl12xx_cmd_build_probe_req(wl, wlvif,
-				 cmd->role_id, band,
-				 req->ssids ? req->ssids[0].ssid : NULL,
-				 req->ssids ? req->ssids[0].ssid_len : 0,
-				 ies->ies[band],
-				 ies->len[band],
-				 ies->common_ies,
-				 ies->common_ie_len,
-				 true);
-		if (ret < 0) {
+										 cmd->role_id, band,
+										 req->ssids ? req->ssids[0].ssid : NULL,
+										 req->ssids ? req->ssids[0].ssid_len : 0,
+										 ies->ies[band],
+										 ies->len[band],
+										 ies->common_ies,
+										 ies->common_ie_len,
+										 true);
+
+		if (ret < 0)
+		{
 			wl1271_error("2.4GHz PROBE request template failed");
 			goto out;
 		}
 	}
 
-	if (cmd->active[1] || cmd->dfs) {
+	if (cmd->active[1] || cmd->dfs)
+	{
 		u8 band = NL80211_BAND_5GHZ;
 		ret = wl12xx_cmd_build_probe_req(wl, wlvif,
-				 cmd->role_id, band,
-				 req->ssids ? req->ssids[0].ssid : NULL,
-				 req->ssids ? req->ssids[0].ssid_len : 0,
-				 ies->ies[band],
-				 ies->len[band],
-				 ies->common_ies,
-				 ies->common_ie_len,
-				 true);
-		if (ret < 0) {
+										 cmd->role_id, band,
+										 req->ssids ? req->ssids[0].ssid : NULL,
+										 req->ssids ? req->ssids[0].ssid_len : 0,
+										 ies->ies[band],
+										 ies->len[band],
+										 ies->common_ies,
+										 ies->common_ie_len,
+										 true);
+
+		if (ret < 0)
+		{
 			wl1271_error("5GHz PROBE request template failed");
 			goto out;
 		}
@@ -289,7 +331,9 @@ int wl18xx_scan_sched_scan_config(struct wl1271 *wl,
 	wl1271_dump(DEBUG_SCAN, "SCAN: ", cmd, sizeof(*cmd));
 
 	ret = wl1271_cmd_send(wl, CMD_SCAN, cmd, sizeof(*cmd), 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		wl1271_error("SCAN failed");
 		goto out;
 	}
@@ -301,14 +345,14 @@ out:
 }
 
 int wl18xx_sched_scan_start(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			    struct cfg80211_sched_scan_request *req,
-			    struct ieee80211_scan_ies *ies)
+							struct cfg80211_sched_scan_request *req,
+							struct ieee80211_scan_ies *ies)
 {
 	return wl18xx_scan_sched_scan_config(wl, wlvif, req, ies);
 }
 
 static int __wl18xx_scan_stop(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			       u8 scan_type)
+							  u8 scan_type)
 {
 	struct wl18xx_cmd_scan_stop *stop;
 	int ret;
@@ -316,7 +360,9 @@ static int __wl18xx_scan_stop(struct wl1271 *wl, struct wl12xx_vif *wlvif,
 	wl1271_debug(DEBUG_CMD, "cmd periodic scan stop");
 
 	stop = kzalloc(sizeof(*stop), GFP_KERNEL);
-	if (!stop) {
+
+	if (!stop)
+	{
 		wl1271_error("failed to alloc memory to send sched scan stop");
 		return -ENOMEM;
 	}
@@ -325,7 +371,9 @@ static int __wl18xx_scan_stop(struct wl1271 *wl, struct wl12xx_vif *wlvif,
 	stop->scan_type = scan_type;
 
 	ret = wl1271_cmd_send(wl, CMD_STOP_SCAN, stop, sizeof(*stop), 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		wl1271_error("failed to send sched scan stop command");
 		goto out_free;
 	}
@@ -340,7 +388,7 @@ void wl18xx_scan_sched_scan_stop(struct wl1271 *wl, struct wl12xx_vif *wlvif)
 	__wl18xx_scan_stop(wl, wlvif, SCAN_TYPE_PERIODIC);
 }
 int wl18xx_scan_start(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-		      struct cfg80211_scan_request *req)
+					  struct cfg80211_scan_request *req)
 {
 	return wl18xx_scan_send(wl, wlvif, req);
 }

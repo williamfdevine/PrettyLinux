@@ -105,7 +105,8 @@
  * @uop: The message opcode
  * @payload: Unique payload format for each message
  */
-struct scifmsg {
+struct scifmsg
+{
 	struct scif_port_id src;
 	struct scif_port_id dst;
 	u32 uop;
@@ -122,7 +123,8 @@ struct scifmsg {
  * state: Current state
  * allocwq: wait queue for status
  */
-struct scif_allocmsg {
+struct scif_allocmsg
+{
 	dma_addr_t phys_addr;
 	unsigned long vaddr;
 	size_t size;
@@ -151,7 +153,8 @@ struct scif_allocmsg {
  * @send_lock: synchronize access to outbound queue
  * @recv_lock: Synchronize access to inbound queue
  */
-struct scif_qp {
+struct scif_qp
+{
 	u64 magic;
 #define SCIFEP_MAGIC 0x5c1f000000005c1fULL
 	struct scif_rb outbound_q;
@@ -176,7 +179,8 @@ struct scif_qp {
  * @msg - The SCIF node QP message
  * @list - link in the list of messages
  */
-struct scif_loopb_msg {
+struct scif_loopb_msg
+{
 	struct scifmsg msg;
 	struct list_head list;
 };
@@ -188,12 +192,12 @@ int scif_loopb_msg_handler(struct scif_dev *scifdev, struct scif_qp *qp);
 int scif_setup_qp(struct scif_dev *scifdev);
 int scif_qp_response(phys_addr_t phys, struct scif_dev *dev);
 int scif_setup_qp_connect(struct scif_qp *qp, dma_addr_t *qp_offset,
-			  int local_size, struct scif_dev *scifdev);
+						  int local_size, struct scif_dev *scifdev);
 int scif_setup_qp_accept(struct scif_qp *qp, dma_addr_t *qp_offset,
-			 dma_addr_t phys, int local_size,
-			 struct scif_dev *scifdev);
+						 dma_addr_t phys, int local_size,
+						 struct scif_dev *scifdev);
 int scif_setup_qp_connect_response(struct scif_dev *scifdev,
-				   struct scif_qp *qp, u64 payload);
+								   struct scif_qp *qp, u64 payload);
 int scif_setup_loopback_qp(struct scif_dev *scifdev);
 int scif_destroy_loopback_qp(struct scif_dev *scifdev);
 void scif_poll_qp_state(struct work_struct *work);
@@ -206,10 +210,16 @@ static inline struct device *scif_get_peer_dev(struct scif_dev *scifdev)
 
 	rcu_read_lock();
 	spdev = rcu_dereference(scifdev->spdev);
+
 	if (spdev)
+	{
 		spdev_ret = get_device(&spdev->dev);
+	}
 	else
+	{
 		spdev_ret = ERR_PTR(-ENODEV);
+	}
+
 	rcu_read_unlock();
 	return spdev_ret;
 }

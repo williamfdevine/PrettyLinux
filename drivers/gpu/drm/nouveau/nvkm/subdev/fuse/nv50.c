@@ -40,7 +40,8 @@ nv50_fuse_read(struct nvkm_fuse *fuse, u32 addr)
 }
 
 static const struct nvkm_fuse_func
-nv50_fuse = {
+	nv50_fuse =
+{
 	.read = &nv50_fuse_read,
 };
 

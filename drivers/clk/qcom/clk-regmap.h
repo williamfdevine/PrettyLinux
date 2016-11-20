@@ -27,7 +27,8 @@ struct regmap;
  * @enable_is_inverted: flag to indicate set enable_mask bits to disable
  *                      when using clock_enable_regmap and friends APIs.
  */
-struct clk_regmap {
+struct clk_regmap
+{
 	struct clk_hw hw;
 	struct regmap *regmap;
 	unsigned int enable_reg;

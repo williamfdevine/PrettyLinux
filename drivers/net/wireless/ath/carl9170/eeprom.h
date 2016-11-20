@@ -43,7 +43,8 @@
 #define AR5416_MAX_CHAINS		2
 #define AR5416_MODAL_SPURS		5
 
-struct ar9170_eeprom_modal {
+struct ar9170_eeprom_modal
+{
 	__le32	antCtrlChain[AR5416_MAX_CHAINS];
 	__le32	antCtrlCommon;
 	s8	antennaGainCh[AR5416_MAX_CHAINS];
@@ -75,7 +76,8 @@ struct ar9170_eeprom_modal {
 	u8	bswMargin[AR5416_MAX_CHAINS];
 	u8	swSettleHt40;
 	u8	reserved[22];
-	struct spur_channel {
+	struct spur_channel
+	{
 		__le16 spurChan;
 		u8	spurRangeLow;
 		u8	spurRangeHigh;
@@ -85,7 +87,8 @@ struct ar9170_eeprom_modal {
 #define AR5416_NUM_PD_GAINS		4
 #define AR5416_PD_GAIN_ICEPTS		5
 
-struct ar9170_calibration_data_per_freq {
+struct ar9170_calibration_data_per_freq
+{
 	u8	pwr_pdg[AR5416_NUM_PD_GAINS][AR5416_PD_GAIN_ICEPTS];
 	u8	vpd_pdg[AR5416_NUM_PD_GAINS][AR5416_PD_GAIN_ICEPTS];
 } __packed;
@@ -98,19 +101,22 @@ struct ar9170_calibration_data_per_freq {
 #define AR5416_NUM_2G_OFDM_TARGET_PWRS	4
 #define AR5416_MAX_NUM_TGT_PWRS		8
 
-struct ar9170_calibration_target_power_legacy {
+struct ar9170_calibration_target_power_legacy
+{
 	u8	freq;
 	u8	power[4];
 } __packed;
 
-struct ar9170_calibration_target_power_ht {
+struct ar9170_calibration_target_power_ht
+{
 	u8	freq;
 	u8	power[8];
 } __packed;
 
 #define AR5416_NUM_CTLS			24
 
-struct ar9170_calctl_edges {
+struct ar9170_calctl_edges
+{
 	u8	channel;
 #define AR9170_CALCTL_EDGE_FLAGS	0xC0
 	u8	power_flags;
@@ -118,12 +124,14 @@ struct ar9170_calctl_edges {
 
 #define AR5416_NUM_BAND_EDGES		8
 
-struct ar9170_calctl_data {
+struct ar9170_calctl_data
+{
 	struct ar9170_calctl_edges
 		control_edges[AR5416_MAX_CHAINS][AR5416_NUM_BAND_EDGES];
 } __packed;
 
-struct ar9170_eeprom {
+struct ar9170_eeprom
+{
 	__le16	length;
 	__le16	checksum;
 	__le16	version;
@@ -209,7 +217,8 @@ struct ar9170_eeprom {
 #define AR9170_LED_MODE_TOFF_SCAN_S		12
 #define AR9170_LED_MODE_TOFF_SCAN		0xf000
 
-struct ar9170_led_mode {
+struct ar9170_led_mode
+{
 	__le16 led;
 };
 

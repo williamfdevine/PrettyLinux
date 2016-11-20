@@ -41,7 +41,8 @@ void ibmasm_register_uart(struct service_processor *sp)
 	/* read the uart scratch register to determine if the UART
 	 * is dedicated to the service processor or if the OS can use it
 	 */
-	if (0 == readl(iomem_base + UART_SCR)) {
+	if (0 == readl(iomem_base + UART_SCR))
+	{
 		dev_info(sp->dev, "IBM SP UART not registered, owned by service processor\n");
 		sp->serial_line = -1;
 		return;
@@ -55,17 +56,22 @@ void ibmasm_register_uart(struct service_processor *sp)
 	uart.port.membase	= iomem_base;
 
 	sp->serial_line = serial8250_register_8250_port(&uart);
-	if (sp->serial_line < 0) {
+
+	if (sp->serial_line < 0)
+	{
 		dev_err(sp->dev, "Failed to register serial port\n");
 		return;
 	}
+
 	enable_uart_interrupts(sp->base_address);
 }
 
 void ibmasm_unregister_uart(struct service_processor *sp)
 {
 	if (sp->serial_line < 0)
+	{
 		return;
+	}
 
 	disable_uart_interrupts(sp->base_address);
 	serial8250_unregister_port(sp->serial_line);

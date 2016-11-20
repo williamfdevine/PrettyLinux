@@ -18,16 +18,18 @@ struct svc_rqst;
 
 #define MAX_FS_LOCATIONS	128
 
-struct nfsd4_fs_location {
+struct nfsd4_fs_location
+{
 	char *hosts; /* colon separated list of hosts */
 	char *path;  /* slash separated list of path components */
 };
 
-struct nfsd4_fs_locations {
+struct nfsd4_fs_locations
+{
 	uint32_t locations_count;
 	struct nfsd4_fs_location *locations;
-/* If we're not actually serving this data ourselves (only providing a
- * list of replicas that do serve it) then we set "migrated": */
+	/* If we're not actually serving this data ourselves (only providing a
+	 * list of replicas that do serve it) then we set "migrated": */
 	int migrated;
 };
 
@@ -40,20 +42,22 @@ struct nfsd4_fs_locations {
 #define MAX_SECINFO_LIST	8
 #define EX_UUID_LEN		16
 
-struct exp_flavor_info {
+struct exp_flavor_info
+{
 	u32	pseudoflavor;
 	u32	flags;
 };
 
-struct svc_export {
+struct svc_export
+{
 	struct cache_head	h;
-	struct auth_domain *	ex_client;
+	struct auth_domain 	*ex_client;
 	int			ex_flags;
 	struct path		ex_path;
 	kuid_t			ex_anon_uid;
 	kgid_t			ex_anon_gid;
 	int			ex_fsid;
-	unsigned char *		ex_uuid; /* 16 byte fsid */
+	unsigned char 		*ex_uuid; /* 16 byte fsid */
 	struct nfsd4_fs_locations ex_fslocs;
 	uint32_t		ex_nflavors;
 	struct exp_flavor_info	ex_flavors[MAX_SECINFO_LIST];
@@ -66,10 +70,11 @@ struct svc_export {
  * svc_export for a given client.  There can be several per export,
  * for the different fsid types.
  */
-struct svc_expkey {
+struct svc_expkey
+{
 	struct cache_head	h;
 
-	struct auth_domain *	ek_client;
+	struct auth_domain 	*ek_client;
 	int			ek_fsidtype;
 	u32			ek_fsid[6];
 
@@ -89,13 +94,13 @@ __be32 check_nfsd_access(struct svc_export *exp, struct svc_rqst *rqstp);
 int			nfsd_export_init(struct net *);
 void			nfsd_export_shutdown(struct net *);
 void			nfsd_export_flush(struct net *);
-struct svc_export *	rqst_exp_get_by_name(struct svc_rqst *,
-					     struct path *);
-struct svc_export *	rqst_exp_parent(struct svc_rqst *,
-					struct path *);
-struct svc_export *	rqst_find_fsidzero_export(struct svc_rqst *);
+struct svc_export 	*rqst_exp_get_by_name(struct svc_rqst *,
+		struct path *);
+struct svc_export 	*rqst_exp_parent(struct svc_rqst *,
+									 struct path *);
+struct svc_export 	*rqst_find_fsidzero_export(struct svc_rqst *);
 int			exp_rootfh(struct net *, struct auth_domain *,
-					char *path, struct knfsd_fh *, int maxsize);
+					   char *path, struct knfsd_fh *, int maxsize);
 __be32			exp_pseudoroot(struct svc_rqst *, struct svc_fh *);
 __be32			nfserrno(int errno);
 
@@ -109,6 +114,6 @@ static inline struct svc_export *exp_get(struct svc_export *exp)
 	cache_get(&exp->h);
 	return exp;
 }
-struct svc_export * rqst_exp_find(struct svc_rqst *, int, u32 *);
+struct svc_export *rqst_exp_find(struct svc_rqst *, int, u32 *);
 
 #endif /* NFSD_EXPORT_H */

@@ -44,7 +44,8 @@
 #include <rdma/ib_verbs.h>
 #include <rdma/ib_mad.h>
 
-enum {
+enum
+{
 	IB_SA_CLASS_VERSION		= 2,	/* IB spec version 1.1/1.2 */
 
 	IB_SA_METHOD_GET_TABLE		= 0x12,
@@ -56,7 +57,8 @@ enum {
 	IB_SA_METHOD_GET_TRACE_TBL	= 0x13
 };
 
-enum {
+enum
+{
 	IB_SA_ATTR_CLASS_PORTINFO    = 0x01,
 	IB_SA_ATTR_NOTICE	     = 0x02,
 	IB_SA_ATTR_INFORM_INFO	     = 0x03,
@@ -81,7 +83,8 @@ enum {
 	IB_SA_ATTR_INFORM_INFO_REC   = 0xf3
 };
 
-enum ib_sa_selector {
+enum ib_sa_selector
+{
 	IB_SA_GT   = 0,
 	IB_SA_LT   = 1,
 	IB_SA_EQ   = 2,
@@ -99,7 +102,8 @@ enum ib_sa_selector {
  * FullMember, NonMember, SendOnlyNonMember, SendOnlyFullMember.
  * The order corresponds to JoinState bits in MCMemberRecord.
  */
-enum ib_sa_mc_join_states {
+enum ib_sa_mc_join_states
+{
 	FULLMEMBER_JOIN,
 	NONMEMBER_JOIN,
 	SENDONLY_NONMEBER_JOIN,
@@ -124,7 +128,7 @@ enum ib_sa_mc_join_states {
  */
 
 #define IB_SA_PATH_REC_SERVICE_ID		       (IB_SA_COMP_MASK( 0) |\
-							IB_SA_COMP_MASK( 1))
+		IB_SA_COMP_MASK( 1))
 #define IB_SA_PATH_REC_DGID				IB_SA_COMP_MASK( 2)
 #define IB_SA_PATH_REC_SGID				IB_SA_COMP_MASK( 3)
 #define IB_SA_PATH_REC_DLID				IB_SA_COMP_MASK( 4)
@@ -147,7 +151,8 @@ enum ib_sa_mc_join_states {
 #define IB_SA_PATH_REC_PACKET_LIFE_TIME			IB_SA_COMP_MASK(21)
 #define IB_SA_PATH_REC_PREFERENCE			IB_SA_COMP_MASK(22)
 
-struct ib_sa_path_rec {
+struct ib_sa_path_rec
+{
 	__be64       service_id;
 	union ib_gid dgid;
 	union ib_gid sgid;
@@ -202,7 +207,8 @@ static inline struct net_device *ib_get_ndev_from_path(struct ib_sa_path_rec *re
 #define IB_SA_MCMEMBER_REC_JOIN_STATE			IB_SA_COMP_MASK(16)
 #define IB_SA_MCMEMBER_REC_PROXY_JOIN			IB_SA_COMP_MASK(17)
 
-struct ib_sa_mcmember_rec {
+struct ib_sa_mcmember_rec
+{
 	union ib_gid mgid;
 	union ib_gid port_gid;
 	__be32       qkey;
@@ -264,7 +270,8 @@ struct ib_sa_mcmember_rec {
 
 #define IB_DEFAULT_SERVICE_LEASE 	0xFFFFFFFF
 
-struct ib_sa_service_rec {
+struct ib_sa_service_rec
+{
 	u64		id;
 	union ib_gid	gid;
 	__be16 		pkey;
@@ -291,7 +298,8 @@ struct ib_sa_service_rec {
 #define IB_SA_GUIDINFO_REC_GID6		IB_SA_COMP_MASK(10)
 #define IB_SA_GUIDINFO_REC_GID7		IB_SA_COMP_MASK(11)
 
-struct ib_sa_guidinfo_rec {
+struct ib_sa_guidinfo_rec
+{
 	__be16	lid;
 	u8	block_num;
 	/* reserved */
@@ -300,7 +308,8 @@ struct ib_sa_guidinfo_rec {
 	u8	guid_info_list[64];
 };
 
-struct ib_sa_client {
+struct ib_sa_client
+{
 	atomic_t users;
 	struct completion comp;
 };
@@ -321,33 +330,34 @@ struct ib_sa_query;
 void ib_sa_cancel_query(int id, struct ib_sa_query *query);
 
 int ib_sa_path_rec_get(struct ib_sa_client *client,
-		       struct ib_device *device, u8 port_num,
-		       struct ib_sa_path_rec *rec,
-		       ib_sa_comp_mask comp_mask,
-		       int timeout_ms, gfp_t gfp_mask,
-		       void (*callback)(int status,
-					struct ib_sa_path_rec *resp,
-					void *context),
-		       void *context,
-		       struct ib_sa_query **query);
+					   struct ib_device *device, u8 port_num,
+					   struct ib_sa_path_rec *rec,
+					   ib_sa_comp_mask comp_mask,
+					   int timeout_ms, gfp_t gfp_mask,
+					   void (*callback)(int status,
+										struct ib_sa_path_rec *resp,
+										void *context),
+					   void *context,
+					   struct ib_sa_query **query);
 
 int ib_sa_service_rec_query(struct ib_sa_client *client,
-			 struct ib_device *device, u8 port_num,
-			 u8 method,
-			 struct ib_sa_service_rec *rec,
-			 ib_sa_comp_mask comp_mask,
-			 int timeout_ms, gfp_t gfp_mask,
-			 void (*callback)(int status,
-					  struct ib_sa_service_rec *resp,
-					  void *context),
-			 void *context,
-			 struct ib_sa_query **sa_query);
+							struct ib_device *device, u8 port_num,
+							u8 method,
+							struct ib_sa_service_rec *rec,
+							ib_sa_comp_mask comp_mask,
+							int timeout_ms, gfp_t gfp_mask,
+							void (*callback)(int status,
+									struct ib_sa_service_rec *resp,
+									void *context),
+							void *context,
+							struct ib_sa_query **sa_query);
 
-struct ib_sa_multicast {
+struct ib_sa_multicast
+{
 	struct ib_sa_mcmember_rec rec;
 	ib_sa_comp_mask		comp_mask;
 	int			(*callback)(int status,
-					    struct ib_sa_multicast *multicast);
+							struct ib_sa_multicast *multicast);
 	void			*context;
 };
 
@@ -380,13 +390,13 @@ struct ib_sa_multicast {
  *   group, and the user must rejoin the group to continue using it.
  */
 struct ib_sa_multicast *ib_sa_join_multicast(struct ib_sa_client *client,
-					     struct ib_device *device, u8 port_num,
-					     struct ib_sa_mcmember_rec *rec,
-					     ib_sa_comp_mask comp_mask, gfp_t gfp_mask,
-					     int (*callback)(int status,
-							     struct ib_sa_multicast
-								    *multicast),
-					     void *context);
+		struct ib_device *device, u8 port_num,
+		struct ib_sa_mcmember_rec *rec,
+		ib_sa_comp_mask comp_mask, gfp_t gfp_mask,
+		int (*callback)(int status,
+						struct ib_sa_multicast
+						*multicast),
+		void *context);
 
 /**
  * ib_free_multicast - Frees the multicast tracking structure, and releases
@@ -410,25 +420,25 @@ void ib_sa_free_multicast(struct ib_sa_multicast *multicast);
  * @rec: Location to copy SA multicast member record.
  */
 int ib_sa_get_mcmember_rec(struct ib_device *device, u8 port_num,
-			   union ib_gid *mgid, struct ib_sa_mcmember_rec *rec);
+						   union ib_gid *mgid, struct ib_sa_mcmember_rec *rec);
 
 /**
  * ib_init_ah_from_mcmember - Initialize address handle attributes based on
  * an SA multicast member record.
  */
 int ib_init_ah_from_mcmember(struct ib_device *device, u8 port_num,
-			     struct ib_sa_mcmember_rec *rec,
-			     struct net_device *ndev,
-			     enum ib_gid_type gid_type,
-			     struct ib_ah_attr *ah_attr);
+							 struct ib_sa_mcmember_rec *rec,
+							 struct net_device *ndev,
+							 enum ib_gid_type gid_type,
+							 struct ib_ah_attr *ah_attr);
 
 /**
  * ib_init_ah_from_path - Initialize address handle attributes based on an SA
  *   path record.
  */
 int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
-			 struct ib_sa_path_rec *rec,
-			 struct ib_ah_attr *ah_attr);
+						 struct ib_sa_path_rec *rec,
+						 struct ib_ah_attr *ah_attr);
 
 /**
  * ib_sa_pack_path - Conert a path record from struct ib_sa_path_rec
@@ -444,24 +454,24 @@ void ib_sa_unpack_path(void *attribute, struct ib_sa_path_rec *rec);
 
 /* Support GuidInfoRecord */
 int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
-			      struct ib_device *device, u8 port_num,
-			      struct ib_sa_guidinfo_rec *rec,
-			      ib_sa_comp_mask comp_mask, u8 method,
-			      int timeout_ms, gfp_t gfp_mask,
-			      void (*callback)(int status,
-					       struct ib_sa_guidinfo_rec *resp,
-					       void *context),
-			      void *context,
-			      struct ib_sa_query **sa_query);
+							  struct ib_device *device, u8 port_num,
+							  struct ib_sa_guidinfo_rec *rec,
+							  ib_sa_comp_mask comp_mask, u8 method,
+							  int timeout_ms, gfp_t gfp_mask,
+							  void (*callback)(int status,
+									  struct ib_sa_guidinfo_rec *resp,
+									  void *context),
+							  void *context,
+							  struct ib_sa_query **sa_query);
 
 /* Support get SA ClassPortInfo */
 int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
-				   struct ib_device *device, u8 port_num,
-				   int timeout_ms, gfp_t gfp_mask,
-				   void (*callback)(int status,
-						    struct ib_class_port_info *resp,
-						    void *context),
-				   void *context,
-				   struct ib_sa_query **sa_query);
+								   struct ib_device *device, u8 port_num,
+								   int timeout_ms, gfp_t gfp_mask,
+								   void (*callback)(int status,
+										   struct ib_class_port_info *resp,
+										   void *context),
+								   void *context,
+								   struct ib_sa_query **sa_query);
 
 #endif /* IB_SA_H */

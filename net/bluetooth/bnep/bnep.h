@@ -80,27 +80,31 @@
 #define BNEP_TYPE_MASK	0x7f
 #define BNEP_EXT_HEADER	0x80
 
-struct bnep_setup_conn_req {
+struct bnep_setup_conn_req
+{
 	__u8 type;
 	__u8 ctrl;
 	__u8 uuid_size;
 	__u8 service[0];
 } __packed;
 
-struct bnep_set_filter_req {
+struct bnep_set_filter_req
+{
 	__u8 type;
 	__u8 ctrl;
 	__be16 len;
 	__u8 list[0];
 } __packed;
 
-struct bnep_control_rsp {
+struct bnep_control_rsp
+{
 	__u8 type;
 	__u8 ctrl;
 	__be16 resp;
 } __packed;
 
-struct bnep_ext_hdr {
+struct bnep_ext_hdr
+{
 	__u8 type;
 	__u8 len;
 	__u8 data[0];
@@ -116,19 +120,22 @@ struct bnep_ext_hdr {
 #define BNEP_SETUP_RESPONSE	0
 #define BNEP_SETUP_RSP_SENT	10
 
-struct bnep_connadd_req {
+struct bnep_connadd_req
+{
 	int   sock;		/* Connected socket */
 	__u32 flags;
 	__u16 role;
 	char  device[16];	/* Name of the Ethernet device */
 };
 
-struct bnep_conndel_req {
+struct bnep_conndel_req
+{
 	__u32 flags;
 	__u8  dst[ETH_ALEN];
 };
 
-struct bnep_conninfo {
+struct bnep_conninfo
+{
 	__u32 flags;
 	__u16 role;
 	__u16 state;
@@ -136,12 +143,14 @@ struct bnep_conninfo {
 	char  device[16];
 };
 
-struct bnep_connlist_req {
+struct bnep_connlist_req
+{
 	__u32  cnum;
 	struct bnep_conninfo __user *ci;
 };
 
-struct bnep_proto_filter {
+struct bnep_proto_filter
+{
 	__u16 start;
 	__u16 end;
 };
@@ -152,7 +161,8 @@ int bnep_get_connlist(struct bnep_connlist_req *req);
 int bnep_get_conninfo(struct bnep_conninfo *ci);
 
 /* BNEP sessions */
-struct bnep_session {
+struct bnep_session
+{
 	struct list_head list;
 
 	unsigned int  role;

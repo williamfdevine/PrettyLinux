@@ -23,22 +23,26 @@
 #ifndef __STV6110x_H
 #define __STV6110x_H
 
-struct stv6110x_config {
+struct stv6110x_config
+{
 	u8	addr;
 	u32	refclk;
 	u8	clk_div; /* divisor value for the output clock */
 };
 
-enum tuner_mode {
+enum tuner_mode
+{
 	TUNER_SLEEP = 1,
 	TUNER_WAKE,
 };
 
-enum tuner_status {
+enum tuner_status
+{
 	TUNER_PHASELOCKED = 1,
 };
 
-struct stv6110x_devctl {
+struct stv6110x_devctl
+{
 	int (*tuner_init) (struct dvb_frontend *fe);
 	int (*tuner_sleep) (struct dvb_frontend *fe);
 	int (*tuner_set_mode) (struct dvb_frontend *fe, enum tuner_mode mode);
@@ -56,13 +60,13 @@ struct stv6110x_devctl {
 #if IS_REACHABLE(CONFIG_DVB_STV6110x)
 
 extern const struct stv6110x_devctl *stv6110x_attach(struct dvb_frontend *fe,
-					       const struct stv6110x_config *config,
-					       struct i2c_adapter *i2c);
+		const struct stv6110x_config *config,
+		struct i2c_adapter *i2c);
 
 #else
 static inline const struct stv6110x_devctl *stv6110x_attach(struct dvb_frontend *fe,
-						      const struct stv6110x_config *config,
-						      struct i2c_adapter *i2c)
+		const struct stv6110x_config *config,
+		struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

@@ -64,21 +64,21 @@
 
 #define rvt_pr_info(rdi, fmt, ...) \
 	__rvt_pr_info(rdi->driver_f.get_pci_dev(rdi), \
-		      rdi->driver_f.get_card_name(rdi), \
-		      fmt, \
-		      ##__VA_ARGS__)
+				  rdi->driver_f.get_card_name(rdi), \
+				  fmt, \
+				  ##__VA_ARGS__)
 
 #define rvt_pr_warn(rdi, fmt, ...) \
 	__rvt_pr_warn(rdi->driver_f.get_pci_dev(rdi), \
-		      rdi->driver_f.get_card_name(rdi), \
-		      fmt, \
-		      ##__VA_ARGS__)
+				  rdi->driver_f.get_card_name(rdi), \
+				  fmt, \
+				  ##__VA_ARGS__)
 
 #define rvt_pr_err(rdi, fmt, ...) \
 	__rvt_pr_err(rdi->driver_f.get_pci_dev(rdi), \
-		     rdi->driver_f.get_card_name(rdi), \
-		     fmt, \
-		     ##__VA_ARGS__)
+				 rdi->driver_f.get_card_name(rdi), \
+				 fmt, \
+				 ##__VA_ARGS__)
 
 #define __rvt_pr_info(pdev, name, fmt, ...) \
 	dev_info(&pdev->dev, "%s: " fmt, name, ##__VA_ARGS__)
@@ -95,8 +95,11 @@ static inline int ibport_num_to_idx(struct ib_device *ibdev, u8 port_num)
 	int port_index;
 
 	port_index = port_num - 1; /* IB ports start at 1 our arrays at 0 */
+
 	if ((port_index < 0) || (port_index >= rdi->dparms.nports))
+	{
 		return -EINVAL;
+	}
 
 	return port_index;
 }

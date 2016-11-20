@@ -31,7 +31,7 @@ int perf_color_default_config(const char *var, const char *value, void *cb);
 
 int perf_config_colorbool(const char *var, const char *value, int stdout_is_tty);
 int color_vsnprintf(char *bf, size_t size, const char *color,
-		    const char *fmt, va_list args);
+					const char *fmt, va_list args);
 int color_vfprintf(FILE *fp, const char *color, const char *fmt, va_list args);
 int color_fprintf(FILE *fp, const char *color, const char *fmt, ...);
 int color_snprintf(char *bf, size_t size, const char *color, const char *fmt, ...);

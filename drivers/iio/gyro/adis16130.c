@@ -37,7 +37,8 @@
  * @buf_lock:		mutex to protect tx and rx
  * @buf:		unified tx/rx buffer
  **/
-struct adis16130_state {
+struct adis16130_state
+{
 	struct spi_device		*us;
 	struct mutex			buf_lock;
 	u8				buf[4] ____cacheline_aligned;
@@ -47,7 +48,8 @@ static int adis16130_spi_read(struct iio_dev *indio_dev, u8 reg_addr, u32 *val)
 {
 	int ret;
 	struct adis16130_state *st = iio_priv(indio_dev);
-	struct spi_transfer xfer = {
+	struct spi_transfer xfer =
+	{
 		.tx_buf = st->buf,
 		.rx_buf = st->buf,
 		.len = 4,
@@ -59,83 +61,102 @@ static int adis16130_spi_read(struct iio_dev *indio_dev, u8 reg_addr, u32 *val)
 	st->buf[1] = st->buf[2] = st->buf[3] = 0;
 
 	ret = spi_sync_transfer(st->us, &xfer, 1);
+
 	if (ret == 0)
+	{
 		*val = (st->buf[1] << 16) | (st->buf[2] << 8) | st->buf[3];
+	}
+
 	mutex_unlock(&st->buf_lock);
 
 	return ret;
 }
 
 static int adis16130_read_raw(struct iio_dev *indio_dev,
-			      struct iio_chan_spec const *chan,
-			      int *val, int *val2,
-			      long mask)
+							  struct iio_chan_spec const *chan,
+							  int *val, int *val2,
+							  long mask)
 {
 	int ret;
 	u32 temp;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		/* Take the iio_dev status lock */
-		mutex_lock(&indio_dev->mlock);
-		ret = adis16130_spi_read(indio_dev, chan->address, &temp);
-		mutex_unlock(&indio_dev->mlock);
-		if (ret)
-			return ret;
-		*val = temp;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->type) {
-		case IIO_ANGL_VEL:
-			/* 0 degree = 838860, 250 degree = 14260608 */
-			*val = 250;
-			*val2 = 336440817; /* RAD_TO_DEGREE(14260608 - 8388608) */
-			return IIO_VAL_FRACTIONAL;
-		case IIO_TEMP:
-			/* 0C = 8036283, 105C = 9516048 */
-			*val = 105000;
-			*val2 = 9516048 - 8036283;
-			return IIO_VAL_FRACTIONAL;
-		default:
-			return -EINVAL;
-		}
-	case IIO_CHAN_INFO_OFFSET:
-		switch (chan->type) {
-		case IIO_ANGL_VEL:
-			*val = -8388608;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			/* Take the iio_dev status lock */
+			mutex_lock(&indio_dev->mlock);
+			ret = adis16130_spi_read(indio_dev, chan->address, &temp);
+			mutex_unlock(&indio_dev->mlock);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			*val = temp;
 			return IIO_VAL_INT;
-		case IIO_TEMP:
-			*val = -8036283;
-			return IIO_VAL_INT;
-		default:
-			return -EINVAL;
-		}
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->type)
+			{
+				case IIO_ANGL_VEL:
+					/* 0 degree = 838860, 250 degree = 14260608 */
+					*val = 250;
+					*val2 = 336440817; /* RAD_TO_DEGREE(14260608 - 8388608) */
+					return IIO_VAL_FRACTIONAL;
+
+				case IIO_TEMP:
+					/* 0C = 8036283, 105C = 9516048 */
+					*val = 105000;
+					*val2 = 9516048 - 8036283;
+					return IIO_VAL_FRACTIONAL;
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_OFFSET:
+			switch (chan->type)
+			{
+				case IIO_ANGL_VEL:
+					*val = -8388608;
+					return IIO_VAL_INT;
+
+				case IIO_TEMP:
+					*val = -8036283;
+					return IIO_VAL_INT;
+
+				default:
+					return -EINVAL;
+			}
 	}
 
 	return -EINVAL;
 }
 
-static const struct iio_chan_spec adis16130_channels[] = {
+static const struct iio_chan_spec adis16130_channels[] =
+{
 	{
 		.type = IIO_ANGL_VEL,
 		.modified = 1,
 		.channel2 = IIO_MOD_Z,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-			BIT(IIO_CHAN_INFO_SCALE) |
-			BIT(IIO_CHAN_INFO_OFFSET),
+		BIT(IIO_CHAN_INFO_SCALE) |
+		BIT(IIO_CHAN_INFO_OFFSET),
 		.address = ADIS16130_RATEDATA,
 	}, {
 		.type = IIO_TEMP,
 		.indexed = 1,
 		.channel = 0,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-			BIT(IIO_CHAN_INFO_SCALE) |
-			BIT(IIO_CHAN_INFO_OFFSET),
+		BIT(IIO_CHAN_INFO_SCALE) |
+		BIT(IIO_CHAN_INFO_OFFSET),
 		.address = ADIS16130_TEMPDATA,
 	}
 };
 
-static const struct iio_info adis16130_info = {
+static const struct iio_info adis16130_info =
+{
 	.read_raw = &adis16130_read_raw,
 	.driver_module = THIS_MODULE,
 };
@@ -147,8 +168,12 @@ static int adis16130_probe(struct spi_device *spi)
 
 	/* setup the industrialio driver allocated elements */
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
+
 	st = iio_priv(indio_dev);
 	/* this is only used for removal purposes */
 	spi_set_drvdata(spi, indio_dev);
@@ -164,7 +189,8 @@ static int adis16130_probe(struct spi_device *spi)
 	return devm_iio_device_register(&spi->dev, indio_dev);
 }
 
-static struct spi_driver adis16130_driver = {
+static struct spi_driver adis16130_driver =
+{
 	.driver = {
 		.name = "adis16130",
 	},

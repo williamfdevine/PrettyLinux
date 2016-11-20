@@ -35,28 +35,32 @@
 #define STID127_THSENS_CONF			STID127_SYSCFG_CPU(743)
 #define STID127_THSENS_STATUS			STID127_SYSCFG_CPU(767)
 
-static const struct reg_field st_415sas_regfields[MAX_REGFIELDS] = {
+static const struct reg_field st_415sas_regfields[MAX_REGFIELDS] =
+{
 	[TEMP_PWR] = REG_FIELD(STIH415_SAS_THSENS_CONF,   9,  9),
 	[DCORRECT] = REG_FIELD(STIH415_SAS_THSENS_CONF,   4,  8),
 	[OVERFLOW] = REG_FIELD(STIH415_SAS_THSENS_STATUS, 8,  8),
 	[DATA] 	   = REG_FIELD(STIH415_SAS_THSENS_STATUS, 10, 16),
 };
 
-static const struct reg_field st_415mpe_regfields[MAX_REGFIELDS] = {
+static const struct reg_field st_415mpe_regfields[MAX_REGFIELDS] =
+{
 	[TEMP_PWR] = REG_FIELD(STIH415_MPE_THSENS_CONF,   8,  8),
 	[DCORRECT] = REG_FIELD(STIH415_MPE_THSENS_CONF,   3,  7),
 	[OVERFLOW] = REG_FIELD(STIH415_MPE_THSENS_STATUS, 9,  9),
 	[DATA]     = REG_FIELD(STIH415_MPE_THSENS_STATUS, 11, 18),
 };
 
-static const struct reg_field st_416sas_regfields[MAX_REGFIELDS] = {
+static const struct reg_field st_416sas_regfields[MAX_REGFIELDS] =
+{
 	[TEMP_PWR] = REG_FIELD(STIH416_SAS_THSENS_CONF,    9,  9),
 	[DCORRECT] = REG_FIELD(STIH416_SAS_THSENS_CONF,    4,  8),
 	[OVERFLOW] = REG_FIELD(STIH416_SAS_THSENS_STATUS1, 8,  8),
 	[DATA]     = REG_FIELD(STIH416_SAS_THSENS_STATUS2, 10, 16),
 };
 
-static const struct reg_field st_127_regfields[MAX_REGFIELDS] = {
+static const struct reg_field st_127_regfields[MAX_REGFIELDS] =
+{
 	[TEMP_PWR] = REG_FIELD(STID127_THSENS_CONF,   7,  7),
 	[DCORRECT] = REG_FIELD(STID127_THSENS_CONF,   2,  6),
 	[OVERFLOW] = REG_FIELD(STID127_THSENS_STATUS, 9,  9),
@@ -65,7 +69,7 @@ static const struct reg_field st_127_regfields[MAX_REGFIELDS] = {
 
 /* Private OPs for System Configuration Register based thermal sensors */
 static int st_syscfg_power_ctrl(struct st_thermal_sensor *sensor,
-				enum st_thermal_power_state power_state)
+								enum st_thermal_power_state power_state)
 {
 	return regmap_field_write(sensor->pwr, power_state);
 }
@@ -75,9 +79,10 @@ static int st_syscfg_alloc_regfields(struct st_thermal_sensor *sensor)
 	struct device *dev = sensor->dev;
 
 	sensor->pwr = devm_regmap_field_alloc(dev, sensor->regmap,
-					sensor->cdata->reg_fields[TEMP_PWR]);
+										  sensor->cdata->reg_fields[TEMP_PWR]);
 
-	if (IS_ERR(sensor->pwr)) {
+	if (IS_ERR(sensor->pwr))
+	{
 		dev_err(dev, "failed to alloc syscfg regfields\n");
 		return PTR_ERR(sensor->pwr);
 	}
@@ -89,7 +94,9 @@ static int st_syscfg_regmap_init(struct st_thermal_sensor *sensor)
 {
 	sensor->regmap =
 		syscon_regmap_lookup_by_compatible(sensor->cdata->sys_compat);
-	if (IS_ERR(sensor->regmap)) {
+
+	if (IS_ERR(sensor->regmap))
+	{
 		dev_err(sensor->dev, "failed to find syscfg regmap\n");
 		return PTR_ERR(sensor->regmap);
 	}
@@ -97,14 +104,16 @@ static int st_syscfg_regmap_init(struct st_thermal_sensor *sensor)
 	return 0;
 }
 
-static const struct st_thermal_sensor_ops st_syscfg_sensor_ops = {
+static const struct st_thermal_sensor_ops st_syscfg_sensor_ops =
+{
 	.power_ctrl		= st_syscfg_power_ctrl,
 	.alloc_regfields	= st_syscfg_alloc_regfields,
 	.regmap_init		= st_syscfg_regmap_init,
 };
 
 /* Compatible device data for stih415 sas thermal sensor */
-static const struct st_thermal_compat_data st_415sas_cdata = {
+static const struct st_thermal_compat_data st_415sas_cdata =
+{
 	.sys_compat		= "st,stih415-front-syscfg",
 	.reg_fields		= st_415sas_regfields,
 	.ops			= &st_syscfg_sensor_ops,
@@ -114,7 +123,8 @@ static const struct st_thermal_compat_data st_415sas_cdata = {
 };
 
 /* Compatible device data for stih415 mpe thermal sensor */
-static const struct st_thermal_compat_data st_415mpe_cdata = {
+static const struct st_thermal_compat_data st_415mpe_cdata =
+{
 	.sys_compat		= "st,stih415-system-syscfg",
 	.reg_fields		= st_415mpe_regfields,
 	.ops			= &st_syscfg_sensor_ops,
@@ -124,7 +134,8 @@ static const struct st_thermal_compat_data st_415mpe_cdata = {
 };
 
 /* Compatible device data for stih416 sas thermal sensor */
-static const struct st_thermal_compat_data st_416sas_cdata = {
+static const struct st_thermal_compat_data st_416sas_cdata =
+{
 	.sys_compat		= "st,stih416-front-syscfg",
 	.reg_fields		= st_416sas_regfields,
 	.ops			= &st_syscfg_sensor_ops,
@@ -134,7 +145,8 @@ static const struct st_thermal_compat_data st_416sas_cdata = {
 };
 
 /* Compatible device data for stid127 thermal sensor */
-static const struct st_thermal_compat_data st_127_cdata = {
+static const struct st_thermal_compat_data st_127_cdata =
+{
 	.sys_compat		= "st,stid127-cpu-syscfg",
 	.reg_fields		= st_127_regfields,
 	.ops			= &st_syscfg_sensor_ops,
@@ -143,7 +155,8 @@ static const struct st_thermal_compat_data st_127_cdata = {
 	.crit_temp		= 120,
 };
 
-static const struct of_device_id st_syscfg_thermal_of_match[] = {
+static const struct of_device_id st_syscfg_thermal_of_match[] =
+{
 	{ .compatible = "st,stih415-sas-thermal", .data = &st_415sas_cdata },
 	{ .compatible = "st,stih415-mpe-thermal", .data = &st_415mpe_cdata },
 	{ .compatible = "st,stih416-sas-thermal", .data = &st_416sas_cdata },
@@ -162,7 +175,8 @@ static int st_syscfg_remove(struct platform_device *pdev)
 	return st_thermal_unregister(pdev);
 }
 
-static struct platform_driver st_syscfg_thermal_driver = {
+static struct platform_driver st_syscfg_thermal_driver =
+{
 	.driver = {
 		.name	= "st_syscfg_thermal",
 		.pm     = &st_thermal_pm_ops,

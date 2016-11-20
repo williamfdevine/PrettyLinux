@@ -101,7 +101,8 @@
 #define DMA_CONTROL_SF		0x00200000	/* Store And Forward */
 
 /* Transmit Threshold Control */
-enum ttc_control {
+enum ttc_control
+{
 	DMA_CONTROL_TTC_DEFAULT = 0x00000000,	/* Threshold is 32 DWORDS */
 	DMA_CONTROL_TTC_64 = 0x00004000,	/* Threshold is 64 DWORDS */
 	DMA_CONTROL_TTC_128 = 0x00008000,	/* Threshold is 128 DWORDS */

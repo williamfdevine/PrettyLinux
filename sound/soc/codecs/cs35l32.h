@@ -14,7 +14,8 @@
 #ifndef __CS35L32_H__
 #define __CS35L32_H__
 
-struct cs35l32_platform_data {
+struct cs35l32_platform_data
+{
 	/* Low Battery Threshold */
 	unsigned int batt_thresh;
 	/* Low Battery Recovery */
@@ -86,8 +87,8 @@ struct cs35l32_platform_data {
 
 #define CS35L32_RATES (SNDRV_PCM_RATE_48000)
 #define CS35L32_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | \
-			SNDRV_PCM_FMTBIT_S24_LE | \
-			SNDRV_PCM_FMTBIT_S32_LE)
+						 SNDRV_PCM_FMTBIT_S24_LE | \
+						 SNDRV_PCM_FMTBIT_S32_LE)
 
 
 #endif

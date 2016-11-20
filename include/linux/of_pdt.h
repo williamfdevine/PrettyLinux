@@ -14,7 +14,8 @@
 #define _LINUX_OF_PDT_H
 
 /* overridable operations for calling into the PROM */
-struct of_pdt_ops {
+struct of_pdt_ops
+{
 	/*
 	 * buf should be 32 bytes; return 0 on success.
 	 * If prev is NULL, the first property will be returned.
@@ -24,7 +25,7 @@ struct of_pdt_ops {
 	/* for both functions, return proplen on success; -1 on error */
 	int (*getproplen)(phandle node, const char *prop);
 	int (*getproperty)(phandle node, const char *prop, char *buf,
-			int bufsize);
+					   int bufsize);
 
 	/* phandles are 0 if no child or sibling exists */
 	phandle (*getchild)(phandle parent);

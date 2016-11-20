@@ -50,10 +50,13 @@ struct page *selinux_kernel_status_page(void)
 	struct page		       *result = NULL;
 
 	mutex_lock(&selinux_status_lock);
-	if (!selinux_status_page) {
-		selinux_status_page = alloc_page(GFP_KERNEL|__GFP_ZERO);
 
-		if (selinux_status_page) {
+	if (!selinux_status_page)
+	{
+		selinux_status_page = alloc_page(GFP_KERNEL | __GFP_ZERO);
+
+		if (selinux_status_page)
+		{
 			status = page_address(selinux_status_page);
 
 			status->version = SELINUX_KERNEL_STATUS_VERSION;
@@ -69,6 +72,7 @@ struct page *selinux_kernel_status_page(void)
 			status->deny_unknown = !security_get_allow_unknown();
 		}
 	}
+
 	result = selinux_status_page;
 	mutex_unlock(&selinux_status_lock);
 
@@ -85,7 +89,9 @@ void selinux_status_update_setenforce(int enforcing)
 	struct selinux_kernel_status   *status;
 
 	mutex_lock(&selinux_status_lock);
-	if (selinux_status_page) {
+
+	if (selinux_status_page)
+	{
 		status = page_address(selinux_status_page);
 
 		status->sequence++;
@@ -96,6 +102,7 @@ void selinux_status_update_setenforce(int enforcing)
 		smp_wmb();
 		status->sequence++;
 	}
+
 	mutex_unlock(&selinux_status_lock);
 }
 
@@ -110,7 +117,9 @@ void selinux_status_update_policyload(int seqno)
 	struct selinux_kernel_status   *status;
 
 	mutex_lock(&selinux_status_lock);
-	if (selinux_status_page) {
+
+	if (selinux_status_page)
+	{
 		status = page_address(selinux_status_page);
 
 		status->sequence++;
@@ -122,5 +131,6 @@ void selinux_status_update_policyload(int seqno)
 		smp_wmb();
 		status->sequence++;
 	}
+
 	mutex_unlock(&selinux_status_lock);
 }

@@ -38,14 +38,16 @@ MODULE_AUTHOR("Vojtech Pavlik <vojtech@ucw.cz>");
 MODULE_DESCRIPTION("EMU10k1 gameport driver");
 MODULE_LICENSE("GPL");
 
-struct emu {
+struct emu
+{
 	struct pci_dev *dev;
 	struct gameport *gameport;
 	int io;
 	int size;
 };
 
-static const struct pci_device_id emu_tbl[] = {
+static const struct pci_device_id emu_tbl[] =
+{
 
 	{ 0x1102, 0x7002, PCI_ANY_ID, PCI_ANY_ID }, /* SB Live gameport */
 	{ 0x1102, 0x7003, PCI_ANY_ID, PCI_ANY_ID }, /* Audigy gameport */
@@ -64,15 +66,20 @@ static int emu_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	emu = kzalloc(sizeof(struct emu), GFP_KERNEL);
 	port = gameport_allocate_port();
-	if (!emu || !port) {
+
+	if (!emu || !port)
+	{
 		printk(KERN_ERR "emu10k1-gp: Memory allocation failed\n");
 		error = -ENOMEM;
 		goto err_out_free;
 	}
 
 	error = pci_enable_device(pdev);
+
 	if (error)
+	{
 		goto err_out_free;
+	}
 
 	emu->io = pci_resource_start(pdev, 0);
 	emu->size = pci_resource_len(pdev, 0);
@@ -85,9 +92,10 @@ static int emu_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	port->dev.parent = &pdev->dev;
 	port->io = emu->io;
 
-	if (!request_region(emu->io, emu->size, "emu10k1-gp")) {
+	if (!request_region(emu->io, emu->size, "emu10k1-gp"))
+	{
 		printk(KERN_ERR "emu10k1-gp: unable to grab region 0x%x-0x%x\n",
-			emu->io, emu->io + emu->size - 1);
+			   emu->io, emu->io + emu->size - 1);
 		error = -EBUSY;
 		goto err_out_disable_dev;
 	}
@@ -98,9 +106,9 @@ static int emu_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	return 0;
 
- err_out_disable_dev:
+err_out_disable_dev:
 	pci_disable_device(pdev);
- err_out_free:
+err_out_free:
 	gameport_free_port(port);
 	kfree(emu);
 	return error;
@@ -117,10 +125,11 @@ static void emu_remove(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 }
 
-static struct pci_driver emu_driver = {
-        .name =         "Emu10k1_gameport",
-        .id_table =     emu_tbl,
-        .probe =        emu_probe,
+static struct pci_driver emu_driver =
+{
+	.name =         "Emu10k1_gameport",
+	.id_table =     emu_tbl,
+	.probe =        emu_probe,
 	.remove =	emu_remove,
 };
 

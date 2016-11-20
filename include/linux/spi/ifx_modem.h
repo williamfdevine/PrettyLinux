@@ -1,7 +1,8 @@
 #ifndef LINUX_IFX_MODEM_H
 #define LINUX_IFX_MODEM_H
 
-struct ifx_modem_platform_data {
+struct ifx_modem_platform_data
+{
 	unsigned short rst_out;		/* modem reset out */
 	unsigned short pwr_on;		/* power on */
 	unsigned short rst_pmu;		/* reset modem */
@@ -10,7 +11,7 @@ struct ifx_modem_platform_data {
 	unsigned short mrdy;		/* MRDY */
 	unsigned char modem_type;	/* Modem type */
 	unsigned long max_hz;		/* max SPI frequency */
-	unsigned short use_dma:1;	/* spi protocol driver supplies
+	unsigned short use_dma: 1;	/* spi protocol driver supplies
 					   dma-able addrs */
 };
 #define IFX_MODEM_6160	1

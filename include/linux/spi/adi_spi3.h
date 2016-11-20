@@ -207,7 +207,8 @@
 /*
  * adi spi3 registers layout
  */
-struct adi_spi_regs {
+struct adi_spi_regs
+{
 	u32 revid;
 	u32 control;
 	u32 rx_control;
@@ -236,7 +237,8 @@ struct adi_spi_regs {
 #define MAX_CTRL_CS          8  /* cs in spi controller */
 
 /* device.platform_data for SSP controller devices */
-struct adi_spi3_master {
+struct adi_spi3_master
+{
 	u16 num_chipselect;
 	u16 pin_req[7];
 };
@@ -244,7 +246,8 @@ struct adi_spi3_master {
 /* spi_board_info.controller_data for SPI slave devices,
  * copied to spi_device.platform_data ... mostly for dma tuning
  */
-struct adi_spi3_chip {
+struct adi_spi3_chip
+{
 	u32 control;
 	u16 cs_chg_udelay; /* Some devices require 16-bit delays */
 	u32 tx_dummy_val; /* tx value for rx only transfer */

@@ -26,13 +26,15 @@
 #define QL_MIN_IO	1
 #define QL_VERSION	"0.2.0"
 
-struct selector {
+struct selector
+{
 	struct list_head	valid_paths;
 	struct list_head	failed_paths;
 	spinlock_t lock;
 };
 
-struct path_info {
+struct path_info
+{
 	struct list_head	list;
 	struct dm_path		*path;
 	unsigned		repeat_count;
@@ -43,7 +45,8 @@ static struct selector *alloc_selector(void)
 {
 	struct selector *s = kmalloc(sizeof(*s), GFP_KERNEL);
 
-	if (s) {
+	if (s)
+	{
 		INIT_LIST_HEAD(&s->valid_paths);
 		INIT_LIST_HEAD(&s->failed_paths);
 		spin_lock_init(&s->lock);
@@ -57,7 +60,9 @@ static int ql_create(struct path_selector *ps, unsigned argc, char **argv)
 	struct selector *s = alloc_selector();
 
 	if (!s)
+	{
 		return -ENOMEM;
+	}
 
 	ps->context = s;
 	return 0;
@@ -67,7 +72,8 @@ static void ql_free_paths(struct list_head *paths)
 {
 	struct path_info *pi, *next;
 
-	list_for_each_entry_safe(pi, next, paths, list) {
+	list_for_each_entry_safe(pi, next, paths, list)
+	{
 		list_del(&pi->list);
 		kfree(pi);
 	}
@@ -84,24 +90,29 @@ static void ql_destroy(struct path_selector *ps)
 }
 
 static int ql_status(struct path_selector *ps, struct dm_path *path,
-		     status_type_t type, char *result, unsigned maxlen)
+					 status_type_t type, char *result, unsigned maxlen)
 {
 	unsigned sz = 0;
 	struct path_info *pi;
 
 	/* When called with NULL path, return selector status/args. */
 	if (!path)
+	{
 		DMEMIT("0 ");
-	else {
+	}
+	else
+	{
 		pi = path->pscontext;
 
-		switch (type) {
-		case STATUSTYPE_INFO:
-			DMEMIT("%d ", atomic_read(&pi->qlen));
-			break;
-		case STATUSTYPE_TABLE:
-			DMEMIT("%u ", pi->repeat_count);
-			break;
+		switch (type)
+		{
+			case STATUSTYPE_INFO:
+				DMEMIT("%d ", atomic_read(&pi->qlen));
+				break;
+
+			case STATUSTYPE_TABLE:
+				DMEMIT("%u ", pi->repeat_count);
+				break;
 		}
 	}
 
@@ -109,7 +120,7 @@ static int ql_status(struct path_selector *ps, struct dm_path *path,
 }
 
 static int ql_add_path(struct path_selector *ps, struct dm_path *path,
-		       int argc, char **argv, char **error)
+					   int argc, char **argv, char **error)
 {
 	struct selector *s = ps->context;
 	struct path_info *pi;
@@ -122,24 +133,29 @@ static int ql_add_path(struct path_selector *ps, struct dm_path *path,
 	 * 	<repeat_count>: The number of I/Os before switching path.
 	 * 			If not given, default (QL_MIN_IO) is used.
 	 */
-	if (argc > 1) {
+	if (argc > 1)
+	{
 		*error = "queue-length ps: incorrect number of arguments";
 		return -EINVAL;
 	}
 
-	if ((argc == 1) && (sscanf(argv[0], "%u%c", &repeat_count, &dummy) != 1)) {
+	if ((argc == 1) && (sscanf(argv[0], "%u%c", &repeat_count, &dummy) != 1))
+	{
 		*error = "queue-length ps: invalid repeat count";
 		return -EINVAL;
 	}
 
-	if (repeat_count > 1) {
+	if (repeat_count > 1)
+	{
 		DMWARN_LIMIT("repeat_count > 1 is deprecated, using 1 instead");
 		repeat_count = 1;
 	}
 
 	/* Allocate the path information structure */
 	pi = kmalloc(sizeof(*pi), GFP_KERNEL);
-	if (!pi) {
+
+	if (!pi)
+	{
 		*error = "queue-length ps: Error allocating path information";
 		return -ENOMEM;
 	}
@@ -192,23 +208,33 @@ static struct dm_path *ql_select_path(struct path_selector *ps, size_t nr_bytes)
 	unsigned long flags;
 
 	spin_lock_irqsave(&s->lock, flags);
+
 	if (list_empty(&s->valid_paths))
+	{
 		goto out;
+	}
 
 	/* Change preferred (first in list) path to evenly balance. */
 	list_move_tail(s->valid_paths.next, &s->valid_paths);
 
-	list_for_each_entry(pi, &s->valid_paths, list) {
+	list_for_each_entry(pi, &s->valid_paths, list)
+	{
 		if (!best ||
-		    (atomic_read(&pi->qlen) < atomic_read(&best->qlen)))
+			(atomic_read(&pi->qlen) < atomic_read(&best->qlen)))
+		{
 			best = pi;
+		}
 
 		if (!atomic_read(&best->qlen))
+		{
 			break;
+		}
 	}
 
 	if (!best)
+	{
 		goto out;
+	}
 
 	ret = best->path;
 out:
@@ -217,7 +243,7 @@ out:
 }
 
 static int ql_start_io(struct path_selector *ps, struct dm_path *path,
-		       size_t nr_bytes)
+					   size_t nr_bytes)
 {
 	struct path_info *pi = path->pscontext;
 
@@ -227,7 +253,7 @@ static int ql_start_io(struct path_selector *ps, struct dm_path *path,
 }
 
 static int ql_end_io(struct path_selector *ps, struct dm_path *path,
-		     size_t nr_bytes)
+					 size_t nr_bytes)
 {
 	struct path_info *pi = path->pscontext;
 
@@ -236,7 +262,8 @@ static int ql_end_io(struct path_selector *ps, struct dm_path *path,
 	return 0;
 }
 
-static struct path_selector_type ql_ps = {
+static struct path_selector_type ql_ps =
+{
 	.name		= "queue-length",
 	.module		= THIS_MODULE,
 	.table_args	= 1,
@@ -257,7 +284,9 @@ static int __init dm_ql_init(void)
 	int r = dm_register_path_selector(&ql_ps);
 
 	if (r < 0)
+	{
 		DMERR("register failed %d", r);
+	}
 
 	DMINFO("version " QL_VERSION " loaded");
 
@@ -269,7 +298,9 @@ static void __exit dm_ql_exit(void)
 	int r = dm_unregister_path_selector(&ql_ps);
 
 	if (r < 0)
+	{
 		DMERR("unregister failed %d", r);
+	}
 }
 
 module_init(dm_ql_init);

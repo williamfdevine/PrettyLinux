@@ -10,7 +10,8 @@
 #ifndef __NCSI_PKT_H__
 #define __NCSI_PKT_H__
 
-struct ncsi_pkt_hdr {
+struct ncsi_pkt_hdr
+{
 	unsigned char mc_id;        /* Management controller ID */
 	unsigned char revision;     /* NCSI version - 0x01      */
 	unsigned char reserved;     /* Reserved                 */
@@ -21,37 +22,43 @@ struct ncsi_pkt_hdr {
 	__be32        reserved1[2]; /* Reserved                 */
 };
 
-struct ncsi_cmd_pkt_hdr {
+struct ncsi_cmd_pkt_hdr
+{
 	struct ncsi_pkt_hdr common; /* Common NCSI packet header */
 };
 
-struct ncsi_rsp_pkt_hdr {
+struct ncsi_rsp_pkt_hdr
+{
 	struct ncsi_pkt_hdr common; /* Common NCSI packet header */
 	__be16              code;   /* Response code             */
 	__be16              reason; /* Response reason           */
 };
 
-struct ncsi_aen_pkt_hdr {
+struct ncsi_aen_pkt_hdr
+{
 	struct ncsi_pkt_hdr common;       /* Common NCSI packet header */
 	unsigned char       reserved2[3]; /* Reserved                  */
 	unsigned char       type;         /* AEN packet type           */
 };
 
 /* NCSI common command packet */
-struct ncsi_cmd_pkt {
+struct ncsi_cmd_pkt
+{
 	struct ncsi_cmd_pkt_hdr cmd;      /* Command header */
 	__be32                  checksum; /* Checksum       */
 	unsigned char           pad[26];
 };
 
-struct ncsi_rsp_pkt {
+struct ncsi_rsp_pkt
+{
 	struct ncsi_rsp_pkt_hdr rsp;      /* Response header */
 	__be32                  checksum; /* Checksum        */
 	unsigned char           pad[22];
 };
 
 /* Select Package */
-struct ncsi_cmd_sp_pkt {
+struct ncsi_cmd_sp_pkt
+{
 	struct ncsi_cmd_pkt_hdr cmd;            /* Command header */
 	unsigned char           reserved[3];    /* Reserved       */
 	unsigned char           hw_arbitration; /* HW arbitration */
@@ -60,7 +67,8 @@ struct ncsi_cmd_sp_pkt {
 };
 
 /* Disable Channel */
-struct ncsi_cmd_dc_pkt {
+struct ncsi_cmd_dc_pkt
+{
 	struct ncsi_cmd_pkt_hdr cmd;         /* Command header  */
 	unsigned char           reserved[3]; /* Reserved        */
 	unsigned char           ald;         /* Allow link down */
@@ -69,7 +77,8 @@ struct ncsi_cmd_dc_pkt {
 };
 
 /* Reset Channel */
-struct ncsi_cmd_rc_pkt {
+struct ncsi_cmd_rc_pkt
+{
 	struct ncsi_cmd_pkt_hdr cmd;      /* Command header */
 	__be32                  reserved; /* Reserved       */
 	__be32                  checksum; /* Checksum       */
@@ -77,7 +86,8 @@ struct ncsi_cmd_rc_pkt {
 };
 
 /* AEN Enable */
-struct ncsi_cmd_ae_pkt {
+struct ncsi_cmd_ae_pkt
+{
 	struct ncsi_cmd_pkt_hdr cmd;         /* Command header   */
 	unsigned char           reserved[3]; /* Reserved         */
 	unsigned char           mc_id;       /* MC ID            */
@@ -87,7 +97,8 @@ struct ncsi_cmd_ae_pkt {
 };
 
 /* Set Link */
-struct ncsi_cmd_sl_pkt {
+struct ncsi_cmd_sl_pkt
+{
 	struct ncsi_cmd_pkt_hdr cmd;      /* Command header    */
 	__be32                  mode;     /* Link working mode */
 	__be32                  oem_mode; /* OEM link mode     */
@@ -96,7 +107,8 @@ struct ncsi_cmd_sl_pkt {
 };
 
 /* Set VLAN Filter */
-struct ncsi_cmd_svf_pkt {
+struct ncsi_cmd_svf_pkt
+{
 	struct ncsi_cmd_pkt_hdr cmd;       /* Command header    */
 	__be16                  reserved;  /* Reserved          */
 	__be16                  vlan;      /* VLAN ID           */
@@ -108,7 +120,8 @@ struct ncsi_cmd_svf_pkt {
 };
 
 /* Enable VLAN */
-struct ncsi_cmd_ev_pkt {
+struct ncsi_cmd_ev_pkt
+{
 	struct ncsi_cmd_pkt_hdr cmd;         /* Command header   */
 	unsigned char           reserved[3]; /* Reserved         */
 	unsigned char           mode;        /* VLAN filter mode */
@@ -117,7 +130,8 @@ struct ncsi_cmd_ev_pkt {
 };
 
 /* Set MAC Address */
-struct ncsi_cmd_sma_pkt {
+struct ncsi_cmd_sma_pkt
+{
 	struct ncsi_cmd_pkt_hdr cmd;      /* Command header          */
 	unsigned char           mac[6];   /* MAC address             */
 	unsigned char           index;    /* MAC table index         */
@@ -127,7 +141,8 @@ struct ncsi_cmd_sma_pkt {
 };
 
 /* Enable Broadcast Filter */
-struct ncsi_cmd_ebf_pkt {
+struct ncsi_cmd_ebf_pkt
+{
 	struct ncsi_cmd_pkt_hdr cmd;      /* Command header */
 	__be32                  mode;     /* Filter mode    */
 	__be32                  checksum; /* Checksum       */
@@ -135,7 +150,8 @@ struct ncsi_cmd_ebf_pkt {
 };
 
 /* Enable Global Multicast Filter */
-struct ncsi_cmd_egmf_pkt {
+struct ncsi_cmd_egmf_pkt
+{
 	struct ncsi_cmd_pkt_hdr cmd;      /* Command header */
 	__be32                  mode;     /* Global MC mode */
 	__be32                  checksum; /* Checksum       */
@@ -143,7 +159,8 @@ struct ncsi_cmd_egmf_pkt {
 };
 
 /* Set NCSI Flow Control */
-struct ncsi_cmd_snfc_pkt {
+struct ncsi_cmd_snfc_pkt
+{
 	struct ncsi_cmd_pkt_hdr cmd;         /* Command header    */
 	unsigned char           reserved[3]; /* Reserved          */
 	unsigned char           mode;        /* Flow control mode */
@@ -152,7 +169,8 @@ struct ncsi_cmd_snfc_pkt {
 };
 
 /* Get Link Status */
-struct ncsi_rsp_gls_pkt {
+struct ncsi_rsp_gls_pkt
+{
 	struct ncsi_rsp_pkt_hdr rsp;        /* Response header   */
 	__be32                  status;     /* Link status       */
 	__be32                  other;      /* Other indications */
@@ -162,7 +180,8 @@ struct ncsi_rsp_gls_pkt {
 };
 
 /* Get Version ID */
-struct ncsi_rsp_gvi_pkt {
+struct ncsi_rsp_gvi_pkt
+{
 	struct ncsi_rsp_pkt_hdr rsp;          /* Response header */
 	__be32                  ncsi_version; /* NCSI version    */
 	unsigned char           reserved[3];  /* Reserved        */
@@ -175,7 +194,8 @@ struct ncsi_rsp_gvi_pkt {
 };
 
 /* Get Capabilities */
-struct ncsi_rsp_gc_pkt {
+struct ncsi_rsp_gc_pkt
+{
 	struct ncsi_rsp_pkt_hdr rsp;         /* Response header   */
 	__be32                  cap;         /* Capabilities      */
 	__be32                  bc_cap;      /* Broadcast cap     */
@@ -193,7 +213,8 @@ struct ncsi_rsp_gc_pkt {
 };
 
 /* Get Parameters */
-struct ncsi_rsp_gp_pkt {
+struct ncsi_rsp_gp_pkt
+{
 	struct ncsi_rsp_pkt_hdr rsp;          /* Response header       */
 	unsigned char           mac_cnt;      /* Number of MAC addr    */
 	unsigned char           reserved[2];  /* Reserved              */
@@ -214,7 +235,8 @@ struct ncsi_rsp_gp_pkt {
 };
 
 /* Get Controller Packet Statistics */
-struct ncsi_rsp_gcps_pkt {
+struct ncsi_rsp_gcps_pkt
+{
 	struct ncsi_rsp_pkt_hdr rsp;            /* Response header            */
 	__be32                  cnt_hi;         /* Counter cleared            */
 	__be32                  cnt_lo;         /* Counter cleared            */
@@ -261,7 +283,8 @@ struct ncsi_rsp_gcps_pkt {
 };
 
 /* Get NCSI Statistics */
-struct ncsi_rsp_gns_pkt {
+struct ncsi_rsp_gns_pkt
+{
 	struct ncsi_rsp_pkt_hdr rsp;           /* Response header         */
 	__be32                  rx_cmds;       /* Rx NCSI commands        */
 	__be32                  dropped_cmds;  /* Dropped commands        */
@@ -274,7 +297,8 @@ struct ncsi_rsp_gns_pkt {
 };
 
 /* Get NCSI Pass-through Statistics */
-struct ncsi_rsp_gnpts_pkt {
+struct ncsi_rsp_gnpts_pkt
+{
 	struct ncsi_rsp_pkt_hdr rsp;            /* Response header     */
 	__be32                  tx_pkts;        /* Tx packets          */
 	__be32                  tx_dropped;     /* Tx dropped packets  */
@@ -289,21 +313,24 @@ struct ncsi_rsp_gnpts_pkt {
 };
 
 /* Get package status */
-struct ncsi_rsp_gps_pkt {
+struct ncsi_rsp_gps_pkt
+{
 	struct ncsi_rsp_pkt_hdr rsp;      /* Response header             */
 	__be32                  status;   /* Hardware arbitration status */
 	__be32                  checksum;
 };
 
 /* Get package UUID */
-struct ncsi_rsp_gpuuid_pkt {
+struct ncsi_rsp_gpuuid_pkt
+{
 	struct ncsi_rsp_pkt_hdr rsp;      /* Response header */
 	unsigned char           uuid[16]; /* UUID            */
 	__be32                  checksum;
 };
 
 /* AEN: Link State Change */
-struct ncsi_aen_lsc_pkt {
+struct ncsi_aen_lsc_pkt
+{
 	struct ncsi_aen_pkt_hdr aen;        /* AEN header      */
 	__be32                  status;     /* Link status     */
 	__be32                  oem_status; /* OEM link status */
@@ -312,14 +339,16 @@ struct ncsi_aen_lsc_pkt {
 };
 
 /* AEN: Configuration Required */
-struct ncsi_aen_cr_pkt {
+struct ncsi_aen_cr_pkt
+{
 	struct ncsi_aen_pkt_hdr aen;      /* AEN header */
 	__be32                  checksum; /* Checksum   */
 	unsigned char           pad[22];
 };
 
 /* AEN: Host Network Controller Driver Status Change */
-struct ncsi_aen_hncdsc_pkt {
+struct ncsi_aen_hncdsc_pkt
+{
 	struct ncsi_aen_pkt_hdr aen;      /* AEN header */
 	__be32                  status;   /* Status     */
 	__be32                  checksum; /* Checksum   */

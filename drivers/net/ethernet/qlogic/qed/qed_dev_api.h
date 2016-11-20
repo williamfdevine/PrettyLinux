@@ -24,8 +24,8 @@
  * @param dp_level
  */
 void qed_init_dp(struct qed_dev *cdev,
-		 u32 dp_module,
-		 u8 dp_level);
+				 u32 dp_module,
+				 u8 dp_level);
 
 /**
  * @brief qed_init_struct - initialize the device structure to
@@ -73,11 +73,11 @@ void qed_resc_setup(struct qed_dev *cdev);
  * @return int
  */
 int qed_hw_init(struct qed_dev *cdev,
-		struct qed_tunn_start_params *p_tunn,
-		bool b_hw_start,
-		enum qed_int_mode int_mode,
-		bool allow_npar_tx_switch,
-		const u8 *bin_fw_data);
+				struct qed_tunn_start_params *p_tunn,
+				bool b_hw_start,
+				enum qed_int_mode int_mode,
+				bool allow_npar_tx_switch,
+				const u8 *bin_fw_data);
 
 /**
  * @brief qed_hw_timers_stop_all - stop the timers HW block
@@ -134,7 +134,7 @@ int qed_hw_reset(struct qed_dev *cdev);
  * @return int
  */
 int qed_hw_prepare(struct qed_dev *cdev,
-		   int personality);
+				   int personality);
 
 /**
  * @brief qed_hw_remove -
@@ -166,10 +166,11 @@ struct qed_ptt *qed_ptt_acquire(struct qed_hwfn *p_hwfn);
  * @param p_ptt
  */
 void qed_ptt_release(struct qed_hwfn *p_hwfn,
-		     struct qed_ptt *p_ptt);
+					 struct qed_ptt *p_ptt);
 void qed_reset_vport_stats(struct qed_dev *cdev);
 
-enum qed_dmae_address_type_t {
+enum qed_dmae_address_type_t
+{
 	QED_DMAE_ADDRESS_HOST_VIRT,
 	QED_DMAE_ADDRESS_HOST_PHYS,
 	QED_DMAE_ADDRESS_GRC
@@ -187,7 +188,8 @@ enum qed_dmae_address_type_t {
 #define QED_DMAE_FLAG_VF_DST		0x00000004
 #define QED_DMAE_FLAG_COMPLETION_DST	0x00000008
 
-struct qed_dmae_params {
+struct qed_dmae_params
+{
 	u32 flags; /* consists of QED_DMAE_FLAG_* values */
 	u8 src_vfid;
 	u8 dst_vfid;
@@ -206,25 +208,25 @@ struct qed_dmae_params {
  */
 int
 qed_dmae_host2grc(struct qed_hwfn *p_hwfn,
-		  struct qed_ptt *p_ptt,
-		  u64 source_addr,
-		  u32 grc_addr,
-		  u32 size_in_dwords,
-		  u32 flags);
+				  struct qed_ptt *p_ptt,
+				  u64 source_addr,
+				  u32 grc_addr,
+				  u32 size_in_dwords,
+				  u32 flags);
 
- /**
- * @brief qed_dmae_grc2host - Read data from dmae data offset
- * to source address using the given ptt
- *
- * @param p_ptt
- * @param grc_addr (dmae_data_offset)
- * @param dest_addr
- * @param size_in_dwords
- * @param flags - one of the flags defined above
- */
+/**
+* @brief qed_dmae_grc2host - Read data from dmae data offset
+* to source address using the given ptt
+*
+* @param p_ptt
+* @param grc_addr (dmae_data_offset)
+* @param dest_addr
+* @param size_in_dwords
+* @param flags - one of the flags defined above
+*/
 int qed_dmae_grc2host(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt,
-		      u32 grc_addr, dma_addr_t dest_addr, u32 size_in_dwords,
-		      u32 flags);
+					  u32 grc_addr, dma_addr_t dest_addr, u32 size_in_dwords,
+					  u32 flags);
 
 /**
  * @brief qed_dmae_host2host - copy data from to source address
@@ -238,10 +240,10 @@ int qed_dmae_grc2host(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt,
  * @param params
  */
 int qed_dmae_host2host(struct qed_hwfn *p_hwfn,
-		       struct qed_ptt *p_ptt,
-		       dma_addr_t source_addr,
-		       dma_addr_t dest_addr,
-		       u32 size_in_dwords, struct qed_dmae_params *p_params);
+					   struct qed_ptt *p_ptt,
+					   dma_addr_t source_addr,
+					   dma_addr_t dest_addr,
+					   u32 size_in_dwords, struct qed_dmae_params *p_params);
 
 /**
  * @brief qed_chain_alloc - Allocate and initialize a chain
@@ -257,10 +259,10 @@ int qed_dmae_host2host(struct qed_hwfn *p_hwfn,
  */
 int
 qed_chain_alloc(struct qed_dev *cdev,
-		enum qed_chain_use_mode intended_use,
-		enum qed_chain_mode mode,
-		enum qed_chain_cnt_type cnt_type,
-		u32 num_elems, size_t elem_size, struct qed_chain *p_chain);
+				enum qed_chain_use_mode intended_use,
+				enum qed_chain_mode mode,
+				enum qed_chain_cnt_type cnt_type,
+				u32 num_elems, size_t elem_size, struct qed_chain *p_chain);
 
 /**
  * @brief qed_chain_free - Free chain DMA memory
@@ -280,8 +282,8 @@ void qed_chain_free(struct qed_dev *cdev, struct qed_chain *p_chain);
  *  @return int
  */
 int qed_fw_l2_queue(struct qed_hwfn *p_hwfn,
-		    u16 src_id,
-		    u16 *dst_id);
+					u16 src_id,
+					u16 *dst_id);
 
 /**
  * @@brief qed_fw_vport - Get absolute vport ID
@@ -293,8 +295,8 @@ int qed_fw_l2_queue(struct qed_hwfn *p_hwfn,
  *  @return int
  */
 int qed_fw_vport(struct qed_hwfn *p_hwfn,
-		 u8 src_id,
-		 u8 *dst_id);
+				 u8 src_id,
+				 u8 *dst_id);
 
 /**
  * @@brief qed_fw_rss_eng - Get absolute RSS engine ID
@@ -306,8 +308,8 @@ int qed_fw_vport(struct qed_hwfn *p_hwfn,
  *  @return int
  */
 int qed_fw_rss_eng(struct qed_hwfn *p_hwfn,
-		   u8 src_id,
-		   u8 *dst_id);
+				   u8 src_id,
+				   u8 *dst_id);
 
 /**
  * @brief qed_llh_add_mac_filter - configures a MAC filter in llh
@@ -317,7 +319,7 @@ int qed_fw_rss_eng(struct qed_hwfn *p_hwfn,
  * @param p_filter - MAC to add
  */
 int qed_llh_add_mac_filter(struct qed_hwfn *p_hwfn,
-			   struct qed_ptt *p_ptt, u8 *p_filter);
+						   struct qed_ptt *p_ptt, u8 *p_filter);
 
 /**
  * @brief qed_llh_remove_mac_filter - removes a MAC filter from llh
@@ -327,7 +329,7 @@ int qed_llh_add_mac_filter(struct qed_hwfn *p_hwfn,
  * @param p_filter - MAC to remove
  */
 void qed_llh_remove_mac_filter(struct qed_hwfn *p_hwfn,
-			       struct qed_ptt *p_ptt, u8 *p_filter);
+							   struct qed_ptt *p_ptt, u8 *p_filter);
 
 /**
  * *@brief Cleanup of previous driver remains prior to load
@@ -340,7 +342,7 @@ void qed_llh_remove_mac_filter(struct qed_hwfn *p_hwfn,
  * @return int
  */
 int qed_final_cleanup(struct qed_hwfn *p_hwfn,
-		      struct qed_ptt *p_ptt, u16 id, bool is_vf);
+					  struct qed_ptt *p_ptt, u16 id, bool is_vf);
 
 /**
  * @brief qed_set_rxq_coalesce - Configure coalesce parameters for an Rx queue
@@ -357,7 +359,7 @@ int qed_final_cleanup(struct qed_hwfn *p_hwfn,
  * @return int
  */
 int qed_set_rxq_coalesce(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt,
-			 u16 coalesce, u8 qid, u16 sb_id);
+						 u16 coalesce, u8 qid, u16 sb_id);
 
 /**
  * @brief qed_set_txq_coalesce - Configure coalesce parameters for a Tx queue
@@ -374,5 +376,5 @@ int qed_set_rxq_coalesce(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt,
  * @return int
  */
 int qed_set_txq_coalesce(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt,
-			 u16 coalesce, u8 qid, u16 sb_id);
+						 u16 coalesce, u8 qid, u16 sb_id);
 #endif

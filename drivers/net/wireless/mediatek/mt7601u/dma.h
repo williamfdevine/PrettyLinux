@@ -28,7 +28,8 @@
 #define MT_TXD_INFO_D_PORT		GENMASK(29, 27)
 #define MT_TXD_INFO_TYPE		GENMASK(31, 30)
 
-enum mt76_msg_port {
+enum mt76_msg_port
+{
 	WLAN_PORT,
 	CPU_RX_PORT,
 	CPU_TX_PORT,
@@ -38,7 +39,8 @@ enum mt76_msg_port {
 	DISCARD,
 };
 
-enum mt76_info_type {
+enum mt76_info_type
+{
 	DMA_PACKET,
 	DMA_COMMAND,
 };
@@ -52,7 +54,8 @@ enum mt76_info_type {
 #define MT_TXD_PKT_INFO_WIV		BIT(24)
 #define MT_TXD_PKT_INFO_QSEL		GENMASK(26, 25)
 
-enum mt76_qsel {
+enum mt76_qsel
+{
 	MT_QSEL_MGMT,
 	MT_QSEL_HCCA,
 	MT_QSEL_EDCA,
@@ -64,8 +67,8 @@ enum mt76_qsel {
 #define MT_TXD_CMD_INFO_TYPE		GENMASK(26, 20)
 
 static inline int mt7601u_dma_skb_wrap(struct sk_buff *skb,
-				       enum mt76_msg_port d_port,
-				       enum mt76_info_type type, u32 flags)
+									   enum mt76_msg_port d_port,
+									   enum mt76_info_type type, u32 flags)
 {
 	u32 info;
 
@@ -77,9 +80,9 @@ static inline int mt7601u_dma_skb_wrap(struct sk_buff *skb,
 	 */
 
 	info = flags |
-		FIELD_PREP(MT_TXD_INFO_LEN, round_up(skb->len, 4)) |
-		FIELD_PREP(MT_TXD_INFO_D_PORT, d_port) |
-		FIELD_PREP(MT_TXD_INFO_TYPE, type);
+		   FIELD_PREP(MT_TXD_INFO_LEN, round_up(skb->len, 4)) |
+		   FIELD_PREP(MT_TXD_INFO_D_PORT, d_port) |
+		   FIELD_PREP(MT_TXD_INFO_TYPE, type);
 
 	put_unaligned_le32(info, skb_push(skb, sizeof(info)));
 	return skb_put_padto(skb, round_up(skb->len, 4) + 4);
@@ -112,7 +115,8 @@ mt7601u_dma_skb_wrap_pkt(struct sk_buff *skb, enum mt76_qsel qsel, u32 flags)
 #define MT_RXD_CMD_INFO_CMD_SEQ		GENMASK(19, 16)
 #define MT_RXD_CMD_INFO_EVT_TYPE	GENMASK(23, 20)
 
-enum mt76_evt_type {
+enum mt76_evt_type
+{
 	CMD_DONE,
 	CMD_ERROR,
 	CMD_RETRY,

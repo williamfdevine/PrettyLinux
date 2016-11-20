@@ -20,7 +20,8 @@
 
 #include "snic_fwint.h"
 
-enum snic_disc_state {
+enum snic_disc_state
+{
 	SNIC_DISC_NONE,
 	SNIC_DISC_INIT,
 	SNIC_DISC_PENDING,
@@ -28,7 +29,8 @@ enum snic_disc_state {
 };
 
 struct snic;
-struct snic_disc {
+struct snic_disc
+{
 	struct list_head tgt_list;
 	enum snic_disc_state state;
 	struct mutex mutex;
@@ -43,7 +45,8 @@ struct snic_disc {
 
 #define SNIC_TGT_NAM_LEN	16
 
-enum snic_tgt_state {
+enum snic_tgt_state
+{
 	SNIC_TGT_STAT_NONE,
 	SNIC_TGT_STAT_INIT,
 	SNIC_TGT_STAT_ONLINE,	/* Target is Online */
@@ -51,13 +54,15 @@ enum snic_tgt_state {
 	SNIC_TGT_STAT_DEL,
 };
 
-struct snic_tgt_priv {
+struct snic_tgt_priv
+{
 	struct list_head list;
 	enum snic_tgt_type typ;
 	u16 disc_id;
 	char *name[SNIC_TGT_NAM_LEN];
 
-	union {
+	union
+	{
 		/*DAS Target specific info */
 		/*SAN Target specific info */
 		u8 dummmy;
@@ -67,7 +72,8 @@ struct snic_tgt_priv {
 /* snic tgt flags */
 #define SNIC_TGT_SCAN_PENDING	0x01
 
-struct snic_tgt {
+struct snic_tgt
+{
 	struct list_head list;
 	u16	id;
 	u16	channel;
@@ -105,7 +111,7 @@ is_snic_target(struct device *dev)
 
 #define starget_to_tgt(st)	\
 	(is_snic_target(((struct scsi_target *) st)->dev.parent) ? \
-		dev_to_tgt(st->dev.parent) : NULL)
+	 dev_to_tgt(st->dev.parent) : NULL)
 
 #define snic_tgt_to_shost(t)	\
 	dev_to_shost(t->dev.parent)
@@ -114,9 +120,13 @@ static inline int
 snic_tgt_chkready(struct snic_tgt *tgt)
 {
 	if (tgt->state == SNIC_TGT_STAT_ONLINE)
+	{
 		return 0;
+	}
 	else
+	{
 		return DID_NO_CONNECT << 16;
+	}
 }
 
 const char *snic_tgt_state_to_str(int);

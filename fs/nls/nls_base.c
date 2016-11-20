@@ -25,7 +25,8 @@ static DEFINE_SPINLOCK(nls_lock);
  * Sample implementation from Unicode home page.
  * http://www.stonehand.com/unicode/standard/fss-utf.html
  */
-struct utf8_table {
+struct utf8_table
+{
 	int     cmask;
 	int     cval;
 	int     shift;
@@ -35,13 +36,13 @@ struct utf8_table {
 
 static const struct utf8_table utf8_table[] =
 {
-    {0x80,  0x00,   0*6,    0x7F,           0,         /* 1 byte sequence */},
-    {0xE0,  0xC0,   1*6,    0x7FF,          0x80,      /* 2 byte sequence */},
-    {0xF0,  0xE0,   2*6,    0xFFFF,         0x800,     /* 3 byte sequence */},
-    {0xF8,  0xF0,   3*6,    0x1FFFFF,       0x10000,   /* 4 byte sequence */},
-    {0xFC,  0xF8,   4*6,    0x3FFFFFF,      0x200000,  /* 5 byte sequence */},
-    {0xFE,  0xFC,   5*6,    0x7FFFFFFF,     0x4000000, /* 6 byte sequence */},
-    {0,						       /* end of table    */}
+	{0x80,  0x00,   0 * 6,    0x7F,           0,         /* 1 byte sequence */},
+	{0xE0,  0xC0,   1 * 6,    0x7FF,          0x80,      /* 2 byte sequence */},
+	{0xF0,  0xE0,   2 * 6,    0xFFFF,         0x800,     /* 3 byte sequence */},
+	{0xF8,  0xF0,   3 * 6,    0x1FFFFF,       0x10000,   /* 4 byte sequence */},
+	{0xFC,  0xF8,   4 * 6,    0x3FFFFFF,      0x200000,  /* 5 byte sequence */},
+	{0xFE,  0xFC,   5 * 6,    0x7FFFFFFF,     0x4000000, /* 6 byte sequence */},
+	{0,						       /* end of table    */}
 };
 
 #define UNICODE_MAX	0x0010ffff
@@ -57,28 +58,45 @@ int utf8_to_utf32(const u8 *s, int inlen, unicode_t *pu)
 	unsigned long l;
 	int c0, c, nc;
 	const struct utf8_table *t;
-  
+
 	nc = 0;
 	c0 = *s;
 	l = c0;
-	for (t = utf8_table; t->cmask; t++) {
+
+	for (t = utf8_table; t->cmask; t++)
+	{
 		nc++;
-		if ((c0 & t->cmask) == t->cval) {
+
+		if ((c0 & t->cmask) == t->cval)
+		{
 			l &= t->lmask;
+
 			if (l < t->lval || l > UNICODE_MAX ||
-					(l & SURROGATE_MASK) == SURROGATE_PAIR)
+				(l & SURROGATE_MASK) == SURROGATE_PAIR)
+			{
 				return -1;
+			}
+
 			*pu = (unicode_t) l;
 			return nc;
 		}
+
 		if (inlen <= nc)
+		{
 			return -1;
+		}
+
 		s++;
 		c = (*s ^ 0x80) & 0xFF;
+
 		if (c & 0xC0)
+		{
 			return -1;
+		}
+
 		l = (l << 6) | c;
 	}
+
 	return -1;
 }
 EXPORT_SYMBOL(utf8_to_utf32);
@@ -90,184 +108,256 @@ int utf32_to_utf8(unicode_t u, u8 *s, int maxout)
 	const struct utf8_table *t;
 
 	if (!s)
+	{
 		return 0;
+	}
 
 	l = u;
+
 	if (l > UNICODE_MAX || (l & SURROGATE_MASK) == SURROGATE_PAIR)
+	{
 		return -1;
+	}
 
 	nc = 0;
-	for (t = utf8_table; t->cmask && maxout; t++, maxout--) {
+
+	for (t = utf8_table; t->cmask && maxout; t++, maxout--)
+	{
 		nc++;
-		if (l <= t->lmask) {
+
+		if (l <= t->lmask)
+		{
 			c = t->shift;
 			*s = (u8) (t->cval | (l >> c));
-			while (c > 0) {
+
+			while (c > 0)
+			{
 				c -= 6;
 				s++;
 				*s = (u8) (0x80 | ((l >> c) & 0x3F));
 			}
+
 			return nc;
 		}
 	}
+
 	return -1;
 }
 EXPORT_SYMBOL(utf32_to_utf8);
 
 static inline void put_utf16(wchar_t *s, unsigned c, enum utf16_endian endian)
 {
-	switch (endian) {
-	default:
-		*s = (wchar_t) c;
-		break;
-	case UTF16_LITTLE_ENDIAN:
-		*s = __cpu_to_le16(c);
-		break;
-	case UTF16_BIG_ENDIAN:
-		*s = __cpu_to_be16(c);
-		break;
+	switch (endian)
+	{
+		default:
+			*s = (wchar_t) c;
+			break;
+
+		case UTF16_LITTLE_ENDIAN:
+			*s = __cpu_to_le16(c);
+			break;
+
+		case UTF16_BIG_ENDIAN:
+			*s = __cpu_to_be16(c);
+			break;
 	}
 }
 
 int utf8s_to_utf16s(const u8 *s, int inlen, enum utf16_endian endian,
-		wchar_t *pwcs, int maxout)
+					wchar_t *pwcs, int maxout)
 {
 	u16 *op;
 	int size;
 	unicode_t u;
 
 	op = pwcs;
-	while (inlen > 0 && maxout > 0 && *s) {
-		if (*s & 0x80) {
+
+	while (inlen > 0 && maxout > 0 && *s)
+	{
+		if (*s & 0x80)
+		{
 			size = utf8_to_utf32(s, inlen, &u);
+
 			if (size < 0)
+			{
 				return -EINVAL;
+			}
+
 			s += size;
 			inlen -= size;
 
-			if (u >= PLANE_SIZE) {
+			if (u >= PLANE_SIZE)
+			{
 				if (maxout < 2)
+				{
 					break;
+				}
+
 				u -= PLANE_SIZE;
 				put_utf16(op++, SURROGATE_PAIR |
-						((u >> 10) & SURROGATE_BITS),
-						endian);
+						  ((u >> 10) & SURROGATE_BITS),
+						  endian);
 				put_utf16(op++, SURROGATE_PAIR |
-						SURROGATE_LOW |
-						(u & SURROGATE_BITS),
-						endian);
+						  SURROGATE_LOW |
+						  (u & SURROGATE_BITS),
+						  endian);
 				maxout -= 2;
-			} else {
+			}
+			else
+			{
 				put_utf16(op++, u, endian);
 				maxout--;
 			}
-		} else {
+		}
+		else
+		{
 			put_utf16(op++, *s++, endian);
 			inlen--;
 			maxout--;
 		}
 	}
+
 	return op - pwcs;
 }
 EXPORT_SYMBOL(utf8s_to_utf16s);
 
 static inline unsigned long get_utf16(unsigned c, enum utf16_endian endian)
 {
-	switch (endian) {
-	default:
-		return c;
-	case UTF16_LITTLE_ENDIAN:
-		return __le16_to_cpu(c);
-	case UTF16_BIG_ENDIAN:
-		return __be16_to_cpu(c);
+	switch (endian)
+	{
+		default:
+			return c;
+
+		case UTF16_LITTLE_ENDIAN:
+			return __le16_to_cpu(c);
+
+		case UTF16_BIG_ENDIAN:
+			return __be16_to_cpu(c);
 	}
 }
 
 int utf16s_to_utf8s(const wchar_t *pwcs, int inlen, enum utf16_endian endian,
-		u8 *s, int maxout)
+					u8 *s, int maxout)
 {
 	u8 *op;
 	int size;
 	unsigned long u, v;
 
 	op = s;
-	while (inlen > 0 && maxout > 0) {
+
+	while (inlen > 0 && maxout > 0)
+	{
 		u = get_utf16(*pwcs, endian);
+
 		if (!u)
+		{
 			break;
+		}
+
 		pwcs++;
 		inlen--;
-		if (u > 0x7f) {
-			if ((u & SURROGATE_MASK) == SURROGATE_PAIR) {
-				if (u & SURROGATE_LOW) {
+
+		if (u > 0x7f)
+		{
+			if ((u & SURROGATE_MASK) == SURROGATE_PAIR)
+			{
+				if (u & SURROGATE_LOW)
+				{
 					/* Ignore character and move on */
 					continue;
 				}
+
 				if (inlen <= 0)
+				{
 					break;
+				}
+
 				v = get_utf16(*pwcs, endian);
+
 				if ((v & SURROGATE_MASK) != SURROGATE_PAIR ||
-						!(v & SURROGATE_LOW)) {
+					!(v & SURROGATE_LOW))
+				{
 					/* Ignore character and move on */
 					continue;
 				}
+
 				u = PLANE_SIZE + ((u & SURROGATE_BITS) << 10)
-						+ (v & SURROGATE_BITS);
+					+ (v & SURROGATE_BITS);
 				pwcs++;
 				inlen--;
 			}
+
 			size = utf32_to_utf8(u, op, maxout);
-			if (size == -1) {
+
+			if (size == -1)
+			{
 				/* Ignore character and move on */
-			} else {
+			}
+			else
+			{
 				op += size;
 				maxout -= size;
 			}
-		} else {
+		}
+		else
+		{
 			*op++ = (u8) u;
 			maxout--;
 		}
 	}
+
 	return op - s;
 }
 EXPORT_SYMBOL(utf16s_to_utf8s);
 
 int __register_nls(struct nls_table *nls, struct module *owner)
 {
-	struct nls_table ** tmp = &tables;
+	struct nls_table **tmp = &tables;
 
 	if (nls->next)
+	{
 		return -EBUSY;
+	}
 
 	nls->owner = owner;
 	spin_lock(&nls_lock);
-	while (*tmp) {
-		if (nls == *tmp) {
+
+	while (*tmp)
+	{
+		if (nls == *tmp)
+		{
 			spin_unlock(&nls_lock);
 			return -EBUSY;
 		}
+
 		tmp = &(*tmp)->next;
 	}
+
 	nls->next = tables;
 	tables = nls;
 	spin_unlock(&nls_lock);
-	return 0;	
+	return 0;
 }
 EXPORT_SYMBOL(__register_nls);
 
-int unregister_nls(struct nls_table * nls)
+int unregister_nls(struct nls_table *nls)
 {
-	struct nls_table ** tmp = &tables;
+	struct nls_table **tmp = &tables;
 
 	spin_lock(&nls_lock);
-	while (*tmp) {
-		if (nls == *tmp) {
+
+	while (*tmp)
+	{
+		if (nls == *tmp)
+		{
 			*tmp = nls->next;
 			spin_unlock(&nls_lock);
 			return 0;
 		}
+
 		tmp = &(*tmp)->next;
 	}
+
 	spin_unlock(&nls_lock);
 	return -EINVAL;
 }
@@ -276,14 +366,25 @@ static struct nls_table *find_nls(char *charset)
 {
 	struct nls_table *nls;
 	spin_lock(&nls_lock);
-	for (nls = tables; nls; nls = nls->next) {
+
+	for (nls = tables; nls; nls = nls->next)
+	{
 		if (!strcmp(nls->charset, charset))
+		{
 			break;
+		}
+
 		if (nls->alias && !strcmp(nls->alias, charset))
+		{
 			break;
+		}
 	}
+
 	if (nls && !try_module_get(nls->owner))
+	{
 		nls = NULL;
+	}
+
 	spin_unlock(&nls_lock);
 	return nls;
 }
@@ -296,10 +397,13 @@ struct nls_table *load_nls(char *charset)
 void unload_nls(struct nls_table *nls)
 {
 	if (nls)
+	{
 		module_put(nls->owner);
+	}
 }
 
-static const wchar_t charset2uni[256] = {
+static const wchar_t charset2uni[256] =
+{
 	/* 0x00*/
 	0x0000, 0x0001, 0x0002, 0x0003,
 	0x0004, 0x0005, 0x0006, 0x0007,
@@ -382,7 +486,8 @@ static const wchar_t charset2uni[256] = {
 	0x00fc, 0x00fd, 0x00fe, 0x00ff,
 };
 
-static const unsigned char page00[256] = {
+static const unsigned char page00[256] =
+{
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, /* 0x00-0x07 */
 	0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, /* 0x08-0x0f */
 	0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, /* 0x10-0x17 */
@@ -418,11 +523,13 @@ static const unsigned char page00[256] = {
 	0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff, /* 0xf8-0xff */
 };
 
-static const unsigned char *const page_uni2charset[256] = {
+static const unsigned char *const page_uni2charset[256] =
+{
 	page00
 };
 
-static const unsigned char charset2lower[256] = {
+static const unsigned char charset2lower[256] =
+{
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, /* 0x00-0x07 */
 	0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, /* 0x08-0x0f */
 	0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, /* 0x10-0x17 */
@@ -458,7 +565,8 @@ static const unsigned char charset2lower[256] = {
 	0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff, /* 0xf8-0xff */
 };
 
-static const unsigned char charset2upper[256] = {
+static const unsigned char charset2upper[256] =
+{
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, /* 0x00-0x07 */
 	0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, /* 0x08-0x0f */
 	0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, /* 0x10-0x17 */
@@ -502,25 +610,38 @@ static int uni2char(wchar_t uni, unsigned char *out, int boundlen)
 	unsigned char ch = (uni & 0xff00) >> 8;
 
 	if (boundlen <= 0)
+	{
 		return -ENAMETOOLONG;
+	}
 
 	uni2charset = page_uni2charset[ch];
+
 	if (uni2charset && uni2charset[cl])
+	{
 		out[0] = uni2charset[cl];
+	}
 	else
+	{
 		return -EINVAL;
+	}
+
 	return 1;
 }
 
 static int char2uni(const unsigned char *rawstring, int boundlen, wchar_t *uni)
 {
 	*uni = charset2uni[*rawstring];
+
 	if (*uni == 0x0000)
+	{
 		return -EINVAL;
+	}
+
 	return 1;
 }
 
-static struct nls_table default_table = {
+static struct nls_table default_table =
+{
 	.charset	= "default",
 	.uni2char	= uni2char,
 	.char2uni	= char2uni,
@@ -532,12 +653,17 @@ static struct nls_table default_table = {
 struct nls_table *load_nls_default(void)
 {
 	struct nls_table *default_nls;
-	
+
 	default_nls = load_nls(CONFIG_NLS_DEFAULT);
+
 	if (default_nls != NULL)
+	{
 		return default_nls;
+	}
 	else
+	{
 		return &default_table;
+	}
 }
 
 EXPORT_SYMBOL(unregister_nls);

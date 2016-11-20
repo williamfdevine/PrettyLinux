@@ -13,7 +13,8 @@
 
 #include "edp.h"
 
-struct edp_bridge {
+struct edp_bridge
+{
 	struct drm_bridge base;
 	struct msm_edp *edp;
 };
@@ -52,8 +53,8 @@ static void edp_bridge_post_disable(struct drm_bridge *bridge)
 }
 
 static void edp_bridge_mode_set(struct drm_bridge *bridge,
-		struct drm_display_mode *mode,
-		struct drm_display_mode *adjusted_mode)
+								struct drm_display_mode *mode,
+								struct drm_display_mode *adjusted_mode)
 {
 	struct drm_device *dev = bridge->dev;
 	struct drm_connector *connector;
@@ -61,25 +62,28 @@ static void edp_bridge_mode_set(struct drm_bridge *bridge,
 	struct msm_edp *edp = edp_bridge->edp;
 
 	DBG("set mode: %d:\"%s\" %d %d %d %d %d %d %d %d %d %d 0x%x 0x%x",
-			mode->base.id, mode->name,
-			mode->vrefresh, mode->clock,
-			mode->hdisplay, mode->hsync_start,
-			mode->hsync_end, mode->htotal,
-			mode->vdisplay, mode->vsync_start,
-			mode->vsync_end, mode->vtotal,
-			mode->type, mode->flags);
+		mode->base.id, mode->name,
+		mode->vrefresh, mode->clock,
+		mode->hdisplay, mode->hsync_start,
+		mode->hsync_end, mode->htotal,
+		mode->vdisplay, mode->vsync_start,
+		mode->vsync_end, mode->vtotal,
+		mode->type, mode->flags);
 
-	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
+	list_for_each_entry(connector, &dev->mode_config.connector_list, head)
+	{
 		if ((connector->encoder != NULL) &&
-			(connector->encoder->bridge == bridge)) {
+			(connector->encoder->bridge == bridge))
+		{
 			msm_edp_ctrl_timing_cfg(edp->ctrl,
-				adjusted_mode, &connector->display_info);
+									adjusted_mode, &connector->display_info);
 			break;
 		}
 	}
 }
 
-static const struct drm_bridge_funcs edp_bridge_funcs = {
+static const struct drm_bridge_funcs edp_bridge_funcs =
+{
 	.pre_enable = edp_bridge_pre_enable,
 	.enable = edp_bridge_enable,
 	.disable = edp_bridge_disable,
@@ -95,8 +99,10 @@ struct drm_bridge *msm_edp_bridge_init(struct msm_edp *edp)
 	int ret;
 
 	edp_bridge = devm_kzalloc(edp->dev->dev,
-			sizeof(*edp_bridge), GFP_KERNEL);
-	if (!edp_bridge) {
+							  sizeof(*edp_bridge), GFP_KERNEL);
+
+	if (!edp_bridge)
+	{
 		ret = -ENOMEM;
 		goto fail;
 	}
@@ -107,14 +113,20 @@ struct drm_bridge *msm_edp_bridge_init(struct msm_edp *edp)
 	bridge->funcs = &edp_bridge_funcs;
 
 	ret = drm_bridge_attach(edp->dev, bridge);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	return bridge;
 
 fail:
+
 	if (bridge)
+	{
 		edp_bridge_destroy(bridge);
+	}
 
 	return ERR_PTR(ret);
 }

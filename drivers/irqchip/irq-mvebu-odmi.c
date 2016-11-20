@@ -34,7 +34,8 @@
 #define NODMIS_PER_FRAME	(1 << NODMIS_SHIFT)
 #define NODMIS_MASK		(NODMIS_PER_FRAME - 1)
 
-struct odmi_data {
+struct odmi_data
+{
 	struct resource res;
 	void __iomem *base;
 	unsigned int spi_base;
@@ -54,7 +55,9 @@ static void odmi_compose_msi_msg(struct irq_data *d, struct msi_msg *msg)
 	unsigned int odmin;
 
 	if (WARN_ON(d->hwirq >= odmis_count * NODMIS_PER_FRAME))
+	{
 		return;
+	}
 
 	odmi = &odmis[d->hwirq >> NODMIS_SHIFT];
 	odmin = d->hwirq & NODMIS_MASK;
@@ -66,7 +69,8 @@ static void odmi_compose_msi_msg(struct irq_data *d, struct msi_msg *msg)
 	msg->data = odmin << GICP_ODMI_INT_NUM_SHIFT;
 }
 
-static struct irq_chip odmi_irq_chip = {
+static struct irq_chip odmi_irq_chip =
+{
 	.name			= "ODMI",
 	.irq_mask		= irq_chip_mask_parent,
 	.irq_unmask		= irq_chip_unmask_parent,
@@ -76,7 +80,7 @@ static struct irq_chip odmi_irq_chip = {
 };
 
 static int odmi_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
-				 unsigned int nr_irqs, void *args)
+								 unsigned int nr_irqs, void *args)
 {
 	struct odmi_data *odmi = NULL;
 	struct irq_fwspec fwspec;
@@ -86,7 +90,9 @@ static int odmi_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 
 	spin_lock(&odmis_bm_lock);
 	hwirq = find_first_zero_bit(odmis_bm, NODMIS_PER_FRAME * odmis_count);
-	if (hwirq >= NODMIS_PER_FRAME * odmis_count) {
+
+	if (hwirq >= NODMIS_PER_FRAME * odmis_count)
+	{
 		spin_unlock(&odmis_bm_lock);
 		return -ENOSPC;
 	}
@@ -104,7 +110,9 @@ static int odmi_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 	fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
 
 	ret = irq_domain_alloc_irqs_parent(domain, virq, 1, &fwspec);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Cannot allocate parent IRQ\n");
 		spin_lock(&odmis_bm_lock);
 		__clear_bit(odmin, odmis_bm);
@@ -117,17 +125,18 @@ static int odmi_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 	d->chip->irq_set_type(d, IRQ_TYPE_EDGE_RISING);
 
 	irq_domain_set_hwirq_and_chip(domain, virq, hwirq,
-				      &odmi_irq_chip, NULL);
+								  &odmi_irq_chip, NULL);
 
 	return 0;
 }
 
 static void odmi_irq_domain_free(struct irq_domain *domain,
-				 unsigned int virq, unsigned int nr_irqs)
+								 unsigned int virq, unsigned int nr_irqs)
 {
 	struct irq_data *d = irq_domain_get_irq_data(domain, virq);
 
-	if (d->hwirq >= odmis_count * NODMIS_PER_FRAME) {
+	if (d->hwirq >= odmis_count * NODMIS_PER_FRAME)
+	{
 		pr_err("Failed to teardown msi. Invalid hwirq %lu\n", d->hwirq);
 		return;
 	}
@@ -140,68 +149,88 @@ static void odmi_irq_domain_free(struct irq_domain *domain,
 	spin_unlock(&odmis_bm_lock);
 }
 
-static const struct irq_domain_ops odmi_domain_ops = {
+static const struct irq_domain_ops odmi_domain_ops =
+{
 	.alloc	= odmi_irq_domain_alloc,
 	.free	= odmi_irq_domain_free,
 };
 
-static struct irq_chip odmi_msi_irq_chip = {
+static struct irq_chip odmi_msi_irq_chip =
+{
 	.name	= "ODMI",
 };
 
-static struct msi_domain_ops odmi_msi_ops = {
+static struct msi_domain_ops odmi_msi_ops =
+{
 };
 
-static struct msi_domain_info odmi_msi_domain_info = {
+static struct msi_domain_info odmi_msi_domain_info =
+{
 	.flags	= (MSI_FLAG_USE_DEF_DOM_OPS | MSI_FLAG_USE_DEF_CHIP_OPS),
 	.ops	= &odmi_msi_ops,
 	.chip	= &odmi_msi_irq_chip,
 };
 
 static int __init mvebu_odmi_init(struct device_node *node,
-				  struct device_node *parent)
+								  struct device_node *parent)
 {
 	struct irq_domain *inner_domain, *plat_domain;
 	int ret, i;
 
 	if (of_property_read_u32(node, "marvell,odmi-frames", &odmis_count))
+	{
 		return -EINVAL;
+	}
 
 	odmis = kcalloc(odmis_count, sizeof(struct odmi_data), GFP_KERNEL);
+
 	if (!odmis)
+	{
 		return -ENOMEM;
+	}
 
 	odmis_bm = kcalloc(BITS_TO_LONGS(odmis_count * NODMIS_PER_FRAME),
-			   sizeof(long), GFP_KERNEL);
-	if (!odmis_bm) {
+					   sizeof(long), GFP_KERNEL);
+
+	if (!odmis_bm)
+	{
 		ret = -ENOMEM;
 		goto err_alloc;
 	}
 
-	for (i = 0; i < odmis_count; i++) {
+	for (i = 0; i < odmis_count; i++)
+	{
 		struct odmi_data *odmi = &odmis[i];
 
 		ret = of_address_to_resource(node, i, &odmi->res);
+
 		if (ret)
+		{
 			goto err_unmap;
+		}
 
 		odmi->base = of_io_request_and_map(node, i, "odmi");
-		if (IS_ERR(odmi->base)) {
+
+		if (IS_ERR(odmi->base))
+		{
 			ret = PTR_ERR(odmi->base);
 			goto err_unmap;
 		}
 
 		if (of_property_read_u32_index(node, "marvell,spi-base",
-					       i, &odmi->spi_base)) {
+									   i, &odmi->spi_base))
+		{
 			ret = -EINVAL;
 			goto err_unmap;
 		}
 	}
 
 	inner_domain = irq_domain_create_linear(of_node_to_fwnode(node),
-						odmis_count * NODMIS_PER_FRAME,
-						&odmi_domain_ops, NULL);
-	if (!inner_domain) {
+											odmis_count * NODMIS_PER_FRAME,
+											&odmi_domain_ops, NULL);
+
+	if (!inner_domain)
+	{
 		ret = -ENOMEM;
 		goto err_unmap;
 	}
@@ -209,9 +238,11 @@ static int __init mvebu_odmi_init(struct device_node *node,
 	inner_domain->parent = irq_find_host(parent);
 
 	plat_domain = platform_msi_create_irq_domain(of_node_to_fwnode(node),
-						     &odmi_msi_domain_info,
-						     inner_domain);
-	if (!plat_domain) {
+				  &odmi_msi_domain_info,
+				  inner_domain);
+
+	if (!plat_domain)
+	{
 		ret = -ENOMEM;
 		goto err_remove_inner;
 	}
@@ -221,12 +252,17 @@ static int __init mvebu_odmi_init(struct device_node *node,
 err_remove_inner:
 	irq_domain_remove(inner_domain);
 err_unmap:
-	for (i = 0; i < odmis_count; i++) {
+
+	for (i = 0; i < odmis_count; i++)
+	{
 		struct odmi_data *odmi = &odmis[i];
 
 		if (odmi->base && !IS_ERR(odmi->base))
+		{
 			iounmap(odmis[i].base);
+		}
 	}
+
 	kfree(odmis_bm);
 err_alloc:
 	kfree(odmis);

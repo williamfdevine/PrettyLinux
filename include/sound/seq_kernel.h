@@ -55,7 +55,8 @@ typedef union snd_seq_timestamp snd_seq_timestamp_t;
 #define SNDRV_SEQ_MAX_EVENT_LEN		0x3fffffff
 
 /* call-backs for kernel port */
-struct snd_seq_port_callback {
+struct snd_seq_port_callback
+{
 	struct module *owner;
 	void *private_data;
 	int (*subscribe)(void *private_data, struct snd_seq_port_subscribe *info);
@@ -70,7 +71,7 @@ struct snd_seq_port_callback {
 /* interface for kernel client */
 __printf(3, 4)
 int snd_seq_create_kernel_client(struct snd_card *card, int client_index,
-				 const char *name_fmt, ...);
+								 const char *name_fmt, ...);
 int snd_seq_delete_kernel_client(int client);
 int snd_seq_kernel_client_enqueue(int client, struct snd_seq_event *ev, int atomic, int hop);
 int snd_seq_kernel_client_dispatch(int client, struct snd_seq_event *ev, int atomic, int hop);
@@ -82,9 +83,9 @@ int snd_seq_kernel_client_ctl(int client, unsigned int cmd, void *arg);
 
 typedef int (*snd_seq_dump_func_t)(void *ptr, void *buf, int count);
 int snd_seq_expand_var_event(const struct snd_seq_event *event, int count, char *buf,
-			     int in_kernel, int size_aligned);
+							 int in_kernel, int size_aligned);
 int snd_seq_dump_var_event(const struct snd_seq_event *event,
-			   snd_seq_dump_func_t func, void *private_data);
+						   snd_seq_dump_func_t func, void *private_data);
 
 /* interface for OSS emulation */
 int snd_seq_set_queue_tempo(int client, struct snd_seq_queue_tempo *tempo);
@@ -95,15 +96,15 @@ struct snd_seq_port_callback *snd_port_alloc_callback(void);
 
 /* port attach/detach */
 int snd_seq_event_port_attach(int client, struct snd_seq_port_callback *pcbp,
-			      int cap, int type, int midi_channels, int midi_voices, char *portname);
+							  int cap, int type, int midi_channels, int midi_voices, char *portname);
 int snd_seq_event_port_detach(int client, int port);
 
 #ifdef CONFIG_MODULES
-void snd_seq_autoload_init(void);
-void snd_seq_autoload_exit(void);
+	void snd_seq_autoload_init(void);
+	void snd_seq_autoload_exit(void);
 #else
-#define snd_seq_autoload_init()
-#define snd_seq_autoload_exit()
+	#define snd_seq_autoload_init()
+	#define snd_seq_autoload_exit()
 #endif
 
 #endif /* __SOUND_SEQ_KERNEL_H */

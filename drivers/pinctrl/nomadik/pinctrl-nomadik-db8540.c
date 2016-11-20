@@ -175,7 +175,8 @@
  * column in the table of the data sheet and often used on schematics and
  * such.
  */
-static const struct pinctrl_pin_desc nmk_db8540_pins[] = {
+static const struct pinctrl_pin_desc nmk_db8540_pins[] =
+{
 	PINCTRL_PIN(DB8540_PIN_AH6, "GPIO0_AH6"),
 	PINCTRL_PIN(DB8540_PIN_AG7, "GPIO1_AG7"),
 	PINCTRL_PIN(DB8540_PIN_AF2, "GPIO2_AF2"),
@@ -354,7 +355,8 @@ static const struct pinctrl_pin_desc nmk_db8540_pins[] = {
 
 /* Altfunction A column */
 static const unsigned u0_a_1_pins[] = { DB8540_PIN_AH6, DB8540_PIN_AG7,
-					DB8540_PIN_AF2, DB8540_PIN_AD3 };
+										DB8540_PIN_AF2, DB8540_PIN_AD3
+									  };
 static const unsigned u1rxtx_a_1_pins[] = { DB8540_PIN_AF6, DB8540_PIN_AG6 };
 static const unsigned u1ctsrts_a_1_pins[] = { DB8540_PIN_AD5, DB8540_PIN_AF7 };
 /* Image processor I2C line, this is driven by image processor firmware */
@@ -363,12 +365,15 @@ static const unsigned ipi2c_a_2_pins[] = { DB8540_PIN_AE4, DB8540_PIN_AD1 };
 /* MSP0 can only be on these pins, but TXD and RXD can be flipped */
 static const unsigned msp0txrx_a_1_pins[] = { DB8540_PIN_AD2, DB8540_PIN_AC3 };
 static const unsigned msp0tfstck_a_1_pins[] = { DB8540_PIN_AC2,
-	DB8540_PIN_AC4 };
+												DB8540_PIN_AC4
+											  };
 static const unsigned msp0rfsrck_a_1_pins[] = { DB8540_PIN_AH7,
-	DB8540_PIN_AE7 };
+												DB8540_PIN_AE7
+											  };
 /* Basic pins of the MMC/SD card 0 interface */
 static const unsigned mc0_a_1_pins[] = { DB8540_PIN_AH11, DB8540_PIN_AG11,
-	DB8540_PIN_AF11, DB8540_PIN_AH10, DB8540_PIN_AG10, DB8540_PIN_AF10};
+										 DB8540_PIN_AF11, DB8540_PIN_AH10, DB8540_PIN_AG10, DB8540_PIN_AF10
+									   };
 /* MSP1 can only be on these pins, but TXD and RXD can be flipped */
 static const unsigned msp1txrx_a_1_pins[] = { DB8540_PIN_AD4, DB8540_PIN_AG4 };
 static const unsigned msp1_a_1_pins[] = { DB8540_PIN_AF3, DB8540_PIN_AF5 };
@@ -377,30 +382,38 @@ static const unsigned modobsclk_a_1_pins[] = { DB8540_PIN_AF9 };
 static const unsigned clkoutreq_a_1_pins[] = { DB8540_PIN_AE8 };
 /* LCD interface */
 static const unsigned lcdb_a_1_pins[] = { DB8540_PIN_M26, DB8540_PIN_M25,
-	DB8540_PIN_M27, DB8540_PIN_N25 };
+										  DB8540_PIN_M27, DB8540_PIN_N25
+										};
 static const unsigned lcdvsi0_a_1_pins[] = { DB8540_PIN_AJ24 };
 static const unsigned lcdvsi1_a_1_pins[] = { DB8540_PIN_AE21 };
 static const unsigned lcd_d0_d7_a_1_pins[] = { DB8540_PIN_M28, DB8540_PIN_N26,
-	DB8540_PIN_M22, DB8540_PIN_N22, DB8540_PIN_N27, DB8540_PIN_N28,
-	DB8540_PIN_P22, DB8540_PIN_P28 };
+											   DB8540_PIN_M22, DB8540_PIN_N22, DB8540_PIN_N27, DB8540_PIN_N28,
+											   DB8540_PIN_P22, DB8540_PIN_P28
+											 };
 /* D8 thru D11 often used as TVOUT lines */
 static const unsigned lcd_d8_d11_a_1_pins[] = { DB8540_PIN_P26, DB8540_PIN_T22,
-	DB8540_PIN_R27, DB8540_PIN_P27 };
+												DB8540_PIN_R27, DB8540_PIN_P27
+											  };
 static const unsigned lcd_d12_d23_a_1_pins[] = { DB8540_PIN_R26, DB8540_PIN_R25,
-	DB8540_PIN_U22, DB8540_PIN_T27, DB8540_PIN_AG22, DB8540_PIN_AF21,
-	DB8540_PIN_AF24, DB8540_PIN_AH22, DB8540_PIN_AJ23, DB8540_PIN_AH21,
-	DB8540_PIN_AG20, DB8540_PIN_AE23 };
+												 DB8540_PIN_U22, DB8540_PIN_T27, DB8540_PIN_AG22, DB8540_PIN_AF21,
+												 DB8540_PIN_AF24, DB8540_PIN_AH22, DB8540_PIN_AJ23, DB8540_PIN_AH21,
+												 DB8540_PIN_AG20, DB8540_PIN_AE23
+											   };
 static const unsigned kp_a_1_pins[] = { DB8540_PIN_AH20, DB8540_PIN_AG19,
-	DB8540_PIN_AF22, DB8540_PIN_AJ21, DB8540_PIN_T25, DB8540_PIN_T26 };
+										DB8540_PIN_AF22, DB8540_PIN_AJ21, DB8540_PIN_T25, DB8540_PIN_T26
+									  };
 /* MC2 has 8 data lines and no direction control, so only for (e)MMC */
 static const unsigned mc2_a_1_pins[] = { DB8540_PIN_AC27, DB8540_PIN_AD27,
-	DB8540_PIN_AE28, DB8540_PIN_AG26, DB8540_PIN_AF25, DB8540_PIN_AE27,
-	DB8540_PIN_AF27, DB8540_PIN_AG28, DB8540_PIN_AF28, DB8540_PIN_AG25,
-	DB8540_PIN_AG24 };
+										 DB8540_PIN_AE28, DB8540_PIN_AG26, DB8540_PIN_AF25, DB8540_PIN_AE27,
+										 DB8540_PIN_AF27, DB8540_PIN_AG28, DB8540_PIN_AF28, DB8540_PIN_AG25,
+										 DB8540_PIN_AG24
+									   };
 static const unsigned ssp1_a_1_pins[] = {  DB8540_PIN_AD25, DB8540_PIN_AH25,
-	DB8540_PIN_AF26, DB8540_PIN_AF23 };
+										   DB8540_PIN_AF26, DB8540_PIN_AF23
+										};
 static const unsigned ssp0_a_1_pins[] = { DB8540_PIN_AG23, DB8540_PIN_AE25,
-	DB8540_PIN_AH24, DB8540_PIN_AJ25 };
+										  DB8540_PIN_AH24, DB8540_PIN_AJ25
+										};
 static const unsigned i2c0_a_1_pins[] = { DB8540_PIN_AG27, DB8540_PIN_AH23 };
 /*
  * Image processor GPIO pins are named "ipgpio" and have their own
@@ -410,43 +423,54 @@ static const unsigned ipgpio0_a_1_pins[] = { DB8540_PIN_AE26 };
 static const unsigned ipgpio1_a_1_pins[] = { DB8540_PIN_AE24 };
 /* modem i2s interface */
 static const unsigned modi2s_a_1_pins[] = { DB8540_PIN_AD26, DB8540_PIN_AD28,
-	DB8540_PIN_AC28, DB8540_PIN_AC26 };
+											DB8540_PIN_AC28, DB8540_PIN_AC26
+										  };
 static const unsigned spi2_a_1_pins[] = { DB8540_PIN_AF20, DB8540_PIN_AG21,
-	DB8540_PIN_AH19, DB8540_PIN_AE19 };
+										  DB8540_PIN_AH19, DB8540_PIN_AE19
+										};
 static const unsigned u2txrx_a_1_pins[] = { DB8540_PIN_AG18, DB8540_PIN_AH17 };
 static const unsigned u2ctsrts_a_1_pins[] = { DB8540_PIN_AF19,
-	DB8540_PIN_AF18 };
+											  DB8540_PIN_AF18
+											};
 static const unsigned modsmb_a_1_pins[] = { DB8540_PIN_AF17, DB8540_PIN_AE17 };
 static const unsigned msp2sck_a_1_pins[] = { DB8540_PIN_J3 };
 static const unsigned msp2txdtcktfs_a_1_pins[] = { DB8540_PIN_H1, DB8540_PIN_J2,
-	DB8540_PIN_H2 };
+												   DB8540_PIN_H2
+												 };
 static const unsigned msp2rxd_a_1_pins[] = { DB8540_PIN_H3 };
 static const unsigned mc4_a_1_pins[] = { DB8540_PIN_H4, DB8540_PIN_G2,
-	DB8540_PIN_G3, DB8540_PIN_G4, DB8540_PIN_F2, DB8540_PIN_C6,
-	DB8540_PIN_B6, DB8540_PIN_B7, DB8540_PIN_A7, DB8540_PIN_D7,
-	DB8540_PIN_D8 };
+										 DB8540_PIN_G3, DB8540_PIN_G4, DB8540_PIN_F2, DB8540_PIN_C6,
+										 DB8540_PIN_B6, DB8540_PIN_B7, DB8540_PIN_A7, DB8540_PIN_D7,
+										 DB8540_PIN_D8
+									   };
 static const unsigned mc1_a_1_pins[] = { DB8540_PIN_F3, DB8540_PIN_E2,
-	DB8540_PIN_C7, DB8540_PIN_B8, DB8540_PIN_C10, DB8540_PIN_C8,
-	DB8540_PIN_C9 };
+										 DB8540_PIN_C7, DB8540_PIN_B8, DB8540_PIN_C10, DB8540_PIN_C8,
+										 DB8540_PIN_C9
+									   };
 /* mc1_a_2_pins exclude MC1_FBCLK */
 static const unsigned mc1_a_2_pins[] = { DB8540_PIN_F3,	DB8540_PIN_C7,
-	DB8540_PIN_B8, DB8540_PIN_C10, DB8540_PIN_C8,
-	DB8540_PIN_C9 };
+										 DB8540_PIN_B8, DB8540_PIN_C10, DB8540_PIN_C8,
+										 DB8540_PIN_C9
+									   };
 static const unsigned hsir_a_1_pins[] = { DB8540_PIN_B9, DB8540_PIN_A10,
-	DB8540_PIN_D9 };
+										  DB8540_PIN_D9
+										};
 static const unsigned hsit_a_1_pins[] = { DB8540_PIN_B11, DB8540_PIN_B10,
-	DB8540_PIN_E10, DB8540_PIN_B12, DB8540_PIN_D10 };
+										  DB8540_PIN_E10, DB8540_PIN_B12, DB8540_PIN_D10
+										};
 static const unsigned hsit_a_2_pins[] = { DB8540_PIN_B11, DB8540_PIN_B10,
-	DB8540_PIN_E10, DB8540_PIN_B12 };
+										  DB8540_PIN_E10, DB8540_PIN_B12
+										};
 static const unsigned clkout1_a_1_pins[] = { DB8540_PIN_D11 };
 static const unsigned clkout1_a_2_pins[] = { DB8540_PIN_B13 };
 static const unsigned clkout2_a_1_pins[] = { DB8540_PIN_AJ6 };
 static const unsigned clkout2_a_2_pins[] = { DB8540_PIN_C12 };
 static const unsigned msp4_a_1_pins[] = { DB8540_PIN_B14, DB8540_PIN_E11 };
 static const unsigned usb_a_1_pins[] = { DB8540_PIN_D12, DB8540_PIN_D15,
-	DB8540_PIN_C13, DB8540_PIN_C14, DB8540_PIN_C18, DB8540_PIN_C16,
-	DB8540_PIN_B16, DB8540_PIN_D18, DB8540_PIN_C15, DB8540_PIN_C17,
-	DB8540_PIN_B17, DB8540_PIN_D17 };
+										 DB8540_PIN_C13, DB8540_PIN_C14, DB8540_PIN_C18, DB8540_PIN_C16,
+										 DB8540_PIN_B16, DB8540_PIN_D18, DB8540_PIN_C15, DB8540_PIN_C17,
+										 DB8540_PIN_B17, DB8540_PIN_D17
+									   };
 /* Altfunction B colum */
 static const unsigned apetrig_b_1_pins[] = { DB8540_PIN_AH6, DB8540_PIN_AG7 };
 static const unsigned modtrig_b_1_pins[] = { DB8540_PIN_AF2, DB8540_PIN_AD3 };
@@ -457,23 +481,26 @@ static const unsigned i2c2_b_2_pins[] = { DB8540_PIN_AE4, DB8540_PIN_AD1 };
 static const unsigned msp0txrx_b_1_pins[] = { DB8540_PIN_AD2, DB8540_PIN_AC3 };
 static const unsigned i2c1_b_2_pins[] = { DB8540_PIN_AH7, DB8540_PIN_AE7 };
 static const unsigned stmmod_b_1_pins[] = { DB8540_PIN_AH11, DB8540_PIN_AF11,
-	DB8540_PIN_AH10, DB8540_PIN_AG10, DB8540_PIN_AF10 };
+											DB8540_PIN_AH10, DB8540_PIN_AG10, DB8540_PIN_AF10
+										  };
 static const unsigned moduartstmmux_b_1_pins[] = { DB8540_PIN_AG11 };
 static const unsigned msp1txrx_b_1_pins[] = { DB8540_PIN_AD4, DB8540_PIN_AG4 };
 static const unsigned kp_b_1_pins[] = { DB8540_PIN_AJ24, DB8540_PIN_AE21,
-	DB8540_PIN_M26, DB8540_PIN_M25, DB8540_PIN_M27, DB8540_PIN_N25,
-	DB8540_PIN_M28, DB8540_PIN_N26, DB8540_PIN_M22, DB8540_PIN_N22,
-	DB8540_PIN_N27, DB8540_PIN_N28, DB8540_PIN_P22, DB8540_PIN_P28,
-	DB8540_PIN_P26, DB8540_PIN_T22, DB8540_PIN_R27, DB8540_PIN_P27,
-	DB8540_PIN_R26, DB8540_PIN_R25 };
+										DB8540_PIN_M26, DB8540_PIN_M25, DB8540_PIN_M27, DB8540_PIN_N25,
+										DB8540_PIN_M28, DB8540_PIN_N26, DB8540_PIN_M22, DB8540_PIN_N22,
+										DB8540_PIN_N27, DB8540_PIN_N28, DB8540_PIN_P22, DB8540_PIN_P28,
+										DB8540_PIN_P26, DB8540_PIN_T22, DB8540_PIN_R27, DB8540_PIN_P27,
+										DB8540_PIN_R26, DB8540_PIN_R25
+									  };
 static const unsigned u2txrx_b_1_pins[] = { DB8540_PIN_U22, DB8540_PIN_T27 };
 static const unsigned sm_b_1_pins[] = { DB8540_PIN_AG22, DB8540_PIN_AF21,
-	DB8540_PIN_AF24, DB8540_PIN_AH22, DB8540_PIN_AJ23, DB8540_PIN_AH21,
-	DB8540_PIN_AG20, DB8540_PIN_AE23, DB8540_PIN_AH20, DB8540_PIN_AF22,
-	DB8540_PIN_AJ21, DB8540_PIN_AC27, DB8540_PIN_AD27, DB8540_PIN_AE28,
-	DB8540_PIN_AG26, DB8540_PIN_AF25, DB8540_PIN_AE27, DB8540_PIN_AF27,
-	DB8540_PIN_AG28, DB8540_PIN_AF28, DB8540_PIN_AG25, DB8540_PIN_AG24,
-	DB8540_PIN_AD25 };
+										DB8540_PIN_AF24, DB8540_PIN_AH22, DB8540_PIN_AJ23, DB8540_PIN_AH21,
+										DB8540_PIN_AG20, DB8540_PIN_AE23, DB8540_PIN_AH20, DB8540_PIN_AF22,
+										DB8540_PIN_AJ21, DB8540_PIN_AC27, DB8540_PIN_AD27, DB8540_PIN_AE28,
+										DB8540_PIN_AG26, DB8540_PIN_AF25, DB8540_PIN_AE27, DB8540_PIN_AF27,
+										DB8540_PIN_AG28, DB8540_PIN_AF28, DB8540_PIN_AG25, DB8540_PIN_AG24,
+										DB8540_PIN_AD25
+									  };
 static const unsigned smcs0_b_1_pins[] = { DB8540_PIN_AG19 };
 static const unsigned smcs1_b_1_pins[] = { DB8540_PIN_AE26 };
 static const unsigned ipgpio7_b_1_pins[] = { DB8540_PIN_AH25 };
@@ -483,20 +510,24 @@ static const unsigned i2c6_b_1_pins[] = { DB8540_PIN_AG23, DB8540_PIN_AE25 };
 static const unsigned i2c5_b_1_pins[] = { DB8540_PIN_AH24, DB8540_PIN_AJ25 };
 static const unsigned u3txrx_b_1_pins[] = { DB8540_PIN_AF20, DB8540_PIN_AG21 };
 static const unsigned u3ctsrts_b_1_pins[] = { DB8540_PIN_AH19,
-	DB8540_PIN_AE19 };
+											  DB8540_PIN_AE19
+											};
 static const unsigned i2c5_b_2_pins[] = { DB8540_PIN_AG18, DB8540_PIN_AH17 };
 static const unsigned i2c4_b_2_pins[] = { DB8540_PIN_AF19, DB8540_PIN_AF18 };
 static const unsigned u4txrx_b_1_pins[] = { DB8540_PIN_AE18, DB8540_PIN_AG17 };
 static const unsigned u4ctsrts_b_1_pins[] = { DB8540_PIN_AF17,
-	DB8540_PIN_AE17 };
+											  DB8540_PIN_AE17
+											};
 static const unsigned ddrtrig_b_1_pins[] = { DB8540_PIN_J3 };
 static const unsigned msp4_b_1_pins[] = { DB8540_PIN_H3 };
 static const unsigned pwl_b_1_pins[] = { DB8540_PIN_C6 };
 static const unsigned spi1_b_1_pins[] = { DB8540_PIN_E2, DB8540_PIN_C10,
-	DB8540_PIN_C8, DB8540_PIN_C9 };
+										  DB8540_PIN_C8, DB8540_PIN_C9
+										};
 static const unsigned mc3_b_1_pins[] = { DB8540_PIN_B9, DB8540_PIN_A10,
-	DB8540_PIN_D9, DB8540_PIN_B11, DB8540_PIN_B10, DB8540_PIN_E10,
-	DB8540_PIN_B12 };
+										 DB8540_PIN_D9, DB8540_PIN_B11, DB8540_PIN_B10, DB8540_PIN_E10,
+										 DB8540_PIN_B12
+									   };
 static const unsigned pwl_b_2_pins[] = { DB8540_PIN_D10 };
 static const unsigned pwl_b_3_pins[] = { DB8540_PIN_B13 };
 static const unsigned pwl_b_4_pins[] = { DB8540_PIN_C12 };
@@ -509,15 +540,18 @@ static const unsigned ipgpio1_c_1_pins[] = { DB8540_PIN_AF7 };
 static const unsigned ipgpio3_c_1_pins[] = { DB8540_PIN_AE4 };
 static const unsigned ipgpio2_c_1_pins[] = { DB8540_PIN_AD1 };
 static const unsigned u0_c_1_pins[] = { DB8540_PIN_AD4, DB8540_PIN_AF3,
-	DB8540_PIN_AF5, DB8540_PIN_AG4 };
+										DB8540_PIN_AF5, DB8540_PIN_AG4
+									  };
 static const unsigned smcleale_c_1_pins[] = { DB8540_PIN_AJ24,
-	DB8540_PIN_AE21 };
+											  DB8540_PIN_AE21
+											};
 static const unsigned ipgpio4_c_1_pins[] = { DB8540_PIN_M26 };
 static const unsigned ipgpio5_c_1_pins[] = { DB8540_PIN_M25 };
 static const unsigned ipgpio6_c_2_pins[] = { DB8540_PIN_M27 };
 static const unsigned ipgpio7_c_1_pins[] = { DB8540_PIN_N25 };
 static const unsigned stmape_c_1_pins[] = { DB8540_PIN_M28, DB8540_PIN_N26,
-	DB8540_PIN_M22, DB8540_PIN_N22, DB8540_PIN_N27 };
+											DB8540_PIN_M22, DB8540_PIN_N22, DB8540_PIN_N27
+										  };
 static const unsigned u2rxtx_c_1_pins[] = { DB8540_PIN_N28, DB8540_PIN_P22 };
 static const unsigned modobsresout_c_1_pins[] = { DB8540_PIN_P28 };
 static const unsigned ipgpio2_c_2_pins[] = { DB8540_PIN_P26 };
@@ -525,12 +559,14 @@ static const unsigned ipgpio3_c_2_pins[] = { DB8540_PIN_T22 };
 static const unsigned ipgpio4_c_2_pins[] = { DB8540_PIN_R27 };
 static const unsigned ipgpio5_c_2_pins[] = { DB8540_PIN_P27 };
 static const unsigned modaccgpo_c_1_pins[] = { DB8540_PIN_R26, DB8540_PIN_R25,
-	DB8540_PIN_U22 };
+											   DB8540_PIN_U22
+											 };
 static const unsigned modobspwrrst_c_1_pins[] = { DB8540_PIN_T27 };
 static const unsigned mc5_c_1_pins[] = { DB8540_PIN_AG22, DB8540_PIN_AF21,
-	DB8540_PIN_AF24, DB8540_PIN_AH22, DB8540_PIN_AJ23, DB8540_PIN_AH21,
-	DB8540_PIN_AG20, DB8540_PIN_AE23, DB8540_PIN_AH20, DB8540_PIN_AF22,
-	DB8540_PIN_AJ21};
+										 DB8540_PIN_AF24, DB8540_PIN_AH22, DB8540_PIN_AJ23, DB8540_PIN_AH21,
+										 DB8540_PIN_AG20, DB8540_PIN_AE23, DB8540_PIN_AH20, DB8540_PIN_AF22,
+										 DB8540_PIN_AJ21
+									   };
 static const unsigned smps0_c_1_pins[] = { DB8540_PIN_AG19 };
 static const unsigned moduart1_c_1_pins[] = { DB8540_PIN_T25, DB8540_PIN_T26 };
 static const unsigned mc2rstn_c_1_pins[] = { DB8540_PIN_AE28 };
@@ -538,25 +574,31 @@ static const unsigned i2c5_c_1_pins[] = { DB8540_PIN_AG28, DB8540_PIN_AF28 };
 static const unsigned ipgpio0_c_2_pins[] = { DB8540_PIN_AG25 };
 static const unsigned ipgpio1_c_2_pins[] = { DB8540_PIN_AG24 };
 static const unsigned kp_c_1_pins[] = { DB8540_PIN_AD25, DB8540_PIN_AH25,
-	DB8540_PIN_AF26, DB8540_PIN_AF23 };
+										DB8540_PIN_AF26, DB8540_PIN_AF23
+									  };
 static const unsigned modrf_c_1_pins[] = { DB8540_PIN_AG23, DB8540_PIN_AE25,
-	DB8540_PIN_AH24 };
+										   DB8540_PIN_AH24
+										 };
 static const unsigned smps1_c_1_pins[] = { DB8540_PIN_AE26 };
 static const unsigned i2c5_c_2_pins[] = { DB8540_PIN_AH19, DB8540_PIN_AE19 };
 static const unsigned u4ctsrts_c_1_pins[] = { DB8540_PIN_AG18,
-	DB8540_PIN_AH17 };
+											  DB8540_PIN_AH17
+											};
 static const unsigned u3rxtx_c_1_pins[] = { DB8540_PIN_AF19, DB8540_PIN_AF18 };
 static const unsigned msp4_c_1_pins[] = { DB8540_PIN_J3 };
 static const unsigned mc4rstn_c_1_pins[] = { DB8540_PIN_C6 };
 static const unsigned spi0_c_1_pins[] = { DB8540_PIN_A10, DB8540_PIN_B10,
-	DB8540_PIN_E10, DB8540_PIN_B12 };
+										  DB8540_PIN_E10, DB8540_PIN_B12
+										};
 static const unsigned i2c3_c_1_pins[] = { DB8540_PIN_B13, DB8540_PIN_C12 };
 
 /* Other alt C1 column */
 static const unsigned spi3_oc1_1_pins[] = { DB8540_PIN_AG5, DB8540_PIN_AH5,
-	DB8540_PIN_AE4, DB8540_PIN_AD1 };
+											DB8540_PIN_AE4, DB8540_PIN_AD1
+										  };
 static const unsigned stmape_oc1_1_pins[] = { DB8540_PIN_AH11, DB8540_PIN_AF11,
-	DB8540_PIN_AH10, DB8540_PIN_AG10, DB8540_PIN_AF10 };
+											  DB8540_PIN_AH10, DB8540_PIN_AG10, DB8540_PIN_AF10
+											};
 static const unsigned u2_oc1_1_pins[] = { DB8540_PIN_AG11 };
 static const unsigned remap0_oc1_1_pins[] = { DB8540_PIN_AJ24 };
 static const unsigned remap1_oc1_1_pins[] = { DB8540_PIN_AE21 };
@@ -565,79 +607,98 @@ static const unsigned modobspwrctrl_oc1_1_pins[] = { DB8540_PIN_M25 };
 static const unsigned modobsclkout_oc1_1_pins[] = { DB8540_PIN_M27 };
 static const unsigned moduart1_oc1_1_pins[] = { DB8540_PIN_N25 };
 static const unsigned modprcmudbg_oc1_1_pins[] = { DB8540_PIN_M28,
-	DB8540_PIN_N26, DB8540_PIN_M22, DB8540_PIN_N22, DB8540_PIN_N27,
-	DB8540_PIN_P22, DB8540_PIN_P28, DB8540_PIN_P26, DB8540_PIN_T22,
-	DB8540_PIN_R26, DB8540_PIN_R25, DB8540_PIN_U22, DB8540_PIN_T27,
-	DB8540_PIN_AH20, DB8540_PIN_AG19, DB8540_PIN_AF22, DB8540_PIN_AJ21,
-	DB8540_PIN_T25};
+												   DB8540_PIN_N26, DB8540_PIN_M22, DB8540_PIN_N22, DB8540_PIN_N27,
+												   DB8540_PIN_P22, DB8540_PIN_P28, DB8540_PIN_P26, DB8540_PIN_T22,
+												   DB8540_PIN_R26, DB8540_PIN_R25, DB8540_PIN_U22, DB8540_PIN_T27,
+												   DB8540_PIN_AH20, DB8540_PIN_AG19, DB8540_PIN_AF22, DB8540_PIN_AJ21,
+												   DB8540_PIN_T25
+												 };
 static const unsigned modobsresout_oc1_1_pins[] = { DB8540_PIN_N28 };
 static const unsigned modaccgpo_oc1_1_pins[] = { DB8540_PIN_R27, DB8540_PIN_P27,
-	DB8540_PIN_T26 };
+												 DB8540_PIN_T26
+											   };
 static const unsigned kp_oc1_1_pins[] = { DB8540_PIN_AG22, DB8540_PIN_AF21,
-	DB8540_PIN_AF24, DB8540_PIN_AH22, DB8540_PIN_AJ23, DB8540_PIN_AH21,
-	DB8540_PIN_AG20, DB8540_PIN_AE23 };
+										  DB8540_PIN_AF24, DB8540_PIN_AH22, DB8540_PIN_AJ23, DB8540_PIN_AH21,
+										  DB8540_PIN_AG20, DB8540_PIN_AE23
+										};
 static const unsigned modxmip_oc1_1_pins[] = { DB8540_PIN_AD25, DB8540_PIN_AH25,
-	DB8540_PIN_AG23, DB8540_PIN_AE25 };
+											   DB8540_PIN_AG23, DB8540_PIN_AE25
+											 };
 static const unsigned i2c6_oc1_1_pins[] = { DB8540_PIN_AE26, DB8540_PIN_AE24 };
 static const unsigned u2txrx_oc1_1_pins[] = { DB8540_PIN_B7, DB8540_PIN_A7 };
 static const unsigned u2ctsrts_oc1_1_pins[] = { DB8540_PIN_D7, DB8540_PIN_D8 };
 
 /* Other alt C2 column */
 static const unsigned sbag_oc2_1_pins[] = { DB8540_PIN_AH11, DB8540_PIN_AG11,
-	DB8540_PIN_AF11, DB8540_PIN_AH10, DB8540_PIN_AG10, DB8540_PIN_AF10 };
+											DB8540_PIN_AF11, DB8540_PIN_AH10, DB8540_PIN_AG10, DB8540_PIN_AF10
+										  };
 static const unsigned hxclk_oc2_1_pins[] = { DB8540_PIN_M25 };
 static const unsigned modaccuart_oc2_1_pins[] = { DB8540_PIN_N25 };
 static const unsigned stmmod_oc2_1_pins[] = { DB8540_PIN_M28, DB8540_PIN_N26,
-	DB8540_PIN_M22, DB8540_PIN_N22, DB8540_PIN_N27 };
+											  DB8540_PIN_M22, DB8540_PIN_N22, DB8540_PIN_N27
+											};
 static const unsigned moduartstmmux_oc2_1_pins[] = { DB8540_PIN_N28 };
 static const unsigned hxgpio_oc2_1_pins[] = { DB8540_PIN_P22, DB8540_PIN_P28,
-	DB8540_PIN_P26, DB8540_PIN_T22, DB8540_PIN_R27, DB8540_PIN_P27,
-	DB8540_PIN_R26, DB8540_PIN_R25 };
+											  DB8540_PIN_P26, DB8540_PIN_T22, DB8540_PIN_R27, DB8540_PIN_P27,
+											  DB8540_PIN_R26, DB8540_PIN_R25
+											};
 static const unsigned sbag_oc2_2_pins[] = { DB8540_PIN_U22, DB8540_PIN_T27,
-	DB8540_PIN_AG22, DB8540_PIN_AF21, DB8540_PIN_AF24, DB8540_PIN_AH22 };
+											DB8540_PIN_AG22, DB8540_PIN_AF21, DB8540_PIN_AF24, DB8540_PIN_AH22
+										  };
 static const unsigned modobsservice_oc2_1_pins[] = { DB8540_PIN_AJ23 };
 static const unsigned moduart0_oc2_1_pins[] = { DB8540_PIN_AG20,
-	DB8540_PIN_AE23 };
+												DB8540_PIN_AE23
+											  };
 static const unsigned stmape_oc2_1_pins[] = { DB8540_PIN_AH20, DB8540_PIN_AG19,
-	DB8540_PIN_AF22, DB8540_PIN_AJ21, DB8540_PIN_T25 };
+											  DB8540_PIN_AF22, DB8540_PIN_AJ21, DB8540_PIN_T25
+											};
 static const unsigned u2_oc2_1_pins[] = { DB8540_PIN_T26, DB8540_PIN_AH21 };
 static const unsigned modxmip_oc2_1_pins[] = { DB8540_PIN_AE26,
-	DB8540_PIN_AE24 };
+											   DB8540_PIN_AE24
+											 };
 
 /* Other alt C3 column */
 static const unsigned modaccgpo_oc3_1_pins[] = { DB8540_PIN_AG11 };
 static const unsigned tpui_oc3_1_pins[] = { DB8540_PIN_M26, DB8540_PIN_M25,
-	DB8540_PIN_M27, DB8540_PIN_N25, DB8540_PIN_M28, DB8540_PIN_N26,
-	DB8540_PIN_M22, DB8540_PIN_N22, DB8540_PIN_N27, DB8540_PIN_N28,
-	DB8540_PIN_P22, DB8540_PIN_P28, DB8540_PIN_P26, DB8540_PIN_T22,
-	DB8540_PIN_R27, DB8540_PIN_P27, DB8540_PIN_R26, DB8540_PIN_R25,
-	DB8540_PIN_U22, DB8540_PIN_T27, DB8540_PIN_AG22, DB8540_PIN_AF21,
-	DB8540_PIN_AF24, DB8540_PIN_AH22, DB8540_PIN_AJ23, DB8540_PIN_AH21,
-	DB8540_PIN_AG20, DB8540_PIN_AE23, DB8540_PIN_AH20, DB8540_PIN_AG19,
-	DB8540_PIN_AF22, DB8540_PIN_AJ21, DB8540_PIN_T25, DB8540_PIN_T26 };
+											DB8540_PIN_M27, DB8540_PIN_N25, DB8540_PIN_M28, DB8540_PIN_N26,
+											DB8540_PIN_M22, DB8540_PIN_N22, DB8540_PIN_N27, DB8540_PIN_N28,
+											DB8540_PIN_P22, DB8540_PIN_P28, DB8540_PIN_P26, DB8540_PIN_T22,
+											DB8540_PIN_R27, DB8540_PIN_P27, DB8540_PIN_R26, DB8540_PIN_R25,
+											DB8540_PIN_U22, DB8540_PIN_T27, DB8540_PIN_AG22, DB8540_PIN_AF21,
+											DB8540_PIN_AF24, DB8540_PIN_AH22, DB8540_PIN_AJ23, DB8540_PIN_AH21,
+											DB8540_PIN_AG20, DB8540_PIN_AE23, DB8540_PIN_AH20, DB8540_PIN_AG19,
+											DB8540_PIN_AF22, DB8540_PIN_AJ21, DB8540_PIN_T25, DB8540_PIN_T26
+										  };
 
 /* Other alt C4 column */
 static const unsigned hwobs_oc4_1_pins[] = { DB8540_PIN_M26, DB8540_PIN_M25,
-	DB8540_PIN_M27, DB8540_PIN_N25, DB8540_PIN_M28, DB8540_PIN_N26,
-	DB8540_PIN_M22, DB8540_PIN_N22, DB8540_PIN_N27, DB8540_PIN_N28,
-	DB8540_PIN_P22, DB8540_PIN_P28, DB8540_PIN_P26, DB8540_PIN_T22,
-	DB8540_PIN_R27, DB8540_PIN_P27, DB8540_PIN_R26, DB8540_PIN_R25 };
+											 DB8540_PIN_M27, DB8540_PIN_N25, DB8540_PIN_M28, DB8540_PIN_N26,
+											 DB8540_PIN_M22, DB8540_PIN_N22, DB8540_PIN_N27, DB8540_PIN_N28,
+											 DB8540_PIN_P22, DB8540_PIN_P28, DB8540_PIN_P26, DB8540_PIN_T22,
+											 DB8540_PIN_R27, DB8540_PIN_P27, DB8540_PIN_R26, DB8540_PIN_R25
+										   };
 static const unsigned moduart1txrx_oc4_1_pins[] = { DB8540_PIN_U22,
-	DB8540_PIN_T27 };
+													DB8540_PIN_T27
+												  };
 static const unsigned moduart1rtscts_oc4_1_pins[] = { DB8540_PIN_AG22,
-	DB8540_PIN_AF21 };
+													  DB8540_PIN_AF21
+													};
 static const unsigned modaccuarttxrx_oc4_1_pins[] = { DB8540_PIN_AF24,
-	DB8540_PIN_AH22 };
+													  DB8540_PIN_AH22
+													};
 static const unsigned modaccuartrtscts_oc4_1_pins[] = { DB8540_PIN_AJ23,
-	DB8540_PIN_AH21 };
+														DB8540_PIN_AH21
+													  };
 static const unsigned stmmod_oc4_1_pins[] = { DB8540_PIN_AH20, DB8540_PIN_AG19,
-	DB8540_PIN_AF22, DB8540_PIN_AJ21, DB8540_PIN_T25 };
+											  DB8540_PIN_AF22, DB8540_PIN_AJ21, DB8540_PIN_T25
+											};
 static const unsigned moduartstmmux_oc4_1_pins[] = { DB8540_PIN_T26 };
 
 #define DB8540_PIN_GROUP(a, b) { .name = #a, .pins = a##_pins,		\
 			.npins = ARRAY_SIZE(a##_pins), .altsetting = b }
 
-static const struct nmk_pingroup nmk_db8540_groups[] = {
+static const struct nmk_pingroup nmk_db8540_groups[] =
+{
 	/* Altfunction A column */
 	DB8540_PIN_GROUP(u0_a_1, NMK_GPIO_ALT_A),
 	DB8540_PIN_GROUP(u1rxtx_a_1, NMK_GPIO_ALT_A),
@@ -810,11 +871,11 @@ static const struct nmk_pingroup nmk_db8540_groups[] = {
 
 /* We use this macro to define the groups applicable to a function */
 #define DB8540_FUNC_GROUPS(a, b...)	   \
-static const char * const a##_groups[] = { b };
+	static const char * const a##_groups[] = { b };
 
 DB8540_FUNC_GROUPS(apetrig, "apetrig_b_1");
 DB8540_FUNC_GROUPS(clkout, "clkoutreq_a_1", "clkout1_a_1", "clkout1_a_2",
-		"clkout2_a_1", "clkout2_a_2");
+				   "clkout2_a_1", "clkout2_a_2");
 DB8540_FUNC_GROUPS(ddrtrig, "ddrtrig_b_1");
 DB8540_FUNC_GROUPS(hsi, "hsir_a_1", "hsit_a_1", "hsit_a_2");
 DB8540_FUNC_GROUPS(hwobs, "hwobs_oc4_1");
@@ -828,17 +889,17 @@ DB8540_FUNC_GROUPS(i2c5, "i2c5_b_1", "i2c5_b_2", "i2c5_c_1", "i2c5_c_2");
 DB8540_FUNC_GROUPS(i2c6, "i2c6_b_1", "i2c6_oc1_1");
 /* The image processor has 8 GPIO pins that can be muxed out */
 DB8540_FUNC_GROUPS(ipgpio, "ipgpio0_a_1", "ipgpio0_c_1", "ipgpio0_c_2",
-		"ipgpio1_a_1", "ipgpio1_c_1", "ipgpio1_c_2",
-		"ipgpio2_b_1", "ipgpio2_c_1", "ipgpio2_c_2",
-		"ipgpio3_b_1", "ipgpio3_c_1", "ipgpio3_c_2",
-		"ipgpio4_c_1", "ipgpio4_c_2",
-		"ipgpio5_c_1", "ipgpio5_c_2",
-		"ipgpio6_c_1", "ipgpio6_c_2",
-		"ipgpio7_b_1", "ipgpio7_c_1");
+				   "ipgpio1_a_1", "ipgpio1_c_1", "ipgpio1_c_2",
+				   "ipgpio2_b_1", "ipgpio2_c_1", "ipgpio2_c_2",
+				   "ipgpio3_b_1", "ipgpio3_c_1", "ipgpio3_c_2",
+				   "ipgpio4_c_1", "ipgpio4_c_2",
+				   "ipgpio5_c_1", "ipgpio5_c_2",
+				   "ipgpio6_c_1", "ipgpio6_c_2",
+				   "ipgpio7_b_1", "ipgpio7_c_1");
 DB8540_FUNC_GROUPS(ipi2c, "ipi2c_a_1", "ipi2c_a_2");
 DB8540_FUNC_GROUPS(kp, "kp_a_1", "kp_b_1", "kp_c_1", "kp_oc1_1");
 DB8540_FUNC_GROUPS(lcd, "lcd_d0_d7_a_1", "lcd_d12_d23_a_1", "lcd_d8_d11_a_1",
-		"lcdvsi0_a_1", "lcdvsi1_a_1");
+				   "lcdvsi0_a_1", "lcdvsi1_a_1");
 DB8540_FUNC_GROUPS(lcdb, "lcdb_a_1");
 DB8540_FUNC_GROUPS(mc0, "mc0_a_1");
 DB8540_FUNC_GROUPS(mc1, "mc1_a_1", "mc1_a_2");
@@ -847,29 +908,29 @@ DB8540_FUNC_GROUPS(mc3, "mc3_b_1");
 DB8540_FUNC_GROUPS(mc4, "mc4_a_1", "mc4rstn_c_1");
 DB8540_FUNC_GROUPS(mc5, "mc5_c_1");
 DB8540_FUNC_GROUPS(modaccgpo, "modaccgpo_c_1", "modaccgpo_oc1_1",
-		"modaccgpo_oc3_1");
+				   "modaccgpo_oc3_1");
 DB8540_FUNC_GROUPS(modaccuart, "modaccuart_oc2_1", "modaccuarttxrx_oc4_1",
-		"modaccuartrtccts_oc4_1");
+				   "modaccuartrtccts_oc4_1");
 DB8540_FUNC_GROUPS(modi2s, "modi2s_a_1");
 DB8540_FUNC_GROUPS(modobs, "modobsclk_a_1", "modobsclkout_oc1_1",
-		"modobspwrctrl_oc1_1", "modobspwrrst_c_1",
-		"modobsrefclk_oc1_1", "modobsresout_c_1",
-		"modobsresout_oc1_1", "modobsservice_oc2_1");
+				   "modobspwrctrl_oc1_1", "modobspwrrst_c_1",
+				   "modobsrefclk_oc1_1", "modobsresout_c_1",
+				   "modobsresout_oc1_1", "modobsservice_oc2_1");
 DB8540_FUNC_GROUPS(modprcmudbg, "modprcmudbg_oc1_1");
 DB8540_FUNC_GROUPS(modrf, "modrf_c_1");
 DB8540_FUNC_GROUPS(modsmb, "modsmb_a_1");
 DB8540_FUNC_GROUPS(modtrig, "modtrig_b_1");
 DB8540_FUNC_GROUPS(moduart, "moduart1_c_1", "moduart1_oc1_1",
-		"moduart1txrx_oc4_1", "moduart1rtscts_oc4_1", "moduart0_oc2_1");
+				   "moduart1txrx_oc4_1", "moduart1rtscts_oc4_1", "moduart0_oc2_1");
 DB8540_FUNC_GROUPS(moduartstmmux, "moduartstmmux_b_1", "moduartstmmux_oc2_1",
-		"moduartstmmux_oc4_1");
+				   "moduartstmmux_oc4_1");
 DB8540_FUNC_GROUPS(modxmip, "modxmip_oc1_1", "modxmip_oc2_1");
 /*
  * MSP0 can only be on a certain set of pins, but the TX/RX pins can be
  * switched around by selecting the altfunction A or B.
  */
 DB8540_FUNC_GROUPS(msp0, "msp0rfsrck_a_1", "msp0tfstck_a_1", "msp0txrx_a_1",
-		"msp0txrx_b_1");
+				   "msp0txrx_b_1");
 DB8540_FUNC_GROUPS(msp1, "msp1_a_1", "msp1txrx_a_1", "msp1txrx_b_1");
 DB8540_FUNC_GROUPS(msp2, "msp2sck_a_1", "msp2txdtcktfs_a_1", "msp2rxd_a_1");
 DB8540_FUNC_GROUPS(msp4, "msp4_a_1", "msp4_b_1", "msp4_c_1");
@@ -878,7 +939,7 @@ DB8540_FUNC_GROUPS(remap, "remap0_oc1_1", "remap1_oc1_1");
 DB8540_FUNC_GROUPS(sbag, "sbag_oc2_1", "sbag_oc2_2");
 /* Select between CS0 on alt B or PS1 on alt C */
 DB8540_FUNC_GROUPS(sm, "sm_b_1", "smcleale_c_1", "smcs0_b_1", "smcs1_b_1",
-		"smps0_c_1", "smps1_c_1");
+				   "smps0_c_1", "smps1_c_1");
 DB8540_FUNC_GROUPS(spi0, "spi0_c_1");
 DB8540_FUNC_GROUPS(spi1, "spi1_b_1");
 DB8540_FUNC_GROUPS(spi2, "spi2_a_1");
@@ -891,8 +952,8 @@ DB8540_FUNC_GROUPS(tpui, "tpui_oc3_1");
 DB8540_FUNC_GROUPS(u0, "u0_a_1", "u0_c_1");
 DB8540_FUNC_GROUPS(u1, "u1ctsrts_a_1", "u1rxtx_a_1");
 DB8540_FUNC_GROUPS(u2, "u2_oc1_1", "u2_oc2_1", "u2ctsrts_a_1", "u2ctsrts_oc1_1",
-		"u2rxtx_c_1", "u2txrx_a_1", "u2txrx_b_1", "u2txrx_b_2",
-		"u2txrx_oc1_1");
+				   "u2rxtx_c_1", "u2txrx_a_1", "u2txrx_b_1", "u2txrx_b_2",
+				   "u2txrx_oc1_1");
 DB8540_FUNC_GROUPS(u3, "u3ctsrts_b_1", "u3rxtx_c_1", "u3txrxa_b_1");
 DB8540_FUNC_GROUPS(u4, "u4ctsrts_b_1", "u4ctsrts_c_1", "u4txrx_b_1");
 DB8540_FUNC_GROUPS(usb, "usb_a_1");
@@ -901,11 +962,12 @@ DB8540_FUNC_GROUPS(usb, "usb_a_1");
 #define FUNCTION(fname)					\
 	{						\
 		.name = #fname,				\
-		.groups = fname##_groups,		\
-		.ngroups = ARRAY_SIZE(fname##_groups),	\
+				.groups = fname##_groups,		\
+						  .ngroups = ARRAY_SIZE(fname##_groups),	\
 	}
 
-static const struct nmk_function nmk_db8540_functions[] = {
+static const struct nmk_function nmk_db8540_functions[] =
+{
 	FUNCTION(apetrig),
 	FUNCTION(clkout),
 	FUNCTION(ddrtrig),
@@ -965,266 +1027,269 @@ static const struct nmk_function nmk_db8540_functions[] = {
 	FUNCTION(usb)
 };
 
-static const struct prcm_gpiocr_altcx_pin_desc db8540_altcx_pins[] = {
+static const struct prcm_gpiocr_altcx_pin_desc db8540_altcx_pins[] =
+{
 	PRCM_GPIOCR_ALTCX(8,	true, PRCM_IDX_GPIOCR1, 20,	/* SPI3_CLK */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(9,	true, PRCM_IDX_GPIOCR1, 20,	/* SPI3_RXD */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(10,	true, PRCM_IDX_GPIOCR1, 20,	/* SPI3_FRM */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(11,	true, PRCM_IDX_GPIOCR1, 20,	/* SPI3_TXD */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(23,	true, PRCM_IDX_GPIOCR1, 9,	/* STMAPE_CLK_a */
-				true, PRCM_IDX_GPIOCR2, 10,	/* SBAG_CLK_a */
-				false, 0, 0,
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR2, 10,	/* SBAG_CLK_a */
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(24,	true, PRCM_IDX_GPIOCR3, 30,	/* U2_RXD_g */
-				true, PRCM_IDX_GPIOCR2, 10,	/* SBAG_VAL_a */
-				false, 0, 0,
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR2, 10,	/* SBAG_VAL_a */
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(25,	true, PRCM_IDX_GPIOCR1, 9,	/* STMAPE_DAT_a[0] */
-				true, PRCM_IDX_GPIOCR2, 10,	/* SBAG_D_a[0] */
-				false, 0, 0,
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR2, 10,	/* SBAG_D_a[0] */
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(26,	true, PRCM_IDX_GPIOCR1, 9,	/* STMAPE_DAT_a[1] */
-				true, PRCM_IDX_GPIOCR2, 10,	/* SBAG_D_a[1] */
-				false, 0, 0,
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR2, 10,	/* SBAG_D_a[1] */
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(27,	true, PRCM_IDX_GPIOCR1, 9,	/* STMAPE_DAT_a[2] */
-				true, PRCM_IDX_GPIOCR2, 10,	/* SBAG_D_a[2] */
-				false, 0, 0,
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR2, 10,	/* SBAG_D_a[2] */
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(28,	true, PRCM_IDX_GPIOCR1, 9,	/* STMAPE_DAT_a[3] */
-				true, PRCM_IDX_GPIOCR2, 10,	/* SBAG_D_a[3] */
-				false, 0, 0,
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR2, 10,	/* SBAG_D_a[3] */
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(64,	true, PRCM_IDX_GPIOCR1, 15,	/* MODOBS_REFCLK_REQ */
-				false, 0, 0,
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_CTL */
-				true, PRCM_IDX_GPIOCR2, 23	/* HW_OBS_APE_PRCMU[17] */
-	),
+	false, 0, 0,
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_CTL */
+	true, PRCM_IDX_GPIOCR2, 23	/* HW_OBS_APE_PRCMU[17] */
+					 ),
 	PRCM_GPIOCR_ALTCX(65,	true, PRCM_IDX_GPIOCR1, 19,	/* MODOBS_PWRCTRL0 */
-				true, PRCM_IDX_GPIOCR1, 24,	/* Hx_CLK */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_CLK */
-				true, PRCM_IDX_GPIOCR2, 24	/* HW_OBS_APE_PRCMU[16] */
-	),
+	true, PRCM_IDX_GPIOCR1, 24,	/* Hx_CLK */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_CLK */
+	true, PRCM_IDX_GPIOCR2, 24	/* HW_OBS_APE_PRCMU[16] */
+					 ),
 	PRCM_GPIOCR_ALTCX(66,	true, PRCM_IDX_GPIOCR1, 15,	/* MODOBS_CLKOUT1 */
-				false, 0, 0,
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[15] */
-				true, PRCM_IDX_GPIOCR2, 25	/* HW_OBS_APE_PRCMU[15] */
-	),
+	false, 0, 0,
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[15] */
+	true, PRCM_IDX_GPIOCR2, 25	/* HW_OBS_APE_PRCMU[15] */
+					 ),
 	PRCM_GPIOCR_ALTCX(67,	true, PRCM_IDX_GPIOCR1, 1,	/* MODUART1_TXD_a */
-				true, PRCM_IDX_GPIOCR1, 6,	/* MODACCUART_TXD_a */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[14] */
-				true, PRCM_IDX_GPIOCR2, 26	/* HW_OBS_APE_PRCMU[14] */
-	),
+	true, PRCM_IDX_GPIOCR1, 6,	/* MODACCUART_TXD_a */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[14] */
+	true, PRCM_IDX_GPIOCR2, 26	/* HW_OBS_APE_PRCMU[14] */
+					 ),
 	PRCM_GPIOCR_ALTCX(70,	true, PRCM_IDX_GPIOCR3, 6,	/* MOD_PRCMU_DEBUG[17] */
-				true, PRCM_IDX_GPIOCR1, 10,	/* STMMOD_CLK_b */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[13] */
-				true, PRCM_IDX_GPIOCR2, 27	/* HW_OBS_APE_PRCMU[13] */
-	),
+	true, PRCM_IDX_GPIOCR1, 10,	/* STMMOD_CLK_b */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[13] */
+	true, PRCM_IDX_GPIOCR2, 27	/* HW_OBS_APE_PRCMU[13] */
+					 ),
 	PRCM_GPIOCR_ALTCX(71,	true, PRCM_IDX_GPIOCR3, 6,	/* MOD_PRCMU_DEBUG[16] */
-				true, PRCM_IDX_GPIOCR1, 10,	/* STMMOD_DAT_b[3] */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[12] */
-				true, PRCM_IDX_GPIOCR2, 27	/* HW_OBS_APE_PRCMU[12] */
-	),
+	true, PRCM_IDX_GPIOCR1, 10,	/* STMMOD_DAT_b[3] */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[12] */
+	true, PRCM_IDX_GPIOCR2, 27	/* HW_OBS_APE_PRCMU[12] */
+					 ),
 	PRCM_GPIOCR_ALTCX(72,	true, PRCM_IDX_GPIOCR3, 6,	/* MOD_PRCMU_DEBUG[15] */
-				true, PRCM_IDX_GPIOCR1, 10,	/* STMMOD_DAT_b[2] */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[11] */
-				true, PRCM_IDX_GPIOCR2, 27	/* HW_OBS_APE_PRCMU[11] */
-	),
+	true, PRCM_IDX_GPIOCR1, 10,	/* STMMOD_DAT_b[2] */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[11] */
+	true, PRCM_IDX_GPIOCR2, 27	/* HW_OBS_APE_PRCMU[11] */
+					 ),
 	PRCM_GPIOCR_ALTCX(73,	true, PRCM_IDX_GPIOCR3, 6,	/* MOD_PRCMU_DEBUG[14] */
-				true, PRCM_IDX_GPIOCR1, 10,	/* STMMOD_DAT_b[1] */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[10] */
-				true, PRCM_IDX_GPIOCR2, 27	/* HW_OBS_APE_PRCMU[10] */
-	),
+	true, PRCM_IDX_GPIOCR1, 10,	/* STMMOD_DAT_b[1] */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[10] */
+	true, PRCM_IDX_GPIOCR2, 27	/* HW_OBS_APE_PRCMU[10] */
+					 ),
 	PRCM_GPIOCR_ALTCX(74,	true, PRCM_IDX_GPIOCR3, 6,	/* MOD_PRCMU_DEBUG[13] */
-				true, PRCM_IDX_GPIOCR1, 10,	/* STMMOD_DAT_b[0] */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[9] */
-				true, PRCM_IDX_GPIOCR2, 27	/* HW_OBS_APE_PRCMU[9] */
-	),
+	true, PRCM_IDX_GPIOCR1, 10,	/* STMMOD_DAT_b[0] */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[9] */
+	true, PRCM_IDX_GPIOCR2, 27	/* HW_OBS_APE_PRCMU[9] */
+					 ),
 	PRCM_GPIOCR_ALTCX(75,	true, PRCM_IDX_GPIOCR1, 12,	/* MODOBS_RESOUT0_N */
-				true, PRCM_IDX_GPIOCR2, 1,	/* MODUART_STMMUX_RXD_b */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[8] */
-				true, PRCM_IDX_GPIOCR2, 28	/* HW_OBS_APE_PRCMU[8] */
-	),
+	true, PRCM_IDX_GPIOCR2, 1,	/* MODUART_STMMUX_RXD_b */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[8] */
+	true, PRCM_IDX_GPIOCR2, 28	/* HW_OBS_APE_PRCMU[8] */
+					 ),
 	PRCM_GPIOCR_ALTCX(76,	true, PRCM_IDX_GPIOCR3, 7,	/* MOD_PRCMU_DEBUG[12] */
-				true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[7] */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[7] */
-				true, PRCM_IDX_GPIOCR2, 29	/* HW_OBS_APE_PRCMU[7] */
-	),
+	true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[7] */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[7] */
+	true, PRCM_IDX_GPIOCR2, 29	/* HW_OBS_APE_PRCMU[7] */
+					 ),
 	PRCM_GPIOCR_ALTCX(77,	true, PRCM_IDX_GPIOCR3, 7,	/* MOD_PRCMU_DEBUG[11] */
-				true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[6] */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[6] */
-				true, PRCM_IDX_GPIOCR2, 29	/* HW_OBS_APE_PRCMU[6] */
-	),
+	true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[6] */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[6] */
+	true, PRCM_IDX_GPIOCR2, 29	/* HW_OBS_APE_PRCMU[6] */
+					 ),
 	PRCM_GPIOCR_ALTCX(78,	true, PRCM_IDX_GPIOCR3, 7,	/* MOD_PRCMU_DEBUG[10] */
-				true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[5] */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[5] */
-				true, PRCM_IDX_GPIOCR2, 29	/* HW_OBS_APE_PRCMU[5] */
-	),
+	true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[5] */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[5] */
+	true, PRCM_IDX_GPIOCR2, 29	/* HW_OBS_APE_PRCMU[5] */
+					 ),
 	PRCM_GPIOCR_ALTCX(79,	true, PRCM_IDX_GPIOCR3, 7,	/* MOD_PRCMU_DEBUG[9] */
-				true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[4] */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[4] */
-				true, PRCM_IDX_GPIOCR2, 29	/* HW_OBS_APE_PRCMU[4] */
-	),
+	true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[4] */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[4] */
+	true, PRCM_IDX_GPIOCR2, 29	/* HW_OBS_APE_PRCMU[4] */
+					 ),
 	PRCM_GPIOCR_ALTCX(80,	true, PRCM_IDX_GPIOCR1, 26,	/* MODACC_GPO[0] */
-				true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[3] */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[3] */
-				true, PRCM_IDX_GPIOCR2, 30	/* HW_OBS_APE_PRCMU[3] */
-	),
+	true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[3] */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[3] */
+	true, PRCM_IDX_GPIOCR2, 30	/* HW_OBS_APE_PRCMU[3] */
+					 ),
 	PRCM_GPIOCR_ALTCX(81,	true, PRCM_IDX_GPIOCR2, 17,	/* MODACC_GPO[1] */
-				true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[2] */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[2] */
-				true, PRCM_IDX_GPIOCR2, 30	/* HW_OBS_APE_PRCMU[2] */
-	),
+	true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[2] */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[2] */
+	true, PRCM_IDX_GPIOCR2, 30	/* HW_OBS_APE_PRCMU[2] */
+					 ),
 	PRCM_GPIOCR_ALTCX(82,	true, PRCM_IDX_GPIOCR3, 8,	/* MOD_PRCMU_DEBUG[8] */
-				true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[1] */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[1] */
-				true, PRCM_IDX_GPIOCR2, 31	/* HW_OBS_APE_PRCMU[1] */
-	),
+	true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[1] */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[1] */
+	true, PRCM_IDX_GPIOCR2, 31	/* HW_OBS_APE_PRCMU[1] */
+					 ),
 	PRCM_GPIOCR_ALTCX(83,	true, PRCM_IDX_GPIOCR3, 8,	/* MOD_PRCMU_DEBUG[7] */
-				true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[0] */
-				true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[0] */
-				true, PRCM_IDX_GPIOCR2, 31	/* HW_OBS_APE_PRCMU[0] */
-	),
+	true, PRCM_IDX_GPIOCR1, 25,	/* Hx_GPIO[0] */
+	true, PRCM_IDX_GPIOCR1, 2,	/* TPIU_D[0] */
+	true, PRCM_IDX_GPIOCR2, 31	/* HW_OBS_APE_PRCMU[0] */
+					 ),
 	PRCM_GPIOCR_ALTCX(84,	true, PRCM_IDX_GPIOCR3, 9,	/* MOD_PRCMU_DEBUG[6] */
-				true, PRCM_IDX_GPIOCR1, 8,	/* SBAG_CLK_b */
-				true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[23] */
-				true, PRCM_IDX_GPIOCR1, 16	/* MODUART1_RXD_b */
-	),
+	true, PRCM_IDX_GPIOCR1, 8,	/* SBAG_CLK_b */
+	true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[23] */
+	true, PRCM_IDX_GPIOCR1, 16	/* MODUART1_RXD_b */
+					 ),
 	PRCM_GPIOCR_ALTCX(85,	true, PRCM_IDX_GPIOCR3, 9,	/* MOD_PRCMU_DEBUG[5] */
-				true, PRCM_IDX_GPIOCR1, 8,	/* SBAG_D_b[3] */
-				true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[22] */
-				true, PRCM_IDX_GPIOCR1, 16	/* MODUART1_TXD_b */
-	),
+	true, PRCM_IDX_GPIOCR1, 8,	/* SBAG_D_b[3] */
+	true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[22] */
+	true, PRCM_IDX_GPIOCR1, 16	/* MODUART1_TXD_b */
+					 ),
 	PRCM_GPIOCR_ALTCX(86,	true, PRCM_IDX_GPIOCR3, 9,	/* MOD_PRCMU_DEBUG[0] */
-				true, PRCM_IDX_GPIOCR2, 18,	/* STMAPE_DAT_b[0] */
-				true, PRCM_IDX_GPIOCR1, 14,	/* TPIU_D[25] */
-				true, PRCM_IDX_GPIOCR1, 11	/* STMMOD_DAT_c[0] */
-	),
+	true, PRCM_IDX_GPIOCR2, 18,	/* STMAPE_DAT_b[0] */
+	true, PRCM_IDX_GPIOCR1, 14,	/* TPIU_D[25] */
+	true, PRCM_IDX_GPIOCR1, 11	/* STMMOD_DAT_c[0] */
+					 ),
 	PRCM_GPIOCR_ALTCX(87,	true, PRCM_IDX_GPIOCR3, 0,	/* MODACC_GPO_a[5] */
-				true, PRCM_IDX_GPIOCR2, 3,	/* U2_RXD_c */
-				true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[24] */
-				true, PRCM_IDX_GPIOCR1, 21	/* MODUART_STMMUX_RXD_c */
-	),
+	true, PRCM_IDX_GPIOCR2, 3,	/* U2_RXD_c */
+	true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[24] */
+	true, PRCM_IDX_GPIOCR1, 21	/* MODUART_STMMUX_RXD_c */
+					 ),
 	PRCM_GPIOCR_ALTCX(151,	true, PRCM_IDX_GPIOCR1, 18,	/* REMAP0 */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(152,	true, PRCM_IDX_GPIOCR1, 18,	/* REMAP1 */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(153,	true, PRCM_IDX_GPIOCR3, 2,	/* KP_O_b[6] */
-				true, PRCM_IDX_GPIOCR1, 8,	/* SBAG_D_b[2] */
-				true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[21] */
-				true, PRCM_IDX_GPIOCR1, 0	/* MODUART1_RTS */
-	),
+	true, PRCM_IDX_GPIOCR1, 8,	/* SBAG_D_b[2] */
+	true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[21] */
+	true, PRCM_IDX_GPIOCR1, 0	/* MODUART1_RTS */
+					 ),
 	PRCM_GPIOCR_ALTCX(154,	true, PRCM_IDX_GPIOCR3, 2,	/* KP_I_b[6] */
-				true, PRCM_IDX_GPIOCR1, 8,	/* SBAG_D_b[1] */
-				true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[20] */
-				true, PRCM_IDX_GPIOCR1, 0	/* MODUART1_CTS */
-	),
+	true, PRCM_IDX_GPIOCR1, 8,	/* SBAG_D_b[1] */
+	true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[20] */
+	true, PRCM_IDX_GPIOCR1, 0	/* MODUART1_CTS */
+					 ),
 	PRCM_GPIOCR_ALTCX(155,	true, PRCM_IDX_GPIOCR3, 3,	/* KP_O_b[5] */
-				true, PRCM_IDX_GPIOCR1, 8,	/* SBAG_D_b[0] */
-				true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[19] */
-				true, PRCM_IDX_GPIOCR1, 5	/* MODACCUART_RXD_c */
-	),
+	true, PRCM_IDX_GPIOCR1, 8,	/* SBAG_D_b[0] */
+	true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[19] */
+	true, PRCM_IDX_GPIOCR1, 5	/* MODACCUART_RXD_c */
+					 ),
 	PRCM_GPIOCR_ALTCX(156,	true, PRCM_IDX_GPIOCR3, 3,	/* KP_O_b[4] */
-				true, PRCM_IDX_GPIOCR1, 8,	/* SBAG_VAL_b */
-				true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[18] */
-				true, PRCM_IDX_GPIOCR1, 5	/* MODACCUART_TXD_b */
-	),
+	true, PRCM_IDX_GPIOCR1, 8,	/* SBAG_VAL_b */
+	true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[18] */
+	true, PRCM_IDX_GPIOCR1, 5	/* MODACCUART_TXD_b */
+					 ),
 	PRCM_GPIOCR_ALTCX(157,	true, PRCM_IDX_GPIOCR3, 4,	/* KP_I_b[5] */
-				true, PRCM_IDX_GPIOCR1, 23,	/* MODOBS_SERVICE_N */
-				true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[17] */
-				true, PRCM_IDX_GPIOCR1, 14	/* MODACCUART_RTS */
-	),
+	true, PRCM_IDX_GPIOCR1, 23,	/* MODOBS_SERVICE_N */
+	true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[17] */
+	true, PRCM_IDX_GPIOCR1, 14	/* MODACCUART_RTS */
+					 ),
 	PRCM_GPIOCR_ALTCX(158,	true, PRCM_IDX_GPIOCR3, 4,	/* KP_I_b[4] */
-				true, PRCM_IDX_GPIOCR2, 0,	/* U2_TXD_c */
-				true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[16] */
-				true, PRCM_IDX_GPIOCR1, 14	/* MODACCUART_CTS */
-	),
+	true, PRCM_IDX_GPIOCR2, 0,	/* U2_TXD_c */
+	true, PRCM_IDX_GPIOCR1, 3,	/* TPIU_D[16] */
+	true, PRCM_IDX_GPIOCR1, 14	/* MODACCUART_CTS */
+					 ),
 	PRCM_GPIOCR_ALTCX(159,	true, PRCM_IDX_GPIOCR3, 5,	/* KP_O_b[3] */
-				true, PRCM_IDX_GPIOCR3, 10,	/* MODUART0_RXD */
-				true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[31] */
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR3, 10,	/* MODUART0_RXD */
+	true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[31] */
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(160,	true, PRCM_IDX_GPIOCR3, 5,	/* KP_I_b[3] */
-				true, PRCM_IDX_GPIOCR3, 10,	/* MODUART0_TXD */
-				true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[30] */
-				false, 0, 0
-	),
+	true, PRCM_IDX_GPIOCR3, 10,	/* MODUART0_TXD */
+	true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[30] */
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(161,	true, PRCM_IDX_GPIOCR3, 9,	/* MOD_PRCMU_DEBUG[4] */
-				true, PRCM_IDX_GPIOCR2, 18,	/* STMAPE_CLK_b */
-				true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[29] */
-				true, PRCM_IDX_GPIOCR1, 11	/* STMMOD_CLK_c */
-	),
+	true, PRCM_IDX_GPIOCR2, 18,	/* STMAPE_CLK_b */
+	true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[29] */
+	true, PRCM_IDX_GPIOCR1, 11	/* STMMOD_CLK_c */
+					 ),
 	PRCM_GPIOCR_ALTCX(162,	true, PRCM_IDX_GPIOCR3, 9,	/* MOD_PRCMU_DEBUG[3] */
-				true, PRCM_IDX_GPIOCR2, 18,	/* STMAPE_DAT_b[3] */
-				true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[28] */
-				true, PRCM_IDX_GPIOCR1, 11	/* STMMOD_DAT_c[3] */
-	),
+	true, PRCM_IDX_GPIOCR2, 18,	/* STMAPE_DAT_b[3] */
+	true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[28] */
+	true, PRCM_IDX_GPIOCR1, 11	/* STMMOD_DAT_c[3] */
+					 ),
 	PRCM_GPIOCR_ALTCX(163,	true, PRCM_IDX_GPIOCR3, 9,	/* MOD_PRCMU_DEBUG[2] */
-				true, PRCM_IDX_GPIOCR2, 18,	/* STMAPE_DAT_b[2] */
-				true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[27] */
-				true, PRCM_IDX_GPIOCR1, 11	/* STMMOD_DAT_c[2] */
-	),
+	true, PRCM_IDX_GPIOCR2, 18,	/* STMAPE_DAT_b[2] */
+	true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[27] */
+	true, PRCM_IDX_GPIOCR1, 11	/* STMMOD_DAT_c[2] */
+					 ),
 	PRCM_GPIOCR_ALTCX(164,	true, PRCM_IDX_GPIOCR3, 9,	/* MOD_PRCMU_DEBUG[1] */
-				true, PRCM_IDX_GPIOCR2, 18,	/* STMAPE_DAT_b[1] */
-				true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[26] */
-				true, PRCM_IDX_GPIOCR1, 11	/* STMMOD_DAT_c[1] */
-	),
+	true, PRCM_IDX_GPIOCR2, 18,	/* STMAPE_DAT_b[1] */
+	true, PRCM_IDX_GPIOCR1, 4,	/* TPIU_D[26] */
+	true, PRCM_IDX_GPIOCR1, 11	/* STMMOD_DAT_c[1] */
+					 ),
 	PRCM_GPIOCR_ALTCX(204,	true, PRCM_IDX_GPIOCR2, 2,	/* U2_RXD_f */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(205,	true, PRCM_IDX_GPIOCR2, 2,	/* U2_TXD_f */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(206,	true, PRCM_IDX_GPIOCR2, 2,	/* U2_CTSn_b */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 	PRCM_GPIOCR_ALTCX(207,	true, PRCM_IDX_GPIOCR2, 2,	/* U2_RTSn_b */
-				false, 0, 0,
-				false, 0, 0,
-				false, 0, 0
-	),
+	false, 0, 0,
+	false, 0, 0,
+	false, 0, 0
+					 ),
 };
 
-static const u16 db8540_prcm_gpiocr_regs[] = {
+static const u16 db8540_prcm_gpiocr_regs[] =
+{
 	[PRCM_IDX_GPIOCR1] = 0x138,
 	[PRCM_IDX_GPIOCR2] = 0x574,
 	[PRCM_IDX_GPIOCR3] = 0x2bc,
 };
 
-static const struct nmk_pinctrl_soc_data nmk_db8540_soc = {
+static const struct nmk_pinctrl_soc_data nmk_db8540_soc =
+{
 	.pins = nmk_db8540_pins,
 	.npins = ARRAY_SIZE(nmk_db8540_pins),
 	.functions = nmk_db8540_functions,

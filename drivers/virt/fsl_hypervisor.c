@@ -58,12 +58,16 @@ static long ioctl_restart(struct fsl_hv_ioctl_restart __user *p)
 
 	/* Get the parameters from the user */
 	if (copy_from_user(&param, p, sizeof(struct fsl_hv_ioctl_restart)))
+	{
 		return -EFAULT;
+	}
 
 	param.ret = fh_partition_restart(param.partition);
 
 	if (copy_to_user(&p->ret, &param.ret, sizeof(__u32)))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -80,14 +84,21 @@ static long ioctl_status(struct fsl_hv_ioctl_status __user *p)
 
 	/* Get the parameters from the user */
 	if (copy_from_user(&param, p, sizeof(struct fsl_hv_ioctl_status)))
+	{
 		return -EFAULT;
+	}
 
 	param.ret = fh_partition_get_status(param.partition, &status);
+
 	if (!param.ret)
+	{
 		param.status = status;
+	}
 
 	if (copy_to_user(p, &param, sizeof(struct fsl_hv_ioctl_status)))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -103,13 +114,17 @@ static long ioctl_start(struct fsl_hv_ioctl_start __user *p)
 
 	/* Get the parameters from the user */
 	if (copy_from_user(&param, p, sizeof(struct fsl_hv_ioctl_start)))
+	{
 		return -EFAULT;
+	}
 
 	param.ret = fh_partition_start(param.partition, param.entry_point,
-				       param.load);
+								   param.load);
 
 	if (copy_to_user(&p->ret, &param.ret, sizeof(__u32)))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -125,12 +140,16 @@ static long ioctl_stop(struct fsl_hv_ioctl_stop __user *p)
 
 	/* Get the parameters from the user */
 	if (copy_from_user(&param, p, sizeof(struct fsl_hv_ioctl_stop)))
+	{
 		return -EFAULT;
+	}
 
 	param.ret = fh_partition_stop(param.partition);
 
 	if (copy_to_user(&p->ret, &param.ret, sizeof(__u32)))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -163,7 +182,9 @@ static long ioctl_memcpy(struct fsl_hv_ioctl_memcpy __user *p)
 
 	/* Get the parameters from the user */
 	if (copy_from_user(&param, p, sizeof(struct fsl_hv_ioctl_memcpy)))
+	{
 		return -EFAULT;
+	}
 
 	/*
 	 * One partition must be local, the other must be remote.  In other
@@ -171,7 +192,9 @@ static long ioctl_memcpy(struct fsl_hv_ioctl_memcpy __user *p)
 	 * return an error.
 	 */
 	if ((param.source == -1) == (param.target == -1))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * The array of pages returned by get_user_pages() covers only
@@ -224,7 +247,9 @@ static long ioctl_memcpy(struct fsl_hv_ioctl_memcpy __user *p)
 	 * get_user_pages().
 	 */
 	pages = kzalloc(num_pages * sizeof(struct page *), GFP_KERNEL);
-	if (!pages) {
+
+	if (!pages)
+	{
 		pr_debug("fsl-hv: could not allocate page list\n");
 		return -ENOMEM;
 	}
@@ -234,22 +259,26 @@ static long ioctl_memcpy(struct fsl_hv_ioctl_memcpy __user *p)
 	 * hypervisor.
 	 */
 	sg_list_unaligned = kmalloc(num_pages * sizeof(struct fh_sg_list) +
-		sizeof(struct fh_sg_list) - 1, GFP_KERNEL);
-	if (!sg_list_unaligned) {
+								sizeof(struct fh_sg_list) - 1, GFP_KERNEL);
+
+	if (!sg_list_unaligned)
+	{
 		pr_debug("fsl-hv: could not allocate S/G list\n");
 		ret = -ENOMEM;
 		goto exit;
 	}
+
 	sg_list = PTR_ALIGN(sg_list_unaligned, sizeof(struct fh_sg_list));
 
 	/* Get the physical addresses of the source buffer */
 	down_read(&current->mm->mmap_sem);
 	num_pinned = get_user_pages(param.local_vaddr - lb_offset,
-		num_pages, (param.source == -1) ? 0 : FOLL_WRITE,
-		pages, NULL);
+								num_pages, (param.source == -1) ? 0 : FOLL_WRITE,
+								pages, NULL);
 	up_read(&current->mm->mmap_sem);
 
-	if (num_pinned != num_pages) {
+	if (num_pinned != num_pages)
+	{
 		/* get_user_pages() failed */
 		pr_debug("fsl-hv: could not lock source buffer\n");
 		ret = (num_pinned < 0) ? num_pinned : -EFAULT;
@@ -260,28 +289,37 @@ static long ioctl_memcpy(struct fsl_hv_ioctl_memcpy __user *p)
 	 * Build the fh_sg_list[] array.  The first page is special
 	 * because it's misaligned.
 	 */
-	if (param.source == -1) {
+	if (param.source == -1)
+	{
 		sg_list[0].source = page_to_phys(pages[0]) + lb_offset;
 		sg_list[0].target = param.remote_paddr;
-	} else {
+	}
+	else
+	{
 		sg_list[0].source = param.remote_paddr;
 		sg_list[0].target = page_to_phys(pages[0]) + lb_offset;
 	}
+
 	sg_list[0].size = min_t(uint64_t, param.count, PAGE_SIZE - lb_offset);
 
 	remote_paddr = param.remote_paddr + sg_list[0].size;
 	count = param.count - sg_list[0].size;
 
-	for (i = 1; i < num_pages; i++) {
-		if (param.source == -1) {
+	for (i = 1; i < num_pages; i++)
+	{
+		if (param.source == -1)
+		{
 			/* local to remote */
 			sg_list[i].source = page_to_phys(pages[i]);
 			sg_list[i].target = remote_paddr;
-		} else {
+		}
+		else
+		{
 			/* remote to local */
 			sg_list[i].source = remote_paddr;
 			sg_list[i].target = page_to_phys(pages[i]);
 		}
+
 		sg_list[i].size = min_t(uint64_t, count, PAGE_SIZE);
 
 		remote_paddr += sg_list[i].size;
@@ -289,13 +327,17 @@ static long ioctl_memcpy(struct fsl_hv_ioctl_memcpy __user *p)
 	}
 
 	param.ret = fh_partition_memcpy(param.source, param.target,
-		virt_to_phys(sg_list), num_pages);
+									virt_to_phys(sg_list), num_pages);
 
 exit:
-	if (pages) {
+
+	if (pages)
+	{
 		for (i = 0; i < num_pages; i++)
 			if (pages[i])
+			{
 				put_page(pages[i]);
+			}
 	}
 
 	kfree(sg_list_unaligned);
@@ -303,7 +345,9 @@ exit:
 
 	if (!ret)
 		if (copy_to_user(&p->ret, &param.ret, sizeof(__u32)))
+		{
 			return -EFAULT;
+		}
 
 	return ret;
 }
@@ -319,12 +363,16 @@ static long ioctl_doorbell(struct fsl_hv_ioctl_doorbell __user *p)
 
 	/* Get the parameters from the user. */
 	if (copy_from_user(&param, p, sizeof(struct fsl_hv_ioctl_doorbell)))
+	{
 		return -EFAULT;
+	}
 
 	param.ret = ev_doorbell_send(param.doorbell);
 
 	if (copy_to_user(&p->ret, &param.ret, sizeof(__u32)))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -340,56 +388,71 @@ static long ioctl_dtprop(struct fsl_hv_ioctl_prop __user *p, int set)
 
 	/* Get the parameters from the user. */
 	if (copy_from_user(&param, p, sizeof(struct fsl_hv_ioctl_prop)))
+	{
 		return -EFAULT;
+	}
 
 	upath = (char __user *)(uintptr_t)param.path;
 	upropname = (char __user *)(uintptr_t)param.propname;
 	upropval = (void __user *)(uintptr_t)param.propval;
 
 	path = strndup_user(upath, FH_DTPROP_MAX_PATHLEN);
-	if (IS_ERR(path)) {
+
+	if (IS_ERR(path))
+	{
 		ret = PTR_ERR(path);
 		goto out;
 	}
 
 	propname = strndup_user(upropname, FH_DTPROP_MAX_PATHLEN);
-	if (IS_ERR(propname)) {
+
+	if (IS_ERR(propname))
+	{
 		ret = PTR_ERR(propname);
 		goto out;
 	}
 
-	if (param.proplen > FH_DTPROP_MAX_PROPLEN) {
+	if (param.proplen > FH_DTPROP_MAX_PROPLEN)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
 	propval = kmalloc(param.proplen, GFP_KERNEL);
-	if (!propval) {
+
+	if (!propval)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
-	if (set) {
-		if (copy_from_user(propval, upropval, param.proplen)) {
+	if (set)
+	{
+		if (copy_from_user(propval, upropval, param.proplen))
+		{
 			ret = -EFAULT;
 			goto out;
 		}
 
 		param.ret = fh_partition_set_dtprop(param.handle,
-						    virt_to_phys(path),
-						    virt_to_phys(propname),
-						    virt_to_phys(propval),
-						    param.proplen);
-	} else {
+											virt_to_phys(path),
+											virt_to_phys(propname),
+											virt_to_phys(propval),
+											param.proplen);
+	}
+	else
+	{
 		param.ret = fh_partition_get_dtprop(param.handle,
-						    virt_to_phys(path),
-						    virt_to_phys(propname),
-						    virt_to_phys(propval),
-						    &param.proplen);
+											virt_to_phys(path),
+											virt_to_phys(propname),
+											virt_to_phys(propval),
+											&param.proplen);
 
-		if (param.ret == 0) {
+		if (param.ret == 0)
+		{
 			if (copy_to_user(upropval, propval, param.proplen) ||
-			    put_user(param.proplen, &p->proplen)) {
+				put_user(param.proplen, &p->proplen))
+			{
 				ret = -EFAULT;
 				goto out;
 			}
@@ -397,7 +460,9 @@ static long ioctl_dtprop(struct fsl_hv_ioctl_prop __user *p, int set)
 	}
 
 	if (put_user(param.ret, &p->ret))
+	{
 		ret = -EFAULT;
+	}
 
 out:
 	kfree(path);
@@ -411,41 +476,50 @@ out:
  * Ioctl main entry point
  */
 static long fsl_hv_ioctl(struct file *file, unsigned int cmd,
-			 unsigned long argaddr)
+						 unsigned long argaddr)
 {
 	void __user *arg = (void __user *)argaddr;
 	long ret;
 
-	switch (cmd) {
-	case FSL_HV_IOCTL_PARTITION_RESTART:
-		ret = ioctl_restart(arg);
-		break;
-	case FSL_HV_IOCTL_PARTITION_GET_STATUS:
-		ret = ioctl_status(arg);
-		break;
-	case FSL_HV_IOCTL_PARTITION_START:
-		ret = ioctl_start(arg);
-		break;
-	case FSL_HV_IOCTL_PARTITION_STOP:
-		ret = ioctl_stop(arg);
-		break;
-	case FSL_HV_IOCTL_MEMCPY:
-		ret = ioctl_memcpy(arg);
-		break;
-	case FSL_HV_IOCTL_DOORBELL:
-		ret = ioctl_doorbell(arg);
-		break;
-	case FSL_HV_IOCTL_GETPROP:
-		ret = ioctl_dtprop(arg, 0);
-		break;
-	case FSL_HV_IOCTL_SETPROP:
-		ret = ioctl_dtprop(arg, 1);
-		break;
-	default:
-		pr_debug("fsl-hv: bad ioctl dir=%u type=%u cmd=%u size=%u\n",
-			 _IOC_DIR(cmd), _IOC_TYPE(cmd), _IOC_NR(cmd),
-			 _IOC_SIZE(cmd));
-		return -ENOTTY;
+	switch (cmd)
+	{
+		case FSL_HV_IOCTL_PARTITION_RESTART:
+			ret = ioctl_restart(arg);
+			break;
+
+		case FSL_HV_IOCTL_PARTITION_GET_STATUS:
+			ret = ioctl_status(arg);
+			break;
+
+		case FSL_HV_IOCTL_PARTITION_START:
+			ret = ioctl_start(arg);
+			break;
+
+		case FSL_HV_IOCTL_PARTITION_STOP:
+			ret = ioctl_stop(arg);
+			break;
+
+		case FSL_HV_IOCTL_MEMCPY:
+			ret = ioctl_memcpy(arg);
+			break;
+
+		case FSL_HV_IOCTL_DOORBELL:
+			ret = ioctl_doorbell(arg);
+			break;
+
+		case FSL_HV_IOCTL_GETPROP:
+			ret = ioctl_dtprop(arg, 0);
+			break;
+
+		case FSL_HV_IOCTL_SETPROP:
+			ret = ioctl_dtprop(arg, 1);
+			break;
+
+		default:
+			pr_debug("fsl-hv: bad ioctl dir=%u type=%u cmd=%u size=%u\n",
+					 _IOC_DIR(cmd), _IOC_TYPE(cmd), _IOC_NR(cmd),
+					 _IOC_SIZE(cmd));
+			return -ENOTTY;
 	}
 
 	return ret;
@@ -464,7 +538,8 @@ static DEFINE_SPINLOCK(db_list_lock);
 #define nextp(x) (((x) + 1) & (QSIZE - 1))
 
 /* Per-open data structure */
-struct doorbell_queue {
+struct doorbell_queue
+{
 	struct list_head list;
 	spinlock_t lock;
 	wait_queue_head_t wait;
@@ -477,7 +552,8 @@ struct doorbell_queue {
 struct list_head isr_list;
 
 /* Per-ISR data structure */
-struct doorbell_isr {
+struct doorbell_isr
+{
 	struct list_head list;
 	unsigned int irq;
 	uint32_t doorbell;	/* The doorbell handle */
@@ -495,8 +571,10 @@ static void fsl_hv_queue_doorbell(uint32_t doorbell)
 	/* Prevent another core from modifying db_list */
 	spin_lock_irqsave(&db_list_lock, flags);
 
-	list_for_each_entry(dbq, &db_list, list) {
-		if (dbq->head != nextp(dbq->tail)) {
+	list_for_each_entry(dbq, &db_list, list)
+	{
+		if (dbq->head != nextp(dbq->tail))
+		{
 			dbq->q[dbq->tail] = doorbell;
 			/*
 			 * This memory barrier eliminates the need to grab
@@ -540,7 +618,7 @@ static irqreturn_t fsl_hv_state_change_thread(int irq, void *data)
 	struct doorbell_isr *dbisr = data;
 
 	blocking_notifier_call_chain(&failover_subscribers, dbisr->partition,
-				     NULL);
+								 NULL);
 
 	return IRQ_HANDLED;
 }
@@ -559,8 +637,11 @@ static irqreturn_t fsl_hv_state_change_isr(int irq, void *data)
 
 	/* Determine the new state, and if it's stopped, notify the clients. */
 	ret = fh_partition_get_status(dbisr->partition, &status);
+
 	if (!ret && (status == FH_PARTITION_STOPPED))
+	{
 		return IRQ_WAKE_THREAD;
+	}
 
 	return IRQ_HANDLED;
 }
@@ -592,7 +673,7 @@ static unsigned int fsl_hv_poll(struct file *filp, struct poll_table_struct *p)
  * block until there is at least one handle to return.
  */
 static ssize_t fsl_hv_read(struct file *filp, char __user *buf, size_t len,
-			   loff_t *off)
+						   loff_t *off)
 {
 	struct doorbell_queue *dbq = filp->private_data;
 	uint32_t __user *p = (uint32_t __user *) buf; /* for put_user() */
@@ -600,7 +681,8 @@ static ssize_t fsl_hv_read(struct file *filp, char __user *buf, size_t len,
 	ssize_t count = 0;
 
 	/* Make sure we stop when the user buffer is full. */
-	while (len >= sizeof(uint32_t)) {
+	while (len >= sizeof(uint32_t))
+	{
 		uint32_t dbell;	/* Local copy of doorbell queue data */
 
 		spin_lock_irqsave(&dbq->lock, flags);
@@ -610,15 +692,26 @@ static ssize_t fsl_hv_read(struct file *filp, char __user *buf, size_t len,
 		 * to block.  If the application specified O_NONBLOCK, then
 		 * we return the appropriate error code.
 		 */
-		if (dbq->head == dbq->tail) {
+		if (dbq->head == dbq->tail)
+		{
 			spin_unlock_irqrestore(&dbq->lock, flags);
+
 			if (count)
+			{
 				break;
+			}
+
 			if (filp->f_flags & O_NONBLOCK)
+			{
 				return -EAGAIN;
+			}
+
 			if (wait_event_interruptible(dbq->wait,
-						     dbq->head != dbq->tail))
+										 dbq->head != dbq->tail))
+			{
 				return -ERESTARTSYS;
+			}
+
 			continue;
 		}
 
@@ -641,7 +734,10 @@ static ssize_t fsl_hv_read(struct file *filp, char __user *buf, size_t len,
 		spin_unlock_irqrestore(&dbq->lock, flags);
 
 		if (put_user(dbell, p))
+		{
 			return -EFAULT;
+		}
+
 		p++;
 		count += sizeof(uint32_t);
 		len -= sizeof(uint32_t);
@@ -663,7 +759,9 @@ static int fsl_hv_open(struct inode *inode, struct file *filp)
 	int ret = 0;
 
 	dbq = kzalloc(sizeof(struct doorbell_queue), GFP_KERNEL);
-	if (!dbq) {
+
+	if (!dbq)
+	{
 		pr_err("fsl-hv: out of memory\n");
 		return -ENOMEM;
 	}
@@ -699,7 +797,8 @@ static int fsl_hv_close(struct inode *inode, struct file *filp)
 	return ret;
 }
 
-static const struct file_operations fsl_hv_fops = {
+static const struct file_operations fsl_hv_fops =
+{
 	.owner = THIS_MODULE,
 	.open = fsl_hv_open,
 	.release = fsl_hv_close,
@@ -709,7 +808,8 @@ static const struct file_operations fsl_hv_fops = {
 	.compat_ioctl = fsl_hv_ioctl,
 };
 
-static struct miscdevice fsl_hv_misc_dev = {
+static struct miscdevice fsl_hv_misc_dev =
+{
 	MISC_DYNAMIC_MINOR,
 	"fsl-hv",
 	&fsl_hv_fops
@@ -735,19 +835,26 @@ static int get_parent_handle(struct device_node *np)
 	int len;
 
 	parent = of_get_parent(np);
+
 	if (!parent)
 		/* It's not really possible for this to fail */
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * The proper name for the handle property is "hv-handle", but some
 	 * older versions of the hypervisor used "reg".
 	 */
 	prop = of_get_property(parent, "hv-handle", &len);
-	if (!prop)
-		prop = of_get_property(parent, "reg", &len);
 
-	if (!prop || (len != sizeof(uint32_t))) {
+	if (!prop)
+	{
+		prop = of_get_property(parent, "reg", &len);
+	}
+
+	if (!prop || (len != sizeof(uint32_t)))
+	{
 		/* This can happen only if the node is malformed */
 		of_node_put(parent);
 		return -ENODEV;
@@ -797,8 +904,11 @@ static int has_fsl_hypervisor(void)
 	int ret;
 
 	node = of_find_node_by_path("/hypervisor");
+
 	if (!node)
+	{
 		return 0;
+	}
 
 	ret = of_find_property(node, "fsl,hv-version", NULL) != NULL;
 
@@ -823,13 +933,16 @@ static int __init fsl_hypervisor_init(void)
 
 	pr_info("Freescale hypervisor management driver\n");
 
-	if (!has_fsl_hypervisor()) {
+	if (!has_fsl_hypervisor())
+	{
 		pr_info("fsl-hv: no hypervisor found\n");
 		return -ENODEV;
 	}
 
 	ret = misc_register(&fsl_hv_misc_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("fsl-hv: cannot register device\n");
 		return ret;
 	}
@@ -837,31 +950,40 @@ static int __init fsl_hypervisor_init(void)
 	INIT_LIST_HEAD(&db_list);
 	INIT_LIST_HEAD(&isr_list);
 
-	for_each_compatible_node(np, NULL, "epapr,hv-receive-doorbell") {
+	for_each_compatible_node(np, NULL, "epapr,hv-receive-doorbell")
+	{
 		unsigned int irq;
 		const uint32_t *handle;
 
 		handle = of_get_property(np, "interrupts", NULL);
 		irq = irq_of_parse_and_map(np, 0);
-		if (!handle || (irq == NO_IRQ)) {
+
+		if (!handle || (irq == NO_IRQ))
+		{
 			pr_err("fsl-hv: no 'interrupts' property in %s node\n",
-				np->full_name);
+				   np->full_name);
 			continue;
 		}
 
 		dbisr = kzalloc(sizeof(*dbisr), GFP_KERNEL);
+
 		if (!dbisr)
+		{
 			goto out_of_memory;
+		}
 
 		dbisr->irq = irq;
 		dbisr->doorbell = be32_to_cpup(handle);
 
-		if (of_device_is_compatible(np, "fsl,hv-shutdown-doorbell")) {
+		if (of_device_is_compatible(np, "fsl,hv-shutdown-doorbell"))
+		{
 			/* The shutdown doorbell gets its own ISR */
 			ret = request_irq(irq, fsl_hv_shutdown_isr, 0,
-					  np->name, NULL);
-		} else if (of_device_is_compatible(np,
-			"fsl,hv-state-change-doorbell")) {
+							  np->name, NULL);
+		}
+		else if (of_device_is_compatible(np,
+										 "fsl,hv-state-change-doorbell"))
+		{
 			/*
 			 * The state change doorbell triggers a notification if
 			 * the state of the managed partition changes to
@@ -871,21 +993,28 @@ static int __init fsl_hypervisor_init(void)
 			 * doorbell.
 			 */
 			dbisr->partition = ret = get_parent_handle(np);
-			if (ret < 0) {
+
+			if (ret < 0)
+			{
 				pr_err("fsl-hv: node %s has missing or "
-				       "malformed parent\n", np->full_name);
+					   "malformed parent\n", np->full_name);
 				kfree(dbisr);
 				continue;
 			}
-			ret = request_threaded_irq(irq, fsl_hv_state_change_isr,
-						   fsl_hv_state_change_thread,
-						   0, np->name, dbisr);
-		} else
-			ret = request_irq(irq, fsl_hv_isr, 0, np->name, dbisr);
 
-		if (ret < 0) {
+			ret = request_threaded_irq(irq, fsl_hv_state_change_isr,
+									   fsl_hv_state_change_thread,
+									   0, np->name, dbisr);
+		}
+		else
+		{
+			ret = request_irq(irq, fsl_hv_isr, 0, np->name, dbisr);
+		}
+
+		if (ret < 0)
+		{
 			pr_err("fsl-hv: could not request irq %u for node %s\n",
-			       irq, np->full_name);
+				   irq, np->full_name);
 			kfree(dbisr);
 			continue;
 		}
@@ -893,13 +1022,14 @@ static int __init fsl_hypervisor_init(void)
 		list_add(&dbisr->list, &isr_list);
 
 		pr_info("fsl-hv: registered handler for doorbell %u\n",
-			dbisr->doorbell);
+				dbisr->doorbell);
 	}
 
 	return 0;
 
 out_of_memory:
-	list_for_each_entry_safe(dbisr, n, &isr_list, list) {
+	list_for_each_entry_safe(dbisr, n, &isr_list, list)
+	{
 		free_irq(dbisr->irq, dbisr);
 		list_del(&dbisr->list);
 		kfree(dbisr);
@@ -919,7 +1049,8 @@ static void __exit fsl_hypervisor_exit(void)
 {
 	struct doorbell_isr *dbisr, *n;
 
-	list_for_each_entry_safe(dbisr, n, &isr_list, list) {
+	list_for_each_entry_safe(dbisr, n, &isr_list, list)
+	{
 		free_irq(dbisr->irq, dbisr);
 		list_del(&dbisr->list);
 		kfree(dbisr);

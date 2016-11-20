@@ -46,9 +46,13 @@ xfs_cui_item_free(
 	struct xfs_cui_log_item	*cuip)
 {
 	if (cuip->cui_format.cui_nextents > XFS_CUI_MAX_FAST_EXTENTS)
+	{
 		kmem_free(cuip);
+	}
 	else
+	{
 		kmem_zone_free(xfs_cui_zone, cuip);
+	}
 }
 
 STATIC void
@@ -79,13 +83,13 @@ xfs_cui_item_format(
 	struct xfs_log_iovec	*vecp = NULL;
 
 	ASSERT(atomic_read(&cuip->cui_next_extent) ==
-			cuip->cui_format.cui_nextents);
+		   cuip->cui_format.cui_nextents);
 
 	cuip->cui_format.cui_type = XFS_LI_CUI;
 	cuip->cui_format.cui_size = 1;
 
 	xlog_copy_iovec(lv, &vecp, XLOG_REG_TYPE_CUI_FORMAT, &cuip->cui_format,
-			xfs_cui_log_format_sizeof(cuip->cui_format.cui_nextents));
+					xfs_cui_log_format_sizeof(cuip->cui_format.cui_nextents));
 }
 
 /*
@@ -140,7 +144,9 @@ xfs_cui_item_unlock(
 	struct xfs_log_item	*lip)
 {
 	if (lip->li_flags & XFS_LI_ABORTED)
+	{
 		xfs_cui_item_free(CUI_ITEM(lip));
+	}
 }
 
 /*
@@ -172,7 +178,8 @@ xfs_cui_item_committing(
 /*
  * This is the ops vector shared by all cui log items.
  */
-static const struct xfs_item_ops xfs_cui_item_ops = {
+static const struct xfs_item_ops xfs_cui_item_ops =
+{
 	.iop_size	= xfs_cui_item_size,
 	.iop_format	= xfs_cui_item_format,
 	.iop_pin	= xfs_cui_item_pin,
@@ -195,11 +202,14 @@ xfs_cui_init(
 	struct xfs_cui_log_item		*cuip;
 
 	ASSERT(nextents > 0);
+
 	if (nextents > XFS_CUI_MAX_FAST_EXTENTS)
 		cuip = kmem_zalloc(xfs_cui_log_item_sizeof(nextents),
-				KM_SLEEP);
+						   KM_SLEEP);
 	else
+	{
 		cuip = kmem_zone_zalloc(xfs_cui_zone, KM_SLEEP);
+	}
 
 	xfs_log_item_init(mp, &cuip->cui_item, XFS_LI_CUI, &xfs_cui_item_ops);
 	cuip->cui_format.cui_nextents = nextents;
@@ -221,7 +231,8 @@ void
 xfs_cui_release(
 	struct xfs_cui_log_item	*cuip)
 {
-	if (atomic_dec_and_test(&cuip->cui_refcount)) {
+	if (atomic_dec_and_test(&cuip->cui_refcount))
+	{
 		xfs_trans_ail_remove(&cuip->cui_item, SHUTDOWN_LOG_IO_ERROR);
 		xfs_cui_item_free(cuip);
 	}
@@ -261,7 +272,7 @@ xfs_cud_item_format(
 	cudp->cud_format.cud_size = 1;
 
 	xlog_copy_iovec(lv, &vecp, XLOG_REG_TYPE_CUD_FORMAT, &cudp->cud_format,
-			sizeof(struct xfs_cud_log_format));
+					sizeof(struct xfs_cud_log_format));
 }
 
 /*
@@ -307,7 +318,8 @@ xfs_cud_item_unlock(
 {
 	struct xfs_cud_log_item	*cudp = CUD_ITEM(lip);
 
-	if (lip->li_flags & XFS_LI_ABORTED) {
+	if (lip->li_flags & XFS_LI_ABORTED)
+	{
 		xfs_cui_release(cudp->cud_cuip);
 		kmem_zone_free(xfs_cud_zone, cudp);
 	}
@@ -335,7 +347,7 @@ xfs_cud_item_committed(
 	xfs_cui_release(cudp->cud_cuip);
 	kmem_zone_free(xfs_cud_zone, cudp);
 
-	return (xfs_lsn_t)-1;
+	return (xfs_lsn_t) - 1;
 }
 
 /*
@@ -355,7 +367,8 @@ xfs_cud_item_committing(
 /*
  * This is the ops vector shared by all cud log items.
  */
-static const struct xfs_item_ops xfs_cud_item_ops = {
+static const struct xfs_item_ops xfs_cud_item_ops =
+{
 	.iop_size	= xfs_cud_item_size,
 	.iop_format	= xfs_cud_item_format,
 	.iop_pin	= xfs_cud_item_pin,
@@ -418,26 +431,32 @@ xfs_cui_recover(
 	 * CUI.  If any are bad, then assume that all are bad and
 	 * just toss the CUI.
 	 */
-	for (i = 0; i < cuip->cui_format.cui_nextents; i++) {
+	for (i = 0; i < cuip->cui_format.cui_nextents; i++)
+	{
 		refc = &cuip->cui_format.cui_extents[i];
 		startblock_fsb = XFS_BB_TO_FSB(mp,
-				   XFS_FSB_TO_DADDR(mp, refc->pe_startblock));
-		switch (refc->pe_flags & XFS_REFCOUNT_EXTENT_TYPE_MASK) {
-		case XFS_REFCOUNT_INCREASE:
-		case XFS_REFCOUNT_DECREASE:
-		case XFS_REFCOUNT_ALLOC_COW:
-		case XFS_REFCOUNT_FREE_COW:
-			op_ok = true;
-			break;
-		default:
-			op_ok = false;
-			break;
+									   XFS_FSB_TO_DADDR(mp, refc->pe_startblock));
+
+		switch (refc->pe_flags & XFS_REFCOUNT_EXTENT_TYPE_MASK)
+		{
+			case XFS_REFCOUNT_INCREASE:
+			case XFS_REFCOUNT_DECREASE:
+			case XFS_REFCOUNT_ALLOC_COW:
+			case XFS_REFCOUNT_FREE_COW:
+				op_ok = true;
+				break;
+
+			default:
+				op_ok = false;
+				break;
 		}
+
 		if (!op_ok || startblock_fsb == 0 ||
-		    refc->pe_len == 0 ||
-		    startblock_fsb >= mp->m_sb.sb_dblocks ||
-		    refc->pe_len >= mp->m_sb.sb_agblocks ||
-		    (refc->pe_flags & ~XFS_REFCOUNT_EXTENT_FLAGS)) {
+			refc->pe_len == 0 ||
+			startblock_fsb >= mp->m_sb.sb_dblocks ||
+			refc->pe_len >= mp->m_sb.sb_agblocks ||
+			(refc->pe_flags & ~XFS_REFCOUNT_EXTENT_FLAGS))
+		{
 			/*
 			 * This will pull the CUI from the AIL and
 			 * free the memory associated with it.
@@ -460,73 +479,103 @@ xfs_cui_recover(
 	 * work that doesn't fit.
 	 */
 	error = xfs_trans_alloc(mp, &M_RES(mp)->tr_itruncate, 0, 0, 0, &tp);
+
 	if (error)
+	{
 		return error;
+	}
+
 	cudp = xfs_trans_get_cud(tp, cuip);
 
 	xfs_defer_init(&dfops, &firstfsb);
-	for (i = 0; i < cuip->cui_format.cui_nextents; i++) {
+
+	for (i = 0; i < cuip->cui_format.cui_nextents; i++)
+	{
 		refc = &cuip->cui_format.cui_extents[i];
 		refc_type = refc->pe_flags & XFS_REFCOUNT_EXTENT_TYPE_MASK;
-		switch (refc_type) {
-		case XFS_REFCOUNT_INCREASE:
-		case XFS_REFCOUNT_DECREASE:
-		case XFS_REFCOUNT_ALLOC_COW:
-		case XFS_REFCOUNT_FREE_COW:
-			type = refc_type;
-			break;
-		default:
-			error = -EFSCORRUPTED;
-			goto abort_error;
+
+		switch (refc_type)
+		{
+			case XFS_REFCOUNT_INCREASE:
+			case XFS_REFCOUNT_DECREASE:
+			case XFS_REFCOUNT_ALLOC_COW:
+			case XFS_REFCOUNT_FREE_COW:
+				type = refc_type;
+				break;
+
+			default:
+				error = -EFSCORRUPTED;
+				goto abort_error;
 		}
-		if (requeue_only) {
+
+		if (requeue_only)
+		{
 			new_fsb = refc->pe_startblock;
 			new_len = refc->pe_len;
-		} else
+		}
+		else
 			error = xfs_trans_log_finish_refcount_update(tp, cudp,
-				&dfops, type, refc->pe_startblock, refc->pe_len,
-				&new_fsb, &new_len, &rcur);
+					&dfops, type, refc->pe_startblock, refc->pe_len,
+					&new_fsb, &new_len, &rcur);
+
 		if (error)
+		{
 			goto abort_error;
+		}
 
 		/* Requeue what we didn't finish. */
-		if (new_len > 0) {
+		if (new_len > 0)
+		{
 			irec.br_startblock = new_fsb;
 			irec.br_blockcount = new_len;
-			switch (type) {
-			case XFS_REFCOUNT_INCREASE:
-				error = xfs_refcount_increase_extent(
-						tp->t_mountp, &dfops, &irec);
-				break;
-			case XFS_REFCOUNT_DECREASE:
-				error = xfs_refcount_decrease_extent(
-						tp->t_mountp, &dfops, &irec);
-				break;
-			case XFS_REFCOUNT_ALLOC_COW:
-				error = xfs_refcount_alloc_cow_extent(
-						tp->t_mountp, &dfops,
-						irec.br_startblock,
-						irec.br_blockcount);
-				break;
-			case XFS_REFCOUNT_FREE_COW:
-				error = xfs_refcount_free_cow_extent(
-						tp->t_mountp, &dfops,
-						irec.br_startblock,
-						irec.br_blockcount);
-				break;
-			default:
-				ASSERT(0);
+
+			switch (type)
+			{
+				case XFS_REFCOUNT_INCREASE:
+					error = xfs_refcount_increase_extent(
+								tp->t_mountp, &dfops, &irec);
+					break;
+
+				case XFS_REFCOUNT_DECREASE:
+					error = xfs_refcount_decrease_extent(
+								tp->t_mountp, &dfops, &irec);
+					break;
+
+				case XFS_REFCOUNT_ALLOC_COW:
+					error = xfs_refcount_alloc_cow_extent(
+								tp->t_mountp, &dfops,
+								irec.br_startblock,
+								irec.br_blockcount);
+					break;
+
+				case XFS_REFCOUNT_FREE_COW:
+					error = xfs_refcount_free_cow_extent(
+								tp->t_mountp, &dfops,
+								irec.br_startblock,
+								irec.br_blockcount);
+					break;
+
+				default:
+					ASSERT(0);
 			}
+
 			if (error)
+			{
 				goto abort_error;
+			}
+
 			requeue_only = true;
 		}
 	}
 
 	xfs_refcount_finish_one_cleanup(tp, rcur, error);
 	error = xfs_defer_finish(&tp, &dfops, NULL);
+
 	if (error)
+	{
 		goto abort_error;
+	}
+
 	set_bit(XFS_CUI_RECOVERED, &cuip->cui_flags);
 	error = xfs_trans_commit(tp);
 	return error;

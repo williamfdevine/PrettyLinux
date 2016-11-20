@@ -27,7 +27,8 @@
 #include <nvif/class.h>
 
 static const struct nv50_disp_mthd_list
-g84_disp_base_mthd_base = {
+	g84_disp_base_mthd_base =
+{
 	.mthd = 0x0000,
 	.addr = 0x000000,
 	.data = {
@@ -57,7 +58,8 @@ g84_disp_base_mthd_base = {
 };
 
 const struct nv50_disp_chan_mthd
-g84_disp_base_chan_mthd = {
+	g84_disp_base_chan_mthd =
+{
 	.name = "Base",
 	.addr = 0x000540,
 	.prev = 0x000004,
@@ -69,7 +71,8 @@ g84_disp_base_chan_mthd = {
 };
 
 const struct nv50_disp_dmac_oclass
-g84_disp_base_oclass = {
+	g84_disp_base_oclass =
+{
 	.base.oclass = G82_DISP_BASE_CHANNEL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

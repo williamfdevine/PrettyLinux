@@ -21,20 +21,20 @@ struct device;
 struct mtk_disp_mutex;
 
 void mtk_ddp_add_comp_to_path(void __iomem *config_regs,
-			      enum mtk_ddp_comp_id cur,
-			      enum mtk_ddp_comp_id next);
+							  enum mtk_ddp_comp_id cur,
+							  enum mtk_ddp_comp_id next);
 void mtk_ddp_remove_comp_from_path(void __iomem *config_regs,
-				   enum mtk_ddp_comp_id cur,
-				   enum mtk_ddp_comp_id next);
+								   enum mtk_ddp_comp_id cur,
+								   enum mtk_ddp_comp_id next);
 
 struct mtk_disp_mutex *mtk_disp_mutex_get(struct device *dev, unsigned int id);
 int mtk_disp_mutex_prepare(struct mtk_disp_mutex *mutex);
 void mtk_disp_mutex_add_comp(struct mtk_disp_mutex *mutex,
-			     enum mtk_ddp_comp_id id);
+							 enum mtk_ddp_comp_id id);
 void mtk_disp_mutex_enable(struct mtk_disp_mutex *mutex);
 void mtk_disp_mutex_disable(struct mtk_disp_mutex *mutex);
 void mtk_disp_mutex_remove_comp(struct mtk_disp_mutex *mutex,
-				enum mtk_ddp_comp_id id);
+								enum mtk_ddp_comp_id id);
 void mtk_disp_mutex_unprepare(struct mtk_disp_mutex *mutex);
 void mtk_disp_mutex_put(struct mtk_disp_mutex *mutex);
 

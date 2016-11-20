@@ -9,13 +9,14 @@
 #define __KEYPAD_OMAP_H
 
 #ifndef CONFIG_ARCH_OMAP1
-#warning Please update the board to use matrix-keypad driver
-#define omap_readw(reg)		0
-#define omap_writew(val, reg)	do {} while (0)
+	#warning Please update the board to use matrix-keypad driver
+	#define omap_readw(reg)		0
+	#define omap_writew(val, reg)	do {} while (0)
 #endif
 #include <linux/input/matrix_keypad.h>
 
-struct omap_kp_platform_data {
+struct omap_kp_platform_data
+{
 	int rows;
 	int cols;
 	const struct matrix_keymap_data *keymap_data;
@@ -42,7 +43,7 @@ struct omap_kp_platform_data {
 #define GROUP_3		(3 << GROUP_SHIFT)
 #define GROUP_MASK	GROUP_3
 #if KEY_MAX & GROUP_MASK
-#error Group bits in conflict with keynum bits
+	#error Group bits in conflict with keynum bits
 #endif
 
 

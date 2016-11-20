@@ -13,10 +13,12 @@
 #include "sm_common.h"
 
 static int oob_sm_ooblayout_ecc(struct mtd_info *mtd, int section,
-				struct mtd_oob_region *oobregion)
+								struct mtd_oob_region *oobregion)
 {
 	if (section > 1)
+	{
 		return -ERANGE;
+	}
 
 	oobregion->length = 3;
 	oobregion->offset = ((section + 1) * 8) - 3;
@@ -25,32 +27,37 @@ static int oob_sm_ooblayout_ecc(struct mtd_info *mtd, int section,
 }
 
 static int oob_sm_ooblayout_free(struct mtd_info *mtd, int section,
-				 struct mtd_oob_region *oobregion)
+								 struct mtd_oob_region *oobregion)
 {
-	switch (section) {
-	case 0:
-		/* reserved */
-		oobregion->offset = 0;
-		oobregion->length = 4;
-		break;
-	case 1:
-		/* LBA1 */
-		oobregion->offset = 6;
-		oobregion->length = 2;
-		break;
-	case 2:
-		/* LBA2 */
-		oobregion->offset = 11;
-		oobregion->length = 2;
-		break;
-	default:
-		return -ERANGE;
+	switch (section)
+	{
+		case 0:
+			/* reserved */
+			oobregion->offset = 0;
+			oobregion->length = 4;
+			break;
+
+		case 1:
+			/* LBA1 */
+			oobregion->offset = 6;
+			oobregion->length = 2;
+			break;
+
+		case 2:
+			/* LBA2 */
+			oobregion->offset = 11;
+			oobregion->length = 2;
+			break;
+
+		default:
+			return -ERANGE;
 	}
 
 	return 0;
 }
 
-static const struct mtd_ooblayout_ops oob_sm_ops = {
+static const struct mtd_ooblayout_ops oob_sm_ops =
+{
 	.ecc = oob_sm_ooblayout_ecc,
 	.free = oob_sm_ooblayout_free,
 };
@@ -62,10 +69,12 @@ static const struct mtd_ooblayout_ops oob_sm_ops = {
 /* If you not, then you break SmartMedia compliance anyway */
 
 static int oob_sm_small_ooblayout_ecc(struct mtd_info *mtd, int section,
-				      struct mtd_oob_region *oobregion)
+									  struct mtd_oob_region *oobregion)
 {
 	if (section)
+	{
 		return -ERANGE;
+	}
 
 	oobregion->length = 3;
 	oobregion->offset = 0;
@@ -74,27 +83,31 @@ static int oob_sm_small_ooblayout_ecc(struct mtd_info *mtd, int section,
 }
 
 static int oob_sm_small_ooblayout_free(struct mtd_info *mtd, int section,
-				       struct mtd_oob_region *oobregion)
+									   struct mtd_oob_region *oobregion)
 {
-	switch (section) {
-	case 0:
-		/* reserved */
-		oobregion->offset = 3;
-		oobregion->length = 2;
-		break;
-	case 1:
-		/* LBA1 */
-		oobregion->offset = 6;
-		oobregion->length = 2;
-		break;
-	default:
-		return -ERANGE;
+	switch (section)
+	{
+		case 0:
+			/* reserved */
+			oobregion->offset = 3;
+			oobregion->length = 2;
+			break;
+
+		case 1:
+			/* LBA1 */
+			oobregion->offset = 6;
+			oobregion->length = 2;
+			break;
+
+		default:
+			return -ERANGE;
 	}
 
 	return 0;
 }
 
-static const struct mtd_ooblayout_ops oob_sm_small_ops = {
+static const struct mtd_ooblayout_ops oob_sm_small_ops =
+{
 	.ecc = oob_sm_small_ooblayout_ecc,
 	.free = oob_sm_small_ooblayout_free,
 };
@@ -118,17 +131,20 @@ static int sm_block_markbad(struct mtd_info *mtd, loff_t ofs)
 
 
 	ret = mtd_write_oob(mtd, ofs, &ops);
-	if (ret < 0 || ops.oobretlen != SM_OOB_SIZE) {
+
+	if (ret < 0 || ops.oobretlen != SM_OOB_SIZE)
+	{
 		printk(KERN_NOTICE
-			"sm_common: can't mark sector at %i as bad\n",
-								(int)ofs);
+			   "sm_common: can't mark sector at %i as bad\n",
+			   (int)ofs);
 		return -EIO;
 	}
 
 	return 0;
 }
 
-static struct nand_flash_dev nand_smartmedia_flash_ids[] = {
+static struct nand_flash_dev nand_smartmedia_flash_ids[] =
+{
 	LEGACY_ID_NAND("SmartMedia 2MiB 3,3V ROM",   0x5d, 2,   SZ_8K, NAND_ROM),
 	LEGACY_ID_NAND("SmartMedia 4MiB 3,3V",       0xe3, 4,   SZ_8K, 0),
 	LEGACY_ID_NAND("SmartMedia 4MiB 3,3/5V",     0xe5, 4,   SZ_8K, 0),
@@ -149,7 +165,8 @@ static struct nand_flash_dev nand_smartmedia_flash_ids[] = {
 	{NULL}
 };
 
-static struct nand_flash_dev nand_xd_flash_ids[] = {
+static struct nand_flash_dev nand_xd_flash_ids[] =
+{
 	LEGACY_ID_NAND("xD 16MiB 3,3V",  0x73, 16,   SZ_16K, 0),
 	LEGACY_ID_NAND("xD 32MiB 3,3V",  0x75, 32,   SZ_16K, 0),
 	LEGACY_ID_NAND("xD 64MiB 3,3V",  0x76, 64,   SZ_16K, 0),
@@ -170,10 +187,12 @@ int sm_register_device(struct mtd_info *mtd, int smartmedia)
 
 	/* Scan for card properties */
 	ret = nand_scan_ident(mtd, 1, smartmedia ?
-		nand_smartmedia_flash_ids : nand_xd_flash_ids);
+						  nand_smartmedia_flash_ids : nand_xd_flash_ids);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Bad block marker position */
 	chip->badblockpos = 0x05;
@@ -182,16 +201,24 @@ int sm_register_device(struct mtd_info *mtd, int smartmedia)
 
 	/* ECC layout */
 	if (mtd->writesize == SM_SECTOR_SIZE)
+	{
 		mtd_set_ooblayout(mtd, &oob_sm_ops);
+	}
 	else if (mtd->writesize == SM_SMALL_PAGE)
+	{
 		mtd_set_ooblayout(mtd, &oob_sm_small_ops);
+	}
 	else
+	{
 		return -ENODEV;
+	}
 
 	ret = nand_scan_tail(mtd);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return mtd_device_register(mtd, NULL, 0);
 }

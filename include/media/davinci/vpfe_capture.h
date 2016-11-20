@@ -39,30 +39,34 @@
 #define VPFE_MINOR_RELEASE              0
 #define VPFE_BUILD                      1
 #define VPFE_CAPTURE_VERSION_CODE       ((VPFE_MAJOR_RELEASE << 16) | \
-					(VPFE_MINOR_RELEASE << 8)  | \
-					VPFE_BUILD)
+		(VPFE_MINOR_RELEASE << 8)  | \
+		VPFE_BUILD)
 
 #define CAPTURE_DRV_NAME		"vpfe-capture"
 
-struct vpfe_pixel_format {
+struct vpfe_pixel_format
+{
 	struct v4l2_fmtdesc fmtdesc;
 	/* bytes per pixel */
 	int bpp;
 };
 
-struct vpfe_std_info {
+struct vpfe_std_info
+{
 	int active_pixels;
 	int active_lines;
 	/* current frame format */
 	int frame_format;
 };
 
-struct vpfe_route {
+struct vpfe_route
+{
 	u32 input;
 	u32 output;
 };
 
-struct vpfe_subdev_info {
+struct vpfe_subdev_info
+{
 	/* Sub device name */
 	char name[32];
 	/* Sub device group id */
@@ -81,7 +85,8 @@ struct vpfe_subdev_info {
 	struct i2c_board_info board_info;
 };
 
-struct vpfe_config {
+struct vpfe_config
+{
 	/* Number of sub devices connected to vpfe */
 	int num_subdevs;
 	/* i2c bus adapter no */
@@ -99,7 +104,8 @@ struct vpfe_config {
 	void (*clr_intr)(int vdint);
 };
 
-struct vpfe_device {
+struct vpfe_device
+{
 	/* V4l2 specific parameters */
 	/* Identifies video device for this channel */
 	struct video_device video_dev;
@@ -172,14 +178,16 @@ struct vpfe_device {
 };
 
 /* File handle structure */
-struct vpfe_fh {
+struct vpfe_fh
+{
 	struct v4l2_fh fh;
 	struct vpfe_device *vpfe_dev;
 	/* Indicates whether this file handle is doing IO */
 	u8 io_allowed;
 };
 
-struct vpfe_config_params {
+struct vpfe_config_params
+{
 	u8 min_numbuffers;
 	u8 numbuffers;
 	u32 min_bufsize;
@@ -196,5 +204,5 @@ struct vpfe_config_params {
  * possibility of extending the v4l2 api to include this
  **/
 #define VPFE_CMD_S_CCDC_RAW_PARAMS _IOW('V', BASE_VIDIOC_PRIVATE + 1, \
-					void *)
+										void *)
 #endif				/* _DAVINCI_VPFE_H */

@@ -99,7 +99,8 @@ struct igb_adapter;
 #define IGB_I210_RX_LATENCY_100		2213
 #define IGB_I210_RX_LATENCY_1000	448
 
-struct vf_data_storage {
+struct vf_data_storage
+{
 	unsigned char vf_mac_addresses[ETH_ALEN];
 	u16 vf_mc_hashes[IGB_MAX_VF_MC_ENTRIES];
 	u16 num_vf_mc_hashes;
@@ -132,9 +133,9 @@ struct vf_data_storage {
 #define IGB_TX_PTHRESH	((hw->mac.type == e1000_i354) ? 20 : 8)
 #define IGB_TX_HTHRESH	1
 #define IGB_RX_WTHRESH	((hw->mac.type == e1000_82576 && \
-			  (adapter->flags & IGB_FLAG_HAS_MSIX)) ? 1 : 4)
+						  (adapter->flags & IGB_FLAG_HAS_MSIX)) ? 1 : 4)
 #define IGB_TX_WTHRESH	((hw->mac.type == e1000_82576 && \
-			  (adapter->flags & IGB_FLAG_HAS_MSIX)) ? 1 : 16)
+						  (adapter->flags & IGB_FLAG_HAS_MSIX)) ? 1 : 16)
 
 /* this is the size past which hardware will drop packets when setting LPE=0 */
 #define MAXIMUM_ETHERNET_VLAN_SIZE 1522
@@ -152,13 +153,14 @@ struct vf_data_storage {
 #define IGB_EEPROM_APME		0x0400
 
 #ifndef IGB_MASTER_SLAVE
-/* Switch to override PHY master/slave setting */
-#define IGB_MASTER_SLAVE	e1000_ms_hw_default
+	/* Switch to override PHY master/slave setting */
+	#define IGB_MASTER_SLAVE	e1000_ms_hw_default
 #endif
 
 #define IGB_MNG_VLAN_NONE	-1
 
-enum igb_tx_flags {
+enum igb_tx_flags
+{
 	/* cmd_type flags */
 	IGB_TX_FLAGS_VLAN	= 0x01,
 	IGB_TX_FLAGS_TSO	= 0x02,
@@ -194,7 +196,8 @@ enum igb_tx_flags {
 /* wrapper around a pointer to a socket buffer,
  * so a DMA handle can be stored along with the buffer
  */
-struct igb_tx_buffer {
+struct igb_tx_buffer
+{
 	union e1000_adv_tx_desc *next_to_watch;
 	unsigned long time_stamp;
 	struct sk_buff *skb;
@@ -207,20 +210,23 @@ struct igb_tx_buffer {
 	u32 tx_flags;
 };
 
-struct igb_rx_buffer {
+struct igb_rx_buffer
+{
 	dma_addr_t dma;
 	struct page *page;
 	unsigned int page_offset;
 };
 
-struct igb_tx_queue_stats {
+struct igb_tx_queue_stats
+{
 	u64 packets;
 	u64 bytes;
 	u64 restart_queue;
 	u64 restart_queue2;
 };
 
-struct igb_rx_queue_stats {
+struct igb_rx_queue_stats
+{
 	u64 packets;
 	u64 bytes;
 	u64 drops;
@@ -228,7 +234,8 @@ struct igb_rx_queue_stats {
 	u64 alloc_failed;
 };
 
-struct igb_ring_container {
+struct igb_ring_container
+{
 	struct igb_ring *ring;		/* pointer to linked list of rings */
 	unsigned int total_bytes;	/* total bytes processed this int */
 	unsigned int total_packets;	/* total packets processed this int */
@@ -237,11 +244,13 @@ struct igb_ring_container {
 	u8 itr;				/* current ITR setting for ring */
 };
 
-struct igb_ring {
+struct igb_ring
+{
 	struct igb_q_vector *q_vector;	/* backlink to q_vector */
 	struct net_device *netdev;	/* back pointer to net_device */
 	struct device *dev;		/* device pointer for dma mapping */
-	union {				/* array of buffer info structs */
+	union  				/* array of buffer info structs */
+	{
 		struct igb_tx_buffer *tx_buffer_info;
 		struct igb_rx_buffer *rx_buffer_info;
 	};
@@ -260,15 +269,18 @@ struct igb_ring {
 	u16 next_to_use;
 	u16 next_to_alloc;
 
-	union {
+	union
+	{
 		/* TX */
-		struct {
+		struct
+		{
 			struct igb_tx_queue_stats tx_stats;
 			struct u64_stats_sync tx_syncp;
 			struct u64_stats_sync tx_syncp2;
 		};
 		/* RX */
-		struct {
+		struct
+		{
 			struct sk_buff *skb;
 			struct igb_rx_queue_stats rx_stats;
 			struct u64_stats_sync rx_syncp;
@@ -276,7 +288,8 @@ struct igb_ring {
 	};
 } ____cacheline_internodealigned_in_smp;
 
-struct igb_q_vector {
+struct igb_q_vector
+{
 	struct igb_adapter *adapter;	/* backlink */
 	int cpu;			/* CPU for DCA */
 	u32 eims_value;			/* EIMS mask value */
@@ -295,7 +308,8 @@ struct igb_q_vector {
 	struct igb_ring ring[0] ____cacheline_internodealigned_in_smp;
 };
 
-enum e1000_ring_flags_t {
+enum e1000_ring_flags_t
+{
 	IGB_RING_FLAG_RX_SCTP_CSUM,
 	IGB_RING_FLAG_RX_LB_VLAN_BSWAP,
 	IGB_RING_FLAG_TX_CTX_IDX,
@@ -313,7 +327,7 @@ enum e1000_ring_flags_t {
 
 /* igb_test_staterr - tests bits within Rx descriptor status and error fields */
 static inline __le32 igb_test_staterr(union e1000_adv_rx_desc *rx_desc,
-				      const u32 stat_err_bits)
+									  const u32 stat_err_bits)
 {
 	return rx_desc->wb.upper.status_error & cpu_to_le32(stat_err_bits);
 }
@@ -322,7 +336,9 @@ static inline __le32 igb_test_staterr(union e1000_adv_rx_desc *rx_desc,
 static inline int igb_desc_unused(struct igb_ring *ring)
 {
 	if (ring->next_to_clean > ring->next_to_use)
+	{
 		return ring->next_to_clean - ring->next_to_use - 1;
+	}
 
 	return ring->count + ring->next_to_clean - ring->next_to_use - 1;
 }
@@ -334,20 +350,22 @@ static inline int igb_desc_unused(struct igb_ring *ring)
 #define IGB_HWMON_TYPE_CAUTION	2
 #define IGB_HWMON_TYPE_MAX	3
 
-struct hwmon_attr {
+struct hwmon_attr
+{
 	struct device_attribute dev_attr;
 	struct e1000_hw *hw;
 	struct e1000_thermal_diode_data *sensor;
 	char name[12];
-	};
+};
 
-struct hwmon_buff {
+struct hwmon_buff
+{
 	struct attribute_group group;
 	const struct attribute_group *groups[2];
 	struct attribute *attrs[E1000_MAX_SENSORS * 4 + 1];
 	struct hwmon_attr hwmon_list[E1000_MAX_SENSORS * 4];
 	unsigned int n_hwmon;
-	};
+};
 #endif
 
 /* The number of L2 ether-type filter registers, Index 3 is reserved
@@ -366,7 +384,8 @@ struct hwmon_buff {
 #define IGB_N_SDP	4
 #define IGB_RETA_SIZE	128
 
-enum igb_filter_match_flags {
+enum igb_filter_match_flags
+{
 	IGB_FILTER_FLAG_ETHER_TYPE = 0x1,
 	IGB_FILTER_FLAG_VLAN_TCI   = 0x2,
 };
@@ -374,7 +393,8 @@ enum igb_filter_match_flags {
 #define IGB_MAX_RXNFC_FILTERS 16
 
 /* RX network flow classification data structure */
-struct igb_nfc_input {
+struct igb_nfc_input
+{
 	/* Byte layout in order, all values with MSB first:
 	 * match_flags - 1 byte
 	 * etype - 2 bytes
@@ -385,7 +405,8 @@ struct igb_nfc_input {
 	__be16 vlan_tci;
 };
 
-struct igb_nfc_filter {
+struct igb_nfc_filter
+{
 	struct hlist_node nfc_node;
 	struct igb_nfc_input filter;
 	u16 etype_reg_index;
@@ -394,7 +415,8 @@ struct igb_nfc_filter {
 };
 
 /* board specific private data structure */
-struct igb_adapter {
+struct igb_adapter
+{
 	unsigned long active_vlans[BITS_TO_LONGS(VLAN_N_VID)];
 
 	struct net_device *netdev;
@@ -492,7 +514,8 @@ struct igb_adapter {
 	bool pps_sys_wrap_on;
 
 	struct ptp_pin_desc sdp_config[IGB_N_SDP];
-	struct {
+	struct
+	{
 		struct timespec64 start;
 		struct timespec64 period;
 	} perout[IGB_N_PEROUT];
@@ -554,14 +577,16 @@ struct igb_adapter {
 
 #define IGB_82576_TSYNC_SHIFT	19
 #define IGB_TS_HDR_LEN		16
-enum e1000_state_t {
+enum e1000_state_t
+{
 	__IGB_TESTING,
 	__IGB_RESETTING,
 	__IGB_DOWN,
 	__IGB_PTP_TX_IN_PROGRESS,
 };
 
-enum igb_boards {
+enum igb_boards
+{
 	board_82575,
 };
 
@@ -600,18 +625,20 @@ void igb_ptp_suspend(struct igb_adapter *adapter);
 void igb_ptp_rx_hang(struct igb_adapter *adapter);
 void igb_ptp_rx_rgtstamp(struct igb_q_vector *q_vector, struct sk_buff *skb);
 void igb_ptp_rx_pktstamp(struct igb_q_vector *q_vector, unsigned char *va,
-			 struct sk_buff *skb);
+						 struct sk_buff *skb);
 int igb_ptp_set_ts_config(struct net_device *netdev, struct ifreq *ifr);
 int igb_ptp_get_ts_config(struct net_device *netdev, struct ifreq *ifr);
 void igb_set_flag_queue_pairs(struct igb_adapter *, const u32);
 #ifdef CONFIG_IGB_HWMON
-void igb_sysfs_exit(struct igb_adapter *adapter);
-int igb_sysfs_init(struct igb_adapter *adapter);
+	void igb_sysfs_exit(struct igb_adapter *adapter);
+	int igb_sysfs_init(struct igb_adapter *adapter);
 #endif
 static inline s32 igb_reset_phy(struct e1000_hw *hw)
 {
 	if (hw->phy.ops.reset)
+	{
 		return hw->phy.ops.reset(hw);
+	}
 
 	return 0;
 }
@@ -619,7 +646,9 @@ static inline s32 igb_reset_phy(struct e1000_hw *hw)
 static inline s32 igb_read_phy_reg(struct e1000_hw *hw, u32 offset, u16 *data)
 {
 	if (hw->phy.ops.read_reg)
+	{
 		return hw->phy.ops.read_reg(hw, offset, data);
+	}
 
 	return 0;
 }
@@ -627,7 +656,9 @@ static inline s32 igb_read_phy_reg(struct e1000_hw *hw, u32 offset, u16 *data)
 static inline s32 igb_write_phy_reg(struct e1000_hw *hw, u32 offset, u16 data)
 {
 	if (hw->phy.ops.write_reg)
+	{
 		return hw->phy.ops.write_reg(hw, offset, data);
+	}
 
 	return 0;
 }
@@ -635,7 +666,9 @@ static inline s32 igb_write_phy_reg(struct e1000_hw *hw, u32 offset, u16 data)
 static inline s32 igb_get_phy_info(struct e1000_hw *hw)
 {
 	if (hw->phy.ops.get_phy_info)
+	{
 		return hw->phy.ops.get_phy_info(hw);
+	}
 
 	return 0;
 }
@@ -646,8 +679,8 @@ static inline struct netdev_queue *txring_txq(const struct igb_ring *tx_ring)
 }
 
 int igb_add_filter(struct igb_adapter *adapter,
-		   struct igb_nfc_filter *input);
+				   struct igb_nfc_filter *input);
 int igb_erase_filter(struct igb_adapter *adapter,
-		     struct igb_nfc_filter *input);
+					 struct igb_nfc_filter *input);
 
 #endif /* _IGB_H_ */

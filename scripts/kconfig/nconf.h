@@ -36,7 +36,8 @@
 		typeof(b) _b = b;\
 		_a < _b ? _a : _b; })
 
-typedef enum {
+typedef enum
+{
 	NORMAL = 1,
 	MAIN_HEADING,
 	MAIN_MENU_BOX,
@@ -61,7 +62,8 @@ typedef enum {
 } attributes_t;
 extern attributes_t attributes[];
 
-typedef enum {
+typedef enum
+{
 	F_HELP = 1,
 	F_SYMBOL = 2,
 	F_INSTS = 3,
@@ -77,20 +79,20 @@ void set_colors(void);
 
 /* this changes the windows attributes !!! */
 void print_in_middle(WINDOW *win,
-		int starty,
-		int startx,
-		int width,
-		const char *string,
-		chtype color);
+					 int starty,
+					 int startx,
+					 int width,
+					 const char *string,
+					 chtype color);
 int get_line_length(const char *line);
 int get_line_no(const char *text);
 const char *get_line(const char *text, int line_no);
 void fill_window(WINDOW *win, const char *text);
 int btn_dialog(WINDOW *main_window, const char *msg, int btn_num, ...);
 int dialog_inputbox(WINDOW *main_window,
-		const char *title, const char *prompt,
-		const char *init, char **resultp, int *result_len);
+					const char *title, const char *prompt,
+					const char *init, char **resultp, int *result_len);
 void refresh_all_windows(WINDOW *main_window);
 void show_scroll_win(WINDOW *main_window,
-		const char *title,
-		const char *text);
+					 const char *title,
+					 const char *text);

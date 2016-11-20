@@ -69,7 +69,7 @@ EXPORT_SYMBOL_GPL(comedi_isadma_disable);
  * Returns the residue (remaining bytes) left in the DMA transfer.
  */
 unsigned int comedi_isadma_disable_on_sample(unsigned int dma_chan,
-					     unsigned int size)
+		unsigned int size)
 {
 	int stalled = 0;
 	unsigned long flags;
@@ -77,7 +77,9 @@ unsigned int comedi_isadma_disable_on_sample(unsigned int dma_chan,
 	unsigned int new_residue;
 
 	residue = comedi_isadma_disable(dma_chan);
-	while (residue % size) {
+
+	while (residue % size)
+	{
 		/* residue is a partial sample, enable DMA to allow more data */
 		flags = claim_dma_lock();
 		enable_dma(dma_chan);
@@ -87,15 +89,22 @@ unsigned int comedi_isadma_disable_on_sample(unsigned int dma_chan,
 		new_residue = comedi_isadma_disable(dma_chan);
 
 		/* is DMA stalled? */
-		if (new_residue == residue) {
+		if (new_residue == residue)
+		{
 			stalled++;
+
 			if (stalled > 10)
+			{
 				break;
-		} else {
+			}
+		}
+		else
+		{
 			residue = new_residue;
 			stalled = 0;
 		}
 	}
+
 	return residue;
 }
 EXPORT_SYMBOL_GPL(comedi_isadma_disable_on_sample);
@@ -115,8 +124,12 @@ unsigned int comedi_isadma_poll(struct comedi_isadma *dma)
 
 	flags = claim_dma_lock();
 	clear_dma_ff(desc->chan);
+
 	if (!isa_dma_bridge_buggy)
+	{
 		disable_dma(desc->chan);
+	}
+
 	result = get_dma_residue(desc->chan);
 	/*
 	 * Read the counter again and choose higher value in order to
@@ -124,14 +137,24 @@ unsigned int comedi_isadma_poll(struct comedi_isadma *dma)
 	 * isa_dma_bridge_buggy is set.
 	 */
 	result1 = get_dma_residue(desc->chan);
+
 	if (!isa_dma_bridge_buggy)
+	{
 		enable_dma(desc->chan);
+	}
+
 	release_dma_lock(flags);
 
 	if (result < result1)
+	{
 		result = result1;
+	}
+
 	if (result >= desc->size || result == 0)
+	{
 		return 0;
+	}
+
 	return desc->size - result;
 }
 EXPORT_SYMBOL_GPL(comedi_isadma_poll);
@@ -144,7 +167,7 @@ EXPORT_SYMBOL_GPL(comedi_isadma_poll);
 void comedi_isadma_set_mode(struct comedi_isadma_desc *desc, char dma_dir)
 {
 	desc->mode = (dma_dir == COMEDI_ISADMA_READ) ? DMA_MODE_READ
-						     : DMA_MODE_WRITE;
+				 : DMA_MODE_WRITE;
 }
 EXPORT_SYMBOL_GPL(comedi_isadma_set_mode);
 
@@ -160,9 +183,9 @@ EXPORT_SYMBOL_GPL(comedi_isadma_set_mode);
  * Returns the allocated and initialized ISA DMA or NULL if anything fails.
  */
 struct comedi_isadma *comedi_isadma_alloc(struct comedi_device *dev,
-					  int n_desc, unsigned int dma_chan1,
-					  unsigned int dma_chan2,
-					  unsigned int maxsize, char dma_dir)
+		int n_desc, unsigned int dma_chan1,
+		unsigned int dma_chan2,
+		unsigned int maxsize, char dma_dir)
 {
 	struct comedi_isadma *dma = NULL;
 	struct comedi_isadma_desc *desc;
@@ -170,42 +193,69 @@ struct comedi_isadma *comedi_isadma_alloc(struct comedi_device *dev,
 	int i;
 
 	if (n_desc < 1 || n_desc > 2)
+	{
 		goto no_dma;
+	}
 
 	dma = kzalloc(sizeof(*dma), GFP_KERNEL);
+
 	if (!dma)
+	{
 		goto no_dma;
+	}
 
 	desc = kcalloc(n_desc, sizeof(*desc), GFP_KERNEL);
+
 	if (!desc)
+	{
 		goto no_dma;
+	}
+
 	dma->desc = desc;
 	dma->n_desc = n_desc;
 
 	dma_chans[0] = dma_chan1;
+
 	if (dma_chan2 == 0 || dma_chan2 == dma_chan1)
+	{
 		dma_chans[1] = dma_chan1;
+	}
 	else
+	{
 		dma_chans[1] = dma_chan2;
+	}
 
 	if (request_dma(dma_chans[0], dev->board_name))
+	{
 		goto no_dma;
-	dma->chan = dma_chans[0];
-	if (dma_chans[1] != dma_chans[0]) {
-		if (request_dma(dma_chans[1], dev->board_name))
-			goto no_dma;
 	}
+
+	dma->chan = dma_chans[0];
+
+	if (dma_chans[1] != dma_chans[0])
+	{
+		if (request_dma(dma_chans[1], dev->board_name))
+		{
+			goto no_dma;
+		}
+	}
+
 	dma->chan2 = dma_chans[1];
 
-	for (i = 0; i < n_desc; i++) {
+	for (i = 0; i < n_desc; i++)
+	{
 		desc = &dma->desc[i];
 		desc->chan = dma_chans[i];
 		desc->maxsize = maxsize;
 		desc->virt_addr = dma_alloc_coherent(NULL, desc->maxsize,
-						     &desc->hw_addr,
-						     GFP_KERNEL);
+											 &desc->hw_addr,
+											 GFP_KERNEL);
+
 		if (!desc->virt_addr)
+		{
 			goto no_dma;
+		}
+
 		comedi_isadma_set_mode(desc, dma_dir);
 	}
 
@@ -227,22 +277,35 @@ void comedi_isadma_free(struct comedi_isadma *dma)
 	int i;
 
 	if (!dma)
+	{
 		return;
+	}
 
-	if (dma->desc) {
-		for (i = 0; i < dma->n_desc; i++) {
+	if (dma->desc)
+	{
+		for (i = 0; i < dma->n_desc; i++)
+		{
 			desc = &dma->desc[i];
+
 			if (desc->virt_addr)
 				dma_free_coherent(NULL, desc->maxsize,
-						  desc->virt_addr,
-						  desc->hw_addr);
+								  desc->virt_addr,
+								  desc->hw_addr);
 		}
+
 		kfree(dma->desc);
 	}
+
 	if (dma->chan2 && dma->chan2 != dma->chan)
+	{
 		free_dma(dma->chan2);
+	}
+
 	if (dma->chan)
+	{
 		free_dma(dma->chan);
+	}
+
 	kfree(dma);
 }
 EXPORT_SYMBOL_GPL(comedi_isadma_free);

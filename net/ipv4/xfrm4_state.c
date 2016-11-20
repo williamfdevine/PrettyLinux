@@ -17,7 +17,10 @@
 static int xfrm4_init_flags(struct xfrm_state *x)
 {
 	if (xs_net(x)->ipv4.sysctl_ip_no_pmtu_disc)
+	{
 		x->props.flags |= XFRM_STATE_NOPMTUDISC;
+	}
+
 	return 0;
 }
 
@@ -41,14 +44,22 @@ __xfrm4_init_tempsel(struct xfrm_selector *sel, const struct flowi *fl)
 
 static void
 xfrm4_init_temprop(struct xfrm_state *x, const struct xfrm_tmpl *tmpl,
-		   const xfrm_address_t *daddr, const xfrm_address_t *saddr)
+				   const xfrm_address_t *daddr, const xfrm_address_t *saddr)
 {
 	x->id = tmpl->id;
+
 	if (x->id.daddr.a4 == 0)
+	{
 		x->id.daddr.a4 = daddr->a4;
+	}
+
 	x->props.saddr = tmpl->saddr;
+
 	if (x->props.saddr.a4 == 0)
+	{
 		x->props.saddr.a4 = saddr->a4;
+	}
+
 	x->props.mode = tmpl->mode;
 	x->props.reqid = tmpl->reqid;
 	x->props.family = AF_INET;
@@ -65,12 +76,13 @@ int xfrm4_extract_header(struct sk_buff *skb)
 	XFRM_MODE_SKB_CB(skb)->ttl = iph->ttl;
 	XFRM_MODE_SKB_CB(skb)->optlen = iph->ihl * 4 - sizeof(*iph);
 	memset(XFRM_MODE_SKB_CB(skb)->flow_lbl, 0,
-	       sizeof(XFRM_MODE_SKB_CB(skb)->flow_lbl));
+		   sizeof(XFRM_MODE_SKB_CB(skb)->flow_lbl));
 
 	return 0;
 }
 
-static struct xfrm_state_afinfo xfrm4_state_afinfo = {
+static struct xfrm_state_afinfo xfrm4_state_afinfo =
+{
 	.family			= AF_INET,
 	.proto			= IPPROTO_IPIP,
 	.eth_proto		= htons(ETH_P_IP),

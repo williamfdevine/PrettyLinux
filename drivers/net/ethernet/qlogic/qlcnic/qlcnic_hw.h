@@ -9,7 +9,8 @@
 #define __QLCNIC_HW_H
 
 /* Common registers in 83xx and 82xx */
-enum qlcnic_regs {
+enum qlcnic_regs
+{
 	QLCNIC_PEG_HALT_STATUS1 = 0,
 	QLCNIC_PEG_HALT_STATUS2,
 	QLCNIC_PEG_ALIVE_COUNTER,
@@ -131,7 +132,8 @@ enum qlcnic_regs {
 #define QLCNIC_MBX_SFP_INSERT_EVENT	0x8130
 #define QLCNIC_MBX_SFP_REMOVE_EVENT	0x8131
 
-struct qlcnic_mailbox_metadata {
+struct qlcnic_mailbox_metadata
+{
 	u32 cmd;
 	u32 in_args;
 	u32 out_args;
@@ -170,16 +172,16 @@ int qlcnic_82xx_hw_write_wx_2M(struct qlcnic_adapter *, ulong, u32);
 int qlcnic_82xx_config_hw_lro(struct qlcnic_adapter *adapter, int);
 int qlcnic_82xx_nic_set_promisc(struct qlcnic_adapter *adapter, u32);
 int qlcnic_82xx_napi_add(struct qlcnic_adapter *adapter,
-			 struct net_device *netdev);
+						 struct net_device *netdev);
 void qlcnic_82xx_get_beacon_state(struct qlcnic_adapter *);
 void qlcnic_82xx_change_filter(struct qlcnic_adapter *adapter,
-			       u64 *uaddr, u16 vlan_id);
+							   u64 *uaddr, u16 vlan_id);
 int qlcnic_82xx_config_intr_coalesce(struct qlcnic_adapter *,
-				     struct ethtool_coalesce *);
+									 struct ethtool_coalesce *);
 int qlcnic_82xx_set_rx_coalesce(struct qlcnic_adapter *);
 int qlcnic_82xx_config_rss(struct qlcnic_adapter *adapter, int);
 void qlcnic_82xx_config_ipaddr(struct qlcnic_adapter *adapter,
-			       __be32, int);
+							   __be32, int);
 int qlcnic_82xx_linkevent_request(struct qlcnic_adapter *adapter, int);
 void qlcnic_82xx_process_rcv_ring_diag(struct qlcnic_host_sds_ring *sds_ring);
 int qlcnic_82xx_clear_lb_mode(struct qlcnic_adapter *adapter, u8);
@@ -187,22 +189,22 @@ int qlcnic_82xx_set_lb_mode(struct qlcnic_adapter *, u8);
 void qlcnic_82xx_write_crb(struct qlcnic_adapter *, char *, loff_t, size_t);
 void qlcnic_82xx_read_crb(struct qlcnic_adapter *, char *, loff_t, size_t);
 int qlcnic_82xx_issue_cmd(struct qlcnic_adapter *adapter,
-			  struct qlcnic_cmd_args *);
+						  struct qlcnic_cmd_args *);
 int qlcnic_82xx_mq_intrpt(struct qlcnic_adapter *, int);
 int qlcnic_82xx_config_intrpt(struct qlcnic_adapter *, u8);
 int qlcnic_82xx_fw_cmd_create_rx_ctx(struct qlcnic_adapter *);
 int qlcnic_82xx_fw_cmd_create_tx_ctx(struct qlcnic_adapter *,
-				     struct qlcnic_host_tx_ring *tx_ring, int);
+									 struct qlcnic_host_tx_ring *tx_ring, int);
 void qlcnic_82xx_fw_cmd_del_rx_ctx(struct qlcnic_adapter *);
 void qlcnic_82xx_fw_cmd_del_tx_ctx(struct qlcnic_adapter *,
-				   struct qlcnic_host_tx_ring *);
+								   struct qlcnic_host_tx_ring *);
 int qlcnic_82xx_sre_macaddr_change(struct qlcnic_adapter *, u8 *, u16, u8);
-int qlcnic_82xx_get_mac_address(struct qlcnic_adapter *, u8*, u8);
+int qlcnic_82xx_get_mac_address(struct qlcnic_adapter *, u8 *, u8);
 int qlcnic_82xx_get_nic_info(struct qlcnic_adapter *, struct qlcnic_info *, u8);
 int qlcnic_82xx_set_nic_info(struct qlcnic_adapter *, struct qlcnic_info *);
-int qlcnic_82xx_get_pci_info(struct qlcnic_adapter *, struct qlcnic_pci_info*);
+int qlcnic_82xx_get_pci_info(struct qlcnic_adapter *, struct qlcnic_pci_info *);
 int qlcnic_82xx_alloc_mbx_args(struct qlcnic_cmd_args *,
-			       struct qlcnic_adapter *, u32);
+							   struct qlcnic_adapter *, u32);
 int qlcnic_82xx_hw_write_wx_2M(struct qlcnic_adapter *, ulong, u32);
 int qlcnic_82xx_get_board_info(struct qlcnic_adapter *);
 int qlcnic_82xx_config_led(struct qlcnic_adapter *, u32, u32);

@@ -7,19 +7,19 @@
 #include <linux/module.h>
 
 #ifdef __KERNEL__
-#include <linux/string.h>
-#include <linux/fs.h>
-#include <asm/dma.h>
-#include <asm/io.h>
-#include <asm/param.h>
-#include <linux/sched.h>
-#include <linux/slab.h>
-#include <linux/ioport.h>
-#include <asm/page.h>
-#include <linux/vmalloc.h>
-#include <asm/uaccess.h>
-#include <linux/poll.h>
-#include <linux/pci.h>
+	#include <linux/string.h>
+	#include <linux/fs.h>
+	#include <asm/dma.h>
+	#include <asm/io.h>
+	#include <asm/param.h>
+	#include <linux/sched.h>
+	#include <linux/slab.h>
+	#include <linux/ioport.h>
+	#include <asm/page.h>
+	#include <linux/vmalloc.h>
+	#include <asm/uaccess.h>
+	#include <linux/poll.h>
+	#include <linux/pci.h>
 #endif
 
 #include <linux/soundcard.h>

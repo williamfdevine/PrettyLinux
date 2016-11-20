@@ -55,11 +55,11 @@ static void acpi_ut_terminate(void);
 
 #if (!ACPI_REDUCED_HARDWARE)
 
-static void acpi_ut_free_gpe_lists(void);
+	static void acpi_ut_free_gpe_lists(void);
 
 #else
 
-#define acpi_ut_free_gpe_lists()
+	#define acpi_ut_free_gpe_lists()
 #endif				/* !ACPI_REDUCED_HARDWARE */
 
 #if (!ACPI_REDUCED_HARDWARE)
@@ -85,9 +85,13 @@ static void acpi_ut_free_gpe_lists(void)
 	/* Free global GPE blocks and related info structures */
 
 	gpe_xrupt_info = acpi_gbl_gpe_xrupt_list_head;
-	while (gpe_xrupt_info) {
+
+	while (gpe_xrupt_info)
+	{
 		gpe_block = gpe_xrupt_info->gpe_block_list_head;
-		while (gpe_block) {
+
+		while (gpe_block)
+		{
 			next_gpe_block = gpe_block->next;
 			ACPI_FREE(gpe_block->event_info);
 			ACPI_FREE(gpe_block->register_info);
@@ -95,6 +99,7 @@ static void acpi_ut_free_gpe_lists(void)
 
 			gpe_block = next_gpe_block;
 		}
+
 		next_gpe_xrupt_info = gpe_xrupt_info->next;
 		ACPI_FREE(gpe_xrupt_info);
 		gpe_xrupt_info = next_gpe_xrupt_info;
@@ -126,25 +131,30 @@ acpi_status acpi_ut_init_globals(void)
 	/* Create all memory caches */
 
 	status = acpi_ut_create_caches();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	/* Address Range lists */
 
-	for (i = 0; i < ACPI_ADDRESS_RANGE_MAX; i++) {
+	for (i = 0; i < ACPI_ADDRESS_RANGE_MAX; i++)
+	{
 		acpi_gbl_address_range_list[i] = NULL;
 	}
 
 	/* Mutex locked flags */
 
-	for (i = 0; i < ACPI_NUM_MUTEX; i++) {
+	for (i = 0; i < ACPI_NUM_MUTEX; i++)
+	{
 		acpi_gbl_mutex_info[i].mutex = NULL;
 		acpi_gbl_mutex_info[i].thread_id = ACPI_MUTEX_NOT_ACQUIRED;
 		acpi_gbl_mutex_info[i].use_count = 0;
 	}
 
-	for (i = 0; i < ACPI_NUM_OWNERID_MASKS; i++) {
+	for (i = 0; i < ACPI_NUM_OWNERID_MASKS; i++)
+	{
 		acpi_gbl_owner_id_mask[i] = 0;
 	}
 
@@ -158,7 +168,8 @@ acpi_status acpi_ut_init_globals(void)
 	acpi_sci_count = 0;
 	acpi_gpe_count = 0;
 
-	for (i = 0; i < ACPI_NUM_FIXED_EVENTS; i++) {
+	for (i = 0; i < ACPI_NUM_FIXED_EVENTS; i++)
+	{
 		acpi_fixed_event_count[i] = 0;
 	}
 
@@ -283,7 +294,8 @@ void acpi_ut_subsystem_shutdown(void)
 
 	/* Just exit if subsystem is already shutdown */
 
-	if (acpi_gbl_shutdown) {
+	if (acpi_gbl_shutdown)
+	{
 		ACPI_ERROR((AE_INFO, "ACPI Subsystem is already terminated"));
 		return_VOID;
 	}

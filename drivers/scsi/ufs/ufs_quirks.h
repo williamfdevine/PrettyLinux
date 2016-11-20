@@ -32,7 +32,8 @@
  * @wmanufacturerid: card details
  * @model: card model
  */
-struct ufs_device_info {
+struct ufs_device_info
+{
 	u16 wmanufacturerid;
 	char model[MAX_MODEL_LEN + 1];
 };
@@ -42,7 +43,8 @@ struct ufs_device_info {
  * @card: ufs card details
  * @quirk: device quirk
  */
-struct ufs_dev_fix {
+struct ufs_dev_fix
+{
 	struct ufs_device_info card;
 	unsigned int quirk;
 };
@@ -51,11 +53,11 @@ struct ufs_dev_fix {
 
 /* add specific device quirk */
 #define UFS_FIX(_vendor, _model, _quirk) \
-		{					  \
-			.card.wmanufacturerid = (_vendor),\
-			.card.model = (_model),		  \
-			.quirk = (_quirk),		  \
-		}
+	{					  \
+		.card.wmanufacturerid = (_vendor),\
+								.card.model = (_model),		  \
+											  .quirk = (_quirk),		  \
+	}
 
 /*
  * If UFS device is having issue in processing LCC (Line Control
@@ -131,21 +133,22 @@ struct ufs_dev_fix {
 struct ufs_hba;
 void ufs_advertise_fixup_device(struct ufs_hba *hba);
 
-static struct ufs_dev_fix ufs_fixups[] = {
+static struct ufs_dev_fix ufs_fixups[] =
+{
 	/* UFS cards deviations table */
 	UFS_FIX(UFS_VENDOR_SAMSUNG, UFS_ANY_MODEL,
-		UFS_DEVICE_QUIRK_DELAY_BEFORE_LPM),
+	UFS_DEVICE_QUIRK_DELAY_BEFORE_LPM),
 	UFS_FIX(UFS_VENDOR_SAMSUNG, UFS_ANY_MODEL, UFS_DEVICE_NO_VCCQ),
 	UFS_FIX(UFS_VENDOR_SAMSUNG, UFS_ANY_MODEL,
-		UFS_DEVICE_QUIRK_RECOVERY_FROM_DL_NAC_ERRORS),
+	UFS_DEVICE_QUIRK_RECOVERY_FROM_DL_NAC_ERRORS),
 	UFS_FIX(UFS_VENDOR_SAMSUNG, UFS_ANY_MODEL,
-		UFS_DEVICE_NO_FASTAUTO),
+	UFS_DEVICE_NO_FASTAUTO),
 	UFS_FIX(UFS_VENDOR_TOSHIBA, UFS_ANY_MODEL,
-		UFS_DEVICE_QUIRK_DELAY_BEFORE_LPM),
+	UFS_DEVICE_QUIRK_DELAY_BEFORE_LPM),
 	UFS_FIX(UFS_VENDOR_TOSHIBA, "THGLF2G9C8KBADG",
-		UFS_DEVICE_QUIRK_PA_TACTIVATE),
+	UFS_DEVICE_QUIRK_PA_TACTIVATE),
 	UFS_FIX(UFS_VENDOR_TOSHIBA, "THGLF2G9D8KBADG",
-		UFS_DEVICE_QUIRK_PA_TACTIVATE),
+	UFS_DEVICE_QUIRK_PA_TACTIVATE),
 	UFS_FIX(UFS_VENDOR_SKHYNIX, UFS_ANY_MODEL, UFS_DEVICE_NO_VCCQ),
 
 	END_FIX

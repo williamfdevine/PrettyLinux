@@ -72,7 +72,8 @@
 /* EEPROM Map defines (WORD OFFSETS)*/
 
 /* EEPROM structure */
-struct ixgb_ee_map_type {
+struct ixgb_ee_map_type
+{
 	u8 mac_addr[ETH_ALEN];
 	__le16 compatibility;
 	__le16 reserved1[4];

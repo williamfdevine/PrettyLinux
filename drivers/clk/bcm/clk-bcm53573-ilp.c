@@ -20,7 +20,8 @@
 #define  XTAL_CTL_EN				0x80000000
 #define PMU_SLOW_CLK_PERIOD			0x6dc
 
-struct bcm53573_ilp {
+struct bcm53573_ilp
+{
 	struct clk_hw hw;
 	struct regmap *regmap;
 };
@@ -44,7 +45,7 @@ static void bcm53573_ilp_disable(struct clk_hw *hw)
 }
 
 static unsigned long bcm53573_ilp_recalc_rate(struct clk_hw *hw,
-					      unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct bcm53573_ilp *ilp = container_of(hw, struct bcm53573_ilp, hw);
 	struct regmap *regmap = ilp->regmap;
@@ -64,17 +65,21 @@ static unsigned long bcm53573_ilp_recalc_rate(struct clk_hw *hw,
 	 * measurement. This isn't very accurate however, so for a better
 	 * precision lets try getting 20 different values for and use average.
 	 */
-	while (num < 20) {
+	while (num < 20)
+	{
 		regmap_read(regmap, PMU_XTAL_FREQ_RATIO, &cur_val);
 		cur_val &= XTAL_ALP_PER_4ILP;
 
-		if (cur_val != last_val) {
+		if (cur_val != last_val)
+		{
 			/* Got different value, use it */
 			sum += cur_val;
 			num++;
 			loop_num = 0;
 			last_val = cur_val;
-		} else if (++loop_num > 5000) {
+		}
+		else if (++loop_num > 5000)
+		{
 			/* Same value over and over, give up */
 			sum += cur_val;
 			num++;
@@ -92,7 +97,8 @@ static unsigned long bcm53573_ilp_recalc_rate(struct clk_hw *hw,
 	return parent_rate * 4 / avg;
 }
 
-static const struct clk_ops bcm53573_ilp_clk_ops = {
+static const struct clk_ops bcm53573_ilp_clk_ops =
+{
 	.enable = bcm53573_ilp_enable,
 	.disable = bcm53573_ilp_disable,
 	.recalc_rate = bcm53573_ilp_recalc_rate,
@@ -106,17 +112,24 @@ static void bcm53573_ilp_init(struct device_node *np)
 	int err;
 
 	ilp = kzalloc(sizeof(*ilp), GFP_KERNEL);
+
 	if (!ilp)
+	{
 		return;
+	}
 
 	parent_name = of_clk_get_parent_name(np, 0);
-	if (!parent_name) {
+
+	if (!parent_name)
+	{
 		err = -ENOENT;
 		goto err_free_ilp;
 	}
 
 	ilp->regmap = syscon_node_to_regmap(of_get_parent(np));
-	if (IS_ERR(ilp->regmap)) {
+
+	if (IS_ERR(ilp->regmap))
+	{
 		err = PTR_ERR(ilp->regmap);
 		goto err_free_ilp;
 	}
@@ -128,12 +141,18 @@ static void bcm53573_ilp_init(struct device_node *np)
 
 	ilp->hw.init = &init;
 	err = clk_hw_register(NULL, &ilp->hw);
+
 	if (err)
+	{
 		goto err_free_ilp;
+	}
 
 	err = of_clk_add_hw_provider(np, of_clk_hw_simple_get, &ilp->hw);
+
 	if (err)
+	{
 		goto err_clk_hw_unregister;
+	}
 
 	return;
 

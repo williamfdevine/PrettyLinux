@@ -17,14 +17,15 @@
 
 #include "cs42l51.h"
 
-static struct i2c_device_id cs42l51_i2c_id[] = {
+static struct i2c_device_id cs42l51_i2c_id[] =
+{
 	{"cs42l51", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, cs42l51_i2c_id);
 
 static int cs42l51_i2c_probe(struct i2c_client *i2c,
-			     const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct regmap_config config;
 
@@ -42,7 +43,8 @@ static int cs42l51_i2c_remove(struct i2c_client *i2c)
 	return 0;
 }
 
-static struct i2c_driver cs42l51_i2c_driver = {
+static struct i2c_driver cs42l51_i2c_driver =
+{
 	.driver = {
 		.name = "cs42l51",
 		.of_match_table = cs42l51_of_match,

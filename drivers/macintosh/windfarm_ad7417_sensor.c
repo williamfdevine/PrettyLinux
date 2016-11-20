@@ -24,7 +24,8 @@
 
 #define VERSION "1.0"
 
-struct wf_ad7417_priv {
+struct wf_ad7417_priv
+{
 	struct kref		ref;
 	struct i2c_client	*i2c;
 	u8			config;
@@ -47,11 +48,18 @@ static int wf_ad7417_temp_get(struct wf_sensor *sr, s32 *value)
 	/* Read temp register */
 	buf[0] = 0;
 	rc = i2c_master_send(pv->i2c, buf, 1);
+
 	if (rc < 0)
+	{
 		goto error;
+	}
+
 	rc = i2c_master_recv(pv->i2c, buf, 2);
+
 	if (rc < 0)
+	{
 		goto error;
+	}
 
 	/* Read a a 16-bit signed value */
 	raw = be16_to_cpup((__le16 *)buf);
@@ -78,22 +86,26 @@ error:
 #define ADC_CPU_CURRENT_SCALE	0x1f40	/* _AD4 */
 
 static void wf_ad7417_adc_convert(struct wf_ad7417_priv *pv,
-				  int chan, s32 raw, s32 *value)
+								  int chan, s32 raw, s32 *value)
 {
-	switch(chan) {
-	case 1: /* Diode */
-		*value = (raw * (s32)pv->mpu->mdiode +
-			((s32)pv->mpu->bdiode << 12)) >> 2;
-		break;
-	case 2: /* 12v current */
-		*value = raw * ADC_12V_CURRENT_SCALE;
-		break;
-	case 3: /* core voltage */
-		*value = raw * ADC_CPU_VOLTAGE_SCALE;
-		break;
-	case 4: /* core current */
-		*value = raw * ADC_CPU_CURRENT_SCALE;
-		break;
+	switch (chan)
+	{
+		case 1: /* Diode */
+			*value = (raw * (s32)pv->mpu->mdiode +
+					  ((s32)pv->mpu->bdiode << 12)) >> 2;
+			break;
+
+		case 2: /* 12v current */
+			*value = raw * ADC_12V_CURRENT_SCALE;
+			break;
+
+		case 3: /* core voltage */
+			*value = raw * ADC_CPU_VOLTAGE_SCALE;
+			break;
+
+		case 4: /* core current */
+			*value = raw * ADC_CPU_CURRENT_SCALE;
+			break;
 	}
 }
 
@@ -107,13 +119,18 @@ static int wf_ad7417_adc_get(struct wf_sensor *sr, s32 *value)
 
 	*value = 0;
 	mutex_lock(&pv->lock);
-	for (i = 0; i < 10; i++) {
+
+	for (i = 0; i < 10; i++)
+	{
 		/* Set channel */
 		buf[0] = 1;
 		buf[1] = (pv->config & 0x1f) | (chan << 5);
 		rc = i2c_master_send(pv->i2c, buf, 2);
+
 		if (rc < 0)
+		{
 			goto error;
+		}
 
 		/* Wait for conversion */
 		msleep(1);
@@ -121,31 +138,41 @@ static int wf_ad7417_adc_get(struct wf_sensor *sr, s32 *value)
 		/* Switch to data register */
 		buf[0] = 4;
 		rc = i2c_master_send(pv->i2c, buf, 1);
+
 		if (rc < 0)
+		{
 			goto error;
+		}
 
 		/* Read result */
 		rc = i2c_master_recv(pv->i2c, buf, 2);
+
 		if (rc < 0)
+		{
 			goto error;
+		}
 
 		/* Read a a 16-bit signed value */
 		raw = be16_to_cpup((__le16 *)buf) >> 6;
 		wf_ad7417_adc_convert(pv, chan, raw, value);
 
 		dev_vdbg(&pv->i2c->dev, "ADC chan %d [%s]"
-			 " raw value: 0x%x, conv to: 0x%08x\n",
-			 chan, sr->name, raw, *value);
+				 " raw value: 0x%x, conv to: 0x%08x\n",
+				 chan, sr->name, raw, *value);
 
 		mutex_unlock(&pv->lock);
 		return 0;
 
-	error:
+error:
 		dev_dbg(&pv->i2c->dev,
-			  "Error reading ADC, try %d...\n", i);
+				"Error reading ADC, try %d...\n", i);
+
 		if (i < 9)
+		{
 			msleep(10);
+		}
 	}
+
 	mutex_unlock(&pv->lock);
 	return -1;
 }
@@ -153,7 +180,7 @@ static int wf_ad7417_adc_get(struct wf_sensor *sr, s32 *value)
 static void wf_ad7417_release(struct kref *ref)
 {
 	struct wf_ad7417_priv *pv = container_of(ref,
-						 struct wf_ad7417_priv, ref);
+								struct wf_ad7417_priv, ref);
 	kfree(pv);
 }
 
@@ -165,27 +192,32 @@ static void wf_ad7417_sensor_release(struct wf_sensor *sr)
 	kref_put(&pv->ref, wf_ad7417_release);
 }
 
-static const struct wf_sensor_ops wf_ad7417_temp_ops = {
+static const struct wf_sensor_ops wf_ad7417_temp_ops =
+{
 	.get_value	= wf_ad7417_temp_get,
 	.release	= wf_ad7417_sensor_release,
 	.owner		= THIS_MODULE,
 };
 
-static const struct wf_sensor_ops wf_ad7417_adc_ops = {
+static const struct wf_sensor_ops wf_ad7417_adc_ops =
+{
 	.get_value	= wf_ad7417_adc_get,
 	.release	= wf_ad7417_sensor_release,
 	.owner		= THIS_MODULE,
 };
 
 static void wf_ad7417_add_sensor(struct wf_ad7417_priv *pv,
-				 int index, const char *name,
-				 const struct wf_sensor_ops *ops)
+								 int index, const char *name,
+								 const struct wf_sensor_ops *ops)
 {
 	pv->sensors[index].name = kasprintf(GFP_KERNEL, "%s-%d", name, pv->cpu);
 	pv->sensors[index].priv = pv;
 	pv->sensors[index].ops = ops;
+
 	if (!wf_register_sensor(&pv->sensors[index]))
+	{
 		kref_get(&pv->ref);
+	}
 }
 
 static void wf_ad7417_init_chip(struct wf_ad7417_priv *pv)
@@ -209,13 +241,17 @@ static void wf_ad7417_init_chip(struct wf_ad7417_priv *pv)
 	/* Read & cache Config1 */
 	buf[0] = 1;
 	rc = i2c_master_send(pv->i2c, buf, 1);
-	if (rc > 0) {
+
+	if (rc > 0)
+	{
 		rc = i2c_master_recv(pv->i2c, buf, 1);
-		if (rc > 0) {
+
+		if (rc > 0)
+		{
 			config = buf[0];
 
 			dev_dbg(&pv->i2c->dev, "ADC config reg: %02x\n",
-				config);
+					config);
 
 			/* Disable shutdown mode */
 			config &= 0xfe;
@@ -224,14 +260,17 @@ static void wf_ad7417_init_chip(struct wf_ad7417_priv *pv)
 			rc = i2c_master_send(pv->i2c, buf, 2);
 		}
 	}
+
 	if (rc <= 0)
+	{
 		dev_err(&pv->i2c->dev, "Error reading ADC config\n");
+	}
 
 	pv->config = config;
 }
 
 static int wf_ad7417_probe(struct i2c_client *client,
-			   const struct i2c_device_id *id)
+						   const struct i2c_device_id *id)
 {
 	struct wf_ad7417_priv *pv;
 	const struct mpu_data *mpu;
@@ -239,7 +278,9 @@ static int wf_ad7417_probe(struct i2c_client *client,
 	int cpu_nr;
 
 	loc = of_get_property(client->dev.of_node, "hwsensor-location", NULL);
-	if (!loc) {
+
+	if (!loc)
+	{
 		dev_warn(&client->dev, "Missing hwsensor-location property!\n");
 		return -ENXIO;
 	}
@@ -249,22 +290,33 @@ static int wf_ad7417_probe(struct i2c_client *client,
 	 * in the hwsensor-location list
 	 */
 	if (!strncmp(loc, "CPU A", 5))
+	{
 		cpu_nr = 0;
+	}
 	else if (!strncmp(loc, "CPU B", 5))
+	{
 		cpu_nr = 1;
-	else {
+	}
+	else
+	{
 		pr_err("wf_ad7417: Can't identify location %s\n", loc);
 		return -ENXIO;
 	}
+
 	mpu = wf_get_mpu(cpu_nr);
-	if (!mpu) {
+
+	if (!mpu)
+	{
 		dev_err(&client->dev, "Failed to retrieve MPU data\n");
 		return -ENXIO;
 	}
 
 	pv = kzalloc(sizeof(struct wf_ad7417_priv), GFP_KERNEL);
+
 	if (pv == NULL)
+	{
 		return -ENODEV;
+	}
 
 	kref_init(&pv->ref);
 	mutex_init(&pv->lock);
@@ -300,20 +352,24 @@ static int wf_ad7417_remove(struct i2c_client *client)
 
 	/* Release sensor */
 	for (i = 0; i < 5; i++)
+	{
 		wf_unregister_sensor(&pv->sensors[i]);
+	}
 
 	kref_put(&pv->ref, wf_ad7417_release);
 
 	return 0;
 }
 
-static const struct i2c_device_id wf_ad7417_id[] = {
+static const struct i2c_device_id wf_ad7417_id[] =
+{
 	{ "MAC,ad7417", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, wf_ad7417_id);
 
-static struct i2c_driver wf_ad7417_driver = {
+static struct i2c_driver wf_ad7417_driver =
+{
 	.driver = {
 		.name	= "wf_ad7417",
 	},
@@ -326,9 +382,11 @@ static int wf_ad7417_init(void)
 {
 	/* This is only supported on these machines */
 	if (!of_machine_is_compatible("PowerMac7,2") &&
-	    !of_machine_is_compatible("PowerMac7,3") &&
-	    !of_machine_is_compatible("RackMac3,1"))
+		!of_machine_is_compatible("PowerMac7,3") &&
+		!of_machine_is_compatible("RackMac3,1"))
+	{
 		return -ENODEV;
+	}
 
 	return i2c_add_driver(&wf_ad7417_driver);
 }

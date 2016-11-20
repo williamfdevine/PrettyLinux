@@ -45,7 +45,8 @@
  *			audio sampled data.
  * @TUNER_NUM_PADS:	Number of pads of the tuner.
  */
-enum tuner_pad_index {
+enum tuner_pad_index
+{
 	TUNER_PAD_RF_INPUT,
 	TUNER_PAD_OUTPUT,
 	TUNER_PAD_AUD_OUT,
@@ -61,7 +62,8 @@ enum tuner_pad_index {
  *				video chrominance and luminance IF signals.
  * @IF_VID_DEC_PAD_NUM_PADS:	Number of pads of the video IF-PLL.
  */
-enum if_vid_dec_pad_index {
+enum if_vid_dec_pad_index
+{
 	IF_VID_DEC_PAD_IF_INPUT,
 	IF_VID_DEC_PAD_OUT,
 	IF_VID_DEC_PAD_NUM_PADS
@@ -78,7 +80,8 @@ enum if_vid_dec_pad_index {
  *				bus.
  * @IF_AUD_DEC_PAD_NUM_PADS:	Number of pads of the audio IF-PLL.
  */
-enum if_aud_dec_pad_index {
+enum if_aud_dec_pad_index
+{
 	IF_AUD_DEC_PAD_IF_INPUT,
 	IF_AUD_DEC_PAD_OUT,
 	IF_AUD_DEC_PAD_NUM_PADS
@@ -93,7 +96,8 @@ enum if_aud_dec_pad_index {
  * @DEMOD_PAD_AUDIO_OUT: Audio output source pad.
  * @DEMOD_NUM_PADS:	Maximum number of output pads.
  */
-enum demod_pad_index {
+enum demod_pad_index
+{
 	DEMOD_PAD_IF_INPUT,
 	DEMOD_PAD_VID_OUT,
 	DEMOD_PAD_VBI_OUT,
@@ -208,7 +212,7 @@ int v4l2_pipeline_pm_use(struct media_entity *entity, int use);
  * events.
  */
 int v4l2_pipeline_link_notify(struct media_link *link, u32 flags,
-			      unsigned int notification);
+							  unsigned int notification);
 
 #else /* CONFIG_MEDIA_CONTROLLER */
 
@@ -237,7 +241,7 @@ static inline int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
 }
 
 static inline int v4l2_pipeline_link_notify(struct media_link *link, u32 flags,
-					    unsigned int notification)
+		unsigned int notification)
 {
 	return 0;
 }

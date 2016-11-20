@@ -50,7 +50,8 @@
 #define TIMER_INTR_MSK	(1 << (TIMER_MATCH))
 #define TIMER_INTR_ALL	0x3F
 
-struct zevio_timer {
+struct zevio_timer
+{
 	void __iomem *base;
 	void __iomem *timer1, *timer2;
 	void __iomem *interrupt_regs;
@@ -64,14 +65,14 @@ struct zevio_timer {
 };
 
 static int zevio_timer_set_event(unsigned long delta,
-				 struct clock_event_device *dev)
+								 struct clock_event_device *dev)
 {
 	struct zevio_timer *timer = container_of(dev, struct zevio_timer,
-						 clkevt);
+								clkevt);
 
 	writel(delta, timer->timer1 + IO_CURRENT_VAL);
 	writel(CNTL_RUN_TIMER | CNTL_DEC | CNTL_MATCH(TIMER_MATCH),
-			timer->timer1 + IO_CONTROL);
+		   timer->timer1 + IO_CONTROL);
 
 	return 0;
 }
@@ -79,7 +80,7 @@ static int zevio_timer_set_event(unsigned long delta,
 static int zevio_timer_shutdown(struct clock_event_device *dev)
 {
 	struct zevio_timer *timer = container_of(dev, struct zevio_timer,
-						 clkevt);
+								clkevt);
 
 	/* Disable timer interrupts */
 	writel(0, timer->interrupt_regs + IO_INTR_MSK);
@@ -92,7 +93,7 @@ static int zevio_timer_shutdown(struct clock_event_device *dev)
 static int zevio_timer_set_oneshot(struct clock_event_device *dev)
 {
 	struct zevio_timer *timer = container_of(dev, struct zevio_timer,
-						 clkevt);
+								clkevt);
 
 	/* Enable timer interrupts */
 	writel(TIMER_INTR_MSK, timer->interrupt_regs + IO_INTR_MSK);
@@ -106,14 +107,19 @@ static irqreturn_t zevio_timer_interrupt(int irq, void *dev_id)
 	u32 intr;
 
 	intr = readl(timer->interrupt_regs + IO_INTR_ACK);
+
 	if (!(intr & TIMER_INTR_MSK))
+	{
 		return IRQ_NONE;
+	}
 
 	writel(TIMER_INTR_MSK, timer->interrupt_regs + IO_INTR_ACK);
 	writel(CNTL_STOP_TIMER, timer->timer1 + IO_CONTROL);
 
 	if (timer->clkevt.event_handler)
+	{
 		timer->clkevt.event_handler(&timer->clkevt);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -125,19 +131,27 @@ static int __init zevio_timer_add(struct device_node *node)
 	int irqnr, ret;
 
 	timer = kzalloc(sizeof(*timer), GFP_KERNEL);
+
 	if (!timer)
+	{
 		return -ENOMEM;
+	}
 
 	timer->base = of_iomap(node, 0);
-	if (!timer->base) {
+
+	if (!timer->base)
+	{
 		ret = -EINVAL;
 		goto error_free;
 	}
+
 	timer->timer1 = timer->base + IO_TIMER1;
 	timer->timer2 = timer->base + IO_TIMER2;
 
 	timer->clk = of_clk_get(node, 0);
-	if (IS_ERR(timer->clk)) {
+
+	if (IS_ERR(timer->clk))
+	{
 		ret = PTR_ERR(timer->clk);
 		pr_err("Timer clock not found! (error %d)\n", ret);
 		goto error_unmap;
@@ -148,14 +162,15 @@ static int __init zevio_timer_add(struct device_node *node)
 
 	of_address_to_resource(node, 0, &res);
 	scnprintf(timer->clocksource_name, sizeof(timer->clocksource_name),
-			"%llx.%s_clocksource",
-			(unsigned long long)res.start, node->name);
+			  "%llx.%s_clocksource",
+			  (unsigned long long)res.start, node->name);
 
 	scnprintf(timer->clockevent_name, sizeof(timer->clockevent_name),
-			"%llx.%s_clockevent",
-			(unsigned long long)res.start, node->name);
+			  "%llx.%s_clockevent",
+			  (unsigned long long)res.start, node->name);
 
-	if (timer->interrupt_regs && irqnr) {
+	if (timer->interrupt_regs && irqnr)
+	{
 		timer->clkevt.name		= timer->clockevent_name;
 		timer->clkevt.set_next_event	= zevio_timer_set_event;
 		timer->clkevt.set_state_shutdown = zevio_timer_shutdown;
@@ -184,7 +199,7 @@ static int __init zevio_timer_add(struct device_node *node)
 		setup_irq(irqnr, &timer->clkevt_irq);
 
 		clockevents_config_and_register(&timer->clkevt,
-				clk_get_rate(timer->clk), 0x0001, 0xffff);
+										clk_get_rate(timer->clk), 0x0001, 0xffff);
 		pr_info("Added %s as clockevent\n", timer->clockevent_name);
 	}
 
@@ -192,13 +207,13 @@ static int __init zevio_timer_add(struct device_node *node)
 	writel(0, timer->timer2 + IO_CURRENT_VAL);
 	writel(0, timer->timer2 + IO_DIVIDER);
 	writel(CNTL_RUN_TIMER | CNTL_FOREVER | CNTL_INC,
-			timer->timer2 + IO_CONTROL);
+		   timer->timer2 + IO_CONTROL);
 
 	clocksource_mmio_init(timer->timer2 + IO_CURRENT_VAL,
-			timer->clocksource_name,
-			clk_get_rate(timer->clk),
-			200, 16,
-			clocksource_mmio_readw_up);
+						  timer->clocksource_name,
+						  clk_get_rate(timer->clk),
+						  200, 16,
+						  clocksource_mmio_readw_up);
 
 	pr_info("Added %s as clocksource\n", timer->clocksource_name);
 

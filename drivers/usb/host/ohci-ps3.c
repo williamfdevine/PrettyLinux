@@ -39,21 +39,23 @@ static int ps3_ohci_hc_start(struct usb_hcd *hcd)
 	/* Also set PwrOn2PwrGood to 0x7f (254ms). */
 
 	ohci_writel(ohci, 0x7f000000 | RH_A_PSM | RH_A_OCPM,
-		&ohci->regs->roothub.a);
+				&ohci->regs->roothub.a);
 	ohci_writel(ohci, 0x00060000, &ohci->regs->roothub.b);
 
 	result = ohci_run(ohci);
 
-	if (result < 0) {
+	if (result < 0)
+	{
 		dev_err(hcd->self.controller, "can't start %s\n",
-			hcd->self.bus_name);
+				hcd->self.bus_name);
 		ohci_stop(hcd);
 	}
 
 	return result;
 }
 
-static const struct hc_driver ps3_ohci_hc_driver = {
+static const struct hc_driver ps3_ohci_hc_driver =
+{
 	.description		= hcd_name,
 	.product_desc		= "PS3 OHCI Host Controller",
 	.hcd_priv_size		= sizeof(struct ohci_hcd),
@@ -83,46 +85,51 @@ static int ps3_ohci_probe(struct ps3_system_bus_device *dev)
 	unsigned int virq;
 	static u64 dummy_mask = DMA_BIT_MASK(32);
 
-	if (usb_disabled()) {
+	if (usb_disabled())
+	{
 		result = -ENODEV;
 		goto fail_start;
 	}
 
 	result = ps3_open_hv_device(dev);
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: ps3_open_hv_device failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				__func__, __LINE__, ps3_result(result));
 		result = -EPERM;
 		goto fail_open;
 	}
 
 	result = ps3_dma_region_create(dev->d_region);
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: ps3_dma_region_create failed: "
-			"(%d)\n", __func__, __LINE__, result);
+				"(%d)\n", __func__, __LINE__, result);
 		BUG_ON("check region type");
 		goto fail_dma_region;
 	}
 
 	result = ps3_mmio_region_create(dev->m_region);
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: ps3_map_mmio_region failed\n",
-			__func__, __LINE__);
+				__func__, __LINE__);
 		result = -EPERM;
 		goto fail_mmio_region;
 	}
 
 	dev_dbg(&dev->core, "%s:%d: mmio mapped_addr %lxh\n", __func__,
-		__LINE__, dev->m_region->lpar_addr);
+			__LINE__, dev->m_region->lpar_addr);
 
 	result = ps3_io_irq_setup(PS3_BINDING_CPU_ANY, dev->interrupt_id, &virq);
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: ps3_construct_io_irq(%d) failed.\n",
-			__func__, __LINE__, virq);
+				__func__, __LINE__, virq);
 		result = -EPERM;
 		goto fail_irq;
 	}
@@ -131,9 +138,10 @@ static int ps3_ohci_probe(struct ps3_system_bus_device *dev)
 
 	hcd = usb_create_hcd(&ps3_ohci_hc_driver, &dev->core, dev_name(&dev->core));
 
-	if (!hcd) {
+	if (!hcd)
+	{
 		dev_dbg(&dev->core, "%s:%d: usb_create_hcd failed\n", __func__,
-			__LINE__);
+				__LINE__);
 		result = -ENOMEM;
 		goto fail_create_hcd;
 	}
@@ -143,33 +151,35 @@ static int ps3_ohci_probe(struct ps3_system_bus_device *dev)
 
 	if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len, hcd_name))
 		dev_dbg(&dev->core, "%s:%d: request_mem_region failed\n",
-			__func__, __LINE__);
+				__func__, __LINE__);
 
 	hcd->regs = ioremap(dev->m_region->lpar_addr, dev->m_region->len);
 
-	if (!hcd->regs) {
+	if (!hcd->regs)
+	{
 		dev_dbg(&dev->core, "%s:%d: ioremap failed\n", __func__,
-			__LINE__);
+				__LINE__);
 		result = -EPERM;
 		goto fail_ioremap;
 	}
 
 	dev_dbg(&dev->core, "%s:%d: hcd->rsrc_start %lxh\n", __func__, __LINE__,
-		(unsigned long)hcd->rsrc_start);
+			(unsigned long)hcd->rsrc_start);
 	dev_dbg(&dev->core, "%s:%d: hcd->rsrc_len   %lxh\n", __func__, __LINE__,
-		(unsigned long)hcd->rsrc_len);
+			(unsigned long)hcd->rsrc_len);
 	dev_dbg(&dev->core, "%s:%d: hcd->regs       %lxh\n", __func__, __LINE__,
-		(unsigned long)hcd->regs);
+			(unsigned long)hcd->regs);
 	dev_dbg(&dev->core, "%s:%d: virq            %lu\n", __func__, __LINE__,
-		(unsigned long)virq);
+			(unsigned long)virq);
 
 	ps3_system_bus_set_drvdata(dev, hcd);
 
 	result = usb_add_hcd(hcd, virq, 0);
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: usb_add_hcd failed (%d)\n",
-			__func__, __LINE__, result);
+				__func__, __LINE__, result);
 		goto fail_add_hcd;
 	}
 
@@ -229,19 +239,22 @@ static int ps3_ohci_remove(struct ps3_system_bus_device *dev)
 static int __init ps3_ohci_driver_register(struct ps3_system_bus_driver *drv)
 {
 	return firmware_has_feature(FW_FEATURE_PS3_LV1)
-		? ps3_system_bus_driver_register(drv)
-		: 0;
+		   ? ps3_system_bus_driver_register(drv)
+		   : 0;
 }
 
 static void ps3_ohci_driver_unregister(struct ps3_system_bus_driver *drv)
 {
 	if (firmware_has_feature(FW_FEATURE_PS3_LV1))
+	{
 		ps3_system_bus_driver_unregister(drv);
+	}
 }
 
 MODULE_ALIAS(PS3_MODULE_ALIAS_OHCI);
 
-static struct ps3_system_bus_driver ps3_ohci_driver = {
+static struct ps3_system_bus_driver ps3_ohci_driver =
+{
 	.core.name = "ps3-ohci-driver",
 	.core.owner = THIS_MODULE,
 	.match_id = PS3_MATCH_ID_OHCI,

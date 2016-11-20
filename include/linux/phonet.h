@@ -26,13 +26,16 @@
 
 #define SIOCPNGAUTOCONF		(SIOCDEVPRIVATE + 0)
 
-struct if_phonet_autoconf {
+struct if_phonet_autoconf
+{
 	uint8_t device;
 };
 
-struct if_phonet_req {
+struct if_phonet_req
+{
 	char ifr_phonet_name[16];
-	union {
+	union
+	{
 		struct if_phonet_autoconf ifru_phonet_autoconf;
 	} ifr_ifru;
 };

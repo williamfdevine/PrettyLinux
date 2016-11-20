@@ -10,7 +10,7 @@
  *      the Free Software Foundation; either version 2 of the License, or
  *      (at your option) any later version.
  *
- *	by Alan Cox <alan@redhat.com> and 
+ *	by Alan Cox <alan@redhat.com> and
  * 	   Alex deVries <alex@onefishtwo.ca>
  */
 
@@ -38,18 +38,29 @@ static void lasi_choose_irq(struct parisc_device *dev, void *ctrl)
 {
 	int irq;
 
-	switch (dev->id.sversion) {
+	switch (dev->id.sversion)
+	{
 		case 0x74:	irq =  7; break; /* Centronics */
+
 		case 0x7B:	irq = 13; break; /* Audio */
+
 		case 0x81:	irq = 14; break; /* Lasi itself */
+
 		case 0x82:	irq =  9; break; /* SCSI */
+
 		case 0x83:	irq = 20; break; /* Floppy */
+
 		case 0x84:	irq = 26; break; /* PS/2 Keyboard */
+
 		case 0x87:	irq = 18; break; /* ISDN */
+
 		case 0x8A:	irq =  8; break; /* LAN */
+
 		case 0x8C:	irq =  5; break; /* RS232 */
+
 		case 0x8D:	irq = (dev->hw_path == 13) ? 16 : 17; break;
-						 /* Telephone */
+
+		/* Telephone */
 		default: 	return;		 /* unknown */
 	}
 
@@ -62,25 +73,29 @@ lasi_init_irq(struct gsc_asic *this_lasi)
 	unsigned long lasi_base = this_lasi->hpa;
 
 	/* Stop LASI barking for a bit */
-	gsc_writel(0x00000000, lasi_base+OFFSET_IMR);
+	gsc_writel(0x00000000, lasi_base + OFFSET_IMR);
 
 	/* clear pending interrupts */
-	gsc_readl(lasi_base+OFFSET_IRR);
+	gsc_readl(lasi_base + OFFSET_IRR);
 
 	/* We're not really convinced we want to reset the onboard
-         * devices. Firmware does it for us...
+	     * devices. Firmware does it for us...
 	 */
 
 	/* Resets */
+
 	/* gsc_writel(0xFFFFFFFF, lasi_base+0x2000);*/	/* Parallel */
-	if(pdc_add_valid(lasi_base+0x4004) == PDC_OK)
-		gsc_writel(0xFFFFFFFF, lasi_base+0x4004);	/* Audio */
-	/* gsc_writel(0xFFFFFFFF, lasi_base+0x5000);*/	/* Serial */ 
+	if (pdc_add_valid(lasi_base + 0x4004) == PDC_OK)
+	{
+		gsc_writel(0xFFFFFFFF, lasi_base + 0x4004);    /* Audio */
+	}
+
+	/* gsc_writel(0xFFFFFFFF, lasi_base+0x5000);*/	/* Serial */
 	/* gsc_writel(0xFFFFFFFF, lasi_base+0x6000);*/	/* SCSI */
-	gsc_writel(0xFFFFFFFF, lasi_base+0x7000);	/* LAN */
-	gsc_writel(0xFFFFFFFF, lasi_base+0x8000);	/* Keyboard */
-	gsc_writel(0xFFFFFFFF, lasi_base+0xA000);	/* FDC */
-	
+	gsc_writel(0xFFFFFFFF, lasi_base + 0x7000);	/* LAN */
+	gsc_writel(0xFFFFFFFF, lasi_base + 0x8000);	/* Keyboard */
+	gsc_writel(0xFFFFFFFF, lasi_base + 0xA000);	/* FDC */
+
 	/* Ok we hit it on the head with a hammer, our Dog is now
 	** comatose and muzzled.  Devices will now unmask LASI
 	** interrupts as they are registered as irq's in the LASI range.
@@ -93,11 +108,11 @@ lasi_init_irq(struct gsc_asic *this_lasi)
 
 /*
    ** lasi_led_init()
-   ** 
+   **
    ** lasi_led_init() initializes the LED controller on the LASI.
    **
    ** Since Mirage and Electra machines use a different LED
-   ** address register, we need to check for these machines 
+   ** address register, we need to check for these machines
    ** explicitly.
  */
 
@@ -111,31 +126,32 @@ static void __init lasi_led_init(unsigned long lasi_hpa)
 {
 	unsigned long datareg;
 
-	switch (CPU_HVERSION) {
-	/* Gecko machines have only one single LED, which can be permanently 
-	   turned on by writing a zero into the power control register. */ 
-	case 0x600:		/* Gecko (712/60) */
-	case 0x601:		/* Gecko (712/80) */
-	case 0x602:		/* Gecko (712/100) */
-	case 0x603:		/* Anole 64 (743/64) */
-	case 0x604:		/* Anole 100 (743/100) */
-	case 0x605:		/* Gecko (712/120) */
-		datareg = lasi_hpa + 0x0000C000;
-		gsc_writeb(0, datareg);
-		return; /* no need to register the LED interrupt-function */  
+	switch (CPU_HVERSION)
+	{
+		/* Gecko machines have only one single LED, which can be permanently
+		   turned on by writing a zero into the power control register. */
+		case 0x600:		/* Gecko (712/60) */
+		case 0x601:		/* Gecko (712/80) */
+		case 0x602:		/* Gecko (712/100) */
+		case 0x603:		/* Anole 64 (743/64) */
+		case 0x604:		/* Anole 100 (743/100) */
+		case 0x605:		/* Gecko (712/120) */
+			datareg = lasi_hpa + 0x0000C000;
+			gsc_writeb(0, datareg);
+			return; /* no need to register the LED interrupt-function */
 
-	/* Mirage and Electra machines need special offsets */
-	case 0x60A:		/* Mirage Jr (715/64) */
-	case 0x60B:		/* Mirage 100 */
-	case 0x60C:		/* Mirage 100+ */
-	case 0x60D:		/* Electra 100 */
-	case 0x60E:		/* Electra 120 */
-		datareg = lasi_hpa - 0x00020000;
-		break;
+		/* Mirage and Electra machines need special offsets */
+		case 0x60A:		/* Mirage Jr (715/64) */
+		case 0x60B:		/* Mirage 100 */
+		case 0x60C:		/* Mirage 100+ */
+		case 0x60D:		/* Electra 100 */
+		case 0x60E:		/* Electra 120 */
+			datareg = lasi_hpa - 0x00020000;
+			break;
 
-	default:
-		datareg = lasi_hpa + 0x0000C000;
-		break;
+		default:
+			datareg = lasi_hpa + 0x0000C000;
+			break;
 	}
 
 	register_led_driver(DISPLAY_MODEL_LASI, LED_CMD_REG_NONE, datareg);
@@ -147,7 +163,7 @@ static void __init lasi_led_init(unsigned long lasi_hpa)
  *
  * Function for lasi to turn off the power.  This is accomplished by setting a
  * 1 to PWR_ON_L in the Power Control Register
- * 
+ *
  */
 
 static unsigned long lasi_power_off_hpa __read_mostly;
@@ -171,8 +187,11 @@ static int __init lasi_init_chip(struct parisc_device *dev)
 	int ret;
 
 	lasi = kzalloc(sizeof(*lasi), GFP_KERNEL);
+
 	if (!lasi)
+	{
 		return -ENOMEM;
+	}
 
 	lasi->name = "Lasi";
 	lasi->hpa = dev->hpa.start;
@@ -180,9 +199,9 @@ static int __init lasi_init_chip(struct parisc_device *dev)
 	/* Check the 4-bit (yes, only 4) version register */
 	lasi->version = gsc_readl(lasi->hpa + LASI_VER) & 0xf;
 	printk(KERN_INFO "%s version %d at 0x%lx found.\n",
-		lasi->name, lasi->version, lasi->hpa);
+		   lasi->name, lasi->version, lasi->hpa);
 
-	/* initialize the chassis LEDs really early */ 
+	/* initialize the chassis LEDs really early */
 	lasi_led_init(lasi->hpa);
 
 	/* Stop LASI barking for a bit */
@@ -190,9 +209,11 @@ static int __init lasi_init_chip(struct parisc_device *dev)
 
 	/* the IRQ lasi should use */
 	dev->irq = gsc_alloc_irq(&gsc_irq);
-	if (dev->irq < 0) {
+
+	if (dev->irq < 0)
+	{
 		printk(KERN_ERR "%s(): cannot get GSC irq\n",
-				__func__);
+			   __func__);
 		kfree(lasi);
 		return -EBUSY;
 	}
@@ -200,7 +221,9 @@ static int __init lasi_init_chip(struct parisc_device *dev)
 	lasi->eim = ((u32) gsc_irq.txn_addr) | gsc_irq.txn_data;
 
 	ret = request_irq(gsc_irq.irq, gsc_asic_intr, 0, "lasi", lasi);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		kfree(lasi);
 		return ret;
 	}
@@ -210,10 +233,12 @@ static int __init lasi_init_chip(struct parisc_device *dev)
 
 	/* Done init'ing, register this driver */
 	ret = gsc_common_setup(dev, lasi);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(lasi);
 		return ret;
-	}    
+	}
 
 	gsc_fixup_irqs(dev, lasi, lasi_choose_irq);
 
@@ -223,16 +248,18 @@ static int __init lasi_init_chip(struct parisc_device *dev)
 	 * should set the HPA here */
 	lasi_power_off_hpa = lasi->hpa;
 	chassis_power_off = lasi_power_off;
-	
+
 	return ret;
 }
 
-static struct parisc_device_id lasi_tbl[] = {
+static struct parisc_device_id lasi_tbl[] =
+{
 	{ HPHW_BA, HVERSION_REV_ANY_ID, HVERSION_ANY_ID, 0x00081 },
 	{ 0, }
 };
 
-struct parisc_driver lasi_driver = {
+struct parisc_driver lasi_driver =
+{
 	.name =		"lasi",
 	.id_table =	lasi_tbl,
 	.probe =	lasi_init_chip,

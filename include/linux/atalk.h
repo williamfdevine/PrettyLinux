@@ -5,7 +5,8 @@
 #include <net/sock.h>
 #include <uapi/linux/atalk.h>
 
-struct atalk_route {
+struct atalk_route
+{
 	struct net_device  *dev;
 	struct atalk_addr  target;
 	struct atalk_addr  gateway;
@@ -21,7 +22,8 @@ struct atalk_route {
  *	@nets - Associated direct netrange
  *	@next - next element in the list of interfaces
  */
-struct atalk_iface {
+struct atalk_iface
+{
 	struct net_device	*dev;
 	struct atalk_addr	address;
 	int			status;
@@ -30,8 +32,9 @@ struct atalk_iface {
 	struct atalk_netrange	nets;
 	struct atalk_iface	*next;
 };
-	
-struct atalk_sock {
+
+struct atalk_sock
+{
 	/* struct sock has to be the first member of atalk_sock */
 	struct sock	sk;
 	__be16		dest_net;
@@ -47,7 +50,8 @@ static inline struct atalk_sock *at_sk(struct sock *sk)
 	return (struct atalk_sock *)sk;
 }
 
-struct ddpehdr {
+struct ddpehdr
+{
 	__be16	deh_len_hops;	/* lower 10 bits are length, next 4 - hops */
 	__be16	deh_sum;
 	__be16	deh_dnet;
@@ -65,7 +69,8 @@ static __inline__ struct ddpehdr *ddp_hdr(struct sk_buff *skb)
 }
 
 /* AppleTalk AARP headers */
-struct elapaarp {
+struct elapaarp
+{
 	__be16	hw_type;
 #define AARP_HW_TYPE_ETHERNET		1
 #define AARP_HW_TYPE_TOKENRING		2
@@ -120,14 +125,14 @@ static inline struct atalk_iface *atalk_find_dev(struct net_device *dev)
 extern struct atalk_addr *atalk_find_dev_addr(struct net_device *dev);
 extern struct net_device *atrtr_get_dev(struct atalk_addr *sa);
 extern int		 aarp_send_ddp(struct net_device *dev,
-				       struct sk_buff *skb,
-				       struct atalk_addr *sa, void *hwaddr);
+							   struct sk_buff *skb,
+							   struct atalk_addr *sa, void *hwaddr);
 extern void		 aarp_device_down(struct net_device *dev);
 extern void		 aarp_probe_network(struct atalk_iface *atif);
 extern int 		 aarp_proxy_probe_network(struct atalk_iface *atif,
-				     struct atalk_addr *sa);
+		struct atalk_addr *sa);
 extern void		 aarp_proxy_remove(struct net_device *dev,
-					   struct atalk_addr *sa);
+								   struct atalk_addr *sa);
 
 extern void		aarp_cleanup_module(void);
 
@@ -150,19 +155,19 @@ extern int sysctl_aarp_retransmit_limit;
 extern int sysctl_aarp_resolve_time;
 
 #ifdef CONFIG_SYSCTL
-extern void atalk_register_sysctl(void);
-extern void atalk_unregister_sysctl(void);
+	extern void atalk_register_sysctl(void);
+	extern void atalk_unregister_sysctl(void);
 #else
-#define atalk_register_sysctl()		do { } while(0)
-#define atalk_unregister_sysctl()	do { } while(0)
+	#define atalk_register_sysctl()		do { } while(0)
+	#define atalk_unregister_sysctl()	do { } while(0)
 #endif
 
 #ifdef CONFIG_PROC_FS
-extern int atalk_proc_init(void);
-extern void atalk_proc_exit(void);
+	extern int atalk_proc_init(void);
+	extern void atalk_proc_exit(void);
 #else
-#define atalk_proc_init()	({ 0; })
-#define atalk_proc_exit()	do { } while(0)
+	#define atalk_proc_init()	({ 0; })
+	#define atalk_proc_exit()	do { } while(0)
 #endif /* CONFIG_PROC_FS */
 
 #endif /* __LINUX_ATALK_H__ */

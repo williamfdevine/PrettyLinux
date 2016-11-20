@@ -84,10 +84,11 @@
 #define CDC_NCM_FLAG_NDP_TO_END	0x02		/* NDP is placed at end of frame */
 
 #define cdc_ncm_comm_intf_is_mbim(x)  ((x)->desc.bInterfaceSubClass == USB_CDC_SUBCLASS_MBIM && \
-				       (x)->desc.bInterfaceProtocol == USB_CDC_PROTO_NONE)
+									   (x)->desc.bInterfaceProtocol == USB_CDC_PROTO_NONE)
 #define cdc_ncm_data_intf_is_mbim(x)  ((x)->desc.bInterfaceProtocol == USB_CDC_MBIM_PROTO_NTB)
 
-struct cdc_ncm_ctx {
+struct cdc_ncm_ctx
+{
 	struct usb_cdc_ncm_ntb_parameters ncm_parm;
 	struct hrtimer tx_timer;
 	struct tasklet_struct bh;

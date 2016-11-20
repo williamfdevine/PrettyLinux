@@ -12,7 +12,7 @@
  * If no bits are set, returns @size.
  */
 extern unsigned long find_next_bit(const unsigned long *addr, unsigned long
-		size, unsigned long offset);
+								   size, unsigned long offset);
 #endif
 
 #ifndef find_next_zero_bit
@@ -26,7 +26,7 @@ extern unsigned long find_next_bit(const unsigned long *addr, unsigned long
  * If no bits are zero, returns @size.
  */
 extern unsigned long find_next_zero_bit(const unsigned long *addr, unsigned
-		long size, unsigned long offset);
+										long size, unsigned long offset);
 #endif
 
 #ifdef CONFIG_GENERIC_FIND_FIRST_BIT
@@ -40,7 +40,7 @@ extern unsigned long find_next_zero_bit(const unsigned long *addr, unsigned
  * If no bits are set, returns @size.
  */
 extern unsigned long find_first_bit(const unsigned long *addr,
-				    unsigned long size);
+									unsigned long size);
 
 /**
  * find_first_zero_bit - find the first cleared bit in a memory region
@@ -51,7 +51,7 @@ extern unsigned long find_first_bit(const unsigned long *addr,
  * If no bits are zero, returns @size.
  */
 extern unsigned long find_first_zero_bit(const unsigned long *addr,
-					 unsigned long size);
+		unsigned long size);
 #else /* CONFIG_GENERIC_FIND_FIRST_BIT */
 
 #define find_first_bit(addr, size) find_next_bit((addr), (size), 0)

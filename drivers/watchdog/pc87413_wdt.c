@@ -88,8 +88,8 @@ static inline void pc87413_select_wdt_out(void)
 
 #ifdef DEBUG
 	pr_info(DPFX
-		"Select multiple pin,pin55,as WDT output: Bit7 to 1: %d\n",
-								cr_data);
+			"Select multiple pin,pin55,as WDT output: Bit7 to 1: %d\n",
+			cr_data);
 #endif
 }
 
@@ -133,8 +133,8 @@ static void pc87413_get_swc_base_addr(void)
 	swc_base_addr = (addr_h << 8) + addr_l;
 #ifdef DEBUG
 	pr_info(DPFX
-		"Read SWC I/O Base Address: low %d, high %d, res %d\n",
-						addr_l, addr_h, swc_base_addr);
+			"Read SWC I/O Base Address: low %d, high %d, res %d\n",
+			addr_l, addr_h, swc_base_addr);
 #endif
 }
 
@@ -276,10 +276,14 @@ static int pc87413_open(struct inode *inode, struct file *file)
 	/* /dev/watchdog can only be opened once */
 
 	if (test_and_set_bit(0, &timer_enabled))
+	{
 		return -EBUSY;
+	}
 
 	if (nowayout)
+	{
 		__module_get(THIS_MODULE);
+	}
 
 	/* Reload and activate timer */
 	pc87413_refresh();
@@ -305,13 +309,17 @@ static int pc87413_release(struct inode *inode, struct file *file)
 {
 	/* Shut off the timer. */
 
-	if (expect_close == 42) {
+	if (expect_close == 42)
+	{
 		pc87413_disable();
 		pr_info("Watchdog disabled, sleeping again...\n");
-	} else {
+	}
+	else
+	{
 		pr_crit("Unexpected close, not stopping watchdog!\n");
 		pc87413_refresh();
 	}
+
 	clear_bit(0, &timer_enabled);
 	expect_close = 0;
 	return 0;
@@ -326,7 +334,7 @@ static int pc87413_release(struct inode *inode, struct file *file)
 
 static int pc87413_status(void)
 {
-	  return 0; /* currently not supported */
+	return 0; /* currently not supported */
 }
 
 /**
@@ -341,11 +349,13 @@ static int pc87413_status(void)
  */
 
 static ssize_t pc87413_write(struct file *file, const char __user *data,
-			     size_t len, loff_t *ppos)
+							 size_t len, loff_t *ppos)
 {
 	/* See if we got the magic character 'V' and reload the timer */
-	if (len) {
-		if (!nowayout) {
+	if (len)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			/* reset expect flag */
@@ -353,18 +363,26 @@ static ssize_t pc87413_write(struct file *file, const char __user *data,
 
 			/* scan to see whether or not we got the
 			   magic character */
-			for (i = 0; i != len; i++) {
+			for (i = 0; i != len; i++)
+			{
 				char c;
+
 				if (get_user(c, data + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					expect_close = 42;
+				}
 			}
 		}
 
 		/* someone wrote to us, we should reload the timer */
 		pc87413_refresh();
 	}
+
 	return len;
 }
 
@@ -380,69 +398,94 @@ static ssize_t pc87413_write(struct file *file, const char __user *data,
  */
 
 static long pc87413_ioctl(struct file *file, unsigned int cmd,
-						unsigned long arg)
+						  unsigned long arg)
 {
 	int new_timeout;
 
-	union {
+	union
+	{
 		struct watchdog_info __user *ident;
 		int __user *i;
 	} uarg;
 
-	static const struct watchdog_info ident = {
+	static const struct watchdog_info ident =
+	{
 		.options          = WDIOF_KEEPALIVEPING |
-				    WDIOF_SETTIMEOUT |
-				    WDIOF_MAGICCLOSE,
+		WDIOF_SETTIMEOUT |
+		WDIOF_MAGICCLOSE,
 		.firmware_version = 1,
 		.identity         = "PC87413(HF/F) watchdog",
 	};
 
 	uarg.i = (int __user *)arg;
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		return copy_to_user(uarg.ident, &ident,
-					sizeof(ident)) ? -EFAULT : 0;
-	case WDIOC_GETSTATUS:
-		return put_user(pc87413_status(), uarg.i);
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(0, uarg.i);
-	case WDIOC_SETOPTIONS:
+	switch (cmd)
 	{
-		int options, retval = -EINVAL;
-		if (get_user(options, uarg.i))
-			return -EFAULT;
-		if (options & WDIOS_DISABLECARD) {
-			pc87413_disable();
-			retval = 0;
-		}
-		if (options & WDIOS_ENABLECARD) {
-			pc87413_enable();
-			retval = 0;
-		}
-		return retval;
-	}
-	case WDIOC_KEEPALIVE:
-		pc87413_refresh();
+		case WDIOC_GETSUPPORT:
+			return copy_to_user(uarg.ident, &ident,
+								sizeof(ident)) ? -EFAULT : 0;
+
+		case WDIOC_GETSTATUS:
+			return put_user(pc87413_status(), uarg.i);
+
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(0, uarg.i);
+
+		case WDIOC_SETOPTIONS:
+			{
+				int options, retval = -EINVAL;
+
+				if (get_user(options, uarg.i))
+				{
+					return -EFAULT;
+				}
+
+				if (options & WDIOS_DISABLECARD)
+				{
+					pc87413_disable();
+					retval = 0;
+				}
+
+				if (options & WDIOS_ENABLECARD)
+				{
+					pc87413_enable();
+					retval = 0;
+				}
+
+				return retval;
+			}
+
+		case WDIOC_KEEPALIVE:
+			pc87413_refresh();
 #ifdef DEBUG
-		pr_info(DPFX "keepalive\n");
+			pr_info(DPFX "keepalive\n");
 #endif
-		return 0;
-	case WDIOC_SETTIMEOUT:
-		if (get_user(new_timeout, uarg.i))
-			return -EFAULT;
-		/* the API states this is given in secs */
-		new_timeout /= 60;
-		if (new_timeout < 0 || new_timeout > MAX_TIMEOUT)
-			return -EINVAL;
-		timeout = new_timeout;
-		pc87413_refresh();
+			return 0;
+
+		case WDIOC_SETTIMEOUT:
+			if (get_user(new_timeout, uarg.i))
+			{
+				return -EFAULT;
+			}
+
+			/* the API states this is given in secs */
+			new_timeout /= 60;
+
+			if (new_timeout < 0 || new_timeout > MAX_TIMEOUT)
+			{
+				return -EINVAL;
+			}
+
+			timeout = new_timeout;
+			pc87413_refresh();
+
 		/* fall through and return the new timeout... */
-	case WDIOC_GETTIMEOUT:
-		new_timeout = timeout * 60;
-		return put_user(new_timeout, uarg.i);
-	default:
-		return -ENOTTY;
+		case WDIOC_GETTIMEOUT:
+			new_timeout = timeout * 60;
+			return put_user(new_timeout, uarg.i);
+
+		default:
+			return -ENOTTY;
 	}
 }
 
@@ -461,18 +504,22 @@ static long pc87413_ioctl(struct file *file, unsigned int cmd,
  */
 
 static int pc87413_notify_sys(struct notifier_block *this,
-			      unsigned long code,
-			      void *unused)
+							  unsigned long code,
+							  void *unused)
 {
 	if (code == SYS_DOWN || code == SYS_HALT)
 		/* Turn the card off */
+	{
 		pc87413_disable();
+	}
+
 	return NOTIFY_DONE;
 }
 
 /* -- Module's structures ---------------------------------------*/
 
-static const struct file_operations pc87413_fops = {
+static const struct file_operations pc87413_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.write		= pc87413_write,
@@ -481,11 +528,13 @@ static const struct file_operations pc87413_fops = {
 	.release	= pc87413_release,
 };
 
-static struct notifier_block pc87413_notifier = {
+static struct notifier_block pc87413_notifier =
+{
 	.notifier_call  = pc87413_notify_sys,
 };
 
-static struct miscdevice pc87413_miscdev = {
+static struct miscdevice pc87413_miscdev =
+{
 	.minor          = WATCHDOG_MINOR,
 	.name           = "watchdog",
 	.fops           = &pc87413_fops,
@@ -506,28 +555,37 @@ static int __init pc87413_init(void)
 	int ret;
 
 	pr_info("Version " VERSION " at io 0x%X\n",
-							WDT_INDEX_IO_PORT);
+			WDT_INDEX_IO_PORT);
 
 	if (!request_muxed_region(io, 2, MODNAME))
+	{
 		return -EBUSY;
+	}
 
 	ret = register_reboot_notifier(&pc87413_notifier);
+
 	if (ret != 0)
+	{
 		pr_err("cannot register reboot notifier (err=%d)\n", ret);
+	}
 
 	ret = misc_register(&pc87413_miscdev);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-		       WATCHDOG_MINOR, ret);
+			   WATCHDOG_MINOR, ret);
 		goto reboot_unreg;
 	}
+
 	pr_info("initialized. timeout=%d min\n", timeout);
 
 	pc87413_select_wdt_out();
 	pc87413_enable_swc();
 	pc87413_get_swc_base_addr();
 
-	if (!request_region(swc_base_addr, 0x20, MODNAME)) {
+	if (!request_region(swc_base_addr, 0x20, MODNAME))
+	{
 		pr_err("cannot request SWC region at 0x%x\n", swc_base_addr);
 		ret = -EBUSY;
 		goto misc_unreg;
@@ -559,7 +617,8 @@ reboot_unreg:
 static void __exit pc87413_exit(void)
 {
 	/* Stop the timer before we leave */
-	if (!nowayout) {
+	if (!nowayout)
+	{
 		pc87413_disable();
 		pr_info("Watchdog disabled\n");
 	}
@@ -581,15 +640,15 @@ MODULE_LICENSE("GPL");
 
 module_param(io, int, 0);
 MODULE_PARM_DESC(io, MODNAME " I/O port (default: "
-					__MODULE_STRING(IO_DEFAULT) ").");
+				 __MODULE_STRING(IO_DEFAULT) ").");
 
 module_param(timeout, int, 0);
 MODULE_PARM_DESC(timeout,
-		"Watchdog timeout in minutes (default="
-				__MODULE_STRING(DEFAULT_TIMEOUT) ").");
+				 "Watchdog timeout in minutes (default="
+				 __MODULE_STRING(DEFAULT_TIMEOUT) ").");
 
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		"Watchdog cannot be stopped once started (default="
-				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 

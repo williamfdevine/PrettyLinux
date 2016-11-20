@@ -7,7 +7,8 @@
 #include <linux/list.h>
 #include "orb.h"
 
-struct eadm_private {
+struct eadm_private
+{
 	union orb orb;
 	enum {EADM_IDLE, EADM_BUSY, EADM_NOT_OPER} state;
 	struct completion *completion;

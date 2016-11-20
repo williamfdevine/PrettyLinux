@@ -31,18 +31,24 @@ static void scif_invalidate_ep(int node)
 
 	flush_work(&scif_info.conn_work);
 	mutex_lock(&scif_info.connlock);
-	list_for_each_safe(pos, tmpq, &scif_info.disconnected) {
+	list_for_each_safe(pos, tmpq, &scif_info.disconnected)
+	{
 		ep = list_entry(pos, struct scif_endpt, list);
-		if (ep->remote_dev->node == node) {
+
+		if (ep->remote_dev->node == node)
+		{
 			scif_unmap_all_windows(ep);
 			spin_lock(&ep->lock);
 			scif_cleanup_ep_qp(ep);
 			spin_unlock(&ep->lock);
 		}
 	}
-	list_for_each_safe(pos, tmpq, &scif_info.connected) {
+	list_for_each_safe(pos, tmpq, &scif_info.connected)
+	{
 		ep = list_entry(pos, struct scif_endpt, list);
-		if (ep->remote_dev->node == node) {
+
+		if (ep->remote_dev->node == node)
+		{
 			list_del(pos);
 			spin_lock(&ep->lock);
 			ep->state = SCIFEP_DISCONNECTED;
@@ -62,7 +68,10 @@ void scif_free_qp(struct scif_dev *scifdev)
 	struct scif_qp *qp = scifdev->qpairs;
 
 	if (!qp)
+	{
 		return;
+	}
+
 	scif_unmap_single(qp->local_buf, scifdev, qp->inbound_q.size);
 	kfree(qp->inbound_q.rb_base);
 	scif_unmap_single(qp->local_qp, scifdev, sizeof(struct scif_qp));
@@ -75,23 +84,30 @@ static void scif_cleanup_qp(struct scif_dev *dev)
 	struct scif_qp *qp = &dev->qpairs[0];
 
 	if (!qp)
+	{
 		return;
+	}
+
 	scif_iounmap((void *)qp->remote_qp, sizeof(struct scif_qp), dev);
 	scif_iounmap((void *)qp->outbound_q.rb_base,
-		     sizeof(struct scif_qp), dev);
+				 sizeof(struct scif_qp), dev);
 	qp->remote_qp = NULL;
 	qp->local_write = 0;
 	qp->inbound_q.current_write_offset = 0;
 	qp->inbound_q.current_read_offset = 0;
+
 	if (scifdev_is_p2p(dev))
+	{
 		scif_free_qp(dev);
+	}
 }
 
 void scif_send_acks(struct scif_dev *dev)
 {
 	struct scifmsg msg;
 
-	if (dev->node_remove_ack_pending) {
+	if (dev->node_remove_ack_pending)
+	{
 		msg.uop = SCIF_NODE_REMOVE_ACK;
 		msg.src.node = scif_info.nodeid;
 		msg.dst.node = SCIF_MGMT_NODE;
@@ -99,7 +115,9 @@ void scif_send_acks(struct scif_dev *dev)
 		scif_nodeqp_send(&scif_dev[SCIF_MGMT_NODE], &msg);
 		dev->node_remove_ack_pending = false;
 	}
-	if (dev->exit_ack_pending) {
+
+	if (dev->exit_ack_pending)
+	{
 		msg.uop = SCIF_EXIT_ACK;
 		msg.src.node = scif_info.nodeid;
 		msg.dst.node = dev->node;
@@ -119,14 +137,21 @@ void scif_cleanup_scifdev(struct scif_dev *dev)
 	struct scif_hw_dev *sdev = dev->sdev;
 
 	if (!dev->sdev)
+	{
 		return;
-	if (scifdev_is_p2p(dev)) {
-		if (dev->cookie) {
+	}
+
+	if (scifdev_is_p2p(dev))
+	{
+		if (dev->cookie)
+		{
 			sdev->hw_ops->free_irq(sdev, dev->cookie, dev);
 			dev->cookie = NULL;
 		}
+
 		scif_destroy_intr_wq(dev);
 	}
+
 	flush_work(&scif_info.misc_work);
 	scif_destroy_p2p(dev);
 	scif_invalidate_ep(dev->node);
@@ -134,7 +159,9 @@ void scif_cleanup_scifdev(struct scif_dev *dev)
 	scif_cleanup_rma_for_zombies(dev->node);
 	flush_work(&scif_info.misc_work);
 	scif_send_acks(dev);
-	if (!dev->node && scif_info.card_initiated_exit) {
+
+	if (!dev->node && scif_info.card_initiated_exit)
+	{
 		/*
 		 * Send an SCIF_EXIT message which is the last message from MIC
 		 * to the Host and wait for a SCIF_EXIT_ACK
@@ -142,6 +169,7 @@ void scif_cleanup_scifdev(struct scif_dev *dev)
 		scif_send_exit(dev);
 		scif_info.card_initiated_exit = false;
 	}
+
 	scif_cleanup_qp(dev);
 }
 
@@ -155,7 +183,9 @@ void scif_handle_remove_node(int node)
 	struct scif_dev *scifdev = &scif_dev[node];
 
 	if (scif_peer_unregister_device(scifdev))
+	{
 		scif_send_acks(scifdev);
+	}
 }
 
 static int scif_send_rmnode_msg(int node, int remove_node)
@@ -186,37 +216,52 @@ void scif_disconnect_node(u32 node_id, bool mgmt_initiated)
 	struct scif_dev *scifdev = &scif_dev[node_id];
 
 	if (!node_id)
+	{
 		return;
+	}
 
 	atomic_set(&scifdev->disconn_rescnt, 0);
 
 	/* Destroy p2p network */
-	for (i = 1; i <= scif_info.maxid; i++) {
+	for (i = 1; i <= scif_info.maxid; i++)
+	{
 		if (i == node_id)
+		{
 			continue;
+		}
+
 		ret = scif_send_rmnode_msg(i, node_id);
+
 		if (!ret)
+		{
 			msg_cnt++;
+		}
 	}
+
 	/* Wait for the remote nodes to respond with SCIF_NODE_REMOVE_ACK */
 	ret = wait_event_timeout(scifdev->disconn_wq,
-				 (atomic_read(&scifdev->disconn_rescnt)
-				 == msg_cnt), SCIF_NODE_ALIVE_TIMEOUT);
+							 (atomic_read(&scifdev->disconn_rescnt)
+							  == msg_cnt), SCIF_NODE_ALIVE_TIMEOUT);
+
 	/* Tell the card to clean up */
 	if (mgmt_initiated && _scifdev_alive(scifdev))
 		/*
 		 * Send an SCIF_EXIT message which is the last message from Host
 		 * to the MIC and wait for a SCIF_EXIT_ACK
 		 */
+	{
 		scif_send_exit(scifdev);
+	}
+
 	atomic_set(&scifdev->disconn_rescnt, 0);
 	/* Tell the mgmt node to clean up */
 	ret = scif_send_rmnode_msg(SCIF_MGMT_NODE, node_id);
+
 	if (!ret)
 		/* Wait for mgmt node to respond with SCIF_NODE_REMOVE_ACK */
 		wait_event_timeout(scifdev->disconn_wq,
-				   (atomic_read(&scifdev->disconn_rescnt) == 1),
-				   SCIF_NODE_ALIVE_TIMEOUT);
+						   (atomic_read(&scifdev->disconn_rescnt) == 1),
+						   SCIF_NODE_ALIVE_TIMEOUT);
 }
 
 void scif_get_node_info(void)
@@ -230,7 +275,9 @@ void scif_get_node_info(void)
 	msg.payload[3] = (u64)&node_info;
 
 	if ((scif_nodeqp_send(&scif_dev[SCIF_MGMT_NODE], &msg)))
+	{
 		return;
+	}
 
 	/* Wait for a response with SCIF_GET_NODE_INFO */
 	wait_for_completion(&node_info);

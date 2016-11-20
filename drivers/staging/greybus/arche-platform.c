@@ -28,7 +28,8 @@
 
 #define WD_COLDBOOT_PULSE_WIDTH_MS	30
 
-enum svc_wakedetect_state {
+enum svc_wakedetect_state
+{
 	WD_STATE_IDLE,			/* Default state = pulled high/low */
 	WD_STATE_BOOT_INIT,		/* WD = falling edge (low) */
 	WD_STATE_COLDBOOT_TRIG,		/* WD = rising edge (high), > 30msec */
@@ -38,7 +39,8 @@ enum svc_wakedetect_state {
 	WD_STATE_TIMESYNC,
 };
 
-struct arche_platform_drvdata {
+struct arche_platform_drvdata
+{
 	/* Control GPIO signals to and from AP <=> SVC */
 	int svc_reset_gpio;
 	bool is_reset_act_hi;
@@ -81,7 +83,7 @@ static int arche_apb_bootret_deassert(struct device *dev, void *data)
 
 /* Requires calling context to hold arche_pdata->platform_state_mutex */
 static void arche_platform_set_state(struct arche_platform_drvdata *arche_pdata,
-				     enum arche_platform_state state)
+									 enum arche_platform_state state)
 {
 	arche_pdata->state = state;
 }
@@ -111,7 +113,7 @@ static void arche_platform_set_state(struct arche_platform_drvdata *arche_pdata,
  * state-transition requests.
  */
 int arche_platform_change_state(enum arche_platform_state state,
-				struct gb_timesync_svc *timesync_svc_pdata)
+								struct gb_timesync_svc *timesync_svc_pdata)
 {
 	struct arche_platform_drvdata *arche_pdata;
 	struct platform_device *pdev;
@@ -120,13 +122,17 @@ int arche_platform_change_state(enum arche_platform_state state,
 	unsigned long flags;
 
 	np = of_find_compatible_node(NULL, NULL, "google,arche-platform");
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("google,arche-platform device node not found\n");
 		return -ENODEV;
 	}
 
 	pdev = of_find_device_by_node(np);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		pr_err("arche-platform device not found\n");
 		of_node_put(np);
 		return -ENODEV;
@@ -137,50 +143,65 @@ int arche_platform_change_state(enum arche_platform_state state,
 	mutex_lock(&arche_pdata->platform_state_mutex);
 	spin_lock_irqsave(&arche_pdata->wake_lock, flags);
 
-	if (arche_pdata->state == state) {
+	if (arche_pdata->state == state)
+	{
 		ret = 0;
 		goto exit;
 	}
 
-	switch (state) {
-	case ARCHE_PLATFORM_STATE_TIME_SYNC:
-		if (arche_pdata->state != ARCHE_PLATFORM_STATE_ACTIVE) {
-			ret = -EINVAL;
+	switch (state)
+	{
+		case ARCHE_PLATFORM_STATE_TIME_SYNC:
+			if (arche_pdata->state != ARCHE_PLATFORM_STATE_ACTIVE)
+			{
+				ret = -EINVAL;
+				goto exit;
+			}
+
+			if (arche_pdata->wake_detect_state != WD_STATE_IDLE)
+			{
+				dev_err(arche_pdata->dev,
+						"driver busy with wake/detect line ops\n");
+				goto  exit;
+			}
+
+			device_for_each_child(arche_pdata->dev, NULL,
+								  arche_apb_bootret_assert);
+			arche_pdata->wake_detect_state = WD_STATE_TIMESYNC;
+			break;
+
+		case ARCHE_PLATFORM_STATE_ACTIVE:
+			if (arche_pdata->state != ARCHE_PLATFORM_STATE_TIME_SYNC)
+			{
+				ret = -EINVAL;
+				goto exit;
+			}
+
+			device_for_each_child(arche_pdata->dev, NULL,
+								  arche_apb_bootret_deassert);
+			arche_pdata->wake_detect_state = WD_STATE_IDLE;
+			break;
+
+		case ARCHE_PLATFORM_STATE_OFF:
+		case ARCHE_PLATFORM_STATE_STANDBY:
+		case ARCHE_PLATFORM_STATE_FW_FLASHING:
+			dev_err(arche_pdata->dev, "busy, request to retry later\n");
 			goto exit;
-		}
-		if (arche_pdata->wake_detect_state != WD_STATE_IDLE) {
+
+		default:
+			ret = -EINVAL;
 			dev_err(arche_pdata->dev,
-				"driver busy with wake/detect line ops\n");
-			goto  exit;
-		}
-		device_for_each_child(arche_pdata->dev, NULL,
-				      arche_apb_bootret_assert);
-		arche_pdata->wake_detect_state = WD_STATE_TIMESYNC;
-		break;
-	case ARCHE_PLATFORM_STATE_ACTIVE:
-		if (arche_pdata->state != ARCHE_PLATFORM_STATE_TIME_SYNC) {
-			ret = -EINVAL;
+					"invalid state transition request\n");
 			goto exit;
-		}
-		device_for_each_child(arche_pdata->dev, NULL,
-				      arche_apb_bootret_deassert);
-		arche_pdata->wake_detect_state = WD_STATE_IDLE;
-		break;
-	case ARCHE_PLATFORM_STATE_OFF:
-	case ARCHE_PLATFORM_STATE_STANDBY:
-	case ARCHE_PLATFORM_STATE_FW_FLASHING:
-		dev_err(arche_pdata->dev, "busy, request to retry later\n");
-		goto exit;
-	default:
-		ret = -EINVAL;
-		dev_err(arche_pdata->dev,
-			"invalid state transition request\n");
-		goto exit;
 	}
+
 	arche_pdata->timesync_svc_pdata = timesync_svc_pdata;
 	arche_platform_set_state(arche_pdata, state);
+
 	if (state == ARCHE_PLATFORM_STATE_ACTIVE)
+	{
 		wake_up(&arche_pdata->wq);
+	}
 
 	ret = 0;
 exit:
@@ -194,8 +215,8 @@ EXPORT_SYMBOL_GPL(arche_platform_change_state);
 
 /* Requires arche_pdata->wake_lock is held by calling context */
 static void arche_platform_set_wake_detect_state(
-				struct arche_platform_drvdata *arche_pdata,
-				enum svc_wakedetect_state state)
+	struct arche_platform_drvdata *arche_pdata,
+	enum svc_wakedetect_state state)
 {
 	arche_pdata->wake_detect_state = state;
 }
@@ -210,8 +231,11 @@ static int apb_cold_boot(struct device *dev, void *data)
 	int ret;
 
 	ret = apb_ctrl_coldboot(dev);
+
 	if (ret)
+	{
 		dev_warn(dev, "failed to coldboot\n");
+	}
 
 	/*Child nodes are independent, so do not exit coldboot operation */
 	return 0;
@@ -223,7 +247,9 @@ static int apb_poweroff(struct device *dev, void *data)
 
 	/* Enable HUB3613 into HUB mode. */
 	if (usb3613_hub_mode_ctrl(false))
+	{
 		dev_warn(dev, "failed to control hub device\n");
+	}
 
 	return 0;
 }
@@ -241,14 +267,16 @@ static irqreturn_t arche_platform_wd_irq_thread(int irq, void *devid)
 	unsigned long flags;
 
 	spin_lock_irqsave(&arche_pdata->wake_lock, flags);
-	if (arche_pdata->wake_detect_state != WD_STATE_COLDBOOT_TRIG) {
+
+	if (arche_pdata->wake_detect_state != WD_STATE_COLDBOOT_TRIG)
+	{
 		/* Something is wrong */
 		spin_unlock_irqrestore(&arche_pdata->wake_lock, flags);
 		return IRQ_HANDLED;
 	}
 
 	arche_platform_set_wake_detect_state(arche_pdata,
-					     WD_STATE_COLDBOOT_START);
+										 WD_STATE_COLDBOOT_START);
 	spin_unlock_irqrestore(&arche_pdata->wake_lock, flags);
 
 	/* It should complete power cycle, so first make sure it is poweroff */
@@ -259,7 +287,9 @@ static irqreturn_t arche_platform_wd_irq_thread(int irq, void *devid)
 
 	/* Enable HUB3613 into HUB mode. */
 	if (usb3613_hub_mode_ctrl(true))
+	{
 		dev_warn(arche_pdata->dev, "failed to control hub device\n");
+	}
 
 	spin_lock_irqsave(&arche_pdata->wake_lock, flags);
 	arche_platform_set_wake_detect_state(arche_pdata, WD_STATE_IDLE);
@@ -275,12 +305,14 @@ static irqreturn_t arche_platform_wd_irq(int irq, void *devid)
 
 	spin_lock_irqsave(&arche_pdata->wake_lock, flags);
 
-	if (arche_pdata->wake_detect_state == WD_STATE_TIMESYNC) {
+	if (arche_pdata->wake_detect_state == WD_STATE_TIMESYNC)
+	{
 		gb_timesync_irq(arche_pdata->timesync_svc_pdata);
 		goto exit;
 	}
 
-	if (gpio_get_value(arche_pdata->wake_detect_gpio)) {
+	if (gpio_get_value(arche_pdata->wake_detect_gpio))
+	{
 		/* wake/detect rising */
 
 		/*
@@ -288,18 +320,23 @@ static irqreturn_t arche_platform_wd_irq(int irq, void *devid)
 		 * 30msec, then standby boot sequence is initiated, which is not
 		 * supported/implemented as of now. So ignore it.
 		 */
-		if (arche_pdata->wake_detect_state == WD_STATE_BOOT_INIT) {
+		if (arche_pdata->wake_detect_state == WD_STATE_BOOT_INIT)
+		{
 			if (time_before(jiffies,
-					arche_pdata->wake_detect_start +
-					msecs_to_jiffies(WD_COLDBOOT_PULSE_WIDTH_MS))) {
+							arche_pdata->wake_detect_start +
+							msecs_to_jiffies(WD_COLDBOOT_PULSE_WIDTH_MS)))
+			{
 				arche_platform_set_wake_detect_state(arche_pdata,
-								     WD_STATE_IDLE);
-			} else {
+													 WD_STATE_IDLE);
+			}
+			else
+			{
 				/* Check we are not in middle of irq thread already */
 				if (arche_pdata->wake_detect_state !=
-						WD_STATE_COLDBOOT_START) {
+					WD_STATE_COLDBOOT_START)
+				{
 					arche_platform_set_wake_detect_state(arche_pdata,
-									     WD_STATE_COLDBOOT_TRIG);
+														 WD_STATE_COLDBOOT_TRIG);
 					spin_unlock_irqrestore(
 						&arche_pdata->wake_lock,
 						flags);
@@ -307,9 +344,12 @@ static irqreturn_t arche_platform_wd_irq(int irq, void *devid)
 				}
 			}
 		}
-	} else {
+	}
+	else
+	{
 		/* wake/detect falling */
-		if (arche_pdata->wake_detect_state == WD_STATE_IDLE) {
+		if (arche_pdata->wake_detect_state == WD_STATE_IDLE)
+		{
 			arche_pdata->wake_detect_start = jiffies;
 			/*
 			 * In the begining, when wake/detect goes low (first time), we assume
@@ -317,7 +357,7 @@ static irqreturn_t arche_platform_wd_irq(int irq, void *devid)
 			 * beyond 30msec, then it is coldboot else fallback to standby boot.
 			 */
 			arche_platform_set_wake_detect_state(arche_pdata,
-							     WD_STATE_BOOT_INIT);
+												 WD_STATE_BOOT_INIT);
 		}
 	}
 
@@ -335,18 +375,22 @@ static int arche_platform_coldboot_seq(struct arche_platform_drvdata *arche_pdat
 	int ret;
 
 	if (arche_pdata->state == ARCHE_PLATFORM_STATE_ACTIVE)
+	{
 		return 0;
+	}
 
 	dev_info(arche_pdata->dev, "Booting from cold boot state\n");
 
 	svc_reset_onoff(arche_pdata->svc_reset_gpio,
-			arche_pdata->is_reset_act_hi);
+					arche_pdata->is_reset_act_hi);
 
 	gpio_set_value(arche_pdata->svc_sysboot_gpio, 0);
 	usleep_range(100, 200);
 
 	ret = clk_prepare_enable(arche_pdata->svc_ref_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(arche_pdata->dev, "failed to enable svc_ref_clk: %d\n",
 				ret);
 		return ret;
@@ -354,7 +398,7 @@ static int arche_platform_coldboot_seq(struct arche_platform_drvdata *arche_pdat
 
 	/* bring SVC out of reset */
 	svc_reset_onoff(arche_pdata->svc_reset_gpio,
-			!arche_pdata->is_reset_act_hi);
+					!arche_pdata->is_reset_act_hi);
 
 	arche_platform_set_state(arche_pdata, ARCHE_PLATFORM_STATE_ACTIVE);
 
@@ -369,26 +413,30 @@ static int arche_platform_fw_flashing_seq(struct arche_platform_drvdata *arche_p
 	int ret;
 
 	if (arche_pdata->state == ARCHE_PLATFORM_STATE_FW_FLASHING)
+	{
 		return 0;
+	}
 
 	dev_info(arche_pdata->dev, "Switching to FW flashing state\n");
 
 	svc_reset_onoff(arche_pdata->svc_reset_gpio,
-			arche_pdata->is_reset_act_hi);
+					arche_pdata->is_reset_act_hi);
 
 	gpio_set_value(arche_pdata->svc_sysboot_gpio, 1);
 
 	usleep_range(100, 200);
 
 	ret = clk_prepare_enable(arche_pdata->svc_ref_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(arche_pdata->dev, "failed to enable svc_ref_clk: %d\n",
 				ret);
 		return ret;
 	}
 
 	svc_reset_onoff(arche_pdata->svc_reset_gpio,
-			!arche_pdata->is_reset_act_hi);
+					!arche_pdata->is_reset_act_hi);
 
 	arche_platform_set_state(arche_pdata, ARCHE_PLATFORM_STATE_FW_FLASHING);
 
@@ -403,15 +451,18 @@ static void arche_platform_poweroff_seq(struct arche_platform_drvdata *arche_pda
 	unsigned long flags;
 
 	if (arche_pdata->state == ARCHE_PLATFORM_STATE_OFF)
+	{
 		return;
+	}
 
 	/* If in fw_flashing mode, then no need to repeate things again */
-	if (arche_pdata->state != ARCHE_PLATFORM_STATE_FW_FLASHING) {
+	if (arche_pdata->state != ARCHE_PLATFORM_STATE_FW_FLASHING)
+	{
 		disable_irq(arche_pdata->wake_detect_irq);
 
 		spin_lock_irqsave(&arche_pdata->wake_lock, flags);
 		arche_platform_set_wake_detect_state(arche_pdata,
-						     WD_STATE_IDLE);
+											 WD_STATE_IDLE);
 		spin_unlock_irqrestore(&arche_pdata->wake_lock, flags);
 	}
 
@@ -419,13 +470,13 @@ static void arche_platform_poweroff_seq(struct arche_platform_drvdata *arche_pda
 
 	/* As part of exit, put APB back in reset state */
 	svc_reset_onoff(arche_pdata->svc_reset_gpio,
-			arche_pdata->is_reset_act_hi);
+					arche_pdata->is_reset_act_hi);
 
 	arche_platform_set_state(arche_pdata, ARCHE_PLATFORM_STATE_OFF);
 }
 
 static ssize_t state_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+						   struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct arche_platform_drvdata *arche_pdata = platform_get_drvdata(pdev);
@@ -433,28 +484,41 @@ static ssize_t state_store(struct device *dev,
 
 retry:
 	mutex_lock(&arche_pdata->platform_state_mutex);
-	if (arche_pdata->state == ARCHE_PLATFORM_STATE_TIME_SYNC) {
+
+	if (arche_pdata->state == ARCHE_PLATFORM_STATE_TIME_SYNC)
+	{
 		mutex_unlock(&arche_pdata->platform_state_mutex);
 		ret = wait_event_interruptible(
-			arche_pdata->wq,
-			arche_pdata->state != ARCHE_PLATFORM_STATE_TIME_SYNC);
+				  arche_pdata->wq,
+				  arche_pdata->state != ARCHE_PLATFORM_STATE_TIME_SYNC);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		goto retry;
 	}
 
-	if (sysfs_streq(buf, "off")) {
+	if (sysfs_streq(buf, "off"))
+	{
 		if (arche_pdata->state == ARCHE_PLATFORM_STATE_OFF)
+		{
 			goto exit;
+		}
 
 		/*  If SVC goes down, bring down APB's as well */
 		device_for_each_child(arche_pdata->dev, NULL, apb_poweroff);
 
 		arche_platform_poweroff_seq(arche_pdata);
 
-	} else if (sysfs_streq(buf, "active")) {
+	}
+	else if (sysfs_streq(buf, "active"))
+	{
 		if (arche_pdata->state == ARCHE_PLATFORM_STATE_ACTIVE)
+		{
 			goto exit;
+		}
 
 		/* First we want to make sure we power off everything
 		 * and then activate back again */
@@ -463,17 +527,28 @@ retry:
 
 		arche_platform_wd_irq_en(arche_pdata);
 		ret = arche_platform_coldboot_seq(arche_pdata);
-		if (ret)
-			goto exit;
 
-	} else if (sysfs_streq(buf, "standby")) {
-		if (arche_pdata->state == ARCHE_PLATFORM_STATE_STANDBY)
+		if (ret)
+		{
 			goto exit;
+		}
+
+	}
+	else if (sysfs_streq(buf, "standby"))
+	{
+		if (arche_pdata->state == ARCHE_PLATFORM_STATE_STANDBY)
+		{
+			goto exit;
+		}
 
 		dev_warn(arche_pdata->dev, "standby state not supported\n");
-	} else if (sysfs_streq(buf, "fw_flashing")) {
+	}
+	else if (sysfs_streq(buf, "fw_flashing"))
+	{
 		if (arche_pdata->state == ARCHE_PLATFORM_STATE_FW_FLASHING)
+		{
 			goto exit;
+		}
 
 		/*
 		 * Here we only control SVC.
@@ -485,9 +560,14 @@ retry:
 		arche_platform_poweroff_seq(arche_pdata);
 
 		ret = arche_platform_fw_flashing_seq(arche_pdata);
+
 		if (ret)
+		{
 			goto exit;
-	} else {
+		}
+	}
+	else
+	{
 		dev_err(arche_pdata->dev, "unknown state\n");
 		ret = -EINVAL;
 	}
@@ -498,56 +578,71 @@ exit:
 }
 
 static ssize_t state_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+						  struct device_attribute *attr, char *buf)
 {
 	struct arche_platform_drvdata *arche_pdata = dev_get_drvdata(dev);
 
-	switch (arche_pdata->state) {
-	case ARCHE_PLATFORM_STATE_OFF:
-		return sprintf(buf, "off\n");
-	case ARCHE_PLATFORM_STATE_ACTIVE:
-		return sprintf(buf, "active\n");
-	case ARCHE_PLATFORM_STATE_STANDBY:
-		return sprintf(buf, "standby\n");
-	case ARCHE_PLATFORM_STATE_FW_FLASHING:
-		return sprintf(buf, "fw_flashing\n");
-	case ARCHE_PLATFORM_STATE_TIME_SYNC:
-		return sprintf(buf, "time_sync\n");
-	default:
-		return sprintf(buf, "unknown state\n");
+	switch (arche_pdata->state)
+	{
+		case ARCHE_PLATFORM_STATE_OFF:
+			return sprintf(buf, "off\n");
+
+		case ARCHE_PLATFORM_STATE_ACTIVE:
+			return sprintf(buf, "active\n");
+
+		case ARCHE_PLATFORM_STATE_STANDBY:
+			return sprintf(buf, "standby\n");
+
+		case ARCHE_PLATFORM_STATE_FW_FLASHING:
+			return sprintf(buf, "fw_flashing\n");
+
+		case ARCHE_PLATFORM_STATE_TIME_SYNC:
+			return sprintf(buf, "time_sync\n");
+
+		default:
+			return sprintf(buf, "unknown state\n");
 	}
 }
 
 static DEVICE_ATTR_RW(state);
 
 static int arche_platform_pm_notifier(struct notifier_block *notifier,
-				      unsigned long pm_event, void *unused)
+									  unsigned long pm_event, void *unused)
 {
 	struct arche_platform_drvdata *arche_pdata =
 		container_of(notifier, struct arche_platform_drvdata,
-			     pm_notifier);
+					 pm_notifier);
 	int ret = NOTIFY_DONE;
 
 	mutex_lock(&arche_pdata->platform_state_mutex);
-	switch (pm_event) {
-	case PM_SUSPEND_PREPARE:
-		if (arche_pdata->state != ARCHE_PLATFORM_STATE_ACTIVE) {
-			ret = NOTIFY_STOP;
-			break;
-		}
-		device_for_each_child(arche_pdata->dev, NULL, apb_poweroff);
-		arche_platform_poweroff_seq(arche_pdata);
-		break;
-	case PM_POST_SUSPEND:
-		if (arche_pdata->state != ARCHE_PLATFORM_STATE_OFF)
+
+	switch (pm_event)
+	{
+		case PM_SUSPEND_PREPARE:
+			if (arche_pdata->state != ARCHE_PLATFORM_STATE_ACTIVE)
+			{
+				ret = NOTIFY_STOP;
+				break;
+			}
+
+			device_for_each_child(arche_pdata->dev, NULL, apb_poweroff);
+			arche_platform_poweroff_seq(arche_pdata);
 			break;
 
-		arche_platform_wd_irq_en(arche_pdata);
-		arche_platform_coldboot_seq(arche_pdata);
-		break;
-	default:
-		break;
+		case PM_POST_SUSPEND:
+			if (arche_pdata->state != ARCHE_PLATFORM_STATE_OFF)
+			{
+				break;
+			}
+
+			arche_platform_wd_irq_en(arche_pdata);
+			arche_platform_coldboot_seq(arche_pdata);
+			break;
+
+		default:
+			break;
 	}
+
 	mutex_unlock(&arche_pdata->platform_state_mutex);
 
 	return ret;
@@ -561,68 +656,98 @@ static int arche_platform_probe(struct platform_device *pdev)
 	int ret;
 
 	arche_pdata = devm_kzalloc(&pdev->dev, sizeof(*arche_pdata), GFP_KERNEL);
+
 	if (!arche_pdata)
+	{
 		return -ENOMEM;
+	}
 
 	/* setup svc reset gpio */
 	arche_pdata->is_reset_act_hi = of_property_read_bool(np,
-					"svc,reset-active-high");
+								   "svc,reset-active-high");
 	arche_pdata->svc_reset_gpio = of_get_named_gpio(np, "svc,reset-gpio", 0);
-	if (arche_pdata->svc_reset_gpio < 0) {
+
+	if (arche_pdata->svc_reset_gpio < 0)
+	{
 		dev_err(dev, "failed to get reset-gpio\n");
 		return arche_pdata->svc_reset_gpio;
 	}
+
 	ret = devm_gpio_request(dev, arche_pdata->svc_reset_gpio, "svc-reset");
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to request svc-reset gpio:%d\n", ret);
 		return ret;
 	}
+
 	ret = gpio_direction_output(arche_pdata->svc_reset_gpio,
-					arche_pdata->is_reset_act_hi);
-	if (ret) {
+								arche_pdata->is_reset_act_hi);
+
+	if (ret)
+	{
 		dev_err(dev, "failed to set svc-reset gpio dir:%d\n", ret);
 		return ret;
 	}
+
 	arche_platform_set_state(arche_pdata, ARCHE_PLATFORM_STATE_OFF);
 
 	arche_pdata->svc_sysboot_gpio = of_get_named_gpio(np,
-					"svc,sysboot-gpio", 0);
-	if (arche_pdata->svc_sysboot_gpio < 0) {
+									"svc,sysboot-gpio", 0);
+
+	if (arche_pdata->svc_sysboot_gpio < 0)
+	{
 		dev_err(dev, "failed to get sysboot gpio\n");
 		return arche_pdata->svc_sysboot_gpio;
 	}
+
 	ret = devm_gpio_request(dev, arche_pdata->svc_sysboot_gpio, "sysboot0");
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to request sysboot0 gpio:%d\n", ret);
 		return ret;
 	}
+
 	ret = gpio_direction_output(arche_pdata->svc_sysboot_gpio, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to set svc-reset gpio dir:%d\n", ret);
 		return ret;
 	}
 
 	/* setup the clock request gpio first */
 	arche_pdata->svc_refclk_req = of_get_named_gpio(np,
-					"svc,refclk-req-gpio", 0);
-	if (arche_pdata->svc_refclk_req < 0) {
+								  "svc,refclk-req-gpio", 0);
+
+	if (arche_pdata->svc_refclk_req < 0)
+	{
 		dev_err(dev, "failed to get svc clock-req gpio\n");
 		return arche_pdata->svc_refclk_req;
 	}
+
 	ret = devm_gpio_request(dev, arche_pdata->svc_refclk_req, "svc-clk-req");
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to request svc-clk-req gpio: %d\n", ret);
 		return ret;
 	}
+
 	ret = gpio_direction_input(arche_pdata->svc_refclk_req);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to set svc-clk-req gpio dir :%d\n", ret);
 		return ret;
 	}
 
 	/* setup refclk2 to follow the pin */
 	arche_pdata->svc_ref_clk = devm_clk_get(dev, "svc_ref_clk");
-	if (IS_ERR(arche_pdata->svc_ref_clk)) {
+
+	if (IS_ERR(arche_pdata->svc_ref_clk))
+	{
 		ret = PTR_ERR(arche_pdata->svc_ref_clk);
 		dev_err(dev, "failed to get svc_ref_clk: %d\n", ret);
 		return ret;
@@ -634,13 +759,17 @@ static int arche_platform_probe(struct platform_device *pdev)
 	dev_dbg(dev, "Number of APB's available - %d\n", arche_pdata->num_apbs);
 
 	arche_pdata->wake_detect_gpio = of_get_named_gpio(np, "svc,wake-detect-gpio", 0);
-	if (arche_pdata->wake_detect_gpio < 0) {
+
+	if (arche_pdata->wake_detect_gpio < 0)
+	{
 		dev_err(dev, "failed to get wake detect gpio\n");
 		return arche_pdata->wake_detect_gpio;
 	}
 
 	ret = devm_gpio_request(dev, arche_pdata->wake_detect_gpio, "wake detect");
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed requesting wake_detect gpio %d\n",
 				arche_pdata->wake_detect_gpio);
 		return ret;
@@ -657,24 +786,31 @@ static int arche_platform_probe(struct platform_device *pdev)
 		gpio_to_irq(arche_pdata->wake_detect_gpio);
 
 	ret = devm_request_threaded_irq(dev, arche_pdata->wake_detect_irq,
-			arche_platform_wd_irq,
-			arche_platform_wd_irq_thread,
-			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-			dev_name(dev), arche_pdata);
-	if (ret) {
+									arche_platform_wd_irq,
+									arche_platform_wd_irq_thread,
+									IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+									dev_name(dev), arche_pdata);
+
+	if (ret)
+	{
 		dev_err(dev, "failed to request wake detect IRQ %d\n", ret);
 		return ret;
 	}
+
 	disable_irq(arche_pdata->wake_detect_irq);
 
 	ret = device_create_file(dev, &dev_attr_state);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to create state file in sysfs\n");
 		return ret;
 	}
 
 	ret = of_platform_populate(np, NULL, NULL, dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to populate child nodes %d\n", ret);
 		goto err_device_remove;
 	}
@@ -682,7 +818,8 @@ static int arche_platform_probe(struct platform_device *pdev)
 	arche_pdata->pm_notifier.notifier_call = arche_platform_pm_notifier;
 	ret = register_pm_notifier(&arche_pdata->pm_notifier);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(dev, "failed to register pm notifier %d\n", ret);
 		goto err_device_remove;
 	}
@@ -691,13 +828,17 @@ static int arche_platform_probe(struct platform_device *pdev)
 	arche_platform_change_state_cb = arche_platform_change_state;
 
 	/* Explicitly power off if requested */
-	if (!of_property_read_bool(pdev->dev.of_node, "arche,init-off")) {
+	if (!of_property_read_bool(pdev->dev.of_node, "arche,init-off"))
+	{
 		mutex_lock(&arche_pdata->platform_state_mutex);
 		ret = arche_platform_coldboot_seq(arche_pdata);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "Failed to cold boot svc %d\n", ret);
 			goto err_coldboot;
 		}
+
 		arche_platform_wd_irq_en(arche_pdata);
 		mutex_unlock(&arche_pdata->platform_state_mutex);
 	}
@@ -732,8 +873,11 @@ static int arche_platform_remove(struct platform_device *pdev)
 	platform_set_drvdata(pdev, NULL);
 
 	if (usb3613_hub_mode_ctrl(false))
+	{
 		dev_warn(arche_pdata->dev, "failed to control hub device\n");
-		/* TODO: Should we do anything more here ?? */
+	}
+
+	/* TODO: Should we do anything more here ?? */
 	return 0;
 }
 
@@ -775,22 +919,25 @@ static void arche_platform_shutdown(struct platform_device *pdev)
 }
 
 static SIMPLE_DEV_PM_OPS(arche_platform_pm_ops,
-			arche_platform_suspend,
-			arche_platform_resume);
+						 arche_platform_suspend,
+						 arche_platform_resume);
 
-static const struct of_device_id arche_platform_of_match[] = {
+static const struct of_device_id arche_platform_of_match[] =
+{
 	{ .compatible = "google,arche-platform", }, /* Use PID/VID of SVC device */
 	{ },
 };
 
-static const struct of_device_id arche_combined_id[] = {
+static const struct of_device_id arche_combined_id[] =
+{
 	{ .compatible = "google,arche-platform", }, /* Use PID/VID of SVC device */
 	{ .compatible = "usbffff,2", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, arche_combined_id);
 
-static struct platform_driver arche_platform_device_driver = {
+static struct platform_driver arche_platform_device_driver =
+{
 	.probe		= arche_platform_probe,
 	.remove		= arche_platform_remove,
 	.shutdown	= arche_platform_shutdown,
@@ -806,12 +953,18 @@ static int __init arche_init(void)
 	int retval;
 
 	retval = platform_driver_register(&arche_platform_device_driver);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	retval = arche_apb_init();
+
 	if (retval)
+	{
 		platform_driver_unregister(&arche_platform_device_driver);
+	}
 
 	return retval;
 }

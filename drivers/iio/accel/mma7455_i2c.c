@@ -14,17 +14,22 @@
 #include "mma7455.h"
 
 static int mma7455_i2c_probe(struct i2c_client *i2c,
-			     const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct regmap *regmap;
 	const char *name = NULL;
 
 	regmap = devm_regmap_init_i2c(i2c, &mma7455_core_regmap);
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
 
 	if (id)
+	{
 		name = id->name;
+	}
 
 	return mma7455_core_probe(&i2c->dev, regmap, name);
 }
@@ -34,14 +39,16 @@ static int mma7455_i2c_remove(struct i2c_client *i2c)
 	return mma7455_core_remove(&i2c->dev);
 }
 
-static const struct i2c_device_id mma7455_i2c_ids[] = {
+static const struct i2c_device_id mma7455_i2c_ids[] =
+{
 	{ "mma7455", 0 },
 	{ "mma7456", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, mma7455_i2c_ids);
 
-static struct i2c_driver mma7455_i2c_driver = {
+static struct i2c_driver mma7455_i2c_driver =
+{
 	.probe = mma7455_i2c_probe,
 	.remove = mma7455_i2c_remove,
 	.id_table = mma7455_i2c_ids,

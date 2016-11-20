@@ -15,7 +15,8 @@
 #define AFS_FS_PORT		7000	/* AFS file server port */
 #define FS_SERVICE		1	/* AFS File Service ID */
 
-enum AFS_FS_Operations {
+enum AFS_FS_Operations
+{
 	FSFETCHDATA		= 130,	/* AFS Fetch file data */
 	FSFETCHSTATUS		= 132,	/* AFS Fetch file status */
 	FSSTOREDATA		= 133,	/* AFS Store file data */
@@ -39,7 +40,8 @@ enum AFS_FS_Operations {
 	FSSTOREDATA64		= 65538, /* AFS Store file data */
 };
 
-enum AFS_FS_Errors {
+enum AFS_FS_Errors
+{
 	VSALVAGE	= 101,	/* volume needs salvaging */
 	VNOVNODE	= 102,	/* no such file/dir (vnode) */
 	VNOVOL		= 103,	/* no such volume or volume unavailable */

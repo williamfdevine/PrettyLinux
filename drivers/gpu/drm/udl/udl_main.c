@@ -26,7 +26,7 @@
 #define FREE_URB_TIMEOUT (HZ*2)
 
 static int udl_parse_vendor_descriptor(struct drm_device *dev,
-				       struct usb_device *usbdev)
+									   struct usb_device *usbdev)
 {
 	struct udl_device *udl = dev->dev_private;
 	char *desc;
@@ -36,27 +36,36 @@ static int udl_parse_vendor_descriptor(struct drm_device *dev,
 	u8 total_len = 0;
 
 	buf = kzalloc(MAX_VENDOR_DESCRIPTOR_SIZE, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return false;
+	}
+
 	desc = buf;
 
 	total_len = usb_get_descriptor(usbdev, 0x5f, /* vendor specific */
-				    0, desc, MAX_VENDOR_DESCRIPTOR_SIZE);
-	if (total_len > 5) {
+								   0, desc, MAX_VENDOR_DESCRIPTOR_SIZE);
+
+	if (total_len > 5)
+	{
 		DRM_INFO("vendor descriptor length:%x data:%11ph\n",
-			total_len, desc);
+				 total_len, desc);
 
 		if ((desc[0] != total_len) || /* descriptor length */
-		    (desc[1] != 0x5f) ||   /* vendor descriptor type */
-		    (desc[2] != 0x01) ||   /* version (2 bytes) */
-		    (desc[3] != 0x00) ||
-		    (desc[4] != total_len - 2)) /* length after type */
+			(desc[1] != 0x5f) ||   /* vendor descriptor type */
+			(desc[2] != 0x01) ||   /* version (2 bytes) */
+			(desc[3] != 0x00) ||
+			(desc[4] != total_len - 2)) /* length after type */
+		{
 			goto unrecognized;
+		}
 
 		desc_end = desc + total_len;
 		desc += 5; /* the fixed header we've already parsed */
 
-		while (desc < desc_end) {
+		while (desc < desc_end)
+		{
 			u8 length;
 			u16 key;
 
@@ -65,18 +74,22 @@ static int udl_parse_vendor_descriptor(struct drm_device *dev,
 			length = *desc;
 			desc++;
 
-			switch (key) {
-			case 0x0200: { /* max_area */
-				u32 max_area;
-				max_area = le32_to_cpu(*((u32 *)desc));
-				DRM_DEBUG("DL chip limited to %d pixel modes\n",
-					max_area);
-				udl->sku_pixel_limit = max_area;
-				break;
+			switch (key)
+			{
+				case 0x0200:   /* max_area */
+					{
+						u32 max_area;
+						max_area = le32_to_cpu(*((u32 *)desc));
+						DRM_DEBUG("DL chip limited to %d pixel modes\n",
+								  max_area);
+						udl->sku_pixel_limit = max_area;
+						break;
+					}
+
+				default:
+					break;
 			}
-			default:
-				break;
-			}
+
 			desc += length;
 		}
 	}
@@ -99,21 +112,25 @@ static int udl_select_std_channel(struct udl_device *udl)
 {
 	int ret;
 	static const u8 set_def_chn[] = {0x57, 0xCD, 0xDC, 0xA7,
-					 0x1C, 0x88, 0x5E, 0x15,
-					 0x60, 0xFE, 0xC6, 0x97,
-					 0x16, 0x3D, 0x47, 0xF2};
+									 0x1C, 0x88, 0x5E, 0x15,
+									 0x60, 0xFE, 0xC6, 0x97,
+									 0x16, 0x3D, 0x47, 0xF2
+									};
 	void *sendbuf;
 
 	sendbuf = kmemdup(set_def_chn, sizeof(set_def_chn), GFP_KERNEL);
+
 	if (!sendbuf)
+	{
 		return -ENOMEM;
+	}
 
 	ret = usb_control_msg(udl->udev,
-			      usb_sndctrlpipe(udl->udev, 0),
-			      NR_USB_REQUEST_CHANNEL,
-			      (USB_DIR_OUT | USB_TYPE_VENDOR), 0, 0,
-			      sendbuf, sizeof(set_def_chn),
-			      USB_CTRL_SET_TIMEOUT);
+						  usb_sndctrlpipe(udl->udev, 0),
+						  NR_USB_REQUEST_CHANNEL,
+						  (USB_DIR_OUT | USB_TYPE_VENDOR), 0, 0,
+						  sendbuf, sizeof(set_def_chn),
+						  USB_CTRL_SET_TIMEOUT);
 	kfree(sendbuf);
 	return ret < 0 ? ret : 0;
 }
@@ -121,7 +138,7 @@ static int udl_select_std_channel(struct udl_device *udl)
 static void udl_release_urb_work(struct work_struct *work)
 {
 	struct urb_node *unode = container_of(work, struct urb_node,
-					      release_urb_work.work);
+										  release_urb_work.work);
 
 	up(&unode->dev->urbs.limit_sem);
 }
@@ -133,12 +150,14 @@ void udl_urb_completion(struct urb *urb)
 	unsigned long flags;
 
 	/* sync/async unlink faults aren't errors */
-	if (urb->status) {
+	if (urb->status)
+	{
 		if (!(urb->status == -ENOENT ||
-		    urb->status == -ECONNRESET ||
-		    urb->status == -ESHUTDOWN)) {
+			  urb->status == -ECONNRESET ||
+			  urb->status == -ESHUTDOWN))
+		{
 			DRM_ERROR("%s - nonzero write bulk status received: %d\n",
-				__func__, urb->status);
+					  __func__, urb->status);
 			atomic_set(&udl->lost_pixels, 1);
 		}
 	}
@@ -151,12 +170,15 @@ void udl_urb_completion(struct urb *urb)
 	spin_unlock_irqrestore(&udl->urbs.lock, flags);
 
 #if 0
+
 	/*
 	 * When using fb_defio, we deadlock if up() is called
 	 * while another is waiting. So queue to another process.
 	 */
 	if (fb_defio)
+	{
 		schedule_delayed_work(&unode->release_urb_work, 0);
+	}
 	else
 #endif
 		up(&udl->urbs.limit_sem);
@@ -175,12 +197,16 @@ static void udl_free_urb_list(struct drm_device *dev)
 	DRM_DEBUG("Waiting for completes and freeing all render urbs\n");
 
 	/* keep waiting and freeing, until we've got 'em all */
-	while (count--) {
+	while (count--)
+	{
 
 		/* Getting interrupted means a leak, but ok at shutdown*/
 		ret = down_interruptible(&udl->urbs.limit_sem);
+
 		if (ret)
+		{
 			break;
+		}
 
 		spin_lock_irqsave(&udl->urbs.lock, flags);
 
@@ -194,10 +220,11 @@ static void udl_free_urb_list(struct drm_device *dev)
 
 		/* Free each separately allocated piece */
 		usb_free_coherent(urb->dev, udl->urbs.size,
-				  urb->transfer_buffer, urb->transfer_dma);
+						  urb->transfer_buffer, urb->transfer_dma);
 		usb_free_urb(urb);
 		kfree(node);
 	}
+
 	udl->urbs.count = 0;
 }
 
@@ -214,25 +241,35 @@ static int udl_alloc_urb_list(struct drm_device *dev, int count, size_t size)
 	udl->urbs.size = size;
 	INIT_LIST_HEAD(&udl->urbs.list);
 
-	while (i < count) {
+	while (i < count)
+	{
 		unode = kzalloc(sizeof(struct urb_node), GFP_KERNEL);
+
 		if (!unode)
+		{
 			break;
+		}
+
 		unode->dev = udl;
 
 		INIT_DELAYED_WORK(&unode->release_urb_work,
-			  udl_release_urb_work);
+						  udl_release_urb_work);
 
 		urb = usb_alloc_urb(0, GFP_KERNEL);
-		if (!urb) {
+
+		if (!urb)
+		{
 			kfree(unode);
 			break;
 		}
+
 		unode->urb = urb;
 
 		buf = usb_alloc_coherent(udl->udev, MAX_TRANSFER, GFP_KERNEL,
-					 &urb->transfer_dma);
-		if (!buf) {
+								 &urb->transfer_dma);
+
+		if (!buf)
+		{
 			kfree(unode);
 			usb_free_urb(urb);
 			break;
@@ -240,7 +277,7 @@ static int udl_alloc_urb_list(struct drm_device *dev, int count, size_t size)
 
 		/* urb->transfer_buffer_length set to actual before submit */
 		usb_fill_bulk_urb(urb, udl->udev, usb_sndbulkpipe(udl->udev, 1),
-			buf, size, udl_urb_completion, unode);
+						  buf, size, udl_urb_completion, unode);
 		urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 
 		list_add_tail(&unode->entry, &udl->urbs.list);
@@ -268,10 +305,12 @@ struct urb *udl_get_urb(struct drm_device *dev)
 
 	/* Wait for an in-flight buffer to complete and get re-queued */
 	ret = down_timeout(&udl->urbs.limit_sem, GET_URB_TIMEOUT);
-	if (ret) {
+
+	if (ret)
+	{
 		atomic_set(&udl->lost_pixels, 1);
 		DRM_INFO("wait for urb interrupted: %x available: %d\n",
-		       ret, udl->urbs.available);
+				 ret, udl->urbs.available);
 		goto error;
 	}
 
@@ -300,62 +339,85 @@ int udl_submit_urb(struct drm_device *dev, struct urb *urb, size_t len)
 
 	urb->transfer_buffer_length = len; /* set to actual payload len */
 	ret = usb_submit_urb(urb, GFP_ATOMIC);
-	if (ret) {
+
+	if (ret)
+	{
 		udl_urb_completion(urb); /* because no one else will */
 		atomic_set(&udl->lost_pixels, 1);
 		DRM_ERROR("usb_submit_urb error %x\n", ret);
 	}
+
 	return ret;
 }
 
 int udl_driver_load(struct drm_device *dev, unsigned long flags)
 {
-	struct usb_device *udev = (void*)flags;
+	struct usb_device *udev = (void *)flags;
 	struct udl_device *udl;
 	int ret = -ENOMEM;
 
 	DRM_DEBUG("\n");
 	udl = kzalloc(sizeof(struct udl_device), GFP_KERNEL);
+
 	if (!udl)
+	{
 		return -ENOMEM;
+	}
 
 	udl->udev = udev;
 	udl->ddev = dev;
 	dev->dev_private = udl;
 
-	if (!udl_parse_vendor_descriptor(dev, udl->udev)) {
+	if (!udl_parse_vendor_descriptor(dev, udl->udev))
+	{
 		ret = -ENODEV;
 		DRM_ERROR("firmware not recognized. Assume incompatible device\n");
 		goto err;
 	}
 
 	if (udl_select_std_channel(udl))
+	{
 		DRM_ERROR("Selecting channel failed\n");
+	}
 
-	if (!udl_alloc_urb_list(dev, WRITES_IN_FLIGHT, MAX_TRANSFER)) {
+	if (!udl_alloc_urb_list(dev, WRITES_IN_FLIGHT, MAX_TRANSFER))
+	{
 		DRM_ERROR("udl_alloc_urb_list failed\n");
 		goto err;
 	}
 
 	DRM_DEBUG("\n");
 	ret = udl_modeset_init(dev);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = udl_fbdev_init(dev);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = drm_vblank_init(dev, 1);
+
 	if (ret)
+	{
 		goto err_fb;
+	}
 
 	return 0;
 err_fb:
 	udl_fbdev_cleanup(dev);
 err:
+
 	if (udl->urbs.count)
+	{
 		udl_free_urb_list(dev);
+	}
+
 	kfree(udl);
 	DRM_ERROR("%d\n", ret);
 	return ret;
@@ -374,7 +436,9 @@ int udl_driver_unload(struct drm_device *dev)
 	drm_vblank_cleanup(dev);
 
 	if (udl->urbs.count)
+	{
 		udl_free_urb_list(dev);
+	}
 
 	udl_fbdev_cleanup(dev);
 	udl_modeset_cleanup(dev);

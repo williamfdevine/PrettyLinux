@@ -16,13 +16,15 @@
 
 #include <linux/reset-controller.h>
 
-struct ccu_reset_map {
+struct ccu_reset_map
+{
 	u16	reg;
 	u32	bit;
 };
 
 
-struct ccu_reset {
+struct ccu_reset
+{
 	void __iomem			*base;
 	struct ccu_reset_map		*reset_map;
 	spinlock_t			*lock;

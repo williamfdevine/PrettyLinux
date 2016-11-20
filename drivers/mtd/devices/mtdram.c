@@ -24,12 +24,12 @@ static unsigned long writebuf_size = 64;
 #define MTDRAM_ERASE_SIZE (erase_size * 1024)
 
 #ifdef MODULE
-module_param(total_size, ulong, 0);
-MODULE_PARM_DESC(total_size, "Total device size in KiB");
-module_param(erase_size, ulong, 0);
-MODULE_PARM_DESC(erase_size, "Device erase block size in KiB");
-module_param(writebuf_size, ulong, 0);
-MODULE_PARM_DESC(writebuf_size, "Device write buf size in Bytes (Default: 64)");
+	module_param(total_size, ulong, 0);
+	MODULE_PARM_DESC(total_size, "Total device size in KiB");
+	module_param(erase_size, ulong, 0);
+	MODULE_PARM_DESC(erase_size, "Device erase block size in KiB");
+	module_param(writebuf_size, ulong, 0);
+	MODULE_PARM_DESC(writebuf_size, "Device write buf size in Bytes (Default: 64)");
 #endif
 
 // We could store these in the mtd structure, but we only support 1 device..
@@ -40,13 +40,15 @@ static int check_offs_len(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 	int ret = 0;
 
 	/* Start address must align on block boundary */
-	if (mtd_mod_by_eb(ofs, mtd)) {
+	if (mtd_mod_by_eb(ofs, mtd))
+	{
 		pr_debug("%s: unaligned address\n", __func__);
 		ret = -EINVAL;
 	}
 
 	/* Length must align on block boundary */
-	if (mtd_mod_by_eb(len, mtd)) {
+	if (mtd_mod_by_eb(len, mtd))
+	{
 		pr_debug("%s: length not block aligned\n", __func__);
 		ret = -EINVAL;
 	}
@@ -57,7 +59,10 @@ static int check_offs_len(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 static int ram_erase(struct mtd_info *mtd, struct erase_info *instr)
 {
 	if (check_offs_len(mtd, instr->addr, instr->len))
+	{
 		return -EINVAL;
+	}
+
 	memset((char *)mtd->priv + instr->addr, 0xff, instr->len);
 	instr->state = MTD_ERASE_DONE;
 	mtd_erase_callback(instr);
@@ -65,7 +70,7 @@ static int ram_erase(struct mtd_info *mtd, struct erase_info *instr)
 }
 
 static int ram_point(struct mtd_info *mtd, loff_t from, size_t len,
-		size_t *retlen, void **virt, resource_size_t *phys)
+					 size_t *retlen, void **virt, resource_size_t *phys)
 {
 	*virt = mtd->priv + from;
 	*retlen = len;
@@ -83,15 +88,15 @@ static int ram_unpoint(struct mtd_info *mtd, loff_t from, size_t len)
  * - return -ENOSYS to indicate refusal to do the mapping
  */
 static unsigned long ram_get_unmapped_area(struct mtd_info *mtd,
-					   unsigned long len,
-					   unsigned long offset,
-					   unsigned long flags)
+		unsigned long len,
+		unsigned long offset,
+		unsigned long flags)
 {
 	return (unsigned long) mtd->priv + offset;
 }
 
 static int ram_read(struct mtd_info *mtd, loff_t from, size_t len,
-		size_t *retlen, u_char *buf)
+					size_t *retlen, u_char *buf)
 {
 	memcpy(buf, mtd->priv + from, len);
 	*retlen = len;
@@ -99,7 +104,7 @@ static int ram_read(struct mtd_info *mtd, loff_t from, size_t len,
 }
 
 static int ram_write(struct mtd_info *mtd, loff_t to, size_t len,
-		size_t *retlen, const u_char *buf)
+					 size_t *retlen, const u_char *buf)
 {
 	memcpy((char *)mtd->priv + to, buf, len);
 	*retlen = len;
@@ -108,7 +113,8 @@ static int ram_write(struct mtd_info *mtd, loff_t to, size_t len,
 
 static void __exit cleanup_mtdram(void)
 {
-	if (mtd_info) {
+	if (mtd_info)
+	{
 		mtd_device_unregister(mtd_info);
 		vfree(mtd_info->priv);
 		kfree(mtd_info);
@@ -116,7 +122,7 @@ static void __exit cleanup_mtdram(void)
 }
 
 int mtdram_init_device(struct mtd_info *mtd, void *mapped_address,
-		unsigned long size, const char *name)
+					   unsigned long size, const char *name)
 {
 	memset(mtd, 0, sizeof(*mtd));
 
@@ -139,7 +145,9 @@ int mtdram_init_device(struct mtd_info *mtd, void *mapped_address,
 	mtd->_write = ram_write;
 
 	if (mtd_device_register(mtd, NULL, 0))
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -150,26 +158,37 @@ static int __init init_mtdram(void)
 	int err;
 
 	if (!total_size)
+	{
 		return -EINVAL;
+	}
 
 	/* Allocate some memory */
 	mtd_info = kmalloc(sizeof(struct mtd_info), GFP_KERNEL);
+
 	if (!mtd_info)
+	{
 		return -ENOMEM;
+	}
 
 	addr = vmalloc(MTDRAM_TOTAL_SIZE);
-	if (!addr) {
+
+	if (!addr)
+	{
 		kfree(mtd_info);
 		mtd_info = NULL;
 		return -ENOMEM;
 	}
+
 	err = mtdram_init_device(mtd_info, addr, MTDRAM_TOTAL_SIZE, "mtdram test device");
-	if (err) {
+
+	if (err)
+	{
 		vfree(addr);
 		kfree(mtd_info);
 		mtd_info = NULL;
 		return err;
 	}
+
 	memset(mtd_info->priv, 0xff, MTDRAM_TOTAL_SIZE);
 	return err;
 }

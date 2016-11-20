@@ -25,7 +25,8 @@
 /*
  * Extended buffer state bits
  */
-enum {
+enum
+{
 	BH_NILFS_Allocated = BH_PrivateStart,
 	BH_NILFS_Node,
 	BH_NILFS_Volatile,
@@ -42,7 +43,7 @@ BUFFER_FNS(NILFS_Redirected, nilfs_redirected)	/* redirected to a copy */
 int __nilfs_clear_page_dirty(struct page *);
 
 struct buffer_head *nilfs_grab_buffer(struct inode *, struct address_space *,
-				      unsigned long, unsigned long);
+									  unsigned long, unsigned long);
 void nilfs_forget_buffer(struct buffer_head *);
 void nilfs_copy_buffer(struct buffer_head *, struct buffer_head *);
 int nilfs_page_buffers_clean(struct page *);
@@ -54,10 +55,10 @@ void nilfs_clear_dirty_page(struct page *, bool);
 void nilfs_clear_dirty_pages(struct address_space *, bool);
 void nilfs_mapping_init(struct address_space *mapping, struct inode *inode);
 unsigned int nilfs_page_count_clean_buffers(struct page *, unsigned int,
-					    unsigned int);
+		unsigned int);
 unsigned long nilfs_find_uncommitted_extent(struct inode *inode,
-					    sector_t start_blk,
-					    sector_t *blkoff);
+		sector_t start_blk,
+		sector_t *blkoff);
 
 #define NILFS_PAGE_BUG(page, m, a...) \
 	do { nilfs_page_bug(page); BUG(); } while (0)
@@ -68,7 +69,10 @@ nilfs_page_get_nth_block(struct page *page, unsigned int count)
 	struct buffer_head *bh = page_buffers(page);
 
 	while (count-- > 0)
+	{
 		bh = bh->b_this_page;
+	}
+
 	get_bh(bh);
 	return bh;
 }

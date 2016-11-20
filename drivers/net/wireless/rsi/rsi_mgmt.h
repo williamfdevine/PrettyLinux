@@ -139,8 +139,9 @@
 #define SHORT_PREAMBLE			0x0001
 
 #define RSI_SUPP_FILTERS	(FIF_ALLMULTI | FIF_PROBE_REQ |\
-				 FIF_BCN_PRBRESP_PROMISC)
-enum opmode {
+							 FIF_BCN_PRBRESP_PROMISC)
+enum opmode
+{
 	STA_OPMODE = 1,
 	AP_OPMODE = 2
 };
@@ -148,7 +149,8 @@ enum opmode {
 extern struct ieee80211_rate rsi_rates[12];
 extern const u16 rsi_mcsrates[8];
 
-enum sta_notify_events {
+enum sta_notify_events
+{
 	STA_CONNECTED = 0,
 	STA_DISCONNECTED,
 	STA_TX_ADDBA_DONE,
@@ -158,7 +160,8 @@ enum sta_notify_events {
 };
 
 /* Send Frames Types */
-enum cmd_frame_type {
+enum cmd_frame_type
+{
 	TX_DOT11_MGMT,
 	RESET_MAC_REQ,
 	RADIO_CAPABILITIES,
@@ -187,16 +190,19 @@ enum cmd_frame_type {
 	PER_CMD_PKT
 };
 
-struct rsi_mac_frame {
+struct rsi_mac_frame
+{
 	__le16 desc_word[8];
 } __packed;
 
-struct rsi_boot_params {
+struct rsi_boot_params
+{
 	__le16 desc_word[8];
 	struct bootup_params bootup_params;
 } __packed;
 
-struct rsi_peer_notify {
+struct rsi_peer_notify
+{
 	__le16 desc_word[8];
 	u8 mac_addr[6];
 	__le16 command;
@@ -205,7 +211,8 @@ struct rsi_peer_notify {
 	__le32 sta_flags;
 } __packed;
 
-struct rsi_vap_caps {
+struct rsi_vap_caps
+{
 	__le16 desc_word[8];
 	u8 mac_addr[6];
 	__le16 keep_alive_period;
@@ -221,14 +228,16 @@ struct rsi_vap_caps {
 	__le16 dtim_period;
 } __packed;
 
-struct rsi_set_key {
+struct rsi_set_key
+{
 	__le16 desc_word[8];
 	u8 key[4][32];
 	u8 tx_mic_key[8];
 	u8 rx_mic_key[8];
 } __packed;
 
-struct rsi_auto_rate {
+struct rsi_auto_rate
+{
 	__le16 desc_word[8];
 	__le16 failure_limit;
 	__le16 initial_boundary;
@@ -240,14 +249,16 @@ struct rsi_auto_rate {
 	__le16 supported_rates[40];
 } __packed;
 
-struct qos_params {
+struct qos_params
+{
 	__le16 cont_win_min_q;
 	__le16 cont_win_max_q;
 	__le16 aifsn_val_q;
 	__le16 txop_q;
 } __packed;
 
-struct rsi_radio_caps {
+struct rsi_radio_caps
+{
 	__le16 desc_word[8];
 	struct qos_params qos_params[MAX_HW_QUEUES];
 	u8 num_11n_rates;
@@ -289,17 +300,17 @@ static inline u8 rsi_get_channel(u8 *addr)
 int rsi_mgmt_pkt_recv(struct rsi_common *common, u8 *msg);
 int rsi_set_vap_capabilities(struct rsi_common *common, enum opmode mode);
 int rsi_send_aggregation_params_frame(struct rsi_common *common, u16 tid,
-				      u16 ssn, u8 buf_size, u8 event);
+									  u16 ssn, u8 buf_size, u8 event);
 int rsi_hal_load_key(struct rsi_common *common, u8 *data, u16 key_len,
-		     u8 key_type, u8 key_id, u32 cipher);
+					 u8 key_type, u8 key_id, u32 cipher);
 int rsi_set_channel(struct rsi_common *common, u16 chno);
 int rsi_send_block_unblock_frame(struct rsi_common *common, bool event);
 void rsi_inform_bss_status(struct rsi_common *common, u8 status,
-			   const u8 *bssid, u8 qos_enable, u16 aid);
+						   const u8 *bssid, u8 qos_enable, u16 aid);
 void rsi_indicate_pkt_to_os(struct rsi_common *common, struct sk_buff *skb);
 int rsi_mac80211_attach(struct rsi_common *common);
 void rsi_indicate_tx_status(struct rsi_hw *common, struct sk_buff *skb,
-			    int status);
+							int status);
 bool rsi_is_cipher_wep(struct rsi_common *common);
 void rsi_core_qos_processor(struct rsi_common *common);
 void rsi_core_xmit(struct rsi_common *common, struct sk_buff *skb);

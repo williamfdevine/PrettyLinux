@@ -53,12 +53,18 @@ static struct inode *ecryptfs_alloc_inode(struct super_block *sb)
 	struct inode *inode = NULL;
 
 	inode_info = kmem_cache_alloc(ecryptfs_inode_info_cache, GFP_KERNEL);
+
 	if (unlikely(!inode_info))
+	{
 		goto out;
-	if (ecryptfs_init_crypt_stat(&inode_info->crypt_stat)) {
+	}
+
+	if (ecryptfs_init_crypt_stat(&inode_info->crypt_stat))
+	{
 		kmem_cache_free(ecryptfs_inode_info_cache, inode_info);
 		goto out;
 	}
+
 	mutex_init(&inode_info->lower_file_mutex);
 	atomic_set(&inode_info->lower_file_count, 0);
 	inode_info->lower_file = NULL;
@@ -109,15 +115,20 @@ static int ecryptfs_statfs(struct dentry *dentry, struct kstatfs *buf)
 	int rc;
 
 	if (!lower_dentry->d_sb->s_op->statfs)
+	{
 		return -ENOSYS;
+	}
 
 	rc = lower_dentry->d_sb->s_op->statfs(lower_dentry, buf);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	buf->f_type = ECRYPTFS_SUPER_MAGIC;
 	rc = ecryptfs_set_f_namelen(&buf->f_namelen, buf->f_namelen,
-	       &ecryptfs_superblock_to_private(dentry->d_sb)->mount_crypt_stat);
+								&ecryptfs_superblock_to_private(dentry->d_sb)->mount_crypt_stat);
 
 	return rc;
 }
@@ -154,36 +165,57 @@ static int ecryptfs_show_options(struct seq_file *m, struct dentry *root)
 
 	mutex_lock(&mount_crypt_stat->global_auth_tok_list_mutex);
 	list_for_each_entry(walker,
-			    &mount_crypt_stat->global_auth_tok_list,
-			    mount_crypt_stat_list) {
+						&mount_crypt_stat->global_auth_tok_list,
+						mount_crypt_stat_list)
+	{
 		if (walker->flags & ECRYPTFS_AUTH_TOK_FNEK)
+		{
 			seq_printf(m, ",ecryptfs_fnek_sig=%s", walker->sig);
+		}
 		else
+		{
 			seq_printf(m, ",ecryptfs_sig=%s", walker->sig);
+		}
 	}
 	mutex_unlock(&mount_crypt_stat->global_auth_tok_list_mutex);
 
 	seq_printf(m, ",ecryptfs_cipher=%s",
-		mount_crypt_stat->global_default_cipher_name);
+			   mount_crypt_stat->global_default_cipher_name);
 
 	if (mount_crypt_stat->global_default_cipher_key_size)
 		seq_printf(m, ",ecryptfs_key_bytes=%zd",
-			   mount_crypt_stat->global_default_cipher_key_size);
+				   mount_crypt_stat->global_default_cipher_key_size);
+
 	if (mount_crypt_stat->flags & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED)
+	{
 		seq_printf(m, ",ecryptfs_passthrough");
+	}
+
 	if (mount_crypt_stat->flags & ECRYPTFS_XATTR_METADATA_ENABLED)
+	{
 		seq_printf(m, ",ecryptfs_xattr_metadata");
+	}
+
 	if (mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED)
+	{
 		seq_printf(m, ",ecryptfs_encrypted_view");
+	}
+
 	if (mount_crypt_stat->flags & ECRYPTFS_UNLINK_SIGS)
+	{
 		seq_printf(m, ",ecryptfs_unlink_sigs");
+	}
+
 	if (mount_crypt_stat->flags & ECRYPTFS_GLOBAL_MOUNT_AUTH_TOK_ONLY)
+	{
 		seq_printf(m, ",ecryptfs_mount_auth_tok_only");
+	}
 
 	return 0;
 }
 
-const struct super_operations ecryptfs_sops = {
+const struct super_operations ecryptfs_sops =
+{
 	.alloc_inode = ecryptfs_alloc_inode,
 	.destroy_inode = ecryptfs_destroy_inode,
 	.statfs = ecryptfs_statfs,

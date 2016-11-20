@@ -43,7 +43,8 @@
 #define KBD_LED_AUTO_75_TOKEN 0x02EC
 #define KBD_LED_AUTO_100_TOKEN 0x02F6
 
-struct quirk_entry {
+struct quirk_entry
+{
 	u8 touchpad_led;
 
 	int needs_kbd_timeouts;
@@ -56,7 +57,8 @@ struct quirk_entry {
 
 static struct quirk_entry *quirks;
 
-static struct quirk_entry quirk_dell_vostro_v130 = {
+static struct quirk_entry quirk_dell_vostro_v130 =
+{
 	.touchpad_led = 1,
 };
 
@@ -70,12 +72,14 @@ static int __init dmi_matched(const struct dmi_system_id *dmi)
  * These values come from Windows utility provided by Dell. If any other value
  * is used then BIOS silently set timeout to 0 without any error message.
  */
-static struct quirk_entry quirk_dell_xps13_9333 = {
+static struct quirk_entry quirk_dell_xps13_9333 =
+{
 	.needs_kbd_timeouts = 1,
 	.kbd_timeouts = { 0, 5, 15, 60, 5 * 60, 15 * 60, -1 },
 };
 
-static struct platform_driver platform_driver = {
+static struct platform_driver platform_driver =
+{
 	.driver = {
 		.name = "dell-laptop",
 	}
@@ -91,7 +95,8 @@ static bool force_rfkill;
 module_param(force_rfkill, bool, 0444);
 MODULE_PARM_DESC(force_rfkill, "enable rfkill on non whitelisted models");
 
-static const struct dmi_system_id dell_device_table[] __initconst = {
+static const struct dmi_system_id dell_device_table[] __initconst =
+{
 	{
 		.ident = "Dell laptop",
 		.matches = {
@@ -116,7 +121,8 @@ static const struct dmi_system_id dell_device_table[] __initconst = {
 };
 MODULE_DEVICE_TABLE(dmi, dell_device_table);
 
-static const struct dmi_system_id dell_quirks[] __initconst = {
+static const struct dmi_system_id dell_quirks[] __initconst =
+{
 	{
 		.callback = dmi_matched,
 		.ident = "Dell Vostro V130",
@@ -410,7 +416,9 @@ static int dell_rfkill_set(void *data, bool blocked)
 	status = buffer->output[1];
 
 	if (ret != 0)
+	{
 		goto out;
+	}
 
 	dell_smbios_clear_buffer();
 
@@ -422,42 +430,49 @@ static int dell_rfkill_set(void *data, bool blocked)
 	/* If the hardware switch controls this radio, and the hardware
 	   switch is disabled, always disable the radio */
 	if (ret == 0 && (hwswitch & BIT(hwswitch_bit)) &&
-	    (status & BIT(0)) && !(status & BIT(16)))
+		(status & BIT(0)) && !(status & BIT(16)))
+	{
 		disable = 1;
+	}
 
 	dell_smbios_clear_buffer();
 
-	buffer->input[0] = (1 | (radio<<8) | (disable << 16));
+	buffer->input[0] = (1 | (radio << 8) | (disable << 16));
 	dell_smbios_send_request(17, 11);
 	ret = buffer->output[0];
 
- out:
+out:
 	dell_smbios_release_buffer();
 	return dell_smbios_error(ret);
 }
 
 /* Must be called with the buffer held */
 static void dell_rfkill_update_sw_state(struct rfkill *rfkill, int radio,
-					int status,
-					struct calling_interface_buffer *buffer)
+										int status,
+										struct calling_interface_buffer *buffer)
 {
-	if (status & BIT(0)) {
+	if (status & BIT(0))
+	{
 		/* Has hw-switch, sync sw_state to BIOS */
 		int block = rfkill_blocked(rfkill);
 		dell_smbios_clear_buffer();
 		buffer->input[0] = (1 | (radio << 8) | (block << 16));
 		dell_smbios_send_request(17, 11);
-	} else {
+	}
+	else
+	{
 		/* No hw-switch, sync BIOS state to sw_state */
 		rfkill_set_sw_state(rfkill, !!(status & BIT(radio + 16)));
 	}
 }
 
 static void dell_rfkill_update_hw_state(struct rfkill *rfkill, int radio,
-					int status, int hwswitch)
+										int status, int hwswitch)
 {
 	if (hwswitch & (BIT(radio - 1)))
+	{
 		rfkill_set_hw_state(rfkill, !(status & BIT(16)));
+	}
 }
 
 static void dell_rfkill_query(struct rfkill *rfkill, void *data)
@@ -474,7 +489,8 @@ static void dell_rfkill_query(struct rfkill *rfkill, void *data)
 	ret = buffer->output[0];
 	status = buffer->output[1];
 
-	if (ret != 0 || !(status & BIT(0))) {
+	if (ret != 0 || !(status & BIT(0)))
+	{
 		dell_smbios_release_buffer();
 		return;
 	}
@@ -489,12 +505,15 @@ static void dell_rfkill_query(struct rfkill *rfkill, void *data)
 	dell_smbios_release_buffer();
 
 	if (ret != 0)
+	{
 		return;
+	}
 
 	dell_rfkill_update_hw_state(rfkill, radio, status, hwswitch);
 }
 
-static const struct rfkill_ops dell_rfkill_ops = {
+static const struct rfkill_ops dell_rfkill_ops =
+{
 	.set_block = dell_rfkill_set,
 	.query = dell_rfkill_query,
 };
@@ -527,63 +546,63 @@ static int dell_debugfs_show(struct seq_file *s, void *data)
 	seq_printf(s, "return:\t%d\n", ret);
 	seq_printf(s, "status:\t0x%X\n", status);
 	seq_printf(s, "Bit 0 : Hardware switch supported:   %lu\n",
-		   status & BIT(0));
+			   status & BIT(0));
 	seq_printf(s, "Bit 1 : Wifi locator supported:      %lu\n",
-		  (status & BIT(1)) >> 1);
+			   (status & BIT(1)) >> 1);
 	seq_printf(s, "Bit 2 : Wifi is supported:           %lu\n",
-		  (status & BIT(2)) >> 2);
+			   (status & BIT(2)) >> 2);
 	seq_printf(s, "Bit 3 : Bluetooth is supported:      %lu\n",
-		  (status & BIT(3)) >> 3);
+			   (status & BIT(3)) >> 3);
 	seq_printf(s, "Bit 4 : WWAN is supported:           %lu\n",
-		  (status & BIT(4)) >> 4);
+			   (status & BIT(4)) >> 4);
 	seq_printf(s, "Bit 5 : Wireless keyboard supported: %lu\n",
-		  (status & BIT(5)) >> 5);
+			   (status & BIT(5)) >> 5);
 	seq_printf(s, "Bit 6 : UWB supported:               %lu\n",
-		  (status & BIT(6)) >> 6);
+			   (status & BIT(6)) >> 6);
 	seq_printf(s, "Bit 7 : WiGig supported:             %lu\n",
-		  (status & BIT(7)) >> 7);
+			   (status & BIT(7)) >> 7);
 	seq_printf(s, "Bit 8 : Wifi is installed:           %lu\n",
-		  (status & BIT(8)) >> 8);
+			   (status & BIT(8)) >> 8);
 	seq_printf(s, "Bit 9 : Bluetooth is installed:      %lu\n",
-		  (status & BIT(9)) >> 9);
+			   (status & BIT(9)) >> 9);
 	seq_printf(s, "Bit 10: WWAN is installed:           %lu\n",
-		  (status & BIT(10)) >> 10);
+			   (status & BIT(10)) >> 10);
 	seq_printf(s, "Bit 11: UWB installed:               %lu\n",
-		  (status & BIT(11)) >> 11);
+			   (status & BIT(11)) >> 11);
 	seq_printf(s, "Bit 12: WiGig installed:             %lu\n",
-		  (status & BIT(12)) >> 12);
+			   (status & BIT(12)) >> 12);
 
 	seq_printf(s, "Bit 16: Hardware switch is on:       %lu\n",
-		  (status & BIT(16)) >> 16);
+			   (status & BIT(16)) >> 16);
 	seq_printf(s, "Bit 17: Wifi is blocked:             %lu\n",
-		  (status & BIT(17)) >> 17);
+			   (status & BIT(17)) >> 17);
 	seq_printf(s, "Bit 18: Bluetooth is blocked:        %lu\n",
-		  (status & BIT(18)) >> 18);
+			   (status & BIT(18)) >> 18);
 	seq_printf(s, "Bit 19: WWAN is blocked:             %lu\n",
-		  (status & BIT(19)) >> 19);
+			   (status & BIT(19)) >> 19);
 	seq_printf(s, "Bit 20: UWB is blocked:              %lu\n",
-		  (status & BIT(20)) >> 20);
+			   (status & BIT(20)) >> 20);
 	seq_printf(s, "Bit 21: WiGig is blocked:            %lu\n",
-		  (status & BIT(21)) >> 21);
+			   (status & BIT(21)) >> 21);
 
 	seq_printf(s, "\nhwswitch_return:\t%d\n", hwswitch_ret);
 	seq_printf(s, "hwswitch_state:\t0x%X\n", hwswitch_state);
 	seq_printf(s, "Bit 0 : Wifi controlled by switch:      %lu\n",
-		   hwswitch_state & BIT(0));
+			   hwswitch_state & BIT(0));
 	seq_printf(s, "Bit 1 : Bluetooth controlled by switch: %lu\n",
-		   (hwswitch_state & BIT(1)) >> 1);
+			   (hwswitch_state & BIT(1)) >> 1);
 	seq_printf(s, "Bit 2 : WWAN controlled by switch:      %lu\n",
-		   (hwswitch_state & BIT(2)) >> 2);
+			   (hwswitch_state & BIT(2)) >> 2);
 	seq_printf(s, "Bit 3 : UWB controlled by switch:       %lu\n",
-		   (hwswitch_state & BIT(3)) >> 3);
+			   (hwswitch_state & BIT(3)) >> 3);
 	seq_printf(s, "Bit 4 : WiGig controlled by switch:     %lu\n",
-		   (hwswitch_state & BIT(4)) >> 4);
+			   (hwswitch_state & BIT(4)) >> 4);
 	seq_printf(s, "Bit 7 : Wireless switch config locked:  %lu\n",
-		   (hwswitch_state & BIT(7)) >> 7);
+			   (hwswitch_state & BIT(7)) >> 7);
 	seq_printf(s, "Bit 8 : Wifi locator enabled:           %lu\n",
-		   (hwswitch_state & BIT(8)) >> 8);
+			   (hwswitch_state & BIT(8)) >> 8);
 	seq_printf(s, "Bit 15: Wifi locator setting locked:    %lu\n",
-		   (hwswitch_state & BIT(15)) >> 15);
+			   (hwswitch_state & BIT(15)) >> 15);
 
 	return 0;
 }
@@ -593,7 +612,8 @@ static int dell_debugfs_open(struct inode *inode, struct file *file)
 	return single_open(file, dell_debugfs_show, inode->i_private);
 }
 
-static const struct file_operations dell_debugfs_fops = {
+static const struct file_operations dell_debugfs_fops =
+{
 	.owner = THIS_MODULE,
 	.open = dell_debugfs_open,
 	.read = seq_read,
@@ -615,7 +635,9 @@ static void dell_update_rfkill(struct work_struct *ignored)
 	status = buffer->output[1];
 
 	if (ret != 0)
+	{
 		goto out;
+	}
 
 	dell_smbios_clear_buffer();
 
@@ -624,46 +646,60 @@ static void dell_update_rfkill(struct work_struct *ignored)
 	ret = buffer->output[0];
 
 	if (ret == 0 && (status & BIT(0)))
+	{
 		hwswitch = buffer->output[1];
+	}
 
-	if (wifi_rfkill) {
+	if (wifi_rfkill)
+	{
 		dell_rfkill_update_hw_state(wifi_rfkill, 1, status, hwswitch);
 		dell_rfkill_update_sw_state(wifi_rfkill, 1, status, buffer);
 	}
-	if (bluetooth_rfkill) {
+
+	if (bluetooth_rfkill)
+	{
 		dell_rfkill_update_hw_state(bluetooth_rfkill, 2, status,
-					    hwswitch);
+									hwswitch);
 		dell_rfkill_update_sw_state(bluetooth_rfkill, 2, status,
-					    buffer);
+									buffer);
 	}
-	if (wwan_rfkill) {
+
+	if (wwan_rfkill)
+	{
 		dell_rfkill_update_hw_state(wwan_rfkill, 3, status, hwswitch);
 		dell_rfkill_update_sw_state(wwan_rfkill, 3, status, buffer);
 	}
 
- out:
+out:
 	dell_smbios_release_buffer();
 }
 static DECLARE_DELAYED_WORK(dell_rfkill_work, dell_update_rfkill);
 
 static bool dell_laptop_i8042_filter(unsigned char data, unsigned char str,
-			      struct serio *port)
+									 struct serio *port)
 {
 	static bool extended;
 
 	if (str & I8042_STR_AUXDATA)
+	{
 		return false;
+	}
 
-	if (unlikely(data == 0xe0)) {
+	if (unlikely(data == 0xe0))
+	{
 		extended = true;
 		return false;
-	} else if (unlikely(extended)) {
-		switch (data) {
-		case 0x8:
-			schedule_delayed_work(&dell_rfkill_work,
-					      round_jiffies_relative(HZ / 4));
-			break;
+	}
+	else if (unlikely(extended))
+	{
+		switch (data)
+		{
+			case 0x8:
+				schedule_delayed_work(&dell_rfkill_work,
+									  round_jiffies_relative(HZ / 4));
+				break;
 		}
+
 		extended = false;
 	}
 
@@ -674,13 +710,14 @@ static int (*dell_rbtn_notifier_register_func)(struct notifier_block *);
 static int (*dell_rbtn_notifier_unregister_func)(struct notifier_block *);
 
 static int dell_laptop_rbtn_notifier_call(struct notifier_block *nb,
-					  unsigned long action, void *data)
+		unsigned long action, void *data)
 {
 	schedule_delayed_work(&dell_rfkill_work, 0);
 	return NOTIFY_OK;
 }
 
-static struct notifier_block dell_laptop_rbtn_notifier = {
+static struct notifier_block dell_laptop_rbtn_notifier =
+{
 	.notifier_call = dell_laptop_rbtn_notifier_call,
 };
 
@@ -696,11 +733,17 @@ static int __init dell_setup_rfkill(void)
 	 */
 	whitelisted = 0;
 	product = dmi_get_system_info(DMI_PRODUCT_NAME);
+
 	if (product &&  (strncmp(product, "Latitude", 8) == 0 ||
-			 strncmp(product, "Precision", 9) == 0))
+					 strncmp(product, "Precision", 9) == 0))
+	{
 		whitelisted = 1;
+	}
+
 	if (!force_rfkill && !whitelisted)
+	{
 		return 0;
+	}
 
 	buffer = dell_smbios_get_buffer();
 	dell_smbios_send_request(17, 11);
@@ -710,51 +753,76 @@ static int __init dell_setup_rfkill(void)
 
 	/* dell wireless info smbios call is not supported */
 	if (ret != 0)
+	{
 		return 0;
+	}
 
 	/* rfkill is only tested on laptops with a hwswitch */
 	if (!(status & BIT(0)) && !force_rfkill)
+	{
 		return 0;
+	}
 
-	if ((status & (1<<2|1<<8)) == (1<<2|1<<8)) {
+	if ((status & (1 << 2 | 1 << 8)) == (1 << 2 | 1 << 8))
+	{
 		wifi_rfkill = rfkill_alloc("dell-wifi", &platform_device->dev,
-					   RFKILL_TYPE_WLAN,
-					   &dell_rfkill_ops, (void *) 1);
-		if (!wifi_rfkill) {
+								   RFKILL_TYPE_WLAN,
+								   &dell_rfkill_ops, (void *) 1);
+
+		if (!wifi_rfkill)
+		{
 			ret = -ENOMEM;
 			goto err_wifi;
 		}
+
 		ret = rfkill_register(wifi_rfkill);
+
 		if (ret)
+		{
 			goto err_wifi;
+		}
 	}
 
-	if ((status & (1<<3|1<<9)) == (1<<3|1<<9)) {
+	if ((status & (1 << 3 | 1 << 9)) == (1 << 3 | 1 << 9))
+	{
 		bluetooth_rfkill = rfkill_alloc("dell-bluetooth",
-						&platform_device->dev,
-						RFKILL_TYPE_BLUETOOTH,
-						&dell_rfkill_ops, (void *) 2);
-		if (!bluetooth_rfkill) {
+										&platform_device->dev,
+										RFKILL_TYPE_BLUETOOTH,
+										&dell_rfkill_ops, (void *) 2);
+
+		if (!bluetooth_rfkill)
+		{
 			ret = -ENOMEM;
 			goto err_bluetooth;
 		}
+
 		ret = rfkill_register(bluetooth_rfkill);
+
 		if (ret)
+		{
 			goto err_bluetooth;
+		}
 	}
 
-	if ((status & (1<<4|1<<10)) == (1<<4|1<<10)) {
+	if ((status & (1 << 4 | 1 << 10)) == (1 << 4 | 1 << 10))
+	{
 		wwan_rfkill = rfkill_alloc("dell-wwan",
-					   &platform_device->dev,
-					   RFKILL_TYPE_WWAN,
-					   &dell_rfkill_ops, (void *) 3);
-		if (!wwan_rfkill) {
+								   &platform_device->dev,
+								   RFKILL_TYPE_WWAN,
+								   &dell_rfkill_ops, (void *) 3);
+
+		if (!wwan_rfkill)
+		{
 			ret = -ENOMEM;
 			goto err_wwan;
 		}
+
 		ret = rfkill_register(wwan_rfkill);
+
 		if (ret)
+		{
 			goto err_wwan;
+		}
 	}
 
 	/*
@@ -778,55 +846,84 @@ static int __init dell_setup_rfkill(void)
 
 	dell_rbtn_notifier_register_func =
 		symbol_request(dell_rbtn_notifier_register);
-	if (dell_rbtn_notifier_register_func) {
+
+	if (dell_rbtn_notifier_register_func)
+	{
 		dell_rbtn_notifier_unregister_func =
 			symbol_request(dell_rbtn_notifier_unregister);
-		if (!dell_rbtn_notifier_unregister_func) {
+
+		if (!dell_rbtn_notifier_unregister_func)
+		{
 			symbol_put(dell_rbtn_notifier_register);
 			dell_rbtn_notifier_register_func = NULL;
 		}
 	}
 
-	if (dell_rbtn_notifier_register_func) {
+	if (dell_rbtn_notifier_register_func)
+	{
 		ret = dell_rbtn_notifier_register_func(
-			&dell_laptop_rbtn_notifier);
+				  &dell_laptop_rbtn_notifier);
 		symbol_put(dell_rbtn_notifier_register);
 		dell_rbtn_notifier_register_func = NULL;
-		if (ret != 0) {
+
+		if (ret != 0)
+		{
 			symbol_put(dell_rbtn_notifier_unregister);
 			dell_rbtn_notifier_unregister_func = NULL;
 		}
-	} else {
+	}
+	else
+	{
 		pr_info("Symbols from dell-rbtn acpi driver are not available\n");
 		ret = -ENODEV;
 	}
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		pr_info("Using dell-rbtn acpi driver for receiving events\n");
-	} else if (ret != -ENODEV) {
+	}
+	else if (ret != -ENODEV)
+	{
 		pr_warn("Unable to register dell rbtn notifier\n");
 		goto err_filter;
-	} else {
+	}
+	else
+	{
 		ret = i8042_install_filter(dell_laptop_i8042_filter);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("Unable to install key filter\n");
 			goto err_filter;
 		}
+
 		pr_info("Using i8042 filter function for receiving events\n");
 	}
 
 	return 0;
 err_filter:
+
 	if (wwan_rfkill)
+	{
 		rfkill_unregister(wwan_rfkill);
+	}
+
 err_wwan:
 	rfkill_destroy(wwan_rfkill);
+
 	if (bluetooth_rfkill)
+	{
 		rfkill_unregister(bluetooth_rfkill);
+	}
+
 err_bluetooth:
 	rfkill_destroy(bluetooth_rfkill);
+
 	if (wifi_rfkill)
+	{
 		rfkill_unregister(wifi_rfkill);
+	}
+
 err_wifi:
 	rfkill_destroy(wifi_rfkill);
 
@@ -835,23 +932,33 @@ err_wifi:
 
 static void dell_cleanup_rfkill(void)
 {
-	if (dell_rbtn_notifier_unregister_func) {
+	if (dell_rbtn_notifier_unregister_func)
+	{
 		dell_rbtn_notifier_unregister_func(&dell_laptop_rbtn_notifier);
 		symbol_put(dell_rbtn_notifier_unregister);
 		dell_rbtn_notifier_unregister_func = NULL;
-	} else {
+	}
+	else
+	{
 		i8042_remove_filter(dell_laptop_i8042_filter);
 	}
+
 	cancel_delayed_work_sync(&dell_rfkill_work);
-	if (wifi_rfkill) {
+
+	if (wifi_rfkill)
+	{
 		rfkill_unregister(wifi_rfkill);
 		rfkill_destroy(wifi_rfkill);
 	}
-	if (bluetooth_rfkill) {
+
+	if (bluetooth_rfkill)
+	{
 		rfkill_unregister(bluetooth_rfkill);
 		rfkill_destroy(bluetooth_rfkill);
 	}
-	if (wwan_rfkill) {
+
+	if (wwan_rfkill)
+	{
 		rfkill_unregister(wwan_rfkill);
 		rfkill_destroy(wwan_rfkill);
 	}
@@ -864,17 +971,24 @@ static int dell_send_intensity(struct backlight_device *bd)
 	int ret;
 
 	token = dell_smbios_find_token(BRIGHTNESS_TOKEN);
+
 	if (!token)
+	{
 		return -ENODEV;
+	}
 
 	buffer = dell_smbios_get_buffer();
 	buffer->input[0] = token->location;
 	buffer->input[1] = bd->props.brightness;
 
 	if (power_supply_is_system_supplied() > 0)
+	{
 		dell_smbios_send_request(1, 2);
+	}
 	else
+	{
 		dell_smbios_send_request(1, 1);
+	}
 
 	ret = dell_smbios_error(buffer->output[0]);
 
@@ -889,27 +1003,39 @@ static int dell_get_intensity(struct backlight_device *bd)
 	int ret;
 
 	token = dell_smbios_find_token(BRIGHTNESS_TOKEN);
+
 	if (!token)
+	{
 		return -ENODEV;
+	}
 
 	buffer = dell_smbios_get_buffer();
 	buffer->input[0] = token->location;
 
 	if (power_supply_is_system_supplied() > 0)
+	{
 		dell_smbios_send_request(0, 2);
+	}
 	else
+	{
 		dell_smbios_send_request(0, 1);
+	}
 
 	if (buffer->output[0])
+	{
 		ret = dell_smbios_error(buffer->output[0]);
+	}
 	else
+	{
 		ret = buffer->output[1];
+	}
 
 	dell_smbios_release_buffer();
 	return ret;
 }
 
-static const struct backlight_ops dell_ops = {
+static const struct backlight_ops dell_ops =
+{
 	.get_brightness = dell_get_intensity,
 	.update_status  = dell_send_intensity,
 };
@@ -929,15 +1055,20 @@ static void touchpad_led_off(void)
 }
 
 static void touchpad_led_set(struct led_classdev *led_cdev,
-	enum led_brightness value)
+							 enum led_brightness value)
 {
 	if (value > 0)
+	{
 		touchpad_led_on();
+	}
 	else
+	{
 		touchpad_led_off();
+	}
 }
 
-static struct led_classdev touchpad_led = {
+static struct led_classdev touchpad_led =
+{
 	.name = "dell-laptop::touchpad",
 	.brightness_set = touchpad_led_set,
 	.flags = LED_CORE_SUSPENDRESUME,
@@ -1064,14 +1195,16 @@ static void touchpad_led_exit(void)
  */
 
 
-enum kbd_timeout_unit {
+enum kbd_timeout_unit
+{
 	KBD_TIMEOUT_SECONDS = 0,
 	KBD_TIMEOUT_MINUTES,
 	KBD_TIMEOUT_HOURS,
 	KBD_TIMEOUT_DAYS,
 };
 
-enum kbd_mode_bit {
+enum kbd_mode_bit
+{
 	KBD_MODE_BIT_OFF = 0,
 	KBD_MODE_BIT_ON,
 	KBD_MODE_BIT_ALS,
@@ -1090,7 +1223,8 @@ enum kbd_mode_bit {
 #define kbd_is_level_mode_bit(bit) \
 	((bit) >= KBD_MODE_BIT_TRIGGER_25 && (bit) <= KBD_MODE_BIT_TRIGGER_100)
 
-struct kbd_info {
+struct kbd_info
+{
 	u16 modes;
 	u8 type;
 	u8 triggers;
@@ -1101,7 +1235,8 @@ struct kbd_info {
 	u8 days;
 };
 
-struct kbd_state {
+struct kbd_state
+{
 	u8 mode_bit;
 	u8 triggers;
 	u8 timeout_value;
@@ -1111,7 +1246,8 @@ struct kbd_state {
 	u8 level;
 };
 
-static const int kbd_tokens[] = {
+static const int kbd_tokens[] =
+{
 	KBD_LED_OFF_TOKEN,
 	KBD_LED_AUTO_25_TOKEN,
 	KBD_LED_AUTO_50_TOKEN,
@@ -1159,7 +1295,8 @@ static int kbd_get_info(struct kbd_info *info)
 	dell_smbios_send_request(4, 11);
 	ret = buffer->output[0];
 
-	if (ret) {
+	if (ret)
+	{
 		ret = dell_smbios_error(ret);
 		goto out;
 	}
@@ -1171,15 +1308,26 @@ static int kbd_get_info(struct kbd_info *info)
 	info->levels = (buffer->output[2] >> 16) & 0xFF;
 
 	if (units & BIT(0))
+	{
 		info->seconds = (buffer->output[3] >> 0) & 0xFF;
-	if (units & BIT(1))
-		info->minutes = (buffer->output[3] >> 8) & 0xFF;
-	if (units & BIT(2))
-		info->hours = (buffer->output[3] >> 16) & 0xFF;
-	if (units & BIT(3))
-		info->days = (buffer->output[3] >> 24) & 0xFF;
+	}
 
- out:
+	if (units & BIT(1))
+	{
+		info->minutes = (buffer->output[3] >> 8) & 0xFF;
+	}
+
+	if (units & BIT(2))
+	{
+		info->hours = (buffer->output[3] >> 16) & 0xFF;
+	}
+
+	if (units & BIT(3))
+	{
+		info->days = (buffer->output[3] >> 24) & 0xFF;
+	}
+
+out:
 	dell_smbios_release_buffer();
 	return ret;
 }
@@ -1187,9 +1335,15 @@ static int kbd_get_info(struct kbd_info *info)
 static unsigned int kbd_get_max_level(void)
 {
 	if (kbd_info.levels != 0)
+	{
 		return kbd_info.levels;
+	}
+
 	if (kbd_mode_levels_count > 0)
+	{
 		return kbd_mode_levels_count - 1;
+	}
+
 	return 0;
 }
 
@@ -1198,12 +1352,18 @@ static int kbd_get_level(struct kbd_state *state)
 	int i;
 
 	if (kbd_info.levels != 0)
+	{
 		return state->level;
+	}
 
-	if (kbd_mode_levels_count > 0) {
+	if (kbd_mode_levels_count > 0)
+	{
 		for (i = 0; i < kbd_mode_levels_count; ++i)
 			if (kbd_mode_levels[i] == state->mode_bit)
+			{
 				return i;
+			}
+
 		return 0;
 	}
 
@@ -1212,24 +1372,40 @@ static int kbd_get_level(struct kbd_state *state)
 
 static int kbd_set_level(struct kbd_state *state, u8 level)
 {
-	if (kbd_info.levels != 0) {
+	if (kbd_info.levels != 0)
+	{
 		if (level != 0)
+		{
 			kbd_previous_level = level;
+		}
+
 		if (state->level == level)
+		{
 			return 0;
+		}
+
 		state->level = level;
+
 		if (level != 0 && state->mode_bit == KBD_MODE_BIT_OFF)
+		{
 			state->mode_bit = kbd_previous_mode_bit;
-		else if (level == 0 && state->mode_bit != KBD_MODE_BIT_OFF) {
+		}
+		else if (level == 0 && state->mode_bit != KBD_MODE_BIT_OFF)
+		{
 			kbd_previous_mode_bit = state->mode_bit;
 			state->mode_bit = KBD_MODE_BIT_OFF;
 		}
+
 		return 0;
 	}
 
-	if (kbd_mode_levels_count > 0 && level < kbd_mode_levels_count) {
+	if (kbd_mode_levels_count > 0 && level < kbd_mode_levels_count)
+	{
 		if (level != 0)
+		{
 			kbd_previous_level = level;
+		}
+
 		state->mode_bit = kbd_mode_levels[level];
 		return 0;
 	}
@@ -1248,14 +1424,18 @@ static int kbd_get_state(struct kbd_state *state)
 	dell_smbios_send_request(4, 11);
 	ret = buffer->output[0];
 
-	if (ret) {
+	if (ret)
+	{
 		ret = dell_smbios_error(ret);
 		goto out;
 	}
 
 	state->mode_bit = ffs(buffer->output[1] & 0xFFFF);
+
 	if (state->mode_bit != 0)
+	{
 		state->mode_bit--;
+	}
 
 	state->triggers = (buffer->output[1] >> 16) & 0xFF;
 	state->timeout_value = (buffer->output[1] >> 24) & 0x3F;
@@ -1264,7 +1444,7 @@ static int kbd_get_state(struct kbd_state *state)
 	state->als_value = (buffer->output[2] >> 8) & 0xFF;
 	state->level = (buffer->output[2] >> 16) & 0xFF;
 
- out:
+out:
 	dell_smbios_release_buffer();
 	return ret;
 }
@@ -1294,8 +1474,11 @@ static int kbd_set_state_safe(struct kbd_state *state, struct kbd_state *old)
 	int ret;
 
 	ret = kbd_set_state(state);
+
 	if (ret == 0)
+	{
 		return 0;
+	}
 
 	/*
 	 * When setting the new state fails,try to restore the previous one.
@@ -1304,7 +1487,9 @@ static int kbd_set_state_safe(struct kbd_state *state, struct kbd_state *old)
 	 */
 
 	if (kbd_set_state(old))
+	{
 		pr_err("Setting old previous keyboard state failed\n");
+	}
 
 	return ret;
 }
@@ -1316,11 +1501,16 @@ static int kbd_set_token_bit(u8 bit)
 	int ret;
 
 	if (bit >= ARRAY_SIZE(kbd_tokens))
+	{
 		return -EINVAL;
+	}
 
 	token = dell_smbios_find_token(kbd_tokens[bit]);
+
 	if (!token)
+	{
 		return -EINVAL;
+	}
 
 	buffer = dell_smbios_get_buffer();
 	buffer->input[0] = token->location;
@@ -1340,11 +1530,16 @@ static int kbd_get_token_bit(u8 bit)
 	int val;
 
 	if (bit >= ARRAY_SIZE(kbd_tokens))
+	{
 		return -EINVAL;
+	}
 
 	token = dell_smbios_find_token(kbd_tokens[bit]);
+
 	if (!token)
+	{
 		return -EINVAL;
+	}
 
 	buffer = dell_smbios_get_buffer();
 	buffer->input[0] = token->location;
@@ -1354,7 +1549,9 @@ static int kbd_get_token_bit(u8 bit)
 	dell_smbios_release_buffer();
 
 	if (ret)
+	{
 		return dell_smbios_error(ret);
+	}
 
 	return (val == token->value);
 }
@@ -1364,10 +1561,14 @@ static int kbd_get_first_active_token_bit(void)
 	int i;
 	int ret;
 
-	for (i = 0; i < ARRAY_SIZE(kbd_tokens); ++i) {
+	for (i = 0; i < ARRAY_SIZE(kbd_tokens); ++i)
+	{
 		ret = kbd_get_token_bit(i);
+
 		if (ret == 1)
+		{
 			return i;
+		}
 	}
 
 	return ret;
@@ -1385,20 +1586,34 @@ static inline int kbd_init_info(void)
 	int i;
 
 	ret = kbd_get_info(&kbd_info);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	kbd_get_state(&state);
 
 	/* NOTE: timeout value is stored in 6 bits so max value is 63 */
 	if (kbd_info.seconds > 63)
+	{
 		kbd_info.seconds = 63;
+	}
+
 	if (kbd_info.minutes > 63)
+	{
 		kbd_info.minutes = 63;
+	}
+
 	if (kbd_info.hours > 63)
+	{
 		kbd_info.hours = 63;
+	}
+
 	if (kbd_info.days > 63)
+	{
 		kbd_info.days = 63;
+	}
 
 	/* NOTE: On tested machines ON mode did not work and caused
 	 *       problems (turned backlight off) so do not use it
@@ -1409,43 +1624,59 @@ static inline int kbd_init_info(void)
 	kbd_previous_mode_bit = state.mode_bit;
 
 	if (kbd_previous_level == 0 && kbd_get_max_level() != 0)
+	{
 		kbd_previous_level = 1;
+	}
 
-	if (kbd_previous_mode_bit == KBD_MODE_BIT_OFF) {
+	if (kbd_previous_mode_bit == KBD_MODE_BIT_OFF)
+	{
 		kbd_previous_mode_bit =
 			ffs(kbd_info.modes & ~BIT(KBD_MODE_BIT_OFF));
+
 		if (kbd_previous_mode_bit != 0)
+		{
 			kbd_previous_mode_bit--;
+		}
 	}
 
 	if (kbd_info.modes & (BIT(KBD_MODE_BIT_ALS) |
-			      BIT(KBD_MODE_BIT_TRIGGER_ALS)))
+						  BIT(KBD_MODE_BIT_TRIGGER_ALS)))
+	{
 		kbd_als_supported = true;
+	}
 
 	if (kbd_info.modes & (
-	    BIT(KBD_MODE_BIT_TRIGGER_ALS) | BIT(KBD_MODE_BIT_TRIGGER) |
-	    BIT(KBD_MODE_BIT_TRIGGER_25) | BIT(KBD_MODE_BIT_TRIGGER_50) |
-	    BIT(KBD_MODE_BIT_TRIGGER_75) | BIT(KBD_MODE_BIT_TRIGGER_100)
-	   ))
+			BIT(KBD_MODE_BIT_TRIGGER_ALS) | BIT(KBD_MODE_BIT_TRIGGER) |
+			BIT(KBD_MODE_BIT_TRIGGER_25) | BIT(KBD_MODE_BIT_TRIGGER_50) |
+			BIT(KBD_MODE_BIT_TRIGGER_75) | BIT(KBD_MODE_BIT_TRIGGER_100)
+		))
+	{
 		kbd_triggers_supported = true;
+	}
 
 	/* kbd_mode_levels[0] is reserved, see below */
 	for (i = 0; i < 16; ++i)
 		if (kbd_is_level_mode_bit(i) && (BIT(i) & kbd_info.modes))
+		{
 			kbd_mode_levels[1 + kbd_mode_levels_count++] = i;
+		}
 
 	/*
 	 * Find the first supported mode and assign to kbd_mode_levels[0].
 	 * This should be 0 (off), but we cannot depend on the BIOS to
 	 * support 0.
 	 */
-	if (kbd_mode_levels_count > 0) {
-		for (i = 0; i < 16; ++i) {
-			if (BIT(i) & kbd_info.modes) {
+	if (kbd_mode_levels_count > 0)
+	{
+		for (i = 0; i < 16; ++i)
+		{
+			if (BIT(i) & kbd_info.modes)
+			{
 				kbd_mode_levels[0] = i;
 				break;
 			}
 		}
+
 		kbd_mode_levels_count++;
 	}
 
@@ -1459,7 +1690,9 @@ static inline void kbd_init_tokens(void)
 
 	for (i = 0; i < ARRAY_SIZE(kbd_tokens); ++i)
 		if (dell_smbios_find_token(kbd_tokens[i]))
+		{
 			kbd_token_bits |= BIT(i);
+		}
 }
 
 static void kbd_init(void)
@@ -1470,12 +1703,14 @@ static void kbd_init(void)
 	kbd_init_tokens();
 
 	if (kbd_token_bits != 0 || ret == 0)
+	{
 		kbd_led_present = true;
+	}
 }
 
 static ssize_t kbd_led_timeout_store(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, size_t count)
 {
 	struct kbd_state new_state;
 	struct kbd_state state;
@@ -1487,129 +1722,186 @@ static ssize_t kbd_led_timeout_store(struct device *dev,
 	int i;
 
 	ret = sscanf(buf, "%d %c", &value, &ch);
+
 	if (ret < 1)
+	{
 		return -EINVAL;
+	}
 	else if (ret == 1)
+	{
 		ch = 's';
+	}
 
 	if (value < 0)
-		return -EINVAL;
-
-	convert = false;
-
-	switch (ch) {
-	case 's':
-		if (value > kbd_info.seconds)
-			convert = true;
-		unit = KBD_TIMEOUT_SECONDS;
-		break;
-	case 'm':
-		if (value > kbd_info.minutes)
-			convert = true;
-		unit = KBD_TIMEOUT_MINUTES;
-		break;
-	case 'h':
-		if (value > kbd_info.hours)
-			convert = true;
-		unit = KBD_TIMEOUT_HOURS;
-		break;
-	case 'd':
-		if (value > kbd_info.days)
-			convert = true;
-		unit = KBD_TIMEOUT_DAYS;
-		break;
-	default:
+	{
 		return -EINVAL;
 	}
 
-	if (quirks && quirks->needs_kbd_timeouts)
-		convert = true;
+	convert = false;
 
-	if (convert) {
-		/* Convert value from current units to seconds */
-		switch (unit) {
-		case KBD_TIMEOUT_DAYS:
-			value *= 24;
-		case KBD_TIMEOUT_HOURS:
-			value *= 60;
-		case KBD_TIMEOUT_MINUTES:
-			value *= 60;
+	switch (ch)
+	{
+		case 's':
+			if (value > kbd_info.seconds)
+			{
+				convert = true;
+			}
+
 			unit = KBD_TIMEOUT_SECONDS;
+			break;
+
+		case 'm':
+			if (value > kbd_info.minutes)
+			{
+				convert = true;
+			}
+
+			unit = KBD_TIMEOUT_MINUTES;
+			break;
+
+		case 'h':
+			if (value > kbd_info.hours)
+			{
+				convert = true;
+			}
+
+			unit = KBD_TIMEOUT_HOURS;
+			break;
+
+		case 'd':
+			if (value > kbd_info.days)
+			{
+				convert = true;
+			}
+
+			unit = KBD_TIMEOUT_DAYS;
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
+	if (quirks && quirks->needs_kbd_timeouts)
+	{
+		convert = true;
+	}
+
+	if (convert)
+	{
+		/* Convert value from current units to seconds */
+		switch (unit)
+		{
+			case KBD_TIMEOUT_DAYS:
+				value *= 24;
+
+			case KBD_TIMEOUT_HOURS:
+				value *= 60;
+
+			case KBD_TIMEOUT_MINUTES:
+				value *= 60;
+				unit = KBD_TIMEOUT_SECONDS;
 		}
 
-		if (quirks && quirks->needs_kbd_timeouts) {
-			for (i = 0; quirks->kbd_timeouts[i] != -1; i++) {
-				if (value <= quirks->kbd_timeouts[i]) {
+		if (quirks && quirks->needs_kbd_timeouts)
+		{
+			for (i = 0; quirks->kbd_timeouts[i] != -1; i++)
+			{
+				if (value <= quirks->kbd_timeouts[i])
+				{
 					value = quirks->kbd_timeouts[i];
 					break;
 				}
 			}
 		}
 
-		if (value <= kbd_info.seconds && kbd_info.seconds) {
+		if (value <= kbd_info.seconds && kbd_info.seconds)
+		{
 			unit = KBD_TIMEOUT_SECONDS;
-		} else if (value / 60 <= kbd_info.minutes && kbd_info.minutes) {
+		}
+		else if (value / 60 <= kbd_info.minutes && kbd_info.minutes)
+		{
 			value /= 60;
 			unit = KBD_TIMEOUT_MINUTES;
-		} else if (value / (60 * 60) <= kbd_info.hours && kbd_info.hours) {
+		}
+		else if (value / (60 * 60) <= kbd_info.hours && kbd_info.hours)
+		{
 			value /= (60 * 60);
 			unit = KBD_TIMEOUT_HOURS;
-		} else if (value / (60 * 60 * 24) <= kbd_info.days && kbd_info.days) {
+		}
+		else if (value / (60 * 60 * 24) <= kbd_info.days && kbd_info.days)
+		{
 			value /= (60 * 60 * 24);
 			unit = KBD_TIMEOUT_DAYS;
-		} else {
+		}
+		else
+		{
 			return -EINVAL;
 		}
 	}
 
 	ret = kbd_get_state(&state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	new_state = state;
 	new_state.timeout_value = value;
 	new_state.timeout_unit = unit;
 
 	ret = kbd_set_state_safe(&new_state, &state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return count;
 }
 
 static ssize_t kbd_led_timeout_show(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	struct kbd_state state;
 	int ret;
 	int len;
 
 	ret = kbd_get_state(&state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	len = sprintf(buf, "%d", state.timeout_value);
 
-	switch (state.timeout_unit) {
-	case KBD_TIMEOUT_SECONDS:
-		return len + sprintf(buf+len, "s\n");
-	case KBD_TIMEOUT_MINUTES:
-		return len + sprintf(buf+len, "m\n");
-	case KBD_TIMEOUT_HOURS:
-		return len + sprintf(buf+len, "h\n");
-	case KBD_TIMEOUT_DAYS:
-		return len + sprintf(buf+len, "d\n");
-	default:
-		return -EINVAL;
+	switch (state.timeout_unit)
+	{
+		case KBD_TIMEOUT_SECONDS:
+			return len + sprintf(buf + len, "s\n");
+
+		case KBD_TIMEOUT_MINUTES:
+			return len + sprintf(buf + len, "m\n");
+
+		case KBD_TIMEOUT_HOURS:
+			return len + sprintf(buf + len, "h\n");
+
+		case KBD_TIMEOUT_DAYS:
+			return len + sprintf(buf + len, "d\n");
+
+		default:
+			return -EINVAL;
 	}
 
 	return len;
 }
 
 static DEVICE_ATTR(stop_timeout, S_IRUGO | S_IWUSR,
-		   kbd_led_timeout_show, kbd_led_timeout_store);
+				   kbd_led_timeout_show, kbd_led_timeout_store);
 
-static const char * const kbd_led_triggers[] = {
+static const char *const kbd_led_triggers[] =
+{
 	"keyboard",
 	"touchpad",
 	/*"trackstick"*/ NULL, /* NOTE: trackstick is just alias for touchpad */
@@ -1617,8 +1909,8 @@ static const char * const kbd_led_triggers[] = {
 };
 
 static ssize_t kbd_led_triggers_store(struct device *dev,
-				      struct device_attribute *attr,
-				      const char *buf, size_t count)
+									  struct device_attribute *attr,
+									  const char *buf, size_t count)
 {
 	struct kbd_state new_state;
 	struct kbd_state state;
@@ -1628,66 +1920,119 @@ static ssize_t kbd_led_triggers_store(struct device *dev,
 	int i, ret;
 
 	ret = sscanf(buf, "%20s", trigger);
+
 	if (ret != 1)
+	{
 		return -EINVAL;
+	}
 
 	if (trigger[0] != '+' && trigger[0] != '-')
+	{
 		return -EINVAL;
+	}
 
 	ret = kbd_get_state(&state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (kbd_triggers_supported)
+	{
 		triggers_enabled = kbd_is_trigger_mode_bit(state.mode_bit);
+	}
 
-	if (kbd_triggers_supported) {
-		for (i = 0; i < ARRAY_SIZE(kbd_led_triggers); ++i) {
+	if (kbd_triggers_supported)
+	{
+		for (i = 0; i < ARRAY_SIZE(kbd_led_triggers); ++i)
+		{
 			if (!(kbd_info.triggers & BIT(i)))
+			{
 				continue;
+			}
+
 			if (!kbd_led_triggers[i])
+			{
 				continue;
-			if (strcmp(trigger+1, kbd_led_triggers[i]) != 0)
+			}
+
+			if (strcmp(trigger + 1, kbd_led_triggers[i]) != 0)
+			{
 				continue;
+			}
+
 			if (trigger[0] == '+' &&
-			    triggers_enabled && (state.triggers & BIT(i)))
+				triggers_enabled && (state.triggers & BIT(i)))
+			{
 				return count;
+			}
+
 			if (trigger[0] == '-' &&
-			    (!triggers_enabled || !(state.triggers & BIT(i))))
+				(!triggers_enabled || !(state.triggers & BIT(i))))
+			{
 				return count;
+			}
+
 			trigger_bit = i;
 			break;
 		}
 	}
 
-	if (trigger_bit != -1) {
+	if (trigger_bit != -1)
+	{
 		new_state = state;
+
 		if (trigger[0] == '+')
+		{
 			new_state.triggers |= BIT(trigger_bit);
-		else {
+		}
+		else
+		{
 			new_state.triggers &= ~BIT(trigger_bit);
+
 			/* NOTE: trackstick bit (2) must be disabled when
 			 *       disabling touchpad bit (1), otherwise touchpad
 			 *       bit (1) will not be disabled */
 			if (trigger_bit == 1)
+			{
 				new_state.triggers &= ~BIT(2);
+			}
 		}
+
 		if ((kbd_info.triggers & new_state.triggers) !=
-		    new_state.triggers)
+			new_state.triggers)
+		{
 			return -EINVAL;
-		if (new_state.triggers && !triggers_enabled) {
+		}
+
+		if (new_state.triggers && !triggers_enabled)
+		{
 			new_state.mode_bit = KBD_MODE_BIT_TRIGGER;
 			kbd_set_level(&new_state, kbd_previous_level);
-		} else if (new_state.triggers == 0) {
+		}
+		else if (new_state.triggers == 0)
+		{
 			kbd_set_level(&new_state, 0);
 		}
+
 		if (!(kbd_info.modes & BIT(new_state.mode_bit)))
+		{
 			return -EINVAL;
+		}
+
 		ret = kbd_set_state_safe(&new_state, &state);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		if (new_state.mode_bit != KBD_MODE_BIT_OFF)
+		{
 			kbd_previous_mode_bit = new_state.mode_bit;
+		}
+
 		return count;
 	}
 
@@ -1695,7 +2040,7 @@ static ssize_t kbd_led_triggers_store(struct device *dev,
 }
 
 static ssize_t kbd_led_triggers_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct kbd_state state;
 	bool triggers_enabled;
@@ -1703,40 +2048,59 @@ static ssize_t kbd_led_triggers_show(struct device *dev,
 	int len = 0;
 
 	ret = kbd_get_state(&state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	len = 0;
 
-	if (kbd_triggers_supported) {
+	if (kbd_triggers_supported)
+	{
 		triggers_enabled = kbd_is_trigger_mode_bit(state.mode_bit);
 		level = kbd_get_level(&state);
-		for (i = 0; i < ARRAY_SIZE(kbd_led_triggers); ++i) {
+
+		for (i = 0; i < ARRAY_SIZE(kbd_led_triggers); ++i)
+		{
 			if (!(kbd_info.triggers & BIT(i)))
+			{
 				continue;
+			}
+
 			if (!kbd_led_triggers[i])
+			{
 				continue;
+			}
+
 			if ((triggers_enabled || level <= 0) &&
-			    (state.triggers & BIT(i)))
+				(state.triggers & BIT(i)))
+			{
 				buf[len++] = '+';
+			}
 			else
+			{
 				buf[len++] = '-';
-			len += sprintf(buf+len, "%s ", kbd_led_triggers[i]);
+			}
+
+			len += sprintf(buf + len, "%s ", kbd_led_triggers[i]);
 		}
 	}
 
 	if (len)
+	{
 		buf[len - 1] = '\n';
+	}
 
 	return len;
 }
 
 static DEVICE_ATTR(start_triggers, S_IRUGO | S_IWUSR,
-		   kbd_led_triggers_show, kbd_led_triggers_store);
+				   kbd_led_triggers_show, kbd_led_triggers_store);
 
 static ssize_t kbd_led_als_enabled_store(struct device *dev,
-					 struct device_attribute *attr,
-					 const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct kbd_state new_state;
 	struct kbd_state state;
@@ -1745,67 +2109,98 @@ static ssize_t kbd_led_als_enabled_store(struct device *dev,
 	int ret;
 
 	ret = kstrtoint(buf, 0, &enable);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = kbd_get_state(&state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (enable == kbd_is_als_mode_bit(state.mode_bit))
+	{
 		return count;
+	}
 
 	new_state = state;
 
 	if (kbd_triggers_supported)
+	{
 		triggers_enabled = kbd_is_trigger_mode_bit(state.mode_bit);
+	}
 
-	if (enable) {
+	if (enable)
+	{
 		if (triggers_enabled)
+		{
 			new_state.mode_bit = KBD_MODE_BIT_TRIGGER_ALS;
+		}
 		else
+		{
 			new_state.mode_bit = KBD_MODE_BIT_ALS;
-	} else {
-		if (triggers_enabled) {
+		}
+	}
+	else
+	{
+		if (triggers_enabled)
+		{
 			new_state.mode_bit = KBD_MODE_BIT_TRIGGER;
 			kbd_set_level(&new_state, kbd_previous_level);
-		} else {
+		}
+		else
+		{
 			new_state.mode_bit = KBD_MODE_BIT_ON;
 		}
 	}
+
 	if (!(kbd_info.modes & BIT(new_state.mode_bit)))
+	{
 		return -EINVAL;
+	}
 
 	ret = kbd_set_state_safe(&new_state, &state);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	kbd_previous_mode_bit = new_state.mode_bit;
 
 	return count;
 }
 
 static ssize_t kbd_led_als_enabled_show(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
+										struct device_attribute *attr,
+										char *buf)
 {
 	struct kbd_state state;
 	bool enabled = false;
 	int ret;
 
 	ret = kbd_get_state(&state);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	enabled = kbd_is_als_mode_bit(state.mode_bit);
 
 	return sprintf(buf, "%d\n", enabled ? 1 : 0);
 }
 
 static DEVICE_ATTR(als_enabled, S_IRUGO | S_IWUSR,
-		   kbd_led_als_enabled_show, kbd_led_als_enabled_store);
+				   kbd_led_als_enabled_show, kbd_led_als_enabled_store);
 
 static ssize_t kbd_led_als_setting_store(struct device *dev,
-					 struct device_attribute *attr,
-					 const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct kbd_state state;
 	struct kbd_state new_state;
@@ -1813,61 +2208,78 @@ static ssize_t kbd_led_als_setting_store(struct device *dev,
 	int ret;
 
 	ret = kstrtou8(buf, 10, &setting);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = kbd_get_state(&state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	new_state = state;
 	new_state.als_setting = setting;
 
 	ret = kbd_set_state_safe(&new_state, &state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return count;
 }
 
 static ssize_t kbd_led_als_setting_show(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
+										struct device_attribute *attr,
+										char *buf)
 {
 	struct kbd_state state;
 	int ret;
 
 	ret = kbd_get_state(&state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return sprintf(buf, "%d\n", state.als_setting);
 }
 
 static DEVICE_ATTR(als_setting, S_IRUGO | S_IWUSR,
-		   kbd_led_als_setting_show, kbd_led_als_setting_store);
+				   kbd_led_als_setting_show, kbd_led_als_setting_store);
 
-static struct attribute *kbd_led_attrs[] = {
+static struct attribute *kbd_led_attrs[] =
+{
 	&dev_attr_stop_timeout.attr,
 	&dev_attr_start_triggers.attr,
 	NULL,
 };
 
-static const struct attribute_group kbd_led_group = {
+static const struct attribute_group kbd_led_group =
+{
 	.attrs = kbd_led_attrs,
 };
 
-static struct attribute *kbd_led_als_attrs[] = {
+static struct attribute *kbd_led_als_attrs[] =
+{
 	&dev_attr_als_enabled.attr,
 	&dev_attr_als_setting.attr,
 	NULL,
 };
 
-static const struct attribute_group kbd_led_als_group = {
+static const struct attribute_group kbd_led_als_group =
+{
 	.attrs = kbd_led_als_attrs,
 };
 
-static const struct attribute_group *kbd_led_groups[] = {
+static const struct attribute_group *kbd_led_groups[] =
+{
 	&kbd_led_group,
 	&kbd_led_als_group,
 	NULL,
@@ -1879,24 +2291,44 @@ static enum led_brightness kbd_led_level_get(struct led_classdev *led_cdev)
 	u16 num;
 	struct kbd_state state;
 
-	if (kbd_get_max_level()) {
+	if (kbd_get_max_level())
+	{
 		ret = kbd_get_state(&state);
+
 		if (ret)
+		{
 			return 0;
+		}
+
 		ret = kbd_get_level(&state);
+
 		if (ret < 0)
+		{
 			return 0;
+		}
+
 		return ret;
 	}
 
-	if (kbd_get_valid_token_counts()) {
+	if (kbd_get_valid_token_counts())
+	{
 		ret = kbd_get_first_active_token_bit();
+
 		if (ret < 0)
+		{
 			return 0;
+		}
+
 		for (num = kbd_token_bits; num != 0 && ret > 0; --ret)
-			num &= num - 1; /* clear the first bit set */
+		{
+			num &= num - 1;    /* clear the first bit set */
+		}
+
 		if (num == 0)
+		{
 			return 0;
+		}
+
 		return ffs(num) - 1;
 	}
 
@@ -1905,27 +2337,42 @@ static enum led_brightness kbd_led_level_get(struct led_classdev *led_cdev)
 }
 
 static void kbd_led_level_set(struct led_classdev *led_cdev,
-			      enum led_brightness value)
+							  enum led_brightness value)
 {
 	struct kbd_state state;
 	struct kbd_state new_state;
 	u16 num;
 
-	if (kbd_get_max_level()) {
+	if (kbd_get_max_level())
+	{
 		if (kbd_get_state(&state))
+		{
 			return;
+		}
+
 		new_state = state;
+
 		if (kbd_set_level(&new_state, value))
+		{
 			return;
+		}
+
 		kbd_set_state_safe(&new_state, &state);
 		return;
 	}
 
-	if (kbd_get_valid_token_counts()) {
+	if (kbd_get_valid_token_counts())
+	{
 		for (num = kbd_token_bits; num != 0 && value > 0; --value)
-			num &= num - 1; /* clear the first bit set */
+		{
+			num &= num - 1;    /* clear the first bit set */
+		}
+
 		if (num == 0)
+		{
 			return;
+		}
+
 		kbd_set_token_bit(ffs(num) - 1);
 		return;
 	}
@@ -1933,7 +2380,8 @@ static void kbd_led_level_set(struct led_classdev *led_cdev,
 	pr_warn("Keyboard brightness level control not supported\n");
 }
 
-static struct led_classdev kbd_led = {
+static struct led_classdev kbd_led =
+{
 	.name           = "dell::kbd_backlight",
 	.brightness_set = kbd_led_level_set,
 	.brightness_get = kbd_led_level_get,
@@ -1943,21 +2391,34 @@ static struct led_classdev kbd_led = {
 static int __init kbd_led_init(struct device *dev)
 {
 	kbd_init();
+
 	if (!kbd_led_present)
+	{
 		return -ENODEV;
-	if (!kbd_als_supported)
-		kbd_led_groups[1] = NULL;
-	kbd_led.max_brightness = kbd_get_max_level();
-	if (!kbd_led.max_brightness) {
-		kbd_led.max_brightness = kbd_get_valid_token_counts();
-		if (kbd_led.max_brightness)
-			kbd_led.max_brightness--;
 	}
+
+	if (!kbd_als_supported)
+	{
+		kbd_led_groups[1] = NULL;
+	}
+
+	kbd_led.max_brightness = kbd_get_max_level();
+
+	if (!kbd_led.max_brightness)
+	{
+		kbd_led.max_brightness = kbd_get_valid_token_counts();
+
+		if (kbd_led.max_brightness)
+		{
+			kbd_led.max_brightness--;
+		}
+	}
+
 	return led_classdev_register(dev, &kbd_led);
 }
 
 static void brightness_set_exit(struct led_classdev *led_cdev,
-				enum led_brightness value)
+								enum led_brightness value)
 {
 	/* Don't change backlight level on exit */
 };
@@ -1965,7 +2426,10 @@ static void brightness_set_exit(struct led_classdev *led_cdev,
 static void kbd_led_exit(void)
 {
 	if (!kbd_led_present)
+	{
 		return;
+	}
+
 	kbd_led.brightness_set = brightness_set_exit;
 	led_classdev_unregister(&kbd_led);
 }
@@ -1978,66 +2442,92 @@ static int __init dell_init(void)
 	int ret;
 
 	if (!dmi_check_system(dell_device_table))
+	{
 		return -ENODEV;
+	}
 
 	quirks = NULL;
 	/* find if this machine support other functions */
 	dmi_check_system(dell_quirks);
 
 	ret = platform_driver_register(&platform_driver);
+
 	if (ret)
+	{
 		goto fail_platform_driver;
+	}
+
 	platform_device = platform_device_alloc("dell-laptop", -1);
-	if (!platform_device) {
+
+	if (!platform_device)
+	{
 		ret = -ENOMEM;
 		goto fail_platform_device1;
 	}
+
 	ret = platform_device_add(platform_device);
+
 	if (ret)
+	{
 		goto fail_platform_device2;
+	}
 
 	ret = dell_setup_rfkill();
 
-	if (ret) {
+	if (ret)
+	{
 		pr_warn("Unable to setup rfkill\n");
 		goto fail_rfkill;
 	}
 
 	if (quirks && quirks->touchpad_led)
+	{
 		touchpad_led_init(&platform_device->dev);
+	}
 
 	kbd_led_init(&platform_device->dev);
 
 	dell_laptop_dir = debugfs_create_dir("dell_laptop", NULL);
+
 	if (dell_laptop_dir != NULL)
 		debugfs_create_file("rfkill", 0444, dell_laptop_dir, NULL,
-				    &dell_debugfs_fops);
+							&dell_debugfs_fops);
 
 	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
+	{
 		return 0;
+	}
 
 	token = dell_smbios_find_token(BRIGHTNESS_TOKEN);
-	if (token) {
+
+	if (token)
+	{
 		buffer = dell_smbios_get_buffer();
 		buffer->input[0] = token->location;
 		dell_smbios_send_request(0, 2);
+
 		if (buffer->output[0] == 0)
+		{
 			max_intensity = buffer->output[3];
+		}
+
 		dell_smbios_release_buffer();
 	}
 
-	if (max_intensity) {
+	if (max_intensity)
+	{
 		struct backlight_properties props;
 		memset(&props, 0, sizeof(struct backlight_properties));
 		props.type = BACKLIGHT_PLATFORM;
 		props.max_brightness = max_intensity;
 		dell_backlight_device = backlight_device_register("dell_backlight",
-								  &platform_device->dev,
-								  NULL,
-								  &dell_ops,
-								  &props);
+								&platform_device->dev,
+								NULL,
+								&dell_ops,
+								&props);
 
-		if (IS_ERR(dell_backlight_device)) {
+		if (IS_ERR(dell_backlight_device))
+		{
 			ret = PTR_ERR(dell_backlight_device);
 			dell_backlight_device = NULL;
 			goto fail_backlight;
@@ -2065,12 +2555,18 @@ fail_platform_driver:
 static void __exit dell_exit(void)
 {
 	debugfs_remove_recursive(dell_laptop_dir);
+
 	if (quirks && quirks->touchpad_led)
+	{
 		touchpad_led_exit();
+	}
+
 	kbd_led_exit();
 	backlight_device_unregister(dell_backlight_device);
 	dell_cleanup_rfkill();
-	if (platform_device) {
+
+	if (platform_device)
+	{
 		platform_device_unregister(platform_device);
 		platform_driver_unregister(&platform_driver);
 	}

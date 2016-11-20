@@ -62,7 +62,8 @@ static inline u8 byte(const u32 x, const unsigned n)
 
 static const u32 rco_tab[10] = { 1, 2, 4, 8, 16, 32, 64, 128, 27, 54 };
 
-__visible const u32 crypto_ft_tab[4][256] = {
+__visible const u32 crypto_ft_tab[4][256] =
+{
 	{
 		0xa56363c6, 0x847c7cf8, 0x997777ee, 0x8d7b7bf6,
 		0x0df2f2ff, 0xbd6b6bd6, 0xb16f6fde, 0x54c5c591,
@@ -326,7 +327,8 @@ __visible const u32 crypto_ft_tab[4][256] = {
 	}
 };
 
-__visible const u32 crypto_fl_tab[4][256] = {
+__visible const u32 crypto_fl_tab[4][256] =
+{
 	{
 		0x00000063, 0x0000007c, 0x00000077, 0x0000007b,
 		0x000000f2, 0x0000006b, 0x0000006f, 0x000000c5,
@@ -590,7 +592,8 @@ __visible const u32 crypto_fl_tab[4][256] = {
 	}
 };
 
-__visible const u32 crypto_it_tab[4][256] = {
+__visible const u32 crypto_it_tab[4][256] =
+{
 	{
 		0x50a7f451, 0x5365417e, 0xc3a4171a, 0x965e273a,
 		0xcb6bab3b, 0xf1459d1f, 0xab58faac, 0x9303e34b,
@@ -854,7 +857,8 @@ __visible const u32 crypto_it_tab[4][256] = {
 	}
 };
 
-__visible const u32 crypto_il_tab[4][256] = {
+__visible const u32 crypto_il_tab[4][256] =
+{
 	{
 		0x00000052, 0x00000009, 0x0000006a, 0x000000d5,
 		0x00000030, 0x00000036, 0x000000a5, 0x00000038,
@@ -1128,15 +1132,15 @@ EXPORT_SYMBOL_GPL(crypto_il_tab);
 #define star_x(x) (((x) & 0x7f7f7f7f) << 1) ^ ((((x) & 0x80808080) >> 7) * 0x1b)
 
 #define imix_col(y, x)	do {		\
-	u	= star_x(x);		\
-	v	= star_x(u);		\
-	w	= star_x(v);		\
-	t	= w ^ (x);		\
-	(y)	= u ^ v ^ w;		\
-	(y)	^= ror32(u ^ t, 8) ^	\
-		ror32(v ^ t, 16) ^	\
-		ror32(t, 24);		\
-} while (0)
+		u	= star_x(x);		\
+		v	= star_x(u);		\
+		w	= star_x(v);		\
+		t	= w ^ (x);		\
+		(y)	= u ^ v ^ w;		\
+		(y)	^= ror32(u ^ t, 8) ^	\
+			   ror32(v ^ t, 16) ^	\
+			   ror32(t, 24);		\
+	} while (0)
 
 #define ls_box(x)		\
 	crypto_fl_tab[0][byte(x, 0)] ^	\
@@ -1145,59 +1149,59 @@ EXPORT_SYMBOL_GPL(crypto_il_tab);
 	crypto_fl_tab[3][byte(x, 3)]
 
 #define loop4(i)	do {		\
-	t = ror32(t, 8);		\
-	t = ls_box(t) ^ rco_tab[i];	\
-	t ^= ctx->key_enc[4 * i];		\
-	ctx->key_enc[4 * i + 4] = t;		\
-	t ^= ctx->key_enc[4 * i + 1];		\
-	ctx->key_enc[4 * i + 5] = t;		\
-	t ^= ctx->key_enc[4 * i + 2];		\
-	ctx->key_enc[4 * i + 6] = t;		\
-	t ^= ctx->key_enc[4 * i + 3];		\
-	ctx->key_enc[4 * i + 7] = t;		\
-} while (0)
+		t = ror32(t, 8);		\
+		t = ls_box(t) ^ rco_tab[i];	\
+		t ^= ctx->key_enc[4 * i];		\
+		ctx->key_enc[4 * i + 4] = t;		\
+		t ^= ctx->key_enc[4 * i + 1];		\
+		ctx->key_enc[4 * i + 5] = t;		\
+		t ^= ctx->key_enc[4 * i + 2];		\
+		ctx->key_enc[4 * i + 6] = t;		\
+		t ^= ctx->key_enc[4 * i + 3];		\
+		ctx->key_enc[4 * i + 7] = t;		\
+	} while (0)
 
 #define loop6(i)	do {		\
-	t = ror32(t, 8);		\
-	t = ls_box(t) ^ rco_tab[i];	\
-	t ^= ctx->key_enc[6 * i];		\
-	ctx->key_enc[6 * i + 6] = t;		\
-	t ^= ctx->key_enc[6 * i + 1];		\
-	ctx->key_enc[6 * i + 7] = t;		\
-	t ^= ctx->key_enc[6 * i + 2];		\
-	ctx->key_enc[6 * i + 8] = t;		\
-	t ^= ctx->key_enc[6 * i + 3];		\
-	ctx->key_enc[6 * i + 9] = t;		\
-	t ^= ctx->key_enc[6 * i + 4];		\
-	ctx->key_enc[6 * i + 10] = t;		\
-	t ^= ctx->key_enc[6 * i + 5];		\
-	ctx->key_enc[6 * i + 11] = t;		\
-} while (0)
+		t = ror32(t, 8);		\
+		t = ls_box(t) ^ rco_tab[i];	\
+		t ^= ctx->key_enc[6 * i];		\
+		ctx->key_enc[6 * i + 6] = t;		\
+		t ^= ctx->key_enc[6 * i + 1];		\
+		ctx->key_enc[6 * i + 7] = t;		\
+		t ^= ctx->key_enc[6 * i + 2];		\
+		ctx->key_enc[6 * i + 8] = t;		\
+		t ^= ctx->key_enc[6 * i + 3];		\
+		ctx->key_enc[6 * i + 9] = t;		\
+		t ^= ctx->key_enc[6 * i + 4];		\
+		ctx->key_enc[6 * i + 10] = t;		\
+		t ^= ctx->key_enc[6 * i + 5];		\
+		ctx->key_enc[6 * i + 11] = t;		\
+	} while (0)
 
 #define loop8tophalf(i)	do {			\
-	t = ror32(t, 8);			\
-	t = ls_box(t) ^ rco_tab[i];		\
-	t ^= ctx->key_enc[8 * i];			\
-	ctx->key_enc[8 * i + 8] = t;			\
-	t ^= ctx->key_enc[8 * i + 1];			\
-	ctx->key_enc[8 * i + 9] = t;			\
-	t ^= ctx->key_enc[8 * i + 2];			\
-	ctx->key_enc[8 * i + 10] = t;			\
-	t ^= ctx->key_enc[8 * i + 3];			\
-	ctx->key_enc[8 * i + 11] = t;			\
-} while (0)
+		t = ror32(t, 8);			\
+		t = ls_box(t) ^ rco_tab[i];		\
+		t ^= ctx->key_enc[8 * i];			\
+		ctx->key_enc[8 * i + 8] = t;			\
+		t ^= ctx->key_enc[8 * i + 1];			\
+		ctx->key_enc[8 * i + 9] = t;			\
+		t ^= ctx->key_enc[8 * i + 2];			\
+		ctx->key_enc[8 * i + 10] = t;			\
+		t ^= ctx->key_enc[8 * i + 3];			\
+		ctx->key_enc[8 * i + 11] = t;			\
+	} while (0)
 
 #define loop8(i)	do {				\
-	loop8tophalf(i);				\
-	t  = ctx->key_enc[8 * i + 4] ^ ls_box(t);	\
-	ctx->key_enc[8 * i + 12] = t;			\
-	t ^= ctx->key_enc[8 * i + 5];			\
-	ctx->key_enc[8 * i + 13] = t;			\
-	t ^= ctx->key_enc[8 * i + 6];			\
-	ctx->key_enc[8 * i + 14] = t;			\
-	t ^= ctx->key_enc[8 * i + 7];			\
-	ctx->key_enc[8 * i + 15] = t;			\
-} while (0)
+		loop8tophalf(i);				\
+		t  = ctx->key_enc[8 * i + 4] ^ ls_box(t);	\
+		ctx->key_enc[8 * i + 12] = t;			\
+		t ^= ctx->key_enc[8 * i + 5];			\
+		ctx->key_enc[8 * i + 13] = t;			\
+		t ^= ctx->key_enc[8 * i + 6];			\
+		ctx->key_enc[8 * i + 14] = t;			\
+		t ^= ctx->key_enc[8 * i + 7];			\
+		ctx->key_enc[8 * i + 15] = t;			\
+	} while (0)
 
 /**
  * crypto_aes_expand_key - Expands the AES key as described in FIPS-197
@@ -1214,14 +1218,16 @@ EXPORT_SYMBOL_GPL(crypto_il_tab);
  * for the initial combination, the second slot for the first round and so on.
  */
 int crypto_aes_expand_key(struct crypto_aes_ctx *ctx, const u8 *in_key,
-		unsigned int key_len)
+						  unsigned int key_len)
 {
 	const __le32 *key = (const __le32 *)in_key;
 	u32 i, t, u, v, w, j;
 
 	if (key_len != AES_KEYSIZE_128 && key_len != AES_KEYSIZE_192 &&
-			key_len != AES_KEYSIZE_256)
+		key_len != AES_KEYSIZE_256)
+	{
 		return -EINVAL;
+	}
 
 	ctx->key_length = key_len;
 
@@ -1230,29 +1236,42 @@ int crypto_aes_expand_key(struct crypto_aes_ctx *ctx, const u8 *in_key,
 	ctx->key_dec[key_len + 26] = ctx->key_enc[2] = le32_to_cpu(key[2]);
 	ctx->key_dec[key_len + 27] = ctx->key_enc[3] = le32_to_cpu(key[3]);
 
-	switch (key_len) {
-	case AES_KEYSIZE_128:
-		t = ctx->key_enc[3];
-		for (i = 0; i < 10; ++i)
-			loop4(i);
-		break;
+	switch (key_len)
+	{
+		case AES_KEYSIZE_128:
+			t = ctx->key_enc[3];
 
-	case AES_KEYSIZE_192:
-		ctx->key_enc[4] = le32_to_cpu(key[4]);
-		t = ctx->key_enc[5] = le32_to_cpu(key[5]);
-		for (i = 0; i < 8; ++i)
-			loop6(i);
-		break;
+			for (i = 0; i < 10; ++i)
+			{
+				loop4(i);
+			}
 
-	case AES_KEYSIZE_256:
-		ctx->key_enc[4] = le32_to_cpu(key[4]);
-		ctx->key_enc[5] = le32_to_cpu(key[5]);
-		ctx->key_enc[6] = le32_to_cpu(key[6]);
-		t = ctx->key_enc[7] = le32_to_cpu(key[7]);
-		for (i = 0; i < 6; ++i)
-			loop8(i);
-		loop8tophalf(i);
-		break;
+			break;
+
+		case AES_KEYSIZE_192:
+			ctx->key_enc[4] = le32_to_cpu(key[4]);
+			t = ctx->key_enc[5] = le32_to_cpu(key[5]);
+
+			for (i = 0; i < 8; ++i)
+			{
+				loop6(i);
+			}
+
+			break;
+
+		case AES_KEYSIZE_256:
+			ctx->key_enc[4] = le32_to_cpu(key[4]);
+			ctx->key_enc[5] = le32_to_cpu(key[5]);
+			ctx->key_enc[6] = le32_to_cpu(key[6]);
+			t = ctx->key_enc[7] = le32_to_cpu(key[7]);
+
+			for (i = 0; i < 6; ++i)
+			{
+				loop8(i);
+			}
+
+			loop8tophalf(i);
+			break;
 	}
 
 	ctx->key_dec[0] = ctx->key_enc[key_len + 24];
@@ -1260,10 +1279,12 @@ int crypto_aes_expand_key(struct crypto_aes_ctx *ctx, const u8 *in_key,
 	ctx->key_dec[2] = ctx->key_enc[key_len + 26];
 	ctx->key_dec[3] = ctx->key_enc[key_len + 27];
 
-	for (i = 4; i < key_len + 24; ++i) {
+	for (i = 4; i < key_len + 24; ++i)
+	{
 		j = key_len + 24 - (i & ~3) + (i & 3);
 		imix_col(ctx->key_dec[j], ctx->key_enc[i]);
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(crypto_aes_expand_key);
@@ -1280,15 +1301,18 @@ EXPORT_SYMBOL_GPL(crypto_aes_expand_key);
  * retrieved with crypto_tfm_ctx().
  */
 int crypto_aes_set_key(struct crypto_tfm *tfm, const u8 *in_key,
-		unsigned int key_len)
+					   unsigned int key_len)
 {
 	struct crypto_aes_ctx *ctx = crypto_tfm_ctx(tfm);
 	u32 *flags = &tfm->crt_flags;
 	int ret;
 
 	ret = crypto_aes_expand_key(ctx, in_key, key_len);
+
 	if (!ret)
+	{
 		return 0;
+	}
 
 	*flags |= CRYPTO_TFM_RES_BAD_KEY_LEN;
 	return -EINVAL;
@@ -1298,33 +1322,33 @@ EXPORT_SYMBOL_GPL(crypto_aes_set_key);
 /* encrypt a block of text */
 
 #define f_rn(bo, bi, n, k)	do {				\
-	bo[n] = crypto_ft_tab[0][byte(bi[n], 0)] ^			\
-		crypto_ft_tab[1][byte(bi[(n + 1) & 3], 1)] ^		\
-		crypto_ft_tab[2][byte(bi[(n + 2) & 3], 2)] ^		\
-		crypto_ft_tab[3][byte(bi[(n + 3) & 3], 3)] ^ *(k + n);	\
-} while (0)
+		bo[n] = crypto_ft_tab[0][byte(bi[n], 0)] ^			\
+				crypto_ft_tab[1][byte(bi[(n + 1) & 3], 1)] ^		\
+				crypto_ft_tab[2][byte(bi[(n + 2) & 3], 2)] ^		\
+				crypto_ft_tab[3][byte(bi[(n + 3) & 3], 3)] ^ *(k + n);	\
+	} while (0)
 
 #define f_nround(bo, bi, k)	do {\
-	f_rn(bo, bi, 0, k);	\
-	f_rn(bo, bi, 1, k);	\
-	f_rn(bo, bi, 2, k);	\
-	f_rn(bo, bi, 3, k);	\
-	k += 4;			\
-} while (0)
+		f_rn(bo, bi, 0, k);	\
+		f_rn(bo, bi, 1, k);	\
+		f_rn(bo, bi, 2, k);	\
+		f_rn(bo, bi, 3, k);	\
+		k += 4;			\
+	} while (0)
 
 #define f_rl(bo, bi, n, k)	do {				\
-	bo[n] = crypto_fl_tab[0][byte(bi[n], 0)] ^			\
-		crypto_fl_tab[1][byte(bi[(n + 1) & 3], 1)] ^		\
-		crypto_fl_tab[2][byte(bi[(n + 2) & 3], 2)] ^		\
-		crypto_fl_tab[3][byte(bi[(n + 3) & 3], 3)] ^ *(k + n);	\
-} while (0)
+		bo[n] = crypto_fl_tab[0][byte(bi[n], 0)] ^			\
+				crypto_fl_tab[1][byte(bi[(n + 1) & 3], 1)] ^		\
+				crypto_fl_tab[2][byte(bi[(n + 2) & 3], 2)] ^		\
+				crypto_fl_tab[3][byte(bi[(n + 3) & 3], 3)] ^ *(k + n);	\
+	} while (0)
 
 #define f_lround(bo, bi, k)	do {\
-	f_rl(bo, bi, 0, k);	\
-	f_rl(bo, bi, 1, k);	\
-	f_rl(bo, bi, 2, k);	\
-	f_rl(bo, bi, 3, k);	\
-} while (0)
+		f_rl(bo, bi, 0, k);	\
+		f_rl(bo, bi, 1, k);	\
+		f_rl(bo, bi, 2, k);	\
+		f_rl(bo, bi, 3, k);	\
+	} while (0)
 
 static void aes_encrypt(struct crypto_tfm *tfm, u8 *out, const u8 *in)
 {
@@ -1340,12 +1364,14 @@ static void aes_encrypt(struct crypto_tfm *tfm, u8 *out, const u8 *in)
 	b0[2] = le32_to_cpu(src[2]) ^ ctx->key_enc[2];
 	b0[3] = le32_to_cpu(src[3]) ^ ctx->key_enc[3];
 
-	if (key_len > 24) {
+	if (key_len > 24)
+	{
 		f_nround(b1, b0, kp);
 		f_nround(b0, b1, kp);
 	}
 
-	if (key_len > 16) {
+	if (key_len > 16)
+	{
 		f_nround(b1, b0, kp);
 		f_nround(b0, b1, kp);
 	}
@@ -1370,33 +1396,33 @@ static void aes_encrypt(struct crypto_tfm *tfm, u8 *out, const u8 *in)
 /* decrypt a block of text */
 
 #define i_rn(bo, bi, n, k)	do {				\
-	bo[n] = crypto_it_tab[0][byte(bi[n], 0)] ^			\
-		crypto_it_tab[1][byte(bi[(n + 3) & 3], 1)] ^		\
-		crypto_it_tab[2][byte(bi[(n + 2) & 3], 2)] ^		\
-		crypto_it_tab[3][byte(bi[(n + 1) & 3], 3)] ^ *(k + n);	\
-} while (0)
+		bo[n] = crypto_it_tab[0][byte(bi[n], 0)] ^			\
+				crypto_it_tab[1][byte(bi[(n + 3) & 3], 1)] ^		\
+				crypto_it_tab[2][byte(bi[(n + 2) & 3], 2)] ^		\
+				crypto_it_tab[3][byte(bi[(n + 1) & 3], 3)] ^ *(k + n);	\
+	} while (0)
 
 #define i_nround(bo, bi, k)	do {\
-	i_rn(bo, bi, 0, k);	\
-	i_rn(bo, bi, 1, k);	\
-	i_rn(bo, bi, 2, k);	\
-	i_rn(bo, bi, 3, k);	\
-	k += 4;			\
-} while (0)
+		i_rn(bo, bi, 0, k);	\
+		i_rn(bo, bi, 1, k);	\
+		i_rn(bo, bi, 2, k);	\
+		i_rn(bo, bi, 3, k);	\
+		k += 4;			\
+	} while (0)
 
 #define i_rl(bo, bi, n, k)	do {			\
-	bo[n] = crypto_il_tab[0][byte(bi[n], 0)] ^		\
-	crypto_il_tab[1][byte(bi[(n + 3) & 3], 1)] ^		\
-	crypto_il_tab[2][byte(bi[(n + 2) & 3], 2)] ^		\
-	crypto_il_tab[3][byte(bi[(n + 1) & 3], 3)] ^ *(k + n);	\
-} while (0)
+		bo[n] = crypto_il_tab[0][byte(bi[n], 0)] ^		\
+				crypto_il_tab[1][byte(bi[(n + 3) & 3], 1)] ^		\
+				crypto_il_tab[2][byte(bi[(n + 2) & 3], 2)] ^		\
+				crypto_il_tab[3][byte(bi[(n + 1) & 3], 3)] ^ *(k + n);	\
+	} while (0)
 
 #define i_lround(bo, bi, k)	do {\
-	i_rl(bo, bi, 0, k);	\
-	i_rl(bo, bi, 1, k);	\
-	i_rl(bo, bi, 2, k);	\
-	i_rl(bo, bi, 3, k);	\
-} while (0)
+		i_rl(bo, bi, 0, k);	\
+		i_rl(bo, bi, 1, k);	\
+		i_rl(bo, bi, 2, k);	\
+		i_rl(bo, bi, 3, k);	\
+	} while (0)
 
 static void aes_decrypt(struct crypto_tfm *tfm, u8 *out, const u8 *in)
 {
@@ -1412,12 +1438,14 @@ static void aes_decrypt(struct crypto_tfm *tfm, u8 *out, const u8 *in)
 	b0[2] = le32_to_cpu(src[2]) ^  ctx->key_dec[2];
 	b0[3] = le32_to_cpu(src[3]) ^  ctx->key_dec[3];
 
-	if (key_len > 24) {
+	if (key_len > 24)
+	{
 		i_nround(b1, b0, kp);
 		i_nround(b0, b1, kp);
 	}
 
-	if (key_len > 16) {
+	if (key_len > 16)
+	{
 		i_nround(b1, b0, kp);
 		i_nround(b0, b1, kp);
 	}
@@ -1439,7 +1467,8 @@ static void aes_decrypt(struct crypto_tfm *tfm, u8 *out, const u8 *in)
 	dst[3] = cpu_to_le32(b0[3]);
 }
 
-static struct crypto_alg aes_alg = {
+static struct crypto_alg aes_alg =
+{
 	.cra_name		=	"aes",
 	.cra_driver_name	=	"aes-generic",
 	.cra_priority		=	100,

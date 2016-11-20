@@ -34,8 +34,8 @@
  */
 
 static int fc_header(struct sk_buff *skb, struct net_device *dev,
-		     unsigned short type,
-		     const void *daddr, const void *saddr, unsigned int len)
+					 unsigned short type,
+					 const void *daddr, const void *saddr, unsigned int len)
 {
 	struct fch_hdr *fch;
 	int hdr_len;
@@ -50,7 +50,7 @@ static int fc_header(struct sk_buff *skb, struct net_device *dev,
 
 		hdr_len = sizeof(struct fch_hdr) + sizeof(struct fcllc);
 		fch = (struct fch_hdr *)skb_push(skb, hdr_len);
-		fcllc = (struct fcllc *)(fch+1);
+		fcllc = (struct fcllc *)(fch + 1);
 		fcllc->dsap = fcllc->ssap = EXTENDED_SAP;
 		fcllc->llc = UI_CMD;
 		fcllc->protid[0] = fcllc->protid[1] = fcllc->protid[2] = 0x00;
@@ -62,20 +62,26 @@ static int fc_header(struct sk_buff *skb, struct net_device *dev,
 		fch = (struct fch_hdr *)skb_push(skb, hdr_len);
 	}
 
-	if(saddr)
-		memcpy(fch->saddr,saddr,dev->addr_len);
-	else
-		memcpy(fch->saddr,dev->dev_addr,dev->addr_len);
-
-	if(daddr)
+	if (saddr)
 	{
-		memcpy(fch->daddr,daddr,dev->addr_len);
+		memcpy(fch->saddr, saddr, dev->addr_len);
+	}
+	else
+	{
+		memcpy(fch->saddr, dev->dev_addr, dev->addr_len);
+	}
+
+	if (daddr)
+	{
+		memcpy(fch->daddr, daddr, dev->addr_len);
 		return hdr_len;
 	}
+
 	return -hdr_len;
 }
 
-static const struct header_ops fc_header_ops = {
+static const struct header_ops fc_header_ops =
+{
 	.create	 = fc_header,
 };
 

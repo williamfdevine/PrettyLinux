@@ -28,7 +28,7 @@
 
 void
 nv10_fb_tile_init(struct nvkm_fb *fb, int i, u32 addr, u32 size, u32 pitch,
-		  u32 flags, struct nvkm_fb_tile *tile)
+				  u32 flags, struct nvkm_fb_tile *tile)
 {
 	tile->addr  = 0x80000000 | addr;
 	tile->limit = max(1u, addr + size) - 1;
@@ -55,7 +55,8 @@ nv10_fb_tile_prog(struct nvkm_fb *fb, int i, struct nvkm_fb_tile *tile)
 }
 
 static const struct nvkm_fb_func
-nv10_fb = {
+	nv10_fb =
+{
 	.tile.regions = 8,
 	.tile.init = nv10_fb_tile_init,
 	.tile.fini = nv10_fb_tile_fini,

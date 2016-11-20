@@ -21,17 +21,17 @@
 struct xfs_mount;
 
 extern void xfs_error_report(const char *tag, int level, struct xfs_mount *mp,
-			const char *filename, int linenum, void *ra);
+							 const char *filename, int linenum, void *ra);
 extern void xfs_corruption_error(const char *tag, int level,
-			struct xfs_mount *mp, void *p, const char *filename,
-			int linenum, void *ra);
+								 struct xfs_mount *mp, void *p, const char *filename,
+								 int linenum, void *ra);
 extern void xfs_verifier_error(struct xfs_buf *bp);
 
 #define	XFS_ERROR_REPORT(e, lvl, mp)	\
 	xfs_error_report(e, lvl, mp, __FILE__, __LINE__, __return_address)
 #define	XFS_CORRUPTION_ERROR(e, lvl, mp, mem)	\
 	xfs_corruption_error(e, lvl, mp, mem, \
-			     __FILE__, __LINE__, __return_address)
+						 __FILE__, __LINE__, __return_address)
 
 #define XFS_ERRLEVEL_OFF	0
 #define XFS_ERRLEVEL_LOW	1
@@ -46,7 +46,7 @@ extern void xfs_verifier_error(struct xfs_buf *bp);
 		ASSERT(fs_is_ok); \
 		if (unlikely(!fs_is_ok)) { \
 			XFS_ERROR_REPORT("XFS_WANT_CORRUPTED_GOTO", \
-					 XFS_ERRLEVEL_LOW, mp); \
+							 XFS_ERRLEVEL_LOW, mp); \
 			error = -EFSCORRUPTED; \
 			goto l; \
 		} \
@@ -58,7 +58,7 @@ extern void xfs_verifier_error(struct xfs_buf *bp);
 		ASSERT(fs_is_ok); \
 		if (unlikely(!fs_is_ok)) { \
 			XFS_ERROR_REPORT("XFS_WANT_CORRUPTED_RETURN", \
-					 XFS_ERRLEVEL_LOW, mp); \
+							 XFS_ERRLEVEL_LOW, mp); \
 			return -EFSCORRUPTED; \
 		} \
 	}
@@ -137,8 +137,8 @@ extern int xfs_error_test(int, int *, char *, int, char *, unsigned long);
 #define	XFS_NUM_INJECT_ERROR				10
 #define XFS_TEST_ERROR(expr, mp, tag, rf)		\
 	((expr) || (xfs_error_test_active && \
-	 xfs_error_test((tag), (mp)->m_fixedfsid, "expr", __LINE__, __FILE__, \
-			(rf))))
+				xfs_error_test((tag), (mp)->m_fixedfsid, "expr", __LINE__, __FILE__, \
+							   (rf))))
 
 extern int xfs_errortag_add(unsigned int error_tag, struct xfs_mount *mp);
 extern int xfs_errortag_clearall(struct xfs_mount *mp, int loud);

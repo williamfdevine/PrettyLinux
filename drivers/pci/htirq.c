@@ -29,16 +29,24 @@ void write_ht_irq_msg(unsigned int irq, struct ht_irq_msg *msg)
 	unsigned long flags;
 
 	spin_lock_irqsave(&ht_irq_lock, flags);
-	if (cfg->msg.address_lo != msg->address_lo) {
+
+	if (cfg->msg.address_lo != msg->address_lo)
+	{
 		pci_write_config_byte(cfg->dev, cfg->pos + 2, cfg->idx);
 		pci_write_config_dword(cfg->dev, cfg->pos + 4, msg->address_lo);
 	}
-	if (cfg->msg.address_hi != msg->address_hi) {
+
+	if (cfg->msg.address_hi != msg->address_hi)
+	{
 		pci_write_config_byte(cfg->dev, cfg->pos + 2, cfg->idx + 1);
 		pci_write_config_dword(cfg->dev, cfg->pos + 4, msg->address_hi);
 	}
+
 	if (cfg->update)
+	{
 		cfg->update(cfg->dev, irq, msg);
+	}
+
 	spin_unlock_irqrestore(&ht_irq_lock, flags);
 	cfg->msg = *msg;
 }
@@ -83,8 +91,11 @@ int __ht_create_irq(struct pci_dev *dev, int idx, ht_irq_update_t *update)
 	u32 data;
 
 	pos = pci_find_ht_capability(dev, HT_CAPTYPE_IRQ);
+
 	if (!pos)
+	{
 		return -EINVAL;
+	}
 
 	/* Verify the idx I want to use is in range */
 	spin_lock_irqsave(&ht_irq_lock, flags);
@@ -93,12 +104,18 @@ int __ht_create_irq(struct pci_dev *dev, int idx, ht_irq_update_t *update)
 	spin_unlock_irqrestore(&ht_irq_lock, flags);
 
 	max_irq = (data >> 16) & 0xff;
+
 	if (idx > max_irq)
+	{
 		return -EINVAL;
+	}
 
 	irq = arch_setup_ht_irq(idx, pos, dev, update);
+
 	if (irq > 0)
+	{
 		dev_dbg(&dev->dev, "irq %d for HT\n", irq);
+	}
 
 	return irq;
 }

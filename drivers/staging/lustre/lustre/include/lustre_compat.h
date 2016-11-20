@@ -53,25 +53,25 @@
  * driver initialization
  */
 #ifndef MODULE
-#undef module_init
-#define module_init(a)     late_initcall(a)
+	#undef module_init
+	#define module_init(a)     late_initcall(a)
 #endif
 
 #define LTIME_S(time)		   (time.tv_sec)
 
 #ifndef QUOTA_OK
-# define QUOTA_OK 0
+	#define QUOTA_OK 0
 #endif
 #ifndef NO_QUOTA
-# define NO_QUOTA (-EDQUOT)
+	#define NO_QUOTA (-EDQUOT)
 #endif
 
 #if !defined(_ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_) && !defined(ext2_set_bit)
-# define ext2_set_bit	     __test_and_set_bit_le
-# define ext2_clear_bit	   __test_and_clear_bit_le
-# define ext2_test_bit	    test_bit_le
-# define ext2_find_first_zero_bit find_first_zero_bit_le
-# define ext2_find_next_zero_bit  find_next_zero_bit_le
+	#define ext2_set_bit	     __test_and_set_bit_le
+	#define ext2_clear_bit	   __test_and_clear_bit_le
+	#define ext2_test_bit	    test_bit_le
+	#define ext2_find_first_zero_bit find_first_zero_bit_le
+	#define ext2_find_next_zero_bit  find_next_zero_bit_le
 #endif
 
 #endif /* _LUSTRE_COMPAT_H */

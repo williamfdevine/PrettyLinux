@@ -71,24 +71,28 @@
 
 struct ath10k;
 
-enum ath10k_bus {
+enum ath10k_bus
+{
 	ATH10K_BUS_PCI,
 	ATH10K_BUS_AHB,
 };
 
 static inline const char *ath10k_bus_str(enum ath10k_bus bus)
 {
-	switch (bus) {
-	case ATH10K_BUS_PCI:
-		return "pci";
-	case ATH10K_BUS_AHB:
-		return "ahb";
+	switch (bus)
+	{
+		case ATH10K_BUS_PCI:
+			return "pci";
+
+		case ATH10K_BUS_AHB:
+			return "ahb";
 	}
 
 	return "unknown";
 }
 
-enum ath10k_skb_flags {
+enum ath10k_skb_flags
+{
 	ATH10K_SKB_F_NO_HWCRYPT = BIT(0),
 	ATH10K_SKB_F_DTIM_ZERO = BIT(1),
 	ATH10K_SKB_F_DELIVER_CAB = BIT(2),
@@ -96,7 +100,8 @@ enum ath10k_skb_flags {
 	ATH10K_SKB_F_QOS = BIT(4),
 };
 
-struct ath10k_skb_cb {
+struct ath10k_skb_cb
+{
 	dma_addr_t paddr;
 	u8 flags;
 	u8 eid;
@@ -105,7 +110,8 @@ struct ath10k_skb_cb {
 	struct ieee80211_txq *txq;
 } __packed;
 
-struct ath10k_skb_rxcb {
+struct ath10k_skb_rxcb
+{
 	dma_addr_t paddr;
 	struct hlist_node hlist;
 };
@@ -113,7 +119,7 @@ struct ath10k_skb_rxcb {
 static inline struct ath10k_skb_cb *ATH10K_SKB_CB(struct sk_buff *skb)
 {
 	BUILD_BUG_ON(sizeof(struct ath10k_skb_cb) >
-		     IEEE80211_TX_INFO_DRIVER_DATA_SIZE);
+				 IEEE80211_TX_INFO_DRIVER_DATA_SIZE);
 	return (struct ath10k_skb_cb *)&IEEE80211_SKB_CB(skb)->driver_data;
 }
 
@@ -124,25 +130,28 @@ static inline struct ath10k_skb_rxcb *ATH10K_SKB_RXCB(struct sk_buff *skb)
 }
 
 #define ATH10K_RXCB_SKB(rxcb) \
-		container_of((void *)rxcb, struct sk_buff, cb)
+	container_of((void *)rxcb, struct sk_buff, cb)
 
 static inline u32 host_interest_item_address(u32 item_offset)
 {
 	return QCA988X_HOST_INTEREST_ADDRESS + item_offset;
 }
 
-struct ath10k_bmi {
+struct ath10k_bmi
+{
 	bool done_sent;
 };
 
-struct ath10k_mem_chunk {
+struct ath10k_mem_chunk
+{
 	void *vaddr;
 	dma_addr_t paddr;
 	u32 len;
 	u32 req_id;
 };
 
-struct ath10k_wmi {
+struct ath10k_wmi
+{
 	enum ath10k_htc_ep_id eid;
 	struct completion service_ready;
 	struct completion unified_ready;
@@ -160,7 +169,8 @@ struct ath10k_wmi {
 	struct ath10k_mem_chunk mem_chunks[WMI_MAX_MEM_REQS];
 };
 
-struct ath10k_fw_stats_peer {
+struct ath10k_fw_stats_peer
+{
 	struct list_head list;
 
 	u8 peer_macaddr[ETH_ALEN];
@@ -170,14 +180,16 @@ struct ath10k_fw_stats_peer {
 	u32 rx_duration;
 };
 
-struct ath10k_fw_extd_stats_peer {
+struct ath10k_fw_extd_stats_peer
+{
 	struct list_head list;
 
 	u8 peer_macaddr[ETH_ALEN];
 	u32 rx_duration;
 };
 
-struct ath10k_fw_stats_vdev {
+struct ath10k_fw_stats_vdev
+{
 	struct list_head list;
 
 	u32 vdev_id;
@@ -196,7 +208,8 @@ struct ath10k_fw_stats_vdev {
 	u32 beacon_rssi_history[10];
 };
 
-struct ath10k_fw_stats_pdev {
+struct ath10k_fw_stats_pdev
+{
 	struct list_head list;
 
 	/* PDEV stats */
@@ -267,7 +280,8 @@ struct ath10k_fw_stats_pdev {
 	s32 rx_ovfl_errs;
 };
 
-struct ath10k_fw_stats {
+struct ath10k_fw_stats
+{
 	bool extended;
 	struct list_head pdevs;
 	struct list_head vdevs;
@@ -278,13 +292,15 @@ struct ath10k_fw_stats {
 #define ATH10K_TPC_TABLE_TYPE_FLAG	1
 #define ATH10K_TPC_PREAM_TABLE_END	0xFFFF
 
-struct ath10k_tpc_table {
+struct ath10k_tpc_table
+{
 	u32 pream_idx[WMI_TPC_RATE_MAX];
 	u8 rate_code[WMI_TPC_RATE_MAX];
 	char tpc_value[WMI_TPC_RATE_MAX][WMI_TPC_TX_N_CHAIN * WMI_TPC_BUF_SIZE];
 };
 
-struct ath10k_tpc_stats {
+struct ath10k_tpc_stats
+{
 	u32 reg_domain;
 	u32 chan_freq;
 	u32 phy_mode;
@@ -299,7 +315,8 @@ struct ath10k_tpc_stats {
 	struct ath10k_tpc_table tpc_table[WMI_TPC_FLAG];
 };
 
-struct ath10k_dfs_stats {
+struct ath10k_dfs_stats
+{
 	u32 phy_errors;
 	u32 pulses_total;
 	u32 pulses_detected;
@@ -309,7 +326,8 @@ struct ath10k_dfs_stats {
 
 #define ATH10K_MAX_NUM_PEER_IDS (1 << 11) /* htt rx_desc limit */
 
-struct ath10k_peer {
+struct ath10k_peer
+{
 	struct list_head list;
 	struct ieee80211_vif *vif;
 	struct ieee80211_sta *sta;
@@ -322,13 +340,15 @@ struct ath10k_peer {
 	struct ieee80211_key_conf *keys[WMI_MAX_KEY_INDEX + 1];
 };
 
-struct ath10k_txq {
+struct ath10k_txq
+{
 	struct list_head list;
 	unsigned long num_fw_queued;
 	unsigned long num_push_allowed;
 };
 
-struct ath10k_sta {
+struct ath10k_sta
+{
 	struct ath10k_vif *arvif;
 
 	/* the following are protected by ar->data_lock */
@@ -349,13 +369,15 @@ struct ath10k_sta {
 
 #define ATH10K_VDEV_SETUP_TIMEOUT_HZ (5 * HZ)
 
-enum ath10k_beacon_state {
+enum ath10k_beacon_state
+{
 	ATH10K_BEACON_SCHEDULED = 0,
 	ATH10K_BEACON_SENDING,
 	ATH10K_BEACON_SENT,
 };
 
-struct ath10k_vif {
+struct ath10k_vif
+{
 	struct list_head list;
 
 	u32 vdev_id;
@@ -386,11 +408,14 @@ struct ath10k_vif {
 
 	u16 tx_seq_no;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 uapsd;
 		} sta;
-		struct {
+		struct
+		{
 			/* 512 stations */
 			u8 tim_bitmap[64];
 			u8 tim_len;
@@ -413,13 +438,15 @@ struct ath10k_vif {
 	struct cfg80211_bitrate_mask bitrate_mask;
 };
 
-struct ath10k_vif_iter {
+struct ath10k_vif_iter
+{
 	u32 vdev_id;
 	struct ath10k_vif *arvif;
 };
 
 /* used for crash-dump storage, protected by data-lock */
-struct ath10k_fw_crash_data {
+struct ath10k_fw_crash_data
+{
 	bool crashed_since_read;
 
 	uuid_le uuid;
@@ -427,7 +454,8 @@ struct ath10k_fw_crash_data {
 	__le32 registers[REG_DUMP_COUNT_QCA988X];
 };
 
-struct ath10k_debug {
+struct ath10k_debug
+{
 	struct dentry *debugfs_phy;
 
 	struct ath10k_fw_stats fw_stats;
@@ -455,7 +483,8 @@ struct ath10k_debug {
 	struct ath10k_fw_crash_data *fw_crash_data;
 };
 
-enum ath10k_state {
+enum ath10k_state
+{
 	ATH10K_STATE_OFF = 0,
 	ATH10K_STATE_ON,
 
@@ -480,7 +509,8 @@ enum ath10k_state {
 	ATH10K_STATE_UTF,
 };
 
-enum ath10k_firmware_mode {
+enum ath10k_firmware_mode
+{
 	/* the default mode, standard 802.11 functionality */
 	ATH10K_FIRMWARE_MODE_NORMAL,
 
@@ -488,7 +518,8 @@ enum ath10k_firmware_mode {
 	ATH10K_FIRMWARE_MODE_UTF,
 };
 
-enum ath10k_fw_features {
+enum ath10k_fw_features
+{
 	/* wmi_mgmt_rx_hdr contains extra RSSI information */
 	ATH10K_FW_FEATURE_EXT_WMI_MGMT_RX = 0,
 
@@ -568,7 +599,8 @@ enum ath10k_fw_features {
 	ATH10K_FW_FEATURE_COUNT,
 };
 
-enum ath10k_dev_flags {
+enum ath10k_dev_flags
+{
 	/* Indicates that ath10k device is during CAC phase of DFS */
 	ATH10K_CAC_RUNNING,
 	ATH10K_FLAG_CORE_REGISTERED,
@@ -594,7 +626,8 @@ enum ath10k_dev_flags {
 	ATH10K_FLAG_PEER_STATS,
 };
 
-enum ath10k_cal_mode {
+enum ath10k_cal_mode
+{
 	ATH10K_CAL_MODE_FILE,
 	ATH10K_CAL_MODE_OTP,
 	ATH10K_CAL_MODE_DT,
@@ -603,7 +636,8 @@ enum ath10k_cal_mode {
 	ATH10K_CAL_MODE_EEPROM,
 };
 
-enum ath10k_crypt_mode {
+enum ath10k_crypt_mode
+{
 	/* Only use hardware crypto engine */
 	ATH10K_CRYPT_MODE_HW,
 	/* Only use software crypto engine */
@@ -612,25 +646,32 @@ enum ath10k_crypt_mode {
 
 static inline const char *ath10k_cal_mode_str(enum ath10k_cal_mode mode)
 {
-	switch (mode) {
-	case ATH10K_CAL_MODE_FILE:
-		return "file";
-	case ATH10K_CAL_MODE_OTP:
-		return "otp";
-	case ATH10K_CAL_MODE_DT:
-		return "dt";
-	case ATH10K_PRE_CAL_MODE_FILE:
-		return "pre-cal-file";
-	case ATH10K_PRE_CAL_MODE_DT:
-		return "pre-cal-dt";
-	case ATH10K_CAL_MODE_EEPROM:
-		return "eeprom";
+	switch (mode)
+	{
+		case ATH10K_CAL_MODE_FILE:
+			return "file";
+
+		case ATH10K_CAL_MODE_OTP:
+			return "otp";
+
+		case ATH10K_CAL_MODE_DT:
+			return "dt";
+
+		case ATH10K_PRE_CAL_MODE_FILE:
+			return "pre-cal-file";
+
+		case ATH10K_PRE_CAL_MODE_DT:
+			return "pre-cal-dt";
+
+		case ATH10K_CAL_MODE_EEPROM:
+			return "eeprom";
 	}
 
 	return "unknown";
 }
 
-enum ath10k_scan_state {
+enum ath10k_scan_state
+{
 	ATH10K_SCAN_IDLE,
 	ATH10K_SCAN_STARTING,
 	ATH10K_SCAN_RUNNING,
@@ -639,26 +680,32 @@ enum ath10k_scan_state {
 
 static inline const char *ath10k_scan_state_str(enum ath10k_scan_state state)
 {
-	switch (state) {
-	case ATH10K_SCAN_IDLE:
-		return "idle";
-	case ATH10K_SCAN_STARTING:
-		return "starting";
-	case ATH10K_SCAN_RUNNING:
-		return "running";
-	case ATH10K_SCAN_ABORTING:
-		return "aborting";
+	switch (state)
+	{
+		case ATH10K_SCAN_IDLE:
+			return "idle";
+
+		case ATH10K_SCAN_STARTING:
+			return "starting";
+
+		case ATH10K_SCAN_RUNNING:
+			return "running";
+
+		case ATH10K_SCAN_ABORTING:
+			return "aborting";
 	}
 
 	return "unknown";
 }
 
-enum ath10k_tx_pause_reason {
+enum ath10k_tx_pause_reason
+{
 	ATH10K_TX_PAUSE_Q_FULL,
 	ATH10K_TX_PAUSE_MAX,
 };
 
-struct ath10k_fw_file {
+struct ath10k_fw_file
+{
 	const struct firmware *firmware;
 
 	char fw_version[ETHTOOL_FWVERS_LEN];
@@ -687,7 +734,8 @@ struct ath10k_fw_file {
 	struct ath10k_swap_code_seg_info *firmware_swap_code_seg_info;
 };
 
-struct ath10k_fw_components {
+struct ath10k_fw_components
+{
 	const struct firmware *board;
 	const void *board_data;
 	size_t board_len;
@@ -695,7 +743,8 @@ struct ath10k_fw_components {
 	struct ath10k_fw_file fw_file;
 };
 
-struct ath10k {
+struct ath10k
+{
 	struct ath_common ath_common;
 	struct ieee80211_hw *hw;
 	struct ieee80211_ops *ops;
@@ -723,7 +772,8 @@ struct ath10k {
 
 	bool p2p;
 
-	struct {
+	struct
+	{
 		enum ath10k_bus bus;
 		const struct ath10k_hif_ops *ops;
 	} hif;
@@ -750,7 +800,8 @@ struct ath10k {
 	const struct firmware *pre_cal_file;
 	const struct firmware *cal_file;
 
-	struct {
+	struct
+	{
 		u32 vendor;
 		u32 device;
 		u32 subsystem_vendor;
@@ -765,7 +816,8 @@ struct ath10k {
 	int bd_api;
 	enum ath10k_cal_mode cal_mode;
 
-	struct {
+	struct
+	{
 		struct completion started;
 		struct completion completed;
 		struct completion on_channel;
@@ -777,7 +829,8 @@ struct ath10k {
 		bool roc_notify;
 	} scan;
 
-	struct {
+	struct
+	{
 		struct ieee80211_supported_band sbands[NUM_NL80211_BANDS];
 	} mac;
 
@@ -880,7 +933,8 @@ struct ath10k {
 
 #ifdef CONFIG_ATH10K_DEBUGFS
 	struct ath10k_debug debug;
-	struct {
+	struct
+	{
 		/* relay(fs) channel for spectral scan */
 		struct rchan *rfs_chan_spec_scan;
 
@@ -890,7 +944,8 @@ struct ath10k {
 	} spectral;
 #endif
 
-	struct {
+	struct
+	{
 		/* protected by conf_mutex */
 		struct ath10k_fw_components utf_mode_fw;
 
@@ -898,7 +953,8 @@ struct ath10k {
 		bool utf_monitor;
 	} testmode;
 
-	struct {
+	struct
+	{
 		/* protected by data_lock */
 		u32 fw_crash_counter;
 		u32 fw_warm_reset_counter;
@@ -919,25 +975,27 @@ struct ath10k {
 static inline bool ath10k_peer_stats_enabled(struct ath10k *ar)
 {
 	if (test_bit(ATH10K_FLAG_PEER_STATS, &ar->dev_flags) &&
-	    test_bit(WMI_SERVICE_PEER_STATS, ar->wmi.svc_map))
+		test_bit(WMI_SERVICE_PEER_STATS, ar->wmi.svc_map))
+	{
 		return true;
+	}
 
 	return false;
 }
 
 struct ath10k *ath10k_core_create(size_t priv_size, struct device *dev,
-				  enum ath10k_bus bus,
-				  enum ath10k_hw_rev hw_rev,
-				  const struct ath10k_hif_ops *hif_ops);
+								  enum ath10k_bus bus,
+								  enum ath10k_hw_rev hw_rev,
+								  const struct ath10k_hif_ops *hif_ops);
 void ath10k_core_destroy(struct ath10k *ar);
 void ath10k_core_get_fw_features_str(struct ath10k *ar,
-				     char *buf,
-				     size_t max_len);
+									 char *buf,
+									 size_t max_len);
 int ath10k_core_fetch_firmware_api_n(struct ath10k *ar, const char *name,
-				     struct ath10k_fw_file *fw_file);
+									 struct ath10k_fw_file *fw_file);
 
 int ath10k_core_start(struct ath10k *ar, enum ath10k_firmware_mode mode,
-		      const struct ath10k_fw_components *fw_components);
+					  const struct ath10k_fw_components *fw_components);
 int ath10k_wait_for_suspend(struct ath10k *ar, u32 suspend_opt);
 void ath10k_core_stop(struct ath10k *ar);
 int ath10k_core_register(struct ath10k *ar, u32 chip_id);

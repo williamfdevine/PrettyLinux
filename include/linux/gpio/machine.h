@@ -4,7 +4,8 @@
 #include <linux/types.h>
 #include <linux/list.h>
 
-enum gpio_lookup_flags {
+enum gpio_lookup_flags
+{
 	GPIO_ACTIVE_HIGH = (0 << 0),
 	GPIO_ACTIVE_LOW = (1 << 0),
 	GPIO_OPEN_DRAIN = (1 << 1),
@@ -22,7 +23,8 @@ enum gpio_lookup_flags {
  * gpiod_lookup is a lookup table for associating GPIOs to specific devices and
  * functions using platform data.
  */
-struct gpiod_lookup {
+struct gpiod_lookup
+{
 	const char *chip_label;
 	u16 chip_hwnum;
 	const char *con_id;
@@ -30,7 +32,8 @@ struct gpiod_lookup {
 	enum gpio_lookup_flags flags;
 };
 
-struct gpiod_lookup_table {
+struct gpiod_lookup_table
+{
 	struct list_head list;
 	const char *dev_id;
 	struct gpiod_lookup table[];
@@ -48,13 +51,13 @@ struct gpiod_lookup_table {
  * gpiod_get_index()
  */
 #define GPIO_LOOKUP_IDX(_chip_label, _chip_hwnum, _con_id, _idx, _flags)  \
-{                                                                         \
-	.chip_label = _chip_label,                                        \
-	.chip_hwnum = _chip_hwnum,                                        \
-	.con_id = _con_id,                                                \
-	.idx = _idx,                                                      \
-	.flags = _flags,                                                  \
-}
+	{                                                                         \
+		.chip_label = _chip_label,                                        \
+					  .chip_hwnum = _chip_hwnum,                                        \
+									.con_id = _con_id,                                                \
+											  .idx = _idx,                                                      \
+													  .flags = _flags,                                                  \
+	}
 
 void gpiod_add_lookup_table(struct gpiod_lookup_table *table);
 void gpiod_remove_lookup_table(struct gpiod_lookup_table *table);

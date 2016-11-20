@@ -22,7 +22,8 @@
  * parsing CDC headers
  */
 
-struct usb_cdc_parsed_header {
+struct usb_cdc_parsed_header
+{
 	struct usb_cdc_union_desc *usb_cdc_union_desc;
 	struct usb_cdc_header_desc *usb_cdc_header_desc;
 
@@ -44,8 +45,8 @@ struct usb_cdc_parsed_header {
 
 struct usb_interface;
 int cdc_parse_cdc_header(struct usb_cdc_parsed_header *hdr,
-				struct usb_interface *intf,
-				u8 *buffer,
-				int buflen);
+						 struct usb_interface *intf,
+						 u8 *buffer,
+						 int buflen);
 
 #endif /* __LINUX_USB_CDC_H */

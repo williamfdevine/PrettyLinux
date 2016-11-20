@@ -5,7 +5,8 @@
 
 struct xt_entry_target;
 
-struct tcf_ipt {
+struct tcf_ipt
+{
 	struct tc_action	common;
 	u32			tcfi_hook;
 	char			*tcfi_tname;

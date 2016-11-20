@@ -24,7 +24,8 @@
 #include "../../firmware/dcdbas.h"
 #include "dell-smbios.h"
 
-struct calling_interface_structure {
+struct calling_interface_structure
+{
 	struct dmi_header header;
 	u16 cmdIOAddress;
 	u8 cmdIOCode;
@@ -42,15 +43,19 @@ static struct calling_interface_token *da_tokens;
 
 int dell_smbios_error(int value)
 {
-	switch (value) {
-	case 0: /* Completed successfully */
-		return 0;
-	case -1: /* Completed with error */
-		return -EIO;
-	case -2: /* Function not supported */
-		return -ENXIO;
-	default: /* Unknown error */
-		return -EINVAL;
+	switch (value)
+	{
+		case 0: /* Completed successfully */
+			return 0;
+
+		case -1: /* Completed with error */
+			return -EIO;
+
+		case -2: /* Function not supported */
+			return -ENXIO;
+
+		default: /* Unknown error */
+			return -EINVAL;
 	}
 }
 EXPORT_SYMBOL_GPL(dell_smbios_error);
@@ -96,9 +101,12 @@ struct calling_interface_token *dell_smbios_find_token(int tokenid)
 {
 	int i;
 
-	for (i = 0; i < da_num_tokens; i++) {
+	for (i = 0; i < da_num_tokens; i++)
+	{
 		if (da_tokens[i].tokenID == tokenid)
+		{
 			return &da_tokens[i];
+		}
 	}
 
 	return NULL;
@@ -108,7 +116,7 @@ EXPORT_SYMBOL_GPL(dell_smbios_find_token);
 static void __init parse_da_table(const struct dmi_header *dm)
 {
 	/* Final token is a terminator, so we don't want to copy it */
-	int tokens = (dm->length-11)/sizeof(struct calling_interface_token)-1;
+	int tokens = (dm->length - 11) / sizeof(struct calling_interface_token) - 1;
 	struct calling_interface_token *new_da_tokens;
 	struct calling_interface_structure *table =
 		container_of(dm, struct calling_interface_structure, header);
@@ -117,35 +125,42 @@ static void __init parse_da_table(const struct dmi_header *dm)
 	   6 bytes of entry */
 
 	if (dm->length < 17)
+	{
 		return;
+	}
 
 	da_command_address = table->cmdIOAddress;
 	da_command_code = table->cmdIOCode;
 
 	new_da_tokens = krealloc(da_tokens, (da_num_tokens + tokens) *
-				 sizeof(struct calling_interface_token),
-				 GFP_KERNEL);
+							 sizeof(struct calling_interface_token),
+							 GFP_KERNEL);
 
 	if (!new_da_tokens)
+	{
 		return;
+	}
+
 	da_tokens = new_da_tokens;
 
-	memcpy(da_tokens+da_num_tokens, table->tokens,
-	       sizeof(struct calling_interface_token) * tokens);
+	memcpy(da_tokens + da_num_tokens, table->tokens,
+		   sizeof(struct calling_interface_token) * tokens);
 
 	da_num_tokens += tokens;
 }
 
 static void __init find_tokens(const struct dmi_header *dm, void *dummy)
 {
-	switch (dm->type) {
-	case 0xd4: /* Indexed IO */
-	case 0xd5: /* Protected Area Type 1 */
-	case 0xd6: /* Protected Area Type 2 */
-		break;
-	case 0xda: /* Calling interface */
-		parse_da_table(dm);
-		break;
+	switch (dm->type)
+	{
+		case 0xd4: /* Indexed IO */
+		case 0xd5: /* Protected Area Type 1 */
+		case 0xd6: /* Protected Area Type 2 */
+			break;
+
+		case 0xda: /* Calling interface */
+			parse_da_table(dm);
+			break;
 	}
 }
 
@@ -155,7 +170,8 @@ static int __init dell_smbios_init(void)
 
 	dmi_walk(find_tokens, NULL);
 
-	if (!da_tokens)  {
+	if (!da_tokens)
+	{
 		pr_info("Unable to find dmi tokens\n");
 		return -ENODEV;
 	}
@@ -165,7 +181,9 @@ static int __init dell_smbios_init(void)
 	 * is passed to SMI handler.
 	 */
 	buffer = (void *)__get_free_page(GFP_KERNEL | GFP_DMA32);
-	if (!buffer) {
+
+	if (!buffer)
+	{
 		ret = -ENOMEM;
 		goto fail_buffer;
 	}

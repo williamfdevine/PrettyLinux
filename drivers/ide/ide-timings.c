@@ -32,7 +32,8 @@
  * is currently supported only by Maxtor drives.
  */
 
-static struct ide_timing ide_timing[] = {
+static struct ide_timing ide_timing[] =
+{
 
 	{ XFER_UDMA_6,     0,   0,   0,   0,   0,   0,   0,  15 },
 	{ XFER_UDMA_5,     0,   0,   0,   0,   0,   0,   0,  20 },
@@ -73,7 +74,10 @@ struct ide_timing *ide_timing_find_mode(u8 speed)
 
 	for (t = ide_timing; t->mode != speed; t++)
 		if (t->mode == 0xff)
+		{
 			return NULL;
+		}
+
 	return t;
 }
 EXPORT_SYMBOL_GPL(ide_timing_find_mode);
@@ -84,19 +88,28 @@ u16 ide_pio_cycle_time(ide_drive_t *drive, u8 pio)
 	struct ide_timing *t = ide_timing_find_mode(XFER_PIO_0 + pio);
 	u16 cycle = 0;
 
-	if (id[ATA_ID_FIELD_VALID] & 2) {
+	if (id[ATA_ID_FIELD_VALID] & 2)
+	{
 		if (ata_id_has_iordy(drive->id))
+		{
 			cycle = id[ATA_ID_EIDE_PIO_IORDY];
+		}
 		else
+		{
 			cycle = id[ATA_ID_EIDE_PIO];
+		}
 
 		/* conservative "downgrade" for all pre-ATA2 drives */
 		if (pio < 3 && cycle < t->cycle)
-			cycle = 0; /* use standard timing */
+		{
+			cycle = 0;    /* use standard timing */
+		}
 
 		/* Use the standard timing for the CF specific modes too */
 		if (pio > 4 && ata_id_is_cfa(id))
+		{
 			cycle = 0;
+		}
 	}
 
 	return cycle ? cycle : t->cycle;
@@ -107,7 +120,7 @@ EXPORT_SYMBOL_GPL(ide_pio_cycle_time);
 #define EZ(v, unit)		((v) ? ENOUGH(v, unit) : 0)
 
 static void ide_timing_quantize(struct ide_timing *t, struct ide_timing *q,
-				int T, int UT)
+								int T, int UT)
 {
 	q->setup   = EZ(t->setup   * 1000,  T);
 	q->act8b   = EZ(t->act8b   * 1000,  T);
@@ -120,29 +133,52 @@ static void ide_timing_quantize(struct ide_timing *t, struct ide_timing *q,
 }
 
 void ide_timing_merge(struct ide_timing *a, struct ide_timing *b,
-		      struct ide_timing *m, unsigned int what)
+					  struct ide_timing *m, unsigned int what)
 {
 	if (what & IDE_TIMING_SETUP)
+	{
 		m->setup   = max(a->setup,   b->setup);
+	}
+
 	if (what & IDE_TIMING_ACT8B)
+	{
 		m->act8b   = max(a->act8b,   b->act8b);
+	}
+
 	if (what & IDE_TIMING_REC8B)
+	{
 		m->rec8b   = max(a->rec8b,   b->rec8b);
+	}
+
 	if (what & IDE_TIMING_CYC8B)
+	{
 		m->cyc8b   = max(a->cyc8b,   b->cyc8b);
+	}
+
 	if (what & IDE_TIMING_ACTIVE)
+	{
 		m->active  = max(a->active,  b->active);
+	}
+
 	if (what & IDE_TIMING_RECOVER)
+	{
 		m->recover = max(a->recover, b->recover);
+	}
+
 	if (what & IDE_TIMING_CYCLE)
+	{
 		m->cycle   = max(a->cycle,   b->cycle);
+	}
+
 	if (what & IDE_TIMING_UDMA)
+	{
 		m->udma    = max(a->udma,    b->udma);
+	}
 }
 EXPORT_SYMBOL_GPL(ide_timing_merge);
 
 int ide_timing_compute(ide_drive_t *drive, u8 speed,
-		       struct ide_timing *t, int T, int UT)
+					   struct ide_timing *t, int T, int UT)
 {
 	u16 *id = drive->id;
 	struct ide_timing *s, p;
@@ -151,8 +187,11 @@ int ide_timing_compute(ide_drive_t *drive, u8 speed,
 	 * Find the mode.
 	 */
 	s = ide_timing_find_mode(speed);
+
 	if (s == NULL)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Copy the timing from the table.
@@ -163,17 +202,26 @@ int ide_timing_compute(ide_drive_t *drive, u8 speed,
 	 * If the drive is an EIDE drive, it can tell us it needs extended
 	 * PIO/MWDMA cycle timing.
 	 */
-	if (id[ATA_ID_FIELD_VALID] & 2) {	/* EIDE drive */
+	if (id[ATA_ID_FIELD_VALID] & 2)  	/* EIDE drive */
+	{
 		memset(&p, 0, sizeof(p));
 
-		if (speed >= XFER_PIO_0 && speed < XFER_SW_DMA_0) {
+		if (speed >= XFER_PIO_0 && speed < XFER_SW_DMA_0)
+		{
 			if (speed <= XFER_PIO_2)
+			{
 				p.cycle = p.cyc8b = id[ATA_ID_EIDE_PIO];
+			}
 			else if ((speed <= XFER_PIO_4) ||
-				 (speed == XFER_PIO_5 && !ata_id_is_cfa(id)))
+					 (speed == XFER_PIO_5 && !ata_id_is_cfa(id)))
+			{
 				p.cycle = p.cyc8b = id[ATA_ID_EIDE_PIO_IORDY];
-		} else if (speed >= XFER_MW_DMA_0 && speed <= XFER_MW_DMA_2)
+			}
+		}
+		else if (speed >= XFER_MW_DMA_0 && speed <= XFER_MW_DMA_2)
+		{
 			p.cycle = id[ATA_ID_EIDE_DMA_MIN];
+		}
 
 		ide_timing_merge(&p, t, t, IDE_TIMING_CYCLE | IDE_TIMING_CYC8B);
 	}
@@ -188,7 +236,8 @@ int ide_timing_compute(ide_drive_t *drive, u8 speed,
 	 * S.M.A.R.T and some other commands. We have to ensure that the
 	 * DMA cycle timing is slower/equal than the current PIO timing.
 	 */
-	if (speed >= XFER_SW_DMA_0) {
+	if (speed >= XFER_SW_DMA_0)
+	{
 		ide_timing_compute(drive, drive->pio_mode, &p, T, UT);
 		ide_timing_merge(&p, t, t, IDE_TIMING_ALL);
 	}
@@ -196,12 +245,14 @@ int ide_timing_compute(ide_drive_t *drive, u8 speed,
 	/*
 	 * Lengthen active & recovery time so that cycle time is correct.
 	 */
-	if (t->act8b + t->rec8b < t->cyc8b) {
+	if (t->act8b + t->rec8b < t->cyc8b)
+	{
 		t->act8b += (t->cyc8b - (t->act8b + t->rec8b)) / 2;
 		t->rec8b = t->cyc8b - t->act8b;
 	}
 
-	if (t->active + t->recover < t->cycle) {
+	if (t->active + t->recover < t->cycle)
+	{
 		t->active += (t->cycle - (t->active + t->recover)) / 2;
 		t->recover = t->cycle - t->active;
 	}

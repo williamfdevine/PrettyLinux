@@ -53,7 +53,8 @@ struct kmem_cache *osc_req_kmem;
 struct kmem_cache *osc_extent_kmem;
 struct kmem_cache *osc_quota_kmem;
 
-struct lu_kmem_descr osc_caches[] = {
+struct lu_kmem_descr osc_caches[] =
+{
 	{
 		.ckd_cache = &osc_lock_kmem,
 		.ckd_name  = "osc_lock_kmem",
@@ -114,50 +115,60 @@ static struct lu_device *osc2lu_dev(struct osc_device *osc)
  */
 
 static void *osc_key_init(const struct lu_context *ctx,
-			  struct lu_context_key *key)
+						  struct lu_context_key *key)
 {
 	struct osc_thread_info *info;
 
 	info = kmem_cache_zalloc(osc_thread_kmem, GFP_NOFS);
+
 	if (!info)
+	{
 		info = ERR_PTR(-ENOMEM);
+	}
+
 	return info;
 }
 
 static void osc_key_fini(const struct lu_context *ctx,
-			 struct lu_context_key *key, void *data)
+						 struct lu_context_key *key, void *data)
 {
 	struct osc_thread_info *info = data;
 
 	kmem_cache_free(osc_thread_kmem, info);
 }
 
-struct lu_context_key osc_key = {
+struct lu_context_key osc_key =
+{
 	.lct_tags = LCT_CL_THREAD,
 	.lct_init = osc_key_init,
 	.lct_fini = osc_key_fini
 };
 
 static void *osc_session_init(const struct lu_context *ctx,
-			      struct lu_context_key *key)
+							  struct lu_context_key *key)
 {
 	struct osc_session *info;
 
 	info = kmem_cache_zalloc(osc_session_kmem, GFP_NOFS);
+
 	if (!info)
+	{
 		info = ERR_PTR(-ENOMEM);
+	}
+
 	return info;
 }
 
 static void osc_session_fini(const struct lu_context *ctx,
-			     struct lu_context_key *key, void *data)
+							 struct lu_context_key *key, void *data)
 {
 	struct osc_session *info = data;
 
 	kmem_cache_free(osc_session_kmem, info);
 }
 
-struct lu_context_key osc_session_key = {
+struct lu_context_key osc_session_key =
+{
 	.lct_tags = LCT_SESSION,
 	.lct_init = osc_session_init,
 	.lct_fini = osc_session_fini
@@ -167,35 +178,37 @@ struct lu_context_key osc_session_key = {
 LU_TYPE_INIT_FINI(osc, &osc_key, &osc_session_key);
 
 static int osc_cl_process_config(const struct lu_env *env,
-				 struct lu_device *d, struct lustre_cfg *cfg)
+								 struct lu_device *d, struct lustre_cfg *cfg)
 {
 	return osc_process_config_base(d->ld_obd, cfg);
 }
 
-static const struct lu_device_operations osc_lu_ops = {
+static const struct lu_device_operations osc_lu_ops =
+{
 	.ldo_object_alloc      = osc_object_alloc,
 	.ldo_process_config    = osc_cl_process_config,
 	.ldo_recovery_complete = NULL
 };
 
-static const struct cl_device_operations osc_cl_ops = {
+static const struct cl_device_operations osc_cl_ops =
+{
 	.cdo_req_init = osc_req_init
 };
 
 static int osc_device_init(const struct lu_env *env, struct lu_device *d,
-			   const char *name, struct lu_device *next)
+						   const char *name, struct lu_device *next)
 {
 	return 0;
 }
 
 static struct lu_device *osc_device_fini(const struct lu_env *env,
-					 struct lu_device *d)
+		struct lu_device *d)
 {
 	return NULL;
 }
 
 static struct lu_device *osc_device_free(const struct lu_env *env,
-					 struct lu_device *d)
+		struct lu_device *d)
 {
 	struct osc_device *od = lu2osc_dev(d);
 
@@ -205,8 +218,8 @@ static struct lu_device *osc_device_free(const struct lu_env *env,
 }
 
 static struct lu_device *osc_device_alloc(const struct lu_env *env,
-					  struct lu_device_type *t,
-					  struct lustre_cfg *cfg)
+		struct lu_device_type *t,
+		struct lustre_cfg *cfg)
 {
 	struct lu_device *d;
 	struct osc_device *od;
@@ -214,8 +227,11 @@ static struct lu_device *osc_device_alloc(const struct lu_env *env,
 	int rc;
 
 	od = kzalloc(sizeof(*od), GFP_NOFS);
+
 	if (!od)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	cl_device_init(&od->od_cl, t);
 	d = osc2lu_dev(od);
@@ -226,15 +242,19 @@ static struct lu_device *osc_device_alloc(const struct lu_env *env,
 	obd = class_name2obd(lustre_cfg_string(cfg, 0));
 	LASSERT(obd);
 	rc = osc_setup(obd, cfg);
-	if (rc) {
+
+	if (rc)
+	{
 		osc_device_free(env, d);
 		return ERR_PTR(rc);
 	}
+
 	od->od_exp = obd->obd_self_export;
 	return d;
 }
 
-static const struct lu_device_type_operations osc_device_type_ops = {
+static const struct lu_device_type_operations osc_device_type_ops =
+{
 	.ldto_init = osc_type_init,
 	.ldto_fini = osc_type_fini,
 
@@ -248,7 +268,8 @@ static const struct lu_device_type_operations osc_device_type_ops = {
 	.ldto_device_fini = osc_device_fini
 };
 
-struct lu_device_type osc_device_type = {
+struct lu_device_type osc_device_type =
+{
 	.ldt_tags = LU_DEVICE_CL,
 	.ldt_name = LUSTRE_OSC_NAME,
 	.ldt_ops = &osc_device_type_ops,

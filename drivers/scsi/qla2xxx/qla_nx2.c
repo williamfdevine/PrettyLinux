@@ -30,25 +30,31 @@ qla8044_wr_reg(struct qla_hw_data *ha, ulong addr, uint32_t val)
 
 int
 qla8044_rd_direct(struct scsi_qla_host *vha,
-	const uint32_t crb_reg)
+				  const uint32_t crb_reg)
 {
 	struct qla_hw_data *ha = vha->hw;
 
 	if (crb_reg < CRB_REG_INDEX_MAX)
+	{
 		return qla8044_rd_reg(ha, qla8044_reg_tbl[crb_reg]);
+	}
 	else
+	{
 		return QLA_FUNCTION_FAILED;
+	}
 }
 
 void
 qla8044_wr_direct(struct scsi_qla_host *vha,
-	const uint32_t crb_reg,
-	const uint32_t value)
+				  const uint32_t crb_reg,
+				  const uint32_t value)
 {
 	struct qla_hw_data *ha = vha->hw;
 
 	if (crb_reg < CRB_REG_INDEX_MAX)
+	{
 		qla8044_wr_reg(ha, qla8044_reg_tbl[crb_reg], value);
+	}
 }
 
 static int
@@ -61,13 +67,15 @@ qla8044_set_win_base(scsi_qla_host_t *vha, uint32_t addr)
 	qla8044_wr_reg(ha, QLA8044_CRB_WIN_FUNC(ha->portnum), addr);
 	val = qla8044_rd_reg(ha, QLA8044_CRB_WIN_FUNC(ha->portnum));
 
-	if (val != addr) {
+	if (val != addr)
+	{
 		ql_log(ql_log_warn, vha, 0xb087,
-		    "%s: Failed to set register window : "
-		    "addr written 0x%x, read 0x%x!\n",
-		    __func__, addr, val);
+			   "%s: Failed to set register window : "
+			   "addr written 0x%x, read 0x%x!\n",
+			   __func__, addr, val);
 		ret_val = QLA_FUNCTION_FAILED;
 	}
+
 	return ret_val;
 }
 
@@ -78,11 +86,15 @@ qla8044_rd_reg_indirect(scsi_qla_host_t *vha, uint32_t addr, uint32_t *data)
 	struct qla_hw_data *ha = vha->hw;
 
 	ret_val = qla8044_set_win_base(vha, addr);
+
 	if (!ret_val)
+	{
 		*data = qla8044_rd_reg(ha, QLA8044_WILDCARD);
+	}
 	else
 		ql_log(ql_log_warn, vha, 0xb088,
-		    "%s: failed read of addr 0x%x!\n", __func__, addr);
+			   "%s: failed read of addr 0x%x!\n", __func__, addr);
+
 	return ret_val;
 }
 
@@ -93,12 +105,16 @@ qla8044_wr_reg_indirect(scsi_qla_host_t *vha, uint32_t addr, uint32_t data)
 	struct qla_hw_data *ha = vha->hw;
 
 	ret_val = qla8044_set_win_base(vha, addr);
+
 	if (!ret_val)
+	{
 		qla8044_wr_reg(ha, QLA8044_WILDCARD, data);
+	}
 	else
 		ql_log(ql_log_warn, vha, 0xb089,
-		    "%s: failed wrt to addr 0x%x, data 0x%x\n",
-		    __func__, addr, data);
+			   "%s: failed wrt to addr 0x%x, data 0x%x\n",
+			   __func__, addr, data);
+
 	return ret_val;
 }
 
@@ -112,7 +128,7 @@ qla8044_wr_reg_indirect(scsi_qla_host_t *vha, uint32_t addr, uint32_t data)
  */
 static void
 qla8044_read_write_crb_reg(struct scsi_qla_host *vha,
-	uint32_t raddr, uint32_t waddr)
+						   uint32_t raddr, uint32_t waddr)
 {
 	uint32_t value;
 
@@ -122,44 +138,58 @@ qla8044_read_write_crb_reg(struct scsi_qla_host *vha,
 
 static int
 qla8044_poll_wait_for_ready(struct scsi_qla_host *vha, uint32_t addr1,
-	uint32_t mask)
+							uint32_t mask)
 {
 	unsigned long timeout;
 	uint32_t temp;
 
 	/* jiffies after 100ms */
 	timeout = jiffies + msecs_to_jiffies(TIMEOUT_100_MS);
-	do {
+
+	do
+	{
 		qla8044_rd_reg_indirect(vha, addr1, &temp);
+
 		if ((temp & mask) != 0)
+		{
 			break;
-		if (time_after_eq(jiffies, timeout)) {
+		}
+
+		if (time_after_eq(jiffies, timeout))
+		{
 			ql_log(ql_log_warn, vha, 0xb151,
-				"Error in processing rdmdio entry\n");
+				   "Error in processing rdmdio entry\n");
 			return -1;
 		}
-	} while (1);
+	}
+	while (1);
 
 	return 0;
 }
 
 static uint32_t
 qla8044_ipmdio_rd_reg(struct scsi_qla_host *vha,
-	uint32_t addr1, uint32_t addr3, uint32_t mask, uint32_t addr)
+					  uint32_t addr1, uint32_t addr3, uint32_t mask, uint32_t addr)
 {
 	uint32_t temp;
 	int ret = 0;
 
 	ret = qla8044_poll_wait_for_ready(vha, addr1, mask);
+
 	if (ret == -1)
+	{
 		return -1;
+	}
 
 	temp = (0x40000000 | addr);
 	qla8044_wr_reg_indirect(vha, addr1, temp);
 
 	ret = qla8044_poll_wait_for_ready(vha, addr1, mask);
+
 	if (ret == -1)
+	{
 		return 0;
+	}
 
 	qla8044_rd_reg_indirect(vha, addr3, &ret);
 
@@ -169,43 +199,57 @@ qla8044_ipmdio_rd_reg(struct scsi_qla_host *vha,
 
 static int
 qla8044_poll_wait_ipmdio_bus_idle(struct scsi_qla_host *vha,
-	uint32_t addr1, uint32_t addr2, uint32_t addr3, uint32_t mask)
+								  uint32_t addr1, uint32_t addr2, uint32_t addr3, uint32_t mask)
 {
 	unsigned long timeout;
 	uint32_t temp;
 
 	/* jiffies after 100 msecs */
 	timeout = jiffies + msecs_to_jiffies(TIMEOUT_100_MS);
-	do {
+
+	do
+	{
 		temp = qla8044_ipmdio_rd_reg(vha, addr1, addr3, mask, addr2);
+
 		if ((temp & 0x1) != 1)
+		{
 			break;
-		if (time_after_eq(jiffies, timeout)) {
+		}
+
+		if (time_after_eq(jiffies, timeout))
+		{
 			ql_log(ql_log_warn, vha, 0xb152,
-			    "Error in processing mdiobus idle\n");
+				   "Error in processing mdiobus idle\n");
 			return -1;
 		}
-	} while (1);
+	}
+	while (1);
 
 	return 0;
 }
 
 static int
 qla8044_ipmdio_wr_reg(struct scsi_qla_host *vha, uint32_t addr1,
-	uint32_t addr3, uint32_t mask, uint32_t addr, uint32_t value)
+					  uint32_t addr3, uint32_t mask, uint32_t addr, uint32_t value)
 {
 	int ret = 0;
 
 	ret = qla8044_poll_wait_for_ready(vha, addr1, mask);
+
 	if (ret == -1)
+	{
 		return -1;
+	}
 
 	qla8044_wr_reg_indirect(vha, addr3, value);
 	qla8044_wr_reg_indirect(vha, addr1, addr);
 
 	ret = qla8044_poll_wait_for_ready(vha, addr1, mask);
+
 	if (ret == -1)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -221,14 +265,19 @@ qla8044_ipmdio_wr_reg(struct scsi_qla_host *vha, uint32_t addr1,
  */
 static void
 qla8044_rmw_crb_reg(struct scsi_qla_host *vha,
-	uint32_t raddr, uint32_t waddr,	struct qla8044_rmw *p_rmw_hdr)
+					uint32_t raddr, uint32_t waddr,	struct qla8044_rmw *p_rmw_hdr)
 {
 	uint32_t value;
 
 	if (p_rmw_hdr->index_a)
+	{
 		value = vha->reset_tmplt.array[p_rmw_hdr->index_a];
+	}
 	else
+	{
 		qla8044_rd_reg_indirect(vha, raddr, &value);
+	}
+
 	value &= p_rmw_hdr->test_mask;
 	value <<= p_rmw_hdr->shl;
 	value >>= p_rmw_hdr->shr;
@@ -248,7 +297,7 @@ qla8044_set_qsnt_ready(struct scsi_qla_host *vha)
 	qsnt_state |= (1 << ha->portnum);
 	qla8044_wr_direct(vha, QLA8044_CRB_DRV_STATE_INDEX, qsnt_state);
 	ql_log(ql_log_info, vha, 0xb08e, "%s(%ld): qsnt_state: 0x%08x\n",
-	     __func__, vha->host_no, qsnt_state);
+		   __func__, vha->host_no, qsnt_state);
 }
 
 void
@@ -261,7 +310,7 @@ qla8044_clear_qsnt_ready(struct scsi_qla_host *vha)
 	qsnt_state &= ~(1 << ha->portnum);
 	qla8044_wr_direct(vha, QLA8044_CRB_DRV_STATE_INDEX, qsnt_state);
 	ql_log(ql_log_info, vha, 0xb08f, "%s(%ld): qsnt_state: 0x%08x\n",
-	    __func__, vha->host_no, qsnt_state);
+		   __func__, vha->host_no, qsnt_state);
 }
 
 /**
@@ -300,27 +349,32 @@ qla8044_lock_recovery(struct scsi_qla_host *vha)
 
 	/* Check for other Recovery in progress, go wait */
 	if ((lockid & IDC_LOCK_RECOVERY_STATE_MASK) != 0)
+	{
 		return QLA_FUNCTION_FAILED;
+	}
 
 	/* Intent to Recover */
 	qla8044_wr_reg(ha, QLA8044_DRV_LOCKRECOVERY,
-	    (ha->portnum <<
-	     IDC_LOCK_RECOVERY_STATE_SHIFT_BITS) | INTENT_TO_RECOVER);
+				   (ha->portnum <<
+					IDC_LOCK_RECOVERY_STATE_SHIFT_BITS) | INTENT_TO_RECOVER);
 	msleep(200);
 
 	/* Check Intent to Recover is advertised */
 	lockid = qla8044_rd_reg(ha, QLA8044_DRV_LOCKRECOVERY);
+
 	if ((lockid & IDC_LOCK_RECOVERY_OWNER_MASK) != (ha->portnum <<
-	    IDC_LOCK_RECOVERY_STATE_SHIFT_BITS))
+			IDC_LOCK_RECOVERY_STATE_SHIFT_BITS))
+	{
 		return QLA_FUNCTION_FAILED;
+	}
 
 	ql_dbg(ql_dbg_p3p, vha, 0xb08B, "%s:%d: IDC Lock recovery initiated\n"
-	    , __func__, ha->portnum);
+		   , __func__, ha->portnum);
 
 	/* Proceed to Recover */
 	qla8044_wr_reg(ha, QLA8044_DRV_LOCKRECOVERY,
-	    (ha->portnum << IDC_LOCK_RECOVERY_STATE_SHIFT_BITS) |
-	    PROCEED_TO_RECOVER);
+				   (ha->portnum << IDC_LOCK_RECOVERY_STATE_SHIFT_BITS) |
+				   PROCEED_TO_RECOVER);
 
 	/* Force Unlock() */
 	qla8044_wr_reg(ha, QLA8044_DRV_LOCK_ID, 0xFF);
@@ -331,13 +385,18 @@ qla8044_lock_recovery(struct scsi_qla_host *vha)
 
 	/* Get lock() */
 	lock = qla8044_rd_reg(ha, QLA8044_DRV_LOCK);
-	if (lock) {
+
+	if (lock)
+	{
 		lockid = qla8044_rd_reg(ha, QLA8044_DRV_LOCK_ID);
 		lockid = ((lockid + (1 << 8)) & ~0xFF) | ha->portnum;
 		qla8044_wr_reg(ha, QLA8044_DRV_LOCK_ID, lockid);
 		return QLA_SUCCESS;
-	} else
+	}
+	else
+	{
 		return QLA_FUNCTION_FAILED;
+	}
 }
 
 int
@@ -347,11 +406,13 @@ qla8044_idc_lock(struct qla_hw_data *ha)
 	uint32_t lock_id, lock_cnt, func_num, tmo_owner = 0, first_owner = 0;
 	scsi_qla_host_t *vha = pci_get_drvdata(ha->pdev);
 
-	while (status == 0) {
+	while (status == 0)
+	{
 		/* acquire semaphore5 from PCI HW block */
 		status = qla8044_rd_reg(ha, QLA8044_DRV_LOCK);
 
-		if (status) {
+		if (status)
+		{
 			/* Increment Counter (8-31) and update func_num (0-7) on
 			 * getting a successful lock  */
 			lock_id = qla8044_rd_reg(ha, QLA8044_DRV_LOCK_ID);
@@ -361,51 +422,62 @@ qla8044_idc_lock(struct qla_hw_data *ha)
 		}
 
 		if (timeout == 0)
+		{
 			first_owner = qla8044_rd_reg(ha, QLA8044_DRV_LOCK_ID);
+		}
 
 		if (++timeout >=
-		    (QLA8044_DRV_LOCK_TIMEOUT / QLA8044_DRV_LOCK_MSLEEP)) {
+			(QLA8044_DRV_LOCK_TIMEOUT / QLA8044_DRV_LOCK_MSLEEP))
+		{
 			tmo_owner = qla8044_rd_reg(ha, QLA8044_DRV_LOCK_ID);
 			func_num = tmo_owner & 0xFF;
 			lock_cnt = tmo_owner >> 8;
 			ql_log(ql_log_warn, vha, 0xb114,
-			    "%s: Lock by func %d failed after 2s, lock held "
-			    "by func %d, lock count %d, first_owner %d\n",
-			    __func__, ha->portnum, func_num, lock_cnt,
-			    (first_owner & 0xFF));
-			if (first_owner != tmo_owner) {
+				   "%s: Lock by func %d failed after 2s, lock held "
+				   "by func %d, lock count %d, first_owner %d\n",
+				   __func__, ha->portnum, func_num, lock_cnt,
+				   (first_owner & 0xFF));
+
+			if (first_owner != tmo_owner)
+			{
 				/* Some other driver got lock,
 				 * OR same driver got lock again (counter
 				 * value changed), when we were waiting for
 				 * lock. Retry for another 2 sec */
 				ql_dbg(ql_dbg_p3p, vha, 0xb115,
-				    "%s: %d: IDC lock failed\n",
-				    __func__, ha->portnum);
+					   "%s: %d: IDC lock failed\n",
+					   __func__, ha->portnum);
 				timeout = 0;
-			} else {
+			}
+			else
+			{
 				/* Same driver holding lock > 2sec.
 				 * Force Recovery */
-				if (qla8044_lock_recovery(vha) == QLA_SUCCESS) {
+				if (qla8044_lock_recovery(vha) == QLA_SUCCESS)
+				{
 					/* Recovered and got lock */
 					ret_val = QLA_SUCCESS;
 					ql_dbg(ql_dbg_p3p, vha, 0xb116,
-					    "%s:IDC lock Recovery by %d"
-					    "successful...\n", __func__,
-					     ha->portnum);
+						   "%s:IDC lock Recovery by %d"
+						   "successful...\n", __func__,
+						   ha->portnum);
 				}
+
 				/* Recovery Failed, some other function
 				 * has the lock, wait for 2secs
 				 * and retry
 				 */
 				ql_dbg(ql_dbg_p3p, vha, 0xb08a,
-				       "%s: IDC lock Recovery by %d "
-				       "failed, Retrying timeout\n", __func__,
-				       ha->portnum);
+					   "%s: IDC lock Recovery by %d "
+					   "failed, Retrying timeout\n", __func__,
+					   ha->portnum);
 				timeout = 0;
 			}
 		}
+
 		msleep(QLA8044_DRV_LOCK_MSLEEP);
 	}
+
 	return ret_val;
 }
 
@@ -417,10 +489,11 @@ qla8044_idc_unlock(struct qla_hw_data *ha)
 
 	id = qla8044_rd_reg(ha, QLA8044_DRV_LOCK_ID);
 
-	if ((id & 0xFF) != ha->portnum) {
+	if ((id & 0xFF) != ha->portnum)
+	{
 		ql_log(ql_log_warn, vha, 0xb118,
-		    "%s: IDC Unlock by %d failed, lock owner is %d!\n",
-		    __func__, ha->portnum, (id & 0xFF));
+			   "%s: IDC Unlock by %d failed, lock owner is %d!\n",
+			   __func__, ha->portnum, (id & 0xFF));
 		return;
 	}
 
@@ -439,22 +512,29 @@ qla8044_flash_lock(scsi_qla_host_t *vha)
 	int ret_val = QLA_SUCCESS;
 	struct qla_hw_data *ha = vha->hw;
 
-	while (lock_status == 0) {
+	while (lock_status == 0)
+	{
 		lock_status = qla8044_rd_reg(ha, QLA8044_FLASH_LOCK);
-		if (lock_status)
-			break;
 
-		if (++timeout >= QLA8044_FLASH_LOCK_TIMEOUT / 20) {
+		if (lock_status)
+		{
+			break;
+		}
+
+		if (++timeout >= QLA8044_FLASH_LOCK_TIMEOUT / 20)
+		{
 			lock_owner = qla8044_rd_reg(ha,
-			    QLA8044_FLASH_LOCK_ID);
+										QLA8044_FLASH_LOCK_ID);
 			ql_log(ql_log_warn, vha, 0xb113,
-			    "%s: Simultaneous flash access by following ports, active port = %d: accessing port = %d",
-			    __func__, ha->portnum, lock_owner);
+				   "%s: Simultaneous flash access by following ports, active port = %d: accessing port = %d",
+				   __func__, ha->portnum, lock_owner);
 			ret_val = QLA_FUNCTION_FAILED;
 			break;
 		}
+
 		msleep(20);
 	}
+
 	qla8044_wr_reg(ha, QLA8044_FLASH_LOCK_ID, ha->portnum);
 	return ret_val;
 }
@@ -474,7 +554,8 @@ static
 void qla8044_flash_lock_recovery(struct scsi_qla_host *vha)
 {
 
-	if (qla8044_flash_lock(vha)) {
+	if (qla8044_flash_lock(vha))
+	{
 		/* Someone else is holding the lock. */
 		ql_log(ql_log_warn, vha, 0xb120, "Resetting flash_lock\n");
 	}
@@ -492,41 +573,47 @@ void qla8044_flash_lock_recovery(struct scsi_qla_host *vha)
  */
 static int
 qla8044_read_flash_data(scsi_qla_host_t *vha,  uint8_t *p_data,
-	uint32_t flash_addr, int u32_word_count)
+						uint32_t flash_addr, int u32_word_count)
 {
 	int i, ret_val = QLA_SUCCESS;
 	uint32_t u32_word;
 
-	if (qla8044_flash_lock(vha) != QLA_SUCCESS) {
+	if (qla8044_flash_lock(vha) != QLA_SUCCESS)
+	{
 		ret_val = QLA_FUNCTION_FAILED;
 		goto exit_lock_error;
 	}
 
-	if (flash_addr & 0x03) {
+	if (flash_addr & 0x03)
+	{
 		ql_log(ql_log_warn, vha, 0xb117,
-		    "%s: Illegal addr = 0x%x\n", __func__, flash_addr);
+			   "%s: Illegal addr = 0x%x\n", __func__, flash_addr);
 		ret_val = QLA_FUNCTION_FAILED;
 		goto exit_flash_read;
 	}
 
-	for (i = 0; i < u32_word_count; i++) {
+	for (i = 0; i < u32_word_count; i++)
+	{
 		if (qla8044_wr_reg_indirect(vha, QLA8044_FLASH_DIRECT_WINDOW,
-		    (flash_addr & 0xFFFF0000))) {
+									(flash_addr & 0xFFFF0000)))
+		{
 			ql_log(ql_log_warn, vha, 0xb119,
-			    "%s: failed to write addr 0x%x to "
-			    "FLASH_DIRECT_WINDOW\n! ",
-			    __func__, flash_addr);
+				   "%s: failed to write addr 0x%x to "
+				   "FLASH_DIRECT_WINDOW\n! ",
+				   __func__, flash_addr);
 			ret_val = QLA_FUNCTION_FAILED;
 			goto exit_flash_read;
 		}
 
 		ret_val = qla8044_rd_reg_indirect(vha,
-		    QLA8044_FLASH_DIRECT_DATA(flash_addr),
-		    &u32_word);
-		if (ret_val != QLA_SUCCESS) {
+										  QLA8044_FLASH_DIRECT_DATA(flash_addr),
+										  &u32_word);
+
+		if (ret_val != QLA_SUCCESS)
+		{
 			ql_log(ql_log_warn, vha, 0xb08c,
-			    "%s: failed to read addr 0x%x!\n",
-			    __func__, flash_addr);
+				   "%s: failed to read addr 0x%x!\n",
+				   __func__, flash_addr);
 			goto exit_flash_read;
 		}
 
@@ -547,15 +634,18 @@ exit_lock_error:
  */
 uint8_t *
 qla8044_read_optrom_data(struct scsi_qla_host *vha, uint8_t *buf,
-	uint32_t offset, uint32_t length)
+						 uint32_t offset, uint32_t length)
 {
 	scsi_block_requests(vha->host);
+
 	if (qla8044_read_flash_data(vha, (uint8_t *)buf, offset, length / 4)
-	    != QLA_SUCCESS) {
+		!= QLA_SUCCESS)
+	{
 		ql_log(ql_log_warn, vha,  0xb08d,
-		    "%s: Failed to read from flash\n",
-		    __func__);
+			   "%s: Failed to read from flash\n",
+			   __func__);
 	}
+
 	scsi_unblock_requests(vha->host);
 	return buf;
 }
@@ -573,7 +663,10 @@ qla8044_need_reset(struct scsi_qla_host *vha)
 	rval = drv_state & (1 << ha->portnum);
 
 	if (ha->flags.eeh_busy && drv_active)
+	{
 		rval = 1;
+	}
+
 	return rval;
 }
 
@@ -588,18 +681,22 @@ qla8044_need_reset(struct scsi_qla_host *vha)
  */
 static void
 qla8044_write_list(struct scsi_qla_host *vha,
-	struct qla8044_reset_entry_hdr *p_hdr)
+				   struct qla8044_reset_entry_hdr *p_hdr)
 {
 	struct qla8044_entry *p_entry;
 	uint32_t i;
 
 	p_entry = (struct qla8044_entry *)((char *)p_hdr +
-	    sizeof(struct qla8044_reset_entry_hdr));
+									   sizeof(struct qla8044_reset_entry_hdr));
 
-	for (i = 0; i < p_hdr->count; i++, p_entry++) {
+	for (i = 0; i < p_hdr->count; i++, p_entry++)
+	{
 		qla8044_wr_reg_indirect(vha, p_entry->arg1, p_entry->arg2);
+
 		if (p_hdr->delay)
+		{
 			udelay((uint32_t)(p_hdr->delay));
+		}
 	}
 }
 
@@ -614,19 +711,23 @@ qla8044_write_list(struct scsi_qla_host *vha,
  */
 static void
 qla8044_read_write_list(struct scsi_qla_host *vha,
-	struct qla8044_reset_entry_hdr *p_hdr)
+						struct qla8044_reset_entry_hdr *p_hdr)
 {
 	struct qla8044_entry *p_entry;
 	uint32_t i;
 
 	p_entry = (struct qla8044_entry *)((char *)p_hdr +
-	    sizeof(struct qla8044_reset_entry_hdr));
+									   sizeof(struct qla8044_reset_entry_hdr));
 
-	for (i = 0; i < p_hdr->count; i++, p_entry++) {
+	for (i = 0; i < p_hdr->count; i++, p_entry++)
+	{
 		qla8044_read_write_crb_reg(vha, p_entry->arg1,
-		    p_entry->arg2);
+								   p_entry->arg2);
+
 		if (p_hdr->delay)
+		{
 			udelay((uint32_t)(p_hdr->delay));
+		}
 	}
 }
 
@@ -644,7 +745,7 @@ qla8044_read_write_list(struct scsi_qla_host *vha,
  */
 static int
 qla8044_poll_reg(struct scsi_qla_host *vha, uint32_t addr,
-	int duration, uint32_t test_mask, uint32_t test_result)
+				 int duration, uint32_t test_mask, uint32_t test_result)
 {
 	uint32_t value;
 	int timeout_error;
@@ -652,35 +753,46 @@ qla8044_poll_reg(struct scsi_qla_host *vha, uint32_t addr,
 	int ret_val = QLA_SUCCESS;
 
 	ret_val = qla8044_rd_reg_indirect(vha, addr, &value);
-	if (ret_val == QLA_FUNCTION_FAILED) {
+
+	if (ret_val == QLA_FUNCTION_FAILED)
+	{
 		timeout_error = 1;
 		goto exit_poll_reg;
 	}
 
 	/* poll every 1/10 of the total duration */
-	retries = duration/10;
+	retries = duration / 10;
 
-	do {
-		if ((value & test_mask) != test_result) {
+	do
+	{
+		if ((value & test_mask) != test_result)
+		{
 			timeout_error = 1;
-			msleep(duration/10);
+			msleep(duration / 10);
 			ret_val = qla8044_rd_reg_indirect(vha, addr, &value);
-			if (ret_val == QLA_FUNCTION_FAILED) {
+
+			if (ret_val == QLA_FUNCTION_FAILED)
+			{
 				timeout_error = 1;
 				goto exit_poll_reg;
 			}
-		} else {
+		}
+		else
+		{
 			timeout_error = 0;
 			break;
 		}
-	} while (retries--);
+	}
+	while (retries--);
 
 exit_poll_reg:
-	if (timeout_error) {
+
+	if (timeout_error)
+	{
 		vha->reset_tmplt.seq_error++;
 		ql_log(ql_log_fatal, vha, 0xb090,
-		    "%s: Poll Failed: 0x%08x 0x%08x 0x%08x\n",
-		    __func__, value, test_mask, test_result);
+			   "%s: Poll Failed: 0x%08x 0x%08x 0x%08x\n",
+			   __func__, value, test_mask, test_result);
 	}
 
 	return timeout_error;
@@ -697,7 +809,7 @@ exit_poll_reg:
  */
 static void
 qla8044_poll_list(struct scsi_qla_host *vha,
-	struct qla8044_reset_entry_hdr *p_hdr)
+				  struct qla8044_reset_entry_hdr *p_hdr)
 {
 	long delay;
 	struct qla8044_entry *p_entry;
@@ -706,36 +818,42 @@ qla8044_poll_list(struct scsi_qla_host *vha,
 	uint32_t value;
 
 	p_poll = (struct qla8044_poll *)
-		((char *)p_hdr + sizeof(struct qla8044_reset_entry_hdr));
+			 ((char *)p_hdr + sizeof(struct qla8044_reset_entry_hdr));
 
 	/* Entries start after 8 byte qla8044_poll, poll header contains
 	 * the test_mask, test_value.
 	 */
 	p_entry = (struct qla8044_entry *)((char *)p_poll +
-	    sizeof(struct qla8044_poll));
+									   sizeof(struct qla8044_poll));
 
 	delay = (long)p_hdr->delay;
 
-	if (!delay) {
+	if (!delay)
+	{
 		for (i = 0; i < p_hdr->count; i++, p_entry++)
 			qla8044_poll_reg(vha, p_entry->arg1,
-			    delay, p_poll->test_mask, p_poll->test_value);
-	} else {
-		for (i = 0; i < p_hdr->count; i++, p_entry++) {
-			if (delay) {
+							 delay, p_poll->test_mask, p_poll->test_value);
+	}
+	else
+	{
+		for (i = 0; i < p_hdr->count; i++, p_entry++)
+		{
+			if (delay)
+			{
 				if (qla8044_poll_reg(vha,
-				    p_entry->arg1, delay,
-				    p_poll->test_mask,
-				    p_poll->test_value)) {
+									 p_entry->arg1, delay,
+									 p_poll->test_mask,
+									 p_poll->test_value))
+				{
 					/*If
 					* (data_read&test_mask != test_value)
 					* read TIMEOUT_ADDR (arg1) and
 					* ADDR (arg2) registers
 					*/
 					qla8044_rd_reg_indirect(vha,
-					    p_entry->arg1, &value);
+											p_entry->arg1, &value);
 					qla8044_rd_reg_indirect(vha,
-					    p_entry->arg2, &value);
+											p_entry->arg2, &value);
 				}
 			}
 		}
@@ -753,7 +871,7 @@ qla8044_poll_list(struct scsi_qla_host *vha,
  */
 static void
 qla8044_poll_write_list(struct scsi_qla_host *vha,
-	struct qla8044_reset_entry_hdr *p_hdr)
+						struct qla8044_reset_entry_hdr *p_hdr)
 {
 	long delay;
 	struct qla8044_quad_entry *p_entry;
@@ -761,29 +879,33 @@ qla8044_poll_write_list(struct scsi_qla_host *vha,
 	uint32_t i;
 
 	p_poll = (struct qla8044_poll *)((char *)p_hdr +
-	    sizeof(struct qla8044_reset_entry_hdr));
+									 sizeof(struct qla8044_reset_entry_hdr));
 
 	p_entry = (struct qla8044_quad_entry *)((char *)p_poll +
-	    sizeof(struct qla8044_poll));
+											sizeof(struct qla8044_poll));
 
 	delay = (long)p_hdr->delay;
 
-	for (i = 0; i < p_hdr->count; i++, p_entry++) {
+	for (i = 0; i < p_hdr->count; i++, p_entry++)
+	{
 		qla8044_wr_reg_indirect(vha,
-		    p_entry->dr_addr, p_entry->dr_value);
+								p_entry->dr_addr, p_entry->dr_value);
 		qla8044_wr_reg_indirect(vha,
-		    p_entry->ar_addr, p_entry->ar_value);
-		if (delay) {
+								p_entry->ar_addr, p_entry->ar_value);
+
+		if (delay)
+		{
 			if (qla8044_poll_reg(vha,
-			    p_entry->ar_addr, delay,
-			    p_poll->test_mask,
-			    p_poll->test_value)) {
+								 p_entry->ar_addr, delay,
+								 p_poll->test_mask,
+								 p_poll->test_value))
+			{
 				ql_dbg(ql_dbg_p3p, vha, 0xb091,
-				    "%s: Timeout Error: poll list, ",
-				    __func__);
+					   "%s: Timeout Error: poll list, ",
+					   __func__);
 				ql_dbg(ql_dbg_p3p, vha, 0xb092,
-				    "item_num %d, entry_num %d\n", i,
-				    vha->reset_tmplt.seq_index);
+					   "item_num %d, entry_num %d\n", i,
+					   vha->reset_tmplt.seq_index);
 			}
 		}
 	}
@@ -800,23 +922,27 @@ qla8044_poll_write_list(struct scsi_qla_host *vha,
  */
 static void
 qla8044_read_modify_write(struct scsi_qla_host *vha,
-	struct qla8044_reset_entry_hdr *p_hdr)
+						  struct qla8044_reset_entry_hdr *p_hdr)
 {
 	struct qla8044_entry *p_entry;
 	struct qla8044_rmw *p_rmw_hdr;
 	uint32_t i;
 
 	p_rmw_hdr = (struct qla8044_rmw *)((char *)p_hdr +
-	    sizeof(struct qla8044_reset_entry_hdr));
+									   sizeof(struct qla8044_reset_entry_hdr));
 
 	p_entry = (struct qla8044_entry *)((char *)p_rmw_hdr +
-	    sizeof(struct qla8044_rmw));
+									   sizeof(struct qla8044_rmw));
 
-	for (i = 0; i < p_hdr->count; i++, p_entry++) {
+	for (i = 0; i < p_hdr->count; i++, p_entry++)
+	{
 		qla8044_rmw_crb_reg(vha, p_entry->arg1,
-		    p_entry->arg2, p_rmw_hdr);
+							p_entry->arg2, p_rmw_hdr);
+
 		if (p_hdr->delay)
+		{
 			udelay((uint32_t)(p_hdr->delay));
+		}
 	}
 }
 
@@ -830,10 +956,12 @@ qla8044_read_modify_write(struct scsi_qla_host *vha,
  */
 static
 void qla8044_pause(struct scsi_qla_host *vha,
-	struct qla8044_reset_entry_hdr *p_hdr)
+				   struct qla8044_reset_entry_hdr *p_hdr)
 {
 	if (p_hdr->delay)
+	{
 		mdelay((uint32_t)((long)p_hdr->delay));
+	}
 }
 
 /*
@@ -845,17 +973,20 @@ void qla8044_pause(struct scsi_qla_host *vha,
  */
 static void
 qla8044_template_end(struct scsi_qla_host *vha,
-	struct qla8044_reset_entry_hdr *p_hdr)
+					 struct qla8044_reset_entry_hdr *p_hdr)
 {
 	vha->reset_tmplt.template_end = 1;
 
-	if (vha->reset_tmplt.seq_error == 0) {
+	if (vha->reset_tmplt.seq_error == 0)
+	{
 		ql_dbg(ql_dbg_p3p, vha, 0xb093,
-		    "%s: Reset sequence completed SUCCESSFULLY.\n", __func__);
-	} else {
+			   "%s: Reset sequence completed SUCCESSFULLY.\n", __func__);
+	}
+	else
+	{
 		ql_log(ql_log_fatal, vha, 0xb094,
-		    "%s: Reset sequence completed with some timeout "
-		    "errors.\n", __func__);
+			   "%s: Reset sequence completed with some timeout "
+			   "errors.\n", __func__);
 	}
 }
 
@@ -870,7 +1001,7 @@ qla8044_template_end(struct scsi_qla_host *vha,
  */
 static void
 qla8044_poll_read_list(struct scsi_qla_host *vha,
-	struct qla8044_reset_entry_hdr *p_hdr)
+					   struct qla8044_reset_entry_hdr *p_hdr)
 {
 	long delay;
 	int index;
@@ -880,33 +1011,42 @@ qla8044_poll_read_list(struct scsi_qla_host *vha,
 	uint32_t value;
 
 	p_poll = (struct qla8044_poll *)
-		((char *)p_hdr + sizeof(struct qla8044_reset_entry_hdr));
+			 ((char *)p_hdr + sizeof(struct qla8044_reset_entry_hdr));
 
 	p_entry = (struct qla8044_quad_entry *)
-		((char *)p_poll + sizeof(struct qla8044_poll));
+			  ((char *)p_poll + sizeof(struct qla8044_poll));
 
 	delay = (long)p_hdr->delay;
 
-	for (i = 0; i < p_hdr->count; i++, p_entry++) {
+	for (i = 0; i < p_hdr->count; i++, p_entry++)
+	{
 		qla8044_wr_reg_indirect(vha, p_entry->ar_addr,
-		    p_entry->ar_value);
-		if (delay) {
+								p_entry->ar_value);
+
+		if (delay)
+		{
 			if (qla8044_poll_reg(vha, p_entry->ar_addr, delay,
-			    p_poll->test_mask, p_poll->test_value)) {
+								 p_poll->test_mask, p_poll->test_value))
+			{
 				ql_dbg(ql_dbg_p3p, vha, 0xb095,
-				    "%s: Timeout Error: poll "
-				    "list, ", __func__);
+					   "%s: Timeout Error: poll "
+					   "list, ", __func__);
 				ql_dbg(ql_dbg_p3p, vha, 0xb096,
-				    "Item_num %d, "
-				    "entry_num %d\n", i,
-				    vha->reset_tmplt.seq_index);
-			} else {
+					   "Item_num %d, "
+					   "entry_num %d\n", i,
+					   vha->reset_tmplt.seq_index);
+			}
+			else
+			{
 				index = vha->reset_tmplt.array_index;
 				qla8044_rd_reg_indirect(vha,
-				    p_entry->dr_addr, &value);
+										p_entry->dr_addr, &value);
 				vha->reset_tmplt.array[index++] = value;
+
 				if (index == QLA8044_MAX_RESET_SEQ_ENTRIES)
+				{
 					vha->reset_tmplt.array_index = 1;
+				}
 			}
 		}
 	}
@@ -925,7 +1065,7 @@ qla8044_poll_read_list(struct scsi_qla_host *vha,
  */
 static void
 qla8044_process_reset_template(struct scsi_qla_host *vha,
-	char *p_buff)
+							   char *p_buff)
 {
 	int index, entries;
 	struct qla8044_reset_entry_hdr *p_hdr;
@@ -936,49 +1076,64 @@ qla8044_process_reset_template(struct scsi_qla_host *vha,
 	entries = vha->reset_tmplt.hdr->entries;
 	index = vha->reset_tmplt.seq_index;
 
-	for (; (!vha->reset_tmplt.seq_end) && (index  < entries); index++) {
+	for (; (!vha->reset_tmplt.seq_end) && (index  < entries); index++)
+	{
 		p_hdr = (struct qla8044_reset_entry_hdr *)p_entry;
-		switch (p_hdr->cmd) {
-		case OPCODE_NOP:
-			break;
-		case OPCODE_WRITE_LIST:
-			qla8044_write_list(vha, p_hdr);
-			break;
-		case OPCODE_READ_WRITE_LIST:
-			qla8044_read_write_list(vha, p_hdr);
-			break;
-		case OPCODE_POLL_LIST:
-			qla8044_poll_list(vha, p_hdr);
-			break;
-		case OPCODE_POLL_WRITE_LIST:
-			qla8044_poll_write_list(vha, p_hdr);
-			break;
-		case OPCODE_READ_MODIFY_WRITE:
-			qla8044_read_modify_write(vha, p_hdr);
-			break;
-		case OPCODE_SEQ_PAUSE:
-			qla8044_pause(vha, p_hdr);
-			break;
-		case OPCODE_SEQ_END:
-			vha->reset_tmplt.seq_end = 1;
-			break;
-		case OPCODE_TMPL_END:
-			qla8044_template_end(vha, p_hdr);
-			break;
-		case OPCODE_POLL_READ_LIST:
-			qla8044_poll_read_list(vha, p_hdr);
-			break;
-		default:
-			ql_log(ql_log_fatal, vha, 0xb097,
-			    "%s: Unknown command ==> 0x%04x on "
-			    "entry = %d\n", __func__, p_hdr->cmd, index);
-			break;
+
+		switch (p_hdr->cmd)
+		{
+			case OPCODE_NOP:
+				break;
+
+			case OPCODE_WRITE_LIST:
+				qla8044_write_list(vha, p_hdr);
+				break;
+
+			case OPCODE_READ_WRITE_LIST:
+				qla8044_read_write_list(vha, p_hdr);
+				break;
+
+			case OPCODE_POLL_LIST:
+				qla8044_poll_list(vha, p_hdr);
+				break;
+
+			case OPCODE_POLL_WRITE_LIST:
+				qla8044_poll_write_list(vha, p_hdr);
+				break;
+
+			case OPCODE_READ_MODIFY_WRITE:
+				qla8044_read_modify_write(vha, p_hdr);
+				break;
+
+			case OPCODE_SEQ_PAUSE:
+				qla8044_pause(vha, p_hdr);
+				break;
+
+			case OPCODE_SEQ_END:
+				vha->reset_tmplt.seq_end = 1;
+				break;
+
+			case OPCODE_TMPL_END:
+				qla8044_template_end(vha, p_hdr);
+				break;
+
+			case OPCODE_POLL_READ_LIST:
+				qla8044_poll_read_list(vha, p_hdr);
+				break;
+
+			default:
+				ql_log(ql_log_fatal, vha, 0xb097,
+					   "%s: Unknown command ==> 0x%04x on "
+					   "entry = %d\n", __func__, p_hdr->cmd, index);
+				break;
 		}
+
 		/*
 		 *Set pointer to next entry in the sequence.
 		*/
 		p_entry += p_hdr->size;
 	}
+
 	vha->reset_tmplt.seq_index = index;
 }
 
@@ -986,11 +1141,12 @@ static void
 qla8044_process_init_seq(struct scsi_qla_host *vha)
 {
 	qla8044_process_reset_template(vha,
-	    vha->reset_tmplt.init_offset);
+								   vha->reset_tmplt.init_offset);
+
 	if (vha->reset_tmplt.seq_end != 1)
 		ql_log(ql_log_fatal, vha, 0xb098,
-		    "%s: Abrupt INIT Sub-Sequence end.\n",
-		    __func__);
+			   "%s: Abrupt INIT Sub-Sequence end.\n",
+			   __func__);
 }
 
 static void
@@ -998,24 +1154,26 @@ qla8044_process_stop_seq(struct scsi_qla_host *vha)
 {
 	vha->reset_tmplt.seq_index = 0;
 	qla8044_process_reset_template(vha, vha->reset_tmplt.stop_offset);
+
 	if (vha->reset_tmplt.seq_end != 1)
 		ql_log(ql_log_fatal, vha, 0xb099,
-		    "%s: Abrupt STOP Sub-Sequence end.\n", __func__);
+			   "%s: Abrupt STOP Sub-Sequence end.\n", __func__);
 }
 
 static void
 qla8044_process_start_seq(struct scsi_qla_host *vha)
 {
 	qla8044_process_reset_template(vha, vha->reset_tmplt.start_offset);
+
 	if (vha->reset_tmplt.template_end != 1)
 		ql_log(ql_log_fatal, vha, 0xb09a,
-		    "%s: Abrupt START Sub-Sequence end.\n",
-		    __func__);
+			   "%s: Abrupt START Sub-Sequence end.\n",
+			   __func__);
 }
 
 static int
 qla8044_lockless_flash_read_u32(struct scsi_qla_host *vha,
-	uint32_t flash_addr, uint8_t *p_data, int u32_word_count)
+								uint32_t flash_addr, uint8_t *p_data, int u32_word_count)
 {
 	uint32_t i;
 	uint32_t u32_word;
@@ -1025,65 +1183,83 @@ qla8044_lockless_flash_read_u32(struct scsi_qla_host *vha,
 
 	flash_offset = addr & (QLA8044_FLASH_SECTOR_SIZE - 1);
 
-	if (addr & 0x3) {
+	if (addr & 0x3)
+	{
 		ql_log(ql_log_fatal, vha, 0xb09b, "%s: Illegal addr = 0x%x\n",
-		    __func__, addr);
+			   __func__, addr);
 		ret_val = QLA_FUNCTION_FAILED;
 		goto exit_lockless_read;
 	}
 
 	ret_val = qla8044_wr_reg_indirect(vha,
-	    QLA8044_FLASH_DIRECT_WINDOW, (addr));
+									  QLA8044_FLASH_DIRECT_WINDOW, (addr));
 
-	if (ret_val != QLA_SUCCESS) {
+	if (ret_val != QLA_SUCCESS)
+	{
 		ql_log(ql_log_fatal, vha, 0xb09c,
-		    "%s: failed to write addr 0x%x to FLASH_DIRECT_WINDOW!\n",
-		    __func__, addr);
+			   "%s: failed to write addr 0x%x to FLASH_DIRECT_WINDOW!\n",
+			   __func__, addr);
 		goto exit_lockless_read;
 	}
 
 	/* Check if data is spread across multiple sectors  */
 	if ((flash_offset + (u32_word_count * sizeof(uint32_t))) >
-	    (QLA8044_FLASH_SECTOR_SIZE - 1)) {
+		(QLA8044_FLASH_SECTOR_SIZE - 1))
+	{
 		/* Multi sector read */
-		for (i = 0; i < u32_word_count; i++) {
+		for (i = 0; i < u32_word_count; i++)
+		{
 			ret_val = qla8044_rd_reg_indirect(vha,
-			    QLA8044_FLASH_DIRECT_DATA(addr), &u32_word);
-			if (ret_val != QLA_SUCCESS) {
+											  QLA8044_FLASH_DIRECT_DATA(addr), &u32_word);
+
+			if (ret_val != QLA_SUCCESS)
+			{
 				ql_log(ql_log_fatal, vha, 0xb09d,
-				    "%s: failed to read addr 0x%x!\n",
-				    __func__, addr);
+					   "%s: failed to read addr 0x%x!\n",
+					   __func__, addr);
 				goto exit_lockless_read;
 			}
+
 			*(uint32_t *)p_data  = u32_word;
 			p_data = p_data + 4;
 			addr = addr + 4;
 			flash_offset = flash_offset + 4;
-			if (flash_offset > (QLA8044_FLASH_SECTOR_SIZE - 1)) {
+
+			if (flash_offset > (QLA8044_FLASH_SECTOR_SIZE - 1))
+			{
 				/* This write is needed once for each sector */
 				ret_val = qla8044_wr_reg_indirect(vha,
-				    QLA8044_FLASH_DIRECT_WINDOW, (addr));
-				if (ret_val != QLA_SUCCESS) {
+												  QLA8044_FLASH_DIRECT_WINDOW, (addr));
+
+				if (ret_val != QLA_SUCCESS)
+				{
 					ql_log(ql_log_fatal, vha, 0xb09f,
-					    "%s: failed to write addr "
-					    "0x%x to FLASH_DIRECT_WINDOW!\n",
-					    __func__, addr);
+						   "%s: failed to write addr "
+						   "0x%x to FLASH_DIRECT_WINDOW!\n",
+						   __func__, addr);
 					goto exit_lockless_read;
 				}
+
 				flash_offset = 0;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		/* Single sector read */
-		for (i = 0; i < u32_word_count; i++) {
+		for (i = 0; i < u32_word_count; i++)
+		{
 			ret_val = qla8044_rd_reg_indirect(vha,
-			    QLA8044_FLASH_DIRECT_DATA(addr), &u32_word);
-			if (ret_val != QLA_SUCCESS) {
+											  QLA8044_FLASH_DIRECT_DATA(addr), &u32_word);
+
+			if (ret_val != QLA_SUCCESS)
+			{
 				ql_log(ql_log_fatal, vha, 0xb0a0,
-				    "%s: failed to read addr 0x%x!\n",
-				    __func__, addr);
+					   "%s: failed to read addr 0x%x!\n",
+					   __func__, addr);
 				goto exit_lockless_read;
 			}
+
 			*(uint32_t *)p_data = u32_word;
 			p_data = p_data + 4;
 			addr = addr + 4;
@@ -1106,7 +1282,7 @@ exit_lockless_read:
  */
 static int
 qla8044_ms_mem_write_128b(struct scsi_qla_host *vha,
-	uint64_t addr, uint32_t *data, uint32_t count)
+						  uint64_t addr, uint32_t *data, uint32_t count)
 {
 	int i, j, ret_val = QLA_SUCCESS;
 	uint32_t agt_ctrl;
@@ -1114,77 +1290,94 @@ qla8044_ms_mem_write_128b(struct scsi_qla_host *vha,
 	struct qla_hw_data *ha = vha->hw;
 
 	/* Only 128-bit aligned access */
-	if (addr & 0xF) {
+	if (addr & 0xF)
+	{
 		ret_val = QLA_FUNCTION_FAILED;
 		goto exit_ms_mem_write;
 	}
+
 	write_lock_irqsave(&ha->hw_lock, flags);
 
 	/* Write address */
 	ret_val = qla8044_wr_reg_indirect(vha, MD_MIU_TEST_AGT_ADDR_HI, 0);
-	if (ret_val == QLA_FUNCTION_FAILED) {
+
+	if (ret_val == QLA_FUNCTION_FAILED)
+	{
 		ql_log(ql_log_fatal, vha, 0xb0a1,
-		    "%s: write to AGT_ADDR_HI failed!\n", __func__);
+			   "%s: write to AGT_ADDR_HI failed!\n", __func__);
 		goto exit_ms_mem_write_unlock;
 	}
 
-	for (i = 0; i < count; i++, addr += 16) {
+	for (i = 0; i < count; i++, addr += 16)
+	{
 		if (!((addr_in_range(addr, QLA8044_ADDR_QDR_NET,
-		    QLA8044_ADDR_QDR_NET_MAX)) ||
-		    (addr_in_range(addr, QLA8044_ADDR_DDR_NET,
-			QLA8044_ADDR_DDR_NET_MAX)))) {
+							 QLA8044_ADDR_QDR_NET_MAX)) ||
+			  (addr_in_range(addr, QLA8044_ADDR_DDR_NET,
+							 QLA8044_ADDR_DDR_NET_MAX))))
+		{
 			ret_val = QLA_FUNCTION_FAILED;
 			goto exit_ms_mem_write_unlock;
 		}
 
 		ret_val = qla8044_wr_reg_indirect(vha,
-		    MD_MIU_TEST_AGT_ADDR_LO, addr);
+										  MD_MIU_TEST_AGT_ADDR_LO, addr);
 
 		/* Write data */
 		ret_val += qla8044_wr_reg_indirect(vha,
-		    MD_MIU_TEST_AGT_WRDATA_LO, *data++);
+										   MD_MIU_TEST_AGT_WRDATA_LO, *data++);
 		ret_val += qla8044_wr_reg_indirect(vha,
-		    MD_MIU_TEST_AGT_WRDATA_HI, *data++);
+										   MD_MIU_TEST_AGT_WRDATA_HI, *data++);
 		ret_val += qla8044_wr_reg_indirect(vha,
-		    MD_MIU_TEST_AGT_WRDATA_ULO, *data++);
+										   MD_MIU_TEST_AGT_WRDATA_ULO, *data++);
 		ret_val += qla8044_wr_reg_indirect(vha,
-		    MD_MIU_TEST_AGT_WRDATA_UHI, *data++);
-		if (ret_val == QLA_FUNCTION_FAILED) {
+										   MD_MIU_TEST_AGT_WRDATA_UHI, *data++);
+
+		if (ret_val == QLA_FUNCTION_FAILED)
+		{
 			ql_log(ql_log_fatal, vha, 0xb0a2,
-			    "%s: write to AGT_WRDATA failed!\n",
-			    __func__);
+				   "%s: write to AGT_WRDATA failed!\n",
+				   __func__);
 			goto exit_ms_mem_write_unlock;
 		}
 
 		/* Check write status */
 		ret_val = qla8044_wr_reg_indirect(vha, MD_MIU_TEST_AGT_CTRL,
-		    MIU_TA_CTL_WRITE_ENABLE);
+										  MIU_TA_CTL_WRITE_ENABLE);
 		ret_val += qla8044_wr_reg_indirect(vha, MD_MIU_TEST_AGT_CTRL,
-		    MIU_TA_CTL_WRITE_START);
-		if (ret_val == QLA_FUNCTION_FAILED) {
+										   MIU_TA_CTL_WRITE_START);
+
+		if (ret_val == QLA_FUNCTION_FAILED)
+		{
 			ql_log(ql_log_fatal, vha, 0xb0a3,
-			    "%s: write to AGT_CTRL failed!\n", __func__);
+				   "%s: write to AGT_CTRL failed!\n", __func__);
 			goto exit_ms_mem_write_unlock;
 		}
 
-		for (j = 0; j < MAX_CTL_CHECK; j++) {
+		for (j = 0; j < MAX_CTL_CHECK; j++)
+		{
 			ret_val = qla8044_rd_reg_indirect(vha,
-			    MD_MIU_TEST_AGT_CTRL, &agt_ctrl);
-			if (ret_val == QLA_FUNCTION_FAILED) {
+											  MD_MIU_TEST_AGT_CTRL, &agt_ctrl);
+
+			if (ret_val == QLA_FUNCTION_FAILED)
+			{
 				ql_log(ql_log_fatal, vha, 0xb0a4,
-				    "%s: failed to read "
-				    "MD_MIU_TEST_AGT_CTRL!\n", __func__);
+					   "%s: failed to read "
+					   "MD_MIU_TEST_AGT_CTRL!\n", __func__);
 				goto exit_ms_mem_write_unlock;
 			}
+
 			if ((agt_ctrl & MIU_TA_CTL_BUSY) == 0)
+			{
 				break;
+			}
 		}
 
 		/* Status check failed */
-		if (j >= MAX_CTL_CHECK) {
+		if (j >= MAX_CTL_CHECK)
+		{
 			ql_log(ql_log_fatal, vha, 0xb0a5,
-			    "%s: MS memory write failed!\n",
-			   __func__);
+				   "%s: MS memory write failed!\n",
+				   __func__);
 			ret_val = QLA_FUNCTION_FAILED;
 			goto exit_ms_mem_write_unlock;
 		}
@@ -1212,41 +1405,51 @@ qla8044_copy_bootloader(struct scsi_qla_host *vha)
 
 	/* 128 bit alignment check */
 	if (size & 0xF)
+	{
 		size = (size + 16) & ~0xF;
+	}
 
 	/* 16 byte count */
-	count = size/16;
+	count = size / 16;
 
 	p_cache = vmalloc(size);
-	if (p_cache == NULL) {
+
+	if (p_cache == NULL)
+	{
 		ql_log(ql_log_fatal, vha, 0xb0a6,
-		    "%s: Failed to allocate memory for "
-		    "boot loader cache\n", __func__);
+			   "%s: Failed to allocate memory for "
+			   "boot loader cache\n", __func__);
 		ret_val = QLA_FUNCTION_FAILED;
 		goto exit_copy_bootloader;
 	}
 
 	ret_val = qla8044_lockless_flash_read_u32(vha, src,
-	    p_cache, size/sizeof(uint32_t));
-	if (ret_val == QLA_FUNCTION_FAILED) {
+			  p_cache, size / sizeof(uint32_t));
+
+	if (ret_val == QLA_FUNCTION_FAILED)
+	{
 		ql_log(ql_log_fatal, vha, 0xb0a7,
-		    "%s: Error reading F/W from flash!!!\n", __func__);
+			   "%s: Error reading F/W from flash!!!\n", __func__);
 		goto exit_copy_error;
 	}
+
 	ql_dbg(ql_dbg_p3p, vha, 0xb0a8, "%s: Read F/W from flash!\n",
-	    __func__);
+		   __func__);
 
 	/* 128 bit/16 byte write to MS memory */
 	ret_val = qla8044_ms_mem_write_128b(vha, dest,
-	    (uint32_t *)p_cache, count);
-	if (ret_val == QLA_FUNCTION_FAILED) {
+										(uint32_t *)p_cache, count);
+
+	if (ret_val == QLA_FUNCTION_FAILED)
+	{
 		ql_log(ql_log_fatal, vha, 0xb0a9,
-		    "%s: Error writing F/W to MS !!!\n", __func__);
+			   "%s: Error writing F/W to MS !!!\n", __func__);
 		goto exit_copy_error;
 	}
+
 	ql_dbg(ql_dbg_p3p, vha, 0xb0aa,
-	    "%s: Wrote F/W (size %d) to MS !!!\n",
-	    __func__, size);
+		   "%s: Wrote F/W (size %d) to MS !!!\n",
+		   __func__, size);
 
 exit_copy_error:
 	vfree(p_cache);
@@ -1265,17 +1468,20 @@ qla8044_restart(struct scsi_qla_host *vha)
 
 	/* Collect minidump */
 	if (ql2xmdenable)
+	{
 		qla8044_get_minidump(vha);
+	}
 	else
 		ql_log(ql_log_fatal, vha, 0xb14c,
-		    "Minidump disabled.\n");
+			   "Minidump disabled.\n");
 
 	qla8044_process_init_seq(vha);
 
-	if (qla8044_copy_bootloader(vha)) {
+	if (qla8044_copy_bootloader(vha))
+	{
 		ql_log(ql_log_fatal, vha, 0xb0ab,
-		    "%s: Copy bootloader, firmware restart failed!\n",
-		    __func__);
+			   "%s: Copy bootloader, firmware restart failed!\n",
+			   __func__);
 		ret_val = QLA_FUNCTION_FAILED;
 		goto exit_restart;
 	}
@@ -1306,17 +1512,22 @@ qla8044_check_cmd_peg_status(struct scsi_qla_host *vha)
 	int retries = CRB_CMDPEG_CHECK_RETRY_COUNT;
 	struct qla_hw_data *ha = vha->hw;
 
-	do {
+	do
+	{
 		val = qla8044_rd_reg(ha, QLA8044_CMDPEG_STATE);
-		if (val == PHAN_INITIALIZE_COMPLETE) {
+
+		if (val == PHAN_INITIALIZE_COMPLETE)
+		{
 			ql_dbg(ql_dbg_p3p, vha, 0xb0ac,
-			    "%s: Command Peg initialization "
-			    "complete! state=0x%x\n", __func__, val);
+				   "%s: Command Peg initialization "
+				   "complete! state=0x%x\n", __func__, val);
 			ret_val = QLA_SUCCESS;
 			break;
 		}
+
 		msleep(CRB_CMDPEG_CHECK_DELAY);
-	} while (--retries);
+	}
+	while (--retries);
 
 	return ret_val;
 }
@@ -1326,20 +1537,24 @@ qla8044_start_firmware(struct scsi_qla_host *vha)
 {
 	int ret_val = QLA_SUCCESS;
 
-	if (qla8044_restart(vha)) {
+	if (qla8044_restart(vha))
+	{
 		ql_log(ql_log_fatal, vha, 0xb0ad,
-		    "%s: Restart Error!!!, Need Reset!!!\n",
-		    __func__);
+			   "%s: Restart Error!!!, Need Reset!!!\n",
+			   __func__);
 		ret_val = QLA_FUNCTION_FAILED;
 		goto exit_start_fw;
-	} else
+	}
+	else
 		ql_dbg(ql_dbg_p3p, vha, 0xb0af,
-		    "%s: Restart done!\n", __func__);
+			   "%s: Restart done!\n", __func__);
 
 	ret_val = qla8044_check_cmd_peg_status(vha);
-	if (ret_val) {
+
+	if (ret_val)
+	{
 		ql_log(ql_log_fatal, vha, 0xb0b0,
-		    "%s: Peg not initialized!\n", __func__);
+			   "%s: Peg not initialized!\n", __func__);
 		ret_val = QLA_FUNCTION_FAILED;
 	}
 
@@ -1357,8 +1572,8 @@ qla8044_clear_drv_active(struct qla_hw_data *ha)
 	drv_active &= ~(1 << (ha->portnum));
 
 	ql_log(ql_log_info, vha, 0xb0b1,
-	    "%s(%ld): drv_active: 0x%08x\n",
-	    __func__, vha->host_no, drv_active);
+		   "%s(%ld): drv_active: 0x%08x\n",
+		   __func__, vha->host_no, drv_active);
 
 	qla8044_wr_direct(vha, QLA8044_CRB_DRV_ACTIVE_INDEX, drv_active);
 }
@@ -1381,58 +1596,70 @@ qla8044_device_bootstrap(struct scsi_qla_host *vha)
 
 	need_reset = qla8044_need_reset(vha);
 
-	if (!need_reset) {
+	if (!need_reset)
+	{
 		old_count = qla8044_rd_direct(vha,
-		    QLA8044_PEG_ALIVE_COUNTER_INDEX);
+									  QLA8044_PEG_ALIVE_COUNTER_INDEX);
 
-		for (i = 0; i < 10; i++) {
+		for (i = 0; i < 10; i++)
+		{
 			msleep(200);
 
 			count = qla8044_rd_direct(vha,
-			    QLA8044_PEG_ALIVE_COUNTER_INDEX);
-			if (count != old_count) {
+									  QLA8044_PEG_ALIVE_COUNTER_INDEX);
+
+			if (count != old_count)
+			{
 				rval = QLA_SUCCESS;
 				goto dev_ready;
 			}
 		}
+
 		qla8044_flash_lock_recovery(vha);
-	} else {
+	}
+	else
+	{
 		/* We are trying to perform a recovery here. */
 		if (ha->flags.isp82xx_fw_hung)
+		{
 			qla8044_flash_lock_recovery(vha);
+		}
 	}
 
 	/* set to DEV_INITIALIZING */
 	ql_log(ql_log_info, vha, 0xb0b2,
-	    "%s: HW State: INITIALIZING\n", __func__);
+		   "%s: HW State: INITIALIZING\n", __func__);
 	qla8044_wr_direct(vha, QLA8044_CRB_DEV_STATE_INDEX,
-	    QLA8XXX_DEV_INITIALIZING);
+					  QLA8XXX_DEV_INITIALIZING);
 
 	qla8044_idc_unlock(ha);
 	rval = qla8044_start_firmware(vha);
 	qla8044_idc_lock(ha);
 
-	if (rval != QLA_SUCCESS) {
+	if (rval != QLA_SUCCESS)
+	{
 		ql_log(ql_log_info, vha, 0xb0b3,
-		     "%s: HW State: FAILED\n", __func__);
+			   "%s: HW State: FAILED\n", __func__);
 		qla8044_clear_drv_active(ha);
 		qla8044_wr_direct(vha, QLA8044_CRB_DEV_STATE_INDEX,
-		    QLA8XXX_DEV_FAILED);
+						  QLA8XXX_DEV_FAILED);
 		return rval;
 	}
 
 	/* For ISP8044, If IDC_CTRL GRACEFUL_RESET_BIT1 is set , reset it after
 	 * device goes to INIT state. */
 	idc_ctrl = qla8044_rd_reg(ha, QLA8044_IDC_DRV_CTRL);
-	if (idc_ctrl & GRACEFUL_RESET_BIT1) {
+
+	if (idc_ctrl & GRACEFUL_RESET_BIT1)
+	{
 		qla8044_wr_reg(ha, QLA8044_IDC_DRV_CTRL,
-		    (idc_ctrl & ~GRACEFUL_RESET_BIT1));
+					   (idc_ctrl & ~GRACEFUL_RESET_BIT1));
 		ha->fw_dumped = 0;
 	}
 
 dev_ready:
 	ql_log(ql_log_info, vha, 0xb0b4,
-	    "%s: HW State: READY\n", __func__);
+		   "%s: HW State: READY\n", __func__);
 	qla8044_wr_direct(vha, QLA8044_CRB_DEV_STATE_INDEX, QLA8XXX_DEV_READY);
 
 	return rval;
@@ -1444,21 +1671,22 @@ qla8044_dump_reset_seq_hdr(struct scsi_qla_host *vha)
 {
 	u8 *phdr;
 
-	if (!vha->reset_tmplt.buff) {
+	if (!vha->reset_tmplt.buff)
+	{
 		ql_log(ql_log_fatal, vha, 0xb0b5,
-		    "%s: Error Invalid reset_seq_template\n", __func__);
+			   "%s: Error Invalid reset_seq_template\n", __func__);
 		return;
 	}
 
 	phdr = vha->reset_tmplt.buff;
 	ql_dbg(ql_dbg_p3p, vha, 0xb0b6,
-	    "Reset Template :\n\t0x%X 0x%X 0x%X 0x%X"
-	    "0x%X 0x%X 0x%X 0x%X 0x%X 0x%X\n"
-	    "\t0x%X 0x%X 0x%X 0x%X 0x%X 0x%X\n\n",
-	    *phdr, *(phdr+1), *(phdr+2), *(phdr+3), *(phdr+4),
-	    *(phdr+5), *(phdr+6), *(phdr+7), *(phdr + 8),
-	    *(phdr+9), *(phdr+10), *(phdr+11), *(phdr+12),
-	    *(phdr+13), *(phdr+14), *(phdr+15));
+		   "Reset Template :\n\t0x%X 0x%X 0x%X 0x%X"
+		   "0x%X 0x%X 0x%X 0x%X 0x%X 0x%X\n"
+		   "\t0x%X 0x%X 0x%X 0x%X 0x%X 0x%X\n\n",
+		   *phdr, *(phdr + 1), *(phdr + 2), *(phdr + 3), *(phdr + 4),
+		   *(phdr + 5), *(phdr + 6), *(phdr + 7), *(phdr + 8),
+		   *(phdr + 9), *(phdr + 10), *(phdr + 11), *(phdr + 12),
+		   *(phdr + 13), *(phdr + 14), *(phdr + 15));
 }
 
 /*
@@ -1476,17 +1704,24 @@ qla8044_reset_seq_checksum_test(struct scsi_qla_host *vha)
 	int u16_count =  vha->reset_tmplt.hdr->size / sizeof(uint16_t);
 
 	while (u16_count-- > 0)
+	{
 		sum += *buff++;
+	}
 
 	while (sum >> 16)
+	{
 		sum = (sum & 0xFFFF) +  (sum >> 16);
+	}
 
 	/* checksum of 0 indicates a valid template */
-	if (~sum) {
+	if (~sum)
+	{
 		return QLA_SUCCESS;
-	} else {
+	}
+	else
+	{
 		ql_log(ql_log_fatal, vha, 0xb0b7,
-		    "%s: Reset seq checksum failed\n", __func__);
+			   "%s: Reset seq checksum failed\n", __func__);
 		return QLA_FUNCTION_FAILED;
 	}
 }
@@ -1505,10 +1740,12 @@ qla8044_read_reset_template(struct scsi_qla_host *vha)
 
 	vha->reset_tmplt.seq_error = 0;
 	vha->reset_tmplt.buff = vmalloc(QLA8044_RESTART_TEMPLATE_SIZE);
-	if (vha->reset_tmplt.buff == NULL) {
+
+	if (vha->reset_tmplt.buff == NULL)
+	{
 		ql_log(ql_log_fatal, vha, 0xb0b8,
-		    "%s: Failed to allocate reset template resources\n",
-		    __func__);
+			   "%s: Failed to allocate reset template resources\n",
+			   __func__);
 		goto exit_read_reset_template;
 	}
 
@@ -1516,69 +1753,74 @@ qla8044_read_reset_template(struct scsi_qla_host *vha)
 	addr = QLA8044_RESET_TEMPLATE_ADDR;
 
 	tmplt_hdr_def_size =
-	    sizeof(struct qla8044_reset_template_hdr) / sizeof(uint32_t);
+		sizeof(struct qla8044_reset_template_hdr) / sizeof(uint32_t);
 
 	ql_dbg(ql_dbg_p3p, vha, 0xb0b9,
-	    "%s: Read template hdr size %d from Flash\n",
-	    __func__, tmplt_hdr_def_size);
+		   "%s: Read template hdr size %d from Flash\n",
+		   __func__, tmplt_hdr_def_size);
 
 	/* Copy template header from flash */
-	if (qla8044_read_flash_data(vha, p_buff, addr, tmplt_hdr_def_size)) {
+	if (qla8044_read_flash_data(vha, p_buff, addr, tmplt_hdr_def_size))
+	{
 		ql_log(ql_log_fatal, vha, 0xb0ba,
-		    "%s: Failed to read reset template\n", __func__);
+			   "%s: Failed to read reset template\n", __func__);
 		goto exit_read_template_error;
 	}
 
 	vha->reset_tmplt.hdr =
-	 (struct qla8044_reset_template_hdr *) vha->reset_tmplt.buff;
+		(struct qla8044_reset_template_hdr *) vha->reset_tmplt.buff;
 
 	/* Validate the template header size and signature */
-	tmplt_hdr_size = vha->reset_tmplt.hdr->hdr_size/sizeof(uint32_t);
+	tmplt_hdr_size = vha->reset_tmplt.hdr->hdr_size / sizeof(uint32_t);
+
 	if ((tmplt_hdr_size != tmplt_hdr_def_size) ||
-	    (vha->reset_tmplt.hdr->signature != RESET_TMPLT_HDR_SIGNATURE)) {
+		(vha->reset_tmplt.hdr->signature != RESET_TMPLT_HDR_SIGNATURE))
+	{
 		ql_log(ql_log_fatal, vha, 0xb0bb,
-		    "%s: Template Header size invalid %d "
-		    "tmplt_hdr_def_size %d!!!\n", __func__,
-		    tmplt_hdr_size, tmplt_hdr_def_size);
+			   "%s: Template Header size invalid %d "
+			   "tmplt_hdr_def_size %d!!!\n", __func__,
+			   tmplt_hdr_size, tmplt_hdr_def_size);
 		goto exit_read_template_error;
 	}
 
 	addr = QLA8044_RESET_TEMPLATE_ADDR + vha->reset_tmplt.hdr->hdr_size;
 	p_buff = vha->reset_tmplt.buff + vha->reset_tmplt.hdr->hdr_size;
 	tmplt_hdr_def_size = (vha->reset_tmplt.hdr->size -
-	    vha->reset_tmplt.hdr->hdr_size)/sizeof(uint32_t);
+						  vha->reset_tmplt.hdr->hdr_size) / sizeof(uint32_t);
 
 	ql_dbg(ql_dbg_p3p, vha, 0xb0bc,
-	    "%s: Read rest of the template size %d\n",
-	    __func__, vha->reset_tmplt.hdr->size);
+		   "%s: Read rest of the template size %d\n",
+		   __func__, vha->reset_tmplt.hdr->size);
 
 	/* Copy rest of the template */
-	if (qla8044_read_flash_data(vha, p_buff, addr, tmplt_hdr_def_size)) {
+	if (qla8044_read_flash_data(vha, p_buff, addr, tmplt_hdr_def_size))
+	{
 		ql_log(ql_log_fatal, vha, 0xb0bd,
-		    "%s: Failed to read reset tempelate\n", __func__);
+			   "%s: Failed to read reset tempelate\n", __func__);
 		goto exit_read_template_error;
 	}
 
 	/* Integrity check */
-	if (qla8044_reset_seq_checksum_test(vha)) {
+	if (qla8044_reset_seq_checksum_test(vha))
+	{
 		ql_log(ql_log_fatal, vha, 0xb0be,
-		    "%s: Reset Seq checksum failed!\n", __func__);
+			   "%s: Reset Seq checksum failed!\n", __func__);
 		goto exit_read_template_error;
 	}
 
 	ql_dbg(ql_dbg_p3p, vha, 0xb0bf,
-	    "%s: Reset Seq checksum passed! Get stop, "
-	    "start and init seq offsets\n", __func__);
+		   "%s: Reset Seq checksum passed! Get stop, "
+		   "start and init seq offsets\n", __func__);
 
 	/* Get STOP, START, INIT sequence offsets */
 	vha->reset_tmplt.init_offset = vha->reset_tmplt.buff +
-	    vha->reset_tmplt.hdr->init_seq_offset;
+								   vha->reset_tmplt.hdr->init_seq_offset;
 
 	vha->reset_tmplt.start_offset = vha->reset_tmplt.buff +
-	    vha->reset_tmplt.hdr->start_seq_offset;
+									vha->reset_tmplt.hdr->start_seq_offset;
 
 	vha->reset_tmplt.stop_offset = vha->reset_tmplt.buff +
-	    vha->reset_tmplt.hdr->hdr_size;
+								   vha->reset_tmplt.hdr->hdr_size;
 
 	qla8044_dump_reset_seq_hdr(vha);
 
@@ -1600,7 +1842,7 @@ qla8044_set_idc_dontreset(struct scsi_qla_host *vha)
 	idc_ctrl = qla8044_rd_reg(ha, QLA8044_IDC_DRV_CTRL);
 	idc_ctrl |= DONTRESET_BIT0;
 	ql_dbg(ql_dbg_p3p, vha, 0xb0c0,
-	    "%s: idc_ctrl = %d\n", __func__, idc_ctrl);
+		   "%s: idc_ctrl = %d\n", __func__, idc_ctrl);
 	qla8044_wr_reg(ha, QLA8044_IDC_DRV_CTRL, idc_ctrl);
 }
 
@@ -1617,8 +1859,8 @@ qla8044_set_rst_ready(struct scsi_qla_host *vha)
 	drv_state |= (1 << ha->portnum);
 
 	ql_log(ql_log_info, vha, 0xb0c1,
-	    "%s(%ld): drv_state: 0x%08x\n",
-	    __func__, vha->host_no, drv_state);
+		   "%s(%ld): drv_state: 0x%08x\n",
+		   __func__, vha->host_no, drv_state);
 	qla8044_wr_direct(vha, QLA8044_CRB_DRV_STATE_INDEX, drv_state);
 }
 
@@ -1636,9 +1878,10 @@ qla8044_need_reset_handler(struct scsi_qla_host *vha)
 	struct qla_hw_data *ha = vha->hw;
 
 	ql_log(ql_log_fatal, vha, 0xb0c2,
-	    "%s: Performing ISP error recovery\n", __func__);
+		   "%s: Performing ISP error recovery\n", __func__);
 
-	if (vha->flags.online) {
+	if (vha->flags.online)
+	{
 		qla8044_idc_unlock(ha);
 		qla2x00_abort_isp_cleanup(vha);
 		ha->isp_ops->get_flash_version(vha, vha->req->ring);
@@ -1647,26 +1890,28 @@ qla8044_need_reset_handler(struct scsi_qla_host *vha)
 	}
 
 	dev_state = qla8044_rd_direct(vha,
-	    QLA8044_CRB_DEV_STATE_INDEX);
+								  QLA8044_CRB_DEV_STATE_INDEX);
 	drv_state = qla8044_rd_direct(vha,
-	    QLA8044_CRB_DRV_STATE_INDEX);
+								  QLA8044_CRB_DRV_STATE_INDEX);
 	drv_active = qla8044_rd_direct(vha,
-	    QLA8044_CRB_DRV_ACTIVE_INDEX);
+								   QLA8044_CRB_DRV_ACTIVE_INDEX);
 
 	ql_log(ql_log_info, vha, 0xb0c5,
-	    "%s(%ld): drv_state = 0x%x, drv_active = 0x%x dev_state = 0x%x\n",
-	    __func__, vha->host_no, drv_state, drv_active, dev_state);
+		   "%s(%ld): drv_state = 0x%x, drv_active = 0x%x dev_state = 0x%x\n",
+		   __func__, vha->host_no, drv_state, drv_active, dev_state);
 
 	qla8044_set_rst_ready(vha);
 
 	/* wait for 10 seconds for reset ack from all functions */
 	reset_timeout = jiffies + (ha->fcoe_reset_timeout * HZ);
 
-	do {
-		if (time_after_eq(jiffies, reset_timeout)) {
+	do
+	{
+		if (time_after_eq(jiffies, reset_timeout))
+		{
 			ql_log(ql_log_info, vha, 0xb0c4,
-			    "%s: Function %d: Reset Ack Timeout!, drv_state: 0x%08x, drv_active: 0x%08x\n",
-			    __func__, ha->portnum, drv_state, drv_active);
+				   "%s: Function %d: Reset Ack Timeout!, drv_state: 0x%08x, drv_active: 0x%08x\n",
+				   __func__, ha->portnum, drv_state, drv_active);
 			break;
 		}
 
@@ -1675,30 +1920,35 @@ qla8044_need_reset_handler(struct scsi_qla_host *vha)
 		qla8044_idc_lock(ha);
 
 		dev_state = qla8044_rd_direct(vha,
-		    QLA8044_CRB_DEV_STATE_INDEX);
+									  QLA8044_CRB_DEV_STATE_INDEX);
 		drv_state = qla8044_rd_direct(vha,
-		    QLA8044_CRB_DRV_STATE_INDEX);
+									  QLA8044_CRB_DRV_STATE_INDEX);
 		drv_active = qla8044_rd_direct(vha,
-		    QLA8044_CRB_DRV_ACTIVE_INDEX);
-	} while (((drv_state & drv_active) != drv_active) &&
-	    (dev_state == QLA8XXX_DEV_NEED_RESET));
+									   QLA8044_CRB_DRV_ACTIVE_INDEX);
+	}
+	while (((drv_state & drv_active) != drv_active) &&
+		   (dev_state == QLA8XXX_DEV_NEED_RESET));
 
 	/* Remove IDC participation of functions not acknowledging */
-	if (drv_state != drv_active) {
+	if (drv_state != drv_active)
+	{
 		ql_log(ql_log_info, vha, 0xb0c7,
-		    "%s(%ld): Function %d turning off drv_active of non-acking function 0x%x\n",
-		    __func__, vha->host_no, ha->portnum,
-		    (drv_active ^ drv_state));
+			   "%s(%ld): Function %d turning off drv_active of non-acking function 0x%x\n",
+			   __func__, vha->host_no, ha->portnum,
+			   (drv_active ^ drv_state));
 		drv_active = drv_active & drv_state;
 		qla8044_wr_direct(vha, QLA8044_CRB_DRV_ACTIVE_INDEX,
-		    drv_active);
-	} else {
+						  drv_active);
+	}
+	else
+	{
 		/*
 		 * Reset owner should execute reset recovery,
 		 * if all functions acknowledged
 		 */
 		if ((ha->flags.nic_core_reset_owner) &&
-		    (dev_state == QLA8XXX_DEV_NEED_RESET)) {
+			(dev_state == QLA8XXX_DEV_NEED_RESET))
+		{
 			ha->flags.nic_core_reset_owner = 0;
 			qla8044_device_bootstrap(vha);
 			return;
@@ -1706,7 +1956,8 @@ qla8044_need_reset_handler(struct scsi_qla_host *vha)
 	}
 
 	/* Exit if non active function */
-	if (!(drv_active & (1 << ha->portnum))) {
+	if (!(drv_active & (1 << ha->portnum)))
+	{
 		ha->flags.nic_core_reset_owner = 0;
 		return;
 	}
@@ -1716,7 +1967,8 @@ qla8044_need_reset_handler(struct scsi_qla_host *vha)
 	 * is the only active function
 	 */
 	if (ha->flags.nic_core_reset_owner ||
-	    ((drv_state & drv_active) == QLA8044_FUN7_ACTIVE_INDEX)) {
+		((drv_state & drv_active) == QLA8044_FUN7_ACTIVE_INDEX))
+	{
 		ha->flags.nic_core_reset_owner = 0;
 		qla8044_device_bootstrap(vha);
 	}
@@ -1735,8 +1987,8 @@ qla8044_set_drv_active(struct scsi_qla_host *vha)
 	drv_active |= (1 << ha->portnum);
 
 	ql_log(ql_log_info, vha, 0xb0c8,
-	    "%s(%ld): drv_active: 0x%08x\n",
-	    __func__, vha->host_no, drv_active);
+		   "%s(%ld): drv_active: 0x%08x\n",
+		   __func__, vha->host_no, drv_active);
 	qla8044_wr_direct(vha, QLA8044_CRB_DRV_ACTIVE_INDEX, drv_active);
 }
 
@@ -1747,10 +1999,15 @@ qla8044_check_drv_active(struct scsi_qla_host *vha)
 	struct qla_hw_data *ha = vha->hw;
 
 	drv_active = qla8044_rd_direct(vha, QLA8044_CRB_DRV_ACTIVE_INDEX);
+
 	if (drv_active & (1 << ha->portnum))
+	{
 		return QLA_SUCCESS;
+	}
 	else
+	{
 		return QLA_TEST_FAILED;
+	}
 }
 
 static void
@@ -1762,8 +2019,8 @@ qla8044_clear_idc_dontreset(struct scsi_qla_host *vha)
 	idc_ctrl = qla8044_rd_reg(ha, QLA8044_IDC_DRV_CTRL);
 	idc_ctrl &= ~DONTRESET_BIT0;
 	ql_log(ql_log_info, vha, 0xb0c9,
-	    "%s: idc_ctrl = %d\n", __func__,
-	    idc_ctrl);
+		   "%s: idc_ctrl = %d\n", __func__,
+		   idc_ctrl);
 	qla8044_wr_reg(ha, QLA8044_IDC_DRV_CTRL, idc_ctrl);
 }
 
@@ -1776,27 +2033,33 @@ qla8044_set_idc_ver(struct scsi_qla_host *vha)
 	struct qla_hw_data *ha = vha->hw;
 
 	drv_active = qla8044_rd_direct(vha, QLA8044_CRB_DRV_ACTIVE_INDEX);
-	if (drv_active == (1 << ha->portnum)) {
+
+	if (drv_active == (1 << ha->portnum))
+	{
 		idc_ver = qla8044_rd_direct(vha,
-		    QLA8044_CRB_DRV_IDC_VERSION_INDEX);
+									QLA8044_CRB_DRV_IDC_VERSION_INDEX);
 		idc_ver &= (~0xFF);
 		idc_ver |= QLA8044_IDC_VER_MAJ_VALUE;
 		qla8044_wr_direct(vha, QLA8044_CRB_DRV_IDC_VERSION_INDEX,
-		    idc_ver);
+						  idc_ver);
 		ql_log(ql_log_info, vha, 0xb0ca,
-		    "%s: IDC version updated to %d\n",
-		    __func__, idc_ver);
-	} else {
+			   "%s: IDC version updated to %d\n",
+			   __func__, idc_ver);
+	}
+	else
+	{
 		idc_ver = qla8044_rd_direct(vha,
-		    QLA8044_CRB_DRV_IDC_VERSION_INDEX);
+									QLA8044_CRB_DRV_IDC_VERSION_INDEX);
 		idc_ver &= 0xFF;
-		if (QLA8044_IDC_VER_MAJ_VALUE != idc_ver) {
+
+		if (QLA8044_IDC_VER_MAJ_VALUE != idc_ver)
+		{
 			ql_log(ql_log_info, vha, 0xb0cb,
-			    "%s: qla4xxx driver IDC version %d "
-			    "is not compatible with IDC version %d "
-			    "of other drivers!\n",
-			    __func__, QLA8044_IDC_VER_MAJ_VALUE,
-			    idc_ver);
+				   "%s: qla4xxx driver IDC version %d "
+				   "is not compatible with IDC version %d "
+				   "of other drivers!\n",
+				   __func__, QLA8044_IDC_VER_MAJ_VALUE,
+				   idc_ver);
 			rval = QLA_FUNCTION_FAILED;
 			goto exit_set_idc_ver;
 		}
@@ -1820,22 +2083,30 @@ qla8044_update_idc_reg(struct scsi_qla_host *vha)
 	struct qla_hw_data *ha = vha->hw;
 
 	if (vha->flags.init_done)
+	{
 		goto exit_update_idc_reg;
+	}
 
 	qla8044_idc_lock(ha);
 	qla8044_set_drv_active(vha);
 
 	drv_active = qla8044_rd_direct(vha,
-	    QLA8044_CRB_DRV_ACTIVE_INDEX);
+								   QLA8044_CRB_DRV_ACTIVE_INDEX);
 
 	/* If we are the first driver to load and
 	 * ql2xdontresethba is not set, clear IDC_CTRL BIT0. */
 	if ((drv_active == (1 << ha->portnum)) && !ql2xdontresethba)
+	{
 		qla8044_clear_idc_dontreset(vha);
+	}
 
 	rval = qla8044_set_idc_ver(vha);
+
 	if (rval == QLA_FUNCTION_FAILED)
+	{
 		qla8044_clear_drv_active(ha);
+	}
+
 	qla8044_idc_unlock(ha);
 
 exit_update_idc_reg:
@@ -1854,9 +2125,13 @@ qla8044_need_qsnt_handler(struct scsi_qla_host *vha)
 	struct qla_hw_data *ha = vha->hw;
 
 	if (vha->flags.online)
+	{
 		qla2x00_quiesce_io(vha);
+	}
 	else
+	{
 		return;
+	}
 
 	qla8044_set_qsnt_ready(vha);
 
@@ -1869,38 +2144,42 @@ qla8044_need_qsnt_handler(struct scsi_qla_host *vha)
 	   position is at bit 1 and drv active is at bit 0 */
 	drv_active = drv_active << 1;
 
-	while (drv_state != drv_active) {
-		if (time_after_eq(jiffies, qsnt_timeout)) {
+	while (drv_state != drv_active)
+	{
+		if (time_after_eq(jiffies, qsnt_timeout))
+		{
 			/* Other functions did not ack, changing state to
 			 * DEV_READY
 			 */
 			clear_bit(ISP_QUIESCE_NEEDED, &vha->dpc_flags);
 			qla8044_wr_direct(vha, QLA8044_CRB_DEV_STATE_INDEX,
-					    QLA8XXX_DEV_READY);
+							  QLA8XXX_DEV_READY);
 			qla8044_clear_qsnt_ready(vha);
 			ql_log(ql_log_info, vha, 0xb0cc,
-			    "Timeout waiting for quiescent ack!!!\n");
+				   "Timeout waiting for quiescent ack!!!\n");
 			return;
 		}
+
 		qla8044_idc_unlock(ha);
 		msleep(1000);
 		qla8044_idc_lock(ha);
 
 		drv_state = qla8044_rd_direct(vha,
-		    QLA8044_CRB_DRV_STATE_INDEX);
+									  QLA8044_CRB_DRV_STATE_INDEX);
 		drv_active = qla8044_rd_direct(vha,
-		    QLA8044_CRB_DRV_ACTIVE_INDEX);
+									   QLA8044_CRB_DRV_ACTIVE_INDEX);
 		drv_active = drv_active << 1;
 	}
 
 	/* All functions have Acked. Set quiescent state */
 	dev_state = qla8044_rd_direct(vha, QLA8044_CRB_DEV_STATE_INDEX);
 
-	if (dev_state == QLA8XXX_DEV_NEED_QUIESCENT) {
+	if (dev_state == QLA8XXX_DEV_NEED_QUIESCENT)
+	{
 		qla8044_wr_direct(vha, QLA8044_CRB_DEV_STATE_INDEX,
-		    QLA8XXX_DEV_QUIESCENT);
+						  QLA8XXX_DEV_QUIESCENT);
 		ql_log(ql_log_info, vha, 0xb0cd,
-		    "%s: HW State: QUIESCENT\n", __func__);
+			   "%s: HW State: QUIESCENT\n", __func__);
 	}
 }
 
@@ -1919,94 +2198,109 @@ qla8044_device_state_handler(struct scsi_qla_host *vha)
 	struct qla_hw_data *ha = vha->hw;
 
 	rval = qla8044_update_idc_reg(vha);
+
 	if (rval == QLA_FUNCTION_FAILED)
+	{
 		goto exit_error;
+	}
 
 	dev_state = qla8044_rd_direct(vha, QLA8044_CRB_DEV_STATE_INDEX);
 	ql_dbg(ql_dbg_p3p, vha, 0xb0ce,
-	    "Device state is 0x%x = %s\n",
-	    dev_state, dev_state < MAX_STATES ?
-	    qdev_state(dev_state) : "Unknown");
+		   "Device state is 0x%x = %s\n",
+		   dev_state, dev_state < MAX_STATES ?
+		   qdev_state(dev_state) : "Unknown");
 
 	/* wait for 30 seconds for device to go ready */
 	dev_init_timeout = jiffies + (ha->fcoe_dev_init_timeout * HZ);
 
 	qla8044_idc_lock(ha);
 
-	while (1) {
-		if (time_after_eq(jiffies, dev_init_timeout)) {
-			if (qla8044_check_drv_active(vha) == QLA_SUCCESS) {
+	while (1)
+	{
+		if (time_after_eq(jiffies, dev_init_timeout))
+		{
+			if (qla8044_check_drv_active(vha) == QLA_SUCCESS)
+			{
 				ql_log(ql_log_warn, vha, 0xb0cf,
-				    "%s: Device Init Failed 0x%x = %s\n",
-				    QLA2XXX_DRIVER_NAME, dev_state,
-				    dev_state < MAX_STATES ?
-				    qdev_state(dev_state) : "Unknown");
+					   "%s: Device Init Failed 0x%x = %s\n",
+					   QLA2XXX_DRIVER_NAME, dev_state,
+					   dev_state < MAX_STATES ?
+					   qdev_state(dev_state) : "Unknown");
 				qla8044_wr_direct(vha,
-				    QLA8044_CRB_DEV_STATE_INDEX,
-				    QLA8XXX_DEV_FAILED);
+								  QLA8044_CRB_DEV_STATE_INDEX,
+								  QLA8XXX_DEV_FAILED);
 			}
 		}
 
 		dev_state = qla8044_rd_direct(vha, QLA8044_CRB_DEV_STATE_INDEX);
 		ql_log(ql_log_info, vha, 0xb0d0,
-		    "Device state is 0x%x = %s\n",
-		    dev_state, dev_state < MAX_STATES ?
-		    qdev_state(dev_state) : "Unknown");
+			   "Device state is 0x%x = %s\n",
+			   dev_state, dev_state < MAX_STATES ?
+			   qdev_state(dev_state) : "Unknown");
 
 		/* NOTE: Make sure idc unlocked upon exit of switch statement */
-		switch (dev_state) {
-		case QLA8XXX_DEV_READY:
-			ha->flags.nic_core_reset_owner = 0;
-			goto exit;
-		case QLA8XXX_DEV_COLD:
-			rval = qla8044_device_bootstrap(vha);
-			break;
-		case QLA8XXX_DEV_INITIALIZING:
-			qla8044_idc_unlock(ha);
-			msleep(1000);
-			qla8044_idc_lock(ha);
-			break;
-		case QLA8XXX_DEV_NEED_RESET:
-			/* For ISP8044, if NEED_RESET is set by any driver,
-			 * it should be honored, irrespective of IDC_CTRL
-			 * DONTRESET_BIT0 */
-			qla8044_need_reset_handler(vha);
-			break;
-		case QLA8XXX_DEV_NEED_QUIESCENT:
-			/* idc locked/unlocked in handler */
-			qla8044_need_qsnt_handler(vha);
+		switch (dev_state)
+		{
+			case QLA8XXX_DEV_READY:
+				ha->flags.nic_core_reset_owner = 0;
+				goto exit;
 
-			/* Reset the init timeout after qsnt handler */
-			dev_init_timeout = jiffies +
-			    (ha->fcoe_reset_timeout * HZ);
-			break;
-		case QLA8XXX_DEV_QUIESCENT:
-			ql_log(ql_log_info, vha, 0xb0d1,
-			    "HW State: QUIESCENT\n");
+			case QLA8XXX_DEV_COLD:
+				rval = qla8044_device_bootstrap(vha);
+				break;
 
-			qla8044_idc_unlock(ha);
-			msleep(1000);
-			qla8044_idc_lock(ha);
+			case QLA8XXX_DEV_INITIALIZING:
+				qla8044_idc_unlock(ha);
+				msleep(1000);
+				qla8044_idc_lock(ha);
+				break;
 
-			/* Reset the init timeout after qsnt handler */
-			dev_init_timeout = jiffies +
-			    (ha->fcoe_reset_timeout * HZ);
-			break;
-		case QLA8XXX_DEV_FAILED:
-			ha->flags.nic_core_reset_owner = 0;
-			qla8044_idc_unlock(ha);
-			qla8xxx_dev_failed_handler(vha);
-			rval = QLA_FUNCTION_FAILED;
-			qla8044_idc_lock(ha);
-			goto exit;
-		default:
-			qla8044_idc_unlock(ha);
-			qla8xxx_dev_failed_handler(vha);
-			rval = QLA_FUNCTION_FAILED;
-			qla8044_idc_lock(ha);
-			goto exit;
+			case QLA8XXX_DEV_NEED_RESET:
+				/* For ISP8044, if NEED_RESET is set by any driver,
+				 * it should be honored, irrespective of IDC_CTRL
+				 * DONTRESET_BIT0 */
+				qla8044_need_reset_handler(vha);
+				break;
+
+			case QLA8XXX_DEV_NEED_QUIESCENT:
+				/* idc locked/unlocked in handler */
+				qla8044_need_qsnt_handler(vha);
+
+				/* Reset the init timeout after qsnt handler */
+				dev_init_timeout = jiffies +
+								   (ha->fcoe_reset_timeout * HZ);
+				break;
+
+			case QLA8XXX_DEV_QUIESCENT:
+				ql_log(ql_log_info, vha, 0xb0d1,
+					   "HW State: QUIESCENT\n");
+
+				qla8044_idc_unlock(ha);
+				msleep(1000);
+				qla8044_idc_lock(ha);
+
+				/* Reset the init timeout after qsnt handler */
+				dev_init_timeout = jiffies +
+								   (ha->fcoe_reset_timeout * HZ);
+				break;
+
+			case QLA8XXX_DEV_FAILED:
+				ha->flags.nic_core_reset_owner = 0;
+				qla8044_idc_unlock(ha);
+				qla8xxx_dev_failed_handler(vha);
+				rval = QLA_FUNCTION_FAILED;
+				qla8044_idc_lock(ha);
+				goto exit;
+
+			default:
+				qla8044_idc_unlock(ha);
+				qla8xxx_dev_failed_handler(vha);
+				rval = QLA_FUNCTION_FAILED;
+				qla8044_idc_lock(ha);
+				goto exit;
 		}
 	}
+
 exit:
 	qla8044_idc_unlock(ha);
 
@@ -2030,19 +2324,23 @@ qla8044_check_temp(struct scsi_qla_host *vha)
 	temp_state = qla82xx_get_temp_state(temp);
 	temp_val = qla82xx_get_temp_val(temp);
 
-	if (temp_state == QLA82XX_TEMP_PANIC) {
+	if (temp_state == QLA82XX_TEMP_PANIC)
+	{
 		ql_log(ql_log_warn, vha, 0xb0d2,
-		    "Device temperature %d degrees C"
-		    " exceeds maximum allowed. Hardware has been shut"
-		    " down\n", temp_val);
+			   "Device temperature %d degrees C"
+			   " exceeds maximum allowed. Hardware has been shut"
+			   " down\n", temp_val);
 		status = QLA_FUNCTION_FAILED;
 		return status;
-	} else if (temp_state == QLA82XX_TEMP_WARN) {
-		ql_log(ql_log_warn, vha, 0xb0d3,
-		    "Device temperature %d"
-		    " degrees C exceeds operating range."
-		    " Immediate action needed.\n", temp_val);
 	}
+	else if (temp_state == QLA82XX_TEMP_WARN)
+	{
+		ql_log(ql_log_warn, vha, 0xb0d3,
+			   "Device temperature %d"
+			   " degrees C exceeds operating range."
+			   " Immediate action needed.\n", temp_val);
+	}
+
 	return 0;
 }
 
@@ -2068,38 +2366,45 @@ qla8044_check_fw_alive(struct scsi_qla_host *vha)
 	int status = QLA_SUCCESS;
 
 	fw_heartbeat_counter = qla8044_rd_direct(vha,
-	    QLA8044_PEG_ALIVE_COUNTER_INDEX);
+						   QLA8044_PEG_ALIVE_COUNTER_INDEX);
 
 	/* If PEG_ALIVE_COUNTER is 0xffffffff, AER/EEH is in progress, ignore */
-	if (fw_heartbeat_counter == 0xffffffff) {
+	if (fw_heartbeat_counter == 0xffffffff)
+	{
 		ql_dbg(ql_dbg_p3p, vha, 0xb0d4,
-		    "scsi%ld: %s: Device in frozen "
-		    "state, QLA82XX_PEG_ALIVE_COUNTER is 0xffffffff\n",
-		    vha->host_no, __func__);
+			   "scsi%ld: %s: Device in frozen "
+			   "state, QLA82XX_PEG_ALIVE_COUNTER is 0xffffffff\n",
+			   vha->host_no, __func__);
 		return status;
 	}
 
-	if (vha->fw_heartbeat_counter == fw_heartbeat_counter) {
+	if (vha->fw_heartbeat_counter == fw_heartbeat_counter)
+	{
 		vha->seconds_since_last_heartbeat++;
+
 		/* FW not alive after 2 seconds */
-		if (vha->seconds_since_last_heartbeat == 2) {
+		if (vha->seconds_since_last_heartbeat == 2)
+		{
 			vha->seconds_since_last_heartbeat = 0;
 			halt_status1 = qla8044_rd_direct(vha,
-			    QLA8044_PEG_HALT_STATUS1_INDEX);
+											 QLA8044_PEG_HALT_STATUS1_INDEX);
 			halt_status2 = qla8044_rd_direct(vha,
-			    QLA8044_PEG_HALT_STATUS2_INDEX);
+											 QLA8044_PEG_HALT_STATUS2_INDEX);
 
 			ql_log(ql_log_info, vha, 0xb0d5,
-			    "scsi(%ld): %s, ISP8044 "
-			    "Dumping hw/fw registers:\n"
-			    " PEG_HALT_STATUS1: 0x%x, "
-			    "PEG_HALT_STATUS2: 0x%x,\n",
-			    vha->host_no, __func__, halt_status1,
-			    halt_status2);
+				   "scsi(%ld): %s, ISP8044 "
+				   "Dumping hw/fw registers:\n"
+				   " PEG_HALT_STATUS1: 0x%x, "
+				   "PEG_HALT_STATUS2: 0x%x,\n",
+				   vha->host_no, __func__, halt_status1,
+				   halt_status2);
 			status = QLA_FUNCTION_FAILED;
 		}
-	} else
+	}
+	else
+	{
 		vha->seconds_since_last_heartbeat = 0;
+	}
 
 	vha->fw_heartbeat_counter = fw_heartbeat_counter;
 	return status;
@@ -2114,74 +2419,95 @@ qla8044_watchdog(struct scsi_qla_host *vha)
 
 	/* don't poll if reset is going on or FW hang in quiescent state */
 	if (!(test_bit(ABORT_ISP_ACTIVE, &vha->dpc_flags) ||
-	    test_bit(FCOE_CTX_RESET_NEEDED, &vha->dpc_flags))) {
+		  test_bit(FCOE_CTX_RESET_NEEDED, &vha->dpc_flags)))
+	{
 		dev_state = qla8044_rd_direct(vha, QLA8044_CRB_DEV_STATE_INDEX);
 
-		if (qla8044_check_fw_alive(vha)) {
+		if (qla8044_check_fw_alive(vha))
+		{
 			ha->flags.isp82xx_fw_hung = 1;
 			ql_log(ql_log_warn, vha, 0xb10a,
-			    "Firmware hung.\n");
+				   "Firmware hung.\n");
 			qla82xx_clear_pending_mbx(vha);
 		}
 
-		if (qla8044_check_temp(vha)) {
+		if (qla8044_check_temp(vha))
+		{
 			set_bit(ISP_UNRECOVERABLE, &vha->dpc_flags);
 			ha->flags.isp82xx_fw_hung = 1;
 			qla2xxx_wake_dpc(vha);
-		} else if (dev_state == QLA8XXX_DEV_NEED_RESET &&
-			   !test_bit(ISP_ABORT_NEEDED, &vha->dpc_flags)) {
+		}
+		else if (dev_state == QLA8XXX_DEV_NEED_RESET &&
+				 !test_bit(ISP_ABORT_NEEDED, &vha->dpc_flags))
+		{
 			ql_log(ql_log_info, vha, 0xb0d6,
-			    "%s: HW State: NEED RESET!\n",
-			    __func__);
+				   "%s: HW State: NEED RESET!\n",
+				   __func__);
 			set_bit(ISP_ABORT_NEEDED, &vha->dpc_flags);
 			qla2xxx_wake_dpc(vha);
-		} else if (dev_state == QLA8XXX_DEV_NEED_QUIESCENT &&
-		    !test_bit(ISP_QUIESCE_NEEDED, &vha->dpc_flags)) {
+		}
+		else if (dev_state == QLA8XXX_DEV_NEED_QUIESCENT &&
+				 !test_bit(ISP_QUIESCE_NEEDED, &vha->dpc_flags))
+		{
 			ql_log(ql_log_info, vha, 0xb0d7,
-			    "%s: HW State: NEED QUIES detected!\n",
-			    __func__);
+				   "%s: HW State: NEED QUIES detected!\n",
+				   __func__);
 			set_bit(ISP_QUIESCE_NEEDED, &vha->dpc_flags);
 			qla2xxx_wake_dpc(vha);
-		} else  {
+		}
+		else
+		{
 			/* Check firmware health */
-			if (ha->flags.isp82xx_fw_hung) {
+			if (ha->flags.isp82xx_fw_hung)
+			{
 				halt_status = qla8044_rd_direct(vha,
-					QLA8044_PEG_HALT_STATUS1_INDEX);
+												QLA8044_PEG_HALT_STATUS1_INDEX);
+
 				if (halt_status &
-				    QLA8044_HALT_STATUS_FW_RESET) {
+					QLA8044_HALT_STATUS_FW_RESET)
+				{
 					ql_log(ql_log_fatal, vha,
-					    0xb0d8, "%s: Firmware "
-					    "error detected device "
-					    "is being reset\n",
-					    __func__);
-				} else if (halt_status &
-					    QLA8044_HALT_STATUS_UNRECOVERABLE) {
-						halt_status_unrecoverable = 1;
+						   0xb0d8, "%s: Firmware "
+						   "error detected device "
+						   "is being reset\n",
+						   __func__);
+				}
+				else if (halt_status &
+						 QLA8044_HALT_STATUS_UNRECOVERABLE)
+				{
+					halt_status_unrecoverable = 1;
 				}
 
 				/* Since we cannot change dev_state in interrupt
 				 * context, set appropriate DPC flag then wakeup
 				 *  DPC */
-				if (halt_status_unrecoverable) {
+				if (halt_status_unrecoverable)
+				{
 					set_bit(ISP_UNRECOVERABLE,
-					    &vha->dpc_flags);
-				} else {
+							&vha->dpc_flags);
+				}
+				else
+				{
 					if (dev_state ==
-					    QLA8XXX_DEV_QUIESCENT) {
+						QLA8XXX_DEV_QUIESCENT)
+					{
 						set_bit(FCOE_CTX_RESET_NEEDED,
-						    &vha->dpc_flags);
+								&vha->dpc_flags);
 						ql_log(ql_log_info, vha, 0xb0d9,
-						    "%s: FW CONTEXT Reset "
-						    "needed!\n", __func__);
-					} else {
+							   "%s: FW CONTEXT Reset "
+							   "needed!\n", __func__);
+					}
+					else
+					{
 						ql_log(ql_log_info, vha,
-						    0xb0da, "%s: "
-						    "detect abort needed\n",
-						    __func__);
+							   0xb0da, "%s: "
+							   "detect abort needed\n",
+							   __func__);
 						set_bit(ISP_ABORT_NEEDED,
-						    &vha->dpc_flags);
+								&vha->dpc_flags);
 					}
 				}
+
 				qla2xxx_wake_dpc(vha);
 			}
 		}
@@ -2191,7 +2517,7 @@ qla8044_watchdog(struct scsi_qla_host *vha)
 
 static int
 qla8044_minidump_process_control(struct scsi_qla_host *vha,
-				 struct qla8044_minidump_entry_hdr *entry_hdr)
+								 struct qla8044_minidump_entry_hdr *entry_hdr)
 {
 	struct qla8044_minidump_entry_crb *crb_entry;
 	uint32_t read_value, opcode, poll_time, addr, index;
@@ -2203,67 +2529,91 @@ qla8044_minidump_process_control(struct scsi_qla_host *vha,
 
 	ql_dbg(ql_dbg_p3p, vha, 0xb0dd, "Entering fn: %s\n", __func__);
 	tmplt_hdr = (struct qla8044_minidump_template_hdr *)
-		ha->md_tmplt_hdr;
+				ha->md_tmplt_hdr;
 	crb_entry = (struct qla8044_minidump_entry_crb *)entry_hdr;
 
 	crb_addr = crb_entry->addr;
-	for (i = 0; i < crb_entry->op_count; i++) {
+
+	for (i = 0; i < crb_entry->op_count; i++)
+	{
 		opcode = crb_entry->crb_ctrl.opcode;
 
-		if (opcode & QLA82XX_DBG_OPCODE_WR) {
+		if (opcode & QLA82XX_DBG_OPCODE_WR)
+		{
 			qla8044_wr_reg_indirect(vha, crb_addr,
-			    crb_entry->value_1);
+									crb_entry->value_1);
 			opcode &= ~QLA82XX_DBG_OPCODE_WR;
 		}
 
-		if (opcode & QLA82XX_DBG_OPCODE_RW) {
+		if (opcode & QLA82XX_DBG_OPCODE_RW)
+		{
 			qla8044_rd_reg_indirect(vha, crb_addr, &read_value);
 			qla8044_wr_reg_indirect(vha, crb_addr, read_value);
 			opcode &= ~QLA82XX_DBG_OPCODE_RW;
 		}
 
-		if (opcode & QLA82XX_DBG_OPCODE_AND) {
+		if (opcode & QLA82XX_DBG_OPCODE_AND)
+		{
 			qla8044_rd_reg_indirect(vha, crb_addr, &read_value);
 			read_value &= crb_entry->value_2;
 			opcode &= ~QLA82XX_DBG_OPCODE_AND;
-			if (opcode & QLA82XX_DBG_OPCODE_OR) {
+
+			if (opcode & QLA82XX_DBG_OPCODE_OR)
+			{
 				read_value |= crb_entry->value_3;
 				opcode &= ~QLA82XX_DBG_OPCODE_OR;
 			}
+
 			qla8044_wr_reg_indirect(vha, crb_addr, read_value);
 		}
-		if (opcode & QLA82XX_DBG_OPCODE_OR) {
+
+		if (opcode & QLA82XX_DBG_OPCODE_OR)
+		{
 			qla8044_rd_reg_indirect(vha, crb_addr, &read_value);
 			read_value |= crb_entry->value_3;
 			qla8044_wr_reg_indirect(vha, crb_addr, read_value);
 			opcode &= ~QLA82XX_DBG_OPCODE_OR;
 		}
-		if (opcode & QLA82XX_DBG_OPCODE_POLL) {
+
+		if (opcode & QLA82XX_DBG_OPCODE_POLL)
+		{
 			poll_time = crb_entry->crb_strd.poll_timeout;
 			wtime = jiffies + poll_time;
 			qla8044_rd_reg_indirect(vha, crb_addr, &read_value);
 
-			do {
+			do
+			{
 				if ((read_value & crb_entry->value_2) ==
-				    crb_entry->value_1) {
+					crb_entry->value_1)
+				{
 					break;
-				} else if (time_after_eq(jiffies, wtime)) {
+				}
+				else if (time_after_eq(jiffies, wtime))
+				{
 					/* capturing dump failed */
 					rval = QLA_FUNCTION_FAILED;
 					break;
-				} else {
-					qla8044_rd_reg_indirect(vha,
-					    crb_addr, &read_value);
 				}
-			} while (1);
+				else
+				{
+					qla8044_rd_reg_indirect(vha,
+											crb_addr, &read_value);
+				}
+			}
+			while (1);
+
 			opcode &= ~QLA82XX_DBG_OPCODE_POLL;
 		}
 
-		if (opcode & QLA82XX_DBG_OPCODE_RDSTATE) {
-			if (crb_entry->crb_strd.state_index_a) {
+		if (opcode & QLA82XX_DBG_OPCODE_RDSTATE)
+		{
+			if (crb_entry->crb_strd.state_index_a)
+			{
 				index = crb_entry->crb_strd.state_index_a;
 				addr = tmplt_hdr->saved_state_array[index];
-			} else {
+			}
+			else
+			{
 				addr = crb_addr;
 			}
 
@@ -2273,19 +2623,26 @@ qla8044_minidump_process_control(struct scsi_qla_host *vha,
 			opcode &= ~QLA82XX_DBG_OPCODE_RDSTATE;
 		}
 
-		if (opcode & QLA82XX_DBG_OPCODE_WRSTATE) {
-			if (crb_entry->crb_strd.state_index_a) {
+		if (opcode & QLA82XX_DBG_OPCODE_WRSTATE)
+		{
+			if (crb_entry->crb_strd.state_index_a)
+			{
 				index = crb_entry->crb_strd.state_index_a;
 				addr = tmplt_hdr->saved_state_array[index];
-			} else {
+			}
+			else
+			{
 				addr = crb_addr;
 			}
 
-			if (crb_entry->crb_ctrl.state_index_v) {
+			if (crb_entry->crb_ctrl.state_index_v)
+			{
 				index = crb_entry->crb_ctrl.state_index_v;
 				read_value =
-				    tmplt_hdr->saved_state_array[index];
-			} else {
+					tmplt_hdr->saved_state_array[index];
+			}
+			else
+			{
 				read_value = crb_entry->value_1;
 			}
 
@@ -2293,26 +2650,33 @@ qla8044_minidump_process_control(struct scsi_qla_host *vha,
 			opcode &= ~QLA82XX_DBG_OPCODE_WRSTATE;
 		}
 
-		if (opcode & QLA82XX_DBG_OPCODE_MDSTATE) {
+		if (opcode & QLA82XX_DBG_OPCODE_MDSTATE)
+		{
 			index = crb_entry->crb_ctrl.state_index_v;
 			read_value = tmplt_hdr->saved_state_array[index];
 			read_value <<= crb_entry->crb_ctrl.shl;
 			read_value >>= crb_entry->crb_ctrl.shr;
+
 			if (crb_entry->value_2)
+			{
 				read_value &= crb_entry->value_2;
+			}
+
 			read_value |= crb_entry->value_3;
 			read_value += crb_entry->value_1;
 			tmplt_hdr->saved_state_array[index] = read_value;
 			opcode &= ~QLA82XX_DBG_OPCODE_MDSTATE;
 		}
+
 		crb_addr += crb_entry->crb_strd.addr_stride;
 	}
+
 	return rval;
 }
 
 static void
 qla8044_minidump_process_rdcrb(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
+							   struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
 {
 	uint32_t r_addr, r_stride, loop_cnt, i, r_value;
 	struct qla8044_minidump_entry_crb *crb_hdr;
@@ -2324,18 +2688,20 @@ qla8044_minidump_process_rdcrb(struct scsi_qla_host *vha,
 	r_stride = crb_hdr->crb_strd.addr_stride;
 	loop_cnt = crb_hdr->op_count;
 
-	for (i = 0; i < loop_cnt; i++) {
+	for (i = 0; i < loop_cnt; i++)
+	{
 		qla8044_rd_reg_indirect(vha, r_addr, &r_value);
 		*data_ptr++ = r_addr;
 		*data_ptr++ = r_value;
 		r_addr += r_stride;
 	}
+
 	*d_ptr = data_ptr;
 }
 
 static int
 qla8044_minidump_process_rdmem(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
+							   struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
 {
 	uint32_t r_addr, r_value, r_data;
 	uint32_t i, j, loop_cnt;
@@ -2347,32 +2713,36 @@ qla8044_minidump_process_rdmem(struct scsi_qla_host *vha,
 	ql_dbg(ql_dbg_p3p, vha, 0xb0df, "Entering fn: %s\n", __func__);
 	m_hdr = (struct qla8044_minidump_entry_rdmem *)entry_hdr;
 	r_addr = m_hdr->read_addr;
-	loop_cnt = m_hdr->read_data_size/16;
+	loop_cnt = m_hdr->read_data_size / 16;
 
 	ql_dbg(ql_dbg_p3p, vha, 0xb0f0,
-	    "[%s]: Read addr: 0x%x, read_data_size: 0x%x\n",
-	    __func__, r_addr, m_hdr->read_data_size);
+		   "[%s]: Read addr: 0x%x, read_data_size: 0x%x\n",
+		   __func__, r_addr, m_hdr->read_data_size);
 
-	if (r_addr & 0xf) {
+	if (r_addr & 0xf)
+	{
 		ql_dbg(ql_dbg_p3p, vha, 0xb0f1,
-		    "[%s]: Read addr 0x%x not 16 bytes aligned\n",
-		    __func__, r_addr);
+			   "[%s]: Read addr 0x%x not 16 bytes aligned\n",
+			   __func__, r_addr);
 		return QLA_FUNCTION_FAILED;
 	}
 
-	if (m_hdr->read_data_size % 16) {
+	if (m_hdr->read_data_size % 16)
+	{
 		ql_dbg(ql_dbg_p3p, vha, 0xb0f2,
-		    "[%s]: Read data[0x%x] not multiple of 16 bytes\n",
-		    __func__, m_hdr->read_data_size);
+			   "[%s]: Read data[0x%x] not multiple of 16 bytes\n",
+			   __func__, m_hdr->read_data_size);
 		return QLA_FUNCTION_FAILED;
 	}
 
 	ql_dbg(ql_dbg_p3p, vha, 0xb0f3,
-	    "[%s]: rdmem_addr: 0x%x, read_data_size: 0x%x, loop_cnt: 0x%x\n",
-	    __func__, r_addr, m_hdr->read_data_size, loop_cnt);
+		   "[%s]: rdmem_addr: 0x%x, read_data_size: 0x%x, loop_cnt: 0x%x\n",
+		   __func__, r_addr, m_hdr->read_data_size, loop_cnt);
 
 	write_lock_irqsave(&ha->hw_lock, flags);
-	for (i = 0; i < loop_cnt; i++) {
+
+	for (i = 0; i < loop_cnt; i++)
+	{
 		qla8044_wr_reg_indirect(vha, MD_MIU_TEST_AGT_ADDR_LO, r_addr);
 		r_value = 0;
 		qla8044_wr_reg_indirect(vha, MD_MIU_TEST_AGT_ADDR_HI, r_value);
@@ -2381,31 +2751,38 @@ qla8044_minidump_process_rdmem(struct scsi_qla_host *vha,
 		r_value = MIU_TA_CTL_START_ENABLE;
 		qla8044_wr_reg_indirect(vha, MD_MIU_TEST_AGT_CTRL, r_value);
 
-		for (j = 0; j < MAX_CTL_CHECK; j++) {
+		for (j = 0; j < MAX_CTL_CHECK; j++)
+		{
 			qla8044_rd_reg_indirect(vha, MD_MIU_TEST_AGT_CTRL,
-			    &r_value);
+									&r_value);
+
 			if ((r_value & MIU_TA_CTL_BUSY) == 0)
+			{
 				break;
+			}
 		}
 
-		if (j >= MAX_CTL_CHECK) {
+		if (j >= MAX_CTL_CHECK)
+		{
 			write_unlock_irqrestore(&ha->hw_lock, flags);
 			return QLA_SUCCESS;
 		}
 
-		for (j = 0; j < 4; j++) {
+		for (j = 0; j < 4; j++)
+		{
 			qla8044_rd_reg_indirect(vha, MD_MIU_TEST_AGT_RDDATA[j],
-			    &r_data);
+									&r_data);
 			*data_ptr++ = r_data;
 		}
 
 		r_addr += 16;
 	}
+
 	write_unlock_irqrestore(&ha->hw_lock, flags);
 
 	ql_dbg(ql_dbg_p3p, vha, 0xb0f4,
-	    "Leaving fn: %s datacount: 0x%x\n",
-	     __func__, (loop_cnt * 16));
+		   "Leaving fn: %s datacount: 0x%x\n",
+		   __func__, (loop_cnt * 16));
 
 	*d_ptr = data_ptr;
 	return QLA_SUCCESS;
@@ -2414,7 +2791,7 @@ qla8044_minidump_process_rdmem(struct scsi_qla_host *vha,
 /* ISP83xx flash read for _RDROM _BOARD */
 static uint32_t
 qla8044_minidump_process_rdrom(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
+							   struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
 {
 	uint32_t fl_addr, u32_count, rval;
 	struct qla8044_minidump_entry_rdrom *rom_hdr;
@@ -2422,19 +2799,22 @@ qla8044_minidump_process_rdrom(struct scsi_qla_host *vha,
 
 	rom_hdr = (struct qla8044_minidump_entry_rdrom *)entry_hdr;
 	fl_addr = rom_hdr->read_addr;
-	u32_count = (rom_hdr->read_data_size)/sizeof(uint32_t);
+	u32_count = (rom_hdr->read_data_size) / sizeof(uint32_t);
 
 	ql_dbg(ql_dbg_p3p, vha, 0xb0f5, "[%s]: fl_addr: 0x%x, count: 0x%x\n",
-	    __func__, fl_addr, u32_count);
+		   __func__, fl_addr, u32_count);
 
 	rval = qla8044_lockless_flash_read_u32(vha, fl_addr,
-	    (u8 *)(data_ptr), u32_count);
+										   (u8 *)(data_ptr), u32_count);
 
-	if (rval != QLA_SUCCESS) {
+	if (rval != QLA_SUCCESS)
+	{
 		ql_log(ql_log_fatal, vha, 0xb0f6,
-		    "%s: Flash Read Error,Count=%d\n", __func__, u32_count);
+			   "%s: Flash Read Error,Count=%d\n", __func__, u32_count);
 		return QLA_FUNCTION_FAILED;
-	} else {
+	}
+	else
+	{
 		data_ptr += u32_count;
 		*d_ptr = data_ptr;
 		return QLA_SUCCESS;
@@ -2443,20 +2823,20 @@ qla8044_minidump_process_rdrom(struct scsi_qla_host *vha,
 
 static void
 qla8044_mark_entry_skipped(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr, int index)
+						   struct qla8044_minidump_entry_hdr *entry_hdr, int index)
 {
 	entry_hdr->d_ctrl.driver_flags |= QLA82XX_DBG_SKIPPED_FLAG;
 
 	ql_log(ql_log_info, vha, 0xb0f7,
-	    "scsi(%ld): Skipping entry[%d]: ETYPE[0x%x]-ELEVEL[0x%x]\n",
-	    vha->host_no, index, entry_hdr->entry_type,
-	    entry_hdr->d_ctrl.entry_capture_mask);
+		   "scsi(%ld): Skipping entry[%d]: ETYPE[0x%x]-ELEVEL[0x%x]\n",
+		   vha->host_no, index, entry_hdr->entry_type,
+		   entry_hdr->d_ctrl.entry_capture_mask);
 }
 
 static int
 qla8044_minidump_process_l2tag(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr,
-				 uint32_t **d_ptr)
+							   struct qla8044_minidump_entry_hdr *entry_hdr,
+							   uint32_t **d_ptr)
 {
 	uint32_t addr, r_addr, c_addr, t_r_addr;
 	uint32_t i, k, loop_count, t_value, r_cnt, r_value;
@@ -2480,40 +2860,56 @@ qla8044_minidump_process_l2tag(struct scsi_qla_host *vha,
 	p_wait = cache_hdr->cache_ctrl.poll_wait;
 	p_mask = cache_hdr->cache_ctrl.poll_mask;
 
-	for (i = 0; i < loop_count; i++) {
+	for (i = 0; i < loop_count; i++)
+	{
 		qla8044_wr_reg_indirect(vha, t_r_addr, t_value);
-		if (c_value_w)
-			qla8044_wr_reg_indirect(vha, c_addr, c_value_w);
 
-		if (p_mask) {
+		if (c_value_w)
+		{
+			qla8044_wr_reg_indirect(vha, c_addr, c_value_w);
+		}
+
+		if (p_mask)
+		{
 			w_time = jiffies + p_wait;
-			do {
+
+			do
+			{
 				qla8044_rd_reg_indirect(vha, c_addr,
-				    &c_value_r);
-				if ((c_value_r & p_mask) == 0) {
+										&c_value_r);
+
+				if ((c_value_r & p_mask) == 0)
+				{
 					break;
-				} else if (time_after_eq(jiffies, w_time)) {
+				}
+				else if (time_after_eq(jiffies, w_time))
+				{
 					/* capturing dump failed */
 					return rval;
 				}
-			} while (1);
+			}
+			while (1);
 		}
 
 		addr = r_addr;
-		for (k = 0; k < r_cnt; k++) {
+
+		for (k = 0; k < r_cnt; k++)
+		{
 			qla8044_rd_reg_indirect(vha, addr, &r_value);
 			*data_ptr++ = r_value;
 			addr += cache_hdr->read_ctrl.read_addr_stride;
 		}
+
 		t_value += cache_hdr->addr_ctrl.tag_value_stride;
 	}
+
 	*d_ptr = data_ptr;
 	return QLA_SUCCESS;
 }
 
 static void
 qla8044_minidump_process_l1cache(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
+								 struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
 {
 	uint32_t addr, r_addr, c_addr, t_r_addr;
 	uint32_t i, k, loop_count, t_value, r_cnt, r_value;
@@ -2531,23 +2927,28 @@ qla8044_minidump_process_l1cache(struct scsi_qla_host *vha,
 	t_value = cache_hdr->addr_ctrl.init_tag_value;
 	r_cnt = cache_hdr->read_ctrl.read_addr_cnt;
 
-	for (i = 0; i < loop_count; i++) {
+	for (i = 0; i < loop_count; i++)
+	{
 		qla8044_wr_reg_indirect(vha, t_r_addr, t_value);
 		qla8044_wr_reg_indirect(vha, c_addr, c_value_w);
 		addr = r_addr;
-		for (k = 0; k < r_cnt; k++) {
+
+		for (k = 0; k < r_cnt; k++)
+		{
 			qla8044_rd_reg_indirect(vha, addr, &r_value);
 			*data_ptr++ = r_value;
 			addr += cache_hdr->read_ctrl.read_addr_stride;
 		}
+
 		t_value += cache_hdr->addr_ctrl.tag_value_stride;
 	}
+
 	*d_ptr = data_ptr;
 }
 
 static void
 qla8044_minidump_process_rdocm(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
+							   struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
 {
 	uint32_t r_addr, r_stride, loop_cnt, i, r_value;
 	struct qla8044_minidump_entry_rdocm *ocm_hdr;
@@ -2562,24 +2963,26 @@ qla8044_minidump_process_rdocm(struct scsi_qla_host *vha,
 	loop_cnt = ocm_hdr->op_count;
 
 	ql_dbg(ql_dbg_p3p, vha, 0xb0fa,
-	    "[%s]: r_addr: 0x%x, r_stride: 0x%x, loop_cnt: 0x%x\n",
-	    __func__, r_addr, r_stride, loop_cnt);
+		   "[%s]: r_addr: 0x%x, r_stride: 0x%x, loop_cnt: 0x%x\n",
+		   __func__, r_addr, r_stride, loop_cnt);
 
-	for (i = 0; i < loop_cnt; i++) {
+	for (i = 0; i < loop_cnt; i++)
+	{
 		r_value = readl((void __iomem *)(r_addr + ha->nx_pcibase));
 		*data_ptr++ = r_value;
 		r_addr += r_stride;
 	}
+
 	ql_dbg(ql_dbg_p3p, vha, 0xb0fb, "Leaving fn: %s datacount: 0x%lx\n",
-	    __func__, (long unsigned int) (loop_cnt * sizeof(uint32_t)));
+		   __func__, (long unsigned int) (loop_cnt * sizeof(uint32_t)));
 
 	*d_ptr = data_ptr;
 }
 
 static void
 qla8044_minidump_process_rdmux(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr,
-	uint32_t **d_ptr)
+							   struct qla8044_minidump_entry_hdr *entry_hdr,
+							   uint32_t **d_ptr)
 {
 	uint32_t r_addr, s_stride, s_addr, s_value, loop_cnt, i, r_value;
 	struct qla8044_minidump_entry_mux *mux_hdr;
@@ -2594,20 +2997,22 @@ qla8044_minidump_process_rdmux(struct scsi_qla_host *vha,
 	s_value = mux_hdr->select_value;
 	loop_cnt = mux_hdr->op_count;
 
-	for (i = 0; i < loop_cnt; i++) {
+	for (i = 0; i < loop_cnt; i++)
+	{
 		qla8044_wr_reg_indirect(vha, s_addr, s_value);
 		qla8044_rd_reg_indirect(vha, r_addr, &r_value);
 		*data_ptr++ = s_value;
 		*data_ptr++ = r_value;
 		s_value += s_stride;
 	}
+
 	*d_ptr = data_ptr;
 }
 
 static void
 qla8044_minidump_process_queue(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr,
-	uint32_t **d_ptr)
+							   struct qla8044_minidump_entry_hdr *entry_hdr,
+							   uint32_t **d_ptr)
 {
 	uint32_t s_addr, r_addr;
 	uint32_t r_stride, r_value, r_cnt, qid = 0;
@@ -2622,24 +3027,29 @@ qla8044_minidump_process_queue(struct scsi_qla_host *vha,
 	r_stride = q_hdr->rd_strd.read_addr_stride;
 	loop_cnt = q_hdr->op_count;
 
-	for (i = 0; i < loop_cnt; i++) {
+	for (i = 0; i < loop_cnt; i++)
+	{
 		qla8044_wr_reg_indirect(vha, s_addr, qid);
 		r_addr = q_hdr->read_addr;
-		for (k = 0; k < r_cnt; k++) {
+
+		for (k = 0; k < r_cnt; k++)
+		{
 			qla8044_rd_reg_indirect(vha, r_addr, &r_value);
 			*data_ptr++ = r_value;
 			r_addr += r_stride;
 		}
+
 		qid += q_hdr->q_strd.queue_id_stride;
 	}
+
 	*d_ptr = data_ptr;
 }
 
 /* ISP83xx functions to process new minidump entries... */
 static uint32_t
 qla8044_minidump_process_pollrd(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr,
-	uint32_t **d_ptr)
+								struct qla8044_minidump_entry_hdr *entry_hdr,
+								uint32_t **d_ptr)
 {
 	uint32_t r_addr, s_addr, s_value, r_value, poll_wait, poll_mask;
 	uint16_t s_stride, i;
@@ -2655,28 +3065,39 @@ qla8044_minidump_process_pollrd(struct scsi_qla_host *vha,
 	poll_wait = pollrd_hdr->poll_wait;
 	poll_mask = pollrd_hdr->poll_mask;
 
-	for (i = 0; i < pollrd_hdr->op_count; i++) {
+	for (i = 0; i < pollrd_hdr->op_count; i++)
+	{
 		qla8044_wr_reg_indirect(vha, s_addr, s_value);
 		poll_wait = pollrd_hdr->poll_wait;
-		while (1) {
+
+		while (1)
+		{
 			qla8044_rd_reg_indirect(vha, s_addr, &r_value);
-			if ((r_value & poll_mask) != 0) {
+
+			if ((r_value & poll_mask) != 0)
+			{
 				break;
-			} else {
+			}
+			else
+			{
 				usleep_range(1000, 1100);
-				if (--poll_wait == 0) {
+
+				if (--poll_wait == 0)
+				{
 					ql_log(ql_log_fatal, vha, 0xb0fe,
-					    "%s: TIMEOUT\n", __func__);
+						   "%s: TIMEOUT\n", __func__);
 					goto error;
 				}
 			}
 		}
+
 		qla8044_rd_reg_indirect(vha, r_addr, &r_value);
 		*data_ptr++ = s_value;
 		*data_ptr++ = r_value;
 
 		s_value += s_stride;
 	}
+
 	*d_ptr = data_ptr;
 	return QLA_SUCCESS;
 
@@ -2686,7 +3107,7 @@ error:
 
 static void
 qla8044_minidump_process_rdmux2(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
+								struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
 {
 	uint32_t sel_val1, sel_val2, t_sel_val, data, i;
 	uint32_t sel_addr1, sel_addr2, sel_val_mask, read_addr;
@@ -2701,7 +3122,8 @@ qla8044_minidump_process_rdmux2(struct scsi_qla_host *vha,
 	sel_val_mask = rdmux2_hdr->select_value_mask;
 	read_addr = rdmux2_hdr->read_addr;
 
-	for (i = 0; i < rdmux2_hdr->op_count; i++) {
+	for (i = 0; i < rdmux2_hdr->op_count; i++)
+	{
 		qla8044_wr_reg_indirect(vha, sel_addr1, sel_val1);
 		t_sel_val = sel_val1 & sel_val_mask;
 		*data_ptr++ = t_sel_val;
@@ -2729,8 +3151,8 @@ qla8044_minidump_process_rdmux2(struct scsi_qla_host *vha,
 
 static uint32_t
 qla8044_minidump_process_pollrdmwr(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr,
-	uint32_t **d_ptr)
+								   struct qla8044_minidump_entry_hdr *entry_hdr,
+								   uint32_t **d_ptr)
 {
 	uint32_t poll_wait, poll_mask, r_value, data;
 	uint32_t addr_1, addr_2, value_1, value_2;
@@ -2747,16 +3169,23 @@ qla8044_minidump_process_pollrdmwr(struct scsi_qla_host *vha,
 	qla8044_wr_reg_indirect(vha, addr_1, value_1);
 
 	poll_wait = poll_hdr->poll_wait;
-	while (1) {
+
+	while (1)
+	{
 		qla8044_rd_reg_indirect(vha, addr_1, &r_value);
 
-		if ((r_value & poll_mask) != 0) {
+		if ((r_value & poll_mask) != 0)
+		{
 			break;
-		} else {
+		}
+		else
+		{
 			usleep_range(1000, 1100);
-			if (--poll_wait == 0) {
+
+			if (--poll_wait == 0)
+			{
 				ql_log(ql_log_fatal, vha, 0xb0ff,
-				    "%s: TIMEOUT\n", __func__);
+					   "%s: TIMEOUT\n", __func__);
 				goto error;
 			}
 		}
@@ -2768,16 +3197,23 @@ qla8044_minidump_process_pollrdmwr(struct scsi_qla_host *vha,
 	qla8044_wr_reg_indirect(vha, addr_1, value_2);
 
 	poll_wait = poll_hdr->poll_wait;
-	while (1) {
+
+	while (1)
+	{
 		qla8044_rd_reg_indirect(vha, addr_1, &r_value);
 
-		if ((r_value & poll_mask) != 0) {
+		if ((r_value & poll_mask) != 0)
+		{
 			break;
-		} else {
+		}
+		else
+		{
 			usleep_range(1000, 1100);
-			if (--poll_wait == 0) {
+
+			if (--poll_wait == 0)
+			{
 				ql_log(ql_log_fatal, vha, 0xb100,
-				    "%s: TIMEOUT2\n", __func__);
+					   "%s: TIMEOUT2\n", __func__);
 				goto error;
 			}
 		}
@@ -2815,27 +3251,32 @@ qla8044_check_dma_engine_state(struct scsi_qla_host *vha)
 
 	tmplt_hdr = ha->md_tmplt_hdr;
 	dma_eng_num =
-	    tmplt_hdr->saved_state_array[ISP8044_PEX_DMA_ENGINE_INDEX];
+		tmplt_hdr->saved_state_array[ISP8044_PEX_DMA_ENGINE_INDEX];
 	dma_base_addr = ISP8044_PEX_DMA_BASE_ADDRESS +
-		(dma_eng_num * ISP8044_PEX_DMA_NUM_OFFSET);
+					(dma_eng_num * ISP8044_PEX_DMA_NUM_OFFSET);
 
 	/* Read the pex-dma's command-status-and-control register. */
 	rval = qla8044_rd_reg_indirect(vha,
-	    (dma_base_addr + ISP8044_PEX_DMA_CMD_STS_AND_CNTRL),
-	    &cmd_sts_and_cntrl);
+								   (dma_base_addr + ISP8044_PEX_DMA_CMD_STS_AND_CNTRL),
+								   &cmd_sts_and_cntrl);
+
 	if (rval)
+	{
 		return QLA_FUNCTION_FAILED;
+	}
 
 	/* Check if requested pex-dma engine is available. */
 	if (cmd_sts_and_cntrl & BIT_31)
+	{
 		return QLA_SUCCESS;
+	}
 
 	return QLA_FUNCTION_FAILED;
 }
 
 static int
 qla8044_start_pex_dma(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_rdmem_pex_dma *m_hdr)
+					  struct qla8044_minidump_entry_rdmem_pex_dma *m_hdr)
 {
 	struct qla_hw_data *ha = vha->hw;
 	int rval = QLA_SUCCESS, wait = 0;
@@ -2845,43 +3286,59 @@ qla8044_start_pex_dma(struct scsi_qla_host *vha,
 
 	tmplt_hdr = ha->md_tmplt_hdr;
 	dma_eng_num =
-	    tmplt_hdr->saved_state_array[ISP8044_PEX_DMA_ENGINE_INDEX];
+		tmplt_hdr->saved_state_array[ISP8044_PEX_DMA_ENGINE_INDEX];
 	dma_base_addr = ISP8044_PEX_DMA_BASE_ADDRESS +
-		(dma_eng_num * ISP8044_PEX_DMA_NUM_OFFSET);
+					(dma_eng_num * ISP8044_PEX_DMA_NUM_OFFSET);
 
 	rval = qla8044_wr_reg_indirect(vha,
-	    dma_base_addr + ISP8044_PEX_DMA_CMD_ADDR_LOW,
-	    m_hdr->desc_card_addr);
+								   dma_base_addr + ISP8044_PEX_DMA_CMD_ADDR_LOW,
+								   m_hdr->desc_card_addr);
+
 	if (rval)
+	{
 		goto error_exit;
+	}
 
 	rval = qla8044_wr_reg_indirect(vha,
-	    dma_base_addr + ISP8044_PEX_DMA_CMD_ADDR_HIGH, 0);
+								   dma_base_addr + ISP8044_PEX_DMA_CMD_ADDR_HIGH, 0);
+
 	if (rval)
+	{
 		goto error_exit;
+	}
 
 	rval = qla8044_wr_reg_indirect(vha,
-	    dma_base_addr + ISP8044_PEX_DMA_CMD_STS_AND_CNTRL,
-	    m_hdr->start_dma_cmd);
+								   dma_base_addr + ISP8044_PEX_DMA_CMD_STS_AND_CNTRL,
+								   m_hdr->start_dma_cmd);
+
 	if (rval)
+	{
 		goto error_exit;
+	}
 
 	/* Wait for dma operation to complete. */
-	for (wait = 0; wait < ISP8044_PEX_DMA_MAX_WAIT; wait++) {
+	for (wait = 0; wait < ISP8044_PEX_DMA_MAX_WAIT; wait++)
+	{
 		rval = qla8044_rd_reg_indirect(vha,
-		    (dma_base_addr + ISP8044_PEX_DMA_CMD_STS_AND_CNTRL),
-		    &cmd_sts_and_cntrl);
+									   (dma_base_addr + ISP8044_PEX_DMA_CMD_STS_AND_CNTRL),
+									   &cmd_sts_and_cntrl);
+
 		if (rval)
+		{
 			goto error_exit;
+		}
 
 		if ((cmd_sts_and_cntrl & BIT_1) == 0)
+		{
 			break;
+		}
 
 		udelay(10);
 	}
 
 	/* Wait a max of 100 ms, otherwise fallback to rdmem entry read */
-	if (wait >= ISP8044_PEX_DMA_MAX_WAIT) {
+	if (wait >= ISP8044_PEX_DMA_MAX_WAIT)
+	{
 		rval = QLA_FUNCTION_FAILED;
 		goto error_exit;
 	}
@@ -2892,7 +3349,7 @@ error_exit:
 
 static int
 qla8044_minidump_pex_dma_read(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
+							  struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
 {
 	struct qla_hw_data *ha = vha->hw;
 	int rval = QLA_SUCCESS;
@@ -2904,19 +3361,23 @@ qla8044_minidump_pex_dma_read(struct scsi_qla_host *vha,
 	struct qla8044_pex_dma_descriptor dma_desc;
 
 	rval = qla8044_check_dma_engine_state(vha);
-	if (rval != QLA_SUCCESS) {
+
+	if (rval != QLA_SUCCESS)
+	{
 		ql_dbg(ql_dbg_p3p, vha, 0xb147,
-		    "DMA engine not available. Fallback to rdmem-read.\n");
+			   "DMA engine not available. Fallback to rdmem-read.\n");
 		return QLA_FUNCTION_FAILED;
 	}
 
 	m_hdr = (void *)entry_hdr;
 
 	rdmem_buffer = dma_alloc_coherent(&ha->pdev->dev,
-	    ISP8044_PEX_DMA_READ_SIZE, &rdmem_dma, GFP_KERNEL);
-	if (!rdmem_buffer) {
+									  ISP8044_PEX_DMA_READ_SIZE, &rdmem_dma, GFP_KERNEL);
+
+	if (!rdmem_buffer)
+	{
 		ql_dbg(ql_dbg_p3p, vha, 0xb148,
-		    "Unable to allocate rdmem dma buffer\n");
+			   "Unable to allocate rdmem dma buffer\n");
 		return QLA_FUNCTION_FAILED;
 	}
 
@@ -2930,7 +3391,7 @@ qla8044_minidump_pex_dma_read(struct scsi_qla_host *vha,
 	 */
 	dma_desc.cmd.dma_desc_cmd = (m_hdr->dma_desc_cmd & 0xff0f);
 	dma_desc.cmd.dma_desc_cmd |=
-	    ((PCI_FUNC(ha->pdev->devfn) & 0xf) << 0x4);
+		((PCI_FUNC(ha->pdev->devfn) & 0xf) << 0x4);
 
 	dma_desc.dma_bus_addr = rdmem_dma;
 	dma_desc.cmd.read_data_size = chunk_size = ISP8044_PEX_DMA_READ_SIZE;
@@ -2940,9 +3401,11 @@ qla8044_minidump_pex_dma_read(struct scsi_qla_host *vha,
 	 * Perform rdmem operation using pex-dma.
 	 * Prepare dma in chunks of ISP8044_PEX_DMA_READ_SIZE.
 	 */
-	while (read_size < m_hdr->read_data_size) {
+	while (read_size < m_hdr->read_data_size)
+	{
 		if (m_hdr->read_data_size - read_size <
-		    ISP8044_PEX_DMA_READ_SIZE) {
+			ISP8044_PEX_DMA_READ_SIZE)
+		{
 			chunk_size = (m_hdr->read_data_size - read_size);
 			dma_desc.cmd.read_data_size = chunk_size;
 		}
@@ -2951,22 +3414,28 @@ qla8044_minidump_pex_dma_read(struct scsi_qla_host *vha,
 
 		/* Prepare: Write pex-dma descriptor to MS memory. */
 		rval = qla8044_ms_mem_write_128b(vha,
-		    m_hdr->desc_card_addr, (void *)&dma_desc,
-		    (sizeof(struct qla8044_pex_dma_descriptor)/16));
-		if (rval) {
+										 m_hdr->desc_card_addr, (void *)&dma_desc,
+										 (sizeof(struct qla8044_pex_dma_descriptor) / 16));
+
+		if (rval)
+		{
 			ql_log(ql_log_warn, vha, 0xb14a,
-			    "%s: Error writing rdmem-dma-init to MS !!!\n",
-			    __func__);
+				   "%s: Error writing rdmem-dma-init to MS !!!\n",
+				   __func__);
 			goto error_exit;
 		}
+
 		ql_dbg(ql_dbg_p3p, vha, 0xb14b,
-		    "%s: Dma-descriptor: Instruct for rdmem dma "
-		    "(chunk_size 0x%x).\n", __func__, chunk_size);
+			   "%s: Dma-descriptor: Instruct for rdmem dma "
+			   "(chunk_size 0x%x).\n", __func__, chunk_size);
 
 		/* Execute: Start pex-dma operation. */
 		rval = qla8044_start_pex_dma(vha, m_hdr);
+
 		if (rval)
+		{
 			goto error_exit;
+		}
 
 		memcpy(data_ptr, rdmem_buffer, chunk_size);
 		data_ptr += chunk_size;
@@ -2976,16 +3445,17 @@ qla8044_minidump_pex_dma_read(struct scsi_qla_host *vha,
 	*d_ptr = (void *)data_ptr;
 
 error_exit:
+
 	if (rdmem_buffer)
 		dma_free_coherent(&ha->pdev->dev, ISP8044_PEX_DMA_READ_SIZE,
-		    rdmem_buffer, rdmem_dma);
+						  rdmem_buffer, rdmem_dma);
 
 	return rval;
 }
 
 static uint32_t
 qla8044_minidump_process_rddfe(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
+							   struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
 {
 	int loop_cnt;
 	uint32_t addr1, addr2, value, data, temp, wrVal;
@@ -3011,22 +3481,32 @@ qla8044_minidump_process_rddfe(struct scsi_qla_host *vha,
 
 	addr2 = addr1 + stride;
 
-	for (loop_cnt = 0x0; loop_cnt < count; loop_cnt++) {
+	for (loop_cnt = 0x0; loop_cnt < count; loop_cnt++)
+	{
 		qla8044_wr_reg_indirect(vha, addr1, (0x40000000 | value));
 
 		wait_count = 0;
-		while (wait_count < poll) {
+
+		while (wait_count < poll)
+		{
 			qla8044_rd_reg_indirect(vha, addr1, &temp);
+
 			if ((temp & mask) != 0)
+			{
 				break;
+			}
+
 			wait_count++;
 		}
 
-		if (wait_count == poll) {
+		if (wait_count == poll)
+		{
 			ql_log(ql_log_warn, vha, 0xb153,
-			    "%s: TIMEOUT\n", __func__);
+				   "%s: TIMEOUT\n", __func__);
 			goto error;
-		} else {
+		}
+		else
+		{
 			qla8044_rd_reg_indirect(vha, addr2, &temp);
 			temp = temp & modify_mask;
 			temp = (temp | ((loop_cnt << 16) | loop_cnt));
@@ -3036,31 +3516,46 @@ qla8044_minidump_process_rddfe(struct scsi_qla_host *vha,
 			qla8044_wr_reg_indirect(vha, addr1, value);
 
 			wait_count = 0;
-			while (wait_count < poll) {
+
+			while (wait_count < poll)
+			{
 				qla8044_rd_reg_indirect(vha, addr1, &temp);
+
 				if ((temp & mask) != 0)
+				{
 					break;
+				}
+
 				wait_count++;
 			}
-			if (wait_count == poll) {
+
+			if (wait_count == poll)
+			{
 				ql_log(ql_log_warn, vha, 0xb154,
-				    "%s: TIMEOUT\n", __func__);
+					   "%s: TIMEOUT\n", __func__);
 				goto error;
 			}
 
 			qla8044_wr_reg_indirect(vha, addr1,
-			    ((0x40000000 | value) + stride2));
+									((0x40000000 | value) + stride2));
 			wait_count = 0;
-			while (wait_count < poll) {
+
+			while (wait_count < poll)
+			{
 				qla8044_rd_reg_indirect(vha, addr1, &temp);
+
 				if ((temp & mask) != 0)
+				{
 					break;
+				}
+
 				wait_count++;
 			}
 
-			if (wait_count == poll) {
+			if (wait_count == poll)
+			{
 				ql_log(ql_log_warn, vha, 0xb155,
-				    "%s: TIMEOUT\n", __func__);
+					   "%s: TIMEOUT\n", __func__);
 				goto error;
 			}
 
@@ -3082,7 +3577,7 @@ error:
 
 static uint32_t
 qla8044_minidump_process_rdmdio(struct scsi_qla_host *vha,
-	struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
+								struct qla8044_minidump_entry_hdr *entry_hdr, uint32_t **d_ptr)
 {
 	int ret = 0;
 	uint32_t addr1, addr2, value1, value2, data, selVal;
@@ -3108,39 +3603,58 @@ qla8044_minidump_process_rdmdio(struct scsi_qla_host *vha,
 
 	addr3 = addr1 + stride1;
 
-	for (loop_cnt = 0; loop_cnt < count; loop_cnt++) {
+	for (loop_cnt = 0; loop_cnt < count; loop_cnt++)
+	{
 		ret = qla8044_poll_wait_ipmdio_bus_idle(vha, addr1, addr2,
-		    addr3, mask);
+												addr3, mask);
+
 		if (ret == -1)
+		{
 			goto error;
+		}
 
 		addr4 = addr2 - stride1;
 		ret = qla8044_ipmdio_wr_reg(vha, addr1, addr3, mask, addr4,
-		    value2);
+									value2);
+
 		if (ret == -1)
+		{
 			goto error;
+		}
 
 		addr5 = addr2 - (2 * stride1);
 		ret = qla8044_ipmdio_wr_reg(vha, addr1, addr3, mask, addr5,
-		    value1);
+									value1);
+
 		if (ret == -1)
+		{
 			goto error;
+		}
 
 		addr6 = addr2 - (3 * stride1);
 		ret = qla8044_ipmdio_wr_reg(vha, addr1, addr3, mask,
-		    addr6, 0x2);
+									addr6, 0x2);
+
 		if (ret == -1)
+		{
 			goto error;
+		}
 
 		ret = qla8044_poll_wait_ipmdio_bus_idle(vha, addr1, addr2,
-		    addr3, mask);
+												addr3, mask);
+
 		if (ret == -1)
+		{
 			goto error;
+		}
 
 		addr7 = addr2 - (4 * stride1);
 		data = qla8044_ipmdio_rd_reg(vha, addr1, addr3, mask, addr7);
+
 		if (data == -1)
+		{
 			goto error;
+		}
 
 		selVal = (value2 << 18) | (value1 << 2) | 2;
 
@@ -3173,15 +3687,20 @@ static uint32_t qla8044_minidump_process_pollwr(struct scsi_qla_host *vha,
 
 	poll = pollwr_hdr->poll;
 
-	while (wait_count < poll) {
+	while (wait_count < poll)
+	{
 		qla8044_rd_reg_indirect(vha, addr1, &r_value);
 
 		if ((r_value & poll) != 0)
+		{
 			break;
+		}
+
 		wait_count++;
 	}
 
-	if (wait_count == poll) {
+	if (wait_count == poll)
+	{
 		ql_log(ql_log_warn, vha, 0xb156, "%s: TIMEOUT\n", __func__);
 		goto error;
 	}
@@ -3190,11 +3709,16 @@ static uint32_t qla8044_minidump_process_pollwr(struct scsi_qla_host *vha,
 	qla8044_wr_reg_indirect(vha, addr1, value1);
 
 	wait_count = 0;
-	while (wait_count < poll) {
+
+	while (wait_count < poll)
+	{
 		qla8044_rd_reg_indirect(vha, addr1, &r_value);
 
 		if ((r_value & poll) != 0)
+		{
 			break;
+		}
+
 		wait_count++;
 	}
 
@@ -3222,75 +3746,84 @@ qla8044_collect_md_data(struct scsi_qla_host *vha)
 	uint32_t timestamp, idc_control;
 	struct qla_hw_data *ha = vha->hw;
 
-	if (!ha->md_dump) {
+	if (!ha->md_dump)
+	{
 		ql_log(ql_log_info, vha, 0xb101,
-		    "%s(%ld) No buffer to dump\n",
-		    __func__, vha->host_no);
+			   "%s(%ld) No buffer to dump\n",
+			   __func__, vha->host_no);
 		return rval;
 	}
 
-	if (ha->fw_dumped) {
+	if (ha->fw_dumped)
+	{
 		ql_log(ql_log_warn, vha, 0xb10d,
-		    "Firmware has been previously dumped (%p) "
-		    "-- ignoring request.\n", ha->fw_dump);
+			   "Firmware has been previously dumped (%p) "
+			   "-- ignoring request.\n", ha->fw_dump);
 		goto md_failed;
 	}
 
 	ha->fw_dumped = 0;
 
-	if (!ha->md_tmplt_hdr || !ha->md_dump) {
+	if (!ha->md_tmplt_hdr || !ha->md_dump)
+	{
 		ql_log(ql_log_warn, vha, 0xb10e,
-		    "Memory not allocated for minidump capture\n");
+			   "Memory not allocated for minidump capture\n");
 		goto md_failed;
 	}
 
 	qla8044_idc_lock(ha);
 	idc_control = qla8044_rd_reg(ha, QLA8044_IDC_DRV_CTRL);
-	if (idc_control & GRACEFUL_RESET_BIT1) {
+
+	if (idc_control & GRACEFUL_RESET_BIT1)
+	{
 		ql_log(ql_log_warn, vha, 0xb112,
-		    "Forced reset from application, "
-		    "ignore minidump capture\n");
+			   "Forced reset from application, "
+			   "ignore minidump capture\n");
 		qla8044_wr_reg(ha, QLA8044_IDC_DRV_CTRL,
-		    (idc_control & ~GRACEFUL_RESET_BIT1));
+					   (idc_control & ~GRACEFUL_RESET_BIT1));
 		qla8044_idc_unlock(ha);
 
 		goto md_failed;
 	}
+
 	qla8044_idc_unlock(ha);
 
-	if (qla82xx_validate_template_chksum(vha)) {
+	if (qla82xx_validate_template_chksum(vha))
+	{
 		ql_log(ql_log_info, vha, 0xb109,
-		    "Template checksum validation error\n");
+			   "Template checksum validation error\n");
 		goto md_failed;
 	}
 
 	tmplt_hdr = (struct qla8044_minidump_template_hdr *)
-		ha->md_tmplt_hdr;
+				ha->md_tmplt_hdr;
 	data_ptr = (uint32_t *)((uint8_t *)ha->md_dump);
 	num_entry_hdr = tmplt_hdr->num_of_entries;
 
 	ql_dbg(ql_dbg_p3p, vha, 0xb11a,
-	    "Capture Mask obtained: 0x%x\n", tmplt_hdr->capture_debug_level);
+		   "Capture Mask obtained: 0x%x\n", tmplt_hdr->capture_debug_level);
 
 	f_capture_mask = tmplt_hdr->capture_debug_level & 0xFF;
 
 	/* Validate whether required debug level is set */
-	if ((f_capture_mask & 0x3) != 0x3) {
+	if ((f_capture_mask & 0x3) != 0x3)
+	{
 		ql_log(ql_log_warn, vha, 0xb10f,
-		    "Minimum required capture mask[0x%x] level not set\n",
-		    f_capture_mask);
+			   "Minimum required capture mask[0x%x] level not set\n",
+			   f_capture_mask);
 
 	}
+
 	tmplt_hdr->driver_capture_mask = ql2xmdcapmask;
 	ql_log(ql_log_info, vha, 0xb102,
-	    "[%s]: starting data ptr: %p\n",
-	   __func__, data_ptr);
+		   "[%s]: starting data ptr: %p\n",
+		   __func__, data_ptr);
 	ql_log(ql_log_info, vha, 0xb10b,
-	   "[%s]: no of entry headers in Template: 0x%x\n",
-	   __func__, num_entry_hdr);
+		   "[%s]: no of entry headers in Template: 0x%x\n",
+		   __func__, num_entry_hdr);
 	ql_log(ql_log_info, vha, 0xb10c,
-	    "[%s]: Total_data_size 0x%x, %d obtained\n",
-	   __func__, ha->md_dump_size, ha->md_dump_size);
+		   "[%s]: Total_data_size 0x%x, %d obtained\n",
+		   __func__, ha->md_dump_size, ha->md_dump_size);
 
 	/* Update current timestamp before taking dump */
 	now = get_jiffies_64();
@@ -3298,172 +3831,227 @@ qla8044_collect_md_data(struct scsi_qla_host *vha)
 	tmplt_hdr->driver_timestamp = timestamp;
 
 	entry_hdr = (struct qla8044_minidump_entry_hdr *)
-		(((uint8_t *)ha->md_tmplt_hdr) + tmplt_hdr->first_entry_offset);
+				(((uint8_t *)ha->md_tmplt_hdr) + tmplt_hdr->first_entry_offset);
 	tmplt_hdr->saved_state_array[QLA8044_SS_OCM_WNDREG_INDEX] =
-	    tmplt_hdr->ocm_window_reg[ha->portnum];
+		tmplt_hdr->ocm_window_reg[ha->portnum];
 
 	/* Walk through the entry headers - validate/perform required action */
-	for (i = 0; i < num_entry_hdr; i++) {
-		if (data_collected > ha->md_dump_size) {
+	for (i = 0; i < num_entry_hdr; i++)
+	{
+		if (data_collected > ha->md_dump_size)
+		{
 			ql_log(ql_log_info, vha, 0xb103,
-			    "Data collected: [0x%x], "
-			    "Total Dump size: [0x%x]\n",
-			    data_collected, ha->md_dump_size);
+				   "Data collected: [0x%x], "
+				   "Total Dump size: [0x%x]\n",
+				   data_collected, ha->md_dump_size);
 			return rval;
 		}
 
 		if (!(entry_hdr->d_ctrl.entry_capture_mask &
-		      ql2xmdcapmask)) {
+			  ql2xmdcapmask))
+		{
 			entry_hdr->d_ctrl.driver_flags |=
-			    QLA82XX_DBG_SKIPPED_FLAG;
+				QLA82XX_DBG_SKIPPED_FLAG;
 			goto skip_nxt_entry;
 		}
 
 		ql_dbg(ql_dbg_p3p, vha, 0xb104,
-		    "Data collected: [0x%x], Dump size left:[0x%x]\n",
-		    data_collected,
-		    (ha->md_dump_size - data_collected));
+			   "Data collected: [0x%x], Dump size left:[0x%x]\n",
+			   data_collected,
+			   (ha->md_dump_size - data_collected));
 
 		/* Decode the entry type and take required action to capture
 		 * debug data
 		 */
-		switch (entry_hdr->entry_type) {
-		case QLA82XX_RDEND:
-			qla8044_mark_entry_skipped(vha, entry_hdr, i);
-			break;
-		case QLA82XX_CNTRL:
-			rval = qla8044_minidump_process_control(vha,
-			    entry_hdr);
-			if (rval != QLA_SUCCESS) {
+		switch (entry_hdr->entry_type)
+		{
+			case QLA82XX_RDEND:
 				qla8044_mark_entry_skipped(vha, entry_hdr, i);
-				goto md_failed;
-			}
-			break;
-		case QLA82XX_RDCRB:
-			qla8044_minidump_process_rdcrb(vha,
-			    entry_hdr, &data_ptr);
-			break;
-		case QLA82XX_RDMEM:
-			rval = qla8044_minidump_pex_dma_read(vha,
-			    entry_hdr, &data_ptr);
-			if (rval != QLA_SUCCESS) {
-				rval = qla8044_minidump_process_rdmem(vha,
-				    entry_hdr, &data_ptr);
-				if (rval != QLA_SUCCESS) {
-					qla8044_mark_entry_skipped(vha,
-					    entry_hdr, i);
+				break;
+
+			case QLA82XX_CNTRL:
+				rval = qla8044_minidump_process_control(vha,
+														entry_hdr);
+
+				if (rval != QLA_SUCCESS)
+				{
+					qla8044_mark_entry_skipped(vha, entry_hdr, i);
 					goto md_failed;
 				}
-			}
-			break;
-		case QLA82XX_BOARD:
-		case QLA82XX_RDROM:
-			rval = qla8044_minidump_process_rdrom(vha,
-			    entry_hdr, &data_ptr);
-			if (rval != QLA_SUCCESS) {
-				qla8044_mark_entry_skipped(vha,
-				    entry_hdr, i);
-			}
-			break;
-		case QLA82XX_L2DTG:
-		case QLA82XX_L2ITG:
-		case QLA82XX_L2DAT:
-		case QLA82XX_L2INS:
-			rval = qla8044_minidump_process_l2tag(vha,
-			    entry_hdr, &data_ptr);
-			if (rval != QLA_SUCCESS) {
+
+				break;
+
+			case QLA82XX_RDCRB:
+				qla8044_minidump_process_rdcrb(vha,
+											   entry_hdr, &data_ptr);
+				break;
+
+			case QLA82XX_RDMEM:
+				rval = qla8044_minidump_pex_dma_read(vha,
+													 entry_hdr, &data_ptr);
+
+				if (rval != QLA_SUCCESS)
+				{
+					rval = qla8044_minidump_process_rdmem(vha,
+														  entry_hdr, &data_ptr);
+
+					if (rval != QLA_SUCCESS)
+					{
+						qla8044_mark_entry_skipped(vha,
+												   entry_hdr, i);
+						goto md_failed;
+					}
+				}
+
+				break;
+
+			case QLA82XX_BOARD:
+			case QLA82XX_RDROM:
+				rval = qla8044_minidump_process_rdrom(vha,
+													  entry_hdr, &data_ptr);
+
+				if (rval != QLA_SUCCESS)
+				{
+					qla8044_mark_entry_skipped(vha,
+											   entry_hdr, i);
+				}
+
+				break;
+
+			case QLA82XX_L2DTG:
+			case QLA82XX_L2ITG:
+			case QLA82XX_L2DAT:
+			case QLA82XX_L2INS:
+				rval = qla8044_minidump_process_l2tag(vha,
+													  entry_hdr, &data_ptr);
+
+				if (rval != QLA_SUCCESS)
+				{
+					qla8044_mark_entry_skipped(vha, entry_hdr, i);
+					goto md_failed;
+				}
+
+				break;
+
+			case QLA8044_L1DTG:
+			case QLA8044_L1ITG:
+			case QLA82XX_L1DAT:
+			case QLA82XX_L1INS:
+				qla8044_minidump_process_l1cache(vha,
+												 entry_hdr, &data_ptr);
+				break;
+
+			case QLA82XX_RDOCM:
+				qla8044_minidump_process_rdocm(vha,
+											   entry_hdr, &data_ptr);
+				break;
+
+			case QLA82XX_RDMUX:
+				qla8044_minidump_process_rdmux(vha,
+											   entry_hdr, &data_ptr);
+				break;
+
+			case QLA82XX_QUEUE:
+				qla8044_minidump_process_queue(vha,
+											   entry_hdr, &data_ptr);
+				break;
+
+			case QLA8044_POLLRD:
+				rval = qla8044_minidump_process_pollrd(vha,
+													   entry_hdr, &data_ptr);
+
+				if (rval != QLA_SUCCESS)
+				{
+					qla8044_mark_entry_skipped(vha, entry_hdr, i);
+				}
+
+				break;
+
+			case QLA8044_RDMUX2:
+				qla8044_minidump_process_rdmux2(vha,
+												entry_hdr, &data_ptr);
+				break;
+
+			case QLA8044_POLLRDMWR:
+				rval = qla8044_minidump_process_pollrdmwr(vha,
+						entry_hdr, &data_ptr);
+
+				if (rval != QLA_SUCCESS)
+				{
+					qla8044_mark_entry_skipped(vha, entry_hdr, i);
+				}
+
+				break;
+
+			case QLA8044_RDDFE:
+				rval = qla8044_minidump_process_rddfe(vha, entry_hdr,
+													  &data_ptr);
+
+				if (rval != QLA_SUCCESS)
+				{
+					qla8044_mark_entry_skipped(vha, entry_hdr, i);
+				}
+
+				break;
+
+			case QLA8044_RDMDIO:
+				rval = qla8044_minidump_process_rdmdio(vha, entry_hdr,
+													   &data_ptr);
+
+				if (rval != QLA_SUCCESS)
+				{
+					qla8044_mark_entry_skipped(vha, entry_hdr, i);
+				}
+
+				break;
+
+			case QLA8044_POLLWR:
+				rval = qla8044_minidump_process_pollwr(vha, entry_hdr,
+													   &data_ptr);
+
+				if (rval != QLA_SUCCESS)
+				{
+					qla8044_mark_entry_skipped(vha, entry_hdr, i);
+				}
+
+				break;
+
+			case QLA82XX_RDNOP:
+			default:
 				qla8044_mark_entry_skipped(vha, entry_hdr, i);
-				goto md_failed;
-			}
-			break;
-		case QLA8044_L1DTG:
-		case QLA8044_L1ITG:
-		case QLA82XX_L1DAT:
-		case QLA82XX_L1INS:
-			qla8044_minidump_process_l1cache(vha,
-			    entry_hdr, &data_ptr);
-			break;
-		case QLA82XX_RDOCM:
-			qla8044_minidump_process_rdocm(vha,
-			    entry_hdr, &data_ptr);
-			break;
-		case QLA82XX_RDMUX:
-			qla8044_minidump_process_rdmux(vha,
-			    entry_hdr, &data_ptr);
-			break;
-		case QLA82XX_QUEUE:
-			qla8044_minidump_process_queue(vha,
-			    entry_hdr, &data_ptr);
-			break;
-		case QLA8044_POLLRD:
-			rval = qla8044_minidump_process_pollrd(vha,
-			    entry_hdr, &data_ptr);
-			if (rval != QLA_SUCCESS)
-				qla8044_mark_entry_skipped(vha, entry_hdr, i);
-			break;
-		case QLA8044_RDMUX2:
-			qla8044_minidump_process_rdmux2(vha,
-			    entry_hdr, &data_ptr);
-			break;
-		case QLA8044_POLLRDMWR:
-			rval = qla8044_minidump_process_pollrdmwr(vha,
-			    entry_hdr, &data_ptr);
-			if (rval != QLA_SUCCESS)
-				qla8044_mark_entry_skipped(vha, entry_hdr, i);
-			break;
-		case QLA8044_RDDFE:
-			rval = qla8044_minidump_process_rddfe(vha, entry_hdr,
-			    &data_ptr);
-			if (rval != QLA_SUCCESS)
-				qla8044_mark_entry_skipped(vha, entry_hdr, i);
-			break;
-		case QLA8044_RDMDIO:
-			rval = qla8044_minidump_process_rdmdio(vha, entry_hdr,
-			    &data_ptr);
-			if (rval != QLA_SUCCESS)
-				qla8044_mark_entry_skipped(vha, entry_hdr, i);
-			break;
-		case QLA8044_POLLWR:
-			rval = qla8044_minidump_process_pollwr(vha, entry_hdr,
-			    &data_ptr);
-			if (rval != QLA_SUCCESS)
-				qla8044_mark_entry_skipped(vha, entry_hdr, i);
-			break;
-		case QLA82XX_RDNOP:
-		default:
-			qla8044_mark_entry_skipped(vha, entry_hdr, i);
-			break;
+				break;
 		}
 
 		data_collected = (uint8_t *)data_ptr -
-		    (uint8_t *)((uint8_t *)ha->md_dump);
+						 (uint8_t *)((uint8_t *)ha->md_dump);
 skip_nxt_entry:
 		/*
 		 * next entry in the template
 		 */
 		entry_hdr = (struct qla8044_minidump_entry_hdr *)
-		    (((uint8_t *)entry_hdr) + entry_hdr->entry_size);
+					(((uint8_t *)entry_hdr) + entry_hdr->entry_size);
 	}
 
-	if (data_collected != ha->md_dump_size) {
+	if (data_collected != ha->md_dump_size)
+	{
 		ql_log(ql_log_info, vha, 0xb105,
-		    "Dump data mismatch: Data collected: "
-		    "[0x%x], total_data_size:[0x%x]\n",
-		    data_collected, ha->md_dump_size);
+			   "Dump data mismatch: Data collected: "
+			   "[0x%x], total_data_size:[0x%x]\n",
+			   data_collected, ha->md_dump_size);
 		rval = QLA_FUNCTION_FAILED;
 		goto md_failed;
 	}
 
 	ql_log(ql_log_info, vha, 0xb110,
-	    "Firmware dump saved to temp buffer (%ld/%p %ld/%p).\n",
-	    vha->host_no, ha->md_tmplt_hdr, vha->host_no, ha->md_dump);
+		   "Firmware dump saved to temp buffer (%ld/%p %ld/%p).\n",
+		   vha->host_no, ha->md_tmplt_hdr, vha->host_no, ha->md_dump);
 	ha->fw_dumped = 1;
 	qla2x00_post_uevent_work(vha, QLA_UEVENT_CODE_FW_DUMP);
 
 
 	ql_log(ql_log_info, vha, 0xb106,
-	    "Leaving fn: %s Last entry: 0x%x\n",
-	    __func__, i);
+		   "Leaving fn: %s Last entry: 0x%x\n",
+		   __func__, i);
 md_failed:
 	return rval;
 }
@@ -3473,13 +4061,16 @@ qla8044_get_minidump(struct scsi_qla_host *vha)
 {
 	struct qla_hw_data *ha = vha->hw;
 
-	if (!qla8044_collect_md_data(vha)) {
+	if (!qla8044_collect_md_data(vha))
+	{
 		ha->fw_dumped = 1;
 		ha->prev_minidump_failed = 0;
-	} else {
+	}
+	else
+	{
 		ql_log(ql_log_fatal, vha, 0xb0db,
-		    "%s: Unable to collect minidump\n",
-		    __func__);
+			   "%s: Unable to collect minidump\n",
+			   __func__);
 		ha->prev_minidump_failed = 1;
 	}
 }
@@ -3491,30 +4082,39 @@ qla8044_poll_flash_status_reg(struct scsi_qla_host *vha)
 	int retries = QLA8044_FLASH_READ_RETRY_COUNT;
 	int ret_val = QLA_SUCCESS;
 
-	while (retries--) {
+	while (retries--)
+	{
 		ret_val = qla8044_rd_reg_indirect(vha, QLA8044_FLASH_STATUS,
-		    &flash_status);
-		if (ret_val) {
+										  &flash_status);
+
+		if (ret_val)
+		{
 			ql_log(ql_log_warn, vha, 0xb13c,
-			    "%s: Failed to read FLASH_STATUS reg.\n",
-			    __func__);
+				   "%s: Failed to read FLASH_STATUS reg.\n",
+				   __func__);
 			break;
 		}
+
 		if ((flash_status & QLA8044_FLASH_STATUS_READY) ==
-		    QLA8044_FLASH_STATUS_READY)
+			QLA8044_FLASH_STATUS_READY)
+		{
 			break;
+		}
+
 		msleep(QLA8044_FLASH_STATUS_REG_POLL_DELAY);
 	}
 
 	if (!retries)
+	{
 		ret_val = QLA_FUNCTION_FAILED;
+	}
 
 	return ret_val;
 }
 
 static int
 qla8044_write_flash_status_reg(struct scsi_qla_host *vha,
-			       uint32_t data)
+							   uint32_t data)
 {
 	int ret_val = QLA_SUCCESS;
 	uint32_t cmd;
@@ -3522,32 +4122,39 @@ qla8044_write_flash_status_reg(struct scsi_qla_host *vha,
 	cmd = vha->hw->fdt_wrt_sts_reg_cmd;
 
 	ret_val = qla8044_wr_reg_indirect(vha, QLA8044_FLASH_ADDR,
-	    QLA8044_FLASH_STATUS_WRITE_DEF_SIG | cmd);
-	if (ret_val) {
+									  QLA8044_FLASH_STATUS_WRITE_DEF_SIG | cmd);
+
+	if (ret_val)
+	{
 		ql_log(ql_log_warn, vha, 0xb125,
-		    "%s: Failed to write to FLASH_ADDR.\n", __func__);
+			   "%s: Failed to write to FLASH_ADDR.\n", __func__);
 		goto exit_func;
 	}
 
 	ret_val = qla8044_wr_reg_indirect(vha, QLA8044_FLASH_WRDATA, data);
-	if (ret_val) {
+
+	if (ret_val)
+	{
 		ql_log(ql_log_warn, vha, 0xb126,
-		    "%s: Failed to write to FLASH_WRDATA.\n", __func__);
+			   "%s: Failed to write to FLASH_WRDATA.\n", __func__);
 		goto exit_func;
 	}
 
 	ret_val = qla8044_wr_reg_indirect(vha, QLA8044_FLASH_CONTROL,
-	    QLA8044_FLASH_SECOND_ERASE_MS_VAL);
-	if (ret_val) {
+									  QLA8044_FLASH_SECOND_ERASE_MS_VAL);
+
+	if (ret_val)
+	{
 		ql_log(ql_log_warn, vha, 0xb127,
-		    "%s: Failed to write to FLASH_CONTROL.\n", __func__);
+			   "%s: Failed to write to FLASH_CONTROL.\n", __func__);
 		goto exit_func;
 	}
 
 	ret_val = qla8044_poll_flash_status_reg(vha);
+
 	if (ret_val)
 		ql_log(ql_log_warn, vha, 0xb128,
-		    "%s: Error polling flash status reg.\n", __func__);
+			   "%s: Error polling flash status reg.\n", __func__);
 
 exit_func:
 	return ret_val;
@@ -3563,9 +4170,10 @@ qla8044_unprotect_flash(scsi_qla_host_t *vha)
 	struct qla_hw_data *ha = vha->hw;
 
 	ret_val = qla8044_write_flash_status_reg(vha, ha->fdt_wrt_enable);
+
 	if (ret_val)
 		ql_log(ql_log_warn, vha, 0xb139,
-		    "%s: Write flash status failed.\n", __func__);
+			   "%s: Write flash status failed.\n", __func__);
 
 	return ret_val;
 }
@@ -3580,9 +4188,10 @@ qla8044_protect_flash(scsi_qla_host_t *vha)
 	struct qla_hw_data *ha = vha->hw;
 
 	ret_val = qla8044_write_flash_status_reg(vha, ha->fdt_wrt_disable);
+
 	if (ret_val)
 		ql_log(ql_log_warn, vha, 0xb13b,
-		    "%s: Write flash status failed.\n", __func__);
+			   "%s: Write flash status failed.\n", __func__);
 
 	return ret_val;
 }
@@ -3590,43 +4199,56 @@ qla8044_protect_flash(scsi_qla_host_t *vha)
 
 static int
 qla8044_erase_flash_sector(struct scsi_qla_host *vha,
-			   uint32_t sector_start_addr)
+						   uint32_t sector_start_addr)
 {
 	uint32_t reversed_addr;
 	int ret_val = QLA_SUCCESS;
 
 	ret_val = qla8044_poll_flash_status_reg(vha);
-	if (ret_val) {
+
+	if (ret_val)
+	{
 		ql_log(ql_log_warn, vha, 0xb12e,
-		    "%s: Poll flash status after erase failed..\n", __func__);
+			   "%s: Poll flash status after erase failed..\n", __func__);
 	}
 
 	reversed_addr = (((sector_start_addr & 0xFF) << 16) |
-	    (sector_start_addr & 0xFF00) |
-	    ((sector_start_addr & 0xFF0000) >> 16));
+					 (sector_start_addr & 0xFF00) |
+					 ((sector_start_addr & 0xFF0000) >> 16));
 
 	ret_val = qla8044_wr_reg_indirect(vha,
-	    QLA8044_FLASH_WRDATA, reversed_addr);
-	if (ret_val) {
+									  QLA8044_FLASH_WRDATA, reversed_addr);
+
+	if (ret_val)
+	{
 		ql_log(ql_log_warn, vha, 0xb12f,
-		    "%s: Failed to write to FLASH_WRDATA.\n", __func__);
+			   "%s: Failed to write to FLASH_WRDATA.\n", __func__);
 	}
+
 	ret_val = qla8044_wr_reg_indirect(vha, QLA8044_FLASH_ADDR,
-	   QLA8044_FLASH_ERASE_SIG | vha->hw->fdt_erase_cmd);
-	if (ret_val) {
+									  QLA8044_FLASH_ERASE_SIG | vha->hw->fdt_erase_cmd);
+
+	if (ret_val)
+	{
 		ql_log(ql_log_warn, vha, 0xb130,
-		    "%s: Failed to write to FLASH_ADDR.\n", __func__);
+			   "%s: Failed to write to FLASH_ADDR.\n", __func__);
 	}
+
 	ret_val = qla8044_wr_reg_indirect(vha, QLA8044_FLASH_CONTROL,
-	    QLA8044_FLASH_LAST_ERASE_MS_VAL);
-	if (ret_val) {
+									  QLA8044_FLASH_LAST_ERASE_MS_VAL);
+
+	if (ret_val)
+	{
 		ql_log(ql_log_warn, vha, 0xb131,
-		    "%s: Failed write to FLASH_CONTROL.\n", __func__);
+			   "%s: Failed write to FLASH_CONTROL.\n", __func__);
 	}
+
 	ret_val = qla8044_poll_flash_status_reg(vha);
-	if (ret_val) {
+
+	if (ret_val)
+	{
 		ql_log(ql_log_warn, vha, 0xb132,
-		    "%s: Poll flash status failed.\n", __func__);
+			   "%s: Poll flash status failed.\n", __func__);
 	}
 
 
@@ -3646,33 +4268,44 @@ qla8044_erase_flash_sector(struct scsi_qla_host *vha,
  */
 static int
 qla8044_flash_write_u32(struct scsi_qla_host *vha, uint32_t addr,
-			uint32_t *p_data)
+						uint32_t *p_data)
 {
 	int ret_val = QLA_SUCCESS;
 
 	ret_val = qla8044_wr_reg_indirect(vha, QLA8044_FLASH_ADDR,
-	    0x00800000 | (addr >> 2));
-	if (ret_val) {
+									  0x00800000 | (addr >> 2));
+
+	if (ret_val)
+	{
 		ql_log(ql_log_warn, vha, 0xb134,
-		    "%s: Failed write to FLASH_ADDR.\n", __func__);
+			   "%s: Failed write to FLASH_ADDR.\n", __func__);
 		goto exit_func;
 	}
+
 	ret_val = qla8044_wr_reg_indirect(vha, QLA8044_FLASH_WRDATA, *p_data);
-	if (ret_val) {
+
+	if (ret_val)
+	{
 		ql_log(ql_log_warn, vha, 0xb135,
-		    "%s: Failed write to FLASH_WRDATA.\n", __func__);
+			   "%s: Failed write to FLASH_WRDATA.\n", __func__);
 		goto exit_func;
 	}
+
 	ret_val = qla8044_wr_reg_indirect(vha, QLA8044_FLASH_CONTROL, 0x3D);
-	if (ret_val) {
+
+	if (ret_val)
+	{
 		ql_log(ql_log_warn, vha, 0xb136,
-		    "%s: Failed write to FLASH_CONTROL.\n", __func__);
+			   "%s: Failed write to FLASH_CONTROL.\n", __func__);
 		goto exit_func;
 	}
+
 	ret_val = qla8044_poll_flash_status_reg(vha);
-	if (ret_val) {
+
+	if (ret_val)
+	{
 		ql_log(ql_log_warn, vha, 0xb137,
-		    "%s: Poll flash status failed.\n", __func__);
+			   "%s: Poll flash status failed.\n", __func__);
 	}
 
 exit_func:
@@ -3681,100 +4314,115 @@ exit_func:
 
 static int
 qla8044_write_flash_buffer_mode(scsi_qla_host_t *vha, uint32_t *dwptr,
-				uint32_t faddr, uint32_t dwords)
+								uint32_t faddr, uint32_t dwords)
 {
 	int ret = QLA_FUNCTION_FAILED;
 	uint32_t spi_val;
 
 	if (dwords < QLA8044_MIN_OPTROM_BURST_DWORDS ||
-	    dwords > QLA8044_MAX_OPTROM_BURST_DWORDS) {
+		dwords > QLA8044_MAX_OPTROM_BURST_DWORDS)
+	{
 		ql_dbg(ql_dbg_user, vha, 0xb123,
-		    "Got unsupported dwords = 0x%x.\n",
-		    dwords);
+			   "Got unsupported dwords = 0x%x.\n",
+			   dwords);
 		return QLA_FUNCTION_FAILED;
 	}
 
 	qla8044_rd_reg_indirect(vha, QLA8044_FLASH_SPI_CONTROL, &spi_val);
 	qla8044_wr_reg_indirect(vha, QLA8044_FLASH_SPI_CONTROL,
-	    spi_val | QLA8044_FLASH_SPI_CTL);
+							spi_val | QLA8044_FLASH_SPI_CTL);
 	qla8044_wr_reg_indirect(vha, QLA8044_FLASH_ADDR,
-	    QLA8044_FLASH_FIRST_TEMP_VAL);
+							QLA8044_FLASH_FIRST_TEMP_VAL);
 
 	/* First DWORD write to FLASH_WRDATA */
 	ret = qla8044_wr_reg_indirect(vha, QLA8044_FLASH_WRDATA,
-	    *dwptr++);
+								  *dwptr++);
 	qla8044_wr_reg_indirect(vha, QLA8044_FLASH_CONTROL,
-	    QLA8044_FLASH_FIRST_MS_PATTERN);
+							QLA8044_FLASH_FIRST_MS_PATTERN);
 
 	ret = qla8044_poll_flash_status_reg(vha);
-	if (ret) {
+
+	if (ret)
+	{
 		ql_log(ql_log_warn, vha, 0xb124,
-		    "%s: Failed.\n", __func__);
+			   "%s: Failed.\n", __func__);
 		goto exit_func;
 	}
 
 	dwords--;
 
 	qla8044_wr_reg_indirect(vha, QLA8044_FLASH_ADDR,
-	    QLA8044_FLASH_SECOND_TEMP_VAL);
+							QLA8044_FLASH_SECOND_TEMP_VAL);
 
 
 	/* Second to N-1 DWORDS writes */
-	while (dwords != 1) {
+	while (dwords != 1)
+	{
 		qla8044_wr_reg_indirect(vha, QLA8044_FLASH_WRDATA, *dwptr++);
 		qla8044_wr_reg_indirect(vha, QLA8044_FLASH_CONTROL,
-		    QLA8044_FLASH_SECOND_MS_PATTERN);
+								QLA8044_FLASH_SECOND_MS_PATTERN);
 		ret = qla8044_poll_flash_status_reg(vha);
-		if (ret) {
+
+		if (ret)
+		{
 			ql_log(ql_log_warn, vha, 0xb129,
-			    "%s: Failed.\n", __func__);
+				   "%s: Failed.\n", __func__);
 			goto exit_func;
 		}
+
 		dwords--;
 	}
 
 	qla8044_wr_reg_indirect(vha, QLA8044_FLASH_ADDR,
-	    QLA8044_FLASH_FIRST_TEMP_VAL | (faddr >> 2));
+							QLA8044_FLASH_FIRST_TEMP_VAL | (faddr >> 2));
 
 	/* Last DWORD write */
 	qla8044_wr_reg_indirect(vha, QLA8044_FLASH_WRDATA, *dwptr++);
 	qla8044_wr_reg_indirect(vha, QLA8044_FLASH_CONTROL,
-	    QLA8044_FLASH_LAST_MS_PATTERN);
+							QLA8044_FLASH_LAST_MS_PATTERN);
 	ret = qla8044_poll_flash_status_reg(vha);
-	if (ret) {
+
+	if (ret)
+	{
 		ql_log(ql_log_warn, vha, 0xb12a,
-		    "%s: Failed.\n", __func__);
+			   "%s: Failed.\n", __func__);
 		goto exit_func;
 	}
+
 	qla8044_rd_reg_indirect(vha, QLA8044_FLASH_SPI_STATUS, &spi_val);
 
-	if ((spi_val & QLA8044_FLASH_SPI_CTL) == QLA8044_FLASH_SPI_CTL) {
+	if ((spi_val & QLA8044_FLASH_SPI_CTL) == QLA8044_FLASH_SPI_CTL)
+	{
 		ql_log(ql_log_warn, vha, 0xb12b,
-		    "%s: Failed.\n", __func__);
+			   "%s: Failed.\n", __func__);
 		spi_val = 0;
 		/* Operation failed, clear error bit. */
 		qla8044_rd_reg_indirect(vha, QLA8044_FLASH_SPI_CONTROL,
-		    &spi_val);
+								&spi_val);
 		qla8044_wr_reg_indirect(vha, QLA8044_FLASH_SPI_CONTROL,
-		    spi_val | QLA8044_FLASH_SPI_CTL);
+								spi_val | QLA8044_FLASH_SPI_CTL);
 	}
+
 exit_func:
 	return ret;
 }
 
 static int
 qla8044_write_flash_dword_mode(scsi_qla_host_t *vha, uint32_t *dwptr,
-			       uint32_t faddr, uint32_t dwords)
+							   uint32_t faddr, uint32_t dwords)
 {
 	int ret = QLA_FUNCTION_FAILED;
 	uint32_t liter;
 
-	for (liter = 0; liter < dwords; liter++, faddr += 4, dwptr++) {
+	for (liter = 0; liter < dwords; liter++, faddr += 4, dwptr++)
+	{
 		ret = qla8044_flash_write_u32(vha, faddr, dwptr);
-		if (ret) {
+
+		if (ret)
+		{
 			ql_dbg(ql_dbg_p3p, vha, 0xb141,
-			    "%s: flash address=%x data=%x.\n", __func__,
-			     faddr, *dwptr);
+				   "%s: flash address=%x data=%x.\n", __func__,
+				   faddr, *dwptr);
 			break;
 		}
 	}
@@ -3784,7 +4432,7 @@ qla8044_write_flash_dword_mode(scsi_qla_host_t *vha, uint32_t *dwptr,
 
 int
 qla8044_write_optrom_data(struct scsi_qla_host *vha, uint8_t *buf,
-			  uint32_t offset, uint32_t length)
+						  uint32_t offset, uint32_t length)
 {
 	int rval = QLA_FUNCTION_FAILED, i, burst_iter_count;
 	int dword_count, erase_sec_count;
@@ -3794,8 +4442,11 @@ qla8044_write_optrom_data(struct scsi_qla_host *vha, uint8_t *buf,
 	erase_offset = offset;
 
 	p_cache = kcalloc(length, sizeof(uint8_t), GFP_KERNEL);
+
 	if (!p_cache)
+	{
 		return QLA_FUNCTION_FAILED;
+	}
 
 	memcpy(p_cache, buf, length);
 	p_src = p_cache;
@@ -3813,42 +4464,52 @@ qla8044_write_optrom_data(struct scsi_qla_host *vha, uint8_t *buf,
 	qla8044_unprotect_flash(vha);
 
 	/* Erasing the sectors */
-	for (i = 0; i < erase_sec_count; i++) {
+	for (i = 0; i < erase_sec_count; i++)
+	{
 		rval = qla8044_erase_flash_sector(vha, erase_offset);
 		ql_dbg(ql_dbg_user, vha, 0xb138,
-		    "Done erase of sector=0x%x.\n",
-		    erase_offset);
-		if (rval) {
+			   "Done erase of sector=0x%x.\n",
+			   erase_offset);
+
+		if (rval)
+		{
 			ql_log(ql_log_warn, vha, 0xb121,
-			    "Failed to erase the sector having address: "
-			    "0x%x.\n", erase_offset);
+				   "Failed to erase the sector having address: "
+				   "0x%x.\n", erase_offset);
 			goto out;
 		}
+
 		erase_offset += QLA8044_SECTOR_SIZE;
 	}
-	ql_dbg(ql_dbg_user, vha, 0xb13f,
-	    "Got write for addr = 0x%x length=0x%x.\n",
-	    offset, length);
 
-	for (i = 0; i < burst_iter_count; i++) {
+	ql_dbg(ql_dbg_user, vha, 0xb13f,
+		   "Got write for addr = 0x%x length=0x%x.\n",
+		   offset, length);
+
+	for (i = 0; i < burst_iter_count; i++)
+	{
 
 		/* Go with write. */
 		rval = qla8044_write_flash_buffer_mode(vha, (uint32_t *)p_src,
-		    offset, QLA8044_MAX_OPTROM_BURST_DWORDS);
-		if (rval) {
+											   offset, QLA8044_MAX_OPTROM_BURST_DWORDS);
+
+		if (rval)
+		{
 			/* Buffer Mode failed skip to dword mode */
 			ql_log(ql_log_warn, vha, 0xb122,
-			    "Failed to write flash in buffer mode, "
-			    "Reverting to slow-write.\n");
+				   "Failed to write flash in buffer mode, "
+				   "Reverting to slow-write.\n");
 			rval = qla8044_write_flash_dword_mode(vha,
-			    (uint32_t *)p_src, offset,
-			    QLA8044_MAX_OPTROM_BURST_DWORDS);
+												  (uint32_t *)p_src, offset,
+												  QLA8044_MAX_OPTROM_BURST_DWORDS);
 		}
+
 		p_src +=  sizeof(uint32_t) * QLA8044_MAX_OPTROM_BURST_DWORDS;
 		offset += sizeof(uint32_t) * QLA8044_MAX_OPTROM_BURST_DWORDS;
 	}
+
 	ql_dbg(ql_dbg_user, vha, 0xb133,
-	    "Done writing.\n");
+		   "Done writing.\n");
 
 out:
 	qla8044_protect_flash(vha);
@@ -3886,35 +4547,43 @@ qla8044_intr_handler(int irq, void *dev_id)
 	uint32_t leg_int_ptr = 0, pf_bit;
 
 	rsp = (struct rsp_que *) dev_id;
-	if (!rsp) {
+
+	if (!rsp)
+	{
 		ql_log(ql_log_info, NULL, 0xb143,
-		    "%s(): NULL response queue pointer\n", __func__);
+			   "%s(): NULL response queue pointer\n", __func__);
 		return IRQ_NONE;
 	}
+
 	ha = rsp->hw;
 	vha = pci_get_drvdata(ha->pdev);
 
 	if (unlikely(pci_channel_offline(ha->pdev)))
+	{
 		return IRQ_HANDLED;
+	}
 
 	leg_int_ptr = qla8044_rd_reg(ha, LEG_INTR_PTR_OFFSET);
 
 	/* Legacy interrupt is valid if bit31 of leg_int_ptr is set */
-	if (!(leg_int_ptr & (LEG_INT_PTR_B31))) {
+	if (!(leg_int_ptr & (LEG_INT_PTR_B31)))
+	{
 		ql_dbg(ql_dbg_p3p, vha, 0xb144,
-		    "%s: Legacy Interrupt Bit 31 not set, "
-		    "spurious interrupt!\n", __func__);
+			   "%s: Legacy Interrupt Bit 31 not set, "
+			   "spurious interrupt!\n", __func__);
 		return IRQ_NONE;
 	}
 
 	pf_bit = ha->portnum << 16;
+
 	/* Validate the PCIE function ID set in leg_int_ptr bits [19..16] */
-	if ((leg_int_ptr & (PF_BITS_MASK)) != pf_bit) {
+	if ((leg_int_ptr & (PF_BITS_MASK)) != pf_bit)
+	{
 		ql_dbg(ql_dbg_p3p, vha, 0xb145,
-		    "%s: Incorrect function ID 0x%x in "
-		    "legacy interrupt register, "
-		    "ha->pf_bit = 0x%x\n", __func__,
-		    (leg_int_ptr & (PF_BITS_MASK)), pf_bit);
+			   "%s: Incorrect function ID 0x%x in "
+			   "legacy interrupt register, "
+			   "ha->pf_bit = 0x%x\n", __func__,
+			   (leg_int_ptr & (PF_BITS_MASK)), pf_bit);
 		return IRQ_NONE;
 	}
 
@@ -3923,46 +4592,63 @@ qla8044_intr_handler(int irq, void *dev_id)
 	 * bit32 is 0.
 	 */
 	qla8044_wr_reg(ha, LEG_INTR_TRIG_OFFSET, 0);
-	do {
+
+	do
+	{
 		leg_int_ptr = qla8044_rd_reg(ha, LEG_INTR_PTR_OFFSET);
+
 		if ((leg_int_ptr & (PF_BITS_MASK)) != pf_bit)
+		{
 			break;
-	} while (leg_int_ptr & (LEG_INT_PTR_B30));
+		}
+	}
+	while (leg_int_ptr & (LEG_INT_PTR_B30));
 
 	reg = &ha->iobase->isp82;
 	spin_lock_irqsave(&ha->hardware_lock, flags);
-	for (iter = 1; iter--; ) {
 
-		if (RD_REG_DWORD(&reg->host_int)) {
+	for (iter = 1; iter--; )
+	{
+
+		if (RD_REG_DWORD(&reg->host_int))
+		{
 			stat = RD_REG_DWORD(&reg->host_status);
-			if ((stat & HSRX_RISC_INT) == 0)
-				break;
 
-			switch (stat & 0xff) {
-			case 0x1:
-			case 0x2:
-			case 0x10:
-			case 0x11:
-				qla82xx_mbx_completion(vha, MSW(stat));
-				status |= MBX_INTERRUPT;
-				break;
-			case 0x12:
-				mb[0] = MSW(stat);
-				mb[1] = RD_REG_WORD(&reg->mailbox_out[1]);
-				mb[2] = RD_REG_WORD(&reg->mailbox_out[2]);
-				mb[3] = RD_REG_WORD(&reg->mailbox_out[3]);
-				qla2x00_async_event(vha, rsp, mb);
-				break;
-			case 0x13:
-				qla24xx_process_response_queue(vha, rsp);
-				break;
-			default:
-				ql_dbg(ql_dbg_p3p, vha, 0xb146,
-				    "Unrecognized interrupt type "
-				    "(%d).\n", stat & 0xff);
+			if ((stat & HSRX_RISC_INT) == 0)
+			{
 				break;
 			}
+
+			switch (stat & 0xff)
+			{
+				case 0x1:
+				case 0x2:
+				case 0x10:
+				case 0x11:
+					qla82xx_mbx_completion(vha, MSW(stat));
+					status |= MBX_INTERRUPT;
+					break;
+
+				case 0x12:
+					mb[0] = MSW(stat);
+					mb[1] = RD_REG_WORD(&reg->mailbox_out[1]);
+					mb[2] = RD_REG_WORD(&reg->mailbox_out[2]);
+					mb[3] = RD_REG_WORD(&reg->mailbox_out[3]);
+					qla2x00_async_event(vha, rsp, mb);
+					break;
+
+				case 0x13:
+					qla24xx_process_response_queue(vha, rsp);
+					break;
+
+				default:
+					ql_dbg(ql_dbg_p3p, vha, 0xb146,
+						   "Unrecognized interrupt type "
+						   "(%d).\n", stat & 0xff);
+					break;
+			}
 		}
+
 		WRT_REG_DWORD(&reg->host_int, 0);
 	}
 
@@ -3996,7 +4682,7 @@ qla8044_clear_rst_ready(scsi_qla_host_t *vha)
 	drv_state &= ~(1 << vha->hw->portnum);
 
 	ql_dbg(ql_dbg_p3p, vha, 0xb13d,
-	    "drv_state: 0x%08x\n", drv_state);
+		   "drv_state: 0x%08x\n", drv_state);
 	qla8044_wr_direct(vha, QLA8044_CRB_DRV_STATE_INDEX, drv_state);
 }
 
@@ -4011,7 +4697,9 @@ qla8044_abort_isp(scsi_qla_host_t *vha)
 	dev_state = qla8044_rd_direct(vha, QLA8044_CRB_DEV_STATE_INDEX);
 
 	if (ql2xdontresethba)
+	{
 		qla8044_set_idc_dontreset(vha);
+	}
 
 	/* If device_state is NEED_RESET, go ahead with
 	 * Reset,irrespective of ql2xdontresethba. This is to allow a
@@ -4019,20 +4707,22 @@ qla8044_abort_isp(scsi_qla_host_t *vha)
 	 * the IDC_CTRL BIT0 to prevent Reset-owner from doing a Reset
 	 * and then forces a Reset by setting device_state to
 	 * NEED_RESET. */
-	if (dev_state == QLA8XXX_DEV_READY) {
+	if (dev_state == QLA8XXX_DEV_READY)
+	{
 		/* If IDC_CTRL DONTRESETHBA_BIT0 is set don't do reset
 		 * recovery */
-		if (qla8044_idc_dontreset(ha) == DONTRESET_BIT0) {
+		if (qla8044_idc_dontreset(ha) == DONTRESET_BIT0)
+		{
 			ql_dbg(ql_dbg_p3p, vha, 0xb13e,
-			    "Reset recovery disabled\n");
+				   "Reset recovery disabled\n");
 			rval = QLA_FUNCTION_FAILED;
 			goto exit_isp_reset;
 		}
 
 		ql_dbg(ql_dbg_p3p, vha, 0xb140,
-		    "HW State: NEED RESET\n");
+			   "HW State: NEED RESET\n");
 		qla8044_wr_direct(vha, QLA8044_CRB_DEV_STATE_INDEX,
-		    QLA8XXX_DEV_NEED_RESET);
+						  QLA8XXX_DEV_NEED_RESET);
 	}
 
 	/* For ISP8044, Reset owner is NIC, iSCSI or FCOE based on priority
@@ -4047,7 +4737,9 @@ qla8044_abort_isp(scsi_qla_host_t *vha)
 
 exit_isp_reset:
 	qla8044_idc_unlock(ha);
-	if (rval == QLA_SUCCESS) {
+
+	if (rval == QLA_SUCCESS)
+	{
 		ha->flags.isp82xx_fw_hung = 0;
 		ha->flags.nic_core_reset_hdlr_active = 0;
 		rval = qla82xx_restart_isp(vha);
@@ -4062,7 +4754,9 @@ qla8044_fw_dump(scsi_qla_host_t *vha, int hardware_locked)
 	struct qla_hw_data *ha = vha->hw;
 
 	if (!ha->allow_cna_fw_dump)
+	{
 		return;
+	}
 
 	scsi_block_requests(vha->host);
 	ha->flags.isp82xx_no_md_cap = 1;

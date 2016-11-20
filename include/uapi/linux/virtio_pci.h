@@ -43,54 +43,54 @@
 
 #ifndef VIRTIO_PCI_NO_LEGACY
 
-/* A 32-bit r/o bitmask of the features supported by the host */
-#define VIRTIO_PCI_HOST_FEATURES	0
+	/* A 32-bit r/o bitmask of the features supported by the host */
+	#define VIRTIO_PCI_HOST_FEATURES	0
 
-/* A 32-bit r/w bitmask of features activated by the guest */
-#define VIRTIO_PCI_GUEST_FEATURES	4
+	/* A 32-bit r/w bitmask of features activated by the guest */
+	#define VIRTIO_PCI_GUEST_FEATURES	4
 
-/* A 32-bit r/w PFN for the currently selected queue */
-#define VIRTIO_PCI_QUEUE_PFN		8
+	/* A 32-bit r/w PFN for the currently selected queue */
+	#define VIRTIO_PCI_QUEUE_PFN		8
 
-/* A 16-bit r/o queue size for the currently selected queue */
-#define VIRTIO_PCI_QUEUE_NUM		12
+	/* A 16-bit r/o queue size for the currently selected queue */
+	#define VIRTIO_PCI_QUEUE_NUM		12
 
-/* A 16-bit r/w queue selector */
-#define VIRTIO_PCI_QUEUE_SEL		14
+	/* A 16-bit r/w queue selector */
+	#define VIRTIO_PCI_QUEUE_SEL		14
 
-/* A 16-bit r/w queue notifier */
-#define VIRTIO_PCI_QUEUE_NOTIFY		16
+	/* A 16-bit r/w queue notifier */
+	#define VIRTIO_PCI_QUEUE_NOTIFY		16
 
-/* An 8-bit device status register.  */
-#define VIRTIO_PCI_STATUS		18
+	/* An 8-bit device status register.  */
+	#define VIRTIO_PCI_STATUS		18
 
-/* An 8-bit r/o interrupt status register.  Reading the value will return the
- * current contents of the ISR and will also clear it.  This is effectively
- * a read-and-acknowledge. */
-#define VIRTIO_PCI_ISR			19
+	/* An 8-bit r/o interrupt status register.  Reading the value will return the
+	* current contents of the ISR and will also clear it.  This is effectively
+	* a read-and-acknowledge. */
+	#define VIRTIO_PCI_ISR			19
 
-/* MSI-X registers: only enabled if MSI-X is enabled. */
-/* A 16-bit vector for configuration changes. */
-#define VIRTIO_MSI_CONFIG_VECTOR        20
-/* A 16-bit vector for selected queue notifications. */
-#define VIRTIO_MSI_QUEUE_VECTOR         22
+	/* MSI-X registers: only enabled if MSI-X is enabled. */
+	/* A 16-bit vector for configuration changes. */
+	#define VIRTIO_MSI_CONFIG_VECTOR        20
+	/* A 16-bit vector for selected queue notifications. */
+	#define VIRTIO_MSI_QUEUE_VECTOR         22
 
-/* The remaining space is defined by each driver as the per-driver
- * configuration space */
-#define VIRTIO_PCI_CONFIG_OFF(msix_enabled)	((msix_enabled) ? 24 : 20)
-/* Deprecated: please use VIRTIO_PCI_CONFIG_OFF instead */
-#define VIRTIO_PCI_CONFIG(dev)	VIRTIO_PCI_CONFIG_OFF((dev)->msix_enabled)
+	/* The remaining space is defined by each driver as the per-driver
+	* configuration space */
+	#define VIRTIO_PCI_CONFIG_OFF(msix_enabled)	((msix_enabled) ? 24 : 20)
+	/* Deprecated: please use VIRTIO_PCI_CONFIG_OFF instead */
+	#define VIRTIO_PCI_CONFIG(dev)	VIRTIO_PCI_CONFIG_OFF((dev)->msix_enabled)
 
-/* Virtio ABI version, this must match exactly */
-#define VIRTIO_PCI_ABI_VERSION		0
+	/* Virtio ABI version, this must match exactly */
+	#define VIRTIO_PCI_ABI_VERSION		0
 
-/* How many bits to shift physical queue address written to QUEUE_PFN.
- * 12 is historical, and due to x86 page size. */
-#define VIRTIO_PCI_QUEUE_ADDR_SHIFT	12
+	/* How many bits to shift physical queue address written to QUEUE_PFN.
+	* 12 is historical, and due to x86 page size. */
+	#define VIRTIO_PCI_QUEUE_ADDR_SHIFT	12
 
-/* The alignment to use between consumer and producer parts of vring.
- * x86 pagesize again. */
-#define VIRTIO_PCI_VRING_ALIGN		4096
+	/* The alignment to use between consumer and producer parts of vring.
+	* x86 pagesize again. */
+	#define VIRTIO_PCI_VRING_ALIGN		4096
 
 #endif /* VIRTIO_PCI_NO_LEGACY */
 
@@ -115,7 +115,8 @@
 #define VIRTIO_PCI_CAP_PCI_CFG		5
 
 /* This is the PCI capability header: */
-struct virtio_pci_cap {
+struct virtio_pci_cap
+{
 	__u8 cap_vndr;		/* Generic PCI field: PCI_CAP_ID_VNDR */
 	__u8 cap_next;		/* Generic PCI field: next ptr. */
 	__u8 cap_len;		/* Generic PCI field: capability length */
@@ -126,13 +127,15 @@ struct virtio_pci_cap {
 	__le32 length;		/* Length of the structure, in bytes. */
 };
 
-struct virtio_pci_notify_cap {
+struct virtio_pci_notify_cap
+{
 	struct virtio_pci_cap cap;
 	__le32 notify_off_multiplier;	/* Multiplier for queue_notify_off. */
 };
 
 /* Fields in VIRTIO_PCI_CAP_COMMON_CFG: */
-struct virtio_pci_common_cfg {
+struct virtio_pci_common_cfg
+{
 	/* About the whole device. */
 	__le32 device_feature_select;	/* read-write */
 	__le32 device_feature;		/* read-only */
@@ -158,7 +161,8 @@ struct virtio_pci_common_cfg {
 };
 
 /* Fields in VIRTIO_PCI_CAP_PCI_CFG: */
-struct virtio_pci_cfg_cap {
+struct virtio_pci_cfg_cap
+{
 	struct virtio_pci_cap cap;
 	__u8 pci_cfg_data[4]; /* Data for BAR access. */
 };

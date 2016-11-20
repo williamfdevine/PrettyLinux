@@ -56,15 +56,17 @@
 
 /*  structure and define */
 
-struct phy_rx_agc_info {
-	#ifdef __LITTLE_ENDIAN
-		u8	gain:7, trsw:1;
-	#else
-		u8	trsw:1, gain:7;
-	#endif
+struct phy_rx_agc_info
+{
+#ifdef __LITTLE_ENDIAN
+	u8	gain: 7, trsw: 1;
+#else
+	u8	trsw: 1, gain: 7;
+#endif
 };
 
-struct phy_status_rpt {
+struct phy_status_rpt
+{
 	struct phy_rx_agc_info path_agc[RF_PATH_MAX];
 	u8	ch_corr[2];
 	u8	cck_sig_qual_ofdm_pwdb_all;
@@ -84,36 +86,36 @@ struct phy_status_rpt {
 	u8	rsvd_3;
 
 #ifdef __LITTLE_ENDIAN
-	u8	antsel_rx_keep_2:1;	/* ex_intf_flg:1; */
-	u8	sgi_en:1;
-	u8	rxsc:2;
-	u8	idle_long:1;
-	u8	r_ant_train_en:1;
-	u8	ant_sel_b:1;
-	u8	ant_sel:1;
+	u8	antsel_rx_keep_2: 1;	/* ex_intf_flg:1; */
+	u8	sgi_en: 1;
+	u8	rxsc: 2;
+	u8	idle_long: 1;
+	u8	r_ant_train_en: 1;
+	u8	ant_sel_b: 1;
+	u8	ant_sel: 1;
 #else	/*  _BIG_ENDIAN_ */
-	u8	ant_sel:1;
-	u8	ant_sel_b:1;
-	u8	r_ant_train_en:1;
-	u8	idle_long:1;
-	u8	rxsc:2;
-	u8	sgi_en:1;
-	u8	antsel_rx_keep_2:1;	/* ex_intf_flg:1; */
+	u8	ant_sel: 1;
+	u8	ant_sel_b: 1;
+	u8	r_ant_train_en: 1;
+	u8	idle_long: 1;
+	u8	rxsc: 2;
+	u8	sgi_en: 1;
+	u8	antsel_rx_keep_2: 1;	/* ex_intf_flg:1; */
 #endif
 };
 
 void odm_Init_RSSIForDM(struct odm_dm_struct *pDM_Odm);
 
 void ODM_PhyStatusQuery(struct odm_dm_struct *pDM_Odm,
-			struct odm_phy_status_info *pPhyInfo,
-			u8 *pPhyStatus,
-			struct odm_per_pkt_info *pPktinfo);
+						struct odm_phy_status_info *pPhyInfo,
+						u8 *pPhyStatus,
+						struct odm_per_pkt_info *pPktinfo);
 
 void ODM_MacStatusQuery(struct odm_dm_struct *pDM_Odm,
-			u8 *pMacStatus,
-			u8	MacID,
-			bool	bPacketMatchBSSID,
-			bool	bPacketToSelf,
-			bool	bPacketBeacon);
+						u8 *pMacStatus,
+						u8	MacID,
+						bool	bPacketMatchBSSID,
+						bool	bPacketToSelf,
+						bool	bPacketBeacon);
 
 #endif

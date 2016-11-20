@@ -9,7 +9,8 @@
 #define DIVA_UM_IDI_REMOVED         0x00000008
 #define DIVA_UM_IDI_ASSIGN_PENDING  0x00000010
 
-typedef struct _divas_um_idi_entity {
+typedef struct _divas_um_idi_entity
+{
 	struct list_head          link;
 	diva_um_idi_adapter_t *adapter; /* Back to adapter */
 	ENTITY e;

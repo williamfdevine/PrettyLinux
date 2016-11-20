@@ -42,11 +42,13 @@ MODULE_VERSION(DRV_MODULE_VERSION);
 
 static struct workqueue_struct *sunvdc_wq;
 
-struct vdc_req_entry {
+struct vdc_req_entry
+{
 	struct request		*req;
 };
 
-struct vdc_port {
+struct vdc_port
+{
 	struct vio_driver_state	vio;
 
 	struct gendisk		*disk;
@@ -87,13 +89,14 @@ static inline struct vdc_port *to_vdc_port(struct vio_driver_state *vio)
 }
 
 /* Ordered from largest major to lowest */
-static struct vio_version vdc_versions[] = {
+static struct vio_version vdc_versions[] =
+{
 	{ .major = 1, .minor = 1 },
 	{ .major = 1, .minor = 0 },
 };
 
 static inline int vdc_version_supported(struct vdc_port *port,
-					u16 major, u16 minor)
+										u16 major, u16 minor)
 {
 	return port->vio.ver.major == major && port->vio.ver.minor >= minor;
 }
@@ -117,8 +120,11 @@ static int vdc_getgeo(struct block_device *bdev, struct hd_geometry *geo)
 	geo->sectors = 0x3f;
 	sector_div(cylinders, geo->heads * geo->sectors);
 	geo->cylinders = cylinders;
+
 	if ((sector_t)(geo->cylinders + 1) * geo->heads * geo->sectors < nsect)
+	{
 		geo->cylinders = 0xffff;
+	}
 
 	return 0;
 }
@@ -128,33 +134,42 @@ static int vdc_getgeo(struct block_device *bdev, struct hd_geometry *geo)
  * Needed to be able to install inside an ldom from an iso image.
  */
 static int vdc_ioctl(struct block_device *bdev, fmode_t mode,
-		     unsigned command, unsigned long argument)
+					 unsigned command, unsigned long argument)
 {
 	int i;
 	struct gendisk *disk;
 
-	switch (command) {
-	case CDROMMULTISESSION:
-		pr_debug(PFX "Multisession CDs not supported\n");
-		for (i = 0; i < sizeof(struct cdrom_multisession); i++)
-			if (put_user(0, (char __user *)(argument + i)))
-				return -EFAULT;
-		return 0;
+	switch (command)
+	{
+		case CDROMMULTISESSION:
+			pr_debug(PFX "Multisession CDs not supported\n");
 
-	case CDROM_GET_CAPABILITY:
-		disk = bdev->bd_disk;
+			for (i = 0; i < sizeof(struct cdrom_multisession); i++)
+				if (put_user(0, (char __user *)(argument + i)))
+				{
+					return -EFAULT;
+				}
 
-		if (bdev->bd_disk && (disk->flags & GENHD_FL_CD))
 			return 0;
-		return -EINVAL;
 
-	default:
-		pr_debug(PFX "ioctl %08x not supported\n", command);
-		return -EINVAL;
+		case CDROM_GET_CAPABILITY:
+			disk = bdev->bd_disk;
+
+			if (bdev->bd_disk && (disk->flags & GENHD_FL_CD))
+			{
+				return 0;
+			}
+
+			return -EINVAL;
+
+		default:
+			pr_debug(PFX "ioctl %08x not supported\n", command);
+			return -EINVAL;
 	}
 }
 
-static const struct block_device_operations vdc_fops = {
+static const struct block_device_operations vdc_fops =
+{
 	.owner		= THIS_MODULE,
 	.getgeo		= vdc_getgeo,
 	.ioctl		= vdc_ioctl,
@@ -169,7 +184,8 @@ static void vdc_blk_queue_start(struct vdc_port *port)
 	 * allocated a disk.
 	 */
 	if (port->disk && blk_queue_stopped(port->disk->queue) &&
-	    vdc_tx_dring_avail(dr) * 100 / VDC_TX_RING_SIZE >= 50) {
+		vdc_tx_dring_avail(dr) * 100 / VDC_TX_RING_SIZE >= 50)
+	{
 		blk_start_queue(port->disk->queue);
 	}
 
@@ -178,8 +194,9 @@ static void vdc_blk_queue_start(struct vdc_port *port)
 static void vdc_finish(struct vio_driver_state *vio, int err, int waiting_for)
 {
 	if (vio->cmp &&
-	    (waiting_for == -1 ||
-	     vio->cmp->waiting_for == waiting_for)) {
+		(waiting_for == -1 ||
+		 vio->cmp->waiting_for == waiting_for))
+	{
 		vio->cmp->err = err;
 		complete(&vio->cmp->com);
 		vio->cmp = NULL;
@@ -200,7 +217,7 @@ static int vdc_handle_unknown(struct vdc_port *port, void *arg)
 	struct vio_msg_tag *pkt = arg;
 
 	printk(KERN_ERR PFX "Received unknown msg [%02x:%02x:%04x:%08x]\n",
-	       pkt->type, pkt->stype, pkt->stype_env, pkt->sid);
+		   pkt->type, pkt->stype, pkt->stype_env, pkt->sid);
 	printk(KERN_ERR PFX "Resetting connection.\n");
 
 	ldc_disconnect(port->vio.lp);
@@ -225,7 +242,7 @@ static int vdc_send_attr(struct vio_driver_state *vio)
 	pkt.max_xfer_size = port->max_xfer_size;
 
 	viodbg(HS, "SEND ATTR xfer_mode[0x%x] blksz[%u] max_xfer[%llu]\n",
-	       pkt.xfer_mode, pkt.vdisk_block_size, pkt.max_xfer_size);
+		   pkt.xfer_mode, pkt.vdisk_block_size, pkt.max_xfer_size);
 
 	return vio_ldc_send(&port->vio, &pkt, sizeof(pkt));
 }
@@ -236,43 +253,54 @@ static int vdc_handle_attr(struct vio_driver_state *vio, void *arg)
 	struct vio_disk_attr_info *pkt = arg;
 
 	viodbg(HS, "GOT ATTR stype[0x%x] ops[%llx] disk_size[%llu] disk_type[%x] "
-	       "mtype[0x%x] xfer_mode[0x%x] blksz[%u] max_xfer[%llu]\n",
-	       pkt->tag.stype, pkt->operations,
-	       pkt->vdisk_size, pkt->vdisk_type, pkt->vdisk_mtype,
-	       pkt->xfer_mode, pkt->vdisk_block_size,
-	       pkt->max_xfer_size);
+		   "mtype[0x%x] xfer_mode[0x%x] blksz[%u] max_xfer[%llu]\n",
+		   pkt->tag.stype, pkt->operations,
+		   pkt->vdisk_size, pkt->vdisk_type, pkt->vdisk_mtype,
+		   pkt->xfer_mode, pkt->vdisk_block_size,
+		   pkt->max_xfer_size);
 
-	if (pkt->tag.stype == VIO_SUBTYPE_ACK) {
-		switch (pkt->vdisk_type) {
-		case VD_DISK_TYPE_DISK:
-		case VD_DISK_TYPE_SLICE:
-			break;
+	if (pkt->tag.stype == VIO_SUBTYPE_ACK)
+	{
+		switch (pkt->vdisk_type)
+		{
+			case VD_DISK_TYPE_DISK:
+			case VD_DISK_TYPE_SLICE:
+				break;
 
-		default:
-			printk(KERN_ERR PFX "%s: Bogus vdisk_type 0x%x\n",
-			       vio->name, pkt->vdisk_type);
-			return -ECONNRESET;
+			default:
+				printk(KERN_ERR PFX "%s: Bogus vdisk_type 0x%x\n",
+					   vio->name, pkt->vdisk_type);
+				return -ECONNRESET;
 		}
 
-		if (pkt->vdisk_block_size > port->vdisk_block_size) {
+		if (pkt->vdisk_block_size > port->vdisk_block_size)
+		{
 			printk(KERN_ERR PFX "%s: BLOCK size increased "
-			       "%u --> %u\n",
-			       vio->name,
-			       port->vdisk_block_size, pkt->vdisk_block_size);
+				   "%u --> %u\n",
+				   vio->name,
+				   port->vdisk_block_size, pkt->vdisk_block_size);
 			return -ECONNRESET;
 		}
 
 		port->operations = pkt->operations;
 		port->vdisk_type = pkt->vdisk_type;
-		if (vdc_version_supported(port, 1, 1)) {
+
+		if (vdc_version_supported(port, 1, 1))
+		{
 			port->vdisk_size = pkt->vdisk_size;
 			port->vdisk_mtype = pkt->vdisk_mtype;
 		}
+
 		if (pkt->max_xfer_size < port->max_xfer_size)
+		{
 			port->max_xfer_size = pkt->max_xfer_size;
+		}
+
 		port->vdisk_block_size = pkt->vdisk_block_size;
 		return 0;
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR PFX "%s: Attribute NACK\n", vio->name);
 
 		return -ECONNRESET;
@@ -287,21 +315,25 @@ static void vdc_end_special(struct vdc_port *port, struct vio_disk_desc *desc)
 }
 
 static void vdc_end_one(struct vdc_port *port, struct vio_dring_state *dr,
-			unsigned int index)
+						unsigned int index)
 {
 	struct vio_disk_desc *desc = vio_dring_entry(dr, index);
 	struct vdc_req_entry *rqe = &port->rq_arr[index];
 	struct request *req;
 
 	if (unlikely(desc->hdr.state != VIO_DESC_DONE))
+	{
 		return;
+	}
 
 	ldc_unmap(port->vio.lp, desc->cookies, desc->ncookies);
 	desc->hdr.state = VIO_DESC_FREE;
 	dr->cons = vio_dring_next(dr, index);
 
 	req = rqe->req;
-	if (req == NULL) {
+
+	if (req == NULL)
+	{
 		vdc_end_special(port, desc);
 		return;
 	}
@@ -319,9 +351,11 @@ static int vdc_ack(struct vdc_port *port, void *msgbuf)
 	struct vio_dring_data *pkt = msgbuf;
 
 	if (unlikely(pkt->dring_ident != dr->ident ||
-		     pkt->start_idx != pkt->end_idx ||
-		     pkt->start_idx >= VDC_TX_RING_SIZE))
+				 pkt->start_idx != pkt->end_idx ||
+				 pkt->start_idx >= VDC_TX_RING_SIZE))
+	{
 		return 0;
+	}
 
 	vdc_end_one(port, dr, pkt->start_idx);
 
@@ -343,63 +377,99 @@ static void vdc_event(void *arg, int event)
 
 	spin_lock_irqsave(&vio->lock, flags);
 
-	if (unlikely(event == LDC_EVENT_RESET)) {
+	if (unlikely(event == LDC_EVENT_RESET))
+	{
 		vio_link_state_change(vio, event);
 		queue_work(sunvdc_wq, &port->ldc_reset_work);
 		goto out;
 	}
 
-	if (unlikely(event == LDC_EVENT_UP)) {
+	if (unlikely(event == LDC_EVENT_UP))
+	{
 		vio_link_state_change(vio, event);
 		goto out;
 	}
 
-	if (unlikely(event != LDC_EVENT_DATA_READY)) {
+	if (unlikely(event != LDC_EVENT_DATA_READY))
+	{
 		pr_warn(PFX "Unexpected LDC event %d\n", event);
 		goto out;
 	}
 
 	err = 0;
-	while (1) {
-		union {
+
+	while (1)
+	{
+		union
+		{
 			struct vio_msg_tag tag;
 			u64 raw[8];
 		} msgbuf;
 
 		err = ldc_read(vio->lp, &msgbuf, sizeof(msgbuf));
-		if (unlikely(err < 0)) {
+
+		if (unlikely(err < 0))
+		{
 			if (err == -ECONNRESET)
+			{
 				vio_conn_reset(vio);
+			}
+
 			break;
 		}
-		if (err == 0)
-			break;
-		viodbg(DATA, "TAG [%02x:%02x:%04x:%08x]\n",
-		       msgbuf.tag.type,
-		       msgbuf.tag.stype,
-		       msgbuf.tag.stype_env,
-		       msgbuf.tag.sid);
-		err = vio_validate_sid(vio, &msgbuf.tag);
-		if (err < 0)
-			break;
 
-		if (likely(msgbuf.tag.type == VIO_TYPE_DATA)) {
+		if (err == 0)
+		{
+			break;
+		}
+
+		viodbg(DATA, "TAG [%02x:%02x:%04x:%08x]\n",
+			   msgbuf.tag.type,
+			   msgbuf.tag.stype,
+			   msgbuf.tag.stype_env,
+			   msgbuf.tag.sid);
+		err = vio_validate_sid(vio, &msgbuf.tag);
+
+		if (err < 0)
+		{
+			break;
+		}
+
+		if (likely(msgbuf.tag.type == VIO_TYPE_DATA))
+		{
 			if (msgbuf.tag.stype == VIO_SUBTYPE_ACK)
+			{
 				err = vdc_ack(port, &msgbuf);
+			}
 			else if (msgbuf.tag.stype == VIO_SUBTYPE_NACK)
+			{
 				err = vdc_nack(port, &msgbuf);
+			}
 			else
+			{
 				err = vdc_handle_unknown(port, &msgbuf);
-		} else if (msgbuf.tag.type == VIO_TYPE_CTRL) {
+			}
+		}
+		else if (msgbuf.tag.type == VIO_TYPE_CTRL)
+		{
 			err = vio_control_pkt_engine(vio, &msgbuf);
-		} else {
+		}
+		else
+		{
 			err = vdc_handle_unknown(port, &msgbuf);
 		}
+
 		if (err < 0)
+		{
 			break;
+		}
 	}
+
 	if (err < 0)
+	{
 		vdc_finish(&port->vio, err, WAITING_FOR_ANY);
+	}
+
 out:
 	spin_unlock_irqrestore(&vio->lock, flags);
 }
@@ -407,7 +477,8 @@ out:
 static int __vdc_tx_trigger(struct vdc_port *port)
 {
 	struct vio_dring_state *dr = &port->vio.drings[VIO_DRIVER_TX_RING];
-	struct vio_dring_data hdr = {
+	struct vio_dring_data hdr =
+	{
 		.tag = {
 			.type		= VIO_TYPE_DATA,
 			.stype		= VIO_SUBTYPE_INFO,
@@ -422,19 +493,31 @@ static int __vdc_tx_trigger(struct vdc_port *port)
 
 	hdr.seq = dr->snd_nxt;
 	delay = 1;
-	do {
+
+	do
+	{
 		err = vio_ldc_send(&port->vio, &hdr, sizeof(hdr));
-		if (err > 0) {
+
+		if (err > 0)
+		{
 			dr->snd_nxt++;
 			break;
 		}
+
 		udelay(delay);
+
 		if ((delay <<= 1) > 128)
+		{
 			delay = 128;
-	} while (err == -EAGAIN);
+		}
+	}
+	while (err == -EAGAIN);
 
 	if (err == -ENOTCONN)
+	{
 		vdc_ldc_reset(port);
+	}
+
 	return err;
 }
 
@@ -452,10 +535,13 @@ static int __send_request(struct request *req)
 
 	map_perm = LDC_MAP_SHADOW | LDC_MAP_DIRECT | LDC_MAP_IO;
 
-	if (rq_data_dir(req) == READ) {
+	if (rq_data_dir(req) == READ)
+	{
 		map_perm |= LDC_MAP_W;
 		op = VD_OP_BREAD;
-	} else {
+	}
+	else
+	{
 		map_perm |= LDC_MAP_R;
 		op = VD_OP_BWRITE;
 	}
@@ -464,15 +550,20 @@ static int __send_request(struct request *req)
 	nsg = blk_rq_map_sg(req->q, req, sg);
 
 	len = 0;
+
 	for (i = 0; i < nsg; i++)
+	{
 		len += sg[i].length;
+	}
 
 	desc = vio_dring_cur(dr);
 
 	err = ldc_map_sg(port->vio.lp, sg, nsg,
-			 desc->cookies, port->ring_cookies,
-			 map_perm);
-	if (err < 0) {
+					 desc->cookies, port->ring_cookies,
+					 map_perm);
+
+	if (err < 0)
+	{
 		printk(KERN_ERR PFX "ldc_map_sg() failure, err=%d.\n", err);
 		return err;
 	}
@@ -483,11 +574,16 @@ static int __send_request(struct request *req)
 	desc->hdr.ack = VIO_ACK_ENABLE;
 	desc->req_id = port->req_id;
 	desc->operation = op;
-	if (port->vdisk_type == VD_DISK_TYPE_DISK) {
+
+	if (port->vdisk_type == VD_DISK_TYPE_DISK)
+	{
 		desc->slice = 0xff;
-	} else {
+	}
+	else
+	{
 		desc->slice = 0;
 	}
+
 	desc->status = ~0;
 	desc->offset = (blk_rq_pos(req) << 9) / port->vdisk_block_size;
 	desc->size = len;
@@ -500,9 +596,13 @@ static int __send_request(struct request *req)
 	desc->hdr.state = VIO_DESC_READY;
 
 	err = __vdc_tx_trigger(port);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		printk(KERN_ERR PFX "vdc_tx_trigger() failure, err=%d\n", err);
-	} else {
+	}
+	else
+	{
 		port->req_id++;
 		dr->prod = vio_dring_next(dr, dr->prod);
 	}
@@ -514,18 +614,23 @@ static void do_vdc_request(struct request_queue *rq)
 {
 	struct request *req;
 
-	while ((req = blk_peek_request(rq)) != NULL) {
+	while ((req = blk_peek_request(rq)) != NULL)
+	{
 		struct vdc_port *port;
 		struct vio_dring_state *dr;
 
 		port = req->rq_disk->private_data;
 		dr = &port->vio.drings[VIO_DRIVER_TX_RING];
+
 		if (unlikely(vdc_tx_dring_avail(dr) < 1))
+		{
 			goto wait;
+		}
 
 		blk_start_request(req);
 
-		if (__send_request(req) < 0) {
+		if (__send_request(req) < 0)
+		{
 			blk_requeue_request(rq, req);
 wait:
 			/* Avoid pointless unplugs. */
@@ -546,77 +651,87 @@ static int generic_request(struct vdc_port *port, u8 op, void *buf, int len)
 	void *req_buf;
 
 	if (!(((u64)1 << (u64)op) & port->operations))
+	{
 		return -EOPNOTSUPP;
+	}
 
-	switch (op) {
-	case VD_OP_BREAD:
-	case VD_OP_BWRITE:
-	default:
-		return -EINVAL;
+	switch (op)
+	{
+		case VD_OP_BREAD:
+		case VD_OP_BWRITE:
+		default:
+			return -EINVAL;
 
-	case VD_OP_FLUSH:
-		op_len = 0;
-		map_perm = 0;
-		break;
+		case VD_OP_FLUSH:
+			op_len = 0;
+			map_perm = 0;
+			break;
 
-	case VD_OP_GET_WCE:
-		op_len = sizeof(u32);
-		map_perm = LDC_MAP_W;
-		break;
+		case VD_OP_GET_WCE:
+			op_len = sizeof(u32);
+			map_perm = LDC_MAP_W;
+			break;
 
-	case VD_OP_SET_WCE:
-		op_len = sizeof(u32);
-		map_perm = LDC_MAP_R;
-		break;
+		case VD_OP_SET_WCE:
+			op_len = sizeof(u32);
+			map_perm = LDC_MAP_R;
+			break;
 
-	case VD_OP_GET_VTOC:
-		op_len = sizeof(struct vio_disk_vtoc);
-		map_perm = LDC_MAP_W;
-		break;
+		case VD_OP_GET_VTOC:
+			op_len = sizeof(struct vio_disk_vtoc);
+			map_perm = LDC_MAP_W;
+			break;
 
-	case VD_OP_SET_VTOC:
-		op_len = sizeof(struct vio_disk_vtoc);
-		map_perm = LDC_MAP_R;
-		break;
+		case VD_OP_SET_VTOC:
+			op_len = sizeof(struct vio_disk_vtoc);
+			map_perm = LDC_MAP_R;
+			break;
 
-	case VD_OP_GET_DISKGEOM:
-		op_len = sizeof(struct vio_disk_geom);
-		map_perm = LDC_MAP_W;
-		break;
+		case VD_OP_GET_DISKGEOM:
+			op_len = sizeof(struct vio_disk_geom);
+			map_perm = LDC_MAP_W;
+			break;
 
-	case VD_OP_SET_DISKGEOM:
-		op_len = sizeof(struct vio_disk_geom);
-		map_perm = LDC_MAP_R;
-		break;
+		case VD_OP_SET_DISKGEOM:
+			op_len = sizeof(struct vio_disk_geom);
+			map_perm = LDC_MAP_R;
+			break;
 
-	case VD_OP_SCSICMD:
-		op_len = 16;
-		map_perm = LDC_MAP_RW;
-		break;
+		case VD_OP_SCSICMD:
+			op_len = 16;
+			map_perm = LDC_MAP_RW;
+			break;
 
-	case VD_OP_GET_DEVID:
-		op_len = sizeof(struct vio_disk_devid);
-		map_perm = LDC_MAP_W;
-		break;
+		case VD_OP_GET_DEVID:
+			op_len = sizeof(struct vio_disk_devid);
+			map_perm = LDC_MAP_W;
+			break;
 
-	case VD_OP_GET_EFI:
-	case VD_OP_SET_EFI:
-		return -EOPNOTSUPP;
-		break;
+		case VD_OP_GET_EFI:
+		case VD_OP_SET_EFI:
+			return -EOPNOTSUPP;
+			break;
 	};
 
 	map_perm |= LDC_MAP_SHADOW | LDC_MAP_DIRECT | LDC_MAP_IO;
 
 	op_len = (op_len + 7) & ~7;
 	req_buf = kzalloc(op_len, GFP_KERNEL);
+
 	if (!req_buf)
+	{
 		return -ENOMEM;
+	}
 
 	if (len > op_len)
+	{
 		len = op_len;
+	}
 
 	if (map_perm & LDC_MAP_R)
+	{
 		memcpy(req_buf, buf, len);
+	}
 
 	spin_lock_irqsave(&port->vio.lock, flags);
 
@@ -628,9 +743,11 @@ static int generic_request(struct vdc_port *port, u8 op, void *buf, int len)
 	desc = vio_dring_cur(dr);
 
 	err = ldc_map_single(port->vio.lp, req_buf, op_len,
-			     desc->cookies, port->ring_cookies,
-			     map_perm);
-	if (err < 0) {
+						 desc->cookies, port->ring_cookies,
+						 map_perm);
+
+	if (err < 0)
+	{
 		spin_unlock_irqrestore(&port->vio.lock, flags);
 		kfree(req_buf);
 		return err;
@@ -656,20 +773,26 @@ static int generic_request(struct vdc_port *port, u8 op, void *buf, int len)
 	desc->hdr.state = VIO_DESC_READY;
 
 	err = __vdc_tx_trigger(port);
-	if (err >= 0) {
+
+	if (err >= 0)
+	{
 		port->req_id++;
 		dr->prod = vio_dring_next(dr, dr->prod);
 		spin_unlock_irqrestore(&port->vio.lock, flags);
 
 		wait_for_completion(&comp.com);
 		err = comp.err;
-	} else {
+	}
+	else
+	{
 		port->vio.cmp = NULL;
 		spin_unlock_irqrestore(&port->vio.lock, flags);
 	}
 
 	if (map_perm & LDC_MAP_W)
+	{
 		memcpy(buf, req_buf, len);
+	}
 
 	kfree(req_buf);
 
@@ -684,17 +807,20 @@ static int vdc_alloc_tx_ring(struct vdc_port *port)
 	void *dring;
 
 	entry_size = sizeof(struct vio_disk_desc) +
-		(sizeof(struct ldc_trans_cookie) * port->ring_cookies);
+				 (sizeof(struct ldc_trans_cookie) * port->ring_cookies);
 	len = (VDC_TX_RING_SIZE * entry_size);
 
 	ncookies = VIO_MAX_RING_COOKIES;
 	dring = ldc_alloc_exp_dring(port->vio.lp, len,
-				    dr->cookies, &ncookies,
-				    (LDC_MAP_SHADOW |
-				     LDC_MAP_DIRECT |
-				     LDC_MAP_RW));
+								dr->cookies, &ncookies,
+								(LDC_MAP_SHADOW |
+								 LDC_MAP_DIRECT |
+								 LDC_MAP_RW));
+
 	if (IS_ERR(dring))
+	{
 		return PTR_ERR(dring);
+	}
 
 	dr->base = dring;
 	dr->entry_size = entry_size;
@@ -710,10 +836,11 @@ static void vdc_free_tx_ring(struct vdc_port *port)
 {
 	struct vio_dring_state *dr = &port->vio.drings[VIO_DRIVER_TX_RING];
 
-	if (dr->base) {
+	if (dr->base)
+	{
 		ldc_free_exp_dring(port->vio.lp, dr->base,
-				   (dr->entry_size * dr->num_entries),
-				   dr->cookies, dr->ncookies);
+						   (dr->entry_size * dr->num_entries),
+						   dr->cookies, dr->ncookies);
 		dr->base = NULL;
 		dr->entry_size = 0;
 		dr->num_entries = 0;
@@ -751,40 +878,56 @@ static int probe_disk(struct vdc_port *port)
 	int err;
 
 	err = vdc_port_up(port);
-	if (err)
-		return err;
 
-	if (vdc_version_supported(port, 1, 1)) {
+	if (err)
+	{
+		return err;
+	}
+
+	if (vdc_version_supported(port, 1, 1))
+	{
 		/* vdisk_size should be set during the handshake, if it wasn't
 		 * then the underlying disk is reserved by another system
 		 */
 		if (port->vdisk_size == -1)
+		{
 			return -ENODEV;
-	} else {
+		}
+	}
+	else
+	{
 		struct vio_disk_geom geom;
 
 		err = generic_request(port, VD_OP_GET_DISKGEOM,
-				      &geom, sizeof(geom));
-		if (err < 0) {
+							  &geom, sizeof(geom));
+
+		if (err < 0)
+		{
 			printk(KERN_ERR PFX "VD_OP_GET_DISKGEOM returns "
-			       "error %d\n", err);
+				   "error %d\n", err);
 			return err;
 		}
+
 		port->vdisk_size = ((u64)geom.num_cyl *
-				    (u64)geom.num_hd *
-				    (u64)geom.num_sec);
+							(u64)geom.num_hd *
+							(u64)geom.num_sec);
 	}
 
 	q = blk_init_queue(do_vdc_request, &port->vio.lock);
-	if (!q) {
+
+	if (!q)
+	{
 		printk(KERN_ERR PFX "%s: Could not allocate queue.\n",
-		       port->vio.name);
+			   port->vio.name);
 		return -ENOMEM;
 	}
+
 	g = alloc_disk(1 << PARTITION_SHIFT);
-	if (!g) {
+
+	if (!g)
+	{
 		printk(KERN_ERR PFX "%s: Could not allocate gendisk.\n",
-		       port->vio.name);
+			   port->vio.name);
 		blk_cleanup_queue(q);
 		return -ENOMEM;
 	}
@@ -807,45 +950,49 @@ static int probe_disk(struct vdc_port *port)
 
 	set_capacity(g, port->vdisk_size);
 
-	if (vdc_version_supported(port, 1, 1)) {
-		switch (port->vdisk_mtype) {
-		case VD_MEDIA_TYPE_CD:
-			pr_info(PFX "Virtual CDROM %s\n", port->disk_name);
-			g->flags |= GENHD_FL_CD;
-			g->flags |= GENHD_FL_REMOVABLE;
-			set_disk_ro(g, 1);
-			break;
+	if (vdc_version_supported(port, 1, 1))
+	{
+		switch (port->vdisk_mtype)
+		{
+			case VD_MEDIA_TYPE_CD:
+				pr_info(PFX "Virtual CDROM %s\n", port->disk_name);
+				g->flags |= GENHD_FL_CD;
+				g->flags |= GENHD_FL_REMOVABLE;
+				set_disk_ro(g, 1);
+				break;
 
-		case VD_MEDIA_TYPE_DVD:
-			pr_info(PFX "Virtual DVD %s\n", port->disk_name);
-			g->flags |= GENHD_FL_CD;
-			g->flags |= GENHD_FL_REMOVABLE;
-			set_disk_ro(g, 1);
-			break;
+			case VD_MEDIA_TYPE_DVD:
+				pr_info(PFX "Virtual DVD %s\n", port->disk_name);
+				g->flags |= GENHD_FL_CD;
+				g->flags |= GENHD_FL_REMOVABLE;
+				set_disk_ro(g, 1);
+				break;
 
-		case VD_MEDIA_TYPE_FIXED:
-			pr_info(PFX "Virtual Hard disk %s\n", port->disk_name);
-			break;
+			case VD_MEDIA_TYPE_FIXED:
+				pr_info(PFX "Virtual Hard disk %s\n", port->disk_name);
+				break;
 		}
 	}
 
 	pr_info(PFX "%s: %u sectors (%u MB) protocol %d.%d\n",
-	       g->disk_name,
-	       port->vdisk_size, (port->vdisk_size >> (20 - 9)),
-	       port->vio.ver.major, port->vio.ver.minor);
+			g->disk_name,
+			port->vdisk_size, (port->vdisk_size >> (20 - 9)),
+			port->vio.ver.major, port->vio.ver.minor);
 
 	device_add_disk(&port->vio.vdev->dev, g);
 
 	return 0;
 }
 
-static struct ldc_channel_config vdc_ldc_cfg = {
+static struct ldc_channel_config vdc_ldc_cfg =
+{
 	.event		= vdc_event,
 	.mtu		= 64,
 	.mode		= LDC_MODE_UNRELIABLE,
 };
 
-static struct vio_driver_ops vdc_vio_ops = {
+static struct vio_driver_ops vdc_vio_ops =
+{
 	.send_attr		= vdc_send_attr,
 	.handle_attr		= vdc_handle_attr,
 	.handshake_complete	= vdc_handshake_complete,
@@ -856,7 +1003,9 @@ static void print_version(void)
 	static int version_printed;
 
 	if (version_printed++ == 0)
+	{
 		printk(KERN_INFO "%s", version);
+	}
 }
 
 static int vdc_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
@@ -871,27 +1020,32 @@ static int vdc_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 	hp = mdesc_grab();
 
 	err = -ENODEV;
-	if ((vdev->dev_no << PARTITION_SHIFT) & ~(u64)MINORMASK) {
+
+	if ((vdev->dev_no << PARTITION_SHIFT) & ~(u64)MINORMASK)
+	{
 		printk(KERN_ERR PFX "Port id [%llu] too large.\n",
-		       vdev->dev_no);
+			   vdev->dev_no);
 		goto err_out_release_mdesc;
 	}
 
 	port = kzalloc(sizeof(*port), GFP_KERNEL);
 	err = -ENOMEM;
-	if (!port) {
+
+	if (!port)
+	{
 		printk(KERN_ERR PFX "Cannot allocate vdc_port.\n");
 		goto err_out_release_mdesc;
 	}
 
 	if (vdev->dev_no >= 26)
 		snprintf(port->disk_name, sizeof(port->disk_name),
-			 VDCBLK_NAME "%c%c",
-			 'a' + ((int)vdev->dev_no / 26) - 1,
-			 'a' + ((int)vdev->dev_no % 26));
+				 VDCBLK_NAME "%c%c",
+				 'a' + ((int)vdev->dev_no / 26) - 1,
+				 'a' + ((int)vdev->dev_no % 26));
 	else
 		snprintf(port->disk_name, sizeof(port->disk_name),
-			 VDCBLK_NAME "%c", 'a' + ((int)vdev->dev_no % 26));
+				 VDCBLK_NAME "%c", 'a' + ((int)vdev->dev_no % 26));
+
 	port->vdisk_size = -1;
 
 	/* Actual wall time may be double due to do_generic_file_read() doing
@@ -901,31 +1055,43 @@ static int vdc_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 	ldc_timeout = mdesc_get_property(hp, vdev->mp, "vdc-timeout", NULL);
 	port->ldc_timeout = ldc_timeout ? *ldc_timeout : 0;
 	setup_timer(&port->ldc_reset_timer, vdc_ldc_reset_timer,
-		    (unsigned long)port);
+				(unsigned long)port);
 	INIT_WORK(&port->ldc_reset_work, vdc_ldc_reset_work);
 
 	err = vio_driver_init(&port->vio, vdev, VDEV_DISK,
-			      vdc_versions, ARRAY_SIZE(vdc_versions),
-			      &vdc_vio_ops, port->disk_name);
+						  vdc_versions, ARRAY_SIZE(vdc_versions),
+						  &vdc_vio_ops, port->disk_name);
+
 	if (err)
+	{
 		goto err_out_free_port;
+	}
 
 	port->vdisk_block_size = 512;
 	port->max_xfer_size = ((128 * 1024) / port->vdisk_block_size);
 	port->ring_cookies = ((port->max_xfer_size *
-			       port->vdisk_block_size) / PAGE_SIZE) + 2;
+						   port->vdisk_block_size) / PAGE_SIZE) + 2;
 
 	err = vio_ldc_alloc(&port->vio, &vdc_ldc_cfg, port);
+
 	if (err)
+	{
 		goto err_out_free_port;
+	}
 
 	err = vdc_alloc_tx_ring(port);
+
 	if (err)
+	{
 		goto err_out_free_ldc;
+	}
 
 	err = probe_disk(port);
+
 	if (err)
+	{
 		goto err_out_free_tx_ring;
+	}
 
 	dev_set_drvdata(&vdev->dev, port);
 
@@ -951,7 +1117,8 @@ static int vdc_port_remove(struct vio_dev *vdev)
 {
 	struct vdc_port *port = dev_get_drvdata(&vdev->dev);
 
-	if (port) {
+	if (port)
+	{
 		unsigned long flags;
 
 		spin_lock_irqsave(&port->vio.lock, flags);
@@ -974,6 +1141,7 @@ static int vdc_port_remove(struct vio_dev *vdev)
 
 		kfree(port);
 	}
+
 	return 0;
 }
 
@@ -982,7 +1150,8 @@ static void vdc_requeue_inflight(struct vdc_port *port)
 	struct vio_dring_state *dr = &port->vio.drings[VIO_DRIVER_TX_RING];
 	u32 idx;
 
-	for (idx = dr->cons; idx != dr->prod; idx = vio_dring_next(dr, idx)) {
+	for (idx = dr->cons; idx != dr->prod; idx = vio_dring_next(dr, idx))
+	{
 		struct vio_disk_desc *desc = vio_dring_entry(dr, idx);
 		struct vdc_req_entry *rqe = &port->rq_arr[idx];
 		struct request *req;
@@ -992,7 +1161,9 @@ static void vdc_requeue_inflight(struct vdc_port *port)
 		dr->cons = vio_dring_next(dr, idx);
 
 		req = rqe->req;
-		if (req == NULL) {
+
+		if (req == NULL)
+		{
 			vdc_end_special(port, desc);
 			continue;
 		}
@@ -1007,7 +1178,9 @@ static void vdc_queue_drain(struct vdc_port *port)
 	struct request *req;
 
 	while ((req = blk_fetch_request(port->disk->queue)) != NULL)
+	{
 		__blk_end_request_all(req, -EIO);
+	}
 }
 
 static void vdc_ldc_reset_timer(unsigned long _arg)
@@ -1017,12 +1190,15 @@ static void vdc_ldc_reset_timer(unsigned long _arg)
 	unsigned long flags;
 
 	spin_lock_irqsave(&vio->lock, flags);
-	if (!(port->vio.hs_state & VIO_HS_COMPLETE)) {
+
+	if (!(port->vio.hs_state & VIO_HS_COMPLETE))
+	{
 		pr_warn(PFX "%s ldc down %llu seconds, draining queue\n",
-			port->disk_name, port->ldc_timeout);
+				port->disk_name, port->ldc_timeout);
 		vdc_queue_drain(port);
 		vdc_blk_queue_start(port);
 	}
+
 	spin_unlock_irqrestore(&vio->lock, flags);
 }
 
@@ -1052,20 +1228,25 @@ static void vdc_ldc_reset(struct vdc_port *port)
 	vdc_port_down(port);
 
 	err = vio_ldc_alloc(&port->vio, &vdc_ldc_cfg, port);
-	if (err) {
+
+	if (err)
+	{
 		pr_err(PFX "%s vio_ldc_alloc:%d\n", port->disk_name, err);
 		return;
 	}
 
 	err = vdc_alloc_tx_ring(port);
-	if (err) {
+
+	if (err)
+	{
 		pr_err(PFX "%s vio_alloc_tx_ring:%d\n", port->disk_name, err);
 		goto err_free_ldc;
 	}
 
 	if (port->ldc_timeout)
 		mod_timer(&port->ldc_reset_timer,
-			  round_jiffies(jiffies + HZ * port->ldc_timeout));
+				  round_jiffies(jiffies + HZ * port->ldc_timeout));
+
 	mod_timer(&port->vio.timer, round_jiffies(jiffies + HZ));
 	return;
 
@@ -1073,7 +1254,8 @@ err_free_ldc:
 	vio_ldc_free(&port->vio);
 }
 
-static const struct vio_device_id vdc_port_match[] = {
+static const struct vio_device_id vdc_port_match[] =
+{
 	{
 		.type = "vdc-port",
 	},
@@ -1081,7 +1263,8 @@ static const struct vio_device_id vdc_port_match[] = {
 };
 MODULE_DEVICE_TABLE(vio, vdc_port_match);
 
-static struct vio_driver vdc_port_driver = {
+static struct vio_driver vdc_port_driver =
+{
 	.id_table	= vdc_port_match,
 	.probe		= vdc_port_probe,
 	.remove		= vdc_port_remove,
@@ -1093,18 +1276,27 @@ static int __init vdc_init(void)
 	int err;
 
 	sunvdc_wq = alloc_workqueue("sunvdc", 0, 0);
+
 	if (!sunvdc_wq)
+	{
 		return -ENOMEM;
+	}
 
 	err = register_blkdev(0, VDCBLK_NAME);
+
 	if (err < 0)
+	{
 		goto out_free_wq;
+	}
 
 	vdc_major = err;
 
 	err = vio_register_driver(&vdc_port_driver);
+
 	if (err)
+	{
 		goto out_unregister_blkdev;
+	}
 
 	return 0;
 

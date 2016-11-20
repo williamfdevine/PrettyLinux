@@ -33,7 +33,8 @@
 #define PATA_IMX_DRIVE_DATA		0xA0
 #define PATA_IMX_DRIVE_CONTROL		0xD8
 
-struct pata_imx_priv {
+struct pata_imx_priv
+{
 	struct clk *clk;
 	/* timings/interrupt/control regs */
 	void __iomem *host_regs;
@@ -47,16 +48,23 @@ static int pata_imx_set_mode(struct ata_link *link, struct ata_device **unused)
 	struct pata_imx_priv *priv = ap->host->private_data;
 	u32 val;
 
-	ata_for_each_dev(dev, link, ENABLED) {
+	ata_for_each_dev(dev, link, ENABLED)
+	{
 		dev->pio_mode = dev->xfer_mode = XFER_PIO_0;
 		dev->xfer_shift = ATA_SHIFT_PIO;
 		dev->flags |= ATA_DFLAG_PIO;
 
 		val = __raw_readl(priv->host_regs + PATA_IMX_ATA_CONTROL);
+
 		if (ata_pio_need_iordy(dev))
+		{
 			val |= PATA_IMX_ATA_CTRL_IORDY_EN;
+		}
 		else
+		{
 			val &= ~PATA_IMX_ATA_CTRL_IORDY_EN;
+		}
+
 		__raw_writel(val, priv->host_regs + PATA_IMX_ATA_CONTROL);
 
 		ata_dev_info(dev, "configured for PIO\n");
@@ -64,11 +72,13 @@ static int pata_imx_set_mode(struct ata_link *link, struct ata_device **unused)
 	return 0;
 }
 
-static struct scsi_host_template pata_imx_sht = {
+static struct scsi_host_template pata_imx_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations pata_imx_port_ops = {
+static struct ata_port_operations pata_imx_port_ops =
+{
 	.inherits		= &ata_sff_port_ops,
 	.sff_data_xfer		= ata_sff_data_xfer_noirq,
 	.cable_detect		= ata_cable_unknown,
@@ -100,26 +110,39 @@ static int pata_imx_probe(struct platform_device *pdev)
 	int ret;
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	priv = devm_kzalloc(&pdev->dev,
-				sizeof(struct pata_imx_priv), GFP_KERNEL);
+						sizeof(struct pata_imx_priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(priv->clk)) {
+
+	if (IS_ERR(priv->clk))
+	{
 		dev_err(&pdev->dev, "Failed to get clock\n");
 		return PTR_ERR(priv->clk);
 	}
 
 	ret = clk_prepare_enable(priv->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	host = ata_host_alloc(&pdev->dev, 1);
-	if (!host) {
+
+	if (!host)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
@@ -133,7 +156,9 @@ static int pata_imx_probe(struct platform_device *pdev)
 
 	io_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->host_regs = devm_ioremap_resource(&pdev->dev, io_res);
-	if (IS_ERR(priv->host_regs)) {
+
+	if (IS_ERR(priv->host_regs))
+	{
 		ret = PTR_ERR(priv->host_regs);
 		goto err;
 	}
@@ -146,23 +171,25 @@ static int pata_imx_probe(struct platform_device *pdev)
 	pata_imx_setup_port(&ap->ioaddr);
 
 	ata_port_desc(ap, "cmd 0x%llx ctl 0x%llx",
-		(unsigned long long)io_res->start + PATA_IMX_DRIVE_DATA,
-		(unsigned long long)io_res->start + PATA_IMX_DRIVE_CONTROL);
+				  (unsigned long long)io_res->start + PATA_IMX_DRIVE_DATA,
+				  (unsigned long long)io_res->start + PATA_IMX_DRIVE_CONTROL);
 
 	/* deassert resets */
 	__raw_writel(PATA_IMX_ATA_CTRL_FIFO_RST_B |
-			PATA_IMX_ATA_CTRL_ATA_RST_B,
-			priv->host_regs + PATA_IMX_ATA_CONTROL);
+				 PATA_IMX_ATA_CTRL_ATA_RST_B,
+				 priv->host_regs + PATA_IMX_ATA_CONTROL);
 	/* enable interrupts */
 	__raw_writel(PATA_IMX_ATA_INTR_ATA_INTRQ2,
-			priv->host_regs + PATA_IMX_ATA_INT_EN);
+				 priv->host_regs + PATA_IMX_ATA_INT_EN);
 
 	/* activate */
 	ret = ata_host_activate(host, irq, ata_sff_interrupt, 0,
-				&pata_imx_sht);
+							&pata_imx_sht);
 
 	if (ret)
+	{
 		goto err;
+	}
 
 	return 0;
 err:
@@ -193,7 +220,9 @@ static int pata_imx_suspend(struct device *dev)
 	int ret;
 
 	ret = ata_host_suspend(host, PMSG_SUSPEND);
-	if (!ret) {
+
+	if (!ret)
+	{
 		__raw_writel(0, priv->host_regs + PATA_IMX_ATA_INT_EN);
 		priv->ata_ctl =
 			__raw_readl(priv->host_regs + PATA_IMX_ATA_CONTROL);
@@ -209,13 +238,16 @@ static int pata_imx_resume(struct device *dev)
 	struct pata_imx_priv *priv = host->private_data;
 
 	int ret = clk_prepare_enable(priv->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	__raw_writel(priv->ata_ctl, priv->host_regs + PATA_IMX_ATA_CONTROL);
 
 	__raw_writel(PATA_IMX_ATA_INTR_ATA_INTRQ2,
-			priv->host_regs + PATA_IMX_ATA_INT_EN);
+				 priv->host_regs + PATA_IMX_ATA_INT_EN);
 
 	ata_host_resume(host);
 
@@ -225,7 +257,8 @@ static int pata_imx_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(pata_imx_pm_ops, pata_imx_suspend, pata_imx_resume);
 
-static const struct of_device_id imx_pata_dt_ids[] = {
+static const struct of_device_id imx_pata_dt_ids[] =
+{
 	{
 		.compatible = "fsl,imx27-pata",
 	}, {
@@ -234,7 +267,8 @@ static const struct of_device_id imx_pata_dt_ids[] = {
 };
 MODULE_DEVICE_TABLE(of, imx_pata_dt_ids);
 
-static struct platform_driver pata_imx_driver = {
+static struct platform_driver pata_imx_driver =
+{
 	.probe		= pata_imx_probe,
 	.remove		= pata_imx_remove,
 	.driver = {

@@ -26,7 +26,10 @@
 struct device_node *of_node_get(struct device_node *node)
 {
 	if (node)
+	{
 		kobject_get(&node->kobj);
+	}
+
 	return node;
 }
 EXPORT_SYMBOL(of_node_get);
@@ -39,7 +42,9 @@ EXPORT_SYMBOL(of_node_get);
 void of_node_put(struct device_node *node)
 {
 	if (node)
+	{
 		kobject_put(&node->kobj);
+	}
 }
 EXPORT_SYMBOL(of_node_put);
 
@@ -48,16 +53,22 @@ void __of_detach_node_sysfs(struct device_node *np)
 	struct property *pp;
 
 	if (!IS_ENABLED(CONFIG_SYSFS))
+	{
 		return;
+	}
 
 	BUG_ON(!of_node_is_initialized(np));
+
 	if (!of_kset)
+	{
 		return;
+	}
 
 	/* only remove properties if on sysfs */
-	if (of_node_is_attached(np)) {
+	if (of_node_is_attached(np))
+	{
 		for_each_property_of_node(np, pp)
-			__of_sysfs_remove_bin_file(np, pp);
+		__of_sysfs_remove_bin_file(np, pp);
 		kobject_del(&np->kobj);
 	}
 
@@ -80,7 +91,8 @@ int of_reconfig_notifier_unregister(struct notifier_block *nb)
 EXPORT_SYMBOL_GPL(of_reconfig_notifier_unregister);
 
 #ifdef DEBUG
-const char *action_names[] = {
+const char *action_names[] =
+{
 	[OF_RECONFIG_ATTACH_NODE] = "ATTACH_NODE",
 	[OF_RECONFIG_DETACH_NODE] = "DETACH_NODE",
 	[OF_RECONFIG_ADD_PROPERTY] = "ADD_PROPERTY",
@@ -95,20 +107,23 @@ int of_reconfig_notify(unsigned long action, struct of_reconfig_data *p)
 #ifdef DEBUG
 	struct of_reconfig_data *pr = p;
 
-	switch (action) {
-	case OF_RECONFIG_ATTACH_NODE:
-	case OF_RECONFIG_DETACH_NODE:
-		pr_debug("notify %-15s %s\n", action_names[action],
-			pr->dn->full_name);
-		break;
-	case OF_RECONFIG_ADD_PROPERTY:
-	case OF_RECONFIG_REMOVE_PROPERTY:
-	case OF_RECONFIG_UPDATE_PROPERTY:
-		pr_debug("notify %-15s %s:%s\n", action_names[action],
-			pr->dn->full_name, pr->prop->name);
-		break;
+	switch (action)
+	{
+		case OF_RECONFIG_ATTACH_NODE:
+		case OF_RECONFIG_DETACH_NODE:
+			pr_debug("notify %-15s %s\n", action_names[action],
+					 pr->dn->full_name);
+			break;
+
+		case OF_RECONFIG_ADD_PROPERTY:
+		case OF_RECONFIG_REMOVE_PROPERTY:
+		case OF_RECONFIG_UPDATE_PROPERTY:
+			pr_debug("notify %-15s %s:%s\n", action_names[action],
+					 pr->dn->full_name, pr->prop->name);
+			break;
 
 	}
+
 #endif
 	rc = blocking_notifier_call_chain(&of_reconfig_chain, action, p);
 	return notifier_to_errno(rc);
@@ -129,21 +144,25 @@ int of_reconfig_get_state_change(unsigned long action, struct of_reconfig_data *
 	int is_status, status_state, old_status_state, prev_state, new_state;
 
 	/* figure out if a device should be created or destroyed */
-	switch (action) {
-	case OF_RECONFIG_ATTACH_NODE:
-	case OF_RECONFIG_DETACH_NODE:
-		prop = of_find_property(pr->dn, "status", NULL);
-		break;
-	case OF_RECONFIG_ADD_PROPERTY:
-	case OF_RECONFIG_REMOVE_PROPERTY:
-		prop = pr->prop;
-		break;
-	case OF_RECONFIG_UPDATE_PROPERTY:
-		prop = pr->prop;
-		old_prop = pr->old_prop;
-		break;
-	default:
-		return OF_RECONFIG_NO_CHANGE;
+	switch (action)
+	{
+		case OF_RECONFIG_ATTACH_NODE:
+		case OF_RECONFIG_DETACH_NODE:
+			prop = of_find_property(pr->dn, "status", NULL);
+			break;
+
+		case OF_RECONFIG_ADD_PROPERTY:
+		case OF_RECONFIG_REMOVE_PROPERTY:
+			prop = pr->prop;
+			break;
+
+		case OF_RECONFIG_UPDATE_PROPERTY:
+			prop = pr->prop;
+			old_prop = pr->old_prop;
+			break;
+
+		default:
+			return OF_RECONFIG_NO_CHANGE;
 	}
 
 	is_status = 0;
@@ -152,63 +171,80 @@ int of_reconfig_get_state_change(unsigned long action, struct of_reconfig_data *
 	prev_state = -1;
 	new_state = -1;
 
-	if (prop && !strcmp(prop->name, "status")) {
+	if (prop && !strcmp(prop->name, "status"))
+	{
 		is_status = 1;
 		status_state = !strcmp(prop->value, "okay") ||
-			       !strcmp(prop->value, "ok");
+					   !strcmp(prop->value, "ok");
+
 		if (old_prop)
 			old_status_state = !strcmp(old_prop->value, "okay") ||
-					   !strcmp(old_prop->value, "ok");
+							   !strcmp(old_prop->value, "ok");
 	}
 
-	switch (action) {
-	case OF_RECONFIG_ATTACH_NODE:
-		prev_state = 0;
-		/* -1 & 0 status either missing or okay */
-		new_state = status_state != 0;
-		break;
-	case OF_RECONFIG_DETACH_NODE:
-		/* -1 & 0 status either missing or okay */
-		prev_state = status_state != 0;
-		new_state = 0;
-		break;
-	case OF_RECONFIG_ADD_PROPERTY:
-		if (is_status) {
-			/* no status property -> enabled (legacy) */
-			prev_state = 1;
-			new_state = status_state;
-		}
-		break;
-	case OF_RECONFIG_REMOVE_PROPERTY:
-		if (is_status) {
-			prev_state = status_state;
-			/* no status property -> enabled (legacy) */
-			new_state = 1;
-		}
-		break;
-	case OF_RECONFIG_UPDATE_PROPERTY:
-		if (is_status) {
-			prev_state = old_status_state != 0;
+	switch (action)
+	{
+		case OF_RECONFIG_ATTACH_NODE:
+			prev_state = 0;
+			/* -1 & 0 status either missing or okay */
 			new_state = status_state != 0;
-		}
-		break;
+			break;
+
+		case OF_RECONFIG_DETACH_NODE:
+			/* -1 & 0 status either missing or okay */
+			prev_state = status_state != 0;
+			new_state = 0;
+			break;
+
+		case OF_RECONFIG_ADD_PROPERTY:
+			if (is_status)
+			{
+				/* no status property -> enabled (legacy) */
+				prev_state = 1;
+				new_state = status_state;
+			}
+
+			break;
+
+		case OF_RECONFIG_REMOVE_PROPERTY:
+			if (is_status)
+			{
+				prev_state = status_state;
+				/* no status property -> enabled (legacy) */
+				new_state = 1;
+			}
+
+			break;
+
+		case OF_RECONFIG_UPDATE_PROPERTY:
+			if (is_status)
+			{
+				prev_state = old_status_state != 0;
+				new_state = status_state != 0;
+			}
+
+			break;
 	}
 
 	if (prev_state == new_state)
+	{
 		return OF_RECONFIG_NO_CHANGE;
+	}
 
 	return new_state ? OF_RECONFIG_CHANGE_ADD : OF_RECONFIG_CHANGE_REMOVE;
 }
 EXPORT_SYMBOL_GPL(of_reconfig_get_state_change);
 
 int of_property_notify(int action, struct device_node *np,
-		       struct property *prop, struct property *oldprop)
+					   struct property *prop, struct property *oldprop)
 {
 	struct of_reconfig_data pr;
 
 	/* only call notifiers if the node is attached */
 	if (!of_node_is_attached(np))
+	{
 		return 0;
+	}
 
 	pr.dn = np;
 	pr.prop = prop;
@@ -225,10 +261,17 @@ void __of_attach_node(struct device_node *np)
 	np->type = __of_get_property(np, "device_type", NULL) ? : "<NULL>";
 
 	phandle = __of_get_property(np, "phandle", &sz);
+
 	if (!phandle)
+	{
 		phandle = __of_get_property(np, "linux,phandle", &sz);
+	}
+
 	if (IS_ENABLED(CONFIG_PPC_PSERIES) && !phandle)
+	{
 		phandle = __of_get_property(np, "ibm,phandle", &sz);
+	}
+
 	np->phandle = (phandle && (sz >= 4)) ? be32_to_cpup(phandle) : 0;
 
 	np->child = NULL;
@@ -266,20 +309,30 @@ void __of_detach_node(struct device_node *np)
 	struct device_node *parent;
 
 	if (WARN_ON(of_node_check_flag(np, OF_DETACHED)))
+	{
 		return;
+	}
 
 	parent = np->parent;
+
 	if (WARN_ON(!parent))
+	{
 		return;
+	}
 
 	if (parent->child == np)
+	{
 		parent->child = np->sibling;
-	else {
+	}
+	else
+	{
 		struct device_node *prevsib;
+
 		for (prevsib = np->parent->child;
-		     prevsib->sibling != np;
-		     prevsib = prevsib->sibling)
+			 prevsib->sibling != np;
+			 prevsib = prevsib->sibling)
 			;
+
 		prevsib->sibling = np->sibling;
 	}
 
@@ -327,27 +380,33 @@ void of_node_release(struct kobject *kobj)
 	struct property *prop = node->properties;
 
 	/* We should never be releasing nodes that haven't been detached. */
-	if (!of_node_check_flag(node, OF_DETACHED)) {
+	if (!of_node_check_flag(node, OF_DETACHED))
+	{
 		pr_err("ERROR: Bad of_node_put() on %s\n", node->full_name);
 		dump_stack();
 		return;
 	}
 
 	if (!of_node_check_flag(node, OF_DYNAMIC))
+	{
 		return;
+	}
 
-	while (prop) {
+	while (prop)
+	{
 		struct property *next = prop->next;
 		kfree(prop->name);
 		kfree(prop->value);
 		kfree(prop);
 		prop = next;
 
-		if (!prop) {
+		if (!prop)
+		{
 			prop = node->deadprops;
 			node->deadprops = NULL;
 		}
 	}
+
 	kfree(node->full_name);
 	kfree(node->data);
 	kfree(node);
@@ -369,8 +428,11 @@ struct property *__of_prop_dup(const struct property *prop, gfp_t allocflags)
 	struct property *new;
 
 	new = kzalloc(sizeof(*new), allocflags);
+
 	if (!new)
+	{
 		return NULL;
+	}
 
 	/*
 	 * NOTE: There is no check for zero length value.
@@ -381,15 +443,18 @@ struct property *__of_prop_dup(const struct property *prop, gfp_t allocflags)
 	new->name = kstrdup(prop->name, allocflags);
 	new->value = kmemdup(prop->value, prop->length, allocflags);
 	new->length = prop->length;
+
 	if (!new->name || !new->value)
+	{
 		goto err_free;
+	}
 
 	/* mark the property as dynamic */
 	of_property_set_flag(new, OF_DYNAMIC);
 
 	return new;
 
- err_free:
+err_free:
 	kfree(new->name);
 	kfree(new->value);
 	kfree(new);
@@ -412,12 +477,18 @@ struct device_node *__of_node_dup(const struct device_node *np, const char *fmt,
 	struct device_node *node;
 
 	node = kzalloc(sizeof(*node), GFP_KERNEL);
+
 	if (!node)
+	{
 		return NULL;
+	}
+
 	va_start(vargs, fmt);
 	node->full_name = kvasprintf(GFP_KERNEL, fmt, vargs);
 	va_end(vargs);
-	if (!node->full_name) {
+
+	if (!node->full_name)
+	{
 		kfree(node);
 		return NULL;
 	}
@@ -427,13 +498,20 @@ struct device_node *__of_node_dup(const struct device_node *np, const char *fmt,
 	of_node_init(node);
 
 	/* Iterate over and duplicate all properties */
-	if (np) {
+	if (np)
+	{
 		struct property *pp, *new_pp;
-		for_each_property_of_node(np, pp) {
+		for_each_property_of_node(np, pp)
+		{
 			new_pp = __of_prop_dup(pp, GFP_KERNEL);
+
 			if (!new_pp)
+			{
 				goto err_prop;
-			if (__of_add_property(node, new_pp)) {
+			}
+
+			if (__of_add_property(node, new_pp))
+			{
 				kfree(new_pp->name);
 				kfree(new_pp->value);
 				kfree(new_pp);
@@ -441,9 +519,10 @@ struct device_node *__of_node_dup(const struct device_node *np, const char *fmt,
 			}
 		}
 	}
+
 	return node;
 
- err_prop:
+err_prop:
 	of_node_put(node); /* Frees the node and properties */
 	return NULL;
 }
@@ -458,18 +537,20 @@ static void __of_changeset_entry_destroy(struct of_changeset_entry *ce)
 #ifdef DEBUG
 static void __of_changeset_entry_dump(struct of_changeset_entry *ce)
 {
-	switch (ce->action) {
-	case OF_RECONFIG_ADD_PROPERTY:
-	case OF_RECONFIG_REMOVE_PROPERTY:
-	case OF_RECONFIG_UPDATE_PROPERTY:
-		pr_debug("cset<%p> %-15s %s/%s\n", ce, action_names[ce->action],
-			ce->np->full_name, ce->prop->name);
-		break;
-	case OF_RECONFIG_ATTACH_NODE:
-	case OF_RECONFIG_DETACH_NODE:
-		pr_debug("cset<%p> %-15s %s\n", ce, action_names[ce->action],
-			ce->np->full_name);
-		break;
+	switch (ce->action)
+	{
+		case OF_RECONFIG_ADD_PROPERTY:
+		case OF_RECONFIG_REMOVE_PROPERTY:
+		case OF_RECONFIG_UPDATE_PROPERTY:
+			pr_debug("cset<%p> %-15s %s/%s\n", ce, action_names[ce->action],
+					 ce->np->full_name, ce->prop->name);
+			break;
+
+		case OF_RECONFIG_ATTACH_NODE:
+		case OF_RECONFIG_DETACH_NODE:
+			pr_debug("cset<%p> %-15s %s\n", ce, action_names[ce->action],
+					 ce->np->full_name);
+			break;
 	}
 }
 #else
@@ -480,32 +561,40 @@ static inline void __of_changeset_entry_dump(struct of_changeset_entry *ce)
 #endif
 
 static void __of_changeset_entry_invert(struct of_changeset_entry *ce,
-					  struct of_changeset_entry *rce)
+										struct of_changeset_entry *rce)
 {
 	memcpy(rce, ce, sizeof(*rce));
 
-	switch (ce->action) {
-	case OF_RECONFIG_ATTACH_NODE:
-		rce->action = OF_RECONFIG_DETACH_NODE;
-		break;
-	case OF_RECONFIG_DETACH_NODE:
-		rce->action = OF_RECONFIG_ATTACH_NODE;
-		break;
-	case OF_RECONFIG_ADD_PROPERTY:
-		rce->action = OF_RECONFIG_REMOVE_PROPERTY;
-		break;
-	case OF_RECONFIG_REMOVE_PROPERTY:
-		rce->action = OF_RECONFIG_ADD_PROPERTY;
-		break;
-	case OF_RECONFIG_UPDATE_PROPERTY:
-		rce->old_prop = ce->prop;
-		rce->prop = ce->old_prop;
-		/* update was used but original property did not exist */
-		if (!rce->prop) {
+	switch (ce->action)
+	{
+		case OF_RECONFIG_ATTACH_NODE:
+			rce->action = OF_RECONFIG_DETACH_NODE;
+			break;
+
+		case OF_RECONFIG_DETACH_NODE:
+			rce->action = OF_RECONFIG_ATTACH_NODE;
+			break;
+
+		case OF_RECONFIG_ADD_PROPERTY:
 			rce->action = OF_RECONFIG_REMOVE_PROPERTY;
-			rce->prop = ce->prop;
-		}
-		break;
+			break;
+
+		case OF_RECONFIG_REMOVE_PROPERTY:
+			rce->action = OF_RECONFIG_ADD_PROPERTY;
+			break;
+
+		case OF_RECONFIG_UPDATE_PROPERTY:
+			rce->old_prop = ce->prop;
+			rce->prop = ce->old_prop;
+
+			/* update was used but original property did not exist */
+			if (!rce->prop)
+			{
+				rce->action = OF_RECONFIG_REMOVE_PROPERTY;
+				rce->prop = ce->prop;
+			}
+
+			break;
 	}
 }
 
@@ -515,31 +604,37 @@ static void __of_changeset_entry_notify(struct of_changeset_entry *ce, bool reve
 	struct of_changeset_entry ce_inverted;
 	int ret;
 
-	if (revert) {
+	if (revert)
+	{
 		__of_changeset_entry_invert(ce, &ce_inverted);
 		ce = &ce_inverted;
 	}
 
-	switch (ce->action) {
-	case OF_RECONFIG_ATTACH_NODE:
-	case OF_RECONFIG_DETACH_NODE:
-		memset(&rd, 0, sizeof(rd));
-		rd.dn = ce->np;
-		ret = of_reconfig_notify(ce->action, &rd);
-		break;
-	case OF_RECONFIG_ADD_PROPERTY:
-	case OF_RECONFIG_REMOVE_PROPERTY:
-	case OF_RECONFIG_UPDATE_PROPERTY:
-		ret = of_property_notify(ce->action, ce->np, ce->prop, ce->old_prop);
-		break;
-	default:
-		pr_err("invalid devicetree changeset action: %i\n",
-			(int)ce->action);
-		return;
+	switch (ce->action)
+	{
+		case OF_RECONFIG_ATTACH_NODE:
+		case OF_RECONFIG_DETACH_NODE:
+			memset(&rd, 0, sizeof(rd));
+			rd.dn = ce->np;
+			ret = of_reconfig_notify(ce->action, &rd);
+			break;
+
+		case OF_RECONFIG_ADD_PROPERTY:
+		case OF_RECONFIG_REMOVE_PROPERTY:
+		case OF_RECONFIG_UPDATE_PROPERTY:
+			ret = of_property_notify(ce->action, ce->np, ce->prop, ce->old_prop);
+			break;
+
+		default:
+			pr_err("invalid devicetree changeset action: %i\n",
+				   (int)ce->action);
+			return;
 	}
 
 	if (ret)
+	{
 		pr_err("changeset notifier error @%s\n", ce->np->full_name);
+	}
 }
 
 static int __of_changeset_entry_apply(struct of_changeset_entry *ce)
@@ -551,84 +646,113 @@ static int __of_changeset_entry_apply(struct of_changeset_entry *ce)
 	__of_changeset_entry_dump(ce);
 
 	raw_spin_lock_irqsave(&devtree_lock, flags);
-	switch (ce->action) {
-	case OF_RECONFIG_ATTACH_NODE:
-		__of_attach_node(ce->np);
-		break;
-	case OF_RECONFIG_DETACH_NODE:
-		__of_detach_node(ce->np);
-		break;
-	case OF_RECONFIG_ADD_PROPERTY:
-		/* If the property is in deadprops then it must be removed */
-		for (propp = &ce->np->deadprops; *propp; propp = &(*propp)->next) {
-			if (*propp == ce->prop) {
-				*propp = ce->prop->next;
-				ce->prop->next = NULL;
+
+	switch (ce->action)
+	{
+		case OF_RECONFIG_ATTACH_NODE:
+			__of_attach_node(ce->np);
+			break;
+
+		case OF_RECONFIG_DETACH_NODE:
+			__of_detach_node(ce->np);
+			break;
+
+		case OF_RECONFIG_ADD_PROPERTY:
+
+			/* If the property is in deadprops then it must be removed */
+			for (propp = &ce->np->deadprops; *propp; propp = &(*propp)->next)
+			{
+				if (*propp == ce->prop)
+				{
+					*propp = ce->prop->next;
+					ce->prop->next = NULL;
+					break;
+				}
+			}
+
+			ret = __of_add_property(ce->np, ce->prop);
+
+			if (ret)
+			{
+				pr_err("changeset: add_property failed @%s/%s\n",
+					   ce->np->full_name,
+					   ce->prop->name);
 				break;
 			}
-		}
 
-		ret = __of_add_property(ce->np, ce->prop);
-		if (ret) {
-			pr_err("changeset: add_property failed @%s/%s\n",
-				ce->np->full_name,
-				ce->prop->name);
 			break;
-		}
-		break;
-	case OF_RECONFIG_REMOVE_PROPERTY:
-		ret = __of_remove_property(ce->np, ce->prop);
-		if (ret) {
-			pr_err("changeset: remove_property failed @%s/%s\n",
-				ce->np->full_name,
-				ce->prop->name);
-			break;
-		}
-		break;
 
-	case OF_RECONFIG_UPDATE_PROPERTY:
-		/* If the property is in deadprops then it must be removed */
-		for (propp = &ce->np->deadprops; *propp; propp = &(*propp)->next) {
-			if (*propp == ce->prop) {
-				*propp = ce->prop->next;
-				ce->prop->next = NULL;
+		case OF_RECONFIG_REMOVE_PROPERTY:
+			ret = __of_remove_property(ce->np, ce->prop);
+
+			if (ret)
+			{
+				pr_err("changeset: remove_property failed @%s/%s\n",
+					   ce->np->full_name,
+					   ce->prop->name);
 				break;
 			}
-		}
 
-		ret = __of_update_property(ce->np, ce->prop, &old_prop);
-		if (ret) {
-			pr_err("changeset: update_property failed @%s/%s\n",
-				ce->np->full_name,
-				ce->prop->name);
 			break;
-		}
-		break;
-	default:
-		ret = -EINVAL;
+
+		case OF_RECONFIG_UPDATE_PROPERTY:
+
+			/* If the property is in deadprops then it must be removed */
+			for (propp = &ce->np->deadprops; *propp; propp = &(*propp)->next)
+			{
+				if (*propp == ce->prop)
+				{
+					*propp = ce->prop->next;
+					ce->prop->next = NULL;
+					break;
+				}
+			}
+
+			ret = __of_update_property(ce->np, ce->prop, &old_prop);
+
+			if (ret)
+			{
+				pr_err("changeset: update_property failed @%s/%s\n",
+					   ce->np->full_name,
+					   ce->prop->name);
+				break;
+			}
+
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
+
 	raw_spin_unlock_irqrestore(&devtree_lock, flags);
 
 	if (ret)
+	{
 		return ret;
+	}
 
-	switch (ce->action) {
-	case OF_RECONFIG_ATTACH_NODE:
-		__of_attach_node_sysfs(ce->np);
-		break;
-	case OF_RECONFIG_DETACH_NODE:
-		__of_detach_node_sysfs(ce->np);
-		break;
-	case OF_RECONFIG_ADD_PROPERTY:
-		/* ignore duplicate names */
-		__of_add_property_sysfs(ce->np, ce->prop);
-		break;
-	case OF_RECONFIG_REMOVE_PROPERTY:
-		__of_remove_property_sysfs(ce->np, ce->prop);
-		break;
-	case OF_RECONFIG_UPDATE_PROPERTY:
-		__of_update_property_sysfs(ce->np, ce->prop, ce->old_prop);
-		break;
+	switch (ce->action)
+	{
+		case OF_RECONFIG_ATTACH_NODE:
+			__of_attach_node_sysfs(ce->np);
+			break;
+
+		case OF_RECONFIG_DETACH_NODE:
+			__of_detach_node_sysfs(ce->np);
+			break;
+
+		case OF_RECONFIG_ADD_PROPERTY:
+			/* ignore duplicate names */
+			__of_add_property_sysfs(ce->np, ce->prop);
+			break;
+
+		case OF_RECONFIG_REMOVE_PROPERTY:
+			__of_remove_property_sysfs(ce->np, ce->prop);
+			break;
+
+		case OF_RECONFIG_UPDATE_PROPERTY:
+			__of_update_property_sysfs(ce->np, ce->prop, ce->old_prop);
+			break;
 	}
 
 	return 0;
@@ -669,7 +793,7 @@ void of_changeset_destroy(struct of_changeset *ocs)
 	struct of_changeset_entry *ce, *cen;
 
 	list_for_each_entry_safe_reverse(ce, cen, &ocs->entries, node)
-		__of_changeset_entry_destroy(ce);
+	__of_changeset_entry_destroy(ce);
 }
 EXPORT_SYMBOL_GPL(of_changeset_destroy);
 
@@ -680,12 +804,15 @@ int __of_changeset_apply(struct of_changeset *ocs)
 
 	/* perform the rest of the work */
 	pr_debug("changeset: applying...\n");
-	list_for_each_entry(ce, &ocs->entries, node) {
+	list_for_each_entry(ce, &ocs->entries, node)
+	{
 		ret = __of_changeset_entry_apply(ce);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("Error applying changeset (%d)\n", ret);
 			list_for_each_entry_continue_reverse(ce, &ocs->entries, node)
-				__of_changeset_entry_revert(ce);
+			__of_changeset_entry_revert(ce);
 			return ret;
 		}
 	}
@@ -694,7 +821,7 @@ int __of_changeset_apply(struct of_changeset *ocs)
 	/* drop the global lock while emitting notifiers */
 	mutex_unlock(&of_mutex);
 	list_for_each_entry(ce, &ocs->entries, node)
-		__of_changeset_entry_notify(ce, 0);
+	__of_changeset_entry_notify(ce, 0);
 	mutex_lock(&of_mutex);
 	pr_debug("changeset: notifiers sent.\n");
 
@@ -731,12 +858,15 @@ int __of_changeset_revert(struct of_changeset *ocs)
 	int ret;
 
 	pr_debug("changeset: reverting...\n");
-	list_for_each_entry_reverse(ce, &ocs->entries, node) {
+	list_for_each_entry_reverse(ce, &ocs->entries, node)
+	{
 		ret = __of_changeset_entry_revert(ce);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("Error reverting changeset (%d)\n", ret);
 			list_for_each_entry_continue(ce, &ocs->entries, node)
-				__of_changeset_entry_apply(ce);
+			__of_changeset_entry_apply(ce);
 			return ret;
 		}
 	}
@@ -745,7 +875,7 @@ int __of_changeset_revert(struct of_changeset *ocs)
 	/* drop the global lock while emitting notifiers */
 	mutex_unlock(&of_mutex);
 	list_for_each_entry_reverse(ce, &ocs->entries, node)
-		__of_changeset_entry_notify(ce, 1);
+	__of_changeset_entry_notify(ce, 1);
 	mutex_lock(&of_mutex);
 	pr_debug("changeset: notifiers sent.\n");
 
@@ -792,13 +922,16 @@ EXPORT_SYMBOL_GPL(of_changeset_revert);
  * Returns 0 on success, a negative error value in case of an error.
  */
 int of_changeset_action(struct of_changeset *ocs, unsigned long action,
-		struct device_node *np, struct property *prop)
+						struct device_node *np, struct property *prop)
 {
 	struct of_changeset_entry *ce;
 
 	ce = kzalloc(sizeof(*ce), GFP_KERNEL);
+
 	if (!ce)
+	{
 		return -ENOMEM;
+	}
 
 	/* get a reference to the node */
 	ce->action = action;
@@ -806,7 +939,9 @@ int of_changeset_action(struct of_changeset *ocs, unsigned long action,
 	ce->prop = prop;
 
 	if (action == OF_RECONFIG_UPDATE_PROPERTY && prop)
+	{
 		ce->old_prop = of_find_property(np, prop->name, NULL);
+	}
 
 	/* add it to the list */
 	list_add_tail(&ce->node, &ocs->entries);

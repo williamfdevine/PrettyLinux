@@ -33,7 +33,8 @@
  ******************************************************************************/
 
 const struct gf100_gr_init
-gk104_gr_init_main_0[] = {
+	gk104_gr_init_main_0[] =
+{
 	{ 0x400080,   1, 0x04, 0x003083c2 },
 	{ 0x400088,   1, 0x04, 0x0001ffe7 },
 	{ 0x40008c,   1, 0x04, 0x00000000 },
@@ -49,7 +50,8 @@ gk104_gr_init_main_0[] = {
 };
 
 static const struct gf100_gr_init
-gk104_gr_init_ds_0[] = {
+	gk104_gr_init_ds_0[] =
+{
 	{ 0x405844,   1, 0x04, 0x00ffffff },
 	{ 0x405850,   1, 0x04, 0x00000000 },
 	{ 0x405900,   1, 0x04, 0x0000ff34 },
@@ -59,19 +61,22 @@ gk104_gr_init_ds_0[] = {
 };
 
 static const struct gf100_gr_init
-gk104_gr_init_sked_0[] = {
+	gk104_gr_init_sked_0[] =
+{
 	{ 0x407010,   1, 0x04, 0x00000000 },
 	{}
 };
 
 static const struct gf100_gr_init
-gk104_gr_init_cwd_0[] = {
+	gk104_gr_init_cwd_0[] =
+{
 	{ 0x405b50,   1, 0x04, 0x00000000 },
 	{}
 };
 
 static const struct gf100_gr_init
-gk104_gr_init_gpc_unk_1[] = {
+	gk104_gr_init_gpc_unk_1[] =
+{
 	{ 0x418d00,   1, 0x04, 0x00000000 },
 	{ 0x418d28,   2, 0x04, 0x00000000 },
 	{ 0x418f00,   1, 0x04, 0x00000000 },
@@ -84,14 +89,16 @@ gk104_gr_init_gpc_unk_1[] = {
 };
 
 const struct gf100_gr_init
-gk104_gr_init_tpccs_0[] = {
+	gk104_gr_init_tpccs_0[] =
+{
 	{ 0x419d0c,   1, 0x04, 0x00000000 },
 	{ 0x419d10,   1, 0x04, 0x00000014 },
 	{}
 };
 
 const struct gf100_gr_init
-gk104_gr_init_pe_0[] = {
+	gk104_gr_init_pe_0[] =
+{
 	{ 0x41980c,   1, 0x04, 0x00000010 },
 	{ 0x419844,   1, 0x04, 0x00000000 },
 	{ 0x419850,   1, 0x04, 0x00000004 },
@@ -100,7 +107,8 @@ gk104_gr_init_pe_0[] = {
 };
 
 static const struct gf100_gr_init
-gk104_gr_init_l1c_0[] = {
+	gk104_gr_init_l1c_0[] =
+{
 	{ 0x419c98,   1, 0x04, 0x00000000 },
 	{ 0x419ca8,   1, 0x04, 0x00000000 },
 	{ 0x419cb0,   1, 0x04, 0x01000000 },
@@ -114,7 +122,8 @@ gk104_gr_init_l1c_0[] = {
 };
 
 static const struct gf100_gr_init
-gk104_gr_init_sm_0[] = {
+	gk104_gr_init_sm_0[] =
+{
 	{ 0x419e00,   1, 0x04, 0x00000000 },
 	{ 0x419ea0,   1, 0x04, 0x00000000 },
 	{ 0x419ee4,   1, 0x04, 0x00000000 },
@@ -128,7 +137,8 @@ gk104_gr_init_sm_0[] = {
 };
 
 const struct gf100_gr_init
-gk104_gr_init_be_0[] = {
+	gk104_gr_init_be_0[] =
+{
 	{ 0x40880c,   1, 0x04, 0x00000000 },
 	{ 0x408850,   1, 0x04, 0x00000004 },
 	{ 0x408910,   9, 0x04, 0x00000000 },
@@ -142,7 +152,8 @@ gk104_gr_init_be_0[] = {
 };
 
 const struct gf100_gr_pack
-gk104_gr_pack_mmio[] = {
+	gk104_gr_pack_mmio[] =
+{
 	{ gk104_gr_init_main_0 },
 	{ gf100_gr_init_fe_0 },
 	{ gf100_gr_init_pri_0 },
@@ -194,10 +205,15 @@ gk104_gr_init_ppc_exceptions(struct gf100_gr *gr)
 	struct nvkm_device *device = gr->base.engine.subdev.device;
 	int gpc, ppc;
 
-	for (gpc = 0; gpc < gr->gpc_nr; gpc++) {
-		for (ppc = 0; ppc < gr->ppc_nr[gpc]; ppc++) {
+	for (gpc = 0; gpc < gr->gpc_nr; gpc++)
+	{
+		for (ppc = 0; ppc < gr->ppc_nr[gpc]; ppc++)
+		{
 			if (!(gr->ppc_mask[gpc] & (1 << ppc)))
+			{
 				continue;
+			}
+
 			nvkm_wr32(device, PPC_UNIT(gpc, ppc, 0x038), 0xc0000000);
 		}
 	}
@@ -229,10 +245,15 @@ gk104_gr_init(struct gf100_gr *gr)
 
 	memset(data, 0x00, sizeof(data));
 	memcpy(tpcnr, gr->tpc_nr, sizeof(gr->tpc_nr));
-	for (i = 0, gpc = -1; i < gr->tpc_total; i++) {
-		do {
+
+	for (i = 0, gpc = -1; i < gr->tpc_total; i++)
+	{
+		do
+		{
 			gpc = (gpc + 1) % gr->gpc_nr;
-		} while (!tpcnr[gpc]);
+		}
+		while (!tpcnr[gpc]);
+
 		tpc = gr->tpc_nr[gpc] - tpcnr[gpc]--;
 
 		data[i / 8] |= tpc << ((i % 8) * 4);
@@ -243,11 +264,12 @@ gk104_gr_init(struct gf100_gr *gr)
 	nvkm_wr32(device, GPC_BCAST(0x0988), data[2]);
 	nvkm_wr32(device, GPC_BCAST(0x098c), data[3]);
 
-	for (gpc = 0; gpc < gr->gpc_nr; gpc++) {
+	for (gpc = 0; gpc < gr->gpc_nr; gpc++)
+	{
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0914),
-			  gr->screen_tile_row_offset << 8 | gr->tpc_nr[gpc]);
+				  gr->screen_tile_row_offset << 8 | gr->tpc_nr[gpc]);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0910), 0x00040000 |
-							 gr->tpc_total);
+				  gr->tpc_total);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0918), magicgpc918);
 	}
 
@@ -277,12 +299,15 @@ gk104_gr_init(struct gf100_gr *gr)
 
 	gr->func->init_ppc_exceptions(gr);
 
-	for (gpc = 0; gpc < gr->gpc_nr; gpc++) {
+	for (gpc = 0; gpc < gr->gpc_nr; gpc++)
+	{
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0420), 0xc0000000);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0900), 0xc0000000);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x1028), 0xc0000000);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0824), 0xc0000000);
-		for (tpc = 0; tpc < gr->tpc_nr[gpc]; tpc++) {
+
+		for (tpc = 0; tpc < gr->tpc_nr[gpc]; tpc++)
+		{
 			nvkm_wr32(device, TPC_UNIT(gpc, tpc, 0x508), 0xffffffff);
 			nvkm_wr32(device, TPC_UNIT(gpc, tpc, 0x50c), 0xffffffff);
 			nvkm_wr32(device, TPC_UNIT(gpc, tpc, 0x224), 0xc0000000);
@@ -291,11 +316,13 @@ gk104_gr_init(struct gf100_gr *gr)
 			nvkm_wr32(device, TPC_UNIT(gpc, tpc, 0x644), 0x001ffffe);
 			nvkm_wr32(device, TPC_UNIT(gpc, tpc, 0x64c), 0x0000000f);
 		}
+
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x2c90), 0xffffffff);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x2c94), 0xffffffff);
 	}
 
-	for (rop = 0; rop < gr->rop_nr; rop++) {
+	for (rop = 0; rop < gr->rop_nr; rop++)
+	{
 		nvkm_wr32(device, ROP_UNIT(rop, 0x144), 0xc0000000);
 		nvkm_wr32(device, ROP_UNIT(rop, 0x070), 0xc0000000);
 		nvkm_wr32(device, ROP_UNIT(rop, 0x204), 0xffffffff);
@@ -319,7 +346,8 @@ gk104_gr_init(struct gf100_gr *gr)
 #include "fuc/hubgk104.fuc3.h"
 
 static struct gf100_gr_ucode
-gk104_gr_fecs_ucode = {
+	gk104_gr_fecs_ucode =
+{
 	.code.data = gk104_grhub_code,
 	.code.size = sizeof(gk104_grhub_code),
 	.data.data = gk104_grhub_data,
@@ -329,7 +357,8 @@ gk104_gr_fecs_ucode = {
 #include "fuc/gpcgk104.fuc3.h"
 
 static struct gf100_gr_ucode
-gk104_gr_gpccs_ucode = {
+	gk104_gr_gpccs_ucode =
+{
 	.code.data = gk104_grgpc_code,
 	.code.size = sizeof(gk104_grgpc_code),
 	.data.data = gk104_grgpc_data,
@@ -337,7 +366,8 @@ gk104_gr_gpccs_ucode = {
 };
 
 static const struct gf100_gr_func
-gk104_gr = {
+	gk104_gr =
+{
 	.init = gk104_gr_init,
 	.init_rop_active_fbps = gk104_gr_init_rop_active_fbps,
 	.init_ppc_exceptions = gk104_gr_init_ppc_exceptions,

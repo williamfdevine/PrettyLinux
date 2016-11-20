@@ -13,8 +13,8 @@ struct fw_unit;
 #define FW_QUIET		0x0200
 
 int snd_fw_transaction(struct fw_unit *unit, int tcode,
-		       u64 offset, void *buffer, size_t length,
-		       unsigned int flags);
+					   u64 offset, void *buffer, size_t length,
+					   unsigned int flags);
 
 /* returns true if retrying the transaction would not make sense */
 static inline bool rcode_is_permanent_error(int rcode)
@@ -23,14 +23,15 @@ static inline bool rcode_is_permanent_error(int rcode)
 }
 
 void snd_fw_schedule_registration(struct fw_unit *unit,
-				  struct delayed_work *dwork);
+								  struct delayed_work *dwork);
 
 struct snd_fw_async_midi_port;
 typedef int (*snd_fw_async_midi_port_fill)(
-				struct snd_rawmidi_substream *substream,
-				u8 *buf);
+	struct snd_rawmidi_substream *substream,
+	u8 *buf);
 
-struct snd_fw_async_midi_port {
+struct snd_fw_async_midi_port
+{
 	struct fw_device *parent;
 	struct work_struct work;
 	bool idling;
@@ -49,8 +50,8 @@ struct snd_fw_async_midi_port {
 };
 
 int snd_fw_async_midi_port_init(struct snd_fw_async_midi_port *port,
-		struct fw_unit *unit, u64 addr, unsigned int len,
-		snd_fw_async_midi_port_fill fill);
+								struct fw_unit *unit, u64 addr, unsigned int len,
+								snd_fw_async_midi_port_fill fill);
 void snd_fw_async_midi_port_destroy(struct snd_fw_async_midi_port *port);
 
 /**
@@ -60,9 +61,10 @@ void snd_fw_async_midi_port_destroy(struct snd_fw_async_midi_port *port);
  */
 static inline void
 snd_fw_async_midi_port_run(struct snd_fw_async_midi_port *port,
-			   struct snd_rawmidi_substream *substream)
+						   struct snd_rawmidi_substream *substream)
 {
-	if (!port->error) {
+	if (!port->error)
+	{
 		port->substream = substream;
 		schedule_work(&port->work);
 	}

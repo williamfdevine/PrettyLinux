@@ -29,18 +29,25 @@ static DESCRIPTOR _DAdapter;
  * didd callback function
  */
 static void *didd_callback(void *context, DESCRIPTOR *adapter,
-			   int removal)
+						   int removal)
 {
-	if (adapter->type == IDI_DADAPTER) {
+	if (adapter->type == IDI_DADAPTER)
+	{
 		DBG_ERR(("Notification about IDI_DADAPTER change ! Oops."))
-			return (NULL);
-	} else if (adapter->type == IDI_DIMAINT) {
-		if (removal) {
+		return (NULL);
+	}
+	else if (adapter->type == IDI_DIMAINT)
+	{
+		if (removal)
+		{
 			DbgDeregister();
-		} else {
+		}
+		else
+		{
 			DbgRegister("DIDD", DRIVERRELEASE_DIDD, DBG_DEFAULT);
 		}
 	}
+
 	return (NULL);
 }
 
@@ -56,8 +63,10 @@ static int __init connect_didd(void)
 
 	DIVA_DIDD_Read(DIDD_Table, sizeof(DIDD_Table));
 
-	for (x = 0; x < MAX_DESCRIPTORS; x++) {
-		if (DIDD_Table[x].type == IDI_DADAPTER) {	/* DADAPTER found */
+	for (x = 0; x < MAX_DESCRIPTORS; x++)
+	{
+		if (DIDD_Table[x].type == IDI_DADAPTER)  	/* DADAPTER found */
+		{
 			dadapter = 1;
 			memcpy(&_DAdapter, &DIDD_Table[x], sizeof(_DAdapter));
 			req.didd_notify.e.Req = 0;
@@ -66,13 +75,20 @@ static int __init connect_didd(void)
 			req.didd_notify.info.callback = (void *)didd_callback;
 			req.didd_notify.info.context = NULL;
 			_DAdapter.request((ENTITY *)&req);
+
 			if (req.didd_notify.e.Rc != 0xff)
+			{
 				return (0);
+			}
+
 			notify_handle = req.didd_notify.info.handle;
-		} else if (DIDD_Table[x].type == IDI_DIMAINT) {	/* MAINT found */
+		}
+		else if (DIDD_Table[x].type == IDI_DIMAINT)  	/* MAINT found */
+		{
 			DbgRegister("DIDD", DRIVERRELEASE_DIDD, DBG_DEFAULT);
 		}
 	}
+
 	return (dadapter);
 }
 
@@ -96,11 +112,13 @@ int __init diddfunc_init(void)
 {
 	diva_didd_load_time_init();
 
-	if (!connect_didd()) {
+	if (!connect_didd())
+	{
 		DBG_ERR(("init: failed to connect to DIDD."))
-			diva_didd_load_time_finit();
+		diva_didd_load_time_finit();
 		return (0);
 	}
+
 	return (1);
 }
 

@@ -50,7 +50,8 @@ MODULE_DESCRIPTION("Q40 PS/2 keyboard controller driver");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:" DRV_NAME);
 
-struct q40kbd {
+struct q40kbd
+{
 	struct serio *port;
 	spinlock_t lock;
 };
@@ -63,7 +64,9 @@ static irqreturn_t q40kbd_interrupt(int irq, void *dev_id)
 	spin_lock_irqsave(&q40kbd->lock, flags);
 
 	if (Q40_IRQ_KEYB_MASK & master_inb(INTERRUPT_REG))
+	{
 		serio_interrupt(q40kbd->port, master_inb(KEYCODE_REG), 0);
+	}
 
 	master_outb(-1, KEYBOARD_UNLOCK_REG);
 
@@ -84,7 +87,9 @@ static void q40kbd_flush(struct q40kbd *q40kbd)
 	spin_lock_irqsave(&q40kbd->lock, flags);
 
 	while (maxread-- && (Q40_IRQ_KEYB_MASK & master_inb(INTERRUPT_REG)))
+	{
 		master_inb(KEYCODE_REG);
+	}
 
 	spin_unlock_irqrestore(&q40kbd->lock, flags);
 }
@@ -129,7 +134,9 @@ static int q40kbd_probe(struct platform_device *pdev)
 
 	q40kbd = kzalloc(sizeof(struct q40kbd), GFP_KERNEL);
 	port = kzalloc(sizeof(struct serio), GFP_KERNEL);
-	if (!q40kbd || !port) {
+
+	if (!q40kbd || !port)
+	{
 		error = -ENOMEM;
 		goto err_free_mem;
 	}
@@ -148,8 +155,10 @@ static int q40kbd_probe(struct platform_device *pdev)
 	q40kbd_stop();
 
 	error = request_irq(Q40_IRQ_KEYBOARD, q40kbd_interrupt, 0,
-			    DRV_NAME, q40kbd);
-	if (error) {
+						DRV_NAME, q40kbd);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Can't get irq %d.\n", Q40_IRQ_KEYBOARD);
 		goto err_free_mem;
 	}
@@ -183,7 +192,8 @@ static int q40kbd_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver q40kbd_driver = {
+static struct platform_driver q40kbd_driver =
+{
 	.driver		= {
 		.name	= "q40kbd",
 	},

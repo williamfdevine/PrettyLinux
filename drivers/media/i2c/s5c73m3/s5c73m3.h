@@ -31,13 +31,15 @@
 #define S5C73M3_JPEG_FMT		MEDIA_BUS_FMT_S5C_UYVY_JPEG_1X8
 
 /* Subdevs pad index definitions */
-enum s5c73m3_pads {
+enum s5c73m3_pads
+{
 	S5C73M3_ISP_PAD,
 	S5C73M3_JPEG_PAD,
 	S5C73M3_NUM_PADS
 };
 
-enum s5c73m3_oif_pads {
+enum s5c73m3_oif_pads
+{
 	OIF_ISP_PAD,
 	OIF_JPEG_PAD,
 	OIF_SOURCE_PAD,
@@ -324,21 +326,25 @@ enum s5c73m3_oif_pads {
 #define S5C73M3_MAX_SUPPLIES			6
 #define S5C73M3_DEFAULT_MCLK_FREQ		24000000U
 
-struct s5c73m3_ctrls {
+struct s5c73m3_ctrls
+{
 	struct v4l2_ctrl_handler handler;
-	struct {
+	struct
+	{
 		/* exposure/exposure bias cluster */
 		struct v4l2_ctrl *auto_exposure;
 		struct v4l2_ctrl *exposure_bias;
 		struct v4l2_ctrl *exposure_metering;
 	};
-	struct {
+	struct
+	{
 		/* iso/auto iso cluster */
 		struct v4l2_ctrl *auto_iso;
 		struct v4l2_ctrl *iso;
 	};
 	struct v4l2_ctrl *auto_wb;
-	struct {
+	struct
+	{
 		/* continuous auto focus/auto focus cluster */
 		struct v4l2_ctrl *focus_auto;
 		struct v4l2_ctrl *af_start;
@@ -359,25 +365,29 @@ struct s5c73m3_ctrls {
 	struct v4l2_ctrl *scene_mode;
 };
 
-enum s5c73m3_gpio_id {
+enum s5c73m3_gpio_id
+{
 	STBY,
 	RST,
 	GPIO_NUM,
 };
 
-enum s5c73m3_resolution_types {
+enum s5c73m3_resolution_types
+{
 	RES_ISP,
 	RES_JPEG,
 };
 
-struct s5c73m3_interval {
+struct s5c73m3_interval
+{
 	u16 fps_reg;
 	struct v4l2_fract interval;
 	/* Maximum rectangle for the interval */
 	struct v4l2_frmsize_discrete size;
 };
 
-struct s5c73m3 {
+struct s5c73m3
+{
 	struct v4l2_subdev sensor_sd;
 	struct media_pad sensor_pads[S5C73M3_NUM_PADS];
 
@@ -412,10 +422,10 @@ struct s5c73m3 {
 
 	struct s5c73m3_ctrls ctrls;
 
-	u8 streaming:1;
-	u8 apply_fmt:1;
-	u8 apply_fiv:1;
-	u8 isp_ready:1;
+	u8 streaming: 1;
+	u8 apply_fmt: 1;
+	u8 apply_fiv: 1;
+	u8 isp_ready: 1;
 
 	short power;
 
@@ -425,7 +435,8 @@ struct s5c73m3 {
 	unsigned int fw_size;
 };
 
-struct s5c73m3_frame_size {
+struct s5c73m3_frame_size
+{
 	u32 width;
 	u32 height;
 	u8 reg_val;
@@ -436,9 +447,9 @@ extern int s5c73m3_dbg;
 int s5c73m3_register_spi_driver(struct s5c73m3 *state);
 void s5c73m3_unregister_spi_driver(struct s5c73m3 *state);
 int s5c73m3_spi_write(struct s5c73m3 *state, const void *addr,
-		      const unsigned int len, const unsigned int tx_size);
+					  const unsigned int len, const unsigned int tx_size);
 int s5c73m3_spi_read(struct s5c73m3 *state, void *addr,
-		      const unsigned int len, const unsigned int tx_size);
+					 const unsigned int len, const unsigned int tx_size);
 
 int s5c73m3_read(struct s5c73m3 *state, u32 addr, u16 *data);
 int s5c73m3_write(struct s5c73m3 *state, u32 addr, u16 data);
@@ -448,7 +459,7 @@ int s5c73m3_init_controls(struct s5c73m3 *state);
 static inline struct v4l2_subdev *ctrl_to_sensor_sd(struct v4l2_ctrl *ctrl)
 {
 	return &container_of(ctrl->handler, struct s5c73m3,
-			     ctrls.handler)->sensor_sd;
+						 ctrls.handler)->sensor_sd;
 }
 
 static inline struct s5c73m3 *sensor_sd_to_s5c73m3(struct v4l2_subdev *sd)

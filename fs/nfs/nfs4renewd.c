@@ -66,46 +66,67 @@ nfs4_renew_state(struct work_struct *work)
 	dprintk("%s: start\n", __func__);
 
 	if (test_bit(NFS_CS_STOP_RENEW, &clp->cl_res_state))
+	{
 		goto out;
+	}
 
 	spin_lock(&clp->cl_lock);
 	lease = clp->cl_lease_time;
 	last = clp->cl_last_renewal;
 	now = jiffies;
-	/* Are we close to a lease timeout? */
-	if (time_after(now, last + lease/3))
-		renew_flags |= NFS4_RENEW_TIMEOUT;
-	if (nfs_delegations_present(clp))
-		renew_flags |= NFS4_RENEW_DELEGATION_CB;
 
-	if (renew_flags != 0) {
+	/* Are we close to a lease timeout? */
+	if (time_after(now, last + lease / 3))
+	{
+		renew_flags |= NFS4_RENEW_TIMEOUT;
+	}
+
+	if (nfs_delegations_present(clp))
+	{
+		renew_flags |= NFS4_RENEW_DELEGATION_CB;
+	}
+
+	if (renew_flags != 0)
+	{
 		cred = ops->get_state_renewal_cred_locked(clp);
 		spin_unlock(&clp->cl_lock);
-		if (cred == NULL) {
-			if (!(renew_flags & NFS4_RENEW_DELEGATION_CB)) {
+
+		if (cred == NULL)
+		{
+			if (!(renew_flags & NFS4_RENEW_DELEGATION_CB))
+			{
 				set_bit(NFS4CLNT_LEASE_EXPIRED, &clp->cl_state);
 				goto out;
 			}
+
 			nfs_expire_all_delegations(clp);
-		} else {
+		}
+		else
+		{
 			int ret;
 
 			/* Queue an asynchronous RENEW. */
 			ret = ops->sched_state_renewal(clp, cred, renew_flags);
 			put_rpccred(cred);
-			switch (ret) {
-			default:
-				goto out_exp;
-			case -EAGAIN:
-			case -ENOMEM:
-				break;
+
+			switch (ret)
+			{
+				default:
+					goto out_exp;
+
+				case -EAGAIN:
+				case -ENOMEM:
+					break;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		dprintk("%s: failed to call renewd. Reason: lease not expired \n",
 				__func__);
 		spin_unlock(&clp->cl_lock);
 	}
+
 	nfs4_schedule_state_renewal(clp);
 out_exp:
 	nfs_expire_unreferenced_delegations(clp);
@@ -120,9 +141,13 @@ nfs4_schedule_state_renewal(struct nfs_client *clp)
 
 	spin_lock(&clp->cl_lock);
 	timeout = (2 * clp->cl_lease_time) / 3 + (long)clp->cl_last_renewal
-		- (long)jiffies;
+			  - (long)jiffies;
+
 	if (timeout < 5 * HZ)
+	{
 		timeout = 5 * HZ;
+	}
+
 	dprintk("%s: requeueing work. Lease period = %ld\n",
 			__func__, (timeout + HZ - 1) / HZ);
 	mod_delayed_work(system_wq, &clp->cl_renewd, timeout);
@@ -144,8 +169,8 @@ nfs4_kill_renewd(struct nfs_client *clp)
  * @lastrenewed: time at which lease was last renewed
  */
 void nfs4_set_lease_period(struct nfs_client *clp,
-		unsigned long lease,
-		unsigned long lastrenewed)
+						   unsigned long lease,
+						   unsigned long lastrenewed)
 {
 	spin_lock(&clp->cl_lock);
 	clp->cl_lease_time = lease;

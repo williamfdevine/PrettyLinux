@@ -31,10 +31,14 @@ static void seqiv_aead_encrypt_complete2(struct aead_request *req, int err)
 	struct crypto_aead *geniv;
 
 	if (err == -EINPROGRESS)
+	{
 		return;
+	}
 
 	if (err)
+	{
 		goto out;
+	}
 
 	geniv = crypto_aead_reqtfm(req);
 	memcpy(req->iv, subreq->iv, crypto_aead_ivsize(geniv));
@@ -44,7 +48,7 @@ out:
 }
 
 static void seqiv_aead_encrypt_complete(struct crypto_async_request *base,
-					int err)
+										int err)
 {
 	struct aead_request *req = base->data;
 
@@ -64,7 +68,9 @@ static int seqiv_aead_encrypt(struct aead_request *req)
 	int err;
 
 	if (req->cryptlen < ivsize)
+	{
 		return -EINVAL;
+	}
 
 	aead_request_set_tfm(subreq, ctx->child);
 
@@ -72,28 +78,36 @@ static int seqiv_aead_encrypt(struct aead_request *req)
 	data = req->base.data;
 	info = req->iv;
 
-	if (req->src != req->dst) {
+	if (req->src != req->dst)
+	{
 		SKCIPHER_REQUEST_ON_STACK(nreq, ctx->sknull);
 
 		skcipher_request_set_tfm(nreq, ctx->sknull);
 		skcipher_request_set_callback(nreq, req->base.flags,
-					      NULL, NULL);
+									  NULL, NULL);
 		skcipher_request_set_crypt(nreq, req->src, req->dst,
-					   req->assoclen + req->cryptlen,
-					   NULL);
+								   req->assoclen + req->cryptlen,
+								   NULL);
 
 		err = crypto_skcipher_encrypt(nreq);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	if (unlikely(!IS_ALIGNED((unsigned long)info,
-				 crypto_aead_alignmask(geniv) + 1))) {
+							 crypto_aead_alignmask(geniv) + 1)))
+	{
 		info = kmalloc(ivsize, req->base.flags &
-				       CRYPTO_TFM_REQ_MAY_SLEEP ? GFP_KERNEL:
-								  GFP_ATOMIC);
+					   CRYPTO_TFM_REQ_MAY_SLEEP ? GFP_KERNEL :
+					   GFP_ATOMIC);
+
 		if (!info)
+		{
 			return -ENOMEM;
+		}
 
 		memcpy(info, req->iv, ivsize);
 		compl = seqiv_aead_encrypt_complete;
@@ -102,15 +116,19 @@ static int seqiv_aead_encrypt(struct aead_request *req)
 
 	aead_request_set_callback(subreq, req->base.flags, compl, data);
 	aead_request_set_crypt(subreq, req->dst, req->dst,
-			       req->cryptlen - ivsize, info);
+						   req->cryptlen - ivsize, info);
 	aead_request_set_ad(subreq, req->assoclen + ivsize);
 
 	crypto_xor(info, ctx->salt, ivsize);
 	scatterwalk_map_and_copy(info, req->dst, req->assoclen, ivsize, 1);
 
 	err = crypto_aead_encrypt(subreq);
+
 	if (unlikely(info != req->iv))
+	{
 		seqiv_aead_encrypt_complete2(req, err);
+	}
+
 	return err;
 }
 
@@ -124,7 +142,9 @@ static int seqiv_aead_decrypt(struct aead_request *req)
 	unsigned int ivsize = 8;
 
 	if (req->cryptlen < ivsize + crypto_aead_authsize(geniv))
+	{
 		return -EINVAL;
+	}
 
 	aead_request_set_tfm(subreq, ctx->child);
 
@@ -133,7 +153,7 @@ static int seqiv_aead_decrypt(struct aead_request *req)
 
 	aead_request_set_callback(subreq, req->base.flags, compl, data);
 	aead_request_set_crypt(subreq, req->src, req->dst,
-			       req->cryptlen - ivsize, req->iv);
+						   req->cryptlen - ivsize, req->iv);
 	aead_request_set_ad(subreq, req->assoclen + ivsize);
 
 	scatterwalk_map_and_copy(req->iv, req->src, req->assoclen, ivsize, 0);
@@ -151,7 +171,9 @@ static int seqiv_aead_create(struct crypto_template *tmpl, struct rtattr **tb)
 	inst = aead_geniv_alloc(tmpl, tb, 0, 0);
 
 	if (IS_ERR(inst))
+	{
 		return PTR_ERR(inst);
+	}
 
 	inst->alg.base.cra_alignmask |= __alignof__(u32) - 1;
 
@@ -159,8 +181,11 @@ static int seqiv_aead_create(struct crypto_template *tmpl, struct rtattr **tb)
 	alg = crypto_spawn_aead_alg(spawn);
 
 	err = -EINVAL;
+
 	if (inst->alg.ivsize != sizeof(u64))
+	{
 		goto free_inst;
+	}
 
 	inst->alg.encrypt = seqiv_aead_encrypt;
 	inst->alg.decrypt = seqiv_aead_decrypt;
@@ -172,8 +197,11 @@ static int seqiv_aead_create(struct crypto_template *tmpl, struct rtattr **tb)
 	inst->alg.base.cra_ctxsize += inst->alg.ivsize;
 
 	err = aead_register_instance(tmpl, inst);
+
 	if (err)
+	{
 		goto free_inst;
+	}
 
 out:
 	return err;
@@ -188,11 +216,16 @@ static int seqiv_create(struct crypto_template *tmpl, struct rtattr **tb)
 	struct crypto_attr_type *algt;
 
 	algt = crypto_get_attr_type(tb);
+
 	if (IS_ERR(algt))
+	{
 		return PTR_ERR(algt);
+	}
 
 	if ((algt->type ^ CRYPTO_ALG_TYPE_AEAD) & CRYPTO_ALG_TYPE_MASK)
+	{
 		return -EINVAL;
+	}
 
 	return seqiv_aead_create(tmpl, tb);
 }
@@ -202,7 +235,8 @@ static void seqiv_free(struct crypto_instance *inst)
 	aead_geniv_free(aead_instance(inst));
 }
 
-static struct crypto_template seqiv_tmpl = {
+static struct crypto_template seqiv_tmpl =
+{
 	.name = "seqiv",
 	.create = seqiv_create,
 	.free = seqiv_free,

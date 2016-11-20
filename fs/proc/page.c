@@ -26,7 +26,7 @@
  * physical page count.
  */
 static ssize_t kpagecount_read(struct file *file, char __user *buf,
-			     size_t count, loff_t *ppos)
+							   size_t count, loff_t *ppos)
 {
 	u64 __user *out = (u64 __user *)buf;
 	struct page *ppage;
@@ -37,20 +37,34 @@ static ssize_t kpagecount_read(struct file *file, char __user *buf,
 
 	pfn = src / KPMSIZE;
 	count = min_t(size_t, count, (max_pfn * KPMSIZE) - src);
+
 	if (src & KPMMASK || count & KPMMASK)
+	{
 		return -EINVAL;
+	}
 
-	while (count > 0) {
+	while (count > 0)
+	{
 		if (pfn_valid(pfn))
+		{
 			ppage = pfn_to_page(pfn);
+		}
 		else
+		{
 			ppage = NULL;
-		if (!ppage || PageSlab(ppage))
-			pcount = 0;
-		else
-			pcount = page_mapcount(ppage);
+		}
 
-		if (put_user(pcount, out)) {
+		if (!ppage || PageSlab(ppage))
+		{
+			pcount = 0;
+		}
+		else
+		{
+			pcount = page_mapcount(ppage);
+		}
+
+		if (put_user(pcount, out))
+		{
 			ret = -EFAULT;
 			break;
 		}
@@ -63,12 +77,17 @@ static ssize_t kpagecount_read(struct file *file, char __user *buf,
 	}
 
 	*ppos += (char __user *)out - buf;
+
 	if (!ret)
+	{
 		ret = (char __user *)out - buf;
+	}
+
 	return ret;
 }
 
-static const struct file_operations proc_kpagecount_operations = {
+static const struct file_operations proc_kpagecount_operations =
+{
 	.llseek = mem_lseek,
 	.read = kpagecount_read,
 };
@@ -94,7 +113,9 @@ u64 stable_page_flags(struct page *page)
 	 * it differentiates a memory hole from a page with no flags
 	 */
 	if (!page)
+	{
 		return 1 << KPF_NOPAGE;
+	}
 
 	k = page->flags;
 	u = 0;
@@ -106,39 +127,62 @@ u64 stable_page_flags(struct page *page)
 	 * simple test in page_mapped() is not enough.
 	 */
 	if (!PageSlab(page) && page_mapped(page))
+	{
 		u |= 1 << KPF_MMAP;
+	}
+
 	if (PageAnon(page))
+	{
 		u |= 1 << KPF_ANON;
+	}
+
 	if (PageKsm(page))
+	{
 		u |= 1 << KPF_KSM;
+	}
 
 	/*
 	 * compound pages: export both head/tail info
 	 * they together define a compound page's start/end pos and order
 	 */
 	if (PageHead(page))
+	{
 		u |= 1 << KPF_COMPOUND_HEAD;
+	}
+
 	if (PageTail(page))
+	{
 		u |= 1 << KPF_COMPOUND_TAIL;
+	}
+
 	if (PageHuge(page))
+	{
 		u |= 1 << KPF_HUGE;
+	}
 	/*
 	 * PageTransCompound can be true for non-huge compound pages (slab
 	 * pages or pages allocated by drivers with __GFP_COMP) because it
 	 * just checks PG_head/PG_tail, so we need to check PageLRU/PageAnon
 	 * to make sure a given page is a thp, not a non-huge compound page.
 	 */
-	else if (PageTransCompound(page)) {
+	else if (PageTransCompound(page))
+	{
 		struct page *head = compound_head(page);
 
 		if (PageLRU(head) || PageAnon(head))
+		{
 			u |= 1 << KPF_THP;
-		else if (is_huge_zero_page(head)) {
+		}
+		else if (is_huge_zero_page(head))
+		{
 			u |= 1 << KPF_ZERO_PAGE;
 			u |= 1 << KPF_THP;
 		}
-	} else if (is_zero_pfn(page_to_pfn(page)))
+	}
+	else if (is_zero_pfn(page_to_pfn(page)))
+	{
 		u |= 1 << KPF_ZERO_PAGE;
+	}
 
 
 	/*
@@ -147,21 +191,32 @@ u64 stable_page_flags(struct page *page)
 	 * SLOB won't set PG_slab at all on compound pages.
 	 */
 	if (PageBuddy(page))
+	{
 		u |= 1 << KPF_BUDDY;
+	}
 	else if (page_count(page) == 0 && is_free_buddy_page(page))
+	{
 		u |= 1 << KPF_BUDDY;
+	}
 
 	if (PageBalloon(page))
+	{
 		u |= 1 << KPF_BALLOON;
+	}
 
 	if (page_is_idle(page))
+	{
 		u |= 1 << KPF_IDLE;
+	}
 
 	u |= kpf_copy_bit(k, KPF_LOCKED,	PG_locked);
 
 	u |= kpf_copy_bit(k, KPF_SLAB,		PG_slab);
+
 	if (PageTail(page) && PageSlab(compound_head(page)))
+	{
 		u |= 1 << KPF_SLAB;
+	}
 
 	u |= kpf_copy_bit(k, KPF_ERROR,		PG_error);
 	u |= kpf_copy_bit(k, KPF_DIRTY,		PG_dirty);
@@ -198,7 +253,7 @@ u64 stable_page_flags(struct page *page)
 };
 
 static ssize_t kpageflags_read(struct file *file, char __user *buf,
-			     size_t count, loff_t *ppos)
+							   size_t count, loff_t *ppos)
 {
 	u64 __user *out = (u64 __user *)buf;
 	struct page *ppage;
@@ -208,16 +263,25 @@ static ssize_t kpageflags_read(struct file *file, char __user *buf,
 
 	pfn = src / KPMSIZE;
 	count = min_t(unsigned long, count, (max_pfn * KPMSIZE) - src);
+
 	if (src & KPMMASK || count & KPMMASK)
+	{
 		return -EINVAL;
+	}
 
-	while (count > 0) {
+	while (count > 0)
+	{
 		if (pfn_valid(pfn))
+		{
 			ppage = pfn_to_page(pfn);
+		}
 		else
+		{
 			ppage = NULL;
+		}
 
-		if (put_user(stable_page_flags(ppage), out)) {
+		if (put_user(stable_page_flags(ppage), out))
+		{
 			ret = -EFAULT;
 			break;
 		}
@@ -230,19 +294,24 @@ static ssize_t kpageflags_read(struct file *file, char __user *buf,
 	}
 
 	*ppos += (char __user *)out - buf;
+
 	if (!ret)
+	{
 		ret = (char __user *)out - buf;
+	}
+
 	return ret;
 }
 
-static const struct file_operations proc_kpageflags_operations = {
+static const struct file_operations proc_kpageflags_operations =
+{
 	.llseek = mem_lseek,
 	.read = kpageflags_read,
 };
 
 #ifdef CONFIG_MEMCG
 static ssize_t kpagecgroup_read(struct file *file, char __user *buf,
-				size_t count, loff_t *ppos)
+								size_t count, loff_t *ppos)
 {
 	u64 __user *out = (u64 __user *)buf;
 	struct page *ppage;
@@ -253,21 +322,34 @@ static ssize_t kpagecgroup_read(struct file *file, char __user *buf,
 
 	pfn = src / KPMSIZE;
 	count = min_t(unsigned long, count, (max_pfn * KPMSIZE) - src);
-	if (src & KPMMASK || count & KPMMASK)
-		return -EINVAL;
 
-	while (count > 0) {
+	if (src & KPMMASK || count & KPMMASK)
+	{
+		return -EINVAL;
+	}
+
+	while (count > 0)
+	{
 		if (pfn_valid(pfn))
+		{
 			ppage = pfn_to_page(pfn);
+		}
 		else
+		{
 			ppage = NULL;
+		}
 
 		if (ppage)
+		{
 			ino = page_cgroup_ino(ppage);
+		}
 		else
+		{
 			ino = 0;
+		}
 
-		if (put_user(ino, out)) {
+		if (put_user(ino, out))
+		{
 			ret = -EFAULT;
 			break;
 		}
@@ -280,12 +362,17 @@ static ssize_t kpagecgroup_read(struct file *file, char __user *buf,
 	}
 
 	*ppos += (char __user *)out - buf;
+
 	if (!ret)
+	{
 		ret = (char __user *)out - buf;
+	}
+
 	return ret;
 }
 
-static const struct file_operations proc_kpagecgroup_operations = {
+static const struct file_operations proc_kpagecgroup_operations =
+{
 	.llseek = mem_lseek,
 	.read = kpagecgroup_read,
 };

@@ -27,7 +27,7 @@
 /*
  * PMIC registers
  */
- /* PAGE0 */
+/* PAGE0 */
 #define	DA9055_REG_PAGE_CON		0x00
 
 /* System Control and Event Registers */

@@ -35,7 +35,8 @@
 #include "selftest.h"
 #include "console.h"
 
-enum {
+enum
+{
 	LST_INIT_NONE		= 0,
 	LST_INIT_WI_SERIAL,
 	LST_INIT_WI_TEST,
@@ -54,32 +55,43 @@ lnet_selftest_exit(void)
 {
 	int i;
 
-	switch (lst_init_step) {
-	case LST_INIT_CONSOLE:
-		lstcon_console_fini();
-	case LST_INIT_FW:
-		sfw_shutdown();
-	case LST_INIT_RPC:
-		srpc_shutdown();
-	case LST_INIT_WI_TEST:
-		for (i = 0;
-		     i < cfs_cpt_number(lnet_cpt_table()); i++) {
-			if (!lst_sched_test[i])
-				continue;
-			cfs_wi_sched_destroy(lst_sched_test[i]);
-		}
-		LIBCFS_FREE(lst_sched_test,
-			    sizeof(lst_sched_test[0]) *
-			    cfs_cpt_number(lnet_cpt_table()));
-		lst_sched_test = NULL;
+	switch (lst_init_step)
+	{
+		case LST_INIT_CONSOLE:
+			lstcon_console_fini();
 
-	case LST_INIT_WI_SERIAL:
-		cfs_wi_sched_destroy(lst_sched_serial);
-		lst_sched_serial = NULL;
-	case LST_INIT_NONE:
-		break;
-	default:
-		LBUG();
+		case LST_INIT_FW:
+			sfw_shutdown();
+
+		case LST_INIT_RPC:
+			srpc_shutdown();
+
+		case LST_INIT_WI_TEST:
+			for (i = 0;
+				 i < cfs_cpt_number(lnet_cpt_table()); i++)
+			{
+				if (!lst_sched_test[i])
+				{
+					continue;
+				}
+
+				cfs_wi_sched_destroy(lst_sched_test[i]);
+			}
+
+			LIBCFS_FREE(lst_sched_test,
+						sizeof(lst_sched_test[0]) *
+						cfs_cpt_number(lnet_cpt_table()));
+			lst_sched_test = NULL;
+
+		case LST_INIT_WI_SERIAL:
+			cfs_wi_sched_destroy(lst_sched_serial);
+			lst_sched_serial = NULL;
+
+		case LST_INIT_NONE:
+			break;
+
+		default:
+			LBUG();
 	}
 }
 
@@ -91,51 +103,70 @@ lnet_selftest_init(void)
 	int i;
 
 	rc = cfs_wi_sched_create("lst_s", lnet_cpt_table(), CFS_CPT_ANY,
-				 1, &lst_sched_serial);
-	if (rc) {
+							 1, &lst_sched_serial);
+
+	if (rc)
+	{
 		CERROR("Failed to create serial WI scheduler for LST\n");
 		return rc;
 	}
+
 	lst_init_step = LST_INIT_WI_SERIAL;
 
 	nscheds = cfs_cpt_number(lnet_cpt_table());
 	LIBCFS_ALLOC(lst_sched_test, sizeof(lst_sched_test[0]) * nscheds);
+
 	if (!lst_sched_test)
+	{
 		goto error;
+	}
 
 	lst_init_step = LST_INIT_WI_TEST;
-	for (i = 0; i < nscheds; i++) {
+
+	for (i = 0; i < nscheds; i++)
+	{
 		int nthrs = cfs_cpt_weight(lnet_cpt_table(), i);
 
 		/* reserve at least one CPU for LND */
 		nthrs = max(nthrs - 1, 1);
 		rc = cfs_wi_sched_create("lst_t", lnet_cpt_table(), i,
-					 nthrs, &lst_sched_test[i]);
-		if (rc) {
+								 nthrs, &lst_sched_test[i]);
+
+		if (rc)
+		{
 			CERROR("Failed to create CPT affinity WI scheduler %d for LST\n", i);
 			goto error;
 		}
 	}
 
 	rc = srpc_startup();
-	if (rc) {
+
+	if (rc)
+	{
 		CERROR("LST can't startup rpc\n");
 		goto error;
 	}
+
 	lst_init_step = LST_INIT_RPC;
 
 	rc = sfw_startup();
-	if (rc) {
+
+	if (rc)
+	{
 		CERROR("LST can't startup framework\n");
 		goto error;
 	}
+
 	lst_init_step = LST_INIT_FW;
 
 	rc = lstcon_console_init();
-	if (rc) {
+
+	if (rc)
+	{
 		CERROR("LST can't startup console\n");
 		goto error;
 	}
+
 	lst_init_step = LST_INIT_CONSOLE;
 	return 0;
 error:

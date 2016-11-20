@@ -19,7 +19,7 @@
 
 static __be32
 nfsd4_ff_proc_layoutget(struct inode *inode, const struct svc_fh *fhp,
-		struct nfsd4_layoutget *args)
+						struct nfsd4_layoutget *args)
 {
 	struct nfsd4_layout_seg *seg = &args->lg_seg;
 	u32 device_generation = 0;
@@ -35,8 +35,12 @@ nfsd4_ff_proc_layoutget(struct inode *inode, const struct svc_fh *fhp,
 	 */
 	error = -ENOMEM;
 	fl = kzalloc(sizeof(*fl), GFP_KERNEL);
+
 	if (!fl)
+	{
 		goto out_error;
+	}
+
 	args->lg_content = fl;
 
 	/*
@@ -45,19 +49,27 @@ nfsd4_ff_proc_layoutget(struct inode *inode, const struct svc_fh *fhp,
 	 * effectively be WRITE only.
 	 */
 	fl->flags = FF_FLAGS_NO_LAYOUTCOMMIT | FF_FLAGS_NO_IO_THRU_MDS |
-		    FF_FLAGS_NO_READ_IO;
+				FF_FLAGS_NO_READ_IO;
 
 	/* Do not allow a IOMODE_READ segment to have write pemissions */
-	if (seg->iomode == IOMODE_READ) {
+	if (seg->iomode == IOMODE_READ)
+	{
 		u = from_kuid(&init_user_ns, inode->i_uid) + 1;
 		fl->uid = make_kuid(&init_user_ns, u);
-	} else
+	}
+	else
+	{
 		fl->uid = inode->i_uid;
+	}
+
 	fl->gid = inode->i_gid;
 
 	error = nfsd4_set_deviceid(&fl->deviceid, fhp, device_generation);
+
 	if (error)
+	{
 		goto out_error;
+	}
 
 	fl->fh.size = fhp->fh_handle.fh_size;
 	memcpy(fl->fh.data, &fhp->fh_handle.fh_base, fl->fh.size);
@@ -67,7 +79,7 @@ nfsd4_ff_proc_layoutget(struct inode *inode, const struct svc_fh *fhp,
 	seg->length = NFS4_MAX_UINT64;
 
 	dprintk("GET: 0x%llx:0x%llx %d\n", seg->offset, seg->length,
-		seg->iomode);
+			seg->iomode);
 	return 0;
 
 out_error:
@@ -77,7 +89,7 @@ out_error:
 
 static __be32
 nfsd4_ff_proc_getdeviceinfo(struct super_block *sb, struct svc_rqst *rqstp,
-		struct nfs4_client *clp, struct nfsd4_getdeviceinfo *gdp)
+							struct nfs4_client *clp, struct nfsd4_getdeviceinfo *gdp)
 {
 	struct pnfs_ff_device_addr *da;
 
@@ -85,8 +97,11 @@ nfsd4_ff_proc_getdeviceinfo(struct super_block *sb, struct svc_rqst *rqstp,
 	char addr[INET6_ADDRSTRLEN];
 
 	da = kzalloc(sizeof(struct pnfs_ff_device_addr), GFP_KERNEL);
+
 	if (!da)
+	{
 		return nfserrno(-ENOMEM);
+	}
 
 	gdp->gd_device = da;
 
@@ -97,15 +112,19 @@ nfsd4_ff_proc_getdeviceinfo(struct super_block *sb, struct svc_rqst *rqstp,
 	da->wsize = da->rsize;
 
 	rpc_ntop((struct sockaddr *)&rqstp->rq_daddr,
-		 addr, INET6_ADDRSTRLEN);
-	if (rqstp->rq_daddr.ss_family == AF_INET) {
+			 addr, INET6_ADDRSTRLEN);
+
+	if (rqstp->rq_daddr.ss_family == AF_INET)
+	{
 		struct sockaddr_in *sin;
 
 		sin = (struct sockaddr_in *)&rqstp->rq_daddr;
 		port = ntohs(sin->sin_port);
 		snprintf(da->netaddr.netid, FF_NETID_LEN + 1, "tcp");
 		da->netaddr.netid_len = 3;
-	} else {
+	}
+	else
+	{
 		struct sockaddr_in6 *sin6;
 
 		sin6 = (struct sockaddr_in6 *)&rqstp->rq_daddr;
@@ -116,16 +135,17 @@ nfsd4_ff_proc_getdeviceinfo(struct super_block *sb, struct svc_rqst *rqstp,
 
 	da->netaddr.addr_len =
 		snprintf(da->netaddr.addr, FF_ADDR_LEN + 1,
-			 "%s.%hhu.%hhu", addr, port >> 8, port & 0xff);
+				 "%s.%hhu.%hhu", addr, port >> 8, port & 0xff);
 
 	da->tightly_coupled = false;
 
 	return 0;
 }
 
-const struct nfsd4_layout_ops ff_layout_ops = {
+const struct nfsd4_layout_ops ff_layout_ops =
+{
 	.notify_types		=
-			NOTIFY_DEVICEID4_DELETE | NOTIFY_DEVICEID4_CHANGE,
+	NOTIFY_DEVICEID4_DELETE | NOTIFY_DEVICEID4_CHANGE,
 	.disable_recalls	= true,
 	.proc_getdeviceinfo	= nfsd4_ff_proc_getdeviceinfo,
 	.encode_getdeviceinfo	= nfsd4_ff_encode_getdeviceinfo,

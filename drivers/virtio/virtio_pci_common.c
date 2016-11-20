@@ -24,7 +24,7 @@ static bool force_legacy = false;
 #if IS_ENABLED(CONFIG_VIRTIO_PCI_LEGACY)
 module_param(force_legacy, bool, 0444);
 MODULE_PARM_DESC(force_legacy,
-		 "Force legacy mode for transitional virtio 1 devices");
+				 "Force legacy mode for transitional virtio 1 devices");
 #endif
 
 /* wait for pending irq handlers */
@@ -34,10 +34,14 @@ void vp_synchronize_vectors(struct virtio_device *vdev)
 	int i;
 
 	if (vp_dev->intx_enabled)
+	{
 		synchronize_irq(vp_dev->pci_dev->irq);
+	}
 
 	for (i = 0; i < vp_dev->msix_vectors; ++i)
+	{
 		synchronize_irq(vp_dev->msix_entries[i].vector);
+	}
 }
 
 /* the notify function used when creating a virt queue */
@@ -67,9 +71,12 @@ static irqreturn_t vp_vring_interrupt(int irq, void *opaque)
 	unsigned long flags;
 
 	spin_lock_irqsave(&vp_dev->lock, flags);
-	list_for_each_entry(info, &vp_dev->virtqueues, node) {
+	list_for_each_entry(info, &vp_dev->virtqueues, node)
+	{
 		if (vring_interrupt(irq, info->vq) == IRQ_HANDLED)
+		{
 			ret = IRQ_HANDLED;
+		}
 	}
 	spin_unlock_irqrestore(&vp_dev->lock, flags);
 
@@ -93,11 +100,15 @@ static irqreturn_t vp_interrupt(int irq, void *opaque)
 
 	/* It's definitely not us if the ISR was not high */
 	if (!isr)
+	{
 		return IRQ_NONE;
+	}
 
 	/* Configuration change?  Tell driver if it wants to know. */
 	if (isr & VIRTIO_PCI_ISR_CONFIG)
+	{
 		vp_config_changed(irq, opaque);
+	}
 
 	return vp_vring_interrupt(irq, opaque);
 }
@@ -107,19 +118,25 @@ static void vp_free_vectors(struct virtio_device *vdev)
 	struct virtio_pci_device *vp_dev = to_vp_device(vdev);
 	int i;
 
-	if (vp_dev->intx_enabled) {
+	if (vp_dev->intx_enabled)
+	{
 		free_irq(vp_dev->pci_dev->irq, vp_dev);
 		vp_dev->intx_enabled = 0;
 	}
 
 	for (i = 0; i < vp_dev->msix_used_vectors; ++i)
+	{
 		free_irq(vp_dev->msix_entries[i].vector, vp_dev);
+	}
 
 	for (i = 0; i < vp_dev->msix_vectors; i++)
 		if (vp_dev->msix_affinity_masks[i])
+		{
 			free_cpumask_var(vp_dev->msix_affinity_masks[i]);
+		}
 
-	if (vp_dev->msix_enabled) {
+	if (vp_dev->msix_enabled)
+	{
 		/* Disable the vector used for configuration */
 		vp_dev->config_vector(vp_dev, VIRTIO_MSI_NO_VECTOR);
 
@@ -138,7 +155,7 @@ static void vp_free_vectors(struct virtio_device *vdev)
 }
 
 static int vp_request_msix_vectors(struct virtio_device *vdev, int nvectors,
-				   bool per_vq_vectors)
+								   bool per_vq_vectors)
 {
 	struct virtio_pci_device *vp_dev = to_vp_device(vdev);
 	const char *name = dev_name(&vp_dev->vdev.dev);
@@ -147,63 +164,95 @@ static int vp_request_msix_vectors(struct virtio_device *vdev, int nvectors,
 
 	vp_dev->msix_vectors = nvectors;
 
-	vp_dev->msix_entries = kmalloc(nvectors * sizeof *vp_dev->msix_entries,
-				       GFP_KERNEL);
+	vp_dev->msix_entries = kmalloc(nvectors * sizeof * vp_dev->msix_entries,
+								   GFP_KERNEL);
+
 	if (!vp_dev->msix_entries)
+	{
 		goto error;
-	vp_dev->msix_names = kmalloc(nvectors * sizeof *vp_dev->msix_names,
-				     GFP_KERNEL);
+	}
+
+	vp_dev->msix_names = kmalloc(nvectors * sizeof * vp_dev->msix_names,
+								 GFP_KERNEL);
+
 	if (!vp_dev->msix_names)
+	{
 		goto error;
+	}
+
 	vp_dev->msix_affinity_masks
-		= kzalloc(nvectors * sizeof *vp_dev->msix_affinity_masks,
-			  GFP_KERNEL);
+		= kzalloc(nvectors * sizeof * vp_dev->msix_affinity_masks,
+				  GFP_KERNEL);
+
 	if (!vp_dev->msix_affinity_masks)
+	{
 		goto error;
+	}
+
 	for (i = 0; i < nvectors; ++i)
 		if (!alloc_cpumask_var(&vp_dev->msix_affinity_masks[i],
-					GFP_KERNEL))
+							   GFP_KERNEL))
+		{
 			goto error;
+		}
 
 	for (i = 0; i < nvectors; ++i)
+	{
 		vp_dev->msix_entries[i].entry = i;
+	}
 
 	err = pci_enable_msix_exact(vp_dev->pci_dev,
-				    vp_dev->msix_entries, nvectors);
+								vp_dev->msix_entries, nvectors);
+
 	if (err)
+	{
 		goto error;
+	}
+
 	vp_dev->msix_enabled = 1;
 
 	/* Set the vector used for configuration */
 	v = vp_dev->msix_used_vectors;
-	snprintf(vp_dev->msix_names[v], sizeof *vp_dev->msix_names,
-		 "%s-config", name);
+	snprintf(vp_dev->msix_names[v], sizeof * vp_dev->msix_names,
+			 "%s-config", name);
 	err = request_irq(vp_dev->msix_entries[v].vector,
-			  vp_config_changed, 0, vp_dev->msix_names[v],
-			  vp_dev);
+					  vp_config_changed, 0, vp_dev->msix_names[v],
+					  vp_dev);
+
 	if (err)
+	{
 		goto error;
+	}
+
 	++vp_dev->msix_used_vectors;
 
 	v = vp_dev->config_vector(vp_dev, v);
+
 	/* Verify we had enough resources to assign the vector */
-	if (v == VIRTIO_MSI_NO_VECTOR) {
+	if (v == VIRTIO_MSI_NO_VECTOR)
+	{
 		err = -EBUSY;
 		goto error;
 	}
 
-	if (!per_vq_vectors) {
+	if (!per_vq_vectors)
+	{
 		/* Shared vector for all VQs */
 		v = vp_dev->msix_used_vectors;
-		snprintf(vp_dev->msix_names[v], sizeof *vp_dev->msix_names,
-			 "%s-virtqueues", name);
+		snprintf(vp_dev->msix_names[v], sizeof * vp_dev->msix_names,
+				 "%s-virtqueues", name);
 		err = request_irq(vp_dev->msix_entries[v].vector,
-				  vp_vring_interrupt, 0, vp_dev->msix_names[v],
-				  vp_dev);
+						  vp_vring_interrupt, 0, vp_dev->msix_names[v],
+						  vp_dev);
+
 		if (err)
+		{
 			goto error;
+		}
+
 		++vp_dev->msix_used_vectors;
 	}
+
 	return 0;
 error:
 	vp_free_vectors(vdev);
@@ -216,36 +265,49 @@ static int vp_request_intx(struct virtio_device *vdev)
 	struct virtio_pci_device *vp_dev = to_vp_device(vdev);
 
 	err = request_irq(vp_dev->pci_dev->irq, vp_interrupt,
-			  IRQF_SHARED, dev_name(&vdev->dev), vp_dev);
+					  IRQF_SHARED, dev_name(&vdev->dev), vp_dev);
+
 	if (!err)
+	{
 		vp_dev->intx_enabled = 1;
+	}
+
 	return err;
 }
 
 static struct virtqueue *vp_setup_vq(struct virtio_device *vdev, unsigned index,
-				     void (*callback)(struct virtqueue *vq),
-				     const char *name,
-				     u16 msix_vec)
+									 void (*callback)(struct virtqueue *vq),
+									 const char *name,
+									 u16 msix_vec)
 {
 	struct virtio_pci_device *vp_dev = to_vp_device(vdev);
-	struct virtio_pci_vq_info *info = kmalloc(sizeof *info, GFP_KERNEL);
+	struct virtio_pci_vq_info *info = kmalloc(sizeof * info, GFP_KERNEL);
 	struct virtqueue *vq;
 	unsigned long flags;
 
 	/* fill out our structure that represents an active queue */
 	if (!info)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	vq = vp_dev->setup_vq(vp_dev, info, index, callback, name, msix_vec);
+
 	if (IS_ERR(vq))
+	{
 		goto out_info;
+	}
 
 	info->vq = vq;
-	if (callback) {
+
+	if (callback)
+	{
 		spin_lock_irqsave(&vp_dev->lock, flags);
 		list_add(&info->node, &vp_dev->virtqueues);
 		spin_unlock_irqrestore(&vp_dev->lock, flags);
-	} else {
+	}
+	else
+	{
 		INIT_LIST_HEAD(&info->node);
 	}
 
@@ -278,12 +340,15 @@ void vp_del_vqs(struct virtio_device *vdev)
 	struct virtqueue *vq, *n;
 	struct virtio_pci_vq_info *info;
 
-	list_for_each_entry_safe(vq, n, &vdev->vqs, list) {
+	list_for_each_entry_safe(vq, n, &vdev->vqs, list)
+	{
 		info = vp_dev->vqs[vq->index];
+
 		if (vp_dev->per_vq_vectors &&
 			info->msix_vector != VIRTIO_MSI_NO_VECTOR)
 			free_irq(vp_dev->msix_entries[info->msix_vector].vector,
-				 vq);
+					 vq);
+
 		vp_del_vq(vq);
 	}
 	vp_dev->per_vq_vectors = false;
@@ -294,77 +359,113 @@ void vp_del_vqs(struct virtio_device *vdev)
 }
 
 static int vp_try_to_find_vqs(struct virtio_device *vdev, unsigned nvqs,
-			      struct virtqueue *vqs[],
-			      vq_callback_t *callbacks[],
-			      const char * const names[],
-			      bool use_msix,
-			      bool per_vq_vectors)
+							  struct virtqueue *vqs[],
+							  vq_callback_t *callbacks[],
+							  const char *const names[],
+							  bool use_msix,
+							  bool per_vq_vectors)
 {
 	struct virtio_pci_device *vp_dev = to_vp_device(vdev);
 	u16 msix_vec;
 	int i, err, nvectors, allocated_vectors;
 
-	vp_dev->vqs = kmalloc(nvqs * sizeof *vp_dev->vqs, GFP_KERNEL);
-	if (!vp_dev->vqs)
-		return -ENOMEM;
+	vp_dev->vqs = kmalloc(nvqs * sizeof * vp_dev->vqs, GFP_KERNEL);
 
-	if (!use_msix) {
+	if (!vp_dev->vqs)
+	{
+		return -ENOMEM;
+	}
+
+	if (!use_msix)
+	{
 		/* Old style: one normal interrupt for change and all vqs. */
 		err = vp_request_intx(vdev);
+
 		if (err)
+		{
 			goto error_find;
-	} else {
-		if (per_vq_vectors) {
+		}
+	}
+	else
+	{
+		if (per_vq_vectors)
+		{
 			/* Best option: one for change interrupt, one per vq. */
 			nvectors = 1;
+
 			for (i = 0; i < nvqs; ++i)
 				if (callbacks[i])
+				{
 					++nvectors;
-		} else {
+				}
+		}
+		else
+		{
 			/* Second best: one for change, shared for all vqs. */
 			nvectors = 2;
 		}
 
 		err = vp_request_msix_vectors(vdev, nvectors, per_vq_vectors);
+
 		if (err)
+		{
 			goto error_find;
+		}
 	}
 
 	vp_dev->per_vq_vectors = per_vq_vectors;
 	allocated_vectors = vp_dev->msix_used_vectors;
-	for (i = 0; i < nvqs; ++i) {
-		if (!names[i]) {
+
+	for (i = 0; i < nvqs; ++i)
+	{
+		if (!names[i])
+		{
 			vqs[i] = NULL;
 			continue;
-		} else if (!callbacks[i] || !vp_dev->msix_enabled)
+		}
+		else if (!callbacks[i] || !vp_dev->msix_enabled)
+		{
 			msix_vec = VIRTIO_MSI_NO_VECTOR;
+		}
 		else if (vp_dev->per_vq_vectors)
+		{
 			msix_vec = allocated_vectors++;
+		}
 		else
+		{
 			msix_vec = VP_MSIX_VQ_VECTOR;
+		}
+
 		vqs[i] = vp_setup_vq(vdev, i, callbacks[i], names[i], msix_vec);
-		if (IS_ERR(vqs[i])) {
+
+		if (IS_ERR(vqs[i]))
+		{
 			err = PTR_ERR(vqs[i]);
 			goto error_find;
 		}
 
 		if (!vp_dev->per_vq_vectors || msix_vec == VIRTIO_MSI_NO_VECTOR)
+		{
 			continue;
+		}
 
 		/* allocate per-vq irq if available and necessary */
 		snprintf(vp_dev->msix_names[msix_vec],
-			 sizeof *vp_dev->msix_names,
-			 "%s-%s",
-			 dev_name(&vp_dev->vdev.dev), names[i]);
+				 sizeof * vp_dev->msix_names,
+				 "%s-%s",
+				 dev_name(&vp_dev->vdev.dev), names[i]);
 		err = request_irq(vp_dev->msix_entries[msix_vec].vector,
-				  vring_interrupt, 0,
-				  vp_dev->msix_names[msix_vec],
-				  vqs[i]);
-		if (err) {
+						  vring_interrupt, 0,
+						  vp_dev->msix_names[msix_vec],
+						  vqs[i]);
+
+		if (err)
+		{
 			vp_del_vq(vqs[i]);
 			goto error_find;
 		}
 	}
+
 	return 0;
 
 error_find:
@@ -374,24 +475,32 @@ error_find:
 
 /* the config->find_vqs() implementation */
 int vp_find_vqs(struct virtio_device *vdev, unsigned nvqs,
-		struct virtqueue *vqs[],
-		vq_callback_t *callbacks[],
-		const char * const names[])
+				struct virtqueue *vqs[],
+				vq_callback_t *callbacks[],
+				const char *const names[])
 {
 	int err;
 
 	/* Try MSI-X with one vector per queue. */
 	err = vp_try_to_find_vqs(vdev, nvqs, vqs, callbacks, names, true, true);
+
 	if (!err)
+	{
 		return 0;
+	}
+
 	/* Fallback: MSI-X with one vector for config, one shared for queues. */
 	err = vp_try_to_find_vqs(vdev, nvqs, vqs, callbacks, names,
-				 true, false);
+							 true, false);
+
 	if (!err)
+	{
 		return 0;
+	}
+
 	/* Finally fall back to regular interrupts. */
 	return vp_try_to_find_vqs(vdev, nvqs, vqs, callbacks, names,
-				  false, false);
+							  false, false);
 }
 
 const char *vp_bus_name(struct virtio_device *vdev)
@@ -415,19 +524,27 @@ int vp_set_vq_affinity(struct virtqueue *vq, int cpu)
 	unsigned int irq;
 
 	if (!vq->callback)
+	{
 		return -EINVAL;
+	}
 
-	if (vp_dev->msix_enabled) {
+	if (vp_dev->msix_enabled)
+	{
 		mask = vp_dev->msix_affinity_masks[info->msix_vector];
 		irq = vp_dev->msix_entries[info->msix_vector].vector;
+
 		if (cpu == -1)
+		{
 			irq_set_affinity_hint(irq, NULL);
-		else {
+		}
+		else
+		{
 			cpumask_clear(mask);
 			cpumask_set_cpu(cpu, mask);
 			irq_set_affinity_hint(irq, mask);
 		}
 	}
+
 	return 0;
 }
 
@@ -441,7 +558,10 @@ static int virtio_pci_freeze(struct device *dev)
 	ret = virtio_device_freeze(&vp_dev->vdev);
 
 	if (!ret)
+	{
 		pci_disable_device(pci_dev);
+	}
+
 	return ret;
 }
 
@@ -452,21 +572,26 @@ static int virtio_pci_restore(struct device *dev)
 	int ret;
 
 	ret = pci_enable_device(pci_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pci_set_master(pci_dev);
 	return virtio_device_restore(&vp_dev->vdev);
 }
 
-static const struct dev_pm_ops virtio_pci_pm_ops = {
+static const struct dev_pm_ops virtio_pci_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(virtio_pci_freeze, virtio_pci_restore)
 };
 #endif
 
 
 /* Qumranet donated their vendor ID for devices 0x1000 thru 0x10FF. */
-static const struct pci_device_id virtio_pci_id_table[] = {
+static const struct pci_device_id virtio_pci_id_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_REDHAT_QUMRANET, PCI_ANY_ID) },
 	{ 0 }
 };
@@ -485,15 +610,18 @@ static void virtio_pci_release_dev(struct device *_d)
 }
 
 static int virtio_pci_probe(struct pci_dev *pci_dev,
-			    const struct pci_device_id *id)
+							const struct pci_device_id *id)
 {
 	struct virtio_pci_device *vp_dev;
 	int rc;
 
 	/* allocate our structure and fill it out */
 	vp_dev = kzalloc(sizeof(struct virtio_pci_device), GFP_KERNEL);
+
 	if (!vp_dev)
+	{
 		return -ENOMEM;
+	}
 
 	pci_set_drvdata(pci_dev, vp_dev);
 	vp_dev->vdev.dev.parent = &pci_dev->dev;
@@ -504,37 +632,64 @@ static int virtio_pci_probe(struct pci_dev *pci_dev,
 
 	/* enable the device */
 	rc = pci_enable_device(pci_dev);
-	if (rc)
-		goto err_enable_device;
 
-	if (force_legacy) {
+	if (rc)
+	{
+		goto err_enable_device;
+	}
+
+	if (force_legacy)
+	{
 		rc = virtio_pci_legacy_probe(vp_dev);
+
 		/* Also try modern mode if we can't map BAR0 (no IO space). */
 		if (rc == -ENODEV || rc == -ENOMEM)
+		{
 			rc = virtio_pci_modern_probe(vp_dev);
+		}
+
 		if (rc)
+		{
 			goto err_probe;
-	} else {
+		}
+	}
+	else
+	{
 		rc = virtio_pci_modern_probe(vp_dev);
+
 		if (rc == -ENODEV)
+		{
 			rc = virtio_pci_legacy_probe(vp_dev);
+		}
+
 		if (rc)
+		{
 			goto err_probe;
+		}
 	}
 
 	pci_set_master(pci_dev);
 
 	rc = register_virtio_device(&vp_dev->vdev);
+
 	if (rc)
+	{
 		goto err_register;
+	}
 
 	return 0;
 
 err_register:
+
 	if (vp_dev->ioaddr)
-	     virtio_pci_legacy_remove(vp_dev);
+	{
+		virtio_pci_legacy_remove(vp_dev);
+	}
 	else
-	     virtio_pci_modern_remove(vp_dev);
+	{
+		virtio_pci_modern_remove(vp_dev);
+	}
+
 err_probe:
 	pci_disable_device(pci_dev);
 err_enable_device:
@@ -550,15 +705,20 @@ static void virtio_pci_remove(struct pci_dev *pci_dev)
 	unregister_virtio_device(&vp_dev->vdev);
 
 	if (vp_dev->ioaddr)
+	{
 		virtio_pci_legacy_remove(vp_dev);
+	}
 	else
+	{
 		virtio_pci_modern_remove(vp_dev);
+	}
 
 	pci_disable_device(pci_dev);
 	put_device(dev);
 }
 
-static struct pci_driver virtio_pci_driver = {
+static struct pci_driver virtio_pci_driver =
+{
 	.name		= "virtio-pci",
 	.id_table	= virtio_pci_id_table,
 	.probe		= virtio_pci_probe,

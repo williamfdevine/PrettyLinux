@@ -1,6 +1,6 @@
-/******************************************************************* 
+/*******************************************************************
  *
- * Copyright (c) 2000 ATecoM GmbH 
+ * Copyright (c) 2000 ATecoM GmbH
  *
  * The author may be reached at ecd@atecom.com.
  *
@@ -41,7 +41,7 @@
 /*                                                                           */
 /*****************************************************************************/
 #define VPCI2VC(card, vpi, vci) \
-        (((vpi) << card->vcibits) | ((vci) & card->vcimask))
+	(((vpi) << card->vcibits) | ((vci) & card->vcimask))
 
 /*****************************************************************************/
 /*                                                                           */
@@ -63,31 +63,31 @@
 
 #ifdef CONFIG_ATM_IDT77252_DEBUG
 
-#define CPRINTK(args...)   do { if (debug & DBG_CLOSE_CONN) printk(args); } while(0)
-#define OPRINTK(args...)   do { if (debug & DBG_OPEN_CONN)  printk(args); } while(0)
-#define IPRINTK(args...)   do { if (debug & DBG_INIT)       printk(args); } while(0)
-#define INTPRINTK(args...) do { if (debug & DBG_INTERRUPT)  printk(args); } while(0)
-#define DIPRINTK(args...)  do { if (debug & DBG_DEINIT)     printk(args); } while(0)
-#define TXPRINTK(args...)  do { if (debug & DBG_TX_DATA)    printk(args); } while(0)
-#define RXPRINTK(args...)  do { if (debug & DBG_RX_DATA)    printk(args); } while(0)
-#define XPRINTK(args...)   do { if (debug & DBG_XGENERAL)   printk(args); } while(0)
-#define DPRINTK(args...)   do { if (debug & DBG_GENERAL)    printk(args); } while(0)
-#define NPRINTK(args...)   do { if (debug & DBG_TINY)	    printk(args); } while(0)
-#define RPRINTK(args...)   do { if (debug & DBG_RAW_CELL)   printk(args); } while(0)
+	#define CPRINTK(args...)   do { if (debug & DBG_CLOSE_CONN) printk(args); } while(0)
+	#define OPRINTK(args...)   do { if (debug & DBG_OPEN_CONN)  printk(args); } while(0)
+	#define IPRINTK(args...)   do { if (debug & DBG_INIT)       printk(args); } while(0)
+	#define INTPRINTK(args...) do { if (debug & DBG_INTERRUPT)  printk(args); } while(0)
+	#define DIPRINTK(args...)  do { if (debug & DBG_DEINIT)     printk(args); } while(0)
+	#define TXPRINTK(args...)  do { if (debug & DBG_TX_DATA)    printk(args); } while(0)
+	#define RXPRINTK(args...)  do { if (debug & DBG_RX_DATA)    printk(args); } while(0)
+	#define XPRINTK(args...)   do { if (debug & DBG_XGENERAL)   printk(args); } while(0)
+	#define DPRINTK(args...)   do { if (debug & DBG_GENERAL)    printk(args); } while(0)
+	#define NPRINTK(args...)   do { if (debug & DBG_TINY)	    printk(args); } while(0)
+	#define RPRINTK(args...)   do { if (debug & DBG_RAW_CELL)   printk(args); } while(0)
 
 #else
 
-#define CPRINTK(args...)	do { } while(0)
-#define OPRINTK(args...)	do { } while(0)
-#define IPRINTK(args...)	do { } while(0)
-#define INTPRINTK(args...)	do { } while(0)
-#define DIPRINTK(args...)	do { } while(0)
-#define TXPRINTK(args...)	do { } while(0)
-#define RXPRINTK(args...)	do { } while(0)
-#define XPRINTK(args...)	do { } while(0)
-#define DPRINTK(args...)	do { } while(0)
-#define NPRINTK(args...)	do { } while(0)
-#define RPRINTK(args...)	do { } while(0)
+	#define CPRINTK(args...)	do { } while(0)
+	#define OPRINTK(args...)	do { } while(0)
+	#define IPRINTK(args...)	do { } while(0)
+	#define INTPRINTK(args...)	do { } while(0)
+	#define DIPRINTK(args...)	do { } while(0)
+	#define TXPRINTK(args...)	do { } while(0)
+	#define RXPRINTK(args...)	do { } while(0)
+	#define XPRINTK(args...)	do { } while(0)
+	#define DPRINTK(args...)	do { } while(0)
+	#define NPRINTK(args...)	do { } while(0)
+	#define RPRINTK(args...)	do { } while(0)
 
 #endif
 
@@ -119,9 +119,9 @@
 #define SAR_FBQ3_HIGH		2
 
 #if 0
-#define SAR_TST_RESERVED	44	/* Num TST reserved for UBR/ABR/VBR */
+	#define SAR_TST_RESERVED	44	/* Num TST reserved for UBR/ABR/VBR */
 #else
-#define SAR_TST_RESERVED	0	/* Num TST reserved for UBR/ABR/VBR */
+	#define SAR_TST_RESERVED	0	/* Num TST reserved for UBR/ABR/VBR */
 #endif
 
 #define TCT_CBR			0x00000000
@@ -166,25 +166,28 @@ struct scq_info
 	spinlock_t		lock;
 	atomic_t		used;
 	unsigned long		trans_start;
-        unsigned long		scd;
+	unsigned long		scd;
 	spinlock_t		skblock;
 	struct sk_buff_head	transmit;
 	struct sk_buff_head	pending;
 };
 
-struct rx_pool {
+struct rx_pool
+{
 	struct sk_buff_head	queue;
 	unsigned int		len;
 };
 
-struct aal1 {
+struct aal1
+{
 	unsigned int		total;
 	unsigned int		count;
 	struct sk_buff		*data;
 	unsigned char		sequence;
 };
 
-struct rate_estimator {
+struct rate_estimator
+{
 	struct timer_list	timer;
 	unsigned int		interval;
 	unsigned int		ewma_log;
@@ -195,7 +198,8 @@ struct rate_estimator {
 	u32			maxcps;
 };
 
-struct vc_map {
+struct vc_map
+{
 	unsigned int		index;
 	unsigned long		flags;
 #define VCF_TX		0
@@ -214,7 +218,8 @@ struct vc_map {
 	struct scq_info		*scq;		/* To keep track of the SCQ */
 	struct rate_estimator	*estimator;
 	int			scd_index;
-	union {
+	union
+	{
 		struct rx_pool	rx_pool;
 		struct aal1	aal1;
 	} rcv;
@@ -257,14 +262,16 @@ struct rct_entry
 #define RSQ_NUM_ENTRIES    (RSQSIZE / 16)
 #define RSQ_ALIGNMENT      8192
 
-struct rsq_entry {
+struct rsq_entry
+{
 	u32			word_1;
 	u32			word_2;
 	u32			word_3;
 	u32			word_4;
 };
 
-struct rsq_info {
+struct rsq_info
+{
 	struct rsq_entry	*base;
 	struct rsq_entry	*next;
 	struct rsq_entry	*last;
@@ -343,8 +350,8 @@ struct sb_pool
 
 struct idt77252_dev
 {
-        struct tsq_info		tsq;		/* Transmit Status Queue */
-        struct rsq_info		rsq;		/* Receive Status Queue */
+	struct tsq_info		tsq;		/* Transmit Status Queue */
+	struct rsq_info		rsq;		/* Receive Status Queue */
 
 	struct pci_dev		*pcidev;	/* PCI handle (desriptor) */
 	struct atm_dev		*atmdev;	/* ATM device desriptor */
@@ -362,28 +369,28 @@ struct idt77252_dev
 	struct work_struct	tqueue;
 
 	unsigned long		tct_base;	/* TCT base address in SRAM */
-        unsigned long		rct_base;	/* RCT base address in SRAM */
-        unsigned long		rt_base;	/* Rate Table base in SRAM */
-        unsigned long		scd_base;	/* SCD base address in SRAM */
-        unsigned long		tst[2];		/* TST base address in SRAM */
+	unsigned long		rct_base;	/* RCT base address in SRAM */
+	unsigned long		rt_base;	/* Rate Table base in SRAM */
+	unsigned long		scd_base;	/* SCD base address in SRAM */
+	unsigned long		tst[2];		/* TST base address in SRAM */
 	unsigned long		abrst_base;	/* ABRST base address in SRAM */
-        unsigned long		fifo_base;	/* RX FIFO base in SRAM */
+	unsigned long		fifo_base;	/* RX FIFO base in SRAM */
 
 	unsigned long		irqstat[16];
 
 	unsigned int		sramsize;	/* SAR's sram size */
 
-        unsigned int		tct_size;	/* total TCT entries */
-        unsigned int		rct_size;	/* total RCT entries */
-        unsigned int		scd_size;	/* length of SCD */
-        unsigned int		tst_size;	/* total TST entries */
-        unsigned int		tst_free;	/* free TSTEs in TST */
-        unsigned int		abrst_size;	/* size of ABRST in words */
-        unsigned int		fifo_size;	/* size of RX FIFO in words */
+	unsigned int		tct_size;	/* total TCT entries */
+	unsigned int		rct_size;	/* total RCT entries */
+	unsigned int		scd_size;	/* length of SCD */
+	unsigned int		tst_size;	/* total TST entries */
+	unsigned int		tst_free;	/* free TSTEs in TST */
+	unsigned int		abrst_size;	/* size of ABRST in words */
+	unsigned int		fifo_size;	/* size of RX FIFO in words */
 
-        unsigned int		vpibits;	/* Bits used for VPI index */
-        unsigned int		vcibits;	/* Bits used for VCI index */
-        unsigned int		vcimask;	/* Mask for VCI index */
+	unsigned int		vpibits;	/* Bits used for VPI index */
+	unsigned int		vcibits;	/* Bits used for VCI index */
+	unsigned int		vcimask;	/* Mask for VCI index */
 
 	unsigned int		utopia_pcr;	/* Utopia Itf's Cell Rate */
 	unsigned int		link_pcr;	/* PHY's Peek Cell Rate */
@@ -426,7 +433,7 @@ struct idt77252_dev
 /*                                                                           */
 /*****************************************************************************/
 #define ALIGN_ADDRESS(addr, alignment) \
-        ((((u32)(addr)) + (((u32)(alignment))-1)) & ~(((u32)(alignment)) - 1))
+	((((u32)(addr)) + (((u32)(alignment))-1)) & ~(((u32)(alignment)) - 1))
 
 
 /*****************************************************************************/
@@ -577,10 +584,10 @@ struct idt77252_dev
 #define SAR_STAT_FBQ2A      0x00000080 /* Free Buffer Queue 2 Attention   */
 #define SAR_STAT_RSQF       0x00000040 /* Receive Status Queue full       */
 #define SAR_STAT_EPDU       0x00000020 /* End Of PDU Flag                 */
-#define SAR_STAT_RAWCF      0x00000010 /* Raw Cell Flag                   */ 
+#define SAR_STAT_RAWCF      0x00000010 /* Raw Cell Flag                   */
 #define SAR_STAT_FBQ1A      0x00000008 /* Free Buffer Queue 1 Attention   */
 #define SAR_STAT_FBQ0A      0x00000004 /* Free Buffer Queue 0 Attention   */
-#define SAR_STAT_RSQAF      0x00000002 /* Receive Status Queue almost full*/  
+#define SAR_STAT_RSQAF      0x00000002 /* Receive Status Queue almost full*/
 #define SAR_STAT_RSVD2      0x00000001 /* Reserved                        */
 
 
@@ -782,7 +789,8 @@ struct idt77252_dev
 #define TCMDQ_HALT		0x05000000
 
 
-struct idt77252_skb_prv {
+struct idt77252_skb_prv
+{
 	struct scqe	tbd;	/* Transmit Buffer Descriptor */
 	dma_addr_t	paddr;	/* DMA handle */
 	u32		pool;	/* sb_pool handle */
@@ -802,11 +810,11 @@ struct idt77252_skb_prv {
 /*****************************************************************************/
 
 #ifndef PCI_VENDOR_ID_IDT
-#define PCI_VENDOR_ID_IDT 0x111D
+	#define PCI_VENDOR_ID_IDT 0x111D
 #endif /* PCI_VENDOR_ID_IDT */
 
 #ifndef PCI_DEVICE_ID_IDT_IDT77252
-#define PCI_DEVICE_ID_IDT_IDT77252 0x0003
+	#define PCI_DEVICE_ID_IDT_IDT77252 0x0003
 #endif /* PCI_DEVICE_ID_IDT_IDT772052 */
 
 

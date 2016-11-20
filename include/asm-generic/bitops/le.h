@@ -37,7 +37,7 @@ extern unsigned long find_next_zero_bit_le(const void *addr,
 
 #ifndef find_next_bit_le
 extern unsigned long find_next_bit_le(const void *addr,
-		unsigned long size, unsigned long offset);
+									  unsigned long size, unsigned long offset);
 #endif
 
 #ifndef find_first_zero_bit_le

@@ -48,7 +48,10 @@ long systick;
 long long llabs(long long val)
 {
 	if (val < 0)
+	{
 		val = -val;
+	}
+
 	return val;
 }
 
@@ -61,8 +64,8 @@ struct timespec nsec_to_ts(long long ns)
 {
 	struct timespec ts;
 
-	ts.tv_sec = ns/NSEC_PER_SEC;
-	ts.tv_nsec = ns%NSEC_PER_SEC;
+	ts.tv_sec = ns / NSEC_PER_SEC;
+	ts.tv_nsec = ns % NSEC_PER_SEC;
 
 	return ts;
 }
@@ -87,7 +90,8 @@ void get_monotonic_and_raw(struct timespec *mon, struct timespec *raw)
 	clock_gettime(CLOCK_MONOTONIC_RAW, raw);
 
 	/* Try to get a more tightly bound pairing */
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		long long newdiff;
 
 		clock_gettime(CLOCK_MONOTONIC, &start);
@@ -95,10 +99,12 @@ void get_monotonic_and_raw(struct timespec *mon, struct timespec *raw)
 		clock_gettime(CLOCK_MONOTONIC, &end);
 
 		newdiff = diff_timespec(start, end);
-		if (diff == 0 || newdiff < diff) {
+
+		if (diff == 0 || newdiff < diff)
+		{
 			diff = newdiff;
 			*raw = mid;
-			tmp = (ts_to_nsec(start) + ts_to_nsec(end))/2;
+			tmp = (ts_to_nsec(start) + ts_to_nsec(end)) / 2;
 			*mon = nsec_to_ts(tmp);
 		}
 	}
@@ -118,7 +124,7 @@ long long get_ppm_drift(void)
 	delta1 = diff_timespec(mon_start, mon_end);
 	delta2 = diff_timespec(raw_start, raw_end);
 
-	eppm = (delta1*MILLION)/delta2 - MILLION;
+	eppm = (delta1 * MILLION) / delta2 - MILLION;
 
 	return eppm;
 }
@@ -142,7 +148,7 @@ int check_tick_adj(long tickval)
 
 	sleep(1);
 
-	ppm = ((long long)tickval * MILLION)/systick - MILLION;
+	ppm = ((long long)tickval * MILLION) / systick - MILLION;
 	printf("Estimating tick (act: %ld usec, %lld ppm): ", tickval, ppm);
 
 	eppm = get_ppm_drift();
@@ -151,7 +157,8 @@ int check_tick_adj(long tickval)
 	tx1.modes = 0;
 	adjtimex(&tx1);
 
-	if (tx1.offset || tx1.freq || tx1.tick != tickval) {
+	if (tx1.offset || tx1.freq || tx1.tick != tickval)
+	{
 		printf("	[ERROR]\n");
 		printf("\tUnexpected adjtimex return values, make sure ntpd is not running.\n");
 		return -1;
@@ -166,10 +173,12 @@ int check_tick_adj(long tickval)
 	 * a 10% adjustment. 100ppm also gives us more breathing
 	 * room for interruptions during the measurement.
 	 */
-	if (llabs(eppm - ppm) > 100) {
+	if (llabs(eppm - ppm) > 100)
+	{
 		printf("	[FAILED]\n");
 		return -1;
 	}
+
 	printf("	[OK]\n");
 
 	return  0;
@@ -184,7 +193,8 @@ int main(int argv, char **argc)
 	err = 0;
 	setbuf(stdout, NULL);
 
-	if (clock_gettime(CLOCK_MONOTONIC_RAW, &raw)) {
+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &raw))
+	{
 		printf("ERR: NO CLOCK_MONOTONIC_RAW\n");
 		return -1;
 	}
@@ -192,12 +202,14 @@ int main(int argv, char **argc)
 	printf("Each iteration takes about 15 seconds\n");
 
 	systick = sysconf(_SC_CLK_TCK);
-	systick = USEC_PER_SEC/sysconf(_SC_CLK_TCK);
-	max = systick/10; /* +/- 10% */
-	interval = max/4; /* in 4 steps each side */
+	systick = USEC_PER_SEC / sysconf(_SC_CLK_TCK);
+	max = systick / 10; /* +/- 10% */
+	interval = max / 4; /* in 4 steps each side */
 
-	for (tick = (systick - max); tick < (systick + max); tick += interval) {
-		if (check_tick_adj(tick)) {
+	for (tick = (systick - max); tick < (systick + max); tick += interval)
+	{
+		if (check_tick_adj(tick))
+		{
 			err = 1;
 			break;
 		}
@@ -215,7 +227,9 @@ int main(int argv, char **argc)
 	adjtimex(&tx1);
 
 	if (err)
+	{
 		return ksft_exit_fail();
+	}
 
 	return ksft_exit_pass();
 }

@@ -55,11 +55,14 @@ static void rds_ib_set_flow_control(struct rds_connection *conn, u32 credits)
 {
 	struct rds_ib_connection *ic = conn->c_transport_data;
 
-	if (rds_ib_sysctl_flow_control && credits != 0) {
+	if (rds_ib_sysctl_flow_control && credits != 0)
+	{
 		/* We're doing flow control */
 		ic->i_flowctl = 1;
 		rds_ib_send_add_credits(conn, credits);
-	} else {
+	}
+	else
+	{
 		ic->i_flowctl = 0;
 	}
 }
@@ -85,8 +88,11 @@ rds_ib_tune_rnr(struct rds_ib_connection *ic, struct ib_qp_attr *attr)
 
 	attr->min_rnr_timer = IB_RNR_TIMER_000_32;
 	ret = ib_modify_qp(ic->i_cm_id->qp, attr, IB_QP_MIN_RNR_TIMER);
+
 	if (ret)
+	{
 		printk(KERN_NOTICE "ib_modify_qp(IB_QP_MIN_RNR_TIMER): err=%d\n", -ret);
+	}
 }
 
 /*
@@ -100,32 +106,37 @@ void rds_ib_cm_connect_complete(struct rds_connection *conn, struct rdma_cm_even
 	struct ib_qp_attr qp_attr;
 	int err;
 
-	if (event->param.conn.private_data_len >= sizeof(*dp)) {
+	if (event->param.conn.private_data_len >= sizeof(*dp))
+	{
 		dp = event->param.conn.private_data;
 
 		/* make sure it isn't empty data */
-		if (dp->dp_protocol_major) {
+		if (dp->dp_protocol_major)
+		{
 			rds_ib_set_protocol(conn,
-				RDS_PROTOCOL(dp->dp_protocol_major,
-				dp->dp_protocol_minor));
+								RDS_PROTOCOL(dp->dp_protocol_major,
+											 dp->dp_protocol_minor));
 			rds_ib_set_flow_control(conn, be32_to_cpu(dp->dp_credit));
 		}
 	}
 
-	if (conn->c_version < RDS_PROTOCOL(3, 1)) {
+	if (conn->c_version < RDS_PROTOCOL(3, 1))
+	{
 		printk(KERN_NOTICE "RDS/IB: Connection to %pI4 version %u.%u failed,"
-		       " no longer supported\n",
-		       &conn->c_faddr,
-		       RDS_PROTOCOL_MAJOR(conn->c_version),
-		       RDS_PROTOCOL_MINOR(conn->c_version));
+			   " no longer supported\n",
+			   &conn->c_faddr,
+			   RDS_PROTOCOL_MAJOR(conn->c_version),
+			   RDS_PROTOCOL_MINOR(conn->c_version));
 		rds_conn_destroy(conn);
 		return;
-	} else {
+	}
+	else
+	{
 		printk(KERN_NOTICE "RDS/IB: connected to %pI4 version %u.%u%s\n",
-		       &conn->c_faddr,
-		       RDS_PROTOCOL_MAJOR(conn->c_version),
-		       RDS_PROTOCOL_MINOR(conn->c_version),
-		       ic->i_flowctl ? ", flow control" : "");
+			   &conn->c_faddr,
+			   RDS_PROTOCOL_MAJOR(conn->c_version),
+			   RDS_PROTOCOL_MINOR(conn->c_version),
+			   ic->i_flowctl ? ", flow control" : "");
 	}
 
 	/*
@@ -143,18 +154,23 @@ void rds_ib_cm_connect_complete(struct rds_connection *conn, struct rdma_cm_even
 
 	qp_attr.qp_state = IB_QPS_RTS;
 	err = ib_modify_qp(ic->i_cm_id->qp, &qp_attr, IB_QP_STATE);
+
 	if (err)
+	{
 		printk(KERN_NOTICE "ib_modify_qp(IB_QP_STATE, RTS): err=%d\n", err);
+	}
 
 	/* update ib_device with this local ipaddr */
 	err = rds_ib_update_ipaddr(ic->rds_ibdev, conn->c_laddr);
+
 	if (err)
 		printk(KERN_ERR "rds_ib_update_ipaddr failed (%d)\n",
-			err);
+			   err);
 
 	/* If the peer gave us the last packet it saw, process this as if
 	 * we had received a regular ACK. */
-	if (dp) {
+	if (dp)
+	{
 		/* dp structure start is not guaranteed to be 8 bytes aligned.
 		 * Since dp_ack_seq is 64-bit extended load operations can be
 		 * used so go through get_unaligned to avoid unaligned errors.
@@ -163,18 +179,18 @@ void rds_ib_cm_connect_complete(struct rds_connection *conn, struct rdma_cm_even
 
 		if (dp_ack_seq)
 			rds_send_drop_acked(conn, be64_to_cpu(dp_ack_seq),
-					    NULL);
+								NULL);
 	}
 
 	rds_connect_complete(conn);
 }
 
 static void rds_ib_cm_fill_conn_param(struct rds_connection *conn,
-			struct rdma_conn_param *conn_param,
-			struct rds_ib_connect_private *dp,
-			u32 protocol_version,
-			u32 max_responder_resources,
-			u32 max_initiator_depth)
+									  struct rdma_conn_param *conn_param,
+									  struct rds_ib_connect_private *dp,
+									  u32 protocol_version,
+									  u32 max_responder_resources,
+									  u32 max_initiator_depth)
 {
 	struct rds_ib_connection *ic = conn->c_transport_data;
 	struct rds_ib_device *rds_ibdev = ic->rds_ibdev;
@@ -188,7 +204,8 @@ static void rds_ib_cm_fill_conn_param(struct rds_connection *conn,
 	conn_param->retry_count = min_t(unsigned int, rds_ib_retry_count, 7);
 	conn_param->rnr_retry_count = 7;
 
-	if (dp) {
+	if (dp)
+	{
 		memset(dp, 0, sizeof(*dp));
 		dp->dp_saddr = conn->c_laddr;
 		dp->dp_daddr = conn->c_faddr;
@@ -198,7 +215,8 @@ static void rds_ib_cm_fill_conn_param(struct rds_connection *conn,
 		dp->dp_ack_seq = cpu_to_be64(rds_ib_piggyb_ack(ic));
 
 		/* Advertise flow control */
-		if (ic->i_flowctl) {
+		if (ic->i_flowctl)
+		{
 			unsigned int credits;
 
 			credits = IB_GET_POST_CREDITS(atomic_read(&ic->i_credits));
@@ -214,7 +232,7 @@ static void rds_ib_cm_fill_conn_param(struct rds_connection *conn,
 static void rds_ib_cq_event_handler(struct ib_event *event, void *data)
 {
 	rdsdebug("event %u (%s) data %p\n",
-		 event->event, ib_event_msg(event->event), data);
+			 event->event, ib_event_msg(event->event), data);
 }
 
 /* Plucking the oldest entry from the ring can be done concurrently with
@@ -238,23 +256,29 @@ static void rds_ib_cq_comp_handler_recv(struct ib_cq *cq, void *context)
 }
 
 static void poll_scq(struct rds_ib_connection *ic, struct ib_cq *cq,
-		     struct ib_wc *wcs)
+					 struct ib_wc *wcs)
 {
 	int nr, i;
 	struct ib_wc *wc;
 
-	while ((nr = ib_poll_cq(cq, RDS_IB_WC_MAX, wcs)) > 0) {
-		for (i = 0; i < nr; i++) {
+	while ((nr = ib_poll_cq(cq, RDS_IB_WC_MAX, wcs)) > 0)
+	{
+		for (i = 0; i < nr; i++)
+		{
 			wc = wcs + i;
 			rdsdebug("wc wr_id 0x%llx status %u byte_len %u imm_data %u\n",
-				 (unsigned long long)wc->wr_id, wc->status,
-				 wc->byte_len, be32_to_cpu(wc->ex.imm_data));
+					 (unsigned long long)wc->wr_id, wc->status,
+					 wc->byte_len, be32_to_cpu(wc->ex.imm_data));
 
 			if (wc->wr_id <= ic->i_send_ring.w_nr ||
-			    wc->wr_id == RDS_IB_ACK_WR_ID)
+				wc->wr_id == RDS_IB_ACK_WR_ID)
+			{
 				rds_ib_send_cqe_handler(ic, wc);
+			}
 			else
+			{
 				rds_ib_mr_cqe_handler(ic, wc);
+			}
 
 		}
 	}
@@ -272,24 +296,28 @@ static void rds_ib_tasklet_fn_send(unsigned long data)
 	poll_scq(ic, ic->i_send_cq, ic->i_send_wc);
 
 	if (rds_conn_up(conn) &&
-	    (!test_bit(RDS_LL_SEND_FULL, &conn->c_flags) ||
-	    test_bit(0, &conn->c_map_queued)))
+		(!test_bit(RDS_LL_SEND_FULL, &conn->c_flags) ||
+		 test_bit(0, &conn->c_map_queued)))
+	{
 		rds_send_xmit(&ic->conn->c_path[0]);
+	}
 }
 
 static void poll_rcq(struct rds_ib_connection *ic, struct ib_cq *cq,
-		     struct ib_wc *wcs,
-		     struct rds_ib_ack_state *ack_state)
+					 struct ib_wc *wcs,
+					 struct rds_ib_ack_state *ack_state)
 {
 	int nr, i;
 	struct ib_wc *wc;
 
-	while ((nr = ib_poll_cq(cq, RDS_IB_WC_MAX, wcs)) > 0) {
-		for (i = 0; i < nr; i++) {
+	while ((nr = ib_poll_cq(cq, RDS_IB_WC_MAX, wcs)) > 0)
+	{
+		for (i = 0; i < nr; i++)
+		{
 			wc = wcs + i;
 			rdsdebug("wc wr_id 0x%llx status %u byte_len %u imm_data %u\n",
-				 (unsigned long long)wc->wr_id, wc->status,
-				 wc->byte_len, be32_to_cpu(wc->ex.imm_data));
+					 (unsigned long long)wc->wr_id, wc->status,
+					 wc->byte_len, be32_to_cpu(wc->ex.imm_data));
 
 			rds_ib_recv_cqe_handler(ic, wc, ack_state);
 		}
@@ -304,7 +332,9 @@ static void rds_ib_tasklet_fn_recv(unsigned long data)
 	struct rds_ib_ack_state state;
 
 	if (!rds_ibdev)
+	{
 		rds_conn_drop(conn);
+	}
 
 	rds_ib_stats_inc(s_ib_tasklet_call);
 
@@ -314,14 +344,20 @@ static void rds_ib_tasklet_fn_recv(unsigned long data)
 	poll_rcq(ic, ic->i_recv_cq, ic->i_recv_wc, &state);
 
 	if (state.ack_next_valid)
+	{
 		rds_ib_set_ack(ic, state.ack_next, state.ack_required);
-	if (state.ack_recv_valid && state.ack_recv > ic->i_ack_recv) {
+	}
+
+	if (state.ack_recv_valid && state.ack_recv > ic->i_ack_recv)
+	{
 		rds_send_drop_acked(conn, state.ack_recv, NULL);
 		ic->i_ack_recv = state.ack_recv;
 	}
 
 	if (rds_conn_up(conn))
+	{
 		rds_ib_attempt_ack(ic);
+	}
 }
 
 static void rds_ib_qp_event_handler(struct ib_event *event, void *data)
@@ -330,19 +366,21 @@ static void rds_ib_qp_event_handler(struct ib_event *event, void *data)
 	struct rds_ib_connection *ic = conn->c_transport_data;
 
 	rdsdebug("conn %p ic %p event %u (%s)\n", conn, ic, event->event,
-		 ib_event_msg(event->event));
+			 ib_event_msg(event->event));
 
-	switch (event->event) {
-	case IB_EVENT_COMM_EST:
-		rdma_notify(ic->i_cm_id, IB_EVENT_COMM_EST);
-		break;
-	default:
-		rdsdebug("Fatal QP Event %u (%s) "
-			"- connection %pI4->%pI4, reconnecting\n",
-			event->event, ib_event_msg(event->event),
-			&conn->c_laddr, &conn->c_faddr);
-		rds_conn_drop(conn);
-		break;
+	switch (event->event)
+	{
+		case IB_EVENT_COMM_EST:
+			rdma_notify(ic->i_cm_id, IB_EVENT_COMM_EST);
+			break;
+
+		default:
+			rdsdebug("Fatal QP Event %u (%s) "
+					 "- connection %pI4->%pI4, reconnecting\n",
+					 event->event, ib_event_msg(event->event),
+					 &conn->c_laddr, &conn->c_faddr);
+			rds_conn_drop(conn);
+			break;
 	}
 }
 
@@ -376,8 +414,11 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
 	 * with device removal, so we don't print a warning.
 	 */
 	rds_ibdev = rds_ib_get_client_data(dev);
+
 	if (!rds_ibdev)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/* The fr_queue_space is currently set to 512, to add extra space on
 	 * completion queue and send queue. This extra space is used for FRMR
@@ -389,9 +430,14 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
 	rds_ib_add_conn(rds_ibdev, conn);
 
 	if (rds_ibdev->max_wrs < ic->i_send_ring.w_nr + 1)
+	{
 		rds_ib_ring_resize(&ic->i_send_ring, rds_ibdev->max_wrs - 1);
+	}
+
 	if (rds_ibdev->max_wrs < ic->i_recv_ring.w_nr + 1)
+	{
 		rds_ib_ring_resize(&ic->i_recv_ring, rds_ibdev->max_wrs - 1);
+	}
 
 	/* Protection domain and memory range */
 	ic->i_pd = rds_ibdev->pd;
@@ -399,9 +445,11 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
 	cq_attr.cqe = ic->i_send_ring.w_nr + fr_queue_space + 1;
 
 	ic->i_send_cq = ib_create_cq(dev, rds_ib_cq_comp_handler_send,
-				     rds_ib_cq_event_handler, conn,
-				     &cq_attr);
-	if (IS_ERR(ic->i_send_cq)) {
+								 rds_ib_cq_event_handler, conn,
+								 &cq_attr);
+
+	if (IS_ERR(ic->i_send_cq))
+	{
 		ret = PTR_ERR(ic->i_send_cq);
 		ic->i_send_cq = NULL;
 		rdsdebug("ib_create_cq send failed: %d\n", ret);
@@ -410,9 +458,11 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
 
 	cq_attr.cqe = ic->i_recv_ring.w_nr;
 	ic->i_recv_cq = ib_create_cq(dev, rds_ib_cq_comp_handler_recv,
-				     rds_ib_cq_event_handler, conn,
-				     &cq_attr);
-	if (IS_ERR(ic->i_recv_cq)) {
+								 rds_ib_cq_event_handler, conn,
+								 &cq_attr);
+
+	if (IS_ERR(ic->i_recv_cq))
+	{
 		ret = PTR_ERR(ic->i_recv_cq);
 		ic->i_recv_cq = NULL;
 		rdsdebug("ib_create_cq recv failed: %d\n", ret);
@@ -420,13 +470,17 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
 	}
 
 	ret = ib_req_notify_cq(ic->i_send_cq, IB_CQ_NEXT_COMP);
-	if (ret) {
+
+	if (ret)
+	{
 		rdsdebug("ib_req_notify_cq send failed: %d\n", ret);
 		goto out;
 	}
 
 	ret = ib_req_notify_cq(ic->i_recv_cq, IB_CQ_SOLICITED);
-	if (ret) {
+
+	if (ret)
+	{
 		rdsdebug("ib_req_notify_cq recv failed: %d\n", ret);
 		goto out;
 	}
@@ -451,50 +505,62 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
 	 * to back off until we get a value that the hardware can support?
 	 */
 	ret = rdma_create_qp(ic->i_cm_id, ic->i_pd, &attr);
-	if (ret) {
+
+	if (ret)
+	{
 		rdsdebug("rdma_create_qp failed: %d\n", ret);
 		goto out;
 	}
 
 	ic->i_send_hdrs = ib_dma_alloc_coherent(dev,
-					   ic->i_send_ring.w_nr *
-						sizeof(struct rds_header),
-					   &ic->i_send_hdrs_dma, GFP_KERNEL);
-	if (!ic->i_send_hdrs) {
+											ic->i_send_ring.w_nr *
+											sizeof(struct rds_header),
+											&ic->i_send_hdrs_dma, GFP_KERNEL);
+
+	if (!ic->i_send_hdrs)
+	{
 		ret = -ENOMEM;
 		rdsdebug("ib_dma_alloc_coherent send failed\n");
 		goto out;
 	}
 
 	ic->i_recv_hdrs = ib_dma_alloc_coherent(dev,
-					   ic->i_recv_ring.w_nr *
-						sizeof(struct rds_header),
-					   &ic->i_recv_hdrs_dma, GFP_KERNEL);
-	if (!ic->i_recv_hdrs) {
+											ic->i_recv_ring.w_nr *
+											sizeof(struct rds_header),
+											&ic->i_recv_hdrs_dma, GFP_KERNEL);
+
+	if (!ic->i_recv_hdrs)
+	{
 		ret = -ENOMEM;
 		rdsdebug("ib_dma_alloc_coherent recv failed\n");
 		goto out;
 	}
 
 	ic->i_ack = ib_dma_alloc_coherent(dev, sizeof(struct rds_header),
-				       &ic->i_ack_dma, GFP_KERNEL);
-	if (!ic->i_ack) {
+									  &ic->i_ack_dma, GFP_KERNEL);
+
+	if (!ic->i_ack)
+	{
 		ret = -ENOMEM;
 		rdsdebug("ib_dma_alloc_coherent ack failed\n");
 		goto out;
 	}
 
 	ic->i_sends = vzalloc_node(ic->i_send_ring.w_nr * sizeof(struct rds_ib_send_work),
-				   ibdev_to_node(dev));
-	if (!ic->i_sends) {
+							   ibdev_to_node(dev));
+
+	if (!ic->i_sends)
+	{
 		ret = -ENOMEM;
 		rdsdebug("send allocation failed\n");
 		goto out;
 	}
 
 	ic->i_recvs = vzalloc_node(ic->i_recv_ring.w_nr * sizeof(struct rds_ib_recv_work),
-				   ibdev_to_node(dev));
-	if (!ic->i_recvs) {
+							   ibdev_to_node(dev));
+
+	if (!ic->i_recvs)
+	{
 		ret = -ENOMEM;
 		rdsdebug("recv allocation failed\n");
 		goto out;
@@ -503,7 +569,7 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
 	rds_ib_recv_init_ack(ic);
 
 	rdsdebug("conn %p pd %p cq %p %p\n", conn, ic->i_pd,
-		 ic->i_send_cq, ic->i_recv_cq);
+			 ic->i_send_cq, ic->i_recv_cq);
 
 out:
 	rds_ib_dev_put(rds_ibdev);
@@ -527,32 +593,42 @@ static u32 rds_ib_protocol_compatible(struct rdma_cm_event *event)
 	 */
 
 	/* Be paranoid. RDS always has privdata */
-	if (!event->param.conn.private_data_len) {
+	if (!event->param.conn.private_data_len)
+	{
 		printk(KERN_NOTICE "RDS incoming connection has no private data, "
-			"rejecting\n");
+			   "rejecting\n");
 		return 0;
 	}
 
 	/* Even if len is crap *now* I still want to check it. -ASG */
 	if (event->param.conn.private_data_len < sizeof (*dp) ||
-	    dp->dp_protocol_major == 0)
+		dp->dp_protocol_major == 0)
+	{
 		return RDS_PROTOCOL_3_0;
+	}
 
 	common = be16_to_cpu(dp->dp_protocol_minor_mask) & RDS_IB_SUPPORTED_PROTOCOLS;
-	if (dp->dp_protocol_major == 3 && common) {
+
+	if (dp->dp_protocol_major == 3 && common)
+	{
 		version = RDS_PROTOCOL_3_0;
+
 		while ((common >>= 1) != 0)
+		{
 			version++;
-	} else
+		}
+	}
+	else
 		printk_ratelimited(KERN_NOTICE "RDS: Connection from %pI4 using incompatible protocol version %u.%u\n",
-				&dp->dp_saddr,
-				dp->dp_protocol_major,
-				dp->dp_protocol_minor);
+						   &dp->dp_saddr,
+						   dp->dp_protocol_major,
+						   dp->dp_protocol_minor);
+
 	return version;
 }
 
 int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
-				    struct rdma_cm_event *event)
+							 struct rdma_cm_event *event)
 {
 	__be64 lguid = cm_id->route.path_rec->sgid.global.interface_id;
 	__be64 fguid = cm_id->route.path_rec->dgid.global.interface_id;
@@ -566,19 +642,24 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
 
 	/* Check whether the remote protocol version matches ours. */
 	version = rds_ib_protocol_compatible(event);
+
 	if (!version)
+	{
 		goto out;
+	}
 
 	rdsdebug("saddr %pI4 daddr %pI4 RDSv%u.%u lguid 0x%llx fguid "
-		 "0x%llx\n", &dp->dp_saddr, &dp->dp_daddr,
-		 RDS_PROTOCOL_MAJOR(version), RDS_PROTOCOL_MINOR(version),
-		 (unsigned long long)be64_to_cpu(lguid),
-		 (unsigned long long)be64_to_cpu(fguid));
+			 "0x%llx\n", &dp->dp_saddr, &dp->dp_daddr,
+			 RDS_PROTOCOL_MAJOR(version), RDS_PROTOCOL_MINOR(version),
+			 (unsigned long long)be64_to_cpu(lguid),
+			 (unsigned long long)be64_to_cpu(fguid));
 
 	/* RDS/IB is not currently netns aware, thus init_net */
 	conn = rds_conn_create(&init_net, dp->dp_daddr, dp->dp_saddr,
-			       &rds_ib_transport, GFP_KERNEL);
-	if (IS_ERR(conn)) {
+						   &rds_ib_transport, GFP_KERNEL);
+
+	if (IS_ERR(conn))
+	{
 		rdsdebug("rds_conn_create failed (%ld)\n", PTR_ERR(conn));
 		conn = NULL;
 		goto out;
@@ -592,16 +673,21 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
 	 * see the comment above rds_queue_reconnect()
 	 */
 	mutex_lock(&conn->c_cm_lock);
-	if (!rds_conn_transition(conn, RDS_CONN_DOWN, RDS_CONN_CONNECTING)) {
-		if (rds_conn_state(conn) == RDS_CONN_UP) {
+
+	if (!rds_conn_transition(conn, RDS_CONN_DOWN, RDS_CONN_CONNECTING))
+	{
+		if (rds_conn_state(conn) == RDS_CONN_UP)
+		{
 			rdsdebug("incoming connect while connecting\n");
 			rds_conn_drop(conn);
 			rds_ib_stats_inc(s_ib_listen_closed_stale);
-		} else
-		if (rds_conn_state(conn) == RDS_CONN_CONNECTING) {
+		}
+		else if (rds_conn_state(conn) == RDS_CONN_CONNECTING)
+		{
 			/* Wait and see - our connect may still be succeeding */
 			rds_ib_stats_inc(s_ib_connect_raced);
 		}
+
 		goto out;
 	}
 
@@ -613,7 +699,9 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
 	/* If the peer gave us the last packet it saw, process this as if
 	 * we had received a regular ACK. */
 	if (dp->dp_ack_seq)
+	{
 		rds_send_drop_acked(conn, be64_to_cpu(dp->dp_ack_seq), NULL);
+	}
 
 	BUG_ON(cm_id->context);
 	BUG_ON(ic->i_cm_id);
@@ -626,25 +714,37 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
 	destroy = 0;
 
 	err = rds_ib_setup_qp(conn);
-	if (err) {
+
+	if (err)
+	{
 		rds_ib_conn_error(conn, "rds_ib_setup_qp failed (%d)\n", err);
 		goto out;
 	}
 
 	rds_ib_cm_fill_conn_param(conn, &conn_param, &dp_rep, version,
-		event->param.conn.responder_resources,
-		event->param.conn.initiator_depth);
+							  event->param.conn.responder_resources,
+							  event->param.conn.initiator_depth);
 
 	/* rdma_accept() calls rdma_reject() internally if it fails */
 	err = rdma_accept(cm_id, &conn_param);
+
 	if (err)
+	{
 		rds_ib_conn_error(conn, "rdma_accept failed (%d)\n", err);
+	}
 
 out:
+
 	if (conn)
+	{
 		mutex_unlock(&conn->c_cm_lock);
+	}
+
 	if (err)
+	{
 		rdma_reject(cm_id, NULL, 0);
+	}
+
 	return destroy;
 }
 
@@ -663,25 +763,35 @@ int rds_ib_cm_initiate_connect(struct rdma_cm_id *cm_id)
 	ic->i_flowctl = rds_ib_sysctl_flow_control;	/* advertise flow control */
 
 	ret = rds_ib_setup_qp(conn);
-	if (ret) {
+
+	if (ret)
+	{
 		rds_ib_conn_error(conn, "rds_ib_setup_qp failed (%d)\n", ret);
 		goto out;
 	}
 
 	rds_ib_cm_fill_conn_param(conn, &conn_param, &dp, RDS_PROTOCOL_VERSION,
-		UINT_MAX, UINT_MAX);
+							  UINT_MAX, UINT_MAX);
 	ret = rdma_connect(cm_id, &conn_param);
+
 	if (ret)
+	{
 		rds_ib_conn_error(conn, "rdma_connect failed (%d)\n", ret);
+	}
 
 out:
+
 	/* Beware - returning non-zero tells the rdma_cm to destroy
 	 * the cm_id. We should certainly not do it as long as we still
 	 * "own" the cm_id. */
-	if (ret) {
+	if (ret)
+	{
 		if (ic->i_cm_id == cm_id)
+		{
 			ret = 0;
+		}
 	}
+
 	return ret;
 }
 
@@ -695,8 +805,10 @@ int rds_ib_conn_path_connect(struct rds_conn_path *cp)
 	/* XXX I wonder what affect the port space has */
 	/* delegate cm event handler to rdma_transport */
 	ic->i_cm_id = rdma_create_id(&init_net, rds_rdma_cm_event_handler, conn,
-				     RDMA_PS_TCP, IB_QPT_RC);
-	if (IS_ERR(ic->i_cm_id)) {
+								 RDMA_PS_TCP, IB_QPT_RC);
+
+	if (IS_ERR(ic->i_cm_id))
+	{
 		ret = PTR_ERR(ic->i_cm_id);
 		ic->i_cm_id = NULL;
 		rdsdebug("rdma_create_id() failed: %d\n", ret);
@@ -714,11 +826,13 @@ int rds_ib_conn_path_connect(struct rds_conn_path *cp)
 	dest.sin_port = (__force u16)htons(RDS_PORT);
 
 	ret = rdma_resolve_addr(ic->i_cm_id, (struct sockaddr *)&src,
-				(struct sockaddr *)&dest,
-				RDS_RDMA_RESOLVE_TIMEOUT_MS);
-	if (ret) {
+							(struct sockaddr *)&dest,
+							RDS_RDMA_RESOLVE_TIMEOUT_MS);
+
+	if (ret)
+	{
 		rdsdebug("addr resolve failed for cm id %p: %d\n", ic->i_cm_id,
-			 ret);
+				 ret);
 		rdma_destroy_id(ic->i_cm_id);
 		ic->i_cm_id = NULL;
 	}
@@ -739,20 +853,23 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
 	int err = 0;
 
 	rdsdebug("cm %p pd %p cq %p %p qp %p\n", ic->i_cm_id,
-		 ic->i_pd, ic->i_send_cq, ic->i_recv_cq,
-		 ic->i_cm_id ? ic->i_cm_id->qp : NULL);
+			 ic->i_pd, ic->i_send_cq, ic->i_recv_cq,
+			 ic->i_cm_id ? ic->i_cm_id->qp : NULL);
 
-	if (ic->i_cm_id) {
+	if (ic->i_cm_id)
+	{
 		struct ib_device *dev = ic->i_cm_id->device;
 
 		rdsdebug("disconnecting cm %p\n", ic->i_cm_id);
 		err = rdma_disconnect(ic->i_cm_id);
-		if (err) {
+
+		if (err)
+		{
 			/* Actually this may happen quite frequently, when
 			 * an outgoing connect raced with an incoming connect.
 			 */
 			rdsdebug("failed to disconnect, cm: %p err %d\n",
-				ic->i_cm_id, err);
+					 ic->i_cm_id, err);
 		}
 
 		/*
@@ -765,43 +882,56 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
 		 * more tx processing.
 		 */
 		wait_event(rds_ib_ring_empty_wait,
-			   rds_ib_ring_empty(&ic->i_recv_ring) &&
-			   (atomic_read(&ic->i_signaled_sends) == 0) &&
-			   (atomic_read(&ic->i_fastreg_wrs) == RDS_IB_DEFAULT_FR_WR));
+				   rds_ib_ring_empty(&ic->i_recv_ring) &&
+				   (atomic_read(&ic->i_signaled_sends) == 0) &&
+				   (atomic_read(&ic->i_fastreg_wrs) == RDS_IB_DEFAULT_FR_WR));
 		tasklet_kill(&ic->i_send_tasklet);
 		tasklet_kill(&ic->i_recv_tasklet);
 
 		/* first destroy the ib state that generates callbacks */
 		if (ic->i_cm_id->qp)
+		{
 			rdma_destroy_qp(ic->i_cm_id);
+		}
+
 		if (ic->i_send_cq)
+		{
 			ib_destroy_cq(ic->i_send_cq);
+		}
+
 		if (ic->i_recv_cq)
+		{
 			ib_destroy_cq(ic->i_recv_cq);
+		}
 
 		/* then free the resources that ib callbacks use */
 		if (ic->i_send_hdrs)
 			ib_dma_free_coherent(dev,
-					   ic->i_send_ring.w_nr *
-						sizeof(struct rds_header),
-					   ic->i_send_hdrs,
-					   ic->i_send_hdrs_dma);
+								 ic->i_send_ring.w_nr *
+								 sizeof(struct rds_header),
+								 ic->i_send_hdrs,
+								 ic->i_send_hdrs_dma);
 
 		if (ic->i_recv_hdrs)
 			ib_dma_free_coherent(dev,
-					   ic->i_recv_ring.w_nr *
-						sizeof(struct rds_header),
-					   ic->i_recv_hdrs,
-					   ic->i_recv_hdrs_dma);
+								 ic->i_recv_ring.w_nr *
+								 sizeof(struct rds_header),
+								 ic->i_recv_hdrs,
+								 ic->i_recv_hdrs_dma);
 
 		if (ic->i_ack)
 			ib_dma_free_coherent(dev, sizeof(struct rds_header),
-					     ic->i_ack, ic->i_ack_dma);
+								 ic->i_ack, ic->i_ack_dma);
 
 		if (ic->i_sends)
+		{
 			rds_ib_send_clear_ring(ic);
+		}
+
 		if (ic->i_recvs)
+		{
 			rds_ib_recv_clear_ring(ic);
+		}
 
 		rdma_destroy_id(ic->i_cm_id);
 
@@ -809,7 +939,9 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
 		 * Move connection back to the nodev list.
 		 */
 		if (ic->rds_ibdev)
+		{
 			rds_ib_remove_conn(ic->rds_ibdev, conn);
+		}
 
 		ic->i_cm_id = NULL;
 		ic->i_pd = NULL;
@@ -819,10 +951,12 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
 		ic->i_recv_hdrs = NULL;
 		ic->i_ack = NULL;
 	}
+
 	BUG_ON(ic->rds_ibdev);
 
 	/* Clear pending transmit */
-	if (ic->i_data_op) {
+	if (ic->i_data_op)
+	{
 		struct rds_message *rm;
 
 		rm = container_of(ic->i_data_op, struct rds_message, data);
@@ -846,7 +980,8 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
 	rds_ib_ring_init(&ic->i_send_ring, rds_ib_sysctl_max_send_wr);
 	rds_ib_ring_init(&ic->i_recv_ring, rds_ib_sysctl_max_recv_wr);
 
-	if (ic->i_ibinc) {
+	if (ic->i_ibinc)
+	{
 		rds_inc_put(&ic->i_ibinc->ii_inc);
 		ic->i_ibinc = NULL;
 	}
@@ -865,20 +1000,25 @@ int rds_ib_conn_alloc(struct rds_connection *conn, gfp_t gfp)
 
 	/* XXX too lazy? */
 	ic = kzalloc(sizeof(struct rds_ib_connection), gfp);
+
 	if (!ic)
+	{
 		return -ENOMEM;
+	}
 
 	ret = rds_ib_recv_alloc_caches(ic);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(ic);
 		return ret;
 	}
 
 	INIT_LIST_HEAD(&ic->ib_node);
 	tasklet_init(&ic->i_send_tasklet, rds_ib_tasklet_fn_send,
-		     (unsigned long)ic);
+				 (unsigned long)ic);
 	tasklet_init(&ic->i_recv_tasklet, rds_ib_tasklet_fn_recv,
-		     (unsigned long)ic);
+				 (unsigned long)ic);
 	mutex_init(&ic->i_recv_mutex);
 #ifndef KERNEL_HAS_ATOMIC64
 	spin_lock_init(&ic->i_ack_lock);

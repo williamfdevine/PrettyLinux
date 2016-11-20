@@ -35,7 +35,8 @@
 
 static const u8 ath_bcast_mac[ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-struct ath_ani {
+struct ath_ani
+{
 	bool caldone;
 	unsigned int longcal_timer;
 	unsigned int shortcal_timer;
@@ -44,19 +45,22 @@ struct ath_ani {
 	struct timer_list timer;
 };
 
-struct ath_cycle_counters {
+struct ath_cycle_counters
+{
 	u32 cycles;
 	u32 rx_busy;
 	u32 rx_frame;
 	u32 tx_frame;
 };
 
-enum ath_device_state {
+enum ath_device_state
+{
 	ATH_HW_UNAVAILABLE,
 	ATH_HW_INITIALIZED,
 };
 
-enum ath_op_flags {
+enum ath_op_flags
+{
 	ATH_OP_INVALID,
 	ATH_OP_BEACONS,
 	ATH_OP_ANI_RUN,
@@ -67,19 +71,22 @@ enum ath_op_flags {
 	ATH_OP_WOW_ENABLED,
 };
 
-enum ath_bus_type {
+enum ath_bus_type
+{
 	ATH_PCI,
 	ATH_AHB,
 	ATH_USB,
 };
 
-struct reg_dmn_pair_mapping {
+struct reg_dmn_pair_mapping
+{
 	u16 reg_domain;
 	u16 reg_5ghz_ctl;
 	u16 reg_2ghz_ctl;
 };
 
-struct ath_regulatory {
+struct ath_regulatory
+{
 	char alpha2[2];
 	enum nl80211_dfs_regions region;
 	u16 country_code;
@@ -89,12 +96,14 @@ struct ath_regulatory {
 	struct reg_dmn_pair_mapping *regpair;
 };
 
-enum ath_crypt_caps {
+enum ath_crypt_caps
+{
 	ATH_CRYPT_CAP_CIPHER_AESCCM		= BIT(0),
 	ATH_CRYPT_CAP_MIC_COMBINED		= BIT(1),
 };
 
-struct ath_keyval {
+struct ath_keyval
+{
 	u8 kv_type;
 	u8 kv_pad;
 	u16 kv_len;
@@ -105,7 +114,8 @@ struct ath_keyval {
 			 * in that case, kv_mic is the RX key) */
 };
 
-enum ath_cipher {
+enum ath_cipher
+{
 	ATH_CIPHER_WEP = 0,
 	ATH_CIPHER_AES_OCB = 1,
 	ATH_CIPHER_AES_CCM = 2,
@@ -124,7 +134,8 @@ enum ath_cipher {
  * @enable_write_buffer: Enable multiple register writes
  * @write_flush: flush buffered register writes and disable buffering
  */
-struct ath_ops {
+struct ath_ops
+{
 	unsigned int (*read)(void *, u32 reg_offset);
 	void (*multi_read)(void *, u32 *addr, u32 *val, u16 count);
 	void (*write)(void *, u32 val, u32 reg_offset);
@@ -139,12 +150,14 @@ struct ath_ops {
 struct ath_common;
 struct ath_bus_ops;
 
-struct ath_ps_ops {
+struct ath_ps_ops
+{
 	void (*wakeup)(struct ath_common *common);
 	void (*restore)(struct ath_common *common);
 };
 
-struct ath_common {
+struct ath_common
+{
 	void *ah;
 	void *priv;
 	struct ieee80211_hw *hw;
@@ -194,23 +207,23 @@ static inline const struct ath_ps_ops *ath_ps_ops(struct ath_common *common)
 }
 
 struct sk_buff *ath_rxbuf_alloc(struct ath_common *common,
-				u32 len,
-				gfp_t gfp_mask);
+								u32 len,
+								gfp_t gfp_mask);
 bool ath_is_mybeacon(struct ath_common *common, struct ieee80211_hdr *hdr);
 
 void ath_hw_setbssidmask(struct ath_common *common);
 void ath_key_delete(struct ath_common *common, struct ieee80211_key_conf *key);
 int ath_key_config(struct ath_common *common,
-			  struct ieee80211_vif *vif,
-			  struct ieee80211_sta *sta,
-			  struct ieee80211_key_conf *key);
+				   struct ieee80211_vif *vif,
+				   struct ieee80211_sta *sta,
+				   struct ieee80211_key_conf *key);
 bool ath_hw_keyreset(struct ath_common *common, u16 entry);
 void ath_hw_cycle_counters_update(struct ath_common *common);
 int32_t ath_hw_get_listen_time(struct ath_common *common);
 
 __printf(3, 4)
 void ath_printk(const char *level, const struct ath_common *common,
-		const char *fmt, ...);
+				const char *fmt, ...);
 
 #define ath_emerg(common, fmt, ...)				\
 	ath_printk(KERN_EMERG, common, fmt, ##__VA_ARGS__)
@@ -260,7 +273,8 @@ void ath_printk(const char *level, const struct ath_common *common,
  * module parameter 'debug' along with a respective 'debug' debugfs file
  * entry.
  */
-enum ATH_DEBUG {
+enum ATH_DEBUG
+{
 	ATH_DBG_RESET		= 0x00000001,
 	ATH_DBG_QUEUE		= 0x00000002,
 	ATH_DBG_EEPROM		= 0x00000004,
@@ -291,10 +305,10 @@ enum ATH_DEBUG {
 #ifdef CONFIG_ATH_DEBUG
 
 #define ath_dbg(common, dbg_mask, fmt, ...)				\
-do {									\
-	if ((common)->debug_mask & ATH_DBG_##dbg_mask)			\
-		ath_printk(KERN_DEBUG, common, fmt, ##__VA_ARGS__);	\
-} while (0)
+	do {									\
+		if ((common)->debug_mask & ATH_DBG_##dbg_mask)			\
+			ath_printk(KERN_DEBUG, common, fmt, ##__VA_ARGS__);	\
+	} while (0)
 
 #define ATH_DBG_WARN(foo, arg...) WARN(foo, arg)
 #define ATH_DBG_WARN_ON_ONCE(foo) WARN_ON_ONCE(foo)
@@ -303,7 +317,7 @@ do {									\
 
 static inline  __attribute__ ((format (printf, 3, 4)))
 void _ath_dbg(struct ath_common *common, enum ATH_DEBUG dbg_mask,
-	     const char *fmt, ...)
+			  const char *fmt, ...)
 {
 }
 #define ath_dbg(common, dbg_mask, fmt, ...)				\
@@ -311,9 +325,9 @@ void _ath_dbg(struct ath_common *common, enum ATH_DEBUG dbg_mask,
 
 #define ATH_DBG_WARN(foo, arg...) do {} while (0)
 #define ATH_DBG_WARN_ON_ONCE(foo) ({				\
-	int __ret_warn_once = !!(foo);				\
-	unlikely(__ret_warn_once);				\
-})
+		int __ret_warn_once = !!(foo);				\
+		unlikely(__ret_warn_once);				\
+	})
 
 #endif /* CONFIG_ATH_DEBUG */
 

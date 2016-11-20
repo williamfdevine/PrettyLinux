@@ -65,7 +65,8 @@
 #define		MCFQSPI_QCR_BITSE	0x4000
 #define		MCFQSPI_QCR_DT		0x2000
 
-struct mcfqspi {
+struct mcfqspi
+{
 	void __iomem *iobase;
 	int irq;
 	struct clk *clk;
@@ -115,13 +116,13 @@ static u16 mcfqspi_rd_qdr(struct mcfqspi *mcfqspi)
 }
 
 static void mcfqspi_cs_select(struct mcfqspi *mcfqspi, u8 chip_select,
-			    bool cs_high)
+							  bool cs_high)
 {
 	mcfqspi->cs_control->select(mcfqspi->cs_control, chip_select, cs_high);
 }
 
 static void mcfqspi_cs_deselect(struct mcfqspi *mcfqspi, u8 chip_select,
-				bool cs_high)
+								bool cs_high)
 {
 	mcfqspi->cs_control->deselect(mcfqspi->cs_control, chip_select, cs_high);
 }
@@ -129,13 +130,15 @@ static void mcfqspi_cs_deselect(struct mcfqspi *mcfqspi, u8 chip_select,
 static int mcfqspi_cs_setup(struct mcfqspi *mcfqspi)
 {
 	return (mcfqspi->cs_control->setup) ?
-		mcfqspi->cs_control->setup(mcfqspi->cs_control) : 0;
+		   mcfqspi->cs_control->setup(mcfqspi->cs_control) : 0;
 }
 
 static void mcfqspi_cs_teardown(struct mcfqspi *mcfqspi)
 {
 	if (mcfqspi->cs_control->teardown)
+	{
 		mcfqspi->cs_control->teardown(mcfqspi->cs_control);
+	}
 }
 
 static u8 mcfqspi_qmr_baud(u32 speed_hz)
@@ -160,136 +163,214 @@ static irqreturn_t mcfqspi_irq_handler(int this_irq, void *dev_id)
 }
 
 static void mcfqspi_transfer_msg8(struct mcfqspi *mcfqspi, unsigned count,
-				  const u8 *txbuf, u8 *rxbuf)
+								  const u8 *txbuf, u8 *rxbuf)
 {
 	unsigned i, n, offset = 0;
 
 	n = min(count, 16u);
 
 	mcfqspi_wr_qar(mcfqspi, MCFQSPI_QAR_CMDBUF);
+
 	for (i = 0; i < n; ++i)
+	{
 		mcfqspi_wr_qdr(mcfqspi, MCFQSPI_QCR_BITSE);
+	}
 
 	mcfqspi_wr_qar(mcfqspi, MCFQSPI_QAR_TXBUF);
+
 	if (txbuf)
 		for (i = 0; i < n; ++i)
+		{
 			mcfqspi_wr_qdr(mcfqspi, *txbuf++);
+		}
 	else
 		for (i = 0; i < count; ++i)
+		{
 			mcfqspi_wr_qdr(mcfqspi, 0);
+		}
 
 	count -= n;
-	if (count) {
+
+	if (count)
+	{
 		u16 qwr = 0xf08;
 		mcfqspi_wr_qwr(mcfqspi, 0x700);
 		mcfqspi_wr_qdlyr(mcfqspi, MCFQSPI_QDLYR_SPE);
 
-		do {
+		do
+		{
 			wait_event(mcfqspi->waitq, !mcfqspi_qdlyr_spe(mcfqspi));
 			mcfqspi_wr_qwr(mcfqspi, qwr);
 			mcfqspi_wr_qdlyr(mcfqspi, MCFQSPI_QDLYR_SPE);
-			if (rxbuf) {
+
+			if (rxbuf)
+			{
 				mcfqspi_wr_qar(mcfqspi,
-					       MCFQSPI_QAR_RXBUF + offset);
+							   MCFQSPI_QAR_RXBUF + offset);
+
 				for (i = 0; i < 8; ++i)
+				{
 					*rxbuf++ = mcfqspi_rd_qdr(mcfqspi);
+				}
 			}
+
 			n = min(count, 8u);
-			if (txbuf) {
+
+			if (txbuf)
+			{
 				mcfqspi_wr_qar(mcfqspi,
-					       MCFQSPI_QAR_TXBUF + offset);
+							   MCFQSPI_QAR_TXBUF + offset);
+
 				for (i = 0; i < n; ++i)
+				{
 					mcfqspi_wr_qdr(mcfqspi, *txbuf++);
+				}
 			}
+
 			qwr = (offset ? 0x808 : 0) + ((n - 1) << 8);
 			offset ^= 8;
 			count -= n;
-		} while (count);
+		}
+		while (count);
+
 		wait_event(mcfqspi->waitq, !mcfqspi_qdlyr_spe(mcfqspi));
 		mcfqspi_wr_qwr(mcfqspi, qwr);
 		mcfqspi_wr_qdlyr(mcfqspi, MCFQSPI_QDLYR_SPE);
-		if (rxbuf) {
+
+		if (rxbuf)
+		{
 			mcfqspi_wr_qar(mcfqspi, MCFQSPI_QAR_RXBUF + offset);
+
 			for (i = 0; i < 8; ++i)
+			{
 				*rxbuf++ = mcfqspi_rd_qdr(mcfqspi);
+			}
+
 			offset ^= 8;
 		}
-	} else {
+	}
+	else
+	{
 		mcfqspi_wr_qwr(mcfqspi, (n - 1) << 8);
 		mcfqspi_wr_qdlyr(mcfqspi, MCFQSPI_QDLYR_SPE);
 	}
+
 	wait_event(mcfqspi->waitq, !mcfqspi_qdlyr_spe(mcfqspi));
-	if (rxbuf) {
+
+	if (rxbuf)
+	{
 		mcfqspi_wr_qar(mcfqspi, MCFQSPI_QAR_RXBUF + offset);
+
 		for (i = 0; i < n; ++i)
+		{
 			*rxbuf++ = mcfqspi_rd_qdr(mcfqspi);
+		}
 	}
 }
 
 static void mcfqspi_transfer_msg16(struct mcfqspi *mcfqspi, unsigned count,
-				   const u16 *txbuf, u16 *rxbuf)
+								   const u16 *txbuf, u16 *rxbuf)
 {
 	unsigned i, n, offset = 0;
 
 	n = min(count, 16u);
 
 	mcfqspi_wr_qar(mcfqspi, MCFQSPI_QAR_CMDBUF);
+
 	for (i = 0; i < n; ++i)
+	{
 		mcfqspi_wr_qdr(mcfqspi, MCFQSPI_QCR_BITSE);
+	}
 
 	mcfqspi_wr_qar(mcfqspi, MCFQSPI_QAR_TXBUF);
+
 	if (txbuf)
 		for (i = 0; i < n; ++i)
+		{
 			mcfqspi_wr_qdr(mcfqspi, *txbuf++);
+		}
 	else
 		for (i = 0; i < count; ++i)
+		{
 			mcfqspi_wr_qdr(mcfqspi, 0);
+		}
 
 	count -= n;
-	if (count) {
+
+	if (count)
+	{
 		u16 qwr = 0xf08;
 		mcfqspi_wr_qwr(mcfqspi, 0x700);
 		mcfqspi_wr_qdlyr(mcfqspi, MCFQSPI_QDLYR_SPE);
 
-		do {
+		do
+		{
 			wait_event(mcfqspi->waitq, !mcfqspi_qdlyr_spe(mcfqspi));
 			mcfqspi_wr_qwr(mcfqspi, qwr);
 			mcfqspi_wr_qdlyr(mcfqspi, MCFQSPI_QDLYR_SPE);
-			if (rxbuf) {
+
+			if (rxbuf)
+			{
 				mcfqspi_wr_qar(mcfqspi,
-					       MCFQSPI_QAR_RXBUF + offset);
+							   MCFQSPI_QAR_RXBUF + offset);
+
 				for (i = 0; i < 8; ++i)
+				{
 					*rxbuf++ = mcfqspi_rd_qdr(mcfqspi);
+				}
 			}
+
 			n = min(count, 8u);
-			if (txbuf) {
+
+			if (txbuf)
+			{
 				mcfqspi_wr_qar(mcfqspi,
-					       MCFQSPI_QAR_TXBUF + offset);
+							   MCFQSPI_QAR_TXBUF + offset);
+
 				for (i = 0; i < n; ++i)
+				{
 					mcfqspi_wr_qdr(mcfqspi, *txbuf++);
+				}
 			}
+
 			qwr = (offset ? 0x808 : 0x000) + ((n - 1) << 8);
 			offset ^= 8;
 			count -= n;
-		} while (count);
+		}
+		while (count);
+
 		wait_event(mcfqspi->waitq, !mcfqspi_qdlyr_spe(mcfqspi));
 		mcfqspi_wr_qwr(mcfqspi, qwr);
 		mcfqspi_wr_qdlyr(mcfqspi, MCFQSPI_QDLYR_SPE);
-		if (rxbuf) {
+
+		if (rxbuf)
+		{
 			mcfqspi_wr_qar(mcfqspi, MCFQSPI_QAR_RXBUF + offset);
+
 			for (i = 0; i < 8; ++i)
+			{
 				*rxbuf++ = mcfqspi_rd_qdr(mcfqspi);
+			}
+
 			offset ^= 8;
 		}
-	} else {
+	}
+	else
+	{
 		mcfqspi_wr_qwr(mcfqspi, (n - 1) << 8);
 		mcfqspi_wr_qdlyr(mcfqspi, MCFQSPI_QDLYR_SPE);
 	}
+
 	wait_event(mcfqspi->waitq, !mcfqspi_qdlyr_spe(mcfqspi));
-	if (rxbuf) {
+
+	if (rxbuf)
+	{
 		mcfqspi_wr_qar(mcfqspi, MCFQSPI_QAR_RXBUF + offset);
+
 		for (i = 0; i < n; ++i)
+		{
 			*rxbuf++ = mcfqspi_rd_qdr(mcfqspi);
+		}
 	}
 }
 
@@ -299,32 +380,47 @@ static void mcfqspi_set_cs(struct spi_device *spi, bool enable)
 	bool cs_high = spi->mode & SPI_CS_HIGH;
 
 	if (enable)
+	{
 		mcfqspi_cs_select(mcfqspi, spi->chip_select, cs_high);
+	}
 	else
+	{
 		mcfqspi_cs_deselect(mcfqspi, spi->chip_select, cs_high);
+	}
 }
 
 static int mcfqspi_transfer_one(struct spi_master *master,
-				struct spi_device *spi,
-				struct spi_transfer *t)
+								struct spi_device *spi,
+								struct spi_transfer *t)
 {
 	struct mcfqspi *mcfqspi = spi_master_get_devdata(master);
 	u16 qmr = MCFQSPI_QMR_MSTR;
 
 	qmr |= t->bits_per_word << 10;
+
 	if (spi->mode & SPI_CPHA)
+	{
 		qmr |= MCFQSPI_QMR_CPHA;
+	}
+
 	if (spi->mode & SPI_CPOL)
+	{
 		qmr |= MCFQSPI_QMR_CPOL;
+	}
+
 	qmr |= mcfqspi_qmr_baud(t->speed_hz);
 	mcfqspi_wr_qmr(mcfqspi, qmr);
 
 	mcfqspi_wr_qir(mcfqspi, MCFQSPI_QIR_SPIFE);
+
 	if (t->bits_per_word == 8)
+	{
 		mcfqspi_transfer_msg8(mcfqspi, t->len, t->tx_buf, t->rx_buf);
+	}
 	else
 		mcfqspi_transfer_msg16(mcfqspi, t->len / 2, t->tx_buf,
-				       t->rx_buf);
+							   t->rx_buf);
+
 	mcfqspi_wr_qir(mcfqspi, 0);
 
 	return 0;
@@ -333,7 +429,7 @@ static int mcfqspi_transfer_one(struct spi_master *master,
 static int mcfqspi_setup(struct spi_device *spi)
 {
 	mcfqspi_cs_deselect(spi_master_get_devdata(spi->master),
-			    spi->chip_select, spi->mode & SPI_CS_HIGH);
+						spi->chip_select, spi->mode & SPI_CS_HIGH);
 
 	dev_dbg(&spi->dev,
 			"bits per word %d, chip select %d, speed %d KHz\n",
@@ -353,18 +449,23 @@ static int mcfqspi_probe(struct platform_device *pdev)
 	int status;
 
 	pdata = dev_get_platdata(&pdev->dev);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_dbg(&pdev->dev, "platform data is missing\n");
 		return -ENOENT;
 	}
 
-	if (!pdata->cs_control) {
+	if (!pdata->cs_control)
+	{
 		dev_dbg(&pdev->dev, "pdata->cs_control is NULL\n");
 		return -EINVAL;
 	}
 
 	master = spi_alloc_master(&pdev->dev, sizeof(*mcfqspi));
-	if (master == NULL) {
+
+	if (master == NULL)
+	{
 		dev_dbg(&pdev->dev, "spi_alloc_master failed\n");
 		return -ENOMEM;
 	}
@@ -373,31 +474,40 @@ static int mcfqspi_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mcfqspi->iobase = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(mcfqspi->iobase)) {
+
+	if (IS_ERR(mcfqspi->iobase))
+	{
 		status = PTR_ERR(mcfqspi->iobase);
 		goto fail0;
 	}
 
 	mcfqspi->irq = platform_get_irq(pdev, 0);
-	if (mcfqspi->irq < 0) {
+
+	if (mcfqspi->irq < 0)
+	{
 		dev_dbg(&pdev->dev, "platform_get_irq failed\n");
 		status = -ENXIO;
 		goto fail0;
 	}
 
 	status = devm_request_irq(&pdev->dev, mcfqspi->irq, mcfqspi_irq_handler,
-				0, pdev->name, mcfqspi);
-	if (status) {
+							  0, pdev->name, mcfqspi);
+
+	if (status)
+	{
 		dev_dbg(&pdev->dev, "request_irq failed\n");
 		goto fail0;
 	}
 
 	mcfqspi->clk = devm_clk_get(&pdev->dev, "qspi_clk");
-	if (IS_ERR(mcfqspi->clk)) {
+
+	if (IS_ERR(mcfqspi->clk))
+	{
 		dev_dbg(&pdev->dev, "clk_get failed\n");
 		status = PTR_ERR(mcfqspi->clk);
 		goto fail0;
 	}
+
 	clk_enable(mcfqspi->clk);
 
 	master->bus_num = pdata->bus_num;
@@ -405,7 +515,9 @@ static int mcfqspi_probe(struct platform_device *pdev)
 
 	mcfqspi->cs_control = pdata->cs_control;
 	status = mcfqspi_cs_setup(mcfqspi);
-	if (status) {
+
+	if (status)
+	{
 		dev_dbg(&pdev->dev, "error initializing cs_control\n");
 		goto fail1;
 	}
@@ -423,7 +535,9 @@ static int mcfqspi_probe(struct platform_device *pdev)
 	pm_runtime_enable(&pdev->dev);
 
 	status = devm_spi_register_master(&pdev->dev, master);
-	if (status) {
+
+	if (status)
+	{
 		dev_dbg(&pdev->dev, "spi_register_master failed\n");
 		goto fail2;
 	}
@@ -468,8 +582,11 @@ static int mcfqspi_suspend(struct device *dev)
 	int ret;
 
 	ret = spi_master_suspend(master);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	clk_disable(mcfqspi->clk);
 
@@ -509,13 +626,15 @@ static int mcfqspi_runtime_resume(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops mcfqspi_pm = {
+static const struct dev_pm_ops mcfqspi_pm =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(mcfqspi_suspend, mcfqspi_resume)
 	SET_RUNTIME_PM_OPS(mcfqspi_runtime_suspend, mcfqspi_runtime_resume,
-			NULL)
+	NULL)
 };
 
-static struct platform_driver mcfqspi_driver = {
+static struct platform_driver mcfqspi_driver =
+{
 	.driver.name	= DRIVER_NAME,
 	.driver.owner	= THIS_MODULE,
 	.driver.pm	= &mcfqspi_pm,

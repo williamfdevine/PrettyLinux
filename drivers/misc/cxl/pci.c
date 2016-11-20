@@ -118,7 +118,8 @@
 #define   AFUD_EB_LEN(val)		EXTRACT_PPC_BITS(val, 8, 63)
 #define AFUD_READ_EB_OFF(afu)		AFUD_READ(afu, 0x48)
 
-static const struct pci_device_id cxl_pci_tbl[] = {
+static const struct pci_device_id cxl_pci_tbl[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_IBM, 0x0477), },
 	{ PCI_DEVICE(PCI_VENDOR_ID_IBM, 0x044b), },
 	{ PCI_DEVICE(PCI_VENDOR_ID_IBM, 0x04cf), },
@@ -159,11 +160,16 @@ static int find_cxl_vsec(struct pci_dev *dev)
 	int vsec = 0;
 	u16 val;
 
-	while ((vsec = pci_find_next_ext_capability(dev, vsec, PCI_EXT_CAP_ID_VNDR))) {
+	while ((vsec = pci_find_next_ext_capability(dev, vsec, PCI_EXT_CAP_ID_VNDR)))
+	{
 		pci_read_config_word(dev, vsec + 0x4, &val);
+
 		if (val == CXL_PCI_VSEC_ID)
+		{
 			return vsec;
+		}
 	}
+
 	return 0;
 
 }
@@ -189,14 +195,16 @@ static void dump_cxl_config_space(struct pci_dev *dev)
 	dev_info(&dev->dev, "BAR5: %#.8x\n", val);
 
 	dev_info(&dev->dev, "p1 regs: %#llx, len: %#llx\n",
-		p1_base(dev), p1_size(dev));
+			 p1_base(dev), p1_size(dev));
 	dev_info(&dev->dev, "p2 regs: %#llx, len: %#llx\n",
-		p2_base(dev), p2_size(dev));
+			 p2_base(dev), p2_size(dev));
 	dev_info(&dev->dev, "BAR 4/5: %#llx, len: %#llx\n",
-		pci_resource_start(dev, 4), pci_resource_len(dev, 4));
+			 pci_resource_start(dev, 4), pci_resource_len(dev, 4));
 
 	if (!(vsec = find_cxl_vsec(dev)))
+	{
 		return;
+	}
 
 #define show_reg(name, what) \
 	dev_info(&dev->dev, "cxl vsec: %30s: %#x\n", name, what)
@@ -294,7 +302,7 @@ static void dump_afu_descriptor(struct cxl_afu *afu)
 	show_reg("Reserved", val);
 
 	val = AFUD_READ_CR(afu);
-	show_reg("Reserved", (val >> (63-7)) & 0xff);
+	show_reg("Reserved", (val >> (63 - 7)) & 0xff);
 	show_reg("AFU_CR_len", AFUD_CR_LEN(val));
 	afu_cr_len = AFUD_CR_LEN(val) * 256;
 
@@ -303,24 +311,26 @@ static void dump_afu_descriptor(struct cxl_afu *afu)
 	show_reg("AFU_CR_offset", val);
 
 	val = AFUD_READ_PPPSA(afu);
-	show_reg("PerProcessPSA_control", (val >> (63-7)) & 0xff);
+	show_reg("PerProcessPSA_control", (val >> (63 - 7)) & 0xff);
 	show_reg("PerProcessPSA Length", AFUD_PPPSA_LEN(val));
 
 	val = AFUD_READ_PPPSA_OFF(afu);
 	show_reg("PerProcessPSA_offset", val);
 
 	val = AFUD_READ_EB(afu);
-	show_reg("Reserved", (val >> (63-7)) & 0xff);
+	show_reg("Reserved", (val >> (63 - 7)) & 0xff);
 	show_reg("AFU_EB_len", AFUD_EB_LEN(val));
 
 	val = AFUD_READ_EB_OFF(afu);
 	show_reg("AFU_EB_offset", val);
 
-	for (i = 0; i < afu_cr_num; i++) {
+	for (i = 0; i < afu_cr_num; i++)
+	{
 		val = AFUD_READ_LE(afu, afu_cr_off + i * afu_cr_len);
 		show_reg("CR Vendor", val & 0xffff);
 		show_reg("CR Device", (val >> 16) & 0xffff);
 	}
+
 #undef show_reg
 }
 
@@ -336,20 +346,28 @@ static u64 get_capp_unit_id(struct device_node *np)
 	 * irrespective of which PHB is used.
 	 */
 	if (!pvr_version_is(PVR_POWER8NVL))
+	{
 		return CAPP_UNIT0_ID;
+	}
 
 	/*
 	 * For POWER8NVL, assume CAPP 0 is attached to PHB0 and
 	 * CAPP 1 is attached to PHB1.
 	 */
 	if (of_property_read_u32(np, "ibm,phb-index", &phb_index))
+	{
 		return 0;
+	}
 
 	if (phb_index == 0)
+	{
 		return CAPP_UNIT0_ID;
+	}
 
 	if (phb_index == 1)
+	{
 		return CAPP_UNIT1_ID;
+	}
 
 	return 0;
 }
@@ -360,16 +378,26 @@ static int calc_capp_routing(struct pci_dev *dev, u64 *chipid, u64 *capp_unit_id
 	const __be32 *prop;
 
 	if (!(np = pnv_pci_get_phb_node(dev)))
+	{
 		return -ENODEV;
+	}
 
 	while (np && !(prop = of_get_property(np, "ibm,chip-id", NULL)))
+	{
 		np = of_get_next_parent(np);
+	}
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
+
 	*chipid = be32_to_cpup(prop);
 	*capp_unit_id = get_capp_unit_id(np);
 	of_node_put(np);
-	if (!*capp_unit_id) {
+
+	if (!*capp_unit_id)
+	{
 		pr_err("cxl: invalid capp unit id\n");
 		return -ENODEV;
 	}
@@ -385,22 +413,25 @@ static int init_implementation_adapter_psl_regs(struct cxl *adapter, struct pci_
 	int rc;
 
 	rc = calc_capp_routing(dev, &chipid, &capp_unit_id);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	psl_dsnctl = 0x0000900000000000ULL; /* pteupd ttype, scdone */
-	psl_dsnctl |= (0x2ULL << (63-38)); /* MMIO hang pulse: 256 us */
+	psl_dsnctl |= (0x2ULL << (63 - 38)); /* MMIO hang pulse: 256 us */
 	/* Tell PSL where to route data to */
-	psl_dsnctl |= (chipid << (63-5));
-	psl_dsnctl |= (capp_unit_id << (63-13));
+	psl_dsnctl |= (chipid << (63 - 5));
+	psl_dsnctl |= (capp_unit_id << (63 - 13));
 
 	cxl_p1_write(adapter, CXL_PSL_DSNDCTL, psl_dsnctl);
 	cxl_p1_write(adapter, CXL_PSL_RESLCKTO, 0x20000000200ULL);
 	/* snoop write mask */
 	cxl_p1_write(adapter, CXL_PSL_SNWRALLOC, 0x00000000FFFFFFFFULL);
 	/* set fir_cntl to recommended value for production env */
-	psl_fircntl = (0x2ULL << (63-3)); /* ce_report */
-	psl_fircntl |= (0x1ULL << (63-6)); /* FIR_report */
+	psl_fircntl = (0x2ULL << (63 - 3)); /* ce_report */
+	psl_fircntl |= (0x1ULL << (63 - 6)); /* FIR_report */
 	psl_fircntl |= 0x1ULL; /* ce_thresh */
 	cxl_p1_write(adapter, CXL_PSL_FIR_CNTL, psl_fircntl);
 	/* for debugging with trace arrays */
@@ -417,12 +448,15 @@ static int init_implementation_adapter_xsl_regs(struct cxl *adapter, struct pci_
 	int rc;
 
 	rc = calc_capp_routing(dev, &chipid, &capp_unit_id);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Tell XSL where to route data to */
-	xsl_dsnctl = 0x0000600000000000ULL | (chipid << (63-5));
-	xsl_dsnctl |= (capp_unit_id << (63-13));
+	xsl_dsnctl = 0x0000600000000000ULL | (chipid << (63 - 5));
+	xsl_dsnctl |= (capp_unit_id << (63 - 13));
 	cxl_p1_write(adapter, CXL_XSL_DSNCTL, xsl_dsnctl);
 
 	return 0;
@@ -437,7 +471,7 @@ static int init_implementation_adapter_xsl_regs(struct cxl *adapter, struct pci_
 static void write_timebase_ctrl_psl(struct cxl *adapter)
 {
 	cxl_p1_write(adapter, CXL_PSL_TB_CTLSTAT,
-		     TBSYNC_CNT(2 * PSL_2048_250MHZ_CYCLES));
+				 TBSYNC_CNT(2 * PSL_2048_250MHZ_CYCLES));
 }
 
 /* XSL */
@@ -450,9 +484,9 @@ static void write_timebase_ctrl_psl(struct cxl *adapter)
 static void write_timebase_ctrl_xsl(struct cxl *adapter)
 {
 	cxl_p1_write(adapter, CXL_XSL_TB_CTLSTAT,
-		     TBSYNC_ENA |
-		     TBSYNC_CAL(3) |
-		     TBSYNC_CNT(XSL_4000_CLOCKS));
+				 TBSYNC_ENA |
+				 TBSYNC_CAL(3) |
+				 TBSYNC_CNT(XSL_4000_CLOCKS));
 }
 
 static u64 timebase_read_psl(struct cxl *adapter)
@@ -475,15 +509,20 @@ static void cxl_setup_psl_timebase(struct cxl *adapter, struct pci_dev *dev)
 	adapter->psl_timebase_synced = false;
 
 	if (!(np = pnv_pci_get_phb_node(dev)))
+	{
 		return;
+	}
 
 	/* Do not fail when CAPP timebase sync is not supported by OPAL */
 	of_node_get(np);
-	if (! of_get_property(np, "ibm,capp-timebase-sync", NULL)) {
+
+	if (! of_get_property(np, "ibm,capp-timebase-sync", NULL))
+	{
 		of_node_put(np);
 		dev_info(&dev->dev, "PSL timebase inactive: OPAL support missing\n");
 		return;
 	}
+
 	of_node_put(np);
 
 	/*
@@ -497,17 +536,25 @@ static void cxl_setup_psl_timebase(struct cxl *adapter, struct pci_dev *dev)
 	cxl_p1_write(adapter, CXL_PSL_Control, CXL_PSL_Control_tb);
 
 	/* Wait until CORE TB and PSL TB difference <= 16usecs */
-	do {
+	do
+	{
 		msleep(1);
-		if (retry++ > 5) {
+
+		if (retry++ > 5)
+		{
 			dev_info(&dev->dev, "PSL timebase can't synchronize\n");
 			return;
 		}
+
 		psl_tb = adapter->native->sl_ops->timebase_read(adapter);
 		delta = mftb() - psl_tb;
+
 		if (delta < 0)
+		{
 			delta = -delta;
-	} while (tb_to_ns(delta) > 16000);
+		}
+	}
+	while (tb_to_ns(delta) > 16000);
 
 	adapter->psl_timebase_synced = true;
 	return;
@@ -527,7 +574,7 @@ static int init_implementation_afu_psl_regs(struct cxl_afu *afu)
 }
 
 int cxl_pci_setup_irq(struct cxl *adapter, unsigned int hwirq,
-		unsigned int virq)
+					  unsigned int virq)
 {
 	struct pci_dev *dev = to_pci_dev(adapter->dev.parent);
 
@@ -541,27 +588,38 @@ int cxl_update_image_control(struct cxl *adapter)
 	int vsec;
 	u8 image_state;
 
-	if (!(vsec = find_cxl_vsec(dev))) {
+	if (!(vsec = find_cxl_vsec(dev)))
+	{
 		dev_err(&dev->dev, "ABORTING: CXL VSEC not found!\n");
 		return -ENODEV;
 	}
 
-	if ((rc = CXL_READ_VSEC_IMAGE_STATE(dev, vsec, &image_state))) {
+	if ((rc = CXL_READ_VSEC_IMAGE_STATE(dev, vsec, &image_state)))
+	{
 		dev_err(&dev->dev, "failed to read image state: %i\n", rc);
 		return rc;
 	}
 
 	if (adapter->perst_loads_image)
+	{
 		image_state |= CXL_VSEC_PERST_LOADS_IMAGE;
+	}
 	else
+	{
 		image_state &= ~CXL_VSEC_PERST_LOADS_IMAGE;
+	}
 
 	if (adapter->perst_select_user)
+	{
 		image_state |= CXL_VSEC_PERST_SELECT_USER;
+	}
 	else
+	{
 		image_state &= ~CXL_VSEC_PERST_SELECT_USER;
+	}
 
-	if ((rc = CXL_WRITE_VSEC_IMAGE_STATE(dev, vsec, image_state))) {
+	if ((rc = CXL_WRITE_VSEC_IMAGE_STATE(dev, vsec, image_state)))
+	{
 		dev_err(&dev->dev, "failed to update image control: %i\n", rc);
 		return rc;
 	}
@@ -584,7 +642,7 @@ void cxl_pci_release_one_irq(struct cxl *adapter, int hwirq)
 }
 
 int cxl_pci_alloc_irq_ranges(struct cxl_irq_ranges *irqs,
-			struct cxl *adapter, unsigned int num)
+							 struct cxl *adapter, unsigned int num)
 {
 	struct pci_dev *dev = to_pci_dev(adapter->dev.parent);
 
@@ -592,7 +650,7 @@ int cxl_pci_alloc_irq_ranges(struct cxl_irq_ranges *irqs,
 }
 
 void cxl_pci_release_irq_ranges(struct cxl_irq_ranges *irqs,
-				struct cxl *adapter)
+								struct cxl *adapter)
 {
 	struct pci_dev *dev = to_pci_dev(adapter->dev.parent);
 
@@ -603,7 +661,8 @@ static int setup_cxl_bars(struct pci_dev *dev)
 {
 	/* Safety check in case we get backported to < 3.17 without M64 */
 	if ((p1_base(dev) < 0x100000000ULL) ||
-	    (p2_base(dev) < 0x100000000ULL)) {
+		(p2_base(dev) < 0x100000000ULL))
+	{
 		dev_err(&dev->dev, "ABORTING: M32 BAR assignment incompatible with CXL\n");
 		return -ENODEV;
 	}
@@ -621,7 +680,8 @@ static int setup_cxl_bars(struct pci_dev *dev)
 
 #ifdef CONFIG_CXL_BIMODAL
 
-struct cxl_switch_work {
+struct cxl_switch_work
+{
 	struct pci_dev *dev;
 	struct work_struct work;
 	int vsec;
@@ -643,25 +703,32 @@ static void switch_card_to_cxl(struct work_struct *work)
 
 	dev_info(&bus->dev, "cxl: Preparing for mode switch...\n");
 	bridge = list_first_entry_or_null(&hose->bus->devices, struct pci_dev,
-					  bus_list);
-	if (!bridge) {
+									  bus_list);
+
+	if (!bridge)
+	{
 		dev_WARN(&bus->dev, "cxl: Couldn't find root port!\n");
 		goto err_dev_put;
 	}
 
 	php_slot = pnv_php_find_slot(pci_device_to_OF_node(bridge));
-	if (!php_slot) {
+
+	if (!php_slot)
+	{
 		dev_err(&bus->dev, "cxl: Failed to find slot hotplug "
-			           "information. You may need to upgrade "
-			           "skiboot. Aborting.\n");
+				"information. You may need to upgrade "
+				"skiboot. Aborting.\n");
 		goto err_dev_put;
 	}
 
 	rc = CXL_READ_VSEC_MODE_CONTROL(dev, switch_work->vsec, &val);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&bus->dev, "cxl: Failed to read CAPI mode control: %i\n", rc);
 		goto err_dev_put;
 	}
+
 	devfn = dev->devfn;
 
 	/* Release the reference obtained in cxl_check_and_switch_mode() */
@@ -673,23 +740,30 @@ static void switch_card_to_cxl(struct work_struct *work)
 	pci_unlock_rescan_remove();
 
 	/* Switch the CXL protocol on the card */
-	if (switch_work->mode == CXL_BIMODE_CXL) {
+	if (switch_work->mode == CXL_BIMODE_CXL)
+	{
 		dev_info(&bus->dev, "cxl: Switching card to CXL mode\n");
 		val &= ~CXL_VSEC_PROTOCOL_MASK;
 		val |= CXL_VSEC_PROTOCOL_256TB | CXL_VSEC_PROTOCOL_ENABLE;
 		rc = pnv_cxl_enable_phb_kernel_api(hose, true);
-		if (rc) {
+
+		if (rc)
+		{
 			dev_err(&bus->dev, "cxl: Failed to enable kernel API"
-				           " on real PHB, aborting\n");
+					" on real PHB, aborting\n");
 			goto err_free_work;
 		}
-	} else {
+	}
+	else
+	{
 		dev_WARN(&bus->dev, "cxl: Switching card to PCI mode not supported!\n");
 		goto err_free_work;
 	}
 
 	rc = CXL_WRITE_VSEC_MODE_CONTROL_BUS(bus, devfn, switch_work->vsec, val);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&bus->dev, "cxl: Failed to configure CXL protocol: %i\n", rc);
 		goto err_free_work;
 	}
@@ -717,14 +791,18 @@ static void switch_card_to_cxl(struct work_struct *work)
 
 	dev_dbg(&bus->dev, "cxl: Offlining slot\n");
 	rc = pnv_php_set_slot_power_state(&php_slot->slot, OPAL_PCI_SLOT_OFFLINE);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&bus->dev, "cxl: OPAL offlining call failed: %i\n", rc);
 		goto err_free_work;
 	}
 
 	dev_dbg(&bus->dev, "cxl: Onlining and probing slot\n");
 	rc = pnv_php_set_slot_power_state(&php_slot->slot, OPAL_PCI_SLOT_ONLINE);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&bus->dev, "cxl: OPAL onlining call failed: %i\n", rc);
 		goto err_free_work;
 	}
@@ -751,27 +829,37 @@ int cxl_check_and_switch_mode(struct pci_dev *dev, int mode, int vsec)
 	int rc;
 
 	if (!cpu_has_feature(CPU_FTR_HVMODE))
+	{
 		return -ENODEV;
+	}
 
-	if (!vsec) {
+	if (!vsec)
+	{
 		vsec = find_cxl_vsec(dev);
-		if (!vsec) {
+
+		if (!vsec)
+		{
 			dev_info(&dev->dev, "CXL VSEC not found\n");
 			return -ENODEV;
 		}
 	}
 
 	rc = CXL_READ_VSEC_MODE_CONTROL(dev, vsec, &val);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&dev->dev, "Failed to read current mode control: %i", rc);
 		return rc;
 	}
 
-	if (mode == CXL_BIMODE_PCI) {
-		if (!(val & CXL_VSEC_PROTOCOL_ENABLE)) {
+	if (mode == CXL_BIMODE_PCI)
+	{
+		if (!(val & CXL_VSEC_PROTOCOL_ENABLE))
+		{
 			dev_info(&dev->dev, "Card is already in PCI mode\n");
 			return 0;
 		}
+
 		/*
 		 * TODO: Before it's safe to switch the card back to PCI mode
 		 * we need to disable the CAPP and make sure any cachelines the
@@ -781,17 +869,21 @@ int cxl_check_and_switch_mode(struct pci_dev *dev, int mode, int vsec)
 		return -EIO;
 	}
 
-	if (val & CXL_VSEC_PROTOCOL_ENABLE) {
+	if (val & CXL_VSEC_PROTOCOL_ENABLE)
+	{
 		dev_info(&dev->dev, "Card is already in CXL mode\n");
 		return 0;
 	}
 
 	dev_info(&dev->dev, "Card is in PCI mode, scheduling kernel thread "
-			    "to switch to CXL mode\n");
+			 "to switch to CXL mode\n");
 
 	work = kmalloc(sizeof(struct cxl_switch_work), GFP_KERNEL);
+
 	if (!work)
+	{
 		return -ENOMEM;
+	}
 
 	pci_dev_get(dev);
 	work->dev = dev;
@@ -822,27 +914,34 @@ static int setup_cxl_protocol_area(struct pci_dev *dev)
 	int rc;
 	int vsec = find_cxl_vsec(dev);
 
-	if (!vsec) {
+	if (!vsec)
+	{
 		dev_info(&dev->dev, "CXL VSEC not found\n");
 		return -ENODEV;
 	}
 
 	rc = CXL_READ_VSEC_MODE_CONTROL(dev, vsec, &val);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&dev->dev, "Failed to read current mode control: %i\n", rc);
 		return rc;
 	}
 
-	if (!(val & CXL_VSEC_PROTOCOL_ENABLE)) {
+	if (!(val & CXL_VSEC_PROTOCOL_ENABLE))
+	{
 		dev_err(&dev->dev, "Card not in CAPI mode!\n");
 		return -EIO;
 	}
 
-	if ((val & CXL_VSEC_PROTOCOL_MASK) != CXL_VSEC_PROTOCOL_256TB) {
+	if ((val & CXL_VSEC_PROTOCOL_MASK) != CXL_VSEC_PROTOCOL_256TB)
+	{
 		val &= ~CXL_VSEC_PROTOCOL_MASK;
 		val |= CXL_VSEC_PROTOCOL_256TB;
 		rc = CXL_WRITE_VSEC_MODE_CONTROL(dev, vsec, val);
-		if (rc) {
+
+		if (rc)
+		{
 			dev_err(&dev->dev, "Failed to set CXL protocol area: %i\n", rc);
 			return rc;
 		}
@@ -863,12 +962,21 @@ static int pci_map_slice_regs(struct cxl_afu *afu, struct cxl *adapter, struct p
 	afu_desc = p2_base(dev) + adapter->native->afu_desc_off + (afu->slice * adapter->native->afu_desc_size);
 
 	if (!(afu->native->p1n_mmio = ioremap(p1n_base, p1n_size)))
+	{
 		goto err;
+	}
+
 	if (!(afu->p2n_mmio = ioremap(p2n_base, p2n_size)))
+	{
 		goto err1;
-	if (afu_desc) {
+	}
+
+	if (afu_desc)
+	{
 		if (!(afu->native->afu_desc_mmio = ioremap(afu_desc, adapter->native->afu_desc_size)))
+		{
 			goto err2;
+		}
 	}
 
 	return 0;
@@ -883,15 +991,20 @@ err:
 
 static void pci_unmap_slice_regs(struct cxl_afu *afu)
 {
-	if (afu->p2n_mmio) {
+	if (afu->p2n_mmio)
+	{
 		iounmap(afu->p2n_mmio);
 		afu->p2n_mmio = NULL;
 	}
-	if (afu->native->p1n_mmio) {
+
+	if (afu->native->p1n_mmio)
+	{
 		iounmap(afu->native->p1n_mmio);
 		afu->native->p1n_mmio = NULL;
 	}
-	if (afu->native->afu_desc_mmio) {
+
+	if (afu->native->afu_desc_mmio)
+	{
 		iounmap(afu->native->afu_desc_mmio);
 		afu->native->afu_desc_mmio = NULL;
 	}
@@ -921,17 +1034,28 @@ static int cxl_read_afu_descriptor(struct cxl_afu *afu)
 	afu->crs_num = AFUD_NUM_CRS(val);
 
 	if (AFUD_AFU_DIRECTED(val))
+	{
 		afu->modes_supported |= CXL_MODE_DIRECTED;
+	}
+
 	if (AFUD_DEDICATED_PROCESS(val))
+	{
 		afu->modes_supported |= CXL_MODE_DEDICATED;
+	}
+
 	if (AFUD_TIME_SLICED(val))
+	{
 		afu->modes_supported |= CXL_MODE_TIME_SLICED;
+	}
 
 	val = AFUD_READ_PPPSA(afu);
 	afu->pp_size = AFUD_PPPSA_LEN(val) * 4096;
 	afu->psa = AFUD_PPPSA_PSA(val);
+
 	if ((afu->pp_psa = AFUD_PPPSA_PP(val)))
+	{
 		afu->native->pp_offset = AFUD_READ_PPPSA_OFF(afu);
+	}
 
 	val = AFUD_READ_CR(afu);
 	afu->crs_len = AFUD_CR_LEN(val) * 256;
@@ -943,12 +1067,13 @@ static int cxl_read_afu_descriptor(struct cxl_afu *afu)
 	afu->eb_offset = AFUD_READ_EB_OFF(afu);
 
 	/* eb_off is 4K aligned so lower 12 bits are always zero */
-	if (EXTRACT_PPC_BITS(afu->eb_offset, 0, 11) != 0) {
+	if (EXTRACT_PPC_BITS(afu->eb_offset, 0, 11) != 0)
+	{
 		dev_warn(&afu->dev,
-			 "Invalid AFU error buffer offset %Lx\n",
-			 afu->eb_offset);
+				 "Invalid AFU error buffer offset %Lx\n",
+				 afu->eb_offset);
 		dev_info(&afu->dev,
-			 "Ignoring AFU error buffer in the descriptor\n");
+				 "Ignoring AFU error buffer in the descriptor\n");
 		/* indicate that no afu buffer exists */
 		afu->eb_len = 0;
 	}
@@ -962,23 +1087,30 @@ static int cxl_afu_descriptor_looks_ok(struct cxl_afu *afu)
 	u32 val;
 
 	if (afu->psa && afu->adapter->ps_size <
-			(afu->native->pp_offset + afu->pp_size*afu->max_procs_virtualised)) {
+		(afu->native->pp_offset + afu->pp_size * afu->max_procs_virtualised))
+	{
 		dev_err(&afu->dev, "per-process PSA can't fit inside the PSA!\n");
 		return -ENODEV;
 	}
 
 	if (afu->pp_psa && (afu->pp_size < PAGE_SIZE))
+	{
 		dev_warn(&afu->dev, "AFU uses < PAGE_SIZE per-process PSA!");
+	}
 
-	for (i = 0; i < afu->crs_num; i++) {
+	for (i = 0; i < afu->crs_num; i++)
+	{
 		rc = cxl_ops->afu_cr_read32(afu, i, 0, &val);
-		if (rc || val == 0) {
+
+		if (rc || val == 0)
+		{
 			dev_err(&afu->dev, "ABORTING: AFU configuration record %i is invalid\n", i);
 			return -EINVAL;
 		}
 	}
 
-	if ((afu->modes_supported & ~CXL_MODE_DEDICATED) && afu->max_procs_virtualised == 0) {
+	if ((afu->modes_supported & ~CXL_MODE_DEDICATED) && afu->max_procs_virtualised == 0)
+	{
 		/*
 		 * We could also check this for the dedicated process model
 		 * since the architecture indicates it should be set to 1, but
@@ -1006,15 +1138,27 @@ static int sanitise_afu_regs(struct cxl_afu *afu)
 	 * it online
 	 */
 	reg = cxl_p2n_read(afu, CXL_AFU_Cntl_An);
-	if ((reg & CXL_AFU_Cntl_An_ES_MASK) != CXL_AFU_Cntl_An_ES_Disabled) {
+
+	if ((reg & CXL_AFU_Cntl_An_ES_MASK) != CXL_AFU_Cntl_An_ES_Disabled)
+	{
 		dev_warn(&afu->dev, "WARNING: AFU was not disabled: %#016llx\n", reg);
+
 		if (cxl_ops->afu_reset(afu))
+		{
 			return -EIO;
+		}
+
 		if (cxl_afu_disable(afu))
+		{
 			return -EIO;
+		}
+
 		if (cxl_psl_purge(afu))
+		{
 			return -EIO;
+		}
 	}
+
 	cxl_p1n_write(afu, CXL_PSL_SPAP_An, 0x0000000000000000);
 	cxl_p1n_write(afu, CXL_PSL_IVTE_Limit_An, 0x0000000000000000);
 	cxl_p1n_write(afu, CXL_PSL_IVTE_Offset_An, 0x0000000000000000);
@@ -1027,23 +1171,40 @@ static int sanitise_afu_regs(struct cxl_afu *afu)
 	cxl_p2n_write(afu, CXL_SSTP1_An, 0x0000000000000000);
 	cxl_p2n_write(afu, CXL_SSTP0_An, 0x0000000000000000);
 	reg = cxl_p2n_read(afu, CXL_PSL_DSISR_An);
-	if (reg) {
+
+	if (reg)
+	{
 		dev_warn(&afu->dev, "AFU had pending DSISR: %#016llx\n", reg);
+
 		if (reg & CXL_PSL_DSISR_TRANS)
+		{
 			cxl_p2n_write(afu, CXL_PSL_TFC_An, CXL_PSL_TFC_An_AE);
+		}
 		else
+		{
 			cxl_p2n_write(afu, CXL_PSL_TFC_An, CXL_PSL_TFC_An_A);
+		}
 	}
-	if (afu->adapter->native->sl_ops->register_serr_irq) {
+
+	if (afu->adapter->native->sl_ops->register_serr_irq)
+	{
 		reg = cxl_p1n_read(afu, CXL_PSL_SERR_An);
-		if (reg) {
+
+		if (reg)
+		{
 			if (reg & ~0xffff)
+			{
 				dev_warn(&afu->dev, "AFU had pending SERR: %#016llx\n", reg);
+			}
+
 			cxl_p1n_write(afu, CXL_PSL_SERR_An, reg & ~0xffff);
 		}
 	}
+
 	reg = cxl_p2n_read(afu, CXL_PSL_ErrStat_An);
-	if (reg) {
+
+	if (reg)
+	{
 		dev_warn(&afu->dev, "AFU had pending error status: %#016llx\n", reg);
 		cxl_p2n_write(afu, CXL_PSL_ErrStat_An, reg);
 	}
@@ -1059,7 +1220,7 @@ static int sanitise_afu_regs(struct cxl_afu *afu)
  * aligned the function uses a bounce buffer which can be max PAGE_SIZE.
  */
 ssize_t cxl_pci_afu_read_err_buffer(struct cxl_afu *afu, char *buf,
-				loff_t off, size_t count)
+									loff_t off, size_t count)
 {
 	loff_t aligned_start, aligned_end;
 	size_t aligned_length;
@@ -1067,7 +1228,9 @@ ssize_t cxl_pci_afu_read_err_buffer(struct cxl_afu *afu, char *buf,
 	const void __iomem *ebuf = afu->native->afu_desc_mmio + afu->eb_offset;
 
 	if (count == 0 || off < 0 || (size_t)off >= afu->eb_len)
+	{
 		return 0;
+	}
 
 	/* calculate aligned read window */
 	count = min((size_t)(afu->eb_len - off), count);
@@ -1076,15 +1239,19 @@ ssize_t cxl_pci_afu_read_err_buffer(struct cxl_afu *afu, char *buf,
 	aligned_length = aligned_end - aligned_start;
 
 	/* max we can copy in one read is PAGE_SIZE */
-	if (aligned_length > ERR_BUFF_MAX_COPY_SIZE) {
+	if (aligned_length > ERR_BUFF_MAX_COPY_SIZE)
+	{
 		aligned_length = ERR_BUFF_MAX_COPY_SIZE;
 		count = ERR_BUFF_MAX_COPY_SIZE - (off & 0x7);
 	}
 
 	/* use bounce buffer for copy */
 	tbuf = (void *)__get_free_page(GFP_TEMPORARY);
+
 	if (!tbuf)
+	{
 		return -ENOMEM;
+	}
 
 	/* perform aligned read from the mmio region */
 	memcpy_fromio(tbuf, ebuf + aligned_start, aligned_length);
@@ -1100,40 +1267,62 @@ static int pci_configure_afu(struct cxl_afu *afu, struct cxl *adapter, struct pc
 	int rc;
 
 	if ((rc = pci_map_slice_regs(afu, adapter, dev)))
+	{
 		return rc;
+	}
 
 	if ((rc = sanitise_afu_regs(afu)))
+	{
 		goto err1;
+	}
 
 	/* We need to reset the AFU before we can read the AFU descriptor */
 	if ((rc = cxl_ops->afu_reset(afu)))
+	{
 		goto err1;
+	}
 
 	if (cxl_verbose)
+	{
 		dump_afu_descriptor(afu);
+	}
 
 	if ((rc = cxl_read_afu_descriptor(afu)))
+	{
 		goto err1;
+	}
 
 	if ((rc = cxl_afu_descriptor_looks_ok(afu)))
+	{
 		goto err1;
+	}
 
 	if (adapter->native->sl_ops->afu_regs_init)
 		if ((rc = adapter->native->sl_ops->afu_regs_init(afu)))
+		{
 			goto err1;
+		}
 
 	if (adapter->native->sl_ops->register_serr_irq)
 		if ((rc = adapter->native->sl_ops->register_serr_irq(afu)))
+		{
 			goto err1;
+		}
 
 	if ((rc = cxl_native_register_psl_irq(afu)))
+	{
 		goto err2;
+	}
 
 	return 0;
 
 err2:
+
 	if (adapter->native->sl_ops->release_serr_irq)
+	{
 		adapter->native->sl_ops->release_serr_irq(afu);
+	}
+
 err1:
 	pci_unmap_slice_regs(afu);
 	return rc;
@@ -1142,8 +1331,12 @@ err1:
 static void pci_deconfigure_afu(struct cxl_afu *afu)
 {
 	cxl_native_release_psl_irq(afu);
+
 	if (afu->adapter->native->sl_ops->release_serr_irq)
+	{
 		afu->adapter->native->sl_ops->release_serr_irq(afu);
+	}
+
 	pci_unmap_slice_regs(afu);
 }
 
@@ -1153,22 +1346,34 @@ static int pci_init_afu(struct cxl *adapter, int slice, struct pci_dev *dev)
 	int rc = -ENOMEM;
 
 	afu = cxl_alloc_afu(adapter, slice);
+
 	if (!afu)
+	{
 		return -ENOMEM;
+	}
 
 	afu->native = kzalloc(sizeof(struct cxl_afu_native), GFP_KERNEL);
+
 	if (!afu->native)
+	{
 		goto err_free_afu;
+	}
 
 	mutex_init(&afu->native->spa_mutex);
 
 	rc = dev_set_name(&afu->dev, "afu%i.%i", adapter->adapter_num, slice);
+
 	if (rc)
+	{
 		goto err_free_native;
+	}
 
 	rc = pci_configure_afu(afu, adapter, dev);
+
 	if (rc)
+	{
 		goto err_free_native;
+	}
 
 	/* Don't care if this fails */
 	cxl_debugfs_afu_add(afu);
@@ -1178,15 +1383,21 @@ static int pci_init_afu(struct cxl *adapter, int slice, struct pci_dev *dev)
 	 * if it returns an error!
 	 */
 	if ((rc = cxl_register_afu(afu)))
+	{
 		goto err_put1;
+	}
 
 	if ((rc = cxl_sysfs_afu_add(afu)))
+	{
 		goto err_put1;
+	}
 
 	adapter->afu[afu->slice] = afu;
 
 	if ((rc = cxl_pci_vphb_add(afu)))
+	{
 		dev_info(&afu->dev, "Can't register vPHB\n");
+	}
 
 	return 0;
 
@@ -1209,7 +1420,9 @@ static void cxl_pci_remove_afu(struct cxl_afu *afu)
 	pr_devel("%s\n", __func__);
 
 	if (!afu)
+	{
 		return;
+	}
 
 	cxl_pci_vphb_remove(afu);
 	cxl_sysfs_afu_remove(afu);
@@ -1231,9 +1444,10 @@ int cxl_pci_reset(struct cxl *adapter)
 	struct pci_dev *dev = to_pci_dev(adapter->dev.parent);
 	int rc;
 
-	if (adapter->perst_same_image) {
+	if (adapter->perst_same_image)
+	{
 		dev_warn(&dev->dev,
-			 "cxl: refusing to reset/reflash when perst_reloads_same_image is set.\n");
+				 "cxl: refusing to reset/reflash when perst_reloads_same_image is set.\n");
 		return -EINVAL;
 	}
 
@@ -1245,7 +1459,8 @@ int cxl_pci_reset(struct cxl *adapter)
 	/* pcie_warm_reset requests a fundamental pci reset which includes a
 	 * PERST assert/deassert.  PERST triggers a loading of the image
 	 * if "user" or "factory" is selected in sysfs */
-	if ((rc = pci_set_pcie_reset_state(dev, pcie_warm_reset))) {
+	if ((rc = pci_set_pcie_reset_state(dev, pcie_warm_reset)))
+	{
 		dev_err(&dev->dev, "cxl: pcie_warm_reset failed\n");
 		return rc;
 	}
@@ -1256,18 +1471,27 @@ int cxl_pci_reset(struct cxl *adapter)
 static int cxl_map_adapter_regs(struct cxl *adapter, struct pci_dev *dev)
 {
 	if (pci_request_region(dev, 2, "priv 2 regs"))
+	{
 		goto err1;
+	}
+
 	if (pci_request_region(dev, 0, "priv 1 regs"))
+	{
 		goto err2;
+	}
 
 	pr_devel("cxl_map_adapter_regs: p1: %#016llx %#llx, p2: %#016llx %#llx",
-			p1_base(dev), p1_size(dev), p2_base(dev), p2_size(dev));
+			 p1_base(dev), p1_size(dev), p2_base(dev), p2_size(dev));
 
 	if (!(adapter->native->p1_mmio = ioremap(p1_base(dev), p1_size(dev))))
+	{
 		goto err3;
+	}
 
 	if (!(adapter->native->p2_mmio = ioremap(p2_base(dev), p2_size(dev))))
+	{
 		goto err4;
+	}
 
 	return 0;
 
@@ -1284,12 +1508,15 @@ err1:
 
 static void cxl_unmap_adapter_regs(struct cxl *adapter)
 {
-	if (adapter->native->p1_mmio) {
+	if (adapter->native->p1_mmio)
+	{
 		iounmap(adapter->native->p1_mmio);
 		adapter->native->p1_mmio = NULL;
 		pci_release_region(to_pci_dev(adapter->dev.parent), 2);
 	}
-	if (adapter->native->p2_mmio) {
+
+	if (adapter->native->p2_mmio)
+	{
 		iounmap(adapter->native->p2_mmio);
 		adapter->native->p2_mmio = NULL;
 		pci_release_region(to_pci_dev(adapter->dev.parent), 0);
@@ -1304,13 +1531,16 @@ static int cxl_read_vsec(struct cxl *adapter, struct pci_dev *dev)
 	u16 vseclen;
 	u8 image_state;
 
-	if (!(vsec = find_cxl_vsec(dev))) {
+	if (!(vsec = find_cxl_vsec(dev)))
+	{
 		dev_err(&dev->dev, "ABORTING: CXL VSEC not found!\n");
 		return -ENODEV;
 	}
 
 	CXL_READ_VSEC_LENGTH(dev, vsec, &vseclen);
-	if (vseclen < CXL_VSEC_MIN_SIZE) {
+
+	if (vseclen < CXL_VSEC_MIN_SIZE)
+	{
 		dev_err(&dev->dev, "ABORTING: CXL VSEC too short\n");
 		return -EINVAL;
 	}
@@ -1338,7 +1568,7 @@ static int cxl_read_vsec(struct cxl *adapter, struct pci_dev *dev)
 	adapter->native->afu_desc_size = afu_desc_size * 64 * 1024;
 
 	/* Total IRQs - 1 PSL ERROR - #AFU*(1 slice error + 1 DSI) */
-	adapter->user_irqs = pnv_cxl_get_irq_count(dev) - 1 - 2*adapter->slices;
+	adapter->user_irqs = pnv_cxl_get_irq_count(dev) - 1 - 2 * adapter->slices;
 
 	return 0;
 }
@@ -1357,13 +1587,23 @@ static void cxl_fixup_malformed_tlp(struct cxl *adapter, struct pci_dev *dev)
 	u32 data;
 
 	if (adapter->psl_rev & 0xf000)
+	{
 		return;
+	}
+
 	if (!(aer = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR)))
+	{
 		return;
+	}
+
 	pci_read_config_dword(dev, aer + PCI_ERR_UNCOR_MASK, &data);
+
 	if (data & PCI_ERR_UNC_MALF_TLP)
 		if (data & PCI_ERR_UNC_INTN)
+		{
 			return;
+		}
+
 	data |= PCI_ERR_UNC_MALF_TLP;
 	data |= PCI_ERR_UNC_INTN;
 	pci_write_config_dword(dev, aer + PCI_ERR_UNCOR_MASK, data);
@@ -1372,29 +1612,35 @@ static void cxl_fixup_malformed_tlp(struct cxl *adapter, struct pci_dev *dev)
 static int cxl_vsec_looks_ok(struct cxl *adapter, struct pci_dev *dev)
 {
 	if (adapter->vsec_status & CXL_STATUS_SECOND_PORT)
+	{
 		return -EBUSY;
+	}
 
-	if (adapter->vsec_status & CXL_UNSUPPORTED_FEATURES) {
+	if (adapter->vsec_status & CXL_UNSUPPORTED_FEATURES)
+	{
 		dev_err(&dev->dev, "ABORTING: CXL requires unsupported features\n");
 		return -EINVAL;
 	}
 
-	if (!adapter->slices) {
+	if (!adapter->slices)
+	{
 		/* Once we support dynamic reprogramming we can use the card if
 		 * it supports loadable AFUs */
 		dev_err(&dev->dev, "ABORTING: Device has no AFUs\n");
 		return -EINVAL;
 	}
 
-	if (!adapter->native->afu_desc_off || !adapter->native->afu_desc_size) {
+	if (!adapter->native->afu_desc_off || !adapter->native->afu_desc_size)
+	{
 		dev_err(&dev->dev, "ABORTING: VSEC shows no AFU descriptors\n");
 		return -EINVAL;
 	}
 
-	if (adapter->ps_size > p2_size(dev) - adapter->native->ps_off) {
+	if (adapter->ps_size > p2_size(dev) - adapter->native->ps_off)
+	{
 		dev_err(&dev->dev, "ABORTING: Problem state size larger than "
-				   "available in BAR2: 0x%llx > 0x%llx\n",
-			 adapter->ps_size, p2_size(dev) - adapter->native->ps_off);
+				"available in BAR2: 0x%llx > 0x%llx\n",
+				adapter->ps_size, p2_size(dev) - adapter->native->ps_off);
 		return -EINVAL;
 	}
 
@@ -1439,53 +1685,77 @@ static int cxl_configure_adapter(struct cxl *adapter, struct pci_dev *dev)
 	pci_set_drvdata(dev, adapter);
 
 	rc = pci_enable_device(dev);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&dev->dev, "pci_enable_device failed: %i\n", rc);
 		return rc;
 	}
 
 	if ((rc = cxl_read_vsec(adapter, dev)))
+	{
 		return rc;
+	}
 
 	if ((rc = cxl_vsec_looks_ok(adapter, dev)))
-	        return rc;
+	{
+		return rc;
+	}
 
 	cxl_fixup_malformed_tlp(adapter, dev);
 
 	if ((rc = setup_cxl_bars(dev)))
+	{
 		return rc;
+	}
 
 	if ((rc = setup_cxl_protocol_area(dev)))
+	{
 		return rc;
+	}
 
 	if ((rc = cxl_update_image_control(adapter)))
+	{
 		return rc;
+	}
 
 	if ((rc = cxl_map_adapter_regs(adapter, dev)))
+	{
 		return rc;
+	}
 
 	if ((rc = sanitise_adapter_regs(adapter)))
+	{
 		goto err;
+	}
 
 	if ((rc = adapter->native->sl_ops->adapter_regs_init(adapter, dev)))
+	{
 		goto err;
+	}
 
 	/* Required for devices using CAPP DMA mode, harmless for others */
 	pci_set_master(dev);
 
 	if ((rc = pnv_phb_to_cxl_mode(dev, adapter->native->sl_ops->capi_mode)))
+	{
 		goto err;
+	}
 
 	/* If recovery happened, the last step is to turn on snooping.
 	 * In the non-recovery case this has no effect */
 	if ((rc = pnv_phb_to_cxl_mode(dev, OPAL_PHB_CAPI_MODE_SNOOP_ON)))
+	{
 		goto err;
+	}
 
 	/* Ignore error, adapter init is not dependant on timebase sync */
 	cxl_setup_psl_timebase(adapter, dev);
 
 	if ((rc = cxl_native_register_psl_err_irq(adapter)))
+	{
 		goto err;
+	}
 
 	/* Release the context lock as adapter is configured */
 	cxl_adapter_context_unlock(adapter);
@@ -1507,7 +1777,8 @@ static void cxl_deconfigure_adapter(struct cxl *adapter)
 	pci_disable_device(pdev);
 }
 
-static const struct cxl_service_layer_ops psl_ops = {
+static const struct cxl_service_layer_ops psl_ops =
+{
 	.adapter_regs_init = init_implementation_adapter_psl_regs,
 	.afu_regs_init = init_implementation_afu_psl_regs,
 	.register_serr_irq = cxl_native_register_serr_irq,
@@ -1523,7 +1794,8 @@ static const struct cxl_service_layer_ops psl_ops = {
 	.needs_reset_before_disable = true,
 };
 
-static const struct cxl_service_layer_ops xsl_ops = {
+static const struct cxl_service_layer_ops xsl_ops =
+{
 	.adapter_regs_init = init_implementation_adapter_xsl_regs,
 	.debugfs_add_adapter_sl_regs = cxl_debugfs_add_adapter_xsl_regs,
 	.write_timebase_ctrl = write_timebase_ctrl_xsl,
@@ -1533,12 +1805,15 @@ static const struct cxl_service_layer_ops xsl_ops = {
 
 static void set_sl_ops(struct cxl *adapter, struct pci_dev *dev)
 {
-	if (dev->vendor == PCI_VENDOR_ID_MELLANOX && dev->device == 0x1013) {
+	if (dev->vendor == PCI_VENDOR_ID_MELLANOX && dev->device == 0x1013)
+	{
 		/* Mellanox CX-4 */
 		dev_info(&dev->dev, "Device uses an XSL\n");
 		adapter->native->sl_ops = &xsl_ops;
 		adapter->min_pe = 1; /* Workaround for CX-4 hardware bug */
-	} else {
+	}
+	else
+	{
 		dev_info(&dev->dev, "Device uses a PSL\n");
 		adapter->native->sl_ops = &psl_ops;
 	}
@@ -1551,11 +1826,16 @@ static struct cxl *cxl_pci_init_adapter(struct pci_dev *dev)
 	int rc;
 
 	adapter = cxl_alloc_adapter();
+
 	if (!adapter)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	adapter->native = kzalloc(sizeof(struct cxl_native), GFP_KERNEL);
-	if (!adapter->native) {
+
+	if (!adapter->native)
+	{
 		rc = -ENOMEM;
 		goto err_release;
 	}
@@ -1569,7 +1849,9 @@ static struct cxl *cxl_pci_init_adapter(struct pci_dev *dev)
 	adapter->perst_same_image = false;
 
 	rc = cxl_configure_adapter(adapter, dev);
-	if (rc) {
+
+	if (rc)
+	{
 		pci_disable_device(dev);
 		goto err_release;
 	}
@@ -1582,10 +1864,14 @@ static struct cxl *cxl_pci_init_adapter(struct pci_dev *dev)
 	 * even if it returns an error!
 	 */
 	if ((rc = cxl_register_adapter(adapter)))
+	{
 		goto err_put1;
+	}
 
 	if ((rc = cxl_sysfs_adapter_add(adapter)))
+	{
 		goto err_put1;
+	}
 
 	return adapter;
 
@@ -1623,18 +1909,27 @@ static int cxl_slot_is_switched(struct pci_dev *dev)
 	int depth = 0;
 	const __be32 *prop;
 
-	if (!(np = pci_device_to_OF_node(dev))) {
+	if (!(np = pci_device_to_OF_node(dev)))
+	{
 		pr_err("cxl: np = NULL\n");
 		return -ENODEV;
 	}
+
 	of_node_get(np);
-	while (np) {
+
+	while (np)
+	{
 		np = of_get_next_parent(np);
 		prop = of_get_property(np, "device_type", NULL);
+
 		if (!prop || strcmp((char *)prop, "pciex"))
+		{
 			break;
+		}
+
 		depth++;
 	}
+
 	of_node_put(np);
 	return (depth > CXL_MAX_PCIEX_PARENT);
 }
@@ -1642,9 +1937,12 @@ static int cxl_slot_is_switched(struct pci_dev *dev)
 bool cxl_slot_is_supported(struct pci_dev *dev, int flags)
 {
 	if (!cpu_has_feature(CPU_FTR_HVMODE))
+	{
 		return false;
+	}
 
-	if ((flags & CXL_SLOT_FLAG_DMA) && (!pvr_version_is(PVR_POWER8NVL))) {
+	if ((flags & CXL_SLOT_FLAG_DMA) && (!pvr_version_is(PVR_POWER8NVL)))
+	{
 		/*
 		 * CAPP DMA mode is technically supported on regular P8, but
 		 * will EEH if the card attempts to access memory < 4GB, which
@@ -1655,7 +1953,9 @@ bool cxl_slot_is_supported(struct pci_dev *dev, int flags)
 	}
 
 	if (cxl_slot_is_switched(dev))
+	{
 		return false;
+	}
 
 	/*
 	 * XXX: This gets a little tricky on regular P8 (not POWER8NVL) since
@@ -1682,38 +1982,51 @@ static int cxl_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	int slice;
 	int rc;
 
-	if (cxl_pci_is_vphb_device(dev)) {
+	if (cxl_pci_is_vphb_device(dev))
+	{
 		dev_dbg(&dev->dev, "cxl_init_adapter: Ignoring cxl vphb device\n");
 		return -ENODEV;
 	}
 
-	if (cxl_slot_is_switched(dev)) {
+	if (cxl_slot_is_switched(dev))
+	{
 		dev_info(&dev->dev, "Ignoring card on incompatible PCI slot\n");
 		return -ENODEV;
 	}
 
 	if (cxl_verbose)
+	{
 		dump_cxl_config_space(dev);
+	}
 
 	adapter = cxl_pci_init_adapter(dev);
-	if (IS_ERR(adapter)) {
+
+	if (IS_ERR(adapter))
+	{
 		dev_err(&dev->dev, "cxl_init_adapter failed: %li\n", PTR_ERR(adapter));
 		return PTR_ERR(adapter);
 	}
 
-	for (slice = 0; slice < adapter->slices; slice++) {
-		if ((rc = pci_init_afu(adapter, slice, dev))) {
+	for (slice = 0; slice < adapter->slices; slice++)
+	{
+		if ((rc = pci_init_afu(adapter, slice, dev)))
+		{
 			dev_err(&dev->dev, "AFU %i failed to initialise: %i\n", slice, rc);
 			continue;
 		}
 
 		rc = cxl_afu_select_best_mode(adapter->afu[slice]);
+
 		if (rc)
+		{
 			dev_err(&dev->dev, "AFU %i failed to start: %i\n", slice, rc);
+		}
 	}
 
 	if (pnv_pci_on_cxl_phb(dev) && adapter->slices >= 1)
+	{
 		pnv_cxl_phb_set_peer_afu(dev, adapter->afu[0]);
+	}
 
 	return 0;
 }
@@ -1728,15 +2041,17 @@ static void cxl_remove(struct pci_dev *dev)
 	 * Lock to prevent someone grabbing a ref through the adapter list as
 	 * we are removing it
 	 */
-	for (i = 0; i < adapter->slices; i++) {
+	for (i = 0; i < adapter->slices; i++)
+	{
 		afu = adapter->afu[i];
 		cxl_pci_remove_afu(afu);
 	}
+
 	cxl_pci_remove_adapter(adapter);
 }
 
 static pci_ers_result_t cxl_vphb_error_detected(struct cxl_afu *afu,
-						pci_channel_state_t state)
+		pci_channel_state_t state)
 {
 	struct pci_dev *afu_dev;
 	pci_ers_result_t result = PCI_ERS_RESULT_NEED_RESET;
@@ -1745,27 +2060,35 @@ static pci_ers_result_t cxl_vphb_error_detected(struct cxl_afu *afu,
 	/* There should only be one entry, but go through the list
 	 * anyway
 	 */
-	list_for_each_entry(afu_dev, &afu->phb->bus->devices, bus_list) {
+	list_for_each_entry(afu_dev, &afu->phb->bus->devices, bus_list)
+	{
 		if (!afu_dev->driver)
+		{
 			continue;
+		}
 
 		afu_dev->error_state = state;
 
 		if (afu_dev->driver->err_handler)
 			afu_result = afu_dev->driver->err_handler->error_detected(afu_dev,
-										  state);
+						 state);
+
 		/* Disconnect trumps all, NONE trumps NEED_RESET */
 		if (afu_result == PCI_ERS_RESULT_DISCONNECT)
+		{
 			result = PCI_ERS_RESULT_DISCONNECT;
+		}
 		else if ((afu_result == PCI_ERS_RESULT_NONE) &&
-			 (result == PCI_ERS_RESULT_NEED_RESET))
+				 (result == PCI_ERS_RESULT_NEED_RESET))
+		{
 			result = PCI_ERS_RESULT_NONE;
+		}
 	}
 	return result;
 }
 
 static pci_ers_result_t cxl_pci_error_detected(struct pci_dev *pdev,
-					       pci_channel_state_t state)
+		pci_channel_state_t state)
 {
 	struct cxl *adapter = pci_get_drvdata(pdev);
 	struct cxl_afu *afu;
@@ -1779,17 +2102,24 @@ static pci_ers_result_t cxl_pci_error_detected(struct pci_dev *pdev,
 	schedule();
 
 	/* If we're permanently dead, give up. */
-	if (state == pci_channel_io_perm_failure) {
+	if (state == pci_channel_io_perm_failure)
+	{
 		/* Tell the AFU drivers; but we don't care what they
 		 * say, we're going away.
 		 */
-		for (i = 0; i < adapter->slices; i++) {
+		for (i = 0; i < adapter->slices; i++)
+		{
 			afu = adapter->afu[i];
+
 			/* Only participate in EEH if we are on a virtual PHB */
 			if (afu->phb == NULL)
+			{
 				return PCI_ERS_RESULT_NONE;
+			}
+
 			cxl_vphb_error_detected(afu, state);
 		}
+
 		return PCI_ERS_RESULT_DISCONNECT;
 	}
 
@@ -1815,7 +2145,8 @@ static pci_ers_result_t cxl_pci_error_detected(struct pci_dev *pdev,
 	 * indeed the same and that we should continue on into EEH
 	 * anyway.
 	 */
-	if (adapter->perst_loads_image && !adapter->perst_same_image) {
+	if (adapter->perst_loads_image && !adapter->perst_same_image)
+	{
 		/* TODO take the PHB out of CXL mode */
 		dev_info(&pdev->dev, "reflashing, so opting out of EEH!\n");
 		return PCI_ERS_RESULT_NONE;
@@ -1871,19 +2202,23 @@ static pci_ers_result_t cxl_pci_error_detected(struct pci_dev *pdev,
 	 *     * In slot_reset, free the old resources and allocate new ones.
 	 *     * In resume, clear the flag to allow things to start.
 	 */
-	for (i = 0; i < adapter->slices; i++) {
+	for (i = 0; i < adapter->slices; i++)
+	{
 		afu = adapter->afu[i];
 
 		result = cxl_vphb_error_detected(afu, state);
 
 		/* Only continue if everyone agrees on NEED_RESET */
 		if (result != PCI_ERS_RESULT_NEED_RESET)
+		{
 			return result;
+		}
 
 		cxl_context_detach_all(afu);
 		cxl_ops->afu_deactivate_mode(afu, afu->current_mode);
 		pci_deconfigure_afu(afu);
 	}
+
 	cxl_deconfigure_adapter(adapter);
 
 	return result;
@@ -1900,34 +2235,49 @@ static pci_ers_result_t cxl_pci_slot_reset(struct pci_dev *pdev)
 	int i;
 
 	if (cxl_configure_adapter(adapter, pdev))
+	{
 		goto err;
+	}
 
-	for (i = 0; i < adapter->slices; i++) {
+	for (i = 0; i < adapter->slices; i++)
+	{
 		afu = adapter->afu[i];
 
 		if (pci_configure_afu(afu, adapter, pdev))
+		{
 			goto err;
+		}
 
 		if (cxl_afu_select_best_mode(afu))
+		{
 			goto err;
+		}
 
-		list_for_each_entry(afu_dev, &afu->phb->bus->devices, bus_list) {
+		list_for_each_entry(afu_dev, &afu->phb->bus->devices, bus_list)
+		{
 			/* Reset the device context.
 			 * TODO: make this less disruptive
 			 */
 			ctx = cxl_get_context(afu_dev);
 
 			if (ctx && cxl_release_context(ctx))
+			{
 				goto err;
+			}
 
 			ctx = cxl_dev_context_init(afu_dev);
+
 			if (!ctx)
+			{
 				goto err;
+			}
 
 			afu_dev->dev.archdata.cxl_ctx = ctx;
 
 			if (cxl_ops->afu_check_and_enable(afu))
+			{
 				goto err;
+			}
 
 			afu_dev->error_state = pci_channel_io_normal;
 
@@ -1938,16 +2288,23 @@ static pci_ers_result_t cxl_pci_slot_reset(struct pci_dev *pdev)
 			 * their resume function.
 			 */
 			if (!afu_dev->driver)
+			{
 				continue;
+			}
 
 			if (afu_dev->driver->err_handler &&
-			    afu_dev->driver->err_handler->slot_reset)
+				afu_dev->driver->err_handler->slot_reset)
+			{
 				afu_result = afu_dev->driver->err_handler->slot_reset(afu_dev);
+			}
 
 			if (afu_result == PCI_ERS_RESULT_DISCONNECT)
+			{
 				result = PCI_ERS_RESULT_DISCONNECT;
+			}
 		}
 	}
+
 	return result;
 
 err:
@@ -1970,24 +2327,30 @@ static void cxl_pci_resume(struct pci_dev *pdev)
 	 * This is not the place to be checking if everything came back up
 	 * properly, because there's no return value: do that in slot_reset.
 	 */
-	for (i = 0; i < adapter->slices; i++) {
+	for (i = 0; i < adapter->slices; i++)
+	{
 		afu = adapter->afu[i];
 
-		list_for_each_entry(afu_dev, &afu->phb->bus->devices, bus_list) {
+		list_for_each_entry(afu_dev, &afu->phb->bus->devices, bus_list)
+		{
 			if (afu_dev->driver && afu_dev->driver->err_handler &&
-			    afu_dev->driver->err_handler->resume)
+				afu_dev->driver->err_handler->resume)
+			{
 				afu_dev->driver->err_handler->resume(afu_dev);
+			}
 		}
 	}
 }
 
-static const struct pci_error_handlers cxl_err_handler = {
+static const struct pci_error_handlers cxl_err_handler =
+{
 	.error_detected = cxl_pci_error_detected,
 	.slot_reset = cxl_pci_slot_reset,
 	.resume = cxl_pci_resume,
 };
 
-struct pci_driver cxl_pci_driver = {
+struct pci_driver cxl_pci_driver =
+{
 	.name = "cxl-pci",
 	.id_table = cxl_pci_tbl,
 	.probe = cxl_probe,

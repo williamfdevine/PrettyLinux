@@ -50,11 +50,11 @@ static byte ControllerMap[MAX_DESCRIPTORS + 1];
 
 
 static void diva_register_appl(struct capi_ctr *, __u16,
-			       capi_register_params *);
+							   capi_register_params *);
 static void diva_release_appl(struct capi_ctr *, __u16);
 static char *diva_procinfo(struct capi_ctr *);
 static u16 diva_send_message(struct capi_ctr *,
-			     diva_os_message_buffer_s *);
+							 diva_os_message_buffer_s *);
 extern void diva_os_set_controller_struct(struct capi_ctr *);
 
 extern void DIVA_DIDD_Read(DESCRIPTOR *, int);
@@ -68,17 +68,25 @@ static void xlog(char *x, ...)
 {
 #ifndef DIVA_NO_DEBUGLIB
 	va_list ap;
-	if (myDriverDebugHandle.dbgMask & DL_XLOG) {
+
+	if (myDriverDebugHandle.dbgMask & DL_XLOG)
+	{
 		va_start(ap, x);
-		if (myDriverDebugHandle.dbg_irq) {
+
+		if (myDriverDebugHandle.dbg_irq)
+		{
 			myDriverDebugHandle.dbg_irq(myDriverDebugHandle.id,
-						    DLI_XLOG, x, ap);
-		} else if (myDriverDebugHandle.dbg_old) {
-			myDriverDebugHandle.dbg_old(myDriverDebugHandle.id,
-						    x, ap);
+										DLI_XLOG, x, ap);
 		}
+		else if (myDriverDebugHandle.dbg_old)
+		{
+			myDriverDebugHandle.dbg_old(myDriverDebugHandle.id,
+										x, ap);
+		}
+
 		va_end(ap);
 	}
+
 #endif
 }
 
@@ -116,16 +124,21 @@ byte MapController(byte Controller)
 	byte MappedController = 0;
 	byte ctrl = Controller & 0x7f;	/* mask external controller bit off */
 
-	for (i = 1; i < max_adapter + 1; i++) {
-		if (ctrl == ControllerMap[i]) {
+	for (i = 1; i < max_adapter + 1; i++)
+	{
+		if (ctrl == ControllerMap[i])
+		{
 			MappedController = (byte) i;
 			break;
 		}
 	}
-	if (i > max_adapter) {
+
+	if (i > max_adapter)
+	{
 		ControllerMap[0] = ctrl;
 		MappedController = 0;
 	}
+
 	return (MappedController | (Controller & 0x80));	/* put back external controller bit */
 }
 
@@ -137,9 +150,12 @@ byte UnMapController(byte MappedController)
 	byte Controller;
 	byte ctrl = MappedController & 0x7f;	/* mask external controller bit off */
 
-	if (ctrl <= max_adapter) {
+	if (ctrl <= max_adapter)
+	{
 		Controller = ControllerMap[ctrl];
-	} else {
+	}
+	else
+	{
 		Controller = 0;
 	}
 
@@ -154,12 +170,18 @@ static int find_free_id(void)
 	int num = 0;
 	DIVA_CAPI_ADAPTER *a;
 
-	while (num < MAX_DESCRIPTORS) {
+	while (num < MAX_DESCRIPTORS)
+	{
 		a = &adapter[num];
+
 		if (!a->Id)
+		{
 			break;
+		}
+
 		num++;
 	}
+
 	return (num + 1);
 }
 
@@ -171,11 +193,17 @@ static diva_card *find_card_by_ctrl(word controller)
 	struct list_head *tmp;
 	diva_card *card;
 
-	list_for_each(tmp, &cards) {
+	list_for_each(tmp, &cards)
+	{
 		card = list_entry(tmp, diva_card, list);
-		if (ControllerMap[card->Id] == controller) {
+
+		if (ControllerMap[card->Id] == controller)
+		{
 			if (card->remove_in_progress)
+			{
 				card = NULL;
+			}
+
 			return (card);
 		}
 	}
@@ -189,13 +217,15 @@ void *TransmitBufferSet(APPL *appl, dword ref)
 {
 	appl->xbuffer_used[ref] = true;
 	DBG_PRV1(("%d:xbuf_used(%d)", appl->Id, ref + 1))
-		return (void *)(long)ref;
+	return (void *)(long)ref;
 }
 
 void *TransmitBufferGet(APPL *appl, void *p)
 {
 	if (appl->xbuffer_internal[(dword)(long)p])
+	{
 		return appl->xbuffer_internal[(dword)(long)p];
+	}
 
 	return appl->xbuffer_ptr[(dword)(long)p];
 }
@@ -204,7 +234,7 @@ void TransmitBufferFree(APPL *appl, void *p)
 {
 	appl->xbuffer_used[(dword)(long)p] = false;
 	DBG_PRV1(("%d:xbuf_free(%d)", appl->Id, ((dword)(long)p) + 1))
-		}
+}
 
 void *ReceiveBufferGet(APPL *appl, int Num)
 {
@@ -217,7 +247,7 @@ void *ReceiveBufferGet(APPL *appl, int Num)
 void api_remove_complete(void)
 {
 	DBG_PRV1(("api_remove_complete"))
-		}
+}
 
 /*
  * main function called by message.c
@@ -235,15 +265,21 @@ void sendf(APPL *appl, word command, dword Id, word Number, byte *format, ...)
 	dword tmp;
 
 	if (!appl)
+	{
 		return;
+	}
 
 	DBG_PRV1(("sendf(a=%d,cmd=%x,format=%s)",
-		  appl->Id, command, (byte *) format))
+			  appl->Id, command, (byte *) format))
 
-		PUT_WORD(&msg.header.appl_id, appl->Id);
+	PUT_WORD(&msg.header.appl_id, appl->Id);
 	PUT_WORD(&msg.header.command, command);
+
 	if ((byte) (command >> 8) == 0x82)
+	{
 		Number = appl->Number++;
+	}
+
 	PUT_WORD(&msg.header.number, Number);
 
 	PUT_DWORD(&msg.header.controller, Id);
@@ -251,35 +287,46 @@ void sendf(APPL *appl, word command, dword Id, word Number, byte *format, ...)
 	write += 12;
 
 	va_start(ap, format);
-	for (i = 0; format[i]; i++) {
-		switch (format[i]) {
-		case 'b':
-			tmp = va_arg(ap, dword);
-			*(byte *) write = (byte) (tmp & 0xff);
-			write += 1;
-			length += 1;
-			break;
-		case 'w':
-			tmp = va_arg(ap, dword);
-			PUT_WORD(write, (tmp & 0xffff));
-			write += 2;
-			length += 2;
-			break;
-		case 'd':
-			tmp = va_arg(ap, dword);
-			PUT_DWORD(write, tmp);
-			write += 4;
-			length += 4;
-			break;
-		case 's':
-		case 'S':
-			string = va_arg(ap, byte *);
-			length += string[0] + 1;
-			for (j = 0; j <= string[0]; j++)
-				*write++ = string[j];
-			break;
+
+	for (i = 0; format[i]; i++)
+	{
+		switch (format[i])
+		{
+			case 'b':
+				tmp = va_arg(ap, dword);
+				*(byte *) write = (byte) (tmp & 0xff);
+				write += 1;
+				length += 1;
+				break;
+
+			case 'w':
+				tmp = va_arg(ap, dword);
+				PUT_WORD(write, (tmp & 0xffff));
+				write += 2;
+				length += 2;
+				break;
+
+			case 'd':
+				tmp = va_arg(ap, dword);
+				PUT_DWORD(write, tmp);
+				write += 4;
+				length += 4;
+				break;
+
+			case 's':
+			case 'S':
+				string = va_arg(ap, byte *);
+				length += string[0] + 1;
+
+				for (j = 0; j <= string[0]; j++)
+				{
+					*write++ = string[j];
+				}
+
+				break;
 		}
 	}
+
 	va_end(ap);
 
 	PUT_WORD(&msg.header.length, length);
@@ -287,55 +334,75 @@ void sendf(APPL *appl, word command, dword Id, word Number, byte *format, ...)
 
 	if (command == _DATA_B3_I)
 		dlength = GET_WORD(
-			((byte *)&msg.info.data_b3_ind.Data_Length));
+					  ((byte *)&msg.info.data_b3_ind.Data_Length));
 
 	if (!(dmb = diva_os_alloc_message_buffer(length + dlength,
-						 (void **) &write))) {
+				(void **) &write)))
+	{
 		DBG_ERR(("sendf: alloc_message_buffer failed, incoming msg dropped."))
-			return;
+		return;
 	}
 
 	/* copy msg header to sk_buff */
 	memcpy(write, (byte *)&msg, length);
 
 	/* if DATA_B3_IND, copy data too */
-	if (command == _DATA_B3_I) {
+	if (command == _DATA_B3_I)
+	{
 		dword data = GET_DWORD(&msg.info.data_b3_ind.Data);
 		memcpy(write + length, (void *)(long)data, dlength);
 	}
 
 #ifndef DIVA_NO_DEBUGLIB
-	if (myDriverDebugHandle.dbgMask & DL_XLOG) {
-		switch (command) {
-		default:
-			xlog("\x00\x02", &msg, 0x81, length);
-			break;
-		case _DATA_B3_R | CONFIRM:
-			if (myDriverDebugHandle.dbgMask & DL_BLK)
+
+	if (myDriverDebugHandle.dbgMask & DL_XLOG)
+	{
+		switch (command)
+		{
+			default:
 				xlog("\x00\x02", &msg, 0x81, length);
-			break;
-		case _DATA_B3_I:
-			if (myDriverDebugHandle.dbgMask & DL_BLK) {
-				xlog("\x00\x02", &msg, 0x81, length);
-				for (i = 0; i < dlength; i += 256) {
-					DBG_BLK((((char *)(long)GET_DWORD(&msg.info.data_b3_ind.Data)) + i,
-						 ((dlength - i) < 256) ? (dlength - i) : 256))
-						if (!(myDriverDebugHandle.dbgMask & DL_PRV0))
-							break; /* not more if not explicitly requested */
+				break;
+
+			case _DATA_B3_R | CONFIRM:
+				if (myDriverDebugHandle.dbgMask & DL_BLK)
+				{
+					xlog("\x00\x02", &msg, 0x81, length);
 				}
-			}
-			break;
+
+				break;
+
+			case _DATA_B3_I:
+				if (myDriverDebugHandle.dbgMask & DL_BLK)
+				{
+					xlog("\x00\x02", &msg, 0x81, length);
+
+					for (i = 0; i < dlength; i += 256)
+					{
+						DBG_BLK((((char *)(long)GET_DWORD(&msg.info.data_b3_ind.Data)) + i,
+								 ((dlength - i) < 256) ? (dlength - i) : 256))
+
+						if (!(myDriverDebugHandle.dbgMask & DL_PRV0))
+						{
+							break;    /* not more if not explicitly requested */
+						}
+					}
+				}
+
+				break;
 		}
 	}
+
 #endif
 
 	/* find the card structure for this controller */
-	if (!(card = find_card_by_ctrl(write[8] & 0x7f))) {
+	if (!(card = find_card_by_ctrl(write[8] & 0x7f)))
+	{
 		DBG_ERR(("sendf - controller %d not found, incoming msg dropped",
-			 write[8] & 0x7f))
-			diva_os_free_message_buffer(dmb);
+				 write[8] & 0x7f))
+		diva_os_free_message_buffer(dmb);
 		return;
 	}
+
 	/* send capi msg to capi layer */
 	capi_ctr_handle_message(&card->capi_ctrl, appl->Id, dmb);
 }
@@ -350,38 +417,57 @@ static void clean_adapter(int id, struct list_head *free_mem_q)
 
 	a = &adapter[id];
 	k = li_total_channels - a->li_channels;
-	if (k == 0) {
-		if (li_config_table) {
+
+	if (k == 0)
+	{
+		if (li_config_table)
+		{
 			list_add((struct list_head *)li_config_table, free_mem_q);
 			li_config_table = NULL;
 		}
-	} else {
-		if (a->li_base < k) {
+	}
+	else
+	{
+		if (a->li_base < k)
+		{
 			memmove(&li_config_table[a->li_base],
-				&li_config_table[a->li_base + a->li_channels],
-				(k - a->li_base) * sizeof(LI_CONFIG));
-			for (i = 0; i < k; i++) {
+					&li_config_table[a->li_base + a->li_channels],
+					(k - a->li_base) * sizeof(LI_CONFIG));
+
+			for (i = 0; i < k; i++)
+			{
 				memmove(&li_config_table[i].flag_table[a->li_base],
-					&li_config_table[i].flag_table[a->li_base + a->li_channels],
-					k - a->li_base);
+						&li_config_table[i].flag_table[a->li_base + a->li_channels],
+						k - a->li_base);
 				memmove(&li_config_table[i].
-					coef_table[a->li_base],
-					&li_config_table[i].coef_table[a->li_base + a->li_channels],
-					k - a->li_base);
+						coef_table[a->li_base],
+						&li_config_table[i].coef_table[a->li_base + a->li_channels],
+						k - a->li_base);
 			}
 		}
 	}
+
 	li_total_channels = k;
-	for (i = id; i < max_adapter; i++) {
+
+	for (i = id; i < max_adapter; i++)
+	{
 		if (adapter[i].request)
+		{
 			adapter[i].li_base -= a->li_channels;
+		}
 	}
+
 	if (a->plci)
+	{
 		list_add((struct list_head *)a->plci, free_mem_q);
+	}
 
 	memset(a, 0x00, sizeof(DIVA_CAPI_ADAPTER));
+
 	while ((max_adapter != 0) && !adapter[max_adapter - 1].request)
+	{
 		max_adapter--;
+	}
 }
 
 /*
@@ -402,9 +488,12 @@ static void divacapi_remove_card(DESCRIPTOR *d)
 	 * the time CAPI controller is about to be removed.
 	 */
 	diva_os_enter_spin_lock(&api_lock, &old_irql, "remove card");
-	list_for_each(tmp, &cards) {
+	list_for_each(tmp, &cards)
+	{
 		card = list_entry(tmp, diva_card, list);
-		if (card->d.request == d->request) {
+
+		if (card->d.request == d->request)
+		{
 			card->remove_in_progress = 1;
 			list_del(tmp);
 			break;
@@ -412,7 +501,8 @@ static void divacapi_remove_card(DESCRIPTOR *d)
 	}
 	diva_os_leave_spin_lock(&api_lock, &old_irql, "remove card");
 
-	if (card) {
+	if (card)
+	{
 		/*
 		 * Detach CAPI. Sendf cannot call to CAPI any more.
 		 * After detach no call to send_message() is done too.
@@ -427,10 +517,10 @@ static void divacapi_remove_card(DESCRIPTOR *d)
 
 		clean_adapter(card->Id - 1, &free_mem_q);
 		DBG_TRC(("DelAdapterMap (%d) -> (%d)",
-			 ControllerMap[card->Id], card->Id))
-			ControllerMap[card->Id] = 0;
+				 ControllerMap[card->Id], card->Id))
+		ControllerMap[card->Id] = 0;
 		DBG_TRC(("adapter remove, max_adapter=%d",
-			 max_adapter));
+				 max_adapter));
 		diva_os_leave_spin_lock(&api_lock, &old_irql, "remove card");
 
 		/* After releasing the lock, we can free the memory */
@@ -438,7 +528,8 @@ static void divacapi_remove_card(DESCRIPTOR *d)
 	}
 
 	/* free queued memory areas */
-	list_for_each_safe(link, tmp, &free_mem_q) {
+	list_for_each_safe(link, tmp, &free_mem_q)
+	{
 		list_del(link);
 		diva_os_free(0, link);
 	}
@@ -456,7 +547,8 @@ static void divacapi_remove_cards(void)
 
 rescan:
 	diva_os_enter_spin_lock(&api_lock, &old_irql, "remove cards");
-	list_for_each(tmp, &cards) {
+	list_for_each(tmp, &cards)
+	{
 		card = list_entry(tmp, diva_card, list);
 		diva_os_leave_spin_lock(&api_lock, &old_irql, "remove cards");
 		d.request = card->d.request;
@@ -475,7 +567,7 @@ static void sync_callback(ENTITY *e)
 
 	DBG_TRC(("cb:Id=%x,Rc=%x,Ind=%x", e->Id, e->Rc, e->Ind))
 
-		diva_os_enter_spin_lock(&api_lock, &old_irql, "sync_callback");
+	diva_os_enter_spin_lock(&api_lock, &old_irql, "sync_callback");
 	callback(e);
 	diva_os_leave_spin_lock(&api_lock, &old_irql, "sync_callback");
 }
@@ -496,10 +588,12 @@ static int diva_add_card(DESCRIPTOR *d)
 	LI_CONFIG *new_li_config_table;
 	int j;
 
-	if (!(card = (diva_card *) diva_os_malloc(0, sizeof(diva_card)))) {
+	if (!(card = (diva_card *) diva_os_malloc(0, sizeof(diva_card))))
+	{
 		DBG_ERR(("diva_add_card: failed to allocate card struct."))
-			return (0);
+		return (0);
 	}
+
 	memset((char *) card, 0x00, sizeof(diva_card));
 	memcpy(&card->d, d, sizeof(DESCRIPTOR));
 	sync_req.GetName.Req = 0;
@@ -515,9 +609,10 @@ static int diva_add_card(DESCRIPTOR *d)
 	ctrl->driverdata = card;
 	diva_os_set_controller_struct(ctrl);
 
-	if (attach_capi_ctr(ctrl)) {
+	if (attach_capi_ctr(ctrl))
+	{
 		DBG_ERR(("diva_add_card: failed to attach controller."))
-			diva_os_free(0, card);
+		diva_os_free(0, card);
 		return (0);
 	}
 
@@ -534,12 +629,17 @@ static int diva_add_card(DESCRIPTOR *d)
 	sync_req.GetSerial.Rc = IDI_SYNC_REQ_GET_SERIAL;
 	sync_req.GetSerial.serial = 0;
 	card->d.request((ENTITY *)&sync_req);
-	if ((i = ((sync_req.GetSerial.serial & 0xff000000) >> 24))) {
+
+	if ((i = ((sync_req.GetSerial.serial & 0xff000000) >> 24)))
+	{
 		sprintf(serial, "%ld-%d",
-			sync_req.GetSerial.serial & 0x00ffffff, i + 1);
-	} else {
+				sync_req.GetSerial.serial & 0x00ffffff, i + 1);
+	}
+	else
+	{
 		sprintf(serial, "%ld", sync_req.GetSerial.serial);
 	}
+
 	serial[CAPI_SERIAL_LEN - 1] = 0;
 	strlcpy(ctrl->serial, serial, sizeof(ctrl->serial));
 
@@ -550,7 +650,7 @@ static int diva_add_card(DESCRIPTOR *d)
 
 	DBG_TRC(("AddAdapterMap (%d) -> (%d)", ctrl->cnr, card->Id))
 
-		sync_req.xdi_capi_prms.Req = 0;
+	sync_req.xdi_capi_prms.Req = 0;
 	sync_req.xdi_capi_prms.Rc = IDI_SYNC_REQ_XDI_GET_CAPI_PARAMS;
 	sync_req.xdi_capi_prms.info.structure_length =
 		sizeof(diva_xdi_get_capi_parameters_t);
@@ -562,16 +662,20 @@ static int diva_add_card(DESCRIPTOR *d)
 	a->request = DIRequest;	/* card->d.request; */
 	a->max_plci = card->d.channels + 30;
 	a->max_listen = (card->d.channels > 2) ? 8 : 2;
+
 	if (!
-	    (a->plci =
-	     (PLCI *) diva_os_malloc(0, sizeof(PLCI) * a->max_plci))) {
+		(a->plci =
+			 (PLCI *) diva_os_malloc(0, sizeof(PLCI) * a->max_plci)))
+	{
 		DBG_ERR(("diva_add_card: failed alloc plci struct."))
-			memset(a, 0, sizeof(DIVA_CAPI_ADAPTER));
+		memset(a, 0, sizeof(DIVA_CAPI_ADAPTER));
 		return (0);
 	}
+
 	memset(a->plci, 0, sizeof(PLCI) * a->max_plci);
 
-	for (k = 0; k < a->max_plci; k++) {
+	for (k = 0; k < a->max_plci; k++)
+	{
 		a->Id = (byte) card->Id;
 		a->plci[k].Sig.callback = sync_callback;
 		a->plci[k].Sig.XNum = 1;
@@ -588,10 +692,16 @@ static int diva_add_card(DESCRIPTOR *d)
 
 	a->profile.Number = card->Id;
 	a->profile.Channels = card->d.channels;
-	if (card->d.features & DI_FAX3) {
+
+	if (card->d.features & DI_FAX3)
+	{
 		a->profile.Global_Options = 0x71;
+
 		if (card->d.features & DI_CODEC)
+		{
 			a->profile.Global_Options |= 0x6;
+		}
+
 #if IMPLEMENT_DTMF
 		a->profile.Global_Options |= 0x8;
 #endif				/* IMPLEMENT_DTMF */
@@ -603,10 +713,16 @@ static int diva_add_card(DESCRIPTOR *d)
 		a->profile.B2_Protocols = 0x1fdb;
 		a->profile.B3_Protocols = 0xb7;
 		a->manufacturer_features = MANUFACTURER_FEATURE_HARDDTMF;
-	} else {
+	}
+	else
+	{
 		a->profile.Global_Options = 0x71;
+
 		if (card->d.features & DI_CODEC)
+		{
 			a->profile.Global_Options |= 0x2;
+		}
+
 		a->profile.B1_Protocols = 0x43;
 		a->profile.B2_Protocols = 0x1f0f;
 		a->profile.B3_Protocols = 0x07;
@@ -616,16 +732,23 @@ static int diva_add_card(DESCRIPTOR *d)
 	a->li_pri = (a->profile.Channels > 2);
 	a->li_channels = a->li_pri ? MIXER_CHANNELS_PRI : MIXER_CHANNELS_BRI;
 	a->li_base = 0;
-	for (i = 0; &adapter[i] != a; i++) {
+
+	for (i = 0; &adapter[i] != a; i++)
+	{
 		if (adapter[i].request)
+		{
 			a->li_base = adapter[i].li_base + adapter[i].li_channels;
+		}
 	}
+
 	k = li_total_channels + a->li_channels;
 	new_li_config_table =
 		(LI_CONFIG *) diva_os_malloc(0, ((k * sizeof(LI_CONFIG) + 3) & ~3) + (2 * k) * ((k + 3) & ~3));
-	if (new_li_config_table == NULL) {
+
+	if (new_li_config_table == NULL)
+	{
 		DBG_ERR(("diva_add_card: failed alloc li_config table."))
-			memset(a, 0, sizeof(DIVA_CAPI_ADAPTER));
+		memset(a, 0, sizeof(DIVA_CAPI_ADAPTER));
 		return (0);
 	}
 
@@ -633,69 +756,98 @@ static int diva_add_card(DESCRIPTOR *d)
 	diva_os_enter_spin_lock(&api_lock, &old_irql, "add card");
 
 	j = 0;
-	for (i = 0; i < k; i++) {
+
+	for (i = 0; i < k; i++)
+	{
 		if ((i >= a->li_base) && (i < a->li_base + a->li_channels))
+		{
 			memset(&new_li_config_table[i], 0, sizeof(LI_CONFIG));
+		}
 		else
+		{
 			memcpy(&new_li_config_table[i], &li_config_table[j], sizeof(LI_CONFIG));
+		}
+
 		new_li_config_table[i].flag_table =
 			((byte *) new_li_config_table) + (((k * sizeof(LI_CONFIG) + 3) & ~3) + (2 * i) * ((k + 3) & ~3));
 		new_li_config_table[i].coef_table =
 			((byte *) new_li_config_table) + (((k * sizeof(LI_CONFIG) + 3) & ~3) + (2 * i + 1) * ((k + 3) & ~3));
-		if ((i >= a->li_base) && (i < a->li_base + a->li_channels)) {
+
+		if ((i >= a->li_base) && (i < a->li_base + a->li_channels))
+		{
 			new_li_config_table[i].adapter = a;
 			memset(&new_li_config_table[i].flag_table[0], 0, k);
 			memset(&new_li_config_table[i].coef_table[0], 0, k);
-		} else {
-			if (a->li_base != 0) {
+		}
+		else
+		{
+			if (a->li_base != 0)
+			{
 				memcpy(&new_li_config_table[i].flag_table[0],
-				       &li_config_table[j].flag_table[0],
-				       a->li_base);
+					   &li_config_table[j].flag_table[0],
+					   a->li_base);
 				memcpy(&new_li_config_table[i].coef_table[0],
-				       &li_config_table[j].coef_table[0],
-				       a->li_base);
+					   &li_config_table[j].coef_table[0],
+					   a->li_base);
 			}
+
 			memset(&new_li_config_table[i].flag_table[a->li_base], 0, a->li_channels);
 			memset(&new_li_config_table[i].coef_table[a->li_base], 0, a->li_channels);
-			if (a->li_base + a->li_channels < k) {
+
+			if (a->li_base + a->li_channels < k)
+			{
 				memcpy(&new_li_config_table[i].flag_table[a->li_base +
-									  a->li_channels],
-				       &li_config_table[j].flag_table[a->li_base],
-				       k - (a->li_base + a->li_channels));
+						a->li_channels],
+					   &li_config_table[j].flag_table[a->li_base],
+					   k - (a->li_base + a->li_channels));
 				memcpy(&new_li_config_table[i].coef_table[a->li_base +
-									  a->li_channels],
-				       &li_config_table[j].coef_table[a->li_base],
-				       k - (a->li_base + a->li_channels));
+						a->li_channels],
+					   &li_config_table[j].coef_table[a->li_base],
+					   k - (a->li_base + a->li_channels));
 			}
+
 			j++;
 		}
 	}
+
 	li_total_channels = k;
 
 	mem_to_free = li_config_table;
 
 	li_config_table = new_li_config_table;
-	for (i = card->Id; i < max_adapter; i++) {
+
+	for (i = card->Id; i < max_adapter; i++)
+	{
 		if (adapter[i].request)
+		{
 			adapter[i].li_base += a->li_channels;
+		}
 	}
 
 	if (a == &adapter[max_adapter])
+	{
 		max_adapter++;
+	}
 
 	list_add(&(card->list), &cards);
 	AutomaticLaw(a);
 
 	diva_os_leave_spin_lock(&api_lock, &old_irql, "add card");
 
-	if (mem_to_free) {
+	if (mem_to_free)
+	{
 		diva_os_free(0, mem_to_free);
 	}
 
 	i = 0;
-	while (i++ < 30) {
+
+	while (i++ < 30)
+	{
 		if (a->automatic_law > 3)
+		{
 			break;
+		}
+
 		diva_os_sleep(10);
 	}
 
@@ -722,7 +874,7 @@ static int diva_add_card(DESCRIPTOR *d)
  *  register appl
  */
 static void diva_register_appl(struct capi_ctr *ctrl, __u16 appl,
-			       capi_register_params *rp)
+							   capi_register_params *rp)
 {
 	APPL *this;
 	word bnum, xnum;
@@ -735,40 +887,48 @@ static void diva_register_appl(struct capi_ctr *ctrl, __u16 appl,
 	int nconn = rp->level3cnt;
 
 
-	if (diva_os_in_irq()) {
+	if (diva_os_in_irq())
+	{
 		DBG_ERR(("CAPI_REGISTER - in irq context !"))
-			return;
+		return;
 	}
 
 	DBG_TRC(("application register Id=%d", appl))
 
-		if (appl > MAX_APPL) {
-			DBG_ERR(("CAPI_REGISTER - appl.Id exceeds MAX_APPL"))
-				return;
-		}
+	if (appl > MAX_APPL)
+	{
+		DBG_ERR(("CAPI_REGISTER - appl.Id exceeds MAX_APPL"))
+		return;
+	}
 
 	if (nconn <= 0)
+	{
 		nconn = ctrl->profile.nbchannel * -nconn;
+	}
 
 	if (nconn == 0)
+	{
 		nconn = ctrl->profile.nbchannel;
+	}
 
 	DBG_LOG(("CAPI_REGISTER - Id = %d", appl))
-		DBG_LOG(("  MaxLogicalConnections = %d(%d)", nconn, rp->level3cnt))
-		DBG_LOG(("  MaxBDataBuffers       = %d", rp->datablkcnt))
-		DBG_LOG(("  MaxBDataLength        = %d", rp->datablklen))
+	DBG_LOG(("  MaxLogicalConnections = %d(%d)", nconn, rp->level3cnt))
+	DBG_LOG(("  MaxBDataBuffers       = %d", rp->datablkcnt))
+	DBG_LOG(("  MaxBDataLength        = %d", rp->datablklen))
 
-		if (nconn < 1 ||
-		    nconn > 255 ||
-		    rp->datablklen < 80 ||
-		    rp->datablklen > 2150 || rp->datablkcnt > 255) {
-			DBG_ERR(("CAPI_REGISTER - invalid parameters"))
-				return;
-		}
+	if (nconn < 1 ||
+		nconn > 255 ||
+		rp->datablklen < 80 ||
+		rp->datablklen > 2150 || rp->datablkcnt > 255)
+	{
+		DBG_ERR(("CAPI_REGISTER - invalid parameters"))
+		return;
+	}
 
-	if (application[appl - 1].Id == appl) {
+	if (application[appl - 1].Id == appl)
+	{
 		DBG_LOG(("CAPI_REGISTER - appl already registered"))
-			return;	/* appl already registered */
+		return;	/* appl already registered */
 	}
 
 	/* alloc memory */
@@ -785,10 +945,13 @@ static void diva_register_appl(struct capi_ctr *ctrl, __u16 appl,
 	mem_len += xnum * rp->datablklen;	/* xbuffer_ptr[xnum] */
 
 	DBG_LOG(("  Allocated Memory      = %d", mem_len))
-		if (!(p = diva_os_malloc(0, mem_len))) {
-			DBG_ERR(("CAPI_REGISTER - memory allocation failed"))
-				return;
-		}
+
+	if (!(p = diva_os_malloc(0, mem_len)))
+	{
+		DBG_ERR(("CAPI_REGISTER - memory allocation failed"))
+		return;
+	}
+
 	memset(p, 0, mem_len);
 
 	DataNCCI = (void *)p;
@@ -803,7 +966,9 @@ static void diva_register_appl(struct capi_ctr *ctrl, __u16 appl,
 	p += xnum * sizeof(void *);
 	xbuffer_internal = (void **)p;
 	p += xnum * sizeof(void *);
-	for (i = 0; i < xnum; i++) {
+
+	for (i = 0; i < xnum; i++)
+	{
 		xbuffer_ptr[i] = (void *)p;
 		p += rp->datablklen;
 	}
@@ -816,7 +981,8 @@ static void diva_register_appl(struct capi_ctr *ctrl, __u16 appl,
 
 	this->Id = appl;
 
-	for (i = 0; i < max_adapter; i++) {
+	for (i = 0; i < max_adapter; i++)
+	{
 		adapter[i].CIP_Mask[appl - 1] = 0;
 	}
 
@@ -833,7 +999,9 @@ static void diva_register_appl(struct capi_ctr *ctrl, __u16 appl,
 	this->xbuffer_used = xbuffer_used;
 	this->xbuffer_ptr = xbuffer_ptr;
 	this->xbuffer_internal = xbuffer_internal;
-	for (i = 0; i < xnum; i++) {
+
+	for (i = 0; i < xnum; i++)
+	{
 		this->xbuffer_ptr[i] = xbuffer_ptr[i];
 	}
 
@@ -853,22 +1021,28 @@ static void diva_release_appl(struct capi_ctr *ctrl, __u16 appl)
 
 	DBG_TRC(("application %d(%d) cleanup", this->Id, appl))
 
-		if (diva_os_in_irq()) {
-			DBG_ERR(("CAPI_RELEASE - in irq context !"))
-				return;
-		}
+	if (diva_os_in_irq())
+	{
+		DBG_ERR(("CAPI_RELEASE - in irq context !"))
+		return;
+	}
 
 	diva_os_enter_spin_lock(&api_lock, &old_irql, "release_appl");
-	if (this->Id) {
+
+	if (this->Id)
+	{
 		CapiRelease(this->Id);
 		mem_to_free = this->DataNCCI;
 		this->DataNCCI = NULL;
 		this->Id = 0;
 	}
+
 	diva_os_leave_spin_lock(&api_lock, &old_irql, "release_appl");
 
 	if (mem_to_free)
+	{
 		diva_os_free(0, mem_to_free);
+	}
 
 }
 
@@ -876,7 +1050,7 @@ static void diva_release_appl(struct capi_ctr *ctrl, __u16 appl)
  *  send message
  */
 static u16 diva_send_message(struct capi_ctr *ctrl,
-			     diva_os_message_buffer_s *dmb)
+							 diva_os_message_buffer_s *dmb)
 {
 	int i = 0;
 	word ret = 0;
@@ -889,87 +1063,113 @@ static u16 diva_send_message(struct capi_ctr *ctrl,
 	word command = GET_WORD(&msg->header.command);
 	u16 retval = CAPI_NOERROR;
 
-	if (diva_os_in_irq()) {
+	if (diva_os_in_irq())
+	{
 		DBG_ERR(("CAPI_SEND_MSG - in irq context !"))
-			return CAPI_REGOSRESOURCEERR;
+		return CAPI_REGOSRESOURCEERR;
 	}
+
 	DBG_PRV1(("Write - appl = %d, cmd = 0x%x", this->Id, command))
 
-		if (card->remove_in_progress) {
-			DBG_ERR(("CAPI_SEND_MSG - remove in progress!"))
-				return CAPI_REGOSRESOURCEERR;
-		}
+	if (card->remove_in_progress)
+	{
+		DBG_ERR(("CAPI_SEND_MSG - remove in progress!"))
+		return CAPI_REGOSRESOURCEERR;
+	}
 
 	diva_os_enter_spin_lock(&api_lock, &old_irql, "send message");
 
-	if (!this->Id) {
+	if (!this->Id)
+	{
 		diva_os_leave_spin_lock(&api_lock, &old_irql, "send message");
 		return CAPI_ILLAPPNR;
 	}
 
 	/* patch controller number */
 	msg->header.controller = ControllerMap[card->Id]
-		| (msg->header.controller & 0x80);	/* preserve external controller bit */
+							 | (msg->header.controller & 0x80);	/* preserve external controller bit */
 
-	switch (command) {
-	default:
-		xlog("\x00\x02", msg, 0x80, clength);
-		break;
-
-	case _DATA_B3_I | RESPONSE:
-#ifndef DIVA_NO_DEBUGLIB
-		if (myDriverDebugHandle.dbgMask & DL_BLK)
+	switch (command)
+	{
+		default:
 			xlog("\x00\x02", msg, 0x80, clength);
-#endif
-		break;
+			break;
 
-	case _DATA_B3_R:
+		case _DATA_B3_I | RESPONSE:
 #ifndef DIVA_NO_DEBUGLIB
-		if (myDriverDebugHandle.dbgMask & DL_BLK)
-			xlog("\x00\x02", msg, 0x80, clength);
-#endif
-
-		if (clength == 24)
-			clength = 22;	/* workaround for PPcom bug */
-		/* header is always 22      */
-		if (GET_WORD(&msg->info.data_b3_req.Data_Length) >
-		    this->MaxDataLength
-		    || GET_WORD(&msg->info.data_b3_req.Data_Length) >
-		    (length - clength)) {
-			DBG_ERR(("Write - invalid message size"))
-				retval = CAPI_ILLCMDORSUBCMDORMSGTOSMALL;
-			goto write_end;
-		}
-
-		for (i = 0; i < (MAX_DATA_B3 * this->MaxNCCI)
-			     && this->xbuffer_used[i]; i++);
-		if (i == (MAX_DATA_B3 * this->MaxNCCI)) {
-			DBG_ERR(("Write - too many data pending"))
-				retval = CAPI_SENDQUEUEFULL;
-			goto write_end;
-		}
-		msg->info.data_b3_req.Data = i;
-
-		this->xbuffer_internal[i] = NULL;
-		memcpy(this->xbuffer_ptr[i], &((__u8 *) msg)[clength],
-		       GET_WORD(&msg->info.data_b3_req.Data_Length));
-
-#ifndef DIVA_NO_DEBUGLIB
-		if ((myDriverDebugHandle.dbgMask & DL_BLK)
-		    && (myDriverDebugHandle.dbgMask & DL_XLOG)) {
-			int j;
-			for (j = 0; j <
-				     GET_WORD(&msg->info.data_b3_req.Data_Length);
-			     j += 256) {
-				DBG_BLK((((char *) this->xbuffer_ptr[i]) + j,
-					 ((GET_WORD(&msg->info.data_b3_req.Data_Length) - j) <
-					  256) ? (GET_WORD(&msg->info.data_b3_req.Data_Length) - j) : 256))
-					if (!(myDriverDebugHandle.dbgMask & DL_PRV0))
-						break;	/* not more if not explicitly requested */
+			if (myDriverDebugHandle.dbgMask & DL_BLK)
+			{
+				xlog("\x00\x02", msg, 0x80, clength);
 			}
-		}
+
 #endif
-		break;
+			break;
+
+		case _DATA_B3_R:
+#ifndef DIVA_NO_DEBUGLIB
+			if (myDriverDebugHandle.dbgMask & DL_BLK)
+			{
+				xlog("\x00\x02", msg, 0x80, clength);
+			}
+
+#endif
+
+			if (clength == 24)
+			{
+				clength = 22;    /* workaround for PPcom bug */
+			}
+
+			/* header is always 22      */
+			if (GET_WORD(&msg->info.data_b3_req.Data_Length) >
+				this->MaxDataLength
+				|| GET_WORD(&msg->info.data_b3_req.Data_Length) >
+				(length - clength))
+			{
+				DBG_ERR(("Write - invalid message size"))
+				retval = CAPI_ILLCMDORSUBCMDORMSGTOSMALL;
+				goto write_end;
+			}
+
+			for (i = 0; i < (MAX_DATA_B3 * this->MaxNCCI)
+				 && this->xbuffer_used[i]; i++);
+
+			if (i == (MAX_DATA_B3 * this->MaxNCCI))
+			{
+				DBG_ERR(("Write - too many data pending"))
+				retval = CAPI_SENDQUEUEFULL;
+				goto write_end;
+			}
+
+			msg->info.data_b3_req.Data = i;
+
+			this->xbuffer_internal[i] = NULL;
+			memcpy(this->xbuffer_ptr[i], &((__u8 *) msg)[clength],
+				   GET_WORD(&msg->info.data_b3_req.Data_Length));
+
+#ifndef DIVA_NO_DEBUGLIB
+
+			if ((myDriverDebugHandle.dbgMask & DL_BLK)
+				&& (myDriverDebugHandle.dbgMask & DL_XLOG))
+			{
+				int j;
+
+				for (j = 0; j <
+					 GET_WORD(&msg->info.data_b3_req.Data_Length);
+					 j += 256)
+				{
+					DBG_BLK((((char *) this->xbuffer_ptr[i]) + j,
+							 ((GET_WORD(&msg->info.data_b3_req.Data_Length) - j) <
+							  256) ? (GET_WORD(&msg->info.data_b3_req.Data_Length) - j) : 256))
+
+					if (!(myDriverDebugHandle.dbgMask & DL_PRV0))
+					{
+						break;    /* not more if not explicitly requested */
+					}
+				}
+			}
+
+#endif
+			break;
 	}
 
 	memcpy(mapped_msg, msg, (__u32) clength);
@@ -979,27 +1179,36 @@ static u16 diva_send_message(struct capi_ctr *ctrl,
 	mapped_msg->header.number = GET_WORD(&msg->header.number);
 
 	ret = api_put(this, mapped_msg);
-	switch (ret) {
-	case 0:
-		break;
-	case _BAD_MSG:
-		DBG_ERR(("Write - bad message"))
+
+	switch (ret)
+	{
+		case 0:
+			break;
+
+		case _BAD_MSG:
+			DBG_ERR(("Write - bad message"))
 			retval = CAPI_ILLCMDORSUBCMDORMSGTOSMALL;
-		break;
-	case _QUEUE_FULL:
-		DBG_ERR(("Write - queue full"))
+			break;
+
+		case _QUEUE_FULL:
+			DBG_ERR(("Write - queue full"))
 			retval = CAPI_SENDQUEUEFULL;
-		break;
-	default:
-		DBG_ERR(("Write - api_put returned unknown error"))
+			break;
+
+		default:
+			DBG_ERR(("Write - api_put returned unknown error"))
 			retval = CAPI_UNKNOWNNOTPAR;
-		break;
+			break;
 	}
 
 write_end:
 	diva_os_leave_spin_lock(&api_lock, &old_irql, "send message");
+
 	if (retval == CAPI_NOERROR)
+	{
 		diva_os_free_message_buffer(dmb);
+	}
+
 	return retval;
 }
 
@@ -1012,7 +1221,8 @@ static void DIRequest(ENTITY *e)
 	DIVA_CAPI_ADAPTER *a = &(adapter[(byte) e->user[0]]);
 	diva_card *os_card = (diva_card *) a->os_card;
 
-	if (e->Req && (a->FlowControlIdTable[e->ReqCh] == e->Id)) {
+	if (e->Req && (a->FlowControlIdTable[e->ReqCh] == e->Id))
+	{
 		a->FlowControlSkipTable[e->ReqCh] = 1;
 	}
 
@@ -1024,24 +1234,36 @@ static void DIRequest(ENTITY *e)
  */
 static void didd_callback(void *context, DESCRIPTOR *adapter, int removal)
 {
-	if (adapter->type == IDI_DADAPTER) {
+	if (adapter->type == IDI_DADAPTER)
+	{
 		DBG_ERR(("Notification about IDI_DADAPTER change ! Oops."));
 		return;
-	} else if (adapter->type == IDI_DIMAINT) {
-		if (removal) {
+	}
+	else if (adapter->type == IDI_DIMAINT)
+	{
+		if (removal)
+		{
 			stop_dbg();
-		} else {
+		}
+		else
+		{
 			memcpy(&MAdapter, adapter, sizeof(MAdapter));
 			dprintf = (DIVA_DI_PRINTF) MAdapter.request;
 			DbgRegister("CAPI20", DRIVERRELEASE_CAPI, DBG_DEFAULT);
 		}
-	} else if ((adapter->type > 0) && (adapter->type < 16)) {	/* IDI Adapter */
-		if (removal) {
+	}
+	else if ((adapter->type > 0) && (adapter->type < 16))  	/* IDI Adapter */
+	{
+		if (removal)
+		{
 			divacapi_remove_card(adapter);
-		} else {
+		}
+		else
+		{
 			diva_add_card(adapter);
 		}
 	}
+
 	return;
 }
 
@@ -1057,16 +1279,21 @@ static int divacapi_connect_didd(void)
 
 	DIVA_DIDD_Read(DIDD_Table, sizeof(DIDD_Table));
 
-	for (x = 0; x < MAX_DESCRIPTORS; x++) {
-		if (DIDD_Table[x].type == IDI_DIMAINT) {	/* MAINT found */
+	for (x = 0; x < MAX_DESCRIPTORS; x++)
+	{
+		if (DIDD_Table[x].type == IDI_DIMAINT)  	/* MAINT found */
+		{
 			memcpy(&MAdapter, &DIDD_Table[x], sizeof(DAdapter));
 			dprintf = (DIVA_DI_PRINTF) MAdapter.request;
 			DbgRegister("CAPI20", DRIVERRELEASE_CAPI, DBG_DEFAULT);
 			break;
 		}
 	}
-	for (x = 0; x < MAX_DESCRIPTORS; x++) {
-		if (DIDD_Table[x].type == IDI_DADAPTER) {	/* DADAPTER found */
+
+	for (x = 0; x < MAX_DESCRIPTORS; x++)
+	{
+		if (DIDD_Table[x].type == IDI_DADAPTER)  	/* DADAPTER found */
+		{
 			dadapter = 1;
 			memcpy(&DAdapter, &DIDD_Table[x], sizeof(DAdapter));
 			req.didd_notify.e.Req = 0;
@@ -1075,18 +1302,23 @@ static int divacapi_connect_didd(void)
 			req.didd_notify.info.callback = (void *)didd_callback;
 			req.didd_notify.info.context = NULL;
 			DAdapter.request((ENTITY *)&req);
-			if (req.didd_notify.e.Rc != 0xff) {
+
+			if (req.didd_notify.e.Rc != 0xff)
+			{
 				stop_dbg();
 				return (0);
 			}
+
 			notify_handle = req.didd_notify.info.handle;
 		}
-		else if ((DIDD_Table[x].type > 0) && (DIDD_Table[x].type < 16)) {	/* IDI Adapter found */
+		else if ((DIDD_Table[x].type > 0) && (DIDD_Table[x].type < 16))  	/* IDI Adapter found */
+		{
 			diva_add_card(&DIDD_Table[x]);
 		}
 	}
 
-	if (!dadapter) {
+	if (!dadapter)
+	{
 		stop_dbg();
 	}
 
@@ -1122,24 +1354,29 @@ int fax_head_line_time(char *buffer)
  */
 static int __init init_main_structs(void)
 {
-	if (!(mapped_msg = (CAPI_MSG *) diva_os_malloc(0, MAX_MSG_SIZE))) {
+	if (!(mapped_msg = (CAPI_MSG *) diva_os_malloc(0, MAX_MSG_SIZE)))
+	{
 		DBG_ERR(("init: failed alloc mapped_msg."))
-			return 0;
-	}
-
-	if (!(adapter = diva_os_malloc(0, sizeof(DIVA_CAPI_ADAPTER) * MAX_DESCRIPTORS))) {
-		DBG_ERR(("init: failed alloc adapter struct."))
-			diva_os_free(0, mapped_msg);
 		return 0;
 	}
+
+	if (!(adapter = diva_os_malloc(0, sizeof(DIVA_CAPI_ADAPTER) * MAX_DESCRIPTORS)))
+	{
+		DBG_ERR(("init: failed alloc adapter struct."))
+		diva_os_free(0, mapped_msg);
+		return 0;
+	}
+
 	memset(adapter, 0, sizeof(DIVA_CAPI_ADAPTER) * MAX_DESCRIPTORS);
 
-	if (!(application = diva_os_malloc(0, sizeof(APPL) * MAX_APPL))) {
+	if (!(application = diva_os_malloc(0, sizeof(APPL) * MAX_APPL)))
+	{
 		DBG_ERR(("init: failed alloc application struct."))
-			diva_os_free(0, mapped_msg);
+		diva_os_free(0, mapped_msg);
 		diva_os_free(0, adapter);
 		return 0;
 	}
+
 	memset(application, 0, sizeof(APPL) * MAX_APPL);
 
 	return (1);
@@ -1151,11 +1388,19 @@ static int __init init_main_structs(void)
 static void remove_main_structs(void)
 {
 	if (application)
+	{
 		diva_os_free(0, application);
+	}
+
 	if (adapter)
+	{
 		diva_os_free(0, adapter);
+	}
+
 	if (mapped_msg)
+	{
 		diva_os_free(0, mapped_msg);
+	}
 }
 
 /*
@@ -1166,17 +1411,19 @@ static void do_api_remove_start(void)
 	diva_os_spin_lock_magic_t old_irql;
 	int ret = 1, count = 100;
 
-	do {
+	do
+	{
 		diva_os_enter_spin_lock(&api_lock, &old_irql, "api remove start");
 		ret = api_remove_start();
 		diva_os_leave_spin_lock(&api_lock, &old_irql, "api remove start");
 
 		diva_os_sleep(10);
-	} while (ret && count--);
+	}
+	while (ret && count--);
 
 	if (ret)
 		DBG_ERR(("could not remove signaling ID's"))
-			}
+	}
 
 /*
  * init
@@ -1188,15 +1435,17 @@ int __init init_capifunc(void)
 	max_adapter = 0;
 
 
-	if (!init_main_structs()) {
+	if (!init_main_structs())
+	{
 		DBG_ERR(("init: failed to init main structs."))
-			diva_os_destroy_spin_lock(&api_lock, "capifunc");
+		diva_os_destroy_spin_lock(&api_lock, "capifunc");
 		return (0);
 	}
 
-	if (!divacapi_connect_didd()) {
+	if (!divacapi_connect_didd())
+	{
 		DBG_ERR(("init: failed to connect to DIDD."))
-			do_api_remove_start();
+		do_api_remove_start();
 		divacapi_remove_cards();
 		remove_main_structs();
 		diva_os_destroy_spin_lock(&api_lock, "capifunc");

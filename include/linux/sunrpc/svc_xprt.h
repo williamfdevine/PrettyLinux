@@ -11,11 +11,12 @@
 
 struct module;
 
-struct svc_xprt_ops {
+struct svc_xprt_ops
+{
 	struct svc_xprt	*(*xpo_create)(struct svc_serv *,
-				       struct net *net,
-				       struct sockaddr *, int,
-				       int);
+								   struct net *net,
+								   struct sockaddr *, int,
+								   int);
 	struct svc_xprt	*(*xpo_accept)(struct svc_xprt *);
 	int		(*xpo_has_wspace)(struct svc_xprt *);
 	int		(*xpo_recvfrom)(struct svc_rqst *);
@@ -28,7 +29,8 @@ struct svc_xprt_ops {
 	void		(*xpo_kill_temp_xprt)(struct svc_xprt *);
 };
 
-struct svc_xprt_class {
+struct svc_xprt_class
+{
 	const char		*xcl_name;
 	struct module		*xcl_owner;
 	struct svc_xprt_ops	*xcl_ops;
@@ -42,12 +44,14 @@ struct svc_xprt_class {
  * an xprt; intended for use by NFSv4.1, which needs to know when a
  * client's tcp connection (and hence possibly a backchannel) goes away.
  */
-struct svc_xpt_user {
+struct svc_xpt_user
+{
 	struct list_head list;
 	void (*callback)(struct svc_xpt_user *);
 };
 
-struct svc_xprt {
+struct svc_xprt
+{
 	struct svc_xprt_class	*xpt_class;
 	struct svc_xprt_ops	*xpt_ops;
 	struct kref		xpt_ref;
@@ -98,7 +102,9 @@ static inline void unregister_xpt_user(struct svc_xprt *xpt, struct svc_xpt_user
 static inline int register_xpt_user(struct svc_xprt *xpt, struct svc_xpt_user *u)
 {
 	spin_lock(&xpt->xpt_lock);
-	if (test_bit(XPT_CLOSE, &xpt->xpt_flags)) {
+
+	if (test_bit(XPT_CLOSE, &xpt->xpt_flags))
+	{
 		/*
 		 * The connection is about to be deleted soon (or,
 		 * worse, may already be deleted--in which case we've
@@ -107,6 +113,7 @@ static inline int register_xpt_user(struct svc_xprt *xpt, struct svc_xpt_user *u
 		spin_unlock(&xpt->xpt_lock);
 		return -ENOTCONN;
 	}
+
 	list_add(&u->list, &xpt->xpt_users);
 	spin_unlock(&xpt->xpt_lock);
 	return 0;
@@ -115,9 +122,9 @@ static inline int register_xpt_user(struct svc_xprt *xpt, struct svc_xpt_user *u
 int	svc_reg_xprt_class(struct svc_xprt_class *);
 void	svc_unreg_xprt_class(struct svc_xprt_class *);
 void	svc_xprt_init(struct net *, struct svc_xprt_class *, struct svc_xprt *,
-		      struct svc_serv *);
+					  struct svc_serv *);
 int	svc_create_xprt(struct svc_serv *, const char *, struct net *,
-			const int, const unsigned short, int);
+					const int, const unsigned short, int);
 void	svc_xprt_do_enqueue(struct svc_xprt *xprt);
 void	svc_xprt_enqueue(struct svc_xprt *xprt);
 void	svc_xprt_put(struct svc_xprt *xprt);
@@ -126,8 +133,8 @@ void	svc_close_xprt(struct svc_xprt *xprt);
 int	svc_port_is_privileged(struct sockaddr *sin);
 int	svc_print_xprts(char *buf, int maxlen);
 struct	svc_xprt *svc_find_xprt(struct svc_serv *serv, const char *xcl_name,
-			struct net *net, const sa_family_t af,
-			const unsigned short port);
+								struct net *net, const sa_family_t af,
+								const unsigned short port);
 int	svc_xprt_names(struct svc_serv *serv, char *buf, const int buflen);
 void	svc_add_new_perm_xprt(struct svc_serv *serv, struct svc_xprt *xprt);
 void	svc_age_temp_xprts_now(struct svc_serv *, struct sockaddr *);
@@ -137,15 +144,15 @@ static inline void svc_xprt_get(struct svc_xprt *xprt)
 	kref_get(&xprt->xpt_ref);
 }
 static inline void svc_xprt_set_local(struct svc_xprt *xprt,
-				      const struct sockaddr *sa,
-				      const size_t salen)
+									  const struct sockaddr *sa,
+									  const size_t salen)
 {
 	memcpy(&xprt->xpt_local, sa, salen);
 	xprt->xpt_locallen = salen;
 }
 static inline void svc_xprt_set_remote(struct svc_xprt *xprt,
-				       const struct sockaddr *sa,
-				       const size_t salen)
+									   const struct sockaddr *sa,
+									   const size_t salen)
 {
 	memcpy(&xprt->xpt_remote, sa, salen);
 	xprt->xpt_remotelen = salen;
@@ -155,11 +162,13 @@ static inline unsigned short svc_addr_port(const struct sockaddr *sa)
 	const struct sockaddr_in *sin = (const struct sockaddr_in *)sa;
 	const struct sockaddr_in6 *sin6 = (const struct sockaddr_in6 *)sa;
 
-	switch (sa->sa_family) {
-	case AF_INET:
-		return ntohs(sin->sin_port);
-	case AF_INET6:
-		return ntohs(sin6->sin6_port);
+	switch (sa->sa_family)
+	{
+		case AF_INET:
+			return ntohs(sin->sin_port);
+
+		case AF_INET6:
+			return ntohs(sin6->sin6_port);
 	}
 
 	return 0;
@@ -167,12 +176,15 @@ static inline unsigned short svc_addr_port(const struct sockaddr *sa)
 
 static inline size_t svc_addr_len(const struct sockaddr *sa)
 {
-	switch (sa->sa_family) {
-	case AF_INET:
-		return sizeof(struct sockaddr_in);
-	case AF_INET6:
-		return sizeof(struct sockaddr_in6);
+	switch (sa->sa_family)
+	{
+		case AF_INET:
+			return sizeof(struct sockaddr_in);
+
+		case AF_INET6:
+			return sizeof(struct sockaddr_in6);
 	}
+
 	BUG();
 }
 
@@ -187,26 +199,27 @@ static inline unsigned short svc_xprt_remote_port(const struct svc_xprt *xprt)
 }
 
 static inline char *__svc_print_addr(const struct sockaddr *addr,
-				     char *buf, const size_t len)
+									 char *buf, const size_t len)
 {
 	const struct sockaddr_in *sin = (const struct sockaddr_in *)addr;
 	const struct sockaddr_in6 *sin6 = (const struct sockaddr_in6 *)addr;
 
-	switch (addr->sa_family) {
-	case AF_INET:
-		snprintf(buf, len, "%pI4, port=%u", &sin->sin_addr,
-			ntohs(sin->sin_port));
-		break;
+	switch (addr->sa_family)
+	{
+		case AF_INET:
+			snprintf(buf, len, "%pI4, port=%u", &sin->sin_addr,
+					 ntohs(sin->sin_port));
+			break;
 
-	case AF_INET6:
-		snprintf(buf, len, "%pI6, port=%u",
-			 &sin6->sin6_addr,
-			ntohs(sin6->sin6_port));
-		break;
+		case AF_INET6:
+			snprintf(buf, len, "%pI6, port=%u",
+					 &sin6->sin6_addr,
+					 ntohs(sin6->sin6_port));
+			break;
 
-	default:
-		snprintf(buf, len, "unknown address type: %d", addr->sa_family);
-		break;
+		default:
+			snprintf(buf, len, "unknown address type: %d", addr->sa_family);
+			break;
 	}
 
 	return buf;

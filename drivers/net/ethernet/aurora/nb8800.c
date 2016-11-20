@@ -68,27 +68,31 @@ static inline void nb8800_writel(struct nb8800_priv *priv, int reg, u32 val)
 }
 
 static inline void nb8800_maskb(struct nb8800_priv *priv, int reg,
-				u32 mask, u32 val)
+								u32 mask, u32 val)
 {
 	u32 old = nb8800_readb(priv, reg);
 	u32 new = (old & ~mask) | (val & mask);
 
 	if (new != old)
+	{
 		nb8800_writeb(priv, reg, new);
+	}
 }
 
 static inline void nb8800_maskl(struct nb8800_priv *priv, int reg,
-				u32 mask, u32 val)
+								u32 mask, u32 val)
 {
 	u32 old = nb8800_readl(priv, reg);
 	u32 new = (old & ~mask) | (val & mask);
 
 	if (new != old)
+	{
 		nb8800_writel(priv, reg, new);
+	}
 }
 
 static inline void nb8800_modb(struct nb8800_priv *priv, int reg, u8 bits,
-			       bool set)
+							   bool set)
 {
 	nb8800_maskb(priv, reg, bits, set ? bits : 0);
 }
@@ -104,7 +108,7 @@ static inline void nb8800_clearb(struct nb8800_priv *priv, int reg, u8 bits)
 }
 
 static inline void nb8800_modl(struct nb8800_priv *priv, int reg, u32 bits,
-			       bool set)
+							   bool set)
 {
 	nb8800_maskl(priv, reg, bits, set ? bits : 0);
 }
@@ -125,7 +129,7 @@ static int nb8800_mdio_wait(struct mii_bus *bus)
 	u32 val;
 
 	return readl_poll_timeout_atomic(priv->base + NB8800_MDIO_CMD,
-					 val, !(val & MDIO_CMD_GO), 1, 1000);
+									 val, !(val & MDIO_CMD_GO), 1, 1000);
 }
 
 static int nb8800_mdio_cmd(struct mii_bus *bus, u32 cmd)
@@ -134,8 +138,11 @@ static int nb8800_mdio_cmd(struct mii_bus *bus, u32 cmd)
 	int err;
 
 	err = nb8800_mdio_wait(bus);
+
 	if (err)
+	{
 		return err;
+	}
 
 	nb8800_writel(priv, NB8800_MDIO_CMD, cmd);
 	udelay(10);
@@ -151,12 +158,18 @@ static int nb8800_mdio_read(struct mii_bus *bus, int phy_id, int reg)
 	int err;
 
 	err = nb8800_mdio_cmd(bus, MDIO_CMD_ADDR(phy_id) | MDIO_CMD_REG(reg));
+
 	if (err)
+	{
 		return err;
+	}
 
 	val = nb8800_readl(priv, NB8800_MDIO_STS);
+
 	if (val & MDIO_STS_ERR)
+	{
 		return 0xffff;
+	}
 
 	return val & 0xffff;
 }
@@ -164,7 +177,7 @@ static int nb8800_mdio_read(struct mii_bus *bus, int phy_id, int reg)
 static int nb8800_mdio_write(struct mii_bus *bus, int phy_id, int reg, u16 val)
 {
 	u32 cmd = MDIO_CMD_ADDR(phy_id) | MDIO_CMD_REG(reg) |
-		MDIO_CMD_DATA(val) | MDIO_CMD_WR;
+			  MDIO_CMD_DATA(val) | MDIO_CMD_WR;
 
 	return nb8800_mdio_cmd(bus, cmd);
 }
@@ -174,7 +187,9 @@ static void nb8800_mac_tx(struct net_device *dev, bool enable)
 	struct nb8800_priv *priv = netdev_priv(dev);
 
 	while (nb8800_readl(priv, NB8800_TXC_CR) & TCR_EN)
+	{
 		cpu_relax();
+	}
 
 	nb8800_modb(priv, NB8800_TX_CTL1, TX_EN, enable);
 }
@@ -206,16 +221,20 @@ static int nb8800_alloc_rx(struct net_device *dev, unsigned int i, bool napi)
 	void *data;
 
 	data = napi ? napi_alloc_frag(size) : netdev_alloc_frag(size);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	page = virt_to_head_page(data);
 	offset = data - page_address(page);
 
 	dma_addr = dma_map_page(&dev->dev, page, offset, RX_BUF_SIZE,
-				DMA_FROM_DEVICE);
+							DMA_FROM_DEVICE);
 
-	if (dma_mapping_error(&dev->dev, dma_addr)) {
+	if (dma_mapping_error(&dev->dev, dma_addr))
+	{
 		skb_free_frag(data);
 		return -ENOMEM;
 	}
@@ -228,7 +247,7 @@ static int nb8800_alloc_rx(struct net_device *dev, unsigned int i, bool napi)
 }
 
 static void nb8800_receive(struct net_device *dev, unsigned int i,
-			   unsigned int len)
+						   unsigned int len)
 {
 	struct nb8800_priv *priv = netdev_priv(dev);
 	struct nb8800_rx_desc *rxd = &priv->rx_descs[i];
@@ -243,20 +262,27 @@ static void nb8800_receive(struct net_device *dev, unsigned int i,
 	size = len <= RX_COPYBREAK ? len : RX_COPYHDR;
 
 	skb = napi_alloc_skb(&priv->napi, size);
-	if (!skb) {
+
+	if (!skb)
+	{
 		netdev_err(dev, "rx skb allocation failed\n");
 		dev->stats.rx_dropped++;
 		return;
 	}
 
-	if (len <= RX_COPYBREAK) {
+	if (len <= RX_COPYBREAK)
+	{
 		dma_sync_single_for_cpu(&dev->dev, dma, len, DMA_FROM_DEVICE);
 		memcpy(skb_put(skb, len), data, len);
 		dma_sync_single_for_device(&dev->dev, dma, len,
-					   DMA_FROM_DEVICE);
-	} else {
+								   DMA_FROM_DEVICE);
+	}
+	else
+	{
 		err = nb8800_alloc_rx(dev, i, true);
-		if (err) {
+
+		if (err)
+		{
 			netdev_err(dev, "rx buffer allocation failed\n");
 			dev->stats.rx_dropped++;
 			dev_kfree_skb(skb);
@@ -266,8 +292,8 @@ static void nb8800_receive(struct net_device *dev, unsigned int i,
 		dma_unmap_page(&dev->dev, dma, RX_BUF_SIZE, DMA_FROM_DEVICE);
 		memcpy(skb_put(skb, RX_COPYHDR), data, RX_COPYHDR);
 		skb_add_rx_frag(skb, skb_shinfo(skb)->nr_frags, page,
-				offset + RX_COPYHDR, len - RX_COPYHDR,
-				RX_BUF_SIZE);
+						offset + RX_COPYHDR, len - RX_COPYHDR,
+						RX_BUF_SIZE);
 	}
 
 	skb->protocol = eth_type_trans(skb, dev);
@@ -277,16 +303,24 @@ static void nb8800_receive(struct net_device *dev, unsigned int i,
 static void nb8800_rx_error(struct net_device *dev, u32 report)
 {
 	if (report & RX_LENGTH_ERR)
+	{
 		dev->stats.rx_length_errors++;
+	}
 
 	if (report & RX_FCS_ERR)
+	{
 		dev->stats.rx_crc_errors++;
+	}
 
 	if (report & RX_FIFO_OVERRUN)
+	{
 		dev->stats.rx_fifo_errors++;
+	}
 
 	if (report & RX_ALIGNMENT_ERROR)
+	{
 		dev->stats.rx_frame_errors++;
+	}
 
 	dev->stats.rx_errors++;
 }
@@ -303,7 +337,9 @@ static int nb8800_poll(struct napi_struct *napi, int budget)
 	nb8800_tx_done(dev);
 
 again:
-	do {
+
+	do
+	{
 		struct nb8800_rx_buf *rxb;
 		unsigned int len;
 
@@ -313,27 +349,37 @@ again:
 		rxd = &priv->rx_descs[next];
 
 		if (!rxd->report)
+		{
 			break;
+		}
 
 		len = RX_BYTES_TRANSFERRED(rxd->report);
 
 		if (IS_RX_ERROR(rxd->report))
+		{
 			nb8800_rx_error(dev, rxd->report);
+		}
 		else
+		{
 			nb8800_receive(dev, next, len);
+		}
 
 		dev->stats.rx_packets++;
 		dev->stats.rx_bytes += len;
 
 		if (rxd->report & RX_MULTICAST_PKT)
+		{
 			dev->stats.multicast++;
+		}
 
 		rxd->report = 0;
 		last = next;
 		work++;
-	} while (work < budget);
+	}
+	while (work < budget);
 
-	if (work) {
+	if (work)
+	{
 		priv->rx_descs[last].desc.config |= DESC_EOC;
 		wmb();	/* ensure new EOC is written before clearing old */
 		priv->rx_descs[priv->rx_eoc].desc.config &= ~DESC_EOC;
@@ -341,7 +387,8 @@ again:
 		nb8800_start_rx(dev);
 	}
 
-	if (work < budget) {
+	if (work < budget)
+	{
 		nb8800_writel(priv, NB8800_RX_ITR, priv->rx_itr_irq);
 
 		/* If a packet arrived after we last checked but
@@ -349,7 +396,9 @@ again:
 		 * delayed, so we retrieve it now.
 		 */
 		if (priv->rx_descs[next].report)
+		{
 			goto again;
+		}
 
 		napi_complete_done(napi, work);
 	}
@@ -364,12 +413,18 @@ static void __nb8800_tx_dma_start(struct net_device *dev)
 	u32 txc_cr;
 
 	txb = &priv->tx_bufs[priv->tx_queue];
+
 	if (!txb->ready)
+	{
 		return;
+	}
 
 	txc_cr = nb8800_readl(priv, NB8800_TXC_CR);
+
 	if (txc_cr & TCR_EN)
+	{
 		return;
+	}
 
 	nb8800_writel(priv, NB8800_TX_DESC_ADDR, txb->dma_desc);
 	wmb();		/* ensure desc addr is written before starting DMA */
@@ -407,7 +462,8 @@ static int nb8800_xmit(struct sk_buff *skb, struct net_device *dev)
 	unsigned int align;
 	unsigned int next;
 
-	if (atomic_read(&priv->tx_free) <= NB8800_DESC_LOW) {
+	if (atomic_read(&priv->tx_free) <= NB8800_DESC_LOW)
+	{
 		netif_stop_queue(dev);
 		return NETDEV_TX_BUSY;
 	}
@@ -416,16 +472,18 @@ static int nb8800_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	dma_len = skb->len - align;
 	dma_addr = dma_map_single(&dev->dev, skb->data + align,
-				  dma_len, DMA_TO_DEVICE);
+							  dma_len, DMA_TO_DEVICE);
 
-	if (dma_mapping_error(&dev->dev, dma_addr)) {
+	if (dma_mapping_error(&dev->dev, dma_addr))
+	{
 		netdev_err(dev, "tx dma mapping error\n");
 		kfree_skb(skb);
 		dev->stats.tx_dropped++;
 		return NETDEV_TX_OK;
 	}
 
-	if (atomic_dec_return(&priv->tx_free) <= NB8800_DESC_LOW) {
+	if (atomic_dec_return(&priv->tx_free) <= NB8800_DESC_LOW)
+	{
 		netif_stop_queue(dev);
 		skb->xmit_more = 0;
 	}
@@ -437,7 +495,8 @@ static int nb8800_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	next = (next + 1) % TX_DESC_COUNT;
 
-	if (align) {
+	if (align)
+	{
 		memcpy(txd->buf, skb->data, align);
 
 		desc->s_addr =
@@ -453,16 +512,21 @@ static int nb8800_xmit(struct sk_buff *skb, struct net_device *dev)
 	desc->config = DESC_BTS(2) | DESC_DS | DESC_EOF | dma_len;
 
 	if (!skb->xmit_more)
+	{
 		desc->config |= DESC_EOC;
+	}
 
 	txb->skb = skb;
 	txb->dma_addr = dma_addr;
 	txb->dma_len = dma_len;
 
-	if (!priv->tx_chain) {
+	if (!priv->tx_chain)
+	{
 		txb->chain_len = 1;
 		priv->tx_chain = txb;
-	} else {
+	}
+	else
+	{
 		priv->tx_chain->chain_len++;
 	}
 
@@ -470,7 +534,8 @@ static int nb8800_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	priv->tx_next = next;
 
-	if (!skb->xmit_more) {
+	if (!skb->xmit_more)
+	{
 		smp_wmb();
 		priv->tx_chain->ready = true;
 		priv->tx_chain = NULL;
@@ -483,13 +548,19 @@ static int nb8800_xmit(struct sk_buff *skb, struct net_device *dev)
 static void nb8800_tx_error(struct net_device *dev, u32 report)
 {
 	if (report & TX_LATE_COLLISION)
+	{
 		dev->stats.collisions++;
+	}
 
 	if (report & TX_PACKET_DROPPED)
+	{
 		dev->stats.tx_dropped++;
+	}
 
 	if (report & TX_FIFO_UNDERRUN)
+	{
 		dev->stats.tx_fifo_errors++;
+	}
 
 	dev->stats.tx_errors++;
 }
@@ -502,24 +573,30 @@ static void nb8800_tx_done(struct net_device *dev)
 	unsigned int packets = 0;
 	unsigned int len = 0;
 
-	while (done != limit) {
+	while (done != limit)
+	{
 		struct nb8800_tx_desc *txd = &priv->tx_descs[done];
 		struct nb8800_tx_buf *txb = &priv->tx_bufs[done];
 		struct sk_buff *skb;
 
 		if (!txd->report)
+		{
 			break;
+		}
 
 		skb = txb->skb;
 		len += skb->len;
 
 		dma_unmap_single(&dev->dev, txb->dma_addr, txb->dma_len,
-				 DMA_TO_DEVICE);
+						 DMA_TO_DEVICE);
 
-		if (IS_TX_ERROR(txd->report)) {
+		if (IS_TX_ERROR(txd->report))
+		{
 			nb8800_tx_error(dev, txd->report);
 			kfree_skb(skb);
-		} else {
+		}
+		else
+		{
 			consume_skb(skb);
 		}
 
@@ -535,7 +612,8 @@ static void nb8800_tx_done(struct net_device *dev)
 		packets++;
 	}
 
-	if (packets) {
+	if (packets)
+	{
 		smp_mb__before_atomic();
 		atomic_add(packets, &priv->tx_free);
 		netdev_completed_queue(dev, packets, len);
@@ -553,41 +631,58 @@ static irqreturn_t nb8800_irq(int irq, void *dev_id)
 
 	/* tx interrupt */
 	val = nb8800_readl(priv, NB8800_TXC_SR);
-	if (val) {
+
+	if (val)
+	{
 		nb8800_writel(priv, NB8800_TXC_SR, val);
 
 		if (val & TSR_DI)
+		{
 			nb8800_tx_dma_start_irq(dev);
+		}
 
 		if (val & TSR_TI)
+		{
 			napi_schedule_irqoff(&priv->napi);
+		}
 
 		if (unlikely(val & TSR_DE))
+		{
 			netdev_err(dev, "TX DMA error\n");
+		}
 
 		/* should never happen with automatic status retrieval */
 		if (unlikely(val & TSR_TO))
+		{
 			netdev_err(dev, "TX Status FIFO overflow\n");
+		}
 
 		ret = IRQ_HANDLED;
 	}
 
 	/* rx interrupt */
 	val = nb8800_readl(priv, NB8800_RXC_SR);
-	if (val) {
+
+	if (val)
+	{
 		nb8800_writel(priv, NB8800_RXC_SR, val);
 
-		if (likely(val & (RSR_RI | RSR_DI))) {
+		if (likely(val & (RSR_RI | RSR_DI)))
+		{
 			nb8800_writel(priv, NB8800_RX_ITR, priv->rx_itr_poll);
 			napi_schedule_irqoff(&priv->napi);
 		}
 
 		if (unlikely(val & RSR_DE))
+		{
 			netdev_err(dev, "RX DMA error\n");
+		}
 
 		/* should never happen with automatic status retrieval */
 		if (unlikely(val & RSR_RO))
+		{
 			netdev_err(dev, "RX Status FIFO overflow\n");
+		}
 
 		ret = IRQ_HANDLED;
 	}
@@ -606,18 +701,25 @@ static void nb8800_mac_config(struct net_device *dev)
 	u32 ict;
 
 	if (!priv->duplex)
+	{
 		mac_mode |= HALF_DUPLEX;
+	}
 
-	if (gigabit) {
+	if (gigabit)
+	{
 		if (priv->phy_mode == PHY_INTERFACE_MODE_RGMII)
+		{
 			mac_mode |= RGMII_MODE;
+		}
 
 		mac_mode |= GMAC_MODE;
 		phy_clk = 125000000;
 
 		/* Should be 512 but register is only 8 bits */
 		slot_time = 255;
-	} else {
+	}
+	else
+	{
 		phy_clk = 25000000;
 		slot_time = 128;
 	}
@@ -635,9 +737,12 @@ static void nb8800_pause_config(struct net_device *dev)
 	struct phy_device *phydev = dev->phydev;
 	u32 rxcr;
 
-	if (priv->pause_aneg) {
+	if (priv->pause_aneg)
+	{
 		if (!phydev || !phydev->link)
+		{
 			return;
+		}
 
 		priv->pause_rx = phydev->pause;
 		priv->pause_tx = phydev->pause ^ phydev->asym_pause;
@@ -646,10 +751,14 @@ static void nb8800_pause_config(struct net_device *dev)
 	nb8800_modb(priv, NB8800_RX_CTL, RX_PAUSE_EN, priv->pause_rx);
 
 	rxcr = nb8800_readl(priv, NB8800_RXC_CR);
-	if (!!(rxcr & RCR_FL) == priv->pause_tx)
-		return;
 
-	if (netif_running(dev)) {
+	if (!!(rxcr & RCR_FL) == priv->pause_tx)
+	{
+		return;
+	}
+
+	if (netif_running(dev))
+	{
 		napi_disable(&priv->napi);
 		netif_tx_lock_bh(dev);
 		nb8800_dma_stop(dev);
@@ -657,7 +766,9 @@ static void nb8800_pause_config(struct net_device *dev)
 		nb8800_start_rx(dev);
 		netif_tx_unlock_bh(dev);
 		napi_enable(&priv->napi);
-	} else {
+	}
+	else
+	{
 		nb8800_modl(priv, NB8800_RXC_CR, RCR_FL, priv->pause_tx);
 	}
 }
@@ -668,30 +779,38 @@ static void nb8800_link_reconfigure(struct net_device *dev)
 	struct phy_device *phydev = dev->phydev;
 	int change = 0;
 
-	if (phydev->link) {
-		if (phydev->speed != priv->speed) {
+	if (phydev->link)
+	{
+		if (phydev->speed != priv->speed)
+		{
 			priv->speed = phydev->speed;
 			change = 1;
 		}
 
-		if (phydev->duplex != priv->duplex) {
+		if (phydev->duplex != priv->duplex)
+		{
 			priv->duplex = phydev->duplex;
 			change = 1;
 		}
 
 		if (change)
+		{
 			nb8800_mac_config(dev);
+		}
 
 		nb8800_pause_config(dev);
 	}
 
-	if (phydev->link != priv->link) {
+	if (phydev->link != priv->link)
+	{
 		priv->link = phydev->link;
 		change = 1;
 	}
 
 	if (change)
+	{
 		phy_print_status(phydev);
+	}
 }
 
 static void nb8800_update_mac_addr(struct net_device *dev)
@@ -700,10 +819,14 @@ static void nb8800_update_mac_addr(struct net_device *dev)
 	int i;
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		nb8800_writeb(priv, NB8800_SRC_ADDR(i), dev->dev_addr[i]);
+	}
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		nb8800_writeb(priv, NB8800_UC_ADDR(i), dev->dev_addr[i]);
+	}
 }
 
 static int nb8800_set_mac_address(struct net_device *dev, void *addr)
@@ -711,7 +834,9 @@ static int nb8800_set_mac_address(struct net_device *dev, void *addr)
 	struct sockaddr *sock = addr;
 
 	if (netif_running(dev))
+	{
 		return -EBUSY;
+	}
 
 	ether_addr_copy(dev->dev_addr, sock->sa_data);
 	nb8800_update_mac_addr(dev);
@@ -725,7 +850,7 @@ static void nb8800_mc_init(struct net_device *dev, int val)
 
 	nb8800_writeb(priv, NB8800_MC_INIT, val);
 	readb_poll_timeout_atomic(priv->base + NB8800_MC_INIT, val, !val,
-				  1, 1000);
+							  1, 1000);
 }
 
 static void nb8800_set_rx_mode(struct net_device *dev)
@@ -734,7 +859,8 @@ static void nb8800_set_rx_mode(struct net_device *dev)
 	struct netdev_hw_addr *ha;
 	int i;
 
-	if (dev->flags & (IFF_PROMISC | IFF_ALLMULTI)) {
+	if (dev->flags & (IFF_PROMISC | IFF_ALLMULTI))
+	{
 		nb8800_mac_af(dev, false);
 		return;
 	}
@@ -742,9 +868,12 @@ static void nb8800_set_rx_mode(struct net_device *dev)
 	nb8800_mac_af(dev, true);
 	nb8800_mc_init(dev, 0);
 
-	netdev_for_each_mc_addr(ha, dev) {
+	netdev_for_each_mc_addr(ha, dev)
+	{
 		for (i = 0; i < ETH_ALEN; i++)
+		{
 			nb8800_writeb(priv, NB8800_MC_ADDR(i), ha->addr[i]);
+		}
 
 		nb8800_mc_init(dev, 0xff);
 	}
@@ -758,32 +887,40 @@ static void nb8800_dma_free(struct net_device *dev)
 	struct nb8800_priv *priv = netdev_priv(dev);
 	unsigned int i;
 
-	if (priv->rx_bufs) {
+	if (priv->rx_bufs)
+	{
 		for (i = 0; i < RX_DESC_COUNT; i++)
 			if (priv->rx_bufs[i].page)
+			{
 				put_page(priv->rx_bufs[i].page);
+			}
 
 		kfree(priv->rx_bufs);
 		priv->rx_bufs = NULL;
 	}
 
-	if (priv->tx_bufs) {
+	if (priv->tx_bufs)
+	{
 		for (i = 0; i < TX_DESC_COUNT; i++)
+		{
 			kfree_skb(priv->tx_bufs[i].skb);
+		}
 
 		kfree(priv->tx_bufs);
 		priv->tx_bufs = NULL;
 	}
 
-	if (priv->rx_descs) {
+	if (priv->rx_descs)
+	{
 		dma_free_coherent(dev->dev.parent, RX_DESC_SIZE, priv->rx_descs,
-				  priv->rx_desc_dma);
+						  priv->rx_desc_dma);
 		priv->rx_descs = NULL;
 	}
 
-	if (priv->tx_descs) {
+	if (priv->tx_descs)
+	{
 		dma_free_coherent(dev->dev.parent, TX_DESC_SIZE, priv->tx_descs,
-				  priv->tx_desc_dma);
+						  priv->tx_desc_dma);
 		priv->tx_descs = NULL;
 	}
 }
@@ -795,7 +932,8 @@ static void nb8800_dma_reset(struct net_device *dev)
 	struct nb8800_tx_desc *txd;
 	unsigned int i;
 
-	for (i = 0; i < RX_DESC_COUNT; i++) {
+	for (i = 0; i < RX_DESC_COUNT; i++)
+	{
 		dma_addr_t rx_dma = priv->rx_desc_dma + i * sizeof(*rxd);
 
 		rxd = &priv->rx_descs[i];
@@ -811,10 +949,11 @@ static void nb8800_dma_reset(struct net_device *dev)
 
 	priv->rx_eoc = RX_DESC_COUNT - 1;
 
-	for (i = 0; i < TX_DESC_COUNT; i++) {
+	for (i = 0; i < TX_DESC_COUNT; i++)
+	{
 		struct nb8800_tx_buf *txb = &priv->tx_bufs[i];
 		dma_addr_t r_dma = txb->dma_desc +
-			offsetof(struct nb8800_tx_desc, report);
+						   offsetof(struct nb8800_tx_desc, report);
 
 		txd = &priv->tx_descs[i];
 		txd->desc[0].r_addr = r_dma;
@@ -841,28 +980,44 @@ static int nb8800_dma_init(struct net_device *dev)
 	int err;
 
 	priv->rx_descs = dma_alloc_coherent(dev->dev.parent, RX_DESC_SIZE,
-					    &priv->rx_desc_dma, GFP_KERNEL);
+										&priv->rx_desc_dma, GFP_KERNEL);
+
 	if (!priv->rx_descs)
+	{
 		goto err_out;
+	}
 
 	priv->rx_bufs = kcalloc(n_rx, sizeof(*priv->rx_bufs), GFP_KERNEL);
-	if (!priv->rx_bufs)
-		goto err_out;
 
-	for (i = 0; i < n_rx; i++) {
+	if (!priv->rx_bufs)
+	{
+		goto err_out;
+	}
+
+	for (i = 0; i < n_rx; i++)
+	{
 		err = nb8800_alloc_rx(dev, i, false);
+
 		if (err)
+		{
 			goto err_out;
+		}
 	}
 
 	priv->tx_descs = dma_alloc_coherent(dev->dev.parent, TX_DESC_SIZE,
-					    &priv->tx_desc_dma, GFP_KERNEL);
+										&priv->tx_desc_dma, GFP_KERNEL);
+
 	if (!priv->tx_descs)
+	{
 		goto err_out;
+	}
 
 	priv->tx_bufs = kcalloc(n_tx, sizeof(*priv->tx_bufs), GFP_KERNEL);
+
 	if (!priv->tx_bufs)
+	{
 		goto err_out;
+	}
 
 	for (i = 0; i < n_tx; i++)
 		priv->tx_bufs[i].dma_desc =
@@ -891,11 +1046,14 @@ static int nb8800_dma_stop(struct net_device *dev)
 
 	/* wait for tx to finish */
 	err = readl_poll_timeout_atomic(priv->base + NB8800_TXC_CR, txcr,
-					!(txcr & TCR_EN) &&
-					priv->tx_done == priv->tx_next,
-					1000, 1000000);
+									!(txcr & TCR_EN) &&
+									priv->tx_done == priv->tx_next,
+									1000, 1000000);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* The rx DMA only stops if it reaches the end of chain.
 	 * To make this happen, we set the EOC flag on all rx
@@ -906,7 +1064,9 @@ static int nb8800_dma_stop(struct net_device *dev)
 	 */
 
 	for (i = 0; i < RX_DESC_COUNT; i++)
+	{
 		priv->rx_descs[i].desc.config |= DESC_EOC;
+	}
 
 	txd->desc[0].s_addr =
 		txb->dma_desc + offsetof(struct nb8800_tx_desc, buf);
@@ -916,15 +1076,17 @@ static int nb8800_dma_stop(struct net_device *dev)
 	nb8800_mac_af(dev, false);
 	nb8800_setb(priv, NB8800_MAC_MODE, LOOPBACK_EN);
 
-	do {
+	do
+	{
 		nb8800_writel(priv, NB8800_TX_DESC_ADDR, txb->dma_desc);
 		wmb();
 		nb8800_writel(priv, NB8800_TXC_CR, txcr | TCR_EN);
 
 		err = readl_poll_timeout_atomic(priv->base + NB8800_RXC_CR,
-						rxcr, !(rxcr & RCR_EN),
-						1000, 100000);
-	} while (err && --retry);
+										rxcr, !(rxcr & RCR_EN),
+										1000, 100000);
+	}
+	while (err && --retry);
 
 	nb8800_mac_af(dev, true);
 	nb8800_clearb(priv, NB8800_MAC_MODE, LOOPBACK_EN);
@@ -940,12 +1102,19 @@ static void nb8800_pause_adv(struct net_device *dev)
 	u32 adv = 0;
 
 	if (!phydev)
+	{
 		return;
+	}
 
 	if (priv->pause_rx)
+	{
 		adv |= ADVERTISED_Pause | ADVERTISED_Asym_Pause;
+	}
+
 	if (priv->pause_tx)
+	{
 		adv ^= ADVERTISED_Asym_Pause;
+	}
 
 	phydev->supported |= adv;
 	phydev->advertising |= adv;
@@ -962,21 +1131,30 @@ static int nb8800_open(struct net_device *dev)
 	nb8800_writel(priv, NB8800_TXC_SR, 0xf);
 
 	err = nb8800_dma_init(dev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = request_irq(dev->irq, nb8800_irq, 0, dev_name(&dev->dev), dev);
+
 	if (err)
+	{
 		goto err_free_dma;
+	}
 
 	nb8800_mac_rx(dev, true);
 	nb8800_mac_tx(dev, true);
 
 	phydev = of_phy_connect(dev, priv->phy_node,
-				nb8800_link_reconfigure, 0,
-				priv->phy_mode);
+							nb8800_link_reconfigure, 0,
+							priv->phy_mode);
+
 	if (!phydev)
+	{
 		goto err_free_irq;
+	}
 
 	nb8800_pause_adv(dev);
 
@@ -1025,7 +1203,8 @@ static int nb8800_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 	return phy_mii_ioctl(dev->phydev, rq, cmd);
 }
 
-static const struct net_device_ops nb8800_netdev_ops = {
+static const struct net_device_ops nb8800_netdev_ops =
+{
 	.ndo_open		= nb8800_open,
 	.ndo_stop		= nb8800_stop,
 	.ndo_start_xmit		= nb8800_xmit,
@@ -1041,13 +1220,15 @@ static int nb8800_nway_reset(struct net_device *dev)
 	struct phy_device *phydev = dev->phydev;
 
 	if (!phydev)
+	{
 		return -ENODEV;
+	}
 
 	return genphy_restart_aneg(phydev);
 }
 
 static void nb8800_get_pauseparam(struct net_device *dev,
-				  struct ethtool_pauseparam *pp)
+								  struct ethtool_pauseparam *pp)
 {
 	struct nb8800_priv *priv = netdev_priv(dev);
 
@@ -1057,7 +1238,7 @@ static void nb8800_get_pauseparam(struct net_device *dev,
 }
 
 static int nb8800_set_pauseparam(struct net_device *dev,
-				 struct ethtool_pauseparam *pp)
+								 struct ethtool_pauseparam *pp)
 {
 	struct nb8800_priv *priv = netdev_priv(dev);
 	struct phy_device *phydev = dev->phydev;
@@ -1069,14 +1250,19 @@ static int nb8800_set_pauseparam(struct net_device *dev,
 	nb8800_pause_adv(dev);
 
 	if (!priv->pause_aneg)
+	{
 		nb8800_pause_config(dev);
+	}
 	else if (phydev)
+	{
 		phy_start_aneg(phydev);
+	}
 
 	return 0;
 }
 
-static const char nb8800_stats_names[][ETH_GSTRING_LEN] = {
+static const char nb8800_stats_names[][ETH_GSTRING_LEN] =
+{
 	"rx_bytes_ok",
 	"rx_frames_ok",
 	"rx_undersize_frames",
@@ -1129,7 +1315,9 @@ static const char nb8800_stats_names[][ETH_GSTRING_LEN] = {
 static int nb8800_get_sset_count(struct net_device *dev, int sset)
 {
 	if (sset == ETH_SS_STATS)
+	{
 		return NB8800_NUM_STATS;
+	}
 
 	return -EOPNOTSUPP;
 }
@@ -1137,7 +1325,9 @@ static int nb8800_get_sset_count(struct net_device *dev, int sset)
 static void nb8800_get_strings(struct net_device *dev, u32 sset, u8 *buf)
 {
 	if (sset == ETH_SS_STATS)
+	{
 		memcpy(buf, &nb8800_stats_names, sizeof(nb8800_stats_names));
+	}
 }
 
 static u32 nb8800_read_stat(struct net_device *dev, int index)
@@ -1150,12 +1340,13 @@ static u32 nb8800_read_stat(struct net_device *dev, int index)
 }
 
 static void nb8800_get_ethtool_stats(struct net_device *dev,
-				     struct ethtool_stats *estats, u64 *st)
+									 struct ethtool_stats *estats, u64 *st)
 {
 	unsigned int i;
 	u32 rx, tx;
 
-	for (i = 0; i < NB8800_NUM_STATS / 2; i++) {
+	for (i = 0; i < NB8800_NUM_STATS / 2; i++)
+	{
 		rx = nb8800_read_stat(dev, i);
 		tx = nb8800_read_stat(dev, i | 0x80);
 		st[i] = rx;
@@ -1163,7 +1354,8 @@ static void nb8800_get_ethtool_stats(struct net_device *dev,
 	}
 }
 
-static const struct ethtool_ops nb8800_ethtool_ops = {
+static const struct ethtool_ops nb8800_ethtool_ops =
+{
 	.nway_reset		= nb8800_nway_reset,
 	.get_link		= ethtool_op_get_link,
 	.get_pauseparam		= nb8800_get_pauseparam,
@@ -1270,24 +1462,25 @@ static int nb8800_tangox_init(struct net_device *dev)
 	struct nb8800_priv *priv = netdev_priv(dev);
 	u32 pad_mode = PAD_MODE_MII;
 
-	switch (priv->phy_mode) {
-	case PHY_INTERFACE_MODE_MII:
-	case PHY_INTERFACE_MODE_GMII:
-		pad_mode = PAD_MODE_MII;
-		break;
+	switch (priv->phy_mode)
+	{
+		case PHY_INTERFACE_MODE_MII:
+		case PHY_INTERFACE_MODE_GMII:
+			pad_mode = PAD_MODE_MII;
+			break;
 
-	case PHY_INTERFACE_MODE_RGMII:
-		pad_mode = PAD_MODE_RGMII;
-		break;
+		case PHY_INTERFACE_MODE_RGMII:
+			pad_mode = PAD_MODE_RGMII;
+			break;
 
-	case PHY_INTERFACE_MODE_RGMII_TXID:
-		pad_mode = PAD_MODE_RGMII | PAD_MODE_GTX_CLK_DELAY;
-		break;
+		case PHY_INTERFACE_MODE_RGMII_TXID:
+			pad_mode = PAD_MODE_RGMII | PAD_MODE_GTX_CLK_DELAY;
+			break;
 
-	default:
-		dev_err(dev->dev.parent, "unsupported phy mode %s\n",
-			phy_modes(priv->phy_mode));
-		return -EINVAL;
+		default:
+			dev_err(dev->dev.parent, "unsupported phy mode %s\n",
+					phy_modes(priv->phy_mode));
+			return -EINVAL;
 	}
 
 	nb8800_writeb(priv, NB8800_TANGOX_PAD_MODE, pad_mode);
@@ -1312,7 +1505,8 @@ static int nb8800_tangox_reset(struct net_device *dev)
 	return 0;
 }
 
-static const struct nb8800_ops nb8800_tangox_ops = {
+static const struct nb8800_ops nb8800_tangox_ops =
+{
 	.init	= nb8800_tangox_init,
 	.reset	= nb8800_tangox_reset,
 };
@@ -1323,8 +1517,11 @@ static int nb8800_tango4_init(struct net_device *dev)
 	int err;
 
 	err = nb8800_tangox_init(dev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* On tango4 interrupt on DMA completion per frame works and gives
 	 * better performance despite generating more rx interrupts.
@@ -1339,12 +1536,14 @@ static int nb8800_tango4_init(struct net_device *dev)
 	return 0;
 }
 
-static const struct nb8800_ops nb8800_tango4_ops = {
+static const struct nb8800_ops nb8800_tango4_ops =
+{
 	.init	= nb8800_tango4_init,
 	.reset	= nb8800_tangox_reset,
 };
 
-static const struct of_device_id nb8800_dt_ids[] = {
+static const struct of_device_id nb8800_dt_ids[] =
+{
 	{
 		.compatible = "aurora,nb8800",
 	},
@@ -1374,25 +1573,36 @@ static int nb8800_probe(struct platform_device *pdev)
 	int ret;
 
 	match = of_match_device(nb8800_dt_ids, &pdev->dev);
+
 	if (match)
+	{
 		ops = match->data;
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		dev_err(&pdev->dev, "No IRQ\n");
 		return -EINVAL;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	dev_dbg(&pdev->dev, "AU-NB8800 Ethernet at %pa\n", &res->start);
 
 	dev = alloc_etherdev(sizeof(*priv));
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, dev);
 	SET_NETDEV_DEV(dev, &pdev->dev);
@@ -1401,30 +1611,44 @@ static int nb8800_probe(struct platform_device *pdev)
 	priv->base = base;
 
 	priv->phy_mode = of_get_phy_mode(pdev->dev.of_node);
+
 	if (priv->phy_mode < 0)
+	{
 		priv->phy_mode = PHY_INTERFACE_MODE_RGMII;
+	}
 
 	priv->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(priv->clk)) {
+
+	if (IS_ERR(priv->clk))
+	{
 		dev_err(&pdev->dev, "failed to get clock\n");
 		ret = PTR_ERR(priv->clk);
 		goto err_free_dev;
 	}
 
 	ret = clk_prepare_enable(priv->clk);
+
 	if (ret)
+	{
 		goto err_free_dev;
+	}
 
 	spin_lock_init(&priv->tx_lock);
 
-	if (ops && ops->reset) {
+	if (ops && ops->reset)
+	{
 		ret = ops->reset(dev);
+
 		if (ret)
+		{
 			goto err_disable_clk;
+		}
 	}
 
 	bus = devm_mdiobus_alloc(&pdev->dev);
-	if (!bus) {
+
+	if (!bus)
+	{
 		ret = -ENOMEM;
 		goto err_disable_clk;
 	}
@@ -1434,29 +1658,36 @@ static int nb8800_probe(struct platform_device *pdev)
 	bus->write = nb8800_mdio_write;
 	bus->parent = &pdev->dev;
 	snprintf(bus->id, MII_BUS_ID_SIZE, "%lx.nb8800-mii",
-		 (unsigned long)res->start);
+			 (unsigned long)res->start);
 	bus->priv = priv;
 
 	ret = of_mdiobus_register(bus, pdev->dev.of_node);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register MII bus\n");
 		goto err_disable_clk;
 	}
 
-	if (of_phy_is_fixed_link(pdev->dev.of_node)) {
+	if (of_phy_is_fixed_link(pdev->dev.of_node))
+	{
 		ret = of_phy_register_fixed_link(pdev->dev.of_node);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&pdev->dev, "bad fixed-link spec\n");
 			goto err_free_bus;
 		}
+
 		priv->phy_node = of_node_get(pdev->dev.of_node);
 	}
 
 	if (!priv->phy_node)
 		priv->phy_node = of_parse_phandle(pdev->dev.of_node,
-						  "phy-handle", 0);
+										  "phy-handle", 0);
 
-	if (!priv->phy_node) {
+	if (!priv->phy_node)
+	{
 		dev_err(&pdev->dev, "no PHY specified\n");
 		ret = -ENODEV;
 		goto err_free_bus;
@@ -1465,13 +1696,20 @@ static int nb8800_probe(struct platform_device *pdev)
 	priv->mii_bus = bus;
 
 	ret = nb8800_hw_init(dev);
-	if (ret)
-		goto err_free_bus;
 
-	if (ops && ops->init) {
+	if (ret)
+	{
+		goto err_free_bus;
+	}
+
+	if (ops && ops->init)
+	{
 		ret = ops->init(dev);
+
 		if (ret)
+		{
 			goto err_free_bus;
+		}
 	}
 
 	dev->netdev_ops = &nb8800_netdev_ops;
@@ -1480,18 +1718,25 @@ static int nb8800_probe(struct platform_device *pdev)
 	dev->irq = irq;
 
 	mac = of_get_mac_address(pdev->dev.of_node);
+
 	if (mac)
+	{
 		ether_addr_copy(dev->dev_addr, mac);
+	}
 
 	if (!is_valid_ether_addr(dev->dev_addr))
+	{
 		eth_hw_addr_random(dev);
+	}
 
 	nb8800_update_mac_addr(dev);
 
 	netif_carrier_off(dev);
 
 	ret = register_netdev(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		netdev_err(dev, "failed to register netdev\n");
 		goto err_free_dma;
 	}
@@ -1533,7 +1778,8 @@ static int nb8800_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver nb8800_driver = {
+static struct platform_driver nb8800_driver =
+{
 	.driver = {
 		.name		= "nb8800",
 		.of_match_table	= nb8800_dt_ids,

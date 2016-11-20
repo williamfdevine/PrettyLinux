@@ -15,7 +15,7 @@
 #define PXA_FUNCTION(_dir, _af, _name)				\
 	{							\
 		.name = _name,					\
-		.muxval = (_dir | (_af << 1)),			\
+				.muxval = (_dir | (_af << 1)),			\
 	}
 
 #define PXA_PIN(_pin, funcs...)					\
@@ -46,28 +46,33 @@
 #define PXA_PINCTRL_PIN(pin)		\
 	PINCTRL_PIN(pin, "P" #pin)
 
-struct pxa_desc_function {
+struct pxa_desc_function
+{
 	const char	*name;
 	u8		muxval;
 };
 
-struct pxa_desc_pin {
+struct pxa_desc_pin
+{
 	struct pinctrl_pin_desc		pin;
 	struct pxa_desc_function	*functions;
 };
 
-struct pxa_pinctrl_group {
+struct pxa_pinctrl_group
+{
 	const char	*name;
 	unsigned	pin;
 };
 
-struct pxa_pinctrl_function {
+struct pxa_pinctrl_function
+{
 	const char	*name;
 	const char	**groups;
 	unsigned	ngroups;
 };
 
-struct pxa_pinctrl {
+struct pxa_pinctrl
+{
 	spinlock_t			lock;
 	void __iomem			**base_gafr;
 	void __iomem			**base_gpdr;
@@ -85,8 +90,8 @@ struct pxa_pinctrl {
 };
 
 int pxa2xx_pinctrl_init(struct platform_device *pdev,
-			const struct pxa_desc_pin *ppins, int npins,
-			void __iomem *base_gafr[], void __iomem *base_gpdr[],
-			void __iomem *base_gpsr[]);
+						const struct pxa_desc_pin *ppins, int npins,
+						void __iomem *base_gafr[], void __iomem *base_gpdr[],
+						void __iomem *base_gpsr[]);
 
 #endif /* __PINCTRL_PXA_H */

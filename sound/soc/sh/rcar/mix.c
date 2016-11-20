@@ -12,7 +12,8 @@
 #define MIX_NAME_SIZE	16
 #define MIX_NAME "mix"
 
-struct rsnd_mix {
+struct rsnd_mix
+{
 	struct rsnd_mod mod;
 };
 
@@ -20,9 +21,9 @@ struct rsnd_mix {
 #define rsnd_mix_nr(priv) ((priv)->mix_nr)
 #define for_each_rsnd_mix(pos, priv, i)					\
 	for ((i) = 0;							\
-	     ((i) < rsnd_mix_nr(priv)) &&				\
-		     ((pos) = (struct rsnd_mix *)(priv)->mix + i);	\
-	     i++)
+		 ((i) < rsnd_mix_nr(priv)) &&				\
+		 ((pos) = (struct rsnd_mix *)(priv)->mix + i);	\
+		 i++)
 
 static void rsnd_mix_activation(struct rsnd_mod *mod)
 {
@@ -37,7 +38,7 @@ static void rsnd_mix_halt(struct rsnd_mod *mod)
 }
 
 static void rsnd_mix_volume_parameter(struct rsnd_dai_stream *io,
-				      struct rsnd_mod *mod)
+									  struct rsnd_mod *mod)
 {
 	rsnd_mod_write(mod, MIX_MDBAR, 0);
 	rsnd_mod_write(mod, MIX_MDBBR, 0);
@@ -46,7 +47,7 @@ static void rsnd_mix_volume_parameter(struct rsnd_dai_stream *io,
 }
 
 static void rsnd_mix_volume_init(struct rsnd_dai_stream *io,
-				 struct rsnd_mod *mod)
+								 struct rsnd_mod *mod)
 {
 	rsnd_mod_write(mod, MIX_MIXIR, 1);
 
@@ -64,7 +65,7 @@ static void rsnd_mix_volume_init(struct rsnd_dai_stream *io,
 }
 
 static void rsnd_mix_volume_update(struct rsnd_dai_stream *io,
-				  struct rsnd_mod *mod)
+								   struct rsnd_mod *mod)
 {
 	/* Disable MIX dB setting */
 	rsnd_mod_write(mod, MIX_MDBER, 0);
@@ -77,15 +78,15 @@ static void rsnd_mix_volume_update(struct rsnd_dai_stream *io,
 }
 
 static int rsnd_mix_probe_(struct rsnd_mod *mod,
-			   struct rsnd_dai_stream *io,
-			   struct rsnd_priv *priv)
+						   struct rsnd_dai_stream *io,
+						   struct rsnd_priv *priv)
 {
 	return rsnd_cmd_attach(io, rsnd_mod_id(mod));
 }
 
 static int rsnd_mix_init(struct rsnd_mod *mod,
-			 struct rsnd_dai_stream *io,
-			 struct rsnd_priv *priv)
+						 struct rsnd_dai_stream *io,
+						 struct rsnd_priv *priv)
 {
 	rsnd_mod_power_on(mod);
 
@@ -99,8 +100,8 @@ static int rsnd_mix_init(struct rsnd_mod *mod,
 }
 
 static int rsnd_mix_quit(struct rsnd_mod *mod,
-			 struct rsnd_dai_stream *io,
-			 struct rsnd_priv *priv)
+						 struct rsnd_dai_stream *io,
+						 struct rsnd_priv *priv)
 {
 	rsnd_mix_halt(mod);
 
@@ -109,7 +110,8 @@ static int rsnd_mix_quit(struct rsnd_mod *mod,
 	return 0;
 }
 
-static struct rsnd_mod_ops rsnd_mix_ops = {
+static struct rsnd_mod_ops rsnd_mix_ops =
+{
 	.name		= MIX_NAME,
 	.probe		= rsnd_mix_probe_,
 	.init		= rsnd_mix_init,
@@ -119,7 +121,9 @@ static struct rsnd_mod_ops rsnd_mix_ops = {
 struct rsnd_mod *rsnd_mix_mod_get(struct rsnd_priv *priv, int id)
 {
 	if (WARN_ON(id < 0 || id >= rsnd_mix_nr(priv)))
+	{
 		id = 0;
+	}
 
 	return rsnd_mod_get(rsnd_mix_get(priv, id));
 }
@@ -136,20 +140,29 @@ int rsnd_mix_probe(struct rsnd_priv *priv)
 
 	/* This driver doesn't support Gen1 at this point */
 	if (rsnd_is_gen1(priv))
+	{
 		return 0;
+	}
 
 	node = rsnd_mix_of_node(priv);
+
 	if (!node)
-		return 0; /* not used is not error */
+	{
+		return 0;    /* not used is not error */
+	}
 
 	nr = of_get_child_count(node);
-	if (!nr) {
+
+	if (!nr)
+	{
 		ret = -EINVAL;
 		goto rsnd_mix_probe_done;
 	}
 
 	mix	= devm_kzalloc(dev, sizeof(*mix) * nr, GFP_KERNEL);
-	if (!mix) {
+
+	if (!mix)
+	{
 		ret = -ENOMEM;
 		goto rsnd_mix_probe_done;
 	}
@@ -159,22 +172,28 @@ int rsnd_mix_probe(struct rsnd_priv *priv)
 
 	i = 0;
 	ret = 0;
-	for_each_child_of_node(node, np) {
+	for_each_child_of_node(node, np)
+	{
 		mix = rsnd_mix_get(priv, i);
 
 		snprintf(name, MIX_NAME_SIZE, "%s.%d",
-			 MIX_NAME, i);
+				 MIX_NAME, i);
 
 		clk = devm_clk_get(dev, name);
-		if (IS_ERR(clk)) {
+
+		if (IS_ERR(clk))
+		{
 			ret = PTR_ERR(clk);
 			goto rsnd_mix_probe_done;
 		}
 
 		ret = rsnd_mod_init(priv, rsnd_mod_get(mix), &rsnd_mix_ops,
-				    clk, rsnd_mod_get_status, RSND_MOD_MIX, i);
+							clk, rsnd_mod_get_status, RSND_MOD_MIX, i);
+
 		if (ret)
+		{
 			goto rsnd_mix_probe_done;
+		}
 
 		i++;
 	}
@@ -190,7 +209,8 @@ void rsnd_mix_remove(struct rsnd_priv *priv)
 	struct rsnd_mix *mix;
 	int i;
 
-	for_each_rsnd_mix(mix, priv, i) {
+	for_each_rsnd_mix(mix, priv, i)
+	{
 		rsnd_mod_quit(rsnd_mod_get(mix));
 	}
 }

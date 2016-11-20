@@ -13,7 +13,8 @@
 #define MSG_COPY        040000  /* copy (not remove) all queue messages */
 
 /* Obsolete, used only for backwards compatibility and libc5 compiles */
-struct msqid_ds {
+struct msqid_ds
+{
 	struct ipc_perm msg_perm;
 	struct msg *msg_first;		/* first message on queue,unused  */
 	struct msg *msg_last;		/* last message in queue,unused */
@@ -33,21 +34,23 @@ struct msqid_ds {
 #include <asm/msgbuf.h>
 
 /* message buffer for msgsnd and msgrcv calls */
-struct msgbuf {
+struct msgbuf
+{
 	__kernel_long_t mtype;          /* type of message */
 	char mtext[1];                  /* message text */
 };
 
 /* buffer for msgctl calls IPC_INFO, MSG_INFO */
-struct msginfo {
+struct msginfo
+{
 	int msgpool;
-	int msgmap; 
-	int msgmax; 
-	int msgmnb; 
-	int msgmni; 
-	int msgssz; 
-	int msgtql; 
-	unsigned short  msgseg; 
+	int msgmap;
+	int msgmax;
+	int msgmnb;
+	int msgmni;
+	int msgssz;
+	int msgtql;
+	unsigned short  msgseg;
 };
 
 /*

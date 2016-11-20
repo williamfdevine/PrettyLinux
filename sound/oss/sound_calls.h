@@ -34,7 +34,7 @@ int audio_write (int dev, struct file *file, const char __user *buf, int count);
 int audio_open (int dev, struct file *file);
 void audio_release (int dev, struct file *file);
 int audio_ioctl (int dev, struct file *file,
-	   unsigned int cmd, void __user *arg);
+				 unsigned int cmd, void __user *arg);
 void audio_init_devices (void);
 void reorganize_buffers (int dev, struct dma_buffparms *dmap, int recording);
 
@@ -47,14 +47,14 @@ int sequencer_write (int dev, struct file *file, const char __user *buf, int cou
 int sequencer_open (int dev, struct file *file);
 void sequencer_release (int dev, struct file *file);
 int sequencer_ioctl (int dev, struct file *file, unsigned int cmd, void __user *arg);
-unsigned int sequencer_poll(int dev, struct file *file, poll_table * wait);
+unsigned int sequencer_poll(int dev, struct file *file, poll_table *wait);
 
 void sequencer_init (void);
 void sequencer_unload (void);
 void sequencer_timer(unsigned long dummy);
 int note_to_freq(int note_num);
 unsigned long compute_finetune(unsigned long base_freq, int bend, int range,
-			       int vibrato_bend);
+							   int vibrato_bend);
 void seq_input_event(unsigned char *event, int len);
 void seq_copy_to_input (unsigned char *event, int len);
 
@@ -67,7 +67,7 @@ int MIDIbuf_write (int dev, struct file *file, const char __user *buf, int count
 int MIDIbuf_open (int dev, struct file *file);
 void MIDIbuf_release (int dev, struct file *file);
 int MIDIbuf_ioctl (int dev, struct file *file, unsigned int cmd, void __user *arg);
-unsigned int MIDIbuf_poll(int dev, struct file *file, poll_table * wait);
+unsigned int MIDIbuf_poll(int dev, struct file *file, poll_table *wait);
 int MIDIbuf_avail(int dev);
 
 void MIDIbuf_bytes_received(int dev, unsigned char *buf, int count);

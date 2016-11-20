@@ -65,25 +65,25 @@ struct stv0299_config
 	 * First of each pair is the register, second is the value.
 	 * List should be terminated with an 0xff, 0xff pair.
 	 */
-	const u8* inittab;
+	const u8 *inittab;
 
 	/* master clock to use */
 	u32 mclk;
 
 	/* does the inversion require inversion? */
-	u8 invert:1;
+	u8 invert: 1;
 
 	/* Skip reinitialisation? */
-	u8 skip_reinit:1;
+	u8 skip_reinit: 1;
 
 	/* LOCK OUTPUT setting */
-	u8 lock_output:2;
+	u8 lock_output: 2;
 
 	/* Is 13v controlled by OP0 or OP1? */
-	u8 volt13_op0_op1:1;
+	u8 volt13_op0_op1: 1;
 
 	/* Turn-off OP0? */
-	u8 op0_off:1;
+	u8 op0_off: 1;
 
 	/* minimum delay before retuning */
 	int min_delay_ms;
@@ -97,21 +97,26 @@ struct stv0299_config
 
 #if IS_REACHABLE(CONFIG_DVB_STV0299)
 extern struct dvb_frontend *stv0299_attach(const struct stv0299_config *config,
-					   struct i2c_adapter *i2c);
+		struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *stv0299_attach(const struct stv0299_config *config,
-					   struct i2c_adapter *i2c)
+		struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
 }
 #endif // CONFIG_DVB_STV0299
 
-static inline int stv0299_writereg(struct dvb_frontend *fe, u8 reg, u8 val) {
+static inline int stv0299_writereg(struct dvb_frontend *fe, u8 reg, u8 val)
+{
 	int r = 0;
 	u8 buf[] = {reg, val};
+
 	if (fe->ops.write)
+	{
 		r = fe->ops.write(fe, buf, 2);
+	}
+
 	return r;
 }
 

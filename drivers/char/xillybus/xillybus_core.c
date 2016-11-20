@@ -113,8 +113,8 @@ static void malformed_message(struct xilly_endpoint *endpoint, u32 *buf)
 	msg_data = buf[1] & 0xfffffff;
 
 	dev_warn(endpoint->dev,
-		 "Malformed message (skipping): opcode=%d, channel=%03x, dir=%d, bufno=%03x, data=%07x\n",
-		 opcode, msg_channel, msg_dir, msg_bufno, msg_data);
+			 "Malformed message (skipping): opcode=%d, channel=%03x, dir=%d, bufno=%03x, data=%07x\n",
+			 opcode, msg_channel, msg_dir, msg_bufno, msg_data);
 }
 
 /*
@@ -134,26 +134,31 @@ irqreturn_t xillybus_isr(int irq, void *data)
 	struct xilly_channel *channel;
 
 	buf = ep->msgbuf_addr;
-	buf_size = ep->msg_buf_size/sizeof(u32);
+	buf_size = ep->msg_buf_size / sizeof(u32);
 
 	ep->ephw->hw_sync_sgl_for_cpu(ep,
-				      ep->msgbuf_dma_addr,
-				      ep->msg_buf_size,
-				      DMA_FROM_DEVICE);
+								  ep->msgbuf_dma_addr,
+								  ep->msg_buf_size,
+								  DMA_FROM_DEVICE);
 
-	for (i = 0; i < buf_size; i += 2) {
-		if (((buf[i+1] >> 28) & 0xf) != ep->msg_counter) {
+	for (i = 0; i < buf_size; i += 2)
+	{
+		if (((buf[i + 1] >> 28) & 0xf) != ep->msg_counter)
+		{
 			malformed_message(ep, &buf[i]);
 			dev_warn(ep->dev,
-				 "Sending a NACK on counter %x (instead of %x) on entry %d\n",
-				 ((buf[i+1] >> 28) & 0xf),
-				 ep->msg_counter,
-				 i/2);
+					 "Sending a NACK on counter %x (instead of %x) on entry %d\n",
+					 ((buf[i + 1] >> 28) & 0xf),
+					 ep->msg_counter,
+					 i / 2);
 
-			if (++ep->failed_messages > 10) {
+			if (++ep->failed_messages > 10)
+			{
 				dev_err(ep->dev,
-					"Lost sync with interrupt messages. Stopping.\n");
-			} else {
+						"Lost sync with interrupt messages. Stopping.\n");
+			}
+			else
+			{
 				ep->ephw->hw_sync_sgl_for_device(
 					ep,
 					ep->msgbuf_dma_addr,
@@ -161,138 +166,167 @@ irqreturn_t xillybus_isr(int irq, void *data)
 					DMA_FROM_DEVICE);
 
 				iowrite32(0x01,  /* Message NACK */
-					  ep->registers + fpga_msg_ctrl_reg);
+						  ep->registers + fpga_msg_ctrl_reg);
 			}
+
 			return IRQ_HANDLED;
-		} else if (buf[i] & (1 << 22)) /* Last message */
+		}
+		else if (buf[i] & (1 << 22))   /* Last message */
+		{
 			break;
+		}
 	}
 
-	if (i >= buf_size) {
+	if (i >= buf_size)
+	{
 		dev_err(ep->dev, "Bad interrupt message. Stopping.\n");
 		return IRQ_HANDLED;
 	}
 
 	buf_size = i + 2;
 
-	for (i = 0; i < buf_size; i += 2) { /* Scan through messages */
+	for (i = 0; i < buf_size; i += 2)   /* Scan through messages */
+	{
 		opcode = (buf[i] >> 24) & 0xff;
 
 		msg_dir = buf[i] & 1;
 		msg_channel = (buf[i] >> 1) & 0x7ff;
 		msg_bufno = (buf[i] >> 12) & 0x3ff;
-		msg_data = buf[i+1] & 0xfffffff;
+		msg_data = buf[i + 1] & 0xfffffff;
 
-		switch (opcode) {
-		case XILLYMSG_OPCODE_RELEASEBUF:
-			if ((msg_channel > ep->num_channels) ||
-			    (msg_channel == 0)) {
-				malformed_message(ep, &buf[i]);
-				break;
-			}
-
-			channel = ep->channels[msg_channel];
-
-			if (msg_dir) { /* Write channel */
-				if (msg_bufno >= channel->num_wr_buffers) {
+		switch (opcode)
+		{
+			case XILLYMSG_OPCODE_RELEASEBUF:
+				if ((msg_channel > ep->num_channels) ||
+					(msg_channel == 0))
+				{
 					malformed_message(ep, &buf[i]);
 					break;
 				}
+
+				channel = ep->channels[msg_channel];
+
+				if (msg_dir)   /* Write channel */
+				{
+					if (msg_bufno >= channel->num_wr_buffers)
+					{
+						malformed_message(ep, &buf[i]);
+						break;
+					}
+
+					spin_lock(&channel->wr_spinlock);
+					channel->wr_buffers[msg_bufno]->end_offset =
+						msg_data;
+					channel->wr_fpga_buf_idx = msg_bufno;
+					channel->wr_empty = 0;
+					channel->wr_sleepy = 0;
+					spin_unlock(&channel->wr_spinlock);
+
+					wake_up_interruptible(&channel->wr_wait);
+
+				}
+				else
+				{
+					/* Read channel */
+
+					if (msg_bufno >= channel->num_rd_buffers)
+					{
+						malformed_message(ep, &buf[i]);
+						break;
+					}
+
+					spin_lock(&channel->rd_spinlock);
+					channel->rd_fpga_buf_idx = msg_bufno;
+					channel->rd_full = 0;
+					spin_unlock(&channel->rd_spinlock);
+
+					wake_up_interruptible(&channel->rd_wait);
+
+					if (!channel->rd_synchronous)
+						queue_delayed_work(
+							xillybus_wq,
+							&channel->rd_workitem,
+							XILLY_RX_TIMEOUT);
+				}
+
+				break;
+
+			case XILLYMSG_OPCODE_NONEMPTY:
+				if ((msg_channel > ep->num_channels) ||
+					(msg_channel == 0) || (!msg_dir) ||
+					!ep->channels[msg_channel]->wr_supports_nonempty)
+				{
+					malformed_message(ep, &buf[i]);
+					break;
+				}
+
+				channel = ep->channels[msg_channel];
+
+				if (msg_bufno >= channel->num_wr_buffers)
+				{
+					malformed_message(ep, &buf[i]);
+					break;
+				}
+
 				spin_lock(&channel->wr_spinlock);
-				channel->wr_buffers[msg_bufno]->end_offset =
-					msg_data;
-				channel->wr_fpga_buf_idx = msg_bufno;
-				channel->wr_empty = 0;
+
+				if (msg_bufno == channel->wr_host_buf_idx)
+				{
+					channel->wr_ready = 1;
+				}
+
+				spin_unlock(&channel->wr_spinlock);
+
+				wake_up_interruptible(&channel->wr_ready_wait);
+
+				break;
+
+			case XILLYMSG_OPCODE_QUIESCEACK:
+				ep->idtlen = msg_data;
+				wake_up_interruptible(&ep->ep_wait);
+
+				break;
+
+			case XILLYMSG_OPCODE_FIFOEOF:
+				if ((msg_channel > ep->num_channels) ||
+					(msg_channel == 0) || (!msg_dir) ||
+					!ep->channels[msg_channel]->num_wr_buffers)
+				{
+					malformed_message(ep, &buf[i]);
+					break;
+				}
+
+				channel = ep->channels[msg_channel];
+				spin_lock(&channel->wr_spinlock);
+				channel->wr_eof = msg_bufno;
 				channel->wr_sleepy = 0;
+
+				channel->wr_hangup = channel->wr_empty &&
+									 (channel->wr_host_buf_idx == msg_bufno);
+
 				spin_unlock(&channel->wr_spinlock);
 
 				wake_up_interruptible(&channel->wr_wait);
 
-			} else {
-				/* Read channel */
+				break;
 
-				if (msg_bufno >= channel->num_rd_buffers) {
-					malformed_message(ep, &buf[i]);
-					break;
-				}
+			case XILLYMSG_OPCODE_FATAL_ERROR:
+				ep->fatal_error = 1;
+				wake_up_interruptible(&ep->ep_wait); /* For select() */
+				dev_err(ep->dev,
+						"FPGA reported a fatal error. This means that the low-level communication with the device has failed. This hardware problem is most likely unrelated to Xillybus (neither kernel module nor FPGA core), but reports are still welcome. All I/O is aborted.\n");
+				break;
 
-				spin_lock(&channel->rd_spinlock);
-				channel->rd_fpga_buf_idx = msg_bufno;
-				channel->rd_full = 0;
-				spin_unlock(&channel->rd_spinlock);
-
-				wake_up_interruptible(&channel->rd_wait);
-				if (!channel->rd_synchronous)
-					queue_delayed_work(
-						xillybus_wq,
-						&channel->rd_workitem,
-						XILLY_RX_TIMEOUT);
-			}
-
-			break;
-		case XILLYMSG_OPCODE_NONEMPTY:
-			if ((msg_channel > ep->num_channels) ||
-			    (msg_channel == 0) || (!msg_dir) ||
-			    !ep->channels[msg_channel]->wr_supports_nonempty) {
+			default:
 				malformed_message(ep, &buf[i]);
 				break;
-			}
-
-			channel = ep->channels[msg_channel];
-
-			if (msg_bufno >= channel->num_wr_buffers) {
-				malformed_message(ep, &buf[i]);
-				break;
-			}
-			spin_lock(&channel->wr_spinlock);
-			if (msg_bufno == channel->wr_host_buf_idx)
-				channel->wr_ready = 1;
-			spin_unlock(&channel->wr_spinlock);
-
-			wake_up_interruptible(&channel->wr_ready_wait);
-
-			break;
-		case XILLYMSG_OPCODE_QUIESCEACK:
-			ep->idtlen = msg_data;
-			wake_up_interruptible(&ep->ep_wait);
-
-			break;
-		case XILLYMSG_OPCODE_FIFOEOF:
-			if ((msg_channel > ep->num_channels) ||
-			    (msg_channel == 0) || (!msg_dir) ||
-			    !ep->channels[msg_channel]->num_wr_buffers) {
-				malformed_message(ep, &buf[i]);
-				break;
-			}
-			channel = ep->channels[msg_channel];
-			spin_lock(&channel->wr_spinlock);
-			channel->wr_eof = msg_bufno;
-			channel->wr_sleepy = 0;
-
-			channel->wr_hangup = channel->wr_empty &&
-				(channel->wr_host_buf_idx == msg_bufno);
-
-			spin_unlock(&channel->wr_spinlock);
-
-			wake_up_interruptible(&channel->wr_wait);
-
-			break;
-		case XILLYMSG_OPCODE_FATAL_ERROR:
-			ep->fatal_error = 1;
-			wake_up_interruptible(&ep->ep_wait); /* For select() */
-			dev_err(ep->dev,
-				"FPGA reported a fatal error. This means that the low-level communication with the device has failed. This hardware problem is most likely unrelated to Xillybus (neither kernel module nor FPGA core), but reports are still welcome. All I/O is aborted.\n");
-			break;
-		default:
-			malformed_message(ep, &buf[i]);
-			break;
 		}
 	}
 
 	ep->ephw->hw_sync_sgl_for_device(ep,
-					 ep->msgbuf_dma_addr,
-					 ep->msg_buf_size,
-					 DMA_FROM_DEVICE);
+									 ep->msgbuf_dma_addr,
+									 ep->msg_buf_size,
+									 DMA_FROM_DEVICE);
 
 	ep->msg_counter = (ep->msg_counter + 1) & 0xf;
 	ep->failed_messages = 0;
@@ -310,7 +344,8 @@ EXPORT_SYMBOL(xillybus_isr);
 
 static void xillybus_autoflush(struct work_struct *work);
 
-struct xilly_alloc_state {
+struct xilly_alloc_state
+{
 	void *salami;
 	int left_of_salami;
 	int nbuffer;
@@ -319,92 +354,111 @@ struct xilly_alloc_state {
 };
 
 static int xilly_get_dma_buffers(struct xilly_endpoint *ep,
-				 struct xilly_alloc_state *s,
-				 struct xilly_buffer **buffers,
-				 int bufnum, int bytebufsize)
+								 struct xilly_alloc_state *s,
+								 struct xilly_buffer **buffers,
+								 int bufnum, int bytebufsize)
 {
 	int i, rc;
 	dma_addr_t dma_addr;
 	struct device *dev = ep->dev;
 	struct xilly_buffer *this_buffer = NULL; /* Init to silence warning */
 
-	if (buffers) { /* Not the message buffer */
+	if (buffers)   /* Not the message buffer */
+	{
 		this_buffer = devm_kcalloc(dev, bufnum,
-					   sizeof(struct xilly_buffer),
-					   GFP_KERNEL);
+								   sizeof(struct xilly_buffer),
+								   GFP_KERNEL);
+
 		if (!this_buffer)
+		{
 			return -ENOMEM;
+		}
 	}
 
-	for (i = 0; i < bufnum; i++) {
+	for (i = 0; i < bufnum; i++)
+	{
 		/*
 		 * Buffers are expected in descending size order, so there
 		 * is either enough space for this buffer or none at all.
 		 */
 
 		if ((s->left_of_salami < bytebufsize) &&
-		    (s->left_of_salami > 0)) {
+			(s->left_of_salami > 0))
+		{
 			dev_err(ep->dev,
-				"Corrupt buffer allocation in IDT. Aborting.\n");
+					"Corrupt buffer allocation in IDT. Aborting.\n");
 			return -ENODEV;
 		}
 
-		if (s->left_of_salami == 0) {
+		if (s->left_of_salami == 0)
+		{
 			int allocorder, allocsize;
 
 			allocsize = PAGE_SIZE;
 			allocorder = 0;
-			while (bytebufsize > allocsize) {
+
+			while (bytebufsize > allocsize)
+			{
 				allocsize *= 2;
 				allocorder++;
 			}
 
 			s->salami = (void *) devm_get_free_pages(
-				dev,
-				GFP_KERNEL | __GFP_DMA32 | __GFP_ZERO,
-				allocorder);
+							dev,
+							GFP_KERNEL | __GFP_DMA32 | __GFP_ZERO,
+							allocorder);
+
 			if (!s->salami)
+			{
 				return -ENOMEM;
+			}
 
 			s->left_of_salami = allocsize;
 		}
 
 		rc = ep->ephw->map_single(ep, s->salami,
-					  bytebufsize, s->direction,
-					  &dma_addr);
+								  bytebufsize, s->direction,
+								  &dma_addr);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		iowrite32((u32) (dma_addr & 0xffffffff),
-			  ep->registers + fpga_dma_bufaddr_lowaddr_reg);
+				  ep->registers + fpga_dma_bufaddr_lowaddr_reg);
 		iowrite32(((u32) ((((u64) dma_addr) >> 32) & 0xffffffff)),
-			  ep->registers + fpga_dma_bufaddr_highaddr_reg);
+				  ep->registers + fpga_dma_bufaddr_highaddr_reg);
 
-		if (buffers) { /* Not the message buffer */
+		if (buffers)   /* Not the message buffer */
+		{
 			this_buffer->addr = s->salami;
 			this_buffer->dma_addr = dma_addr;
 			buffers[i] = this_buffer++;
 
 			iowrite32(s->regdirection | s->nbuffer++,
-				  ep->registers + fpga_dma_bufno_reg);
-		} else {
+					  ep->registers + fpga_dma_bufno_reg);
+		}
+		else
+		{
 			ep->msgbuf_addr = s->salami;
 			ep->msgbuf_dma_addr = dma_addr;
 			ep->msg_buf_size = bytebufsize;
 
 			iowrite32(s->regdirection,
-				  ep->registers + fpga_dma_bufno_reg);
+					  ep->registers + fpga_dma_bufno_reg);
 		}
 
 		s->left_of_salami -= bytebufsize;
 		s->salami += bytebufsize;
 	}
+
 	return 0;
 }
 
 static int xilly_setupchannels(struct xilly_endpoint *ep,
-			       unsigned char *chandesc,
-			       int entries)
+							   unsigned char *chandesc,
+							   int entries)
 {
 	struct device *dev = ep->dev;
 	int i, entry, rc;
@@ -415,7 +469,8 @@ static int xilly_setupchannels(struct xilly_endpoint *ep,
 	int supports_nonempty;
 	int msg_buf_done = 0;
 
-	struct xilly_alloc_state rd_alloc = {
+	struct xilly_alloc_state rd_alloc =
+	{
 		.salami = NULL,
 		.left_of_salami = 0,
 		.nbuffer = 1,
@@ -423,7 +478,8 @@ static int xilly_setupchannels(struct xilly_endpoint *ep,
 		.regdirection = 0,
 	};
 
-	struct xilly_alloc_state wr_alloc = {
+	struct xilly_alloc_state wr_alloc =
+	{
 		.salami = NULL,
 		.left_of_salami = 0,
 		.nbuffer = 1,
@@ -432,21 +488,28 @@ static int xilly_setupchannels(struct xilly_endpoint *ep,
 	};
 
 	channel = devm_kcalloc(dev, ep->num_channels,
-			       sizeof(struct xilly_channel), GFP_KERNEL);
+						   sizeof(struct xilly_channel), GFP_KERNEL);
+
 	if (!channel)
+	{
 		return -ENOMEM;
+	}
 
 	ep->channels = devm_kcalloc(dev, ep->num_channels + 1,
-				    sizeof(struct xilly_channel *),
-				    GFP_KERNEL);
+								sizeof(struct xilly_channel *),
+								GFP_KERNEL);
+
 	if (!ep->channels)
+	{
 		return -ENOMEM;
+	}
 
 	ep->channels[0] = NULL; /* Channel 0 is message buf. */
 
 	/* Initialize all channels with defaults */
 
-	for (i = 1; i <= ep->num_channels; i++) {
+	for (i = 1; i <= ep->num_channels; i++)
+	{
 		channel->wr_buffers = NULL;
 		channel->rd_buffers = NULL;
 		channel->num_wr_buffers = 0;
@@ -482,7 +545,8 @@ static int xilly_setupchannels(struct xilly_endpoint *ep,
 		ep->channels[i] = channel++;
 	}
 
-	for (entry = 0; entry < entries; entry++, chandesc += 4) {
+	for (entry = 0; entry < entries; entry++, chandesc += 4)
+	{
 		struct xilly_buffer **buffers = NULL;
 
 		is_writebuf = chandesc[0] & 0x01;
@@ -497,31 +561,39 @@ static int xilly_setupchannels(struct xilly_endpoint *ep,
 		supports_nonempty = (chandesc[2] >> 5) & 0x01;
 
 		if ((channelnum > ep->num_channels) ||
-		    ((channelnum == 0) && !is_writebuf)) {
+			((channelnum == 0) && !is_writebuf))
+		{
 			dev_err(ep->dev,
-				"IDT requests channel out of range. Aborting.\n");
+					"IDT requests channel out of range. Aborting.\n");
 			return -ENODEV;
 		}
 
 		channel = ep->channels[channelnum]; /* NULL for msg channel */
 
-		if (!is_writebuf || channelnum > 0) {
+		if (!is_writebuf || channelnum > 0)
+		{
 			channel->log2_element_size = ((format > 2) ?
-						      2 : format);
+										  2 : format);
 
 			bytebufsize = bufsize *
-				(1 << channel->log2_element_size);
+						  (1 << channel->log2_element_size);
 
 			buffers = devm_kcalloc(dev, bufnum,
-					       sizeof(struct xilly_buffer *),
-					       GFP_KERNEL);
+								   sizeof(struct xilly_buffer *),
+								   GFP_KERNEL);
+
 			if (!buffers)
+			{
 				return -ENOMEM;
-		} else {
+			}
+		}
+		else
+		{
 			bytebufsize = bufsize << 2;
 		}
 
-		if (!is_writebuf) {
+		if (!is_writebuf)
+		{
 			channel->num_rd_buffers = bufnum;
 			channel->rd_buf_size = bytebufsize;
 			channel->rd_allow_partial = allowpartial;
@@ -531,8 +603,10 @@ static int xilly_setupchannels(struct xilly_endpoint *ep,
 
 			channel->rd_buffers = buffers;
 			rc = xilly_get_dma_buffers(ep, &rd_alloc, buffers,
-						   bufnum, bytebufsize);
-		} else if (channelnum > 0) {
+									   bufnum, bytebufsize);
+		}
+		else if (channelnum > 0)
+		{
 			channel->num_wr_buffers = bufnum;
 			channel->wr_buf_size = bytebufsize;
 
@@ -545,27 +619,33 @@ static int xilly_setupchannels(struct xilly_endpoint *ep,
 
 			channel->wr_buffers = buffers;
 			rc = xilly_get_dma_buffers(ep, &wr_alloc, buffers,
-						   bufnum, bytebufsize);
-		} else {
+									   bufnum, bytebufsize);
+		}
+		else
+		{
 			rc = xilly_get_dma_buffers(ep, &wr_alloc, NULL,
-						   bufnum, bytebufsize);
+									   bufnum, bytebufsize);
 			msg_buf_done++;
 		}
 
 		if (rc)
+		{
 			return -ENOMEM;
+		}
 	}
 
-	if (!msg_buf_done) {
+	if (!msg_buf_done)
+	{
 		dev_err(ep->dev,
-			"Corrupt IDT: No message buffer. Aborting.\n");
+				"Corrupt IDT: No message buffer. Aborting.\n");
 		return -ENODEV;
 	}
+
 	return 0;
 }
 
 static int xilly_scan_idt(struct xilly_endpoint *endpoint,
-			  struct xilly_idt_handle *idt_handle)
+						  struct xilly_idt_handle *idt_handle)
 {
 	int count = 0;
 	unsigned char *idt = endpoint->channels[1]->wr_buffers[0]->addr;
@@ -578,26 +658,31 @@ static int xilly_scan_idt(struct xilly_endpoint *endpoint,
 
 	scan++; /* Skip version number */
 
-	while ((scan <= end_of_idt) && *scan) {
+	while ((scan <= end_of_idt) && *scan)
+	{
 		while ((scan <= end_of_idt) && *scan++)
 			/* Do nothing, just scan thru string */;
+
 		count++;
 	}
 
 	scan++;
 
-	if (scan > end_of_idt) {
+	if (scan > end_of_idt)
+	{
 		dev_err(endpoint->dev,
-			"IDT device name list overflow. Aborting.\n");
+				"IDT device name list overflow. Aborting.\n");
 		return -ENODEV;
 	}
+
 	idt_handle->chandesc = scan;
 
 	len = endpoint->idtlen - (3 + ((int) (scan - idt)));
 
-	if (len & 0x03) {
+	if (len & 0x03)
+	{
 		dev_err(endpoint->dev,
-			"Corrupt IDT device name list. Aborting.\n");
+				"Corrupt IDT device name list. Aborting.\n");
 		return -ENODEV;
 	}
 
@@ -618,18 +703,21 @@ static int xilly_obtain_idt(struct xilly_endpoint *endpoint)
 	channel->wr_sleepy = 1;
 
 	iowrite32(1 |
-		  (3 << 24), /* Opcode 3 for channel 0 = Send IDT */
-		  endpoint->registers + fpga_buf_ctrl_reg);
+			  (3 << 24), /* Opcode 3 for channel 0 = Send IDT */
+			  endpoint->registers + fpga_buf_ctrl_reg);
 
 	t = wait_event_interruptible_timeout(channel->wr_wait,
-					     (!channel->wr_sleepy),
-					     XILLY_TIMEOUT);
+										 (!channel->wr_sleepy),
+										 XILLY_TIMEOUT);
 
-	if (t <= 0) {
+	if (t <= 0)
+	{
 		dev_err(endpoint->dev, "Failed to obtain IDT. Aborting.\n");
 
 		if (endpoint->fatal_error)
+		{
 			return -EIO;
+		}
 
 		return -ENODEV;
 	}
@@ -640,15 +728,17 @@ static int xilly_obtain_idt(struct xilly_endpoint *endpoint)
 		channel->wr_buf_size,
 		DMA_FROM_DEVICE);
 
-	if (channel->wr_buffers[0]->end_offset != endpoint->idtlen) {
+	if (channel->wr_buffers[0]->end_offset != endpoint->idtlen)
+	{
 		dev_err(endpoint->dev,
-			"IDT length mismatch (%d != %d). Aborting.\n",
-			channel->wr_buffers[0]->end_offset, endpoint->idtlen);
+				"IDT length mismatch (%d != %d). Aborting.\n",
+				channel->wr_buffers[0]->end_offset, endpoint->idtlen);
 		return -ENODEV;
 	}
 
 	if (crc32_le(~0, channel->wr_buffers[0]->addr,
-		     endpoint->idtlen+1) != 0) {
+				 endpoint->idtlen + 1) != 0)
+	{
 		dev_err(endpoint->dev, "IDT failed CRC check. Aborting.\n");
 		return -ENODEV;
 	}
@@ -656,10 +746,11 @@ static int xilly_obtain_idt(struct xilly_endpoint *endpoint)
 	version = channel->wr_buffers[0]->addr;
 
 	/* Check version number. Reject anything above 0x82. */
-	if (*version > 0x82) {
+	if (*version > 0x82)
+	{
 		dev_err(endpoint->dev,
-			"No support for IDT version 0x%02x. Maybe the xillybus driver needs an upgrade. Aborting.\n",
-			*version);
+				"No support for IDT version 0x%02x. Maybe the xillybus driver needs an upgrade. Aborting.\n",
+				*version);
 		return -ENODEV;
 	}
 
@@ -667,7 +758,7 @@ static int xilly_obtain_idt(struct xilly_endpoint *endpoint)
 }
 
 static ssize_t xillybus_read(struct file *filp, char __user *userbuf,
-			     size_t count, loff_t *f_pos)
+							 size_t count, loff_t *f_pos)
 {
 	ssize_t rc;
 	unsigned long flags;
@@ -683,15 +774,21 @@ static ssize_t xillybus_read(struct file *filp, char __user *userbuf,
 	int waiting_bufidx;
 
 	if (channel->endpoint->fatal_error)
+	{
 		return -EIO;
+	}
 
 	deadline = jiffies + 1 + XILLY_RX_TIMEOUT;
 
 	rc = mutex_lock_interruptible(&channel->wr_mutex);
-	if (rc)
-		return rc;
 
-	while (1) { /* Note that we may drop mutex within this loop */
+	if (rc)
+	{
+		return rc;
+	}
+
+	while (1)   /* Note that we may drop mutex within this loop */
+	{
 		int bytes_to_do = count - bytes_done;
 
 		spin_lock_irqsave(&channel->wr_spinlock, flags);
@@ -699,34 +796,43 @@ static ssize_t xillybus_read(struct file *filp, char __user *userbuf,
 		empty = channel->wr_empty;
 		ready = !empty || channel->wr_ready;
 
-		if (!empty) {
+		if (!empty)
+		{
 			bufidx = channel->wr_host_buf_idx;
 			bufpos = channel->wr_host_buf_pos;
 			howmany = ((channel->wr_buffers[bufidx]->end_offset
-				    + 1) << channel->log2_element_size)
-				- bufpos;
+						+ 1) << channel->log2_element_size)
+					  - bufpos;
 
 			/* Update wr_host_* to its post-operation state */
-			if (howmany > bytes_to_do) {
+			if (howmany > bytes_to_do)
+			{
 				bufferdone = 0;
 
 				howmany = bytes_to_do;
 				channel->wr_host_buf_pos += howmany;
-			} else {
+			}
+			else
+			{
 				bufferdone = 1;
 
 				channel->wr_host_buf_pos = 0;
 
-				if (bufidx == channel->wr_fpga_buf_idx) {
+				if (bufidx == channel->wr_fpga_buf_idx)
+				{
 					channel->wr_empty = 1;
 					channel->wr_sleepy = 1;
 					channel->wr_ready = 0;
 				}
 
 				if (bufidx >= (channel->num_wr_buffers - 1))
+				{
 					channel->wr_host_buf_idx = 0;
+				}
 				else
+				{
 					channel->wr_host_buf_idx++;
+				}
 			}
 		}
 
@@ -739,14 +845,15 @@ static ssize_t xillybus_read(struct file *filp, char __user *userbuf,
 		 */
 
 		reached_eof = channel->wr_empty &&
-			(channel->wr_host_buf_idx == channel->wr_eof);
+					  (channel->wr_host_buf_idx == channel->wr_eof);
 		channel->wr_hangup = reached_eof;
 		exhausted = channel->wr_empty;
 		waiting_bufidx = channel->wr_host_buf_idx;
 
 		spin_unlock_irqrestore(&channel->wr_spinlock, flags);
 
-		if (!empty) { /* Go on, now without the spinlock */
+		if (!empty)   /* Go on, now without the spinlock */
+		{
 
 			if (bufpos == 0) /* Position zero means it's virgin */
 				channel->endpoint->ephw->hw_sync_sgl_for_cpu(
@@ -756,15 +863,18 @@ static ssize_t xillybus_read(struct file *filp, char __user *userbuf,
 					DMA_FROM_DEVICE);
 
 			if (copy_to_user(
-				    userbuf,
-				    channel->wr_buffers[bufidx]->addr
-				    + bufpos, howmany))
+					userbuf,
+					channel->wr_buffers[bufidx]->addr
+					+ bufpos, howmany))
+			{
 				rc = -EFAULT;
+			}
 
 			userbuf += howmany;
 			bytes_done += howmany;
 
-			if (bufferdone) {
+			if (bufferdone)
+			{
 				channel->endpoint->ephw->hw_sync_sgl_for_device(
 					channel->endpoint,
 					channel->wr_buffers[bufidx]->dma_addr,
@@ -780,12 +890,13 @@ static ssize_t xillybus_read(struct file *filp, char __user *userbuf,
 				 */
 
 				iowrite32(1 | (channel->chan_num << 1) |
-					  (bufidx << 12),
-					  channel->endpoint->registers +
-					  fpga_buf_ctrl_reg);
+						  (bufidx << 12),
+						  channel->endpoint->registers +
+						  fpga_buf_ctrl_reg);
 			}
 
-			if (rc) {
+			if (rc)
+			{
 				mutex_unlock(&channel->wr_mutex);
 				return rc;
 			}
@@ -793,15 +904,21 @@ static ssize_t xillybus_read(struct file *filp, char __user *userbuf,
 
 		/* This includes a zero-count return = EOF */
 		if ((bytes_done >= count) || reached_eof)
+		{
 			break;
+		}
 
 		if (!exhausted)
-			continue; /* More in RAM buffer(s)? Just go on. */
+		{
+			continue;    /* More in RAM buffer(s)? Just go on. */
+		}
 
 		if ((bytes_done > 0) &&
-		    (no_time_left ||
-		     (channel->wr_synchronous && channel->wr_allow_partial)))
+			(no_time_left ||
+			 (channel->wr_synchronous && channel->wr_allow_partial)))
+		{
 			break;
+		}
 
 		/*
 		 * Nonblocking read: The "ready" flag tells us that the FPGA
@@ -812,45 +929,54 @@ static ssize_t xillybus_read(struct file *filp, char __user *userbuf,
 		 * nonblocking mode, but only for a very short time.
 		 */
 
-		if (!no_time_left && (filp->f_flags & O_NONBLOCK)) {
+		if (!no_time_left && (filp->f_flags & O_NONBLOCK))
+		{
 			if (bytes_done > 0)
+			{
 				break;
+			}
 
 			if (ready)
+			{
 				goto desperate;
+			}
 
 			rc = -EAGAIN;
 			break;
 		}
 
-		if (!no_time_left || (bytes_done > 0)) {
+		if (!no_time_left || (bytes_done > 0))
+		{
 			/*
 			 * Note that in case of an element-misaligned read
 			 * request, offsetlimit will include the last element,
 			 * which will be partially read from.
 			 */
 			int offsetlimit = ((count - bytes_done) - 1) >>
-				channel->log2_element_size;
+							  channel->log2_element_size;
 			int buf_elements = channel->wr_buf_size >>
-				channel->log2_element_size;
+							   channel->log2_element_size;
 
 			/*
 			 * In synchronous mode, always send an offset limit.
 			 * Just don't send a value too big.
 			 */
 
-			if (channel->wr_synchronous) {
+			if (channel->wr_synchronous)
+			{
 				/* Don't request more than one buffer */
 				if (channel->wr_allow_partial &&
-				    (offsetlimit >= buf_elements))
+					(offsetlimit >= buf_elements))
+				{
 					offsetlimit = buf_elements - 1;
+				}
 
 				/* Don't request more than all buffers */
 				if (!channel->wr_allow_partial &&
-				    (offsetlimit >=
-				     (buf_elements * channel->num_wr_buffers)))
+					(offsetlimit >=
+					 (buf_elements * channel->num_wr_buffers)))
 					offsetlimit = buf_elements *
-						channel->num_wr_buffers - 1;
+								  channel->num_wr_buffers - 1;
 			}
 
 			/*
@@ -862,21 +988,22 @@ static ssize_t xillybus_read(struct file *filp, char __user *userbuf,
 			 */
 
 			if (channel->wr_synchronous ||
-			    (offsetlimit < (buf_elements - 1))) {
+				(offsetlimit < (buf_elements - 1)))
+			{
 				mutex_lock(&channel->endpoint->register_mutex);
 
 				iowrite32(offsetlimit,
-					  channel->endpoint->registers +
-					  fpga_buf_offset_reg);
+						  channel->endpoint->registers +
+						  fpga_buf_offset_reg);
 
 				iowrite32(1 | (channel->chan_num << 1) |
-					  (2 << 24) |  /* 2 = offset limit */
-					  (waiting_bufidx << 12),
-					  channel->endpoint->registers +
-					  fpga_buf_ctrl_reg);
+						  (2 << 24) |  /* 2 = offset limit */
+						  (waiting_bufidx << 12),
+						  channel->endpoint->registers +
+						  fpga_buf_ctrl_reg);
 
 				mutex_unlock(&channel->endpoint->
-					     register_mutex);
+							 register_mutex);
 			}
 		}
 
@@ -887,35 +1014,52 @@ static ssize_t xillybus_read(struct file *filp, char __user *userbuf,
 		 */
 
 		if (!channel->wr_allow_partial ||
-		    (no_time_left && (bytes_done == 0))) {
+			(no_time_left && (bytes_done == 0)))
+		{
 			/*
 			 * This do-loop will run more than once if another
 			 * thread reasserted wr_sleepy before we got the mutex
 			 * back, so we try again.
 			 */
 
-			do {
+			do
+			{
 				mutex_unlock(&channel->wr_mutex);
 
 				if (wait_event_interruptible(
-					    channel->wr_wait,
-					    (!channel->wr_sleepy)))
+						channel->wr_wait,
+						(!channel->wr_sleepy)))
+				{
 					goto interrupted;
+				}
 
 				if (mutex_lock_interruptible(
-					    &channel->wr_mutex))
+						&channel->wr_mutex))
+				{
 					goto interrupted;
-			} while (channel->wr_sleepy);
+				}
+			}
+			while (channel->wr_sleepy);
 
 			continue;
 
 interrupted: /* Mutex is not held if got here */
+
 			if (channel->endpoint->fatal_error)
+			{
 				return -EIO;
+			}
+
 			if (bytes_done)
+			{
 				return bytes_done;
+			}
+
 			if (filp->f_flags & O_NONBLOCK)
-				return -EAGAIN; /* Don't admit snoozing */
+			{
+				return -EAGAIN;    /* Don't admit snoozing */
+			}
+
 			return -EINTR;
 		}
 
@@ -927,7 +1071,8 @@ interrupted: /* Mutex is not held if got here */
 		 * missing it.
 		 */
 
-		if (left_to_sleep > 0) {
+		if (left_to_sleep > 0)
+		{
 			left_to_sleep =
 				wait_event_interruptible_timeout(
 					channel->wr_wait,
@@ -935,14 +1080,24 @@ interrupted: /* Mutex is not held if got here */
 					left_to_sleep);
 
 			if (left_to_sleep > 0) /* wr_sleepy deasserted */
+			{
 				continue;
+			}
 
-			if (left_to_sleep < 0) { /* Interrupt */
+			if (left_to_sleep < 0)   /* Interrupt */
+			{
 				mutex_unlock(&channel->wr_mutex);
+
 				if (channel->endpoint->fatal_error)
+				{
 					return -EIO;
+				}
+
 				if (bytes_done)
+				{
 					return bytes_done;
+				}
+
 				return -EINTR;
 			}
 		}
@@ -950,7 +1105,8 @@ interrupted: /* Mutex is not held if got here */
 desperate:
 		no_time_left = 1; /* We're out of sleeping time. Desperate! */
 
-		if (bytes_done == 0) {
+		if (bytes_done == 0)
+		{
 			/*
 			 * Reaching here means that we allow partial return,
 			 * that we've run out of time, and that we have
@@ -959,10 +1115,10 @@ desperate:
 			 */
 
 			iowrite32(1 | (channel->chan_num << 1) |
-				  (3 << 24) |  /* Opcode 3, flush it all! */
-				  (waiting_bufidx << 12),
-				  channel->endpoint->registers +
-				  fpga_buf_ctrl_reg);
+					  (3 << 24) |  /* Opcode 3, flush it all! */
+					  (waiting_bufidx << 12),
+					  channel->endpoint->registers +
+					  fpga_buf_ctrl_reg);
 		}
 
 		/*
@@ -977,10 +1133,14 @@ desperate:
 	mutex_unlock(&channel->wr_mutex);
 
 	if (channel->endpoint->fatal_error)
+	{
 		return -EIO;
+	}
 
 	if (rc)
+	{
 		return rc;
+	}
 
 	return bytes_done;
 }
@@ -1004,10 +1164,16 @@ static int xillybus_myflush(struct xilly_channel *channel, long timeout)
 	int new_rd_host_buf_pos;
 
 	if (channel->endpoint->fatal_error)
+	{
 		return -EIO;
+	}
+
 	rc = mutex_lock_interruptible(&channel->rd_mutex);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/*
 	 * Don't flush a closed channel. This can happen when the work queued
@@ -1016,36 +1182,42 @@ static int xillybus_myflush(struct xilly_channel *channel, long timeout)
 	 */
 
 	if (!channel->rd_ref_count)
+	{
 		goto done;
+	}
 
 	bufidx = channel->rd_host_buf_idx;
 
 	bufidx_minus1 = (bufidx == 0) ?
-		channel->num_rd_buffers - 1 :
-		bufidx - 1;
+					channel->num_rd_buffers - 1 :
+					bufidx - 1;
 
 	end_offset_plus1 = channel->rd_host_buf_pos >>
-		channel->log2_element_size;
+					   channel->log2_element_size;
 
 	new_rd_host_buf_pos = channel->rd_host_buf_pos -
-		(end_offset_plus1 << channel->log2_element_size);
+						  (end_offset_plus1 << channel->log2_element_size);
 
 	/* Submit the current buffer if it's nonempty */
-	if (end_offset_plus1) {
+	if (end_offset_plus1)
+	{
 		unsigned char *tail = channel->rd_buffers[bufidx]->addr +
-			(end_offset_plus1 << channel->log2_element_size);
+							  (end_offset_plus1 << channel->log2_element_size);
 
 		/* Copy  unflushed data, so we can put it in next buffer */
 		for (i = 0; i < new_rd_host_buf_pos; i++)
+		{
 			channel->rd_leftovers[i] = *tail++;
+		}
 
 		spin_lock_irqsave(&channel->rd_spinlock, flags);
 
 		/* Autoflush only if a single buffer is occupied */
 
 		if ((timeout < 0) &&
-		    (channel->rd_full ||
-		     (bufidx_minus1 != channel->rd_fpga_buf_idx))) {
+			(channel->rd_full ||
+			 (bufidx_minus1 != channel->rd_fpga_buf_idx)))
+		{
 			spin_unlock_irqrestore(&channel->rd_spinlock, flags);
 			/*
 			 * A new work item may be queued by the ISR exactly
@@ -1061,13 +1233,20 @@ static int xillybus_myflush(struct xilly_channel *channel, long timeout)
 		/* Set up rd_full to reflect a certain moment's state */
 
 		if (bufidx == channel->rd_fpga_buf_idx)
+		{
 			channel->rd_full = 1;
+		}
+
 		spin_unlock_irqrestore(&channel->rd_spinlock, flags);
 
 		if (bufidx >= (channel->num_rd_buffers - 1))
+		{
 			channel->rd_host_buf_idx = 0;
+		}
 		else
+		{
 			channel->rd_host_buf_idx++;
+		}
 
 		channel->endpoint->ephw->hw_sync_sgl_for_device(
 			channel->endpoint,
@@ -1078,24 +1257,30 @@ static int xillybus_myflush(struct xilly_channel *channel, long timeout)
 		mutex_lock(&channel->endpoint->register_mutex);
 
 		iowrite32(end_offset_plus1 - 1,
-			  channel->endpoint->registers + fpga_buf_offset_reg);
+				  channel->endpoint->registers + fpga_buf_offset_reg);
 
 		iowrite32((channel->chan_num << 1) | /* Channel ID */
-			  (2 << 24) |  /* Opcode 2, submit buffer */
-			  (bufidx << 12),
-			  channel->endpoint->registers + fpga_buf_ctrl_reg);
+				  (2 << 24) |  /* Opcode 2, submit buffer */
+				  (bufidx << 12),
+				  channel->endpoint->registers + fpga_buf_ctrl_reg);
 
 		mutex_unlock(&channel->endpoint->register_mutex);
-	} else if (bufidx == 0) {
+	}
+	else if (bufidx == 0)
+	{
 		bufidx = channel->num_rd_buffers - 1;
-	} else {
+	}
+	else
+	{
 		bufidx--;
 	}
 
 	channel->rd_host_buf_pos = new_rd_host_buf_pos;
 
 	if (timeout < 0)
-		goto done; /* Autoflush */
+	{
+		goto done;    /* Autoflush */
+	}
 
 	/*
 	 * bufidx is now the last buffer written to (or equal to
@@ -1105,11 +1290,15 @@ static int xillybus_myflush(struct xilly_channel *channel, long timeout)
 	 * If bufidx == channel->rd_fpga_buf_idx we're either empty or full.
 	 */
 
-	while (1) { /* Loop waiting for draining of buffers */
+	while (1)   /* Loop waiting for draining of buffers */
+	{
 		spin_lock_irqsave(&channel->rd_spinlock, flags);
 
 		if (bufidx != channel->rd_fpga_buf_idx)
-			channel->rd_full = 1; /*
+		{
+			channel->rd_full = 1;
+		} /*
+
 					       * Not really full,
 					       * but needs waiting.
 					       */
@@ -1119,7 +1308,9 @@ static int xillybus_myflush(struct xilly_channel *channel, long timeout)
 		spin_unlock_irqrestore(&channel->rd_spinlock, flags);
 
 		if (empty)
+		{
 			break;
+		}
 
 		/*
 		 * Indefinite sleep with mutex taken. With data waiting for
@@ -1128,20 +1319,22 @@ static int xillybus_myflush(struct xilly_channel *channel, long timeout)
 		 */
 		if (timeout == 0)
 			wait_event_interruptible(channel->rd_wait,
-						 (!channel->rd_full));
+									 (!channel->rd_full));
 
 		else if (wait_event_interruptible_timeout(
-				 channel->rd_wait,
-				 (!channel->rd_full),
-				 timeout) == 0) {
+					 channel->rd_wait,
+					 (!channel->rd_full),
+					 timeout) == 0)
+		{
 			dev_warn(channel->endpoint->dev,
-				 "Timed out while flushing. Output data may be lost.\n");
+					 "Timed out while flushing. Output data may be lost.\n");
 
 			rc = -ETIMEDOUT;
 			break;
 		}
 
-		if (channel->rd_full) {
+		if (channel->rd_full)
+		{
 			rc = -EINTR;
 			break;
 		}
@@ -1151,7 +1344,9 @@ done:
 	mutex_unlock(&channel->rd_mutex);
 
 	if (channel->endpoint->fatal_error)
+	{
 		return -EIO;
+	}
 
 	return rc;
 }
@@ -1159,7 +1354,9 @@ done:
 static int xillybus_flush(struct file *filp, fl_owner_t id)
 {
 	if (!(filp->f_mode & FMODE_WRITE))
+	{
 		return 0;
+	}
 
 	return xillybus_myflush(filp->private_data, HZ); /* 1 second timeout */
 }
@@ -1167,22 +1364,23 @@ static int xillybus_flush(struct file *filp, fl_owner_t id)
 static void xillybus_autoflush(struct work_struct *work)
 {
 	struct delayed_work *workitem = container_of(
-		work, struct delayed_work, work);
+										work, struct delayed_work, work);
 	struct xilly_channel *channel = container_of(
-		workitem, struct xilly_channel, rd_workitem);
+										workitem, struct xilly_channel, rd_workitem);
 	int rc;
 
 	rc = xillybus_myflush(channel, -1);
+
 	if (rc == -EINTR)
 		dev_warn(channel->endpoint->dev,
-			 "Autoflush failed because work queue thread got a signal.\n");
+				 "Autoflush failed because work queue thread got a signal.\n");
 	else if (rc)
 		dev_err(channel->endpoint->dev,
-			"Autoflush failed under weird circumstances.\n");
+				"Autoflush failed under weird circumstances.\n");
 }
 
 static ssize_t xillybus_write(struct file *filp, const char __user *userbuf,
-			      size_t count, loff_t *f_pos)
+							  size_t count, loff_t *f_pos)
 {
 	ssize_t rc;
 	unsigned long flags;
@@ -1196,20 +1394,27 @@ static ssize_t xillybus_write(struct file *filp, const char __user *userbuf,
 	int end_offset_plus1 = 0;
 
 	if (channel->endpoint->fatal_error)
+	{
 		return -EIO;
+	}
 
 	rc = mutex_lock_interruptible(&channel->rd_mutex);
-	if (rc)
-		return rc;
 
-	while (1) {
+	if (rc)
+	{
+		return rc;
+	}
+
+	while (1)
+	{
 		int bytes_to_do = count - bytes_done;
 
 		spin_lock_irqsave(&channel->rd_spinlock, flags);
 
 		full = channel->rd_full;
 
-		if (!full) {
+		if (!full)
+		{
 			bufidx = channel->rd_host_buf_idx;
 			bufpos = channel->rd_host_buf_pos;
 			howmany = channel->rd_buf_size - bufpos;
@@ -1221,52 +1426,64 @@ static ssize_t xillybus_write(struct file *filp, const char __user *userbuf,
 			 */
 
 			if ((howmany > bytes_to_do) &&
-			    (count ||
-			     ((bufpos >> channel->log2_element_size) == 0))) {
+				(count ||
+				 ((bufpos >> channel->log2_element_size) == 0)))
+			{
 				bufferdone = 0;
 
 				howmany = bytes_to_do;
 				channel->rd_host_buf_pos += howmany;
-			} else {
+			}
+			else
+			{
 				bufferdone = 1;
 
-				if (count) {
+				if (count)
+				{
 					end_offset_plus1 =
 						channel->rd_buf_size >>
 						channel->log2_element_size;
 					channel->rd_host_buf_pos = 0;
-				} else {
+				}
+				else
+				{
 					unsigned char *tail;
 					int i;
 
 					howmany = 0;
 
 					end_offset_plus1 = bufpos >>
-						channel->log2_element_size;
+									   channel->log2_element_size;
 
 					channel->rd_host_buf_pos -=
 						end_offset_plus1 <<
 						channel->log2_element_size;
 
 					tail = channel->
-						rd_buffers[bufidx]->addr +
-						(end_offset_plus1 <<
-						 channel->log2_element_size);
+						   rd_buffers[bufidx]->addr +
+						   (end_offset_plus1 <<
+							channel->log2_element_size);
 
 					for (i = 0;
-					     i < channel->rd_host_buf_pos;
-					     i++)
+						 i < channel->rd_host_buf_pos;
+						 i++)
 						channel->rd_leftovers[i] =
 							*tail++;
 				}
 
 				if (bufidx == channel->rd_fpga_buf_idx)
+				{
 					channel->rd_full = 1;
+				}
 
 				if (bufidx >= (channel->num_rd_buffers - 1))
+				{
 					channel->rd_host_buf_idx = 0;
+				}
 				else
+				{
 					channel->rd_host_buf_idx++;
+				}
 			}
 		}
 
@@ -1282,13 +1499,15 @@ static ssize_t xillybus_write(struct file *filp, const char __user *userbuf,
 
 		spin_unlock_irqrestore(&channel->rd_spinlock, flags);
 
-		if (!full) { /* Go on, now without the spinlock */
+		if (!full)   /* Go on, now without the spinlock */
+		{
 			unsigned char *head =
 				channel->rd_buffers[bufidx]->addr;
 			int i;
 
 			if ((bufpos == 0) || /* Zero means it's virgin */
-			    (channel->rd_leftovers[3] != 0)) {
+				(channel->rd_leftovers[3] != 0))
+			{
 				channel->endpoint->ephw->hw_sync_sgl_for_cpu(
 					channel->endpoint,
 					channel->rd_buffers[bufidx]->dma_addr,
@@ -1297,20 +1516,25 @@ static ssize_t xillybus_write(struct file *filp, const char __user *userbuf,
 
 				/* Virgin, but leftovers are due */
 				for (i = 0; i < bufpos; i++)
+				{
 					*head++ = channel->rd_leftovers[i];
+				}
 
 				channel->rd_leftovers[3] = 0; /* Clear flag */
 			}
 
 			if (copy_from_user(
-				    channel->rd_buffers[bufidx]->addr + bufpos,
-				    userbuf, howmany))
+					channel->rd_buffers[bufidx]->addr + bufpos,
+					userbuf, howmany))
+			{
 				rc = -EFAULT;
+			}
 
 			userbuf += howmany;
 			bytes_done += howmany;
 
-			if (bufferdone) {
+			if (bufferdone)
+			{
 				channel->endpoint->ephw->hw_sync_sgl_for_device(
 					channel->endpoint,
 					channel->rd_buffers[bufidx]->dma_addr,
@@ -1320,27 +1544,30 @@ static ssize_t xillybus_write(struct file *filp, const char __user *userbuf,
 				mutex_lock(&channel->endpoint->register_mutex);
 
 				iowrite32(end_offset_plus1 - 1,
-					  channel->endpoint->registers +
-					  fpga_buf_offset_reg);
+						  channel->endpoint->registers +
+						  fpga_buf_offset_reg);
 
 				iowrite32((channel->chan_num << 1) |
-					  (2 << 24) |  /* 2 = submit buffer */
-					  (bufidx << 12),
-					  channel->endpoint->registers +
-					  fpga_buf_ctrl_reg);
+						  (2 << 24) |  /* 2 = submit buffer */
+						  (bufidx << 12),
+						  channel->endpoint->registers +
+						  fpga_buf_ctrl_reg);
 
 				mutex_unlock(&channel->endpoint->
-					     register_mutex);
+							 register_mutex);
 
 				channel->rd_leftovers[3] =
 					(channel->rd_host_buf_pos != 0);
 			}
 
-			if (rc) {
+			if (rc)
+			{
 				mutex_unlock(&channel->rd_mutex);
 
 				if (channel->endpoint->fatal_error)
+				{
 					return -EIO;
+				}
 
 				if (!channel->rd_synchronous)
 					queue_delayed_work(
@@ -1353,13 +1580,19 @@ static ssize_t xillybus_write(struct file *filp, const char __user *userbuf,
 		}
 
 		if (bytes_done >= count)
+		{
 			break;
+		}
 
 		if (!exhausted)
-			continue; /* If there's more space, just go on */
+		{
+			continue;    /* If there's more space, just go on */
+		}
 
 		if ((bytes_done > 0) && channel->rd_allow_partial)
+		{
 			break;
+		}
 
 		/*
 		 * Indefinite sleep with mutex taken. With data waiting for
@@ -1367,20 +1600,27 @@ static ssize_t xillybus_write(struct file *filp, const char __user *userbuf,
 		 * sleeps.
 		 */
 
-		if (filp->f_flags & O_NONBLOCK) {
+		if (filp->f_flags & O_NONBLOCK)
+		{
 			rc = -EAGAIN;
 			break;
 		}
 
 		if (wait_event_interruptible(channel->rd_wait,
-					     (!channel->rd_full))) {
+									 (!channel->rd_full)))
+		{
 			mutex_unlock(&channel->rd_mutex);
 
 			if (channel->endpoint->fatal_error)
+			{
 				return -EIO;
+			}
 
 			if (bytes_done)
+			{
 				return bytes_done;
+			}
+
 			return -EINTR;
 		}
 	}
@@ -1389,20 +1629,27 @@ static ssize_t xillybus_write(struct file *filp, const char __user *userbuf,
 
 	if (!channel->rd_synchronous)
 		queue_delayed_work(xillybus_wq,
-				   &channel->rd_workitem,
-				   XILLY_RX_TIMEOUT);
+						   &channel->rd_workitem,
+						   XILLY_RX_TIMEOUT);
 
 	if (channel->endpoint->fatal_error)
+	{
 		return -EIO;
+	}
 
 	if (rc)
+	{
 		return rc;
+	}
 
-	if ((channel->rd_synchronous) && (bytes_done > 0)) {
+	if ((channel->rd_synchronous) && (bytes_done > 0))
+	{
 		rc = xillybus_myflush(filp->private_data, 0); /* No timeout */
 
 		if (rc && (rc != -EINTR))
+		{
 			return rc;
+		}
 	}
 
 	return bytes_done;
@@ -1419,25 +1666,30 @@ static int xillybus_open(struct inode *inode, struct file *filp)
 
 	mutex_lock(&ep_list_lock);
 
-	list_for_each_entry(ep_iter, &list_of_endpoints, ep_list) {
+	list_for_each_entry(ep_iter, &list_of_endpoints, ep_list)
+	{
 		if ((ep_iter->major == major) &&
-		    (minor >= ep_iter->lowest_minor) &&
-		    (minor < (ep_iter->lowest_minor +
-			      ep_iter->num_channels))) {
+			(minor >= ep_iter->lowest_minor) &&
+			(minor < (ep_iter->lowest_minor +
+					  ep_iter->num_channels)))
+		{
 			endpoint = ep_iter;
 			break;
 		}
 	}
 	mutex_unlock(&ep_list_lock);
 
-	if (!endpoint) {
+	if (!endpoint)
+	{
 		pr_err("xillybus: open() failed to find a device for major=%d and minor=%d\n",
-		       major, minor);
+			   major, minor);
 		return -ENODEV;
 	}
 
 	if (endpoint->fatal_error)
+	{
 		return -EIO;
+	}
 
 	channel = endpoint->channels[1 + minor - endpoint->lowest_minor];
 	filp->private_data = channel;
@@ -1449,23 +1701,29 @@ static int xillybus_open(struct inode *inode, struct file *filp)
 	 */
 
 	if ((filp->f_mode & FMODE_READ) && (!channel->num_wr_buffers))
+	{
 		return -ENODEV;
+	}
 
 	if ((filp->f_mode & FMODE_WRITE) && (!channel->num_rd_buffers))
+	{
 		return -ENODEV;
+	}
 
 	if ((filp->f_mode & FMODE_READ) && (filp->f_flags & O_NONBLOCK) &&
-	    (channel->wr_synchronous || !channel->wr_allow_partial ||
-	     !channel->wr_supports_nonempty)) {
+		(channel->wr_synchronous || !channel->wr_allow_partial ||
+		 !channel->wr_supports_nonempty))
+	{
 		dev_err(endpoint->dev,
-			"open() failed: O_NONBLOCK not allowed for read on this device\n");
+				"open() failed: O_NONBLOCK not allowed for read on this device\n");
 		return -ENODEV;
 	}
 
 	if ((filp->f_mode & FMODE_WRITE) && (filp->f_flags & O_NONBLOCK) &&
-	    (channel->rd_synchronous || !channel->rd_allow_partial)) {
+		(channel->rd_synchronous || !channel->rd_allow_partial))
+	{
 		dev_err(endpoint->dev,
-			"open() failed: O_NONBLOCK not allowed for write on this device\n");
+				"open() failed: O_NONBLOCK not allowed for write on this device\n");
 		return -ENODEV;
 	}
 
@@ -1476,34 +1734,46 @@ static int xillybus_open(struct inode *inode, struct file *filp)
 	 * (*_exclusive_open is normally set in real-life systems).
 	 */
 
-	if (filp->f_mode & FMODE_READ) {
+	if (filp->f_mode & FMODE_READ)
+	{
 		rc = mutex_lock_interruptible(&channel->wr_mutex);
+
 		if (rc)
+		{
 			return rc;
+		}
 	}
 
-	if (filp->f_mode & FMODE_WRITE) {
+	if (filp->f_mode & FMODE_WRITE)
+	{
 		rc = mutex_lock_interruptible(&channel->rd_mutex);
+
 		if (rc)
+		{
 			goto unlock_wr;
+		}
 	}
 
 	if ((filp->f_mode & FMODE_READ) &&
-	    (channel->wr_ref_count != 0) &&
-	    (channel->wr_exclusive_open)) {
+		(channel->wr_ref_count != 0) &&
+		(channel->wr_exclusive_open))
+	{
 		rc = -EBUSY;
 		goto unlock;
 	}
 
 	if ((filp->f_mode & FMODE_WRITE) &&
-	    (channel->rd_ref_count != 0) &&
-	    (channel->rd_exclusive_open)) {
+		(channel->rd_ref_count != 0) &&
+		(channel->rd_exclusive_open))
+	{
 		rc = -EBUSY;
 		goto unlock;
 	}
 
-	if (filp->f_mode & FMODE_READ) {
-		if (channel->wr_ref_count == 0) { /* First open of file */
+	if (filp->f_mode & FMODE_READ)
+	{
+		if (channel->wr_ref_count == 0)   /* First open of file */
+		{
 			/* Move the host to first buffer */
 			spin_lock_irqsave(&channel->wr_spinlock, flags);
 			channel->wr_host_buf_idx = 0;
@@ -1518,17 +1788,19 @@ static int xillybus_open(struct inode *inode, struct file *filp)
 			spin_unlock_irqrestore(&channel->wr_spinlock, flags);
 
 			iowrite32(1 | (channel->chan_num << 1) |
-				  (4 << 24) |  /* Opcode 4, open channel */
-				  ((channel->wr_synchronous & 1) << 23),
-				  channel->endpoint->registers +
-				  fpga_buf_ctrl_reg);
+					  (4 << 24) |  /* Opcode 4, open channel */
+					  ((channel->wr_synchronous & 1) << 23),
+					  channel->endpoint->registers +
+					  fpga_buf_ctrl_reg);
 		}
 
 		channel->wr_ref_count++;
 	}
 
-	if (filp->f_mode & FMODE_WRITE) {
-		if (channel->rd_ref_count == 0) { /* First open of file */
+	if (filp->f_mode & FMODE_WRITE)
+	{
+		if (channel->rd_ref_count == 0)   /* First open of file */
+		{
 			/* Move the host to first buffer */
 			spin_lock_irqsave(&channel->rd_spinlock, flags);
 			channel->rd_host_buf_idx = 0;
@@ -1540,23 +1812,32 @@ static int xillybus_open(struct inode *inode, struct file *filp)
 			spin_unlock_irqrestore(&channel->rd_spinlock, flags);
 
 			iowrite32((channel->chan_num << 1) |
-				  (4 << 24),   /* Opcode 4, open channel */
-				  channel->endpoint->registers +
-				  fpga_buf_ctrl_reg);
+					  (4 << 24),   /* Opcode 4, open channel */
+					  channel->endpoint->registers +
+					  fpga_buf_ctrl_reg);
 		}
 
 		channel->rd_ref_count++;
 	}
 
 unlock:
+
 	if (filp->f_mode & FMODE_WRITE)
+	{
 		mutex_unlock(&channel->rd_mutex);
+	}
+
 unlock_wr:
+
 	if (filp->f_mode & FMODE_READ)
+	{
 		mutex_unlock(&channel->wr_mutex);
+	}
 
 	if (!rc && (!channel->seekable))
+	{
 		return nonseekable_open(inode, filp);
+	}
 
 	return rc;
 }
@@ -1570,37 +1851,44 @@ static int xillybus_release(struct inode *inode, struct file *filp)
 	int eof;
 
 	if (channel->endpoint->fatal_error)
+	{
 		return -EIO;
+	}
 
-	if (filp->f_mode & FMODE_WRITE) {
+	if (filp->f_mode & FMODE_WRITE)
+	{
 		mutex_lock(&channel->rd_mutex);
 
 		channel->rd_ref_count--;
 
-		if (channel->rd_ref_count == 0) {
+		if (channel->rd_ref_count == 0)
+		{
 			/*
 			 * We rely on the kernel calling flush()
 			 * before we get here.
 			 */
 
 			iowrite32((channel->chan_num << 1) | /* Channel ID */
-				  (5 << 24),  /* Opcode 5, close channel */
-				  channel->endpoint->registers +
-				  fpga_buf_ctrl_reg);
+					  (5 << 24),  /* Opcode 5, close channel */
+					  channel->endpoint->registers +
+					  fpga_buf_ctrl_reg);
 		}
+
 		mutex_unlock(&channel->rd_mutex);
 	}
 
-	if (filp->f_mode & FMODE_READ) {
+	if (filp->f_mode & FMODE_READ)
+	{
 		mutex_lock(&channel->wr_mutex);
 
 		channel->wr_ref_count--;
 
-		if (channel->wr_ref_count == 0) {
+		if (channel->wr_ref_count == 0)
+		{
 			iowrite32(1 | (channel->chan_num << 1) |
-				  (5 << 24),  /* Opcode 5, close channel */
-				  channel->endpoint->registers +
-				  fpga_buf_ctrl_reg);
+					  (5 << 24),  /* Opcode 5, close channel */
+					  channel->endpoint->registers +
+					  fpga_buf_ctrl_reg);
 
 			/*
 			 * This is crazily cautious: We make sure that not
@@ -1612,14 +1900,15 @@ static int xillybus_release(struct inode *inode, struct file *filp)
 			 * BTW)
 			 */
 
-			while (1) {
+			while (1)
+			{
 				spin_lock_irqsave(&channel->wr_spinlock,
-						  flags);
+								  flags);
 				buf_idx = channel->wr_fpga_buf_idx;
 				eof = channel->wr_eof;
 				channel->wr_sleepy = 1;
 				spin_unlock_irqrestore(&channel->wr_spinlock,
-						       flags);
+									   flags);
 
 				/*
 				 * Check if eof points at the buffer after
@@ -1628,11 +1917,16 @@ static int xillybus_release(struct inode *inode, struct file *filp)
 				 */
 
 				buf_idx++;
+
 				if (buf_idx == channel->num_wr_buffers)
+				{
 					buf_idx = 0;
+				}
 
 				if (buf_idx == eof)
+				{
 					break;
+				}
 
 				/*
 				 * Steal extra 100 ms if awaken by interrupt.
@@ -1643,14 +1937,17 @@ static int xillybus_release(struct inode *inode, struct file *filp)
 				 */
 
 				if (wait_event_interruptible(
-					    channel->wr_wait,
-					    (!channel->wr_sleepy)))
+						channel->wr_wait,
+						(!channel->wr_sleepy)))
+				{
 					msleep(100);
+				}
 
-				if (channel->wr_sleepy) {
+				if (channel->wr_sleepy)
+				{
 					mutex_unlock(&channel->wr_mutex);
 					dev_warn(channel->endpoint->dev,
-						 "Hardware failed to respond to close command, therefore left in messy state.\n");
+							 "Hardware failed to respond to close command, therefore left in messy state.\n");
 					return -EINTR;
 				}
 			}
@@ -1676,28 +1973,35 @@ static loff_t xillybus_llseek(struct file *filp, loff_t offset, int whence)
 	 */
 
 	if (channel->endpoint->fatal_error)
+	{
 		return -EIO;
+	}
 
 	mutex_lock(&channel->wr_mutex);
 	mutex_lock(&channel->rd_mutex);
 
-	switch (whence) {
-	case SEEK_SET:
-		pos = offset;
-		break;
-	case SEEK_CUR:
-		pos += offset;
-		break;
-	case SEEK_END:
-		pos = offset; /* Going to the end => to the beginning */
-		break;
-	default:
-		rc = -EINVAL;
-		goto end;
+	switch (whence)
+	{
+		case SEEK_SET:
+			pos = offset;
+			break;
+
+		case SEEK_CUR:
+			pos += offset;
+			break;
+
+		case SEEK_END:
+			pos = offset; /* Going to the end => to the beginning */
+			break;
+
+		default:
+			rc = -EINVAL;
+			goto end;
 	}
 
 	/* In any case, we must finish on an element boundary */
-	if (pos & ((1 << channel->log2_element_size) - 1)) {
+	if (pos & ((1 << channel->log2_element_size) - 1))
+	{
 		rc = -EINVAL;
 		goto end;
 	}
@@ -1705,11 +2009,11 @@ static loff_t xillybus_llseek(struct file *filp, loff_t offset, int whence)
 	mutex_lock(&channel->endpoint->register_mutex);
 
 	iowrite32(pos >> channel->log2_element_size,
-		  channel->endpoint->registers + fpga_buf_offset_reg);
+			  channel->endpoint->registers + fpga_buf_offset_reg);
 
 	iowrite32((channel->chan_num << 1) |
-		  (6 << 24),  /* Opcode 6, set address */
-		  channel->endpoint->registers + fpga_buf_ctrl_reg);
+			  (6 << 24),  /* Opcode 6, set address */
+			  channel->endpoint->registers + fpga_buf_ctrl_reg);
 
 	mutex_unlock(&channel->endpoint->register_mutex);
 
@@ -1718,7 +2022,9 @@ end:
 	mutex_unlock(&channel->wr_mutex);
 
 	if (rc) /* Return error after releasing mutexes */
+	{
 		return rc;
+	}
 
 	filp->f_pos = pos;
 
@@ -1752,13 +2058,17 @@ static unsigned int xillybus_poll(struct file *filp, poll_table *wait)
 	 * not.
 	 */
 
-	if (!channel->wr_synchronous && channel->wr_supports_nonempty) {
+	if (!channel->wr_synchronous && channel->wr_supports_nonempty)
+	{
 		poll_wait(filp, &channel->wr_wait, wait);
 		poll_wait(filp, &channel->wr_ready_wait, wait);
 
 		spin_lock_irqsave(&channel->wr_spinlock, flags);
+
 		if (!channel->wr_empty || channel->wr_ready)
+		{
 			mask |= POLLIN | POLLRDNORM;
+		}
 
 		if (channel->wr_hangup)
 			/*
@@ -1766,7 +2076,10 @@ static unsigned int xillybus_poll(struct file *filp, poll_table *wait)
 			 * mist, and POLLIN does what we want: Wake up
 			 * the read file descriptor so it sees EOF.
 			 */
+		{
 			mask |=  POLLIN | POLLRDNORM;
+		}
+
 		spin_unlock_irqrestore(&channel->wr_spinlock, flags);
 	}
 
@@ -1776,22 +2089,30 @@ static unsigned int xillybus_poll(struct file *filp, poll_table *wait)
 	 * block despite some space being available.
 	 */
 
-	if (channel->rd_allow_partial) {
+	if (channel->rd_allow_partial)
+	{
 		poll_wait(filp, &channel->rd_wait, wait);
 
 		spin_lock_irqsave(&channel->rd_spinlock, flags);
+
 		if (!channel->rd_full)
+		{
 			mask |= POLLOUT | POLLWRNORM;
+		}
+
 		spin_unlock_irqrestore(&channel->rd_spinlock, flags);
 	}
 
 	if (channel->endpoint->fatal_error)
+	{
 		mask |= POLLERR;
+	}
 
 	return mask;
 }
 
-static const struct file_operations xillybus_fops = {
+static const struct file_operations xillybus_fops =
+{
 	.owner      = THIS_MODULE,
 	.read       = xillybus_read,
 	.write      = xillybus_write,
@@ -1803,7 +2124,7 @@ static const struct file_operations xillybus_fops = {
 };
 
 static int xillybus_init_chrdev(struct xilly_endpoint *endpoint,
-				const unsigned char *idt)
+								const unsigned char *idt)
 {
 	int rc;
 	dev_t dev;
@@ -1812,9 +2133,11 @@ static int xillybus_init_chrdev(struct xilly_endpoint *endpoint,
 	struct device *device;
 
 	rc = alloc_chrdev_region(&dev, 0, /* minor start */
-				 endpoint->num_channels,
-				 xillyname);
-	if (rc) {
+							 endpoint->num_channels,
+							 xillyname);
+
+	if (rc)
+	{
 		dev_warn(endpoint->dev, "Failed to obtain major/minors");
 		return rc;
 	}
@@ -1825,8 +2148,10 @@ static int xillybus_init_chrdev(struct xilly_endpoint *endpoint,
 	cdev_init(&endpoint->cdev, &xillybus_fops);
 	endpoint->cdev.owner = endpoint->ephw->owner;
 	rc = cdev_add(&endpoint->cdev, MKDEV(major, minor),
-		      endpoint->num_channels);
-	if (rc) {
+				  endpoint->num_channels);
+
+	if (rc)
+	{
 		dev_warn(endpoint->dev, "Failed to add cdev. Aborting.\n");
 		goto unregister_chrdev;
 	}
@@ -1834,38 +2159,43 @@ static int xillybus_init_chrdev(struct xilly_endpoint *endpoint,
 	idt++;
 
 	for (i = minor, devnum = 0;
-	     devnum < endpoint->num_channels;
-	     devnum++, i++) {
-		snprintf(devname, sizeof(devname)-1, "xillybus_%s", idt);
+		 devnum < endpoint->num_channels;
+		 devnum++, i++)
+	{
+		snprintf(devname, sizeof(devname) - 1, "xillybus_%s", idt);
 
-		devname[sizeof(devname)-1] = 0; /* Should never matter */
+		devname[sizeof(devname) - 1] = 0; /* Should never matter */
 
 		while (*idt++)
 			/* Skip to next */;
 
 		device = device_create(xillybus_class,
-				       NULL,
-				       MKDEV(major, i),
-				       NULL,
-				       "%s", devname);
+							   NULL,
+							   MKDEV(major, i),
+							   NULL,
+							   "%s", devname);
 
-		if (IS_ERR(device)) {
+		if (IS_ERR(device))
+		{
 			dev_warn(endpoint->dev,
-				 "Failed to create %s device. Aborting.\n",
-				 devname);
+					 "Failed to create %s device. Aborting.\n",
+					 devname);
 			rc = -ENODEV;
 			goto unroll_device_create;
 		}
 	}
 
 	dev_info(endpoint->dev, "Created %d device files.\n",
-		 endpoint->num_channels);
+			 endpoint->num_channels);
 	return 0; /* succeed */
 
 unroll_device_create:
 	devnum--; i--;
+
 	for (; devnum >= 0; devnum--, i--)
+	{
 		device_destroy(xillybus_class, MKDEV(major, i));
+	}
 
 	cdev_del(&endpoint->cdev);
 unregister_chrdev:
@@ -1879,28 +2209,34 @@ static void xillybus_cleanup_chrdev(struct xilly_endpoint *endpoint)
 	int minor;
 
 	for (minor = endpoint->lowest_minor;
-	     minor < (endpoint->lowest_minor + endpoint->num_channels);
-	     minor++)
+		 minor < (endpoint->lowest_minor + endpoint->num_channels);
+		 minor++)
+	{
 		device_destroy(xillybus_class, MKDEV(endpoint->major, minor));
+	}
+
 	cdev_del(&endpoint->cdev);
 	unregister_chrdev_region(MKDEV(endpoint->major,
-				       endpoint->lowest_minor),
-				 endpoint->num_channels);
+								   endpoint->lowest_minor),
+							 endpoint->num_channels);
 
 	dev_info(endpoint->dev, "Removed %d device files.\n",
-		 endpoint->num_channels);
+			 endpoint->num_channels);
 }
 
 struct xilly_endpoint *xillybus_init_endpoint(struct pci_dev *pdev,
-					      struct device *dev,
-					      struct xilly_endpoint_hardware
-					      *ephw)
+		struct device *dev,
+		struct xilly_endpoint_hardware
+		*ephw)
 {
 	struct xilly_endpoint *endpoint;
 
 	endpoint = devm_kzalloc(dev, sizeof(*endpoint), GFP_KERNEL);
+
 	if (!endpoint)
+	{
 		return NULL;
+	}
 
 	endpoint->pdev = pdev;
 	endpoint->dev = dev;
@@ -1923,16 +2259,19 @@ static int xilly_quiesce(struct xilly_endpoint *endpoint)
 	endpoint->idtlen = -1;
 
 	iowrite32((u32) (endpoint->dma_using_dac & 0x0001),
-		  endpoint->registers + fpga_dma_control_reg);
+			  endpoint->registers + fpga_dma_control_reg);
 
 	t = wait_event_interruptible_timeout(endpoint->ep_wait,
-					     (endpoint->idtlen >= 0),
-					     XILLY_TIMEOUT);
-	if (t <= 0) {
+										 (endpoint->idtlen >= 0),
+										 XILLY_TIMEOUT);
+
+	if (t <= 0)
+	{
 		dev_err(endpoint->dev,
-			"Failed to quiesce the device on exit.\n");
+				"Failed to quiesce the device on exit.\n");
 		return -ENODEV;
 	}
+
 	return 0;
 }
 
@@ -1952,8 +2291,9 @@ int xillybus_endpoint_discovery(struct xilly_endpoint *endpoint)
 	 * it's soon replaced with a more modest one (and memory is freed).
 	 */
 
-	unsigned char bogus_idt[8] = { 1, 224, (PAGE_SHIFT)-2, 0,
-				       3, 192, PAGE_SHIFT, 0 };
+	unsigned char bogus_idt[8] = { 1, 224, (PAGE_SHIFT) - 2, 0,
+								   3, 192, PAGE_SHIFT, 0
+								 };
 	struct xilly_idt_handle idt_handle;
 
 	/*
@@ -1967,14 +2307,20 @@ int xillybus_endpoint_discovery(struct xilly_endpoint *endpoint)
 	/* Bootstrap phase I: Allocate temporary message buffer */
 
 	bootstrap_resources = devres_open_group(dev, NULL, GFP_KERNEL);
+
 	if (!bootstrap_resources)
+	{
 		return -ENOMEM;
+	}
 
 	endpoint->num_channels = 0;
 
 	rc = xilly_setupchannels(endpoint, bogus_idt, 1);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Clear the message subsystem (and counter in particular) */
 	iowrite32(0x04, endpoint->registers + fpga_msg_ctrl_reg);
@@ -1986,22 +2332,25 @@ int xillybus_endpoint_discovery(struct xilly_endpoint *endpoint)
 	 * buffer size.
 	 */
 	iowrite32((u32) (endpoint->dma_using_dac & 0x0001),
-		  endpoint->registers + fpga_dma_control_reg);
+			  endpoint->registers + fpga_dma_control_reg);
 
 	t = wait_event_interruptible_timeout(endpoint->ep_wait,
-					     (endpoint->idtlen >= 0),
-					     XILLY_TIMEOUT);
-	if (t <= 0) {
+										 (endpoint->idtlen >= 0),
+										 XILLY_TIMEOUT);
+
+	if (t <= 0)
+	{
 		dev_err(endpoint->dev, "No response from FPGA. Aborting.\n");
 		return -ENODEV;
 	}
 
 	/* Enable DMA */
 	iowrite32((u32) (0x0002 | (endpoint->dma_using_dac & 0x0001)),
-		  endpoint->registers + fpga_dma_control_reg);
+			  endpoint->registers + fpga_dma_control_reg);
 
 	/* Bootstrap phase II: Allocate buffer for IDT and obtain it */
-	while (endpoint->idtlen >= idtbuffersize) {
+	while (endpoint->idtlen >= idtbuffersize)
+	{
 		idtbuffersize *= 2;
 		bogus_idt[6]++;
 	}
@@ -2009,26 +2358,38 @@ int xillybus_endpoint_discovery(struct xilly_endpoint *endpoint)
 	endpoint->num_channels = 1;
 
 	rc = xilly_setupchannels(endpoint, bogus_idt, 2);
+
 	if (rc)
+	{
 		goto failed_idt;
+	}
 
 	rc = xilly_obtain_idt(endpoint);
+
 	if (rc)
+	{
 		goto failed_idt;
+	}
 
 	rc = xilly_scan_idt(endpoint, &idt_handle);
+
 	if (rc)
+	{
 		goto failed_idt;
+	}
 
 	devres_close_group(dev, bootstrap_resources);
 
 	/* Bootstrap phase III: Allocate buffers according to IDT */
 
 	rc = xilly_setupchannels(endpoint,
-				 idt_handle.chandesc,
-				 idt_handle.entries);
+							 idt_handle.chandesc,
+							 idt_handle.entries);
+
 	if (rc)
+	{
 		goto failed_idt;
+	}
 
 	/*
 	 * endpoint is now completely configured. We put it on the list
@@ -2040,8 +2401,11 @@ int xillybus_endpoint_discovery(struct xilly_endpoint *endpoint)
 	mutex_unlock(&ep_list_lock);
 
 	rc = xillybus_init_chrdev(endpoint, idt_handle.idt);
+
 	if (rc)
+	{
 		goto failed_chrdevs;
+	}
 
 	devres_release_group(dev, bootstrap_resources);
 
@@ -2083,11 +2447,16 @@ static int __init xillybus_init(void)
 	mutex_init(&ep_list_lock);
 
 	xillybus_class = class_create(THIS_MODULE, xillyname);
+
 	if (IS_ERR(xillybus_class))
+	{
 		return PTR_ERR(xillybus_class);
+	}
 
 	xillybus_wq = alloc_workqueue(xillyname, 0, 0);
-	if (!xillybus_wq) {
+
+	if (!xillybus_wq)
+	{
 		class_destroy(xillybus_class);
 		return -ENOMEM;
 	}

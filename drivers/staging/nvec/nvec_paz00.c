@@ -25,13 +25,14 @@
 
 #define NVEC_LED_MAX 8
 
-struct nvec_led {
+struct nvec_led
+{
 	struct led_classdev cdev;
 	struct nvec_chip *nvec;
 };
 
 static void nvec_led_brightness_set(struct led_classdev *led_cdev,
-				    enum led_brightness value)
+									enum led_brightness value)
 {
 	struct nvec_led *led = to_nvec_led(led_cdev);
 	unsigned char buf[] = NVEC_LED_REQ;
@@ -50,8 +51,11 @@ static int nvec_paz00_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	led = devm_kzalloc(&pdev->dev, sizeof(*led), GFP_KERNEL);
+
 	if (!led)
+	{
 		return -ENOMEM;
+	}
 
 	led->cdev.max_brightness = NVEC_LED_MAX;
 
@@ -63,8 +67,11 @@ static int nvec_paz00_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, led);
 
 	ret = devm_led_classdev_register(&pdev->dev, &led->cdev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* to expose the default value to userspace */
 	led->cdev.brightness = 0;
@@ -72,7 +79,8 @@ static int nvec_paz00_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver nvec_paz00_driver = {
+static struct platform_driver nvec_paz00_driver =
+{
 	.probe  = nvec_paz00_probe,
 	.driver = {
 		.name  = "nvec-paz00",

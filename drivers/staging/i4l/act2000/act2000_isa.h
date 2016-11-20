@@ -17,7 +17,8 @@
 
 #define ISA_POLL_LOOP 40        /* Try to read-write before give up */
 
-typedef enum {
+typedef enum
+{
 	INT_NO_CHANGE = 0,      /* Do not change the Mask */
 	INT_ON = 1,             /* Set to Enable */
 	INT_OFF = 2,            /* Set to Disable */

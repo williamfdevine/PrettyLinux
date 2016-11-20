@@ -52,7 +52,8 @@
  * @request_tag: Unique number to identify reply.
  */
 
-struct ps3_sys_manager_header {
+struct ps3_sys_manager_header
+{
 	/* version 1 */
 	u8 version;
 	u8 size;
@@ -84,7 +85,8 @@ static void __maybe_unused _dump_sm_header(
  * the logic.
  */
 
-enum {
+enum
+{
 	PS3_SM_RX_MSG_LEN_MIN = 24,
 	PS3_SM_RX_MSG_LEN_MAX = 32,
 };
@@ -104,7 +106,8 @@ enum {
  * a REQUEST message is sent at the wrong time.
  */
 
-enum ps3_sys_manager_service_id {
+enum ps3_sys_manager_service_id
+{
 	/* version 1 */
 	PS3_SM_SERVICE_ID_REQUEST = 1,
 	PS3_SM_SERVICE_ID_RESPONSE = 2,
@@ -128,7 +131,8 @@ enum ps3_sys_manager_service_id {
  * attributes via the ps3_sys_manager_send_attr() routine.
  */
 
-enum ps3_sys_manager_attr {
+enum ps3_sys_manager_attr
+{
 	/* version 1 */
 	PS3_SM_ATTR_POWER = 1,
 	PS3_SM_ATTR_RESET = 2,
@@ -149,7 +153,8 @@ enum ps3_sys_manager_attr {
  * @PS3_SM_EVENT_THERMAL_CLEARED: payload.value = thermal zone id.
  */
 
-enum ps3_sys_manager_event {
+enum ps3_sys_manager_event
+{
 	/* version 1 */
 	PS3_SM_EVENT_POWER_PRESSED = 3,
 	PS3_SM_EVENT_POWER_RELEASED = 4,
@@ -166,7 +171,8 @@ enum ps3_sys_manager_event {
  * @PS3_SM_BUTTON_EVENT_SOFT: Software generated event.
  */
 
-enum ps3_sys_manager_button_event {
+enum ps3_sys_manager_button_event
+{
 	PS3_SM_BUTTON_EVENT_HARD = 0,
 	PS3_SM_BUTTON_EVENT_SOFT = 1,
 };
@@ -175,7 +181,8 @@ enum ps3_sys_manager_button_event {
  * enum ps3_sys_manager_next_op - Operation to perform after lpar is destroyed.
  */
 
-enum ps3_sys_manager_next_op {
+enum ps3_sys_manager_next_op
+{
 	/* version 3 */
 	PS3_SM_NEXT_OP_SYS_SHUTDOWN = 1,
 	PS3_SM_NEXT_OP_SYS_REBOOT = 2,
@@ -194,7 +201,8 @@ enum ps3_sys_manager_next_op {
  * other-os lpar.
  */
 
-enum ps3_sys_manager_wake_source {
+enum ps3_sys_manager_wake_source
+{
 	/* version 3 */
 	PS3_SM_WAKE_DEFAULT   = 0,
 	PS3_SM_WAKE_W_O_L     = 0x00000400,
@@ -218,7 +226,8 @@ static u32 user_wake_sources = PS3_SM_WAKE_DEFAULT;
  * command.
  */
 
-enum ps3_sys_manager_cmd {
+enum ps3_sys_manager_cmd
+{
 	/* version 1 */
 	PS3_SM_CMD_SHUTDOWN = 1, /* shutdown guest OS */
 };
@@ -239,7 +248,7 @@ static unsigned int ps3_sm_force_power_off;
  */
 
 static int ps3_sys_manager_write(struct ps3_system_bus_device *dev,
-	const struct ps3_sys_manager_header *header, const void *payload)
+								 const struct ps3_sys_manager_header *header, const void *payload)
 {
 	int result;
 
@@ -249,10 +258,12 @@ static int ps3_sys_manager_write(struct ps3_system_bus_device *dev,
 	BUG_ON(header->service_id > 8);
 
 	result = ps3_vuart_write(dev, header,
-		sizeof(struct ps3_sys_manager_header));
+							 sizeof(struct ps3_sys_manager_header));
 
 	if (!result)
+	{
 		result = ps3_vuart_write(dev, payload, header->payload_size);
+	}
 
 	return result;
 }
@@ -263,10 +274,11 @@ static int ps3_sys_manager_write(struct ps3_system_bus_device *dev,
  */
 
 static int ps3_sys_manager_send_attr(struct ps3_system_bus_device *dev,
-	enum ps3_sys_manager_attr attr)
+									 enum ps3_sys_manager_attr attr)
 {
 	struct ps3_sys_manager_header header;
-	struct {
+	struct
+	{
 		u8 version;
 		u8 reserved_1[3];
 		u32 attribute;
@@ -296,11 +308,12 @@ static int ps3_sys_manager_send_attr(struct ps3_system_bus_device *dev,
  */
 
 static int ps3_sys_manager_send_next_op(struct ps3_system_bus_device *dev,
-	enum ps3_sys_manager_next_op op,
-	enum ps3_sys_manager_wake_source wake_source)
+										enum ps3_sys_manager_next_op op,
+										enum ps3_sys_manager_wake_source wake_source)
 {
 	struct ps3_sys_manager_header header;
-	struct {
+	struct
+	{
 		u8 version;
 		u8 type;
 		u8 gos_id;
@@ -344,7 +357,8 @@ static int ps3_sys_manager_send_request_shutdown(
 	struct ps3_system_bus_device *dev)
 {
 	struct ps3_sys_manager_header header;
-	struct {
+	struct
+	{
 		u8 version;
 		u8 type;
 		u8 gos_id;
@@ -378,10 +392,11 @@ static int ps3_sys_manager_send_request_shutdown(
  */
 
 static int ps3_sys_manager_send_response(struct ps3_system_bus_device *dev,
-	u64 status)
+		u64 status)
 {
 	struct ps3_sys_manager_header header;
-	struct {
+	struct
+	{
 		u8 version;
 		u8 reserved_1[3];
 		u8 status;
@@ -391,7 +406,7 @@ static int ps3_sys_manager_send_response(struct ps3_system_bus_device *dev,
 	BUILD_BUG_ON(sizeof(payload) != 16);
 
 	dev_dbg(&dev->core, "%s:%d: (%s)\n", __func__, __LINE__,
-		(status ? "nak" : "ack"));
+			(status ? "nak" : "ack"));
 
 	memset(&header, 0, sizeof(header));
 	header.version = 1;
@@ -414,7 +429,8 @@ static int ps3_sys_manager_send_response(struct ps3_system_bus_device *dev,
 static int ps3_sys_manager_handle_event(struct ps3_system_bus_device *dev)
 {
 	int result;
-	struct {
+	struct
+	{
 		u8 version;
 		u8 type;
 		u8 reserved_1[2];
@@ -427,62 +443,70 @@ static int ps3_sys_manager_handle_event(struct ps3_system_bus_device *dev)
 	result = ps3_vuart_read(dev, &event, sizeof(event));
 	BUG_ON(result && "need to retry here");
 
-	if (event.version != 1) {
+	if (event.version != 1)
+	{
 		dev_dbg(&dev->core, "%s:%d: unsupported event version (%u)\n",
-			__func__, __LINE__, event.version);
+				__func__, __LINE__, event.version);
 		return -EIO;
 	}
 
-	switch (event.type) {
-	case PS3_SM_EVENT_POWER_PRESSED:
-		dev_dbg(&dev->core, "%s:%d: POWER_PRESSED (%s)\n",
-			__func__, __LINE__,
-			(event.value == PS3_SM_BUTTON_EVENT_SOFT ? "soft"
-			: "hard"));
-		ps3_sm_force_power_off = 1;
-		/*
-		 * A memory barrier is use here to sync memory since
-		 * ps3_sys_manager_final_restart() could be called on
-		 * another cpu.
-		 */
-		wmb();
-		kill_cad_pid(SIGINT, 1); /* ctrl_alt_del */
-		break;
-	case PS3_SM_EVENT_POWER_RELEASED:
-		dev_dbg(&dev->core, "%s:%d: POWER_RELEASED (%u ms)\n",
-			__func__, __LINE__, event.value);
-		break;
-	case PS3_SM_EVENT_RESET_PRESSED:
-		dev_dbg(&dev->core, "%s:%d: RESET_PRESSED (%s)\n",
-			__func__, __LINE__,
-			(event.value == PS3_SM_BUTTON_EVENT_SOFT ? "soft"
-			: "hard"));
-		ps3_sm_force_power_off = 0;
-		/*
-		 * A memory barrier is use here to sync memory since
-		 * ps3_sys_manager_final_restart() could be called on
-		 * another cpu.
-		 */
-		wmb();
-		kill_cad_pid(SIGINT, 1); /* ctrl_alt_del */
-		break;
-	case PS3_SM_EVENT_RESET_RELEASED:
-		dev_dbg(&dev->core, "%s:%d: RESET_RELEASED (%u ms)\n",
-			__func__, __LINE__, event.value);
-		break;
-	case PS3_SM_EVENT_THERMAL_ALERT:
-		dev_dbg(&dev->core, "%s:%d: THERMAL_ALERT (zone %u)\n",
-			__func__, __LINE__, event.value);
-		pr_info("PS3 Thermal Alert Zone %u\n", event.value);
-		break;
-	case PS3_SM_EVENT_THERMAL_CLEARED:
-		dev_dbg(&dev->core, "%s:%d: THERMAL_CLEARED (zone %u)\n",
-			__func__, __LINE__, event.value);
-		break;
-	default:
-		dev_dbg(&dev->core, "%s:%d: unknown event (%u)\n",
-			__func__, __LINE__, event.type);
-		return -EIO;
+	switch (event.type)
+	{
+		case PS3_SM_EVENT_POWER_PRESSED:
+			dev_dbg(&dev->core, "%s:%d: POWER_PRESSED (%s)\n",
+					__func__, __LINE__,
+					(event.value == PS3_SM_BUTTON_EVENT_SOFT ? "soft"
+					 : "hard"));
+			ps3_sm_force_power_off = 1;
+			/*
+			 * A memory barrier is use here to sync memory since
+			 * ps3_sys_manager_final_restart() could be called on
+			 * another cpu.
+			 */
+			wmb();
+			kill_cad_pid(SIGINT, 1); /* ctrl_alt_del */
+			break;
+
+		case PS3_SM_EVENT_POWER_RELEASED:
+			dev_dbg(&dev->core, "%s:%d: POWER_RELEASED (%u ms)\n",
+					__func__, __LINE__, event.value);
+			break;
+
+		case PS3_SM_EVENT_RESET_PRESSED:
+			dev_dbg(&dev->core, "%s:%d: RESET_PRESSED (%s)\n",
+					__func__, __LINE__,
+					(event.value == PS3_SM_BUTTON_EVENT_SOFT ? "soft"
+					 : "hard"));
+			ps3_sm_force_power_off = 0;
+			/*
+			 * A memory barrier is use here to sync memory since
+			 * ps3_sys_manager_final_restart() could be called on
+			 * another cpu.
+			 */
+			wmb();
+			kill_cad_pid(SIGINT, 1); /* ctrl_alt_del */
+			break;
+
+		case PS3_SM_EVENT_RESET_RELEASED:
+			dev_dbg(&dev->core, "%s:%d: RESET_RELEASED (%u ms)\n",
+					__func__, __LINE__, event.value);
+			break;
+
+		case PS3_SM_EVENT_THERMAL_ALERT:
+			dev_dbg(&dev->core, "%s:%d: THERMAL_ALERT (zone %u)\n",
+					__func__, __LINE__, event.value);
+			pr_info("PS3 Thermal Alert Zone %u\n", event.value);
+			break;
+
+		case PS3_SM_EVENT_THERMAL_CLEARED:
+			dev_dbg(&dev->core, "%s:%d: THERMAL_CLEARED (zone %u)\n",
+					__func__, __LINE__, event.value);
+			break;
+
+		default:
+			dev_dbg(&dev->core, "%s:%d: unknown event (%u)\n",
+					__func__, __LINE__, event.type);
+			return -EIO;
 	}
 
 	return 0;
@@ -496,7 +520,8 @@ static int ps3_sys_manager_handle_event(struct ps3_system_bus_device *dev)
 static int ps3_sys_manager_handle_cmd(struct ps3_system_bus_device *dev)
 {
 	int result;
-	struct {
+	struct
+	{
 		u8 version;
 		u8 type;
 		u8 reserved_1[14];
@@ -510,17 +535,21 @@ static int ps3_sys_manager_handle_cmd(struct ps3_system_bus_device *dev)
 	BUG_ON(result && "need to retry here");
 
 	if (result)
+	{
 		return result;
+	}
 
-	if (cmd.version != 1) {
+	if (cmd.version != 1)
+	{
 		dev_dbg(&dev->core, "%s:%d: unsupported cmd version (%u)\n",
-			__func__, __LINE__, cmd.version);
+				__func__, __LINE__, cmd.version);
 		return -EIO;
 	}
 
-	if (cmd.type != PS3_SM_CMD_SHUTDOWN) {
+	if (cmd.type != PS3_SM_CMD_SHUTDOWN)
+	{
 		dev_dbg(&dev->core, "%s:%d: unknown cmd (%u)\n",
-			__func__, __LINE__, cmd.type);
+				__func__, __LINE__, cmd.type);
 		return -EIO;
 	}
 
@@ -540,14 +569,17 @@ static int ps3_sys_manager_handle_msg(struct ps3_system_bus_device *dev)
 	struct ps3_sys_manager_header header;
 
 	result = ps3_vuart_read(dev, &header,
-		sizeof(struct ps3_sys_manager_header));
+							sizeof(struct ps3_sys_manager_header));
 
 	if (result)
+	{
 		return result;
+	}
 
-	if (header.version != 1) {
+	if (header.version != 1)
+	{
 		dev_dbg(&dev->core, "%s:%d: unsupported header version (%u)\n",
-			__func__, __LINE__, header.version);
+				__func__, __LINE__, header.version);
 		dump_sm_header(&header);
 		goto fail_header;
 	}
@@ -555,28 +587,34 @@ static int ps3_sys_manager_handle_msg(struct ps3_system_bus_device *dev)
 	BUILD_BUG_ON(sizeof(header) != 16);
 
 	if (header.size != 16 || (header.payload_size != 8
-		&& header.payload_size != 16)) {
+							  && header.payload_size != 16))
+	{
 		dump_sm_header(&header);
 		BUG();
 	}
 
-	switch (header.service_id) {
-	case PS3_SM_SERVICE_ID_EXTERN_EVENT:
-		dev_dbg(&dev->core, "%s:%d: EVENT\n", __func__, __LINE__);
-		return ps3_sys_manager_handle_event(dev);
-	case PS3_SM_SERVICE_ID_COMMAND:
-		dev_dbg(&dev->core, "%s:%d: COMMAND\n", __func__, __LINE__);
-		return ps3_sys_manager_handle_cmd(dev);
-	case PS3_SM_SERVICE_ID_REQUEST_ERROR:
-		dev_dbg(&dev->core, "%s:%d: REQUEST_ERROR\n", __func__,
-			__LINE__);
-		dump_sm_header(&header);
-		break;
-	default:
-		dev_dbg(&dev->core, "%s:%d: unknown service_id (%u)\n",
-			__func__, __LINE__, header.service_id);
-		break;
+	switch (header.service_id)
+	{
+		case PS3_SM_SERVICE_ID_EXTERN_EVENT:
+			dev_dbg(&dev->core, "%s:%d: EVENT\n", __func__, __LINE__);
+			return ps3_sys_manager_handle_event(dev);
+
+		case PS3_SM_SERVICE_ID_COMMAND:
+			dev_dbg(&dev->core, "%s:%d: COMMAND\n", __func__, __LINE__);
+			return ps3_sys_manager_handle_cmd(dev);
+
+		case PS3_SM_SERVICE_ID_REQUEST_ERROR:
+			dev_dbg(&dev->core, "%s:%d: REQUEST_ERROR\n", __func__,
+					__LINE__);
+			dump_sm_header(&header);
+			break;
+
+		default:
+			dev_dbg(&dev->core, "%s:%d: unknown service_id (%u)\n",
+					__func__, __LINE__, header.service_id);
+			break;
 	}
+
 	goto fail_id;
 
 fail_header:
@@ -593,12 +631,14 @@ static void ps3_sys_manager_fin(struct ps3_system_bus_device *dev)
 
 	pr_emerg("System Halted, OK to turn off power\n");
 
-	while (ps3_sys_manager_handle_msg(dev)) {
+	while (ps3_sys_manager_handle_msg(dev))
+	{
 		/* pause until next DEC interrupt */
 		lv1_pause(0);
 	}
 
-	while (1) {
+	while (1)
+	{
 		/* pause, ignoring DEC interrupt */
 		lv1_pause(1);
 	}
@@ -624,7 +664,7 @@ static void ps3_sys_manager_final_power_off(struct ps3_system_bus_device *dev)
 	ps3_vuart_cancel_async(dev);
 
 	ps3_sys_manager_send_next_op(dev, PS3_SM_NEXT_OP_SYS_SHUTDOWN,
-		user_wake_sources);
+								 user_wake_sources);
 
 	ps3_sys_manager_fin(dev);
 }
@@ -647,9 +687,10 @@ static void ps3_sys_manager_final_restart(struct ps3_system_bus_device *dev)
 
 	/* Check if we got here via a power button event. */
 
-	if (ps3_sm_force_power_off) {
+	if (ps3_sm_force_power_off)
+	{
 		dev_dbg(&dev->core, "%s:%d: forcing poweroff\n",
-			__func__, __LINE__);
+				__func__, __LINE__);
 		ps3_sys_manager_final_power_off(dev);
 	}
 
@@ -657,7 +698,7 @@ static void ps3_sys_manager_final_restart(struct ps3_system_bus_device *dev)
 
 	ps3_sys_manager_send_attr(dev, 0);
 	ps3_sys_manager_send_next_op(dev, PS3_SM_NEXT_OP_SYS_REBOOT,
-		user_wake_sources);
+								 user_wake_sources);
 
 	ps3_sys_manager_fin(dev);
 }
@@ -687,9 +728,14 @@ void ps3_sys_manager_set_wol(int state)
 	pr_debug("%s:%d: %d\n", __func__, __LINE__, state);
 
 	if (state)
+	{
 		user_wake_sources |= PS3_SM_WAKE_W_O_L;
+	}
 	else
+	{
 		user_wake_sources &= ~PS3_SM_WAKE_W_O_L;
+	}
+
 	mutex_unlock(&mutex);
 }
 EXPORT_SYMBOL_GPL(ps3_sys_manager_set_wol);
@@ -741,7 +787,8 @@ static void ps3_sys_manager_shutdown(struct ps3_system_bus_device *dev)
 	dev_dbg(&dev->core, "%s:%d\n", __func__, __LINE__);
 }
 
-static struct ps3_vuart_port_driver ps3_sys_manager = {
+static struct ps3_vuart_port_driver ps3_sys_manager =
+{
 	.core.match_id = PS3_MATCH_ID_SYSTEM_MANAGER,
 	.core.core.name = "ps3_sys_manager",
 	.probe = ps3_sys_manager_probe,
@@ -753,7 +800,9 @@ static struct ps3_vuart_port_driver ps3_sys_manager = {
 static int __init ps3_sys_manager_init(void)
 {
 	if (!firmware_has_feature(FW_FEATURE_PS3_LV1))
+	{
 		return -ENODEV;
+	}
 
 	return ps3_vuart_port_driver_register(&ps3_sys_manager);
 }

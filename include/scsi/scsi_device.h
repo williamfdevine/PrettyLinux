@@ -14,13 +14,14 @@ struct scsi_cmnd;
 struct scsi_lun;
 struct scsi_sense_hdr;
 
-struct scsi_mode_data {
+struct scsi_mode_data
+{
 	__u32	length;
 	__u16	block_descriptor_length;
 	__u8	medium_type;
 	__u8	device_specific;
 	__u8	header_length;
-	__u8	longlba:1;
+	__u8	longlba: 1;
 };
 
 /*
@@ -28,14 +29,15 @@ struct scsi_mode_data {
  * (for the ascii descriptions) and the state model enforcer:
  * scsi_lib:scsi_device_set_state().
  */
-enum scsi_device_state {
+enum scsi_device_state
+{
 	SDEV_CREATED = 1,	/* device created but not added to sysfs
 				 * Only internal commands allowed (for inq) */
 	SDEV_RUNNING,		/* device properly configured
 				 * All commands allowed */
 	SDEV_CANCEL,		/* beginning to delete device
 				 * Only error handler commands allowed */
-	SDEV_DEL,		/* device deleted 
+	SDEV_DEL,		/* device deleted
 				 * no commands allowed */
 	SDEV_QUIESCE,		/* Device quiescent.  No block commands
 				 * will be accepted, only specials (which
@@ -50,13 +52,15 @@ enum scsi_device_state {
 	SDEV_CREATED_BLOCK,	/* same as above but for created devices */
 };
 
-enum scsi_scan_mode {
+enum scsi_scan_mode
+{
 	SCSI_SCAN_INITIAL = 0,
 	SCSI_SCAN_RESCAN,
 	SCSI_SCAN_MANUAL,
 };
 
-enum scsi_device_event {
+enum scsi_device_event
+{
 	SDEV_EVT_MEDIA_CHANGE	= 1,	/* media has changed */
 	SDEV_EVT_INQUIRY_CHANGE_REPORTED,		/* 3F 03  UA reported */
 	SDEV_EVT_CAPACITY_CHANGE_REPORTED,		/* 2A 09  UA reported */
@@ -71,7 +75,8 @@ enum scsi_device_event {
 	SDEV_EVT_MAXBITS	= SDEV_EVT_LAST + 1
 };
 
-struct scsi_event {
+struct scsi_event
+{
 	enum scsi_device_event	evt_type;
 	struct list_head	node;
 
@@ -80,7 +85,8 @@ struct scsi_event {
 	 */
 };
 
-struct scsi_device {
+struct scsi_device
+{
 	struct Scsi_Host *host;
 	struct request_queue *request_queue;
 
@@ -106,20 +112,20 @@ struct scsi_device {
 
 	unsigned int id, channel;
 	u64 lun;
-	unsigned int manufacturer;	/* Manufacturer of device, for using 
+	unsigned int manufacturer;	/* Manufacturer of device, for using
 					 * vendor-specific cmd's */
 	unsigned sector_size;	/* size in bytes */
 
 	void *hostdata;		/* available to low-level driver */
 	char type;
 	char scsi_level;
-	char inq_periph_qual;	/* PQ from INQUIRY data */	
+	char inq_periph_qual;	/* PQ from INQUIRY data */
 	struct mutex inquiry_mutex;
 	unsigned char inquiry_len;	/* valid bytes in 'inquiry' */
-	unsigned char * inquiry;	/* INQUIRY response data */
-	const char * vendor;		/* [back_compat] point into 'inquiry' ... */
-	const char * model;		/* ... after scan; point to static string */
-	const char * rev;		/* ... "nullnullnullnull" before scan */
+	unsigned char *inquiry;	/* INQUIRY response data */
+	const char *vendor;		/* [back_compat] point into 'inquiry' ... */
+	const char *model;		/* ... after scan; point to static string */
+	const char *rev;		/* ... "nullnullnullnull" before scan */
 
 #define SCSI_VPD_PG_LEN                255
 	int vpd_pg83_len;
@@ -134,54 +140,54 @@ struct scsi_device {
 				 * pass settings from slave_alloc to scsi
 				 * core. */
 	unsigned int eh_timeout; /* Error handling timeout */
-	unsigned removable:1;
-	unsigned changed:1;	/* Data invalid due to media change */
-	unsigned busy:1;	/* Used to prevent races */
-	unsigned lockable:1;	/* Able to prevent media removal */
-	unsigned locked:1;      /* Media removal disabled */
-	unsigned borken:1;	/* Tell the Seagate driver to be 
+	unsigned removable: 1;
+	unsigned changed: 1;	/* Data invalid due to media change */
+	unsigned busy: 1;	/* Used to prevent races */
+	unsigned lockable: 1;	/* Able to prevent media removal */
+	unsigned locked: 1;     /* Media removal disabled */
+	unsigned borken: 1;	/* Tell the Seagate driver to be
 				 * painfully slow on this device */
-	unsigned disconnect:1;	/* can disconnect */
-	unsigned soft_reset:1;	/* Uses soft reset option */
-	unsigned sdtr:1;	/* Device supports SDTR messages */
-	unsigned wdtr:1;	/* Device supports WDTR messages */
-	unsigned ppr:1;		/* Device supports PPR messages */
-	unsigned tagged_supported:1;	/* Supports SCSI-II tagged queuing */
-	unsigned simple_tags:1;	/* simple queue tag messages are enabled */
-	unsigned was_reset:1;	/* There was a bus reset on the bus for 
+	unsigned disconnect: 1;	/* can disconnect */
+	unsigned soft_reset: 1;	/* Uses soft reset option */
+	unsigned sdtr: 1;	/* Device supports SDTR messages */
+	unsigned wdtr: 1;	/* Device supports WDTR messages */
+	unsigned ppr: 1;		/* Device supports PPR messages */
+	unsigned tagged_supported: 1;	/* Supports SCSI-II tagged queuing */
+	unsigned simple_tags: 1;	/* simple queue tag messages are enabled */
+	unsigned was_reset: 1;	/* There was a bus reset on the bus for
 				 * this device */
-	unsigned expecting_cc_ua:1; /* Expecting a CHECK_CONDITION/UNIT_ATTN
+	unsigned expecting_cc_ua: 1; /* Expecting a CHECK_CONDITION/UNIT_ATTN
 				     * because we did a bus reset. */
-	unsigned use_10_for_rw:1; /* first try 10-byte read / write */
-	unsigned use_10_for_ms:1; /* first try 10-byte mode sense/select */
-	unsigned no_report_opcodes:1;	/* no REPORT SUPPORTED OPERATION CODES */
-	unsigned no_write_same:1;	/* no WRITE SAME command */
-	unsigned use_16_for_rw:1; /* Use read/write(16) over read/write(10) */
-	unsigned skip_ms_page_8:1;	/* do not use MODE SENSE page 0x08 */
-	unsigned skip_ms_page_3f:1;	/* do not use MODE SENSE page 0x3f */
-	unsigned skip_vpd_pages:1;	/* do not read VPD pages */
-	unsigned try_vpd_pages:1;	/* attempt to read VPD pages */
-	unsigned use_192_bytes_for_3f:1; /* ask for 192 bytes from page 0x3f */
-	unsigned no_start_on_add:1;	/* do not issue start on add */
-	unsigned allow_restart:1; /* issue START_UNIT in error handler */
-	unsigned manage_start_stop:1;	/* Let HLD (sd) manage start/stop */
-	unsigned start_stop_pwr_cond:1;	/* Set power cond. in START_STOP_UNIT */
-	unsigned no_uld_attach:1; /* disable connecting to upper level drivers */
-	unsigned select_no_atn:1;
-	unsigned fix_capacity:1;	/* READ_CAPACITY is too high by 1 */
-	unsigned guess_capacity:1;	/* READ_CAPACITY might be too high by 1 */
-	unsigned retry_hwerror:1;	/* Retry HARDWARE_ERROR */
-	unsigned last_sector_bug:1;	/* do not use multisector accesses on
+	unsigned use_10_for_rw: 1; /* first try 10-byte read / write */
+	unsigned use_10_for_ms: 1; /* first try 10-byte mode sense/select */
+	unsigned no_report_opcodes: 1;	/* no REPORT SUPPORTED OPERATION CODES */
+	unsigned no_write_same: 1;	/* no WRITE SAME command */
+	unsigned use_16_for_rw: 1; /* Use read/write(16) over read/write(10) */
+	unsigned skip_ms_page_8: 1;	/* do not use MODE SENSE page 0x08 */
+	unsigned skip_ms_page_3f: 1;	/* do not use MODE SENSE page 0x3f */
+	unsigned skip_vpd_pages: 1;	/* do not read VPD pages */
+	unsigned try_vpd_pages: 1;	/* attempt to read VPD pages */
+	unsigned use_192_bytes_for_3f: 1; /* ask for 192 bytes from page 0x3f */
+	unsigned no_start_on_add: 1;	/* do not issue start on add */
+	unsigned allow_restart: 1; /* issue START_UNIT in error handler */
+	unsigned manage_start_stop: 1;	/* Let HLD (sd) manage start/stop */
+	unsigned start_stop_pwr_cond: 1;	/* Set power cond. in START_STOP_UNIT */
+	unsigned no_uld_attach: 1; /* disable connecting to upper level drivers */
+	unsigned select_no_atn: 1;
+	unsigned fix_capacity: 1;	/* READ_CAPACITY is too high by 1 */
+	unsigned guess_capacity: 1;	/* READ_CAPACITY might be too high by 1 */
+	unsigned retry_hwerror: 1;	/* Retry HARDWARE_ERROR */
+	unsigned last_sector_bug: 1;	/* do not use multisector accesses on
 					   SD_LAST_BUGGY_SECTORS */
-	unsigned no_read_disc_info:1;	/* Avoid READ_DISC_INFO cmds */
-	unsigned no_read_capacity_16:1; /* Avoid READ_CAPACITY_16 cmds */
-	unsigned try_rc_10_first:1;	/* Try READ_CAPACACITY_10 first */
-	unsigned is_visible:1;	/* is the device visible in sysfs */
-	unsigned wce_default_on:1;	/* Cache is ON by default */
-	unsigned no_dif:1;	/* T10 PI (DIF) should be disabled */
-	unsigned broken_fua:1;		/* Don't set FUA bit */
-	unsigned lun_in_cdb:1;		/* Store LUN bits in CDB[1] */
-	unsigned synchronous_alua:1;	/* Synchronous ALUA commands */
+	unsigned no_read_disc_info: 1;	/* Avoid READ_DISC_INFO cmds */
+	unsigned no_read_capacity_16: 1; /* Avoid READ_CAPACITY_16 cmds */
+	unsigned try_rc_10_first: 1;	/* Try READ_CAPACACITY_10 first */
+	unsigned is_visible: 1;	/* is the device visible in sysfs */
+	unsigned wce_default_on: 1;	/* Cache is ON by default */
+	unsigned no_dif: 1;	/* T10 PI (DIF) should be disabled */
+	unsigned broken_fua: 1;		/* Don't set FUA bit */
+	unsigned lun_in_cdb: 1;		/* Store LUN bits in CDB[1] */
+	unsigned synchronous_alua: 1;	/* Synchronous ALUA commands */
 
 	atomic_t disk_events_disable_depth; /* disable depth for disk events */
 
@@ -198,7 +204,7 @@ struct scsi_device {
 	atomic_t ioerr_cnt;
 
 	struct device		sdev_gendev,
-				sdev_dev;
+					sdev_dev;
 
 	struct execute_work	ew; /* used to get process context on put */
 	struct work_struct	requeue_work;
@@ -227,7 +233,7 @@ struct scsi_device {
  */
 __printf(4, 5) void
 sdev_prefix_printk(const char *, const struct scsi_device *, const char *,
-		const char *, ...);
+				   const char *, ...);
 
 #define sdev_printk(l, sdev, fmt, a...)				\
 	sdev_prefix_printk(l, sdev, NULL, fmt, ##a)
@@ -239,12 +245,13 @@ scmd_printk(const char *, const struct scsi_cmnd *, const char *, ...);
 	do {								   \
 		if ((scmd)->request->rq_disk)				   \
 			sdev_dbg((scmd)->device, "[%s] " fmt,		   \
-				 (scmd)->request->rq_disk->disk_name, ##a);\
+					 (scmd)->request->rq_disk->disk_name, ##a);\
 		else							   \
 			sdev_dbg((scmd)->device, fmt, ##a);		   \
 	} while (0)
 
-enum scsi_target_state {
+enum scsi_target_state
+{
 	STARGET_CREATED = 1,
 	STARGET_RUNNING,
 	STARGET_REMOVE,
@@ -256,7 +263,8 @@ enum scsi_target_state {
  * used for single_lun devices. If no one has active IO to the target,
  * starget_sdev_user is NULL, else it points to the active sdev.
  */
-struct scsi_target {
+struct scsi_target
+{
 	struct scsi_device	*starget_sdev_user;
 	struct list_head	siblings;
 	struct list_head	devices;
@@ -265,15 +273,15 @@ struct scsi_target {
 	unsigned int		channel;
 	unsigned int		id; /* target id ... replace
 				     * scsi_device.id eventually */
-	unsigned int		create:1; /* signal that it needs to be added */
-	unsigned int		single_lun:1;	/* Indicates we should only
+	unsigned int		create: 1; /* signal that it needs to be added */
+	unsigned int		single_lun: 1;	/* Indicates we should only
 						 * allow I/O to one of the luns
 						 * for the device at a time. */
-	unsigned int		pdt_1f_for_no_lun:1;	/* PDT = 0x1f
+	unsigned int		pdt_1f_for_no_lun: 1;	/* PDT = 0x1f
 						 * means no lun present. */
-	unsigned int		no_report_luns:1;	/* Don't use
+	unsigned int		no_report_luns: 1;	/* Don't use
 						 * REPORT LUNS for scanning. */
-	unsigned int		expecting_lun_change:1;	/* A device has reported
+	unsigned int		expecting_lun_change: 1;	/* A device has reported
 						 * a 3F/0E UA, other devices on
 						 * the same target will also. */
 	/* commands actually active on LLD. */
@@ -309,7 +317,7 @@ static inline struct scsi_target *scsi_target(struct scsi_device *sdev)
 extern struct scsi_device *__scsi_add_device(struct Scsi_Host *,
 		uint, uint, u64, void *hostdata);
 extern int scsi_add_device(struct Scsi_Host *host, uint channel,
-			   uint target, u64 lun);
+						   uint target, u64 lun);
 extern int scsi_register_device_handler(struct scsi_device_handler *scsi_dh);
 extern void scsi_remove_device(struct scsi_device *);
 extern int scsi_unregister_device_handler(struct scsi_device_handler *scsi_dh);
@@ -318,22 +326,22 @@ void scsi_attach_vpd(struct scsi_device *sdev);
 extern int scsi_device_get(struct scsi_device *);
 extern void scsi_device_put(struct scsi_device *);
 extern struct scsi_device *scsi_device_lookup(struct Scsi_Host *,
-					      uint, uint, u64);
+		uint, uint, u64);
 extern struct scsi_device *__scsi_device_lookup(struct Scsi_Host *,
-						uint, uint, u64);
+		uint, uint, u64);
 extern struct scsi_device *scsi_device_lookup_by_target(struct scsi_target *,
-							u64);
+		u64);
 extern struct scsi_device *__scsi_device_lookup_by_target(struct scsi_target *,
-							  u64);
+		u64);
 extern void starget_for_each_device(struct scsi_target *, void *,
-		     void (*fn)(struct scsi_device *, void *));
+									void (*fn)(struct scsi_device *, void *));
 extern void __starget_for_each_device(struct scsi_target *, void *,
-				      void (*fn)(struct scsi_device *,
-						 void *));
+									  void (*fn)(struct scsi_device *,
+											  void *));
 
 /* only exposed to implement shost_for_each_device */
 extern struct scsi_device *__scsi_iterate_devices(struct Scsi_Host *,
-						  struct scsi_device *);
+		struct scsi_device *);
 
 /**
  * shost_for_each_device - iterate over all devices of a host
@@ -346,8 +354,8 @@ extern struct scsi_device *__scsi_iterate_devices(struct Scsi_Host *,
  */
 #define shost_for_each_device(sdev, shost) \
 	for ((sdev) = __scsi_iterate_devices((shost), NULL); \
-	     (sdev); \
-	     (sdev) = __scsi_iterate_devices((shost), (sdev)))
+		 (sdev); \
+		 (sdev) = __scsi_iterate_devices((shost), (sdev)))
 
 /**
  * __shost_for_each_device - iterate over all devices of a host (UNLOCKED)
@@ -371,34 +379,34 @@ extern int scsi_track_queue_full(struct scsi_device *, int);
 extern int scsi_set_medium_removal(struct scsi_device *, char);
 
 extern int scsi_mode_sense(struct scsi_device *sdev, int dbd, int modepage,
-			   unsigned char *buffer, int len, int timeout,
-			   int retries, struct scsi_mode_data *data,
-			   struct scsi_sense_hdr *);
+						   unsigned char *buffer, int len, int timeout,
+						   int retries, struct scsi_mode_data *data,
+						   struct scsi_sense_hdr *);
 extern int scsi_mode_select(struct scsi_device *sdev, int pf, int sp,
-			    int modepage, unsigned char *buffer, int len,
-			    int timeout, int retries,
-			    struct scsi_mode_data *data,
-			    struct scsi_sense_hdr *);
+							int modepage, unsigned char *buffer, int len,
+							int timeout, int retries,
+							struct scsi_mode_data *data,
+							struct scsi_sense_hdr *);
 extern int scsi_test_unit_ready(struct scsi_device *sdev, int timeout,
-				int retries, struct scsi_sense_hdr *sshdr);
+								int retries, struct scsi_sense_hdr *sshdr);
 extern int scsi_get_vpd_page(struct scsi_device *, u8 page, unsigned char *buf,
-			     int buf_len);
+							 int buf_len);
 extern int scsi_report_opcode(struct scsi_device *sdev, unsigned char *buffer,
-			      unsigned int len, unsigned char opcode);
+							  unsigned int len, unsigned char opcode);
 extern int scsi_device_set_state(struct scsi_device *sdev,
-				 enum scsi_device_state state);
+								 enum scsi_device_state state);
 extern struct scsi_event *sdev_evt_alloc(enum scsi_device_event evt_type,
-					  gfp_t gfpflags);
+		gfp_t gfpflags);
 extern void sdev_evt_send(struct scsi_device *sdev, struct scsi_event *evt);
 extern void sdev_evt_send_simple(struct scsi_device *sdev,
-			  enum scsi_device_event evt_type, gfp_t gfpflags);
+								 enum scsi_device_event evt_type, gfp_t gfpflags);
 extern int scsi_device_quiesce(struct scsi_device *sdev);
 extern void scsi_device_resume(struct scsi_device *sdev);
 extern void scsi_target_quiesce(struct scsi_target *);
 extern void scsi_target_resume(struct scsi_target *);
 extern void scsi_scan_target(struct device *parent, unsigned int channel,
-			     unsigned int id, u64 lun,
-			     enum scsi_scan_mode rescan);
+							 unsigned int id, u64 lun,
+							 enum scsi_scan_mode rescan);
 extern void scsi_target_reap(struct scsi_target *);
 extern void scsi_target_block(struct device *);
 extern void scsi_target_unblock(struct device *, enum scsi_device_state);
@@ -408,20 +416,20 @@ extern int scsi_is_sdev_device(const struct device *);
 extern int scsi_is_target_device(const struct device *);
 extern void scsi_sanitize_inquiry_string(unsigned char *s, int len);
 extern int scsi_execute(struct scsi_device *sdev, const unsigned char *cmd,
-			int data_direction, void *buffer, unsigned bufflen,
-			unsigned char *sense, int timeout, int retries,
-			u64 flags, int *resid);
+						int data_direction, void *buffer, unsigned bufflen,
+						unsigned char *sense, int timeout, int retries,
+						u64 flags, int *resid);
 extern int scsi_execute_req_flags(struct scsi_device *sdev,
-	const unsigned char *cmd, int data_direction, void *buffer,
-	unsigned bufflen, struct scsi_sense_hdr *sshdr, int timeout,
-	int retries, int *resid, u64 flags);
+								  const unsigned char *cmd, int data_direction, void *buffer,
+								  unsigned bufflen, struct scsi_sense_hdr *sshdr, int timeout,
+								  int retries, int *resid, u64 flags);
 static inline int scsi_execute_req(struct scsi_device *sdev,
-	const unsigned char *cmd, int data_direction, void *buffer,
-	unsigned bufflen, struct scsi_sense_hdr *sshdr, int timeout,
-	int retries, int *resid)
+								   const unsigned char *cmd, int data_direction, void *buffer,
+								   unsigned bufflen, struct scsi_sense_hdr *sshdr, int timeout,
+								   int retries, int *resid)
 {
 	return scsi_execute_req_flags(sdev, cmd, data_direction, buffer,
-		bufflen, sshdr, timeout, retries, resid, 0);
+								  bufflen, sshdr, timeout, retries, resid, 0);
 }
 extern void sdev_disable_disk_events(struct scsi_device *sdev);
 extern void sdev_enable_disk_events(struct scsi_device *sdev);
@@ -460,18 +468,18 @@ static inline unsigned int sdev_id(struct scsi_device *sdev)
 static inline int scsi_device_online(struct scsi_device *sdev)
 {
 	return (sdev->sdev_state != SDEV_OFFLINE &&
-		sdev->sdev_state != SDEV_TRANSPORT_OFFLINE &&
-		sdev->sdev_state != SDEV_DEL);
+			sdev->sdev_state != SDEV_TRANSPORT_OFFLINE &&
+			sdev->sdev_state != SDEV_DEL);
 }
 static inline int scsi_device_blocked(struct scsi_device *sdev)
 {
 	return sdev->sdev_state == SDEV_BLOCK ||
-		sdev->sdev_state == SDEV_CREATED_BLOCK;
+		   sdev->sdev_state == SDEV_CREATED_BLOCK;
 }
 static inline int scsi_device_created(struct scsi_device *sdev)
 {
 	return sdev->sdev_state == SDEV_CREATED ||
-		sdev->sdev_state == SDEV_CREATED_BLOCK;
+		   sdev->sdev_state == SDEV_CREATED_BLOCK;
 }
 
 /* accessor functions for the SCSI parameters */
@@ -490,32 +498,43 @@ static inline int scsi_device_dt(struct scsi_device *sdev)
 static inline int scsi_device_dt_only(struct scsi_device *sdev)
 {
 	if (sdev->inquiry_len < 57)
+	{
 		return 0;
+	}
+
 	return (sdev->inquiry[56] & 0x0c) == 0x04;
 }
 static inline int scsi_device_ius(struct scsi_device *sdev)
 {
 	if (sdev->inquiry_len < 57)
+	{
 		return 0;
+	}
+
 	return sdev->inquiry[56] & 0x01;
 }
 static inline int scsi_device_qas(struct scsi_device *sdev)
 {
 	if (sdev->inquiry_len < 57)
+	{
 		return 0;
+	}
+
 	return sdev->inquiry[56] & 0x02;
 }
 static inline int scsi_device_enclosure(struct scsi_device *sdev)
 {
-	return sdev->inquiry ? (sdev->inquiry[6] & (1<<6)) : 1;
+	return sdev->inquiry ? (sdev->inquiry[6] & (1 << 6)) : 1;
 }
 
 static inline int scsi_device_protection(struct scsi_device *sdev)
 {
 	if (sdev->no_dif)
+	{
 		return 0;
+	}
 
-	return sdev->scsi_level > SCSI_2 && sdev->inquiry[5] & (1<<0);
+	return sdev->scsi_level > SCSI_2 && sdev->inquiry[5] & (1 << 0);
 }
 
 static inline int scsi_device_tpgs(struct scsi_device *sdev)
@@ -537,14 +556,20 @@ static inline int scsi_device_supports_vpd(struct scsi_device *sdev)
 	 * for it.
 	 */
 	if (sdev->try_vpd_pages)
+	{
 		return 1;
+	}
+
 	/*
 	 * Although VPD inquiries can go to SCSI-2 type devices,
 	 * some USB ones crash on receiving them, and the pages
 	 * we currently ask for are mandatory for SPC-2 and beyond
 	 */
 	if (sdev->scsi_level >= SCSI_SPC_2 && !sdev->skip_vpd_pages)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 

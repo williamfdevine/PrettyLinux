@@ -26,7 +26,7 @@
 #include "solo6x10.h"
 
 static void solo_gpio_mode(struct solo_dev *solo_dev,
-			   unsigned int port_mask, unsigned int mode)
+						   unsigned int port_mask, unsigned int mode)
 {
 	int port;
 	unsigned int ret;
@@ -34,9 +34,12 @@ static void solo_gpio_mode(struct solo_dev *solo_dev,
 	ret = solo_reg_read(solo_dev, SOLO_GPIO_CONFIG_0);
 
 	/* To set gpio */
-	for (port = 0; port < 16; port++) {
+	for (port = 0; port < 16; port++)
+	{
 		if (!((1 << port) & port_mask))
+		{
 			continue;
+		}
 
 		ret &= (~(3 << (port << 1)));
 		ret |= ((mode & 3) << (port << 1));
@@ -47,14 +50,21 @@ static void solo_gpio_mode(struct solo_dev *solo_dev,
 	/* To set extended gpio - sensor */
 	ret = solo_reg_read(solo_dev, SOLO_GPIO_CONFIG_1);
 
-	for (port = 0; port < 16; port++) {
+	for (port = 0; port < 16; port++)
+	{
 		if (!((1 << (port + 16)) & port_mask))
+		{
 			continue;
+		}
 
 		if (!mode)
+		{
 			ret &= ~(1 << port);
+		}
 		else
+		{
 			ret |= 1 << port;
+		}
 	}
 
 	solo_reg_write(solo_dev, SOLO_GPIO_CONFIG_1, ret);
@@ -63,13 +73,13 @@ static void solo_gpio_mode(struct solo_dev *solo_dev,
 static void solo_gpio_set(struct solo_dev *solo_dev, unsigned int value)
 {
 	solo_reg_write(solo_dev, SOLO_GPIO_DATA_OUT,
-		       solo_reg_read(solo_dev, SOLO_GPIO_DATA_OUT) | value);
+				   solo_reg_read(solo_dev, SOLO_GPIO_DATA_OUT) | value);
 }
 
 static void solo_gpio_clear(struct solo_dev *solo_dev, unsigned int value)
 {
 	solo_reg_write(solo_dev, SOLO_GPIO_DATA_OUT,
-		       solo_reg_read(solo_dev, SOLO_GPIO_DATA_OUT) & ~value);
+				   solo_reg_read(solo_dev, SOLO_GPIO_DATA_OUT) & ~value);
 }
 
 static void solo_gpio_config(struct solo_dev *solo_dev)

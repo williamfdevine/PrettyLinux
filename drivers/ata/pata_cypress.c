@@ -21,7 +21,8 @@
 
 /* here are the offset definitions for the registers */
 
-enum {
+enum
+{
 	CY82_IDE_CMDREG		= 0x04,
 	CY82_IDE_ADDRSETUP	= 0x48,
 	CY82_IDE_MASTER_IOR	= 0x4C,
@@ -56,17 +57,19 @@ static void cy82c693_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	short time_16, time_8;
 	u32 addr;
 
-	if (ata_timing_compute(adev, adev->pio_mode, &t, T, 1) < 0) {
+	if (ata_timing_compute(adev, adev->pio_mode, &t, T, 1) < 0)
+	{
 		printk(KERN_ERR DRV_NAME ": mome computation failed.\n");
 		return;
 	}
 
 	time_16 = clamp_val(t.recover - 1, 0, 15) |
-		  (clamp_val(t.active - 1, 0, 15) << 4);
+			  (clamp_val(t.active - 1, 0, 15) << 4);
 	time_8 = clamp_val(t.act8b - 1, 0, 15) |
-		 (clamp_val(t.rec8b - 1, 0, 15) << 4);
+			 (clamp_val(t.rec8b - 1, 0, 15) << 4);
 
-	if (adev->devno == 0) {
+	if (adev->devno == 0)
+	{
 		pci_read_config_dword(pdev, CY82_IDE_ADDRSETUP, &addr);
 
 		addr &= ~0x0F;	/* Mask bits */
@@ -76,7 +79,9 @@ static void cy82c693_set_piomode(struct ata_port *ap, struct ata_device *adev)
 		pci_write_config_byte(pdev, CY82_IDE_MASTER_IOR, time_16);
 		pci_write_config_byte(pdev, CY82_IDE_MASTER_IOW, time_16);
 		pci_write_config_byte(pdev, CY82_IDE_MASTER_8BIT, time_8);
-	} else {
+	}
+	else
+	{
 		pci_read_config_dword(pdev, CY82_IDE_ADDRSETUP, &addr);
 
 		addr &= ~0xF0;	/* Mask bits */
@@ -110,11 +115,13 @@ static void cy82c693_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 	outb(0x50, 0x23);
 }
 
-static struct scsi_host_template cy82c693_sht = {
+static struct scsi_host_template cy82c693_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations cy82c693_port_ops = {
+static struct ata_port_operations cy82c693_port_ops =
+{
 	.inherits	= &ata_bmdma_port_ops,
 	.cable_detect	= ata_cable_40wire,
 	.set_piomode	= cy82c693_set_piomode,
@@ -123,7 +130,8 @@ static struct ata_port_operations cy82c693_port_ops = {
 
 static int cy82c693_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags = ATA_FLAG_SLAVE_POSS,
 		.pio_mask = ATA_PIO4,
 		.mwdma_mask = ATA_MWDMA2,
@@ -135,18 +143,22 @@ static int cy82c693_init_one(struct pci_dev *pdev, const struct pci_device_id *i
 	   For the moment we don't handle the secondary. FIXME */
 
 	if (PCI_FUNC(pdev->devfn) != 1)
+	{
 		return -ENODEV;
+	}
 
 	return ata_pci_bmdma_init_one(pdev, ppi, &cy82c693_sht, NULL, 0);
 }
 
-static const struct pci_device_id cy82c693[] = {
+static const struct pci_device_id cy82c693[] =
+{
 	{ PCI_VDEVICE(CONTAQ, PCI_DEVICE_ID_CONTAQ_82C693), },
 
 	{ },
 };
 
-static struct pci_driver cy82c693_pci_driver = {
+static struct pci_driver cy82c693_pci_driver =
+{
 	.name 		= DRV_NAME,
 	.id_table	= cy82c693,
 	.probe 		= cy82c693_init_one,

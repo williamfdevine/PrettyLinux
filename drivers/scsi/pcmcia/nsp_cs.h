@@ -43,9 +43,9 @@
 #  define IRQCONTROL_FIFO_CLEAR         BIT(3)
 #  define IRQCONTROL_ALLMASK            0xff
 #  define IRQCONTROL_ALLCLEAR           (IRQCONTROL_RESELECT_CLEAR     | \
-					 IRQCONTROL_PHASE_CHANGE_CLEAR | \
-					 IRQCONTROL_TIMER_CLEAR        | \
-					 IRQCONTROL_FIFO_CLEAR          )
+		IRQCONTROL_PHASE_CHANGE_CLEAR | \
+		IRQCONTROL_TIMER_CLEAR        | \
+		IRQCONTROL_FIFO_CLEAR          )
 #  define IRQCONTROL_IRQDISABLE         0xf0
 
 #define	IRQSTATUS	0x00  /* W */
@@ -221,7 +221,8 @@
 
 /*====================================================================*/
 
-typedef struct scsi_info_t {
+typedef struct scsi_info_t
+{
 	struct pcmcia_device	*p_dev;
 	struct Scsi_Host      *host;
 	int                    stop;
@@ -229,7 +230,8 @@ typedef struct scsi_info_t {
 
 
 /* synchronous transfer negotiation data */
-typedef struct _sync_data {
+typedef struct _sync_data
+{
 	unsigned int SyncNegotiation;
 #define SYNC_NOT_YET 0
 #define SYNC_OK      1
@@ -241,7 +243,8 @@ typedef struct _sync_data {
 	unsigned char AckWidth;
 } sync_data;
 
-typedef struct _nsp_hw_data {
+typedef struct _nsp_hw_data
+{
 	unsigned int  BaseAddress;
 	unsigned int  NumAddress;
 	unsigned int  IrqNumber;
@@ -293,7 +296,7 @@ static int        nsp_cs_config (struct pcmcia_device *link);
 static struct Scsi_Host *nsp_detect     (struct scsi_host_template *sht);
 static const  char      *nsp_info       (struct Scsi_Host *shpnt);
 static        int        nsp_show_info  (struct seq_file *m,
-	                                 struct Scsi_Host *host);
+		struct Scsi_Host *host);
 static int nsp_queuecommand(struct Scsi_Host *h, struct scsi_cmnd *SCpnt);
 
 /* Error handler */
@@ -314,10 +317,10 @@ static int  nsp_nexus            (struct scsi_cmnd *SCpnt);
 static void nsp_scsi_done        (struct scsi_cmnd *SCpnt);
 static int  nsp_analyze_sdtr     (struct scsi_cmnd *SCpnt);
 static int  nsp_negate_signal    (struct scsi_cmnd *SCpnt,
-				  unsigned char mask, char *str);
+								  unsigned char mask, char *str);
 static int  nsp_expect_signal    (struct scsi_cmnd *SCpnt,
-				  unsigned char current_phase,
-				  unsigned char  mask);
+								  unsigned char current_phase,
+								  unsigned char  mask);
 static int  nsp_xfer             (struct scsi_cmnd *SCpnt, int phase);
 static int  nsp_dataphase_bypass (struct scsi_cmnd *SCpnt);
 static int  nsp_reselected       (struct scsi_cmnd *SCpnt);
@@ -332,21 +335,22 @@ static void __exit nsp_cs_exit(void);
 
 /* Debug */
 #ifdef NSP_DEBUG
-static void show_command (struct scsi_cmnd *SCpnt);
-static void show_phase   (struct scsi_cmnd *SCpnt);
-static void show_busphase(unsigned char stat);
-static void show_message (nsp_hw_data *data);
+	static void show_command (struct scsi_cmnd *SCpnt);
+	static void show_phase   (struct scsi_cmnd *SCpnt);
+	static void show_busphase(unsigned char stat);
+	static void show_message (nsp_hw_data *data);
 #else
-# define show_command(ptr)   /* */
-# define show_phase(SCpnt)   /* */
-# define show_busphase(stat) /* */
-# define show_message(data)  /* */
+	#define show_command(ptr)   /* */
+	#define show_phase(SCpnt)   /* */
+	#define show_busphase(stat) /* */
+	#define show_message(data)  /* */
 #endif
 
 /*
  * SCSI phase
  */
-enum _scsi_phase {
+enum _scsi_phase
+{
 	PH_UNDETERMINED ,
 	PH_ARBSTART     ,
 	PH_SELSTART     ,
@@ -362,13 +366,15 @@ enum _scsi_phase {
 	PH_RESET
 };
 
-enum _data_in_out {
+enum _data_in_out
+{
 	IO_UNKNOWN,
 	IO_IN,
 	IO_OUT
 };
 
-enum _burst_mode {
+enum _burst_mode
+{
 	BURST_IO8   = 0,
 	BURST_IO32  = 1,
 	BURST_MEM32 = 2,

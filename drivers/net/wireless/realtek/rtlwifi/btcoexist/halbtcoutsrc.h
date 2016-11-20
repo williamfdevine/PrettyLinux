@@ -66,7 +66,8 @@
 #define		BTC_ANT_WIFI_AT_CPL_MAIN		0
 #define		BTC_ANT_WIFI_AT_CPL_AUX			1
 
-enum btc_chip_interface {
+enum btc_chip_interface
+{
 	BTC_INTF_UNKNOWN	= 0,
 	BTC_INTF_PCI		= 1,
 	BTC_INTF_USB		= 2,
@@ -75,7 +76,8 @@ enum btc_chip_interface {
 	BTC_INTF_MAX
 };
 
-enum btc_chip_type {
+enum btc_chip_type
+{
 	BTC_CHIP_UNDEF		= 0,
 	BTC_CHIP_CSR_BC4	= 1,
 	BTC_CHIP_CSR_BC8	= 2,
@@ -85,7 +87,8 @@ enum btc_chip_type {
 	BTC_CHIP_MAX
 };
 
-enum btc_msg_type {
+enum btc_msg_type
+{
 	BTC_MSG_INTERFACE	= 0x0,
 	BTC_MSG_ALGORITHM	= 0x1,
 	BTC_MSG_MAX
@@ -117,15 +120,15 @@ extern u32 btc_dbg_type[];
 #define		WIFI_P2P_GC_CONNECTED			BIT4
 
 #define	btc_alg_dbg(dbgflag, fmt, ...)					\
-do {									\
-	if (unlikely(btc_dbg_type[BTC_MSG_ALGORITHM] & dbgflag))	\
-		printk(KERN_DEBUG fmt, ##__VA_ARGS__);			\
-} while (0)
+	do {									\
+		if (unlikely(btc_dbg_type[BTC_MSG_ALGORITHM] & dbgflag))	\
+			printk(KERN_DEBUG fmt, ##__VA_ARGS__);			\
+	} while (0)
 #define	btc_iface_dbg(dbgflag, fmt, ...)				\
-do {									\
-	if (unlikely(btc_dbg_type[BTC_MSG_INTERFACE] & dbgflag))	\
-		printk(KERN_DEBUG fmt, ##__VA_ARGS__);			\
-} while (0)
+	do {									\
+		if (unlikely(btc_dbg_type[BTC_MSG_INTERFACE] & dbgflag))	\
+			printk(KERN_DEBUG fmt, ##__VA_ARGS__);			\
+	} while (0)
 
 
 #define	BTC_RSSI_HIGH(_rssi_)	\
@@ -138,14 +141,16 @@ do {									\
 	((_rssi_ == BTC_RSSI_STATE_LOW ||	\
 	  _rssi_ == BTC_RSSI_STATE_STAY_LOW) ? true : false)
 
-enum btc_power_save_type {
+enum btc_power_save_type
+{
 	BTC_PS_WIFI_NATIVE = 0,
 	BTC_PS_LPS_ON = 1,
 	BTC_PS_LPS_OFF = 2,
 	BTC_PS_LPS_MAX
 };
 
-struct btc_board_info {
+struct btc_board_info
+{
 	/* The following is some board information */
 	u8 bt_chip_type;
 	u8 pg_ant_num;	/* pg ant number */
@@ -154,14 +159,16 @@ struct btc_board_info {
 	bool bt_exist;
 };
 
-enum btc_dbg_opcode {
+enum btc_dbg_opcode
+{
 	BTC_DBG_SET_COEX_NORMAL = 0x0,
 	BTC_DBG_SET_COEX_WIFI_ONLY = 0x1,
 	BTC_DBG_SET_COEX_BT_ONLY = 0x2,
 	BTC_DBG_MAX
 };
 
-enum btc_rssi_state {
+enum btc_rssi_state
+{
 	BTC_RSSI_STATE_HIGH = 0x0,
 	BTC_RSSI_STATE_MEDIUM = 0x1,
 	BTC_RSSI_STATE_LOW = 0x2,
@@ -171,7 +178,8 @@ enum btc_rssi_state {
 	BTC_RSSI_MAX
 };
 
-enum btc_wifi_role {
+enum btc_wifi_role
+{
 	BTC_ROLE_STATION = 0x0,
 	BTC_ROLE_AP = 0x1,
 	BTC_ROLE_IBSS = 0x2,
@@ -179,26 +187,30 @@ enum btc_wifi_role {
 	BTC_ROLE_MAX
 };
 
-enum btc_wifi_bw_mode {
+enum btc_wifi_bw_mode
+{
 	BTC_WIFI_BW_LEGACY = 0x0,
 	BTC_WIFI_BW_HT20 = 0x1,
 	BTC_WIFI_BW_HT40 = 0x2,
 	BTC_WIFI_BW_MAX
 };
 
-enum btc_wifi_traffic_dir {
+enum btc_wifi_traffic_dir
+{
 	BTC_WIFI_TRAFFIC_TX = 0x0,
 	BTC_WIFI_TRAFFIC_RX = 0x1,
 	BTC_WIFI_TRAFFIC_MAX
 };
 
-enum btc_wifi_pnp {
+enum btc_wifi_pnp
+{
 	BTC_WIFI_PNP_WAKE_UP = 0x0,
 	BTC_WIFI_PNP_SLEEP = 0x1,
 	BTC_WIFI_PNP_MAX
 };
 
-enum btc_get_type {
+enum btc_get_type
+{
 	/* type bool */
 	BTC_GET_BL_HS_OPERATION,
 	BTC_GET_BL_HS_CONNECTING,
@@ -245,7 +257,8 @@ enum btc_get_type {
 	BTC_GET_MAX
 };
 
-enum btc_set_type {
+enum btc_set_type
+{
 	/* type bool */
 	BTC_SET_BL_BT_DISABLE,
 	BTC_SET_BL_BT_TRAFFIC_BUSY,
@@ -288,7 +301,8 @@ enum btc_set_type {
 	BTC_SET_MAX
 };
 
-enum btc_dbg_disp_type {
+enum btc_dbg_disp_type
+{
 	BTC_DBG_DISP_COEX_STATISTICS = 0x0,
 	BTC_DBG_DISP_BT_LINK_INFO = 0x1,
 	BTC_DBG_DISP_BT_FW_VER = 0x2,
@@ -296,37 +310,43 @@ enum btc_dbg_disp_type {
 	BTC_DBG_DISP_MAX
 };
 
-enum btc_notify_type_ips {
+enum btc_notify_type_ips
+{
 	BTC_IPS_LEAVE = 0x0,
 	BTC_IPS_ENTER = 0x1,
 	BTC_IPS_MAX
 };
 
-enum btc_notify_type_lps {
+enum btc_notify_type_lps
+{
 	BTC_LPS_DISABLE = 0x0,
 	BTC_LPS_ENABLE = 0x1,
 	BTC_LPS_MAX
 };
 
-enum btc_notify_type_scan {
+enum btc_notify_type_scan
+{
 	BTC_SCAN_FINISH = 0x0,
 	BTC_SCAN_START = 0x1,
 	BTC_SCAN_MAX
 };
 
-enum btc_notify_type_associate {
+enum btc_notify_type_associate
+{
 	BTC_ASSOCIATE_FINISH = 0x0,
 	BTC_ASSOCIATE_START = 0x1,
 	BTC_ASSOCIATE_MAX
 };
 
-enum btc_notify_type_media_status {
+enum btc_notify_type_media_status
+{
 	BTC_MEDIA_DISCONNECT = 0x0,
 	BTC_MEDIA_CONNECT = 0x1,
 	BTC_MEDIA_MAX
 };
 
-enum btc_notify_type_special_packet {
+enum btc_notify_type_special_packet
+{
 	BTC_PACKET_UNKNOWN = 0x0,
 	BTC_PACKET_DHCP = 0x1,
 	BTC_PACKET_ARP = 0x2,
@@ -334,7 +354,8 @@ enum btc_notify_type_special_packet {
 	BTC_PACKET_MAX
 };
 
-enum hci_ext_bt_operation {
+enum hci_ext_bt_operation
+{
 	HCI_BT_OP_NONE = 0x0,
 	HCI_BT_OP_INQUIRY_START = 0x1,
 	HCI_BT_OP_INQUIRY_FINISH = 0x2,
@@ -348,7 +369,8 @@ enum hci_ext_bt_operation {
 	HCI_BT_OP_MAX
 };
 
-enum btc_notify_type_stack_operation {
+enum btc_notify_type_stack_operation
+{
 	BTC_STACK_OP_NONE = 0x0,
 	BTC_STACK_OP_INQ_PAGE_PAIR_START = 0x1,
 	BTC_STACK_OP_INQ_PAGE_PAIR_FINISH = 0x2,
@@ -364,29 +386,29 @@ typedef u32 (*bfp_btc_r4)(void *btc_context, u32 reg_addr);
 typedef void (*bfp_btc_w1)(void *btc_context, u32 reg_addr, u32 data);
 
 typedef void (*bfp_btc_w1_bit_mak)(void *btc_context, u32 reg_addr,
-				   u32 bit_mask, u8 data1b);
+								   u32 bit_mask, u8 data1b);
 
 typedef void (*bfp_btc_w2)(void *btc_context, u32 reg_addr, u16 data);
 
 typedef void (*bfp_btc_w4)(void *btc_context, u32 reg_addr, u32 data);
 
 typedef void (*bfp_btc_wr_1byte_bit_mask)(void *btc_context, u32 reg_addr,
-					  u8 bit_mask, u8 data);
+		u8 bit_mask, u8 data);
 
 typedef void (*bfp_btc_set_bb_reg)(void *btc_context, u32 reg_addr,
-				   u32 bit_mask, u32 data);
+								   u32 bit_mask, u32 data);
 
 typedef u32 (*bfp_btc_get_bb_reg)(void *btc_context, u32 reg_addr,
-				  u32 bit_mask);
+								  u32 bit_mask);
 
 typedef void (*bfp_btc_set_rf_reg)(void *btc_context, u8 rf_path, u32 reg_addr,
-				   u32 bit_mask, u32 data);
+								   u32 bit_mask, u32 data);
 
 typedef u32 (*bfp_btc_get_rf_reg)(void *btc_context, u8 rf_path,
-				  u32 reg_addr, u32 bit_mask);
+								  u32 reg_addr, u32 bit_mask);
 
 typedef void (*bfp_btc_fill_h2c)(void *btc_context, u8 element_id,
-				 u32 cmd_len, u8 *cmd_buffer);
+								 u32 cmd_len, u8 *cmd_buffer);
 
 typedef	bool (*bfp_btc_get)(void *btcoexist, u8 get_type, void *out_buf);
 
@@ -394,7 +416,8 @@ typedef	bool (*bfp_btc_set)(void *btcoexist, u8 set_type, void *in_buf);
 
 typedef void (*bfp_btc_disp_dbg_msg)(void *btcoexist, u8 disp_type);
 
-struct btc_bt_info {
+struct btc_bt_info
+{
 	bool bt_disabled;
 	u8 rssi_adjust_for_agc_table_on;
 	u8 rssi_adjust_for_1ant_coex_type;
@@ -421,7 +444,8 @@ struct btc_bt_info {
 	u32 ra_mask;
 };
 
-struct btc_stack_info {
+struct btc_stack_info
+{
 	bool profile_notified;
 	u16 hci_version;	/* stack hci version */
 	u8 num_of_link;
@@ -436,7 +460,8 @@ struct btc_stack_info {
 	s8 min_bt_rssi;
 };
 
-struct btc_statistics {
+struct btc_statistics
+{
 	u32 cnt_bind;
 	u32 cnt_init_hw_config;
 	u32 cnt_init_coex_dm;
@@ -453,7 +478,8 @@ struct btc_statistics {
 	u32 cnt_dbg_ctrl;
 };
 
-struct btc_bt_link_info {
+struct btc_bt_link_info
+{
 	bool bt_link_exist;
 	bool sco_exist;
 	bool sco_only;
@@ -465,12 +491,14 @@ struct btc_bt_link_info {
 	bool pan_only;
 };
 
-enum btc_antenna_pos {
+enum btc_antenna_pos
+{
 	BTC_ANTENNA_AT_MAIN_PORT = 0x1,
 	BTC_ANTENNA_AT_AUX_PORT = 0x2,
 };
 
-struct btc_coexist {
+struct btc_coexist
+{
 	/* make sure only one adapter can bind the data context  */
 	bool binded;
 	/* default adapter */
@@ -523,17 +551,17 @@ void exhalbtc_lps_notify(struct btc_coexist *btcoexist, u8 type);
 void exhalbtc_scan_notify(struct btc_coexist *btcoexist, u8 type);
 void exhalbtc_connect_notify(struct btc_coexist *btcoexist, u8 action);
 void exhalbtc_mediastatus_notify(struct btc_coexist *btcoexist,
-				 enum rt_media_status media_status);
+								 enum rt_media_status media_status);
 void exhalbtc_special_packet_notify(struct btc_coexist *btcoexist, u8 pkt_type);
 void exhalbtc_bt_info_notify(struct btc_coexist *btcoexist, u8 *tmp_buf,
-			     u8 length);
+							 u8 length);
 void exhalbtc_stack_operation_notify(struct btc_coexist *btcoexist, u8 type);
 void exhalbtc_halt_notify(struct btc_coexist *btcoexist);
 void exhalbtc_pnp_notify(struct btc_coexist *btcoexist, u8 pnp_state);
 void exhalbtc_coex_dm_switch(struct btc_coexist *btcoexist);
 void exhalbtc_periodical(struct btc_coexist *btcoexist);
 void exhalbtc_dbg_control(struct btc_coexist *btcoexist, u8 code, u8 len,
-			  u8 *data);
+						  u8 *data);
 void exhalbtc_stack_update_profile_info(void);
 void exhalbtc_set_hci_version(u16 hci_version);
 void exhalbtc_set_bt_patch_version(u16 bt_hci_version, u16 bt_patch_version);
@@ -543,7 +571,7 @@ void exhalbtc_set_chip_type(u8 chip_type);
 void exhalbtc_set_ant_num(struct rtl_priv *rtlpriv, u8 type, u8 ant_num);
 void exhalbtc_display_bt_coex_info(struct btc_coexist *btcoexist);
 void exhalbtc_signal_compensation(struct btc_coexist *btcoexist,
-				  u8 *rssi_wifi, u8 *rssi_bt);
+								  u8 *rssi_wifi, u8 *rssi_bt);
 void exhalbtc_lps_leave(struct btc_coexist *btcoexist);
 void exhalbtc_low_wifi_traffic_notify(struct btc_coexist *btcoexist);
 

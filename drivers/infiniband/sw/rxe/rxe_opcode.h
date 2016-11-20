@@ -40,7 +40,8 @@
  * rxe_wr_opcode_info struct
  */
 
-enum rxe_wr_mask {
+enum rxe_wr_mask
+{
 	WR_INLINE_MASK			= BIT(0),
 	WR_ATOMIC_MASK			= BIT(1),
 	WR_SEND_MASK			= BIT(2),
@@ -57,14 +58,16 @@ enum rxe_wr_mask {
 
 #define WR_MAX_QPT		(8)
 
-struct rxe_wr_opcode_info {
+struct rxe_wr_opcode_info
+{
 	char			*name;
 	enum rxe_wr_mask	mask[WR_MAX_QPT];
 };
 
 extern struct rxe_wr_opcode_info rxe_wr_opcode_info[];
 
-enum rxe_hdr_type {
+enum rxe_hdr_type
+{
 	RXE_LRH,
 	RXE_GRH,
 	RXE_BTH,
@@ -80,7 +83,8 @@ enum rxe_hdr_type {
 	NUM_HDR_TYPES
 };
 
-enum rxe_hdr_mask {
+enum rxe_hdr_mask
+{
 	RXE_LRH_MASK		= BIT(RXE_LRH),
 	RXE_GRH_MASK		= BIT(RXE_GRH),
 	RXE_BTH_MASK		= BIT(RXE_BTH),
@@ -117,7 +121,8 @@ enum rxe_hdr_mask {
 #define OPCODE_NONE		(-1)
 #define RXE_NUM_OPCODE		256
 
-struct rxe_opcode_info {
+struct rxe_opcode_info
+{
 	char			*name;
 	enum rxe_hdr_mask	mask;
 	int			length;

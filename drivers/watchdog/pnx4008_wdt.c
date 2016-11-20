@@ -90,9 +90,13 @@ static int pnx4008_wdt_start(struct watchdog_device *wdd)
 
 	/* stop counter, initiate counter reset */
 	writel(RESET_COUNT, WDTIM_CTRL(wdt_base));
+
 	/*wait for reset to complete. 100% guarantee event */
 	while (readl(WDTIM_COUNTER(wdt_base)))
+	{
 		cpu_relax();
+	}
+
 	/* internal and external reset, stop after that */
 	writel(M_RES2 | STOP_COUNT0 | RESET_COUNT0, WDTIM_MCTRL(wdt_base));
 	/* configure match output */
@@ -120,14 +124,14 @@ static int pnx4008_wdt_stop(struct watchdog_device *wdd)
 }
 
 static int pnx4008_wdt_set_timeout(struct watchdog_device *wdd,
-				    unsigned int new_timeout)
+								   unsigned int new_timeout)
 {
 	wdd->timeout = new_timeout;
 	return 0;
 }
 
 static int pnx4008_restart_handler(struct watchdog_device *wdd,
-				   unsigned long mode, void *cmd)
+								   unsigned long mode, void *cmd)
 {
 	const char *boot_cmd = cmd;
 
@@ -137,19 +141,27 @@ static int pnx4008_restart_handler(struct watchdog_device *wdd,
 	 * - For details, see the 'reboot' syscall in kernel/reboot.c
 	 * - If the received "cmd" is not supported, use the default mode.
 	 */
-	if (boot_cmd) {
+	if (boot_cmd)
+	{
 		if (boot_cmd[0] == 'h')
+		{
 			mode = REBOOT_HARD;
+		}
 		else if (boot_cmd[0] == 's')
+		{
 			mode = REBOOT_SOFT;
+		}
 	}
 
-	if (mode == REBOOT_SOFT) {
+	if (mode == REBOOT_SOFT)
+	{
 		/* Force match output active */
 		writel(EXT_MATCH0, WDTIM_EMR(wdt_base));
 		/* Internal reset on match output (RESOUT_N not asserted) */
 		writel(M_RES1, WDTIM_MCTRL(wdt_base));
-	} else {
+	}
+	else
+	{
 		/* Instant assert of RESETOUT_N with pulse length 1mS */
 		writel(13000, WDTIM_PULSE(wdt_base));
 		writel(M_RES2 | RESFRC1 | RESFRC2, WDTIM_MCTRL(wdt_base));
@@ -161,13 +173,15 @@ static int pnx4008_restart_handler(struct watchdog_device *wdd,
 	return NOTIFY_DONE;
 }
 
-static const struct watchdog_info pnx4008_wdt_ident = {
+static const struct watchdog_info pnx4008_wdt_ident =
+{
 	.options = WDIOF_CARDRESET | WDIOF_MAGICCLOSE |
-	    WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
+	WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
 	.identity = "PNX4008 Watchdog",
 };
 
-static const struct watchdog_ops pnx4008_wdt_ops = {
+static const struct watchdog_ops pnx4008_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = pnx4008_wdt_start,
 	.stop = pnx4008_wdt_stop,
@@ -175,7 +189,8 @@ static const struct watchdog_ops pnx4008_wdt_ops = {
 	.restart = pnx4008_restart_handler,
 };
 
-static struct watchdog_device pnx4008_wdd = {
+static struct watchdog_device pnx4008_wdd =
+{
 	.info = &pnx4008_wdt_ident,
 	.ops = &pnx4008_wdt_ops,
 	.timeout = DEFAULT_HEARTBEAT,
@@ -192,19 +207,28 @@ static int pnx4008_wdt_probe(struct platform_device *pdev)
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	wdt_base = devm_ioremap_resource(&pdev->dev, r);
+
 	if (IS_ERR(wdt_base))
+	{
 		return PTR_ERR(wdt_base);
+	}
 
 	wdt_clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(wdt_clk))
+	{
 		return PTR_ERR(wdt_clk);
+	}
 
 	ret = clk_prepare_enable(wdt_clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pnx4008_wdd.bootstatus = (readl(WDTIM_RES(wdt_base)) & WDOG_RESET) ?
-			WDIOF_CARDRESET : 0;
+							 WDIOF_CARDRESET : 0;
 	pnx4008_wdd.parent = &pdev->dev;
 	watchdog_set_nowayout(&pnx4008_wdd, nowayout);
 	watchdog_set_restart_priority(&pnx4008_wdd, 128);
@@ -212,7 +236,9 @@ static int pnx4008_wdt_probe(struct platform_device *pdev)
 	pnx4008_wdt_stop(&pnx4008_wdd);	/* disable for now */
 
 	ret = watchdog_register_device(&pnx4008_wdd);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "cannot register watchdog device\n");
 		goto disable_clk;
 	}
@@ -236,14 +262,16 @@ static int pnx4008_wdt_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id pnx4008_wdt_match[] = {
+static const struct of_device_id pnx4008_wdt_match[] =
+{
 	{ .compatible = "nxp,pnx4008-wdt" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, pnx4008_wdt_match);
 #endif
 
-static struct platform_driver platform_wdt_driver = {
+static struct platform_driver platform_wdt_driver =
+{
 	.driver = {
 		.name = "pnx4008-watchdog",
 		.of_match_table = of_match_ptr(pnx4008_wdt_match),
@@ -260,13 +288,13 @@ MODULE_DESCRIPTION("PNX4008 Watchdog Driver");
 
 module_param(heartbeat, uint, 0);
 MODULE_PARM_DESC(heartbeat,
-		 "Watchdog heartbeat period in seconds from 1 to "
-		 __MODULE_STRING(MAX_HEARTBEAT) ", default "
-		 __MODULE_STRING(DEFAULT_HEARTBEAT));
+				 "Watchdog heartbeat period in seconds from 1 to "
+				 __MODULE_STRING(MAX_HEARTBEAT) ", default "
+				 __MODULE_STRING(DEFAULT_HEARTBEAT));
 
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		 "Set to 1 to keep watchdog running after device release");
+				 "Set to 1 to keep watchdog running after device release");
 
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:pnx4008-watchdog");

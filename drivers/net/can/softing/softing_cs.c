@@ -35,118 +35,119 @@ static int softingcs_enable_irq(struct platform_device *pdev, int v);
  * platform_data descriptions
  */
 #define MHZ (1000*1000)
-static const struct softing_platform_data softingcs_platform_data[] = {
+static const struct softing_platform_data softingcs_platform_data[] =
 {
-	.name = "CANcard",
-	.manf = 0x0168, .prod = 0x001,
-	.generation = 1,
-	.nbus = 2,
-	.freq = 16 * MHZ, .max_brp = 32, .max_sjw = 4,
-	.dpram_size = 0x0800,
-	.boot = {0x0000, 0x000000, fw_dir "bcard.bin",},
-	.load = {0x0120, 0x00f600, fw_dir "ldcard.bin",},
-	.app = {0x0010, 0x0d0000, fw_dir "cancard.bin",},
-	.reset = softingcs_reset,
-	.enable_irq = softingcs_enable_irq,
-}, {
-	.name = "CANcard-NEC",
-	.manf = 0x0168, .prod = 0x002,
-	.generation = 1,
-	.nbus = 2,
-	.freq = 16 * MHZ, .max_brp = 32, .max_sjw = 4,
-	.dpram_size = 0x0800,
-	.boot = {0x0000, 0x000000, fw_dir "bcard.bin",},
-	.load = {0x0120, 0x00f600, fw_dir "ldcard.bin",},
-	.app = {0x0010, 0x0d0000, fw_dir "cancard.bin",},
-	.reset = softingcs_reset,
-	.enable_irq = softingcs_enable_irq,
-}, {
-	.name = "CANcard-SJA",
-	.manf = 0x0168, .prod = 0x004,
-	.generation = 1,
-	.nbus = 2,
-	.freq = 20 * MHZ, .max_brp = 32, .max_sjw = 4,
-	.dpram_size = 0x0800,
-	.boot = {0x0000, 0x000000, fw_dir "bcard.bin",},
-	.load = {0x0120, 0x00f600, fw_dir "ldcard.bin",},
-	.app = {0x0010, 0x0d0000, fw_dir "cansja.bin",},
-	.reset = softingcs_reset,
-	.enable_irq = softingcs_enable_irq,
-}, {
-	.name = "CANcard-2",
-	.manf = 0x0168, .prod = 0x005,
-	.generation = 2,
-	.nbus = 2,
-	.freq = 24 * MHZ, .max_brp = 64, .max_sjw = 4,
-	.dpram_size = 0x1000,
-	.boot = {0x0000, 0x000000, fw_dir "bcard2.bin",},
-	.load = {0x0120, 0x00f600, fw_dir "ldcard2.bin",},
-	.app = {0x0010, 0x0d0000, fw_dir "cancrd2.bin",},
-	.reset = softingcs_reset,
-	.enable_irq = NULL,
-}, {
-	.name = "Vector-CANcard",
-	.manf = 0x0168, .prod = 0x081,
-	.generation = 1,
-	.nbus = 2,
-	.freq = 16 * MHZ, .max_brp = 64, .max_sjw = 4,
-	.dpram_size = 0x0800,
-	.boot = {0x0000, 0x000000, fw_dir "bcard.bin",},
-	.load = {0x0120, 0x00f600, fw_dir "ldcard.bin",},
-	.app = {0x0010, 0x0d0000, fw_dir "cancard.bin",},
-	.reset = softingcs_reset,
-	.enable_irq = softingcs_enable_irq,
-}, {
-	.name = "Vector-CANcard-SJA",
-	.manf = 0x0168, .prod = 0x084,
-	.generation = 1,
-	.nbus = 2,
-	.freq = 20 * MHZ, .max_brp = 32, .max_sjw = 4,
-	.dpram_size = 0x0800,
-	.boot = {0x0000, 0x000000, fw_dir "bcard.bin",},
-	.load = {0x0120, 0x00f600, fw_dir "ldcard.bin",},
-	.app = {0x0010, 0x0d0000, fw_dir "cansja.bin",},
-	.reset = softingcs_reset,
-	.enable_irq = softingcs_enable_irq,
-}, {
-	.name = "Vector-CANcard-2",
-	.manf = 0x0168, .prod = 0x085,
-	.generation = 2,
-	.nbus = 2,
-	.freq = 24 * MHZ, .max_brp = 64, .max_sjw = 4,
-	.dpram_size = 0x1000,
-	.boot = {0x0000, 0x000000, fw_dir "bcard2.bin",},
-	.load = {0x0120, 0x00f600, fw_dir "ldcard2.bin",},
-	.app = {0x0010, 0x0d0000, fw_dir "cancrd2.bin",},
-	.reset = softingcs_reset,
-	.enable_irq = NULL,
-}, {
-	.name = "EDICcard-NEC",
-	.manf = 0x0168, .prod = 0x102,
-	.generation = 1,
-	.nbus = 2,
-	.freq = 16 * MHZ, .max_brp = 64, .max_sjw = 4,
-	.dpram_size = 0x0800,
-	.boot = {0x0000, 0x000000, fw_dir "bcard.bin",},
-	.load = {0x0120, 0x00f600, fw_dir "ldcard.bin",},
-	.app = {0x0010, 0x0d0000, fw_dir "cancard.bin",},
-	.reset = softingcs_reset,
-	.enable_irq = softingcs_enable_irq,
-}, {
-	.name = "EDICcard-2",
-	.manf = 0x0168, .prod = 0x105,
-	.generation = 2,
-	.nbus = 2,
-	.freq = 24 * MHZ, .max_brp = 64, .max_sjw = 4,
-	.dpram_size = 0x1000,
-	.boot = {0x0000, 0x000000, fw_dir "bcard2.bin",},
-	.load = {0x0120, 0x00f600, fw_dir "ldcard2.bin",},
-	.app = {0x0010, 0x0d0000, fw_dir "cancrd2.bin",},
-	.reset = softingcs_reset,
-	.enable_irq = NULL,
-}, {
-	0, 0,
-},
+	{
+		.name = "CANcard",
+		.manf = 0x0168, .prod = 0x001,
+		.generation = 1,
+		.nbus = 2,
+		.freq = 16 * MHZ, .max_brp = 32, .max_sjw = 4,
+		.dpram_size = 0x0800,
+		.boot = {0x0000, 0x000000, fw_dir "bcard.bin",},
+		.load = {0x0120, 0x00f600, fw_dir "ldcard.bin",},
+		.app = {0x0010, 0x0d0000, fw_dir "cancard.bin",},
+		.reset = softingcs_reset,
+		.enable_irq = softingcs_enable_irq,
+	}, {
+		.name = "CANcard-NEC",
+		.manf = 0x0168, .prod = 0x002,
+		.generation = 1,
+		.nbus = 2,
+		.freq = 16 * MHZ, .max_brp = 32, .max_sjw = 4,
+		.dpram_size = 0x0800,
+		.boot = {0x0000, 0x000000, fw_dir "bcard.bin",},
+		.load = {0x0120, 0x00f600, fw_dir "ldcard.bin",},
+		.app = {0x0010, 0x0d0000, fw_dir "cancard.bin",},
+		.reset = softingcs_reset,
+		.enable_irq = softingcs_enable_irq,
+	}, {
+		.name = "CANcard-SJA",
+		.manf = 0x0168, .prod = 0x004,
+		.generation = 1,
+		.nbus = 2,
+		.freq = 20 * MHZ, .max_brp = 32, .max_sjw = 4,
+		.dpram_size = 0x0800,
+		.boot = {0x0000, 0x000000, fw_dir "bcard.bin",},
+		.load = {0x0120, 0x00f600, fw_dir "ldcard.bin",},
+		.app = {0x0010, 0x0d0000, fw_dir "cansja.bin",},
+		.reset = softingcs_reset,
+		.enable_irq = softingcs_enable_irq,
+	}, {
+		.name = "CANcard-2",
+		.manf = 0x0168, .prod = 0x005,
+		.generation = 2,
+		.nbus = 2,
+		.freq = 24 * MHZ, .max_brp = 64, .max_sjw = 4,
+		.dpram_size = 0x1000,
+		.boot = {0x0000, 0x000000, fw_dir "bcard2.bin",},
+		.load = {0x0120, 0x00f600, fw_dir "ldcard2.bin",},
+		.app = {0x0010, 0x0d0000, fw_dir "cancrd2.bin",},
+		.reset = softingcs_reset,
+		.enable_irq = NULL,
+	}, {
+		.name = "Vector-CANcard",
+		.manf = 0x0168, .prod = 0x081,
+		.generation = 1,
+		.nbus = 2,
+		.freq = 16 * MHZ, .max_brp = 64, .max_sjw = 4,
+		.dpram_size = 0x0800,
+		.boot = {0x0000, 0x000000, fw_dir "bcard.bin",},
+		.load = {0x0120, 0x00f600, fw_dir "ldcard.bin",},
+		.app = {0x0010, 0x0d0000, fw_dir "cancard.bin",},
+		.reset = softingcs_reset,
+		.enable_irq = softingcs_enable_irq,
+	}, {
+		.name = "Vector-CANcard-SJA",
+		.manf = 0x0168, .prod = 0x084,
+		.generation = 1,
+		.nbus = 2,
+		.freq = 20 * MHZ, .max_brp = 32, .max_sjw = 4,
+		.dpram_size = 0x0800,
+		.boot = {0x0000, 0x000000, fw_dir "bcard.bin",},
+		.load = {0x0120, 0x00f600, fw_dir "ldcard.bin",},
+		.app = {0x0010, 0x0d0000, fw_dir "cansja.bin",},
+		.reset = softingcs_reset,
+		.enable_irq = softingcs_enable_irq,
+	}, {
+		.name = "Vector-CANcard-2",
+		.manf = 0x0168, .prod = 0x085,
+		.generation = 2,
+		.nbus = 2,
+		.freq = 24 * MHZ, .max_brp = 64, .max_sjw = 4,
+		.dpram_size = 0x1000,
+		.boot = {0x0000, 0x000000, fw_dir "bcard2.bin",},
+		.load = {0x0120, 0x00f600, fw_dir "ldcard2.bin",},
+		.app = {0x0010, 0x0d0000, fw_dir "cancrd2.bin",},
+		.reset = softingcs_reset,
+		.enable_irq = NULL,
+	}, {
+		.name = "EDICcard-NEC",
+		.manf = 0x0168, .prod = 0x102,
+		.generation = 1,
+		.nbus = 2,
+		.freq = 16 * MHZ, .max_brp = 64, .max_sjw = 4,
+		.dpram_size = 0x0800,
+		.boot = {0x0000, 0x000000, fw_dir "bcard.bin",},
+		.load = {0x0120, 0x00f600, fw_dir "ldcard.bin",},
+		.app = {0x0010, 0x0d0000, fw_dir "cancard.bin",},
+		.reset = softingcs_reset,
+		.enable_irq = softingcs_enable_irq,
+	}, {
+		.name = "EDICcard-2",
+		.manf = 0x0168, .prod = 0x105,
+		.generation = 2,
+		.nbus = 2,
+		.freq = 24 * MHZ, .max_brp = 64, .max_sjw = 4,
+		.dpram_size = 0x1000,
+		.boot = {0x0000, 0x000000, fw_dir "bcard2.bin",},
+		.load = {0x0120, 0x00f600, fw_dir "ldcard2.bin",},
+		.app = {0x0010, 0x0d0000, fw_dir "cancrd2.bin",},
+		.reset = softingcs_reset,
+		.enable_irq = NULL,
+	}, {
+		0, 0,
+	},
 };
 
 MODULE_FIRMWARE(fw_dir "bcard.bin");
@@ -163,10 +164,14 @@ static const struct softing_platform_data
 {
 	const struct softing_platform_data *lp;
 
-	for (lp = softingcs_platform_data; lp->manf; ++lp) {
+	for (lp = softingcs_platform_data; lp->manf; ++lp)
+	{
 		if ((lp->manf == manf) && (lp->prod == prod))
+		{
 			return lp;
+		}
 	}
+
 	return NULL;
 }
 
@@ -200,16 +205,24 @@ static int softingcs_probe_config(struct pcmcia_device *pcmcia, void *priv_data)
 
 	WARN_ON(!pdat);
 	pres = pcmcia->resource[PCMCIA_IOMEM_0];
+
 	if (resource_size(pres) < 0x1000)
+	{
 		return -ERANGE;
+	}
 
 	pres->flags |= WIN_MEMORY_TYPE_CM | WIN_ENABLE;
-	if (pdat->generation < 2) {
+
+	if (pdat->generation < 2)
+	{
 		pres->flags |= WIN_USE_WAIT | WIN_DATA_WIDTH_8;
 		memspeed = 3;
-	} else {
+	}
+	else
+	{
 		pres->flags |= WIN_DATA_WIDTH_16;
 	}
+
 	return pcmcia_request_window(pcmcia, pres, memspeed);
 }
 
@@ -239,39 +252,54 @@ static int softingcs_probe(struct pcmcia_device *pcmcia)
 	struct platform_device *pdev;
 	const struct softing_platform_data *pdat;
 	struct resource *pres;
-	struct dev {
+	struct dev
+	{
 		struct platform_device pdev;
 		struct resource res[2];
 	} *dev;
 
 	/* find matching platform_data */
 	pdat = softingcs_find_platform_data(pcmcia->manf_id, pcmcia->card_id);
+
 	if (!pdat)
+	{
 		return -ENOTTY;
+	}
 
 	/* setup pcmcia device */
 	pcmcia->config_flags |= CONF_ENABLE_IRQ | CONF_AUTO_SET_IOMEM |
-		CONF_AUTO_SET_VPP | CONF_AUTO_CHECK_VCC;
+							CONF_AUTO_SET_VPP | CONF_AUTO_CHECK_VCC;
 	ret = pcmcia_loop_config(pcmcia, softingcs_probe_config, (void *)pdat);
+
 	if (ret)
+	{
 		goto pcmcia_failed;
+	}
 
 	ret = pcmcia_enable_device(pcmcia);
+
 	if (ret < 0)
+	{
 		goto pcmcia_failed;
+	}
 
 	pres = pcmcia->resource[PCMCIA_IOMEM_0];
-	if (!pres) {
+
+	if (!pres)
+	{
 		ret = -EBADF;
 		goto pcmcia_bad;
 	}
 
 	/* create softing platform device */
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-	if (!dev) {
+
+	if (!dev)
+	{
 		ret = -ENOMEM;
 		goto mem_failed;
 	}
+
 	dev->pdev.resource = dev->res;
 	dev->pdev.num_resources = ARRAY_SIZE(dev->res);
 	dev->pdev.dev.release = softingcs_pdev_release;
@@ -297,8 +325,11 @@ static int softingcs_probe(struct pcmcia_device *pcmcia)
 	pdev->name = "softing";
 	dev_set_name(&pdev->dev, "softingcs.%i", pdev->id);
 	ret = platform_device_register(pdev);
+
 	if (ret < 0)
+	{
 		goto platform_failed;
+	}
 
 	dev_info(&pcmcia->dev, "created %s\n", dev_name(&pdev->dev));
 	return 0;
@@ -310,10 +341,11 @@ pcmcia_bad:
 pcmcia_failed:
 	pcmcia_disable_device(pcmcia);
 	pcmcia->priv = NULL;
-	return ret ?: -ENODEV;
+	return ret ? : -ENODEV;
 }
 
-static const struct pcmcia_device_id softingcs_ids[] = {
+static const struct pcmcia_device_id softingcs_ids[] =
+{
 	/* softing */
 	PCMCIA_DEVICE_MANF_CARD(0x0168, 0x0001),
 	PCMCIA_DEVICE_MANF_CARD(0x0168, 0x0002),
@@ -331,7 +363,8 @@ static const struct pcmcia_device_id softingcs_ids[] = {
 
 MODULE_DEVICE_TABLE(pcmcia, softingcs_ids);
 
-static struct pcmcia_driver softingcs_driver = {
+static struct pcmcia_driver softingcs_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "softingcs",
 	.id_table	= softingcs_ids,
@@ -342,5 +375,5 @@ static struct pcmcia_driver softingcs_driver = {
 module_pcmcia_driver(softingcs_driver);
 
 MODULE_DESCRIPTION("softing CANcard driver"
-		", links PCMCIA card to softing driver");
+				   ", links PCMCIA card to softing driver");
 MODULE_LICENSE("GPL v2");

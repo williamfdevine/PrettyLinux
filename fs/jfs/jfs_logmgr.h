@@ -61,7 +61,8 @@
 
 #define MAX_ACTIVE	128	/* Max active file systems sharing log */
 
-struct logsuper {
+struct logsuper
+{
 	__le32 magic;		/* 4: log lv identifier */
 	__le32 version;		/* 4: version number */
 	__le32 serial;		/* 4: log open/mount counter */
@@ -75,7 +76,8 @@ struct logsuper {
 	__le32 end;		/* 4: addr of last log record set by logredo */
 	char uuid[16];		/* 16: 128-bit journal uuid */
 	char label[16];		/* 16: journal label */
-	struct {
+	struct
+	{
 		char uuid[16];
 	} active[MAX_ACTIVE];	/* 2048: active file systems list */
 };
@@ -119,8 +121,10 @@ struct logsuper {
  * the two and h.eor and t.eor set to 8 (i.e. empty page). if (only)
  * h.eor != t.eor they were set to the smaller of their two values.
  */
-struct logpage {
-	struct {		/* header */
+struct logpage
+{
+	struct  		/* header */
+	{
 		__le32 page;	/* 4: log sequence page number */
 		__le16 rsrvd;	/* 2: */
 		__le16 eor;	/* 2: end-of-log offset of lasrt record write */
@@ -128,7 +132,8 @@ struct logpage {
 
 	__le32 data[LOGPSIZE / 4 - 4];	/* log record area */
 
-	struct {		/* trailer */
+	struct  		/* trailer */
+	{
 		__le32 page;	/* 4: normally the same as h.page */
 		__le16 rsrvd;	/* 2: */
 		__le16 eor;	/* 2: normally the same as h.eor */
@@ -198,7 +203,8 @@ struct logpage {
 #define	LOG_FREEPXD		0x0001
 
 
-struct lrd {
+struct lrd
+{
 	/*
 	 * type independent area
 	 */
@@ -212,7 +218,8 @@ struct lrd {
 	/*
 	 * type dependent area (20)
 	 */
-	union {
+	union
+	{
 
 		/*
 		 *	COMMIT: commit
@@ -227,7 +234,8 @@ struct lrd {
 		 *
 		 * N.B. REDOPAGE, NOREDOPAGE, and UPDATEMAP must be same format;
 		 */
-		struct {
+		struct
+		{
 			__le32 fileset;	/* 4: fileset number */
 			__le32 inode;	/* 4: inode number */
 			__le16 type;	/* 2: REDOPAGE record type */
@@ -243,7 +251,8 @@ struct lrd {
 		 *
 		 * N.B. REDOPAGE, NOREDOPAGE, and UPDATEMAP must be same format;
 		 */
-		struct {
+		struct
+		{
 			__le32 fileset;	/* 4: fileset number */
 			__le32 inode;	/* 4: inode number */
 			__le16 type;	/* 2: NOREDOPAGE record type */
@@ -259,7 +268,8 @@ struct lrd {
 		 *
 		 * N.B. REDOPAGE, NOREDOPAGE, and UPDATEMAP must be same format;
 		 */
-		struct {
+		struct
+		{
 			__le32 fileset;	/* 4: fileset number */
 			__le32 inode;	/* 4: inode number */
 			__le16 type;	/* 2: UPDATEMAP record type */
@@ -278,7 +288,8 @@ struct lrd {
 		 *       the same fields in the REDOPAGE record format.
 		 *
 		 */
-		struct {
+		struct
+		{
 			__le32 fileset;	/* 4: fileset number */
 			__le32 iagnum;	/* 4: IAG number     */
 			__le32 inoext_idx;	/* 4: inode extent index */
@@ -290,7 +301,8 @@ struct lrd {
 		 *
 		 * replay log up to syncpt address specified;
 		 */
-		struct {
+		struct
+		{
 			__le32 sync;	/* 4: syncpt address (0 = here) */
 		} syncpt;
 
@@ -306,7 +318,8 @@ struct lrd {
 		 * free specified extent(s) from block allocation map
 		 * N.B.: nextents should be length of data/sizeof(xad_t)
 		 */
-		struct {
+		struct
+		{
 			__le32 type;	/* 4: FREEXTENT record type */
 			__le32 nextent;	/* 4: number of extents */
 
@@ -324,7 +337,8 @@ struct lrd {
 		 * replay of preceding updates of all preceding generations
 		 * of the inumber esp. the on-disk inode itself.
 		 */
-		struct {
+		struct
+		{
 			__le32 fileset;	/* 4: fileset number */
 			__le32 inode;	/* 4: inode number */
 		} noredofile;
@@ -334,7 +348,8 @@ struct lrd {
 		 *
 		 * metadata type dependent
 		 */
-		struct {
+		struct
+		{
 			__le32 fileset;	/* 4: fileset number */
 			__le32 inode;	/* 4: inode number */
 			__le32 type;	/* 4: NEWPAGE record type */
@@ -354,7 +369,8 @@ struct lrd {
 /*
  *	line vector descriptor
  */
-struct lvd {
+struct lvd
+{
 	__le16 offset;
 	__le16 length;
 };
@@ -363,7 +379,8 @@ struct lvd {
 /*
  *	log logical volume
  */
-struct jfs_log {
+struct jfs_log
+{
 
 	struct list_head sb_list;/*  This is used to sync metadata
 				 *    before writing syncpt.
@@ -444,7 +461,8 @@ struct jfs_log {
 /*
  *		log cache buffer header
  */
-struct lbuf {
+struct lbuf
+{
 	struct jfs_log *l_log;	/* 4: log associated with buffer */
 
 	/*
@@ -475,7 +493,8 @@ struct lbuf {
  *
  * common logsyncblk prefix for jbuf_t and tblock
  */
-struct logsyncblk {
+struct logsyncblk
+{
 	u16 xflag;		/* flags */
 	u16 flag;		/* only meaninful in tblock */
 	lid_t lid;		/* lock id */
@@ -494,20 +513,20 @@ struct logsyncblk {
 
 /* compute the difference in bytes of lsn from sync point */
 #define logdiff(diff, lsn, log)\
-{\
-	diff = (lsn) - (log)->syncpt;\
-	if (diff < 0)\
-		diff += (log)->logsize;\
-}
+	{\
+		diff = (lsn) - (log)->syncpt;\
+		if (diff < 0)\
+			diff += (log)->logsize;\
+	}
 
 extern int lmLogOpen(struct super_block *sb);
 extern int lmLogClose(struct super_block *sb);
-extern int lmLogShutdown(struct jfs_log * log);
-extern int lmLogInit(struct jfs_log * log);
+extern int lmLogShutdown(struct jfs_log *log);
+extern int lmLogInit(struct jfs_log *log);
 extern int lmLogFormat(struct jfs_log *log, s64 logAddress, int logSize);
 extern int lmGroupCommit(struct jfs_log *, struct tblock *);
 extern int jfsIOWait(void *);
-extern void jfs_flush_journal(struct jfs_log * log, int wait);
+extern void jfs_flush_journal(struct jfs_log *log, int wait);
 extern void jfs_syncpt(struct jfs_log *log, int hard_sync);
 
 #endif				/* _H_JFS_LOGMGR */

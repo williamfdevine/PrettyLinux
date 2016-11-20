@@ -4,7 +4,8 @@
 #define DVB_USB_LOG_PREFIX "digitv"
 #include "dvb-usb.h"
 
-struct digitv_state {
+struct digitv_state
+{
 	int is_nxt6000;
 
 	unsigned char sndbuf[7];

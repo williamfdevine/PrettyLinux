@@ -32,21 +32,29 @@ int mmc_app_cmd(struct mmc_host *host, struct mmc_card *card)
 
 	cmd.opcode = MMC_APP_CMD;
 
-	if (card) {
+	if (card)
+	{
 		cmd.arg = card->rca << 16;
 		cmd.flags = MMC_RSP_SPI_R1 | MMC_RSP_R1 | MMC_CMD_AC;
-	} else {
+	}
+	else
+	{
 		cmd.arg = 0;
 		cmd.flags = MMC_RSP_SPI_R1 | MMC_RSP_R1 | MMC_CMD_BCR;
 	}
 
 	err = mmc_wait_for_cmd(host, &cmd, 0);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Check that card supported application commands */
 	if (!mmc_host_is_spi(host) && !(cmd.resp[0] & R1_APP_CMD))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	return 0;
 }
@@ -66,7 +74,7 @@ EXPORT_SYMBOL_GPL(mmc_app_cmd);
  *	parse the response.
  */
 int mmc_wait_for_app_cmd(struct mmc_host *host, struct mmc_card *card,
-	struct mmc_command *cmd, int retries)
+						 struct mmc_command *cmd, int retries)
 {
 	struct mmc_request mrq = {NULL};
 
@@ -81,14 +89,21 @@ int mmc_wait_for_app_cmd(struct mmc_host *host, struct mmc_card *card,
 	 * We have to resend MMC_APP_CMD for each attempt so
 	 * we cannot use the retries field in mmc_command.
 	 */
-	for (i = 0;i <= retries;i++) {
+	for (i = 0; i <= retries; i++)
+	{
 		err = mmc_app_cmd(host, card);
-		if (err) {
+
+		if (err)
+		{
 			/* no point in retrying; no APP commands allowed */
-			if (mmc_host_is_spi(host)) {
+			if (mmc_host_is_spi(host))
+			{
 				if (cmd->resp[0] & R1_SPI_ILLEGAL_COMMAND)
+				{
 					break;
+				}
 			}
+
 			continue;
 		}
 
@@ -103,13 +118,19 @@ int mmc_wait_for_app_cmd(struct mmc_host *host, struct mmc_card *card,
 		mmc_wait_for_req(host, &mrq);
 
 		err = cmd->error;
+
 		if (!cmd->error)
+		{
 			break;
+		}
 
 		/* no point in retrying illegal APP commands */
-		if (mmc_host_is_spi(host)) {
+		if (mmc_host_is_spi(host))
+		{
 			if (cmd->resp[0] & R1_SPI_ILLEGAL_COMMAND)
+			{
 				break;
+			}
 		}
 	}
 
@@ -128,15 +149,18 @@ int mmc_app_set_bus_width(struct mmc_card *card, int width)
 	cmd.opcode = SD_APP_SET_BUS_WIDTH;
 	cmd.flags = MMC_RSP_R1 | MMC_CMD_AC;
 
-	switch (width) {
-	case MMC_BUS_WIDTH_1:
-		cmd.arg = SD_BUS_WIDTH_1;
-		break;
-	case MMC_BUS_WIDTH_4:
-		cmd.arg = SD_BUS_WIDTH_4;
-		break;
-	default:
-		return -EINVAL;
+	switch (width)
+	{
+		case MMC_BUS_WIDTH_1:
+			cmd.arg = SD_BUS_WIDTH_1;
+			break;
+
+		case MMC_BUS_WIDTH_4:
+			cmd.arg = SD_BUS_WIDTH_4;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return mmc_wait_for_app_cmd(card->host, card, &cmd, MMC_CMD_RETRIES);
@@ -150,28 +174,47 @@ int mmc_send_app_op_cond(struct mmc_host *host, u32 ocr, u32 *rocr)
 	BUG_ON(!host);
 
 	cmd.opcode = SD_APP_OP_COND;
+
 	if (mmc_host_is_spi(host))
-		cmd.arg = ocr & (1 << 30); /* SPI only defines one bit */
+	{
+		cmd.arg = ocr & (1 << 30);    /* SPI only defines one bit */
+	}
 	else
+	{
 		cmd.arg = ocr;
+	}
+
 	cmd.flags = MMC_RSP_SPI_R1 | MMC_RSP_R3 | MMC_CMD_BCR;
 
-	for (i = 100; i; i--) {
+	for (i = 100; i; i--)
+	{
 		err = mmc_wait_for_app_cmd(host, NULL, &cmd, MMC_CMD_RETRIES);
+
 		if (err)
+		{
 			break;
+		}
 
 		/* if we're just probing, do a single pass */
 		if (ocr == 0)
+		{
 			break;
+		}
 
 		/* otherwise wait until reset completes */
-		if (mmc_host_is_spi(host)) {
+		if (mmc_host_is_spi(host))
+		{
 			if (!(cmd.resp[0] & R1_SPI_IDLE))
+			{
 				break;
-		} else {
+			}
+		}
+		else
+		{
 			if (cmd.resp[0] & MMC_CARD_BUSY)
+			{
 				break;
+			}
 		}
 
 		err = -ETIMEDOUT;
@@ -180,10 +223,14 @@ int mmc_send_app_op_cond(struct mmc_host *host, u32 ocr, u32 *rocr)
 	}
 
 	if (!i)
+	{
 		pr_err("%s: card never left busy state\n", mmc_hostname(host));
+	}
 
 	if (rocr && !mmc_host_is_spi(host))
+	{
 		*rocr = cmd.resp[0];
+	}
 
 	return err;
 }
@@ -205,16 +252,25 @@ int mmc_send_if_cond(struct mmc_host *host, u32 ocr)
 	cmd.flags = MMC_RSP_SPI_R7 | MMC_RSP_R7 | MMC_CMD_BCR;
 
 	err = mmc_wait_for_cmd(host, &cmd, 0);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (mmc_host_is_spi(host))
+	{
 		result_pattern = cmd.resp[1] & 0xFF;
+	}
 	else
+	{
 		result_pattern = cmd.resp[0] & 0xFF;
+	}
 
 	if (result_pattern != test_pattern)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -232,8 +288,11 @@ int mmc_send_relative_addr(struct mmc_host *host, unsigned int *rca)
 	cmd.flags = MMC_RSP_R6 | MMC_CMD_BCR;
 
 	err = mmc_wait_for_cmd(host, &cmd, MMC_CMD_RETRIES);
+
 	if (err)
+	{
 		return err;
+	}
 
 	*rca = cmd.resp[0] >> 16;
 
@@ -256,15 +315,21 @@ int mmc_app_send_scr(struct mmc_card *card, u32 *scr)
 	/* NOTE: caller guarantees scr is heap-allocated */
 
 	err = mmc_app_cmd(card->host, card);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* dma onto stack is unsafe/nonportable, but callers to this
 	 * routine normally provide temporary on-stack buffers ...
 	 */
 	data_buf = kmalloc(sizeof(card->raw_scr), GFP_KERNEL);
+
 	if (data_buf == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	mrq.cmd = &cmd;
 	mrq.data = &data;
@@ -289,9 +354,14 @@ int mmc_app_send_scr(struct mmc_card *card, u32 *scr)
 	kfree(data_buf);
 
 	if (cmd.error)
+	{
 		return cmd.error;
+	}
+
 	if (data.error)
+	{
 		return data.error;
+	}
 
 	scr[0] = be32_to_cpu(scr[0]);
 	scr[1] = be32_to_cpu(scr[1]);
@@ -300,7 +370,7 @@ int mmc_app_send_scr(struct mmc_card *card, u32 *scr)
 }
 
 int mmc_sd_switch(struct mmc_card *card, int mode, int group,
-	u8 value, u8 *resp)
+				  u8 value, u8 *resp)
 {
 	struct mmc_request mrq = {NULL};
 	struct mmc_command cmd = {0};
@@ -337,9 +407,14 @@ int mmc_sd_switch(struct mmc_card *card, int mode, int group,
 	mmc_wait_for_req(card->host, &mrq);
 
 	if (cmd.error)
+	{
 		return cmd.error;
+	}
+
 	if (data.error)
+	{
 		return data.error;
+	}
 
 	return 0;
 }
@@ -359,8 +434,11 @@ int mmc_app_sd_status(struct mmc_card *card, void *ssr)
 	/* NOTE: caller guarantees ssr is heap-allocated */
 
 	err = mmc_app_cmd(card->host, card);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mrq.cmd = &cmd;
 	mrq.data = &data;
@@ -382,9 +460,14 @@ int mmc_app_sd_status(struct mmc_card *card, void *ssr)
 	mmc_wait_for_req(card->host, &mrq);
 
 	if (cmd.error)
+	{
 		return cmd.error;
+	}
+
 	if (data.error)
+	{
 		return data.error;
+	}
 
 	return 0;
 }

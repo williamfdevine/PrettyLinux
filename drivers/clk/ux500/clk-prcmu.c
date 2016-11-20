@@ -16,7 +16,8 @@
 
 #define to_clk_prcmu(_hw) container_of(_hw, struct clk_prcmu, hw)
 
-struct clk_prcmu {
+struct clk_prcmu
+{
 	struct clk_hw hw;
 	u8 cg_sel;
 	int is_prepared;
@@ -32,8 +33,11 @@ static int clk_prcmu_prepare(struct clk_hw *hw)
 	struct clk_prcmu *clk = to_clk_prcmu(hw);
 
 	ret = prcmu_request_clock(clk->cg_sel, true);
+
 	if (!ret)
+	{
 		clk->is_prepared = 1;
+	}
 
 	return ret;
 }
@@ -41,11 +45,14 @@ static int clk_prcmu_prepare(struct clk_hw *hw)
 static void clk_prcmu_unprepare(struct clk_hw *hw)
 {
 	struct clk_prcmu *clk = to_clk_prcmu(hw);
+
 	if (prcmu_request_clock(clk->cg_sel, false))
 		pr_err("clk_prcmu: %s failed to disable %s.\n", __func__,
-			clk_hw_get_name(hw));
+			   clk_hw_get_name(hw));
 	else
+	{
 		clk->is_prepared = 0;
+	}
 }
 
 static int clk_prcmu_is_prepared(struct clk_hw *hw)
@@ -74,21 +81,21 @@ static int clk_prcmu_is_enabled(struct clk_hw *hw)
 }
 
 static unsigned long clk_prcmu_recalc_rate(struct clk_hw *hw,
-					   unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_prcmu *clk = to_clk_prcmu(hw);
 	return prcmu_clock_rate(clk->cg_sel);
 }
 
 static long clk_prcmu_round_rate(struct clk_hw *hw, unsigned long rate,
-				 unsigned long *parent_rate)
+								 unsigned long *parent_rate)
 {
 	struct clk_prcmu *clk = to_clk_prcmu(hw);
 	return prcmu_round_clock_rate(clk->cg_sel, rate);
 }
 
 static int clk_prcmu_set_rate(struct clk_hw *hw, unsigned long rate,
-			      unsigned long parent_rate)
+							  unsigned long parent_rate)
 {
 	struct clk_prcmu *clk = to_clk_prcmu(hw);
 	return prcmu_set_clock_rate(clk->cg_sel, rate);
@@ -99,22 +106,28 @@ static int clk_prcmu_opp_prepare(struct clk_hw *hw)
 	int err;
 	struct clk_prcmu *clk = to_clk_prcmu(hw);
 
-	if (!clk->opp_requested) {
+	if (!clk->opp_requested)
+	{
 		err = prcmu_qos_add_requirement(PRCMU_QOS_APE_OPP,
-						(char *)clk_hw_get_name(hw),
-						100);
-		if (err) {
+										(char *)clk_hw_get_name(hw),
+										100);
+
+		if (err)
+		{
 			pr_err("clk_prcmu: %s fail req APE OPP for %s.\n",
-				__func__, clk_hw_get_name(hw));
+				   __func__, clk_hw_get_name(hw));
 			return err;
 		}
+
 		clk->opp_requested = 1;
 	}
 
 	err = prcmu_request_clock(clk->cg_sel, true);
-	if (err) {
+
+	if (err)
+	{
 		prcmu_qos_remove_requirement(PRCMU_QOS_APE_OPP,
-					(char *)clk_hw_get_name(hw));
+									 (char *)clk_hw_get_name(hw));
 		clk->opp_requested = 0;
 		return err;
 	}
@@ -127,15 +140,17 @@ static void clk_prcmu_opp_unprepare(struct clk_hw *hw)
 {
 	struct clk_prcmu *clk = to_clk_prcmu(hw);
 
-	if (prcmu_request_clock(clk->cg_sel, false)) {
+	if (prcmu_request_clock(clk->cg_sel, false))
+	{
 		pr_err("clk_prcmu: %s failed to disable %s.\n", __func__,
-			clk_hw_get_name(hw));
+			   clk_hw_get_name(hw));
 		return;
 	}
 
-	if (clk->opp_requested) {
+	if (clk->opp_requested)
+	{
 		prcmu_qos_remove_requirement(PRCMU_QOS_APE_OPP,
-					(char *)clk_hw_get_name(hw));
+									 (char *)clk_hw_get_name(hw));
 		clk->opp_requested = 0;
 	}
 
@@ -147,18 +162,24 @@ static int clk_prcmu_opp_volt_prepare(struct clk_hw *hw)
 	int err;
 	struct clk_prcmu *clk = to_clk_prcmu(hw);
 
-	if (!clk->opp_requested) {
+	if (!clk->opp_requested)
+	{
 		err = prcmu_request_ape_opp_100_voltage(true);
-		if (err) {
+
+		if (err)
+		{
 			pr_err("clk_prcmu: %s fail req APE OPP VOLT for %s.\n",
-				__func__, clk_hw_get_name(hw));
+				   __func__, clk_hw_get_name(hw));
 			return err;
 		}
+
 		clk->opp_requested = 1;
 	}
 
 	err = prcmu_request_clock(clk->cg_sel, true);
-	if (err) {
+
+	if (err)
+	{
 		prcmu_request_ape_opp_100_voltage(false);
 		clk->opp_requested = 0;
 		return err;
@@ -172,13 +193,15 @@ static void clk_prcmu_opp_volt_unprepare(struct clk_hw *hw)
 {
 	struct clk_prcmu *clk = to_clk_prcmu(hw);
 
-	if (prcmu_request_clock(clk->cg_sel, false)) {
+	if (prcmu_request_clock(clk->cg_sel, false))
+	{
 		pr_err("clk_prcmu: %s failed to disable %s.\n", __func__,
-			clk_hw_get_name(hw));
+			   clk_hw_get_name(hw));
 		return;
 	}
 
-	if (clk->opp_requested) {
+	if (clk->opp_requested)
+	{
 		prcmu_request_ape_opp_100_voltage(false);
 		clk->opp_requested = 0;
 	}
@@ -186,7 +209,8 @@ static void clk_prcmu_opp_volt_unprepare(struct clk_hw *hw)
 	clk->is_prepared = 0;
 }
 
-static struct clk_ops clk_prcmu_scalable_ops = {
+static struct clk_ops clk_prcmu_scalable_ops =
+{
 	.prepare = clk_prcmu_prepare,
 	.unprepare = clk_prcmu_unprepare,
 	.is_prepared = clk_prcmu_is_prepared,
@@ -198,7 +222,8 @@ static struct clk_ops clk_prcmu_scalable_ops = {
 	.set_rate = clk_prcmu_set_rate,
 };
 
-static struct clk_ops clk_prcmu_gate_ops = {
+static struct clk_ops clk_prcmu_gate_ops =
+{
 	.prepare = clk_prcmu_prepare,
 	.unprepare = clk_prcmu_unprepare,
 	.is_prepared = clk_prcmu_is_prepared,
@@ -208,19 +233,22 @@ static struct clk_ops clk_prcmu_gate_ops = {
 	.recalc_rate = clk_prcmu_recalc_rate,
 };
 
-static struct clk_ops clk_prcmu_scalable_rate_ops = {
+static struct clk_ops clk_prcmu_scalable_rate_ops =
+{
 	.is_enabled = clk_prcmu_is_enabled,
 	.recalc_rate = clk_prcmu_recalc_rate,
 	.round_rate = clk_prcmu_round_rate,
 	.set_rate = clk_prcmu_set_rate,
 };
 
-static struct clk_ops clk_prcmu_rate_ops = {
+static struct clk_ops clk_prcmu_rate_ops =
+{
 	.is_enabled = clk_prcmu_is_enabled,
 	.recalc_rate = clk_prcmu_recalc_rate,
 };
 
-static struct clk_ops clk_prcmu_opp_gate_ops = {
+static struct clk_ops clk_prcmu_opp_gate_ops =
+{
 	.prepare = clk_prcmu_opp_prepare,
 	.unprepare = clk_prcmu_opp_unprepare,
 	.is_prepared = clk_prcmu_is_prepared,
@@ -230,7 +258,8 @@ static struct clk_ops clk_prcmu_opp_gate_ops = {
 	.recalc_rate = clk_prcmu_recalc_rate,
 };
 
-static struct clk_ops clk_prcmu_opp_volt_scalable_ops = {
+static struct clk_ops clk_prcmu_opp_volt_scalable_ops =
+{
 	.prepare = clk_prcmu_opp_volt_prepare,
 	.unprepare = clk_prcmu_opp_volt_unprepare,
 	.is_prepared = clk_prcmu_is_prepared,
@@ -243,23 +272,26 @@ static struct clk_ops clk_prcmu_opp_volt_scalable_ops = {
 };
 
 static struct clk *clk_reg_prcmu(const char *name,
-				 const char *parent_name,
-				 u8 cg_sel,
-				 unsigned long rate,
-				 unsigned long flags,
-				 struct clk_ops *clk_prcmu_ops)
+								 const char *parent_name,
+								 u8 cg_sel,
+								 unsigned long rate,
+								 unsigned long flags,
+								 struct clk_ops *clk_prcmu_ops)
 {
 	struct clk_prcmu *clk;
 	struct clk_init_data clk_prcmu_init;
 	struct clk *clk_reg;
 
-	if (!name) {
+	if (!name)
+	{
 		pr_err("clk_prcmu: %s invalid arguments passed\n", __func__);
 		return ERR_PTR(-EINVAL);
 	}
 
 	clk = kzalloc(sizeof(struct clk_prcmu), GFP_KERNEL);
-	if (!clk) {
+
+	if (!clk)
+	{
 		pr_err("clk_prcmu: %s could not allocate clk\n", __func__);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -268,9 +300,12 @@ static struct clk *clk_reg_prcmu(const char *name,
 	clk->is_prepared = 1;
 	clk->is_enabled = 1;
 	clk->opp_requested = 0;
+
 	/* "rate" can be used for changing the initial frequency */
 	if (rate)
+	{
 		prcmu_set_clock_rate(cg_sel, rate);
+	}
 
 	clk_prcmu_init.name = name;
 	clk_prcmu_init.ops = clk_prcmu_ops;
@@ -280,8 +315,11 @@ static struct clk *clk_reg_prcmu(const char *name,
 	clk->hw.init = &clk_prcmu_init;
 
 	clk_reg = clk_register(NULL, &clk->hw);
+
 	if (IS_ERR_OR_NULL(clk_reg))
+	{
 		goto free_clk;
+	}
 
 	return clk_reg;
 
@@ -292,58 +330,58 @@ free_clk:
 }
 
 struct clk *clk_reg_prcmu_scalable(const char *name,
-				   const char *parent_name,
-				   u8 cg_sel,
-				   unsigned long rate,
-				   unsigned long flags)
+								   const char *parent_name,
+								   u8 cg_sel,
+								   unsigned long rate,
+								   unsigned long flags)
 {
 	return clk_reg_prcmu(name, parent_name, cg_sel, rate, flags,
-			&clk_prcmu_scalable_ops);
+						 &clk_prcmu_scalable_ops);
 }
 
 struct clk *clk_reg_prcmu_gate(const char *name,
-			       const char *parent_name,
-			       u8 cg_sel,
-			       unsigned long flags)
+							   const char *parent_name,
+							   u8 cg_sel,
+							   unsigned long flags)
 {
 	return clk_reg_prcmu(name, parent_name, cg_sel, 0, flags,
-			&clk_prcmu_gate_ops);
+						 &clk_prcmu_gate_ops);
 }
 
 struct clk *clk_reg_prcmu_scalable_rate(const char *name,
-					const char *parent_name,
-					u8 cg_sel,
-					unsigned long rate,
-					unsigned long flags)
+										const char *parent_name,
+										u8 cg_sel,
+										unsigned long rate,
+										unsigned long flags)
 {
 	return clk_reg_prcmu(name, parent_name, cg_sel, rate, flags,
-			&clk_prcmu_scalable_rate_ops);
+						 &clk_prcmu_scalable_rate_ops);
 }
 
 struct clk *clk_reg_prcmu_rate(const char *name,
-			       const char *parent_name,
-			       u8 cg_sel,
-			       unsigned long flags)
+							   const char *parent_name,
+							   u8 cg_sel,
+							   unsigned long flags)
 {
 	return clk_reg_prcmu(name, parent_name, cg_sel, 0, flags,
-			&clk_prcmu_rate_ops);
+						 &clk_prcmu_rate_ops);
 }
 
 struct clk *clk_reg_prcmu_opp_gate(const char *name,
-				   const char *parent_name,
-				   u8 cg_sel,
-				   unsigned long flags)
+								   const char *parent_name,
+								   u8 cg_sel,
+								   unsigned long flags)
 {
 	return clk_reg_prcmu(name, parent_name, cg_sel, 0, flags,
-			&clk_prcmu_opp_gate_ops);
+						 &clk_prcmu_opp_gate_ops);
 }
 
 struct clk *clk_reg_prcmu_opp_volt_scalable(const char *name,
-					    const char *parent_name,
-					    u8 cg_sel,
-					    unsigned long rate,
-					    unsigned long flags)
+		const char *parent_name,
+		u8 cg_sel,
+		unsigned long rate,
+		unsigned long flags)
 {
 	return clk_reg_prcmu(name, parent_name, cg_sel, rate, flags,
-			&clk_prcmu_opp_volt_scalable_ops);
+						 &clk_prcmu_opp_volt_scalable_ops);
 }

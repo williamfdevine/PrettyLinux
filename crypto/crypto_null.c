@@ -30,10 +30,13 @@ static struct crypto_skcipher *crypto_default_null_skcipher;
 static int crypto_default_null_skcipher_refcnt;
 
 static int null_compress(struct crypto_tfm *tfm, const u8 *src,
-			 unsigned int slen, u8 *dst, unsigned int *dlen)
+						 unsigned int slen, u8 *dst, unsigned int *dlen)
 {
 	if (slen > *dlen)
+	{
 		return -EINVAL;
+	}
+
 	memcpy(dst, src, slen);
 	*dlen = slen;
 	return 0;
@@ -45,7 +48,7 @@ static int null_init(struct shash_desc *desc)
 }
 
 static int null_update(struct shash_desc *desc, const u8 *data,
-		       unsigned int len)
+					   unsigned int len)
 {
 	return 0;
 }
@@ -56,17 +59,17 @@ static int null_final(struct shash_desc *desc, u8 *out)
 }
 
 static int null_digest(struct shash_desc *desc, const u8 *data,
-		       unsigned int len, u8 *out)
+					   unsigned int len, u8 *out)
 {
 	return 0;
 }
 
 static int null_hash_setkey(struct crypto_shash *tfm, const u8 *key,
-			    unsigned int keylen)
+							unsigned int keylen)
 { return 0; }
 
 static int null_setkey(struct crypto_tfm *tfm, const u8 *key,
-		       unsigned int keylen)
+					   unsigned int keylen)
 { return 0; }
 
 static void null_crypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
@@ -75,8 +78,8 @@ static void null_crypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 }
 
 static int skcipher_null_crypt(struct blkcipher_desc *desc,
-			       struct scatterlist *dst,
-			       struct scatterlist *src, unsigned int nbytes)
+							   struct scatterlist *dst,
+							   struct scatterlist *src, unsigned int nbytes)
 {
 	struct blkcipher_walk walk;
 	int err;
@@ -84,17 +87,20 @@ static int skcipher_null_crypt(struct blkcipher_desc *desc,
 	blkcipher_walk_init(&walk, dst, src, nbytes);
 	err = blkcipher_walk_virt(desc, &walk);
 
-	while (walk.nbytes) {
+	while (walk.nbytes)
+	{
 		if (walk.src.virt.addr != walk.dst.virt.addr)
 			memcpy(walk.dst.virt.addr, walk.src.virt.addr,
-			       walk.nbytes);
+				   walk.nbytes);
+
 		err = blkcipher_walk_done(desc, &walk, 0);
 	}
 
 	return err;
 }
 
-static struct shash_alg digest_null = {
+static struct shash_alg digest_null =
+{
 	.digestsize		=	NULL_DIGEST_SIZE,
 	.setkey   		=	null_hash_setkey,
 	.init   		=	null_init,
@@ -111,43 +117,53 @@ static struct shash_alg digest_null = {
 };
 
 static struct crypto_alg null_algs[3] = { {
-	.cra_name		=	"cipher_null",
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	NULL_BLOCK_SIZE,
-	.cra_ctxsize		=	0,
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	NULL_KEY_SIZE,
-	.cia_max_keysize	=	NULL_KEY_SIZE,
-	.cia_setkey		= 	null_setkey,
-	.cia_encrypt		=	null_crypt,
-	.cia_decrypt		=	null_crypt } }
-}, {
-	.cra_name		=	"ecb(cipher_null)",
-	.cra_driver_name	=	"ecb-cipher_null",
-	.cra_priority		=	100,
-	.cra_flags		=	CRYPTO_ALG_TYPE_BLKCIPHER,
-	.cra_blocksize		=	NULL_BLOCK_SIZE,
-	.cra_type		=	&crypto_blkcipher_type,
-	.cra_ctxsize		=	0,
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .blkcipher = {
-	.min_keysize		=	NULL_KEY_SIZE,
-	.max_keysize		=	NULL_KEY_SIZE,
-	.ivsize			=	NULL_IV_SIZE,
-	.setkey			= 	null_setkey,
-	.encrypt		=	skcipher_null_crypt,
-	.decrypt		=	skcipher_null_crypt } }
-}, {
-	.cra_name		=	"compress_null",
-	.cra_flags		=	CRYPTO_ALG_TYPE_COMPRESS,
-	.cra_blocksize		=	NULL_BLOCK_SIZE,
-	.cra_ctxsize		=	0,
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .compress = {
-	.coa_compress		=	null_compress,
-	.coa_decompress		=	null_compress } }
-} };
+		.cra_name		=	"cipher_null",
+		.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
+		.cra_blocksize		=	NULL_BLOCK_SIZE,
+		.cra_ctxsize		=	0,
+		.cra_module		=	THIS_MODULE,
+		.cra_u			=	{
+			.cipher = {
+				.cia_min_keysize	=	NULL_KEY_SIZE,
+				.cia_max_keysize	=	NULL_KEY_SIZE,
+				.cia_setkey		= 	null_setkey,
+				.cia_encrypt		=	null_crypt,
+				.cia_decrypt		=	null_crypt
+			}
+		}
+	}, {
+		.cra_name		=	"ecb(cipher_null)",
+		.cra_driver_name	=	"ecb-cipher_null",
+		.cra_priority		=	100,
+		.cra_flags		=	CRYPTO_ALG_TYPE_BLKCIPHER,
+		.cra_blocksize		=	NULL_BLOCK_SIZE,
+		.cra_type		=	&crypto_blkcipher_type,
+		.cra_ctxsize		=	0,
+		.cra_module		=	THIS_MODULE,
+		.cra_u			=	{
+			.blkcipher = {
+				.min_keysize		=	NULL_KEY_SIZE,
+				.max_keysize		=	NULL_KEY_SIZE,
+				.ivsize			=	NULL_IV_SIZE,
+				.setkey			= 	null_setkey,
+				.encrypt		=	skcipher_null_crypt,
+				.decrypt		=	skcipher_null_crypt
+			}
+		}
+	}, {
+		.cra_name		=	"compress_null",
+		.cra_flags		=	CRYPTO_ALG_TYPE_COMPRESS,
+		.cra_blocksize		=	NULL_BLOCK_SIZE,
+		.cra_ctxsize		=	0,
+		.cra_module		=	THIS_MODULE,
+		.cra_u			=	{
+			.compress = {
+				.coa_compress		=	null_compress,
+				.coa_decompress		=	null_compress
+			}
+		}
+	}
+};
 
 MODULE_ALIAS_CRYPTO("compress_null");
 MODULE_ALIAS_CRYPTO("digest_null");
@@ -160,11 +176,15 @@ struct crypto_skcipher *crypto_get_default_null_skcipher(void)
 	mutex_lock(&crypto_default_null_skcipher_lock);
 	tfm = crypto_default_null_skcipher;
 
-	if (!tfm) {
+	if (!tfm)
+	{
 		tfm = crypto_alloc_skcipher("ecb(cipher_null)",
-					    0, CRYPTO_ALG_ASYNC);
+									0, CRYPTO_ALG_ASYNC);
+
 		if (IS_ERR(tfm))
+		{
 			goto unlock;
+		}
 
 		crypto_default_null_skcipher = tfm;
 	}
@@ -181,10 +201,13 @@ EXPORT_SYMBOL_GPL(crypto_get_default_null_skcipher);
 void crypto_put_default_null_skcipher(void)
 {
 	mutex_lock(&crypto_default_null_skcipher_lock);
-	if (!--crypto_default_null_skcipher_refcnt) {
+
+	if (!--crypto_default_null_skcipher_refcnt)
+	{
 		crypto_free_skcipher(crypto_default_null_skcipher);
 		crypto_default_null_skcipher = NULL;
 	}
+
 	mutex_unlock(&crypto_default_null_skcipher_lock);
 }
 EXPORT_SYMBOL_GPL(crypto_put_default_null_skcipher);
@@ -194,12 +217,18 @@ static int __init crypto_null_mod_init(void)
 	int ret = 0;
 
 	ret = crypto_register_algs(null_algs, ARRAY_SIZE(null_algs));
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret = crypto_register_shash(&digest_null);
+
 	if (ret < 0)
+	{
 		goto out_unregister_algs;
+	}
 
 	return 0;
 

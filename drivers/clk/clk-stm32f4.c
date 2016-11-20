@@ -32,7 +32,8 @@
 #define STM32F4_RCC_APB1ENR		0x40
 #define STM32F4_RCC_APB2ENR		0x44
 
-struct stm32f4_gate_data {
+struct stm32f4_gate_data
+{
 	u8	offset;
 	u8	bit_idx;
 	const char *name;
@@ -40,7 +41,8 @@ struct stm32f4_gate_data {
 	unsigned long flags;
 };
 
-static const struct stm32f4_gate_data stm32f4_gates[] __initconst = {
+static const struct stm32f4_gate_data stm32f4_gates[] __initconst =
+{
 	{ STM32F4_RCC_AHB1ENR,  0,	"gpioa",	"ahb_div" },
 	{ STM32F4_RCC_AHB1ENR,  1,	"gpiob",	"ahb_div" },
 	{ STM32F4_RCC_AHB1ENR,  2,	"gpioc",	"ahb_div" },
@@ -71,8 +73,10 @@ static const struct stm32f4_gate_data stm32f4_gates[] __initconst = {
 	{ STM32F4_RCC_AHB2ENR,  6,	"rng",		"pll48" },
 	{ STM32F4_RCC_AHB2ENR,  7,	"otgfs",	"pll48" },
 
-	{ STM32F4_RCC_AHB3ENR,  0,	"fmc",		"ahb_div",
-		CLK_IGNORE_UNUSED },
+	{
+		STM32F4_RCC_AHB3ENR,  0,	"fmc",		"ahb_div",
+		CLK_IGNORE_UNUSED
+	},
 
 	{ STM32F4_RCC_APB1ENR,  0,	"tim2",		"apb1_mul" },
 	{ STM32F4_RCC_APB1ENR,  1,	"tim3",		"apb1_mul" },
@@ -133,8 +137,9 @@ enum { SYSTICK, FCLK };
  * have gate bits associated with them. Its combined hweight is 71.
  */
 static const u64 stm32f42xx_gate_map[] = { 0x000000f17ef417ffull,
-					   0x0000000000000001ull,
-					   0x04777f33f6fec9ffull };
+										   0x0000000000000001ull,
+										   0x04777f33f6fec9ffull
+										 };
 
 static struct clk_hw *clks[MAX_CLKS];
 static DEFINE_SPINLOCK(stm32f4_clk_lock);
@@ -148,7 +153,8 @@ static void __iomem *base;
  * timers. ST datasheets represent this feature as a (conditional) clock
  * multiplier.
  */
-struct clk_apb_mul {
+struct clk_apb_mul
+{
 	struct clk_hw hw;
 	u8 bit_idx;
 };
@@ -156,26 +162,31 @@ struct clk_apb_mul {
 #define to_clk_apb_mul(_hw) container_of(_hw, struct clk_apb_mul, hw)
 
 static unsigned long clk_apb_mul_recalc_rate(struct clk_hw *hw,
-					     unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_apb_mul *am = to_clk_apb_mul(hw);
 
 	if (readl(base + STM32F4_RCC_CFGR) & BIT(am->bit_idx))
+	{
 		return parent_rate * 2;
+	}
 
 	return parent_rate;
 }
 
 static long clk_apb_mul_round_rate(struct clk_hw *hw, unsigned long rate,
-				   unsigned long *prate)
+								   unsigned long *prate)
 {
 	struct clk_apb_mul *am = to_clk_apb_mul(hw);
 	unsigned long mult = 1;
 
 	if (readl(base + STM32F4_RCC_CFGR) & BIT(am->bit_idx))
+	{
 		mult = 2;
+	}
 
-	if (clk_hw_get_flags(hw) & CLK_SET_RATE_PARENT) {
+	if (clk_hw_get_flags(hw) & CLK_SET_RATE_PARENT)
+	{
 		unsigned long best_parent = rate / mult;
 
 		*prate = clk_hw_round_rate(clk_hw_get_parent(hw), best_parent);
@@ -185,7 +196,7 @@ static long clk_apb_mul_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int clk_apb_mul_set_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long parent_rate)
+								unsigned long parent_rate)
 {
 	/*
 	 * We must report success but we can do so unconditionally because
@@ -196,23 +207,27 @@ static int clk_apb_mul_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-static const struct clk_ops clk_apb_mul_factor_ops = {
+static const struct clk_ops clk_apb_mul_factor_ops =
+{
 	.round_rate = clk_apb_mul_round_rate,
 	.set_rate = clk_apb_mul_set_rate,
 	.recalc_rate = clk_apb_mul_recalc_rate,
 };
 
 static struct clk *clk_register_apb_mul(struct device *dev, const char *name,
-					const char *parent_name,
-					unsigned long flags, u8 bit_idx)
+										const char *parent_name,
+										unsigned long flags, u8 bit_idx)
 {
 	struct clk_apb_mul *am;
 	struct clk_init_data init;
 	struct clk *clk;
 
 	am = kzalloc(sizeof(*am), GFP_KERNEL);
+
 	if (!am)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	am->bit_idx = bit_idx;
 	am->hw.init = &init;
@@ -226,7 +241,9 @@ static struct clk *clk_register_apb_mul(struct device *dev, const char *name,
 	clk = clk_register(dev, &am->hw);
 
 	if (IS_ERR(clk))
+	{
 		kfree(am);
+	}
 
 	return clk;
 }
@@ -258,9 +275,13 @@ static int stm32f4_rcc_lookup_clk_idx(u8 primary, u8 secondary)
 {
 	u64 table[ARRAY_SIZE(stm32f42xx_gate_map)];
 
-	if (primary == 1) {
+	if (primary == 1)
+	{
 		if (WARN_ON(secondary > FCLK))
+		{
 			return -EINVAL;
+		}
+
 		return secondary;
 	}
 
@@ -268,17 +289,19 @@ static int stm32f4_rcc_lookup_clk_idx(u8 primary, u8 secondary)
 
 	/* only bits set in table can be used as indices */
 	if (WARN_ON(secondary >= BITS_PER_BYTE * sizeof(table) ||
-		    0 == (table[BIT_ULL_WORD(secondary)] &
-			  BIT_ULL_MASK(secondary))))
+				0 == (table[BIT_ULL_WORD(secondary)] &
+					  BIT_ULL_MASK(secondary))))
+	{
 		return -EINVAL;
+	}
 
 	/* mask out bits above our current index */
 	table[BIT_ULL_WORD(secondary)] &=
-	    GENMASK_ULL(secondary % BITS_PER_LONG_LONG, 0);
+		GENMASK_ULL(secondary % BITS_PER_LONG_LONG, 0);
 
 	return FCLK + hweight64(table[0]) +
-	       (BIT_ULL_WORD(secondary) >= 1 ? hweight64(table[1]) : 0) +
-	       (BIT_ULL_WORD(secondary) >= 2 ? hweight64(table[2]) : 0);
+		   (BIT_ULL_WORD(secondary) >= 1 ? hweight64(table[1]) : 0) +
+		   (BIT_ULL_WORD(secondary) >= 2 ? hweight64(table[2]) : 0);
 }
 
 static struct clk_hw *
@@ -287,14 +310,17 @@ stm32f4_rcc_lookup_clk(struct of_phandle_args *clkspec, void *data)
 	int i = stm32f4_rcc_lookup_clk_idx(clkspec->args[0], clkspec->args[1]);
 
 	if (i < 0)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	return clks[i];
 }
 
 static const char *sys_parents[] __initdata =   { "hsi", NULL, "pll" };
 
-static const struct clk_div_table ahb_div_table[] = {
+static const struct clk_div_table ahb_div_table[] =
+{
 	{ 0x0,   1 }, { 0x1,   1 }, { 0x2,   1 }, { 0x3,   1 },
 	{ 0x4,   1 }, { 0x5,   1 }, { 0x6,   1 }, { 0x7,   1 },
 	{ 0x8,   2 }, { 0x9,   4 }, { 0xa,   8 }, { 0xb,  16 },
@@ -302,7 +328,8 @@ static const struct clk_div_table ahb_div_table[] = {
 	{ 0 },
 };
 
-static const struct clk_div_table apb_div_table[] = {
+static const struct clk_div_table apb_div_table[] =
+{
 	{ 0,  1 }, { 0,  1 }, { 0,  1 }, { 0,  1 },
 	{ 4,  2 }, { 5,  4 }, { 6,  8 }, { 7, 16 },
 	{ 0 },
@@ -314,7 +341,9 @@ static void __init stm32f4_rcc_init(struct device_node *np)
 	int n;
 
 	base = of_iomap(np, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		pr_err("%s: unable to map resource", np->name);
 		return;
 	}
@@ -322,51 +351,55 @@ static void __init stm32f4_rcc_init(struct device_node *np)
 	hse_clk = of_clk_get_parent_name(np, 0);
 
 	clk_register_fixed_rate_with_accuracy(NULL, "hsi", NULL, 0,
-			16000000, 160000);
+										  16000000, 160000);
 	stm32f4_rcc_register_pll(hse_clk, "hsi");
 
 	sys_parents[1] = hse_clk;
 	clk_register_mux_table(
-	    NULL, "sys", sys_parents, ARRAY_SIZE(sys_parents), 0,
-	    base + STM32F4_RCC_CFGR, 0, 3, 0, NULL, &stm32f4_clk_lock);
+		NULL, "sys", sys_parents, ARRAY_SIZE(sys_parents), 0,
+		base + STM32F4_RCC_CFGR, 0, 3, 0, NULL, &stm32f4_clk_lock);
 
 	clk_register_divider_table(NULL, "ahb_div", "sys",
-				   CLK_SET_RATE_PARENT, base + STM32F4_RCC_CFGR,
-				   4, 4, 0, ahb_div_table, &stm32f4_clk_lock);
+							   CLK_SET_RATE_PARENT, base + STM32F4_RCC_CFGR,
+							   4, 4, 0, ahb_div_table, &stm32f4_clk_lock);
 
 	clk_register_divider_table(NULL, "apb1_div", "ahb_div",
-				   CLK_SET_RATE_PARENT, base + STM32F4_RCC_CFGR,
-				   10, 3, 0, apb_div_table, &stm32f4_clk_lock);
+							   CLK_SET_RATE_PARENT, base + STM32F4_RCC_CFGR,
+							   10, 3, 0, apb_div_table, &stm32f4_clk_lock);
 	clk_register_apb_mul(NULL, "apb1_mul", "apb1_div",
-			     CLK_SET_RATE_PARENT, 12);
+						 CLK_SET_RATE_PARENT, 12);
 
 	clk_register_divider_table(NULL, "apb2_div", "ahb_div",
-				   CLK_SET_RATE_PARENT, base + STM32F4_RCC_CFGR,
-				   13, 3, 0, apb_div_table, &stm32f4_clk_lock);
+							   CLK_SET_RATE_PARENT, base + STM32F4_RCC_CFGR,
+							   13, 3, 0, apb_div_table, &stm32f4_clk_lock);
 	clk_register_apb_mul(NULL, "apb2_mul", "apb2_div",
-			     CLK_SET_RATE_PARENT, 15);
+						 CLK_SET_RATE_PARENT, 15);
 
 	clks[SYSTICK] = clk_hw_register_fixed_factor(NULL, "systick", "ahb_div",
-						  0, 1, 8);
+					0, 1, 8);
 	clks[FCLK] = clk_hw_register_fixed_factor(NULL, "fclk", "ahb_div",
-					       0, 1, 1);
+				 0, 1, 1);
 
-	for (n = 0; n < ARRAY_SIZE(stm32f4_gates); n++) {
+	for (n = 0; n < ARRAY_SIZE(stm32f4_gates); n++)
+	{
 		const struct stm32f4_gate_data *gd = &stm32f4_gates[n];
 		unsigned int secondary =
-		    8 * (gd->offset - STM32F4_RCC_AHB1ENR) + gd->bit_idx;
+			8 * (gd->offset - STM32F4_RCC_AHB1ENR) + gd->bit_idx;
 		int idx = stm32f4_rcc_lookup_clk_idx(0, secondary);
 
 		if (idx < 0)
+		{
 			goto fail;
+		}
 
 		clks[idx] = clk_hw_register_gate(
-		    NULL, gd->name, gd->parent_name, gd->flags,
-		    base + gd->offset, gd->bit_idx, 0, &stm32f4_clk_lock);
+						NULL, gd->name, gd->parent_name, gd->flags,
+						base + gd->offset, gd->bit_idx, 0, &stm32f4_clk_lock);
 
-		if (IS_ERR(clks[idx])) {
+		if (IS_ERR(clks[idx]))
+		{
 			pr_err("%s: Unable to register leaf clock %s\n",
-			       np->full_name, gd->name);
+				   np->full_name, gd->name);
 			goto fail;
 		}
 	}

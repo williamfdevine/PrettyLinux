@@ -117,13 +117,13 @@
 
 /* TX buffer setup */
 #define IF_COMM_TX		(IF_COMM_ARB | IF_COMM_CONTROL | \
-				 IF_COMM_TXRQST |		 \
-				 IF_COMM_DATAA | IF_COMM_DATAB)
+						 IF_COMM_TXRQST |		 \
+						 IF_COMM_DATAA | IF_COMM_DATAB)
 
 /* For the low buffers we clear the interrupt bit, but keep newdat */
 #define IF_COMM_RCV_LOW		(IF_COMM_MASK | IF_COMM_ARB | \
-				 IF_COMM_CONTROL | IF_COMM_CLR_INT_PND | \
-				 IF_COMM_DATAA | IF_COMM_DATAB)
+							 IF_COMM_CONTROL | IF_COMM_CLR_INT_PND | \
+							 IF_COMM_DATAA | IF_COMM_DATAB)
 
 /* For the high buffers we clear the interrupt bit and newdat */
 #define IF_COMM_RCV_HIGH	(IF_COMM_RCV_LOW | IF_COMM_CLR_NEWDAT)
@@ -173,7 +173,8 @@
 #define C_CAN_NAPI_WEIGHT	C_CAN_MSG_OBJ_RX_NUM
 
 /* c_can lec values */
-enum c_can_lec_type {
+enum c_can_lec_type
+{
 	LEC_NO_ERROR = 0,
 	LEC_STUFF_ERROR,
 	LEC_FORM_ERROR,
@@ -189,14 +190,16 @@ enum c_can_lec_type {
  * c_can error types:
  * Bus errors (BUS_OFF, ERROR_WARNING, ERROR_PASSIVE) are supported
  */
-enum c_can_bus_error_types {
+enum c_can_bus_error_types
+{
 	C_CAN_NO_ERROR = 0,
 	C_CAN_BUS_OFF,
 	C_CAN_ERROR_WARNING,
 	C_CAN_ERROR_PASSIVE,
 };
 
-static const struct can_bittiming_const c_can_bittiming_const = {
+static const struct can_bittiming_const c_can_bittiming_const =
+{
 	.name = KBUILD_MODNAME,
 	.tseg1_min = 2,		/* Time segment 1 = prop_seg + phase_seg1 */
 	.tseg1_max = 16,
@@ -211,31 +214,41 @@ static const struct can_bittiming_const c_can_bittiming_const = {
 static inline void c_can_pm_runtime_enable(const struct c_can_priv *priv)
 {
 	if (priv->device)
+	{
 		pm_runtime_enable(priv->device);
+	}
 }
 
 static inline void c_can_pm_runtime_disable(const struct c_can_priv *priv)
 {
 	if (priv->device)
+	{
 		pm_runtime_disable(priv->device);
+	}
 }
 
 static inline void c_can_pm_runtime_get_sync(const struct c_can_priv *priv)
 {
 	if (priv->device)
+	{
 		pm_runtime_get_sync(priv->device);
+	}
 }
 
 static inline void c_can_pm_runtime_put_sync(const struct c_can_priv *priv)
 {
 	if (priv->device)
+	{
 		pm_runtime_put_sync(priv->device);
+	}
 }
 
 static inline void c_can_reset_ram(const struct c_can_priv *priv, bool enable)
 {
 	if (priv->raminit)
+	{
 		priv->raminit(priv, enable);
+	}
 }
 
 static void c_can_irq_control(struct c_can_priv *priv, bool enable)
@@ -243,7 +256,9 @@ static void c_can_irq_control(struct c_can_priv *priv, bool enable)
 	u32 ctrl = priv->read_reg(priv,	C_CAN_CTRL_REG) & ~CONTROL_IRQMSK;
 
 	if (enable)
+	{
 		ctrl |= CONTROL_IRQMSK;
+	}
 
 	priv->write_reg(priv, C_CAN_CTRL_REG, ctrl);
 }
@@ -255,23 +270,28 @@ static void c_can_obj_update(struct net_device *dev, int iface, u32 cmd, u32 obj
 
 	priv->write_reg32(priv, reg, (cmd << 16) | obj);
 
-	for (cnt = MIN_TIMEOUT_VALUE; cnt; cnt--) {
+	for (cnt = MIN_TIMEOUT_VALUE; cnt; cnt--)
+	{
 		if (!(priv->read_reg(priv, reg) & IF_COMR_BUSY))
+		{
 			return;
+		}
+
 		udelay(1);
 	}
+
 	netdev_err(dev, "Updating object timed out\n");
 
 }
 
 static inline void c_can_object_get(struct net_device *dev, int iface,
-				    u32 obj, u32 cmd)
+									u32 obj, u32 cmd)
 {
 	c_can_obj_update(dev, iface, cmd, obj);
 }
 
 static inline void c_can_object_put(struct net_device *dev, int iface,
-				    u32 obj, u32 cmd)
+									u32 obj, u32 cmd)
 {
 	c_can_obj_update(dev, iface, cmd | IF_COMM_WR, obj);
 }
@@ -299,7 +319,7 @@ static void c_can_inval_msg_object(struct net_device *dev, int iface, int obj)
 }
 
 static void c_can_setup_tx_object(struct net_device *dev, int iface,
-				  struct can_frame *frame, int idx)
+								  struct can_frame *frame, int idx)
 {
 	struct c_can_priv *priv = netdev_priv(dev);
 	u16 ctrl = IF_MCONT_TX | frame->can_dlc;
@@ -307,21 +327,27 @@ static void c_can_setup_tx_object(struct net_device *dev, int iface,
 	u32 arb = IF_ARB_MSGVAL;
 	int i;
 
-	if (frame->can_id & CAN_EFF_FLAG) {
+	if (frame->can_id & CAN_EFF_FLAG)
+	{
 		arb |= frame->can_id & CAN_EFF_MASK;
 		arb |= IF_ARB_MSGXTD;
-	} else {
+	}
+	else
+	{
 		arb |= (frame->can_id & CAN_SFF_MASK) << 18;
 	}
 
 	if (!rtr)
+	{
 		arb |= IF_ARB_TRANSMIT;
+	}
 
 	/*
 	 * If we change the DIR bit, we need to invalidate the buffer
 	 * first, i.e. clear the MSGVAL flag in the arbiter.
 	 */
-	if (rtr != (bool)test_bit(idx, &priv->tx_dir)) {
+	if (rtr != (bool)test_bit(idx, &priv->tx_dir))
+	{
 		u32 obj = idx + C_CAN_MSG_OBJ_TX_FIRST;
 
 		c_can_inval_msg_object(dev, iface, obj);
@@ -332,37 +358,44 @@ static void c_can_setup_tx_object(struct net_device *dev, int iface,
 
 	priv->write_reg(priv, C_CAN_IFACE(MSGCTRL_REG, iface), ctrl);
 
-	if (priv->type == BOSCH_D_CAN) {
+	if (priv->type == BOSCH_D_CAN)
+	{
 		u32 data = 0, dreg = C_CAN_IFACE(DATA1_REG, iface);
 
-		for (i = 0; i < frame->can_dlc; i += 4, dreg += 2) {
+		for (i = 0; i < frame->can_dlc; i += 4, dreg += 2)
+		{
 			data = (u32)frame->data[i];
 			data |= (u32)frame->data[i + 1] << 8;
 			data |= (u32)frame->data[i + 2] << 16;
 			data |= (u32)frame->data[i + 3] << 24;
 			priv->write_reg32(priv, dreg, data);
 		}
-	} else {
-		for (i = 0; i < frame->can_dlc; i += 2) {
+	}
+	else
+	{
+		for (i = 0; i < frame->can_dlc; i += 2)
+		{
 			priv->write_reg(priv,
-					C_CAN_IFACE(DATA1_REG, iface) + i / 2,
-					frame->data[i] |
-					(frame->data[i + 1] << 8));
+							C_CAN_IFACE(DATA1_REG, iface) + i / 2,
+							frame->data[i] |
+							(frame->data[i + 1] << 8));
 		}
 	}
 }
 
 static inline void c_can_activate_all_lower_rx_msg_obj(struct net_device *dev,
-						       int iface)
+		int iface)
 {
 	int i;
 
 	for (i = C_CAN_MSG_OBJ_RX_FIRST; i <= C_CAN_MSG_RX_LOW_LAST; i++)
+	{
 		c_can_object_get(dev, iface, i, IF_COMM_CLR_NEWDAT);
+	}
 }
 
 static int c_can_handle_lost_msg_obj(struct net_device *dev,
-				     int iface, int objno, u32 ctrl)
+									 int iface, int objno, u32 ctrl)
 {
 	struct net_device_stats *stats = &dev->stats;
 	struct c_can_priv *priv = netdev_priv(dev);
@@ -378,8 +411,11 @@ static int c_can_handle_lost_msg_obj(struct net_device *dev,
 
 	/* create an error msg */
 	skb = alloc_can_err_skb(dev, &frame);
+
 	if (unlikely(!skb))
+	{
 		return 0;
+	}
 
 	frame->can_id |= CAN_ERR_CRTL;
 	frame->data[1] = CAN_ERR_CRTL_RX_OVERFLOW;
@@ -397,7 +433,9 @@ static int c_can_read_msg_object(struct net_device *dev, int iface, u32 ctrl)
 	u32 arb, data;
 
 	skb = alloc_can_skb(dev, &frame);
-	if (!skb) {
+
+	if (!skb)
+	{
 		stats->rx_dropped++;
 		return -ENOMEM;
 	}
@@ -407,25 +445,37 @@ static int c_can_read_msg_object(struct net_device *dev, int iface, u32 ctrl)
 	arb = priv->read_reg32(priv, C_CAN_IFACE(ARB1_REG, iface));
 
 	if (arb & IF_ARB_MSGXTD)
+	{
 		frame->can_id = (arb & CAN_EFF_MASK) | CAN_EFF_FLAG;
+	}
 	else
+	{
 		frame->can_id = (arb >> 18) & CAN_SFF_MASK;
+	}
 
-	if (arb & IF_ARB_TRANSMIT) {
+	if (arb & IF_ARB_TRANSMIT)
+	{
 		frame->can_id |= CAN_RTR_FLAG;
-	} else {
+	}
+	else
+	{
 		int i, dreg = C_CAN_IFACE(DATA1_REG, iface);
 
-		if (priv->type == BOSCH_D_CAN) {
-			for (i = 0; i < frame->can_dlc; i += 4, dreg += 2) {
+		if (priv->type == BOSCH_D_CAN)
+		{
+			for (i = 0; i < frame->can_dlc; i += 4, dreg += 2)
+			{
 				data = priv->read_reg32(priv, dreg);
 				frame->data[i] = data;
 				frame->data[i + 1] = data >> 8;
 				frame->data[i + 2] = data >> 16;
 				frame->data[i + 3] = data >> 24;
 			}
-		} else {
-			for (i = 0; i < frame->can_dlc; i += 2, dreg++) {
+		}
+		else
+		{
+			for (i = 0; i < frame->can_dlc; i += 2, dreg++)
+			{
 				data = priv->read_reg(priv, dreg);
 				frame->data[i] = data;
 				frame->data[i + 1] = data >> 8;
@@ -441,7 +491,7 @@ static int c_can_read_msg_object(struct net_device *dev, int iface, u32 ctrl)
 }
 
 static void c_can_setup_receive_object(struct net_device *dev, int iface,
-				       u32 obj, u32 mask, u32 id, u32 mcont)
+									   u32 obj, u32 mask, u32 id, u32 mcont)
 {
 	struct c_can_priv *priv = netdev_priv(dev);
 
@@ -456,14 +506,17 @@ static void c_can_setup_receive_object(struct net_device *dev, int iface,
 }
 
 static netdev_tx_t c_can_start_xmit(struct sk_buff *skb,
-				    struct net_device *dev)
+									struct net_device *dev)
 {
 	struct can_frame *frame = (struct can_frame *)skb->data;
 	struct c_can_priv *priv = netdev_priv(dev);
 	u32 idx, obj;
 
 	if (can_dropped_invalid_skb(dev, skb))
+	{
 		return NETDEV_TX_OK;
+	}
+
 	/*
 	 * This is not a FIFO. C/D_CAN sends out the buffers
 	 * prioritized. The lowest buffer number wins.
@@ -473,7 +526,10 @@ static netdev_tx_t c_can_start_xmit(struct sk_buff *skb,
 
 	/* If this is the last buffer, stop the xmit queue */
 	if (idx == C_CAN_MSG_OBJ_TX_NUM - 1)
+	{
 		netif_stop_queue(dev);
+	}
+
 	/*
 	 * Store the message in the interface so we can call
 	 * can_put_echo_skb(). We must do this before we enable
@@ -492,17 +548,21 @@ static netdev_tx_t c_can_start_xmit(struct sk_buff *skb,
 }
 
 static int c_can_wait_for_ctrl_init(struct net_device *dev,
-				    struct c_can_priv *priv, u32 init)
+									struct c_can_priv *priv, u32 init)
 {
 	int retry = 0;
 
-	while (init != (priv->read_reg(priv, C_CAN_CTRL_REG) & CONTROL_INIT)) {
+	while (init != (priv->read_reg(priv, C_CAN_CTRL_REG) & CONTROL_INIT))
+	{
 		udelay(10);
-		if (retry++ > 1000) {
+
+		if (retry++ > 1000)
+		{
 			netdev_err(dev, "CCTRL: set CONTROL_INIT failed\n");
 			return -EIO;
 		}
 	}
+
 	return 0;
 }
 
@@ -524,18 +584,21 @@ static int c_can_set_bittiming(struct net_device *dev)
 	tseg1 = bt->prop_seg + bt->phase_seg1 - 1;
 	tseg2 = bt->phase_seg2 - 1;
 	reg_btr = brp | (sjw << BTR_SJW_SHIFT) | (tseg1 << BTR_TSEG1_SHIFT) |
-			(tseg2 << BTR_TSEG2_SHIFT);
+			  (tseg2 << BTR_TSEG2_SHIFT);
 	reg_brpe = brpe & BRP_EXT_BRPE_MASK;
 
 	netdev_info(dev,
-		"setting BTR=%04x BRPE=%04x\n", reg_btr, reg_brpe);
+				"setting BTR=%04x BRPE=%04x\n", reg_btr, reg_brpe);
 
 	ctrl_save = priv->read_reg(priv, C_CAN_CTRL_REG);
 	ctrl_save &= ~CONTROL_INIT;
 	priv->write_reg(priv, C_CAN_CTRL_REG, CONTROL_CCE | CONTROL_INIT);
 	res = c_can_wait_for_ctrl_init(dev, priv, CONTROL_INIT);
+
 	if (res)
+	{
 		return res;
+	}
 
 	priv->write_reg(priv, C_CAN_BTR_REG, reg_btr);
 	priv->write_reg(priv, C_CAN_BRPEXT_REG, reg_brpe);
@@ -559,14 +622,18 @@ static void c_can_configure_msg_objects(struct net_device *dev)
 
 	/* first invalidate all message objects */
 	for (i = C_CAN_MSG_OBJ_RX_FIRST; i <= C_CAN_NO_OF_OBJECTS; i++)
+	{
 		c_can_inval_msg_object(dev, IF_RX, i);
+	}
 
 	/* setup receive message objects */
 	for (i = C_CAN_MSG_OBJ_RX_FIRST; i < C_CAN_MSG_OBJ_RX_LAST; i++)
+	{
 		c_can_setup_receive_object(dev, IF_RX, i, 0, 0, IF_MCONT_RCV);
+	}
 
 	c_can_setup_receive_object(dev, IF_RX, C_CAN_MSG_OBJ_RX_LAST, 0, 0,
-				   IF_MCONT_RCV_EOB);
+							   IF_MCONT_RCV_EOB);
 }
 
 /*
@@ -583,15 +650,20 @@ static int c_can_chip_config(struct net_device *dev)
 	priv->write_reg(priv, C_CAN_CTRL_REG, CONTROL_ENABLE_AR);
 
 	if ((priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY) &&
-	    (priv->can.ctrlmode & CAN_CTRLMODE_LOOPBACK)) {
+		(priv->can.ctrlmode & CAN_CTRLMODE_LOOPBACK))
+	{
 		/* loopback + silent mode : useful for hot self-test */
 		priv->write_reg(priv, C_CAN_CTRL_REG, CONTROL_TEST);
 		priv->write_reg(priv, C_CAN_TEST_REG, TEST_LBACK | TEST_SILENT);
-	} else if (priv->can.ctrlmode & CAN_CTRLMODE_LOOPBACK) {
+	}
+	else if (priv->can.ctrlmode & CAN_CTRLMODE_LOOPBACK)
+	{
 		/* loopback mode : useful for self-test function */
 		priv->write_reg(priv, C_CAN_CTRL_REG, CONTROL_TEST);
 		priv->write_reg(priv, C_CAN_TEST_REG, TEST_LBACK);
-	} else if (priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY) {
+	}
+	else if (priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY)
+	{
 		/* silent mode : bus-monitoring mode */
 		priv->write_reg(priv, C_CAN_CTRL_REG, CONTROL_TEST);
 		priv->write_reg(priv, C_CAN_TEST_REG, TEST_SILENT);
@@ -620,21 +692,29 @@ static int c_can_start(struct net_device *dev)
 
 	/* basic c_can configuration */
 	err = c_can_chip_config(dev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Setup the command for new messages */
 	priv->comm_rcv_high = priv->type != BOSCH_D_CAN ?
-		IF_COMM_RCV_LOW : IF_COMM_RCV_HIGH;
+						  IF_COMM_RCV_LOW : IF_COMM_RCV_HIGH;
 
 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
 
 	/* Attempt to use "active" if available else use "default" */
 	p = pinctrl_get_select(priv->device, "active");
+
 	if (!IS_ERR(p))
+	{
 		pinctrl_put(p);
+	}
 	else
+	{
 		pinctrl_pm_select_default_state(priv->device);
+	}
 
 	return 0;
 }
@@ -658,37 +738,43 @@ static int c_can_set_mode(struct net_device *dev, enum can_mode mode)
 	struct c_can_priv *priv = netdev_priv(dev);
 	int err;
 
-	switch (mode) {
-	case CAN_MODE_START:
-		err = c_can_start(dev);
-		if (err)
-			return err;
-		netif_wake_queue(dev);
-		c_can_irq_control(priv, true);
-		break;
-	default:
-		return -EOPNOTSUPP;
+	switch (mode)
+	{
+		case CAN_MODE_START:
+			err = c_can_start(dev);
+
+			if (err)
+			{
+				return err;
+			}
+
+			netif_wake_queue(dev);
+			c_can_irq_control(priv, true);
+			break;
+
+		default:
+			return -EOPNOTSUPP;
 	}
 
 	return 0;
 }
 
 static int __c_can_get_berr_counter(const struct net_device *dev,
-				    struct can_berr_counter *bec)
+									struct can_berr_counter *bec)
 {
 	unsigned int reg_err_counter;
 	struct c_can_priv *priv = netdev_priv(dev);
 
 	reg_err_counter = priv->read_reg(priv, C_CAN_ERR_CNT_REG);
 	bec->rxerr = (reg_err_counter & ERR_CNT_REC_MASK) >>
-				ERR_CNT_REC_SHIFT;
+				 ERR_CNT_REC_SHIFT;
 	bec->txerr = reg_err_counter & ERR_CNT_TEC_MASK;
 
 	return 0;
 }
 
 static int c_can_get_berr_counter(const struct net_device *dev,
-				  struct can_berr_counter *bec)
+								  struct can_berr_counter *bec)
 {
 	struct c_can_priv *priv = netdev_priv(dev);
 	int err;
@@ -708,7 +794,8 @@ static void c_can_do_tx(struct net_device *dev)
 
 	clr = pend = priv->read_reg(priv, C_CAN_INTPND2_REG);
 
-	while ((idx = ffs(pend))) {
+	while ((idx = ffs(pend)))
+	{
 		idx--;
 		pend &= ~(1 << idx);
 		obj = idx + C_CAN_MSG_OBJ_TX_FIRST;
@@ -722,9 +809,12 @@ static void c_can_do_tx(struct net_device *dev)
 	atomic_sub(clr, &priv->tx_active);
 
 	if (clr & (1 << (C_CAN_MSG_OBJ_TX_NUM - 1)))
+	{
 		netif_wake_queue(dev);
+	}
 
-	if (pkts) {
+	if (pkts)
+	{
 		stats->tx_bytes += bytes;
 		stats->tx_packets += pkts;
 		can_led_event(dev, CAN_LED_EVENT_TX);
@@ -741,7 +831,9 @@ static u32 c_can_adjust_pending(u32 pend)
 	u32 weight, lasts;
 
 	if (pend == RECEIVE_OBJECT_BITS)
+	{
 		return pend;
+	}
 
 	/*
 	 * If the last set bit is larger than the number of pending
@@ -752,7 +844,9 @@ static u32 c_can_adjust_pending(u32 pend)
 
 	/* If the bits are linear, nothing to do */
 	if (lasts == weight)
+	{
 		return pend;
+	}
 
 	/*
 	 * Find the first set bit after the gap. We walk backwards
@@ -764,30 +858,34 @@ static u32 c_can_adjust_pending(u32 pend)
 }
 
 static inline void c_can_rx_object_get(struct net_device *dev,
-				       struct c_can_priv *priv, u32 obj)
+									   struct c_can_priv *priv, u32 obj)
 {
-		c_can_object_get(dev, IF_RX, obj, priv->comm_rcv_high);
+	c_can_object_get(dev, IF_RX, obj, priv->comm_rcv_high);
 }
 
 static inline void c_can_rx_finalize(struct net_device *dev,
-				     struct c_can_priv *priv, u32 obj)
+									 struct c_can_priv *priv, u32 obj)
 {
 	if (priv->type != BOSCH_D_CAN)
+	{
 		c_can_object_get(dev, IF_RX, obj, IF_COMM_CLR_NEWDAT);
+	}
 }
 
 static int c_can_read_objects(struct net_device *dev, struct c_can_priv *priv,
-			      u32 pend, int quota)
+							  u32 pend, int quota)
 {
 	u32 pkts = 0, ctrl, obj;
 
-	while ((obj = ffs(pend)) && quota > 0) {
+	while ((obj = ffs(pend)) && quota > 0)
+	{
 		pend &= ~BIT(obj - 1);
 
 		c_can_rx_object_get(dev, priv, obj);
 		ctrl = priv->read_reg(priv, C_CAN_IFACE(MSGCTRL_REG, IF_RX));
 
-		if (ctrl & IF_MCONT_MSGLST) {
+		if (ctrl & IF_MCONT_MSGLST)
+		{
 			int n = c_can_handle_lost_msg_obj(dev, IF_RX, obj, ctrl);
 
 			pkts += n;
@@ -801,7 +899,9 @@ static int c_can_read_objects(struct net_device *dev, struct c_can_priv *priv,
 		 * want to brick your machine.
 		 */
 		if (!(ctrl & IF_MCONT_NEWDAT))
+		{
 			continue;
+		}
 
 		/* read the data from the message object */
 		c_can_read_msg_object(dev, IF_RX, ctrl);
@@ -845,21 +945,30 @@ static int c_can_do_rx_poll(struct net_device *dev, int quota)
 	 * for a maximum number of 16 objects.
 	 */
 	BUILD_BUG_ON_MSG(C_CAN_MSG_OBJ_RX_LAST > 16,
-			"Implementation does not support more message objects than 16");
+					 "Implementation does not support more message objects than 16");
 
-	while (quota > 0) {
-		if (!pend) {
+	while (quota > 0)
+	{
+		if (!pend)
+		{
 			pend = c_can_get_pending(priv);
+
 			if (!pend)
+			{
 				break;
+			}
+
 			/*
 			 * If the pending field has a gap, handle the
 			 * bits above the gap first.
 			 */
 			toread = c_can_adjust_pending(pend);
-		} else {
+		}
+		else
+		{
 			toread = pend;
 		}
+
 		/* Remove the bits from pend */
 		pend &= ~toread;
 		/* Read the objects */
@@ -869,13 +978,15 @@ static int c_can_do_rx_poll(struct net_device *dev, int quota)
 	}
 
 	if (pkts)
+	{
 		can_led_event(dev, CAN_LED_EVENT_RX);
+	}
 
 	return pkts;
 }
 
 static int c_can_handle_state_change(struct net_device *dev,
-				enum c_can_bus_error_types error_type)
+									 enum c_can_bus_error_types error_type)
 {
 	unsigned int reg_err_counter;
 	unsigned int rx_err_passive;
@@ -885,65 +996,82 @@ static int c_can_handle_state_change(struct net_device *dev,
 	struct sk_buff *skb;
 	struct can_berr_counter bec;
 
-	switch (error_type) {
-	case C_CAN_ERROR_WARNING:
-		/* error warning state */
-		priv->can.can_stats.error_warning++;
-		priv->can.state = CAN_STATE_ERROR_WARNING;
-		break;
-	case C_CAN_ERROR_PASSIVE:
-		/* error passive state */
-		priv->can.can_stats.error_passive++;
-		priv->can.state = CAN_STATE_ERROR_PASSIVE;
-		break;
-	case C_CAN_BUS_OFF:
-		/* bus-off state */
-		priv->can.state = CAN_STATE_BUS_OFF;
-		priv->can.can_stats.bus_off++;
-		break;
-	default:
-		break;
+	switch (error_type)
+	{
+		case C_CAN_ERROR_WARNING:
+			/* error warning state */
+			priv->can.can_stats.error_warning++;
+			priv->can.state = CAN_STATE_ERROR_WARNING;
+			break;
+
+		case C_CAN_ERROR_PASSIVE:
+			/* error passive state */
+			priv->can.can_stats.error_passive++;
+			priv->can.state = CAN_STATE_ERROR_PASSIVE;
+			break;
+
+		case C_CAN_BUS_OFF:
+			/* bus-off state */
+			priv->can.state = CAN_STATE_BUS_OFF;
+			priv->can.can_stats.bus_off++;
+			break;
+
+		default:
+			break;
 	}
 
 	/* propagate the error condition to the CAN stack */
 	skb = alloc_can_err_skb(dev, &cf);
+
 	if (unlikely(!skb))
+	{
 		return 0;
+	}
 
 	__c_can_get_berr_counter(dev, &bec);
 	reg_err_counter = priv->read_reg(priv, C_CAN_ERR_CNT_REG);
 	rx_err_passive = (reg_err_counter & ERR_CNT_RP_MASK) >>
-				ERR_CNT_RP_SHIFT;
+					 ERR_CNT_RP_SHIFT;
 
-	switch (error_type) {
-	case C_CAN_ERROR_WARNING:
-		/* error warning state */
-		cf->can_id |= CAN_ERR_CRTL;
-		cf->data[1] = (bec.txerr > bec.rxerr) ?
-			CAN_ERR_CRTL_TX_WARNING :
-			CAN_ERR_CRTL_RX_WARNING;
-		cf->data[6] = bec.txerr;
-		cf->data[7] = bec.rxerr;
+	switch (error_type)
+	{
+		case C_CAN_ERROR_WARNING:
+			/* error warning state */
+			cf->can_id |= CAN_ERR_CRTL;
+			cf->data[1] = (bec.txerr > bec.rxerr) ?
+						  CAN_ERR_CRTL_TX_WARNING :
+						  CAN_ERR_CRTL_RX_WARNING;
+			cf->data[6] = bec.txerr;
+			cf->data[7] = bec.rxerr;
 
-		break;
-	case C_CAN_ERROR_PASSIVE:
-		/* error passive state */
-		cf->can_id |= CAN_ERR_CRTL;
-		if (rx_err_passive)
-			cf->data[1] |= CAN_ERR_CRTL_RX_PASSIVE;
-		if (bec.txerr > 127)
-			cf->data[1] |= CAN_ERR_CRTL_TX_PASSIVE;
+			break;
 
-		cf->data[6] = bec.txerr;
-		cf->data[7] = bec.rxerr;
-		break;
-	case C_CAN_BUS_OFF:
-		/* bus-off state */
-		cf->can_id |= CAN_ERR_BUSOFF;
-		can_bus_off(dev);
-		break;
-	default:
-		break;
+		case C_CAN_ERROR_PASSIVE:
+			/* error passive state */
+			cf->can_id |= CAN_ERR_CRTL;
+
+			if (rx_err_passive)
+			{
+				cf->data[1] |= CAN_ERR_CRTL_RX_PASSIVE;
+			}
+
+			if (bec.txerr > 127)
+			{
+				cf->data[1] |= CAN_ERR_CRTL_TX_PASSIVE;
+			}
+
+			cf->data[6] = bec.txerr;
+			cf->data[7] = bec.rxerr;
+			break;
+
+		case C_CAN_BUS_OFF:
+			/* bus-off state */
+			cf->can_id |= CAN_ERR_BUSOFF;
+			can_bus_off(dev);
+			break;
+
+		default:
+			break;
 	}
 
 	stats->rx_packets++;
@@ -954,7 +1082,7 @@ static int c_can_handle_state_change(struct net_device *dev,
 }
 
 static int c_can_handle_bus_err(struct net_device *dev,
-				enum c_can_lec_type lec_type)
+								enum c_can_lec_type lec_type)
 {
 	struct c_can_priv *priv = netdev_priv(dev);
 	struct net_device_stats *stats = &dev->stats;
@@ -967,10 +1095,14 @@ static int c_can_handle_bus_err(struct net_device *dev,
 	 * since CPU wrote 0x7 value to status reg.
 	 */
 	if (lec_type == LEC_UNUSED || lec_type == LEC_NO_ERROR)
+	{
 		return 0;
+	}
 
 	if (!(priv->can.ctrlmode & CAN_CTRLMODE_BERR_REPORTING))
+	{
 		return 0;
+	}
 
 	/* common for all type of bus errors */
 	priv->can.can_stats.bus_error++;
@@ -978,8 +1110,11 @@ static int c_can_handle_bus_err(struct net_device *dev,
 
 	/* propagate the error condition to the CAN stack */
 	skb = alloc_can_err_skb(dev, &cf);
+
 	if (unlikely(!skb))
+	{
 		return 0;
+	}
 
 	/*
 	 * check for 'last error code' which tells us the
@@ -987,33 +1122,40 @@ static int c_can_handle_bus_err(struct net_device *dev,
 	 */
 	cf->can_id |= CAN_ERR_PROT | CAN_ERR_BUSERROR;
 
-	switch (lec_type) {
-	case LEC_STUFF_ERROR:
-		netdev_dbg(dev, "stuff error\n");
-		cf->data[2] |= CAN_ERR_PROT_STUFF;
-		break;
-	case LEC_FORM_ERROR:
-		netdev_dbg(dev, "form error\n");
-		cf->data[2] |= CAN_ERR_PROT_FORM;
-		break;
-	case LEC_ACK_ERROR:
-		netdev_dbg(dev, "ack error\n");
-		cf->data[3] = CAN_ERR_PROT_LOC_ACK;
-		break;
-	case LEC_BIT1_ERROR:
-		netdev_dbg(dev, "bit1 error\n");
-		cf->data[2] |= CAN_ERR_PROT_BIT1;
-		break;
-	case LEC_BIT0_ERROR:
-		netdev_dbg(dev, "bit0 error\n");
-		cf->data[2] |= CAN_ERR_PROT_BIT0;
-		break;
-	case LEC_CRC_ERROR:
-		netdev_dbg(dev, "CRC error\n");
-		cf->data[3] = CAN_ERR_PROT_LOC_CRC_SEQ;
-		break;
-	default:
-		break;
+	switch (lec_type)
+	{
+		case LEC_STUFF_ERROR:
+			netdev_dbg(dev, "stuff error\n");
+			cf->data[2] |= CAN_ERR_PROT_STUFF;
+			break;
+
+		case LEC_FORM_ERROR:
+			netdev_dbg(dev, "form error\n");
+			cf->data[2] |= CAN_ERR_PROT_FORM;
+			break;
+
+		case LEC_ACK_ERROR:
+			netdev_dbg(dev, "ack error\n");
+			cf->data[3] = CAN_ERR_PROT_LOC_ACK;
+			break;
+
+		case LEC_BIT1_ERROR:
+			netdev_dbg(dev, "bit1 error\n");
+			cf->data[2] |= CAN_ERR_PROT_BIT1;
+			break;
+
+		case LEC_BIT0_ERROR:
+			netdev_dbg(dev, "bit0 error\n");
+			cf->data[2] |= CAN_ERR_PROT_BIT0;
+			break;
+
+		case LEC_CRC_ERROR:
+			netdev_dbg(dev, "CRC error\n");
+			cf->data[3] = CAN_ERR_PROT_LOC_CRC_SEQ;
+			break;
+
+		default:
+			break;
 	}
 
 	stats->rx_packets++;
@@ -1030,33 +1172,42 @@ static int c_can_poll(struct napi_struct *napi, int quota)
 	int work_done = 0;
 
 	priv->last_status = curr = priv->read_reg(priv, C_CAN_STS_REG);
+
 	/* Ack status on C_CAN. D_CAN is self clearing */
 	if (priv->type != BOSCH_D_CAN)
+	{
 		priv->write_reg(priv, C_CAN_STS_REG, LEC_UNUSED);
+	}
 
 	/* handle state changes */
-	if ((curr & STATUS_EWARN) && (!(last & STATUS_EWARN))) {
+	if ((curr & STATUS_EWARN) && (!(last & STATUS_EWARN)))
+	{
 		netdev_dbg(dev, "entered error warning state\n");
 		work_done += c_can_handle_state_change(dev, C_CAN_ERROR_WARNING);
 	}
 
-	if ((curr & STATUS_EPASS) && (!(last & STATUS_EPASS))) {
+	if ((curr & STATUS_EPASS) && (!(last & STATUS_EPASS)))
+	{
 		netdev_dbg(dev, "entered error passive state\n");
 		work_done += c_can_handle_state_change(dev, C_CAN_ERROR_PASSIVE);
 	}
 
-	if ((curr & STATUS_BOFF) && (!(last & STATUS_BOFF))) {
+	if ((curr & STATUS_BOFF) && (!(last & STATUS_BOFF)))
+	{
 		netdev_dbg(dev, "entered bus off state\n");
 		work_done += c_can_handle_state_change(dev, C_CAN_BUS_OFF);
 		goto end;
 	}
 
 	/* handle bus recovery events */
-	if ((!(curr & STATUS_BOFF)) && (last & STATUS_BOFF)) {
+	if ((!(curr & STATUS_BOFF)) && (last & STATUS_BOFF))
+	{
 		netdev_dbg(dev, "left bus off state\n");
 		priv->can.state = CAN_STATE_ERROR_ACTIVE;
 	}
-	if ((!(curr & STATUS_EPASS)) && (last & STATUS_EPASS)) {
+
+	if ((!(curr & STATUS_EPASS)) && (last & STATUS_EPASS))
+	{
 		netdev_dbg(dev, "left error passive state\n");
 		priv->can.state = CAN_STATE_ERROR_ACTIVE;
 	}
@@ -1069,11 +1220,16 @@ static int c_can_poll(struct napi_struct *napi, int quota)
 	c_can_do_tx(dev);
 
 end:
-	if (work_done < quota) {
+
+	if (work_done < quota)
+	{
 		napi_complete(napi);
+
 		/* enable all IRQs if we are not in bus off state */
 		if (priv->can.state != CAN_STATE_BUS_OFF)
+		{
 			c_can_irq_control(priv, true);
+		}
 	}
 
 	return work_done;
@@ -1085,7 +1241,9 @@ static irqreturn_t c_can_isr(int irq, void *dev_id)
 	struct c_can_priv *priv = netdev_priv(dev);
 
 	if (!priv->read_reg(priv, C_CAN_INT_REG))
+	{
 		return IRQ_NONE;
+	}
 
 	/* disable all interrupts and schedule the NAPI */
 	c_can_irq_control(priv, false);
@@ -1104,23 +1262,30 @@ static int c_can_open(struct net_device *dev)
 
 	/* open the can device */
 	err = open_candev(dev);
-	if (err) {
+
+	if (err)
+	{
 		netdev_err(dev, "failed to open can device\n");
 		goto exit_open_fail;
 	}
 
 	/* register interrupt handler */
 	err = request_irq(dev->irq, &c_can_isr, IRQF_SHARED, dev->name,
-				dev);
-	if (err < 0) {
+					  dev);
+
+	if (err < 0)
+	{
 		netdev_err(dev, "failed to request interrupt\n");
 		goto exit_irq_fail;
 	}
 
 	/* start the c_can controller */
 	err = c_can_start(dev);
+
 	if (err)
+	{
 		goto exit_start_fail;
+	}
 
 	can_led_event(dev, CAN_LED_EVENT_OPEN);
 
@@ -1165,8 +1330,11 @@ struct net_device *alloc_c_can_dev(void)
 	struct c_can_priv *priv;
 
 	dev = alloc_candev(sizeof(struct c_can_priv), C_CAN_MSG_OBJ_TX_NUM);
+
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	priv = netdev_priv(dev);
 	netif_napi_add(dev, &priv->napi, c_can_poll, C_CAN_NAPI_WEIGHT);
@@ -1176,8 +1344,8 @@ struct net_device *alloc_c_can_dev(void)
 	priv->can.do_set_mode = c_can_set_mode;
 	priv->can.do_get_berr_counter = c_can_get_berr_counter;
 	priv->can.ctrlmode_supported = CAN_CTRLMODE_LOOPBACK |
-					CAN_CTRLMODE_LISTENONLY |
-					CAN_CTRLMODE_BERR_REPORTING;
+								   CAN_CTRLMODE_LISTENONLY |
+								   CAN_CTRLMODE_BERR_REPORTING;
 
 	return dev;
 }
@@ -1191,7 +1359,9 @@ int c_can_power_down(struct net_device *dev)
 	struct c_can_priv *priv = netdev_priv(dev);
 
 	if (!(dev->flags & IFF_UP))
+	{
 		return 0;
+	}
 
 	WARN_ON(priv->type != BOSCH_D_CAN);
 
@@ -1202,12 +1372,17 @@ int c_can_power_down(struct net_device *dev)
 
 	/* Wait for the PDA bit to get set */
 	time_out = jiffies + msecs_to_jiffies(INIT_WAIT_MS);
+
 	while (!(priv->read_reg(priv, C_CAN_STS_REG) & STATUS_PDA) &&
-				time_after(time_out, jiffies))
+		   time_after(time_out, jiffies))
+	{
 		cpu_relax();
+	}
 
 	if (time_after(jiffies, time_out))
+	{
 		return -ETIMEDOUT;
+	}
 
 	c_can_stop(dev);
 
@@ -1226,7 +1401,9 @@ int c_can_power_up(struct net_device *dev)
 	int ret;
 
 	if (!(dev->flags & IFF_UP))
+	{
 		return 0;
+	}
 
 	WARN_ON(priv->type != BOSCH_D_CAN);
 
@@ -1243,16 +1420,24 @@ int c_can_power_up(struct net_device *dev)
 
 	/* Wait for the PDA bit to get clear */
 	time_out = jiffies + msecs_to_jiffies(INIT_WAIT_MS);
+
 	while ((priv->read_reg(priv, C_CAN_STS_REG) & STATUS_PDA) &&
-				time_after(time_out, jiffies))
+		   time_after(time_out, jiffies))
+	{
 		cpu_relax();
+	}
 
 	if (time_after(jiffies, time_out))
+	{
 		return -ETIMEDOUT;
+	}
 
 	ret = c_can_start(dev);
+
 	if (!ret)
+	{
 		c_can_irq_control(priv, true);
+	}
 
 	return ret;
 }
@@ -1268,7 +1453,8 @@ void free_c_can_dev(struct net_device *dev)
 }
 EXPORT_SYMBOL_GPL(free_c_can_dev);
 
-static const struct net_device_ops c_can_netdev_ops = {
+static const struct net_device_ops c_can_netdev_ops =
+{
 	.ndo_open = c_can_open,
 	.ndo_stop = c_can_close,
 	.ndo_start_xmit = c_can_start_xmit,
@@ -1293,10 +1479,15 @@ int register_c_can_dev(struct net_device *dev)
 	dev->netdev_ops = &c_can_netdev_ops;
 
 	err = register_candev(dev);
+
 	if (err)
+	{
 		c_can_pm_runtime_disable(priv);
+	}
 	else
+	{
 		devm_can_led_init(dev);
+	}
 
 	return err;
 }

@@ -20,14 +20,15 @@
 static void __iomem *clps711x_halt;
 
 static int clps711x_cpuidle_halt(struct cpuidle_device *dev,
-				 struct cpuidle_driver *drv, int index)
+								 struct cpuidle_driver *drv, int index)
 {
 	writel(0xaa, clps711x_halt);
 
 	return index;
 }
 
-static struct cpuidle_driver clps711x_idle_driver = {
+static struct cpuidle_driver clps711x_idle_driver =
+{
 	.name		= CLPS711X_CPUIDLE_NAME,
 	.owner		= THIS_MODULE,
 	.states[0]	= {
@@ -45,13 +46,17 @@ static int __init clps711x_cpuidle_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	clps711x_halt = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(clps711x_halt))
+	{
 		return PTR_ERR(clps711x_halt);
+	}
 
 	return cpuidle_register(&clps711x_idle_driver, NULL);
 }
 
-static struct platform_driver clps711x_cpuidle_driver = {
+static struct platform_driver clps711x_cpuidle_driver =
+{
 	.driver	= {
 		.name	= CLPS711X_CPUIDLE_NAME,
 	},

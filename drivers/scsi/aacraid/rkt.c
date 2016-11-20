@@ -47,7 +47,9 @@ static int aac_rkt_select_comm(struct aac_dev *dev, int comm)
 {
 	int retval;
 	retval = aac_rx_select_comm(dev, comm);
-	if (comm == AAC_COMM_MESSAGE) {
+
+	if (comm == AAC_COMM_MESSAGE)
+	{
 		/*
 		 * FIB Setup has already been done, but we can minimize the
 		 * damage by at least ensuring the OS never issues more
@@ -59,12 +61,14 @@ static int aac_rkt_select_comm(struct aac_dev *dev, int comm)
 		 * hard coded FIB override is being utilized. This special
 		 * case warrants this half baked, but convenient, check here.
 		 */
-		if (dev->scsi_host_ptr->can_queue > AAC_NUM_IO_FIB_RKT) {
+		if (dev->scsi_host_ptr->can_queue > AAC_NUM_IO_FIB_RKT)
+		{
 			dev->init->MaxIoCommands =
 				cpu_to_le32(AAC_NUM_IO_FIB_RKT + AAC_NUM_MGT_FIB);
 			dev->scsi_host_ptr->can_queue = AAC_NUM_IO_FIB_RKT;
 		}
 	}
+
 	return retval;
 }
 
@@ -73,15 +77,21 @@ static int aac_rkt_select_comm(struct aac_dev *dev, int comm)
  *	@size: mapping resize request
  *
  */
-static int aac_rkt_ioremap(struct aac_dev * dev, u32 size)
+static int aac_rkt_ioremap(struct aac_dev *dev, u32 size)
 {
-	if (!size) {
+	if (!size)
+	{
 		iounmap(dev->regs.rkt);
 		return 0;
 	}
+
 	dev->base = dev->regs.rkt = ioremap(dev->base_start, size);
+
 	if (dev->base == NULL)
+	{
 		return -1;
+	}
+
 	dev->IndexRegs = &dev->regs.rkt->IndexRegs;
 	return 0;
 }
@@ -90,8 +100,8 @@ static int aac_rkt_ioremap(struct aac_dev * dev, u32 size)
  *	aac_rkt_init	-	initialize an i960 based AAC card
  *	@dev: device to configure
  *
- *	Allocate and set up resources for the i960 based AAC variants. The 
- *	device_interface in the commregion will be allocated and linked 
+ *	Allocate and set up resources for the i960 based AAC variants. The
+ *	device_interface in the commregion will be allocated and linked
  *	to the comm region.
  */
 

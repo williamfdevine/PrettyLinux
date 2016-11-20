@@ -65,7 +65,8 @@ struct ath5k_hw;
 struct sk_buff;
 struct ath5k_buf;
 
-struct ath5k_dbg_info {
+struct ath5k_dbg_info
+{
 	unsigned int		level;		/* debug level */
 };
 
@@ -95,7 +96,8 @@ struct ath5k_dbg_info {
  * load, or dynamically by using debugfs 'ath5k/phyX/debug'. these levels can
  * be combined together by bitwise OR.
  */
-enum ath5k_debug_level {
+enum ath5k_debug_level
+{
 	ATH5K_DEBUG_RESET	= 0x00000001,
 	ATH5K_DEBUG_INTR	= 0x00000002,
 	ATH5K_DEBUG_MODE	= 0x00000004,
@@ -114,15 +116,15 @@ enum ath5k_debug_level {
 #ifdef CONFIG_ATH5K_DEBUG
 
 #define ATH5K_DBG(_sc, _m, _fmt, ...) do { \
-	if (unlikely((_sc)->debug.level & (_m) && net_ratelimit())) \
-		ATH5K_PRINTK(_sc, KERN_DEBUG, "(%s:%d): " _fmt, \
-			__func__, __LINE__, ##__VA_ARGS__); \
+		if (unlikely((_sc)->debug.level & (_m) && net_ratelimit())) \
+			ATH5K_PRINTK(_sc, KERN_DEBUG, "(%s:%d): " _fmt, \
+						 __func__, __LINE__, ##__VA_ARGS__); \
 	} while (0)
 
 #define ATH5K_DBG_UNLIMIT(_sc, _m, _fmt, ...) do { \
-	if (unlikely((_sc)->debug.level & (_m))) \
-		ATH5K_PRINTK(_sc, KERN_DEBUG, "(%s:%d): " _fmt, \
-			__func__, __LINE__, ##__VA_ARGS__); \
+		if (unlikely((_sc)->debug.level & (_m))) \
+			ATH5K_PRINTK(_sc, KERN_DEBUG, "(%s:%d): " _fmt, \
+						 __func__, __LINE__, ##__VA_ARGS__); \
 	} while (0)
 
 void

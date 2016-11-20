@@ -34,12 +34,20 @@
 static int oaktrail_output_init(struct drm_device *dev)
 {
 	struct drm_psb_private *dev_priv = dev->dev_private;
+
 	if (dev_priv->iLVDS_enable)
+	{
 		oaktrail_lvds_init(dev, &dev_priv->mode_dev);
+	}
 	else
+	{
 		dev_err(dev->dev, "DSI is not supported\n");
+	}
+
 	if (dev_priv->hdmi_priv)
+	{
 		oaktrail_hdmi_init(dev, &dev_priv->mode_dev);
+	}
 
 	psb_intel_sdvo_init(dev, SDVOB);
 
@@ -71,9 +79,12 @@ static int oaktrail_set_brightness(struct backlight_device *bd)
 
 	/* Percentage 1-100% being valid */
 	if (level < 1)
+	{
 		level = 1;
+	}
 
-	if (gma_power_begin(dev, 0)) {
+	if (gma_power_begin(dev, 0))
+	{
 		/* Calculate and set the brightness value */
 		max_pwm_blc = REG_READ(BLC_PWM_CTL) >> 16;
 		blc_pwm_ctl = level * max_pwm_blc / 100;
@@ -95,6 +106,7 @@ static int oaktrail_set_brightness(struct backlight_device *bd)
 		REG_WRITE(BLC_PWM_CTL, (max_pwm_blc << 16) | blc_pwm_ctl);
 		gma_power_end(dev);
 	}
+
 	oaktrail_brightness = level;
 	return 0;
 }
@@ -129,17 +141,22 @@ static int device_backlight_init(struct drm_device *dev)
 	value /= blc_pwm_precision_factor;
 
 	if (value > (unsigned long long)MRST_BLC_MAX_PWM_REG_FREQ)
-			return -ERANGE;
+	{
+		return -ERANGE;
+	}
 
-	if (gma_power_begin(dev, false)) {
+	if (gma_power_begin(dev, false))
+	{
 		REG_WRITE(BLC_PWM_CTL2, (0x80000000 | REG_READ(BLC_PWM_CTL2)));
 		REG_WRITE(BLC_PWM_CTL, value | (value << 16));
 		gma_power_end(dev);
 	}
+
 	return 0;
 }
 
-static const struct backlight_ops oaktrail_ops = {
+static const struct backlight_ops oaktrail_ops =
+{
 	.get_brightness = oaktrail_get_brightness,
 	.update_status  = oaktrail_set_brightness,
 };
@@ -155,16 +172,21 @@ static int oaktrail_backlight_init(struct drm_device *dev)
 	props.type = BACKLIGHT_PLATFORM;
 
 	oaktrail_backlight_device = backlight_device_register("oaktrail-bl",
-				NULL, (void *)dev, &oaktrail_ops, &props);
+								NULL, (void *)dev, &oaktrail_ops, &props);
 
 	if (IS_ERR(oaktrail_backlight_device))
+	{
 		return PTR_ERR(oaktrail_backlight_device);
+	}
 
 	ret = device_backlight_init(dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		backlight_device_unregister(oaktrail_backlight_device);
 		return ret;
 	}
+
 	oaktrail_backlight_device->props.brightness = 100;
 	oaktrail_backlight_device->props.max_brightness = 100;
 	backlight_update_status(oaktrail_backlight_device);
@@ -231,10 +253,14 @@ static int oaktrail_save_display_registers(struct drm_device *dev)
 
 	/* Save palette (gamma) */
 	for (i = 0; i < 256; i++)
+	{
 		p->palette[i] = PSB_RVDC32(PALETTE_A + (i << 2));
+	}
 
 	if (dev_priv->hdmi_priv)
+	{
 		oaktrail_hdmi_save(dev);
+	}
 
 	/* Save performance state */
 	regs->psb.savePERF_MODE = PSB_RVDC32(MRST_PERF_MODE);
@@ -262,18 +288,21 @@ static int oaktrail_save_display_registers(struct drm_device *dev)
 
 	/* DPST registers */
 	regs->psb.saveHISTOGRAM_INT_CONTROL_REG =
-					PSB_RVDC32(HISTOGRAM_INT_CONTROL);
+		PSB_RVDC32(HISTOGRAM_INT_CONTROL);
 	regs->psb.saveHISTOGRAM_LOGIC_CONTROL_REG =
-					PSB_RVDC32(HISTOGRAM_LOGIC_CONTROL);
+		PSB_RVDC32(HISTOGRAM_LOGIC_CONTROL);
 	regs->psb.savePWM_CONTROL_LOGIC = PSB_RVDC32(PWM_CONTROL_LOGIC);
 
-	if (dev_priv->iLVDS_enable) {
+	if (dev_priv->iLVDS_enable)
+	{
 		/* Shut down the panel */
 		PSB_WVDC32(0, PP_CONTROL);
 
-		do {
+		do
+		{
 			pp_stat = PSB_RVDC32(PP_STATUS);
-		} while (pp_stat & 0x80000000);
+		}
+		while (pp_stat & 0x80000000);
 
 		/* Turn off the plane */
 		PSB_WVDC32(0x58000000, DSPACNTR);
@@ -291,6 +320,7 @@ static int oaktrail_save_display_registers(struct drm_device *dev)
 		/* Turn off PLLs */
 		PSB_WVDC32(0, MRST_DPLL_A);
 	}
+
 	return 0;
 }
 
@@ -344,7 +374,9 @@ static int oaktrail_restore_display_registers(struct drm_device *dev)
 
 	/* Enable the pipe*/
 	if (dev_priv->iLVDS_enable)
+	{
 		PSB_WVDC32(p->conf, PIPEACONF);
+	}
 
 	/* Set up the plane*/
 	PSB_WVDC32(p->linoff, DSPALINOFF);
@@ -362,12 +394,17 @@ static int oaktrail_restore_display_registers(struct drm_device *dev)
 
 	/* Restore palette (gamma) */
 	for (i = 0; i < 256; i++)
+	{
 		PSB_WVDC32(p->palette[i], PALETTE_A + (i << 2));
+	}
 
 	if (dev_priv->hdmi_priv)
+	{
 		oaktrail_hdmi_restore(dev);
+	}
 
-	if (dev_priv->iLVDS_enable) {
+	if (dev_priv->iLVDS_enable)
+	{
 		PSB_WVDC32(regs->saveBLC_PWM_CTL2, BLC_PWM_CTL2);
 		PSB_WVDC32(regs->psb.saveLVDS, LVDS); /*port 61180h*/
 		PSB_WVDC32(regs->psb.savePFIT_CONTROL, PFIT_CONTROL);
@@ -381,14 +418,18 @@ static int oaktrail_restore_display_registers(struct drm_device *dev)
 	}
 
 	/* Wait for cycle delay */
-	do {
+	do
+	{
 		pp_stat = PSB_RVDC32(PP_STATUS);
-	} while (pp_stat & 0x08000000);
+	}
+	while (pp_stat & 0x08000000);
 
 	/* Wait for panel power up */
-	do {
+	do
+	{
 		pp_stat = PSB_RVDC32(PP_STATUS);
-	} while (pp_stat & 0x10000000);
+	}
+	while (pp_stat & 0x10000000);
 
 	/* Restore HW overlay */
 	PSB_WVDC32(regs->psb.saveOV_OVADD, OV_OVADD);
@@ -401,9 +442,9 @@ static int oaktrail_restore_display_registers(struct drm_device *dev)
 
 	/* DPST registers */
 	PSB_WVDC32(regs->psb.saveHISTOGRAM_INT_CONTROL_REG,
-						HISTOGRAM_INT_CONTROL);
+			   HISTOGRAM_INT_CONTROL);
 	PSB_WVDC32(regs->psb.saveHISTOGRAM_LOGIC_CONTROL_REG,
-						HISTOGRAM_LOGIC_CONTROL);
+			   HISTOGRAM_LOGIC_CONTROL);
 	PSB_WVDC32(regs->psb.savePWM_CONTROL_LOGIC, PWM_CONTROL_LOGIC);
 
 	return 0;
@@ -424,13 +465,20 @@ static int oaktrail_power_down(struct drm_device *dev)
 	pwr_mask = PSB_PWRGT_DISPLAY_MASK;
 	outl(pwr_mask, dev_priv->ospm_base + PSB_PM_SSC);
 
-	while (true) {
+	while (true)
+	{
 		pwr_sts = inl(dev_priv->ospm_base + PSB_PM_SSS);
+
 		if ((pwr_sts & pwr_mask) == pwr_mask)
+		{
 			break;
+		}
 		else
+		{
 			udelay(10);
+		}
 	}
+
 	return 0;
 }
 
@@ -449,18 +497,26 @@ static int oaktrail_power_up(struct drm_device *dev)
 	pwr_cnt &= ~pwr_mask;
 	outl(pwr_cnt, (dev_priv->ospm_base + PSB_PM_SSC));
 
-	while (true) {
+	while (true)
+	{
 		pwr_sts = inl(dev_priv->ospm_base + PSB_PM_SSS);
+
 		if ((pwr_sts & pwr_mask) == 0)
+		{
 			break;
+		}
 		else
+		{
 			udelay(10);
+		}
 	}
+
 	return 0;
 }
 
 /* Oaktrail */
-static const struct psb_offset oaktrail_regmap[2] = {
+static const struct psb_offset oaktrail_regmap[2] =
+{
 	{
 		.fp0 = MRST_FPA0,
 		.fp1 = MRST_FPA1,
@@ -515,20 +571,28 @@ static int oaktrail_chip_setup(struct drm_device *dev)
 {
 	struct drm_psb_private *dev_priv = dev->dev_private;
 	int ret;
-	
+
 	if (pci_enable_msi(dev->pdev))
+	{
 		dev_warn(dev->dev, "Enabling MSI failed!\n");
+	}
 
 	dev_priv->regmap = oaktrail_regmap;
 
 	ret = mid_chip_setup(dev);
+
 	if (ret < 0)
+	{
 		return ret;
-	if (!dev_priv->has_gct) {
+	}
+
+	if (!dev_priv->has_gct)
+	{
 		/* Now pull the BIOS data */
 		psb_intel_opregion_init(dev);
 		psb_intel_init_bios(dev);
 	}
+
 	gma_intel_setup_gmbus(dev);
 	oaktrail_hdmi_setup(dev);
 	return 0;
@@ -540,11 +604,15 @@ static void oaktrail_teardown(struct drm_device *dev)
 
 	gma_intel_teardown_gmbus(dev);
 	oaktrail_hdmi_teardown(dev);
+
 	if (!dev_priv->has_gct)
+	{
 		psb_intel_destroy_bios(dev);
+	}
 }
 
-const struct psb_ops oaktrail_chip_ops = {
+const struct psb_ops oaktrail_chip_ops =
+{
 	.name = "Oaktrail",
 	.accel_2d = 1,
 	.pipes = 2,

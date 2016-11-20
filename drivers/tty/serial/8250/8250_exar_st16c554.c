@@ -15,7 +15,8 @@
 
 #include "8250.h"
 
-static struct plat_serial8250_port exar_data[] = {
+static struct plat_serial8250_port exar_data[] =
+{
 	SERIAL8250_PORT(0x100, 5),
 	SERIAL8250_PORT(0x108, 5),
 	SERIAL8250_PORT(0x110, 5),
@@ -23,7 +24,8 @@ static struct plat_serial8250_port exar_data[] = {
 	{ },
 };
 
-static struct platform_device exar_device = {
+static struct platform_device exar_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_EXAR_ST16C554,
 	.dev			= {

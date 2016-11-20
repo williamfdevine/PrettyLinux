@@ -44,7 +44,8 @@
 #define STK1135_REG_TMGEN	0x300	/* Timing generator */
 #define STK1135_REG_TCP1	0x350	/* Timing control parameter 1 */
 
-struct stk1135_pkt_header {
+struct stk1135_pkt_header
+{
 	u8 flags;
 	u8 seq;
 	__le16 gpio;

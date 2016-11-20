@@ -30,7 +30,8 @@
 #define KEMPLD_GPIO_EVT_LVL_EDGE	0x46
 #define KEMPLD_GPIO_IEN			0x4A
 
-struct kempld_gpio_data {
+struct kempld_gpio_data
+{
 	struct gpio_chip		chip;
 	struct kempld_device_data	*pld;
 };
@@ -40,15 +41,21 @@ struct kempld_gpio_data {
  * kempld_get_mutex must be called prior to calling this function.
  */
 static void kempld_gpio_bitop(struct kempld_device_data *pld,
-			      u8 reg, u8 bit, u8 val)
+							  u8 reg, u8 bit, u8 val)
 {
 	u8 status;
 
 	status = kempld_read8(pld, reg);
+
 	if (val)
+	{
 		status |= KEMPLD_GPIO_MASK(bit);
+	}
 	else
+	{
 		status &= ~KEMPLD_GPIO_MASK(bit);
+	}
+
 	kempld_write8(pld, reg, status);
 }
 
@@ -94,7 +101,7 @@ static int kempld_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 }
 
 static int kempld_gpio_direction_output(struct gpio_chip *chip, unsigned offset,
-					int value)
+										int value)
 {
 	struct kempld_gpio_data *gpio = gpiochip_get_data(chip);
 	struct kempld_device_data *pld = gpio->pld;
@@ -144,15 +151,19 @@ static int kempld_gpio_probe(struct platform_device *pdev)
 	struct gpio_chip *chip;
 	int ret;
 
-	if (pld->info.spec_major < 2) {
+	if (pld->info.spec_major < 2)
+	{
 		dev_err(dev,
-			"Driver only supports GPIO devices compatible to PLD spec. rev. 2.0 or higher\n");
+				"Driver only supports GPIO devices compatible to PLD spec. rev. 2.0 or higher\n");
 		return -ENODEV;
 	}
 
 	gpio = devm_kzalloc(dev, sizeof(*gpio), GFP_KERNEL);
+
 	if (!gpio)
+	{
 		return -ENOMEM;
+	}
 
 	gpio->pld = pld;
 
@@ -163,34 +174,45 @@ static int kempld_gpio_probe(struct platform_device *pdev)
 	chip->owner = THIS_MODULE;
 	chip->parent = dev;
 	chip->can_sleep = true;
+
 	if (pdata && pdata->gpio_base)
+	{
 		chip->base = pdata->gpio_base;
+	}
 	else
+	{
 		chip->base = -1;
+	}
+
 	chip->direction_input = kempld_gpio_direction_input;
 	chip->direction_output = kempld_gpio_direction_output;
 	chip->get_direction = kempld_gpio_get_direction;
 	chip->get = kempld_gpio_get;
 	chip->set = kempld_gpio_set;
 	chip->ngpio = kempld_gpio_pincount(pld);
-	if (chip->ngpio == 0) {
+
+	if (chip->ngpio == 0)
+	{
 		dev_err(dev, "No GPIO pins detected\n");
 		return -ENODEV;
 	}
 
 	ret = devm_gpiochip_add_data(dev, chip, gpio);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Could not register GPIO chip\n");
 		return ret;
 	}
 
 	dev_info(dev, "GPIO functionality initialized with %d pins\n",
-		 chip->ngpio);
+			 chip->ngpio);
 
 	return 0;
 }
 
-static struct platform_driver kempld_gpio_driver = {
+static struct platform_driver kempld_gpio_driver =
+{
 	.driver = {
 		.name = "kempld-gpio",
 	},

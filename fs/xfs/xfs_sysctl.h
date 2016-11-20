@@ -24,13 +24,15 @@
  * Tunable xfs parameters
  */
 
-typedef struct xfs_sysctl_val {
+typedef struct xfs_sysctl_val
+{
 	int min;
 	int val;
 	int max;
 } xfs_sysctl_val_t;
 
-typedef struct xfs_param {
+typedef struct xfs_param
+{
 	xfs_sysctl_val_t sgid_inherit;	/* Inherit S_ISGID if process' GID is
 					 * not a member of parent dir GID. */
 	xfs_sysctl_val_t symlink_mode;	/* Link creat mode affected by umask */
@@ -66,7 +68,8 @@ typedef struct xfs_param {
  * xfs_panic_mask bit 0x8 turns the error reports into panics
  */
 
-enum {
+enum
+{
 	/* XFS_REFCACHE_SIZE = 1 */
 	/* XFS_REFCACHE_PURGE = 2 */
 	/* XFS_RESTRICT_CHOWN = 3 */
@@ -93,17 +96,18 @@ enum {
 
 extern xfs_param_t	xfs_params;
 
-struct xfs_globals {
+struct xfs_globals
+{
 	int	log_recovery_delay;	/* log recovery delay (secs) */
 };
 extern struct xfs_globals	xfs_globals;
 
 #ifdef CONFIG_SYSCTL
-extern int xfs_sysctl_register(void);
-extern void xfs_sysctl_unregister(void);
+	extern int xfs_sysctl_register(void);
+	extern void xfs_sysctl_unregister(void);
 #else
-# define xfs_sysctl_register()		(0)
-# define xfs_sysctl_unregister()	do { } while (0)
+	#define xfs_sysctl_register()		(0)
+	#define xfs_sysctl_unregister()	do { } while (0)
 #endif /* CONFIG_SYSCTL */
 
 #endif /* __XFS_SYSCTL_H__ */

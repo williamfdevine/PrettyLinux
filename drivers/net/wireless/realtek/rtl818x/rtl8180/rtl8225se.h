@@ -31,20 +31,21 @@
 
 #define RTL8225SE_ANAPARAM3	0x10
 
-enum rtl8187se_power_state {
+enum rtl8187se_power_state
+{
 	RTL8187SE_POWER_ON,
 	RTL8187SE_POWER_OFF,
 	RTL8187SE_POWER_SLEEP
 };
 
 static inline void rtl8225se_write_phy_ofdm(struct ieee80211_hw *dev,
-					  u8 addr, u8 data)
+		u8 addr, u8 data)
 {
 	rtl8180_write_phy(dev, addr, data);
 }
 
 static inline void rtl8225se_write_phy_cck(struct ieee80211_hw *dev,
-					 u8 addr, u8 data)
+		u8 addr, u8 data)
 {
 	rtl8180_write_phy(dev, addr, data | 0x10000);
 }
@@ -53,9 +54,9 @@ static inline void rtl8225se_write_phy_cck(struct ieee80211_hw *dev,
 const struct rtl818x_rf_ops *rtl8187se_detect_rf(struct ieee80211_hw *);
 void rtl8225se_rf_stop(struct ieee80211_hw *dev);
 void rtl8225se_rf_set_channel(struct ieee80211_hw *dev,
-				     struct ieee80211_conf *conf);
+							  struct ieee80211_conf *conf);
 void rtl8225se_rf_conf_erp(struct ieee80211_hw *dev,
-				  struct ieee80211_bss_conf *info);
+						   struct ieee80211_bss_conf *info);
 void rtl8225se_rf_init(struct ieee80211_hw *dev);
 
 #endif /* RTL8187SE_RTL8225_H */

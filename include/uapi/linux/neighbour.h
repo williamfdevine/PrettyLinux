@@ -4,7 +4,8 @@
 #include <linux/types.h>
 #include <linux/netlink.h>
 
-struct ndmsg {
+struct ndmsg
+{
 	__u8		ndm_family;
 	__u8		ndm_pad1;
 	__u16		ndm_pad2;
@@ -14,7 +15,8 @@ struct ndmsg {
 	__u8		ndm_type;
 };
 
-enum {
+enum
+{
 	NDA_UNSPEC,
 	NDA_DST,
 	NDA_LLADDR,
@@ -63,7 +65,8 @@ enum {
    NUD_PERMANENT also cannot be deleted by garbage collectors.
  */
 
-struct nda_cacheinfo {
+struct nda_cacheinfo
+{
 	__u32		ndm_confirmed;
 	__u32		ndm_used;
 	__u32		ndm_updated;
@@ -95,7 +98,8 @@ struct nda_cacheinfo {
  * device.
  ****/
 
-struct ndt_stats {
+struct ndt_stats
+{
 	__u64		ndts_allocs;
 	__u64		ndts_destroys;
 	__u64		ndts_hash_grows;
@@ -109,7 +113,8 @@ struct ndt_stats {
 	__u64		ndts_table_fulls;
 };
 
-enum {
+enum
+{
 	NDTPA_UNSPEC,
 	NDTPA_IFINDEX,			/* u32, unchangeable */
 	NDTPA_REFCNT,			/* u32, read-only */
@@ -133,13 +138,15 @@ enum {
 };
 #define NDTPA_MAX (__NDTPA_MAX - 1)
 
-struct ndtmsg {
+struct ndtmsg
+{
 	__u8		ndtm_family;
 	__u8		ndtm_pad1;
 	__u16		ndtm_pad2;
 };
 
-struct ndt_config {
+struct ndt_config
+{
 	__u16		ndtc_key_len;
 	__u16		ndtc_entry_size;
 	__u32		ndtc_entries;
@@ -151,7 +158,8 @@ struct ndt_config {
 	__u32		ndtc_proxy_qlen;
 };
 
-enum {
+enum
+{
 	NDTA_UNSPEC,
 	NDTA_NAME,			/* char *, unchangeable */
 	NDTA_THRESH1,			/* u32 */

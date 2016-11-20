@@ -12,7 +12,10 @@
 static inline int get_wcaps_type(unsigned int wcaps)
 {
 	if (!wcaps)
-		return -1; /* invalid type */
+	{
+		return -1;    /* invalid type */
+	}
+
 	return (wcaps & AC_WCAP_TYPE) >> AC_WCAP_TYPE_SHIFT;
 }
 

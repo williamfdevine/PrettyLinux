@@ -77,7 +77,8 @@
 #define STATUS_BUSY		(PEND_WR_TIME | PEND_WR_DATE)
 #define STATUS_FAIL		(LOST_WR_TIME | LOST_WR_DATE)
 
-struct spear_rtc_config {
+struct spear_rtc_config
+{
 	struct rtc_device *rtc;
 	struct clk *clk;
 	spinlock_t lock;
@@ -102,7 +103,9 @@ static inline void spear_rtc_enable_interrupt(struct spear_rtc_config *config)
 	unsigned int val;
 
 	val = readl(config->ioaddr + CTRL_REG);
-	if (!(val & INT_ENABLE)) {
+
+	if (!(val & INT_ENABLE))
+	{
 		spear_rtc_clear_interrupt(config);
 		val |= INT_ENABLE;
 		writel(val, config->ioaddr + CTRL_REG);
@@ -114,7 +117,9 @@ static inline void spear_rtc_disable_interrupt(struct spear_rtc_config *config)
 	unsigned int val;
 
 	val = readl(config->ioaddr + CTRL_REG);
-	if (val & INT_ENABLE) {
+
+	if (val & INT_ENABLE)
+	{
 		val &= ~INT_ENABLE;
 		writel(val, config->ioaddr + CTRL_REG);
 	}
@@ -126,8 +131,12 @@ static inline int is_write_complete(struct spear_rtc_config *config)
 	unsigned long flags;
 
 	spin_lock_irqsave(&config->lock, flags);
+
 	if ((readl(config->ioaddr + STATUS_REG)) & STATUS_FAIL)
+	{
 		ret = -EIO;
+	}
+
 	spin_unlock_irqrestore(&config->lock, flags);
 
 	return ret;
@@ -139,12 +148,17 @@ static void rtc_wait_not_busy(struct spear_rtc_config *config)
 	unsigned long flags;
 
 	/* Assuming BUSY may stay active for 80 msec) */
-	for (count = 0; count < 80; count++) {
+	for (count = 0; count < 80; count++)
+	{
 		spin_lock_irqsave(&config->lock, flags);
 		status = readl(config->ioaddr + STATUS_REG);
 		spin_unlock_irqrestore(&config->lock, flags);
+
 		if ((status & STATUS_BUSY) == 0)
+		{
 			break;
+		}
+
 		/* check status busy, after each msec */
 		msleep(1);
 	}
@@ -160,20 +174,27 @@ static irqreturn_t spear_rtc_irq(int irq, void *dev_id)
 	irq_data = readl(config->ioaddr + STATUS_REG);
 	spin_unlock_irqrestore(&config->lock, flags);
 
-	if ((irq_data & RTC_INT_MASK)) {
+	if ((irq_data & RTC_INT_MASK))
+	{
 		spear_rtc_clear_interrupt(config);
 		events = RTC_IRQF | RTC_AF;
 		rtc_update_irq(config->rtc, 1, events);
 		return IRQ_HANDLED;
-	} else
+	}
+	else
+	{
 		return IRQ_NONE;
+	}
 
 }
 
 static int tm2bcd(struct rtc_time *tm)
 {
 	if (rtc_valid_tm(tm) != 0)
+	{
 		return -EINVAL;
+	}
+
 	tm->tm_sec = bin2bcd(tm->tm_sec);
 	tm->tm_min = bin2bcd(tm->tm_min);
 	tm->tm_hour = bin2bcd(tm->tm_hour);
@@ -238,13 +259,15 @@ static int spear_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	unsigned int time, date;
 
 	if (tm2bcd(tm) < 0)
+	{
 		return -EINVAL;
+	}
 
 	rtc_wait_not_busy(config);
 	time = (tm->tm_sec << SECOND_SHIFT) | (tm->tm_min << MINUTE_SHIFT) |
-		(tm->tm_hour << HOUR_SHIFT);
+		   (tm->tm_hour << HOUR_SHIFT);
 	date = (tm->tm_mday << MDAY_SHIFT) | (tm->tm_mon << MONTH_SHIFT) |
-		(tm->tm_year << YEAR_SHIFT);
+		   (tm->tm_year << YEAR_SHIFT);
 	writel(time, config->ioaddr + TIME_REG);
 	writel(date, config->ioaddr + DATE_REG);
 
@@ -296,7 +319,9 @@ static int spear_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
 	int err;
 
 	if (tm2bcd(&alm->time) < 0)
+	{
 		return -EINVAL;
+	}
 
 	rtc_wait_not_busy(config);
 
@@ -308,13 +333,20 @@ static int spear_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
 	writel(time, config->ioaddr + ALARM_TIME_REG);
 	writel(date, config->ioaddr + ALARM_DATE_REG);
 	err = is_write_complete(config);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (alm->enabled)
+	{
 		spear_rtc_enable_interrupt(config);
+	}
 	else
+	{
 		spear_rtc_disable_interrupt(config);
+	}
 
 	return 0;
 }
@@ -326,24 +358,28 @@ static int spear_alarm_irq_enable(struct device *dev, unsigned int enabled)
 
 	spear_rtc_clear_interrupt(config);
 
-	switch (enabled) {
-	case 0:
-		/* alarm off */
-		spear_rtc_disable_interrupt(config);
-		break;
-	case 1:
-		/* alarm on */
-		spear_rtc_enable_interrupt(config);
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+	switch (enabled)
+	{
+		case 0:
+			/* alarm off */
+			spear_rtc_disable_interrupt(config);
+			break;
+
+		case 1:
+			/* alarm on */
+			spear_rtc_enable_interrupt(config);
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	return ret;
 }
 
-static const struct rtc_class_ops spear_rtc_ops = {
+static const struct rtc_class_ops spear_rtc_ops =
+{
 	.read_time = spear_rtc_read_time,
 	.set_time = spear_rtc_set_time,
 	.read_alarm = spear_rtc_read_alarm,
@@ -359,19 +395,26 @@ static int spear_rtc_probe(struct platform_device *pdev)
 	int irq;
 
 	config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
+
 	if (!config)
+	{
 		return -ENOMEM;
+	}
 
 	/* alarm irqs */
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "no update irq?\n");
 		return irq;
 	}
 
 	status = devm_request_irq(&pdev->dev, irq, spear_rtc_irq, 0, pdev->name,
-			config);
-	if (status) {
+							  config);
+
+	if (status)
+	{
 		dev_err(&pdev->dev, "Alarm interrupt IRQ%d already claimed\n",
 				irq);
 		return status;
@@ -379,23 +422,34 @@ static int spear_rtc_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	config->ioaddr = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(config->ioaddr))
+	{
 		return PTR_ERR(config->ioaddr);
+	}
 
 	config->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(config->clk))
+	{
 		return PTR_ERR(config->clk);
+	}
 
 	status = clk_prepare_enable(config->clk);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	spin_lock_init(&config->lock);
 	platform_set_drvdata(pdev, config);
 
 	config->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-					&spear_rtc_ops, THIS_MODULE);
-	if (IS_ERR(config->rtc)) {
+										   &spear_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(config->rtc))
+	{
 		dev_err(&pdev->dev, "can't register RTC device, err %ld\n",
 				PTR_ERR(config->rtc));
 		status = PTR_ERR(config->rtc);
@@ -405,7 +459,9 @@ static int spear_rtc_probe(struct platform_device *pdev)
 	config->rtc->uie_unsupported = 1;
 
 	if (!device_can_wakeup(&pdev->dev))
+	{
 		device_init_wakeup(&pdev->dev, 1);
+	}
 
 	return 0;
 
@@ -434,10 +490,16 @@ static int spear_rtc_suspend(struct device *dev)
 	int irq;
 
 	irq = platform_get_irq(pdev, 0);
-	if (device_may_wakeup(&pdev->dev)) {
+
+	if (device_may_wakeup(&pdev->dev))
+	{
 		if (!enable_irq_wake(irq))
+		{
 			config->irq_wake = 1;
-	} else {
+		}
+	}
+	else
+	{
 		spear_rtc_disable_interrupt(config);
 		clk_disable(config->clk);
 	}
@@ -453,12 +515,16 @@ static int spear_rtc_resume(struct device *dev)
 
 	irq = platform_get_irq(pdev, 0);
 
-	if (device_may_wakeup(&pdev->dev)) {
-		if (config->irq_wake) {
+	if (device_may_wakeup(&pdev->dev))
+	{
+		if (config->irq_wake)
+		{
 			disable_irq_wake(irq);
 			config->irq_wake = 0;
 		}
-	} else {
+	}
+	else
+	{
 		clk_enable(config->clk);
 		spear_rtc_enable_interrupt(config);
 	}
@@ -478,14 +544,16 @@ static void spear_rtc_shutdown(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id spear_rtc_id_table[] = {
+static const struct of_device_id spear_rtc_id_table[] =
+{
 	{ .compatible = "st,spear600-rtc" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, spear_rtc_id_table);
 #endif
 
-static struct platform_driver spear_rtc_driver = {
+static struct platform_driver spear_rtc_driver =
+{
 	.probe = spear_rtc_probe,
 	.remove = spear_rtc_remove,
 	.shutdown = spear_rtc_shutdown,

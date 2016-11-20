@@ -25,7 +25,8 @@
 #include "scif_main.h"
 #include "scif_map.h"
 
-struct scif_info scif_info = {
+struct scif_info scif_info =
+{
 	.mdev = {
 		.minor = MISC_DYNAMIC_MINOR,
 		.name = "scif",
@@ -41,31 +42,42 @@ static atomic_t g_loopb_cnt;
 static void scif_intr_bh_handler(struct work_struct *work)
 {
 	struct scif_dev *scifdev =
-			container_of(work, struct scif_dev, intr_bh);
+		container_of(work, struct scif_dev, intr_bh);
 
 	if (scifdev_self(scifdev))
+	{
 		scif_loopb_msg_handler(scifdev, scifdev->qpairs);
+	}
 	else
+	{
 		scif_nodeqp_intrhandler(scifdev, scifdev->qpairs);
+	}
 }
 
 int scif_setup_intr_wq(struct scif_dev *scifdev)
 {
-	if (!scifdev->intr_wq) {
+	if (!scifdev->intr_wq)
+	{
 		snprintf(scifdev->intr_wqname, sizeof(scifdev->intr_wqname),
-			 "SCIF INTR %d", scifdev->node);
+				 "SCIF INTR %d", scifdev->node);
 		scifdev->intr_wq =
 			alloc_ordered_workqueue(scifdev->intr_wqname, 0);
+
 		if (!scifdev->intr_wq)
+		{
 			return -ENOMEM;
+		}
+
 		INIT_WORK(&scifdev->intr_bh, scif_intr_bh_handler);
 	}
+
 	return 0;
 }
 
 void scif_destroy_intr_wq(struct scif_dev *scifdev)
 {
-	if (scifdev->intr_wq) {
+	if (scifdev->intr_wq)
+	{
 		destroy_workqueue(scifdev->intr_wq);
 		scifdev->intr_wq = NULL;
 	}
@@ -84,30 +96,38 @@ irqreturn_t scif_intr_handler(int irq, void *data)
 static void scif_qp_setup_handler(struct work_struct *work)
 {
 	struct scif_dev *scifdev = container_of(work, struct scif_dev,
-						qp_dwork.work);
+											qp_dwork.work);
 	struct scif_hw_dev *sdev = scifdev->sdev;
 	dma_addr_t da = 0;
 	int err;
 
-	if (scif_is_mgmt_node()) {
+	if (scif_is_mgmt_node())
+	{
 		struct mic_bootparam *bp = sdev->dp;
 
 		da = bp->scif_card_dma_addr;
 		scifdev->rdb = bp->h2c_scif_db;
-	} else {
+	}
+	else
+	{
 		struct mic_bootparam __iomem *bp = sdev->rdp;
 
 		da = readq(&bp->scif_host_dma_addr);
 		scifdev->rdb = ioread8(&bp->c2h_scif_db);
 	}
-	if (da) {
+
+	if (da)
+	{
 		err = scif_qp_response(da, scifdev);
+
 		if (err)
 			dev_err(&scifdev->sdev->dev,
-				"scif_qp_response err %d\n", err);
-	} else {
+					"scif_qp_response err %d\n", err);
+	}
+	else
+	{
 		schedule_delayed_work(&scifdev->qp_dwork,
-				      msecs_to_jiffies(1000));
+							  msecs_to_jiffies(1000));
 	}
 }
 
@@ -119,9 +139,14 @@ static int scif_setup_scifdev(void)
 	u8 num_nodes = MAX_SCIF_NODES;
 
 	scif_dev = kcalloc(num_nodes, sizeof(*scif_dev), GFP_KERNEL);
+
 	if (!scif_dev)
+	{
 		return -ENOMEM;
-	for (i = 0; i < num_nodes; i++) {
+	}
+
+	for (i = 0; i < num_nodes; i++)
+	{
 		struct scif_dev *scifdev = &scif_dev[i];
 
 		scifdev->node = i;
@@ -130,12 +155,13 @@ static int scif_setup_scifdev(void)
 		mutex_init(&scifdev->lock);
 		INIT_WORK(&scifdev->peer_add_work, scif_add_peer_device);
 		INIT_DELAYED_WORK(&scifdev->p2p_dwork,
-				  scif_poll_qp_state);
+						  scif_poll_qp_state);
 		INIT_DELAYED_WORK(&scifdev->qp_dwork,
-				  scif_qp_setup_handler);
+						  scif_qp_setup_handler);
 		INIT_LIST_HEAD(&scifdev->p2p);
 		RCU_INIT_POINTER(scifdev->spdev, NULL);
 	}
+
 	return 0;
 }
 
@@ -152,50 +178,73 @@ static int scif_probe(struct scif_hw_dev *sdev)
 	dev_set_drvdata(&sdev->dev, sdev);
 	scifdev->sdev = sdev;
 
-	if (1 == atomic_add_return(1, &g_loopb_cnt)) {
+	if (1 == atomic_add_return(1, &g_loopb_cnt))
+	{
 		struct scif_dev *loopb_dev = &scif_dev[sdev->snode];
 
 		loopb_dev->sdev = sdev;
 		rc = scif_setup_loopback_qp(loopb_dev);
+
 		if (rc)
+		{
 			goto exit;
+		}
 	}
 
 	rc = scif_setup_intr_wq(scifdev);
+
 	if (rc)
+	{
 		goto destroy_loopb;
+	}
+
 	rc = scif_setup_qp(scifdev);
+
 	if (rc)
+	{
 		goto destroy_intr;
+	}
+
 	scifdev->db = sdev->hw_ops->next_db(sdev);
 	scifdev->cookie = sdev->hw_ops->request_irq(sdev, scif_intr_handler,
-						    "SCIF_INTR", scifdev,
-						    scifdev->db);
-	if (IS_ERR(scifdev->cookie)) {
+					  "SCIF_INTR", scifdev,
+					  scifdev->db);
+
+	if (IS_ERR(scifdev->cookie))
+	{
 		rc = PTR_ERR(scifdev->cookie);
 		goto free_qp;
 	}
-	if (scif_is_mgmt_node()) {
+
+	if (scif_is_mgmt_node())
+	{
 		struct mic_bootparam *bp = sdev->dp;
 
 		bp->c2h_scif_db = scifdev->db;
 		bp->scif_host_dma_addr = scifdev->qp_dma_addr;
-	} else {
+	}
+	else
+	{
 		struct mic_bootparam __iomem *bp = sdev->rdp;
 
 		iowrite8(scifdev->db, &bp->h2c_scif_db);
 		writeq(scifdev->qp_dma_addr, &bp->scif_card_dma_addr);
 	}
+
 	schedule_delayed_work(&scifdev->qp_dwork,
-			      msecs_to_jiffies(1000));
+						  msecs_to_jiffies(1000));
 	return rc;
 free_qp:
 	scif_free_qp(scifdev);
 destroy_intr:
 	scif_destroy_intr_wq(scifdev);
 destroy_loopb:
+
 	if (atomic_dec_and_test(&g_loopb_cnt))
+	{
 		scif_destroy_loopback_qp(&scif_dev[sdev->snode]);
+	}
+
 exit:
 	return rc;
 }
@@ -205,10 +254,15 @@ void scif_stop(struct scif_dev *scifdev)
 	struct scif_dev *dev;
 	int i;
 
-	for (i = scif_info.maxid; i >= 0; i--) {
+	for (i = scif_info.maxid; i >= 0; i--)
+	{
 		dev = &scif_dev[i];
+
 		if (scifdev_self(dev))
+		{
 			continue;
+		}
+
 		scif_handle_remove_node(i);
 	}
 }
@@ -217,29 +271,42 @@ static void scif_remove(struct scif_hw_dev *sdev)
 {
 	struct scif_dev *scifdev = &scif_dev[sdev->dnode];
 
-	if (scif_is_mgmt_node()) {
+	if (scif_is_mgmt_node())
+	{
 		struct mic_bootparam *bp = sdev->dp;
 
 		bp->c2h_scif_db = -1;
 		bp->scif_host_dma_addr = 0x0;
-	} else {
+	}
+	else
+	{
 		struct mic_bootparam __iomem *bp = sdev->rdp;
 
 		iowrite8(-1, &bp->h2c_scif_db);
 		writeq(0x0, &bp->scif_card_dma_addr);
 	}
-	if (scif_is_mgmt_node()) {
+
+	if (scif_is_mgmt_node())
+	{
 		scif_disconnect_node(scifdev->node, true);
-	} else {
+	}
+	else
+	{
 		scif_info.card_initiated_exit = true;
 		scif_stop(scifdev);
 	}
+
 	if (atomic_dec_and_test(&g_loopb_cnt))
+	{
 		scif_destroy_loopback_qp(&scif_dev[sdev->snode]);
-	if (scifdev->cookie) {
+	}
+
+	if (scifdev->cookie)
+	{
 		sdev->hw_ops->free_irq(sdev, scifdev->cookie, scifdev);
 		scifdev->cookie = NULL;
 	}
+
 	scif_destroy_intr_wq(scifdev);
 	cancel_delayed_work(&scifdev->qp_dwork);
 	scif_free_qp(scifdev);
@@ -247,12 +314,14 @@ static void scif_remove(struct scif_hw_dev *sdev)
 	scifdev->sdev = NULL;
 }
 
-static struct scif_hw_dev_id id_table[] = {
+static struct scif_hw_dev_id id_table[] =
+{
 	{ MIC_SCIF_DEV, SCIF_DEV_ANY_ID },
 	{ 0 },
 };
 
-static struct scif_driver scif_driver = {
+static struct scif_driver scif_driver =
+{
 	.driver.name =	KBUILD_MODNAME,
 	.driver.owner =	THIS_MODULE,
 	.id_table = id_table,
@@ -286,15 +355,22 @@ static int _scif_init(void)
 	scif_info.en_msg_log = 0;
 	scif_info.p2p_enable = 1;
 	rc = scif_setup_scifdev();
+
 	if (rc)
+	{
 		goto error;
+	}
+
 	unaligned_cache = kmem_cache_create("Unaligned_DMA",
-					    SCIF_KMEM_UNALIGNED_BUF_SIZE,
-					    0, SLAB_HWCACHE_ALIGN, NULL);
-	if (!unaligned_cache) {
+										SCIF_KMEM_UNALIGNED_BUF_SIZE,
+										0, SLAB_HWCACHE_ALIGN, NULL);
+
+	if (!unaligned_cache)
+	{
 		rc = -ENOMEM;
 		goto free_sdev;
 	}
+
 	INIT_WORK(&scif_info.misc_work, scif_misc_handler);
 	INIT_WORK(&scif_info.mmu_notif_work, scif_mmu_notif_handler);
 	INIT_WORK(&scif_info.conn_work, scif_conn_handler);
@@ -321,14 +397,26 @@ static int __init scif_init(void)
 	_scif_init();
 	iova_cache_get();
 	rc = scif_peer_bus_init();
+
 	if (rc)
+	{
 		goto exit;
+	}
+
 	rc = scif_register_driver(&scif_driver);
+
 	if (rc)
+	{
 		goto peer_bus_exit;
+	}
+
 	rc = misc_register(mdev);
+
 	if (rc)
+	{
 		goto unreg_scif;
+	}
+
 	scif_init_debugfs();
 	return 0;
 unreg_scif:

@@ -29,7 +29,7 @@
 #include "trace_gfs2.h"
 
 int gfs2_trans_begin(struct gfs2_sbd *sdp, unsigned int blocks,
-		     unsigned int revokes)
+					 unsigned int revokes)
 {
 	struct gfs2_trans *tr;
 	int error;
@@ -38,30 +38,43 @@ int gfs2_trans_begin(struct gfs2_sbd *sdp, unsigned int blocks,
 	BUG_ON(blocks == 0 && revokes == 0);
 
 	if (!test_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags))
+	{
 		return -EROFS;
+	}
 
 	tr = kzalloc(sizeof(struct gfs2_trans), GFP_NOFS);
+
 	if (!tr)
+	{
 		return -ENOMEM;
+	}
 
 	tr->tr_ip = _RET_IP_;
 	tr->tr_blocks = blocks;
 	tr->tr_revokes = revokes;
 	tr->tr_reserved = 1;
 	tr->tr_alloced = 1;
+
 	if (blocks)
+	{
 		tr->tr_reserved += 6 + blocks;
+	}
+
 	if (revokes)
 		tr->tr_reserved += gfs2_struct2blk(sdp, revokes,
-						   sizeof(u64));
+										   sizeof(u64));
+
 	INIT_LIST_HEAD(&tr->tr_databuf);
 	INIT_LIST_HEAD(&tr->tr_buf);
 
 	sb_start_intwrite(sdp->sd_vfs);
 
 	error = gfs2_log_reserve(sdp, tr->tr_reserved);
+
 	if (error)
+	{
 		goto fail;
+	}
 
 	current->journal_info = tr;
 
@@ -78,11 +91,11 @@ static void gfs2_print_trans(const struct gfs2_trans *tr)
 {
 	pr_warn("Transaction created at: %pSR\n", (void *)tr->tr_ip);
 	pr_warn("blocks=%u revokes=%u reserved=%u touched=%u\n",
-		tr->tr_blocks, tr->tr_revokes, tr->tr_reserved, tr->tr_touched);
+			tr->tr_blocks, tr->tr_revokes, tr->tr_reserved, tr->tr_touched);
 	pr_warn("Buf %u/%u Databuf %u/%u Revoke %u/%u\n",
-		tr->tr_num_buf_new, tr->tr_num_buf_rm,
-		tr->tr_num_databuf_new, tr->tr_num_databuf_rm,
-		tr->tr_num_revoke, tr->tr_num_revoke_rm);
+			tr->tr_num_buf_new, tr->tr_num_buf_rm,
+			tr->tr_num_databuf_new, tr->tr_num_databuf_rm,
+			tr->tr_num_revoke, tr->tr_num_revoke_rm);
 }
 
 void gfs2_trans_end(struct gfs2_sbd *sdp)
@@ -94,12 +107,16 @@ void gfs2_trans_end(struct gfs2_sbd *sdp)
 	BUG_ON(!tr);
 	current->journal_info = NULL;
 
-	if (!tr->tr_touched) {
+	if (!tr->tr_touched)
+	{
 		gfs2_log_release(sdp, tr->tr_reserved);
-		if (alloced) {
+
+		if (alloced)
+		{
 			kfree(tr);
 			sb_end_intwrite(sdp->sd_vfs);
 		}
+
 		return;
 	}
 
@@ -108,23 +125,34 @@ void gfs2_trans_end(struct gfs2_sbd *sdp)
 	nbuf -= tr->tr_num_databuf_rm;
 
 	if (gfs2_assert_withdraw(sdp, (nbuf <= tr->tr_blocks) &&
-				       (tr->tr_num_revoke <= tr->tr_revokes)))
+							 (tr->tr_num_revoke <= tr->tr_revokes)))
+	{
 		gfs2_print_trans(tr);
+	}
 
 	gfs2_log_commit(sdp, tr);
+
 	if (alloced && !tr->tr_attached)
-			kfree(tr);
+	{
+		kfree(tr);
+	}
+
 	up_read(&sdp->sd_log_flush_lock);
 
 	if (sdp->sd_vfs->s_flags & MS_SYNCHRONOUS)
+	{
 		gfs2_log_flush(sdp, NULL, NORMAL_FLUSH);
+	}
+
 	if (alloced)
+	{
 		sb_end_intwrite(sdp->sd_vfs);
+	}
 }
 
 static struct gfs2_bufdata *gfs2_alloc_bufdata(struct gfs2_glock *gl,
-					       struct buffer_head *bh,
-					       const struct gfs2_log_operations *lops)
+		struct buffer_head *bh,
+		const struct gfs2_log_operations *lops)
 {
 	struct gfs2_bufdata *bd;
 
@@ -163,7 +191,8 @@ void gfs2_trans_add_data(struct gfs2_glock *gl, struct buffer_head *bh)
 	struct gfs2_inode *ip = GFS2_I(mapping->host);
 	struct gfs2_bufdata *bd;
 
-	if (!gfs2_is_jdata(ip)) {
+	if (!gfs2_is_jdata(ip))
+	{
 		gfs2_ordered_add_inode(ip);
 		return;
 	}
@@ -171,25 +200,37 @@ void gfs2_trans_add_data(struct gfs2_glock *gl, struct buffer_head *bh)
 	lock_buffer(bh);
 	gfs2_log_lock(sdp);
 	bd = bh->b_private;
-	if (bd == NULL) {
+
+	if (bd == NULL)
+	{
 		gfs2_log_unlock(sdp);
 		unlock_buffer(bh);
+
 		if (bh->b_private == NULL)
+		{
 			bd = gfs2_alloc_bufdata(gl, bh, &gfs2_databuf_lops);
+		}
 		else
+		{
 			bd = bh->b_private;
+		}
+
 		lock_buffer(bh);
 		gfs2_log_lock(sdp);
 	}
+
 	gfs2_assert(sdp, bd->bd_gl == gl);
 	tr->tr_touched = 1;
-	if (list_empty(&bd->bd_list)) {
+
+	if (list_empty(&bd->bd_list))
+	{
 		set_bit(GLF_LFLUSH, &bd->bd_gl->gl_flags);
 		set_bit(GLF_DIRTY, &bd->bd_gl->gl_flags);
 		gfs2_pin(sdp, bd->bd_bh);
 		tr->tr_num_databuf_new++;
 		list_add_tail(&bd->bd_list, &tr->tr_databuf);
 	}
+
 	gfs2_log_unlock(sdp);
 	unlock_buffer(bh);
 }
@@ -202,20 +243,29 @@ static void meta_lo_add(struct gfs2_sbd *sdp, struct gfs2_bufdata *bd)
 
 	tr = current->journal_info;
 	tr->tr_touched = 1;
+
 	if (!list_empty(&bd->bd_list))
+	{
 		return;
+	}
+
 	set_bit(GLF_LFLUSH, &bd->bd_gl->gl_flags);
 	set_bit(GLF_DIRTY, &bd->bd_gl->gl_flags);
 	mh = (struct gfs2_meta_header *)bd->bd_bh->b_data;
-	if (unlikely(mh->mh_magic != cpu_to_be32(GFS2_MAGIC))) {
+
+	if (unlikely(mh->mh_magic != cpu_to_be32(GFS2_MAGIC)))
+	{
 		pr_err("Attempting to add uninitialised block to journal (inplace block=%lld)\n",
-		       (unsigned long long)bd->bd_bh->b_blocknr);
+			   (unsigned long long)bd->bd_bh->b_blocknr);
 		BUG();
 	}
-	if (unlikely(state == SFS_FROZEN)) {
+
+	if (unlikely(state == SFS_FROZEN))
+	{
 		printk(KERN_INFO "GFS2:adding buf while frozen\n");
 		gfs2_assert_withdraw(sdp, 0);
 	}
+
 	gfs2_pin(sdp, bd->bd_bh);
 	mh->__pad0 = cpu_to_be64(0);
 	mh->mh_jid = cpu_to_be32(sdp->sd_jdesc->jd_jid);
@@ -232,18 +282,27 @@ void gfs2_trans_add_meta(struct gfs2_glock *gl, struct buffer_head *bh)
 	lock_buffer(bh);
 	gfs2_log_lock(sdp);
 	bd = bh->b_private;
-	if (bd == NULL) {
+
+	if (bd == NULL)
+	{
 		gfs2_log_unlock(sdp);
 		unlock_buffer(bh);
 		lock_page(bh->b_page);
+
 		if (bh->b_private == NULL)
+		{
 			bd = gfs2_alloc_bufdata(gl, bh, &gfs2_buf_lops);
+		}
 		else
+		{
 			bd = bh->b_private;
+		}
+
 		unlock_page(bh->b_page);
 		lock_buffer(bh);
 		gfs2_log_lock(sdp);
 	}
+
 	gfs2_assert(sdp, bd->bd_gl == gl);
 	meta_lo_add(sdp, bd);
 	gfs2_log_unlock(sdp);
@@ -267,15 +326,20 @@ void gfs2_trans_add_unrevoke(struct gfs2_sbd *sdp, u64 blkno, unsigned int len)
 	unsigned int n = len;
 
 	gfs2_log_lock(sdp);
-	list_for_each_entry_safe(bd, tmp, &sdp->sd_log_le_revoke, bd_list) {
-		if ((bd->bd_blkno >= blkno) && (bd->bd_blkno < (blkno + len))) {
+	list_for_each_entry_safe(bd, tmp, &sdp->sd_log_le_revoke, bd_list)
+	{
+		if ((bd->bd_blkno >= blkno) && (bd->bd_blkno < (blkno + len)))
+		{
 			list_del_init(&bd->bd_list);
 			gfs2_assert_withdraw(sdp, sdp->sd_log_num_revoke);
 			sdp->sd_log_num_revoke--;
 			kmem_cache_free(gfs2_bufdata_cachep, bd);
 			tr->tr_num_revoke_rm++;
+
 			if (--n == 0)
+			{
 				break;
+			}
 		}
 	}
 	gfs2_log_unlock(sdp);

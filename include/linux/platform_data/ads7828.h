@@ -20,7 +20,8 @@
  * @ext_vref:		Use an external voltage reference.
  * @vref_mv:		Voltage reference value, if external.
  */
-struct ads7828_platform_data {
+struct ads7828_platform_data
+{
 	bool diff_input;
 	bool ext_vref;
 	unsigned int vref_mv;

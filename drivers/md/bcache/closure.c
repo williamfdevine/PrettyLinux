@@ -20,24 +20,34 @@ static inline void closure_put_after_sub(struct closure *cl, int flags)
 
 	/* Must deliver precisely one wakeup */
 	if (r == 1 && (flags & CLOSURE_SLEEPING))
+	{
 		wake_up_process(cl->task);
+	}
 
-	if (!r) {
-		if (cl->fn && !(flags & CLOSURE_DESTRUCTOR)) {
+	if (!r)
+	{
+		if (cl->fn && !(flags & CLOSURE_DESTRUCTOR))
+		{
 			atomic_set(&cl->remaining,
-				   CLOSURE_REMAINING_INITIALIZER);
+					   CLOSURE_REMAINING_INITIALIZER);
 			closure_queue(cl);
-		} else {
+		}
+		else
+		{
 			struct closure *parent = cl->parent;
 			closure_fn *destructor = cl->fn;
 
 			closure_debug_destroy(cl);
 
 			if (destructor)
+			{
 				destructor(cl);
+			}
 
 			if (parent)
+			{
 				closure_put(parent);
+			}
 		}
 	}
 }
@@ -71,7 +81,8 @@ void __closure_wake_up(struct closure_waitlist *wait_list)
 
 	/* We first reverse the list to preserve FIFO ordering and fairness */
 
-	while (list) {
+	while (list)
+	{
 		struct llist_node *t = list;
 		list = llist_next(list);
 
@@ -81,7 +92,8 @@ void __closure_wake_up(struct closure_waitlist *wait_list)
 
 	/* Then do the wakeups */
 
-	while (reverse) {
+	while (reverse)
+	{
 		cl = container_of(reverse, struct closure, list);
 		reverse = llist_next(reverse);
 
@@ -101,7 +113,9 @@ EXPORT_SYMBOL(__closure_wake_up);
 bool closure_wait(struct closure_waitlist *waitlist, struct closure *cl)
 {
 	if (atomic_read(&cl->remaining) & CLOSURE_WAITING)
+	{
 		return false;
+	}
 
 	closure_set_waiting(cl, _RET_IP_);
 	atomic_add(CLOSURE_WAITING + 1, &cl->remaining);
@@ -119,13 +133,16 @@ EXPORT_SYMBOL(closure_wait);
  */
 void closure_sync(struct closure *cl)
 {
-	while (1) {
+	while (1)
+	{
 		__closure_start_sleep(cl);
 		closure_set_ret_ip(cl);
 
 		if ((atomic_read(&cl->remaining) &
-		     CLOSURE_REMAINING_MASK) == 1)
+			 CLOSURE_REMAINING_MASK) == 1)
+		{
 			break;
+		}
 
 		schedule();
 	}
@@ -172,23 +189,24 @@ static int debug_seq_show(struct seq_file *f, void *data)
 	struct closure *cl;
 	spin_lock_irq(&closure_list_lock);
 
-	list_for_each_entry(cl, &closure_list, all) {
+	list_for_each_entry(cl, &closure_list, all)
+	{
 		int r = atomic_read(&cl->remaining);
 
 		seq_printf(f, "%p: %pF -> %pf p %p r %i ",
-			   cl, (void *) cl->ip, cl->fn, cl->parent,
-			   r & CLOSURE_REMAINING_MASK);
+				   cl, (void *) cl->ip, cl->fn, cl->parent,
+				   r & CLOSURE_REMAINING_MASK);
 
 		seq_printf(f, "%s%s%s%s\n",
-			   test_bit(WORK_STRUCT_PENDING_BIT,
-				    work_data_bits(&cl->work)) ? "Q" : "",
-			   r & CLOSURE_RUNNING	? "R" : "",
-			   r & CLOSURE_STACK	? "S" : "",
-			   r & CLOSURE_SLEEPING	? "Sl" : "");
+				   test_bit(WORK_STRUCT_PENDING_BIT,
+							work_data_bits(&cl->work)) ? "Q" : "",
+				   r & CLOSURE_RUNNING	? "R" : "",
+				   r & CLOSURE_STACK	? "S" : "",
+				   r & CLOSURE_SLEEPING	? "Sl" : "");
 
 		if (r & CLOSURE_WAITING)
 			seq_printf(f, " W %pF\n",
-				   (void *) cl->waiting_on);
+					   (void *) cl->waiting_on);
 
 		seq_printf(f, "\n");
 	}
@@ -202,7 +220,8 @@ static int debug_seq_open(struct inode *inode, struct file *file)
 	return single_open(file, debug_seq_show, NULL);
 }
 
-static const struct file_operations debug_ops = {
+static const struct file_operations debug_ops =
+{
 	.owner		= THIS_MODULE,
 	.open		= debug_seq_open,
 	.read		= seq_read,

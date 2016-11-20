@@ -92,7 +92,8 @@ struct il_tx_queue;
 #define	DEFAULT_SHORT_RETRY_LIMIT 7U
 #define	DEFAULT_LONG_RETRY_LIMIT  4U
 
-struct il_rx_buf {
+struct il_rx_buf
+{
 	dma_addr_t page_dma;
 	struct page *page;
 	struct list_head list;
@@ -103,7 +104,8 @@ struct il_rx_buf {
 /* defined below */
 struct il_device_cmd;
 
-struct il_cmd_meta {
+struct il_cmd_meta
+{
 	/* only for SYNC commands, iff the reply skb is wanted */
 	struct il_host_cmd *source;
 	/*
@@ -114,14 +116,14 @@ struct il_cmd_meta {
 	 * through it would be simpler...)
 	 */
 	void (*callback) (struct il_priv *il, struct il_device_cmd *cmd,
-			  struct il_rx_pkt *pkt);
+					  struct il_rx_pkt *pkt);
 
 	/* The CMD_SIZE_HUGE flag bit indicates that the command
 	 * structure is stored at the end of the shared queue memory. */
 	u32 flags;
 
-	 DEFINE_DMA_UNMAP_ADDR(mapping);
-	 DEFINE_DMA_UNMAP_LEN(len);
+	DEFINE_DMA_UNMAP_ADDR(mapping);
+	DEFINE_DMA_UNMAP_LEN(len);
 };
 
 /*
@@ -129,7 +131,8 @@ struct il_cmd_meta {
  *
  * Contains common data for Rx and Tx queues
  */
-struct il_queue {
+struct il_queue
+{
 	int n_bd;		/* number of BDs in this queue */
 	int write_ptr;		/* 1-st empty entry (idx) host_w */
 	int read_ptr;		/* last used entry (idx) host_r */
@@ -161,7 +164,8 @@ struct il_queue {
 #define TFD_TX_CMD_SLOTS 256
 #define TFD_CMD_SLOTS 32
 
-struct il_tx_queue {
+struct il_tx_queue
+{
 	struct il_queue q;
 	void *tfds;
 	struct il_device_cmd **cmd;
@@ -204,7 +208,8 @@ struct il_tx_queue {
  * NOTE:  Using a channel inappropriately will result in a uCode error!
  */
 #define IL_NUM_TX_CALIB_GROUPS 5
-enum {
+enum
+{
 	EEPROM_CHANNEL_VALID = (1 << 0),	/* usable for this SKU/geo */
 	EEPROM_CHANNEL_IBSS = (1 << 1),	/* usable as an IBSS channel */
 	/* Bit 2 Reserved */
@@ -222,7 +227,8 @@ enum {
 
 /* *regulatory* channel data format in eeprom, one for each channel.
  * There are separate entries for HT40 (40 MHz) vs. normal (20 MHz) channels. */
-struct il_eeprom_channel {
+struct il_eeprom_channel
+{
 	u8 flags;		/* EEPROM_CHANNEL_* flags copied from EEPROM */
 	s8 max_power_avg;	/* max power (dBm) on this chnl, limit 31 */
 } __packed;
@@ -266,7 +272,8 @@ extern const u8 il_eeprom_band_1[14];
  *
  * 4)  RF power amplifier detector level measurement (not used).
  */
-struct il_eeprom_calib_measure {
+struct il_eeprom_calib_measure
+{
 	u8 temperature;		/* Device temperature (Celsius) */
 	u8 gain_idx;		/* Index into gain table */
 	u8 actual_pow;		/* Measured RF output power, half-dBm */
@@ -281,11 +288,12 @@ struct il_eeprom_calib_measure {
  * 2)  Measurements for each of 3 power levels for each of 2 radio transmitters
  *     (a.k.a. "tx chains") (6 measurements altogether)
  */
-struct il_eeprom_calib_ch_info {
+struct il_eeprom_calib_ch_info
+{
 	u8 ch_num;
 	struct il_eeprom_calib_measure
-	    measurements[EEPROM_TX_POWER_TX_CHAINS]
-	    [EEPROM_TX_POWER_MEASUREMENTS];
+		measurements[EEPROM_TX_POWER_TX_CHAINS]
+		[EEPROM_TX_POWER_MEASUREMENTS];
 } __packed;
 
 /*
@@ -298,7 +306,8 @@ struct il_eeprom_calib_ch_info {
  *
  * 2)  Sample measurement sets for 2 channels close to the range endpoints.
  */
-struct il_eeprom_calib_subband_info {
+struct il_eeprom_calib_subband_info
+{
 	u8 ch_from;		/* channel number of lowest channel in subband */
 	u8 ch_to;		/* channel number of highest channel in subband */
 	struct il_eeprom_calib_ch_info ch1;
@@ -325,7 +334,8 @@ struct il_eeprom_calib_subband_info {
  *     struct il_eeprom_calib_subband_info contains range of channels
  *     (0 if unused) for each set of data.
  */
-struct il_eeprom_calib_info {
+struct il_eeprom_calib_info
+{
 	u8 saturation_power24;	/* half-dBm (e.g. "34" = 17 dBm) */
 	u8 saturation_power52;	/* half-dBm */
 	__le16 voltage;		/* signed */
@@ -432,23 +442,26 @@ u16 il_eeprom_query16(const struct il_priv *il, size_t offset);
 int il_init_channel_map(struct il_priv *il);
 void il_free_channel_map(struct il_priv *il);
 const struct il_channel_info *il_get_channel_info(const struct il_priv *il,
-						  enum nl80211_band band,
-						  u16 channel);
+		enum nl80211_band band,
+		u16 channel);
 
 #define IL_NUM_SCAN_RATES         (2)
 
-struct il4965_channel_tgd_info {
+struct il4965_channel_tgd_info
+{
 	u8 type;
 	s8 max_power;
 };
 
-struct il4965_channel_tgh_info {
+struct il4965_channel_tgh_info
+{
 	s64 last_radar_time;
 };
 
 #define IL4965_MAX_RATE (33)
 
-struct il3945_clip_group {
+struct il3945_clip_group
+{
 	/* maximum power level to prevent clipping for each rate, derived by
 	 *   us from this band's saturation power in EEPROM */
 	const s8 clip_powers[IL_MAX_RATES];
@@ -461,7 +474,8 @@ struct il3945_clip_group {
  * -- spectrum management
  * -- user preference (e.g. iwconfig)
  * when requested power is set, base power idx must also be set. */
-struct il3945_channel_power_info {
+struct il3945_channel_power_info
+{
 	struct il3945_tx_power tpc;	/* actual radio and DSP gain settings */
 	s8 power_table_idx;	/* actual (compenst'd) idx into gain table */
 	s8 base_power_idx;	/* gain idx for power at factory temp. */
@@ -470,7 +484,8 @@ struct il3945_channel_power_info {
 
 /* current scan Tx power values to use, one for each scan rate for each
  * channel. */
-struct il3945_scan_power_info {
+struct il3945_scan_power_info
+{
 	struct il3945_tx_power tpc;	/* actual radio and DSP gain settings */
 	s8 power_table_idx;	/* actual (compenst'd) idx into gain table */
 	s8 requested_power;	/* scan pwr (dBm) requested for chnl/rate */
@@ -481,7 +496,8 @@ struct il3945_scan_power_info {
  * Some of the fields (e.g. eeprom and flags/max_power_avg) are redundant
  *     with one another!
  */
-struct il_channel_info {
+struct il_channel_info
+{
 	struct il4965_channel_tgd_info tgd;
 	struct il4965_channel_tgh_info tgh;
 	struct il_eeprom_channel eeprom;	/* EEPROM regulatory limit */
@@ -531,8 +547,10 @@ struct il_channel_info {
 #define IEEE80211_HLEN                  (IEEE80211_4ADDR_LEN)
 #define IEEE80211_FRAME_LEN             (IEEE80211_DATA_LEN + IEEE80211_HLEN)
 
-struct il_frame {
-	union {
+struct il_frame
+{
+	union
+	{
 		struct ieee80211_hdr frame;
 		struct il_tx_beacon_cmd beacon;
 		u8 raw[IEEE80211_FRAME_LEN];
@@ -541,7 +559,8 @@ struct il_frame {
 	struct list_head list;
 };
 
-enum {
+enum
+{
 	CMD_SYNC = 0,
 	CMD_SIZE_NORMAL = 0,
 	CMD_NO_SKB = 0,
@@ -560,9 +579,11 @@ enum {
  * size of the largest command we send to uCode, except for a scan command
  * (which is relatively huge; space is allocated separately).
  */
-struct il_device_cmd {
+struct il_device_cmd
+{
 	struct il_cmd_header hdr;	/* uCode API */
-	union {
+	union
+	{
 		u32 flags;
 		u8 val8;
 		u16 val16;
@@ -574,11 +595,12 @@ struct il_device_cmd {
 
 #define TFD_MAX_PAYLOAD_SIZE (sizeof(struct il_device_cmd))
 
-struct il_host_cmd {
+struct il_host_cmd
+{
 	const void *data;
 	unsigned long reply_page;
 	void (*callback) (struct il_priv *il, struct il_device_cmd *cmd,
-			  struct il_rx_pkt *pkt);
+					  struct il_rx_pkt *pkt);
 	u32 flags;
 	u16 len;
 	u8 id;
@@ -603,7 +625,8 @@ struct il_host_cmd {
  *
  * NOTE:  rx_free and rx_used are used as a FIFO for il_rx_bufs
  */
-struct il_rx_queue {
+struct il_rx_queue
+{
 	__le32 *bd;
 	dma_addr_t bd_dma;
 	struct il_rx_buf pool[RX_QUEUE_SIZE + RX_FREE_BUFFERS];
@@ -641,7 +664,8 @@ struct il_rx_queue {
  * for block ack (N_COMPRESSED_BA).  This struct stores tx reply info
  * until block ack arrives.
  */
-struct il_ht_agg {
+struct il_ht_agg
+{
 	u16 txq_id;
 	u16 frame_count;
 	u16 wait_for_ba;
@@ -655,22 +679,26 @@ struct il_ht_agg {
 	u8 state;
 };
 
-struct il_tid_data {
+struct il_tid_data
+{
 	u16 seq_number;		/* 4965 only */
 	u16 tfds_in_queue;
 	struct il_ht_agg agg;
 };
 
-struct il_hw_key {
+struct il_hw_key
+{
 	u32 cipher;
 	int keylen;
 	u8 keyidx;
 	u8 key[32];
 };
 
-union il_ht_rate_supp {
+union il_ht_rate_supp
+{
 	u16 rates;
-	struct {
+	struct
+	{
 		u8 siso_rate;
 		u8 mimo_rate;
 	};
@@ -699,13 +727,15 @@ union il_ht_rate_supp {
 #define CFG_HT_MPDU_DENSITY_MAX CFG_HT_MPDU_DENSITY_16USEC
 #define CFG_HT_MPDU_DENSITY_MIN     (0x1)
 
-struct il_ht_config {
+struct il_ht_config
+{
 	bool single_chain_sufficient;
 	enum ieee80211_smps_mode smps;	/* current smps mode */
 };
 
 /* QoS structures */
-struct il_qos_info {
+struct il_qos_info
+{
 	int qos_active;
 	struct il_qosparam_cmd def_qos_parm;
 };
@@ -716,7 +746,8 @@ struct il_qos_info {
  * the commands (il_addsta_cmd and il_link_quality_cmd) without
  * sta_lock held.
  */
-struct il_station_entry {
+struct il_station_entry
+{
 	struct il_addsta_cmd sta;
 	struct il_tid_data tid[MAX_TID_COUNT];
 	u8 used;
@@ -724,7 +755,8 @@ struct il_station_entry {
 	struct il_link_quality_cmd *lq;
 };
 
-struct il_station_priv_common {
+struct il_station_priv_common
+{
 	u8 sta_id;
 };
 
@@ -734,21 +766,25 @@ struct il_station_priv_common {
  * When mac80211 allocates a virtual interface, it can allocate
  * space for us to put data into.
  */
-struct il_vif_priv {
+struct il_vif_priv
+{
 	u8 ibss_bssid_sta_id;
 };
 
 /* one for each uCode image (inst/data, boot/init/runtime) */
-struct fw_desc {
+struct fw_desc
+{
 	void *v_addr;		/* access by driver */
 	dma_addr_t p_addr;	/* access by card's busmaster DMA */
 	u32 len;		/* bytes */
 };
 
 /* uCode file layout */
-struct il_ucode_header {
+struct il_ucode_header
+{
 	__le32 ver;		/* major/minor/API/serial */
-	struct {
+	struct
+	{
 		__le32 inst_size;	/* bytes of runtime code */
 		__le32 data_size;	/* bytes of runtime data */
 		__le32 init_size;	/* bytes of init code */
@@ -758,7 +794,8 @@ struct il_ucode_header {
 	} v1;
 };
 
-struct il4965_ibss_seq {
+struct il4965_ibss_seq
+{
 	u8 mac[ETH_ALEN];
 	u16 seq_num;
 	u16 frag_num;
@@ -766,7 +803,8 @@ struct il4965_ibss_seq {
 	struct list_head list;
 };
 
-struct il_sensitivity_ranges {
+struct il_sensitivity_ranges
+{
 	u16 min_nrg_cck;
 	u16 max_nrg_cck;
 
@@ -818,7 +856,8 @@ struct il_sensitivity_ranges {
  * @beacon_time_tsf_bits: number of valid tsf bits for beacon time
  * @struct il_sensitivity_ranges: range of sensitivity values
  */
-struct il_hw_params {
+struct il_hw_params
+{
 	u8 bcast_id;
 	u8 max_txq_num;
 	u8 dma_chnl_num;
@@ -865,11 +904,11 @@ static inline int
 il_queue_used(const struct il_queue *q, int i)
 {
 	return q->write_ptr >= q->read_ptr ? (i >= q->read_ptr &&
-					      i < q->write_ptr) : !(i <
-								    q->read_ptr
-								    && i >=
-								    q->
-								    write_ptr);
+										  i < q->write_ptr) : !(i <
+												  q->read_ptr
+												  && i >=
+												  q->
+												  write_ptr);
 }
 
 static inline u8
@@ -881,13 +920,16 @@ il_get_cmd_idx(struct il_queue *q, u32 idx, int is_huge)
 	 * the big buffer at end of command array
 	 */
 	if (is_huge)
-		return q->n_win;	/* must be power of 2 */
+	{
+		return q->n_win;    /* must be power of 2 */
+	}
 
 	/* Otherwise, use normal size buffers */
 	return idx & (q->n_win - 1);
 }
 
-struct il_dma_ptr {
+struct il_dma_ptr
+{
 	dma_addr_t dma;
 	void *addr;
 	size_t size;
@@ -939,27 +981,31 @@ struct il_dma_ptr {
 #define NRG_NUM_PREV_STAT_L     20
 #define NUM_RX_CHAINS           3
 
-enum il4965_false_alarm_state {
+enum il4965_false_alarm_state
+{
 	IL_FA_TOO_MANY = 0,
 	IL_FA_TOO_FEW = 1,
 	IL_FA_GOOD_RANGE = 2,
 };
 
-enum il4965_chain_noise_state {
+enum il4965_chain_noise_state
+{
 	IL_CHAIN_NOISE_ALIVE = 0,	/* must be 0 */
 	IL_CHAIN_NOISE_ACCUMULATE,
 	IL_CHAIN_NOISE_CALIBRATED,
 	IL_CHAIN_NOISE_DONE,
 };
 
-enum ucode_type {
+enum ucode_type
+{
 	UCODE_NONE = 0,
 	UCODE_INIT,
 	UCODE_RT
 };
 
 /* Sensitivity calib data */
-struct il_sensitivity_data {
+struct il_sensitivity_data
+{
 	u32 auto_corr_ofdm;
 	u32 auto_corr_ofdm_mrc;
 	u32 auto_corr_ofdm_x1;
@@ -990,7 +1036,8 @@ struct il_sensitivity_data {
 };
 
 /* Chain noise (differential Rx gain) calib data */
-struct il_chain_noise_data {
+struct il_chain_noise_data
+{
 	u32 active_chains;
 	u32 chain_noise_a;
 	u32 chain_noise_b;
@@ -1011,13 +1058,15 @@ struct il_chain_noise_data {
 #define IL_TRAFFIC_ENTRIES	(256)
 #define IL_TRAFFIC_ENTRY_SIZE  (64)
 
-enum {
+enum
+{
 	MEASUREMENT_READY = (1 << 0),
 	MEASUREMENT_ACTIVE = (1 << 1),
 };
 
 /* interrupt stats */
-struct isr_stats {
+struct isr_stats
+{
 	u32 hw;
 	u32 sw;
 	u32 err_code;
@@ -1033,7 +1082,8 @@ struct isr_stats {
 };
 
 /* management stats */
-enum il_mgmt_stats {
+enum il_mgmt_stats
+{
 	MANAGEMENT_ASSOC_REQ = 0,
 	MANAGEMENT_ASSOC_RESP,
 	MANAGEMENT_REASSOC_REQ,
@@ -1049,7 +1099,8 @@ enum il_mgmt_stats {
 	MANAGEMENT_MAX,
 };
 /* control stats */
-enum il_ctrl_stats {
+enum il_ctrl_stats
+{
 	CONTROL_BACK_REQ = 0,
 	CONTROL_BACK,
 	CONTROL_PSPOLL,
@@ -1061,7 +1112,8 @@ enum il_ctrl_stats {
 	CONTROL_MAX,
 };
 
-struct traffic_stats {
+struct traffic_stats
+{
 #ifdef CONFIG_IWLEGACY_DEBUGFS
 	u32 mgmt[MANAGEMENT_MAX];
 	u32 ctrl[CONTROL_MAX];
@@ -1092,7 +1144,8 @@ struct traffic_stats {
 #define IL_LONG_WD_TIMEOUT	(10000)
 #define IL_MAX_WD_TIMEOUT	(120000)
 
-struct il_force_reset {
+struct il_force_reset
+{
 	int reset_request_count;
 	int reset_success_count;
 	int reset_reject_count;
@@ -1114,11 +1167,13 @@ struct il_force_reset {
  */
 #define IL4965_EXT_BEACON_TIME_POS	22
 
-struct il_rxon_context {
+struct il_rxon_context
+{
 	struct ieee80211_vif *vif;
 };
 
-struct il_power_mgr {
+struct il_power_mgr
+{
 	struct il_powertable_cmd sleep_cmd;
 	struct il_powertable_cmd sleep_cmd_next;
 	int debug_sleep_level_override;
@@ -1126,7 +1181,8 @@ struct il_power_mgr {
 	bool ps_disabled;
 };
 
-struct il_priv {
+struct il_priv
+{
 	struct ieee80211_hw *hw;
 	struct ieee80211_channel *ieee_channels;
 	struct ieee80211_rate *ieee_rates;
@@ -1145,7 +1201,7 @@ struct il_priv {
 	int alloc_rxb_page;
 
 	void (*handlers[IL_CN_MAX]) (struct il_priv *il,
-				     struct il_rx_buf *rxb);
+								 struct il_rx_buf *rxb);
 
 	struct ieee80211_supported_band bands[NUM_NL80211_BANDS];
 
@@ -1224,7 +1280,8 @@ struct il_priv {
 
 	struct il_qos_info qos_data;
 
-	struct {
+	struct
+	{
 		bool enabled;
 		bool is_40mhz;
 		bool non_gf_sta_present;
@@ -1319,9 +1376,11 @@ struct il_priv {
 	/* Last Rx'd beacon timestamp */
 	u64 timestamp;
 
-	union {
+	union
+	{
 #if IS_ENABLED(CONFIG_IWL3945)
-		struct {
+		struct
+		{
 			void *shared_virt;
 			dma_addr_t shared_phys;
 
@@ -1352,7 +1411,8 @@ struct il_priv {
 		} _3945;
 #endif
 #if IS_ENABLED(CONFIG_IWL4965)
-		struct {
+		struct
+		{
 			struct il_rx_phy_res last_phy_res;
 			bool last_phy_res_valid;
 			u32 ampdu_ref;
@@ -1466,7 +1526,10 @@ static inline int
 il_is_channel_valid(const struct il_channel_info *ch_info)
 {
 	if (ch_info == NULL)
+	{
 		return 0;
+	}
+
 	return (ch_info->flags & EEPROM_CHANNEL_VALID) ? 1 : 0;
 }
 
@@ -1514,8 +1577,8 @@ il_free_pages(struct il_priv *il, unsigned long page)
 
 #define IL_PCI_DEVICE(dev, subdev, cfg) \
 	.vendor = PCI_VENDOR_ID_INTEL,  .device = (dev), \
-	.subvendor = PCI_ANY_ID, .subdevice = (subdev), \
-	.driver_data = (kernel_ulong_t)&(cfg)
+			  .subvendor = PCI_ANY_ID, .subdevice = (subdev), \
+						   .driver_data = (kernel_ulong_t)&(cfg)
 
 #define TIME_UNIT		1024
 
@@ -1531,25 +1594,27 @@ il_free_pages(struct il_priv *il, unsigned long page)
 #define IL_RX_BUF_SIZE_8K (8 * 1024)
 
 #ifdef CONFIG_IWLEGACY_DEBUGFS
-struct il_debugfs_ops {
+struct il_debugfs_ops
+{
 	ssize_t(*rx_stats_read) (struct file *file, char __user *user_buf,
-				 size_t count, loff_t *ppos);
+							 size_t count, loff_t *ppos);
 	ssize_t(*tx_stats_read) (struct file *file, char __user *user_buf,
-				 size_t count, loff_t *ppos);
+							 size_t count, loff_t *ppos);
 	ssize_t(*general_stats_read) (struct file *file,
-				      char __user *user_buf, size_t count,
-				      loff_t *ppos);
+								  char __user *user_buf, size_t count,
+								  loff_t *ppos);
 };
 #endif
 
-struct il_ops {
+struct il_ops
+{
 	/* Handling TX */
 	void (*txq_update_byte_cnt_tbl) (struct il_priv *il,
-					 struct il_tx_queue *txq,
-					 u16 byte_cnt);
+									 struct il_tx_queue *txq,
+									 u16 byte_cnt);
 	int (*txq_attach_buf_to_tfd) (struct il_priv *il,
-				      struct il_tx_queue *txq, dma_addr_t addr,
-				      u16 len, u8 reset, u8 pad);
+								  struct il_tx_queue *txq, dma_addr_t addr,
+								  u16 len, u8 reset, u8 pad);
 	void (*txq_free_tfd) (struct il_priv *il, struct il_tx_queue *txq);
 	int (*txq_init) (struct il_priv *il, struct il_tx_queue *txq);
 	/* alive notification after init uCode load */
@@ -1562,7 +1627,7 @@ struct il_ops {
 	void (*dump_nic_error_log) (struct il_priv *il);
 	int (*dump_fh) (struct il_priv *il, char **buf, bool display);
 	int (*set_channel_switch) (struct il_priv *il,
-				   struct ieee80211_channel_switch *ch_switch);
+							   struct ieee80211_channel_switch *ch_switch);
 	/* power management */
 	int (*apm_init) (struct il_priv *il);
 
@@ -1588,12 +1653,13 @@ struct il_ops {
 	/* station management */
 	int (*update_bcast_stations) (struct il_priv *il);
 	int (*manage_ibss_station) (struct il_priv *il,
-				    struct ieee80211_vif *vif, bool add);
+								struct ieee80211_vif *vif, bool add);
 
 	int (*send_led_cmd) (struct il_priv *il, struct il_led_cmd *led_cmd);
 };
 
-struct il_mod_params {
+struct il_mod_params
+{
 	int sw_crypto;		/* def: 0 = using hardware encryption */
 	int disable_hw_scan;	/* def: 0 = use h/w scan */
 	int num_of_queues;	/* def: HW dependent */
@@ -1617,7 +1683,8 @@ struct il_mod_params {
  *			LED OFF = RF OFF
  *    IL_LED_BLINK:    adjust led blink rate based on blink table
  */
-enum il_led_mode {
+enum il_led_mode
+{
 	IL_LED_DEFAULT,
 	IL_LED_RF_STATE,
 	IL_LED_BLINK,
@@ -1657,7 +1724,8 @@ void il_leds_exit(struct il_priv *il);
  * versions.
  *
  */
-struct il_cfg {
+struct il_cfg
+{
 	/* params specific to an individual device within a device family */
 	const char *name;
 	const char *fw_name_pre;
@@ -1700,7 +1768,7 @@ struct il_cfg {
  ***************************/
 
 int il_mac_conf_tx(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-		   u16 queue, const struct ieee80211_tx_queue_params *params);
+				   u16 queue, const struct ieee80211_tx_queue_params *params);
 int il_mac_tx_last_beacon(struct ieee80211_hw *hw);
 
 void il_set_rxon_hwcrypto(struct il_priv *il, int hw_decrypt);
@@ -1708,23 +1776,23 @@ int il_check_rxon_cmd(struct il_priv *il);
 int il_full_rxon_required(struct il_priv *il);
 int il_set_rxon_channel(struct il_priv *il, struct ieee80211_channel *ch);
 void il_set_flags_for_band(struct il_priv *il, enum nl80211_band band,
-			   struct ieee80211_vif *vif);
+						   struct ieee80211_vif *vif);
 u8 il_get_single_channel_number(struct il_priv *il, enum nl80211_band band);
 void il_set_rxon_ht(struct il_priv *il, struct il_ht_config *ht_conf);
 bool il_is_ht40_tx_allowed(struct il_priv *il,
-			   struct ieee80211_sta_ht_cap *ht_cap);
+						   struct ieee80211_sta_ht_cap *ht_cap);
 void il_connection_init_rx_config(struct il_priv *il);
 void il_set_rate(struct il_priv *il);
 int il_set_decrypted_flag(struct il_priv *il, struct ieee80211_hdr *hdr,
-			  u32 decrypt_res, struct ieee80211_rx_status *stats);
+						  u32 decrypt_res, struct ieee80211_rx_status *stats);
 void il_irq_handle_error(struct il_priv *il);
 int il_mac_add_interface(struct ieee80211_hw *hw, struct ieee80211_vif *vif);
 void il_mac_remove_interface(struct ieee80211_hw *hw,
-			     struct ieee80211_vif *vif);
+							 struct ieee80211_vif *vif);
 int il_mac_change_interface(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-			    enum nl80211_iftype newtype, bool newp2p);
+							enum nl80211_iftype newtype, bool newp2p);
 void il_mac_flush(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-		  u32 queues, bool drop);
+				  u32 queues, bool drop);
 int il_alloc_txq_mem(struct il_priv *il);
 void il_free_txq_mem(struct il_priv *il);
 
@@ -1787,16 +1855,16 @@ int il_scan_cancel(struct il_priv *il);
 int il_scan_cancel_timeout(struct il_priv *il, unsigned long ms);
 void il_force_scan_end(struct il_priv *il);
 int il_mac_hw_scan(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-		   struct ieee80211_scan_request *hw_req);
+				   struct ieee80211_scan_request *hw_req);
 void il_internal_short_hw_scan(struct il_priv *il);
 int il_force_reset(struct il_priv *il, bool external);
 u16 il_fill_probe_req(struct il_priv *il, struct ieee80211_mgmt *frame,
-		      const u8 *ta, const u8 *ie, int ie_len, int left);
+					  const u8 *ta, const u8 *ie, int ie_len, int left);
 void il_setup_rx_scan_handlers(struct il_priv *il);
 u16 il_get_active_dwell_time(struct il_priv *il, enum nl80211_band band,
-			     u8 n_probes);
+							 u8 n_probes);
 u16 il_get_passive_dwell_time(struct il_priv *il, enum nl80211_band band,
-			      struct ieee80211_vif *vif);
+							  struct ieee80211_vif *vif);
 void il_setup_scan_deferred_work(struct il_priv *il);
 void il_cancel_scan_deferred_work(struct il_priv *il);
 
@@ -1819,11 +1887,11 @@ const char *il_get_cmd_string(u8 cmd);
 int __must_check il_send_cmd_sync(struct il_priv *il, struct il_host_cmd *cmd);
 int il_send_cmd(struct il_priv *il, struct il_host_cmd *cmd);
 int __must_check il_send_cmd_pdu(struct il_priv *il, u8 id, u16 len,
-				 const void *data);
+								 const void *data);
 int il_send_cmd_pdu_async(struct il_priv *il, u8 id, u16 len, const void *data,
-			  void (*callback) (struct il_priv *il,
-					    struct il_device_cmd *cmd,
-					    struct il_rx_pkt *pkt));
+						  void (*callback) (struct il_priv *il,
+								  struct il_device_cmd *cmd,
+								  struct il_rx_pkt *pkt));
 
 int il_enqueue_hcmd(struct il_priv *il, struct il_host_cmd *cmd);
 
@@ -1834,16 +1902,16 @@ int il_enqueue_hcmd(struct il_priv *il, struct il_host_cmd *cmd);
 void il_bg_watchdog(unsigned long data);
 u32 il_usecs_to_beacons(struct il_priv *il, u32 usec, u32 beacon_interval);
 __le32 il_add_beacon_time(struct il_priv *il, u32 base, u32 addon,
-			  u32 beacon_interval);
+						  u32 beacon_interval);
 
 #ifdef CONFIG_PM_SLEEP
-extern const struct dev_pm_ops il_pm_ops;
+	extern const struct dev_pm_ops il_pm_ops;
 
-#define IL_LEGACY_PM_OPS	(&il_pm_ops)
+	#define IL_LEGACY_PM_OPS	(&il_pm_ops)
 
 #else /* !CONFIG_PM_SLEEP */
 
-#define IL_LEGACY_PM_OPS	NULL
+	#define IL_LEGACY_PM_OPS	NULL
 
 #endif /* !CONFIG_PM_SLEEP */
 
@@ -1895,8 +1963,8 @@ il_is_ready(struct il_priv *il)
 	/* The adapter is 'ready' if READY and GEO_CONFIGURED bits are
 	 * set but EXIT_PENDING is not */
 	return test_bit(S_READY, &il->status) &&
-	    test_bit(S_GEO_CONFIGURED, &il->status) &&
-	    !test_bit(S_EXIT_PENDING, &il->status);
+		   test_bit(S_GEO_CONFIGURED, &il->status) &&
+		   !test_bit(S_EXIT_PENDING, &il->status);
 }
 
 static inline int
@@ -1928,7 +1996,9 @@ il_is_ready_rf(struct il_priv *il)
 {
 
 	if (il_is_rfkill(il))
+	{
 		return 0;
+	}
 
 	return il_is_ready(il);
 }
@@ -1964,9 +2034,9 @@ il_get_hw_mode(struct il_priv *il, enum nl80211_band band)
 int il_mac_config(struct ieee80211_hw *hw, u32 changed);
 void il_mac_reset_tsf(struct ieee80211_hw *hw, struct ieee80211_vif *vif);
 void il_mac_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-			     struct ieee80211_bss_conf *bss_conf, u32 changes);
+							 struct ieee80211_bss_conf *bss_conf, u32 changes);
 void il_tx_cmd_protection(struct il_priv *il, struct ieee80211_tx_info *info,
-			  __le16 fc, __le32 *tx_flags);
+						  __le16 fc, __le32 *tx_flags);
 
 irqreturn_t il_isr(int irq, void *data);
 
@@ -1989,9 +2059,9 @@ static inline bool il_need_reclaim(struct il_priv *il, struct il_rx_pkt *pkt)
 	 * apparently a few don't get set; catch them here.
 	 */
 	return !(pkt->hdr.sequence & SEQ_RX_FRAME) &&
-	       pkt->hdr.cmd != N_STATS && pkt->hdr.cmd != C_TX &&
-	       pkt->hdr.cmd != N_RX_PHY && pkt->hdr.cmd != N_RX &&
-	       pkt->hdr.cmd != N_RX_MPDU && pkt->hdr.cmd != N_COMPRESSED_BA;
+		   pkt->hdr.cmd != N_STATS && pkt->hdr.cmd != C_TX &&
+		   pkt->hdr.cmd != N_RX_PHY && pkt->hdr.cmd != N_RX &&
+		   pkt->hdr.cmd != N_RX_MPDU && pkt->hdr.cmd != N_COMPRESSED_BA;
 }
 
 static inline void
@@ -2058,10 +2128,13 @@ il_wr(struct il_priv *il, u32 reg, u32 value)
 	unsigned long reg_flags;
 
 	spin_lock_irqsave(&il->reg_lock, reg_flags);
-	if (likely(_il_grab_nic_access(il))) {
+
+	if (likely(_il_grab_nic_access(il)))
+	{
 		_il_wr(il, reg, value);
 		_il_release_nic_access(il);
 	}
+
 	spin_unlock_irqrestore(&il->reg_lock, reg_flags);
 }
 
@@ -2085,10 +2158,13 @@ il_set_bits_prph(struct il_priv *il, u32 reg, u32 mask)
 	unsigned long reg_flags;
 
 	spin_lock_irqsave(&il->reg_lock, reg_flags);
-	if (likely(_il_grab_nic_access(il))) {
+
+	if (likely(_il_grab_nic_access(il)))
+	{
 		_il_wr_prph(il, reg, (_il_rd_prph(il, reg) | mask));
 		_il_release_nic_access(il);
 	}
+
 	spin_unlock_irqrestore(&il->reg_lock, reg_flags);
 }
 
@@ -2098,10 +2174,13 @@ il_set_bits_mask_prph(struct il_priv *il, u32 reg, u32 bits, u32 mask)
 	unsigned long reg_flags;
 
 	spin_lock_irqsave(&il->reg_lock, reg_flags);
-	if (likely(_il_grab_nic_access(il))) {
+
+	if (likely(_il_grab_nic_access(il)))
+	{
 		_il_wr_prph(il, reg, ((_il_rd_prph(il, reg) & mask) | bits));
 		_il_release_nic_access(il);
 	}
+
 	spin_unlock_irqrestore(&il->reg_lock, reg_flags);
 }
 
@@ -2112,11 +2191,14 @@ il_clear_bits_prph(struct il_priv *il, u32 reg, u32 mask)
 	u32 val;
 
 	spin_lock_irqsave(&il->reg_lock, reg_flags);
-	if (likely(_il_grab_nic_access(il))) {
+
+	if (likely(_il_grab_nic_access(il)))
+	{
 		val = _il_rd_prph(il, reg);
 		_il_wr_prph(il, reg, (val & ~mask));
 		_il_release_nic_access(il);
 	}
+
 	spin_unlock_irqrestore(&il->reg_lock, reg_flags);
 }
 
@@ -2137,16 +2219,16 @@ void il_dealloc_bcast_stations(struct il_priv *il);
 int il_get_free_ucode_key_idx(struct il_priv *il);
 int il_send_add_sta(struct il_priv *il, struct il_addsta_cmd *sta, u8 flags);
 int il_add_station_common(struct il_priv *il, const u8 *addr, bool is_ap,
-			  struct ieee80211_sta *sta, u8 *sta_id_r);
-int il_remove_station(struct il_priv *il, const u8 sta_id, const u8 * addr);
+						  struct ieee80211_sta *sta, u8 *sta_id_r);
+int il_remove_station(struct il_priv *il, const u8 sta_id, const u8 *addr);
 int il_mac_sta_remove(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-		      struct ieee80211_sta *sta);
+					  struct ieee80211_sta *sta);
 
 u8 il_prep_station(struct il_priv *il, const u8 *addr, bool is_ap,
-		   struct ieee80211_sta *sta);
+				   struct ieee80211_sta *sta);
 
 int il_send_lq_cmd(struct il_priv *il, struct il_link_quality_cmd *lq,
-		   u8 flags, bool init);
+				   u8 flags, bool init);
 
 /**
  * il_clear_driver_stations - clear knowledge of all stations from driver
@@ -2173,7 +2255,9 @@ static inline int
 il_sta_id(struct ieee80211_sta *sta)
 {
 	if (WARN_ON(!sta))
+	{
 		return IL_INVALID_STATION;
+	}
 
 	return ((struct il_station_priv_common *)sta->drv_priv)->sta_id;
 }
@@ -2195,7 +2279,9 @@ il_sta_id_or_broadcast(struct il_priv *il, struct ieee80211_sta *sta)
 	int sta_id;
 
 	if (!sta)
+	{
 		return il->hw_params.bcast_id;
+	}
 
 	sta_id = il_sta_id(sta);
 
@@ -2236,7 +2322,8 @@ il_free_fw_desc(struct pci_dev *pci_dev, struct fw_desc *desc)
 {
 	if (desc->v_addr)
 		dma_free_coherent(&pci_dev->dev, desc->len, desc->v_addr,
-				  desc->p_addr);
+						  desc->p_addr);
+
 	desc->v_addr = NULL;
 	desc->len = 0;
 }
@@ -2244,13 +2331,14 @@ il_free_fw_desc(struct pci_dev *pci_dev, struct fw_desc *desc)
 static inline int
 il_alloc_fw_desc(struct pci_dev *pci_dev, struct fw_desc *desc)
 {
-	if (!desc->len) {
+	if (!desc->len)
+	{
 		desc->v_addr = NULL;
 		return -EINVAL;
 	}
 
 	desc->v_addr = dma_alloc_coherent(&pci_dev->dev, desc->len,
-					  &desc->p_addr, GFP_KERNEL);
+									  &desc->p_addr, GFP_KERNEL);
 	return (desc->v_addr != NULL) ? 0 : -ENOMEM;
 }
 
@@ -2278,14 +2366,18 @@ static inline void
 _il_wake_queue(struct il_priv *il, u8 ac)
 {
 	if (atomic_dec_return(&il->queue_stop_count[ac]) <= 0)
+	{
 		ieee80211_wake_queue(il->hw, ac);
+	}
 }
 
 static inline void
 _il_stop_queue(struct il_priv *il, u8 ac)
 {
 	if (atomic_inc_return(&il->queue_stop_count[ac]) > 0)
+	{
 		ieee80211_stop_queue(il->hw, ac);
+	}
 }
 static inline void
 il_wake_queue(struct il_priv *il, struct il_tx_queue *txq)
@@ -2295,7 +2387,9 @@ il_wake_queue(struct il_priv *il, struct il_tx_queue *txq)
 	u8 hwq = (queue >> 2) & 0x1f;
 
 	if (test_and_clear_bit(hwq, il->queue_stopped))
+	{
 		_il_wake_queue(il, ac);
+	}
 }
 
 static inline void
@@ -2306,7 +2400,9 @@ il_stop_queue(struct il_priv *il, struct il_tx_queue *txq)
 	u8 hwq = (queue >> 2) & 0x1f;
 
 	if (!test_and_set_bit(hwq, il->queue_stopped))
+	{
 		_il_stop_queue(il, ac);
+	}
 }
 
 static inline void
@@ -2316,7 +2412,9 @@ il_wake_queues_by_reason(struct il_priv *il, int reason)
 
 	if (test_and_clear_bit(reason, &il->stop_reason))
 		for (ac = 0; ac < 4; ac++)
+		{
 			_il_wake_queue(il, ac);
+		}
 }
 
 static inline void
@@ -2326,17 +2424,19 @@ il_stop_queues_by_reason(struct il_priv *il, int reason)
 
 	if (!test_and_set_bit(reason, &il->stop_reason))
 		for (ac = 0; ac < 4; ac++)
+		{
 			_il_stop_queue(il, ac);
+		}
 }
 
 #ifdef ieee80211_stop_queue
-#undef ieee80211_stop_queue
+	#undef ieee80211_stop_queue
 #endif
 
 #define ieee80211_stop_queue DO_NOT_USE_ieee80211_stop_queue
 
 #ifdef ieee80211_wake_queue
-#undef ieee80211_wake_queue
+	#undef ieee80211_wake_queue
 #endif
 
 #define ieee80211_wake_queue DO_NOT_USE_ieee80211_wake_queue
@@ -2400,7 +2500,8 @@ il_beacon_time_mask_high(struct il_priv *il, u16 tsf_bits)
  * @finished_fr_num [0:11] - Indicates the idx of the RX Frame
  *			     which was transferred
  */
-struct il_rb_status {
+struct il_rb_status
+{
 	__le16 closed_rb_num;
 	__le16 closed_fr_num;
 	__le16 finished_rb_num;
@@ -2430,7 +2531,8 @@ il_get_dma_hi_addr(dma_addr_t addr)
  * @hi_n_len: 0-3 [35:32] portion of dma
  *	      4-15 length of the tx buffer
  */
-struct il_tfd_tb {
+struct il_tfd_tb
+{
 	__le32 lo;
 	__le16 hi_n_len;
 } __packed;
@@ -2463,7 +2565,8 @@ struct il_tfd_tb {
  *
  * A maximum of 255 (not 256!) TFDs may be on a queue waiting for Tx.
  */
-struct il_tfd {
+struct il_tfd
+{
 	u8 __reserved1[3];
 	u8 num_tbs;
 	struct il_tfd_tb tbs[IL_NUM_OF_TBS];
@@ -2472,7 +2575,8 @@ struct il_tfd {
 /* PCI registers */
 #define PCI_CFG_RETRY_TIMEOUT	0x041
 
-struct il_rate_info {
+struct il_rate_info
+{
 	u8 plcp;		/* uCode API:  RATE_6M_PLCP, etc. */
 	u8 plcp_siso;		/* uCode API:  RATE_SISO_6M_PLCP, etc. */
 	u8 plcp_mimo2;		/* uCode API:  RATE_MIMO2_6M_PLCP, etc. */
@@ -2485,7 +2589,8 @@ struct il_rate_info {
 	u8 next_rs_tgg;		/* next rate used in TGG rs algo */
 };
 
-struct il3945_rate_info {
+struct il3945_rate_info
+{
 	u8 plcp;		/* uCode API:  RATE_6M_PLCP, etc. */
 	u8 ieee;		/* MAC header:  RATE_6M_IEEE, etc. */
 	u8 prev_ieee;		/* previous rate in IEEE speeds */
@@ -2502,7 +2607,8 @@ struct il3945_rate_info {
  * These serve as idxes into
  * struct il_rate_info il_rates[RATE_COUNT];
  */
-enum {
+enum
+{
 	RATE_1M_IDX = 0,
 	RATE_2M_IDX,
 	RATE_5M_IDX,
@@ -2523,7 +2629,8 @@ enum {
 	RATE_INVALID = RATE_COUNT,
 };
 
-enum {
+enum
+{
 	RATE_6M_IDX_TBL = 0,
 	RATE_9M_IDX_TBL,
 	RATE_12M_IDX_TBL,
@@ -2539,7 +2646,8 @@ enum {
 	RATE_INVM_IDX_TBL = RATE_INVM_IDX - 1,
 };
 
-enum {
+enum
+{
 	IL_FIRST_OFDM_RATE = RATE_6M_IDX,
 	IL39_LAST_OFDM_RATE = RATE_54M_IDX,
 	IL_LAST_OFDM_RATE = RATE_60M_IDX,
@@ -2563,7 +2671,8 @@ enum {
 #define	RATE_11M_MASK  (1 << RATE_11M_IDX)
 
 /* uCode API values for legacy bit rates, both OFDM and CCK */
-enum {
+enum
+{
 	RATE_6M_PLCP = 13,
 	RATE_9M_PLCP = 15,
 	RATE_12M_PLCP = 5,
@@ -2581,7 +2690,8 @@ enum {
 };
 
 /* uCode API values for OFDM high-throughput (HT) bit rates */
-enum {
+enum
+{
 	RATE_SISO_6M_PLCP = 0,
 	RATE_SISO_12M_PLCP = 1,
 	RATE_SISO_18M_PLCP = 2,
@@ -2603,7 +2713,8 @@ enum {
 };
 
 /* MAC header values for bit rates */
-enum {
+enum
+{
 	RATE_6M_IEEE = 12,
 	RATE_9M_IEEE = 18,
 	RATE_12M_IEEE = 24,
@@ -2621,25 +2732,25 @@ enum {
 
 #define IL_CCK_BASIC_RATES_MASK    \
 	(RATE_1M_MASK          | \
-	RATE_2M_MASK)
+	 RATE_2M_MASK)
 
 #define IL_CCK_RATES_MASK          \
 	(IL_CCK_BASIC_RATES_MASK  | \
-	RATE_5M_MASK          | \
-	RATE_11M_MASK)
+	 RATE_5M_MASK          | \
+	 RATE_11M_MASK)
 
 #define IL_OFDM_BASIC_RATES_MASK   \
 	(RATE_6M_MASK         | \
-	RATE_12M_MASK         | \
-	RATE_24M_MASK)
+	 RATE_12M_MASK         | \
+	 RATE_24M_MASK)
 
 #define IL_OFDM_RATES_MASK         \
 	(IL_OFDM_BASIC_RATES_MASK | \
-	RATE_9M_MASK          | \
-	RATE_18M_MASK         | \
-	RATE_36M_MASK         | \
-	RATE_48M_MASK         | \
-	RATE_54M_MASK)
+	 RATE_9M_MASK          | \
+	 RATE_18M_MASK         | \
+	 RATE_36M_MASK         | \
+	 RATE_48M_MASK         | \
+	 RATE_54M_MASK)
 
 #define IL_BASIC_RATES_MASK         \
 	(IL_OFDM_BASIC_RATES_MASK | \
@@ -2714,7 +2825,8 @@ enum {
 
 extern const struct il_rate_info il_rates[RATE_COUNT];
 
-enum il_table_type {
+enum il_table_type
+{
 	LQ_NONE,
 	LQ_G,			/* legacy types */
 	LQ_A,
@@ -2742,7 +2854,8 @@ enum il_table_type {
 
 #define IL_MAX_MCS_DISPLAY_SIZE	12
 
-struct il_rate_mcs_info {
+struct il_rate_mcs_info
+{
 	char mbps[IL_MAX_MCS_DISPLAY_SIZE];
 	char mcs[IL_MAX_MCS_DISPLAY_SIZE];
 };
@@ -2750,7 +2863,8 @@ struct il_rate_mcs_info {
 /**
  * struct il_rate_scale_data -- tx success history for one rate
  */
-struct il_rate_scale_data {
+struct il_rate_scale_data
+{
 	u64 data;		/* bitmap of successful frames */
 	s32 success_counter;	/* number of frames successful */
 	s32 success_ratio;	/* per-cent * 128  */
@@ -2765,7 +2879,8 @@ struct il_rate_scale_data {
  * There are two of these in struct il_lq_sta,
  * one for "active", and one for "search".
  */
-struct il_scale_tbl_info {
+struct il_scale_tbl_info
+{
 	enum il_table_type lq_type;
 	u8 ant_type;
 	u8 is_SGI;		/* 1 = short guard interval */
@@ -2778,7 +2893,8 @@ struct il_scale_tbl_info {
 	struct il_rate_scale_data win[RATE_COUNT];	/* rate histories */
 };
 
-struct il_traffic_load {
+struct il_traffic_load
+{
 	unsigned long time_stamp;	/* age of the oldest stats */
 	u32 packet_count[TID_QUEUE_MAX_SIZE];	/* packet count in this time
 						 * slice */
@@ -2794,7 +2910,8 @@ struct il_traffic_load {
  *
  * Pointer to this gets passed back and forth between driver and mac80211.
  */
-struct il_lq_sta {
+struct il_lq_sta
+{
 	u8 active_tbl;		/* idx of active table, range 0-1 */
 	u8 enable_counter;	/* indicates HT mode */
 	u8 stay_in_tbl;		/* 1: disallow, 0: allow search for new mode */
@@ -2854,7 +2971,8 @@ struct il_lq_sta {
  * The common struct MUST be first because it is shared between
  * 3945 and 4965!
  */
-struct il_station_priv {
+struct il_station_priv
+{
 	struct il_station_priv_common common;
 	struct il_lq_sta lq_sta;
 	atomic_t pending_frames;
@@ -2872,9 +2990,15 @@ static inline u8
 il4965_first_antenna(u8 mask)
 {
 	if (mask & ANT_A)
+	{
 		return ANT_A;
+	}
+
 	if (mask & ANT_B)
+	{
 		return ANT_B;
+	}
+
 	return ANT_C;
 }
 
@@ -2888,9 +3012,9 @@ void il3945_rate_scale_init(struct ieee80211_hw *hw, s32 sta_id);
 
 /* Initialize station's rate scaling information after adding station */
 void il4965_rs_rate_init(struct il_priv *il, struct ieee80211_sta *sta,
-			 u8 sta_id);
+						 u8 sta_id);
 void il3945_rs_rate_init(struct il_priv *il, struct ieee80211_sta *sta,
-			 u8 sta_id);
+						 u8 sta_id);
 
 /**
  * il_rate_control_register - Register the rate control algorithm callbacks
@@ -2931,9 +3055,13 @@ static inline u32
 il_get_debug_level(struct il_priv *il)
 {
 	if (il->debug_level)
+	{
 		return il->debug_level;
+	}
 	else
+	{
 		return il_debug_level;
+	}
 }
 #else
 static inline u32
@@ -2944,25 +3072,25 @@ il_get_debug_level(struct il_priv *il)
 #endif
 
 #define il_print_hex_error(il, p, len)					\
-do {									\
-	print_hex_dump(KERN_ERR, "iwl data: ",				\
-		       DUMP_PREFIX_OFFSET, 16, 1, p, len, 1);		\
-} while (0)
+	do {									\
+		print_hex_dump(KERN_ERR, "iwl data: ",				\
+					   DUMP_PREFIX_OFFSET, 16, 1, p, len, 1);		\
+	} while (0)
 
 #ifdef CONFIG_IWLEGACY_DEBUG
 #define IL_DBG(level, fmt, args...)					\
-do {									\
-	if (il_get_debug_level(il) & level)				\
-		dev_err(&il->hw->wiphy->dev, "%c %s " fmt,		\
-			in_interrupt() ? 'I' : 'U', __func__ , ##args); \
-} while (0)
+	do {									\
+		if (il_get_debug_level(il) & level)				\
+			dev_err(&il->hw->wiphy->dev, "%c %s " fmt,		\
+					in_interrupt() ? 'I' : 'U', __func__ , ##args); \
+	} while (0)
 
 #define il_print_hex_dump(il, level, p, len)				\
-do {									\
-	if (il_get_debug_level(il) & level)				\
-		print_hex_dump(KERN_DEBUG, "iwl data: ",		\
-			       DUMP_PREFIX_OFFSET, 16, 1, p, len, 1);	\
-} while (0)
+	do {									\
+		if (il_get_debug_level(il) & level)				\
+			print_hex_dump(KERN_DEBUG, "iwl data: ",		\
+						   DUMP_PREFIX_OFFSET, 16, 1, p, len, 1);	\
+	} while (0)
 
 #else
 #define IL_DBG(level, fmt, args...)

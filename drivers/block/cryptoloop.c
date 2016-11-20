@@ -51,7 +51,9 @@ cryptoloop_init(struct loop_device *lo, const struct loop_info64 *info)
 	/* encryption breaks for non sector aligned offsets */
 
 	if (info->lo_offset % LOOP_IV_SECTOR_SIZE)
+	{
 		goto out;
+	}
 
 	strncpy(cms, info->lo_crypt_name, LO_NAME_SIZE);
 	cms[LO_NAME_SIZE - 1] = 0;
@@ -61,18 +63,23 @@ cryptoloop_init(struct loop_device *lo, const struct loop_info64 *info)
 
 	mode = cmsp + cipher_len;
 	mode_len = 0;
-	if (*mode) {
+
+	if (*mode)
+	{
 		mode++;
 		mode_len = strcspn(mode, "-");
 	}
 
-	if (!mode_len) {
+	if (!mode_len)
+	{
 		mode = "cbc";
 		mode_len = 3;
 	}
 
 	if (cipher_len + mode_len + 3 > LO_NAME_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	memmove(cms, mode, mode_len);
 	cmsp = cms + mode_len;
@@ -83,22 +90,27 @@ cryptoloop_init(struct loop_device *lo, const struct loop_info64 *info)
 	*cmsp = 0;
 
 	tfm = crypto_alloc_skcipher(cms, 0, CRYPTO_ALG_ASYNC);
+
 	if (IS_ERR(tfm))
+	{
 		return PTR_ERR(tfm);
+	}
 
 	err = crypto_skcipher_setkey(tfm, info->lo_encrypt_key,
-				     info->lo_encrypt_key_size);
-	
+								 info->lo_encrypt_key_size);
+
 	if (err != 0)
+	{
 		goto out_free_tfm;
+	}
 
 	lo->key_data = tfm;
 	return 0;
 
- out_free_tfm:
+out_free_tfm:
 	crypto_free_skcipher(tfm);
 
- out:
+out:
 	return err;
 }
 
@@ -107,9 +119,9 @@ typedef int (*encdec_cbc_t)(struct skcipher_request *req);
 
 static int
 cryptoloop_transfer(struct loop_device *lo, int cmd,
-		    struct page *raw_page, unsigned raw_off,
-		    struct page *loop_page, unsigned loop_off,
-		    int size, sector_t IV)
+					struct page *raw_page, unsigned raw_off,
+					struct page *loop_page, unsigned loop_off,
+					int size, sector_t IV)
 {
 	struct crypto_skcipher *tfm = lo->key_data;
 	SKCIPHER_REQUEST_ON_STACK(req, tfm);
@@ -123,18 +135,21 @@ cryptoloop_transfer(struct loop_device *lo, int cmd,
 
 	skcipher_request_set_tfm(req, tfm);
 	skcipher_request_set_callback(req, CRYPTO_TFM_REQ_MAY_SLEEP,
-				      NULL, NULL);
+								  NULL, NULL);
 
 	sg_init_table(&sg_out, 1);
 	sg_init_table(&sg_in, 1);
 
-	if (cmd == READ) {
+	if (cmd == READ)
+	{
 		in_page = raw_page;
 		in_offs = raw_off;
 		out_page = loop_page;
 		out_offs = loop_off;
 		encdecfunc = crypto_skcipher_decrypt;
-	} else {
+	}
+	else
+	{
 		in_page = loop_page;
 		in_offs = loop_off;
 		out_page = raw_page;
@@ -142,7 +157,8 @@ cryptoloop_transfer(struct loop_device *lo, int cmd,
 		encdecfunc = crypto_skcipher_encrypt;
 	}
 
-	while (size > 0) {
+	while (size > 0)
+	{
 		const int sz = min(size, LOOP_IV_SECTOR_SIZE);
 		u32 iv[4] = { 0, };
 		iv[0] = cpu_to_le32(IV & 0xffffffff);
@@ -152,8 +168,11 @@ cryptoloop_transfer(struct loop_device *lo, int cmd,
 
 		skcipher_request_set_crypt(req, &sg_in, &sg_out, sz, iv);
 		err = encdecfunc(req);
+
 		if (err)
+		{
 			goto out;
+		}
 
 		IV++;
 		size -= sz;
@@ -178,16 +197,20 @@ static int
 cryptoloop_release(struct loop_device *lo)
 {
 	struct crypto_skcipher *tfm = lo->key_data;
-	if (tfm != NULL) {
+
+	if (tfm != NULL)
+	{
 		crypto_free_skcipher(tfm);
 		lo->key_data = NULL;
 		return 0;
 	}
+
 	printk(KERN_ERR "cryptoloop_release(): tfm == NULL?\n");
 	return -EINVAL;
 }
 
-static struct loop_func_table cryptoloop_funcs = {
+static struct loop_func_table cryptoloop_funcs =
+{
 	.number = LO_CRYPT_CRYPTOAPI,
 	.init = cryptoloop_init,
 	.ioctl = cryptoloop_ioctl,
@@ -202,7 +225,10 @@ init_cryptoloop(void)
 	int rc = loop_register_transfer(&cryptoloop_funcs);
 
 	if (rc)
+	{
 		printk(KERN_ERR "cryptoloop: loop_register_transfer failed\n");
+	}
+
 	return rc;
 }
 
@@ -211,7 +237,7 @@ cleanup_cryptoloop(void)
 {
 	if (loop_unregister_transfer(LO_CRYPT_CRYPTOAPI))
 		printk(KERN_ERR
-			"cryptoloop: loop_unregister_transfer failed\n");
+			   "cryptoloop: loop_unregister_transfer failed\n");
 }
 
 module_init(init_cryptoloop);

@@ -26,15 +26,17 @@
 /* pioctl ops */
 static int coda_ioctl_permission(struct inode *inode, int mask);
 static long coda_pioctl(struct file *filp, unsigned int cmd,
-			unsigned long user_data);
+						unsigned long user_data);
 
 /* exported from this file */
-const struct inode_operations coda_ioctl_inode_operations = {
+const struct inode_operations coda_ioctl_inode_operations =
+{
 	.permission	= coda_ioctl_permission,
 	.setattr	= coda_setattr,
 };
 
-const struct file_operations coda_ioctl_operations = {
+const struct file_operations coda_ioctl_operations =
+{
 	.unlocked_ioctl	= coda_pioctl,
 	.llseek		= noop_llseek,
 };
@@ -46,7 +48,7 @@ static int coda_ioctl_permission(struct inode *inode, int mask)
 }
 
 static long coda_pioctl(struct file *filp, unsigned int cmd,
-			unsigned long user_data)
+						unsigned long user_data)
 {
 	struct path path;
 	int error;
@@ -57,24 +59,33 @@ static long coda_pioctl(struct file *filp, unsigned int cmd,
 
 	/* get the Pioctl data arguments from user space */
 	if (copy_from_user(&data, (void __user *)user_data, sizeof(data)))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Look up the pathname. Note that the pathname is in
 	 * user memory, and namei takes care of this
 	 */
 	if (data.follow)
+	{
 		error = user_path(data.path, &path);
+	}
 	else
+	{
 		error = user_lpath(data.path, &path);
+	}
 
 	if (error)
+	{
 		return error;
+	}
 
 	target_inode = d_inode(path.dentry);
 
 	/* return if it is not a Coda inode */
-	if (target_inode->i_sb != inode->i_sb) {
+	if (target_inode->i_sb != inode->i_sb)
+	{
 		error = -EINVAL;
 		goto out;
 	}

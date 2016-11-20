@@ -37,7 +37,8 @@
 #define CGROUP_WEIGHT_MAX		10000
 
 /* a css_task_iter should be treated as an opaque object */
-struct css_task_iter {
+struct css_task_iter
+{
 	struct cgroup_subsys		*ss;
 
 	struct list_head		*cset_pos;
@@ -82,9 +83,9 @@ extern struct css_set init_css_set;
 bool css_has_online_children(struct cgroup_subsys_state *css);
 struct cgroup_subsys_state *css_from_id(int id, struct cgroup_subsys *ss);
 struct cgroup_subsys_state *cgroup_get_e_css(struct cgroup *cgroup,
-					     struct cgroup_subsys *ss);
+		struct cgroup_subsys *ss);
 struct cgroup_subsys_state *css_tryget_online_from_dir(struct dentry *dentry,
-						       struct cgroup_subsys *ss);
+		struct cgroup_subsys *ss);
 
 struct cgroup *cgroup_get_from_path(const char *path);
 struct cgroup *cgroup_get_from_fd(int fd);
@@ -100,7 +101,7 @@ void cgroup_file_notify(struct cgroup_file *cfile);
 int task_cgroup_path(struct task_struct *task, char *buf, size_t buflen);
 int cgroupstats_build(struct cgroupstats *stats, struct dentry *dentry);
 int proc_cgroup_show(struct seq_file *m, struct pid_namespace *ns,
-		     struct pid *pid, struct task_struct *tsk);
+					 struct pid *pid, struct task_struct *tsk);
 
 void cgroup_fork(struct task_struct *p);
 extern int cgroup_can_fork(struct task_struct *p);
@@ -117,20 +118,20 @@ int cgroup_init(void);
  */
 
 struct cgroup_subsys_state *css_next_child(struct cgroup_subsys_state *pos,
-					   struct cgroup_subsys_state *parent);
+		struct cgroup_subsys_state *parent);
 struct cgroup_subsys_state *css_next_descendant_pre(struct cgroup_subsys_state *pos,
-						    struct cgroup_subsys_state *css);
+		struct cgroup_subsys_state *css);
 struct cgroup_subsys_state *css_rightmost_descendant(struct cgroup_subsys_state *pos);
 struct cgroup_subsys_state *css_next_descendant_post(struct cgroup_subsys_state *pos,
-						     struct cgroup_subsys_state *css);
+		struct cgroup_subsys_state *css);
 
 struct task_struct *cgroup_taskset_first(struct cgroup_taskset *tset,
-					 struct cgroup_subsys_state **dst_cssp);
+		struct cgroup_subsys_state **dst_cssp);
 struct task_struct *cgroup_taskset_next(struct cgroup_taskset *tset,
-					struct cgroup_subsys_state **dst_cssp);
+										struct cgroup_subsys_state **dst_cssp);
 
 void css_task_iter_start(struct cgroup_subsys_state *css,
-			 struct css_task_iter *it);
+						 struct css_task_iter *it);
 struct task_struct *css_task_iter_next(struct css_task_iter *it);
 void css_task_iter_end(struct css_task_iter *it);
 
@@ -154,7 +155,7 @@ void css_task_iter_end(struct css_task_iter *it);
  */
 #define css_for_each_child(pos, parent)					\
 	for ((pos) = css_next_child(NULL, (parent)); (pos);		\
-	     (pos) = css_next_child((pos), (parent)))
+		 (pos) = css_next_child((pos), (parent)))
 
 /**
  * css_for_each_descendant_pre - pre-order walk of a css's descendants
@@ -214,7 +215,7 @@ void css_task_iter_end(struct css_task_iter *it);
  */
 #define css_for_each_descendant_pre(pos, css)				\
 	for ((pos) = css_next_descendant_pre(NULL, (css)); (pos);	\
-	     (pos) = css_next_descendant_pre((pos), (css)))
+		 (pos) = css_next_descendant_pre((pos), (css)))
 
 /**
  * css_for_each_descendant_post - post-order walk of a css's descendants
@@ -237,7 +238,7 @@ void css_task_iter_end(struct css_task_iter *it);
  */
 #define css_for_each_descendant_post(pos, css)				\
 	for ((pos) = css_next_descendant_post(NULL, (css)); (pos);	\
-	     (pos) = css_next_descendant_post((pos), (css)))
+		 (pos) = css_next_descendant_post((pos), (css)))
 
 /**
  * cgroup_taskset_for_each - iterate cgroup_taskset
@@ -259,8 +260,8 @@ void css_task_iter_end(struct css_task_iter *it);
  */
 #define cgroup_taskset_for_each(task, dst_css, tset)			\
 	for ((task) = cgroup_taskset_first((tset), &(dst_css));		\
-	     (task);							\
-	     (task) = cgroup_taskset_next((tset), &(dst_css)))
+		 (task);							\
+		 (task) = cgroup_taskset_next((tset), &(dst_css)))
 
 /**
  * cgroup_taskset_for_each_leader - iterate group leaders in a cgroup_taskset
@@ -273,8 +274,8 @@ void css_task_iter_end(struct css_task_iter *it);
  */
 #define cgroup_taskset_for_each_leader(leader, dst_css, tset)		\
 	for ((leader) = cgroup_taskset_first((tset), &(dst_css));	\
-	     (leader);							\
-	     (leader) = cgroup_taskset_next((tset), &(dst_css)))	\
+		 (leader);							\
+		 (leader) = cgroup_taskset_next((tset), &(dst_css)))	\
 		if ((leader) != (leader)->group_leader)			\
 			;						\
 		else
@@ -292,7 +293,9 @@ void css_task_iter_end(struct css_task_iter *it);
 static inline void css_get(struct cgroup_subsys_state *css)
 {
 	if (!(css->flags & CSS_NO_REF))
+	{
 		percpu_ref_get(&css->refcnt);
+	}
 }
 
 /**
@@ -305,7 +308,9 @@ static inline void css_get(struct cgroup_subsys_state *css)
 static inline void css_get_many(struct cgroup_subsys_state *css, unsigned int n)
 {
 	if (!(css->flags & CSS_NO_REF))
+	{
 		percpu_ref_get_many(&css->refcnt, n);
+	}
 }
 
 /**
@@ -322,7 +327,10 @@ static inline void css_get_many(struct cgroup_subsys_state *css, unsigned int n)
 static inline bool css_tryget(struct cgroup_subsys_state *css)
 {
 	if (!(css->flags & CSS_NO_REF))
+	{
 		return percpu_ref_tryget(&css->refcnt);
+	}
+
 	return true;
 }
 
@@ -339,7 +347,10 @@ static inline bool css_tryget(struct cgroup_subsys_state *css)
 static inline bool css_tryget_online(struct cgroup_subsys_state *css)
 {
 	if (!(css->flags & CSS_NO_REF))
+	{
 		return percpu_ref_tryget_live(&css->refcnt);
+	}
+
 	return true;
 }
 
@@ -352,7 +363,9 @@ static inline bool css_tryget_online(struct cgroup_subsys_state *css)
 static inline void css_put(struct cgroup_subsys_state *css)
 {
 	if (!(css->flags & CSS_NO_REF))
+	{
 		percpu_ref_put(&css->refcnt);
+	}
 }
 
 /**
@@ -365,7 +378,9 @@ static inline void css_put(struct cgroup_subsys_state *css)
 static inline void css_put_many(struct cgroup_subsys_state *css, unsigned int n)
 {
 	if (!(css->flags & CSS_NO_REF))
+	{
 		percpu_ref_put_many(&css->refcnt, n);
+	}
 }
 
 static inline void cgroup_put(struct cgroup *cgrp)
@@ -391,9 +406,9 @@ extern struct mutex cgroup_mutex;
 extern spinlock_t css_set_lock;
 #define task_css_set_check(task, __c)					\
 	rcu_dereference_check((task)->cgroups,				\
-		lockdep_is_held(&cgroup_mutex) ||			\
-		lockdep_is_held(&css_set_lock) ||			\
-		((task)->flags & PF_EXITING) || (__c))
+						  lockdep_is_held(&cgroup_mutex) ||			\
+						  lockdep_is_held(&css_set_lock) ||			\
+						  ((task)->flags & PF_EXITING) || (__c))
 #else
 #define task_css_set_check(task, __c)					\
 	rcu_dereference((task)->cgroups)
@@ -430,7 +445,7 @@ static inline struct css_set *task_css_set(struct task_struct *task)
  * See task_css_check().
  */
 static inline struct cgroup_subsys_state *task_css(struct task_struct *task,
-						   int subsys_id)
+		int subsys_id)
 {
 	return task_css_check(task, subsys_id, false);
 }
@@ -450,12 +465,19 @@ task_get_css(struct task_struct *task, int subsys_id)
 	struct cgroup_subsys_state *css;
 
 	rcu_read_lock();
-	while (true) {
+
+	while (true)
+	{
 		css = task_css(task, subsys_id);
+
 		if (likely(css_tryget_online(css)))
+		{
 			break;
+		}
+
 		cpu_relax();
 	}
+
 	rcu_read_unlock();
 	return css;
 }
@@ -471,11 +493,11 @@ task_get_css(struct task_struct *task, int subsys_id)
 static inline bool task_css_is_root(struct task_struct *task, int subsys_id)
 {
 	return task_css_check(task, subsys_id, true) ==
-		init_css_set.subsys[subsys_id];
+		   init_css_set.subsys[subsys_id];
 }
 
 static inline struct cgroup *task_cgroup(struct task_struct *task,
-					 int subsys_id)
+		int subsys_id)
 {
 	return task_css(task, subsys_id)->cgroup;
 }
@@ -490,10 +512,13 @@ static inline struct cgroup *task_cgroup(struct task_struct *task,
  * and @ancestor are accessible.
  */
 static inline bool cgroup_is_descendant(struct cgroup *cgrp,
-					struct cgroup *ancestor)
+										struct cgroup *ancestor)
 {
 	if (cgrp->root != ancestor->root || cgrp->level < ancestor->level)
+	{
 		return false;
+	}
+
 	return cgrp->ancestor_ids[ancestor->level] == ancestor->id;
 }
 
@@ -507,7 +532,7 @@ static inline bool cgroup_is_descendant(struct cgroup *cgrp,
  * to the default hierarchy.
  */
 static inline bool task_under_cgroup_hierarchy(struct task_struct *task,
-					       struct cgroup *ancestor)
+		struct cgroup *ancestor)
 {
 	struct css_set *cset = task_css_set(task);
 
@@ -577,9 +602,9 @@ struct cgroup;
 
 static inline void css_put(struct cgroup_subsys_state *css) {}
 static inline int cgroup_attach_task_all(struct task_struct *from,
-					 struct task_struct *t) { return 0; }
+		struct task_struct *t) { return 0; }
 static inline int cgroupstats_build(struct cgroupstats *stats,
-				    struct dentry *dentry) { return -EINVAL; }
+									struct dentry *dentry) { return -EINVAL; }
 
 static inline void cgroup_fork(struct task_struct *p) {}
 static inline int cgroup_can_fork(struct task_struct *p) { return 0; }
@@ -592,7 +617,7 @@ static inline int cgroup_init_early(void) { return 0; }
 static inline int cgroup_init(void) { return 0; }
 
 static inline bool task_under_cgroup_hierarchy(struct task_struct *task,
-					       struct cgroup *ancestor)
+		struct cgroup *ancestor)
 {
 	return true;
 }
@@ -605,7 +630,7 @@ static inline bool task_under_cgroup_hierarchy(struct task_struct *task,
 #ifdef CONFIG_SOCK_CGROUP_DATA
 
 #if defined(CONFIG_CGROUP_NET_PRIO) || defined(CONFIG_CGROUP_NET_CLASSID)
-extern spinlock_t cgroup_sk_update_lock;
+	extern spinlock_t cgroup_sk_update_lock;
 #endif
 
 void cgroup_sk_alloc_disable(void);
@@ -624,9 +649,11 @@ static inline struct cgroup *sock_cgroup_ptr(struct sock_cgroup_data *skcd)
 	v = READ_ONCE(skcd->val);
 
 	if (v & 1)
+	{
 		return &cgrp_dfl_root.cgrp;
+	}
 
-	return (struct cgroup *)(unsigned long)v ?: &cgrp_dfl_root.cgrp;
+	return (struct cgroup *)(unsigned long)v ? : &cgrp_dfl_root.cgrp;
 #else
 	return (struct cgroup *)(unsigned long)skcd->val;
 #endif
@@ -639,7 +666,8 @@ static inline void cgroup_sk_free(struct sock_cgroup_data *skcd) {}
 
 #endif	/* CONFIG_CGROUP_DATA */
 
-struct cgroup_namespace {
+struct cgroup_namespace
+{
 	atomic_t		count;
 	struct ns_common	ns;
 	struct user_namespace	*user_ns;
@@ -654,18 +682,18 @@ extern struct cgroup_namespace init_cgroup_ns;
 void free_cgroup_ns(struct cgroup_namespace *ns);
 
 struct cgroup_namespace *copy_cgroup_ns(unsigned long flags,
-					struct user_namespace *user_ns,
-					struct cgroup_namespace *old_ns);
+										struct user_namespace *user_ns,
+										struct cgroup_namespace *old_ns);
 
 int cgroup_path_ns(struct cgroup *cgrp, char *buf, size_t buflen,
-		   struct cgroup_namespace *ns);
+				   struct cgroup_namespace *ns);
 
 #else /* !CONFIG_CGROUPS */
 
 static inline void free_cgroup_ns(struct cgroup_namespace *ns) { }
 static inline struct cgroup_namespace *
 copy_cgroup_ns(unsigned long flags, struct user_namespace *user_ns,
-	       struct cgroup_namespace *old_ns)
+			   struct cgroup_namespace *old_ns)
 {
 	return old_ns;
 }
@@ -675,13 +703,17 @@ copy_cgroup_ns(unsigned long flags, struct user_namespace *user_ns,
 static inline void get_cgroup_ns(struct cgroup_namespace *ns)
 {
 	if (ns)
+	{
 		atomic_inc(&ns->count);
+	}
 }
 
 static inline void put_cgroup_ns(struct cgroup_namespace *ns)
 {
 	if (ns && atomic_dec_and_test(&ns->count))
+	{
 		free_cgroup_ns(ns);
+	}
 }
 
 #endif /* _LINUX_CGROUP_H */

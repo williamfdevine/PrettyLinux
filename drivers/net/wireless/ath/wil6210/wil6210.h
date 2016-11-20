@@ -97,7 +97,7 @@ static inline u32 wil_mtu2macbuf(u32 mtu)
 #define WIL6210_DISCONNECT_TO_MS (2000)
 #define WIL6210_RX_HIGH_TRSH_INIT		(0)
 #define WIL6210_RX_HIGH_TRSH_DEFAULT \
-				(1 << (WIL_RX_RING_SIZE_ORDER_DEFAULT - 3))
+	(1 << (WIL_RX_RING_SIZE_ORDER_DEFAULT - 3))
 /* Hardware definitions begin */
 
 /*
@@ -120,7 +120,8 @@ static inline u32 wil_mtu2macbuf(u32 mtu)
  *
  * each interrupt controlled by the same bit in all registers
  */
-struct RGF_ICR {
+struct RGF_ICR
+{
 	u32 ICC; /* Cause Control, RW: 0 - W1C, 1 - COR */
 	u32 ICR; /* Cause, W1C/COR depending on ICC */
 	u32 ICM; /* Cause masked (ICR & ~IMV), W1C/COR depending on ICC */
@@ -133,108 +134,108 @@ struct RGF_ICR {
 /* registers - FW addresses */
 #define RGF_USER_USAGE_1		(0x880004)
 #define RGF_USER_USAGE_6		(0x880018)
-	#define BIT_USER_OOB_MODE		BIT(31)
+#define BIT_USER_OOB_MODE		BIT(31)
 #define RGF_USER_HW_MACHINE_STATE	(0x8801dc)
-	#define HW_MACHINE_BOOT_DONE	(0x3fffffd)
+#define HW_MACHINE_BOOT_DONE	(0x3fffffd)
 #define RGF_USER_USER_CPU_0		(0x8801e0)
-	#define BIT_USER_USER_CPU_MAN_RST	BIT(1) /* user_cpu_man_rst */
+#define BIT_USER_USER_CPU_MAN_RST	BIT(1) /* user_cpu_man_rst */
 #define RGF_USER_MAC_CPU_0		(0x8801fc)
-	#define BIT_USER_MAC_CPU_MAN_RST	BIT(1) /* mac_cpu_man_rst */
+#define BIT_USER_MAC_CPU_MAN_RST	BIT(1) /* mac_cpu_man_rst */
 #define RGF_USER_USER_SCRATCH_PAD	(0x8802bc)
 #define RGF_USER_BL			(0x880A3C) /* Boot Loader */
 #define RGF_USER_FW_REV_ID		(0x880a8c) /* chip revision */
 #define RGF_USER_CLKS_CTL_0		(0x880abc)
-	#define BIT_USER_CLKS_CAR_AHB_SW_SEL	BIT(1) /* ref clk/PLL */
-	#define BIT_USER_CLKS_RST_PWGD	BIT(11) /* reset on "power good" */
+#define BIT_USER_CLKS_CAR_AHB_SW_SEL	BIT(1) /* ref clk/PLL */
+#define BIT_USER_CLKS_RST_PWGD	BIT(11) /* reset on "power good" */
 #define RGF_USER_CLKS_CTL_SW_RST_VEC_0	(0x880b04)
 #define RGF_USER_CLKS_CTL_SW_RST_VEC_1	(0x880b08)
 #define RGF_USER_CLKS_CTL_SW_RST_VEC_2	(0x880b0c)
 #define RGF_USER_CLKS_CTL_SW_RST_VEC_3	(0x880b10)
 #define RGF_USER_CLKS_CTL_SW_RST_MASK_0	(0x880b14)
-	#define BIT_HPAL_PERST_FROM_PAD	BIT(6)
-	#define BIT_CAR_PERST_RST	BIT(7)
+#define BIT_HPAL_PERST_FROM_PAD	BIT(6)
+#define BIT_CAR_PERST_RST	BIT(7)
 #define RGF_USER_USER_ICR		(0x880b4c) /* struct RGF_ICR */
-	#define BIT_USER_USER_ICR_SW_INT_2	BIT(18)
+#define BIT_USER_USER_ICR_SW_INT_2	BIT(18)
 #define RGF_USER_CLKS_CTL_EXT_SW_RST_VEC_0	(0x880c18)
 #define RGF_USER_CLKS_CTL_EXT_SW_RST_VEC_1	(0x880c2c)
 #define RGF_USER_SPARROW_M_4			(0x880c50) /* Sparrow */
-	#define BIT_SPARROW_M_4_SEL_SLEEP_OR_REF	BIT(2)
+#define BIT_SPARROW_M_4_SEL_SLEEP_OR_REF	BIT(2)
 
 #define RGF_DMA_EP_TX_ICR		(0x881bb4) /* struct RGF_ICR */
-	#define BIT_DMA_EP_TX_ICR_TX_DONE	BIT(0)
-	#define BIT_DMA_EP_TX_ICR_TX_DONE_N(n)	BIT(n+1) /* n = [0..23] */
+#define BIT_DMA_EP_TX_ICR_TX_DONE	BIT(0)
+#define BIT_DMA_EP_TX_ICR_TX_DONE_N(n)	BIT(n+1) /* n = [0..23] */
 #define RGF_DMA_EP_RX_ICR		(0x881bd0) /* struct RGF_ICR */
-	#define BIT_DMA_EP_RX_ICR_RX_DONE	BIT(0)
-	#define BIT_DMA_EP_RX_ICR_RX_HTRSH	BIT(1)
+#define BIT_DMA_EP_RX_ICR_RX_DONE	BIT(0)
+#define BIT_DMA_EP_RX_ICR_RX_HTRSH	BIT(1)
 #define RGF_DMA_EP_MISC_ICR		(0x881bec) /* struct RGF_ICR */
-	#define BIT_DMA_EP_MISC_ICR_RX_HTRSH	BIT(0)
-	#define BIT_DMA_EP_MISC_ICR_TX_NO_ACT	BIT(1)
-	#define BIT_DMA_EP_MISC_ICR_HALP	BIT(27)
-	#define BIT_DMA_EP_MISC_ICR_FW_INT(n)	BIT(28+n) /* n = [0..3] */
+#define BIT_DMA_EP_MISC_ICR_RX_HTRSH	BIT(0)
+#define BIT_DMA_EP_MISC_ICR_TX_NO_ACT	BIT(1)
+#define BIT_DMA_EP_MISC_ICR_HALP	BIT(27)
+#define BIT_DMA_EP_MISC_ICR_FW_INT(n)	BIT(28+n) /* n = [0..3] */
 
 /* Legacy interrupt moderation control (before Sparrow v2)*/
 #define RGF_DMA_ITR_CNT_TRSH		(0x881c5c)
 #define RGF_DMA_ITR_CNT_DATA		(0x881c60)
 #define RGF_DMA_ITR_CNT_CRL		(0x881c64)
-	#define BIT_DMA_ITR_CNT_CRL_EN		BIT(0)
-	#define BIT_DMA_ITR_CNT_CRL_EXT_TICK	BIT(1)
-	#define BIT_DMA_ITR_CNT_CRL_FOREVER	BIT(2)
-	#define BIT_DMA_ITR_CNT_CRL_CLR		BIT(3)
-	#define BIT_DMA_ITR_CNT_CRL_REACH_TRSH	BIT(4)
+#define BIT_DMA_ITR_CNT_CRL_EN		BIT(0)
+#define BIT_DMA_ITR_CNT_CRL_EXT_TICK	BIT(1)
+#define BIT_DMA_ITR_CNT_CRL_FOREVER	BIT(2)
+#define BIT_DMA_ITR_CNT_CRL_CLR		BIT(3)
+#define BIT_DMA_ITR_CNT_CRL_REACH_TRSH	BIT(4)
 
 /* Offload control (Sparrow B0+) */
 #define RGF_DMA_OFUL_NID_0		(0x881cd4)
-	#define BIT_DMA_OFUL_NID_0_RX_EXT_TR_EN		BIT(0)
-	#define BIT_DMA_OFUL_NID_0_TX_EXT_TR_EN		BIT(1)
-	#define BIT_DMA_OFUL_NID_0_RX_EXT_A3_SRC	BIT(2)
-	#define BIT_DMA_OFUL_NID_0_TX_EXT_A3_SRC	BIT(3)
+#define BIT_DMA_OFUL_NID_0_RX_EXT_TR_EN		BIT(0)
+#define BIT_DMA_OFUL_NID_0_TX_EXT_TR_EN		BIT(1)
+#define BIT_DMA_OFUL_NID_0_RX_EXT_A3_SRC	BIT(2)
+#define BIT_DMA_OFUL_NID_0_TX_EXT_A3_SRC	BIT(3)
 
 /* New (sparrow v2+) interrupt moderation control */
 #define RGF_DMA_ITR_TX_DESQ_NO_MOD		(0x881d40)
 #define RGF_DMA_ITR_TX_CNT_TRSH			(0x881d34)
 #define RGF_DMA_ITR_TX_CNT_DATA			(0x881d38)
 #define RGF_DMA_ITR_TX_CNT_CTL			(0x881d3c)
-	#define BIT_DMA_ITR_TX_CNT_CTL_EN		BIT(0)
-	#define BIT_DMA_ITR_TX_CNT_CTL_EXT_TIC_SEL	BIT(1)
-	#define BIT_DMA_ITR_TX_CNT_CTL_FOREVER		BIT(2)
-	#define BIT_DMA_ITR_TX_CNT_CTL_CLR		BIT(3)
-	#define BIT_DMA_ITR_TX_CNT_CTL_REACHED_TRESH	BIT(4)
-	#define BIT_DMA_ITR_TX_CNT_CTL_CROSS_EN		BIT(5)
-	#define BIT_DMA_ITR_TX_CNT_CTL_FREE_RUNNIG	BIT(6)
+#define BIT_DMA_ITR_TX_CNT_CTL_EN		BIT(0)
+#define BIT_DMA_ITR_TX_CNT_CTL_EXT_TIC_SEL	BIT(1)
+#define BIT_DMA_ITR_TX_CNT_CTL_FOREVER		BIT(2)
+#define BIT_DMA_ITR_TX_CNT_CTL_CLR		BIT(3)
+#define BIT_DMA_ITR_TX_CNT_CTL_REACHED_TRESH	BIT(4)
+#define BIT_DMA_ITR_TX_CNT_CTL_CROSS_EN		BIT(5)
+#define BIT_DMA_ITR_TX_CNT_CTL_FREE_RUNNIG	BIT(6)
 #define RGF_DMA_ITR_TX_IDL_CNT_TRSH			(0x881d60)
 #define RGF_DMA_ITR_TX_IDL_CNT_DATA			(0x881d64)
 #define RGF_DMA_ITR_TX_IDL_CNT_CTL			(0x881d68)
-	#define BIT_DMA_ITR_TX_IDL_CNT_CTL_EN			BIT(0)
-	#define BIT_DMA_ITR_TX_IDL_CNT_CTL_EXT_TIC_SEL		BIT(1)
-	#define BIT_DMA_ITR_TX_IDL_CNT_CTL_FOREVER		BIT(2)
-	#define BIT_DMA_ITR_TX_IDL_CNT_CTL_CLR			BIT(3)
-	#define BIT_DMA_ITR_TX_IDL_CNT_CTL_REACHED_TRESH	BIT(4)
+#define BIT_DMA_ITR_TX_IDL_CNT_CTL_EN			BIT(0)
+#define BIT_DMA_ITR_TX_IDL_CNT_CTL_EXT_TIC_SEL		BIT(1)
+#define BIT_DMA_ITR_TX_IDL_CNT_CTL_FOREVER		BIT(2)
+#define BIT_DMA_ITR_TX_IDL_CNT_CTL_CLR			BIT(3)
+#define BIT_DMA_ITR_TX_IDL_CNT_CTL_REACHED_TRESH	BIT(4)
 #define RGF_DMA_ITR_RX_DESQ_NO_MOD		(0x881d50)
 #define RGF_DMA_ITR_RX_CNT_TRSH			(0x881d44)
 #define RGF_DMA_ITR_RX_CNT_DATA			(0x881d48)
 #define RGF_DMA_ITR_RX_CNT_CTL			(0x881d4c)
-	#define BIT_DMA_ITR_RX_CNT_CTL_EN		BIT(0)
-	#define BIT_DMA_ITR_RX_CNT_CTL_EXT_TIC_SEL	BIT(1)
-	#define BIT_DMA_ITR_RX_CNT_CTL_FOREVER		BIT(2)
-	#define BIT_DMA_ITR_RX_CNT_CTL_CLR		BIT(3)
-	#define BIT_DMA_ITR_RX_CNT_CTL_REACHED_TRESH	BIT(4)
-	#define BIT_DMA_ITR_RX_CNT_CTL_CROSS_EN		BIT(5)
-	#define BIT_DMA_ITR_RX_CNT_CTL_FREE_RUNNIG	BIT(6)
+#define BIT_DMA_ITR_RX_CNT_CTL_EN		BIT(0)
+#define BIT_DMA_ITR_RX_CNT_CTL_EXT_TIC_SEL	BIT(1)
+#define BIT_DMA_ITR_RX_CNT_CTL_FOREVER		BIT(2)
+#define BIT_DMA_ITR_RX_CNT_CTL_CLR		BIT(3)
+#define BIT_DMA_ITR_RX_CNT_CTL_REACHED_TRESH	BIT(4)
+#define BIT_DMA_ITR_RX_CNT_CTL_CROSS_EN		BIT(5)
+#define BIT_DMA_ITR_RX_CNT_CTL_FREE_RUNNIG	BIT(6)
 #define RGF_DMA_ITR_RX_IDL_CNT_TRSH			(0x881d54)
 #define RGF_DMA_ITR_RX_IDL_CNT_DATA			(0x881d58)
 #define RGF_DMA_ITR_RX_IDL_CNT_CTL			(0x881d5c)
-	#define BIT_DMA_ITR_RX_IDL_CNT_CTL_EN			BIT(0)
-	#define BIT_DMA_ITR_RX_IDL_CNT_CTL_EXT_TIC_SEL		BIT(1)
-	#define BIT_DMA_ITR_RX_IDL_CNT_CTL_FOREVER		BIT(2)
-	#define BIT_DMA_ITR_RX_IDL_CNT_CTL_CLR			BIT(3)
-	#define BIT_DMA_ITR_RX_IDL_CNT_CTL_REACHED_TRESH	BIT(4)
+#define BIT_DMA_ITR_RX_IDL_CNT_CTL_EN			BIT(0)
+#define BIT_DMA_ITR_RX_IDL_CNT_CTL_EXT_TIC_SEL		BIT(1)
+#define BIT_DMA_ITR_RX_IDL_CNT_CTL_FOREVER		BIT(2)
+#define BIT_DMA_ITR_RX_IDL_CNT_CTL_CLR			BIT(3)
+#define BIT_DMA_ITR_RX_IDL_CNT_CTL_REACHED_TRESH	BIT(4)
 
 #define RGF_DMA_PSEUDO_CAUSE		(0x881c68)
 #define RGF_DMA_PSEUDO_CAUSE_MASK_SW	(0x881c6c)
 #define RGF_DMA_PSEUDO_CAUSE_MASK_FW	(0x881c70)
-	#define BIT_DMA_PSEUDO_CAUSE_RX		BIT(0)
-	#define BIT_DMA_PSEUDO_CAUSE_TX		BIT(1)
-	#define BIT_DMA_PSEUDO_CAUSE_MISC	BIT(2)
+#define BIT_DMA_PSEUDO_CAUSE_RX		BIT(0)
+#define BIT_DMA_PSEUDO_CAUSE_TX		BIT(1)
+#define BIT_DMA_PSEUDO_CAUSE_MISC	BIT(2)
 
 #define RGF_HP_CTRL			(0x88265c)
 #define RGF_PCIE_LOS_COUNTER_CTL	(0x882dc4)
@@ -244,18 +245,19 @@ struct RGF_ICR {
 
 #define RGF_CAF_ICR			(0x88946c) /* struct RGF_ICR */
 #define RGF_CAF_OSC_CONTROL		(0x88afa4)
-	#define BIT_CAF_OSC_XTAL_EN		BIT(0)
+#define BIT_CAF_OSC_XTAL_EN		BIT(0)
 #define RGF_CAF_PLL_LOCK_STATUS		(0x88afec)
-	#define BIT_CAF_OSC_DIG_XTAL_STABLE	BIT(0)
+#define BIT_CAF_OSC_DIG_XTAL_STABLE	BIT(0)
 
 #define RGF_USER_JTAG_DEV_ID	(0x880b34) /* device ID */
-	#define JTAG_DEV_ID_SPARROW_B0	(0x2632072f)
+#define JTAG_DEV_ID_SPARROW_B0	(0x2632072f)
 
 /* crash codes for FW/Ucode stored here */
 #define RGF_FW_ASSERT_CODE		(0x91f020)
 #define RGF_UCODE_ASSERT_CODE		(0x91f028)
 
-enum {
+enum
+{
 	HW_VER_UNKNOWN,
 	HW_VER_SPARROW_B0, /* JTAG_DEV_ID_SPARROW_B0 */
 };
@@ -271,7 +273,8 @@ enum {
 #define ISR_MISC_FW_ERROR	BIT_DMA_EP_MISC_ICR_FW_INT(3)
 
 /* Hardware definitions end */
-struct fw_map {
+struct fw_map
+{
 	u32 from; /* linker address - from, inclusive */
 	u32 to;   /* linker address - to, exclusive */
 	u32 host; /* PCI/Host address - BAR0 + 0x880000 */
@@ -306,7 +309,8 @@ static inline void parse_cidxtid(u8 cidxtid, u8 *cid, u8 *tid)
 	*tid = (cidxtid >> 4) & 0xf;
 }
 
-struct wil6210_mbox_ring {
+struct wil6210_mbox_ring
+{
 	u32 base;
 	u16 entry_size; /* max. size of mbox entry, incl. all headers */
 	u16 size;
@@ -314,18 +318,21 @@ struct wil6210_mbox_ring {
 	u32 head;
 } __packed;
 
-struct wil6210_mbox_ring_desc {
+struct wil6210_mbox_ring_desc
+{
 	__le32 sync;
 	__le32 addr;
 } __packed;
 
 /* at HOST_OFF_WIL6210_MBOX_CTL */
-struct wil6210_mbox_ctl {
+struct wil6210_mbox_ctl
+{
 	struct wil6210_mbox_ring tx;
 	struct wil6210_mbox_ring rx;
 } __packed;
 
-struct wil6210_mbox_hdr {
+struct wil6210_mbox_hdr
+{
 	__le16 seq;
 	__le16 len; /* payload, bytes after this header */
 	__le16 type;
@@ -338,16 +345,19 @@ struct wil6210_mbox_hdr {
 /* max. value for wil6210_mbox_hdr.len */
 #define MAX_MBOXITEM_SIZE   (240)
 
-struct pending_wmi_event {
+struct pending_wmi_event
+{
 	struct list_head list;
-	struct {
+	struct
+	{
 		struct wil6210_mbox_hdr hdr;
 		struct wmi_cmd_hdr wmi;
 		u8 data[0];
 	} __packed event;
 };
 
-enum { /* for wil_ctx.mapped_as */
+enum   /* for wil_ctx.mapped_as */
+{
 	wil_mapped_as_none = 0,
 	wil_mapped_as_single = 1,
 	wil_mapped_as_page = 2,
@@ -356,7 +366,8 @@ enum { /* for wil_ctx.mapped_as */
 /**
  * struct wil_ctx - software context for Vring descriptor
  */
-struct wil_ctx {
+struct wil_ctx
+{
 	struct sk_buff *skb;
 	u8 nr_frags;
 	u8 mapped_as;
@@ -364,7 +375,8 @@ struct wil_ctx {
 
 union vring_desc;
 
-struct vring {
+struct vring
+{
 	dma_addr_t pa;
 	volatile union vring_desc *va; /* vring_desc[size], WriteBack by DMA */
 	u16 size; /* number of vring_desc elements */
@@ -377,7 +389,8 @@ struct vring {
 /**
  * Additional data for Tx Vring
  */
-struct vring_tx_data {
+struct vring_tx_data
+{
 	bool dot1x_open;
 	int enabled;
 	cycles_t idle, last_idle, begin;
@@ -388,7 +401,8 @@ struct vring_tx_data {
 	spinlock_t lock;
 };
 
-enum { /* for wil6210_priv.status */
+enum   /* for wil6210_priv.status */
+{
 	wil_status_fwready = 0, /* FW operational */
 	wil_status_fwconnecting,
 	wil_status_fwconnected,
@@ -422,7 +436,8 @@ struct pci_dev;
  * @dialog_token: dialog token for aggregation session
  * @first_time: true when this buffer used 1-st time
  */
-struct wil_tid_ampdu_rx {
+struct wil_tid_ampdu_rx
+{
 	struct sk_buff **reorder_buf;
 	unsigned long *reorder_time;
 	struct timer_list session_timer;
@@ -447,16 +462,19 @@ struct wil_tid_ampdu_rx {
  * @pn: GCMP PN for the session
  * @key_set: valid key present
  */
-struct wil_tid_crypto_rx_single {
+struct wil_tid_crypto_rx_single
+{
 	u8 pn[IEEE80211_GCMP_PN_LEN];
 	bool key_set;
 };
 
-struct wil_tid_crypto_rx {
+struct wil_tid_crypto_rx
+{
 	struct wil_tid_crypto_rx_single key_id[4];
 };
 
-struct wil_p2p_info {
+struct wil_p2p_info
+{
 	struct ieee80211_channel listen_chan;
 	u8 discovery_started;
 	u8 p2p_dev_started;
@@ -465,7 +483,8 @@ struct wil_p2p_info {
 	struct work_struct discovery_expired_work; /* listen/search expire */
 };
 
-enum wil_sta_status {
+enum wil_sta_status
+{
 	wil_sta_unused = 0,
 	wil_sta_conn_pending = 1,
 	wil_sta_connected = 2,
@@ -474,7 +493,8 @@ enum wil_sta_status {
 #define WIL_STA_TID_NUM (16)
 #define WIL_MCS_MAX (12) /* Maximum MCS supported */
 
-struct wil_net_stats {
+struct wil_net_stats
+{
 	unsigned long	rx_packets;
 	unsigned long	tx_packets;
 	unsigned long	rx_bytes;
@@ -497,7 +517,8 @@ struct wil_net_stats {
  * if no beam forming done, frame exchange is not
  * possible.
  */
-struct wil_sta_info {
+struct wil_sta_info
+{
 	u8 addr[ETH_ALEN];
 	enum wil_sta_status status;
 	struct wil_net_stats stats;
@@ -510,23 +531,27 @@ struct wil_sta_info {
 	struct wil_tid_crypto_rx group_crypto_rx;
 };
 
-enum {
+enum
+{
 	fw_recovery_idle = 0,
 	fw_recovery_pending = 1,
 	fw_recovery_running = 2,
 };
 
-enum {
+enum
+{
 	hw_capability_last
 };
 
-struct wil_probe_client_req {
+struct wil_probe_client_req
+{
 	struct list_head list;
 	u64 cookie;
 	u8 cid;
 };
 
-struct pmc_ctx {
+struct pmc_ctx
+{
 	/* alloc, free, and read operations must own the lock */
 	struct mutex		lock;
 	struct vring_tx_desc	*pring_va;
@@ -537,13 +562,15 @@ struct pmc_ctx {
 	int			descriptor_size;
 };
 
-struct wil_halp {
+struct wil_halp
+{
 	struct mutex		lock; /* protect halp ref_cnt */
 	unsigned int		ref_cnt;
 	struct completion	comp;
 };
 
-struct wil_blob_wrapper {
+struct wil_blob_wrapper
+{
 	struct wil6210_priv *wil;
 	struct debugfs_blob_wrapper blob;
 };
@@ -556,14 +583,16 @@ struct wil_blob_wrapper {
 #define WIL_LED_BLINK_OFF_MED_MS	(200)
 #define WIL_LED_BLINK_ON_FAST_MS	(100)
 #define WIL_LED_BLINK_OFF_FAST_MS	(100)
-enum {
+enum
+{
 	WIL_LED_TIME_SLOW = 0,
 	WIL_LED_TIME_MED,
 	WIL_LED_TIME_FAST,
 	WIL_LED_TIME_LAST,
 };
 
-struct blink_on_off_time {
+struct blink_on_off_time
+{
 	u32 on_ms;
 	u32 off_ms;
 };
@@ -572,7 +601,8 @@ extern struct blink_on_off_time led_blink_time[WIL_LED_TIME_LAST];
 extern u8 led_id;
 extern u8 led_polarity;
 
-struct wil6210_priv {
+struct wil6210_priv
+{
 	struct pci_dev *pdev;
 	struct wireless_dev *wdev;
 	void __iomem *csr;
@@ -691,9 +721,9 @@ void __wil_info(struct wil6210_priv *wil, const char *fmt, ...);
 __printf(2, 3)
 void wil_dbg_ratelimited(const struct wil6210_priv *wil, const char *fmt, ...);
 #define wil_dbg(wil, fmt, arg...) do { \
-	netdev_dbg(wil_to_ndev(wil), fmt, ##arg); \
-	wil_dbg_trace(wil, fmt, ##arg); \
-} while (0)
+		netdev_dbg(wil_to_ndev(wil), fmt, ##arg); \
+		wil_dbg_trace(wil, fmt, ##arg); \
+	} while (0)
 
 #define wil_dbg_irq(wil, fmt, arg...) wil_dbg(wil, "DBG[ IRQ]" fmt, ##arg)
 #define wil_dbg_txrx(wil, fmt, arg...) wil_dbg(wil, "DBG[TXRX]" fmt, ##arg)
@@ -733,40 +763,40 @@ static inline void wil_c(struct wil6210_priv *wil, u32 reg, u32 val)
 
 #if defined(CONFIG_DYNAMIC_DEBUG)
 #define wil_hex_dump_txrx(prefix_str, prefix_type, rowsize,	\
-			  groupsize, buf, len, ascii)		\
-			  print_hex_dump_debug("DBG[TXRX]" prefix_str,\
+						  groupsize, buf, len, ascii)		\
+print_hex_dump_debug("DBG[TXRX]" prefix_str,\
 					 prefix_type, rowsize,	\
 					 groupsize, buf, len, ascii)
 
 #define wil_hex_dump_wmi(prefix_str, prefix_type, rowsize,	\
-			 groupsize, buf, len, ascii)		\
-			 print_hex_dump_debug("DBG[ WMI]" prefix_str,\
-					prefix_type, rowsize,	\
-					groupsize, buf, len, ascii)
+						 groupsize, buf, len, ascii)		\
+print_hex_dump_debug("DBG[ WMI]" prefix_str,\
+					 prefix_type, rowsize,	\
+					 groupsize, buf, len, ascii)
 #else /* defined(CONFIG_DYNAMIC_DEBUG) */
 static inline
 void wil_hex_dump_txrx(const char *prefix_str, int prefix_type, int rowsize,
-		       int groupsize, const void *buf, size_t len, bool ascii)
+					   int groupsize, const void *buf, size_t len, bool ascii)
 {
 }
 
 static inline
 void wil_hex_dump_wmi(const char *prefix_str, int prefix_type, int rowsize,
-		      int groupsize, const void *buf, size_t len, bool ascii)
+					  int groupsize, const void *buf, size_t len, bool ascii)
 {
 }
 #endif /* defined(CONFIG_DYNAMIC_DEBUG) */
 
 void wil_memcpy_fromio_32(void *dst, const volatile void __iomem *src,
-			  size_t count);
+						  size_t count);
 void wil_memcpy_toio_32(volatile void __iomem *dst, const void *src,
-			size_t count);
+						size_t count);
 void wil_memcpy_fromio_halp_vote(struct wil6210_priv *wil, void *dst,
-				 const volatile void __iomem *src,
-				 size_t count);
+								 const volatile void __iomem *src,
+								 size_t count);
 void wil_memcpy_toio_halp_vote(struct wil6210_priv *wil,
-			       volatile void __iomem *dst,
-			       const void *src, size_t count);
+							   volatile void __iomem *dst,
+							   const void *src, size_t count);
 
 void *wil_if_alloc(struct device *dev);
 void wil_if_free(struct wil6210_priv *wil);
@@ -789,11 +819,11 @@ void wil_set_ethtoolops(struct net_device *ndev);
 void __iomem *wmi_buffer(struct wil6210_priv *wil, __le32 ptr);
 void __iomem *wmi_addr(struct wil6210_priv *wil, u32 ptr);
 int wmi_read_hdr(struct wil6210_priv *wil, __le32 ptr,
-		 struct wil6210_mbox_hdr *hdr);
+				 struct wil6210_mbox_hdr *hdr);
 int wmi_send(struct wil6210_priv *wil, u16 cmdid, void *buf, u16 len);
 void wmi_recv_cmd(struct wil6210_priv *wil);
 int wmi_call(struct wil6210_priv *wil, u16 cmdid, void *buf, u16 len,
-	     u16 reply_id, void *reply, u8 reply_size, int to_msec);
+			 u16 reply_id, void *reply, u8 reply_size, int to_msec);
 void wmi_event_worker(struct work_struct *work);
 void wmi_event_flush(struct wil6210_priv *wil);
 int wmi_set_ssid(struct wil6210_priv *wil, u8 ssid_len, const void *ssid);
@@ -801,25 +831,25 @@ int wmi_get_ssid(struct wil6210_priv *wil, u8 *ssid_len, void *ssid);
 int wmi_set_channel(struct wil6210_priv *wil, int channel);
 int wmi_get_channel(struct wil6210_priv *wil, int *channel);
 int wmi_del_cipher_key(struct wil6210_priv *wil, u8 key_index,
-		       const void *mac_addr, int key_usage);
+					   const void *mac_addr, int key_usage);
 int wmi_add_cipher_key(struct wil6210_priv *wil, u8 key_index,
-		       const void *mac_addr, int key_len, const void *key,
-		       int key_usage);
+					   const void *mac_addr, int key_len, const void *key,
+					   int key_usage);
 int wmi_echo(struct wil6210_priv *wil);
 int wmi_set_ie(struct wil6210_priv *wil, u8 type, u16 ie_len, const void *ie);
 int wmi_rx_chain_add(struct wil6210_priv *wil, struct vring *vring);
 int wmi_rxon(struct wil6210_priv *wil, bool on);
 int wmi_get_temperature(struct wil6210_priv *wil, u32 *t_m, u32 *t_r);
 int wmi_disconnect_sta(struct wil6210_priv *wil, const u8 *mac, u16 reason,
-		       bool full_disconnect);
+					   bool full_disconnect);
 int wmi_addba(struct wil6210_priv *wil, u8 ringid, u8 size, u16 timeout);
 int wmi_delba_tx(struct wil6210_priv *wil, u8 ringid, u16 reason);
 int wmi_delba_rx(struct wil6210_priv *wil, u8 cidxtid, u16 reason);
 int wmi_addba_rx_resp(struct wil6210_priv *wil, u8 cid, u8 tid, u8 token,
-		      u16 status, bool amsdu, u16 agg_wsize, u16 timeout);
+					  u16 status, bool amsdu, u16 agg_wsize, u16 timeout);
 int wil_addba_rx_request(struct wil6210_priv *wil, u8 cidxtid,
-			 u8 dialog_token, __le16 ba_param_set,
-			 __le16 ba_timeout, __le16 ba_seq_ctrl);
+						 u8 dialog_token, __le16 ba_param_set,
+						 __le16 ba_timeout, __le16 ba_seq_ctrl);
 int wil_addba_tx_request(struct wil6210_priv *wil, u8 ringid, u16 wsize);
 
 void wil6210_clear_irq(struct wil6210_priv *wil);
@@ -836,9 +866,9 @@ void wil6210_mask_halp(struct wil6210_priv *wil);
 bool wil_p2p_is_social_scan(struct cfg80211_scan_request *request);
 void wil_p2p_discovery_timer_fn(ulong x);
 int wil_p2p_search(struct wil6210_priv *wil,
-		   struct cfg80211_scan_request *request);
+				   struct cfg80211_scan_request *request);
 int wil_p2p_listen(struct wil6210_priv *wil, unsigned int duration,
-		   struct ieee80211_channel *chan, u64 *cookie);
+				   struct ieee80211_channel *chan, u64 *cookie);
 u8 wil_p2p_stop_discovery(struct wil6210_priv *wil);
 int wil_p2p_cancel_listen(struct wil6210_priv *wil, u64 cookie);
 void wil_p2p_listen_expired(struct work_struct *work);
@@ -852,13 +882,13 @@ int wmi_start_search(struct wil6210_priv *wil);
 int wmi_stop_discovery(struct wil6210_priv *wil);
 
 int wil_cfg80211_mgmt_tx(struct wiphy *wiphy, struct wireless_dev *wdev,
-			 struct cfg80211_mgmt_tx_params *params,
-			 u64 *cookie);
+						 struct cfg80211_mgmt_tx_params *params,
+						 u64 *cookie);
 
 int wil6210_debugfs_init(struct wil6210_priv *wil);
 void wil6210_debugfs_remove(struct wil6210_priv *wil);
 int wil_cid_fill_sinfo(struct wil6210_priv *wil, int cid,
-		       struct station_info *sinfo);
+					   struct station_info *sinfo);
 
 struct wireless_dev *wil_cfg80211_init(struct device *dev);
 void wil_wdev_free(struct wil6210_priv *wil);
@@ -866,11 +896,11 @@ void wil_p2p_wdev_free(struct wil6210_priv *wil);
 
 int wmi_set_mac_address(struct wil6210_priv *wil, void *addr);
 int wmi_pcp_start(struct wil6210_priv *wil, int bi, u8 wmi_nettype,
-		  u8 chan, u8 hidden_ssid, u8 is_go);
+				  u8 chan, u8 hidden_ssid, u8 is_go);
 int wmi_pcp_stop(struct wil6210_priv *wil);
 int wmi_led_cfg(struct wil6210_priv *wil, bool enable);
 void wil6210_disconnect(struct wil6210_priv *wil, const u8 *bssid,
-			u16 reason_code, bool from_event);
+						u16 reason_code, bool from_event);
 void wil_probe_client_flush(struct wil6210_priv *wil);
 void wil_probe_client_worker(struct work_struct *work);
 
@@ -879,7 +909,7 @@ void wil_rx_fini(struct wil6210_priv *wil);
 
 /* TX API */
 int wil_vring_init_tx(struct wil6210_priv *wil, int id, int size,
-		      int cid, int tid);
+					  int cid, int tid);
 void wil_vring_fini_tx(struct wil6210_priv *wil, int id);
 int wil_tx_init(struct wil6210_priv *wil, int cid);
 int wil_vring_init_bcast(struct wil6210_priv *wil, int id, int size);
@@ -898,7 +928,7 @@ int wil_iftype_nl2wmi(enum nl80211_iftype type);
 
 int wil_ioctl(struct wil6210_priv *wil, void __user *data, int cmd);
 int wil_request_firmware(struct wil6210_priv *wil, const char *name,
-			 bool load);
+						 bool load);
 
 int wil_can_suspend(struct wil6210_priv *wil, bool is_runtime);
 int wil_suspend(struct wil6210_priv *wil, bool is_runtime);

@@ -44,7 +44,8 @@ static int bufsize = 64 * 1024;
 
 static const char procname[] = "dccpprobe";
 
-static struct {
+static struct
+{
 	struct kfifo	  fifo;
 	spinlock_t	  lock;
 	wait_queue_head_t wait;
@@ -64,9 +65,9 @@ static void printl(const char *fmt, ...)
 	now = timespec64_sub(now, dccpw.tstart);
 
 	len = sprintf(tbuf, "%lu.%06lu ",
-		      (unsigned long) now.tv_sec,
-		      (unsigned long) now.tv_nsec / NSEC_PER_USEC);
-	len += vscnprintf(tbuf+len, sizeof(tbuf)-len, fmt, args);
+				  (unsigned long) now.tv_sec,
+				  (unsigned long) now.tv_nsec / NSEC_PER_USEC);
+	len += vscnprintf(tbuf + len, sizeof(tbuf) - len, fmt, args);
 	va_end(args);
 
 	kfifo_in_locked(&dccpw.fifo, tbuf, len, &dccpw.lock);
@@ -79,29 +80,33 @@ static int jdccp_sendmsg(struct sock *sk, struct msghdr *msg, size_t size)
 	struct ccid3_hc_tx_sock *hc = NULL;
 
 	if (ccid_get_current_tx_ccid(dccp_sk(sk)) == DCCPC_CCID3)
+	{
 		hc = ccid3_hc_tx_sk(sk);
+	}
 
 	if (port == 0 || ntohs(inet->inet_dport) == port ||
-	    ntohs(inet->inet_sport) == port) {
+		ntohs(inet->inet_sport) == port)
+	{
 		if (hc)
 			printl("%pI4:%u %pI4:%u %d %d %d %d %u %llu %llu %d\n",
-			       &inet->inet_saddr, ntohs(inet->inet_sport),
-			       &inet->inet_daddr, ntohs(inet->inet_dport), size,
-			       hc->tx_s, hc->tx_rtt, hc->tx_p,
-			       hc->tx_x_calc, hc->tx_x_recv >> 6,
-			       hc->tx_x >> 6, hc->tx_t_ipi);
+				   &inet->inet_saddr, ntohs(inet->inet_sport),
+				   &inet->inet_daddr, ntohs(inet->inet_dport), size,
+				   hc->tx_s, hc->tx_rtt, hc->tx_p,
+				   hc->tx_x_calc, hc->tx_x_recv >> 6,
+				   hc->tx_x >> 6, hc->tx_t_ipi);
 		else
 			printl("%pI4:%u %pI4:%u %d\n",
-			       &inet->inet_saddr, ntohs(inet->inet_sport),
-			       &inet->inet_daddr, ntohs(inet->inet_dport),
-			       size);
+				   &inet->inet_saddr, ntohs(inet->inet_sport),
+				   &inet->inet_daddr, ntohs(inet->inet_dport),
+				   size);
 	}
 
 	jprobe_return();
 	return 0;
 }
 
-static struct jprobe dccp_send_probe = {
+static struct jprobe dccp_send_probe =
+{
 	.kp	= {
 		.symbol_name = "dccp_sendmsg",
 	},
@@ -116,25 +121,35 @@ static int dccpprobe_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t dccpprobe_read(struct file *file, char __user *buf,
-			      size_t len, loff_t *ppos)
+							  size_t len, loff_t *ppos)
 {
 	int error = 0, cnt = 0;
 	unsigned char *tbuf;
 
 	if (!buf)
+	{
 		return -EINVAL;
+	}
 
 	if (len == 0)
+	{
 		return 0;
+	}
 
 	tbuf = vmalloc(len);
+
 	if (!tbuf)
+	{
 		return -ENOMEM;
+	}
 
 	error = wait_event_interruptible(dccpw.wait,
-					 kfifo_len(&dccpw.fifo) != 0);
+									 kfifo_len(&dccpw.fifo) != 0);
+
 	if (error)
+	{
 		goto out_free;
+	}
 
 	cnt = kfifo_out_locked(&dccpw.fifo, tbuf, len, &dccpw.lock);
 	error = copy_to_user(buf, tbuf, cnt) ? -EFAULT : 0;
@@ -145,7 +160,8 @@ out_free:
 	return error ? error : cnt;
 }
 
-static const struct file_operations dccpprobe_fops = {
+static const struct file_operations dccpprobe_fops =
+{
 	.owner	 = THIS_MODULE,
 	.open	 = dccpprobe_open,
 	.read    = dccpprobe_read,
@@ -158,20 +174,33 @@ static __init int dccpprobe_init(void)
 
 	init_waitqueue_head(&dccpw.wait);
 	spin_lock_init(&dccpw.lock);
+
 	if (kfifo_alloc(&dccpw.fifo, bufsize, GFP_KERNEL))
+	{
 		return ret;
+	}
+
 	if (!proc_create(procname, S_IRUSR, init_net.proc_net, &dccpprobe_fops))
+	{
 		goto err0;
+	}
 
 	ret = register_jprobe(&dccp_send_probe);
-	if (ret) {
+
+	if (ret)
+	{
 		ret = request_module("dccp");
+
 		if (!ret)
+		{
 			ret = register_jprobe(&dccp_send_probe);
+		}
 	}
 
 	if (ret)
+	{
 		goto err1;
+	}
 
 	pr_info("DCCP watch registered (port=%d)\n", port);
 	return 0;

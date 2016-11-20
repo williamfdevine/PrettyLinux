@@ -190,12 +190,12 @@ struct snd_pcm_substream;
 
 int snd_cs8427_init(struct snd_i2c_bus *bus, struct snd_i2c_device *device);
 int snd_cs8427_create(struct snd_i2c_bus *bus, unsigned char addr,
-		      unsigned int reset_timeout, struct snd_i2c_device **r_cs8427);
+					  unsigned int reset_timeout, struct snd_i2c_device **r_cs8427);
 int snd_cs8427_reg_write(struct snd_i2c_device *device, unsigned char reg,
-			 unsigned char val);
+						 unsigned char val);
 int snd_cs8427_iec958_build(struct snd_i2c_device *cs8427,
-			    struct snd_pcm_substream *playback_substream,
-			    struct snd_pcm_substream *capture_substream);
+							struct snd_pcm_substream *playback_substream,
+							struct snd_pcm_substream *capture_substream);
 int snd_cs8427_iec958_active(struct snd_i2c_device *cs8427, int active);
 int snd_cs8427_iec958_pcm(struct snd_i2c_device *cs8427, unsigned int rate);
 

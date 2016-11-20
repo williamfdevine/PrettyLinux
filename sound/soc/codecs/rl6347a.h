@@ -23,7 +23,8 @@
 #define RL6347A_PROC_COEF\
 	VERB_CMD(AC_VERB_SET_PROC_COEF, RL6347A_VENDOR_REGISTERS, 0)
 
-struct rl6347a_priv {
+struct rl6347a_priv
+{
 	struct reg_default *index_cache;
 	int index_cache_size;
 };

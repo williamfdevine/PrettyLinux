@@ -1,7 +1,8 @@
 #ifndef _BCACHE_REQUEST_H_
 #define _BCACHE_REQUEST_H_
 
-struct data_insert_op {
+struct data_insert_op
+{
 	struct closure		cl;
 	struct cache_set	*c;
 	struct bio		*bio;
@@ -12,20 +13,22 @@ struct data_insert_op {
 	uint16_t		write_prio;
 	short			error;
 
-	union {
+	union
+	{
 		uint16_t	flags;
 
-	struct {
-		unsigned	bypass:1;
-		unsigned	writeback:1;
-		unsigned	flush_journal:1;
-		unsigned	csum:1;
+		struct
+		{
+			unsigned	bypass: 1;
+			unsigned	writeback: 1;
+			unsigned	flush_journal: 1;
+			unsigned	csum: 1;
 
-		unsigned	replace:1;
-		unsigned	replace_collision:1;
+			unsigned	replace: 1;
+			unsigned	replace_collision: 1;
 
-		unsigned	insert_data_done:1;
-	};
+			unsigned	insert_data_done: 1;
+		};
 	};
 
 	struct keylist		insert_keys;

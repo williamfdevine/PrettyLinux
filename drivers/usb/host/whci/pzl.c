@@ -27,33 +27,38 @@
 
 static void update_pzl_pointers(struct whc *whc, int period, u64 addr)
 {
-	switch (period) {
-	case 0:
-		whc_qset_set_link_ptr(&whc->pz_list[0], addr);
-		whc_qset_set_link_ptr(&whc->pz_list[2], addr);
-		whc_qset_set_link_ptr(&whc->pz_list[4], addr);
-		whc_qset_set_link_ptr(&whc->pz_list[6], addr);
-		whc_qset_set_link_ptr(&whc->pz_list[8], addr);
-		whc_qset_set_link_ptr(&whc->pz_list[10], addr);
-		whc_qset_set_link_ptr(&whc->pz_list[12], addr);
-		whc_qset_set_link_ptr(&whc->pz_list[14], addr);
-		break;
-	case 1:
-		whc_qset_set_link_ptr(&whc->pz_list[1], addr);
-		whc_qset_set_link_ptr(&whc->pz_list[5], addr);
-		whc_qset_set_link_ptr(&whc->pz_list[9], addr);
-		whc_qset_set_link_ptr(&whc->pz_list[13], addr);
-		break;
-	case 2:
-		whc_qset_set_link_ptr(&whc->pz_list[3], addr);
-		whc_qset_set_link_ptr(&whc->pz_list[11], addr);
-		break;
-	case 3:
-		whc_qset_set_link_ptr(&whc->pz_list[7], addr);
-		break;
-	case 4:
-		whc_qset_set_link_ptr(&whc->pz_list[15], addr);
-		break;
+	switch (period)
+	{
+		case 0:
+			whc_qset_set_link_ptr(&whc->pz_list[0], addr);
+			whc_qset_set_link_ptr(&whc->pz_list[2], addr);
+			whc_qset_set_link_ptr(&whc->pz_list[4], addr);
+			whc_qset_set_link_ptr(&whc->pz_list[6], addr);
+			whc_qset_set_link_ptr(&whc->pz_list[8], addr);
+			whc_qset_set_link_ptr(&whc->pz_list[10], addr);
+			whc_qset_set_link_ptr(&whc->pz_list[12], addr);
+			whc_qset_set_link_ptr(&whc->pz_list[14], addr);
+			break;
+
+		case 1:
+			whc_qset_set_link_ptr(&whc->pz_list[1], addr);
+			whc_qset_set_link_ptr(&whc->pz_list[5], addr);
+			whc_qset_set_link_ptr(&whc->pz_list[9], addr);
+			whc_qset_set_link_ptr(&whc->pz_list[13], addr);
+			break;
+
+		case 2:
+			whc_qset_set_link_ptr(&whc->pz_list[3], addr);
+			whc_qset_set_link_ptr(&whc->pz_list[11], addr);
+			break;
+
+		case 3:
+			whc_qset_set_link_ptr(&whc->pz_list[7], addr);
+			break;
+
+		case 4:
+			whc_qset_set_link_ptr(&whc->pz_list[15], addr);
+			break;
 	}
 }
 
@@ -67,9 +72,15 @@ static int qset_get_period(struct whc *whc, struct whc_qset *qset)
 	uint8_t bInterval = qset->ep->desc.bInterval;
 
 	if (bInterval < 6)
+	{
 		bInterval = 6;
+	}
+
 	if (bInterval > 10)
+	{
 		bInterval = 10;
+	}
+
 	return bInterval - 6;
 }
 
@@ -105,7 +116,8 @@ static enum whc_update pzl_process_qset(struct whc *whc, struct whc_qset *qset)
 	enum whc_update update = 0;
 	uint32_t status = 0;
 
-	while (qset->ntds) {
+	while (qset->ntds)
+	{
 		struct whc_qtd *td;
 		int t;
 
@@ -117,9 +129,12 @@ static enum whc_update pzl_process_qset(struct whc *whc, struct whc_qset *qset)
 		 * Nothing to do with a still active qTD.
 		 */
 		if (status & QTD_STS_ACTIVE)
+		{
 			break;
+		}
 
-		if (status & QTD_STS_HALTED) {
+		if (status & QTD_STS_HALTED)
+		{
 			/* Ug, an error. */
 			process_halted_qtd(whc, qset, td);
 			/* A halted qTD always triggers an update
@@ -134,13 +149,17 @@ static enum whc_update pzl_process_qset(struct whc *whc, struct whc_qset *qset)
 	}
 
 	if (!qset->remove)
+	{
 		update |= qset_add_qtds(whc, qset);
+	}
 
 done:
+
 	/*
 	 * If there are no qTDs in this qset, remove it from the PZL.
 	 */
-	if (qset->remove && qset->ntds == 0) {
+	if (qset->remove && qset->ntds == 0)
+	{
 		pzl_qset_remove(whc, qset);
 		update |= WHC_UPDATE_REMOVED;
 	}
@@ -161,8 +180,8 @@ void pzl_start(struct whc *whc)
 
 	whc_write_wusbcmd(whc, WUSBCMD_PERIODIC_EN, WUSBCMD_PERIODIC_EN);
 	whci_wait_for(&whc->umc->dev, whc->base + WUSBSTS,
-		      WUSBSTS_PERIODIC_SCHED, WUSBSTS_PERIODIC_SCHED,
-		      1000, "start PZL");
+				  WUSBSTS_PERIODIC_SCHED, WUSBSTS_PERIODIC_SCHED,
+				  1000, "start PZL");
 }
 
 /**
@@ -173,8 +192,8 @@ void pzl_stop(struct whc *whc)
 {
 	whc_write_wusbcmd(whc, WUSBCMD_PERIODIC_EN, 0);
 	whci_wait_for(&whc->umc->dev, whc->base + WUSBSTS,
-		      WUSBSTS_PERIODIC_SCHED, 0,
-		      1000, "stop PZL");
+				  WUSBSTS_PERIODIC_SCHED, 0,
+				  1000, "stop PZL");
 }
 
 /**
@@ -192,15 +211,21 @@ void pzl_update(struct whc *whc, uint32_t wusbcmd)
 	long t;
 
 	mutex_lock(&wusbhc->mutex);
-	if (wusbhc->active) {
+
+	if (wusbhc->active)
+	{
 		whc_write_wusbcmd(whc, wusbcmd, wusbcmd);
 		t = wait_event_timeout(
-			whc->periodic_list_wq,
-			(le_readl(whc->base + WUSBCMD) & WUSBCMD_PERIODIC_UPDATED) == 0,
-			msecs_to_jiffies(1000));
+				whc->periodic_list_wq,
+				(le_readl(whc->base + WUSBCMD) & WUSBCMD_PERIODIC_UPDATED) == 0,
+				msecs_to_jiffies(1000));
+
 		if (t == 0)
+		{
 			whc_hw_error(whc, "PZL update timeout");
+		}
 	}
+
 	mutex_unlock(&wusbhc->mutex);
 }
 
@@ -210,8 +235,10 @@ static void update_pzl_hw_view(struct whc *whc)
 	int period;
 	u64 tmp_qh = 0;
 
-	for (period = 0; period < 5; period++) {
-		list_for_each_entry_safe(qset, t, &whc->periodic_list[period], list_node) {
+	for (period = 0; period < 5; period++)
+	{
+		list_for_each_entry_safe(qset, t, &whc->periodic_list[period], list_node)
+		{
 			whc_qset_set_link_ptr(&qset->qh.link, tmp_qh);
 			tmp_qh = qset->qset_dma;
 			qset->in_hw_list = true;
@@ -237,23 +264,35 @@ void scan_periodic_work(struct work_struct *work)
 
 	spin_lock_irq(&whc->lock);
 
-	for (period = 4; period >= 0; period--) {
-		list_for_each_entry_safe(qset, t, &whc->periodic_list[period], list_node) {
+	for (period = 4; period >= 0; period--)
+	{
+		list_for_each_entry_safe(qset, t, &whc->periodic_list[period], list_node)
+		{
 			if (!qset->in_hw_list)
+			{
 				update |= WHC_UPDATE_ADDED;
+			}
+
 			update |= pzl_process_qset(whc, qset);
 		}
 	}
 
 	if (update & (WHC_UPDATE_ADDED | WHC_UPDATE_REMOVED))
+	{
 		update_pzl_hw_view(whc);
+	}
 
 	spin_unlock_irq(&whc->lock);
 
-	if (update) {
+	if (update)
+	{
 		uint32_t wusbcmd = WUSBCMD_PERIODIC_UPDATED | WUSBCMD_PERIODIC_SYNCED_DB;
+
 		if (update & WHC_UPDATE_REMOVED)
+		{
 			wusbcmd |= WUSBCMD_PERIODIC_QSET_RM;
+		}
+
 		pzl_update(whc, wusbcmd);
 	}
 
@@ -266,11 +305,16 @@ void scan_periodic_work(struct work_struct *work)
 	 */
 	spin_lock_irq(&whc->lock);
 
-	list_for_each_entry_safe(qset, t, &whc->periodic_removed_list, list_node) {
+	list_for_each_entry_safe(qset, t, &whc->periodic_removed_list, list_node)
+	{
 		qset_remove_complete(whc, qset);
-		if (qset->reset) {
+
+		if (qset->reset)
+		{
 			qset_reset(whc, qset);
-			if (!list_empty(&qset->stds)) {
+
+			if (!list_empty(&qset->stds))
+			{
 				qset_insert_in_sw_list(whc, qset);
 				queue_work(whc->workqueue, &whc->periodic_work);
 			}
@@ -299,26 +343,42 @@ int pzl_urb_enqueue(struct whc *whc, struct urb *urb, gfp_t mem_flags)
 	spin_lock_irqsave(&whc->lock, flags);
 
 	err = usb_hcd_link_urb_to_ep(&whc->wusbhc.usb_hcd, urb);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		spin_unlock_irqrestore(&whc->lock, flags);
 		return err;
 	}
 
 	qset = get_qset(whc, urb, GFP_ATOMIC);
+
 	if (qset == NULL)
+	{
 		err = -ENOMEM;
+	}
 	else
+	{
 		err = qset_add_urb(whc, qset, urb, GFP_ATOMIC);
-	if (!err) {
+	}
+
+	if (!err)
+	{
 		if (!qset->in_sw_list && !qset->remove)
+		{
 			qset_insert_in_sw_list(whc, qset);
-	} else
+		}
+	}
+	else
+	{
 		usb_hcd_unlink_urb_from_ep(&whc->wusbhc.usb_hcd, urb);
+	}
 
 	spin_unlock_irqrestore(&whc->lock, flags);
 
 	if (!err)
+	{
 		queue_work(whc->workqueue, &whc->periodic_work);
+	}
 
 	return err;
 }
@@ -345,26 +405,42 @@ int pzl_urb_dequeue(struct whc *whc, struct urb *urb, int status)
 	spin_lock_irqsave(&whc->lock, flags);
 
 	ret = usb_hcd_check_unlink_urb(&whc->wusbhc.usb_hcd, urb, status);
-	if (ret < 0)
-		goto out;
 
-	list_for_each_entry_safe(std, t, &qset->stds, list_node) {
-		if (std->urb == urb) {
-			if (std->qtd)
-				has_qtd = true;
-			qset_free_std(whc, std);
-		} else
-			std->qtd = NULL; /* so this std is re-added when the qset is */
+	if (ret < 0)
+	{
+		goto out;
 	}
 
-	if (has_qtd) {
+	list_for_each_entry_safe(std, t, &qset->stds, list_node)
+	{
+		if (std->urb == urb)
+		{
+			if (std->qtd)
+			{
+				has_qtd = true;
+			}
+
+			qset_free_std(whc, std);
+		}
+		else
+		{
+			std->qtd = NULL;    /* so this std is re-added when the qset is */
+		}
+	}
+
+	if (has_qtd)
+	{
 		pzl_qset_remove(whc, qset);
 		update_pzl_hw_view(whc);
 		wurb->status = status;
 		wurb->is_async = false;
 		queue_work(whc->workqueue, &wurb->dequeue_work);
-	} else
+	}
+	else
+	{
 		qset_remove_urb(whc, qset, urb, status);
+	}
+
 out:
 	spin_unlock_irqrestore(&whc->lock, flags);
 
@@ -390,13 +466,18 @@ int pzl_init(struct whc *whc)
 	int i;
 
 	whc->pz_list = dma_alloc_coherent(&whc->umc->dev, sizeof(u64) * 16,
-					  &whc->pz_list_dma, GFP_KERNEL);
+									  &whc->pz_list_dma, GFP_KERNEL);
+
 	if (whc->pz_list == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* Set T bit on all elements in PZL. */
 	for (i = 0; i < 16; i++)
+	{
 		whc->pz_list[i] = cpu_to_le64(QH_LINK_NTDS(8) | QH_LINK_T);
+	}
 
 	le_writeq(whc->pz_list_dma, whc->base + WUSBPERIODICLISTBASE);
 
@@ -413,5 +494,5 @@ void pzl_clean_up(struct whc *whc)
 {
 	if (whc->pz_list)
 		dma_free_coherent(&whc->umc->dev,  sizeof(u64) * 16, whc->pz_list,
-				  whc->pz_list_dma);
+						  whc->pz_list_dma);
 }

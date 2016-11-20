@@ -49,7 +49,8 @@
  * 512 bytes.
  */
 #define FS_DQUOT_VERSION	1	/* fs_disk_quota.d_version */
-typedef struct fs_disk_quota {
+typedef struct fs_disk_quota
+{
 	__s8		d_version;	/* version of this structure */
 	__s8		d_flags;	/* FS_{USER,PROJ,GROUP}_QUOTA */
 	__u16		d_fieldmask;	/* field specifier */
@@ -61,7 +62,7 @@ typedef struct fs_disk_quota {
 	__u64		d_bcount;	/* # disk blocks owned by the user */
 	__u64		d_icount;	/* # inodes owned by the user */
 	__s32		d_itimer;	/* zero if within inode limits */
-					/* if not, we refuse service */
+	/* if not, we refuse service */
 	__s32		d_btimer;	/* similar to above; for disk blocks */
 	__u16	  	d_iwarns;       /* # warnings issued wrt num inodes */
 	__u16	  	d_bwarns;       /* # warnings issued wrt disk blocks */
@@ -71,7 +72,7 @@ typedef struct fs_disk_quota {
 	__u64		d_rtbcount;	/* # realtime blocks owned */
 	__s32		d_rtbtimer;	/* similar to above; for RT disk blks */
 	__u16	  	d_rtbwarns;     /* # warnings issued wrt RT disk blks */
-	__s16		d_padding3;	/* padding3 - for future use */	
+	__s16		d_padding3;	/* padding3 - for future use */
 	char		d_padding4[8];	/* yet more padding */
 } fs_disk_quota_t;
 
@@ -85,12 +86,12 @@ typedef struct fs_disk_quota {
 #define FS_DQ_RTBSOFT	(1<<4)
 #define FS_DQ_RTBHARD	(1<<5)
 #define FS_DQ_LIMIT_MASK	(FS_DQ_ISOFT | FS_DQ_IHARD | FS_DQ_BSOFT | \
-				 FS_DQ_BHARD | FS_DQ_RTBSOFT | FS_DQ_RTBHARD)
+							 FS_DQ_BHARD | FS_DQ_RTBSOFT | FS_DQ_RTBHARD)
 /*
  * These timers can only be set in super user's dquot. For others, timers are
  * automatically started and stopped. Superusers timer values set the limits
  * for the rest.  In case these values are zero, the DQ_{F,B}TIMELIMIT values
- * defined below are used. 
+ * defined below are used.
  * These values also apply only to the d_fieldmask field for Q_XSETQLIM.
  */
 #define FS_DQ_BTIMER	(1<<6)
@@ -103,7 +104,7 @@ typedef struct fs_disk_quota {
  * warnings are set/cleared by the administrators (or automatically by going
  * below the soft limit).  Superusers warning values set the warning limits
  * for the rest.  In case these values are zero, the DQ_{F,B}WARNLIMIT values
- * defined below are used. 
+ * defined below are used.
  * These values also apply only to the d_fieldmask field for Q_XSETQLIM.
  */
 #define FS_DQ_BWARNS	(1<<9)
@@ -145,22 +146,24 @@ typedef struct fs_disk_quota {
 /*
  * Some basic information about 'quota files'.
  */
-typedef struct fs_qfilestat {
+typedef struct fs_qfilestat
+{
 	__u64		qfs_ino;	/* inode number */
 	__u64		qfs_nblks;	/* number of BBs 512-byte-blks */
 	__u32		qfs_nextents;	/* number of extents */
 } fs_qfilestat_t;
 
-typedef struct fs_quota_stat {
+typedef struct fs_quota_stat
+{
 	__s8		qs_version;	/* version number for future changes */
 	__u16		qs_flags;	/* FS_QUOTA_{U,P,G}DQ_{ACCT,ENFD} */
 	__s8		qs_pad;		/* unused */
 	fs_qfilestat_t	qs_uquota;	/* user quota storage information */
 	fs_qfilestat_t	qs_gquota;	/* group quota storage information */
 	__u32		qs_incoredqs;	/* number of dquots incore */
-	__s32		qs_btimelimit;  /* limit for blks timer */	
-	__s32		qs_itimelimit;  /* limit for inodes timer */	
-	__s32		qs_rtbtimelimit;/* limit for rt blks timer */	
+	__s32		qs_btimelimit;  /* limit for blks timer */
+	__s32		qs_itimelimit;  /* limit for inodes timer */
+	__s32		qs_rtbtimelimit;/* limit for rt blks timer */
 	__u16		qs_bwarnlimit;	/* limit for num warnings */
 	__u16		qs_iwarnlimit;	/* limit for num warnings */
 } fs_quota_stat_t;
@@ -188,14 +191,16 @@ typedef struct fs_quota_stat {
 /*
  * Some basic information about 'quota files' for Q_XGETQSTATV command
  */
-struct fs_qfilestatv {
+struct fs_qfilestatv
+{
 	__u64		qfs_ino;	/* inode number */
 	__u64		qfs_nblks;	/* number of BBs 512-byte-blks */
 	__u32		qfs_nextents;	/* number of extents */
 	__u32		qfs_pad;	/* pad for 8-byte alignment */
 };
 
-struct fs_quota_statv {
+struct fs_quota_statv
+{
 	__s8			qs_version;	/* version for future changes */
 	__u8			qs_pad1;	/* pad for 16bit alignment */
 	__u16			qs_flags;	/* FS_QUOTA_.* flags */

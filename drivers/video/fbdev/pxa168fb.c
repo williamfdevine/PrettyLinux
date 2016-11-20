@@ -40,25 +40,38 @@ static int determine_best_pix_fmt(struct fb_var_screeninfo *var)
 	 * Pseudocolor mode?
 	 */
 	if (var->bits_per_pixel == 8)
+	{
 		return PIX_FMT_PSEUDOCOLOR;
+	}
 
 	/*
 	 * Check for 565/1555.
 	 */
 	if (var->bits_per_pixel == 16 && var->red.length <= 5 &&
-	    var->green.length <= 6 && var->blue.length <= 5) {
-		if (var->transp.length == 0) {
+		var->green.length <= 6 && var->blue.length <= 5)
+	{
+		if (var->transp.length == 0)
+		{
 			if (var->red.offset >= var->blue.offset)
+			{
 				return PIX_FMT_RGB565;
+			}
 			else
+			{
 				return PIX_FMT_BGR565;
+			}
 		}
 
-		if (var->transp.length == 1 && var->green.length <= 5) {
+		if (var->transp.length == 1 && var->green.length <= 5)
+		{
 			if (var->red.offset >= var->blue.offset)
+			{
 				return PIX_FMT_RGB1555;
+			}
 			else
+			{
 				return PIX_FMT_BGR1555;
+			}
 		}
 
 		/* fall through */
@@ -68,24 +81,41 @@ static int determine_best_pix_fmt(struct fb_var_screeninfo *var)
 	 * Check for 888/A888.
 	 */
 	if (var->bits_per_pixel <= 32 && var->red.length <= 8 &&
-	    var->green.length <= 8 && var->blue.length <= 8) {
-		if (var->bits_per_pixel == 24 && var->transp.length == 0) {
+		var->green.length <= 8 && var->blue.length <= 8)
+	{
+		if (var->bits_per_pixel == 24 && var->transp.length == 0)
+		{
 			if (var->red.offset >= var->blue.offset)
+			{
 				return PIX_FMT_RGB888PACK;
+			}
 			else
+			{
 				return PIX_FMT_BGR888PACK;
+			}
 		}
 
-		if (var->bits_per_pixel == 32 && var->transp.length == 8) {
+		if (var->bits_per_pixel == 32 && var->transp.length == 8)
+		{
 			if (var->red.offset >= var->blue.offset)
+			{
 				return PIX_FMT_RGBA888;
+			}
 			else
+			{
 				return PIX_FMT_BGRA888;
-		} else {
+			}
+		}
+		else
+		{
 			if (var->red.offset >= var->blue.offset)
+			{
 				return PIX_FMT_RGB888UNPACK;
+			}
 			else
+			{
 				return PIX_FMT_BGR888UNPACK;
+			}
 		}
 
 		/* fall through */
@@ -96,75 +126,84 @@ static int determine_best_pix_fmt(struct fb_var_screeninfo *var)
 
 static void set_pix_fmt(struct fb_var_screeninfo *var, int pix_fmt)
 {
-	switch (pix_fmt) {
-	case PIX_FMT_RGB565:
-		var->bits_per_pixel = 16;
-		var->red.offset = 11;    var->red.length = 5;
-		var->green.offset = 5;   var->green.length = 6;
-		var->blue.offset = 0;    var->blue.length = 5;
-		var->transp.offset = 0;  var->transp.length = 0;
-		break;
-	case PIX_FMT_BGR565:
-		var->bits_per_pixel = 16;
-		var->red.offset = 0;     var->red.length = 5;
-		var->green.offset = 5;   var->green.length = 6;
-		var->blue.offset = 11;   var->blue.length = 5;
-		var->transp.offset = 0;  var->transp.length = 0;
-		break;
-	case PIX_FMT_RGB1555:
-		var->bits_per_pixel = 16;
-		var->red.offset = 10;    var->red.length = 5;
-		var->green.offset = 5;   var->green.length = 5;
-		var->blue.offset = 0;    var->blue.length = 5;
-		var->transp.offset = 15; var->transp.length = 1;
-		break;
-	case PIX_FMT_BGR1555:
-		var->bits_per_pixel = 16;
-		var->red.offset = 0;     var->red.length = 5;
-		var->green.offset = 5;   var->green.length = 5;
-		var->blue.offset = 10;   var->blue.length = 5;
-		var->transp.offset = 15; var->transp.length = 1;
-		break;
-	case PIX_FMT_RGB888PACK:
-		var->bits_per_pixel = 24;
-		var->red.offset = 16;    var->red.length = 8;
-		var->green.offset = 8;   var->green.length = 8;
-		var->blue.offset = 0;    var->blue.length = 8;
-		var->transp.offset = 0;  var->transp.length = 0;
-		break;
-	case PIX_FMT_BGR888PACK:
-		var->bits_per_pixel = 24;
-		var->red.offset = 0;     var->red.length = 8;
-		var->green.offset = 8;   var->green.length = 8;
-		var->blue.offset = 16;   var->blue.length = 8;
-		var->transp.offset = 0;  var->transp.length = 0;
-		break;
-	case PIX_FMT_RGBA888:
-		var->bits_per_pixel = 32;
-		var->red.offset = 16;    var->red.length = 8;
-		var->green.offset = 8;   var->green.length = 8;
-		var->blue.offset = 0;    var->blue.length = 8;
-		var->transp.offset = 24; var->transp.length = 8;
-		break;
-	case PIX_FMT_BGRA888:
-		var->bits_per_pixel = 32;
-		var->red.offset = 0;     var->red.length = 8;
-		var->green.offset = 8;   var->green.length = 8;
-		var->blue.offset = 16;   var->blue.length = 8;
-		var->transp.offset = 24; var->transp.length = 8;
-		break;
-	case PIX_FMT_PSEUDOCOLOR:
-		var->bits_per_pixel = 8;
-		var->red.offset = 0;     var->red.length = 8;
-		var->green.offset = 0;   var->green.length = 8;
-		var->blue.offset = 0;    var->blue.length = 8;
-		var->transp.offset = 0;  var->transp.length = 0;
-		break;
+	switch (pix_fmt)
+	{
+		case PIX_FMT_RGB565:
+			var->bits_per_pixel = 16;
+			var->red.offset = 11;    var->red.length = 5;
+			var->green.offset = 5;   var->green.length = 6;
+			var->blue.offset = 0;    var->blue.length = 5;
+			var->transp.offset = 0;  var->transp.length = 0;
+			break;
+
+		case PIX_FMT_BGR565:
+			var->bits_per_pixel = 16;
+			var->red.offset = 0;     var->red.length = 5;
+			var->green.offset = 5;   var->green.length = 6;
+			var->blue.offset = 11;   var->blue.length = 5;
+			var->transp.offset = 0;  var->transp.length = 0;
+			break;
+
+		case PIX_FMT_RGB1555:
+			var->bits_per_pixel = 16;
+			var->red.offset = 10;    var->red.length = 5;
+			var->green.offset = 5;   var->green.length = 5;
+			var->blue.offset = 0;    var->blue.length = 5;
+			var->transp.offset = 15; var->transp.length = 1;
+			break;
+
+		case PIX_FMT_BGR1555:
+			var->bits_per_pixel = 16;
+			var->red.offset = 0;     var->red.length = 5;
+			var->green.offset = 5;   var->green.length = 5;
+			var->blue.offset = 10;   var->blue.length = 5;
+			var->transp.offset = 15; var->transp.length = 1;
+			break;
+
+		case PIX_FMT_RGB888PACK:
+			var->bits_per_pixel = 24;
+			var->red.offset = 16;    var->red.length = 8;
+			var->green.offset = 8;   var->green.length = 8;
+			var->blue.offset = 0;    var->blue.length = 8;
+			var->transp.offset = 0;  var->transp.length = 0;
+			break;
+
+		case PIX_FMT_BGR888PACK:
+			var->bits_per_pixel = 24;
+			var->red.offset = 0;     var->red.length = 8;
+			var->green.offset = 8;   var->green.length = 8;
+			var->blue.offset = 16;   var->blue.length = 8;
+			var->transp.offset = 0;  var->transp.length = 0;
+			break;
+
+		case PIX_FMT_RGBA888:
+			var->bits_per_pixel = 32;
+			var->red.offset = 16;    var->red.length = 8;
+			var->green.offset = 8;   var->green.length = 8;
+			var->blue.offset = 0;    var->blue.length = 8;
+			var->transp.offset = 24; var->transp.length = 8;
+			break;
+
+		case PIX_FMT_BGRA888:
+			var->bits_per_pixel = 32;
+			var->red.offset = 0;     var->red.length = 8;
+			var->green.offset = 8;   var->green.length = 8;
+			var->blue.offset = 16;   var->blue.length = 8;
+			var->transp.offset = 24; var->transp.length = 8;
+			break;
+
+		case PIX_FMT_PSEUDOCOLOR:
+			var->bits_per_pixel = 8;
+			var->red.offset = 0;     var->red.length = 8;
+			var->green.offset = 0;   var->green.length = 8;
+			var->blue.offset = 0;    var->blue.length = 8;
+			var->transp.offset = 0;  var->transp.length = 0;
+			break;
 	}
 }
 
 static void set_mode(struct pxa168fb_info *fbi, struct fb_var_screeninfo *var,
-		     struct fb_videomode *mode, int pix_fmt, int ystretch)
+					 struct fb_videomode *mode, int pix_fmt, int ystretch)
 {
 	struct fb_info *info = fbi->info;
 
@@ -173,11 +212,15 @@ static void set_mode(struct pxa168fb_info *fbi, struct fb_var_screeninfo *var,
 	var->xres = mode->xres;
 	var->yres = mode->yres;
 	var->xres_virtual = max(var->xres, var->xres_virtual);
+
 	if (ystretch)
 		var->yres_virtual = info->fix.smem_len /
-			(var->xres_virtual * (var->bits_per_pixel >> 3));
+							(var->xres_virtual * (var->bits_per_pixel >> 3));
 	else
+	{
 		var->yres_virtual = max(var->yres, var->yres_virtual);
+	}
+
 	var->grayscale = 0;
 	var->accel_flags = FB_ACCEL_NONE;
 	var->pixclock = mode->pixclock;
@@ -193,7 +236,7 @@ static void set_mode(struct pxa168fb_info *fbi, struct fb_var_screeninfo *var,
 }
 
 static int pxa168fb_check_var(struct fb_var_screeninfo *var,
-			      struct fb_info *info)
+							  struct fb_info *info)
 {
 	struct pxa168fb_info *fbi = info->par;
 	int pix_fmt;
@@ -202,8 +245,12 @@ static int pxa168fb_check_var(struct fb_var_screeninfo *var,
 	 * Determine which pixel format we're going to use.
 	 */
 	pix_fmt = determine_best_pix_fmt(var);
+
 	if (pix_fmt < 0)
+	{
 		return pix_fmt;
+	}
+
 	set_pix_fmt(var, pix_fmt);
 	fbi->pix_fmt = pix_fmt;
 
@@ -211,22 +258,35 @@ static int pxa168fb_check_var(struct fb_var_screeninfo *var,
 	 * Basic geometry sanity checks.
 	 */
 	if (var->xoffset + var->xres > var->xres_virtual)
+	{
 		return -EINVAL;
+	}
+
 	if (var->yoffset + var->yres > var->yres_virtual)
+	{
 		return -EINVAL;
+	}
+
 	if (var->xres + var->right_margin +
-	    var->hsync_len + var->left_margin > 2048)
+		var->hsync_len + var->left_margin > 2048)
+	{
 		return -EINVAL;
+	}
+
 	if (var->yres + var->lower_margin +
-	    var->vsync_len + var->upper_margin > 2048)
+		var->vsync_len + var->upper_margin > 2048)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Check size of framebuffer.
 	 */
 	if (var->xres_virtual * var->yres_virtual *
-	    (var->bits_per_pixel >> 3) > info->fix.smem_len)
+		(var->bits_per_pixel >> 3) > info->fix.smem_len)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -242,7 +302,7 @@ static int pxa168fb_check_var(struct fb_var_screeninfo *var,
  * and clk_out.
  */
 static void set_clock_divider(struct pxa168fb_info *fbi,
-			      const struct fb_videomode *m)
+							  const struct fb_videomode *m)
 {
 	int divider_int;
 	int needed_pixclk;
@@ -258,7 +318,8 @@ static void set_clock_divider(struct pxa168fb_info *fbi,
 	/*
 	 * Check input values.
 	 */
-	if (!m || !m->pixclock || !m->refresh) {
+	if (!m || !m->pixclock || !m->refresh)
+	{
 		dev_err(fbi->dev, "Input refresh or pixclock is wrong.\n");
 		return;
 	}
@@ -278,9 +339,10 @@ static void set_clock_divider(struct pxa168fb_info *fbi,
 	divider_int = clk_get_rate(fbi->clk) / needed_pixclk;
 
 	/* check whether divisor is too small. */
-	if (divider_int < 2) {
+	if (divider_int < 2)
+	{
 		dev_warn(fbi->dev, "Warning: clock source is too slow."
-				"Try smaller resolution\n");
+				 "Try smaller resolution\n");
 		divider_int = 2;
 	}
 
@@ -307,7 +369,9 @@ static void set_dma_control0(struct pxa168fb_info *fbi)
 	 * palette lookup.
 	 */
 	if (fbi->pix_fmt == PIX_FMT_PSEUDOCOLOR)
+	{
 		x |= 0x10000000;
+	}
 
 	/*
 	 * Configure hardware pixel format.
@@ -343,7 +407,9 @@ static void set_dma_control1(struct pxa168fb_info *fbi, int sync)
 	 * active low, or on the rising edge if vsync is active high.
 	 */
 	if (!(sync & FB_SYNC_VERT_HIGH_ACT))
+	{
 		x |= 0x08000000;
+	}
 
 	writel(x, fbi->reg_base + LCD_SPU_DMA_CTRL1);
 }
@@ -413,9 +479,14 @@ static int pxa168fb_set_par(struct fb_info *info)
 	 * Set additional mode info.
 	 */
 	if (fbi->pix_fmt == PIX_FMT_PSEUDOCOLOR)
+	{
 		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+	}
 	else
+	{
 		info->fix.visual = FB_VISUAL_TRUECOLOR;
+	}
+
 	info->fix.line_length = var->xres_virtual * var->bits_per_pixel / 8;
 	info->fix.ypanstep = var->yres;
 
@@ -429,7 +500,7 @@ static int pxa168fb_set_par(struct fb_info *info)
 	 * Configure global panel parameters.
 	 */
 	writel((var->yres << 16) | var->xres,
-		fbi->reg_base + LCD_SPU_V_H_ACTIVE);
+		   fbi->reg_base + LCD_SPU_V_H_ACTIVE);
 
 	/*
 	 * convet var to video mode
@@ -450,9 +521,9 @@ static int pxa168fb_set_par(struct fb_info *info)
 	x = (x & ~0xFFFF) | ((var->xres_virtual * var->bits_per_pixel) >> 3);
 	writel(x, fbi->reg_base + LCD_CFG_GRA_PITCH);
 	writel((var->yres << 16) | var->xres,
-		fbi->reg_base + LCD_SPU_GRA_HPXL_VLN);
+		   fbi->reg_base + LCD_SPU_GRA_HPXL_VLN);
 	writel((var->yres << 16) | var->xres,
-		fbi->reg_base + LCD_SPU_GZM_HPXL_VLN);
+		   fbi->reg_base + LCD_SPU_GZM_HPXL_VLN);
 
 	/*
 	 * Configure dumb panel ctrl regs & timings.
@@ -461,9 +532,9 @@ static int pxa168fb_set_par(struct fb_info *info)
 	set_dumb_screen_dimensions(info);
 
 	writel((var->left_margin << 16) | var->right_margin,
-			fbi->reg_base + LCD_SPU_H_PORCH);
+		   fbi->reg_base + LCD_SPU_H_PORCH);
 	writel((var->upper_margin << 16) | var->lower_margin,
-			fbi->reg_base + LCD_SPU_V_PORCH);
+		   fbi->reg_base + LCD_SPU_V_PORCH);
 
 	/*
 	 * Re-enable panel output.
@@ -490,23 +561,25 @@ static u32 to_rgb(u16 red, u16 green, u16 blue)
 
 static int
 pxa168fb_setcolreg(unsigned int regno, unsigned int red, unsigned int green,
-		 unsigned int blue, unsigned int trans, struct fb_info *info)
+				   unsigned int blue, unsigned int trans, struct fb_info *info)
 {
 	struct pxa168fb_info *fbi = info->par;
 	u32 val;
 
 	if (info->var.grayscale)
 		red = green = blue = (19595 * red + 38470 * green +
-					7471 * blue) >> 16;
+							  7471 * blue) >> 16;
 
-	if (info->fix.visual == FB_VISUAL_TRUECOLOR && regno < 16) {
+	if (info->fix.visual == FB_VISUAL_TRUECOLOR && regno < 16)
+	{
 		val =  chan_to_field(red,   &info->var.red);
 		val |= chan_to_field(green, &info->var.green);
 		val |= chan_to_field(blue , &info->var.blue);
 		fbi->pseudo_palette[regno] = val;
 	}
 
-	if (info->fix.visual == FB_VISUAL_PSEUDOCOLOR && regno < 256) {
+	if (info->fix.visual == FB_VISUAL_PSEUDOCOLOR && regno < 256)
+	{
 		val = to_rgb(red, green, blue);
 		writel(val, fbi->reg_base + LCD_SPU_SRAM_WRDAT);
 		writel(0x8300 | regno, fbi->reg_base + LCD_SPU_SRAM_CTRL);
@@ -526,7 +599,7 @@ static int pxa168fb_blank(int blank, struct fb_info *info)
 }
 
 static int pxa168fb_pan_display(struct fb_var_screeninfo *var,
-				struct fb_info *info)
+								struct fb_info *info)
 {
 	set_graphics_start(info, var->xoffset, var->yoffset);
 
@@ -538,17 +611,20 @@ static irqreturn_t pxa168fb_handle_irq(int irq, void *dev_id)
 	struct pxa168fb_info *fbi = dev_id;
 	u32 isr = readl(fbi->reg_base + SPU_IRQ_ISR);
 
-	if ((isr & GRA_FRAME_IRQ0_ENA_MASK)) {
+	if ((isr & GRA_FRAME_IRQ0_ENA_MASK))
+	{
 
 		writel(isr & (~GRA_FRAME_IRQ0_ENA_MASK),
-			fbi->reg_base + SPU_IRQ_ISR);
+			   fbi->reg_base + SPU_IRQ_ISR);
 
 		return IRQ_HANDLED;
 	}
+
 	return IRQ_NONE;
 }
 
-static struct fb_ops pxa168fb_ops = {
+static struct fb_ops pxa168fb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_check_var	= pxa168fb_check_var,
 	.fb_set_par	= pxa168fb_set_par,
@@ -561,7 +637,7 @@ static struct fb_ops pxa168fb_ops = {
 };
 
 static int pxa168fb_init_mode(struct fb_info *info,
-			      struct pxa168fb_mach_info *mi)
+							  struct pxa168fb_mach_info *mi)
 {
 	struct pxa168fb_info *fbi = info->par;
 	struct fb_var_screeninfo *var = &info->var;
@@ -577,21 +653,24 @@ static int pxa168fb_init_mode(struct fb_info *info,
 
 	/* try to find best video mode. */
 	m = fb_find_best_mode(&info->var, &info->modelist);
+
 	if (m)
+	{
 		fb_videomode_to_var(&info->var, m);
+	}
 
 	/* Init settings. */
 	var->xres_virtual = var->xres;
 	var->yres_virtual = info->fix.smem_len /
-		(var->xres_virtual * (var->bits_per_pixel >> 3));
+						(var->xres_virtual * (var->bits_per_pixel >> 3));
 	dev_dbg(fbi->dev, "pxa168fb: find best mode: res = %dx%d\n",
-				var->xres, var->yres);
+			var->xres, var->yres);
 
 	/* correct pixclock. */
 	total_w = var->xres + var->left_margin + var->right_margin +
-		  var->hsync_len;
+			  var->hsync_len;
 	total_h = var->yres + var->upper_margin + var->lower_margin +
-		  var->vsync_len;
+			  var->vsync_len;
 
 	div_result = 1000000000000ll;
 	do_div(div_result, total_w * total_h * refresh);
@@ -610,31 +689,41 @@ static int pxa168fb_probe(struct platform_device *pdev)
 	int irq, ret;
 
 	mi = dev_get_platdata(&pdev->dev);
-	if (mi == NULL) {
+
+	if (mi == NULL)
+	{
 		dev_err(&pdev->dev, "no platform data defined\n");
 		return -EINVAL;
 	}
 
 	clk = devm_clk_get(&pdev->dev, "LCDCLK");
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "unable to get LCDCLK");
 		return PTR_ERR(clk);
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(&pdev->dev, "no IO memory defined\n");
 		return -ENOENT;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "no IRQ defined\n");
 		return -ENOENT;
 	}
 
 	info = framebuffer_alloc(sizeof(struct pxa168fb_info), &pdev->dev);
-	if (info == NULL) {
+
+	if (info == NULL)
+	{
 		return -ENOMEM;
 	}
 
@@ -651,7 +740,7 @@ static int pxa168fb_probe(struct platform_device *pdev)
 	 * Initialise static fb parameters.
 	 */
 	info->flags = FBINFO_DEFAULT | FBINFO_PARTIAL_PAN_OK |
-		      FBINFO_HWACCEL_XPAN | FBINFO_HWACCEL_YPAN;
+				  FBINFO_HWACCEL_XPAN | FBINFO_HWACCEL_YPAN;
 	info->node = -1;
 	strlcpy(info->fix.id, mi->id, 16);
 	info->fix.type = FB_TYPE_PACKED_PIXELS;
@@ -669,8 +758,10 @@ static int pxa168fb_probe(struct platform_device *pdev)
 	 * Map LCD controller registers.
 	 */
 	fbi->reg_base = devm_ioremap_nocache(&pdev->dev, res->start,
-					     resource_size(res));
-	if (fbi->reg_base == NULL) {
+										 resource_size(res));
+
+	if (fbi->reg_base == NULL)
+	{
 		ret = -ENOMEM;
 		goto failed_free_info;
 	}
@@ -681,8 +772,10 @@ static int pxa168fb_probe(struct platform_device *pdev)
 	info->fix.smem_len = PAGE_ALIGN(DEFAULT_FB_SIZE);
 
 	info->screen_base = dma_alloc_wc(fbi->dev, info->fix.smem_len,
-					 &fbi->fb_start_dma, GFP_KERNEL);
-	if (info->screen_base == NULL) {
+									 &fbi->fb_start_dma, GFP_KERNEL);
+
+	if (info->screen_base == NULL)
+	{
 		ret = -ENOMEM;
 		goto failed_free_info;
 	}
@@ -706,8 +799,11 @@ static int pxa168fb_probe(struct platform_device *pdev)
 	 * Fill in sane defaults.
 	 */
 	ret = pxa168fb_check_var(&info->var, info);
+
 	if (ret)
+	{
 		goto failed_free_fbmem;
+	}
 
 	/*
 	 * enable controller clock
@@ -724,13 +820,14 @@ static int pxa168fb_probe(struct platform_device *pdev)
 	writel(0, fbi->reg_base + LCD_CFG_GRA_START_ADDR1);
 	writel(0, fbi->reg_base + LCD_SPU_GRA_OVSA_HPXL_VLN);
 	writel(0, fbi->reg_base + LCD_SPU_SRAM_PARA0);
-	writel(CFG_CSB_256x32(0x1)|CFG_CSB_256x24(0x1)|CFG_CSB_256x8(0x1),
-		fbi->reg_base + LCD_SPU_SRAM_PARA1);
+	writel(CFG_CSB_256x32(0x1) | CFG_CSB_256x24(0x1) | CFG_CSB_256x8(0x1),
+		   fbi->reg_base + LCD_SPU_SRAM_PARA1);
 
 	/*
 	 * Allocate color map.
 	 */
-	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
+	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0)
+	{
 		ret = -ENOMEM;
 		goto failed_free_clk;
 	}
@@ -739,8 +836,10 @@ static int pxa168fb_probe(struct platform_device *pdev)
 	 * Register irq handler.
 	 */
 	ret = devm_request_irq(&pdev->dev, irq, pxa168fb_handle_irq,
-			       IRQF_SHARED, info->fix.id, fbi);
-	if (ret < 0) {
+						   IRQF_SHARED, info->fix.id, fbi);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "unable to request IRQ\n");
 		ret = -ENXIO;
 		goto failed_free_cmap;
@@ -755,7 +854,9 @@ static int pxa168fb_probe(struct platform_device *pdev)
 	 * Register framebuffer.
 	 */
 	ret = register_framebuffer(info);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to register pxa168-fb: %d\n", ret);
 		ret = -ENXIO;
 		goto failed_free_cmap;
@@ -770,7 +871,7 @@ failed_free_clk:
 	clk_disable(fbi->clk);
 failed_free_fbmem:
 	dma_free_coherent(fbi->dev, info->fix.smem_len,
-			info->screen_base, fbi->fb_start_dma);
+					  info->screen_base, fbi->fb_start_dma);
 failed_free_info:
 	kfree(info);
 
@@ -786,7 +887,9 @@ static int pxa168fb_remove(struct platform_device *pdev)
 	unsigned int data;
 
 	if (!fbi)
+	{
 		return 0;
+	}
 
 	/* disable DMA transfer */
 	data = readl(fbi->reg_base + LCD_SPU_DMA_CTRL0);
@@ -800,12 +903,14 @@ static int pxa168fb_remove(struct platform_device *pdev)
 	writel(GRA_FRAME_IRQ0_ENA(0x0), fbi->reg_base + SPU_IRQ_ENA);
 
 	if (info->cmap.len)
+	{
 		fb_dealloc_cmap(&info->cmap);
+	}
 
 	irq = platform_get_irq(pdev, 0);
 
 	dma_free_wc(fbi->dev, PAGE_ALIGN(info->fix.smem_len),
-		    info->screen_base, info->fix.smem_start);
+				info->screen_base, info->fix.smem_start);
 
 	clk_disable(fbi->clk);
 
@@ -814,7 +919,8 @@ static int pxa168fb_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pxa168fb_driver = {
+static struct platform_driver pxa168fb_driver =
+{
 	.driver		= {
 		.name	= "pxa168-fb",
 	},
@@ -825,6 +931,6 @@ static struct platform_driver pxa168fb_driver = {
 module_platform_driver(pxa168fb_driver);
 
 MODULE_AUTHOR("Lennert Buytenhek <buytenh@marvell.com> "
-	      "Green Wan <gwan@marvell.com>");
+			  "Green Wan <gwan@marvell.com>");
 MODULE_DESCRIPTION("Framebuffer driver for PXA168/910");
 MODULE_LICENSE("GPL");

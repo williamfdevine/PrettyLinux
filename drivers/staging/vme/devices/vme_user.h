@@ -6,7 +6,8 @@
 /*
  * VMEbus Master Window Configuration Structure
  */
-struct vme_master {
+struct vme_master
+{
 	__u32 enable;		/* State of Window */
 	__u64 vme_addr;		/* Starting Address on the VMEbus */
 	__u64 size;		/* Window Size */
@@ -28,7 +29,8 @@ struct vme_master {
 #define VME_IOC_MAGIC 0xAE
 
 /* VMEbus Slave Window Configuration Structure */
-struct vme_slave {
+struct vme_slave
+{
 	__u32 enable;		/* State of Window */
 	__u64 vme_addr;		/* Starting Address on the VMEbus */
 	__u64 size;		/* Window Size */
@@ -41,7 +43,8 @@ struct vme_slave {
 #endif
 } __packed;
 
-struct vme_irq_id {
+struct vme_irq_id
+{
 	__u8 level;
 	__u8 statid;
 };

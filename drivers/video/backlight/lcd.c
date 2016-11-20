@@ -24,45 +24,64 @@
  * and if it is, we're switching lcd power as well ...
  */
 static int fb_notifier_callback(struct notifier_block *self,
-				 unsigned long event, void *data)
+								unsigned long event, void *data)
 {
 	struct lcd_device *ld;
 	struct fb_event *evdata = data;
 
 	/* If we aren't interested in this event, skip it immediately ... */
-	switch (event) {
-	case FB_EVENT_BLANK:
-	case FB_EVENT_MODE_CHANGE:
-	case FB_EVENT_MODE_CHANGE_ALL:
-	case FB_EARLY_EVENT_BLANK:
-	case FB_R_EARLY_EVENT_BLANK:
-		break;
-	default:
-		return 0;
+	switch (event)
+	{
+		case FB_EVENT_BLANK:
+		case FB_EVENT_MODE_CHANGE:
+		case FB_EVENT_MODE_CHANGE_ALL:
+		case FB_EARLY_EVENT_BLANK:
+		case FB_R_EARLY_EVENT_BLANK:
+			break;
+
+		default:
+			return 0;
 	}
 
 	ld = container_of(self, struct lcd_device, fb_notif);
+
 	if (!ld->ops)
+	{
 		return 0;
+	}
 
 	mutex_lock(&ld->ops_lock);
-	if (!ld->ops->check_fb || ld->ops->check_fb(ld, evdata->info)) {
-		if (event == FB_EVENT_BLANK) {
+
+	if (!ld->ops->check_fb || ld->ops->check_fb(ld, evdata->info))
+	{
+		if (event == FB_EVENT_BLANK)
+		{
 			if (ld->ops->set_power)
+			{
 				ld->ops->set_power(ld, *(int *)evdata->data);
-		} else if (event == FB_EARLY_EVENT_BLANK) {
+			}
+		}
+		else if (event == FB_EARLY_EVENT_BLANK)
+		{
 			if (ld->ops->early_set_power)
 				ld->ops->early_set_power(ld,
-						*(int *)evdata->data);
-		} else if (event == FB_R_EARLY_EVENT_BLANK) {
+										 *(int *)evdata->data);
+		}
+		else if (event == FB_R_EARLY_EVENT_BLANK)
+		{
 			if (ld->ops->r_early_set_power)
 				ld->ops->r_early_set_power(ld,
-						*(int *)evdata->data);
-		} else {
+										   *(int *)evdata->data);
+		}
+		else
+		{
 			if (ld->ops->set_mode)
+			{
 				ld->ops->set_mode(ld, evdata->data);
+			}
 		}
 	}
+
 	mutex_unlock(&ld->ops_lock);
 	return 0;
 }
@@ -90,40 +109,52 @@ static inline void lcd_unregister_fb(struct lcd_device *ld)
 #endif /* CONFIG_FB */
 
 static ssize_t lcd_power_show(struct device *dev, struct device_attribute *attr,
-		char *buf)
+							  char *buf)
 {
 	int rc;
 	struct lcd_device *ld = to_lcd_device(dev);
 
 	mutex_lock(&ld->ops_lock);
+
 	if (ld->ops && ld->ops->get_power)
+	{
 		rc = sprintf(buf, "%d\n", ld->ops->get_power(ld));
+	}
 	else
+	{
 		rc = -ENXIO;
+	}
+
 	mutex_unlock(&ld->ops_lock);
 
 	return rc;
 }
 
 static ssize_t lcd_power_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+							   struct device_attribute *attr, const char *buf, size_t count)
 {
 	int rc;
 	struct lcd_device *ld = to_lcd_device(dev);
 	unsigned long power;
 
 	rc = kstrtoul(buf, 0, &power);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = -ENXIO;
 
 	mutex_lock(&ld->ops_lock);
-	if (ld->ops && ld->ops->set_power) {
+
+	if (ld->ops && ld->ops->set_power)
+	{
 		pr_debug("set power to %lu\n", power);
 		ld->ops->set_power(ld, power);
 		rc = count;
 	}
+
 	mutex_unlock(&ld->ops_lock);
 
 	return rc;
@@ -131,38 +162,48 @@ static ssize_t lcd_power_store(struct device *dev,
 static DEVICE_ATTR_RW(lcd_power);
 
 static ssize_t contrast_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	int rc = -ENXIO;
 	struct lcd_device *ld = to_lcd_device(dev);
 
 	mutex_lock(&ld->ops_lock);
+
 	if (ld->ops && ld->ops->get_contrast)
+	{
 		rc = sprintf(buf, "%d\n", ld->ops->get_contrast(ld));
+	}
+
 	mutex_unlock(&ld->ops_lock);
 
 	return rc;
 }
 
 static ssize_t contrast_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+							  struct device_attribute *attr, const char *buf, size_t count)
 {
 	int rc;
 	struct lcd_device *ld = to_lcd_device(dev);
 	unsigned long contrast;
 
 	rc = kstrtoul(buf, 0, &contrast);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = -ENXIO;
 
 	mutex_lock(&ld->ops_lock);
-	if (ld->ops && ld->ops->set_contrast) {
+
+	if (ld->ops && ld->ops->set_contrast)
+	{
 		pr_debug("set contrast to %lu\n", contrast);
 		ld->ops->set_contrast(ld, contrast);
 		rc = count;
 	}
+
 	mutex_unlock(&ld->ops_lock);
 
 	return rc;
@@ -170,7 +211,7 @@ static ssize_t contrast_store(struct device *dev,
 static DEVICE_ATTR_RW(contrast);
 
 static ssize_t max_contrast_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	struct lcd_device *ld = to_lcd_device(dev);
 
@@ -186,7 +227,8 @@ static void lcd_device_release(struct device *dev)
 	kfree(ld);
 }
 
-static struct attribute *lcd_device_attrs[] = {
+static struct attribute *lcd_device_attrs[] =
+{
 	&dev_attr_lcd_power.attr,
 	&dev_attr_contrast.attr,
 	&dev_attr_max_contrast.attr,
@@ -206,7 +248,7 @@ ATTRIBUTE_GROUPS(lcd_device);
  * or a pointer to the newly allocated device.
  */
 struct lcd_device *lcd_device_register(const char *name, struct device *parent,
-		void *devdata, struct lcd_ops *ops)
+									   void *devdata, struct lcd_ops *ops)
 {
 	struct lcd_device *new_ld;
 	int rc;
@@ -214,8 +256,11 @@ struct lcd_device *lcd_device_register(const char *name, struct device *parent,
 	pr_debug("lcd_device_register: name=%s\n", name);
 
 	new_ld = kzalloc(sizeof(struct lcd_device), GFP_KERNEL);
+
 	if (!new_ld)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	mutex_init(&new_ld->ops_lock);
 	mutex_init(&new_ld->update_lock);
@@ -227,13 +272,17 @@ struct lcd_device *lcd_device_register(const char *name, struct device *parent,
 	dev_set_drvdata(&new_ld->dev, devdata);
 
 	rc = device_register(&new_ld->dev);
-	if (rc) {
+
+	if (rc)
+	{
 		put_device(&new_ld->dev);
 		return ERR_PTR(rc);
 	}
 
 	rc = lcd_register_fb(new_ld);
-	if (rc) {
+
+	if (rc)
+	{
 		device_unregister(&new_ld->dev);
 		return ERR_PTR(rc);
 	}
@@ -253,7 +302,9 @@ EXPORT_SYMBOL(lcd_device_register);
 void lcd_device_unregister(struct lcd_device *ld)
 {
 	if (!ld)
+	{
 		return;
+	}
 
 	mutex_lock(&ld->ops_lock);
 	ld->ops = NULL;
@@ -299,14 +350,21 @@ struct lcd_device *devm_lcd_device_register(struct device *dev,
 	struct lcd_device **ptr, *lcd;
 
 	ptr = devres_alloc(devm_lcd_device_release, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	lcd = lcd_device_register(name, parent, devdata, ops);
-	if (!IS_ERR(lcd)) {
+
+	if (!IS_ERR(lcd))
+	{
 		*ptr = lcd;
 		devres_add(dev, ptr);
-	} else {
+	}
+	else
+	{
 		devres_free(ptr);
 	}
 
@@ -328,7 +386,7 @@ void devm_lcd_device_unregister(struct device *dev, struct lcd_device *ld)
 	int rc;
 
 	rc = devres_release(dev, devm_lcd_device_release,
-				devm_lcd_device_match, ld);
+						devm_lcd_device_match, ld);
 	WARN_ON(rc);
 }
 EXPORT_SYMBOL(devm_lcd_device_unregister);
@@ -342,9 +400,11 @@ static void __exit lcd_class_exit(void)
 static int __init lcd_class_init(void)
 {
 	lcd_class = class_create(THIS_MODULE, "lcd");
-	if (IS_ERR(lcd_class)) {
+
+	if (IS_ERR(lcd_class))
+	{
 		pr_warn("Unable to create backlight class; errno = %ld\n",
-			PTR_ERR(lcd_class));
+				PTR_ERR(lcd_class));
 		return PTR_ERR(lcd_class);
 	}
 

@@ -40,120 +40,120 @@
 /* we can build all atomic primitives from cmpxchg */
 
 #define ATOMIC_OP(op, c_op)						\
-static inline void atomic_##op(int i, atomic_t *v)			\
-{									\
-	int c, old;							\
-									\
-	c = v->counter;							\
-	while ((old = cmpxchg(&v->counter, c, c c_op i)) != c)		\
-		c = old;						\
-}
+	static inline void atomic_##op(int i, atomic_t *v)			\
+	{									\
+		int c, old;							\
+		\
+		c = v->counter;							\
+		while ((old = cmpxchg(&v->counter, c, c c_op i)) != c)		\
+			c = old;						\
+	}
 
 #define ATOMIC_OP_RETURN(op, c_op)					\
-static inline int atomic_##op##_return(int i, atomic_t *v)		\
-{									\
-	int c, old;							\
-									\
-	c = v->counter;							\
-	while ((old = cmpxchg(&v->counter, c, c c_op i)) != c)		\
-		c = old;						\
-									\
-	return c c_op i;						\
-}
+	static inline int atomic_##op##_return(int i, atomic_t *v)		\
+	{									\
+		int c, old;							\
+		\
+		c = v->counter;							\
+		while ((old = cmpxchg(&v->counter, c, c c_op i)) != c)		\
+			c = old;						\
+		\
+		return c c_op i;						\
+	}
 
 #define ATOMIC_FETCH_OP(op, c_op)					\
-static inline int atomic_fetch_##op(int i, atomic_t *v)			\
-{									\
-	int c, old;							\
-									\
-	c = v->counter;							\
-	while ((old = cmpxchg(&v->counter, c, c c_op i)) != c)		\
-		c = old;						\
-									\
-	return c;							\
-}
+	static inline int atomic_fetch_##op(int i, atomic_t *v)			\
+	{									\
+		int c, old;							\
+		\
+		c = v->counter;							\
+		while ((old = cmpxchg(&v->counter, c, c c_op i)) != c)		\
+			c = old;						\
+		\
+		return c;							\
+	}
 
 #else
 
 #include <linux/irqflags.h>
 
 #define ATOMIC_OP(op, c_op)						\
-static inline void atomic_##op(int i, atomic_t *v)			\
-{									\
-	unsigned long flags;						\
-									\
-	raw_local_irq_save(flags);					\
-	v->counter = v->counter c_op i;					\
-	raw_local_irq_restore(flags);					\
-}
+	static inline void atomic_##op(int i, atomic_t *v)			\
+	{									\
+		unsigned long flags;						\
+		\
+		raw_local_irq_save(flags);					\
+		v->counter = v->counter c_op i;					\
+		raw_local_irq_restore(flags);					\
+	}
 
 #define ATOMIC_OP_RETURN(op, c_op)					\
-static inline int atomic_##op##_return(int i, atomic_t *v)		\
-{									\
-	unsigned long flags;						\
-	int ret;							\
-									\
-	raw_local_irq_save(flags);					\
-	ret = (v->counter = v->counter c_op i);				\
-	raw_local_irq_restore(flags);					\
-									\
-	return ret;							\
-}
+	static inline int atomic_##op##_return(int i, atomic_t *v)		\
+	{									\
+		unsigned long flags;						\
+		int ret;							\
+		\
+		raw_local_irq_save(flags);					\
+		ret = (v->counter = v->counter c_op i);				\
+		raw_local_irq_restore(flags);					\
+		\
+		return ret;							\
+	}
 
 #define ATOMIC_FETCH_OP(op, c_op)					\
-static inline int atomic_fetch_##op(int i, atomic_t *v)			\
-{									\
-	unsigned long flags;						\
-	int ret;							\
-									\
-	raw_local_irq_save(flags);					\
-	ret = v->counter;						\
-	v->counter = v->counter c_op i;					\
-	raw_local_irq_restore(flags);					\
-									\
-	return ret;							\
-}
+	static inline int atomic_fetch_##op(int i, atomic_t *v)			\
+	{									\
+		unsigned long flags;						\
+		int ret;							\
+		\
+		raw_local_irq_save(flags);					\
+		ret = v->counter;						\
+		v->counter = v->counter c_op i;					\
+		raw_local_irq_restore(flags);					\
+		\
+		return ret;							\
+	}
 
 #endif /* CONFIG_SMP */
 
 #ifndef atomic_add_return
-ATOMIC_OP_RETURN(add, +)
+	ATOMIC_OP_RETURN(add, +)
 #endif
 
 #ifndef atomic_sub_return
-ATOMIC_OP_RETURN(sub, -)
+	ATOMIC_OP_RETURN(sub, -)
 #endif
 
 #ifndef atomic_fetch_add
-ATOMIC_FETCH_OP(add, +)
+	ATOMIC_FETCH_OP(add, +)
 #endif
 
 #ifndef atomic_fetch_sub
-ATOMIC_FETCH_OP(sub, -)
+	ATOMIC_FETCH_OP(sub, -)
 #endif
 
 #ifndef atomic_fetch_and
-ATOMIC_FETCH_OP(and, &)
+	ATOMIC_FETCH_OP( and , &)
 #endif
 
 #ifndef atomic_fetch_or
-ATOMIC_FETCH_OP(or, |)
+	ATOMIC_FETCH_OP( or , | )
 #endif
 
 #ifndef atomic_fetch_xor
-ATOMIC_FETCH_OP(xor, ^)
+	ATOMIC_FETCH_OP(xor, ^)
 #endif
 
 #ifndef atomic_and
-ATOMIC_OP(and, &)
+	ATOMIC_OP( and , &)
 #endif
 
 #ifndef atomic_or
-ATOMIC_OP(or, |)
+	ATOMIC_OP( or , | )
 #endif
 
 #ifndef atomic_xor
-ATOMIC_OP(xor, ^)
+	ATOMIC_OP(xor, ^)
 #endif
 
 #undef ATOMIC_FETCH_OP
@@ -174,7 +174,7 @@ ATOMIC_OP(xor, ^)
  * Atomically reads the value of @v.
  */
 #ifndef atomic_read
-#define atomic_read(v)	READ_ONCE((v)->counter)
+	#define atomic_read(v)	READ_ONCE((v)->counter)
 #endif
 
 /**
@@ -227,8 +227,12 @@ static inline int __atomic_add_unless(atomic_t *v, int a, int u)
 {
 	int c, old;
 	c = atomic_read(v);
+
 	while (c != u && (old = atomic_cmpxchg(v, c, c + a)) != c)
+	{
 		c = old;
+	}
+
 	return c;
 }
 

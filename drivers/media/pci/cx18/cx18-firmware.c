@@ -91,7 +91,8 @@
 #define APU_ROM_SYNC1 0x6D676553 /* "mgeS" */
 #define APU_ROM_SYNC2 0x72646548 /* "rdeH" */
 
-struct cx18_apu_rom_seghdr {
+struct cx18_apu_rom_seghdr
+{
 	u32 sync1;
 	u32 sync2;
 	u32 addr;
@@ -106,7 +107,8 @@ static int load_cpu_fw_direct(const char *fn, u8 __iomem *mem, struct cx18 *cx)
 	u32 __iomem *dst = (u32 __iomem *)mem;
 	const u32 *src;
 
-	if (request_firmware(&fw, fn, &cx->pci_dev->dev)) {
+	if (request_firmware(&fw, fn, &cx->pci_dev->dev))
+	{
 		CX18_ERR("Unable to open firmware %s\n", fn);
 		CX18_ERR("Did you put the firmware in the hotplug firmware directory?\n");
 		return -ENOMEM;
@@ -114,23 +116,33 @@ static int load_cpu_fw_direct(const char *fn, u8 __iomem *mem, struct cx18 *cx)
 
 	src = (const u32 *)fw->data;
 
-	for (i = 0; i < fw->size; i += 4096) {
+	for (i = 0; i < fw->size; i += 4096)
+	{
 		cx18_setup_page(cx, i);
-		for (j = i; j < fw->size && j < i + 4096; j += 4) {
+
+		for (j = i; j < fw->size && j < i + 4096; j += 4)
+		{
 			/* no need for endianness conversion on the ppc */
 			cx18_raw_writel(cx, *src, dst);
-			if (cx18_raw_readl(cx, dst) != *src) {
+
+			if (cx18_raw_readl(cx, dst) != *src)
+			{
 				CX18_ERR("Mismatch at offset %x\n", i);
 				release_firmware(fw);
 				cx18_setup_page(cx, 0);
 				return -EIO;
 			}
+
 			dst++;
 			src++;
 		}
 	}
+
 	if (!test_bit(CX18_F_I_LOADED_FW, &cx->i_flags))
+	{
 		CX18_INFO("loaded %s firmware (%zu bytes)\n", fn, fw->size);
+	}
+
 	size = fw->size;
 	release_firmware(fw);
 	cx18_setup_page(cx, SCB_OFFSET);
@@ -138,7 +150,7 @@ static int load_cpu_fw_direct(const char *fn, u8 __iomem *mem, struct cx18 *cx)
 }
 
 static int load_apu_fw_direct(const char *fn, u8 __iomem *dst, struct cx18 *cx,
-				u32 *entry_addr)
+							  u32 *entry_addr)
 {
 	const struct firmware *fw = NULL;
 	int i, j;
@@ -150,7 +162,8 @@ static int load_apu_fw_direct(const char *fn, u8 __iomem *dst, struct cx18 *cx,
 	u32 apu_version = 0;
 	int sz;
 
-	if (request_firmware(&fw, fn, &cx->pci_dev->dev)) {
+	if (request_firmware(&fw, fn, &cx->pci_dev->dev))
+	{
 		CX18_ERR("unable to open firmware %s\n", fn);
 		CX18_ERR("did you put the firmware in the hotplug firmware directory?\n");
 		cx18_setup_page(cx, 0);
@@ -163,7 +176,9 @@ static int load_apu_fw_direct(const char *fn, u8 __iomem *dst, struct cx18 *cx,
 	sz = fw->size;
 
 	apu_version = (vers[0] << 24) | (vers[4] << 16) | vers[32];
-	while (offset + sizeof(seghdr) < fw->size) {
+
+	while (offset + sizeof(seghdr) < fw->size)
+	{
 		const __le32 *shptr = (__force __le32 *)src + offset / 4;
 
 		seghdr.sync1 = le32_to_cpu(shptr[0]);
@@ -172,38 +187,56 @@ static int load_apu_fw_direct(const char *fn, u8 __iomem *dst, struct cx18 *cx,
 		seghdr.size = le32_to_cpu(shptr[3]);
 
 		offset += sizeof(seghdr);
+
 		if (seghdr.sync1 != APU_ROM_SYNC1 ||
-		    seghdr.sync2 != APU_ROM_SYNC2) {
+			seghdr.sync2 != APU_ROM_SYNC2)
+		{
 			offset += seghdr.size;
 			continue;
 		}
+
 		CX18_DEBUG_INFO("load segment %x-%x\n", seghdr.addr,
-				seghdr.addr + seghdr.size - 1);
+						seghdr.addr + seghdr.size - 1);
+
 		if (*entry_addr == 0)
+		{
 			*entry_addr = seghdr.addr;
+		}
+
 		if (offset + seghdr.size > sz)
+		{
 			break;
-		for (i = 0; i < seghdr.size; i += 4096) {
+		}
+
+		for (i = 0; i < seghdr.size; i += 4096)
+		{
 			cx18_setup_page(cx, seghdr.addr + i);
-			for (j = i; j < seghdr.size && j < i + 4096; j += 4) {
+
+			for (j = i; j < seghdr.size && j < i + 4096; j += 4)
+			{
 				/* no need for endianness conversion on the ppc */
 				cx18_raw_writel(cx, src[(offset + j) / 4],
-						dst + seghdr.addr + j);
+								dst + seghdr.addr + j);
+
 				if (cx18_raw_readl(cx, dst + seghdr.addr + j)
-				    != src[(offset + j) / 4]) {
+					!= src[(offset + j) / 4])
+				{
 					CX18_ERR("Mismatch at offset %x\n",
-						 offset + j);
+							 offset + j);
 					release_firmware(fw);
 					cx18_setup_page(cx, 0);
 					return -EIO;
 				}
 			}
 		}
+
 		offset += seghdr.size;
 	}
+
 	if (!test_bit(CX18_F_I_LOADED_FW, &cx->i_flags))
 		CX18_INFO("loaded %s firmware V%08x (%zu bytes)\n",
-				fn, apu_version, fw->size);
+				  fn, apu_version, fw->size);
+
 	size = fw->size;
 	release_firmware(fw);
 	cx18_setup_page(cx, 0);
@@ -214,9 +247,9 @@ void cx18_halt_firmware(struct cx18 *cx)
 {
 	CX18_DEBUG_INFO("Preparing for firmware halt.\n");
 	cx18_write_reg_expect(cx, 0x000F000F, CX18_PROC_SOFT_RESET,
-				  0x0000000F, 0x000F000F);
+						  0x0000000F, 0x000F000F);
 	cx18_write_reg_expect(cx, 0x00020002, CX18_ADEC_CONTROL,
-				  0x00000002, 0x00020002);
+						  0x00000002, 0x00020002);
 }
 
 void cx18_init_power(struct cx18 *cx, int lowpwr)
@@ -227,7 +260,7 @@ void cx18_init_power(struct cx18 *cx, int lowpwr)
 
 	/* ADEC out of sleep */
 	cx18_write_reg_expect(cx, 0x00020000, CX18_ADEC_CONTROL,
-				  0x00000000, 0x00020002);
+						  0x00000000, 0x00020002);
 
 	/*
 	 * The PLL parameters are based on the external crystal frequency that
@@ -270,7 +303,7 @@ void cx18_init_power(struct cx18 *cx, int lowpwr)
 	/* 1 * xtal_freq * 0x11.1c71eb8 / 2 = 245 MHz: 490 MHz pre post-divide*/
 	cx18_write_reg(cx, lowpwr ? 0xD : 0x11, CX18_FAST_CLOCK_PLL_INT);
 	cx18_write_reg(cx, lowpwr ? 0x1EFBF37 : 0x038E3D7,
-						CX18_FAST_CLOCK_PLL_FRAC);
+				   CX18_FAST_CLOCK_PLL_FRAC);
 
 	cx18_write_reg(cx, 2, CX18_FAST_CLOCK_PLL_POST);
 	cx18_write_reg(cx, 1, CX18_FAST_CLOCK_PLL_PRESCALE);
@@ -281,7 +314,7 @@ void cx18_init_power(struct cx18 *cx, int lowpwr)
 	/* xtal_freq * 0x0c.92493f8 / 3 = 120 MHz: 360 MHz before post-divide */
 	cx18_write_reg(cx, lowpwr ? 0xD : 0xC, CX18_SLOW_CLOCK_PLL_INT);
 	cx18_write_reg(cx, lowpwr ? 0x30C344 : 0x124927F,
-						CX18_SLOW_CLOCK_PLL_FRAC);
+				   CX18_SLOW_CLOCK_PLL_FRAC);
 	cx18_write_reg(cx, 3, CX18_SLOW_CLOCK_PLL_POST);
 
 	/* mpeg clock pll 54MHz */
@@ -305,34 +338,37 @@ void cx18_init_power(struct cx18 *cx, int lowpwr)
 	/* VFC = disabled */
 	/* USB = disabled */
 
-	if (lowpwr) {
+	if (lowpwr)
+	{
 		cx18_write_reg_expect(cx, 0xFFFF0020, CX18_CLOCK_SELECT1,
-					  0x00000020, 0xFFFFFFFF);
+							  0x00000020, 0xFFFFFFFF);
 		cx18_write_reg_expect(cx, 0xFFFF0004, CX18_CLOCK_SELECT2,
-					  0x00000004, 0xFFFFFFFF);
-	} else {
+							  0x00000004, 0xFFFFFFFF);
+	}
+	else
+	{
 		/* This doesn't explicitly set every clock select */
 		cx18_write_reg_expect(cx, 0x00060004, CX18_CLOCK_SELECT1,
-					  0x00000004, 0x00060006);
+							  0x00000004, 0x00060006);
 		cx18_write_reg_expect(cx, 0x00060006, CX18_CLOCK_SELECT2,
-					  0x00000006, 0x00060006);
+							  0x00000006, 0x00060006);
 	}
 
 	cx18_write_reg_expect(cx, 0xFFFF0002, CX18_HALF_CLOCK_SELECT1,
-				  0x00000002, 0xFFFFFFFF);
+						  0x00000002, 0xFFFFFFFF);
 	cx18_write_reg_expect(cx, 0xFFFF0104, CX18_HALF_CLOCK_SELECT2,
-				  0x00000104, 0xFFFFFFFF);
+						  0x00000104, 0xFFFFFFFF);
 	cx18_write_reg_expect(cx, 0xFFFF9026, CX18_CLOCK_ENABLE1,
-				  0x00009026, 0xFFFFFFFF);
+						  0x00009026, 0xFFFFFFFF);
 	cx18_write_reg_expect(cx, 0xFFFF3105, CX18_CLOCK_ENABLE2,
-				  0x00003105, 0xFFFFFFFF);
+						  0x00003105, 0xFFFFFFFF);
 }
 
 void cx18_init_memory(struct cx18 *cx)
 {
 	cx18_msleep_timeout(10, 0);
 	cx18_write_reg_expect(cx, 0x00010000, CX18_DDR_SOFT_RESET,
-				  0x00000000, 0x00010001);
+						  0x00000000, 0x00010001);
 	cx18_msleep_timeout(10, 0);
 
 	cx18_write_reg(cx, cx->card->ddr.chip_config, CX18_DDR_CHIP_CONFIG);
@@ -352,14 +388,14 @@ void cx18_init_memory(struct cx18 *cx)
 	cx18_msleep_timeout(10, 0);
 
 	cx18_write_reg_expect(cx, 0x00020000, CX18_DDR_SOFT_RESET,
-				  0x00000000, 0x00020002);
+						  0x00000000, 0x00020002);
 	cx18_msleep_timeout(10, 0);
 
 	/* use power-down mode when idle */
 	cx18_write_reg(cx, 0x00000010, CX18_DDR_POWER_REG);
 
 	cx18_write_reg_expect(cx, 0x00010001, CX18_REG_BUS_TIMEOUT_EN,
-				  0x00000001, 0x00010001);
+						  0x00000001, 0x00010001);
 
 	cx18_write_reg(cx, 0x48, CX18_DDR_MB_PER_ROW_7);
 	cx18_write_reg(cx, 0xE0000, CX18_DDR_BASE_63_ADDR);
@@ -390,12 +426,13 @@ int cx18_firmware_init(struct cx18 *cx)
 
 	/* Stop the firmware */
 	cx18_write_reg_expect(cx, 0x000F000F, CX18_PROC_SOFT_RESET,
-				  0x0000000F, 0x000F000F);
+						  0x0000000F, 0x000F000F);
 
 	cx18_msleep_timeout(1, 0);
 
 	/* If the CPU is still running */
-	if ((cx18_read_reg(cx, CX18_PROC_SOFT_RESET) & 8) == 0) {
+	if ((cx18_read_reg(cx, CX18_PROC_SOFT_RESET) & 8) == 0)
+	{
 		CX18_ERR("%s: couldn't stop CPU to load firmware\n", __func__);
 		return -EIO;
 	}
@@ -404,32 +441,41 @@ int cx18_firmware_init(struct cx18 *cx)
 	cx18_sw2_irq_enable(cx, IRQ_CPU_TO_EPU_ACK | IRQ_APU_TO_EPU_ACK);
 
 	sz = load_cpu_fw_direct(CX18_CPU_FIRMWARE, cx->enc_mem, cx);
+
 	if (sz <= 0)
+	{
 		return sz;
+	}
 
 	/* The SCB & IPC area *must* be correct before starting the firmwares */
 	cx18_init_scb(cx);
 
 	fw_entry_addr = 0;
 	sz = load_apu_fw_direct(CX18_APU_FIRMWARE, cx->enc_mem, cx,
-				&fw_entry_addr);
+							&fw_entry_addr);
+
 	if (sz <= 0)
+	{
 		return sz;
+	}
 
 	/* Start the CPU. The CPU will take care of the APU for us. */
 	cx18_write_reg_expect(cx, 0x00080000, CX18_PROC_SOFT_RESET,
-				  0x00000000, 0x00080008);
+						  0x00000000, 0x00080008);
 
 	/* Wait up to 500 ms for the APU to come out of reset */
 	for (retries = 0;
-	     retries < 50 && (cx18_read_reg(cx, CX18_PROC_SOFT_RESET) & 1) == 1;
-	     retries++)
+		 retries < 50 && (cx18_read_reg(cx, CX18_PROC_SOFT_RESET) & 1) == 1;
+		 retries++)
+	{
 		cx18_msleep_timeout(10, 0);
+	}
 
 	cx18_msleep_timeout(200, 0);
 
 	if (retries == 50 &&
-	    (cx18_read_reg(cx, CX18_PROC_SOFT_RESET) & 1) == 1) {
+		(cx18_read_reg(cx, CX18_PROC_SOFT_RESET) & 1) == 1)
+	{
 		CX18_ERR("Could not start the CPU\n");
 		return -EIO;
 	}
@@ -447,8 +493,11 @@ int cx18_firmware_init(struct cx18 *cx)
 
 	/* Try a benign command to see if the CPU is alive and well */
 	sz = cx18_vapi_result(cx, api_args, CX18_CPU_DEBUG_PEEK32, 1, 0);
+
 	if (sz < 0)
+	{
 		return sz;
+	}
 
 	/* initialize GPIO */
 	cx18_write_reg_expect(cx, 0x14001400, 0xc78110, 0x00001400, 0x14001400);

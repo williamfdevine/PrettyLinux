@@ -30,7 +30,7 @@
 #define ATH_MCI_MAX_ACL_PROFILE		7
 #define ATH_MCI_MAX_SCO_PROFILE		1
 #define ATH_MCI_MAX_PROFILE		(ATH_MCI_MAX_ACL_PROFILE +\
-					 ATH_MCI_MAX_SCO_PROFILE)
+								 ATH_MCI_MAX_SCO_PROFILE)
 
 #define ATH_MCI_INQUIRY_PRIO         62
 #define ATH_MCI_HI_PRIO              60
@@ -41,7 +41,7 @@
 	do {								  \
 		if (_bt_chan < ATH_MCI_NUM_BT_CHANNELS) {		  \
 			*(((u8 *)(_p_gpm)) + MCI_GPM_COEX_B_CHANNEL_MAP + \
-				(_bt_chan / 8)) |= (1 << (_bt_chan & 7)); \
+			  (_bt_chan / 8)) |= (1 << (_bt_chan & 7)); \
 		}							  \
 	} while (0)
 
@@ -49,64 +49,65 @@
 	do {								  \
 		if (_bt_chan < ATH_MCI_NUM_BT_CHANNELS) {		  \
 			*(((u8 *)(_p_gpm)) + MCI_GPM_COEX_B_CHANNEL_MAP + \
-				(_bt_chan / 8)) &= ~(1 << (_bt_chan & 7));\
+			  (_bt_chan / 8)) &= ~(1 << (_bt_chan & 7));\
 		}							  \
 	} while (0)
 
 #define INC_PROF(_mci, _info) do {		 \
 		switch (_info->type) {		 \
-		case MCI_GPM_COEX_PROFILE_RFCOMM:\
-			_mci->num_other_acl++;	 \
-			break;			 \
-		case MCI_GPM_COEX_PROFILE_A2DP:	 \
-			_mci->num_a2dp++;	 \
-			if (!_info->edr)	 \
-				_mci->num_bdr++; \
-			break;			 \
-		case MCI_GPM_COEX_PROFILE_HID:	 \
-			_mci->num_hid++;	 \
-			break;			 \
-		case MCI_GPM_COEX_PROFILE_BNEP:	 \
-			_mci->num_pan++;	 \
-			break;			 \
-		case MCI_GPM_COEX_PROFILE_VOICE: \
-		case MCI_GPM_COEX_PROFILE_A2DPVO:\
-			_mci->num_sco++;	 \
-			break;			 \
-		default:			 \
-			break;			 \
+			case MCI_GPM_COEX_PROFILE_RFCOMM:\
+				_mci->num_other_acl++;	 \
+				break;			 \
+			case MCI_GPM_COEX_PROFILE_A2DP:	 \
+				_mci->num_a2dp++;	 \
+				if (!_info->edr)	 \
+					_mci->num_bdr++; \
+				break;			 \
+			case MCI_GPM_COEX_PROFILE_HID:	 \
+				_mci->num_hid++;	 \
+				break;			 \
+			case MCI_GPM_COEX_PROFILE_BNEP:	 \
+				_mci->num_pan++;	 \
+				break;			 \
+			case MCI_GPM_COEX_PROFILE_VOICE: \
+			case MCI_GPM_COEX_PROFILE_A2DPVO:\
+				_mci->num_sco++;	 \
+				break;			 \
+			default:			 \
+				break;			 \
 		}				 \
 	} while (0)
 
 #define DEC_PROF(_mci, _info) do {		 \
 		switch (_info->type) {		 \
-		case MCI_GPM_COEX_PROFILE_RFCOMM:\
-			_mci->num_other_acl--;	 \
-			break;			 \
-		case MCI_GPM_COEX_PROFILE_A2DP:	 \
-			_mci->num_a2dp--;	 \
-			if (!_info->edr)	 \
-				_mci->num_bdr--; \
-			break;			 \
-		case MCI_GPM_COEX_PROFILE_HID:	 \
-			_mci->num_hid--;	 \
-			break;			 \
-		case MCI_GPM_COEX_PROFILE_BNEP:	 \
-			_mci->num_pan--;	 \
-			break;			 \
-		case MCI_GPM_COEX_PROFILE_VOICE: \
-		case MCI_GPM_COEX_PROFILE_A2DPVO:\
-			_mci->num_sco--;	 \
-			break;			 \
-		default:			 \
-			break;			 \
+			case MCI_GPM_COEX_PROFILE_RFCOMM:\
+				_mci->num_other_acl--;	 \
+				break;			 \
+			case MCI_GPM_COEX_PROFILE_A2DP:	 \
+				_mci->num_a2dp--;	 \
+				if (!_info->edr)	 \
+					_mci->num_bdr--; \
+				break;			 \
+			case MCI_GPM_COEX_PROFILE_HID:	 \
+				_mci->num_hid--;	 \
+				break;			 \
+			case MCI_GPM_COEX_PROFILE_BNEP:	 \
+				_mci->num_pan--;	 \
+				break;			 \
+			case MCI_GPM_COEX_PROFILE_VOICE: \
+			case MCI_GPM_COEX_PROFILE_A2DPVO:\
+				_mci->num_sco--;	 \
+				break;			 \
+			default:			 \
+				break;			 \
 		}				 \
 	} while (0)
 
 #define NUM_PROF(_mci)	(_mci->num_other_acl + _mci->num_a2dp + \
-			 _mci->num_hid + _mci->num_pan + _mci->num_sco)
+						 _mci->num_hid + _mci->num_pan + _mci->num_sco)
 
-struct ath_mci_profile_info {
+struct ath_mci_profile_info
+{
 	u8 type;
 	u8 conn_handle;
 	bool start;
@@ -119,13 +120,15 @@ struct ath_mci_profile_info {
 	struct list_head list;
 };
 
-struct ath_mci_profile_status {
+struct ath_mci_profile_status
+{
 	bool is_critical;
 	bool is_link;
 	u8 conn_handle;
 };
 
-struct ath_mci_profile {
+struct ath_mci_profile
+{
 	struct list_head info;
 	DECLARE_BITMAP(status, ATH_MCI_MAX_PROFILE);
 	u16 aggr_limit;
@@ -139,13 +142,15 @@ struct ath_mci_profile {
 	u8 voice_priority;
 };
 
-struct ath_mci_buf {
+struct ath_mci_buf
+{
 	void *bf_addr;		/* virtual addr of desc */
 	dma_addr_t bf_paddr;    /* physical addr of buffer */
 	u32 bf_len;		/* len of data */
 };
 
-struct ath_mci_coex {
+struct ath_mci_coex
+{
 	struct ath_mci_buf sched_buf;
 	struct ath_mci_buf gpm_buf;
 };
@@ -160,17 +165,17 @@ void ath9k_mci_update_rssi(struct ath_softc *sc);
 void ath_mci_enable(struct ath_softc *sc);
 void ath9k_mci_update_wlan_channels(struct ath_softc *sc, bool allow_all);
 void ath9k_mci_set_txpower(struct ath_softc *sc, bool setchannel,
-			   bool concur_tx);
+						   bool concur_tx);
 #else
 static inline void ath_mci_enable(struct ath_softc *sc)
 {
 }
 static inline void ath9k_mci_update_wlan_channels(struct ath_softc *sc,
-						  bool allow_all)
+		bool allow_all)
 {
 }
 static inline void ath9k_mci_set_txpower(struct ath_softc *sc, bool setchannel,
-					 bool concur_tx)
+		bool concur_tx)
 {
 }
 #endif /* CONFIG_ATH9K_BTCOEX_SUPPORT */

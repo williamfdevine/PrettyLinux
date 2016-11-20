@@ -60,7 +60,8 @@
 #define AIC26_REG_AUDIO_CTRL5		AIC26_PAGE_ADDR(2, 0x1E)
 
 /* fsref dividers; used in register 'Audio Control 1' */
-enum aic26_divisors {
+enum aic26_divisors
+{
 	AIC26_DIV_1	= 0,
 	AIC26_DIV_1_5	= 1,
 	AIC26_DIV_2	= 2,
@@ -72,7 +73,8 @@ enum aic26_divisors {
 };
 
 /* Digital data format */
-enum aic26_datfm {
+enum aic26_datfm
+{
 	AIC26_DATFM_I2S		= 0 << 8,
 	AIC26_DATFM_DSP		= 1 << 8,
 	AIC26_DATFM_RIGHTJ	= 2 << 8, /* right justified */
@@ -80,7 +82,8 @@ enum aic26_datfm {
 };
 
 /* Sample word length in bits; used in register 'Audio Control 1' */
-enum aic26_wlen {
+enum aic26_wlen
+{
 	AIC26_WLEN_16	= 0 << 10,
 	AIC26_WLEN_20	= 1 << 10,
 	AIC26_WLEN_24	= 2 << 10,

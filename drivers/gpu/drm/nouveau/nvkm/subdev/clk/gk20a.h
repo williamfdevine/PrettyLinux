@@ -85,21 +85,22 @@
 #define GPC2CLK_OUT_VCODIV1		0
 #define GPC2CLK_OUT_VCODIV2		2
 #define GPC2CLK_OUT_VCODIV_MASK		(MASK(GPC2CLK_OUT_VCODIV_WIDTH) << \
-					GPC2CLK_OUT_VCODIV_SHIFT)
+									 GPC2CLK_OUT_VCODIV_SHIFT)
 #define GPC2CLK_OUT_BYPDIV_WIDTH	6
 #define GPC2CLK_OUT_BYPDIV_SHIFT	0
 #define GPC2CLK_OUT_BYPDIV31		0x3c
 #define GPC2CLK_OUT_INIT_MASK	((MASK(GPC2CLK_OUT_SDIV14_INDIV4_WIDTH) << \
-		GPC2CLK_OUT_SDIV14_INDIV4_SHIFT)\
-		| (MASK(GPC2CLK_OUT_VCODIV_WIDTH) << GPC2CLK_OUT_VCODIV_SHIFT)\
-		| (MASK(GPC2CLK_OUT_BYPDIV_WIDTH) << GPC2CLK_OUT_BYPDIV_SHIFT))
+								  GPC2CLK_OUT_SDIV14_INDIV4_SHIFT)\
+								 | (MASK(GPC2CLK_OUT_VCODIV_WIDTH) << GPC2CLK_OUT_VCODIV_SHIFT)\
+								 | (MASK(GPC2CLK_OUT_BYPDIV_WIDTH) << GPC2CLK_OUT_BYPDIV_SHIFT))
 #define GPC2CLK_OUT_INIT_VAL	((GPC2CLK_OUT_SDIV14_INDIV4_MODE << \
-		GPC2CLK_OUT_SDIV14_INDIV4_SHIFT) \
-		| (GPC2CLK_OUT_VCODIV1 << GPC2CLK_OUT_VCODIV_SHIFT) \
-		| (GPC2CLK_OUT_BYPDIV31 << GPC2CLK_OUT_BYPDIV_SHIFT))
+								  GPC2CLK_OUT_SDIV14_INDIV4_SHIFT) \
+								 | (GPC2CLK_OUT_VCODIV1 << GPC2CLK_OUT_VCODIV_SHIFT) \
+								 | (GPC2CLK_OUT_BYPDIV31 << GPC2CLK_OUT_BYPDIV_SHIFT))
 
 /* All frequencies in Khz */
-struct gk20a_clk_pllg_params {
+struct gk20a_clk_pllg_params
+{
 	u32 min_vco, max_vco;
 	u32 min_u, max_u;
 	u32 min_m, max_m;
@@ -107,13 +108,15 @@ struct gk20a_clk_pllg_params {
 	u32 min_pl, max_pl;
 };
 
-struct gk20a_pll {
+struct gk20a_pll
+{
 	u32 m;
 	u32 n;
 	u32 pl;
 };
 
-struct gk20a_clk {
+struct gk20a_clk
+{
 	struct nvkm_clk base;
 	const struct gk20a_clk_pllg_params *params;
 	struct gk20a_pll pll;
@@ -143,11 +146,11 @@ static inline u32
 gk20a_pllg_n_lo(struct gk20a_clk *clk, struct gk20a_pll *pll)
 {
 	return DIV_ROUND_UP(pll->m * clk->params->min_vco,
-			    clk->parent_rate / KHZ);
+						clk->parent_rate / KHZ);
 }
 
 int gk20a_clk_ctor(struct nvkm_device *, int, const struct nvkm_clk_func *,
-		    const struct gk20a_clk_pllg_params *, struct gk20a_clk *);
+				   const struct gk20a_clk_pllg_params *, struct gk20a_clk *);
 void gk20a_clk_fini(struct nvkm_clk *);
 int gk20a_clk_read(struct nvkm_clk *, enum nv_clk_src);
 int gk20a_clk_calc(struct nvkm_clk *, struct nvkm_cstate *);

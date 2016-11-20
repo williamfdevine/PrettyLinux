@@ -18,7 +18,8 @@
 
 #define BEEPER_MODNAME		"gpio-beeper"
 
-struct gpio_beeper {
+struct gpio_beeper
+{
 	struct work_struct	work;
 	struct gpio_desc	*desc;
 	bool			beeping;
@@ -37,15 +38,19 @@ static void gpio_beeper_work(struct work_struct *work)
 }
 
 static int gpio_beeper_event(struct input_dev *dev, unsigned int type,
-			     unsigned int code, int value)
+							 unsigned int code, int value)
 {
 	struct gpio_beeper *beep = input_get_drvdata(dev);
 
 	if (type != EV_SND || code != SND_BELL)
+	{
 		return -ENOTSUPP;
+	}
 
 	if (value < 0)
+	{
 		return -EINVAL;
+	}
 
 	beep->beeping = value;
 	/* Schedule work to actually turn the beeper on or off */
@@ -68,16 +73,25 @@ static int gpio_beeper_probe(struct platform_device *pdev)
 	struct input_dev *input;
 
 	beep = devm_kzalloc(&pdev->dev, sizeof(*beep), GFP_KERNEL);
+
 	if (!beep)
+	{
 		return -ENOMEM;
+	}
 
 	beep->desc = devm_gpiod_get(&pdev->dev, NULL, GPIOD_OUT_LOW);
+
 	if (IS_ERR(beep->desc))
+	{
 		return PTR_ERR(beep->desc);
+	}
 
 	input = devm_input_allocate_device(&pdev->dev);
+
 	if (!input)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_WORK(&beep->work, gpio_beeper_work);
 
@@ -97,14 +111,16 @@ static int gpio_beeper_probe(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id gpio_beeper_of_match[] = {
+static const struct of_device_id gpio_beeper_of_match[] =
+{
 	{ .compatible = BEEPER_MODNAME, },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, gpio_beeper_of_match);
 #endif
 
-static struct platform_driver gpio_beeper_platform_driver = {
+static struct platform_driver gpio_beeper_platform_driver =
+{
 	.driver	= {
 		.name		= BEEPER_MODNAME,
 		.of_match_table	= of_match_ptr(gpio_beeper_of_match),

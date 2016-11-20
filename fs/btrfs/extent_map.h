@@ -17,7 +17,8 @@
 #define EXTENT_FLAG_FILLING 5 /* Filling in a preallocated extent */
 #define EXTENT_FLAG_FS_MAPPING 6 /* filesystem extent mapping type */
 
-struct extent_map {
+struct extent_map
+{
 	struct rb_node rb_node;
 
 	/* all of these are in bytes */
@@ -32,7 +33,8 @@ struct extent_map {
 	u64 block_len;
 	u64 generation;
 	unsigned long flags;
-	union {
+	union
+	{
 		struct block_device *bdev;
 
 		/*
@@ -46,7 +48,8 @@ struct extent_map {
 	struct list_head list;
 };
 
-struct extent_map_tree {
+struct extent_map_tree
+{
 	struct rb_root map;
 	struct list_head modified_extents;
 	rwlock_t lock;
@@ -60,27 +63,33 @@ static inline int extent_map_in_tree(const struct extent_map *em)
 static inline u64 extent_map_end(struct extent_map *em)
 {
 	if (em->start + em->len < em->start)
-		return (u64)-1;
+	{
+		return (u64) - 1;
+	}
+
 	return em->start + em->len;
 }
 
 static inline u64 extent_map_block_end(struct extent_map *em)
 {
 	if (em->block_start + em->block_len < em->block_start)
-		return (u64)-1;
+	{
+		return (u64) - 1;
+	}
+
 	return em->block_start + em->block_len;
 }
 
 void extent_map_tree_init(struct extent_map_tree *tree);
 struct extent_map *lookup_extent_mapping(struct extent_map_tree *tree,
-					 u64 start, u64 len);
+		u64 start, u64 len);
 int add_extent_mapping(struct extent_map_tree *tree,
-		       struct extent_map *em, int modified);
+					   struct extent_map *em, int modified);
 int remove_extent_mapping(struct extent_map_tree *tree, struct extent_map *em);
 void replace_extent_mapping(struct extent_map_tree *tree,
-			    struct extent_map *cur,
-			    struct extent_map *new,
-			    int modified);
+							struct extent_map *cur,
+							struct extent_map *new,
+							int modified);
 
 struct extent_map *alloc_extent_map(void);
 void free_extent_map(struct extent_map *em);
@@ -89,5 +98,5 @@ void extent_map_exit(void);
 int unpin_extent_cache(struct extent_map_tree *tree, u64 start, u64 len, u64 gen);
 void clear_em_logging(struct extent_map_tree *tree, struct extent_map *em);
 struct extent_map *search_extent_mapping(struct extent_map_tree *tree,
-					 u64 start, u64 len);
+		u64 start, u64 len);
 #endif

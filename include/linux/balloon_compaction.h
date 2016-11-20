@@ -57,12 +57,13 @@
  * have to cope for page compaction / migration, as well as it serves the
  * balloon driver as a page book-keeper for its registered balloon devices.
  */
-struct balloon_dev_info {
+struct balloon_dev_info
+{
 	unsigned long isolated_pages;	/* # of isolated pages for migration */
 	spinlock_t pages_lock;		/* Protection to pages list */
 	struct list_head pages;		/* Pages enqueued & handled to Host */
 	int (*migratepage)(struct balloon_dev_info *, struct page *newpage,
-			struct page *page, enum migrate_mode mode);
+					   struct page *page, enum migrate_mode mode);
 	struct inode *inode;
 };
 
@@ -81,11 +82,11 @@ static inline void balloon_devinfo_init(struct balloon_dev_info *balloon)
 #ifdef CONFIG_BALLOON_COMPACTION
 extern const struct address_space_operations balloon_aops;
 extern bool balloon_page_isolate(struct page *page,
-				isolate_mode_t mode);
+								 isolate_mode_t mode);
 extern void balloon_page_putback(struct page *page);
 extern int balloon_page_migrate(struct address_space *mapping,
-				struct page *newpage,
-				struct page *page, enum migrate_mode mode);
+								struct page *newpage,
+								struct page *page, enum migrate_mode mode);
 
 /*
  * balloon_page_insert - insert a page into the balloon's page list and make
@@ -97,7 +98,7 @@ extern int balloon_page_migrate(struct address_space *mapping,
  * pages list is held before inserting a page into the balloon device.
  */
 static inline void balloon_page_insert(struct balloon_dev_info *balloon,
-				       struct page *page)
+									   struct page *page)
 {
 	__SetPageBalloon(page);
 	__SetPageMovable(page, balloon->inode->i_mapping);
@@ -118,12 +119,15 @@ static inline void balloon_page_delete(struct page *page)
 	__ClearPageBalloon(page);
 	__ClearPageMovable(page);
 	set_page_private(page, 0);
+
 	/*
 	 * No touch page.lru field once @page has been isolated
 	 * because VM is using the field.
 	 */
 	if (!PageIsolated(page))
+	{
 		list_del(&page->lru);
+	}
 }
 
 /*
@@ -143,7 +147,7 @@ static inline gfp_t balloon_mapping_gfp_mask(void)
 #else /* !CONFIG_BALLOON_COMPACTION */
 
 static inline void balloon_page_insert(struct balloon_dev_info *balloon,
-				       struct page *page)
+									   struct page *page)
 {
 	__SetPageBalloon(page);
 	list_add(&page->lru, &balloon->pages);
@@ -181,7 +185,7 @@ static inline void balloon_page_putback(struct page *page)
 }
 
 static inline int balloon_page_migrate(struct page *newpage,
-				struct page *page, enum migrate_mode mode)
+									   struct page *page, enum migrate_mode mode)
 {
 	return 0;
 }

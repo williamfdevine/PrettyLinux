@@ -22,8 +22,9 @@
 extern int test_fpu(double *darray, pid_t *pid);
 
 double darray[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
-		     1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0,
-		     2.1};
+				   1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0,
+				   2.1
+				  };
 
 int syscall_fpu(void)
 {
@@ -31,16 +32,28 @@ int syscall_fpu(void)
 	int i;
 	int ret;
 	int child_ret;
-	for (i = 0; i < 1000; i++) {
+
+	for (i = 0; i < 1000; i++)
+	{
 		/* test_fpu will fork() */
 		ret = test_fpu(darray, &fork_pid);
+
 		if (fork_pid == -1)
+		{
 			return -1;
+		}
+
 		if (fork_pid == 0)
+		{
 			exit(ret);
+		}
+
 		waitpid(fork_pid, &child_ret, 0);
+
 		if (ret || child_ret)
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -58,26 +71,39 @@ int test_syscall_fpu(void)
 	FAIL_IF(pid == -1);
 
 	pid2 = fork();
+
 	/* Can't FAIL_IF(pid2 == -1); because already forked once */
-	if (pid2 == -1) {
+	if (pid2 == -1)
+	{
 		/*
 		 * Couldn't fork, ensure test is a fail
 		 */
 		child_ret = ret = 1;
-	} else {
+	}
+	else
+	{
 		ret = syscall_fpu();
+
 		if (pid2)
+		{
 			waitpid(pid2, &child_ret, 0);
+		}
 		else
+		{
 			exit(ret);
+		}
 	}
 
 	ret |= child_ret;
 
 	if (pid)
+	{
 		waitpid(pid, &child_ret, 0);
+	}
 	else
+	{
 		exit(ret);
+	}
 
 	FAIL_IF(ret || child_ret);
 	return 0;

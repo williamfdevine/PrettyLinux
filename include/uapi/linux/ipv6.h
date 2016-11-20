@@ -17,23 +17,26 @@
  */
 
 #if __UAPI_DEF_IN6_PKTINFO
-struct in6_pktinfo {
+struct in6_pktinfo
+{
 	struct in6_addr	ipi6_addr;
 	int		ipi6_ifindex;
 };
 #endif
 
 #if __UAPI_DEF_IP6_MTUINFO
-struct ip6_mtuinfo {
+struct ip6_mtuinfo
+{
 	struct sockaddr_in6	ip6m_addr;
 	__u32			ip6m_mtu;
 };
 #endif
 
-struct in6_ifreq {
+struct in6_ifreq
+{
 	struct in6_addr	ifr6_addr;
 	__u32		ifr6_prefixlen;
-	int		ifr6_ifindex; 
+	int		ifr6_ifindex;
 };
 
 #define IPV6_SRCRT_STRICT	0x01	/* Deprecated; will be removed */
@@ -43,7 +46,8 @@ struct in6_ifreq {
 /*
  *	routing header
  */
-struct ipv6_rt_hdr {
+struct ipv6_rt_hdr
+{
 	__u8		nexthdr;
 	__u8		hdrlen;
 	__u8		type;
@@ -56,10 +60,11 @@ struct ipv6_rt_hdr {
 };
 
 
-struct ipv6_opt_hdr {
+struct ipv6_opt_hdr
+{
 	__u8 		nexthdr;
 	__u8 		hdrlen;
-	/* 
+	/*
 	 * TLV encoded option data follows.
 	 */
 } __attribute__((packed));	/* required for some archs */
@@ -74,7 +79,8 @@ struct ipv6_opt_hdr {
  *	routing header type 0 (used in cmsghdr struct)
  */
 
-struct rt0_hdr {
+struct rt0_hdr
+{
 	struct ipv6_rt_hdr	rt_hdr;
 	__u32			reserved;
 	struct in6_addr		addr[0];
@@ -86,7 +92,8 @@ struct rt0_hdr {
  *	routing header type 2
  */
 
-struct rt2_hdr {
+struct rt2_hdr
+{
 	struct ipv6_rt_hdr	rt_hdr;
 	__u32			reserved;
 	struct in6_addr		addr;
@@ -98,7 +105,8 @@ struct rt2_hdr {
  *	home address option in destination options header
  */
 
-struct ipv6_destopt_hao {
+struct ipv6_destopt_hao
+{
 	__u8			type;
 	__u8			length;
 	struct in6_addr		addr;
@@ -111,13 +119,14 @@ struct ipv6_destopt_hao {
  *	are glued to priority now, forming "class".
  */
 
-struct ipv6hdr {
+struct ipv6hdr
+{
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8			priority:4,
-				version:4;
+	__u8			priority: 4,
+					version: 4;
 #elif defined(__BIG_ENDIAN_BITFIELD)
-	__u8			version:4,
-				priority:4;
+	__u8			version: 4,
+					priority: 4;
 #else
 #error	"Please fix <asm/byteorder.h>"
 #endif
@@ -133,7 +142,8 @@ struct ipv6hdr {
 
 
 /* index values for the variables in ipv6_devconf */
-enum {
+enum
+{
 	DEVCONF_FORWARDING = 0,
 	DEVCONF_HOPLIMIT,
 	DEVCONF_MTU6,

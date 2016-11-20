@@ -98,7 +98,8 @@
 #define AD7877_SEQ_TEMP2_BIT			(1<<2)
 #define AD7877_SEQ_Z1_BIT			(1<<1)
 
-enum {
+enum
+{
 	AD7877_SEQ_YPOS  = 0,
 	AD7877_SEQ_XPOS  = 1,
 	AD7877_SEQ_Z2    = 2,
@@ -143,17 +144,18 @@ enum {
 #define AD7877_WRITEADD(x)		((x)<<12)
 
 #define AD7877_READ_CHAN(x) (AD7877_WRITEADD(AD7877_REG_CTRL1) | AD7877_SER | \
-		AD7877_MODE_SCC | AD7877_CHANADD(AD7877_REG_ ## x) | \
-		AD7877_READADD(AD7877_REG_ ## x))
+							 AD7877_MODE_SCC | AD7877_CHANADD(AD7877_REG_ ## x) | \
+							 AD7877_READADD(AD7877_REG_ ## x))
 
 #define AD7877_MM_SEQUENCE (AD7877_SEQ_YPLUS_BIT | AD7877_SEQ_XPLUS_BIT | \
-		AD7877_SEQ_Z2_BIT | AD7877_SEQ_Z1_BIT)
+							AD7877_SEQ_Z2_BIT | AD7877_SEQ_Z1_BIT)
 
 /*
  * Non-touchscreen sensors only use single-ended conversions.
  */
 
-struct ser_req {
+struct ser_req
+{
 	u16			reset;
 	u16			ref_on;
 	u16			command;
@@ -167,7 +169,8 @@ struct ser_req {
 	u16 sample ____cacheline_aligned;
 };
 
-struct ad7877 {
+struct ad7877
+{
 	struct input_dev	*input;
 	char			phys[32];
 
@@ -215,14 +218,17 @@ static int ad7877_read(struct spi_device *spi, u16 reg)
 	struct ser_req *req;
 	int status, ret;
 
-	req = kzalloc(sizeof *req, GFP_KERNEL);
+	req = kzalloc(sizeof * req, GFP_KERNEL);
+
 	if (!req)
+	{
 		return -ENOMEM;
+	}
 
 	spi_message_init(&req->msg);
 
 	req->command = (u16) (AD7877_WRITEADD(AD7877_REG_CTRL1) |
-			AD7877_READADD(reg));
+						  AD7877_READADD(reg));
 	req->xfer[0].tx_buf = &req->command;
 	req->xfer[0].len = 2;
 	req->xfer[0].cs_change = 1;
@@ -246,9 +252,12 @@ static int ad7877_write(struct spi_device *spi, u16 reg, u16 val)
 	struct ser_req *req;
 	int status;
 
-	req = kzalloc(sizeof *req, GFP_KERNEL);
+	req = kzalloc(sizeof * req, GFP_KERNEL);
+
 	if (!req)
+	{
 		return -ENOMEM;
+	}
 
 	spi_message_init(&req->msg);
 
@@ -273,17 +282,20 @@ static int ad7877_read_adc(struct spi_device *spi, unsigned command)
 	int sample;
 	int i;
 
-	req = kzalloc(sizeof *req, GFP_KERNEL);
+	req = kzalloc(sizeof * req, GFP_KERNEL);
+
 	if (!req)
+	{
 		return -ENOMEM;
+	}
 
 	spi_message_init(&req->msg);
 
 	/* activate reference, so it has time to settle; */
 	req->ref_on = AD7877_WRITEADD(AD7877_REG_CTRL2) |
-			 AD7877_POL(ts->stopacq_polarity) |
-			 AD7877_AVG(0) | AD7877_PM(2) | AD7877_TMR(0) |
-			 AD7877_ACQ(ts->acquisition_time) | AD7877_FCD(0);
+				  AD7877_POL(ts->stopacq_polarity) |
+				  AD7877_AVG(0) | AD7877_PM(2) | AD7877_TMR(0) |
+				  AD7877_ACQ(ts->acquisition_time) | AD7877_FCD(0);
 
 	req->reset = AD7877_WRITEADD(AD7877_REG_CTRL1) | AD7877_MODE_NOC;
 
@@ -318,7 +330,9 @@ static int ad7877_read_adc(struct spi_device *spi, unsigned command)
 	 * reading touchscreen state; disable penirq while sampling
 	 */
 	for (i = 0; i < 6; i++)
+	{
 		spi_message_add_tail(&req->xfer[i], &req->msg);
+	}
 
 	status = spi_sync(spi, &req->msg);
 	sample = req->sample;
@@ -349,7 +363,8 @@ static int ad7877_process_data(struct ad7877 *ts)
 	 * and first conversion delay. Up to 16 averages can be taken per conversion.
 	 */
 
-	if (likely(x && z1)) {
+	if (likely(x && z1))
+	{
 		/* compute touch pressure resistance using equation #1 */
 		Rt = (z2 - z1) * x * ts->x_plate_ohms;
 		Rt /= z1;
@@ -360,10 +375,14 @@ static int ad7877_process_data(struct ad7877 *ts)
 		 * the maximum. Don't report it to user space.
 		 */
 		if (Rt > ts->pressure_max)
+		{
 			return -EINVAL;
+		}
 
 		if (!timer_pending(&ts->timer))
+		{
 			input_report_key(input_dev, BTN_TOUCH, 1);
+		}
 
 		input_report_abs(input_dev, ABS_X, x);
 		input_report_abs(input_dev, ABS_Y, y);
@@ -402,15 +421,21 @@ static irqreturn_t ad7877_irq(int irq, void *handle)
 	int error;
 
 	error = spi_sync(ts->spi, &ts->msg);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&ts->spi->dev, "spi_sync --> %d\n", error);
 		goto out;
 	}
 
 	spin_lock_irqsave(&ts->lock, flags);
 	error = ad7877_process_data(ts);
+
 	if (!error)
+	{
 		mod_timer(&ts->timer, jiffies + TS_PEN_UP_TIMEOUT);
+	}
+
 	spin_unlock_irqrestore(&ts->lock, flags);
 
 out:
@@ -421,12 +446,15 @@ static void ad7877_disable(struct ad7877 *ts)
 {
 	mutex_lock(&ts->mutex);
 
-	if (!ts->disabled) {
+	if (!ts->disabled)
+	{
 		ts->disabled = true;
 		disable_irq(ts->spi->irq);
 
 		if (del_timer_sync(&ts->timer))
+		{
 			ad7877_ts_event_release(ts);
+		}
 	}
 
 	/*
@@ -441,7 +469,8 @@ static void ad7877_enable(struct ad7877 *ts)
 {
 	mutex_lock(&ts->mutex);
 
-	if (ts->disabled) {
+	if (ts->disabled)
+	{
 		ts->disabled = false;
 		enable_irq(ts->spi->irq);
 	}
@@ -450,16 +479,16 @@ static void ad7877_enable(struct ad7877 *ts)
 }
 
 #define SHOW(name) static ssize_t \
-name ## _show(struct device *dev, struct device_attribute *attr, char *buf) \
-{ \
-	struct ad7877 *ts = dev_get_drvdata(dev); \
-	ssize_t v = ad7877_read_adc(ts->spi, \
-			AD7877_READ_CHAN(name)); \
-	if (v < 0) \
-		return v; \
-	return sprintf(buf, "%u\n", (unsigned) v); \
-} \
-static DEVICE_ATTR(name, S_IRUGO, name ## _show, NULL);
+	name ## _show(struct device *dev, struct device_attribute *attr, char *buf) \
+	{ \
+		struct ad7877 *ts = dev_get_drvdata(dev); \
+		ssize_t v = ad7877_read_adc(ts->spi, \
+									AD7877_READ_CHAN(name)); \
+		if (v < 0) \
+			return v; \
+		return sprintf(buf, "%u\n", (unsigned) v); \
+	} \
+	static DEVICE_ATTR(name, S_IRUGO, name ## _show, NULL);
 
 SHOW(aux1)
 SHOW(aux2)
@@ -470,7 +499,7 @@ SHOW(temp1)
 SHOW(temp2)
 
 static ssize_t ad7877_disable_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	struct ad7877 *ts = dev_get_drvdata(dev);
 
@@ -478,21 +507,28 @@ static ssize_t ad7877_disable_show(struct device *dev,
 }
 
 static ssize_t ad7877_disable_store(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									struct device_attribute *attr,
+									const char *buf, size_t count)
 {
 	struct ad7877 *ts = dev_get_drvdata(dev);
 	unsigned int val;
 	int error;
 
 	error = kstrtouint(buf, 10, &val);
+
 	if (error)
+	{
 		return error;
+	}
 
 	if (val)
+	{
 		ad7877_disable(ts);
+	}
 	else
+	{
 		ad7877_enable(ts);
+	}
 
 	return count;
 }
@@ -500,7 +536,7 @@ static ssize_t ad7877_disable_store(struct device *dev,
 static DEVICE_ATTR(disable, 0664, ad7877_disable_show, ad7877_disable_store);
 
 static ssize_t ad7877_dac_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct ad7877 *ts = dev_get_drvdata(dev);
 
@@ -508,16 +544,19 @@ static ssize_t ad7877_dac_show(struct device *dev,
 }
 
 static ssize_t ad7877_dac_store(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+								struct device_attribute *attr,
+								const char *buf, size_t count)
 {
 	struct ad7877 *ts = dev_get_drvdata(dev);
 	unsigned int val;
 	int error;
 
 	error = kstrtouint(buf, 10, &val);
+
 	if (error)
+	{
 		return error;
+	}
 
 	mutex_lock(&ts->mutex);
 	ts->dac = val & 0xFF;
@@ -530,7 +569,7 @@ static ssize_t ad7877_dac_store(struct device *dev,
 static DEVICE_ATTR(dac, 0664, ad7877_dac_show, ad7877_dac_store);
 
 static ssize_t ad7877_gpio3_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	struct ad7877 *ts = dev_get_drvdata(dev);
 
@@ -538,21 +577,24 @@ static ssize_t ad7877_gpio3_show(struct device *dev,
 }
 
 static ssize_t ad7877_gpio3_store(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+								  struct device_attribute *attr,
+								  const char *buf, size_t count)
 {
 	struct ad7877 *ts = dev_get_drvdata(dev);
 	unsigned int val;
 	int error;
 
 	error = kstrtouint(buf, 10, &val);
+
 	if (error)
+	{
 		return error;
+	}
 
 	mutex_lock(&ts->mutex);
 	ts->gpio3 = !!val;
 	ad7877_write(ts->spi, AD7877_REG_EXTWRITE, AD7877_EXTW_GPIO_DATA |
-		 (ts->gpio4 << 4) | (ts->gpio3 << 5));
+				 (ts->gpio4 << 4) | (ts->gpio3 << 5));
 	mutex_unlock(&ts->mutex);
 
 	return count;
@@ -561,7 +603,7 @@ static ssize_t ad7877_gpio3_store(struct device *dev,
 static DEVICE_ATTR(gpio3, 0664, ad7877_gpio3_show, ad7877_gpio3_store);
 
 static ssize_t ad7877_gpio4_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	struct ad7877 *ts = dev_get_drvdata(dev);
 
@@ -569,21 +611,24 @@ static ssize_t ad7877_gpio4_show(struct device *dev,
 }
 
 static ssize_t ad7877_gpio4_store(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+								  struct device_attribute *attr,
+								  const char *buf, size_t count)
 {
 	struct ad7877 *ts = dev_get_drvdata(dev);
 	unsigned int val;
 	int error;
 
 	error = kstrtouint(buf, 10, &val);
+
 	if (error)
+	{
 		return error;
+	}
 
 	mutex_lock(&ts->mutex);
 	ts->gpio4 = !!val;
 	ad7877_write(ts->spi, AD7877_REG_EXTWRITE, AD7877_EXTW_GPIO_DATA |
-		     (ts->gpio4 << 4) | (ts->gpio3 << 5));
+				 (ts->gpio4 << 4) | (ts->gpio3 << 5));
 	mutex_unlock(&ts->mutex);
 
 	return count;
@@ -591,7 +636,8 @@ static ssize_t ad7877_gpio4_store(struct device *dev,
 
 static DEVICE_ATTR(gpio4, 0664, ad7877_gpio4_show, ad7877_gpio4_store);
 
-static struct attribute *ad7877_attributes[] = {
+static struct attribute *ad7877_attributes[] =
+{
 	&dev_attr_temp1.attr,
 	&dev_attr_temp2.attr,
 	&dev_attr_aux1.attr,
@@ -607,22 +653,30 @@ static struct attribute *ad7877_attributes[] = {
 };
 
 static umode_t ad7877_attr_is_visible(struct kobject *kobj,
-				     struct attribute *attr, int n)
+									  struct attribute *attr, int n)
 {
 	umode_t mode = attr->mode;
 
-	if (attr == &dev_attr_aux3.attr) {
+	if (attr == &dev_attr_aux3.attr)
+	{
 		if (gpio3)
+		{
 			mode = 0;
-	} else if (attr == &dev_attr_gpio3.attr) {
+		}
+	}
+	else if (attr == &dev_attr_gpio3.attr)
+	{
 		if (!gpio3)
+		{
 			mode = 0;
+		}
 	}
 
 	return mode;
 }
 
-static const struct attribute_group ad7877_attr_group = {
+static const struct attribute_group ad7877_attr_group =
+{
 	.is_visible	= ad7877_attr_is_visible,
 	.attrs		= ad7877_attributes,
 };
@@ -633,17 +687,17 @@ static void ad7877_setup_ts_def_msg(struct spi_device *spi, struct ad7877 *ts)
 	int i;
 
 	ts->cmd_crtl2 = AD7877_WRITEADD(AD7877_REG_CTRL2) |
-			AD7877_POL(ts->stopacq_polarity) |
-			AD7877_AVG(ts->averaging) | AD7877_PM(1) |
-			AD7877_TMR(ts->pen_down_acc_interval) |
-			AD7877_ACQ(ts->acquisition_time) |
-			AD7877_FCD(ts->first_conversion_delay);
+					AD7877_POL(ts->stopacq_polarity) |
+					AD7877_AVG(ts->averaging) | AD7877_PM(1) |
+					AD7877_TMR(ts->pen_down_acc_interval) |
+					AD7877_ACQ(ts->acquisition_time) |
+					AD7877_FCD(ts->first_conversion_delay);
 
 	ad7877_write(spi, AD7877_REG_CTRL2, ts->cmd_crtl2);
 
 	ts->cmd_crtl1 = AD7877_WRITEADD(AD7877_REG_CTRL1) |
-			AD7877_READADD(AD7877_REG_XPLUS-1) |
-			AD7877_MODE_SEQ1 | AD7877_DFR;
+					AD7877_READADD(AD7877_REG_XPLUS - 1) |
+					AD7877_MODE_SEQ1 | AD7877_DFR;
 
 	ad7877_write(spi, AD7877_REG_CTRL1, ts->cmd_crtl1);
 
@@ -667,11 +721,16 @@ static void ad7877_setup_ts_def_msg(struct spi_device *spi, struct ad7877 *ts)
 
 	spi_message_add_tail(&ts->xfer[1], m);
 
-	for (i = 0; i < AD7877_NR_SENSE; i++) {
+	for (i = 0; i < AD7877_NR_SENSE; i++)
+	{
 		ts->xfer[i + 2].rx_buf = &ts->conversion_data[AD7877_SEQ_YPOS + i];
 		ts->xfer[i + 2].len = 2;
+
 		if (i < (AD7877_NR_SENSE - 1))
+		{
 			ts->xfer[i + 2].cs_change = 1;
+		}
+
 		spi_message_add_tail(&ts->xfer[i + 2], m);
 	}
 }
@@ -684,32 +743,39 @@ static int ad7877_probe(struct spi_device *spi)
 	int				err;
 	u16				verify;
 
-	if (!spi->irq) {
+	if (!spi->irq)
+	{
 		dev_dbg(&spi->dev, "no IRQ?\n");
 		return -ENODEV;
 	}
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_dbg(&spi->dev, "no platform data?\n");
 		return -ENODEV;
 	}
 
 	/* don't exceed max specified SPI CLK frequency */
-	if (spi->max_speed_hz > MAX_SPI_FREQ_HZ) {
-		dev_dbg(&spi->dev, "SPI CLK %d Hz?\n",spi->max_speed_hz);
+	if (spi->max_speed_hz > MAX_SPI_FREQ_HZ)
+	{
+		dev_dbg(&spi->dev, "SPI CLK %d Hz?\n", spi->max_speed_hz);
 		return -EINVAL;
 	}
 
 	spi->bits_per_word = 16;
 	err = spi_setup(spi);
-	if (err) {
+
+	if (err)
+	{
 		dev_dbg(&spi->dev, "spi master doesn't support 16 bits/word\n");
 		return err;
 	}
 
 	ts = kzalloc(sizeof(struct ad7877), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!ts || !input_dev) {
+
+	if (!ts || !input_dev)
+	{
 		err = -ENOMEM;
 		goto err_free_mem;
 	}
@@ -747,49 +813,60 @@ static int ad7877_probe(struct spi_device *spi)
 	__set_bit(ABS_PRESSURE, input_dev->absbit);
 
 	input_set_abs_params(input_dev, ABS_X,
-			pdata->x_min ? : 0,
-			pdata->x_max ? : MAX_12BIT,
-			0, 0);
+						 pdata->x_min ? : 0,
+						 pdata->x_max ? : MAX_12BIT,
+						 0, 0);
 	input_set_abs_params(input_dev, ABS_Y,
-			pdata->y_min ? : 0,
-			pdata->y_max ? : MAX_12BIT,
-			0, 0);
+						 pdata->y_min ? : 0,
+						 pdata->y_max ? : MAX_12BIT,
+						 0, 0);
 	input_set_abs_params(input_dev, ABS_PRESSURE,
-			pdata->pressure_min, pdata->pressure_max, 0, 0);
+						 pdata->pressure_min, pdata->pressure_max, 0, 0);
 
 	ad7877_write(spi, AD7877_REG_SEQ1, AD7877_MM_SEQUENCE);
 
 	verify = ad7877_read(spi, AD7877_REG_SEQ1);
 
-	if (verify != AD7877_MM_SEQUENCE){
+	if (verify != AD7877_MM_SEQUENCE)
+	{
 		dev_err(&spi->dev, "%s: Failed to probe %s\n",
-			dev_name(&spi->dev), input_dev->name);
+				dev_name(&spi->dev), input_dev->name);
 		err = -ENODEV;
 		goto err_free_mem;
 	}
 
 	if (gpio3)
+	{
 		ad7877_write(spi, AD7877_REG_EXTWRITE, AD7877_EXTW_GPIO_3_CONF);
+	}
 
 	ad7877_setup_ts_def_msg(spi, ts);
 
 	/* Request AD7877 /DAV GPIO interrupt */
 
 	err = request_threaded_irq(spi->irq, NULL, ad7877_irq,
-				   IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-				   spi->dev.driver->name, ts);
-	if (err) {
+							   IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+							   spi->dev.driver->name, ts);
+
+	if (err)
+	{
 		dev_dbg(&spi->dev, "irq %d busy?\n", spi->irq);
 		goto err_free_mem;
 	}
 
 	err = sysfs_create_group(&spi->dev.kobj, &ad7877_attr_group);
+
 	if (err)
+	{
 		goto err_free_irq;
+	}
 
 	err = input_register_device(input_dev);
+
 	if (err)
+	{
 		goto err_remove_attr_group;
+	}
 
 	return 0;
 
@@ -840,7 +917,8 @@ static int __maybe_unused ad7877_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(ad7877_pm, ad7877_suspend, ad7877_resume);
 
-static struct spi_driver ad7877_driver = {
+static struct spi_driver ad7877_driver =
+{
 	.driver = {
 		.name	= "ad7877",
 		.pm	= &ad7877_pm,

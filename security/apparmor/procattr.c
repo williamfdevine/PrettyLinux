@@ -44,35 +44,51 @@ int aa_getprocattr(struct aa_profile *profile, char **string)
 	char *s;
 
 	if (!aa_ns_visible(current_ns, ns))
+	{
 		return -EACCES;
+	}
 
 	ns_name = aa_ns_name(current_ns, ns);
 	ns_len = strlen(ns_name);
 
 	/* if the visible ns_name is > 0 increase size for : :// seperator */
 	if (ns_len)
+	{
 		ns_len += 4;
+	}
 
 	/* unconfined profiles don't have a mode string appended */
 	if (!unconfined(profile))
-		mode_len = strlen(mode_str) + 3;	/* + 3 for _() */
+	{
+		mode_len = strlen(mode_str) + 3;    /* + 3 for _() */
+	}
 
 	name_len = strlen(profile->base.hname);
 	len = mode_len + ns_len + name_len + 1;	    /* + 1 for \n */
 	s = str = kmalloc(len + 1, GFP_KERNEL);	    /* + 1 \0 */
-	if (!str)
-		return -ENOMEM;
 
-	if (ns_len) {
+	if (!str)
+	{
+		return -ENOMEM;
+	}
+
+	if (ns_len)
+	{
 		/* skip over prefix current_ns->base.hname and separating // */
 		sprintf(s, ":%s://", ns_name);
 		s += ns_len;
 	}
+
 	if (unconfined(profile))
 		/* mode string not being appended */
+	{
 		sprintf(s, "%s\n", profile->base.hname);
+	}
 	else
+	{
 		sprintf(s, "%s (%s)\n", profile->base.hname, mode_str);
+	}
+
 	*string = str;
 
 	/* NOTE: len does not include \0 of string, not saved as part of file */
@@ -87,19 +103,25 @@ int aa_getprocattr(struct aa_profile *profile, char **string)
  *
  * Returns: start position of name after token else NULL on failure
  */
-static char *split_token_from_name(int op, char *args, u64 * token)
+static char *split_token_from_name(int op, char *args, u64 *token)
 {
 	char *name;
 
 	*token = simple_strtoull(args, &name, 16);
-	if ((name == args) || *name != '^') {
+
+	if ((name == args) || *name != '^')
+	{
 		AA_ERROR("%s: Invalid input '%s'", op_table[op], args);
 		return ERR_PTR(-EINVAL);
 	}
 
 	name++;			/* skip ^ */
+
 	if (!*name)
+	{
 		name = NULL;
+	}
+
 	return name;
 }
 
@@ -119,15 +141,20 @@ int aa_setprocattr_changehat(char *args, size_t size, int test)
 	int count = 0;
 
 	hat = split_token_from_name(OP_CHANGE_HAT, args, &token);
-	if (IS_ERR(hat))
-		return PTR_ERR(hat);
 
-	if (!hat && !token) {
+	if (IS_ERR(hat))
+	{
+		return PTR_ERR(hat);
+	}
+
+	if (!hat && !token)
+	{
 		AA_ERROR("change_hat: Invalid input, NULL hat and NULL magic");
 		return -EINVAL;
 	}
 
-	if (hat) {
+	if (hat)
+	{
 		/* set up hat name vector, args guaranteed null terminated
 		 * at args[size] by setprocattr.
 		 *
@@ -135,7 +162,9 @@ int aa_setprocattr_changehat(char *args, size_t size, int test)
 		 * separated by a \0.  Ie. userspace writes them pre tokenized
 		 */
 		char *end = args + size;
-		for (count = 0; (hat < end) && count < 16; ++count) {
+
+		for (count = 0; (hat < end) && count < 16; ++count)
+		{
 			char *next = hat + strlen(hat) + 1;
 			hats[count] = hat;
 			hat = next;
@@ -143,7 +172,7 @@ int aa_setprocattr_changehat(char *args, size_t size, int test)
 	}
 
 	AA_DEBUG("%s: Magic 0x%llx Hat '%s'\n",
-		 __func__, token, hat ? hat : NULL);
+			 __func__, token, hat ? hat : NULL);
 
 	return aa_change_hat(hats, count, token, test);
 }

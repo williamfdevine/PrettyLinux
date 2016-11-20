@@ -28,7 +28,7 @@
  */
 
 static int ffb_setcolreg(unsigned, unsigned, unsigned, unsigned,
-			 unsigned, struct fb_info *);
+						 unsigned, struct fb_info *);
 static int ffb_blank(int, struct fb_info *);
 
 static void ffb_imageblit(struct fb_info *, const struct fb_image *);
@@ -43,7 +43,8 @@ static int ffb_pan_display(struct fb_var_screeninfo *, struct fb_info *);
  *  Frame buffer operations
  */
 
-static struct fb_ops ffb_ops = {
+static struct fb_ops ffb_ops =
+{
 	.owner			= THIS_MODULE,
 	.fb_setcolreg		= ffb_setcolreg,
 	.fb_blank		= ffb_blank,
@@ -180,7 +181,8 @@ static struct fb_ops ffb_ops = {
 #define FFB_UCSR_FIFO_OVFL	0x80000000
 #define FFB_UCSR_ALL_ERRORS	(FFB_UCSR_READ_ERR|FFB_UCSR_FIFO_OVFL)
 
-struct ffb_fbc {
+struct ffb_fbc
+{
 	/* Next vertex registers */
 	u32	xxx1[3];
 	u32	alpha;
@@ -326,7 +328,8 @@ struct ffb_fbc {
 	u32	mer;
 };
 
-struct ffb_dac {
+struct ffb_dac
+{
 	u32	type;
 	u32	value;
 	u32	type2;
@@ -348,7 +351,8 @@ struct ffb_dac {
 #define FFB_DAC_CUR_CTRL_P0	0x00000001
 #define FFB_DAC_CUR_CTRL_P1	0x00000002
 
-struct ffb_par {
+struct ffb_par
+{
 	spinlock_t		lock;
 	struct ffb_fbc __iomem	*fbc;
 	struct ffb_dac __iomem	*dac;
@@ -377,13 +381,18 @@ static void FFBFifo(struct ffb_par *par, int n)
 	struct ffb_fbc __iomem *fbc;
 	int cache = par->fifo_cache;
 
-	if (cache - n < 0) {
+	if (cache - n < 0)
+	{
 		fbc = par->fbc;
-		do {
+
+		do
+		{
 			cache = (upa_readl(&fbc->ucsr) & FFB_UCSR_FIFO_MASK);
 			cache -= 8;
-		} while (cache - n < 0);
+		}
+		while (cache - n < 0);
 	}
+
 	par->fifo_cache = cache - n;
 }
 
@@ -393,14 +402,22 @@ static void FFBWait(struct ffb_par *par)
 	int limit = 10000;
 
 	fbc = par->fbc;
-	do {
+
+	do
+	{
 		if ((upa_readl(&fbc->ucsr) & FFB_UCSR_ALL_BUSY) == 0)
+		{
 			break;
-		if ((upa_readl(&fbc->ucsr) & FFB_UCSR_ALL_ERRORS) != 0) {
+		}
+
+		if ((upa_readl(&fbc->ucsr) & FFB_UCSR_ALL_ERRORS) != 0)
+		{
 			upa_writel(FFB_UCSR_ALL_ERRORS, &fbc->ucsr);
 		}
+
 		udelay(10);
-	} while (--limit > 0);
+	}
+	while (--limit > 0);
 }
 
 static int ffb_sync(struct fb_info *p)
@@ -413,7 +430,8 @@ static int ffb_sync(struct fb_info *p)
 
 static __inline__ void ffb_rop(struct ffb_par *par, u32 rop)
 {
-	if (par->rop_cache != rop) {
+	if (par->rop_cache != rop)
+	{
 		FFBFifo(par, 1);
 		upa_writel(rop, &par->fbc->rop);
 		par->rop_cache = rop;
@@ -431,8 +449,8 @@ static void ffb_switch_from_graph(struct ffb_par *par)
 	par->fifo_cache = 0;
 	FFBFifo(par, 7);
 	upa_writel(FFB_PPC_VCE_DISABLE | FFB_PPC_TBE_OPAQUE |
-		   FFB_PPC_APE_DISABLE | FFB_PPC_CS_CONST,
-		   &fbc->ppc);
+			   FFB_PPC_APE_DISABLE | FFB_PPC_CS_CONST,
+			   &fbc->ppc);
 	upa_writel(0x2000707f, &fbc->fbc);
 	upa_writel(par->rop_cache, &fbc->rop);
 	upa_writel(0xffffffff, &fbc->pmask);
@@ -443,11 +461,14 @@ static void ffb_switch_from_graph(struct ffb_par *par)
 
 	/* Disable cursor.  */
 	upa_writel(FFB_DAC_CUR_CTRL, &dac->type2);
+
 	if (par->flags & FFB_FLAG_INVCURSOR)
+	{
 		upa_writel(0, &dac->value2);
+	}
 	else
 		upa_writel((FFB_DAC_CUR_CTRL_P0 |
-			    FFB_DAC_CUR_CTRL_P1), &dac->value2);
+					FFB_DAC_CUR_CTRL_P1), &dac->value2);
 
 	spin_unlock_irqrestore(&par->lock, flags);
 }
@@ -462,7 +483,10 @@ static int ffb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 	ffb_switch_from_graph(par);
 
 	if (var->xoffset || var->yoffset || var->vmode)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -485,15 +509,16 @@ static void ffb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 
 	spin_lock_irqsave(&par->lock, flags);
 
-	if (fg != par->fg_cache) {
+	if (fg != par->fg_cache)
+	{
 		FFBFifo(par, 1);
 		upa_writel(fg, &fbc->fg);
 		par->fg_cache = fg;
 	}
 
 	ffb_rop(par, rect->rop == ROP_COPY ?
-		     FFB_ROP_NEW :
-		     FFB_ROP_NEW_XOR_OLD);
+			FFB_ROP_NEW :
+			FFB_ROP_NEW_XOR_OLD);
 
 	FFBFifo(par, 5);
 	upa_writel(FFB_DRAWOP_RECTANGLE, &fbc->drawop);
@@ -519,7 +544,8 @@ static void ffb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	unsigned long flags;
 
 	if (area->dx != area->sx ||
-	    area->dy == area->sy) {
+		area->dy == area->sy)
+	{
 		cfb_copyarea(info, area);
 		return;
 	}
@@ -556,7 +582,8 @@ static void ffb_imageblit(struct fb_info *info, const struct fb_image *image)
 	u64 fgbg;
 	int i, width, stride;
 
-	if (image->depth > 1) {
+	if (image->depth > 1)
+	{
 		cfb_imageblit(info, image);
 		return;
 	}
@@ -570,29 +597,33 @@ static void ffb_imageblit(struct fb_info *info, const struct fb_image *image)
 
 	spin_lock_irqsave(&par->lock, flags);
 
-	if (fgbg != *(u64 *)&par->fg_cache) {
+	if (fgbg != *(u64 *)&par->fg_cache)
+	{
 		FFBFifo(par, 2);
 		upa_writeq(fgbg, &fbc->fg);
 		*(u64 *)&par->fg_cache = fgbg;
 	}
 
-	if (width >= 32) {
+	if (width >= 32)
+	{
 		FFBFifo(par, 1);
 		upa_writel(32, &fbc->fontw);
 	}
 
-	while (width >= 32) {
+	while (width >= 32)
+	{
 		const u8 *next_data = data + 4;
 
 		FFBFifo(par, 1);
 		upa_writel(xy, &fbc->fontxy);
 		xy += (32 << 0);
 
-		for (i = 0; i < image->height; i++) {
+		for (i = 0; i < image->height; i++)
+		{
 			u32 val = (((u32)data[0] << 24) |
-				   ((u32)data[1] << 16) |
-				   ((u32)data[2] <<  8) |
-				   ((u32)data[3] <<  0));
+					   ((u32)data[1] << 16) |
+					   ((u32)data[2] <<  8) |
+					   ((u32)data[3] <<  0));
 			FFBFifo(par, 1);
 			upa_writel(val, &fbc->font);
 
@@ -603,16 +634,18 @@ static void ffb_imageblit(struct fb_info *info, const struct fb_image *image)
 		width -= 32;
 	}
 
-	if (width) {
+	if (width)
+	{
 		FFBFifo(par, 2);
 		upa_writel(width, &fbc->fontw);
 		upa_writel(xy, &fbc->fontxy);
 
-		for (i = 0; i < image->height; i++) {
+		for (i = 0; i < image->height; i++)
+		{
 			u32 val = (((u32)data[0] << 24) |
-				   ((u32)data[1] << 16) |
-				   ((u32)data[2] <<  8) |
-				   ((u32)data[3] <<  0));
+					   ((u32)data[1] << 16) |
+					   ((u32)data[2] <<  8) |
+					   ((u32)data[3] <<  0));
 			FFBFifo(par, 1);
 			upa_writel(val, &fbc->font);
 
@@ -646,13 +679,15 @@ static void ffb_fixup_var_rgb(struct fb_var_screeninfo *var)
  *	@info: frame buffer info structure
  */
 static int ffb_setcolreg(unsigned regno,
-			 unsigned red, unsigned green, unsigned blue,
-			 unsigned transp, struct fb_info *info)
+						 unsigned red, unsigned green, unsigned blue,
+						 unsigned transp, struct fb_info *info)
 {
 	u32 value;
 
 	if (regno >= 16)
+	{
 		return 1;
+	}
 
 	red >>= 8;
 	green >>= 8;
@@ -683,23 +718,28 @@ static int ffb_blank(int blank, struct fb_info *info)
 
 	upa_writel(FFB_DAC_TGEN, &dac->type);
 	val = upa_readl(&dac->value);
-	switch (blank) {
-	case FB_BLANK_UNBLANK: /* Unblanking */
-		val |= FFB_DAC_TGEN_VIDE;
-		par->flags &= ~FFB_FLAG_BLANKED;
-		break;
 
-	case FB_BLANK_NORMAL: /* Normal blanking */
-	case FB_BLANK_VSYNC_SUSPEND: /* VESA blank (vsync off) */
-	case FB_BLANK_HSYNC_SUSPEND: /* VESA blank (hsync off) */
-	case FB_BLANK_POWERDOWN: /* Poweroff */
-		val &= ~FFB_DAC_TGEN_VIDE;
-		par->flags |= FFB_FLAG_BLANKED;
-		break;
+	switch (blank)
+	{
+		case FB_BLANK_UNBLANK: /* Unblanking */
+			val |= FFB_DAC_TGEN_VIDE;
+			par->flags &= ~FFB_FLAG_BLANKED;
+			break;
+
+		case FB_BLANK_NORMAL: /* Normal blanking */
+		case FB_BLANK_VSYNC_SUSPEND: /* VESA blank (vsync off) */
+		case FB_BLANK_HSYNC_SUSPEND: /* VESA blank (hsync off) */
+		case FB_BLANK_POWERDOWN: /* Poweroff */
+			val &= ~FFB_DAC_TGEN_VIDE;
+			par->flags |= FFB_FLAG_BLANKED;
+			break;
 	}
+
 	upa_writel(FFB_DAC_TGEN, &dac->type);
 	upa_writel(val, &dac->value);
-	for (i = 0; i < 10; i++) {
+
+	for (i = 0; i < 10; i++)
+	{
 		upa_writel(FFB_DAC_TGEN, &dac->type);
 		upa_readl(&dac->value);
 	}
@@ -709,7 +749,8 @@ static int ffb_blank(int blank, struct fb_info *info)
 	return 0;
 }
 
-static struct sbus_mmap_map ffb_mmap_map[] = {
+static struct sbus_mmap_map ffb_mmap_map[] =
+{
 	{
 		.voff	= FFB_SFB8R_VOFF,
 		.poff	= FFB_SFB8R_POFF,
@@ -853,8 +894,8 @@ static int ffb_mmap(struct fb_info *info, struct vm_area_struct *vma)
 	struct ffb_par *par = (struct ffb_par *)info->par;
 
 	return sbusfb_mmap_helper(ffb_mmap_map,
-				  par->physbase, par->fbsize,
-				  0, vma);
+							  par->physbase, par->fbsize,
+							  0, vma);
 }
 
 static int ffb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
@@ -862,7 +903,7 @@ static int ffb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
 	struct ffb_par *par = (struct ffb_par *)info->par;
 
 	return sbusfb_ioctl_helper(cmd, arg, info,
-				   FBTYPE_CREATOR, 24, par->fbsize);
+							   FBTYPE_CREATOR, 24, par->fbsize);
 }
 
 /*
@@ -874,13 +915,21 @@ static void ffb_init_fix(struct fb_info *info)
 	struct ffb_par *par = (struct ffb_par *)info->par;
 	const char *ffb_type_name;
 
-	if (!(par->flags & FFB_FLAG_AFB)) {
+	if (!(par->flags & FFB_FLAG_AFB))
+	{
 		if ((par->board_type & 0x7) == 0x3)
+		{
 			ffb_type_name = "Creator 3D";
+		}
 		else
+		{
 			ffb_type_name = "Creator";
-	} else
+		}
+	}
+	else
+	{
 		ffb_type_name = "Elite 3D";
+	}
 
 	strlcpy(info->fix.id, ffb_type_name, sizeof(info->fix.id));
 
@@ -906,21 +955,30 @@ static int ffb_probe(struct platform_device *op)
 	info = framebuffer_alloc(sizeof(struct ffb_par), &op->dev);
 
 	err = -ENOMEM;
+
 	if (!info)
+	{
 		goto out_err;
+	}
 
 	par = info->par;
 
 	spin_lock_init(&par->lock);
 	par->fbc = of_ioremap(&op->resource[2], 0,
-			      sizeof(struct ffb_fbc), "ffb fbc");
+						  sizeof(struct ffb_fbc), "ffb fbc");
+
 	if (!par->fbc)
+	{
 		goto out_release_fb;
+	}
 
 	par->dac = of_ioremap(&op->resource[1], 0,
-			      sizeof(struct ffb_dac), "ffb dac");
+						  sizeof(struct ffb_dac), "ffb dac");
+
 	if (!par->dac)
+	{
 		goto out_unmap_fbc;
+	}
 
 	par->rop_cache = FFB_ROP_NEW;
 	par->physbase = op->resource[0].start;
@@ -929,9 +987,9 @@ static int ffb_probe(struct platform_device *op)
 	 * used.  It is the fastest on this chip.
 	 */
 	info->flags = (FBINFO_DEFAULT |
-		       /* FBINFO_HWACCEL_COPYAREA | */
-		       FBINFO_HWACCEL_FILLRECT |
-		       FBINFO_HWACCEL_IMAGEBLIT);
+				   /* FBINFO_HWACCEL_COPYAREA | */
+				   FBINFO_HWACCEL_FILLRECT |
+				   FBINFO_HWACCEL_IMAGEBLIT);
 
 	info->fbops = &ffb_ops;
 
@@ -945,13 +1003,18 @@ static int ffb_probe(struct platform_device *op)
 	info->var.accel_flags = FB_ACCELF_TEXT;
 
 	if (!strcmp(dp->name, "SUNW,afb"))
+	{
 		par->flags |= FFB_FLAG_AFB;
+	}
 
 	par->board_type = of_getintprop_default(dp, "board_type", 0);
 
 	fbc = par->fbc;
+
 	if ((upa_readl(&fbc->ucsr) & FFB_UCSR_ALL_ERRORS) != 0)
+	{
 		upa_writel(FFB_UCSR_ALL_ERRORS, &fbc->ucsr);
+	}
 
 	dac = par->dac;
 	upa_writel(FFB_DAC_DID, &dac->type);
@@ -962,7 +1025,7 @@ static int ffb_probe(struct platform_device *op)
 	upa_writel(FFB_DAC_UCTRL, &dac->type);
 	dac_mrev = upa_readl(&dac->value);
 	dac_mrev = (dac_mrev & FFB_DAC_UCTRL_MANREV) >>
-		FFB_DAC_UCTRL_MANREV_SHIFT;
+			   FFB_DAC_UCTRL_MANREV_SHIFT;
 
 	/* Elite3D has different DAC revision numbering, and no DAC revisions
 	 * have the reversed meaning of cursor enable.  Otherwise, Pacifica 1
@@ -970,11 +1033,16 @@ static int ffb_probe(struct platform_device *op)
 	 * cursor logic.  We identify Pacifica 1 as not Pacifica 2, the
 	 * latter having a part number value of 0x236e.
 	 */
-	if ((par->flags & FFB_FLAG_AFB) || dac_pnum == 0x236e) {
+	if ((par->flags & FFB_FLAG_AFB) || dac_pnum == 0x236e)
+	{
 		par->flags &= ~FFB_FLAG_INVCURSOR;
-	} else {
+	}
+	else
+	{
 		if (dac_mrev < 3)
+		{
 			par->flags |= FFB_FLAG_INVCURSOR;
+		}
 	}
 
 	ffb_switch_from_graph(par);
@@ -987,22 +1055,27 @@ static int ffb_probe(struct platform_device *op)
 	ffb_blank(FB_BLANK_UNBLANK, info);
 
 	if (fb_alloc_cmap(&info->cmap, 256, 0))
+	{
 		goto out_unmap_dac;
+	}
 
 	ffb_init_fix(info);
 
 	err = register_framebuffer(info);
+
 	if (err < 0)
+	{
 		goto out_dealloc_cmap;
+	}
 
 	dev_set_drvdata(&op->dev, info);
 
 	printk(KERN_INFO "%s: %s at %016lx, type %d, "
-	       "DAC pnum[%x] rev[%d] manuf_rev[%d]\n",
-	       dp->full_name,
-	       ((par->flags & FFB_FLAG_AFB) ? "AFB" : "FFB"),
-	       par->physbase, par->board_type,
-	       dac_pnum, dac_rev, dac_mrev);
+		   "DAC pnum[%x] rev[%d] manuf_rev[%d]\n",
+		   dp->full_name,
+		   ((par->flags & FFB_FLAG_AFB) ? "AFB" : "FFB"),
+		   par->physbase, par->board_type,
+		   dac_pnum, dac_rev, dac_mrev);
 
 	return 0;
 
@@ -1038,7 +1111,8 @@ static int ffb_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id ffb_match[] = {
+static const struct of_device_id ffb_match[] =
+{
 	{
 		.name = "SUNW,ffb",
 	},
@@ -1049,7 +1123,8 @@ static const struct of_device_id ffb_match[] = {
 };
 MODULE_DEVICE_TABLE(of, ffb_match);
 
-static struct platform_driver ffb_driver = {
+static struct platform_driver ffb_driver =
+{
 	.driver = {
 		.name = "ffb",
 		.of_match_table = ffb_match,
@@ -1061,7 +1136,9 @@ static struct platform_driver ffb_driver = {
 static int __init ffb_init(void)
 {
 	if (fb_get_options("ffb", NULL))
+	{
 		return -ENODEV;
+	}
 
 	return platform_driver_register(&ffb_driver);
 }

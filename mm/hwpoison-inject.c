@@ -18,29 +18,43 @@ static int hwpoison_inject(void *data, u64 val)
 	int err;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	if (!pfn_valid(pfn))
+	{
 		return -ENXIO;
+	}
 
 	p = pfn_to_page(pfn);
 	hpage = compound_head(p);
+
 	/*
 	 * This implies unable to support free buddy pages.
 	 */
 	if (!get_hwpoison_page(p))
+	{
 		return 0;
+	}
 
 	if (!hwpoison_filter_enable)
+	{
 		goto inject;
+	}
 
 	if (!PageLRU(hpage) && !PageHuge(p))
+	{
 		shake_page(hpage, 0);
+	}
+
 	/*
 	 * This implies unable to support non-LRU pages.
 	 */
 	if (!PageLRU(hpage) && !PageHuge(p))
+	{
 		goto put_out;
+	}
 
 	/*
 	 * do a racy check with elevated page count, to make sure PG_hwpoison
@@ -48,8 +62,11 @@ static int hwpoison_inject(void *data, u64 val)
 	 * memory_failure() will redo the check reliably inside page lock.
 	 */
 	err = hwpoison_filter(hpage);
+
 	if (err)
+	{
 		goto put_out;
+	}
 
 inject:
 	pr_info("Injecting memory failure at pfn %#lx\n", pfn);
@@ -62,7 +79,9 @@ put_out:
 static int hwpoison_unpoison(void *data, u64 val)
 {
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	return unpoison_memory(val);
 }
@@ -80,8 +99,11 @@ static int pfn_inject_init(void)
 	struct dentry *dentry;
 
 	hwpoison_dir = debugfs_create_dir("hwpoison", NULL);
+
 	if (hwpoison_dir == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * Note that the below poison/unpoison interfaces do not involve
@@ -89,45 +111,70 @@ static int pfn_inject_init(void)
 	 * They are mainly for testing hwpoison in software level.
 	 */
 	dentry = debugfs_create_file("corrupt-pfn", 0200, hwpoison_dir,
-					  NULL, &hwpoison_fops);
+								 NULL, &hwpoison_fops);
+
 	if (!dentry)
+	{
 		goto fail;
+	}
 
 	dentry = debugfs_create_file("unpoison-pfn", 0200, hwpoison_dir,
-				     NULL, &unpoison_fops);
+								 NULL, &unpoison_fops);
+
 	if (!dentry)
+	{
 		goto fail;
+	}
 
 	dentry = debugfs_create_u32("corrupt-filter-enable", 0600,
-				    hwpoison_dir, &hwpoison_filter_enable);
+								hwpoison_dir, &hwpoison_filter_enable);
+
 	if (!dentry)
+	{
 		goto fail;
+	}
 
 	dentry = debugfs_create_u32("corrupt-filter-dev-major", 0600,
-				    hwpoison_dir, &hwpoison_filter_dev_major);
+								hwpoison_dir, &hwpoison_filter_dev_major);
+
 	if (!dentry)
+	{
 		goto fail;
+	}
 
 	dentry = debugfs_create_u32("corrupt-filter-dev-minor", 0600,
-				    hwpoison_dir, &hwpoison_filter_dev_minor);
+								hwpoison_dir, &hwpoison_filter_dev_minor);
+
 	if (!dentry)
+	{
 		goto fail;
+	}
 
 	dentry = debugfs_create_u64("corrupt-filter-flags-mask", 0600,
-				    hwpoison_dir, &hwpoison_filter_flags_mask);
+								hwpoison_dir, &hwpoison_filter_flags_mask);
+
 	if (!dentry)
+	{
 		goto fail;
+	}
 
 	dentry = debugfs_create_u64("corrupt-filter-flags-value", 0600,
-				    hwpoison_dir, &hwpoison_filter_flags_value);
+								hwpoison_dir, &hwpoison_filter_flags_value);
+
 	if (!dentry)
+	{
 		goto fail;
+	}
 
 #ifdef CONFIG_MEMCG
 	dentry = debugfs_create_u64("corrupt-filter-memcg", 0600,
-				    hwpoison_dir, &hwpoison_filter_memcg);
+								hwpoison_dir, &hwpoison_filter_memcg);
+
 	if (!dentry)
+	{
 		goto fail;
+	}
+
 #endif
 
 	return 0;

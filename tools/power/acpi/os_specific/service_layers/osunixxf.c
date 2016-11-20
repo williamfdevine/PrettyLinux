@@ -66,7 +66,7 @@ ACPI_MODULE_NAME("osunixxf")
 /* Upcalls to acpi_exec */
 void
 ae_table_override(struct acpi_table_header *existing_table,
-		  struct acpi_table_header **new_table);
+				  struct acpi_table_header **new_table);
 
 typedef void *(*PTHREAD_CALLBACK) (void *);
 
@@ -123,13 +123,15 @@ static void os_enter_line_edit_mode(void)
 
 	/* STDIN must be a terminal */
 
-	if (!isatty(STDIN_FILENO)) {
+	if (!isatty(STDIN_FILENO))
+	{
 		return;
 	}
 
 	/* Get and keep the original attributes */
 
-	if (tcgetattr(STDIN_FILENO, &original_term_attributes)) {
+	if (tcgetattr(STDIN_FILENO, &original_term_attributes))
+	{
 		fprintf(stderr, "Could not get terminal attributes!\n");
 		return;
 	}
@@ -137,13 +139,14 @@ static void os_enter_line_edit_mode(void)
 	/* Set the new attributes to enable raw character input */
 
 	memcpy(&local_term_attributes, &original_term_attributes,
-	       sizeof(struct termios));
+		   sizeof(struct termios));
 
 	local_term_attributes.c_lflag &= ~(ICANON | ECHO);
 	local_term_attributes.c_cc[VMIN] = 1;
 	local_term_attributes.c_cc[VTIME] = 0;
 
-	if (tcsetattr(STDIN_FILENO, TCSANOW, &local_term_attributes)) {
+	if (tcsetattr(STDIN_FILENO, TCSANOW, &local_term_attributes))
+	{
 		fprintf(stderr, "Could not set terminal attributes!\n");
 		return;
 	}
@@ -154,13 +157,15 @@ static void os_enter_line_edit_mode(void)
 static void os_exit_line_edit_mode(void)
 {
 
-	if (!term_attributes_were_set) {
+	if (!term_attributes_were_set)
+	{
 		return;
 	}
 
 	/* Set terminal attributes back to the original values */
 
-	if (tcsetattr(STDIN_FILENO, TCSANOW, &original_term_attributes)) {
+	if (tcsetattr(STDIN_FILENO, TCSANOW, &original_term_attributes))
+	{
 		fprintf(stderr, "Could not restore terminal attributes!\n");
 	}
 }
@@ -194,7 +199,9 @@ acpi_status acpi_os_initialize(void)
 	os_enter_line_edit_mode();
 
 	status = acpi_os_create_lock(&acpi_gbl_print_lock);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
@@ -244,10 +251,11 @@ acpi_physical_address acpi_os_get_root_pointer(void)
 
 acpi_status
 acpi_os_predefined_override(const struct acpi_predefined_names *init_val,
-			    acpi_string *new_val)
+							acpi_string *new_val)
 {
 
-	if (!init_val || !new_val) {
+	if (!init_val || !new_val)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
@@ -272,10 +280,11 @@ acpi_os_predefined_override(const struct acpi_predefined_names *init_val,
 
 acpi_status
 acpi_os_table_override(struct acpi_table_header *existing_table,
-		       struct acpi_table_header **new_table)
+					   struct acpi_table_header **new_table)
 {
 
-	if (!existing_table || !new_table) {
+	if (!existing_table || !new_table)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
@@ -309,8 +318,8 @@ acpi_os_table_override(struct acpi_table_header *existing_table,
 
 acpi_status
 acpi_os_physical_table_override(struct acpi_table_header *existing_table,
-				acpi_physical_address *new_address,
-				u32 *new_table_length)
+								acpi_physical_address *new_address,
+								u32 *new_table_length)
 {
 
 	return (AE_SUPPORT);
@@ -353,25 +362,31 @@ void ACPI_INTERNAL_VAR_XFACE acpi_os_printf(const char *fmt, ...)
 	u8 flags;
 
 	flags = acpi_gbl_db_output_flags;
-	if (flags & ACPI_DB_REDIRECTABLE_OUTPUT) {
+
+	if (flags & ACPI_DB_REDIRECTABLE_OUTPUT)
+	{
 
 		/* Output is directable to either a file (if open) or the console */
 
-		if (acpi_gbl_debug_file) {
+		if (acpi_gbl_debug_file)
+		{
 
 			/* Output file is open, send the output there */
 
 			va_start(args, fmt);
 			vfprintf(acpi_gbl_debug_file, fmt, args);
 			va_end(args);
-		} else {
+		}
+		else
+		{
 			/* No redirection, send output to console (once only!) */
 
 			flags |= ACPI_DB_CONSOLE_OUTPUT;
 		}
 	}
 
-	if (flags & ACPI_DB_CONSOLE_OUTPUT) {
+	if (flags & ACPI_DB_CONSOLE_OUTPUT)
+	{
 		va_start(args, fmt);
 		vfprintf(acpi_gbl_output_file, fmt, args);
 		va_end(args);
@@ -411,23 +426,29 @@ void acpi_os_vprintf(const char *fmt, va_list args)
 	vsnprintf(buffer, ACPI_VPRINTF_BUFFER_SIZE, fmt, args);
 
 	flags = acpi_gbl_db_output_flags;
-	if (flags & ACPI_DB_REDIRECTABLE_OUTPUT) {
+
+	if (flags & ACPI_DB_REDIRECTABLE_OUTPUT)
+	{
 
 		/* Output is directable to either a file (if open) or the console */
 
-		if (acpi_gbl_debug_file) {
+		if (acpi_gbl_debug_file)
+		{
 
 			/* Output file is open, send the output there */
 
 			fputs(buffer, acpi_gbl_debug_file);
-		} else {
+		}
+		else
+		{
 			/* No redirection, send output to console (once only!) */
 
 			flags |= ACPI_DB_CONSOLE_OUTPUT;
 		}
 	}
 
-	if (flags & ACPI_DB_CONSOLE_OUTPUT) {
+	if (flags & ACPI_DB_CONSOLE_OUTPUT)
+	{
 		fputs(buffer, acpi_gbl_output_file);
 	}
 }
@@ -456,16 +477,20 @@ acpi_status acpi_os_get_line(char *buffer, u32 buffer_length, u32 *bytes_read)
 
 	/* Standard acpi_os_get_line for all utilities except acpi_exec */
 
-	for (end_of_line = 0;; end_of_line++) {
-		if (end_of_line >= buffer_length) {
+	for (end_of_line = 0;; end_of_line++)
+	{
+		if (end_of_line >= buffer_length)
+		{
 			return (AE_BUFFER_OVERFLOW);
 		}
 
-		if ((input_char = getchar()) == EOF) {
+		if ((input_char = getchar()) == EOF)
+		{
 			return (AE_ERROR);
 		}
 
-		if (!input_char || input_char == _ASCII_NEWLINE) {
+		if (!input_char || input_char == _ASCII_NEWLINE)
+		{
 			break;
 		}
 
@@ -478,7 +503,8 @@ acpi_status acpi_os_get_line(char *buffer, u32 buffer_length, u32 *bytes_read)
 
 	/* Return the number of bytes in the string */
 
-	if (bytes_read) {
+	if (bytes_read)
+	{
 		*bytes_read = end_of_line;
 	}
 
@@ -600,7 +626,7 @@ void acpi_os_free(void *mem)
 
 acpi_status
 acpi_os_create_semaphore(u32 max_units,
-			 u32 initial_units, acpi_handle *out_handle)
+						 u32 initial_units, acpi_handle *out_handle)
 {
 	*out_handle = (acpi_handle)1;
 	return (AE_OK);
@@ -637,36 +663,45 @@ acpi_status acpi_os_signal_semaphore(acpi_handle handle, u32 units)
 
 acpi_status
 acpi_os_create_semaphore(u32 max_units,
-			 u32 initial_units, acpi_handle *out_handle)
+						 u32 initial_units, acpi_handle *out_handle)
 {
 	sem_t *sem;
 
-	if (!out_handle) {
+	if (!out_handle)
+	{
 		return (AE_BAD_PARAMETER);
 	}
+
 #ifdef __APPLE__
 	{
 		char *semaphore_name = tmpnam(NULL);
 
 		sem =
-		    sem_open(semaphore_name, O_EXCL | O_CREAT, 0755,
-			     initial_units);
-		if (!sem) {
+			sem_open(semaphore_name, O_EXCL | O_CREAT, 0755,
+					 initial_units);
+
+		if (!sem)
+		{
 			return (AE_NO_MEMORY);
 		}
+
 		sem_unlink(semaphore_name);	/* This just deletes the name */
 	}
 
 #else
 	sem = acpi_os_allocate(sizeof(sem_t));
-	if (!sem) {
+
+	if (!sem)
+	{
 		return (AE_NO_MEMORY);
 	}
 
-	if (sem_init(sem, 0, initial_units) == -1) {
+	if (sem_init(sem, 0, initial_units) == -1)
+	{
 		acpi_os_free(sem);
 		return (AE_BAD_PARAMETER);
 	}
+
 #endif
 
 	*out_handle = (acpi_handle)sem;
@@ -689,11 +724,13 @@ acpi_status acpi_os_delete_semaphore(acpi_handle handle)
 {
 	sem_t *sem = (sem_t *) handle;
 
-	if (!sem) {
+	if (!sem)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
-	if (sem_destroy(sem) == -1) {
+	if (sem_destroy(sem) == -1)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
@@ -724,11 +761,13 @@ acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 msec_timeout)
 	int ret_val;
 #endif
 
-	if (!sem) {
+	if (!sem)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
-	switch (msec_timeout) {
+	switch (msec_timeout)
+	{
 		/*
 		 * No Wait:
 		 * --------
@@ -736,81 +775,100 @@ acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 msec_timeout)
 		 * acquire the semaphore if available otherwise return AE_TIME
 		 * (a.k.a. 'would block').
 		 */
-	case 0:
+		case 0:
 
-		if (sem_trywait(sem) == -1) {
-			status = (AE_TIME);
-		}
-		break;
+			if (sem_trywait(sem) == -1)
+			{
+				status = (AE_TIME);
+			}
+
+			break;
 
 		/* Wait Indefinitely */
 
-	case ACPI_WAIT_FOREVER:
+		case ACPI_WAIT_FOREVER:
 
-		if (sem_wait(sem)) {
-			status = (AE_TIME);
-		}
-		break;
+			if (sem_wait(sem))
+			{
+				status = (AE_TIME);
+			}
+
+			break;
 
 		/* Wait with msec_timeout */
 
-	default:
+		default:
 
 #ifdef ACPI_USE_ALTERNATE_TIMEOUT
-		/*
-		 * Alternate timeout mechanism for environments where
-		 * sem_timedwait is not available or does not work properly.
-		 */
-		while (msec_timeout) {
-			if (sem_trywait(sem) == 0) {
 
-				/* Got the semaphore */
-				return (AE_OK);
+			/*
+			 * Alternate timeout mechanism for environments where
+			 * sem_timedwait is not available or does not work properly.
+			 */
+			while (msec_timeout)
+			{
+				if (sem_trywait(sem) == 0)
+				{
+
+					/* Got the semaphore */
+					return (AE_OK);
+				}
+
+				if (msec_timeout >= 10)
+				{
+					msec_timeout -= 10;
+					usleep(10 * ACPI_USEC_PER_MSEC);	/* ten milliseconds */
+				}
+				else
+				{
+					msec_timeout--;
+					usleep(ACPI_USEC_PER_MSEC);	/* one millisecond */
+				}
 			}
 
-			if (msec_timeout >= 10) {
-				msec_timeout -= 10;
-				usleep(10 * ACPI_USEC_PER_MSEC);	/* ten milliseconds */
-			} else {
-				msec_timeout--;
-				usleep(ACPI_USEC_PER_MSEC);	/* one millisecond */
-			}
-		}
-		status = (AE_TIME);
-#else
-		/*
-		 * The interface to sem_timedwait is an absolute time, so we need to
-		 * get the current time, then add in the millisecond Timeout value.
-		 */
-		if (clock_gettime(CLOCK_REALTIME, &time) == -1) {
-			perror("clock_gettime");
-			return (AE_TIME);
-		}
-
-		time.tv_sec += (msec_timeout / ACPI_MSEC_PER_SEC);
-		time.tv_nsec +=
-		    ((msec_timeout % ACPI_MSEC_PER_SEC) * ACPI_NSEC_PER_MSEC);
-
-		/* Handle nanosecond overflow (field must be less than one second) */
-
-		if (time.tv_nsec >= ACPI_NSEC_PER_SEC) {
-			time.tv_sec += (time.tv_nsec / ACPI_NSEC_PER_SEC);
-			time.tv_nsec = (time.tv_nsec % ACPI_NSEC_PER_SEC);
-		}
-
-		while (((ret_val = sem_timedwait(sem, &time)) == -1)
-		       && (errno == EINTR)) {
-			continue;
-		}
-
-		if (ret_val != 0) {
-			if (errno != ETIMEDOUT) {
-				perror("sem_timedwait");
-			}
 			status = (AE_TIME);
-		}
+#else
+
+			/*
+			 * The interface to sem_timedwait is an absolute time, so we need to
+			 * get the current time, then add in the millisecond Timeout value.
+			 */
+			if (clock_gettime(CLOCK_REALTIME, &time) == -1)
+			{
+				perror("clock_gettime");
+				return (AE_TIME);
+			}
+
+			time.tv_sec += (msec_timeout / ACPI_MSEC_PER_SEC);
+			time.tv_nsec +=
+				((msec_timeout % ACPI_MSEC_PER_SEC) * ACPI_NSEC_PER_MSEC);
+
+			/* Handle nanosecond overflow (field must be less than one second) */
+
+			if (time.tv_nsec >= ACPI_NSEC_PER_SEC)
+			{
+				time.tv_sec += (time.tv_nsec / ACPI_NSEC_PER_SEC);
+				time.tv_nsec = (time.tv_nsec % ACPI_NSEC_PER_SEC);
+			}
+
+			while (((ret_val = sem_timedwait(sem, &time)) == -1)
+				   && (errno == EINTR))
+			{
+				continue;
+			}
+
+			if (ret_val != 0)
+			{
+				if (errno != ETIMEDOUT)
+				{
+					perror("sem_timedwait");
+				}
+
+				status = (AE_TIME);
+			}
+
 #endif
-		break;
+			break;
 	}
 
 	return (status);
@@ -833,11 +891,13 @@ acpi_status acpi_os_signal_semaphore(acpi_handle handle, u32 units)
 {
 	sem_t *sem = (sem_t *) handle;
 
-	if (!sem) {
+	if (!sem)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
-	if (sem_post(sem) == -1) {
+	if (sem_post(sem) == -1)
+	{
 		return (AE_LIMIT);
 	}
 
@@ -854,7 +914,7 @@ acpi_status acpi_os_signal_semaphore(acpi_handle handle, u32 units)
  *
  *****************************************************************************/
 
-acpi_status acpi_os_create_lock(acpi_spinlock * out_handle)
+acpi_status acpi_os_create_lock(acpi_spinlock *out_handle)
 {
 
 	return (acpi_os_create_semaphore(1, 1, out_handle));
@@ -893,8 +953,8 @@ void acpi_os_release_lock(acpi_spinlock handle, acpi_cpu_flags flags)
 
 u32
 acpi_os_install_interrupt_handler(u32 interrupt_number,
-				  acpi_osd_handler service_routine,
-				  void *context)
+								  acpi_osd_handler service_routine,
+								  void *context)
 {
 
 	return (AE_OK);
@@ -914,7 +974,7 @@ acpi_os_install_interrupt_handler(u32 interrupt_number,
 
 acpi_status
 acpi_os_remove_interrupt_handler(u32 interrupt_number,
-				 acpi_osd_handler service_routine)
+								 acpi_osd_handler service_routine)
 {
 
 	return (AE_OK);
@@ -935,7 +995,8 @@ acpi_os_remove_interrupt_handler(u32 interrupt_number,
 void acpi_os_stall(u32 microseconds)
 {
 
-	if (microseconds) {
+	if (microseconds)
+	{
 		usleep(microseconds);
 	}
 }
@@ -989,7 +1050,7 @@ u64 acpi_os_get_timer(void)
 	/* (Seconds * 10^7 = 100ns(10^-7)) + (Microseconds(10^-6) * 10^1 = 100ns) */
 
 	return (((u64)time.tv_sec * ACPI_100NSEC_PER_SEC) +
-		((u64)time.tv_usec * ACPI_100NSEC_PER_USEC));
+			((u64)time.tv_usec * ACPI_100NSEC_PER_USEC));
 }
 
 /******************************************************************************
@@ -1009,7 +1070,7 @@ u64 acpi_os_get_timer(void)
 
 acpi_status
 acpi_os_read_pci_configuration(struct acpi_pci_id *pci_id,
-			       u32 pci_register, u64 *value, u32 width)
+							   u32 pci_register, u64 *value, u32 width)
 {
 
 	*value = 0;
@@ -1033,7 +1094,7 @@ acpi_os_read_pci_configuration(struct acpi_pci_id *pci_id,
 
 acpi_status
 acpi_os_write_pci_configuration(struct acpi_pci_id *pci_id,
-				u32 pci_register, u64 value, u32 width)
+								u32 pci_register, u64 value, u32 width)
 {
 
 	return (AE_OK);
@@ -1056,25 +1117,26 @@ acpi_os_write_pci_configuration(struct acpi_pci_id *pci_id,
 acpi_status acpi_os_read_port(acpi_io_address address, u32 *value, u32 width)
 {
 
-	switch (width) {
-	case 8:
+	switch (width)
+	{
+		case 8:
 
-		*value = 0xFF;
-		break;
+			*value = 0xFF;
+			break;
 
-	case 16:
+		case 16:
 
-		*value = 0xFFFF;
-		break;
+			*value = 0xFFFF;
+			break;
 
-	case 32:
+		case 32:
 
-		*value = 0xFFFFFFFF;
-		break;
+			*value = 0xFFFFFFFF;
+			break;
 
-	default:
+		default:
 
-		return (AE_BAD_PARAMETER);
+			return (AE_BAD_PARAMETER);
 	}
 
 	return (AE_OK);
@@ -1119,19 +1181,21 @@ acpi_status
 acpi_os_read_memory(acpi_physical_address address, u64 *value, u32 width)
 {
 
-	switch (width) {
-	case 8:
-	case 16:
-	case 32:
-	case 64:
+	switch (width)
+	{
+		case 8:
+		case 16:
+		case 32:
+		case 64:
 
-		*value = 0;
-		break;
+			*value = 0;
+			break;
 
-	default:
+		default:
 
-		return (AE_BAD_PARAMETER);
+			return (AE_BAD_PARAMETER);
 	}
+
 	return (AE_OK);
 }
 
@@ -1210,18 +1274,19 @@ u8 acpi_os_writable(void *pointer, acpi_size length)
 acpi_status acpi_os_signal(u32 function, void *info)
 {
 
-	switch (function) {
-	case ACPI_SIGNAL_FATAL:
+	switch (function)
+	{
+		case ACPI_SIGNAL_FATAL:
 
-		break;
+			break;
 
-	case ACPI_SIGNAL_BREAKPOINT:
+		case ACPI_SIGNAL_BREAKPOINT:
 
-		break;
+			break;
 
-	default:
+		default:
 
-		break;
+			break;
 	}
 
 	return (AE_OK);
@@ -1266,16 +1331,19 @@ acpi_thread_id acpi_os_get_thread_id(void)
 
 acpi_status
 acpi_os_execute(acpi_execute_type type,
-		acpi_osd_exec_callback function, void *context)
+				acpi_osd_exec_callback function, void *context)
 {
 	pthread_t thread;
 	int ret;
 
 	ret =
-	    pthread_create(&thread, NULL, (PTHREAD_CALLBACK) function, context);
-	if (ret) {
+		pthread_create(&thread, NULL, (PTHREAD_CALLBACK) function, context);
+
+	if (ret)
+	{
 		acpi_os_printf("Create thread failed");
 	}
+
 	return (0);
 }
 
@@ -1287,7 +1355,7 @@ acpi_thread_id acpi_os_get_thread_id(void)
 
 acpi_status
 acpi_os_execute(acpi_execute_type type,
-		acpi_osd_exec_callback function, void *context)
+				acpi_osd_exec_callback function, void *context)
 {
 
 	function(context);

@@ -42,24 +42,33 @@ static struct cfs_hash_ops conn_hash_ops;
 
 struct ptlrpc_connection *
 ptlrpc_connection_get(lnet_process_id_t peer, lnet_nid_t self,
-		      struct obd_uuid *uuid)
+					  struct obd_uuid *uuid)
 {
 	struct ptlrpc_connection *conn, *conn2;
 
 	conn = cfs_hash_lookup(conn_hash, &peer);
+
 	if (conn)
+	{
 		goto out;
+	}
 
 	conn = kzalloc(sizeof(*conn), GFP_NOFS);
+
 	if (!conn)
+	{
 		return NULL;
+	}
 
 	conn->c_peer = peer;
 	conn->c_self = self;
 	INIT_HLIST_NODE(&conn->c_hash);
 	atomic_set(&conn->c_refcount, 1);
+
 	if (uuid)
+	{
 		obd_str2uuid(&conn->c_remote_uuid, uuid->uuid);
+	}
 
 	/*
 	 * Add the newly created conn to the hash, on key collision we
@@ -72,14 +81,17 @@ ptlrpc_connection_get(lnet_process_id_t peer, lnet_nid_t self,
 	 */
 	/* coverity[overrun-buffer-val] */
 	conn2 = cfs_hash_findadd_unique(conn_hash, &peer, &conn->c_hash);
-	if (conn != conn2) {
+
+	if (conn != conn2)
+	{
 		kfree(conn);
 		conn = conn2;
 	}
+
 out:
 	CDEBUG(D_INFO, "conn=%p refcount %d to %s\n",
-	       conn, atomic_read(&conn->c_refcount),
-	       libcfs_nid2str(conn->c_peer.nid));
+		   conn, atomic_read(&conn->c_refcount),
+		   libcfs_nid2str(conn->c_peer.nid));
 	return conn;
 }
 
@@ -88,7 +100,9 @@ int ptlrpc_connection_put(struct ptlrpc_connection *conn)
 	int rc = 0;
 
 	if (!conn)
+	{
 		return rc;
+	}
 
 	LASSERT(atomic_read(&conn->c_refcount) > 1);
 
@@ -109,11 +123,13 @@ int ptlrpc_connection_put(struct ptlrpc_connection *conn)
 	 * path is called.
 	 */
 	if (atomic_dec_return(&conn->c_refcount) == 1)
+	{
 		rc = 1;
+	}
 
 	CDEBUG(D_INFO, "PUT conn=%p refcount %d to %s\n",
-	       conn, atomic_read(&conn->c_refcount),
-	       libcfs_nid2str(conn->c_peer.nid));
+		   conn, atomic_read(&conn->c_refcount),
+		   libcfs_nid2str(conn->c_peer.nid));
 
 	return rc;
 }
@@ -123,8 +139,8 @@ ptlrpc_connection_addref(struct ptlrpc_connection *conn)
 {
 	atomic_inc(&conn->c_refcount);
 	CDEBUG(D_INFO, "conn=%p refcount %d to %s\n",
-	       conn, atomic_read(&conn->c_refcount),
-	       libcfs_nid2str(conn->c_peer.nid));
+		   conn, atomic_read(&conn->c_refcount),
+		   libcfs_nid2str(conn->c_peer.nid));
 
 	return conn;
 }
@@ -132,14 +148,17 @@ ptlrpc_connection_addref(struct ptlrpc_connection *conn)
 int ptlrpc_connection_init(void)
 {
 	conn_hash = cfs_hash_create("CONN_HASH",
-				    HASH_CONN_CUR_BITS,
-				    HASH_CONN_MAX_BITS,
-				    HASH_CONN_BKT_BITS, 0,
-				    CFS_HASH_MIN_THETA,
-				    CFS_HASH_MAX_THETA,
-				    &conn_hash_ops, CFS_HASH_DEFAULT);
+								HASH_CONN_CUR_BITS,
+								HASH_CONN_MAX_BITS,
+								HASH_CONN_BKT_BITS, 0,
+								CFS_HASH_MIN_THETA,
+								CFS_HASH_MAX_THETA,
+								&conn_hash_ops, CFS_HASH_DEFAULT);
+
 	if (!conn_hash)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -169,7 +188,7 @@ conn_keycmp(const void *key, struct hlist_node *hnode)
 	conn = hlist_entry(hnode, struct ptlrpc_connection, c_hash);
 
 	return conn_key->nid == conn->c_peer.nid &&
-	       conn_key->pid == conn->c_peer.pid;
+		   conn_key->pid == conn->c_peer.pid;
 }
 
 static void *
@@ -217,12 +236,13 @@ conn_exit(struct cfs_hash *hs, struct hlist_node *hnode)
 	 * so we should have 0 refs.
 	 */
 	LASSERTF(atomic_read(&conn->c_refcount) == 0,
-		 "Busy connection with %d refs\n",
-		 atomic_read(&conn->c_refcount));
+			 "Busy connection with %d refs\n",
+			 atomic_read(&conn->c_refcount));
 	kfree(conn);
 }
 
-static struct cfs_hash_ops conn_hash_ops = {
+static struct cfs_hash_ops conn_hash_ops =
+{
 	.hs_hash	= conn_hashfn,
 	.hs_keycmp      = conn_keycmp,
 	.hs_key		= conn_key,

@@ -17,16 +17,18 @@
 static DEFINE_IDA(soc_ida);
 
 static ssize_t soc_info_get(struct device *dev,
-			    struct device_attribute *attr,
-			    char *buf);
+							struct device_attribute *attr,
+							char *buf);
 
-struct soc_device {
+struct soc_device
+{
 	struct device dev;
 	struct soc_device_attribute *attr;
 	int soc_dev_num;
 };
 
-static struct bus_type soc_bus_type = {
+static struct bus_type soc_bus_type =
+{
 	.name  = "soc",
 };
 
@@ -41,49 +43,72 @@ struct device *soc_device_to_device(struct soc_device *soc_dev)
 }
 
 static umode_t soc_attribute_mode(struct kobject *kobj,
-				struct attribute *attr,
-				int index)
+								  struct attribute *attr,
+								  int index)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct soc_device *soc_dev = container_of(dev, struct soc_device, dev);
 
 	if ((attr == &dev_attr_machine.attr)
-	    && (soc_dev->attr->machine != NULL))
+		&& (soc_dev->attr->machine != NULL))
+	{
 		return attr->mode;
+	}
+
 	if ((attr == &dev_attr_family.attr)
-	    && (soc_dev->attr->family != NULL))
+		&& (soc_dev->attr->family != NULL))
+	{
 		return attr->mode;
+	}
+
 	if ((attr == &dev_attr_revision.attr)
-	    && (soc_dev->attr->revision != NULL))
+		&& (soc_dev->attr->revision != NULL))
+	{
 		return attr->mode;
+	}
+
 	if ((attr == &dev_attr_soc_id.attr)
-	    && (soc_dev->attr->soc_id != NULL))
+		&& (soc_dev->attr->soc_id != NULL))
+	{
 		return attr->mode;
+	}
 
 	/* Unknown or unfilled attribute. */
 	return 0;
 }
 
 static ssize_t soc_info_get(struct device *dev,
-			    struct device_attribute *attr,
-			    char *buf)
+							struct device_attribute *attr,
+							char *buf)
 {
 	struct soc_device *soc_dev = container_of(dev, struct soc_device, dev);
 
 	if (attr == &dev_attr_machine)
+	{
 		return sprintf(buf, "%s\n", soc_dev->attr->machine);
+	}
+
 	if (attr == &dev_attr_family)
+	{
 		return sprintf(buf, "%s\n", soc_dev->attr->family);
+	}
+
 	if (attr == &dev_attr_revision)
+	{
 		return sprintf(buf, "%s\n", soc_dev->attr->revision);
+	}
+
 	if (attr == &dev_attr_soc_id)
+	{
 		return sprintf(buf, "%s\n", soc_dev->attr->soc_id);
+	}
 
 	return -EINVAL;
 
 }
 
-static struct attribute *soc_attr[] = {
+static struct attribute *soc_attr[] =
+{
 	&dev_attr_machine.attr,
 	&dev_attr_family.attr,
 	&dev_attr_soc_id.attr,
@@ -91,12 +116,14 @@ static struct attribute *soc_attr[] = {
 	NULL,
 };
 
-static const struct attribute_group soc_attr_group = {
+static const struct attribute_group soc_attr_group =
+{
 	.attrs = soc_attr,
 	.is_visible = soc_attribute_mode,
 };
 
-static const struct attribute_group *soc_attr_groups[] = {
+static const struct attribute_group *soc_attr_groups[] =
+{
 	&soc_attr_group,
 	NULL,
 };
@@ -114,15 +141,21 @@ struct soc_device *soc_device_register(struct soc_device_attribute *soc_dev_attr
 	int ret;
 
 	soc_dev = kzalloc(sizeof(*soc_dev), GFP_KERNEL);
-	if (!soc_dev) {
+
+	if (!soc_dev)
+	{
 		ret = -ENOMEM;
 		goto out1;
 	}
 
 	/* Fetch a unique (reclaimable) SOC ID. */
 	ret = ida_simple_get(&soc_ida, 0, 0, GFP_KERNEL);
+
 	if (ret < 0)
+	{
 		goto out2;
+	}
+
 	soc_dev->soc_dev_num = ret;
 
 	soc_dev->attr = soc_dev_attr;
@@ -133,8 +166,11 @@ struct soc_device *soc_device_register(struct soc_device_attribute *soc_dev_attr
 	dev_set_name(&soc_dev->dev, "soc%d", soc_dev->soc_dev_num);
 
 	ret = device_register(&soc_dev->dev);
+
 	if (ret)
+	{
 		goto out3;
+	}
 
 	return soc_dev;
 

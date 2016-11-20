@@ -25,32 +25,32 @@
 #include <linux/of_platform.h>
 #include <linux/spi/spi.h>
 #ifdef CONFIG_FSL_SOC
-#include <sysdev/fsl_soc.h>
+	#include <sysdev/fsl_soc.h>
 #endif
 
 #include "spi-fsl-lib.h"
 
 #define MPC8XXX_SPI_RX_BUF(type) 					  \
-void mpc8xxx_spi_rx_buf_##type(u32 data, struct mpc8xxx_spi *mpc8xxx_spi) \
-{									  \
-	type *rx = mpc8xxx_spi->rx;					  \
-	*rx++ = (type)(data >> mpc8xxx_spi->rx_shift);			  \
-	mpc8xxx_spi->rx = rx;						  \
-}									  \
-EXPORT_SYMBOL_GPL(mpc8xxx_spi_rx_buf_##type);
+	void mpc8xxx_spi_rx_buf_##type(u32 data, struct mpc8xxx_spi *mpc8xxx_spi) \
+	{									  \
+		type *rx = mpc8xxx_spi->rx;					  \
+		*rx++ = (type)(data >> mpc8xxx_spi->rx_shift);			  \
+		mpc8xxx_spi->rx = rx;						  \
+	}									  \
+	EXPORT_SYMBOL_GPL(mpc8xxx_spi_rx_buf_##type);
 
 #define MPC8XXX_SPI_TX_BUF(type)				\
-u32 mpc8xxx_spi_tx_buf_##type(struct mpc8xxx_spi *mpc8xxx_spi)	\
-{								\
-	u32 data;						\
-	const type *tx = mpc8xxx_spi->tx;			\
-	if (!tx)						\
-		return 0;					\
-	data = *tx++ << mpc8xxx_spi->tx_shift;			\
-	mpc8xxx_spi->tx = tx;					\
-	return data;						\
-}								\
-EXPORT_SYMBOL_GPL(mpc8xxx_spi_tx_buf_##type);
+	u32 mpc8xxx_spi_tx_buf_##type(struct mpc8xxx_spi *mpc8xxx_spi)	\
+	{								\
+		u32 data;						\
+		const type *tx = mpc8xxx_spi->tx;			\
+		if (!tx)						\
+			return 0;					\
+		data = *tx++ << mpc8xxx_spi->tx_shift;			\
+		mpc8xxx_spi->tx = tx;					\
+		return data;						\
+	}								\
+	EXPORT_SYMBOL_GPL(mpc8xxx_spi_tx_buf_##type);
 
 MPC8XXX_SPI_RX_BUF(u8)
 MPC8XXX_SPI_RX_BUF(u16)
@@ -67,22 +67,32 @@ EXPORT_SYMBOL_GPL(to_of_pinfo);
 
 const char *mpc8xxx_spi_strmode(unsigned int flags)
 {
-	if (flags & SPI_QE_CPU_MODE) {
+	if (flags & SPI_QE_CPU_MODE)
+	{
 		return "QE CPU";
-	} else if (flags & SPI_CPM_MODE) {
-		if (flags & SPI_QE)
-			return "QE";
-		else if (flags & SPI_CPM2)
-			return "CPM2";
-		else
-			return "CPM1";
 	}
+	else if (flags & SPI_CPM_MODE)
+	{
+		if (flags & SPI_QE)
+		{
+			return "QE";
+		}
+		else if (flags & SPI_CPM2)
+		{
+			return "CPM2";
+		}
+		else
+		{
+			return "CPM1";
+		}
+	}
+
 	return "CPU";
 }
 EXPORT_SYMBOL_GPL(mpc8xxx_spi_strmode);
 
 void mpc8xxx_spi_probe(struct device *dev, struct resource *mem,
-			unsigned int irq)
+					   unsigned int irq)
 {
 	struct fsl_spi_platform_data *pdata = dev_get_platdata(dev);
 	struct spi_master *master;
@@ -92,7 +102,7 @@ void mpc8xxx_spi_probe(struct device *dev, struct resource *mem,
 
 	/* the spi->mode bits understood by this driver: */
 	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH
-			| SPI_LSB_FIRST | SPI_LOOP;
+						| SPI_LSB_FIRST | SPI_LOOP;
 
 	master->dev.of_node = dev->of_node;
 
@@ -124,8 +134,11 @@ int of_mpc8xxx_spi_probe(struct platform_device *ofdev)
 	int ret = -ENOMEM;
 
 	pinfo = devm_kzalloc(&ofdev->dev, sizeof(*pinfo), GFP_KERNEL);
+
 	if (!pinfo)
+	{
 		return ret;
+	}
 
 	pdata = &pinfo->pdata;
 	dev->platform_data = pdata;
@@ -136,26 +149,45 @@ int of_mpc8xxx_spi_probe(struct platform_device *ofdev)
 #ifdef CONFIG_FSL_SOC
 	/* SPI controller is either clocked from QE or SoC clock. */
 	pdata->sysclk = get_brgfreq();
-	if (pdata->sysclk == -1) {
+
+	if (pdata->sysclk == -1)
+	{
 		pdata->sysclk = fsl_get_sys_freq();
+
 		if (pdata->sysclk == -1)
+		{
 			return -ENODEV;
+		}
 	}
+
 #else
 	ret = of_property_read_u32(np, "clock-frequency", &pdata->sysclk);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 #endif
 
 	prop = of_get_property(np, "mode", NULL);
+
 	if (prop && !strcmp(prop, "cpu-qe"))
+	{
 		pdata->flags = SPI_QE_CPU_MODE;
+	}
 	else if (prop && !strcmp(prop, "qe"))
+	{
 		pdata->flags = SPI_CPM_MODE | SPI_QE;
+	}
 	else if (of_device_is_compatible(np, "fsl,cpm2-spi"))
+	{
 		pdata->flags = SPI_CPM_MODE | SPI_CPM2;
+	}
 	else if (of_device_is_compatible(np, "fsl,cpm1-spi"))
+	{
 		pdata->flags = SPI_CPM_MODE | SPI_CPM1;
+	}
 
 	return 0;
 }

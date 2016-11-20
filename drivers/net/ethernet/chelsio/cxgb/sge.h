@@ -42,7 +42,8 @@
 #include <linux/interrupt.h>
 #include <asm/byteorder.h>
 
-struct sge_intr_counts {
+struct sge_intr_counts
+{
 	unsigned int rx_drops;        /* # of packets dropped due to no mem */
 	unsigned int pure_rsps;        /* # of non-payload responses */
 	unsigned int unhandled_irqs;   /* # of unhandled interrupts */
@@ -55,7 +56,8 @@ struct sge_intr_counts {
 	unsigned int cmdQ_restarted[3];/* # of times cmdQ X was restarted */
 };
 
-struct sge_port_stats {
+struct sge_port_stats
+{
 	u64 rx_cso_good;     /* # of successful RX csum offloads */
 	u64 tx_cso;          /* # of TX checksum offloads */
 	u64 tx_tso;          /* # of TSO requests */
@@ -88,6 +90,6 @@ void t1_sge_intr_clear(struct sge *);
 const struct sge_intr_counts *t1_sge_get_intr_counts(const struct sge *sge);
 void t1_sge_get_port_stats(const struct sge *sge, int port, struct sge_port_stats *);
 unsigned int t1_sched_update_parms(struct sge *, unsigned int, unsigned int,
-			   unsigned int);
+								   unsigned int);
 
 #endif /* _CXGB_SGE_H_ */

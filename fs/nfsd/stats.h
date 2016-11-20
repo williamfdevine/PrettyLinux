@@ -9,7 +9,8 @@
 #include <uapi/linux/nfsd/stats.h>
 
 
-struct nfsd_stats {
+struct nfsd_stats
+{
 	unsigned int	rchits;		/* repcache hits */
 	unsigned int	rcmisses;	/* repcache hits */
 	unsigned int	rcnocache;	/* uncached reqs */

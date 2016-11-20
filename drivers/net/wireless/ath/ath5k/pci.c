@@ -28,7 +28,8 @@
 #include "reg.h"
 
 /* Known PCI ids */
-static const struct pci_device_id ath5k_pci_id_table[] = {
+static const struct pci_device_id ath5k_pci_id_table[] =
+{
 	{ PCI_VDEVICE(ATHEROS, 0x0207) }, /* 5210 early */
 	{ PCI_VDEVICE(ATHEROS, 0x0007) }, /* 5210 */
 	{ PCI_VDEVICE(ATHEROS, 0x0011) }, /* 5311 - this is on AHB bus !*/
@@ -68,7 +69,9 @@ static void ath5k_pci_read_cachesize(struct ath_common *common, int *csz)
 	 */
 
 	if (*csz == 0)
-		*csz = L1_CACHE_BYTES >> 2;   /* Use the default size */
+	{
+		*csz = L1_CACHE_BYTES >> 2;    /* Use the default size */
+	}
 }
 
 /*
@@ -83,24 +86,34 @@ ath5k_pci_eeprom_read(struct ath_common *common, u32 offset, u16 *data)
 	/*
 	 * Initialize EEPROM access
 	 */
-	if (ah->ah_version == AR5K_AR5210) {
+	if (ah->ah_version == AR5K_AR5210)
+	{
 		AR5K_REG_ENABLE_BITS(ah, AR5K_PCICFG, AR5K_PCICFG_EEAE);
 		(void)ath5k_hw_reg_read(ah, AR5K_EEPROM_BASE + (4 * offset));
-	} else {
+	}
+	else
+	{
 		ath5k_hw_reg_write(ah, offset, AR5K_EEPROM_BASE);
 		AR5K_REG_ENABLE_BITS(ah, AR5K_EEPROM_CMD,
-				AR5K_EEPROM_CMD_READ);
+							 AR5K_EEPROM_CMD_READ);
 	}
 
-	for (timeout = AR5K_TUNE_REGISTER_TIMEOUT; timeout > 0; timeout--) {
+	for (timeout = AR5K_TUNE_REGISTER_TIMEOUT; timeout > 0; timeout--)
+	{
 		status = ath5k_hw_reg_read(ah, AR5K_EEPROM_STATUS);
-		if (status & AR5K_EEPROM_STAT_RDDONE) {
+
+		if (status & AR5K_EEPROM_STAT_RDDONE)
+		{
 			if (status & AR5K_EEPROM_STAT_RDERR)
+			{
 				return false;
+			}
+
 			*data = (u16)(ath5k_hw_reg_read(ah, AR5K_EEPROM_DATA) &
-					0xffff);
+						  0xffff);
 			return true;
 		}
+
 		usleep_range(15, 20);
 	}
 
@@ -125,7 +138,8 @@ static int ath5k_pci_eeprom_read_mac(struct ath5k_hw *ah, u8 *mac)
 
 	AR5K_EEPROM_READ(0x20, data);
 
-	for (offset = 0x1f, octet = 0, total = 0; offset >= 0x1d; offset--) {
+	for (offset = 0x1f, octet = 0, total = 0; offset >= 0x1d; offset--)
+	{
 		AR5K_EEPROM_READ(offset, data);
 
 		total += data;
@@ -135,7 +149,9 @@ static int ath5k_pci_eeprom_read_mac(struct ath5k_hw *ah, u8 *mac)
 	}
 
 	if (!total || total == 3 * 0xffff)
+	{
 		return -EINVAL;
+	}
 
 	memcpy(mac, mac_d, ETH_ALEN);
 
@@ -144,7 +160,8 @@ static int ath5k_pci_eeprom_read_mac(struct ath5k_hw *ah, u8 *mac)
 
 
 /* Common ath_bus_opts structure */
-static const struct ath_bus_ops ath_pci_bus_ops = {
+static const struct ath_bus_ops ath_pci_bus_ops =
+{
 	.ath_bus_type = ATH_PCI,
 	.read_cachesize = ath5k_pci_read_cachesize,
 	.eeprom_read = ath5k_pci_eeprom_read,
@@ -157,7 +174,7 @@ static const struct ath_bus_ops ath_pci_bus_ops = {
 
 static int
 ath5k_pci_probe(struct pci_dev *pdev,
-		const struct pci_device_id *id)
+				const struct pci_device_id *id)
 {
 	void __iomem *mem;
 	struct ath5k_hw *ah;
@@ -186,14 +203,18 @@ ath5k_pci_probe(struct pci_dev *pdev,
 	pci_disable_link_state(pdev, PCIE_LINK_STATE_L0S);
 
 	ret = pci_enable_device(pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "can't enable device\n");
 		goto err;
 	}
 
 	/* XXX 32-bit addressing only */
 	ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "32-bit DMA not available\n");
 		goto err_dis;
 	}
@@ -203,7 +224,9 @@ ath5k_pci_probe(struct pci_dev *pdev,
 	 * structures used to communicate with the hardware.
 	 */
 	pci_read_config_byte(pdev, PCI_CACHE_LINE_SIZE, &csz);
-	if (csz == 0) {
+
+	if (csz == 0)
+	{
 		/*
 		 * Linux 2.4.18 (at least) writes the cache line size
 		 * register as a 16-bit wide register which is wrong.
@@ -214,6 +237,7 @@ ath5k_pci_probe(struct pci_dev *pdev,
 		csz = L1_CACHE_BYTES >> 2;
 		pci_write_config_byte(pdev, PCI_CACHE_LINE_SIZE, csz);
 	}
+
 	/*
 	 * The default setting of latency timer yields poor results,
 	 * set it to the value used by other systems.  It may be worth
@@ -231,13 +255,17 @@ ath5k_pci_probe(struct pci_dev *pdev,
 	pci_write_config_byte(pdev, 0x41, 0);
 
 	ret = pci_request_region(pdev, 0, "ath5k");
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "cannot reserve PCI memory region\n");
 		goto err_dis;
 	}
 
 	mem = pci_iomap(pdev, 0, 0);
-	if (!mem) {
+
+	if (!mem)
+	{
 		dev_err(&pdev->dev, "cannot remap PCI memory region\n");
 		ret = -EIO;
 		goto err_reg;
@@ -248,7 +276,9 @@ ath5k_pci_probe(struct pci_dev *pdev,
 	 * and hw->priv (driver private data)
 	 */
 	hw = ieee80211_alloc_hw(sizeof(*ah), &ath5k_hw_ops);
-	if (hw == NULL) {
+
+	if (hw == NULL)
+	{
 		dev_err(&pdev->dev, "cannot allocate ieee80211_hw\n");
 		ret = -ENOMEM;
 		goto err_map;
@@ -266,8 +296,11 @@ ath5k_pci_probe(struct pci_dev *pdev,
 
 	/* Initialize */
 	ret = ath5k_init_ah(ah, &ath_pci_bus_ops);
+
 	if (ret)
+	{
 		goto err_free;
+	}
 
 	/* Set private data */
 	pci_set_drvdata(pdev, hw);
@@ -332,7 +365,8 @@ static SIMPLE_DEV_PM_OPS(ath5k_pm_ops, ath5k_pci_suspend, ath5k_pci_resume);
 #define ATH5K_PM_OPS	NULL
 #endif /* CONFIG_PM_SLEEP */
 
-static struct pci_driver ath5k_pci_driver = {
+static struct pci_driver ath5k_pci_driver =
+{
 	.name		= KBUILD_MODNAME,
 	.id_table	= ath5k_pci_id_table,
 	.probe		= ath5k_pci_probe,

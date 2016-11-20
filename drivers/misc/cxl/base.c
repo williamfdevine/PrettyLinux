@@ -28,8 +28,12 @@ static inline struct cxl_calls *cxl_calls_get(void)
 
 	rcu_read_lock();
 	calls = rcu_dereference(cxl_calls);
+
 	if (calls && !try_module_get(calls->owner))
+	{
 		calls = NULL;
+	}
+
 	rcu_read_unlock();
 
 	return calls;
@@ -72,11 +76,16 @@ void cxl_slbia(struct mm_struct *mm)
 	struct cxl_calls *calls;
 
 	calls = cxl_calls_get();
+
 	if (!calls)
+	{
 		return;
+	}
 
 	if (cxl_ctx_in_use())
-	    calls->cxl_slbia(mm);
+	{
+		calls->cxl_slbia(mm);
+	}
 
 	cxl_calls_put(calls);
 }
@@ -84,7 +93,9 @@ void cxl_slbia(struct mm_struct *mm)
 int register_cxl_calls(struct cxl_calls *calls)
 {
 	if (cxl_calls)
+	{
 		return -EBUSY;
+	}
 
 	rcu_assign_pointer(cxl_calls, calls);
 	return 0;
@@ -100,7 +111,7 @@ void unregister_cxl_calls(struct cxl_calls *calls)
 EXPORT_SYMBOL_GPL(unregister_cxl_calls);
 
 int cxl_update_properties(struct device_node *dn,
-			  struct property *new_prop)
+						  struct property *new_prop)
 {
 	return of_update_property(dn, new_prop);
 }
@@ -116,8 +127,11 @@ bool cxl_pci_associate_default_context(struct pci_dev *dev, struct cxl_afu *afu)
 	struct cxl_calls *calls;
 
 	calls = cxl_calls_get();
+
 	if (!calls)
+	{
 		return false;
+	}
 
 	ret = calls->cxl_pci_associate_default_context(dev, afu);
 
@@ -132,8 +146,11 @@ void cxl_pci_disable_device(struct pci_dev *dev)
 	struct cxl_calls *calls;
 
 	calls = cxl_calls_get();
+
 	if (!calls)
+	{
 		return;
+	}
 
 	calls->cxl_pci_disable_device(dev);
 
@@ -147,8 +164,11 @@ int cxl_next_msi_hwirq(struct pci_dev *pdev, struct cxl_context **ctx, int *afu_
 	struct cxl_calls *calls;
 
 	calls = cxl_calls_get();
+
 	if (!calls)
+	{
 		return -EBUSY;
+	}
 
 	ret = calls->cxl_next_msi_hwirq(pdev, ctx, afu_irq);
 
@@ -164,8 +184,11 @@ int cxl_cx4_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type)
 	struct cxl_calls *calls;
 
 	calls = cxl_calls_get();
+
 	if (!calls)
+	{
 		return false;
+	}
 
 	ret = calls->cxl_cx4_setup_msi_irqs(pdev, nvec, type);
 
@@ -180,8 +203,11 @@ void cxl_cx4_teardown_msi_irqs(struct pci_dev *pdev)
 	struct cxl_calls *calls;
 
 	calls = cxl_calls_get();
+
 	if (!calls)
+	{
 		return;
+	}
 
 	calls->cxl_cx4_teardown_msi_irqs(pdev);
 
@@ -199,12 +225,18 @@ static int __init cxl_base_init(void)
 	 * Scan for compatible devices in guest only
 	 */
 	if (cpu_has_feature(CPU_FTR_HVMODE))
+	{
 		return 0;
+	}
 
-	for_each_compatible_node(np, NULL, "ibm,coherent-platform-facility") {
+	for_each_compatible_node(np, NULL, "ibm,coherent-platform-facility")
+	{
 		dev = of_platform_device_create(np, NULL, NULL);
+
 		if (dev)
+		{
 			count++;
+		}
 	}
 	pr_devel("Found %d cxl device(s)\n", count);
 	return 0;

@@ -24,51 +24,58 @@
 
 #define DRV_NAME "falconide"
 
-    /*
-     *  Base of the IDE interface
-     */
+/*
+ *  Base of the IDE interface
+ */
 
 #define ATA_HD_BASE	0xfff00000
 
-    /*
-     *  Offsets from the above base
-     */
+/*
+ *  Offsets from the above base
+ */
 
 #define ATA_HD_CONTROL	0x39
 
-    /*
-     *  falconide_intr_lock is used to obtain access to the IDE interrupt,
-     *  which is shared between several drivers.
-     */
+/*
+ *  falconide_intr_lock is used to obtain access to the IDE interrupt,
+ *  which is shared between several drivers.
+ */
 
 static int falconide_intr_lock;
 
 static void falconide_release_lock(void)
 {
-	if (falconide_intr_lock == 0) {
+	if (falconide_intr_lock == 0)
+	{
 		printk(KERN_ERR "%s: bug\n", __func__);
 		return;
 	}
+
 	falconide_intr_lock = 0;
 	stdma_release();
 }
 
 static void falconide_get_lock(irq_handler_t handler, void *data)
 {
-	if (falconide_intr_lock == 0) {
+	if (falconide_intr_lock == 0)
+	{
 		if (in_interrupt() > 0)
+		{
 			panic("Falcon IDE hasn't ST-DMA lock in interrupt");
+		}
+
 		stdma_lock(handler, data);
 		falconide_intr_lock = 1;
 	}
 }
 
 static void falconide_input_data(ide_drive_t *drive, struct ide_cmd *cmd,
-				 void *buf, unsigned int len)
+								 void *buf, unsigned int len)
 {
 	unsigned long data_addr = drive->hwif->io_ports.data_addr;
 
-	if (drive->media == ide_disk && cmd && (cmd->tf_flags & IDE_TFLAG_FS)) {
+	if (drive->media == ide_disk && cmd && (cmd->tf_flags & IDE_TFLAG_FS))
+	{
 		__ide_mm_insw(data_addr, buf, (len + 1) / 2);
 		return;
 	}
@@ -77,11 +84,12 @@ static void falconide_input_data(ide_drive_t *drive, struct ide_cmd *cmd,
 }
 
 static void falconide_output_data(ide_drive_t *drive, struct ide_cmd *cmd,
-				  void *buf, unsigned int len)
+								  void *buf, unsigned int len)
 {
 	unsigned long data_addr = drive->hwif->io_ports.data_addr;
 
-	if (drive->media == ide_disk && cmd && (cmd->tf_flags & IDE_TFLAG_FS)) {
+	if (drive->media == ide_disk && cmd && (cmd->tf_flags & IDE_TFLAG_FS))
+	{
 		__ide_mm_outsw(data_addr, buf, (len + 1) / 2);
 		return;
 	}
@@ -90,7 +98,8 @@ static void falconide_output_data(ide_drive_t *drive, struct ide_cmd *cmd,
 }
 
 /* Atari has a byte-swapped IDE interface */
-static const struct ide_tp_ops falconide_tp_ops = {
+static const struct ide_tp_ops falconide_tp_ops =
+{
 	.exec_command		= ide_exec_command,
 	.read_status		= ide_read_status,
 	.read_altstatus		= ide_read_altstatus,
@@ -104,12 +113,13 @@ static const struct ide_tp_ops falconide_tp_ops = {
 	.output_data		= falconide_output_data,
 };
 
-static const struct ide_port_info falconide_port_info = {
+static const struct ide_port_info falconide_port_info =
+{
 	.get_lock		= falconide_get_lock,
 	.release_lock		= falconide_release_lock,
 	.tp_ops			= &falconide_tp_ops,
 	.host_flags		= IDE_HFLAG_MMIO | IDE_HFLAG_SERIALIZE |
-				  IDE_HFLAG_NO_DMA,
+	IDE_HFLAG_NO_DMA,
 	.irq_flags		= IRQF_SHARED,
 	.chipset		= ide_generic,
 };
@@ -123,16 +133,18 @@ static void __init falconide_setup_ports(struct ide_hw *hw)
 	hw->io_ports.data_addr = ATA_HD_BASE;
 
 	for (i = 1; i < 8; i++)
+	{
 		hw->io_ports_array[i] = ATA_HD_BASE + 1 + i * 4;
+	}
 
 	hw->io_ports.ctl_addr = ATA_HD_BASE + ATA_HD_CONTROL;
 
 	hw->irq = IRQ_MFP_IDE;
 }
 
-    /*
-     *  Probe for a Falcon IDE interface
-     */
+/*
+ *  Probe for a Falcon IDE interface
+ */
 
 static int __init falconide_init(void)
 {
@@ -141,11 +153,14 @@ static int __init falconide_init(void)
 	int rc;
 
 	if (!MACH_IS_ATARI || !ATARIHW_PRESENT(IDE))
+	{
 		return -ENODEV;
+	}
 
 	printk(KERN_INFO "ide: Falcon IDE controller\n");
 
-	if (!request_mem_region(ATA_HD_BASE, 0x40, DRV_NAME)) {
+	if (!request_mem_region(ATA_HD_BASE, 0x40, DRV_NAME))
+	{
 		printk(KERN_ERR "%s: resources busy\n", DRV_NAME);
 		return -EBUSY;
 	}
@@ -153,7 +168,9 @@ static int __init falconide_init(void)
 	falconide_setup_ports(&hw);
 
 	host = ide_host_alloc(&falconide_port_info, hws, 1);
-	if (host == NULL) {
+
+	if (host == NULL)
+	{
 		rc = -ENOMEM;
 		goto err;
 	}
@@ -163,7 +180,9 @@ static int __init falconide_init(void)
 	falconide_release_lock();
 
 	if (rc)
+	{
 		goto err_free;
+	}
 
 	return 0;
 err_free:

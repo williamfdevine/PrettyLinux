@@ -13,12 +13,13 @@ struct crypto_tfm;
  * S-boxes composed with the MDS matrix; w contains the eight "whitening"
  * subkeys, K[0] through K[7].	k holds the remaining, "round" subkeys.  Note
  * that k[i] corresponds to what the Twofish paper calls K[i+8]. */
-struct twofish_ctx {
+struct twofish_ctx
+{
 	u32 s[4][256], w[8], k[32];
 };
 
 int __twofish_setkey(struct twofish_ctx *ctx, const u8 *key,
-		     unsigned int key_len, u32 *flags);
+					 unsigned int key_len, u32 *flags);
 int twofish_setkey(struct crypto_tfm *tfm, const u8 *key, unsigned int key_len);
 
 #endif

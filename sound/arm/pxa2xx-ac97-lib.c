@@ -55,21 +55,31 @@ unsigned short pxa2xx_ac97_read(struct snd_ac97 *ac97, unsigned short reg)
 
 	/* set up primary or secondary codec space */
 	if (cpu_is_pxa25x() && reg == AC97_GPIO_STATUS)
+	{
 		reg_addr = ac97->num ? &SMC_REG_BASE : &PMC_REG_BASE;
+	}
 	else
+	{
 		reg_addr = ac97->num ? &SAC_REG_BASE : &PAC_REG_BASE;
+	}
+
 	reg_addr += (reg >> 1);
 
 	/* start read access across the ac97 link */
 	GSR = GSR_CDONE | GSR_SDONE;
 	gsr_bits = 0;
 	val = *reg_addr;
+
 	if (reg == AC97_GPIO_STATUS)
+	{
 		goto out;
+	}
+
 	if (wait_event_timeout(gsr_wq, (GSR | gsr_bits) & GSR_SDONE, 1) <= 0 &&
-	    !((GSR | gsr_bits) & GSR_SDONE)) {
+		!((GSR | gsr_bits) & GSR_SDONE))
+	{
 		printk(KERN_ERR "%s: read error (ac97_reg=%d GSR=%#lx)\n",
-				__func__, reg, GSR | gsr_bits);
+			   __func__, reg, GSR | gsr_bits);
 		val = -1;
 		goto out;
 	}
@@ -87,7 +97,7 @@ out:	mutex_unlock(&car_mutex);
 EXPORT_SYMBOL_GPL(pxa2xx_ac97_read);
 
 void pxa2xx_ac97_write(struct snd_ac97 *ac97, unsigned short reg,
-			unsigned short val)
+					   unsigned short val)
 {
 	volatile u32 *reg_addr;
 
@@ -95,18 +105,24 @@ void pxa2xx_ac97_write(struct snd_ac97 *ac97, unsigned short reg,
 
 	/* set up primary or secondary codec space */
 	if (cpu_is_pxa25x() && reg == AC97_GPIO_STATUS)
+	{
 		reg_addr = ac97->num ? &SMC_REG_BASE : &PMC_REG_BASE;
+	}
 	else
+	{
 		reg_addr = ac97->num ? &SAC_REG_BASE : &PAC_REG_BASE;
+	}
+
 	reg_addr += (reg >> 1);
 
 	GSR = GSR_CDONE | GSR_SDONE;
 	gsr_bits = 0;
 	*reg_addr = val;
+
 	if (wait_event_timeout(gsr_wq, (GSR | gsr_bits) & GSR_CDONE, 1) <= 0 &&
-	    !((GSR | gsr_bits) & GSR_CDONE))
+		!((GSR | gsr_bits) & GSR_CDONE))
 		printk(KERN_ERR "%s: write error (ac97_reg=%d GSR=%#lx)\n",
-				__func__, reg, GSR | gsr_bits);
+			   __func__, reg, GSR | gsr_bits);
 
 	mutex_unlock(&car_mutex);
 }
@@ -182,7 +198,7 @@ static inline void pxa_ac97_cold_pxa3xx(void)
 	gsr_bits = 0;
 
 	/* Can't use interrupts on PXA3xx */
-	GCR &= ~(GCR_PRIRDY_IEN|GCR_SECRDY_IEN);
+	GCR &= ~(GCR_PRIRDY_IEN | GCR_SECRDY_IEN);
 
 	GCR = GCR_WARM_RST | GCR_COLD_RST;
 }
@@ -194,29 +210,40 @@ bool pxa2xx_ac97_try_warm_reset(struct snd_ac97 *ac97)
 	unsigned int timeout = 100;
 
 #ifdef CONFIG_PXA25x
+
 	if (cpu_is_pxa25x())
+	{
 		pxa_ac97_warm_pxa25x();
+	}
 	else
 #endif
 #ifdef CONFIG_PXA27x
-	if (cpu_is_pxa27x())
-		pxa_ac97_warm_pxa27x();
-	else
+		if (cpu_is_pxa27x())
+		{
+			pxa_ac97_warm_pxa27x();
+		}
+		else
 #endif
 #ifdef CONFIG_PXA3xx
-	if (cpu_is_pxa3xx())
-		pxa_ac97_warm_pxa3xx();
-	else
+			if (cpu_is_pxa3xx())
+			{
+				pxa_ac97_warm_pxa3xx();
+			}
+			else
 #endif
-		snd_BUG();
+				snd_BUG();
 
 	while (!((GSR | gsr_bits) & (GSR_PCR | GSR_SCR)) && timeout--)
+	{
 		mdelay(1);
+	}
 
 	gsr = GSR | gsr_bits;
-	if (!(gsr & (GSR_PCR | GSR_SCR))) {
+
+	if (!(gsr & (GSR_PCR | GSR_SCR)))
+	{
 		printk(KERN_INFO "%s: warm reset timeout (GSR=%#lx)\n",
-				 __func__, gsr);
+			   __func__, gsr);
 
 		return false;
 	}
@@ -231,29 +258,40 @@ bool pxa2xx_ac97_try_cold_reset(struct snd_ac97 *ac97)
 	unsigned int timeout = 1000;
 
 #ifdef CONFIG_PXA25x
+
 	if (cpu_is_pxa25x())
+	{
 		pxa_ac97_cold_pxa25x();
+	}
 	else
 #endif
 #ifdef CONFIG_PXA27x
-	if (cpu_is_pxa27x())
-		pxa_ac97_cold_pxa27x();
-	else
+		if (cpu_is_pxa27x())
+		{
+			pxa_ac97_cold_pxa27x();
+		}
+		else
 #endif
 #ifdef CONFIG_PXA3xx
-	if (cpu_is_pxa3xx())
-		pxa_ac97_cold_pxa3xx();
-	else
+			if (cpu_is_pxa3xx())
+			{
+				pxa_ac97_cold_pxa3xx();
+			}
+			else
 #endif
-		snd_BUG();
+				snd_BUG();
 
 	while (!((GSR | gsr_bits) & (GSR_PCR | GSR_SCR)) && timeout--)
+	{
 		mdelay(1);
+	}
 
 	gsr = GSR | gsr_bits;
-	if (!(gsr & (GSR_PCR | GSR_SCR))) {
+
+	if (!(gsr & (GSR_PCR | GSR_SCR)))
+	{
 		printk(KERN_INFO "%s: cold reset timeout (GSR=%#lx)\n",
-				 __func__, gsr);
+			   __func__, gsr);
 
 		return false;
 	}
@@ -265,8 +303,8 @@ EXPORT_SYMBOL_GPL(pxa2xx_ac97_try_cold_reset);
 
 void pxa2xx_ac97_finish_reset(struct snd_ac97 *ac97)
 {
-	GCR &= ~(GCR_PRIRDY_IEN|GCR_SECRDY_IEN);
-	GCR |= GCR_SDONE_IE|GCR_CDONE_IE;
+	GCR &= ~(GCR_PRIRDY_IEN | GCR_SECRDY_IEN);
+	GCR |= GCR_SDONE_IE | GCR_CDONE_IE;
 }
 EXPORT_SYMBOL_GPL(pxa2xx_ac97_finish_reset);
 
@@ -275,7 +313,9 @@ static irqreturn_t pxa2xx_ac97_irq(int irq, void *dev_id)
 	long status;
 
 	status = GSR;
-	if (status) {
+
+	if (status)
+	{
 		GSR = status;
 		gsr_bits |= status;
 		wake_up(&gsr_wq);
@@ -283,7 +323,8 @@ static irqreturn_t pxa2xx_ac97_irq(int irq, void *dev_id)
 		/* Although we don't use those we still need to clear them
 		   since they tend to spuriously trigger when MMC is used
 		   (hardware bug? go figure)... */
-		if (cpu_is_pxa27x()) {
+		if (cpu_is_pxa27x())
+		{
 			MISR = MISR_EOC;
 			PISR = PISR_EOC;
 			MCSR = MCSR_EOC;
@@ -317,27 +358,37 @@ int pxa2xx_ac97_hw_probe(struct platform_device *dev)
 	int ret;
 	pxa2xx_audio_ops_t *pdata = dev->dev.platform_data;
 
-	if (pdata) {
-		switch (pdata->reset_gpio) {
-		case 95:
-		case 113:
-			reset_gpio = pdata->reset_gpio;
-			break;
-		case 0:
-			reset_gpio = 113;
-			break;
-		case -1:
-			break;
-		default:
-			dev_err(&dev->dev, "Invalid reset GPIO %d\n",
-				pdata->reset_gpio);
+	if (pdata)
+	{
+		switch (pdata->reset_gpio)
+		{
+			case 95:
+			case 113:
+				reset_gpio = pdata->reset_gpio;
+				break;
+
+			case 0:
+				reset_gpio = 113;
+				break;
+
+			case -1:
+				break;
+
+			default:
+				dev_err(&dev->dev, "Invalid reset GPIO %d\n",
+						pdata->reset_gpio);
 		}
-	} else {
+	}
+	else
+	{
 		if (cpu_is_pxa27x())
+		{
 			reset_gpio = 113;
+		}
 	}
 
-	if (cpu_is_pxa27x()) {
+	if (cpu_is_pxa27x())
+	{
 		/*
 		 * This gpio is needed for a work-around to a bug in the ac97
 		 * controller during warm reset.  The direction and level is set
@@ -345,16 +396,21 @@ int pxa2xx_ac97_hw_probe(struct platform_device *dev)
 		 * AC97_nRESET alt function to generic gpio.
 		 */
 		ret = gpio_request_one(reset_gpio, GPIOF_OUT_INIT_HIGH,
-				       "pxa27x ac97 reset");
-		if (ret < 0) {
+							   "pxa27x ac97 reset");
+
+		if (ret < 0)
+		{
 			pr_err("%s: gpio_request_one() failed: %d\n",
-			       __func__, ret);
+				   __func__, ret);
 			goto err_conf;
 		}
+
 		pxa27x_configure_ac97reset(reset_gpio, false);
 
 		ac97conf_clk = clk_get(&dev->dev, "AC97CONFCLK");
-		if (IS_ERR(ac97conf_clk)) {
+
+		if (IS_ERR(ac97conf_clk))
+		{
 			ret = PTR_ERR(ac97conf_clk);
 			ac97conf_clk = NULL;
 			goto err_conf;
@@ -362,19 +418,27 @@ int pxa2xx_ac97_hw_probe(struct platform_device *dev)
 	}
 
 	ac97_clk = clk_get(&dev->dev, "AC97CLK");
-	if (IS_ERR(ac97_clk)) {
+
+	if (IS_ERR(ac97_clk))
+	{
 		ret = PTR_ERR(ac97_clk);
 		ac97_clk = NULL;
 		goto err_clk;
 	}
 
 	ret = clk_prepare_enable(ac97_clk);
+
 	if (ret)
+	{
 		goto err_clk2;
+	}
 
 	ret = request_irq(IRQ_AC97, pxa2xx_ac97_irq, 0, "AC97", NULL);
+
 	if (ret < 0)
+	{
 		goto err_irq;
+	}
 
 	return 0;
 
@@ -384,10 +448,13 @@ err_clk2:
 	clk_put(ac97_clk);
 	ac97_clk = NULL;
 err_clk:
-	if (ac97conf_clk) {
+
+	if (ac97conf_clk)
+	{
 		clk_put(ac97conf_clk);
 		ac97conf_clk = NULL;
 	}
+
 err_conf:
 	return ret;
 }
@@ -396,13 +463,19 @@ EXPORT_SYMBOL_GPL(pxa2xx_ac97_hw_probe);
 void pxa2xx_ac97_hw_remove(struct platform_device *dev)
 {
 	if (cpu_is_pxa27x())
+	{
 		gpio_free(reset_gpio);
+	}
+
 	GCR |= GCR_ACLINK_OFF;
 	free_irq(IRQ_AC97, NULL);
-	if (ac97conf_clk) {
+
+	if (ac97conf_clk)
+	{
 		clk_put(ac97conf_clk);
 		ac97conf_clk = NULL;
 	}
+
 	clk_disable_unprepare(ac97_clk);
 	clk_put(ac97_clk);
 	ac97_clk = NULL;

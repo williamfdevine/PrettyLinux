@@ -6,14 +6,16 @@
 #include <stdbool.h>
 
 /* A node of string filter */
-struct strfilter_node {
+struct strfilter_node
+{
 	struct strfilter_node *l;	/* Tree left branche (for &,|) */
 	struct strfilter_node *r;	/* Tree right branche (for !,&,|) */
 	const char *p;		/* Operator or rule */
 };
 
 /* String filter */
-struct strfilter {
+struct strfilter
+{
 	struct strfilter_node *root;
 };
 
@@ -39,7 +41,7 @@ struct strfilter *strfilter__new(const char *rules, const char **err);
  * Return 0 if success, or return the error code.
  */
 int strfilter__or(struct strfilter *filter,
-		  const char *rules, const char **err);
+				  const char *rules, const char **err);
 
 /**
  * strfilter__add - Append an additional rule by logical-and
@@ -52,7 +54,7 @@ int strfilter__or(struct strfilter *filter,
  * Return 0 if success, or return the error code.
  */
 int strfilter__and(struct strfilter *filter,
-		   const char *rules, const char **err);
+				   const char *rules, const char **err);
 
 /**
  * strfilter__compare - compare given string and a string filter

@@ -62,7 +62,8 @@ static DEFINE_MUTEX(printer_ida_lock); /* protects access do printer_ida */
 
 /*-------------------------------------------------------------------------*/
 
-struct printer_dev {
+struct printer_dev
+{
 	spinlock_t		lock;		/* lock this structure */
 	/* lock buffer lists during read/write calls */
 	struct mutex		lock_printer_io;
@@ -111,7 +112,8 @@ static inline struct printer_dev *func_to_printer(struct usb_function *f)
 #define USB_DESC_BUFSIZE		256
 #define USB_BUFSIZE			8192
 
-static struct usb_interface_descriptor intf_desc = {
+static struct usb_interface_descriptor intf_desc =
+{
 	.bLength =		sizeof(intf_desc),
 	.bDescriptorType =	USB_DT_INTERFACE,
 	.bNumEndpoints =	2,
@@ -121,21 +123,24 @@ static struct usb_interface_descriptor intf_desc = {
 	.iInterface =		0
 };
 
-static struct usb_endpoint_descriptor fs_ep_in_desc = {
+static struct usb_endpoint_descriptor fs_ep_in_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 	.bEndpointAddress =	USB_DIR_IN,
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK
 };
 
-static struct usb_endpoint_descriptor fs_ep_out_desc = {
+static struct usb_endpoint_descriptor fs_ep_out_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 	.bEndpointAddress =	USB_DIR_OUT,
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK
 };
 
-static struct usb_descriptor_header *fs_printer_function[] = {
+static struct usb_descriptor_header *fs_printer_function[] =
+{
 	(struct usb_descriptor_header *) &intf_desc,
 	(struct usb_descriptor_header *) &fs_ep_in_desc,
 	(struct usb_descriptor_header *) &fs_ep_out_desc,
@@ -147,21 +152,24 @@ static struct usb_descriptor_header *fs_printer_function[] = {
  * descriptors, unless they only run at full speed.
  */
 
-static struct usb_endpoint_descriptor hs_ep_in_desc = {
+static struct usb_endpoint_descriptor hs_ep_in_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 	.wMaxPacketSize =	cpu_to_le16(512)
 };
 
-static struct usb_endpoint_descriptor hs_ep_out_desc = {
+static struct usb_endpoint_descriptor hs_ep_out_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 	.wMaxPacketSize =	cpu_to_le16(512)
 };
 
-static struct usb_descriptor_header *hs_printer_function[] = {
+static struct usb_descriptor_header *hs_printer_function[] =
+{
 	(struct usb_descriptor_header *) &intf_desc,
 	(struct usb_descriptor_header *) &hs_ep_in_desc,
 	(struct usb_descriptor_header *) &hs_ep_out_desc,
@@ -172,31 +180,36 @@ static struct usb_descriptor_header *hs_printer_function[] = {
  * Added endpoint descriptors for 3.0 devices
  */
 
-static struct usb_endpoint_descriptor ss_ep_in_desc = {
+static struct usb_endpoint_descriptor ss_ep_in_desc =
+{
 	.bLength =              USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =      USB_DT_ENDPOINT,
 	.bmAttributes =         USB_ENDPOINT_XFER_BULK,
 	.wMaxPacketSize =       cpu_to_le16(1024),
 };
 
-static struct usb_ss_ep_comp_descriptor ss_ep_in_comp_desc = {
+static struct usb_ss_ep_comp_descriptor ss_ep_in_comp_desc =
+{
 	.bLength =              sizeof(ss_ep_in_comp_desc),
 	.bDescriptorType =      USB_DT_SS_ENDPOINT_COMP,
 };
 
-static struct usb_endpoint_descriptor ss_ep_out_desc = {
+static struct usb_endpoint_descriptor ss_ep_out_desc =
+{
 	.bLength =              USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =      USB_DT_ENDPOINT,
 	.bmAttributes =         USB_ENDPOINT_XFER_BULK,
 	.wMaxPacketSize =       cpu_to_le16(1024),
 };
 
-static struct usb_ss_ep_comp_descriptor ss_ep_out_comp_desc = {
+static struct usb_ss_ep_comp_descriptor ss_ep_out_comp_desc =
+{
 	.bLength =              sizeof(ss_ep_out_comp_desc),
 	.bDescriptorType =      USB_DT_SS_ENDPOINT_COMP,
 };
 
-static struct usb_descriptor_header *ss_printer_function[] = {
+static struct usb_descriptor_header *ss_printer_function[] =
+{
 	(struct usb_descriptor_header *) &intf_desc,
 	(struct usb_descriptor_header *) &ss_ep_in_desc,
 	(struct usb_descriptor_header *) &ss_ep_in_comp_desc,
@@ -207,17 +220,20 @@ static struct usb_descriptor_header *ss_printer_function[] = {
 
 /* maxpacket and other transfer characteristics vary by speed. */
 static inline struct usb_endpoint_descriptor *ep_desc(struct usb_gadget *gadget,
-					struct usb_endpoint_descriptor *fs,
-					struct usb_endpoint_descriptor *hs,
-					struct usb_endpoint_descriptor *ss)
+		struct usb_endpoint_descriptor *fs,
+		struct usb_endpoint_descriptor *hs,
+		struct usb_endpoint_descriptor *ss)
 {
-	switch (gadget->speed) {
-	case USB_SPEED_SUPER:
-		return ss;
-	case USB_SPEED_HIGH:
-		return hs;
-	default:
-		return fs;
+	switch (gadget->speed)
+	{
+		case USB_SPEED_SUPER:
+			return ss;
+
+		case USB_SPEED_HIGH:
+			return hs;
+
+		default:
+			return fs;
 	}
 }
 
@@ -230,10 +246,13 @@ printer_req_alloc(struct usb_ep *ep, unsigned len, gfp_t gfp_flags)
 
 	req = usb_ep_alloc_request(ep, gfp_flags);
 
-	if (req != NULL) {
+	if (req != NULL)
+	{
 		req->length = len;
 		req->buf = kmalloc(len, gfp_flags);
-		if (req->buf == NULL) {
+
+		if (req->buf == NULL)
+		{
 			usb_ep_free_request(ep, req);
 			return NULL;
 		}
@@ -245,7 +264,8 @@ printer_req_alloc(struct usb_ep *ep, unsigned len, gfp_t gfp_flags)
 static void
 printer_req_free(struct usb_ep *ep, struct usb_request *req)
 {
-	if (ep != NULL && req != NULL) {
+	if (ep != NULL && req != NULL)
+	{
 		kfree(req->buf);
 		usb_ep_free_request(ep, req);
 	}
@@ -263,39 +283,45 @@ static void rx_complete(struct usb_ep *ep, struct usb_request *req)
 
 	list_del_init(&req->list);	/* Remode from Active List */
 
-	switch (status) {
+	switch (status)
+	{
 
-	/* normal completion */
-	case 0:
-		if (req->actual > 0) {
-			list_add_tail(&req->list, &dev->rx_buffers);
-			DBG(dev, "G_Printer : rx length %d\n", req->actual);
-		} else {
+		/* normal completion */
+		case 0:
+			if (req->actual > 0)
+			{
+				list_add_tail(&req->list, &dev->rx_buffers);
+				DBG(dev, "G_Printer : rx length %d\n", req->actual);
+			}
+			else
+			{
+				list_add(&req->list, &dev->rx_reqs);
+			}
+
+			break;
+
+		/* software-driven interface shutdown */
+		case -ECONNRESET:		/* unlink */
+		case -ESHUTDOWN:		/* disconnect etc */
+			VDBG(dev, "rx shutdown, code %d\n", status);
 			list_add(&req->list, &dev->rx_reqs);
-		}
-		break;
+			break;
 
-	/* software-driven interface shutdown */
-	case -ECONNRESET:		/* unlink */
-	case -ESHUTDOWN:		/* disconnect etc */
-		VDBG(dev, "rx shutdown, code %d\n", status);
-		list_add(&req->list, &dev->rx_reqs);
-		break;
+		/* for hardware automagic (such as pxa) */
+		case -ECONNABORTED:		/* endpoint reset */
+			DBG(dev, "rx %s reset\n", ep->name);
+			list_add(&req->list, &dev->rx_reqs);
+			break;
 
-	/* for hardware automagic (such as pxa) */
-	case -ECONNABORTED:		/* endpoint reset */
-		DBG(dev, "rx %s reset\n", ep->name);
-		list_add(&req->list, &dev->rx_reqs);
-		break;
+		/* data overrun */
+		case -EOVERFLOW:
 
-	/* data overrun */
-	case -EOVERFLOW:
 		/* FALLTHROUGH */
 
-	default:
-		DBG(dev, "rx status %d\n", status);
-		list_add(&req->list, &dev->rx_reqs);
-		break;
+		default:
+			DBG(dev, "rx status %d\n", status);
+			list_add(&req->list, &dev->rx_reqs);
+			break;
 	}
 
 	wake_up_interruptible(&dev->rx_wait);
@@ -306,15 +332,18 @@ static void tx_complete(struct usb_ep *ep, struct usb_request *req)
 {
 	struct printer_dev	*dev = ep->driver_data;
 
-	switch (req->status) {
-	default:
-		VDBG(dev, "tx err %d\n", req->status);
+	switch (req->status)
+	{
+		default:
+			VDBG(dev, "tx err %d\n", req->status);
+
 		/* FALLTHROUGH */
-	case -ECONNRESET:		/* unlink */
-	case -ESHUTDOWN:		/* disconnect etc */
-		break;
-	case 0:
-		break;
+		case -ECONNRESET:		/* unlink */
+		case -ESHUTDOWN:		/* disconnect etc */
+			break;
+
+		case 0:
+			break;
 	}
 
 	spin_lock(&dev->lock);
@@ -324,8 +353,11 @@ static void tx_complete(struct usb_ep *ep, struct usb_request *req)
 	list_del_init(&req->list);
 	list_add(&req->list, &dev->tx_reqs);
 	wake_up_interruptible(&dev->tx_wait);
+
 	if (likely(list_empty(&dev->tx_reqs_active)))
+	{
 		wake_up_interruptible(&dev->tx_flush_wait);
+	}
 
 	spin_unlock(&dev->lock);
 }
@@ -343,7 +375,8 @@ printer_open(struct inode *inode, struct file *fd)
 
 	spin_lock_irqsave(&dev->lock, flags);
 
-	if (!dev->printer_cdev_open) {
+	if (!dev->printer_cdev_open)
+	{
 		dev->printer_cdev_open = 1;
 		fd->private_data = dev;
 		ret = 0;
@@ -381,11 +414,12 @@ setup_rx_reqs(struct printer_dev *dev)
 {
 	struct usb_request              *req;
 
-	while (likely(!list_empty(&dev->rx_reqs))) {
+	while (likely(!list_empty(&dev->rx_reqs)))
+	{
 		int error;
 
 		req = container_of(dev->rx_reqs.next,
-				struct usb_request, list);
+						   struct usb_request, list);
 		list_del_init(&req->list);
 
 		/* The USB Host sends us whatever amount of data it wants to
@@ -401,14 +435,18 @@ setup_rx_reqs(struct printer_dev *dev)
 		spin_unlock(&dev->lock);
 		error = usb_ep_queue(dev->out_ep, req, GFP_ATOMIC);
 		spin_lock(&dev->lock);
-		if (error) {
+
+		if (error)
+		{
 			DBG(dev, "rx submit --> %d\n", error);
 			list_add(&req->list, &dev->rx_reqs);
 			break;
 		}
 		/* if the req is empty, then add it into dev->rx_reqs_active. */
 		else if (list_empty(&req->list))
+		{
 			list_add(&req->list, &dev->rx_reqs_active);
+		}
 	}
 }
 
@@ -428,7 +466,9 @@ printer_read(struct file *fd, char __user *buf, size_t len, loff_t *ptr)
 	u8				*current_rx_buf;
 
 	if (len == 0)
+	{
 		return -EINVAL;
+	}
 
 	DBG(dev, "printer_read trying to read %d bytes\n", (int)len);
 
@@ -457,7 +497,8 @@ printer_read(struct file *fd, char __user *buf, size_t len, loff_t *ptr)
 	 * buffers are empty.
 	 */
 	if ((current_rx_bytes == 0) &&
-			(likely(list_empty(&dev->rx_buffers)))) {
+		(likely(list_empty(&dev->rx_buffers))))
+	{
 		/* Turn interrupts back on before sleeping. */
 		spin_unlock_irqrestore(&dev->lock, flags);
 
@@ -465,30 +506,36 @@ printer_read(struct file *fd, char __user *buf, size_t len, loff_t *ptr)
 		 * If no data is available check if this is a NON-Blocking
 		 * call or not.
 		 */
-		if (fd->f_flags & (O_NONBLOCK|O_NDELAY)) {
+		if (fd->f_flags & (O_NONBLOCK | O_NDELAY))
+		{
 			mutex_unlock(&dev->lock_printer_io);
 			return -EAGAIN;
 		}
 
 		/* Sleep until data is available */
 		wait_event_interruptible(dev->rx_wait,
-				(likely(!list_empty(&dev->rx_buffers))));
+								 (likely(!list_empty(&dev->rx_buffers))));
 		spin_lock_irqsave(&dev->lock, flags);
 	}
 
 	/* We have data to return then copy it to the caller's buffer.*/
 	while ((current_rx_bytes || likely(!list_empty(&dev->rx_buffers)))
-			&& len) {
-		if (current_rx_bytes == 0) {
+		   && len)
+	{
+		if (current_rx_bytes == 0)
+		{
 			req = container_of(dev->rx_buffers.next,
-					struct usb_request, list);
+							   struct usb_request, list);
 			list_del_init(&req->list);
 
-			if (req->actual && req->buf) {
+			if (req->actual && req->buf)
+			{
 				current_rx_req = req;
 				current_rx_bytes = req->actual;
 				current_rx_buf = req->buf;
-			} else {
+			}
+			else
+			{
 				list_add(&req->list, &dev->rx_reqs);
 				continue;
 			}
@@ -498,9 +545,13 @@ printer_read(struct file *fd, char __user *buf, size_t len, loff_t *ptr)
 		spin_unlock_irqrestore(&dev->lock, flags);
 
 		if (len > current_rx_bytes)
+		{
 			size = current_rx_bytes;
+		}
 		else
+		{
 			size = len;
+		}
 
 		size -= copy_to_user(buf, current_rx_buf, size);
 		bytes_copied += size;
@@ -510,7 +561,8 @@ printer_read(struct file *fd, char __user *buf, size_t len, loff_t *ptr)
 		spin_lock_irqsave(&dev->lock, flags);
 
 		/* We've disconnected or reset so return. */
-		if (dev->reset_printer) {
+		if (dev->reset_printer)
+		{
 			list_add(&current_rx_req->list, &dev->rx_reqs);
 			spin_unlock_irqrestore(&dev->lock, flags);
 			mutex_unlock(&dev->lock_printer_io);
@@ -522,10 +574,13 @@ printer_read(struct file *fd, char __user *buf, size_t len, loff_t *ptr)
 		 * Othewise if we are done with this RX request buffer then
 		 * requeue it to get any incoming data from the USB host.
 		 */
-		if (size < current_rx_bytes) {
+		if (size < current_rx_bytes)
+		{
 			current_rx_bytes -= size;
 			current_rx_buf += size;
-		} else {
+		}
+		else
+		{
 			list_add(&current_rx_req->list, &dev->rx_reqs);
 			current_rx_bytes = 0;
 			current_rx_buf = NULL;
@@ -543,9 +598,13 @@ printer_read(struct file *fd, char __user *buf, size_t len, loff_t *ptr)
 	DBG(dev, "printer_read returned %d bytes\n", (int)bytes_copied);
 
 	if (bytes_copied)
+	{
 		return bytes_copied;
+	}
 	else
+	{
 		return -EAGAIN;
+	}
 }
 
 static ssize_t
@@ -560,7 +619,9 @@ printer_write(struct file *fd, const char __user *buf, size_t len, loff_t *ptr)
 	DBG(dev, "printer_write trying to send %d bytes\n", (int)len);
 
 	if (len == 0)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&dev->lock_printer_io);
 	spin_lock_irqsave(&dev->lock, flags);
@@ -569,7 +630,8 @@ printer_write(struct file *fd, const char __user *buf, size_t len, loff_t *ptr)
 	dev->reset_printer = 0;
 
 	/* Check if there is any available write buffers */
-	if (likely(list_empty(&dev->tx_reqs))) {
+	if (likely(list_empty(&dev->tx_reqs)))
+	{
 		/* Turn interrupts back on before sleeping. */
 		spin_unlock_irqrestore(&dev->lock, flags);
 
@@ -577,26 +639,32 @@ printer_write(struct file *fd, const char __user *buf, size_t len, loff_t *ptr)
 		 * If write buffers are available check if this is
 		 * a NON-Blocking call or not.
 		 */
-		if (fd->f_flags & (O_NONBLOCK|O_NDELAY)) {
+		if (fd->f_flags & (O_NONBLOCK | O_NDELAY))
+		{
 			mutex_unlock(&dev->lock_printer_io);
 			return -EAGAIN;
 		}
 
 		/* Sleep until a write buffer is available */
 		wait_event_interruptible(dev->tx_wait,
-				(likely(!list_empty(&dev->tx_reqs))));
+								 (likely(!list_empty(&dev->tx_reqs))));
 		spin_lock_irqsave(&dev->lock, flags);
 	}
 
-	while (likely(!list_empty(&dev->tx_reqs)) && len) {
+	while (likely(!list_empty(&dev->tx_reqs)) && len)
+	{
 
 		if (len > USB_BUFSIZE)
+		{
 			size = USB_BUFSIZE;
+		}
 		else
+		{
 			size = len;
+		}
 
 		req = container_of(dev->tx_reqs.next, struct usb_request,
-				list);
+						   list);
 		list_del_init(&req->list);
 
 		req->complete = tx_complete;
@@ -605,17 +673,22 @@ printer_write(struct file *fd, const char __user *buf, size_t len, loff_t *ptr)
 		/* Check if we need to send a zero length packet. */
 		if (len > size)
 			/* They will be more TX requests so no yet. */
+		{
 			req->zero = 0;
+		}
 		else
 			/* If the data amount is not a multiple of the
 			 * maxpacket size then send a zero length packet.
 			 */
+		{
 			req->zero = ((len % dev->in_ep->maxpacket) == 0);
+		}
 
 		/* Don't leave irqs off while doing memory copies */
 		spin_unlock_irqrestore(&dev->lock, flags);
 
-		if (copy_from_user(req->buf, buf, size)) {
+		if (copy_from_user(req->buf, buf, size))
+		{
 			list_add(&req->list, &dev->tx_reqs);
 			mutex_unlock(&dev->lock_printer_io);
 			return bytes_copied;
@@ -628,14 +701,16 @@ printer_write(struct file *fd, const char __user *buf, size_t len, loff_t *ptr)
 		spin_lock_irqsave(&dev->lock, flags);
 
 		/* We've disconnected or reset so free the req and buffer */
-		if (dev->reset_printer) {
+		if (dev->reset_printer)
+		{
 			list_add(&req->list, &dev->tx_reqs);
 			spin_unlock_irqrestore(&dev->lock, flags);
 			mutex_unlock(&dev->lock_printer_io);
 			return -EAGAIN;
 		}
 
-		if (usb_ep_queue(dev->in_ep, req, GFP_ATOMIC)) {
+		if (usb_ep_queue(dev->in_ep, req, GFP_ATOMIC))
+		{
 			list_add(&req->list, &dev->tx_reqs);
 			spin_unlock_irqrestore(&dev->lock, flags);
 			mutex_unlock(&dev->lock_printer_io);
@@ -652,9 +727,13 @@ printer_write(struct file *fd, const char __user *buf, size_t len, loff_t *ptr)
 	DBG(dev, "printer_write sent %d bytes\n", (int)bytes_copied);
 
 	if (bytes_copied)
+	{
 		return bytes_copied;
+	}
 	else
+	{
 		return -EAGAIN;
+	}
 }
 
 static int
@@ -670,11 +749,13 @@ printer_fsync(struct file *fd, loff_t start, loff_t end, int datasync)
 	tx_list_empty = (likely(list_empty(&dev->tx_reqs)));
 	spin_unlock_irqrestore(&dev->lock, flags);
 
-	if (!tx_list_empty) {
+	if (!tx_list_empty)
+	{
 		/* Sleep until all data has been sent */
 		wait_event_interruptible(dev->tx_flush_wait,
-				(likely(list_empty(&dev->tx_reqs_active))));
+								 (likely(list_empty(&dev->tx_reqs_active))));
 	}
+
 	inode_unlock(inode);
 
 	return 0;
@@ -697,12 +778,17 @@ printer_poll(struct file *fd, poll_table *wait)
 	poll_wait(fd, &dev->tx_wait, wait);
 
 	spin_lock_irqsave(&dev->lock, flags);
+
 	if (likely(!list_empty(&dev->tx_reqs)))
+	{
 		status |= POLLOUT | POLLWRNORM;
+	}
 
 	if (likely(dev->current_rx_bytes) ||
-			likely(!list_empty(&dev->rx_buffers)))
+		likely(!list_empty(&dev->rx_buffers)))
+	{
 		status |= POLLIN | POLLRDNORM;
+	}
 
 	spin_unlock_irqrestore(&dev->lock, flags);
 
@@ -722,18 +808,21 @@ printer_ioctl(struct file *fd, unsigned int code, unsigned long arg)
 
 	spin_lock_irqsave(&dev->lock, flags);
 
-	switch (code) {
-	case GADGET_GET_PRINTER_STATUS:
-		status = (int)dev->printer_status;
-		break;
-	case GADGET_SET_PRINTER_STATUS:
-		dev->printer_status = (u8)arg;
-		break;
-	default:
-		/* could not handle ioctl */
-		DBG(dev, "printer_ioctl: ERROR cmd=0x%4.4xis not supported\n",
+	switch (code)
+	{
+		case GADGET_GET_PRINTER_STATUS:
+			status = (int)dev->printer_status;
+			break;
+
+		case GADGET_SET_PRINTER_STATUS:
+			dev->printer_status = (u8)arg;
+			break;
+
+		default:
+			/* could not handle ioctl */
+			DBG(dev, "printer_ioctl: ERROR cmd=0x%4.4xis not supported\n",
 				code);
-		status = -ENOTTY;
+			status = -ENOTTY;
 	}
 
 	spin_unlock_irqrestore(&dev->lock, flags);
@@ -742,7 +831,8 @@ printer_ioctl(struct file *fd, unsigned int code, unsigned long arg)
 }
 
 /* used after endpoint configuration */
-static const struct file_operations printer_io_operations = {
+static const struct file_operations printer_io_operations =
+{
 	.owner =	THIS_MODULE,
 	.open =		printer_open,
 	.read =		printer_read,
@@ -762,28 +852,34 @@ set_printer_interface(struct printer_dev *dev)
 	int			result = 0;
 
 	dev->in_ep->desc = ep_desc(dev->gadget, &fs_ep_in_desc, &hs_ep_in_desc,
-				&ss_ep_in_desc);
+							   &ss_ep_in_desc);
 	dev->in_ep->driver_data = dev;
 
 	dev->out_ep->desc = ep_desc(dev->gadget, &fs_ep_out_desc,
-				    &hs_ep_out_desc, &ss_ep_out_desc);
+								&hs_ep_out_desc, &ss_ep_out_desc);
 	dev->out_ep->driver_data = dev;
 
 	result = usb_ep_enable(dev->in_ep);
-	if (result != 0) {
+
+	if (result != 0)
+	{
 		DBG(dev, "enable %s --> %d\n", dev->in_ep->name, result);
 		goto done;
 	}
 
 	result = usb_ep_enable(dev->out_ep);
-	if (result != 0) {
+
+	if (result != 0)
+	{
 		DBG(dev, "enable %s --> %d\n", dev->in_ep->name, result);
 		goto done;
 	}
 
 done:
+
 	/* on error, disable any endpoints  */
-	if (result != 0) {
+	if (result != 0)
+	{
 		(void) usb_ep_disable(dev->in_ep);
 		(void) usb_ep_disable(dev->out_ep);
 		dev->in_ep->desc = NULL;
@@ -799,15 +895,21 @@ static void printer_reset_interface(struct printer_dev *dev)
 	unsigned long	flags;
 
 	if (dev->interface < 0)
+	{
 		return;
+	}
 
 	DBG(dev, "%s\n", __func__);
 
 	if (dev->in_ep->desc)
+	{
 		usb_ep_disable(dev->in_ep);
+	}
 
 	if (dev->out_ep->desc)
+	{
 		usb_ep_disable(dev->out_ep);
+	}
 
 	spin_lock_irqsave(&dev->lock, flags);
 	dev->in_ep->desc = NULL;
@@ -825,13 +927,20 @@ static int set_interface(struct printer_dev *dev, unsigned number)
 	printer_reset_interface(dev);
 
 	result = set_printer_interface(dev);
+
 	if (result)
+	{
 		printer_reset_interface(dev);
+	}
 	else
+	{
 		dev->interface = number;
+	}
 
 	if (!result)
+	{
 		INFO(dev, "Using interface %x\n", number);
+	}
 
 	return result;
 }
@@ -843,43 +952,58 @@ static void printer_soft_reset(struct printer_dev *dev)
 	INFO(dev, "Received Printer Reset Request\n");
 
 	if (usb_ep_disable(dev->in_ep))
+	{
 		DBG(dev, "Failed to disable USB in_ep\n");
-	if (usb_ep_disable(dev->out_ep))
-		DBG(dev, "Failed to disable USB out_ep\n");
+	}
 
-	if (dev->current_rx_req != NULL) {
+	if (usb_ep_disable(dev->out_ep))
+	{
+		DBG(dev, "Failed to disable USB out_ep\n");
+	}
+
+	if (dev->current_rx_req != NULL)
+	{
 		list_add(&dev->current_rx_req->list, &dev->rx_reqs);
 		dev->current_rx_req = NULL;
 	}
+
 	dev->current_rx_bytes = 0;
 	dev->current_rx_buf = NULL;
 	dev->reset_printer = 1;
 
-	while (likely(!(list_empty(&dev->rx_buffers)))) {
+	while (likely(!(list_empty(&dev->rx_buffers))))
+	{
 		req = container_of(dev->rx_buffers.next, struct usb_request,
-				list);
+						   list);
 		list_del_init(&req->list);
 		list_add(&req->list, &dev->rx_reqs);
 	}
 
-	while (likely(!(list_empty(&dev->rx_reqs_active)))) {
+	while (likely(!(list_empty(&dev->rx_reqs_active))))
+	{
 		req = container_of(dev->rx_buffers.next, struct usb_request,
-				list);
+						   list);
 		list_del_init(&req->list);
 		list_add(&req->list, &dev->rx_reqs);
 	}
 
-	while (likely(!(list_empty(&dev->tx_reqs_active)))) {
+	while (likely(!(list_empty(&dev->tx_reqs_active))))
+	{
 		req = container_of(dev->tx_reqs_active.next,
-				struct usb_request, list);
+						   struct usb_request, list);
 		list_del_init(&req->list);
 		list_add(&req->list, &dev->tx_reqs);
 	}
 
 	if (usb_ep_enable(dev->in_ep))
+	{
 		DBG(dev, "Failed to enable USB in_ep\n");
+	}
+
 	if (usb_ep_enable(dev->out_ep))
+	{
 		DBG(dev, "Failed to enable USB out_ep\n");
+	}
 
 	wake_up_interruptible(&dev->rx_wait);
 	wake_up_interruptible(&dev->tx_wait);
@@ -889,8 +1013,8 @@ static void printer_soft_reset(struct printer_dev *dev)
 /*-------------------------------------------------------------------------*/
 
 static bool gprinter_req_match(struct usb_function *f,
-			       const struct usb_ctrlrequest *ctrl,
-			       bool config0)
+							   const struct usb_ctrlrequest *ctrl,
+							   bool config0)
 {
 	struct printer_dev	*dev = func_to_printer(f);
 	u16			w_index = le16_to_cpu(ctrl->wIndex);
@@ -898,32 +1022,50 @@ static bool gprinter_req_match(struct usb_function *f,
 	u16			w_length = le16_to_cpu(ctrl->wLength);
 
 	if (config0)
-		return false;
-
-	if ((ctrl->bRequestType & USB_RECIP_MASK) != USB_RECIP_INTERFACE ||
-	    (ctrl->bRequestType & USB_TYPE_MASK) != USB_TYPE_CLASS)
-		return false;
-
-	switch (ctrl->bRequest) {
-	case GET_DEVICE_ID:
-		w_index >>= 8;
-		if (w_length <= PNP_STRING_LEN &&
-		    (USB_DIR_IN & ctrl->bRequestType))
-			break;
-		return false;
-	case GET_PORT_STATUS:
-		if (!w_value && w_length == 1 &&
-		    (USB_DIR_IN & ctrl->bRequestType))
-			break;
-		return false;
-	case SOFT_RESET:
-		if (!w_value && !w_length &&
-		   !(USB_DIR_IN & ctrl->bRequestType))
-			break;
-		/* fall through */
-	default:
+	{
 		return false;
 	}
+
+	if ((ctrl->bRequestType & USB_RECIP_MASK) != USB_RECIP_INTERFACE ||
+		(ctrl->bRequestType & USB_TYPE_MASK) != USB_TYPE_CLASS)
+	{
+		return false;
+	}
+
+	switch (ctrl->bRequest)
+	{
+		case GET_DEVICE_ID:
+			w_index >>= 8;
+
+			if (w_length <= PNP_STRING_LEN &&
+				(USB_DIR_IN & ctrl->bRequestType))
+			{
+				break;
+			}
+
+			return false;
+
+		case GET_PORT_STATUS:
+			if (!w_value && w_length == 1 &&
+				(USB_DIR_IN & ctrl->bRequestType))
+			{
+				break;
+			}
+
+			return false;
+
+		case SOFT_RESET:
+			if (!w_value && !w_length &&
+				!(USB_DIR_IN & ctrl->bRequestType))
+			{
+				break;
+			}
+
+		/* fall through */
+		default:
+			return false;
+	}
+
 	return w_index == dev->interface;
 }
 
@@ -932,7 +1074,7 @@ static bool gprinter_req_match(struct usb_function *f,
  * handled lower down.
  */
 static int printer_func_setup(struct usb_function *f,
-		const struct usb_ctrlrequest *ctrl)
+							  const struct usb_ctrlrequest *ctrl)
 {
 	struct printer_dev *dev = func_to_printer(f);
 	struct usb_composite_dev *cdev = f->config->cdev;
@@ -945,67 +1087,84 @@ static int printer_func_setup(struct usb_function *f,
 	DBG(dev, "ctrl req%02x.%02x v%04x i%04x l%d\n",
 		ctrl->bRequestType, ctrl->bRequest, wValue, wIndex, wLength);
 
-	switch (ctrl->bRequestType&USB_TYPE_MASK) {
-	case USB_TYPE_CLASS:
-		switch (ctrl->bRequest) {
-		case GET_DEVICE_ID: /* Get the IEEE-1284 PNP String */
-			/* Only one printer interface is supported. */
-			if ((wIndex>>8) != dev->interface)
-				break;
+	switch (ctrl->bRequestType & USB_TYPE_MASK)
+	{
+		case USB_TYPE_CLASS:
+			switch (ctrl->bRequest)
+			{
+				case GET_DEVICE_ID: /* Get the IEEE-1284 PNP String */
 
-			value = (dev->pnp_string[0] << 8) | dev->pnp_string[1];
-			memcpy(req->buf, dev->pnp_string, value);
-			DBG(dev, "1284 PNP String: %x %s\n", value,
-					&dev->pnp_string[2]);
-			break;
+					/* Only one printer interface is supported. */
+					if ((wIndex >> 8) != dev->interface)
+					{
+						break;
+					}
 
-		case GET_PORT_STATUS: /* Get Port Status */
-			/* Only one printer interface is supported. */
-			if (wIndex != dev->interface)
-				break;
+					value = (dev->pnp_string[0] << 8) | dev->pnp_string[1];
+					memcpy(req->buf, dev->pnp_string, value);
+					DBG(dev, "1284 PNP String: %x %s\n", value,
+						&dev->pnp_string[2]);
+					break;
 
-			*(u8 *)req->buf = dev->printer_status;
-			value = min_t(u16, wLength, 1);
-			break;
+				case GET_PORT_STATUS: /* Get Port Status */
 
-		case SOFT_RESET: /* Soft Reset */
-			/* Only one printer interface is supported. */
-			if (wIndex != dev->interface)
-				break;
+					/* Only one printer interface is supported. */
+					if (wIndex != dev->interface)
+					{
+						break;
+					}
 
-			printer_soft_reset(dev);
+					*(u8 *)req->buf = dev->printer_status;
+					value = min_t(u16, wLength, 1);
+					break;
 
-			value = 0;
+				case SOFT_RESET: /* Soft Reset */
+
+					/* Only one printer interface is supported. */
+					if (wIndex != dev->interface)
+					{
+						break;
+					}
+
+					printer_soft_reset(dev);
+
+					value = 0;
+					break;
+
+				default:
+					goto unknown;
+			}
+
 			break;
 
 		default:
-			goto unknown;
-		}
-		break;
-
-	default:
 unknown:
-		VDBG(dev,
-			"unknown ctrl req%02x.%02x v%04x i%04x l%d\n",
-			ctrl->bRequestType, ctrl->bRequest,
-			wValue, wIndex, wLength);
-		break;
+			VDBG(dev,
+				 "unknown ctrl req%02x.%02x v%04x i%04x l%d\n",
+				 ctrl->bRequestType, ctrl->bRequest,
+				 wValue, wIndex, wLength);
+			break;
 	}
+
 	/* host either stalls (value < 0) or reports success */
-	if (value >= 0) {
+	if (value >= 0)
+	{
 		req->length = value;
 		req->zero = value < wLength;
 		value = usb_ep_queue(cdev->gadget->ep0, req, GFP_ATOMIC);
-		if (value < 0) {
+
+		if (value < 0)
+		{
 			ERROR(dev, "%s:%d Error!\n", __func__, __LINE__);
 			req->status = 0;
 		}
 	}
+
 	return value;
 }
 
 static int printer_func_bind(struct usb_configuration *c,
-		struct usb_function *f)
+							 struct usb_function *f)
 {
 	struct usb_gadget *gadget = c->cdev->gadget;
 	struct printer_dev *dev = func_to_printer(f);
@@ -1020,8 +1179,12 @@ static int printer_func_bind(struct usb_configuration *c,
 	u32 i;
 
 	id = usb_interface_id(c, f);
+
 	if (id < 0)
+	{
 		return id;
+	}
+
 	intf_desc.bInterfaceNumber = id;
 
 	/* finish hookup to lower layer ... */
@@ -1029,16 +1192,21 @@ static int printer_func_bind(struct usb_configuration *c,
 
 	/* all we really need is bulk IN/OUT */
 	in_ep = usb_ep_autoconfig(cdev->gadget, &fs_ep_in_desc);
-	if (!in_ep) {
+
+	if (!in_ep)
+	{
 autoconf_fail:
 		dev_err(&cdev->gadget->dev, "can't autoconfigure on %s\n",
-			cdev->gadget->name);
+				cdev->gadget->name);
 		return -ENODEV;
 	}
 
 	out_ep = usb_ep_autoconfig(cdev->gadget, &fs_ep_out_desc);
+
 	if (!out_ep)
+	{
 		goto autoconf_fail;
+	}
 
 	/* assumes that all endpoints are dual-speed */
 	hs_ep_in_desc.bEndpointAddress = fs_ep_in_desc.bEndpointAddress;
@@ -1047,33 +1215,49 @@ autoconf_fail:
 	ss_ep_out_desc.bEndpointAddress = fs_ep_out_desc.bEndpointAddress;
 
 	ret = usb_assign_descriptors(f, fs_printer_function,
-			hs_printer_function, ss_printer_function, NULL);
+								 hs_printer_function, ss_printer_function, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev->in_ep = in_ep;
 	dev->out_ep = out_ep;
 
 	ret = -ENOMEM;
-	for (i = 0; i < dev->q_len; i++) {
+
+	for (i = 0; i < dev->q_len; i++)
+	{
 		req = printer_req_alloc(dev->in_ep, USB_BUFSIZE, GFP_KERNEL);
+
 		if (!req)
+		{
 			goto fail_tx_reqs;
+		}
+
 		list_add(&req->list, &dev->tx_reqs);
 	}
 
-	for (i = 0; i < dev->q_len; i++) {
+	for (i = 0; i < dev->q_len; i++)
+	{
 		req = printer_req_alloc(dev->out_ep, USB_BUFSIZE, GFP_KERNEL);
+
 		if (!req)
+		{
 			goto fail_rx_reqs;
+		}
+
 		list_add(&req->list, &dev->rx_reqs);
 	}
 
 	/* Setup the sysfs files for the printer gadget. */
 	devt = MKDEV(major, dev->minor);
 	pdev = device_create(usb_gadget_class, NULL, devt,
-				  NULL, "g_printer%d", dev->minor);
-	if (IS_ERR(pdev)) {
+						 NULL, "g_printer%d", dev->minor);
+
+	if (IS_ERR(pdev))
+	{
 		ERROR(dev, "Failed to create device: g_printer\n");
 		ret = PTR_ERR(pdev);
 		goto fail_rx_reqs;
@@ -1086,7 +1270,9 @@ autoconf_fail:
 	cdev_init(&dev->printer_cdev, &printer_io_operations);
 	dev->printer_cdev.owner = THIS_MODULE;
 	ret = cdev_add(&dev->printer_cdev, devt, 1);
-	if (ret) {
+
+	if (ret)
+	{
 		ERROR(dev, "Failed to open char device\n");
 		goto fail_cdev_add;
 	}
@@ -1097,14 +1283,18 @@ fail_cdev_add:
 	device_destroy(usb_gadget_class, devt);
 
 fail_rx_reqs:
-	while (!list_empty(&dev->rx_reqs)) {
+
+	while (!list_empty(&dev->rx_reqs))
+	{
 		req = container_of(dev->rx_reqs.next, struct usb_request, list);
 		list_del(&req->list);
 		printer_req_free(dev->out_ep, req);
 	}
 
 fail_tx_reqs:
-	while (!list_empty(&dev->tx_reqs)) {
+
+	while (!list_empty(&dev->tx_reqs))
+	{
 		req = container_of(dev->tx_reqs.next, struct usb_request, list);
 		list_del(&req->list);
 		printer_req_free(dev->in_ep, req);
@@ -1115,13 +1305,15 @@ fail_tx_reqs:
 }
 
 static int printer_func_set_alt(struct usb_function *f,
-		unsigned intf, unsigned alt)
+								unsigned intf, unsigned alt)
 {
 	struct printer_dev *dev = func_to_printer(f);
 	int ret = -ENOTSUPP;
 
 	if (!alt)
+	{
 		ret = set_interface(dev, intf);
+	}
 
 	return ret;
 }
@@ -1139,7 +1331,7 @@ static inline struct f_printer_opts
 *to_f_printer_opts(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct f_printer_opts,
-			    func_inst.group);
+						func_inst.group);
 }
 
 static void printer_attr_release(struct config_item *item)
@@ -1149,12 +1341,13 @@ static void printer_attr_release(struct config_item *item)
 	usb_put_function_instance(&opts->func_inst);
 }
 
-static struct configfs_item_operations printer_item_ops = {
+static struct configfs_item_operations printer_item_ops =
+{
 	.release	= printer_attr_release,
 };
 
 static ssize_t f_printer_opts_pnp_string_show(struct config_item *item,
-					      char *page)
+		char *page)
 {
 	struct f_printer_opts *opts = to_f_printer_opts(item);
 	int result;
@@ -1167,7 +1360,7 @@ static ssize_t f_printer_opts_pnp_string_show(struct config_item *item,
 }
 
 static ssize_t f_printer_opts_pnp_string_store(struct config_item *item,
-					       const char *page, size_t len)
+		const char *page, size_t len)
 {
 	struct f_printer_opts *opts = to_f_printer_opts(item);
 	int result, l;
@@ -1185,7 +1378,7 @@ static ssize_t f_printer_opts_pnp_string_store(struct config_item *item,
 CONFIGFS_ATTR(f_printer_opts_, pnp_string);
 
 static ssize_t f_printer_opts_q_len_show(struct config_item *item,
-					 char *page)
+		char *page)
 {
 	struct f_printer_opts *opts = to_f_printer_opts(item);
 	int result;
@@ -1198,21 +1391,26 @@ static ssize_t f_printer_opts_q_len_show(struct config_item *item,
 }
 
 static ssize_t f_printer_opts_q_len_store(struct config_item *item,
-					  const char *page, size_t len)
+		const char *page, size_t len)
 {
 	struct f_printer_opts *opts = to_f_printer_opts(item);
 	int ret;
 	u16 num;
 
 	mutex_lock(&opts->lock);
-	if (opts->refcnt) {
+
+	if (opts->refcnt)
+	{
 		ret = -EBUSY;
 		goto end;
 	}
 
 	ret = kstrtou16(page, 0, &num);
+
 	if (ret)
+	{
 		goto end;
+	}
 
 	opts->q_len = (unsigned)num;
 	ret = len;
@@ -1223,13 +1421,15 @@ end:
 
 CONFIGFS_ATTR(f_printer_opts_, q_len);
 
-static struct configfs_attribute *printer_attrs[] = {
+static struct configfs_attribute *printer_attrs[] =
+{
 	&f_printer_opts_attr_pnp_string,
 	&f_printer_opts_attr_q_len,
 	NULL,
 };
 
-static struct config_item_type printer_func_type = {
+static struct config_item_type printer_func_type =
+{
 	.ct_item_ops	= &printer_item_ops,
 	.ct_attrs	= printer_attrs,
 	.ct_owner	= THIS_MODULE,
@@ -1240,7 +1440,9 @@ static inline int gprinter_get_minor(void)
 	int ret;
 
 	ret = ida_simple_get(&printer_ida, 0, 0, GFP_KERNEL);
-	if (ret >= PRINTER_MINORS) {
+
+	if (ret >= PRINTER_MINORS)
+	{
 		ida_simple_remove(&printer_ida, ret);
 		ret = -ENODEV;
 	}
@@ -1265,8 +1467,11 @@ static void gprinter_free_inst(struct usb_function_instance *f)
 	mutex_lock(&printer_ida_lock);
 
 	gprinter_put_minor(opts->minor);
+
 	if (idr_is_empty(&printer_ida.idr))
+	{
 		gprinter_cleanup();
+	}
 
 	mutex_unlock(&printer_ida_lock);
 
@@ -1280,8 +1485,11 @@ static struct usb_function_instance *gprinter_alloc_inst(void)
 	int status = 0;
 
 	opts = kzalloc(sizeof(*opts), GFP_KERNEL);
+
 	if (!opts)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	mutex_init(&opts->lock);
 	opts->func_inst.free_func_inst = gprinter_free_inst;
@@ -1289,9 +1497,12 @@ static struct usb_function_instance *gprinter_alloc_inst(void)
 
 	mutex_lock(&printer_ida_lock);
 
-	if (idr_is_empty(&printer_ida.idr)) {
+	if (idr_is_empty(&printer_ida.idr))
+	{
 		status = gprinter_setup(PRINTER_MINORS);
-		if (status) {
+
+		if (status)
+		{
 			ret = ERR_PTR(status);
 			kfree(opts);
 			goto unlock;
@@ -1299,15 +1510,22 @@ static struct usb_function_instance *gprinter_alloc_inst(void)
 	}
 
 	opts->minor = gprinter_get_minor();
-	if (opts->minor < 0) {
+
+	if (opts->minor < 0)
+	{
 		ret = ERR_PTR(opts->minor);
 		kfree(opts);
+
 		if (idr_is_empty(&printer_ida.idr))
+		{
 			gprinter_cleanup();
+		}
+
 		goto unlock;
 	}
+
 	config_group_init_type_name(&opts->func_inst.group, "",
-				    &printer_func_type);
+								&printer_func_type);
 
 unlock:
 	mutex_unlock(&printer_ida_lock);
@@ -1327,7 +1545,7 @@ static void gprinter_free(struct usb_function *f)
 }
 
 static void printer_func_unbind(struct usb_configuration *c,
-		struct usb_function *f)
+								struct usb_function *f)
 {
 	struct printer_dev	*dev;
 	struct usb_request	*req;
@@ -1344,29 +1562,35 @@ static void printer_func_unbind(struct usb_configuration *c,
 	WARN_ON(!list_empty(&dev->rx_reqs_active));
 
 	/* Free all memory for this driver. */
-	while (!list_empty(&dev->tx_reqs)) {
+	while (!list_empty(&dev->tx_reqs))
+	{
 		req = container_of(dev->tx_reqs.next, struct usb_request,
-				list);
+						   list);
 		list_del(&req->list);
 		printer_req_free(dev->in_ep, req);
 	}
 
 	if (dev->current_rx_req != NULL)
+	{
 		printer_req_free(dev->out_ep, dev->current_rx_req);
+	}
 
-	while (!list_empty(&dev->rx_reqs)) {
+	while (!list_empty(&dev->rx_reqs))
+	{
 		req = container_of(dev->rx_reqs.next,
-				struct usb_request, list);
+						   struct usb_request, list);
 		list_del(&req->list);
 		printer_req_free(dev->out_ep, req);
 	}
 
-	while (!list_empty(&dev->rx_buffers)) {
+	while (!list_empty(&dev->rx_buffers))
+	{
 		req = container_of(dev->rx_buffers.next,
-				struct usb_request, list);
+						   struct usb_request, list);
 		list_del(&req->list);
 		printer_req_free(dev->out_ep, req);
 	}
+
 	usb_free_all_descriptors(f);
 }
 
@@ -1378,13 +1602,17 @@ static struct usb_function *gprinter_alloc(struct usb_function_instance *fi)
 	opts = container_of(fi, struct f_printer_opts, func_inst);
 
 	mutex_lock(&opts->lock);
-	if (opts->minor >= minors) {
+
+	if (opts->minor >= minors)
+	{
 		mutex_unlock(&opts->lock);
 		return ERR_PTR(-ENOENT);
 	}
 
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-	if (!dev) {
+
+	if (!dev)
+	{
 		mutex_unlock(&opts->lock);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -1436,7 +1664,9 @@ static int gprinter_setup(int count)
 	dev_t devt;
 
 	usb_gadget_class = class_create(THIS_MODULE, "usb_printer_gadget");
-	if (IS_ERR(usb_gadget_class)) {
+
+	if (IS_ERR(usb_gadget_class))
+	{
 		status = PTR_ERR(usb_gadget_class);
 		usb_gadget_class = NULL;
 		pr_err("unable to create usb_gadget class %d\n", status);
@@ -1444,7 +1674,9 @@ static int gprinter_setup(int count)
 	}
 
 	status = alloc_chrdev_region(&devt, 0, count, "USB printer gadget");
-	if (status) {
+
+	if (status)
+	{
 		pr_err("alloc_chrdev_region %d\n", status);
 		class_destroy(usb_gadget_class);
 		usb_gadget_class = NULL;
@@ -1459,10 +1691,12 @@ static int gprinter_setup(int count)
 
 static void gprinter_cleanup(void)
 {
-	if (major) {
+	if (major)
+	{
 		unregister_chrdev_region(MKDEV(major, 0), minors);
 		major = minors = 0;
 	}
+
 	class_destroy(usb_gadget_class);
 	usb_gadget_class = NULL;
 }

@@ -6,7 +6,8 @@
 #ifndef _ENCX24J600_HW_H
 #define _ENCX24J600_HW_H
 
-struct encx24j600_context {
+struct encx24j600_context
+{
 	struct spi_device *spi;
 	struct regmap *regmap;
 	struct regmap *phymap;
@@ -15,7 +16,7 @@ struct encx24j600_context {
 };
 
 void devm_regmap_init_encx24j600(struct device *dev,
-				 struct encx24j600_context *ctx);
+								 struct encx24j600_context *ctx);
 
 /* Single-byte instructions */
 #define BANK_SELECT(bank) (0xC0 | ((bank & (BANK_MASK >> BANK_SHIFT)) << 1))
@@ -418,7 +419,8 @@ void devm_regmap_init_encx24j600(struct device *dev,
 #define RSV_BITMASK(x)		(1 << ((x) - 16))
 #define RSV_GETBIT(x, y)	(((x) & RSV_BITMASK(y)) ? 1 : 0)
 
-struct rsv {
+struct rsv
+{
 	u16 next_packet;
 	u16 len;
 	u32 rxstat;
@@ -430,7 +432,7 @@ struct rsv {
 #define RXEND_INIT		0x5FFF
 
 int regmap_encx24j600_spi_write(void *context, u8 reg, const u8 *data,
-				size_t count);
+								size_t count);
 int regmap_encx24j600_spi_read(void *context, u8 reg, u8 *data, size_t count);
 
 

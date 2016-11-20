@@ -21,7 +21,7 @@
 #define ALLOW_DMA_BOARDS 1
 
 /************************************************************************
- * Debug options.							* 
+ * Debug options.							*
  * Enable DEBUG and whichever options you require.			*
  ************************************************************************/
 #define DEBUG_EATA	1	/* Enable debug code.                       */
@@ -45,9 +45,9 @@
 #define DBG_ABNORM	1	/* Debug abnormal actions (reset, abort)    */
 
 #if DEBUG_EATA
-#define DBG(x, y)   if ((x)) {y;}
+	#define DBG(x, y)   if ((x)) {y;}
 #else
-#define DBG(x, y)
+	#define DBG(x, y)
 #endif
 
 #endif				/* _EATA_PIO_H */

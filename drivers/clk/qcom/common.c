@@ -25,7 +25,8 @@
 #include "reset.h"
 #include "gdsc.h"
 
-struct qcom_cc {
+struct qcom_cc
+{
 	struct qcom_reset_controller reset;
 	struct clk_regmap **rclks;
 	size_t num_rclks;
@@ -35,11 +36,15 @@ const
 struct freq_tbl *qcom_find_freq(const struct freq_tbl *f, unsigned long rate)
 {
 	if (!f)
+	{
 		return NULL;
+	}
 
 	for (; f->freq; f++)
 		if (rate <= f->freq)
+		{
 			return f;
+		}
 
 	/* Default to our fastest rate */
 	return f - 1;
@@ -52,7 +57,9 @@ int qcom_find_src_index(struct clk_hw *hw, const struct parent_map *map, u8 src)
 
 	for (i = 0; i < num_parents; i++)
 		if (src == map[i].src)
+		{
 			return i;
+		}
 
 	return -ENOENT;
 }
@@ -67,8 +74,11 @@ qcom_cc_map(struct platform_device *pdev, const struct qcom_cc_desc *desc)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(base))
+	{
 		return ERR_CAST(base);
+	}
 
 	return devm_regmap_init_mmio(dev, base, desc->config);
 }
@@ -95,8 +105,8 @@ static void qcom_cc_gdsc_unregister(void *data)
  * clk as a fixed rate clock if it isn't present.
  */
 static int _qcom_cc_register_board_clk(struct device *dev, const char *path,
-				       const char *name, unsigned long rate,
-				       bool add_factor)
+									   const char *name, unsigned long rate,
+									   bool add_factor)
 {
 	struct device_node *node = NULL;
 	struct device_node *clocks_node;
@@ -106,14 +116,22 @@ static int _qcom_cc_register_board_clk(struct device *dev, const char *path,
 	int ret;
 
 	clocks_node = of_find_node_by_path("/clocks");
+
 	if (clocks_node)
+	{
 		node = of_find_node_by_name(clocks_node, path);
+	}
+
 	of_node_put(clocks_node);
 
-	if (!node) {
+	if (!node)
+	{
 		fixed = devm_kzalloc(dev, sizeof(*fixed), GFP_KERNEL);
+
 		if (!fixed)
+		{
 			return -EINVAL;
+		}
 
 		fixed->fixed_rate = rate;
 		fixed->hw.init = &init_data;
@@ -122,15 +140,23 @@ static int _qcom_cc_register_board_clk(struct device *dev, const char *path,
 		init_data.ops = &clk_fixed_rate_ops;
 
 		ret = devm_clk_hw_register(dev, &fixed->hw);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
+
 	of_node_put(node);
 
-	if (add_factor) {
+	if (add_factor)
+	{
 		factor = devm_kzalloc(dev, sizeof(*factor), GFP_KERNEL);
+
 		if (!factor)
+		{
 			return -EINVAL;
+		}
 
 		factor->mult = factor->div = 1;
 		factor->hw.init = &init_data;
@@ -142,24 +168,32 @@ static int _qcom_cc_register_board_clk(struct device *dev, const char *path,
 		init_data.ops = &clk_fixed_factor_ops;
 
 		ret = devm_clk_hw_register(dev, &factor->hw);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
 }
 
 int qcom_cc_register_board_clk(struct device *dev, const char *path,
-			       const char *name, unsigned long rate)
+							   const char *name, unsigned long rate)
 {
 	bool add_factor = true;
 	struct device_node *node;
 
 	/* The RPM clock driver will add the factor clock if present */
-	if (IS_ENABLED(CONFIG_QCOM_RPMCC)) {
+	if (IS_ENABLED(CONFIG_QCOM_RPMCC))
+	{
 		node = of_find_compatible_node(NULL, NULL, "qcom,rpmcc");
+
 		if (of_device_is_available(node))
+		{
 			add_factor = false;
+		}
+
 		of_node_put(node);
 	}
 
@@ -170,17 +204,18 @@ EXPORT_SYMBOL_GPL(qcom_cc_register_board_clk);
 int qcom_cc_register_sleep_clk(struct device *dev)
 {
 	return _qcom_cc_register_board_clk(dev, "sleep_clk", "sleep_clk_src",
-					   32768, true);
+									   32768, true);
 }
 EXPORT_SYMBOL_GPL(qcom_cc_register_sleep_clk);
 
 static struct clk_hw *qcom_cc_clk_hw_get(struct of_phandle_args *clkspec,
-					 void *data)
+		void *data)
 {
 	struct qcom_cc *cc = data;
 	unsigned int idx = clkspec->args[0];
 
-	if (idx >= cc->num_rclks) {
+	if (idx >= cc->num_rclks)
+	{
 		pr_err("%s: invalid index %u\n", __func__, idx);
 		return ERR_PTR(-EINVAL);
 	}
@@ -189,7 +224,7 @@ static struct clk_hw *qcom_cc_clk_hw_get(struct of_phandle_args *clkspec,
 }
 
 int qcom_cc_really_probe(struct platform_device *pdev,
-			 const struct qcom_cc_desc *desc, struct regmap *regmap)
+						 const struct qcom_cc_desc *desc, struct regmap *regmap)
 {
 	int i, ret;
 	struct device *dev = &pdev->dev;
@@ -200,30 +235,44 @@ int qcom_cc_really_probe(struct platform_device *pdev,
 	struct clk_regmap **rclks = desc->clks;
 
 	cc = devm_kzalloc(dev, sizeof(*cc), GFP_KERNEL);
+
 	if (!cc)
+	{
 		return -ENOMEM;
+	}
 
 	cc->rclks = rclks;
 	cc->num_rclks = num_clks;
 
-	for (i = 0; i < num_clks; i++) {
+	for (i = 0; i < num_clks; i++)
+	{
 		if (!rclks[i])
+		{
 			continue;
+		}
 
 		ret = devm_clk_register_regmap(dev, rclks[i]);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	ret = of_clk_add_hw_provider(dev->of_node, qcom_cc_clk_hw_get, cc);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = devm_add_action_or_reset(dev, qcom_cc_del_clk_provider,
-				       pdev->dev.of_node);
+								   pdev->dev.of_node);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	reset = &cc->reset;
 	reset->rcdev.of_node = dev->of_node;
@@ -234,29 +283,46 @@ int qcom_cc_really_probe(struct platform_device *pdev,
 	reset->reset_map = desc->resets;
 
 	ret = reset_controller_register(&reset->rcdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = devm_add_action_or_reset(dev, qcom_cc_reset_unregister,
-				       &reset->rcdev);
+								   &reset->rcdev);
 
 	if (ret)
+	{
 		return ret;
+	}
 
-	if (desc->gdscs && desc->num_gdscs) {
+	if (desc->gdscs && desc->num_gdscs)
+	{
 		scd = devm_kzalloc(dev, sizeof(*scd), GFP_KERNEL);
+
 		if (!scd)
+		{
 			return -ENOMEM;
+		}
+
 		scd->dev = dev;
 		scd->scs = desc->gdscs;
 		scd->num = desc->num_gdscs;
 		ret = gdsc_register(scd, &reset->rcdev, regmap);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = devm_add_action_or_reset(dev, qcom_cc_gdsc_unregister,
-					       scd);
+									   scd);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -268,8 +334,11 @@ int qcom_cc_probe(struct platform_device *pdev, const struct qcom_cc_desc *desc)
 	struct regmap *regmap;
 
 	regmap = qcom_cc_map(pdev, desc);
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
 
 	return qcom_cc_really_probe(pdev, desc, regmap);
 }

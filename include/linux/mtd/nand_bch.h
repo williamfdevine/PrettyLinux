@@ -22,13 +22,13 @@ static inline int mtd_nand_has_bch(void) { return 1; }
  * Calculate BCH ecc code
  */
 int nand_bch_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
-			   u_char *ecc_code);
+						   u_char *ecc_code);
 
 /*
  * Detect and correct bit errors
  */
 int nand_bch_correct_data(struct mtd_info *mtd, u_char *dat, u_char *read_ecc,
-			  u_char *calc_ecc);
+						  u_char *calc_ecc);
 /*
  * Initialize BCH encoder/decoder
  */
@@ -44,14 +44,14 @@ static inline int mtd_nand_has_bch(void) { return 0; }
 
 static inline int
 nand_bch_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
-		       u_char *ecc_code)
+					   u_char *ecc_code)
 {
 	return -1;
 }
 
 static inline int
 nand_bch_correct_data(struct mtd_info *mtd, unsigned char *buf,
-		      unsigned char *read_ecc, unsigned char *calc_ecc)
+					  unsigned char *read_ecc, unsigned char *calc_ecc)
 {
 	return -ENOTSUPP;
 }

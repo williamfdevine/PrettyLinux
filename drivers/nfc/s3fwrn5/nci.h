@@ -27,57 +27,67 @@
 #define NCI_PROP_GET_RFREG	0x21
 #define NCI_PROP_SET_RFREG	0x22
 
-struct nci_prop_set_rfreg_cmd {
+struct nci_prop_set_rfreg_cmd
+{
 	__u8 index;
 	__u8 data[252];
 };
 
-struct nci_prop_set_rfreg_rsp {
+struct nci_prop_set_rfreg_rsp
+{
 	__u8 status;
 };
 
 #define NCI_PROP_GET_RFREG_VER	0x24
 
-struct nci_prop_get_rfreg_ver_rsp {
+struct nci_prop_get_rfreg_ver_rsp
+{
 	__u8 status;
 	__u8 data[8];
 };
 
 #define NCI_PROP_SET_RFREG_VER	0x25
 
-struct nci_prop_set_rfreg_ver_cmd {
+struct nci_prop_set_rfreg_ver_cmd
+{
 	__u8 data[8];
 };
 
-struct nci_prop_set_rfreg_ver_rsp {
+struct nci_prop_set_rfreg_ver_rsp
+{
 	__u8 status;
 };
 
 #define NCI_PROP_START_RFREG	0x26
 
-struct nci_prop_start_rfreg_rsp {
+struct nci_prop_start_rfreg_rsp
+{
 	__u8 status;
 };
 
 #define NCI_PROP_STOP_RFREG	0x27
 
-struct nci_prop_stop_rfreg_cmd {
+struct nci_prop_stop_rfreg_cmd
+{
 	__u16 checksum;
 };
 
-struct nci_prop_stop_rfreg_rsp {
+struct nci_prop_stop_rfreg_rsp
+{
 	__u8 status;
 };
 
 #define NCI_PROP_FW_CFG		0x28
 
-struct nci_prop_fw_cfg_cmd {
+struct nci_prop_fw_cfg_cmd
+{
 	__u8 clk_type;
 	__u8 clk_speed;
 	__u8 clk_req;
 };
 
-struct nci_prop_fw_cfg_rsp {
+struct nci_prop_fw_cfg_rsp
+{
 	__u8 status;
 };
 

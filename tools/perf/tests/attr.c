@@ -42,38 +42,41 @@ void test_attr__init(void)
 #define BUFSIZE 1024
 
 #define __WRITE_ASS(str, fmt, data)					\
-do {									\
-	char buf[BUFSIZE];						\
-	size_t size;							\
-									\
-	size = snprintf(buf, BUFSIZE, #str "=%"fmt "\n", data);		\
-	if (1 != fwrite(buf, size, 1, file)) {				\
-		perror("test attr - failed to write event file");	\
-		fclose(file);						\
-		return -1;						\
-	}								\
-									\
-} while (0)
+	do {									\
+		char buf[BUFSIZE];						\
+		size_t size;							\
+		\
+		size = snprintf(buf, BUFSIZE, #str "=%"fmt "\n", data);		\
+		if (1 != fwrite(buf, size, 1, file)) {				\
+			perror("test attr - failed to write event file");	\
+			fclose(file);						\
+			return -1;						\
+		}								\
+		\
+	} while (0)
 
 #define WRITE_ASS(field, fmt) __WRITE_ASS(field, fmt, attr->field)
 
 static int store_event(struct perf_event_attr *attr, pid_t pid, int cpu,
-		       int fd, int group_fd, unsigned long flags)
+					   int fd, int group_fd, unsigned long flags)
 {
 	FILE *file;
 	char path[PATH_MAX];
 
 	snprintf(path, PATH_MAX, "%s/event-%d-%llu-%d", dir,
-		 attr->type, attr->config, fd);
+			 attr->type, attr->config, fd);
 
 	file = fopen(path, "w+");
-	if (!file) {
+
+	if (!file)
+	{
 		perror("test attr - failed to open event file");
 		return -1;
 	}
 
 	if (fprintf(file, "[event-%d-%llu-%d]\n",
-		    attr->type, attr->config, fd) < 0) {
+				attr->type, attr->config, fd) < 0)
+	{
 		perror("test attr - failed to write event file");
 		fclose(file);
 		return -1;
@@ -128,12 +131,14 @@ static int store_event(struct perf_event_attr *attr, pid_t pid, int cpu,
 }
 
 void test_attr__open(struct perf_event_attr *attr, pid_t pid, int cpu,
-		     int fd, int group_fd, unsigned long flags)
+					 int fd, int group_fd, unsigned long flags)
 {
 	int errno_saved = errno;
 
 	if (store_event(attr, pid, cpu, fd, group_fd, flags))
+	{
 		die("test attr FAILED");
+	}
 
 	errno = errno_saved;
 }
@@ -142,13 +147,15 @@ static int run_dir(const char *d, const char *perf)
 {
 	char v[] = "-vvvvv";
 	int vcnt = min(verbose, (int) sizeof(v) - 1);
-	char cmd[3*PATH_MAX];
+	char cmd[3 * PATH_MAX];
 
 	if (verbose)
+	{
 		vcnt++;
+	}
 
-	snprintf(cmd, 3*PATH_MAX, PYTHON " %s/attr.py -d %s/attr/ -p %s %.*s",
-		 d, d, perf, vcnt, v);
+	snprintf(cmd, 3 * PATH_MAX, PYTHON " %s/attr.py -d %s/attr/ -p %s %.*s",
+			 d, d, perf, vcnt, v);
 
 	return system(cmd);
 }
@@ -161,15 +168,19 @@ int test__attr(int subtest __maybe_unused)
 
 	/* First try developement tree tests. */
 	if (!lstat("./tests", &st))
+	{
 		return run_dir("./tests", "./perf");
+	}
 
 	/* Then installed path. */
 	snprintf(path_dir,  PATH_MAX, "%s/tests", get_argv_exec_path());
 	snprintf(path_perf, PATH_MAX, "%s/perf", BINDIR);
 
 	if (!lstat(path_dir, &st) &&
-	    !lstat(path_perf, &st))
+		!lstat(path_perf, &st))
+	{
 		return run_dir(path_dir, path_perf);
+	}
 
 	return TEST_SKIP;
 }

@@ -6,7 +6,8 @@
 #include <linux/watchdog.h>
 
 
-struct bcm47xx_wdt {
+struct bcm47xx_wdt
+{
 	u32 (*timer_set)(struct bcm47xx_wdt *, u32);
 	u32 (*timer_set_ms)(struct bcm47xx_wdt *, u32);
 	u32 max_timer_ms;

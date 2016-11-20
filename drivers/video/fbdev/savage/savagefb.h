@@ -19,10 +19,10 @@
 #include "../edid.h"
 
 #ifdef SAVAGEFB_DEBUG
-# define DBG(x)		printk (KERN_DEBUG "savagefb: %s\n", (x));
+	#define DBG(x)		printk (KERN_DEBUG "savagefb: %s\n", (x));
 #else
-# define DBG(x)
-# define SavagePrintRegs(...)
+	#define DBG(x)
+	#define SavagePrintRegs(...)
 #endif
 
 
@@ -65,17 +65,18 @@
  * related families.
  */
 
-typedef enum {
-  S3_UNKNOWN = 0,
-  S3_SAVAGE3D,
-  S3_SAVAGE_MX,
-  S3_SAVAGE4,
-  S3_PROSAVAGE,
-  S3_TWISTER,
-  S3_PROSAVAGEDDR,
-  S3_SUPERSAVAGE,
-  S3_SAVAGE2000,
-  S3_LAST
+typedef enum
+{
+	S3_UNKNOWN = 0,
+	S3_SAVAGE3D,
+	S3_SAVAGE_MX,
+	S3_SAVAGE4,
+	S3_PROSAVAGE,
+	S3_TWISTER,
+	S3_PROSAVAGEDDR,
+	S3_SUPERSAVAGE,
+	S3_SAVAGE2000,
+	S3_LAST
 } savage_chipset;
 
 #define BIOS_BSIZE		     1024
@@ -134,7 +135,8 @@ typedef enum {
 #define DISP_LCD     2
 #define DISP_DFP     3
 
-struct xtimings {
+struct xtimings
+{
 	unsigned int Clock;
 	unsigned int HDisplay;
 	unsigned int HSyncStart;
@@ -150,7 +152,8 @@ struct xtimings {
 	int	       interlaced;
 };
 
-struct savage_reg {
+struct savage_reg
+{
 	unsigned char MiscOutReg;     /* Misc */
 	unsigned char CRTC[25];       /* Crtc Controller */
 	unsigned char Sequencer[5];   /* Video Sequencer */
@@ -178,7 +181,8 @@ struct savage_reg {
 
 struct savagefb_par;
 
-struct savagefb_i2c_chan {
+struct savagefb_i2c_chan
+{
 	struct savagefb_par *par;
 	struct i2c_adapter adapter;
 	struct i2c_algo_bit_data algo;
@@ -186,7 +190,8 @@ struct savagefb_i2c_chan {
 	u32   reg;
 };
 
-struct savagefb_par {
+struct savagefb_par
+{
 	struct pci_dev *pcidev;
 	savage_chipset  chip;
 	struct savagefb_i2c_chan chan;
@@ -209,14 +214,16 @@ struct savagefb_par {
 	int numClocks;
 	int clock[4];
 	int MCLK, REFCLK, LCDclk;
-	struct {
+	struct
+	{
 		void   __iomem *vbase;
 		u32    pbase;
 		u32    len;
 		int    wc_cookie;
 	} video;
 
-	struct {
+	struct
+	{
 		void  __iomem *vbase;
 		u32           pbase;
 		u32           len;
@@ -237,7 +244,8 @@ struct savagefb_par {
 	int SavagePanelWidth;
 	int SavagePanelHeight;
 
-	struct {
+	struct
+	{
 		u16 red, green, blue, transp;
 	} palette[NR_PALETTE];
 
@@ -364,9 +372,13 @@ static inline void VGAdisablePalette(struct savagefb_par *par)
 static inline void VGAwATTR(u8 index, u8 value, struct savagefb_par *par)
 {
 	if (par->paletteEnabled)
+	{
 		index &= ~0x20;
+	}
 	else
+	{
 		index |= 0x20;
+	}
 
 	vga_in8(0x3da, par);
 	vga_out8(0x3c0, index, par);
@@ -379,29 +391,32 @@ static inline void VGAwMISC(u8 value, struct savagefb_par *par)
 }
 
 #ifndef CONFIG_FB_SAVAGE_ACCEL
-#define savagefb_set_clip(x)
+	#define savagefb_set_clip(x)
 #endif
 
 static inline void VerticalRetraceWait(struct savagefb_par *par)
 {
 	vga_out8(0x3d4, 0x17, par);
-	if (vga_in8(0x3d5, par) & 0x80) {
+
+	if (vga_in8(0x3d5, par) & 0x80)
+	{
 		while ((vga_in8(0x3da, par) & 0x08) == 0x08);
+
 		while ((vga_in8(0x3da, par) & 0x08) == 0x00);
 	}
 }
 
 extern int savagefb_probe_i2c_connector(struct fb_info *info,
-					u8 **out_edid);
+										u8 **out_edid);
 extern void savagefb_create_i2c_busses(struct fb_info *info);
 extern void savagefb_delete_i2c_busses(struct fb_info *info);
 extern int  savagefb_sync(struct fb_info *info);
 extern void savagefb_copyarea(struct fb_info *info,
-			      const struct fb_copyarea *region);
+							  const struct fb_copyarea *region);
 extern void savagefb_fillrect(struct fb_info *info,
-			      const struct fb_fillrect *rect);
+							  const struct fb_fillrect *rect);
 extern void savagefb_imageblit(struct fb_info *info,
-			       const struct fb_image *image);
+							   const struct fb_image *image);
 
 
 #endif /* __SAVAGEFB_H__ */

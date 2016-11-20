@@ -37,7 +37,8 @@
 
 /* The highest number of possible regulators for supported devices. */
 #define S2MPS_REGULATOR_MAX		S2MPS13_REGULATOR_MAX
-struct s2mps11_info {
+struct s2mps11_info
+{
 	int ramp_delay2;
 	int ramp_delay34;
 	int ramp_delay5;
@@ -66,53 +67,68 @@ static int get_ramp_delay(int ramp_delay)
 
 	ramp_delay /= 6250;
 
-	while (true) {
+	while (true)
+	{
 		ramp_delay = ramp_delay >> 1;
+
 		if (ramp_delay == 0)
+		{
 			break;
+		}
+
 		cnt++;
 	}
 
 	if (cnt > 3)
+	{
 		cnt = 3;
+	}
 
 	return cnt;
 }
 
 static int s2mps11_regulator_set_voltage_time_sel(struct regulator_dev *rdev,
-				   unsigned int old_selector,
-				   unsigned int new_selector)
+		unsigned int old_selector,
+		unsigned int new_selector)
 {
 	struct s2mps11_info *s2mps11 = rdev_get_drvdata(rdev);
 	unsigned int ramp_delay = 0;
 	int old_volt, new_volt;
 
-	switch (rdev_get_id(rdev)) {
-	case S2MPS11_BUCK2:
-		ramp_delay = s2mps11->ramp_delay2;
-		break;
-	case S2MPS11_BUCK3:
-	case S2MPS11_BUCK4:
-		ramp_delay = s2mps11->ramp_delay34;
-		break;
-	case S2MPS11_BUCK5:
-		ramp_delay = s2mps11->ramp_delay5;
-		break;
-	case S2MPS11_BUCK6:
-	case S2MPS11_BUCK1:
-		ramp_delay = s2mps11->ramp_delay16;
-		break;
-	case S2MPS11_BUCK7:
-	case S2MPS11_BUCK8:
-	case S2MPS11_BUCK10:
-		ramp_delay = s2mps11->ramp_delay7810;
-		break;
-	case S2MPS11_BUCK9:
-		ramp_delay = s2mps11->ramp_delay9;
+	switch (rdev_get_id(rdev))
+	{
+		case S2MPS11_BUCK2:
+			ramp_delay = s2mps11->ramp_delay2;
+			break;
+
+		case S2MPS11_BUCK3:
+		case S2MPS11_BUCK4:
+			ramp_delay = s2mps11->ramp_delay34;
+			break;
+
+		case S2MPS11_BUCK5:
+			ramp_delay = s2mps11->ramp_delay5;
+			break;
+
+		case S2MPS11_BUCK6:
+		case S2MPS11_BUCK1:
+			ramp_delay = s2mps11->ramp_delay16;
+			break;
+
+		case S2MPS11_BUCK7:
+		case S2MPS11_BUCK8:
+		case S2MPS11_BUCK10:
+			ramp_delay = s2mps11->ramp_delay7810;
+			break;
+
+		case S2MPS11_BUCK9:
+			ramp_delay = s2mps11->ramp_delay9;
 	}
 
 	if (ramp_delay == 0)
+	{
 		ramp_delay = rdev->desc->ramp_delay;
+	}
 
 	old_volt = rdev->desc->min_uV + (rdev->desc->uV_step * old_selector);
 	new_volt = rdev->desc->min_uV + (rdev->desc->uV_step * new_selector);
@@ -127,102 +143,144 @@ static int s2mps11_set_ramp_delay(struct regulator_dev *rdev, int ramp_delay)
 	unsigned int ramp_enable = 1, enable_shift = 0;
 	int ret;
 
-	switch (rdev_get_id(rdev)) {
-	case S2MPS11_BUCK1:
-		if (ramp_delay > s2mps11->ramp_delay16)
-			s2mps11->ramp_delay16 = ramp_delay;
-		else
-			ramp_delay = s2mps11->ramp_delay16;
+	switch (rdev_get_id(rdev))
+	{
+		case S2MPS11_BUCK1:
+			if (ramp_delay > s2mps11->ramp_delay16)
+			{
+				s2mps11->ramp_delay16 = ramp_delay;
+			}
+			else
+			{
+				ramp_delay = s2mps11->ramp_delay16;
+			}
 
-		ramp_shift = S2MPS11_BUCK16_RAMP_SHIFT;
-		break;
-	case S2MPS11_BUCK2:
-		enable_shift = S2MPS11_BUCK2_RAMP_EN_SHIFT;
-		if (!ramp_delay) {
-			ramp_enable = 0;
+			ramp_shift = S2MPS11_BUCK16_RAMP_SHIFT;
 			break;
-		}
 
-		s2mps11->ramp_delay2 = ramp_delay;
-		ramp_shift = S2MPS11_BUCK2_RAMP_SHIFT;
-		ramp_reg = S2MPS11_REG_RAMP;
-		break;
-	case S2MPS11_BUCK3:
-		enable_shift = S2MPS11_BUCK3_RAMP_EN_SHIFT;
-		if (!ramp_delay) {
-			ramp_enable = 0;
+		case S2MPS11_BUCK2:
+			enable_shift = S2MPS11_BUCK2_RAMP_EN_SHIFT;
+
+			if (!ramp_delay)
+			{
+				ramp_enable = 0;
+				break;
+			}
+
+			s2mps11->ramp_delay2 = ramp_delay;
+			ramp_shift = S2MPS11_BUCK2_RAMP_SHIFT;
+			ramp_reg = S2MPS11_REG_RAMP;
 			break;
-		}
 
-		if (ramp_delay > s2mps11->ramp_delay34)
-			s2mps11->ramp_delay34 = ramp_delay;
-		else
-			ramp_delay = s2mps11->ramp_delay34;
+		case S2MPS11_BUCK3:
+			enable_shift = S2MPS11_BUCK3_RAMP_EN_SHIFT;
 
-		ramp_shift = S2MPS11_BUCK34_RAMP_SHIFT;
-		ramp_reg = S2MPS11_REG_RAMP;
-		break;
-	case S2MPS11_BUCK4:
-		enable_shift = S2MPS11_BUCK4_RAMP_EN_SHIFT;
-		if (!ramp_delay) {
-			ramp_enable = 0;
+			if (!ramp_delay)
+			{
+				ramp_enable = 0;
+				break;
+			}
+
+			if (ramp_delay > s2mps11->ramp_delay34)
+			{
+				s2mps11->ramp_delay34 = ramp_delay;
+			}
+			else
+			{
+				ramp_delay = s2mps11->ramp_delay34;
+			}
+
+			ramp_shift = S2MPS11_BUCK34_RAMP_SHIFT;
+			ramp_reg = S2MPS11_REG_RAMP;
 			break;
-		}
 
-		if (ramp_delay > s2mps11->ramp_delay34)
-			s2mps11->ramp_delay34 = ramp_delay;
-		else
-			ramp_delay = s2mps11->ramp_delay34;
+		case S2MPS11_BUCK4:
+			enable_shift = S2MPS11_BUCK4_RAMP_EN_SHIFT;
 
-		ramp_shift = S2MPS11_BUCK34_RAMP_SHIFT;
-		ramp_reg = S2MPS11_REG_RAMP;
-		break;
-	case S2MPS11_BUCK5:
-		s2mps11->ramp_delay5 = ramp_delay;
-		ramp_shift = S2MPS11_BUCK5_RAMP_SHIFT;
-		break;
-	case S2MPS11_BUCK6:
-		enable_shift = S2MPS11_BUCK6_RAMP_EN_SHIFT;
-		if (!ramp_delay) {
-			ramp_enable = 0;
+			if (!ramp_delay)
+			{
+				ramp_enable = 0;
+				break;
+			}
+
+			if (ramp_delay > s2mps11->ramp_delay34)
+			{
+				s2mps11->ramp_delay34 = ramp_delay;
+			}
+			else
+			{
+				ramp_delay = s2mps11->ramp_delay34;
+			}
+
+			ramp_shift = S2MPS11_BUCK34_RAMP_SHIFT;
+			ramp_reg = S2MPS11_REG_RAMP;
 			break;
-		}
 
-		if (ramp_delay > s2mps11->ramp_delay16)
-			s2mps11->ramp_delay16 = ramp_delay;
-		else
-			ramp_delay = s2mps11->ramp_delay16;
+		case S2MPS11_BUCK5:
+			s2mps11->ramp_delay5 = ramp_delay;
+			ramp_shift = S2MPS11_BUCK5_RAMP_SHIFT;
+			break;
 
-		ramp_shift = S2MPS11_BUCK16_RAMP_SHIFT;
-		break;
-	case S2MPS11_BUCK7:
-	case S2MPS11_BUCK8:
-	case S2MPS11_BUCK10:
-		if (ramp_delay > s2mps11->ramp_delay7810)
-			s2mps11->ramp_delay7810 = ramp_delay;
-		else
-			ramp_delay = s2mps11->ramp_delay7810;
+		case S2MPS11_BUCK6:
+			enable_shift = S2MPS11_BUCK6_RAMP_EN_SHIFT;
 
-		ramp_shift = S2MPS11_BUCK7810_RAMP_SHIFT;
-		break;
-	case S2MPS11_BUCK9:
-		s2mps11->ramp_delay9 = ramp_delay;
-		ramp_shift = S2MPS11_BUCK9_RAMP_SHIFT;
-		break;
-	default:
-		return 0;
+			if (!ramp_delay)
+			{
+				ramp_enable = 0;
+				break;
+			}
+
+			if (ramp_delay > s2mps11->ramp_delay16)
+			{
+				s2mps11->ramp_delay16 = ramp_delay;
+			}
+			else
+			{
+				ramp_delay = s2mps11->ramp_delay16;
+			}
+
+			ramp_shift = S2MPS11_BUCK16_RAMP_SHIFT;
+			break;
+
+		case S2MPS11_BUCK7:
+		case S2MPS11_BUCK8:
+		case S2MPS11_BUCK10:
+			if (ramp_delay > s2mps11->ramp_delay7810)
+			{
+				s2mps11->ramp_delay7810 = ramp_delay;
+			}
+			else
+			{
+				ramp_delay = s2mps11->ramp_delay7810;
+			}
+
+			ramp_shift = S2MPS11_BUCK7810_RAMP_SHIFT;
+			break;
+
+		case S2MPS11_BUCK9:
+			s2mps11->ramp_delay9 = ramp_delay;
+			ramp_shift = S2MPS11_BUCK9_RAMP_SHIFT;
+			break;
+
+		default:
+			return 0;
 	}
 
 	if (!ramp_enable)
+	{
 		goto ramp_disable;
+	}
 
 	/* Ramp delay can be enabled/disabled only for buck[2346] */
 	if ((rdev_get_id(rdev) >= S2MPS11_BUCK2 &&
-			rdev_get_id(rdev) <= S2MPS11_BUCK4) ||
-			rdev_get_id(rdev) == S2MPS11_BUCK6)  {
+		 rdev_get_id(rdev) <= S2MPS11_BUCK4) ||
+		rdev_get_id(rdev) == S2MPS11_BUCK6)
+	{
 		ret = regmap_update_bits(rdev->regmap, S2MPS11_REG_RAMP,
-					 1 << enable_shift, 1 << enable_shift);
-		if (ret) {
+								 1 << enable_shift, 1 << enable_shift);
+
+		if (ret)
+		{
 			dev_err(&rdev->dev, "failed to enable ramp rate\n");
 			return ret;
 		}
@@ -231,14 +289,15 @@ static int s2mps11_set_ramp_delay(struct regulator_dev *rdev, int ramp_delay)
 	ramp_val = get_ramp_delay(ramp_delay);
 
 	return regmap_update_bits(rdev->regmap, ramp_reg, 0x3 << ramp_shift,
-				  ramp_val << ramp_shift);
+							  ramp_val << ramp_shift);
 
 ramp_disable:
 	return regmap_update_bits(rdev->regmap, S2MPS11_REG_RAMP,
-				  1 << enable_shift, 0);
+							  1 << enable_shift, 0);
 }
 
-static struct regulator_ops s2mps11_ldo_ops = {
+static struct regulator_ops s2mps11_ldo_ops =
+{
 	.list_voltage		= regulator_list_voltage_linear,
 	.map_voltage		= regulator_map_voltage_linear,
 	.is_enabled		= regulator_is_enabled_regmap,
@@ -249,7 +308,8 @@ static struct regulator_ops s2mps11_ldo_ops = {
 	.set_voltage_time_sel	= regulator_set_voltage_time_sel,
 };
 
-static struct regulator_ops s2mps11_buck_ops = {
+static struct regulator_ops s2mps11_buck_ops =
+{
 	.list_voltage		= regulator_list_voltage_linear,
 	.map_voltage		= regulator_map_voltage_linear,
 	.is_enabled		= regulator_is_enabled_regmap,
@@ -262,86 +322,87 @@ static struct regulator_ops s2mps11_buck_ops = {
 };
 
 #define regulator_desc_s2mps11_ldo(num, step) {		\
-	.name		= "LDO"#num,			\
-	.id		= S2MPS11_LDO##num,		\
-	.ops		= &s2mps11_ldo_ops,		\
-	.type		= REGULATOR_VOLTAGE,		\
-	.owner		= THIS_MODULE,			\
-	.ramp_delay	= RAMP_DELAY_12_MVUS,		\
-	.min_uV		= MIN_800_MV,			\
-	.uV_step	= step,				\
-	.n_voltages	= S2MPS11_LDO_N_VOLTAGES,	\
-	.vsel_reg	= S2MPS11_REG_L1CTRL + num - 1,	\
-	.vsel_mask	= S2MPS11_LDO_VSEL_MASK,	\
-	.enable_reg	= S2MPS11_REG_L1CTRL + num - 1,	\
-	.enable_mask	= S2MPS11_ENABLE_MASK		\
-}
+		.name		= "LDO"#num,			\
+					  .id		= S2MPS11_LDO##num,		\
+								.ops		= &s2mps11_ldo_ops,		\
+											  .type		= REGULATOR_VOLTAGE,		\
+													  .owner		= THIS_MODULE,			\
+															  .ramp_delay	= RAMP_DELAY_12_MVUS,		\
+																	  .min_uV		= MIN_800_MV,			\
+																			  .uV_step	= step,				\
+																					  .n_voltages	= S2MPS11_LDO_N_VOLTAGES,	\
+																							  .vsel_reg	= S2MPS11_REG_L1CTRL + num - 1,	\
+																									  .vsel_mask	= S2MPS11_LDO_VSEL_MASK,	\
+																											  .enable_reg	= S2MPS11_REG_L1CTRL + num - 1,	\
+																													  .enable_mask	= S2MPS11_ENABLE_MASK		\
+	}
 
 #define regulator_desc_s2mps11_buck1_4(num) {			\
-	.name		= "BUCK"#num,				\
-	.id		= S2MPS11_BUCK##num,			\
-	.ops		= &s2mps11_buck_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= MIN_600_MV,				\
-	.uV_step	= STEP_6_25_MV,				\
-	.n_voltages	= S2MPS11_BUCK_N_VOLTAGES,		\
-	.ramp_delay	= S2MPS11_RAMP_DELAY,			\
-	.vsel_reg	= S2MPS11_REG_B1CTRL2 + (num - 1) * 2,	\
-	.vsel_mask	= S2MPS11_BUCK_VSEL_MASK,		\
-	.enable_reg	= S2MPS11_REG_B1CTRL1 + (num - 1) * 2,	\
-	.enable_mask	= S2MPS11_ENABLE_MASK			\
-}
+		.name		= "BUCK"#num,				\
+					  .id		= S2MPS11_BUCK##num,			\
+								.ops		= &s2mps11_buck_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= MIN_600_MV,				\
+																	  .uV_step	= STEP_6_25_MV,				\
+																			  .n_voltages	= S2MPS11_BUCK_N_VOLTAGES,		\
+																					  .ramp_delay	= S2MPS11_RAMP_DELAY,			\
+																							  .vsel_reg	= S2MPS11_REG_B1CTRL2 + (num - 1) * 2,	\
+																									  .vsel_mask	= S2MPS11_BUCK_VSEL_MASK,		\
+																											  .enable_reg	= S2MPS11_REG_B1CTRL1 + (num - 1) * 2,	\
+																													  .enable_mask	= S2MPS11_ENABLE_MASK			\
+	}
 
 #define regulator_desc_s2mps11_buck5 {				\
-	.name		= "BUCK5",				\
-	.id		= S2MPS11_BUCK5,			\
-	.ops		= &s2mps11_buck_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= MIN_600_MV,				\
-	.uV_step	= STEP_6_25_MV,				\
-	.n_voltages	= S2MPS11_BUCK_N_VOLTAGES,		\
-	.ramp_delay	= S2MPS11_RAMP_DELAY,			\
-	.vsel_reg	= S2MPS11_REG_B5CTRL2,			\
-	.vsel_mask	= S2MPS11_BUCK_VSEL_MASK,		\
-	.enable_reg	= S2MPS11_REG_B5CTRL1,			\
-	.enable_mask	= S2MPS11_ENABLE_MASK			\
-}
+		.name		= "BUCK5",				\
+					  .id		= S2MPS11_BUCK5,			\
+								.ops		= &s2mps11_buck_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= MIN_600_MV,				\
+																	  .uV_step	= STEP_6_25_MV,				\
+																			  .n_voltages	= S2MPS11_BUCK_N_VOLTAGES,		\
+																					  .ramp_delay	= S2MPS11_RAMP_DELAY,			\
+																							  .vsel_reg	= S2MPS11_REG_B5CTRL2,			\
+																									  .vsel_mask	= S2MPS11_BUCK_VSEL_MASK,		\
+																											  .enable_reg	= S2MPS11_REG_B5CTRL1,			\
+																													  .enable_mask	= S2MPS11_ENABLE_MASK			\
+	}
 
 #define regulator_desc_s2mps11_buck67810(num, min, step) {	\
-	.name		= "BUCK"#num,				\
-	.id		= S2MPS11_BUCK##num,			\
-	.ops		= &s2mps11_buck_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= min,					\
-	.uV_step	= step,					\
-	.n_voltages	= S2MPS11_BUCK_N_VOLTAGES,		\
-	.ramp_delay	= S2MPS11_RAMP_DELAY,			\
-	.vsel_reg	= S2MPS11_REG_B6CTRL2 + (num - 6) * 2,	\
-	.vsel_mask	= S2MPS11_BUCK_VSEL_MASK,		\
-	.enable_reg	= S2MPS11_REG_B6CTRL1 + (num - 6) * 2,	\
-	.enable_mask	= S2MPS11_ENABLE_MASK			\
-}
+		.name		= "BUCK"#num,				\
+					  .id		= S2MPS11_BUCK##num,			\
+								.ops		= &s2mps11_buck_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= min,					\
+																	  .uV_step	= step,					\
+																			  .n_voltages	= S2MPS11_BUCK_N_VOLTAGES,		\
+																					  .ramp_delay	= S2MPS11_RAMP_DELAY,			\
+																							  .vsel_reg	= S2MPS11_REG_B6CTRL2 + (num - 6) * 2,	\
+																									  .vsel_mask	= S2MPS11_BUCK_VSEL_MASK,		\
+																											  .enable_reg	= S2MPS11_REG_B6CTRL1 + (num - 6) * 2,	\
+																													  .enable_mask	= S2MPS11_ENABLE_MASK			\
+	}
 
 #define regulator_desc_s2mps11_buck9 {				\
-	.name		= "BUCK9",				\
-	.id		= S2MPS11_BUCK9,			\
-	.ops		= &s2mps11_buck_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= MIN_3000_MV,				\
-	.uV_step	= STEP_25_MV,				\
-	.n_voltages	= S2MPS11_BUCK9_N_VOLTAGES,		\
-	.ramp_delay	= S2MPS11_RAMP_DELAY,			\
-	.vsel_reg	= S2MPS11_REG_B9CTRL2,			\
-	.vsel_mask	= S2MPS11_BUCK9_VSEL_MASK,		\
-	.enable_reg	= S2MPS11_REG_B9CTRL1,			\
-	.enable_mask	= S2MPS11_ENABLE_MASK			\
-}
+		.name		= "BUCK9",				\
+					  .id		= S2MPS11_BUCK9,			\
+								.ops		= &s2mps11_buck_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= MIN_3000_MV,				\
+																	  .uV_step	= STEP_25_MV,				\
+																			  .n_voltages	= S2MPS11_BUCK9_N_VOLTAGES,		\
+																					  .ramp_delay	= S2MPS11_RAMP_DELAY,			\
+																							  .vsel_reg	= S2MPS11_REG_B9CTRL2,			\
+																									  .vsel_mask	= S2MPS11_BUCK9_VSEL_MASK,		\
+																											  .enable_reg	= S2MPS11_REG_B9CTRL1,			\
+																													  .enable_mask	= S2MPS11_ENABLE_MASK			\
+	}
 
-static const struct regulator_desc s2mps11_regulators[] = {
+static const struct regulator_desc s2mps11_regulators[] =
+{
 	regulator_desc_s2mps11_ldo(1, STEP_25_MV),
 	regulator_desc_s2mps11_ldo(2, STEP_50_MV),
 	regulator_desc_s2mps11_ldo(3, STEP_50_MV),
@@ -395,73 +456,74 @@ static const struct regulator_desc s2mps11_regulators[] = {
 static struct regulator_ops s2mps14_reg_ops;
 
 #define regulator_desc_s2mps13_ldo(num, min, step, min_sel) {	\
-	.name		= "LDO"#num,				\
-	.id		= S2MPS13_LDO##num,			\
-	.ops		= &s2mps14_reg_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= min,					\
-	.uV_step	= step,					\
-	.linear_min_sel	= min_sel,				\
-	.n_voltages	= S2MPS14_LDO_N_VOLTAGES,		\
-	.vsel_reg	= S2MPS13_REG_L1CTRL + num - 1,		\
-	.vsel_mask	= S2MPS14_LDO_VSEL_MASK,		\
-	.enable_reg	= S2MPS13_REG_L1CTRL + num - 1,		\
-	.enable_mask	= S2MPS14_ENABLE_MASK			\
-}
+		.name		= "LDO"#num,				\
+					  .id		= S2MPS13_LDO##num,			\
+								.ops		= &s2mps14_reg_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= min,					\
+																	  .uV_step	= step,					\
+																			  .linear_min_sel	= min_sel,				\
+																					  .n_voltages	= S2MPS14_LDO_N_VOLTAGES,		\
+																							  .vsel_reg	= S2MPS13_REG_L1CTRL + num - 1,		\
+																									  .vsel_mask	= S2MPS14_LDO_VSEL_MASK,		\
+																											  .enable_reg	= S2MPS13_REG_L1CTRL + num - 1,		\
+																													  .enable_mask	= S2MPS14_ENABLE_MASK			\
+	}
 
 #define regulator_desc_s2mps13_buck(num, min, step, min_sel) {	\
-	.name		= "BUCK"#num,				\
-	.id		= S2MPS13_BUCK##num,			\
-	.ops		= &s2mps14_reg_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= min,					\
-	.uV_step	= step,					\
-	.linear_min_sel	= min_sel,				\
-	.n_voltages	= S2MPS14_BUCK_N_VOLTAGES,		\
-	.ramp_delay	= S2MPS13_BUCK_RAMP_DELAY,		\
-	.vsel_reg	= S2MPS13_REG_B1OUT + (num - 1) * 2,	\
-	.vsel_mask	= S2MPS14_BUCK_VSEL_MASK,		\
-	.enable_reg	= S2MPS13_REG_B1CTRL + (num - 1) * 2,	\
-	.enable_mask	= S2MPS14_ENABLE_MASK			\
-}
+		.name		= "BUCK"#num,				\
+					  .id		= S2MPS13_BUCK##num,			\
+								.ops		= &s2mps14_reg_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= min,					\
+																	  .uV_step	= step,					\
+																			  .linear_min_sel	= min_sel,				\
+																					  .n_voltages	= S2MPS14_BUCK_N_VOLTAGES,		\
+																							  .ramp_delay	= S2MPS13_BUCK_RAMP_DELAY,		\
+																									  .vsel_reg	= S2MPS13_REG_B1OUT + (num - 1) * 2,	\
+																											  .vsel_mask	= S2MPS14_BUCK_VSEL_MASK,		\
+																													  .enable_reg	= S2MPS13_REG_B1CTRL + (num - 1) * 2,	\
+																															  .enable_mask	= S2MPS14_ENABLE_MASK			\
+	}
 
 #define regulator_desc_s2mps13_buck7(num, min, step, min_sel) {	\
-	.name		= "BUCK"#num,				\
-	.id		= S2MPS13_BUCK##num,			\
-	.ops		= &s2mps14_reg_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= min,					\
-	.uV_step	= step,					\
-	.linear_min_sel	= min_sel,				\
-	.n_voltages	= S2MPS14_BUCK_N_VOLTAGES,		\
-	.ramp_delay	= S2MPS13_BUCK_RAMP_DELAY,		\
-	.vsel_reg	= S2MPS13_REG_B1OUT + (num) * 2 - 1,	\
-	.vsel_mask	= S2MPS14_BUCK_VSEL_MASK,		\
-	.enable_reg	= S2MPS13_REG_B1CTRL + (num - 1) * 2,	\
-	.enable_mask	= S2MPS14_ENABLE_MASK			\
-}
+		.name		= "BUCK"#num,				\
+					  .id		= S2MPS13_BUCK##num,			\
+								.ops		= &s2mps14_reg_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= min,					\
+																	  .uV_step	= step,					\
+																			  .linear_min_sel	= min_sel,				\
+																					  .n_voltages	= S2MPS14_BUCK_N_VOLTAGES,		\
+																							  .ramp_delay	= S2MPS13_BUCK_RAMP_DELAY,		\
+																									  .vsel_reg	= S2MPS13_REG_B1OUT + (num) * 2 - 1,	\
+																											  .vsel_mask	= S2MPS14_BUCK_VSEL_MASK,		\
+																													  .enable_reg	= S2MPS13_REG_B1CTRL + (num - 1) * 2,	\
+																															  .enable_mask	= S2MPS14_ENABLE_MASK			\
+	}
 
 #define regulator_desc_s2mps13_buck8_10(num, min, step, min_sel) {	\
-	.name		= "BUCK"#num,				\
-	.id		= S2MPS13_BUCK##num,			\
-	.ops		= &s2mps14_reg_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= min,					\
-	.uV_step	= step,					\
-	.linear_min_sel	= min_sel,				\
-	.n_voltages	= S2MPS14_BUCK_N_VOLTAGES,		\
-	.ramp_delay	= S2MPS13_BUCK_RAMP_DELAY,		\
-	.vsel_reg	= S2MPS13_REG_B1OUT + (num) * 2 - 1,	\
-	.vsel_mask	= S2MPS14_BUCK_VSEL_MASK,		\
-	.enable_reg	= S2MPS13_REG_B1CTRL + (num) * 2 - 1,	\
-	.enable_mask	= S2MPS14_ENABLE_MASK			\
-}
+		.name		= "BUCK"#num,				\
+					  .id		= S2MPS13_BUCK##num,			\
+								.ops		= &s2mps14_reg_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= min,					\
+																	  .uV_step	= step,					\
+																			  .linear_min_sel	= min_sel,				\
+																					  .n_voltages	= S2MPS14_BUCK_N_VOLTAGES,		\
+																							  .ramp_delay	= S2MPS13_BUCK_RAMP_DELAY,		\
+																									  .vsel_reg	= S2MPS13_REG_B1OUT + (num) * 2 - 1,	\
+																											  .vsel_mask	= S2MPS14_BUCK_VSEL_MASK,		\
+																													  .enable_reg	= S2MPS13_REG_B1CTRL + (num) * 2 - 1,	\
+																															  .enable_mask	= S2MPS14_ENABLE_MASK			\
+	}
 
-static const struct regulator_desc s2mps13_regulators[] = {
+static const struct regulator_desc s2mps13_regulators[] =
+{
 	regulator_desc_s2mps13_ldo(1,  MIN_800_MV,  STEP_12_5_MV, 0x00),
 	regulator_desc_s2mps13_ldo(2,  MIN_1400_MV, STEP_50_MV,   0x0C),
 	regulator_desc_s2mps13_ldo(3,  MIN_1000_MV, STEP_25_MV,   0x08),
@@ -519,28 +581,43 @@ static int s2mps14_regulator_enable(struct regulator_dev *rdev)
 	struct s2mps11_info *s2mps11 = rdev_get_drvdata(rdev);
 	unsigned int val;
 
-	switch (s2mps11->dev_type) {
-	case S2MPS13X:
-	case S2MPS14X:
-		if (test_bit(rdev_get_id(rdev), s2mps11->suspend_state))
-			val = S2MPS14_ENABLE_SUSPEND;
-		else if (gpio_is_valid(s2mps11->ext_control_gpio[rdev_get_id(rdev)]))
-			val = S2MPS14_ENABLE_EXT_CONTROL;
-		else
-			val = rdev->desc->enable_mask;
-		break;
-	case S2MPU02:
-		if (test_bit(rdev_get_id(rdev), s2mps11->suspend_state))
-			val = S2MPU02_ENABLE_SUSPEND;
-		else
-			val = rdev->desc->enable_mask;
-		break;
-	default:
-		return -EINVAL;
+	switch (s2mps11->dev_type)
+	{
+		case S2MPS13X:
+		case S2MPS14X:
+			if (test_bit(rdev_get_id(rdev), s2mps11->suspend_state))
+			{
+				val = S2MPS14_ENABLE_SUSPEND;
+			}
+			else if (gpio_is_valid(s2mps11->ext_control_gpio[rdev_get_id(rdev)]))
+			{
+				val = S2MPS14_ENABLE_EXT_CONTROL;
+			}
+			else
+			{
+				val = rdev->desc->enable_mask;
+			}
+
+			break;
+
+		case S2MPU02:
+			if (test_bit(rdev_get_id(rdev), s2mps11->suspend_state))
+			{
+				val = S2MPU02_ENABLE_SUSPEND;
+			}
+			else
+			{
+				val = rdev->desc->enable_mask;
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return regmap_update_bits(rdev->regmap, rdev->desc->enable_reg,
-			rdev->desc->enable_mask, val);
+							  rdev->desc->enable_mask, val);
 }
 
 static int s2mps14_regulator_set_suspend_disable(struct regulator_dev *rdev)
@@ -551,40 +628,53 @@ static int s2mps14_regulator_set_suspend_disable(struct regulator_dev *rdev)
 	int rdev_id = rdev_get_id(rdev);
 
 	/* Below LDO should be always on or does not support suspend mode. */
-	switch (s2mps11->dev_type) {
-	case S2MPS13X:
-	case S2MPS14X:
-		switch (rdev_id) {
-		case S2MPS14_LDO3:
-			return 0;
+	switch (s2mps11->dev_type)
+	{
+		case S2MPS13X:
+		case S2MPS14X:
+			switch (rdev_id)
+			{
+				case S2MPS14_LDO3:
+					return 0;
+
+				default:
+					state = S2MPS14_ENABLE_SUSPEND;
+					break;
+			}
+
+			break;
+
+		case S2MPU02:
+			switch (rdev_id)
+			{
+				case S2MPU02_LDO13:
+				case S2MPU02_LDO14:
+				case S2MPU02_LDO15:
+				case S2MPU02_LDO17:
+				case S2MPU02_BUCK7:
+					state = S2MPU02_DISABLE_SUSPEND;
+					break;
+
+				default:
+					state = S2MPU02_ENABLE_SUSPEND;
+					break;
+			}
+
+			break;
+
 		default:
-			state = S2MPS14_ENABLE_SUSPEND;
-			break;
-		}
-		break;
-	case S2MPU02:
-		switch (rdev_id) {
-		case S2MPU02_LDO13:
-		case S2MPU02_LDO14:
-		case S2MPU02_LDO15:
-		case S2MPU02_LDO17:
-		case S2MPU02_BUCK7:
-			state = S2MPU02_DISABLE_SUSPEND;
-			break;
-		default:
-			state = S2MPU02_ENABLE_SUSPEND;
-			break;
-		}
-		break;
-	default:
-		return -EINVAL;
+			return -EINVAL;
 	}
 
 	ret = regmap_read(rdev->regmap, rdev->desc->enable_reg, &val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	set_bit(rdev_get_id(rdev), s2mps11->suspend_state);
+
 	/*
 	 * Don't enable suspend mode if regulator is already disabled because
 	 * this would effectively for a short time turn on the regulator after
@@ -593,13 +683,16 @@ static int s2mps14_regulator_set_suspend_disable(struct regulator_dev *rdev)
 	 * in case if it got enabled before suspending the system.
 	 */
 	if (!(val & rdev->desc->enable_mask))
+	{
 		return 0;
+	}
 
 	return regmap_update_bits(rdev->regmap, rdev->desc->enable_reg,
-			rdev->desc->enable_mask, state);
+							  rdev->desc->enable_mask, state);
 }
 
-static struct regulator_ops s2mps14_reg_ops = {
+static struct regulator_ops s2mps14_reg_ops =
+{
 	.list_voltage		= regulator_list_voltage_linear,
 	.map_voltage		= regulator_map_voltage_linear,
 	.is_enabled		= regulator_is_enabled_regmap,
@@ -612,38 +705,39 @@ static struct regulator_ops s2mps14_reg_ops = {
 };
 
 #define regulator_desc_s2mps14_ldo(num, min, step) {	\
-	.name		= "LDO"#num,			\
-	.id		= S2MPS14_LDO##num,		\
-	.ops		= &s2mps14_reg_ops,		\
-	.type		= REGULATOR_VOLTAGE,		\
-	.owner		= THIS_MODULE,			\
-	.min_uV		= min,				\
-	.uV_step	= step,				\
-	.n_voltages	= S2MPS14_LDO_N_VOLTAGES,	\
-	.vsel_reg	= S2MPS14_REG_L1CTRL + num - 1,	\
-	.vsel_mask	= S2MPS14_LDO_VSEL_MASK,	\
-	.enable_reg	= S2MPS14_REG_L1CTRL + num - 1,	\
-	.enable_mask	= S2MPS14_ENABLE_MASK		\
-}
+		.name		= "LDO"#num,			\
+					  .id		= S2MPS14_LDO##num,		\
+								.ops		= &s2mps14_reg_ops,		\
+											  .type		= REGULATOR_VOLTAGE,		\
+													  .owner		= THIS_MODULE,			\
+															  .min_uV		= min,				\
+																	  .uV_step	= step,				\
+																			  .n_voltages	= S2MPS14_LDO_N_VOLTAGES,	\
+																					  .vsel_reg	= S2MPS14_REG_L1CTRL + num - 1,	\
+																							  .vsel_mask	= S2MPS14_LDO_VSEL_MASK,	\
+																									  .enable_reg	= S2MPS14_REG_L1CTRL + num - 1,	\
+																											  .enable_mask	= S2MPS14_ENABLE_MASK		\
+	}
 
 #define regulator_desc_s2mps14_buck(num, min, step, min_sel) {	\
-	.name		= "BUCK"#num,				\
-	.id		= S2MPS14_BUCK##num,			\
-	.ops		= &s2mps14_reg_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= min,					\
-	.uV_step	= step,					\
-	.n_voltages	= S2MPS14_BUCK_N_VOLTAGES,		\
-	.linear_min_sel = min_sel,				\
-	.ramp_delay	= S2MPS14_BUCK_RAMP_DELAY,		\
-	.vsel_reg	= S2MPS14_REG_B1CTRL2 + (num - 1) * 2,	\
-	.vsel_mask	= S2MPS14_BUCK_VSEL_MASK,		\
-	.enable_reg	= S2MPS14_REG_B1CTRL1 + (num - 1) * 2,	\
-	.enable_mask	= S2MPS14_ENABLE_MASK			\
-}
+		.name		= "BUCK"#num,				\
+					  .id		= S2MPS14_BUCK##num,			\
+								.ops		= &s2mps14_reg_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= min,					\
+																	  .uV_step	= step,					\
+																			  .n_voltages	= S2MPS14_BUCK_N_VOLTAGES,		\
+																					  .linear_min_sel = min_sel,				\
+																							  .ramp_delay	= S2MPS14_BUCK_RAMP_DELAY,		\
+																									  .vsel_reg	= S2MPS14_REG_B1CTRL2 + (num - 1) * 2,	\
+																											  .vsel_mask	= S2MPS14_BUCK_VSEL_MASK,		\
+																													  .enable_reg	= S2MPS14_REG_B1CTRL1 + (num - 1) * 2,	\
+																															  .enable_mask	= S2MPS14_ENABLE_MASK			\
+	}
 
-static const struct regulator_desc s2mps14_regulators[] = {
+static const struct regulator_desc s2mps14_regulators[] =
+{
 	regulator_desc_s2mps14_ldo(1, MIN_800_MV, STEP_12_5_MV),
 	regulator_desc_s2mps14_ldo(2, MIN_800_MV, STEP_12_5_MV),
 	regulator_desc_s2mps14_ldo(3, MIN_800_MV, STEP_25_MV),
@@ -670,18 +764,19 @@ static const struct regulator_desc s2mps14_regulators[] = {
 	regulator_desc_s2mps14_ldo(24, MIN_1800_MV, STEP_25_MV),
 	regulator_desc_s2mps14_ldo(25, MIN_1800_MV, STEP_25_MV),
 	regulator_desc_s2mps14_buck(1, MIN_600_MV, STEP_6_25_MV,
-				    S2MPS14_BUCK1235_START_SEL),
+	S2MPS14_BUCK1235_START_SEL),
 	regulator_desc_s2mps14_buck(2, MIN_600_MV, STEP_6_25_MV,
-				    S2MPS14_BUCK1235_START_SEL),
+	S2MPS14_BUCK1235_START_SEL),
 	regulator_desc_s2mps14_buck(3, MIN_600_MV, STEP_6_25_MV,
-				    S2MPS14_BUCK1235_START_SEL),
+	S2MPS14_BUCK1235_START_SEL),
 	regulator_desc_s2mps14_buck(4, MIN_1400_MV, STEP_12_5_MV,
-				    S2MPS14_BUCK4_START_SEL),
+	S2MPS14_BUCK4_START_SEL),
 	regulator_desc_s2mps14_buck(5, MIN_600_MV, STEP_6_25_MV,
-				    S2MPS14_BUCK1235_START_SEL),
+	S2MPS14_BUCK1235_START_SEL),
 };
 
-static struct regulator_ops s2mps15_reg_ldo_ops = {
+static struct regulator_ops s2mps15_reg_ldo_ops =
+{
 	.list_voltage		= regulator_list_voltage_linear_range,
 	.map_voltage		= regulator_map_voltage_linear_range,
 	.is_enabled		= regulator_is_enabled_regmap,
@@ -691,7 +786,8 @@ static struct regulator_ops s2mps15_reg_ldo_ops = {
 	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
 };
 
-static struct regulator_ops s2mps15_reg_buck_ops = {
+static struct regulator_ops s2mps15_reg_buck_ops =
+{
 	.list_voltage		= regulator_list_voltage_linear_range,
 	.map_voltage		= regulator_map_voltage_linear_range,
 	.is_enabled		= regulator_is_enabled_regmap,
@@ -703,72 +799,80 @@ static struct regulator_ops s2mps15_reg_buck_ops = {
 };
 
 #define regulator_desc_s2mps15_ldo(num, range) {	\
-	.name		= "LDO"#num,			\
-	.id		= S2MPS15_LDO##num,		\
-	.ops		= &s2mps15_reg_ldo_ops,		\
-	.type		= REGULATOR_VOLTAGE,		\
-	.owner		= THIS_MODULE,			\
-	.linear_ranges	= range,			\
-	.n_linear_ranges = ARRAY_SIZE(range),		\
-	.n_voltages	= S2MPS15_LDO_N_VOLTAGES,	\
-	.vsel_reg	= S2MPS15_REG_L1CTRL + num - 1,	\
-	.vsel_mask	= S2MPS15_LDO_VSEL_MASK,	\
-	.enable_reg	= S2MPS15_REG_L1CTRL + num - 1,	\
-	.enable_mask	= S2MPS15_ENABLE_MASK		\
-}
+		.name		= "LDO"#num,			\
+					  .id		= S2MPS15_LDO##num,		\
+								.ops		= &s2mps15_reg_ldo_ops,		\
+											  .type		= REGULATOR_VOLTAGE,		\
+													  .owner		= THIS_MODULE,			\
+															  .linear_ranges	= range,			\
+																	  .n_linear_ranges = ARRAY_SIZE(range),		\
+																			  .n_voltages	= S2MPS15_LDO_N_VOLTAGES,	\
+																					  .vsel_reg	= S2MPS15_REG_L1CTRL + num - 1,	\
+																							  .vsel_mask	= S2MPS15_LDO_VSEL_MASK,	\
+																									  .enable_reg	= S2MPS15_REG_L1CTRL + num - 1,	\
+																											  .enable_mask	= S2MPS15_ENABLE_MASK		\
+	}
 
 #define regulator_desc_s2mps15_buck(num, range) {			\
-	.name		= "BUCK"#num,					\
-	.id		= S2MPS15_BUCK##num,				\
-	.ops		= &s2mps15_reg_buck_ops,			\
-	.type		= REGULATOR_VOLTAGE,				\
-	.owner		= THIS_MODULE,					\
-	.linear_ranges	= range,					\
-	.n_linear_ranges = ARRAY_SIZE(range),				\
-	.ramp_delay	= 12500,					\
-	.n_voltages	= S2MPS15_BUCK_N_VOLTAGES,			\
-	.vsel_reg	= S2MPS15_REG_B1CTRL2 + ((num - 1) * 2),	\
-	.vsel_mask	= S2MPS15_BUCK_VSEL_MASK,			\
-	.enable_reg	= S2MPS15_REG_B1CTRL1 + ((num - 1) * 2),	\
-	.enable_mask	= S2MPS15_ENABLE_MASK				\
-}
+		.name		= "BUCK"#num,					\
+					  .id		= S2MPS15_BUCK##num,				\
+								.ops		= &s2mps15_reg_buck_ops,			\
+											  .type		= REGULATOR_VOLTAGE,				\
+													  .owner		= THIS_MODULE,					\
+															  .linear_ranges	= range,					\
+																	  .n_linear_ranges = ARRAY_SIZE(range),				\
+																			  .ramp_delay	= 12500,					\
+																					  .n_voltages	= S2MPS15_BUCK_N_VOLTAGES,			\
+																							  .vsel_reg	= S2MPS15_REG_B1CTRL2 + ((num - 1) * 2),	\
+																									  .vsel_mask	= S2MPS15_BUCK_VSEL_MASK,			\
+																											  .enable_reg	= S2MPS15_REG_B1CTRL1 + ((num - 1) * 2),	\
+																													  .enable_mask	= S2MPS15_ENABLE_MASK				\
+	}
 
 /* voltage range for s2mps15 LDO 3, 5, 15, 16, 18, 20, 23 and 27 */
-static const struct regulator_linear_range s2mps15_ldo_voltage_ranges1[] = {
+static const struct regulator_linear_range s2mps15_ldo_voltage_ranges1[] =
+{
 	REGULATOR_LINEAR_RANGE(1000000, 0xc, 0x38, 25000),
 };
 
 /* voltage range for s2mps15 LDO 2, 6, 14, 17, 19, 21, 24 and 25 */
-static const struct regulator_linear_range s2mps15_ldo_voltage_ranges2[] = {
+static const struct regulator_linear_range s2mps15_ldo_voltage_ranges2[] =
+{
 	REGULATOR_LINEAR_RANGE(1800000, 0x0, 0x3f, 25000),
 };
 
 /* voltage range for s2mps15 LDO 4, 11, 12, 13, 22 and 26 */
-static const struct regulator_linear_range s2mps15_ldo_voltage_ranges3[] = {
+static const struct regulator_linear_range s2mps15_ldo_voltage_ranges3[] =
+{
 	REGULATOR_LINEAR_RANGE(700000, 0x0, 0x34, 12500),
 };
 
 /* voltage range for s2mps15 LDO 7, 8, 9 and 10 */
-static const struct regulator_linear_range s2mps15_ldo_voltage_ranges4[] = {
+static const struct regulator_linear_range s2mps15_ldo_voltage_ranges4[] =
+{
 	REGULATOR_LINEAR_RANGE(700000, 0x10, 0x20, 25000),
 };
 
 /* voltage range for s2mps15 LDO 1 */
-static const struct regulator_linear_range s2mps15_ldo_voltage_ranges5[] = {
+static const struct regulator_linear_range s2mps15_ldo_voltage_ranges5[] =
+{
 	REGULATOR_LINEAR_RANGE(500000, 0x0, 0x20, 12500),
 };
 
 /* voltage range for s2mps15 BUCK 1, 2, 3, 4, 5, 6 and 7 */
-static const struct regulator_linear_range s2mps15_buck_voltage_ranges1[] = {
+static const struct regulator_linear_range s2mps15_buck_voltage_ranges1[] =
+{
 	REGULATOR_LINEAR_RANGE(500000, 0x20, 0xc0, 6250),
 };
 
 /* voltage range for s2mps15 BUCK 8, 9 and 10 */
-static const struct regulator_linear_range s2mps15_buck_voltage_ranges2[] = {
+static const struct regulator_linear_range s2mps15_buck_voltage_ranges2[] =
+{
 	REGULATOR_LINEAR_RANGE(1000000, 0x20, 0x78, 12500),
 };
 
-static const struct regulator_desc s2mps15_regulators[] = {
+static const struct regulator_desc s2mps15_regulators[] =
+{
 	regulator_desc_s2mps15_ldo(1, s2mps15_ldo_voltage_ranges5),
 	regulator_desc_s2mps15_ldo(2, s2mps15_ldo_voltage_ranges2),
 	regulator_desc_s2mps15_ldo(3, s2mps15_ldo_voltage_ranges1),
@@ -812,7 +916,7 @@ static int s2mps14_pmic_enable_ext_control(struct s2mps11_info *s2mps11,
 		struct regulator_dev *rdev)
 {
 	return regmap_update_bits(rdev->regmap, rdev->desc->enable_reg,
-			rdev->desc->enable_mask, S2MPS14_ENABLE_EXT_CONTROL);
+							  rdev->desc->enable_mask, S2MPS14_ENABLE_EXT_CONTROL);
 }
 
 static void s2mps14_pmic_dt_parse_ext_control_gpio(struct platform_device *pdev,
@@ -821,16 +925,21 @@ static void s2mps14_pmic_dt_parse_ext_control_gpio(struct platform_device *pdev,
 	int *gpio = s2mps11->ext_control_gpio;
 	unsigned int i;
 	unsigned int valid_regulators[3] = { S2MPS14_LDO10, S2MPS14_LDO11,
-		S2MPS14_LDO12 };
+										 S2MPS14_LDO12
+									   };
 
-	for (i = 0; i < ARRAY_SIZE(valid_regulators); i++) {
+	for (i = 0; i < ARRAY_SIZE(valid_regulators); i++)
+	{
 		unsigned int reg = valid_regulators[i];
 
 		if (!rdata[reg].init_data || !rdata[reg].of_node)
+		{
 			continue;
+		}
 
 		gpio[reg] = of_get_named_gpio(rdata[reg].of_node,
-				"samsung,ext-control-gpios", 0);
+									  "samsung,ext-control-gpios", 0);
+
 		if (gpio_is_valid(gpio[reg]))
 			dev_dbg(&pdev->dev, "Using GPIO %d for ext-control over %d/%s\n",
 					gpio[reg], reg, rdata[reg].name);
@@ -838,20 +947,25 @@ static void s2mps14_pmic_dt_parse_ext_control_gpio(struct platform_device *pdev,
 }
 
 static int s2mps11_pmic_dt_parse(struct platform_device *pdev,
-		struct of_regulator_match *rdata, struct s2mps11_info *s2mps11,
-		unsigned int rdev_num)
+								 struct of_regulator_match *rdata, struct s2mps11_info *s2mps11,
+								 unsigned int rdev_num)
 {
 	struct device_node *reg_np;
 
 	reg_np = of_get_child_by_name(pdev->dev.parent->of_node, "regulators");
-	if (!reg_np) {
+
+	if (!reg_np)
+	{
 		dev_err(&pdev->dev, "could not find regulators sub-node\n");
 		return -EINVAL;
 	}
 
 	of_regulator_match(&pdev->dev, reg_np, rdata, rdev_num);
+
 	if (s2mps11->dev_type == S2MPS14X)
+	{
 		s2mps14_pmic_dt_parse_ext_control_gpio(pdev, rdata, s2mps11);
+	}
 
 	of_node_put(reg_np);
 
@@ -862,31 +976,38 @@ static int s2mpu02_set_ramp_delay(struct regulator_dev *rdev, int ramp_delay)
 {
 	unsigned int ramp_val, ramp_shift, ramp_reg;
 
-	switch (rdev_get_id(rdev)) {
-	case S2MPU02_BUCK1:
-		ramp_shift = S2MPU02_BUCK1_RAMP_SHIFT;
-		break;
-	case S2MPU02_BUCK2:
-		ramp_shift = S2MPU02_BUCK2_RAMP_SHIFT;
-		break;
-	case S2MPU02_BUCK3:
-		ramp_shift = S2MPU02_BUCK3_RAMP_SHIFT;
-		break;
-	case S2MPU02_BUCK4:
-		ramp_shift = S2MPU02_BUCK4_RAMP_SHIFT;
-		break;
-	default:
-		return 0;
+	switch (rdev_get_id(rdev))
+	{
+		case S2MPU02_BUCK1:
+			ramp_shift = S2MPU02_BUCK1_RAMP_SHIFT;
+			break;
+
+		case S2MPU02_BUCK2:
+			ramp_shift = S2MPU02_BUCK2_RAMP_SHIFT;
+			break;
+
+		case S2MPU02_BUCK3:
+			ramp_shift = S2MPU02_BUCK3_RAMP_SHIFT;
+			break;
+
+		case S2MPU02_BUCK4:
+			ramp_shift = S2MPU02_BUCK4_RAMP_SHIFT;
+			break;
+
+		default:
+			return 0;
 	}
+
 	ramp_reg = S2MPU02_REG_RAMP1;
 	ramp_val = get_ramp_delay(ramp_delay);
 
 	return regmap_update_bits(rdev->regmap, ramp_reg,
-				  S2MPU02_BUCK1234_RAMP_MASK << ramp_shift,
-				  ramp_val << ramp_shift);
+							  S2MPU02_BUCK1234_RAMP_MASK << ramp_shift,
+							  ramp_val << ramp_shift);
 }
 
-static struct regulator_ops s2mpu02_ldo_ops = {
+static struct regulator_ops s2mpu02_ldo_ops =
+{
 	.list_voltage		= regulator_list_voltage_linear,
 	.map_voltage		= regulator_map_voltage_linear,
 	.is_enabled		= regulator_is_enabled_regmap,
@@ -898,7 +1019,8 @@ static struct regulator_ops s2mpu02_ldo_ops = {
 	.set_suspend_disable	= s2mps14_regulator_set_suspend_disable,
 };
 
-static struct regulator_ops s2mpu02_buck_ops = {
+static struct regulator_ops s2mpu02_buck_ops =
+{
 	.list_voltage		= regulator_list_voltage_linear,
 	.map_voltage		= regulator_map_voltage_linear,
 	.is_enabled		= regulator_is_enabled_regmap,
@@ -912,147 +1034,148 @@ static struct regulator_ops s2mpu02_buck_ops = {
 };
 
 #define regulator_desc_s2mpu02_ldo1(num) {		\
-	.name		= "LDO"#num,			\
-	.id		= S2MPU02_LDO##num,		\
-	.ops		= &s2mpu02_ldo_ops,		\
-	.type		= REGULATOR_VOLTAGE,		\
-	.owner		= THIS_MODULE,			\
-	.min_uV		= S2MPU02_LDO_MIN_900MV,	\
-	.uV_step	= S2MPU02_LDO_STEP_12_5MV,	\
-	.linear_min_sel	= S2MPU02_LDO_GROUP1_START_SEL,	\
-	.n_voltages	= S2MPU02_LDO_N_VOLTAGES,	\
-	.vsel_reg	= S2MPU02_REG_L1CTRL,		\
-	.vsel_mask	= S2MPU02_LDO_VSEL_MASK,	\
-	.enable_reg	= S2MPU02_REG_L1CTRL,		\
-	.enable_mask	= S2MPU02_ENABLE_MASK		\
-}
+		.name		= "LDO"#num,			\
+					  .id		= S2MPU02_LDO##num,		\
+								.ops		= &s2mpu02_ldo_ops,		\
+											  .type		= REGULATOR_VOLTAGE,		\
+													  .owner		= THIS_MODULE,			\
+															  .min_uV		= S2MPU02_LDO_MIN_900MV,	\
+																	  .uV_step	= S2MPU02_LDO_STEP_12_5MV,	\
+																			  .linear_min_sel	= S2MPU02_LDO_GROUP1_START_SEL,	\
+																					  .n_voltages	= S2MPU02_LDO_N_VOLTAGES,	\
+																							  .vsel_reg	= S2MPU02_REG_L1CTRL,		\
+																									  .vsel_mask	= S2MPU02_LDO_VSEL_MASK,	\
+																											  .enable_reg	= S2MPU02_REG_L1CTRL,		\
+																													  .enable_mask	= S2MPU02_ENABLE_MASK		\
+	}
 #define regulator_desc_s2mpu02_ldo2(num) {		\
-	.name		= "LDO"#num,			\
-	.id		= S2MPU02_LDO##num,		\
-	.ops		= &s2mpu02_ldo_ops,		\
-	.type		= REGULATOR_VOLTAGE,		\
-	.owner		= THIS_MODULE,			\
-	.min_uV		= S2MPU02_LDO_MIN_1050MV,	\
-	.uV_step	= S2MPU02_LDO_STEP_25MV,	\
-	.linear_min_sel	= S2MPU02_LDO_GROUP2_START_SEL,	\
-	.n_voltages	= S2MPU02_LDO_N_VOLTAGES,	\
-	.vsel_reg	= S2MPU02_REG_L2CTRL1,		\
-	.vsel_mask	= S2MPU02_LDO_VSEL_MASK,	\
-	.enable_reg	= S2MPU02_REG_L2CTRL1,		\
-	.enable_mask	= S2MPU02_ENABLE_MASK		\
-}
+		.name		= "LDO"#num,			\
+					  .id		= S2MPU02_LDO##num,		\
+								.ops		= &s2mpu02_ldo_ops,		\
+											  .type		= REGULATOR_VOLTAGE,		\
+													  .owner		= THIS_MODULE,			\
+															  .min_uV		= S2MPU02_LDO_MIN_1050MV,	\
+																	  .uV_step	= S2MPU02_LDO_STEP_25MV,	\
+																			  .linear_min_sel	= S2MPU02_LDO_GROUP2_START_SEL,	\
+																					  .n_voltages	= S2MPU02_LDO_N_VOLTAGES,	\
+																							  .vsel_reg	= S2MPU02_REG_L2CTRL1,		\
+																									  .vsel_mask	= S2MPU02_LDO_VSEL_MASK,	\
+																											  .enable_reg	= S2MPU02_REG_L2CTRL1,		\
+																													  .enable_mask	= S2MPU02_ENABLE_MASK		\
+	}
 #define regulator_desc_s2mpu02_ldo3(num) {		\
-	.name		= "LDO"#num,			\
-	.id		= S2MPU02_LDO##num,		\
-	.ops		= &s2mpu02_ldo_ops,		\
-	.type		= REGULATOR_VOLTAGE,		\
-	.owner		= THIS_MODULE,			\
-	.min_uV		= S2MPU02_LDO_MIN_900MV,	\
-	.uV_step	= S2MPU02_LDO_STEP_12_5MV,	\
-	.linear_min_sel	= S2MPU02_LDO_GROUP1_START_SEL,	\
-	.n_voltages	= S2MPU02_LDO_N_VOLTAGES,	\
-	.vsel_reg	= S2MPU02_REG_L3CTRL + num - 3,	\
-	.vsel_mask	= S2MPU02_LDO_VSEL_MASK,	\
-	.enable_reg	= S2MPU02_REG_L3CTRL + num - 3,	\
-	.enable_mask	= S2MPU02_ENABLE_MASK		\
-}
+		.name		= "LDO"#num,			\
+					  .id		= S2MPU02_LDO##num,		\
+								.ops		= &s2mpu02_ldo_ops,		\
+											  .type		= REGULATOR_VOLTAGE,		\
+													  .owner		= THIS_MODULE,			\
+															  .min_uV		= S2MPU02_LDO_MIN_900MV,	\
+																	  .uV_step	= S2MPU02_LDO_STEP_12_5MV,	\
+																			  .linear_min_sel	= S2MPU02_LDO_GROUP1_START_SEL,	\
+																					  .n_voltages	= S2MPU02_LDO_N_VOLTAGES,	\
+																							  .vsel_reg	= S2MPU02_REG_L3CTRL + num - 3,	\
+																									  .vsel_mask	= S2MPU02_LDO_VSEL_MASK,	\
+																											  .enable_reg	= S2MPU02_REG_L3CTRL + num - 3,	\
+																													  .enable_mask	= S2MPU02_ENABLE_MASK		\
+	}
 #define regulator_desc_s2mpu02_ldo4(num) {		\
-	.name		= "LDO"#num,			\
-	.id		= S2MPU02_LDO##num,		\
-	.ops		= &s2mpu02_ldo_ops,		\
-	.type		= REGULATOR_VOLTAGE,		\
-	.owner		= THIS_MODULE,			\
-	.min_uV		= S2MPU02_LDO_MIN_1050MV,	\
-	.uV_step	= S2MPU02_LDO_STEP_25MV,	\
-	.linear_min_sel	= S2MPU02_LDO_GROUP2_START_SEL,	\
-	.n_voltages	= S2MPU02_LDO_N_VOLTAGES,	\
-	.vsel_reg	= S2MPU02_REG_L3CTRL + num - 3,	\
-	.vsel_mask	= S2MPU02_LDO_VSEL_MASK,	\
-	.enable_reg	= S2MPU02_REG_L3CTRL + num - 3,	\
-	.enable_mask	= S2MPU02_ENABLE_MASK		\
-}
+		.name		= "LDO"#num,			\
+					  .id		= S2MPU02_LDO##num,		\
+								.ops		= &s2mpu02_ldo_ops,		\
+											  .type		= REGULATOR_VOLTAGE,		\
+													  .owner		= THIS_MODULE,			\
+															  .min_uV		= S2MPU02_LDO_MIN_1050MV,	\
+																	  .uV_step	= S2MPU02_LDO_STEP_25MV,	\
+																			  .linear_min_sel	= S2MPU02_LDO_GROUP2_START_SEL,	\
+																					  .n_voltages	= S2MPU02_LDO_N_VOLTAGES,	\
+																							  .vsel_reg	= S2MPU02_REG_L3CTRL + num - 3,	\
+																									  .vsel_mask	= S2MPU02_LDO_VSEL_MASK,	\
+																											  .enable_reg	= S2MPU02_REG_L3CTRL + num - 3,	\
+																													  .enable_mask	= S2MPU02_ENABLE_MASK		\
+	}
 #define regulator_desc_s2mpu02_ldo5(num) {		\
-	.name		= "LDO"#num,			\
-	.id		= S2MPU02_LDO##num,		\
-	.ops		= &s2mpu02_ldo_ops,		\
-	.type		= REGULATOR_VOLTAGE,		\
-	.owner		= THIS_MODULE,			\
-	.min_uV		= S2MPU02_LDO_MIN_1600MV,	\
-	.uV_step	= S2MPU02_LDO_STEP_50MV,	\
-	.linear_min_sel	= S2MPU02_LDO_GROUP3_START_SEL,	\
-	.n_voltages	= S2MPU02_LDO_N_VOLTAGES,	\
-	.vsel_reg	= S2MPU02_REG_L3CTRL + num - 3,	\
-	.vsel_mask	= S2MPU02_LDO_VSEL_MASK,	\
-	.enable_reg	= S2MPU02_REG_L3CTRL + num - 3,	\
-	.enable_mask	= S2MPU02_ENABLE_MASK		\
-}
+		.name		= "LDO"#num,			\
+					  .id		= S2MPU02_LDO##num,		\
+								.ops		= &s2mpu02_ldo_ops,		\
+											  .type		= REGULATOR_VOLTAGE,		\
+													  .owner		= THIS_MODULE,			\
+															  .min_uV		= S2MPU02_LDO_MIN_1600MV,	\
+																	  .uV_step	= S2MPU02_LDO_STEP_50MV,	\
+																			  .linear_min_sel	= S2MPU02_LDO_GROUP3_START_SEL,	\
+																					  .n_voltages	= S2MPU02_LDO_N_VOLTAGES,	\
+																							  .vsel_reg	= S2MPU02_REG_L3CTRL + num - 3,	\
+																									  .vsel_mask	= S2MPU02_LDO_VSEL_MASK,	\
+																											  .enable_reg	= S2MPU02_REG_L3CTRL + num - 3,	\
+																													  .enable_mask	= S2MPU02_ENABLE_MASK		\
+	}
 
 #define regulator_desc_s2mpu02_buck1234(num) {			\
-	.name		= "BUCK"#num,				\
-	.id		= S2MPU02_BUCK##num,			\
-	.ops		= &s2mpu02_buck_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= S2MPU02_BUCK1234_MIN_600MV,		\
-	.uV_step	= S2MPU02_BUCK1234_STEP_6_25MV,		\
-	.n_voltages	= S2MPU02_BUCK_N_VOLTAGES,		\
-	.linear_min_sel = S2MPU02_BUCK1234_START_SEL,		\
-	.ramp_delay	= S2MPU02_BUCK_RAMP_DELAY,		\
-	.vsel_reg	= S2MPU02_REG_B1CTRL2 + (num - 1) * 2,	\
-	.vsel_mask	= S2MPU02_BUCK_VSEL_MASK,		\
-	.enable_reg	= S2MPU02_REG_B1CTRL1 + (num - 1) * 2,	\
-	.enable_mask	= S2MPU02_ENABLE_MASK			\
-}
+		.name		= "BUCK"#num,				\
+					  .id		= S2MPU02_BUCK##num,			\
+								.ops		= &s2mpu02_buck_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= S2MPU02_BUCK1234_MIN_600MV,		\
+																	  .uV_step	= S2MPU02_BUCK1234_STEP_6_25MV,		\
+																			  .n_voltages	= S2MPU02_BUCK_N_VOLTAGES,		\
+																					  .linear_min_sel = S2MPU02_BUCK1234_START_SEL,		\
+																							  .ramp_delay	= S2MPU02_BUCK_RAMP_DELAY,		\
+																									  .vsel_reg	= S2MPU02_REG_B1CTRL2 + (num - 1) * 2,	\
+																											  .vsel_mask	= S2MPU02_BUCK_VSEL_MASK,		\
+																													  .enable_reg	= S2MPU02_REG_B1CTRL1 + (num - 1) * 2,	\
+																															  .enable_mask	= S2MPU02_ENABLE_MASK			\
+	}
 #define regulator_desc_s2mpu02_buck5(num) {			\
-	.name		= "BUCK"#num,				\
-	.id		= S2MPU02_BUCK##num,			\
-	.ops		= &s2mpu02_ldo_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= S2MPU02_BUCK5_MIN_1081_25MV,		\
-	.uV_step	= S2MPU02_BUCK5_STEP_6_25MV,		\
-	.n_voltages	= S2MPU02_BUCK_N_VOLTAGES,		\
-	.linear_min_sel = S2MPU02_BUCK5_START_SEL,		\
-	.ramp_delay	= S2MPU02_BUCK_RAMP_DELAY,		\
-	.vsel_reg	= S2MPU02_REG_B5CTRL2,			\
-	.vsel_mask	= S2MPU02_BUCK_VSEL_MASK,		\
-	.enable_reg	= S2MPU02_REG_B5CTRL1,			\
-	.enable_mask	= S2MPU02_ENABLE_MASK			\
-}
+		.name		= "BUCK"#num,				\
+					  .id		= S2MPU02_BUCK##num,			\
+								.ops		= &s2mpu02_ldo_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= S2MPU02_BUCK5_MIN_1081_25MV,		\
+																	  .uV_step	= S2MPU02_BUCK5_STEP_6_25MV,		\
+																			  .n_voltages	= S2MPU02_BUCK_N_VOLTAGES,		\
+																					  .linear_min_sel = S2MPU02_BUCK5_START_SEL,		\
+																							  .ramp_delay	= S2MPU02_BUCK_RAMP_DELAY,		\
+																									  .vsel_reg	= S2MPU02_REG_B5CTRL2,			\
+																											  .vsel_mask	= S2MPU02_BUCK_VSEL_MASK,		\
+																													  .enable_reg	= S2MPU02_REG_B5CTRL1,			\
+																															  .enable_mask	= S2MPU02_ENABLE_MASK			\
+	}
 #define regulator_desc_s2mpu02_buck6(num) {			\
-	.name		= "BUCK"#num,				\
-	.id		= S2MPU02_BUCK##num,			\
-	.ops		= &s2mpu02_ldo_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= S2MPU02_BUCK6_MIN_1700MV,		\
-	.uV_step	= S2MPU02_BUCK6_STEP_2_50MV,		\
-	.n_voltages	= S2MPU02_BUCK_N_VOLTAGES,		\
-	.linear_min_sel = S2MPU02_BUCK6_START_SEL,		\
-	.ramp_delay	= S2MPU02_BUCK_RAMP_DELAY,		\
-	.vsel_reg	= S2MPU02_REG_B6CTRL2,			\
-	.vsel_mask	= S2MPU02_BUCK_VSEL_MASK,		\
-	.enable_reg	= S2MPU02_REG_B6CTRL1,			\
-	.enable_mask	= S2MPU02_ENABLE_MASK			\
-}
+		.name		= "BUCK"#num,				\
+					  .id		= S2MPU02_BUCK##num,			\
+								.ops		= &s2mpu02_ldo_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= S2MPU02_BUCK6_MIN_1700MV,		\
+																	  .uV_step	= S2MPU02_BUCK6_STEP_2_50MV,		\
+																			  .n_voltages	= S2MPU02_BUCK_N_VOLTAGES,		\
+																					  .linear_min_sel = S2MPU02_BUCK6_START_SEL,		\
+																							  .ramp_delay	= S2MPU02_BUCK_RAMP_DELAY,		\
+																									  .vsel_reg	= S2MPU02_REG_B6CTRL2,			\
+																											  .vsel_mask	= S2MPU02_BUCK_VSEL_MASK,		\
+																													  .enable_reg	= S2MPU02_REG_B6CTRL1,			\
+																															  .enable_mask	= S2MPU02_ENABLE_MASK			\
+	}
 #define regulator_desc_s2mpu02_buck7(num) {			\
-	.name		= "BUCK"#num,				\
-	.id		= S2MPU02_BUCK##num,			\
-	.ops		= &s2mpu02_ldo_ops,			\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.min_uV		= S2MPU02_BUCK7_MIN_900MV,		\
-	.uV_step	= S2MPU02_BUCK7_STEP_6_25MV,		\
-	.n_voltages	= S2MPU02_BUCK_N_VOLTAGES,		\
-	.linear_min_sel = S2MPU02_BUCK7_START_SEL,		\
-	.ramp_delay	= S2MPU02_BUCK_RAMP_DELAY,		\
-	.vsel_reg	= S2MPU02_REG_B7CTRL2,			\
-	.vsel_mask	= S2MPU02_BUCK_VSEL_MASK,		\
-	.enable_reg	= S2MPU02_REG_B7CTRL1,			\
-	.enable_mask	= S2MPU02_ENABLE_MASK			\
-}
+		.name		= "BUCK"#num,				\
+					  .id		= S2MPU02_BUCK##num,			\
+								.ops		= &s2mpu02_ldo_ops,			\
+											  .type		= REGULATOR_VOLTAGE,			\
+													  .owner		= THIS_MODULE,				\
+															  .min_uV		= S2MPU02_BUCK7_MIN_900MV,		\
+																	  .uV_step	= S2MPU02_BUCK7_STEP_6_25MV,		\
+																			  .n_voltages	= S2MPU02_BUCK_N_VOLTAGES,		\
+																					  .linear_min_sel = S2MPU02_BUCK7_START_SEL,		\
+																							  .ramp_delay	= S2MPU02_BUCK_RAMP_DELAY,		\
+																									  .vsel_reg	= S2MPU02_REG_B7CTRL2,			\
+																											  .vsel_mask	= S2MPU02_BUCK_VSEL_MASK,		\
+																													  .enable_reg	= S2MPU02_REG_B7CTRL1,			\
+																															  .enable_mask	= S2MPU02_ENABLE_MASK			\
+	}
 
-static const struct regulator_desc s2mpu02_regulators[] = {
+static const struct regulator_desc s2mpu02_regulators[] =
+{
 	regulator_desc_s2mpu02_ldo1(1),
 	regulator_desc_s2mpu02_ldo2(2),
 	regulator_desc_s2mpu02_ldo4(3),
@@ -1102,76 +1225,104 @@ static int s2mps11_pmic_probe(struct platform_device *pdev)
 	const struct regulator_desc *regulators;
 
 	s2mps11 = devm_kzalloc(&pdev->dev, sizeof(struct s2mps11_info),
-				GFP_KERNEL);
+						   GFP_KERNEL);
+
 	if (!s2mps11)
+	{
 		return -ENOMEM;
+	}
 
 	s2mps11->dev_type = platform_get_device_id(pdev)->driver_data;
-	switch (s2mps11->dev_type) {
-	case S2MPS11X:
-		rdev_num = ARRAY_SIZE(s2mps11_regulators);
-		regulators = s2mps11_regulators;
-		BUILD_BUG_ON(S2MPS_REGULATOR_MAX < ARRAY_SIZE(s2mps11_regulators));
-		break;
-	case S2MPS13X:
-		rdev_num = ARRAY_SIZE(s2mps13_regulators);
-		regulators = s2mps13_regulators;
-		BUILD_BUG_ON(S2MPS_REGULATOR_MAX < ARRAY_SIZE(s2mps13_regulators));
-		break;
-	case S2MPS14X:
-		rdev_num = ARRAY_SIZE(s2mps14_regulators);
-		regulators = s2mps14_regulators;
-		BUILD_BUG_ON(S2MPS_REGULATOR_MAX < ARRAY_SIZE(s2mps14_regulators));
-		break;
-	case S2MPS15X:
-		rdev_num = ARRAY_SIZE(s2mps15_regulators);
-		regulators = s2mps15_regulators;
-		BUILD_BUG_ON(S2MPS_REGULATOR_MAX < ARRAY_SIZE(s2mps15_regulators));
-		break;
-	case S2MPU02:
-		rdev_num = ARRAY_SIZE(s2mpu02_regulators);
-		regulators = s2mpu02_regulators;
-		BUILD_BUG_ON(S2MPS_REGULATOR_MAX < ARRAY_SIZE(s2mpu02_regulators));
-		break;
-	default:
-		dev_err(&pdev->dev, "Invalid device type: %u\n",
-				    s2mps11->dev_type);
-		return -EINVAL;
+
+	switch (s2mps11->dev_type)
+	{
+		case S2MPS11X:
+			rdev_num = ARRAY_SIZE(s2mps11_regulators);
+			regulators = s2mps11_regulators;
+			BUILD_BUG_ON(S2MPS_REGULATOR_MAX < ARRAY_SIZE(s2mps11_regulators));
+			break;
+
+		case S2MPS13X:
+			rdev_num = ARRAY_SIZE(s2mps13_regulators);
+			regulators = s2mps13_regulators;
+			BUILD_BUG_ON(S2MPS_REGULATOR_MAX < ARRAY_SIZE(s2mps13_regulators));
+			break;
+
+		case S2MPS14X:
+			rdev_num = ARRAY_SIZE(s2mps14_regulators);
+			regulators = s2mps14_regulators;
+			BUILD_BUG_ON(S2MPS_REGULATOR_MAX < ARRAY_SIZE(s2mps14_regulators));
+			break;
+
+		case S2MPS15X:
+			rdev_num = ARRAY_SIZE(s2mps15_regulators);
+			regulators = s2mps15_regulators;
+			BUILD_BUG_ON(S2MPS_REGULATOR_MAX < ARRAY_SIZE(s2mps15_regulators));
+			break;
+
+		case S2MPU02:
+			rdev_num = ARRAY_SIZE(s2mpu02_regulators);
+			regulators = s2mpu02_regulators;
+			BUILD_BUG_ON(S2MPS_REGULATOR_MAX < ARRAY_SIZE(s2mpu02_regulators));
+			break;
+
+		default:
+			dev_err(&pdev->dev, "Invalid device type: %u\n",
+					s2mps11->dev_type);
+			return -EINVAL;
 	}
 
 	s2mps11->ext_control_gpio = devm_kmalloc(&pdev->dev,
-			sizeof(*s2mps11->ext_control_gpio) * rdev_num,
-			GFP_KERNEL);
+								sizeof(*s2mps11->ext_control_gpio) * rdev_num,
+								GFP_KERNEL);
+
 	if (!s2mps11->ext_control_gpio)
+	{
 		return -ENOMEM;
+	}
+
 	/*
 	 * 0 is a valid GPIO so initialize all GPIO-s to negative value
 	 * to indicate that external control won't be used for this regulator.
 	 */
 	for (i = 0; i < rdev_num; i++)
+	{
 		s2mps11->ext_control_gpio[i] = -EINVAL;
+	}
 
-	if (!iodev->dev->of_node) {
-		if (iodev->pdata) {
+	if (!iodev->dev->of_node)
+	{
+		if (iodev->pdata)
+		{
 			pdata = iodev->pdata;
 			goto common_reg;
-		} else {
+		}
+		else
+		{
 			dev_err(pdev->dev.parent,
-				"Platform data or DT node not supplied\n");
+					"Platform data or DT node not supplied\n");
 			return -ENODEV;
 		}
 	}
 
 	rdata = kzalloc(sizeof(*rdata) * rdev_num, GFP_KERNEL);
+
 	if (!rdata)
+	{
 		return -ENOMEM;
+	}
 
 	for (i = 0; i < rdev_num; i++)
+	{
 		rdata[i].name = regulators[i].name;
+	}
 
 	ret = s2mps11_pmic_dt_parse(pdev, rdata, s2mps11, rdev_num);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 common_reg:
 	platform_set_drvdata(pdev, s2mps11);
@@ -1181,31 +1332,42 @@ common_reg:
 	config.driver_data = s2mps11;
 	config.ena_gpio_flags = GPIOF_OUT_INIT_HIGH;
 	config.ena_gpio_initialized = true;
-	for (i = 0; i < rdev_num; i++) {
+
+	for (i = 0; i < rdev_num; i++)
+	{
 		struct regulator_dev *regulator;
 
-		if (pdata) {
+		if (pdata)
+		{
 			config.init_data = pdata->regulators[i].initdata;
 			config.of_node = pdata->regulators[i].reg_node;
-		} else {
+		}
+		else
+		{
 			config.init_data = rdata[i].init_data;
 			config.of_node = rdata[i].of_node;
 		}
+
 		config.ena_gpio = s2mps11->ext_control_gpio[i];
 
 		regulator = devm_regulator_register(&pdev->dev,
-						&regulators[i], &config);
-		if (IS_ERR(regulator)) {
+											&regulators[i], &config);
+
+		if (IS_ERR(regulator))
+		{
 			ret = PTR_ERR(regulator);
 			dev_err(&pdev->dev, "regulator init failed for %d\n",
-				i);
+					i);
 			goto out;
 		}
 
-		if (gpio_is_valid(s2mps11->ext_control_gpio[i])) {
+		if (gpio_is_valid(s2mps11->ext_control_gpio[i]))
+		{
 			ret = s2mps14_pmic_enable_ext_control(s2mps11,
-					regulator);
-			if (ret < 0) {
+												  regulator);
+
+			if (ret < 0)
+			{
 				dev_err(&pdev->dev,
 						"failed to enable GPIO control over %s: %d\n",
 						regulator->desc->name, ret);
@@ -1220,7 +1382,8 @@ out:
 	return ret;
 }
 
-static const struct platform_device_id s2mps11_pmic_id[] = {
+static const struct platform_device_id s2mps11_pmic_id[] =
+{
 	{ "s2mps11-regulator", S2MPS11X},
 	{ "s2mps13-regulator", S2MPS13X},
 	{ "s2mps14-regulator", S2MPS14X},
@@ -1230,7 +1393,8 @@ static const struct platform_device_id s2mps11_pmic_id[] = {
 };
 MODULE_DEVICE_TABLE(platform, s2mps11_pmic_id);
 
-static struct platform_driver s2mps11_pmic_driver = {
+static struct platform_driver s2mps11_pmic_driver =
+{
 	.driver = {
 		.name = "s2mps11-pmic",
 	},

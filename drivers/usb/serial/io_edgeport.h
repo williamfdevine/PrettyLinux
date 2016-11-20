@@ -27,7 +27,7 @@
 #endif
 
 #ifndef __KERNEL__
-#define __KERNEL__
+	#define __KERNEL__
 #endif
 
 #include "io_usbvend.h"
@@ -38,8 +38,9 @@
  * the device serial number (or physical USB path), */
 #define MAX_EDGEPORTS	64
 
-struct comMapper {
-	char	SerialNumber[MAX_SERIALNUMBER_LEN+1];	/* Serial number/usb path */
+struct comMapper
+{
+	char	SerialNumber[MAX_SERIALNUMBER_LEN + 1];	/* Serial number/usb path */
 	int	numPorts;				/* Number of ports */
 	int	Original[MAX_RS232_PORTS];		/* Port numbers set by IOCTL */
 	int	Port[MAX_RS232_PORTS];			/* Actual used port numbers */
@@ -69,9 +70,11 @@ struct comMapper {
 
 
 /* The following structure is passed to the write */
-struct procWrite {
+struct procWrite
+{
 	int	Command;
-	union {
+	union
+	{
 		struct comMapper	Entry;
 		int			ComMappingBasedOnUSBPort;	/* Boolean value */
 	} u;
@@ -80,16 +83,17 @@ struct procWrite {
 /*
  *	Product information read from the Edgeport
  */
-struct edgeport_product_info {
+struct edgeport_product_info
+{
 	__u16	ProductId;			/* Product Identifier */
 	__u8	NumPorts;			/* Number of ports on edgeport */
 	__u8	ProdInfoVer;			/* What version of structure is this? */
 
-	__u32	IsServer        :1;		/* Set if Server */
-	__u32	IsRS232         :1;		/* Set if RS-232 ports exist */
-	__u32	IsRS422         :1;		/* Set if RS-422 ports exist */
-	__u32	IsRS485         :1;		/* Set if RS-485 ports exist */
-	__u32	IsReserved      :28;		/* Reserved for later expansion */
+	__u32	IsServer        : 1;		/* Set if Server */
+	__u32	IsRS232         : 1;		/* Set if RS-232 ports exist */
+	__u32	IsRS422         : 1;		/* Set if RS-422 ports exist */
+	__u32	IsRS485         : 1;		/* Set if RS-485 ports exist */
+	__u32	IsReserved      : 28;		/* Reserved for later expansion */
 
 	__u8	RomSize;			/* Size of ROM/E2PROM in K */
 	__u8	RamSize;			/* Size of external RAM in K */
@@ -124,7 +128,8 @@ struct edgeport_product_info {
 #define EDGESTRING_MANUFDATE		6	/* Manufacture Date */
 #define EDGESTRING_ORIGSERIALNUM	7	/* Serial Number */
 
-struct string_block {
+struct string_block
+{
 	__u16	NumStrings;			/* Number of strings in block */
 	__u16	Strings[1];			/* Start of string block */
 };

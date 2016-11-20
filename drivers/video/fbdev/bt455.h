@@ -13,7 +13,8 @@
 /*
  * Bt455 byte-wide registers, 32-bit aligned.
  */
-struct bt455_regs {
+struct bt455_regs
+{
 	volatile u8 addr_cmap;
 	u8 pad0[3];
 	volatile u8 addr_cmap_data;
@@ -70,14 +71,14 @@ static inline void bt455_write_ovly_next(struct bt455_regs *regs, u8 grey)
 }
 
 static inline void bt455_read_cmap_entry(struct bt455_regs *regs,
-					 int cr, u8 *grey)
+		int cr, u8 *grey)
 {
 	bt455_select_reg(regs, cr);
 	bt455_read_cmap_next(regs, grey);
 }
 
 static inline void bt455_write_cmap_entry(struct bt455_regs *regs,
-					  int cr, u8 grey)
+		int cr, u8 grey)
 {
 	bt455_select_reg(regs, cr);
 	bt455_write_cmap_next(regs, grey);

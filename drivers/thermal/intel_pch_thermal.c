@@ -60,7 +60,8 @@
 
 static char driver_name[] = "Intel PCH thermal driver";
 
-struct pch_thermal_device {
+struct pch_thermal_device
+{
 	void __iomem *hw_base;
 	const struct pch_dev_ops *ops;
 	struct pci_dev *pdev;
@@ -82,24 +83,30 @@ struct pch_thermal_device {
  * passive temperature setting in MMIO interface of this PCI device.
  */
 static void pch_wpt_add_acpi_psv_trip(struct pch_thermal_device *ptd,
-				      int *nr_trips)
+									  int *nr_trips)
 {
 	struct acpi_device *adev;
 
 	ptd->psv_trip_id = -1;
 
 	adev = ACPI_COMPANION(&ptd->pdev->dev);
-	if (adev) {
+
+	if (adev)
+	{
 		unsigned long long r;
 		acpi_status status;
 
 		status = acpi_evaluate_integer(adev->handle, "_PSV", NULL,
-					       &r);
-		if (ACPI_SUCCESS(status)) {
+									   &r);
+
+		if (ACPI_SUCCESS(status))
+		{
 			unsigned long trip_temp;
 
 			trip_temp = DECI_KELVIN_TO_MILLICELSIUS(r);
-			if (trip_temp) {
+
+			if (trip_temp)
+			{
 				ptd->psv_temp = trip_temp;
 				ptd->psv_trip_id = *nr_trips;
 				++(*nr_trips);
@@ -109,7 +116,7 @@ static void pch_wpt_add_acpi_psv_trip(struct pch_thermal_device *ptd,
 }
 #else
 static void pch_wpt_add_acpi_psv_trip(struct pch_thermal_device *ptd,
-				      int *nr_trips)
+									  int *nr_trips)
 {
 	ptd->psv_trip_id = -1;
 
@@ -124,23 +131,28 @@ static int pch_wpt_init(struct pch_thermal_device *ptd, int *nr_trips)
 	*nr_trips = 0;
 
 	/* Check if BIOS has already enabled thermal sensor */
-	if (WPT_TSS_TSDSS & readb(ptd->hw_base + WPT_TSS)) {
+	if (WPT_TSS_TSDSS & readb(ptd->hw_base + WPT_TSS))
+	{
 		ptd->bios_enabled = true;
 		goto read_trips;
 	}
 
 	tsel = readb(ptd->hw_base + WPT_TSEL);
+
 	/*
 	 * When TSEL's Policy Lock-Down bit is 1, TSEL become RO.
 	 * If so, thermal sensor cannot enable. Bail out.
 	 */
-	if (tsel & WPT_TSEL_PLDB) {
+	if (tsel & WPT_TSEL_PLDB)
+	{
 		dev_err(&ptd->pdev->dev, "Sensor can't be enabled\n");
 		return -ENODEV;
 	}
 
-	writeb(tsel|WPT_TSEL_ETS, ptd->hw_base + WPT_TSEL);
-	if (!(WPT_TSS_TSDSS & readb(ptd->hw_base + WPT_TSS))) {
+	writeb(tsel | WPT_TSEL_ETS, ptd->hw_base + WPT_TSEL);
+
+	if (!(WPT_TSS_TSDSS & readb(ptd->hw_base + WPT_TSS)))
+	{
 		dev_err(&ptd->pdev->dev, "Sensor can't be enabled\n");
 		return -ENODEV;
 	}
@@ -149,7 +161,9 @@ read_trips:
 	ptd->crt_trip_id = -1;
 	trip_temp = readw(ptd->hw_base + WPT_CTT);
 	trip_temp &= 0x1FF;
-	if (trip_temp) {
+
+	if (trip_temp)
+	{
 		/* Resolution of 1/2 degree C and an offset of -50C */
 		ptd->crt_temp = trip_temp * 1000 / 2 - 50000;
 		ptd->crt_trip_id = 0;
@@ -159,7 +173,9 @@ read_trips:
 	ptd->hot_trip_id = -1;
 	trip_temp = readw(ptd->hw_base + WPT_PHL);
 	trip_temp &= 0x1FF;
-	if (trip_temp) {
+
+	if (trip_temp)
+	{
 		/* Resolution of 1/2 degree C and an offset of -50C */
 		ptd->hot_temp = trip_temp * 1000 / 2 - 50000;
 		ptd->hot_trip_id = *nr_trips;
@@ -188,7 +204,9 @@ static int pch_wpt_suspend(struct pch_thermal_device *ptd)
 	u8 tsel;
 
 	if (ptd->bios_enabled)
+	{
 		return 0;
+	}
 
 	tsel = readb(ptd->hw_base + WPT_TSEL);
 
@@ -202,7 +220,9 @@ static int pch_wpt_resume(struct pch_thermal_device *ptd)
 	u8 tsel;
 
 	if (ptd->bios_enabled)
+	{
 		return 0;
+	}
 
 	tsel = readb(ptd->hw_base + WPT_TSEL);
 
@@ -211,7 +231,8 @@ static int pch_wpt_resume(struct pch_thermal_device *ptd)
 	return 0;
 }
 
-struct pch_dev_ops {
+struct pch_dev_ops
+{
 	int (*hw_init)(struct pch_thermal_device *ptd, int *nr_trips);
 	int (*get_temp)(struct pch_thermal_device *ptd, int *temp);
 	int (*suspend)(struct pch_thermal_device *ptd);
@@ -220,7 +241,8 @@ struct pch_dev_ops {
 
 
 /* dev ops for Wildcat Point */
-static const struct pch_dev_ops pch_dev_ops_wpt = {
+static const struct pch_dev_ops pch_dev_ops_wpt =
+{
 	.hw_init = pch_wpt_init,
 	.get_temp = pch_wpt_get_temp,
 	.suspend = pch_wpt_suspend,
@@ -235,18 +257,26 @@ static int pch_thermal_get_temp(struct thermal_zone_device *tzd, int *temp)
 }
 
 static int pch_get_trip_type(struct thermal_zone_device *tzd, int trip,
-			     enum thermal_trip_type *type)
+							 enum thermal_trip_type *type)
 {
 	struct pch_thermal_device *ptd = tzd->devdata;
 
 	if (ptd->crt_trip_id == trip)
+	{
 		*type = THERMAL_TRIP_CRITICAL;
+	}
 	else if (ptd->hot_trip_id == trip)
+	{
 		*type = THERMAL_TRIP_HOT;
+	}
 	else if (ptd->psv_trip_id == trip)
+	{
 		*type = THERMAL_TRIP_PASSIVE;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -256,18 +286,27 @@ static int pch_get_trip_temp(struct thermal_zone_device *tzd, int trip, int *tem
 	struct pch_thermal_device *ptd = tzd->devdata;
 
 	if (ptd->crt_trip_id == trip)
+	{
 		*temp = ptd->crt_temp;
+	}
 	else if (ptd->hot_trip_id == trip)
+	{
 		*temp = ptd->hot_temp;
+	}
 	else if (ptd->psv_trip_id == trip)
+	{
 		*temp = ptd->psv_temp;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
-static struct thermal_zone_device_ops tzd_ops = {
+static struct thermal_zone_device_ops tzd_ops =
+{
 	.get_temp = pch_thermal_get_temp,
 	.get_trip_type = pch_get_trip_type,
 	.get_trip_temp = pch_get_trip_temp,
@@ -275,7 +314,7 @@ static struct thermal_zone_device_ops tzd_ops = {
 
 
 static int intel_pch_thermal_probe(struct pci_dev *pdev,
-				   const struct pci_device_id *id)
+								   const struct pci_device_id *id)
 {
 	struct pch_thermal_device *ptd;
 	int err;
@@ -283,59 +322,77 @@ static int intel_pch_thermal_probe(struct pci_dev *pdev,
 	char *dev_name;
 
 	ptd = devm_kzalloc(&pdev->dev, sizeof(*ptd), GFP_KERNEL);
-	if (!ptd)
-		return -ENOMEM;
 
-	switch (pdev->device) {
-	case PCH_THERMAL_DID_WPT:
-		ptd->ops = &pch_dev_ops_wpt;
-		dev_name = "pch_wildcat_point";
-		break;
-	case PCH_THERMAL_DID_SKL:
-		ptd->ops = &pch_dev_ops_wpt;
-		dev_name = "pch_skylake";
-		break;
-	case PCH_THERMAL_DID_HSW_1:
-	case PCH_THERMAL_DID_HSW_2:
-		ptd->ops = &pch_dev_ops_wpt;
-		dev_name = "pch_haswell";
-		break;
-	default:
-		dev_err(&pdev->dev, "unknown pch thermal device\n");
-		return -ENODEV;
+	if (!ptd)
+	{
+		return -ENOMEM;
+	}
+
+	switch (pdev->device)
+	{
+		case PCH_THERMAL_DID_WPT:
+			ptd->ops = &pch_dev_ops_wpt;
+			dev_name = "pch_wildcat_point";
+			break;
+
+		case PCH_THERMAL_DID_SKL:
+			ptd->ops = &pch_dev_ops_wpt;
+			dev_name = "pch_skylake";
+			break;
+
+		case PCH_THERMAL_DID_HSW_1:
+		case PCH_THERMAL_DID_HSW_2:
+			ptd->ops = &pch_dev_ops_wpt;
+			dev_name = "pch_haswell";
+			break;
+
+		default:
+			dev_err(&pdev->dev, "unknown pch thermal device\n");
+			return -ENODEV;
 	}
 
 	pci_set_drvdata(pdev, ptd);
 	ptd->pdev = pdev;
 
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to enable pci device\n");
 		return err;
 	}
 
 	err = pci_request_regions(pdev, driver_name);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to request pci region\n");
 		goto error_disable;
 	}
 
 	ptd->hw_base = pci_ioremap_bar(pdev, 0);
-	if (!ptd->hw_base) {
+
+	if (!ptd->hw_base)
+	{
 		err = -ENOMEM;
 		dev_err(&pdev->dev, "failed to map mem base\n");
 		goto error_release;
 	}
 
 	err = ptd->ops->hw_init(ptd, &nr_trips);
+
 	if (err)
+	{
 		goto error_cleanup;
+	}
 
 	ptd->tzd = thermal_zone_device_register(dev_name, nr_trips, 0, ptd,
-						&tzd_ops, NULL, 0, 0);
-	if (IS_ERR(ptd->tzd)) {
+											&tzd_ops, NULL, 0, 0);
+
+	if (IS_ERR(ptd->tzd))
+	{
 		dev_err(&pdev->dev, "Failed to register thermal zone %s\n",
-			dev_name);
+				dev_name);
 		err = PTR_ERR(ptd->tzd);
 		goto error_cleanup;
 	}
@@ -379,7 +436,8 @@ static int intel_pch_thermal_resume(struct device *device)
 	return ptd->ops->resume(ptd);
 }
 
-static struct pci_device_id intel_pch_thermal_id[] = {
+static struct pci_device_id intel_pch_thermal_id[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCH_THERMAL_DID_WPT) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCH_THERMAL_DID_SKL) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCH_THERMAL_DID_HSW_1) },
@@ -388,12 +446,14 @@ static struct pci_device_id intel_pch_thermal_id[] = {
 };
 MODULE_DEVICE_TABLE(pci, intel_pch_thermal_id);
 
-static const struct dev_pm_ops intel_pch_pm_ops = {
+static const struct dev_pm_ops intel_pch_pm_ops =
+{
 	.suspend = intel_pch_thermal_suspend,
 	.resume = intel_pch_thermal_resume,
 };
 
-static struct pci_driver intel_pch_thermal_driver = {
+static struct pci_driver intel_pch_thermal_driver =
+{
 	.name		= "intel_pch_thermal",
 	.id_table	= intel_pch_thermal_id,
 	.probe		= intel_pch_thermal_probe,

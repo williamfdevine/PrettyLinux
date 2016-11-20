@@ -40,7 +40,8 @@ static void mask_and_ack_8259A(struct irq_data *d);
 static void init_8259A(int auto_eoi);
 static int (*i8259_poll)(void) = i8259_irq;
 
-static struct irq_chip i8259A_chip = {
+static struct irq_chip i8259A_chip =
+{
 	.name			= "XT-PIC",
 	.irq_mask		= disable_8259A_irq,
 	.irq_disable		= disable_8259A_irq,
@@ -73,10 +74,16 @@ static void disable_8259A_irq(struct irq_data *d)
 	mask = 1 << irq;
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
 	cached_irq_mask |= mask;
+
 	if (irq & 8)
+	{
 		outb(cached_slave_mask, PIC_SLAVE_IMR);
+	}
 	else
+	{
 		outb(cached_master_mask, PIC_MASTER_IMR);
+	}
+
 	raw_spin_unlock_irqrestore(&i8259A_lock, flags);
 }
 
@@ -88,10 +95,16 @@ static void enable_8259A_irq(struct irq_data *d)
 	mask = ~(1 << irq);
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
 	cached_irq_mask &= mask;
+
 	if (irq & 8)
+	{
 		outb(cached_slave_mask, PIC_SLAVE_IMR);
+	}
 	else
+	{
 		outb(cached_master_mask, PIC_MASTER_IMR);
+	}
+
 	raw_spin_unlock_irqrestore(&i8259A_lock, flags);
 }
 
@@ -113,12 +126,14 @@ static inline int i8259A_irq_real(unsigned int irq)
 	int value;
 	int irqmask = 1 << irq;
 
-	if (irq < 8) {
+	if (irq < 8)
+	{
 		outb(0x0B, PIC_MASTER_CMD);	/* ISR register */
 		value = inb(PIC_MASTER_CMD) & irqmask;
 		outb(0x0A, PIC_MASTER_CMD);	/* back to the IRR register */
 		return value;
 	}
+
 	outb(0x0B, PIC_SLAVE_CMD);	/* ISR register */
 	value = inb(PIC_SLAVE_CMD) & (irqmask >> 8);
 	outb(0x0A, PIC_SLAVE_CMD);	/* back to the IRR register */
@@ -138,6 +153,7 @@ static void mask_and_ack_8259A(struct irq_data *d)
 
 	irqmask = 1 << irq;
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
+
 	/*
 	 * Lightweight spurious IRQ detection. We do not want
 	 * to overdo spurious IRQ handling - it's usually a sign
@@ -154,24 +170,33 @@ static void mask_and_ack_8259A(struct irq_data *d)
 	 * is something bad going on ...
 	 */
 	if (cached_irq_mask & irqmask)
+	{
 		goto spurious_8259A_irq;
+	}
+
 	cached_irq_mask |= irqmask;
 
 handle_real_irq:
-	if (irq & 8) {
+
+	if (irq & 8)
+	{
 		inb(PIC_SLAVE_IMR);	/* DUMMY - (do we need this?) */
 		outb(cached_slave_mask, PIC_SLAVE_IMR);
-		outb(0x60+(irq&7), PIC_SLAVE_CMD);/* 'Specific EOI' to slave */
-		outb(0x60+PIC_CASCADE_IR, PIC_MASTER_CMD); /* 'Specific EOI' to master-IRQ2 */
-	} else {
+		outb(0x60 + (irq & 7), PIC_SLAVE_CMD); /* 'Specific EOI' to slave */
+		outb(0x60 + PIC_CASCADE_IR, PIC_MASTER_CMD); /* 'Specific EOI' to master-IRQ2 */
+	}
+	else
+	{
 		inb(PIC_MASTER_IMR);	/* DUMMY - (do we need this?) */
 		outb(cached_master_mask, PIC_MASTER_IMR);
-		outb(0x60+irq, PIC_MASTER_CMD); /* 'Specific EOI to master */
+		outb(0x60 + irq, PIC_MASTER_CMD); /* 'Specific EOI to master */
 	}
+
 	raw_spin_unlock_irqrestore(&i8259A_lock, flags);
 	return;
 
 spurious_8259A_irq:
+
 	/*
 	 * this is the slow path - should happen rarely.
 	 */
@@ -180,18 +205,23 @@ spurious_8259A_irq:
 		 * oops, the IRQ _is_ in service according to the
 		 * 8259A - not spurious, go handle it.
 		 */
+	{
 		goto handle_real_irq;
+	}
 
 	{
 		static int spurious_irq_mask;
+
 		/*
 		 * At this point we can be sure the IRQ is spurious,
 		 * lets ACK and report it. [once per IRQ]
 		 */
-		if (!(spurious_irq_mask & irqmask)) {
+		if (!(spurious_irq_mask & irqmask))
+		{
 			printk(KERN_DEBUG "spurious 8259A interrupt: IRQ%d.\n", irq);
 			spurious_irq_mask |= irqmask;
 		}
+
 		atomic_inc(&irq_err_count);
 		/*
 		 * Theoretically we do not have to handle this IRQ,
@@ -205,7 +235,9 @@ spurious_8259A_irq:
 static void i8259A_resume(void)
 {
 	if (i8259A_auto_eoi >= 0)
+	{
 		init_8259A(i8259A_auto_eoi);
+	}
 }
 
 static void i8259A_shutdown(void)
@@ -214,13 +246,15 @@ static void i8259A_shutdown(void)
 	 * the kernel initialization code can get it
 	 * out of.
 	 */
-	if (i8259A_auto_eoi >= 0) {
+	if (i8259A_auto_eoi >= 0)
+	{
 		outb(0xff, PIC_MASTER_IMR);	/* mask all of 8259A-1 */
 		outb(0xff, PIC_SLAVE_IMR);	/* mask all of 8259A-2 */
 	}
 }
 
-static struct syscore_ops i8259_syscore_ops = {
+static struct syscore_ops i8259_syscore_ops =
+{
 	.resume = i8259A_resume,
 	.shutdown = i8259A_shutdown,
 };
@@ -250,23 +284,33 @@ static void init_8259A(int auto_eoi)
 	outb_p(0x11, PIC_MASTER_CMD);	/* ICW1: select 8259A-1 init */
 	outb_p(I8259A_IRQ_BASE + 0, PIC_MASTER_IMR);	/* ICW2: 8259A-1 IR0 mapped to I8259A_IRQ_BASE + 0x00 */
 	outb_p(1U << PIC_CASCADE_IR, PIC_MASTER_IMR);	/* 8259A-1 (the master) has a slave on IR2 */
+
 	if (auto_eoi)	/* master does Auto EOI */
+	{
 		outb_p(MASTER_ICW4_DEFAULT | PIC_ICW4_AEOI, PIC_MASTER_IMR);
+	}
 	else		/* master expects normal EOI */
+	{
 		outb_p(MASTER_ICW4_DEFAULT, PIC_MASTER_IMR);
+	}
 
 	outb_p(0x11, PIC_SLAVE_CMD);	/* ICW1: select 8259A-2 init */
 	outb_p(I8259A_IRQ_BASE + 8, PIC_SLAVE_IMR);	/* ICW2: 8259A-2 IR0 mapped to I8259A_IRQ_BASE + 0x08 */
 	outb_p(PIC_CASCADE_IR, PIC_SLAVE_IMR);	/* 8259A-2 is a slave on master's IR2 */
 	outb_p(SLAVE_ICW4_DEFAULT, PIC_SLAVE_IMR); /* (slave's support for AEOI in flat mode is to be investigated) */
+
 	if (auto_eoi)
 		/*
 		 * In AEOI mode we just have to mask the interrupt
 		 * when acking.
 		 */
+	{
 		i8259A_chip.irq_mask_ack = disable_8259A_irq;
+	}
 	else
+	{
 		i8259A_chip.irq_mask_ack = mask_and_ack_8259A;
+	}
 
 	udelay(100);		/* wait for 8259A to initialize */
 
@@ -279,20 +323,23 @@ static void init_8259A(int auto_eoi)
 /*
  * IRQ2 is cascade interrupt to second interrupt controller
  */
-static struct irqaction irq2 = {
+static struct irqaction irq2 =
+{
 	.handler = no_action,
 	.name = "cascade",
 	.flags = IRQF_NO_THREAD,
 };
 
-static struct resource pic1_io_resource = {
+static struct resource pic1_io_resource =
+{
 	.name = "pic1",
 	.start = PIC_MASTER_CMD,
 	.end = PIC_MASTER_IMR,
 	.flags = IORESOURCE_BUSY
 };
 
-static struct resource pic2_io_resource = {
+static struct resource pic2_io_resource =
+{
 	.name = "pic2",
 	.start = PIC_SLAVE_CMD,
 	.end = PIC_SLAVE_IMR,
@@ -300,14 +347,15 @@ static struct resource pic2_io_resource = {
 };
 
 static int i8259A_irq_domain_map(struct irq_domain *d, unsigned int virq,
-				 irq_hw_number_t hw)
+								 irq_hw_number_t hw)
 {
 	irq_set_chip_and_handler(virq, &i8259A_chip, handle_level_irq);
 	irq_set_probe(virq);
 	return 0;
 }
 
-static struct irq_domain_ops i8259A_ops = {
+static struct irq_domain_ops i8259A_ops =
+{
 	.map = i8259A_irq_domain_map,
 	.xlate = irq_domain_xlate_onecell,
 };
@@ -317,7 +365,7 @@ static struct irq_domain_ops i8259A_ops = {
  * driver compatibility reasons interrupts 0 - 15 to be the i8259
  * interrupts even if the hardware uses a different interrupt numbering.
  */
-struct irq_domain * __init __init_i8259_irqs(struct device_node *node)
+struct irq_domain *__init __init_i8259_irqs(struct device_node *node)
 {
 	struct irq_domain *domain;
 
@@ -327,9 +375,12 @@ struct irq_domain * __init __init_i8259_irqs(struct device_node *node)
 	init_8259A(0);
 
 	domain = irq_domain_add_legacy(node, 16, I8259A_IRQ_BASE, 0,
-				       &i8259A_ops, NULL);
+								   &i8259A_ops, NULL);
+
 	if (!domain)
+	{
 		panic("Failed to add i8259 IRQ domain");
+	}
 
 	setup_irq(I8259A_IRQ_BASE + PIC_CASCADE_IR, &irq2);
 	return domain;
@@ -347,7 +398,9 @@ static void i8259_irq_dispatch(struct irq_desc *desc)
 	unsigned int irq;
 
 	if (hwirq < 0)
+	{
 		return;
+	}
 
 	irq = irq_linear_revmap(domain, hwirq);
 	generic_handle_irq(irq);
@@ -361,14 +414,16 @@ int __init i8259_of_init(struct device_node *node, struct device_node *parent)
 	domain = __init_i8259_irqs(node);
 
 	parent_irq = irq_of_parse_and_map(node, 0);
-	if (!parent_irq) {
+
+	if (!parent_irq)
+	{
 		pr_err("Failed to map i8259 parent IRQ\n");
 		irq_domain_remove(domain);
 		return -ENODEV;
 	}
 
 	irq_set_chained_handler_and_data(parent_irq, i8259_irq_dispatch,
-					 domain);
+									 domain);
 	return 0;
 }
 IRQCHIP_DECLARE(i8259, "intel,i8259", i8259_of_init);

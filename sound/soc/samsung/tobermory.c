@@ -20,8 +20,8 @@
 static int sample_rate = 44100;
 
 static int tobermory_set_bias_level(struct snd_soc_card *card,
-					  struct snd_soc_dapm_context *dapm,
-					  enum snd_soc_bias_level level)
+									struct snd_soc_dapm_context *dapm,
+									enum snd_soc_bias_level level)
 {
 	struct snd_soc_pcm_runtime *rtd;
 	struct snd_soc_dai *codec_dai;
@@ -31,40 +31,50 @@ static int tobermory_set_bias_level(struct snd_soc_card *card,
 	codec_dai = rtd->codec_dai;
 
 	if (dapm->dev != codec_dai->dev)
+	{
 		return 0;
+	}
 
-	switch (level) {
-	case SND_SOC_BIAS_PREPARE:
-		if (dapm->bias_level == SND_SOC_BIAS_STANDBY) {
-			ret = snd_soc_dai_set_pll(codec_dai, WM8962_FLL,
-						  WM8962_FLL_MCLK, 32768,
-						  sample_rate * 512);
-			if (ret < 0)
-				pr_err("Failed to start FLL: %d\n", ret);
+	switch (level)
+	{
+		case SND_SOC_BIAS_PREPARE:
+			if (dapm->bias_level == SND_SOC_BIAS_STANDBY)
+			{
+				ret = snd_soc_dai_set_pll(codec_dai, WM8962_FLL,
+										  WM8962_FLL_MCLK, 32768,
+										  sample_rate * 512);
 
-			ret = snd_soc_dai_set_sysclk(codec_dai,
-						     WM8962_SYSCLK_FLL,
-						     sample_rate * 512,
-						     SND_SOC_CLOCK_IN);
-			if (ret < 0) {
-				pr_err("Failed to set SYSCLK: %d\n", ret);
-				snd_soc_dai_set_pll(codec_dai, WM8962_FLL,
-						    0, 0, 0);
-				return ret;
+				if (ret < 0)
+				{
+					pr_err("Failed to start FLL: %d\n", ret);
+				}
+
+				ret = snd_soc_dai_set_sysclk(codec_dai,
+											 WM8962_SYSCLK_FLL,
+											 sample_rate * 512,
+											 SND_SOC_CLOCK_IN);
+
+				if (ret < 0)
+				{
+					pr_err("Failed to set SYSCLK: %d\n", ret);
+					snd_soc_dai_set_pll(codec_dai, WM8962_FLL,
+										0, 0, 0);
+					return ret;
+				}
 			}
-		}
-		break;
 
-	default:
-		break;
+			break;
+
+		default:
+			break;
 	}
 
 	return 0;
 }
 
 static int tobermory_set_bias_level_post(struct snd_soc_card *card,
-					       struct snd_soc_dapm_context *dapm,
-					       enum snd_soc_bias_level level)
+		struct snd_soc_dapm_context *dapm,
+		enum snd_soc_bias_level level)
 {
 	struct snd_soc_pcm_runtime *rtd;
 	struct snd_soc_dai *codec_dai;
@@ -74,27 +84,35 @@ static int tobermory_set_bias_level_post(struct snd_soc_card *card,
 	codec_dai = rtd->codec_dai;
 
 	if (dapm->dev != codec_dai->dev)
+	{
 		return 0;
+	}
 
-	switch (level) {
-	case SND_SOC_BIAS_STANDBY:
-		ret = snd_soc_dai_set_sysclk(codec_dai, WM8962_SYSCLK_MCLK,
-					     32768, SND_SOC_CLOCK_IN);
-		if (ret < 0) {
-			pr_err("Failed to switch away from FLL: %d\n", ret);
-			return ret;
-		}
+	switch (level)
+	{
+		case SND_SOC_BIAS_STANDBY:
+			ret = snd_soc_dai_set_sysclk(codec_dai, WM8962_SYSCLK_MCLK,
+										 32768, SND_SOC_CLOCK_IN);
 
-		ret = snd_soc_dai_set_pll(codec_dai, WM8962_FLL,
-					  0, 0, 0);
-		if (ret < 0) {
-			pr_err("Failed to stop FLL: %d\n", ret);
-			return ret;
-		}
-		break;
+			if (ret < 0)
+			{
+				pr_err("Failed to switch away from FLL: %d\n", ret);
+				return ret;
+			}
 
-	default:
-		break;
+			ret = snd_soc_dai_set_pll(codec_dai, WM8962_FLL,
+									  0, 0, 0);
+
+			if (ret < 0)
+			{
+				pr_err("Failed to stop FLL: %d\n", ret);
+				return ret;
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
 	dapm->bias_level = level;
@@ -103,18 +121,20 @@ static int tobermory_set_bias_level_post(struct snd_soc_card *card,
 }
 
 static int tobermory_hw_params(struct snd_pcm_substream *substream,
-			      struct snd_pcm_hw_params *params)
+							   struct snd_pcm_hw_params *params)
 {
 	sample_rate = params_rate(params);
 
 	return 0;
 }
 
-static struct snd_soc_ops tobermory_ops = {
+static struct snd_soc_ops tobermory_ops =
+{
 	.hw_params = tobermory_hw_params,
 };
 
-static struct snd_soc_dai_link tobermory_dai[] = {
+static struct snd_soc_dai_link tobermory_dai[] =
+{
 	{
 		.name = "CPU",
 		.stream_name = "CPU",
@@ -123,17 +143,19 @@ static struct snd_soc_dai_link tobermory_dai[] = {
 		.platform_name = "samsung-i2s.0",
 		.codec_name = "wm8962.1-001a",
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF
-				| SND_SOC_DAIFMT_CBM_CFM,
+		| SND_SOC_DAIFMT_CBM_CFM,
 		.ops = &tobermory_ops,
 	},
 };
 
-static const struct snd_kcontrol_new controls[] = {
+static const struct snd_kcontrol_new controls[] =
+{
 	SOC_DAPM_PIN_SWITCH("Main Speaker"),
 	SOC_DAPM_PIN_SWITCH("DMIC"),
 };
 
-static struct snd_soc_dapm_widget widgets[] = {
+static struct snd_soc_dapm_widget widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
 
@@ -143,7 +165,8 @@ static struct snd_soc_dapm_widget widgets[] = {
 	SND_SOC_DAPM_SPK("Main Speaker", NULL),
 };
 
-static struct snd_soc_dapm_route audio_paths[] = {
+static struct snd_soc_dapm_route audio_paths[] =
+{
 	{ "Headphone", NULL, "HPOUTL" },
 	{ "Headphone", NULL, "HPOUTR" },
 
@@ -165,7 +188,8 @@ static struct snd_soc_dapm_route audio_paths[] = {
 static struct snd_soc_jack tobermory_headset;
 
 /* Headset jack detection DAPM pins */
-static struct snd_soc_jack_pin tobermory_headset_pins[] = {
+static struct snd_soc_jack_pin tobermory_headset_pins[] =
+{
 	{
 		.pin = "Headset Mic",
 		.mask = SND_JACK_MICROPHONE,
@@ -188,23 +212,30 @@ static int tobermory_late_probe(struct snd_soc_card *card)
 	codec_dai = rtd->codec_dai;
 
 	ret = snd_soc_dai_set_sysclk(codec_dai, WM8962_SYSCLK_MCLK,
-				     32768, SND_SOC_CLOCK_IN);
+								 32768, SND_SOC_CLOCK_IN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = snd_soc_card_jack_new(card, "Headset", SND_JACK_HEADSET |
-				    SND_JACK_BTN_0, &tobermory_headset,
-				    tobermory_headset_pins,
-				    ARRAY_SIZE(tobermory_headset_pins));
+								SND_JACK_BTN_0, &tobermory_headset,
+								tobermory_headset_pins,
+								ARRAY_SIZE(tobermory_headset_pins));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	wm8962_mic_detect(codec, &tobermory_headset);
 
 	return 0;
 }
 
-static struct snd_soc_card tobermory = {
+static struct snd_soc_card tobermory =
+{
 	.name = "Tobermory",
 	.owner = THIS_MODULE,
 	.dai_link = tobermory_dai,
@@ -232,14 +263,16 @@ static int tobermory_probe(struct platform_device *pdev)
 	card->dev = &pdev->dev;
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
+
 	if (ret)
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-			ret);
+				ret);
 
 	return ret;
 }
 
-static struct platform_driver tobermory_driver = {
+static struct platform_driver tobermory_driver =
+{
 	.driver = {
 		.name = "tobermory",
 		.pm = &snd_soc_pm_ops,

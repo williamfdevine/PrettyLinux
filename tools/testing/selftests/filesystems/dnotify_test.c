@@ -24,10 +24,12 @@ int main(void)
 
 	fd = open(".", O_RDONLY);
 	fcntl(fd, F_SETSIG, SIGRTMIN + 1);
-	fcntl(fd, F_NOTIFY, DN_MODIFY|DN_CREATE|DN_MULTISHOT);
+	fcntl(fd, F_NOTIFY, DN_MODIFY | DN_CREATE | DN_MULTISHOT);
+
 	/* we will now be notified if any of the files
 	   in "." is modified or new files are created */
-	while (1) {
+	while (1)
+	{
 		pause();
 		printf("Got event on fd=%d\n", event_fd);
 	}

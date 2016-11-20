@@ -520,17 +520,17 @@
 #define	bLSIG_Parity			0x20
 #define	bCCKRxPhase			0x4
 #if (RTL92SE_FPGA_VERIFY == 1)
-#define	bLSSIReadAddress		0x3f000000   /* LSSI "Read" Address
-					Reg 0x824 rFPGA0_XA_HSSIParameter2 */
+	#define	bLSSIReadAddress		0x3f000000   /* LSSI "Read" Address
+	Reg 0x824 rFPGA0_XA_HSSIParameter2 */
 #else
-#define	bLSSIReadAddress		0x7f800000   /*  T65 RF */
+	#define	bLSSIReadAddress		0x7f800000   /*  T65 RF */
 #endif
 #define	bLSSIReadEdge			0x80000000   /* LSSI "Read" edge signal */
 #if (RTL92SE_FPGA_VERIFY == 1)
-#define	bLSSIReadBackData		0xfff	/*  Reg 0x8a0
-					 rFPGA0_XA_LSSIReadBack */
+	#define	bLSSIReadBackData		0xfff	/*  Reg 0x8a0
+	rFPGA0_XA_LSSIReadBack */
 #else
-#define	bLSSIReadBackData		0xfffff	/*  T65 RF */
+	#define	bLSSIReadBackData		0xfffff	/*  T65 RF */
 #endif
 #define	bLSSIReadOKFlag			0x1000	/*  Useless now */
 #define	bCCKSampleRate			0x8       /* 0: 44MHz, 1:88MHz */
@@ -1017,9 +1017,9 @@
 
 /* for PutRFRegsetting & GetRFRegSetting BitMask */
 #if (RTL92SE_FPGA_VERIFY == 1)
-#define		bRFRegOffsetMask	0xfff
+	#define		bRFRegOffsetMask	0xfff
 #else
-#define		bRFRegOffsetMask	0xfffff
+	#define		bRFRegOffsetMask	0xfffff
 #endif
 #define	bEnable		0x1	/*  Useless */
 #define	bDisabl		0x0

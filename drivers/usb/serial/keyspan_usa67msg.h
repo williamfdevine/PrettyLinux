@@ -126,43 +126,43 @@ typedef struct keyspan_usa67_portControlMessage
 			when necessary, to reduce overhead on the device):
 	*/
 	u8	setClocking,	// host requests baud rate be set
-		baudLo,			// host does baud divisor calculation
-		baudHi,			// baudHi is only used for first port (gives lower rates)
-		externalClock_txClocking,
-						// 0=internal, other=external
+	 baudLo,			// host does baud divisor calculation
+	 baudHi,			// baudHi is only used for first port (gives lower rates)
+	 externalClock_txClocking,
+	 // 0=internal, other=external
 
-		setLcr,			// host requests lcr be set
-		lcr,			// use PARITY, STOPBITS, DATABITS below
+	 setLcr,			// host requests lcr be set
+	 lcr,			// use PARITY, STOPBITS, DATABITS below
 
-		setFlowControl,	// host requests flow control be set
-		ctsFlowControl,	// 1=use CTS flow control, 0=don't
-		xonFlowControl,	// 1=use XON/XOFF flow control, 0=don't
-		xonChar,		// specified in current character format
-		xoffChar,		// specified in current character format
+	 setFlowControl,	// host requests flow control be set
+	 ctsFlowControl,	// 1=use CTS flow control, 0=don't
+	 xonFlowControl,	// 1=use XON/XOFF flow control, 0=don't
+	 xonChar,		// specified in current character format
+	 xoffChar,		// specified in current character format
 
-		setTxTriState_setRts,
-						// host requests TX tri-state be set
-		txTriState_rts,	// 1=active (normal), 0=tristate (off)
+	 setTxTriState_setRts,
+	 // host requests TX tri-state be set
+	 txTriState_rts,	// 1=active (normal), 0=tristate (off)
 
-		setHskoa_setDtr,
-						// host requests HSKOA output be set
-		hskoa_dtr,		// 1=on, 0=off
+	 setHskoa_setDtr,
+	 // host requests HSKOA output be set
+	 hskoa_dtr,		// 1=on, 0=off
 
-		setPrescaler,	// host requests prescalar be set (default: 13)
-		prescaler;		// specified as N/8; values 8-ff are valid
-						// must be set any time internal baud rate is set;
-						// must not be set when external clocking is used
+	 setPrescaler,	// host requests prescalar be set (default: 13)
+	 prescaler;		// specified as N/8; values 8-ff are valid
+	// must be set any time internal baud rate is set;
+	// must not be set when external clocking is used
 
 	/*
 		3.	configuration data which is simply used as is (no overhead,
 			but must be specified correctly in every host message).
 	*/
 	u8	forwardingLength,  // forward when this number of chars available
-		reportHskiaChanges_dsrFlowControl,
-						// 1=normal; 0=ignore external clock
-						// 1=use DSR flow control, 0=don't
-		txAckThreshold,	// 0=not allowed, 1=normal, 2-255 deliver ACK faster
-		loopbackMode;	// 0=no loopback, 1=loopback enabled
+	 reportHskiaChanges_dsrFlowControl,
+	 // 1=normal; 0=ignore external clock
+	 // 1=use DSR flow control, 0=don't
+	 txAckThreshold,	// 0=not allowed, 1=normal, 2-255 deliver ACK faster
+	 loopbackMode;	// 0=no loopback, 1=loopback enabled
 
 	/*
 		4.	commands which are flags only; these are processed in order
@@ -170,15 +170,15 @@ typedef struct keyspan_usa67_portControlMessage
 			port ends in a TX_OFF state); any non-zero value is respected
 	*/
 	u8	_txOn,			// enable transmitting (and continue if there's data)
-		_txOff,			// stop transmitting
-		txFlush,		// toss outbound data
-		txBreak,		// turn on break (cleared by _txOn)
-		rxOn,			// turn on receiver
-		rxOff,			// turn off receiver
-		rxFlush,		// toss inbound data
-		rxForward,		// forward all inbound data, NOW (as if fwdLen==1)
-		returnStatus,	// return current status (even if it hasn't changed)
-		resetDataToggle;// reset data toggle state to DATA0
+	 _txOff,			// stop transmitting
+	 txFlush,		// toss outbound data
+	 txBreak,		// turn on break (cleared by _txOn)
+	 rxOn,			// turn on receiver
+	 rxOff,			// turn off receiver
+	 rxFlush,		// toss inbound data
+	 rxForward,		// forward all inbound data, NOW (as if fwdLen==1)
+	 returnStatus,	// return current status (even if it hasn't changed)
+	 resetDataToggle;// reset data toggle state to DATA0
 
 } keyspan_usa67_portControlMessage;
 
@@ -201,13 +201,13 @@ typedef struct keyspan_usa67_portControlMessage
 typedef struct keyspan_usa67_portStatusMessage	// one for each port
 {
 	u8	port,			// 0=first, 1=second, other=see below
-		hskia_cts,		// reports HSKIA pin
-		gpia_dcd,		// reports GPIA pin
-		_txOff,			// port has been disabled (by host)
-		_txXoff,		// port is in XOFF state (either host or RX XOFF)
-		txAck,			// indicates a TX message acknowledgement
-		rxEnabled,		// as configured by rxOn/rxOff 1=on, 0=off
-		controlResponse;// 1=a control message has been processed
+	 hskia_cts,		// reports HSKIA pin
+	 gpia_dcd,		// reports GPIA pin
+	 _txOff,			// port has been disabled (by host)
+	 _txXoff,		// port is in XOFF state (either host or RX XOFF)
+	 txAck,			// indicates a TX message acknowledgement
+	 rxEnabled,		// as configured by rxOn/rxOff 1=on, 0=off
+	 controlResponse;// 1=a control message has been processed
 } keyspan_usa67_portStatusMessage;
 
 // bits in RX data message when STAT byte is included
@@ -219,25 +219,25 @@ typedef struct keyspan_usa67_portStatusMessage	// one for each port
 typedef struct keyspan_usa67_globalControlMessage
 {
 	u8	port,	 			// 3
-		sendGlobalStatus,	// 2=request for two status responses
-		resetStatusToggle,	// 1=reset global status toggle
-		resetStatusCount;	// a cycling value
+	 sendGlobalStatus,	// 2=request for two status responses
+	 resetStatusToggle,	// 1=reset global status toggle
+	 resetStatusCount;	// a cycling value
 } keyspan_usa67_globalControlMessage;
 
 typedef struct keyspan_usa67_globalStatusMessage
 {
 	u8	port,				// 3
-		sendGlobalStatus,	// from request, decremented
-		resetStatusCount;	// as in request
+	 sendGlobalStatus,	// from request, decremented
+	 resetStatusCount;	// as in request
 } keyspan_usa67_globalStatusMessage;
 
 typedef struct keyspan_usa67_globalDebugMessage
 {
 	u8	port,				// 2
-		a,
-		b,
-		c,
-		d;
+	 a,
+	 b,
+	 c,
+	 d;
 } keyspan_usa67_globalDebugMessage;
 
 // ie: the maximum length of an FX1 endpoint buffer

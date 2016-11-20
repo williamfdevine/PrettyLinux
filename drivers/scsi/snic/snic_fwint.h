@@ -24,7 +24,8 @@
 /*
  * Command entry type
  */
-enum snic_io_type {
+enum snic_io_type
+{
 	/*
 	 * Initiator request types
 	 */
@@ -57,7 +58,8 @@ enum snic_io_type {
 /*
  * Header status codes from firmware
  */
-enum snic_io_status {
+enum snic_io_status
+{
 	SNIC_STAT_IO_SUCCESS = 0,	/* request was successful */
 
 	/*
@@ -97,7 +99,8 @@ enum snic_io_status {
  * for any other message that will be queued to firmware should
  *  have the following request header
  */
-struct snic_io_hdr {
+struct snic_io_hdr
+{
 	__le32	hid;
 	__le32	cmnd_id;	/* tag here */
 	ulong	init_ctx;	/* initiator context */
@@ -112,7 +115,7 @@ struct snic_io_hdr {
 /* auxillary funciton for encoding the snic_io_hdr */
 static inline void
 snic_io_hdr_enc(struct snic_io_hdr *hdr, u8 typ, u8 status, u32 id, u32 hid,
-		u16 sg_cnt, ulong ctx)
+				u16 sg_cnt, ulong ctx)
 {
 	hdr->type = typ;
 	hdr->status = status;
@@ -127,7 +130,7 @@ snic_io_hdr_enc(struct snic_io_hdr *hdr, u8 typ, u8 status, u32 id, u32 hid,
 /* auxillary funciton for decoding the snic_io_hdr */
 static inline void
 snic_io_hdr_dec(struct snic_io_hdr *hdr, u8 *typ, u8 *stat, u32 *cmnd_id,
-		u32 *hid, ulong *ctx)
+				u32 *hid, ulong *ctx)
 {
 	*typ = hdr->type;
 	*stat = hdr->status;
@@ -141,7 +144,8 @@ snic_io_hdr_dec(struct snic_io_hdr *hdr, u8 *typ, u8 *stat, u32 *cmnd_id,
  *
  * Used for sending host information to firmware, and request fw version
  */
-struct snic_exch_ver_req {
+struct snic_exch_ver_req
+{
 	__le32	drvr_ver;	/* for debugging, when fw dump captured */
 	__le32	os_type;	/* for OS specific features */
 };
@@ -172,7 +176,8 @@ struct snic_exch_ver_req {
  *
  * Used by firmware to send response to version request
  */
-struct snic_exch_ver_rsp {
+struct snic_exch_ver_rsp
+{
 	__le32	version;
 	__le32	hid;
 	__le32	max_concur_ios;		/* max concurrent ios */
@@ -190,7 +195,8 @@ struct snic_exch_ver_rsp {
  *
  * Used by the host to request list of targets
  */
-struct snic_report_tgts {
+struct snic_report_tgts
+{
 	__le16	sg_cnt;
 	__le16	flags;		/* specific flags from fw */
 	u8	_resvd[4];
@@ -198,7 +204,8 @@ struct snic_report_tgts {
 	__le64	sense_addr;
 };
 
-enum snic_type {
+enum snic_type
+{
 	SNIC_NONE = 0x0,
 	SNIC_DAS,
 	SNIC_SAN,
@@ -206,14 +213,16 @@ enum snic_type {
 
 
 /* Report Target Response */
-enum snic_tgt_type {
+enum snic_tgt_type
+{
 	SNIC_TGT_NONE = 0x0,
 	SNIC_TGT_DAS,	/* DAS Target */
 	SNIC_TGT_SAN,	/* SAN Target */
 };
 
 /* target id format */
-struct snic_tgt_id {
+struct snic_tgt_id
+{
 	__le32	tgt_id;		/* target id */
 	__le16	tgt_type;	/* tgt type */
 	__le16	vnic_id;	/* corresponding vnic id */
@@ -224,7 +233,8 @@ struct snic_tgt_id {
  *
  * Used by firmware to send response to Report Targets request
  */
-struct snic_report_tgts_cmpl {
+struct snic_report_tgts_cmpl
+{
 	__le32	tgt_cnt;	/* Number of Targets accessible */
 	u32	_resvd;
 };
@@ -264,7 +274,8 @@ struct snic_report_tgts_cmpl {
  *
  * used for sending out an initiator SCSI 16/32-byte command
  */
-struct snic_icmnd {
+struct snic_icmnd
+{
 	__le16	sg_cnt;		/* Number of SG Elements */
 	__le16	flags;		/* flags */
 	__le32	sense_len;	/* Sense buffer length */
@@ -293,7 +304,8 @@ struct snic_icmnd {
  *
  * Used for sending the host a response to an icmnd (initiator command)
  */
-struct snic_icmnd_cmpl {
+struct snic_icmnd_cmpl
+{
 	u8	scsi_status;	/* value as per SAM */
 	u8	flags;
 	__le16	sense_len;	/* Sense Length */
@@ -308,7 +320,8 @@ struct snic_icmnd_cmpl {
  *
  * the req_id field is valid in case of abort task and clear task
  */
-struct snic_itmf {
+struct snic_itmf
+{
 	u8	tm_type;	/* SCSI Task Management request */
 	u8	resvd;
 	__le16	flags;		/* flags */
@@ -321,7 +334,8 @@ struct snic_itmf {
 /*
  * Task Management Request
  */
-enum snic_itmf_tm_type {
+enum snic_itmf_tm_type
+{
 	SNIC_ITMF_ABTS_TASK = 0x01,	/* Abort Task */
 	SNIC_ITMF_ABTS_TASK_SET,	/* Abort Task Set */
 	SNIC_ITMF_CLR_TASK,		/* Clear Task */
@@ -335,7 +349,8 @@ enum snic_itmf_tm_type {
  *
  * used for sending the host a response for a itmf request
  */
-struct snic_itmf_cmpl {
+struct snic_itmf_cmpl
+{
 	__le32	nterminated;	/* # IOs terminated as a result of tmf */
 	u8	flags;		/* flags */
 	u8	_resvd[3];
@@ -353,7 +368,8 @@ struct snic_itmf_cmpl {
  *
  * used for requesting firmware to reset snic
  */
-struct snic_hba_reset {
+struct snic_hba_reset
+{
 	__le16	flags;		/* flags */
 	u8	_resvd[6];
 };
@@ -363,7 +379,8 @@ struct snic_hba_reset {
  *
  * Used by firmware to respond to the host's hba reset request
  */
-struct snic_hba_reset_cmpl {
+struct snic_hba_reset_cmpl
+{
 	u8	flags;		/* flags : more info needs to be added*/
 	u8	_resvd[7];
 };
@@ -373,7 +390,8 @@ struct snic_hba_reset_cmpl {
  *
  * Used by firmware to notify host of the last work queue entry received
  */
-struct snic_notify_msg {
+struct snic_notify_msg
+{
 	__le32	wqe_num;	/* wq entry number */
 	u8	flags;		/* flags, macros */
 	u8	_resvd[4];
@@ -385,7 +403,8 @@ struct snic_notify_msg {
  *
  * Used by firmware to notify the host about configuration/state changes
  */
-struct snic_async_evnotify {
+struct snic_async_evnotify
+{
 	u8	FLS_EVENT_DESC;
 	u8	vnic;			/* vnic id */
 	u8	_resvd[2];
@@ -395,7 +414,8 @@ struct snic_async_evnotify {
 };
 
 /* async event flags */
-enum snic_ev_type {
+enum snic_ev_type
+{
 	SNIC_EV_TGT_OFFLINE = 0x01, /* Target Offline, PL contains TGT ID */
 	SNIC_EV_TGT_ONLINE,	/* Target Online, PL contains TGT ID */
 	SNIC_EV_LUN_OFFLINE,	/* LUN Offline, PL contains LUN ID */
@@ -413,8 +433,8 @@ enum snic_ev_type {
 #define SNIC_HOST_REQ_LEN	128	/*Exp length of host req, wq desc sz*/
 /* Payload 88 bytes = 128 - 24 - 16 */
 #define SNIC_HOST_REQ_PAYLOAD	((int)(SNIC_HOST_REQ_LEN -		\
-					sizeof(struct snic_io_hdr) -	\
-					(2 * sizeof(u64)) - sizeof(ulong)))
+									   sizeof(struct snic_io_hdr) -	\
+									   (2 * sizeof(u64)) - sizeof(ulong)))
 
 /*
  * snic_host_req: host -> firmware request
@@ -422,10 +442,12 @@ enum snic_ev_type {
  * Basic structure for all snic requests that are sent from the host to
  * firmware. They are 128 bytes in size.
  */
-struct snic_host_req {
+struct snic_host_req
+{
 	u64	ctrl_data[2];	/*16 bytes - Control Data */
 	struct snic_io_hdr hdr;
-	union {
+	union
+	{
 		/*
 		 * Entry specific space, last byte contains color
 		 */
@@ -454,9 +476,11 @@ struct snic_host_req {
 
 
 #define SNIC_FW_REQ_LEN		64 /* Expected length of fw req */
-struct snic_fw_req {
+struct snic_fw_req
+{
 	struct snic_io_hdr hdr;
-	union {
+	union
+	{
 		/*
 		 * Entry specific space, last byte contains color
 		 */
@@ -504,9 +528,13 @@ snic_color_enc(struct snic_fw_req *req, u8 color)
 	u8 *c = ((u8 *) req) + sizeof(struct snic_fw_req) - 1;
 
 	if (color)
+	{
 		*c |= 0x80;
+	}
 	else
+	{
 		*c &= ~0x80;
+	}
 }
 
 static inline void

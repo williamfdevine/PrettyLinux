@@ -55,7 +55,8 @@ static inline struct butterfly *spidev_to_pp(struct spi_device *spi)
 	return spi->controller_data;
 }
 
-struct butterfly {
+struct butterfly
+{
 	/* REVISIT ... for now, this must be first */
 	struct spi_bitbang	bitbang;
 
@@ -81,9 +82,14 @@ setsck(struct spi_device *spi, int is_on)
 	bit = spi_sck_bit;
 
 	if (is_on)
+	{
 		byte |= bit;
+	}
 	else
+	{
 		byte &= ~bit;
+	}
+
 	parport_write_data(pp->port, byte);
 	pp->lastbyte = byte;
 }
@@ -97,9 +103,14 @@ setmosi(struct spi_device *spi, int is_on)
 	bit = spi_mosi_bit;
 
 	if (is_on)
+	{
 		byte |= bit;
+	}
 	else
+	{
 		byte &= ~bit;
+	}
+
 	parport_write_data(pp->port, byte);
 	pp->lastbyte = byte;
 }
@@ -123,14 +134,18 @@ static void butterfly_chipselect(struct spi_device *spi, int value)
 
 	/* set default clock polarity */
 	if (value != BITBANG_CS_INACTIVE)
+	{
 		setsck(spi, spi->mode & SPI_CPOL);
+	}
 
 	/* here, value == "activate or not";
 	 * most PARPORT_CONTROL_* bits are negated, so we must
 	 * morph it to value == "bit value to write in control register"
 	 */
 	if (spi_cs_bit == PARPORT_CONTROL_INIT)
+	{
 		value = !value;
+	}
 
 	parport_frob_control(pp->port, spi_cs_bit, value ? spi_cs_bit : 0);
 }
@@ -144,7 +159,7 @@ static void butterfly_chipselect(struct spi_device *spi, int value)
 
 static u32
 butterfly_txrx_word_mode0(struct spi_device *spi, unsigned nsecs, u32 word,
-			  u8 bits)
+						  u8 bits)
 {
 	return bitbang_txrx_be_cpha0(spi, nsecs, 0, 0, word, bits);
 }
@@ -153,27 +168,29 @@ butterfly_txrx_word_mode0(struct spi_device *spi, unsigned nsecs, u32 word,
 
 /* override default partitioning with cmdlinepart */
 static struct mtd_partition partitions[] = { {
-	/* JFFS2 wants partitions of 4*N blocks for this device,
-	 * so sectors 0 and 1 can't be partitions by themselves.
-	 */
+		/* JFFS2 wants partitions of 4*N blocks for this device,
+		 * so sectors 0 and 1 can't be partitions by themselves.
+		 */
 
-	/* sector 0 = 8 pages * 264 bytes/page (1 block)
-	 * sector 1 = 248 pages * 264 bytes/page
-	 */
-	.name		= "bookkeeping",	/* 66 KB */
-	.offset		= 0,
-	.size		= (8 + 248) * 264,
-	/* .mask_flags	= MTD_WRITEABLE, */
-}, {
-	/* sector 2 = 256 pages * 264 bytes/page
-	 * sectors 3-5 = 512 pages * 264 bytes/page
-	 */
-	.name		= "filesystem",		/* 462 KB */
-	.offset		= MTDPART_OFS_APPEND,
-	.size		= MTDPART_SIZ_FULL,
-} };
+		/* sector 0 = 8 pages * 264 bytes/page (1 block)
+		 * sector 1 = 248 pages * 264 bytes/page
+		 */
+		.name		= "bookkeeping",	/* 66 KB */
+		.offset		= 0,
+		.size		= (8 + 248) * 264,
+		/* .mask_flags	= MTD_WRITEABLE, */
+	}, {
+		/* sector 2 = 256 pages * 264 bytes/page
+		 * sectors 3-5 = 512 pages * 264 bytes/page
+		 */
+		.name		= "filesystem",		/* 462 KB */
+		.offset		= MTDPART_OFS_APPEND,
+		.size		= MTDPART_SIZ_FULL,
+	}
+};
 
-static struct flash_platform_data flash = {
+static struct flash_platform_data flash =
+{
 	.name		= "butterflash",
 	.parts		= partitions,
 	.nr_parts	= ARRAY_SIZE(partitions),
@@ -192,17 +209,22 @@ static void butterfly_attach(struct parport *p)
 	struct pardev_cb	butterfly_cb;
 
 	if (butterfly || !dev)
+	{
 		return;
+	}
 
 	/* REVISIT:  this just _assumes_ a butterfly is there ... no probe,
 	 * and no way to be selective about what it binds to.
 	 */
 
 	master = spi_alloc_master(dev, sizeof(*pp));
-	if (!master) {
+
+	if (!master)
+	{
 		status = -ENOMEM;
 		goto done;
 	}
+
 	pp = spi_master_get_devdata(master);
 
 	/*
@@ -225,15 +247,21 @@ static void butterfly_attach(struct parport *p)
 	memset(&butterfly_cb, 0, sizeof(butterfly_cb));
 	butterfly_cb.private = pp;
 	pd = parport_register_dev_model(p, "spi_butterfly", &butterfly_cb, 0);
-	if (!pd) {
+
+	if (!pd)
+	{
 		status = -ENOMEM;
 		goto clean0;
 	}
+
 	pp->pd = pd;
 
 	status = parport_claim(pd);
+
 	if (status < 0)
+	{
 		goto clean1;
+	}
 
 	/*
 	 * Butterfly reset, powerup, run firmware
@@ -259,8 +287,11 @@ static void butterfly_attach(struct parport *p)
 	 * Start SPI ... for now, hide that we're two physical busses.
 	 */
 	status = spi_bitbang_start(&pp->bitbang);
+
 	if (status < 0)
+	{
 		goto clean2;
+	}
 
 	/* Bus 1 lets us talk to at45db041b (firmware disables AVR SPI), AVR
 	 * (firmware resets at45, acts as spi slave) or neither (we ignore
@@ -273,9 +304,10 @@ static void butterfly_attach(struct parport *p)
 	pp->info[0].chip_select = 1;
 	pp->info[0].controller_data = pp;
 	pp->dataflash = spi_new_device(pp->bitbang.master, &pp->info[0]);
+
 	if (pp->dataflash)
 		pr_debug("%s: dataflash at %s\n", p->name,
-			 dev_name(&pp->dataflash->dev));
+				 dev_name(&pp->dataflash->dev));
 
 	pr_info("%s: AVR Butterfly\n", p->name);
 	butterfly = pp;
@@ -303,7 +335,10 @@ static void butterfly_detach(struct parport *p)
 	 * "old school" driver-internal device lists?
 	 */
 	if (!butterfly || butterfly->port != p)
+	{
 		return;
+	}
+
 	pp = butterfly;
 	butterfly = NULL;
 
@@ -320,7 +355,8 @@ static void butterfly_detach(struct parport *p)
 	spi_master_put(pp->bitbang.master);
 }
 
-static struct parport_driver butterfly_driver = {
+static struct parport_driver butterfly_driver =
+{
 	.name =		"spi_butterfly",
 	.match_port =	butterfly_attach,
 	.detach =	butterfly_detach,

@@ -15,7 +15,8 @@
 /*
  * Directory header
  */
-struct adfs_dirheader {
+struct adfs_dirheader
+{
 	unsigned char startmasseq;
 	unsigned char startname[4];
 };
@@ -26,7 +27,8 @@ struct adfs_dirheader {
 /*
  * Directory entries
  */
-struct adfs_direntry {
+struct adfs_direntry
+{
 #define ADFS_F_NAME_LEN 10
 	char dirobname[ADFS_F_NAME_LEN];
 	__u8 dirload[4];
@@ -39,8 +41,10 @@ struct adfs_direntry {
 /*
  * Directory tail
  */
-union adfs_dirtail {
-	struct {
+union adfs_dirtail
+{
+	struct
+	{
 		unsigned char dirlastmask;
 		char dirname[10];
 		unsigned char dirparent[3];
@@ -50,7 +54,8 @@ union adfs_dirtail {
 		unsigned char endname[4];
 		unsigned char dircheckbyte;
 	} old;
-	struct {
+	struct
+	{
 		unsigned char dirlastmask;
 		unsigned char reserved[2];
 		unsigned char dirparent[3];

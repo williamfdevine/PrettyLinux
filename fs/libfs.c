@@ -21,7 +21,7 @@
 #include "internal.h"
 
 int simple_getattr(struct vfsmount *mnt, struct dentry *dentry,
-		   struct kstat *stat)
+				   struct kstat *stat)
 {
 	struct inode *inode = d_inode(dentry);
 	generic_fillattr(inode, stat);
@@ -49,7 +49,8 @@ int always_delete_dentry(const struct dentry *dentry)
 }
 EXPORT_SYMBOL(always_delete_dentry);
 
-const struct dentry_operations simple_dentry_operations = {
+const struct dentry_operations simple_dentry_operations =
+{
 	.d_delete = always_delete_dentry,
 };
 EXPORT_SYMBOL(simple_dentry_operations);
@@ -61,9 +62,15 @@ EXPORT_SYMBOL(simple_dentry_operations);
 struct dentry *simple_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags)
 {
 	if (dentry->d_name.len > NAME_MAX)
+	{
 		return ERR_PTR(-ENAMETOOLONG);
+	}
+
 	if (!dentry->d_sb->s_d_op)
+	{
 		d_set_d_op(dentry, &simple_dentry_operations);
+	}
+
 	d_add(dentry, NULL);
 	return NULL;
 }
@@ -86,8 +93,8 @@ EXPORT_SYMBOL(dcache_dir_close);
 
 /* parent is locked at least shared */
 static struct dentry *next_positive(struct dentry *parent,
-				    struct list_head *from,
-				    int count)
+									struct list_head *from,
+									int count)
 {
 	unsigned *seq = &parent->d_inode->i_dir_seq, n;
 	struct dentry *res;
@@ -101,21 +108,34 @@ retry:
 	n = smp_load_acquire(seq) & ~1;
 	res = NULL;
 	rcu_read_lock();
-	for (p = from->next; p != &parent->d_subdirs; p = p->next) {
+
+	for (p = from->next; p != &parent->d_subdirs; p = p->next)
+	{
 		struct dentry *d = list_entry(p, struct dentry, d_child);
-		if (!simple_positive(d)) {
+
+		if (!simple_positive(d))
+		{
 			skipped = true;
-		} else if (!--i) {
+		}
+		else if (!--i)
+		{
 			res = d;
 			break;
 		}
 	}
+
 	rcu_read_unlock();
-	if (skipped) {
+
+	if (skipped)
+	{
 		smp_rmb();
+
 		if (unlikely(*seq != n))
+		{
 			goto retry;
+		}
 	}
+
 	return res;
 }
 
@@ -124,17 +144,30 @@ static void move_cursor(struct dentry *cursor, struct list_head *after)
 	struct dentry *parent = cursor->d_parent;
 	unsigned n, *seq = &parent->d_inode->i_dir_seq;
 	spin_lock(&parent->d_lock);
-	for (;;) {
+
+	for (;;)
+	{
 		n = *seq;
+
 		if (!(n & 1) && cmpxchg(seq, n, n + 1) == n)
+		{
 			break;
+		}
+
 		cpu_relax();
 	}
+
 	__list_del(cursor->d_child.prev, cursor->d_child.next);
+
 	if (after)
+	{
 		list_add(&cursor->d_child, after);
+	}
 	else
+	{
 		list_add_tail(&cursor->d_child, &parent->d_subdirs);
+	}
+
 	smp_store_release(seq, n + 2);
 	spin_unlock(&parent->d_lock);
 }
@@ -142,18 +175,28 @@ static void move_cursor(struct dentry *cursor, struct list_head *after)
 loff_t dcache_dir_lseek(struct file *file, loff_t offset, int whence)
 {
 	struct dentry *dentry = file->f_path.dentry;
-	switch (whence) {
+
+	switch (whence)
+	{
 		case 1:
 			offset += file->f_pos;
+
 		case 0:
 			if (offset >= 0)
+			{
 				break;
+			}
+
 		default:
 			return -EINVAL;
 	}
-	if (offset != file->f_pos) {
+
+	if (offset != file->f_pos)
+	{
 		file->f_pos = offset;
-		if (file->f_pos >= 2) {
+
+		if (file->f_pos >= 2)
+		{
 			struct dentry *cursor = file->private_data;
 			struct dentry *to;
 			loff_t n = file->f_pos - 2;
@@ -164,6 +207,7 @@ loff_t dcache_dir_lseek(struct file *file, loff_t offset, int whence)
 			inode_unlock_shared(dentry->d_inode);
 		}
 	}
+
 	return offset;
 }
 EXPORT_SYMBOL(dcache_dir_lseek);
@@ -189,20 +233,33 @@ int dcache_readdir(struct file *file, struct dir_context *ctx)
 	bool moved = false;
 
 	if (!dir_emit_dots(file, ctx))
+	{
 		return 0;
+	}
 
 	if (ctx->pos == 2)
+	{
 		p = &dentry->d_subdirs;
-	while ((next = next_positive(dentry, p, 1)) != NULL) {
+	}
+
+	while ((next = next_positive(dentry, p, 1)) != NULL)
+	{
 		if (!dir_emit(ctx, next->d_name.name, next->d_name.len,
-			      d_inode(next)->i_ino, dt_type(d_inode(next))))
+					  d_inode(next)->i_ino, dt_type(d_inode(next))))
+		{
 			break;
+		}
+
 		moved = true;
 		p = &next->d_child;
 		ctx->pos++;
 	}
+
 	if (moved)
+	{
 		move_cursor(cursor, p);
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(dcache_readdir);
@@ -213,7 +270,8 @@ ssize_t generic_read_dir(struct file *filp, char __user *buf, size_t siz, loff_t
 }
 EXPORT_SYMBOL(generic_read_dir);
 
-const struct file_operations simple_dir_operations = {
+const struct file_operations simple_dir_operations =
+{
 	.open		= dcache_dir_open,
 	.release	= dcache_dir_close,
 	.llseek		= dcache_dir_lseek,
@@ -223,12 +281,14 @@ const struct file_operations simple_dir_operations = {
 };
 EXPORT_SYMBOL(simple_dir_operations);
 
-const struct inode_operations simple_dir_inode_operations = {
+const struct inode_operations simple_dir_inode_operations =
+{
 	.lookup		= simple_lookup,
 };
 EXPORT_SYMBOL(simple_dir_inode_operations);
 
-static const struct super_operations simple_super_operations = {
+static const struct super_operations simple_super_operations =
+{
 	.statfs		= simple_statfs,
 };
 
@@ -237,8 +297,8 @@ static const struct super_operations simple_super_operations = {
  * will never be mountable)
  */
 struct dentry *mount_pseudo_xattr(struct file_system_type *fs_type, char *name,
-	const struct super_operations *ops, const struct xattr_handler **xattr,
-	const struct dentry_operations *dops, unsigned long magic)
+								  const struct super_operations *ops, const struct xattr_handler **xattr,
+								  const struct dentry_operations *dops, unsigned long magic)
 {
 	struct super_block *s;
 	struct dentry *dentry;
@@ -246,8 +306,11 @@ struct dentry *mount_pseudo_xattr(struct file_system_type *fs_type, char *name,
 	struct qstr d_name = QSTR_INIT(name, strlen(name));
 
 	s = sget(fs_type, NULL, set_anon_super, MS_NOUSER, NULL);
+
 	if (IS_ERR(s))
+	{
 		return ERR_CAST(s);
+	}
 
 	s->s_maxbytes = MAX_LFS_FILESIZE;
 	s->s_blocksize = PAGE_SIZE;
@@ -257,8 +320,12 @@ struct dentry *mount_pseudo_xattr(struct file_system_type *fs_type, char *name,
 	s->s_xattr = xattr;
 	s->s_time_gran = 1;
 	root = new_inode(s);
+
 	if (!root)
+	{
 		goto Enomem;
+	}
+
 	/*
 	 * since this is the first inode, make it number 1. New inodes created
 	 * after this must take care not to collide with it (by passing
@@ -268,10 +335,13 @@ struct dentry *mount_pseudo_xattr(struct file_system_type *fs_type, char *name,
 	root->i_mode = S_IFDIR | S_IRUSR | S_IWUSR;
 	root->i_atime = root->i_mtime = root->i_ctime = current_time(root);
 	dentry = __d_alloc(s, &d_name);
-	if (!dentry) {
+
+	if (!dentry)
+	{
 		iput(root);
 		goto Enomem;
 	}
+
 	d_instantiate(dentry, root);
 	s->s_root = dentry;
 	s->s_d_op = dops;
@@ -287,7 +357,10 @@ EXPORT_SYMBOL(mount_pseudo_xattr);
 int simple_open(struct inode *inode, struct file *file)
 {
 	if (inode->i_private)
+	{
 		file->private_data = inode->i_private;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(simple_open);
@@ -311,12 +384,16 @@ int simple_empty(struct dentry *dentry)
 	int ret = 0;
 
 	spin_lock(&dentry->d_lock);
-	list_for_each_entry(child, &dentry->d_subdirs, d_child) {
+	list_for_each_entry(child, &dentry->d_subdirs, d_child)
+	{
 		spin_lock_nested(&child->d_lock, DENTRY_D_LOCK_NESTED);
-		if (simple_positive(child)) {
+
+		if (simple_positive(child))
+		{
 			spin_unlock(&child->d_lock);
 			goto out;
 		}
+
 		spin_unlock(&child->d_lock);
 	}
 	ret = 1;
@@ -340,7 +417,9 @@ EXPORT_SYMBOL(simple_unlink);
 int simple_rmdir(struct inode *dir, struct dentry *dentry)
 {
 	if (!simple_empty(dentry))
+	{
 		return -ENOTEMPTY;
+	}
 
 	drop_nlink(d_inode(dentry));
 	simple_unlink(dir, dentry);
@@ -350,31 +429,40 @@ int simple_rmdir(struct inode *dir, struct dentry *dentry)
 EXPORT_SYMBOL(simple_rmdir);
 
 int simple_rename(struct inode *old_dir, struct dentry *old_dentry,
-		  struct inode *new_dir, struct dentry *new_dentry,
-		  unsigned int flags)
+				  struct inode *new_dir, struct dentry *new_dentry,
+				  unsigned int flags)
 {
 	struct inode *inode = d_inode(old_dentry);
 	int they_are_dirs = d_is_dir(old_dentry);
 
 	if (flags & ~RENAME_NOREPLACE)
+	{
 		return -EINVAL;
+	}
 
 	if (!simple_empty(new_dentry))
+	{
 		return -ENOTEMPTY;
+	}
 
-	if (d_really_is_positive(new_dentry)) {
+	if (d_really_is_positive(new_dentry))
+	{
 		simple_unlink(new_dir, new_dentry);
-		if (they_are_dirs) {
+
+		if (they_are_dirs)
+		{
 			drop_nlink(d_inode(new_dentry));
 			drop_nlink(old_dir);
 		}
-	} else if (they_are_dirs) {
+	}
+	else if (they_are_dirs)
+	{
 		drop_nlink(old_dir);
 		inc_nlink(new_dir);
 	}
 
 	old_dir->i_ctime = old_dir->i_mtime = new_dir->i_ctime =
-		new_dir->i_mtime = inode->i_ctime = current_time(old_dir);
+			new_dir->i_mtime = inode->i_ctime = current_time(old_dir);
 
 	return 0;
 }
@@ -400,11 +488,17 @@ int simple_setattr(struct dentry *dentry, struct iattr *iattr)
 	int error;
 
 	error = setattr_prepare(dentry, iattr);
+
 	if (error)
+	{
 		return error;
+	}
 
 	if (iattr->ia_valid & ATTR_SIZE)
+	{
 		truncate_setsize(inode, iattr->ia_size);
+	}
+
 	setattr_copy(inode, iattr);
 	mark_inode_dirty(inode);
 	return 0;
@@ -422,8 +516,8 @@ int simple_readpage(struct file *file, struct page *page)
 EXPORT_SYMBOL(simple_readpage);
 
 int simple_write_begin(struct file *file, struct address_space *mapping,
-			loff_t pos, unsigned len, unsigned flags,
-			struct page **pagep, void **fsdata)
+					   loff_t pos, unsigned len, unsigned flags,
+					   struct page **pagep, void **fsdata)
 {
 	struct page *page;
 	pgoff_t index;
@@ -431,16 +525,21 @@ int simple_write_begin(struct file *file, struct address_space *mapping,
 	index = pos >> PAGE_SHIFT;
 
 	page = grab_cache_page_write_begin(mapping, index, flags);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	*pagep = page;
 
-	if (!PageUptodate(page) && (len != PAGE_SIZE)) {
+	if (!PageUptodate(page) && (len != PAGE_SIZE))
+	{
 		unsigned from = pos & (PAGE_SIZE - 1);
 
 		zero_user_segments(page, 0, from, from + len, PAGE_SIZE);
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(simple_write_begin);
@@ -467,27 +566,33 @@ EXPORT_SYMBOL(simple_write_begin);
  * case that i_size has changed.
  */
 int simple_write_end(struct file *file, struct address_space *mapping,
-			loff_t pos, unsigned len, unsigned copied,
-			struct page *page, void *fsdata)
+					 loff_t pos, unsigned len, unsigned copied,
+					 struct page *page, void *fsdata)
 {
 	struct inode *inode = page->mapping->host;
 	loff_t last_pos = pos + copied;
 
 	/* zero the stale part of the page if we did a short copy */
-	if (copied < len) {
+	if (copied < len)
+	{
 		unsigned from = pos & (PAGE_SIZE - 1);
 
 		zero_user(page, from + copied, len - copied);
 	}
 
 	if (!PageUptodate(page))
+	{
 		SetPageUptodate(page);
+	}
+
 	/*
 	 * No need to use i_size_read() here, the i_size
 	 * cannot change under us because we hold the i_mutex.
 	 */
 	if (last_pos > inode->i_size)
+	{
 		i_size_write(inode, last_pos);
+	}
 
 	set_page_dirty(page);
 	unlock_page(page);
@@ -503,7 +608,7 @@ EXPORT_SYMBOL(simple_write_end);
  * to pass it an appropriate max_reserved value to avoid collisions.
  */
 int simple_fill_super(struct super_block *s, unsigned long magic,
-		      struct tree_descr *files)
+					  struct tree_descr *files)
 {
 	struct inode *inode;
 	struct dentry *root;
@@ -517,8 +622,12 @@ int simple_fill_super(struct super_block *s, unsigned long magic,
 	s->s_time_gran = 1;
 
 	inode = new_inode(s);
+
 	if (!inode)
+	{
 		return -ENOMEM;
+	}
+
 	/*
 	 * because the root inode is 1, the files array must not contain an
 	 * entry at index 1
@@ -530,32 +639,47 @@ int simple_fill_super(struct super_block *s, unsigned long magic,
 	inode->i_fop = &simple_dir_operations;
 	set_nlink(inode, 2);
 	root = d_make_root(inode);
+
 	if (!root)
+	{
 		return -ENOMEM;
-	for (i = 0; !files->name || files->name[0]; i++, files++) {
+	}
+
+	for (i = 0; !files->name || files->name[0]; i++, files++)
+	{
 		if (!files->name)
+		{
 			continue;
+		}
 
 		/* warn if it tries to conflict with the root inode */
 		if (unlikely(i == 1))
 			printk(KERN_WARNING "%s: %s passed in a files array"
-				"with an index of 1!\n", __func__,
-				s->s_type->name);
+				   "with an index of 1!\n", __func__,
+				   s->s_type->name);
 
 		dentry = d_alloc_name(root, files->name);
+
 		if (!dentry)
+		{
 			goto out;
+		}
+
 		inode = new_inode(s);
-		if (!inode) {
+
+		if (!inode)
+		{
 			dput(dentry);
 			goto out;
 		}
+
 		inode->i_mode = S_IFREG | files->mode;
 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
 		inode->i_fop = files->ops;
 		inode->i_ino = i;
 		d_add(dentry, inode);
 	}
+
 	s->s_root = root;
 	return 0;
 out:
@@ -572,15 +696,25 @@ int simple_pin_fs(struct file_system_type *type, struct vfsmount **mount, int *c
 {
 	struct vfsmount *mnt = NULL;
 	spin_lock(&pin_fs_lock);
-	if (unlikely(!*mount)) {
+
+	if (unlikely(!*mount))
+	{
 		spin_unlock(&pin_fs_lock);
 		mnt = vfs_kern_mount(type, MS_KERNMOUNT, type->name, NULL);
+
 		if (IS_ERR(mnt))
+		{
 			return PTR_ERR(mnt);
+		}
+
 		spin_lock(&pin_fs_lock);
+
 		if (!*mount)
+		{
 			*mount = mnt;
+		}
 	}
+
 	mntget(*mount);
 	++*count;
 	spin_unlock(&pin_fs_lock);
@@ -594,8 +728,12 @@ void simple_release_fs(struct vfsmount **mount, int *count)
 	struct vfsmount *mnt;
 	spin_lock(&pin_fs_lock);
 	mnt = *mount;
+
 	if (!--*count)
+	{
 		*mount = NULL;
+	}
+
 	spin_unlock(&pin_fs_lock);
 	mntput(mnt);
 }
@@ -616,20 +754,33 @@ EXPORT_SYMBOL(simple_release_fs);
  * advanced by this number, or negative value is returned on error.
  **/
 ssize_t simple_read_from_buffer(void __user *to, size_t count, loff_t *ppos,
-				const void *from, size_t available)
+								const void *from, size_t available)
 {
 	loff_t pos = *ppos;
 	size_t ret;
 
 	if (pos < 0)
+	{
 		return -EINVAL;
+	}
+
 	if (pos >= available || !count)
+	{
 		return 0;
+	}
+
 	if (count > available - pos)
+	{
 		count = available - pos;
+	}
+
 	ret = copy_to_user(to, from + pos, count);
+
 	if (ret == count)
+	{
 		return -EFAULT;
+	}
+
 	count -= ret;
 	*ppos = pos + count;
 	return count;
@@ -651,20 +802,33 @@ EXPORT_SYMBOL(simple_read_from_buffer);
  * advanced by this number, or negative value is returned on error.
  **/
 ssize_t simple_write_to_buffer(void *to, size_t available, loff_t *ppos,
-		const void __user *from, size_t count)
+							   const void __user *from, size_t count)
 {
 	loff_t pos = *ppos;
 	size_t res;
 
 	if (pos < 0)
+	{
 		return -EINVAL;
+	}
+
 	if (pos >= available || !count)
+	{
 		return 0;
+	}
+
 	if (count > available - pos)
+	{
 		count = available - pos;
+	}
+
 	res = copy_from_user(to + pos, from, count);
+
 	if (res == count)
+	{
 		return -EFAULT;
+	}
+
 	count -= res;
 	*ppos = pos + count;
 	return count;
@@ -686,16 +850,25 @@ EXPORT_SYMBOL(simple_write_to_buffer);
  * advanced by this number, or negative value is returned on error.
  **/
 ssize_t memory_read_from_buffer(void *to, size_t count, loff_t *ppos,
-				const void *from, size_t available)
+								const void *from, size_t available)
 {
 	loff_t pos = *ppos;
 
 	if (pos < 0)
+	{
 		return -EINVAL;
+	}
+
 	if (pos >= available)
+	{
 		return 0;
+	}
+
 	if (count > available - pos)
+	{
 		count = available - pos;
+	}
+
 	memcpy(to, from + pos, count);
 	*ppos = pos + count;
 
@@ -731,16 +904,22 @@ char *simple_transaction_get(struct file *file, const char __user *buf, size_t s
 	static DEFINE_SPINLOCK(simple_transaction_lock);
 
 	if (size > SIMPLE_TRANSACTION_LIMIT - 1)
+	{
 		return ERR_PTR(-EFBIG);
+	}
 
 	ar = (struct simple_transaction_argresp *)get_zeroed_page(GFP_KERNEL);
+
 	if (!ar)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	spin_lock(&simple_transaction_lock);
 
 	/* only one write allowed per open */
-	if (file->private_data) {
+	if (file->private_data)
+	{
 		spin_unlock(&simple_transaction_lock);
 		free_page((unsigned long)ar);
 		return ERR_PTR(-EBUSY);
@@ -751,7 +930,9 @@ char *simple_transaction_get(struct file *file, const char __user *buf, size_t s
 	spin_unlock(&simple_transaction_lock);
 
 	if (copy_from_user(ar->data, buf, size))
+	{
 		return ERR_PTR(-EFAULT);
+	}
 
 	return ar->data;
 }
@@ -762,7 +943,10 @@ ssize_t simple_transaction_read(struct file *file, char __user *buf, size_t size
 	struct simple_transaction_argresp *ar = file->private_data;
 
 	if (!ar)
+	{
 		return 0;
+	}
+
 	return simple_read_from_buffer(buf, size, pos, ar->data, ar->size);
 }
 EXPORT_SYMBOL(simple_transaction_read);
@@ -776,7 +960,8 @@ EXPORT_SYMBOL(simple_transaction_release);
 
 /* Simple attribute files */
 
-struct simple_attr {
+struct simple_attr
+{
 	int (*get)(void *, u64 *);
 	int (*set)(void *, u64);
 	char get_buf[24];	/* enough to store a u64 and "\n\0" */
@@ -789,14 +974,17 @@ struct simple_attr {
 /* simple_attr_open is called by an actual attribute open file operation
  * to set the attribute specific access operations. */
 int simple_attr_open(struct inode *inode, struct file *file,
-		     int (*get)(void *, u64 *), int (*set)(void *, u64),
-		     const char *fmt)
+					 int (*get)(void *, u64 *), int (*set)(void *, u64),
+					 const char *fmt)
 {
 	struct simple_attr *attr;
 
 	attr = kmalloc(sizeof(*attr), GFP_KERNEL);
+
 	if (!attr)
+	{
 		return -ENOMEM;
+	}
 
 	attr->get = get;
 	attr->set = set;
@@ -819,7 +1007,7 @@ EXPORT_SYMBOL_GPL(simple_attr_release);	/* GPL-only?  This?  Really? */
 
 /* read from the buffer that is filled with the get function */
 ssize_t simple_attr_read(struct file *file, char __user *buf,
-			 size_t len, loff_t *ppos)
+						 size_t len, loff_t *ppos)
 {
 	struct simple_attr *attr;
 	size_t size;
@@ -828,22 +1016,33 @@ ssize_t simple_attr_read(struct file *file, char __user *buf,
 	attr = file->private_data;
 
 	if (!attr->get)
+	{
 		return -EACCES;
+	}
 
 	ret = mutex_lock_interruptible(&attr->mutex);
-	if (ret)
-		return ret;
 
-	if (*ppos) {		/* continued read */
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (*ppos)  		/* continued read */
+	{
 		size = strlen(attr->get_buf);
-	} else {		/* first read */
+	}
+	else  		/* first read */
+	{
 		u64 val;
 		ret = attr->get(attr->data, &val);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		size = scnprintf(attr->get_buf, sizeof(attr->get_buf),
-				 attr->fmt, (unsigned long long)val);
+						 attr->fmt, (unsigned long long)val);
 	}
 
 	ret = simple_read_from_buffer(buf, len, ppos, attr->get_buf, size);
@@ -855,7 +1054,7 @@ EXPORT_SYMBOL_GPL(simple_attr_read);
 
 /* interpret the buffer as a number to call the set function with */
 ssize_t simple_attr_write(struct file *file, const char __user *buf,
-			  size_t len, loff_t *ppos)
+						  size_t len, loff_t *ppos)
 {
 	struct simple_attr *attr;
 	u64 val;
@@ -863,23 +1062,36 @@ ssize_t simple_attr_write(struct file *file, const char __user *buf,
 	ssize_t ret;
 
 	attr = file->private_data;
+
 	if (!attr->set)
+	{
 		return -EACCES;
+	}
 
 	ret = mutex_lock_interruptible(&attr->mutex);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = -EFAULT;
 	size = min(sizeof(attr->set_buf) - 1, len);
+
 	if (copy_from_user(attr->set_buf, buf, size))
+	{
 		goto out;
+	}
 
 	attr->set_buf[size] = '\0';
 	val = simple_strtoll(attr->set_buf, NULL, 0);
 	ret = attr->set(attr->data, val);
+
 	if (ret == 0)
-		ret = len; /* on success, claim we got the whole input */
+	{
+		ret = len;    /* on success, claim we got the whole input */
+	}
+
 out:
 	mutex_unlock(&attr->mutex);
 	return ret;
@@ -899,19 +1111,22 @@ EXPORT_SYMBOL_GPL(simple_attr_write);
  * inode for the object specified in the file handle.
  */
 struct dentry *generic_fh_to_dentry(struct super_block *sb, struct fid *fid,
-		int fh_len, int fh_type, struct inode *(*get_inode)
-			(struct super_block *sb, u64 ino, u32 gen))
+									int fh_len, int fh_type, struct inode * (*get_inode)
+									(struct super_block *sb, u64 ino, u32 gen))
 {
 	struct inode *inode = NULL;
 
 	if (fh_len < 2)
+	{
 		return NULL;
+	}
 
-	switch (fh_type) {
-	case FILEID_INO32_GEN:
-	case FILEID_INO32_GEN_PARENT:
-		inode = get_inode(sb, fid->i32.ino, fid->i32.gen);
-		break;
+	switch (fh_type)
+	{
+		case FILEID_INO32_GEN:
+		case FILEID_INO32_GEN_PARENT:
+			inode = get_inode(sb, fid->i32.ino, fid->i32.gen);
+			break;
 	}
 
 	return d_obtain_alias(inode);
@@ -932,19 +1147,22 @@ EXPORT_SYMBOL_GPL(generic_fh_to_dentry);
  * is specified in the file handle, or NULL otherwise.
  */
 struct dentry *generic_fh_to_parent(struct super_block *sb, struct fid *fid,
-		int fh_len, int fh_type, struct inode *(*get_inode)
-			(struct super_block *sb, u64 ino, u32 gen))
+									int fh_len, int fh_type, struct inode * (*get_inode)
+									(struct super_block *sb, u64 ino, u32 gen))
 {
 	struct inode *inode = NULL;
 
 	if (fh_len <= 2)
+	{
 		return NULL;
+	}
 
-	switch (fh_type) {
-	case FILEID_INO32_GEN_PARENT:
-		inode = get_inode(sb, fid->i32.parent_ino,
-				  (fh_len > 3 ? fid->i32.parent_gen : 0));
-		break;
+	switch (fh_type)
+	{
+		case FILEID_INO32_GEN_PARENT:
+			inode = get_inode(sb, fid->i32.parent_ino,
+							  (fh_len > 3 ? fid->i32.parent_gen : 0));
+			break;
 	}
 
 	return d_obtain_alias(inode);
@@ -964,26 +1182,38 @@ EXPORT_SYMBOL_GPL(generic_fh_to_parent);
  * hanging off the address_space structure.
  */
 int __generic_file_fsync(struct file *file, loff_t start, loff_t end,
-				 int datasync)
+						 int datasync)
 {
 	struct inode *inode = file->f_mapping->host;
 	int err;
 	int ret;
 
 	err = filemap_write_and_wait_range(inode->i_mapping, start, end);
+
 	if (err)
+	{
 		return err;
+	}
 
 	inode_lock(inode);
 	ret = sync_mapping_buffers(inode->i_mapping);
+
 	if (!(inode->i_state & I_DIRTY_ALL))
+	{
 		goto out;
+	}
+
 	if (datasync && !(inode->i_state & I_DIRTY_DATASYNC))
+	{
 		goto out;
+	}
 
 	err = sync_inode_metadata(inode, 1);
+
 	if (ret == 0)
+	{
 		ret = err;
+	}
 
 out:
 	inode_unlock(inode);
@@ -1002,14 +1232,18 @@ EXPORT_SYMBOL(__generic_file_fsync);
  */
 
 int generic_file_fsync(struct file *file, loff_t start, loff_t end,
-		       int datasync)
+					   int datasync)
 {
 	struct inode *inode = file->f_mapping->host;
 	int err;
 
 	err = __generic_file_fsync(file, start, end, datasync);
+
 	if (err)
+	{
 		return err;
+	}
+
 	return blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
 }
 EXPORT_SYMBOL(generic_file_fsync);
@@ -1030,15 +1264,21 @@ int generic_check_addressable(unsigned blocksize_bits, u64 num_blocks)
 		last_fs_block >> (PAGE_SHIFT - blocksize_bits);
 
 	if (unlikely(num_blocks == 0))
+	{
 		return 0;
+	}
 
 	if ((blocksize_bits < 9) || (blocksize_bits > PAGE_SHIFT))
+	{
 		return -EINVAL;
+	}
 
 	if ((last_fs_block > (sector_t)(~0ULL) >> (blocksize_bits - 9)) ||
-	    (last_fs_page > (pgoff_t)(~0ULL))) {
+		(last_fs_page > (pgoff_t)(~0ULL)))
+	{
 		return -EFBIG;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(generic_check_addressable);
@@ -1075,13 +1315,16 @@ static int anon_set_page_dirty(struct page *page)
  */
 struct inode *alloc_anon_inode(struct super_block *s)
 {
-	static const struct address_space_operations anon_aops = {
+	static const struct address_space_operations anon_aops =
+	{
 		.set_page_dirty = anon_set_page_dirty,
 	};
 	struct inode *inode = new_inode_pseudo(s);
 
 	if (!inode)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	inode->i_ino = get_next_ino();
 	inode->i_mapping->a_ops = &anon_aops;
@@ -1114,20 +1357,21 @@ EXPORT_SYMBOL(alloc_anon_inode);
  */
 int
 simple_nosetlease(struct file *filp, long arg, struct file_lock **flp,
-		  void **priv)
+				  void **priv)
 {
 	return -EINVAL;
 }
 EXPORT_SYMBOL(simple_nosetlease);
 
 const char *simple_get_link(struct dentry *dentry, struct inode *inode,
-			    struct delayed_call *done)
+							struct delayed_call *done)
 {
 	return inode->i_link;
 }
 EXPORT_SYMBOL(simple_get_link);
 
-const struct inode_operations simple_symlink_inode_operations = {
+const struct inode_operations simple_symlink_inode_operations =
+{
 	.get_link = simple_get_link,
 	.readlink = generic_readlink
 };
@@ -1142,7 +1386,7 @@ static struct dentry *empty_dir_lookup(struct inode *dir, struct dentry *dentry,
 }
 
 static int empty_dir_getattr(struct vfsmount *mnt, struct dentry *dentry,
-				 struct kstat *stat)
+							 struct kstat *stat)
 {
 	struct inode *inode = d_inode(dentry);
 	generic_fillattr(inode, stat);
@@ -1159,7 +1403,8 @@ static ssize_t empty_dir_listxattr(struct dentry *dentry, char *list, size_t siz
 	return -EOPNOTSUPP;
 }
 
-static const struct inode_operations empty_dir_inode_operations = {
+static const struct inode_operations empty_dir_inode_operations =
+{
 	.lookup		= empty_dir_lookup,
 	.permission	= generic_permission,
 	.setattr	= empty_dir_setattr,
@@ -1179,7 +1424,8 @@ static int empty_dir_readdir(struct file *file, struct dir_context *ctx)
 	return 0;
 }
 
-static const struct file_operations empty_dir_operations = {
+static const struct file_operations empty_dir_operations =
+{
 	.llseek		= empty_dir_llseek,
 	.read		= generic_read_dir,
 	.iterate_shared	= empty_dir_readdir,
@@ -1206,5 +1452,5 @@ void make_empty_dir_inode(struct inode *inode)
 bool is_empty_dir_inode(struct inode *inode)
 {
 	return (inode->i_fop == &empty_dir_operations) &&
-		(inode->i_op == &empty_dir_inode_operations);
+		   (inode->i_op == &empty_dir_inode_operations);
 }

@@ -40,7 +40,8 @@ void xl_shift_cclk(int count)
 {
 	int i;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		xl_cclk_b(1);
 		xl_cclk_b(0);
 	}
@@ -48,15 +49,18 @@ void xl_shift_cclk(int count)
 
 int xl_supported_prog_bus_width(enum wbus bus_bytes)
 {
-	switch (bus_bytes) {
-	case bus_1byte:
-		break;
-	case bus_2byte:
-		break;
-	default:
-		pr_err("unsupported program bus width %d\n",
-				bus_bytes);
-		return 0;
+	switch (bus_bytes)
+	{
+		case bus_1byte:
+			break;
+
+		case bus_2byte:
+			break;
+
+		default:
+			pr_err("unsupported program bus width %d\n",
+				   bus_bytes);
+			return 0;
 	}
 
 	return 1;
@@ -69,7 +73,9 @@ void xl_shift_bytes_out(enum wbus bus_byte, unsigned char *pdata)
 	 * supports 1 and 2 bytes programming mode
 	 */
 	if (likely(bus_byte == bus_2byte))
+	{
 		byte0_out(pdata[0]);
+	}
 
 	byte1_out(pdata[1]);
 	xl_shift_cclk(1);

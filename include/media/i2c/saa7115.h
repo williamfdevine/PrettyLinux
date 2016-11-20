@@ -72,7 +72,8 @@
  * Should be set to "Fast Locking Mode" according to the datasheet,
  * and that is the default setting in the gm7113c_init table.
  * saa7113_init sets this value to "VTR Mode". */
-enum saa7113_r08_htc {
+enum saa7113_r08_htc
+{
 	SAA7113_HTC_TV_MODE = 0x00,
 	SAA7113_HTC_VTR_MODE,			/* Default for saa7113_init */
 	SAA7113_HTC_FAST_LOCKING_MODE = 0x03	/* Default for gm7113c_init */
@@ -80,7 +81,8 @@ enum saa7113_r08_htc {
 
 /* Register 0x10 "Output format selection" [Bit 6..7]:
  * Defaults to ITU_656 as specified in datasheet. */
-enum saa7113_r10_ofts {
+enum saa7113_r10_ofts
+{
 	SAA7113_OFTS_ITU_656 = 0x0,	/* Default */
 	SAA7113_OFTS_VFLAG_BY_VREF,
 	SAA7113_OFTS_VFLAG_BY_DATA_TYPE
@@ -93,7 +95,8 @@ enum saa7113_r10_ofts {
  * RTS0 [Bit 0..3] Defaults to VIPB in gm7113c_init as specified
  * in the datasheet, but is set to HREF_HS in the saa7113_init table.
  */
-enum saa7113_r12_rts {
+enum saa7113_r12_rts
+{
 	SAA7113_RTS_DOT_IN = 0,		/* OBS: Only for RTS1 (Default RTS1) */
 	SAA7113_RTS_VIPB,		/* Default RTS0 For gm7113c_init */
 	SAA7113_RTS_GPSW,
@@ -127,7 +130,8 @@ enum saa7113_r12_rts {
  * @saa7113_r12_rts1:		[R_12 - Bit 4..7]
  * @saa7113_r13_adlsb:		[R_13 - Bit 7] - default: disabled
  */
-struct saa7115_platform_data {
+struct saa7115_platform_data
+{
 	bool saa7113_force_gm7113c_init;
 	enum saa7113_r08_htc *saa7113_r08_htc;
 	bool *saa7113_r10_vrln;

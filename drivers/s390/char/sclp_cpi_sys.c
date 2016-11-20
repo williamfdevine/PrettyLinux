@@ -33,7 +33,8 @@
 
 static DEFINE_MUTEX(sclp_cpi_mutex);
 
-struct cpi_evbuf {
+struct cpi_evbuf
+{
 	struct evbuf_header header;
 	u8	id_format;
 	u8	reserved0;
@@ -47,12 +48,14 @@ struct cpi_evbuf {
 	u8	reserved4[16];
 } __attribute__((packed));
 
-struct cpi_sccb {
+struct cpi_sccb
+{
 	struct sccb_header header;
 	struct cpi_evbuf cpi_evbuf;
 } __attribute__((packed));
 
-static struct sclp_register sclp_cpi_event = {
+static struct sclp_register sclp_cpi_event =
+{
 	.send_mask = EVTYP_CTLPROGIDENT_MASK,
 };
 
@@ -82,10 +85,16 @@ static struct sclp_req *cpi_prepare_req(void)
 	struct cpi_evbuf *evb;
 
 	req = kzalloc(sizeof(struct sclp_req), GFP_KERNEL);
+
 	if (!req)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	sccb = (struct cpi_sccb *) get_zeroed_page(GFP_KERNEL | GFP_DMA);
-	if (!sccb) {
+
+	if (!sccb)
+	{
 		kfree(req);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -130,15 +139,22 @@ static int cpi_req(void)
 	int response;
 
 	rc = sclp_register(&sclp_cpi_event);
+
 	if (rc)
+	{
 		goto out;
-	if (!(sclp_cpi_event.sclp_receive_mask & EVTYP_CTLPROGIDENT_MASK)) {
+	}
+
+	if (!(sclp_cpi_event.sclp_receive_mask & EVTYP_CTLPROGIDENT_MASK))
+	{
 		rc = -EOPNOTSUPP;
 		goto out_unregister;
 	}
 
 	req = cpi_prepare_req();
-	if (IS_ERR(req)) {
+
+	if (IS_ERR(req))
+	{
 		rc = PTR_ERR(req);
 		goto out_unregister;
 	}
@@ -148,19 +164,25 @@ static int cpi_req(void)
 
 	/* Add request to sclp queue */
 	rc = sclp_add_request(req);
+
 	if (rc)
+	{
 		goto out_free_req;
+	}
 
 	wait_for_completion(&completion);
 
-	if (req->status != SCLP_REQ_DONE) {
+	if (req->status != SCLP_REQ_DONE)
+	{
 		pr_warn("request failed (status=0x%02x)\n", req->status);
 		rc = -EIO;
 		goto out_free_req;
 	}
 
 	response = ((struct cpi_sccb *) req->sccb)->header.response_code;
-	if (response != 0x0020) {
+
+	if (response != 0x0020)
+	{
 		pr_warn("request failed with response code 0x%x\n", response);
 		rc = -EIO;
 	}
@@ -183,15 +205,23 @@ static int check_string(const char *attr, const char *str)
 	len = strlen(str);
 
 	if ((len > 0) && (str[len - 1] == '\n'))
+	{
 		len--;
+	}
 
 	if (len > CPI_LENGTH_NAME)
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < len ; i++) {
+	for (i = 0; i < len ; i++)
+	{
 		if (isalpha(str[i]) || isdigit(str[i]) ||
-		    strchr("$@# ", str[i]))
+			strchr("$@# ", str[i]))
+		{
 			continue;
+		}
+
 		return -EINVAL;
 	}
 
@@ -206,18 +236,25 @@ static void set_string(char *attr, const char *value)
 	len = strlen(value);
 
 	if ((len > 0) && (value[len - 1] == '\n'))
+	{
 		len--;
+	}
 
-	for (i = 0; i < CPI_LENGTH_NAME; i++) {
+	for (i = 0; i < CPI_LENGTH_NAME; i++)
+	{
 		if (i < len)
+		{
 			attr[i] = toupper(value[i]);
+		}
 		else
+		{
 			attr[i] = ' ';
+		}
 	}
 }
 
 static ssize_t system_name_show(struct kobject *kobj,
-				struct kobj_attribute *attr, char *page)
+								struct kobj_attribute *attr, char *page)
 {
 	int rc;
 
@@ -228,15 +265,18 @@ static ssize_t system_name_show(struct kobject *kobj,
 }
 
 static ssize_t system_name_store(struct kobject *kobj,
-				 struct kobj_attribute *attr,
-				 const char *buf,
-	size_t len)
+								 struct kobj_attribute *attr,
+								 const char *buf,
+								 size_t len)
 {
 	int rc;
 
 	rc = check_string("system_name", buf);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	mutex_lock(&sclp_cpi_mutex);
 	set_string(system_name, buf);
@@ -249,7 +289,7 @@ static struct kobj_attribute system_name_attr =
 	__ATTR(system_name, 0644, system_name_show, system_name_store);
 
 static ssize_t sysplex_name_show(struct kobject *kobj,
-				 struct kobj_attribute *attr, char *page)
+								 struct kobj_attribute *attr, char *page)
 {
 	int rc;
 
@@ -260,15 +300,18 @@ static ssize_t sysplex_name_show(struct kobject *kobj,
 }
 
 static ssize_t sysplex_name_store(struct kobject *kobj,
-				  struct kobj_attribute *attr,
-				  const char *buf,
-	size_t len)
+								  struct kobj_attribute *attr,
+								  const char *buf,
+								  size_t len)
 {
 	int rc;
 
 	rc = check_string("sysplex_name", buf);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	mutex_lock(&sclp_cpi_mutex);
 	set_string(sysplex_name, buf);
@@ -281,7 +324,7 @@ static struct kobj_attribute sysplex_name_attr =
 	__ATTR(sysplex_name, 0644, sysplex_name_show, sysplex_name_store);
 
 static ssize_t system_type_show(struct kobject *kobj,
-				struct kobj_attribute *attr, char *page)
+								struct kobj_attribute *attr, char *page)
 {
 	int rc;
 
@@ -292,15 +335,18 @@ static ssize_t system_type_show(struct kobject *kobj,
 }
 
 static ssize_t system_type_store(struct kobject *kobj,
-				 struct kobj_attribute *attr,
-				 const char *buf,
-	size_t len)
+								 struct kobj_attribute *attr,
+								 const char *buf,
+								 size_t len)
 {
 	int rc;
 
 	rc = check_string("system_type", buf);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	mutex_lock(&sclp_cpi_mutex);
 	set_string(system_type, buf);
@@ -313,7 +359,7 @@ static struct kobj_attribute system_type_attr =
 	__ATTR(system_type, 0644, system_type_show, system_type_store);
 
 static ssize_t system_level_show(struct kobject *kobj,
-				 struct kobj_attribute *attr, char *page)
+								 struct kobj_attribute *attr, char *page)
 {
 	unsigned long long level;
 
@@ -324,9 +370,9 @@ static ssize_t system_level_show(struct kobject *kobj,
 }
 
 static ssize_t system_level_store(struct kobject *kobj,
-				  struct kobj_attribute *attr,
-				  const char *buf,
-	size_t len)
+								  struct kobj_attribute *attr,
+								  const char *buf,
+								  size_t len)
 {
 	unsigned long long level;
 	char *endp;
@@ -334,11 +380,19 @@ static ssize_t system_level_store(struct kobject *kobj,
 	level = simple_strtoull(buf, &endp, 16);
 
 	if (endp == buf)
+	{
 		return -EINVAL;
+	}
+
 	if (*endp == '\n')
+	{
 		endp++;
+	}
+
 	if (*endp)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&sclp_cpi_mutex);
 	system_level = level;
@@ -350,23 +404,27 @@ static struct kobj_attribute system_level_attr =
 	__ATTR(system_level, 0644, system_level_show, system_level_store);
 
 static ssize_t set_store(struct kobject *kobj,
-			 struct kobj_attribute *attr,
-			 const char *buf, size_t len)
+						 struct kobj_attribute *attr,
+						 const char *buf, size_t len)
 {
 	int rc;
 
 	mutex_lock(&sclp_cpi_mutex);
 	rc = cpi_req();
 	mutex_unlock(&sclp_cpi_mutex);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return len;
 }
 
 static struct kobj_attribute set_attr = __ATTR(set, 0200, NULL, set_store);
 
-static struct attribute *cpi_attrs[] = {
+static struct attribute *cpi_attrs[] =
+{
 	&system_name_attr.attr,
 	&sysplex_name_attr.attr,
 	&system_type_attr.attr,
@@ -375,26 +433,38 @@ static struct attribute *cpi_attrs[] = {
 	NULL,
 };
 
-static struct attribute_group cpi_attr_group = {
+static struct attribute_group cpi_attr_group =
+{
 	.attrs = cpi_attrs,
 };
 
 static struct kset *cpi_kset;
 
 int sclp_cpi_set_data(const char *system, const char *sysplex, const char *type,
-		      const u64 level)
+					  const u64 level)
 {
 	int rc;
 
 	rc = check_string("system_name", system);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	rc = check_string("sysplex_name", sysplex);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	rc = check_string("system_type", type);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	mutex_lock(&sclp_cpi_mutex);
 	set_string(system_name, system);
@@ -414,12 +484,18 @@ static int __init cpi_init(void)
 	int rc;
 
 	cpi_kset = kset_create_and_add("cpi", NULL, firmware_kobj);
+
 	if (!cpi_kset)
+	{
 		return -ENOMEM;
+	}
 
 	rc = sysfs_create_group(&cpi_kset->kobj, &cpi_attr_group);
+
 	if (rc)
+	{
 		kset_unregister(cpi_kset);
+	}
 
 	return rc;
 }

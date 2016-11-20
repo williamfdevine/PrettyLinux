@@ -16,7 +16,8 @@
 
 static int go_away;
 
-struct thread_data {
+struct thread_data
+{
 	pthread_t	pt;
 	pid_t		tid;
 	void		*map;
@@ -30,10 +31,11 @@ static int thread_init(struct thread_data *td)
 	void *map;
 
 	map = mmap(NULL, page_size,
-		   PROT_READ|PROT_WRITE|PROT_EXEC,
-		   MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+			   PROT_READ | PROT_WRITE | PROT_EXEC,
+			   MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
-	if (map == MAP_FAILED) {
+	if (map == MAP_FAILED)
+	{
 		perror("mmap failed");
 		return -1;
 	}
@@ -52,16 +54,21 @@ static void *thread_fn(void *arg)
 	int go;
 
 	if (thread_init(td))
+	{
 		return NULL;
+	}
 
 	/* Signal thread_create thread is initialized. */
 	ret = write(td->ready[1], &go, sizeof(int));
-	if (ret != sizeof(int)) {
+
+	if (ret != sizeof(int))
+	{
 		pr_err("failed to notify\n");
 		return NULL;
 	}
 
-	while (!go_away) {
+	while (!go_away)
+	{
 		/* Waiting for main thread to kill us. */
 		usleep(100);
 	}
@@ -76,10 +83,14 @@ static int thread_create(int i)
 	int err, go;
 
 	if (pipe(td->ready))
+	{
 		return -1;
+	}
 
 	err = pthread_create(&td->pt, NULL, thread_fn, td);
-	if (!err) {
+
+	if (!err)
+	{
 		/* Wait for thread initialization. */
 		ssize_t ret = read(td->ready[0], &go, sizeof(int));
 		err = ret != sizeof(int);
@@ -99,10 +110,14 @@ static int threads_create(void)
 
 	/* 0 is main thread */
 	if (thread_init(td0))
+	{
 		return -1;
+	}
 
 	for (i = 1; !err && i < THREADS; i++)
+	{
 		err = thread_create(i);
+	}
 
 	return err;
 }
@@ -118,7 +133,9 @@ static int threads_destroy(void)
 	go_away = 1;
 
 	for (i = 1; !err && i < THREADS; i++)
+	{
 		err = pthread_join(threads[i].pt, NULL);
+	}
 
 	return err;
 }
@@ -128,8 +145,8 @@ typedef int (*synth_cb)(struct machine *machine);
 static int synth_all(struct machine *machine)
 {
 	return perf_event__synthesize_threads(NULL,
-					      perf_event__process,
-					      machine, 0, 500);
+										  perf_event__process,
+										  machine, 0, 500);
 }
 
 static int synth_process(struct machine *machine)
@@ -140,8 +157,8 @@ static int synth_process(struct machine *machine)
 	map = thread_map__new_by_pid(getpid());
 
 	err = perf_event__synthesize_thread_map(NULL, map,
-						perf_event__process,
-						machine, 0, 500);
+											perf_event__process,
+											machine, 0, 500);
 
 	thread_map__put(map);
 	return err;
@@ -176,7 +193,8 @@ static int mmap_events(synth_cb synth)
 	 * All data is synthesized, try to find map for each
 	 * thread object.
 	 */
-	for (i = 0; i < THREADS; i++) {
+	for (i = 0; i < THREADS; i++)
+	{
 		struct thread_data *td = &threads[i];
 		struct addr_location al;
 		struct thread *thread;
@@ -186,12 +204,13 @@ static int mmap_events(synth_cb synth)
 		pr_debug("looking for map %p\n", td->map);
 
 		thread__find_addr_map(thread,
-				      PERF_RECORD_MISC_USER, MAP__FUNCTION,
-				      (unsigned long) (td->map + 1), &al);
+							  PERF_RECORD_MISC_USER, MAP__FUNCTION,
+							  (unsigned long) (td->map + 1), &al);
 
 		thread__put(thread);
 
-		if (!al.map) {
+		if (!al.map)
+		{
 			pr_debug("failed, couldn't find map\n");
 			err = -1;
 			break;
@@ -223,11 +242,11 @@ int test__mmap_thread_lookup(int subtest __maybe_unused)
 {
 	/* perf_event__synthesize_threads synthesize */
 	TEST_ASSERT_VAL("failed with sythesizing all",
-			!mmap_events(synth_all));
+					!mmap_events(synth_all));
 
 	/* perf_event__synthesize_thread_map synthesize */
 	TEST_ASSERT_VAL("failed with sythesizing process",
-			!mmap_events(synth_process));
+					!mmap_events(synth_process));
 
 	return 0;
 }

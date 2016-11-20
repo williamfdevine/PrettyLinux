@@ -44,7 +44,8 @@
 
 #define CRAT_OEMID_64BIT_MASK ((1ULL << (CRAT_OEMID_LENGTH * 8)) - 1)
 
-struct crat_header {
+struct crat_header
+{
 	uint32_t	signature;
 	uint32_t	length;
 	uint8_t		revision;
@@ -89,7 +90,8 @@ struct crat_header {
 
 #define CRAT_COMPUTEUNIT_RESERVED_LENGTH 4
 
-struct crat_subtype_computeunit {
+struct crat_subtype_computeunit
+{
 	uint8_t		type;
 	uint8_t		length;
 	uint16_t	reserved;
@@ -122,7 +124,8 @@ struct crat_subtype_computeunit {
 
 #define CRAT_MEMORY_RESERVED_LENGTH 8
 
-struct crat_subtype_memory {
+struct crat_subtype_memory
+{
 	uint8_t		type;
 	uint8_t		length;
 	uint16_t	reserved;
@@ -148,7 +151,8 @@ struct crat_subtype_memory {
 
 #define CRAT_CACHE_RESERVED_LENGTH 8
 
-struct crat_subtype_cache {
+struct crat_subtype_cache
+{
 	uint8_t		type;
 	uint8_t		length;
 	uint16_t	reserved;
@@ -177,7 +181,8 @@ struct crat_subtype_cache {
 
 #define CRAT_TLB_RESERVED_LENGTH 4
 
-struct crat_subtype_tlb {
+struct crat_subtype_tlb
+{
 	uint8_t		type;
 	uint8_t		length;
 	uint16_t	reserved;
@@ -208,7 +213,8 @@ struct crat_subtype_tlb {
 
 #define CRAT_CCOMPUTE_RESERVED_LENGTH 16
 
-struct crat_subtype_ccompute {
+struct crat_subtype_ccompute
+{
 	uint8_t		type;
 	uint8_t		length;
 	uint16_t	reserved;
@@ -237,7 +243,8 @@ struct crat_subtype_ccompute {
 
 #define CRAT_IOLINK_RESERVED_LENGTH 24
 
-struct crat_subtype_iolink {
+struct crat_subtype_iolink
+{
 	uint8_t		type;
 	uint8_t		length;
 	uint16_t	reserved;
@@ -261,7 +268,8 @@ struct crat_subtype_iolink {
 
 #define CRAT_SUBTYPE_FLAGS_ENABLED 0x00000001
 
-struct crat_subtype_generic {
+struct crat_subtype_generic
+{
 	uint8_t		type;
 	uint8_t		length;
 	uint16_t	reserved;
@@ -274,7 +282,8 @@ struct crat_subtype_generic {
 #define CDIT_OEMID_LENGTH	6
 #define CDIT_OEMTABLEID_LENGTH	8
 
-struct cdit_header {
+struct cdit_header
+{
 	uint32_t	signature;
 	uint32_t	length;
 	uint8_t		revision;

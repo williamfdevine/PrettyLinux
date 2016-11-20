@@ -36,8 +36,11 @@ static int via_driver_open(struct drm_device *dev, struct drm_file *file)
 
 	DRM_DEBUG_DRIVER("\n");
 	file_priv = kmalloc(sizeof(*file_priv), GFP_KERNEL);
+
 	if (!file_priv)
+	{
 		return -ENOMEM;
+	}
 
 	file->driver_priv = file_priv;
 
@@ -53,11 +56,13 @@ static void via_driver_postclose(struct drm_device *dev, struct drm_file *file)
 	kfree(file_priv);
 }
 
-static struct pci_device_id pciidlist[] = {
+static struct pci_device_id pciidlist[] =
+{
 	viadrv_PCI_IDS
 };
 
-static const struct file_operations via_driver_fops = {
+static const struct file_operations via_driver_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -70,10 +75,11 @@ static const struct file_operations via_driver_fops = {
 	.llseek = noop_llseek,
 };
 
-static struct drm_driver driver = {
+static struct drm_driver driver =
+{
 	.driver_features =
-	    DRIVER_USE_AGP | DRIVER_HAVE_IRQ | DRIVER_LEGACY |
-	    DRIVER_IRQ_SHARED,
+	DRIVER_USE_AGP | DRIVER_HAVE_IRQ | DRIVER_LEGACY |
+	DRIVER_IRQ_SHARED,
 	.load = via_driver_load,
 	.unload = via_driver_unload,
 	.open = via_driver_open,
@@ -100,7 +106,8 @@ static struct drm_driver driver = {
 	.patchlevel = DRIVER_PATCHLEVEL,
 };
 
-static struct pci_driver via_pci_driver = {
+static struct pci_driver via_pci_driver =
+{
 	.name = DRIVER_NAME,
 	.id_table = pciidlist,
 };

@@ -28,7 +28,8 @@
  * @ac_volt_max:	maximum allowed AC charger voltage in mV
  * @ac_curr_max:	maximum allowed AC charger current in mA
  */
-struct pm2xxx_bm_charger_parameters {
+struct pm2xxx_bm_charger_parameters
+{
 	int ac_volt_max;
 	int ac_curr_max;
 };
@@ -38,12 +39,14 @@ struct pm2xxx_bm_charger_parameters {
  * @enable_overshoot    flag to enable VBAT overshoot control
  * @chg_params	  charger parameters
  */
-struct pm2xxx_bm_data {
+struct pm2xxx_bm_data
+{
 	bool enable_overshoot;
 	const struct pm2xxx_bm_charger_parameters *chg_params;
 };
 
-struct pm2xxx_charger_platform_data {
+struct pm2xxx_charger_platform_data
+{
 	char **supplied_to;
 	size_t num_supplicants;
 	int i2c_bus;
@@ -53,7 +56,8 @@ struct pm2xxx_charger_platform_data {
 	int irq_type;
 };
 
-struct pm2xxx_platform_data {
+struct pm2xxx_platform_data
+{
 	struct pm2xxx_charger_platform_data *wall_charger;
 	struct pm2xxx_bm_data *battery;
 };

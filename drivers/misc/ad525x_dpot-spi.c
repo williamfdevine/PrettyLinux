@@ -39,8 +39,11 @@ static int read8(void *client)
 	u8 data;
 
 	ret = spi_read(client, &data, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return data;
 }
@@ -52,8 +55,11 @@ static int read16(void *client, u8 reg)
 
 	write16(client, reg, 0);
 	ret = spi_read(client, buf_rx, 2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return (buf_rx[0] << 8) |  buf_rx[1];
 }
@@ -65,13 +71,17 @@ static int read24(void *client, u8 reg)
 
 	write24(client, reg, 0);
 	ret = spi_read(client, buf_rx, 3);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return (buf_rx[1] << 8) |  buf_rx[2];
 }
 
-static const struct ad_dpot_bus_ops bops = {
+static const struct ad_dpot_bus_ops bops =
+{
 	.read_d8	= read8,
 	.read_r8d8	= read16,
 	.read_r8d16	= read24,
@@ -81,14 +91,15 @@ static const struct ad_dpot_bus_ops bops = {
 };
 static int ad_dpot_spi_probe(struct spi_device *spi)
 {
-	struct ad_dpot_bus_data bdata = {
+	struct ad_dpot_bus_data bdata =
+	{
 		.client = spi,
 		.bops = &bops,
 	};
 
 	return ad_dpot_probe(&spi->dev, &bdata,
-			     spi_get_device_id(spi)->driver_data,
-			     spi_get_device_id(spi)->name);
+						 spi_get_device_id(spi)->driver_data,
+						 spi_get_device_id(spi)->name);
 }
 
 static int ad_dpot_spi_remove(struct spi_device *spi)
@@ -96,7 +107,8 @@ static int ad_dpot_spi_remove(struct spi_device *spi)
 	return ad_dpot_remove(&spi->dev);
 }
 
-static const struct spi_device_id ad_dpot_spi_id[] = {
+static const struct spi_device_id ad_dpot_spi_id[] =
+{
 	{"ad5160", AD5160_ID},
 	{"ad5161", AD5161_ID},
 	{"ad5162", AD5162_ID},
@@ -129,7 +141,8 @@ static const struct spi_device_id ad_dpot_spi_id[] = {
 };
 MODULE_DEVICE_TABLE(spi, ad_dpot_spi_id);
 
-static struct spi_driver ad_dpot_spi_driver = {
+static struct spi_driver ad_dpot_spi_driver =
+{
 	.driver = {
 		.name	= "ad_dpot",
 	},

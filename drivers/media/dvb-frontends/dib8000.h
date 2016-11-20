@@ -3,7 +3,8 @@
 
 #include "dibx000_common.h"
 
-struct dib8000_config {
+struct dib8000_config
+{
 	u8 output_mpeg2_in_188_bytes;
 	u8 hostbus_diversity;
 	u8 tuner_is_baseband;
@@ -32,17 +33,18 @@ struct dib8000_config {
 	u8 div_cfg;
 	u8 output_mode;
 	u8 refclksel;
-	u8 enMpegOutput:1;
+	u8 enMpegOutput: 1;
 
 	struct dibx000_bandwidth_config *plltable;
 };
 
 #define DEFAULT_DIB8000_I2C_ADDRESS 18
 
-struct dib8000_ops {
+struct dib8000_ops
+{
 	int (*set_wbd_ref)(struct dvb_frontend *fe, u16 value);
 	int (*update_pll)(struct dvb_frontend *fe,
-		struct dibx000_bandwidth_config *pll, u32 bw, u8 ratio);
+					  struct dibx000_bandwidth_config *pll, u32 bw, u8 ratio);
 	int (*set_gpio)(struct dvb_frontend *fe, u8 num, u8 dir, u8 val);
 	void (*pwm_agc_reset)(struct dvb_frontend *fe);
 	struct i2c_adapter *(*get_i2c_tuner)(struct dvb_frontend *fe);
@@ -56,7 +58,7 @@ struct dib8000_ops {
 	int (*remove_slave_frontend)(struct dvb_frontend *fe);
 	struct dvb_frontend *(*get_slave_frontend)(struct dvb_frontend *fe, int slave_index);
 	int (*i2c_enumeration)(struct i2c_adapter *host, int no_of_demods,
-		u8 default_addr, u8 first_addr, u8 is_dib8096p);
+						   u8 default_addr, u8 first_addr, u8 is_dib8096p);
 	struct i2c_adapter *(*get_i2c_master)(struct dvb_frontend *fe, enum dibx000_i2c_interface intf, int gating);
 	int (*pid_filter_ctrl)(struct dvb_frontend *fe, u8 onoff);
 	int (*pid_filter)(struct dvb_frontend *fe, u8 id, u16 pid, u8 onoff);

@@ -32,7 +32,8 @@
  * space. Unused/unknown fields will not appear in sysfs.
  */
 
-enum {
+enum
+{
 	POWER_SUPPLY_STATUS_UNKNOWN = 0,
 	POWER_SUPPLY_STATUS_CHARGING,
 	POWER_SUPPLY_STATUS_DISCHARGING,
@@ -40,14 +41,16 @@ enum {
 	POWER_SUPPLY_STATUS_FULL,
 };
 
-enum {
+enum
+{
 	POWER_SUPPLY_CHARGE_TYPE_UNKNOWN = 0,
 	POWER_SUPPLY_CHARGE_TYPE_NONE,
 	POWER_SUPPLY_CHARGE_TYPE_TRICKLE,
 	POWER_SUPPLY_CHARGE_TYPE_FAST,
 };
 
-enum {
+enum
+{
 	POWER_SUPPLY_HEALTH_UNKNOWN = 0,
 	POWER_SUPPLY_HEALTH_GOOD,
 	POWER_SUPPLY_HEALTH_OVERHEAT,
@@ -59,7 +62,8 @@ enum {
 	POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE,
 };
 
-enum {
+enum
+{
 	POWER_SUPPLY_TECHNOLOGY_UNKNOWN = 0,
 	POWER_SUPPLY_TECHNOLOGY_NiMH,
 	POWER_SUPPLY_TECHNOLOGY_LION,
@@ -69,7 +73,8 @@ enum {
 	POWER_SUPPLY_TECHNOLOGY_LiMn,
 };
 
-enum {
+enum
+{
 	POWER_SUPPLY_CAPACITY_LEVEL_UNKNOWN = 0,
 	POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL,
 	POWER_SUPPLY_CAPACITY_LEVEL_LOW,
@@ -78,13 +83,15 @@ enum {
 	POWER_SUPPLY_CAPACITY_LEVEL_FULL,
 };
 
-enum {
+enum
+{
 	POWER_SUPPLY_SCOPE_UNKNOWN = 0,
 	POWER_SUPPLY_SCOPE_SYSTEM,
 	POWER_SUPPLY_SCOPE_DEVICE,
 };
 
-enum power_supply_property {
+enum power_supply_property
+{
 	/* Properties of type `int' */
 	POWER_SUPPLY_PROP_STATUS = 0,
 	POWER_SUPPLY_PROP_CHARGE_TYPE,
@@ -154,7 +161,8 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
 };
 
-enum power_supply_type {
+enum power_supply_type
+{
 	POWER_SUPPLY_TYPE_UNKNOWN = 0,
 	POWER_SUPPLY_TYPE_BATTERY,
 	POWER_SUPPLY_TYPE_UPS,
@@ -168,11 +176,13 @@ enum power_supply_type {
 	POWER_SUPPLY_TYPE_USB_PD_DRP,	/* PD Dual Role Port */
 };
 
-enum power_supply_notifier_events {
+enum power_supply_notifier_events
+{
 	PSY_EVENT_PROP_CHANGED,
 };
 
-union power_supply_propval {
+union power_supply_propval
+{
 	int intval;
 	const char *strval;
 };
@@ -181,7 +191,8 @@ struct device_node;
 struct power_supply;
 
 /* Run-time specific power supply configuration */
-struct power_supply_config {
+struct power_supply_config
+{
 	struct device_node *of_node;
 	/* Driver private data */
 	void *drv_data;
@@ -191,7 +202,8 @@ struct power_supply_config {
 };
 
 /* Description of power supply */
-struct power_supply_desc {
+struct power_supply_desc
+{
 	const char *name;
 	enum power_supply_type type;
 	enum power_supply_property *properties;
@@ -204,18 +216,18 @@ struct power_supply_desc {
 	 * example power_supply_get_property()).
 	 */
 	int (*get_property)(struct power_supply *psy,
-			    enum power_supply_property psp,
-			    union power_supply_propval *val);
+						enum power_supply_property psp,
+						union power_supply_propval *val);
 	int (*set_property)(struct power_supply *psy,
-			    enum power_supply_property psp,
-			    const union power_supply_propval *val);
+						enum power_supply_property psp,
+						const union power_supply_propval *val);
 	/*
 	 * property_is_writeable() will be called during registration
 	 * of power supply. If this happens during device probe then it must
 	 * not access internal data of device (because probe did not end).
 	 */
 	int (*property_is_writeable)(struct power_supply *psy,
-				     enum power_supply_property psp);
+								 enum power_supply_property psp);
 	void (*external_power_changed)(struct power_supply *psy);
 	void (*set_charged)(struct power_supply *psy);
 
@@ -229,7 +241,8 @@ struct power_supply_desc {
 	int use_for_apm;
 };
 
-struct power_supply {
+struct power_supply
+{
 	const struct power_supply_desc *desc;
 
 	char **supplied_to;
@@ -276,7 +289,8 @@ struct power_supply {
  * drivers, should try reuse for consistency.
  */
 
-struct power_supply_info {
+struct power_supply_info
+{
 	const char *name;
 	int technology;
 	int voltage_max_design;
@@ -295,9 +309,9 @@ extern struct power_supply *power_supply_get_by_name(const char *name);
 extern void power_supply_put(struct power_supply *psy);
 #ifdef CONFIG_OF
 extern struct power_supply *power_supply_get_by_phandle(struct device_node *np,
-							const char *property);
+		const char *property);
 extern struct power_supply *devm_power_supply_get_by_phandle(
-				    struct device *dev, const char *property);
+	struct device *dev, const char *property);
 #else /* !CONFIG_OF */
 static inline struct power_supply *
 power_supply_get_by_phandle(struct device_node *np, const char *property)
@@ -317,31 +331,31 @@ static inline int power_supply_is_system_supplied(void) { return -ENOSYS; }
 #endif
 
 extern int power_supply_get_property(struct power_supply *psy,
-			    enum power_supply_property psp,
-			    union power_supply_propval *val);
+									 enum power_supply_property psp,
+									 union power_supply_propval *val);
 extern int power_supply_set_property(struct power_supply *psy,
-			    enum power_supply_property psp,
-			    const union power_supply_propval *val);
+									 enum power_supply_property psp,
+									 const union power_supply_propval *val);
 extern int power_supply_property_is_writeable(struct power_supply *psy,
-					enum power_supply_property psp);
+		enum power_supply_property psp);
 extern void power_supply_external_power_changed(struct power_supply *psy);
 
 extern struct power_supply *__must_check
 power_supply_register(struct device *parent,
-				 const struct power_supply_desc *desc,
-				 const struct power_supply_config *cfg);
+					  const struct power_supply_desc *desc,
+					  const struct power_supply_config *cfg);
 extern struct power_supply *__must_check
 power_supply_register_no_ws(struct device *parent,
-				 const struct power_supply_desc *desc,
-				 const struct power_supply_config *cfg);
+							const struct power_supply_desc *desc,
+							const struct power_supply_config *cfg);
 extern struct power_supply *__must_check
 devm_power_supply_register(struct device *parent,
-				 const struct power_supply_desc *desc,
-				 const struct power_supply_config *cfg);
+						   const struct power_supply_desc *desc,
+						   const struct power_supply_config *cfg);
 extern struct power_supply *__must_check
 devm_power_supply_register_no_ws(struct device *parent,
-				 const struct power_supply_desc *desc,
-				 const struct power_supply_config *cfg);
+								 const struct power_supply_desc *desc,
+								 const struct power_supply_config *cfg);
 extern void power_supply_unregister(struct power_supply *psy);
 extern int power_supply_powers(struct power_supply *psy, struct device *dev);
 
@@ -351,23 +365,25 @@ extern struct class *power_supply_class;
 
 static inline bool power_supply_is_amp_property(enum power_supply_property psp)
 {
-	switch (psp) {
-	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
-	case POWER_SUPPLY_PROP_CHARGE_EMPTY_DESIGN:
-	case POWER_SUPPLY_PROP_CHARGE_FULL:
-	case POWER_SUPPLY_PROP_CHARGE_EMPTY:
-	case POWER_SUPPLY_PROP_CHARGE_NOW:
-	case POWER_SUPPLY_PROP_CHARGE_AVG:
-	case POWER_SUPPLY_PROP_CHARGE_COUNTER:
-	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT:
-	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX:
-	case POWER_SUPPLY_PROP_CURRENT_MAX:
-	case POWER_SUPPLY_PROP_CURRENT_NOW:
-	case POWER_SUPPLY_PROP_CURRENT_AVG:
-	case POWER_SUPPLY_PROP_CURRENT_BOOT:
-		return 1;
-	default:
-		break;
+	switch (psp)
+	{
+		case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+		case POWER_SUPPLY_PROP_CHARGE_EMPTY_DESIGN:
+		case POWER_SUPPLY_PROP_CHARGE_FULL:
+		case POWER_SUPPLY_PROP_CHARGE_EMPTY:
+		case POWER_SUPPLY_PROP_CHARGE_NOW:
+		case POWER_SUPPLY_PROP_CHARGE_AVG:
+		case POWER_SUPPLY_PROP_CHARGE_COUNTER:
+		case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT:
+		case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX:
+		case POWER_SUPPLY_PROP_CURRENT_MAX:
+		case POWER_SUPPLY_PROP_CURRENT_NOW:
+		case POWER_SUPPLY_PROP_CURRENT_AVG:
+		case POWER_SUPPLY_PROP_CURRENT_BOOT:
+			return 1;
+
+		default:
+			break;
 	}
 
 	return 0;
@@ -375,27 +391,29 @@ static inline bool power_supply_is_amp_property(enum power_supply_property psp)
 
 static inline bool power_supply_is_watt_property(enum power_supply_property psp)
 {
-	switch (psp) {
-	case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
-	case POWER_SUPPLY_PROP_ENERGY_EMPTY_DESIGN:
-	case POWER_SUPPLY_PROP_ENERGY_FULL:
-	case POWER_SUPPLY_PROP_ENERGY_EMPTY:
-	case POWER_SUPPLY_PROP_ENERGY_NOW:
-	case POWER_SUPPLY_PROP_ENERGY_AVG:
-	case POWER_SUPPLY_PROP_VOLTAGE_MAX:
-	case POWER_SUPPLY_PROP_VOLTAGE_MIN:
-	case POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN:
-	case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
-	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-	case POWER_SUPPLY_PROP_VOLTAGE_AVG:
-	case POWER_SUPPLY_PROP_VOLTAGE_OCV:
-	case POWER_SUPPLY_PROP_VOLTAGE_BOOT:
-	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE:
-	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX:
-	case POWER_SUPPLY_PROP_POWER_NOW:
-		return 1;
-	default:
-		break;
+	switch (psp)
+	{
+		case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
+		case POWER_SUPPLY_PROP_ENERGY_EMPTY_DESIGN:
+		case POWER_SUPPLY_PROP_ENERGY_FULL:
+		case POWER_SUPPLY_PROP_ENERGY_EMPTY:
+		case POWER_SUPPLY_PROP_ENERGY_NOW:
+		case POWER_SUPPLY_PROP_ENERGY_AVG:
+		case POWER_SUPPLY_PROP_VOLTAGE_MAX:
+		case POWER_SUPPLY_PROP_VOLTAGE_MIN:
+		case POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN:
+		case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
+		case POWER_SUPPLY_PROP_VOLTAGE_NOW:
+		case POWER_SUPPLY_PROP_VOLTAGE_AVG:
+		case POWER_SUPPLY_PROP_VOLTAGE_OCV:
+		case POWER_SUPPLY_PROP_VOLTAGE_BOOT:
+		case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE:
+		case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX:
+		case POWER_SUPPLY_PROP_POWER_NOW:
+			return 1;
+
+		default:
+			break;
 	}
 
 	return 0;

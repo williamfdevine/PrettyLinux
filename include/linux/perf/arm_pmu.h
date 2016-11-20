@@ -25,9 +25,10 @@
  *	and can be used to implement any platform specific handling
  *	before or after calling it.
  */
-struct arm_pmu_platdata {
+struct arm_pmu_platdata
+{
 	irqreturn_t (*handle_irq)(int irq, void *dev,
-				  irq_handler_t pmu_handler);
+							  irq_handler_t pmu_handler);
 };
 
 #ifdef CONFIG_ARM_PMU
@@ -45,14 +46,15 @@ struct arm_pmu_platdata {
 	[0 ... PERF_COUNT_HW_MAX - 1] = HW_OP_UNSUPPORTED
 
 #define PERF_CACHE_MAP_ALL_UNSUPPORTED					\
-[0 ... C(MAX) - 1] = {							\
-	[0 ... C(OP_MAX) - 1] = {					\
-		[0 ... C(RESULT_MAX) - 1] = CACHE_OP_UNSUPPORTED,	\
-	},								\
-}
+	[0 ... C(MAX) - 1] = {							\
+													[0 ... C(OP_MAX) - 1] = {					\
+																								[0 ... C(RESULT_MAX) - 1] = CACHE_OP_UNSUPPORTED,	\
+																			},								\
+						 }
 
 /* The events for a given PMU register set. */
-struct pmu_hw_events {
+struct pmu_hw_events
+{
 	/*
 	 * The events that are active on the PMU for the given index.
 	 */
@@ -77,14 +79,16 @@ struct pmu_hw_events {
 	struct arm_pmu		*percpu_pmu;
 };
 
-enum armpmu_attr_groups {
+enum armpmu_attr_groups
+{
 	ARMPMU_ATTR_GROUP_COMMON,
 	ARMPMU_ATTR_GROUP_EVENTS,
 	ARMPMU_ATTR_GROUP_FORMATS,
 	ARMPMU_NR_ATTR_GROUPS
 };
 
-struct arm_pmu {
+struct arm_pmu
+{
 	struct pmu	pmu;
 	cpumask_t	active_irqs;
 	cpumask_t	supported_cpus;
@@ -94,11 +98,11 @@ struct arm_pmu {
 	void		(*enable)(struct perf_event *event);
 	void		(*disable)(struct perf_event *event);
 	int		(*get_event_idx)(struct pmu_hw_events *hw_events,
-					 struct perf_event *event);
+							 struct perf_event *event);
 	void		(*clear_event_idx)(struct pmu_hw_events *hw_events,
-					 struct perf_event *event);
+								   struct perf_event *event);
 	int		(*set_event_filter)(struct hw_perf_event *evt,
-					    struct perf_event_attr *attr);
+								struct perf_event_attr *attr);
 	u32		(*read_counter)(struct perf_event *event);
 	void		(*write_counter)(struct perf_event *event, u32 val);
 	void		(*start)(struct arm_pmu *);
@@ -129,24 +133,25 @@ u64 armpmu_event_update(struct perf_event *event);
 int armpmu_event_set_period(struct perf_event *event);
 
 int armpmu_map_event(struct perf_event *event,
-		     const unsigned (*event_map)[PERF_COUNT_HW_MAX],
-		     const unsigned (*cache_map)[PERF_COUNT_HW_CACHE_MAX]
-						[PERF_COUNT_HW_CACHE_OP_MAX]
-						[PERF_COUNT_HW_CACHE_RESULT_MAX],
-		     u32 raw_event_mask);
+					 const unsigned (*event_map)[PERF_COUNT_HW_MAX],
+					 const unsigned (*cache_map)[PERF_COUNT_HW_CACHE_MAX]
+					 [PERF_COUNT_HW_CACHE_OP_MAX]
+					 [PERF_COUNT_HW_CACHE_RESULT_MAX],
+					 u32 raw_event_mask);
 
-struct pmu_probe_info {
+struct pmu_probe_info
+{
 	unsigned int cpuid;
 	unsigned int mask;
 	int (*init)(struct arm_pmu *);
 };
 
 #define PMU_PROBE(_cpuid, _mask, _fn)	\
-{					\
-	.cpuid = (_cpuid),		\
-	.mask = (_mask),		\
-	.init = (_fn),			\
-}
+	{					\
+		.cpuid = (_cpuid),		\
+				 .mask = (_mask),		\
+						 .init = (_fn),			\
+	}
 
 #define ARM_PMU_PROBE(_cpuid, _fn) \
 	PMU_PROBE(_cpuid, ARM_CPU_PART_MASK, _fn)
@@ -157,8 +162,8 @@ struct pmu_probe_info {
 	PMU_PROBE(ARM_CPU_IMP_INTEL << 24 | _version, ARM_PMU_XSCALE_MASK, _fn)
 
 int arm_pmu_device_probe(struct platform_device *pdev,
-			 const struct of_device_id *of_table,
-			 const struct pmu_probe_info *probe_table);
+						 const struct of_device_id *of_table,
+						 const struct pmu_probe_info *probe_table);
 
 #define ARMV8_PMU_PDEV_NAME "armv8-pmu"
 

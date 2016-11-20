@@ -41,7 +41,8 @@
 #define STK_ERROR(str, args...)		printk(KERN_ERR PREFIX str, ##args)
 #define STK_WARNING(str, args...)	printk(KERN_WARNING PREFIX str, ##args)
 
-struct stk_iso_buf {
+struct stk_iso_buf
+{
 	void *data;
 	int length;
 	int read;
@@ -49,7 +50,8 @@ struct stk_iso_buf {
 };
 
 /* Streaming IO buffers */
-struct stk_sio_buffer {
+struct stk_sio_buffer
+{
 	struct v4l2_buffer v4lbuf;
 	char *buffer;
 	int mapcount;
@@ -59,14 +61,16 @@ struct stk_sio_buffer {
 
 enum stk_mode {MODE_VGA, MODE_SXGA, MODE_CIF, MODE_QVGA, MODE_QCIF};
 
-struct stk_video {
+struct stk_video
+{
 	enum stk_mode mode;
 	__u32 palette;
 	int hflip;
 	int vflip;
 };
 
-enum stk_status {
+enum stk_status
+{
 	S_PRESENT = 1,
 	S_INITIALISED = 2,
 	S_MEMALLOCD = 4,
@@ -78,7 +82,7 @@ enum stk_status {
 #define is_memallocd(dev)	((dev)->status & S_MEMALLOCD)
 #define set_present(dev)	((dev)->status = S_PRESENT)
 #define unset_present(dev)	((dev)->status &= \
-					~(S_PRESENT|S_INITIALISED|S_STREAMING))
+							 ~(S_PRESENT|S_INITIALISED|S_STREAMING))
 #define set_initialised(dev)	((dev)->status |= S_INITIALISED)
 #define unset_initialised(dev)	((dev)->status &= ~S_INITIALISED)
 #define set_memallocd(dev)	((dev)->status |= S_MEMALLOCD)
@@ -86,12 +90,14 @@ enum stk_status {
 #define set_streaming(dev)	((dev)->status |= S_STREAMING)
 #define unset_streaming(dev)	((dev)->status &= ~S_STREAMING)
 
-struct regval {
+struct regval
+{
 	unsigned reg;
 	unsigned val;
 };
 
-struct stk_camera {
+struct stk_camera
+{
 	struct v4l2_device v4l2_dev;
 	struct v4l2_ctrl_handler hdl;
 	struct video_device vdev;

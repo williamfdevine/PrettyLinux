@@ -14,7 +14,8 @@
  * @flags: configuration flags, e.g. set classic PWM mode (check datasheet
  *         regarding "filterless modulation" which is default).
  */
-struct max9768_pdata {
+struct max9768_pdata
+{
 	int shdn_gpio;
 	int mute_gpio;
 	unsigned flags;

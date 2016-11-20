@@ -21,7 +21,8 @@
 #include "tda18212.h"
 #include <linux/regmap.h>
 
-struct tda18212_dev {
+struct tda18212_dev
+{
 	struct tda18212_config cfg;
 	struct i2c_client *client;
 	struct regmap *regmap;
@@ -36,18 +37,19 @@ static int tda18212_set_params(struct dvb_frontend *fe)
 	int ret, i;
 	u32 if_khz;
 	u8 buf[9];
-	#define DVBT_6   0
-	#define DVBT_7   1
-	#define DVBT_8   2
-	#define DVBT2_6  3
-	#define DVBT2_7  4
-	#define DVBT2_8  5
-	#define DVBC_6   6
-	#define DVBC_8   7
-	#define ATSC_VSB 8
-	#define ATSC_QAM 9
-	static const u8 bw_params[][3] = {
-		     /* reg:   0f    13    23 */
+#define DVBT_6   0
+#define DVBT_7   1
+#define DVBT_8   2
+#define DVBT2_6  3
+#define DVBT2_7  4
+#define DVBT2_8  5
+#define DVBC_6   6
+#define DVBC_8   7
+#define ATSC_VSB 8
+#define ATSC_QAM 9
+	static const u8 bw_params[][3] =
+	{
+		/* reg:   0f    13    23 */
 		[DVBT_6]  = { 0xb3, 0x20, 0x03 },
 		[DVBT_7]  = { 0xb3, 0x31, 0x01 },
 		[DVBT_8]  = { 0xb3, 0x22, 0x01 },
@@ -66,76 +68,103 @@ static int tda18212_set_params(struct dvb_frontend *fe)
 			c->bandwidth_hz);
 
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 1);    /* open I2C-gate */
+	}
 
-	switch (c->delivery_system) {
-	case SYS_ATSC:
-		if_khz = dev->cfg.if_atsc_vsb;
-		i = ATSC_VSB;
-		break;
-	case SYS_DVBC_ANNEX_B:
-		if_khz = dev->cfg.if_atsc_qam;
-		i = ATSC_QAM;
-		break;
-	case SYS_DVBT:
-		switch (c->bandwidth_hz) {
-		case 6000000:
-			if_khz = dev->cfg.if_dvbt_6;
-			i = DVBT_6;
+	switch (c->delivery_system)
+	{
+		case SYS_ATSC:
+			if_khz = dev->cfg.if_atsc_vsb;
+			i = ATSC_VSB;
 			break;
-		case 7000000:
-			if_khz = dev->cfg.if_dvbt_7;
-			i = DVBT_7;
+
+		case SYS_DVBC_ANNEX_B:
+			if_khz = dev->cfg.if_atsc_qam;
+			i = ATSC_QAM;
 			break;
-		case 8000000:
-			if_khz = dev->cfg.if_dvbt_8;
-			i = DVBT_8;
+
+		case SYS_DVBT:
+			switch (c->bandwidth_hz)
+			{
+				case 6000000:
+					if_khz = dev->cfg.if_dvbt_6;
+					i = DVBT_6;
+					break;
+
+				case 7000000:
+					if_khz = dev->cfg.if_dvbt_7;
+					i = DVBT_7;
+					break;
+
+				case 8000000:
+					if_khz = dev->cfg.if_dvbt_8;
+					i = DVBT_8;
+					break;
+
+				default:
+					ret = -EINVAL;
+					goto error;
+			}
+
 			break;
+
+		case SYS_DVBT2:
+			switch (c->bandwidth_hz)
+			{
+				case 6000000:
+					if_khz = dev->cfg.if_dvbt2_6;
+					i = DVBT2_6;
+					break;
+
+				case 7000000:
+					if_khz = dev->cfg.if_dvbt2_7;
+					i = DVBT2_7;
+					break;
+
+				case 8000000:
+					if_khz = dev->cfg.if_dvbt2_8;
+					i = DVBT2_8;
+					break;
+
+				default:
+					ret = -EINVAL;
+					goto error;
+			}
+
+			break;
+
+		case SYS_DVBC_ANNEX_A:
+		case SYS_DVBC_ANNEX_C:
+			if_khz = dev->cfg.if_dvbc;
+			i = DVBC_8;
+			break;
+
 		default:
 			ret = -EINVAL;
 			goto error;
-		}
-		break;
-	case SYS_DVBT2:
-		switch (c->bandwidth_hz) {
-		case 6000000:
-			if_khz = dev->cfg.if_dvbt2_6;
-			i = DVBT2_6;
-			break;
-		case 7000000:
-			if_khz = dev->cfg.if_dvbt2_7;
-			i = DVBT2_7;
-			break;
-		case 8000000:
-			if_khz = dev->cfg.if_dvbt2_8;
-			i = DVBT2_8;
-			break;
-		default:
-			ret = -EINVAL;
-			goto error;
-		}
-		break;
-	case SYS_DVBC_ANNEX_A:
-	case SYS_DVBC_ANNEX_C:
-		if_khz = dev->cfg.if_dvbc;
-		i = DVBC_8;
-		break;
-	default:
-		ret = -EINVAL;
-		goto error;
 	}
 
 	ret = regmap_write(dev->regmap, 0x23, bw_params[i][2]);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	ret = regmap_write(dev->regmap, 0x06, 0x00);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	ret = regmap_write(dev->regmap, 0x0f, bw_params[i][0]);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	buf[0] = 0x02;
 	buf[1] = bw_params[i][1];
@@ -147,15 +176,21 @@ static int tda18212_set_params(struct dvb_frontend *fe)
 	buf[7] = 0xc1;
 	buf[8] = 0x01;
 	ret = regmap_bulk_write(dev->regmap, 0x12, buf, sizeof(buf));
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	/* actual IF rounded as it is on register */
 	dev->if_frequency = buf[3] * 50 * 1000;
 
 exit:
+
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 0);    /* close I2C-gate */
+	}
 
 	return ret;
 
@@ -173,7 +208,8 @@ static int tda18212_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
 	return 0;
 }
 
-static const struct dvb_tuner_ops tda18212_tuner_ops = {
+static const struct dvb_tuner_ops tda18212_tuner_ops =
+{
 	.info = {
 		.name           = "NXP TDA18212",
 
@@ -187,7 +223,7 @@ static const struct dvb_tuner_ops tda18212_tuner_ops = {
 };
 
 static int tda18212_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct tda18212_config *cfg = client->dev.platform_data;
 	struct dvb_frontend *fe = cfg->fe;
@@ -195,13 +231,16 @@ static int tda18212_probe(struct i2c_client *client,
 	int ret;
 	unsigned int chip_id;
 	char *version;
-	static const struct regmap_config regmap_config = {
+	static const struct regmap_config regmap_config =
+	{
 		.reg_bits = 8,
 		.val_bits = 8,
 	};
 
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-	if (dev == NULL) {
+
+	if (dev == NULL)
+	{
 		ret = -ENOMEM;
 		dev_err(&client->dev, "kzalloc() failed\n");
 		goto err;
@@ -210,42 +249,53 @@ static int tda18212_probe(struct i2c_client *client,
 	memcpy(&dev->cfg, cfg, sizeof(struct tda18212_config));
 	dev->client = client;
 	dev->regmap = devm_regmap_init_i2c(client, &regmap_config);
-	if (IS_ERR(dev->regmap)) {
+
+	if (IS_ERR(dev->regmap))
+	{
 		ret = PTR_ERR(dev->regmap);
 		goto err;
 	}
 
 	/* check if the tuner is there */
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 1);    /* open I2C-gate */
+	}
 
 	ret = regmap_read(dev->regmap, 0x00, &chip_id);
 	dev_dbg(&dev->client->dev, "chip_id=%02x\n", chip_id);
 
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 0);    /* close I2C-gate */
+	}
 
 	if (ret)
-		goto err;
-
-	switch (chip_id) {
-	case 0xc7:
-		version = "M"; /* master */
-		break;
-	case 0x47:
-		version = "S"; /* slave */
-		break;
-	default:
-		ret = -ENODEV;
+	{
 		goto err;
 	}
 
+	switch (chip_id)
+	{
+		case 0xc7:
+			version = "M"; /* master */
+			break;
+
+		case 0x47:
+			version = "S"; /* slave */
+			break;
+
+		default:
+			ret = -ENODEV;
+			goto err;
+	}
+
 	dev_info(&dev->client->dev,
-			"NXP TDA18212HN/%s successfully identified\n", version);
+			 "NXP TDA18212HN/%s successfully identified\n", version);
 
 	fe->tuner_priv = dev;
 	memcpy(&fe->ops.tuner_ops, &tda18212_tuner_ops,
-			sizeof(struct dvb_tuner_ops));
+		   sizeof(struct dvb_tuner_ops));
 	i2c_set_clientdata(client, dev);
 
 	return 0;
@@ -269,13 +319,15 @@ static int tda18212_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id tda18212_id[] = {
+static const struct i2c_device_id tda18212_id[] =
+{
 	{"tda18212", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, tda18212_id);
 
-static struct i2c_driver tda18212_driver = {
+static struct i2c_driver tda18212_driver =
+{
 	.driver = {
 		.name	= "tda18212",
 	},

@@ -22,7 +22,8 @@
 #define SCSCR_CKE0	BIT(0)	/* Clock Enable 0 */
 
 
-enum {
+enum
+{
 	SCIx_PROBE_REGTYPE,
 
 	SCIx_SCI_REGTYPE,
@@ -43,7 +44,8 @@ enum {
 
 struct device;
 
-struct plat_sci_port_ops {
+struct plat_sci_port_ops
+{
 	void (*init_pins)(struct uart_port *, unsigned int cflag);
 };
 
@@ -55,7 +57,8 @@ struct plat_sci_port_ops {
 /*
  * Platform device specific platform_data struct
  */
-struct plat_sci_port {
+struct plat_sci_port
+{
 	unsigned int	type;			/* SCI / SCIF / IRDA / HSCIF */
 	upf_t		flags;			/* UPF_* flags */
 	unsigned long	capabilities;		/* Port features/capabilities */

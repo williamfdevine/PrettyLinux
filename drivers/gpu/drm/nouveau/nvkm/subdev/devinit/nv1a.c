@@ -27,7 +27,8 @@
 #include <subdev/bios/init.h>
 
 static const struct nvkm_devinit_func
-nv1a_devinit = {
+	nv1a_devinit =
+{
 	.dtor = nv04_devinit_dtor,
 	.preinit = nv04_devinit_preinit,
 	.post = nv04_devinit_post,
@@ -36,7 +37,7 @@ nv1a_devinit = {
 
 int
 nv1a_devinit_new(struct nvkm_device *device, int index,
-		 struct nvkm_devinit **pinit)
+				 struct nvkm_devinit **pinit)
 {
 	return nv04_devinit_new_(&nv1a_devinit, device, index, pinit);
 }

@@ -18,7 +18,8 @@
 
 #include "pinctrl-imx.h"
 
-enum imx7d_pads {
+enum imx7d_pads
+{
 	MX7D_PAD_RESERVE0 = 0,
 	MX7D_PAD_RESERVE1 = 1,
 	MX7D_PAD_RESERVE2 = 2,
@@ -176,7 +177,8 @@ enum imx7d_pads {
 	MX7D_PAD_ENET1_COL = 154,
 };
 
-enum imx7d_lpsr_pads {
+enum imx7d_lpsr_pads
+{
 	MX7D_PAD_GPIO1_IO00 = 0,
 	MX7D_PAD_GPIO1_IO01 = 1,
 	MX7D_PAD_GPIO1_IO02 = 2,
@@ -188,7 +190,8 @@ enum imx7d_lpsr_pads {
 };
 
 /* Pad names for the pinmux subsystem */
-static const struct pinctrl_pin_desc imx7d_pinctrl_pads[] = {
+static const struct pinctrl_pin_desc imx7d_pinctrl_pads[] =
+{
 	IMX_PINCTRL_PIN(MX7D_PAD_RESERVE0),
 	IMX_PINCTRL_PIN(MX7D_PAD_RESERVE1),
 	IMX_PINCTRL_PIN(MX7D_PAD_RESERVE2),
@@ -347,7 +350,8 @@ static const struct pinctrl_pin_desc imx7d_pinctrl_pads[] = {
 };
 
 /* Pad names for the pinmux subsystem */
-static const struct pinctrl_pin_desc imx7d_lpsr_pinctrl_pads[] = {
+static const struct pinctrl_pin_desc imx7d_lpsr_pinctrl_pads[] =
+{
 	IMX_PINCTRL_PIN(MX7D_PAD_GPIO1_IO00),
 	IMX_PINCTRL_PIN(MX7D_PAD_GPIO1_IO01),
 	IMX_PINCTRL_PIN(MX7D_PAD_GPIO1_IO02),
@@ -358,19 +362,22 @@ static const struct pinctrl_pin_desc imx7d_lpsr_pinctrl_pads[] = {
 	IMX_PINCTRL_PIN(MX7D_PAD_GPIO1_IO07),
 };
 
-static struct imx_pinctrl_soc_info imx7d_pinctrl_info = {
+static struct imx_pinctrl_soc_info imx7d_pinctrl_info =
+{
 	.pins = imx7d_pinctrl_pads,
 	.npins = ARRAY_SIZE(imx7d_pinctrl_pads),
 	.gpr_compatible = "fsl,imx7d-iomuxc-gpr",
 };
 
-static struct imx_pinctrl_soc_info imx7d_lpsr_pinctrl_info = {
+static struct imx_pinctrl_soc_info imx7d_lpsr_pinctrl_info =
+{
 	.pins = imx7d_lpsr_pinctrl_pads,
 	.npins = ARRAY_SIZE(imx7d_lpsr_pinctrl_pads),
 	.flags = ZERO_OFFSET_VALID,
 };
 
-static struct of_device_id imx7d_pinctrl_of_match[] = {
+static struct of_device_id imx7d_pinctrl_of_match[] =
+{
 	{ .compatible = "fsl,imx7d-iomuxc", .data = &imx7d_pinctrl_info, },
 	{ .compatible = "fsl,imx7d-iomuxc-lpsr", .data = &imx7d_lpsr_pinctrl_info },
 	{ /* sentinel */ }
@@ -384,14 +391,17 @@ static int imx7d_pinctrl_probe(struct platform_device *pdev)
 	match = of_match_device(imx7d_pinctrl_of_match, &pdev->dev);
 
 	if (!match)
+	{
 		return -ENODEV;
+	}
 
 	pinctrl_info = (struct imx_pinctrl_soc_info *) match->data;
 
 	return imx_pinctrl_probe(pdev, pinctrl_info);
 }
 
-static struct platform_driver imx7d_pinctrl_driver = {
+static struct platform_driver imx7d_pinctrl_driver =
+{
 	.driver = {
 		.name = "imx7d-pinctrl",
 		.of_match_table = of_match_ptr(imx7d_pinctrl_of_match),

@@ -37,7 +37,10 @@ static inline u_char get_last_char(void)
 	u_char avail = inb_p(speakup_info.port_tts + UART_LSR) & UART_LSR_DR;
 
 	if (avail)
+	{
 		last_char = inb_p(speakup_info.port_tts + UART_RX);
+	}
+
 	return last_char;
 }
 
@@ -51,7 +54,8 @@ static void synth_flush(struct spk_synth *synth);
 
 static int in_escape;
 
-static struct var_t vars[] = {
+static struct var_t vars[] =
+{
 	{ CAPS_START, .u.s = {"[:dv ap 222]" } },
 	{ CAPS_STOP, .u.s = {"[:dv ap 100]" } },
 	{ RATE, .u.n = {"[:ra %d]", 7, 0, 9, 150, 25, NULL } },
@@ -96,7 +100,8 @@ static struct kobj_attribute trigger_time_attribute =
  * Create a group of attributes so that we can create and destroy them all
  * at once.
  */
-static struct attribute *synth_attrs[] = {
+static struct attribute *synth_attrs[] =
+{
 	&caps_start_attribute.attr,
 	&caps_stop_attribute.attr,
 	&pitch_attribute.attr,
@@ -112,7 +117,8 @@ static struct attribute *synth_attrs[] = {
 	NULL,	/* need to NULL terminate the list of attributes */
 };
 
-static struct spk_synth synth_decext = {
+static struct spk_synth synth_decext =
+{
 	.name = "decext",
 	.version = DRV_VERSION,
 	.long_name = "Dectalk External",
@@ -167,57 +173,86 @@ static void do_catch_up(struct spk_synth *synth)
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 	jiff_max = jiffies + jiffy_delta_val;
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		spin_lock_irqsave(&speakup_info.spinlock, flags);
-		if (speakup_info.flushing) {
+
+		if (speakup_info.flushing)
+		{
 			speakup_info.flushing = 0;
 			spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 			synth->flush(synth);
 			continue;
 		}
-		if (synth_buffer_empty()) {
+
+		if (synth_buffer_empty())
+		{
 			spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 			break;
 		}
+
 		ch = synth_buffer_peek();
 		set_current_state(TASK_INTERRUPTIBLE);
 		delay_time_val = delay_time->u.n.value;
 		spin_unlock_irqrestore(&speakup_info.spinlock, flags);
+
 		if (ch == '\n')
+		{
 			ch = 0x0D;
-		if (synth_full() || !spk_serial_out(ch)) {
+		}
+
+		if (synth_full() || !spk_serial_out(ch))
+		{
 			schedule_timeout(msecs_to_jiffies(delay_time_val));
 			continue;
 		}
+
 		set_current_state(TASK_RUNNING);
 		spin_lock_irqsave(&speakup_info.spinlock, flags);
 		synth_buffer_getc();
 		spin_unlock_irqrestore(&speakup_info.spinlock, flags);
+
 		if (ch == '[')
+		{
 			in_escape = 1;
+		}
 		else if (ch == ']')
+		{
 			in_escape = 0;
-		else if (ch <= SPACE) {
+		}
+		else if (ch <= SPACE)
+		{
 			if (!in_escape && strchr(",.!?;:", last))
+			{
 				spk_serial_out(PROCSPEECH);
-			if (time_after_eq(jiffies, jiff_max)) {
+			}
+
+			if (time_after_eq(jiffies, jiff_max))
+			{
 				if (!in_escape)
+				{
 					spk_serial_out(PROCSPEECH);
+				}
+
 				spin_lock_irqsave(&speakup_info.spinlock,
-							flags);
+								  flags);
 				jiffy_delta_val = jiffy_delta->u.n.value;
 				delay_time_val = delay_time->u.n.value;
 				spin_unlock_irqrestore(&speakup_info.spinlock,
-							flags);
+									   flags);
 				schedule_timeout(msecs_to_jiffies
-						 (delay_time_val));
+								 (delay_time_val));
 				jiff_max = jiffies + jiffy_delta_val;
 			}
 		}
+
 		last = ch;
 	}
+
 	if (!in_escape)
+	{
 		spk_serial_out(PROCSPEECH);
+	}
 }
 
 static void synth_flush(struct spk_synth *synth)

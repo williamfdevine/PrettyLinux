@@ -25,7 +25,8 @@
 #ifndef __NOUVEAU_PM_H__
 #define __NOUVEAU_PM_H__
 
-struct nouveau_hwmon {
+struct nouveau_hwmon
+{
 	struct drm_device *dev;
 	struct device *hwmon;
 };

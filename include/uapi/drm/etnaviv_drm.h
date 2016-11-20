@@ -40,7 +40,8 @@ extern "C" {
  * restarting interrupted ioctls).  The following struct is logically the
  * same as 'struct timespec' but 32/64b ABI safe.
  */
-struct drm_etnaviv_timespec {
+struct drm_etnaviv_timespec
+{
 	__s64 tv_sec;          /* seconds */
 	__s64 tv_nsec;         /* nanoseconds */
 };
@@ -69,7 +70,8 @@ struct drm_etnaviv_timespec {
 
 #define ETNA_MAX_PIPES 4
 
-struct drm_etnaviv_param {
+struct drm_etnaviv_param
+{
 	__u32 pipe;           /* in */
 	__u32 param;          /* in, ETNAVIV_PARAM_x */
 	__u64 value;          /* out (get_param) or in (set_param) */
@@ -87,13 +89,15 @@ struct drm_etnaviv_param {
 /* map flags */
 #define ETNA_BO_FORCE_MMU    0x00100000
 
-struct drm_etnaviv_gem_new {
+struct drm_etnaviv_gem_new
+{
 	__u64 size;           /* in */
 	__u32 flags;          /* in, mask of ETNA_BO_x */
 	__u32 handle;         /* out */
 };
 
-struct drm_etnaviv_gem_info {
+struct drm_etnaviv_gem_info
+{
 	__u32 handle;         /* in */
 	__u32 pad;
 	__u64 offset;         /* out, offset to pass to mmap() */
@@ -103,13 +107,15 @@ struct drm_etnaviv_gem_info {
 #define ETNA_PREP_WRITE       0x02
 #define ETNA_PREP_NOSYNC      0x04
 
-struct drm_etnaviv_gem_cpu_prep {
+struct drm_etnaviv_gem_cpu_prep
+{
 	__u32 handle;         /* in */
 	__u32 op;             /* in, mask of ETNA_PREP_x */
 	struct drm_etnaviv_timespec timeout;   /* in */
 };
 
-struct drm_etnaviv_gem_cpu_fini {
+struct drm_etnaviv_gem_cpu_fini
+{
 	__u32 handle;         /* in */
 	__u32 flags;          /* in, placeholder for now, no defined values */
 };
@@ -124,7 +130,8 @@ struct drm_etnaviv_gem_cpu_fini {
  * NOTE that reloc's must be sorted by order of increasing submit_offset,
  * otherwise EINVAL.
  */
-struct drm_etnaviv_gem_submit_reloc {
+struct drm_etnaviv_gem_submit_reloc
+{
 	__u32 submit_offset;  /* in, offset from submit_bo */
 	__u32 reloc_idx;      /* in, index of reloc_bo buffer */
 	__u64 reloc_offset;   /* in, offset from start of reloc_bo */
@@ -144,7 +151,8 @@ struct drm_etnaviv_gem_submit_reloc {
  */
 #define ETNA_SUBMIT_BO_READ             0x0001
 #define ETNA_SUBMIT_BO_WRITE            0x0002
-struct drm_etnaviv_gem_submit_bo {
+struct drm_etnaviv_gem_submit_bo
+{
 	__u32 flags;          /* in, mask of ETNA_SUBMIT_BO_x */
 	__u32 handle;         /* in, GEM handle */
 	__u64 presumed;       /* in/out, presumed buffer address */
@@ -157,7 +165,8 @@ struct drm_etnaviv_gem_submit_bo {
 #define ETNA_PIPE_3D      0x00
 #define ETNA_PIPE_2D      0x01
 #define ETNA_PIPE_VG      0x02
-struct drm_etnaviv_gem_submit {
+struct drm_etnaviv_gem_submit
+{
 	__u32 fence;          /* out */
 	__u32 pipe;           /* in */
 	__u32 exec_state;     /* in, initial execution state (ETNA_PIPE_x) */
@@ -177,7 +186,8 @@ struct drm_etnaviv_gem_submit {
  * APIs without requiring a dummy bo to synchronize on.
  */
 #define ETNA_WAIT_NONBLOCK      0x01
-struct drm_etnaviv_wait_fence {
+struct drm_etnaviv_wait_fence
+{
 	__u32 pipe;           /* in */
 	__u32 fence;          /* in */
 	__u32 flags;          /* in, mask of ETNA_WAIT_x */
@@ -187,14 +197,16 @@ struct drm_etnaviv_wait_fence {
 
 #define ETNA_USERPTR_READ	0x01
 #define ETNA_USERPTR_WRITE	0x02
-struct drm_etnaviv_gem_userptr {
+struct drm_etnaviv_gem_userptr
+{
 	__u64 user_ptr;	/* in, page aligned user pointer */
 	__u64 user_size;	/* in, page aligned user size */
 	__u32 flags;		/* in, flags */
 	__u32 handle;	/* out, non-zero handle */
 };
 
-struct drm_etnaviv_gem_wait {
+struct drm_etnaviv_gem_wait
+{
 	__u32 pipe;				/* in */
 	__u32 handle;				/* in, bo to be waited for */
 	__u32 flags;				/* in, mask of ETNA_WAIT_x  */

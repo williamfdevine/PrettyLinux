@@ -82,7 +82,8 @@
  * each channel may select different ssids from among the 20 entries.
  * SSID IEs get transmitted in reverse order of entry.
  */
-struct iwl_ssid_ie {
+struct iwl_ssid_ie
+{
 	u8 id;
 	u8 len;
 	u8 ssid[IEEE80211_MAX_SSID_LEN];
@@ -104,7 +105,8 @@ struct iwl_ssid_ie {
 #define IWL_FAST_SCHED_SCAN_ITERATIONS 3
 #define IWL_MAX_SCHED_SCAN_PLANS 2
 
-enum scan_framework_client {
+enum scan_framework_client
+{
 	SCAN_CLIENT_SCHED_SCAN		= BIT(0),
 	SCAN_CLIENT_NETDETECT		= BIT(1),
 	SCAN_CLIENT_ASSET_TRACKING	= BIT(2),
@@ -116,19 +118,22 @@ enum scan_framework_client {
  * @reported_rssi:	AP rssi reported to the host
  * @client_bitmap: clients ignore this entry  - enum scan_framework_client
  */
-struct iwl_scan_offload_blacklist {
+struct iwl_scan_offload_blacklist
+{
 	u8 ssid[ETH_ALEN];
 	u8 reported_rssi;
 	u8 client_bitmap;
 } __packed;
 
-enum iwl_scan_offload_network_type {
+enum iwl_scan_offload_network_type
+{
 	IWL_NETWORK_TYPE_BSS	= 1,
 	IWL_NETWORK_TYPE_IBSS	= 2,
 	IWL_NETWORK_TYPE_ANY	= 3,
 };
 
-enum iwl_scan_offload_band_selection {
+enum iwl_scan_offload_band_selection
+{
 	IWL_SCAN_OFFLOAD_SELECT_2_4	= 0x4,
 	IWL_SCAN_OFFLOAD_SELECT_5_2	= 0x8,
 	IWL_SCAN_OFFLOAD_SELECT_ANY	= 0xc,
@@ -143,7 +148,8 @@ enum iwl_scan_offload_band_selection {
  * @band_selection:	enum iwl_scan_offload_band_selection
  * @client_bitmap:	clients waiting for match - enum scan_framework_client
  */
-struct iwl_scan_offload_profile {
+struct iwl_scan_offload_profile
+{
 	u8 ssid_index;
 	u8 unicast_cipher;
 	u8 auth_alg;
@@ -164,7 +170,8 @@ struct iwl_scan_offload_profile {
  * @active_clients:	active clients bitmap - enum scan_framework_client
  * @any_beacon_notify:	clients waiting for match notification without match
  */
-struct iwl_scan_offload_profile_cfg {
+struct iwl_scan_offload_profile_cfg
+{
 	struct iwl_scan_offload_profile profiles[IWL_SCAN_MAX_PROFILES];
 	u8 blacklist_len;
 	u8 num_profiles;
@@ -181,18 +188,21 @@ struct iwl_scan_offload_profile_cfg {
  * @iterations:		num of scan iterations
  * @full_scan_mul:	number of partial scans before each full scan
  */
-struct iwl_scan_schedule_lmac {
+struct iwl_scan_schedule_lmac
+{
 	__le16 delay;
 	u8 iterations;
 	u8 full_scan_mul;
 } __packed; /* SCAN_SCHEDULE_API_S */
 
-enum iwl_scan_offload_complete_status {
+enum iwl_scan_offload_complete_status
+{
 	IWL_SCAN_OFFLOAD_COMPLETED	= 1,
 	IWL_SCAN_OFFLOAD_ABORTED	= 2,
 };
 
-enum iwl_scan_ebs_status {
+enum iwl_scan_ebs_status
+{
 	IWL_SCAN_EBS_SUCCESS,
 	IWL_SCAN_EBS_FAILED,
 	IWL_SCAN_EBS_CHAN_NOT_FOUND,
@@ -207,14 +217,16 @@ enum iwl_scan_ebs_status {
  * @sta_id: index of destination station in FW station table
  * @reserved: for alignment and future use
  */
-struct iwl_scan_req_tx_cmd {
+struct iwl_scan_req_tx_cmd
+{
 	__le32 tx_flags;
 	__le32 rate_n_flags;
 	u8 sta_id;
 	u8 reserved[3];
 } __packed;
 
-enum iwl_scan_channel_flags_lmac {
+enum iwl_scan_channel_flags_lmac
+{
 	IWL_UNIFIED_SCAN_CHANNEL_FULL		= BIT(27),
 	IWL_UNIFIED_SCAN_CHANNEL_PARTIAL	= BIT(28),
 };
@@ -227,7 +239,8 @@ enum iwl_scan_channel_flags_lmac {
  * @iter_count:		scan iteration on this channel
  * @iter_interval:	interval in seconds between iterations on one channel
  */
-struct iwl_scan_channel_cfg_lmac {
+struct iwl_scan_channel_cfg_lmac
+{
 	__le32 flags;
 	__le16 channel_num;
 	__le16 iter_count;
@@ -239,7 +252,8 @@ struct iwl_scan_channel_cfg_lmac {
  * @offset: offset in the data block
  * @len: length of the segment
  */
-struct iwl_scan_probe_segment {
+struct iwl_scan_probe_segment
+{
 	__le16 offset;
 	__le16 len;
 } __packed;
@@ -250,14 +264,16 @@ struct iwl_scan_probe_segment {
  * @common_data: last (and common) part of the probe
  * @buf: raw data block
  */
-struct iwl_scan_probe_req {
+struct iwl_scan_probe_req
+{
 	struct iwl_scan_probe_segment mac_header;
 	struct iwl_scan_probe_segment band_data[2];
 	struct iwl_scan_probe_segment common_data;
 	u8 buf[SCAN_OFFLOAD_PROBE_REQ_SIZE];
 } __packed;
 
-enum iwl_scan_channel_flags {
+enum iwl_scan_channel_flags
+{
 	IWL_SCAN_CHANNEL_FLAG_EBS		= BIT(0),
 	IWL_SCAN_CHANNEL_FLAG_EBS_ACCURATE	= BIT(1),
 	IWL_SCAN_CHANNEL_FLAG_CACHE_ADD		= BIT(2),
@@ -270,7 +286,8 @@ enum iwl_scan_channel_flags {
  *	1 - EBS is disabled.
  *	2 - every second scan will be full scan(and so on).
  */
-struct iwl_scan_channel_opt {
+struct iwl_scan_channel_opt
+{
 	__le16 flags;
 	__le16 non_ebs_ratio;
 } __packed;
@@ -290,7 +307,8 @@ struct iwl_scan_channel_opt {
  *	1, 6 and 11.
  * @IWL_MVM_LMAC_SCAN_FLAG_MATCH: Send match found notification on matches
  */
-enum iwl_mvm_lmac_scan_flags {
+enum iwl_mvm_lmac_scan_flags
+{
 	IWL_MVM_LMAC_SCAN_FLAG_PASS_ALL		= BIT(0),
 	IWL_MVM_LMAC_SCAN_FLAG_PASSIVE		= BIT(1),
 	IWL_MVM_LMAC_SCAN_FLAG_PRE_CONNECTION	= BIT(2),
@@ -302,13 +320,15 @@ enum iwl_mvm_lmac_scan_flags {
 	IWL_MVM_LMAC_SCAN_FLAG_MATCH		= BIT(9),
 };
 
-enum iwl_scan_priority {
+enum iwl_scan_priority
+{
 	IWL_SCAN_PRIORITY_LOW,
 	IWL_SCAN_PRIORITY_MEDIUM,
 	IWL_SCAN_PRIORITY_HIGH,
 };
 
-enum iwl_scan_priority_ext {
+enum iwl_scan_priority_ext
+{
 	IWL_SCAN_PRIORITY_EXT_0_LOWEST,
 	IWL_SCAN_PRIORITY_EXT_1,
 	IWL_SCAN_PRIORITY_EXT_2,
@@ -344,7 +364,8 @@ enum iwl_scan_priority_ext {
  * @channel_opt: channel optimization options, for full and partial scan
  * @data: channel configuration and probe request packet.
  */
-struct iwl_scan_req_lmac {
+struct iwl_scan_req_lmac
+{
 	/* SCAN_REQUEST_FIXED_PART_API_S_VER_7 */
 	__le32 reserved1;
 	u8 n_channels;
@@ -380,7 +401,8 @@ struct iwl_scan_req_lmac {
  * @num_probe_not_sent: # of request that weren't sent due to not enough time
  * @duration: duration spent in channel, in usecs
  */
-struct iwl_scan_results_notif {
+struct iwl_scan_results_notif
+{
 	u8 channel;
 	u8 band;
 	u8 probe_status;
@@ -399,7 +421,8 @@ struct iwl_scan_results_notif {
  * @tsf_high: TSF timer (higher half) in usecs
  * @results: an array of scan results, only "scanned_channels" of them are valid
  */
-struct iwl_lmac_scan_complete_notif {
+struct iwl_lmac_scan_complete_notif
+{
 	u8 scanned_channels;
 	u8 status;
 	u8 bt_status;
@@ -417,7 +440,8 @@ struct iwl_lmac_scan_complete_notif {
  * @ebs_status: EBS success status &enum iwl_scan_ebs_status
  * @time_after_last_iter; time in seconds elapsed after last iteration
  */
-struct iwl_periodic_scan_complete {
+struct iwl_periodic_scan_complete
+{
 	u8 last_schedule_line;
 	u8 last_schedule_iteration;
 	u8 status;
@@ -434,7 +458,8 @@ struct iwl_periodic_scan_complete {
 #define IWL_MVM_MAX_UMAC_SCANS 8
 #define IWL_MVM_MAX_LMAC_SCANS 1
 
-enum scan_config_flags {
+enum scan_config_flags
+{
 	SCAN_CONFIG_FLAG_ACTIVATE			= BIT(0),
 	SCAN_CONFIG_FLAG_DEACTIVATE			= BIT(1),
 	SCAN_CONFIG_FLAG_FORBID_CHUB_REQS		= BIT(2),
@@ -458,7 +483,8 @@ enum scan_config_flags {
 #define SCAN_CONFIG_N_CHANNELS(n) ((n) << 26)
 };
 
-enum scan_config_rates {
+enum scan_config_rates
+{
 	/* OFDM basic rates */
 	SCAN_CONFIG_RATE_6M	= BIT(0),
 	SCAN_CONFIG_RATE_9M	= BIT(1),
@@ -478,7 +504,8 @@ enum scan_config_rates {
 #define SCAN_CONFIG_SUPPORTED_RATE(rate)	((rate) << 16)
 };
 
-enum iwl_channel_flags {
+enum iwl_channel_flags
+{
 	IWL_CHANNEL_FLAG_EBS				= BIT(0),
 	IWL_CHANNEL_FLAG_ACCURATE_EBS			= BIT(1),
 	IWL_CHANNEL_FLAG_EBS_ADD			= BIT(2),
@@ -503,7 +530,8 @@ enum iwl_channel_flags {
  *				scan_config_channel_flag
  * @channel_array:		default supported channels
  */
-struct iwl_scan_config {
+struct iwl_scan_config
+{
 	__le32 flags;
 	__le32 tx_chains;
 	__le32 rx_chains;
@@ -529,17 +557,20 @@ struct iwl_scan_config {
  *@IWL_UMAC_SCAN_FLAG_START_NOTIF: notification will be sent to the driver
  *	when scan starts.
  */
-enum iwl_umac_scan_flags {
+enum iwl_umac_scan_flags
+{
 	IWL_UMAC_SCAN_FLAG_PREEMPTIVE		= BIT(0),
 	IWL_UMAC_SCAN_FLAG_START_NOTIF		= BIT(1),
 };
 
-enum iwl_umac_scan_uid_offsets {
+enum iwl_umac_scan_uid_offsets
+{
 	IWL_UMAC_SCAN_UID_TYPE_OFFSET		= 0,
 	IWL_UMAC_SCAN_UID_SEQ_OFFSET		= 8,
 };
 
-enum iwl_umac_scan_general_flags {
+enum iwl_umac_scan_general_flags
+{
 	IWL_UMAC_SCAN_GEN_FLAGS_PERIODIC	= BIT(0),
 	IWL_UMAC_SCAN_GEN_FLAGS_OVER_BT		= BIT(1),
 	IWL_UMAC_SCAN_GEN_FLAGS_PASS_ALL	= BIT(2),
@@ -560,7 +591,8 @@ enum iwl_umac_scan_general_flags {
  * @iter_count:		repetition count for the channel.
  * @iter_interval:	interval between two scan iterations on one channel.
  */
-struct iwl_scan_channel_cfg_umac {
+struct iwl_scan_channel_cfg_umac
+{
 	__le32 flags;
 	u8 channel_num;
 	u8 iter_count;
@@ -573,7 +605,8 @@ struct iwl_scan_channel_cfg_umac {
  * @iter_count: num of scan iterations for schedule plan, 0xff for infinite loop
  * @reserved: for alignment and future use
  */
-struct iwl_scan_umac_schedule {
+struct iwl_scan_umac_schedule
+{
 	__le16 interval;
 	u8 iter_count;
 	u8 reserved;
@@ -588,7 +621,8 @@ struct iwl_scan_umac_schedule {
  * @preq: probe request with IEs blocks
  * @direct_scan: list of SSIDs for directed active scan
  */
-struct iwl_scan_req_umac_tail {
+struct iwl_scan_req_umac_tail
+{
 	/* SCAN_PERIODIC_PARAMS_API_S_VER_1 */
 	struct iwl_scan_umac_schedule schedule[IWL_MAX_SCHED_SCAN_PLANS];
 	__le16 delay;
@@ -619,7 +653,8 @@ struct iwl_scan_req_umac_tail {
  * @data: &struct iwl_scan_channel_cfg_umac and
  *	&struct iwl_scan_req_umac_tail
  */
-struct iwl_scan_req_umac {
+struct iwl_scan_req_umac
+{
 	__le32 flags;
 	__le32 uid;
 	__le32 ooc_priority;
@@ -646,7 +681,8 @@ struct iwl_scan_req_umac {
  * @uid: scan id, &enum iwl_umac_scan_uid_offsets
  * @flags: reserved
  */
-struct iwl_umac_scan_abort {
+struct iwl_umac_scan_abort
+{
 	__le32 uid;
 	__le32 flags;
 } __packed; /* SCAN_ABORT_CMD_UMAC_API_S_VER_1 */
@@ -661,7 +697,8 @@ struct iwl_umac_scan_abort {
  * @time_from_last_iter: time elapsed from last iteration
  * @reserved: for future use
  */
-struct iwl_umac_scan_complete {
+struct iwl_umac_scan_complete
+{
 	__le32 uid;
 	u8 last_schedule;
 	u8 last_iter;
@@ -681,7 +718,8 @@ struct iwl_umac_scan_complete {
  * @matching_channels: bitmap of channels that matched, referencing
  *	the channels passed in tue scan offload request
  */
-struct iwl_scan_offload_profile_match {
+struct iwl_scan_offload_profile_match
+{
 	u8 bssid[ETH_ALEN];
 	__le16 reserved;
 	u8 channel;
@@ -703,7 +741,8 @@ struct iwl_scan_offload_profile_match {
  * @reserved: reserved
  * @matches: array of match information, one for each match
  */
-struct iwl_scan_offload_profiles_query {
+struct iwl_scan_offload_profiles_query
+{
 	__le32 matched_profiles;
 	__le32 last_scan_age;
 	__le32 n_scans_done;
@@ -727,7 +766,8 @@ struct iwl_scan_offload_profiles_query {
  *	in &struct iwl_scan_req_umac.
  * @results: array of scan results, only "scanned_channels" of them are valid
  */
-struct iwl_umac_scan_iter_complete_notif {
+struct iwl_umac_scan_iter_complete_notif
+{
 	__le32 uid;
 	u8 scanned_channels;
 	u8 status;

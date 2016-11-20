@@ -22,7 +22,8 @@
 #define NUM_DSI_CLOCKS_MAX	6
 #define MAX_DSI_PLL_EN_SEQS	10
 
-struct msm_dsi_pll {
+struct msm_dsi_pll
+{
 	enum msm_dsi_phy_type type;
 
 	struct clk_hw	clk_hw;
@@ -36,8 +37,8 @@ struct msm_dsi_pll {
 	int (*enable_seqs[MAX_DSI_PLL_EN_SEQS])(struct msm_dsi_pll *pll);
 	void (*disable_seq)(struct msm_dsi_pll *pll);
 	int (*get_provider)(struct msm_dsi_pll *pll,
-			struct clk **byte_clk_provider,
-			struct clk **pixel_clk_provider);
+						struct clk **byte_clk_provider,
+						struct clk **pixel_clk_provider);
 	void (*destroy)(struct msm_dsi_pll *pll);
 	void (*save_state)(struct msm_dsi_pll *pll);
 	int (*restore_state)(struct msm_dsi_pll *pll);
@@ -73,19 +74,19 @@ static inline void pll_write_ndelay(void __iomem *reg, u32 data, u32 delay_ns)
 
 /* clock callbacks */
 long msm_dsi_pll_helper_clk_round_rate(struct clk_hw *hw,
-		unsigned long rate, unsigned long *parent_rate);
+									   unsigned long rate, unsigned long *parent_rate);
 int msm_dsi_pll_helper_clk_prepare(struct clk_hw *hw);
 void msm_dsi_pll_helper_clk_unprepare(struct clk_hw *hw);
 /* misc */
 void msm_dsi_pll_helper_unregister_clks(struct platform_device *pdev,
-					struct clk **clks, u32 num_clks);
+										struct clk **clks, u32 num_clks);
 
 /*
  * Initialization for Each PLL Type
  */
 #ifdef CONFIG_DRM_MSM_DSI_28NM_PHY
 struct msm_dsi_pll *msm_dsi_pll_28nm_init(struct platform_device *pdev,
-					enum msm_dsi_phy_type type, int id);
+		enum msm_dsi_phy_type type, int id);
 #else
 static inline struct msm_dsi_pll *msm_dsi_pll_28nm_init(
 	struct platform_device *pdev, enum msm_dsi_phy_type type, int id)
@@ -95,7 +96,7 @@ static inline struct msm_dsi_pll *msm_dsi_pll_28nm_init(
 #endif
 #ifdef CONFIG_DRM_MSM_DSI_28NM_8960_PHY
 struct msm_dsi_pll *msm_dsi_pll_28nm_8960_init(struct platform_device *pdev,
-					       int id);
+		int id);
 #else
 static inline struct msm_dsi_pll *msm_dsi_pll_28nm_8960_init(
 	struct platform_device *pdev, int id)

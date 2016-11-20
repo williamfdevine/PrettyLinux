@@ -39,7 +39,8 @@
 
 DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_ib_statistics, rds_ib_stats);
 
-static const char *const rds_ib_stat_names[] = {
+static const char *const rds_ib_stat_names[] =
+{
 	"ib_connect_raced",
 	"ib_listen_closed_stale",
 	"s_ib_evt_handler_call",
@@ -80,7 +81,7 @@ static const char *const rds_ib_stat_names[] = {
 };
 
 unsigned int rds_ib_stats_info_copy(struct rds_info_iterator *iter,
-				    unsigned int avail)
+									unsigned int avail)
 {
 	struct rds_ib_statistics stats = {0, };
 	uint64_t *src;
@@ -89,17 +90,23 @@ unsigned int rds_ib_stats_info_copy(struct rds_info_iterator *iter,
 	int cpu;
 
 	if (avail < ARRAY_SIZE(rds_ib_stat_names))
+	{
 		goto out;
+	}
 
-	for_each_online_cpu(cpu) {
-		src = (uint64_t *)&(per_cpu(rds_ib_stats, cpu));
+	for_each_online_cpu(cpu)
+	{
+		src = (uint64_t *) & (per_cpu(rds_ib_stats, cpu));
 		sum = (uint64_t *)&stats;
+
 		for (i = 0; i < sizeof(stats) / sizeof(uint64_t); i++)
+		{
 			*(sum++) += *(src++);
+		}
 	}
 
 	rds_stats_info_copy(iter, (uint64_t *)&stats, rds_ib_stat_names,
-			    ARRAY_SIZE(rds_ib_stat_names));
+						ARRAY_SIZE(rds_ib_stat_names));
 out:
 	return ARRAY_SIZE(rds_ib_stat_names);
 }

@@ -37,7 +37,8 @@
 #define CMD_DELAY_US		(10*1000)
 #define CMD_TIMEOUT_US		(500*CMD_DELAY_US)
 
-struct dc_rtc {
+struct dc_rtc
+{
 	struct rtc_device	*rtc_dev;
 	void __iomem		*regs;
 };
@@ -47,14 +48,18 @@ static int dc_rtc_cmds(struct dc_rtc *rtc, const u8 *cmds, int len)
 	u8 val;
 	int i, ret;
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		writeb_relaxed((cmds[i] & DC_RTC_CMD_MASK) | DC_RTC_GO_BUSY,
-			       rtc->regs + DC_RTC_CONTROL);
+					   rtc->regs + DC_RTC_CONTROL);
 		ret = readb_relaxed_poll_timeout(
-			rtc->regs + DC_RTC_CONTROL, val,
-			!(val & DC_RTC_GO_BUSY), CMD_DELAY_US, CMD_TIMEOUT_US);
+				  rtc->regs + DC_RTC_CONTROL, val,
+				  !(val & DC_RTC_GO_BUSY), CMD_DELAY_US, CMD_TIMEOUT_US);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -67,16 +72,25 @@ static int dc_rtc_read(struct dc_rtc *rtc, unsigned long *val)
 	int ret;
 
 	ret = dc_rtc_cmds(rtc, read_cmds, ARRAY_SIZE(read_cmds));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	reference = readl_relaxed(rtc->regs + DC_RTC_REFERENCE);
 	time1 = readl_relaxed(rtc->regs + DC_RTC_TIME);
+
 	/* Read twice to ensure consistency */
-	while (1) {
+	while (1)
+	{
 		time2 = readl_relaxed(rtc->regs + DC_RTC_TIME);
+
 		if (time1 == time2)
+		{
 			break;
+		}
+
 		time1 = time2;
 	}
 
@@ -99,8 +113,12 @@ static int dc_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	int ret;
 
 	ret = dc_rtc_read(rtc, &now);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	rtc_time64_to_tm(now, tm);
 
 	return 0;
@@ -125,8 +143,11 @@ static int dc_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	rtc_time64_to_tm(reference + alarm_reg, &alarm->time);
 
 	ret = dc_rtc_read(rtc, &now);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	alarm->pending = alarm_reg + reference > now;
 	alarm->enabled = readl_relaxed(rtc->regs + DC_RTC_INTENABLE);
@@ -159,7 +180,8 @@ static int dc_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
 	return 0;
 }
 
-static const struct rtc_class_ops dc_rtc_ops = {
+static const struct rtc_class_ops dc_rtc_ops =
+{
 	.read_time		= dc_rtc_read_time,
 	.set_mmss		= dc_rtc_set_mmss,
 	.read_alarm		= dc_rtc_read_alarm,
@@ -184,37 +206,55 @@ static int __init dc_rtc_probe(struct platform_device *pdev)
 	int irq, ret;
 
 	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
+
 	if (!rtc)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rtc->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(rtc->regs))
+	{
 		return PTR_ERR(rtc->regs);
+	}
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
+
 	ret = devm_request_irq(&pdev->dev, irq, dc_rtc_irq, 0, pdev->name, rtc);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	platform_set_drvdata(pdev, rtc);
 	rtc->rtc_dev = devm_rtc_device_register(&pdev->dev, pdev->name,
-						&dc_rtc_ops, THIS_MODULE);
+											&dc_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(rtc->rtc_dev))
+	{
 		return PTR_ERR(rtc->rtc_dev);
+	}
 
 	return 0;
 }
 
-static const struct of_device_id dc_dt_ids[] = {
+static const struct of_device_id dc_dt_ids[] =
+{
 	{ .compatible = "cnxt,cx92755-rtc" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, dc_dt_ids);
 
-static struct platform_driver dc_rtc_driver = {
+static struct platform_driver dc_rtc_driver =
+{
 	.driver = {
 		.name = "digicolor_rtc",
 		.of_match_table = of_match_ptr(dc_dt_ids),

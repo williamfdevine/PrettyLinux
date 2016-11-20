@@ -86,7 +86,8 @@
 
 /*-------------------------------------------------------------------------*/
 
-struct usb_irda_cs_descriptor {
+struct usb_irda_cs_descriptor
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 
@@ -139,11 +140,13 @@ struct usb_irda_cs_descriptor {
  */
 #define USB_IRDA_EXTRA_BOFS		0xf0
 
-struct usb_irda_inbound_header {
+struct usb_irda_inbound_header
+{
 	__u8		bmStatus;
 };
 
-struct usb_irda_outbound_header {
+struct usb_irda_outbound_header
+{
 	__u8		bmChange;
 };
 

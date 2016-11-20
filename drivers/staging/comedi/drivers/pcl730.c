@@ -98,21 +98,23 @@
  *     BASE+6  Isolated inputs 16-19 (read)
  */
 
-struct pcl730_board {
+struct pcl730_board
+{
 	const char *name;
 	unsigned int io_range;
-	unsigned is_pcl725:1;
-	unsigned is_acl7225b:1;
-	unsigned is_ir104:1;
-	unsigned has_readback:1;
-	unsigned has_ttl_io:1;
+	unsigned is_pcl725: 1;
+	unsigned is_acl7225b: 1;
+	unsigned is_ir104: 1;
+	unsigned has_readback: 1;
+	unsigned has_ttl_io: 1;
 	int n_subdevs;
 	int n_iso_out_chan;
 	int n_iso_in_chan;
 	int n_ttl_chan;
 };
 
-static const struct pcl730_board pcl730_boards[] = {
+static const struct pcl730_board pcl730_boards[] =
+{
 	{
 		.name		= "pcl730",
 		.io_range	= 0x04,
@@ -209,23 +211,36 @@ static const struct pcl730_board pcl730_boards[] = {
 };
 
 static int pcl730_do_insn_bits(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	unsigned long reg = (unsigned long)s->private;
 	unsigned int mask;
 
 	mask = comedi_dio_update_state(s, data);
-	if (mask) {
+
+	if (mask)
+	{
 		if (mask & 0x00ff)
+		{
 			outb(s->state & 0xff, dev->iobase + reg);
+		}
+
 		if ((mask & 0xff00) && (s->n_chan > 8))
+		{
 			outb((s->state >> 8) & 0xff, dev->iobase + reg + 1);
+		}
+
 		if ((mask & 0xff0000) && (s->n_chan > 16))
+		{
 			outb((s->state >> 16) & 0xff, dev->iobase + reg + 2);
+		}
+
 		if ((mask & 0xff000000) && (s->n_chan > 24))
+		{
 			outb((s->state >> 24) & 0xff, dev->iobase + reg + 3);
+		}
 	}
 
 	data[1] = s->state;
@@ -234,26 +249,35 @@ static int pcl730_do_insn_bits(struct comedi_device *dev,
 }
 
 static unsigned int pcl730_get_bits(struct comedi_device *dev,
-				    struct comedi_subdevice *s)
+									struct comedi_subdevice *s)
 {
 	unsigned long reg = (unsigned long)s->private;
 	unsigned int val;
 
 	val = inb(dev->iobase + reg);
+
 	if (s->n_chan > 8)
+	{
 		val |= (inb(dev->iobase + reg + 1) << 8);
+	}
+
 	if (s->n_chan > 16)
+	{
 		val |= (inb(dev->iobase + reg + 2) << 16);
+	}
+
 	if (s->n_chan > 24)
+	{
 		val |= (inb(dev->iobase + reg + 3) << 24);
+	}
 
 	return val;
 }
 
 static int pcl730_di_insn_bits(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	data[1] = pcl730_get_bits(dev, s);
 
@@ -261,7 +285,7 @@ static int pcl730_di_insn_bits(struct comedi_device *dev,
 }
 
 static int pcl730_attach(struct comedi_device *dev,
-			 struct comedi_devconfig *it)
+						 struct comedi_devconfig *it)
 {
 	const struct pcl730_board *board = dev->board_ptr;
 	struct comedi_subdevice *s;
@@ -269,16 +293,23 @@ static int pcl730_attach(struct comedi_device *dev,
 	int ret;
 
 	ret = comedi_request_region(dev, it->options[0], board->io_range);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = comedi_alloc_subdevices(dev, board->n_subdevs);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	subdev = 0;
 
-	if (board->n_iso_out_chan) {
+	if (board->n_iso_out_chan)
+	{
 		/* Isolated Digital Outputs */
 		s = &dev->subdevices[subdev++];
 		s->type		= COMEDI_SUBD_DO;
@@ -291,10 +322,13 @@ static int pcl730_attach(struct comedi_device *dev,
 
 		/* get the initial state if supported */
 		if (board->has_readback)
+		{
 			s->state = pcl730_get_bits(dev, s);
+		}
 	}
 
-	if (board->n_iso_in_chan) {
+	if (board->n_iso_in_chan)
+	{
 		/* Isolated Digital Inputs */
 		s = &dev->subdevices[subdev++];
 		s->type		= COMEDI_SUBD_DI;
@@ -304,11 +338,12 @@ static int pcl730_attach(struct comedi_device *dev,
 		s->range_table	= &range_digital;
 		s->insn_bits	= pcl730_di_insn_bits;
 		s->private	= board->is_ir104 ? (void *)4 :
-				  board->is_acl7225b ? (void *)2 :
-				  board->is_pcl725 ? (void *)1 : (void *)0;
+					  board->is_acl7225b ? (void *)2 :
+					  board->is_pcl725 ? (void *)1 : (void *)0;
 	}
 
-	if (board->has_ttl_io) {
+	if (board->has_ttl_io)
+	{
 		/* TTL Digital Outputs */
 		s = &dev->subdevices[subdev++];
 		s->type		= COMEDI_SUBD_DO;
@@ -333,7 +368,8 @@ static int pcl730_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver pcl730_driver = {
+static struct comedi_driver pcl730_driver =
+{
 	.driver_name	= "pcl730",
 	.module		= THIS_MODULE,
 	.attach		= pcl730_attach,

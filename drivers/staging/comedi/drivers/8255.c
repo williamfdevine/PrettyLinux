@@ -54,28 +54,38 @@
 #include "8255.h"
 
 static int dev_8255_attach(struct comedi_device *dev,
-			   struct comedi_devconfig *it)
+						   struct comedi_devconfig *it)
 {
 	struct comedi_subdevice *s;
 	unsigned long iobase;
 	int ret;
 	int i;
 
-	for (i = 0; i < COMEDI_NDEVCONFOPTS; i++) {
+	for (i = 0; i < COMEDI_NDEVCONFOPTS; i++)
+	{
 		iobase = it->options[i];
+
 		if (!iobase)
+		{
 			break;
+		}
 	}
-	if (i == 0) {
+
+	if (i == 0)
+	{
 		dev_warn(dev->class_dev, "no devices specified\n");
 		return -EINVAL;
 	}
 
 	ret = comedi_alloc_subdevices(dev, i);
-	if (ret)
-		return ret;
 
-	for (i = 0; i < dev->n_subdevices; i++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 0; i < dev->n_subdevices; i++)
+	{
 		s = &dev->subdevices[i];
 		iobase = it->options[i];
 
@@ -87,11 +97,17 @@ static int dev_8255_attach(struct comedi_device *dev,
 		 * base address of the chip.
 		 */
 		ret = __comedi_request_region(dev, iobase, I8255_SIZE);
-		if (ret) {
+
+		if (ret)
+		{
 			s->type = COMEDI_SUBD_UNUSED;
-		} else {
+		}
+		else
+		{
 			ret = subdev_8255_init(dev, s, NULL, iobase);
-			if (ret) {
+
+			if (ret)
+			{
 				/*
 				 * Release the I/O port region here, as the
 				 * "detach" handler cannot find it.
@@ -111,9 +127,12 @@ static void dev_8255_detach(struct comedi_device *dev)
 	struct comedi_subdevice *s;
 	int i;
 
-	for (i = 0; i < dev->n_subdevices; i++) {
+	for (i = 0; i < dev->n_subdevices; i++)
+	{
 		s = &dev->subdevices[i];
-		if (s->type != COMEDI_SUBD_UNUSED) {
+
+		if (s->type != COMEDI_SUBD_UNUSED)
+		{
 			unsigned long regbase = subdev_8255_regbase(s);
 
 			release_region(regbase, I8255_SIZE);
@@ -121,7 +140,8 @@ static void dev_8255_detach(struct comedi_device *dev)
 	}
 }
 
-static struct comedi_driver dev_8255_driver = {
+static struct comedi_driver dev_8255_driver =
+{
 	.driver_name	= "8255",
 	.module		= THIS_MODULE,
 	.attach		= dev_8255_attach,

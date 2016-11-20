@@ -62,14 +62,15 @@
 
 static DEFINE_SPINLOCK(gxbb_aoclk_lock);
 
-struct gxbb_aoclk_reset_controller {
+struct gxbb_aoclk_reset_controller
+{
 	struct reset_controller_dev reset;
 	unsigned int *data;
 	void __iomem *base;
 };
 
 static int gxbb_aoclk_do_reset(struct reset_controller_dev *rcdev,
-			       unsigned long id)
+							   unsigned long id)
 {
 	struct gxbb_aoclk_reset_controller *reset =
 		container_of(rcdev, struct gxbb_aoclk_reset_controller, reset);
@@ -79,23 +80,24 @@ static int gxbb_aoclk_do_reset(struct reset_controller_dev *rcdev,
 	return 0;
 }
 
-static const struct reset_control_ops gxbb_aoclk_reset_ops = {
+static const struct reset_control_ops gxbb_aoclk_reset_ops =
+{
 	.reset = gxbb_aoclk_do_reset,
 };
 
 #define GXBB_AO_GATE(_name, _bit)					\
-static struct clk_gate _name##_ao = {					\
-	.reg = (void __iomem *)0,					\
-	.bit_idx = (_bit),						\
-	.lock = &gxbb_aoclk_lock,					\
-	.hw.init = &(struct clk_init_data) {				\
-		.name = #_name "_ao",					\
-		.ops = &clk_gate_ops,					\
-		.parent_names = (const char *[]){ "clk81" },		\
-		.num_parents = 1,					\
-		.flags = (CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED),	\
-	},								\
-}
+	static struct clk_gate _name##_ao = {					\
+		.reg = (void __iomem *)0,					\
+			   .bit_idx = (_bit),						\
+						  .lock = &gxbb_aoclk_lock,					\
+		.hw.init = &(struct clk_init_data) {				\
+			.name = #_name "_ao",					\
+					.ops = &clk_gate_ops,					\
+			.parent_names = (const char *[]){ "clk81" },		\
+			.num_parents = 1,					\
+						   .flags = (CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED),	\
+		},								\
+	}
 
 GXBB_AO_GATE(remote, 0);
 GXBB_AO_GATE(i2c_master, 1);
@@ -104,7 +106,8 @@ GXBB_AO_GATE(uart1, 3);
 GXBB_AO_GATE(uart2, 5);
 GXBB_AO_GATE(ir_blaster, 6);
 
-static unsigned int gxbb_aoclk_reset[] = {
+static unsigned int gxbb_aoclk_reset[] =
+{
 	[RESET_AO_REMOTE] = 16,
 	[RESET_AO_I2C_MASTER] = 18,
 	[RESET_AO_I2C_SLAVE] = 19,
@@ -113,7 +116,8 @@ static unsigned int gxbb_aoclk_reset[] = {
 	[RESET_AO_IR_BLASTER] = 23,
 };
 
-static struct clk_gate *gxbb_aoclk_gate[] = {
+static struct clk_gate *gxbb_aoclk_gate[] =
+{
 	[CLKID_AO_REMOTE] = &remote_ao,
 	[CLKID_AO_I2C_MASTER] = &i2c_master_ao,
 	[CLKID_AO_I2C_SLAVE] = &i2c_slave_ao,
@@ -122,7 +126,8 @@ static struct clk_gate *gxbb_aoclk_gate[] = {
 	[CLKID_AO_IR_BLASTER] = &ir_blaster_ao,
 };
 
-static struct clk_hw_onecell_data gxbb_aoclk_onecell_data = {
+static struct clk_hw_onecell_data gxbb_aoclk_onecell_data =
+{
 	.hws = {
 		[CLKID_AO_REMOTE] = &remote_ao.hw,
 		[CLKID_AO_I2C_MASTER] = &i2c_master_ao.hw,
@@ -143,14 +148,20 @@ static int gxbb_aoclkc_probe(struct platform_device *pdev)
 	struct gxbb_aoclk_reset_controller *rstc;
 
 	rstc = devm_kzalloc(dev, sizeof(*rstc), GFP_KERNEL);
+
 	if (!rstc)
+	{
 		return -ENOMEM;
+	}
 
 	/* Generic clocks */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	/* Reset Controller */
 	rstc->base = base;
@@ -163,25 +174,31 @@ static int gxbb_aoclkc_probe(struct platform_device *pdev)
 	/*
 	 * Populate base address and register all clks
 	 */
-	for (clkid = 0; clkid < gxbb_aoclk_onecell_data.num; clkid++) {
+	for (clkid = 0; clkid < gxbb_aoclk_onecell_data.num; clkid++)
+	{
 		gxbb_aoclk_gate[clkid]->reg = base;
 
 		ret = devm_clk_hw_register(dev,
-					gxbb_aoclk_onecell_data.hws[clkid]);
+								   gxbb_aoclk_onecell_data.hws[clkid]);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return of_clk_add_hw_provider(dev->of_node, of_clk_hw_onecell_get,
-			&gxbb_aoclk_onecell_data);
+								  &gxbb_aoclk_onecell_data);
 }
 
-static const struct of_device_id gxbb_aoclkc_match_table[] = {
+static const struct of_device_id gxbb_aoclkc_match_table[] =
+{
 	{ .compatible = "amlogic,gxbb-aoclkc" },
 	{ }
 };
 
-static struct platform_driver gxbb_aoclkc_driver = {
+static struct platform_driver gxbb_aoclkc_driver =
+{
 	.probe		= gxbb_aoclkc_probe,
 	.driver		= {
 		.name	= "gxbb-aoclkc",

@@ -12,7 +12,8 @@
 
 #include "clock.h"
 
-static struct ti_dt_clk dm814_clks[] = {
+static struct ti_dt_clk dm814_clks[] =
+{
 	DT_CLK(NULL, "devosc_ck", "devosc_ck"),
 	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
 	DT_CLK(NULL, "sysclk4_ck", "sysclk4_ck"),
@@ -36,10 +37,14 @@ static int __init dm814x_adpll_early_init(void)
 	struct device_node *np;
 
 	if (!timer_clocks_initialized)
+	{
 		return -ENODEV;
+	}
 
 	np = of_find_node_by_name(NULL, "pllss");
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("Could not find node for plls\n");
 		return -ENODEV;
 	}
@@ -50,7 +55,8 @@ static int __init dm814x_adpll_early_init(void)
 }
 core_initcall(dm814x_adpll_early_init);
 
-static const char * const init_clocks[] = {
+static const char *const init_clocks[] =
+{
 	"pll040clkout",		/* MPU 481c5040.adpll.clkout */
 	"pll290clkout",		/* DDR 481c5290.adpll.clkout */
 };
@@ -60,19 +66,29 @@ static int __init dm814x_adpll_enable_init_clocks(void)
 	int i, err;
 
 	if (!timer_clocks_initialized)
+	{
 		return -ENODEV;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(init_clocks); i++) {
+	for (i = 0; i < ARRAY_SIZE(init_clocks); i++)
+	{
 		struct clk *clock;
 
 		clock = clk_get(NULL, init_clocks[i]);
+
 		if (WARN(IS_ERR(clock), "could not find init clock %s\n",
-			 init_clocks[i]))
+				 init_clocks[i]))
+		{
 			continue;
+		}
+
 		err = clk_prepare_enable(clock);
+
 		if (WARN(err, "could not enable init clock %s\n",
-			 init_clocks[i]))
+				 init_clocks[i]))
+		{
 			continue;
+		}
 	}
 
 	return 0;

@@ -85,14 +85,15 @@
 
 /* 2.9.3.3 interrupt encodings */
 
-struct he_irq {
+struct he_irq
+{
 	volatile u32 isw;
 };
 
 #define IRQ_ALIGNMENT		0x1000
 
 #define NEXT_ENTRY(base, tail, mask) \
-				(((unsigned long)base)|(((unsigned long)(tail+1))&mask))
+	(((unsigned long)base)|(((unsigned long)(tail+1))&mask))
 
 #define ITYPE_INVALID		0xffffffff
 #define ITYPE_TBRQ_THRESH	(0<<3)
@@ -113,7 +114,8 @@ struct he_irq {
 
 /* 2.1.4 transmit packet descriptor */
 
-struct he_tpd {
+struct he_tpd
+{
 
 	/* read by the adapter */
 
@@ -121,7 +123,8 @@ struct he_tpd {
 	volatile u32 reserved;
 
 #define TPD_MAXIOV	3
-	struct {
+	struct
+	{
 		u32 addr, len;
 	} iovec[TPD_MAXIOV];
 
@@ -147,7 +150,8 @@ struct he_tpd {
 
 /* table 2.3 transmit buffer return elements */
 
-struct he_tbrq {
+struct he_tbrq
+{
 	volatile u32 tbre;
 };
 
@@ -159,7 +163,8 @@ struct he_tbrq {
 
 /* table 2.21 receive buffer return queue element field organization */
 
-struct he_rbrq {
+struct he_rbrq
+{
 	volatile u32 addr;
 	volatile u32 cidlen;
 };
@@ -178,7 +183,8 @@ struct he_rbrq {
 
 /* figure 2.3 transmit packet descriptor ready queue */
 
-struct he_tpdrq {
+struct he_tpdrq
+{
 	volatile u32 tpd;
 	volatile u32 cid;
 };
@@ -189,11 +195,13 @@ struct he_tpdrq {
 
 #define HSP_ALIGNMENT	0x400		/* must align on 1k boundary */
 
-struct he_hsp {
-	struct he_hsp_entry {
-		volatile u32 tbrq_tail; 
+struct he_hsp
+{
+	struct he_hsp_entry
+	{
+		volatile u32 tbrq_tail;
 		volatile u32 reserved1[15];
-		volatile u32 rbrq_tail; 
+		volatile u32 rbrq_tail;
 		volatile u32 reserved2[15];
 	} group[HE_NUM_GROUPS];
 };
@@ -206,7 +214,8 @@ struct he_hsp {
  * addr member are used for buffer status further limiting us to 26 bits.
  */
 
-struct he_rbp {
+struct he_rbp
+{
 	volatile u32 phys;
 	volatile u32 idx;	/* virt */
 };
@@ -220,7 +229,8 @@ struct he_rbp {
 
 #define RBPL_TABLE_SIZE (CONFIG_RBPL_SIZE + 16 + 2)
 
-struct he_buff {
+struct he_buff
+{
 	struct list_head entry;
 	dma_addr_t mapping;
 	unsigned long len;
@@ -228,7 +238,8 @@ struct he_buff {
 };
 
 #ifdef notyet
-struct he_group {
+struct he_group
+{
 	u32 rpbl_size, rpbl_qsize;
 	struct he_rpb_entry *rbpl_ba;
 };
@@ -236,7 +247,7 @@ struct he_group {
 
 #define HE_LOOKUP_VCC(dev, cid) ((dev)->he_vcc_table[(cid)].vcc)
 
-struct he_vcc_table 
+struct he_vcc_table
 {
 	struct atm_vcc *vcc;
 };
@@ -249,7 +260,8 @@ struct he_cs_stper
 
 #define HE_NUM_CS_STPER		16
 
-struct he_dev {
+struct he_dev
+{
 	unsigned int number;
 	unsigned int irq;
 	void __iomem *membase;
@@ -457,7 +469,7 @@ struct he_vcc
 #define G0_RBPS_BS	0x8040c
 #define G0_RBPL_S	0x80410
 #define G0_RBPL_T	0x80414
-#define G0_RBPL_QI	0x80418 
+#define G0_RBPL_QI	0x80418
 #define G0_RBPL_BS	0x8041c
 
 #define	G1_RBPS_S	0x80420
@@ -616,11 +628,11 @@ struct he_vcc
 #define  TM_RW_WAIT(x)		(x<<2)
 #define  TM_SRAM_TYPE(x)	(x)
 
-#define TSRB_BA		0x80744	
-#define TSRC_BA		0x80748	
-#define TMABR_BA	0x8074c	
-#define TPD_BA		0x80750	
-#define TSRD_BA		0x80758	
+#define TSRB_BA		0x80744
+#define TSRC_BA		0x80748
+#define TMABR_BA	0x8074c
+#define TPD_BA		0x80750
+#define TSRD_BA		0x80758
 
 #define TX_CONFIG	0x80760
 #define  DRF_THRESH(x)		(x<<22)
@@ -681,15 +693,15 @@ struct he_vcc
 /* 3.3 network controller (internal) mailbox registers */
 
 #define CS_STPER0	0x0
-	/* ... */
+/* ... */
 #define CS_STPER31	0x01f
 
 #define CS_STTIM0	0x020
-	/* ... */
+/* ... */
 #define CS_STTIM31	0x03f
 
 #define CS_TGRLD0	0x040
-	/* ... */
+/* ... */
 #define CS_TGRLD15	0x04f
 
 #define CS_ERTHR0	0x050
@@ -727,7 +739,7 @@ struct he_vcc
 #define CS_OTTCNT	0x083
 
 #define CS_HGRRT0	0x090
-	/* ... */
+/* ... */
 #define CS_HGRRT7	0x097
 
 #define CS_ORPTRS	0x0a0

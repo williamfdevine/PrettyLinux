@@ -57,7 +57,7 @@ static inline void mthca_write64_raw(__be64 val, void __iomem *dest)
 }
 
 static inline void mthca_write64(u32 hi, u32 lo, void __iomem *dest,
-				 spinlock_t *doorbell_lock)
+								 spinlock_t *doorbell_lock)
 {
 	__raw_writeq((__force u64) cpu_to_be64((u64) hi << 32 | lo), dest);
 }
@@ -86,7 +86,7 @@ static inline void mthca_write64_raw(__be64 val, void __iomem *dest)
 }
 
 static inline void mthca_write64(u32 hi, u32 lo, void __iomem *dest,
-				 spinlock_t *doorbell_lock)
+								 spinlock_t *doorbell_lock)
 {
 	unsigned long flags;
 

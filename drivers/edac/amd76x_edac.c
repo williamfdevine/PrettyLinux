@@ -70,24 +70,30 @@
 					 *  0    chip-select enable
 					 */
 
-struct amd76x_error_info {
+struct amd76x_error_info
+{
 	u32 ecc_mode_status;
 };
 
-enum amd76x_chips {
+enum amd76x_chips
+{
 	AMD761 = 0,
 	AMD762
 };
 
-struct amd76x_dev_info {
+struct amd76x_dev_info
+{
 	const char *ctl_name;
 };
 
-static const struct amd76x_dev_info amd76x_devs[] = {
+static const struct amd76x_dev_info amd76x_devs[] =
+{
 	[AMD761] = {
-		.ctl_name = "AMD761"},
+		.ctl_name = "AMD761"
+	},
 	[AMD762] = {
-		.ctl_name = "AMD762"},
+		.ctl_name = "AMD762"
+	},
 };
 
 static struct edac_pci_ctl_info *amd76x_pci;
@@ -101,21 +107,21 @@ static struct edac_pci_ctl_info *amd76x_pci;
  *	on the chip so that further errors will be reported
  */
 static void amd76x_get_error_info(struct mem_ctl_info *mci,
-				struct amd76x_error_info *info)
+								  struct amd76x_error_info *info)
 {
 	struct pci_dev *pdev;
 
 	pdev = to_pci_dev(mci->pdev);
 	pci_read_config_dword(pdev, AMD76X_ECC_MODE_STATUS,
-			&info->ecc_mode_status);
+						  &info->ecc_mode_status);
 
 	if (info->ecc_mode_status & BIT(8))
 		pci_write_bits32(pdev, AMD76X_ECC_MODE_STATUS,
-				 (u32) BIT(8), (u32) BIT(8));
+						 (u32) BIT(8), (u32) BIT(8));
 
 	if (info->ecc_mode_status & BIT(9))
 		pci_write_bits32(pdev, AMD76X_ECC_MODE_STATUS,
-				 (u32) BIT(9), (u32) BIT(9));
+						 (u32) BIT(9), (u32) BIT(9));
 }
 
 /**
@@ -129,8 +135,8 @@ static void amd76x_get_error_info(struct mem_ctl_info *mci,
  *	then attempt to handle and clean up after the error
  */
 static int amd76x_process_error_info(struct mem_ctl_info *mci,
-				struct amd76x_error_info *info,
-				int handle_errors)
+									 struct amd76x_error_info *info,
+									 int handle_errors)
 {
 	int error_found;
 	u32 row;
@@ -140,30 +146,34 @@ static int amd76x_process_error_info(struct mem_ctl_info *mci,
 	/*
 	 *      Check for an uncorrectable error
 	 */
-	if (info->ecc_mode_status & BIT(8)) {
+	if (info->ecc_mode_status & BIT(8))
+	{
 		error_found = 1;
 
-		if (handle_errors) {
+		if (handle_errors)
+		{
 			row = (info->ecc_mode_status >> 4) & 0xf;
 			edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
-					     mci->csrows[row]->first_page, 0, 0,
-					     row, 0, -1,
-					     mci->ctl_name, "");
+								 mci->csrows[row]->first_page, 0, 0,
+								 row, 0, -1,
+								 mci->ctl_name, "");
 		}
 	}
 
 	/*
 	 *      Check for a correctable error
 	 */
-	if (info->ecc_mode_status & BIT(9)) {
+	if (info->ecc_mode_status & BIT(9))
+	{
 		error_found = 1;
 
-		if (handle_errors) {
+		if (handle_errors)
+		{
 			row = info->ecc_mode_status & 0xf;
 			edac_mc_handle_error(HW_EVENT_ERR_CORRECTED, mci, 1,
-					     mci->csrows[row]->first_page, 0, 0,
-					     row, 0, -1,
-					     mci->ctl_name, "");
+								 mci->csrows[row]->first_page, 0, 0,
+								 row, 0, -1,
+								 mci->ctl_name, "");
 		}
 	}
 
@@ -186,23 +196,26 @@ static void amd76x_check(struct mem_ctl_info *mci)
 }
 
 static void amd76x_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev,
-			enum edac_type edac_mode)
+							   enum edac_type edac_mode)
 {
 	struct csrow_info *csrow;
 	struct dimm_info *dimm;
 	u32 mba, mba_base, mba_mask, dms;
 	int index;
 
-	for (index = 0; index < mci->nr_csrows; index++) {
+	for (index = 0; index < mci->nr_csrows; index++)
+	{
 		csrow = mci->csrows[index];
 		dimm = csrow->channels[0]->dimm;
 
 		/* find the DRAM Chip Select Base address and mask */
 		pci_read_config_dword(pdev,
-				AMD76X_MEM_BASE_ADDR + (index * 4), &mba);
+							  AMD76X_MEM_BASE_ADDR + (index * 4), &mba);
 
 		if (!(mba & BIT(0)))
+		{
 			continue;
+		}
 
 		mba_base = mba & 0xff800000UL;
 		mba_mask = ((mba & 0xff80) << 16) | 0x7fffffUL;
@@ -229,7 +242,8 @@ static void amd76x_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev,
  */
 static int amd76x_probe1(struct pci_dev *pdev, int dev_idx)
 {
-	static const enum edac_type ems_modes[] = {
+	static const enum edac_type ems_modes[] =
+	{
 		EDAC_NONE,
 		EDAC_EC,
 		EDAC_SECDED,
@@ -254,14 +268,16 @@ static int amd76x_probe1(struct pci_dev *pdev, int dev_idx)
 	mci = edac_mc_alloc(0, ARRAY_SIZE(layers), layers, 0);
 
 	if (mci == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	edac_dbg(0, "mci = %p\n", mci);
 	mci->pdev = &pdev->dev;
 	mci->mtype_cap = MEM_FLAG_RDDR;
 	mci->edac_ctl_cap = EDAC_FLAG_NONE | EDAC_FLAG_EC | EDAC_FLAG_SECDED;
 	mci->edac_cap = ems_mode ?
-		(EDAC_FLAG_EC | EDAC_FLAG_SECDED) : EDAC_FLAG_NONE;
+					(EDAC_FLAG_EC | EDAC_FLAG_SECDED) : EDAC_FLAG_NONE;
 	mci->mod_name = EDAC_MOD_STR;
 	mci->mod_ver = AMD76X_REVISION;
 	mci->ctl_name = amd76x_devs[dev_idx].ctl_name;
@@ -275,20 +291,23 @@ static int amd76x_probe1(struct pci_dev *pdev, int dev_idx)
 	/* Here we assume that we will never see multiple instances of this
 	 * type of memory controller.  The ID is therefore hardcoded to 0.
 	 */
-	if (edac_mc_add_mc(mci)) {
+	if (edac_mc_add_mc(mci))
+	{
 		edac_dbg(3, "failed edac_mc_add_mc()\n");
 		goto fail;
 	}
 
 	/* allocating generic PCI control info */
 	amd76x_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
-	if (!amd76x_pci) {
+
+	if (!amd76x_pci)
+	{
 		printk(KERN_WARNING
-			"%s(): Unable to create PCI control\n",
-			__func__);
+			   "%s(): Unable to create PCI control\n",
+			   __func__);
 		printk(KERN_WARNING
-			"%s(): PCI error report via EDAC not setup\n",
-			__func__);
+			   "%s(): PCI error report via EDAC not setup\n",
+			   __func__);
 	}
 
 	/* get this far and it's successful */
@@ -302,7 +321,7 @@ fail:
 
 /* returns count (>= 0), or negative on error */
 static int amd76x_init_one(struct pci_dev *pdev,
-			   const struct pci_device_id *ent)
+						   const struct pci_device_id *ent)
 {
 	edac_dbg(0, "\n");
 
@@ -325,29 +344,37 @@ static void amd76x_remove_one(struct pci_dev *pdev)
 	edac_dbg(0, "\n");
 
 	if (amd76x_pci)
+	{
 		edac_pci_release_generic_ctl(amd76x_pci);
+	}
 
 	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
+	{
 		return;
+	}
 
 	edac_mc_free(mci);
 }
 
-static const struct pci_device_id amd76x_pci_tbl[] = {
+static const struct pci_device_id amd76x_pci_tbl[] =
+{
 	{
-	 PCI_VEND_DEV(AMD, FE_GATE_700C), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	 AMD762},
+		PCI_VEND_DEV(AMD, FE_GATE_700C), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+		AMD762
+	},
 	{
-	 PCI_VEND_DEV(AMD, FE_GATE_700E), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	 AMD761},
+		PCI_VEND_DEV(AMD, FE_GATE_700E), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+		AMD761
+	},
 	{
-	 0,
-	 }			/* 0 terminated list. */
+		0,
+	}			/* 0 terminated list. */
 };
 
 MODULE_DEVICE_TABLE(pci, amd76x_pci_tbl);
 
-static struct pci_driver amd76x_driver = {
+static struct pci_driver amd76x_driver =
+{
 	.name = EDAC_MOD_STR,
 	.probe = amd76x_init_one,
 	.remove = amd76x_remove_one,
@@ -356,8 +383,8 @@ static struct pci_driver amd76x_driver = {
 
 static int __init amd76x_init(void)
 {
-       /* Ensure that the OPSTATE is set correctly for POLL or NMI */
-       opstate_init();
+	/* Ensure that the OPSTATE is set correctly for POLL or NMI */
+	opstate_init();
 
 	return pci_register_driver(&amd76x_driver);
 }

@@ -45,7 +45,8 @@
 
 #define MAILBOX			0x0F
 
-static struct pci_device_id ids[] = {
+static struct pci_device_id ids[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_AEC, PCI_DEVICE_ID_AEC_VITCLTC), },
 	{ 0, }
 };
@@ -57,7 +58,8 @@ static irqreturn_t aectc_irq(int irq, struct uio_info *dev_info)
 	unsigned char status = ioread8(int_flag);
 
 
-	if ((status & INTA_ENABLED_FLAG) && (status & INTA_FLAG)) {
+	if ((status & INTA_ENABLED_FLAG) && (status & INTA_FLAG))
+	{
 		/* application writes 0x00 to 0x2F to get next interrupt */
 		status = ioread8(dev_info->priv + MAILBOX);
 		return IRQ_HANDLED;
@@ -69,13 +71,13 @@ static irqreturn_t aectc_irq(int irq, struct uio_info *dev_info)
 static void print_board_data(struct pci_dev *pdev, struct uio_info *i)
 {
 	dev_info(&pdev->dev, "PCI-TC board vendor: %x%x number: %x%x"
-		" revision: %c%c\n",
-		ioread8(i->priv + 0x01),
-		ioread8(i->priv + 0x00),
-		ioread8(i->priv + 0x03),
-		ioread8(i->priv + 0x02),
-		ioread8(i->priv + 0x06),
-		ioread8(i->priv + 0x07));
+			 " revision: %c%c\n",
+			 ioread8(i->priv + 0x01),
+			 ioread8(i->priv + 0x00),
+			 ioread8(i->priv + 0x03),
+			 ioread8(i->priv + 0x02),
+			 ioread8(i->priv + 0x06),
+			 ioread8(i->priv + 0x07));
 }
 
 static int probe(struct pci_dev *pdev, const struct pci_device_id *id)
@@ -84,22 +86,37 @@ static int probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	int ret;
 
 	info = kzalloc(sizeof(struct uio_info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	if (pci_enable_device(pdev))
+	{
 		goto out_free;
+	}
 
 	if (pci_request_regions(pdev, "aectc"))
+	{
 		goto out_disable;
+	}
 
 	info->name = "aectc";
 	info->port[0].start = pci_resource_start(pdev, 0);
+
 	if (!info->port[0].start)
+	{
 		goto out_release;
+	}
+
 	info->priv = pci_iomap(pdev, 0, 0);
+
 	if (!info->priv)
+	{
 		goto out_release;
+	}
+
 	info->port[0].size = pci_resource_len(pdev, 0);
 	info->port[0].porttype = UIO_PORT_GPIO;
 
@@ -110,14 +127,20 @@ static int probe(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	print_board_data(pdev, info);
 	ret = uio_register_device(&pdev->dev, info);
+
 	if (ret)
+	{
 		goto out_unmap;
+	}
 
 	iowrite32(INT_ENABLE, info->priv + INT_ENABLE_ADDR);
 	iowrite8(INT_MASK_ALL, info->priv + INT_MASK_ADDR);
+
 	if (!(ioread8(info->priv + INTA_DRVR_ADDR)
-			& INTA_ENABLED_FLAG))
+		  & INTA_ENABLED_FLAG))
+	{
 		dev_err(&pdev->dev, "aectc: interrupts not enabled\n");
+	}
 
 	pci_set_drvdata(pdev, info);
 
@@ -152,7 +175,8 @@ static void remove(struct pci_dev *pdev)
 	kfree(info);
 }
 
-static struct pci_driver pci_driver = {
+static struct pci_driver pci_driver =
+{
 	.name = "aectc",
 	.id_table = ids,
 	.probe = probe,

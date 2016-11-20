@@ -70,7 +70,8 @@
  *	Processor Interface Exception Mask Register (APIMASK)
  ************************************************************/
 #define REG_APIMASK_OFFSET	0x30070
-enum apimask_bits {
+enum apimask_bits
+{
 	APIMASK_DART	= CPC925_BIT(0), /* DART Exception */
 	APIMASK_ADI0	= CPC925_BIT(1), /* Handshake Error on PI0_ADI */
 	APIMASK_ADI1	= CPC925_BIT(2), /* Handshake Error on PI1_ADI */
@@ -78,17 +79,17 @@ enum apimask_bits {
 	APIMASK_DERR	= CPC925_BIT(4), /* Data Error Exception */
 	APIMASK_ADRS0	= CPC925_BIT(5), /* Addressing Exception on PI0 */
 	APIMASK_ADRS1	= CPC925_BIT(6), /* Addressing Exception on PI1 */
-					 /* BIT(7) Reserved */
+	/* BIT(7) Reserved */
 	APIMASK_ECC_UE_H = CPC925_BIT(8), /* UECC upper */
 	APIMASK_ECC_CE_H = CPC925_BIT(9), /* CECC upper */
 	APIMASK_ECC_UE_L = CPC925_BIT(10), /* UECC lower */
 	APIMASK_ECC_CE_L = CPC925_BIT(11), /* CECC lower */
 
 	CPU_MASK_ENABLE = (APIMASK_DART | APIMASK_ADI0 | APIMASK_ADI1 |
-			   APIMASK_STAT | APIMASK_DERR | APIMASK_ADRS0 |
-			   APIMASK_ADRS1),
+					   APIMASK_STAT | APIMASK_DERR | APIMASK_ADRS0 |
+					   APIMASK_ADRS1),
 	ECC_MASK_ENABLE = (APIMASK_ECC_UE_H | APIMASK_ECC_CE_H |
-			   APIMASK_ECC_UE_L | APIMASK_ECC_CE_L),
+					   APIMASK_ECC_UE_L | APIMASK_ECC_CE_L),
 };
 #define APIMASK_ADI(n)		CPC925_BIT(((n)+1))
 
@@ -96,7 +97,8 @@ enum apimask_bits {
  *	Processor Interface Exception Register (APIEXCP)
  ************************************************************/
 #define REG_APIEXCP_OFFSET	0x30060
-enum apiexcp_bits {
+enum apiexcp_bits
+{
 	APIEXCP_DART	= CPC925_BIT(0), /* DART Exception */
 	APIEXCP_ADI0	= CPC925_BIT(1), /* Handshake Error on PI0_ADI */
 	APIEXCP_ADI1	= CPC925_BIT(2), /* Handshake Error on PI1_ADI */
@@ -104,15 +106,15 @@ enum apiexcp_bits {
 	APIEXCP_DERR	= CPC925_BIT(4), /* Data Error Exception */
 	APIEXCP_ADRS0	= CPC925_BIT(5), /* Addressing Exception on PI0 */
 	APIEXCP_ADRS1	= CPC925_BIT(6), /* Addressing Exception on PI1 */
-					 /* BIT(7) Reserved */
+	/* BIT(7) Reserved */
 	APIEXCP_ECC_UE_H = CPC925_BIT(8), /* UECC upper */
 	APIEXCP_ECC_CE_H = CPC925_BIT(9), /* CECC upper */
 	APIEXCP_ECC_UE_L = CPC925_BIT(10), /* UECC lower */
 	APIEXCP_ECC_CE_L = CPC925_BIT(11), /* CECC lower */
 
 	CPU_EXCP_DETECTED = (APIEXCP_DART | APIEXCP_ADI0 | APIEXCP_ADI1 |
-			     APIEXCP_STAT | APIEXCP_DERR | APIEXCP_ADRS0 |
-			     APIEXCP_ADRS1),
+						 APIEXCP_STAT | APIEXCP_DERR | APIEXCP_ADRS0 |
+						 APIEXCP_ADRS1),
 	UECC_EXCP_DETECTED = (APIEXCP_ECC_UE_H | APIEXCP_ECC_UE_L),
 	CECC_EXCP_DETECTED = (APIEXCP_ECC_CE_H | APIEXCP_ECC_CE_L),
 	ECC_EXCP_DETECTED = (UECC_EXCP_DETECTED | CECC_EXCP_DETECTED),
@@ -174,7 +176,8 @@ enum apiexcp_bits {
  *	Memory Check Control Register (MCCR)
  ************************************************************/
 #define REG_MCCR_OFFSET		0x2440
-enum mccr_bits {
+enum mccr_bits
+{
 	MCCR_ECC_EN	= CPC925_BIT(0), /* ECC high and low check */
 };
 
@@ -212,7 +215,8 @@ enum mccr_bits {
  *	Memory Mode Control Register (MMCR)
  ************************************************************/
 #define REG_MMCR_OFFSET		0x2500
-enum mmcr_bits {
+enum mmcr_bits
+{
 	MMCR_REG_DIMM_MODE = CPC925_BIT(3),
 };
 
@@ -223,7 +227,8 @@ enum mmcr_bits {
  *  Error Handling/Enumeration Scratch Pad Register (ERRCTRL)
  ************************************************************/
 #define REG_ERRCTRL_OFFSET	0x70140
-enum errctrl_bits {			 /* nonfatal interrupts for */
+enum errctrl_bits  			 /* nonfatal interrupts for */
+{
 	ERRCTRL_SERR_NF	= CPC925_BIT(0), /* system error */
 	ERRCTRL_CRC_NF	= CPC925_BIT(1), /* CRC error */
 	ERRCTRL_RSP_NF	= CPC925_BIT(2), /* Response error */
@@ -235,8 +240,8 @@ enum errctrl_bits {			 /* nonfatal interrupts for */
 	ERRCTRL_CHN_FAL = CPC925_BIT(7), /* Sync flooding detected */
 
 	HT_ERRCTRL_ENABLE = (ERRCTRL_SERR_NF | ERRCTRL_CRC_NF |
-			     ERRCTRL_RSP_NF | ERRCTRL_EOC_NF |
-			     ERRCTRL_OVF_NF | ERRCTRL_PROT_NF),
+						 ERRCTRL_RSP_NF | ERRCTRL_EOC_NF |
+						 ERRCTRL_OVF_NF | ERRCTRL_PROT_NF),
 	HT_ERRCTRL_DETECTED = (ERRCTRL_RSP_ERR | ERRCTRL_CHN_FAL),
 };
 
@@ -244,7 +249,8 @@ enum errctrl_bits {			 /* nonfatal interrupts for */
  *  Link Configuration and Link Control Register (LINKCTRL)
  ************************************************************/
 #define REG_LINKCTRL_OFFSET	0x70110
-enum linkctrl_bits {
+enum linkctrl_bits
+{
 	LINKCTRL_CRC_ERR	= (CPC925_BIT(22) | CPC925_BIT(23)),
 	LINKCTRL_LINK_FAIL	= CPC925_BIT(27),
 
@@ -255,26 +261,29 @@ enum linkctrl_bits {
  *  Link FreqCap/Error/Freq/Revision ID Register (LINKERR)
  ************************************************************/
 #define REG_LINKERR_OFFSET	0x70120
-enum linkerr_bits {
+enum linkerr_bits
+{
 	LINKERR_EOC_ERR		= CPC925_BIT(17), /* End-Of-Chain error */
 	LINKERR_OVF_ERR		= CPC925_BIT(18), /* Receive Buffer Overflow */
 	LINKERR_PROT_ERR	= CPC925_BIT(19), /* Protocol error */
 
 	HT_LINKERR_DETECTED	= (LINKERR_EOC_ERR | LINKERR_OVF_ERR |
-				   LINKERR_PROT_ERR),
+						   LINKERR_PROT_ERR),
 };
 
 /************************************************************
  *	Bridge Control Register (BRGCTRL)
  ************************************************************/
 #define REG_BRGCTRL_OFFSET	0x70300
-enum brgctrl_bits {
+enum brgctrl_bits
+{
 	BRGCTRL_DETSERR = CPC925_BIT(0), /* SERR on Secondary Bus */
 	BRGCTRL_SECBUSRESET = CPC925_BIT(9), /* Secondary Bus Reset */
 };
 
 /* Private structure for edac memory controller */
-struct cpc925_mc_pdata {
+struct cpc925_mc_pdata
+{
 	void __iomem *vbase;
 	unsigned long total_mem;
 	const char *name;
@@ -282,7 +291,8 @@ struct cpc925_mc_pdata {
 };
 
 /* Private structure for common edac device */
-struct cpc925_dev_info {
+struct cpc925_dev_info
+{
 	void __iomem *vbase;
 	struct platform_device *pdev;
 	char *ctl_name;
@@ -302,23 +312,29 @@ static void get_total_mem(struct cpc925_mc_pdata *pdata)
 	unsigned long start, size;
 
 	np = of_find_node_by_type(NULL, "memory");
+
 	if (!np)
+	{
 		return;
+	}
 
 	aw = of_n_addr_cells(np);
 	sw = of_n_size_cells(np);
 	reg = (const unsigned int *)of_get_property(np, "reg", &len);
-	reg_end = reg + len/4;
+	reg_end = reg + len / 4;
 
 	pdata->total_mem = 0;
-	do {
+
+	do
+	{
 		start = of_read_number(reg, aw);
 		reg += aw;
 		size = of_read_number(reg, sw);
 		reg += sw;
 		edac_dbg(1, "start 0x%lx, size 0x%lx\n", start, size);
 		pdata->total_mem += size;
-	} while (reg < reg_end);
+	}
+	while (reg < reg_end);
 
 	of_node_put(np);
 	edac_dbg(0, "total_mem 0x%lx\n", pdata->total_mem);
@@ -336,16 +352,19 @@ static void cpc925_init_csrows(struct mem_ctl_info *mci)
 
 	get_total_mem(pdata);
 
-	for (index = 0; index < mci->nr_csrows; index++) {
+	for (index = 0; index < mci->nr_csrows; index++)
+	{
 		mbmr = __raw_readl(pdata->vbase + REG_MBMR_OFFSET +
-				   0x20 * index);
+						   0x20 * index);
 		mbbar = __raw_readl(pdata->vbase + REG_MBBAR_OFFSET +
-				   0x20 + index);
+							0x20 + index);
 		bba = (((mbmr & MBMR_BBA_MASK) >> MBMR_BBA_SHIFT) << 8) |
-		       ((mbbar & MBBAR_BBA_MASK) >> MBBAR_BBA_SHIFT);
+			  ((mbbar & MBBAR_BBA_MASK) >> MBBAR_BBA_SHIFT);
 
 		if (bba == 0)
-			continue; /* not populated */
+		{
+			continue;    /* not populated */
+		}
 
 		csrow = mci->csrows[index];
 
@@ -355,30 +374,38 @@ static void cpc925_init_csrows(struct mem_ctl_info *mci)
 		csrow->last_page = csrow->first_page + nr_pages - 1;
 		last_nr_pages = csrow->last_page + 1;
 
-		switch (csrow->nr_channels) {
-		case 1: /* Single channel */
-			grain = 32; /* four-beat burst of 32 bytes */
-			break;
-		case 2: /* Dual channel */
-		default:
-			grain = 64; /* four-beat burst of 64 bytes */
-			break;
+		switch (csrow->nr_channels)
+		{
+			case 1: /* Single channel */
+				grain = 32; /* four-beat burst of 32 bytes */
+				break;
+
+			case 2: /* Dual channel */
+			default:
+				grain = 64; /* four-beat burst of 64 bytes */
+				break;
 		}
-		switch ((mbmr & MBMR_MODE_MASK) >> MBMR_MODE_SHIFT) {
-		case 6: /* 0110, no way to differentiate X8 VS X16 */
-		case 5:	/* 0101 */
-		case 8: /* 1000 */
-			dtype = DEV_X16;
-			break;
-		case 7: /* 0111 */
-		case 9: /* 1001 */
-			dtype = DEV_X8;
-			break;
-		default:
-			dtype = DEV_UNKNOWN;
-		break;
+
+		switch ((mbmr & MBMR_MODE_MASK) >> MBMR_MODE_SHIFT)
+		{
+			case 6: /* 0110, no way to differentiate X8 VS X16 */
+			case 5:	/* 0101 */
+			case 8: /* 1000 */
+				dtype = DEV_X16;
+				break;
+
+			case 7: /* 0111 */
+			case 9: /* 1001 */
+				dtype = DEV_X8;
+				break;
+
+			default:
+				dtype = DEV_UNKNOWN;
+				break;
 		}
-		for (j = 0; j < csrow->nr_channels; j++) {
+
+		for (j = 0; j < csrow->nr_channels; j++)
+		{
 			dimm = csrow->channels[j]->dimm;
 			dimm->nr_pages = nr_pages / csrow->nr_channels;
 			dimm->mtype = MEM_RDDR;
@@ -398,14 +425,18 @@ static void cpc925_mc_init(struct mem_ctl_info *mci)
 
 	/* Enable various ECC error exceptions */
 	apimask = __raw_readl(pdata->vbase + REG_APIMASK_OFFSET);
-	if ((apimask & ECC_MASK_ENABLE) == 0) {
+
+	if ((apimask & ECC_MASK_ENABLE) == 0)
+	{
 		apimask |= ECC_MASK_ENABLE;
 		__raw_writel(apimask, pdata->vbase + REG_APIMASK_OFFSET);
 	}
 
 	/* Enable ECC detection */
 	mccr = __raw_readl(pdata->vbase + REG_MCCR_OFFSET);
-	if ((mccr & MCCR_ECC_EN) == 0) {
+
+	if ((mccr & MCCR_ECC_EN) == 0)
+	{
 		mccr |= MCCR_ECC_EN;
 		__raw_writel(mccr, pdata->vbase + REG_MCCR_OFFSET);
 	}
@@ -446,7 +477,7 @@ static void cpc925_mc_exit(struct mem_ctl_info *mci)
  * PA	36  35  34  48  47  46  45  40  41  42  39   38   37
  */
 static void cpc925_mc_get_pfn(struct mem_ctl_info *mci, u32 mear,
-		unsigned long *pfn, unsigned long *offset, int *csrow)
+							  unsigned long *pfn, unsigned long *offset, int *csrow)
 {
 	u32 bcnt, rank, col, bank, row;
 	u32 c;
@@ -462,11 +493,14 @@ static void cpc925_mc_get_pfn(struct mem_ctl_info *mci, u32 mear,
 	*csrow = rank;
 
 #ifdef CONFIG_EDAC_DEBUG
-	if (mci->csrows[rank]->first_page == 0) {
+
+	if (mci->csrows[rank]->first_page == 0)
+	{
 		cpc925_mc_printk(mci, KERN_ERR, "ECC occurs in a "
-			"non-populated csrow, broken hardware?\n");
+						 "non-populated csrow, broken hardware?\n");
 		return;
 	}
+
 #endif
 
 	/* Revert csrow number */
@@ -474,7 +508,9 @@ static void cpc925_mc_get_pfn(struct mem_ctl_info *mci, u32 mear,
 
 	/* Revert column address */
 	col += bcnt;
-	for (i = 0; i < 11; i++) {
+
+	for (i = 0; i < 11; i++)
+	{
 		c = col & 0x1;
 		col >>= 1;
 		pa |= c << (14 - i);
@@ -484,25 +520,29 @@ static void cpc925_mc_get_pfn(struct mem_ctl_info *mci, u32 mear,
 	pa |= bank << 19;
 
 	/* Revert row address, in 4 steps */
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		c = row & 0x1;
 		row >>= 1;
 		pa |= c << (26 - i);
 	}
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		c = row & 0x1;
 		row >>= 1;
 		pa |= c << (21 + i);
 	}
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		c = row & 0x1;
 		row >>= 1;
 		pa |= c << (18 - i);
 	}
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		c = row & 0x1;
 		row >>= 1;
 		pa |= c << (29 - i);
@@ -517,13 +557,17 @@ static void cpc925_mc_get_pfn(struct mem_ctl_info *mci, u32 mear,
 static int cpc925_mc_find_channel(struct mem_ctl_info *mci, u16 syndrome)
 {
 	if ((syndrome & MESR_ECC_SYN_H_MASK) == 0)
+	{
 		return 0;
+	}
 
 	if ((syndrome & MESR_ECC_SYN_L_MASK) == 0)
+	{
 		return 1;
+	}
 
 	cpc925_mc_printk(mci, KERN_INFO, "Unexpected syndrome value: 0x%x\n",
-			 syndrome);
+					 syndrome);
 	return 1;
 }
 
@@ -540,8 +584,11 @@ static void cpc925_mc_check(struct mem_ctl_info *mci)
 
 	/* APIEXCP is cleared when read */
 	apiexcp = __raw_readl(pdata->vbase + REG_APIEXCP_OFFSET);
+
 	if ((apiexcp & ECC_EXCP_DETECTED) == 0)
+	{
 		return;
+	}
 
 	mesr = __raw_readl(pdata->vbase + REG_MESR_OFFSET);
 	syndrome = mesr | (MESR_ECC_SYN_H_MASK | MESR_ECC_SYN_L_MASK);
@@ -551,44 +598,46 @@ static void cpc925_mc_check(struct mem_ctl_info *mci)
 	/* Revert column/row addresses into page frame number, etc */
 	cpc925_mc_get_pfn(mci, mear, &pfn, &offset, &csrow);
 
-	if (apiexcp & CECC_EXCP_DETECTED) {
+	if (apiexcp & CECC_EXCP_DETECTED)
+	{
 		cpc925_mc_printk(mci, KERN_INFO, "DRAM CECC Fault\n");
 		channel = cpc925_mc_find_channel(mci, syndrome);
 		edac_mc_handle_error(HW_EVENT_ERR_CORRECTED, mci, 1,
-				     pfn, offset, syndrome,
-				     csrow, channel, -1,
-				     mci->ctl_name, "");
+							 pfn, offset, syndrome,
+							 csrow, channel, -1,
+							 mci->ctl_name, "");
 	}
 
-	if (apiexcp & UECC_EXCP_DETECTED) {
+	if (apiexcp & UECC_EXCP_DETECTED)
+	{
 		cpc925_mc_printk(mci, KERN_INFO, "DRAM UECC Fault\n");
 		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
-				     pfn, offset, 0,
-				     csrow, -1, -1,
-				     mci->ctl_name, "");
+							 pfn, offset, 0,
+							 csrow, -1, -1,
+							 mci->ctl_name, "");
 	}
 
 	cpc925_mc_printk(mci, KERN_INFO, "Dump registers:\n");
 	cpc925_mc_printk(mci, KERN_INFO, "APIMASK		0x%08x\n",
-		__raw_readl(pdata->vbase + REG_APIMASK_OFFSET));
+					 __raw_readl(pdata->vbase + REG_APIMASK_OFFSET));
 	cpc925_mc_printk(mci, KERN_INFO, "APIEXCP		0x%08x\n",
-		apiexcp);
+					 apiexcp);
 	cpc925_mc_printk(mci, KERN_INFO, "Mem Scrub Ctrl	0x%08x\n",
-		__raw_readl(pdata->vbase + REG_MSCR_OFFSET));
+					 __raw_readl(pdata->vbase + REG_MSCR_OFFSET));
 	cpc925_mc_printk(mci, KERN_INFO, "Mem Scrub Rge Start	0x%08x\n",
-		__raw_readl(pdata->vbase + REG_MSRSR_OFFSET));
+					 __raw_readl(pdata->vbase + REG_MSRSR_OFFSET));
 	cpc925_mc_printk(mci, KERN_INFO, "Mem Scrub Rge End	0x%08x\n",
-		__raw_readl(pdata->vbase + REG_MSRER_OFFSET));
+					 __raw_readl(pdata->vbase + REG_MSRER_OFFSET));
 	cpc925_mc_printk(mci, KERN_INFO, "Mem Scrub Pattern	0x%08x\n",
-		__raw_readl(pdata->vbase + REG_MSPR_OFFSET));
+					 __raw_readl(pdata->vbase + REG_MSPR_OFFSET));
 	cpc925_mc_printk(mci, KERN_INFO, "Mem Chk Ctrl		0x%08x\n",
-		__raw_readl(pdata->vbase + REG_MCCR_OFFSET));
+					 __raw_readl(pdata->vbase + REG_MCCR_OFFSET));
 	cpc925_mc_printk(mci, KERN_INFO, "Mem Chk Rge End	0x%08x\n",
-		__raw_readl(pdata->vbase + REG_MCRER_OFFSET));
+					 __raw_readl(pdata->vbase + REG_MCRER_OFFSET));
 	cpc925_mc_printk(mci, KERN_INFO, "Mem Err Address	0x%08x\n",
-		mesr);
+					 mesr);
 	cpc925_mc_printk(mci, KERN_INFO, "Mem Err Syndrome	0x%08x\n",
-		syndrome);
+					 syndrome);
 }
 
 /******************** CPU err device********************************/
@@ -600,25 +649,32 @@ static u32 cpc925_cpu_mask_disabled(void)
 
 	/* use cached value if available */
 	if (mask != 0)
+	{
 		return mask;
+	}
 
 	mask = APIMASK_ADI0 | APIMASK_ADI1;
 
 	cpus = of_find_node_by_path("/cpus");
-	if (cpus == NULL) {
+
+	if (cpus == NULL)
+	{
 		cpc925_printk(KERN_DEBUG, "No /cpus node !\n");
 		return 0;
 	}
 
-	while ((cpunode = of_get_next_child(cpus, cpunode)) != NULL) {
+	while ((cpunode = of_get_next_child(cpus, cpunode)) != NULL)
+	{
 		const u32 *reg = of_get_property(cpunode, "reg", NULL);
 
-		if (strcmp(cpunode->type, "cpu")) {
+		if (strcmp(cpunode->type, "cpu"))
+		{
 			cpc925_printk(KERN_ERR, "Not a cpu node in /cpus: %s\n", cpunode->name);
 			continue;
 		}
 
-		if (reg == NULL || *reg > 2) {
+		if (reg == NULL || *reg > 2)
+		{
 			cpc925_printk(KERN_ERR, "Bad reg value at %s\n", cpunode->full_name);
 			continue;
 		}
@@ -626,12 +682,13 @@ static u32 cpc925_cpu_mask_disabled(void)
 		mask &= ~APIMASK_ADI(*reg);
 	}
 
-	if (mask != (APIMASK_ADI0 | APIMASK_ADI1)) {
+	if (mask != (APIMASK_ADI0 | APIMASK_ADI1))
+	{
 		/* We assume that each CPU sits on it's own PI and that
 		 * for present CPUs the reg property equals to the PI
 		 * interface id */
 		cpc925_printk(KERN_WARNING,
-				"Assuming PI id is equal to CPU MPIC id!\n");
+					  "Assuming PI id is equal to CPU MPIC id!\n");
 	}
 
 	of_node_put(cpunode);
@@ -649,14 +706,18 @@ static void cpc925_cpu_init(struct cpc925_dev_info *dev_info)
 	apimask = __raw_readl(dev_info->vbase + REG_APIMASK_OFFSET);
 
 	cpumask = cpc925_cpu_mask_disabled();
-	if (apimask & cpumask) {
+
+	if (apimask & cpumask)
+	{
 		cpc925_printk(KERN_WARNING, "CPU(s) not present, "
-				"but enabled in APIMASK, disabling\n");
+					  "but enabled in APIMASK, disabling\n");
 		apimask &= ~cpumask;
 	}
 
 	if ((apimask & CPU_MASK_ENABLE) == 0)
+	{
 		apimask |= CPU_MASK_ENABLE;
+	}
 
 	__raw_writel(apimask, dev_info->vbase + REG_APIMASK_OFFSET);
 }
@@ -687,15 +748,20 @@ static void cpc925_cpu_check(struct edac_device_ctl_info *edac_dev)
 
 	/* APIEXCP is cleared when read */
 	apiexcp = __raw_readl(dev_info->vbase + REG_APIEXCP_OFFSET);
+
 	if ((apiexcp & CPU_EXCP_DETECTED) == 0)
+	{
 		return;
+	}
 
 	if ((apiexcp & ~cpc925_cpu_mask_disabled()) == 0)
+	{
 		return;
+	}
 
 	apimask = __raw_readl(dev_info->vbase + REG_APIMASK_OFFSET);
 	cpc925_printk(KERN_INFO, "Processor Interface Fault\n"
-				 "Processor Interface register dump:\n");
+				  "Processor Interface register dump:\n");
 	cpc925_printk(KERN_INFO, "APIMASK		0x%08x\n", apimask);
 	cpc925_printk(KERN_INFO, "APIEXCP		0x%08x\n", apiexcp);
 
@@ -709,7 +775,9 @@ static void cpc925_htlink_init(struct cpc925_dev_info *dev_info)
 	u32 ht_errctrl;
 
 	ht_errctrl = __raw_readl(dev_info->vbase + REG_ERRCTRL_OFFSET);
-	if ((ht_errctrl & HT_ERRCTRL_ENABLE) == 0) {
+
+	if ((ht_errctrl & HT_ERRCTRL_ENABLE) == 0)
+	{
 		ht_errctrl |= HT_ERRCTRL_ENABLE;
 		__raw_writel(ht_errctrl, dev_info->vbase + REG_ERRCTRL_OFFSET);
 	}
@@ -735,59 +803,62 @@ static void cpc925_htlink_check(struct edac_device_ctl_info *edac_dev)
 	u32 linkerr = __raw_readl(dev_info->vbase + REG_LINKERR_OFFSET);
 
 	if (!((brgctrl & BRGCTRL_DETSERR) ||
-	      (linkctrl & HT_LINKCTRL_DETECTED) ||
-	      (errctrl & HT_ERRCTRL_DETECTED) ||
-	      (linkerr & HT_LINKERR_DETECTED)))
+		  (linkctrl & HT_LINKCTRL_DETECTED) ||
+		  (errctrl & HT_ERRCTRL_DETECTED) ||
+		  (linkerr & HT_LINKERR_DETECTED)))
+	{
 		return;
+	}
 
 	cpc925_printk(KERN_INFO, "HT Link Fault\n"
-				 "HT register dump:\n");
+				  "HT register dump:\n");
 	cpc925_printk(KERN_INFO, "Bridge Ctrl			0x%08x\n",
-		      brgctrl);
+				  brgctrl);
 	cpc925_printk(KERN_INFO, "Link Config Ctrl		0x%08x\n",
-		      linkctrl);
+				  linkctrl);
 	cpc925_printk(KERN_INFO, "Error Enum and Ctrl		0x%08x\n",
-		      errctrl);
+				  errctrl);
 	cpc925_printk(KERN_INFO, "Link Error			0x%08x\n",
-		      linkerr);
+				  linkerr);
 
 	/* Clear by write 1 */
 	if (brgctrl & BRGCTRL_DETSERR)
 		__raw_writel(BRGCTRL_DETSERR,
-				dev_info->vbase + REG_BRGCTRL_OFFSET);
+					 dev_info->vbase + REG_BRGCTRL_OFFSET);
 
 	if (linkctrl & HT_LINKCTRL_DETECTED)
 		__raw_writel(HT_LINKCTRL_DETECTED,
-				dev_info->vbase + REG_LINKCTRL_OFFSET);
+					 dev_info->vbase + REG_LINKCTRL_OFFSET);
 
 	/* Initiate Secondary Bus Reset to clear the chain failure */
 	if (errctrl & ERRCTRL_CHN_FAL)
 		__raw_writel(BRGCTRL_SECBUSRESET,
-				dev_info->vbase + REG_BRGCTRL_OFFSET);
+					 dev_info->vbase + REG_BRGCTRL_OFFSET);
 
 	if (errctrl & ERRCTRL_RSP_ERR)
 		__raw_writel(ERRCTRL_RSP_ERR,
-				dev_info->vbase + REG_ERRCTRL_OFFSET);
+					 dev_info->vbase + REG_ERRCTRL_OFFSET);
 
 	if (linkerr & HT_LINKERR_DETECTED)
 		__raw_writel(HT_LINKERR_DETECTED,
-				dev_info->vbase + REG_LINKERR_OFFSET);
+					 dev_info->vbase + REG_LINKERR_OFFSET);
 
 	edac_device_handle_ce(edac_dev, 0, 0, edac_dev->ctl_name);
 }
 
-static struct cpc925_dev_info cpc925_devs[] = {
+static struct cpc925_dev_info cpc925_devs[] =
+{
 	{
-	.ctl_name = CPC925_CPU_ERR_DEV,
-	.init = cpc925_cpu_init,
-	.exit = cpc925_cpu_exit,
-	.check = cpc925_cpu_check,
+		.ctl_name = CPC925_CPU_ERR_DEV,
+		.init = cpc925_cpu_init,
+		.exit = cpc925_cpu_exit,
+		.check = cpc925_cpu_check,
 	},
 	{
-	.ctl_name = CPC925_HT_LINK_DEV,
-	.init = cpc925_htlink_init,
-	.exit = cpc925_htlink_exit,
-	.check = cpc925_htlink_check,
+		.ctl_name = CPC925_HT_LINK_DEV,
+		.init = cpc925_htlink_init,
+		.exit = cpc925_htlink_exit,
+		.check = cpc925_htlink_check,
 	},
 	{ }
 };
@@ -803,19 +874,23 @@ static void cpc925_add_edac_devices(void __iomem *vbase)
 {
 	struct cpc925_dev_info *dev_info;
 
-	if (!vbase) {
+	if (!vbase)
+	{
 		cpc925_printk(KERN_ERR, "MMIO not established yet\n");
 		return;
 	}
 
-	for (dev_info = &cpc925_devs[0]; dev_info->init; dev_info++) {
+	for (dev_info = &cpc925_devs[0]; dev_info->init; dev_info++)
+	{
 		dev_info->vbase = vbase;
 		dev_info->pdev = platform_device_register_simple(
-					dev_info->ctl_name, 0, NULL, 0);
-		if (IS_ERR(dev_info->pdev)) {
+							 dev_info->ctl_name, 0, NULL, 0);
+
+		if (IS_ERR(dev_info->pdev))
+		{
 			cpc925_printk(KERN_ERR,
-				"Can't register platform device for %s\n",
-				dev_info->ctl_name);
+						  "Can't register platform device for %s\n",
+						  dev_info->ctl_name);
 			continue;
 		}
 
@@ -826,8 +901,10 @@ static void cpc925_add_edac_devices(void __iomem *vbase)
 		dev_info->edac_idx = edac_device_alloc_index();
 		dev_info->edac_dev =
 			edac_device_alloc_ctl_info(0, dev_info->ctl_name,
-				1, NULL, 0, 0, NULL, 0, dev_info->edac_idx);
-		if (!dev_info->edac_dev) {
+									   1, NULL, 0, 0, NULL, 0, dev_info->edac_idx);
+
+		if (!dev_info->edac_dev)
+		{
 			cpc925_printk(KERN_ERR, "No memory for edac device\n");
 			goto err1;
 		}
@@ -839,26 +916,35 @@ static void cpc925_add_edac_devices(void __iomem *vbase)
 		dev_info->edac_dev->dev_name = dev_name(&dev_info->pdev->dev);
 
 		if (edac_op_state == EDAC_OPSTATE_POLL)
+		{
 			dev_info->edac_dev->edac_check = dev_info->check;
+		}
 
 		if (dev_info->init)
+		{
 			dev_info->init(dev_info);
+		}
 
-		if (edac_device_add_device(dev_info->edac_dev) > 0) {
+		if (edac_device_add_device(dev_info->edac_dev) > 0)
+		{
 			cpc925_printk(KERN_ERR,
-				"Unable to add edac device for %s\n",
-				dev_info->ctl_name);
+						  "Unable to add edac device for %s\n",
+						  dev_info->ctl_name);
 			goto err2;
 		}
 
 		edac_dbg(0, "Successfully added edac device for %s\n",
-			 dev_info->ctl_name);
+				 dev_info->ctl_name);
 
 		continue;
 
 err2:
+
 		if (dev_info->exit)
+		{
 			dev_info->exit(dev_info);
+		}
+
 		edac_device_free_ctl_info(dev_info->edac_dev);
 err1:
 		platform_device_unregister(dev_info->pdev);
@@ -873,18 +959,22 @@ static void cpc925_del_edac_devices(void)
 {
 	struct cpc925_dev_info *dev_info;
 
-	for (dev_info = &cpc925_devs[0]; dev_info->init; dev_info++) {
-		if (dev_info->edac_dev) {
+	for (dev_info = &cpc925_devs[0]; dev_info->init; dev_info++)
+	{
+		if (dev_info->edac_dev)
+		{
 			edac_device_del_device(dev_info->edac_dev->dev);
 			edac_device_free_ctl_info(dev_info->edac_dev);
 			platform_device_unregister(dev_info->pdev);
 		}
 
 		if (dev_info->exit)
+		{
 			dev_info->exit(dev_info);
+		}
 
 		edac_dbg(0, "Successfully deleted edac device for %s\n",
-			 dev_info->ctl_name);
+				 dev_info->ctl_name);
 	}
 }
 
@@ -902,11 +992,15 @@ static int cpc925_get_sdram_scrub_rate(struct mem_ctl_info *mci)
 	edac_dbg(0, "Mem Scrub Ctrl Register 0x%x\n", mscr);
 
 	if (((mscr & MSCR_SCRUB_MOD_MASK) != MSCR_BACKGR_SCRUB) ||
-	    (si == 0)) {
+		(si == 0))
+	{
 		cpc925_mc_printk(mci, KERN_INFO, "Scrub mode not enabled\n");
 		bw = 0;
-	} else
+	}
+	else
+	{
 		bw = CPC925_SCRUB_BLOCK_SIZE * 0xFA67 / si;
+	}
 
 	return bw;
 }
@@ -924,8 +1018,10 @@ static int cpc925_mc_get_channels(void __iomem *vbase)
 	 * and 128-bit configuration.
 	 */
 	if (((mbcr & MBCR_64BITCFG_MASK) == 0) &&
-	    ((mbcr & MBCR_64BITBUS_MASK) == 0))
+		((mbcr & MBCR_64BITBUS_MASK) == 0))
+	{
 		dual = 1;
+	}
 
 	edac_dbg(0, "%s channel\n", (dual > 0) ? "Dual" : "Single");
 
@@ -944,29 +1040,35 @@ static int cpc925_probe(struct platform_device *pdev)
 
 	edac_dbg(0, "%s platform device found!\n", pdev->name);
 
-	if (!devres_open_group(&pdev->dev, cpc925_probe, GFP_KERNEL)) {
+	if (!devres_open_group(&pdev->dev, cpc925_probe, GFP_KERNEL))
+	{
 		res = -ENOMEM;
 		goto out;
 	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!r) {
+
+	if (!r)
+	{
 		cpc925_printk(KERN_ERR, "Unable to get resource\n");
 		res = -ENOENT;
 		goto err1;
 	}
 
 	if (!devm_request_mem_region(&pdev->dev,
-				     r->start,
-				     resource_size(r),
-				     pdev->name)) {
+								 r->start,
+								 resource_size(r),
+								 pdev->name))
+	{
 		cpc925_printk(KERN_ERR, "Unable to request mem region\n");
 		res = -EBUSY;
 		goto err1;
 	}
 
 	vbase = devm_ioremap(&pdev->dev, r->start, resource_size(r));
-	if (!vbase) {
+
+	if (!vbase)
+	{
 		cpc925_printk(KERN_ERR, "Unable to ioremap device\n");
 		res = -ENOMEM;
 		goto err2;
@@ -981,8 +1083,10 @@ static int cpc925_probe(struct platform_device *pdev)
 	layers[1].size = nr_channels;
 	layers[1].is_virt_csrow = false;
 	mci = edac_mc_alloc(edac_mc_idx, ARRAY_SIZE(layers), layers,
-			    sizeof(struct cpc925_mc_pdata));
-	if (!mci) {
+						sizeof(struct cpc925_mc_pdata));
+
+	if (!mci)
+	{
 		cpc925_printk(KERN_ERR, "No memory for mem_ctl_info\n");
 		res = -ENOMEM;
 		goto err2;
@@ -1004,7 +1108,9 @@ static int cpc925_probe(struct platform_device *pdev)
 	mci->ctl_name = pdev->name;
 
 	if (edac_op_state == EDAC_OPSTATE_POLL)
+	{
 		mci->edac_check = cpc925_mc_check;
+	}
 
 	mci->ctl_page_to_phys = NULL;
 	mci->scrub_mode = SCRUB_SW_SRC;
@@ -1016,7 +1122,8 @@ static int cpc925_probe(struct platform_device *pdev)
 	/* Setup memory controller registers */
 	cpc925_mc_init(mci);
 
-	if (edac_mc_add_mc(mci) > 0) {
+	if (edac_mc_add_mc(mci) > 0)
+	{
 		cpc925_mc_printk(mci, KERN_ERR, "Failed edac_mc_add_mc()\n");
 		goto err3;
 	}
@@ -1057,11 +1164,12 @@ static int cpc925_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver cpc925_edac_driver = {
+static struct platform_driver cpc925_edac_driver =
+{
 	.probe = cpc925_probe,
 	.remove = cpc925_remove,
 	.driver = {
-		   .name = "cpc925_edac",
+		.name = "cpc925_edac",
 	}
 };
 
@@ -1076,9 +1184,11 @@ static int __init cpc925_edac_init(void)
 	edac_op_state = EDAC_OPSTATE_POLL;
 
 	ret = platform_driver_register(&cpc925_edac_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_WARNING "Failed to register %s\n",
-			CPC925_EDAC_MOD_STR);
+			   CPC925_EDAC_MOD_STR);
 	}
 
 	return ret;

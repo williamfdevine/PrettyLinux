@@ -25,7 +25,8 @@
 
 #include <core/tegra.h>
 
-const struct cvb_coef gm20b_cvb_coef[] = {
+const struct cvb_coef gm20b_cvb_coef[] =
+{
 	/* KHz,             c0,      c1,   c2 */
 	/*  76800 */ { 1786666,  -85625, 1632 },
 	/* 153600 */ { 1846729,  -87525, 1632 },
@@ -41,7 +42,8 @@ const struct cvb_coef gm20b_cvb_coef[] = {
 	/* 921600 */ { 2647676, -106455, 1632 },
 };
 
-static const struct cvb_coef gm20b_na_cvb_coef[] = {
+static const struct cvb_coef gm20b_na_cvb_coef[] =
+{
 	/* KHz,         c0,     c1,   c2,    c3,     c4,   c5 */
 	/*  76800 */ {  814294, 8144, -940, 808, -21583, 226 },
 	/* 153600 */ {  856185, 8144, -940, 808, -21583, 226 },
@@ -58,7 +60,8 @@ static const struct cvb_coef gm20b_na_cvb_coef[] = {
 	/* 998400 */ { 1316991, 8144, -940, 808, -21583, 226 },
 };
 
-const u32 speedo_to_vmin[] = {
+const u32 speedo_to_vmin[] =
+{
 	/*   0,      1,      2,      3,      4, */
 	950000, 840000, 818750, 840000, 810000,
 };
@@ -70,23 +73,28 @@ gm20b_volt_new(struct nvkm_device *device, int index, struct nvkm_volt **pvolt)
 	struct gk20a_volt *volt;
 	u32 vmin;
 
-	if (tdev->gpu_speedo_id >= ARRAY_SIZE(speedo_to_vmin)) {
+	if (tdev->gpu_speedo_id >= ARRAY_SIZE(speedo_to_vmin))
+	{
 		nvdev_error(device, "unsupported speedo %d\n",
-			    tdev->gpu_speedo_id);
+					tdev->gpu_speedo_id);
 		return -EINVAL;
 	}
 
 	volt = kzalloc(sizeof(*volt), GFP_KERNEL);
+
 	if (!volt)
+	{
 		return -ENOMEM;
+	}
+
 	*pvolt = &volt->base;
 
 	vmin = speedo_to_vmin[tdev->gpu_speedo_id];
 
 	if (tdev->gpu_speedo_id >= 1)
 		return gk20a_volt_ctor(device, index, gm20b_na_cvb_coef,
-				     ARRAY_SIZE(gm20b_na_cvb_coef), vmin, volt);
+							   ARRAY_SIZE(gm20b_na_cvb_coef), vmin, volt);
 	else
 		return gk20a_volt_ctor(device, index, gm20b_cvb_coef,
-					ARRAY_SIZE(gm20b_cvb_coef), vmin, volt);
+							   ARRAY_SIZE(gm20b_cvb_coef), vmin, volt);
 }

@@ -92,7 +92,8 @@ enum chips { f75373, f75375, f75387 };
  * Data structures and manipulation thereof
  */
 
-struct f75375_data {
+struct f75375_data
+{
 	unsigned short addr;
 	struct device *hwmon_dev;
 
@@ -126,12 +127,13 @@ struct f75375_data {
 };
 
 static int f75375_detect(struct i2c_client *client,
-			 struct i2c_board_info *info);
+						 struct i2c_board_info *info);
 static int f75375_probe(struct i2c_client *client,
-			const struct i2c_device_id *id);
+						const struct i2c_device_id *id);
 static int f75375_remove(struct i2c_client *client);
 
-static const struct i2c_device_id f75375_id[] = {
+static const struct i2c_device_id f75375_id[] =
+{
 	{ "f75373", f75373 },
 	{ "f75375", f75375 },
 	{ "f75387", f75387 },
@@ -139,7 +141,8 @@ static const struct i2c_device_id f75375_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, f75375_id);
 
-static struct i2c_driver f75375_driver = {
+static struct i2c_driver f75375_driver =
+{
 	.class = I2C_CLASS_HWMON,
 	.driver = {
 		.name = "f75375",
@@ -160,32 +163,39 @@ static inline int f75375_read8(struct i2c_client *client, u8 reg)
 static inline u16 f75375_read16(struct i2c_client *client, u8 reg)
 {
 	return (i2c_smbus_read_byte_data(client, reg) << 8)
-		| i2c_smbus_read_byte_data(client, reg + 1);
+		   | i2c_smbus_read_byte_data(client, reg + 1);
 }
 
 static inline void f75375_write8(struct i2c_client *client, u8 reg,
-		u8 value)
+								 u8 value)
 {
 	i2c_smbus_write_byte_data(client, reg, value);
 }
 
 static inline void f75375_write16(struct i2c_client *client, u8 reg,
-		u16 value)
+								  u16 value)
 {
 	int err = i2c_smbus_write_byte_data(client, reg, (value >> 8));
+
 	if (err)
+	{
 		return;
+	}
+
 	i2c_smbus_write_byte_data(client, reg + 1, (value & 0xFF));
 }
 
 static void f75375_write_pwm(struct i2c_client *client, int nr)
 {
 	struct f75375_data *data = i2c_get_clientdata(client);
+
 	if (data->kind == f75387)
+	{
 		f75375_write16(client, F75375_REG_FAN_EXP(nr), data->pwm[nr]);
+	}
 	else
 		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
-			      data->pwm[nr]);
+					  data->pwm[nr]);
 }
 
 static struct f75375_data *f75375_update_device(struct device *dev)
@@ -198,8 +208,10 @@ static struct f75375_data *f75375_update_device(struct device *dev)
 
 	/* Limit registers cache is refreshed after 60 seconds */
 	if (time_after(jiffies, data->last_limits + 60 * HZ)
-		|| !data->valid) {
-		for (nr = 0; nr < 2; nr++) {
+		|| !data->valid)
+	{
+		for (nr = 0; nr < 2; nr++)
+		{
 			data->temp_high[nr] =
 				f75375_read8(client, F75375_REG_TEMP_HIGH(nr));
 			data->temp_max_hyst[nr] =
@@ -211,33 +223,41 @@ static struct f75375_data *f75375_update_device(struct device *dev)
 			data->fan_target[nr] =
 				f75375_read16(client, F75375_REG_FAN_EXP(nr));
 		}
-		for (nr = 0; nr < 4; nr++) {
+
+		for (nr = 0; nr < 4; nr++)
+		{
 			data->in_max[nr] =
 				f75375_read8(client, F75375_REG_VOLT_HIGH(nr));
 			data->in_min[nr] =
 				f75375_read8(client, F75375_REG_VOLT_LOW(nr));
 		}
+
 		data->fan_timer = f75375_read8(client, F75375_REG_FAN_TIMER);
 		data->last_limits = jiffies;
 	}
 
 	/* Measurement registers cache is refreshed after 2 second */
 	if (time_after(jiffies, data->last_updated + 2 * HZ)
-		|| !data->valid) {
-		for (nr = 0; nr < 2; nr++) {
+		|| !data->valid)
+	{
+		for (nr = 0; nr < 2; nr++)
+		{
 			data->pwm[nr] =	f75375_read8(client,
-				F75375_REG_FAN_PWM_DUTY(nr));
+										 F75375_REG_FAN_PWM_DUTY(nr));
 			/* assign MSB, therefore shift it by 8 bits */
 			data->temp11[nr] =
 				f75375_read8(client, F75375_REG_TEMP(nr)) << 8;
+
 			if (data->kind == f75387)
 				/* merge F75387's temperature LSB (11-bit) */
 				data->temp11[nr] |=
 					f75375_read8(client,
-						     F75387_REG_TEMP11_LSB(nr));
+								 F75387_REG_TEMP11_LSB(nr));
+
 			data->fan[nr] =
 				f75375_read16(client, F75375_REG_FAN(nr));
 		}
+
 		for (nr = 0; nr < 4; nr++)
 			data->in[nr] =
 				f75375_read8(client, F75375_REG_VOLT(nr));
@@ -253,51 +273,63 @@ static struct f75375_data *f75375_update_device(struct device *dev)
 static inline u16 rpm_from_reg(u16 reg)
 {
 	if (reg == 0 || reg == 0xffff)
+	{
 		return 0;
+	}
+
 	return 1500000 / reg;
 }
 
 static inline u16 rpm_to_reg(int rpm)
 {
 	if (rpm < 367 || rpm > 0xffff)
+	{
 		return 0xffff;
+	}
+
 	return 1500000 / rpm;
 }
 
 static bool duty_mode_enabled(u8 pwm_enable)
 {
-	switch (pwm_enable) {
-	case 0: /* Manual, duty mode (full speed) */
-	case 1: /* Manual, duty mode */
-	case 4: /* Auto, duty mode */
-		return true;
-	case 2: /* Auto, speed mode */
-	case 3: /* Manual, speed mode */
-		return false;
-	default:
-		WARN(1, "Unexpected pwm_enable value %d\n", pwm_enable);
-		return true;
+	switch (pwm_enable)
+	{
+		case 0: /* Manual, duty mode (full speed) */
+		case 1: /* Manual, duty mode */
+		case 4: /* Auto, duty mode */
+			return true;
+
+		case 2: /* Auto, speed mode */
+		case 3: /* Manual, speed mode */
+			return false;
+
+		default:
+			WARN(1, "Unexpected pwm_enable value %d\n", pwm_enable);
+			return true;
 	}
 }
 
 static bool auto_mode_enabled(u8 pwm_enable)
 {
-	switch (pwm_enable) {
-	case 0: /* Manual, duty mode (full speed) */
-	case 1: /* Manual, duty mode */
-	case 3: /* Manual, speed mode */
-		return false;
-	case 2: /* Auto, speed mode */
-	case 4: /* Auto, duty mode */
-		return true;
-	default:
-		WARN(1, "Unexpected pwm_enable value %d\n", pwm_enable);
-		return false;
+	switch (pwm_enable)
+	{
+		case 0: /* Manual, duty mode (full speed) */
+		case 1: /* Manual, duty mode */
+		case 3: /* Manual, speed mode */
+			return false;
+
+		case 2: /* Auto, speed mode */
+		case 4: /* Auto, duty mode */
+			return true;
+
+		default:
+			WARN(1, "Unexpected pwm_enable value %d\n", pwm_enable);
+			return false;
 	}
 }
 
 static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+						   const char *buf, size_t count)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct i2c_client *client = to_i2c_client(dev);
@@ -306,8 +338,11 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->fan_min[nr] = rpm_to_reg(val);
@@ -317,7 +352,7 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t set_fan_target(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+							  const char *buf, size_t count)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct i2c_client *client = to_i2c_client(dev);
@@ -326,13 +361,21 @@ static ssize_t set_fan_target(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (auto_mode_enabled(data->pwm_enable[nr]))
+	{
 		return -EINVAL;
+	}
+
 	if (data->kind == f75387 && duty_mode_enabled(data->pwm_enable[nr]))
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->fan_target[nr] = rpm_to_reg(val);
@@ -342,7 +385,7 @@ static ssize_t set_fan_target(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+					   const char *buf, size_t count)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct i2c_client *client = to_i2c_client(dev);
@@ -351,12 +394,17 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (auto_mode_enabled(data->pwm_enable[nr]) ||
-	    !duty_mode_enabled(data->pwm_enable[nr]))
+		!duty_mode_enabled(data->pwm_enable[nr]))
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->pwm[nr] = clamp_val(val, 0, 255);
@@ -366,7 +414,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t show_pwm_enable(struct device *dev, struct device_attribute
-		*attr, char *buf)
+							   *attr, char *buf)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct f75375_data *data = f75375_update_device(dev);
@@ -379,66 +427,91 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
 	u8 fanmode;
 
 	if (val < 0 || val > 4)
+	{
 		return -EINVAL;
+	}
 
 	fanmode = f75375_read8(client, F75375_REG_FAN_TIMER);
-	if (data->kind == f75387) {
+
+	if (data->kind == f75387)
+	{
 		/* For now, deny dangerous toggling of duty mode */
 		if (duty_mode_enabled(data->pwm_enable[nr]) !=
-				duty_mode_enabled(val))
+			duty_mode_enabled(val))
+		{
 			return -EOPNOTSUPP;
+		}
+
 		/* clear each fanX_mode bit before setting them properly */
 		fanmode &= ~(1 << F75387_FAN_DUTY_MODE(nr));
 		fanmode &= ~(1 << F75387_FAN_MANU_MODE(nr));
-		switch (val) {
-		case 0: /* full speed */
-			fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
-			fanmode |= (1 << F75387_FAN_DUTY_MODE(nr));
-			data->pwm[nr] = 255;
-			break;
-		case 1: /* PWM */
-			fanmode  |= (1 << F75387_FAN_MANU_MODE(nr));
-			fanmode  |= (1 << F75387_FAN_DUTY_MODE(nr));
-			break;
-		case 2: /* Automatic, speed mode */
-			break;
-		case 3: /* fan speed */
-			fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
-			break;
-		case 4: /* Automatic, pwm */
-			fanmode |= (1 << F75387_FAN_DUTY_MODE(nr));
-			break;
+
+		switch (val)
+		{
+			case 0: /* full speed */
+				fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
+				fanmode |= (1 << F75387_FAN_DUTY_MODE(nr));
+				data->pwm[nr] = 255;
+				break;
+
+			case 1: /* PWM */
+				fanmode  |= (1 << F75387_FAN_MANU_MODE(nr));
+				fanmode  |= (1 << F75387_FAN_DUTY_MODE(nr));
+				break;
+
+			case 2: /* Automatic, speed mode */
+				break;
+
+			case 3: /* fan speed */
+				fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
+				break;
+
+			case 4: /* Automatic, pwm */
+				fanmode |= (1 << F75387_FAN_DUTY_MODE(nr));
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		/* clear each fanX_mode bit before setting them properly */
 		fanmode &= ~(3 << FAN_CTRL_MODE(nr));
-		switch (val) {
-		case 0: /* full speed */
-			fanmode  |= (3 << FAN_CTRL_MODE(nr));
-			data->pwm[nr] = 255;
-			break;
-		case 1: /* PWM */
-			fanmode  |= (3 << FAN_CTRL_MODE(nr));
-			break;
-		case 2: /* AUTOMATIC*/
-			fanmode  |= (1 << FAN_CTRL_MODE(nr));
-			break;
-		case 3: /* fan speed */
-			break;
-		case 4: /* Automatic pwm */
-			return -EINVAL;
+
+		switch (val)
+		{
+			case 0: /* full speed */
+				fanmode  |= (3 << FAN_CTRL_MODE(nr));
+				data->pwm[nr] = 255;
+				break;
+
+			case 1: /* PWM */
+				fanmode  |= (3 << FAN_CTRL_MODE(nr));
+				break;
+
+			case 2: /* AUTOMATIC*/
+				fanmode  |= (1 << FAN_CTRL_MODE(nr));
+				break;
+
+			case 3: /* fan speed */
+				break;
+
+			case 4: /* Automatic pwm */
+				return -EINVAL;
 		}
 	}
 
 	f75375_write8(client, F75375_REG_FAN_TIMER, fanmode);
 	data->pwm_enable[nr] = val;
+
 	if (val == 0)
+	{
 		f75375_write_pwm(client, nr);
+	}
+
 	return 0;
 }
 
 static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+							  const char *buf, size_t count)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct i2c_client *client = to_i2c_client(dev);
@@ -447,8 +520,11 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	err = set_pwm_enable_direct(client, nr, val);
@@ -457,7 +533,7 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct i2c_client *client = to_i2c_client(dev);
@@ -468,21 +544,31 @@ static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
 	char reg, ctrl;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (!(val == 0 || val == 1))
+	{
 		return -EINVAL;
+	}
 
 	/* F75373 does not support DC (linear voltage) fan control mode */
 	if (data->kind == f75373 && val == 0)
+	{
 		return -EINVAL;
+	}
 
 	/* take care for different registers */
-	if (data->kind == f75387) {
+	if (data->kind == f75387)
+	{
 		reg = F75375_REG_FAN_TIMER;
 		ctrl = F75387_FAN_CTRL_LINEAR(nr);
-	} else {
+	}
+	else
+	{
 		reg = F75375_REG_CONFIG1;
 		ctrl = F75375_FAN_CTRL_LINEAR(nr);
 	}
@@ -492,7 +578,9 @@ static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
 	conf &= ~(1 << ctrl);
 
 	if (val == 0)
+	{
 		conf |= (1 << ctrl);
+	}
 
 	f75375_write8(client, reg, conf);
 	data->pwm_mode[nr] = val;
@@ -501,7 +589,7 @@ static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t show_pwm(struct device *dev, struct device_attribute
-		*attr, char *buf)
+						*attr, char *buf)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct f75375_data *data = f75375_update_device(dev);
@@ -509,7 +597,7 @@ static ssize_t show_pwm(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_pwm_mode(struct device *dev, struct device_attribute
-		*attr, char *buf)
+							 *attr, char *buf)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct f75375_data *data = f75375_update_device(dev);
@@ -520,7 +608,7 @@ static ssize_t show_pwm_mode(struct device *dev, struct device_attribute
 #define VOLT_TO_REG(val) ((val) / 8)
 
 static ssize_t show_in(struct device *dev, struct device_attribute *attr,
-		char *buf)
+					   char *buf)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct f75375_data *data = f75375_update_device(dev);
@@ -528,7 +616,7 @@ static ssize_t show_in(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t show_in_max(struct device *dev, struct device_attribute *attr,
-		char *buf)
+						   char *buf)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct f75375_data *data = f75375_update_device(dev);
@@ -536,7 +624,7 @@ static ssize_t show_in_max(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t show_in_min(struct device *dev, struct device_attribute *attr,
-		char *buf)
+						   char *buf)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct f75375_data *data = f75375_update_device(dev);
@@ -544,7 +632,7 @@ static ssize_t show_in_min(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t set_in_max(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+						  const char *buf, size_t count)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct i2c_client *client = to_i2c_client(dev);
@@ -553,8 +641,11 @@ static ssize_t set_in_max(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	val = clamp_val(VOLT_TO_REG(val), 0, 0xff);
 	mutex_lock(&data->update_lock);
@@ -565,7 +656,7 @@ static ssize_t set_in_max(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t set_in_min(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+						  const char *buf, size_t count)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct i2c_client *client = to_i2c_client(dev);
@@ -574,8 +665,11 @@ static ssize_t set_in_min(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	val = clamp_val(VOLT_TO_REG(val), 0, 0xff);
 	mutex_lock(&data->update_lock);
@@ -589,7 +683,7 @@ static ssize_t set_in_min(struct device *dev, struct device_attribute *attr,
 #define TEMP11_FROM_REG(reg)	((reg) / 32 * 125)
 
 static ssize_t show_temp11(struct device *dev, struct device_attribute *attr,
-		char *buf)
+						   char *buf)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct f75375_data *data = f75375_update_device(dev);
@@ -597,7 +691,7 @@ static ssize_t show_temp11(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t show_temp_max(struct device *dev, struct device_attribute *attr,
-		char *buf)
+							 char *buf)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct f75375_data *data = f75375_update_device(dev);
@@ -605,7 +699,7 @@ static ssize_t show_temp_max(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t show_temp_max_hyst(struct device *dev,
-		struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct f75375_data *data = f75375_update_device(dev);
@@ -613,7 +707,7 @@ static ssize_t show_temp_max_hyst(struct device *dev,
 }
 
 static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct i2c_client *client = to_i2c_client(dev);
@@ -622,8 +716,11 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	val = clamp_val(TEMP_TO_REG(val), 0, 127);
 	mutex_lock(&data->update_lock);
@@ -634,7 +731,7 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t set_temp_max_hyst(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+								 struct device_attribute *attr, const char *buf, size_t count)
 {
 	int nr = to_sensor_dev_attr(attr)->index;
 	struct i2c_client *client = to_i2c_client(dev);
@@ -643,26 +740,29 @@ static ssize_t set_temp_max_hyst(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	val = clamp_val(TEMP_TO_REG(val), 0, 127);
 	mutex_lock(&data->update_lock);
 	data->temp_max_hyst[nr] = val;
 	f75375_write8(client, F75375_REG_TEMP_HYST(nr),
-		data->temp_max_hyst[nr]);
+				  data->temp_max_hyst[nr]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 #define show_fan(thing) \
-static ssize_t show_##thing(struct device *dev, struct device_attribute *attr, \
-			char *buf)\
-{\
-	int nr = to_sensor_dev_attr(attr)->index;\
-	struct f75375_data *data = f75375_update_device(dev); \
-	return sprintf(buf, "%d\n", rpm_from_reg(data->thing[nr])); \
-}
+	static ssize_t show_##thing(struct device *dev, struct device_attribute *attr, \
+								char *buf)\
+	{\
+		int nr = to_sensor_dev_attr(attr)->index;\
+		struct f75375_data *data = f75375_update_device(dev); \
+		return sprintf(buf, "%d\n", rpm_from_reg(data->thing[nr])); \
+	}
 
 show_fan(fan);
 show_fan(fan_min);
@@ -670,61 +770,62 @@ show_fan(fan_max);
 show_fan(fan_target);
 
 static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, show_in, NULL, 0);
-static SENSOR_DEVICE_ATTR(in0_max, S_IRUGO|S_IWUSR,
-	show_in_max, set_in_max, 0);
-static SENSOR_DEVICE_ATTR(in0_min, S_IRUGO|S_IWUSR,
-	show_in_min, set_in_min, 0);
+static SENSOR_DEVICE_ATTR(in0_max, S_IRUGO | S_IWUSR,
+						  show_in_max, set_in_max, 0);
+static SENSOR_DEVICE_ATTR(in0_min, S_IRUGO | S_IWUSR,
+						  show_in_min, set_in_min, 0);
 static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_in, NULL, 1);
-static SENSOR_DEVICE_ATTR(in1_max, S_IRUGO|S_IWUSR,
-	show_in_max, set_in_max, 1);
-static SENSOR_DEVICE_ATTR(in1_min, S_IRUGO|S_IWUSR,
-	show_in_min, set_in_min, 1);
+static SENSOR_DEVICE_ATTR(in1_max, S_IRUGO | S_IWUSR,
+						  show_in_max, set_in_max, 1);
+static SENSOR_DEVICE_ATTR(in1_min, S_IRUGO | S_IWUSR,
+						  show_in_min, set_in_min, 1);
 static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_in, NULL, 2);
-static SENSOR_DEVICE_ATTR(in2_max, S_IRUGO|S_IWUSR,
-	show_in_max, set_in_max, 2);
-static SENSOR_DEVICE_ATTR(in2_min, S_IRUGO|S_IWUSR,
-	show_in_min, set_in_min, 2);
+static SENSOR_DEVICE_ATTR(in2_max, S_IRUGO | S_IWUSR,
+						  show_in_max, set_in_max, 2);
+static SENSOR_DEVICE_ATTR(in2_min, S_IRUGO | S_IWUSR,
+						  show_in_min, set_in_min, 2);
 static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_in, NULL, 3);
-static SENSOR_DEVICE_ATTR(in3_max, S_IRUGO|S_IWUSR,
-	show_in_max, set_in_max, 3);
-static SENSOR_DEVICE_ATTR(in3_min, S_IRUGO|S_IWUSR,
-	show_in_min, set_in_min, 3);
+static SENSOR_DEVICE_ATTR(in3_max, S_IRUGO | S_IWUSR,
+						  show_in_max, set_in_max, 3);
+static SENSOR_DEVICE_ATTR(in3_min, S_IRUGO | S_IWUSR,
+						  show_in_min, set_in_min, 3);
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp11, NULL, 0);
-static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IRUGO|S_IWUSR,
-	show_temp_max_hyst, set_temp_max_hyst, 0);
-static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO|S_IWUSR,
-	show_temp_max, set_temp_max, 0);
+static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR,
+						  show_temp_max_hyst, set_temp_max_hyst, 0);
+static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO | S_IWUSR,
+						  show_temp_max, set_temp_max, 0);
 static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp11, NULL, 1);
-static SENSOR_DEVICE_ATTR(temp2_max_hyst, S_IRUGO|S_IWUSR,
-	show_temp_max_hyst, set_temp_max_hyst, 1);
-static SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO|S_IWUSR,
-	show_temp_max, set_temp_max, 1);
+static SENSOR_DEVICE_ATTR(temp2_max_hyst, S_IRUGO | S_IWUSR,
+						  show_temp_max_hyst, set_temp_max_hyst, 1);
+static SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO | S_IWUSR,
+						  show_temp_max, set_temp_max, 1);
 static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0);
 static SENSOR_DEVICE_ATTR(fan1_max, S_IRUGO, show_fan_max, NULL, 0);
-static SENSOR_DEVICE_ATTR(fan1_min, S_IRUGO|S_IWUSR,
-	show_fan_min, set_fan_min, 0);
-static SENSOR_DEVICE_ATTR(fan1_target, S_IRUGO|S_IWUSR,
-	show_fan_target, set_fan_target, 0);
+static SENSOR_DEVICE_ATTR(fan1_min, S_IRUGO | S_IWUSR,
+						  show_fan_min, set_fan_min, 0);
+static SENSOR_DEVICE_ATTR(fan1_target, S_IRUGO | S_IWUSR,
+						  show_fan_target, set_fan_target, 0);
 static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1);
 static SENSOR_DEVICE_ATTR(fan2_max, S_IRUGO, show_fan_max, NULL, 1);
-static SENSOR_DEVICE_ATTR(fan2_min, S_IRUGO|S_IWUSR,
-	show_fan_min, set_fan_min, 1);
-static SENSOR_DEVICE_ATTR(fan2_target, S_IRUGO|S_IWUSR,
-	show_fan_target, set_fan_target, 1);
-static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO|S_IWUSR,
-	show_pwm, set_pwm, 0);
-static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO|S_IWUSR,
-	show_pwm_enable, set_pwm_enable, 0);
+static SENSOR_DEVICE_ATTR(fan2_min, S_IRUGO | S_IWUSR,
+						  show_fan_min, set_fan_min, 1);
+static SENSOR_DEVICE_ATTR(fan2_target, S_IRUGO | S_IWUSR,
+						  show_fan_target, set_fan_target, 1);
+static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR,
+						  show_pwm, set_pwm, 0);
+static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
+						  show_pwm_enable, set_pwm_enable, 0);
 static SENSOR_DEVICE_ATTR(pwm1_mode, S_IRUGO,
-	show_pwm_mode, set_pwm_mode, 0);
+						  show_pwm_mode, set_pwm_mode, 0);
 static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR,
-	show_pwm, set_pwm, 1);
-static SENSOR_DEVICE_ATTR(pwm2_enable, S_IRUGO|S_IWUSR,
-	show_pwm_enable, set_pwm_enable, 1);
+						  show_pwm, set_pwm, 1);
+static SENSOR_DEVICE_ATTR(pwm2_enable, S_IRUGO | S_IWUSR,
+						  show_pwm_enable, set_pwm_enable, 1);
 static SENSOR_DEVICE_ATTR(pwm2_mode, S_IRUGO,
-	show_pwm_mode, set_pwm_mode, 1);
+						  show_pwm_mode, set_pwm_mode, 1);
 
-static struct attribute *f75375_attributes[] = {
+static struct attribute *f75375_attributes[] =
+{
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	&sensor_dev_attr_temp1_max.dev_attr.attr,
 	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
@@ -760,68 +861,97 @@ static struct attribute *f75375_attributes[] = {
 	NULL
 };
 
-static const struct attribute_group f75375_group = {
+static const struct attribute_group f75375_group =
+{
 	.attrs = f75375_attributes,
 };
 
 static void f75375_init(struct i2c_client *client, struct f75375_data *data,
-		struct f75375s_platform_data *f75375s_pdata)
+						struct f75375s_platform_data *f75375s_pdata)
 {
 	int nr;
 
-	if (!f75375s_pdata) {
+	if (!f75375s_pdata)
+	{
 		u8 conf, mode;
 		int nr;
 
 		conf = f75375_read8(client, F75375_REG_CONFIG1);
 		mode = f75375_read8(client, F75375_REG_FAN_TIMER);
-		for (nr = 0; nr < 2; nr++) {
-			if (data->kind == f75387) {
+
+		for (nr = 0; nr < 2; nr++)
+		{
+			if (data->kind == f75387)
+			{
 				bool manu, duty;
 
 				if (!(mode & (1 << F75387_FAN_CTRL_LINEAR(nr))))
+				{
 					data->pwm_mode[nr] = 1;
+				}
 
 				manu = ((mode >> F75387_FAN_MANU_MODE(nr)) & 1);
 				duty = ((mode >> F75387_FAN_DUTY_MODE(nr)) & 1);
+
 				if (!manu && duty)
 					/* auto, pwm */
+				{
 					data->pwm_enable[nr] = 4;
+				}
 				else if (manu && !duty)
 					/* manual, speed */
+				{
 					data->pwm_enable[nr] = 3;
+				}
 				else if (!manu && !duty)
 					/* automatic, speed */
+				{
 					data->pwm_enable[nr] = 2;
+				}
 				else
 					/* manual, pwm */
+				{
 					data->pwm_enable[nr] = 1;
-			} else {
+				}
+			}
+			else
+			{
 				if (!(conf & (1 << F75375_FAN_CTRL_LINEAR(nr))))
+				{
 					data->pwm_mode[nr] = 1;
+				}
 
-				switch ((mode >> FAN_CTRL_MODE(nr)) & 3) {
-				case 0:		/* speed */
-					data->pwm_enable[nr] = 3;
-					break;
-				case 1:		/* automatic */
-					data->pwm_enable[nr] = 2;
-					break;
-				default:	/* manual */
-					data->pwm_enable[nr] = 1;
-					break;
+				switch ((mode >> FAN_CTRL_MODE(nr)) & 3)
+				{
+					case 0:		/* speed */
+						data->pwm_enable[nr] = 3;
+						break;
+
+					case 1:		/* automatic */
+						data->pwm_enable[nr] = 2;
+						break;
+
+					default:	/* manual */
+						data->pwm_enable[nr] = 1;
+						break;
 				}
 			}
 		}
+
 		return;
 	}
 
 	set_pwm_enable_direct(client, 0, f75375s_pdata->pwm_enable[0]);
 	set_pwm_enable_direct(client, 1, f75375s_pdata->pwm_enable[1]);
-	for (nr = 0; nr < 2; nr++) {
+
+	for (nr = 0; nr < 2; nr++)
+	{
 		if (auto_mode_enabled(f75375s_pdata->pwm_enable[nr]) ||
-		    !duty_mode_enabled(f75375s_pdata->pwm_enable[nr]))
+			!duty_mode_enabled(f75375s_pdata->pwm_enable[nr]))
+		{
 			continue;
+		}
+
 		data->pwm[nr] = clamp_val(f75375s_pdata->pwm[nr], 0, 255);
 		f75375_write_pwm(client, nr);
 	}
@@ -829,44 +959,63 @@ static void f75375_init(struct i2c_client *client, struct f75375_data *data,
 }
 
 static int f75375_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct f75375_data *data;
 	struct f75375s_platform_data *f75375s_pdata =
-			dev_get_platdata(&client->dev);
+		dev_get_platdata(&client->dev);
 	int err;
 
 	if (!i2c_check_functionality(client->adapter,
-				I2C_FUNC_SMBUS_BYTE_DATA))
+								 I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -EIO;
+	}
+
 	data = devm_kzalloc(&client->dev, sizeof(struct f75375_data),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, data);
 	mutex_init(&data->update_lock);
 	data->kind = id->driver_data;
 
 	err = sysfs_create_group(&client->dev.kobj, &f75375_group);
-	if (err)
-		return err;
 
-	if (data->kind != f75373) {
+	if (err)
+	{
+		return err;
+	}
+
+	if (data->kind != f75373)
+	{
 		err = sysfs_chmod_file(&client->dev.kobj,
-			&sensor_dev_attr_pwm1_mode.dev_attr.attr,
-			S_IRUGO | S_IWUSR);
+							   &sensor_dev_attr_pwm1_mode.dev_attr.attr,
+							   S_IRUGO | S_IWUSR);
+
 		if (err)
+		{
 			goto exit_remove;
+		}
+
 		err = sysfs_chmod_file(&client->dev.kobj,
-			&sensor_dev_attr_pwm2_mode.dev_attr.attr,
-			S_IRUGO | S_IWUSR);
+							   &sensor_dev_attr_pwm2_mode.dev_attr.attr,
+							   S_IRUGO | S_IWUSR);
+
 		if (err)
+		{
 			goto exit_remove;
+		}
 	}
 
 	data->hwmon_dev = hwmon_device_register(&client->dev);
-	if (IS_ERR(data->hwmon_dev)) {
+
+	if (IS_ERR(data->hwmon_dev))
+	{
 		err = PTR_ERR(data->hwmon_dev);
 		goto exit_remove;
 	}
@@ -890,7 +1039,7 @@ static int f75375_remove(struct i2c_client *client)
 
 /* Return 0 if detection is successful, -ENODEV otherwise */
 static int f75375_detect(struct i2c_client *client,
-			 struct i2c_board_info *info)
+						 struct i2c_board_info *info)
 {
 	struct i2c_adapter *adapter = client->adapter;
 	u16 vendid, chipid;
@@ -899,17 +1048,28 @@ static int f75375_detect(struct i2c_client *client,
 
 	vendid = f75375_read16(client, F75375_REG_VENDOR);
 	chipid = f75375_read16(client, F75375_CHIP_ID);
+
 	if (vendid != 0x1934)
+	{
 		return -ENODEV;
+	}
 
 	if (chipid == 0x0306)
+	{
 		name = "f75375";
+	}
 	else if (chipid == 0x0204)
+	{
 		name = "f75373";
+	}
 	else if (chipid == 0x0410)
+	{
 		name = "f75387";
+	}
 	else
+	{
 		return -ENODEV;
+	}
 
 	version = f75375_read8(client, F75375_REG_VERSION);
 	dev_info(&adapter->dev, "found %s version: %02X\n", name, version);

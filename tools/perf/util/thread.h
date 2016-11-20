@@ -13,8 +13,10 @@
 struct thread_stack;
 struct unwind_libunwind_ops;
 
-struct thread {
-	union {
+struct thread
+{
+	union
+	{
 		struct rb_node	 rb_node;
 		struct list_head node;
 	};
@@ -63,9 +65,9 @@ static inline void thread__exited(struct thread *thread)
 }
 
 int __thread__set_comm(struct thread *thread, const char *comm, u64 timestamp,
-		       bool exec);
+					   bool exec);
 static inline int thread__set_comm(struct thread *thread, const char *comm,
-				   u64 timestamp)
+								   u64 timestamp)
 {
 	return __thread__set_comm(thread, comm, timestamp, false);
 }
@@ -83,16 +85,16 @@ size_t thread__fprintf(struct thread *thread, FILE *fp);
 struct thread *thread__main_thread(struct machine *machine, struct thread *thread);
 
 void thread__find_addr_map(struct thread *thread,
-			   u8 cpumode, enum map_type type, u64 addr,
-			   struct addr_location *al);
+						   u8 cpumode, enum map_type type, u64 addr,
+						   struct addr_location *al);
 
 void thread__find_addr_location(struct thread *thread,
-				u8 cpumode, enum map_type type, u64 addr,
-				struct addr_location *al);
+								u8 cpumode, enum map_type type, u64 addr,
+								struct addr_location *al);
 
 void thread__find_cpumode_addr_location(struct thread *thread,
-					enum map_type type, u64 addr,
-					struct addr_location *al);
+										enum map_type type, u64 addr,
+										struct addr_location *al);
 
 static inline void *thread__priv(struct thread *thread)
 {
@@ -107,17 +109,20 @@ static inline void thread__set_priv(struct thread *thread, void *p)
 static inline bool thread__is_filtered(struct thread *thread)
 {
 	if (symbol_conf.comm_list &&
-	    !strlist__has_entry(symbol_conf.comm_list, thread__comm_str(thread))) {
+		!strlist__has_entry(symbol_conf.comm_list, thread__comm_str(thread)))
+	{
 		return true;
 	}
 
 	if (symbol_conf.pid_list &&
-	    !intlist__has_entry(symbol_conf.pid_list, thread->pid_)) {
+		!intlist__has_entry(symbol_conf.pid_list, thread->pid_))
+	{
 		return true;
 	}
 
 	if (symbol_conf.tid_list &&
-	    !intlist__has_entry(symbol_conf.tid_list, thread->tid)) {
+		!intlist__has_entry(symbol_conf.tid_list, thread->tid))
+	{
 		return true;
 	}
 

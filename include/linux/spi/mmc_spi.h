@@ -19,11 +19,12 @@ struct mmc_host;
  * able to handle it.  If the MMC core doesn't adopt this kind of notion,
  * switch the "struct device *" parameters over to "struct spi_device *".
  */
-struct mmc_spi_platform_data {
+struct mmc_spi_platform_data
+{
 	/* driver activation and (optional) card detect irq hookup */
 	int (*init)(struct device *,
-		irqreturn_t (*)(int, void *),
-		void *);
+				irqreturn_t (*)(int, void *),
+				void *);
 	void (*exit)(struct device *, void *);
 
 	/*

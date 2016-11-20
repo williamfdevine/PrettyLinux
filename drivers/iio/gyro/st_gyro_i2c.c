@@ -19,7 +19,8 @@
 #include "st_gyro.h"
 
 #ifdef CONFIG_OF
-static const struct of_device_id st_gyro_of_match[] = {
+static const struct of_device_id st_gyro_of_match[] =
+{
 	{
 		.compatible = "st,l3g4200d-gyro",
 		.data = L3G4200D_GYRO_DEV_NAME,
@@ -60,15 +61,18 @@ MODULE_DEVICE_TABLE(of, st_gyro_of_match);
 #endif
 
 static int st_gyro_i2c_probe(struct i2c_client *client,
-						const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct iio_dev *indio_dev;
 	struct st_sensor_data *gdata;
 	int err;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*gdata));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	gdata = iio_priv(indio_dev);
 	st_sensors_of_i2c_probe(client, st_gyro_of_match);
@@ -76,8 +80,11 @@ static int st_gyro_i2c_probe(struct i2c_client *client,
 	st_sensors_i2c_configure(indio_dev, client, gdata);
 
 	err = st_gyro_common_probe(indio_dev);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -89,7 +96,8 @@ static int st_gyro_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id st_gyro_id_table[] = {
+static const struct i2c_device_id st_gyro_id_table[] =
+{
 	{ L3G4200D_GYRO_DEV_NAME },
 	{ LSM330D_GYRO_DEV_NAME },
 	{ LSM330DL_GYRO_DEV_NAME },
@@ -102,7 +110,8 @@ static const struct i2c_device_id st_gyro_id_table[] = {
 };
 MODULE_DEVICE_TABLE(i2c, st_gyro_id_table);
 
-static struct i2c_driver st_gyro_driver = {
+static struct i2c_driver st_gyro_driver =
+{
 	.driver = {
 		.name = "st-gyro-i2c",
 		.of_match_table = of_match_ptr(st_gyro_of_match),

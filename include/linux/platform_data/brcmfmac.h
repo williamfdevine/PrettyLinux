@@ -48,7 +48,8 @@
  * enum brcmf_bus_type - Bus type identifier. Currently SDIO, USB and PCIE are
  *			 supported.
  */
-enum brcmf_bus_type {
+enum brcmf_bus_type
+{
 	BRCMF_BUSTYPE_SDIO,
 	BRCMF_BUSTYPE_USB,
 	BRCMF_BUSTYPE_PCIE
@@ -88,7 +89,8 @@ enum brcmf_bus_type {
  *			specific and this function should return only after the
  *			complete reset has completed.
  */
-struct brcmfmac_sdio_pd {
+struct brcmfmac_sdio_pd
+{
 	int		txglomsz;
 	unsigned int	drive_strength;
 	bool		oob_irq_supported;
@@ -109,7 +111,8 @@ struct brcmfmac_sdio_pd {
  * @cc:		firmware country code string.
  * @rev:	firmware country code revision.
  */
-struct brcmfmac_pd_cc_entry {
+struct brcmfmac_pd_cc_entry
+{
 	char	iso3166[BRCMFMAC_COUNTRY_BUF_SZ];
 	char	cc[BRCMFMAC_COUNTRY_BUF_SZ];
 	s32	rev;
@@ -123,7 +126,8 @@ struct brcmfmac_pd_cc_entry {
  * @table_size:	number of entries in table (> 0)
  * @table:	array of 1 or more elements with translation information.
  */
-struct brcmfmac_pd_cc {
+struct brcmfmac_pd_cc
+{
 	int				table_size;
 	struct brcmfmac_pd_cc_entry	table[0];
 };
@@ -146,13 +150,15 @@ struct brcmfmac_pd_cc {
  * @bus:		Bus specific (union) device settings. Currently only
  *			SDIO.
  */
-struct brcmfmac_pd_device {
+struct brcmfmac_pd_device
+{
 	unsigned int		id;
 	unsigned int		rev;
 	enum brcmf_bus_type	bus_type;
 	unsigned int		feature_disable;
 	struct brcmfmac_pd_cc	*country_codes;
-	union {
+	union
+	{
 		struct brcmfmac_sdio_pd sdio;
 	} bus;
 };
@@ -173,7 +179,8 @@ struct brcmfmac_pd_device {
  *		for low power devices. If there is no use-case for this
  *		function then provide NULL.
  */
-struct brcmfmac_platform_data {
+struct brcmfmac_platform_data
+{
 	void	(*power_on)(void);
 	void	(*power_off)(void);
 	char	*fw_alternative_path;

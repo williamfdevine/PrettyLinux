@@ -16,7 +16,8 @@
  */
 #ifndef _FNIC_STATS_H_
 #define _FNIC_STATS_H_
-struct io_path_stats {
+struct io_path_stats
+{
 	atomic64_t active_ios;
 	atomic64_t max_active_ios;
 	atomic64_t io_completions;
@@ -28,7 +29,8 @@ struct io_path_stats {
 	atomic64_t num_ios;
 };
 
-struct abort_stats {
+struct abort_stats
+{
 	atomic64_t aborts;
 	atomic64_t abort_failures;
 	atomic64_t abort_drv_timeouts;
@@ -36,7 +38,8 @@ struct abort_stats {
 	atomic64_t abort_io_not_found;
 };
 
-struct terminate_stats {
+struct terminate_stats
+{
 	atomic64_t terminates;
 	atomic64_t max_terminates;
 	atomic64_t terminate_drv_timeouts;
@@ -45,7 +48,8 @@ struct terminate_stats {
 	atomic64_t terminate_failures;
 };
 
-struct reset_stats {
+struct reset_stats
+{
 	atomic64_t device_resets;
 	atomic64_t device_reset_failures;
 	atomic64_t device_reset_aborts;
@@ -59,21 +63,24 @@ struct reset_stats {
 	atomic64_t fnic_reset_failures;
 };
 
-struct fw_stats {
+struct fw_stats
+{
 	atomic64_t active_fw_reqs;
 	atomic64_t max_fw_reqs;
 	atomic64_t fw_out_of_resources;
 	atomic64_t io_fw_errs;
 };
 
-struct vlan_stats {
+struct vlan_stats
+{
 	atomic64_t vlan_disc_reqs;
 	atomic64_t resp_withno_vlanID;
 	atomic64_t sol_expiry_count;
 	atomic64_t flogi_rejects;
 };
 
-struct misc_stats {
+struct misc_stats
+{
 	u64 last_isr_time;
 	u64 last_ack_time;
 	atomic64_t isr_count;
@@ -93,7 +100,8 @@ struct misc_stats {
 	atomic64_t frame_errors;
 };
 
-struct fnic_stats {
+struct fnic_stats
+{
 	struct io_path_stats io_stats;
 	struct abort_stats abts_stats;
 	struct terminate_stats term_stats;
@@ -103,7 +111,8 @@ struct fnic_stats {
 	struct misc_stats misc_stats;
 };
 
-struct stats_debug_info {
+struct stats_debug_info
+{
 	char *debug_buffer;
 	void *i_private;
 	int buf_size;

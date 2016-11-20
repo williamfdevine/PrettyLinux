@@ -49,16 +49,30 @@ static DEFINE_MUTEX(register_mutex);
 
 static void usb6fire_chip_abort(struct sfire_chip *chip)
 {
-	if (chip) {
+	if (chip)
+	{
 		if (chip->pcm)
+		{
 			usb6fire_pcm_abort(chip);
+		}
+
 		if (chip->midi)
+		{
 			usb6fire_midi_abort(chip);
+		}
+
 		if (chip->comm)
+		{
 			usb6fire_comm_abort(chip);
+		}
+
 		if (chip->control)
+		{
 			usb6fire_control_abort(chip);
-		if (chip->card) {
+		}
+
+		if (chip->card)
+		{
 			snd_card_disconnect(chip->card);
 			snd_card_free_when_closed(chip->card);
 			chip->card = NULL;
@@ -68,22 +82,37 @@ static void usb6fire_chip_abort(struct sfire_chip *chip)
 
 static void usb6fire_chip_destroy(struct sfire_chip *chip)
 {
-	if (chip) {
+	if (chip)
+	{
 		if (chip->pcm)
+		{
 			usb6fire_pcm_destroy(chip);
+		}
+
 		if (chip->midi)
+		{
 			usb6fire_midi_destroy(chip);
+		}
+
 		if (chip->comm)
+		{
 			usb6fire_comm_destroy(chip);
+		}
+
 		if (chip->control)
+		{
 			usb6fire_control_destroy(chip);
+		}
+
 		if (chip->card)
+		{
 			snd_card_free(chip->card);
+		}
 	}
 }
 
 static int usb6fire_chip_probe(struct usb_interface *intf,
-			       const struct usb_device_id *usb_id)
+							   const struct usb_device_id *usb_id)
 {
 	int ret;
 	int i;
@@ -94,42 +123,64 @@ static int usb6fire_chip_probe(struct usb_interface *intf,
 
 	/* look if we already serve this card and return if so */
 	mutex_lock(&register_mutex);
-	for (i = 0; i < SNDRV_CARDS; i++) {
-		if (devices[i] == device) {
+
+	for (i = 0; i < SNDRV_CARDS; i++)
+	{
+		if (devices[i] == device)
+		{
 			if (chips[i])
+			{
 				chips[i]->intf_count++;
+			}
+
 			usb_set_intfdata(intf, chips[i]);
 			mutex_unlock(&register_mutex);
 			return 0;
-		} else if (!devices[i] && regidx < 0)
+		}
+		else if (!devices[i] && regidx < 0)
+		{
 			regidx = i;
+		}
 	}
-	if (regidx < 0) {
+
+	if (regidx < 0)
+	{
 		mutex_unlock(&register_mutex);
 		dev_err(&intf->dev, "too many cards registered.\n");
 		return -ENODEV;
 	}
+
 	devices[regidx] = device;
 	mutex_unlock(&register_mutex);
 
 	/* check, if firmware is present on device, upload it if not */
 	ret = usb6fire_fw_init(intf);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 	else if (ret == FW_NOT_READY) /* firmware update performed */
+	{
 		return 0;
+	}
 
 	/* if we are here, card can be registered in alsa. */
-	if (usb_set_interface(device, 0, 0) != 0) {
+	if (usb_set_interface(device, 0, 0) != 0)
+	{
 		dev_err(&intf->dev, "can't set first interface.\n");
 		return -EIO;
 	}
+
 	ret = snd_card_new(&intf->dev, index[regidx], id[regidx],
-			   THIS_MODULE, sizeof(struct sfire_chip), &card);
-	if (ret < 0) {
+					   THIS_MODULE, sizeof(struct sfire_chip), &card);
+
+	if (ret < 0)
+	{
 		dev_err(&intf->dev, "cannot create alsa card.\n");
 		return ret;
 	}
+
 	strcpy(card->driver, "6FireUSB");
 	strcpy(card->shortname, "TerraTec DMX6FireUSB");
 	sprintf(card->longname, "%s at %d:%d", card->shortname,
@@ -143,35 +194,46 @@ static int usb6fire_chip_probe(struct usb_interface *intf,
 	chip->card = card;
 
 	ret = usb6fire_comm_init(chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		usb6fire_chip_destroy(chip);
 		return ret;
 	}
 
 	ret = usb6fire_midi_init(chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		usb6fire_chip_destroy(chip);
 		return ret;
 	}
 
 	ret = usb6fire_pcm_init(chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		usb6fire_chip_destroy(chip);
 		return ret;
 	}
 
 	ret = usb6fire_control_init(chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		usb6fire_chip_destroy(chip);
 		return ret;
 	}
 
 	ret = snd_card_register(card);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&intf->dev, "cannot register card.");
 		usb6fire_chip_destroy(chip);
 		return ret;
 	}
+
 	usb_set_intfdata(intf, chip);
 	return 0;
 }
@@ -182,10 +244,14 @@ static void usb6fire_chip_disconnect(struct usb_interface *intf)
 	struct snd_card *card;
 
 	chip = usb_get_intfdata(intf);
-	if (chip) { /* if !chip, fw upload has been performed */
+
+	if (chip)   /* if !chip, fw upload has been performed */
+	{
 		card = chip->card;
 		chip->intf_count--;
-		if (!chip->intf_count) {
+
+		if (!chip->intf_count)
+		{
 			mutex_lock(&register_mutex);
 			devices[chip->regidx] = NULL;
 			chips[chip->regidx] = NULL;
@@ -198,7 +264,8 @@ static void usb6fire_chip_disconnect(struct usb_interface *intf)
 	}
 }
 
-static struct usb_device_id device_table[] = {
+static struct usb_device_id device_table[] =
+{
 	{
 		.match_flags = USB_DEVICE_ID_MATCH_DEVICE,
 		.idVendor = 0x0ccd,
@@ -209,7 +276,8 @@ static struct usb_device_id device_table[] = {
 
 MODULE_DEVICE_TABLE(usb, device_table);
 
-static struct usb_driver usb_driver = {
+static struct usb_driver usb_driver =
+{
 	.name = "snd-usb-6fire",
 	.probe = usb6fire_chip_probe,
 	.disconnect = usb6fire_chip_disconnect,

@@ -83,13 +83,15 @@ struct key_owner;
 struct keyring_list;
 struct keyring_name;
 
-struct keyring_index_key {
+struct keyring_index_key
+{
 	struct key_type		*type;
 	const char		*description;
 	size_t			desc_len;
 };
 
-union key_payload {
+union key_payload
+{
 	void __rcu		*rcu_data0;
 	void			*data[4];
 };
@@ -111,7 +113,7 @@ union key_payload {
 typedef struct __key_reference_with_attributes *key_ref_t;
 
 static inline key_ref_t make_key_ref(const struct key *key,
-				     bool possession)
+									 bool possession)
 {
 	return (key_ref_t) ((unsigned long) key | possession);
 }
@@ -134,17 +136,20 @@ static inline bool is_key_possessed(const key_ref_t key_ref)
  *   - disk encryption IDs
  *   - Kerberos TGTs and tickets
  */
-struct key {
+struct key
+{
 	atomic_t		usage;		/* number of references */
 	key_serial_t		serial;		/* key serial number */
-	union {
+	union
+	{
 		struct list_head graveyard_link;
 		struct rb_node	serial_node;
 	};
 	struct rw_semaphore	sem;		/* change vs change sem */
 	struct key_user		*user;		/* owner of this key */
 	void			*security;	/* security data for this key */
-	union {
+	union
+	{
 		time_t		expiry;		/* time at which key expires (or 0) */
 		time_t		revoked_at;	/* time at which key was revoked */
 	};
@@ -182,9 +187,11 @@ struct key {
 	 * - it should be a printable string
 	 * - eg: for krb5 AFS, this might be "afs@REDHAT.COM"
 	 */
-	union {
+	union
+	{
 		struct keyring_index_key index_key;
-		struct {
+		struct
+		{
 			struct key_type	*type;		/* type of key */
 			char		*description;
 		};
@@ -194,9 +201,11 @@ struct key {
 	 * - this is used to hold the data actually used in cryptography or
 	 *   whatever
 	 */
-	union {
+	union
+	{
 		union key_payload payload;
-		struct {
+		struct
+		{
 			/* Keyring bits */
 			struct list_head name_link;
 			struct assoc_array keys;
@@ -215,19 +224,19 @@ struct key {
 	 * restriction.
 	 */
 	int (*restrict_link)(struct key *keyring,
-			     const struct key_type *type,
-			     const union key_payload *payload);
+						 const struct key_type *type,
+						 const union key_payload *payload);
 };
 
 extern struct key *key_alloc(struct key_type *type,
-			     const char *desc,
-			     kuid_t uid, kgid_t gid,
-			     const struct cred *cred,
-			     key_perm_t perm,
-			     unsigned long flags,
-			     int (*restrict_link)(struct key *,
-						  const struct key_type *,
-						  const union key_payload *));
+							 const char *desc,
+							 kuid_t uid, kgid_t gid,
+							 const struct cred *cred,
+							 key_perm_t perm,
+							 unsigned long flags,
+							 int (*restrict_link)(struct key *,
+									 const struct key_type *,
+									 const union key_payload *));
 
 
 #define KEY_ALLOC_IN_QUOTA		0x0000	/* add to quota, reject if would overrun */
@@ -257,69 +266,69 @@ static inline void key_ref_put(key_ref_t key_ref)
 }
 
 extern struct key *request_key(struct key_type *type,
-			       const char *description,
-			       const char *callout_info);
+							   const char *description,
+							   const char *callout_info);
 
 extern struct key *request_key_with_auxdata(struct key_type *type,
-					    const char *description,
-					    const void *callout_info,
-					    size_t callout_len,
-					    void *aux);
+		const char *description,
+		const void *callout_info,
+		size_t callout_len,
+		void *aux);
 
 extern struct key *request_key_async(struct key_type *type,
-				     const char *description,
-				     const void *callout_info,
-				     size_t callout_len);
+									 const char *description,
+									 const void *callout_info,
+									 size_t callout_len);
 
 extern struct key *request_key_async_with_auxdata(struct key_type *type,
-						  const char *description,
-						  const void *callout_info,
-						  size_t callout_len,
-						  void *aux);
+		const char *description,
+		const void *callout_info,
+		size_t callout_len,
+		void *aux);
 
 extern int wait_for_key_construction(struct key *key, bool intr);
 
 extern int key_validate(const struct key *key);
 
 extern key_ref_t key_create_or_update(key_ref_t keyring,
-				      const char *type,
-				      const char *description,
-				      const void *payload,
-				      size_t plen,
-				      key_perm_t perm,
-				      unsigned long flags);
+									  const char *type,
+									  const char *description,
+									  const void *payload,
+									  size_t plen,
+									  key_perm_t perm,
+									  unsigned long flags);
 
 extern int key_update(key_ref_t key,
-		      const void *payload,
-		      size_t plen);
+					  const void *payload,
+					  size_t plen);
 
 extern int key_link(struct key *keyring,
-		    struct key *key);
+					struct key *key);
 
 extern int key_unlink(struct key *keyring,
-		      struct key *key);
+					  struct key *key);
 
 extern struct key *keyring_alloc(const char *description, kuid_t uid, kgid_t gid,
-				 const struct cred *cred,
-				 key_perm_t perm,
-				 unsigned long flags,
-				 int (*restrict_link)(struct key *,
-						      const struct key_type *,
-						      const union key_payload *),
-				 struct key *dest);
+								 const struct cred *cred,
+								 key_perm_t perm,
+								 unsigned long flags,
+								 int (*restrict_link)(struct key *,
+										 const struct key_type *,
+										 const union key_payload *),
+								 struct key *dest);
 
 extern int restrict_link_reject(struct key *keyring,
-				const struct key_type *type,
-				const union key_payload *payload);
+								const struct key_type *type,
+								const union key_payload *payload);
 
 extern int keyring_clear(struct key *keyring);
 
 extern key_ref_t keyring_search(key_ref_t keyring,
-				struct key_type *type,
-				const char *description);
+								struct key_type *type,
+								const char *description);
 
 extern int keyring_add_key(struct key *keyring,
-			   struct key *key);
+						   struct key *key);
 
 extern struct key *key_lookup(key_serial_t id);
 
@@ -351,20 +360,20 @@ extern void key_set_timeout(struct key *, unsigned);
 static inline bool key_is_instantiated(const struct key *key)
 {
 	return test_bit(KEY_FLAG_INSTANTIATED, &key->flags) &&
-		!test_bit(KEY_FLAG_NEGATIVE, &key->flags);
+		   !test_bit(KEY_FLAG_NEGATIVE, &key->flags);
 }
 
 #define rcu_dereference_key(KEY)					\
 	(rcu_dereference_protected((KEY)->payload.rcu_data0,		\
-				   rwsem_is_locked(&((struct key *)(KEY))->sem)))
+							   rwsem_is_locked(&((struct key *)(KEY))->sem)))
 
 #define rcu_assign_keypointer(KEY, PAYLOAD)				\
-do {									\
-	rcu_assign_pointer((KEY)->payload.rcu_data0, (PAYLOAD));	\
-} while (0)
+	do {									\
+		rcu_assign_pointer((KEY)->payload.rcu_data0, (PAYLOAD));	\
+	} while (0)
 
 #ifdef CONFIG_SYSCTL
-extern struct ctl_table key_sysctls[];
+	extern struct ctl_table key_sysctls[];
 #endif
 /*
  * the userspace interface

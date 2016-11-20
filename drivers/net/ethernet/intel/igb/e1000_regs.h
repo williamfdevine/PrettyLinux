@@ -161,41 +161,41 @@
  * E1000_RDBAL_REG(current_rx_queue)
  */
 #define E1000_RDBAL(_n)   ((_n) < 4 ? (0x02800 + ((_n) * 0x100)) \
-				    : (0x0C000 + ((_n) * 0x40)))
+						   : (0x0C000 + ((_n) * 0x40)))
 #define E1000_RDBAH(_n)   ((_n) < 4 ? (0x02804 + ((_n) * 0x100)) \
-				    : (0x0C004 + ((_n) * 0x40)))
+						   : (0x0C004 + ((_n) * 0x40)))
 #define E1000_RDLEN(_n)   ((_n) < 4 ? (0x02808 + ((_n) * 0x100)) \
-				    : (0x0C008 + ((_n) * 0x40)))
+						   : (0x0C008 + ((_n) * 0x40)))
 #define E1000_SRRCTL(_n)  ((_n) < 4 ? (0x0280C + ((_n) * 0x100)) \
-				    : (0x0C00C + ((_n) * 0x40)))
+						   : (0x0C00C + ((_n) * 0x40)))
 #define E1000_RDH(_n)     ((_n) < 4 ? (0x02810 + ((_n) * 0x100)) \
-				    : (0x0C010 + ((_n) * 0x40)))
+						   : (0x0C010 + ((_n) * 0x40)))
 #define E1000_RDT(_n)     ((_n) < 4 ? (0x02818 + ((_n) * 0x100)) \
-				    : (0x0C018 + ((_n) * 0x40)))
+						   : (0x0C018 + ((_n) * 0x40)))
 #define E1000_RXDCTL(_n)  ((_n) < 4 ? (0x02828 + ((_n) * 0x100)) \
-				    : (0x0C028 + ((_n) * 0x40)))
+						   : (0x0C028 + ((_n) * 0x40)))
 #define E1000_TDBAL(_n)   ((_n) < 4 ? (0x03800 + ((_n) * 0x100)) \
-				    : (0x0E000 + ((_n) * 0x40)))
+						   : (0x0E000 + ((_n) * 0x40)))
 #define E1000_TDBAH(_n)   ((_n) < 4 ? (0x03804 + ((_n) * 0x100)) \
-				    : (0x0E004 + ((_n) * 0x40)))
+						   : (0x0E004 + ((_n) * 0x40)))
 #define E1000_TDLEN(_n)   ((_n) < 4 ? (0x03808 + ((_n) * 0x100)) \
-				    : (0x0E008 + ((_n) * 0x40)))
+						   : (0x0E008 + ((_n) * 0x40)))
 #define E1000_TDH(_n)     ((_n) < 4 ? (0x03810 + ((_n) * 0x100)) \
-				    : (0x0E010 + ((_n) * 0x40)))
+						   : (0x0E010 + ((_n) * 0x40)))
 #define E1000_TDT(_n)     ((_n) < 4 ? (0x03818 + ((_n) * 0x100)) \
-				    : (0x0E018 + ((_n) * 0x40)))
+						   : (0x0E018 + ((_n) * 0x40)))
 #define E1000_TXDCTL(_n)  ((_n) < 4 ? (0x03828 + ((_n) * 0x100)) \
-				    : (0x0E028 + ((_n) * 0x40)))
+						   : (0x0E028 + ((_n) * 0x40)))
 #define E1000_RXCTL(_n)	  ((_n) < 4 ? (0x02814 + ((_n) * 0x100)) : \
-				      (0x0C014 + ((_n) * 0x40)))
+						   (0x0C014 + ((_n) * 0x40)))
 #define E1000_DCA_RXCTRL(_n)	E1000_RXCTL(_n)
 #define E1000_TXCTL(_n)   ((_n) < 4 ? (0x03814 + ((_n) * 0x100)) : \
-				      (0x0E014 + ((_n) * 0x40)))
+						   (0x0E014 + ((_n) * 0x40)))
 #define E1000_DCA_TXCTRL(_n) E1000_TXCTL(_n)
 #define E1000_TDWBAL(_n)  ((_n) < 4 ? (0x03838 + ((_n) * 0x100)) \
-				    : (0x0E038 + ((_n) * 0x40)))
+						   : (0x0E038 + ((_n) * 0x40)))
 #define E1000_TDWBAH(_n)  ((_n) < 4 ? (0x0383C + ((_n) * 0x100)) \
-				    : (0x0E03C + ((_n) * 0x40)))
+						   : (0x0E03C + ((_n) * 0x40)))
 
 #define E1000_RXPBS	0x02404  /* Rx Packet Buffer Size - RW */
 #define E1000_TXPBS	0x03404  /* Tx Packet Buffer Size - RW */
@@ -306,9 +306,9 @@
 #define E1000_RA2      0x054E0  /* 2nd half of Rx address array - RW Array */
 #define E1000_PSRTYPE(_i)       (0x05480 + ((_i) * 4))
 #define E1000_RAL(_i)  (((_i) <= 15) ? (0x05400 + ((_i) * 8)) : \
-					(0x054E0 + ((_i - 16) * 8)))
+						(0x054E0 + ((_i - 16) * 8)))
 #define E1000_RAH(_i)  (((_i) <= 15) ? (0x05404 + ((_i) * 8)) : \
-					(0x054E4 + ((_i - 16) * 8)))
+						(0x054E4 + ((_i - 16) * 8)))
 #define E1000_VLAPQF	0x055B0  /* VLAN Priority Queue Filter VLAPQF */
 #define E1000_IP4AT_REG(_i)     (0x05840 + ((_i) * 8))
 #define E1000_IP6AT_REG(_i)     (0x05880 + ((_i) * 4))
@@ -374,11 +374,11 @@ u32 igb_rd32(struct e1000_hw *hw, u32 reg);
 
 /* write operations, indexed using DWORDS */
 #define wr32(reg, val) \
-do { \
-	u8 __iomem *hw_addr = ACCESS_ONCE((hw)->hw_addr); \
-	if (!E1000_REMOVED(hw_addr)) \
-		writel((val), &hw_addr[(reg)]); \
-} while (0)
+	do { \
+		u8 __iomem *hw_addr = ACCESS_ONCE((hw)->hw_addr); \
+		if (!E1000_REMOVED(hw_addr)) \
+			writel((val), &hw_addr[(reg)]); \
+	} while (0)
 
 #define rd32(reg) (igb_rd32(hw, reg))
 

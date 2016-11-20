@@ -4,7 +4,8 @@
 #include <linux/types.h>
 #include <net/act_api.h>
 
-struct tcf_csum {
+struct tcf_csum
+{
 	struct tc_action common;
 
 	u32 update_flags;

@@ -48,7 +48,7 @@
 #define __DRX_DRIVER_VERSION__H__ INCLUDED
 
 #ifdef _REGISTERTABLE_
-#include <registertable.h>
+	#include <registertable.h>
 	extern register_table_t drx_driver_version[];
 	extern register_table_info_t drx_driver_version_info[];
 #endif				/* _REGISTERTABLE_ */

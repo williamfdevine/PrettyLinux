@@ -17,7 +17,8 @@
  * Keytable for MK-F12 IR remote provided together with Pixelview
  * Ultra Pro Remote Controller. Uses NEC extended format.
  */
-static struct rc_map_table pixelview_mk12[] = {
+static struct rc_map_table pixelview_mk12[] =
+{
 	{ 0x866b03, KEY_TUNER },	/* Timeshift */
 	{ 0x866b1e, KEY_POWER2 },	/* power */
 
@@ -58,7 +59,8 @@ static struct rc_map_table pixelview_mk12[] = {
 	{ 0x866b07, KEY_RADIO },	/* FM */
 };
 
-static struct rc_map_list pixelview_map = {
+static struct rc_map_list pixelview_map =
+{
 	.map = {
 		.scan    = pixelview_mk12,
 		.size    = ARRAY_SIZE(pixelview_mk12),

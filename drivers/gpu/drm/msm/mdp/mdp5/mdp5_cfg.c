@@ -14,7 +14,8 @@
 #include "mdp5_kms.h"
 #include "mdp5_cfg.h"
 
-struct mdp5_cfg_handler {
+struct mdp5_cfg_handler
+{
 	int revision;
 	struct mdp5_cfg config;
 };
@@ -22,12 +23,13 @@ struct mdp5_cfg_handler {
 /* mdp5_cfg must be exposed (used in mdp5.xml.h) */
 const struct mdp5_cfg_hw *mdp5_cfg = NULL;
 
-const struct mdp5_cfg_hw msm8x74v1_config = {
+const struct mdp5_cfg_hw msm8x74v1_config =
+{
 	.name = "msm8x74v1",
 	.mdp = {
 		.count = 1,
 		.caps = MDP_CAP_SMP |
-			0,
+		0,
 	},
 	.smp = {
 		.mmb_count = 22,
@@ -47,25 +49,25 @@ const struct mdp5_cfg_hw msm8x74v1_config = {
 		.count = 3,
 		.base = { 0x01100, 0x01500, 0x01900 },
 		.caps = MDP_PIPE_CAP_HFLIP |
-			MDP_PIPE_CAP_VFLIP |
-			MDP_PIPE_CAP_SCALE |
-			MDP_PIPE_CAP_CSC   |
-			0,
+		MDP_PIPE_CAP_VFLIP |
+		MDP_PIPE_CAP_SCALE |
+		MDP_PIPE_CAP_CSC   |
+		0,
 	},
 	.pipe_rgb = {
 		.count = 3,
 		.base = { 0x01d00, 0x02100, 0x02500 },
 		.caps = MDP_PIPE_CAP_HFLIP |
-			MDP_PIPE_CAP_VFLIP |
-			MDP_PIPE_CAP_SCALE |
-			0,
+		MDP_PIPE_CAP_VFLIP |
+		MDP_PIPE_CAP_SCALE |
+		0,
 	},
 	.pipe_dma = {
 		.count = 2,
 		.base = { 0x02900, 0x02d00 },
 		.caps = MDP_PIPE_CAP_HFLIP |
-			MDP_PIPE_CAP_VFLIP |
-			0,
+		MDP_PIPE_CAP_VFLIP |
+		0,
 	},
 	.lm = {
 		.count = 5,
@@ -92,12 +94,13 @@ const struct mdp5_cfg_hw msm8x74v1_config = {
 	.max_clk = 200000000,
 };
 
-const struct mdp5_cfg_hw msm8x74v2_config = {
+const struct mdp5_cfg_hw msm8x74v2_config =
+{
 	.name = "msm8x74",
 	.mdp = {
 		.count = 1,
 		.caps = MDP_CAP_SMP |
-			0,
+		0,
 	},
 	.smp = {
 		.mmb_count = 22,
@@ -117,14 +120,14 @@ const struct mdp5_cfg_hw msm8x74v2_config = {
 		.count = 3,
 		.base = { 0x01100, 0x01500, 0x01900 },
 		.caps = MDP_PIPE_CAP_HFLIP | MDP_PIPE_CAP_VFLIP |
-				MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_CSC |
-				MDP_PIPE_CAP_DECIMATION,
+		MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_CSC |
+		MDP_PIPE_CAP_DECIMATION,
 	},
 	.pipe_rgb = {
 		.count = 3,
 		.base = { 0x01d00, 0x02100, 0x02500 },
 		.caps = MDP_PIPE_CAP_HFLIP | MDP_PIPE_CAP_VFLIP |
-				MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_DECIMATION,
+		MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_DECIMATION,
 	},
 	.pipe_dma = {
 		.count = 2,
@@ -162,12 +165,13 @@ const struct mdp5_cfg_hw msm8x74v2_config = {
 	.max_clk = 200000000,
 };
 
-const struct mdp5_cfg_hw apq8084_config = {
+const struct mdp5_cfg_hw apq8084_config =
+{
 	.name = "apq8084",
 	.mdp = {
 		.count = 1,
 		.caps = MDP_CAP_SMP |
-			0,
+		0,
 	},
 	.smp = {
 		.mmb_count = 44,
@@ -194,14 +198,14 @@ const struct mdp5_cfg_hw apq8084_config = {
 		.count = 4,
 		.base = { 0x01100, 0x01500, 0x01900, 0x01d00 },
 		.caps = MDP_PIPE_CAP_HFLIP | MDP_PIPE_CAP_VFLIP |
-				MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_CSC |
-				MDP_PIPE_CAP_DECIMATION,
+		MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_CSC |
+		MDP_PIPE_CAP_DECIMATION,
 	},
 	.pipe_rgb = {
 		.count = 4,
 		.base = { 0x02100, 0x02500, 0x02900, 0x02d00 },
 		.caps = MDP_PIPE_CAP_HFLIP | MDP_PIPE_CAP_VFLIP |
-				MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_DECIMATION,
+		MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_DECIMATION,
 	},
 	.pipe_dma = {
 		.count = 2,
@@ -240,13 +244,14 @@ const struct mdp5_cfg_hw apq8084_config = {
 	.max_clk = 320000000,
 };
 
-const struct mdp5_cfg_hw msm8x16_config = {
+const struct mdp5_cfg_hw msm8x16_config =
+{
 	.name = "msm8x16",
 	.mdp = {
 		.count = 1,
 		.base = { 0x0 },
 		.caps = MDP_CAP_SMP |
-			0,
+		0,
 	},
 	.smp = {
 		.mmb_count = 8,
@@ -265,14 +270,14 @@ const struct mdp5_cfg_hw msm8x16_config = {
 		.count = 1,
 		.base = { 0x04000 },
 		.caps = MDP_PIPE_CAP_HFLIP | MDP_PIPE_CAP_VFLIP |
-				MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_CSC |
-				MDP_PIPE_CAP_DECIMATION,
+		MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_CSC |
+		MDP_PIPE_CAP_DECIMATION,
 	},
 	.pipe_rgb = {
 		.count = 2,
 		.base = { 0x14000, 0x16000 },
 		.caps = MDP_PIPE_CAP_HFLIP | MDP_PIPE_CAP_VFLIP |
-				MDP_PIPE_CAP_DECIMATION,
+		MDP_PIPE_CAP_DECIMATION,
 	},
 	.pipe_dma = {
 		.count = 1,
@@ -301,12 +306,13 @@ const struct mdp5_cfg_hw msm8x16_config = {
 	.max_clk = 320000000,
 };
 
-const struct mdp5_cfg_hw msm8x94_config = {
+const struct mdp5_cfg_hw msm8x94_config =
+{
 	.name = "msm8x94",
 	.mdp = {
 		.count = 1,
 		.caps = MDP_CAP_SMP |
-			0,
+		0,
 	},
 	.smp = {
 		.mmb_count = 44,
@@ -320,7 +326,7 @@ const struct mdp5_cfg_hw msm8x94_config = {
 		},
 		.reserved_state[0] = GENMASK(23, 0),	/* first 24 MMBs */
 		.reserved = {
-			 [1] = 1,  [4] = 1,  [7] = 1, [19] = 1,
+			[1] = 1,  [4] = 1,  [7] = 1, [19] = 1,
 			[16] = 5, [17] = 5, [18] = 5, [22] = 5,
 		},
 	},
@@ -333,14 +339,14 @@ const struct mdp5_cfg_hw msm8x94_config = {
 		.count = 4,
 		.base = { 0x04000, 0x06000, 0x08000, 0x0a000 },
 		.caps = MDP_PIPE_CAP_HFLIP | MDP_PIPE_CAP_VFLIP |
-				MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_CSC |
-				MDP_PIPE_CAP_DECIMATION,
+		MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_CSC |
+		MDP_PIPE_CAP_DECIMATION,
 	},
 	.pipe_rgb = {
 		.count = 4,
 		.base = { 0x14000, 0x16000, 0x18000, 0x1a000 },
 		.caps = MDP_PIPE_CAP_HFLIP | MDP_PIPE_CAP_VFLIP |
-				MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_DECIMATION,
+		MDP_PIPE_CAP_SCALE | MDP_PIPE_CAP_DECIMATION,
 	},
 	.pipe_dma = {
 		.count = 2,
@@ -379,13 +385,14 @@ const struct mdp5_cfg_hw msm8x94_config = {
 	.max_clk = 400000000,
 };
 
-const struct mdp5_cfg_hw msm8x96_config = {
+const struct mdp5_cfg_hw msm8x96_config =
+{
 	.name = "msm8x96",
 	.mdp = {
 		.count = 1,
 		.caps = MDP_CAP_DSC |
-			MDP_CAP_CDM |
-			0,
+		MDP_CAP_CDM |
+		0,
 	},
 	.ctl = {
 		.count = 5,
@@ -396,30 +403,30 @@ const struct mdp5_cfg_hw msm8x96_config = {
 		.count = 4,
 		.base = { 0x04000, 0x06000, 0x08000, 0x0a000 },
 		.caps = MDP_PIPE_CAP_HFLIP	|
-			MDP_PIPE_CAP_VFLIP	|
-			MDP_PIPE_CAP_SCALE	|
-			MDP_PIPE_CAP_CSC	|
-			MDP_PIPE_CAP_DECIMATION	|
-			MDP_PIPE_CAP_SW_PIX_EXT	|
-			0,
+		MDP_PIPE_CAP_VFLIP	|
+		MDP_PIPE_CAP_SCALE	|
+		MDP_PIPE_CAP_CSC	|
+		MDP_PIPE_CAP_DECIMATION	|
+		MDP_PIPE_CAP_SW_PIX_EXT	|
+		0,
 	},
 	.pipe_rgb = {
 		.count = 4,
 		.base = { 0x14000, 0x16000, 0x18000, 0x1a000 },
 		.caps = MDP_PIPE_CAP_HFLIP	|
-			MDP_PIPE_CAP_VFLIP	|
-			MDP_PIPE_CAP_SCALE	|
-			MDP_PIPE_CAP_DECIMATION	|
-			MDP_PIPE_CAP_SW_PIX_EXT	|
-			0,
+		MDP_PIPE_CAP_VFLIP	|
+		MDP_PIPE_CAP_SCALE	|
+		MDP_PIPE_CAP_DECIMATION	|
+		MDP_PIPE_CAP_SW_PIX_EXT	|
+		0,
 	},
 	.pipe_dma = {
 		.count = 2,
 		.base = { 0x24000, 0x26000 },
 		.caps = MDP_PIPE_CAP_HFLIP	|
-			MDP_PIPE_CAP_VFLIP	|
-			MDP_PIPE_CAP_SW_PIX_EXT	|
-			0,
+		MDP_PIPE_CAP_VFLIP	|
+		MDP_PIPE_CAP_SW_PIX_EXT	|
+		0,
 	},
 	.lm = {
 		.count = 6,
@@ -460,7 +467,8 @@ const struct mdp5_cfg_hw msm8x96_config = {
 	.max_clk = 412500000,
 };
 
-static const struct mdp5_cfg_handler cfg_handlers[] = {
+static const struct mdp5_cfg_handler cfg_handlers[] =
+{
 	{ .revision = 0, .config = { .hw = &msm8x74v1_config } },
 	{ .revision = 2, .config = { .hw = &msm8x74v2_config } },
 	{ .revision = 3, .config = { .hw = &apq8084_config } },
@@ -492,7 +500,7 @@ void mdp5_cfg_destroy(struct mdp5_cfg_handler *cfg_handler)
 }
 
 struct mdp5_cfg_handler *mdp5_cfg_init(struct mdp5_kms *mdp5_kms,
-		uint32_t major, uint32_t minor)
+									   uint32_t major, uint32_t minor)
 {
 	struct drm_device *dev = mdp5_kms->dev;
 	struct platform_device *pdev = dev->platformdev;
@@ -501,12 +509,15 @@ struct mdp5_cfg_handler *mdp5_cfg_init(struct mdp5_kms *mdp5_kms,
 	int i, ret = 0;
 
 	cfg_handler = kzalloc(sizeof(*cfg_handler), GFP_KERNEL);
-	if (unlikely(!cfg_handler)) {
+
+	if (unlikely(!cfg_handler))
+	{
 		ret = -ENOMEM;
 		goto fail;
 	}
 
-	if (major != 1) {
+	if (major != 1)
+	{
 		dev_err(dev->dev, "unexpected MDP major version: v%d.%d\n",
 				major, minor);
 		ret = -ENXIO;
@@ -514,14 +525,20 @@ struct mdp5_cfg_handler *mdp5_cfg_init(struct mdp5_kms *mdp5_kms,
 	}
 
 	/* only after mdp5_cfg global pointer's init can we access the hw */
-	for (i = 0; i < ARRAY_SIZE(cfg_handlers); i++) {
+	for (i = 0; i < ARRAY_SIZE(cfg_handlers); i++)
+	{
 		if (cfg_handlers[i].revision != minor)
+		{
 			continue;
+		}
+
 		mdp5_cfg = cfg_handlers[i].config.hw;
 
 		break;
 	}
-	if (unlikely(!mdp5_cfg)) {
+
+	if (unlikely(!mdp5_cfg))
+	{
 		dev_err(dev->dev, "unexpected MDP minor revision: v%d.%d\n",
 				major, minor);
 		ret = -ENXIO;
@@ -539,8 +556,11 @@ struct mdp5_cfg_handler *mdp5_cfg_init(struct mdp5_kms *mdp5_kms,
 	return cfg_handler;
 
 fail:
+
 	if (cfg_handler)
+	{
 		mdp5_cfg_destroy(cfg_handler);
+	}
 
 	return NULL;
 }

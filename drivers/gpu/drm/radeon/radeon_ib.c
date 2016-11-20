@@ -53,13 +53,15 @@ static int radeon_debugfs_sa_init(struct radeon_device *rdev);
  * Returns 0 on success, error on failure.
  */
 int radeon_ib_get(struct radeon_device *rdev, int ring,
-		  struct radeon_ib *ib, struct radeon_vm *vm,
-		  unsigned size)
+				  struct radeon_ib *ib, struct radeon_vm *vm,
+				  unsigned size)
 {
 	int r;
 
 	r = radeon_sa_bo_new(rdev, &rdev->ring_tmp_bo, &ib->sa_bo, size, 256);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(rdev->dev, "failed to get a new IB (%d)\n", r);
 		return r;
 	}
@@ -70,14 +72,19 @@ int radeon_ib_get(struct radeon_device *rdev, int ring,
 	ib->fence = NULL;
 	ib->ptr = radeon_sa_bo_cpu_addr(ib->sa_bo);
 	ib->vm = vm;
-	if (vm) {
+
+	if (vm)
+	{
 		/* ib pool is bound at RADEON_VA_IB_OFFSET in virtual address
 		 * space and soffset is the offset inside the pool bo
 		 */
 		ib->gpu_addr = ib->sa_bo->soffset + RADEON_VA_IB_OFFSET;
-	} else {
+	}
+	else
+	{
 		ib->gpu_addr = radeon_sa_bo_gpu_addr(ib->sa_bo);
 	}
+
 	ib->is_const_ib = false;
 
 	return 0;
@@ -120,12 +127,13 @@ void radeon_ib_free(struct radeon_device *rdev, struct radeon_ib *ib)
  * to SI there was just a DE IB.
  */
 int radeon_ib_schedule(struct radeon_device *rdev, struct radeon_ib *ib,
-		       struct radeon_ib *const_ib, bool hdp_flush)
+					   struct radeon_ib *const_ib, bool hdp_flush)
 {
 	struct radeon_ring *ring = &rdev->ring[ib->ring];
 	int r = 0;
 
-	if (!ib->length_dw || !ring->ready) {
+	if (!ib->length_dw || !ring->ready)
+	{
 		/* TODO: Nothings in the ib we should report. */
 		dev_err(rdev->dev, "couldn't schedule ib\n");
 		return -EINVAL;
@@ -133,13 +141,16 @@ int radeon_ib_schedule(struct radeon_device *rdev, struct radeon_ib *ib,
 
 	/* 64 dwords should be enough for fence too */
 	r = radeon_ring_lock(rdev, ring, 64 + RADEON_NUM_SYNCS * 8);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(rdev->dev, "scheduling IB failed (%d).\n", r);
 		return r;
 	}
 
 	/* grab a vm id if necessary */
-	if (ib->vm) {
+	if (ib->vm)
+	{
 		struct radeon_fence *vm_id_fence;
 		vm_id_fence = radeon_vm_grab_id(rdev, ib->vm, ib->ring);
 		radeon_sync_fence(&ib->sync, vm_id_fence);
@@ -147,7 +158,9 @@ int radeon_ib_schedule(struct radeon_device *rdev, struct radeon_ib *ib,
 
 	/* sync with other rings */
 	r = radeon_sync_rings(rdev, &ib->sync, ib->ring);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(rdev->dev, "failed to sync rings (%d)\n", r);
 		radeon_ring_unlock_undo(rdev, ring);
 		return r;
@@ -155,25 +168,33 @@ int radeon_ib_schedule(struct radeon_device *rdev, struct radeon_ib *ib,
 
 	if (ib->vm)
 		radeon_vm_flush(rdev, ib->vm, ib->ring,
-				ib->sync.last_vm_update);
+						ib->sync.last_vm_update);
 
-	if (const_ib) {
+	if (const_ib)
+	{
 		radeon_ring_ib_execute(rdev, const_ib->ring, const_ib);
 		radeon_sync_free(rdev, &const_ib->sync, NULL);
 	}
+
 	radeon_ring_ib_execute(rdev, ib->ring, ib);
 	r = radeon_fence_emit(rdev, &ib->fence, ib->ring);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(rdev->dev, "failed to emit fence for new IB (%d)\n", r);
 		radeon_ring_unlock_undo(rdev, ring);
 		return r;
 	}
-	if (const_ib) {
+
+	if (const_ib)
+	{
 		const_ib->fence = radeon_fence_ref(ib->fence);
 	}
 
 	if (ib->vm)
+	{
 		radeon_vm_fence(rdev, ib->vm, ib->fence);
+	}
 
 	radeon_ring_unlock_commit(rdev, ring, hdp_flush);
 	return 0;
@@ -192,38 +213,49 @@ int radeon_ib_pool_init(struct radeon_device *rdev)
 {
 	int r;
 
-	if (rdev->ib_pool_ready) {
+	if (rdev->ib_pool_ready)
+	{
 		return 0;
 	}
 
-	if (rdev->family >= CHIP_BONAIRE) {
+	if (rdev->family >= CHIP_BONAIRE)
+	{
 		r = radeon_sa_bo_manager_init(rdev, &rdev->ring_tmp_bo,
-					      RADEON_IB_POOL_SIZE*64*1024,
-					      RADEON_GPU_PAGE_SIZE,
-					      RADEON_GEM_DOMAIN_GTT,
-					      RADEON_GEM_GTT_WC);
-	} else {
+									  RADEON_IB_POOL_SIZE * 64 * 1024,
+									  RADEON_GPU_PAGE_SIZE,
+									  RADEON_GEM_DOMAIN_GTT,
+									  RADEON_GEM_GTT_WC);
+	}
+	else
+	{
 		/* Before CIK, it's better to stick to cacheable GTT due
 		 * to the command stream checking
 		 */
 		r = radeon_sa_bo_manager_init(rdev, &rdev->ring_tmp_bo,
-					      RADEON_IB_POOL_SIZE*64*1024,
-					      RADEON_GPU_PAGE_SIZE,
-					      RADEON_GEM_DOMAIN_GTT, 0);
+									  RADEON_IB_POOL_SIZE * 64 * 1024,
+									  RADEON_GPU_PAGE_SIZE,
+									  RADEON_GEM_DOMAIN_GTT, 0);
 	}
-	if (r) {
+
+	if (r)
+	{
 		return r;
 	}
 
 	r = radeon_sa_bo_manager_start(rdev, &rdev->ring_tmp_bo);
-	if (r) {
+
+	if (r)
+	{
 		return r;
 	}
 
 	rdev->ib_pool_ready = true;
-	if (radeon_debugfs_sa_init(rdev)) {
+
+	if (radeon_debugfs_sa_init(rdev))
+	{
 		dev_err(rdev->dev, "failed to register debugfs file for SA\n");
 	}
+
 	return 0;
 }
 
@@ -237,7 +269,8 @@ int radeon_ib_pool_init(struct radeon_device *rdev)
  */
 void radeon_ib_pool_fini(struct radeon_device *rdev)
 {
-	if (rdev->ib_pool_ready) {
+	if (rdev->ib_pool_ready)
+	{
 		radeon_sa_bo_manager_suspend(rdev, &rdev->ring_tmp_bo);
 		radeon_sa_bo_manager_fini(rdev, &rdev->ring_tmp_bo);
 		rdev->ib_pool_ready = false;
@@ -259,30 +292,39 @@ int radeon_ib_ring_tests(struct radeon_device *rdev)
 	unsigned i;
 	int r;
 
-	for (i = 0; i < RADEON_NUM_RINGS; ++i) {
+	for (i = 0; i < RADEON_NUM_RINGS; ++i)
+	{
 		struct radeon_ring *ring = &rdev->ring[i];
 
 		if (!ring->ready)
+		{
 			continue;
+		}
 
 		r = radeon_ib_test(rdev, i, ring);
-		if (r) {
+
+		if (r)
+		{
 			radeon_fence_driver_force_completion(rdev, i);
 			ring->ready = false;
 			rdev->needs_reset = false;
 
-			if (i == RADEON_RING_TYPE_GFX_INDEX) {
+			if (i == RADEON_RING_TYPE_GFX_INDEX)
+			{
 				/* oh, oh, that's really bad */
 				DRM_ERROR("radeon: failed testing IB on GFX ring (%d).\n", r);
 				rdev->accel_working = false;
 				return r;
 
-			} else {
+			}
+			else
+			{
 				/* still not good, but we can live with it */
 				DRM_ERROR("radeon: failed testing IB on ring %d (%d).\n", i, r);
 			}
 		}
 	}
+
 	return 0;
 }
 
@@ -303,7 +345,8 @@ static int radeon_debugfs_sa_info(struct seq_file *m, void *data)
 
 }
 
-static struct drm_info_list radeon_debugfs_sa_list[] = {
+static struct drm_info_list radeon_debugfs_sa_list[] =
+{
 	{"radeon_sa_info", &radeon_debugfs_sa_info, 0, NULL},
 };
 

@@ -84,7 +84,8 @@ MODULE_LICENSE("GPL");
 /*
  * Device driver private data structure
  */
-struct w5300_priv {
+struct w5300_priv
+{
 	void __iomem *base;
 	spinlock_t reg_lock;
 	bool indirect;
@@ -118,7 +119,7 @@ static inline u16 w5300_read_direct(struct w5300_priv *priv, u16 addr)
 }
 
 static inline void w5300_write_direct(struct w5300_priv *priv,
-				      u16 addr, u16 data)
+									  u16 addr, u16 data)
 {
 	iowrite16(data, priv->base + (addr << CONFIG_WIZNET_BUS_SHIFT));
 }
@@ -161,16 +162,16 @@ static void w5300_write_indirect(struct w5300_priv *priv, u16 addr, u16 data)
 }
 
 #if defined(CONFIG_WIZNET_BUS_DIRECT)
-#define w5300_read	w5300_read_direct
-#define w5300_write	w5300_write_direct
+	#define w5300_read	w5300_read_direct
+	#define w5300_write	w5300_write_direct
 
 #elif defined(CONFIG_WIZNET_BUS_INDIRECT)
-#define w5300_read	w5300_read_indirect
-#define w5300_write	w5300_write_indirect
+	#define w5300_read	w5300_read_indirect
+	#define w5300_write	w5300_write_indirect
 
 #else /* CONFIG_WIZNET_BUS_ANY */
-#define w5300_read	priv->read
-#define w5300_write	priv->write
+	#define w5300_read	priv->read
+	#define w5300_write	priv->write
 #endif
 
 static u32 w5300_read32(struct w5300_priv *priv, u16 addr)
@@ -194,9 +195,13 @@ static int w5300_command(struct w5300_priv *priv, u16 cmd)
 	w5300_write(priv, W5300_S0_CR, cmd);
 	mmiowb();
 
-	while (w5300_read(priv, W5300_S0_CR) != 0) {
+	while (w5300_read(priv, W5300_S0_CR) != 0)
+	{
 		if (time_after(jiffies, timeout))
+		{
 			return -EIO;
+		}
+
 		cpu_relax();
 	}
 
@@ -208,11 +213,13 @@ static void w5300_read_frame(struct w5300_priv *priv, u8 *buf, int len)
 	u16 fifo;
 	int i;
 
-	for (i = 0; i < len; i += 2) {
+	for (i = 0; i < len; i += 2)
+	{
 		fifo = w5300_read(priv, W5300_S0_RX_FIFO);
 		*buf++ = fifo >> 8;
 		*buf++ = fifo;
 	}
+
 	fifo = w5300_read(priv, W5300_S0_RX_FIFO);
 	fifo = w5300_read(priv, W5300_S0_RX_FIFO);
 }
@@ -222,11 +229,13 @@ static void w5300_write_frame(struct w5300_priv *priv, u8 *buf, int len)
 	u16 fifo;
 	int i;
 
-	for (i = 0; i < len; i += 2) {
+	for (i = 0; i < len; i += 2)
+	{
 		fifo  = *buf++ << 8;
 		fifo |= *buf++;
 		w5300_write(priv, W5300_S0_TX_FIFO, fifo);
 	}
+
 	w5300_write32(priv, W5300_S0_TX_WRSR, len);
 }
 
@@ -234,13 +243,13 @@ static void w5300_write_macaddr(struct w5300_priv *priv)
 {
 	struct net_device *ndev = priv->ndev;
 	w5300_write32(priv, W5300_SHARL,
-		      ndev->dev_addr[0] << 24 |
-		      ndev->dev_addr[1] << 16 |
-		      ndev->dev_addr[2] << 8 |
-		      ndev->dev_addr[3]);
+				  ndev->dev_addr[0] << 24 |
+				  ndev->dev_addr[1] << 16 |
+				  ndev->dev_addr[2] << 8 |
+				  ndev->dev_addr[3]);
 	w5300_write(priv, W5300_SHARH,
-		      ndev->dev_addr[4] << 8 |
-		      ndev->dev_addr[5]);
+				ndev->dev_addr[4] << 8 |
+				ndev->dev_addr[5]);
 	mmiowb();
 }
 
@@ -250,8 +259,8 @@ static void w5300_hw_reset(struct w5300_priv *priv)
 	mmiowb();
 	mdelay(5);
 	w5300_write_direct(priv, W5300_MR, priv->indirect ?
-				 MR_WDF(7) | MR_PB | MR_IND :
-				 MR_WDF(7) | MR_PB);
+					   MR_WDF(7) | MR_PB | MR_IND :
+					   MR_WDF(7) | MR_PB);
 	mmiowb();
 	w5300_write(priv, W5300_IMR, 0);
 	w5300_write_macaddr(priv);
@@ -270,7 +279,7 @@ static void w5300_hw_reset(struct w5300_priv *priv)
 static void w5300_hw_start(struct w5300_priv *priv)
 {
 	w5300_write(priv, W5300_S0_MR, priv->promisc ?
-			  S0_MR_MACRAW : S0_MR_MACRAW_MF);
+				S0_MR_MACRAW : S0_MR_MACRAW_MF);
 	mmiowb();
 	w5300_command(priv, S0_CR_OPEN);
 	w5300_write(priv, W5300_S0_IMR, S0_IR_RECV | S0_IR_SENDOK);
@@ -292,12 +301,12 @@ static void w5300_hw_close(struct w5300_priv *priv)
  ***********************************************************************/
 
 static void w5300_get_drvinfo(struct net_device *ndev,
-			      struct ethtool_drvinfo *info)
+							  struct ethtool_drvinfo *info)
 {
 	strlcpy(info->driver, DRV_NAME, sizeof(info->driver));
 	strlcpy(info->version, DRV_VERSION, sizeof(info->version));
 	strlcpy(info->bus_info, dev_name(ndev->dev.parent),
-		sizeof(info->bus_info));
+			sizeof(info->bus_info));
 }
 
 static u32 w5300_get_link(struct net_device *ndev)
@@ -305,7 +314,9 @@ static u32 w5300_get_link(struct net_device *ndev)
 	struct w5300_priv *priv = netdev_priv(ndev);
 
 	if (gpio_is_valid(priv->link_gpio))
+	{
 		return !!gpio_get_value(priv->link_gpio);
+	}
 
 	return 1;
 }
@@ -330,7 +341,7 @@ static int w5300_get_regs_len(struct net_device *ndev)
 }
 
 static void w5300_get_regs(struct net_device *ndev,
-			   struct ethtool_regs *regs, void *_buf)
+						   struct ethtool_regs *regs, void *_buf)
 {
 	struct w5300_priv *priv = netdev_priv(ndev);
 	u8 *buf = _buf;
@@ -338,16 +349,21 @@ static void w5300_get_regs(struct net_device *ndev,
 	u16 data;
 
 	regs->version = 1;
-	for (addr = 0; addr < W5300_REGS_LEN; addr += 2) {
-		switch (addr & 0x23f) {
-		case W5300_S0_TX_FIFO: /* cannot read TX_FIFO */
-		case W5300_S0_RX_FIFO: /* cannot read RX_FIFO */
-			data = 0xffff;
-			break;
-		default:
-			data = w5300_read(priv, addr);
-			break;
+
+	for (addr = 0; addr < W5300_REGS_LEN; addr += 2)
+	{
+		switch (addr & 0x23f)
+		{
+			case W5300_S0_TX_FIFO: /* cannot read TX_FIFO */
+			case W5300_S0_RX_FIFO: /* cannot read RX_FIFO */
+				data = 0xffff;
+				break;
+
+			default:
+				data = w5300_read(priv, addr);
+				break;
 		}
+
 		*buf++ = data >> 8;
 		*buf++ = data;
 	}
@@ -391,18 +407,28 @@ static int w5300_napi_poll(struct napi_struct *napi, int budget)
 	int rx_count;
 	u16 rx_len;
 
-	for (rx_count = 0; rx_count < budget; rx_count++) {
+	for (rx_count = 0; rx_count < budget; rx_count++)
+	{
 		u32 rx_fifo_len = w5300_read32(priv, W5300_S0_RX_RSR);
+
 		if (rx_fifo_len == 0)
+		{
 			break;
+		}
 
 		rx_len = w5300_read(priv, W5300_S0_RX_FIFO);
 
 		skb = netdev_alloc_skb_ip_align(ndev, roundup(rx_len, 2));
-		if (unlikely(!skb)) {
+
+		if (unlikely(!skb))
+		{
 			u32 i;
+
 			for (i = 0; i < rx_fifo_len; i += 2)
+			{
 				w5300_read(priv, W5300_S0_RX_FIFO);
+			}
+
 			ndev->stats.rx_dropped++;
 			return -ENOMEM;
 		}
@@ -416,7 +442,8 @@ static int w5300_napi_poll(struct napi_struct *napi, int budget)
 		ndev->stats.rx_bytes += rx_len;
 	}
 
-	if (rx_count < budget) {
+	if (rx_count < budget)
+	{
 		napi_complete(napi);
 		w5300_write(priv, W5300_IMR, IR_S0);
 		mmiowb();
@@ -431,18 +458,25 @@ static irqreturn_t w5300_interrupt(int irq, void *ndev_instance)
 	struct w5300_priv *priv = netdev_priv(ndev);
 
 	int ir = w5300_read(priv, W5300_S0_IR);
+
 	if (!ir)
+	{
 		return IRQ_NONE;
+	}
+
 	w5300_write(priv, W5300_S0_IR, ir);
 	mmiowb();
 
-	if (ir & S0_IR_SENDOK) {
+	if (ir & S0_IR_SENDOK)
+	{
 		netif_dbg(priv, tx_done, ndev, "tx done\n");
 		netif_wake_queue(ndev);
 	}
 
-	if (ir & S0_IR_RECV) {
-		if (napi_schedule_prep(&priv->napi)) {
+	if (ir & S0_IR_RECV)
+	{
+		if (napi_schedule_prep(&priv->napi))
+		{
 			w5300_write(priv, W5300_IMR, 0);
 			mmiowb();
 			__napi_schedule(&priv->napi);
@@ -457,11 +491,15 @@ static irqreturn_t w5300_detect_link(int irq, void *ndev_instance)
 	struct net_device *ndev = ndev_instance;
 	struct w5300_priv *priv = netdev_priv(ndev);
 
-	if (netif_running(ndev)) {
-		if (gpio_get_value(priv->link_gpio) != 0) {
+	if (netif_running(ndev))
+	{
+		if (gpio_get_value(priv->link_gpio) != 0)
+		{
 			netif_info(priv, link, ndev, "link is up\n");
 			netif_carrier_on(ndev);
-		} else {
+		}
+		else
+		{
 			netif_info(priv, link, ndev, "link is down\n");
 			netif_carrier_off(ndev);
 		}
@@ -475,7 +513,8 @@ static void w5300_set_rx_mode(struct net_device *ndev)
 	struct w5300_priv *priv = netdev_priv(ndev);
 	bool set_promisc = (ndev->flags & IFF_PROMISC) != 0;
 
-	if (priv->promisc != set_promisc) {
+	if (priv->promisc != set_promisc)
+	{
 		priv->promisc = set_promisc;
 		w5300_hw_start(priv);
 	}
@@ -487,7 +526,10 @@ static int w5300_set_macaddr(struct net_device *ndev, void *addr)
 	struct sockaddr *sock_addr = addr;
 
 	if (!is_valid_ether_addr(sock_addr->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
+
 	memcpy(ndev->dev_addr, sock_addr->sa_data, ETH_ALEN);
 	w5300_write_macaddr(priv);
 	return 0;
@@ -501,9 +543,13 @@ static int w5300_open(struct net_device *ndev)
 	w5300_hw_start(priv);
 	napi_enable(&priv->napi);
 	netif_start_queue(ndev);
+
 	if (!gpio_is_valid(priv->link_gpio) ||
-	    gpio_get_value(priv->link_gpio) != 0)
+		gpio_get_value(priv->link_gpio) != 0)
+	{
 		netif_carrier_on(ndev);
+	}
+
 	return 0;
 }
 
@@ -519,7 +565,8 @@ static int w5300_stop(struct net_device *ndev)
 	return 0;
 }
 
-static const struct ethtool_ops w5300_ethtool_ops = {
+static const struct ethtool_ops w5300_ethtool_ops =
+{
 	.get_drvinfo		= w5300_get_drvinfo,
 	.get_msglevel		= w5300_get_msglevel,
 	.set_msglevel		= w5300_set_msglevel,
@@ -528,7 +575,8 @@ static const struct ethtool_ops w5300_ethtool_ops = {
 	.get_regs		= w5300_get_regs,
 };
 
-static const struct net_device_ops w5300_netdev_ops = {
+static const struct net_device_ops w5300_netdev_ops =
+{
 	.ndo_open		= w5300_open,
 	.ndo_stop		= w5300_stop,
 	.ndo_start_xmit		= w5300_start_tx,
@@ -550,53 +598,83 @@ static int w5300_hw_probe(struct platform_device *pdev)
 	int irq;
 	int ret;
 
-	if (data && is_valid_ether_addr(data->mac_addr)) {
+	if (data && is_valid_ether_addr(data->mac_addr))
+	{
 		memcpy(ndev->dev_addr, data->mac_addr, ETH_ALEN);
-	} else {
+	}
+	else
+	{
 		eth_hw_addr_random(ndev);
 	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->base = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(priv->base))
+	{
 		return PTR_ERR(priv->base);
+	}
 
 	mem_size = resource_size(mem);
 
 	spin_lock_init(&priv->reg_lock);
 	priv->indirect = mem_size < W5300_BUS_DIRECT_SIZE;
-	if (priv->indirect) {
+
+	if (priv->indirect)
+	{
 		priv->read  = w5300_read_indirect;
 		priv->write = w5300_write_indirect;
-	} else {
+	}
+	else
+	{
 		priv->read  = w5300_read_direct;
 		priv->write = w5300_write_direct;
 	}
 
 	w5300_hw_reset(priv);
+
 	if (w5300_read(priv, W5300_IDR) != IDR_W5300)
+	{
 		return -ENODEV;
+	}
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
+
 	ret = request_irq(irq, w5300_interrupt,
-			  IRQ_TYPE_LEVEL_LOW, name, ndev);
+					  IRQ_TYPE_LEVEL_LOW, name, ndev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	priv->irq = irq;
 
 	priv->link_gpio = data ? data->link_gpio : -EINVAL;
-	if (gpio_is_valid(priv->link_gpio)) {
+
+	if (gpio_is_valid(priv->link_gpio))
+	{
 		char *link_name = devm_kzalloc(&pdev->dev, 16, GFP_KERNEL);
+
 		if (!link_name)
+		{
 			return -ENOMEM;
+		}
+
 		snprintf(link_name, 16, "%s-link", name);
 		priv->link_irq = gpio_to_irq(priv->link_gpio);
+
 		if (request_any_context_irq(priv->link_irq, w5300_detect_link,
-				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-				link_name, priv->ndev) < 0)
+									IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+									link_name, priv->ndev) < 0)
+		{
 			priv->link_gpio = -EINVAL;
+		}
 	}
 
 	netdev_info(ndev, "at 0x%llx irq %d\n", (u64)mem->start, irq);
@@ -610,8 +688,12 @@ static int w5300_probe(struct platform_device *pdev)
 	int err;
 
 	ndev = alloc_etherdev(sizeof(*priv));
+
 	if (!ndev)
+	{
 		return -ENOMEM;
+	}
+
 	SET_NETDEV_DEV(ndev, &pdev->dev);
 	platform_set_drvdata(pdev, ndev);
 	priv = netdev_priv(ndev);
@@ -628,12 +710,18 @@ static int w5300_probe(struct platform_device *pdev)
 	ndev->features |= NETIF_F_VLAN_CHALLENGED;
 
 	err = register_netdev(ndev);
+
 	if (err < 0)
+	{
 		goto err_register;
+	}
 
 	err = w5300_hw_probe(pdev);
+
 	if (err < 0)
+	{
 		goto err_hw_probe;
+	}
 
 	return 0;
 
@@ -651,8 +739,11 @@ static int w5300_remove(struct platform_device *pdev)
 
 	w5300_hw_reset(priv);
 	free_irq(priv->irq, ndev);
+
 	if (gpio_is_valid(priv->link_gpio))
+	{
 		free_irq(priv->link_irq, ndev);
+	}
 
 	unregister_netdev(ndev);
 	free_netdev(ndev);
@@ -666,12 +757,14 @@ static int w5300_suspend(struct device *dev)
 	struct net_device *ndev = platform_get_drvdata(pdev);
 	struct w5300_priv *priv = netdev_priv(ndev);
 
-	if (netif_running(ndev)) {
+	if (netif_running(ndev))
+	{
 		netif_carrier_off(ndev);
 		netif_device_detach(ndev);
 
 		w5300_hw_close(priv);
 	}
+
 	return 0;
 }
 
@@ -681,22 +774,28 @@ static int w5300_resume(struct device *dev)
 	struct net_device *ndev = platform_get_drvdata(pdev);
 	struct w5300_priv *priv = netdev_priv(ndev);
 
-	if (!netif_running(ndev)) {
+	if (!netif_running(ndev))
+	{
 		w5300_hw_reset(priv);
 		w5300_hw_start(priv);
 
 		netif_device_attach(ndev);
+
 		if (!gpio_is_valid(priv->link_gpio) ||
-		    gpio_get_value(priv->link_gpio) != 0)
+			gpio_get_value(priv->link_gpio) != 0)
+		{
 			netif_carrier_on(ndev);
+		}
 	}
+
 	return 0;
 }
 #endif /* CONFIG_PM_SLEEP */
 
 static SIMPLE_DEV_PM_OPS(w5300_pm_ops, w5300_suspend, w5300_resume);
 
-static struct platform_driver w5300_driver = {
+static struct platform_driver w5300_driver =
+{
 	.driver		= {
 		.name	= DRV_NAME,
 		.pm	= &w5300_pm_ops,

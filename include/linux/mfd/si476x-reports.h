@@ -75,7 +75,8 @@
  * @assi:       Adjacent Channel(+/- 200kHz) Strength Indicator
  * @usn:        Ultrasonic Noise Inticator in -DBFS
  */
-struct si476x_rsq_status_report {
+struct si476x_rsq_status_report
+{
 	__u8 multhint, multlint;
 	__u8 snrhint,  snrlint;
 	__u8 rssihint, rssilint;
@@ -116,7 +117,8 @@ struct si476x_rsq_status_report {
  * than the threshold set by ACF_
 
  */
-struct si476x_acf_status_report {
+struct si476x_acf_status_report
+{
 	__u8 blend_int;
 	__u8 hblend_int;
 	__u8 hicut_int;
@@ -131,7 +133,8 @@ struct si476x_acf_status_report {
 	__u8 stblend;
 } __packed;
 
-enum si476x_fmagc {
+enum si476x_fmagc
+{
 	SI476X_FMAGC_10K_OHM	= 0,
 	SI476X_FMAGC_800_OHM	= 1,
 	SI476X_FMAGC_400_OHM	= 2,
@@ -143,7 +146,8 @@ enum si476x_fmagc {
 	SI476X_FMAGC_6P25_OHM	= 128,
 };
 
-struct si476x_agc_status_report {
+struct si476x_agc_status_report
+{
 	__u8 mxhi;
 	__u8 mxlo;
 	__u8 lnahi;
@@ -154,7 +158,8 @@ struct si476x_agc_status_report {
 	__u8 fmwblang;
 } __packed;
 
-struct si476x_rds_blockcount_report {
+struct si476x_rds_blockcount_report
+{
 	__u16 expected;
 	__u16 received;
 	__u16 uncorrectable;

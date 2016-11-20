@@ -41,22 +41,22 @@ typedef u32	PI_UINT32;
 /* Define general structures */
 
 typedef struct							/* 64-bit counter */
-	{
+{
 	PI_UINT32  ms;
 	PI_UINT32  ls;
-	} PI_CNTR;
+} PI_CNTR;
 
 typedef struct							/* LAN address */
-	{
+{
 	PI_UINT32  lwrd_0;
 	PI_UINT32  lwrd_1;
-	} PI_LAN_ADDR;
+} PI_LAN_ADDR;
 
 typedef struct							/* Station ID address */
-	{
+{
 	PI_UINT32  octet_7_4;
 	PI_UINT32  octet_3_0;
-	} PI_STATION_ID;
+} PI_STATION_ID;
 
 
 /* Define general constants */
@@ -263,61 +263,61 @@ typedef struct							/* Station ID address */
 /* Commonly used structures */
 
 typedef struct									/* Item list */
-	{
+{
 	PI_UINT32  item_code;
 	PI_UINT32  value;
-	} PI_ITEM_LIST;
+} PI_ITEM_LIST;
 
 typedef struct									/* Response header */
-	{
+{
 	PI_UINT32  reserved;
 	PI_UINT32  cmd_type;
 	PI_UINT32  status;
-	} PI_RSP_HEADER;
+} PI_RSP_HEADER;
 
 
 /* Start Command */
 
 typedef struct
-	{
+{
 	PI_UINT32  cmd_type;
-	} PI_CMD_START_REQ;
+} PI_CMD_START_REQ;
 
 /* Start Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
-	} PI_CMD_START_RSP;
+} PI_CMD_START_RSP;
 
 /* Filters_Set Request */
 
 #define PI_CMD_FILTERS_SET_K_ITEMS_MAX  63		/* Fits in a 512 byte buffer */
 
 typedef struct
-	{
+{
 	PI_UINT32		cmd_type;
 	PI_ITEM_LIST	item[PI_CMD_FILTERS_SET_K_ITEMS_MAX];
-	} PI_CMD_FILTERS_SET_REQ;
+} PI_CMD_FILTERS_SET_REQ;
 
 /* Filters_Set Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
-	} PI_CMD_FILTERS_SET_RSP;
+} PI_CMD_FILTERS_SET_RSP;
 
 /* Filters_Get Request */
 
 typedef struct
-	{
+{
 	PI_UINT32		cmd_type;
-	} PI_CMD_FILTERS_GET_REQ;
+} PI_CMD_FILTERS_GET_REQ;
 
 /* Filters_Get Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
 	PI_UINT32		ind_group_prom;
 	PI_UINT32		group_prom;
@@ -326,7 +326,7 @@ typedef struct
 	PI_UINT32		smt_user;
 	PI_UINT32		reserved_all;
 	PI_UINT32		implementor_all;
-	} PI_CMD_FILTERS_GET_RSP;
+} PI_CMD_FILTERS_GET_RSP;
 
 
 /* Chars_Set Request */
@@ -334,22 +334,22 @@ typedef struct
 #define PI_CMD_CHARS_SET_K_ITEMS_MAX 42		/* Fits in a 512 byte buffer */
 
 typedef struct
-	{
+{
 	PI_UINT32		cmd_type;
 	struct							  		/* Item list */
-		{
+	{
 		PI_UINT32	item_code;
 		PI_UINT32	value;
 		PI_UINT32	item_index;
-		} item[PI_CMD_CHARS_SET_K_ITEMS_MAX];
-	} PI_CMD_CHARS_SET_REQ;
+	} item[PI_CMD_CHARS_SET_K_ITEMS_MAX];
+} PI_CMD_CHARS_SET_REQ;
 
 /* Chars_Set Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
-	} PI_CMD_CHARS_SET_RSP;
+} PI_CMD_CHARS_SET_RSP;
 
 
 /* SNMP_Set Request */
@@ -357,22 +357,22 @@ typedef struct
 #define PI_CMD_SNMP_SET_K_ITEMS_MAX 42	   	/* Fits in a 512 byte buffer */
 
 typedef struct
-	{
+{
 	PI_UINT32		cmd_type;
 	struct							   		/* Item list */
-		{
+	{
 		PI_UINT32	item_code;
 		PI_UINT32	value;
 		PI_UINT32	item_index;
-		} item[PI_CMD_SNMP_SET_K_ITEMS_MAX];
-	} PI_CMD_SNMP_SET_REQ;
+	} item[PI_CMD_SNMP_SET_K_ITEMS_MAX];
+} PI_CMD_SNMP_SET_REQ;
 
 /* SNMP_Set Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
-	} PI_CMD_SNMP_SET_RSP;
+} PI_CMD_SNMP_SET_RSP;
 
 
 /* SMT_MIB_Set Request */
@@ -380,34 +380,34 @@ typedef struct
 #define PI_CMD_SMT_MIB_SET_K_ITEMS_MAX 42	/* Max number of items */
 
 typedef struct
-	{
+{
 	PI_UINT32	cmd_type;
 	struct
-		{
+	{
 		PI_UINT32	item_code;
 		PI_UINT32	value;
 		PI_UINT32	item_index;
-		} item[PI_CMD_SMT_MIB_SET_K_ITEMS_MAX];
-	} PI_CMD_SMT_MIB_SET_REQ;
+	} item[PI_CMD_SMT_MIB_SET_K_ITEMS_MAX];
+} PI_CMD_SMT_MIB_SET_REQ;
 
 /* SMT_MIB_Set Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
-	} PI_CMD_SMT_MIB_SET_RSP;
+} PI_CMD_SMT_MIB_SET_RSP;
 
 /* SMT_MIB_Get Request */
 
 typedef struct
-	{
+{
 	PI_UINT32  cmd_type;
-	} PI_CMD_SMT_MIB_GET_REQ;
+} PI_CMD_SMT_MIB_GET_REQ;
 
 /* SMT_MIB_Get Response */
 
 typedef struct						  /* Refer to ANSI FDDI SMT Rev. 7.3 */
-	{
+{
 	PI_RSP_HEADER  header;
 
 	/* SMT GROUP */
@@ -499,7 +499,7 @@ typedef struct						  /* Refer to ANSI FDDI SMT Rev. 7.3 */
 
 	PI_CNTR	   		path_ring_latency;
 
-	} PI_CMD_SMT_MIB_GET_RSP;
+} PI_CMD_SMT_MIB_GET_RSP;
 
 
 /*
@@ -638,44 +638,44 @@ typedef struct						  /* Refer to ANSI FDDI SMT Rev. 7.3 */
 #define PI_CMD_ADDR_FILTER_K_SIZE   62
 
 typedef struct
-	{
+{
 	PI_UINT32	cmd_type;
 	PI_LAN_ADDR	entry[PI_CMD_ADDR_FILTER_K_SIZE];
-	} PI_CMD_ADDR_FILTER_SET_REQ;
+} PI_CMD_ADDR_FILTER_SET_REQ;
 
 /* Addr_Filter_Set Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
-	} PI_CMD_ADDR_FILTER_SET_RSP;
+} PI_CMD_ADDR_FILTER_SET_RSP;
 
 /* Addr_Filter_Get Request */
 
 typedef struct
-	{
+{
 	PI_UINT32	cmd_type;
-	} PI_CMD_ADDR_FILTER_GET_REQ;
+} PI_CMD_ADDR_FILTER_GET_REQ;
 
 /* Addr_Filter_Get Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
 	PI_LAN_ADDR		entry[PI_CMD_ADDR_FILTER_K_SIZE];
-	} PI_CMD_ADDR_FILTER_GET_RSP;
+} PI_CMD_ADDR_FILTER_GET_RSP;
 
 /* Status_Chars_Get Request */
 
 typedef struct
-	{
+{
 	PI_UINT32  cmd_type;
-	} PI_CMD_STATUS_CHARS_GET_REQ;
+} PI_CMD_STATUS_CHARS_GET_REQ;
 
 /* Status_Chars_Get Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
 	PI_STATION_ID   station_id;						/* Station */
 	PI_UINT32		station_type;
@@ -717,19 +717,19 @@ typedef struct
 	PI_UINT32		mop_device_type;
 	PI_UINT32		phy_led[PI_PHY_K_MAX];
 	PI_UINT32		flush_time;
-	} PI_CMD_STATUS_CHARS_GET_RSP;
+} PI_CMD_STATUS_CHARS_GET_RSP;
 
 /* FDDI_MIB_Get Request */
 
 typedef struct
-	{
+{
 	PI_UINT32  cmd_type;
-	} PI_CMD_FDDI_MIB_GET_REQ;
+} PI_CMD_FDDI_MIB_GET_REQ;
 
 /* FDDI_MIB_Get Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
 
 	/* SMT GROUP */
@@ -822,19 +822,19 @@ typedef struct
 
 	/* CHIP SET GROUP => Does not need to be implemented */
 
-	} PI_CMD_FDDI_MIB_GET_RSP;
+} PI_CMD_FDDI_MIB_GET_RSP;
 
 /* DEC_Ext_MIB_Get Request */
 
 typedef struct
-	{
+{
 	PI_UINT32  cmd_type;
-	} PI_CMD_DEC_EXT_MIB_GET_REQ;
+} PI_CMD_DEC_EXT_MIB_GET_REQ;
 
 /* DEC_Ext_MIB_Get (efddi and efdx groups only) Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
 
 	/* SMT GROUP */
@@ -863,10 +863,10 @@ typedef struct
 	PI_UINT32		efdx_op;					/* Valid only in SMT 7.3 */
 	PI_UINT32		efdx_state;					/* Valid only in SMT 7.3 */
 
-	} PI_CMD_DEC_EXT_MIB_GET_RSP;
+} PI_CMD_DEC_EXT_MIB_GET_RSP;
 
 typedef struct
-	{
+{
 	PI_CNTR		traces_rcvd;					/* Station */
 	PI_CNTR		frame_cnt;						/* Link */
 	PI_CNTR		error_cnt;
@@ -904,62 +904,62 @@ typedef struct
 	PI_CNTR		copied_cnt;			 			/* Valid only if using SMT 7.3 */
 	PI_CNTR		transmit_cnt;					/* Valid only if using SMT 7.3 */
 	PI_CNTR		tokens;
-	} PI_CNTR_BLK;
+} PI_CNTR_BLK;
 
 /* Counters_Get Request */
 
 typedef struct
-	{
+{
 	PI_UINT32  cmd_type;
-	} PI_CMD_CNTRS_GET_REQ;
+} PI_CMD_CNTRS_GET_REQ;
 
 /* Counters_Get Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
 	PI_CNTR		time_since_reset;
 	PI_CNTR_BLK		cntrs;
-	} PI_CMD_CNTRS_GET_RSP;
+} PI_CMD_CNTRS_GET_RSP;
 
 /* Counters_Set Request */
 
 typedef struct
-	{
+{
 	PI_UINT32	cmd_type;
 	PI_CNTR_BLK	cntrs;
-	} PI_CMD_CNTRS_SET_REQ;
+} PI_CMD_CNTRS_SET_REQ;
 
 /* Counters_Set Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
-	} PI_CMD_CNTRS_SET_RSP;
+} PI_CMD_CNTRS_SET_RSP;
 
 /* Error_Log_Clear Request */
 
 typedef struct
-	{
+{
 	PI_UINT32  cmd_type;
-	} PI_CMD_ERROR_LOG_CLEAR_REQ;
+} PI_CMD_ERROR_LOG_CLEAR_REQ;
 
 /* Error_Log_Clear Response */
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
-	} PI_CMD_ERROR_LOG_CLEAR_RSP;
+} PI_CMD_ERROR_LOG_CLEAR_RSP;
 
 /* Error_Log_Get Request */
 
 #define PI_LOG_ENTRY_K_INDEX_MIN	0		/* Minimum index for entry */
 
 typedef struct
-	{
+{
 	PI_UINT32  cmd_type;
 	PI_UINT32  entry_index;
-	} PI_CMD_ERROR_LOG_GET_REQ;
+} PI_CMD_ERROR_LOG_GET_REQ;
 
 /* Error_Log_Get Response */
 
@@ -967,18 +967,18 @@ typedef struct
 #define PI_K_LOG_DIAG_SIZE	 		6		/* Max number of diag longwords */
 
 typedef struct
-	{
+{
 	struct
-		{
+	{
 		PI_UINT32	fru_imp_mask;
 		PI_UINT32	test_id;
 		PI_UINT32	reserved[PI_K_LOG_DIAG_SIZE];
-		} diag;
+	} diag;
 	PI_UINT32		fw[PI_K_LOG_FW_SIZE];
-	} PI_LOG_ENTRY;
+} PI_LOG_ENTRY;
 
 typedef struct
-	{
+{
 	PI_RSP_HEADER   header;
 	PI_UINT32		event_status;
 	PI_UINT32		caller_id;
@@ -986,7 +986,7 @@ typedef struct
 	PI_UINT32		timestamp_h;
 	PI_UINT32		write_count;
 	PI_LOG_ENTRY	entry_info;
-	} PI_CMD_ERROR_LOG_GET_RSP;
+} PI_CMD_ERROR_LOG_GET_RSP;
 
 /* Define error log related constants and types.					*/
 /*   Not all of the caller id's can occur.  The only ones currently */
@@ -1010,7 +1010,7 @@ typedef struct
  */
 
 typedef union
-	{
+{
 	PI_UINT32					cmd_type;
 	PI_CMD_START_REQ			start;
 	PI_CMD_FILTERS_SET_REQ		filter_set;
@@ -1029,10 +1029,10 @@ typedef union
 	PI_CMD_SMT_MIB_SET_REQ		smt_mib_set;
 	PI_CMD_SMT_MIB_GET_REQ		smt_mib_get;
 	char						pad[PI_CMD_REQ_K_SIZE_MAX];
-	} PI_DMA_CMD_REQ;
+} PI_DMA_CMD_REQ;
 
 typedef union
-	{
+{
 	PI_RSP_HEADER				header;
 	PI_CMD_START_RSP			start;
 	PI_CMD_FILTERS_SET_RSP		filter_set;
@@ -1051,19 +1051,19 @@ typedef union
 	PI_CMD_SMT_MIB_SET_RSP		smt_mib_set;
 	PI_CMD_SMT_MIB_GET_RSP		smt_mib_get;
 	char						pad[PI_CMD_RSP_K_SIZE_MAX];
-	} PI_DMA_CMD_RSP;
+} PI_DMA_CMD_RSP;
 
 typedef union
-	{
+{
 	PI_DMA_CMD_REQ	request;
 	PI_DMA_CMD_RSP	response;
-	} PI_DMA_CMD_BUFFER;
+} PI_DMA_CMD_BUFFER;
 
 
 /* Define format of Consumer Block (resident in host memory) */
 
 typedef struct
-	{
+{
 	volatile PI_UINT32	xmt_rcv_data;
 	volatile PI_UINT32	reserved_1;
 	volatile PI_UINT32	smt_host;
@@ -1074,7 +1074,7 @@ typedef struct
 	volatile PI_UINT32	reserved_4;
 	volatile PI_UINT32	cmd_req;
 	volatile PI_UINT32	reserved_5;
-	} PI_CONSUMER_BLOCK;
+} PI_CONSUMER_BLOCK;
 
 #define PI_CONS_M_RCV_INDEX			0x000000FF
 #define PI_CONS_M_XMT_INDEX			0x00FF0000
@@ -1106,10 +1106,10 @@ typedef struct
 /*   the MBZ definition is left intact.									  	 */
 
 typedef struct
-	{
+{
 	PI_UINT32	long_0;
 	PI_UINT32	long_1;
-	} PI_RCV_DESCR;
+} PI_RCV_DESCR;
 
 #define	PI_RCV_DESCR_M_SOP	  		0x80000000
 #define PI_RCV_DESCR_M_SEG_LEN_LO 	0x60000000
@@ -1130,10 +1130,10 @@ typedef struct
 /* Define the format of a transmit descriptor (Xmt Data, Cmd Req) */
 
 typedef struct
-	{
+{
 	PI_UINT32	long_0;
 	PI_UINT32	long_1;
-	} PI_XMT_DESCR;
+} PI_XMT_DESCR;
 
 #define	PI_XMT_DESCR_M_SOP			0x80000000
 #define PI_XMT_DESCR_M_EOP			0x40000000
@@ -1157,14 +1157,14 @@ typedef struct
 #define PI_CMD_REQ_K_NUM_ENTRIES			16
 
 typedef struct
-	{
+{
 	PI_RCV_DESCR  rcv_data[PI_RCV_DATA_K_NUM_ENTRIES];
 	PI_XMT_DESCR  xmt_data[PI_XMT_DATA_K_NUM_ENTRIES];
 	PI_RCV_DESCR  smt_host[PI_SMT_HOST_K_NUM_ENTRIES];
 	PI_RCV_DESCR  unsol[PI_UNSOL_K_NUM_ENTRIES];
 	PI_RCV_DESCR  cmd_rsp[PI_CMD_RSP_K_NUM_ENTRIES];
 	PI_XMT_DESCR  cmd_req[PI_CMD_REQ_K_NUM_ENTRIES];
-	} PI_DESCR_BLOCK;
+} PI_DESCR_BLOCK;
 
 /* Define Port Registers - offsets from PDQ Base address */
 
@@ -1351,58 +1351,58 @@ typedef struct
 /* Little endian format of Type 1 Producer register */
 
 typedef union
-	{
+{
 	PI_UINT32	lword;
 	struct
-		{
+	{
 		PI_UINT8	prod;
 		PI_UINT8	comp;
 		PI_UINT8	mbz_1;
 		PI_UINT8	mbz_2;
-		} index;
-	} PI_TYPE_1_PROD_REG;
+	} index;
+} PI_TYPE_1_PROD_REG;
 
 /* Little endian format of Type 2 Producer register */
 
 typedef union
-	{
+{
 	PI_UINT32	lword;
 	struct
-		{
+	{
 		PI_UINT8	rcv_prod;
 		PI_UINT8	xmt_prod;
 		PI_UINT8	rcv_comp;
 		PI_UINT8	xmt_comp;
-		} index;
-	} PI_TYPE_2_PROD_REG;
+	} index;
+} PI_TYPE_2_PROD_REG;
 
 /* Little endian format of Type 1 Consumer Block longword */
 
 typedef union
-	{
+{
 	PI_UINT32	lword;
 	struct
-		{
+	{
 		PI_UINT8	cons;
 		PI_UINT8	res0;
 		PI_UINT8	res1;
 		PI_UINT8	res2;
-		} index;
-	} PI_TYPE_1_CONSUMER;
+	} index;
+} PI_TYPE_1_CONSUMER;
 
 /* Little endian format of Type 2 Consumer Block longword */
 
 typedef union
-	{
+{
 	PI_UINT32	lword;
 	struct
-		{
+	{
 		PI_UINT8	rcv_cons;
 		PI_UINT8	res0;
 		PI_UINT8	xmt_cons;
 		PI_UINT8	res1;
-		} index;
-	} PI_TYPE_2_CONSUMER;
+	} index;
+} PI_TYPE_2_CONSUMER;
 
 /* Define swapping required by DMA transfers.  */
 #define PI_PDATA_A_INIT_M_BSWAP_INIT	\
@@ -1413,58 +1413,58 @@ typedef union
 /* Big endian format of Type 1 Producer register */
 
 typedef union
-	{
+{
 	PI_UINT32	lword;
 	struct
-		{
+	{
 		PI_UINT8	mbz_2;
 		PI_UINT8	mbz_1;
 		PI_UINT8	comp;
 		PI_UINT8	prod;
-		} index;
-	} PI_TYPE_1_PROD_REG;
+	} index;
+} PI_TYPE_1_PROD_REG;
 
 /* Big endian format of Type 2 Producer register */
 
 typedef union
-	{
+{
 	PI_UINT32	lword;
 	struct
-		{
+	{
 		PI_UINT8	xmt_comp;
 		PI_UINT8	rcv_comp;
 		PI_UINT8	xmt_prod;
 		PI_UINT8	rcv_prod;
-		} index;
-	} PI_TYPE_2_PROD_REG;
+	} index;
+} PI_TYPE_2_PROD_REG;
 
 /* Big endian format of Type 1 Consumer Block longword */
 
 typedef union
-	{
+{
 	PI_UINT32	lword;
 	struct
-		{
+	{
 		PI_UINT8	res2;
 		PI_UINT8	res1;
 		PI_UINT8	res0;
 		PI_UINT8	cons;
-		} index;
-	} PI_TYPE_1_CONSUMER;
+	} index;
+} PI_TYPE_1_CONSUMER;
 
 /* Big endian format of Type 2 Consumer Block longword */
 
 typedef union
-	{
+{
 	PI_UINT32	lword;
 	struct
-		{
+	{
 		PI_UINT8	res1;
 		PI_UINT8	xmt_cons;
 		PI_UINT8	res0;
 		PI_UINT8	rcv_cons;
-		} index;
-	} PI_TYPE_2_CONSUMER;
+	} index;
+} PI_TYPE_2_CONSUMER;
 
 /* Define swapping required by DMA transfers.  */
 #define PI_PDATA_A_INIT_M_BSWAP_INIT	\
@@ -1695,9 +1695,9 @@ typedef union
 /* Only execute special print call when debug driver was built */
 
 #ifdef DEFXX_DEBUG
-#define DBG_printk(args...) printk(args)
+	#define DBG_printk(args...) printk(args)
 #else
-#define DBG_printk(args...)
+	#define DBG_printk(args...)
 #endif
 
 /* Define constants for masking/unmasking interrupts */
@@ -1708,12 +1708,12 @@ typedef union
 /* Define structure for driver transmit descriptor block */
 
 typedef struct
-	{
+{
 	struct sk_buff	*p_skb;					/* ptr to skb */
-	} XMT_DRIVER_DESCR;
+} XMT_DRIVER_DESCR;
 
 typedef struct DFX_board_tag
-	{
+{
 	/* Keep virtual and physical pointers to locked, physically contiguous memory */
 
 	char				*kmalloced;					/* pci_free_consistent this on unload */
@@ -1738,9 +1738,9 @@ typedef struct DFX_board_tag
 
 	/* Storage for unicast and multicast address entries in adapter CAM */
 
-	u8				uc_table[1*FDDI_K_ALEN];
+	u8				uc_table[1 * FDDI_K_ALEN];
 	u32				uc_count;						/* number of unicast addresses */
-	u8				mc_table[PI_CMD_ADDR_FILTER_K_SIZE*FDDI_K_ALEN];
+	u8				mc_table[PI_CMD_ADDR_FILTER_K_SIZE * FDDI_K_ALEN];
 	u32				mc_count;						/* number of multicast addresses */
 
 	/* Current packet filter settings */
@@ -1771,7 +1771,8 @@ typedef struct DFX_board_tag
 	/* Store device, bus-specific, and parameter information for this adapter */
 
 	struct net_device		*dev;						/* pointer to device structure */
-	union {
+	union
+	{
 		void __iomem *mem;
 		int port;
 	} base;										/* base address */
@@ -1798,6 +1799,6 @@ typedef struct DFX_board_tag
 	u32				xmt_length_errors;
 	u32				xmt_total_frames;
 	u32				xmt_total_bytes;
-	} DFX_board_t;
+} DFX_board_t;
 
 #endif	/* #ifndef _DEFXX_H_ */

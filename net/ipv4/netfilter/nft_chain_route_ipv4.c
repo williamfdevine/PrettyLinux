@@ -22,8 +22,8 @@
 #include <net/ip.h>
 
 static unsigned int nf_route_table_hook(void *priv,
-					struct sk_buff *skb,
-					const struct nf_hook_state *state)
+										struct sk_buff *skb,
+										const struct nf_hook_state *state)
 {
 	unsigned int ret;
 	struct nft_pktinfo pkt;
@@ -35,8 +35,10 @@ static unsigned int nf_route_table_hook(void *priv,
 
 	/* root is playing with raw sockets. */
 	if (skb->len < sizeof(struct iphdr) ||
-	    ip_hdrlen(skb) < sizeof(struct iphdr))
+		ip_hdrlen(skb) < sizeof(struct iphdr))
+	{
 		return NF_ACCEPT;
+	}
 
 	nft_set_pktinfo_ipv4(&pkt, skb, state);
 
@@ -47,22 +49,30 @@ static unsigned int nf_route_table_hook(void *priv,
 	tos = iph->tos;
 
 	ret = nft_do_chain(&pkt, priv);
-	if (ret != NF_DROP && ret != NF_STOLEN) {
+
+	if (ret != NF_DROP && ret != NF_STOLEN)
+	{
 		iph = ip_hdr(skb);
 
 		if (iph->saddr != saddr ||
-		    iph->daddr != daddr ||
-		    skb->mark != mark ||
-		    iph->tos != tos) {
+			iph->daddr != daddr ||
+			skb->mark != mark ||
+			iph->tos != tos)
+		{
 			err = ip_route_me_harder(state->net, skb, RTN_UNSPEC);
+
 			if (err < 0)
+			{
 				ret = NF_DROP_ERR(err);
+			}
 		}
 	}
+
 	return ret;
 }
 
-static const struct nf_chain_type nft_chain_route_ipv4 = {
+static const struct nf_chain_type nft_chain_route_ipv4 =
+{
 	.name		= "route",
 	.type		= NFT_CHAIN_T_ROUTE,
 	.family		= NFPROTO_IPV4,

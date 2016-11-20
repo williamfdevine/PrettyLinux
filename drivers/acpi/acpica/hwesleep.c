@@ -78,9 +78,11 @@ void acpi_hw_execute_sleep_method(char *method_pathname, u32 integer_argument)
 	arg.integer.value = (u64)integer_argument;
 
 	status = acpi_evaluate_object(NULL, method_pathname, &arg_list, NULL);
-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+
+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "While executing method %s",
-				method_pathname));
+						method_pathname));
 	}
 
 	return_VOID;
@@ -111,15 +113,18 @@ acpi_status acpi_hw_extended_sleep(u8 sleep_state)
 	/* Extended sleep registers must be valid */
 
 	if (!acpi_gbl_FADT.sleep_control.address ||
-	    !acpi_gbl_FADT.sleep_status.address) {
+		!acpi_gbl_FADT.sleep_status.address)
+	{
 		return_ACPI_STATUS(AE_NOT_EXIST);
 	}
 
 	/* Clear wake status (WAK_STS) */
 
 	status = acpi_write((u64)ACPI_X_WAKE_STATUS,
-			    &acpi_gbl_FADT.sleep_status);
-	if (ACPI_FAILURE(status)) {
+						&acpi_gbl_FADT.sleep_status);
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
@@ -130,12 +135,18 @@ acpi_status acpi_hw_extended_sleep(u8 sleep_state)
 	ACPI_FLUSH_CPU_CACHE();
 
 	status = acpi_os_prepare_extended_sleep(sleep_state,
-						acpi_gbl_sleep_type_a,
-						acpi_gbl_sleep_type_b);
+											acpi_gbl_sleep_type_a,
+											acpi_gbl_sleep_type_b);
+
 	if (ACPI_SKIP(status))
+	{
 		return_ACPI_STATUS(AE_OK);
+	}
+
 	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
+	}
 
 	/*
 	 * Set the SLP_TYP and SLP_EN bits.
@@ -144,27 +155,33 @@ acpi_status acpi_hw_extended_sleep(u8 sleep_state)
 	 * (acpi_gbl_sleep_type_a) - As per ACPI specification.
 	 */
 	ACPI_DEBUG_PRINT((ACPI_DB_INIT,
-			  "Entering sleep state [S%u]\n", sleep_state));
+					  "Entering sleep state [S%u]\n", sleep_state));
 
 	sleep_type_value =
-	    ((acpi_gbl_sleep_type_a << ACPI_X_SLEEP_TYPE_POSITION) &
-	     ACPI_X_SLEEP_TYPE_MASK);
+		((acpi_gbl_sleep_type_a << ACPI_X_SLEEP_TYPE_POSITION) &
+		 ACPI_X_SLEEP_TYPE_MASK);
 
 	status = acpi_write((u64)(sleep_type_value | ACPI_X_SLEEP_ENABLE),
-			    &acpi_gbl_FADT.sleep_control);
-	if (ACPI_FAILURE(status)) {
+						&acpi_gbl_FADT.sleep_control);
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	/* Wait for transition back to Working State */
 
-	do {
+	do
+	{
 		status = acpi_read(&sleep_status, &acpi_gbl_FADT.sleep_status);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return_ACPI_STATUS(status);
 		}
 
-	} while (!(((u8)sleep_status) & ACPI_X_WAKE_STATUS));
+	}
+	while (!(((u8)sleep_status) & ACPI_X_WAKE_STATUS));
 
 	return_ACPI_STATUS(AE_OK);
 }
@@ -190,15 +207,17 @@ acpi_status acpi_hw_extended_wake_prep(u8 sleep_state)
 	ACPI_FUNCTION_TRACE(hw_extended_wake_prep);
 
 	status = acpi_get_sleep_type_data(ACPI_STATE_S0,
-					  &acpi_gbl_sleep_type_a,
-					  &acpi_gbl_sleep_type_b);
-	if (ACPI_SUCCESS(status)) {
+									  &acpi_gbl_sleep_type_a,
+									  &acpi_gbl_sleep_type_b);
+
+	if (ACPI_SUCCESS(status))
+	{
 		sleep_type_value =
-		    ((acpi_gbl_sleep_type_a << ACPI_X_SLEEP_TYPE_POSITION) &
-		     ACPI_X_SLEEP_TYPE_MASK);
+			((acpi_gbl_sleep_type_a << ACPI_X_SLEEP_TYPE_POSITION) &
+			 ACPI_X_SLEEP_TYPE_MASK);
 
 		(void)acpi_write((u64)(sleep_type_value | ACPI_X_SLEEP_ENABLE),
-				 &acpi_gbl_FADT.sleep_control);
+						 &acpi_gbl_FADT.sleep_control);
 	}
 
 	return_ACPI_STATUS(AE_OK);

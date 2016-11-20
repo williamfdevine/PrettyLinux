@@ -7,8 +7,10 @@
 struct blk_mq_tags;
 struct blk_flush_queue;
 
-struct blk_mq_hw_ctx {
-	struct {
+struct blk_mq_hw_ctx
+{
+	struct
+	{
 		spinlock_t		lock;
 		struct list_head	dispatch;
 		unsigned long		state;		/* BLK_MQ_S_* flags */
@@ -55,7 +57,8 @@ struct blk_mq_hw_ctx {
 	unsigned long		poll_success;
 };
 
-struct blk_mq_tag_set {
+struct blk_mq_tag_set
+{
 	unsigned int		*mq_map;
 	struct blk_mq_ops	*ops;
 	unsigned int		nr_hw_queues;
@@ -73,7 +76,8 @@ struct blk_mq_tag_set {
 	struct list_head	tag_list;
 };
 
-struct blk_mq_queue_data {
+struct blk_mq_queue_data
+{
 	struct request *rq;
 	struct list_head *list;
 	bool last;
@@ -84,19 +88,20 @@ typedef enum blk_eh_timer_return (timeout_fn)(struct request *, bool);
 typedef int (init_hctx_fn)(struct blk_mq_hw_ctx *, void *, unsigned int);
 typedef void (exit_hctx_fn)(struct blk_mq_hw_ctx *, unsigned int);
 typedef int (init_request_fn)(void *, struct request *, unsigned int,
-		unsigned int, unsigned int);
+							  unsigned int, unsigned int);
 typedef void (exit_request_fn)(void *, struct request *, unsigned int,
-		unsigned int);
+							   unsigned int);
 typedef int (reinit_request_fn)(void *, struct request *);
 
 typedef void (busy_iter_fn)(struct blk_mq_hw_ctx *, struct request *, void *,
-		bool);
+							bool);
 typedef void (busy_tag_iter_fn)(struct request *, void *, bool);
 typedef int (poll_fn)(struct blk_mq_hw_ctx *, unsigned int);
 typedef int (map_queues_fn)(struct blk_mq_tag_set *set);
 
 
-struct blk_mq_ops {
+struct blk_mq_ops
+{
 	/*
 	 * Queue request
 	 */
@@ -138,7 +143,8 @@ struct blk_mq_ops {
 	map_queues_fn		*map_queues;
 };
 
-enum {
+enum
+{
 	BLK_MQ_RQ_QUEUE_OK	= 0,	/* queued fine */
 	BLK_MQ_RQ_QUEUE_BUSY	= 1,	/* requeue IO for later */
 	BLK_MQ_RQ_QUEUE_ERROR	= 2,	/* end IO with error */
@@ -160,14 +166,14 @@ enum {
 };
 #define BLK_MQ_FLAG_TO_ALLOC_POLICY(flags) \
 	((flags >> BLK_MQ_F_ALLOC_POLICY_START_BIT) & \
-		((1 << BLK_MQ_F_ALLOC_POLICY_BITS) - 1))
+	 ((1 << BLK_MQ_F_ALLOC_POLICY_BITS) - 1))
 #define BLK_ALLOC_POLICY_TO_MQ_FLAG(policy) \
 	((policy & ((1 << BLK_MQ_F_ALLOC_POLICY_BITS) - 1)) \
-		<< BLK_MQ_F_ALLOC_POLICY_START_BIT)
+	 << BLK_MQ_F_ALLOC_POLICY_START_BIT)
 
 struct request_queue *blk_mq_init_queue(struct blk_mq_tag_set *);
 struct request_queue *blk_mq_init_allocated_queue(struct blk_mq_tag_set *set,
-						  struct request_queue *q);
+		struct request_queue *q);
 int blk_mq_register_dev(struct device *, struct request_queue *);
 void blk_mq_unregister_dev(struct device *, struct request_queue *);
 
@@ -181,18 +187,20 @@ void blk_mq_free_request(struct request *rq);
 void blk_mq_free_hctx_request(struct blk_mq_hw_ctx *, struct request *rq);
 bool blk_mq_can_queue(struct blk_mq_hw_ctx *);
 
-enum {
+enum
+{
 	BLK_MQ_REQ_NOWAIT	= (1 << 0), /* return when out of requests */
 	BLK_MQ_REQ_RESERVED	= (1 << 1), /* allocate from reserved pool */
 };
 
 struct request *blk_mq_alloc_request(struct request_queue *q, int rw,
-		unsigned int flags);
+									 unsigned int flags);
 struct request *blk_mq_alloc_request_hctx(struct request_queue *q, int op,
 		unsigned int flags, unsigned int hctx_idx);
 struct request *blk_mq_tag_to_rq(struct blk_mq_tags *tags, unsigned int tag);
 
-enum {
+enum
+{
 	BLK_MQ_UNIQUE_TAG_BITS = 16,
 	BLK_MQ_UNIQUE_TAG_MASK = (1 << BLK_MQ_UNIQUE_TAG_BITS) - 1,
 };
@@ -231,7 +239,7 @@ void blk_mq_start_stopped_hw_queues(struct request_queue *q, bool async);
 void blk_mq_run_hw_queues(struct request_queue *q, bool async);
 void blk_mq_delay_queue(struct blk_mq_hw_ctx *hctx, unsigned long msecs);
 void blk_mq_tagset_busy_iter(struct blk_mq_tag_set *tagset,
-		busy_tag_iter_fn *fn, void *priv);
+							 busy_tag_iter_fn *fn, void *priv);
 void blk_mq_freeze_queue(struct request_queue *q);
 void blk_mq_unfreeze_queue(struct request_queue *q);
 void blk_mq_freeze_queue_start(struct request_queue *q);
@@ -254,10 +262,10 @@ static inline void *blk_mq_rq_to_pdu(struct request *rq)
 
 #define queue_for_each_hw_ctx(q, hctx, i)				\
 	for ((i) = 0; (i) < (q)->nr_hw_queues &&			\
-	     ({ hctx = (q)->queue_hw_ctx[i]; 1; }); (i)++)
+	({ hctx = (q)->queue_hw_ctx[i]; 1; }); (i)++)
 
 #define hctx_for_each_ctx(hctx, ctx, i)					\
 	for ((i) = 0; (i) < (hctx)->nr_ctx &&				\
-	     ({ ctx = (hctx)->ctxs[(i)]; 1; }); (i)++)
+	({ ctx = (hctx)->ctxs[(i)]; 1; }); (i)++)
 
 #endif

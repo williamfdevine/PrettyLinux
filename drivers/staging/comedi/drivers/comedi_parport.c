@@ -79,12 +79,14 @@
 #define PARPORT_CTRL_BIDIR_ENA	BIT(5)
 
 static int parport_data_reg_insn_bits(struct comedi_device *dev,
-				      struct comedi_subdevice *s,
-				      struct comedi_insn *insn,
-				      unsigned int *data)
+									  struct comedi_subdevice *s,
+									  struct comedi_insn *insn,
+									  unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		outb(s->state, dev->iobase + PARPORT_DATA_REG);
+	}
 
 	data[1] = inb(dev->iobase + PARPORT_DATA_REG);
 
@@ -92,31 +94,40 @@ static int parport_data_reg_insn_bits(struct comedi_device *dev,
 }
 
 static int parport_data_reg_insn_config(struct comedi_device *dev,
-					struct comedi_subdevice *s,
-					struct comedi_insn *insn,
-					unsigned int *data)
+										struct comedi_subdevice *s,
+										struct comedi_insn *insn,
+										unsigned int *data)
 {
 	unsigned int ctrl;
 	int ret;
 
 	ret = comedi_dio_insn_config(dev, s, insn, data, 0xff);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ctrl = inb(dev->iobase + PARPORT_CTRL_REG);
+
 	if (s->io_bits)
+	{
 		ctrl &= ~PARPORT_CTRL_BIDIR_ENA;
+	}
 	else
+	{
 		ctrl |= PARPORT_CTRL_BIDIR_ENA;
+	}
+
 	outb(ctrl, dev->iobase + PARPORT_CTRL_REG);
 
 	return insn->n;
 }
 
 static int parport_status_reg_insn_bits(struct comedi_device *dev,
-					struct comedi_subdevice *s,
-					struct comedi_insn *insn,
-					unsigned int *data)
+										struct comedi_subdevice *s,
+										struct comedi_insn *insn,
+										unsigned int *data)
 {
 	data[1] = inb(dev->iobase + PARPORT_STATUS_REG) >> 3;
 
@@ -124,13 +135,14 @@ static int parport_status_reg_insn_bits(struct comedi_device *dev,
 }
 
 static int parport_ctrl_reg_insn_bits(struct comedi_device *dev,
-				      struct comedi_subdevice *s,
-				      struct comedi_insn *insn,
-				      unsigned int *data)
+									  struct comedi_subdevice *s,
+									  struct comedi_insn *insn,
+									  unsigned int *data)
 {
 	unsigned int ctrl;
 
-	if (comedi_dio_update_state(s, data)) {
+	if (comedi_dio_update_state(s, data))
+	{
 		ctrl = inb(dev->iobase + PARPORT_CTRL_REG);
 		ctrl &= (PARPORT_CTRL_IRQ_ENA | PARPORT_CTRL_BIDIR_ENA);
 		ctrl |= s->state;
@@ -143,17 +155,17 @@ static int parport_ctrl_reg_insn_bits(struct comedi_device *dev,
 }
 
 static int parport_intr_insn_bits(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	data[1] = 0;
 	return insn->n;
 }
 
 static int parport_intr_cmdtest(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_cmd *cmd)
+								struct comedi_subdevice *s,
+								struct comedi_cmd *cmd)
 {
 	int err = 0;
 
@@ -166,7 +178,9 @@ static int parport_intr_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_src(&cmd->stop_src, TRIG_NONE);
 
 	if (err)
+	{
 		return 1;
+	}
 
 	/* Step 2a : make sure trigger sources are unique */
 	/* Step 2b : and mutually compatible */
@@ -177,11 +191,13 @@ static int parport_intr_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_arg_is(&cmd->scan_begin_arg, 0);
 	err |= comedi_check_trigger_arg_is(&cmd->convert_arg, 0);
 	err |= comedi_check_trigger_arg_is(&cmd->scan_end_arg,
-					   cmd->chanlist_len);
+									   cmd->chanlist_len);
 	err |= comedi_check_trigger_arg_is(&cmd->stop_arg, 0);
 
 	if (err)
+	{
 		return 3;
+	}
 
 	/* Step 4: fix up any arguments */
 
@@ -191,7 +207,7 @@ static int parport_intr_cmdtest(struct comedi_device *dev,
 }
 
 static int parport_intr_cmd(struct comedi_device *dev,
-			    struct comedi_subdevice *s)
+							struct comedi_subdevice *s)
 {
 	unsigned int ctrl;
 
@@ -203,7 +219,7 @@ static int parport_intr_cmd(struct comedi_device *dev,
 }
 
 static int parport_intr_cancel(struct comedi_device *dev,
-			       struct comedi_subdevice *s)
+							   struct comedi_subdevice *s)
 {
 	unsigned int ctrl;
 
@@ -221,8 +237,11 @@ static irqreturn_t parport_interrupt(int irq, void *d)
 	unsigned int ctrl;
 
 	ctrl = inb(dev->iobase + PARPORT_CTRL_REG);
+
 	if (!(ctrl & PARPORT_CTRL_IRQ_ENA))
+	{
 		return IRQ_NONE;
+	}
 
 	comedi_buf_write_samples(s, &s->state, 1);
 	comedi_handle_events(dev, s);
@@ -231,25 +250,35 @@ static irqreturn_t parport_interrupt(int irq, void *d)
 }
 
 static int parport_attach(struct comedi_device *dev,
-			  struct comedi_devconfig *it)
+						  struct comedi_devconfig *it)
 {
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_request_region(dev, it->options[0], 0x03);
-	if (ret)
-		return ret;
 
-	if (it->options[1]) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (it->options[1])
+	{
 		ret = request_irq(it->options[1], parport_interrupt, 0,
-				  dev->board_name, dev);
+						  dev->board_name, dev);
+
 		if (ret == 0)
+		{
 			dev->irq = it->options[1];
+		}
 	}
 
 	ret = comedi_alloc_subdevices(dev, dev->irq ? 4 : 3);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Digial I/O subdevice - Parallel port DATA register */
 	s = &dev->subdevices[0];
@@ -279,7 +308,8 @@ static int parport_attach(struct comedi_device *dev,
 	s->range_table	= &range_digital;
 	s->insn_bits	= parport_ctrl_reg_insn_bits;
 
-	if (dev->irq) {
+	if (dev->irq)
+	{
 		/* Digial Input subdevice - Interrupt support */
 		s = &dev->subdevices[3];
 		dev->read_subdev = s;
@@ -301,7 +331,8 @@ static int parport_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver parport_driver = {
+static struct comedi_driver parport_driver =
+{
 	.driver_name	= "comedi_parport",
 	.module		= THIS_MODULE,
 	.attach		= parport_attach,

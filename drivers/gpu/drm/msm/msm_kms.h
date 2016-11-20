@@ -30,7 +30,8 @@
  * implementation is loaded at runtime.  The kms module is responsible
  * for constructing the appropriate planes/crtcs/encoders/connectors.
  */
-struct msm_kms_funcs {
+struct msm_kms_funcs
+{
 	/* hw initialization: */
 	int (*hw_init)(struct msm_kms *kms);
 	/* irq handling: */
@@ -45,20 +46,21 @@ struct msm_kms_funcs {
 	void (*complete_commit)(struct msm_kms *kms, struct drm_atomic_state *state);
 	/* functions to wait for atomic commit completed on each CRTC */
 	void (*wait_for_crtc_commit_done)(struct msm_kms *kms,
-					struct drm_crtc *crtc);
+									  struct drm_crtc *crtc);
 	/* misc: */
 	const struct msm_format *(*get_format)(struct msm_kms *kms, uint32_t format);
 	long (*round_pixclk)(struct msm_kms *kms, unsigned long rate,
-			struct drm_encoder *encoder);
+						 struct drm_encoder *encoder);
 	int (*set_split_display)(struct msm_kms *kms,
-			struct drm_encoder *encoder,
-			struct drm_encoder *slave_encoder,
-			bool is_cmd_mode);
+							 struct drm_encoder *encoder,
+							 struct drm_encoder *slave_encoder,
+							 bool is_cmd_mode);
 	/* cleanup: */
 	void (*destroy)(struct msm_kms *kms);
 };
 
-struct msm_kms {
+struct msm_kms
+{
 	const struct msm_kms_funcs *funcs;
 
 	/* irq number to be passed on to drm_irq_install */
@@ -66,7 +68,7 @@ struct msm_kms {
 };
 
 static inline void msm_kms_init(struct msm_kms *kms,
-		const struct msm_kms_funcs *funcs)
+								const struct msm_kms_funcs *funcs)
 {
 	kms->funcs = funcs;
 }

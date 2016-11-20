@@ -40,7 +40,8 @@
 
 #define ar9331_common_wo_xlna_rx_gain_1p2 ar9331_common_wo_xlna_rx_gain_1p1
 
-static const u32 ar9331_modes_high_ob_db_tx_gain_1p2[][5] = {
+static const u32 ar9331_modes_high_ob_db_tx_gain_1p2[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x0000a410, 0x000050d7, 0x000050d7, 0x000050d7, 0x000050d7},
 	{0x0000a500, 0x00022200, 0x00022200, 0x00000000, 0x00000000},
@@ -125,7 +126,8 @@ static const u32 ar9331_modes_high_ob_db_tx_gain_1p2[][5] = {
 	{0x0000a63c, 0x04011004, 0x04011004, 0x04011004, 0x04011004},
 };
 
-static const u32 ar9331_1p2_radio_core[][2] = {
+static const u32 ar9331_1p2_radio_core[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00016000, 0x36db6db6},
 	{0x00016004, 0x6db6db40},
@@ -190,7 +192,8 @@ static const u32 ar9331_1p2_radio_core[][2] = {
 	{0x000163d4, 0x00000000},
 };
 
-static const u32 ar9331_1p2_baseband_core[][2] = {
+static const u32 ar9331_1p2_baseband_core[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00009800, 0xafe68e30},
 	{0x00009804, 0xfd14e000},
@@ -327,7 +330,8 @@ static const u32 ar9331_1p2_baseband_core[][2] = {
 	{0x0000a7dc, 0x00000001},
 };
 
-static const u32 ar9331_1p2_baseband_postamble[][5] = {
+static const u32 ar9331_1p2_baseband_postamble[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x00009810, 0xd00a8005, 0xd00a8005, 0xd00a8005, 0xd00a8005},
 	{0x00009820, 0x206a002e, 0x206a002e, 0x206a002e, 0x206a002e},
@@ -372,7 +376,8 @@ static const u32 ar9331_1p2_baseband_postamble[][5] = {
 	{0x0000ae18, 0x00000000, 0x00000000, 0x00000000, 0x00000000},
 };
 
-static const u32 ar9331_common_rx_gain_1p2[][2] = {
+static const u32 ar9331_common_rx_gain_1p2[][2] =
+{
 	/* Addr      allmodes  */
 	{0x0000a000, 0x00010000},
 	{0x0000a004, 0x00030002},

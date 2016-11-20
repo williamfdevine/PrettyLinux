@@ -67,14 +67,16 @@
 #define FDDI_UI_CMD			0x03
 
 /* Define 802.2 Type 1 header */
-struct fddi_8022_1_hdr {
+struct fddi_8022_1_hdr
+{
 	__u8	dsap;			/* destination service access point */
 	__u8	ssap;			/* source service access point */
 	__u8	ctrl;			/* control byte #1 */
 } __attribute__((packed));
 
 /* Define 802.2 Type 2 header */
-struct fddi_8022_2_hdr {
+struct fddi_8022_2_hdr
+{
 	__u8	dsap;			/* destination service access point */
 	__u8	ssap;			/* source service access point */
 	__u8	ctrl_1;			/* control byte #1 */
@@ -82,7 +84,8 @@ struct fddi_8022_2_hdr {
 } __attribute__((packed));
 
 /* Define 802.2 SNAP header */
-struct fddi_snap_hdr {
+struct fddi_snap_hdr
+{
 	__u8	dsap;			/* always 0xAA */
 	__u8	ssap;			/* always 0xAA */
 	__u8	ctrl;			/* always 0x03 */
@@ -91,11 +94,13 @@ struct fddi_snap_hdr {
 } __attribute__((packed));
 
 /* Define FDDI LLC frame header */
-struct fddihdr {
+struct fddihdr
+{
 	__u8	fc;			/* frame control */
 	__u8	daddr[FDDI_K_ALEN];	/* destination address */
 	__u8	saddr[FDDI_K_ALEN];	/* source address */
-	union {
+	union
+	{
 		struct fddi_8022_1_hdr	llc_8022_1;
 		struct fddi_8022_2_hdr	llc_8022_2;
 		struct fddi_snap_hdr	llc_snap;

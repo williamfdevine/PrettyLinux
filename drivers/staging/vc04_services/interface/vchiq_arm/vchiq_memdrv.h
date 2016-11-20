@@ -41,14 +41,15 @@
 
 /* ---- Constants and Types ---------------------------------------------- */
 
-typedef struct {
-	 void                   *armSharedMemVirt;
-	 dma_addr_t              armSharedMemPhys;
-	 size_t                  armSharedMemSize;
+typedef struct
+{
+	void                   *armSharedMemVirt;
+	dma_addr_t              armSharedMemPhys;
+	size_t                  armSharedMemSize;
 
-	 void                   *vcSharedMemVirt;
-	 dma_addr_t              vcSharedMemPhys;
-	 size_t                  vcSharedMemSize;
+	void                   *vcSharedMemVirt;
+	dma_addr_t              vcSharedMemPhys;
+	size_t                  vcSharedMemSize;
 } VCHIQ_SHARED_MEM_INFO_T;
 
 /* ---- Variable Externs ------------------------------------------------- */
@@ -60,12 +61,12 @@ void vchiq_get_shared_mem_info(VCHIQ_SHARED_MEM_INFO_T *info);
 VCHIQ_STATUS_T vchiq_memdrv_initialise(void);
 
 VCHIQ_STATUS_T vchiq_userdrv_create_instance(
-	const VCHIQ_PLATFORM_DATA_T * platform_data);
+	const VCHIQ_PLATFORM_DATA_T *platform_data);
 
 VCHIQ_STATUS_T vchiq_userdrv_suspend(
-	const VCHIQ_PLATFORM_DATA_T * platform_data);
+	const VCHIQ_PLATFORM_DATA_T *platform_data);
 
 VCHIQ_STATUS_T vchiq_userdrv_resume(
-	const VCHIQ_PLATFORM_DATA_T * platform_data);
+	const VCHIQ_PLATFORM_DATA_T *platform_data);
 
 #endif

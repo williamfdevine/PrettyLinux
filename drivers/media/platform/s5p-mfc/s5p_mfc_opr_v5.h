@@ -18,7 +18,8 @@
 #include "s5p_mfc_common.h"
 #include "s5p_mfc_opr.h"
 
-enum MFC_SHM_OFS {
+enum MFC_SHM_OFS
+{
 	EXTENEDED_DECODE_STATUS	= 0x00,	/* D */
 	SET_FRAME_TAG		= 0x04, /* D */
 	GET_FRAME_TAG_TOP	= 0x08, /* D */

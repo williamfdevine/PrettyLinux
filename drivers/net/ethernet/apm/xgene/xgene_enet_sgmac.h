@@ -37,7 +37,8 @@
 #define SG_RX_DV_GATE_REG_0_ADDR	0x05fc
 #define SGMII_EN			0x1
 
-enum xgene_phy_speed {
+enum xgene_phy_speed
+{
 	PHY_SPEED_10,
 	PHY_SPEED_100,
 	PHY_SPEED_1000

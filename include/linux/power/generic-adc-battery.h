@@ -18,7 +18,8 @@
  * @jitter_delay:         delay required after the interrupt to check battery
  *			  status.Default set is 10ms.
  */
-struct gab_platform_data {
+struct gab_platform_data
+{
 	struct power_supply_info battery_info;
 	int	(*cal_charge)(long value);
 	int	gpio_charge_finished;

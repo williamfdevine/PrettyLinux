@@ -34,7 +34,8 @@
 
 #define	DAC_BASE	0x4e
 
-struct tosa_lcd_data {
+struct tosa_lcd_data
+{
 	struct spi_device *spi;
 	struct lcd_device *lcd;
 	struct i2c_client *i2c;
@@ -47,7 +48,8 @@ static int tosa_tg_send(struct spi_device *spi, int adrs, uint8_t data)
 {
 	u8 buf[1];
 	struct spi_message msg;
-	struct spi_transfer xfer = {
+	struct spi_transfer xfer =
+	{
 		.len		= 1,
 		.cs_change	= 1,
 		.tx_buf		= buf,
@@ -86,7 +88,9 @@ static void tosa_lcd_tg_on(struct tosa_lcd_data *data)
 	int value = TG_REG0_COLOR | TG_REG0_UD | TG_REG0_LR;
 
 	if (data->is_vga)
+	{
 		value |= TG_REG0_VQV;
+	}
 
 	tosa_tg_send(spi, TG_PNLCTL, value);
 
@@ -97,13 +101,15 @@ static void tosa_lcd_tg_on(struct tosa_lcd_data *data)
 	/* TG LCD GVSS */
 	tosa_tg_send(spi, TG_PINICTL, 0x0);
 
-	if (!data->i2c) {
+	if (!data->i2c)
+	{
 		/*
 		 * after the pannel is powered up the first time,
 		 * we can access the i2c bus so probe for the DAC
 		 */
 		struct i2c_adapter *adap = i2c_get_adapter(0);
-		struct i2c_board_info info = {
+		struct i2c_board_info info =
+		{
 			.type	= "tosa-bl",
 			.addr	= DAC_BASE,
 			.platform_data = data->spi,
@@ -134,10 +140,14 @@ int tosa_lcd_set_power(struct lcd_device *lcd, int power)
 	struct tosa_lcd_data *data = lcd_get_data(lcd);
 
 	if (POWER_IS_ON(power) && !POWER_IS_ON(data->lcd_power))
+	{
 		tosa_lcd_tg_on(data);
+	}
 
 	if (!POWER_IS_ON(power) && POWER_IS_ON(data->lcd_power))
+	{
 		tosa_lcd_tg_off(data);
+	}
 
 	data->lcd_power = power;
 	return 0;
@@ -155,17 +165,24 @@ static int tosa_lcd_set_mode(struct lcd_device *lcd, struct fb_videomode *mode)
 	struct tosa_lcd_data *data = lcd_get_data(lcd);
 
 	if (mode->xres == 320 || mode->yres == 320)
+	{
 		data->is_vga = false;
+	}
 	else
+	{
 		data->is_vga = true;
+	}
 
 	if (POWER_IS_ON(data->lcd_power))
+	{
 		tosa_lcd_tg_on(data);
+	}
 
 	return 0;
 }
 
-static struct lcd_ops tosa_lcd_ops = {
+static struct lcd_ops tosa_lcd_ops =
+{
 	.set_power = tosa_lcd_set_power,
 	.get_power = tosa_lcd_get_power,
 	.set_mode = tosa_lcd_set_mode,
@@ -177,9 +194,12 @@ static int tosa_lcd_probe(struct spi_device *spi)
 	struct tosa_lcd_data *data;
 
 	data = devm_kzalloc(&spi->dev, sizeof(struct tosa_lcd_data),
-				GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->is_vga = true; /* default to VGA mode */
 
@@ -189,16 +209,22 @@ static int tosa_lcd_probe(struct spi_device *spi)
 	spi->bits_per_word = 8;
 
 	ret = spi_setup(spi);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	data->spi = spi;
 	spi_set_drvdata(spi, data);
 
 	ret = devm_gpio_request_one(&spi->dev, TOSA_GPIO_TG_ON,
-				GPIOF_OUT_INIT_LOW, "tg #pwr");
+								GPIOF_OUT_INIT_LOW, "tg #pwr");
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	mdelay(60);
 
@@ -207,9 +233,10 @@ static int tosa_lcd_probe(struct spi_device *spi)
 	tosa_lcd_tg_on(data);
 
 	data->lcd = devm_lcd_device_register(&spi->dev, "tosa-lcd", &spi->dev,
-					data, &tosa_lcd_ops);
+										 data, &tosa_lcd_ops);
 
-	if (IS_ERR(data->lcd)) {
+	if (IS_ERR(data->lcd))
+	{
 		ret = PTR_ERR(data->lcd);
 		data->lcd = NULL;
 		goto err_register;
@@ -227,7 +254,9 @@ static int tosa_lcd_remove(struct spi_device *spi)
 	struct tosa_lcd_data *data = spi_get_drvdata(spi);
 
 	if (data->i2c)
+	{
 		i2c_unregister_device(data->i2c);
+	}
 
 	tosa_lcd_tg_off(data);
 
@@ -249,10 +278,15 @@ static int tosa_lcd_resume(struct device *dev)
 	struct tosa_lcd_data *data = dev_get_drvdata(dev);
 
 	tosa_lcd_tg_init(data);
+
 	if (POWER_IS_ON(data->lcd_power))
+	{
 		tosa_lcd_tg_on(data);
+	}
 	else
+	{
 		tosa_lcd_tg_off(data);
+	}
 
 	return 0;
 }
@@ -260,7 +294,8 @@ static int tosa_lcd_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(tosa_lcd_pm_ops, tosa_lcd_suspend, tosa_lcd_resume);
 
-static struct spi_driver tosa_lcd_driver = {
+static struct spi_driver tosa_lcd_driver =
+{
 	.driver = {
 		.name		= "tosa-lcd",
 		.pm		= &tosa_lcd_pm_ops,

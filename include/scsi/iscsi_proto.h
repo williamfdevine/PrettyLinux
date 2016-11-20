@@ -67,24 +67,25 @@ static inline int iscsi_sna_gte(u32 n1, u32 n2)
  */
 #define ntoh24(p) (((p)[0] << 16) | ((p)[1] << 8) | ((p)[2]))
 #define hton24(p, v) { \
-        p[0] = (((v) >> 16) & 0xFF); \
-        p[1] = (((v) >> 8) & 0xFF); \
-        p[2] = ((v) & 0xFF); \
-}
+		p[0] = (((v) >> 16) & 0xFF); \
+		p[1] = (((v) >> 8) & 0xFF); \
+		p[2] = ((v) & 0xFF); \
+	}
 #define zero_data(p) {p[0]=0;p[1]=0;p[2]=0;}
 
 /* initiator tags; opaque for target */
 typedef uint32_t __bitwise__ itt_t;
 /* below makes sense only for initiator that created this tag */
 #define build_itt(itt, age) ((__force itt_t)\
-	((itt) | ((age) << ISCSI_AGE_SHIFT)))
+							 ((itt) | ((age) << ISCSI_AGE_SHIFT)))
 #define get_itt(itt) ((__force uint32_t)(itt_t)(itt) & ISCSI_ITT_MASK)
 #define RESERVED_ITT ((__force itt_t)0xffffffff)
 
 /*
  * iSCSI Template Message Header
  */
-struct iscsi_hdr {
+struct iscsi_hdr
+{
 	uint8_t		opcode;
 	uint8_t		flags;		/* Final bit */
 	uint8_t		rsvd2[2];
@@ -135,7 +136,8 @@ struct iscsi_hdr {
 #define ISCSI_OP_ASYNC_EVENT		0x32
 #define ISCSI_OP_REJECT			0x3f
 
-struct iscsi_ahs_hdr {
+struct iscsi_ahs_hdr
+{
 	__be16 ahslength;
 	uint8_t ahstype;
 	uint8_t ahspec[5];
@@ -146,7 +148,8 @@ struct iscsi_ahs_hdr {
 #define ISCSI_CDB_SIZE			16
 
 /* iSCSI PDU Header */
-struct iscsi_scsi_req {
+struct iscsi_scsi_req
+{
 	uint8_t opcode;
 	uint8_t flags;
 	__be16 rsvd2;
@@ -174,7 +177,8 @@ struct iscsi_scsi_req {
 #define ISCSI_ATTR_HEAD_OF_QUEUE	3
 #define ISCSI_ATTR_ACA			4
 
-struct iscsi_rlength_ahdr {
+struct iscsi_rlength_ahdr
+{
 	__be16 ahslength;
 	uint8_t ahstype;
 	uint8_t reserved;
@@ -182,7 +186,8 @@ struct iscsi_rlength_ahdr {
 };
 
 /* Extended CDB AHS */
-struct iscsi_ecdb_ahdr {
+struct iscsi_ecdb_ahdr
+{
 	__be16 ahslength;	/* CDB length - 15, including reserved byte */
 	uint8_t ahstype;
 	uint8_t reserved;
@@ -191,7 +196,8 @@ struct iscsi_ecdb_ahdr {
 };
 
 /* SCSI Response Header */
-struct iscsi_scsi_rsp {
+struct iscsi_scsi_rsp
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t response;
@@ -222,7 +228,8 @@ struct iscsi_scsi_rsp {
 #define ISCSI_STATUS_SUBSYS_FAILURE	2
 
 /* Asynchronous Event Header */
-struct iscsi_async {
+struct iscsi_async
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t rsvd2[2];
@@ -250,7 +257,8 @@ struct iscsi_async {
 #define ISCSI_ASYNC_MSG_VENDOR_SPECIFIC			255
 
 /* NOP-Out Message */
-struct iscsi_nopout {
+struct iscsi_nopout
+{
 	uint8_t opcode;
 	uint8_t flags;
 	__be16	rsvd2;
@@ -265,7 +273,8 @@ struct iscsi_nopout {
 };
 
 /* NOP-In Message */
-struct iscsi_nopin {
+struct iscsi_nopin
+{
 	uint8_t opcode;
 	uint8_t flags;
 	__be16	rsvd2;
@@ -281,7 +290,8 @@ struct iscsi_nopin {
 };
 
 /* SCSI Task Management Message Header */
-struct iscsi_tm {
+struct iscsi_tm
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t rsvd1[2];
@@ -312,7 +322,8 @@ struct iscsi_tm {
 #define ISCSI_TM_FUNC_VALUE(hdr) ((hdr)->flags & ISCSI_FLAG_TM_FUNC_MASK)
 
 /* SCSI Task Management Response Header */
-struct iscsi_tm_rsp {
+struct iscsi_tm_rsp
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t response;	/* see Response values below */
@@ -339,7 +350,8 @@ struct iscsi_tm_rsp {
 #define ISCSI_TMF_RSP_REJECTED		0xff
 
 /* Ready To Transfer Header */
-struct iscsi_r2t_rsp {
+struct iscsi_r2t_rsp
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t rsvd2[2];
@@ -357,7 +369,8 @@ struct iscsi_r2t_rsp {
 };
 
 /* SCSI Data Hdr */
-struct iscsi_data {
+struct iscsi_data
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t rsvd2[2];
@@ -376,7 +389,8 @@ struct iscsi_data {
 };
 
 /* SCSI Data Response Hdr */
-struct iscsi_data_rsp {
+struct iscsi_data_rsp
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t rsvd2;
@@ -401,7 +415,8 @@ struct iscsi_data_rsp {
 #define ISCSI_FLAG_DATA_STATUS		0x01
 
 /* Text Header */
-struct iscsi_text {
+struct iscsi_text
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t rsvd2[2];
@@ -419,7 +434,8 @@ struct iscsi_text {
 #define ISCSI_FLAG_TEXT_CONTINUE	0x40
 
 /* Text Response Header */
-struct iscsi_text_rsp {
+struct iscsi_text_rsp
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t rsvd2[2];
@@ -436,7 +452,8 @@ struct iscsi_text_rsp {
 };
 
 /* Login Header */
-struct iscsi_login_req {
+struct iscsi_login_req
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t max_version;	/* Max. version supported */
@@ -471,7 +488,8 @@ struct iscsi_login_req {
 	(flags & ISCSI_FLAG_LOGIN_NEXT_STAGE_MASK)
 
 /* Login Response Header */
-struct iscsi_login_rsp {
+struct iscsi_login_rsp
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t max_version;	/* Max. version supported */
@@ -530,7 +548,8 @@ struct iscsi_login_rsp {
 #define ISCSI_LOGIN_STATUS_NO_RESOURCES		0x02
 
 /* Logout Header */
-struct iscsi_logout {
+struct iscsi_logout
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t rsvd1[2];
@@ -556,7 +575,8 @@ struct iscsi_logout {
 #define ISCSI_LOGOUT_REASON_AEN_REQUEST		3
 
 /* Logout Response Header */
-struct iscsi_logout_rsp {
+struct iscsi_logout_rsp
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t response;	/* see Logout response values below */
@@ -583,7 +603,8 @@ struct iscsi_logout_rsp {
 #define ISCSI_LOGOUT_CLEANUP_FAILED		3
 
 /* SNACK Header */
-struct iscsi_snack {
+struct iscsi_snack
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t rsvd2[2];
@@ -608,7 +629,8 @@ struct iscsi_snack {
 #define ISCSI_FLAG_SNACK_TYPE_MASK	0x0F	/* 4 bits */
 
 /* Reject Message Header */
-struct iscsi_reject {
+struct iscsi_reject
+{
 	uint8_t opcode;
 	uint8_t flags;
 	uint8_t reason;

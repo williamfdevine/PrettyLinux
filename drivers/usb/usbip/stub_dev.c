@@ -30,12 +30,13 @@
  * to the target device.
  */
 static ssize_t usbip_status_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	struct stub_device *sdev = dev_get_drvdata(dev);
 	int status;
 
-	if (!sdev) {
+	if (!sdev)
+	{
 		dev_err(dev, "sdev is null\n");
 		return -ENODEV;
 	}
@@ -54,57 +55,71 @@ static DEVICE_ATTR_RO(usbip_status);
  * by which usbip connection is finished.
  */
 static ssize_t store_sockfd(struct device *dev, struct device_attribute *attr,
-			    const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	struct stub_device *sdev = dev_get_drvdata(dev);
 	int sockfd = 0;
 	struct socket *socket;
 	int rv;
 
-	if (!sdev) {
+	if (!sdev)
+	{
 		dev_err(dev, "sdev is null\n");
 		return -ENODEV;
 	}
 
 	rv = sscanf(buf, "%d", &sockfd);
-	if (rv != 1)
-		return -EINVAL;
 
-	if (sockfd != -1) {
+	if (rv != 1)
+	{
+		return -EINVAL;
+	}
+
+	if (sockfd != -1)
+	{
 		int err;
 
 		dev_info(dev, "stub up\n");
 
 		spin_lock_irq(&sdev->ud.lock);
 
-		if (sdev->ud.status != SDEV_ST_AVAILABLE) {
+		if (sdev->ud.status != SDEV_ST_AVAILABLE)
+		{
 			dev_err(dev, "not ready\n");
 			goto err;
 		}
 
 		socket = sockfd_lookup(sockfd, &err);
+
 		if (!socket)
+		{
 			goto err;
+		}
 
 		sdev->ud.tcp_socket = socket;
 
 		spin_unlock_irq(&sdev->ud.lock);
 
 		sdev->ud.tcp_rx = kthread_get_run(stub_rx_loop, &sdev->ud,
-						  "stub_rx");
+										  "stub_rx");
 		sdev->ud.tcp_tx = kthread_get_run(stub_tx_loop, &sdev->ud,
-						  "stub_tx");
+										  "stub_tx");
 
 		spin_lock_irq(&sdev->ud.lock);
 		sdev->ud.status = SDEV_ST_USED;
 		spin_unlock_irq(&sdev->ud.lock);
 
-	} else {
+	}
+	else
+	{
 		dev_info(dev, "stub down\n");
 
 		spin_lock_irq(&sdev->ud.lock);
+
 		if (sdev->ud.status != SDEV_ST_USED)
+		{
 			goto err;
+		}
 
 		spin_unlock_irq(&sdev->ud.lock);
 
@@ -124,16 +139,25 @@ static int stub_add_files(struct device *dev)
 	int err = 0;
 
 	err = device_create_file(dev, &dev_attr_usbip_status);
+
 	if (err)
+	{
 		goto err_status;
+	}
 
 	err = device_create_file(dev, &dev_attr_usbip_sockfd);
+
 	if (err)
+	{
 		goto err_sockfd;
+	}
 
 	err = device_create_file(dev, &dev_attr_usbip_debug);
+
 	if (err)
+	{
 		goto err_debug;
+	}
 
 	return 0;
 
@@ -162,18 +186,22 @@ static void stub_shutdown_connection(struct usbip_device *ud)
 	 * sk_wait_data returned though stub_rx thread was already finished by
 	 * step 1?
 	 */
-	if (ud->tcp_socket) {
+	if (ud->tcp_socket)
+	{
 		dev_dbg(&sdev->udev->dev, "shutdown tcp_socket %p\n",
-			ud->tcp_socket);
+				ud->tcp_socket);
 		kernel_sock_shutdown(ud->tcp_socket, SHUT_RDWR);
 	}
 
 	/* 1. stop threads */
-	if (ud->tcp_rx) {
+	if (ud->tcp_rx)
+	{
 		kthread_stop_put(ud->tcp_rx);
 		ud->tcp_rx = NULL;
 	}
-	if (ud->tcp_tx) {
+
+	if (ud->tcp_tx)
+	{
 		kthread_stop_put(ud->tcp_tx);
 		ud->tcp_tx = NULL;
 	}
@@ -184,7 +212,8 @@ static void stub_shutdown_connection(struct usbip_device *ud)
 	 * tcp_socket is freed after threads are killed so that usbip_xmit does
 	 * not touch NULL socket.
 	 */
-	if (ud->tcp_socket) {
+	if (ud->tcp_socket)
+	{
 		sockfd_put(ud->tcp_socket);
 		ud->tcp_socket = NULL;
 	}
@@ -198,12 +227,14 @@ static void stub_shutdown_connection(struct usbip_device *ud)
 		struct stub_unlink *unlink, *tmp;
 
 		spin_lock_irqsave(&sdev->priv_lock, flags);
-		list_for_each_entry_safe(unlink, tmp, &sdev->unlink_tx, list) {
+		list_for_each_entry_safe(unlink, tmp, &sdev->unlink_tx, list)
+		{
 			list_del(&unlink->list);
 			kfree(unlink);
 		}
 		list_for_each_entry_safe(unlink, tmp, &sdev->unlink_free,
-					 list) {
+								 list)
+		{
 			list_del(&unlink->list);
 			kfree(unlink);
 		}
@@ -220,7 +251,9 @@ static void stub_device_reset(struct usbip_device *ud)
 	dev_dbg(&udev->dev, "device reset");
 
 	ret = usb_lock_device_for_reset(udev, NULL);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&udev->dev, "lock for reset\n");
 		spin_lock_irq(&ud->lock);
 		ud->status = SDEV_ST_ERROR;
@@ -233,13 +266,18 @@ static void stub_device_reset(struct usbip_device *ud)
 	usb_unlock_device(udev);
 
 	spin_lock_irq(&ud->lock);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&udev->dev, "device reset\n");
 		ud->status = SDEV_ST_ERROR;
-	} else {
+	}
+	else
+	{
 		dev_info(&udev->dev, "device reset\n");
 		ud->status = SDEV_ST_AVAILABLE;
 	}
+
 	spin_unlock_irq(&ud->lock);
 }
 
@@ -266,8 +304,11 @@ static struct stub_device *stub_device_alloc(struct usb_device *udev)
 
 	/* yes, it's a new device */
 	sdev = kzalloc(sizeof(struct stub_device), GFP_KERNEL);
+
 	if (!sdev)
+	{
 		return NULL;
+	}
 
 	sdev->udev = usb_get_dev(udev);
 
@@ -318,11 +359,13 @@ static int stub_probe(struct usb_device *udev)
 
 	/* check we should claim or not by busid_table */
 	busid_priv = get_busid_priv(udev_busid);
+
 	if (!busid_priv || (busid_priv->status == STUB_BUSID_REMOV) ||
-	    (busid_priv->status == STUB_BUSID_OTHER)) {
+		(busid_priv->status == STUB_BUSID_OTHER))
+	{
 		dev_info(&udev->dev,
-			"%s is not in match_busid table... skip!\n",
-			udev_busid);
+				 "%s is not in match_busid table... skip!\n",
+				 udev_busid);
 
 		/*
 		 * Return value should be ENODEV or ENOXIO to continue trying
@@ -332,28 +375,33 @@ static int stub_probe(struct usb_device *udev)
 		return -ENODEV;
 	}
 
-	if (udev->descriptor.bDeviceClass == USB_CLASS_HUB) {
+	if (udev->descriptor.bDeviceClass == USB_CLASS_HUB)
+	{
 		dev_dbg(&udev->dev, "%s is a usb hub device... skip!\n",
-			 udev_busid);
+				udev_busid);
 		return -ENODEV;
 	}
 
-	if (!strcmp(udev->bus->bus_name, "vhci_hcd")) {
+	if (!strcmp(udev->bus->bus_name, "vhci_hcd"))
+	{
 		dev_dbg(&udev->dev,
-			"%s is attached on vhci_hcd... skip!\n",
-			udev_busid);
+				"%s is attached on vhci_hcd... skip!\n",
+				udev_busid);
 
 		return -ENODEV;
 	}
 
 	/* ok, this is my device */
 	sdev = stub_device_alloc(udev);
+
 	if (!sdev)
+	{
 		return -ENOMEM;
+	}
 
 	dev_info(&udev->dev,
-		"usbip-host: register new device (bus %u dev %u)\n",
-		udev->bus->busnum, udev->devnum);
+			 "usbip-host: register new device (bus %u dev %u)\n",
+			 udev->bus->busnum, udev->devnum);
 
 	busid_priv->shutdown_busid = 0;
 
@@ -368,23 +416,28 @@ static int stub_probe(struct usb_device *udev)
 	 * (struct dev_state) as long as it is unique.
 	 */
 	rc = usb_hub_claim_port(udev->parent, udev->portnum,
-			(struct usb_dev_state *) udev);
-	if (rc) {
+							(struct usb_dev_state *) udev);
+
+	if (rc)
+	{
 		dev_dbg(&udev->dev, "unable to claim port\n");
 		goto err_port;
 	}
 
 	rc = stub_add_files(&udev->dev);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&udev->dev, "stub_add_files for %s\n", udev_busid);
 		goto err_files;
 	}
+
 	busid_priv->status = STUB_BUSID_ALLOC;
 
 	return 0;
 err_files:
 	usb_hub_release_port(udev->parent, udev->portnum,
-			     (struct usb_dev_state *) udev);
+						 (struct usb_dev_state *) udev);
 err_port:
 	dev_set_drvdata(&udev->dev, NULL);
 	usb_put_dev(udev);
@@ -396,7 +449,8 @@ err_port:
 
 static void shutdown_busid(struct bus_id_priv *busid_priv)
 {
-	if (busid_priv->sdev && !busid_priv->shutdown_busid) {
+	if (busid_priv->sdev && !busid_priv->shutdown_busid)
+	{
 		busid_priv->shutdown_busid = 1;
 		usbip_event_add(&busid_priv->sdev->ud, SDEV_EVENT_REMOVED);
 
@@ -419,7 +473,9 @@ static void stub_disconnect(struct usb_device *udev)
 	dev_dbg(&udev->dev, "Enter\n");
 
 	busid_priv = get_busid_priv(udev_busid);
-	if (!busid_priv) {
+
+	if (!busid_priv)
+	{
 		BUG();
 		return;
 	}
@@ -427,7 +483,8 @@ static void stub_disconnect(struct usb_device *udev)
 	sdev = dev_get_drvdata(&udev->dev);
 
 	/* get stub_device */
-	if (!sdev) {
+	if (!sdev)
+	{
 		dev_err(&udev->dev, "could not get device");
 		return;
 	}
@@ -441,15 +498,19 @@ static void stub_disconnect(struct usb_device *udev)
 
 	/* release port */
 	rc = usb_hub_release_port(udev->parent, udev->portnum,
-				  (struct usb_dev_state *) udev);
-	if (rc) {
+							  (struct usb_dev_state *) udev);
+
+	if (rc)
+	{
 		dev_dbg(&udev->dev, "unable to release port\n");
 		return;
 	}
 
 	/* If usb reset is called from event handler */
 	if (usbip_in_eh(current))
+	{
 		return;
+	}
 
 	/* shutdown the current connection */
 	shutdown_busid(busid_priv);
@@ -460,9 +521,12 @@ static void stub_disconnect(struct usb_device *udev)
 	busid_priv->sdev = NULL;
 	stub_device_free(sdev);
 
-	if (busid_priv->status == STUB_BUSID_ALLOC) {
+	if (busid_priv->status == STUB_BUSID_ALLOC)
+	{
 		busid_priv->status = STUB_BUSID_ADDED;
-	} else {
+	}
+	else
+	{
 		busid_priv->status = STUB_BUSID_OTHER;
 		del_match_busid((char *)udev_busid);
 	}
@@ -489,7 +553,8 @@ static int stub_resume(struct usb_device *udev, pm_message_t message)
 
 #endif	/* CONFIG_PM */
 
-struct usb_device_driver stub_driver = {
+struct usb_device_driver stub_driver =
+{
 	.name		= "usbip-host",
 	.probe		= stub_probe,
 	.disconnect	= stub_disconnect,

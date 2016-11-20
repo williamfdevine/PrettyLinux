@@ -36,7 +36,8 @@
 #include <linux/slab.h>
 #include <linux/genalloc.h>
 
-struct muram_info {
+struct muram_info
+{
 	struct gen_pool *pool;
 	void __iomem *vbase;
 	size_t size;
@@ -44,7 +45,7 @@ struct muram_info {
 };
 
 static unsigned long fman_muram_vbase_to_offset(struct muram_info *muram,
-						unsigned long vaddr)
+		unsigned long vaddr)
 {
 	return vaddr - (unsigned long)muram->vbase;
 }
@@ -69,24 +70,33 @@ struct muram_info *fman_muram_init(phys_addr_t base, size_t size)
 	int ret;
 
 	muram = kzalloc(sizeof(*muram), GFP_KERNEL);
+
 	if (!muram)
+	{
 		return NULL;
+	}
 
 	muram->pool = gen_pool_create(ilog2(64), -1);
-	if (!muram->pool) {
+
+	if (!muram->pool)
+	{
 		pr_err("%s(): MURAM pool create failed\n", __func__);
 		goto  muram_free;
 	}
 
 	vaddr = ioremap(base, size);
-	if (!vaddr) {
+
+	if (!vaddr)
+	{
 		pr_err("%s(): MURAM ioremap failed\n", __func__);
 		goto pool_destroy;
 	}
 
 	ret = gen_pool_add_virt(muram->pool, (unsigned long)vaddr,
-				base, size, -1);
-	if (ret < 0) {
+							base, size, -1);
+
+	if (ret < 0)
+	{
 		pr_err("%s(): MURAM pool add failed\n", __func__);
 		iounmap(vaddr);
 		goto pool_destroy;
@@ -115,7 +125,7 @@ muram_free:
  * Return: The address of the memory block
  */
 unsigned long fman_muram_offset_to_vbase(struct muram_info *muram,
-					 unsigned long offset)
+		unsigned long offset)
 {
 	return offset + (unsigned long)muram->vbase;
 }
@@ -134,8 +144,11 @@ unsigned long fman_muram_alloc(struct muram_info *muram, size_t size)
 	unsigned long vaddr;
 
 	vaddr = gen_pool_alloc(muram->pool, size);
+
 	if (!vaddr)
+	{
 		return -ENOMEM;
+	}
 
 	memset_io((void __iomem *)vaddr, 0, size);
 
@@ -151,7 +164,7 @@ unsigned long fman_muram_alloc(struct muram_info *muram, size_t size)
  * Free an allocated memory from FM-MURAM partition.
  */
 void fman_muram_free_mem(struct muram_info *muram, unsigned long offset,
-			 size_t size)
+						 size_t size)
 {
 	unsigned long addr = fman_muram_offset_to_vbase(muram, offset);
 

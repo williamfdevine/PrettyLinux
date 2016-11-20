@@ -41,7 +41,8 @@
  * @LOOPBACK_PHYXS_WS: wireside loopback within 10G PHY at PHYXS level
  */
 /* Please keep up-to-date w.r.t the following two #defines */
-enum efx_loopback_mode {
+enum efx_loopback_mode
+{
 	LOOPBACK_NONE = 0,
 	LOOPBACK_DATA = 1,
 	LOOPBACK_GMAC = 2,
@@ -75,35 +76,35 @@ enum efx_loopback_mode {
 
 /* These loopbacks occur within the controller */
 #define LOOPBACKS_INTERNAL ((1 << LOOPBACK_DATA) |		\
-			    (1 << LOOPBACK_GMAC) |		\
-			    (1 << LOOPBACK_XGMII)|		\
-			    (1 << LOOPBACK_XGXS) |		\
-			    (1 << LOOPBACK_XAUI) |		\
-			    (1 << LOOPBACK_GMII) |		\
-			    (1 << LOOPBACK_SGMII) |		\
-			    (1 << LOOPBACK_SGMII) |		\
-			    (1 << LOOPBACK_XGBR) |		\
-			    (1 << LOOPBACK_XFI) |		\
-			    (1 << LOOPBACK_XAUI_FAR) |		\
-			    (1 << LOOPBACK_GMII_FAR) |		\
-			    (1 << LOOPBACK_SGMII_FAR) |		\
-			    (1 << LOOPBACK_XFI_FAR) |		\
-			    (1 << LOOPBACK_XGMII_WS) |		\
-			    (1 << LOOPBACK_XAUI_WS) |		\
-			    (1 << LOOPBACK_XAUI_WS_FAR) |	\
-			    (1 << LOOPBACK_XAUI_WS_NEAR) |	\
-			    (1 << LOOPBACK_GMII_WS) |		\
-			    (1 << LOOPBACK_XFI_WS) |		\
-			    (1 << LOOPBACK_XFI_WS_FAR))
+							(1 << LOOPBACK_GMAC) |		\
+							(1 << LOOPBACK_XGMII)|		\
+							(1 << LOOPBACK_XGXS) |		\
+							(1 << LOOPBACK_XAUI) |		\
+							(1 << LOOPBACK_GMII) |		\
+							(1 << LOOPBACK_SGMII) |		\
+							(1 << LOOPBACK_SGMII) |		\
+							(1 << LOOPBACK_XGBR) |		\
+							(1 << LOOPBACK_XFI) |		\
+							(1 << LOOPBACK_XAUI_FAR) |		\
+							(1 << LOOPBACK_GMII_FAR) |		\
+							(1 << LOOPBACK_SGMII_FAR) |		\
+							(1 << LOOPBACK_XFI_FAR) |		\
+							(1 << LOOPBACK_XGMII_WS) |		\
+							(1 << LOOPBACK_XAUI_WS) |		\
+							(1 << LOOPBACK_XAUI_WS_FAR) |	\
+							(1 << LOOPBACK_XAUI_WS_NEAR) |	\
+							(1 << LOOPBACK_GMII_WS) |		\
+							(1 << LOOPBACK_XFI_WS) |		\
+							(1 << LOOPBACK_XFI_WS_FAR))
 
 #define LOOPBACKS_WS ((1 << LOOPBACK_XGMII_WS) |		\
-		      (1 << LOOPBACK_XAUI_WS) |			\
-		      (1 << LOOPBACK_XAUI_WS_FAR) |		\
-		      (1 << LOOPBACK_XAUI_WS_NEAR) |		\
-		      (1 << LOOPBACK_GMII_WS) |			\
-		      (1 << LOOPBACK_XFI_WS) |			\
-		      (1 << LOOPBACK_XFI_WS_FAR) |		\
-		      (1 << LOOPBACK_PHYXS_WS))
+					  (1 << LOOPBACK_XAUI_WS) |			\
+					  (1 << LOOPBACK_XAUI_WS_FAR) |		\
+					  (1 << LOOPBACK_XAUI_WS_NEAR) |		\
+					  (1 << LOOPBACK_GMII_WS) |			\
+					  (1 << LOOPBACK_XFI_WS) |			\
+					  (1 << LOOPBACK_XFI_WS_FAR) |		\
+					  (1 << LOOPBACK_PHYXS_WS))
 
 #define LOOPBACKS_EXTERNAL(_efx)					\
 	((_efx)->loopback_modes & ~LOOPBACKS_INTERNAL &			\
@@ -154,7 +155,8 @@ enum efx_loopback_mode {
  * @RESET_TYPE_MC_FAILURE: MC reboot/assertion
  * @RESET_TYPE_MCDI_TIMEOUT: MCDI timeout.
  */
-enum reset_type {
+enum reset_type
+{
 	RESET_TYPE_INVISIBLE,
 	RESET_TYPE_RECOVER_OR_ALL,
 	RESET_TYPE_ALL,

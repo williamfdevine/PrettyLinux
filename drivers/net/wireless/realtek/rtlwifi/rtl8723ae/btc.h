@@ -28,7 +28,8 @@
 #include "../wifi.h"
 #include "hal_bt_coexist.h"
 
-struct bt_coexist_c2h_info {
+struct bt_coexist_c2h_info
+{
 	u8 no_parse_c2h;
 	u8 has_c2h;
 };

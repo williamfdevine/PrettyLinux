@@ -38,17 +38,17 @@ static int debug;
 #define nvt_dbg(text, ...) \
 	if (debug) \
 		printk(KERN_DEBUG \
-			KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__)
+			   KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__)
 
 #define nvt_dbg_verbose(text, ...) \
 	if (debug > 1) \
 		printk(KERN_DEBUG \
-			KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__)
+			   KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__)
 
 #define nvt_dbg_wake(text, ...) \
 	if (debug > 2) \
 		printk(KERN_DEBUG \
-			KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__)
+			   KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__)
 
 
 /*
@@ -63,7 +63,8 @@ static int debug;
 
 #define SIO_ID_MASK 0xfff0
 
-enum nvt_chip_ver {
+enum nvt_chip_ver
+{
 	NVT_UNKNOWN	= 0,
 	NVT_W83667HG	= 0xa510,
 	NVT_6775F	= 0xb470,
@@ -72,12 +73,14 @@ enum nvt_chip_ver {
 	NVT_INVALID	= 0xffff,
 };
 
-struct nvt_chip {
+struct nvt_chip
+{
 	const char *name;
 	enum nvt_chip_ver chip_ver;
 };
 
-struct nvt_dev {
+struct nvt_dev
+{
 	struct pnp_dev *pdev;
 	struct rc_dev *rdev;
 
@@ -87,7 +90,8 @@ struct nvt_dev {
 	u8 buf[RX_BUF_LEN];
 	unsigned int pkts;
 
-	struct {
+	struct
+	{
 		spinlock_t lock;
 		u8 buf[TX_BUF_LEN];
 		unsigned int buf_count;
@@ -377,16 +381,16 @@ struct nvt_dev {
 #define MAX_SILENCE_TIME 60000
 
 #if CIR_IRCON_SAMPLE_PERIOD_SEL == CIR_IRCON_SAMPLE_PERIOD_SEL_100
-#define SAMPLE_PERIOD 100
+	#define SAMPLE_PERIOD 100
 
 #elif CIR_IRCON_SAMPLE_PERIOD_SEL == CIR_IRCON_SAMPLE_PERIOD_SEL_50
-#define SAMPLE_PERIOD 50
+	#define SAMPLE_PERIOD 50
 
 #elif CIR_IRCON_SAMPLE_PERIOD_SEL == CIR_IRCON_SAMPLE_PERIOD_SEL_25
-#define SAMPLE_PERIOD 25
+	#define SAMPLE_PERIOD 25
 
 #else
-#define SAMPLE_PERIOD 1
+	#define SAMPLE_PERIOD 1
 #endif
 
 /* as VISTA MCE definition, valid carrier value */

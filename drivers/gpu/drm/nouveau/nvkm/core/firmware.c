@@ -32,7 +32,7 @@
  */
 int
 nvkm_firmware_get(struct nvkm_device *device, const char *fwname,
-		  const struct firmware **fw)
+				  const struct firmware **fw)
 {
 	char f[64];
 	char cname[16];
@@ -42,7 +42,9 @@ nvkm_firmware_get(struct nvkm_device *device, const char *fwname,
 	strncpy(cname, device->chip->name, sizeof(cname));
 	cname[sizeof(cname) - 1] = '\0';
 	i = strlen(cname);
-	while (i) {
+
+	while (i)
+	{
 		--i;
 		cname[i] = tolower(cname[i]);
 	}

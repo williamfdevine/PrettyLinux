@@ -13,7 +13,8 @@
 
 #include "cpufreq-dt.h"
 
-static const struct of_device_id machines[] __initconst = {
+static const struct of_device_id machines[] __initconst =
+{
 	{ .compatible = "allwinner,sun4i-a10", },
 	{ .compatible = "allwinner,sun5i-a10s", },
 	{ .compatible = "allwinner,sun5i-a13", },
@@ -90,15 +91,20 @@ static int __init cpufreq_dt_platdev_init(void)
 	const struct of_device_id *match;
 
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	match = of_match_node(machines, np);
 	of_node_put(np);
+
 	if (!match)
+	{
 		return -ENODEV;
+	}
 
 	return PTR_ERR_OR_ZERO(platform_device_register_data(NULL, "cpufreq-dt",
-			       -1, match->data,
-			       sizeof(struct cpufreq_dt_platform_data)));
+						   -1, match->data,
+						   sizeof(struct cpufreq_dt_platform_data)));
 }
 device_initcall(cpufreq_dt_platdev_init);

@@ -12,7 +12,8 @@
 #include "map.h"
 #include "build-id.h"
 
-enum dso_binary_type {
+enum dso_binary_type
+{
 	DSO_BINARY_TYPE__KALLSYMS = 0,
 	DSO_BINARY_TYPE__GUEST_KALLSYMS,
 	DSO_BINARY_TYPE__VMLINUX,
@@ -34,36 +35,42 @@ enum dso_binary_type {
 	DSO_BINARY_TYPE__NOT_FOUND,
 };
 
-enum dso_kernel_type {
+enum dso_kernel_type
+{
 	DSO_TYPE_USER = 0,
 	DSO_TYPE_KERNEL,
 	DSO_TYPE_GUEST_KERNEL
 };
 
-enum dso_swap_type {
+enum dso_swap_type
+{
 	DSO_SWAP__UNSET,
 	DSO_SWAP__NO,
 	DSO_SWAP__YES,
 };
 
-enum dso_data_status {
+enum dso_data_status
+{
 	DSO_DATA_STATUS_ERROR	= -1,
 	DSO_DATA_STATUS_UNKNOWN	= 0,
 	DSO_DATA_STATUS_OK	= 1,
 };
 
-enum dso_data_status_seen {
+enum dso_data_status_seen
+{
 	DSO_DATA_STATUS_SEEN_ITRACE,
 };
 
-enum dso_type {
+enum dso_type
+{
 	DSO__TYPE_UNKNOWN,
 	DSO__TYPE_64BIT,
 	DSO__TYPE_32BIT,
 	DSO__TYPE_X32BIT,
 };
 
-enum dso_load_errno {
+enum dso_load_errno
+{
 	DSO_LOAD_ERRNO__SUCCESS		= 0,
 
 	/*
@@ -89,31 +96,32 @@ enum dso_load_errno {
 };
 
 #define DSO__SWAP(dso, type, val)			\
-({							\
-	type ____r = val;				\
-	BUG_ON(dso->needs_swap == DSO_SWAP__UNSET);	\
-	if (dso->needs_swap == DSO_SWAP__YES) {		\
-		switch (sizeof(____r)) {		\
-		case 2:					\
-			____r = bswap_16(val);		\
-			break;				\
-		case 4:					\
-			____r = bswap_32(val);		\
-			break;				\
-		case 8:					\
-			____r = bswap_64(val);		\
-			break;				\
-		default:				\
-			BUG_ON(1);			\
-		}					\
-	}						\
-	____r;						\
-})
+	({							\
+		type ____r = val;				\
+		BUG_ON(dso->needs_swap == DSO_SWAP__UNSET);	\
+		if (dso->needs_swap == DSO_SWAP__YES) {		\
+			switch (sizeof(____r)) {		\
+				case 2:					\
+					____r = bswap_16(val);		\
+					break;				\
+				case 4:					\
+					____r = bswap_32(val);		\
+					break;				\
+				case 8:					\
+					____r = bswap_64(val);		\
+					break;				\
+				default:				\
+					BUG_ON(1);			\
+			}					\
+		}						\
+		____r;						\
+	})
 
 #define DSO__DATA_CACHE_SIZE 4096
 #define DSO__DATA_CACHE_MASK ~(DSO__DATA_CACHE_SIZE - 1)
 
-struct dso_cache {
+struct dso_cache
+{
 	struct rb_node	rb_node;
 	u64 offset;
 	u64 size;
@@ -124,7 +132,8 @@ struct dso_cache {
  * DSOs are put into both a list for fast iteration and rbtree for fast
  * long name lookup.
  */
-struct dsos {
+struct dsos
+{
 	struct list_head head;
 	struct rb_root	 root;	/* rbtree root sorted by long name */
 	pthread_rwlock_t lock;
@@ -132,14 +141,16 @@ struct dsos {
 
 struct auxtrace_cache;
 
-struct dso {
+struct dso
+{
 	pthread_mutex_t	 lock;
 	struct list_head node;
 	struct rb_node	 rb_node;	/* rbtree node sorted by long name */
 	struct rb_root	 *root;		/* root of rbtree that rb_node is in */
 	struct rb_root	 symbols[MAP__NR_TYPES];
 	struct rb_root	 symbol_names[MAP__NR_TYPES];
-	struct {
+	struct
+	{
 		u64		addr;
 		struct symbol	*symbol;
 	} last_find_result[MAP__NR_TYPES];
@@ -151,14 +162,14 @@ struct dso {
 	enum dso_binary_type	symtab_type;
 	enum dso_binary_type	binary_type;
 	enum dso_load_errno	load_errno;
-	u8		 adjust_symbols:1;
-	u8		 has_build_id:1;
-	u8		 has_srcline:1;
-	u8		 hit:1;
-	u8		 annotate_warned:1;
-	u8		 short_name_allocated:1;
-	u8		 long_name_allocated:1;
-	u8		 is_64_bit:1;
+	u8		 adjust_symbols: 1;
+	u8		 has_build_id: 1;
+	u8		 has_srcline: 1;
+	u8		 hit: 1;
+	u8		 annotate_warned: 1;
+	u8		 short_name_allocated: 1;
+	u8		 long_name_allocated: 1;
+	u8		 is_64_bit: 1;
 	u8		 sorted_by_name;
 	u8		 loaded;
 	u8		 rel;
@@ -172,7 +183,8 @@ struct dso {
 	struct auxtrace_cache *auxtrace_cache;
 
 	/* dso data file */
-	struct {
+	struct
+	{
 		struct rb_root	 cache;
 		int		 fd;
 		int		 status;
@@ -183,7 +195,8 @@ struct dso {
 		u64		 eh_frame_hdr_offset;
 	} data;
 
-	union { /* Tool specific area */
+	union   /* Tool specific area */
+	{
 		void	 *priv;
 		u64	 db_id;
 	};
@@ -234,18 +247,19 @@ void dso__sort_by_name(struct dso *dso, enum map_type type);
 void dso__set_build_id(struct dso *dso, void *build_id);
 bool dso__build_id_equal(const struct dso *dso, u8 *build_id);
 void dso__read_running_kernel_build_id(struct dso *dso,
-				       struct machine *machine);
+									   struct machine *machine);
 int dso__kernel_module_get_build_id(struct dso *dso, const char *root_dir);
 
 char dso__symtab_origin(const struct dso *dso);
 int dso__read_binary_type_filename(const struct dso *dso, enum dso_binary_type type,
-				   char *root_dir, char *filename, size_t size);
+								   char *root_dir, char *filename, size_t size);
 bool is_supported_compression(const char *ext);
 bool is_kernel_module(const char *pathname, int cpumode);
 bool decompress_to_file(const char *ext, const char *filename, int output_fd);
 bool dso__needs_decompress(struct dso *dso);
 
-struct kmod_path {
+struct kmod_path
+{
 	char *name;
 	char *ext;
 	bool  comp;
@@ -253,7 +267,7 @@ struct kmod_path {
 };
 
 int __kmod_path__parse(struct kmod_path *m, const char *path,
-		     bool alloc_name, bool alloc_ext);
+					   bool alloc_name, bool alloc_ext);
 
 #define kmod_path__parse(__m, __p)      __kmod_path__parse(__m, __p, false, false)
 #define kmod_path__parse_name(__m, __p) __kmod_path__parse(__m, __p, true , false)
@@ -308,15 +322,15 @@ void dso__data_close(struct dso *dso);
 
 off_t dso__data_size(struct dso *dso, struct machine *machine);
 ssize_t dso__data_read_offset(struct dso *dso, struct machine *machine,
-			      u64 offset, u8 *data, ssize_t size);
+							  u64 offset, u8 *data, ssize_t size);
 ssize_t dso__data_read_addr(struct dso *dso, struct map *map,
-			    struct machine *machine, u64 addr,
-			    u8 *data, ssize_t size);
+							struct machine *machine, u64 addr,
+							u8 *data, ssize_t size);
 bool dso__data_status_seen(struct dso *dso, enum dso_data_status_seen by);
 
 struct map *dso__new_map(const char *name);
 struct dso *machine__findnew_kernel(struct machine *machine, const char *name,
-				    const char *short_name, int dso_type);
+									const char *short_name, int dso_type);
 
 void __dsos__add(struct dsos *dsos, struct dso *dso);
 void dsos__add(struct dsos *dsos, struct dso *dso);
@@ -330,24 +344,24 @@ bool __dsos__read_build_ids(struct list_head *head, bool with_hits);
 void dso__reset_find_symbol_cache(struct dso *dso);
 
 size_t __dsos__fprintf_buildid(struct list_head *head, FILE *fp,
-			       bool (skip)(struct dso *dso, int parm), int parm);
+							   bool (skip)(struct dso *dso, int parm), int parm);
 size_t __dsos__fprintf(struct list_head *head, FILE *fp);
 
 size_t dso__fprintf_buildid(struct dso *dso, FILE *fp);
 size_t dso__fprintf_symbols_by_name(struct dso *dso,
-				    enum map_type type, FILE *fp);
+									enum map_type type, FILE *fp);
 size_t dso__fprintf(struct dso *dso, enum map_type type, FILE *fp);
 
 static inline bool dso__is_vmlinux(struct dso *dso)
 {
 	return dso->binary_type == DSO_BINARY_TYPE__VMLINUX ||
-	       dso->binary_type == DSO_BINARY_TYPE__GUEST_VMLINUX;
+		   dso->binary_type == DSO_BINARY_TYPE__GUEST_VMLINUX;
 }
 
 static inline bool dso__is_kcore(struct dso *dso)
 {
 	return dso->binary_type == DSO_BINARY_TYPE__KCORE ||
-	       dso->binary_type == DSO_BINARY_TYPE__GUEST_KCORE;
+		   dso->binary_type == DSO_BINARY_TYPE__GUEST_KCORE;
 }
 
 static inline bool dso__is_kallsyms(struct dso *dso)

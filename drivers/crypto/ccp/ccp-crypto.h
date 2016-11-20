@@ -25,7 +25,8 @@
 
 #define CCP_CRA_PRIORITY	300
 
-struct ccp_crypto_ablkcipher_alg {
+struct ccp_crypto_ablkcipher_alg
+{
 	struct list_head entry;
 
 	u32 mode;
@@ -33,7 +34,8 @@ struct ccp_crypto_ablkcipher_alg {
 	struct crypto_alg alg;
 };
 
-struct ccp_crypto_ahash_alg {
+struct ccp_crypto_ahash_alg
+{
 	struct list_head entry;
 
 	const __be32 *init;
@@ -47,7 +49,7 @@ struct ccp_crypto_ahash_alg {
 };
 
 static inline struct ccp_crypto_ablkcipher_alg *
-	ccp_crypto_ablkcipher_alg(struct crypto_tfm *tfm)
+ccp_crypto_ablkcipher_alg(struct crypto_tfm *tfm)
 {
 	struct crypto_alg *alg = tfm->__crt_alg;
 
@@ -55,7 +57,7 @@ static inline struct ccp_crypto_ablkcipher_alg *
 }
 
 static inline struct ccp_crypto_ahash_alg *
-	ccp_crypto_ahash_alg(struct crypto_tfm *tfm)
+ccp_crypto_ahash_alg(struct crypto_tfm *tfm)
 {
 	struct crypto_alg *alg = tfm->__crt_alg;
 	struct ahash_alg *ahash_alg;
@@ -66,7 +68,8 @@ static inline struct ccp_crypto_ahash_alg *
 }
 
 /***** AES related defines *****/
-struct ccp_aes_ctx {
+struct ccp_aes_ctx
+{
 	/* Fallback cipher for XTS with unsupported unit sizes */
 	struct crypto_skcipher *tfm_skcipher;
 
@@ -91,7 +94,8 @@ struct ccp_aes_ctx {
 	u8 k2[AES_BLOCK_SIZE];
 };
 
-struct ccp_aes_req_ctx {
+struct ccp_aes_req_ctx
+{
 	struct scatterlist iv_sg;
 	u8 iv[AES_BLOCK_SIZE];
 
@@ -102,7 +106,8 @@ struct ccp_aes_req_ctx {
 	struct ccp_cmd cmd;
 };
 
-struct ccp_aes_cmac_req_ctx {
+struct ccp_aes_cmac_req_ctx
+{
 	unsigned int null_msg;
 	unsigned int final;
 
@@ -128,7 +133,8 @@ struct ccp_aes_cmac_req_ctx {
 	struct ccp_cmd cmd;
 };
 
-struct ccp_aes_cmac_exp_ctx {
+struct ccp_aes_cmac_exp_ctx
+{
 	unsigned int null_msg;
 
 	u8 iv[AES_BLOCK_SIZE];
@@ -141,7 +147,8 @@ struct ccp_aes_cmac_exp_ctx {
 #define MAX_SHA_CONTEXT_SIZE	SHA256_DIGEST_SIZE
 #define MAX_SHA_BLOCK_SIZE	SHA256_BLOCK_SIZE
 
-struct ccp_sha_ctx {
+struct ccp_sha_ctx
+{
 	struct scatterlist opad_sg;
 	unsigned int opad_count;
 
@@ -152,7 +159,8 @@ struct ccp_sha_ctx {
 	struct crypto_shash *hmac_tfm;
 };
 
-struct ccp_sha_req_ctx {
+struct ccp_sha_req_ctx
+{
 	enum ccp_sha_type type;
 
 	u64 msg_bits;
@@ -179,7 +187,8 @@ struct ccp_sha_req_ctx {
 	struct ccp_cmd cmd;
 };
 
-struct ccp_sha_exp_ctx {
+struct ccp_sha_exp_ctx
+{
 	enum ccp_sha_type type;
 
 	u64 msg_bits;
@@ -193,19 +202,21 @@ struct ccp_sha_exp_ctx {
 };
 
 /***** Common Context Structure *****/
-struct ccp_ctx {
+struct ccp_ctx
+{
 	int (*complete)(struct crypto_async_request *req, int ret);
 
-	union {
+	union
+	{
 		struct ccp_aes_ctx aes;
 		struct ccp_sha_ctx sha;
 	} u;
 };
 
 int ccp_crypto_enqueue_request(struct crypto_async_request *req,
-			       struct ccp_cmd *cmd);
+							   struct ccp_cmd *cmd);
 struct scatterlist *ccp_crypto_sg_table_add(struct sg_table *table,
-					    struct scatterlist *sg_add);
+		struct scatterlist *sg_add);
 
 int ccp_register_aes_algs(struct list_head *head);
 int ccp_register_aes_cmac_algs(struct list_head *head);

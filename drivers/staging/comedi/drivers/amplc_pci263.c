@@ -41,11 +41,12 @@
 #define PCI263_DO_8_15_REG	0x01
 
 static int pci263_do_insn_bits(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
-	if (comedi_dio_update_state(s, data)) {
+	if (comedi_dio_update_state(s, data))
+	{
 		outb(s->state & 0xff, dev->iobase + PCI263_DO_0_7_REG);
 		outb((s->state >> 8) & 0xff, dev->iobase + PCI263_DO_8_15_REG);
 	}
@@ -56,20 +57,26 @@ static int pci263_do_insn_bits(struct comedi_device *dev,
 }
 
 static int pci263_auto_attach(struct comedi_device *dev,
-			      unsigned long context_unused)
+							  unsigned long context_unused)
 {
 	struct pci_dev *pci_dev = comedi_to_pci_dev(dev);
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev->iobase = pci_resource_start(pci_dev, 2);
 	ret = comedi_alloc_subdevices(dev, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Digital Output subdevice */
 	s = &dev->subdevices[0];
@@ -82,32 +89,35 @@ static int pci263_auto_attach(struct comedi_device *dev,
 
 	/* read initial relay state */
 	s->state = inb(dev->iobase + PCI263_DO_0_7_REG) |
-		   (inb(dev->iobase + PCI263_DO_8_15_REG) << 8);
+			   (inb(dev->iobase + PCI263_DO_8_15_REG) << 8);
 
 	return 0;
 }
 
-static struct comedi_driver amplc_pci263_driver = {
+static struct comedi_driver amplc_pci263_driver =
+{
 	.driver_name	= "amplc_pci263",
 	.module		= THIS_MODULE,
 	.auto_attach	= pci263_auto_attach,
 	.detach		= comedi_pci_detach,
 };
 
-static const struct pci_device_id pci263_pci_table[] = {
+static const struct pci_device_id pci263_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_AMPLICON, 0x000c) },
 	{0}
 };
 MODULE_DEVICE_TABLE(pci, pci263_pci_table);
 
 static int amplc_pci263_pci_probe(struct pci_dev *dev,
-				  const struct pci_device_id *id)
+								  const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &amplc_pci263_driver,
-				      id->driver_data);
+								  id->driver_data);
 }
 
-static struct pci_driver amplc_pci263_pci_driver = {
+static struct pci_driver amplc_pci263_pci_driver =
+{
 	.name		= "amplc_pci263",
 	.id_table	= pci263_pci_table,
 	.probe		= &amplc_pci263_pci_probe,

@@ -4,7 +4,7 @@
  *
  * Written by Benjamin LaHaise <bcrl@kvack.org>
  *
- * Distribute under the terms of the GPLv2 (see ../../COPYING) or under 
+ * Distribute under the terms of the GPLv2 (see ../../COPYING) or under
  * the following terms.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -32,7 +32,8 @@
 
 typedef __kernel_ulong_t aio_context_t;
 
-enum {
+enum
+{
 	IOCB_CMD_PREAD = 0,
 	IOCB_CMD_PWRITE = 1,
 	IOCB_CMD_FSYNC = 2,
@@ -55,7 +56,8 @@ enum {
 #define IOCB_FLAG_RESFD		(1 << 0)
 
 /* read() from /dev/aio returns these structures. */
-struct io_event {
+struct io_event
+{
 	__u64		data;		/* the data field from the iocb */
 	__u64		obj;		/* what iocb this event came from */
 	__s64		res;		/* result code for this event */
@@ -63,11 +65,11 @@ struct io_event {
 };
 
 #if defined(__BYTE_ORDER) ? __BYTE_ORDER == __LITTLE_ENDIAN : defined(__LITTLE_ENDIAN)
-#define PADDED(x,y)	x, y
+	#define PADDED(x,y)	x, y
 #elif defined(__BYTE_ORDER) ? __BYTE_ORDER == __BIG_ENDIAN : defined(__BIG_ENDIAN)
-#define PADDED(x,y)	y, x
+	#define PADDED(x,y)	y, x
 #else
-#error edit for your odd byteorder.
+	#error edit for your odd byteorder.
 #endif
 
 /*
@@ -76,11 +78,12 @@ struct io_event {
  * proper padding and aio_error abstraction
  */
 
-struct iocb {
+struct iocb
+{
 	/* these are internal to the kernel/libc. */
 	__u64	aio_data;	/* data to be returned in event's data */
 	__u32	PADDED(aio_key, aio_reserved1);
-				/* the kernel sets aio_key to the req # */
+	/* the kernel sets aio_key to the req # */
 
 	/* common fields */
 	__u16	aio_lio_opcode;	/* see IOCB_CMD_ above */

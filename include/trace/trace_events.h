@@ -19,7 +19,7 @@
 #include <linux/trace_events.h>
 
 #ifndef TRACE_SYSTEM_VAR
-#define TRACE_SYSTEM_VAR TRACE_SYSTEM
+	#define TRACE_SYSTEM_VAR TRACE_SYSTEM
 #endif
 
 #define __app__(x, y) str__##x##y
@@ -29,18 +29,18 @@
 
 #define TRACE_MAKE_SYSTEM_STR()				\
 	static const char TRACE_SYSTEM_STRING[] =	\
-		__stringify(TRACE_SYSTEM)
+			__stringify(TRACE_SYSTEM)
 
 TRACE_MAKE_SYSTEM_STR();
 
 #undef TRACE_DEFINE_ENUM
 #define TRACE_DEFINE_ENUM(a)				\
 	static struct trace_enum_map __used __initdata	\
-	__##TRACE_SYSTEM##_##a =			\
+		__##TRACE_SYSTEM##_##a =			\
 	{						\
 		.system = TRACE_SYSTEM_STRING,		\
-		.enum_string = #a,			\
-		.enum_value = a				\
+				  .enum_string = #a,			\
+								 .enum_value = a				\
 	};						\
 	static struct trace_enum_map __used		\
 	__attribute__((section("_ftrace_enum_map")))	\
@@ -58,11 +58,11 @@ TRACE_MAKE_SYSTEM_STR();
 #undef TRACE_EVENT
 #define TRACE_EVENT(name, proto, args, tstruct, assign, print) \
 	DECLARE_EVENT_CLASS(name,			       \
-			     PARAMS(proto),		       \
-			     PARAMS(args),		       \
-			     PARAMS(tstruct),		       \
-			     PARAMS(assign),		       \
-			     PARAMS(print));		       \
+						PARAMS(proto),		       \
+						PARAMS(args),		       \
+						PARAMS(tstruct),		       \
+						PARAMS(assign),		       \
+						PARAMS(print));		       \
 	DEFINE_EVENT(name, name, PARAMS(proto), PARAMS(args));
 
 
@@ -100,7 +100,7 @@ TRACE_MAKE_SYSTEM_STR();
 		tstruct							\
 		char			__data[0];			\
 	};								\
-									\
+	\
 	static struct trace_event_class event_class_##name;
 
 #undef DEFINE_EVENT
@@ -119,15 +119,15 @@ TRACE_MAKE_SYSTEM_STR();
 /* Callbacks are meaningless to ftrace. */
 #undef TRACE_EVENT_FN
 #define TRACE_EVENT_FN(name, proto, args, tstruct,			\
-		assign, print, reg, unreg)				\
-	TRACE_EVENT(name, PARAMS(proto), PARAMS(args),			\
-		PARAMS(tstruct), PARAMS(assign), PARAMS(print))		\
+					   assign, print, reg, unreg)				\
+TRACE_EVENT(name, PARAMS(proto), PARAMS(args),			\
+			PARAMS(tstruct), PARAMS(assign), PARAMS(print))		\
 
 #undef TRACE_EVENT_FN_COND
 #define TRACE_EVENT_FN_COND(name, proto, args, cond, tstruct,	\
-		assign, print, reg, unreg)				\
-	TRACE_EVENT_CONDITION(name, PARAMS(proto), PARAMS(args), PARAMS(cond),		\
-		PARAMS(tstruct), PARAMS(assign), PARAMS(print))		\
+							assign, print, reg, unreg)				\
+TRACE_EVENT_CONDITION(name, PARAMS(proto), PARAMS(args), PARAMS(cond),		\
+					  PARAMS(tstruct), PARAMS(assign), PARAMS(print))		\
 
 #undef TRACE_EVENT_FLAGS
 #define TRACE_EVENT_FLAGS(name, value)					\
@@ -249,11 +249,11 @@ TRACE_MAKE_SYSTEM_STR();
 
 #undef __get_dynamic_array
 #define __get_dynamic_array(field)	\
-		((void *)__entry + (__entry->__data_loc_##field & 0xffff))
+	((void *)__entry + (__entry->__data_loc_##field & 0xffff))
 
 #undef __get_dynamic_array_len
 #define __get_dynamic_array_len(field)	\
-		((__entry->__data_loc_##field >> 16) & 0xffff)
+	((__entry->__data_loc_##field >> 16) & 0xffff)
 
 #undef __get_str
 #define __get_str(field) ((char *)__get_dynamic_array(field))
@@ -271,7 +271,7 @@ TRACE_MAKE_SYSTEM_STR();
 #define __print_flags(flag, delim, flag_array...)			\
 	({								\
 		static const struct trace_print_flags __flags[] =	\
-			{ flag_array, { -1, NULL }};			\
+		{ flag_array, { -1, NULL }};			\
 		trace_print_flags_seq(p, delim, flag, __flags);	\
 	})
 
@@ -279,7 +279,7 @@ TRACE_MAKE_SYSTEM_STR();
 #define __print_symbolic(value, symbol_array...)			\
 	({								\
 		static const struct trace_print_flags symbols[] =	\
-			{ symbol_array, { -1, NULL }};			\
+		{ symbol_array, { -1, NULL }};			\
 		trace_print_symbols_seq(p, value, symbols);		\
 	})
 
@@ -288,12 +288,12 @@ TRACE_MAKE_SYSTEM_STR();
 #define __print_symbolic_u64(value, symbol_array...)			\
 	({								\
 		static const struct trace_print_flags_u64 symbols[] =	\
-			{ symbol_array, { -1, NULL } };			\
+		{ symbol_array, { -1, NULL } };			\
 		trace_print_symbols_seq_u64(p, value, symbols);	\
 	})
 #else
 #define __print_symbolic_u64(value, symbol_array...)			\
-			__print_symbolic(value, symbol_array)
+	__print_symbolic(value, symbol_array)
 #endif
 
 #undef __print_hex
@@ -303,78 +303,78 @@ TRACE_MAKE_SYSTEM_STR();
 #define __print_array(array, count, el_size)				\
 	({								\
 		BUILD_BUG_ON(el_size != 1 && el_size != 2 &&		\
-			     el_size != 4 && el_size != 8);		\
+					 el_size != 4 && el_size != 8);		\
 		trace_print_array_seq(p, array, count, el_size);	\
 	})
 
 #undef DECLARE_EVENT_CLASS
 #define DECLARE_EVENT_CLASS(call, proto, args, tstruct, assign, print)	\
-static notrace enum print_line_t					\
-trace_raw_output_##call(struct trace_iterator *iter, int flags,		\
-			struct trace_event *trace_event)		\
-{									\
-	struct trace_seq *s = &iter->seq;				\
-	struct trace_seq __maybe_unused *p = &iter->tmp_seq;		\
-	struct trace_event_raw_##call *field;				\
-	int ret;							\
-									\
-	field = (typeof(field))iter->ent;				\
-									\
-	ret = trace_raw_output_prep(iter, trace_event);			\
-	if (ret != TRACE_TYPE_HANDLED)					\
-		return ret;						\
-									\
-	trace_seq_printf(s, print);					\
-									\
-	return trace_handle_return(s);					\
-}									\
-static struct trace_event_functions trace_event_type_funcs_##call = {	\
-	.trace			= trace_raw_output_##call,		\
-};
+	static notrace enum print_line_t					\
+	trace_raw_output_##call(struct trace_iterator *iter, int flags,		\
+							struct trace_event *trace_event)		\
+	{									\
+		struct trace_seq *s = &iter->seq;				\
+		struct trace_seq __maybe_unused *p = &iter->tmp_seq;		\
+		struct trace_event_raw_##call *field;				\
+		int ret;							\
+		\
+		field = (typeof(field))iter->ent;				\
+		\
+		ret = trace_raw_output_prep(iter, trace_event);			\
+		if (ret != TRACE_TYPE_HANDLED)					\
+			return ret;						\
+		\
+		trace_seq_printf(s, print);					\
+		\
+		return trace_handle_return(s);					\
+	}									\
+	static struct trace_event_functions trace_event_type_funcs_##call = {	\
+		.trace			= trace_raw_output_##call,		\
+	};
 
 #undef DEFINE_EVENT_PRINT
 #define DEFINE_EVENT_PRINT(template, call, proto, args, print)		\
-static notrace enum print_line_t					\
-trace_raw_output_##call(struct trace_iterator *iter, int flags,		\
-			 struct trace_event *event)			\
-{									\
-	struct trace_event_raw_##template *field;			\
-	struct trace_entry *entry;					\
-	struct trace_seq *p = &iter->tmp_seq;				\
-									\
-	entry = iter->ent;						\
-									\
-	if (entry->type != event_##call.event.type) {			\
-		WARN_ON_ONCE(1);					\
-		return TRACE_TYPE_UNHANDLED;				\
-	}								\
-									\
-	field = (typeof(field))entry;					\
-									\
-	trace_seq_init(p);						\
-	return trace_output_call(iter, #call, print);			\
-}									\
-static struct trace_event_functions trace_event_type_funcs_##call = {	\
-	.trace			= trace_raw_output_##call,		\
-};
+	static notrace enum print_line_t					\
+	trace_raw_output_##call(struct trace_iterator *iter, int flags,		\
+							struct trace_event *event)			\
+	{									\
+		struct trace_event_raw_##template *field;			\
+		struct trace_entry *entry;					\
+		struct trace_seq *p = &iter->tmp_seq;				\
+		\
+		entry = iter->ent;						\
+		\
+		if (entry->type != event_##call.event.type) {			\
+			WARN_ON_ONCE(1);					\
+			return TRACE_TYPE_UNHANDLED;				\
+		}								\
+		\
+		field = (typeof(field))entry;					\
+		\
+		trace_seq_init(p);						\
+		return trace_output_call(iter, #call, print);			\
+	}									\
+	static struct trace_event_functions trace_event_type_funcs_##call = {	\
+		.trace			= trace_raw_output_##call,		\
+	};
 
 #include TRACE_INCLUDE(TRACE_INCLUDE_FILE)
 
 #undef __field_ext
 #define __field_ext(type, item, filter_type)				\
 	ret = trace_define_field(event_call, #type, #item,		\
-				 offsetof(typeof(field), item),		\
-				 sizeof(field.item),			\
-				 is_signed_type(type), filter_type);	\
+							 offsetof(typeof(field), item),		\
+							 sizeof(field.item),			\
+							 is_signed_type(type), filter_type);	\
 	if (ret)							\
 		return ret;
 
 #undef __field_struct_ext
 #define __field_struct_ext(type, item, filter_type)			\
 	ret = trace_define_field(event_call, #type, #item,		\
-				 offsetof(typeof(field), item),		\
-				 sizeof(field.item),			\
-				 0, filter_type);			\
+							 offsetof(typeof(field), item),		\
+							 sizeof(field.item),			\
+							 0, filter_type);			\
 	if (ret)							\
 		return ret;
 
@@ -390,9 +390,9 @@ static struct trace_event_functions trace_event_type_funcs_##call = {	\
 		char *type_str = #type"["__stringify(len)"]";		\
 		BUILD_BUG_ON(len > MAX_FILTER_STR_VAL);			\
 		ret = trace_define_field(event_call, type_str, #item,	\
-				 offsetof(typeof(field), item),		\
-				 sizeof(field.item),			\
-				 is_signed_type(type), FILTER_OTHER);	\
+								 offsetof(typeof(field), item),		\
+								 sizeof(field.item),			\
+								 is_signed_type(type), FILTER_OTHER);	\
 		if (ret)						\
 			return ret;					\
 	} while (0);
@@ -400,9 +400,9 @@ static struct trace_event_functions trace_event_type_funcs_##call = {	\
 #undef __dynamic_array
 #define __dynamic_array(type, item, len)				       \
 	ret = trace_define_field(event_call, "__data_loc " #type "[]", #item,  \
-				 offsetof(typeof(field), __data_loc_##item),   \
-				 sizeof(field.__data_loc_##item),	       \
-				 is_signed_type(type), FILTER_OTHER);
+							 offsetof(typeof(field), __data_loc_##item),   \
+							 sizeof(field.__data_loc_##item),	       \
+							 is_signed_type(type), FILTER_OTHER);
 
 #undef __string
 #define __string(item, src) __dynamic_array(char, item, -1)
@@ -412,16 +412,16 @@ static struct trace_event_functions trace_event_type_funcs_##call = {	\
 
 #undef DECLARE_EVENT_CLASS
 #define DECLARE_EVENT_CLASS(call, proto, args, tstruct, func, print)	\
-static int notrace __init						\
-trace_event_define_fields_##call(struct trace_event_call *event_call)	\
-{									\
-	struct trace_event_raw_##call field;				\
-	int ret;							\
-									\
-	tstruct;							\
-									\
-	return ret;							\
-}
+	static int notrace __init						\
+	trace_event_define_fields_##call(struct trace_event_call *event_call)	\
+	{									\
+		struct trace_event_raw_##call field;				\
+		int ret;							\
+		\
+		tstruct;							\
+		\
+		return ret;							\
+	}
 
 #undef DEFINE_EVENT
 #define DEFINE_EVENT(template, name, proto, args)
@@ -458,13 +458,13 @@ trace_event_define_fields_##call(struct trace_event_call *event_call)	\
 #define __dynamic_array(type, item, len)				\
 	__item_length = (len) * sizeof(type);				\
 	__data_offsets->item = __data_size +				\
-			       offsetof(typeof(*entry), __data);	\
+						   offsetof(typeof(*entry), __data);	\
 	__data_offsets->item |= __item_length << 16;			\
 	__data_size += __item_length;
 
 #undef __string
 #define __string(item, src) __dynamic_array(char, item,			\
-		    strlen((src) ? (const char *)(src) : "(null)") + 1)
+		strlen((src) ? (const char *)(src) : "(null)") + 1)
 
 /*
  * __bitmask_size_in_bytes_raw is the number of bytes needed to hold
@@ -487,21 +487,21 @@ trace_event_define_fields_##call(struct trace_event_call *event_call)	\
 
 #undef __bitmask
 #define __bitmask(item, nr_bits) __dynamic_array(unsigned long, item,	\
-					 __bitmask_size_in_longs(nr_bits))
+		__bitmask_size_in_longs(nr_bits))
 
 #undef DECLARE_EVENT_CLASS
 #define DECLARE_EVENT_CLASS(call, proto, args, tstruct, assign, print)	\
-static inline notrace int trace_event_get_offsets_##call(		\
-	struct trace_event_data_offsets_##call *__data_offsets, proto)	\
-{									\
-	int __data_size = 0;						\
-	int __maybe_unused __item_length;				\
-	struct trace_event_raw_##call __maybe_unused *entry;		\
-									\
-	tstruct;							\
-									\
-	return __data_size;						\
-}
+	static inline notrace int trace_event_get_offsets_##call(		\
+			struct trace_event_data_offsets_##call *__data_offsets, proto)	\
+	{									\
+		int __data_size = 0;						\
+		int __maybe_unused __item_length;				\
+		struct trace_event_raw_##call __maybe_unused *entry;		\
+		\
+		tstruct;							\
+		\
+		return __data_size;						\
+	}
 
 #undef DEFINE_EVENT
 #define DEFINE_EVENT(template, name, proto, args)
@@ -660,33 +660,33 @@ static inline notrace int trace_event_get_offsets_##call(		\
 
 #undef DECLARE_EVENT_CLASS
 #define DECLARE_EVENT_CLASS(call, proto, args, tstruct, assign, print)	\
-									\
-static notrace void							\
-trace_event_raw_event_##call(void *__data, proto)			\
-{									\
-	struct trace_event_file *trace_file = __data;			\
-	struct trace_event_data_offsets_##call __maybe_unused __data_offsets;\
-	struct trace_event_buffer fbuffer;				\
-	struct trace_event_raw_##call *entry;				\
-	int __data_size;						\
-									\
-	if (trace_trigger_soft_disabled(trace_file))			\
-		return;							\
-									\
-	__data_size = trace_event_get_offsets_##call(&__data_offsets, args); \
-									\
-	entry = trace_event_buffer_reserve(&fbuffer, trace_file,	\
-				 sizeof(*entry) + __data_size);		\
-									\
-	if (!entry)							\
-		return;							\
-									\
-	tstruct								\
-									\
-	{ assign; }							\
-									\
-	trace_event_buffer_commit(&fbuffer);				\
-}
+	\
+	static notrace void							\
+	trace_event_raw_event_##call(void *__data, proto)			\
+	{									\
+		struct trace_event_file *trace_file = __data;			\
+		struct trace_event_data_offsets_##call __maybe_unused __data_offsets;\
+		struct trace_event_buffer fbuffer;				\
+		struct trace_event_raw_##call *entry;				\
+		int __data_size;						\
+		\
+		if (trace_trigger_soft_disabled(trace_file))			\
+			return;							\
+		\
+		__data_size = trace_event_get_offsets_##call(&__data_offsets, args); \
+		\
+		entry = trace_event_buffer_reserve(&fbuffer, trace_file,	\
+										   sizeof(*entry) + __data_size);		\
+		\
+		if (!entry)							\
+			return;							\
+		\
+		tstruct								\
+		\
+		{ assign; }							\
+		\
+		trace_event_buffer_commit(&fbuffer);				\
+	}
 /*
  * The ftrace_test_probe is compiled out, it is only here as a build time check
  * to make sure that if the tracepoint handling changes, the ftrace probe will
@@ -695,10 +695,10 @@ trace_event_raw_event_##call(void *__data, proto)			\
 
 #undef DEFINE_EVENT
 #define DEFINE_EVENT(template, call, proto, args)			\
-static inline void ftrace_test_probe_##call(void)			\
-{									\
-	check_trace_callback_type_##call(trace_event_raw_event_##template); \
-}
+	static inline void ftrace_test_probe_##call(void)			\
+	{									\
+		check_trace_callback_type_##call(trace_event_raw_event_##template); \
+	}
 
 #undef DEFINE_EVENT_PRINT
 #define DEFINE_EVENT_PRINT(template, name, proto, args, print)
@@ -722,48 +722,48 @@ static inline void ftrace_test_probe_##call(void)			\
 
 #undef DECLARE_EVENT_CLASS
 #define DECLARE_EVENT_CLASS(call, proto, args, tstruct, assign, print)	\
-_TRACE_PERF_PROTO(call, PARAMS(proto));					\
-static char print_fmt_##call[] = print;					\
-static struct trace_event_class __used __refdata event_class_##call = { \
-	.system			= TRACE_SYSTEM_STRING,			\
-	.define_fields		= trace_event_define_fields_##call,	\
-	.fields			= LIST_HEAD_INIT(event_class_##call.fields),\
-	.raw_init		= trace_event_raw_init,			\
-	.probe			= trace_event_raw_event_##call,		\
-	.reg			= trace_event_reg,			\
-	_TRACE_PERF_INIT(call)						\
-};
+	_TRACE_PERF_PROTO(call, PARAMS(proto));					\
+	static char print_fmt_##call[] = print;					\
+	static struct trace_event_class __used __refdata event_class_##call = { \
+		.system			= TRACE_SYSTEM_STRING,			\
+						  .define_fields		= trace_event_define_fields_##call,	\
+												.fields			= LIST_HEAD_INIT(event_class_##call.fields),\
+														.raw_init		= trace_event_raw_init,			\
+																.probe			= trace_event_raw_event_##call,		\
+																		.reg			= trace_event_reg,			\
+																				_TRACE_PERF_INIT(call)						\
+	};
 
 #undef DEFINE_EVENT
 #define DEFINE_EVENT(template, call, proto, args)			\
-									\
-static struct trace_event_call __used event_##call = {			\
-	.class			= &event_class_##template,		\
-	{								\
-		.tp			= &__tracepoint_##call,		\
-	},								\
-	.event.funcs		= &trace_event_type_funcs_##template,	\
-	.print_fmt		= print_fmt_##template,			\
-	.flags			= TRACE_EVENT_FL_TRACEPOINT,		\
-};									\
-static struct trace_event_call __used					\
-__attribute__((section("_ftrace_events"))) *__event_##call = &event_##call
+	\
+	static struct trace_event_call __used event_##call = {			\
+		.class			= &event_class_##template,		\
+						  {								\
+								  .tp			= &__tracepoint_##call,		\
+						  },								\
+						  .event.funcs		= &trace_event_type_funcs_##template,	\
+												.print_fmt		= print_fmt_##template,			\
+														.flags			= TRACE_EVENT_FL_TRACEPOINT,		\
+	};									\
+	static struct trace_event_call __used					\
+	__attribute__((section("_ftrace_events"))) *__event_##call = &event_##call
 
 #undef DEFINE_EVENT_PRINT
 #define DEFINE_EVENT_PRINT(template, call, proto, args, print)		\
-									\
-static char print_fmt_##call[] = print;					\
-									\
-static struct trace_event_call __used event_##call = {			\
-	.class			= &event_class_##template,		\
-	{								\
-		.tp			= &__tracepoint_##call,		\
-	},								\
-	.event.funcs		= &trace_event_type_funcs_##call,	\
-	.print_fmt		= print_fmt_##call,			\
-	.flags			= TRACE_EVENT_FL_TRACEPOINT,		\
-};									\
-static struct trace_event_call __used					\
-__attribute__((section("_ftrace_events"))) *__event_##call = &event_##call
+	\
+	static char print_fmt_##call[] = print;					\
+	\
+	static struct trace_event_call __used event_##call = {			\
+		.class			= &event_class_##template,		\
+						  {								\
+								  .tp			= &__tracepoint_##call,		\
+						  },								\
+						  .event.funcs		= &trace_event_type_funcs_##call,	\
+												.print_fmt		= print_fmt_##call,			\
+														.flags			= TRACE_EVENT_FL_TRACEPOINT,		\
+	};									\
+	static struct trace_event_call __used					\
+	__attribute__((section("_ftrace_events"))) *__event_##call = &event_##call
 
 #include TRACE_INCLUDE(TRACE_INCLUDE_FILE)

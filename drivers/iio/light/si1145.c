@@ -142,7 +142,8 @@
 /* Proximity LED current; see Table 2 in datasheet */
 #define SI1145_LED_CURRENT_45mA		0x04
 
-enum {
+enum
+{
 	SI1132,
 	SI1141,
 	SI1142,
@@ -152,7 +153,8 @@ enum {
 	SI1147,
 };
 
-struct si1145_part_info {
+struct si1145_part_info
+{
 	u8 part;
 	const struct iio_info *iio_info;
 	const struct iio_chan_spec *channels;
@@ -173,7 +175,8 @@ struct si1145_part_info {
  * @trig:	Pointer to iio trigger
  * @meas_rate:	Value of MEAS_RATE register. Only set in HW in auto mode
  */
-struct si1145_data {
+struct si1145_data
+{
 	struct i2c_client *client;
 	struct mutex lock;
 	struct mutex cmdlock;
@@ -199,21 +202,33 @@ static int __si1145_command_reset(struct si1145_data *data)
 	int ret;
 
 	ret = i2c_smbus_write_byte_data(data->client, SI1145_REG_COMMAND,
-						      SI1145_CMD_NOP);
+									SI1145_CMD_NOP);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	msleep(SI1145_COMMAND_MINSLEEP_MS);
 
 	stop_jiffies = jiffies + SI1145_COMMAND_TIMEOUT_MS * HZ / 1000;
-	while (true) {
+
+	while (true)
+	{
 		ret = i2c_smbus_read_byte_data(data->client,
-					       SI1145_REG_RESPONSE);
+									   SI1145_REG_RESPONSE);
+
 		if (ret <= 0)
+		{
 			return ret;
-		if (time_after(jiffies, stop_jiffies)) {
+		}
+
+		if (time_after(jiffies, stop_jiffies))
+		{
 			dev_warn(dev, "timeout on reset\n");
 			return -ETIMEDOUT;
 		}
+
 		msleep(SI1145_COMMAND_MINSLEEP_MS);
 		continue;
 	}
@@ -236,63 +251,86 @@ static int si1145_command(struct si1145_data *data, u8 cmd)
 
 	mutex_lock(&data->cmdlock);
 
-	if (data->rsp_seq < 0) {
+	if (data->rsp_seq < 0)
+	{
 		ret = __si1145_command_reset(data);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(dev, "failed to reset command counter, ret=%d\n",
-				ret);
+					ret);
 			goto out;
 		}
+
 		data->rsp_seq = 0;
 	}
 
 	ret = i2c_smbus_write_byte_data(data->client, SI1145_REG_COMMAND, cmd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(dev, "failed to write command, ret=%d\n", ret);
 		goto out;
 	}
+
 	/* Sleep a little to ensure the command is received */
 	msleep(SI1145_COMMAND_MINSLEEP_MS);
 
 	stop_jiffies = jiffies + SI1145_COMMAND_TIMEOUT_MS * HZ / 1000;
-	while (true) {
+
+	while (true)
+	{
 		ret = i2c_smbus_read_byte_data(data->client,
-					       SI1145_REG_RESPONSE);
-		if (ret < 0) {
+									   SI1145_REG_RESPONSE);
+
+		if (ret < 0)
+		{
 			dev_warn(dev, "failed to read response, ret=%d\n", ret);
 			break;
 		}
 
-		if ((ret & ~SI1145_RSP_COUNTER_MASK) == 0) {
-			if (ret == data->rsp_seq) {
-				if (time_after(jiffies, stop_jiffies)) {
+		if ((ret & ~SI1145_RSP_COUNTER_MASK) == 0)
+		{
+			if (ret == data->rsp_seq)
+			{
+				if (time_after(jiffies, stop_jiffies))
+				{
 					dev_warn(dev, "timeout on command %#02hhx\n",
-						 cmd);
+							 cmd);
 					ret = -ETIMEDOUT;
 					break;
 				}
+
 				msleep(SI1145_COMMAND_MINSLEEP_MS);
 				continue;
 			}
+
 			if (ret == ((data->rsp_seq + 1) &
-				SI1145_RSP_COUNTER_MASK)) {
+						SI1145_RSP_COUNTER_MASK))
+			{
 				data->rsp_seq = ret;
 				ret = 0;
 				break;
 			}
+
 			dev_warn(dev, "unexpected response counter %d instead of %d\n",
-				 ret, (data->rsp_seq + 1) &
-					SI1145_RSP_COUNTER_MASK);
+					 ret, (data->rsp_seq + 1) &
+					 SI1145_RSP_COUNTER_MASK);
 			ret = -EIO;
-		} else {
-			if (ret == SI1145_RSP_INVALID_SETTING) {
+		}
+		else
+		{
+			if (ret == SI1145_RSP_INVALID_SETTING)
+			{
 				dev_warn(dev, "INVALID_SETTING error on command %#02hhx\n",
-					 cmd);
+						 cmd);
 				ret = -EINVAL;
-			} else {
+			}
+			else
+			{
 				/* All overflows are treated identically */
 				dev_dbg(dev, "overflow, ret=%d, cmd=%#02hhx\n",
-					ret, cmd);
+						ret, cmd);
 				ret = -EOVERFLOW;
 			}
 		}
@@ -309,14 +347,17 @@ out:
 }
 
 static int si1145_param_update(struct si1145_data *data, u8 op, u8 param,
-			       u8 value)
+							   u8 value)
 {
 	int ret;
 
 	ret = i2c_smbus_write_byte_data(data->client,
-		SI1145_REG_PARAM_WR, value);
+									SI1145_REG_PARAM_WR, value);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return si1145_command(data, op | (param & 0x1F));
 }
@@ -332,8 +373,11 @@ static int si1145_param_query(struct si1145_data *data, u8 param)
 	int ret;
 
 	ret = si1145_command(data, SI1145_CMD_PARAM_QUERY | (param & 0x1F));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return i2c_smbus_read_byte_data(data->client, SI1145_REG_PARAM_RD);
 }
@@ -345,13 +389,18 @@ static u16 si1145_uncompress(u8 x)
 	u8 exponent = 0;
 
 	if (x < 8)
+	{
 		return 0;
+	}
 
 	exponent = (x & 0xf0) >> 4;
 	result = 0x10 | (x & 0x0f);
 
 	if (exponent >= 4)
+	{
 		return result << (exponent - 4);
+	}
+
 	return result >> (4 - exponent);
 }
 
@@ -363,26 +412,40 @@ static u8 si1145_compress(u16 x)
 	u32 tmp = x;
 
 	if (x == 0x0000)
+	{
 		return 0x00;
-	if (x == 0x0001)
-		return 0x08;
-
-	while (1) {
-		tmp >>= 1;
-		exponent += 1;
-		if (tmp == 1)
-			break;
 	}
 
-	if (exponent < 5) {
+	if (x == 0x0001)
+	{
+		return 0x08;
+	}
+
+	while (1)
+	{
+		tmp >>= 1;
+		exponent += 1;
+
+		if (tmp == 1)
+		{
+			break;
+		}
+	}
+
+	if (exponent < 5)
+	{
 		significand = x << (4 - exponent);
 		return (exponent << 4) | (significand & 0xF);
 	}
 
 	significand = x >> (exponent - 5);
-	if (significand & 1) {
+
+	if (significand & 1)
+	{
 		significand += 2;
-		if (significand & 0x0040) {
+
+		if (significand & 0x0040)
+		{
 			exponent += 1;
 			significand >>= 1;
 		}
@@ -396,19 +459,25 @@ static int si1145_set_meas_rate(struct si1145_data *data, int interval)
 {
 	if (data->part_info->uncompressed_meas_rate)
 		return i2c_smbus_write_word_data(data->client,
-			SI1145_REG_MEAS_RATE, interval);
+										 SI1145_REG_MEAS_RATE, interval);
 	else
 		return i2c_smbus_write_byte_data(data->client,
-			SI1145_REG_MEAS_RATE, interval);
+										 SI1145_REG_MEAS_RATE, interval);
 }
 
 static int si1145_read_samp_freq(struct si1145_data *data, int *val, int *val2)
 {
 	*val = 32000;
+
 	if (data->part_info->uncompressed_meas_rate)
+	{
 		*val2 = data->meas_rate;
+	}
 	else
+	{
 		*val2 = si1145_uncompress(data->meas_rate);
+	}
+
 	return IIO_VAL_FRACTIONAL;
 }
 
@@ -419,19 +488,32 @@ static int si1145_store_samp_freq(struct si1145_data *data, int val)
 	int meas_rate;
 
 	if (val <= 0 || val > 32000)
+	{
 		return -ERANGE;
+	}
+
 	meas_rate = 32000 / val;
 
 	mutex_lock(&data->lock);
-	if (data->autonomous) {
+
+	if (data->autonomous)
+	{
 		ret = si1145_set_meas_rate(data, meas_rate);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
+
 	if (data->part_info->uncompressed_meas_rate)
+	{
 		data->meas_rate = meas_rate;
+	}
 	else
+	{
 		data->meas_rate = si1145_compress(meas_rate);
+	}
 
 out:
 	mutex_unlock(&data->lock);
@@ -454,51 +536,79 @@ static irqreturn_t si1145_trigger_handler(int irq, void *private)
 	int ret;
 	u8 irq_status = 0;
 
-	if (!data->autonomous) {
+	if (!data->autonomous)
+	{
 		ret = si1145_command(data, SI1145_CMD_PSALS_FORCE);
+
 		if (ret < 0 && ret != -EOVERFLOW)
+		{
 			goto done;
-	} else {
+		}
+	}
+	else
+	{
 		irq_status = ret = i2c_smbus_read_byte_data(data->client,
-				SI1145_REG_IRQ_STATUS);
+						   SI1145_REG_IRQ_STATUS);
+
 		if (ret < 0)
+		{
 			goto done;
+		}
+
 		if (!(irq_status & SI1145_MASK_ALL_IE))
+		{
 			goto done;
+		}
 	}
 
 	for_each_set_bit(i, indio_dev->active_scan_mask,
-		indio_dev->masklength) {
+					 indio_dev->masklength)
+	{
 		int run = 1;
 
-		while (i + run < indio_dev->masklength) {
+		while (i + run < indio_dev->masklength)
+		{
 			if (!test_bit(i + run, indio_dev->active_scan_mask))
+			{
 				break;
+			}
+
 			if (indio_dev->channels[i + run].address !=
 				indio_dev->channels[i].address + 2 * run)
+			{
 				break;
+			}
+
 			run++;
 		}
 
 		ret = i2c_smbus_read_i2c_block_data_or_emulated(
-				data->client, indio_dev->channels[i].address,
-				sizeof(u16) * run, &buffer[j]);
+				  data->client, indio_dev->channels[i].address,
+				  sizeof(u16) * run, &buffer[j]);
+
 		if (ret < 0)
+		{
 			goto done;
+		}
+
 		j += run * sizeof(u16);
 		i += run - 1;
 	}
 
-	if (data->autonomous) {
+	if (data->autonomous)
+	{
 		ret = i2c_smbus_write_byte_data(data->client,
-				SI1145_REG_IRQ_STATUS,
-				irq_status & SI1145_MASK_ALL_IE);
+										SI1145_REG_IRQ_STATUS,
+										irq_status & SI1145_MASK_ALL_IE);
+
 		if (ret < 0)
+		{
 			goto done;
+		}
 	}
 
 	iio_push_to_buffers_with_timestamp(indio_dev, buffer,
-		iio_get_time_ns(indio_dev));
+									   iio_get_time_ns(indio_dev));
 
 done:
 	iio_trigger_notify_done(indio_dev->trig);
@@ -514,43 +624,63 @@ static int si1145_set_chlist(struct iio_dev *indio_dev, unsigned long scan_mask)
 
 	/* channel list already set, no need to reprogram */
 	if (data->scan_mask == scan_mask)
+	{
 		return 0;
+	}
 
-	for_each_set_bit(i, &scan_mask, indio_dev->masklength) {
-		switch (indio_dev->channels[i].address) {
-		case SI1145_REG_ALSVIS_DATA:
-			reg |= SI1145_CHLIST_EN_ALSVIS;
-			break;
-		case SI1145_REG_ALSIR_DATA:
-			reg |= SI1145_CHLIST_EN_ALSIR;
-			break;
-		case SI1145_REG_PS1_DATA:
-			reg |= SI1145_CHLIST_EN_PS1;
-			break;
-		case SI1145_REG_PS2_DATA:
-			reg |= SI1145_CHLIST_EN_PS2;
-			break;
-		case SI1145_REG_PS3_DATA:
-			reg |= SI1145_CHLIST_EN_PS3;
-			break;
-		case SI1145_REG_AUX_DATA:
-			switch (indio_dev->channels[i].type) {
-			case IIO_UVINDEX:
-				reg |= SI1145_CHLIST_EN_UV;
+	for_each_set_bit(i, &scan_mask, indio_dev->masklength)
+	{
+		switch (indio_dev->channels[i].address)
+		{
+			case SI1145_REG_ALSVIS_DATA:
+				reg |= SI1145_CHLIST_EN_ALSVIS;
 				break;
-			default:
-				reg |= SI1145_CHLIST_EN_AUX;
-				if (indio_dev->channels[i].type == IIO_TEMP)
-					mux = SI1145_MUX_TEMP;
-				else
-					mux = SI1145_MUX_VDD;
-				ret = si1145_param_set(data,
-					SI1145_PARAM_AUX_ADC_MUX, mux);
-				if (ret < 0)
-					return ret;
 
+			case SI1145_REG_ALSIR_DATA:
+				reg |= SI1145_CHLIST_EN_ALSIR;
 				break;
-			}
+
+			case SI1145_REG_PS1_DATA:
+				reg |= SI1145_CHLIST_EN_PS1;
+				break;
+
+			case SI1145_REG_PS2_DATA:
+				reg |= SI1145_CHLIST_EN_PS2;
+				break;
+
+			case SI1145_REG_PS3_DATA:
+				reg |= SI1145_CHLIST_EN_PS3;
+				break;
+
+			case SI1145_REG_AUX_DATA:
+				switch (indio_dev->channels[i].type)
+				{
+					case IIO_UVINDEX:
+						reg |= SI1145_CHLIST_EN_UV;
+						break;
+
+					default:
+						reg |= SI1145_CHLIST_EN_AUX;
+
+						if (indio_dev->channels[i].type == IIO_TEMP)
+						{
+							mux = SI1145_MUX_TEMP;
+						}
+						else
+						{
+							mux = SI1145_MUX_VDD;
+						}
+
+						ret = si1145_param_set(data,
+											   SI1145_PARAM_AUX_ADC_MUX, mux);
+
+						if (ret < 0)
+						{
+							return ret;
+						}
+
+						break;
+				}
 		}
 	}
 
@@ -561,21 +691,27 @@ static int si1145_set_chlist(struct iio_dev *indio_dev, unsigned long scan_mask)
 }
 
 static int si1145_measure(struct iio_dev *indio_dev,
-			  struct iio_chan_spec const *chan)
+						  struct iio_chan_spec const *chan)
 {
 	struct si1145_data *data = iio_priv(indio_dev);
 	u8 cmd;
 	int ret;
 
 	ret = si1145_set_chlist(indio_dev, BIT(chan->scan_index));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	cmd = (chan->type == IIO_PROXIMITY) ? SI1145_CMD_PS_FORCE :
-		SI1145_CMD_ALS_FORCE;
+		  SI1145_CMD_ALS_FORCE;
 	ret = si1145_command(data, cmd);
+
 	if (ret < 0 && ret != -EOVERFLOW)
+	{
 		return ret;
+	}
 
 	return i2c_smbus_read_word_data(data->client, chan->address);
 }
@@ -584,16 +720,20 @@ static int si1145_measure(struct iio_dev *indio_dev,
  * Conversion between iio scale and ADC_GAIN values
  * These could be further adjusted but proximity/intensity are dimensionless
  */
-static const int si1145_proximity_scale_available[] = {
-	128, 64, 32, 16, 8, 4};
-static const int si1145_intensity_scale_available[] = {
-	128, 64, 32, 16, 8, 4, 2, 1};
+static const int si1145_proximity_scale_available[] =
+{
+	128, 64, 32, 16, 8, 4
+};
+static const int si1145_intensity_scale_available[] =
+{
+	128, 64, 32, 16, 8, 4, 2, 1
+};
 static IIO_CONST_ATTR(in_proximity_scale_available,
-	"128 64 32 16 8 4");
+					  "128 64 32 16 8 4");
 static IIO_CONST_ATTR(in_intensity_scale_available,
-	"128 64 32 16 8 4 2 1");
+					  "128 64 32 16 8 4 2 1");
 static IIO_CONST_ATTR(in_intensity_ir_scale_available,
-	"128 64 32 16 8 4 2 1");
+					  "128 64 32 16 8 4 2 1");
 
 static int si1145_scale_from_adcgain(int regval)
 {
@@ -603,9 +743,12 @@ static int si1145_scale_from_adcgain(int regval)
 static int si1145_proximity_adcgain_from_scale(int val, int val2)
 {
 	val = find_closest_descending(val, si1145_proximity_scale_available,
-				ARRAY_SIZE(si1145_proximity_scale_available));
+								  ARRAY_SIZE(si1145_proximity_scale_available));
+
 	if (val < 0 || val > 5 || val2 != 0)
+	{
 		return -EINVAL;
+	}
 
 	return val;
 }
@@ -613,274 +756,349 @@ static int si1145_proximity_adcgain_from_scale(int val, int val2)
 static int si1145_intensity_adcgain_from_scale(int val, int val2)
 {
 	val = find_closest_descending(val, si1145_intensity_scale_available,
-				ARRAY_SIZE(si1145_intensity_scale_available));
+								  ARRAY_SIZE(si1145_intensity_scale_available));
+
 	if (val < 0 || val > 7 || val2 != 0)
+	{
 		return -EINVAL;
+	}
 
 	return val;
 }
 
 static int si1145_read_raw(struct iio_dev *indio_dev,
-				struct iio_chan_spec const *chan,
-				int *val, int *val2, long mask)
+						   struct iio_chan_spec const *chan,
+						   int *val, int *val2, long mask)
 {
 	struct si1145_data *data = iio_priv(indio_dev);
 	int ret;
 	u8 reg;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		switch (chan->type) {
-		case IIO_INTENSITY:
-		case IIO_PROXIMITY:
-		case IIO_VOLTAGE:
-		case IIO_TEMP:
-		case IIO_UVINDEX:
-			ret = iio_device_claim_direct_mode(indio_dev);
-			if (ret)
-				return ret;
-			ret = si1145_measure(indio_dev, chan);
-			iio_device_release_direct_mode(indio_dev);
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			switch (chan->type)
+			{
+				case IIO_INTENSITY:
+				case IIO_PROXIMITY:
+				case IIO_VOLTAGE:
+				case IIO_TEMP:
+				case IIO_UVINDEX:
+					ret = iio_device_claim_direct_mode(indio_dev);
+
+					if (ret)
+					{
+						return ret;
+					}
+
+					ret = si1145_measure(indio_dev, chan);
+					iio_device_release_direct_mode(indio_dev);
+
+					if (ret < 0)
+					{
+						return ret;
+					}
+
+					*val = ret;
+
+					return IIO_VAL_INT;
+
+				case IIO_CURRENT:
+					ret = i2c_smbus_read_byte_data(data->client,
+												   SI1145_PS_LED_REG(chan->channel));
+
+					if (ret < 0)
+					{
+						return ret;
+					}
+
+					*val = (ret >> SI1145_PS_LED_SHIFT(chan->channel))
+						   & 0x0f;
+
+					return IIO_VAL_INT;
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->type)
+			{
+				case IIO_PROXIMITY:
+					reg = SI1145_PARAM_PS_ADC_GAIN;
+					break;
+
+				case IIO_INTENSITY:
+					if (chan->channel2 == IIO_MOD_LIGHT_IR)
+					{
+						reg = SI1145_PARAM_ALSIR_ADC_GAIN;
+					}
+					else
+					{
+						reg = SI1145_PARAM_ALSVIS_ADC_GAIN;
+					}
+
+					break;
+
+				case IIO_TEMP:
+					*val = 28;
+					*val2 = 571429;
+					return IIO_VAL_INT_PLUS_MICRO;
+
+				case IIO_UVINDEX:
+					*val = 0;
+					*val2 = 10000;
+					return IIO_VAL_INT_PLUS_MICRO;
+
+				default:
+					return -EINVAL;
+			}
+
+			ret = si1145_param_query(data, reg);
 
 			if (ret < 0)
+			{
 				return ret;
+			}
 
-			*val = ret;
+			*val = si1145_scale_from_adcgain(ret & 0x07);
 
 			return IIO_VAL_INT;
-		case IIO_CURRENT:
-			ret = i2c_smbus_read_byte_data(data->client,
-				SI1145_PS_LED_REG(chan->channel));
-			if (ret < 0)
-				return ret;
 
-			*val = (ret >> SI1145_PS_LED_SHIFT(chan->channel))
-				& 0x0f;
+		case IIO_CHAN_INFO_OFFSET:
+			switch (chan->type)
+			{
+				case IIO_TEMP:
+					/*
+					 * -ADC offset - ADC counts @ 25°C -
+					 *   35 * ADC counts / °C
+					 */
+					*val = -256 - 11136 + 25 * 35;
+					return IIO_VAL_INT;
 
-			return IIO_VAL_INT;
+				default:
+					/*
+					 * All ADC measurements have are by default offset
+					 * by -256
+					 * See AN498 5.6.3
+					 */
+					ret = si1145_param_query(data, SI1145_PARAM_ADC_OFFSET);
+
+					if (ret < 0)
+					{
+						return ret;
+					}
+
+					*val = -si1145_uncompress(ret);
+					return IIO_VAL_INT;
+			}
+
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			return si1145_read_samp_freq(data, val, val2);
+
 		default:
 			return -EINVAL;
-		}
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->type) {
-		case IIO_PROXIMITY:
-			reg = SI1145_PARAM_PS_ADC_GAIN;
-			break;
-		case IIO_INTENSITY:
-			if (chan->channel2 == IIO_MOD_LIGHT_IR)
-				reg = SI1145_PARAM_ALSIR_ADC_GAIN;
-			else
-				reg = SI1145_PARAM_ALSVIS_ADC_GAIN;
-			break;
-		case IIO_TEMP:
-			*val = 28;
-			*val2 = 571429;
-			return IIO_VAL_INT_PLUS_MICRO;
-		case IIO_UVINDEX:
-			*val = 0;
-			*val2 = 10000;
-			return IIO_VAL_INT_PLUS_MICRO;
-		default:
-			return -EINVAL;
-		}
-
-		ret = si1145_param_query(data, reg);
-		if (ret < 0)
-			return ret;
-
-		*val = si1145_scale_from_adcgain(ret & 0x07);
-
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_OFFSET:
-		switch (chan->type) {
-		case IIO_TEMP:
-			/*
-			 * -ADC offset - ADC counts @ 25°C -
-			 *   35 * ADC counts / °C
-			 */
-			*val = -256 - 11136 + 25 * 35;
-			return IIO_VAL_INT;
-		default:
-			/*
-			 * All ADC measurements have are by default offset
-			 * by -256
-			 * See AN498 5.6.3
-			 */
-			ret = si1145_param_query(data, SI1145_PARAM_ADC_OFFSET);
-			if (ret < 0)
-				return ret;
-			*val = -si1145_uncompress(ret);
-			return IIO_VAL_INT;
-		}
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		return si1145_read_samp_freq(data, val, val2);
-	default:
-		return -EINVAL;
 	}
 }
 
 static int si1145_write_raw(struct iio_dev *indio_dev,
-			       struct iio_chan_spec const *chan,
-			       int val, int val2, long mask)
+							struct iio_chan_spec const *chan,
+							int val, int val2, long mask)
 {
 	struct si1145_data *data = iio_priv(indio_dev);
 	u8 reg1, reg2, shift;
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->type) {
-		case IIO_PROXIMITY:
-			val = si1145_proximity_adcgain_from_scale(val, val2);
-			if (val < 0)
-				return val;
-			reg1 = SI1145_PARAM_PS_ADC_GAIN;
-			reg2 = SI1145_PARAM_PS_ADC_COUNTER;
-			break;
-		case IIO_INTENSITY:
-			val = si1145_intensity_adcgain_from_scale(val, val2);
-			if (val < 0)
-				return val;
-			if (chan->channel2 == IIO_MOD_LIGHT_IR) {
-				reg1 = SI1145_PARAM_ALSIR_ADC_GAIN;
-				reg2 = SI1145_PARAM_ALSIR_ADC_COUNTER;
-			} else {
-				reg1 = SI1145_PARAM_ALSVIS_ADC_GAIN;
-				reg2 = SI1145_PARAM_ALSVIS_ADC_COUNTER;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->type)
+			{
+				case IIO_PROXIMITY:
+					val = si1145_proximity_adcgain_from_scale(val, val2);
+
+					if (val < 0)
+					{
+						return val;
+					}
+
+					reg1 = SI1145_PARAM_PS_ADC_GAIN;
+					reg2 = SI1145_PARAM_PS_ADC_COUNTER;
+					break;
+
+				case IIO_INTENSITY:
+					val = si1145_intensity_adcgain_from_scale(val, val2);
+
+					if (val < 0)
+					{
+						return val;
+					}
+
+					if (chan->channel2 == IIO_MOD_LIGHT_IR)
+					{
+						reg1 = SI1145_PARAM_ALSIR_ADC_GAIN;
+						reg2 = SI1145_PARAM_ALSIR_ADC_COUNTER;
+					}
+					else
+					{
+						reg1 = SI1145_PARAM_ALSVIS_ADC_GAIN;
+						reg2 = SI1145_PARAM_ALSVIS_ADC_COUNTER;
+					}
+
+					break;
+
+				default:
+					return -EINVAL;
 			}
-			break;
+
+			ret = iio_device_claim_direct_mode(indio_dev);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			ret = si1145_param_set(data, reg1, val);
+
+			if (ret < 0)
+			{
+				iio_device_release_direct_mode(indio_dev);
+				return ret;
+			}
+
+			/* Set recovery period to one's complement of gain */
+			ret = si1145_param_set(data, reg2, (~val & 0x07) << 4);
+			iio_device_release_direct_mode(indio_dev);
+			return ret;
+
+		case IIO_CHAN_INFO_RAW:
+			if (chan->type != IIO_CURRENT)
+			{
+				return -EINVAL;
+			}
+
+			if (val < 0 || val > 15 || val2 != 0)
+			{
+				return -EINVAL;
+			}
+
+			reg1 = SI1145_PS_LED_REG(chan->channel);
+			shift = SI1145_PS_LED_SHIFT(chan->channel);
+
+			ret = iio_device_claim_direct_mode(indio_dev);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			ret = i2c_smbus_read_byte_data(data->client, reg1);
+
+			if (ret < 0)
+			{
+				iio_device_release_direct_mode(indio_dev);
+				return ret;
+			}
+
+			ret = i2c_smbus_write_byte_data(data->client, reg1,
+											(ret & ~(0x0f << shift)) |
+											((val & 0x0f) << shift));
+			iio_device_release_direct_mode(indio_dev);
+			return ret;
+
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			return si1145_store_samp_freq(data, val);
+
 		default:
 			return -EINVAL;
-		}
-
-		ret = iio_device_claim_direct_mode(indio_dev);
-		if (ret)
-			return ret;
-
-		ret = si1145_param_set(data, reg1, val);
-		if (ret < 0) {
-			iio_device_release_direct_mode(indio_dev);
-			return ret;
-		}
-		/* Set recovery period to one's complement of gain */
-		ret = si1145_param_set(data, reg2, (~val & 0x07) << 4);
-		iio_device_release_direct_mode(indio_dev);
-		return ret;
-	case IIO_CHAN_INFO_RAW:
-		if (chan->type != IIO_CURRENT)
-			return -EINVAL;
-
-		if (val < 0 || val > 15 || val2 != 0)
-			return -EINVAL;
-
-		reg1 = SI1145_PS_LED_REG(chan->channel);
-		shift = SI1145_PS_LED_SHIFT(chan->channel);
-
-		ret = iio_device_claim_direct_mode(indio_dev);
-		if (ret)
-			return ret;
-
-		ret = i2c_smbus_read_byte_data(data->client, reg1);
-		if (ret < 0) {
-			iio_device_release_direct_mode(indio_dev);
-			return ret;
-		}
-		ret = i2c_smbus_write_byte_data(data->client, reg1,
-			(ret & ~(0x0f << shift)) |
-			((val & 0x0f) << shift));
-		iio_device_release_direct_mode(indio_dev);
-		return ret;
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		return si1145_store_samp_freq(data, val);
-	default:
-		return -EINVAL;
 	}
 }
 
 #define SI1145_ST { \
-	.sign = 'u', \
-	.realbits = 16, \
-	.storagebits = 16, \
-	.endianness = IIO_LE, \
-}
+		.sign = 'u', \
+				.realbits = 16, \
+							.storagebits = 16, \
+										   .endianness = IIO_LE, \
+	}
 
 #define SI1145_INTENSITY_CHANNEL(_si) { \
-	.type = IIO_INTENSITY, \
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) | \
-			      BIT(IIO_CHAN_INFO_OFFSET) | \
-			      BIT(IIO_CHAN_INFO_SCALE), \
-	.info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
-	.scan_type = SI1145_ST, \
-	.scan_index = _si, \
-	.address = SI1145_REG_ALSVIS_DATA, \
-}
+		.type = IIO_INTENSITY, \
+				.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) | \
+									  BIT(IIO_CHAN_INFO_OFFSET) | \
+									  BIT(IIO_CHAN_INFO_SCALE), \
+									  .info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
+											  .scan_type = SI1145_ST, \
+													  .scan_index = _si, \
+															  .address = SI1145_REG_ALSVIS_DATA, \
+	}
 
 #define SI1145_INTENSITY_IR_CHANNEL(_si) { \
-	.type = IIO_INTENSITY, \
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) | \
-			      BIT(IIO_CHAN_INFO_OFFSET) | \
-			      BIT(IIO_CHAN_INFO_SCALE), \
-	.info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
-	.modified = 1, \
-	.channel2 = IIO_MOD_LIGHT_IR, \
-	.scan_type = SI1145_ST, \
-	.scan_index = _si, \
-	.address = SI1145_REG_ALSIR_DATA, \
-}
+		.type = IIO_INTENSITY, \
+				.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) | \
+									  BIT(IIO_CHAN_INFO_OFFSET) | \
+									  BIT(IIO_CHAN_INFO_SCALE), \
+									  .info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
+											  .modified = 1, \
+													  .channel2 = IIO_MOD_LIGHT_IR, \
+															  .scan_type = SI1145_ST, \
+																	  .scan_index = _si, \
+																			  .address = SI1145_REG_ALSIR_DATA, \
+	}
 
 #define SI1145_TEMP_CHANNEL(_si) { \
-	.type = IIO_TEMP, \
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) | \
-			      BIT(IIO_CHAN_INFO_OFFSET) | \
-			      BIT(IIO_CHAN_INFO_SCALE), \
-	.info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
-	.scan_type = SI1145_ST, \
-	.scan_index = _si, \
-	.address = SI1145_REG_AUX_DATA, \
-}
+		.type = IIO_TEMP, \
+				.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) | \
+									  BIT(IIO_CHAN_INFO_OFFSET) | \
+									  BIT(IIO_CHAN_INFO_SCALE), \
+									  .info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
+											  .scan_type = SI1145_ST, \
+													  .scan_index = _si, \
+															  .address = SI1145_REG_AUX_DATA, \
+	}
 
 #define SI1145_UV_CHANNEL(_si) { \
-	.type = IIO_UVINDEX, \
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) | \
-			      BIT(IIO_CHAN_INFO_SCALE), \
-	.info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
-	.scan_type = SI1145_ST, \
-	.scan_index = _si, \
-	.address = SI1145_REG_AUX_DATA, \
-}
+		.type = IIO_UVINDEX, \
+				.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) | \
+									  BIT(IIO_CHAN_INFO_SCALE), \
+									  .info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
+											  .scan_type = SI1145_ST, \
+													  .scan_index = _si, \
+															  .address = SI1145_REG_AUX_DATA, \
+	}
 
 #define SI1145_PROXIMITY_CHANNEL(_si, _ch) { \
-	.type = IIO_PROXIMITY, \
-	.indexed = 1, \
-	.channel = _ch, \
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW), \
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) | \
-				    BIT(IIO_CHAN_INFO_OFFSET), \
-	.info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
-	.scan_type = SI1145_ST, \
-	.scan_index = _si, \
-	.address = SI1145_REG_PS1_DATA + _ch * 2, \
-}
+		.type = IIO_PROXIMITY, \
+				.indexed = 1, \
+						   .channel = _ch, \
+									  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW), \
+											  .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) | \
+													  BIT(IIO_CHAN_INFO_OFFSET), \
+													  .info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
+															  .scan_type = SI1145_ST, \
+																	  .scan_index = _si, \
+																			  .address = SI1145_REG_PS1_DATA + _ch * 2, \
+	}
 
 #define SI1145_VOLTAGE_CHANNEL(_si) { \
-	.type = IIO_VOLTAGE, \
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW), \
-	.info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
-	.scan_type = SI1145_ST, \
-	.scan_index = _si, \
-	.address = SI1145_REG_AUX_DATA, \
-}
+		.type = IIO_VOLTAGE, \
+				.info_mask_separate = BIT(IIO_CHAN_INFO_RAW), \
+									  .info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
+											  .scan_type = SI1145_ST, \
+													  .scan_index = _si, \
+															  .address = SI1145_REG_AUX_DATA, \
+	}
 
 #define SI1145_CURRENT_CHANNEL(_ch) { \
-	.type = IIO_CURRENT, \
-	.indexed = 1, \
-	.channel = _ch, \
-	.output = 1, \
-	.scan_index = -1, \
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW), \
-}
+		.type = IIO_CURRENT, \
+				.indexed = 1, \
+						   .channel = _ch, \
+									  .output = 1, \
+												.scan_index = -1, \
+														.info_mask_separate = BIT(IIO_CHAN_INFO_RAW), \
+	}
 
-static const struct iio_chan_spec si1132_channels[] = {
+static const struct iio_chan_spec si1132_channels[] =
+{
 	SI1145_INTENSITY_CHANNEL(0),
 	SI1145_INTENSITY_IR_CHANNEL(1),
 	SI1145_TEMP_CHANNEL(2),
@@ -889,7 +1107,8 @@ static const struct iio_chan_spec si1132_channels[] = {
 	IIO_CHAN_SOFT_TIMESTAMP(6),
 };
 
-static const struct iio_chan_spec si1141_channels[] = {
+static const struct iio_chan_spec si1141_channels[] =
+{
 	SI1145_INTENSITY_CHANNEL(0),
 	SI1145_INTENSITY_IR_CHANNEL(1),
 	SI1145_PROXIMITY_CHANNEL(2, 0),
@@ -899,7 +1118,8 @@ static const struct iio_chan_spec si1141_channels[] = {
 	SI1145_CURRENT_CHANNEL(0),
 };
 
-static const struct iio_chan_spec si1142_channels[] = {
+static const struct iio_chan_spec si1142_channels[] =
+{
 	SI1145_INTENSITY_CHANNEL(0),
 	SI1145_INTENSITY_IR_CHANNEL(1),
 	SI1145_PROXIMITY_CHANNEL(2, 0),
@@ -911,7 +1131,8 @@ static const struct iio_chan_spec si1142_channels[] = {
 	SI1145_CURRENT_CHANNEL(1),
 };
 
-static const struct iio_chan_spec si1143_channels[] = {
+static const struct iio_chan_spec si1143_channels[] =
+{
 	SI1145_INTENSITY_CHANNEL(0),
 	SI1145_INTENSITY_IR_CHANNEL(1),
 	SI1145_PROXIMITY_CHANNEL(2, 0),
@@ -925,7 +1146,8 @@ static const struct iio_chan_spec si1143_channels[] = {
 	SI1145_CURRENT_CHANNEL(2),
 };
 
-static const struct iio_chan_spec si1145_channels[] = {
+static const struct iio_chan_spec si1145_channels[] =
+{
 	SI1145_INTENSITY_CHANNEL(0),
 	SI1145_INTENSITY_IR_CHANNEL(1),
 	SI1145_PROXIMITY_CHANNEL(2, 0),
@@ -936,7 +1158,8 @@ static const struct iio_chan_spec si1145_channels[] = {
 	SI1145_CURRENT_CHANNEL(0),
 };
 
-static const struct iio_chan_spec si1146_channels[] = {
+static const struct iio_chan_spec si1146_channels[] =
+{
 	SI1145_INTENSITY_CHANNEL(0),
 	SI1145_INTENSITY_IR_CHANNEL(1),
 	SI1145_TEMP_CHANNEL(2),
@@ -949,7 +1172,8 @@ static const struct iio_chan_spec si1146_channels[] = {
 	SI1145_CURRENT_CHANNEL(1),
 };
 
-static const struct iio_chan_spec si1147_channels[] = {
+static const struct iio_chan_spec si1147_channels[] =
+{
 	SI1145_INTENSITY_CHANNEL(0),
 	SI1145_INTENSITY_IR_CHANNEL(1),
 	SI1145_PROXIMITY_CHANNEL(2, 0),
@@ -964,36 +1188,42 @@ static const struct iio_chan_spec si1147_channels[] = {
 	SI1145_CURRENT_CHANNEL(2),
 };
 
-static struct attribute *si1132_attributes[] = {
+static struct attribute *si1132_attributes[] =
+{
 	&iio_const_attr_in_intensity_scale_available.dev_attr.attr,
 	&iio_const_attr_in_intensity_ir_scale_available.dev_attr.attr,
 	NULL,
 };
 
-static struct attribute *si114x_attributes[] = {
+static struct attribute *si114x_attributes[] =
+{
 	&iio_const_attr_in_intensity_scale_available.dev_attr.attr,
 	&iio_const_attr_in_intensity_ir_scale_available.dev_attr.attr,
 	&iio_const_attr_in_proximity_scale_available.dev_attr.attr,
 	NULL,
 };
 
-static const struct attribute_group si1132_attribute_group = {
+static const struct attribute_group si1132_attribute_group =
+{
 	.attrs = si1132_attributes,
 };
 
-static const struct attribute_group si114x_attribute_group = {
+static const struct attribute_group si114x_attribute_group =
+{
 	.attrs = si114x_attributes,
 };
 
 
-static const struct iio_info si1132_info = {
+static const struct iio_info si1132_info =
+{
 	.read_raw = si1145_read_raw,
 	.write_raw = si1145_write_raw,
 	.driver_module = THIS_MODULE,
 	.attrs = &si1132_attribute_group,
 };
 
-static const struct iio_info si114x_info = {
+static const struct iio_info si114x_info =
+{
 	.read_raw = si1145_read_raw,
 	.write_raw = si1145_write_raw,
 	.driver_module = THIS_MODULE,
@@ -1003,7 +1233,8 @@ static const struct iio_info si114x_info = {
 #define SI1145_PART(id, iio_info, chans, leds, uncompressed_meas_rate) \
 	{id, iio_info, chans, ARRAY_SIZE(chans), leds, uncompressed_meas_rate}
 
-static const struct si1145_part_info si1145_part_info[] = {
+static const struct si1145_part_info si1145_part_info[] =
+{
 	[SI1132] = SI1145_PART(0x32, &si1132_info, si1132_channels, 0, true),
 	[SI1141] = SI1145_PART(0x41, &si114x_info, si1141_channels, 1, false),
 	[SI1142] = SI1145_PART(0x42, &si114x_info, si1142_channels, 2, false),
@@ -1019,98 +1250,149 @@ static int si1145_initialize(struct si1145_data *data)
 	int ret;
 
 	ret = i2c_smbus_write_byte_data(client, SI1145_REG_COMMAND,
-					SI1145_CMD_RESET);
+									SI1145_CMD_RESET);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	msleep(SI1145_COMMAND_TIMEOUT_MS);
 
 	/* Hardware key, magic value */
 	ret = i2c_smbus_write_byte_data(client, SI1145_REG_HW_KEY, 0x17);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	msleep(SI1145_COMMAND_TIMEOUT_MS);
 
 	/* Turn off autonomous mode */
 	ret = si1145_set_meas_rate(data, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Initialize sampling freq to 10 Hz */
 	ret = si1145_store_samp_freq(data, 10);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Set LED currents to 45 mA; have 4 bits, see Table 2 in datasheet */
-	switch (data->part_info->num_leds) {
-	case 3:
-		ret = i2c_smbus_write_byte_data(client,
-						SI1145_REG_PS_LED3,
-						SI1145_LED_CURRENT_45mA);
-		if (ret < 0)
-			return ret;
+	switch (data->part_info->num_leds)
+	{
+		case 3:
+			ret = i2c_smbus_write_byte_data(client,
+											SI1145_REG_PS_LED3,
+											SI1145_LED_CURRENT_45mA);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
 		/* fallthrough */
-	case 2:
-		ret = i2c_smbus_write_byte_data(client,
-						SI1145_REG_PS_LED21,
-						(SI1145_LED_CURRENT_45mA << 4) |
-						SI1145_LED_CURRENT_45mA);
-		break;
-	case 1:
-		ret = i2c_smbus_write_byte_data(client,
-						SI1145_REG_PS_LED21,
-						SI1145_LED_CURRENT_45mA);
-		break;
-	default:
-		ret = 0;
-		break;
+		case 2:
+			ret = i2c_smbus_write_byte_data(client,
+											SI1145_REG_PS_LED21,
+											(SI1145_LED_CURRENT_45mA << 4) |
+											SI1145_LED_CURRENT_45mA);
+			break;
+
+		case 1:
+			ret = i2c_smbus_write_byte_data(client,
+											SI1145_REG_PS_LED21,
+											SI1145_LED_CURRENT_45mA);
+			break;
+
+		default:
+			ret = 0;
+			break;
 	}
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Set normal proximity measurement mode */
 	ret = si1145_param_set(data, SI1145_PARAM_PS_ADC_MISC,
-			       SI1145_PS_ADC_MODE_NORMAL);
+						   SI1145_PS_ADC_MODE_NORMAL);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = si1145_param_set(data, SI1145_PARAM_PS_ADC_GAIN, 0x01);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* ADC_COUNTER should be one complement of ADC_GAIN */
 	ret = si1145_param_set(data, SI1145_PARAM_PS_ADC_COUNTER, 0x06 << 4);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Set ALS visible measurement mode */
 	ret = si1145_param_set(data, SI1145_PARAM_ALSVIS_ADC_MISC,
-			       SI1145_ADC_MISC_RANGE);
+						   SI1145_ADC_MISC_RANGE);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = si1145_param_set(data, SI1145_PARAM_ALSVIS_ADC_GAIN, 0x03);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = si1145_param_set(data, SI1145_PARAM_ALSVIS_ADC_COUNTER,
-			       0x04 << 4);
+						   0x04 << 4);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Set ALS IR measurement mode */
 	ret = si1145_param_set(data, SI1145_PARAM_ALSIR_ADC_MISC,
-			       SI1145_ADC_MISC_RANGE);
+						   SI1145_ADC_MISC_RANGE);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = si1145_param_set(data, SI1145_PARAM_ALSIR_ADC_GAIN, 0x01);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = si1145_param_set(data, SI1145_PARAM_ALSIR_ADC_COUNTER,
-			       0x06 << 4);
+						   0x06 << 4);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * Initialize UCOEF to default values in datasheet
@@ -1119,24 +1401,40 @@ static int si1145_initialize(struct si1145_data *data)
 	if (data->part_info == &si1145_part_info[SI1132] ||
 		data->part_info == &si1145_part_info[SI1145] ||
 		data->part_info == &si1145_part_info[SI1146] ||
-		data->part_info == &si1145_part_info[SI1147]) {
+		data->part_info == &si1145_part_info[SI1147])
+	{
 		ret = i2c_smbus_write_byte_data(data->client,
-						SI1145_REG_UCOEF1,
-						SI1145_UCOEF1_DEFAULT);
+										SI1145_REG_UCOEF1,
+										SI1145_UCOEF1_DEFAULT);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		ret = i2c_smbus_write_byte_data(data->client,
-				SI1145_REG_UCOEF2, SI1145_UCOEF2_DEFAULT);
+										SI1145_REG_UCOEF2, SI1145_UCOEF2_DEFAULT);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		ret = i2c_smbus_write_byte_data(data->client,
-				SI1145_REG_UCOEF3, SI1145_UCOEF3_DEFAULT);
+										SI1145_REG_UCOEF3, SI1145_UCOEF3_DEFAULT);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		ret = i2c_smbus_write_byte_data(data->client,
-				SI1145_REG_UCOEF4, SI1145_UCOEF4_DEFAULT);
+										SI1145_REG_UCOEF4, SI1145_UCOEF4_DEFAULT);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -1160,22 +1458,26 @@ static int si1145_buffer_preenable(struct iio_dev *indio_dev)
 }
 
 static bool si1145_validate_scan_mask(struct iio_dev *indio_dev,
-			       const unsigned long *scan_mask)
+									  const unsigned long *scan_mask)
 {
 	struct si1145_data *data = iio_priv(indio_dev);
 	unsigned int count = 0;
 	int i;
 
 	/* Check that at most one AUX channel is enabled */
-	for_each_set_bit(i, scan_mask, data->part_info->num_channels) {
+	for_each_set_bit(i, scan_mask, data->part_info->num_channels)
+	{
 		if (indio_dev->channels[i].address == SI1145_REG_AUX_DATA)
+		{
 			count++;
+		}
 	}
 
 	return count <= 1;
 }
 
-static const struct iio_buffer_setup_ops si1145_buffer_setup_ops = {
+static const struct iio_buffer_setup_ops si1145_buffer_setup_ops =
+{
 	.preenable = si1145_buffer_preenable,
 	.postenable = iio_triggered_buffer_postenable,
 	.predisable = iio_triggered_buffer_predisable,
@@ -1196,39 +1498,73 @@ static int si1145_trigger_set_state(struct iio_trigger *trig, bool state)
 
 	mutex_lock(&data->lock);
 
-	if (state) {
+	if (state)
+	{
 		data->autonomous = true;
 		err = i2c_smbus_write_byte_data(data->client,
-				SI1145_REG_INT_CFG, SI1145_INT_CFG_OE);
+										SI1145_REG_INT_CFG, SI1145_INT_CFG_OE);
+
 		if (err < 0)
+		{
 			goto disable;
+		}
+
 		err = i2c_smbus_write_byte_data(data->client,
-				SI1145_REG_IRQ_ENABLE, SI1145_MASK_ALL_IE);
+										SI1145_REG_IRQ_ENABLE, SI1145_MASK_ALL_IE);
+
 		if (err < 0)
+		{
 			goto disable;
+		}
+
 		err = si1145_set_meas_rate(data, data->meas_rate);
+
 		if (err < 0)
+		{
 			goto disable;
+		}
+
 		err = si1145_command(data, SI1145_CMD_PSALS_AUTO);
+
 		if (err < 0)
+		{
 			goto disable;
-	} else {
+		}
+	}
+	else
+	{
 disable:
 		/* Disable as much as possible skipping errors */
 		ret = si1145_command(data, SI1145_CMD_PSALS_PAUSE);
+
 		if (ret < 0 && !err)
+		{
 			err = ret;
+		}
+
 		ret = si1145_set_meas_rate(data, 0);
+
 		if (ret < 0 && !err)
+		{
 			err = ret;
+		}
+
 		ret = i2c_smbus_write_byte_data(data->client,
-						SI1145_REG_IRQ_ENABLE, 0);
+										SI1145_REG_IRQ_ENABLE, 0);
+
 		if (ret < 0 && !err)
+		{
 			err = ret;
+		}
+
 		ret = i2c_smbus_write_byte_data(data->client,
-						SI1145_REG_INT_CFG, 0);
+										SI1145_REG_INT_CFG, 0);
+
 		if (ret < 0 && !err)
+		{
 			err = ret;
+		}
+
 		data->autonomous = false;
 	}
 
@@ -1236,7 +1572,8 @@ disable:
 	return err;
 }
 
-static const struct iio_trigger_ops si1145_trigger_ops = {
+static const struct iio_trigger_ops si1145_trigger_ops =
+{
 	.owner = THIS_MODULE,
 	.set_trigger_state = si1145_trigger_set_state,
 };
@@ -1249,27 +1586,35 @@ static int si1145_probe_trigger(struct iio_dev *indio_dev)
 	int ret;
 
 	trig = devm_iio_trigger_alloc(&client->dev,
-			"%s-dev%d", indio_dev->name, indio_dev->id);
+								  "%s-dev%d", indio_dev->name, indio_dev->id);
+
 	if (!trig)
+	{
 		return -ENOMEM;
+	}
 
 	trig->dev.parent = &client->dev;
 	trig->ops = &si1145_trigger_ops;
 	iio_trigger_set_drvdata(trig, indio_dev);
 
 	ret = devm_request_irq(&client->dev, client->irq,
-			  iio_trigger_generic_data_rdy_poll,
-			  IRQF_TRIGGER_FALLING,
-			  "si1145_irq",
-			  trig);
-	if (ret < 0) {
+						   iio_trigger_generic_data_rdy_poll,
+						   IRQF_TRIGGER_FALLING,
+						   "si1145_irq",
+						   trig);
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "irq request failed\n");
 		return ret;
 	}
 
 	ret = iio_trigger_register(trig);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	data->trig = trig;
 	indio_dev->trig = iio_trigger_get(data->trig);
@@ -1281,14 +1626,15 @@ static void si1145_remove_trigger(struct iio_dev *indio_dev)
 {
 	struct si1145_data *data = iio_priv(indio_dev);
 
-	if (data->trig) {
+	if (data->trig)
+	{
 		iio_trigger_unregister(data->trig);
 		data->trig = NULL;
 	}
 }
 
 static int si1145_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct si1145_data *data;
 	struct iio_dev *indio_dev;
@@ -1296,8 +1642,11 @@ static int si1145_probe(struct i2c_client *client,
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	data = iio_priv(indio_dev);
 	i2c_set_clientdata(client, indio_dev);
@@ -1305,20 +1654,34 @@ static int si1145_probe(struct i2c_client *client,
 	data->part_info = &si1145_part_info[id->driver_data];
 
 	part_id = ret = i2c_smbus_read_byte_data(data->client,
-						 SI1145_REG_PART_ID);
+					SI1145_REG_PART_ID);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	rev_id = ret = i2c_smbus_read_byte_data(data->client,
-						SI1145_REG_REV_ID);
+											SI1145_REG_REV_ID);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	seq_id = ret = i2c_smbus_read_byte_data(data->client,
-						SI1145_REG_SEQ_ID);
+											SI1145_REG_SEQ_ID);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	dev_info(&client->dev, "device ID part %#02hhx rev %#02hhx seq %#02hhx\n",
-			part_id, rev_id, seq_id);
-	if (part_id != data->part_info->part) {
+			 part_id, rev_id, seq_id);
+
+	if (part_id != data->part_info->part)
+	{
 		dev_err(&client->dev, "part ID mismatch got %#02hhx, expected %#02x\n",
 				part_id, data->part_info->part);
 		return -ENODEV;
@@ -1335,25 +1698,40 @@ static int si1145_probe(struct i2c_client *client,
 	mutex_init(&data->cmdlock);
 
 	ret = si1145_initialize(data);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = iio_triggered_buffer_setup(indio_dev, NULL,
-		si1145_trigger_handler, &si1145_buffer_setup_ops);
-	if (ret < 0)
-		return ret;
+									 si1145_trigger_handler, &si1145_buffer_setup_ops);
 
-	if (client->irq) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (client->irq)
+	{
 		ret = si1145_probe_trigger(indio_dev);
+
 		if (ret < 0)
+		{
 			goto error_free_buffer;
-	} else {
+		}
+	}
+	else
+	{
 		dev_info(&client->dev, "no irq, using polling\n");
 	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret < 0)
+	{
 		goto error_free_trigger;
+	}
 
 	return 0;
 
@@ -1365,7 +1743,8 @@ error_free_buffer:
 	return ret;
 }
 
-static const struct i2c_device_id si1145_ids[] = {
+static const struct i2c_device_id si1145_ids[] =
+{
 	{ "si1132", SI1132 },
 	{ "si1141", SI1141 },
 	{ "si1142", SI1142 },
@@ -1388,7 +1767,8 @@ static int si1145_remove(struct i2c_client *client)
 	return 0;
 }
 
-static struct i2c_driver si1145_driver = {
+static struct i2c_driver si1145_driver =
+{
 	.driver = {
 		.name   = "si1145",
 	},

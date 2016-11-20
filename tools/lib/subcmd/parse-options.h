@@ -5,10 +5,11 @@
 #include <stdint.h>
 
 #ifndef NORETURN
-#define NORETURN __attribute__((__noreturn__))
+	#define NORETURN __attribute__((__noreturn__))
 #endif
 
-enum parse_opt_type {
+enum parse_opt_type
+{
 	/* special types */
 	OPTION_END,
 	OPTION_ARGUMENT,
@@ -28,7 +29,8 @@ enum parse_opt_type {
 	OPTION_UINTEGER,
 };
 
-enum parse_opt_flags {
+enum parse_opt_flags
+{
 	PARSE_OPT_KEEP_DASHDASH = 1,
 	PARSE_OPT_STOP_AT_NON_OPTION = 2,
 	PARSE_OPT_KEEP_ARGV0 = 4,
@@ -36,7 +38,8 @@ enum parse_opt_flags {
 	PARSE_OPT_NO_INTERNAL_HELP = 16,
 };
 
-enum parse_opt_option_flags {
+enum parse_opt_option_flags
+{
 	PARSE_OPT_OPTARG  = 1,
 	PARSE_OPT_NOARG   = 2,
 	PARSE_OPT_NONEG   = 4,
@@ -95,7 +98,8 @@ typedef int parse_opt_cb(const struct option *, const char *arg, int unset);
  * `set`::
  *   whether an option was set by the user
  */
-struct option {
+struct option
+{
 	enum parse_opt_type type;
 	int short_name;
 	const char *long_name;
@@ -121,8 +125,8 @@ struct option {
 #define OPT_BOOLEAN_FLAG(s, l, v, h, f)     { .type = OPTION_BOOLEAN, .short_name = (s), .long_name = (l), .value = check_vtype(v, bool *), .help = (h), .flags = (f) }
 #define OPT_BOOLEAN_SET(s, l, v, os, h) \
 	{ .type = OPTION_BOOLEAN, .short_name = (s), .long_name = (l), \
-	.value = check_vtype(v, bool *), .help = (h), \
-	.set = check_vtype(os, bool *)}
+											.value = check_vtype(v, bool *), .help = (h), \
+													.set = check_vtype(os, bool *)}
 #define OPT_INCR(s, l, v, h)        { .type = OPTION_INCR, .short_name = (s), .long_name = (l), .value = check_vtype(v, int *), .help = (h) }
 #define OPT_SET_UINT(s, l, v, h, i)  { .type = OPTION_SET_UINT, .short_name = (s), .long_name = (l), .value = check_vtype(v, unsigned int *), .help = (h), .defval = (i) }
 #define OPT_SET_PTR(s, l, v, h, p)  { .type = OPTION_SET_PTR, .short_name = (s), .long_name = (l), .value = (v), .help = (h), .defval = (p) }
@@ -133,8 +137,8 @@ struct option {
 #define OPT_STRING(s, l, v, a, h)   { .type = OPTION_STRING,  .short_name = (s), .long_name = (l), .value = check_vtype(v, const char **), (a), .help = (h) }
 #define OPT_STRING_OPTARG(s, l, v, a, h, d) \
 	{ .type = OPTION_STRING,  .short_name = (s), .long_name = (l), \
-	  .value = check_vtype(v, const char **), (a), .help = (h), \
-	  .flags = PARSE_OPT_OPTARG, .defval = (intptr_t)(d) }
+											.value = check_vtype(v, const char **), (a), .help = (h), \
+													.flags = PARSE_OPT_OPTARG, .defval = (intptr_t)(d) }
 #define OPT_STRING_NOEMPTY(s, l, v, a, h)   { .type = OPTION_STRING,  .short_name = (s), .long_name = (l), .value = check_vtype(v, const char **), (a), .help = (h), .flags = PARSE_OPT_NOEMPTY}
 #define OPT_DATE(s, l, v, h) \
 	{ .type = OPTION_CALLBACK, .short_name = (s), .long_name = (l), .value = (v), .argh = "time", .help = (h), .callback = parse_opt_approxidate_cb }
@@ -146,12 +150,12 @@ struct option {
 	{ .type = OPTION_CALLBACK, .short_name = (s), .long_name = (l), .value = (v), (a), .help = (h), .callback = (f), .defval = (intptr_t)d, .flags = PARSE_OPT_LASTARG_DEFAULT }
 #define OPT_CALLBACK_DEFAULT_NOOPT(s, l, v, a, h, f, d) \
 	{ .type = OPTION_CALLBACK, .short_name = (s), .long_name = (l),\
-	.value = (v), (a), .help = (h), .callback = (f), .defval = (intptr_t)d,\
-	.flags = PARSE_OPT_LASTARG_DEFAULT | PARSE_OPT_NOARG}
+											 .value = (v), (a), .help = (h), .callback = (f), .defval = (intptr_t)d,\
+													 .flags = PARSE_OPT_LASTARG_DEFAULT | PARSE_OPT_NOARG}
 #define OPT_CALLBACK_OPTARG(s, l, v, d, a, h, f) \
 	{ .type = OPTION_CALLBACK, .short_name = (s), .long_name = (l), \
-	  .value = (v), (a), .help = (h), .callback = (f), \
-	  .flags = PARSE_OPT_OPTARG, .data = (d) }
+											 .value = (v), (a), .help = (h), .callback = (f), \
+													 .flags = PARSE_OPT_OPTARG, .data = (d) }
 
 /* parse_options() will filter out the processed options and leave the
  * non-option argments in argv[].
@@ -161,24 +165,25 @@ struct option {
  * case of an error (or for 'special' options like --list-cmds or --list-opts).
  */
 extern int parse_options(int argc, const char **argv,
-                         const struct option *options,
-                         const char * const usagestr[], int flags);
+						 const struct option *options,
+						 const char *const usagestr[], int flags);
 
 extern int parse_options_subcommand(int argc, const char **argv,
-				const struct option *options,
-				const char *const subcommands[],
-				const char *usagestr[], int flags);
+									const struct option *options,
+									const char *const subcommands[],
+									const char *usagestr[], int flags);
 
-extern NORETURN void usage_with_options(const char * const *usagestr,
-                                        const struct option *options);
-extern NORETURN __attribute__((format(printf,3,4)))
-void usage_with_options_msg(const char * const *usagestr,
-			    const struct option *options,
-			    const char *fmt, ...);
+extern NORETURN void usage_with_options(const char *const *usagestr,
+										const struct option *options);
+extern NORETURN __attribute__((format(printf, 3, 4)))
+void usage_with_options_msg(const char *const *usagestr,
+							const struct option *options,
+							const char *fmt, ...);
 
 /*----- incremantal advanced APIs -----*/
 
-enum {
+enum
+{
 	PARSE_OPT_HELP = -1,
 	PARSE_OPT_DONE,
 	PARSE_OPT_LIST_OPTS,
@@ -191,7 +196,8 @@ enum {
  * Other fields of that structure are private to parse-options and should not
  * be modified in any way.
  */
-struct parse_opt_ctx_t {
+struct parse_opt_ctx_t
+{
 	const char **argv;
 	const char **out;
 	int argc, cpidx;
@@ -200,10 +206,10 @@ struct parse_opt_ctx_t {
 	int flags;
 };
 
-extern int parse_options_usage(const char * const *usagestr,
-			       const struct option *opts,
-			       const char *optstr,
-			       bool short_opt);
+extern int parse_options_usage(const char *const *usagestr,
+							   const struct option *opts,
+							   const char *optstr,
+							   bool short_opt);
 
 
 /*----- some often used options -----*/
@@ -215,19 +221,19 @@ extern int parse_opt_verbosity_cb(const struct option *, const char *, int);
 #define OPT__QUIET(var)    OPT_BOOLEAN('q', "quiet",   (var), "be quiet")
 #define OPT__VERBOSITY(var) \
 	{ OPTION_CALLBACK, 'v', "verbose", (var), NULL, "be more verbose", \
-	  PARSE_OPT_NOARG, &parse_opt_verbosity_cb, 0 }, \
+		PARSE_OPT_NOARG, &parse_opt_verbosity_cb, 0 }, \
 	{ OPTION_CALLBACK, 'q', "quiet", (var), NULL, "be more quiet", \
-	  PARSE_OPT_NOARG, &parse_opt_verbosity_cb, 0 }
+		PARSE_OPT_NOARG, &parse_opt_verbosity_cb, 0 }
 #define OPT__DRY_RUN(var)  OPT_BOOLEAN('n', "dry-run", (var), "dry run")
 #define OPT__ABBREV(var)  \
 	{ OPTION_CALLBACK, 0, "abbrev", (var), "n", \
-	  "use <n> digits to display SHA-1s", \
-	  PARSE_OPT_OPTARG, &parse_opt_abbrev_cb, 0 }
+		"use <n> digits to display SHA-1s", \
+		PARSE_OPT_OPTARG, &parse_opt_abbrev_cb, 0 }
 
 extern const char *parse_options_fix_filename(const char *prefix, const char *file);
 
 void set_option_flag(struct option *opts, int sopt, const char *lopt, int flag);
 void set_option_nobuild(struct option *opts, int shortopt, const char *longopt,
-			const char *build_opt, bool can_skip);
+						const char *build_opt, bool can_skip);
 
 #endif /* __SUBCMD_PARSE_OPTIONS_H */

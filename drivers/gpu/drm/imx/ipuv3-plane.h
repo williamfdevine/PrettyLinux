@@ -13,7 +13,8 @@ struct ipuv3_channel;
 struct dmfc_channel;
 struct ipu_dp;
 
-struct ipu_plane {
+struct ipu_plane
+{
 	struct drm_plane	base;
 
 	struct ipu_soc		*ipu;
@@ -26,16 +27,16 @@ struct ipu_plane {
 };
 
 struct ipu_plane *ipu_plane_init(struct drm_device *dev, struct ipu_soc *ipu,
-				 int dma, int dp, unsigned int possible_crtcs,
-				 enum drm_plane_type type);
+								 int dma, int dp, unsigned int possible_crtcs,
+								 enum drm_plane_type type);
 
 /* Init IDMAC, DMFC, DP */
 int ipu_plane_mode_set(struct ipu_plane *plane, struct drm_crtc *crtc,
-		       struct drm_display_mode *mode,
-		       struct drm_framebuffer *fb, int crtc_x, int crtc_y,
-		       unsigned int crtc_w, unsigned int crtc_h,
-		       uint32_t src_x, uint32_t src_y, uint32_t src_w,
-		       uint32_t src_h, bool interlaced);
+					   struct drm_display_mode *mode,
+					   struct drm_framebuffer *fb, int crtc_x, int crtc_y,
+					   unsigned int crtc_w, unsigned int crtc_h,
+					   uint32_t src_x, uint32_t src_y, uint32_t src_w,
+					   uint32_t src_h, bool interlaced);
 
 int ipu_plane_get_resources(struct ipu_plane *plane);
 void ipu_plane_put_resources(struct ipu_plane *plane);

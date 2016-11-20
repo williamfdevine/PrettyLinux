@@ -48,18 +48,20 @@
 /*
  * per-inode layout
  */
-struct objlayout {
+struct objlayout
+{
 	struct pnfs_layout_hdr pnfs_layout;
 
-	 /* for layout_commit */
-	enum osd_delta_space_valid_enum {
+	/* for layout_commit */
+	enum osd_delta_space_valid_enum
+	{
 		OBJ_DSU_INIT = 0,
 		OBJ_DSU_VALID,
 		OBJ_DSU_INVALID,
 	} delta_space_valid;
 	s64 delta_space_used;  /* consumed by write ops */
 
-	 /* for layout_return */
+	/* for layout_return */
 	spinlock_t lock;
 	struct list_head err_list;
 };
@@ -74,7 +76,8 @@ OBJLAYOUT(struct pnfs_layout_hdr *lo)
  * per-I/O operation state
  * embedded in objects provider io_state data structure
  */
-struct objlayout_io_res {
+struct objlayout_io_res
+{
 	struct objlayout *objlay;
 
 	void *rpcdata;
@@ -94,8 +97,8 @@ struct objlayout_io_res {
 
 static inline
 void objlayout_init_ioerrs(struct objlayout_io_res *oir, unsigned num_comps,
-			struct pnfs_osd_ioerr *ioerrs, void *rpcdata,
-			struct pnfs_layout_hdr *pnfs_layout_type)
+						   struct pnfs_osd_ioerr *ioerrs, void *rpcdata,
+						   struct pnfs_layout_hdr *pnfs_layout_type)
 {
 	oir->objlay = OBJLAYOUT(pnfs_layout_type);
 	oir->rpcdata = rpcdata;
@@ -108,10 +111,10 @@ void objlayout_init_ioerrs(struct objlayout_io_res *oir, unsigned num_comps,
  * Raid engine I/O API
  */
 extern int objio_alloc_lseg(struct pnfs_layout_segment **outp,
-	struct pnfs_layout_hdr *pnfslay,
-	struct pnfs_layout_range *range,
-	struct xdr_stream *xdr,
-	gfp_t gfp_flags);
+							struct pnfs_layout_hdr *pnfslay,
+							struct pnfs_layout_range *range,
+							struct xdr_stream *xdr,
+							gfp_t gfp_flags);
 extern void objio_free_lseg(struct pnfs_layout_segment *lseg);
 
 /* objio_free_result will free these @oir structs received from
@@ -126,8 +129,8 @@ extern int objio_write_pagelist(struct nfs_pgio_header *wdata, int how);
  * callback API
  */
 extern void objlayout_io_set_result(struct objlayout_io_res *oir,
-			unsigned index, struct pnfs_osd_objid *pooid,
-			int osd_error, u64 offset, u64 length, bool is_write);
+									unsigned index, struct pnfs_osd_objid *pooid,
+									int osd_error, u64 offset, u64 length, bool is_write);
 
 static inline void
 objlayout_add_delta_space_used(struct objlayout *objlay, s64 space_used)
@@ -137,17 +140,20 @@ objlayout_add_delta_space_used(struct objlayout *objlay, s64 space_used)
 	 * the DSU be accurate or not reported.
 	 */
 	spin_lock(&objlay->lock);
-	if (objlay->delta_space_valid != OBJ_DSU_INVALID) {
+
+	if (objlay->delta_space_valid != OBJ_DSU_INVALID)
+	{
 		objlay->delta_space_valid = OBJ_DSU_VALID;
 		objlay->delta_space_used += space_used;
 	}
+
 	spin_unlock(&objlay->lock);
 }
 
 extern void objlayout_read_done(struct objlayout_io_res *oir,
-				ssize_t status, bool sync);
+								ssize_t status, bool sync);
 extern void objlayout_write_done(struct objlayout_io_res *oir,
-				 ssize_t status, bool sync);
+								 ssize_t status, bool sync);
 
 /*
  * exported generic objects function vectors

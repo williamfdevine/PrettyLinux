@@ -35,8 +35,8 @@ MODULE_LICENSE("GPL");
 MODULE_ALIAS("prism54common");
 
 static int p54_sta_add_remove(struct ieee80211_hw *hw,
-			      struct ieee80211_vif *vif,
-			      struct ieee80211_sta *sta)
+							  struct ieee80211_vif *vif,
+							  struct ieee80211_sta *sta)
 {
 	struct p54_common *priv = hw->priv;
 
@@ -51,23 +51,25 @@ static int p54_sta_add_remove(struct ieee80211_hw *hw,
 }
 
 static void p54_sta_notify(struct ieee80211_hw *dev, struct ieee80211_vif *vif,
-			      enum sta_notify_cmd notify_cmd,
-			      struct ieee80211_sta *sta)
+						   enum sta_notify_cmd notify_cmd,
+						   struct ieee80211_sta *sta)
 {
 	struct p54_common *priv = dev->priv;
 
-	switch (notify_cmd) {
-	case STA_NOTIFY_AWAKE:
-		/* update the firmware's filter table */
-		p54_sta_unlock(priv, sta->addr);
-		break;
-	default:
-		break;
+	switch (notify_cmd)
+	{
+		case STA_NOTIFY_AWAKE:
+			/* update the firmware's filter table */
+			p54_sta_unlock(priv, sta->addr);
+			break;
+
+		default:
+			break;
 	}
 }
 
 static int p54_set_tim(struct ieee80211_hw *dev, struct ieee80211_sta *sta,
-			bool set)
+					   bool set)
 {
 	struct p54_common *priv = dev->priv;
 
@@ -80,19 +82,28 @@ u8 *p54_find_ie(struct sk_buff *skb, u8 ie)
 	u8 *pos, *end;
 
 	if (skb->len <= sizeof(mgmt))
+	{
 		return NULL;
+	}
 
 	pos = (u8 *)mgmt->u.beacon.variable;
 	end = skb->data + skb->len;
-	while (pos < end) {
+
+	while (pos < end)
+	{
 		if (pos + 2 + pos[1] > end)
+		{
 			return NULL;
+		}
 
 		if (pos[0] == ie)
+		{
 			return pos;
+		}
 
 		pos += 2 + pos[1];
 	}
+
 	return NULL;
 }
 
@@ -109,15 +120,20 @@ static int p54_beacon_format_ie_tim(struct sk_buff *skb)
 	u8 *next;
 
 	tim = p54_find_ie(skb, WLAN_EID_TIM);
+
 	if (!tim)
+	{
 		return 0;
+	}
 
 	dtim_len = tim[1];
 	dtim_period = tim[3];
 	next = tim + 2 + dtim_len;
 
 	if (dtim_len < 3)
+	{
 		return -EINVAL;
+	}
 
 	memmove(tim, next, skb_tail_pointer(skb) - next);
 	tim = skb_tail_pointer(skb) - (dtim_len + 2);
@@ -130,24 +146,33 @@ static int p54_beacon_format_ie_tim(struct sk_buff *skb)
 	tim[4] = 0;
 
 	if (dtim_len > 3)
+	{
 		skb_trim(skb, skb->len - (dtim_len - 3));
+	}
 
 	return 0;
 }
 
 static int p54_beacon_update(struct p54_common *priv,
-			struct ieee80211_vif *vif)
+							 struct ieee80211_vif *vif)
 {
 	struct ieee80211_tx_control control = { };
 	struct sk_buff *beacon;
 	int ret;
 
 	beacon = ieee80211_beacon_get(priv->hw, vif);
+
 	if (!beacon)
+	{
 		return -ENOMEM;
+	}
+
 	ret = p54_beacon_format_ie_tim(beacon);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * During operation, the firmware takes care of beaconing.
@@ -172,20 +197,29 @@ static int p54_start(struct ieee80211_hw *dev)
 
 	mutex_lock(&priv->conf_mutex);
 	err = priv->open(dev);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	P54_SET_QUEUE(priv->qos_params[0], 0x0002, 0x0003, 0x0007, 47);
 	P54_SET_QUEUE(priv->qos_params[1], 0x0002, 0x0007, 0x000f, 94);
 	P54_SET_QUEUE(priv->qos_params[2], 0x0003, 0x000f, 0x03ff, 0);
 	P54_SET_QUEUE(priv->qos_params[3], 0x0007, 0x000f, 0x03ff, 0);
 	err = p54_set_edcf(priv);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	eth_broadcast_addr(priv->bssid);
 	priv->mode = NL80211_IFTYPE_MONITOR;
 	err = p54_setup_mac(priv);
-	if (err) {
+
+	if (err)
+	{
 		priv->mode = NL80211_IFTYPE_UNSPECIFIED;
 		goto out;
 	}
@@ -213,7 +247,9 @@ static void p54_stop(struct ieee80211_hw *dev)
 	priv->stop(dev);
 	skb_queue_purge(&priv->tx_pending);
 	skb_queue_purge(&priv->tx_queue);
-	for (i = 0; i < P54_QUEUE_NUM; i++) {
+
+	for (i = 0; i < P54_QUEUE_NUM; i++)
+	{
 		priv->tx_stats[i].count = 0;
 		priv->tx_stats[i].len = 0;
 	}
@@ -224,7 +260,7 @@ static void p54_stop(struct ieee80211_hw *dev)
 }
 
 static int p54_add_interface(struct ieee80211_hw *dev,
-			     struct ieee80211_vif *vif)
+							 struct ieee80211_vif *vif)
 {
 	struct p54_common *priv = dev->priv;
 	int err;
@@ -232,23 +268,27 @@ static int p54_add_interface(struct ieee80211_hw *dev,
 	vif->driver_flags |= IEEE80211_VIF_BEACON_FILTER;
 
 	mutex_lock(&priv->conf_mutex);
-	if (priv->mode != NL80211_IFTYPE_MONITOR) {
+
+	if (priv->mode != NL80211_IFTYPE_MONITOR)
+	{
 		mutex_unlock(&priv->conf_mutex);
 		return -EOPNOTSUPP;
 	}
 
 	priv->vif = vif;
 
-	switch (vif->type) {
-	case NL80211_IFTYPE_STATION:
-	case NL80211_IFTYPE_ADHOC:
-	case NL80211_IFTYPE_AP:
-	case NL80211_IFTYPE_MESH_POINT:
-		priv->mode = vif->type;
-		break;
-	default:
-		mutex_unlock(&priv->conf_mutex);
-		return -EOPNOTSUPP;
+	switch (vif->type)
+	{
+		case NL80211_IFTYPE_STATION:
+		case NL80211_IFTYPE_ADHOC:
+		case NL80211_IFTYPE_AP:
+		case NL80211_IFTYPE_MESH_POINT:
+			priv->mode = vif->type;
+			break;
+
+		default:
+			mutex_unlock(&priv->conf_mutex);
+			return -EOPNOTSUPP;
 	}
 
 	memcpy(priv->mac_addr, vif->addr, ETH_ALEN);
@@ -258,7 +298,7 @@ static int p54_add_interface(struct ieee80211_hw *dev,
 }
 
 static void p54_remove_interface(struct ieee80211_hw *dev,
-				 struct ieee80211_vif *vif)
+								 struct ieee80211_vif *vif)
 {
 	struct p54_common *priv = dev->priv;
 
@@ -269,10 +309,12 @@ static void p54_remove_interface(struct ieee80211_hw *dev,
 	 * LMAC API 3.2.2 states that any active beacon template must be
 	 * canceled by the driver before attempting a mode transition.
 	 */
-	if (le32_to_cpu(priv->beacon_req_id) != 0) {
+	if (le32_to_cpu(priv->beacon_req_id) != 0)
+	{
 		p54_tx_cancel(priv, priv->beacon_req_id);
 		wait_for_completion_interruptible_timeout(&priv->beacon_comp, HZ);
 	}
+
 	priv->mode = NL80211_IFTYPE_MONITOR;
 	eth_zero_addr(priv->mac_addr);
 	eth_zero_addr(priv->bssid);
@@ -287,12 +329,18 @@ static int p54_wait_for_stats(struct ieee80211_hw *dev)
 
 	priv->update_stats = true;
 	ret = p54_fetch_statistics(priv);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = wait_for_completion_interruptible_timeout(&priv->stat_comp, HZ);
+
 	if (ret == 0)
+	{
 		return -ETIMEDOUT;
+	}
 
 	return 0;
 }
@@ -301,7 +349,8 @@ static void p54_reset_stats(struct p54_common *priv)
 {
 	struct ieee80211_channel *chan = priv->curchan;
 
-	if (chan) {
+	if (chan)
+	{
 		struct survey_info *info = &priv->survey[chan->hw_value];
 
 		/* only reset channel statistics, don't touch .filled, etc. */
@@ -323,18 +372,26 @@ static int p54_config(struct ieee80211_hw *dev, u32 changed)
 	struct ieee80211_conf *conf = &dev->conf;
 
 	mutex_lock(&priv->conf_mutex);
+
 	if (changed & IEEE80211_CONF_CHANGE_POWER)
+	{
 		priv->output_power = conf->power_level << 2;
-	if (changed & IEEE80211_CONF_CHANGE_CHANNEL) {
+	}
+
+	if (changed & IEEE80211_CONF_CHANGE_CHANNEL)
+	{
 		struct ieee80211_channel *oldchan;
 		WARN_ON(p54_wait_for_stats(dev));
 		oldchan = priv->curchan;
 		priv->curchan = NULL;
 		ret = p54_scan(priv, P54_SCAN_EXIT, 0);
-		if (ret) {
+
+		if (ret)
+		{
 			priv->curchan = oldchan;
 			goto out;
 		}
+
 		/*
 		 * TODO: Use the LM_SCAN_TRAP to determine the current
 		 * operating channel.
@@ -343,18 +400,30 @@ static int p54_config(struct ieee80211_hw *dev, u32 changed)
 		p54_reset_stats(priv);
 		WARN_ON(p54_fetch_statistics(priv));
 	}
-	if (changed & IEEE80211_CONF_CHANGE_PS) {
+
+	if (changed & IEEE80211_CONF_CHANGE_PS)
+	{
 		WARN_ON(p54_wait_for_stats(dev));
 		ret = p54_set_ps(priv);
+
 		if (ret)
+		{
 			goto out;
+		}
+
 		WARN_ON(p54_wait_for_stats(dev));
 	}
-	if (changed & IEEE80211_CONF_CHANGE_IDLE) {
+
+	if (changed & IEEE80211_CONF_CHANGE_IDLE)
+	{
 		WARN_ON(p54_wait_for_stats(dev));
 		ret = p54_setup_mac(priv);
+
 		if (ret)
+		{
 			goto out;
+		}
+
 		WARN_ON(p54_wait_for_stats(dev));
 	}
 
@@ -364,34 +433,38 @@ out:
 }
 
 static u64 p54_prepare_multicast(struct ieee80211_hw *dev,
-				 struct netdev_hw_addr_list *mc_list)
+								 struct netdev_hw_addr_list *mc_list)
 {
 	struct p54_common *priv = dev->priv;
 	struct netdev_hw_addr *ha;
 	int i;
 
 	BUILD_BUG_ON(ARRAY_SIZE(priv->mc_maclist) !=
-		ARRAY_SIZE(((struct p54_group_address_table *)NULL)->mac_list));
+				 ARRAY_SIZE(((struct p54_group_address_table *)NULL)->mac_list));
 	/*
 	 * The first entry is reserved for the global broadcast MAC.
 	 * Otherwise the firmware will drop it and ARP will no longer work.
 	 */
 	i = 1;
 	priv->mc_maclist_num = netdev_hw_addr_list_count(mc_list) + i;
-	netdev_hw_addr_list_for_each(ha, mc_list) {
+	netdev_hw_addr_list_for_each(ha, mc_list)
+	{
 		memcpy(&priv->mc_maclist[i], ha->addr, ETH_ALEN);
 		i++;
+
 		if (i >= ARRAY_SIZE(priv->mc_maclist))
+		{
 			break;
+		}
 	}
 
 	return 1; /* update */
 }
 
 static void p54_configure_filter(struct ieee80211_hw *dev,
-				 unsigned int changed_flags,
-				 unsigned int *total_flags,
-				 u64 multicast)
+								 unsigned int changed_flags,
+								 unsigned int *total_flags,
+								 u64 multicast)
 {
 	struct p54_common *priv = dev->priv;
 
@@ -400,26 +473,36 @@ static void p54_configure_filter(struct ieee80211_hw *dev,
 	priv->filter_flags = *total_flags;
 
 	if (changed_flags & FIF_OTHER_BSS)
+	{
 		p54_setup_mac(priv);
+	}
 
 	if (changed_flags & FIF_ALLMULTI || multicast)
+	{
 		p54_set_groupfilter(priv);
+	}
 }
 
 static int p54_conf_tx(struct ieee80211_hw *dev,
-		       struct ieee80211_vif *vif, u16 queue,
-		       const struct ieee80211_tx_queue_params *params)
+					   struct ieee80211_vif *vif, u16 queue,
+					   const struct ieee80211_tx_queue_params *params)
 {
 	struct p54_common *priv = dev->priv;
 	int ret;
 
 	mutex_lock(&priv->conf_mutex);
-	if (queue < dev->queues) {
+
+	if (queue < dev->queues)
+	{
 		P54_SET_QUEUE(priv->qos_params[queue], params->aifs,
-			params->cw_min, params->cw_max, params->txop);
+					  params->cw_min, params->cw_max, params->txop);
 		ret = p54_set_edcf(priv);
-	} else
+	}
+	else
+	{
 		ret = -EINVAL;
+	}
+
 	mutex_unlock(&priv->conf_mutex);
 	return ret;
 }
@@ -427,10 +510,12 @@ static int p54_conf_tx(struct ieee80211_hw *dev,
 static void p54_work(struct work_struct *work)
 {
 	struct p54_common *priv = container_of(work, struct p54_common,
-					       work.work);
+										   work.work);
 
 	if (unlikely(priv->mode == NL80211_IFTYPE_UNSPECIFIED))
+	{
 		return ;
+	}
 
 	/*
 	 * TODO: walk through tx_queue and do the following tasks
@@ -444,7 +529,7 @@ static void p54_work(struct work_struct *work)
 }
 
 static int p54_get_stats(struct ieee80211_hw *dev,
-			 struct ieee80211_low_level_stats *stats)
+						 struct ieee80211_low_level_stats *stats)
 {
 	struct p54_common *priv = dev->priv;
 
@@ -453,45 +538,64 @@ static int p54_get_stats(struct ieee80211_hw *dev,
 }
 
 static void p54_bss_info_changed(struct ieee80211_hw *dev,
-				 struct ieee80211_vif *vif,
-				 struct ieee80211_bss_conf *info,
-				 u32 changed)
+								 struct ieee80211_vif *vif,
+								 struct ieee80211_bss_conf *info,
+								 u32 changed)
 {
 	struct p54_common *priv = dev->priv;
 
 	mutex_lock(&priv->conf_mutex);
-	if (changed & BSS_CHANGED_BSSID) {
+
+	if (changed & BSS_CHANGED_BSSID)
+	{
 		memcpy(priv->bssid, info->bssid, ETH_ALEN);
 		p54_setup_mac(priv);
 	}
 
-	if (changed & BSS_CHANGED_BEACON) {
+	if (changed & BSS_CHANGED_BEACON)
+	{
 		p54_scan(priv, P54_SCAN_EXIT, 0);
 		p54_setup_mac(priv);
 		p54_beacon_update(priv, vif);
 		p54_set_edcf(priv);
 	}
 
-	if (changed & (BSS_CHANGED_ERP_SLOT | BSS_CHANGED_BEACON)) {
+	if (changed & (BSS_CHANGED_ERP_SLOT | BSS_CHANGED_BEACON))
+	{
 		priv->use_short_slot = info->use_short_slot;
 		p54_set_edcf(priv);
 	}
-	if (changed & BSS_CHANGED_BASIC_RATES) {
+
+	if (changed & BSS_CHANGED_BASIC_RATES)
+	{
 		if (dev->conf.chandef.chan->band == NL80211_BAND_5GHZ)
+		{
 			priv->basic_rate_mask = (info->basic_rates << 4);
+		}
 		else
+		{
 			priv->basic_rate_mask = info->basic_rates;
+		}
+
 		p54_setup_mac(priv);
+
 		if (priv->fw_var >= 0x500)
+		{
 			p54_scan(priv, P54_SCAN_EXIT, 0);
+		}
 	}
-	if (changed & BSS_CHANGED_ASSOC) {
-		if (info->assoc) {
+
+	if (changed & BSS_CHANGED_ASSOC)
+	{
+		if (info->assoc)
+		{
 			priv->aid = info->aid;
 			priv->wakeup_timer = info->beacon_int *
-					     info->dtim_period * 5;
+								 info->dtim_period * 5;
 			p54_setup_mac(priv);
-		} else {
+		}
+		else
+		{
 			priv->wakeup_timer = 500;
 			priv->aid = 0;
 		}
@@ -501,8 +605,8 @@ static void p54_bss_info_changed(struct ieee80211_hw *dev,
 }
 
 static int p54_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
-		       struct ieee80211_vif *vif, struct ieee80211_sta *sta,
-		       struct ieee80211_key_conf *key)
+					   struct ieee80211_vif *vif, struct ieee80211_sta *sta,
+					   struct ieee80211_key_conf *key)
 {
 	struct p54_common *priv = dev->priv;
 	int slot, ret = 0;
@@ -510,9 +614,12 @@ static int p54_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 	u8 *addr = NULL;
 
 	if (modparam_nohwcrypt)
+	{
 		return -EOPNOTSUPP;
+	}
 
-	if (key->flags & IEEE80211_KEY_FLAG_RX_MGMT) {
+	if (key->flags & IEEE80211_KEY_FLAG_RX_MGMT)
+	{
 		/*
 		 * Unfortunately most/all firmwares are trying to decrypt
 		 * incoming management frames if a suitable key can be found.
@@ -524,42 +631,56 @@ static int p54_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 	}
 
 	mutex_lock(&priv->conf_mutex);
-	if (cmd == SET_KEY) {
-		switch (key->cipher) {
-		case WLAN_CIPHER_SUITE_TKIP:
-			if (!(priv->privacy_caps & (BR_DESC_PRIV_CAP_MICHAEL |
-			      BR_DESC_PRIV_CAP_TKIP))) {
-				ret = -EOPNOTSUPP;
-				goto out_unlock;
-			}
-			key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
-			algo = P54_CRYPTO_TKIPMICHAEL;
-			break;
-		case WLAN_CIPHER_SUITE_WEP40:
-		case WLAN_CIPHER_SUITE_WEP104:
-			if (!(priv->privacy_caps & BR_DESC_PRIV_CAP_WEP)) {
-				ret = -EOPNOTSUPP;
-				goto out_unlock;
-			}
-			key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
-			algo = P54_CRYPTO_WEP;
-			break;
-		case WLAN_CIPHER_SUITE_CCMP:
-			if (!(priv->privacy_caps & BR_DESC_PRIV_CAP_AESCCMP)) {
-				ret = -EOPNOTSUPP;
-				goto out_unlock;
-			}
-			key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
-			algo = P54_CRYPTO_AESCCMP;
-			break;
-		default:
-			ret = -EOPNOTSUPP;
-			goto out_unlock;
-		}
-		slot = bitmap_find_free_region(priv->used_rxkeys,
-					       priv->rx_keycache_size, 0);
 
-		if (slot < 0) {
+	if (cmd == SET_KEY)
+	{
+		switch (key->cipher)
+		{
+			case WLAN_CIPHER_SUITE_TKIP:
+				if (!(priv->privacy_caps & (BR_DESC_PRIV_CAP_MICHAEL |
+											BR_DESC_PRIV_CAP_TKIP)))
+				{
+					ret = -EOPNOTSUPP;
+					goto out_unlock;
+				}
+
+				key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
+				algo = P54_CRYPTO_TKIPMICHAEL;
+				break;
+
+			case WLAN_CIPHER_SUITE_WEP40:
+			case WLAN_CIPHER_SUITE_WEP104:
+				if (!(priv->privacy_caps & BR_DESC_PRIV_CAP_WEP))
+				{
+					ret = -EOPNOTSUPP;
+					goto out_unlock;
+				}
+
+				key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
+				algo = P54_CRYPTO_WEP;
+				break;
+
+			case WLAN_CIPHER_SUITE_CCMP:
+				if (!(priv->privacy_caps & BR_DESC_PRIV_CAP_AESCCMP))
+				{
+					ret = -EOPNOTSUPP;
+					goto out_unlock;
+				}
+
+				key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
+				algo = P54_CRYPTO_AESCCMP;
+				break;
+
+			default:
+				ret = -EOPNOTSUPP;
+				goto out_unlock;
+		}
+
+		slot = bitmap_find_free_region(priv->used_rxkeys,
+									   priv->rx_keycache_size, 0);
+
+		if (slot < 0)
+		{
 			/*
 			 * The device supports the chosen algorithm, but the
 			 * firmware does not provide enough key slots to store
@@ -575,10 +696,13 @@ static int p54_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 		}
 
 		key->flags |= IEEE80211_KEY_FLAG_RESERVE_TAILROOM;
-	} else {
+	}
+	else
+	{
 		slot = key->hw_key_idx;
 
-		if (slot == 0xff) {
+		if (slot == 0xff)
+		{
 			/* This key was not uploaded into the rx key cache. */
 
 			goto out_unlock;
@@ -589,11 +713,15 @@ static int p54_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 	}
 
 	if (sta)
+	{
 		addr = sta->addr;
+	}
 
 	ret = p54_upload_key(priv, algo, slot, key->keyidx,
-			     key->keylen, addr, key->key);
-	if (ret) {
+						 key->keylen, addr, key->key);
+
+	if (ret)
+	{
 		bitmap_release_region(priv->used_rxkeys, slot, 0);
 		ret = -EOPNOTSUPP;
 		goto out_unlock;
@@ -607,7 +735,7 @@ out_unlock:
 }
 
 static int p54_get_survey(struct ieee80211_hw *dev, int idx,
-				struct survey_info *survey)
+						  struct survey_info *survey)
 {
 	struct p54_common *priv = dev->priv;
 	struct ieee80211_channel *chan;
@@ -615,28 +743,41 @@ static int p54_get_survey(struct ieee80211_hw *dev, int idx,
 	bool in_use = false;
 
 	if (idx >= priv->chan_num)
+	{
 		return -ENOENT;
+	}
 
 #define MAX_TRIES 1
-	for (tries = 0; tries < MAX_TRIES; tries++) {
+
+	for (tries = 0; tries < MAX_TRIES; tries++)
+	{
 		chan = priv->curchan;
-		if (chan && chan->hw_value == idx) {
+
+		if (chan && chan->hw_value == idx)
+		{
 			mutex_lock(&priv->conf_mutex);
 			err = p54_wait_for_stats(dev);
 			mutex_unlock(&priv->conf_mutex);
+
 			if (err)
+			{
 				return err;
+			}
 
 			in_use = true;
 		}
 
 		memcpy(survey, &priv->survey[idx], sizeof(*survey));
 
-		if (in_use) {
+		if (in_use)
+		{
 			/* test if the reported statistics are valid. */
-			if  (survey->time != 0) {
+			if  (survey->time != 0)
+			{
 				survey->filled |= SURVEY_INFO_IN_USE;
-			} else {
+			}
+			else
+			{
 				/*
 				 * hw/fw has not accumulated enough sample sets.
 				 * Wait for 100ms, this ought to be enough to
@@ -647,8 +788,10 @@ static int p54_get_survey(struct ieee80211_hw *dev, int idx,
 				continue;
 			}
 		}
+
 		return 0;
 	}
+
 	return -ETIMEDOUT;
 #undef MAX_TRIES
 }
@@ -665,12 +808,15 @@ static unsigned int p54_flush_count(struct p54_common *priv)
 	 * don't really count as pending or active.
 	 */
 	for (i = P54_QUEUE_MGMT; i < P54_QUEUE_NUM; i++)
+	{
 		total += priv->tx_stats[i].len;
+	}
+
 	return total;
 }
 
 static void p54_flush(struct ieee80211_hw *dev, struct ieee80211_vif *vif,
-		      u32 queues, bool drop)
+					  u32 queues, bool drop)
 {
 	struct p54_common *priv = dev->priv;
 	unsigned int total, i;
@@ -688,7 +834,8 @@ static void p54_flush(struct ieee80211_hw *dev, struct ieee80211_vif *vif,
 	 * queues have already been stopped and no new frames can sneak
 	 * up from behind.
 	 */
-	while ((total = p54_flush_count(priv) && i--)) {
+	while ((total = p54_flush_count(priv) && i--))
+	{
 		/* waste time */
 		msleep(20);
 	}
@@ -697,7 +844,7 @@ static void p54_flush(struct ieee80211_hw *dev, struct ieee80211_vif *vif,
 }
 
 static void p54_set_coverage_class(struct ieee80211_hw *dev,
-				   s16 coverage_class)
+								   s16 coverage_class)
 {
 	struct p54_common *priv = dev->priv;
 
@@ -708,7 +855,8 @@ static void p54_set_coverage_class(struct ieee80211_hw *dev,
 	mutex_unlock(&priv->conf_mutex);
 }
 
-static const struct ieee80211_ops p54_ops = {
+static const struct ieee80211_ops p54_ops =
+{
 	.tx			= p54_tx_80211,
 	.start			= p54_start,
 	.stop			= p54_stop,
@@ -736,8 +884,11 @@ struct ieee80211_hw *p54_init_common(size_t priv_data_len)
 	struct p54_common *priv;
 
 	dev = ieee80211_alloc_hw(priv_data_len, &p54_ops);
+
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	priv = dev->priv;
 	priv->hw = dev;
@@ -754,9 +905,9 @@ struct ieee80211_hw *p54_init_common(size_t priv_data_len)
 	ieee80211_hw_set(dev, SIGNAL_DBM);
 
 	dev->wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION) |
-				      BIT(NL80211_IFTYPE_ADHOC) |
-				      BIT(NL80211_IFTYPE_AP) |
-				      BIT(NL80211_IFTYPE_MESH_POINT);
+								  BIT(NL80211_IFTYPE_ADHOC) |
+								  BIT(NL80211_IFTYPE_AP) |
+								  BIT(NL80211_IFTYPE_MESH_POINT);
 
 	priv->beacon_req_id = cpu_to_le32(0);
 	priv->tx_stats[P54_QUEUE_BEACON].limit = 1;
@@ -777,7 +928,7 @@ struct ieee80211_hw *p54_init_common(size_t priv_data_len)
 	dev->max_rates = 4;
 	dev->max_rate_tries = 7;
 	dev->extra_tx_headroom = sizeof(struct p54_hdr) + 4 +
-				 sizeof(struct p54_tx_data);
+							 sizeof(struct p54_tx_data);
 
 	/*
 	 * For now, disable PS by default because it affects
@@ -805,18 +956,24 @@ int p54_register_common(struct ieee80211_hw *dev, struct device *pdev)
 	int err;
 
 	err = ieee80211_register_hw(dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(pdev, "Cannot register device (%d).\n", err);
 		return err;
 	}
+
 	priv->registered = true;
 
 #ifdef CONFIG_P54_LEDS
 	err = p54_init_leds(priv);
-	if (err) {
+
+	if (err)
+	{
 		p54_unregister_common(dev);
 		return err;
 	}
+
 #endif /* CONFIG_P54_LEDS */
 
 	dev_info(pdev, "is registered as '%s'\n", wiphy_name(dev->wiphy));
@@ -830,7 +987,9 @@ void p54_free_common(struct ieee80211_hw *dev)
 	unsigned int i;
 
 	for (i = 0; i < NUM_NL80211_BANDS; i++)
+	{
 		kfree(priv->band_table[i]);
+	}
 
 	kfree(priv->iq_autocal);
 	kfree(priv->output_limit);
@@ -856,7 +1015,8 @@ void p54_unregister_common(struct ieee80211_hw *dev)
 	p54_unregister_leds(priv);
 #endif /* CONFIG_P54_LEDS */
 
-	if (priv->registered) {
+	if (priv->registered)
+	{
 		priv->registered = false;
 		ieee80211_unregister_hw(dev);
 	}

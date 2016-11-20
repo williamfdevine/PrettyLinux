@@ -67,7 +67,8 @@
 #define CS_MAX_BUFFERS			(1 << CS_MAX_BUFFERS_SHIFT)
 
 /* Parameters for setting up the data buffers */
-struct cs_buffer_config {
+struct cs_buffer_config
+{
 	__u32 rx_bufs;	/* number of RX buffer slots */
 	__u32 tx_bufs;	/* number of TX buffer slots */
 	__u32 buf_size;	/* bytes */
@@ -79,7 +80,8 @@ struct cs_buffer_config {
  * struct for monotonic timestamp taken when the
  * last control command was received
  */
-struct cs_timestamp {
+struct cs_timestamp
+{
 	__u32 tv_sec;  /* seconds */
 	__u32 tv_nsec; /* nanoseconds */
 };
@@ -88,7 +90,8 @@ struct cs_timestamp {
  * Struct describing the layout and contents of the driver mmap area.
  * This information is meant as read-only information for the application.
  */
-struct cs_mmap_config_block {
+struct cs_mmap_config_block
+{
 	__u32 reserved1;
 	__u32 buf_size;		/* 0=disabled, otherwise the transfer size */
 	__u32 rx_bufs;		/* # of RX buffers */

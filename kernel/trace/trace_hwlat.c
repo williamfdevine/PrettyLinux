@@ -77,7 +77,8 @@ bool trace_hwlat_callback_enabled;
 static u64 last_tracing_thresh = DEFAULT_LAT_THRESHOLD * NSEC_PER_USEC;
 
 /* Individual latency samples are stored here when detected. */
-struct hwlat_sample {
+struct hwlat_sample
+{
 	u64		seqnum;		/* unique sequence */
 	u64		duration;	/* delta */
 	u64		outer_duration;	/* delta (outer loop) */
@@ -87,7 +88,8 @@ struct hwlat_sample {
 };
 
 /* keep the global state somewhere. */
-static struct hwlat_data {
+static struct hwlat_data
+{
 
 	struct mutex lock;		/* protect changes */
 
@@ -96,7 +98,8 @@ static struct hwlat_data {
 	u64	sample_window;		/* total sampling window (on+off) */
 	u64	sample_width;		/* active sampling portion of window */
 
-} hwlat_data = {
+} hwlat_data =
+{
 	.sample_window		= DEFAULT_SAMPLE_WINDOW,
 	.sample_width		= DEFAULT_SAMPLE_WIDTH,
 };
@@ -115,9 +118,13 @@ static void trace_hwlat_sample(struct hwlat_sample *sample)
 	local_save_flags(flags);
 
 	event = trace_buffer_lock_reserve(buffer, TRACE_HWLAT, sizeof(*entry),
-					  flags, pc);
+									  flags, pc);
+
 	if (!event)
+	{
 		return;
+	}
+
 	entry	= ring_buffer_event_data(event);
 	entry->seqnum			= sample->seqnum;
 	entry->duration			= sample->duration;
@@ -127,7 +134,9 @@ static void trace_hwlat_sample(struct hwlat_sample *sample)
 	entry->nmi_count		= sample->nmi_count;
 
 	if (!call_filter_check_discard(call, entry, buffer, event))
+	{
 		__buffer_unlock_commit(buffer, event);
+	}
 }
 
 /* Macros to encapsulate the time capturing infrastructure */
@@ -141,21 +150,30 @@ static void trace_hwlat_sample(struct hwlat_sample *sample)
 void trace_hwlat_callback(bool enter)
 {
 	if (smp_processor_id() != nmi_cpu)
+	{
 		return;
+	}
 
 	/*
 	 * Currently trace_clock_local() calls sched_clock() and the
 	 * generic version is not NMI safe.
 	 */
-	if (!IS_ENABLED(CONFIG_GENERIC_SCHED_CLOCK)) {
+	if (!IS_ENABLED(CONFIG_GENERIC_SCHED_CLOCK))
+	{
 		if (enter)
+		{
 			nmi_ts_start = time_get();
+		}
 		else
+		{
 			nmi_total_ts = time_get() - nmi_ts_start;
+		}
 	}
 
 	if (enter)
+	{
 		nmi_count++;
+	}
 }
 
 /**
@@ -188,46 +206,60 @@ static int get_sample(void)
 	init_time(last_t2, 0);
 	start = time_get(); /* start timestamp */
 
-	do {
+	do
+	{
 
 		t1 = time_get();	/* we'll look for a discontinuity */
 		t2 = time_get();
 
-		if (time_u64(last_t2)) {
+		if (time_u64(last_t2))
+		{
 			/* Check the delta from outer loop (t2 to next t1) */
 			diff = time_to_us(time_sub(t1, last_t2));
+
 			/* This shouldn't happen */
-			if (diff < 0) {
+			if (diff < 0)
+			{
 				pr_err(BANNER "time running backwards\n");
 				goto out;
 			}
+
 			if (diff > outer_sample)
+			{
 				outer_sample = diff;
+			}
 		}
+
 		last_t2 = t2;
 
 		total = time_to_us(time_sub(t2, start)); /* sample width */
 
 		/* Check for possible overflows */
-		if (total < last_total) {
+		if (total < last_total)
+		{
 			pr_err("Time total overflowed\n");
 			break;
 		}
+
 		last_total = total;
 
 		/* This checks the inner loop (t1 to t2) */
 		diff = time_to_us(time_sub(t2, t1));     /* current diff */
 
 		/* This shouldn't happen */
-		if (diff < 0) {
+		if (diff < 0)
+		{
 			pr_err(BANNER "time running backwards\n");
 			goto out;
 		}
 
 		if (diff > sample)
-			sample = diff; /* only want highest value */
+		{
+			sample = diff;    /* only want highest value */
+		}
 
-	} while (total <= hwlat_data.sample_width);
+	}
+	while (total <= hwlat_data.sample_width);
 
 	barrier(); /* finish the above in the view for NMIs */
 	trace_hwlat_callback_enabled = false;
@@ -236,14 +268,17 @@ static int get_sample(void)
 	ret = 0;
 
 	/* If we exceed the threshold value, we have found a hardware latency */
-	if (sample > thresh || outer_sample > thresh) {
+	if (sample > thresh || outer_sample > thresh)
+	{
 		struct hwlat_sample s;
 
 		ret = 1;
 
 		/* We read in microseconds */
 		if (nmi_total_ts)
+		{
 			do_div(nmi_total_ts, NSEC_PER_USEC);
+		}
 
 		hwlat_data.count++;
 		s.seqnum = hwlat_data.count;
@@ -256,7 +291,9 @@ static int get_sample(void)
 
 		/* Keep a running maximum ever recorded hardware latency */
 		if (sample > tr->max_latency)
+		{
 			tr->max_latency = sample;
+		}
 	}
 
 out:
@@ -272,10 +309,13 @@ static void move_to_next_cpu(void)
 	int next_cpu;
 
 	if (disable_migrate)
+	{
 		return;
+	}
 
 	/* Just pick the first CPU on first iteration */
-	if (!current_mask) {
+	if (!current_mask)
+	{
 		current_mask = &save_cpumask;
 		get_online_cpus();
 		cpumask_and(current_mask, cpu_online_mask, tracing_buffer_mask);
@@ -290,7 +330,9 @@ static void move_to_next_cpu(void)
 	 * of the current test.
 	 */
 	if (!cpumask_equal(current_mask, &current->cpus_allowed))
+	{
 		goto disable;
+	}
 
 	get_online_cpus();
 	cpumask_and(current_mask, cpu_online_mask, tracing_buffer_mask);
@@ -298,11 +340,16 @@ static void move_to_next_cpu(void)
 	put_online_cpus();
 
 	if (next_cpu >= nr_cpu_ids)
+	{
 		next_cpu = cpumask_first(current_mask);
+	}
 
- set_affinity:
+set_affinity:
+
 	if (next_cpu >= nr_cpu_ids) /* Shouldn't happen! */
+	{
 		goto disable;
+	}
 
 	cpumask_clear(current_mask);
 	cpumask_set_cpu(next_cpu, current_mask);
@@ -310,7 +357,7 @@ static void move_to_next_cpu(void)
 	sched_setaffinity(0, current_mask);
 	return;
 
- disable:
+disable:
 	disable_migrate = true;
 }
 
@@ -331,7 +378,8 @@ static int kthread_fn(void *data)
 {
 	u64 interval;
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 
 		move_to_next_cpu();
 
@@ -347,10 +395,14 @@ static int kthread_fn(void *data)
 
 		/* Always sleep for at least 1ms */
 		if (interval < 1)
+		{
 			interval = 1;
+		}
 
 		if (msleep_interruptible(interval))
+		{
 			break;
+		}
 	}
 
 	return 0;
@@ -367,10 +419,13 @@ static int start_kthread(struct trace_array *tr)
 	struct task_struct *kthread;
 
 	kthread = kthread_create(kthread_fn, NULL, "hwlatd");
-	if (IS_ERR(kthread)) {
+
+	if (IS_ERR(kthread))
+	{
 		pr_err(BANNER "could not start sampling thread\n");
 		return -ENOMEM;
 	}
+
 	hwlat_kthread = kthread;
 	wake_up_process(kthread);
 
@@ -386,7 +441,10 @@ static int start_kthread(struct trace_array *tr)
 static void stop_kthread(void)
 {
 	if (!hwlat_kthread)
+	{
 		return;
+	}
+
 	kthread_stop(hwlat_kthread);
 	hwlat_kthread = NULL;
 }
@@ -402,7 +460,7 @@ static void stop_kthread(void)
  * "hwlat_data" structure filesystem entries.
  */
 static ssize_t hwlat_read(struct file *filp, char __user *ubuf,
-			  size_t cnt, loff_t *ppos)
+						  size_t cnt, loff_t *ppos)
 {
 	char buf[U64STR_SIZE];
 	u64 *entry = filp->private_data;
@@ -410,10 +468,14 @@ static ssize_t hwlat_read(struct file *filp, char __user *ubuf,
 	int len;
 
 	if (!entry)
+	{
 		return -EFAULT;
+	}
 
 	if (cnt > sizeof(buf))
+	{
 		cnt = sizeof(buf);
+	}
 
 	val = *entry;
 
@@ -439,24 +501,35 @@ static ssize_t hwlat_read(struct file *filp, char __user *ubuf,
  */
 static ssize_t
 hwlat_width_write(struct file *filp, const char __user *ubuf,
-		  size_t cnt, loff_t *ppos)
+				  size_t cnt, loff_t *ppos)
 {
 	u64 val;
 	int err;
 
 	err = kstrtoull_from_user(ubuf, cnt, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&hwlat_data.lock);
+
 	if (val < hwlat_data.sample_window)
+	{
 		hwlat_data.sample_width = val;
+	}
 	else
+	{
 		err = -EINVAL;
+	}
+
 	mutex_unlock(&hwlat_data.lock);
 
 	if (err)
+	{
 		return err;
+	}
 
 	return cnt;
 }
@@ -478,35 +551,48 @@ hwlat_width_write(struct file *filp, const char __user *ubuf,
  */
 static ssize_t
 hwlat_window_write(struct file *filp, const char __user *ubuf,
-		   size_t cnt, loff_t *ppos)
+				   size_t cnt, loff_t *ppos)
 {
 	u64 val;
 	int err;
 
 	err = kstrtoull_from_user(ubuf, cnt, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&hwlat_data.lock);
+
 	if (hwlat_data.sample_width < val)
+	{
 		hwlat_data.sample_window = val;
+	}
 	else
+	{
 		err = -EINVAL;
+	}
+
 	mutex_unlock(&hwlat_data.lock);
 
 	if (err)
+	{
 		return err;
+	}
 
 	return cnt;
 }
 
-static const struct file_operations width_fops = {
+static const struct file_operations width_fops =
+{
 	.open		= tracing_open_generic,
 	.read		= hwlat_read,
 	.write		= hwlat_width_write,
 };
 
-static const struct file_operations window_fops = {
+static const struct file_operations window_fops =
+{
 	.open		= tracing_open_generic,
 	.read		= hwlat_read,
 	.write		= hwlat_window_write,
@@ -526,30 +612,42 @@ static int init_tracefs(void)
 	struct dentry *top_dir;
 
 	d_tracer = tracing_init_dentry();
+
 	if (IS_ERR(d_tracer))
+	{
 		return -ENOMEM;
+	}
 
 	top_dir = tracefs_create_dir("hwlat_detector", d_tracer);
+
 	if (!top_dir)
+	{
 		return -ENOMEM;
+	}
 
 	hwlat_sample_window = tracefs_create_file("window", 0640,
 						  top_dir,
 						  &hwlat_data.sample_window,
 						  &window_fops);
+
 	if (!hwlat_sample_window)
+	{
 		goto err;
+	}
 
 	hwlat_sample_width = tracefs_create_file("width", 0644,
 						 top_dir,
 						 &hwlat_data.sample_width,
 						 &width_fops);
+
 	if (!hwlat_sample_width)
+	{
 		goto err;
+	}
 
 	return 0;
 
- err:
+err:
 	tracefs_remove_recursive(top_dir);
 	return -ENOMEM;
 }
@@ -559,8 +657,11 @@ static void hwlat_tracer_start(struct trace_array *tr)
 	int err;
 
 	err = start_kthread(tr);
+
 	if (err)
+	{
 		pr_err(BANNER "Cannot start hwlat kthread\n");
+	}
 }
 
 static void hwlat_tracer_stop(struct trace_array *tr)
@@ -574,7 +675,9 @@ static int hwlat_tracer_init(struct trace_array *tr)
 {
 	/* Only allow one instance to enable this */
 	if (hwlat_busy)
+	{
 		return -EBUSY;
+	}
 
 	hwlat_trace = tr;
 
@@ -585,10 +688,14 @@ static int hwlat_tracer_init(struct trace_array *tr)
 
 	/* tracing_thresh is in nsecs, we speak in usecs */
 	if (!tracing_thresh)
+	{
 		tracing_thresh = last_tracing_thresh;
+	}
 
 	if (tracer_tracing_is_on(tr))
+	{
 		hwlat_tracer_start(tr);
+	}
 
 	hwlat_busy = true;
 
@@ -623,8 +730,11 @@ __init static int init_hwlat_tracer(void)
 	mutex_init(&hwlat_data.lock);
 
 	ret = register_tracer(&hwlat_tracer);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	init_tracefs();
 

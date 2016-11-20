@@ -1,7 +1,8 @@
 #ifndef _NFT_COMPAT_NFNETLINK_H_
 #define _NFT_COMPAT_NFNETLINK_H_
 
-enum nft_target_attributes {
+enum nft_target_attributes
+{
 	NFTA_TARGET_UNSPEC,
 	NFTA_TARGET_NAME,
 	NFTA_TARGET_REV,
@@ -10,7 +11,8 @@ enum nft_target_attributes {
 };
 #define NFTA_TARGET_MAX		(__NFTA_TARGET_MAX - 1)
 
-enum nft_match_attributes {
+enum nft_match_attributes
+{
 	NFTA_MATCH_UNSPEC,
 	NFTA_MATCH_NAME,
 	NFTA_MATCH_REV,
@@ -21,12 +23,14 @@ enum nft_match_attributes {
 
 #define NFT_COMPAT_NAME_MAX	32
 
-enum {
+enum
+{
 	NFNL_MSG_COMPAT_GET,
 	NFNL_MSG_COMPAT_MAX
 };
 
-enum {
+enum
+{
 	NFTA_COMPAT_UNSPEC = 0,
 	NFTA_COMPAT_NAME,
 	NFTA_COMPAT_REV,

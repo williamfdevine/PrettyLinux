@@ -20,25 +20,30 @@
 struct platform_device;
 struct dev_pm_ops;
 
-struct brcmnand_soc {
+struct brcmnand_soc
+{
 	bool (*ctlrdy_ack)(struct brcmnand_soc *soc);
 	void (*ctlrdy_set_enabled)(struct brcmnand_soc *soc, bool en);
 	void (*prepare_data_bus)(struct brcmnand_soc *soc, bool prepare,
-				 bool is_param);
+							 bool is_param);
 };
 
 static inline void brcmnand_soc_data_bus_prepare(struct brcmnand_soc *soc,
-						 bool is_param)
+		bool is_param)
 {
 	if (soc && soc->prepare_data_bus)
+	{
 		soc->prepare_data_bus(soc, true, is_param);
+	}
 }
 
 static inline void brcmnand_soc_data_bus_unprepare(struct brcmnand_soc *soc,
-						   bool is_param)
+		bool is_param)
 {
 	if (soc && soc->prepare_data_bus)
+	{
 		soc->prepare_data_bus(soc, false, is_param);
+	}
 }
 
 static inline u32 brcmnand_readl(void __iomem *addr)
@@ -52,18 +57,26 @@ static inline u32 brcmnand_readl(void __iomem *addr)
 	 * else leave I/O in little endian mode.
 	 */
 	if (IS_ENABLED(CONFIG_MIPS) && IS_ENABLED(CONFIG_CPU_BIG_ENDIAN))
+	{
 		return __raw_readl(addr);
+	}
 	else
+	{
 		return readl_relaxed(addr);
+	}
 }
 
 static inline void brcmnand_writel(u32 val, void __iomem *addr)
 {
 	/* See brcmnand_readl() comments */
 	if (IS_ENABLED(CONFIG_MIPS) && IS_ENABLED(CONFIG_CPU_BIG_ENDIAN))
+	{
 		__raw_writel(val, addr);
+	}
 	else
+	{
 		writel_relaxed(val, addr);
+	}
 }
 
 int brcmnand_probe(struct platform_device *pdev, struct brcmnand_soc *soc);

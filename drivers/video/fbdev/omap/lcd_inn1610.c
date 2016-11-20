@@ -28,22 +28,26 @@
 #define MODULE_NAME	"omapfb-lcd_h3"
 
 static int innovator1610_panel_init(struct lcd_panel *panel,
-				    struct omapfb_device *fbdev)
+									struct omapfb_device *fbdev)
 {
 	int r = 0;
 
 	/* configure GPIO(14, 15) as outputs */
-	if (gpio_request_one(14, GPIOF_OUT_INIT_LOW, "lcd_en0")) {
+	if (gpio_request_one(14, GPIOF_OUT_INIT_LOW, "lcd_en0"))
+	{
 		pr_err(MODULE_NAME ": can't request GPIO 14\n");
 		r = -1;
 		goto exit;
 	}
-	if (gpio_request_one(15, GPIOF_OUT_INIT_LOW, "lcd_en1")) {
+
+	if (gpio_request_one(15, GPIOF_OUT_INIT_LOW, "lcd_en1"))
+	{
 		pr_err(MODULE_NAME ": can't request GPIO 15\n");
 		gpio_free(14);
 		r = -1;
 		goto exit;
 	}
+
 exit:
 	return r;
 }
@@ -74,7 +78,8 @@ static unsigned long innovator1610_panel_get_caps(struct lcd_panel *panel)
 	return 0;
 }
 
-struct lcd_panel innovator1610_panel = {
+struct lcd_panel innovator1610_panel =
+{
 	.name		= "inn1610",
 	.config		= OMAP_LCDC_PANEL_TFT,
 
@@ -110,7 +115,7 @@ static int innovator1610_panel_remove(struct platform_device *pdev)
 }
 
 static int innovator1610_panel_suspend(struct platform_device *pdev,
-				       pm_message_t mesg)
+									   pm_message_t mesg)
 {
 	return 0;
 }
@@ -120,7 +125,8 @@ static int innovator1610_panel_resume(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver innovator1610_panel_driver = {
+static struct platform_driver innovator1610_panel_driver =
+{
 	.probe		= innovator1610_panel_probe,
 	.remove		= innovator1610_panel_remove,
 	.suspend	= innovator1610_panel_suspend,

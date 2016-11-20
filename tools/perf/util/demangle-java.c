@@ -7,7 +7,8 @@
 
 #include "demangle-java.h"
 
-enum {
+enum
+{
 	MODE_PREFIX = 0,
 	MODE_CLASS  = 1,
 	MODE_FUNC   = 2,
@@ -16,7 +17,8 @@ enum {
 };
 
 #define BASE_ENT(c, n)	[c - 'A']=n
-static const char *base_types['Z' - 'A' + 1] = {
+static const char *base_types['Z' - 'A' + 1] =
+{
 	BASE_ENT('B', "byte" ),
 	BASE_ENT('C', "char" ),
 	BASE_ENT('D', "double" ),
@@ -47,92 +49,164 @@ __demangle_java_sym(const char *str, const char *end, char *buf, int maxlen, int
 	const char *q;
 
 	if (!end)
+	{
 		end = str + strlen(str);
+	}
 
-	for (q = str; q != end; q++) {
+	for (q = str; q != end; q++)
+	{
 
 		if (rlen == (maxlen - 1))
+		{
 			break;
+		}
 
-		switch (*q) {
-		case 'L':
-			if (mode == MODE_PREFIX || mode == MODE_CTYPE) {
-				if (mode == MODE_CTYPE) {
+		switch (*q)
+		{
+			case 'L':
+				if (mode == MODE_PREFIX || mode == MODE_CTYPE)
+				{
+					if (mode == MODE_CTYPE)
+					{
+						if (narg)
+						{
+							rlen += scnprintf(buf + rlen, maxlen - rlen, ", ");
+						}
+
+						narg++;
+					}
+
+					rlen += scnprintf(buf + rlen, maxlen - rlen, "class ");
+
+					if (mode == MODE_PREFIX)
+					{
+						mode = MODE_CLASS;
+					}
+				}
+				else
+				{
+					buf[rlen++] = *q;
+				}
+
+				break;
+
+			case 'B':
+			case 'C':
+			case 'D':
+			case 'F':
+			case 'I':
+			case 'J':
+			case 'S':
+			case 'Z':
+				if (mode == MODE_TYPE)
+				{
 					if (narg)
+					{
 						rlen += scnprintf(buf + rlen, maxlen - rlen, ", ");
+					}
+
+					rlen += scnprintf(buf + rlen, maxlen - rlen, "%s", base_types[*q - 'A']);
+
+					while (array--)
+					{
+						rlen += scnprintf(buf + rlen, maxlen - rlen, "[]");
+					}
+
+					array = 0;
 					narg++;
 				}
-				rlen += scnprintf(buf + rlen, maxlen - rlen, "class ");
-				if (mode == MODE_PREFIX)
-					mode = MODE_CLASS;
-			} else
+				else
+				{
+					buf[rlen++] = *q;
+				}
+
+				break;
+
+			case 'V':
+				if (mode == MODE_TYPE)
+				{
+					rlen += scnprintf(buf + rlen, maxlen - rlen, "void");
+
+					while (array--)
+					{
+						rlen += scnprintf(buf + rlen, maxlen - rlen, "[]");
+					}
+
+					array = 0;
+				}
+				else
+				{
+					buf[rlen++] = *q;
+				}
+
+				break;
+
+			case '[':
+				if (mode != MODE_TYPE)
+				{
+					goto error;
+				}
+
+				array++;
+				break;
+
+			case '(':
+				if (mode != MODE_FUNC)
+				{
+					goto error;
+				}
+
 				buf[rlen++] = *q;
-			break;
-		case 'B':
-		case 'C':
-		case 'D':
-		case 'F':
-		case 'I':
-		case 'J':
-		case 'S':
-		case 'Z':
-			if (mode == MODE_TYPE) {
-				if (narg)
-					rlen += scnprintf(buf + rlen, maxlen - rlen, ", ");
-				rlen += scnprintf(buf + rlen, maxlen - rlen, "%s", base_types[*q - 'A']);
-				while (array--)
-					rlen += scnprintf(buf + rlen, maxlen - rlen, "[]");
-				array = 0;
-				narg++;
-			} else
-				buf[rlen++] = *q;
-			break;
-		case 'V':
-			if (mode == MODE_TYPE) {
-				rlen += scnprintf(buf + rlen, maxlen - rlen, "void");
-				while (array--)
-					rlen += scnprintf(buf + rlen, maxlen - rlen, "[]");
-				array = 0;
-			} else
-				buf[rlen++] = *q;
-			break;
-		case '[':
-			if (mode != MODE_TYPE)
-				goto error;
-			array++;
-			break;
-		case '(':
-			if (mode != MODE_FUNC)
-				goto error;
-			buf[rlen++] = *q;
-			mode = MODE_TYPE;
-			break;
-		case ')':
-			if (mode != MODE_TYPE)
-				goto error;
-			buf[rlen++] = *q;
-			narg = 0;
-			break;
-		case ';':
-			if (mode != MODE_CLASS && mode != MODE_CTYPE)
-				goto error;
-			/* safe because at least one other char to process */
-			if (isalpha(*(q + 1)))
-				rlen += scnprintf(buf + rlen, maxlen - rlen, ".");
-			if (mode == MODE_CLASS)
-				mode = MODE_FUNC;
-			else if (mode == MODE_CTYPE)
 				mode = MODE_TYPE;
-			break;
-		case '/':
-			if (mode != MODE_CLASS && mode != MODE_CTYPE)
-				goto error;
-			rlen += scnprintf(buf + rlen, maxlen - rlen, ".");
-			break;
-		default :
-			buf[rlen++] = *q;
+				break;
+
+			case ')':
+				if (mode != MODE_TYPE)
+				{
+					goto error;
+				}
+
+				buf[rlen++] = *q;
+				narg = 0;
+				break;
+
+			case ';':
+				if (mode != MODE_CLASS && mode != MODE_CTYPE)
+				{
+					goto error;
+				}
+
+				/* safe because at least one other char to process */
+				if (isalpha(*(q + 1)))
+				{
+					rlen += scnprintf(buf + rlen, maxlen - rlen, ".");
+				}
+
+				if (mode == MODE_CLASS)
+				{
+					mode = MODE_FUNC;
+				}
+				else if (mode == MODE_CTYPE)
+				{
+					mode = MODE_TYPE;
+				}
+
+				break;
+
+			case '/':
+				if (mode != MODE_CLASS && mode != MODE_CTYPE)
+				{
+					goto error;
+				}
+
+				rlen += scnprintf(buf + rlen, maxlen - rlen, ".");
+				break;
+
+			default :
+				buf[rlen++] = *q;
 		}
 	}
+
 	buf[rlen] = '\0';
 	return buf;
 error:
@@ -158,29 +232,42 @@ java_demangle_sym(const char *str, int flags)
 	size_t len, l1 = 0;
 
 	if (!str)
+	{
 		return NULL;
+	}
 
 	/* find start of retunr type */
 	p = strrchr(str, ')');
+
 	if (!p)
+	{
 		return NULL;
+	}
 
 	/*
 	 * expansion factor estimated to 3x
 	 */
 	len = strlen(str) * 3 + 1;
 	buf = malloc(len);
+
 	if (!buf)
+	{
 		return NULL;
+	}
 
 	buf[0] = '\0';
-	if (!(flags & JAVA_DEMANGLE_NORET)) {
+
+	if (!(flags & JAVA_DEMANGLE_NORET))
+	{
 		/*
 		 * get return type first
 		 */
 		ptr = __demangle_java_sym(p + 1, NULL, buf, len, MODE_TYPE);
+
 		if (!ptr)
+		{
 			goto error;
+		}
 
 		/* add space between return type and function prototype */
 		l1 = strlen(buf);
@@ -189,8 +276,11 @@ java_demangle_sym(const char *str, int flags)
 
 	/* process function up to return type */
 	ptr = __demangle_java_sym(str, p + 1, buf + l1, len - l1, MODE_PREFIX);
+
 	if (!ptr)
+	{
 		goto error;
+	}
 
 	return buf;
 error:

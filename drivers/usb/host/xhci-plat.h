@@ -13,7 +13,8 @@
 
 #include "xhci.h"	/* for hcd_to_xhci() */
 
-struct xhci_plat_priv {
+struct xhci_plat_priv
+{
 	const char *firmware_name;
 	void (*plat_start)(struct usb_hcd *);
 	int (*init_quirk)(struct usb_hcd *);

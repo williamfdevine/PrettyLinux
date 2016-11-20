@@ -21,26 +21,28 @@
 #include <linux/i2c.h>
 #include "pmbus.h"
 
-static struct pmbus_driver_info tps40422_info = {
+static struct pmbus_driver_info tps40422_info =
+{
 	.pages = 2,
 	.format[PSC_VOLTAGE_IN] = linear,
 	.format[PSC_VOLTAGE_OUT] = linear,
 	.format[PSC_TEMPERATURE] = linear,
 	.func[0] = PMBUS_HAVE_VOUT | PMBUS_HAVE_TEMP2
-		| PMBUS_HAVE_STATUS_VOUT | PMBUS_HAVE_STATUS_TEMP
-		| PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT,
+	| PMBUS_HAVE_STATUS_VOUT | PMBUS_HAVE_STATUS_TEMP
+	| PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT,
 	.func[1] = PMBUS_HAVE_VOUT | PMBUS_HAVE_TEMP2
-		| PMBUS_HAVE_STATUS_VOUT | PMBUS_HAVE_STATUS_TEMP
-		| PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT,
+	| PMBUS_HAVE_STATUS_VOUT | PMBUS_HAVE_STATUS_TEMP
+	| PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT,
 };
 
 static int tps40422_probe(struct i2c_client *client,
-			  const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	return pmbus_do_probe(client, id, &tps40422_info);
 }
 
-static const struct i2c_device_id tps40422_id[] = {
+static const struct i2c_device_id tps40422_id[] =
+{
 	{"tps40422", 0},
 	{}
 };
@@ -48,10 +50,11 @@ static const struct i2c_device_id tps40422_id[] = {
 MODULE_DEVICE_TABLE(i2c, tps40422_id);
 
 /* This is the driver that will be inserted */
-static struct i2c_driver tps40422_driver = {
+static struct i2c_driver tps40422_driver =
+{
 	.driver = {
-		   .name = "tps40422",
-		   },
+		.name = "tps40422",
+	},
 	.probe = tps40422_probe,
 	.remove = pmbus_do_remove,
 	.id_table = tps40422_id,

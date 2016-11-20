@@ -24,7 +24,8 @@
 
 #define DRVNAME "fb_s6d02a1"
 
-static int default_init_sequence[] = {
+static int default_init_sequence[] =
+{
 
 	-1, 0xf0, 0x5a, 0x5a,
 
@@ -100,10 +101,10 @@ static int default_init_sequence[] = {
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
 	write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
-		  xs >> 8, xs & 0xFF, xe >> 8, xe & 0xFF);
+			  xs >> 8, xs & 0xFF, xe >> 8, xe & 0xFF);
 
 	write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
-		  ys >> 8, ys & 0xFF, ye >> 8, ye & 0xFF);
+			  ys >> 8, ys & 0xFF, ye >> 8, ye & 0xFF);
 
 	write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
 }
@@ -121,29 +122,34 @@ static int set_var(struct fbtft_par *par)
 	 *	2. MADCTL RGB bit
 	 *		RGB-BGR ORDER color filter panel: 0=RGB, 1=BGR
 	 */
-	switch (par->info->var.rotate) {
-	case 0:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MX | MY | (par->bgr << 3));
-		break;
-	case 270:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MY | MV | (par->bgr << 3));
-		break;
-	case 180:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  par->bgr << 3);
-		break;
-	case 90:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MX | MV | (par->bgr << 3));
-		break;
+	switch (par->info->var.rotate)
+	{
+		case 0:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MX | MY | (par->bgr << 3));
+			break;
+
+		case 270:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MY | MV | (par->bgr << 3));
+			break;
+
+		case 180:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  par->bgr << 3);
+			break;
+
+		case 90:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MX | MV | (par->bgr << 3));
+			break;
 	}
 
 	return 0;
 }
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = 128,
 	.height = 160,

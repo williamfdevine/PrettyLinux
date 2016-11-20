@@ -221,7 +221,7 @@
 #define BMR_BAR    0x00000002       /* Bus ARbitration */
 #define BMR_SWR    0x00000001       /* Software Reset */
 
-                                    /* Timings here are for 10BASE-T/AUI only*/
+/* Timings here are for 10BASE-T/AUI only*/
 #define TAP_NOPOLL 0x00000000       /* No automatic polling */
 #define TAP_200US  0x00020000       /* TX automatic polling every 200us */
 #define TAP_800US  0x00040000       /* TX automatic polling every 800us */
@@ -919,79 +919,80 @@
 ** Speed Selection stuff
 */
 #define SET_10Mb {\
-  if ((lp->phy[lp->active].id) && (!lp->useSROM || lp->useMII)) {\
-    omr = inl(DE4X5_OMR) & ~(OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX);\
-    if ((lp->tmp != MII_SR_ASSC) || (lp->autosense != AUTO)) {\
-      mii_wr(MII_CR_10|(lp->fdx?MII_CR_FDM:0), MII_CR, lp->phy[lp->active].addr, DE4X5_MII);\
-    }\
-    omr |= ((lp->fdx ? OMR_FDX : 0) | OMR_TTM);\
-    outl(omr, DE4X5_OMR);\
-    if (!lp->useSROM) lp->cache.gep = 0;\
-  } else if (lp->useSROM && !lp->useMII) {\
-    omr = (inl(DE4X5_OMR) & ~(OMR_PS | OMR_HBD | OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
-    omr |= (lp->fdx ? OMR_FDX : 0);\
-    outl(omr | (lp->infoblock_csr6 & ~(OMR_SCR | OMR_HBD)), DE4X5_OMR);\
-  } else {\
-    omr = (inl(DE4X5_OMR) & ~(OMR_PS | OMR_HBD | OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
-    omr |= (lp->fdx ? OMR_FDX : 0);\
-    outl(omr | OMR_SDP | OMR_TTM, DE4X5_OMR);\
-    lp->cache.gep = (lp->fdx ? 0 : GEP_FDXD);\
-    gep_wr(lp->cache.gep, dev);\
-  }\
-}
+		if ((lp->phy[lp->active].id) && (!lp->useSROM || lp->useMII)) {\
+			omr = inl(DE4X5_OMR) & ~(OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX);\
+			if ((lp->tmp != MII_SR_ASSC) || (lp->autosense != AUTO)) {\
+				mii_wr(MII_CR_10|(lp->fdx?MII_CR_FDM:0), MII_CR, lp->phy[lp->active].addr, DE4X5_MII);\
+			}\
+			omr |= ((lp->fdx ? OMR_FDX : 0) | OMR_TTM);\
+			outl(omr, DE4X5_OMR);\
+			if (!lp->useSROM) lp->cache.gep = 0;\
+		} else if (lp->useSROM && !lp->useMII) {\
+			omr = (inl(DE4X5_OMR) & ~(OMR_PS | OMR_HBD | OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
+			omr |= (lp->fdx ? OMR_FDX : 0);\
+			outl(omr | (lp->infoblock_csr6 & ~(OMR_SCR | OMR_HBD)), DE4X5_OMR);\
+		} else {\
+			omr = (inl(DE4X5_OMR) & ~(OMR_PS | OMR_HBD | OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
+			omr |= (lp->fdx ? OMR_FDX : 0);\
+			outl(omr | OMR_SDP | OMR_TTM, DE4X5_OMR);\
+			lp->cache.gep = (lp->fdx ? 0 : GEP_FDXD);\
+			gep_wr(lp->cache.gep, dev);\
+		}\
+	}
 
 #define SET_100Mb {\
-  if ((lp->phy[lp->active].id) && (!lp->useSROM || lp->useMII)) {\
-    int fdx=0;\
-    if (lp->phy[lp->active].id == NATIONAL_TX) {\
-        mii_wr(mii_rd(0x18, lp->phy[lp->active].addr, DE4X5_MII) & ~0x2000,\
-                      0x18, lp->phy[lp->active].addr, DE4X5_MII);\
-    }\
-    omr = inl(DE4X5_OMR) & ~(OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX);\
-    sr = mii_rd(MII_SR, lp->phy[lp->active].addr, DE4X5_MII);\
-    if (!(sr & MII_ANA_T4AM) && lp->fdx) fdx=1;\
-    if ((lp->tmp != MII_SR_ASSC) || (lp->autosense != AUTO)) {\
-      mii_wr(MII_CR_100|(fdx?MII_CR_FDM:0), MII_CR, lp->phy[lp->active].addr, DE4X5_MII);\
-    }\
-    if (fdx) omr |= OMR_FDX;\
-    outl(omr, DE4X5_OMR);\
-    if (!lp->useSROM) lp->cache.gep = 0;\
-  } else if (lp->useSROM && !lp->useMII) {\
-    omr = (inl(DE4X5_OMR) & ~(OMR_PS | OMR_HBD | OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
-    omr |= (lp->fdx ? OMR_FDX : 0);\
-    outl(omr | lp->infoblock_csr6, DE4X5_OMR);\
-  } else {\
-    omr = (inl(DE4X5_OMR) & ~(OMR_PS | OMR_HBD | OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
-    omr |= (lp->fdx ? OMR_FDX : 0);\
-    outl(omr | OMR_SDP | OMR_PS | OMR_HBD | OMR_PCS | OMR_SCR, DE4X5_OMR);\
-    lp->cache.gep = (lp->fdx ? 0 : GEP_FDXD) | GEP_MODE;\
-    gep_wr(lp->cache.gep, dev);\
-  }\
-}
+		if ((lp->phy[lp->active].id) && (!lp->useSROM || lp->useMII)) {\
+			int fdx=0;\
+			if (lp->phy[lp->active].id == NATIONAL_TX) {\
+				mii_wr(mii_rd(0x18, lp->phy[lp->active].addr, DE4X5_MII) & ~0x2000,\
+					   0x18, lp->phy[lp->active].addr, DE4X5_MII);\
+			}\
+			omr = inl(DE4X5_OMR) & ~(OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX);\
+			sr = mii_rd(MII_SR, lp->phy[lp->active].addr, DE4X5_MII);\
+			if (!(sr & MII_ANA_T4AM) && lp->fdx) fdx=1;\
+			if ((lp->tmp != MII_SR_ASSC) || (lp->autosense != AUTO)) {\
+				mii_wr(MII_CR_100|(fdx?MII_CR_FDM:0), MII_CR, lp->phy[lp->active].addr, DE4X5_MII);\
+			}\
+			if (fdx) omr |= OMR_FDX;\
+			outl(omr, DE4X5_OMR);\
+			if (!lp->useSROM) lp->cache.gep = 0;\
+		} else if (lp->useSROM && !lp->useMII) {\
+			omr = (inl(DE4X5_OMR) & ~(OMR_PS | OMR_HBD | OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
+			omr |= (lp->fdx ? OMR_FDX : 0);\
+			outl(omr | lp->infoblock_csr6, DE4X5_OMR);\
+		} else {\
+			omr = (inl(DE4X5_OMR) & ~(OMR_PS | OMR_HBD | OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
+			omr |= (lp->fdx ? OMR_FDX : 0);\
+			outl(omr | OMR_SDP | OMR_PS | OMR_HBD | OMR_PCS | OMR_SCR, DE4X5_OMR);\
+			lp->cache.gep = (lp->fdx ? 0 : GEP_FDXD) | GEP_MODE;\
+			gep_wr(lp->cache.gep, dev);\
+		}\
+	}
 
 /* FIX ME so I don't jam 10Mb networks */
 #define SET_100Mb_PDET {\
-  if ((lp->phy[lp->active].id) && (!lp->useSROM || lp->useMII)) {\
-    mii_wr(MII_CR_100|MII_CR_ASSE, MII_CR, lp->phy[lp->active].addr, DE4X5_MII);\
-    omr = (inl(DE4X5_OMR) & ~(OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
-    outl(omr, DE4X5_OMR);\
-  } else if (lp->useSROM && !lp->useMII) {\
-    omr = (inl(DE4X5_OMR) & ~(OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
-    outl(omr, DE4X5_OMR);\
-  } else {\
-    omr = (inl(DE4X5_OMR) & ~(OMR_PS | OMR_HBD | OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
-    outl(omr | OMR_SDP | OMR_PS | OMR_HBD | OMR_PCS, DE4X5_OMR);\
-    lp->cache.gep = (GEP_FDXD | GEP_MODE);\
-    gep_wr(lp->cache.gep, dev);\
-  }\
-}
+		if ((lp->phy[lp->active].id) && (!lp->useSROM || lp->useMII)) {\
+			mii_wr(MII_CR_100|MII_CR_ASSE, MII_CR, lp->phy[lp->active].addr, DE4X5_MII);\
+			omr = (inl(DE4X5_OMR) & ~(OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
+			outl(omr, DE4X5_OMR);\
+		} else if (lp->useSROM && !lp->useMII) {\
+			omr = (inl(DE4X5_OMR) & ~(OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
+			outl(omr, DE4X5_OMR);\
+		} else {\
+			omr = (inl(DE4X5_OMR) & ~(OMR_PS | OMR_HBD | OMR_TTM | OMR_PCS | OMR_SCR | OMR_FDX));\
+			outl(omr | OMR_SDP | OMR_PS | OMR_HBD | OMR_PCS, DE4X5_OMR);\
+			lp->cache.gep = (GEP_FDXD | GEP_MODE);\
+			gep_wr(lp->cache.gep, dev);\
+		}\
+	}
 
 /*
 ** Include the IOCTL stuff
 */
 #include <linux/sockios.h>
 
-struct de4x5_ioctl {
+struct de4x5_ioctl
+{
 	unsigned short cmd;                /* Command to run */
 	unsigned short len;                /* Length of the data buffer */
 	unsigned char  __user *data;       /* Pointer to the data buffer */

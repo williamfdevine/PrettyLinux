@@ -877,8 +877,9 @@
  * @NL80211_CMD_MAX: highest used command number
  * @__NL80211_CMD_AFTER_LAST: internal use
  */
-enum nl80211_commands {
-/* don't change the order or add anything between, this is ABI! */
+enum nl80211_commands
+{
+	/* don't change the order or add anything between, this is ABI! */
 	NL80211_CMD_UNSPEC,
 
 	NL80211_CMD_GET_WIPHY,		/* can dump */
@@ -1941,8 +1942,9 @@ enum nl80211_commands {
  * @NL80211_ATTR_MAX: highest attribute number currently defined
  * @__NL80211_ATTR_AFTER_LAST: internal use
  */
-enum nl80211_attrs {
-/* don't change the order or add anything between, this is ABI! */
+enum nl80211_attrs
+{
+	/* don't change the order or add anything between, this is ABI! */
 	NL80211_ATTR_UNSPEC,
 
 	NL80211_ATTR_WIPHY,
@@ -2422,7 +2424,8 @@ enum nl80211_attrs {
  * to set the type of an interface.
  *
  */
-enum nl80211_iftype {
+enum nl80211_iftype
+{
 	NL80211_IFTYPE_UNSPECIFIED,
 	NL80211_IFTYPE_ADHOC,
 	NL80211_IFTYPE_STATION,
@@ -2466,7 +2469,8 @@ enum nl80211_iftype {
  * @NL80211_STA_FLAG_MAX: highest station flag number currently defined
  * @__NL80211_STA_FLAG_AFTER_LAST: internal use
  */
-enum nl80211_sta_flags {
+enum nl80211_sta_flags
+{
 	__NL80211_STA_FLAG_INVALID,
 	NL80211_STA_FLAG_AUTHORIZED,
 	NL80211_STA_FLAG_SHORT_PREAMBLE,
@@ -2488,7 +2492,8 @@ enum nl80211_sta_flags {
  * @@NL80211_P2P_PS_SUPPORTED: station supports P2P PS mechanism
  * @NUM_NL80211_P2P_PS_STATUS: number of values
  */
-enum nl80211_sta_p2p_ps_status {
+enum nl80211_sta_p2p_ps_status
+{
 	NL80211_P2P_PS_UNSUPPORTED = 0,
 	NL80211_P2P_PS_SUPPORTED,
 
@@ -2504,7 +2509,8 @@ enum nl80211_sta_p2p_ps_status {
  *
  * Both mask and set contain bits as per &enum nl80211_sta_flags.
  */
-struct nl80211_sta_flag_update {
+struct nl80211_sta_flag_update
+{
 	__u32 mask;
 	__u32 set;
 } __attribute__((packed));
@@ -2543,7 +2549,8 @@ struct nl80211_sta_flag_update {
  *	a quarter of the base (20 MHz) rate
  * @__NL80211_RATE_INFO_AFTER_LAST: internal use
  */
-enum nl80211_rate_info {
+enum nl80211_rate_info
+{
 	__NL80211_RATE_INFO_INVALID,
 	NL80211_RATE_INFO_BITRATE,
 	NL80211_RATE_INFO_MCS,
@@ -2580,7 +2587,8 @@ enum nl80211_rate_info {
  * @NL80211_STA_BSS_PARAM_MAX: highest sta_bss_param number currently defined
  * @__NL80211_STA_BSS_PARAM_AFTER_LAST: internal use
  */
-enum nl80211_sta_bss_param {
+enum nl80211_sta_bss_param
+{
 	__NL80211_STA_BSS_PARAM_INVALID,
 	NL80211_STA_BSS_PARAM_CTS_PROT,
 	NL80211_STA_BSS_PARAM_SHORT_PREAMBLE,
@@ -2658,7 +2666,8 @@ enum nl80211_sta_bss_param {
  * @__NL80211_STA_INFO_AFTER_LAST: internal
  * @NL80211_STA_INFO_MAX: highest possible station info attribute
  */
-enum nl80211_sta_info {
+enum nl80211_sta_info
+{
 	__NL80211_STA_INFO_INVALID,
 	NL80211_STA_INFO_INACTIVE_TIME,
 	NL80211_STA_INFO_RX_BYTES,
@@ -2713,7 +2722,8 @@ enum nl80211_sta_info {
  * @NUM_NL80211_TID_STATS: number of attributes here
  * @NL80211_TID_STATS_MAX: highest numbered attribute here
  */
-enum nl80211_tid_stats {
+enum nl80211_tid_stats
+{
 	__NL80211_TID_STATS_INVALID,
 	NL80211_TID_STATS_RX_MSDU,
 	NL80211_TID_STATS_TX_MSDU,
@@ -2735,12 +2745,13 @@ enum nl80211_tid_stats {
  * @NL80211_MPATH_FLAG_FIXED: the mesh path has been manually set
  * @NL80211_MPATH_FLAG_RESOLVED: the mesh path discovery process succeeded
  */
-enum nl80211_mpath_flags {
-	NL80211_MPATH_FLAG_ACTIVE =	1<<0,
-	NL80211_MPATH_FLAG_RESOLVING =	1<<1,
-	NL80211_MPATH_FLAG_SN_VALID =	1<<2,
-	NL80211_MPATH_FLAG_FIXED =	1<<3,
-	NL80211_MPATH_FLAG_RESOLVED =	1<<4,
+enum nl80211_mpath_flags
+{
+	NL80211_MPATH_FLAG_ACTIVE =	1 << 0,
+	NL80211_MPATH_FLAG_RESOLVING =	1 << 1,
+	NL80211_MPATH_FLAG_SN_VALID =	1 << 2,
+	NL80211_MPATH_FLAG_FIXED =	1 << 3,
+	NL80211_MPATH_FLAG_RESOLVED =	1 << 4,
 };
 
 /**
@@ -2762,7 +2773,8 @@ enum nl80211_mpath_flags {
  *	currently defind
  * @__NL80211_MPATH_INFO_AFTER_LAST: internal use
  */
-enum nl80211_mpath_info {
+enum nl80211_mpath_info
+{
 	__NL80211_MPATH_INFO_INVALID,
 	NL80211_MPATH_INFO_FRAME_QLEN,
 	NL80211_MPATH_INFO_SN,
@@ -2795,7 +2807,8 @@ enum nl80211_mpath_info {
  * @NL80211_BAND_ATTR_MAX: highest band attribute currently defined
  * @__NL80211_BAND_ATTR_AFTER_LAST: internal use
  */
-enum nl80211_band_attr {
+enum nl80211_band_attr
+{
 	__NL80211_BAND_ATTR_INVALID,
 	NL80211_BAND_ATTR_FREQS,
 	NL80211_BAND_ATTR_RATES,
@@ -2873,7 +2886,8 @@ enum nl80211_band_attr {
  * by NL80211_FREQUENCY_ATTR_INDOOR_ONLY and
  * NL80211_FREQUENCY_ATTR_IR_CONCURRENT.
  */
-enum nl80211_frequency_attr {
+enum nl80211_frequency_attr
+{
 	__NL80211_FREQUENCY_ATTR_INVALID,
 	NL80211_FREQUENCY_ATTR_FREQ,
 	NL80211_FREQUENCY_ATTR_DISABLED,
@@ -2903,7 +2917,7 @@ enum nl80211_frequency_attr {
 #define NL80211_FREQUENCY_ATTR_NO_IBSS		NL80211_FREQUENCY_ATTR_NO_IR
 #define NL80211_FREQUENCY_ATTR_NO_IR		NL80211_FREQUENCY_ATTR_NO_IR
 #define NL80211_FREQUENCY_ATTR_GO_CONCURRENT \
-					NL80211_FREQUENCY_ATTR_IR_CONCURRENT
+	NL80211_FREQUENCY_ATTR_IR_CONCURRENT
 
 /**
  * enum nl80211_bitrate_attr - bitrate attributes
@@ -2915,7 +2929,8 @@ enum nl80211_frequency_attr {
  *	currently defined
  * @__NL80211_BITRATE_ATTR_AFTER_LAST: internal use
  */
-enum nl80211_bitrate_attr {
+enum nl80211_bitrate_attr
+{
 	__NL80211_BITRATE_ATTR_INVALID,
 	NL80211_BITRATE_ATTR_RATE,
 	NL80211_BITRATE_ATTR_2GHZ_SHORTPREAMBLE,
@@ -2941,7 +2956,8 @@ enum nl80211_bitrate_attr {
  *	If a channel is enabled but the country code indicates it should
  *	be disabled we disable the channel and re-enable it upon disassociation.
  */
-enum nl80211_reg_initiator {
+enum nl80211_reg_initiator
+{
 	NL80211_REGDOM_SET_BY_CORE,
 	NL80211_REGDOM_SET_BY_USER,
 	NL80211_REGDOM_SET_BY_DRIVER,
@@ -2964,7 +2980,8 @@ enum nl80211_reg_initiator {
  *	set regulatory domain on the system and the last accepted regulatory
  *	domain request to be processed.
  */
-enum nl80211_reg_type {
+enum nl80211_reg_type
+{
 	NL80211_REGDOM_TYPE_COUNTRY,
 	NL80211_REGDOM_TYPE_WORLD,
 	NL80211_REGDOM_TYPE_CUSTOM_WORLD,
@@ -2996,7 +3013,8 @@ enum nl80211_reg_type {
  *	currently defined
  * @__NL80211_REG_RULE_ATTR_AFTER_LAST: internal use
  */
-enum nl80211_reg_rule_attr {
+enum nl80211_reg_rule_attr
+{
 	__NL80211_REG_RULE_ATTR_INVALID,
 	NL80211_ATTR_REG_RULE_FLAGS,
 
@@ -3031,7 +3049,8 @@ enum nl80211_reg_rule_attr {
  *	attribute number currently defined
  * @__NL80211_SCHED_SCAN_MATCH_ATTR_AFTER_LAST: internal use
  */
-enum nl80211_sched_scan_match_attr {
+enum nl80211_sched_scan_match_attr
+{
 	__NL80211_SCHED_SCAN_MATCH_ATTR_INVALID,
 
 	NL80211_SCHED_SCAN_MATCH_ATTR_SSID,
@@ -3068,29 +3087,30 @@ enum nl80211_sched_scan_match_attr {
  * @NL80211_RRF_NO_80MHZ: 80MHz operation not allowed
  * @NL80211_RRF_NO_160MHZ: 160MHz operation not allowed
  */
-enum nl80211_reg_rule_flags {
-	NL80211_RRF_NO_OFDM		= 1<<0,
-	NL80211_RRF_NO_CCK		= 1<<1,
-	NL80211_RRF_NO_INDOOR		= 1<<2,
-	NL80211_RRF_NO_OUTDOOR		= 1<<3,
-	NL80211_RRF_DFS			= 1<<4,
-	NL80211_RRF_PTP_ONLY		= 1<<5,
-	NL80211_RRF_PTMP_ONLY		= 1<<6,
-	NL80211_RRF_NO_IR		= 1<<7,
-	__NL80211_RRF_NO_IBSS		= 1<<8,
-	NL80211_RRF_AUTO_BW		= 1<<11,
-	NL80211_RRF_IR_CONCURRENT	= 1<<12,
-	NL80211_RRF_NO_HT40MINUS	= 1<<13,
-	NL80211_RRF_NO_HT40PLUS		= 1<<14,
-	NL80211_RRF_NO_80MHZ		= 1<<15,
-	NL80211_RRF_NO_160MHZ		= 1<<16,
+enum nl80211_reg_rule_flags
+{
+	NL80211_RRF_NO_OFDM		= 1 << 0,
+	NL80211_RRF_NO_CCK		= 1 << 1,
+	NL80211_RRF_NO_INDOOR		= 1 << 2,
+	NL80211_RRF_NO_OUTDOOR		= 1 << 3,
+	NL80211_RRF_DFS			= 1 << 4,
+	NL80211_RRF_PTP_ONLY		= 1 << 5,
+	NL80211_RRF_PTMP_ONLY		= 1 << 6,
+	NL80211_RRF_NO_IR		= 1 << 7,
+	__NL80211_RRF_NO_IBSS		= 1 << 8,
+	NL80211_RRF_AUTO_BW		= 1 << 11,
+	NL80211_RRF_IR_CONCURRENT	= 1 << 12,
+	NL80211_RRF_NO_HT40MINUS	= 1 << 13,
+	NL80211_RRF_NO_HT40PLUS		= 1 << 14,
+	NL80211_RRF_NO_80MHZ		= 1 << 15,
+	NL80211_RRF_NO_160MHZ		= 1 << 16,
 };
 
 #define NL80211_RRF_PASSIVE_SCAN	NL80211_RRF_NO_IR
 #define NL80211_RRF_NO_IBSS		NL80211_RRF_NO_IR
 #define NL80211_RRF_NO_IR		NL80211_RRF_NO_IR
 #define NL80211_RRF_NO_HT40		(NL80211_RRF_NO_HT40MINUS |\
-					 NL80211_RRF_NO_HT40PLUS)
+								 NL80211_RRF_NO_HT40PLUS)
 #define NL80211_RRF_GO_CONCURRENT	NL80211_RRF_IR_CONCURRENT
 
 /* For backport compatibility with older userspace */
@@ -3104,7 +3124,8 @@ enum nl80211_reg_rule_flags {
  * @NL80211_DFS_ETSI: Country follows DFS master rules from ETSI
  * @NL80211_DFS_JP: Country follows DFS master rules from JP/MKK/Telec
  */
-enum nl80211_dfs_regions {
+enum nl80211_dfs_regions
+{
 	NL80211_DFS_UNSET	= 0,
 	NL80211_DFS_FCC		= 1,
 	NL80211_DFS_ETSI	= 2,
@@ -3128,7 +3149,8 @@ enum nl80211_dfs_regions {
  * @NL80211_USER_REG_HINT_INDOOR: a user sent an hint indicating that the
  *	platform is operating in an indoor environment.
  */
-enum nl80211_user_reg_hint_type {
+enum nl80211_user_reg_hint_type
+{
 	NL80211_USER_REG_HINT_USER	= 0,
 	NL80211_USER_REG_HINT_CELL_BASE = 1,
 	NL80211_USER_REG_HINT_INDOOR    = 2,
@@ -3161,7 +3183,8 @@ enum nl80211_user_reg_hint_type {
  *	currently defined
  * @__NL80211_SURVEY_INFO_AFTER_LAST: internal use
  */
-enum nl80211_survey_info {
+enum nl80211_survey_info
+{
 	__NL80211_SURVEY_INFO_INVALID,
 	NL80211_SURVEY_INFO_FREQUENCY,
 	NL80211_SURVEY_INFO_NOISE,
@@ -3205,7 +3228,8 @@ enum nl80211_survey_info {
  * @__NL80211_MNTR_FLAG_AFTER_LAST: internal use
  * @NL80211_MNTR_FLAG_MAX: highest possible monitor flag
  */
-enum nl80211_mntr_flags {
+enum nl80211_mntr_flags
+{
 	__NL80211_MNTR_FLAG_INVALID,
 	NL80211_MNTR_FLAG_FCSFAIL,
 	NL80211_MNTR_FLAG_PLCPFAIL,
@@ -3237,7 +3261,8 @@ enum nl80211_mntr_flags {
  * @NL80211_MESH_POWER_MAX - highest possible power save level
  */
 
-enum nl80211_mesh_power_mode {
+enum nl80211_mesh_power_mode
+{
 	NL80211_MESH_POWER_UNKNOWN,
 	NL80211_MESH_POWER_ACTIVE,
 	NL80211_MESH_POWER_LIGHT_SLEEP,
@@ -3355,7 +3380,8 @@ enum nl80211_mesh_power_mode {
  *
  * @__NL80211_MESHCONF_ATTR_AFTER_LAST: internal use
  */
-enum nl80211_meshconf_params {
+enum nl80211_meshconf_params
+{
 	__NL80211_MESHCONF_INVALID,
 	NL80211_MESHCONF_RETRY_TIMEOUT,
 	NL80211_MESHCONF_CONFIRM_TIMEOUT,
@@ -3440,7 +3466,8 @@ enum nl80211_meshconf_params {
  *
  * @__NL80211_MESH_SETUP_ATTR_AFTER_LAST: Internal use
  */
-enum nl80211_mesh_setup_params {
+enum nl80211_mesh_setup_params
+{
 	__NL80211_MESH_SETUP_INVALID,
 	NL80211_MESH_SETUP_ENABLE_VENDOR_PATH_SEL,
 	NL80211_MESH_SETUP_ENABLE_VENDOR_METRIC,
@@ -3470,7 +3497,8 @@ enum nl80211_mesh_setup_params {
  * @__NL80211_TXQ_ATTR_AFTER_LAST: Internal
  * @NL80211_TXQ_ATTR_MAX: Maximum TXQ attribute number
  */
-enum nl80211_txq_attr {
+enum nl80211_txq_attr
+{
 	__NL80211_TXQ_ATTR_INVALID,
 	NL80211_TXQ_ATTR_AC,
 	NL80211_TXQ_ATTR_TXOP,
@@ -3483,7 +3511,8 @@ enum nl80211_txq_attr {
 	NL80211_TXQ_ATTR_MAX = __NL80211_TXQ_ATTR_AFTER_LAST - 1
 };
 
-enum nl80211_ac {
+enum nl80211_ac
+{
 	NL80211_AC_VO,
 	NL80211_AC_VI,
 	NL80211_AC_BE,
@@ -3507,7 +3536,8 @@ enum nl80211_ac {
  * @NL80211_CHAN_HT40PLUS: HT40 channel, secondary channel
  *	above the control channel
  */
-enum nl80211_channel_type {
+enum nl80211_channel_type
+{
 	NL80211_CHAN_NO_HT,
 	NL80211_CHAN_HT20,
 	NL80211_CHAN_HT40MINUS,
@@ -3533,7 +3563,8 @@ enum nl80211_channel_type {
  * @NL80211_CHAN_WIDTH_5: 5 MHz OFDM channel
  * @NL80211_CHAN_WIDTH_10: 10 MHz OFDM channel
  */
-enum nl80211_chan_width {
+enum nl80211_chan_width
+{
 	NL80211_CHAN_WIDTH_20_NOHT,
 	NL80211_CHAN_WIDTH_20,
 	NL80211_CHAN_WIDTH_40,
@@ -3553,7 +3584,8 @@ enum nl80211_chan_width {
  * @NL80211_BSS_CHAN_WIDTH_10: control channel is 10 MHz wide
  * @NL80211_BSS_CHAN_WIDTH_5: control channel is 5 MHz wide
  */
-enum nl80211_bss_scan_width {
+enum nl80211_bss_scan_width
+{
 	NL80211_BSS_CHAN_WIDTH_20,
 	NL80211_BSS_CHAN_WIDTH_10,
 	NL80211_BSS_CHAN_WIDTH_5,
@@ -3608,7 +3640,8 @@ enum nl80211_bss_scan_width {
  * @__NL80211_BSS_AFTER_LAST: internal
  * @NL80211_BSS_MAX: highest BSS attribute
  */
-enum nl80211_bss {
+enum nl80211_bss
+{
 	__NL80211_BSS_INVALID,
 	NL80211_BSS_BSSID,
 	NL80211_BSS_FREQUENCY,
@@ -3646,7 +3679,8 @@ enum nl80211_bss {
  * The BSS status is a BSS attribute in scan dumps, which
  * indicates the status the interface has wrt. this BSS.
  */
-enum nl80211_bss_status {
+enum nl80211_bss_status
+{
 	NL80211_BSS_STATUS_AUTHENTICATED,
 	NL80211_BSS_STATUS_ASSOCIATED,
 	NL80211_BSS_STATUS_IBSS_JOINED,
@@ -3666,7 +3700,8 @@ enum nl80211_bss_status {
  *	trying multiple times); this is invalid in netlink -- leave out
  *	the attribute for this on CONNECT commands.
  */
-enum nl80211_auth_type {
+enum nl80211_auth_type
+{
 	NL80211_AUTHTYPE_OPEN_SYSTEM,
 	NL80211_AUTHTYPE_SHARED_KEY,
 	NL80211_AUTHTYPE_FT,
@@ -3686,7 +3721,8 @@ enum nl80211_auth_type {
  * @NL80211_KEYTYPE_PEERKEY: PeerKey (DLS)
  * @NUM_NL80211_KEYTYPES: number of defined key types
  */
-enum nl80211_key_type {
+enum nl80211_key_type
+{
 	NL80211_KEYTYPE_GROUP,
 	NL80211_KEYTYPE_PAIRWISE,
 	NL80211_KEYTYPE_PEERKEY,
@@ -3699,12 +3735,14 @@ enum nl80211_key_type {
  * @NL80211_MFP_NO: Management frame protection not used
  * @NL80211_MFP_REQUIRED: Management frame protection required
  */
-enum nl80211_mfp {
+enum nl80211_mfp
+{
 	NL80211_MFP_NO,
 	NL80211_MFP_REQUIRED,
 };
 
-enum nl80211_wpa_versions {
+enum nl80211_wpa_versions
+{
 	NL80211_WPA_VERSION_1 = 1 << 0,
 	NL80211_WPA_VERSION_2 = 1 << 1,
 };
@@ -3718,7 +3756,8 @@ enum nl80211_wpa_versions {
  *	multicast key
  * @NUM_NL80211_KEY_DEFAULT_TYPES: number of default types
  */
-enum nl80211_key_default_types {
+enum nl80211_key_default_types
+{
 	__NL80211_KEY_DEFAULT_TYPE_INVALID,
 	NL80211_KEY_DEFAULT_TYPE_UNICAST,
 	NL80211_KEY_DEFAULT_TYPE_MULTICAST,
@@ -3748,7 +3787,8 @@ enum nl80211_key_default_types {
  * @__NL80211_KEY_AFTER_LAST: internal
  * @NL80211_KEY_MAX: highest key attribute
  */
-enum nl80211_key_attributes {
+enum nl80211_key_attributes
+{
 	__NL80211_KEY_INVALID,
 	NL80211_KEY_DATA,
 	NL80211_KEY_IDX,
@@ -3779,7 +3819,8 @@ enum nl80211_key_attributes {
  * @__NL80211_TXRATE_AFTER_LAST: internal
  * @NL80211_TXRATE_MAX: highest TX rate attribute
  */
-enum nl80211_tx_rate_attributes {
+enum nl80211_tx_rate_attributes
+{
 	__NL80211_TXRATE_INVALID,
 	NL80211_TXRATE_LEGACY,
 	NL80211_TXRATE_HT,
@@ -3798,11 +3839,13 @@ enum nl80211_tx_rate_attributes {
  * struct nl80211_txrate_vht - VHT MCS/NSS txrate bitmap
  * @mcs: MCS bitmap table for each NSS (array index 0 for 1 stream, etc.)
  */
-struct nl80211_txrate_vht {
+struct nl80211_txrate_vht
+{
 	__u16 mcs[NL80211_VHT_NSS_MAX];
 };
 
-enum nl80211_txrate_gi {
+enum nl80211_txrate_gi
+{
 	NL80211_TXRATE_DEFAULT_GI,
 	NL80211_TXRATE_FORCE_SGI,
 	NL80211_TXRATE_FORCE_LGI,
@@ -3816,7 +3859,8 @@ enum nl80211_txrate_gi {
  * @NUM_NL80211_BANDS: number of bands, avoid using this in userspace
  *	since newer kernel versions may support more bands
  */
-enum nl80211_band {
+enum nl80211_band
+{
 	NL80211_BAND_2GHZ,
 	NL80211_BAND_5GHZ,
 	NL80211_BAND_60GHZ,
@@ -3829,7 +3873,8 @@ enum nl80211_band {
  * @NL80211_PS_DISABLED: powersave is disabled
  * @NL80211_PS_ENABLED: powersave is enabled
  */
-enum nl80211_ps_state {
+enum nl80211_ps_state
+{
 	NL80211_PS_DISABLED,
 	NL80211_PS_ENABLED,
 };
@@ -3862,7 +3907,8 @@ enum nl80211_ps_state {
  * @__NL80211_ATTR_CQM_AFTER_LAST: internal
  * @NL80211_ATTR_CQM_MAX: highest key attribute
  */
-enum nl80211_attr_cqm {
+enum nl80211_attr_cqm
+{
 	__NL80211_ATTR_CQM_INVALID,
 	NL80211_ATTR_CQM_RSSI_THOLD,
 	NL80211_ATTR_CQM_RSSI_HYST,
@@ -3886,7 +3932,8 @@ enum nl80211_attr_cqm {
  *      configured threshold
  * @NL80211_CQM_RSSI_BEACON_LOSS_EVENT: (reserved, never sent)
  */
-enum nl80211_cqm_rssi_threshold_event {
+enum nl80211_cqm_rssi_threshold_event
+{
 	NL80211_CQM_RSSI_THRESHOLD_EVENT_LOW,
 	NL80211_CQM_RSSI_THRESHOLD_EVENT_HIGH,
 	NL80211_CQM_RSSI_BEACON_LOSS_EVENT,
@@ -3899,7 +3946,8 @@ enum nl80211_cqm_rssi_threshold_event {
  * @NL80211_TX_POWER_LIMITED: limit TX power by the mBm parameter
  * @NL80211_TX_POWER_FIXED: fix TX power to the mBm parameter
  */
-enum nl80211_tx_power_setting {
+enum nl80211_tx_power_setting
+{
 	NL80211_TX_POWER_AUTOMATIC,
 	NL80211_TX_POWER_LIMITED,
 	NL80211_TX_POWER_FIXED,
@@ -3926,7 +3974,8 @@ enum nl80211_tx_power_setting {
  * @NUM_NL80211_PKTPAT: number of attributes
  * @MAX_NL80211_PKTPAT: max attribute number
  */
-enum nl80211_packet_pattern_attr {
+enum nl80211_packet_pattern_attr
+{
 	__NL80211_PKTPAT_INVALID,
 	NL80211_PKTPAT_MASK,
 	NL80211_PKTPAT_PATTERN,
@@ -3949,7 +3998,8 @@ enum nl80211_packet_pattern_attr {
  * %NL80211_ATTR_COALESCE_RULE in the capability information given
  * by the kernel to userspace.
  */
-struct nl80211_pattern_support {
+struct nl80211_pattern_support
+{
 	__u32 max_patterns;
 	__u32 min_pattern_len;
 	__u32 max_pattern_len;
@@ -4054,7 +4104,8 @@ struct nl80211_pattern_support {
  * These nested attributes are used to configure the wakeup triggers and
  * to report the wakeup reason(s).
  */
-enum nl80211_wowlan_triggers {
+enum nl80211_wowlan_triggers
+{
 	__NL80211_WOWLAN_TRIG_INVALID,
 	NL80211_WOWLAN_TRIG_ANY,
 	NL80211_WOWLAN_TRIG_DISCONNECT,
@@ -4114,7 +4165,8 @@ enum nl80211_wowlan_triggers {
  * keepalive packet payload. The actual value is written into the packet
  * in little endian.
  */
-struct nl80211_wowlan_tcp_data_seq {
+struct nl80211_wowlan_tcp_data_seq
+{
 	__u32 start, offset, len;
 };
 
@@ -4125,7 +4177,8 @@ struct nl80211_wowlan_tcp_data_seq {
  * @token_stream: stream of data to be used for the tokens, the length must
  *	be a multiple of @len for this to make sense
  */
-struct nl80211_wowlan_tcp_data_token {
+struct nl80211_wowlan_tcp_data_token
+{
 	__u32 offset, len;
 	__u8 token_stream[];
 };
@@ -4136,7 +4189,8 @@ struct nl80211_wowlan_tcp_data_token {
  * @max_len: maximum token length
  * @bufsize: total available token buffer size (max size of @token_stream)
  */
-struct nl80211_wowlan_tcp_data_token_feature {
+struct nl80211_wowlan_tcp_data_token_feature
+{
 	__u32 min_len, max_len, bufsize;
 };
 
@@ -4172,7 +4226,8 @@ struct nl80211_wowlan_tcp_data_token_feature {
  * @NUM_NL80211_WOWLAN_TCP: number of TCP attributes
  * @MAX_NL80211_WOWLAN_TCP: highest attribute number
  */
-enum nl80211_wowlan_tcp_attrs {
+enum nl80211_wowlan_tcp_attrs
+{
 	__NL80211_WOWLAN_TCP_INVALID,
 	NL80211_WOWLAN_TCP_SRC_IPV4,
 	NL80211_WOWLAN_TCP_DST_IPV4,
@@ -4200,7 +4255,8 @@ enum nl80211_wowlan_tcp_attrs {
  * This struct is carried in %NL80211_ATTR_COALESCE_RULE in the
  * capability information given by the kernel to userspace.
  */
-struct nl80211_coalesce_rule_support {
+struct nl80211_coalesce_rule_support
+{
 	__u32 max_rules;
 	struct nl80211_pattern_support pat;
 	__u32 max_delay;
@@ -4217,7 +4273,8 @@ struct nl80211_coalesce_rule_support {
  * @NUM_NL80211_ATTR_COALESCE_RULE: number of attributes
  * @NL80211_ATTR_COALESCE_RULE_MAX: max attribute number
  */
-enum nl80211_attr_coalesce_rule {
+enum nl80211_attr_coalesce_rule
+{
 	__NL80211_COALESCE_RULE_INVALID,
 	NL80211_ATTR_COALESCE_RULE_DELAY,
 	NL80211_ATTR_COALESCE_RULE_CONDITION,
@@ -4235,7 +4292,8 @@ enum nl80211_attr_coalesce_rule {
  * @NL80211_COALESCE_CONDITION_NO_MATCH: coalesce Rx packets when patterns
  *	in a rule are not matched.
  */
-enum nl80211_coalesce_condition {
+enum nl80211_coalesce_condition
+{
 	NL80211_COALESCE_CONDITION_MATCH,
 	NL80211_COALESCE_CONDITION_NO_MATCH
 };
@@ -4250,7 +4308,8 @@ enum nl80211_coalesce_condition {
  * @NUM_NL80211_IFACE_LIMIT: number of attributes
  * @MAX_NL80211_IFACE_LIMIT: highest attribute number
  */
-enum nl80211_iface_limit_attrs {
+enum nl80211_iface_limit_attrs
+{
 	NL80211_IFACE_LIMIT_UNSPEC,
 	NL80211_IFACE_LIMIT_MAX,
 	NL80211_IFACE_LIMIT_TYPES,
@@ -4306,7 +4365,8 @@ enum nl80211_iface_limit_attrs {
  * interface type, the following group always exists:
  *	numbers = [ #{<type>} <= 1 ], channels = 1, max = 1
  */
-enum nl80211_if_combination_attrs {
+enum nl80211_if_combination_attrs
+{
 	NL80211_IFACE_COMB_UNSPEC,
 	NL80211_IFACE_COMB_LIMITS,
 	NL80211_IFACE_COMB_MAXNUM,
@@ -4339,7 +4399,8 @@ enum nl80211_if_combination_attrs {
  * @NUM_NL80211_PLINK_STATES: number of peer link states
  * @MAX_NL80211_PLINK_STATES: highest numerical value of plink states
  */
-enum nl80211_plink_state {
+enum nl80211_plink_state
+{
 	NL80211_PLINK_LISTEN,
 	NL80211_PLINK_OPN_SNT,
 	NL80211_PLINK_OPN_RCVD,
@@ -4361,7 +4422,8 @@ enum nl80211_plink_state {
  * @NL80211_PLINK_ACTION_BLOCK: block traffic from this mesh peer
  * @NUM_NL80211_PLINK_ACTIONS: number of possible actions
  */
-enum plink_actions {
+enum plink_actions
+{
 	NL80211_PLINK_ACTION_NO_ACTION,
 	NL80211_PLINK_ACTION_OPEN,
 	NL80211_PLINK_ACTION_BLOCK,
@@ -4383,7 +4445,8 @@ enum plink_actions {
  * @NUM_NL80211_REKEY_DATA: number of rekey attributes (internal)
  * @MAX_NL80211_REKEY_DATA: highest rekey attribute (internal)
  */
-enum nl80211_rekey_data {
+enum nl80211_rekey_data
+{
 	__NL80211_REKEY_DATA_INVALID,
 	NL80211_REKEY_DATA_KEK,
 	NL80211_REKEY_DATA_KCK,
@@ -4403,7 +4466,8 @@ enum nl80211_rekey_data {
  * @NL80211_HIDDEN_SSID_ZERO_CONTENTS: hide SSID by using correct length of SSID
  *	element in Beacon frames but zero out each byte in the SSID
  */
-enum nl80211_hidden_ssid {
+enum nl80211_hidden_ssid
+{
 	NL80211_HIDDEN_SSID_NOT_IN_USE,
 	NL80211_HIDDEN_SSID_ZERO_LEN,
 	NL80211_HIDDEN_SSID_ZERO_CONTENTS
@@ -4419,7 +4483,8 @@ enum nl80211_hidden_ssid {
  * @__NL80211_STA_WME_AFTER_LAST: internal
  * @NL80211_STA_WME_MAX: highest station WME attribute
  */
-enum nl80211_sta_wme_attr {
+enum nl80211_sta_wme_attr
+{
 	__NL80211_STA_WME_INVALID,
 	NL80211_STA_WME_UAPSD_QUEUES,
 	NL80211_STA_WME_MAX_SP,
@@ -4441,7 +4506,8 @@ enum nl80211_sta_wme_attr {
  * @MAX_NL80211_PMKSA_CANDIDATE: highest PMKSA caching candidate attribute
  *	(internal)
  */
-enum nl80211_pmksa_candidate_attr {
+enum nl80211_pmksa_candidate_attr
+{
 	__NL80211_PMKSA_CANDIDATE_INVALID,
 	NL80211_PMKSA_CANDIDATE_INDEX,
 	NL80211_PMKSA_CANDIDATE_BSSID,
@@ -4460,7 +4526,8 @@ enum nl80211_pmksa_candidate_attr {
  * @NL80211_TDLS_ENABLE_LINK: Enable TDLS link
  * @NL80211_TDLS_DISABLE_LINK: Disable TDLS link
  */
-enum nl80211_tdls_operation {
+enum nl80211_tdls_operation
+{
 	NL80211_TDLS_DISCOVERY_REQ,
 	NL80211_TDLS_SETUP,
 	NL80211_TDLS_TEARDOWN,
@@ -4569,7 +4636,8 @@ enum nl80211_ap_sme_features {
  *	scan in unassociated WoWLAN, the %NL80211_SCAN_FLAG_RANDOM_ADDR may
  *	be set for scheduled scan and the MAC address mask/value will be used.
  */
-enum nl80211_feature_flags {
+enum nl80211_feature_flags
+{
 	NL80211_FEATURE_SK_TX_STATUS			= 1 << 0,
 	NL80211_FEATURE_HT_IBSS				= 1 << 1,
 	NL80211_FEATURE_INACTIVITY_TIMER		= 1 << 2,
@@ -4638,7 +4706,8 @@ enum nl80211_feature_flags {
  * @NUM_NL80211_EXT_FEATURES: number of extended features.
  * @MAX_NL80211_EXT_FEATURES: highest extended feature index.
  */
-enum nl80211_ext_feature_index {
+enum nl80211_ext_feature_index
+{
 	NL80211_EXT_FEATURE_VHT_IBSS,
 	NL80211_EXT_FEATURE_RRM,
 	NL80211_EXT_FEATURE_MU_MIMO_AIR_SNIFFER,
@@ -4668,11 +4737,12 @@ enum nl80211_ext_feature_index {
  * @NL80211_PROBE_RESP_OFFLOAD_SUPPORT_P2P: Support for P2P
  * @NL80211_PROBE_RESP_OFFLOAD_SUPPORT_80211U: Support for 802.11u
  */
-enum nl80211_probe_resp_offload_support_attr {
-	NL80211_PROBE_RESP_OFFLOAD_SUPPORT_WPS =	1<<0,
-	NL80211_PROBE_RESP_OFFLOAD_SUPPORT_WPS2 =	1<<1,
-	NL80211_PROBE_RESP_OFFLOAD_SUPPORT_P2P =	1<<2,
-	NL80211_PROBE_RESP_OFFLOAD_SUPPORT_80211U =	1<<3,
+enum nl80211_probe_resp_offload_support_attr
+{
+	NL80211_PROBE_RESP_OFFLOAD_SUPPORT_WPS =	1 << 0,
+	NL80211_PROBE_RESP_OFFLOAD_SUPPORT_WPS2 =	1 << 1,
+	NL80211_PROBE_RESP_OFFLOAD_SUPPORT_P2P =	1 << 2,
+	NL80211_PROBE_RESP_OFFLOAD_SUPPORT_80211U =	1 << 3,
 };
 
 /**
@@ -4681,7 +4751,8 @@ enum nl80211_probe_resp_offload_support_attr {
  *	handled by the AP is reached.
  * @NL80211_CONN_FAIL_BLOCKED_CLIENT: Connection request is rejected due to ACL.
  */
-enum nl80211_connect_failed_reason {
+enum nl80211_connect_failed_reason
+{
 	NL80211_CONN_FAIL_MAX_CLIENTS,
 	NL80211_CONN_FAIL_BLOCKED_CLIENT,
 };
@@ -4710,11 +4781,12 @@ enum nl80211_connect_failed_reason {
  *	This flag must not be requested when the feature isn't supported, check
  *	the nl80211 feature flags for the device.
  */
-enum nl80211_scan_flags {
-	NL80211_SCAN_FLAG_LOW_PRIORITY			= 1<<0,
-	NL80211_SCAN_FLAG_FLUSH				= 1<<1,
-	NL80211_SCAN_FLAG_AP				= 1<<2,
-	NL80211_SCAN_FLAG_RANDOM_ADDR			= 1<<3,
+enum nl80211_scan_flags
+{
+	NL80211_SCAN_FLAG_LOW_PRIORITY			= 1 << 0,
+	NL80211_SCAN_FLAG_FLUSH				= 1 << 1,
+	NL80211_SCAN_FLAG_AP				= 1 << 2,
+	NL80211_SCAN_FLAG_RANDOM_ADDR			= 1 << 3,
 };
 
 /**
@@ -4730,7 +4802,8 @@ enum nl80211_scan_flags {
  * @NL80211_ACL_POLICY_DENY_UNLESS_LISTED: Allow the stations which are listed
  *	in ACL, i.e. deny all the stations which are not listed in ACL.
  */
-enum nl80211_acl_policy {
+enum nl80211_acl_policy
+{
 	NL80211_ACL_POLICY_ACCEPT_UNLESS_LISTED,
 	NL80211_ACL_POLICY_DENY_UNLESS_LISTED,
 };
@@ -4745,7 +4818,8 @@ enum nl80211_acl_policy {
  * @NL80211_SMPS_DYNAMIC: dynamic smps (start with a single antenna and
  *	turn on other antennas after CTS/RTS).
  */
-enum nl80211_smps_mode {
+enum nl80211_smps_mode
+{
 	NL80211_SMPS_OFF,
 	NL80211_SMPS_STATIC,
 	NL80211_SMPS_DYNAMIC,
@@ -4769,7 +4843,8 @@ enum nl80211_smps_mode {
  * @NL80211_RADAR_NOP_FINISHED: The Non-Occupancy Period for this channel is
  *	over, channel becomes usable.
  */
-enum nl80211_radar_event {
+enum nl80211_radar_event
+{
 	NL80211_RADAR_DETECTED,
 	NL80211_RADAR_CAC_FINISHED,
 	NL80211_RADAR_CAC_ABORTED,
@@ -4787,7 +4862,8 @@ enum nl80211_radar_event {
  *	is therefore marked as not available.
  * @NL80211_DFS_AVAILABLE: The channel has been CAC checked and is available.
  */
-enum nl80211_dfs_state {
+enum nl80211_dfs_state
+{
 	NL80211_DFS_USABLE,
 	NL80211_DFS_UNAVAILABLE,
 	NL80211_DFS_AVAILABLE,
@@ -4801,7 +4877,8 @@ enum nl80211_dfs_state {
  *	wiphy dump by %NL80211_ATTR_WIPHY, %NL80211_ATTR_IFINDEX or
  *	%NL80211_ATTR_WDEV.
  */
-enum nl80211_protocol_features {
+enum nl80211_protocol_features
+{
 	NL80211_PROTOCOL_FEATURE_SPLIT_WIPHY_DUMP =	1 << 0,
 };
 
@@ -4814,7 +4891,8 @@ enum nl80211_protocol_features {
  * @NL80211_CRIT_PROTO_APIPA: APIPA protocol.
  * @NUM_NL80211_CRIT_PROTO: must be kept last.
  */
-enum nl80211_crit_proto_id {
+enum nl80211_crit_proto_id
+{
 	NL80211_CRIT_PROTO_UNSPEC,
 	NL80211_CRIT_PROTO_DHCP,
 	NL80211_CRIT_PROTO_EAPOL,
@@ -4833,7 +4911,8 @@ enum nl80211_crit_proto_id {
  *
  * @NL80211_RXMGMT_FLAG_ANSWERED: frame was answered by device/driver.
  */
-enum nl80211_rxmgmt_flags {
+enum nl80211_rxmgmt_flags
+{
 	NL80211_RXMGMT_FLAG_ANSWERED = 1 << 0,
 };
 
@@ -4852,7 +4931,8 @@ enum nl80211_rxmgmt_flags {
  *	added to this file when needed.
  * @subcmd: sub-command ID for the command
  */
-struct nl80211_vendor_cmd_info {
+struct nl80211_vendor_cmd_info
+{
 	__u32 vendor_id;
 	__u32 subcmd;
 };
@@ -4867,10 +4947,11 @@ struct nl80211_vendor_cmd_info {
  * @NL80211_TDLS_PEER_VHT: TDLS peer is VHT capable.
  * @NL80211_TDLS_PEER_WMM: TDLS peer is WMM capable.
  */
-enum nl80211_tdls_peer_capability {
-	NL80211_TDLS_PEER_HT = 1<<0,
-	NL80211_TDLS_PEER_VHT = 1<<1,
-	NL80211_TDLS_PEER_WMM = 1<<2,
+enum nl80211_tdls_peer_capability
+{
+	NL80211_TDLS_PEER_HT = 1 << 0,
+	NL80211_TDLS_PEER_VHT = 1 << 1,
+	NL80211_TDLS_PEER_WMM = 1 << 2,
 };
 
 /**
@@ -4886,7 +4967,8 @@ enum nl80211_tdls_peer_capability {
  *	currently defined
  * @__NL80211_SCHED_SCAN_PLAN_AFTER_LAST: internal use
  */
-enum nl80211_sched_scan_plan {
+enum nl80211_sched_scan_plan
+{
 	__NL80211_SCHED_SCAN_PLAN_INVALID,
 	NL80211_SCHED_SCAN_PLAN_INTERVAL,
 	NL80211_SCHED_SCAN_PLAN_ITERATIONS,
@@ -4903,7 +4985,8 @@ enum nl80211_sched_scan_plan {
  * @band: band of BSS that must match for RSSI value adjustment.
  * @delta: value used to adjust the RSSI value of matching BSS.
  */
-struct nl80211_bss_select_rssi_adjust {
+struct nl80211_bss_select_rssi_adjust
+{
 	__u8 band;
 	__s8 delta;
 } __attribute__((packed));
@@ -4930,7 +5013,8 @@ struct nl80211_bss_select_rssi_adjust {
  * for %NL80211_CMD_CONNECT. It specifies the required BSS selection behaviour
  * which the driver shall use.
  */
-enum nl80211_bss_select_attr {
+enum nl80211_bss_select_attr
+{
 	__NL80211_BSS_SELECT_ATTR_INVALID,
 	NL80211_BSS_SELECT_ATTR_RSSI,
 	NL80211_BSS_SELECT_ATTR_BAND_PREF,
@@ -4950,7 +5034,8 @@ enum nl80211_bss_select_attr {
  * @NL80211_NAN_BAND_2GHZ: 2.4GHz mode
  * @NL80211_NAN_BAND_5GHZ: 5GHz mode
   */
-enum nl80211_nan_dual_band_conf {
+enum nl80211_nan_dual_band_conf
+{
 	NL80211_NAN_BAND_DEFAULT	= 1 << 0,
 	NL80211_NAN_BAND_2GHZ		= 1 << 1,
 	NL80211_NAN_BAND_5GHZ		= 1 << 2,
@@ -4965,7 +5050,8 @@ enum nl80211_nan_dual_band_conf {
  * @NL80211_NAN_FUNC_SUBSCRIBE: function is subscribe
  * @NL80211_NAN_FUNC_FOLLOW_UP: function is follow-up
  */
-enum nl80211_nan_function_type {
+enum nl80211_nan_function_type
+{
 	NL80211_NAN_FUNC_PUBLISH,
 	NL80211_NAN_FUNC_SUBSCRIBE,
 	NL80211_NAN_FUNC_FOLLOW_UP,
@@ -4983,7 +5069,8 @@ enum nl80211_nan_function_type {
  * @NL80211_NAN_SOLICITED_PUBLISH: publish function is solicited
  * @NL80211_NAN_UNSOLICITED_PUBLISH: publish function is unsolicited
  */
-enum nl80211_nan_publish_type {
+enum nl80211_nan_publish_type
+{
 	NL80211_NAN_SOLICITED_PUBLISH = 1 << 0,
 	NL80211_NAN_UNSOLICITED_PUBLISH = 1 << 1,
 };
@@ -4997,7 +5084,8 @@ enum nl80211_nan_publish_type {
  * @NL80211_NAN_FUNC_TERM_REASON_TTL_EXPIRED: timeout
  * @NL80211_NAN_FUNC_TERM_REASON_ERROR: errored
  */
-enum nl80211_nan_func_term_reason {
+enum nl80211_nan_func_term_reason
+{
 	NL80211_NAN_FUNC_TERM_REASON_USER_REQUEST,
 	NL80211_NAN_FUNC_TERM_REASON_TTL_EXPIRED,
 	NL80211_NAN_FUNC_TERM_REASON_ERROR,
@@ -5049,7 +5137,8 @@ enum nl80211_nan_func_term_reason {
  * @NUM_NL80211_NAN_FUNC_ATTR: internal
  * @NL80211_NAN_FUNC_ATTR_MAX: highest NAN function attribute
  */
-enum nl80211_nan_func_attributes {
+enum nl80211_nan_func_attributes
+{
 	__NL80211_NAN_FUNC_INVALID,
 	NL80211_NAN_FUNC_TYPE,
 	NL80211_NAN_FUNC_SERVICE_ID,
@@ -5088,7 +5177,8 @@ enum nl80211_nan_func_attributes {
  * @NUM_NL80211_NAN_SRF_ATTR: internal
  * @NL80211_NAN_SRF_ATTR_MAX: highest NAN SRF attribute
  */
-enum nl80211_nan_srf_attributes {
+enum nl80211_nan_srf_attributes
+{
 	__NL80211_NAN_SRF_INVALID,
 	NL80211_NAN_SRF_INCLUDE,
 	NL80211_NAN_SRF_BF,
@@ -5113,7 +5203,8 @@ enum nl80211_nan_srf_attributes {
  * @NUM_NL80211_NAN_MATCH_ATTR: internal
  * @NL80211_NAN_MATCH_ATTR_MAX: highest NAN match attribute
  */
-enum nl80211_nan_match_attributes {
+enum nl80211_nan_match_attributes
+{
 	__NL80211_NAN_MATCH_INVALID,
 	NL80211_NAN_MATCH_FUNC_LOCAL,
 	NL80211_NAN_MATCH_FUNC_PEER,

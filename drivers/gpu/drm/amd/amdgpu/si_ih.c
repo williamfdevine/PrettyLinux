@@ -39,7 +39,7 @@ static void si_ih_enable_interrupts(struct amdgpu_device *adev)
 	WREG32(IH_RB_CNTL, ih_rb_cntl);
 	adev->irq.ih.enabled = true;
 }
-  
+
 static void si_ih_disable_interrupts(struct amdgpu_device *adev)
 {
 	u32 ih_rb_cntl = RREG32(IH_RB_CNTL);
@@ -72,9 +72,9 @@ static int si_ih_irq_init(struct amdgpu_device *adev)
 	rb_bufsz = order_base_2(adev->irq.ih.ring_size / 4);
 
 	ih_rb_cntl = IH_WPTR_OVERFLOW_ENABLE |
-		     IH_WPTR_OVERFLOW_CLEAR |
-		     (rb_bufsz << 1) |
-		     IH_WPTR_WRITEBACK_ENABLE;
+				 IH_WPTR_OVERFLOW_CLEAR |
+				 (rb_bufsz << 1) |
+				 IH_WPTR_WRITEBACK_ENABLE;
 
 	wptr_off = adev->wb.gpu_addr + (adev->irq.ih.wptr_offs * 4);
 	WREG32(IH_RB_WPTR_ADDR_LO, lower_32_bits(wptr_off));
@@ -84,8 +84,12 @@ static int si_ih_irq_init(struct amdgpu_device *adev)
 	WREG32(IH_RB_WPTR, 0);
 
 	ih_cntl = MC_WRREQ_CREDIT(0x10) | MC_WR_CLEAN_CNT(0x10) | MC_VMID(0);
+
 	if (adev->irq.msi_enabled)
+	{
 		ih_cntl |= RPTR_REARM;
+	}
+
 	WREG32(IH_CNTL, ih_cntl);
 
 	pci_set_master(adev->pdev);
@@ -106,20 +110,22 @@ static u32 si_ih_get_wptr(struct amdgpu_device *adev)
 
 	wptr = le32_to_cpu(adev->wb.wb[adev->irq.ih.wptr_offs]);
 
-	if (wptr & IH_RB_WPTR__RB_OVERFLOW_MASK) {
+	if (wptr & IH_RB_WPTR__RB_OVERFLOW_MASK)
+	{
 		wptr &= ~IH_RB_WPTR__RB_OVERFLOW_MASK;
 		dev_warn(adev->dev, "IH ring buffer overflow (0x%08X, 0x%08X, 0x%08X)\n",
-			wptr, adev->irq.ih.rptr, (wptr + 16) & adev->irq.ih.ptr_mask);
+				 wptr, adev->irq.ih.rptr, (wptr + 16) & adev->irq.ih.ptr_mask);
 		adev->irq.ih.rptr = (wptr + 16) & adev->irq.ih.ptr_mask;
 		tmp = RREG32(IH_RB_CNTL);
 		tmp |= IH_RB_CNTL__WPTR_OVERFLOW_CLEAR_MASK;
 		WREG32(IH_RB_CNTL, tmp);
 	}
+
 	return (wptr & adev->irq.ih.ptr_mask);
 }
 
 static void si_ih_decode_iv(struct amdgpu_device *adev,
-			     struct amdgpu_iv_entry *entry)
+							struct amdgpu_iv_entry *entry)
 {
 	u32 ring_index = adev->irq.ih.rptr >> 2;
 	uint32_t dw[4];
@@ -157,8 +163,11 @@ static int si_ih_sw_init(void *handle)
 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
 
 	r = amdgpu_ih_ring_init(adev, 64 * 1024, false);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return amdgpu_irq_init(adev);
 }
@@ -209,7 +218,9 @@ static bool si_ih_is_idle(void *handle)
 	u32 tmp = RREG32(SRBM_STATUS);
 
 	if (tmp & SRBM_STATUS__IH_BUSY_MASK)
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -219,11 +230,16 @@ static int si_ih_wait_for_idle(void *handle)
 	unsigned i;
 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
 
-	for (i = 0; i < adev->usec_timeout; i++) {
+	for (i = 0; i < adev->usec_timeout; i++)
+	{
 		if (si_ih_is_idle(handle))
+		{
 			return 0;
+		}
+
 		udelay(1);
 	}
+
 	return -ETIMEDOUT;
 }
 
@@ -235,9 +251,12 @@ static int si_ih_soft_reset(void *handle)
 	u32 tmp = RREG32(SRBM_STATUS);
 
 	if (tmp & SRBM_STATUS__IH_BUSY_MASK)
+	{
 		srbm_soft_reset |= SRBM_SOFT_RESET__SOFT_RESET_IH_MASK;
+	}
 
-	if (srbm_soft_reset) {
+	if (srbm_soft_reset)
+	{
 		tmp = RREG32(SRBM_SOFT_RESET);
 		tmp |= srbm_soft_reset;
 		dev_info(adev->dev, "SRBM_SOFT_RESET=0x%08X\n", tmp);
@@ -257,18 +276,19 @@ static int si_ih_soft_reset(void *handle)
 }
 
 static int si_ih_set_clockgating_state(void *handle,
-					  enum amd_clockgating_state state)
+									   enum amd_clockgating_state state)
 {
 	return 0;
 }
 
 static int si_ih_set_powergating_state(void *handle,
-					  enum amd_powergating_state state)
+									   enum amd_powergating_state state)
 {
 	return 0;
 }
 
-const struct amd_ip_funcs si_ih_ip_funcs = {
+const struct amd_ip_funcs si_ih_ip_funcs =
+{
 	.name = "si_ih",
 	.early_init = si_ih_early_init,
 	.late_init = NULL,
@@ -285,7 +305,8 @@ const struct amd_ip_funcs si_ih_ip_funcs = {
 	.set_powergating_state = si_ih_set_powergating_state,
 };
 
-static const struct amdgpu_ih_funcs si_ih_funcs = {
+static const struct amdgpu_ih_funcs si_ih_funcs =
+{
 	.get_wptr = si_ih_get_wptr,
 	.decode_iv = si_ih_decode_iv,
 	.set_rptr = si_ih_set_rptr
@@ -294,6 +315,8 @@ static const struct amdgpu_ih_funcs si_ih_funcs = {
 static void si_ih_set_interrupt_funcs(struct amdgpu_device *adev)
 {
 	if (adev->irq.ih_funcs == NULL)
+	{
 		adev->irq.ih_funcs = &si_ih_funcs;
+	}
 }
 

@@ -61,7 +61,8 @@
  * @irq: reserved interrupt number
  * @complete: completion structure for the last LCD command
  */
-struct charlcd {
+struct charlcd
+{
 	struct device *dev;
 	u32 phybase;
 	u32 physize;
@@ -79,10 +80,16 @@ static irqreturn_t charlcd_interrupt(int irq, void *data)
 	status = readl(lcd->virtbase + CHAR_STAT) & 0x01;
 	/* Clear IRQ */
 	writel(CHAR_RAW_CLEAR, lcd->virtbase + CHAR_RAW);
+
 	if (status)
+	{
 		complete(&lcd->complete);
+	}
 	else
+	{
 		dev_info(lcd->dev, "Spurious IRQ (%02x)\n", status);
+	}
+
 	return IRQ_HANDLED;
 }
 
@@ -92,20 +99,22 @@ static void charlcd_wait_complete_irq(struct charlcd *lcd)
 	int ret;
 
 	ret = wait_for_completion_interruptible_timeout(&lcd->complete,
-							CHARLCD_TIMEOUT);
+			CHARLCD_TIMEOUT);
 	/* Disable IRQ after completion */
 	writel(0x00, lcd->virtbase + CHAR_MASK);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_err(lcd->dev,
-			"wait_for_completion_interruptible_timeout() "
-			"returned %d waiting for ready\n", ret);
+				"wait_for_completion_interruptible_timeout() "
+				"returned %d waiting for ready\n", ret);
 		return;
 	}
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		dev_err(lcd->dev, "charlcd controller timed out "
-			"waiting for ready\n");
+				"waiting for ready\n");
 		return;
 	}
 }
@@ -118,11 +127,16 @@ static u8 charlcd_4bit_read_char(struct charlcd *lcd)
 
 	/* If we can, use an IRQ to wait for the data, else poll */
 	if (lcd->irq >= 0)
+	{
 		charlcd_wait_complete_irq(lcd);
-	else {
+	}
+	else
+	{
 		i = 0;
 		val = 0;
-		while (!(val & CHAR_RAW_VALID) && i < 10) {
+
+		while (!(val & CHAR_RAW_VALID) && i < 10)
+		{
 			udelay(100);
 			val = readl(lcd->virtbase + CHAR_RAW);
 			i++;
@@ -130,6 +144,7 @@ static u8 charlcd_4bit_read_char(struct charlcd *lcd)
 
 		writel(CHAR_RAW_CLEAR, lcd->virtbase + CHAR_RAW);
 	}
+
 	msleep(1);
 
 	/* Read the 4 high bits of the data */
@@ -141,11 +156,14 @@ static u8 charlcd_4bit_read_char(struct charlcd *lcd)
 	 */
 	i = 0;
 	val = 0;
-	while (!(val & CHAR_RAW_VALID) && i < 10) {
+
+	while (!(val & CHAR_RAW_VALID) && i < 10)
+	{
 		udelay(100);
 		val = readl(lcd->virtbase + CHAR_RAW);
 		i++;
 	}
+
 	writel(CHAR_RAW_CLEAR, lcd->virtbase + CHAR_RAW);
 	msleep(1);
 
@@ -157,7 +175,8 @@ static u8 charlcd_4bit_read_char(struct charlcd *lcd)
 
 static bool charlcd_4bit_read_bf(struct charlcd *lcd)
 {
-	if (lcd->irq >= 0) {
+	if (lcd->irq >= 0)
+	{
 		/*
 		 * If we'll use IRQs to wait for the busyflag, clear any
 		 * pending flag and enable IRQ
@@ -166,6 +185,7 @@ static bool charlcd_4bit_read_bf(struct charlcd *lcd)
 		init_completion(&lcd->complete);
 		writel(0x01, lcd->virtbase + CHAR_MASK);
 	}
+
 	readl(lcd->virtbase + CHAR_COM);
 	return charlcd_4bit_read_char(lcd) & HD_BUSY_FLAG ? true : false;
 }
@@ -175,10 +195,16 @@ static void charlcd_4bit_wait_busy(struct charlcd *lcd)
 	int retries = 50;
 
 	udelay(100);
+
 	while (charlcd_4bit_read_bf(lcd) && retries)
+	{
 		retries--;
+	}
+
 	if (!retries)
+	{
 		dev_err(lcd->dev, "timeout waiting for busyflag\n");
+	}
 }
 
 static void charlcd_4bit_command(struct charlcd *lcd, u8 cmd)
@@ -214,18 +240,26 @@ static void charlcd_4bit_print(struct charlcd *lcd, int line, const char *str)
 	 * Line 2 runs from 0x28..0x4f
 	 */
 	if (line == 0)
+	{
 		offset = 0;
+	}
 	else if (line == 1)
+	{
 		offset = 0x28;
+	}
 	else
+	{
 		return;
+	}
 
 	/* Set offset */
 	charlcd_4bit_command(lcd, HD_SET_DDRAM | offset);
 
 	/* Send string */
 	for (i = 0; i < strlen(str) && i < 0x28; i++)
+	{
 		charlcd_4bit_char(lcd, str[i]);
+	}
 }
 
 static void charlcd_4bit_init(struct charlcd *lcd)
@@ -269,36 +303,48 @@ static int __init charlcd_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	lcd = kzalloc(sizeof(struct charlcd), GFP_KERNEL);
+
 	if (!lcd)
+	{
 		return -ENOMEM;
+	}
 
 	lcd->dev = &pdev->dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		ret = -ENOENT;
 		goto out_no_resource;
 	}
+
 	lcd->phybase = res->start;
 	lcd->physize = resource_size(res);
 
 	if (request_mem_region(lcd->phybase, lcd->physize,
-			       DRIVERNAME) == NULL) {
+						   DRIVERNAME) == NULL)
+	{
 		ret = -EBUSY;
 		goto out_no_memregion;
 	}
 
 	lcd->virtbase = ioremap(lcd->phybase, lcd->physize);
-	if (!lcd->virtbase) {
+
+	if (!lcd->virtbase)
+	{
 		ret = -ENOMEM;
 		goto out_no_memregion;
 	}
 
 	lcd->irq = platform_get_irq(pdev, 0);
+
 	/* If no IRQ is supplied, we'll survive without it */
-	if (lcd->irq >= 0) {
+	if (lcd->irq >= 0)
+	{
 		if (request_irq(lcd->irq, charlcd_interrupt, 0,
-				DRIVERNAME, lcd)) {
+						DRIVERNAME, lcd))
+		{
 			ret = -EIO;
 			goto out_no_irq;
 		}
@@ -314,7 +360,7 @@ static int __init charlcd_probe(struct platform_device *pdev)
 	schedule_delayed_work(&lcd->init_work, 0);
 
 	dev_info(&pdev->dev, "initialized ARM character LCD at %08x\n",
-		lcd->phybase);
+			 lcd->phybase);
 
 	return 0;
 
@@ -347,17 +393,20 @@ static int charlcd_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops charlcd_pm_ops = {
+static const struct dev_pm_ops charlcd_pm_ops =
+{
 	.suspend = charlcd_suspend,
 	.resume = charlcd_resume,
 };
 
-static const struct of_device_id charlcd_match[] = {
+static const struct of_device_id charlcd_match[] =
+{
 	{ .compatible = "arm,versatile-lcd", },
 	{}
 };
 
-static struct platform_driver charlcd_driver = {
+static struct platform_driver charlcd_driver =
+{
 	.driver = {
 		.name = DRIVERNAME,
 		.pm = &charlcd_pm_ops,

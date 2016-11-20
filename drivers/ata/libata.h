@@ -31,7 +31,8 @@
 #define DRV_NAME	"libata"
 #define DRV_VERSION	"3.00"	/* must be exactly four chars */
 
-struct ata_scsi_args {
+struct ata_scsi_args
+{
 	struct ata_device	*dev;
 	u16			*id;
 	struct scsi_cmnd	*cmd;
@@ -39,7 +40,8 @@ struct ata_scsi_args {
 };
 
 /* libata-core.c */
-enum {
+enum
+{
 	/* flags for ata_dev_read_id() */
 	ATA_READID_POSTRESET	= (1 << 0), /* reading ID after reset */
 
@@ -65,30 +67,30 @@ extern u64 ata_tf_to_lba(const struct ata_taskfile *tf);
 extern u64 ata_tf_to_lba48(const struct ata_taskfile *tf);
 extern struct ata_queued_cmd *ata_qc_new_init(struct ata_device *dev, int tag);
 extern int ata_build_rw_tf(struct ata_taskfile *tf, struct ata_device *dev,
-			   u64 block, u32 n_block, unsigned int tf_flags,
-			   unsigned int tag);
+						   u64 block, u32 n_block, unsigned int tf_flags,
+						   unsigned int tag);
 extern u64 ata_tf_read_block(const struct ata_taskfile *tf,
-			     struct ata_device *dev);
+							 struct ata_device *dev);
 extern unsigned ata_exec_internal(struct ata_device *dev,
-				  struct ata_taskfile *tf, const u8 *cdb,
-				  int dma_dir, void *buf, unsigned int buflen,
-				  unsigned long timeout);
+								  struct ata_taskfile *tf, const u8 *cdb,
+								  int dma_dir, void *buf, unsigned int buflen,
+								  unsigned long timeout);
 extern unsigned ata_exec_internal_sg(struct ata_device *dev,
-				     struct ata_taskfile *tf, const u8 *cdb,
-				     int dma_dir, struct scatterlist *sg,
-				     unsigned int n_elem, unsigned long timeout);
+									 struct ata_taskfile *tf, const u8 *cdb,
+									 int dma_dir, struct scatterlist *sg,
+									 unsigned int n_elem, unsigned long timeout);
 extern int ata_wait_ready(struct ata_link *link, unsigned long deadline,
-			  int (*check_ready)(struct ata_link *link));
+						  int (*check_ready)(struct ata_link *link));
 extern int ata_dev_read_id(struct ata_device *dev, unsigned int *p_class,
-			   unsigned int flags, u16 *id);
+						   unsigned int flags, u16 *id);
 extern int ata_dev_reread_id(struct ata_device *dev, unsigned int readid_flags);
 extern int ata_dev_revalidate(struct ata_device *dev, unsigned int new_class,
-			      unsigned int readid_flags);
+							  unsigned int readid_flags);
 extern int ata_dev_configure(struct ata_device *dev);
 extern int sata_down_spd_limit(struct ata_link *link, u32 spd_limit);
 extern int ata_down_xfermask_limit(struct ata_device *dev, unsigned int sel);
 extern unsigned int ata_dev_set_feature(struct ata_device *dev,
-					u8 enable, u8 feature);
+										u8 enable, u8 feature);
 extern void ata_sg_clean(struct ata_queued_cmd *qc);
 extern void ata_qc_free(struct ata_queued_cmd *qc);
 extern void ata_qc_issue(struct ata_queued_cmd *qc);
@@ -128,28 +130,28 @@ static inline void ata_acpi_on_resume(struct ata_port *ap) { }
 static inline int ata_acpi_on_devcfg(struct ata_device *dev) { return 0; }
 static inline void ata_acpi_on_disable(struct ata_device *dev) { }
 static inline void ata_acpi_set_state(struct ata_port *ap,
-				      pm_message_t state) { }
+									  pm_message_t state) { }
 static inline void ata_acpi_bind_port(struct ata_port *ap) {}
 static inline void ata_acpi_bind_dev(struct ata_device *dev) {}
 #endif
 
 /* libata-scsi.c */
 extern int ata_scsi_add_hosts(struct ata_host *host,
-			      struct scsi_host_template *sht);
+							  struct scsi_host_template *sht);
 extern void ata_scsi_scan_host(struct ata_port *ap, int sync);
 extern int ata_scsi_offline_dev(struct ata_device *dev);
 extern void ata_scsi_set_sense(struct ata_device *dev,
-			       struct scsi_cmnd *cmd, u8 sk, u8 asc, u8 ascq);
+							   struct scsi_cmnd *cmd, u8 sk, u8 asc, u8 ascq);
 extern void ata_scsi_set_sense_information(struct ata_device *dev,
-					   struct scsi_cmnd *cmd,
-					   const struct ata_taskfile *tf);
+		struct scsi_cmnd *cmd,
+		const struct ata_taskfile *tf);
 extern void ata_scsi_media_change_notify(struct ata_device *dev);
 extern void ata_scsi_hotplug(struct work_struct *work);
 extern void ata_schedule_scsi_eh(struct Scsi_Host *shost);
 extern void ata_scsi_dev_rescan(struct work_struct *work);
 extern int ata_bus_probe(struct ata_port *ap);
 extern int ata_scsi_user_scan(struct Scsi_Host *shost, unsigned int channel,
-			      unsigned int id, u64 lun);
+							  unsigned int id, u64 lun);
 int ata_sas_allocate_tag(struct ata_port *ap);
 void ata_sas_free_tag(unsigned int tag, struct ata_port *ap);
 
@@ -166,36 +168,36 @@ extern void ata_qc_schedule_eh(struct ata_queued_cmd *qc);
 extern void ata_dev_disable(struct ata_device *dev);
 extern void ata_eh_detach_dev(struct ata_device *dev);
 extern void ata_eh_about_to_do(struct ata_link *link, struct ata_device *dev,
-			       unsigned int action);
+							   unsigned int action);
 extern void ata_eh_done(struct ata_link *link, struct ata_device *dev,
-			unsigned int action);
+						unsigned int action);
 extern unsigned int ata_read_log_page(struct ata_device *dev, u8 log,
-				      u8 page, void *buf, unsigned int sectors);
+									  u8 page, void *buf, unsigned int sectors);
 extern void ata_eh_autopsy(struct ata_port *ap);
 const char *ata_get_cmd_descript(u8 command);
 extern void ata_eh_report(struct ata_port *ap);
 extern int ata_eh_reset(struct ata_link *link, int classify,
-			ata_prereset_fn_t prereset, ata_reset_fn_t softreset,
-			ata_reset_fn_t hardreset, ata_postreset_fn_t postreset);
+						ata_prereset_fn_t prereset, ata_reset_fn_t softreset,
+						ata_reset_fn_t hardreset, ata_postreset_fn_t postreset);
 extern int ata_set_mode(struct ata_link *link, struct ata_device **r_failed_dev);
 extern int ata_eh_recover(struct ata_port *ap, ata_prereset_fn_t prereset,
-			  ata_reset_fn_t softreset, ata_reset_fn_t hardreset,
-			  ata_postreset_fn_t postreset,
-			  struct ata_link **r_failed_disk);
+						  ata_reset_fn_t softreset, ata_reset_fn_t hardreset,
+						  ata_postreset_fn_t postreset,
+						  struct ata_link **r_failed_disk);
 extern void ata_eh_finish(struct ata_port *ap);
 extern int ata_ering_map(struct ata_ering *ering,
-			 int (*map_fn)(struct ata_ering_entry *, void *),
-		  	 void *arg);
+						 int (*map_fn)(struct ata_ering_entry *, void *),
+						 void *arg);
 extern unsigned int atapi_eh_tur(struct ata_device *dev, u8 *r_sense_key);
 extern unsigned int atapi_eh_request_sense(struct ata_device *dev,
-					   u8 *sense_buf, u8 dfl_sense_key);
+		u8 *sense_buf, u8 dfl_sense_key);
 
 /* libata-pmp.c */
 #ifdef CONFIG_SATA_PMP
 extern int sata_pmp_scr_read(struct ata_link *link, int reg, u32 *val);
 extern int sata_pmp_scr_write(struct ata_link *link, int reg, u32 val);
 extern int sata_pmp_set_lpm(struct ata_link *link, enum ata_lpm_policy policy,
-			    unsigned hints);
+							unsigned hints);
 extern int sata_pmp_attach(struct ata_device *dev);
 #else /* CONFIG_SATA_PMP */
 static inline int sata_pmp_scr_read(struct ata_link *link, int reg, u32 *val)
@@ -209,7 +211,7 @@ static inline int sata_pmp_scr_write(struct ata_link *link, int reg, u32 val)
 }
 
 static inline int sata_pmp_set_lpm(struct ata_link *link,
-				   enum ata_lpm_policy policy, unsigned hints)
+								   enum ata_lpm_policy policy, unsigned hints)
 {
 	return -EINVAL;
 }

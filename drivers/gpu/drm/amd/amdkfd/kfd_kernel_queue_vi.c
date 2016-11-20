@@ -24,7 +24,7 @@
 #include "kfd_kernel_queue.h"
 
 static bool initialize_vi(struct kernel_queue *kq, struct kfd_dev *dev,
-			enum kfd_queue_type type, unsigned int queue_size);
+						  enum kfd_queue_type type, unsigned int queue_size);
 static void uninitialize_vi(struct kernel_queue *kq);
 
 void kernel_queue_init_vi(struct kernel_queue_ops *ops)
@@ -34,13 +34,16 @@ void kernel_queue_init_vi(struct kernel_queue_ops *ops)
 }
 
 static bool initialize_vi(struct kernel_queue *kq, struct kfd_dev *dev,
-			enum kfd_queue_type type, unsigned int queue_size)
+						  enum kfd_queue_type type, unsigned int queue_size)
 {
 	int retval;
 
 	retval = kfd_gtt_sa_allocate(dev, PAGE_SIZE, &kq->eop_mem);
+
 	if (retval != 0)
+	{
 		return false;
+	}
 
 	kq->eop_gpu_addr = kq->eop_mem->gpu_addr;
 	kq->eop_kernel_addr = kq->eop_mem->cpu_ptr;

@@ -6,7 +6,8 @@
 #include <linux/types.h>
 #include <linux/of_device.h>
 
-enum ams_irq {
+enum ams_irq
+{
 	AMS_IRQ_FREEFALL = 0x01,
 	AMS_IRQ_SHOCK = 0x02,
 	AMS_IRQ_GLOBAL = 0x04,
@@ -16,7 +17,8 @@ enum ams_irq {
 		AMS_IRQ_GLOBAL,
 };
 
-struct ams {
+struct ams
+{
 	/* Locks */
 	spinlock_t irq_lock;
 	struct mutex lock;

@@ -49,22 +49,34 @@ static char *mapfile(const char *fn, size_t *size)
 	int err;
 	int fd = open(fn, O_RDONLY);
 
-	if (fd < 0 && verbose && fn) {
+	if (fd < 0 && verbose && fn)
+	{
 		pr_err("Error opening events file '%s': %s\n", fn,
-				strerror(errno));
+			   strerror(errno));
 	}
 
 	if (fd < 0)
+	{
 		return NULL;
+	}
+
 	err = fstat(fd, &st);
+
 	if (err < 0)
+	{
 		goto out;
+	}
+
 	*size = st.st_size;
 	map = mmap(NULL,
-		   (st.st_size + ps - 1) & ~(ps - 1),
-		   PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0);
+			   (st.st_size + ps - 1) & ~(ps - 1),
+			   PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+
 	if (map == MAP_FAILED)
+	{
 		map = NULL;
+	}
+
 out:
 	close(fd);
 	return map;
@@ -88,22 +100,36 @@ jsmntok_t *parse_json(const char *fn, char **map, size_t *size, int *len)
 	unsigned sz;
 
 	*map = mapfile(fn, size);
+
 	if (!*map)
+	{
 		return NULL;
+	}
+
 	/* Heuristic */
 	sz = *size * 16;
 	tokens = malloc(sz);
+
 	if (!tokens)
+	{
 		goto error;
+	}
+
 	jsmn_init(&parser);
 	res = jsmn_parse(&parser, *map, *size, tokens,
-			 sz / sizeof(jsmntok_t));
-	if (res != JSMN_SUCCESS) {
+					 sz / sizeof(jsmntok_t));
+
+	if (res != JSMN_SUCCESS)
+	{
 		pr_err("%s: json error %s\n", fn, jsmn_strerror(res));
 		goto error_free;
 	}
+
 	if (len)
+	{
 		*len = parser.toknext;
+	}
+
 	return tokens;
 error_free:
 	free(tokens);
@@ -122,9 +148,13 @@ static int countchar(char *map, char c, int end)
 {
 	int i;
 	int count = 0;
+
 	for (i = 0; i < end; i++)
 		if (map[i] == c)
+		{
 			count++;
+		}
+
 	return count;
 }
 
@@ -134,7 +164,8 @@ int json_line(char *map, jsmntok_t *t)
 	return countchar(map, '\n', t->start) + 1;
 }
 
-static const char * const jsmn_types[] = {
+static const char *const jsmn_types[] =
+{
 	[JSMN_PRIMITIVE] = "primitive",
 	[JSMN_ARRAY] = "array",
 	[JSMN_OBJECT] = "object",

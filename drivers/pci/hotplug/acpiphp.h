@@ -46,7 +46,8 @@ struct acpiphp_slot;
 /*
  * struct slot - slot information for each *physical* slot
  */
-struct slot {
+struct slot
+{
 	struct hotplug_slot	*hotplug_slot;
 	struct acpiphp_slot	*acpi_slot;
 	struct hotplug_slot_info info;
@@ -63,7 +64,8 @@ static inline const char *slot_name(struct slot *slot)
  *
  * for each bridge device in ACPI namespace
  */
-struct acpiphp_bridge {
+struct acpiphp_bridge
+{
 	struct list_head list;
 	struct list_head slots;
 	struct kref ref;
@@ -87,7 +89,8 @@ struct acpiphp_bridge {
  *
  * PCI slot information for each *physical* PCI slot
  */
-struct acpiphp_slot {
+struct acpiphp_slot
+{
 	struct list_head node;
 	struct pci_bus *bus;
 	struct list_head funcs;		/* one slot may have different
@@ -105,7 +108,8 @@ struct acpiphp_slot {
  * PCI function information for each object in ACPI namespace
  * typically 8 objects per slot (i.e. for each PCI function)
  */
-struct acpiphp_func {
+struct acpiphp_func
+{
 	struct acpiphp_bridge *parent;
 	struct acpiphp_slot *slot;
 
@@ -115,7 +119,8 @@ struct acpiphp_func {
 	u32		flags;		/* see below */
 };
 
-struct acpiphp_context {
+struct acpiphp_context
+{
 	struct acpi_hotplug_context hp;
 	struct acpiphp_func func;
 	struct acpiphp_bridge *bridge;
@@ -142,7 +147,8 @@ static inline acpi_handle func_to_handle(struct acpiphp_func *func)
 	return func_to_acpi_device(func)->handle;
 }
 
-struct acpiphp_root_context {
+struct acpiphp_root_context
+{
 	struct acpi_hotplug_context hp;
 	struct acpiphp_bridge *root_bridge;
 };

@@ -91,11 +91,11 @@
 /*---------------------  Export Functions  --------------------------*/
 
 unsigned char SROMbyReadEmbedded(void __iomem *dwIoBase,
-				 unsigned char byContntOffset);
+								 unsigned char byContntOffset);
 
 void SROMvReadAllContents(void __iomem *dwIoBase, unsigned char *pbyEepromRegs);
 
 void SROMvReadEtherAddress(void __iomem *dwIoBase,
-			   unsigned char *pbyEtherAddress);
+						   unsigned char *pbyEtherAddress);
 
 #endif /* __EEPROM_H__*/

@@ -23,29 +23,34 @@
 #define KHz 1000
 #define MHz (1000 * 1000)
 
-enum {
+enum
+{
 	PXA_CORE_13Mhz = 0,
 	PXA_CORE_RUN,
 	PXA_CORE_TURBO,
 };
 
-enum {
+enum
+{
 	PXA_BUS_13Mhz = 0,
 	PXA_BUS_RUN,
 };
 
-enum {
+enum
+{
 	PXA_LCD_13Mhz = 0,
 	PXA_LCD_RUN,
 };
 
-enum {
+enum
+{
 	PXA_MEM_13Mhz = 0,
 	PXA_MEM_SYSTEM_BUS,
 	PXA_MEM_RUN,
 };
 
-static const char * const get_freq_khz[] = {
+static const char *const get_freq_khz[] =
+{
 	"core", "run", "cpll", "memory",
 	"system_bus"
 };
@@ -61,25 +66,33 @@ unsigned int pxa27x_get_clk_frequency_khz(int info)
 	unsigned long clks[5];
 	int i;
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		clk = clk_get(NULL, get_freq_khz[i]);
-		if (IS_ERR(clk)) {
+
+		if (IS_ERR(clk))
+		{
 			clks[i] = 0;
-		} else {
+		}
+		else
+		{
 			clks[i] = clk_get_rate(clk);
 			clk_put(clk);
 		}
 	}
-	if (info) {
+
+	if (info)
+	{
 		pr_info("Run Mode clock: %ld.%02ldMHz\n",
-			clks[1] / 1000000, (clks[1] % 1000000) / 10000);
+				clks[1] / 1000000, (clks[1] % 1000000) / 10000);
 		pr_info("Turbo Mode clock: %ld.%02ldMHz\n",
-			clks[2] / 1000000, (clks[2] % 1000000) / 10000);
+				clks[2] / 1000000, (clks[2] % 1000000) / 10000);
 		pr_info("Memory clock: %ld.%02ldMHz\n",
-			clks[3] / 1000000, (clks[3] % 1000000) / 10000);
+				clks[3] / 1000000, (clks[3] % 1000000) / 10000);
 		pr_info("System bus clock: %ld.%02ldMHz\n",
-			clks[4] / 1000000, (clks[4] % 1000000) / 10000);
+				clks[4] / 1000000, (clks[4] % 1000000) / 10000);
 	}
+
 	return (unsigned int)clks[0] / KHz;
 }
 
@@ -91,12 +104,12 @@ bool pxa27x_is_ppll_disabled(void)
 }
 
 #define PXA27X_CKEN(dev_id, con_id, parents, mult_hp, div_hp,		\
-		    bit, is_lp, flags)					\
-	PXA_CKEN(dev_id, con_id, bit, parents, 1, 1, mult_hp, div_hp,	\
+					bit, is_lp, flags)					\
+PXA_CKEN(dev_id, con_id, bit, parents, 1, 1, mult_hp, div_hp,	\
 		 is_lp,  CKEN, CKEN_ ## bit, flags)
 #define PXA27X_PBUS_CKEN(dev_id, con_id, bit, mult_hp, div_hp, delay)	\
 	PXA27X_CKEN(dev_id, con_id, pxa27x_pbus_parents, mult_hp,	\
-		    div_hp, bit, pxa27x_is_ppll_disabled, 0)
+				div_hp, bit, pxa27x_is_ppll_disabled, 0)
 
 PARENTS(pxa27x_pbus) = { "osc_13mhz", "ppll_312mhz" };
 PARENTS(pxa27x_sbus) = { "system_bus", "system_bus" };
@@ -106,12 +119,13 @@ PARENTS(pxa27x_membus) = { "lcd_base", "lcd_base" };
 
 #define PXA27X_CKEN_1RATE(dev_id, con_id, bit, parents, delay)		\
 	PXA_CKEN_1RATE(dev_id, con_id, bit, parents,			\
-		       CKEN, CKEN_ ## bit, 0)
+				   CKEN, CKEN_ ## bit, 0)
 #define PXA27X_CKEN_1RATE_AO(dev_id, con_id, bit, parents, delay)	\
 	PXA_CKEN_1RATE(dev_id, con_id, bit, parents,			\
-		       CKEN, CKEN_ ## bit, CLK_IGNORE_UNUSED)
+				   CKEN, CKEN_ ## bit, CLK_IGNORE_UNUSED)
 
-static struct desc_clk_cken pxa27x_clocks[] __initdata = {
+static struct desc_clk_cken pxa27x_clocks[] __initdata =
+{
 	PXA27X_PBUS_CKEN("pxa2xx-uart.0", NULL, FFUART, 2, 42, 1),
 	PXA27X_PBUS_CKEN("pxa2xx-uart.1", NULL, BTUART, 2, 42, 1),
 	PXA27X_PBUS_CKEN("pxa2xx-uart.2", NULL, STUART, 2, 42, 1),
@@ -135,18 +149,18 @@ static struct desc_clk_cken pxa27x_clocks[] __initdata = {
 	PXA27X_PBUS_CKEN(NULL, "OSTIMER0", OSTIMER, 1, 96, 0),
 
 	PXA27X_CKEN_1RATE("pxa27x-keypad", NULL, KEYPAD,
-			  pxa27x_32Mhz_bus_parents, 0),
+	pxa27x_32Mhz_bus_parents, 0),
 	PXA27X_CKEN_1RATE(NULL, "IMCLK", IM, pxa27x_sbus_parents, 0),
 	PXA27X_CKEN_1RATE("pxa2xx-fb", NULL, LCD, pxa27x_lcd_bus_parents, 0),
 	PXA27X_CKEN_1RATE("pxa27x-camera.0", NULL, CAMERA,
-			  pxa27x_lcd_bus_parents, 0),
+	pxa27x_lcd_bus_parents, 0),
 	PXA27X_CKEN_1RATE_AO("pxa2xx-pcmcia", NULL, MEMC,
-			     pxa27x_membus_parents, 0),
+	pxa27x_membus_parents, 0),
 
 };
 
 static unsigned long clk_pxa27x_cpll_get_rate(struct clk_hw *hw,
-	unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	unsigned long clkcfg;
 	unsigned int t, ht;
@@ -168,7 +182,7 @@ PARENTS(clk_pxa27x_cpll) = { "osc_13mhz" };
 RATE_RO_OPS(clk_pxa27x_cpll, "cpll");
 
 static unsigned long clk_pxa27x_lcd_base_get_rate(struct clk_hw *hw,
-						  unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	unsigned int l, osc_forced;
 	unsigned long ccsr = readl(CCSR);
@@ -176,17 +190,29 @@ static unsigned long clk_pxa27x_lcd_base_get_rate(struct clk_hw *hw,
 
 	l  = ccsr & CCSR_L_MASK;
 	osc_forced = ccsr & (1 << CCCR_CPDIS_BIT);
-	if (osc_forced) {
+
+	if (osc_forced)
+	{
 		if (cccr & (1 << CCCR_LCD_26_BIT))
+		{
 			return parent_rate * 2;
+		}
 		else
+		{
 			return parent_rate;
+		}
 	}
 
 	if (l <= 7)
+	{
 		return parent_rate;
+	}
+
 	if (l <= 16)
+	{
 		return parent_rate / 2;
+	}
+
 	return parent_rate / 4;
 }
 
@@ -196,10 +222,15 @@ static u8 clk_pxa27x_lcd_base_get_parent(struct clk_hw *hw)
 	unsigned long ccsr = readl(CCSR);
 
 	osc_forced = ccsr & (1 << CCCR_CPDIS_BIT);
+
 	if (osc_forced)
+	{
 		return PXA_LCD_13Mhz;
+	}
 	else
+	{
 		return PXA_LCD_RUN;
+	}
 }
 
 PARENTS(clk_pxa27x_lcd_base) = { "osc_13mhz", "run" };
@@ -208,17 +239,17 @@ MUX_RO_RATE_RO_OPS(clk_pxa27x_lcd_base, "lcd_base");
 static void __init pxa27x_register_plls(void)
 {
 	clk_register_fixed_rate(NULL, "osc_13mhz", NULL,
-				CLK_GET_RATE_NOCACHE,
-				13 * MHz);
+							CLK_GET_RATE_NOCACHE,
+							13 * MHz);
 	clk_register_fixed_rate(NULL, "osc_32_768khz", NULL,
-				CLK_GET_RATE_NOCACHE,
-				32768 * KHz);
+							CLK_GET_RATE_NOCACHE,
+							32768 * KHz);
 	clk_register_fixed_rate(NULL, "clk_dummy", NULL, 0, 0);
 	clk_register_fixed_factor(NULL, "ppll_312mhz", "osc_13mhz", 0, 24, 1);
 }
 
 static unsigned long clk_pxa27x_core_get_rate(struct clk_hw *hw,
-					      unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	unsigned long clkcfg;
 	unsigned int t, ht, b, osc_forced;
@@ -231,11 +262,18 @@ static unsigned long clk_pxa27x_core_get_rate(struct clk_hw *hw,
 	b  = clkcfg & (1 << 3);
 
 	if (osc_forced)
+	{
 		return parent_rate;
+	}
+
 	if (ht)
+	{
 		return parent_rate / 2;
+	}
 	else
+	{
 		return parent_rate;
+	}
 }
 
 static u8 clk_pxa27x_core_get_parent(struct clk_hw *hw)
@@ -245,8 +283,11 @@ static u8 clk_pxa27x_core_get_parent(struct clk_hw *hw)
 	unsigned long ccsr = readl(CCSR);
 
 	osc_forced = ccsr & (1 << CCCR_CPDIS_BIT);
+
 	if (osc_forced)
+	{
 		return PXA_CORE_13Mhz;
+	}
 
 	asm("mrc\tp14, 0, %0, c6, c0, 0" : "=r" (clkcfg));
 	t  = clkcfg & (1 << 0);
@@ -254,14 +295,17 @@ static u8 clk_pxa27x_core_get_parent(struct clk_hw *hw)
 	b  = clkcfg & (1 << 3);
 
 	if (ht || t)
+	{
 		return PXA_CORE_TURBO;
+	}
+
 	return PXA_CORE_RUN;
 }
 PARENTS(clk_pxa27x_core) = { "osc_13mhz", "run", "cpll" };
 MUX_RO_RATE_RO_OPS(clk_pxa27x_core, "core");
 
 static unsigned long clk_pxa27x_run_get_rate(struct clk_hw *hw,
-					     unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	unsigned long ccsr = readl(CCSR);
 	unsigned int n2 = (ccsr & CCSR_N2_MASK) >> CCSR_N2_SHIFT;
@@ -277,11 +321,11 @@ static void __init pxa27x_register_core(void)
 	clk_register_clk_pxa27x_run();
 
 	clkdev_pxa_register(CLK_CORE, "core", NULL,
-			    clk_register_clk_pxa27x_core());
+						clk_register_clk_pxa27x_core());
 }
 
 static unsigned long clk_pxa27x_system_bus_get_rate(struct clk_hw *hw,
-						    unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	unsigned long clkcfg;
 	unsigned int b, osc_forced;
@@ -292,11 +336,18 @@ static unsigned long clk_pxa27x_system_bus_get_rate(struct clk_hw *hw,
 	b  = clkcfg & (1 << 3);
 
 	if (osc_forced)
+	{
 		return parent_rate;
+	}
+
 	if (b)
+	{
 		return parent_rate / 2;
+	}
 	else
+	{
 		return parent_rate;
+	}
 }
 
 static u8 clk_pxa27x_system_bus_get_parent(struct clk_hw *hw)
@@ -305,17 +356,22 @@ static u8 clk_pxa27x_system_bus_get_parent(struct clk_hw *hw)
 	unsigned long ccsr = readl(CCSR);
 
 	osc_forced = ccsr & (1 << CCCR_CPDIS_BIT);
+
 	if (osc_forced)
+	{
 		return PXA_BUS_13Mhz;
+	}
 	else
+	{
 		return PXA_BUS_RUN;
+	}
 }
 
 PARENTS(clk_pxa27x_system_bus) = { "osc_13mhz", "run" };
 MUX_RO_RATE_RO_OPS(clk_pxa27x_system_bus, "system_bus");
 
 static unsigned long clk_pxa27x_memory_get_rate(struct clk_hw *hw,
-						unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	unsigned int a, l, osc_forced;
 	unsigned long cccr = readl(CCCR);
@@ -326,11 +382,20 @@ static unsigned long clk_pxa27x_memory_get_rate(struct clk_hw *hw,
 	l  = ccsr & CCSR_L_MASK;
 
 	if (osc_forced || a)
+	{
 		return parent_rate;
+	}
+
 	if (l <= 10)
+	{
 		return parent_rate;
+	}
+
 	if (l <= 20)
+	{
 		return parent_rate / 2;
+	}
+
 	return parent_rate / 4;
 }
 
@@ -342,12 +407,20 @@ static u8 clk_pxa27x_memory_get_parent(struct clk_hw *hw)
 
 	osc_forced = ccsr & (1 << CCCR_CPDIS_BIT);
 	a = cccr & (1 << CCCR_A_BIT);
+
 	if (osc_forced)
+	{
 		return PXA_MEM_13Mhz;
+	}
+
 	if (a)
+	{
 		return PXA_MEM_SYSTEM_BUS;
+	}
 	else
+	{
 		return PXA_MEM_RUN;
+	}
 }
 
 PARENTS(clk_pxa27x_memory) = { "osc_13mhz", "system_bus", "run" };
@@ -355,12 +428,14 @@ MUX_RO_RATE_RO_OPS(clk_pxa27x_memory, "memory");
 
 #define DUMMY_CLK(_con_id, _dev_id, _parent) \
 	{ .con_id = _con_id, .dev_id = _dev_id, .parent = _parent }
-struct dummy_clk {
+struct dummy_clk
+{
 	const char *con_id;
 	const char *dev_id;
 	const char *parent;
 };
-static struct dummy_clk dummy_clks[] __initdata = {
+static struct dummy_clk dummy_clks[] __initdata =
+{
 	DUMMY_CLK(NULL, "pxa27x-gpio", "osc_32_768khz"),
 	DUMMY_CLK(NULL, "sa1100-rtc", "osc_32_768khz"),
 	DUMMY_CLK("UARTCLK", "pxa2xx-ir", "STUART"),
@@ -373,7 +448,8 @@ static void __init pxa27x_dummy_clocks_init(void)
 	const char *name;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(dummy_clks); i++) {
+	for (i = 0; i < ARRAY_SIZE(dummy_clks); i++)
+	{
 		d = &dummy_clks[i];
 		name = d->dev_id ? d->dev_id : d->con_id;
 		clk = clk_register_fixed_factor(NULL, name, d->parent, 0, 1, 1);

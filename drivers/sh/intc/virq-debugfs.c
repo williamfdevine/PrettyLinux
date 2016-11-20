@@ -22,12 +22,15 @@ static int intc_irq_xlate_debug(struct seq_file *m, void *priv)
 
 	seq_printf(m, "%-5s  %-7s  %-15s\n", "irq", "enum", "chip name");
 
-	for (i = 1; i < nr_irqs; i++) {
+	for (i = 1; i < nr_irqs; i++)
+	{
 		struct intc_map_entry *entry = intc_irq_xlate_get(i);
 		struct intc_desc_int *desc = entry->desc;
 
 		if (!desc)
+		{
 			continue;
+		}
 
 		seq_printf(m, "%5d  ", i);
 		seq_printf(m, "0x%05x  ", entry->enum_id);
@@ -42,7 +45,8 @@ static int intc_irq_xlate_open(struct inode *inode, struct file *file)
 	return single_open(file, intc_irq_xlate_debug, inode->i_private);
 }
 
-static const struct file_operations intc_irq_xlate_fops = {
+static const struct file_operations intc_irq_xlate_fops =
+{
 	.open = intc_irq_xlate_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
@@ -56,8 +60,10 @@ static int __init intc_irq_xlate_init(void)
 	 * converted.
 	 */
 	if (debugfs_create_file("intc_irq_xlate", S_IRUGO, NULL, NULL,
-				&intc_irq_xlate_fops) == NULL)
+							&intc_irq_xlate_fops) == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }

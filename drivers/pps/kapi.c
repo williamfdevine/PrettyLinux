@@ -41,23 +41,28 @@
 static void pps_add_offset(struct pps_ktime *ts, struct pps_ktime *offset)
 {
 	ts->nsec += offset->nsec;
-	while (ts->nsec >= NSEC_PER_SEC) {
+
+	while (ts->nsec >= NSEC_PER_SEC)
+	{
 		ts->nsec -= NSEC_PER_SEC;
 		ts->sec++;
 	}
-	while (ts->nsec < 0) {
+
+	while (ts->nsec < 0)
+	{
 		ts->nsec += NSEC_PER_SEC;
 		ts->sec--;
 	}
+
 	ts->sec += offset->sec;
 }
 
 static void pps_echo_client_default(struct pps_device *pps, int event,
-		void *data)
+									void *data)
 {
 	dev_info(pps->dev, "echo %s %s\n",
-		event & PPS_CAPTUREASSERT ? "assert" : "",
-		event & PPS_CAPTURECLEAR ? "clear" : "");
+			 event & PPS_CAPTUREASSERT ? "assert" : "",
+			 event & PPS_CAPTURECLEAR ? "clear" : "");
 }
 
 /*
@@ -76,28 +81,33 @@ static void pps_echo_client_default(struct pps_device *pps, int event,
  */
 
 struct pps_device *pps_register_source(struct pps_source_info *info,
-		int default_params)
+									   int default_params)
 {
 	struct pps_device *pps;
 	int err;
 
 	/* Sanity checks */
-	if ((info->mode & default_params) != default_params) {
+	if ((info->mode & default_params) != default_params)
+	{
 		pr_err("%s: unsupported default parameters\n",
-					info->name);
+			   info->name);
 		err = -EINVAL;
 		goto pps_register_source_exit;
 	}
-	if ((info->mode & (PPS_TSFMT_TSPEC | PPS_TSFMT_NTPFP)) == 0) {
+
+	if ((info->mode & (PPS_TSFMT_TSPEC | PPS_TSFMT_NTPFP)) == 0)
+	{
 		pr_err("%s: unspecified time format\n",
-					info->name);
+			   info->name);
 		err = -EINVAL;
 		goto pps_register_source_exit;
 	}
 
 	/* Allocate memory for the new PPS source struct */
 	pps = kzalloc(sizeof(struct pps_device), GFP_KERNEL);
-	if (pps == NULL) {
+
+	if (pps == NULL)
+	{
 		err = -ENOMEM;
 		goto pps_register_source_exit;
 	}
@@ -111,17 +121,21 @@ struct pps_device *pps_register_source(struct pps_source_info *info,
 
 	/* check for default echo function */
 	if ((pps->info.mode & (PPS_ECHOASSERT | PPS_ECHOCLEAR)) &&
-			pps->info.echo == NULL)
+		pps->info.echo == NULL)
+	{
 		pps->info.echo = pps_echo_client_default;
+	}
 
 	init_waitqueue_head(&pps->queue);
 	spin_lock_init(&pps->lock);
 
 	/* Create the char device */
 	err = pps_register_cdev(pps);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_err("%s: unable to create char device\n",
-					info->name);
+			   info->name);
 		goto kfree_pps;
 	}
 
@@ -170,7 +184,7 @@ EXPORT_SYMBOL(pps_unregister_source);
  *	pps->info.echo(pps, event, data);
  */
 void pps_event(struct pps_device *pps, struct pps_event_time *ts, int event,
-		void *data)
+			   void *data)
 {
 	unsigned long flags;
 	int captured = 0;
@@ -188,35 +202,41 @@ void pps_event(struct pps_device *pps, struct pps_event_time *ts, int event,
 
 	/* Must call the echo function? */
 	if ((pps->params.mode & (PPS_ECHOASSERT | PPS_ECHOCLEAR)))
+	{
 		pps->info.echo(pps, event, data);
+	}
 
 	/* Check the event */
 	pps->current_mode = pps->params.mode;
-	if (event & pps->params.mode & PPS_CAPTUREASSERT) {
+
+	if (event & pps->params.mode & PPS_CAPTUREASSERT)
+	{
 		/* We have to add an offset? */
 		if (pps->params.mode & PPS_OFFSETASSERT)
 			pps_add_offset(&ts_real,
-					&pps->params.assert_off_tu);
+						   &pps->params.assert_off_tu);
 
 		/* Save the time stamp */
 		pps->assert_tu = ts_real;
 		pps->assert_sequence++;
 		dev_dbg(pps->dev, "capture assert seq #%u\n",
-			pps->assert_sequence);
+				pps->assert_sequence);
 
 		captured = ~0;
 	}
-	if (event & pps->params.mode & PPS_CAPTURECLEAR) {
+
+	if (event & pps->params.mode & PPS_CAPTURECLEAR)
+	{
 		/* We have to add an offset? */
 		if (pps->params.mode & PPS_OFFSETCLEAR)
 			pps_add_offset(&ts_real,
-					&pps->params.clear_off_tu);
+						   &pps->params.clear_off_tu);
 
 		/* Save the time stamp */
 		pps->clear_tu = ts_real;
 		pps->clear_sequence++;
 		dev_dbg(pps->dev, "capture clear seq #%u\n",
-			pps->clear_sequence);
+				pps->clear_sequence);
 
 		captured = ~0;
 	}
@@ -224,7 +244,8 @@ void pps_event(struct pps_device *pps, struct pps_event_time *ts, int event,
 	pps_kc_event(pps, ts, event);
 
 	/* Wake up if captured something */
-	if (captured) {
+	if (captured)
+	{
 		pps->last_ev++;
 		wake_up_interruptible_all(&pps->queue);
 

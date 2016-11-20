@@ -79,7 +79,7 @@
 #define SPBRR_SIZE_BIT		(1 << 10)
 
 #define PCH_ALL			(SPCR_TFIE_BIT|SPCR_RFIE_BIT|SPCR_FIE_BIT|\
-				SPCR_ORIE_BIT|SPCR_MDFIE_BIT)
+						 SPCR_ORIE_BIT|SPCR_MDFIE_BIT)
 
 #define SPCR_RFIC_FIELD		20
 #define SPCR_TFIC_FIELD		16
@@ -111,7 +111,8 @@
 
 static int use_dma = 1;
 
-struct pch_spi_dma_ctrl {
+struct pch_spi_dma_ctrl
+{
 	struct dma_async_tx_descriptor	*desc_tx;
 	struct dma_async_tx_descriptor	*desc_rx;
 	struct pch_dma_slave		param_tx;
@@ -162,7 +163,8 @@ struct pch_spi_dma_ctrl {
  * @ch:				SPI channel number
  * @irq_reg_sts:		Status of IRQ registration
  */
-struct pch_spi_data {
+struct pch_spi_data
+{
 	void __iomem *io_remap_addr;
 	unsigned long io_base_addr;
 	struct spi_master *master;
@@ -198,19 +200,22 @@ struct pch_spi_data {
  * @suspend_sts:	Status of suspend
  * @num:		The number of SPI device instance
  */
-struct pch_spi_board_data {
+struct pch_spi_board_data
+{
 	struct pci_dev *pdev;
 	u8 suspend_sts;
 	int num;
 };
 
-struct pch_pd_dev_save {
+struct pch_pd_dev_save
+{
 	int num;
 	struct platform_device *pd_save[PCH_SPI_MAX_DEV];
 	struct pch_spi_board_data *board_dat;
 };
 
-static const struct pci_device_id pch_spi_pcidev_id[] = {
+static const struct pci_device_id pch_spi_pcidev_id[] =
+{
 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_GE_SPI),    1, },
 	{ PCI_VDEVICE(ROHM, PCI_DEVICE_ID_ML7213_SPI), 2, },
 	{ PCI_VDEVICE(ROHM, PCI_DEVICE_ID_ML7223_SPI), 1, },
@@ -242,7 +247,7 @@ static inline u32 pch_spi_readreg(struct spi_master *master, int idx)
 }
 
 static inline void pch_spi_setclr_reg(struct spi_master *master, int idx,
-				      u32 set, u32 clr)
+									  u32 set, u32 clr)
 {
 	u32 tmp = pch_spi_readreg(master, idx);
 	tmp = (tmp & ~clr) | set;
@@ -265,7 +270,7 @@ static void pch_spi_clear_fifo(struct spi_master *master)
 }
 
 static void pch_spi_handler_sub(struct pch_spi_data *data, u32 reg_spsr_val,
-				void __iomem *io_remap_addr)
+								void __iomem *io_remap_addr)
 {
 	u32 n_read, tx_index, rx_index, bpw_len;
 	u16 *pkt_rx_buffer, *pkt_tx_buff;
@@ -278,7 +283,8 @@ static void pch_spi_handler_sub(struct pch_spi_data *data, u32 reg_spsr_val,
 	spsr = io_remap_addr + PCH_SPSR;
 	iowrite32(reg_spsr_val, spsr);
 
-	if (data->transfer_active) {
+	if (data->transfer_active)
+	{
 		rx_index = data->rx_index;
 		tx_index = data->tx_index;
 		bpw_len = data->bpw_len;
@@ -290,14 +296,19 @@ static void pch_spi_handler_sub(struct pch_spi_data *data, u32 reg_spsr_val,
 
 		n_read = PCH_READABLE(reg_spsr_val);
 
-		for (read_cnt = 0; (read_cnt < n_read); read_cnt++) {
+		for (read_cnt = 0; (read_cnt < n_read); read_cnt++)
+		{
 			pkt_rx_buffer[rx_index++] = ioread32(spdrr);
+
 			if (tx_index < bpw_len)
+			{
 				iowrite32(pkt_tx_buff[tx_index++], spdwr);
+			}
 		}
 
 		/* disable RFI if not needed */
-		if ((bpw_len - rx_index) <= PCH_MAX_FIFO_DEPTH) {
+		if ((bpw_len - rx_index) <= PCH_MAX_FIFO_DEPTH)
+		{
 			reg_spcr_val = ioread32(io_remap_addr + PCH_SPCR);
 			reg_spcr_val &= ~SPCR_RFIE_BIT; /* disable RFI */
 
@@ -313,21 +324,25 @@ static void pch_spi_handler_sub(struct pch_spi_data *data, u32 reg_spsr_val,
 		data->rx_index = rx_index;
 
 		/* if transfer complete interrupt */
-		if (reg_spsr_val & SPSR_FI_BIT) {
-			if ((tx_index == bpw_len) && (rx_index == tx_index)) {
+		if (reg_spsr_val & SPSR_FI_BIT)
+		{
+			if ((tx_index == bpw_len) && (rx_index == tx_index))
+			{
 				/* disable interrupts */
 				pch_spi_setclr_reg(data->master, PCH_SPCR, 0,
-						   PCH_ALL);
+								   PCH_ALL);
 
 				/* transfer is completed;
 				   inform pch_spi_process_messages */
 				data->transfer_complete = true;
 				data->transfer_active = false;
 				wake_up(&data->wait);
-			} else {
+			}
+			else
+			{
 				dev_vdbg(&data->master->dev,
-					"%s : Transfer is not completed",
-					__func__);
+						 "%s : Transfer is not completed",
+						 __func__);
 			}
 		}
 	}
@@ -347,9 +362,10 @@ static irqreturn_t pch_spi_handler(int irq, void *dev_id)
 	struct pch_spi_data *data = dev_id;
 	struct pch_spi_board_data *board_dat = data->board_dat;
 
-	if (board_dat->suspend_sts) {
+	if (board_dat->suspend_sts)
+	{
 		dev_dbg(&board_dat->pdev->dev,
-			"%s returning due to suspend\n", __func__);
+				"%s returning due to suspend\n", __func__);
 		return IRQ_NONE;
 	}
 
@@ -358,9 +374,12 @@ static irqreturn_t pch_spi_handler(int irq, void *dev_id)
 
 	reg_spsr_val = ioread32(spsr);
 
-	if (reg_spsr_val & SPSR_ORF_BIT) {
+	if (reg_spsr_val & SPSR_ORF_BIT)
+	{
 		dev_err(&board_dat->pdev->dev, "%s Over run error\n", __func__);
-		if (data->current_msg->complete) {
+
+		if (data->current_msg->complete)
+		{
 			data->transfer_complete = true;
 			data->current_msg->status = -EIO;
 			data->current_msg->complete(data->current_msg->context);
@@ -371,16 +390,19 @@ static irqreturn_t pch_spi_handler(int irq, void *dev_id)
 	}
 
 	if (data->use_dma)
+	{
 		return IRQ_NONE;
+	}
 
 	/* Check if the interrupt is for SPI device */
-	if (reg_spsr_val & (SPSR_FI_BIT | SPSR_RFI_BIT)) {
+	if (reg_spsr_val & (SPSR_FI_BIT | SPSR_RFI_BIT))
+	{
 		pch_spi_handler_sub(data, reg_spsr_val, io_remap_addr);
 		ret = IRQ_HANDLED;
 	}
 
 	dev_dbg(&board_dat->pdev->dev, "%s EXIT return value=%d\n",
-		__func__, ret);
+			__func__, ret);
 
 	return ret;
 }
@@ -396,7 +418,9 @@ static void pch_spi_set_baud_rate(struct spi_master *master, u32 speed_hz)
 
 	/* if baud rate is less than we can support limit it */
 	if (n_spbr > PCH_MAX_SPBR)
+	{
 		n_spbr = PCH_MAX_SPBR;
+	}
 
 	pch_spi_setclr_reg(master, PCH_SPBRR, n_spbr, MASK_SPBRR_SPBR_BITS);
 }
@@ -407,12 +431,16 @@ static void pch_spi_set_baud_rate(struct spi_master *master, u32 speed_hz)
  * @bits_per_word:	Bits per word for SPI transfer.
  */
 static void pch_spi_set_bits_per_word(struct spi_master *master,
-				      u8 bits_per_word)
+									  u8 bits_per_word)
 {
 	if (bits_per_word == 8)
+	{
 		pch_spi_setclr_reg(master, PCH_SPBRR, 0, SPBRR_SIZE_BIT);
+	}
 	else
+	{
 		pch_spi_setclr_reg(master, PCH_SPBRR, SPBRR_SIZE_BIT, 0);
+	}
 }
 
 /**
@@ -424,21 +452,30 @@ static void pch_spi_setup_transfer(struct spi_device *spi)
 	u32 flags = 0;
 
 	dev_dbg(&spi->dev, "%s SPBRR content =%x setting baud rate=%d\n",
-		__func__, pch_spi_readreg(spi->master, PCH_SPBRR),
-		spi->max_speed_hz);
+			__func__, pch_spi_readreg(spi->master, PCH_SPBRR),
+			spi->max_speed_hz);
 	pch_spi_set_baud_rate(spi->master, spi->max_speed_hz);
 
 	/* set bits per word */
 	pch_spi_set_bits_per_word(spi->master, spi->bits_per_word);
 
 	if (!(spi->mode & SPI_LSB_FIRST))
+	{
 		flags |= SPCR_LSBF_BIT;
+	}
+
 	if (spi->mode & SPI_CPOL)
+	{
 		flags |= SPCR_CPOL_BIT;
+	}
+
 	if (spi->mode & SPI_CPHA)
+	{
 		flags |= SPCR_CPHA_BIT;
+	}
+
 	pch_spi_setclr_reg(spi->master, PCH_SPCR, flags,
-			   (SPCR_LSBF_BIT | SPCR_CPOL_BIT | SPCR_CPHA_BIT));
+					   (SPCR_LSBF_BIT | SPCR_CPOL_BIT | SPCR_CPHA_BIT));
 
 	/* Clear the FIFO by toggling  FICLR to 1 and back to 0 */
 	pch_spi_clear_fifo(spi->master);
@@ -467,36 +504,41 @@ static int pch_spi_transfer(struct spi_device *pspi, struct spi_message *pmsg)
 
 	spin_lock_irqsave(&data->lock, flags);
 	/* validate Tx/Rx buffers and Transfer length */
-	list_for_each_entry(transfer, &pmsg->transfers, transfer_list) {
-		if (!transfer->tx_buf && !transfer->rx_buf) {
+	list_for_each_entry(transfer, &pmsg->transfers, transfer_list)
+	{
+		if (!transfer->tx_buf && !transfer->rx_buf)
+		{
 			dev_err(&pspi->dev,
-				"%s Tx and Rx buffer NULL\n", __func__);
+					"%s Tx and Rx buffer NULL\n", __func__);
 			retval = -EINVAL;
 			goto err_return_spinlock;
 		}
 
-		if (!transfer->len) {
+		if (!transfer->len)
+		{
 			dev_err(&pspi->dev, "%s Transfer length invalid\n",
-				__func__);
+					__func__);
 			retval = -EINVAL;
 			goto err_return_spinlock;
 		}
 
 		dev_dbg(&pspi->dev,
-			"%s Tx/Rx buffer valid. Transfer length valid\n",
-			__func__);
+				"%s Tx/Rx buffer valid. Transfer length valid\n",
+				__func__);
 	}
 	spin_unlock_irqrestore(&data->lock, flags);
 
 	/* We won't process any messages if we have been asked to terminate */
-	if (data->status == STATUS_EXITING) {
+	if (data->status == STATUS_EXITING)
+	{
 		dev_err(&pspi->dev, "%s status = STATUS_EXITING.\n", __func__);
 		retval = -ESHUTDOWN;
 		goto err_out;
 	}
 
 	/* If suspended ,return -EINVAL */
-	if (data->board_dat->suspend_sts) {
+	if (data->board_dat->suspend_sts)
+	{
 		dev_err(&pspi->dev, "%s suspend; returning EINVAL\n", __func__);
 		retval = -EINVAL;
 		goto err_out;
@@ -529,10 +571,12 @@ err_return_spinlock:
 }
 
 static inline void pch_spi_select_chip(struct pch_spi_data *data,
-				       struct spi_device *pspi)
+									   struct spi_device *pspi)
 {
-	if (data->current_chip != NULL) {
-		if (pspi->chip_select != data->n_curnt_chip) {
+	if (data->current_chip != NULL)
+	{
+		if (pspi->chip_select != data->n_curnt_chip)
+		{
 			dev_dbg(&pspi->dev, "%s : different slave\n", __func__);
 			data->current_chip = NULL;
 		}
@@ -556,19 +600,23 @@ static void pch_spi_set_tx(struct pch_spi_data *data, int *bpw)
 	const u16 *tx_sbuf;
 
 	/* set baud rate if needed */
-	if (data->cur_trans->speed_hz) {
+	if (data->cur_trans->speed_hz)
+	{
 		dev_dbg(&data->master->dev, "%s:setting baud rate\n", __func__);
 		pch_spi_set_baud_rate(data->master, data->cur_trans->speed_hz);
 	}
 
 	/* set bits per word if needed */
 	if (data->cur_trans->bits_per_word &&
-	    (data->current_msg->spi->bits_per_word != data->cur_trans->bits_per_word)) {
+		(data->current_msg->spi->bits_per_word != data->cur_trans->bits_per_word))
+	{
 		dev_dbg(&data->master->dev, "%s:set bits per word\n", __func__);
 		pch_spi_set_bits_per_word(data->master,
-					  data->cur_trans->bits_per_word);
+								  data->cur_trans->bits_per_word);
 		*bpw = data->cur_trans->bits_per_word;
-	} else {
+	}
+	else
+	{
 		*bpw = data->current_msg->spi->bits_per_word;
 	}
 
@@ -583,20 +631,29 @@ static void pch_spi_set_tx(struct pch_spi_data *data, int *bpw)
 
 	/* allocate memory for pkt_tx_buff & pkt_rx_buffer */
 	data->pkt_tx_buff = kzalloc(size, GFP_KERNEL);
-	if (data->pkt_tx_buff != NULL) {
+
+	if (data->pkt_tx_buff != NULL)
+	{
 		data->pkt_rx_buff = kzalloc(size, GFP_KERNEL);
+
 		if (!data->pkt_rx_buff)
+		{
 			kfree(data->pkt_tx_buff);
+		}
 	}
 
-	if (!data->pkt_rx_buff) {
+	if (!data->pkt_rx_buff)
+	{
 		/* flush queue and set status of all transfers to -ENOMEM */
 		dev_err(&data->master->dev, "%s :kzalloc failed\n", __func__);
-		list_for_each_entry_safe(pmsg, tmp, data->queue.next, queue) {
+		list_for_each_entry_safe(pmsg, tmp, data->queue.next, queue)
+		{
 			pmsg->status = -ENOMEM;
 
 			if (pmsg->complete)
+			{
 				pmsg->complete(pmsg->context);
+			}
 
 			/* delete from queue */
 			list_del_init(&pmsg->queue);
@@ -605,29 +662,44 @@ static void pch_spi_set_tx(struct pch_spi_data *data, int *bpw)
 	}
 
 	/* copy Tx Data */
-	if (data->cur_trans->tx_buf != NULL) {
-		if (*bpw == 8) {
+	if (data->cur_trans->tx_buf != NULL)
+	{
+		if (*bpw == 8)
+		{
 			tx_buf = data->cur_trans->tx_buf;
+
 			for (j = 0; j < data->bpw_len; j++)
+			{
 				data->pkt_tx_buff[j] = *tx_buf++;
-		} else {
+			}
+		}
+		else
+		{
 			tx_sbuf = data->cur_trans->tx_buf;
+
 			for (j = 0; j < data->bpw_len; j++)
+			{
 				data->pkt_tx_buff[j] = *tx_sbuf++;
+			}
 		}
 	}
 
 	/* if len greater than PCH_MAX_FIFO_DEPTH, write 16,else len bytes */
 	n_writes = data->bpw_len;
+
 	if (n_writes > PCH_MAX_FIFO_DEPTH)
+	{
 		n_writes = PCH_MAX_FIFO_DEPTH;
+	}
 
 	dev_dbg(&data->master->dev, "\n%s:Pulling down SSN low - writing "
-		"0x2 to SSNXCR\n", __func__);
+			"0x2 to SSNXCR\n", __func__);
 	pch_spi_writereg(data->master, PCH_SSNXCR, SSN_LOW);
 
 	for (j = 0; j < n_writes; j++)
+	{
 		pch_spi_writereg(data->master, PCH_SPDWR, data->pkt_tx_buff[j]);
+	}
 
 	/* update tx_index */
 	data->tx_index = j;
@@ -645,9 +717,10 @@ static void pch_spi_nomore_transfer(struct pch_spi_data *data)
 	 * [To the spi core..indicating end of transfer] */
 	data->current_msg->status = 0;
 
-	if (data->current_msg->complete) {
+	if (data->current_msg->complete)
+	{
 		dev_dbg(&data->master->dev,
-			"%s:Invoking callback of SPI core\n", __func__);
+				"%s:Invoking callback of SPI core\n", __func__);
 		data->current_msg->complete(data->current_msg->context);
 	}
 
@@ -655,7 +728,7 @@ static void pch_spi_nomore_transfer(struct pch_spi_data *data)
 	data->bcurrent_msg_processing = false;
 
 	dev_dbg(&data->master->dev,
-		"%s:data->bcurrent_msg_processing = false\n", __func__);
+			"%s:data->bcurrent_msg_processing = false\n", __func__);
 
 	data->current_msg = NULL;
 	data->cur_trans = NULL;
@@ -663,24 +736,30 @@ static void pch_spi_nomore_transfer(struct pch_spi_data *data)
 	/* check if we have items in list and not suspending
 	 * return 1 if list empty */
 	if ((list_empty(&data->queue) == 0) &&
-	    (!data->board_dat->suspend_sts) &&
-	    (data->status != STATUS_EXITING)) {
+		(!data->board_dat->suspend_sts) &&
+		(data->status != STATUS_EXITING))
+	{
 		/* We have some more work to do (either there is more tranint
 		 * bpw;sfer requests in the current message or there are
 		 *more messages)
 		 */
 		dev_dbg(&data->master->dev, "%s:Invoke queue_work\n", __func__);
 		schedule_work(&data->work);
-	} else if (data->board_dat->suspend_sts ||
-		   data->status == STATUS_EXITING) {
+	}
+	else if (data->board_dat->suspend_sts ||
+			 data->status == STATUS_EXITING)
+	{
 		dev_dbg(&data->master->dev,
-			"%s suspend/remove initiated, flushing queue\n",
-			__func__);
-		list_for_each_entry_safe(pmsg, tmp, data->queue.next, queue) {
+				"%s suspend/remove initiated, flushing queue\n",
+				__func__);
+		list_for_each_entry_safe(pmsg, tmp, data->queue.next, queue)
+		{
 			pmsg->status = -EIO;
 
 			if (pmsg->complete)
+			{
 				pmsg->complete(pmsg->context);
+			}
 
 			/* delete from queue */
 			list_del_init(&pmsg->queue);
@@ -694,28 +773,28 @@ static void pch_spi_set_ir(struct pch_spi_data *data)
 	if ((data->bpw_len) > PCH_MAX_FIFO_DEPTH)
 		/* set receive threshold to PCH_RX_THOLD */
 		pch_spi_setclr_reg(data->master, PCH_SPCR,
-				   PCH_RX_THOLD << SPCR_RFIC_FIELD |
-				   SPCR_FIE_BIT | SPCR_RFIE_BIT |
-				   SPCR_ORIE_BIT | SPCR_SPE_BIT,
-				   MASK_RFIC_SPCR_BITS | PCH_ALL);
+						   PCH_RX_THOLD << SPCR_RFIC_FIELD |
+						   SPCR_FIE_BIT | SPCR_RFIE_BIT |
+						   SPCR_ORIE_BIT | SPCR_SPE_BIT,
+						   MASK_RFIC_SPCR_BITS | PCH_ALL);
 	else
 		/* set receive threshold to maximum */
 		pch_spi_setclr_reg(data->master, PCH_SPCR,
-				   PCH_RX_THOLD_MAX << SPCR_RFIC_FIELD |
-				   SPCR_FIE_BIT | SPCR_ORIE_BIT |
-				   SPCR_SPE_BIT,
-				   MASK_RFIC_SPCR_BITS | PCH_ALL);
+						   PCH_RX_THOLD_MAX << SPCR_RFIC_FIELD |
+						   SPCR_FIE_BIT | SPCR_ORIE_BIT |
+						   SPCR_SPE_BIT,
+						   MASK_RFIC_SPCR_BITS | PCH_ALL);
 
 	/* Wait until the transfer completes; go to sleep after
 				 initiating the transfer. */
 	dev_dbg(&data->master->dev,
-		"%s:waiting for transfer to get over\n", __func__);
+			"%s:waiting for transfer to get over\n", __func__);
 
 	wait_event_interruptible(data->wait, data->transfer_complete);
 
 	/* clear all interrupts */
 	pch_spi_writereg(data->master, PCH_SPSR,
-			 pch_spi_readreg(data->master, PCH_SPSR));
+					 pch_spi_readreg(data->master, PCH_SPSR));
 	/* Disable interrupts and SPI transfer */
 	pch_spi_setclr_reg(data->master, PCH_SPCR, 0, PCH_ALL | SPCR_SPE_BIT);
 	/* clear FIFO */
@@ -730,16 +809,27 @@ static void pch_spi_copy_rx_data(struct pch_spi_data *data, int bpw)
 
 	/* copy Rx Data */
 	if (!data->cur_trans->rx_buf)
+	{
 		return;
+	}
 
-	if (bpw == 8) {
+	if (bpw == 8)
+	{
 		rx_buf = data->cur_trans->rx_buf;
+
 		for (j = 0; j < data->bpw_len; j++)
+		{
 			*rx_buf++ = data->pkt_rx_buff[j] & 0xFF;
-	} else {
+		}
+	}
+	else
+	{
 		rx_sbuf = data->cur_trans->rx_buf;
+
 		for (j = 0; j < data->bpw_len; j++)
+		{
 			*rx_sbuf++ = data->pkt_rx_buff[j];
+		}
 	}
 }
 
@@ -753,19 +843,32 @@ static void pch_spi_copy_rx_data_for_dma(struct pch_spi_data *data, int bpw)
 
 	/* copy Rx Data */
 	if (!data->cur_trans->rx_buf)
+	{
 		return;
+	}
 
-	if (bpw == 8) {
+	if (bpw == 8)
+	{
 		rx_buf = data->cur_trans->rx_buf;
 		rx_dma_buf = data->dma.rx_buf_virt;
+
 		for (j = 0; j < data->bpw_len; j++)
+		{
 			*rx_buf++ = *rx_dma_buf++ & 0xFF;
+		}
+
 		data->cur_trans->rx_buf = rx_buf;
-	} else {
+	}
+	else
+	{
 		rx_sbuf = data->cur_trans->rx_buf;
 		rx_dma_sbuf = data->dma.rx_buf_virt;
+
 		for (j = 0; j < data->bpw_len; j++)
+		{
 			*rx_sbuf++ = *rx_dma_sbuf++;
+		}
+
 		data->cur_trans->rx_buf = rx_sbuf;
 	}
 }
@@ -788,19 +891,20 @@ static int pch_spi_start_transfer(struct pch_spi_data *data)
 	/* Wait until the transfer completes; go to sleep after
 				 initiating the transfer. */
 	dev_dbg(&data->master->dev,
-		"%s:waiting for transfer to get over\n", __func__);
+			"%s:waiting for transfer to get over\n", __func__);
 	rtn = wait_event_interruptible_timeout(data->wait,
-					       data->transfer_complete,
-					       msecs_to_jiffies(2 * HZ));
+										   data->transfer_complete,
+										   msecs_to_jiffies(2 * HZ));
+
 	if (!rtn)
 		dev_err(&data->master->dev,
-			"%s wait-event timeout\n", __func__);
+				"%s wait-event timeout\n", __func__);
 
 	dma_sync_sg_for_cpu(&data->master->dev, dma->sg_rx_p, dma->nent,
-			    DMA_FROM_DEVICE);
+						DMA_FROM_DEVICE);
 
 	dma_sync_sg_for_cpu(&data->master->dev, dma->sg_tx_p, dma->nent,
-			    DMA_FROM_DEVICE);
+						DMA_FROM_DEVICE);
 	memset(data->dma.tx_buf_virt, 0, PAGE_SIZE);
 
 	async_tx_ack(dma->desc_rx);
@@ -812,11 +916,11 @@ static int pch_spi_start_transfer(struct pch_spi_data *data)
 
 	/* clear fifo threshold, disable interrupts, disable SPI transfer */
 	pch_spi_setclr_reg(data->master, PCH_SPCR, 0,
-			   MASK_RFIC_SPCR_BITS | MASK_TFIC_SPCR_BITS | PCH_ALL |
-			   SPCR_SPE_BIT);
+					   MASK_RFIC_SPCR_BITS | MASK_TFIC_SPCR_BITS | PCH_ALL |
+					   SPCR_SPE_BIT);
 	/* clear all interrupts */
 	pch_spi_writereg(data->master, PCH_SPSR,
-			 pch_spi_readreg(data->master, PCH_SPSR));
+					 pch_spi_readreg(data->master, PCH_SPSR));
 	/* clear FIFO */
 	pch_spi_clear_fifo(data->master);
 
@@ -839,10 +943,13 @@ static bool pch_spi_filter(struct dma_chan *chan, void *slave)
 	struct pch_dma_slave *param = slave;
 
 	if ((chan->chan_id == param->chan_id) &&
-	    (param->dma_dev == chan->device->dev)) {
+		(param->dma_dev == chan->device->dev))
+	{
 		chan->private = param;
 		return true;
-	} else {
+	}
+	else
+	{
 		return false;
 	}
 }
@@ -857,9 +964,13 @@ static void pch_spi_request_dma(struct pch_spi_data *data, int bpw)
 	unsigned int width;
 
 	if (bpw == 8)
+	{
 		width = PCH_DMA_WIDTH_1_BYTE;
+	}
 	else
+	{
 		width = PCH_DMA_WIDTH_2_BYTES;
+	}
 
 	dma = &data->dma;
 	dma_cap_zero(mask);
@@ -867,7 +978,7 @@ static void pch_spi_request_dma(struct pch_spi_data *data, int bpw)
 
 	/* Get DMA's dev information */
 	dma_dev = pci_get_slot(data->board_dat->pdev->bus,
-			PCI_DEVFN(PCI_SLOT(data->board_dat->pdev->devfn), 0));
+						   PCI_DEVFN(PCI_SLOT(data->board_dat->pdev->devfn), 0));
 
 	/* Set Tx DMA */
 	param = &dma->param_tx;
@@ -876,12 +987,15 @@ static void pch_spi_request_dma(struct pch_spi_data *data, int bpw)
 	param->tx_reg = data->io_base_addr + PCH_SPDWR;
 	param->width = width;
 	chan = dma_request_channel(mask, pch_spi_filter, param);
-	if (!chan) {
+
+	if (!chan)
+	{
 		dev_err(&data->master->dev,
-			"ERROR: dma_request_channel FAILS(Tx)\n");
+				"ERROR: dma_request_channel FAILS(Tx)\n");
 		data->use_dma = 0;
 		return;
 	}
+
 	dma->chan_tx = chan;
 
 	/* Set Rx DMA */
@@ -891,14 +1005,17 @@ static void pch_spi_request_dma(struct pch_spi_data *data, int bpw)
 	param->rx_reg = data->io_base_addr + PCH_SPDRR;
 	param->width = width;
 	chan = dma_request_channel(mask, pch_spi_filter, param);
-	if (!chan) {
+
+	if (!chan)
+	{
 		dev_err(&data->master->dev,
-			"ERROR: dma_request_channel FAILS(Rx)\n");
+				"ERROR: dma_request_channel FAILS(Rx)\n");
 		dma_release_channel(dma->chan_tx);
 		dma->chan_tx = NULL;
 		data->use_dma = 0;
 		return;
 	}
+
 	dma->chan_rx = chan;
 }
 
@@ -907,14 +1024,19 @@ static void pch_spi_release_dma(struct pch_spi_data *data)
 	struct pch_spi_dma_ctrl *dma;
 
 	dma = &data->dma;
-	if (dma->chan_tx) {
+
+	if (dma->chan_tx)
+	{
 		dma_release_channel(dma->chan_tx);
 		dma->chan_tx = NULL;
 	}
-	if (dma->chan_rx) {
+
+	if (dma->chan_rx)
+	{
 		dma_release_channel(dma->chan_rx);
 		dma->chan_rx = NULL;
 	}
+
 	return;
 }
 
@@ -938,7 +1060,8 @@ static void pch_spi_handle_dma(struct pch_spi_data *data, int *bpw)
 	dma = &data->dma;
 
 	/* set baud rate if needed */
-	if (data->cur_trans->speed_hz) {
+	if (data->cur_trans->speed_hz)
+	{
 		dev_dbg(&data->master->dev, "%s:setting baud rate\n", __func__);
 		spin_lock_irqsave(&data->lock, flags);
 		pch_spi_set_baud_rate(data->master, data->cur_trans->speed_hz);
@@ -947,102 +1070,137 @@ static void pch_spi_handle_dma(struct pch_spi_data *data, int *bpw)
 
 	/* set bits per word if needed */
 	if (data->cur_trans->bits_per_word &&
-	    (data->current_msg->spi->bits_per_word !=
-	     data->cur_trans->bits_per_word)) {
+		(data->current_msg->spi->bits_per_word !=
+		 data->cur_trans->bits_per_word))
+	{
 		dev_dbg(&data->master->dev, "%s:set bits per word\n", __func__);
 		spin_lock_irqsave(&data->lock, flags);
 		pch_spi_set_bits_per_word(data->master,
-					  data->cur_trans->bits_per_word);
+								  data->cur_trans->bits_per_word);
 		spin_unlock_irqrestore(&data->lock, flags);
 		*bpw = data->cur_trans->bits_per_word;
-	} else {
+	}
+	else
+	{
 		*bpw = data->current_msg->spi->bits_per_word;
 	}
+
 	data->bpw_len = data->cur_trans->len / (*bpw / 8);
 
-	if (data->bpw_len > PCH_BUF_SIZE) {
+	if (data->bpw_len > PCH_BUF_SIZE)
+	{
 		data->bpw_len = PCH_BUF_SIZE;
 		data->cur_trans->len -= PCH_BUF_SIZE;
 	}
 
 	/* copy Tx Data */
-	if (data->cur_trans->tx_buf != NULL) {
-		if (*bpw == 8) {
+	if (data->cur_trans->tx_buf != NULL)
+	{
+		if (*bpw == 8)
+		{
 			tx_buf = data->cur_trans->tx_buf;
 			tx_dma_buf = dma->tx_buf_virt;
+
 			for (i = 0; i < data->bpw_len; i++)
+			{
 				*tx_dma_buf++ = *tx_buf++;
-		} else {
+			}
+		}
+		else
+		{
 			tx_sbuf = data->cur_trans->tx_buf;
 			tx_dma_sbuf = dma->tx_buf_virt;
+
 			for (i = 0; i < data->bpw_len; i++)
+			{
 				*tx_dma_sbuf++ = *tx_sbuf++;
+			}
 		}
 	}
 
 	/* Calculate Rx parameter for DMA transmitting */
-	if (data->bpw_len > PCH_DMA_TRANS_SIZE) {
-		if (data->bpw_len % PCH_DMA_TRANS_SIZE) {
+	if (data->bpw_len > PCH_DMA_TRANS_SIZE)
+	{
+		if (data->bpw_len % PCH_DMA_TRANS_SIZE)
+		{
 			num = data->bpw_len / PCH_DMA_TRANS_SIZE + 1;
 			rem = data->bpw_len % PCH_DMA_TRANS_SIZE;
-		} else {
+		}
+		else
+		{
 			num = data->bpw_len / PCH_DMA_TRANS_SIZE;
 			rem = PCH_DMA_TRANS_SIZE;
 		}
+
 		size = PCH_DMA_TRANS_SIZE;
-	} else {
+	}
+	else
+	{
 		num = 1;
 		size = data->bpw_len;
 		rem = data->bpw_len;
 	}
+
 	dev_dbg(&data->master->dev, "%s num=%d size=%d rem=%d\n",
-		__func__, num, size, rem);
+			__func__, num, size, rem);
 	spin_lock_irqsave(&data->lock, flags);
 
 	/* set receive fifo threshold and transmit fifo threshold */
 	pch_spi_setclr_reg(data->master, PCH_SPCR,
-			   ((size - 1) << SPCR_RFIC_FIELD) |
-			   (PCH_TX_THOLD << SPCR_TFIC_FIELD),
-			   MASK_RFIC_SPCR_BITS | MASK_TFIC_SPCR_BITS);
+					   ((size - 1) << SPCR_RFIC_FIELD) |
+					   (PCH_TX_THOLD << SPCR_TFIC_FIELD),
+					   MASK_RFIC_SPCR_BITS | MASK_TFIC_SPCR_BITS);
 
 	spin_unlock_irqrestore(&data->lock, flags);
 
 	/* RX */
-	dma->sg_rx_p = kzalloc(sizeof(struct scatterlist)*num, GFP_ATOMIC);
+	dma->sg_rx_p = kzalloc(sizeof(struct scatterlist) * num, GFP_ATOMIC);
 	sg_init_table(dma->sg_rx_p, num); /* Initialize SG table */
 	/* offset, length setting */
 	sg = dma->sg_rx_p;
-	for (i = 0; i < num; i++, sg++) {
-		if (i == (num - 2)) {
+
+	for (i = 0; i < num; i++, sg++)
+	{
+		if (i == (num - 2))
+		{
 			sg->offset = size * i;
 			sg->offset = sg->offset * (*bpw / 8);
 			sg_set_page(sg, virt_to_page(dma->rx_buf_virt), rem,
-				    sg->offset);
+						sg->offset);
 			sg_dma_len(sg) = rem;
-		} else if (i == (num - 1)) {
+		}
+		else if (i == (num - 1))
+		{
 			sg->offset = size * (i - 1) + rem;
 			sg->offset = sg->offset * (*bpw / 8);
 			sg_set_page(sg, virt_to_page(dma->rx_buf_virt), size,
-				    sg->offset);
+						sg->offset);
 			sg_dma_len(sg) = size;
-		} else {
+		}
+		else
+		{
 			sg->offset = size * i;
 			sg->offset = sg->offset * (*bpw / 8);
 			sg_set_page(sg, virt_to_page(dma->rx_buf_virt), size,
-				    sg->offset);
+						sg->offset);
 			sg_dma_len(sg) = size;
 		}
+
 		sg_dma_address(sg) = dma->rx_buf_dma + sg->offset;
 	}
+
 	sg = dma->sg_rx_p;
 	desc_rx = dmaengine_prep_slave_sg(dma->chan_rx, sg,
-					num, DMA_DEV_TO_MEM,
-					DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-	if (!desc_rx) {
+									  num, DMA_DEV_TO_MEM,
+									  DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+
+	if (!desc_rx)
+	{
 		dev_err(&data->master->dev,
-			"%s:dmaengine_prep_slave_sg Failed\n", __func__);
+				"%s:dmaengine_prep_slave_sg Failed\n", __func__);
 		return;
 	}
+
 	dma_sync_sg_for_device(&data->master->dev, sg, num, DMA_FROM_DEVICE);
 	desc_rx->callback = pch_dma_rx_complete;
 	desc_rx->callback_param = data;
@@ -1050,58 +1208,78 @@ static void pch_spi_handle_dma(struct pch_spi_data *data, int *bpw)
 	dma->desc_rx = desc_rx;
 
 	/* Calculate Tx parameter for DMA transmitting */
-	if (data->bpw_len > PCH_MAX_FIFO_DEPTH) {
+	if (data->bpw_len > PCH_MAX_FIFO_DEPTH)
+	{
 		head = PCH_MAX_FIFO_DEPTH - PCH_DMA_TRANS_SIZE;
-		if (data->bpw_len % PCH_DMA_TRANS_SIZE > 4) {
+
+		if (data->bpw_len % PCH_DMA_TRANS_SIZE > 4)
+		{
 			num = data->bpw_len / PCH_DMA_TRANS_SIZE + 1;
 			rem = data->bpw_len % PCH_DMA_TRANS_SIZE - head;
-		} else {
+		}
+		else
+		{
 			num = data->bpw_len / PCH_DMA_TRANS_SIZE;
 			rem = data->bpw_len % PCH_DMA_TRANS_SIZE +
-			      PCH_DMA_TRANS_SIZE - head;
+				  PCH_DMA_TRANS_SIZE - head;
 		}
+
 		size = PCH_DMA_TRANS_SIZE;
-	} else {
+	}
+	else
+	{
 		num = 1;
 		size = data->bpw_len;
 		rem = data->bpw_len;
 		head = 0;
 	}
 
-	dma->sg_tx_p = kzalloc(sizeof(struct scatterlist)*num, GFP_ATOMIC);
+	dma->sg_tx_p = kzalloc(sizeof(struct scatterlist) * num, GFP_ATOMIC);
 	sg_init_table(dma->sg_tx_p, num); /* Initialize SG table */
 	/* offset, length setting */
 	sg = dma->sg_tx_p;
-	for (i = 0; i < num; i++, sg++) {
-		if (i == 0) {
+
+	for (i = 0; i < num; i++, sg++)
+	{
+		if (i == 0)
+		{
 			sg->offset = 0;
 			sg_set_page(sg, virt_to_page(dma->tx_buf_virt), size + head,
-				    sg->offset);
+						sg->offset);
 			sg_dma_len(sg) = size + head;
-		} else if (i == (num - 1)) {
+		}
+		else if (i == (num - 1))
+		{
 			sg->offset = head + size * i;
 			sg->offset = sg->offset * (*bpw / 8);
 			sg_set_page(sg, virt_to_page(dma->tx_buf_virt), rem,
-				    sg->offset);
+						sg->offset);
 			sg_dma_len(sg) = rem;
-		} else {
+		}
+		else
+		{
 			sg->offset = head + size * i;
 			sg->offset = sg->offset * (*bpw / 8);
 			sg_set_page(sg, virt_to_page(dma->tx_buf_virt), size,
-				    sg->offset);
+						sg->offset);
 			sg_dma_len(sg) = size;
 		}
+
 		sg_dma_address(sg) = dma->tx_buf_dma + sg->offset;
 	}
+
 	sg = dma->sg_tx_p;
 	desc_tx = dmaengine_prep_slave_sg(dma->chan_tx,
-					sg, num, DMA_MEM_TO_DEV,
-					DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-	if (!desc_tx) {
+									  sg, num, DMA_MEM_TO_DEV,
+									  DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+
+	if (!desc_tx)
+	{
 		dev_err(&data->master->dev,
-			"%s:dmaengine_prep_slave_sg Failed\n", __func__);
+				"%s:dmaengine_prep_slave_sg Failed\n", __func__);
 		return;
 	}
+
 	dma_sync_sg_for_device(&data->master->dev, sg, num, DMA_TO_DEVICE);
 	desc_tx->callback = NULL;
 	desc_tx->callback_param = data;
@@ -1130,14 +1308,18 @@ static void pch_spi_process_messages(struct work_struct *pwork)
 	dev_dbg(&data->master->dev, "%s data initialized\n", __func__);
 
 	spin_lock(&data->lock);
+
 	/* check if suspend has been initiated;if yes flush queue */
-	if (data->board_dat->suspend_sts || (data->status == STATUS_EXITING)) {
+	if (data->board_dat->suspend_sts || (data->status == STATUS_EXITING))
+	{
 		dev_dbg(&data->master->dev,
-			"%s suspend/remove initiated, flushing queue\n", __func__);
-		list_for_each_entry_safe(pmsg, tmp, data->queue.next, queue) {
+				"%s suspend/remove initiated, flushing queue\n", __func__);
+		list_for_each_entry_safe(pmsg, tmp, data->queue.next, queue)
+		{
 			pmsg->status = -EIO;
 
-			if (pmsg->complete) {
+			if (pmsg->complete)
+			{
 				spin_unlock(&data->lock);
 				pmsg->complete(pmsg->context);
 				spin_lock(&data->lock);
@@ -1153,11 +1335,11 @@ static void pch_spi_process_messages(struct work_struct *pwork)
 
 	data->bcurrent_msg_processing = true;
 	dev_dbg(&data->master->dev,
-		"%s Set data->bcurrent_msg_processing= true\n", __func__);
+			"%s Set data->bcurrent_msg_processing= true\n", __func__);
 
 	/* Get the message from the queue and delete it from there. */
 	data->current_msg = list_entry(data->queue.next, struct spi_message,
-					queue);
+								   queue);
 
 	list_del_init(&data->current_msg->queue);
 
@@ -1169,52 +1351,73 @@ static void pch_spi_process_messages(struct work_struct *pwork)
 
 	if (data->use_dma)
 		pch_spi_request_dma(data,
-				    data->current_msg->spi->bits_per_word);
+							data->current_msg->spi->bits_per_word);
+
 	pch_spi_writereg(data->master, PCH_SSNXCR, SSN_NO_CONTROL);
-	do {
+
+	do
+	{
 		int cnt;
 		/* If we are already processing a message get the next
 		transfer structure from the message otherwise retrieve
 		the 1st transfer request from the message. */
 		spin_lock(&data->lock);
-		if (data->cur_trans == NULL) {
+
+		if (data->cur_trans == NULL)
+		{
 			data->cur_trans =
 				list_entry(data->current_msg->transfers.next,
-					   struct spi_transfer, transfer_list);
+						   struct spi_transfer, transfer_list);
 			dev_dbg(&data->master->dev, "%s "
-				":Getting 1st transfer message\n", __func__);
-		} else {
+					":Getting 1st transfer message\n", __func__);
+		}
+		else
+		{
 			data->cur_trans =
 				list_entry(data->cur_trans->transfer_list.next,
-					   struct spi_transfer, transfer_list);
+						   struct spi_transfer, transfer_list);
 			dev_dbg(&data->master->dev, "%s "
-				":Getting next transfer message\n", __func__);
+					":Getting next transfer message\n", __func__);
 		}
+
 		spin_unlock(&data->lock);
 
 		if (!data->cur_trans->len)
+		{
 			goto out;
+		}
+
 		cnt = (data->cur_trans->len - 1) / PCH_BUF_SIZE + 1;
 		data->save_total_len = data->cur_trans->len;
-		if (data->use_dma) {
+
+		if (data->use_dma)
+		{
 			int i;
 			char *save_rx_buf = data->cur_trans->rx_buf;
-			for (i = 0; i < cnt; i ++) {
+
+			for (i = 0; i < cnt; i ++)
+			{
 				pch_spi_handle_dma(data, &bpw);
-				if (!pch_spi_start_transfer(data)) {
+
+				if (!pch_spi_start_transfer(data))
+				{
 					data->transfer_complete = true;
 					data->current_msg->status = -EIO;
 					data->current_msg->complete
-						   (data->current_msg->context);
+					(data->current_msg->context);
 					data->bcurrent_msg_processing = false;
 					data->current_msg = NULL;
 					data->cur_trans = NULL;
 					goto out;
 				}
+
 				pch_spi_copy_rx_data_for_dma(data, bpw);
 			}
+
 			data->cur_trans->rx_buf = save_rx_buf;
-		} else {
+		}
+		else
+		{
 			pch_spi_set_tx(data, &bpw);
 			pch_spi_set_ir(data);
 			pch_spi_copy_rx_data(data, bpw);
@@ -1223,19 +1426,21 @@ static void pch_spi_process_messages(struct work_struct *pwork)
 			kfree(data->pkt_tx_buff);
 			data->pkt_tx_buff = NULL;
 		}
+
 		/* increment message count */
 		data->cur_trans->len = data->save_total_len;
 		data->current_msg->actual_length += data->cur_trans->len;
 
 		dev_dbg(&data->master->dev,
-			"%s:data->current_msg->actual_length=%d\n",
-			__func__, data->current_msg->actual_length);
+				"%s:data->current_msg->actual_length=%d\n",
+				__func__, data->current_msg->actual_length);
 
 		/* check for delay */
-		if (data->cur_trans->delay_usecs) {
+		if (data->cur_trans->delay_usecs)
+		{
 			dev_dbg(&data->master->dev, "%s:"
-				"delay in usec=%d\n", __func__,
-				data->cur_trans->delay_usecs);
+					"delay in usec=%d\n", __func__,
+					data->cur_trans->delay_usecs);
 			udelay(data->cur_trans->delay_usecs);
 		}
 
@@ -1243,22 +1448,27 @@ static void pch_spi_process_messages(struct work_struct *pwork)
 
 		/* No more transfer in this message. */
 		if ((data->cur_trans->transfer_list.next) ==
-		    &(data->current_msg->transfers)) {
+			&(data->current_msg->transfers))
+		{
 			pch_spi_nomore_transfer(data);
 		}
 
 		spin_unlock(&data->lock);
 
-	} while (data->cur_trans != NULL);
+	}
+	while (data->cur_trans != NULL);
 
 out:
 	pch_spi_writereg(data->master, PCH_SSNXCR, SSN_HIGH);
+
 	if (data->use_dma)
+	{
 		pch_spi_release_dma(data);
+	}
 }
 
 static void pch_spi_free_resources(struct pch_spi_board_data *board_dat,
-				   struct pch_spi_data *data)
+								   struct pch_spi_data *data)
 {
 	dev_dbg(&board_dat->pdev->dev, "%s ENTRY\n", __func__);
 
@@ -1266,7 +1476,7 @@ static void pch_spi_free_resources(struct pch_spi_board_data *board_dat,
 }
 
 static int pch_spi_get_resources(struct pch_spi_board_data *board_dat,
-				 struct pch_spi_data *data)
+								 struct pch_spi_data *data)
 {
 	int retval = 0;
 
@@ -1276,13 +1486,14 @@ static int pch_spi_get_resources(struct pch_spi_board_data *board_dat,
 	/* reset PCH SPI h/w */
 	pch_spi_reset(data->master);
 	dev_dbg(&board_dat->pdev->dev,
-		"%s pch_spi_reset invoked successfully\n", __func__);
+			"%s pch_spi_reset invoked successfully\n", __func__);
 
 	dev_dbg(&board_dat->pdev->dev, "%s data->irq_reg_sts=true\n", __func__);
 
-	if (retval != 0) {
+	if (retval != 0)
+	{
 		dev_err(&board_dat->pdev->dev,
-			"%s FAIL:invoking pch_spi_free_resources\n", __func__);
+				"%s FAIL:invoking pch_spi_free_resources\n", __func__);
 		pch_spi_free_resources(board_dat, data);
 	}
 
@@ -1292,32 +1503,35 @@ static int pch_spi_get_resources(struct pch_spi_board_data *board_dat,
 }
 
 static void pch_free_dma_buf(struct pch_spi_board_data *board_dat,
-			     struct pch_spi_data *data)
+							 struct pch_spi_data *data)
 {
 	struct pch_spi_dma_ctrl *dma;
 
 	dma = &data->dma;
+
 	if (dma->tx_buf_dma)
 		dma_free_coherent(&board_dat->pdev->dev, PCH_BUF_SIZE,
-				  dma->tx_buf_virt, dma->tx_buf_dma);
+						  dma->tx_buf_virt, dma->tx_buf_dma);
+
 	if (dma->rx_buf_dma)
 		dma_free_coherent(&board_dat->pdev->dev, PCH_BUF_SIZE,
-				  dma->rx_buf_virt, dma->rx_buf_dma);
+						  dma->rx_buf_virt, dma->rx_buf_dma);
+
 	return;
 }
 
 static void pch_alloc_dma_buf(struct pch_spi_board_data *board_dat,
-			      struct pch_spi_data *data)
+							  struct pch_spi_data *data)
 {
 	struct pch_spi_dma_ctrl *dma;
 
 	dma = &data->dma;
 	/* Get Consistent memory for Tx DMA */
 	dma->tx_buf_virt = dma_alloc_coherent(&board_dat->pdev->dev,
-				PCH_BUF_SIZE, &dma->tx_buf_dma, GFP_KERNEL);
+										  PCH_BUF_SIZE, &dma->tx_buf_dma, GFP_KERNEL);
 	/* Get Consistent memory for Rx DMA */
 	dma->rx_buf_virt = dma_alloc_coherent(&board_dat->pdev->dev,
-				PCH_BUF_SIZE, &dma->rx_buf_dma, GFP_KERNEL);
+										  PCH_BUF_SIZE, &dma->rx_buf_dma, GFP_KERNEL);
 }
 
 static int pch_spi_pd_probe(struct platform_device *plat_dev)
@@ -1330,10 +1544,12 @@ static int pch_spi_pd_probe(struct platform_device *plat_dev)
 	dev_dbg(&plat_dev->dev, "%s:debug\n", __func__);
 
 	master = spi_alloc_master(&board_dat->pdev->dev,
-				  sizeof(struct pch_spi_data));
-	if (!master) {
+							  sizeof(struct pch_spi_data));
+
+	if (!master)
+	{
 		dev_err(&plat_dev->dev, "spi_alloc_master[%d] failed.\n",
-			plat_dev->id);
+				plat_dev->id);
 		return -ENOMEM;
 	}
 
@@ -1344,17 +1560,20 @@ static int pch_spi_pd_probe(struct platform_device *plat_dev)
 
 	/* baseaddress + address offset) */
 	data->io_base_addr = pci_resource_start(board_dat->pdev, 1) +
-					 PCH_ADDRESS_SIZE * plat_dev->id;
+						 PCH_ADDRESS_SIZE * plat_dev->id;
 	data->io_remap_addr = pci_iomap(board_dat->pdev, 1, 0);
-	if (!data->io_remap_addr) {
+
+	if (!data->io_remap_addr)
+	{
 		dev_err(&plat_dev->dev, "%s pci_iomap failed\n", __func__);
 		ret = -ENOMEM;
 		goto err_pci_iomap;
 	}
+
 	data->io_remap_addr += PCH_ADDRESS_SIZE * plat_dev->id;
 
 	dev_dbg(&plat_dev->dev, "[ch%d] remap_addr=%p\n",
-		plat_dev->id, data->io_remap_addr);
+			plat_dev->id, data->io_remap_addr);
 
 	/* initialize members of SPI master */
 	master->num_chipselect = PCH_MAX_CS;
@@ -1376,31 +1595,39 @@ static int pch_spi_pd_probe(struct platform_device *plat_dev)
 	init_waitqueue_head(&data->wait);
 
 	ret = pch_spi_get_resources(board_dat, data);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&plat_dev->dev, "%s fail(retval=%d)\n", __func__, ret);
 		goto err_spi_get_resources;
 	}
 
 	ret = request_irq(board_dat->pdev->irq, pch_spi_handler,
-			  IRQF_SHARED, KBUILD_MODNAME, data);
-	if (ret) {
+					  IRQF_SHARED, KBUILD_MODNAME, data);
+
+	if (ret)
+	{
 		dev_err(&plat_dev->dev,
-			"%s request_irq failed\n", __func__);
+				"%s request_irq failed\n", __func__);
 		goto err_request_irq;
 	}
+
 	data->irq_reg_sts = true;
 
 	pch_spi_set_master_mode(master);
 
-	if (use_dma) {
+	if (use_dma)
+	{
 		dev_info(&plat_dev->dev, "Use DMA for data transfers\n");
 		pch_alloc_dma_buf(board_dat, data);
 	}
 
 	ret = spi_register_master(master);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(&plat_dev->dev,
-			"%s spi_register_master FAILED\n", __func__);
+				"%s spi_register_master FAILED\n", __func__);
 		goto err_spi_register_master;
 	}
 
@@ -1427,28 +1654,35 @@ static int pch_spi_pd_remove(struct platform_device *plat_dev)
 	unsigned long flags;
 
 	dev_dbg(&plat_dev->dev, "%s:[ch%d] irq=%d\n",
-		__func__, plat_dev->id, board_dat->pdev->irq);
+			__func__, plat_dev->id, board_dat->pdev->irq);
 
 	if (use_dma)
+	{
 		pch_free_dma_buf(board_dat, data);
+	}
 
 	/* check for any pending messages; no action is taken if the queue
 	 * is still full; but at least we tried.  Unload anyway */
 	count = 500;
 	spin_lock_irqsave(&data->lock, flags);
 	data->status = STATUS_EXITING;
-	while ((list_empty(&data->queue) == 0) && --count) {
+
+	while ((list_empty(&data->queue) == 0) && --count)
+	{
 		dev_dbg(&board_dat->pdev->dev, "%s :queue not empty\n",
-			__func__);
+				__func__);
 		spin_unlock_irqrestore(&data->lock, flags);
 		msleep(PCH_SLEEP_TIME);
 		spin_lock_irqsave(&data->lock, flags);
 	}
+
 	spin_unlock_irqrestore(&data->lock, flags);
 
 	pch_spi_free_resources(board_dat, data);
+
 	/* disable interrupts & free IRQ */
-	if (data->irq_reg_sts) {
+	if (data->irq_reg_sts)
+	{
 		/* disable interrupts */
 		pch_spi_setclr_reg(data->master, PCH_SPCR, 0, PCH_ALL);
 		data->irq_reg_sts = false;
@@ -1462,7 +1696,7 @@ static int pch_spi_pd_remove(struct platform_device *plat_dev)
 }
 #ifdef CONFIG_PM
 static int pch_spi_pd_suspend(struct platform_device *pd_dev,
-			      pm_message_t state)
+							  pm_message_t state)
 {
 	u8 count;
 	struct pch_spi_board_data *board_dat = dev_get_platdata(&pd_dev->dev);
@@ -1470,23 +1704,30 @@ static int pch_spi_pd_suspend(struct platform_device *pd_dev,
 
 	dev_dbg(&pd_dev->dev, "%s ENTRY\n", __func__);
 
-	if (!board_dat) {
+	if (!board_dat)
+	{
 		dev_err(&pd_dev->dev,
-			"%s pci_get_drvdata returned NULL\n", __func__);
+				"%s pci_get_drvdata returned NULL\n", __func__);
 		return -EFAULT;
 	}
 
 	/* check if the current message is processed:
 	   Only after thats done the transfer will be suspended */
 	count = 255;
-	while ((--count) > 0) {
+
+	while ((--count) > 0)
+	{
 		if (!(data->bcurrent_msg_processing))
+		{
 			break;
+		}
+
 		msleep(PCH_SLEEP_TIME);
 	}
 
 	/* Free IRQ */
-	if (data->irq_reg_sts) {
+	if (data->irq_reg_sts)
+	{
 		/* disable all interrupts */
 		pch_spi_setclr_reg(data->master, PCH_SPCR, 0, PCH_ALL);
 		pch_spi_reset(data->master);
@@ -1494,7 +1735,7 @@ static int pch_spi_pd_suspend(struct platform_device *pd_dev,
 
 		data->irq_reg_sts = false;
 		dev_dbg(&pd_dev->dev,
-			"%s free_irq invoked successfully.\n", __func__);
+				"%s free_irq invoked successfully.\n", __func__);
 	}
 
 	return 0;
@@ -1506,19 +1747,23 @@ static int pch_spi_pd_resume(struct platform_device *pd_dev)
 	struct pch_spi_data *data = platform_get_drvdata(pd_dev);
 	int retval;
 
-	if (!board_dat) {
+	if (!board_dat)
+	{
 		dev_err(&pd_dev->dev,
-			"%s pci_get_drvdata returned NULL\n", __func__);
+				"%s pci_get_drvdata returned NULL\n", __func__);
 		return -EFAULT;
 	}
 
-	if (!data->irq_reg_sts) {
+	if (!data->irq_reg_sts)
+	{
 		/* register IRQ */
 		retval = request_irq(board_dat->pdev->irq, pch_spi_handler,
-				     IRQF_SHARED, KBUILD_MODNAME, data);
-		if (retval < 0) {
+							 IRQF_SHARED, KBUILD_MODNAME, data);
+
+		if (retval < 0)
+		{
 			dev_err(&pd_dev->dev,
-				"%s request_irq failed\n", __func__);
+					"%s request_irq failed\n", __func__);
 			return retval;
 		}
 
@@ -1527,6 +1772,7 @@ static int pch_spi_pd_resume(struct platform_device *pd_dev)
 		pch_spi_set_master_mode(data->master);
 		data->irq_reg_sts = true;
 	}
+
 	return 0;
 }
 #else
@@ -1534,7 +1780,8 @@ static int pch_spi_pd_resume(struct platform_device *pd_dev)
 #define pch_spi_pd_resume NULL
 #endif
 
-static struct platform_driver pch_spi_pd_driver = {
+static struct platform_driver pch_spi_pd_driver =
+{
 	.driver = {
 		.name = "pch-spi",
 	},
@@ -1553,17 +1800,24 @@ static int pch_spi_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	struct pch_pd_dev_save *pd_dev_save;
 
 	pd_dev_save = kzalloc(sizeof(struct pch_pd_dev_save), GFP_KERNEL);
+
 	if (!pd_dev_save)
+	{
 		return -ENOMEM;
+	}
 
 	board_dat = kzalloc(sizeof(struct pch_spi_board_data), GFP_KERNEL);
-	if (!board_dat) {
+
+	if (!board_dat)
+	{
 		retval = -ENOMEM;
 		goto err_no_mem;
 	}
 
 	retval = pci_request_regions(pdev, KBUILD_MODNAME);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "%s request_region failed\n", __func__);
 		goto pci_request_regions;
 	}
@@ -1574,32 +1828,42 @@ static int pch_spi_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	pd_dev_save->board_dat = board_dat;
 
 	retval = pci_enable_device(pdev);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "%s pci_enable_device failed\n", __func__);
 		goto pci_enable_device;
 	}
 
-	for (i = 0; i < board_dat->num; i++) {
+	for (i = 0; i < board_dat->num; i++)
+	{
 		pd_dev = platform_device_alloc("pch-spi", i);
-		if (!pd_dev) {
+
+		if (!pd_dev)
+		{
 			dev_err(&pdev->dev, "platform_device_alloc failed\n");
 			retval = -ENOMEM;
 			goto err_platform_device;
 		}
+
 		pd_dev_save->pd_save[i] = pd_dev;
 		pd_dev->dev.parent = &pdev->dev;
 
 		retval = platform_device_add_data(pd_dev, board_dat,
-						  sizeof(*board_dat));
-		if (retval) {
+										  sizeof(*board_dat));
+
+		if (retval)
+		{
 			dev_err(&pdev->dev,
-				"platform_device_add_data failed\n");
+					"platform_device_add_data failed\n");
 			platform_device_put(pd_dev);
 			goto err_platform_device;
 		}
 
 		retval = platform_device_add(pd_dev);
-		if (retval) {
+
+		if (retval)
+		{
 			dev_err(&pdev->dev, "platform_device_add failed\n");
 			platform_device_put(pd_dev);
 			goto err_platform_device;
@@ -1611,8 +1875,12 @@ static int pch_spi_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	return 0;
 
 err_platform_device:
+
 	while (--i >= 0)
+	{
 		platform_device_unregister(pd_dev_save->pd_save[i]);
+	}
+
 	pci_disable_device(pdev);
 pci_enable_device:
 	pci_release_regions(pdev);
@@ -1632,7 +1900,9 @@ static void pch_spi_remove(struct pci_dev *pdev)
 	dev_dbg(&pdev->dev, "%s ENTRY:pdev=%p\n", __func__, pdev);
 
 	for (i = 0; i < pd_dev_save->num; i++)
+	{
 		platform_device_unregister(pd_dev_save->pd_save[i]);
+	}
 
 	pci_disable_device(pdev);
 	pci_release_regions(pdev);
@@ -1652,11 +1922,15 @@ static int pch_spi_suspend(struct pci_dev *pdev, pm_message_t state)
 
 	/* save config space */
 	retval = pci_save_state(pdev);
-	if (retval == 0) {
+
+	if (retval == 0)
+	{
 		pci_enable_wake(pdev, PCI_D3hot, 0);
 		pci_disable_device(pdev);
 		pci_set_power_state(pdev, PCI_D3hot);
-	} else {
+	}
+	else
+	{
 		dev_err(&pdev->dev, "%s pci_save_state failed\n", __func__);
 	}
 
@@ -1673,10 +1947,14 @@ static int pch_spi_resume(struct pci_dev *pdev)
 	pci_restore_state(pdev);
 
 	retval = pci_enable_device(pdev);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		dev_err(&pdev->dev,
-			"%s pci_enable_device failed\n", __func__);
-	} else {
+				"%s pci_enable_device failed\n", __func__);
+	}
+	else
+	{
 		pci_enable_wake(pdev, PCI_D3hot, 0);
 
 		/* set suspend status to false */
@@ -1691,7 +1969,8 @@ static int pch_spi_resume(struct pci_dev *pdev)
 
 #endif
 
-static struct pci_driver pch_spi_pcidev_driver = {
+static struct pci_driver pch_spi_pcidev_driver =
+{
 	.name = "pch_spi",
 	.id_table = pch_spi_pcidev_id,
 	.probe = pch_spi_probe,
@@ -1704,11 +1983,16 @@ static int __init pch_spi_init(void)
 {
 	int ret;
 	ret = platform_driver_register(&pch_spi_pd_driver);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pci_register_driver(&pch_spi_pcidev_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		platform_driver_unregister(&pch_spi_pd_driver);
 		return ret;
 	}
@@ -1726,7 +2010,7 @@ module_exit(pch_spi_exit);
 
 module_param(use_dma, int, 0644);
 MODULE_PARM_DESC(use_dma,
-		 "to use DMA for data transfers pass 1 else 0; default 1");
+				 "to use DMA for data transfers pass 1 else 0; default 1");
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Intel EG20T PCH/LAPIS Semiconductor ML7xxx IOH SPI Driver");

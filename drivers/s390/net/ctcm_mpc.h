@@ -23,7 +23,7 @@
 
 /*  passive open  Just wait for XID2 exchange */
 extern int ctc_mpc_alloc_channel(int port,
-		void (*callback)(int port_num, int max_write_size));
+								 void (*callback)(int port_num, int max_write_size));
 /* active open  Alloc then send XID2 */
 extern void ctc_mpc_establish_connectivity(int port,
 		void (*callback)(int port_num, int rc, int max_write_size));
@@ -49,7 +49,8 @@ extern void ctc_mpc_flow_control(int port, int flowc);
 #define XID2_WRITE_SIDE 0x04
 #define XID2_READ_SIDE	0x05
 
-struct xid2 {
+struct xid2
+{
 	__u8	xid2_type_id;
 	__u8	xid2_len;
 	__u32	xid2_adj_id;
@@ -71,14 +72,15 @@ struct xid2 {
 	__u8	xid2_resv6;
 	__u16	xid2_buf_len;
 	char xid2_buffer[255 - (13 * sizeof(__u8) +
-				2 * sizeof(__u32) +
-				4 * sizeof(__u16) +
-				8 * sizeof(char))];
+							2 * sizeof(__u32) +
+							4 * sizeof(__u16) +
+							8 * sizeof(char))];
 } __attribute__ ((packed));
 
 #define XID2_LENGTH  (sizeof(struct xid2))
 
-struct th_header {
+struct th_header
+{
 	__u8	th_seg;
 	__u8	th_ch_flag;
 #define TH_HAS_PDU	0xf0
@@ -96,12 +98,14 @@ struct th_header {
 	__u32	th_seq_num;
 } __attribute__ ((packed));
 
-struct th_addon {
+struct th_addon
+{
 	__u32	th_last_seq;
 	__u32	th_resvd;
 } __attribute__ ((packed));
 
-struct th_sweep {
+struct th_sweep
+{
 	struct th_header th;
 	struct th_addon sw;
 } __attribute__ ((packed));
@@ -113,7 +117,8 @@ struct th_sweep {
 #define PDU_CNTL	0x40
 #define PDU_FIRST	0x20
 
-struct pdu {
+struct pdu
+{
 	__u32	pdu_offset;
 	__u8	pdu_flag;
 	__u8	pdu_proto;   /*  0x01 is APPN SNA  */
@@ -122,7 +127,8 @@ struct pdu {
 
 #define PDU_HEADER_LENGTH  (sizeof(struct pdu))
 
-struct qllc {
+struct qllc
+{
 	__u8	qllc_address;
 #define QLLC_REQ	0xFF
 #define QLLC_RESP	0x00
@@ -146,7 +152,8 @@ struct qllc {
 #define XSIDE	1
 #define YSIDE	0
 
-struct mpcg_info {
+struct mpcg_info
+{
 	struct sk_buff	*skb;
 	struct channel	*ch;
 	struct xid2	*xid;
@@ -154,7 +161,8 @@ struct mpcg_info {
 	struct th_header *th;
 };
 
-struct mpc_group {
+struct mpc_group
+{
 	struct tasklet_struct mpc_tasklet;
 	struct tasklet_struct mpc_tasklet2;
 	int	changed_side;
@@ -222,9 +230,13 @@ static inline void ctcmpc_dump_skb(struct sk_buff *skb, int offset)
 static inline void ctcmpc_dump32(char *buf, int len)
 {
 	if (len < 32)
+	{
 		ctcmpc_dumpit(buf, len);
+	}
 	else
+	{
 		ctcmpc_dumpit(buf, 32);
+	}
 }
 
 int ctcmpc_open(struct net_device *);

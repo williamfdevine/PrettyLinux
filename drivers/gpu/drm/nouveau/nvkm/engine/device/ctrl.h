@@ -3,7 +3,8 @@
 #define nvkm_control(p) container_of((p), struct nvkm_control, object)
 #include <core/device.h>
 
-struct nvkm_control {
+struct nvkm_control
+{
 	struct nvkm_object object;
 	struct nvkm_device *device;
 };

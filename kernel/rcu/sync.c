@@ -24,19 +24,21 @@
 #include <linux/sched.h>
 
 #ifdef CONFIG_PROVE_RCU
-#define __INIT_HELD(func)	.held = func,
+	#define __INIT_HELD(func)	.held = func,
 #else
-#define __INIT_HELD(func)
+	#define __INIT_HELD(func)
 #endif
 
-static const struct {
+static const struct
+{
 	void (*sync)(void);
 	void (*call)(struct rcu_head *, void (*)(struct rcu_head *));
 	void (*wait)(void);
 #ifdef CONFIG_PROVE_RCU
 	int  (*held)(void);
 #endif
-} gp_ops[] = {
+} gp_ops[] =
+{
 	[RCU_SYNC] = {
 		.sync = synchronize_rcu,
 		.call = call_rcu,
@@ -66,7 +68,7 @@ enum { CB_IDLE = 0, CB_PENDING, CB_REPLAY };
 void rcu_sync_lockdep_assert(struct rcu_sync *rsp)
 {
 	RCU_LOCKDEP_WARN(!gp_ops[rsp->gp_type].held(),
-			 "suspicious rcu_sync_is_idle() usage");
+					 "suspicious rcu_sync_is_idle() usage");
 }
 
 EXPORT_SYMBOL_GPL(rcu_sync_lockdep_assert);
@@ -118,19 +120,28 @@ void rcu_sync_enter(struct rcu_sync *rsp)
 	spin_lock_irq(&rsp->rss_lock);
 	need_wait = rsp->gp_count++;
 	need_sync = rsp->gp_state == GP_IDLE;
+
 	if (need_sync)
+	{
 		rsp->gp_state = GP_PENDING;
+	}
+
 	spin_unlock_irq(&rsp->rss_lock);
 
 	BUG_ON(need_wait && need_sync);
 
-	if (need_sync) {
+	if (need_sync)
+	{
 		gp_ops[rsp->gp_type].sync();
 		rsp->gp_state = GP_PASSED;
 		wake_up_all(&rsp->gp_wait);
-	} else if (need_wait) {
+	}
+	else if (need_wait)
+	{
 		wait_event(rsp->gp_wait, rsp->gp_state == GP_PASSED);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Possible when there's a pending CB from a rcu_sync_exit().
 		 * Nobody has yet been allowed the 'fast' path and thus we can
@@ -167,19 +178,25 @@ static void rcu_sync_func(struct rcu_head *rcu)
 	BUG_ON(rsp->cb_state == CB_IDLE);
 
 	spin_lock_irqsave(&rsp->rss_lock, flags);
-	if (rsp->gp_count) {
+
+	if (rsp->gp_count)
+	{
 		/*
 		 * A new rcu_sync_begin() has happened; drop the callback.
 		 */
 		rsp->cb_state = CB_IDLE;
-	} else if (rsp->cb_state == CB_REPLAY) {
+	}
+	else if (rsp->cb_state == CB_REPLAY)
+	{
 		/*
 		 * A new rcu_sync_exit() has happened; requeue the callback
 		 * to catch a later GP.
 		 */
 		rsp->cb_state = CB_PENDING;
 		gp_ops[rsp->gp_type].call(&rsp->cb_head, rcu_sync_func);
-	} else {
+	}
+	else
+	{
 		/*
 		 * We're at least a GP after rcu_sync_exit(); eveybody will now
 		 * have observed the write side critical section. Let 'em rip!.
@@ -187,6 +204,7 @@ static void rcu_sync_func(struct rcu_head *rcu)
 		rsp->cb_state = CB_IDLE;
 		rsp->gp_state = GP_IDLE;
 	}
+
 	spin_unlock_irqrestore(&rsp->rss_lock, flags);
 }
 
@@ -203,14 +221,20 @@ static void rcu_sync_func(struct rcu_head *rcu)
 void rcu_sync_exit(struct rcu_sync *rsp)
 {
 	spin_lock_irq(&rsp->rss_lock);
-	if (!--rsp->gp_count) {
-		if (rsp->cb_state == CB_IDLE) {
+
+	if (!--rsp->gp_count)
+	{
+		if (rsp->cb_state == CB_IDLE)
+		{
 			rsp->cb_state = CB_PENDING;
 			gp_ops[rsp->gp_type].call(&rsp->cb_head, rcu_sync_func);
-		} else if (rsp->cb_state == CB_PENDING) {
+		}
+		else if (rsp->cb_state == CB_PENDING)
+		{
 			rsp->cb_state = CB_REPLAY;
 		}
 	}
+
 	spin_unlock_irq(&rsp->rss_lock);
 }
 
@@ -225,12 +249,17 @@ void rcu_sync_dtor(struct rcu_sync *rsp)
 	BUG_ON(rsp->gp_count);
 
 	spin_lock_irq(&rsp->rss_lock);
+
 	if (rsp->cb_state == CB_REPLAY)
+	{
 		rsp->cb_state = CB_PENDING;
+	}
+
 	cb_state = rsp->cb_state;
 	spin_unlock_irq(&rsp->rss_lock);
 
-	if (cb_state != CB_IDLE) {
+	if (cb_state != CB_IDLE)
+	{
 		gp_ops[rsp->gp_type].wait();
 		BUG_ON(rsp->cb_state != CB_IDLE);
 	}

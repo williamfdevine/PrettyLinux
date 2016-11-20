@@ -52,7 +52,7 @@
 /* FIXME: move to dev_* once ATM is driver model aware */
 #define atm_printk(level, instance, format, arg...)	\
 	printk(level "ATM dev %d: " format ,		\
-	(instance)->atm_dev->number , ## arg)
+		   (instance)->atm_dev->number , ## arg)
 
 #define atm_err(instance, format, arg...)	\
 	atm_printk(KERN_ERR, instance , format , ## arg)
@@ -62,10 +62,10 @@
 	atm_printk(KERN_WARNING, instance , format , ## arg)
 #define atm_dbg(instance, format, ...)					\
 	pr_debug("ATM dev %d: " format,					\
-		 (instance)->atm_dev->number, ##__VA_ARGS__)
+			 (instance)->atm_dev->number, ##__VA_ARGS__)
 #define atm_rldbg(instance, format, ...)				\
 	pr_debug_ratelimited("ATM dev %d: " format,			\
-			     (instance)->atm_dev->number, ##__VA_ARGS__)
+						 (instance)->atm_dev->number, ##__VA_ARGS__)
 
 /* flags, set by mini-driver in bind() */
 
@@ -84,12 +84,13 @@ struct usbatm_data;
 *	bind, heavy_init, atm_start, ..., atm_stop, unbind
 */
 
-struct usbatm_driver {
+struct usbatm_driver
+{
 	const char *driver_name;
 
 	/* init device ... can sleep, or cause probe() failure */
 	int (*bind) (struct usbatm_data *, struct usb_interface *,
-		     const struct usb_device_id *id);
+				 const struct usb_device_id *id);
 
 	/* additional device initialization that is too slow to be done in probe() */
 	int (*heavy_init) (struct usbatm_data *, struct usb_interface *);
@@ -112,11 +113,12 @@ struct usbatm_driver {
 };
 
 extern int usbatm_usb_probe(struct usb_interface *intf, const struct usb_device_id *id,
-		struct usbatm_driver *driver);
+							struct usbatm_driver *driver);
 extern void usbatm_usb_disconnect(struct usb_interface *intf);
 
 
-struct usbatm_channel {
+struct usbatm_channel
+{
 	int endpoint;			/* usb pipe */
 	unsigned int stride;		/* ATM cell size + padding */
 	unsigned int buf_size;		/* urb buffer size */
@@ -130,7 +132,8 @@ struct usbatm_channel {
 
 /* main driver data */
 
-struct usbatm_data {
+struct usbatm_data
+{
 	/******************
 	*  public fields  *
 	******************/
@@ -186,12 +189,16 @@ static inline void *to_usbatm_driver_data(struct usb_interface *intf)
 	struct usbatm_data *usbatm_instance;
 
 	if (intf == NULL)
+	{
 		return NULL;
+	}
 
 	usbatm_instance = usb_get_intfdata(intf);
 
 	if (usbatm_instance == NULL) /* set NULL before unbind() */
+	{
 		return NULL;
+	}
 
 	return usbatm_instance->driver_data; /* set NULL after unbind() */
 }

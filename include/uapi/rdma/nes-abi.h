@@ -50,13 +50,15 @@
  * instead.
  */
 
-struct nes_alloc_ucontext_req {
+struct nes_alloc_ucontext_req
+{
 	__u32 reserved32;
 	__u8  userspace_ver;
 	__u8  reserved8[3];
 };
 
-struct nes_alloc_ucontext_resp {
+struct nes_alloc_ucontext_resp
+{
 	__u32 max_pds; /* maximum pds allowed for this user process */
 	__u32 max_qps; /* maximum qps allowed for this user process */
 	__u32 wq_size; /* size of the WQs (sq+rq) allocated to the mmaped area */
@@ -65,23 +67,27 @@ struct nes_alloc_ucontext_resp {
 	__u8  reserved[2];
 };
 
-struct nes_alloc_pd_resp {
+struct nes_alloc_pd_resp
+{
 	__u32 pd_id;
 	__u32 mmap_db_index;
 };
 
-struct nes_create_cq_req {
+struct nes_create_cq_req
+{
 	__u64 user_cq_buffer;
 	__u32 mcrqf;
 	__u8 reserved[4];
 };
 
-struct nes_create_qp_req {
+struct nes_create_qp_req
+{
 	__u64 user_wqe_buffers;
 	__u64 user_qp_buffer;
 };
 
-enum iwnes_memreg_type {
+enum iwnes_memreg_type
+{
 	IWNES_MEMREG_TYPE_MEM = 0x0000,
 	IWNES_MEMREG_TYPE_QP = 0x0001,
 	IWNES_MEMREG_TYPE_CQ = 0x0002,
@@ -90,19 +96,22 @@ enum iwnes_memreg_type {
 	IWNES_MEMREG_TYPE_FMEM = 0x0005,
 };
 
-struct nes_mem_reg_req {
+struct nes_mem_reg_req
+{
 	__u32 reg_type;	/* indicates if id is memory, QP or CQ */
 	__u32 reserved;
 };
 
-struct nes_create_cq_resp {
+struct nes_create_cq_resp
+{
 	__u32 cq_id;
 	__u32 cq_size;
 	__u32 mmap_db_index;
 	__u32 reserved;
 };
 
-struct nes_create_qp_resp {
+struct nes_create_qp_resp
+{
 	__u32 qp_id;
 	__u32 actual_sq_size;
 	__u32 actual_rq_size;

@@ -40,23 +40,32 @@ irqreturn_t vmw_irq_handler(int irq, void *arg)
 	masked_status = status & READ_ONCE(dev_priv->irq_mask);
 
 	if (likely(status))
+	{
 		outl(status, dev_priv->io_start + VMWGFX_IRQSTATUS_PORT);
+	}
 
 	if (!status)
+	{
 		return IRQ_NONE;
+	}
 
 	if (masked_status & (SVGA_IRQFLAG_ANY_FENCE |
-			     SVGA_IRQFLAG_FENCE_GOAL)) {
+						 SVGA_IRQFLAG_FENCE_GOAL))
+	{
 		vmw_fences_update(dev_priv->fman);
 		wake_up_all(&dev_priv->fence_queue);
 	}
 
 	if (masked_status & SVGA_IRQFLAG_FIFO_PROGRESS)
+	{
 		wake_up_all(&dev_priv->fifo_queue);
+	}
 
 	if (masked_status & (SVGA_IRQFLAG_COMMAND_BUFFER |
-			     SVGA_IRQFLAG_ERROR))
+						 SVGA_IRQFLAG_ERROR))
+	{
 		vmw_cmdbuf_tasklet_schedule(dev_priv->cman);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -68,12 +77,13 @@ static bool vmw_fifo_idle(struct vmw_private *dev_priv, uint32_t seqno)
 }
 
 void vmw_update_seqno(struct vmw_private *dev_priv,
-			 struct vmw_fifo_state *fifo_state)
+					  struct vmw_fifo_state *fifo_state)
 {
 	u32 *fifo_mem = dev_priv->mmio_virt;
 	uint32_t seqno = vmw_mmio_read(fifo_mem + SVGA_FIFO_FENCE);
 
-	if (dev_priv->last_read_seqno != seqno) {
+	if (dev_priv->last_read_seqno != seqno)
+	{
 		dev_priv->last_read_seqno = seqno;
 		vmw_marker_pull(&fifo_state->marker_queue, seqno);
 		vmw_fences_update(dev_priv->fman);
@@ -81,22 +91,29 @@ void vmw_update_seqno(struct vmw_private *dev_priv,
 }
 
 bool vmw_seqno_passed(struct vmw_private *dev_priv,
-			 uint32_t seqno)
+					  uint32_t seqno)
 {
 	struct vmw_fifo_state *fifo_state;
 	bool ret;
 
 	if (likely(dev_priv->last_read_seqno - seqno < VMW_FENCE_WRAP))
+	{
 		return true;
+	}
 
 	fifo_state = &dev_priv->fifo;
 	vmw_update_seqno(dev_priv, fifo_state);
+
 	if (likely(dev_priv->last_read_seqno - seqno < VMW_FENCE_WRAP))
+	{
 		return true;
+	}
 
 	if (!(fifo_state->capabilities & SVGA_FIFO_CAP_FENCE) &&
-	    vmw_fifo_idle(dev_priv, seqno))
+		vmw_fifo_idle(dev_priv, seqno))
+	{
 		return true;
+	}
 
 	/**
 	 * Then check if the seqno is higher than what we've actually
@@ -104,17 +121,17 @@ bool vmw_seqno_passed(struct vmw_private *dev_priv,
 	 */
 
 	ret = ((atomic_read(&dev_priv->marker_seq) - seqno)
-	       > VMW_FENCE_WRAP);
+		   > VMW_FENCE_WRAP);
 
 	return ret;
 }
 
 int vmw_fallback_wait(struct vmw_private *dev_priv,
-		      bool lazy,
-		      bool fifo_idle,
-		      uint32_t seqno,
-		      bool interruptible,
-		      unsigned long timeout)
+					  bool lazy,
+					  bool fifo_idle,
+					  uint32_t seqno,
+					  bool interruptible,
+					  unsigned long timeout)
 {
 	struct vmw_fifo_state *fifo_state = &dev_priv->fifo;
 
@@ -126,38 +143,54 @@ int vmw_fallback_wait(struct vmw_private *dev_priv,
 	DEFINE_WAIT(__wait);
 
 	wait_condition = (fifo_idle) ? &vmw_fifo_idle :
-		&vmw_seqno_passed;
+					 &vmw_seqno_passed;
 
 	/**
 	 * Block command submission while waiting for idle.
 	 */
 
-	if (fifo_idle) {
+	if (fifo_idle)
+	{
 		down_read(&fifo_state->rwsem);
-		if (dev_priv->cman) {
+
+		if (dev_priv->cman)
+		{
 			ret = vmw_cmdbuf_idle(dev_priv->cman, interruptible,
-					      10*HZ);
+								  10 * HZ);
+
 			if (ret)
+			{
 				goto out_err;
+			}
 		}
 	}
 
 	signal_seq = atomic_read(&dev_priv->marker_seq);
 	ret = 0;
 
-	for (;;) {
+	for (;;)
+	{
 		prepare_to_wait(&dev_priv->fence_queue, &__wait,
-				(interruptible) ?
-				TASK_INTERRUPTIBLE : TASK_UNINTERRUPTIBLE);
+						(interruptible) ?
+						TASK_INTERRUPTIBLE : TASK_UNINTERRUPTIBLE);
+
 		if (wait_condition(dev_priv, seqno))
+		{
 			break;
-		if (time_after_eq(jiffies, end_jiffies)) {
+		}
+
+		if (time_after_eq(jiffies, end_jiffies))
+		{
 			DRM_ERROR("SVGA device lockup.\n");
 			break;
 		}
+
 		if (lazy)
+		{
 			schedule_timeout(1);
-		else if ((++count & 0x0F) == 0) {
+		}
+		else if ((++count & 0x0F) == 0)
+		{
 			/**
 			 * FIXME: Use schedule_hr_timeout here for
 			 * newer kernels and lower CPU utilization.
@@ -166,117 +199,140 @@ int vmw_fallback_wait(struct vmw_private *dev_priv,
 			__set_current_state(TASK_RUNNING);
 			schedule();
 			__set_current_state((interruptible) ?
-					    TASK_INTERRUPTIBLE :
-					    TASK_UNINTERRUPTIBLE);
+								TASK_INTERRUPTIBLE :
+								TASK_UNINTERRUPTIBLE);
 		}
-		if (interruptible && signal_pending(current)) {
+
+		if (interruptible && signal_pending(current))
+		{
 			ret = -ERESTARTSYS;
 			break;
 		}
 	}
+
 	finish_wait(&dev_priv->fence_queue, &__wait);
-	if (ret == 0 && fifo_idle) {
+
+	if (ret == 0 && fifo_idle)
+	{
 		u32 *fifo_mem = dev_priv->mmio_virt;
 
 		vmw_mmio_write(signal_seq, fifo_mem + SVGA_FIFO_FENCE);
 	}
+
 	wake_up_all(&dev_priv->fence_queue);
 out_err:
+
 	if (fifo_idle)
+	{
 		up_read(&fifo_state->rwsem);
+	}
 
 	return ret;
 }
 
 void vmw_generic_waiter_add(struct vmw_private *dev_priv,
-			    u32 flag, int *waiter_count)
+							u32 flag, int *waiter_count)
 {
 	spin_lock_bh(&dev_priv->waiter_lock);
-	if ((*waiter_count)++ == 0) {
+
+	if ((*waiter_count)++ == 0)
+	{
 		outl(flag, dev_priv->io_start + VMWGFX_IRQSTATUS_PORT);
 		dev_priv->irq_mask |= flag;
 		vmw_write(dev_priv, SVGA_REG_IRQMASK, dev_priv->irq_mask);
 	}
+
 	spin_unlock_bh(&dev_priv->waiter_lock);
 }
 
 void vmw_generic_waiter_remove(struct vmw_private *dev_priv,
-			       u32 flag, int *waiter_count)
+							   u32 flag, int *waiter_count)
 {
 	spin_lock_bh(&dev_priv->waiter_lock);
-	if (--(*waiter_count) == 0) {
+
+	if (--(*waiter_count) == 0)
+	{
 		dev_priv->irq_mask &= ~flag;
 		vmw_write(dev_priv, SVGA_REG_IRQMASK, dev_priv->irq_mask);
 	}
+
 	spin_unlock_bh(&dev_priv->waiter_lock);
 }
 
 void vmw_seqno_waiter_add(struct vmw_private *dev_priv)
 {
 	vmw_generic_waiter_add(dev_priv, SVGA_IRQFLAG_ANY_FENCE,
-			       &dev_priv->fence_queue_waiters);
+						   &dev_priv->fence_queue_waiters);
 }
 
 void vmw_seqno_waiter_remove(struct vmw_private *dev_priv)
 {
 	vmw_generic_waiter_remove(dev_priv, SVGA_IRQFLAG_ANY_FENCE,
-				  &dev_priv->fence_queue_waiters);
+							  &dev_priv->fence_queue_waiters);
 }
 
 void vmw_goal_waiter_add(struct vmw_private *dev_priv)
 {
 	vmw_generic_waiter_add(dev_priv, SVGA_IRQFLAG_FENCE_GOAL,
-			       &dev_priv->goal_queue_waiters);
+						   &dev_priv->goal_queue_waiters);
 }
 
 void vmw_goal_waiter_remove(struct vmw_private *dev_priv)
 {
 	vmw_generic_waiter_remove(dev_priv, SVGA_IRQFLAG_FENCE_GOAL,
-				  &dev_priv->goal_queue_waiters);
+							  &dev_priv->goal_queue_waiters);
 }
 
 int vmw_wait_seqno(struct vmw_private *dev_priv,
-		      bool lazy, uint32_t seqno,
-		      bool interruptible, unsigned long timeout)
+				   bool lazy, uint32_t seqno,
+				   bool interruptible, unsigned long timeout)
 {
 	long ret;
 	struct vmw_fifo_state *fifo = &dev_priv->fifo;
 
 	if (likely(dev_priv->last_read_seqno - seqno < VMW_FENCE_WRAP))
+	{
 		return 0;
+	}
 
 	if (likely(vmw_seqno_passed(dev_priv, seqno)))
+	{
 		return 0;
+	}
 
 	vmw_fifo_ping_host(dev_priv, SVGA_SYNC_GENERIC);
 
 	if (!(fifo->capabilities & SVGA_FIFO_CAP_FENCE))
 		return vmw_fallback_wait(dev_priv, lazy, true, seqno,
-					 interruptible, timeout);
+								 interruptible, timeout);
 
 	if (!(dev_priv->capabilities & SVGA_CAP_IRQMASK))
 		return vmw_fallback_wait(dev_priv, lazy, false, seqno,
-					 interruptible, timeout);
+								 interruptible, timeout);
 
 	vmw_seqno_waiter_add(dev_priv);
 
 	if (interruptible)
 		ret = wait_event_interruptible_timeout
-		    (dev_priv->fence_queue,
-		     vmw_seqno_passed(dev_priv, seqno),
-		     timeout);
+			  (dev_priv->fence_queue,
+			   vmw_seqno_passed(dev_priv, seqno),
+			   timeout);
 	else
 		ret = wait_event_timeout
-		    (dev_priv->fence_queue,
-		     vmw_seqno_passed(dev_priv, seqno),
-		     timeout);
+			  (dev_priv->fence_queue,
+			   vmw_seqno_passed(dev_priv, seqno),
+			   timeout);
 
 	vmw_seqno_waiter_remove(dev_priv);
 
 	if (unlikely(ret == 0))
+	{
 		ret = -EBUSY;
+	}
 	else if (likely(ret > 0))
+	{
 		ret = 0;
+	}
 
 	return ret;
 }
@@ -287,7 +343,9 @@ void vmw_irq_preinstall(struct drm_device *dev)
 	uint32_t status;
 
 	if (!(dev_priv->capabilities & SVGA_CAP_IRQMASK))
+	{
 		return;
+	}
 
 	status = inl(dev_priv->io_start + VMWGFX_IRQSTATUS_PORT);
 	outl(status, dev_priv->io_start + VMWGFX_IRQSTATUS_PORT);
@@ -304,7 +362,9 @@ void vmw_irq_uninstall(struct drm_device *dev)
 	uint32_t status;
 
 	if (!(dev_priv->capabilities & SVGA_CAP_IRQMASK))
+	{
 		return;
+	}
 
 	vmw_write(dev_priv, SVGA_REG_IRQMASK, 0);
 

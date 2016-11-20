@@ -49,8 +49,11 @@ static struct inode *ll_alloc_inode(struct super_block *sb)
 
 	ll_stats_ops_tally(ll_s2sbi(sb), LPROC_LL_ALLOC_INODE, 1);
 	lli = kmem_cache_zalloc(ll_inode_cachep, GFP_NOFS);
+
 	if (!lli)
+	{
 		return NULL;
+	}
 
 	inode_init_once(&lli->lli_vfs_inode);
 	return &lli->lli_vfs_inode;
@@ -70,7 +73,8 @@ static void ll_destroy_inode(struct inode *inode)
 }
 
 /* exported operations */
-struct super_operations lustre_super_operations = {
+struct super_operations lustre_super_operations =
+{
 	.alloc_inode   = ll_alloc_inode,
 	.destroy_inode = ll_destroy_inode,
 	.evict_inode   = ll_delete_inode,
@@ -95,31 +99,41 @@ static int __init lustre_init(void)
 	 * symbols from modules.
 	 */
 	CDEBUG(D_INFO, "Lustre client module (%p).\n",
-	       &lustre_super_operations);
+		   &lustre_super_operations);
 
 	rc = -ENOMEM;
 	ll_inode_cachep = kmem_cache_create("lustre_inode_cache",
-					    sizeof(struct ll_inode_info), 0,
-					    SLAB_HWCACHE_ALIGN | SLAB_ACCOUNT,
-					    NULL);
+										sizeof(struct ll_inode_info), 0,
+										SLAB_HWCACHE_ALIGN | SLAB_ACCOUNT,
+										NULL);
+
 	if (!ll_inode_cachep)
+	{
 		goto out_cache;
+	}
 
 	ll_file_data_slab = kmem_cache_create("ll_file_data",
-					      sizeof(struct ll_file_data), 0,
-					      SLAB_HWCACHE_ALIGN, NULL);
+										  sizeof(struct ll_file_data), 0,
+										  SLAB_HWCACHE_ALIGN, NULL);
+
 	if (!ll_file_data_slab)
+	{
 		goto out_cache;
+	}
 
 	llite_root = debugfs_create_dir("llite", debugfs_lustre_root);
-	if (IS_ERR_OR_NULL(llite_root)) {
+
+	if (IS_ERR_OR_NULL(llite_root))
+	{
 		rc = llite_root ? PTR_ERR(llite_root) : -ENOMEM;
 		llite_root = NULL;
 		goto out_cache;
 	}
 
 	llite_kset = kset_create_and_add("llite", NULL, lustre_kobj);
-	if (!llite_kset) {
+
+	if (!llite_kset)
+	{
 		rc = -ENOMEM;
 		goto out_debugfs;
 	}
@@ -129,24 +143,34 @@ static int __init lustre_init(void)
 	/* Nodes with small feet have little entropy. The NID for this
 	 * node gives the most entropy in the low bits
 	 */
-	for (i = 0;; i++) {
+	for (i = 0;; i++)
+	{
 		if (LNetGetId(i, &lnet_id) == -ENOENT)
+		{
 			break;
+		}
 
 		if (LNET_NETTYP(LNET_NIDNET(lnet_id.nid)) != LOLND)
+		{
 			seed[0] ^= LNET_NIDADDR(lnet_id.nid);
+		}
 	}
 
 	ktime_get_ts64(&ts);
 	cfs_srand(ts.tv_sec ^ seed[0], ts.tv_nsec ^ seed[1]);
 
 	rc = vvp_global_init();
+
 	if (rc != 0)
+	{
 		goto out_sysfs;
+	}
 
 	cl_inode_fini_env = cl_env_alloc(&cl_inode_fini_refcheck,
-					 LCT_REMEMBER | LCT_NOREF);
-	if (IS_ERR(cl_inode_fini_env)) {
+									 LCT_REMEMBER | LCT_NOREF);
+
+	if (IS_ERR(cl_inode_fini_env))
+	{
 		rc = PTR_ERR(cl_inode_fini_env);
 		goto out_vvp;
 	}
@@ -154,8 +178,11 @@ static int __init lustre_init(void)
 	cl_inode_fini_env->le_ctx.lc_cookie = 0x4;
 
 	rc = ll_xattr_init();
+
 	if (rc != 0)
+	{
 		goto out_inode_fini_env;
+	}
 
 	lustre_register_client_fill_super(ll_fill_super);
 	lustre_register_kill_super_cb(ll_kill_super);

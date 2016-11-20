@@ -45,10 +45,12 @@
 static void warn_setuid_and_fcaps_mixed(const char *fname)
 {
 	static int warned;
-	if (!warned) {
+
+	if (!warned)
+	{
 		printk(KERN_INFO "warning: `%s' has both setuid-root and"
-			" effective capabilities. Therefore not raising all"
-			" capabilities.\n", fname);
+			   " effective capabilities. Therefore not raising all"
+			   " capabilities.\n", fname);
 		warned = 1;
 	}
 }
@@ -69,7 +71,7 @@ static void warn_setuid_and_fcaps_mixed(const char *fname)
  * kernel's capable() and has_capability() returns 1 for this case.
  */
 int cap_capable(const struct cred *cred, struct user_namespace *targ_ns,
-		int cap, int audit)
+				int cap, int audit)
 {
 	struct user_namespace *ns = targ_ns;
 
@@ -77,21 +79,28 @@ int cap_capable(const struct cred *cred, struct user_namespace *targ_ns,
 	 * by examining the target user namespace and all of the target
 	 * user namespace's parents.
 	 */
-	for (;;) {
+	for (;;)
+	{
 		/* Do we have the necessary capabilities? */
 		if (ns == cred->user_ns)
+		{
 			return cap_raised(cred->cap_effective, cap) ? 0 : -EPERM;
+		}
 
 		/* Have we tried all of the parent namespaces? */
 		if (ns == &init_user_ns)
+		{
 			return -EPERM;
+		}
 
-		/* 
+		/*
 		 * The owner of the user namespace in the parent of the
 		 * user namespace has all caps.
 		 */
 		if ((ns->parent == cred->user_ns) && uid_eq(ns->owner, cred->euid))
+		{
 			return 0;
+		}
 
 		/*
 		 * If you have a capability in a parent user ns, then you have
@@ -114,7 +123,10 @@ int cap_capable(const struct cred *cred, struct user_namespace *targ_ns,
 int cap_settime(const struct timespec64 *ts, const struct timezone *tz)
 {
 	if (!capable(CAP_SYS_TIME))
+	{
 		return -EPERM;
+	}
+
 	return 0;
 }
 
@@ -142,15 +154,27 @@ int cap_ptrace_access_check(struct task_struct *child, unsigned int mode)
 	rcu_read_lock();
 	cred = current_cred();
 	child_cred = __task_cred(child);
+
 	if (mode & PTRACE_MODE_FSCREDS)
+	{
 		caller_caps = &cred->cap_effective;
+	}
 	else
+	{
 		caller_caps = &cred->cap_permitted;
+	}
+
 	if (cred->user_ns == child_cred->user_ns &&
-	    cap_issubset(child_cred->cap_permitted, *caller_caps))
+		cap_issubset(child_cred->cap_permitted, *caller_caps))
+	{
 		goto out;
+	}
+
 	if (ns_capable(child_cred->user_ns, CAP_SYS_PTRACE))
+	{
 		goto out;
+	}
+
 	ret = -EPERM;
 out:
 	rcu_read_unlock();
@@ -178,11 +202,18 @@ int cap_ptrace_traceme(struct task_struct *parent)
 	rcu_read_lock();
 	cred = __task_cred(parent);
 	child_cred = current_cred();
+
 	if (cred->user_ns == child_cred->user_ns &&
-	    cap_issubset(child_cred->cap_permitted, cred->cap_permitted))
+		cap_issubset(child_cred->cap_permitted, cred->cap_permitted))
+	{
 		goto out;
+	}
+
 	if (has_ns_capability(parent, child_cred->user_ns, CAP_SYS_PTRACE))
+	{
 		goto out;
+	}
+
 	ret = -EPERM;
 out:
 	rcu_read_unlock();
@@ -200,7 +231,7 @@ out:
  * them to the caller.
  */
 int cap_capget(struct task_struct *target, kernel_cap_t *effective,
-	       kernel_cap_t *inheritable, kernel_cap_t *permitted)
+			   kernel_cap_t *inheritable, kernel_cap_t *permitted)
 {
 	const struct cred *cred;
 
@@ -225,8 +256,11 @@ static inline int cap_inh_is_capped(void)
 	 * capability
 	 */
 	if (cap_capable(current_cred(), current_cred()->user_ns,
-			CAP_SETPCAP, SECURITY_CAP_AUDIT) == 0)
+					CAP_SETPCAP, SECURITY_CAP_AUDIT) == 0)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -243,31 +277,39 @@ static inline int cap_inh_is_capped(void)
  * credentials, and assuming no error, will be committed by the caller of LSM.
  */
 int cap_capset(struct cred *new,
-	       const struct cred *old,
-	       const kernel_cap_t *effective,
-	       const kernel_cap_t *inheritable,
-	       const kernel_cap_t *permitted)
+			   const struct cred *old,
+			   const kernel_cap_t *effective,
+			   const kernel_cap_t *inheritable,
+			   const kernel_cap_t *permitted)
 {
 	if (cap_inh_is_capped() &&
-	    !cap_issubset(*inheritable,
-			  cap_combine(old->cap_inheritable,
-				      old->cap_permitted)))
+		!cap_issubset(*inheritable,
+					  cap_combine(old->cap_inheritable,
+								  old->cap_permitted)))
 		/* incapable of using this inheritable set */
+	{
 		return -EPERM;
+	}
 
 	if (!cap_issubset(*inheritable,
-			  cap_combine(old->cap_inheritable,
-				      old->cap_bset)))
+					  cap_combine(old->cap_inheritable,
+								  old->cap_bset)))
 		/* no new pI capabilities outside bounding set */
+	{
 		return -EPERM;
+	}
 
 	/* verify restrictions on target's new Permitted set */
 	if (!cap_issubset(*permitted, old->cap_permitted))
+	{
 		return -EPERM;
+	}
 
 	/* verify the _new_Effective_ is a subset of the _new_Permitted_ */
 	if (!cap_issubset(*effective, *permitted))
+	{
 		return -EPERM;
+	}
 
 	new->cap_effective   = *effective;
 	new->cap_inheritable = *inheritable;
@@ -278,10 +320,14 @@ int cap_capset(struct cred *new,
 	 * inheritable.
 	 */
 	new->cap_ambient = cap_intersect(new->cap_ambient,
-					 cap_intersect(*permitted,
-						       *inheritable));
+									 cap_intersect(*permitted,
+											 *inheritable));
+
 	if (WARN_ON(!cap_ambient_invariant_ok(new)))
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -327,8 +373,12 @@ int cap_inode_killpriv(struct dentry *dentry)
 	int error;
 
 	error = __vfs_removexattr(dentry, XATTR_NAME_CAPS);
+
 	if (error == -EOPNOTSUPP)
+	{
 		error = 0;
+	}
+
 	return error;
 }
 
@@ -337,21 +387,26 @@ int cap_inode_killpriv(struct dentry *dentry)
  * to a file.
  */
 static inline int bprm_caps_from_vfs_caps(struct cpu_vfs_cap_data *caps,
-					  struct linux_binprm *bprm,
-					  bool *effective,
-					  bool *has_cap)
+		struct linux_binprm *bprm,
+		bool *effective,
+		bool *has_cap)
 {
 	struct cred *new = bprm->cred;
 	unsigned i;
 	int ret = 0;
 
 	if (caps->magic_etc & VFS_CAP_FLAGS_EFFECTIVE)
+	{
 		*effective = true;
+	}
 
 	if (caps->magic_etc & VFS_CAP_REVISION_MASK)
+	{
 		*has_cap = true;
+	}
 
-	CAP_FOR_EACH_U32(i) {
+	CAP_FOR_EACH_U32(i)
+	{
 		__u32 permitted = caps->permitted.cap[i];
 		__u32 inheritable = caps->inheritable.cap[i];
 
@@ -365,7 +420,9 @@ static inline int bprm_caps_from_vfs_caps(struct cpu_vfs_cap_data *caps,
 
 		if (permitted & ~new->cap_permitted.cap[i])
 			/* insufficient to execute correctly */
+		{
 			ret = -EPERM;
+		}
 	}
 
 	/*
@@ -390,39 +447,62 @@ int get_vfs_caps_from_disk(const struct dentry *dentry, struct cpu_vfs_cap_data 
 	memset(cpu_caps, 0, sizeof(struct cpu_vfs_cap_data));
 
 	if (!inode)
+	{
 		return -ENODATA;
+	}
 
 	size = __vfs_getxattr((struct dentry *)dentry, inode,
-			      XATTR_NAME_CAPS, &caps, XATTR_CAPS_SZ);
+						  XATTR_NAME_CAPS, &caps, XATTR_CAPS_SZ);
+
 	if (size == -ENODATA || size == -EOPNOTSUPP)
 		/* no data, that's ok */
+	{
 		return -ENODATA;
+	}
+
 	if (size < 0)
+	{
 		return size;
+	}
 
 	if (size < sizeof(magic_etc))
-		return -EINVAL;
-
-	cpu_caps->magic_etc = magic_etc = le32_to_cpu(caps.magic_etc);
-
-	switch (magic_etc & VFS_CAP_REVISION_MASK) {
-	case VFS_CAP_REVISION_1:
-		if (size != XATTR_CAPS_SZ_1)
-			return -EINVAL;
-		tocopy = VFS_CAP_U32_1;
-		break;
-	case VFS_CAP_REVISION_2:
-		if (size != XATTR_CAPS_SZ_2)
-			return -EINVAL;
-		tocopy = VFS_CAP_U32_2;
-		break;
-	default:
+	{
 		return -EINVAL;
 	}
 
-	CAP_FOR_EACH_U32(i) {
-		if (i >= tocopy)
+	cpu_caps->magic_etc = magic_etc = le32_to_cpu(caps.magic_etc);
+
+	switch (magic_etc & VFS_CAP_REVISION_MASK)
+	{
+		case VFS_CAP_REVISION_1:
+			if (size != XATTR_CAPS_SZ_1)
+			{
+				return -EINVAL;
+			}
+
+			tocopy = VFS_CAP_U32_1;
 			break;
+
+		case VFS_CAP_REVISION_2:
+			if (size != XATTR_CAPS_SZ_2)
+			{
+				return -EINVAL;
+			}
+
+			tocopy = VFS_CAP_U32_2;
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
+	CAP_FOR_EACH_U32(i)
+	{
+		if (i >= tocopy)
+		{
+			break;
+		}
+
 		cpu_caps->permitted.cap[i] = le32_to_cpu(caps.data[i].permitted);
 		cpu_caps->inheritable.cap[i] = le32_to_cpu(caps.data[i].inheritable);
 	}
@@ -446,10 +526,14 @@ static int get_file_caps(struct linux_binprm *bprm, bool *effective, bool *has_c
 	bprm_clear_caps(bprm);
 
 	if (!file_caps_enabled)
+	{
 		return 0;
+	}
 
 	if (!mnt_may_suid(bprm->file->f_path.mnt))
+	{
 		return 0;
+	}
 
 	/*
 	 * This check is redundant with mnt_may_suid() but is kept to make
@@ -457,26 +541,37 @@ static int get_file_caps(struct linux_binprm *bprm, bool *effective, bool *has_c
 	 * descendants.
 	 */
 	if (!current_in_userns(bprm->file->f_path.mnt->mnt_sb->s_user_ns))
+	{
 		return 0;
+	}
 
 	rc = get_vfs_caps_from_disk(bprm->file->f_path.dentry, &vcaps);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		if (rc == -EINVAL)
 			printk(KERN_NOTICE "%s: get_vfs_caps_from_disk returned %d for %s\n",
-				__func__, rc, bprm->filename);
+				   __func__, rc, bprm->filename);
 		else if (rc == -ENODATA)
+		{
 			rc = 0;
+		}
+
 		goto out;
 	}
 
 	rc = bprm_caps_from_vfs_caps(&vcaps, bprm, effective, has_cap);
+
 	if (rc == -EINVAL)
 		printk(KERN_NOTICE "%s: cap_from_disk returned %d for %s\n",
-		       __func__, rc, bprm->filename);
+			   __func__, rc, bprm->filename);
 
 out:
+
 	if (rc)
+	{
 		bprm_clear_caps(bprm);
+	}
 
 	return rc;
 }
@@ -498,25 +593,33 @@ int cap_bprm_set_creds(struct linux_binprm *bprm)
 	kuid_t root_uid;
 
 	if (WARN_ON(!cap_ambient_invariant_ok(old)))
+	{
 		return -EPERM;
+	}
 
 	effective = false;
 	ret = get_file_caps(bprm, &effective, &has_cap);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	root_uid = make_kuid(new->user_ns, 0);
 
-	if (!issecure(SECURE_NOROOT)) {
+	if (!issecure(SECURE_NOROOT))
+	{
 		/*
 		 * If the legacy file capability is set, then don't set privs
 		 * for a setuid root binary run by a non-root user.  Do set it
 		 * for a root user just to cause least surprise to an admin.
 		 */
-		if (has_cap && !uid_eq(new->uid, root_uid) && uid_eq(new->euid, root_uid)) {
+		if (has_cap && !uid_eq(new->uid, root_uid) && uid_eq(new->euid, root_uid))
+		{
 			warn_setuid_and_fcaps_mixed(bprm->filename);
 			goto skip;
 		}
+
 		/*
 		 * To support inheritance of root-permissions and suid-root
 		 * executables under compatibility mode, we override the
@@ -524,19 +627,26 @@ int cap_bprm_set_creds(struct linux_binprm *bprm)
 		 *
 		 * If only the real uid is 0, we do not set the effective bit.
 		 */
-		if (uid_eq(new->euid, root_uid) || uid_eq(new->uid, root_uid)) {
+		if (uid_eq(new->euid, root_uid) || uid_eq(new->uid, root_uid))
+		{
 			/* pP' = (cap_bset & ~0) | (pI & ~0) */
 			new->cap_permitted = cap_combine(old->cap_bset,
-							 old->cap_inheritable);
+											 old->cap_inheritable);
 		}
+
 		if (uid_eq(new->euid, root_uid))
+		{
 			effective = true;
+		}
 	}
+
 skip:
 
 	/* if we have fs caps, clear dangerous personality flags */
 	if (!cap_issubset(new->cap_permitted, old->cap_permitted))
+	{
 		bprm->per_clear |= PER_CLEAR_ON_SETID;
+	}
 
 
 	/* Don't let someone trace a set[ug]id/setpcap binary with the revised
@@ -547,16 +657,19 @@ skip:
 	is_setid = !uid_eq(new->euid, old->uid) || !gid_eq(new->egid, old->gid);
 
 	if ((is_setid ||
-	     !cap_issubset(new->cap_permitted, old->cap_permitted)) &&
-	    bprm->unsafe & ~LSM_UNSAFE_PTRACE_CAP) {
+		 !cap_issubset(new->cap_permitted, old->cap_permitted)) &&
+		bprm->unsafe & ~LSM_UNSAFE_PTRACE_CAP)
+	{
 		/* downgrade; they get no more than they had, and maybe less */
 		if (!capable(CAP_SETUID) ||
-		    (bprm->unsafe & LSM_UNSAFE_NO_NEW_PRIVS)) {
+			(bprm->unsafe & LSM_UNSAFE_NO_NEW_PRIVS))
+		{
 			new->euid = new->uid;
 			new->egid = new->gid;
 		}
+
 		new->cap_permitted = cap_intersect(new->cap_permitted,
-						   old->cap_permitted);
+										   old->cap_permitted);
 	}
 
 	new->suid = new->fsuid = new->euid;
@@ -564,7 +677,9 @@ skip:
 
 	/* File caps or setid cancels ambient. */
 	if (has_cap || is_setid)
+	{
 		cap_clear(new->cap_ambient);
+	}
 
 	/*
 	 * Now that we've computed pA', update pP' to give:
@@ -577,12 +692,18 @@ skip:
 	 * this is the same as pE' = (fE ? pP' : 0) | pA'.
 	 */
 	if (effective)
+	{
 		new->cap_effective = new->cap_permitted;
+	}
 	else
+	{
 		new->cap_effective = new->cap_ambient;
+	}
 
 	if (WARN_ON(!cap_ambient_invariant_ok(new)))
+	{
 		return -EPERM;
+	}
 
 	bprm->cap_effective = effective;
 
@@ -598,20 +719,27 @@ skip:
 	 * Number 1 above might fail if you don't have a full bset, but I think
 	 * that is interesting information to audit.
 	 */
-	if (!cap_issubset(new->cap_effective, new->cap_ambient)) {
+	if (!cap_issubset(new->cap_effective, new->cap_ambient))
+	{
 		if (!cap_issubset(CAP_FULL_SET, new->cap_effective) ||
-		    !uid_eq(new->euid, root_uid) || !uid_eq(new->uid, root_uid) ||
-		    issecure(SECURE_NOROOT)) {
+			!uid_eq(new->euid, root_uid) || !uid_eq(new->uid, root_uid) ||
+			issecure(SECURE_NOROOT))
+		{
 			ret = audit_log_bprm_fcaps(bprm, new, old);
+
 			if (ret < 0)
+			{
 				return ret;
+			}
 		}
 	}
 
 	new->securebits &= ~issecure_mask(SECURE_KEEP_CAPS);
 
 	if (WARN_ON(!cap_ambient_invariant_ok(new)))
+	{
 		return -EPERM;
+	}
 
 	return 0;
 }
@@ -631,15 +759,21 @@ int cap_bprm_secureexec(struct linux_binprm *bprm)
 	const struct cred *cred = current_cred();
 	kuid_t root_uid = make_kuid(cred->user_ns, 0);
 
-	if (!uid_eq(cred->uid, root_uid)) {
+	if (!uid_eq(cred->uid, root_uid))
+	{
 		if (bprm->cap_effective)
+		{
 			return 1;
+		}
+
 		if (!cap_issubset(cred->cap_permitted, cred->cap_ambient))
+		{
 			return 1;
+		}
 	}
 
 	return (!uid_eq(cred->euid, cred->uid) ||
-		!gid_eq(cred->egid, cred->gid));
+			!gid_eq(cred->egid, cred->gid));
 }
 
 /**
@@ -657,18 +791,25 @@ int cap_bprm_secureexec(struct linux_binprm *bprm)
  * who aren't privileged to do so.
  */
 int cap_inode_setxattr(struct dentry *dentry, const char *name,
-		       const void *value, size_t size, int flags)
+					   const void *value, size_t size, int flags)
 {
-	if (!strcmp(name, XATTR_NAME_CAPS)) {
+	if (!strcmp(name, XATTR_NAME_CAPS))
+	{
 		if (!capable(CAP_SETFCAP))
+		{
 			return -EPERM;
+		}
+
 		return 0;
 	}
 
 	if (!strncmp(name, XATTR_SECURITY_PREFIX,
-		     sizeof(XATTR_SECURITY_PREFIX) - 1) &&
-	    !capable(CAP_SYS_ADMIN))
+				 sizeof(XATTR_SECURITY_PREFIX) - 1) &&
+		!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	return 0;
 }
 
@@ -685,16 +826,23 @@ int cap_inode_setxattr(struct dentry *dentry, const char *name,
  */
 int cap_inode_removexattr(struct dentry *dentry, const char *name)
 {
-	if (!strcmp(name, XATTR_NAME_CAPS)) {
+	if (!strcmp(name, XATTR_NAME_CAPS))
+	{
 		if (!capable(CAP_SETFCAP))
+		{
 			return -EPERM;
+		}
+
 		return 0;
 	}
 
 	if (!strncmp(name, XATTR_SECURITY_PREFIX,
-		     sizeof(XATTR_SECURITY_PREFIX) - 1) &&
-	    !capable(CAP_SYS_ADMIN))
+				 sizeof(XATTR_SECURITY_PREFIX) - 1) &&
+		!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	return 0;
 }
 
@@ -732,12 +880,14 @@ static inline void cap_emulate_setxuid(struct cred *new, const struct cred *old)
 	kuid_t root_uid = make_kuid(old->user_ns, 0);
 
 	if ((uid_eq(old->uid, root_uid) ||
-	     uid_eq(old->euid, root_uid) ||
-	     uid_eq(old->suid, root_uid)) &&
-	    (!uid_eq(new->uid, root_uid) &&
-	     !uid_eq(new->euid, root_uid) &&
-	     !uid_eq(new->suid, root_uid))) {
-		if (!issecure(SECURE_KEEP_CAPS)) {
+		 uid_eq(old->euid, root_uid) ||
+		 uid_eq(old->suid, root_uid)) &&
+		(!uid_eq(new->uid, root_uid) &&
+		 !uid_eq(new->euid, root_uid) &&
+		 !uid_eq(new->suid, root_uid)))
+	{
+		if (!issecure(SECURE_KEEP_CAPS))
+		{
 			cap_clear(new->cap_permitted);
 			cap_clear(new->cap_effective);
 		}
@@ -749,10 +899,16 @@ static inline void cap_emulate_setxuid(struct cred *new, const struct cred *old)
 		 */
 		cap_clear(new->cap_ambient);
 	}
+
 	if (uid_eq(old->euid, root_uid) && !uid_eq(new->euid, root_uid))
+	{
 		cap_clear(new->cap_effective);
+	}
+
 	if (!uid_eq(old->euid, root_uid) && uid_eq(new->euid, root_uid))
+	{
 		new->cap_effective = new->cap_permitted;
+	}
 }
 
 /**
@@ -766,38 +922,47 @@ static inline void cap_emulate_setxuid(struct cred *new, const struct cred *old)
  */
 int cap_task_fix_setuid(struct cred *new, const struct cred *old, int flags)
 {
-	switch (flags) {
-	case LSM_SETID_RE:
-	case LSM_SETID_ID:
-	case LSM_SETID_RES:
-		/* juggle the capabilities to follow [RES]UID changes unless
-		 * otherwise suppressed */
-		if (!issecure(SECURE_NO_SETUID_FIXUP))
-			cap_emulate_setxuid(new, old);
-		break;
+	switch (flags)
+	{
+		case LSM_SETID_RE:
+		case LSM_SETID_ID:
+		case LSM_SETID_RES:
 
-	case LSM_SETID_FS:
-		/* juggle the capabilties to follow FSUID changes, unless
-		 * otherwise suppressed
-		 *
-		 * FIXME - is fsuser used for all CAP_FS_MASK capabilities?
-		 *          if not, we might be a bit too harsh here.
-		 */
-		if (!issecure(SECURE_NO_SETUID_FIXUP)) {
-			kuid_t root_uid = make_kuid(old->user_ns, 0);
-			if (uid_eq(old->fsuid, root_uid) && !uid_eq(new->fsuid, root_uid))
-				new->cap_effective =
-					cap_drop_fs_set(new->cap_effective);
+			/* juggle the capabilities to follow [RES]UID changes unless
+			 * otherwise suppressed */
+			if (!issecure(SECURE_NO_SETUID_FIXUP))
+			{
+				cap_emulate_setxuid(new, old);
+			}
 
-			if (!uid_eq(old->fsuid, root_uid) && uid_eq(new->fsuid, root_uid))
-				new->cap_effective =
-					cap_raise_fs_set(new->cap_effective,
-							 new->cap_permitted);
-		}
-		break;
+			break;
 
-	default:
-		return -EINVAL;
+		case LSM_SETID_FS:
+
+			/* juggle the capabilties to follow FSUID changes, unless
+			 * otherwise suppressed
+			 *
+			 * FIXME - is fsuser used for all CAP_FS_MASK capabilities?
+			 *          if not, we might be a bit too harsh here.
+			 */
+			if (!issecure(SECURE_NO_SETUID_FIXUP))
+			{
+				kuid_t root_uid = make_kuid(old->user_ns, 0);
+
+				if (uid_eq(old->fsuid, root_uid) && !uid_eq(new->fsuid, root_uid))
+					new->cap_effective =
+						cap_drop_fs_set(new->cap_effective);
+
+				if (!uid_eq(old->fsuid, root_uid) && uid_eq(new->fsuid, root_uid))
+					new->cap_effective =
+						cap_raise_fs_set(new->cap_effective,
+										 new->cap_permitted);
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -819,9 +984,13 @@ static int cap_safe_nice(struct task_struct *p)
 
 	rcu_read_lock();
 	is_subset = cap_issubset(__task_cred(p)->cap_permitted,
-				 current_cred()->cap_permitted);
+							 current_cred()->cap_permitted);
+
 	if (!is_subset && !ns_capable(__task_cred(p)->user_ns, CAP_SYS_NICE))
+	{
 		ret = -EPERM;
+	}
+
 	rcu_read_unlock();
 
 	return ret;
@@ -874,13 +1043,22 @@ static int cap_prctl_drop(unsigned long cap)
 	struct cred *new;
 
 	if (!ns_capable(current_user_ns(), CAP_SETPCAP))
+	{
 		return -EPERM;
+	}
+
 	if (!cap_valid(cap))
+	{
 		return -EINVAL;
+	}
 
 	new = prepare_creds();
+
 	if (!new)
+	{
 		return -ENOMEM;
+	}
+
 	cap_lower(new->cap_bset, cap);
 	return commit_creds(new);
 }
@@ -898,126 +1076,175 @@ static int cap_prctl_drop(unsigned long cap)
  * modules will consider performing the function.
  */
 int cap_task_prctl(int option, unsigned long arg2, unsigned long arg3,
-		   unsigned long arg4, unsigned long arg5)
+				   unsigned long arg4, unsigned long arg5)
 {
 	const struct cred *old = current_cred();
 	struct cred *new;
 
-	switch (option) {
-	case PR_CAPBSET_READ:
-		if (!cap_valid(arg2))
-			return -EINVAL;
-		return !!cap_raised(old->cap_bset, arg2);
-
-	case PR_CAPBSET_DROP:
-		return cap_prctl_drop(arg2);
-
-	/*
-	 * The next four prctl's remain to assist with transitioning a
-	 * system from legacy UID=0 based privilege (when filesystem
-	 * capabilities are not in use) to a system using filesystem
-	 * capabilities only - as the POSIX.1e draft intended.
-	 *
-	 * Note:
-	 *
-	 *  PR_SET_SECUREBITS =
-	 *      issecure_mask(SECURE_KEEP_CAPS_LOCKED)
-	 *    | issecure_mask(SECURE_NOROOT)
-	 *    | issecure_mask(SECURE_NOROOT_LOCKED)
-	 *    | issecure_mask(SECURE_NO_SETUID_FIXUP)
-	 *    | issecure_mask(SECURE_NO_SETUID_FIXUP_LOCKED)
-	 *
-	 * will ensure that the current process and all of its
-	 * children will be locked into a pure
-	 * capability-based-privilege environment.
-	 */
-	case PR_SET_SECUREBITS:
-		if ((((old->securebits & SECURE_ALL_LOCKS) >> 1)
-		     & (old->securebits ^ arg2))			/*[1]*/
-		    || ((old->securebits & SECURE_ALL_LOCKS & ~arg2))	/*[2]*/
-		    || (arg2 & ~(SECURE_ALL_LOCKS | SECURE_ALL_BITS))	/*[3]*/
-		    || (cap_capable(current_cred(),
-				    current_cred()->user_ns, CAP_SETPCAP,
-				    SECURITY_CAP_AUDIT) != 0)		/*[4]*/
-			/*
-			 * [1] no changing of bits that are locked
-			 * [2] no unlocking of locks
-			 * [3] no setting of unsupported bits
-			 * [4] doing anything requires privilege (go read about
-			 *     the "sendmail capabilities bug")
-			 */
-		    )
-			/* cannot change a locked bit */
-			return -EPERM;
-
-		new = prepare_creds();
-		if (!new)
-			return -ENOMEM;
-		new->securebits = arg2;
-		return commit_creds(new);
-
-	case PR_GET_SECUREBITS:
-		return old->securebits;
-
-	case PR_GET_KEEPCAPS:
-		return !!issecure(SECURE_KEEP_CAPS);
-
-	case PR_SET_KEEPCAPS:
-		if (arg2 > 1) /* Note, we rely on arg2 being unsigned here */
-			return -EINVAL;
-		if (issecure(SECURE_KEEP_CAPS_LOCKED))
-			return -EPERM;
-
-		new = prepare_creds();
-		if (!new)
-			return -ENOMEM;
-		if (arg2)
-			new->securebits |= issecure_mask(SECURE_KEEP_CAPS);
-		else
-			new->securebits &= ~issecure_mask(SECURE_KEEP_CAPS);
-		return commit_creds(new);
-
-	case PR_CAP_AMBIENT:
-		if (arg2 == PR_CAP_AMBIENT_CLEAR_ALL) {
-			if (arg3 | arg4 | arg5)
+	switch (option)
+	{
+		case PR_CAPBSET_READ:
+			if (!cap_valid(arg2))
+			{
 				return -EINVAL;
+			}
 
-			new = prepare_creds();
-			if (!new)
-				return -ENOMEM;
-			cap_clear(new->cap_ambient);
-			return commit_creds(new);
-		}
+			return !!cap_raised(old->cap_bset, arg2);
 
-		if (((!cap_valid(arg3)) | arg4 | arg5))
-			return -EINVAL;
+		case PR_CAPBSET_DROP:
+			return cap_prctl_drop(arg2);
 
-		if (arg2 == PR_CAP_AMBIENT_IS_SET) {
-			return !!cap_raised(current_cred()->cap_ambient, arg3);
-		} else if (arg2 != PR_CAP_AMBIENT_RAISE &&
-			   arg2 != PR_CAP_AMBIENT_LOWER) {
-			return -EINVAL;
-		} else {
-			if (arg2 == PR_CAP_AMBIENT_RAISE &&
-			    (!cap_raised(current_cred()->cap_permitted, arg3) ||
-			     !cap_raised(current_cred()->cap_inheritable,
-					 arg3) ||
-			     issecure(SECURE_NO_CAP_AMBIENT_RAISE)))
+		/*
+		 * The next four prctl's remain to assist with transitioning a
+		 * system from legacy UID=0 based privilege (when filesystem
+		 * capabilities are not in use) to a system using filesystem
+		 * capabilities only - as the POSIX.1e draft intended.
+		 *
+		 * Note:
+		 *
+		 *  PR_SET_SECUREBITS =
+		 *      issecure_mask(SECURE_KEEP_CAPS_LOCKED)
+		 *    | issecure_mask(SECURE_NOROOT)
+		 *    | issecure_mask(SECURE_NOROOT_LOCKED)
+		 *    | issecure_mask(SECURE_NO_SETUID_FIXUP)
+		 *    | issecure_mask(SECURE_NO_SETUID_FIXUP_LOCKED)
+		 *
+		 * will ensure that the current process and all of its
+		 * children will be locked into a pure
+		 * capability-based-privilege environment.
+		 */
+		case PR_SET_SECUREBITS:
+			if ((((old->securebits & SECURE_ALL_LOCKS) >> 1)
+				 & (old->securebits ^ arg2))			/*[1]*/
+				|| ((old->securebits & SECURE_ALL_LOCKS & ~arg2))	/*[2]*/
+				|| (arg2 & ~(SECURE_ALL_LOCKS | SECURE_ALL_BITS))	/*[3]*/
+				|| (cap_capable(current_cred(),
+								current_cred()->user_ns, CAP_SETPCAP,
+								SECURITY_CAP_AUDIT) != 0)		/*[4]*/
+				/*
+				 * [1] no changing of bits that are locked
+				 * [2] no unlocking of locks
+				 * [3] no setting of unsupported bits
+				 * [4] doing anything requires privilege (go read about
+				 *     the "sendmail capabilities bug")
+				 */
+			   )
+				/* cannot change a locked bit */
+			{
 				return -EPERM;
+			}
 
 			new = prepare_creds();
-			if (!new)
-				return -ENOMEM;
-			if (arg2 == PR_CAP_AMBIENT_RAISE)
-				cap_raise(new->cap_ambient, arg3);
-			else
-				cap_lower(new->cap_ambient, arg3);
-			return commit_creds(new);
-		}
 
-	default:
-		/* No functionality available - continue with default */
-		return -ENOSYS;
+			if (!new)
+			{
+				return -ENOMEM;
+			}
+
+			new->securebits = arg2;
+			return commit_creds(new);
+
+		case PR_GET_SECUREBITS:
+			return old->securebits;
+
+		case PR_GET_KEEPCAPS:
+			return !!issecure(SECURE_KEEP_CAPS);
+
+		case PR_SET_KEEPCAPS:
+			if (arg2 > 1) /* Note, we rely on arg2 being unsigned here */
+			{
+				return -EINVAL;
+			}
+
+			if (issecure(SECURE_KEEP_CAPS_LOCKED))
+			{
+				return -EPERM;
+			}
+
+			new = prepare_creds();
+
+			if (!new)
+			{
+				return -ENOMEM;
+			}
+
+			if (arg2)
+			{
+				new->securebits |= issecure_mask(SECURE_KEEP_CAPS);
+			}
+			else
+			{
+				new->securebits &= ~issecure_mask(SECURE_KEEP_CAPS);
+			}
+
+			return commit_creds(new);
+
+		case PR_CAP_AMBIENT:
+			if (arg2 == PR_CAP_AMBIENT_CLEAR_ALL)
+			{
+				if (arg3 | arg4 | arg5)
+				{
+					return -EINVAL;
+				}
+
+				new = prepare_creds();
+
+				if (!new)
+				{
+					return -ENOMEM;
+				}
+
+				cap_clear(new->cap_ambient);
+				return commit_creds(new);
+			}
+
+			if (((!cap_valid(arg3)) | arg4 | arg5))
+			{
+				return -EINVAL;
+			}
+
+			if (arg2 == PR_CAP_AMBIENT_IS_SET)
+			{
+				return !!cap_raised(current_cred()->cap_ambient, arg3);
+			}
+			else if (arg2 != PR_CAP_AMBIENT_RAISE &&
+					 arg2 != PR_CAP_AMBIENT_LOWER)
+			{
+				return -EINVAL;
+			}
+			else
+			{
+				if (arg2 == PR_CAP_AMBIENT_RAISE &&
+					(!cap_raised(current_cred()->cap_permitted, arg3) ||
+					 !cap_raised(current_cred()->cap_inheritable,
+								 arg3) ||
+					 issecure(SECURE_NO_CAP_AMBIENT_RAISE)))
+				{
+					return -EPERM;
+				}
+
+				new = prepare_creds();
+
+				if (!new)
+				{
+					return -ENOMEM;
+				}
+
+				if (arg2 == PR_CAP_AMBIENT_RAISE)
+				{
+					cap_raise(new->cap_ambient, arg3);
+				}
+				else
+				{
+					cap_lower(new->cap_ambient, arg3);
+				}
+
+				return commit_creds(new);
+			}
+
+		default:
+			/* No functionality available - continue with default */
+			return -ENOSYS;
 	}
 }
 
@@ -1034,8 +1261,11 @@ int cap_vm_enough_memory(struct mm_struct *mm, long pages)
 	int cap_sys_admin = 0;
 
 	if (cap_capable(current_cred(), &init_user_ns, CAP_SYS_ADMIN,
-			SECURITY_CAP_NOAUDIT) == 0)
+					SECURITY_CAP_NOAUDIT) == 0)
+	{
 		cap_sys_admin = 1;
+	}
+
 	return cap_sys_admin;
 }
 
@@ -1052,25 +1282,31 @@ int cap_mmap_addr(unsigned long addr)
 {
 	int ret = 0;
 
-	if (addr < dac_mmap_min_addr) {
+	if (addr < dac_mmap_min_addr)
+	{
 		ret = cap_capable(current_cred(), &init_user_ns, CAP_SYS_RAWIO,
-				  SECURITY_CAP_AUDIT);
+						  SECURITY_CAP_AUDIT);
+
 		/* set PF_SUPERPRIV if it turns out we allow the low mmap */
 		if (ret == 0)
+		{
 			current->flags |= PF_SUPERPRIV;
+		}
 	}
+
 	return ret;
 }
 
 int cap_mmap_file(struct file *file, unsigned long reqprot,
-		  unsigned long prot, unsigned long flags)
+				  unsigned long prot, unsigned long flags)
 {
 	return 0;
 }
 
 #ifdef CONFIG_SECURITY
 
-struct security_hook_list capability_hooks[] = {
+struct security_hook_list capability_hooks[] =
+{
 	LSM_HOOK_INIT(capable, cap_capable),
 	LSM_HOOK_INIT(settime, cap_settime),
 	LSM_HOOK_INIT(ptrace_access_check, cap_ptrace_access_check),

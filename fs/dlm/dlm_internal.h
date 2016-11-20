@@ -67,48 +67,49 @@ struct dlm_mhandle;
 	printk(KERN_ERR "dlm: %s: " fmt "\n", (ls)->ls_name , ##args)
 
 #define log_rinfo(ls, fmt, args...) \
-do { \
-	if (dlm_config.ci_log_info) \
-		printk(KERN_INFO "dlm: %s: " fmt "\n", \
-			(ls)->ls_name, ##args); \
-	else if (dlm_config.ci_log_debug) \
-		printk(KERN_DEBUG "dlm: %s: " fmt "\n", \
-		       (ls)->ls_name , ##args); \
-} while (0)
+	do { \
+		if (dlm_config.ci_log_info) \
+			printk(KERN_INFO "dlm: %s: " fmt "\n", \
+				   (ls)->ls_name, ##args); \
+		else if (dlm_config.ci_log_debug) \
+			printk(KERN_DEBUG "dlm: %s: " fmt "\n", \
+				   (ls)->ls_name , ##args); \
+	} while (0)
 
 #define log_debug(ls, fmt, args...) \
-do { \
-	if (dlm_config.ci_log_debug) \
-		printk(KERN_DEBUG "dlm: %s: " fmt "\n", \
-		       (ls)->ls_name , ##args); \
-} while (0)
+	do { \
+		if (dlm_config.ci_log_debug) \
+			printk(KERN_DEBUG "dlm: %s: " fmt "\n", \
+				   (ls)->ls_name , ##args); \
+	} while (0)
 
 #define log_limit(ls, fmt, args...) \
-do { \
-	if (dlm_config.ci_log_debug) \
-		printk_ratelimited(KERN_DEBUG "dlm: %s: " fmt "\n", \
-			(ls)->ls_name , ##args); \
-} while (0)
+	do { \
+		if (dlm_config.ci_log_debug) \
+			printk_ratelimited(KERN_DEBUG "dlm: %s: " fmt "\n", \
+							   (ls)->ls_name , ##args); \
+	} while (0)
 
 #define DLM_ASSERT(x, do) \
-{ \
-  if (!(x)) \
-  { \
-    printk(KERN_ERR "\nDLM:  Assertion failed on line %d of file %s\n" \
-               "DLM:  assertion:  \"%s\"\n" \
-               "DLM:  time = %lu\n", \
-               __LINE__, __FILE__, #x, jiffies); \
-    {do} \
-    printk("\n"); \
-    BUG(); \
-    panic("DLM:  Record message above and reboot.\n"); \
-  } \
-}
+	{ \
+		if (!(x)) \
+		{ \
+			printk(KERN_ERR "\nDLM:  Assertion failed on line %d of file %s\n" \
+				   "DLM:  assertion:  \"%s\"\n" \
+				   "DLM:  time = %lu\n", \
+				   __LINE__, __FILE__, #x, jiffies); \
+			{do} \
+			printk("\n"); \
+			BUG(); \
+			panic("DLM:  Record message above and reboot.\n"); \
+		} \
+	}
 
 
 #define DLM_RTF_SHRINK		0x00000001
 
-struct dlm_rsbtable {
+struct dlm_rsbtable
+{
 	struct rb_root		keep;
 	struct rb_root		toss;
 	spinlock_t		lock;
@@ -120,7 +121,8 @@ struct dlm_rsbtable {
  * Lockspace member (per node in a ls)
  */
 
-struct dlm_member {
+struct dlm_member
+{
 	struct list_head	list;
 	int			nodeid;
 	int			weight;
@@ -134,7 +136,8 @@ struct dlm_member {
  * Save and manage recovery state for a lockspace.
  */
 
-struct dlm_recover {
+struct dlm_recover
+{
 	struct list_head	list;
 	struct dlm_config_node	*nodes;
 	int			nodes_count;
@@ -145,7 +148,8 @@ struct dlm_recover {
  * Pass input args to second stage locking function.
  */
 
-struct dlm_args {
+struct dlm_args
+{
 	uint32_t		flags;
 	void			(*astfn) (void *astparam);
 	void			*astparam;
@@ -223,7 +227,8 @@ struct dlm_args {
 #define DLM_CB_BAST		0x00000002
 #define DLM_CB_SKIP		0x00000004
 
-struct dlm_callback {
+struct dlm_callback
+{
 	uint64_t		seq;
 	uint32_t		flags;		/* DLM_CBF_ */
 	int			sb_status;	/* copy to lksb status */
@@ -231,7 +236,8 @@ struct dlm_callback {
 	int8_t			mode; /* rq mode of bast, gr mode of cast */
 };
 
-struct dlm_lkb {
+struct dlm_lkb
+{
 	struct dlm_rsb		*lkb_resource;	/* the rsb */
 	struct kref		lkb_ref;
 	int			lkb_nodeid;	/* copied from rsb */
@@ -276,7 +282,8 @@ struct dlm_lkb {
 	struct dlm_lksb		*lkb_lksb;      /* caller's status block */
 	void			(*lkb_astfn) (void *astparam);
 	void			(*lkb_bastfn) (void *astparam, int mode);
-	union {
+	union
+	{
 		void			*lkb_astparam;	/* caller's ast arg */
 		struct dlm_user_args	*lkb_ua;
 	};
@@ -292,7 +299,8 @@ struct dlm_lkb {
  * (TODO: remove res_nodeid and only use res_master_nodeid)
  */
 
-struct dlm_rsb {
+struct dlm_rsb
+{
 	struct dlm_ls		*res_ls;	/* the lockspace */
 	struct kref		res_ref;
 	struct mutex		res_mutex;
@@ -308,7 +316,8 @@ struct dlm_rsb {
 	unsigned long		res_toss_time;
 	uint32_t		res_first_lkid;
 	struct list_head	res_lookup;	/* lkbs waiting on first */
-	union {
+	union
+	{
 		struct list_head	res_hashchain;
 		struct rb_node		res_hashnode;	/* rsbtbl */
 	};
@@ -321,7 +330,7 @@ struct dlm_rsb {
 	int			res_recover_locks_count;
 
 	char			*res_lvbptr;
-	char			res_name[DLM_RESNAME_MAXLEN+1];
+	char			res_name[DLM_RESNAME_MAXLEN + 1];
 };
 
 /* dlm_master_lookup() flags */
@@ -342,7 +351,8 @@ struct dlm_rsb {
 
 /* rsb_flags */
 
-enum rsb_flags {
+enum rsb_flags
+{
 	RSB_MASTER_UNCERTAIN,
 	RSB_VALNOTVALID,
 	RSB_VALNOTVALID_PREV,
@@ -379,7 +389,8 @@ static inline int rsb_flag(struct dlm_rsb *r, enum rsb_flags flag)
 #define DLM_MSG			1
 #define DLM_RCOM		2
 
-struct dlm_header {
+struct dlm_header
+{
 	uint32_t		h_version;
 	uint32_t		h_lockspace;
 	uint32_t		h_nodeid;	/* nodeid of sender */
@@ -404,7 +415,8 @@ struct dlm_header {
 #define DLM_MSG_LOOKUP_REPLY	13
 #define DLM_MSG_PURGE		14
 
-struct dlm_message {
+struct dlm_message
+{
 	struct dlm_header	m_header;
 	uint32_t		m_type;		/* DLM_MSG_ */
 	uint32_t		m_nodeid;
@@ -446,7 +458,8 @@ struct dlm_message {
 #define DLM_RCOM_LOOKUP_REPLY	7
 #define DLM_RCOM_LOCK_REPLY	8
 
-struct dlm_rcom {
+struct dlm_rcom
+{
 	struct dlm_header	rc_header;
 	uint32_t		rc_type;	/* DLM_RCOM_ */
 	int			rc_result;	/* multi-purpose */
@@ -456,7 +469,8 @@ struct dlm_rcom {
 	char			rc_buf[0];
 };
 
-union dlm_packet {
+union dlm_packet
+{
 	struct dlm_header	header;		/* common to other two */
 	struct dlm_message	message;
 	struct dlm_rcom		rcom;
@@ -465,14 +479,16 @@ union dlm_packet {
 #define DLM_RSF_NEED_SLOTS	0x00000001
 
 /* RCOM_STATUS data */
-struct rcom_status {
+struct rcom_status
+{
 	__le32			rs_flags;
 	__le32			rs_unused1;
 	__le64			rs_unused2;
 };
 
 /* RCOM_STATUS_REPLY data */
-struct rcom_config {
+struct rcom_config
+{
 	__le32			rf_lvblen;
 	__le32			rf_lsflags;
 
@@ -485,14 +501,16 @@ struct rcom_config {
 	__le64			rf_unused2;
 };
 
-struct rcom_slot {
+struct rcom_slot
+{
 	__le32			ro_nodeid;
 	__le16			ro_slot;
 	__le16			ro_unused1;
 	__le64			ro_unused2;
 };
 
-struct rcom_lock {
+struct rcom_lock
+{
 	__le32			rl_ownpid;
 	__le32			rl_lkid;
 	__le32			rl_remid;
@@ -519,7 +537,8 @@ struct rcom_lock {
 
 #define DLM_REMOVE_NAMES_MAX 8
 
-struct dlm_ls {
+struct dlm_ls
+{
 	struct list_head	ls_list;	/* list of lockspaces */
 	dlm_lockspace_t		*ls_local_handle;
 	uint32_t		ls_global_id;	/* global unique lockspace ID */
@@ -553,7 +572,7 @@ struct dlm_ls {
 	struct list_head	ls_new_rsb;	/* new rsb structs */
 
 	spinlock_t		ls_remove_spin;
-	char			ls_remove_name[DLM_RESNAME_MAXLEN+1];
+	char			ls_remove_name[DLM_RESNAME_MAXLEN + 1];
 	char			*ls_remove_names[DLM_REMOVE_NAMES_MAX];
 	int			ls_remove_len;
 	int			ls_remove_lens[DLM_REMOVE_NAMES_MAX];
@@ -669,7 +688,8 @@ struct dlm_ls {
 /* much of this is just saving user space pointers associated with the
    lock that we pass back to the user lib with an ast */
 
-struct dlm_user_args {
+struct dlm_user_args
+{
 	struct dlm_user_proc	*proc; /* each process that opens the lockspace
 					  device has private data
 					  (dlm_user_proc) on the struct file,
@@ -689,7 +709,8 @@ struct dlm_user_args {
 /* locks list is kept so we can remove all a process's locks when it
    exits (or orphan those that are persistent) */
 
-struct dlm_user_proc {
+struct dlm_user_proc
+{
 	dlm_lockspace_t		*lockspace;
 	unsigned long		flags; /* DLM_PROC_FLAGS */
 	struct list_head	asts;

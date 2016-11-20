@@ -13,7 +13,8 @@
 #ifndef __LINUX_MFD_SEC_IRQ_H
 #define __LINUX_MFD_SEC_IRQ_H
 
-enum s2mpa01_irq {
+enum s2mpa01_irq
+{
 	S2MPA01_IRQ_PWRONF,
 	S2MPA01_IRQ_PWRONR,
 	S2MPA01_IRQ_JIGONBF,
@@ -63,7 +64,8 @@ enum s2mpa01_irq {
 #define S2MPA01_IRQ_B24_TSD_MASK	(1 << 4)
 #define S2MPA01_IRQ_B35_TSD_MASK	(1 << 5)
 
-enum s2mps11_irq {
+enum s2mps11_irq
+{
 	S2MPS11_IRQ_PWRONF,
 	S2MPS11_IRQ_PWRONR,
 	S2MPS11_IRQ_JIGONBF,
@@ -105,7 +107,8 @@ enum s2mps11_irq {
 #define S2MPS11_IRQ_INT120C_MASK	(1 << 0)
 #define S2MPS11_IRQ_INT140C_MASK	(1 << 1)
 
-enum s2mps14_irq {
+enum s2mps14_irq
+{
 	S2MPS14_IRQ_PWRONF,
 	S2MPS14_IRQ_PWRONR,
 	S2MPS14_IRQ_JIGONBF,
@@ -129,7 +132,8 @@ enum s2mps14_irq {
 	S2MPS14_IRQ_NR,
 };
 
-enum s2mpu02_irq {
+enum s2mpu02_irq
+{
 	S2MPU02_IRQ_PWRONF,
 	S2MPU02_IRQ_PWRONR,
 	S2MPU02_IRQ_JIGONBF,
@@ -156,7 +160,8 @@ enum s2mpu02_irq {
 /* Masks for interrupts are the same as in s2mps11 */
 #define S2MPS14_IRQ_TSD_MASK		(1 << 2)
 
-enum s5m8767_irq {
+enum s5m8767_irq
+{
 	S5M8767_IRQ_PWRR,
 	S5M8767_IRQ_PWRF,
 	S5M8767_IRQ_PWR1S,
@@ -200,7 +205,8 @@ enum s5m8767_irq {
 #define S5M8767_IRQ_RTC1S_MASK		(1 << 4)
 #define S5M8767_IRQ_WTSR_MASK		(1 << 5)
 
-enum s5m8763_irq {
+enum s5m8763_irq
+{
 	S5M8763_IRQ_DCINF,
 	S5M8763_IRQ_DCINR,
 	S5M8763_IRQ_JIGF,

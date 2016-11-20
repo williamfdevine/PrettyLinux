@@ -57,7 +57,7 @@
 
 /* helper macros for every DVB USB driver use */
 #define adap_to_d(adap) (container_of(adap, struct dvb_usb_device, \
-		adapter[adap->id]))
+									  adapter[adap->id]))
 #define adap_to_priv(adap) (adap_to_d(adap)->priv)
 #define fe_to_adap(fe) ((struct dvb_usb_adapter *) ((fe)->dvb->priv))
 #define fe_to_d(fe) (adap_to_d(fe_to_adap(fe)))
@@ -65,48 +65,48 @@
 #define d_to_priv(d) (d->priv)
 
 #define dvb_usb_dbg_usb_control_msg(udev, r, t, v, i, b, l) { \
-	char *direction; \
-	if (t == (USB_TYPE_VENDOR | USB_DIR_OUT)) \
-		direction = ">>>"; \
-	else \
-		direction = "<<<"; \
-	dev_dbg(&udev->dev, "%s: %02x %02x %02x %02x %02x %02x %02x %02x " \
-			"%s %*ph\n",  __func__, t, r, v & 0xff, v >> 8, \
-			i & 0xff, i >> 8, l & 0xff, l >> 8, direction, l, b); \
-}
+		char *direction; \
+		if (t == (USB_TYPE_VENDOR | USB_DIR_OUT)) \
+			direction = ">>>"; \
+		else \
+			direction = "<<<"; \
+		dev_dbg(&udev->dev, "%s: %02x %02x %02x %02x %02x %02x %02x %02x " \
+				"%s %*ph\n",  __func__, t, r, v & 0xff, v >> 8, \
+				i & 0xff, i >> 8, l & 0xff, l >> 8, direction, l, b); \
+	}
 
 #define DVB_USB_STREAM_BULK(endpoint_, count_, size_) { \
-	.type = USB_BULK, \
-	.count = count_, \
-	.endpoint = endpoint_, \
-	.u = { \
-		.bulk = { \
-			.buffersize = size_, \
-		} \
-	} \
-}
+		.type = USB_BULK, \
+				.count = count_, \
+						 .endpoint = endpoint_, \
+									 .u = { \
+											.bulk = { \
+													  .buffersize = size_, \
+													} \
+										  } \
+	}
 
 #define DVB_USB_STREAM_ISOC(endpoint_, count_, frames_, size_, interval_) { \
-	.type = USB_ISOC, \
-	.count = count_, \
-	.endpoint = endpoint_, \
-	.u = { \
-		.isoc = { \
-			.framesperurb = frames_, \
-			.framesize = size_,\
-			.interval = interval_, \
-		} \
-	} \
-}
+		.type = USB_ISOC, \
+				.count = count_, \
+						 .endpoint = endpoint_, \
+									 .u = { \
+											.isoc = { \
+													  .framesperurb = frames_, \
+													  .framesize = size_,\
+													  .interval = interval_, \
+													} \
+										  } \
+	}
 
 #define DVB_USB_DEVICE(vend, prod, props_, name_, rc) \
 	.match_flags = USB_DEVICE_ID_MATCH_DEVICE, \
-	.idVendor = (vend), \
-	.idProduct = (prod), \
+				   .idVendor = (vend), \
+							   .idProduct = (prod), \
 	.driver_info = (kernel_ulong_t) &((const struct dvb_usb_driver_info) { \
 		.props = (props_), \
-		.name = (name_), \
-		.rc_map = (rc), \
+				 .name = (name_), \
+						 .rc_map = (rc), \
 	})
 
 struct dvb_usb_device;
@@ -119,7 +119,8 @@ struct dvb_usb_adapter;
  * @rc_map: name of rc codes table
  * @props: structure containing all device properties
  */
-struct dvb_usb_driver_info {
+struct dvb_usb_driver_info
+{
 	const char *name;
 	const char *rc_map;
 	const struct dvb_usb_device_properties *props;
@@ -135,7 +136,8 @@ struct dvb_usb_driver_info {
  * @driver_type: used to point if a device supports raw mode
  * @bulk_mode: device supports bulk mode for rc (disable polling mode)
  */
-struct dvb_usb_rc {
+struct dvb_usb_rc
+{
 	const char *map_name;
 	u64 allowed_protos;
 	int (*change_protocol)(struct rc_dev *dev, u64 *rc_type);
@@ -151,18 +153,22 @@ struct dvb_usb_rc {
  * @count: count of used urbs
  * @endpoint: stream usb endpoint number
  */
-struct usb_data_stream_properties {
+struct usb_data_stream_properties
+{
 #define USB_BULK  1
 #define USB_ISOC  2
 	u8 type;
 	u8 count;
 	u8 endpoint;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			unsigned int buffersize; /* per URB */
 		} bulk;
-		struct {
+		struct
+		{
 			int framesperurb;
 			int framesize;
 			int interval;
@@ -179,7 +185,8 @@ struct usb_data_stream_properties {
  * @stream: adapter usb stream configuration
  */
 #define MAX_NO_OF_FE_PER_ADAP 3
-struct dvb_usb_adapter_properties {
+struct dvb_usb_adapter_properties
+{
 #define DVB_USB_ADAP_HAS_PID_FILTER               0x01
 #define DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF 0x02
 #define DVB_USB_ADAP_NEED_PID_FILTERING           0x04
@@ -228,7 +235,8 @@ struct dvb_usb_adapter_properties {
  *  stream from the demodulator and output stream is usb stream to host.
  */
 #define MAX_NO_OF_ADAPTER_PER_DEVICE 2
-struct dvb_usb_device_properties {
+struct dvb_usb_device_properties
+{
 	const char *driver_name;
 	struct module *owner;
 	short *adapter_nr;
@@ -245,7 +253,7 @@ struct dvb_usb_device_properties {
 	const char *firmware;
 #define RECONNECTS_USB        1
 	int (*download_firmware) (struct dvb_usb_device *,
-			const struct firmware *);
+							  const struct firmware *);
 
 	struct i2c_algorithm *i2c_algo;
 
@@ -268,7 +276,7 @@ struct dvb_usb_device_properties {
 #define DVB_USB_FE_TS_TYPE_204        1
 #define DVB_USB_FE_TS_TYPE_RAW        2
 	int (*get_stream_config) (struct dvb_frontend *,  u8 *,
-			struct usb_data_stream_properties *);
+							  struct usb_data_stream_properties *);
 };
 
 /**
@@ -282,7 +290,8 @@ struct dvb_usb_device_properties {
  * @urbs_submitted: number of URBs submitted
  */
 #define MAX_NO_URBS_FOR_DATA_STREAM 10
-struct usb_data_stream {
+struct usb_data_stream
+{
 	struct usb_device *udev;
 	struct usb_data_stream_properties props;
 
@@ -323,7 +332,8 @@ struct usb_data_stream {
  * @fe_init: rerouted frontend-init function
  * @fe_sleep: rerouted frontend-sleep function
  */
-struct dvb_usb_adapter {
+struct dvb_usb_adapter
+{
 	const struct dvb_usb_adapter_properties *props;
 	struct usb_data_stream stream;
 	u8 id;
@@ -367,7 +377,8 @@ struct dvb_usb_adapter {
  * @priv: private data of the actual driver (allocate by dvb usb, size defined
  *  in size_of_priv of dvb_usb_properties).
  */
-struct dvb_usb_device {
+struct dvb_usb_device
+{
 	const struct dvb_usb_device_properties *props;
 	const char *name;
 	const char *rc_map;
@@ -395,7 +406,7 @@ struct dvb_usb_device {
 };
 
 extern int dvb_usbv2_probe(struct usb_interface *,
-		const struct usb_device_id *);
+						   const struct usb_device_id *);
 extern void dvb_usbv2_disconnect(struct usb_interface *);
 extern int dvb_usbv2_suspend(struct usb_interface *, pm_message_t);
 extern int dvb_usbv2_resume(struct usb_interface *);
@@ -406,7 +417,7 @@ extern int dvb_usbv2_generic_rw(struct dvb_usb_device *, u8 *, u16, u8 *, u16);
 extern int dvb_usbv2_generic_write(struct dvb_usb_device *, u8 *, u16);
 /* caller must hold lock when locked versions are called */
 extern int dvb_usbv2_generic_rw_locked(struct dvb_usb_device *,
-		u8 *, u16, u8 *, u16);
+									   u8 *, u16, u8 *, u16);
 extern int dvb_usbv2_generic_write_locked(struct dvb_usb_device *, u8 *, u16);
 
 #endif

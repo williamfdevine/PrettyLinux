@@ -22,34 +22,40 @@
 #ifndef __STV090x_H
 #define __STV090x_H
 
-enum stv090x_demodulator {
+enum stv090x_demodulator
+{
 	STV090x_DEMODULATOR_0 = 1,
 	STV090x_DEMODULATOR_1
 };
 
-enum stv090x_device {
+enum stv090x_device
+{
 	STV0903	=  0,
 	STV0900,
 };
 
-enum stv090x_mode {
+enum stv090x_mode
+{
 	STV090x_DUAL = 0,
 	STV090x_SINGLE
 };
 
-enum stv090x_tsmode {
+enum stv090x_tsmode
+{
 	STV090x_TSMODE_SERIAL_PUNCTURED	= 1,
 	STV090x_TSMODE_SERIAL_CONTINUOUS,
 	STV090x_TSMODE_PARALLEL_PUNCTURED,
 	STV090x_TSMODE_DVBCI
 };
 
-enum stv090x_clkmode {
+enum stv090x_clkmode
+{
 	STV090x_CLK_INT = 0, /* Clk i/p = CLKI */
 	STV090x_CLK_EXT = 2 /* Clk i/p = XTALI */
 };
 
-enum stv090x_i2crpt {
+enum stv090x_i2crpt
+{
 	STV090x_RPTLEVEL_256	= 0,
 	STV090x_RPTLEVEL_128	= 1,
 	STV090x_RPTLEVEL_64	= 2,
@@ -60,12 +66,14 @@ enum stv090x_i2crpt {
 	STV090x_RPTLEVEL_2	= 7,
 };
 
-enum stv090x_adc_range {
+enum stv090x_adc_range
+{
 	STV090x_ADC_2Vpp	= 0,
 	STV090x_ADC_1Vpp	= 1
 };
 
-struct stv090x_config {
+struct stv090x_config
+{
 	enum stv090x_device	device;
 	enum stv090x_mode	demod_mode;
 	enum stv090x_clkmode	clk_mode;
@@ -104,20 +112,20 @@ struct stv090x_config {
 
 	/* dir = 0 -> output, dir = 1 -> input/open-drain */
 	int (*set_gpio)(struct dvb_frontend *fe, u8 gpio, u8 dir, u8 value,
-			u8 xor_value);
+					u8 xor_value);
 };
 
 #if IS_REACHABLE(CONFIG_DVB_STV090x)
 
 struct dvb_frontend *stv090x_attach(struct stv090x_config *config,
-				    struct i2c_adapter *i2c,
-				    enum stv090x_demodulator demod);
+									struct i2c_adapter *i2c,
+									enum stv090x_demodulator demod);
 
 #else
 
 static inline struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
-						  struct i2c_adapter *i2c,
-						  enum stv090x_demodulator demod)
+		struct i2c_adapter *i2c,
+		enum stv090x_demodulator demod)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

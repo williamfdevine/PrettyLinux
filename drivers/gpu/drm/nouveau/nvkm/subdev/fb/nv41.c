@@ -44,7 +44,8 @@ nv41_fb_init(struct nvkm_fb *fb)
 }
 
 static const struct nvkm_fb_func
-nv41_fb = {
+	nv41_fb =
+{
 	.init = nv41_fb_init,
 	.tile.regions = 12,
 	.tile.init = nv30_fb_tile_init,

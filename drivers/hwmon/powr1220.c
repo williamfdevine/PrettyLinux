@@ -31,7 +31,8 @@
 #define ADC_STEP_MV			2
 #define ADC_MAX_LOW_MEASUREMENT_MV	2000
 
-enum powr1220_regs {
+enum powr1220_regs
+{
 	VMON_STATUS0,
 	VMON_STATUS1,
 	VMON_STATUS2,
@@ -62,7 +63,8 @@ enum powr1220_regs {
 	MAX_POWR1220_REGS
 };
 
-enum powr1220_adc_values {
+enum powr1220_adc_values
+{
 	VMON1,
 	VMON2,
 	VMON3,
@@ -80,11 +82,12 @@ enum powr1220_adc_values {
 	MAX_POWR1220_ADC_VALUES
 };
 
-struct powr1220_data {
+struct powr1220_data
+{
 	struct i2c_client *client;
 	struct mutex update_lock;
 	bool adc_valid[MAX_POWR1220_ADC_VALUES];
-	 /* the next value is in jiffies */
+	/* the next value is in jiffies */
 	unsigned long adc_last_updated[MAX_POWR1220_ADC_VALUES];
 
 	/* values */
@@ -92,7 +95,8 @@ struct powr1220_data {
 	int adc_values[MAX_POWR1220_ADC_VALUES];
 };
 
-static const char * const input_names[] = {
+static const char *const input_names[] =
+{
 	[VMON1]    = "vmon1",
 	[VMON2]    = "vmon2",
 	[VMON3]    = "vmon3",
@@ -120,7 +124,8 @@ static int powr1220_read_adc(struct device *dev, int ch_num)
 	mutex_lock(&data->update_lock);
 
 	if (time_after(jiffies, data->adc_last_updated[ch_num] + HZ) ||
-			!data->adc_valid[ch_num]) {
+		!data->adc_valid[ch_num])
+	{
 		/*
 		 * figure out if we need to use the attenuator for
 		 * high inputs or inputs that we don't yet have a measurement
@@ -128,14 +133,19 @@ static int powr1220_read_adc(struct device *dev, int ch_num)
 		 * max reading.
 		 */
 		if (data->adc_maxes[ch_num] > ADC_MAX_LOW_MEASUREMENT_MV ||
-				data->adc_maxes[ch_num] == 0)
+			data->adc_maxes[ch_num] == 0)
+		{
 			adc_range = 1 << 4;
+		}
 
 		/* set the attenuator and mux */
 		result = i2c_smbus_write_byte_data(data->client, ADC_MUX,
-				adc_range | ch_num);
+										   adc_range | ch_num);
+
 		if (result)
+		{
 			goto exit;
+		}
 
 		/*
 		 * wait at least Tconvert time (200 us) for the
@@ -145,15 +155,21 @@ static int powr1220_read_adc(struct device *dev, int ch_num)
 
 		/* get the ADC reading */
 		result = i2c_smbus_read_byte_data(data->client, ADC_VALUE_LOW);
+
 		if (result < 0)
+		{
 			goto exit;
+		}
 
 		reading = result >> 4;
 
 		/* get the upper half of the reading */
 		result = i2c_smbus_read_byte_data(data->client, ADC_VALUE_HIGH);
+
 		if (result < 0)
+		{
 			goto exit;
+		}
 
 		reading |= result << 4;
 
@@ -165,8 +181,12 @@ static int powr1220_read_adc(struct device *dev, int ch_num)
 		result = reading;
 
 		if (reading > data->adc_maxes[ch_num])
+		{
 			data->adc_maxes[ch_num] = reading;
-	} else {
+		}
+	}
+	else
+	{
 		result = data->adc_values[ch_num];
 	}
 
@@ -178,20 +198,22 @@ exit:
 
 /* Shows the voltage associated with the specified ADC channel */
 static ssize_t powr1220_show_voltage(struct device *dev,
-	struct device_attribute *dev_attr, char *buf)
+									 struct device_attribute *dev_attr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 	int adc_val = powr1220_read_adc(dev, attr->index);
 
 	if (adc_val < 0)
+	{
 		return adc_val;
+	}
 
 	return sprintf(buf, "%d\n", adc_val);
 }
 
 /* Shows the maximum setting associated with the specified ADC channel */
 static ssize_t powr1220_show_max(struct device *dev,
-	struct device_attribute *dev_attr, char *buf)
+								 struct device_attribute *dev_attr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 	struct powr1220_data *data = dev_get_drvdata(dev);
@@ -201,7 +223,7 @@ static ssize_t powr1220_show_max(struct device *dev,
 
 /* Shows the label associated with the specified ADC channel */
 static ssize_t powr1220_show_label(struct device *dev,
-	struct device_attribute *dev_attr, char *buf)
+								   struct device_attribute *dev_attr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 
@@ -209,93 +231,94 @@ static ssize_t powr1220_show_label(struct device *dev,
 }
 
 static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VMON1);
+						  VMON1);
 static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VMON2);
+						  VMON2);
 static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VMON3);
+						  VMON3);
 static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VMON4);
+						  VMON4);
 static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VMON5);
+						  VMON5);
 static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VMON6);
+						  VMON6);
 static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VMON7);
+						  VMON7);
 static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VMON8);
+						  VMON8);
 static SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VMON9);
+						  VMON9);
 static SENSOR_DEVICE_ATTR(in9_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VMON10);
+						  VMON10);
 static SENSOR_DEVICE_ATTR(in10_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VMON11);
+						  VMON11);
 static SENSOR_DEVICE_ATTR(in11_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VMON12);
+						  VMON12);
 static SENSOR_DEVICE_ATTR(in12_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VCCA);
+						  VCCA);
 static SENSOR_DEVICE_ATTR(in13_input, S_IRUGO, powr1220_show_voltage, NULL,
-	VCCINP);
+						  VCCINP);
 
 static SENSOR_DEVICE_ATTR(in0_highest, S_IRUGO, powr1220_show_max, NULL,
-	VMON1);
+						  VMON1);
 static SENSOR_DEVICE_ATTR(in1_highest, S_IRUGO, powr1220_show_max, NULL,
-	VMON2);
+						  VMON2);
 static SENSOR_DEVICE_ATTR(in2_highest, S_IRUGO, powr1220_show_max, NULL,
-	VMON3);
+						  VMON3);
 static SENSOR_DEVICE_ATTR(in3_highest, S_IRUGO, powr1220_show_max, NULL,
-	VMON4);
+						  VMON4);
 static SENSOR_DEVICE_ATTR(in4_highest, S_IRUGO, powr1220_show_max, NULL,
-	VMON5);
+						  VMON5);
 static SENSOR_DEVICE_ATTR(in5_highest, S_IRUGO, powr1220_show_max, NULL,
-	VMON6);
+						  VMON6);
 static SENSOR_DEVICE_ATTR(in6_highest, S_IRUGO, powr1220_show_max, NULL,
-	VMON7);
+						  VMON7);
 static SENSOR_DEVICE_ATTR(in7_highest, S_IRUGO, powr1220_show_max, NULL,
-	VMON8);
+						  VMON8);
 static SENSOR_DEVICE_ATTR(in8_highest, S_IRUGO, powr1220_show_max, NULL,
-	VMON9);
+						  VMON9);
 static SENSOR_DEVICE_ATTR(in9_highest, S_IRUGO, powr1220_show_max, NULL,
-	VMON10);
+						  VMON10);
 static SENSOR_DEVICE_ATTR(in10_highest, S_IRUGO, powr1220_show_max, NULL,
-	VMON11);
+						  VMON11);
 static SENSOR_DEVICE_ATTR(in11_highest, S_IRUGO, powr1220_show_max, NULL,
-	VMON12);
+						  VMON12);
 static SENSOR_DEVICE_ATTR(in12_highest, S_IRUGO, powr1220_show_max, NULL,
-	VCCA);
+						  VCCA);
 static SENSOR_DEVICE_ATTR(in13_highest, S_IRUGO, powr1220_show_max, NULL,
-	VCCINP);
+						  VCCINP);
 
 static SENSOR_DEVICE_ATTR(in0_label, S_IRUGO, powr1220_show_label, NULL,
-	VMON1);
+						  VMON1);
 static SENSOR_DEVICE_ATTR(in1_label, S_IRUGO, powr1220_show_label, NULL,
-	VMON2);
+						  VMON2);
 static SENSOR_DEVICE_ATTR(in2_label, S_IRUGO, powr1220_show_label, NULL,
-	VMON3);
+						  VMON3);
 static SENSOR_DEVICE_ATTR(in3_label, S_IRUGO, powr1220_show_label, NULL,
-	VMON4);
+						  VMON4);
 static SENSOR_DEVICE_ATTR(in4_label, S_IRUGO, powr1220_show_label, NULL,
-	VMON5);
+						  VMON5);
 static SENSOR_DEVICE_ATTR(in5_label, S_IRUGO, powr1220_show_label, NULL,
-	VMON6);
+						  VMON6);
 static SENSOR_DEVICE_ATTR(in6_label, S_IRUGO, powr1220_show_label, NULL,
-	VMON7);
+						  VMON7);
 static SENSOR_DEVICE_ATTR(in7_label, S_IRUGO, powr1220_show_label, NULL,
-	VMON8);
+						  VMON8);
 static SENSOR_DEVICE_ATTR(in8_label, S_IRUGO, powr1220_show_label, NULL,
-	VMON9);
+						  VMON9);
 static SENSOR_DEVICE_ATTR(in9_label, S_IRUGO, powr1220_show_label, NULL,
-	VMON10);
+						  VMON10);
 static SENSOR_DEVICE_ATTR(in10_label, S_IRUGO, powr1220_show_label, NULL,
-	VMON11);
+						  VMON11);
 static SENSOR_DEVICE_ATTR(in11_label, S_IRUGO, powr1220_show_label, NULL,
-	VMON12);
+						  VMON12);
 static SENSOR_DEVICE_ATTR(in12_label, S_IRUGO, powr1220_show_label, NULL,
-	VCCA);
+						  VCCA);
 static SENSOR_DEVICE_ATTR(in13_label, S_IRUGO, powr1220_show_label, NULL,
-	VCCINP);
+						  VCCINP);
 
-static struct attribute *powr1220_attrs[] = {
+static struct attribute *powr1220_attrs[] =
+{
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_in1_input.dev_attr.attr,
 	&sensor_dev_attr_in2_input.dev_attr.attr,
@@ -347,35 +370,42 @@ static struct attribute *powr1220_attrs[] = {
 ATTRIBUTE_GROUPS(powr1220);
 
 static int powr1220_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct powr1220_data *data;
 	struct device *hwmon_dev;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -ENODEV;
+	}
 
 	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&data->update_lock);
 	data->client = client;
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(&client->dev,
-			client->name, data, powr1220_groups);
+				client->name, data, powr1220_groups);
 
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct i2c_device_id powr1220_ids[] = {
+static const struct i2c_device_id powr1220_ids[] =
+{
 	{ "powr1220", 0, },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(i2c, powr1220_ids);
 
-static struct i2c_driver powr1220_driver = {
+static struct i2c_driver powr1220_driver =
+{
 	.class		= I2C_CLASS_HWMON,
 	.driver = {
 		.name	= "powr1220",

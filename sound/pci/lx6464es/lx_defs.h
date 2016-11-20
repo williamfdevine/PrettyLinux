@@ -64,15 +64,15 @@
 #define MASK_SYS_STATUS_TIMER	(1L << 24)
 
 #define MASK_SYS_ASYNC_EVENTS	(MASK_SYS_STATUS_ERROR |		\
-				 MASK_SYS_STATUS_URUN  |		\
-				 MASK_SYS_STATUS_ORUN  |		\
-				 MASK_SYS_STATUS_EOBO  |		\
-				 MASK_SYS_STATUS_EOBI  |		\
-				 MASK_SYS_STATUS_FREQ  |		\
-				 MASK_SYS_STATUS_ESA)
+								 MASK_SYS_STATUS_URUN  |		\
+								 MASK_SYS_STATUS_ORUN  |		\
+								 MASK_SYS_STATUS_EOBO  |		\
+								 MASK_SYS_STATUS_EOBI  |		\
+								 MASK_SYS_STATUS_FREQ  |		\
+								 MASK_SYS_STATUS_ESA)
 
 #define MASK_SYS_PCI_EVENTS		(MASK_SYS_ASYNC_EVENTS |	\
-					 MASK_SYS_STATUS_TIMER)
+								 MASK_SYS_STATUS_TIMER)
 
 #define MASK_SYS_TIMER_COUNT	0x0000FFFF
 
@@ -111,7 +111,8 @@
 #define OPCODE_OFFSET	24	/* offset of the command opcode in the first
 				 * command word.*/
 
-enum cmd_mb_opcodes {
+enum cmd_mb_opcodes
+{
 	CMD_00_INFO_DEBUG	        = 0x00,
 	CMD_01_GET_SYS_CFG		= 0x01,
 	CMD_02_SET_GRANULARITY		= 0x02,
@@ -138,7 +139,8 @@ enum cmd_mb_opcodes {
 };
 
 /* pipe states */
-enum pipe_state_t {
+enum pipe_state_t
+{
 	PSTATE_IDLE	= 0,	/* the pipe is not processed in the XES_IRQ
 				 * (free or stopped, or paused). */
 	PSTATE_RUN	= 1,	/* sustained play/record state. */
@@ -152,7 +154,8 @@ enum pipe_state_t {
 };
 
 /* stream states */
-enum stream_state_t {
+enum stream_state_t
+{
 	SSTATE_STOP	=  0x00,       /* setting to stop resets the stream spl
 					* count.*/
 	SSTATE_RUN	= (0x01 << 0), /* start DMA and spl count handling. */
@@ -160,7 +163,8 @@ enum stream_state_t {
 };
 
 /* buffer flags */
-enum buffer_flags {
+enum buffer_flags
+{
 	BF_VALID	= 0x80,	/* set if the buffer is valid, clear if free.*/
 	BF_CURRENT	= 0x40,	/* set if this is the current buffer (there is
 				 * always a current buffer).*/
@@ -178,7 +182,8 @@ enum buffer_flags {
 /*
 *	Stream Flags definitions
 */
-enum stream_flags {
+enum stream_flags
+{
 	SF_ZERO		= 0x00000000, /* no flags (stream invalid). */
 	SF_VALID	= 0x10000000, /* the stream has a valid DMA_conf
 				       * info (setstreamformat). */
@@ -332,7 +337,7 @@ enum stream_flags {
 
 /* Complete BOARD error code for the invaid standard object class */
 #define EB_ISO          (ERROR_VALUE | E_SOURCE_BOARD | \
-			 E_CLASS_INVALID_STD_OBJECT)
+						 E_CLASS_INVALID_STD_OBJECT)
 #define EB_INVALID_EFFECT               (EB_ISO | 0x00)
 #define EB_INVALID_PIPE                 (EB_ISO | 0x40)
 #define EB_INVALID_STREAM               (EB_ISO | 0x80)

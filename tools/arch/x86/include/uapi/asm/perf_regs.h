@@ -1,7 +1,8 @@
 #ifndef _ASM_X86_PERF_REGS_H
 #define _ASM_X86_PERF_REGS_H
 
-enum perf_event_x86_regs {
+enum perf_event_x86_regs
+{
 	PERF_REG_X86_AX,
 	PERF_REG_X86_BX,
 	PERF_REG_X86_CX,

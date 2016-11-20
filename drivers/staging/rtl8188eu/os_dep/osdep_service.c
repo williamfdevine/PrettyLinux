@@ -30,7 +30,10 @@
 inline int RTW_STATUS_CODE(int error_code)
 {
 	if (error_code >= 0)
+	{
 		return _SUCCESS;
+	}
+
 	return _FAIL;
 }
 
@@ -43,14 +46,18 @@ void *rtw_malloc2d(int h, int w, int size)
 {
 	int j;
 
-	void **a = kzalloc(h*sizeof(void *) + h*w*size, GFP_KERNEL);
-	if (!a) {
+	void **a = kzalloc(h * sizeof(void *) + h * w * size, GFP_KERNEL);
+
+	if (!a)
+	{
 		pr_info("%s: alloc memory fail!\n", __func__);
 		return NULL;
 	}
 
 	for (j = 0; j < h; j++)
-		a[j] = ((char *)(a+h)) + j*w*size;
+	{
+		a[j] = ((char *)(a + h)) + j * w * size;
+	}
 
 	return a;
 }
@@ -67,8 +74,11 @@ struct net_device *rtw_alloc_etherdev_with_old_priv(void *old_priv)
 	struct rtw_netdev_priv_indicator *pnpi;
 
 	pnetdev = alloc_etherdev_mq(sizeof(struct rtw_netdev_priv_indicator), 4);
+
 	if (!pnetdev)
+	{
 		goto RETURN;
+	}
 
 	pnpi = netdev_priv(pnetdev);
 	pnpi->priv = old_priv;
@@ -82,12 +92,16 @@ void rtw_free_netdev(struct net_device *netdev)
 	struct rtw_netdev_priv_indicator *pnpi;
 
 	if (!netdev)
+	{
 		goto RETURN;
+	}
 
 	pnpi = netdev_priv(netdev);
 
 	if (!pnpi->priv)
+	{
 		goto RETURN;
+	}
 
 	vfree(pnpi->priv);
 	free_netdev(netdev);
@@ -115,14 +129,20 @@ void rtw_buf_update(u8 **buf, u32 *buf_len, u8 *src, u32 src_len)
 	u8 *dup = NULL;
 
 	if (!buf || !buf_len)
+	{
 		return;
+	}
 
 	if (!src || !src_len)
+	{
 		goto keep_ori;
+	}
 
 	/* duplicate src */
 	dup = rtw_malloc(src_len);
-	if (dup) {
+
+	if (dup)
+	{
 		dup_len = src_len;
 		memcpy(dup, src, dup_len);
 	}

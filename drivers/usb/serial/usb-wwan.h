@@ -13,15 +13,15 @@ extern int usb_wwan_port_remove(struct usb_serial_port *port);
 extern int usb_wwan_write_room(struct tty_struct *tty);
 extern int usb_wwan_tiocmget(struct tty_struct *tty);
 extern int usb_wwan_tiocmset(struct tty_struct *tty,
-			     unsigned int set, unsigned int clear);
+							 unsigned int set, unsigned int clear);
 extern int usb_wwan_ioctl(struct tty_struct *tty,
-			  unsigned int cmd, unsigned long arg);
+						  unsigned int cmd, unsigned long arg);
 extern int usb_wwan_write(struct tty_struct *tty, struct usb_serial_port *port,
-			  const unsigned char *buf, int count);
+						  const unsigned char *buf, int count);
 extern int usb_wwan_chars_in_buffer(struct tty_struct *tty);
 #ifdef CONFIG_PM
-extern int usb_wwan_suspend(struct usb_serial *serial, pm_message_t message);
-extern int usb_wwan_resume(struct usb_serial *serial);
+	extern int usb_wwan_suspend(struct usb_serial *serial, pm_message_t message);
+	extern int usb_wwan_resume(struct usb_serial *serial);
 #endif
 
 /* per port private data */
@@ -31,16 +31,18 @@ extern int usb_wwan_resume(struct usb_serial *serial);
 #define IN_BUFLEN 4096
 #define OUT_BUFLEN 4096
 
-struct usb_wwan_intf_private {
-	spinlock_t susp_lock;
-	unsigned int suspended:1;
-	unsigned int use_send_setup:1;
-	int in_flight;
-	unsigned int open_ports;
-	void *private;
+struct usb_wwan_intf_private
+{
+		spinlock_t susp_lock;
+		unsigned int suspended: 1;
+		unsigned int use_send_setup: 1;
+		int in_flight;
+		unsigned int open_ports;
+		void *private;
 };
 
-struct usb_wwan_port_private {
+struct usb_wwan_port_private
+{
 	/* Input endpoints and buffer for this port */
 	struct urb *in_urbs[N_IN_URB];
 	u8 *in_buffer[N_IN_URB];

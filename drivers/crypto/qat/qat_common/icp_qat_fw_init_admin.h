@@ -49,7 +49,8 @@
 
 #include "icp_qat_fw.h"
 
-enum icp_qat_fw_init_admin_cmd_id {
+enum icp_qat_fw_init_admin_cmd_id
+{
 	ICP_QAT_FW_INIT_ME = 0,
 	ICP_QAT_FW_TRNG_ENABLE = 1,
 	ICP_QAT_FW_TRNG_DISABLE = 2,
@@ -61,12 +62,14 @@ enum icp_qat_fw_init_admin_cmd_id {
 	ICP_QAT_FW_HEARTBEAT_GET = 8
 };
 
-enum icp_qat_fw_init_admin_resp_status {
+enum icp_qat_fw_init_admin_resp_status
+{
 	ICP_QAT_FW_INIT_RESP_STATUS_SUCCESS = 0,
 	ICP_QAT_FW_INIT_RESP_STATUS_FAIL
 };
 
-struct icp_qat_fw_init_admin_req {
+struct icp_qat_fw_init_admin_req
+{
 	uint16_t init_cfg_sz;
 	uint8_t resrvd1;
 	uint8_t init_admin_cmd_id;
@@ -76,35 +79,43 @@ struct icp_qat_fw_init_admin_req {
 	uint64_t resrvd3;
 };
 
-struct icp_qat_fw_init_admin_resp_hdr {
+struct icp_qat_fw_init_admin_resp_hdr
+{
 	uint8_t flags;
 	uint8_t resrvd1;
 	uint8_t status;
 	uint8_t init_admin_cmd_id;
 };
 
-struct icp_qat_fw_init_admin_resp_pars {
-	union {
+struct icp_qat_fw_init_admin_resp_pars
+{
+	union
+	{
 		uint32_t resrvd1[ICP_QAT_FW_NUM_LONGWORDS_4];
-		struct {
+		struct
+		{
 			uint32_t version_patch_num;
 			uint8_t context_id;
 			uint8_t ae_id;
 			uint16_t resrvd1;
 			uint64_t resrvd2;
 		} s1;
-		struct {
+		struct
+		{
 			uint64_t req_rec_count;
 			uint64_t resp_sent_count;
 		} s2;
 	} u;
 };
 
-struct icp_qat_fw_init_admin_resp {
+struct icp_qat_fw_init_admin_resp
+{
 	struct icp_qat_fw_init_admin_resp_hdr init_resp_hdr;
-	union {
+	union
+	{
 		uint32_t resrvd2;
-		struct {
+		struct
+		{
 			uint16_t version_minor_num;
 			uint16_t version_major_num;
 		} s;
@@ -126,6 +137,6 @@ struct icp_qat_fw_init_admin_resp {
 
 #define ICP_QAT_FW_COMN_HEARTBEAT_FLAG_GET(flags) \
 	QAT_FIELD_GET(flags, \
-		 ICP_QAT_FW_COMN_HEARTBEAT_FLAG_BITPOS, \
-		 ICP_QAT_FW_COMN_HEARTBEAT_FLAG_MASK)
+				  ICP_QAT_FW_COMN_HEARTBEAT_FLAG_BITPOS, \
+				  ICP_QAT_FW_COMN_HEARTBEAT_FLAG_MASK)
 #endif

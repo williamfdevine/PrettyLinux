@@ -23,7 +23,8 @@
 /*
  *	struct
  */
-struct usbhs_pipe {
+struct usbhs_pipe
+{
 	u32 pipe_type;	/* USB_ENDPOINT_XFER_xxx */
 
 	struct usbhs_priv *priv;
@@ -43,12 +44,13 @@ struct usbhs_pipe {
 	void *mod_private;
 };
 
-struct usbhs_pipe_info {
+struct usbhs_pipe_info
+{
 	struct usbhs_pipe *pipe;
 	int size;	/* array size of "pipe" */
 
 	int (*dma_map_ctrl)(struct device *dma_dev, struct usbhs_pkt *pkt,
-			    int map);
+						int map);
 };
 
 /*
@@ -56,8 +58,8 @@ struct usbhs_pipe_info {
  */
 #define __usbhs_for_each_pipe(start, pos, info, i)	\
 	for ((i) = start;						\
-	     ((i) < (info)->size) && ((pos) = (info)->pipe + (i));	\
-	     (i)++)
+		 ((i) < (info)->size) && ((pos) = (info)->pipe + (i));	\
+		 (i)++)
 
 #define usbhs_for_each_pipe(pos, priv, i)			\
 	__usbhs_for_each_pipe(1, pos, &((priv)->pipe_info), i)
@@ -85,8 +87,8 @@ int usbhs_pipe_is_running(struct usbhs_pipe *pipe);
 void usbhs_pipe_running(struct usbhs_pipe *pipe, int running);
 
 void usbhs_pipe_init(struct usbhs_priv *priv,
-		     int (*dma_map_ctrl)(struct device *dma_dev,
-					 struct usbhs_pkt *pkt, int map));
+					 int (*dma_map_ctrl)(struct device *dma_dev,
+							 struct usbhs_pkt *pkt, int map));
 int usbhs_pipe_get_maxpacket(struct usbhs_pipe *pipe);
 void usbhs_pipe_clear(struct usbhs_pipe *pipe);
 int usbhs_pipe_is_accessible(struct usbhs_pipe *pipe);
@@ -97,7 +99,7 @@ int usbhs_pipe_is_stall(struct usbhs_pipe *pipe);
 void usbhs_pipe_set_trans_count_if_bulk(struct usbhs_pipe *pipe, int len);
 void usbhs_pipe_select_fifo(struct usbhs_pipe *pipe, struct usbhs_fifo *fifo);
 void usbhs_pipe_config_update(struct usbhs_pipe *pipe, u16 devsel,
-			      u16 epnum, u16 maxp);
+							  u16 epnum, u16 maxp);
 void usbhs_pipe_config_change_bfre(struct usbhs_pipe *pipe, int enable);
 
 #define usbhs_pipe_sequence_data0(pipe)	usbhs_pipe_data_sequence(pipe, 0)

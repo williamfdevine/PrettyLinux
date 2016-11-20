@@ -11,18 +11,18 @@ extern void usb_remove_sysfs_dev_files(struct usb_device *dev);
 extern void usb_create_sysfs_intf_files(struct usb_interface *intf);
 extern void usb_remove_sysfs_intf_files(struct usb_interface *intf);
 extern int usb_create_ep_devs(struct device *parent,
-				struct usb_host_endpoint *endpoint,
-				struct usb_device *udev);
+							  struct usb_host_endpoint *endpoint,
+							  struct usb_device *udev);
 extern void usb_remove_ep_devs(struct usb_host_endpoint *endpoint);
 
 extern void usb_enable_endpoint(struct usb_device *dev,
-		struct usb_host_endpoint *ep, bool reset_toggle);
+								struct usb_host_endpoint *ep, bool reset_toggle);
 extern void usb_enable_interface(struct usb_device *dev,
-		struct usb_interface *intf, bool reset_toggles);
+								 struct usb_interface *intf, bool reset_toggles);
 extern void usb_disable_endpoint(struct usb_device *dev, unsigned int epaddr,
-		bool reset_hardware);
+								 bool reset_hardware);
 extern void usb_disable_interface(struct usb_device *dev,
-		struct usb_interface *intf, bool reset_hardware);
+								  struct usb_interface *intf, bool reset_hardware);
 extern void usb_release_interface_cache(struct kref *ref);
 extern void usb_disable_device(struct usb_device *dev, int skip_ep0);
 extern int usb_deauthorize_device(struct usb_device *);
@@ -34,7 +34,7 @@ extern void usb_detect_interface_quirks(struct usb_device *udev);
 extern int usb_remove_device(struct usb_device *udev);
 
 extern int usb_get_device_descriptor(struct usb_device *dev,
-		unsigned int size);
+									 unsigned int size);
 extern int usb_get_bos_descriptor(struct usb_device *dev);
 extern void usb_release_bos_descriptor(struct usb_device *dev);
 extern char *usb_cache_string(struct usb_device *udev, int index);
@@ -52,15 +52,15 @@ static inline unsigned usb_get_max_power(struct usb_device *udev,
 
 extern void usb_kick_hub_wq(struct usb_device *dev);
 extern int usb_match_one_id_intf(struct usb_device *dev,
-				 struct usb_host_interface *intf,
-				 const struct usb_device_id *id);
+								 struct usb_host_interface *intf,
+								 const struct usb_device_id *id);
 extern int usb_match_device(struct usb_device *dev,
-			    const struct usb_device_id *id);
+							const struct usb_device_id *id);
 extern void usb_forced_unbind_intf(struct usb_interface *intf);
 extern void usb_unbind_and_rebind_marked_interfaces(struct usb_device *udev);
 
 extern void usb_hub_release_all_ports(struct usb_device *hdev,
-		struct usb_dev_state *owner);
+									  struct usb_dev_state *owner);
 extern bool usb_device_is_owned(struct usb_device *udev);
 
 extern int  usb_hub_init(void);
@@ -144,7 +144,7 @@ static inline int is_usb_port(const struct device *dev)
 static inline int is_usb_device_driver(struct device_driver *drv)
 {
 	return container_of(drv, struct usbdrv_wrap, driver)->
-			for_devices;
+		   for_devices;
 }
 
 /* for labeling diagnostics */
@@ -182,7 +182,7 @@ extern void usb_hub_adjust_deviceremovable(struct usb_device *hdev,
 extern int usb_acpi_register(void);
 extern void usb_acpi_unregister(void);
 extern acpi_handle usb_get_hub_port_acpi_handle(struct usb_device *hdev,
-	int port1);
+		int port1);
 #else
 static inline int usb_acpi_register(void) { return 0; };
 static inline void usb_acpi_unregister(void) { };

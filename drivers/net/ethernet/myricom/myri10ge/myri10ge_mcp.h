@@ -5,19 +5,22 @@
 #define MXGEFW_VERSION_MINOR	4
 
 /* 8 Bytes */
-struct mcp_dma_addr {
+struct mcp_dma_addr
+{
 	__be32 high;
 	__be32 low;
 };
 
 /* 4 Bytes */
-struct mcp_slot {
+struct mcp_slot
+{
 	__sum16 checksum;
 	__be16 length;
 };
 
 /* 64 Bytes */
-struct mcp_cmd {
+struct mcp_cmd
+{
 	__be32 cmd;
 	__be32 data0;		/* will be low portion if data > 32 bits */
 	/* 8 */
@@ -30,7 +33,8 @@ struct mcp_cmd {
 };
 
 /* 8 Bytes */
-struct mcp_cmd_response {
+struct mcp_cmd_response
+{
 	__be32 data;
 	__be32 result;
 };
@@ -63,7 +67,8 @@ struct mcp_cmd_response {
 #define MXGEFW_SEND_SMALL_SIZE  1520
 #define MXGEFW_MAX_MTU          9400
 
-union mcp_pso_or_cumlen {
+union mcp_pso_or_cumlen
+{
 	u16 pseudo_hdr_offset;
 	u16 cum_len;
 };
@@ -72,7 +77,8 @@ union mcp_pso_or_cumlen {
 #define MXGEFW_PAD	    2
 
 /* 16 Bytes */
-struct mcp_kreq_ether_send {
+struct mcp_kreq_ether_send
+{
 	__be32 addr_high;
 	__be32 addr_low;
 	__be16 pseudo_hdr_offset;
@@ -84,7 +90,8 @@ struct mcp_kreq_ether_send {
 };
 
 /* 8 Bytes */
-struct mcp_kreq_ether_recv {
+struct mcp_kreq_ether_recv
+{
 	__be32 addr_high;
 	__be32 addr_low;
 };
@@ -107,7 +114,8 @@ struct mcp_kreq_ether_recv {
 #define	MXGEFW_ETH_SEND(n)		(0x200000 + (((n) & 0x03) * 0x40000))
 #define	MXGEFW_ETH_SEND_OFFSET(n)	(MXGEFW_ETH_SEND(n) - MXGEFW_ETH_SEND_4)
 
-enum myri10ge_mcp_cmd_type {
+enum myri10ge_mcp_cmd_type
+{
 	MXGEFW_CMD_NONE = 0,
 	/* Reset the mcp, it is left in a safe state, waiting
 	 * for the driver to set all its parameters */
@@ -376,7 +384,8 @@ enum myri10ge_mcp_cmd_type {
 	 */
 };
 
-enum myri10ge_mcp_cmd_status {
+enum myri10ge_mcp_cmd_status
+{
 	MXGEFW_CMD_OK = 0,
 	MXGEFW_CMD_UNKNOWN = 1,
 	MXGEFW_CMD_ERROR_RANGE = 2,
@@ -396,7 +405,8 @@ enum myri10ge_mcp_cmd_status {
 
 #define MXGEFW_OLD_IRQ_DATA_LEN 40
 
-struct mcp_irq_data {
+struct mcp_irq_data
+{
 	/* add new counters at the beginning */
 	__be32 future_use[1];
 	__be32 dropped_pause;

@@ -21,7 +21,8 @@
 
 #define fi_to_f_uvc_opts(f)	container_of(f, struct f_uvc_opts, func_inst)
 
-struct f_uvc_opts {
+struct f_uvc_opts
+{
 	struct usb_function_instance			func_inst;
 	unsigned int					uvc_gadget_trace_param;
 	unsigned int					streaming_interval;
@@ -34,8 +35,8 @@ struct f_uvc_opts {
 	 * uvc_ss_control_cls arrays respectively. Legacy gadgets must
 	 * override them in their gadget bind callback.
 	 */
-	const struct uvc_descriptor_header * const	*fs_control;
-	const struct uvc_descriptor_header * const	*ss_control;
+	const struct uvc_descriptor_header *const	*fs_control;
+	const struct uvc_descriptor_header *const	*ss_control;
 
 	/*
 	 * Streaming descriptors array pointers for full-speed, high-speed and
@@ -43,9 +44,9 @@ struct f_uvc_opts {
 	 * for configfs-based gadgets. Legacy gadgets must initialize them in
 	 * their gadget bind callback.
 	 */
-	const struct uvc_descriptor_header * const	*fs_streaming;
-	const struct uvc_descriptor_header * const	*hs_streaming;
-	const struct uvc_descriptor_header * const	*ss_streaming;
+	const struct uvc_descriptor_header *const	*fs_streaming;
+	const struct uvc_descriptor_header *const	*hs_streaming;
+	const struct uvc_descriptor_header *const	*ss_streaming;
 
 	/* Default control descriptors for configfs-based gadgets. */
 	struct uvc_camera_terminal_descriptor		uvc_camera_terminal;

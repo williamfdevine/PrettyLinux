@@ -15,7 +15,7 @@
  * market by using some kind of translation from ATAPI to USB on the host,
  * and the peripheral would translate from USB back to ATAPI.
  *
- * SCM Microsystems (www.scmmicro.com) makes a device, sold to OEM's only, 
+ * SCM Microsystems (www.scmmicro.com) makes a device, sold to OEM's only,
  * which does the USB-to-ATAPI conversion.  By obtaining the data sheet on
  * their device under nondisclosure agreement, I have been able to write
  * this driver for Linux.
@@ -117,7 +117,7 @@ MODULE_LICENSE("GPL");
 /* USBAT User I/O Data registers */
 #define USBAT_UIO_EPAD		0x80 /* Enable Peripheral Control Signals */
 #define USBAT_UIO_CDT		0x40 /* Card Detect (Read Only) */
-				     /* CDT = ACKD & !UI1 & !UI0 */
+/* CDT = ACKD & !UI1 & !UI0 */
 #define USBAT_UIO_1		0x20 /* I/O 1 */
 #define USBAT_UIO_0		0x10 /* I/O 0 */
 #define USBAT_UIO_EPP_ATA	0x08 /* 1=EPP mode, 0=ATA mode */
@@ -129,7 +129,7 @@ MODULE_LICENSE("GPL");
 #define USBAT_UIO_DRVRST	0x80 /* Reset Peripheral */
 #define USBAT_UIO_ACKD		0x40 /* Enable Card Detect */
 #define USBAT_UIO_OE1		0x20 /* I/O 1 set=output/clr=input */
-				     /* If ACKD=1, set OE1 to 1 also. */
+/* If ACKD=1, set OE1 to 1 also. */
 #define USBAT_UIO_OE0		0x10 /* I/O 0 set=output/clr=input */
 #define USBAT_UIO_ADPRST	0x01 /* Reset SCM chip */
 
@@ -140,7 +140,8 @@ MODULE_LICENSE("GPL");
 #define USBAT_FEAT_ET1	0x02
 #define USBAT_FEAT_ET2	0x01
 
-struct usbat_info {
+struct usbat_info
+{
 	int devicetype;
 
 	/* Used for Flash readers only */
@@ -158,7 +159,7 @@ struct usbat_info {
 
 static int transferred = 0;
 
-static int usbat_flash_transport(struct scsi_cmnd * srb, struct us_data *us);
+static int usbat_flash_transport(struct scsi_cmnd *srb, struct us_data *us);
 static int usbat_hp8200e_transport(struct scsi_cmnd *srb, struct us_data *us);
 
 static int init_usbat_cd(struct us_data *us);
@@ -169,12 +170,13 @@ static int init_usbat_flash(struct us_data *us);
  * The table of devices
  */
 #define UNUSUAL_DEV(id_vendor, id_product, bcdDeviceMin, bcdDeviceMax, \
-		    vendorName, productName, useProtocol, useTransport, \
-		    initFunction, flags) \
+					vendorName, productName, useProtocol, useTransport, \
+					initFunction, flags) \
 { USB_DEVICE_VER(id_vendor, id_product, bcdDeviceMin, bcdDeviceMax), \
-  .driver_info = (flags) }
+	.driver_info = (flags) }
 
-static struct usb_device_id usbat_usb_ids[] = {
+static struct usb_device_id usbat_usb_ids[] =
+{
 #	include "unusual_usbat.h"
 	{ }		/* Terminating entry */
 };
@@ -186,17 +188,18 @@ MODULE_DEVICE_TABLE(usb, usbat_usb_ids);
  * The flags table
  */
 #define UNUSUAL_DEV(idVendor, idProduct, bcdDeviceMin, bcdDeviceMax, \
-		    vendor_name, product_name, use_protocol, use_transport, \
-		    init_function, Flags) \
+					vendor_name, product_name, use_protocol, use_transport, \
+					init_function, Flags) \
 { \
 	.vendorName = vendor_name,	\
-	.productName = product_name,	\
-	.useProtocol = use_protocol,	\
-	.useTransport = use_transport,	\
-	.initFunction = init_function,	\
+				  .productName = product_name,	\
+								 .useProtocol = use_protocol,	\
+										 .useTransport = use_transport,	\
+												 .initFunction = init_function,	\
 }
 
-static struct us_unusual_dev usbat_unusual_dev_list[] = {
+static struct us_unusual_dev usbat_unusual_dev_list[] =
+{
 #	include "unusual_usbat.h"
 	{ }		/* Terminating entry */
 };
@@ -208,8 +211,8 @@ static struct us_unusual_dev usbat_unusual_dev_list[] = {
  * Use cmd=0x20 for read, cmd=0x30 for write
  */
 static void usbat_pack_ata_sector_cmd(unsigned char *buf,
-					unsigned char thistime,
-					u32 sector, unsigned char cmd)
+									  unsigned char thistime,
+									  u32 sector, unsigned char cmd)
 {
 	buf[0] = 0;
 	buf[1] = thistime;
@@ -225,55 +228,57 @@ static void usbat_pack_ata_sector_cmd(unsigned char *buf,
  */
 static int usbat_get_device_type(struct us_data *us)
 {
-	return ((struct usbat_info*)us->extra)->devicetype;
+	return ((struct usbat_info *)us->extra)->devicetype;
 }
 
 /*
  * Read a register from the device
  */
 static int usbat_read(struct us_data *us,
-		      unsigned char access,
-		      unsigned char reg,
-		      unsigned char *content)
+					  unsigned char access,
+					  unsigned char reg,
+					  unsigned char *content)
 {
 	return usb_stor_ctrl_transfer(us,
-		us->recv_ctrl_pipe,
-		access | USBAT_CMD_READ_REG,
-		0xC0,
-		(u16)reg,
-		0,
-		content,
-		1);
+								  us->recv_ctrl_pipe,
+								  access | USBAT_CMD_READ_REG,
+								  0xC0,
+								  (u16)reg,
+								  0,
+								  content,
+								  1);
 }
 
 /*
  * Write to a register on the device
  */
 static int usbat_write(struct us_data *us,
-		       unsigned char access,
-		       unsigned char reg,
-		       unsigned char content)
+					   unsigned char access,
+					   unsigned char reg,
+					   unsigned char content)
 {
 	return usb_stor_ctrl_transfer(us,
-		us->send_ctrl_pipe,
-		access | USBAT_CMD_WRITE_REG,
-		0x40,
-		short_pack(reg, content),
-		0,
-		NULL,
-		0);
+								  us->send_ctrl_pipe,
+								  access | USBAT_CMD_WRITE_REG,
+								  0x40,
+								  short_pack(reg, content),
+								  0,
+								  NULL,
+								  0);
 }
 
 /*
  * Convenience function to perform a bulk read
  */
 static int usbat_bulk_read(struct us_data *us,
-			   void* buf,
-			   unsigned int len,
-			   int use_sg)
+						   void *buf,
+						   unsigned int len,
+						   int use_sg)
 {
 	if (len == 0)
+	{
 		return USB_STOR_XFER_GOOD;
+	}
 
 	usb_stor_dbg(us, "len = %d\n", len);
 	return usb_stor_bulk_transfer_sg(us, us->recv_bulk_pipe, buf, len, use_sg, NULL);
@@ -283,12 +288,14 @@ static int usbat_bulk_read(struct us_data *us,
  * Convenience function to perform a bulk write
  */
 static int usbat_bulk_write(struct us_data *us,
-			    void* buf,
-			    unsigned int len,
-			    int use_sg)
+							void *buf,
+							unsigned int len,
+							int use_sg)
 {
 	if (len == 0)
+	{
 		return USB_STOR_XFER_GOOD;
+	}
 
 	usb_stor_dbg(us, "len = %d\n", len);
 	return usb_stor_bulk_transfer_sg(us, us->send_bulk_pipe, buf, len, use_sg, NULL);
@@ -329,16 +336,23 @@ static int usbat_check_status(struct us_data *us)
 	int rc;
 
 	rc = usbat_get_status(us, reply);
+
 	if (rc != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_FAILED;
+	}
 
 	/* error/check condition (0x51 is ok) */
 	if (*reply & 0x01 && *reply != 0x51)
+	{
 		return USB_STOR_TRANSPORT_FAILED;
+	}
 
 	/* device fault */
 	if (*reply & 0x20)
+	{
 		return USB_STOR_TRANSPORT_FAILED;
+	}
 
 	return USB_STOR_TRANSPORT_GOOD;
 }
@@ -348,12 +362,12 @@ static int usbat_check_status(struct us_data *us)
  * of a conditional usbat_read_blocks or usbat_write_blocks call.
  */
 static int usbat_set_shuttle_features(struct us_data *us,
-				      unsigned char external_trigger,
-				      unsigned char epp_control,
-				      unsigned char mask_byte,
-				      unsigned char test_pattern,
-				      unsigned char subcountH,
-				      unsigned char subcountL)
+									  unsigned char external_trigger,
+									  unsigned char epp_control,
+									  unsigned char mask_byte,
+									  unsigned char test_pattern,
+									  unsigned char subcountH,
+									  unsigned char subcountL)
 {
 	unsigned char *command = us->iobuf;
 
@@ -416,36 +430,53 @@ static int usbat_wait_not_busy(struct us_data *us, int minutes)
 	 * minutes!
 	 */
 
-	for (i=0; i<1200+minutes*60; i++) {
+	for (i = 0; i < 1200 + minutes * 60; i++)
+	{
 
- 		result = usbat_get_status(us, status);
+		result = usbat_get_status(us, status);
 
-		if (result!=USB_STOR_XFER_GOOD)
+		if (result != USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
-		if (*status & 0x01) { /* check condition */
+		}
+
+		if (*status & 0x01)   /* check condition */
+		{
 			result = usbat_read(us, USBAT_ATA, 0x10, status);
 			return USB_STOR_TRANSPORT_FAILED;
 		}
-		if (*status & 0x20) /* device fault */
-			return USB_STOR_TRANSPORT_FAILED;
 
-		if ((*status & 0x80)==0x00) { /* not busy */
+		if (*status & 0x20) /* device fault */
+		{
+			return USB_STOR_TRANSPORT_FAILED;
+		}
+
+		if ((*status & 0x80) == 0x00) /* not busy */
+		{
 			usb_stor_dbg(us, "Waited not busy for %d steps\n", i);
 			return USB_STOR_TRANSPORT_GOOD;
 		}
 
-		if (i<500)
-			msleep(10); /* 5 seconds */
-		else if (i<700)
-			msleep(50); /* 10 seconds */
-		else if (i<1200)
-			msleep(100); /* 50 seconds */
+		if (i < 500)
+		{
+			msleep(10);    /* 5 seconds */
+		}
+		else if (i < 700)
+		{
+			msleep(50);    /* 10 seconds */
+		}
+		else if (i < 1200)
+		{
+			msleep(100);    /* 50 seconds */
+		}
 		else
-			msleep(1000); /* X minutes */
+		{
+			msleep(1000);    /* X minutes */
+		}
 	}
 
 	usb_stor_dbg(us, "Waited not busy for %d minutes, timing out\n",
-		     minutes);
+				 minutes);
 	return USB_STOR_TRANSPORT_FAILED;
 }
 
@@ -453,15 +484,17 @@ static int usbat_wait_not_busy(struct us_data *us, int minutes)
  * Read block data from the data register
  */
 static int usbat_read_block(struct us_data *us,
-			    void* buf,
-			    unsigned short len,
-			    int use_sg)
+							void *buf,
+							unsigned short len,
+							int use_sg)
 {
 	int result;
 	unsigned char *command = us->iobuf;
 
 	if (!len)
+	{
 		return USB_STOR_TRANSPORT_GOOD;
+	}
 
 	command[0] = 0xC0;
 	command[1] = USBAT_ATA | USBAT_CMD_READ_BLOCK;
@@ -473,8 +506,11 @@ static int usbat_read_block(struct us_data *us,
 	command[7] = MSB_of(len);
 
 	result = usbat_execute_command(us, command, 8);
+
 	if (result != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	result = usbat_bulk_read(us, buf, len, use_sg);
 	return (result == USB_STOR_XFER_GOOD ?
@@ -485,17 +521,19 @@ static int usbat_read_block(struct us_data *us,
  * Write block data via the data register
  */
 static int usbat_write_block(struct us_data *us,
-			     unsigned char access,
-			     void* buf,
-			     unsigned short len,
-			     int minutes,
-			     int use_sg)
+							 unsigned char access,
+							 void *buf,
+							 unsigned short len,
+							 int minutes,
+							 int use_sg)
 {
 	int result;
 	unsigned char *command = us->iobuf;
 
 	if (!len)
+	{
 		return USB_STOR_TRANSPORT_GOOD;
+	}
 
 	command[0] = 0x40;
 	command[1] = access | USBAT_CMD_WRITE_BLOCK;
@@ -509,11 +547,16 @@ static int usbat_write_block(struct us_data *us,
 	result = usbat_execute_command(us, command, 8);
 
 	if (result != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	result = usbat_bulk_write(us, buf, len, use_sg);
+
 	if (result != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	return usbat_wait_not_busy(us, minutes);
 }
@@ -522,23 +565,23 @@ static int usbat_write_block(struct us_data *us,
  * Process read and write requests
  */
 static int usbat_hp8200e_rw_block_test(struct us_data *us,
-				       unsigned char access,
-				       unsigned char *registers,
-				       unsigned char *data_out,
-				       unsigned short num_registers,
-				       unsigned char data_reg,
-				       unsigned char status_reg,
-				       unsigned char timeout,
-				       unsigned char qualifier,
-				       int direction,
-				       void *buf,
-				       unsigned short len,
-				       int use_sg,
-				       int minutes)
+									   unsigned char access,
+									   unsigned char *registers,
+									   unsigned char *data_out,
+									   unsigned short num_registers,
+									   unsigned char data_reg,
+									   unsigned char status_reg,
+									   unsigned char timeout,
+									   unsigned char qualifier,
+									   int direction,
+									   void *buf,
+									   unsigned short len,
+									   int use_sg,
+									   int minutes)
 {
 	int result;
 	unsigned int pipe = (direction == DMA_FROM_DEVICE) ?
-			us->recv_bulk_pipe : us->send_bulk_pipe;
+						us->recv_bulk_pipe : us->send_bulk_pipe;
 
 	unsigned char *command = us->iobuf;
 	int i, j;
@@ -546,9 +589,10 @@ static int usbat_hp8200e_rw_block_test(struct us_data *us,
 	unsigned char *data = us->iobuf;
 	unsigned char *status = us->iobuf;
 
-	BUG_ON(num_registers > US_IOBUF_SIZE/2);
+	BUG_ON(num_registers > US_IOBUF_SIZE / 2);
 
-	for (i=0; i<20; i++) {
+	for (i = 0; i < 20; i++)
+	{
 
 		/*
 		 * The first time we send the full command, which consists
@@ -556,12 +600,13 @@ static int usbat_hp8200e_rw_block_test(struct us_data *us,
 		 * the data via a write-and-test.  Any other time we only
 		 * send the command to download the data -- the SCSI command
 		 * is still 'active' in some sense in the device.
-		 * 
+		 *
 		 * We're only going to try sending the data 10 times. After
 		 * that, we just return a failure.
 		 */
 
-		if (i==0) {
+		if (i == 0)
+		{
 			cmdlen = 16;
 			/*
 			 * Write to multiple registers
@@ -575,43 +620,53 @@ static int usbat_hp8200e_rw_block_test(struct us_data *us,
 			command[3] = 0x17;
 			command[4] = 0xFC;
 			command[5] = 0xE7;
-			command[6] = LSB_of(num_registers*2);
-			command[7] = MSB_of(num_registers*2);
-		} else
+			command[6] = LSB_of(num_registers * 2);
+			command[7] = MSB_of(num_registers * 2);
+		}
+		else
+		{
 			cmdlen = 8;
+		}
 
 		/* Conditionally read or write blocks */
-		command[cmdlen-8] = (direction==DMA_TO_DEVICE ? 0x40 : 0xC0);
-		command[cmdlen-7] = access |
-				(direction==DMA_TO_DEVICE ?
-				 USBAT_CMD_COND_WRITE_BLOCK : USBAT_CMD_COND_READ_BLOCK);
-		command[cmdlen-6] = data_reg;
-		command[cmdlen-5] = status_reg;
-		command[cmdlen-4] = timeout;
-		command[cmdlen-3] = qualifier;
-		command[cmdlen-2] = LSB_of(len);
-		command[cmdlen-1] = MSB_of(len);
+		command[cmdlen - 8] = (direction == DMA_TO_DEVICE ? 0x40 : 0xC0);
+		command[cmdlen - 7] = access |
+							  (direction == DMA_TO_DEVICE ?
+							   USBAT_CMD_COND_WRITE_BLOCK : USBAT_CMD_COND_READ_BLOCK);
+		command[cmdlen - 6] = data_reg;
+		command[cmdlen - 5] = status_reg;
+		command[cmdlen - 4] = timeout;
+		command[cmdlen - 3] = qualifier;
+		command[cmdlen - 2] = LSB_of(len);
+		command[cmdlen - 1] = MSB_of(len);
 
 		result = usbat_execute_command(us, command, cmdlen);
 
 		if (result != USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 
-		if (i==0) {
+		if (i == 0)
+		{
 
-			for (j=0; j<num_registers; j++) {
-				data[j<<1] = registers[j];
-				data[1+(j<<1)] = data_out[j];
+			for (j = 0; j < num_registers; j++)
+			{
+				data[j << 1] = registers[j];
+				data[1 + (j << 1)] = data_out[j];
 			}
 
-			result = usbat_bulk_write(us, data, num_registers*2, 0);
+			result = usbat_bulk_write(us, data, num_registers * 2, 0);
+
 			if (result != USB_STOR_XFER_GOOD)
+			{
 				return USB_STOR_TRANSPORT_ERROR;
+			}
 
 		}
 
 		result = usb_stor_bulk_transfer_sg(us,
-			pipe, buf, len, use_sg, NULL);
+										   pipe, buf, len, use_sg, NULL);
 
 		/*
 		 * If we get a stall on the bulk download, we'll retry
@@ -633,48 +688,65 @@ static int usbat_hp8200e_rw_block_test(struct us_data *us,
 		 */
 
 		if (result == USB_STOR_XFER_SHORT ||
-				result == USB_STOR_XFER_STALLED) {
+			result == USB_STOR_XFER_STALLED)
+		{
 
 			/*
 			 * If we're reading and we stalled, then clear
 			 * the bulk output pipe only the first time.
 			 */
 
-			if (direction==DMA_FROM_DEVICE && i==0) {
+			if (direction == DMA_FROM_DEVICE && i == 0)
+			{
 				if (usb_stor_clear_halt(us,
-						us->send_bulk_pipe) < 0)
+										us->send_bulk_pipe) < 0)
+				{
 					return USB_STOR_TRANSPORT_ERROR;
+				}
 			}
 
 			/*
 			 * Read status: is the device angry, or just busy?
 			 */
 
- 			result = usbat_read(us, USBAT_ATA, 
-				direction==DMA_TO_DEVICE ?
-					USBAT_ATA_STATUS : USBAT_ATA_ALTSTATUS,
-				status);
+			result = usbat_read(us, USBAT_ATA,
+								direction == DMA_TO_DEVICE ?
+								USBAT_ATA_STATUS : USBAT_ATA_ALTSTATUS,
+								status);
 
-			if (result!=USB_STOR_XFER_GOOD)
+			if (result != USB_STOR_XFER_GOOD)
+			{
 				return USB_STOR_TRANSPORT_ERROR;
+			}
+
 			if (*status & 0x01) /* check condition */
+			{
 				return USB_STOR_TRANSPORT_FAILED;
+			}
+
 			if (*status & 0x20) /* device fault */
+			{
 				return USB_STOR_TRANSPORT_FAILED;
+			}
 
 			usb_stor_dbg(us, "Redoing %s\n",
-				     direction == DMA_TO_DEVICE
-				     ? "write" : "read");
+						 direction == DMA_TO_DEVICE
+						 ? "write" : "read");
 
-		} else if (result != USB_STOR_XFER_GOOD)
+		}
+		else if (result != USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 		else
+		{
 			return usbat_wait_not_busy(us, minutes);
+		}
 
 	}
 
 	usb_stor_dbg(us, "Bummer! %s bulk data 20 times failed\n",
-		     direction == DMA_TO_DEVICE ? "Writing" : "Reading");
+				 direction == DMA_TO_DEVICE ? "Writing" : "Reading");
 
 	return USB_STOR_TRANSPORT_FAILED;
 }
@@ -687,15 +759,15 @@ static int usbat_hp8200e_rw_block_test(struct us_data *us,
  * Not designed for large transfers of data!
  */
 static int usbat_multiple_write(struct us_data *us,
-				unsigned char *registers,
-				unsigned char *data_out,
-				unsigned short num_registers)
+								unsigned char *registers,
+								unsigned char *data_out,
+								unsigned short num_registers)
 {
 	int i, result;
 	unsigned char *data = us->iobuf;
 	unsigned char *command = us->iobuf;
 
-	BUG_ON(num_registers > US_IOBUF_SIZE/2);
+	BUG_ON(num_registers > US_IOBUF_SIZE / 2);
 
 	/* Write to multiple registers, ATA access */
 	command[0] = 0x40;
@@ -708,29 +780,40 @@ static int usbat_multiple_write(struct us_data *us,
 	command[5] = 0;
 
 	/* Number of bytes to be transferred (incl. addresses and data) */
-	command[6] = LSB_of(num_registers*2);
-	command[7] = MSB_of(num_registers*2);
+	command[6] = LSB_of(num_registers * 2);
+	command[7] = MSB_of(num_registers * 2);
 
 	/* The setup command */
 	result = usbat_execute_command(us, command, 8);
+
 	if (result != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	/* Create the reg/data, reg/data sequence */
-	for (i=0; i<num_registers; i++) {
-		data[i<<1] = registers[i];
-		data[1+(i<<1)] = data_out[i];
+	for (i = 0; i < num_registers; i++)
+	{
+		data[i << 1] = registers[i];
+		data[1 + (i << 1)] = data_out[i];
 	}
 
 	/* Send the data */
-	result = usbat_bulk_write(us, data, num_registers*2, 0);
+	result = usbat_bulk_write(us, data, num_registers * 2, 0);
+
 	if (result != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	if (usbat_get_device_type(us) == USBAT_DEV_HP8200)
+	{
 		return usbat_wait_not_busy(us, 0);
+	}
 	else
+	{
 		return USB_STOR_TRANSPORT_GOOD;
+	}
 }
 
 /*
@@ -746,9 +829,9 @@ static int usbat_multiple_write(struct us_data *us,
  * other related details) are defined beforehand with _set_shuttle_features().
  */
 static int usbat_read_blocks(struct us_data *us,
-			     void* buffer,
-			     int len,
-			     int use_sg)
+							 void *buffer,
+							 int len,
+							 int use_sg)
 {
 	int result;
 	unsigned char *command = us->iobuf;
@@ -764,13 +847,19 @@ static int usbat_read_blocks(struct us_data *us,
 
 	/* Multiple block read setup command */
 	result = usbat_execute_command(us, command, 8);
+
 	if (result != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_FAILED;
-	
+	}
+
 	/* Read the blocks we just asked for */
 	result = usbat_bulk_read(us, buffer, len, use_sg);
+
 	if (result != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_FAILED;
+	}
 
 	return USB_STOR_TRANSPORT_GOOD;
 }
@@ -788,9 +877,9 @@ static int usbat_read_blocks(struct us_data *us,
  * other related details) are defined beforehand with _set_shuttle_features().
  */
 static int usbat_write_blocks(struct us_data *us,
-			      void* buffer,
-			      int len,
-			      int use_sg)
+							  void *buffer,
+							  int len,
+							  int use_sg)
 {
 	int result;
 	unsigned char *command = us->iobuf;
@@ -806,13 +895,19 @@ static int usbat_write_blocks(struct us_data *us,
 
 	/* Multiple block write setup command */
 	result = usbat_execute_command(us, command, 8);
+
 	if (result != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_FAILED;
-	
+	}
+
 	/* Write the data */
 	result = usbat_bulk_write(us, buffer, len, use_sg);
+
 	if (result != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_FAILED;
+	}
 
 	return USB_STOR_TRANSPORT_GOOD;
 }
@@ -825,13 +920,13 @@ static int usbat_read_user_io(struct us_data *us, unsigned char *data_flags)
 	int result;
 
 	result = usb_stor_ctrl_transfer(us,
-		us->recv_ctrl_pipe,
-		USBAT_CMD_UIO,
-		0xC0,
-		0,
-		0,
-		data_flags,
-		USBAT_UIO_READ);
+									us->recv_ctrl_pipe,
+									USBAT_CMD_UIO,
+									0xC0,
+									0,
+									0,
+									data_flags,
+									USBAT_UIO_READ);
 
 	usb_stor_dbg(us, "UIO register reads %02X\n", *data_flags);
 
@@ -842,17 +937,17 @@ static int usbat_read_user_io(struct us_data *us, unsigned char *data_flags)
  * Write to the User IO register
  */
 static int usbat_write_user_io(struct us_data *us,
-			       unsigned char enable_flags,
-			       unsigned char data_flags)
+							   unsigned char enable_flags,
+							   unsigned char data_flags)
 {
 	return usb_stor_ctrl_transfer(us,
-		us->send_ctrl_pipe,
-		USBAT_CMD_UIO,
-		0x40,
-		short_pack(enable_flags, data_flags),
-		0,
-		NULL,
-		USBAT_UIO_WRITE);
+								  us->send_ctrl_pipe,
+								  USBAT_CMD_UIO,
+								  0x40,
+								  short_pack(enable_flags, data_flags),
+								  0,
+								  NULL,
+								  USBAT_UIO_WRITE);
 }
 
 /*
@@ -870,9 +965,12 @@ static int usbat_device_reset(struct us_data *us)
 	rc = usbat_write_user_io(us,
 							 USBAT_UIO_DRVRST | USBAT_UIO_OE1 | USBAT_UIO_OE0,
 							 USBAT_UIO_EPAD | USBAT_UIO_1);
+
 	if (rc != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
-			
+	}
+
 	/*
 	 * Enable peripheral control signals
 	 * (bring reset signal down)
@@ -880,8 +978,11 @@ static int usbat_device_reset(struct us_data *us)
 	rc = usbat_write_user_io(us,
 							 USBAT_UIO_OE1  | USBAT_UIO_OE0,
 							 USBAT_UIO_EPAD | USBAT_UIO_1);
+
 	if (rc != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	return USB_STOR_TRANSPORT_GOOD;
 }
@@ -897,8 +998,11 @@ static int usbat_device_enable_cdt(struct us_data *us)
 	rc = usbat_write_user_io(us,
 							 USBAT_UIO_ACKD | USBAT_UIO_OE1  | USBAT_UIO_OE0,
 							 USBAT_UIO_EPAD | USBAT_UIO_1);
+
 	if (rc != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	return USB_STOR_TRANSPORT_GOOD;
 }
@@ -907,9 +1011,10 @@ static int usbat_device_enable_cdt(struct us_data *us)
  * Determine if media is present.
  */
 static int usbat_flash_check_media_present(struct us_data *us,
-					   unsigned char *uio)
+		unsigned char *uio)
 {
-	if (*uio & USBAT_UIO_UI0) {
+	if (*uio & USBAT_UIO_UI0)
+	{
 		usb_stor_dbg(us, "no media detected\n");
 		return USBAT_FLASH_MEDIA_NONE;
 	}
@@ -921,9 +1026,10 @@ static int usbat_flash_check_media_present(struct us_data *us,
  * Determine if media has changed since last operation
  */
 static int usbat_flash_check_media_changed(struct us_data *us,
-					   unsigned char *uio)
+		unsigned char *uio)
 {
-	if (*uio & USBAT_UIO_0) {
+	if (*uio & USBAT_UIO_0)
+	{
 		usb_stor_dbg(us, "media change detected\n");
 		return USBAT_FLASH_MEDIA_CHANGED;
 	}
@@ -935,18 +1041,23 @@ static int usbat_flash_check_media_changed(struct us_data *us,
  * Check for media change / no media and handle the situation appropriately
  */
 static int usbat_flash_check_media(struct us_data *us,
-				   struct usbat_info *info)
+								   struct usbat_info *info)
 {
 	int rc;
 	unsigned char *uio = us->iobuf;
 
 	rc = usbat_read_user_io(us, uio);
+
 	if (rc != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	/* Check for media existence */
 	rc = usbat_flash_check_media_present(us, uio);
-	if (rc == USBAT_FLASH_MEDIA_NONE) {
+
+	if (rc == USBAT_FLASH_MEDIA_NONE)
+	{
 		info->sense_key = 0x02;
 		info->sense_asc = 0x3A;
 		info->sense_ascq = 0x00;
@@ -955,22 +1066,34 @@ static int usbat_flash_check_media(struct us_data *us,
 
 	/* Check for media change */
 	rc = usbat_flash_check_media_changed(us, uio);
-	if (rc == USBAT_FLASH_MEDIA_CHANGED) {
+
+	if (rc == USBAT_FLASH_MEDIA_CHANGED)
+	{
 
 		/* Reset and re-enable card detect */
 		rc = usbat_device_reset(us);
+
 		if (rc != USB_STOR_TRANSPORT_GOOD)
+		{
 			return rc;
+		}
+
 		rc = usbat_device_enable_cdt(us);
+
 		if (rc != USB_STOR_TRANSPORT_GOOD)
+		{
 			return rc;
+		}
 
 		msleep(50);
 
 		rc = usbat_read_user_io(us, uio);
+
 		if (rc != USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
-		
+		}
+
 		info->sense_key = UNIT_ATTENTION;
 		info->sense_asc = 0x28;
 		info->sense_ascq = 0x00;
@@ -986,17 +1109,23 @@ static int usbat_flash_check_media(struct us_data *us,
  * Sets transport functions as appropriate.
  */
 static int usbat_identify_device(struct us_data *us,
-				 struct usbat_info *info)
+								 struct usbat_info *info)
 {
 	int rc;
 	unsigned char status;
 
 	if (!us || !info)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	rc = usbat_device_reset(us);
+
 	if (rc != USB_STOR_TRANSPORT_GOOD)
+	{
 		return rc;
+	}
+
 	msleep(500);
 
 	/*
@@ -1006,19 +1135,28 @@ static int usbat_identify_device(struct us_data *us,
 	 * CDROM drives), it should succeed.
 	 */
 	rc = usbat_write(us, USBAT_ATA, USBAT_ATA_CMD, 0xA1);
- 	if (rc != USB_STOR_XFER_GOOD)
- 		return USB_STOR_TRANSPORT_ERROR;
+
+	if (rc != USB_STOR_XFER_GOOD)
+	{
+		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	rc = usbat_get_status(us, &status);
- 	if (rc != USB_STOR_XFER_GOOD)
- 		return USB_STOR_TRANSPORT_ERROR;
+
+	if (rc != USB_STOR_XFER_GOOD)
+	{
+		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	/* Check for error bit, or if the command 'fell through' */
-	if (status == 0xA1 || !(status & 0x01)) {
+	if (status == 0xA1 || !(status & 0x01))
+	{
 		/* Device is HP 8200 */
 		usb_stor_dbg(us, "Detected HP8200 CDRW\n");
 		info->devicetype = USBAT_DEV_HP8200;
-	} else {
+	}
+	else
+	{
 		/* Device is a CompactFlash reader/writer */
 		usb_stor_dbg(us, "Detected Flash reader/writer\n");
 		info->devicetype = USBAT_DEV_FLASH;
@@ -1031,27 +1169,32 @@ static int usbat_identify_device(struct us_data *us,
  * Set the transport function based on the device type
  */
 static int usbat_set_transport(struct us_data *us,
-			       struct usbat_info *info,
-			       int devicetype)
+							   struct usbat_info *info,
+							   int devicetype)
 {
 
 	if (!info->devicetype)
+	{
 		info->devicetype = devicetype;
+	}
 
 	if (!info->devicetype)
+	{
 		usbat_identify_device(us, info);
+	}
 
-	switch (info->devicetype) {
-	default:
-		return USB_STOR_TRANSPORT_ERROR;
+	switch (info->devicetype)
+	{
+		default:
+			return USB_STOR_TRANSPORT_ERROR;
 
-	case  USBAT_DEV_HP8200:
-		us->transport = usbat_hp8200e_transport;
-		break;
+		case  USBAT_DEV_HP8200:
+			us->transport = usbat_hp8200e_transport;
+			break;
 
-	case USBAT_DEV_FLASH:
-		us->transport = usbat_flash_transport;
-		break;
+		case USBAT_DEV_FLASH:
+			us->transport = usbat_flash_transport;
+			break;
 	}
 
 	return 0;
@@ -1061,9 +1204,10 @@ static int usbat_set_transport(struct us_data *us,
  * Read the media capacity
  */
 static int usbat_flash_get_sector_count(struct us_data *us,
-					struct usbat_info *info)
+										struct usbat_info *info)
 {
-	unsigned char registers[3] = {
+	unsigned char registers[3] =
+	{
 		USBAT_ATA_SECCNT,
 		USBAT_ATA_DEVICE,
 		USBAT_ATA_CMD,
@@ -1074,22 +1218,30 @@ static int usbat_flash_get_sector_count(struct us_data *us,
 	int rc;
 
 	if (!us || !info)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	reply = kmalloc(512, GFP_NOIO);
+
 	if (!reply)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	/* ATA command : IDENTIFY DEVICE */
 	rc = usbat_multiple_write(us, registers, command, 3);
-	if (rc != USB_STOR_XFER_GOOD) {
+
+	if (rc != USB_STOR_XFER_GOOD)
+	{
 		usb_stor_dbg(us, "Gah! identify_device failed\n");
 		rc = USB_STOR_TRANSPORT_ERROR;
 		goto leave;
 	}
 
 	/* Read device status */
-	if (usbat_get_status(us, &status) != USB_STOR_XFER_GOOD) {
+	if (usbat_get_status(us, &status) != USB_STOR_XFER_GOOD)
+	{
 		rc = USB_STOR_TRANSPORT_ERROR;
 		goto leave;
 	}
@@ -1098,17 +1250,20 @@ static int usbat_flash_get_sector_count(struct us_data *us,
 
 	/* Read the device identification data */
 	rc = usbat_read_block(us, reply, 512, 0);
+
 	if (rc != USB_STOR_TRANSPORT_GOOD)
+	{
 		goto leave;
+	}
 
 	info->sectors = ((u32)(reply[117]) << 24) |
-		((u32)(reply[116]) << 16) |
-		((u32)(reply[115]) <<  8) |
-		((u32)(reply[114])      );
+					((u32)(reply[116]) << 16) |
+					((u32)(reply[115]) <<  8) |
+					((u32)(reply[114])      );
 
 	rc = USB_STOR_TRANSPORT_GOOD;
 
- leave:
+leave:
 	kfree(reply);
 	return rc;
 }
@@ -1121,7 +1276,8 @@ static int usbat_flash_read_data(struct us_data *us,
 								 u32 sector,
 								 u32 sectors)
 {
-	unsigned char registers[7] = {
+	unsigned char registers[7] =
+	{
 		USBAT_ATA_FEATURES,
 		USBAT_ATA_SECCNT,
 		USBAT_ATA_SECNUM,
@@ -1139,8 +1295,11 @@ static int usbat_flash_read_data(struct us_data *us,
 	struct scatterlist *sg = NULL;
 
 	result = usbat_flash_check_media(us, info);
+
 	if (result != USB_STOR_TRANSPORT_GOOD)
+	{
 		return result;
+	}
 
 	/*
 	 * we're working in LBA mode.  according to the ATA spec,
@@ -1150,7 +1309,9 @@ static int usbat_flash_read_data(struct us_data *us,
 	 */
 
 	if (sector > 0x0FFFFFFF)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	totallen = sectors * info->ssize;
 
@@ -1162,39 +1323,50 @@ static int usbat_flash_read_data(struct us_data *us,
 
 	alloclen = min(totallen, 65536u);
 	buffer = kmalloc(alloclen, GFP_NOIO);
-	if (buffer == NULL)
-		return USB_STOR_TRANSPORT_ERROR;
 
-	do {
+	if (buffer == NULL)
+	{
+		return USB_STOR_TRANSPORT_ERROR;
+	}
+
+	do
+	{
 		/*
 		 * loop, never allocate or transfer more than 64k at once
 		 * (min(128k, 255*info->ssize) is the real limit)
 		 */
 		len = min(totallen, alloclen);
 		thistime = (len / info->ssize) & 0xff;
- 
+
 		/* ATA command 0x20 (READ SECTORS) */
 		usbat_pack_ata_sector_cmd(command, thistime, sector, 0x20);
 
 		/* Write/execute ATA read command */
 		result = usbat_multiple_write(us, registers, command, 7);
+
 		if (result != USB_STOR_TRANSPORT_GOOD)
+		{
 			goto leave;
+		}
 
 		/* Read the data we just requested */
 		result = usbat_read_blocks(us, buffer, len, 0);
+
 		if (result != USB_STOR_TRANSPORT_GOOD)
+		{
 			goto leave;
-  	 
+		}
+
 		usb_stor_dbg(us, "%d bytes\n", len);
-	
+
 		/* Store the data in the transfer buffer */
 		usb_stor_access_xfer_buf(buffer, len, us->srb,
-					 &sg, &sg_offset, TO_XFER_BUF);
+								 &sg, &sg_offset, TO_XFER_BUF);
 
 		sector += thistime;
 		totallen -= len;
-	} while (totallen > 0);
+	}
+	while (totallen > 0);
 
 	kfree(buffer);
 	return USB_STOR_TRANSPORT_GOOD;
@@ -1212,7 +1384,8 @@ static int usbat_flash_write_data(struct us_data *us,
 								  u32 sector,
 								  u32 sectors)
 {
-	unsigned char registers[7] = {
+	unsigned char registers[7] =
+	{
 		USBAT_ATA_FEATURES,
 		USBAT_ATA_SECCNT,
 		USBAT_ATA_SECNUM,
@@ -1230,8 +1403,11 @@ static int usbat_flash_write_data(struct us_data *us,
 	struct scatterlist *sg = NULL;
 
 	result = usbat_flash_check_media(us, info);
+
 	if (result != USB_STOR_TRANSPORT_GOOD)
+	{
 		return result;
+	}
 
 	/*
 	 * we're working in LBA mode.  according to the ATA spec,
@@ -1241,7 +1417,9 @@ static int usbat_flash_write_data(struct us_data *us,
 	 */
 
 	if (sector > 0x0FFFFFFF)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	totallen = sectors * info->ssize;
 
@@ -1253,10 +1431,14 @@ static int usbat_flash_write_data(struct us_data *us,
 
 	alloclen = min(totallen, 65536u);
 	buffer = kmalloc(alloclen, GFP_NOIO);
-	if (buffer == NULL)
-		return USB_STOR_TRANSPORT_ERROR;
 
-	do {
+	if (buffer == NULL)
+	{
+		return USB_STOR_TRANSPORT_ERROR;
+	}
+
+	do
+	{
 		/*
 		 * loop, never allocate or transfer more than 64k at once
 		 * (min(128k, 255*info->ssize) is the real limit)
@@ -1266,24 +1448,31 @@ static int usbat_flash_write_data(struct us_data *us,
 
 		/* Get the data from the transfer buffer */
 		usb_stor_access_xfer_buf(buffer, len, us->srb,
-					 &sg, &sg_offset, FROM_XFER_BUF);
+								 &sg, &sg_offset, FROM_XFER_BUF);
 
 		/* ATA command 0x30 (WRITE SECTORS) */
 		usbat_pack_ata_sector_cmd(command, thistime, sector, 0x30);
 
 		/* Write/execute ATA write command */
 		result = usbat_multiple_write(us, registers, command, 7);
+
 		if (result != USB_STOR_TRANSPORT_GOOD)
+		{
 			goto leave;
+		}
 
 		/* Write the data */
 		result = usbat_write_blocks(us, buffer, len, 0);
+
 		if (result != USB_STOR_TRANSPORT_GOOD)
+		{
 			goto leave;
+		}
 
 		sector += thistime;
 		totallen -= len;
-	} while (totallen > 0);
+	}
+	while (totallen > 0);
 
 	kfree(buffer);
 	return result;
@@ -1298,9 +1487,9 @@ leave:
  * a little ( <= 65535 byte) ATAPI pipe
  */
 static int usbat_hp8200e_handle_read10(struct us_data *us,
-				       unsigned char *registers,
-				       unsigned char *data,
-				       struct scsi_cmnd *srb)
+									   unsigned char *registers,
+									   unsigned char *data,
+									   struct scsi_cmnd *srb)
 {
 	int result = USB_STOR_TRANSPORT_GOOD;
 	unsigned char *buffer;
@@ -1311,15 +1500,16 @@ static int usbat_hp8200e_handle_read10(struct us_data *us,
 
 	usb_stor_dbg(us, "transfersize %d\n", srb->transfersize);
 
-	if (scsi_bufflen(srb) < 0x10000) {
+	if (scsi_bufflen(srb) < 0x10000)
+	{
 
-		result = usbat_hp8200e_rw_block_test(us, USBAT_ATA, 
-			registers, data, 19,
-			USBAT_ATA_DATA, USBAT_ATA_STATUS, 0xFD,
-			(USBAT_QUAL_FCQ | USBAT_QUAL_ALQ),
-			DMA_FROM_DEVICE,
-			scsi_sglist(srb),
-			scsi_bufflen(srb), scsi_sg_count(srb), 1);
+		result = usbat_hp8200e_rw_block_test(us, USBAT_ATA,
+											 registers, data, 19,
+											 USBAT_ATA_DATA, USBAT_ATA_STATUS, 0xFD,
+											 (USBAT_QUAL_FCQ | USBAT_QUAL_ALQ),
+											 DMA_FROM_DEVICE,
+											 scsi_sglist(srb),
+											 scsi_bufflen(srb), scsi_sg_count(srb), 1);
 
 		return result;
 	}
@@ -1332,18 +1522,20 @@ static int usbat_hp8200e_handle_read10(struct us_data *us,
 	 * (see linux/drivers/scsi/sr.c).
 	 */
 
-	if (data[7+0] == GPCMD_READ_CD) {
-		len = short_pack(data[7+9], data[7+8]);
+	if (data[7 + 0] == GPCMD_READ_CD)
+	{
+		len = short_pack(data[7 + 9], data[7 + 8]);
 		len <<= 16;
-		len |= data[7+7];
+		len |= data[7 + 7];
 		usb_stor_dbg(us, "GPCMD_READ_CD: len %d\n", len);
-		srb->transfersize = scsi_bufflen(srb)/len;
+		srb->transfersize = scsi_bufflen(srb) / len;
 	}
 
-	if (!srb->transfersize)  {
+	if (!srb->transfersize)
+	{
 		srb->transfersize = 2048; /* A guess */
 		usb_stor_dbg(us, "transfersize 0, forcing %d\n",
-			     srb->transfersize);
+					 srb->transfersize);
 	}
 
 	/*
@@ -1352,50 +1544,63 @@ static int usbat_hp8200e_handle_read10(struct us_data *us,
 	 * bounce buffer and the actual transfer buffer.
 	 */
 
-	len = (65535/srb->transfersize) * srb->transfersize;
+	len = (65535 / srb->transfersize) * srb->transfersize;
 	usb_stor_dbg(us, "Max read is %d bytes\n", len);
 	len = min(len, scsi_bufflen(srb));
 	buffer = kmalloc(len, GFP_NOIO);
+
 	if (buffer == NULL) /* bloody hell! */
+	{
 		return USB_STOR_TRANSPORT_FAILED;
-	sector = short_pack(data[7+3], data[7+2]);
+	}
+
+	sector = short_pack(data[7 + 3], data[7 + 2]);
 	sector <<= 16;
-	sector |= short_pack(data[7+5], data[7+4]);
+	sector |= short_pack(data[7 + 5], data[7 + 4]);
 	transferred = 0;
 
-	while (transferred != scsi_bufflen(srb)) {
+	while (transferred != scsi_bufflen(srb))
+	{
 
 		if (len > scsi_bufflen(srb) - transferred)
+		{
 			len = scsi_bufflen(srb) - transferred;
+		}
 
-		data[3] = len&0xFF; 	  /* (cylL) = expected length (L) */
-		data[4] = (len>>8)&0xFF;  /* (cylH) = expected length (H) */
+		data[3] = len & 0xFF; 	 /* (cylL) = expected length (L) */
+		data[4] = (len >> 8) & 0xFF; /* (cylH) = expected length (H) */
 
 		/* Fix up the SCSI command sector and num sectors */
 
-		data[7+2] = MSB_of(sector>>16); /* SCSI command sector */
-		data[7+3] = LSB_of(sector>>16);
-		data[7+4] = MSB_of(sector&0xFFFF);
-		data[7+5] = LSB_of(sector&0xFFFF);
-		if (data[7+0] == GPCMD_READ_CD)
-			data[7+6] = 0;
-		data[7+7] = MSB_of(len / srb->transfersize); /* SCSI command */
-		data[7+8] = LSB_of(len / srb->transfersize); /* num sectors */
+		data[7 + 2] = MSB_of(sector >> 16); /* SCSI command sector */
+		data[7 + 3] = LSB_of(sector >> 16);
+		data[7 + 4] = MSB_of(sector & 0xFFFF);
+		data[7 + 5] = LSB_of(sector & 0xFFFF);
 
-		result = usbat_hp8200e_rw_block_test(us, USBAT_ATA, 
-			registers, data, 19,
-			USBAT_ATA_DATA, USBAT_ATA_STATUS, 0xFD, 
-			(USBAT_QUAL_FCQ | USBAT_QUAL_ALQ),
-			DMA_FROM_DEVICE,
-			buffer,
-			len, 0, 1);
+		if (data[7 + 0] == GPCMD_READ_CD)
+		{
+			data[7 + 6] = 0;
+		}
+
+		data[7 + 7] = MSB_of(len / srb->transfersize); /* SCSI command */
+		data[7 + 8] = LSB_of(len / srb->transfersize); /* num sectors */
+
+		result = usbat_hp8200e_rw_block_test(us, USBAT_ATA,
+											 registers, data, 19,
+											 USBAT_ATA_DATA, USBAT_ATA_STATUS, 0xFD,
+											 (USBAT_QUAL_FCQ | USBAT_QUAL_ALQ),
+											 DMA_FROM_DEVICE,
+											 buffer,
+											 len, 0, 1);
 
 		if (result != USB_STOR_TRANSPORT_GOOD)
+		{
 			break;
+		}
 
 		/* Store the data in the transfer buffer */
 		usb_stor_access_xfer_buf(buffer, len, srb,
-				 &sg, &sg_offset, TO_XFER_BUF);
+								 &sg, &sg_offset, TO_XFER_BUF);
 
 		/* Update the amount transferred and the sector number */
 
@@ -1414,42 +1619,61 @@ static int usbat_select_and_test_registers(struct us_data *us)
 	unsigned char *status = us->iobuf;
 
 	/* try device = master, then device = slave. */
-	for (selector = 0xA0; selector <= 0xB0; selector += 0x10) {
+	for (selector = 0xA0; selector <= 0xB0; selector += 0x10)
+	{
 		if (usbat_write(us, USBAT_ATA, USBAT_ATA_DEVICE, selector) !=
-				USB_STOR_XFER_GOOD)
+			USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 
-		if (usbat_read(us, USBAT_ATA, USBAT_ATA_STATUS, status) != 
-				USB_STOR_XFER_GOOD)
+		if (usbat_read(us, USBAT_ATA, USBAT_ATA_STATUS, status) !=
+			USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 
-		if (usbat_read(us, USBAT_ATA, USBAT_ATA_DEVICE, status) != 
-				USB_STOR_XFER_GOOD)
+		if (usbat_read(us, USBAT_ATA, USBAT_ATA_DEVICE, status) !=
+			USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 
-		if (usbat_read(us, USBAT_ATA, USBAT_ATA_LBA_ME, status) != 
-				USB_STOR_XFER_GOOD)
+		if (usbat_read(us, USBAT_ATA, USBAT_ATA_LBA_ME, status) !=
+			USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 
-		if (usbat_read(us, USBAT_ATA, USBAT_ATA_LBA_HI, status) != 
-				USB_STOR_XFER_GOOD)
+		if (usbat_read(us, USBAT_ATA, USBAT_ATA_LBA_HI, status) !=
+			USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 
-		if (usbat_write(us, USBAT_ATA, USBAT_ATA_LBA_ME, 0x55) != 
-				USB_STOR_XFER_GOOD)
+		if (usbat_write(us, USBAT_ATA, USBAT_ATA_LBA_ME, 0x55) !=
+			USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 
-		if (usbat_write(us, USBAT_ATA, USBAT_ATA_LBA_HI, 0xAA) != 
-				USB_STOR_XFER_GOOD)
+		if (usbat_write(us, USBAT_ATA, USBAT_ATA_LBA_HI, 0xAA) !=
+			USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 
-		if (usbat_read(us, USBAT_ATA, USBAT_ATA_LBA_ME, status) != 
-				USB_STOR_XFER_GOOD)
+		if (usbat_read(us, USBAT_ATA, USBAT_ATA_LBA_ME, status) !=
+			USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 
-		if (usbat_read(us, USBAT_ATA, USBAT_ATA_LBA_ME, status) != 
-				USB_STOR_XFER_GOOD)
+		if (usbat_read(us, USBAT_ATA, USBAT_ATA_LBA_ME, status) !=
+			USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 	}
 
 	return USB_STOR_TRANSPORT_GOOD;
@@ -1467,91 +1691,131 @@ static int init_usbat(struct us_data *us, int devicetype)
 	unsigned char *status = us->iobuf;
 
 	us->extra = kzalloc(sizeof(struct usbat_info), GFP_NOIO);
+
 	if (!us->extra)
+	{
 		return 1;
+	}
 
 	info = (struct usbat_info *) (us->extra);
 
 	/* Enable peripheral control signals */
 	rc = usbat_write_user_io(us,
-				 USBAT_UIO_OE1 | USBAT_UIO_OE0,
-				 USBAT_UIO_EPAD | USBAT_UIO_1);
+							 USBAT_UIO_OE1 | USBAT_UIO_OE0,
+							 USBAT_UIO_EPAD | USBAT_UIO_1);
+
 	if (rc != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	usb_stor_dbg(us, "INIT 1\n");
 
 	msleep(2000);
 
 	rc = usbat_read_user_io(us, status);
+
 	if (rc != USB_STOR_TRANSPORT_GOOD)
+	{
 		return rc;
+	}
 
 	usb_stor_dbg(us, "INIT 2\n");
 
 	rc = usbat_read_user_io(us, status);
+
 	if (rc != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	rc = usbat_read_user_io(us, status);
+
 	if (rc != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	usb_stor_dbg(us, "INIT 3\n");
 
 	rc = usbat_select_and_test_registers(us);
+
 	if (rc != USB_STOR_TRANSPORT_GOOD)
+	{
 		return rc;
+	}
 
 	usb_stor_dbg(us, "INIT 4\n");
 
 	rc = usbat_read_user_io(us, status);
+
 	if (rc != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	usb_stor_dbg(us, "INIT 5\n");
 
 	/* Enable peripheral control signals and card detect */
 	rc = usbat_device_enable_cdt(us);
+
 	if (rc != USB_STOR_TRANSPORT_GOOD)
+	{
 		return rc;
+	}
 
 	usb_stor_dbg(us, "INIT 6\n");
 
 	rc = usbat_read_user_io(us, status);
+
 	if (rc != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	usb_stor_dbg(us, "INIT 7\n");
 
 	msleep(1400);
 
 	rc = usbat_read_user_io(us, status);
+
 	if (rc != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	usb_stor_dbg(us, "INIT 8\n");
 
 	rc = usbat_select_and_test_registers(us);
+
 	if (rc != USB_STOR_TRANSPORT_GOOD)
+	{
 		return rc;
+	}
 
 	usb_stor_dbg(us, "INIT 9\n");
 
 	/* At this point, we need to detect which device we are using */
 	if (usbat_set_transport(us, info, devicetype))
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	usb_stor_dbg(us, "INIT 10\n");
 
-	if (usbat_get_device_type(us) == USBAT_DEV_FLASH) { 
+	if (usbat_get_device_type(us) == USBAT_DEV_FLASH)
+	{
 		subcountH = 0x02;
 		subcountL = 0x00;
 	}
+
 	rc = usbat_set_shuttle_features(us, (USBAT_FEAT_ETEN | USBAT_FEAT_ET2 | USBAT_FEAT_ET1),
 									0x00, 0x88, 0x08, subcountH, subcountL);
+
 	if (rc != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	usb_stor_dbg(us, "INIT 11\n");
 
@@ -1576,7 +1840,7 @@ static int usbat_hp8200e_transport(struct scsi_cmnd *srb, struct us_data *us)
 	 * Send A0 (ATA PACKET COMMAND).
 	 * Note: I guess we're never going to get any of the ATA
 	 * commands... just ATA Packet Commands.
- 	 */
+	 */
 
 	registers[0] = USBAT_ATA_FEATURES;
 	registers[1] = USBAT_ATA_SECCNT;
@@ -1588,57 +1852,71 @@ static int usbat_hp8200e_transport(struct scsi_cmnd *srb, struct us_data *us)
 	data[0] = 0x00;
 	data[1] = 0x00;
 	data[2] = 0x00;
-	data[3] = len&0xFF; 		/* (cylL) = expected length (L) */
-	data[4] = (len>>8)&0xFF; 	/* (cylH) = expected length (H) */
+	data[3] = len & 0xFF; 		/* (cylL) = expected length (L) */
+	data[4] = (len >> 8) & 0xFF; 	/* (cylH) = expected length (H) */
 	data[5] = 0xB0; 		/* (device sel) = slave */
 	data[6] = 0xA0; 		/* (command) = ATA PACKET COMMAND */
 
-	for (i=7; i<19; i++) {
+	for (i = 7; i < 19; i++)
+	{
 		registers[i] = 0x10;
-		data[i] = (i-7 >= srb->cmd_len) ? 0 : srb->cmnd[i-7];
+		data[i] = (i - 7 >= srb->cmd_len) ? 0 : srb->cmnd[i - 7];
 	}
 
 	result = usbat_get_status(us, status);
 	usb_stor_dbg(us, "Status = %02X\n", *status);
+
 	if (result != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
+
 	if (srb->cmnd[0] == TEST_UNIT_READY)
+	{
 		transferred = 0;
+	}
 
-	if (srb->sc_data_direction == DMA_TO_DEVICE) {
+	if (srb->sc_data_direction == DMA_TO_DEVICE)
+	{
 
-		result = usbat_hp8200e_rw_block_test(us, USBAT_ATA, 
-			registers, data, 19,
-			USBAT_ATA_DATA, USBAT_ATA_STATUS, 0xFD,
-			(USBAT_QUAL_FCQ | USBAT_QUAL_ALQ),
-			DMA_TO_DEVICE,
-			scsi_sglist(srb),
-			len, scsi_sg_count(srb), 10);
+		result = usbat_hp8200e_rw_block_test(us, USBAT_ATA,
+											 registers, data, 19,
+											 USBAT_ATA_DATA, USBAT_ATA_STATUS, 0xFD,
+											 (USBAT_QUAL_FCQ | USBAT_QUAL_ALQ),
+											 DMA_TO_DEVICE,
+											 scsi_sglist(srb),
+											 len, scsi_sg_count(srb), 10);
 
-		if (result == USB_STOR_TRANSPORT_GOOD) {
+		if (result == USB_STOR_TRANSPORT_GOOD)
+		{
 			transferred += len;
 			usb_stor_dbg(us, "Wrote %08X bytes\n", transferred);
 		}
 
 		return result;
 
-	} else if (srb->cmnd[0] == READ_10 ||
-		   srb->cmnd[0] == GPCMD_READ_CD) {
+	}
+	else if (srb->cmnd[0] == READ_10 ||
+			 srb->cmnd[0] == GPCMD_READ_CD)
+	{
 
 		return usbat_hp8200e_handle_read10(us, registers, data, srb);
 
 	}
 
-	if (len > 0xFFFF) {
+	if (len > 0xFFFF)
+	{
 		usb_stor_dbg(us, "Error: len = %08X... what do I do now?\n",
-			     len);
+					 len);
 		return USB_STOR_TRANSPORT_ERROR;
 	}
 
 	result = usbat_multiple_write(us, registers, data, 7);
 
 	if (result != USB_STOR_TRANSPORT_GOOD)
+	{
 		return result;
+	}
 
 	/*
 	 * Write the 12-byte command header.
@@ -1651,36 +1929,46 @@ static int usbat_hp8200e_transport(struct scsi_cmnd *srb, struct us_data *us)
 	 */
 
 	result = usbat_write_block(us, USBAT_ATA, srb->cmnd, 12,
-				   srb->cmnd[0] == GPCMD_BLANK ? 75 : 10, 0);
+							   srb->cmnd[0] == GPCMD_BLANK ? 75 : 10, 0);
 
 	if (result != USB_STOR_TRANSPORT_GOOD)
+	{
 		return result;
+	}
 
 	/* If there is response data to be read in then do it here. */
 
-	if (len != 0 && (srb->sc_data_direction == DMA_FROM_DEVICE)) {
+	if (len != 0 && (srb->sc_data_direction == DMA_FROM_DEVICE))
+	{
 
 		/* How many bytes to read in? Check cylL register */
 
-		if (usbat_read(us, USBAT_ATA, USBAT_ATA_LBA_ME, status) != 
-		    	USB_STOR_XFER_GOOD) {
+		if (usbat_read(us, USBAT_ATA, USBAT_ATA_LBA_ME, status) !=
+			USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
 		}
 
-		if (len > 0xFF) { /* need to read cylH also */
+		if (len > 0xFF)   /* need to read cylH also */
+		{
 			len = *status;
+
 			if (usbat_read(us, USBAT_ATA, USBAT_ATA_LBA_HI, status) !=
-				    USB_STOR_XFER_GOOD) {
+				USB_STOR_XFER_GOOD)
+			{
 				return USB_STOR_TRANSPORT_ERROR;
 			}
-			len += ((unsigned int) *status)<<8;
+
+			len += ((unsigned int) * status) << 8;
 		}
 		else
+		{
 			len = *status;
+		}
 
 
 		result = usbat_read_block(us, scsi_sglist(srb), len,
-			                                   scsi_sg_count(srb));
+								  scsi_sg_count(srb));
 	}
 
 	return result;
@@ -1689,36 +1977,45 @@ static int usbat_hp8200e_transport(struct scsi_cmnd *srb, struct us_data *us)
 /*
  * Transport for USBAT02-based CompactFlash and similar storage devices
  */
-static int usbat_flash_transport(struct scsi_cmnd * srb, struct us_data *us)
+static int usbat_flash_transport(struct scsi_cmnd *srb, struct us_data *us)
 {
 	int rc;
 	struct usbat_info *info = (struct usbat_info *) (us->extra);
 	unsigned long block, blocks;
 	unsigned char *ptr = us->iobuf;
-	static unsigned char inquiry_response[36] = {
+	static unsigned char inquiry_response[36] =
+	{
 		0x00, 0x80, 0x00, 0x01, 0x1F, 0x00, 0x00, 0x00
 	};
 
-	if (srb->cmnd[0] == INQUIRY) {
+	if (srb->cmnd[0] == INQUIRY)
+	{
 		usb_stor_dbg(us, "INQUIRY - Returning bogus response\n");
 		memcpy(ptr, inquiry_response, sizeof(inquiry_response));
 		fill_inquiry_response(us, ptr, 36);
 		return USB_STOR_TRANSPORT_GOOD;
 	}
 
-	if (srb->cmnd[0] == READ_CAPACITY) {
+	if (srb->cmnd[0] == READ_CAPACITY)
+	{
 		rc = usbat_flash_check_media(us, info);
+
 		if (rc != USB_STOR_TRANSPORT_GOOD)
+		{
 			return rc;
+		}
 
 		rc = usbat_flash_get_sector_count(us, info);
+
 		if (rc != USB_STOR_TRANSPORT_GOOD)
+		{
 			return rc;
+		}
 
 		/* hard coded 512 byte sectors as per ATA spec */
 		info->ssize = 0x200;
 		usb_stor_dbg(us, "READ_CAPACITY: %ld sectors, %ld bytes per sector\n",
-			     info->sectors, info->ssize);
+					 info->sectors, info->ssize);
 
 		/*
 		 * build the reply
@@ -1732,75 +2029,85 @@ static int usbat_flash_transport(struct scsi_cmnd * srb, struct us_data *us)
 		return USB_STOR_TRANSPORT_GOOD;
 	}
 
-	if (srb->cmnd[0] == MODE_SELECT_10) {
+	if (srb->cmnd[0] == MODE_SELECT_10)
+	{
 		usb_stor_dbg(us, "Gah! MODE_SELECT_10\n");
 		return USB_STOR_TRANSPORT_ERROR;
 	}
 
-	if (srb->cmnd[0] == READ_10) {
+	if (srb->cmnd[0] == READ_10)
+	{
 		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
 				((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
 
 		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
 
 		usb_stor_dbg(us, "READ_10: read block 0x%04lx  count %ld\n",
-			     block, blocks);
+					 block, blocks);
 		return usbat_flash_read_data(us, info, block, blocks);
 	}
 
-	if (srb->cmnd[0] == READ_12) {
+	if (srb->cmnd[0] == READ_12)
+	{
 		/*
 		 * I don't think we'll ever see a READ_12 but support it anyway
 		 */
 		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
-		        ((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+				((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
 
 		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
-		         ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
+				 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
 
 		usb_stor_dbg(us, "READ_12: read block 0x%04lx  count %ld\n",
-			     block, blocks);
+					 block, blocks);
 		return usbat_flash_read_data(us, info, block, blocks);
 	}
 
-	if (srb->cmnd[0] == WRITE_10) {
+	if (srb->cmnd[0] == WRITE_10)
+	{
 		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
-		        ((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+				((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
 
 		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
 
 		usb_stor_dbg(us, "WRITE_10: write block 0x%04lx  count %ld\n",
-			     block, blocks);
+					 block, blocks);
 		return usbat_flash_write_data(us, info, block, blocks);
 	}
 
-	if (srb->cmnd[0] == WRITE_12) {
+	if (srb->cmnd[0] == WRITE_12)
+	{
 		/*
 		 * I don't think we'll ever see a WRITE_12 but support it anyway
 		 */
 		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
-		        ((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+				((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
 
 		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
-		         ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
+				 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
 
 		usb_stor_dbg(us, "WRITE_12: write block 0x%04lx  count %ld\n",
-			     block, blocks);
+					 block, blocks);
 		return usbat_flash_write_data(us, info, block, blocks);
 	}
 
 
-	if (srb->cmnd[0] == TEST_UNIT_READY) {
+	if (srb->cmnd[0] == TEST_UNIT_READY)
+	{
 		usb_stor_dbg(us, "TEST_UNIT_READY\n");
 
 		rc = usbat_flash_check_media(us, info);
+
 		if (rc != USB_STOR_TRANSPORT_GOOD)
+		{
 			return rc;
+		}
 
 		return usbat_check_status(us);
 	}
 
-	if (srb->cmnd[0] == REQUEST_SENSE) {
+	if (srb->cmnd[0] == REQUEST_SENSE)
+	{
 		usb_stor_dbg(us, "REQUEST_SENSE\n");
 
 		memset(ptr, 0, 18);
@@ -1814,7 +2121,8 @@ static int usbat_flash_transport(struct scsi_cmnd * srb, struct us_data *us)
 		return USB_STOR_TRANSPORT_GOOD;
 	}
 
-	if (srb->cmnd[0] == ALLOW_MEDIUM_REMOVAL) {
+	if (srb->cmnd[0] == ALLOW_MEDIUM_REMOVAL)
+	{
 		/*
 		 * sure.  whatever.  not like we can stop the user from popping
 		 * the media out of the device (no locking doors, etc)
@@ -1823,7 +2131,7 @@ static int usbat_flash_transport(struct scsi_cmnd * srb, struct us_data *us)
 	}
 
 	usb_stor_dbg(us, "Gah! Unknown command: %d (0x%x)\n",
-		     srb->cmnd[0], srb->cmnd[0]);
+				 srb->cmnd[0], srb->cmnd[0]);
 	info->sense_key = 0x05;
 	info->sense_asc = 0x20;
 	info->sense_ascq = 0x00;
@@ -1843,16 +2151,19 @@ static int init_usbat_flash(struct us_data *us)
 static struct scsi_host_template usbat_host_template;
 
 static int usbat_probe(struct usb_interface *intf,
-			 const struct usb_device_id *id)
+					   const struct usb_device_id *id)
 {
 	struct us_data *us;
 	int result;
 
 	result = usb_stor_probe1(&us, intf, id,
-			(id - usbat_usb_ids) + usbat_unusual_dev_list,
-			&usbat_host_template);
+							 (id - usbat_usb_ids) + usbat_unusual_dev_list,
+							 &usbat_host_template);
+
 	if (result)
+	{
 		return result;
+	}
 
 	/*
 	 * The actual transport will be determined later by the
@@ -1867,7 +2178,8 @@ static int usbat_probe(struct usb_interface *intf,
 	return result;
 }
 
-static struct usb_driver usbat_driver = {
+static struct usb_driver usbat_driver =
+{
 	.name =		DRV_NAME,
 	.probe =	usbat_probe,
 	.disconnect =	usb_stor_disconnect,

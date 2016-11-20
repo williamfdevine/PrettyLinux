@@ -67,17 +67,21 @@ static struct ctl_table_header *dn_table_header = NULL;
 
 static void strip_it(char *str)
 {
-	for(;;) {
-		switch (*str) {
-		case ' ':
-		case '\n':
-		case '\r':
-		case ':':
-			*str = 0;
+	for (;;)
+	{
+		switch (*str)
+		{
+			case ' ':
+			case '\n':
+			case '\r':
+			case ':':
+				*str = 0;
+
 			/* Fallthrough */
-		case 0:
-			return;
+			case 0:
+				return;
 		}
+
 		str++;
 	}
 }
@@ -90,42 +94,60 @@ static int parse_addr(__le16 *addr, char *str)
 {
 	__u16 area, node;
 
-	while(*str && !ISNUM(*str)) str++;
+	while (*str && !ISNUM(*str)) { str++; }
 
 	if (*str == 0)
+	{
 		return -1;
+	}
 
 	area = (*str++ - '0');
-	if (ISNUM(*str)) {
+
+	if (ISNUM(*str))
+	{
 		area *= 10;
 		area += (*str++ - '0');
 	}
 
 	if (*str++ != '.')
+	{
 		return -1;
+	}
 
 	if (!ISNUM(*str))
+	{
 		return -1;
+	}
 
 	node = *str++ - '0';
-	if (ISNUM(*str)) {
+
+	if (ISNUM(*str))
+	{
 		node *= 10;
 		node += (*str++ - '0');
 	}
-	if (ISNUM(*str)) {
+
+	if (ISNUM(*str))
+	{
 		node *= 10;
 		node += (*str++ - '0');
 	}
-	if (ISNUM(*str)) {
+
+	if (ISNUM(*str))
+	{
 		node *= 10;
 		node += (*str++ - '0');
 	}
 
 	if ((node > 1023) || (area > 63))
+	{
 		return -1;
+	}
 
 	if (INVALID_END_CHAR(*str))
+	{
 		return -1;
+	}
 
 	*addr = cpu_to_le16((area << 10) | node);
 
@@ -133,29 +155,35 @@ static int parse_addr(__le16 *addr, char *str)
 }
 
 static int dn_node_address_handler(struct ctl_table *table, int write,
-				void __user *buffer,
-				size_t *lenp, loff_t *ppos)
+								   void __user *buffer,
+								   size_t *lenp, loff_t *ppos)
 {
 	char addr[DN_ASCBUF_LEN];
 	size_t len;
 	__le16 dnaddr;
 
-	if (!*lenp || (*ppos && !write)) {
+	if (!*lenp || (*ppos && !write))
+	{
 		*lenp = 0;
 		return 0;
 	}
 
-	if (write) {
-		len = (*lenp < DN_ASCBUF_LEN) ? *lenp : (DN_ASCBUF_LEN-1);
+	if (write)
+	{
+		len = (*lenp < DN_ASCBUF_LEN) ? *lenp : (DN_ASCBUF_LEN - 1);
 
 		if (copy_from_user(addr, buffer, len))
+		{
 			return -EFAULT;
+		}
 
 		addr[len] = 0;
 		strip_it(addr);
 
 		if (parse_addr(&dnaddr, addr))
+		{
 			return -EINVAL;
+		}
 
 		dn_dev_devices_off();
 
@@ -172,10 +200,12 @@ static int dn_node_address_handler(struct ctl_table *table, int write,
 	len = strlen(addr);
 	addr[len++] = '\n';
 
-	if (len > *lenp) len = *lenp;
+	if (len > *lenp) { len = *lenp; }
 
 	if (copy_to_user(buffer, addr, len))
+	{
 		return -EFAULT;
+	}
 
 	*lenp = len;
 	*ppos += len;
@@ -184,48 +214,62 @@ static int dn_node_address_handler(struct ctl_table *table, int write,
 }
 
 static int dn_def_dev_handler(struct ctl_table *table, int write,
-				void __user *buffer,
-				size_t *lenp, loff_t *ppos)
+							  void __user *buffer,
+							  size_t *lenp, loff_t *ppos)
 {
 	size_t len;
 	struct net_device *dev;
 	char devname[17];
 
-	if (!*lenp || (*ppos && !write)) {
+	if (!*lenp || (*ppos && !write))
+	{
 		*lenp = 0;
 		return 0;
 	}
 
-	if (write) {
+	if (write)
+	{
 		if (*lenp > 16)
+		{
 			return -E2BIG;
+		}
 
 		if (copy_from_user(devname, buffer, *lenp))
+		{
 			return -EFAULT;
+		}
 
 		devname[*lenp] = 0;
 		strip_it(devname);
 
 		dev = dev_get_by_name(&init_net, devname);
+
 		if (dev == NULL)
+		{
 			return -ENODEV;
+		}
 
-		if (dev->dn_ptr == NULL) {
+		if (dev->dn_ptr == NULL)
+		{
 			dev_put(dev);
 			return -ENODEV;
 		}
 
-		if (dn_dev_set_default(dev, 1)) {
+		if (dn_dev_set_default(dev, 1))
+		{
 			dev_put(dev);
 			return -ENODEV;
 		}
+
 		*ppos += *lenp;
 
 		return 0;
 	}
 
 	dev = dn_dev_get_default();
-	if (dev == NULL) {
+
+	if (dev == NULL)
+	{
 		*lenp = 0;
 		return 0;
 	}
@@ -235,10 +279,12 @@ static int dn_def_dev_handler(struct ctl_table *table, int write,
 	len = strlen(devname);
 	devname[len++] = '\n';
 
-	if (len > *lenp) len = *lenp;
+	if (len > *lenp) { len = *lenp; }
 
 	if (copy_to_user(buffer, devname, len))
+	{
 		return -EFAULT;
+	}
 
 	*lenp = len;
 	*ppos += len;
@@ -246,7 +292,8 @@ static int dn_def_dev_handler(struct ctl_table *table, int write,
 	return 0;
 }
 
-static struct ctl_table dn_table[] = {
+static struct ctl_table dn_table[] =
+{
 	{
 		.procname = "node_address",
 		.maxlen = 7,
@@ -320,7 +367,7 @@ static struct ctl_table dn_table[] = {
 		.extra1 = &min_decnet_no_fc_max_cwnd,
 		.extra2 = &max_decnet_no_fc_max_cwnd
 	},
-       {
+	{
 		.procname = "decnet_mem",
 		.data = &sysctl_decnet_mem,
 		.maxlen = sizeof(sysctl_decnet_mem),

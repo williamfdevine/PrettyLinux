@@ -22,7 +22,8 @@
 #ifndef __DA9210_REGISTERS_H__
 #define __DA9210_REGISTERS_H__
 
-struct da9210_pdata {
+struct da9210_pdata
+{
 	struct regulator_init_data da9210_constraints;
 };
 

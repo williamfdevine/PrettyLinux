@@ -40,22 +40,27 @@
 
 #define RT5660_PR_BASE (RT5660_PR_RANGE_BASE + (0 * RT5660_PR_SPACING))
 
-static const struct regmap_range_cfg rt5660_ranges[] = {
-	{ .name = "PR", .range_min = RT5660_PR_BASE,
-	  .range_max = RT5660_PR_BASE + 0xf3,
-	  .selector_reg = RT5660_PRIV_INDEX,
-	  .selector_mask = 0xff,
-	  .selector_shift = 0x0,
-	  .window_start = RT5660_PRIV_DATA,
-	  .window_len = 0x1, },
+static const struct regmap_range_cfg rt5660_ranges[] =
+{
+	{
+		.name = "PR", .range_min = RT5660_PR_BASE,
+		.range_max = RT5660_PR_BASE + 0xf3,
+		.selector_reg = RT5660_PRIV_INDEX,
+		.selector_mask = 0xff,
+		.selector_shift = 0x0,
+		.window_start = RT5660_PRIV_DATA,
+		.window_len = 0x1,
+	},
 };
 
-static const struct reg_sequence rt5660_patch[] = {
+static const struct reg_sequence rt5660_patch[] =
+{
 	{ RT5660_ALC_PGA_CTRL2,		0x44c3 },
 	{ RT5660_PR_BASE + 0x3d,	0x2600 },
 };
 
-static const struct reg_default rt5660_reg[] = {
+static const struct reg_default rt5660_reg[] =
+{
 	{ 0x00, 0x0000 },
 	{ 0x01, 0xc800 },
 	{ 0x02, 0xc8c8 },
@@ -159,24 +164,28 @@ static bool rt5660_volatile_register(struct device *dev, unsigned int reg)
 
 	for (i = 0; i < ARRAY_SIZE(rt5660_ranges); i++)
 		if ((reg >= rt5660_ranges[i].window_start &&
-		     reg <= rt5660_ranges[i].window_start +
-		     rt5660_ranges[i].window_len) ||
-		    (reg >= rt5660_ranges[i].range_min &&
-		     reg <= rt5660_ranges[i].range_max))
+			 reg <= rt5660_ranges[i].window_start +
+			 rt5660_ranges[i].window_len) ||
+			(reg >= rt5660_ranges[i].range_min &&
+			 reg <= rt5660_ranges[i].range_max))
+		{
+			return true;
+		}
+
+	switch (reg)
+	{
+		case RT5660_RESET:
+		case RT5660_PRIV_DATA:
+		case RT5660_EQ_CTRL1:
+		case RT5660_IRQ_CTRL2:
+		case RT5660_INT_IRQ_ST:
+		case RT5660_VENDOR_ID:
+		case RT5660_VENDOR_ID1:
+		case RT5660_VENDOR_ID2:
 			return true;
 
-	switch (reg) {
-	case RT5660_RESET:
-	case RT5660_PRIV_DATA:
-	case RT5660_EQ_CTRL1:
-	case RT5660_IRQ_CTRL2:
-	case RT5660_INT_IRQ_ST:
-	case RT5660_VENDOR_ID:
-	case RT5660_VENDOR_ID1:
-	case RT5660_VENDOR_ID2:
-		return true;
-	default:
-		return false;
+		default:
+			return false;
 	}
 }
 
@@ -186,115 +195,119 @@ static bool rt5660_readable_register(struct device *dev, unsigned int reg)
 
 	for (i = 0; i < ARRAY_SIZE(rt5660_ranges); i++)
 		if ((reg >= rt5660_ranges[i].window_start &&
-		     reg <= rt5660_ranges[i].window_start +
-		     rt5660_ranges[i].window_len) ||
-		    (reg >= rt5660_ranges[i].range_min &&
-		     reg <= rt5660_ranges[i].range_max))
+			 reg <= rt5660_ranges[i].window_start +
+			 rt5660_ranges[i].window_len) ||
+			(reg >= rt5660_ranges[i].range_min &&
+			 reg <= rt5660_ranges[i].range_max))
+		{
+			return true;
+		}
+
+	switch (reg)
+	{
+		case RT5660_RESET:
+		case RT5660_SPK_VOL:
+		case RT5660_LOUT_VOL:
+		case RT5660_IN1_IN2:
+		case RT5660_IN3_IN4:
+		case RT5660_DAC1_DIG_VOL:
+		case RT5660_STO1_ADC_DIG_VOL:
+		case RT5660_ADC_BST_VOL1:
+		case RT5660_STO1_ADC_MIXER:
+		case RT5660_AD_DA_MIXER:
+		case RT5660_STO_DAC_MIXER:
+		case RT5660_DIG_INF1_DATA:
+		case RT5660_REC_L1_MIXER:
+		case RT5660_REC_L2_MIXER:
+		case RT5660_REC_R1_MIXER:
+		case RT5660_REC_R2_MIXER:
+		case RT5660_LOUT_MIXER:
+		case RT5660_SPK_MIXER:
+		case RT5660_SPO_MIXER:
+		case RT5660_SPO_CLSD_RATIO:
+		case RT5660_OUT_L_GAIN1:
+		case RT5660_OUT_L_GAIN2:
+		case RT5660_OUT_L1_MIXER:
+		case RT5660_OUT_R_GAIN1:
+		case RT5660_OUT_R_GAIN2:
+		case RT5660_OUT_R1_MIXER:
+		case RT5660_PWR_DIG1:
+		case RT5660_PWR_DIG2:
+		case RT5660_PWR_ANLG1:
+		case RT5660_PWR_ANLG2:
+		case RT5660_PWR_MIXER:
+		case RT5660_PWR_VOL:
+		case RT5660_PRIV_INDEX:
+		case RT5660_PRIV_DATA:
+		case RT5660_I2S1_SDP:
+		case RT5660_ADDA_CLK1:
+		case RT5660_ADDA_CLK2:
+		case RT5660_DMIC_CTRL1:
+		case RT5660_GLB_CLK:
+		case RT5660_PLL_CTRL1:
+		case RT5660_PLL_CTRL2:
+		case RT5660_CLSD_AMP_OC_CTRL:
+		case RT5660_CLSD_AMP_CTRL:
+		case RT5660_LOUT_AMP_CTRL:
+		case RT5660_SPK_AMP_SPKVDD:
+		case RT5660_MICBIAS:
+		case RT5660_CLSD_OUT_CTRL1:
+		case RT5660_CLSD_OUT_CTRL2:
+		case RT5660_DIPOLE_MIC_CTRL1:
+		case RT5660_DIPOLE_MIC_CTRL2:
+		case RT5660_DIPOLE_MIC_CTRL3:
+		case RT5660_DIPOLE_MIC_CTRL4:
+		case RT5660_DIPOLE_MIC_CTRL5:
+		case RT5660_DIPOLE_MIC_CTRL6:
+		case RT5660_DIPOLE_MIC_CTRL7:
+		case RT5660_DIPOLE_MIC_CTRL8:
+		case RT5660_DIPOLE_MIC_CTRL9:
+		case RT5660_DIPOLE_MIC_CTRL10:
+		case RT5660_DIPOLE_MIC_CTRL11:
+		case RT5660_DIPOLE_MIC_CTRL12:
+		case RT5660_EQ_CTRL1:
+		case RT5660_EQ_CTRL2:
+		case RT5660_DRC_AGC_CTRL1:
+		case RT5660_DRC_AGC_CTRL2:
+		case RT5660_DRC_AGC_CTRL3:
+		case RT5660_DRC_AGC_CTRL4:
+		case RT5660_DRC_AGC_CTRL5:
+		case RT5660_JD_CTRL:
+		case RT5660_IRQ_CTRL1:
+		case RT5660_IRQ_CTRL2:
+		case RT5660_INT_IRQ_ST:
+		case RT5660_GPIO_CTRL1:
+		case RT5660_GPIO_CTRL2:
+		case RT5660_WIND_FILTER_CTRL1:
+		case RT5660_SV_ZCD1:
+		case RT5660_SV_ZCD2:
+		case RT5660_DRC1_LM_CTRL1:
+		case RT5660_DRC1_LM_CTRL2:
+		case RT5660_DRC2_LM_CTRL1:
+		case RT5660_DRC2_LM_CTRL2:
+		case RT5660_MULTI_DRC_CTRL:
+		case RT5660_DRC2_CTRL1:
+		case RT5660_DRC2_CTRL2:
+		case RT5660_DRC2_CTRL3:
+		case RT5660_DRC2_CTRL4:
+		case RT5660_DRC2_CTRL5:
+		case RT5660_ALC_PGA_CTRL1:
+		case RT5660_ALC_PGA_CTRL2:
+		case RT5660_ALC_PGA_CTRL3:
+		case RT5660_ALC_PGA_CTRL4:
+		case RT5660_ALC_PGA_CTRL5:
+		case RT5660_ALC_PGA_CTRL6:
+		case RT5660_ALC_PGA_CTRL7:
+		case RT5660_GEN_CTRL1:
+		case RT5660_GEN_CTRL2:
+		case RT5660_GEN_CTRL3:
+		case RT5660_VENDOR_ID:
+		case RT5660_VENDOR_ID1:
+		case RT5660_VENDOR_ID2:
 			return true;
 
-	switch (reg) {
-	case RT5660_RESET:
-	case RT5660_SPK_VOL:
-	case RT5660_LOUT_VOL:
-	case RT5660_IN1_IN2:
-	case RT5660_IN3_IN4:
-	case RT5660_DAC1_DIG_VOL:
-	case RT5660_STO1_ADC_DIG_VOL:
-	case RT5660_ADC_BST_VOL1:
-	case RT5660_STO1_ADC_MIXER:
-	case RT5660_AD_DA_MIXER:
-	case RT5660_STO_DAC_MIXER:
-	case RT5660_DIG_INF1_DATA:
-	case RT5660_REC_L1_MIXER:
-	case RT5660_REC_L2_MIXER:
-	case RT5660_REC_R1_MIXER:
-	case RT5660_REC_R2_MIXER:
-	case RT5660_LOUT_MIXER:
-	case RT5660_SPK_MIXER:
-	case RT5660_SPO_MIXER:
-	case RT5660_SPO_CLSD_RATIO:
-	case RT5660_OUT_L_GAIN1:
-	case RT5660_OUT_L_GAIN2:
-	case RT5660_OUT_L1_MIXER:
-	case RT5660_OUT_R_GAIN1:
-	case RT5660_OUT_R_GAIN2:
-	case RT5660_OUT_R1_MIXER:
-	case RT5660_PWR_DIG1:
-	case RT5660_PWR_DIG2:
-	case RT5660_PWR_ANLG1:
-	case RT5660_PWR_ANLG2:
-	case RT5660_PWR_MIXER:
-	case RT5660_PWR_VOL:
-	case RT5660_PRIV_INDEX:
-	case RT5660_PRIV_DATA:
-	case RT5660_I2S1_SDP:
-	case RT5660_ADDA_CLK1:
-	case RT5660_ADDA_CLK2:
-	case RT5660_DMIC_CTRL1:
-	case RT5660_GLB_CLK:
-	case RT5660_PLL_CTRL1:
-	case RT5660_PLL_CTRL2:
-	case RT5660_CLSD_AMP_OC_CTRL:
-	case RT5660_CLSD_AMP_CTRL:
-	case RT5660_LOUT_AMP_CTRL:
-	case RT5660_SPK_AMP_SPKVDD:
-	case RT5660_MICBIAS:
-	case RT5660_CLSD_OUT_CTRL1:
-	case RT5660_CLSD_OUT_CTRL2:
-	case RT5660_DIPOLE_MIC_CTRL1:
-	case RT5660_DIPOLE_MIC_CTRL2:
-	case RT5660_DIPOLE_MIC_CTRL3:
-	case RT5660_DIPOLE_MIC_CTRL4:
-	case RT5660_DIPOLE_MIC_CTRL5:
-	case RT5660_DIPOLE_MIC_CTRL6:
-	case RT5660_DIPOLE_MIC_CTRL7:
-	case RT5660_DIPOLE_MIC_CTRL8:
-	case RT5660_DIPOLE_MIC_CTRL9:
-	case RT5660_DIPOLE_MIC_CTRL10:
-	case RT5660_DIPOLE_MIC_CTRL11:
-	case RT5660_DIPOLE_MIC_CTRL12:
-	case RT5660_EQ_CTRL1:
-	case RT5660_EQ_CTRL2:
-	case RT5660_DRC_AGC_CTRL1:
-	case RT5660_DRC_AGC_CTRL2:
-	case RT5660_DRC_AGC_CTRL3:
-	case RT5660_DRC_AGC_CTRL4:
-	case RT5660_DRC_AGC_CTRL5:
-	case RT5660_JD_CTRL:
-	case RT5660_IRQ_CTRL1:
-	case RT5660_IRQ_CTRL2:
-	case RT5660_INT_IRQ_ST:
-	case RT5660_GPIO_CTRL1:
-	case RT5660_GPIO_CTRL2:
-	case RT5660_WIND_FILTER_CTRL1:
-	case RT5660_SV_ZCD1:
-	case RT5660_SV_ZCD2:
-	case RT5660_DRC1_LM_CTRL1:
-	case RT5660_DRC1_LM_CTRL2:
-	case RT5660_DRC2_LM_CTRL1:
-	case RT5660_DRC2_LM_CTRL2:
-	case RT5660_MULTI_DRC_CTRL:
-	case RT5660_DRC2_CTRL1:
-	case RT5660_DRC2_CTRL2:
-	case RT5660_DRC2_CTRL3:
-	case RT5660_DRC2_CTRL4:
-	case RT5660_DRC2_CTRL5:
-	case RT5660_ALC_PGA_CTRL1:
-	case RT5660_ALC_PGA_CTRL2:
-	case RT5660_ALC_PGA_CTRL3:
-	case RT5660_ALC_PGA_CTRL4:
-	case RT5660_ALC_PGA_CTRL5:
-	case RT5660_ALC_PGA_CTRL6:
-	case RT5660_ALC_PGA_CTRL7:
-	case RT5660_GEN_CTRL1:
-	case RT5660_GEN_CTRL2:
-	case RT5660_GEN_CTRL3:
-	case RT5660_VENDOR_ID:
-	case RT5660_VENDOR_ID1:
-	case RT5660_VENDOR_ID2:
-		return true;
-	default:
-		return false;
+		default:
+			return false;
 	}
 }
 
@@ -304,43 +317,44 @@ static const DECLARE_TLV_DB_SCALE(rt5660_adc_vol_tlv, -1725, 75, 0);
 static const DECLARE_TLV_DB_SCALE(rt5660_adc_bst_tlv, 0, 1200, 0);
 static const DECLARE_TLV_DB_SCALE(rt5660_bst_tlv, -1200, 75, 0);
 
-static const struct snd_kcontrol_new rt5660_snd_controls[] = {
+static const struct snd_kcontrol_new rt5660_snd_controls[] =
+{
 	/* Speaker Output Volume */
 	SOC_SINGLE("Speaker Playback Switch", RT5660_SPK_VOL, RT5660_L_MUTE_SFT,
-		1, 1),
+	1, 1),
 	SOC_SINGLE_TLV("Speaker Playback Volume", RT5660_SPK_VOL,
-		RT5660_L_VOL_SFT, 39, 1, rt5660_out_vol_tlv),
+	RT5660_L_VOL_SFT, 39, 1, rt5660_out_vol_tlv),
 
 	/* OUTPUT Control */
 	SOC_DOUBLE("OUT Playback Switch", RT5660_LOUT_VOL, RT5660_L_MUTE_SFT,
-		RT5660_R_MUTE_SFT, 1, 1),
+	RT5660_R_MUTE_SFT, 1, 1),
 	SOC_DOUBLE_TLV("OUT Playback Volume", RT5660_LOUT_VOL, RT5660_L_VOL_SFT,
-		RT5660_R_VOL_SFT, 39, 1, rt5660_out_vol_tlv),
+	RT5660_R_VOL_SFT, 39, 1, rt5660_out_vol_tlv),
 
 	/* DAC Digital Volume */
 	SOC_DOUBLE_TLV("DAC1 Playback Volume", RT5660_DAC1_DIG_VOL,
-		RT5660_DAC_L1_VOL_SFT, RT5660_DAC_R1_VOL_SFT, 87, 0,
-		rt5660_dac_vol_tlv),
+	RT5660_DAC_L1_VOL_SFT, RT5660_DAC_R1_VOL_SFT, 87, 0,
+	rt5660_dac_vol_tlv),
 
 	/* IN1/IN2/IN3 Control */
 	SOC_SINGLE_TLV("IN1 Boost Volume", RT5660_IN1_IN2, RT5660_BST_SFT1, 69,
-		0, rt5660_bst_tlv),
+	0, rt5660_bst_tlv),
 	SOC_SINGLE_TLV("IN2 Boost Volume", RT5660_IN1_IN2, RT5660_BST_SFT2, 69,
-		0, rt5660_bst_tlv),
+	0, rt5660_bst_tlv),
 	SOC_SINGLE_TLV("IN3 Boost Volume", RT5660_IN3_IN4, RT5660_BST_SFT3, 69,
-		0, rt5660_bst_tlv),
+	0, rt5660_bst_tlv),
 
 	/* ADC Digital Volume Control */
 	SOC_DOUBLE("ADC Capture Switch", RT5660_STO1_ADC_DIG_VOL,
-		RT5660_L_MUTE_SFT, RT5660_R_MUTE_SFT, 1, 1),
+	RT5660_L_MUTE_SFT, RT5660_R_MUTE_SFT, 1, 1),
 	SOC_DOUBLE_TLV("ADC Capture Volume", RT5660_STO1_ADC_DIG_VOL,
-		RT5660_ADC_L_VOL_SFT, RT5660_ADC_R_VOL_SFT, 63, 0,
-		rt5660_adc_vol_tlv),
+	RT5660_ADC_L_VOL_SFT, RT5660_ADC_R_VOL_SFT, 63, 0,
+	rt5660_adc_vol_tlv),
 
 	/* ADC Boost Volume Control */
 	SOC_DOUBLE_TLV("STO1 ADC Boost Gain Volume", RT5660_ADC_BST_VOL1,
-		RT5660_STO1_ADC_L_BST_SFT, RT5660_STO1_ADC_R_BST_SFT, 3, 0,
-		rt5660_adc_bst_tlv),
+	RT5660_STO1_ADC_L_BST_SFT, RT5660_STO1_ADC_R_BST_SFT, 3, 0,
+	rt5660_adc_bst_tlv),
 };
 
 /**
@@ -352,185 +366,207 @@ static const struct snd_kcontrol_new rt5660_snd_controls[] = {
  *
  */
 static int rt5660_set_dmic_clk(struct snd_soc_dapm_widget *w,
-	struct snd_kcontrol *kcontrol, int event)
+							   struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 	struct rt5660_priv *rt5660 = snd_soc_codec_get_drvdata(codec);
 	int idx, rate;
 
 	rate = rt5660->sysclk / rl6231_get_pre_div(rt5660->regmap,
-		RT5660_ADDA_CLK1, RT5660_I2S_PD1_SFT);
+			RT5660_ADDA_CLK1, RT5660_I2S_PD1_SFT);
 	idx = rl6231_calc_dmic_clk(rate);
+
 	if (idx < 0)
+	{
 		dev_err(codec->dev, "Failed to set DMIC clock\n");
+	}
 	else
 		snd_soc_update_bits(codec, RT5660_DMIC_CTRL1,
-			RT5660_DMIC_CLK_MASK, idx << RT5660_DMIC_CLK_SFT);
+							RT5660_DMIC_CLK_MASK, idx << RT5660_DMIC_CLK_SFT);
 
 	return idx;
 }
 
 static int rt5660_is_sys_clk_from_pll(struct snd_soc_dapm_widget *source,
-			 struct snd_soc_dapm_widget *sink)
+									  struct snd_soc_dapm_widget *sink)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(source->dapm);
 	unsigned int val;
 
 	val = snd_soc_read(codec, RT5660_GLB_CLK);
 	val &= RT5660_SCLK_SRC_MASK;
+
 	if (val == RT5660_SCLK_SRC_PLL1)
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 /* Digital Mixer */
-static const struct snd_kcontrol_new rt5660_sto1_adc_l_mix[] = {
+static const struct snd_kcontrol_new rt5660_sto1_adc_l_mix[] =
+{
 	SOC_DAPM_SINGLE("ADC1 Switch", RT5660_STO1_ADC_MIXER,
-			RT5660_M_ADC_L1_SFT, 1, 1),
+	RT5660_M_ADC_L1_SFT, 1, 1),
 	SOC_DAPM_SINGLE("ADC2 Switch", RT5660_STO1_ADC_MIXER,
-			RT5660_M_ADC_L2_SFT, 1, 1),
+	RT5660_M_ADC_L2_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5660_sto1_adc_r_mix[] = {
+static const struct snd_kcontrol_new rt5660_sto1_adc_r_mix[] =
+{
 	SOC_DAPM_SINGLE("ADC1 Switch", RT5660_STO1_ADC_MIXER,
-			RT5660_M_ADC_R1_SFT, 1, 1),
+	RT5660_M_ADC_R1_SFT, 1, 1),
 	SOC_DAPM_SINGLE("ADC2 Switch", RT5660_STO1_ADC_MIXER,
-			RT5660_M_ADC_R2_SFT, 1, 1),
+	RT5660_M_ADC_R2_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5660_dac_l_mix[] = {
+static const struct snd_kcontrol_new rt5660_dac_l_mix[] =
+{
 	SOC_DAPM_SINGLE("Stereo ADC Switch", RT5660_AD_DA_MIXER,
-			RT5660_M_ADCMIX_L_SFT, 1, 1),
+	RT5660_M_ADCMIX_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC1 Switch", RT5660_AD_DA_MIXER,
-			RT5660_M_DAC1_L_SFT, 1, 1),
+	RT5660_M_DAC1_L_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5660_dac_r_mix[] = {
+static const struct snd_kcontrol_new rt5660_dac_r_mix[] =
+{
 	SOC_DAPM_SINGLE("Stereo ADC Switch", RT5660_AD_DA_MIXER,
-			RT5660_M_ADCMIX_R_SFT, 1, 1),
+	RT5660_M_ADCMIX_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC1 Switch", RT5660_AD_DA_MIXER,
-			RT5660_M_DAC1_R_SFT, 1, 1),
+	RT5660_M_DAC1_R_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5660_sto_dac_l_mix[] = {
+static const struct snd_kcontrol_new rt5660_sto_dac_l_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC L1 Switch", RT5660_STO_DAC_MIXER,
-			RT5660_M_DAC_L1_SFT, 1, 1),
+	RT5660_M_DAC_L1_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC R1 Switch", RT5660_STO_DAC_MIXER,
-			RT5660_M_DAC_R1_STO_L_SFT, 1, 1),
+	RT5660_M_DAC_R1_STO_L_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5660_sto_dac_r_mix[] = {
+static const struct snd_kcontrol_new rt5660_sto_dac_r_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC R1 Switch", RT5660_STO_DAC_MIXER,
-			RT5660_M_DAC_R1_SFT, 1, 1),
+	RT5660_M_DAC_R1_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC L1 Switch", RT5660_STO_DAC_MIXER,
-			RT5660_M_DAC_L1_STO_R_SFT, 1, 1),
+	RT5660_M_DAC_L1_STO_R_SFT, 1, 1),
 };
 
 /* Analog Input Mixer */
-static const struct snd_kcontrol_new rt5660_rec_l_mix[] = {
+static const struct snd_kcontrol_new rt5660_rec_l_mix[] =
+{
 	SOC_DAPM_SINGLE("BST3 Switch", RT5660_REC_L2_MIXER,
-			RT5660_M_BST3_RM_L_SFT, 1, 1),
+	RT5660_M_BST3_RM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST2 Switch", RT5660_REC_L2_MIXER,
-			RT5660_M_BST2_RM_L_SFT, 1, 1),
+	RT5660_M_BST2_RM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST1 Switch", RT5660_REC_L2_MIXER,
-			RT5660_M_BST1_RM_L_SFT, 1, 1),
+	RT5660_M_BST1_RM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("OUT MIXL Switch", RT5660_REC_L2_MIXER,
-			RT5660_M_OM_L_RM_L_SFT, 1, 1),
+	RT5660_M_OM_L_RM_L_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5660_rec_r_mix[] = {
+static const struct snd_kcontrol_new rt5660_rec_r_mix[] =
+{
 	SOC_DAPM_SINGLE("BST3 Switch", RT5660_REC_R2_MIXER,
-			RT5660_M_BST3_RM_R_SFT, 1, 1),
+	RT5660_M_BST3_RM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST2 Switch", RT5660_REC_R2_MIXER,
-			RT5660_M_BST2_RM_R_SFT, 1, 1),
+	RT5660_M_BST2_RM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST1 Switch", RT5660_REC_R2_MIXER,
-			RT5660_M_BST1_RM_R_SFT, 1, 1),
+	RT5660_M_BST1_RM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("OUT MIXR Switch", RT5660_REC_R2_MIXER,
-			RT5660_M_OM_R_RM_R_SFT, 1, 1),
+	RT5660_M_OM_R_RM_R_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5660_spk_mix[] = {
+static const struct snd_kcontrol_new rt5660_spk_mix[] =
+{
 	SOC_DAPM_SINGLE("BST3 Switch", RT5660_SPK_MIXER,
-			RT5660_M_BST3_SM_SFT, 1, 1),
+	RT5660_M_BST3_SM_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST1 Switch", RT5660_SPK_MIXER,
-			RT5660_M_BST1_SM_SFT, 1, 1),
+	RT5660_M_BST1_SM_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DACL Switch", RT5660_SPK_MIXER,
-			RT5660_M_DACL_SM_SFT, 1, 1),
+	RT5660_M_DACL_SM_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DACR Switch", RT5660_SPK_MIXER,
-			RT5660_M_DACR_SM_SFT, 1, 1),
+	RT5660_M_DACR_SM_SFT, 1, 1),
 	SOC_DAPM_SINGLE("OUTMIXL Switch", RT5660_SPK_MIXER,
-			RT5660_M_OM_L_SM_SFT, 1, 1),
+	RT5660_M_OM_L_SM_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5660_out_l_mix[] = {
+static const struct snd_kcontrol_new rt5660_out_l_mix[] =
+{
 	SOC_DAPM_SINGLE("BST3 Switch", RT5660_OUT_L1_MIXER,
-			RT5660_M_BST3_OM_L_SFT, 1, 1),
+	RT5660_M_BST3_OM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST2 Switch", RT5660_OUT_L1_MIXER,
-			RT5660_M_BST2_OM_L_SFT, 1, 1),
+	RT5660_M_BST2_OM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST1 Switch", RT5660_OUT_L1_MIXER,
-			RT5660_M_BST1_OM_L_SFT, 1, 1),
+	RT5660_M_BST1_OM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("RECMIXL Switch", RT5660_OUT_L1_MIXER,
-			RT5660_M_RM_L_OM_L_SFT, 1, 1),
+	RT5660_M_RM_L_OM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DACR Switch", RT5660_OUT_L1_MIXER,
-			RT5660_M_DAC_R_OM_L_SFT, 1, 1),
+	RT5660_M_DAC_R_OM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DACL Switch", RT5660_OUT_L1_MIXER,
-			RT5660_M_DAC_L_OM_L_SFT, 1, 1),
+	RT5660_M_DAC_L_OM_L_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5660_out_r_mix[] = {
+static const struct snd_kcontrol_new rt5660_out_r_mix[] =
+{
 	SOC_DAPM_SINGLE("BST2 Switch", RT5660_OUT_R1_MIXER,
-			RT5660_M_BST2_OM_R_SFT, 1, 1),
+	RT5660_M_BST2_OM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST1 Switch", RT5660_OUT_R1_MIXER,
-			RT5660_M_BST1_OM_R_SFT, 1, 1),
+	RT5660_M_BST1_OM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("RECMIXR Switch", RT5660_OUT_R1_MIXER,
-			RT5660_M_RM_R_OM_R_SFT, 1, 1),
+	RT5660_M_RM_R_OM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DACR Switch", RT5660_OUT_R1_MIXER,
-			RT5660_M_DAC_R_OM_R_SFT, 1, 1),
+	RT5660_M_DAC_R_OM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DACL Switch", RT5660_OUT_R1_MIXER,
-			RT5660_M_DAC_L_OM_R_SFT, 1, 1),
+	RT5660_M_DAC_L_OM_R_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5660_spo_mix[] = {
+static const struct snd_kcontrol_new rt5660_spo_mix[] =
+{
 	SOC_DAPM_SINGLE("DACR Switch", RT5660_SPO_MIXER,
-			RT5660_M_DAC_R_SPM_SFT, 1, 1),
+	RT5660_M_DAC_R_SPM_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DACL Switch", RT5660_SPO_MIXER,
-			RT5660_M_DAC_L_SPM_SFT, 1, 1),
+	RT5660_M_DAC_L_SPM_SFT, 1, 1),
 	SOC_DAPM_SINGLE("SPKVOL Switch", RT5660_SPO_MIXER,
-			RT5660_M_SV_SPM_SFT, 1, 1),
+	RT5660_M_SV_SPM_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST1 Switch", RT5660_SPO_MIXER,
-			RT5660_M_BST1_SPM_SFT, 1, 1),
+	RT5660_M_BST1_SPM_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5660_lout_mix[] = {
+static const struct snd_kcontrol_new rt5660_lout_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC Switch", RT5660_LOUT_MIXER,
-			RT5660_M_DAC1_LM_SFT, 1, 1),
+	RT5660_M_DAC1_LM_SFT, 1, 1),
 	SOC_DAPM_SINGLE("OUTMIX Switch", RT5660_LOUT_MIXER,
-			RT5660_M_LOVOL_LM_SFT, 1, 1),
+	RT5660_M_LOVOL_LM_SFT, 1, 1),
 };
 
 static const struct snd_kcontrol_new spk_vol_control =
 	SOC_DAPM_SINGLE("Switch", RT5660_SPK_VOL,
-		RT5660_VOL_L_SFT, 1, 1);
+					RT5660_VOL_L_SFT, 1, 1);
 
 static const struct snd_kcontrol_new lout_l_vol_control =
 	SOC_DAPM_SINGLE("Switch", RT5660_LOUT_VOL,
-		RT5660_VOL_L_SFT, 1, 1);
+					RT5660_VOL_L_SFT, 1, 1);
 
 static const struct snd_kcontrol_new lout_r_vol_control =
 	SOC_DAPM_SINGLE("Switch", RT5660_LOUT_VOL,
-		RT5660_VOL_R_SFT, 1, 1);
+					RT5660_VOL_R_SFT, 1, 1);
 
 /* Interface data select */
-static const char * const rt5660_data_select[] = {
+static const char *const rt5660_data_select[] =
+{
 	"L/R", "R/L", "L/L", "R/R"
 };
 
 static const SOC_ENUM_SINGLE_DECL(rt5660_if1_dac_enum,
-	RT5660_DIG_INF1_DATA, RT5660_IF1_DAC_IN_SFT, rt5660_data_select);
+								  RT5660_DIG_INF1_DATA, RT5660_IF1_DAC_IN_SFT, rt5660_data_select);
 
 static const SOC_ENUM_SINGLE_DECL(rt5660_if1_adc_enum,
-	RT5660_DIG_INF1_DATA, RT5660_IF1_ADC_IN_SFT, rt5660_data_select);
+								  RT5660_DIG_INF1_DATA, RT5660_IF1_ADC_IN_SFT, rt5660_data_select);
 
 static const struct snd_kcontrol_new rt5660_if1_dac_swap_mux =
 	SOC_DAPM_ENUM("IF1 DAC Swap Source", rt5660_if1_dac_enum);
@@ -539,41 +575,43 @@ static const struct snd_kcontrol_new rt5660_if1_adc_swap_mux =
 	SOC_DAPM_ENUM("IF1 ADC Swap Source", rt5660_if1_adc_enum);
 
 static int rt5660_lout_event(struct snd_soc_dapm_widget *w,
-	struct snd_kcontrol *kcontrol, int event)
+							 struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 
-	switch (event) {
-	case SND_SOC_DAPM_POST_PMU:
-		snd_soc_update_bits(codec, RT5660_LOUT_AMP_CTRL,
-			RT5660_LOUT_CO_MASK | RT5660_LOUT_CB_MASK,
-			RT5660_LOUT_CO_EN | RT5660_LOUT_CB_PU);
-		break;
+	switch (event)
+	{
+		case SND_SOC_DAPM_POST_PMU:
+			snd_soc_update_bits(codec, RT5660_LOUT_AMP_CTRL,
+								RT5660_LOUT_CO_MASK | RT5660_LOUT_CB_MASK,
+								RT5660_LOUT_CO_EN | RT5660_LOUT_CB_PU);
+			break;
 
-	case SND_SOC_DAPM_PRE_PMD:
-		snd_soc_update_bits(codec, RT5660_LOUT_AMP_CTRL,
-			RT5660_LOUT_CO_MASK | RT5660_LOUT_CB_MASK,
-			RT5660_LOUT_CO_DIS | RT5660_LOUT_CB_PD);
-		break;
+		case SND_SOC_DAPM_PRE_PMD:
+			snd_soc_update_bits(codec, RT5660_LOUT_AMP_CTRL,
+								RT5660_LOUT_CO_MASK | RT5660_LOUT_CB_MASK,
+								RT5660_LOUT_CO_DIS | RT5660_LOUT_CB_PD);
+			break;
 
-	default:
-		return 0;
+		default:
+			return 0;
 	}
 
 	return 0;
 }
 
-static const struct snd_soc_dapm_widget rt5660_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget rt5660_dapm_widgets[] =
+{
 	SND_SOC_DAPM_SUPPLY("LDO2", RT5660_PWR_ANLG1,
-		RT5660_PWR_LDO2_BIT, 0, NULL, 0),
+	RT5660_PWR_LDO2_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("PLL1", RT5660_PWR_ANLG2,
-		RT5660_PWR_PLL_BIT, 0, NULL, 0),
+	RT5660_PWR_PLL_BIT, 0, NULL, 0),
 
 	/* MICBIAS */
 	SND_SOC_DAPM_SUPPLY("MICBIAS1", RT5660_PWR_ANLG2,
-			RT5660_PWR_MB1_BIT, 0, NULL, 0),
+	RT5660_PWR_MB1_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("MICBIAS2", RT5660_PWR_ANLG2,
-			RT5660_PWR_MB2_BIT, 0, NULL, 0),
+	RT5660_PWR_MB2_BIT, 0, NULL, 0),
 
 	/* Input Side */
 	/* Input Lines */
@@ -587,60 +625,60 @@ static const struct snd_soc_dapm_widget rt5660_dapm_widgets[] = {
 	SND_SOC_DAPM_INPUT("IN3N"),
 
 	SND_SOC_DAPM_SUPPLY("DMIC CLK", SND_SOC_NOPM, 0, 0,
-		rt5660_set_dmic_clk, SND_SOC_DAPM_PRE_PMU),
+	rt5660_set_dmic_clk, SND_SOC_DAPM_PRE_PMU),
 	SND_SOC_DAPM_SUPPLY("DMIC Power", RT5660_DMIC_CTRL1,
-		RT5660_DMIC_1_EN_SFT, 0, NULL, 0),
+	RT5660_DMIC_1_EN_SFT, 0, NULL, 0),
 
 	/* Boost */
 	SND_SOC_DAPM_PGA("BST1", RT5660_PWR_ANLG2, RT5660_PWR_BST1_BIT, 0,
-		NULL, 0),
+	NULL, 0),
 	SND_SOC_DAPM_PGA("BST2", RT5660_PWR_ANLG2, RT5660_PWR_BST2_BIT, 0,
-		NULL, 0),
+	NULL, 0),
 	SND_SOC_DAPM_PGA("BST3", RT5660_PWR_ANLG2, RT5660_PWR_BST3_BIT, 0,
-		NULL, 0),
+	NULL, 0),
 
 	/* REC Mixer */
 	SND_SOC_DAPM_MIXER("RECMIXL", RT5660_PWR_MIXER, RT5660_PWR_RM_L_BIT,
-			0, rt5660_rec_l_mix, ARRAY_SIZE(rt5660_rec_l_mix)),
+	0, rt5660_rec_l_mix, ARRAY_SIZE(rt5660_rec_l_mix)),
 	SND_SOC_DAPM_MIXER("RECMIXR", RT5660_PWR_MIXER, RT5660_PWR_RM_R_BIT,
-			0, rt5660_rec_r_mix, ARRAY_SIZE(rt5660_rec_r_mix)),
+	0, rt5660_rec_r_mix, ARRAY_SIZE(rt5660_rec_r_mix)),
 
 	/* ADCs */
 	SND_SOC_DAPM_ADC("ADC L", NULL, SND_SOC_NOPM, 0, 0),
 	SND_SOC_DAPM_ADC("ADC R", NULL, SND_SOC_NOPM, 0, 0),
 
 	SND_SOC_DAPM_SUPPLY("ADC L power", RT5660_PWR_DIG1,
-			RT5660_PWR_ADC_L_BIT, 0, NULL, 0),
+	RT5660_PWR_ADC_L_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("ADC R power", RT5660_PWR_DIG1,
-			RT5660_PWR_ADC_R_BIT, 0, NULL, 0),
+	RT5660_PWR_ADC_R_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("ADC clock", RT5660_PR_BASE + RT5660_CHOP_DAC_ADC,
-			12, 0, NULL, 0),
+	12, 0, NULL, 0),
 
 	/* ADC Mixer */
 	SND_SOC_DAPM_SUPPLY("adc stereo1 filter", RT5660_PWR_DIG2,
-		RT5660_PWR_ADC_S1F_BIT, 0, NULL, 0),
+	RT5660_PWR_ADC_S1F_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_MIXER("Sto1 ADC MIXL", SND_SOC_NOPM, 0, 0,
-		rt5660_sto1_adc_l_mix, ARRAY_SIZE(rt5660_sto1_adc_l_mix)),
+	rt5660_sto1_adc_l_mix, ARRAY_SIZE(rt5660_sto1_adc_l_mix)),
 	SND_SOC_DAPM_MIXER("Sto1 ADC MIXR", SND_SOC_NOPM, 0, 0,
-		rt5660_sto1_adc_r_mix, ARRAY_SIZE(rt5660_sto1_adc_r_mix)),
+	rt5660_sto1_adc_r_mix, ARRAY_SIZE(rt5660_sto1_adc_r_mix)),
 
 	/* ADC */
 	SND_SOC_DAPM_ADC("Stereo1 ADC MIXL", NULL, RT5660_STO1_ADC_DIG_VOL,
-		RT5660_L_MUTE_SFT, 1),
+	RT5660_L_MUTE_SFT, 1),
 	SND_SOC_DAPM_ADC("Stereo1 ADC MIXR", NULL, RT5660_STO1_ADC_DIG_VOL,
-		RT5660_R_MUTE_SFT, 1),
+	RT5660_R_MUTE_SFT, 1),
 
 	/* Digital Interface */
 	SND_SOC_DAPM_SUPPLY("I2S1", RT5660_PWR_DIG1, RT5660_PWR_I2S1_BIT, 0,
-		NULL, 0),
+	NULL, 0),
 	SND_SOC_DAPM_PGA("IF1 DAC", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("IF1 DAC L", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("IF1 DAC R", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_MUX("IF1 DAC Swap Mux", SND_SOC_NOPM, 0, 0,
-			&rt5660_if1_dac_swap_mux),
+	&rt5660_if1_dac_swap_mux),
 	SND_SOC_DAPM_PGA("IF1 ADC", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_MUX("IF1 ADC Swap Mux", SND_SOC_NOPM, 0, 0,
-			&rt5660_if1_adc_swap_mux),
+	&rt5660_if1_adc_swap_mux),
 
 	/* Audio Interface */
 	SND_SOC_DAPM_AIF_IN("AIF1RX", "AIF1 Playback", 0, SND_SOC_NOPM, 0, 0),
@@ -649,56 +687,56 @@ static const struct snd_soc_dapm_widget rt5660_dapm_widgets[] = {
 	/* Output Side */
 	/* DAC mixer before sound effect  */
 	SND_SOC_DAPM_MIXER("DAC1 MIXL", SND_SOC_NOPM, 0, 0, rt5660_dac_l_mix,
-		ARRAY_SIZE(rt5660_dac_l_mix)),
+	ARRAY_SIZE(rt5660_dac_l_mix)),
 	SND_SOC_DAPM_MIXER("DAC1 MIXR", SND_SOC_NOPM, 0, 0, rt5660_dac_r_mix,
-		ARRAY_SIZE(rt5660_dac_r_mix)),
+	ARRAY_SIZE(rt5660_dac_r_mix)),
 
 	/* DAC Mixer */
 	SND_SOC_DAPM_SUPPLY("dac stereo1 filter", RT5660_PWR_DIG2,
-		RT5660_PWR_DAC_S1F_BIT, 0, NULL, 0),
+	RT5660_PWR_DAC_S1F_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_MIXER("Stereo DAC MIXL", SND_SOC_NOPM, 0, 0,
-		rt5660_sto_dac_l_mix, ARRAY_SIZE(rt5660_sto_dac_l_mix)),
+	rt5660_sto_dac_l_mix, ARRAY_SIZE(rt5660_sto_dac_l_mix)),
 	SND_SOC_DAPM_MIXER("Stereo DAC MIXR", SND_SOC_NOPM, 0, 0,
-		rt5660_sto_dac_r_mix, ARRAY_SIZE(rt5660_sto_dac_r_mix)),
+	rt5660_sto_dac_r_mix, ARRAY_SIZE(rt5660_sto_dac_r_mix)),
 
 	/* DACs */
 	SND_SOC_DAPM_DAC("DAC L1", NULL, RT5660_PWR_DIG1,
-			RT5660_PWR_DAC_L1_BIT, 0),
+	RT5660_PWR_DAC_L1_BIT, 0),
 	SND_SOC_DAPM_DAC("DAC R1", NULL, RT5660_PWR_DIG1,
-			RT5660_PWR_DAC_R1_BIT, 0),
+	RT5660_PWR_DAC_R1_BIT, 0),
 
 	/* OUT Mixer */
 	SND_SOC_DAPM_MIXER("SPK MIX", RT5660_PWR_MIXER, RT5660_PWR_SM_BIT,
-		0, rt5660_spk_mix, ARRAY_SIZE(rt5660_spk_mix)),
+	0, rt5660_spk_mix, ARRAY_SIZE(rt5660_spk_mix)),
 	SND_SOC_DAPM_MIXER("OUT MIXL", RT5660_PWR_MIXER, RT5660_PWR_OM_L_BIT,
-		0, rt5660_out_l_mix, ARRAY_SIZE(rt5660_out_l_mix)),
+	0, rt5660_out_l_mix, ARRAY_SIZE(rt5660_out_l_mix)),
 	SND_SOC_DAPM_MIXER("OUT MIXR", RT5660_PWR_MIXER, RT5660_PWR_OM_R_BIT,
-		0, rt5660_out_r_mix, ARRAY_SIZE(rt5660_out_r_mix)),
+	0, rt5660_out_r_mix, ARRAY_SIZE(rt5660_out_r_mix)),
 
 	/* Output Volume */
 	SND_SOC_DAPM_SWITCH("SPKVOL", RT5660_PWR_VOL,
-		RT5660_PWR_SV_BIT, 0, &spk_vol_control),
+	RT5660_PWR_SV_BIT, 0, &spk_vol_control),
 	SND_SOC_DAPM_PGA("DAC 1", SND_SOC_NOPM,
-		0, 0, NULL, 0),
+	0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("LOUTVOL", SND_SOC_NOPM,
-		0, 0, NULL, 0),
+	0, 0, NULL, 0),
 	SND_SOC_DAPM_SWITCH("LOUTVOL L", SND_SOC_NOPM,
-		RT5660_PWR_LV_L_BIT, 0, &lout_l_vol_control),
+	RT5660_PWR_LV_L_BIT, 0, &lout_l_vol_control),
 	SND_SOC_DAPM_SWITCH("LOUTVOL R", SND_SOC_NOPM,
-		RT5660_PWR_LV_R_BIT, 0, &lout_r_vol_control),
+	RT5660_PWR_LV_R_BIT, 0, &lout_r_vol_control),
 
 	/* HPO/LOUT/Mono Mixer */
 	SND_SOC_DAPM_MIXER("SPO MIX", SND_SOC_NOPM, 0,
-		0, rt5660_spo_mix, ARRAY_SIZE(rt5660_spo_mix)),
+	0, rt5660_spo_mix, ARRAY_SIZE(rt5660_spo_mix)),
 	SND_SOC_DAPM_MIXER("LOUT MIX", SND_SOC_NOPM, 0, 0,
-		rt5660_lout_mix, ARRAY_SIZE(rt5660_lout_mix)),
+	rt5660_lout_mix, ARRAY_SIZE(rt5660_lout_mix)),
 	SND_SOC_DAPM_SUPPLY("VREF HP", RT5660_GEN_CTRL1,
-		RT5660_PWR_VREF_HP_SFT, 0, NULL, 0),
+	RT5660_PWR_VREF_HP_SFT, 0, NULL, 0),
 	SND_SOC_DAPM_PGA_S("LOUT amp", 1, RT5660_PWR_ANLG1,
-		RT5660_PWR_HA_BIT, 0, rt5660_lout_event,
-		SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMU),
+	RT5660_PWR_HA_BIT, 0, rt5660_lout_event,
+	SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMU),
 	SND_SOC_DAPM_PGA_S("SPK amp", 1, RT5660_PWR_DIG1,
-		RT5660_PWR_CLS_D_BIT, 0, NULL, 0),
+	RT5660_PWR_CLS_D_BIT, 0, NULL, 0),
 
 	/* Output Lines */
 	SND_SOC_DAPM_OUTPUT("LOUTL"),
@@ -706,7 +744,8 @@ static const struct snd_soc_dapm_widget rt5660_dapm_widgets[] = {
 	SND_SOC_DAPM_OUTPUT("SPO"),
 };
 
-static const struct snd_soc_dapm_route rt5660_dapm_routes[] = {
+static const struct snd_soc_dapm_route rt5660_dapm_routes[] =
+{
 	{ "MICBIAS1", NULL, "LDO2" },
 	{ "MICBIAS2", NULL, "LDO2" },
 
@@ -836,7 +875,7 @@ static const struct snd_soc_dapm_route rt5660_dapm_routes[] = {
 };
 
 static int rt5660_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params, struct snd_soc_dai *dai)
+							struct snd_pcm_hw_params *params, struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct rt5660_priv *rt5660 = snd_soc_codec_get_drvdata(codec);
@@ -845,59 +884,73 @@ static int rt5660_hw_params(struct snd_pcm_substream *substream,
 
 	rt5660->lrck[dai->id] = params_rate(params);
 	pre_div = rl6231_get_clk_info(rt5660->sysclk, rt5660->lrck[dai->id]);
-	if (pre_div < 0) {
+
+	if (pre_div < 0)
+	{
 		dev_err(codec->dev, "Unsupported clock setting %d for DAI %d\n",
-			rt5660->lrck[dai->id], dai->id);
+				rt5660->lrck[dai->id], dai->id);
 		return -EINVAL;
 	}
 
 	frame_size = snd_soc_params_to_frame_size(params);
-	if (frame_size < 0) {
+
+	if (frame_size < 0)
+	{
 		dev_err(codec->dev, "Unsupported frame size: %d\n", frame_size);
 		return frame_size;
 	}
 
 	if (frame_size > 32)
+	{
 		bclk_ms = 1;
+	}
 	else
+	{
 		bclk_ms = 0;
+	}
 
 	rt5660->bclk[dai->id] = rt5660->lrck[dai->id] * (32 << bclk_ms);
 
 	dev_dbg(dai->dev, "bclk is %dHz and lrck is %dHz\n",
-		rt5660->bclk[dai->id], rt5660->lrck[dai->id]);
+			rt5660->bclk[dai->id], rt5660->lrck[dai->id]);
 	dev_dbg(dai->dev, "bclk_ms is %d and pre_div is %d for iis %d\n",
-				bclk_ms, pre_div, dai->id);
+			bclk_ms, pre_div, dai->id);
 
-	switch (params_width(params)) {
-	case 16:
-		break;
-	case 20:
-		val_len |= RT5660_I2S_DL_20;
-		break;
-	case 24:
-		val_len |= RT5660_I2S_DL_24;
-		break;
-	case 8:
-		val_len |= RT5660_I2S_DL_8;
-		break;
-	default:
-		return -EINVAL;
+	switch (params_width(params))
+	{
+		case 16:
+			break;
+
+		case 20:
+			val_len |= RT5660_I2S_DL_20;
+			break;
+
+		case 24:
+			val_len |= RT5660_I2S_DL_24;
+			break;
+
+		case 8:
+			val_len |= RT5660_I2S_DL_8;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	switch (dai->id) {
-	case RT5660_AIF1:
-		mask_clk = RT5660_I2S_BCLK_MS1_MASK | RT5660_I2S_PD1_MASK;
-		val_clk = bclk_ms << RT5660_I2S_BCLK_MS1_SFT |
-			pre_div << RT5660_I2S_PD1_SFT;
-		snd_soc_update_bits(codec, RT5660_I2S1_SDP, RT5660_I2S_DL_MASK,
-			val_len);
-		snd_soc_update_bits(codec, RT5660_ADDA_CLK1, mask_clk, val_clk);
-		break;
+	switch (dai->id)
+	{
+		case RT5660_AIF1:
+			mask_clk = RT5660_I2S_BCLK_MS1_MASK | RT5660_I2S_PD1_MASK;
+			val_clk = bclk_ms << RT5660_I2S_BCLK_MS1_SFT |
+					  pre_div << RT5660_I2S_PD1_SFT;
+			snd_soc_update_bits(codec, RT5660_I2S1_SDP, RT5660_I2S_DL_MASK,
+								val_len);
+			snd_soc_update_bits(codec, RT5660_ADDA_CLK1, mask_clk, val_clk);
+			break;
 
-	default:
-		dev_err(codec->dev, "Invalid dai->id: %d\n", dai->id);
-		return -EINVAL;
+		default:
+			dev_err(codec->dev, "Invalid dai->id: %d\n", dai->id);
+			return -EINVAL;
 	}
 
 	return 0;
@@ -909,97 +962,104 @@ static int rt5660_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 	struct rt5660_priv *rt5660 = snd_soc_codec_get_drvdata(codec);
 	unsigned int reg_val = 0;
 
-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBM_CFM:
-		rt5660->master[dai->id] = 1;
-		break;
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBM_CFM:
+			rt5660->master[dai->id] = 1;
+			break;
 
-	case SND_SOC_DAIFMT_CBS_CFS:
-		reg_val |= RT5660_I2S_MS_S;
-		rt5660->master[dai->id] = 0;
-		break;
+		case SND_SOC_DAIFMT_CBS_CFS:
+			reg_val |= RT5660_I2S_MS_S;
+			rt5660->master[dai->id] = 0;
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
-	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-	case SND_SOC_DAIFMT_NB_NF:
-		break;
+	switch (fmt & SND_SOC_DAIFMT_INV_MASK)
+	{
+		case SND_SOC_DAIFMT_NB_NF:
+			break;
 
-	case SND_SOC_DAIFMT_IB_NF:
-		reg_val |= RT5660_I2S_BP_INV;
-		break;
+		case SND_SOC_DAIFMT_IB_NF:
+			reg_val |= RT5660_I2S_BP_INV;
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_I2S:
-		break;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_I2S:
+			break;
 
-	case SND_SOC_DAIFMT_LEFT_J:
-		reg_val |= RT5660_I2S_DF_LEFT;
-		break;
+		case SND_SOC_DAIFMT_LEFT_J:
+			reg_val |= RT5660_I2S_DF_LEFT;
+			break;
 
-	case SND_SOC_DAIFMT_DSP_A:
-		reg_val |= RT5660_I2S_DF_PCM_A;
-		break;
+		case SND_SOC_DAIFMT_DSP_A:
+			reg_val |= RT5660_I2S_DF_PCM_A;
+			break;
 
-	case SND_SOC_DAIFMT_DSP_B:
-		reg_val  |= RT5660_I2S_DF_PCM_B;
-		break;
+		case SND_SOC_DAIFMT_DSP_B:
+			reg_val  |= RT5660_I2S_DF_PCM_B;
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
-	switch (dai->id) {
-	case RT5660_AIF1:
-		snd_soc_update_bits(codec, RT5660_I2S1_SDP,
-			RT5660_I2S_MS_MASK | RT5660_I2S_BP_MASK |
-			RT5660_I2S_DF_MASK, reg_val);
-		break;
+	switch (dai->id)
+	{
+		case RT5660_AIF1:
+			snd_soc_update_bits(codec, RT5660_I2S1_SDP,
+								RT5660_I2S_MS_MASK | RT5660_I2S_BP_MASK |
+								RT5660_I2S_DF_MASK, reg_val);
+			break;
 
-	default:
-		dev_err(codec->dev, "Invalid dai->id: %d\n", dai->id);
-		return -EINVAL;
+		default:
+			dev_err(codec->dev, "Invalid dai->id: %d\n", dai->id);
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int rt5660_set_dai_sysclk(struct snd_soc_dai *dai,
-		int clk_id, unsigned int freq, int dir)
+								 int clk_id, unsigned int freq, int dir)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct rt5660_priv *rt5660 = snd_soc_codec_get_drvdata(codec);
 	unsigned int reg_val = 0;
 
 	if (freq == rt5660->sysclk && clk_id == rt5660->sysclk_src)
+	{
 		return 0;
+	}
 
-	switch (clk_id) {
-	case RT5660_SCLK_S_MCLK:
-		reg_val |= RT5660_SCLK_SRC_MCLK;
-		break;
+	switch (clk_id)
+	{
+		case RT5660_SCLK_S_MCLK:
+			reg_val |= RT5660_SCLK_SRC_MCLK;
+			break;
 
-	case RT5660_SCLK_S_PLL1:
-		reg_val |= RT5660_SCLK_SRC_PLL1;
-		break;
+		case RT5660_SCLK_S_PLL1:
+			reg_val |= RT5660_SCLK_SRC_PLL1;
+			break;
 
-	case RT5660_SCLK_S_RCCLK:
-		reg_val |= RT5660_SCLK_SRC_RCCLK;
-		break;
+		case RT5660_SCLK_S_RCCLK:
+			reg_val |= RT5660_SCLK_SRC_RCCLK;
+			break;
 
-	default:
-		dev_err(codec->dev, "Invalid clock id (%d)\n", clk_id);
-		return -EINVAL;
+		default:
+			dev_err(codec->dev, "Invalid clock id (%d)\n", clk_id);
+			return -EINVAL;
 	}
 
 	snd_soc_update_bits(codec, RT5660_GLB_CLK, RT5660_SCLK_SRC_MASK,
-		reg_val);
+						reg_val);
 
 	rt5660->sysclk = freq;
 	rt5660->sysclk_src = clk_id;
@@ -1010,7 +1070,7 @@ static int rt5660_set_dai_sysclk(struct snd_soc_dai *dai,
 }
 
 static int rt5660_set_dai_pll(struct snd_soc_dai *dai, int pll_id, int source,
-			unsigned int freq_in, unsigned int freq_out)
+							  unsigned int freq_in, unsigned int freq_out)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct rt5660_priv *rt5660 = snd_soc_codec_get_drvdata(codec);
@@ -1019,49 +1079,55 @@ static int rt5660_set_dai_pll(struct snd_soc_dai *dai, int pll_id, int source,
 
 	if (source == rt5660->pll_src && freq_in == rt5660->pll_in &&
 		freq_out == rt5660->pll_out)
+	{
 		return 0;
+	}
 
-	if (!freq_in || !freq_out) {
+	if (!freq_in || !freq_out)
+	{
 		dev_dbg(codec->dev, "PLL disabled\n");
 
 		rt5660->pll_in = 0;
 		rt5660->pll_out = 0;
 		snd_soc_update_bits(codec, RT5660_GLB_CLK,
-			RT5660_SCLK_SRC_MASK, RT5660_SCLK_SRC_MCLK);
+							RT5660_SCLK_SRC_MASK, RT5660_SCLK_SRC_MCLK);
 		return 0;
 	}
 
-	switch (source) {
-	case RT5660_PLL1_S_MCLK:
-		snd_soc_update_bits(codec, RT5660_GLB_CLK,
-			RT5660_PLL1_SRC_MASK, RT5660_PLL1_SRC_MCLK);
-		break;
+	switch (source)
+	{
+		case RT5660_PLL1_S_MCLK:
+			snd_soc_update_bits(codec, RT5660_GLB_CLK,
+								RT5660_PLL1_SRC_MASK, RT5660_PLL1_SRC_MCLK);
+			break;
 
-	case RT5660_PLL1_S_BCLK:
-		snd_soc_update_bits(codec, RT5660_GLB_CLK,
-			RT5660_PLL1_SRC_MASK, RT5660_PLL1_SRC_BCLK1);
-		break;
+		case RT5660_PLL1_S_BCLK:
+			snd_soc_update_bits(codec, RT5660_GLB_CLK,
+								RT5660_PLL1_SRC_MASK, RT5660_PLL1_SRC_BCLK1);
+			break;
 
-	default:
-		dev_err(codec->dev, "Unknown PLL source %d\n", source);
-		return -EINVAL;
+		default:
+			dev_err(codec->dev, "Unknown PLL source %d\n", source);
+			return -EINVAL;
 	}
 
 	ret = rl6231_pll_calc(freq_in, freq_out, &pll_code);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(codec->dev, "Unsupport input clock %d\n", freq_in);
 		return ret;
 	}
 
 	dev_dbg(codec->dev, "bypass=%d m=%d n=%d k=%d\n",
-		pll_code.m_bp, (pll_code.m_bp ? 0 : pll_code.m_code),
-		pll_code.n_code, pll_code.k_code);
+			pll_code.m_bp, (pll_code.m_bp ? 0 : pll_code.m_code),
+			pll_code.n_code, pll_code.k_code);
 
 	snd_soc_write(codec, RT5660_PLL_CTRL1,
-		pll_code.n_code << RT5660_PLL_N_SFT | pll_code.k_code);
+				  pll_code.n_code << RT5660_PLL_N_SFT | pll_code.k_code);
 	snd_soc_write(codec, RT5660_PLL_CTRL2,
-		(pll_code.m_bp ? 0 : pll_code.m_code) << RT5660_PLL_M_SFT |
-		pll_code.m_bp << RT5660_PLL_M_BP_SFT);
+				  (pll_code.m_bp ? 0 : pll_code.m_code) << RT5660_PLL_M_SFT |
+				  pll_code.m_bp << RT5660_PLL_M_BP_SFT);
 
 	rt5660->pll_in = freq_in;
 	rt5660->pll_out = freq_out;
@@ -1071,52 +1137,64 @@ static int rt5660_set_dai_pll(struct snd_soc_dai *dai, int pll_id, int source,
 }
 
 static int rt5660_set_bias_level(struct snd_soc_codec *codec,
-			enum snd_soc_bias_level level)
+								 enum snd_soc_bias_level level)
 {
 	struct rt5660_priv *rt5660 = snd_soc_codec_get_drvdata(codec);
 	int ret;
 
-	switch (level) {
-	case SND_SOC_BIAS_ON:
-		break;
-
-	case SND_SOC_BIAS_PREPARE:
-		snd_soc_update_bits(codec, RT5660_GEN_CTRL1,
-			RT5660_DIG_GATE_CTRL, RT5660_DIG_GATE_CTRL);
-
-		if (IS_ERR(rt5660->mclk))
+	switch (level)
+	{
+		case SND_SOC_BIAS_ON:
 			break;
 
-		if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_ON) {
-			clk_disable_unprepare(rt5660->mclk);
-		} else {
-			ret = clk_prepare_enable(rt5660->mclk);
-			if (ret)
-				return ret;
-		}
-		break;
+		case SND_SOC_BIAS_PREPARE:
+			snd_soc_update_bits(codec, RT5660_GEN_CTRL1,
+								RT5660_DIG_GATE_CTRL, RT5660_DIG_GATE_CTRL);
 
-	case SND_SOC_BIAS_STANDBY:
-		if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF) {
-			snd_soc_update_bits(codec, RT5660_PWR_ANLG1,
-				RT5660_PWR_VREF1 | RT5660_PWR_MB |
-				RT5660_PWR_BG | RT5660_PWR_VREF2,
-				RT5660_PWR_VREF1 | RT5660_PWR_MB |
-				RT5660_PWR_BG | RT5660_PWR_VREF2);
-			usleep_range(10000, 15000);
-			snd_soc_update_bits(codec, RT5660_PWR_ANLG1,
-				RT5660_PWR_FV1 | RT5660_PWR_FV2,
-				RT5660_PWR_FV1 | RT5660_PWR_FV2);
-		}
-		break;
+			if (IS_ERR(rt5660->mclk))
+			{
+				break;
+			}
 
-	case SND_SOC_BIAS_OFF:
-		snd_soc_update_bits(codec, RT5660_GEN_CTRL1,
-			RT5660_DIG_GATE_CTRL, 0);
-		break;
+			if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_ON)
+			{
+				clk_disable_unprepare(rt5660->mclk);
+			}
+			else
+			{
+				ret = clk_prepare_enable(rt5660->mclk);
 
-	default:
-		break;
+				if (ret)
+				{
+					return ret;
+				}
+			}
+
+			break;
+
+		case SND_SOC_BIAS_STANDBY:
+			if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
+			{
+				snd_soc_update_bits(codec, RT5660_PWR_ANLG1,
+									RT5660_PWR_VREF1 | RT5660_PWR_MB |
+									RT5660_PWR_BG | RT5660_PWR_VREF2,
+									RT5660_PWR_VREF1 | RT5660_PWR_MB |
+									RT5660_PWR_BG | RT5660_PWR_VREF2);
+				usleep_range(10000, 15000);
+				snd_soc_update_bits(codec, RT5660_PWR_ANLG1,
+									RT5660_PWR_FV1 | RT5660_PWR_FV2,
+									RT5660_PWR_FV1 | RT5660_PWR_FV2);
+			}
+
+			break;
+
+		case SND_SOC_BIAS_OFF:
+			snd_soc_update_bits(codec, RT5660_GEN_CTRL1,
+								RT5660_DIG_GATE_CTRL, 0);
+			break;
+
+		default:
+			break;
 	}
 
 	return 0;
@@ -1152,7 +1230,9 @@ static int rt5660_resume(struct snd_soc_codec *codec)
 	struct rt5660_priv *rt5660 = snd_soc_codec_get_drvdata(codec);
 
 	if (rt5660->pdata.poweroff_codec_in_suspend)
+	{
 		usleep_range(350000, 400000);
+	}
 
 	regcache_cache_only(rt5660->regmap, false);
 	regcache_sync(rt5660->regmap);
@@ -1166,16 +1246,18 @@ static int rt5660_resume(struct snd_soc_codec *codec)
 
 #define RT5660_STEREO_RATES SNDRV_PCM_RATE_8000_192000
 #define RT5660_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE | \
-			SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S8)
+						SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S8)
 
-static const struct snd_soc_dai_ops rt5660_aif_dai_ops = {
+static const struct snd_soc_dai_ops rt5660_aif_dai_ops =
+{
 	.hw_params = rt5660_hw_params,
 	.set_fmt = rt5660_set_dai_fmt,
 	.set_sysclk = rt5660_set_dai_sysclk,
 	.set_pll = rt5660_set_dai_pll,
 };
 
-static struct snd_soc_dai_driver rt5660_dai[] = {
+static struct snd_soc_dai_driver rt5660_dai[] =
+{
 	{
 		.name = "rt5660-aif1",
 		.id = RT5660_AIF1,
@@ -1197,7 +1279,8 @@ static struct snd_soc_dai_driver rt5660_dai[] = {
 	},
 };
 
-static struct snd_soc_codec_driver soc_codec_dev_rt5660 = {
+static struct snd_soc_codec_driver soc_codec_dev_rt5660 =
+{
 	.probe = rt5660_probe,
 	.remove = rt5660_remove,
 	.suspend = rt5660_suspend,
@@ -1214,13 +1297,14 @@ static struct snd_soc_codec_driver soc_codec_dev_rt5660 = {
 	},
 };
 
-static const struct regmap_config rt5660_regmap = {
+static const struct regmap_config rt5660_regmap =
+{
 	.reg_bits = 8,
 	.val_bits = 16,
 	.use_single_rw = true,
 
 	.max_register = RT5660_VENDOR_ID2 + 1 + (ARRAY_SIZE(rt5660_ranges) *
-					       RT5660_PR_SPACING),
+	RT5660_PR_SPACING),
 	.volatile_reg = rt5660_volatile_register,
 	.readable_reg = rt5660_readable_register,
 
@@ -1231,19 +1315,22 @@ static const struct regmap_config rt5660_regmap = {
 	.num_ranges = ARRAY_SIZE(rt5660_ranges),
 };
 
-static const struct i2c_device_id rt5660_i2c_id[] = {
+static const struct i2c_device_id rt5660_i2c_id[] =
+{
 	{ "rt5660", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, rt5660_i2c_id);
 
-static const struct of_device_id rt5660_of_match[] = {
+static const struct of_device_id rt5660_of_match[] =
+{
 	{ .compatible = "realtek,rt5660", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, rt5660_of_match);
 
-static const struct acpi_device_id rt5660_acpi_match[] = {
+static const struct acpi_device_id rt5660_acpi_match[] =
+{
 	{ "10EC5660", 0 },
 	{ },
 };
@@ -1252,19 +1339,19 @@ MODULE_DEVICE_TABLE(acpi, rt5660_acpi_match);
 static int rt5660_parse_dt(struct rt5660_priv *rt5660, struct device *dev)
 {
 	rt5660->pdata.in1_diff = device_property_read_bool(dev,
-					"realtek,in1-differential");
+							 "realtek,in1-differential");
 	rt5660->pdata.in3_diff = device_property_read_bool(dev,
-					"realtek,in3-differential");
+							 "realtek,in3-differential");
 	rt5660->pdata.poweroff_codec_in_suspend = device_property_read_bool(dev,
-					"realtek,poweroff-in-suspend");
+			"realtek,poweroff-in-suspend");
 	device_property_read_u32(dev, "realtek,dmic1-data-pin",
-		&rt5660->pdata.dmic1_data_pin);
+							 &rt5660->pdata.dmic1_data_pin);
 
 	return 0;
 }
 
 static int rt5660_i2c_probe(struct i2c_client *i2c,
-		    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct rt5660_platform_data *pdata = dev_get_platdata(&i2c->dev);
 	struct rt5660_priv *rt5660;
@@ -1272,61 +1359,78 @@ static int rt5660_i2c_probe(struct i2c_client *i2c,
 	unsigned int val;
 
 	rt5660 = devm_kzalloc(&i2c->dev, sizeof(struct rt5660_priv),
-		GFP_KERNEL);
+						  GFP_KERNEL);
 
 	if (rt5660 == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* Check if MCLK provided */
 	rt5660->mclk = devm_clk_get(&i2c->dev, "mclk");
+
 	if (PTR_ERR(rt5660->mclk) == -EPROBE_DEFER)
+	{
 		return -EPROBE_DEFER;
+	}
 
 	i2c_set_clientdata(i2c, rt5660);
 
 	if (pdata)
+	{
 		rt5660->pdata = *pdata;
+	}
 	else if (i2c->dev.of_node)
+	{
 		rt5660_parse_dt(rt5660, &i2c->dev);
+	}
 
 	rt5660->regmap = devm_regmap_init_i2c(i2c, &rt5660_regmap);
-	if (IS_ERR(rt5660->regmap)) {
+
+	if (IS_ERR(rt5660->regmap))
+	{
 		ret = PTR_ERR(rt5660->regmap);
 		dev_err(&i2c->dev, "Failed to allocate register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
 	regmap_read(rt5660->regmap, RT5660_VENDOR_ID2, &val);
-	if (val != RT5660_DEVICE_ID) {
+
+	if (val != RT5660_DEVICE_ID)
+	{
 		dev_err(&i2c->dev,
-			"Device with ID register %#x is not rt5660\n", val);
+				"Device with ID register %#x is not rt5660\n", val);
 		return -ENODEV;
 	}
 
 	regmap_write(rt5660->regmap, RT5660_RESET, 0);
 
 	ret = regmap_register_patch(rt5660->regmap, rt5660_patch,
-				    ARRAY_SIZE(rt5660_patch));
-	if (ret != 0)
-		dev_warn(&i2c->dev, "Failed to apply regmap patch: %d\n", ret);
+								ARRAY_SIZE(rt5660_patch));
 
-	if (rt5660->pdata.dmic1_data_pin) {
+	if (ret != 0)
+	{
+		dev_warn(&i2c->dev, "Failed to apply regmap patch: %d\n", ret);
+	}
+
+	if (rt5660->pdata.dmic1_data_pin)
+	{
 		regmap_update_bits(rt5660->regmap, RT5660_GPIO_CTRL1,
-			RT5660_GP1_PIN_MASK, RT5660_GP1_PIN_DMIC1_SCL);
+						   RT5660_GP1_PIN_MASK, RT5660_GP1_PIN_DMIC1_SCL);
 
 		if (rt5660->pdata.dmic1_data_pin == RT5660_DMIC1_DATA_GPIO2)
 			regmap_update_bits(rt5660->regmap, RT5660_DMIC_CTRL1,
-				RT5660_SEL_DMIC_DATA_MASK,
-				RT5660_SEL_DMIC_DATA_GPIO2);
+							   RT5660_SEL_DMIC_DATA_MASK,
+							   RT5660_SEL_DMIC_DATA_GPIO2);
 		else if (rt5660->pdata.dmic1_data_pin == RT5660_DMIC1_DATA_IN1P)
 			regmap_update_bits(rt5660->regmap, RT5660_DMIC_CTRL1,
-				RT5660_SEL_DMIC_DATA_MASK,
-				RT5660_SEL_DMIC_DATA_IN1P);
+							   RT5660_SEL_DMIC_DATA_MASK,
+							   RT5660_SEL_DMIC_DATA_IN1P);
 	}
 
 	return snd_soc_register_codec(&i2c->dev, &soc_codec_dev_rt5660,
-				      rt5660_dai, ARRAY_SIZE(rt5660_dai));
+								  rt5660_dai, ARRAY_SIZE(rt5660_dai));
 }
 
 static int rt5660_i2c_remove(struct i2c_client *i2c)
@@ -1336,7 +1440,8 @@ static int rt5660_i2c_remove(struct i2c_client *i2c)
 	return 0;
 }
 
-static struct i2c_driver rt5660_i2c_driver = {
+static struct i2c_driver rt5660_i2c_driver =
+{
 	.driver = {
 		.name = "rt5660",
 		.acpi_match_table = ACPI_PTR(rt5660_acpi_match),

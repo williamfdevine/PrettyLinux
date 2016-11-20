@@ -21,7 +21,8 @@
 #undef __FD_SETSIZE
 #define __FD_SETSIZE	1024
 
-typedef struct {
+typedef struct
+{
 	unsigned long fds_bits[__FD_SETSIZE / (8 * sizeof(long))];
 } __kernel_fd_set;
 

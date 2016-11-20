@@ -40,25 +40,25 @@
 #include "solo6x10-regs.h"
 
 #ifndef PCI_VENDOR_ID_SOFTLOGIC
-#define PCI_VENDOR_ID_SOFTLOGIC		0x9413
-#define PCI_DEVICE_ID_SOLO6010		0x6010
-#define PCI_DEVICE_ID_SOLO6110		0x6110
+	#define PCI_VENDOR_ID_SOFTLOGIC		0x9413
+	#define PCI_DEVICE_ID_SOLO6010		0x6010
+	#define PCI_DEVICE_ID_SOLO6110		0x6110
 #endif
 
 #ifndef PCI_VENDOR_ID_BLUECHERRY
-#define PCI_VENDOR_ID_BLUECHERRY	0x1BB3
-/* Neugent Softlogic 6010 based cards */
-#define PCI_DEVICE_ID_NEUSOLO_4		0x4304
-#define PCI_DEVICE_ID_NEUSOLO_9		0x4309
-#define PCI_DEVICE_ID_NEUSOLO_16	0x4310
-/* Bluecherry Softlogic 6010 based cards */
-#define PCI_DEVICE_ID_BC_SOLO_4		0x4E04
-#define PCI_DEVICE_ID_BC_SOLO_9		0x4E09
-#define PCI_DEVICE_ID_BC_SOLO_16	0x4E10
-/* Bluecherry Softlogic 6110 based cards */
-#define PCI_DEVICE_ID_BC_6110_4		0x5304
-#define PCI_DEVICE_ID_BC_6110_8		0x5308
-#define PCI_DEVICE_ID_BC_6110_16	0x5310
+	#define PCI_VENDOR_ID_BLUECHERRY	0x1BB3
+	/* Neugent Softlogic 6010 based cards */
+	#define PCI_DEVICE_ID_NEUSOLO_4		0x4304
+	#define PCI_DEVICE_ID_NEUSOLO_9		0x4309
+	#define PCI_DEVICE_ID_NEUSOLO_16	0x4310
+	/* Bluecherry Softlogic 6010 based cards */
+	#define PCI_DEVICE_ID_BC_SOLO_4		0x4E04
+	#define PCI_DEVICE_ID_BC_SOLO_9		0x4E09
+	#define PCI_DEVICE_ID_BC_SOLO_16	0x4E10
+	/* Bluecherry Softlogic 6110 based cards */
+	#define PCI_DEVICE_ID_BC_6110_4		0x5304
+	#define PCI_DEVICE_ID_BC_6110_8		0x5308
+	#define PCI_DEVICE_ID_BC_6110_16	0x5310
 #endif /* Bluecherry */
 
 /* Used in pci_device_id, and solo_dev->type */
@@ -107,7 +107,8 @@
  */
 #define SOLO_MOTION_SZ (45)
 
-enum SOLO_I2C_STATE {
+enum SOLO_I2C_STATE
+{
 	IIC_STATE_IDLE,
 	IIC_STATE_START,
 	IIC_STATE_READ,
@@ -116,14 +117,16 @@ enum SOLO_I2C_STATE {
 };
 
 /* Defined in Table 4-16, Page 68-69 of the 6010 Datasheet */
-struct solo_p2m_desc {
+struct solo_p2m_desc
+{
 	u32	ctrl;
 	u32	cfg;
 	u32	dma_addr;
 	u32	ext_addr;
 };
 
-struct solo_p2m_dev {
+struct solo_p2m_dev
+{
 	struct mutex		mutex;
 	struct completion	completion;
 	int			desc_count;
@@ -134,17 +137,20 @@ struct solo_p2m_dev {
 
 #define OSD_TEXT_MAX		44
 
-struct solo_vb2_buf {
+struct solo_vb2_buf
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 };
 
-enum solo_enc_types {
+enum solo_enc_types
+{
 	SOLO_ENC_TYPE_STD,
 	SOLO_ENC_TYPE_EXT,
 };
 
-struct solo_enc_dev {
+struct solo_enc_dev
+{
 	struct solo_dev	*solo_dev;
 	/* V4L2 Items */
 	struct v4l2_ctrl_handler hdl;
@@ -165,7 +171,7 @@ struct solo_enc_dev {
 	/* OSD buffers */
 	char			osd_text[OSD_TEXT_MAX + 1];
 	u8			osd_buf[SOLO_EOSD_EXT_SIZE_MAX]
-					__aligned(4);
+	__aligned(4);
 
 	/* VOP stuff */
 	u8			vop[64];
@@ -186,7 +192,8 @@ struct solo_enc_dev {
 };
 
 /* The SOLO6x10 PCI Device */
-struct solo_dev {
+struct solo_dev
+{
 	/* General stuff */
 	struct pci_dev		*pdev;
 	int			type;
@@ -282,7 +289,7 @@ static inline u32 solo_reg_read(struct solo_dev *solo_dev, int reg)
 }
 
 static inline void solo_reg_write(struct solo_dev *solo_dev, int reg,
-				  u32 data)
+								  u32 data)
 {
 	writel(data, solo_dev->reg_base + reg);
 }
@@ -336,21 +343,21 @@ void solo_video_in_isr(struct solo_dev *solo_dev);
 /* i2c read/write */
 u8 solo_i2c_readbyte(struct solo_dev *solo_dev, int id, u8 addr, u8 off);
 void solo_i2c_writebyte(struct solo_dev *solo_dev, int id, u8 addr, u8 off,
-			u8 data);
+						u8 data);
 
 /* P2M DMA */
 int solo_p2m_dma_t(struct solo_dev *solo_dev, int wr,
-		   dma_addr_t dma_addr, u32 ext_addr, u32 size,
-		   int repeat, u32 ext_size);
+				   dma_addr_t dma_addr, u32 ext_addr, u32 size,
+				   int repeat, u32 ext_size);
 int solo_p2m_dma(struct solo_dev *solo_dev, int wr,
-		 void *sys_addr, u32 ext_addr, u32 size,
-		 int repeat, u32 ext_size);
+				 void *sys_addr, u32 ext_addr, u32 size,
+				 int repeat, u32 ext_size);
 void solo_p2m_fill_desc(struct solo_p2m_desc *desc, int wr,
-			dma_addr_t dma_addr, u32 ext_addr, u32 size,
-			int repeat, u32 ext_size);
+						dma_addr_t dma_addr, u32 ext_addr, u32 size,
+						int repeat, u32 ext_size);
 int solo_p2m_dma_desc(struct solo_dev *solo_dev,
-		      struct solo_p2m_desc *desc, dma_addr_t desc_dma,
-		      int desc_cnt);
+					  struct solo_p2m_desc *desc, dma_addr_t desc_dma,
+					  int desc_cnt);
 
 /* Global s_std ioctl */
 int solo_set_video_type(struct solo_dev *solo_dev, bool is_50hz);
@@ -359,7 +366,7 @@ void solo_update_mode(struct solo_enc_dev *solo_enc);
 /* Set the threshold for motion detection */
 int solo_set_motion_threshold(struct solo_dev *solo_dev, u8 ch, u16 val);
 int solo_set_motion_block(struct solo_dev *solo_dev, u8 ch,
-		const u16 *thresholds);
+						  const u16 *thresholds);
 #define SOLO_DEF_MOT_THRESH		0x0300
 
 /* Write text on OSD */
@@ -369,11 +376,11 @@ int solo_osd_print(struct solo_enc_dev *solo_enc);
 unsigned int solo_eeprom_ewen(struct solo_dev *solo_dev, int w_en);
 __be16 solo_eeprom_read(struct solo_dev *solo_dev, int loc);
 int solo_eeprom_write(struct solo_dev *solo_dev, int loc,
-		      __be16 data);
+					  __be16 data);
 
 /* JPEG Qp functions */
 void solo_s_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch,
-		    unsigned int qp);
+					unsigned int qp);
 int solo_g_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch);
 
 #define CHK_FLAGS(v, flags) (((v) & (flags)) == (flags))

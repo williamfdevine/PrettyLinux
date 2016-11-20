@@ -17,7 +17,8 @@
  * Herton Ronaldo Krzesinski <herton@mandriva.com.br>
  */
 
-static struct rc_map_table avermedia_m733a_rm_k6[] = {
+static struct rc_map_table avermedia_m733a_rm_k6[] =
+{
 	{ 0x0401, KEY_POWER2 },
 	{ 0x0406, KEY_MUTE },
 	{ 0x0408, KEY_MODE },     /* TV/FM */
@@ -70,7 +71,8 @@ static struct rc_map_table avermedia_m733a_rm_k6[] = {
 	{ 0x041e, KEY_NEXT },
 };
 
-static struct rc_map_list avermedia_m733a_rm_k6_map = {
+static struct rc_map_list avermedia_m733a_rm_k6_map =
+{
 	.map = {
 		.scan    = avermedia_m733a_rm_k6,
 		.size    = ARRAY_SIZE(avermedia_m733a_rm_k6),

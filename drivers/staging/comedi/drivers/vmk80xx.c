@@ -47,7 +47,8 @@
 
 #include "../comedi_usb.h"
 
-enum {
+enum
+{
 	DEVICE_VMK8055,
 	DEVICE_VMK8061
 };
@@ -99,19 +100,22 @@ enum {
 #define IC3_VERSION		BIT(0)
 #define IC6_VERSION		BIT(1)
 
-enum vmk80xx_model {
+enum vmk80xx_model
+{
 	VMK8055_MODEL,
 	VMK8061_MODEL
 };
 
-static const struct comedi_lrange vmk8061_range = {
+static const struct comedi_lrange vmk8061_range =
+{
 	2, {
 		UNI_RANGE(5),
 		UNI_RANGE(10)
 	}
 };
 
-struct vmk80xx_board {
+struct vmk80xx_board
+{
 	const char *name;
 	enum vmk80xx_model model;
 	const struct comedi_lrange *range;
@@ -124,7 +128,8 @@ struct vmk80xx_board {
 	unsigned int pwm_maxdata;
 };
 
-static const struct vmk80xx_board vmk80xx_boardinfo[] = {
+static const struct vmk80xx_board vmk80xx_boardinfo[] =
+{
 	[DEVICE_VMK8055] = {
 		.name		= "K8055 (VM110)",
 		.model		= VMK8055_MODEL,
@@ -149,7 +154,8 @@ static const struct vmk80xx_board vmk80xx_boardinfo[] = {
 	},
 };
 
-struct vmk80xx_private {
+struct vmk80xx_private
+{
 	struct usb_endpoint_descriptor *ep_rx;
 	struct usb_endpoint_descriptor *ep_tx;
 	struct semaphore limit_sem;
@@ -180,7 +186,7 @@ static void vmk80xx_do_bulk_msg(struct comedi_device *dev)
 	size = usb_endpoint_maxp(devpriv->ep_tx);
 
 	usb_bulk_msg(usb, tx_pipe, devpriv->usb_tx_buf,
-		     size, NULL, devpriv->ep_tx->bInterval);
+				 size, NULL, devpriv->ep_tx->bInterval);
 	usb_bulk_msg(usb, rx_pipe, devpriv->usb_rx_buf, size, NULL, HZ * 10);
 }
 
@@ -191,7 +197,8 @@ static int vmk80xx_read_packet(struct comedi_device *dev)
 	struct usb_endpoint_descriptor *ep;
 	unsigned int pipe;
 
-	if (devpriv->model == VMK8061_MODEL) {
+	if (devpriv->model == VMK8061_MODEL)
+	{
 		vmk80xx_do_bulk_msg(dev);
 		return 0;
 	}
@@ -199,8 +206,8 @@ static int vmk80xx_read_packet(struct comedi_device *dev)
 	ep = devpriv->ep_rx;
 	pipe = usb_rcvintpipe(usb, ep->bEndpointAddress);
 	return usb_interrupt_msg(usb, pipe, devpriv->usb_rx_buf,
-				 usb_endpoint_maxp(ep), NULL,
-				 HZ * 10);
+							 usb_endpoint_maxp(ep), NULL,
+							 HZ * 10);
 }
 
 static int vmk80xx_write_packet(struct comedi_device *dev, int cmd)
@@ -212,7 +219,8 @@ static int vmk80xx_write_packet(struct comedi_device *dev, int cmd)
 
 	devpriv->usb_tx_buf[0] = cmd;
 
-	if (devpriv->model == VMK8061_MODEL) {
+	if (devpriv->model == VMK8061_MODEL)
+	{
 		vmk80xx_do_bulk_msg(dev);
 		return 0;
 	}
@@ -220,8 +228,8 @@ static int vmk80xx_write_packet(struct comedi_device *dev, int cmd)
 	ep = devpriv->ep_tx;
 	pipe = usb_sndintpipe(usb, ep->bEndpointAddress);
 	return usb_interrupt_msg(usb, pipe, devpriv->usb_tx_buf,
-				 usb_endpoint_maxp(ep), NULL,
-				 HZ * 10);
+							 usb_endpoint_maxp(ep), NULL,
+							 HZ * 10);
 }
 
 static int vmk80xx_reset_device(struct comedi_device *dev)
@@ -233,16 +241,20 @@ static int vmk80xx_reset_device(struct comedi_device *dev)
 	size = usb_endpoint_maxp(devpriv->ep_tx);
 	memset(devpriv->usb_tx_buf, 0, size);
 	retval = vmk80xx_write_packet(dev, VMK8055_CMD_RST);
+
 	if (retval)
+	{
 		return retval;
+	}
+
 	/* set outputs to known state as we cannot read them */
 	return vmk80xx_write_packet(dev, VMK8055_CMD_WRT_AD);
 }
 
 static int vmk80xx_ai_insn_read(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	struct vmk80xx_private *devpriv = dev->private;
 	int chan;
@@ -252,34 +264,45 @@ static int vmk80xx_ai_insn_read(struct comedi_device *dev,
 	down(&devpriv->limit_sem);
 	chan = CR_CHAN(insn->chanspec);
 
-	switch (devpriv->model) {
-	case VMK8055_MODEL:
-		if (!chan)
-			reg[0] = VMK8055_AI1_REG;
-		else
-			reg[0] = VMK8055_AI2_REG;
-		break;
-	case VMK8061_MODEL:
-	default:
-		reg[0] = VMK8061_AI_REG1;
-		reg[1] = VMK8061_AI_REG2;
-		devpriv->usb_tx_buf[0] = VMK8061_CMD_RD_AI;
-		devpriv->usb_tx_buf[VMK8061_CH_REG] = chan;
-		break;
-	}
+	switch (devpriv->model)
+	{
+		case VMK8055_MODEL:
+			if (!chan)
+			{
+				reg[0] = VMK8055_AI1_REG;
+			}
+			else
+			{
+				reg[0] = VMK8055_AI2_REG;
+			}
 
-	for (n = 0; n < insn->n; n++) {
-		if (vmk80xx_read_packet(dev))
 			break;
 
-		if (devpriv->model == VMK8055_MODEL) {
+		case VMK8061_MODEL:
+		default:
+			reg[0] = VMK8061_AI_REG1;
+			reg[1] = VMK8061_AI_REG2;
+			devpriv->usb_tx_buf[0] = VMK8061_CMD_RD_AI;
+			devpriv->usb_tx_buf[VMK8061_CH_REG] = chan;
+			break;
+	}
+
+	for (n = 0; n < insn->n; n++)
+	{
+		if (vmk80xx_read_packet(dev))
+		{
+			break;
+		}
+
+		if (devpriv->model == VMK8055_MODEL)
+		{
 			data[n] = devpriv->usb_rx_buf[reg[0]];
 			continue;
 		}
 
 		/* VMK8061_MODEL */
 		data[n] = devpriv->usb_rx_buf[reg[0]] + 256 *
-		    devpriv->usb_rx_buf[reg[1]];
+				  devpriv->usb_rx_buf[reg[1]];
 	}
 
 	up(&devpriv->limit_sem);
@@ -288,9 +311,9 @@ static int vmk80xx_ai_insn_read(struct comedi_device *dev,
 }
 
 static int vmk80xx_ao_insn_write(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	struct vmk80xx_private *devpriv = dev->private;
 	int chan;
@@ -301,26 +324,37 @@ static int vmk80xx_ao_insn_write(struct comedi_device *dev,
 	down(&devpriv->limit_sem);
 	chan = CR_CHAN(insn->chanspec);
 
-	switch (devpriv->model) {
-	case VMK8055_MODEL:
-		cmd = VMK8055_CMD_WRT_AD;
-		if (!chan)
-			reg = VMK8055_AO1_REG;
-		else
-			reg = VMK8055_AO2_REG;
-		break;
-	default:		/* NOTE: avoid compiler warnings */
-		cmd = VMK8061_CMD_SET_AO;
-		reg = VMK8061_AO_REG;
-		devpriv->usb_tx_buf[VMK8061_CH_REG] = chan;
-		break;
+	switch (devpriv->model)
+	{
+		case VMK8055_MODEL:
+			cmd = VMK8055_CMD_WRT_AD;
+
+			if (!chan)
+			{
+				reg = VMK8055_AO1_REG;
+			}
+			else
+			{
+				reg = VMK8055_AO2_REG;
+			}
+
+			break;
+
+		default:		/* NOTE: avoid compiler warnings */
+			cmd = VMK8061_CMD_SET_AO;
+			reg = VMK8061_AO_REG;
+			devpriv->usb_tx_buf[VMK8061_CH_REG] = chan;
+			break;
 	}
 
-	for (n = 0; n < insn->n; n++) {
+	for (n = 0; n < insn->n; n++)
+	{
 		devpriv->usb_tx_buf[reg] = data[n];
 
 		if (vmk80xx_write_packet(dev, cmd))
+		{
 			break;
+		}
 	}
 
 	up(&devpriv->limit_sem);
@@ -329,9 +363,9 @@ static int vmk80xx_ao_insn_write(struct comedi_device *dev,
 }
 
 static int vmk80xx_ao_insn_read(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	struct vmk80xx_private *devpriv = dev->private;
 	int chan;
@@ -345,9 +379,12 @@ static int vmk80xx_ao_insn_read(struct comedi_device *dev,
 
 	devpriv->usb_tx_buf[0] = VMK8061_CMD_RD_AO;
 
-	for (n = 0; n < insn->n; n++) {
+	for (n = 0; n < insn->n; n++)
+	{
 		if (vmk80xx_read_packet(dev))
+		{
 			break;
+		}
 
 		data[n] = devpriv->usb_rx_buf[reg + chan];
 	}
@@ -358,9 +395,9 @@ static int vmk80xx_ao_insn_read(struct comedi_device *dev,
 }
 
 static int vmk80xx_di_insn_bits(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	struct vmk80xx_private *devpriv = dev->private;
 	unsigned char *rx_buf;
@@ -371,22 +408,28 @@ static int vmk80xx_di_insn_bits(struct comedi_device *dev,
 
 	rx_buf = devpriv->usb_rx_buf;
 
-	if (devpriv->model == VMK8061_MODEL) {
+	if (devpriv->model == VMK8061_MODEL)
+	{
 		reg = VMK8061_DI_REG;
 		devpriv->usb_tx_buf[0] = VMK8061_CMD_RD_DI;
-	} else {
+	}
+	else
+	{
 		reg = VMK8055_DI_REG;
 	}
 
 	retval = vmk80xx_read_packet(dev);
 
-	if (!retval) {
+	if (!retval)
+	{
 		if (devpriv->model == VMK8055_MODEL)
 			data[1] = (((rx_buf[reg] >> 4) & 0x03) |
-				  ((rx_buf[reg] << 2) & 0x04) |
-				  ((rx_buf[reg] >> 3) & 0x18));
+					   ((rx_buf[reg] << 2) & 0x04) |
+					   ((rx_buf[reg] >> 3) & 0x18));
 		else
+		{
 			data[1] = rx_buf[reg];
+		}
 
 		retval = 2;
 	}
@@ -397,9 +440,9 @@ static int vmk80xx_di_insn_bits(struct comedi_device *dev,
 }
 
 static int vmk80xx_do_insn_bits(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	struct vmk80xx_private *devpriv = dev->private;
 	unsigned char *rx_buf = devpriv->usb_rx_buf;
@@ -407,30 +450,44 @@ static int vmk80xx_do_insn_bits(struct comedi_device *dev,
 	int reg, cmd;
 	int ret = 0;
 
-	if (devpriv->model == VMK8061_MODEL) {
+	if (devpriv->model == VMK8061_MODEL)
+	{
 		reg = VMK8061_DO_REG;
 		cmd = VMK8061_CMD_DO;
-	} else { /* VMK8055_MODEL */
+	}
+	else     /* VMK8055_MODEL */
+	{
 		reg = VMK8055_DO_REG;
 		cmd = VMK8055_CMD_WRT_AD;
 	}
 
 	down(&devpriv->limit_sem);
 
-	if (comedi_dio_update_state(s, data)) {
+	if (comedi_dio_update_state(s, data))
+	{
 		tx_buf[reg] = s->state;
 		ret = vmk80xx_write_packet(dev, cmd);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
-	if (devpriv->model == VMK8061_MODEL) {
+	if (devpriv->model == VMK8061_MODEL)
+	{
 		tx_buf[0] = VMK8061_CMD_RD_DO;
 		ret = vmk80xx_read_packet(dev);
+
 		if (ret)
+		{
 			goto out;
+		}
+
 		data[1] = rx_buf[reg];
-	} else {
+	}
+	else
+	{
 		data[1] = s->state;
 	}
 
@@ -441,9 +498,9 @@ out:
 }
 
 static int vmk80xx_cnt_insn_read(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	struct vmk80xx_private *devpriv = dev->private;
 	int chan;
@@ -453,30 +510,42 @@ static int vmk80xx_cnt_insn_read(struct comedi_device *dev,
 	down(&devpriv->limit_sem);
 	chan = CR_CHAN(insn->chanspec);
 
-	switch (devpriv->model) {
-	case VMK8055_MODEL:
-		if (!chan)
-			reg[0] = VMK8055_CNT1_REG;
-		else
-			reg[0] = VMK8055_CNT2_REG;
-		break;
-	case VMK8061_MODEL:
-	default:
-		reg[0] = VMK8061_CNT_REG;
-		reg[1] = VMK8061_CNT_REG;
-		devpriv->usb_tx_buf[0] = VMK8061_CMD_RD_CNT;
-		break;
-	}
+	switch (devpriv->model)
+	{
+		case VMK8055_MODEL:
+			if (!chan)
+			{
+				reg[0] = VMK8055_CNT1_REG;
+			}
+			else
+			{
+				reg[0] = VMK8055_CNT2_REG;
+			}
 
-	for (n = 0; n < insn->n; n++) {
-		if (vmk80xx_read_packet(dev))
 			break;
 
+		case VMK8061_MODEL:
+		default:
+			reg[0] = VMK8061_CNT_REG;
+			reg[1] = VMK8061_CNT_REG;
+			devpriv->usb_tx_buf[0] = VMK8061_CMD_RD_CNT;
+			break;
+	}
+
+	for (n = 0; n < insn->n; n++)
+	{
+		if (vmk80xx_read_packet(dev))
+		{
+			break;
+		}
+
 		if (devpriv->model == VMK8055_MODEL)
+		{
 			data[n] = devpriv->usb_rx_buf[reg[0]];
+		}
 		else /* VMK8061_MODEL */
 			data[n] = devpriv->usb_rx_buf[reg[0] * (chan + 1) + 1]
-			    + 256 * devpriv->usb_rx_buf[reg[1] * 2 + 2];
+					  + 256 * devpriv->usb_rx_buf[reg[1] * 2 + 2];
 	}
 
 	up(&devpriv->limit_sem);
@@ -485,9 +554,9 @@ static int vmk80xx_cnt_insn_read(struct comedi_device *dev,
 }
 
 static int vmk80xx_cnt_insn_config(struct comedi_device *dev,
-				   struct comedi_subdevice *s,
-				   struct comedi_insn *insn,
-				   unsigned int *data)
+								   struct comedi_subdevice *s,
+								   struct comedi_insn *insn,
+								   unsigned int *data)
 {
 	struct vmk80xx_private *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -496,35 +565,47 @@ static int vmk80xx_cnt_insn_config(struct comedi_device *dev,
 	int ret;
 
 	down(&devpriv->limit_sem);
-	switch (data[0]) {
-	case INSN_CONFIG_RESET:
-		if (devpriv->model == VMK8055_MODEL) {
-			if (!chan) {
-				cmd = VMK8055_CMD_RST_CNT1;
-				reg = VMK8055_CNT1_REG;
-			} else {
-				cmd = VMK8055_CMD_RST_CNT2;
-				reg = VMK8055_CNT2_REG;
+
+	switch (data[0])
+	{
+		case INSN_CONFIG_RESET:
+			if (devpriv->model == VMK8055_MODEL)
+			{
+				if (!chan)
+				{
+					cmd = VMK8055_CMD_RST_CNT1;
+					reg = VMK8055_CNT1_REG;
+				}
+				else
+				{
+					cmd = VMK8055_CMD_RST_CNT2;
+					reg = VMK8055_CNT2_REG;
+				}
+
+				devpriv->usb_tx_buf[reg] = 0x00;
 			}
-			devpriv->usb_tx_buf[reg] = 0x00;
-		} else {
-			cmd = VMK8061_CMD_RST_CNT;
-		}
-		ret = vmk80xx_write_packet(dev, cmd);
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+			else
+			{
+				cmd = VMK8061_CMD_RST_CNT;
+			}
+
+			ret = vmk80xx_write_packet(dev, cmd);
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
+
 	up(&devpriv->limit_sem);
 
 	return ret ? ret : insn->n;
 }
 
 static int vmk80xx_cnt_insn_write(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	struct vmk80xx_private *devpriv = dev->private;
 	unsigned long debtime;
@@ -537,27 +618,42 @@ static int vmk80xx_cnt_insn_write(struct comedi_device *dev,
 	chan = CR_CHAN(insn->chanspec);
 
 	if (!chan)
+	{
 		cmd = VMK8055_CMD_DEB1_TIME;
+	}
 	else
+	{
 		cmd = VMK8055_CMD_DEB2_TIME;
+	}
 
-	for (n = 0; n < insn->n; n++) {
+	for (n = 0; n < insn->n; n++)
+	{
 		debtime = data[n];
+
 		if (debtime == 0)
+		{
 			debtime = 1;
+		}
 
 		/* TODO: Prevent overflows */
 		if (debtime > 7450)
+		{
 			debtime = 7450;
+		}
 
 		val = int_sqrt(debtime * 1000 / 115);
+
 		if (((val + 1) * val) < debtime * 1000 / 115)
+		{
 			val += 1;
+		}
 
 		devpriv->usb_tx_buf[6 + chan] = val;
 
 		if (vmk80xx_write_packet(dev, cmd))
+		{
 			break;
+		}
 	}
 
 	up(&devpriv->limit_sem);
@@ -566,9 +662,9 @@ static int vmk80xx_cnt_insn_write(struct comedi_device *dev,
 }
 
 static int vmk80xx_pwm_insn_read(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	struct vmk80xx_private *devpriv = dev->private;
 	unsigned char *tx_buf;
@@ -586,9 +682,12 @@ static int vmk80xx_pwm_insn_read(struct comedi_device *dev,
 
 	tx_buf[0] = VMK8061_CMD_RD_PWM;
 
-	for (n = 0; n < insn->n; n++) {
+	for (n = 0; n < insn->n; n++)
+	{
 		if (vmk80xx_read_packet(dev))
+		{
 			break;
+		}
 
 		data[n] = rx_buf[reg[0]] + 4 * rx_buf[reg[1]];
 	}
@@ -599,9 +698,9 @@ static int vmk80xx_pwm_insn_read(struct comedi_device *dev,
 }
 
 static int vmk80xx_pwm_insn_write(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	struct vmk80xx_private *devpriv = dev->private;
 	unsigned char *tx_buf;
@@ -631,12 +730,15 @@ static int vmk80xx_pwm_insn_write(struct comedi_device *dev,
 	 *   mov hi, al  ; hi is the high part (tx_buf[reg[1]])
 	 * end;
 	 */
-	for (n = 0; n < insn->n; n++) {
+	for (n = 0; n < insn->n; n++)
+	{
 		tx_buf[reg[0]] = (unsigned char)(data[n] & 0x03);
 		tx_buf[reg[1]] = (unsigned char)(data[n] >> 2) & 0xff;
 
 		if (vmk80xx_write_packet(dev, cmd))
+		{
 			break;
+		}
 	}
 
 	up(&devpriv->limit_sem);
@@ -653,28 +755,41 @@ static int vmk80xx_find_usb_endpoints(struct comedi_device *dev)
 	int i;
 
 	if (iface_desc->desc.bNumEndpoints != 2)
+	{
 		return -ENODEV;
+	}
 
-	for (i = 0; i < iface_desc->desc.bNumEndpoints; i++) {
+	for (i = 0; i < iface_desc->desc.bNumEndpoints; i++)
+	{
 		ep_desc = &iface_desc->endpoint[i].desc;
 
 		if (usb_endpoint_is_int_in(ep_desc) ||
-		    usb_endpoint_is_bulk_in(ep_desc)) {
+			usb_endpoint_is_bulk_in(ep_desc))
+		{
 			if (!devpriv->ep_rx)
+			{
 				devpriv->ep_rx = ep_desc;
+			}
+
 			continue;
 		}
 
 		if (usb_endpoint_is_int_out(ep_desc) ||
-		    usb_endpoint_is_bulk_out(ep_desc)) {
+			usb_endpoint_is_bulk_out(ep_desc))
+		{
 			if (!devpriv->ep_tx)
+			{
 				devpriv->ep_tx = ep_desc;
+			}
+
 			continue;
 		}
 	}
 
 	if (!devpriv->ep_rx || !devpriv->ep_tx)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -686,12 +801,17 @@ static int vmk80xx_alloc_usb_buffers(struct comedi_device *dev)
 
 	size = usb_endpoint_maxp(devpriv->ep_rx);
 	devpriv->usb_rx_buf = kzalloc(size, GFP_KERNEL);
+
 	if (!devpriv->usb_rx_buf)
+	{
 		return -ENOMEM;
+	}
 
 	size = usb_endpoint_maxp(devpriv->ep_tx);
 	devpriv->usb_tx_buf = kzalloc(size, GFP_KERNEL);
-	if (!devpriv->usb_tx_buf) {
+
+	if (!devpriv->usb_tx_buf)
+	{
 		kfree(devpriv->usb_rx_buf);
 		return -ENOMEM;
 	}
@@ -710,11 +830,18 @@ static int vmk80xx_init_subdevices(struct comedi_device *dev)
 	down(&devpriv->limit_sem);
 
 	if (devpriv->model == VMK8055_MODEL)
+	{
 		n_subd = 5;
+	}
 	else
+	{
 		n_subd = 6;
+	}
+
 	ret = comedi_alloc_subdevices(dev, n_subd);
-	if (ret) {
+
+	if (ret)
+	{
 		up(&devpriv->limit_sem);
 		return ret;
 	}
@@ -736,7 +863,9 @@ static int vmk80xx_init_subdevices(struct comedi_device *dev)
 	s->maxdata	= 0x00ff;
 	s->range_table	= board->range;
 	s->insn_write	= vmk80xx_ao_insn_write;
-	if (devpriv->model == VMK8061_MODEL) {
+
+	if (devpriv->model == VMK8061_MODEL)
+	{
 		s->subdev_flags	|= SDF_READABLE;
 		s->insn_read	= vmk80xx_ao_insn_read;
 	}
@@ -767,13 +896,16 @@ static int vmk80xx_init_subdevices(struct comedi_device *dev)
 	s->maxdata	= board->cnt_maxdata;
 	s->insn_read	= vmk80xx_cnt_insn_read;
 	s->insn_config	= vmk80xx_cnt_insn_config;
-	if (devpriv->model == VMK8055_MODEL) {
+
+	if (devpriv->model == VMK8055_MODEL)
+	{
 		s->subdev_flags	|= SDF_WRITABLE;
 		s->insn_write	= vmk80xx_cnt_insn_write;
 	}
 
 	/* PWM subdevice */
-	if (devpriv->model == VMK8061_MODEL) {
+	if (devpriv->model == VMK8061_MODEL)
+	{
 		s = &dev->subdevices[5];
 		s->type		= COMEDI_SUBD_PWM;
 		s->subdev_flags	= SDF_READABLE | SDF_WRITABLE;
@@ -789,7 +921,7 @@ static int vmk80xx_init_subdevices(struct comedi_device *dev)
 }
 
 static int vmk80xx_auto_attach(struct comedi_device *dev,
-			       unsigned long context)
+							   unsigned long context)
 {
 	struct usb_interface *intf = comedi_to_usb_interface(dev);
 	const struct vmk80xx_board *board = NULL;
@@ -797,32 +929,49 @@ static int vmk80xx_auto_attach(struct comedi_device *dev,
 	int ret;
 
 	if (context < ARRAY_SIZE(vmk80xx_boardinfo))
+	{
 		board = &vmk80xx_boardinfo[context];
+	}
+
 	if (!board)
+	{
 		return -ENODEV;
+	}
+
 	dev->board_ptr = board;
 	dev->board_name = board->name;
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	devpriv->model = board->model;
 
 	ret = vmk80xx_find_usb_endpoints(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = vmk80xx_alloc_usb_buffers(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	sema_init(&devpriv->limit_sem, 8);
 
 	usb_set_intfdata(intf, devpriv);
 
 	if (devpriv->model == VMK8055_MODEL)
+	{
 		vmk80xx_reset_device(dev);
+	}
 
 	return vmk80xx_init_subdevices(dev);
 }
@@ -833,7 +982,9 @@ static void vmk80xx_detach(struct comedi_device *dev)
 	struct vmk80xx_private *devpriv = dev->private;
 
 	if (!devpriv)
+	{
 		return;
+	}
 
 	down(&devpriv->limit_sem);
 
@@ -845,7 +996,8 @@ static void vmk80xx_detach(struct comedi_device *dev)
 	up(&devpriv->limit_sem);
 }
 
-static struct comedi_driver vmk80xx_driver = {
+static struct comedi_driver vmk80xx_driver =
+{
 	.module		= THIS_MODULE,
 	.driver_name	= "vmk80xx",
 	.auto_attach	= vmk80xx_auto_attach,
@@ -853,12 +1005,13 @@ static struct comedi_driver vmk80xx_driver = {
 };
 
 static int vmk80xx_usb_probe(struct usb_interface *intf,
-			     const struct usb_device_id *id)
+							 const struct usb_device_id *id)
 {
 	return comedi_usb_auto_config(intf, &vmk80xx_driver, id->driver_info);
 }
 
-static const struct usb_device_id vmk80xx_usb_id_table[] = {
+static const struct usb_device_id vmk80xx_usb_id_table[] =
+{
 	{ USB_DEVICE(0x10cf, 0x5500), .driver_info = DEVICE_VMK8055 },
 	{ USB_DEVICE(0x10cf, 0x5501), .driver_info = DEVICE_VMK8055 },
 	{ USB_DEVICE(0x10cf, 0x5502), .driver_info = DEVICE_VMK8055 },
@@ -875,7 +1028,8 @@ static const struct usb_device_id vmk80xx_usb_id_table[] = {
 };
 MODULE_DEVICE_TABLE(usb, vmk80xx_usb_id_table);
 
-static struct usb_driver vmk80xx_usb_driver = {
+static struct usb_driver vmk80xx_usb_driver =
+{
 	.name		= "vmk80xx",
 	.id_table	= vmk80xx_usb_id_table,
 	.probe		= vmk80xx_usb_probe,

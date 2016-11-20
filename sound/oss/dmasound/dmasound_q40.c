@@ -40,7 +40,7 @@ static void *Q40Alloc(unsigned int size, gfp_t flags);
 static void Q40Free(void *, unsigned int);
 static int Q40IrqInit(void);
 #ifdef MODULE
-static void Q40IrqCleanUp(void);
+	static void Q40IrqCleanUp(void);
 #endif
 static void Q40Silence(void);
 static void Q40Init(void);
@@ -59,55 +59,71 @@ static void Q40Interrupt(void);
 
 /* userCount, frameUsed, frameLeft == byte counts */
 static ssize_t q40_ct_law(const u_char __user *userPtr, size_t userCount,
-			   u_char frame[], ssize_t *frameUsed,
-			   ssize_t frameLeft)
+						  u_char frame[], ssize_t *frameUsed,
+						  ssize_t frameLeft)
 {
-	char *table = dmasound.soft.format == AFMT_MU_LAW ? dmasound_ulaw2dma8: dmasound_alaw2dma8;
+	char *table = dmasound.soft.format == AFMT_MU_LAW ? dmasound_ulaw2dma8 : dmasound_alaw2dma8;
 	ssize_t count, used;
 	u_char *p = (u_char *) &frame[*frameUsed];
 
 	used = count = min_t(size_t, userCount, frameLeft);
-	if (copy_from_user(p,userPtr,count))
-	  return -EFAULT;
-	while (count > 0) {
-		*p = table[*p]+128;
+
+	if (copy_from_user(p, userPtr, count))
+	{
+		return -EFAULT;
+	}
+
+	while (count > 0)
+	{
+		*p = table[*p] + 128;
 		p++;
 		count--;
 	}
+
 	*frameUsed += used ;
 	return used;
 }
 
 
 static ssize_t q40_ct_s8(const u_char __user *userPtr, size_t userCount,
-			  u_char frame[], ssize_t *frameUsed,
-			  ssize_t frameLeft)
+						 u_char frame[], ssize_t *frameUsed,
+						 ssize_t frameLeft)
 {
 	ssize_t count, used;
 	u_char *p = (u_char *) &frame[*frameUsed];
 
 	used = count = min_t(size_t, userCount, frameLeft);
-	if (copy_from_user(p,userPtr,count))
-	  return -EFAULT;
-	while (count > 0) {
+
+	if (copy_from_user(p, userPtr, count))
+	{
+		return -EFAULT;
+	}
+
+	while (count > 0)
+	{
 		*p = *p + 128;
 		p++;
 		count--;
 	}
+
 	*frameUsed += used;
 	return used;
 }
 
 static ssize_t q40_ct_u8(const u_char __user *userPtr, size_t userCount,
-			  u_char frame[], ssize_t *frameUsed,
-			  ssize_t frameLeft)
+						 u_char frame[], ssize_t *frameUsed,
+						 ssize_t frameLeft)
 {
 	ssize_t count, used;
 	u_char *p = (u_char *) &frame[*frameUsed];
 
 	used = count = min_t(size_t, userCount, frameLeft);
-	if (copy_from_user(p,userPtr,count))
-	  return -EFAULT;
+
+	if (copy_from_user(p, userPtr, count))
+	{
+		return -EFAULT;
+	}
+
 	*frameUsed += used;
 	return used;
 }
@@ -115,11 +131,11 @@ static ssize_t q40_ct_u8(const u_char __user *userPtr, size_t userCount,
 
 /* a bit too complicated to optimise right now ..*/
 static ssize_t q40_ctx_law(const u_char __user *userPtr, size_t userCount,
-			    u_char frame[], ssize_t *frameUsed,
-			    ssize_t frameLeft)
+						   u_char frame[], ssize_t *frameUsed,
+						   ssize_t frameLeft)
 {
 	unsigned char *table = (unsigned char *)
-		(dmasound.soft.format == AFMT_MU_LAW ? dmasound_ulaw2dma8: dmasound_alaw2dma8);
+						   (dmasound.soft.format == AFMT_MU_LAW ? dmasound_ulaw2dma8 : dmasound_alaw2dma8);
 	unsigned int data = expand_data;
 	u_char *p = (u_char *) &frame[*frameUsed];
 	int bal = expand_bal;
@@ -128,22 +144,34 @@ static ssize_t q40_ctx_law(const u_char __user *userPtr, size_t userCount,
 
 	ftotal = frameLeft;
 	utotal = userCount;
-	while (frameLeft) {
+
+	while (frameLeft)
+	{
 		u_char c;
-		if (bal < 0) {
+
+		if (bal < 0)
+		{
 			if (userCount == 0)
+			{
 				break;
+			}
+
 			if (get_user(c, userPtr++))
+			{
 				return -EFAULT;
+			}
+
 			data = table[c];
 			data += 0x80;
 			userCount--;
 			bal += hSpeed;
 		}
+
 		*p++ = data;
 		frameLeft--;
 		bal -= sSpeed;
 	}
+
 	expand_bal = bal;
 	expand_data = data;
 	*frameUsed += (ftotal - frameLeft);
@@ -153,8 +181,8 @@ static ssize_t q40_ctx_law(const u_char __user *userPtr, size_t userCount,
 
 
 static ssize_t q40_ctx_s8(const u_char __user *userPtr, size_t userCount,
-			   u_char frame[], ssize_t *frameUsed,
-			   ssize_t frameLeft)
+						  u_char frame[], ssize_t *frameUsed,
+						  ssize_t frameLeft)
 {
 	u_char *p = (u_char *) &frame[*frameUsed];
 	unsigned int data = expand_data;
@@ -165,22 +193,34 @@ static ssize_t q40_ctx_s8(const u_char __user *userPtr, size_t userCount,
 
 	ftotal = frameLeft;
 	utotal = userCount;
-	while (frameLeft) {
+
+	while (frameLeft)
+	{
 		u_char c;
-		if (bal < 0) {
+
+		if (bal < 0)
+		{
 			if (userCount == 0)
+			{
 				break;
+			}
+
 			if (get_user(c, userPtr++))
+			{
 				return -EFAULT;
+			}
+
 			data = c ;
 			data += 0x80;
 			userCount--;
 			bal += hSpeed;
 		}
+
 		*p++ = data;
 		frameLeft--;
 		bal -= sSpeed;
 	}
+
 	expand_bal = bal;
 	expand_data = data;
 	*frameUsed += (ftotal - frameLeft);
@@ -190,8 +230,8 @@ static ssize_t q40_ctx_s8(const u_char __user *userPtr, size_t userCount,
 
 
 static ssize_t q40_ctx_u8(const u_char __user *userPtr, size_t userCount,
-			   u_char frame[], ssize_t *frameUsed,
-			   ssize_t frameLeft)
+						  u_char frame[], ssize_t *frameUsed,
+						  ssize_t frameLeft)
 {
 	u_char *p = (u_char *) &frame[*frameUsed];
 	unsigned int data = expand_data;
@@ -201,21 +241,33 @@ static ssize_t q40_ctx_u8(const u_char __user *userPtr, size_t userCount,
 
 	ftotal = frameLeft;
 	utotal = userCount;
-	while (frameLeft) {
+
+	while (frameLeft)
+	{
 		u_char c;
-		if (bal < 0) {
+
+		if (bal < 0)
+		{
 			if (userCount == 0)
+			{
 				break;
+			}
+
 			if (get_user(c, userPtr++))
+			{
 				return -EFAULT;
+			}
+
 			data = c ;
 			userCount--;
 			bal += hSpeed;
 		}
+
 		*p++ = data;
 		frameLeft--;
 		bal -= sSpeed;
 	}
+
 	expand_bal = bal;
 	expand_data = data;
 	*frameUsed += (ftotal - frameLeft) ;
@@ -225,38 +277,52 @@ static ssize_t q40_ctx_u8(const u_char __user *userPtr, size_t userCount,
 
 /* compressing versions */
 static ssize_t q40_ctc_law(const u_char __user *userPtr, size_t userCount,
-			    u_char frame[], ssize_t *frameUsed,
-			    ssize_t frameLeft)
+						   u_char frame[], ssize_t *frameUsed,
+						   ssize_t frameLeft)
 {
 	unsigned char *table = (unsigned char *)
-		(dmasound.soft.format == AFMT_MU_LAW ? dmasound_ulaw2dma8: dmasound_alaw2dma8);
+						   (dmasound.soft.format == AFMT_MU_LAW ? dmasound_ulaw2dma8 : dmasound_alaw2dma8);
 	unsigned int data = expand_data;
 	u_char *p = (u_char *) &frame[*frameUsed];
 	int bal = expand_bal;
 	int hSpeed = dmasound.hard.speed, sSpeed = dmasound.soft.speed;
 	int utotal, ftotal;
- 
+
 	ftotal = frameLeft;
 	utotal = userCount;
-	while (frameLeft) {
+
+	while (frameLeft)
+	{
 		u_char c;
-		while(bal<0) {
+
+		while (bal < 0)
+		{
 			if (userCount == 0)
+			{
 				goto lout;
-			if (!(bal<(-hSpeed))) {
+			}
+
+			if (!(bal < (-hSpeed)))
+			{
 				if (get_user(c, userPtr))
+				{
 					return -EFAULT;
+				}
+
 				data = 0x80 + table[c];
 			}
+
 			userPtr++;
 			userCount--;
 			bal += hSpeed;
 		}
+
 		*p++ = data;
 		frameLeft--;
 		bal -= sSpeed;
 	}
- lout:
+
+lout:
 	expand_bal = bal;
 	expand_data = data;
 	*frameUsed += (ftotal - frameLeft);
@@ -266,8 +332,8 @@ static ssize_t q40_ctc_law(const u_char __user *userPtr, size_t userCount,
 
 
 static ssize_t q40_ctc_s8(const u_char __user *userPtr, size_t userCount,
-			   u_char frame[], ssize_t *frameUsed,
-			   ssize_t frameLeft)
+						  u_char frame[], ssize_t *frameUsed,
+						  ssize_t frameLeft)
 {
 	u_char *p = (u_char *) &frame[*frameUsed];
 	unsigned int data = expand_data;
@@ -277,25 +343,39 @@ static ssize_t q40_ctc_s8(const u_char __user *userPtr, size_t userCount,
 
 	ftotal = frameLeft;
 	utotal = userCount;
-	while (frameLeft) {
+
+	while (frameLeft)
+	{
 		u_char c;
-		while (bal < 0) {
+
+		while (bal < 0)
+		{
 			if (userCount == 0)
+			{
 				goto lout;
-			if (!(bal<(-hSpeed))) {
+			}
+
+			if (!(bal < (-hSpeed)))
+			{
 				if (get_user(c, userPtr))
+				{
 					return -EFAULT;
+				}
+
 				data = c + 0x80;
 			}
+
 			userPtr++;
 			userCount--;
 			bal += hSpeed;
 		}
+
 		*p++ = data;
 		frameLeft--;
 		bal -= sSpeed;
 	}
- lout:
+
+lout:
 	expand_bal = bal;
 	expand_data = data;
 	*frameUsed += (ftotal - frameLeft);
@@ -305,8 +385,8 @@ static ssize_t q40_ctc_s8(const u_char __user *userPtr, size_t userCount,
 
 
 static ssize_t q40_ctc_u8(const u_char __user *userPtr, size_t userCount,
-			   u_char frame[], ssize_t *frameUsed,
-			   ssize_t frameLeft)
+						  u_char frame[], ssize_t *frameUsed,
+						  ssize_t frameLeft)
 {
 	u_char *p = (u_char *) &frame[*frameUsed];
 	unsigned int data = expand_data;
@@ -316,25 +396,39 @@ static ssize_t q40_ctc_u8(const u_char __user *userPtr, size_t userCount,
 
 	ftotal = frameLeft;
 	utotal = userCount;
-	while (frameLeft) {
+
+	while (frameLeft)
+	{
 		u_char c;
-		while (bal < 0) {
+
+		while (bal < 0)
+		{
 			if (userCount == 0)
+			{
 				goto lout;
-			if (!(bal<(-hSpeed))) {
+			}
+
+			if (!(bal < (-hSpeed)))
+			{
 				if (get_user(c, userPtr))
+				{
 					return -EFAULT;
+				}
+
 				data = c ;
 			}
+
 			userPtr++;
 			userCount--;
 			bal += hSpeed;
 		}
+
 		*p++ = data;
 		frameLeft--;
 		bal -= sSpeed;
 	}
- lout:
+
+lout:
 	expand_bal = bal;
 	expand_data = data;
 	*frameUsed += (ftotal - frameLeft) ;
@@ -343,15 +437,18 @@ static ssize_t q40_ctc_u8(const u_char __user *userPtr, size_t userCount,
 }
 
 
-static TRANS transQ40Normal = {
+static TRANS transQ40Normal =
+{
 	q40_ct_law, q40_ct_law, q40_ct_s8, q40_ct_u8, NULL, NULL, NULL, NULL
 };
 
-static TRANS transQ40Expanding = {
+static TRANS transQ40Expanding =
+{
 	q40_ctx_law, q40_ctx_law, q40_ctx_s8, q40_ctx_u8, NULL, NULL, NULL, NULL
 };
 
-static TRANS transQ40Compressing = {
+static TRANS transQ40Compressing =
+{
 	q40_ctc_law, q40_ctc_law, q40_ctc_s8, q40_ctc_u8, NULL, NULL, NULL, NULL
 };
 
@@ -360,7 +457,7 @@ static TRANS transQ40Compressing = {
 
 static void *Q40Alloc(unsigned int size, gfp_t flags)
 {
-         return kmalloc(size, flags); /* change to vmalloc */
+	return kmalloc(size, flags); /* change to vmalloc */
 }
 
 static void Q40Free(void *ptr, unsigned int size)
@@ -372,17 +469,19 @@ static int __init Q40IrqInit(void)
 {
 	/* Register interrupt handler. */
 	if (request_irq(Q40_IRQ_SAMPLE, Q40StereoInterrupt, 0,
-		    "DMA sound", Q40Interrupt))
+					"DMA sound", Q40Interrupt))
+	{
 		return 0;
+	}
 
-	return(1);
+	return (1);
 }
 
 
 #ifdef MODULE
 static void Q40IrqCleanUp(void)
 {
-        master_outb(0,SAMPLE_ENABLE_REG);
+	master_outb(0, SAMPLE_ENABLE_REG);
 	free_irq(Q40_IRQ_SAMPLE, Q40Interrupt);
 }
 #endif /* MODULE */
@@ -390,8 +489,8 @@ static void Q40IrqCleanUp(void)
 
 static void Q40Silence(void)
 {
-        master_outb(0,SAMPLE_ENABLE_REG);
-	*DAC_LEFT=*DAC_RIGHT=127;
+	master_outb(0, SAMPLE_ENABLE_REG);
+	*DAC_LEFT = *DAC_RIGHT = 127;
 }
 
 static char *q40_pp;
@@ -410,46 +509,53 @@ static void Q40PlayNextFrame(int index)
 	start = write_sq.buffers[write_sq.front];
 	size = (write_sq.count == index ? write_sq.rear_size : write_sq.block_size);
 
-	q40_pp=start;
-	q40_sc=size;
+	q40_pp = start;
+	q40_sc = size;
 
-	write_sq.front = (write_sq.front+1) % write_sq.max_count;
+	write_sq.front = (write_sq.front + 1) % write_sq.max_count;
 	write_sq.active++;
 
-	speed=(dmasound.hard.speed==10000 ? 0 : 1);
+	speed = (dmasound.hard.speed == 10000 ? 0 : 1);
 
-	master_outb( 0,SAMPLE_ENABLE_REG);
+	master_outb( 0, SAMPLE_ENABLE_REG);
 	free_irq(Q40_IRQ_SAMPLE, Q40Interrupt);
+
 	if (dmasound.soft.stereo)
 		error = request_irq(Q40_IRQ_SAMPLE, Q40StereoInterrupt, 0,
-				    "Q40 sound", Q40Interrupt);
-	  else
+							"Q40 sound", Q40Interrupt);
+	else
 		error = request_irq(Q40_IRQ_SAMPLE, Q40MonoInterrupt, 0,
-				    "Q40 sound", Q40Interrupt);
+							"Q40 sound", Q40Interrupt);
+
 	if (error && printk_ratelimit())
+	{
 		pr_err("Couldn't register sound interrupt\n");
+	}
 
 	master_outb( speed, SAMPLE_RATE_REG);
-	master_outb( 1,SAMPLE_CLEAR_REG);
-	master_outb( 1,SAMPLE_ENABLE_REG);
+	master_outb( 1, SAMPLE_CLEAR_REG);
+	master_outb( 1, SAMPLE_ENABLE_REG);
 }
 
 static void Q40Play(void)
 {
-        unsigned long flags;
+	unsigned long flags;
 
-	if (write_sq.active || write_sq.count<=0 ) {
+	if (write_sq.active || write_sq.count <= 0 )
+	{
 		/* There's already a frame loaded */
 		return;
 	}
 
 	/* nothing in the queue */
-	if (write_sq.count <= 1 && write_sq.rear_size < write_sq.block_size && !write_sq.syncing) {
-	         /* hmmm, the only existing frame is not
-		  * yet filled and we're not syncing?
+	if (write_sq.count <= 1 && write_sq.rear_size < write_sq.block_size && !write_sq.syncing)
+	{
+		/* hmmm, the only existing frame is not
+		* yet filled and we're not syncing?
 		  */
-	         return;
+		return;
 	}
+
 	spin_lock_irqsave(&dmasound.lock, flags);
 	Q40PlayNextFrame(1);
 	spin_unlock_irqrestore(&dmasound.lock, flags);
@@ -458,49 +564,62 @@ static void Q40Play(void)
 static irqreturn_t Q40StereoInterrupt(int irq, void *dummy)
 {
 	spin_lock(&dmasound.lock);
-        if (q40_sc>1){
-            *DAC_LEFT=*q40_pp++;
-	    *DAC_RIGHT=*q40_pp++;
-	    q40_sc -=2;
-	    master_outb(1,SAMPLE_CLEAR_REG);
-	}else Q40Interrupt();
+
+	if (q40_sc > 1)
+	{
+		*DAC_LEFT = *q40_pp++;
+		*DAC_RIGHT = *q40_pp++;
+		q40_sc -= 2;
+		master_outb(1, SAMPLE_CLEAR_REG);
+	}
+	else { Q40Interrupt(); }
+
 	spin_unlock(&dmasound.lock);
 	return IRQ_HANDLED;
 }
 static irqreturn_t Q40MonoInterrupt(int irq, void *dummy)
 {
 	spin_lock(&dmasound.lock);
-        if (q40_sc>0){
-            *DAC_LEFT=*q40_pp;
-	    *DAC_RIGHT=*q40_pp++;
-	    q40_sc --;
-	    master_outb(1,SAMPLE_CLEAR_REG);
-	}else Q40Interrupt();
+
+	if (q40_sc > 0)
+	{
+		*DAC_LEFT = *q40_pp;
+		*DAC_RIGHT = *q40_pp++;
+		q40_sc --;
+		master_outb(1, SAMPLE_CLEAR_REG);
+	}
+	else { Q40Interrupt(); }
+
 	spin_unlock(&dmasound.lock);
 	return IRQ_HANDLED;
 }
 static void Q40Interrupt(void)
 {
-	if (!write_sq.active) {
-	          /* playing was interrupted and sq_reset() has already cleared
-		   * the sq variables, so better don't do anything here.
+	if (!write_sq.active)
+	{
+		/* playing was interrupted and sq_reset() has already cleared
+		* the sq variables, so better don't do anything here.
 		   */
-	           WAKE_UP(write_sq.sync_queue);
-		   master_outb(0,SAMPLE_ENABLE_REG); /* better safe */
-		   goto exit;
-	} else write_sq.active=0;
+		WAKE_UP(write_sq.sync_queue);
+		master_outb(0, SAMPLE_ENABLE_REG); /* better safe */
+		goto exit;
+	}
+	else { write_sq.active = 0; }
+
 	write_sq.count--;
 	Q40Play();
 
-	if (q40_sc<2)
-	      { /* there was nothing to play, disable irq */
-		master_outb(0,SAMPLE_ENABLE_REG);
-		*DAC_LEFT=*DAC_RIGHT=127;
-	      }
+	if (q40_sc < 2)
+	{
+		/* there was nothing to play, disable irq */
+		master_outb(0, SAMPLE_ENABLE_REG);
+		*DAC_LEFT = *DAC_RIGHT = 127;
+	}
+
 	WAKE_UP(write_sq.action_queue);
 
- exit:
-	master_outb(1,SAMPLE_CLEAR_REG);
+exit:
+	master_outb(1, SAMPLE_CLEAR_REG);
 }
 
 
@@ -512,31 +631,44 @@ static void Q40Init(void)
 	/* search a frequency that fits into the allowed error range */
 
 	idx = -1;
+
 	for (i = 0; i < 2; i++)
 		if ((100 * abs(dmasound.soft.speed - freq[i]) / freq[i]) <= catchRadius)
+		{
 			idx = i;
+		}
 
 	dmasound.hard = dmasound.soft;
 	/*sound.hard.stereo=1;*/ /* no longer true */
-	dmasound.hard.size=8;
+	dmasound.hard.size = 8;
 
-	if (idx > -1) {
+	if (idx > -1)
+	{
 		dmasound.soft.speed = freq[idx];
 		dmasound.trans_write = &transQ40Normal;
-	} else
+	}
+	else
+	{
 		dmasound.trans_write = &transQ40Expanding;
+	}
 
 	Q40Silence();
 
-	if (dmasound.hard.speed > 20200) {
+	if (dmasound.hard.speed > 20200)
+	{
 		/* squeeze the sound, we do that */
 		dmasound.hard.speed = 20000;
 		dmasound.trans_write = &transQ40Compressing;
-	} else if (dmasound.hard.speed > 10000) {
+	}
+	else if (dmasound.hard.speed > 10000)
+	{
 		dmasound.hard.speed = 20000;
-	} else {
+	}
+	else
+	{
 		dmasound.hard.speed = 10000;
 	}
+
 	expand_bal = -dmasound.soft.speed;
 }
 
@@ -545,52 +677,61 @@ static int Q40SetFormat(int format)
 {
 	/* Q40 sound supports only 8bit modes */
 
-	switch (format) {
-	case AFMT_QUERY:
-		return(dmasound.soft.format);
-	case AFMT_MU_LAW:
-	case AFMT_A_LAW:
-	case AFMT_S8:
-	case AFMT_U8:
-		break;
-	default:
-		format = AFMT_S8;
+	switch (format)
+	{
+		case AFMT_QUERY:
+			return (dmasound.soft.format);
+
+		case AFMT_MU_LAW:
+		case AFMT_A_LAW:
+		case AFMT_S8:
+		case AFMT_U8:
+			break;
+
+		default:
+			format = AFMT_S8;
 	}
 
 	dmasound.soft.format = format;
 	dmasound.soft.size = 8;
-	if (dmasound.minDev == SND_DEV_DSP) {
+
+	if (dmasound.minDev == SND_DEV_DSP)
+	{
 		dmasound.dsp.format = format;
 		dmasound.dsp.size = 8;
 	}
+
 	Q40Init();
 
-	return(format);
+	return (format);
 }
 
 static int Q40SetVolume(int volume)
 {
-    return 0;
+	return 0;
 }
 
 
 /*** Machine definitions *****************************************************/
 
-static SETTINGS def_hard = {
+static SETTINGS def_hard =
+{
 	.format	= AFMT_U8,
 	.stereo	= 0,
 	.size	= 8,
 	.speed	= 10000
 } ;
 
-static SETTINGS def_soft = {
+static SETTINGS def_soft =
+{
 	.format	= AFMT_U8,
 	.stereo	= 0,
 	.size	= 8,
 	.speed	= 8000
 } ;
 
-static MACHINE machQ40 = {
+static MACHINE machQ40 =
+{
 	.name		= "Q40",
 	.name2		= "Q40",
 	.owner		= THIS_MODULE,
@@ -605,8 +746,8 @@ static MACHINE machQ40 = {
 	.setFormat	= Q40SetFormat,
 	.setVolume	= Q40SetVolume,
 	.play		= Q40Play,
- 	.min_dsp_speed	= 10000,
-	.version	= ((DMASOUND_Q40_REVISION<<8) | DMASOUND_Q40_EDITION),
+	.min_dsp_speed	= 10000,
+	.version	= ((DMASOUND_Q40_REVISION << 8) | DMASOUND_Q40_EDITION),
 	.hardware_afmts	= AFMT_U8, /* h'ware-supported formats *only* here */
 	.capabilities	= DSP_CAP_BATCH  /* As per SNDCTL_DSP_GETCAPS */
 };
@@ -617,13 +758,17 @@ static MACHINE machQ40 = {
 
 static int __init dmasound_q40_init(void)
 {
-	if (MACH_IS_Q40) {
-	    dmasound.mach = machQ40;
-	    dmasound.mach.default_hard = def_hard ;
-	    dmasound.mach.default_soft = def_soft ;
-	    return dmasound_init();
-	} else
-	    return -ENODEV;
+	if (MACH_IS_Q40)
+	{
+		dmasound.mach = machQ40;
+		dmasound.mach.default_hard = def_hard ;
+		dmasound.mach.default_soft = def_soft ;
+		return dmasound_init();
+	}
+	else
+	{
+		return -ENODEV;
+	}
 }
 
 static void __exit dmasound_q40_cleanup(void)

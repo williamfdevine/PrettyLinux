@@ -17,7 +17,8 @@
  * used by rstatd/perfmeter
  */
 
-enum cpu_usage_stat {
+enum cpu_usage_stat
+{
 	CPUTIME_USER,
 	CPUTIME_NICE,
 	CPUTIME_SYSTEM,
@@ -31,11 +32,13 @@ enum cpu_usage_stat {
 	NR_STATS,
 };
 
-struct kernel_cpustat {
+struct kernel_cpustat
+{
 	u64 cpustat[NR_STATS];
 };
 
-struct kernel_stat {
+struct kernel_stat
+{
 	unsigned long irqs_sum;
 	unsigned int softirqs[NR_SOFTIRQS];
 };
@@ -61,7 +64,7 @@ static inline void kstat_incr_softirqs_this_cpu(unsigned int irq)
 
 static inline unsigned int kstat_softirqs_cpu(unsigned int irq, int cpu)
 {
-       return kstat_cpu(cpu).softirqs[irq];
+	return kstat_cpu(cpu).softirqs[irq];
 }
 
 /*

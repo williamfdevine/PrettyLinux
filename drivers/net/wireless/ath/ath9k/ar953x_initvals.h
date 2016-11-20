@@ -34,7 +34,8 @@
 
 #define qca953x_1p0_common_rx_gain_bounds ar955x_1p0_common_rx_gain_bounds
 
-static const u32 qca953x_1p0_mac_core[][2] = {
+static const u32 qca953x_1p0_mac_core[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00000008, 0x00000000},
 	{0x00000030, 0x00020085},
@@ -192,7 +193,8 @@ static const u32 qca953x_1p0_mac_core[][2] = {
 	{0x000083d0, 0x8c7901ff},
 };
 
-static const u32 qca953x_1p0_baseband_core[][2] = {
+static const u32 qca953x_1p0_baseband_core[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00009800, 0xafe68e30},
 	{0x00009804, 0xfd14e000},
@@ -340,7 +342,8 @@ static const u32 qca953x_1p0_baseband_core[][2] = {
 	{0x0000b420, 0x00000000},
 };
 
-static const u32 qca953x_1p0_baseband_postamble[][5] = {
+static const u32 qca953x_1p0_baseband_postamble[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x00009810, 0xd00a8005, 0xd00a8005, 0xd00a8011, 0xd00a8011},
 	{0x00009820, 0x206a022e, 0x206a022e, 0x206a012e, 0x206a012e},
@@ -391,7 +394,8 @@ static const u32 qca953x_1p0_baseband_postamble[][5] = {
 	{0x0000b284, 0x00000000, 0x00000000, 0x00000010, 0x00000010},
 };
 
-static const u32 qca953x_1p0_radio_core[][2] = {
+static const u32 qca953x_1p0_radio_core[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00016000, 0x36db6db6},
 	{0x00016004, 0x6db6db40},
@@ -482,7 +486,8 @@ static const u32 qca953x_1p0_radio_core[][2] = {
 	{0x000167d4, 0x00000000},
 };
 
-static const u32 qca953x_1p0_radio_postamble[][5] = {
+static const u32 qca953x_1p0_radio_postamble[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x00016098, 0xd2dd5554, 0xd2dd5554, 0xc4128f5c, 0xc4128f5c},
 	{0x0001609c, 0x0a566f3a, 0x0a566f3a, 0x0fd08f25, 0x0fd08f25},
@@ -496,7 +501,8 @@ static const u32 qca953x_1p0_radio_postamble[][5] = {
 	{0x00016540, 0x10804008, 0x10804008, 0x50804000, 0x50804000},
 };
 
-static const u32 qca953x_1p0_modes_xpa_tx_gain_table[][2] = {
+static const u32 qca953x_1p0_modes_xpa_tx_gain_table[][2] =
+{
 	/* Addr      allmodes  */
 	{0x0000a2dc, 0xfffd5aaa},
 	{0x0000a2e0, 0xfffe9ccc},
@@ -562,7 +568,8 @@ static const u32 qca953x_1p0_modes_xpa_tx_gain_table[][2] = {
 	{0x00016448, 0x66482400},
 };
 
-static const u32 qca953x_1p0_modes_no_xpa_tx_gain_table[][2] = {
+static const u32 qca953x_1p0_modes_no_xpa_tx_gain_table[][2] =
+{
 	/* Addr      allmodes  */
 	{0x0000a2dc, 0xffd5f552},
 	{0x0000a2e0, 0xffe60664},
@@ -627,7 +634,8 @@ static const u32 qca953x_1p0_modes_no_xpa_tx_gain_table[][2] = {
 	{0x00016448, 0x6c927a70},
 };
 
-static const u32 qca953x_1p1_modes_no_xpa_tx_gain_table[][2] = {
+static const u32 qca953x_1p1_modes_no_xpa_tx_gain_table[][2] =
+{
 	/* Addr      allmodes  */
 	{0x0000a2dc, 0xffd5f552},
 	{0x0000a2e0, 0xffe60664},
@@ -692,7 +700,8 @@ static const u32 qca953x_1p1_modes_no_xpa_tx_gain_table[][2] = {
 	{0x00016448, 0x6c927a70},
 };
 
-static const u32 qca953x_1p1_modes_xpa_tx_gain_table[][2] = {
+static const u32 qca953x_1p1_modes_xpa_tx_gain_table[][2] =
+{
 	/* Addr      allmodes  */
 	{0x0000a2dc, 0xfffb52aa},
 	{0x0000a2e0, 0xfffd64cc},
@@ -757,7 +766,8 @@ static const u32 qca953x_1p1_modes_xpa_tx_gain_table[][2] = {
 	{0x00016448, 0x6c927a70},
 };
 
-static const u32 qca953x_1p1_modes_no_xpa_low_power_tx_gain_table[][2] = {
+static const u32 qca953x_1p1_modes_no_xpa_low_power_tx_gain_table[][2] =
+{
 	/* Addr      allmodes  */
 	{0x0000a2dc, 0xfff55592},
 	{0x0000a2e0, 0xfff99924},
@@ -822,7 +832,8 @@ static const u32 qca953x_1p1_modes_no_xpa_low_power_tx_gain_table[][2] = {
 	{0x00016448, 0x6c927a70},
 };
 
-static const u32 qca953x_2p0_baseband_core[][2] = {
+static const u32 qca953x_2p0_baseband_core[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00009800, 0xafe68e30},
 	{0x00009804, 0xfd14e000},
@@ -970,7 +981,8 @@ static const u32 qca953x_2p0_baseband_core[][2] = {
 	{0x0000b420, 0x00000000},
 };
 
-static const u32 qca953x_2p0_baseband_postamble[][5] = {
+static const u32 qca953x_2p0_baseband_postamble[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x00009810, 0xd00a8005, 0xd00a8005, 0xd00a8011, 0xd00a8011},
 	{0x00009820, 0x206a022e, 0x206a022e, 0x206a012e, 0x206a012e},
@@ -1021,7 +1033,8 @@ static const u32 qca953x_2p0_baseband_postamble[][5] = {
 	{0x0000b284, 0x00000000, 0x00000000, 0x00000010, 0x00000010},
 };
 
-static const u32 qca953x_2p0_common_wo_xlna_rx_gain_table[][2] = {
+static const u32 qca953x_2p0_common_wo_xlna_rx_gain_table[][2] =
+{
 	/* Addr      allmodes  */
 	{0x0000a000, 0x00010000},
 	{0x0000a004, 0x00030002},
@@ -1281,13 +1294,15 @@ static const u32 qca953x_2p0_common_wo_xlna_rx_gain_table[][2] = {
 	{0x0000b1fc, 0x00000196},
 };
 
-static const u32 qca953x_2p0_common_wo_xlna_rx_gain_bounds[][5] = {
+static const u32 qca953x_2p0_common_wo_xlna_rx_gain_bounds[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x00009e44, 0xfe321e27, 0xfe321e27, 0xfe291e27, 0xfe291e27},
 	{0x00009e48, 0x5030201a, 0x5030201a, 0x50302012, 0x50302012},
 };
 
-static const u32 qca953x_2p0_modes_xpa_tx_gain_table[][2] = {
+static const u32 qca953x_2p0_modes_xpa_tx_gain_table[][2] =
+{
 	/* Addr      allmodes  */
 	{0x0000a2dc, 0xfffb52aa},
 	{0x0000a2e0, 0xfffd64cc},
@@ -1352,7 +1367,8 @@ static const u32 qca953x_2p0_modes_xpa_tx_gain_table[][2] = {
 	{0x00016448, 0x6c927a70},
 };
 
-static const u32 qca953x_2p0_modes_no_xpa_tx_gain_table[][2] = {
+static const u32 qca953x_2p0_modes_no_xpa_tx_gain_table[][2] =
+{
 	/* Addr      allmodes  */
 	{0x0000a2dc, 0xffd5f552},
 	{0x0000a2e0, 0xffe60664},

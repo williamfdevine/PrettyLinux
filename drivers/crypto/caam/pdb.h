@@ -71,7 +71,8 @@
  * ipsec_encap_cbc - PDB part for IPsec CBC encapsulation
  * @iv: 16-byte array initialization vector
  */
-struct ipsec_encap_cbc {
+struct ipsec_encap_cbc
+{
 	u8 iv[16];
 };
 
@@ -81,7 +82,8 @@ struct ipsec_encap_cbc {
  * @ctr_initial: initial count constant
  * @iv: initialization vector
  */
-struct ipsec_encap_ctr {
+struct ipsec_encap_ctr
+{
 	u8 ctr_nonce[4];
 	u32 ctr_initial;
 	u64 iv;
@@ -97,7 +99,8 @@ struct ipsec_encap_ctr {
  *  ctr_initial (16b) - initial count constant
  * @iv: initialization vector
  */
-struct ipsec_encap_ccm {
+struct ipsec_encap_ccm
+{
 	u8 salt[4];
 	u32 ccm_opt;
 	u64 iv;
@@ -109,7 +112,8 @@ struct ipsec_encap_ccm {
  * @rsvd: reserved, do not use
  * @iv: initialization vector
  */
-struct ipsec_encap_gcm {
+struct ipsec_encap_gcm
+{
 	u8 salt[4];
 	u32 rsvd1;
 	u64 iv;
@@ -131,11 +135,13 @@ struct ipsec_encap_gcm {
  *  Opt. IP Hdr Len - 16b
  * @ip_hdr: optional IP Header content
  */
-struct ipsec_encap_pdb {
+struct ipsec_encap_pdb
+{
 	u32 options;
 	u32 seq_num_ext_hi;
 	u32 seq_num;
-	union {
+	union
+	{
 		struct ipsec_encap_cbc cbc;
 		struct ipsec_encap_ctr ctr;
 		struct ipsec_encap_ccm ccm;
@@ -150,7 +156,8 @@ struct ipsec_encap_pdb {
  * ipsec_decap_cbc - PDB part for IPsec CBC decapsulation
  * @rsvd: reserved, do not use
  */
-struct ipsec_decap_cbc {
+struct ipsec_decap_cbc
+{
 	u32 rsvd[2];
 };
 
@@ -159,7 +166,8 @@ struct ipsec_decap_cbc {
  * @ctr_nonce: 4-byte array nonce
  * @ctr_initial: initial count constant
  */
-struct ipsec_decap_ctr {
+struct ipsec_decap_ctr
+{
 	u8 ctr_nonce[4];
 	u32 ctr_initial;
 };
@@ -173,7 +181,8 @@ struct ipsec_decap_ctr {
  *  ctr_flags (8b) - counter flags; constant equal to 0x3
  *  ctr_initial (16b) - initial count constant
  */
-struct ipsec_decap_ccm {
+struct ipsec_decap_ccm
+{
 	u8 salt[4];
 	u32 ccm_opt;
 };
@@ -183,7 +192,8 @@ struct ipsec_decap_ccm {
  * @salt: 4-byte salt
  * @rsvd: reserved, do not use
  */
-struct ipsec_decap_gcm {
+struct ipsec_decap_gcm
+{
 	u8 salt[4];
 	u32 resvd;
 };
@@ -199,9 +209,11 @@ struct ipsec_decap_gcm {
  * @seq_num: IPsec sequence number
  * @anti_replay: Anti-replay window; size depends on ARS (option flags)
  */
-struct ipsec_decap_pdb {
+struct ipsec_decap_pdb
+{
 	u32 options;
-	union {
+	union
+	{
 		struct ipsec_decap_cbc cbc;
 		struct ipsec_decap_ctr ctr;
 		struct ipsec_decap_ccm ccm;
@@ -215,7 +227,8 @@ struct ipsec_decap_pdb {
 /*
  * IPSec ESP Datapath Protocol Override Register (DPOVRD)
  */
-struct ipsec_deco_dpovrd {
+struct ipsec_deco_dpovrd
+{
 #define IPSEC_ENCAP_DECO_DPOVRD_USE 0x80
 	u8 ovrd_ecn;
 	u8 ip_hdr_len;
@@ -229,7 +242,8 @@ struct ipsec_deco_dpovrd {
 #define WIFI_PDBOPTS_FCS	0x01
 #define WIFI_PDBOPTS_AR		0x40
 
-struct wifi_encap_pdb {
+struct wifi_encap_pdb
+{
 	u16 mac_hdr_len;
 	u8 rsvd;
 	u8 options;
@@ -247,7 +261,8 @@ struct wifi_encap_pdb {
 	u16 ctr_init;
 };
 
-struct wifi_decap_pdb {
+struct wifi_decap_pdb
+{
 	u16 mac_hdr_len;
 	u8 rsvd;
 	u8 options;
@@ -269,7 +284,8 @@ struct wifi_decap_pdb {
 #define WIMAX_PDBOPTS_FCS	0x01
 #define WIMAX_PDBOPTS_AR	0x40 /* decap only */
 
-struct wimax_encap_pdb {
+struct wimax_encap_pdb
+{
 	u8 rsvd[3];
 	u8 options;
 	u32 nonce;
@@ -281,7 +297,8 @@ struct wimax_encap_pdb {
 	/* end DECO writeback region */
 };
 
-struct wimax_decap_pdb {
+struct wimax_decap_pdb
+{
 	u8 rsvd[3];
 	u8 options;
 	u32 nonce;
@@ -302,7 +319,8 @@ struct wimax_decap_pdb {
 #define MACSEC_PDBOPTS_FCS	0x01
 #define MACSEC_PDBOPTS_AR	0x40 /* used in decap only */
 
-struct macsec_encap_pdb {
+struct macsec_encap_pdb
+{
 	u16 aad_len;
 	u8 rsvd;
 	u8 options;
@@ -315,7 +333,8 @@ struct macsec_encap_pdb {
 	/* end DECO writeback region */
 };
 
-struct macsec_decap_pdb {
+struct macsec_decap_pdb
+{
 	u16 aad_len;
 	u8 rsvd;
 	u8 options;
@@ -338,7 +357,8 @@ struct macsec_decap_pdb {
 #define TLS_PDBOPTS_IV_WRTBK	0x02 /* 1.1/1.2/DTLS only */
 #define TLS_PDBOPTS_EXP_RND_IV	0x01 /* 1.1/1.2/DTLS only */
 
-struct tls_block_encap_pdb {
+struct tls_block_encap_pdb
+{
 	u8 type;
 	u8 version[2];
 	u8 options;
@@ -346,7 +366,8 @@ struct tls_block_encap_pdb {
 	u32 iv[4];
 };
 
-struct tls_stream_encap_pdb {
+struct tls_stream_encap_pdb
+{
 	u8 type;
 	u8 version[2];
 	u8 options;
@@ -356,7 +377,8 @@ struct tls_stream_encap_pdb {
 	u8 rsvd1[2];
 };
 
-struct dtls_block_encap_pdb {
+struct dtls_block_encap_pdb
+{
 	u8 type;
 	u8 version[2];
 	u8 options;
@@ -365,14 +387,16 @@ struct dtls_block_encap_pdb {
 	u32 iv[4];
 };
 
-struct tls_block_decap_pdb {
+struct tls_block_decap_pdb
+{
 	u8 rsvd[3];
 	u8 options;
 	u64 seq_num;
 	u32 iv[4];
 };
 
-struct tls_stream_decap_pdb {
+struct tls_stream_decap_pdb
+{
 	u8 rsvd[3];
 	u8 options;
 	u64 seq_num;
@@ -381,7 +405,8 @@ struct tls_stream_decap_pdb {
 	u8 rsvd1[2];
 };
 
-struct dtls_block_decap_pdb {
+struct dtls_block_decap_pdb
+{
 	u8 rsvd[3];
 	u8 options;
 	u16 epoch;
@@ -396,7 +421,8 @@ struct dtls_block_decap_pdb {
 #define SRTP_PDBOPTS_MKI	0x08
 #define SRTP_PDBOPTS_AR		0x40
 
-struct srtp_encap_pdb {
+struct srtp_encap_pdb
+{
 	u8 x_len;
 	u8 mki_len;
 	u8 n_tag;
@@ -411,7 +437,8 @@ struct srtp_encap_pdb {
 	u32 opt_mki;
 };
 
-struct srtp_decap_pdb {
+struct srtp_decap_pdb
+{
 	u8 x_len;
 	u8 mki_len;
 	u8 n_tag;
@@ -451,7 +478,8 @@ struct srtp_decap_pdb {
 
 #define DSA_PDB_N_MASK		0x7f
 
-struct dsa_sign_pdb {
+struct dsa_sign_pdb
+{
 	u32 sgf_ln; /* Use DSA_PDB_ defintions per above */
 	u8 *q;
 	u8 *r;
@@ -464,7 +492,8 @@ struct dsa_sign_pdb {
 	u8 *u;
 };
 
-struct dsa_verify_pdb {
+struct dsa_verify_pdb
+{
 	u32 sgf_ln;
 	u8 *q;
 	u8 *r;
@@ -500,7 +529,8 @@ struct dsa_verify_pdb {
  * @e_dma: dma address of RSA public exponent
  * @f_len: length in octets of the input data
  */
-struct rsa_pub_pdb {
+struct rsa_pub_pdb
+{
 	u32		sgf;
 	dma_addr_t	f_dma;
 	dma_addr_t	g_dma;
@@ -517,7 +547,8 @@ struct rsa_pub_pdb {
  * @n_dma: dma address of RSA modulus
  * @d_dma: dma address of RSA private exponent
  */
-struct rsa_priv_f1_pdb {
+struct rsa_priv_f1_pdb
+{
 	u32		sgf;
 	dma_addr_t	g_dma;
 	dma_addr_t	f_dma;

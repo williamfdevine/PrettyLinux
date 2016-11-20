@@ -35,9 +35,9 @@
 char fjes_driver_name[] = DRV_NAME;
 char fjes_driver_version[] = DRV_VERSION;
 static const char fjes_driver_string[] =
-		"FUJITSU Extended Socket Network Device Driver";
+	"FUJITSU Extended Socket Network Device Driver";
 static const char fjes_copyright[] =
-		"Copyright (c) 2015 FUJITSU LIMITED";
+	"Copyright (c) 2015 FUJITSU LIMITED";
 
 MODULE_AUTHOR("Taku Izumi <izumi.taku@jp.fujitsu.com>");
 MODULE_DESCRIPTION("FUJITSU Extended Socket Network Device Driver");
@@ -55,7 +55,7 @@ static netdev_tx_t fjes_xmit_frame(struct sk_buff *, struct net_device *);
 static void fjes_raise_intr_rxdata_task(struct work_struct *);
 static void fjes_tx_stall_task(struct work_struct *);
 static void fjes_force_close_task(struct work_struct *);
-static irqreturn_t fjes_intr(int, void*);
+static irqreturn_t fjes_intr(int, void *);
 static struct rtnl_link_stats64 *
 fjes_get_stats64(struct net_device *, struct rtnl_link_stats64 *);
 static int fjes_change_mtu(struct net_device *, int);
@@ -65,7 +65,7 @@ static void fjes_tx_retry(struct net_device *);
 
 static int fjes_acpi_add(struct acpi_device *);
 static int fjes_acpi_remove(struct acpi_device *);
-static acpi_status fjes_get_acpi_resource(struct acpi_resource *, void*);
+static acpi_status fjes_get_acpi_resource(struct acpi_resource *, void *);
 
 static int fjes_probe(struct platform_device *);
 static int fjes_remove(struct platform_device *);
@@ -77,13 +77,15 @@ static void fjes_watch_unshare_task(struct work_struct *);
 static void fjes_rx_irq(struct fjes_adapter *, int);
 static int fjes_poll(struct napi_struct *, int);
 
-static const struct acpi_device_id fjes_acpi_ids[] = {
+static const struct acpi_device_id fjes_acpi_ids[] =
+{
 	{"PNP0C02", 0},
 	{"", 0},
 };
 MODULE_DEVICE_TABLE(acpi, fjes_acpi_ids);
 
-static struct acpi_driver fjes_acpi_driver = {
+static struct acpi_driver fjes_acpi_driver =
+{
 	.name = DRV_NAME,
 	.class = DRV_NAME,
 	.owner = THIS_MODULE,
@@ -94,7 +96,8 @@ static struct acpi_driver fjes_acpi_driver = {
 	},
 };
 
-static struct platform_driver fjes_driver = {
+static struct platform_driver fjes_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 	},
@@ -102,7 +105,8 @@ static struct platform_driver fjes_driver = {
 	.remove = fjes_remove,
 };
 
-static struct resource fjes_resource[] = {
+static struct resource fjes_resource[] =
+{
 	{
 		.flags = IORESOURCE_MEM,
 		.start = 0,
@@ -125,29 +129,37 @@ static int fjes_acpi_add(struct acpi_device *device)
 	int result;
 
 	status = acpi_evaluate_object(device->handle, "_STR", NULL, &buffer);
+
 	if (ACPI_FAILURE(status))
+	{
 		return -ENODEV;
+	}
 
 	str = buffer.pointer;
 	result = utf16s_to_utf8s((wchar_t *)str->string.pointer,
-				 str->string.length, UTF16_LITTLE_ENDIAN,
-				 str_buf, sizeof(str_buf) - 1);
+							 str->string.length, UTF16_LITTLE_ENDIAN,
+							 str_buf, sizeof(str_buf) - 1);
 	str_buf[result] = 0;
 
-	if (strncmp(FJES_ACPI_SYMBOL, str_buf, strlen(FJES_ACPI_SYMBOL)) != 0) {
+	if (strncmp(FJES_ACPI_SYMBOL, str_buf, strlen(FJES_ACPI_SYMBOL)) != 0)
+	{
 		kfree(buffer.pointer);
 		return -ENODEV;
 	}
+
 	kfree(buffer.pointer);
 
 	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
-				     fjes_get_acpi_resource, fjes_resource);
+								 fjes_get_acpi_resource, fjes_resource);
+
 	if (ACPI_FAILURE(status))
+	{
 		return -ENODEV;
+	}
 
 	/* create platform_device */
 	plat_dev = platform_device_register_simple(DRV_NAME, 0, fjes_resource,
-						   ARRAY_SIZE(fjes_resource));
+			   ARRAY_SIZE(fjes_resource));
 	device->driver_data = plat_dev;
 
 	return 0;
@@ -170,24 +182,29 @@ fjes_get_acpi_resource(struct acpi_resource *acpi_res, void *data)
 	struct acpi_resource_irq *irq;
 	struct resource *res = data;
 
-	switch (acpi_res->type) {
-	case ACPI_RESOURCE_TYPE_ADDRESS32:
-		addr = &acpi_res->data.address32;
-		res[0].start = addr->address.minimum;
-		res[0].end = addr->address.minimum +
-			addr->address.address_length - 1;
-		break;
+	switch (acpi_res->type)
+	{
+		case ACPI_RESOURCE_TYPE_ADDRESS32:
+			addr = &acpi_res->data.address32;
+			res[0].start = addr->address.minimum;
+			res[0].end = addr->address.minimum +
+						 addr->address.address_length - 1;
+			break;
 
-	case ACPI_RESOURCE_TYPE_IRQ:
-		irq = &acpi_res->data.irq;
-		if (irq->interrupt_count != 1)
-			return AE_ERROR;
-		res[1].start = irq->interrupts[0];
-		res[1].end = irq->interrupts[0];
-		break;
+		case ACPI_RESOURCE_TYPE_IRQ:
+			irq = &acpi_res->data.irq;
 
-	default:
-		break;
+			if (irq->interrupt_count != 1)
+			{
+				return AE_ERROR;
+			}
+
+			res[1].start = irq->interrupts[0];
+			res[1].end = irq->interrupts[0];
+			break;
+
+		default:
+			break;
 	}
 
 	return AE_OK;
@@ -199,19 +216,27 @@ static int fjes_request_irq(struct fjes_adapter *adapter)
 	int result = -1;
 
 	adapter->interrupt_watch_enable = true;
-	if (!delayed_work_pending(&adapter->interrupt_watch_task)) {
+
+	if (!delayed_work_pending(&adapter->interrupt_watch_task))
+	{
 		queue_delayed_work(adapter->control_wq,
-				   &adapter->interrupt_watch_task,
-				   FJES_IRQ_WATCH_DELAY);
+						   &adapter->interrupt_watch_task,
+						   FJES_IRQ_WATCH_DELAY);
 	}
 
-	if (!adapter->irq_registered) {
+	if (!adapter->irq_registered)
+	{
 		result = request_irq(adapter->hw.hw_res.irq, fjes_intr,
-				     IRQF_SHARED, netdev->name, adapter);
+							 IRQF_SHARED, netdev->name, adapter);
+
 		if (result)
+		{
 			adapter->irq_registered = false;
+		}
 		else
+		{
 			adapter->irq_registered = true;
+		}
 	}
 
 	return result;
@@ -226,13 +251,15 @@ static void fjes_free_irq(struct fjes_adapter *adapter)
 
 	fjes_hw_set_irqmask(hw, REG_ICTL_MASK_ALL, true);
 
-	if (adapter->irq_registered) {
+	if (adapter->irq_registered)
+	{
 		free_irq(adapter->hw.hw_res.irq, adapter);
 		adapter->irq_registered = false;
 	}
 }
 
-static const struct net_device_ops fjes_netdev_ops = {
+static const struct net_device_ops fjes_netdev_ops =
+{
 	.ndo_open		= fjes_open,
 	.ndo_stop		= fjes_close,
 	.ndo_start_xmit		= fjes_xmit_frame,
@@ -251,11 +278,16 @@ static int fjes_open(struct net_device *netdev)
 	int result;
 
 	if (adapter->open_guard)
+	{
 		return -ENXIO;
+	}
 
 	result = fjes_setup_resources(adapter);
+
 	if (result)
+	{
 		goto err_setup_res;
+	}
 
 	hw->txrx_stop_req_bit = 0;
 	hw->epstop_req_bit = 0;
@@ -265,8 +297,11 @@ static int fjes_open(struct net_device *netdev)
 	fjes_hw_capture_interrupt_status(hw);
 
 	result = fjes_request_irq(adapter);
+
 	if (result)
+	{
 		goto err_req_irq;
+	}
 
 	fjes_hw_set_irqmask(hw, REG_ICTL_MASK_ALL, false);
 
@@ -300,16 +335,21 @@ static int fjes_close(struct net_device *netdev)
 	napi_disable(&adapter->napi);
 
 	spin_lock_irqsave(&hw->rx_status_lock, flags);
-	for (epidx = 0; epidx < hw->max_epid; epidx++) {
+
+	for (epidx = 0; epidx < hw->max_epid; epidx++)
+	{
 		if (epidx == hw->my_epid)
+		{
 			continue;
+		}
 
 		if (fjes_hw_get_partner_ep_status(hw, epidx) ==
-		    EP_PARTNER_SHARED)
+			EP_PARTNER_SHARED)
 			adapter->hw.ep_shm_info[epidx]
-				   .tx.info->v1i.rx_status &=
+			.tx.info->v1i.rx_status &=
 				~FJES_RX_POLL_WORK;
 	}
+
 	spin_unlock_irqrestore(&hw->rx_status_lock, flags);
 
 	fjes_free_irq(adapter);
@@ -341,61 +381,75 @@ static int fjes_setup_resources(struct fjes_adapter *adapter)
 
 	mutex_lock(&hw->hw_info.lock);
 	result = fjes_hw_request_info(hw);
-	switch (result) {
-	case 0:
-		for (epidx = 0; epidx < hw->max_epid; epidx++) {
-			hw->ep_shm_info[epidx].es_status =
-			    hw->hw_info.res_buf->info.info[epidx].es_status;
-			hw->ep_shm_info[epidx].zone =
-			    hw->hw_info.res_buf->info.info[epidx].zone;
-		}
-		break;
-	default:
-	case -ENOMSG:
-	case -EBUSY:
-		adapter->force_reset = true;
 
-		mutex_unlock(&hw->hw_info.lock);
-		return result;
+	switch (result)
+	{
+		case 0:
+			for (epidx = 0; epidx < hw->max_epid; epidx++)
+			{
+				hw->ep_shm_info[epidx].es_status =
+					hw->hw_info.res_buf->info.info[epidx].es_status;
+				hw->ep_shm_info[epidx].zone =
+					hw->hw_info.res_buf->info.info[epidx].zone;
+			}
+
+			break;
+
+		default:
+		case -ENOMSG:
+		case -EBUSY:
+			adapter->force_reset = true;
+
+			mutex_unlock(&hw->hw_info.lock);
+			return result;
 	}
+
 	mutex_unlock(&hw->hw_info.lock);
 
-	for (epidx = 0; epidx < (hw->max_epid); epidx++) {
+	for (epidx = 0; epidx < (hw->max_epid); epidx++)
+	{
 		if ((epidx != hw->my_epid) &&
-		    (hw->ep_shm_info[epidx].es_status ==
-		     FJES_ZONING_STATUS_ENABLE)) {
+			(hw->ep_shm_info[epidx].es_status ==
+			 FJES_ZONING_STATUS_ENABLE))
+		{
 			fjes_hw_raise_interrupt(hw, epidx,
-						REG_ICTL_MASK_INFO_UPDATE);
+									REG_ICTL_MASK_INFO_UPDATE);
 		}
 	}
 
 	msleep(FJES_OPEN_ZONE_UPDATE_WAIT * hw->max_epid);
 
-	for (epidx = 0; epidx < (hw->max_epid); epidx++) {
+	for (epidx = 0; epidx < (hw->max_epid); epidx++)
+	{
 		if (epidx == hw->my_epid)
+		{
 			continue;
+		}
 
 		buf_pair = &hw->ep_shm_info[epidx];
 
 		spin_lock_irqsave(&hw->rx_status_lock, flags);
 		fjes_hw_setup_epbuf(&buf_pair->tx, netdev->dev_addr,
-				    netdev->mtu);
+							netdev->mtu);
 		spin_unlock_irqrestore(&hw->rx_status_lock, flags);
 
-		if (fjes_hw_epid_is_same_zone(hw, epidx)) {
+		if (fjes_hw_epid_is_same_zone(hw, epidx))
+		{
 			mutex_lock(&hw->hw_info.lock);
 			result =
-			fjes_hw_register_buff_addr(hw, epidx, buf_pair);
+				fjes_hw_register_buff_addr(hw, epidx, buf_pair);
 			mutex_unlock(&hw->hw_info.lock);
 
-			switch (result) {
-			case 0:
-				break;
-			case -ENOMSG:
-			case -EBUSY:
-			default:
-				adapter->force_reset = true;
-				return result;
+			switch (result)
+			{
+				case 0:
+					break;
+
+				case -ENOMSG:
+				case -EBUSY:
+				default:
+					adapter->force_reset = true;
+					return result;
 			}
 		}
 	}
@@ -414,34 +468,42 @@ static void fjes_free_resources(struct fjes_adapter *adapter)
 	int result;
 	int epidx;
 
-	for (epidx = 0; epidx < hw->max_epid; epidx++) {
+	for (epidx = 0; epidx < hw->max_epid; epidx++)
+	{
 		if (epidx == hw->my_epid)
+		{
 			continue;
+		}
 
 		mutex_lock(&hw->hw_info.lock);
 		result = fjes_hw_unregister_buff_addr(hw, epidx);
 		mutex_unlock(&hw->hw_info.lock);
 
 		if (result)
+		{
 			reset_flag = true;
+		}
 
 		buf_pair = &hw->ep_shm_info[epidx];
 
 		spin_lock_irqsave(&hw->rx_status_lock, flags);
 		fjes_hw_setup_epbuf(&buf_pair->tx,
-				    netdev->dev_addr, netdev->mtu);
+							netdev->dev_addr, netdev->mtu);
 		spin_unlock_irqrestore(&hw->rx_status_lock, flags);
 
 		clear_bit(epidx, &hw->txrx_stop_req_bit);
 	}
 
-	if (reset_flag || adapter->force_reset) {
+	if (reset_flag || adapter->force_reset)
+	{
 		result = fjes_hw_reset(hw);
 
 		adapter->force_reset = false;
 
 		if (result)
+		{
 			adapter->open_guard = true;
+		}
 
 		hw->hw_info.buffer_share_bit = 0;
 
@@ -460,7 +522,7 @@ static void fjes_free_resources(struct fjes_adapter *adapter)
 static void fjes_tx_stall_task(struct work_struct *work)
 {
 	struct fjes_adapter *adapter = container_of(work,
-			struct fjes_adapter, tx_stall_task);
+								   struct fjes_adapter, tx_stall_task);
 	struct net_device *netdev = adapter->netdev;
 	struct fjes_hw *hw = &adapter->hw;
 	int all_queue_available, sendable;
@@ -470,7 +532,8 @@ static void fjes_tx_stall_task(struct work_struct *work)
 	int i;
 
 	if (((long)jiffies -
-		dev_trans_start(netdev)) > FJES_TX_TX_STALL_TIMEOUT) {
+		 dev_trans_start(netdev)) > FJES_TX_TX_STALL_TIMEOUT)
+	{
 		netif_wake_queue(netdev);
 		return;
 	}
@@ -478,31 +541,42 @@ static void fjes_tx_stall_task(struct work_struct *work)
 	my_epid = hw->my_epid;
 	max_epid = hw->max_epid;
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		all_queue_available = 1;
 
-		for (epid = 0; epid < max_epid; epid++) {
+		for (epid = 0; epid < max_epid; epid++)
+		{
 			if (my_epid == epid)
+			{
 				continue;
+			}
 
 			pstatus = fjes_hw_get_partner_ep_status(hw, epid);
 			sendable = (pstatus == EP_PARTNER_SHARED);
+
 			if (!sendable)
+			{
 				continue;
+			}
 
 			info = adapter->hw.ep_shm_info[epid].tx.info;
 
 			if (!(info->v1i.rx_status & FJES_RX_MTU_CHANGING_DONE))
+			{
 				return;
+			}
 
 			if (EP_RING_FULL(info->v1i.head, info->v1i.tail,
-					 info->v1i.count_max)) {
+							 info->v1i.count_max))
+			{
 				all_queue_available = 0;
 				break;
 			}
 		}
 
-		if (all_queue_available) {
+		if (all_queue_available)
+		{
 			netif_wake_queue(netdev);
 			return;
 		}
@@ -516,7 +590,7 @@ static void fjes_tx_stall_task(struct work_struct *work)
 static void fjes_force_close_task(struct work_struct *work)
 {
 	struct fjes_adapter *adapter = container_of(work,
-			struct fjes_adapter, force_close_task);
+								   struct fjes_adapter, force_close_task);
 	struct net_device *netdev = adapter->netdev;
 
 	rtnl_lock();
@@ -527,7 +601,7 @@ static void fjes_force_close_task(struct work_struct *work)
 static void fjes_raise_intr_rxdata_task(struct work_struct *work)
 {
 	struct fjes_adapter *adapter = container_of(work,
-			struct fjes_adapter, raise_intr_rxdata_task);
+								   struct fjes_adapter, raise_intr_rxdata_task);
 	struct fjes_hw *hw = &adapter->hw;
 	enum ep_partner_status pstatus;
 	int max_epid, my_epid, epid;
@@ -536,37 +610,50 @@ static void fjes_raise_intr_rxdata_task(struct work_struct *work)
 	max_epid = hw->max_epid;
 
 	for (epid = 0; epid < max_epid; epid++)
+	{
 		hw->ep_shm_info[epid].tx_status_work = 0;
+	}
 
-	for (epid = 0; epid < max_epid; epid++) {
+	for (epid = 0; epid < max_epid; epid++)
+	{
 		if (epid == my_epid)
+		{
 			continue;
+		}
 
 		pstatus = fjes_hw_get_partner_ep_status(hw, epid);
-		if (pstatus == EP_PARTNER_SHARED) {
+
+		if (pstatus == EP_PARTNER_SHARED)
+		{
 			hw->ep_shm_info[epid].tx_status_work =
 				hw->ep_shm_info[epid].tx.info->v1i.tx_status;
 
 			if (hw->ep_shm_info[epid].tx_status_work ==
-				FJES_TX_DELAY_SEND_PENDING) {
+				FJES_TX_DELAY_SEND_PENDING)
+			{
 				hw->ep_shm_info[epid].tx.info->v1i.tx_status =
 					FJES_TX_DELAY_SEND_NONE;
 			}
 		}
 	}
 
-	for (epid = 0; epid < max_epid; epid++) {
+	for (epid = 0; epid < max_epid; epid++)
+	{
 		if (epid == my_epid)
+		{
 			continue;
+		}
 
 		pstatus = fjes_hw_get_partner_ep_status(hw, epid);
+
 		if ((hw->ep_shm_info[epid].tx_status_work ==
-		     FJES_TX_DELAY_SEND_PENDING) &&
-		    (pstatus == EP_PARTNER_SHARED) &&
-		    !(hw->ep_shm_info[epid].rx.info->v1i.rx_status &
-		      FJES_RX_POLL_WORK)) {
+			 FJES_TX_DELAY_SEND_PENDING) &&
+			(pstatus == EP_PARTNER_SHARED) &&
+			!(hw->ep_shm_info[epid].rx.info->v1i.rx_status &
+			  FJES_RX_POLL_WORK))
+		{
 			fjes_hw_raise_interrupt(hw, epid,
-						REG_ICTL_MASK_RX_DATA);
+									REG_ICTL_MASK_RX_DATA);
 		}
 	}
 
@@ -574,20 +661,24 @@ static void fjes_raise_intr_rxdata_task(struct work_struct *work)
 }
 
 static int fjes_tx_send(struct fjes_adapter *adapter, int dest,
-			void *data, size_t len)
+						void *data, size_t len)
 {
 	int retval;
 
 	retval = fjes_hw_epbuf_tx_pkt_send(&adapter->hw.ep_shm_info[dest].tx,
-					   data, len);
+									   data, len);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	adapter->hw.ep_shm_info[dest].tx.info->v1i.tx_status =
 		FJES_TX_DELAY_SEND_PENDING;
+
 	if (!work_pending(&adapter->raise_intr_rxdata_task))
 		queue_work(adapter->txrx_wq,
-			   &adapter->raise_intr_rxdata_task);
+				   &adapter->raise_intr_rxdata_task);
 
 	retval = 0;
 	return retval;
@@ -623,20 +714,26 @@ fjes_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
 	data = skb->data;
 	len = skb->len;
 
-	if (is_multicast_ether_addr(eth->h_dest)) {
+	if (is_multicast_ether_addr(eth->h_dest))
+	{
 		dest_epid = 0;
 		max_epid = hw->max_epid;
 		is_multi = true;
-	} else if (is_local_ether_addr(eth->h_dest)) {
+	}
+	else if (is_local_ether_addr(eth->h_dest))
+	{
 		dest_epid = eth->h_dest[ETH_ALEN - 1];
 		max_epid = dest_epid + 1;
 
 		if ((eth->h_dest[0] == 0x02) &&
-		    (0x00 == (eth->h_dest[1] | eth->h_dest[2] |
-			      eth->h_dest[3] | eth->h_dest[4])) &&
-		    (dest_epid < hw->max_epid)) {
+			(0x00 == (eth->h_dest[1] | eth->h_dest[2] |
+					  eth->h_dest[3] | eth->h_dest[4])) &&
+			(dest_epid < hw->max_epid))
+		{
 			;
-		} else {
+		}
+		else
+		{
 			dest_epid = 0;
 			max_epid = 0;
 			ret = NETDEV_TX_OK;
@@ -646,7 +743,9 @@ fjes_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
 			adapter->stats64.tx_bytes += len;
 			hw->ep_shm_info[my_epid].net_stats.tx_bytes += len;
 		}
-	} else {
+	}
+	else
+	{
 		dest_epid = 0;
 		max_epid = 0;
 		ret = NETDEV_TX_OK;
@@ -657,83 +756,109 @@ fjes_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
 		hw->ep_shm_info[my_epid].net_stats.tx_bytes += len;
 	}
 
-	for (; dest_epid < max_epid; dest_epid++) {
+	for (; dest_epid < max_epid; dest_epid++)
+	{
 		if (my_epid == dest_epid)
+		{
 			continue;
+		}
 
 		pstatus = fjes_hw_get_partner_ep_status(hw, dest_epid);
-		if (pstatus != EP_PARTNER_SHARED) {
+
+		if (pstatus != EP_PARTNER_SHARED)
+		{
 			ret = NETDEV_TX_OK;
-		} else if (!fjes_hw_check_epbuf_version(
-				&adapter->hw.ep_shm_info[dest_epid].rx, 0)) {
+		}
+		else if (!fjes_hw_check_epbuf_version(
+					 &adapter->hw.ep_shm_info[dest_epid].rx, 0))
+		{
 			/* version is NOT 0 */
 			adapter->stats64.tx_carrier_errors += 1;
 			hw->ep_shm_info[dest_epid].net_stats
-						.tx_carrier_errors += 1;
+			.tx_carrier_errors += 1;
 
 			ret = NETDEV_TX_OK;
-		} else if (!fjes_hw_check_mtu(
-				&adapter->hw.ep_shm_info[dest_epid].rx,
-				netdev->mtu)) {
+		}
+		else if (!fjes_hw_check_mtu(
+					 &adapter->hw.ep_shm_info[dest_epid].rx,
+					 netdev->mtu))
+		{
 			adapter->stats64.tx_dropped += 1;
 			hw->ep_shm_info[dest_epid].net_stats.tx_dropped += 1;
 			adapter->stats64.tx_errors += 1;
 			hw->ep_shm_info[dest_epid].net_stats.tx_errors += 1;
 
 			ret = NETDEV_TX_OK;
-		} else if (vlan &&
-			   !fjes_hw_check_vlan_id(
-				&adapter->hw.ep_shm_info[dest_epid].rx,
-				vlan_id)) {
+		}
+		else if (vlan &&
+				 !fjes_hw_check_vlan_id(
+					 &adapter->hw.ep_shm_info[dest_epid].rx,
+					 vlan_id))
+		{
 			ret = NETDEV_TX_OK;
-		} else {
-			if (len < VLAN_ETH_HLEN) {
+		}
+		else
+		{
+			if (len < VLAN_ETH_HLEN)
+			{
 				memset(shortpkt, 0, VLAN_ETH_HLEN);
 				memcpy(shortpkt, skb->data, skb->len);
 				len = VLAN_ETH_HLEN;
 				data = shortpkt;
 			}
 
-			if (adapter->tx_retry_count == 0) {
+			if (adapter->tx_retry_count == 0)
+			{
 				adapter->tx_start_jiffies = jiffies;
 				adapter->tx_retry_count = 1;
-			} else {
+			}
+			else
+			{
 				adapter->tx_retry_count++;
 			}
 
-			if (fjes_tx_send(adapter, dest_epid, data, len)) {
-				if (is_multi) {
+			if (fjes_tx_send(adapter, dest_epid, data, len))
+			{
+				if (is_multi)
+				{
 					ret = NETDEV_TX_OK;
-				} else if (
-					   ((long)jiffies -
-					    (long)adapter->tx_start_jiffies) >=
-					    FJES_TX_RETRY_TIMEOUT) {
+				}
+				else if (
+					((long)jiffies -
+					 (long)adapter->tx_start_jiffies) >=
+					FJES_TX_RETRY_TIMEOUT)
+				{
 					adapter->stats64.tx_fifo_errors += 1;
 					hw->ep_shm_info[dest_epid].net_stats
-								.tx_fifo_errors += 1;
+					.tx_fifo_errors += 1;
 					adapter->stats64.tx_errors += 1;
 					hw->ep_shm_info[dest_epid].net_stats
-								.tx_errors += 1;
+					.tx_errors += 1;
 
 					ret = NETDEV_TX_OK;
-				} else {
+				}
+				else
+				{
 					netif_trans_update(netdev);
 					netif_tx_stop_queue(cur_queue);
 
 					if (!work_pending(&adapter->tx_stall_task))
 						queue_work(adapter->txrx_wq,
-							   &adapter->tx_stall_task);
+								   &adapter->tx_stall_task);
 
 					ret = NETDEV_TX_BUSY;
 				}
-			} else {
-				if (!is_multi) {
+			}
+			else
+			{
+				if (!is_multi)
+				{
 					adapter->stats64.tx_packets += 1;
 					hw->ep_shm_info[dest_epid].net_stats
-								.tx_packets += 1;
+					.tx_packets += 1;
 					adapter->stats64.tx_bytes += len;
 					hw->ep_shm_info[dest_epid].net_stats
-								.tx_bytes += len;
+					.tx_bytes += len;
 				}
 
 				adapter->tx_retry_count = 0;
@@ -742,9 +867,12 @@ fjes_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
 		}
 	}
 
-	if (ret == NETDEV_TX_OK) {
+	if (ret == NETDEV_TX_OK)
+	{
 		dev_kfree_skb(skb);
-		if (is_multi) {
+
+		if (is_multi)
+		{
 			adapter->stats64.tx_packets += 1;
 			hw->ep_shm_info[my_epid].net_stats.tx_packets += 1;
 			adapter->stats64.tx_bytes += 1;
@@ -781,11 +909,16 @@ static int fjes_change_mtu(struct net_device *netdev, int new_mtu)
 	int ret = -EINVAL;
 	int idx, epidx;
 
-	for (idx = 0; fjes_support_mtu[idx] != 0; idx++) {
-		if (new_mtu <= fjes_support_mtu[idx]) {
+	for (idx = 0; fjes_support_mtu[idx] != 0; idx++)
+	{
+		if (new_mtu <= fjes_support_mtu[idx])
+		{
 			new_mtu = fjes_support_mtu[idx];
+
 			if (new_mtu == netdev->mtu)
+			{
 				return 0;
+			}
 
 			ret = 0;
 			break;
@@ -793,16 +926,25 @@ static int fjes_change_mtu(struct net_device *netdev, int new_mtu)
 	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
-	if (running) {
+	if (running)
+	{
 		spin_lock_irqsave(&hw->rx_status_lock, flags);
-		for (epidx = 0; epidx < hw->max_epid; epidx++) {
+
+		for (epidx = 0; epidx < hw->max_epid; epidx++)
+		{
 			if (epidx == hw->my_epid)
+			{
 				continue;
+			}
+
 			hw->ep_shm_info[epidx].tx.info->v1i.rx_status &=
 				~FJES_RX_MTU_CHANGING_DONE;
 		}
+
 		spin_unlock_irqrestore(&hw->rx_status_lock, flags);
 
 		netif_tx_stop_all_queues(netdev);
@@ -817,15 +959,19 @@ static int fjes_change_mtu(struct net_device *netdev, int new_mtu)
 
 	netdev->mtu = new_mtu;
 
-	if (running) {
-		for (epidx = 0; epidx < hw->max_epid; epidx++) {
+	if (running)
+	{
+		for (epidx = 0; epidx < hw->max_epid; epidx++)
+		{
 			if (epidx == hw->my_epid)
+			{
 				continue;
+			}
 
 			spin_lock_irqsave(&hw->rx_status_lock, flags);
 			fjes_hw_setup_epbuf(&hw->ep_shm_info[epidx].tx,
-					    netdev->dev_addr,
-					    netdev->mtu);
+								netdev->dev_addr,
+								netdev->mtu);
 
 			hw->ep_shm_info[epidx].tx.info->v1i.rx_status |=
 				FJES_RX_MTU_CHANGING_DONE;
@@ -842,34 +988,40 @@ static int fjes_change_mtu(struct net_device *netdev, int new_mtu)
 }
 
 static int fjes_vlan_rx_add_vid(struct net_device *netdev,
-				__be16 proto, u16 vid)
+								__be16 proto, u16 vid)
 {
 	struct fjes_adapter *adapter = netdev_priv(netdev);
 	bool ret = true;
 	int epid;
 
-	for (epid = 0; epid < adapter->hw.max_epid; epid++) {
+	for (epid = 0; epid < adapter->hw.max_epid; epid++)
+	{
 		if (epid == adapter->hw.my_epid)
+		{
 			continue;
+		}
 
 		if (!fjes_hw_check_vlan_id(
-			&adapter->hw.ep_shm_info[epid].tx, vid))
+				&adapter->hw.ep_shm_info[epid].tx, vid))
 			ret = fjes_hw_set_vlan_id(
-				&adapter->hw.ep_shm_info[epid].tx, vid);
+					  &adapter->hw.ep_shm_info[epid].tx, vid);
 	}
 
 	return ret ? 0 : -ENOSPC;
 }
 
 static int fjes_vlan_rx_kill_vid(struct net_device *netdev,
-				 __be16 proto, u16 vid)
+								 __be16 proto, u16 vid)
 {
 	struct fjes_adapter *adapter = netdev_priv(netdev);
 	int epid;
 
-	for (epid = 0; epid < adapter->hw.max_epid; epid++) {
+	for (epid = 0; epid < adapter->hw.max_epid; epid++)
+	{
 		if (epid == adapter->hw.my_epid)
+		{
 			continue;
+		}
 
 		fjes_hw_del_vlan_id(&adapter->hw.ep_shm_info[epid].tx, vid);
 	}
@@ -878,42 +1030,51 @@ static int fjes_vlan_rx_kill_vid(struct net_device *netdev,
 }
 
 static void fjes_txrx_stop_req_irq(struct fjes_adapter *adapter,
-				   int src_epid)
+								   int src_epid)
 {
 	struct fjes_hw *hw = &adapter->hw;
 	enum ep_partner_status status;
 	unsigned long flags;
 
 	status = fjes_hw_get_partner_ep_status(hw, src_epid);
-	switch (status) {
-	case EP_PARTNER_UNSHARE:
-	case EP_PARTNER_COMPLETE:
-	default:
-		break;
-	case EP_PARTNER_WAITING:
-		if (src_epid < hw->my_epid) {
-			spin_lock_irqsave(&hw->rx_status_lock, flags);
-			hw->ep_shm_info[src_epid].tx.info->v1i.rx_status |=
-				FJES_RX_STOP_REQ_DONE;
-			spin_unlock_irqrestore(&hw->rx_status_lock, flags);
 
-			clear_bit(src_epid, &hw->txrx_stop_req_bit);
-			set_bit(src_epid, &adapter->unshare_watch_bitmask);
+	switch (status)
+	{
+		case EP_PARTNER_UNSHARE:
+		case EP_PARTNER_COMPLETE:
+		default:
+			break;
 
-			if (!work_pending(&adapter->unshare_watch_task))
-				queue_work(adapter->control_wq,
-					   &adapter->unshare_watch_task);
-		}
-		break;
-	case EP_PARTNER_SHARED:
-		if (hw->ep_shm_info[src_epid].rx.info->v1i.rx_status &
-		    FJES_RX_STOP_REQ_REQUEST) {
-			set_bit(src_epid, &hw->epstop_req_bit);
-			if (!work_pending(&hw->epstop_task))
-				queue_work(adapter->control_wq,
-					   &hw->epstop_task);
-		}
-		break;
+		case EP_PARTNER_WAITING:
+			if (src_epid < hw->my_epid)
+			{
+				spin_lock_irqsave(&hw->rx_status_lock, flags);
+				hw->ep_shm_info[src_epid].tx.info->v1i.rx_status |=
+					FJES_RX_STOP_REQ_DONE;
+				spin_unlock_irqrestore(&hw->rx_status_lock, flags);
+
+				clear_bit(src_epid, &hw->txrx_stop_req_bit);
+				set_bit(src_epid, &adapter->unshare_watch_bitmask);
+
+				if (!work_pending(&adapter->unshare_watch_task))
+					queue_work(adapter->control_wq,
+							   &adapter->unshare_watch_task);
+			}
+
+			break;
+
+		case EP_PARTNER_SHARED:
+			if (hw->ep_shm_info[src_epid].rx.info->v1i.rx_status &
+				FJES_RX_STOP_REQ_REQUEST)
+			{
+				set_bit(src_epid, &hw->epstop_req_bit);
+
+				if (!work_pending(&hw->epstop_task))
+					queue_work(adapter->control_wq,
+							   &hw->epstop_task);
+			}
+
+			break;
 	}
 }
 
@@ -926,38 +1087,49 @@ static void fjes_stop_req_irq(struct fjes_adapter *adapter, int src_epid)
 	set_bit(src_epid, &hw->hw_info.buffer_unshare_reserve_bit);
 
 	status = fjes_hw_get_partner_ep_status(hw, src_epid);
-	switch (status) {
-	case EP_PARTNER_WAITING:
-		spin_lock_irqsave(&hw->rx_status_lock, flags);
-		hw->ep_shm_info[src_epid].tx.info->v1i.rx_status |=
-				FJES_RX_STOP_REQ_DONE;
-		spin_unlock_irqrestore(&hw->rx_status_lock, flags);
-		clear_bit(src_epid, &hw->txrx_stop_req_bit);
-		/* fall through */
-	case EP_PARTNER_UNSHARE:
-	case EP_PARTNER_COMPLETE:
-	default:
-		set_bit(src_epid, &adapter->unshare_watch_bitmask);
-		if (!work_pending(&adapter->unshare_watch_task))
-			queue_work(adapter->control_wq,
-				   &adapter->unshare_watch_task);
-		break;
-	case EP_PARTNER_SHARED:
-		set_bit(src_epid, &hw->epstop_req_bit);
 
-		if (!work_pending(&hw->epstop_task))
-			queue_work(adapter->control_wq, &hw->epstop_task);
-		break;
+	switch (status)
+	{
+		case EP_PARTNER_WAITING:
+			spin_lock_irqsave(&hw->rx_status_lock, flags);
+			hw->ep_shm_info[src_epid].tx.info->v1i.rx_status |=
+				FJES_RX_STOP_REQ_DONE;
+			spin_unlock_irqrestore(&hw->rx_status_lock, flags);
+			clear_bit(src_epid, &hw->txrx_stop_req_bit);
+
+		/* fall through */
+		case EP_PARTNER_UNSHARE:
+		case EP_PARTNER_COMPLETE:
+		default:
+			set_bit(src_epid, &adapter->unshare_watch_bitmask);
+
+			if (!work_pending(&adapter->unshare_watch_task))
+				queue_work(adapter->control_wq,
+						   &adapter->unshare_watch_task);
+
+			break;
+
+		case EP_PARTNER_SHARED:
+			set_bit(src_epid, &hw->epstop_req_bit);
+
+			if (!work_pending(&hw->epstop_task))
+			{
+				queue_work(adapter->control_wq, &hw->epstop_task);
+			}
+
+			break;
 	}
 }
 
 static void fjes_update_zone_irq(struct fjes_adapter *adapter,
-				 int src_epid)
+								 int src_epid)
 {
 	struct fjes_hw *hw = &adapter->hw;
 
 	if (!work_pending(&hw->update_zone_task))
+	{
 		queue_work(adapter->control_wq, &hw->update_zone_task);
+	}
 }
 
 static irqreturn_t fjes_intr(int irq, void *data)
@@ -969,25 +1141,36 @@ static irqreturn_t fjes_intr(int irq, void *data)
 
 	icr = fjes_hw_capture_interrupt_status(hw);
 
-	if (icr & REG_IS_MASK_IS_ASSERT) {
+	if (icr & REG_IS_MASK_IS_ASSERT)
+	{
 		if (icr & REG_ICTL_MASK_RX_DATA)
+		{
 			fjes_rx_irq(adapter, icr & REG_IS_MASK_EPID);
+		}
 
 		if (icr & REG_ICTL_MASK_DEV_STOP_REQ)
+		{
 			fjes_stop_req_irq(adapter, icr & REG_IS_MASK_EPID);
+		}
 
 		if (icr & REG_ICTL_MASK_TXRX_STOP_REQ)
+		{
 			fjes_txrx_stop_req_irq(adapter, icr & REG_IS_MASK_EPID);
+		}
 
 		if (icr & REG_ICTL_MASK_TXRX_STOP_DONE)
 			fjes_hw_set_irqmask(hw,
-					    REG_ICTL_MASK_TXRX_STOP_DONE, true);
+								REG_ICTL_MASK_TXRX_STOP_DONE, true);
 
 		if (icr & REG_ICTL_MASK_INFO_UPDATE)
+		{
 			fjes_update_zone_irq(adapter, icr & REG_IS_MASK_EPID);
+		}
 
 		ret = IRQ_HANDLED;
-	} else {
+	}
+	else
+	{
 		ret = IRQ_NONE;
 	}
 
@@ -995,7 +1178,7 @@ static irqreturn_t fjes_intr(int irq, void *data)
 }
 
 static int fjes_rxframe_search_exist(struct fjes_adapter *adapter,
-				     int start_epid)
+									 int start_epid)
 {
 	struct fjes_hw *hw = &adapter->hw;
 	enum ep_partner_status pstatus;
@@ -1005,33 +1188,45 @@ static int fjes_rxframe_search_exist(struct fjes_adapter *adapter,
 	max_epid = hw->max_epid;
 	start_epid = (start_epid + 1 + max_epid) % max_epid;
 
-	for (i = 0; i < max_epid; i++) {
+	for (i = 0; i < max_epid; i++)
+	{
 		cur_epid = (start_epid + i) % max_epid;
+
 		if (cur_epid == hw->my_epid)
+		{
 			continue;
+		}
 
 		pstatus = fjes_hw_get_partner_ep_status(hw, cur_epid);
-		if (pstatus == EP_PARTNER_SHARED) {
+
+		if (pstatus == EP_PARTNER_SHARED)
+		{
 			if (!fjes_hw_epbuf_rx_is_empty(
-				&hw->ep_shm_info[cur_epid].rx))
+					&hw->ep_shm_info[cur_epid].rx))
+			{
 				return cur_epid;
+			}
 		}
 	}
+
 	return -1;
 }
 
 static void *fjes_rxframe_get(struct fjes_adapter *adapter, size_t *psize,
-			      int *cur_epid)
+							  int *cur_epid)
 {
 	void *frame;
 
 	*cur_epid = fjes_rxframe_search_exist(adapter, *cur_epid);
+
 	if (*cur_epid < 0)
+	{
 		return NULL;
+	}
 
 	frame =
-	fjes_hw_epbuf_rx_curpkt_get_addr(
-		&adapter->hw.ep_shm_info[*cur_epid].rx, psize);
+		fjes_hw_epbuf_rx_curpkt_get_addr(
+			&adapter->hw.ep_shm_info[*cur_epid].rx, psize);
 
 	return frame;
 }
@@ -1054,7 +1249,7 @@ static void fjes_rx_irq(struct fjes_adapter *adapter, int src_epid)
 static int fjes_poll(struct napi_struct *napi, int budget)
 {
 	struct fjes_adapter *adapter =
-			container_of(napi, struct fjes_adapter, napi);
+		container_of(napi, struct fjes_adapter, napi);
 	struct net_device *netdev = napi->dev;
 	struct fjes_hw *hw = &adapter->hw;
 	struct sk_buff *skb;
@@ -1065,33 +1260,44 @@ static int fjes_poll(struct napi_struct *napi, int budget)
 	void *frame;
 
 	spin_lock(&hw->rx_status_lock);
-	for (epidx = 0; epidx < hw->max_epid; epidx++) {
+
+	for (epidx = 0; epidx < hw->max_epid; epidx++)
+	{
 		if (epidx == hw->my_epid)
+		{
 			continue;
+		}
 
 		if (fjes_hw_get_partner_ep_status(hw, epidx) ==
-		    EP_PARTNER_SHARED)
+			EP_PARTNER_SHARED)
 			adapter->hw.ep_shm_info[epidx]
-				   .tx.info->v1i.rx_status |= FJES_RX_POLL_WORK;
+			.tx.info->v1i.rx_status |= FJES_RX_POLL_WORK;
 	}
+
 	spin_unlock(&hw->rx_status_lock);
 
-	while (work_done < budget) {
+	while (work_done < budget)
+	{
 		prefetch(&adapter->hw);
 		frame = fjes_rxframe_get(adapter, &frame_len, &cur_epid);
 
-		if (frame) {
+		if (frame)
+		{
 			skb = napi_alloc_skb(napi, frame_len);
-			if (!skb) {
+
+			if (!skb)
+			{
 				adapter->stats64.rx_dropped += 1;
 				hw->ep_shm_info[cur_epid].net_stats
-							 .rx_dropped += 1;
+				.rx_dropped += 1;
 				adapter->stats64.rx_errors += 1;
 				hw->ep_shm_info[cur_epid].net_stats
-							 .rx_errors += 1;
-			} else {
+				.rx_errors += 1;
+			}
+			else
+			{
 				memcpy(skb_put(skb, frame_len),
-				       frame, frame_len);
+					   frame, frame_len);
 				skb->protocol = eth_type_trans(skb, netdev);
 				skb->ip_summed = CHECKSUM_UNNECESSARY;
 
@@ -1101,47 +1307,61 @@ static int fjes_poll(struct napi_struct *napi, int budget)
 
 				adapter->stats64.rx_packets += 1;
 				hw->ep_shm_info[cur_epid].net_stats
-							 .rx_packets += 1;
+				.rx_packets += 1;
 				adapter->stats64.rx_bytes += frame_len;
 				hw->ep_shm_info[cur_epid].net_stats
-							 .rx_bytes += frame_len;
+				.rx_bytes += frame_len;
 
 				if (is_multicast_ether_addr(
-					((struct ethhdr *)frame)->h_dest)) {
+						((struct ethhdr *)frame)->h_dest))
+				{
 					adapter->stats64.multicast += 1;
 					hw->ep_shm_info[cur_epid].net_stats
-								 .multicast += 1;
+					.multicast += 1;
 				}
 			}
 
 			fjes_rxframe_release(adapter, cur_epid);
 			adapter->unset_rx_last = true;
-		} else {
+		}
+		else
+		{
 			break;
 		}
 	}
 
-	if (work_done < budget) {
+	if (work_done < budget)
+	{
 		napi_complete(napi);
 
-		if (adapter->unset_rx_last) {
+		if (adapter->unset_rx_last)
+		{
 			adapter->rx_last_jiffies = jiffies;
 			adapter->unset_rx_last = false;
 		}
 
-		if (((long)jiffies - (long)adapter->rx_last_jiffies) < 3) {
+		if (((long)jiffies - (long)adapter->rx_last_jiffies) < 3)
+		{
 			napi_reschedule(napi);
-		} else {
+		}
+		else
+		{
 			spin_lock(&hw->rx_status_lock);
-			for (epidx = 0; epidx < hw->max_epid; epidx++) {
+
+			for (epidx = 0; epidx < hw->max_epid; epidx++)
+			{
 				if (epidx == hw->my_epid)
+				{
 					continue;
+				}
+
 				if (fjes_hw_get_partner_ep_status(hw, epidx) ==
-				    EP_PARTNER_SHARED)
+					EP_PARTNER_SHARED)
 					adapter->hw.ep_shm_info[epidx].tx
-						   .info->v1i.rx_status &=
+					.info->v1i.rx_status &=
 						~FJES_RX_POLL_WORK;
 			}
+
 			spin_unlock(&hw->rx_status_lock);
 
 			fjes_hw_set_irqmask(hw, REG_ICTL_MASK_RX_DATA, false);
@@ -1162,11 +1382,13 @@ static int fjes_probe(struct platform_device *plat_dev)
 
 	err = -ENOMEM;
 	netdev = alloc_netdev_mq(sizeof(struct fjes_adapter), "es%d",
-				 NET_NAME_UNKNOWN, fjes_netdev_setup,
-				 FJES_MAX_QUEUES);
+							 NET_NAME_UNKNOWN, fjes_netdev_setup,
+							 FJES_MAX_QUEUES);
 
 	if (!netdev)
+	{
 		goto err_out;
+	}
 
 	SET_NETDEV_DEV(netdev, &plat_dev->dev);
 
@@ -1179,8 +1401,11 @@ static int fjes_probe(struct platform_device *plat_dev)
 
 	/* setup the private structure */
 	err = fjes_sw_init(adapter);
+
 	if (err)
+	{
 		goto err_free_netdev;
+	}
 
 	INIT_WORK(&adapter->force_close_task, fjes_force_close_task);
 	adapter->force_reset = false;
@@ -1188,11 +1413,11 @@ static int fjes_probe(struct platform_device *plat_dev)
 
 	adapter->txrx_wq = alloc_workqueue(DRV_NAME "/txrx", WQ_MEM_RECLAIM, 0);
 	adapter->control_wq = alloc_workqueue(DRV_NAME "/control",
-					      WQ_MEM_RECLAIM, 0);
+										  WQ_MEM_RECLAIM, 0);
 
 	INIT_WORK(&adapter->tx_stall_task, fjes_tx_stall_task);
 	INIT_WORK(&adapter->raise_intr_rxdata_task,
-		  fjes_raise_intr_rxdata_task);
+			  fjes_raise_intr_rxdata_task);
 	INIT_WORK(&adapter->unshare_watch_task, fjes_watch_unshare_task);
 	adapter->unshare_watch_bitmask = 0;
 
@@ -1204,8 +1429,11 @@ static int fjes_probe(struct platform_device *plat_dev)
 	hw->hw_res.size = resource_size(res);
 	hw->hw_res.irq = platform_get_irq(plat_dev, 0);
 	err = fjes_hw_init(&adapter->hw);
+
 	if (err)
+	{
 		goto err_free_netdev;
+	}
 
 	/* setup MAC address (02:00:00:00:00:[epid])*/
 	netdev->dev_addr[0] = 2;
@@ -1216,8 +1444,11 @@ static int fjes_probe(struct platform_device *plat_dev)
 	netdev->dev_addr[5] = hw->my_epid; /* EPID */
 
 	err = register_netdev(netdev);
+
 	if (err)
+	{
 		goto err_hw_exit;
+	}
 
 	netif_carrier_off(netdev);
 
@@ -1242,10 +1473,16 @@ static int fjes_remove(struct platform_device *plat_dev)
 	cancel_work_sync(&adapter->unshare_watch_task);
 	cancel_work_sync(&adapter->raise_intr_rxdata_task);
 	cancel_work_sync(&adapter->tx_stall_task);
+
 	if (adapter->control_wq)
+	{
 		destroy_workqueue(adapter->control_wq);
+	}
+
 	if (adapter->txrx_wq)
+	{
 		destroy_workqueue(adapter->txrx_wq);
+	}
 
 	unregister_netdev(netdev);
 
@@ -1283,27 +1520,30 @@ static void fjes_netdev_setup(struct net_device *netdev)
 static void fjes_irq_watch_task(struct work_struct *work)
 {
 	struct fjes_adapter *adapter = container_of(to_delayed_work(work),
-			struct fjes_adapter, interrupt_watch_task);
+								   struct fjes_adapter, interrupt_watch_task);
 
 	local_irq_disable();
 	fjes_intr(adapter->hw.hw_res.irq, adapter);
 	local_irq_enable();
 
 	if (fjes_rxframe_search_exist(adapter, 0) >= 0)
+	{
 		napi_schedule(&adapter->napi);
+	}
 
-	if (adapter->interrupt_watch_enable) {
+	if (adapter->interrupt_watch_enable)
+	{
 		if (!delayed_work_pending(&adapter->interrupt_watch_task))
 			queue_delayed_work(adapter->control_wq,
-					   &adapter->interrupt_watch_task,
-					   FJES_IRQ_WATCH_DELAY);
+							   &adapter->interrupt_watch_task,
+							   FJES_IRQ_WATCH_DELAY);
 	}
 }
 
 static void fjes_watch_unshare_task(struct work_struct *work)
 {
 	struct fjes_adapter *adapter =
-	container_of(work, struct fjes_adapter, unshare_watch_task);
+		container_of(work, struct fjes_adapter, unshare_watch_task);
 
 	struct net_device *netdev = adapter->netdev;
 	struct fjes_hw *hw = &adapter->hw;
@@ -1324,86 +1564,109 @@ static void fjes_watch_unshare_task(struct work_struct *work)
 	adapter->unshare_watch_bitmask = 0;
 
 	while ((unshare_watch_bitmask || hw->txrx_stop_req_bit) &&
-	       (wait_time < 3000)) {
-		for (epidx = 0; epidx < hw->max_epid; epidx++) {
+		   (wait_time < 3000))
+	{
+		for (epidx = 0; epidx < hw->max_epid; epidx++)
+		{
 			if (epidx == hw->my_epid)
+			{
 				continue;
+			}
 
 			is_shared = fjes_hw_epid_is_shared(hw->hw_info.share,
-							   epidx);
+											   epidx);
 
 			stop_req = test_bit(epidx, &hw->txrx_stop_req_bit);
 
 			stop_req_done = hw->ep_shm_info[epidx].rx.info->v1i.rx_status &
-					FJES_RX_STOP_REQ_DONE;
+							FJES_RX_STOP_REQ_DONE;
 
 			unshare_watch = test_bit(epidx, &unshare_watch_bitmask);
 
 			unshare_reserve = test_bit(epidx,
-						   &hw->hw_info.buffer_unshare_reserve_bit);
+									   &hw->hw_info.buffer_unshare_reserve_bit);
 
 			if ((!stop_req ||
-			     (is_shared && (!is_shared || !stop_req_done))) &&
-			    (is_shared || !unshare_watch || !unshare_reserve))
+				 (is_shared && (!is_shared || !stop_req_done))) &&
+				(is_shared || !unshare_watch || !unshare_reserve))
+			{
 				continue;
+			}
 
 			mutex_lock(&hw->hw_info.lock);
 			ret = fjes_hw_unregister_buff_addr(hw, epidx);
-			switch (ret) {
-			case 0:
-				break;
-			case -ENOMSG:
-			case -EBUSY:
-			default:
-				if (!work_pending(
-					&adapter->force_close_task)) {
-					adapter->force_reset = true;
-					schedule_work(
-						&adapter->force_close_task);
-				}
-				break;
+
+			switch (ret)
+			{
+				case 0:
+					break;
+
+				case -ENOMSG:
+				case -EBUSY:
+				default:
+					if (!work_pending(
+							&adapter->force_close_task))
+					{
+						adapter->force_reset = true;
+						schedule_work(
+							&adapter->force_close_task);
+					}
+
+					break;
 			}
+
 			mutex_unlock(&hw->hw_info.lock);
 
 			spin_lock_irqsave(&hw->rx_status_lock, flags);
 			fjes_hw_setup_epbuf(&hw->ep_shm_info[epidx].tx,
-					    netdev->dev_addr, netdev->mtu);
+								netdev->dev_addr, netdev->mtu);
 			spin_unlock_irqrestore(&hw->rx_status_lock, flags);
 
 			clear_bit(epidx, &hw->txrx_stop_req_bit);
 			clear_bit(epidx, &unshare_watch_bitmask);
 			clear_bit(epidx,
-				  &hw->hw_info.buffer_unshare_reserve_bit);
+					  &hw->hw_info.buffer_unshare_reserve_bit);
 		}
 
 		msleep(100);
 		wait_time += 100;
 	}
 
-	if (hw->hw_info.buffer_unshare_reserve_bit) {
-		for (epidx = 0; epidx < hw->max_epid; epidx++) {
+	if (hw->hw_info.buffer_unshare_reserve_bit)
+	{
+		for (epidx = 0; epidx < hw->max_epid; epidx++)
+		{
 			if (epidx == hw->my_epid)
+			{
 				continue;
+			}
 
 			if (test_bit(epidx,
-				     &hw->hw_info.buffer_unshare_reserve_bit)) {
+						 &hw->hw_info.buffer_unshare_reserve_bit))
+			{
 				mutex_lock(&hw->hw_info.lock);
 
 				ret = fjes_hw_unregister_buff_addr(hw, epidx);
-				switch (ret) {
-				case 0:
-					break;
-				case -ENOMSG:
-				case -EBUSY:
-				default:
-					if (!work_pending(
-						&adapter->force_close_task)) {
-						adapter->force_reset = true;
-						schedule_work(
-							&adapter->force_close_task);
-					}
-					break;
+
+				switch (ret)
+				{
+					case 0:
+						break;
+
+					case -ENOMSG:
+					case -EBUSY:
+					default:
+						if (!work_pending(
+								&adapter->force_close_task))
+						{
+							adapter->force_reset = true;
+							schedule_work(
+								&adapter->force_close_task);
+						}
+
+						break;
 				}
+
 				mutex_unlock(&hw->hw_info.lock);
 
 				spin_lock_irqsave(&hw->rx_status_lock, flags);
@@ -1411,19 +1674,20 @@ static void fjes_watch_unshare_task(struct work_struct *work)
 					&hw->ep_shm_info[epidx].tx,
 					netdev->dev_addr, netdev->mtu);
 				spin_unlock_irqrestore(&hw->rx_status_lock,
-						       flags);
+									   flags);
 
 				clear_bit(epidx, &hw->txrx_stop_req_bit);
 				clear_bit(epidx, &unshare_watch_bitmask);
 				clear_bit(epidx, &hw->hw_info.buffer_unshare_reserve_bit);
 			}
 
-			if (test_bit(epidx, &unshare_watch_bitmask)) {
+			if (test_bit(epidx, &unshare_watch_bitmask))
+			{
 				spin_lock_irqsave(&hw->rx_status_lock, flags);
 				hw->ep_shm_info[epidx].tx.info->v1i.rx_status &=
-						~FJES_RX_STOP_REQ_DONE;
+					~FJES_RX_STOP_REQ_DONE;
 				spin_unlock_irqrestore(&hw->rx_status_lock,
-						       flags);
+									   flags);
 			}
 		}
 	}
@@ -1435,15 +1699,21 @@ static int __init fjes_init_module(void)
 	int result;
 
 	pr_info("%s - version %s - %s\n",
-		fjes_driver_string, fjes_driver_version, fjes_copyright);
+			fjes_driver_string, fjes_driver_version, fjes_copyright);
 
 	result = platform_driver_register(&fjes_driver);
+
 	if (result < 0)
+	{
 		return result;
+	}
 
 	result = acpi_bus_register_driver(&fjes_acpi_driver);
+
 	if (result < 0)
+	{
 		goto fail_acpi_driver;
+	}
 
 	return 0;
 

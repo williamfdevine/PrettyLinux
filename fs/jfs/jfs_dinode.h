@@ -32,7 +32,8 @@
  *
  * note: align 64-bit fields on 8-byte boundary.
  */
-struct dinode {
+struct dinode
+{
 	/*
 	 *	I. base area (128 bytes)
 	 *	------------------------
@@ -81,8 +82,10 @@ struct dinode {
 	 *	entire structure from scratch, but we don't want to break
 	 *	commonality with OS/2's JFS at this time.
 	 */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			/*
 			 * This table contains the information needed to
 			 * find a directory entry from a 32-bit index.
@@ -98,22 +101,28 @@ struct dinode {
 #define di_parent	di_dtroot.header.idotdot
 #define di_DASD		di_dtroot.header.DASD
 
-		struct {
-			union {
+		struct
+		{
+			union
+			{
 				u8 _data[96];		/* 96: unused */
-				struct {
+				struct
+				{
 					void *_imap;	/* 4: unused */
 					__le32 _gengen;	/* 4: generator */
 				} _imap;
 			} _u1;				/* 96: */
 #define di_gengen	u._file._u1._imap._gengen
 
-			union {
+			union
+			{
 				xtpage_t _xtroot;
-				struct {
+				struct
+				{
 					u8 unused[16];	/* 16: */
 					dxd_t _dxd;	/* 16: */
-					union {
+					union
+					{
 						__le32 _rdev;	/* 4: */
 						u8 _fastsymlink[128];
 					} _u;

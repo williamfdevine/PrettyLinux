@@ -17,7 +17,8 @@
 
 #define USB_DEBUG_MAX_PACKET_SIZE	8
 #define USB_DEBUG_BRK_SIZE		8
-static char USB_DEBUG_BRK[USB_DEBUG_BRK_SIZE] = {
+static char USB_DEBUG_BRK[USB_DEBUG_BRK_SIZE] =
+{
 	0x00,
 	0xff,
 	0x01,
@@ -28,7 +29,8 @@ static char USB_DEBUG_BRK[USB_DEBUG_BRK_SIZE] = {
 	0xff,
 };
 
-static const struct usb_device_id id_table[] = {
+static const struct usb_device_id id_table[] =
+{
 	{ USB_DEVICE(0x0525, 0x127a) },
 	{ },
 };
@@ -40,8 +42,12 @@ MODULE_DEVICE_TABLE(usb, id_table);
 static void usb_debug_break_ctl(struct tty_struct *tty, int break_state)
 {
 	struct usb_serial_port *port = tty->driver_data;
+
 	if (!break_state)
+	{
 		return;
+	}
+
 	usb_serial_generic_write(tty, port, USB_DEBUG_BRK, USB_DEBUG_BRK_SIZE);
 }
 
@@ -51,7 +57,8 @@ static void usb_debug_process_read_urb(struct urb *urb)
 
 	if (urb->actual_length == USB_DEBUG_BRK_SIZE &&
 		memcmp(urb->transfer_buffer, USB_DEBUG_BRK,
-						USB_DEBUG_BRK_SIZE) == 0) {
+			   USB_DEBUG_BRK_SIZE) == 0)
+	{
 		usb_serial_handle_break(port);
 		return;
 	}
@@ -59,7 +66,8 @@ static void usb_debug_process_read_urb(struct urb *urb)
 	usb_serial_generic_process_read_urb(urb);
 }
 
-static struct usb_serial_driver debug_device = {
+static struct usb_serial_driver debug_device =
+{
 	.driver = {
 		.owner =	THIS_MODULE,
 		.name =		"debug",
@@ -71,7 +79,8 @@ static struct usb_serial_driver debug_device = {
 	.process_read_urb =	usb_debug_process_read_urb,
 };
 
-static struct usb_serial_driver * const serial_drivers[] = {
+static struct usb_serial_driver *const serial_drivers[] =
+{
 	&debug_device, NULL
 };
 

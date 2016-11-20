@@ -27,47 +27,62 @@ static bool rpfilter_addr_unicast(const struct in6_addr *addr)
 }
 
 static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
-				     const struct net_device *dev, u8 flags)
+									 const struct net_device *dev, u8 flags)
 {
 	struct rt6_info *rt;
 	struct ipv6hdr *iph = ipv6_hdr(skb);
 	bool ret = false;
-	struct flowi6 fl6 = {
+	struct flowi6 fl6 =
+	{
 		.flowi6_iif = LOOPBACK_IFINDEX,
-		.flowlabel = (* (__be32 *) iph) & IPV6_FLOWINFO_MASK,
+		.flowlabel = (* (__be32 *) iph) &IPV6_FLOWINFO_MASK,
 		.flowi6_proto = iph->nexthdr,
 		.daddr = iph->saddr,
 	};
 	int lookup_flags;
 
-	if (rpfilter_addr_unicast(&iph->daddr)) {
+	if (rpfilter_addr_unicast(&iph->daddr))
+	{
 		memcpy(&fl6.saddr, &iph->daddr, sizeof(struct in6_addr));
 		lookup_flags = RT6_LOOKUP_F_HAS_SADDR;
-	} else {
+	}
+	else
+	{
 		lookup_flags = 0;
 	}
 
 	fl6.flowi6_mark = flags & XT_RPFILTER_VALID_MARK ? skb->mark : 0;
-	if ((flags & XT_RPFILTER_LOOSE) == 0) {
+
+	if ((flags & XT_RPFILTER_LOOSE) == 0)
+	{
 		fl6.flowi6_oif = dev->ifindex;
 		lookup_flags |= RT6_LOOKUP_F_IFACE;
 	}
 
 	rt = (void *) ip6_route_lookup(net, &fl6, lookup_flags);
+
 	if (rt->dst.error)
+	{
 		goto out;
+	}
 
-	if (rt->rt6i_flags & (RTF_REJECT|RTF_ANYCAST))
+	if (rt->rt6i_flags & (RTF_REJECT | RTF_ANYCAST))
+	{
 		goto out;
+	}
 
-	if (rt->rt6i_flags & RTF_LOCAL) {
+	if (rt->rt6i_flags & RTF_LOCAL)
+	{
 		ret = flags & XT_RPFILTER_ACCEPT_LOCAL;
 		goto out;
 	}
 
 	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
+	{
 		ret = true;
- out:
+	}
+
+out:
 	ip6_rt_put(rt);
 	return ret;
 }
@@ -86,12 +101,17 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	bool invert = info->flags & XT_RPFILTER_INVERT;
 
 	if (rpfilter_is_local(skb))
+	{
 		return true ^ invert;
+	}
 
 	iph = ipv6_hdr(skb);
 	saddrtype = ipv6_addr_type(&iph->saddr);
+
 	if (unlikely(saddrtype == IPV6_ADDR_ANY))
-		return true ^ invert; /* not routable: forward path will drop it */
+	{
+		return true ^ invert;    /* not routable: forward path will drop it */
+	}
 
 	return rpfilter_lookup_reverse6(par->net, skb, par->in, info->flags) ^ invert;
 }
@@ -101,22 +121,25 @@ static int rpfilter_check(const struct xt_mtchk_param *par)
 	const struct xt_rpfilter_info *info = par->matchinfo;
 	unsigned int options = ~XT_RPFILTER_OPTION_MASK;
 
-	if (info->flags & options) {
+	if (info->flags & options)
+	{
 		pr_info("unknown options encountered");
 		return -EINVAL;
 	}
 
 	if (strcmp(par->table, "mangle") != 0 &&
-	    strcmp(par->table, "raw") != 0) {
+		strcmp(par->table, "raw") != 0)
+	{
 		pr_info("match only valid in the \'raw\' "
-			"or \'mangle\' tables, not \'%s\'.\n", par->table);
+				"or \'mangle\' tables, not \'%s\'.\n", par->table);
 		return -EINVAL;
 	}
 
 	return 0;
 }
 
-static struct xt_match rpfilter_mt_reg __read_mostly = {
+static struct xt_match rpfilter_mt_reg __read_mostly =
+{
 	.name		= "rpfilter",
 	.family		= NFPROTO_IPV6,
 	.checkentry	= rpfilter_check,

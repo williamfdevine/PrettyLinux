@@ -21,7 +21,8 @@
 #include "dvb_frontend.h"
 
 /* state struct */
-struct sp2 {
+struct sp2
+{
 	int status;
 	struct i2c_client *client;
 	struct dvb_adapter *dvb_adap;

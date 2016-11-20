@@ -21,18 +21,20 @@
 
 static struct snd_soc_card ln2440sbc;
 
-static struct snd_soc_dai_link ln2440sbc_dai[] = {
+static struct snd_soc_dai_link ln2440sbc_dai[] =
 {
-	.name = "AC97",
-	.stream_name = "AC97 HiFi",
-	.cpu_dai_name = "samsung-ac97",
-	.codec_dai_name = "ac97-hifi",
-	.codec_name = "ac97-codec",
-	.platform_name = "samsung-ac97",
-},
+	{
+		.name = "AC97",
+		.stream_name = "AC97 HiFi",
+		.cpu_dai_name = "samsung-ac97",
+		.codec_dai_name = "ac97-hifi",
+		.codec_name = "ac97-codec",
+		.platform_name = "samsung-ac97",
+	},
 };
 
-static struct snd_soc_card ln2440sbc = {
+static struct snd_soc_card ln2440sbc =
+{
 	.name = "LN2440SBC",
 	.owner = THIS_MODULE,
 	.dai_link = ln2440sbc_dai,
@@ -46,14 +48,19 @@ static int __init ln2440sbc_init(void)
 	int ret;
 
 	ln2440sbc_snd_ac97_device = platform_device_alloc("soc-audio", -1);
+
 	if (!ln2440sbc_snd_ac97_device)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(ln2440sbc_snd_ac97_device, &ln2440sbc);
 	ret = platform_device_add(ln2440sbc_snd_ac97_device);
 
 	if (ret)
+	{
 		platform_device_put(ln2440sbc_snd_ac97_device);
+	}
 
 	return ret;
 }

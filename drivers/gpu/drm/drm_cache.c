@@ -47,22 +47,32 @@ drm_clflush_page(struct page *page)
 	const int size = boot_cpu_data.x86_clflush_size;
 
 	if (unlikely(page == NULL))
+	{
 		return;
+	}
 
 	page_virtual = kmap_atomic(page);
+
 	for (i = 0; i < PAGE_SIZE; i += size)
+	{
 		clflushopt(page_virtual + i);
+	}
+
 	kunmap_atomic(page_virtual);
 }
 
 static void drm_cache_flush_clflush(struct page *pages[],
-				    unsigned long num_pages)
+									unsigned long num_pages)
 {
 	unsigned long i;
 
 	mb();
+
 	for (i = 0; i < num_pages; i++)
+	{
 		drm_clflush_page(*pages++);
+	}
+
 	mb();
 }
 #endif
@@ -72,28 +82,37 @@ drm_clflush_pages(struct page *pages[], unsigned long num_pages)
 {
 
 #if defined(CONFIG_X86)
-	if (static_cpu_has(X86_FEATURE_CLFLUSH)) {
+
+	if (static_cpu_has(X86_FEATURE_CLFLUSH))
+	{
 		drm_cache_flush_clflush(pages, num_pages);
 		return;
 	}
 
 	if (wbinvd_on_all_cpus())
+	{
 		printk(KERN_ERR "Timed out waiting for cache flush.\n");
+	}
 
 #elif defined(__powerpc__)
 	unsigned long i;
-	for (i = 0; i < num_pages; i++) {
+
+	for (i = 0; i < num_pages; i++)
+	{
 		struct page *page = pages[i];
 		void *page_virtual;
 
 		if (unlikely(page == NULL))
+		{
 			continue;
+		}
 
 		page_virtual = kmap_atomic(page);
 		flush_dcache_range((unsigned long)page_virtual,
-				   (unsigned long)page_virtual + PAGE_SIZE);
+						   (unsigned long)page_virtual + PAGE_SIZE);
 		kunmap_atomic(page_virtual);
 	}
+
 #else
 	printk(KERN_ERR "Architecture has no drm_cache.c support\n");
 	WARN_ON_ONCE(1);
@@ -105,19 +124,24 @@ void
 drm_clflush_sg(struct sg_table *st)
 {
 #if defined(CONFIG_X86)
-	if (static_cpu_has(X86_FEATURE_CLFLUSH)) {
+
+	if (static_cpu_has(X86_FEATURE_CLFLUSH))
+	{
 		struct sg_page_iter sg_iter;
 
 		mb();
 		for_each_sg_page(st->sgl, &sg_iter, st->nents, 0)
-			drm_clflush_page(sg_page_iter_page(&sg_iter));
+		drm_clflush_page(sg_page_iter_page(&sg_iter));
 		mb();
 
 		return;
 	}
 
 	if (wbinvd_on_all_cpus())
+	{
 		printk(KERN_ERR "Timed out waiting for cache flush.\n");
+	}
+
 #else
 	printk(KERN_ERR "Architecture has no drm_cache.c support\n");
 	WARN_ON_ONCE(1);
@@ -129,20 +153,29 @@ void
 drm_clflush_virt_range(void *addr, unsigned long length)
 {
 #if defined(CONFIG_X86)
-	if (static_cpu_has(X86_FEATURE_CLFLUSH)) {
+
+	if (static_cpu_has(X86_FEATURE_CLFLUSH))
+	{
 		const int size = boot_cpu_data.x86_clflush_size;
 		void *end = addr + length;
 		addr = (void *)(((unsigned long)addr) & -size);
 		mb();
+
 		for (; addr < end; addr += size)
+		{
 			clflushopt(addr);
+		}
+
 		clflushopt(end - 1); /* force serialisation */
 		mb();
 		return;
 	}
 
 	if (wbinvd_on_all_cpus())
+	{
 		printk(KERN_ERR "Timed out waiting for cache flush.\n");
+	}
+
 #else
 	printk(KERN_ERR "Architecture has no drm_cache.c support\n");
 	WARN_ON_ONCE(1);

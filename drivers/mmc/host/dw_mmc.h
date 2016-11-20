@@ -148,8 +148,8 @@
 #define SDMMC_STATUS_BUSY		BIT(9)
 /* FIFOTH register defines */
 #define SDMMC_SET_FIFOTH(m, r, t)	(((m) & 0x7) << 28 | \
-					 ((r) & 0xFFF) << 16 | \
-					 ((t) & 0xFFF))
+									 ((r) & 0xFFF) << 16 | \
+									 ((t) & 0xFFF))
 /* HCON register defines */
 #define DMA_INTERFACE_IDMA		(0x0)
 #define DMA_INTERFACE_DWDMA		(0x1)
@@ -235,8 +235,8 @@
 extern int dw_mci_probe(struct dw_mci *host);
 extern void dw_mci_remove(struct dw_mci *host);
 #ifdef CONFIG_PM_SLEEP
-extern int dw_mci_suspend(struct dw_mci *host);
-extern int dw_mci_resume(struct dw_mci *host);
+	extern int dw_mci_suspend(struct dw_mci *host);
+	extern int dw_mci_resume(struct dw_mci *host);
 #endif
 
 /**
@@ -255,7 +255,8 @@ extern int dw_mci_resume(struct dw_mci *host);
  * @id: Number of this slot.
  * @sdio_id: Number of this slot in the SDIO interrupt registers.
  */
-struct dw_mci_slot {
+struct dw_mci_slot
+{
 	struct mmc_host		*mmc;
 	struct dw_mci		*host;
 
@@ -288,15 +289,16 @@ struct dw_mci_slot {
  * data structure is fully optional and usage of each member in this structure
  * is optional as well.
  */
-struct dw_mci_drv_data {
+struct dw_mci_drv_data
+{
 	unsigned long	*caps;
 	int		(*init)(struct dw_mci *host);
 	void		(*set_ios)(struct dw_mci *host, struct mmc_ios *ios);
 	int		(*parse_dt)(struct dw_mci *host);
 	int		(*execute_tuning)(struct dw_mci_slot *slot, u32 opcode);
 	int		(*prepare_hs400_tuning)(struct dw_mci *host,
-						struct mmc_ios *ios);
+									struct mmc_ios *ios);
 	int		(*switch_voltage)(struct mmc_host *mmc,
-					  struct mmc_ios *ios);
+							  struct mmc_ios *ios);
 };
 #endif /* _DW_MMC_H_ */

@@ -5,7 +5,8 @@
 
 struct nf_acct;
 
-struct xt_nfacct_match_info {
+struct xt_nfacct_match_info
+{
 	char		name[NFACCT_NAME_MAX];
 	struct nf_acct	*nfacct;
 };

@@ -12,8 +12,8 @@
 
 
 static ssize_t eject_store(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t len)
+						   struct device_attribute *attr,
+						   const char *buf, size_t len)
 {
 	struct gb_module *module = to_gb_module(dev);
 	struct gb_interface *intf;
@@ -22,13 +22,19 @@ static ssize_t eject_store(struct device *dev,
 	int ret;
 
 	ret = kstrtol(buf, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (!val)
+	{
 		return len;
+	}
 
-	for (i = 0; i < module->num_interfaces; ++i) {
+	for (i = 0; i < module->num_interfaces; ++i)
+	{
 		intf = module->interfaces[i];
 
 		mutex_lock(&intf->mutex);
@@ -41,15 +47,18 @@ static ssize_t eject_store(struct device *dev,
 
 	/* Tell the SVC to eject the primary interface. */
 	ret = gb_svc_intf_eject(module->hd->svc, module->module_id);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return len;
 }
 static DEVICE_ATTR_WO(eject);
 
 static ssize_t module_id_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct gb_module *module = to_gb_module(dev);
 
@@ -58,7 +67,7 @@ static ssize_t module_id_show(struct device *dev,
 static DEVICE_ATTR_RO(module_id);
 
 static ssize_t num_interfaces_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	struct gb_module *module = to_gb_module(dev);
 
@@ -66,7 +75,8 @@ static ssize_t num_interfaces_show(struct device *dev,
 }
 static DEVICE_ATTR_RO(num_interfaces);
 
-static struct attribute *module_attrs[] = {
+static struct attribute *module_attrs[] =
+{
 	&dev_attr_eject.attr,
 	&dev_attr_module_id.attr,
 	&dev_attr_num_interfaces.attr,
@@ -83,22 +93,26 @@ static void gb_module_release(struct device *dev)
 	kfree(module);
 }
 
-struct device_type greybus_module_type = {
+struct device_type greybus_module_type =
+{
 	.name		= "greybus_module",
 	.release	= gb_module_release,
 };
 
 struct gb_module *gb_module_create(struct gb_host_device *hd, u8 module_id,
-					size_t num_interfaces)
+								   size_t num_interfaces)
 {
 	struct gb_interface *intf;
 	struct gb_module *module;
 	int i;
 
 	module = kzalloc(sizeof(*module) + num_interfaces * sizeof(intf),
-				GFP_KERNEL);
+					 GFP_KERNEL);
+
 	if (!module)
+	{
 		return NULL;
+	}
 
 	module->hd = hd;
 	module->module_id = module_id;
@@ -114,21 +128,28 @@ struct gb_module *gb_module_create(struct gb_host_device *hd, u8 module_id,
 
 	trace_gb_module_create(module);
 
-	for (i = 0; i < num_interfaces; ++i) {
+	for (i = 0; i < num_interfaces; ++i)
+	{
 		intf = gb_interface_create(module, module_id + i);
-		if (!intf) {
+
+		if (!intf)
+		{
 			dev_err(&module->dev, "failed to create interface %u\n",
 					module_id + i);
 			goto err_put_interfaces;
 		}
+
 		module->interfaces[i] = intf;
 	}
 
 	return module;
 
 err_put_interfaces:
+
 	for (--i; i >= 0; --i)
+	{
 		gb_interface_put(module->interfaces[i]);
+	}
 
 	put_device(&module->dev);
 
@@ -147,8 +168,11 @@ static void gb_module_register_interface(struct gb_interface *intf)
 	mutex_lock(&intf->mutex);
 
 	ret = gb_interface_activate(intf);
-	if (ret) {
-		if (intf->type != GB_INTERFACE_TYPE_DUMMY) {
+
+	if (ret)
+	{
+		if (intf->type != GB_INTERFACE_TYPE_DUMMY)
+		{
 			dev_err(&module->dev,
 					"failed to activate interface %u: %d\n",
 					intf_id, ret);
@@ -159,11 +183,16 @@ static void gb_module_register_interface(struct gb_interface *intf)
 	}
 
 	ret = gb_interface_add(intf);
+
 	if (ret)
+	{
 		goto err_interface_deactivate;
+	}
 
 	ret = gb_interface_enable(intf);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&module->dev, "failed to enable interface %u: %d\n",
 				intf_id, ret);
 		goto err_interface_deactivate;
@@ -183,7 +212,9 @@ static void gb_module_deregister_interface(struct gb_interface *intf)
 {
 	/* Mark as disconnected to prevent I/O during disable. */
 	if (intf->module->disconnected)
+	{
 		intf->disconnected = true;
+	}
 
 	mutex_lock(&intf->mutex);
 	intf->removed = true;
@@ -201,7 +232,9 @@ int gb_module_add(struct gb_module *module)
 	int ret;
 
 	ret = device_add(&module->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&module->dev, "failed to register module: %d\n", ret);
 		return ret;
 	}
@@ -209,7 +242,9 @@ int gb_module_add(struct gb_module *module)
 	trace_gb_module_add(module);
 
 	for (i = 0; i < module->num_interfaces; ++i)
+	{
 		gb_module_register_interface(module->interfaces[i]);
+	}
 
 	return 0;
 }
@@ -220,7 +255,9 @@ void gb_module_del(struct gb_module *module)
 	size_t i;
 
 	for (i = 0; i < module->num_interfaces; ++i)
+	{
 		gb_module_deregister_interface(module->interfaces[i]);
+	}
 
 	trace_gb_module_del(module);
 
@@ -232,7 +269,9 @@ void gb_module_put(struct gb_module *module)
 	size_t i;
 
 	for (i = 0; i < module->num_interfaces; ++i)
+	{
 		gb_interface_put(module->interfaces[i]);
+	}
 
 	put_device(&module->dev);
 }

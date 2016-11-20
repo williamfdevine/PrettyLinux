@@ -6,7 +6,7 @@
  *
  *  This driver is based on tgafb.c
  *
- *	Copyright (C) 1997 Geert Uytterhoeven 
+ *	Copyright (C) 1997 Geert Uytterhoeven
  *	Copyright (C) 1995  Jay Estabrook
  *
  *  This file is subject to the terms and conditions of the GNU General Public
@@ -28,7 +28,7 @@
 #include <asm/io.h>
 #include <asm/jazz.h>
 
-/* 
+/*
  * Various defines for the G364
  */
 #define G364_MEM_BASE   0xe4400000
@@ -71,7 +71,8 @@
 
 static struct fb_info fb_info;
 
-static struct fb_fix_screeninfo fb_fix __initdata = {
+static struct fb_fix_screeninfo fb_fix __initdata =
+{
 	.id 		= "G364 8plane",
 	.smem_start 	= 0x40000000,	/* physical address */
 	.type 		= FB_TYPE_PACKED_PIXELS,
@@ -80,22 +81,23 @@ static struct fb_fix_screeninfo fb_fix __initdata = {
 	.accel 		= FB_ACCEL_NONE,
 };
 
-static struct fb_var_screeninfo fb_var __initdata = {
+static struct fb_var_screeninfo fb_var __initdata =
+{
 	.bits_per_pixel = 8,
 	.red 		= { 0, 8, 0 },
-      	.green 		= { 0, 8, 0 },
-      	.blue		= { 0, 8, 0 },
-      	.activate	= FB_ACTIVATE_NOW,
-      	.height		= -1,
-      	.width		= -1,
-      	.pixclock	= 39722,
-      	.left_margin	= 40,
-      	.right_margin	= 24,
-      	.upper_margin	= 32,
-      	.lower_margin	= 11,
-      	.hsync_len 	= 96,
-      	.vsync_len 	= 2,
-      	.vmode		= FB_VMODE_NONINTERLACED,
+	.green 		= { 0, 8, 0 },
+	.blue		= { 0, 8, 0 },
+	.activate	= FB_ACTIVATE_NOW,
+	.height		= -1,
+	.width		= -1,
+	.pixclock	= 39722,
+	.left_margin	= 40,
+	.right_margin	= 24,
+	.upper_margin	= 32,
+	.lower_margin	= 11,
+	.hsync_len 	= 96,
+	.vsync_len 	= 2,
+	.vmode		= FB_VMODE_NONINTERLACED,
 };
 
 /*
@@ -104,14 +106,15 @@ static struct fb_var_screeninfo fb_var __initdata = {
 int g364fb_init(void);
 
 static int g364fb_pan_display(struct fb_var_screeninfo *var,
-			      struct fb_info *info);
+							  struct fb_info *info);
 static int g364fb_setcolreg(u_int regno, u_int red, u_int green,
-			    u_int blue, u_int transp,
-			    struct fb_info *info);
+							u_int blue, u_int transp,
+							struct fb_info *info);
 static int g364fb_cursor(struct fb_info *info, struct fb_cursor *cursor);
 static int g364fb_blank(int blank, struct fb_info *info);
 
-static struct fb_ops g364fb_ops = {
+static struct fb_ops g364fb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_setcolreg	= g364fb_setcolreg,
 	.fb_pan_display	= g364fb_pan_display,
@@ -124,20 +127,22 @@ static struct fb_ops g364fb_ops = {
 
 int g364fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 {
-	
-	switch (cursor->enable) {
-	case CM_ERASE:
-		*(unsigned int *) CTLA_REG |= CURS_TOGGLE;
-		break;
 
-	case CM_MOVE:
-	case CM_DRAW:
-		*(unsigned int *) CTLA_REG &= ~CURS_TOGGLE;
-		*(unsigned int *) CURS_POS_REG =
-		    ((x * fontwidth(p)) << 12) | ((y * fontheight(p)) -
-						  info->var.yoffset);
-		break;
+	switch (cursor->enable)
+	{
+		case CM_ERASE:
+			*(unsigned int *) CTLA_REG |= CURS_TOGGLE;
+			break;
+
+		case CM_MOVE:
+		case CM_DRAW:
+			*(unsigned int *) CTLA_REG &= ~CURS_TOGGLE;
+			*(unsigned int *) CURS_POS_REG =
+				((x * fontwidth(p)) << 12) | ((y * fontheight(p)) -
+											  info->var.yoffset);
+			break;
 	}
+
 	return 0;
 }
 
@@ -146,12 +151,14 @@ int g364fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
  *
  *  This call looks only at xoffset, yoffset and the FB_VMODE_YWRAP flag
  */
-static int g364fb_pan_display(struct fb_var_screeninfo *var, 
-			      struct fb_info *info)
+static int g364fb_pan_display(struct fb_var_screeninfo *var,
+							  struct fb_info *info)
 {
 	if (var->xoffset ||
-	    var->yoffset + info->var.yres > info->var.yres_virtual)
+		var->yoffset + info->var.yres > info->var.yres_virtual)
+	{
 		return -EINVAL;
+	}
 
 	*(unsigned int *) TOP_REG = var->yoffset * info->var.xres;
 	return 0;
@@ -163,9 +170,14 @@ static int g364fb_pan_display(struct fb_var_screeninfo *var,
 static int g364fb_blank(int blank, struct fb_info *info)
 {
 	if (blank)
+	{
 		*(unsigned int *) CTLA_REG |= FORCE_BLANK;
+	}
 	else
+	{
 		*(unsigned int *) CTLA_REG &= ~FORCE_BLANK;
+	}
+
 	return 0;
 }
 
@@ -173,12 +185,14 @@ static int g364fb_blank(int blank, struct fb_info *info)
  *  Set a single color register. Return != 0 for invalid regno.
  */
 static int g364fb_setcolreg(u_int regno, u_int red, u_int green,
-			    u_int blue, u_int transp, struct fb_info *info)
+							u_int blue, u_int transp, struct fb_info *info)
 {
 	volatile unsigned int *ptr = (volatile unsigned int *) CLR_PAL_REG;
 
 	if (regno > 255)
+	{
 		return 1;
+	}
 
 	red >>= 8;
 	green >>= 8;
@@ -195,22 +209,24 @@ static int g364fb_setcolreg(u_int regno, u_int red, u_int green,
 int __init g364fb_init(void)
 {
 	volatile unsigned int *pal_ptr =
-	    (volatile unsigned int *) CLR_PAL_REG;
+		(volatile unsigned int *) CLR_PAL_REG;
 	volatile unsigned int *curs_pal_ptr =
-	    (volatile unsigned int *) CURS_PAL_REG;
+		(volatile unsigned int *) CURS_PAL_REG;
 	int mem, i, j;
 
 	if (fb_get_options("g364fb", NULL))
+	{
 		return -ENODEV;
+	}
 
 	/* TBD: G364 detection */
 
 	/* get the resolution set by ARC console */
 	*(volatile unsigned int *) CTLA_REG &= ~ENABLE_VTG;
 	fb_var.xres =
-	    (*((volatile unsigned int *) DISPLAY_REG) & 0x00ffffff) * 4;
+		(*((volatile unsigned int *) DISPLAY_REG) & 0x00ffffff) * 4;
 	fb_var.yres =
-	    (*((volatile unsigned int *) VDISPLAY_REG) & 0x00ffffff) / 2;
+		(*((volatile unsigned int *) VDISPLAY_REG) & 0x00ffffff) / 2;
 	*(volatile unsigned int *) CTLA_REG |= ENABLE_VTG;
 
 	/* setup cursor */
@@ -222,7 +238,9 @@ int __init g364fb_init(void)
 	 * first set the whole cursor to transparent
 	 */
 	for (i = 0; i < 512; i++)
+	{
 		*(unsigned short *) (CURS_PAT_REG + i * 8) = 0;
+	}
 
 	/*
 	 * switch the last two lines to cursor palette 3
@@ -247,7 +265,10 @@ int __init g364fb_init(void)
 	fb_alloc_cmap(&fb_info.cmap, 255, 0);
 
 	if (register_framebuffer(&fb_info) < 0)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 

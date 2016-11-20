@@ -26,7 +26,10 @@ int segv_expected = 0;
 void signal_segv(int signum)
 {
 	if (segv_expected && (signum == SIGSEGV))
+	{
 		_exit(0);
+	}
+
 	_exit(1);
 }
 
@@ -55,12 +58,17 @@ int tm_signal_msr_resv()
 	act.sa_sigaction = signal_usr1;
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = SA_SIGINFO;
-	if (sigaction(SIGUSR1, &act, NULL) < 0) {
+
+	if (sigaction(SIGUSR1, &act, NULL) < 0)
+	{
 		perror("sigaction sigusr1");
 		exit(1);
 	}
+
 	if (signal(SIGSEGV, signal_segv) == SIG_ERR)
+	{
 		exit(1);
+	}
 
 	raise(SIGUSR1);
 

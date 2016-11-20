@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2004 Psion Teklogix
  * Copyright (C) 2004 David Brownell
- * Copyright (C) 2001 Cypress Semiconductor Inc. 
+ * Copyright (C) 2001 Cypress Semiconductor Inc.
  */
 
 /*
@@ -109,15 +109,16 @@
 
 #define SL11H_DATA_START	0x10
 #define	SL811HS_PACKET_BUF(is_a)	((is_a) \
-		? SL11H_DATA_START \
-		: (SL11H_DATA_START + H_MAXPACKET))
+									 ? SL11H_DATA_START \
+									 : (SL11H_DATA_START + H_MAXPACKET))
 
 /*-------------------------------------------------------------------------*/
 
 #define	LOG2_PERIODIC_SIZE	5	/* arbitrary; this matches OHCI */
 #define	PERIODIC_SIZE		(1 << LOG2_PERIODIC_SIZE)
 
-struct sl811 {
+struct sl811
+{
 	spinlock_t		lock;
 	void __iomem		*addr_reg;
 	void __iomem		*data_reg;
@@ -165,7 +166,8 @@ static inline struct usb_hcd *sl811_to_hcd(struct sl811 *sl811)
 	return container_of((void *) sl811, struct usb_hcd, hcd_priv);
 }
 
-struct sl811h_ep {
+struct sl811h_ep
+{
 	struct usb_host_endpoint *hep;
 	struct usb_device	*udev;
 
@@ -213,14 +215,20 @@ sl811_write_buf(struct sl811 *sl811, int addr, const void *buf, size_t count)
 	void __iomem	*data_reg;
 
 	if (!count)
+	{
 		return;
+	}
+
 	writeb(addr, sl811->addr_reg);
 
 	data = buf;
 	data_reg = sl811->data_reg;
-	do {
+
+	do
+	{
 		writeb(*data++, data_reg);
-	} while (--count);
+	}
+	while (--count);
 }
 
 static inline void
@@ -230,14 +238,20 @@ sl811_read_buf(struct sl811 *sl811, int addr, void *buf, size_t count)
 	void __iomem	*data_reg;
 
 	if (!count)
+	{
 		return;
+	}
+
 	writeb(addr, sl811->addr_reg);
 
 	data = buf;
 	data_reg = sl811->data_reg;
-	do {
+
+	do
+	{
 		*data++ = readb(data_reg);
-	} while (--count);
+	}
+	while (--count);
 }
 
 /*-------------------------------------------------------------------------*/

@@ -13,10 +13,10 @@ int reset_control_deassert(struct reset_control *rstc);
 int reset_control_status(struct reset_control *rstc);
 
 struct reset_control *__of_reset_control_get(struct device_node *node,
-				     const char *id, int index, int shared);
+		const char *id, int index, int shared);
 void reset_control_put(struct reset_control *rstc);
 struct reset_control *__devm_reset_control_get(struct device *dev,
-				     const char *id, int index, int shared);
+		const char *id, int index, int shared);
 
 int __must_check device_reset(struct device *dev);
 
@@ -68,15 +68,15 @@ static inline int device_reset_optional(struct device *dev)
 }
 
 static inline struct reset_control *__of_reset_control_get(
-					struct device_node *node,
-					const char *id, int index, int shared)
+	struct device_node *node,
+	const char *id, int index, int shared)
 {
 	return ERR_PTR(-ENOTSUPP);
 }
 
 static inline struct reset_control *__devm_reset_control_get(
-					struct device *dev,
-					const char *id, int index, int shared)
+	struct device *dev,
+	const char *id, int index, int shared)
 {
 	return ERR_PTR(-ENOTSUPP);
 }
@@ -130,19 +130,19 @@ __must_check reset_control_get_exclusive(struct device *dev, const char *id)
  * Use of id names is optional.
  */
 static inline struct reset_control *reset_control_get_shared(
-					struct device *dev, const char *id)
+	struct device *dev, const char *id)
 {
 	return __of_reset_control_get(dev ? dev->of_node : NULL, id, 0, 1);
 }
 
 static inline struct reset_control *reset_control_get_optional_exclusive(
-					struct device *dev, const char *id)
+	struct device *dev, const char *id)
 {
 	return __of_reset_control_get(dev ? dev->of_node : NULL, id, 0, 0);
 }
 
 static inline struct reset_control *reset_control_get_optional_shared(
-					struct device *dev, const char *id)
+	struct device *dev, const char *id)
 {
 	return __of_reset_control_get(dev ? dev->of_node : NULL, id, 0, 1);
 }
@@ -158,7 +158,7 @@ static inline struct reset_control *reset_control_get_optional_shared(
  * Use of id names is optional.
  */
 static inline struct reset_control *of_reset_control_get_exclusive(
-				struct device_node *node, const char *id)
+	struct device_node *node, const char *id)
 {
 	return __of_reset_control_get(node, id, 0, 0);
 }
@@ -183,7 +183,7 @@ static inline struct reset_control *of_reset_control_get_exclusive(
  * Use of id names is optional.
  */
 static inline struct reset_control *of_reset_control_get_shared(
-				struct device_node *node, const char *id)
+	struct device_node *node, const char *id)
 {
 	return __of_reset_control_get(node, id, 0, 1);
 }
@@ -200,7 +200,7 @@ static inline struct reset_control *of_reset_control_get_shared(
  * containing errno.
  */
 static inline struct reset_control *of_reset_control_get_exclusive_by_index(
-					struct device_node *node, int index)
+	struct device_node *node, int index)
 {
 	return __of_reset_control_get(node, NULL, index, 0);
 }
@@ -228,7 +228,7 @@ static inline struct reset_control *of_reset_control_get_exclusive_by_index(
  * containing errno.
  */
 static inline struct reset_control *of_reset_control_get_shared_by_index(
-					struct device_node *node, int index)
+	struct device_node *node, int index)
 {
 	return __of_reset_control_get(node, NULL, index, 1);
 }
@@ -247,7 +247,7 @@ static inline struct reset_control *of_reset_control_get_shared_by_index(
  */
 static inline struct reset_control *
 __must_check devm_reset_control_get_exclusive(struct device *dev,
-					      const char *id)
+		const char *id)
 {
 #ifndef CONFIG_RESET_CONTROLLER
 	WARN_ON(1);
@@ -265,19 +265,19 @@ __must_check devm_reset_control_get_exclusive(struct device *dev,
  * See reset_control_get_shared() for more information.
  */
 static inline struct reset_control *devm_reset_control_get_shared(
-					struct device *dev, const char *id)
+	struct device *dev, const char *id)
 {
 	return __devm_reset_control_get(dev, id, 0, 1);
 }
 
 static inline struct reset_control *devm_reset_control_get_optional_exclusive(
-					struct device *dev, const char *id)
+	struct device *dev, const char *id)
 {
 	return __devm_reset_control_get(dev, id, 0, 0);
 }
 
 static inline struct reset_control *devm_reset_control_get_optional_shared(
-					struct device *dev, const char *id)
+	struct device *dev, const char *id)
 {
 	return __devm_reset_control_get(dev, id, 0, 1);
 }
@@ -325,44 +325,44 @@ devm_reset_control_get_shared_by_index(struct device *dev, int index)
  * have been moved over to the new explicit API.
  */
 static inline struct reset_control *reset_control_get(
-				struct device *dev, const char *id)
+	struct device *dev, const char *id)
 {
 	return reset_control_get_exclusive(dev, id);
 }
 
 static inline struct reset_control *reset_control_get_optional(
-					struct device *dev, const char *id)
+	struct device *dev, const char *id)
 {
 	return reset_control_get_optional_exclusive(dev, id);
 }
 
 static inline struct reset_control *of_reset_control_get(
-				struct device_node *node, const char *id)
+	struct device_node *node, const char *id)
 {
 	return of_reset_control_get_exclusive(node, id);
 }
 
 static inline struct reset_control *of_reset_control_get_by_index(
-				struct device_node *node, int index)
+	struct device_node *node, int index)
 {
 	return of_reset_control_get_exclusive_by_index(node, index);
 }
 
 static inline struct reset_control *devm_reset_control_get(
-				struct device *dev, const char *id)
+	struct device *dev, const char *id)
 {
 	return devm_reset_control_get_exclusive(dev, id);
 }
 
 static inline struct reset_control *devm_reset_control_get_optional(
-				struct device *dev, const char *id)
+	struct device *dev, const char *id)
 {
 	return devm_reset_control_get_optional_exclusive(dev, id);
 
 }
 
 static inline struct reset_control *devm_reset_control_get_by_index(
-				struct device *dev, int index)
+	struct device *dev, int index)
 {
 	return devm_reset_control_get_exclusive_by_index(dev, index);
 }

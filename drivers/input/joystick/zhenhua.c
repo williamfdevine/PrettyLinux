@@ -66,7 +66,8 @@ MODULE_LICENSE("GPL");
  * Zhen Hua data.
  */
 
-struct zhenhua {
+struct zhenhua
+{
 	struct input_dev *dev;
 	int idx;
 	unsigned char data[ZHENHUA_MAX_LENGTH];
@@ -106,14 +107,21 @@ static irqreturn_t zhenhua_interrupt(struct serio *serio, unsigned char data, un
 	 * can be used to check and regain sync. */
 
 	if (data == 0xef)
-		zhenhua->idx = 0;	/* this byte starts a new packet */
+	{
+		zhenhua->idx = 0;    /* this byte starts a new packet */
+	}
 	else if (zhenhua->idx == 0)
-		return IRQ_HANDLED;	/* wrong MSB -- ignore this byte */
+	{
+		return IRQ_HANDLED;    /* wrong MSB -- ignore this byte */
+	}
 
 	if (zhenhua->idx < ZHENHUA_MAX_LENGTH)
+	{
 		zhenhua->data[zhenhua->idx++] = bitrev8(data);
+	}
 
-	if (zhenhua->idx == ZHENHUA_MAX_LENGTH) {
+	if (zhenhua->idx == ZHENHUA_MAX_LENGTH)
+	{
 		zhenhua_process_packet(zhenhua);
 		zhenhua->idx = 0;
 	}
@@ -149,8 +157,11 @@ static int zhenhua_connect(struct serio *serio, struct serio_driver *drv)
 
 	zhenhua = kzalloc(sizeof(struct zhenhua), GFP_KERNEL);
 	input_dev = input_allocate_device();
+
 	if (!zhenhua || !input_dev)
+	{
 		goto fail1;
+	}
 
 	zhenhua->dev = input_dev;
 	snprintf(zhenhua->phys, sizeof(zhenhua->phys), "%s/input0", serio->phys);
@@ -172,18 +183,24 @@ static int zhenhua_connect(struct serio *serio, struct serio_driver *drv)
 	serio_set_drvdata(serio, zhenhua);
 
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	err = input_register_device(zhenhua->dev);
+
 	if (err)
+	{
 		goto fail3;
+	}
 
 	return 0;
 
- fail3:	serio_close(serio);
- fail2:	serio_set_drvdata(serio, NULL);
- fail1:	input_free_device(input_dev);
+fail3:	serio_close(serio);
+fail2:	serio_set_drvdata(serio, NULL);
+fail1:	input_free_device(input_dev);
 	kfree(zhenhua);
 	return err;
 }
@@ -192,7 +209,8 @@ static int zhenhua_connect(struct serio *serio, struct serio_driver *drv)
  * The serio driver structure.
  */
 
-static struct serio_device_id zhenhua_serio_ids[] = {
+static struct serio_device_id zhenhua_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_ZHENHUA,
@@ -204,7 +222,8 @@ static struct serio_device_id zhenhua_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, zhenhua_serio_ids);
 
-static struct serio_driver zhenhua_drv = {
+static struct serio_driver zhenhua_drv =
+{
 	.driver		= {
 		.name	= "zhenhua",
 	},

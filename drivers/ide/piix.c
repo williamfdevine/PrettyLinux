@@ -78,13 +78,15 @@ static void piix_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	int control = 0;
 	const u8 pio = drive->pio_mode - XFER_PIO_0;
 
-				     /* ISP  RTC */
-	static const u8 timings[][2]= {
-					{ 0, 0 },
-					{ 0, 0 },
-					{ 1, 0 },
-					{ 2, 1 },
-					{ 2, 3 }, };
+	/* ISP  RTC */
+	static const u8 timings[][2] =
+	{
+		{ 0, 0 },
+		{ 0, 0 },
+		{ 1, 0 },
+		{ 2, 1 },
+		{ 2, 3 },
+	};
 
 	/*
 	 * Master vs slave is synchronized above us but the slave register is
@@ -95,33 +97,56 @@ static void piix_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	pci_read_config_word(dev, master_port, &master_data);
 
 	if (pio > 1)
-		control |= 1;	/* Programmable timing on */
+	{
+		control |= 1;    /* Programmable timing on */
+	}
+
 	if (drive->media == ide_disk)
-		control |= 4;	/* Prefetch, post write */
+	{
+		control |= 4;    /* Prefetch, post write */
+	}
+
 	if (ide_pio_need_iordy(drive, pio))
-		control |= 2;	/* IORDY */
-	if (is_slave) {
+	{
+		control |= 2;    /* IORDY */
+	}
+
+	if (is_slave)
+	{
 		master_data |=  0x4000;
 		master_data &= ~0x0070;
-		if (pio > 1) {
+
+		if (pio > 1)
+		{
 			/* Set PPE, IE and TIME */
 			master_data |= control << 4;
 		}
+
 		pci_read_config_byte(dev, slave_port, &slave_data);
 		slave_data &= hwif->channel ? 0x0f : 0xf0;
 		slave_data |= ((timings[pio][0] << 2) | timings[pio][1]) <<
-			       (hwif->channel ? 4 : 0);
-	} else {
+					  (hwif->channel ? 4 : 0);
+	}
+	else
+	{
 		master_data &= ~0x3307;
-		if (pio > 1) {
+
+		if (pio > 1)
+		{
 			/* enable PPE, IE and TIME */
 			master_data |= control;
 		}
+
 		master_data |= (timings[pio][0] << 12) | (timings[pio][1] << 8);
 	}
+
 	pci_write_config_word(dev, master_port, master_data);
+
 	if (is_slave)
+	{
 		pci_write_config_byte(dev, slave_port, slave_data);
+	}
+
 	spin_unlock_irqrestore(&tune_lock, flags);
 }
 
@@ -155,42 +180,74 @@ static void piix_set_dma_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	pci_read_config_byte(dev, 0x54, &reg54);
 	pci_read_config_byte(dev, 0x55, &reg55);
 
-	if (speed >= XFER_UDMA_0) {
+	if (speed >= XFER_UDMA_0)
+	{
 		u8 udma = speed - XFER_UDMA_0;
 
 		u_speed = min_t(u8, 2 - (udma & 1), udma) << (drive->dn * 4);
 
 		if (!(reg48 & u_flag))
+		{
 			pci_write_config_byte(dev, 0x48, reg48 | u_flag);
-		if (speed == XFER_UDMA_5) {
-			pci_write_config_byte(dev, 0x55, (u8) reg55|w_flag);
-		} else {
+		}
+
+		if (speed == XFER_UDMA_5)
+		{
+			pci_write_config_byte(dev, 0x55, (u8) reg55 | w_flag);
+		}
+		else
+		{
 			pci_write_config_byte(dev, 0x55, (u8) reg55 & ~w_flag);
 		}
+
 		if ((reg4a & a_speed) != u_speed)
+		{
 			pci_write_config_word(dev, 0x4a, (reg4a & ~a_speed) | u_speed);
-		if (speed > XFER_UDMA_2) {
+		}
+
+		if (speed > XFER_UDMA_2)
+		{
 			if (!(reg54 & v_flag))
+			{
 				pci_write_config_byte(dev, 0x54, reg54 | v_flag);
-		} else
+			}
+		}
+		else
+		{
 			pci_write_config_byte(dev, 0x54, reg54 & ~v_flag);
-	} else {
+		}
+	}
+	else
+	{
 		const u8 mwdma_to_pio[] = { 0, 3, 4 };
 
 		if (reg48 & u_flag)
+		{
 			pci_write_config_byte(dev, 0x48, reg48 & ~u_flag);
+		}
+
 		if (reg4a & a_speed)
+		{
 			pci_write_config_word(dev, 0x4a, reg4a & ~a_speed);
+		}
+
 		if (reg54 & v_flag)
+		{
 			pci_write_config_byte(dev, 0x54, reg54 & ~v_flag);
+		}
+
 		if (reg55 & w_flag)
+		{
 			pci_write_config_byte(dev, 0x55, (u8) reg55 & ~w_flag);
+		}
 
 		if (speed >= XFER_MW_DMA_0)
 			drive->pio_mode =
 				mwdma_to_pio[speed - XFER_MW_DMA_0] + XFER_PIO_0;
 		else
-			drive->pio_mode = XFER_PIO_2; /* for SWDMA2 */
+		{
+			drive->pio_mode = XFER_PIO_2;    /* for SWDMA2 */
+		}
 
 		piix_set_pio_mode(hwif, drive);
 	}
@@ -233,7 +290,9 @@ static void ich_clear_irq(ide_drive_t *drive)
 	 * to ide_dma_end() if this is DMA interrupt.
 	 */
 	if (drive->waiting_for_dma || hwif->dma_base == 0)
+	{
 		return;
+	}
 
 	/* clear the INTR & ERROR bits */
 	dma_stat = inb(hwif->dma_base + ATA_DMA_STATUS);
@@ -241,7 +300,8 @@ static void ich_clear_irq(ide_drive_t *drive)
 	outb(dma_stat, hwif->dma_base + ATA_DMA_STATUS);
 }
 
-struct ich_laptop {
+struct ich_laptop
+{
 	u16 device;
 	u16 subvendor;
 	u16 subdevice;
@@ -251,7 +311,8 @@ struct ich_laptop {
  *	List of laptops that use short cables rather than 80 wire
  */
 
-static const struct ich_laptop ich_laptop[] = {
+static const struct ich_laptop ich_laptop[] =
+{
 	/* devid, subvendor, subdev */
 	{ 0x27DF, 0x1025, 0x0102 },	/* ICH7 on Acer 5602aWLMi */
 	{ 0x27DF, 0x0005, 0x0280 },	/* ICH7 on Acer 5602WLMi */
@@ -275,12 +336,15 @@ static u8 piix_cable_detect(ide_hwif_t *hwif)
 	u8 reg54h = 0, mask = hwif->channel ? 0xc0 : 0x30;
 
 	/* check for specials */
-	while (lap->device) {
+	while (lap->device)
+	{
 		if (lap->device == pdev->device &&
-		    lap->subvendor == pdev->subsystem_vendor &&
-		    lap->subdevice == pdev->subsystem_device) {
+			lap->subvendor == pdev->subsystem_vendor &&
+			lap->subdevice == pdev->subsystem_device)
+		{
 			return ATA_CBL_PATA40_SHORT;
 		}
+
 		lap++;
 	}
 
@@ -300,19 +364,25 @@ static u8 piix_cable_detect(ide_hwif_t *hwif)
 static void init_hwif_piix(ide_hwif_t *hwif)
 {
 	if (!hwif->dma_base)
+	{
 		return;
+	}
 
 	if (no_piix_dma)
+	{
 		hwif->ultra_mask = hwif->mwdma_mask = hwif->swdma_mask = 0;
+	}
 }
 
-static const struct ide_port_ops piix_port_ops = {
+static const struct ide_port_ops piix_port_ops =
+{
 	.set_pio_mode		= piix_set_pio_mode,
 	.set_dma_mode		= piix_set_dma_mode,
 	.cable_detect		= piix_cable_detect,
 };
 
-static const struct ide_port_ops ich_port_ops = {
+static const struct ide_port_ops ich_port_ops =
+{
 	.set_pio_mode		= piix_set_pio_mode,
 	.set_dma_mode		= piix_set_dma_mode,
 	.clear_irq		= ich_clear_irq,
@@ -322,29 +392,30 @@ static const struct ide_port_ops ich_port_ops = {
 #define DECLARE_PIIX_DEV(udma) \
 	{						\
 		.name		= DRV_NAME,		\
-		.init_hwif	= init_hwif_piix,	\
+					  .init_hwif	= init_hwif_piix,	\
 		.enablebits	= {{0x41,0x80,0x80}, {0x43,0x80,0x80}}, \
 		.port_ops	= &piix_port_ops,	\
-		.pio_mask	= ATA_PIO4,		\
-		.swdma_mask	= ATA_SWDMA2_ONLY,	\
-		.mwdma_mask	= ATA_MWDMA12_ONLY,	\
-		.udma_mask	= udma,			\
+					  .pio_mask	= ATA_PIO4,		\
+									.swdma_mask	= ATA_SWDMA2_ONLY,	\
+											.mwdma_mask	= ATA_MWDMA12_ONLY,	\
+													.udma_mask	= udma,			\
 	}
 
 #define DECLARE_ICH_DEV(mwdma, udma) \
 	{ \
 		.name		= DRV_NAME, \
-		.init_chipset	= init_chipset_ich, \
-		.init_hwif	= init_hwif_piix, \
+					  .init_chipset	= init_chipset_ich, \
+										.init_hwif	= init_hwif_piix, \
 		.enablebits	= {{0x41,0x80,0x80}, {0x43,0x80,0x80}}, \
 		.port_ops	= &ich_port_ops, \
-		.pio_mask	= ATA_PIO4, \
-		.swdma_mask	= ATA_SWDMA2_ONLY, \
-		.mwdma_mask	= mwdma, \
-		.udma_mask	= udma, \
+					  .pio_mask	= ATA_PIO4, \
+									.swdma_mask	= ATA_SWDMA2_ONLY, \
+											.mwdma_mask	= mwdma, \
+													.udma_mask	= udma, \
 	}
 
-static const struct ide_port_info piix_pci_info[] = {
+static const struct ide_port_info piix_pci_info[] =
+{
 	/* 0: MPIIX */
 	{	/*
 		 * MPIIX actually has only a single IDE channel mapped to
@@ -352,7 +423,7 @@ static const struct ide_port_info piix_pci_info[] = {
 		 * of the bit 14 of the IDETIM register at offset 0x6c
 		 */
 		.name		= DRV_NAME,
-		.enablebits	= {{0x6d,0xc0,0x80}, {0x6d,0xc0,0xc0}},
+		.enablebits	= {{0x6d, 0xc0, 0x80}, {0x6d, 0xc0, 0xc0}},
 		.host_flags	= IDE_HFLAG_ISA_PORTS | IDE_HFLAG_NO_DMA,
 		.pio_mask	= ATA_PIO4,
 		/* This is a painful system best to let it self tune for now */
@@ -381,7 +452,7 @@ static const struct ide_port_info piix_pci_info[] = {
  *	Called when the PCI registration layer (or the IDE initialization)
  *	finds a device matching our IDE device tables.
  */
- 
+
 static int piix_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 {
 	return ide_pci_init_one(dev, &piix_pci_info[id->driver_data], NULL);
@@ -389,7 +460,7 @@ static int piix_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 
 /**
  *	piix_check_450nx	-	Check for problem 450NX setup
- *	
+ *
  *	Check for the present of 450NX errata #19 and errata #25. If
  *	they are found, disable use of DMA IDE
  */
@@ -398,25 +469,38 @@ static void piix_check_450nx(void)
 {
 	struct pci_dev *pdev = NULL;
 	u16 cfg;
-	while((pdev=pci_get_device(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82454NX, pdev))!=NULL)
+
+	while ((pdev = pci_get_device(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82454NX, pdev)) != NULL)
 	{
 		/* Look for 450NX PXB. Check for problem configurations
 		   A PCI quirk checks bit 6 already */
 		pci_read_config_word(pdev, 0x41, &cfg);
+
 		/* Only on the original revision: IDE DMA can hang */
 		if (pdev->revision == 0x00)
+		{
 			no_piix_dma = 1;
+		}
 		/* On all revisions below 5 PXB bus lock must be disabled for IDE */
-		else if (cfg & (1<<14) && pdev->revision < 5)
+		else if (cfg & (1 << 14) && pdev->revision < 5)
+		{
 			no_piix_dma = 2;
+		}
 	}
-	if(no_piix_dma)
-		printk(KERN_WARNING DRV_NAME ": 450NX errata present, disabling IDE DMA.\n");
-	if(no_piix_dma == 2)
-		printk(KERN_WARNING DRV_NAME ": A BIOS update may resolve this.\n");
-}		
 
-static const struct pci_device_id piix_pci_tbl[] = {
+	if (no_piix_dma)
+	{
+		printk(KERN_WARNING DRV_NAME ": 450NX errata present, disabling IDE DMA.\n");
+	}
+
+	if (no_piix_dma == 2)
+	{
+		printk(KERN_WARNING DRV_NAME ": A BIOS update may resolve this.\n");
+	}
+}
+
+static const struct pci_device_id piix_pci_tbl[] =
+{
 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_82371FB_0),  1 },
 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_82371FB_1),  1 },
 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_82371MX),    0 },
@@ -448,7 +532,8 @@ static const struct pci_device_id piix_pci_tbl[] = {
 };
 MODULE_DEVICE_TABLE(pci, piix_pci_tbl);
 
-static struct pci_driver piix_pci_driver = {
+static struct pci_driver piix_pci_driver =
+{
 	.name		= "PIIX_IDE",
 	.id_table	= piix_pci_tbl,
 	.probe		= piix_init_one,

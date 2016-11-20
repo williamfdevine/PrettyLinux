@@ -1,5 +1,5 @@
 /*
- *      Low-level parallel-support for PC-style hardware integrated in the 
+ *      Low-level parallel-support for PC-style hardware integrated in the
  *	LASI-Controller (on GSC-Bus) for HP-PARISC Workstations
  *
  *	This program is free software; you can redistribute it and/or modify
@@ -9,8 +9,8 @@
  *
  *	(C) 1999-2001 by Helge Deller <deller@gmx.de>
  *
- * 
- * based on parport_pc.c by 
+ *
+ * based on parport_pc.c by
  * 	    Grant Guenther <grant@torque.net>
  * 	    Phil Blundell <philb@gnu.org>
  *          Tim Waugh <tim@cyberelk.demon.co.uk>
@@ -60,7 +60,9 @@ static int clear_epp_timeout(struct parport *pb)
 	unsigned char r;
 
 	if (!(parport_gsc_read_status(pb) & 0x01))
+	{
 		return 1;
+	}
 
 	/* To clear timeout some chips require double read */
 	parport_gsc_read_status(pb);
@@ -95,7 +97,7 @@ void parport_gsc_restore_state(struct parport *p, struct parport_state *s)
 	parport_writeb (s->u.pc.ctr, CONTROL (p));
 }
 
-struct parport_operations parport_gsc_ops = 
+struct parport_operations parport_gsc_ops =
 {
 	.write_data	= parport_gsc_write_data,
 	.read_data	= parport_gsc_read_data,
@@ -142,7 +144,7 @@ static int parport_SPP_supported(struct parport *pb)
 	unsigned char r, w;
 
 	/*
-	 * first clear an eventually pending EPP timeout 
+	 * first clear an eventually pending EPP timeout
 	 * I (sailer@ife.ee.ethz.ch) have an SMSC chipset
 	 * that does not even respond to SPP cycles if an EPP
 	 * timeout is pending
@@ -159,13 +161,18 @@ static int parport_SPP_supported(struct parport *pb)
 	 * software copy here.  In addition, some bits aren't
 	 * writable. */
 	r = parport_readb (CONTROL (pb));
-	if ((r & 0xf) == w) {
+
+	if ((r & 0xf) == w)
+	{
 		w = 0xe;
 		parport_writeb (w, CONTROL (pb));
 		r = parport_readb (CONTROL (pb));
 		parport_writeb (0xc, CONTROL (pb));
+
 		if ((r & 0xf) == w)
+		{
 			return PARPORT_MODE_PCSPP;
+		}
 	}
 
 	/* Try the data register.  The data lines aren't tri-stated at
@@ -173,12 +180,17 @@ static int parport_SPP_supported(struct parport *pb)
 	w = 0xaa;
 	parport_gsc_write_data (pb, w);
 	r = parport_gsc_read_data (pb);
-	if (r == w) {
+
+	if (r == w)
+	{
 		w = 0x55;
 		parport_gsc_write_data (pb, w);
 		r = parport_gsc_read_data (pb);
+
 		if (r == w)
+		{
 			return PARPORT_MODE_PCSPP;
+		}
 	}
 
 	return 0;
@@ -190,7 +202,7 @@ static int parport_SPP_supported(struct parport *pb)
  * allows us to read data from the data lines.  In theory we would get back
  * 0xff but any peripheral attached to the port may drag some or all of the
  * lines down to zero.  So if we get back anything that isn't the contents
- * of the data register we deem PS/2 support to be present. 
+ * of the data register we deem PS/2 support to be present.
  *
  * Some SPP ports have "half PS/2" ability - you can't turn off the line
  * drivers, but an external peripheral with sufficiently beefy drivers of
@@ -198,30 +210,35 @@ static int parport_SPP_supported(struct parport *pb)
  * where they can then be read back as normal.  Ports with this property
  * and the right type of device attached are likely to fail the SPP test,
  * (as they will appear to have stuck bits) and so the fact that they might
- * be misdetected here is rather academic. 
+ * be misdetected here is rather academic.
  */
 
 static int parport_PS2_supported(struct parport *pb)
 {
 	int ok = 0;
-  
+
 	clear_epp_timeout(pb);
 
 	/* try to tri-state the buffer */
 	parport_gsc_data_reverse (pb);
-	
+
 	parport_gsc_write_data(pb, 0x55);
-	if (parport_gsc_read_data(pb) != 0x55) ok++;
+
+	if (parport_gsc_read_data(pb) != 0x55) { ok++; }
 
 	parport_gsc_write_data(pb, 0xaa);
-	if (parport_gsc_read_data(pb) != 0xaa) ok++;
+
+	if (parport_gsc_read_data(pb) != 0xaa) { ok++; }
 
 	/* cancel input mode */
 	parport_gsc_data_forward (pb);
 
-	if (ok) {
+	if (ok)
+	{
 		pb->modes |= PARPORT_MODE_TRISTATE;
-	} else {
+	}
+	else
+	{
 		struct parport_gsc_private *priv = pb->private_data;
 		priv->ctr_writable &= ~0x20;
 	}
@@ -233,8 +250,8 @@ static int parport_PS2_supported(struct parport *pb)
 /* --- Initialisation code -------------------------------- */
 
 struct parport *parport_gsc_probe_port(unsigned long base,
-				       unsigned long base_hi, int irq,
-				       int dma, struct parisc_device *padev)
+									   unsigned long base_hi, int irq,
+									   int dma, struct parisc_device *padev)
 {
 	struct parport_gsc_private *priv;
 	struct parport_operations *ops;
@@ -242,18 +259,24 @@ struct parport *parport_gsc_probe_port(unsigned long base,
 	struct parport *p = &tmp;
 
 	priv = kzalloc (sizeof (struct parport_gsc_private), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		printk (KERN_DEBUG "parport (0x%lx): no memory!\n", base);
 		return NULL;
 	}
+
 	ops = kmemdup(&parport_gsc_ops, sizeof(struct parport_operations),
-		      GFP_KERNEL);
-	if (!ops) {
+				  GFP_KERNEL);
+
+	if (!ops)
+	{
 		printk (KERN_DEBUG "parport (0x%lx): no memory for ops!\n",
-			base);
+				base);
 		kfree (priv);
 		return NULL;
 	}
+
 	priv->ctr = 0xc;
 	priv->ctr_writable = 0xff;
 	priv->dma_buf = 0;
@@ -266,16 +289,20 @@ struct parport *parport_gsc_probe_port(unsigned long base,
 	p->ops = ops;
 	p->private_data = priv;
 	p->physport = p;
-	if (!parport_SPP_supported (p)) {
+
+	if (!parport_SPP_supported (p))
+	{
 		/* No port. */
 		kfree (priv);
 		kfree(ops);
 		return NULL;
 	}
+
 	parport_PS2_supported (p);
 
 	if (!(p = parport_register_port(base, PARPORT_IRQ_NONE,
-					PARPORT_DMA_NONE, ops))) {
+									PARPORT_DMA_NONE, ops)))
+	{
 		kfree (priv);
 		kfree (ops);
 		return NULL;
@@ -284,24 +311,32 @@ struct parport *parport_gsc_probe_port(unsigned long base,
 	p->dev = &padev->dev;
 	p->base_hi = base_hi;
 	p->modes = tmp.modes;
-	p->size = (p->modes & PARPORT_MODE_EPP)?8:3;
+	p->size = (p->modes & PARPORT_MODE_EPP) ? 8 : 3;
 	p->private_data = priv;
 
 	printk(KERN_INFO "%s: PC-style at 0x%lx", p->name, p->base);
 	p->irq = irq;
-	if (p->irq == PARPORT_IRQ_AUTO) {
+
+	if (p->irq == PARPORT_IRQ_AUTO)
+	{
 		p->irq = PARPORT_IRQ_NONE;
 	}
-	if (p->irq != PARPORT_IRQ_NONE) {
+
+	if (p->irq != PARPORT_IRQ_NONE)
+	{
 		printk(", irq %d", p->irq);
 
-		if (p->dma == PARPORT_DMA_AUTO) {
+		if (p->dma == PARPORT_DMA_AUTO)
+		{
 			p->dma = PARPORT_DMA_NONE;
 		}
 	}
+
 	if (p->dma == PARPORT_DMA_AUTO) /* To use DMA, giving the irq
                                            is mandatory (see above) */
+	{
 		p->dma = PARPORT_DMA_NONE;
+	}
 
 	printk(" [");
 #define printmode(x) {if(p->modes&PARPORT_MODE_##x){printk("%s%s",f?",":"",#x);f++;}}
@@ -311,18 +346,20 @@ struct parport *parport_gsc_probe_port(unsigned long base,
 		printmode(TRISTATE);
 		printmode(COMPAT)
 		printmode(EPP);
-//		printmode(ECP);
-//		printmode(DMA);
+		//		printmode(ECP);
+		//		printmode(DMA);
 	}
 #undef printmode
 	printk("]\n");
 
-	if (p->irq != PARPORT_IRQ_NONE) {
+	if (p->irq != PARPORT_IRQ_NONE)
+	{
 		if (request_irq (p->irq, parport_irq_handler,
-				 0, p->name, p)) {
+						 0, p->name, p))
+		{
 			printk (KERN_WARNING "%s: irq %d in use, "
-				"resorting to polled operation\n",
-				p->name, p->irq);
+					"resorting to polled operation\n",
+					p->name, p->irq);
 			p->irq = PARPORT_IRQ_NONE;
 			p->dma = PARPORT_DMA_NONE;
 		}
@@ -351,31 +388,39 @@ static int parport_init_chip(struct parisc_device *dev)
 	struct parport *p;
 	unsigned long port;
 
-	if (!dev->irq) {
+	if (!dev->irq)
+	{
 		printk(KERN_WARNING "IRQ not found for parallel device at 0x%llx\n",
-			(unsigned long long)dev->hpa.start);
+			   (unsigned long long)dev->hpa.start);
 		return -ENODEV;
 	}
 
 	port = dev->hpa.start + PARPORT_GSC_OFFSET;
-	
+
 	/* some older machines with ASP-chip don't support
 	 * the enhanced parport modes.
 	 */
-	if (boot_cpu_data.cpu_type > pcxt && !pdc_add_valid(port+4)) {
+	if (boot_cpu_data.cpu_type > pcxt && !pdc_add_valid(port + 4))
+	{
 
 		/* Initialize bidirectional-mode (0x10) & data-tranfer-mode #1 (0x20) */
 		printk("%s: initialize bidirectional-mode.\n", __func__);
 		parport_writeb ( (0x10 + 0x20), port + 4);
 
-	} else {
+	}
+	else
+	{
 		printk("%s: enhanced parport-modes not supported.\n", __func__);
 	}
-	
+
 	p = parport_gsc_probe_port(port, 0, dev->irq,
-			/* PARPORT_IRQ_NONE */ PARPORT_DMA_NONE, dev);
+							   /* PARPORT_IRQ_NONE */ PARPORT_DMA_NONE, dev);
+
 	if (p)
+	{
 		parport_count++;
+	}
+
 	dev_set_drvdata(&dev->dev, p);
 
 	return 0;
@@ -384,33 +429,46 @@ static int parport_init_chip(struct parisc_device *dev)
 static int parport_remove_chip(struct parisc_device *dev)
 {
 	struct parport *p = dev_get_drvdata(&dev->dev);
-	if (p) {
+
+	if (p)
+	{
 		struct parport_gsc_private *priv = p->private_data;
 		struct parport_operations *ops = p->ops;
 		parport_remove_port(p);
+
 		if (p->dma != PARPORT_DMA_NONE)
+		{
 			free_dma(p->dma);
+		}
+
 		if (p->irq != PARPORT_IRQ_NONE)
+		{
 			free_irq(p->irq, p);
+		}
+
 		if (priv->dma_buf)
 			pci_free_consistent(priv->dev, PAGE_SIZE,
-					    priv->dma_buf,
-					    priv->dma_handle);
+								priv->dma_buf,
+								priv->dma_handle);
+
 		kfree (p->private_data);
 		parport_put_port(p);
 		kfree (ops); /* hope no-one cached it */
 	}
+
 	return 0;
 }
 
-static struct parisc_device_id parport_tbl[] = {
+static struct parisc_device_id parport_tbl[] =
+{
 	{ HPHW_FIO, HVERSION_REV_ANY_ID, HVERSION_ANY_ID, 0x74 },
 	{ 0, }
 };
 
 MODULE_DEVICE_TABLE(parisc, parport_tbl);
 
-static struct parisc_driver parport_driver = {
+static struct parisc_driver parport_driver =
+{
 	.name		= "Parallel",
 	.id_table	= parport_tbl,
 	.probe		= parport_init_chip,

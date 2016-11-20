@@ -32,24 +32,28 @@ struct vpfe_device;
  * @queue:	Resume streaming when a buffer is queued. Called on VIDIOC_QBUF
  *		if there was no buffer previously queued.
  */
-struct vpfe_video_operations {
+struct vpfe_video_operations
+{
 	int (*queue)(struct vpfe_device *vpfe_dev, unsigned long addr);
 };
 
-enum vpfe_pipeline_stream_state {
+enum vpfe_pipeline_stream_state
+{
 	VPFE_PIPELINE_STREAM_STOPPED = 0,
 	VPFE_PIPELINE_STREAM_CONTINUOUS = 1,
 	VPFE_PIPELINE_STREAM_SINGLESHOT = 2,
 };
 
-enum vpfe_video_state {
+enum vpfe_video_state
+{
 	/* indicates that buffer is not queued */
 	VPFE_VIDEO_BUFFER_NOT_QUEUED = 0,
 	/* indicates that buffer is queued */
 	VPFE_VIDEO_BUFFER_QUEUED = 1,
 };
 
-struct vpfe_pipeline {
+struct vpfe_pipeline
+{
 	/* media pipeline */
 	struct media_pipeline		*pipe;
 	struct media_entity_graph	graph;
@@ -73,12 +77,14 @@ struct vpfe_pipeline {
 #define to_vpfe_video(vdev) \
 	container_of(vdev, struct vpfe_video_device, video_dev)
 
-struct vpfe_cap_buffer {
+struct vpfe_cap_buffer
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 };
 
-struct vpfe_video_device {
+struct vpfe_video_device
+{
 	/* vpfe device */
 	struct vpfe_device			*vpfe_dev;
 	/* video dev */
@@ -144,7 +150,7 @@ struct vpfe_video_device {
 int vpfe_video_is_pipe_ready(struct vpfe_pipeline *pipe);
 void vpfe_video_unregister(struct vpfe_video_device *video);
 int vpfe_video_register(struct vpfe_video_device *video,
-			struct v4l2_device *vdev);
+						struct v4l2_device *vdev);
 int vpfe_video_init(struct vpfe_video_device *video, const char *name);
 void vpfe_video_process_buffer_complete(struct vpfe_video_device *video);
 void vpfe_video_schedule_bottom_field(struct vpfe_video_device *video);

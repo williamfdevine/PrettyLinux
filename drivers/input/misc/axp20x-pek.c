@@ -28,43 +28,50 @@
 #define AXP20X_PEK_STARTUP_MASK		(0xc0)
 #define AXP20X_PEK_SHUTDOWN_MASK	(0x03)
 
-struct axp20x_pek {
+struct axp20x_pek
+{
 	struct axp20x_dev *axp20x;
 	struct input_dev *input;
 	int irq_dbr;
 	int irq_dbf;
 };
 
-struct axp20x_time {
+struct axp20x_time
+{
 	unsigned int time;
 	unsigned int idx;
 };
 
-static const struct axp20x_time startup_time[] = {
+static const struct axp20x_time startup_time[] =
+{
 	{ .time = 128,  .idx = 0 },
 	{ .time = 1000, .idx = 2 },
 	{ .time = 3000, .idx = 1 },
 	{ .time = 2000, .idx = 3 },
 };
 
-static const struct axp20x_time shutdown_time[] = {
+static const struct axp20x_time shutdown_time[] =
+{
 	{ .time = 4000,  .idx = 0 },
 	{ .time = 6000,  .idx = 1 },
 	{ .time = 8000,  .idx = 2 },
 	{ .time = 10000, .idx = 3 },
 };
 
-struct axp20x_pek_ext_attr {
+struct axp20x_pek_ext_attr
+{
 	const struct axp20x_time *p_time;
 	unsigned int mask;
 };
 
-static struct axp20x_pek_ext_attr axp20x_pek_startup_ext_attr = {
+static struct axp20x_pek_ext_attr axp20x_pek_startup_ext_attr =
+{
 	.p_time	= startup_time,
 	.mask	= AXP20X_PEK_STARTUP_MASK,
 };
 
-static struct axp20x_pek_ext_attr axp20x_pek_shutdown_ext_attr = {
+static struct axp20x_pek_ext_attr axp20x_pek_shutdown_ext_attr =
+{
 	.p_time	= shutdown_time,
 	.mask	= AXP20X_PEK_SHUTDOWN_MASK,
 };
@@ -75,7 +82,7 @@ static struct axp20x_pek_ext_attr *get_axp_ext_attr(struct device_attribute *att
 }
 
 static ssize_t axp20x_show_ext_attr(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	struct axp20x_pek *axp20x_pek = dev_get_drvdata(dev);
 	struct axp20x_pek_ext_attr *axp20x_ea = get_axp_ext_attr(attr);
@@ -83,22 +90,27 @@ static ssize_t axp20x_show_ext_attr(struct device *dev,
 	int ret, i;
 
 	ret = regmap_read(axp20x_pek->axp20x->regmap, AXP20X_PEK_KEY, &val);
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	val &= axp20x_ea->mask;
 	val >>= ffs(axp20x_ea->mask) - 1;
 
 	for (i = 0; i < 4; i++)
 		if (val == axp20x_ea->p_time[i].idx)
+		{
 			val = axp20x_ea->p_time[i].time;
+		}
 
 	return sprintf(buf, "%u\n", val);
 }
 
 static ssize_t axp20x_store_ext_attr(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, size_t count)
 {
 	struct axp20x_pek *axp20x_pek = dev_get_drvdata(dev);
 	struct axp20x_pek_ext_attr *axp20x_ea = get_axp_ext_attr(attr);
@@ -113,52 +125,69 @@ static ssize_t axp20x_store_ext_attr(struct device *dev,
 	len = strlen(val_str);
 
 	if (len && val_str[len - 1] == '\n')
+	{
 		val_str[len - 1] = '\0';
+	}
 
 	ret = kstrtouint(val_str, 10, &val);
-	if (ret)
-		return ret;
 
-	for (i = 3; i >= 0; i--) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 3; i >= 0; i--)
+	{
 		unsigned int err;
 
 		err = abs(axp20x_ea->p_time[i].time - val);
-		if (err < best_err) {
+
+		if (err < best_err)
+		{
 			best_err = err;
 			idx = axp20x_ea->p_time[i].idx;
 		}
 
 		if (!err)
+		{
 			break;
+		}
 	}
 
 	idx <<= ffs(axp20x_ea->mask) - 1;
 	ret = regmap_update_bits(axp20x_pek->axp20x->regmap,
-				 AXP20X_PEK_KEY,
-				 axp20x_ea->mask, idx);
+							 AXP20X_PEK_KEY,
+							 axp20x_ea->mask, idx);
+
 	if (ret != 0)
+	{
 		return -EINVAL;
+	}
 
 	return count;
 }
 
-static struct dev_ext_attribute axp20x_dev_attr_startup = {
+static struct dev_ext_attribute axp20x_dev_attr_startup =
+{
 	.attr	= __ATTR(startup, 0644, axp20x_show_ext_attr, axp20x_store_ext_attr),
 	.var	= &axp20x_pek_startup_ext_attr,
 };
 
-static struct dev_ext_attribute axp20x_dev_attr_shutdown = {
+static struct dev_ext_attribute axp20x_dev_attr_shutdown =
+{
 	.attr	= __ATTR(shutdown, 0644, axp20x_show_ext_attr, axp20x_store_ext_attr),
 	.var	= &axp20x_pek_shutdown_ext_attr,
 };
 
-static struct attribute *axp20x_attributes[] = {
+static struct attribute *axp20x_attributes[] =
+{
 	&axp20x_dev_attr_startup.attr.attr,
 	&axp20x_dev_attr_shutdown.attr.attr,
 	NULL,
 };
 
-static const struct attribute_group axp20x_attribute_group = {
+static const struct attribute_group axp20x_attribute_group =
+{
 	.attrs = axp20x_attributes,
 };
 
@@ -172,9 +201,13 @@ static irqreturn_t axp20x_pek_irq(int irq, void *pwr)
 	 * means it is pressed.
 	 */
 	if (irq == axp20x_pek->irq_dbf)
+	{
 		input_report_key(idev, KEY_POWER, true);
+	}
 	else if (irq == axp20x_pek->irq_dbr)
+	{
 		input_report_key(idev, KEY_POWER, false);
+	}
 
 	input_sync(idev);
 
@@ -196,34 +229,46 @@ static int axp20x_pek_probe(struct platform_device *pdev)
 	int error;
 
 	axp20x_pek = devm_kzalloc(&pdev->dev, sizeof(struct axp20x_pek),
-				  GFP_KERNEL);
+							  GFP_KERNEL);
+
 	if (!axp20x_pek)
+	{
 		return -ENOMEM;
+	}
 
 	axp20x_pek->axp20x = dev_get_drvdata(pdev->dev.parent);
 	axp20x = axp20x_pek->axp20x;
 
 	axp20x_pek->irq_dbr = platform_get_irq_byname(pdev, "PEK_DBR");
-	if (axp20x_pek->irq_dbr < 0) {
+
+	if (axp20x_pek->irq_dbr < 0)
+	{
 		dev_err(&pdev->dev, "No IRQ for PEK_DBR, error=%d\n",
 				axp20x_pek->irq_dbr);
 		return axp20x_pek->irq_dbr;
 	}
+
 	axp20x_pek->irq_dbr = regmap_irq_get_virq(axp20x->regmap_irqc,
 						  axp20x_pek->irq_dbr);
 
 	axp20x_pek->irq_dbf = platform_get_irq_byname(pdev, "PEK_DBF");
-	if (axp20x_pek->irq_dbf < 0) {
+
+	if (axp20x_pek->irq_dbf < 0)
+	{
 		dev_err(&pdev->dev, "No IRQ for PEK_DBF, error=%d\n",
 				axp20x_pek->irq_dbf);
 		return axp20x_pek->irq_dbf;
 	}
+
 	axp20x_pek->irq_dbf = regmap_irq_get_virq(axp20x->regmap_irqc,
 						  axp20x_pek->irq_dbf);
 
 	axp20x_pek->input = devm_input_allocate_device(&pdev->dev);
+
 	if (!axp20x_pek->input)
+	{
 		return -ENOMEM;
+	}
 
 	idev = axp20x_pek->input;
 
@@ -236,43 +281,53 @@ static int axp20x_pek_probe(struct platform_device *pdev)
 	input_set_drvdata(idev, axp20x_pek);
 
 	error = devm_request_any_context_irq(&pdev->dev, axp20x_pek->irq_dbr,
-					     axp20x_pek_irq, 0,
-					     "axp20x-pek-dbr", idev);
-	if (error < 0) {
+										 axp20x_pek_irq, 0,
+										 "axp20x-pek-dbr", idev);
+
+	if (error < 0)
+	{
 		dev_err(axp20x->dev, "Failed to request dbr IRQ#%d: %d\n",
-			axp20x_pek->irq_dbr, error);
+				axp20x_pek->irq_dbr, error);
 		return error;
 	}
 
 	error = devm_request_any_context_irq(&pdev->dev, axp20x_pek->irq_dbf,
-					  axp20x_pek_irq, 0,
-					  "axp20x-pek-dbf", idev);
-	if (error < 0) {
+										 axp20x_pek_irq, 0,
+										 "axp20x-pek-dbf", idev);
+
+	if (error < 0)
+	{
 		dev_err(axp20x->dev, "Failed to request dbf IRQ#%d: %d\n",
-			axp20x_pek->irq_dbf, error);
+				axp20x_pek->irq_dbf, error);
 		return error;
 	}
 
 	error = sysfs_create_group(&pdev->dev.kobj, &axp20x_attribute_group);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(axp20x->dev, "Failed to create sysfs attributes: %d\n",
-			error);
+				error);
 		return error;
 	}
 
 	error = devm_add_action(&pdev->dev,
-				axp20x_remove_sysfs_group, &pdev->dev);
-	if (error) {
+							axp20x_remove_sysfs_group, &pdev->dev);
+
+	if (error)
+	{
 		axp20x_remove_sysfs_group(&pdev->dev);
 		dev_err(&pdev->dev, "Failed to add sysfs cleanup action: %d\n",
-			error);
+				error);
 		return error;
 	}
 
 	error = input_register_device(idev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(axp20x->dev, "Can't register input device: %d\n",
-			error);
+				error);
 		return error;
 	}
 
@@ -281,7 +336,8 @@ static int axp20x_pek_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver axp20x_pek_driver = {
+static struct platform_driver axp20x_pek_driver =
+{
 	.probe		= axp20x_pek_probe,
 	.driver		= {
 		.name		= "axp20x-pek",

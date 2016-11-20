@@ -35,28 +35,32 @@ static struct drm_display_mode *tpo_vid_get_config_mode(struct drm_device *dev)
 	bool use_gct = false;
 
 	mode = kzalloc(sizeof(*mode), GFP_KERNEL);
-	if (!mode)
-		return NULL;
 
-	if (use_gct) {
+	if (!mode)
+	{
+		return NULL;
+	}
+
+	if (use_gct)
+	{
 		mode->hdisplay = (ti->hactive_hi << 8) | ti->hactive_lo;
 		mode->vdisplay = (ti->vactive_hi << 8) | ti->vactive_lo;
 		mode->hsync_start = mode->hdisplay +
-				((ti->hsync_offset_hi << 8) |
-				ti->hsync_offset_lo);
+							((ti->hsync_offset_hi << 8) |
+							 ti->hsync_offset_lo);
 		mode->hsync_end = mode->hsync_start +
-				((ti->hsync_pulse_width_hi << 8) |
-				ti->hsync_pulse_width_lo);
+						  ((ti->hsync_pulse_width_hi << 8) |
+						   ti->hsync_pulse_width_lo);
 		mode->htotal = mode->hdisplay + ((ti->hblank_hi << 8) |
-								ti->hblank_lo);
+										 ti->hblank_lo);
 		mode->vsync_start =
 			mode->vdisplay + ((ti->vsync_offset_hi << 8) |
-						ti->vsync_offset_lo);
+							  ti->vsync_offset_lo);
 		mode->vsync_end =
 			mode->vsync_start + ((ti->vsync_pulse_width_hi << 8) |
-						ti->vsync_pulse_width_lo);
+								 ti->vsync_pulse_width_lo);
 		mode->vtotal = mode->vdisplay +
-				((ti->vblank_hi << 8) | ti->vblank_lo);
+					   ((ti->vblank_hi << 8) | ti->vblank_lo);
 		mode->clock = ti->pixel_clock * 10;
 
 		dev_dbg(dev->dev, "hdisplay is %d\n", mode->hdisplay);
@@ -68,7 +72,9 @@ static struct drm_display_mode *tpo_vid_get_config_mode(struct drm_device *dev)
 		dev_dbg(dev->dev, "VSE is %d\n", mode->vsync_end);
 		dev_dbg(dev->dev, "vtotal is %d\n", mode->vtotal);
 		dev_dbg(dev->dev, "clock is %d\n", mode->clock);
-	} else {
+	}
+	else
+	{
 		mode->hdisplay = 864;
 		mode->vdisplay = 480;
 		mode->hsync_start = 873;
@@ -89,11 +95,13 @@ static struct drm_display_mode *tpo_vid_get_config_mode(struct drm_device *dev)
 }
 
 static int tpo_vid_get_panel_info(struct drm_device *dev,
-				int pipe,
-				struct panel_info *pi)
+								  int pipe,
+								  struct panel_info *pi)
 {
 	if (!dev || !pi)
+	{
 		return -EINVAL;
+	}
 
 	pi->width_mm = TPO_PANEL_WIDTH;
 	pi->height_mm = TPO_PANEL_HEIGHT;
@@ -103,7 +111,8 @@ static int tpo_vid_get_panel_info(struct drm_device *dev,
 
 /*TPO DPI encoder helper funcs*/
 static const struct drm_encoder_helper_funcs
-				mdfld_tpo_dpi_encoder_helper_funcs = {
+	mdfld_tpo_dpi_encoder_helper_funcs =
+{
 	.dpms = mdfld_dsi_dpi_dpms,
 	.mode_fixup = mdfld_dsi_dpi_mode_fixup,
 	.prepare = mdfld_dsi_dpi_prepare,
@@ -112,11 +121,13 @@ static const struct drm_encoder_helper_funcs
 };
 
 /*TPO DPI encoder funcs*/
-static const struct drm_encoder_funcs mdfld_tpo_dpi_encoder_funcs = {
+static const struct drm_encoder_funcs mdfld_tpo_dpi_encoder_funcs =
+{
 	.destroy = drm_encoder_cleanup,
 };
 
-const struct panel_funcs mdfld_tpo_vid_funcs = {
+const struct panel_funcs mdfld_tpo_vid_funcs =
+{
 	.encoder_funcs = &mdfld_tpo_dpi_encoder_funcs,
 	.encoder_helper_funcs = &mdfld_tpo_dpi_encoder_helper_funcs,
 	.get_config_mode = &tpo_vid_get_config_mode,

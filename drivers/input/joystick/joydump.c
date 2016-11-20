@@ -41,7 +41,8 @@ MODULE_LICENSE("GPL");
 
 #define BUF_SIZE 256
 
-struct joydump {
+struct joydump
+{
 	unsigned int time;
 	unsigned char data;
 };
@@ -59,11 +60,13 @@ static int joydump_connect(struct gameport *gameport, struct gameport_driver *dr
 	printk(KERN_INFO "joydump: | Dumping: %30s |\n", gameport->phys);
 	printk(KERN_INFO "joydump: | Speed: %28d kHz |\n", gameport->speed);
 
-	if (gameport_open(gameport, drv, GAMEPORT_MODE_RAW)) {
+	if (gameport_open(gameport, drv, GAMEPORT_MODE_RAW))
+	{
 
 		printk(KERN_INFO "joydump: | Raw mode not available - trying cooked.    |\n");
 
-		if (gameport_open(gameport, drv, GAMEPORT_MODE_COOKED)) {
+		if (gameport_open(gameport, drv, GAMEPORT_MODE_COOKED))
+		{
 
 			printk(KERN_INFO "joydump: | Cooked not available either. Failing.   |\n");
 			printk(KERN_INFO "joydump: `------------------- END -----------------'\n");
@@ -73,7 +76,10 @@ static int joydump_connect(struct gameport *gameport, struct gameport_driver *dr
 		gameport_cooked_read(gameport, axes, &buttons);
 
 		for (i = 0; i < 4; i++)
+		{
 			printk(KERN_INFO "joydump: | Axis %d: %4d.                           |\n", i, axes[i]);
+		}
+
 		printk(KERN_INFO "joydump: | Buttons %02x.                             |\n", buttons);
 		printk(KERN_INFO "joydump: `------------------- END -----------------'\n");
 	}
@@ -81,10 +87,13 @@ static int joydump_connect(struct gameport *gameport, struct gameport_driver *dr
 	timeout = gameport_time(gameport, 10000); /* 10 ms */
 
 	buf = kmalloc(BUF_SIZE * sizeof(struct joydump), GFP_KERNEL);
-	if (!buf) {
+
+	if (!buf)
+	{
 		printk(KERN_INFO "joydump: no memory for testing\n");
 		goto jd_end;
 	}
+
 	dump = buf;
 	t = 0;
 	i = 1;
@@ -99,24 +108,27 @@ static int joydump_connect(struct gameport *gameport, struct gameport_driver *dr
 
 	gameport_trigger(gameport);
 
-	while (i < BUF_SIZE && t < timeout) {
+	while (i < BUF_SIZE && t < timeout)
+	{
 
 		dump->data = gameport_read(gameport);
 
-		if (dump->data ^ u) {
+		if (dump->data ^ u)
+		{
 			u = dump->data;
 			dump->time = t;
 			i++;
 			dump++;
 		}
+
 		t++;
 	}
 
 	local_irq_restore(flags);
 
-/*
- * Dump data.
- */
+	/*
+	 * Dump data.
+	 */
 
 	t = i;
 	dump = buf;
@@ -124,18 +136,28 @@ static int joydump_connect(struct gameport *gameport, struct gameport_driver *dr
 
 	printk(KERN_INFO "joydump: >------------------ DATA -----------------<\n");
 	printk(KERN_INFO "joydump: | index: %3d delta: %3d us data: ", 0, 0);
+
 	for (j = 7; j >= 0; j--)
+	{
 		printk("%d", (dump->data >> j) & 1);
+	}
+
 	printk(" |\n");
 	dump++;
 
-	for (i = 1; i < t; i++, dump++, prev++) {
+	for (i = 1; i < t; i++, dump++, prev++)
+	{
 		printk(KERN_INFO "joydump: | index: %3d delta: %3d us data: ",
-			i, dump->time - prev->time);
+			   i, dump->time - prev->time);
+
 		for (j = 7; j >= 0; j--)
+		{
 			printk("%d", (dump->data >> j) & 1);
+		}
+
 		printk(" |\n");
 	}
+
 	kfree(buf);
 
 jd_end:
@@ -149,7 +171,8 @@ static void joydump_disconnect(struct gameport *gameport)
 	gameport_close(gameport);
 }
 
-static struct gameport_driver joydump_drv = {
+static struct gameport_driver joydump_drv =
+{
 	.driver		= {
 		.name	= "joydump",
 	},

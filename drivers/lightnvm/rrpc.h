@@ -35,24 +35,28 @@
 
 #define NR_PHY_IN_LOG (RRPC_EXPOSED_PAGE_SIZE / RRPC_SECTOR)
 
-struct rrpc_inflight {
+struct rrpc_inflight
+{
 	struct list_head reqs;
 	spinlock_t lock;
 };
 
-struct rrpc_inflight_rq {
+struct rrpc_inflight_rq
+{
 	struct list_head list;
 	sector_t l_start;
 	sector_t l_end;
 };
 
-struct rrpc_rq {
+struct rrpc_rq
+{
 	struct rrpc_inflight_rq inflight_rq;
 	struct rrpc_addr *addr;
 	unsigned long flags;
 };
 
-struct rrpc_block {
+struct rrpc_block
+{
 	struct nvm_block *parent;
 	struct rrpc_lun *rlun;
 	struct list_head prio;
@@ -69,7 +73,8 @@ struct rrpc_block {
 	atomic_t data_cmnt_size; /* data pages committed to stable storage */
 };
 
-struct rrpc_lun {
+struct rrpc_lun
+{
 	struct rrpc *rrpc;
 	struct nvm_lun *parent;
 	struct rrpc_block *cur, *gc_cur;
@@ -83,7 +88,8 @@ struct rrpc_lun {
 	spinlock_t lock;
 };
 
-struct rrpc {
+struct rrpc
+{
 	/* instance must be kept in top to resolve rrpc in unprep */
 	struct nvm_tgt_instance instance;
 
@@ -133,25 +139,28 @@ struct rrpc {
 	struct workqueue_struct *kgc_wq;
 };
 
-struct rrpc_block_gc {
+struct rrpc_block_gc
+{
 	struct rrpc *rrpc;
 	struct rrpc_block *rblk;
 	struct work_struct ws_gc;
 };
 
 /* Logical to physical mapping */
-struct rrpc_addr {
+struct rrpc_addr
+{
 	u64 addr;
 	struct rrpc_block *rblk;
 };
 
 /* Physical to logical mapping */
-struct rrpc_rev_addr {
+struct rrpc_rev_addr
+{
 	u64 addr;
 };
 
 static inline struct rrpc_block *rrpc_get_rblk(struct rrpc_lun *rlun,
-								int blk_id)
+		int blk_id)
 {
 	struct rrpc *rrpc = rlun->rrpc;
 	int lun_blk = blk_id % rrpc->dev->blks_per_lun;
@@ -175,13 +184,13 @@ static inline sector_t rrpc_get_sector(sector_t laddr)
 }
 
 static inline int request_intersects(struct rrpc_inflight_rq *r,
-				sector_t laddr_start, sector_t laddr_end)
+									 sector_t laddr_start, sector_t laddr_end)
 {
 	return (laddr_end >= r->l_start) && (laddr_start <= r->l_end);
 }
 
 static int __rrpc_lock_laddr(struct rrpc *rrpc, sector_t laddr,
-			     unsigned int pages, struct rrpc_inflight_rq *r)
+							 unsigned int pages, struct rrpc_inflight_rq *r)
 {
 	sector_t laddr_end = laddr + pages - 1;
 	struct rrpc_inflight_rq *rtmp;
@@ -189,8 +198,10 @@ static int __rrpc_lock_laddr(struct rrpc *rrpc, sector_t laddr,
 	WARN_ON(irqs_disabled());
 
 	spin_lock_irq(&rrpc->inflights.lock);
-	list_for_each_entry(rtmp, &rrpc->inflights.reqs, list) {
-		if (unlikely(request_intersects(rtmp, laddr, laddr_end))) {
+	list_for_each_entry(rtmp, &rrpc->inflights.reqs, list)
+	{
+		if (unlikely(request_intersects(rtmp, laddr, laddr_end)))
+		{
 			/* existing, overlapping request, come back later */
 			spin_unlock_irq(&rrpc->inflights.lock);
 			return 1;
@@ -206,8 +217,8 @@ static int __rrpc_lock_laddr(struct rrpc *rrpc, sector_t laddr,
 }
 
 static inline int rrpc_lock_laddr(struct rrpc *rrpc, sector_t laddr,
-				 unsigned int pages,
-				 struct rrpc_inflight_rq *r)
+								  unsigned int pages,
+								  struct rrpc_inflight_rq *r)
 {
 	BUG_ON((laddr + pages) > rrpc->nr_sects);
 
@@ -222,7 +233,7 @@ static inline struct rrpc_inflight_rq *rrpc_get_inflight_rq(struct nvm_rq *rqd)
 }
 
 static inline int rrpc_lock_rq(struct rrpc *rrpc, struct bio *bio,
-							struct nvm_rq *rqd)
+							   struct nvm_rq *rqd)
 {
 	sector_t laddr = rrpc_get_laddr(bio);
 	unsigned int pages = rrpc_get_pages(bio);
@@ -232,7 +243,7 @@ static inline int rrpc_lock_rq(struct rrpc *rrpc, struct bio *bio,
 }
 
 static inline void rrpc_unlock_laddr(struct rrpc *rrpc,
-						struct rrpc_inflight_rq *r)
+									 struct rrpc_inflight_rq *r)
 {
 	unsigned long flags;
 

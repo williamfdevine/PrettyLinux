@@ -28,7 +28,8 @@ static int efi_pstore_close(struct pstore_info *psi)
 	return 0;
 }
 
-struct pstore_read_data {
+struct pstore_read_data
+{
 	u64 *id;
 	enum pstore_type_id *type;
 	int *count;
@@ -39,7 +40,7 @@ struct pstore_read_data {
 };
 
 static inline u64 generic_id(unsigned long timestamp,
-			     unsigned int part, int count)
+							 unsigned int part, int count)
 {
 	return ((u64) timestamp * 100 + part) * 1000 + count;
 }
@@ -55,32 +56,47 @@ static int efi_pstore_read_func(struct efivar_entry *entry, void *data)
 	unsigned long time, size;
 
 	if (efi_guidcmp(entry->var.VendorGuid, vendor))
+	{
 		return 0;
+	}
 
 	for (i = 0; i < DUMP_NAME_LEN; i++)
+	{
 		name[i] = entry->var.VariableName[i];
+	}
 
 	if (sscanf(name, "dump-type%u-%u-%d-%lu-%c",
-		   cb_data->type, &part, &cnt, &time, &data_type) == 5) {
+			   cb_data->type, &part, &cnt, &time, &data_type) == 5)
+	{
 		*cb_data->id = generic_id(time, part, cnt);
 		*cb_data->count = cnt;
 		cb_data->timespec->tv_sec = time;
 		cb_data->timespec->tv_nsec = 0;
+
 		if (data_type == 'C')
+		{
 			*cb_data->compressed = true;
+		}
 		else
+		{
 			*cb_data->compressed = false;
+		}
+
 		*cb_data->ecc_notice_size = 0;
-	} else if (sscanf(name, "dump-type%u-%u-%d-%lu",
-		   cb_data->type, &part, &cnt, &time) == 4) {
+	}
+	else if (sscanf(name, "dump-type%u-%u-%d-%lu",
+					cb_data->type, &part, &cnt, &time) == 4)
+	{
 		*cb_data->id = generic_id(time, part, cnt);
 		*cb_data->count = cnt;
 		cb_data->timespec->tv_sec = time;
 		cb_data->timespec->tv_nsec = 0;
 		*cb_data->compressed = false;
 		*cb_data->ecc_notice_size = 0;
-	} else if (sscanf(name, "dump-type%u-%u-%lu",
-			  cb_data->type, &part, &time) == 3) {
+	}
+	else if (sscanf(name, "dump-type%u-%u-%lu",
+					cb_data->type, &part, &time) == 3)
+	{
 		/*
 		 * Check if an old format,
 		 * which doesn't support holding
@@ -92,15 +108,18 @@ static int efi_pstore_read_func(struct efivar_entry *entry, void *data)
 		cb_data->timespec->tv_nsec = 0;
 		*cb_data->compressed = false;
 		*cb_data->ecc_notice_size = 0;
-	} else
+	}
+	else
+	{
 		return 0;
+	}
 
 	entry->var.DataSize = 1024;
 	__efivar_entry_get(entry, &entry->var.Attributes,
-			   &entry->var.DataSize, entry->var.Data);
+					   &entry->var.DataSize, entry->var.Data);
 	size = entry->var.DataSize;
 	memcpy(*cb_data->buf, entry->var.Data,
-	       (size_t)min_t(unsigned long, EFIVARS_DATA_SIZE_MAX, size));
+		   (size_t)min_t(unsigned long, EFIVARS_DATA_SIZE_MAX, size));
 
 	return size;
 }
@@ -112,12 +131,15 @@ static int efi_pstore_read_func(struct efivar_entry *entry, void *data)
  * @head: list head
  */
 static void efi_pstore_scan_sysfs_enter(struct efivar_entry *pos,
-					struct efivar_entry *next,
-					struct list_head *head)
+										struct efivar_entry *next,
+										struct list_head *head)
 {
 	pos->scanning = true;
+
 	if (&next->list != head)
+	{
 		next->scanning = true;
+	}
 }
 
 /**
@@ -126,16 +148,23 @@ static void efi_pstore_scan_sysfs_enter(struct efivar_entry *pos,
  * @turn_off_scanning: Check if a scanning flag should be turned off
  */
 static inline int __efi_pstore_scan_sysfs_exit(struct efivar_entry *entry,
-						bool turn_off_scanning)
+		bool turn_off_scanning)
 {
-	if (entry->deleting) {
+	if (entry->deleting)
+	{
 		list_del(&entry->list);
 		efivar_entry_iter_end();
 		efivar_unregister(entry);
+
 		if (efivar_entry_iter_begin())
+		{
 			return -EINTR;
-	} else if (turn_off_scanning)
+		}
+	}
+	else if (turn_off_scanning)
+	{
 		entry->scanning = false;
+	}
 
 	return 0;
 }
@@ -148,16 +177,21 @@ static inline int __efi_pstore_scan_sysfs_exit(struct efivar_entry *entry,
  * @stop: a flag checking if scanning will stop
  */
 static int efi_pstore_scan_sysfs_exit(struct efivar_entry *pos,
-				       struct efivar_entry *next,
-				       struct list_head *head, bool stop)
+									  struct efivar_entry *next,
+									  struct list_head *head, bool stop)
 {
 	int ret = __efi_pstore_scan_sysfs_exit(pos, true);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (stop)
+	{
 		ret = __efi_pstore_scan_sysfs_exit(next, &next->list != head);
+	}
+
 	return ret;
 }
 
@@ -182,31 +216,46 @@ static int efi_pstore_sysfs_entry_iter(void *data, struct efivar_entry **pos)
 	int size = 0;
 	int ret;
 
-	if (!*pos) {
-		list_for_each_entry_safe(entry, n, head, list) {
+	if (!*pos)
+	{
+		list_for_each_entry_safe(entry, n, head, list)
+		{
 			efi_pstore_scan_sysfs_enter(entry, n, head);
 
 			size = efi_pstore_read_func(entry, data);
 			ret = efi_pstore_scan_sysfs_exit(entry, n, head,
-							 size < 0);
+											 size < 0);
+
 			if (ret)
+			{
 				return ret;
+			}
+
 			if (size)
+			{
 				break;
+			}
 		}
 		*pos = n;
 		return size;
 	}
 
-	list_for_each_entry_safe_from((*pos), n, head, list) {
+	list_for_each_entry_safe_from((*pos), n, head, list)
+	{
 		efi_pstore_scan_sysfs_enter((*pos), n, head);
 
 		size = efi_pstore_read_func((*pos), data);
 		ret = efi_pstore_scan_sysfs_exit((*pos), n, head, size < 0);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		if (size)
+		{
 			break;
+		}
 	}
 	*pos = n;
 	return size;
@@ -226,10 +275,10 @@ static int efi_pstore_sysfs_entry_iter(void *data, struct efivar_entry **pos)
  *           and pstore will stop reading entry.
  */
 static ssize_t efi_pstore_read(u64 *id, enum pstore_type_id *type,
-			       int *count, struct timespec *timespec,
-			       char **buf, bool *compressed,
-			       ssize_t *ecc_notice_size,
-			       struct pstore_info *psi)
+							   int *count, struct timespec *timespec,
+							   char **buf, bool *compressed,
+							   ssize_t *ecc_notice_size,
+							   struct pstore_info *psi)
 {
 	struct pstore_read_data data;
 	ssize_t size;
@@ -243,25 +292,34 @@ static ssize_t efi_pstore_read(u64 *id, enum pstore_type_id *type,
 	data.buf = buf;
 
 	*data.buf = kzalloc(EFIVARS_DATA_SIZE_MAX, GFP_KERNEL);
-	if (!*data.buf)
-		return -ENOMEM;
 
-	if (efivar_entry_iter_begin()) {
+	if (!*data.buf)
+	{
+		return -ENOMEM;
+	}
+
+	if (efivar_entry_iter_begin())
+	{
 		kfree(*data.buf);
 		return -EINTR;
 	}
+
 	size = efi_pstore_sysfs_entry_iter(&data,
-					   (struct efivar_entry **)&psi->data);
+									   (struct efivar_entry **)&psi->data);
 	efivar_entry_iter_end();
+
 	if (size <= 0)
+	{
 		kfree(*data.buf);
+	}
+
 	return size;
 }
 
 static int efi_pstore_write(enum pstore_type_id type,
-		enum kmsg_dump_reason reason, u64 *id,
-		unsigned int part, int count, bool compressed, size_t size,
-		struct pstore_info *psi)
+							enum kmsg_dump_reason reason, u64 *id,
+							unsigned int part, int count, bool compressed, size_t size,
+							struct pstore_info *psi)
 {
 	char name[DUMP_NAME_LEN];
 	efi_char16_t efi_name[DUMP_NAME_LEN];
@@ -269,23 +327,28 @@ static int efi_pstore_write(enum pstore_type_id type,
 	int i, ret = 0;
 
 	sprintf(name, "dump-type%u-%u-%d-%lu-%c", type, part, count,
-		get_seconds(), compressed ? 'C' : 'D');
+			get_seconds(), compressed ? 'C' : 'D');
 
 	for (i = 0; i < DUMP_NAME_LEN; i++)
+	{
 		efi_name[i] = name[i];
+	}
 
 	efivar_entry_set_safe(efi_name, vendor, PSTORE_EFI_ATTRIBUTES,
-			      !pstore_cannot_block_path(reason),
-			      size, psi->buf);
+						  !pstore_cannot_block_path(reason),
+						  size, psi->buf);
 
 	if (reason == KMSG_DUMP_OOPS)
+	{
 		efivar_run_worker();
+	}
 
 	*id = part;
 	return ret;
 };
 
-struct pstore_erase_data {
+struct pstore_erase_data
+{
 	u64 id;
 	enum pstore_type_id type;
 	int count;
@@ -307,33 +370,44 @@ static int efi_pstore_erase_func(struct efivar_entry *entry, void *data)
 	int i;
 
 	if (efi_guidcmp(entry->var.VendorGuid, vendor))
+	{
 		return 0;
+	}
 
 	if (ucs2_strncmp(entry->var.VariableName,
-			  efi_name, (size_t)ucs2_len)) {
+					 efi_name, (size_t)ucs2_len))
+	{
 		/*
 		 * Check if an old format, which doesn't support
 		 * holding multiple logs, remains.
 		 */
 		sprintf(name_old, "dump-type%u-%u-%lu", ed->type,
-			(unsigned int)ed->id, ed->time.tv_sec);
+				(unsigned int)ed->id, ed->time.tv_sec);
 
 		for (i = 0; i < DUMP_NAME_LEN; i++)
+		{
 			efi_name_old[i] = name_old[i];
+		}
 
 		if (ucs2_strncmp(entry->var.VariableName, efi_name_old,
-				  ucs2_strlen(efi_name_old)))
+						 ucs2_strlen(efi_name_old)))
+		{
 			return 0;
+		}
 	}
 
-	if (entry->scanning) {
+	if (entry->scanning)
+	{
 		/*
 		 * Skip deletion because this entry will be deleted
 		 * after scanning is completed.
 		 */
 		entry->deleting = true;
-	} else
+	}
+	else
+	{
 		list_del(&entry->list);
+	}
 
 	/* found */
 	__efivar_entry_delete(entry);
@@ -342,7 +416,7 @@ static int efi_pstore_erase_func(struct efivar_entry *entry, void *data)
 }
 
 static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
-			    struct timespec time, struct pstore_info *psi)
+							struct timespec time, struct pstore_info *psi)
 {
 	struct pstore_erase_data edata;
 	struct efivar_entry *entry = NULL;
@@ -356,7 +430,9 @@ static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
 	sprintf(name, "dump-type%u-%u-%d-%lu", type, part, count, time.tv_sec);
 
 	for (i = 0; i < DUMP_NAME_LEN; i++)
+	{
 		efi_name[i] = name[i];
+	}
 
 	edata.id = part;
 	edata.type = type;
@@ -365,19 +441,27 @@ static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
 	edata.name = efi_name;
 
 	if (efivar_entry_iter_begin())
+	{
 		return -EINTR;
+	}
+
 	found = __efivar_entry_iter(efi_pstore_erase_func, &efivar_sysfs_list, &edata, &entry);
 
-	if (found && !entry->scanning) {
+	if (found && !entry->scanning)
+	{
 		efivar_entry_iter_end();
 		efivar_unregister(entry);
-	} else
+	}
+	else
+	{
 		efivar_entry_iter_end();
+	}
 
 	return 0;
 }
 
-static struct pstore_info efi_pstore_info = {
+static struct pstore_info efi_pstore_info =
+{
 	.owner		= THIS_MODULE,
 	.name		= "efi",
 	.flags		= PSTORE_FLAGS_DMESG,
@@ -391,22 +475,32 @@ static struct pstore_info efi_pstore_info = {
 static __init int efivars_pstore_init(void)
 {
 	if (!efi_enabled(EFI_RUNTIME_SERVICES))
+	{
 		return 0;
+	}
 
 	if (!efivars_kobject())
+	{
 		return 0;
+	}
 
 	if (efivars_pstore_disable)
+	{
 		return 0;
+	}
 
 	efi_pstore_info.buf = kmalloc(4096, GFP_KERNEL);
+
 	if (!efi_pstore_info.buf)
+	{
 		return -ENOMEM;
+	}
 
 	efi_pstore_info.bufsize = 1024;
 	spin_lock_init(&efi_pstore_info.buf_lock);
 
-	if (pstore_register(&efi_pstore_info)) {
+	if (pstore_register(&efi_pstore_info))
+	{
 		kfree(efi_pstore_info.buf);
 		efi_pstore_info.buf = NULL;
 		efi_pstore_info.bufsize = 0;
@@ -418,7 +512,9 @@ static __init int efivars_pstore_init(void)
 static __exit void efivars_pstore_exit(void)
 {
 	if (!efi_pstore_info.bufsize)
+	{
 		return;
+	}
 
 	pstore_unregister(&efi_pstore_info);
 	kfree(efi_pstore_info.buf);

@@ -46,15 +46,16 @@ struct gen_pool;
  * @data: optional additional data used by @genpool_algo_t
  */
 typedef unsigned long (*genpool_algo_t)(unsigned long *map,
-			unsigned long size,
-			unsigned long start,
-			unsigned int nr,
-			void *data, struct gen_pool *pool);
+										unsigned long size,
+										unsigned long start,
+										unsigned int nr,
+										void *data, struct gen_pool *pool);
 
 /*
  *  General purpose special memory pool descriptor.
  */
-struct gen_pool {
+struct gen_pool
+{
 	spinlock_t lock;
 	struct list_head chunks;	/* list of chunks in this pool */
 	int min_alloc_order;		/* minimum allocation order */
@@ -68,7 +69,8 @@ struct gen_pool {
 /*
  *  General purpose special memory pool chunk descriptor.
  */
-struct gen_pool_chunk {
+struct gen_pool_chunk
+{
 	struct list_head next_chunk;	/* next chunk in pool */
 	atomic_t avail;
 	phys_addr_t phys_addr;		/* physical starting address of memory chunk */
@@ -80,21 +82,23 @@ struct gen_pool_chunk {
 /*
  *  gen_pool data descriptor for gen_pool_first_fit_align.
  */
-struct genpool_data_align {
+struct genpool_data_align
+{
 	int align;		/* alignment by bytes for starting address */
 };
 
 /*
  *  gen_pool data descriptor for gen_pool_fixed_alloc.
  */
-struct genpool_data_fixed {
+struct genpool_data_fixed
+{
 	unsigned long offset;		/* The offset of the specific region */
 };
 
 extern struct gen_pool *gen_pool_create(int, int);
 extern phys_addr_t gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long);
 extern int gen_pool_add_virt(struct gen_pool *, unsigned long, phys_addr_t,
-			     size_t, int);
+							 size_t, int);
 /**
  * gen_pool_add - add a new chunk of special memory to the pool
  * @pool: pool to add new memory chunk to
@@ -108,7 +112,7 @@ extern int gen_pool_add_virt(struct gen_pool *, unsigned long, phys_addr_t,
  * Returns 0 on success or a -ve errno on failure.
  */
 static inline int gen_pool_add(struct gen_pool *pool, unsigned long addr,
-			       size_t size, int nid)
+							   size_t size, int nid)
 {
 	return gen_pool_add_virt(pool, addr, -1, size, nid);
 }
@@ -117,19 +121,19 @@ extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
 extern unsigned long gen_pool_alloc_algo(struct gen_pool *, size_t,
 		genpool_algo_t algo, void *data);
 extern void *gen_pool_dma_alloc(struct gen_pool *pool, size_t size,
-		dma_addr_t *dma);
+								dma_addr_t *dma);
 extern void gen_pool_free(struct gen_pool *, unsigned long, size_t);
 extern void gen_pool_for_each_chunk(struct gen_pool *,
-	void (*)(struct gen_pool *, struct gen_pool_chunk *, void *), void *);
+									void (*)(struct gen_pool *, struct gen_pool_chunk *, void *), void *);
 extern size_t gen_pool_avail(struct gen_pool *);
 extern size_t gen_pool_size(struct gen_pool *);
 
 extern void gen_pool_set_algo(struct gen_pool *pool, genpool_algo_t algo,
-		void *data);
+							  void *data);
 
 extern unsigned long gen_pool_first_fit(unsigned long *map, unsigned long size,
-		unsigned long start, unsigned int nr, void *data,
-		struct gen_pool *pool);
+										unsigned long start, unsigned int nr, void *data,
+										struct gen_pool *pool);
 
 extern unsigned long gen_pool_fixed_alloc(unsigned long *map,
 		unsigned long size, unsigned long start, unsigned int nr,
@@ -145,8 +149,8 @@ extern unsigned long gen_pool_first_fit_order_align(unsigned long *map,
 		void *data, struct gen_pool *pool);
 
 extern unsigned long gen_pool_best_fit(unsigned long *map, unsigned long size,
-		unsigned long start, unsigned int nr, void *data,
-		struct gen_pool *pool);
+									   unsigned long start, unsigned int nr, void *data,
+									   struct gen_pool *pool);
 
 
 extern struct gen_pool *devm_gen_pool_create(struct device *dev,
@@ -154,14 +158,14 @@ extern struct gen_pool *devm_gen_pool_create(struct device *dev,
 extern struct gen_pool *gen_pool_get(struct device *dev, const char *name);
 
 bool addr_in_gen_pool(struct gen_pool *pool, unsigned long start,
-			size_t size);
+					  size_t size);
 
 #ifdef CONFIG_OF
 extern struct gen_pool *of_gen_pool_get(struct device_node *np,
-	const char *propname, int index);
+										const char *propname, int index);
 #else
 static inline struct gen_pool *of_gen_pool_get(struct device_node *np,
-	const char *propname, int index)
+		const char *propname, int index)
 {
 	return NULL;
 }

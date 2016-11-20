@@ -10,7 +10,8 @@
 #include <uapi/linux/bpf.h>
 #include "bpf_helpers.h"
 
-struct bpf_map_def SEC("maps") my_map = {
+struct bpf_map_def SEC("maps") my_map =
+{
 	.type = BPF_MAP_TYPE_HASH,
 	.key_size = sizeof(long),
 	.value_size = sizeof(long),
@@ -33,10 +34,16 @@ int bpf_prog2(struct pt_regs *ctx)
 	BPF_KPROBE_READ_RET_IP(loc, ctx);
 
 	value = bpf_map_lookup_elem(&my_map, &loc);
+
 	if (value)
+	{
 		*value += 1;
+	}
 	else
+	{
 		bpf_map_update_elem(&my_map, &loc, &init_val, BPF_ANY);
+	}
+
 	return 0;
 }
 
@@ -56,20 +63,27 @@ static unsigned int log2(unsigned int v)
 static unsigned int log2l(unsigned long v)
 {
 	unsigned int hi = v >> 32;
+
 	if (hi)
+	{
 		return log2(hi) + 32;
+	}
 	else
+	{
 		return log2(v);
+	}
 }
 
-struct hist_key {
+struct hist_key
+{
 	char comm[16];
 	u64 pid_tgid;
 	u64 uid_gid;
 	u64 index;
 };
 
-struct bpf_map_def SEC("maps") my_hist_map = {
+struct bpf_map_def SEC("maps") my_hist_map =
+{
 	.type = BPF_MAP_TYPE_PERCPU_HASH,
 	.key_size = sizeof(struct hist_key),
 	.value_size = sizeof(long),
@@ -90,10 +104,16 @@ int bpf_prog3(struct pt_regs *ctx)
 	bpf_get_current_comm(&key.comm, sizeof(key.comm));
 
 	value = bpf_map_lookup_elem(&my_hist_map, &key);
+
 	if (value)
+	{
 		__sync_fetch_and_add(value, 1);
+	}
 	else
+	{
 		bpf_map_update_elem(&my_hist_map, &key, &init_val, BPF_ANY);
+	}
+
 	return 0;
 }
 char _license[] SEC("license") = "GPL";

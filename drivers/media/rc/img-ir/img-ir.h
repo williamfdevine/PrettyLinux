@@ -144,7 +144,8 @@ struct clk;
  * @raw:		Driver data for raw decoder.
  * @hw:			Driver data for hardware decoder.
  */
-struct img_ir_priv {
+struct img_ir_priv
+{
 	struct device		*dev;
 	int			irq;
 	struct clk		*clk;
@@ -159,13 +160,13 @@ struct img_ir_priv {
 /* Hardware access */
 
 static inline void img_ir_write(struct img_ir_priv *priv,
-				unsigned int reg_offs, unsigned int data)
+								unsigned int reg_offs, unsigned int data)
 {
 	iowrite32(data, priv->reg_base + reg_offs);
 }
 
 static inline unsigned int img_ir_read(struct img_ir_priv *priv,
-				       unsigned int reg_offs)
+									   unsigned int reg_offs)
 {
 	return ioread32(priv->reg_base + reg_offs);
 }

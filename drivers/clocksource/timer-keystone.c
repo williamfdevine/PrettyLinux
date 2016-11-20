@@ -43,7 +43,8 @@
  * @hz_period: cycles per HZ period
  * @event_dev: event device based on timer
  */
-static struct keystone_timer {
+static struct keystone_timer
+{
 	void __iomem *base;
 	unsigned long hz_period;
 	struct clock_event_device event_dev;
@@ -127,7 +128,7 @@ static irqreturn_t keystone_timer_interrupt(int irq, void *dev_id)
 }
 
 static int keystone_set_next_event(unsigned long cycles,
-				  struct clock_event_device *evt)
+								   struct clock_event_device *evt)
 {
 	return keystone_timer_config(cycles, TCR_ENAMODE_ONESHOT_MASK);
 }
@@ -152,26 +153,34 @@ static int __init keystone_timer_init(struct device_node *np)
 	int irq, error;
 
 	irq  = irq_of_parse_and_map(np, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		pr_err("%s: failed to map interrupts\n", __func__);
 		return -EINVAL;
 	}
 
 	timer.base = of_iomap(np, 0);
-	if (!timer.base) {
+
+	if (!timer.base)
+	{
 		pr_err("%s: failed to map registers\n", __func__);
 		return -ENXIO;
 	}
 
 	clk = of_clk_get(np, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("%s: failed to get clock\n", __func__);
 		iounmap(timer.base);
 		return PTR_ERR(clk);
 	}
 
 	error = clk_prepare_enable(clk);
-	if (error) {
+
+	if (error)
+	{
 		pr_err("%s: failed to enable clock\n", __func__);
 		goto err;
 	}
@@ -199,8 +208,10 @@ static int __init keystone_timer_init(struct device_node *np)
 	keystone_timer_writel(INTCTLSTAT_ENINT_MASK, INTCTLSTAT);
 
 	error = request_irq(irq, keystone_timer_interrupt, IRQF_TIMER,
-			    TIMER_NAME, event_dev);
-	if (error) {
+						TIMER_NAME, event_dev);
+
+	if (error)
+	{
 		pr_err("%s: failed to setup irq\n", __func__);
 		goto err;
 	}
@@ -227,4 +238,4 @@ err:
 }
 
 CLOCKSOURCE_OF_DECLARE(keystone_timer, "ti,keystone-timer",
-			   keystone_timer_init);
+					   keystone_timer_init);

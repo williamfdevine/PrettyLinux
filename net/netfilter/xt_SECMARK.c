@@ -37,12 +37,14 @@ secmark_tg(struct sk_buff *skb, const struct xt_action_param *par)
 
 	BUG_ON(info->mode != mode);
 
-	switch (mode) {
-	case SECMARK_MODE_SEL:
-		secmark = info->secid;
-		break;
-	default:
-		BUG();
+	switch (mode)
+	{
+		case SECMARK_MODE_SEL:
+			secmark = info->secid;
+			break;
+
+		default:
+			BUG();
 	}
 
 	skb->secmark = secmark;
@@ -57,20 +59,28 @@ static int checkentry_lsm(struct xt_secmark_target_info *info)
 	info->secid = 0;
 
 	err = security_secctx_to_secid(info->secctx, strlen(info->secctx),
-				       &info->secid);
-	if (err) {
+								   &info->secid);
+
+	if (err)
+	{
 		if (err == -EINVAL)
+		{
 			pr_info("invalid security context \'%s\'\n", info->secctx);
+		}
+
 		return err;
 	}
 
-	if (!info->secid) {
+	if (!info->secid)
+	{
 		pr_info("unable to map security context \'%s\'\n", info->secctx);
 		return -ENOENT;
 	}
 
 	err = security_secmark_relabel_packet(info->secid);
-	if (err) {
+
+	if (err)
+	{
 		pr_info("unable to obtain relabeling permission\n");
 		return err;
 	}
@@ -85,44 +95,56 @@ static int secmark_tg_check(const struct xt_tgchk_param *par)
 	int err;
 
 	if (strcmp(par->table, "mangle") != 0 &&
-	    strcmp(par->table, "security") != 0) {
+		strcmp(par->table, "security") != 0)
+	{
 		pr_info("target only valid in the \'mangle\' "
-			"or \'security\' tables, not \'%s\'.\n", par->table);
+				"or \'security\' tables, not \'%s\'.\n", par->table);
 		return -EINVAL;
 	}
 
-	if (mode && mode != info->mode) {
+	if (mode && mode != info->mode)
+	{
 		pr_info("mode already set to %hu cannot mix with "
-			"rules for mode %hu\n", mode, info->mode);
+				"rules for mode %hu\n", mode, info->mode);
 		return -EINVAL;
 	}
 
-	switch (info->mode) {
-	case SECMARK_MODE_SEL:
-		break;
-	default:
-		pr_info("invalid mode: %hu\n", info->mode);
-		return -EINVAL;
+	switch (info->mode)
+	{
+		case SECMARK_MODE_SEL:
+			break;
+
+		default:
+			pr_info("invalid mode: %hu\n", info->mode);
+			return -EINVAL;
 	}
 
 	err = checkentry_lsm(info);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (!mode)
+	{
 		mode = info->mode;
+	}
+
 	return 0;
 }
 
 static void secmark_tg_destroy(const struct xt_tgdtor_param *par)
 {
-	switch (mode) {
-	case SECMARK_MODE_SEL:
-		security_secmark_refcount_dec();
+	switch (mode)
+	{
+		case SECMARK_MODE_SEL:
+			security_secmark_refcount_dec();
 	}
 }
 
-static struct xt_target secmark_tg_reg __read_mostly = {
+static struct xt_target secmark_tg_reg __read_mostly =
+{
 	.name       = "SECMARK",
 	.revision   = 0,
 	.family     = NFPROTO_UNSPEC,

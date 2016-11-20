@@ -14,15 +14,15 @@ int vcc_create(struct net *net, struct socket *sock, int protocol, int family, i
 int vcc_release(struct socket *sock);
 int vcc_connect(struct socket *sock, int itf, short vpi, int vci);
 int vcc_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
-		int flags);
+				int flags);
 int vcc_sendmsg(struct socket *sock, struct msghdr *m, size_t total_len);
 unsigned int vcc_poll(struct file *file, struct socket *sock, poll_table *wait);
 int vcc_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg);
 int vcc_compat_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg);
 int vcc_setsockopt(struct socket *sock, int level, int optname,
-		   char __user *optval, unsigned int optlen);
+				   char __user *optval, unsigned int optlen);
 int vcc_getsockopt(struct socket *sock, int level, int optname,
-		   char __user *optval, int __user *optlen);
+				   char __user *optval, int __user *optlen);
 void vcc_process_recv_queue(struct atm_vcc *vcc);
 
 int atmpvc_init(void);
@@ -48,7 +48,7 @@ static inline void atm_proc_exit(void)
 #endif /* CONFIG_PROC_FS */
 
 /* SVC */
-int svc_change_qos(struct atm_vcc *vcc,struct atm_qos *qos);
+int svc_change_qos(struct atm_vcc *vcc, struct atm_qos *qos);
 
 void atm_dev_release_vccs(struct atm_dev *dev);
 

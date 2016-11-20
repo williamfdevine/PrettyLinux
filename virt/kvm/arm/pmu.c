@@ -36,7 +36,7 @@ u64 kvm_pmu_get_counter_value(struct kvm_vcpu *vcpu, u64 select_idx)
 	struct kvm_pmc *pmc = &pmu->pmc[select_idx];
 
 	reg = (select_idx == ARMV8_PMU_CYCLE_IDX)
-	      ? PMCCNTR_EL0 : PMEVCNTR0_EL0 + select_idx;
+		  ? PMCCNTR_EL0 : PMEVCNTR0_EL0 + select_idx;
 	counter = vcpu_sys_reg(vcpu, reg);
 
 	/* The real counter value is equal to the value of counter register plus
@@ -44,7 +44,7 @@ u64 kvm_pmu_get_counter_value(struct kvm_vcpu *vcpu, u64 select_idx)
 	 */
 	if (pmc->perf_event)
 		counter += perf_event_read_value(pmc->perf_event, &enabled,
-						 &running);
+										 &running);
 
 	return counter & pmc->bitmask;
 }
@@ -60,7 +60,7 @@ void kvm_pmu_set_counter_value(struct kvm_vcpu *vcpu, u64 select_idx, u64 val)
 	u64 reg;
 
 	reg = (select_idx == ARMV8_PMU_CYCLE_IDX)
-	      ? PMCCNTR_EL0 : PMEVCNTR0_EL0 + select_idx;
+		  ? PMCCNTR_EL0 : PMEVCNTR0_EL0 + select_idx;
 	vcpu_sys_reg(vcpu, reg) += (s64)val - kvm_pmu_get_counter_value(vcpu, select_idx);
 }
 
@@ -74,10 +74,11 @@ static void kvm_pmu_stop_counter(struct kvm_vcpu *vcpu, struct kvm_pmc *pmc)
 {
 	u64 counter, reg;
 
-	if (pmc->perf_event) {
+	if (pmc->perf_event)
+	{
 		counter = kvm_pmu_get_counter_value(vcpu, pmc->idx);
 		reg = (pmc->idx == ARMV8_PMU_CYCLE_IDX)
-		       ? PMCCNTR_EL0 : PMEVCNTR0_EL0 + pmc->idx;
+			  ? PMCCNTR_EL0 : PMEVCNTR0_EL0 + pmc->idx;
 		vcpu_sys_reg(vcpu, reg) = counter;
 		perf_event_disable(pmc->perf_event);
 		perf_event_release_kernel(pmc->perf_event);
@@ -95,7 +96,8 @@ void kvm_pmu_vcpu_reset(struct kvm_vcpu *vcpu)
 	int i;
 	struct kvm_pmu *pmu = &vcpu->arch.pmu;
 
-	for (i = 0; i < ARMV8_PMU_MAX_COUNTERS; i++) {
+	for (i = 0; i < ARMV8_PMU_MAX_COUNTERS; i++)
+	{
 		kvm_pmu_stop_counter(vcpu, &pmu->pmc[i]);
 		pmu->pmc[i].idx = i;
 		pmu->pmc[i].bitmask = 0xffffffffUL;
@@ -112,10 +114,12 @@ void kvm_pmu_vcpu_destroy(struct kvm_vcpu *vcpu)
 	int i;
 	struct kvm_pmu *pmu = &vcpu->arch.pmu;
 
-	for (i = 0; i < ARMV8_PMU_MAX_COUNTERS; i++) {
+	for (i = 0; i < ARMV8_PMU_MAX_COUNTERS; i++)
+	{
 		struct kvm_pmc *pmc = &pmu->pmc[i];
 
-		if (pmc->perf_event) {
+		if (pmc->perf_event)
+		{
 			perf_event_disable(pmc->perf_event);
 			perf_event_release_kernel(pmc->perf_event);
 			pmc->perf_event = NULL;
@@ -128,10 +132,15 @@ u64 kvm_pmu_valid_counter_mask(struct kvm_vcpu *vcpu)
 	u64 val = vcpu_sys_reg(vcpu, PMCR_EL0) >> ARMV8_PMU_PMCR_N_SHIFT;
 
 	val &= ARMV8_PMU_PMCR_N_MASK;
+
 	if (val == 0)
+	{
 		return BIT(ARMV8_PMU_CYCLE_IDX);
+	}
 	else
+	{
 		return GENMASK(val - 1, 0) | BIT(ARMV8_PMU_CYCLE_IDX);
+	}
 }
 
 /**
@@ -148,17 +157,27 @@ void kvm_pmu_enable_counter(struct kvm_vcpu *vcpu, u64 val)
 	struct kvm_pmc *pmc;
 
 	if (!(vcpu_sys_reg(vcpu, PMCR_EL0) & ARMV8_PMU_PMCR_E) || !val)
+	{
 		return;
+	}
 
-	for (i = 0; i < ARMV8_PMU_MAX_COUNTERS; i++) {
+	for (i = 0; i < ARMV8_PMU_MAX_COUNTERS; i++)
+	{
 		if (!(val & BIT(i)))
+		{
 			continue;
+		}
 
 		pmc = &pmu->pmc[i];
-		if (pmc->perf_event) {
+
+		if (pmc->perf_event)
+		{
 			perf_event_enable(pmc->perf_event);
+
 			if (pmc->perf_event->state != PERF_EVENT_STATE_ACTIVE)
+			{
 				kvm_debug("fail to enable perf event\n");
+			}
 		}
 	}
 }
@@ -177,15 +196,23 @@ void kvm_pmu_disable_counter(struct kvm_vcpu *vcpu, u64 val)
 	struct kvm_pmc *pmc;
 
 	if (!val)
+	{
 		return;
+	}
 
-	for (i = 0; i < ARMV8_PMU_MAX_COUNTERS; i++) {
+	for (i = 0; i < ARMV8_PMU_MAX_COUNTERS; i++)
+	{
 		if (!(val & BIT(i)))
+		{
 			continue;
+		}
 
 		pmc = &pmu->pmc[i];
+
 		if (pmc->perf_event)
+		{
 			perf_event_disable(pmc->perf_event);
+		}
 	}
 }
 
@@ -193,7 +220,8 @@ static u64 kvm_pmu_overflow_status(struct kvm_vcpu *vcpu)
 {
 	u64 reg = 0;
 
-	if ((vcpu_sys_reg(vcpu, PMCR_EL0) & ARMV8_PMU_PMCR_E)) {
+	if ((vcpu_sys_reg(vcpu, PMCR_EL0) & ARMV8_PMU_PMCR_E))
+	{
 		reg = vcpu_sys_reg(vcpu, PMOVSSET_EL0);
 		reg &= vcpu_sys_reg(vcpu, PMCNTENSET_EL0);
 		reg &= vcpu_sys_reg(vcpu, PMINTENSET_EL1);
@@ -213,12 +241,17 @@ void kvm_pmu_overflow_set(struct kvm_vcpu *vcpu, u64 val)
 	u64 reg;
 
 	if (val == 0)
+	{
 		return;
+	}
 
 	vcpu_sys_reg(vcpu, PMOVSSET_EL0) |= val;
 	reg = kvm_pmu_overflow_status(vcpu);
+
 	if (reg != 0)
+	{
 		kvm_vcpu_kick(vcpu);
+	}
 }
 
 static void kvm_pmu_update_state(struct kvm_vcpu *vcpu)
@@ -227,13 +260,17 @@ static void kvm_pmu_update_state(struct kvm_vcpu *vcpu)
 	bool overflow;
 
 	if (!kvm_arm_pmu_v3_ready(vcpu))
+	{
 		return;
+	}
 
 	overflow = !!kvm_pmu_overflow_status(vcpu);
-	if (pmu->irq_level != overflow) {
+
+	if (pmu->irq_level != overflow)
+	{
 		pmu->irq_level = overflow;
 		kvm_vgic_inject_irq(vcpu->kvm, vcpu->vcpu_id,
-				    pmu->irq_num, overflow);
+							pmu->irq_num, overflow);
 	}
 }
 
@@ -276,8 +313,8 @@ static inline struct kvm_vcpu *kvm_pmc_to_vcpu(struct kvm_pmc *pmc)
  * When perf event overflows, call kvm_pmu_overflow_set to set overflow status.
  */
 static void kvm_pmu_perf_overflow(struct perf_event *perf_event,
-				  struct perf_sample_data *data,
-				  struct pt_regs *regs)
+								  struct perf_sample_data *data,
+								  struct pt_regs *regs)
 {
 	struct kvm_pmc *pmc = perf_event->overflow_handler_context;
 	struct kvm_vcpu *vcpu = kvm_pmc_to_vcpu(pmc);
@@ -297,21 +334,33 @@ void kvm_pmu_software_increment(struct kvm_vcpu *vcpu, u64 val)
 	u64 type, enable, reg;
 
 	if (val == 0)
+	{
 		return;
+	}
 
 	enable = vcpu_sys_reg(vcpu, PMCNTENSET_EL0);
-	for (i = 0; i < ARMV8_PMU_CYCLE_IDX; i++) {
+
+	for (i = 0; i < ARMV8_PMU_CYCLE_IDX; i++)
+	{
 		if (!(val & BIT(i)))
+		{
 			continue;
+		}
+
 		type = vcpu_sys_reg(vcpu, PMEVTYPER0_EL0 + i)
-		       & ARMV8_PMU_EVTYPE_EVENT;
+			   & ARMV8_PMU_EVTYPE_EVENT;
+
 		if ((type == ARMV8_PMU_EVTYPE_EVENT_SW_INCR)
-		    && (enable & BIT(i))) {
+			&& (enable & BIT(i)))
+		{
 			reg = vcpu_sys_reg(vcpu, PMEVCNTR0_EL0 + i) + 1;
 			reg = lower_32_bits(reg);
 			vcpu_sys_reg(vcpu, PMEVCNTR0_EL0 + i) = reg;
+
 			if (!reg)
+			{
 				kvm_pmu_overflow_set(vcpu, BIT(i));
+			}
 		}
 	}
 }
@@ -329,22 +378,32 @@ void kvm_pmu_handle_pmcr(struct kvm_vcpu *vcpu, u64 val)
 	int i;
 
 	mask = kvm_pmu_valid_counter_mask(vcpu);
-	if (val & ARMV8_PMU_PMCR_E) {
+
+	if (val & ARMV8_PMU_PMCR_E)
+	{
 		kvm_pmu_enable_counter(vcpu,
-				vcpu_sys_reg(vcpu, PMCNTENSET_EL0) & mask);
-	} else {
+							   vcpu_sys_reg(vcpu, PMCNTENSET_EL0) & mask);
+	}
+	else
+	{
 		kvm_pmu_disable_counter(vcpu, mask);
 	}
 
 	if (val & ARMV8_PMU_PMCR_C)
+	{
 		kvm_pmu_set_counter_value(vcpu, ARMV8_PMU_CYCLE_IDX, 0);
-
-	if (val & ARMV8_PMU_PMCR_P) {
-		for (i = 0; i < ARMV8_PMU_CYCLE_IDX; i++)
-			kvm_pmu_set_counter_value(vcpu, i, 0);
 	}
 
-	if (val & ARMV8_PMU_PMCR_LC) {
+	if (val & ARMV8_PMU_PMCR_P)
+	{
+		for (i = 0; i < ARMV8_PMU_CYCLE_IDX; i++)
+		{
+			kvm_pmu_set_counter_value(vcpu, i, 0);
+		}
+	}
+
+	if (val & ARMV8_PMU_PMCR_LC)
+	{
 		pmc = &pmu->pmc[ARMV8_PMU_CYCLE_IDX];
 		pmc->bitmask = 0xffffffffffffffffUL;
 	}
@@ -353,7 +412,7 @@ void kvm_pmu_handle_pmcr(struct kvm_vcpu *vcpu, u64 val)
 static bool kvm_pmu_counter_is_enabled(struct kvm_vcpu *vcpu, u64 select_idx)
 {
 	return (vcpu_sys_reg(vcpu, PMCR_EL0) & ARMV8_PMU_PMCR_E) &&
-	       (vcpu_sys_reg(vcpu, PMCNTENSET_EL0) & BIT(select_idx));
+		   (vcpu_sys_reg(vcpu, PMCNTENSET_EL0) & BIT(select_idx));
 }
 
 /**
@@ -367,7 +426,7 @@ static bool kvm_pmu_counter_is_enabled(struct kvm_vcpu *vcpu, u64 select_idx)
  * emulate this action and create a kernel perf event for it.
  */
 void kvm_pmu_set_counter_event_type(struct kvm_vcpu *vcpu, u64 data,
-				    u64 select_idx)
+									u64 select_idx)
 {
 	struct kvm_pmu *pmu = &vcpu->arch.pmu;
 	struct kvm_pmc *pmc = &pmu->pmc[select_idx];
@@ -380,7 +439,9 @@ void kvm_pmu_set_counter_event_type(struct kvm_vcpu *vcpu, u64 data,
 
 	/* Software increment event does't need to be backed by a perf event */
 	if (eventsel == ARMV8_PMU_EVTYPE_EVENT_SW_INCR)
+	{
 		return;
+	}
 
 	memset(&attr, 0, sizeof(struct perf_event_attr));
 	attr.type = PERF_TYPE_RAW;
@@ -398,10 +459,12 @@ void kvm_pmu_set_counter_event_type(struct kvm_vcpu *vcpu, u64 data,
 	attr.sample_period = (-counter) & pmc->bitmask;
 
 	event = perf_event_create_kernel_counter(&attr, -1, current,
-						 kvm_pmu_perf_overflow, pmc);
-	if (IS_ERR(event)) {
+			kvm_pmu_perf_overflow, pmc);
+
+	if (IS_ERR(event))
+	{
 		pr_err_once("kvm: pmu event creation failed %ld\n",
-			    PTR_ERR(event));
+					PTR_ERR(event));
 		return;
 	}
 
@@ -421,7 +484,9 @@ bool kvm_arm_support_pmu_v3(void)
 static int kvm_arm_pmu_v3_init(struct kvm_vcpu *vcpu)
 {
 	if (!kvm_arm_support_pmu_v3())
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * We currently require an in-kernel VGIC to use the PMU emulation,
@@ -429,14 +494,20 @@ static int kvm_arm_pmu_v3_init(struct kvm_vcpu *vcpu)
 	 * userspace yet.
 	 */
 	if (!irqchip_in_kernel(vcpu->kvm) || !vgic_initialized(vcpu->kvm))
+	{
 		return -ENODEV;
+	}
 
 	if (!test_bit(KVM_ARM_VCPU_PMU_V3, vcpu->arch.features) ||
-	    !kvm_arm_pmu_irq_initialized(vcpu))
+		!kvm_arm_pmu_irq_initialized(vcpu))
+	{
 		return -ENXIO;
+	}
 
 	if (kvm_arm_pmu_v3_ready(vcpu))
+	{
 		return -EBUSY;
+	}
 
 	kvm_pmu_vcpu_reset(vcpu);
 	vcpu->arch.pmu.ready = true;
@@ -456,16 +527,26 @@ static bool pmu_irq_is_valid(struct kvm *kvm, int irq)
 	int i;
 	struct kvm_vcpu *vcpu;
 
-	kvm_for_each_vcpu(i, vcpu, kvm) {
+	kvm_for_each_vcpu(i, vcpu, kvm)
+	{
 		if (!kvm_arm_pmu_irq_initialized(vcpu))
+		{
 			continue;
+		}
 
-		if (irq_is_ppi(irq)) {
+		if (irq_is_ppi(irq))
+		{
 			if (vcpu->arch.pmu.irq_num != irq)
+			{
 				return false;
-		} else {
+			}
+		}
+		else
+		{
 			if (vcpu->arch.pmu.irq_num == irq)
+			{
 				return false;
+			}
 		}
 	}
 
@@ -474,33 +555,46 @@ static bool pmu_irq_is_valid(struct kvm *kvm, int irq)
 
 int kvm_arm_pmu_v3_set_attr(struct kvm_vcpu *vcpu, struct kvm_device_attr *attr)
 {
-	switch (attr->attr) {
-	case KVM_ARM_VCPU_PMU_V3_IRQ: {
-		int __user *uaddr = (int __user *)(long)attr->addr;
-		int irq;
+	switch (attr->attr)
+	{
+		case KVM_ARM_VCPU_PMU_V3_IRQ:
+			{
+				int __user *uaddr = (int __user *)(long)attr->addr;
+				int irq;
 
-		if (!test_bit(KVM_ARM_VCPU_PMU_V3, vcpu->arch.features))
-			return -ENODEV;
+				if (!test_bit(KVM_ARM_VCPU_PMU_V3, vcpu->arch.features))
+				{
+					return -ENODEV;
+				}
 
-		if (get_user(irq, uaddr))
-			return -EFAULT;
+				if (get_user(irq, uaddr))
+				{
+					return -EFAULT;
+				}
 
-		/* The PMU overflow interrupt can be a PPI or a valid SPI. */
-		if (!(irq_is_ppi(irq) || vgic_valid_spi(vcpu->kvm, irq)))
-			return -EINVAL;
+				/* The PMU overflow interrupt can be a PPI or a valid SPI. */
+				if (!(irq_is_ppi(irq) || vgic_valid_spi(vcpu->kvm, irq)))
+				{
+					return -EINVAL;
+				}
 
-		if (!pmu_irq_is_valid(vcpu->kvm, irq))
-			return -EINVAL;
+				if (!pmu_irq_is_valid(vcpu->kvm, irq))
+				{
+					return -EINVAL;
+				}
 
-		if (kvm_arm_pmu_irq_initialized(vcpu))
-			return -EBUSY;
+				if (kvm_arm_pmu_irq_initialized(vcpu))
+				{
+					return -EBUSY;
+				}
 
-		kvm_debug("Set kvm ARM PMU irq: %d\n", irq);
-		vcpu->arch.pmu.irq_num = irq;
-		return 0;
-	}
-	case KVM_ARM_VCPU_PMU_V3_INIT:
-		return kvm_arm_pmu_v3_init(vcpu);
+				kvm_debug("Set kvm ARM PMU irq: %d\n", irq);
+				vcpu->arch.pmu.irq_num = irq;
+				return 0;
+			}
+
+		case KVM_ARM_VCPU_PMU_V3_INIT:
+			return kvm_arm_pmu_v3_init(vcpu);
 	}
 
 	return -ENXIO;
@@ -508,20 +602,26 @@ int kvm_arm_pmu_v3_set_attr(struct kvm_vcpu *vcpu, struct kvm_device_attr *attr)
 
 int kvm_arm_pmu_v3_get_attr(struct kvm_vcpu *vcpu, struct kvm_device_attr *attr)
 {
-	switch (attr->attr) {
-	case KVM_ARM_VCPU_PMU_V3_IRQ: {
-		int __user *uaddr = (int __user *)(long)attr->addr;
-		int irq;
+	switch (attr->attr)
+	{
+		case KVM_ARM_VCPU_PMU_V3_IRQ:
+			{
+				int __user *uaddr = (int __user *)(long)attr->addr;
+				int irq;
 
-		if (!test_bit(KVM_ARM_VCPU_PMU_V3, vcpu->arch.features))
-			return -ENODEV;
+				if (!test_bit(KVM_ARM_VCPU_PMU_V3, vcpu->arch.features))
+				{
+					return -ENODEV;
+				}
 
-		if (!kvm_arm_pmu_irq_initialized(vcpu))
-			return -ENXIO;
+				if (!kvm_arm_pmu_irq_initialized(vcpu))
+				{
+					return -ENXIO;
+				}
 
-		irq = vcpu->arch.pmu.irq_num;
-		return put_user(irq, uaddr);
-	}
+				irq = vcpu->arch.pmu.irq_num;
+				return put_user(irq, uaddr);
+			}
 	}
 
 	return -ENXIO;
@@ -529,12 +629,15 @@ int kvm_arm_pmu_v3_get_attr(struct kvm_vcpu *vcpu, struct kvm_device_attr *attr)
 
 int kvm_arm_pmu_v3_has_attr(struct kvm_vcpu *vcpu, struct kvm_device_attr *attr)
 {
-	switch (attr->attr) {
-	case KVM_ARM_VCPU_PMU_V3_IRQ:
-	case KVM_ARM_VCPU_PMU_V3_INIT:
-		if (kvm_arm_support_pmu_v3() &&
-		    test_bit(KVM_ARM_VCPU_PMU_V3, vcpu->arch.features))
-			return 0;
+	switch (attr->attr)
+	{
+		case KVM_ARM_VCPU_PMU_V3_IRQ:
+		case KVM_ARM_VCPU_PMU_V3_INIT:
+			if (kvm_arm_support_pmu_v3() &&
+				test_bit(KVM_ARM_VCPU_PMU_V3, vcpu->arch.features))
+			{
+				return 0;
+			}
 	}
 
 	return -ENXIO;

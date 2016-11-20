@@ -7,23 +7,24 @@
  * default is 16, which is 15 partitions plus the whole disk
  */
 #ifndef AOE_PARTITIONS
-#define AOE_PARTITIONS (16)
+	#define AOE_PARTITIONS (16)
 #endif
 
 #define WHITESPACE " \t\v\f\n,"
 
-enum {
+enum
+{
 	AOECMD_ATA,
 	AOECMD_CFG,
 	AOECMD_VEND_MIN = 0xf0,
 
-	AOEFL_RSP = (1<<3),
-	AOEFL_ERR = (1<<2),
+	AOEFL_RSP = (1 << 3),
+	AOEFL_ERR = (1 << 2),
 
-	AOEAFL_EXT = (1<<6),
-	AOEAFL_DEV = (1<<4),
-	AOEAFL_ASYNC = (1<<1),
-	AOEAFL_WRITE = (1<<0),
+	AOEAFL_EXT = (1 << 6),
+	AOEAFL_DEV = (1 << 4),
+	AOEAFL_ASYNC = (1 << 1),
+	AOEAFL_WRITE = (1 << 0),
 
 	AOECCMD_READ = 0,
 	AOECCMD_TEST,
@@ -34,7 +35,8 @@ enum {
 	AOE_HVER = 0x10,
 };
 
-struct aoe_hdr {
+struct aoe_hdr
+{
 	unsigned char dst[6];
 	unsigned char src[6];
 	__be16 type;
@@ -46,7 +48,8 @@ struct aoe_hdr {
 	__be32 tag;
 };
 
-struct aoe_atahdr {
+struct aoe_atahdr
+{
 	unsigned char aflags;
 	unsigned char errfeat;
 	unsigned char scnt;
@@ -60,7 +63,8 @@ struct aoe_atahdr {
 	unsigned char res[2];
 };
 
-struct aoe_cfghdr {
+struct aoe_cfghdr
+{
 	__be16 bufcnt;
 	__be16 fwver;
 	unsigned char scnt;
@@ -68,19 +72,21 @@ struct aoe_cfghdr {
 	unsigned char cslen[2];
 };
 
-enum {
+enum
+{
 	DEVFL_UP = 1,	/* device is installed in system and ready for AoE->ATA commands */
-	DEVFL_TKILL = (1<<1),	/* flag for timer to know when to kill self */
-	DEVFL_EXT = (1<<2),	/* device accepts lba48 commands */
-	DEVFL_GDALLOC = (1<<3),	/* need to alloc gendisk */
-	DEVFL_GD_NOW = (1<<4),	/* allocating gendisk */
-	DEVFL_KICKME = (1<<5),	/* slow polling network card catch */
-	DEVFL_NEWSIZE = (1<<6),	/* need to update dev size in block layer */
-	DEVFL_FREEING = (1<<7),	/* set when device is being cleaned up */
-	DEVFL_FREED = (1<<8),	/* device has been cleaned up */
+	DEVFL_TKILL = (1 << 1),	/* flag for timer to know when to kill self */
+	DEVFL_EXT = (1 << 2),	/* device accepts lba48 commands */
+	DEVFL_GDALLOC = (1 << 3),	/* need to alloc gendisk */
+	DEVFL_GD_NOW = (1 << 4),	/* allocating gendisk */
+	DEVFL_KICKME = (1 << 5),	/* slow polling network card catch */
+	DEVFL_NEWSIZE = (1 << 6),	/* need to update dev size in block layer */
+	DEVFL_FREEING = (1 << 7),	/* set when device is being cleaned up */
+	DEVFL_FREED = (1 << 8),	/* device has been cleaned up */
 };
 
-enum {
+enum
+{
 	DEFAULTBCNT = 2 * 512,	/* 2 sectors */
 	MIN_BUFS = 16,
 	NTARGETS = 4,
@@ -98,18 +104,21 @@ enum {
 	MAX_TAINT = 1000,	/* cap on aoetgt taint */
 };
 
-struct buf {
+struct buf
+{
 	ulong nframesout;
 	struct bio *bio;
 	struct bvec_iter iter;
 	struct request *rq;
 };
 
-enum frame_flags {
+enum frame_flags
+{
 	FFL_PROBE = 1,
 };
 
-struct frame {
+struct frame
+{
 	struct list_head head;
 	u32 tag;
 	struct timeval sent;	/* high-res time packet was sent */
@@ -124,13 +133,15 @@ struct frame {
 	char flags;
 };
 
-struct aoeif {
+struct aoeif
+{
 	struct net_device *nd;
 	ulong lost;
 	int bcnt;
 };
 
-struct aoetgt {
+struct aoetgt
+{
 	unsigned char addr[6];
 	ushort nframes;		/* cap on frames to use */
 	struct aoedev *d;			/* parent device I belong to */
@@ -148,7 +159,8 @@ struct aoetgt {
 	char nout_probes;
 };
 
-struct aoedev {
+struct aoedev
+{
 	struct aoedev *next;
 	ulong sysminor;
 	ulong aoemajor;
@@ -171,7 +183,8 @@ struct aoedev {
 	spinlock_t lock;
 	struct sk_buff_head skbpool;
 	mempool_t *bufpool;	/* for deadlock-free Buf allocation */
-	struct {		/* pointers to work in progress */
+	struct  		/* pointers to work in progress */
+	{
 		struct buf *buf;
 		struct bio *nxbio;
 		struct request *rq;
@@ -187,7 +200,8 @@ struct aoedev {
 };
 
 /* kthread tracking */
-struct ktstate {
+struct ktstate
+{
 	struct completion rendez;
 	struct task_struct *task;
 	wait_queue_head_t *waitq;

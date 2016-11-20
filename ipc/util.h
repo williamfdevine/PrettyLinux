@@ -47,7 +47,8 @@ static inline void msg_exit_ns(struct ipc_namespace *ns) { }
 static inline void shm_exit_ns(struct ipc_namespace *ns) { }
 #endif
 
-struct ipc_rcu {
+struct ipc_rcu
+{
 	struct rcu_head rcu;
 	atomic_t refcount;
 } ____cacheline_aligned_in_smp;
@@ -58,10 +59,12 @@ struct ipc_rcu {
  * Structure that holds the parameters needed by the ipc operations
  * (see after)
  */
-struct ipc_params {
+struct ipc_params
+{
 	key_t key;
 	int flg;
-	union {
+	union
+	{
 		size_t size;	/* for shared memories */
 		int nsems;	/* for semaphores */
 	} u;			/* holds the getnew() specific param */
@@ -77,7 +80,8 @@ struct ipc_params {
  *        security_shm_associate
  *      . routine to call for an extra check if needed
  */
-struct ipc_ops {
+struct ipc_ops
+{
 	int (*getnew)(struct ipc_namespace *, struct ipc_params *);
 	int (*associate)(struct kern_ipc_perm *, int);
 	int (*more_checks)(struct kern_ipc_perm *, struct ipc_params *);
@@ -89,7 +93,7 @@ struct ipc_ids;
 void ipc_init_ids(struct ipc_ids *);
 #ifdef CONFIG_PROC_FS
 void __init ipc_init_proc_interface(const char *path, const char *header,
-		int ids, int (*show)(struct seq_file *, void *));
+									int ids, int (*show)(struct seq_file *, void *));
 #else
 #define ipc_init_proc_interface(path, header, ids, show) do {} while (0)
 #endif
@@ -138,14 +142,14 @@ void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
 void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
 int ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out);
 struct kern_ipc_perm *ipcctl_pre_down_nolock(struct ipc_namespace *ns,
-					     struct ipc_ids *ids, int id, int cmd,
-					     struct ipc64_perm *perm, int extra_perm);
+		struct ipc_ids *ids, int id, int cmd,
+		struct ipc64_perm *perm, int extra_perm);
 
 #ifndef CONFIG_ARCH_WANT_IPC_PARSE_VERSION
-/* On IA-64, we always use the "64-bit version" of the IPC structures.  */
-# define ipc_parse_version(cmd)	IPC_64
+	/* On IA-64, we always use the "64-bit version" of the IPC structures.  */
+	#define ipc_parse_version(cmd)	IPC_64
 #else
-int ipc_parse_version(int *cmd);
+	int ipc_parse_version(int *cmd);
 #endif
 
 extern void free_msg(struct msg_msg *msg);
@@ -201,7 +205,7 @@ static inline bool ipc_valid_object(struct kern_ipc_perm *perm)
 
 struct kern_ipc_perm *ipc_obtain_object_check(struct ipc_ids *ids, int id);
 int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
-			const struct ipc_ops *ops, struct ipc_params *params);
+		   const struct ipc_ops *ops, struct ipc_params *params);
 void free_ipcs(struct ipc_namespace *ns, struct ipc_ids *ids,
-		void (*free)(struct ipc_namespace *, struct kern_ipc_perm *));
+			   void (*free)(struct ipc_namespace *, struct kern_ipc_perm *));
 #endif

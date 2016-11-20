@@ -23,7 +23,8 @@
 #define QCE_AUTH_BYTECOUNT_REGS_CNT	4
 #define QCE_CNTRIV_REGS_CNT		4
 
-struct qce_result_dump {
+struct qce_result_dump
+{
 	u32 auth_iv[QCE_AUTHIV_REGS_CNT];
 	u32 auth_byte_count[QCE_AUTH_BYTECOUNT_REGS_CNT];
 	u32 encr_cntr_iv[QCE_CNTRIV_REGS_CNT];
@@ -33,9 +34,10 @@ struct qce_result_dump {
 
 #define QCE_IGNORE_BUF_SZ	(2 * QCE_BAM_BURST_SIZE)
 #define QCE_RESULT_BUF_SZ	\
-		ALIGN(sizeof(struct qce_result_dump), QCE_BAM_BURST_SIZE)
+	ALIGN(sizeof(struct qce_result_dump), QCE_BAM_BURST_SIZE)
 
-struct qce_dma_data {
+struct qce_dma_data
+{
 	struct dma_chan *txchan;
 	struct dma_chan *rxchan;
 	struct qce_result_dump *result_buf;
@@ -45,8 +47,8 @@ struct qce_dma_data {
 int qce_dma_request(struct device *dev, struct qce_dma_data *dma);
 void qce_dma_release(struct qce_dma_data *dma);
 int qce_dma_prep_sgs(struct qce_dma_data *dma, struct scatterlist *sg_in,
-		     int in_ents, struct scatterlist *sg_out, int out_ents,
-		     dma_async_tx_callback cb, void *cb_param);
+					 int in_ents, struct scatterlist *sg_out, int out_ents,
+					 dma_async_tx_callback cb, void *cb_param);
 void qce_dma_issue_pending(struct qce_dma_data *dma);
 int qce_dma_terminate_all(struct qce_dma_data *dma);
 struct scatterlist *

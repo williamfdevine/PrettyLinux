@@ -83,7 +83,7 @@ MODULE_PARM_DESC(mpeglines, "number of lines in an MPEG buffer, range 2-32");
 static unsigned int mpeglinesize = 512;
 module_param(mpeglinesize, int, 0644);
 MODULE_PARM_DESC(mpeglinesize,
-	"number of bytes in each line of an MPEG buffer, range 512-1024");
+				 "number of bytes in each line of an MPEG buffer, range 512-1024");
 
 static unsigned int v4l_debug = 1;
 module_param(v4l_debug, int, 0644);
@@ -95,7 +95,8 @@ MODULE_PARM_DESC(v4l_debug, "enable V4L debug messages");
 			printk(KERN_DEBUG pr_fmt(fmt), ## arg); \
 	} while (0)
 
-static struct cx231xx_tvnorm cx231xx_tvnorms[] = {
+static struct cx231xx_tvnorm cx231xx_tvnorms[] =
+{
 	{
 		.name      = "NTSC-M",
 		.id        = V4L2_STD_NTSC_M,
@@ -134,13 +135,15 @@ static struct cx231xx_tvnorm cx231xx_tvnorms[] = {
 
 /* ------------------------------------------------------------------ */
 
-enum cx231xx_capture_type {
+enum cx231xx_capture_type
+{
 	CX231xx_MPEG_CAPTURE,
 	CX231xx_RAW_CAPTURE,
 	CX231xx_RAW_PASSTHRU_CAPTURE
 };
 
-enum cx231xx_capture_bits {
+enum cx231xx_capture_bits
+{
 	CX231xx_RAW_BITS_NONE             = 0x00,
 	CX231xx_RAW_BITS_YUV_CAPTURE      = 0x01,
 	CX231xx_RAW_BITS_PCM_CAPTURE      = 0x02,
@@ -149,40 +152,47 @@ enum cx231xx_capture_bits {
 	CX231xx_RAW_BITS_TO_HOST_CAPTURE  = 0x10
 };
 
-enum cx231xx_capture_end {
+enum cx231xx_capture_end
+{
 	CX231xx_END_AT_GOP, /* stop at the end of gop, generate irq */
 	CX231xx_END_NOW, /* stop immediately, no irq */
 };
 
-enum cx231xx_framerate {
+enum cx231xx_framerate
+{
 	CX231xx_FRAMERATE_NTSC_30, /* NTSC: 30fps */
 	CX231xx_FRAMERATE_PAL_25   /* PAL: 25fps */
 };
 
-enum cx231xx_stream_port {
+enum cx231xx_stream_port
+{
 	CX231xx_OUTPUT_PORT_MEMORY,
 	CX231xx_OUTPUT_PORT_STREAMING,
 	CX231xx_OUTPUT_PORT_SERIAL
 };
 
-enum cx231xx_data_xfer_status {
+enum cx231xx_data_xfer_status
+{
 	CX231xx_MORE_BUFFERS_FOLLOW,
 	CX231xx_LAST_BUFFER,
 };
 
-enum cx231xx_picture_mask {
+enum cx231xx_picture_mask
+{
 	CX231xx_PICTURE_MASK_NONE,
 	CX231xx_PICTURE_MASK_I_FRAMES,
 	CX231xx_PICTURE_MASK_I_P_FRAMES = 0x3,
 	CX231xx_PICTURE_MASK_ALL_FRAMES = 0x7,
 };
 
-enum cx231xx_vbi_mode_bits {
+enum cx231xx_vbi_mode_bits
+{
 	CX231xx_VBI_BITS_SLICED,
 	CX231xx_VBI_BITS_RAW,
 };
 
-enum cx231xx_vbi_insertion_bits {
+enum cx231xx_vbi_insertion_bits
+{
 	CX231xx_VBI_BITS_INSERT_IN_XTENSION_USR_DATA,
 	CX231xx_VBI_BITS_INSERT_IN_PRIVATE_PACKETS = 0x1 << 1,
 	CX231xx_VBI_BITS_SEPARATE_STREAM = 0x2 << 1,
@@ -190,69 +200,82 @@ enum cx231xx_vbi_insertion_bits {
 	CX231xx_VBI_BITS_SEPARATE_STREAM_PRV_DATA = 0x5 << 1,
 };
 
-enum cx231xx_dma_unit {
+enum cx231xx_dma_unit
+{
 	CX231xx_DMA_BYTES,
 	CX231xx_DMA_FRAMES,
 };
 
-enum cx231xx_dma_transfer_status_bits {
+enum cx231xx_dma_transfer_status_bits
+{
 	CX231xx_DMA_TRANSFER_BITS_DONE = 0x01,
 	CX231xx_DMA_TRANSFER_BITS_ERROR = 0x04,
 	CX231xx_DMA_TRANSFER_BITS_LL_ERROR = 0x10,
 };
 
-enum cx231xx_pause {
+enum cx231xx_pause
+{
 	CX231xx_PAUSE_ENCODING,
 	CX231xx_RESUME_ENCODING,
 };
 
-enum cx231xx_copyright {
+enum cx231xx_copyright
+{
 	CX231xx_COPYRIGHT_OFF,
 	CX231xx_COPYRIGHT_ON,
 };
 
-enum cx231xx_notification_type {
+enum cx231xx_notification_type
+{
 	CX231xx_NOTIFICATION_REFRESH,
 };
 
-enum cx231xx_notification_status {
+enum cx231xx_notification_status
+{
 	CX231xx_NOTIFICATION_OFF,
 	CX231xx_NOTIFICATION_ON,
 };
 
-enum cx231xx_notification_mailbox {
+enum cx231xx_notification_mailbox
+{
 	CX231xx_NOTIFICATION_NO_MAILBOX = -1,
 };
 
-enum cx231xx_field1_lines {
+enum cx231xx_field1_lines
+{
 	CX231xx_FIELD1_SAA7114 = 0x00EF, /* 239 */
 	CX231xx_FIELD1_SAA7115 = 0x00F0, /* 240 */
 	CX231xx_FIELD1_MICRONAS = 0x0105, /* 261 */
 };
 
-enum cx231xx_field2_lines {
+enum cx231xx_field2_lines
+{
 	CX231xx_FIELD2_SAA7114 = 0x00EF, /* 239 */
 	CX231xx_FIELD2_SAA7115 = 0x00F0, /* 240 */
 	CX231xx_FIELD2_MICRONAS = 0x0106, /* 262 */
 };
 
-enum cx231xx_custom_data_type {
+enum cx231xx_custom_data_type
+{
 	CX231xx_CUSTOM_EXTENSION_USR_DATA,
 	CX231xx_CUSTOM_PRIVATE_PACKET,
 };
 
-enum cx231xx_mute {
+enum cx231xx_mute
+{
 	CX231xx_UNMUTE,
 	CX231xx_MUTE,
 };
 
-enum cx231xx_mute_video_mask {
+enum cx231xx_mute_video_mask
+{
 	CX231xx_MUTE_VIDEO_V_MASK = 0x0000FF00,
 	CX231xx_MUTE_VIDEO_U_MASK = 0x00FF0000,
 	CX231xx_MUTE_VIDEO_Y_MASK = 0xFF000000,
 };
 
-enum cx231xx_mute_video_shift {
+enum cx231xx_mute_video_shift
+{
 	CX231xx_MUTE_VIDEO_V_SHIFT = 8,
 	CX231xx_MUTE_VIDEO_U_SHIFT = 16,
 	CX231xx_MUTE_VIDEO_Y_SHIFT = 24,
@@ -329,7 +352,7 @@ static int set_itvc_reg(struct cx231xx *dev, u32 gpio_direction, u32 value)
 	_gpio_direction = _gpio_direction & CX23417_GPIO_MASK;
 	_gpio_direction = _gpio_direction | gpio_direction;
 	status = cx231xx_send_gpio_cmd(dev, _gpio_direction,
-			 (u8 *)&value, 4, 0, 0);
+								   (u8 *)&value, 4, 0, 0);
 	return status;
 }
 
@@ -342,7 +365,7 @@ static int get_itvc_reg(struct cx231xx *dev, u32 gpio_direction, u32 *val_ptr)
 	_gpio_direction = _gpio_direction | gpio_direction;
 
 	status = cx231xx_send_gpio_cmd(dev, _gpio_direction,
-		 (u8 *)val_ptr, 4, 0, 1);
+								   (u8 *)val_ptr, 4, 0, 1);
 	return status;
 }
 
@@ -353,16 +376,19 @@ static int wait_for_mci_complete(struct cx231xx *dev)
 	u8 count = 0;
 	get_itvc_reg(dev, gpio_direction, &gpio);
 
-	while (!(gpio&0x020000)) {
+	while (!(gpio & 0x020000))
+	{
 		msleep(10);
 
 		get_itvc_reg(dev, gpio_direction, &gpio);
 
-		if (count++ > 100) {
+		if (count++ > 100)
+		{
 			dprintk(3, "ERROR: Timeout - gpio=%x\n", gpio);
 			return -EIO;
 		}
 	}
+
 	return 0;
 }
 
@@ -374,8 +400,12 @@ static int mc417_register_write(struct cx231xx *dev, u16 address, u32 value)
 	temp = 0x82 | MCI_REGISTER_DATA_BYTE0 | ((value & 0x000000FF) << 8);
 	temp = temp << 10;
 	status = set_itvc_reg(dev, ITVC_WRITE_DIR, temp);
+
 	if (status < 0)
+	{
 		return status;
+	}
+
 	temp = temp | (0x05 << 10);
 	set_itvc_reg(dev, ITVC_WRITE_DIR, temp);
 
@@ -508,8 +538,12 @@ static int mc417_memory_write(struct cx231xx *dev, u32 address, u32 value)
 	temp = 0x82 | MCI_MEMORY_DATA_BYTE0 | ((value & 0x000000FF) << 8);
 	temp = temp << 10;
 	ret = set_itvc_reg(dev, ITVC_WRITE_DIR, temp);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	temp = temp | (0x05 << 10);
 	set_itvc_reg(dev, ITVC_WRITE_DIR, temp);
 
@@ -536,7 +570,7 @@ static int mc417_memory_write(struct cx231xx *dev, u32 address, u32 value)
 
 	/* write address byte 2;*/
 	temp = 0x82 | MCI_MEMORY_ADDRESS_BYTE2 | MCI_MODE_MEMORY_WRITE |
-		((address & 0x003F0000) >> 8);
+		   ((address & 0x003F0000) >> 8);
 	temp = temp << 10;
 	set_itvc_reg(dev, ITVC_WRITE_DIR, temp);
 	temp = temp | (0x05 << 10);
@@ -570,11 +604,15 @@ static int mc417_memory_read(struct cx231xx *dev, u32 address, u32 *value)
 
 	/*write address byte 2;*/
 	temp = 0x82 | MCI_MEMORY_ADDRESS_BYTE2 | MCI_MODE_MEMORY_READ |
-		((address & 0x003F0000) >> 8);
+		   ((address & 0x003F0000) >> 8);
 	temp = temp << 10;
 	ret = set_itvc_reg(dev, ITVC_WRITE_DIR, temp);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	temp = temp | (0x05 << 10);
 	set_itvc_reg(dev, ITVC_WRITE_DIR, temp);
 
@@ -641,94 +679,135 @@ static int mc417_memory_read(struct cx231xx *dev, u32 address, u32 *value)
 /* MPEG encoder API */
 static char *cmd_to_str(int cmd)
 {
-	switch (cmd) {
-	case CX2341X_ENC_PING_FW:
-		return "PING_FW";
-	case CX2341X_ENC_START_CAPTURE:
-		return "START_CAPTURE";
-	case CX2341X_ENC_STOP_CAPTURE:
-		return "STOP_CAPTURE";
-	case CX2341X_ENC_SET_AUDIO_ID:
-		return "SET_AUDIO_ID";
-	case CX2341X_ENC_SET_VIDEO_ID:
-		return "SET_VIDEO_ID";
-	case CX2341X_ENC_SET_PCR_ID:
-		return "SET_PCR_PID";
-	case CX2341X_ENC_SET_FRAME_RATE:
-		return "SET_FRAME_RATE";
-	case CX2341X_ENC_SET_FRAME_SIZE:
-		return "SET_FRAME_SIZE";
-	case CX2341X_ENC_SET_BIT_RATE:
-		return "SET_BIT_RATE";
-	case CX2341X_ENC_SET_GOP_PROPERTIES:
-		return "SET_GOP_PROPERTIES";
-	case CX2341X_ENC_SET_ASPECT_RATIO:
-		return "SET_ASPECT_RATIO";
-	case CX2341X_ENC_SET_DNR_FILTER_MODE:
-		return "SET_DNR_FILTER_PROPS";
-	case CX2341X_ENC_SET_DNR_FILTER_PROPS:
-		return "SET_DNR_FILTER_PROPS";
-	case CX2341X_ENC_SET_CORING_LEVELS:
-		return "SET_CORING_LEVELS";
-	case CX2341X_ENC_SET_SPATIAL_FILTER_TYPE:
-		return "SET_SPATIAL_FILTER_TYPE";
-	case CX2341X_ENC_SET_VBI_LINE:
-		return "SET_VBI_LINE";
-	case CX2341X_ENC_SET_STREAM_TYPE:
-		return "SET_STREAM_TYPE";
-	case CX2341X_ENC_SET_OUTPUT_PORT:
-		return "SET_OUTPUT_PORT";
-	case CX2341X_ENC_SET_AUDIO_PROPERTIES:
-		return "SET_AUDIO_PROPERTIES";
-	case CX2341X_ENC_HALT_FW:
-		return "HALT_FW";
-	case CX2341X_ENC_GET_VERSION:
-		return "GET_VERSION";
-	case CX2341X_ENC_SET_GOP_CLOSURE:
-		return "SET_GOP_CLOSURE";
-	case CX2341X_ENC_GET_SEQ_END:
-		return "GET_SEQ_END";
-	case CX2341X_ENC_SET_PGM_INDEX_INFO:
-		return "SET_PGM_INDEX_INFO";
-	case CX2341X_ENC_SET_VBI_CONFIG:
-		return "SET_VBI_CONFIG";
-	case CX2341X_ENC_SET_DMA_BLOCK_SIZE:
-		return "SET_DMA_BLOCK_SIZE";
-	case CX2341X_ENC_GET_PREV_DMA_INFO_MB_10:
-		return "GET_PREV_DMA_INFO_MB_10";
-	case CX2341X_ENC_GET_PREV_DMA_INFO_MB_9:
-		return "GET_PREV_DMA_INFO_MB_9";
-	case CX2341X_ENC_SCHED_DMA_TO_HOST:
-		return "SCHED_DMA_TO_HOST";
-	case CX2341X_ENC_INITIALIZE_INPUT:
-		return "INITIALIZE_INPUT";
-	case CX2341X_ENC_SET_FRAME_DROP_RATE:
-		return "SET_FRAME_DROP_RATE";
-	case CX2341X_ENC_PAUSE_ENCODER:
-		return "PAUSE_ENCODER";
-	case CX2341X_ENC_REFRESH_INPUT:
-		return "REFRESH_INPUT";
-	case CX2341X_ENC_SET_COPYRIGHT:
-		return "SET_COPYRIGHT";
-	case CX2341X_ENC_SET_EVENT_NOTIFICATION:
-		return "SET_EVENT_NOTIFICATION";
-	case CX2341X_ENC_SET_NUM_VSYNC_LINES:
-		return "SET_NUM_VSYNC_LINES";
-	case CX2341X_ENC_SET_PLACEHOLDER:
-		return "SET_PLACEHOLDER";
-	case CX2341X_ENC_MUTE_VIDEO:
-		return "MUTE_VIDEO";
-	case CX2341X_ENC_MUTE_AUDIO:
-		return "MUTE_AUDIO";
-	case CX2341X_ENC_MISC:
-		return "MISC";
-	default:
-		return "UNKNOWN";
+	switch (cmd)
+	{
+		case CX2341X_ENC_PING_FW:
+			return "PING_FW";
+
+		case CX2341X_ENC_START_CAPTURE:
+			return "START_CAPTURE";
+
+		case CX2341X_ENC_STOP_CAPTURE:
+			return "STOP_CAPTURE";
+
+		case CX2341X_ENC_SET_AUDIO_ID:
+			return "SET_AUDIO_ID";
+
+		case CX2341X_ENC_SET_VIDEO_ID:
+			return "SET_VIDEO_ID";
+
+		case CX2341X_ENC_SET_PCR_ID:
+			return "SET_PCR_PID";
+
+		case CX2341X_ENC_SET_FRAME_RATE:
+			return "SET_FRAME_RATE";
+
+		case CX2341X_ENC_SET_FRAME_SIZE:
+			return "SET_FRAME_SIZE";
+
+		case CX2341X_ENC_SET_BIT_RATE:
+			return "SET_BIT_RATE";
+
+		case CX2341X_ENC_SET_GOP_PROPERTIES:
+			return "SET_GOP_PROPERTIES";
+
+		case CX2341X_ENC_SET_ASPECT_RATIO:
+			return "SET_ASPECT_RATIO";
+
+		case CX2341X_ENC_SET_DNR_FILTER_MODE:
+			return "SET_DNR_FILTER_PROPS";
+
+		case CX2341X_ENC_SET_DNR_FILTER_PROPS:
+			return "SET_DNR_FILTER_PROPS";
+
+		case CX2341X_ENC_SET_CORING_LEVELS:
+			return "SET_CORING_LEVELS";
+
+		case CX2341X_ENC_SET_SPATIAL_FILTER_TYPE:
+			return "SET_SPATIAL_FILTER_TYPE";
+
+		case CX2341X_ENC_SET_VBI_LINE:
+			return "SET_VBI_LINE";
+
+		case CX2341X_ENC_SET_STREAM_TYPE:
+			return "SET_STREAM_TYPE";
+
+		case CX2341X_ENC_SET_OUTPUT_PORT:
+			return "SET_OUTPUT_PORT";
+
+		case CX2341X_ENC_SET_AUDIO_PROPERTIES:
+			return "SET_AUDIO_PROPERTIES";
+
+		case CX2341X_ENC_HALT_FW:
+			return "HALT_FW";
+
+		case CX2341X_ENC_GET_VERSION:
+			return "GET_VERSION";
+
+		case CX2341X_ENC_SET_GOP_CLOSURE:
+			return "SET_GOP_CLOSURE";
+
+		case CX2341X_ENC_GET_SEQ_END:
+			return "GET_SEQ_END";
+
+		case CX2341X_ENC_SET_PGM_INDEX_INFO:
+			return "SET_PGM_INDEX_INFO";
+
+		case CX2341X_ENC_SET_VBI_CONFIG:
+			return "SET_VBI_CONFIG";
+
+		case CX2341X_ENC_SET_DMA_BLOCK_SIZE:
+			return "SET_DMA_BLOCK_SIZE";
+
+		case CX2341X_ENC_GET_PREV_DMA_INFO_MB_10:
+			return "GET_PREV_DMA_INFO_MB_10";
+
+		case CX2341X_ENC_GET_PREV_DMA_INFO_MB_9:
+			return "GET_PREV_DMA_INFO_MB_9";
+
+		case CX2341X_ENC_SCHED_DMA_TO_HOST:
+			return "SCHED_DMA_TO_HOST";
+
+		case CX2341X_ENC_INITIALIZE_INPUT:
+			return "INITIALIZE_INPUT";
+
+		case CX2341X_ENC_SET_FRAME_DROP_RATE:
+			return "SET_FRAME_DROP_RATE";
+
+		case CX2341X_ENC_PAUSE_ENCODER:
+			return "PAUSE_ENCODER";
+
+		case CX2341X_ENC_REFRESH_INPUT:
+			return "REFRESH_INPUT";
+
+		case CX2341X_ENC_SET_COPYRIGHT:
+			return "SET_COPYRIGHT";
+
+		case CX2341X_ENC_SET_EVENT_NOTIFICATION:
+			return "SET_EVENT_NOTIFICATION";
+
+		case CX2341X_ENC_SET_NUM_VSYNC_LINES:
+			return "SET_NUM_VSYNC_LINES";
+
+		case CX2341X_ENC_SET_PLACEHOLDER:
+			return "SET_PLACEHOLDER";
+
+		case CX2341X_ENC_MUTE_VIDEO:
+			return "MUTE_VIDEO";
+
+		case CX2341X_ENC_MUTE_AUDIO:
+			return "MUTE_AUDIO";
+
+		case CX2341X_ENC_MISC:
+			return "MISC";
+
+		default:
+			return "UNKNOWN";
 	}
 }
 
 static int cx231xx_mbox_func(void *priv, u32 command, int in, int out,
-			     u32 data[CX2341X_MBOX_MAX_DATA])
+							 u32 data[CX2341X_MBOX_MAX_DATA])
 {
 	struct cx231xx *dev = priv;
 	unsigned long timeout;
@@ -736,14 +815,16 @@ static int cx231xx_mbox_func(void *priv, u32 command, int in, int out,
 	int i;
 
 	dprintk(3, "%s: command(0x%X) = %s\n", __func__, command,
-		cmd_to_str(command));
+			cmd_to_str(command));
 
 	/* this may not be 100% safe if we can't read any memory location
 	   without side effects */
 	mc417_memory_read(dev, dev->cx23417_mailbox - 4, &value);
-	if (value != 0x12345678) {
+
+	if (value != 0x12345678)
+	{
 		dprintk(3, "Firmware and/or mailbox pointer not initialized or corrupted, signature = 0x%x, cmd = %s\n",
-			value, cmd_to_str(command));
+				value, cmd_to_str(command));
 		return -EIO;
 	}
 
@@ -751,7 +832,9 @@ static int cx231xx_mbox_func(void *priv, u32 command, int in, int out,
 	 * Seems we also bail if CMD or TIMEOUT bytes are set???
 	 */
 	mc417_memory_read(dev, dev->cx23417_mailbox, &flag);
-	if (flag) {
+
+	if (flag)
+	{
 		dprintk(3, "ERROR: Mailbox appears to be in use (%x), cmd = %s\n",
 				flag, cmd_to_str(command));
 		return -EBUSY;
@@ -764,32 +847,46 @@ static int cx231xx_mbox_func(void *priv, u32 command, int in, int out,
 	/* command code */
 	mc417_memory_write(dev, dev->cx23417_mailbox + 1, command);
 	mc417_memory_write(dev, dev->cx23417_mailbox + 3,
-		IVTV_API_STD_TIMEOUT); /* timeout */
-	for (i = 0; i < in; i++) {
+					   IVTV_API_STD_TIMEOUT); /* timeout */
+
+	for (i = 0; i < in; i++)
+	{
 		mc417_memory_write(dev, dev->cx23417_mailbox + 4 + i, data[i]);
 		dprintk(3, "API Input %d = %d\n", i, data[i]);
 	}
+
 	for (; i < CX2341X_MBOX_MAX_DATA; i++)
+	{
 		mc417_memory_write(dev, dev->cx23417_mailbox + 4 + i, 0);
+	}
 
 	flag |= 3; /* tell 'em we're done writing */
 	mc417_memory_write(dev, dev->cx23417_mailbox, flag);
 
 	/* wait for firmware to handle the API command */
 	timeout = jiffies + msecs_to_jiffies(10);
-	for (;;) {
+
+	for (;;)
+	{
 		mc417_memory_read(dev, dev->cx23417_mailbox, &flag);
+
 		if (0 != (flag & 4))
+		{
 			break;
-		if (time_after(jiffies, timeout)) {
+		}
+
+		if (time_after(jiffies, timeout))
+		{
 			dprintk(3, "ERROR: API Mailbox timeout\n");
 			return -EIO;
 		}
+
 		udelay(10);
 	}
 
 	/* read output values */
-	for (i = 0; i < out; i++) {
+	for (i = 0; i < out; i++)
+	{
 		mc417_memory_read(dev, dev->cx23417_mailbox + 4 + i, data + i);
 		dprintk(3, "API Output %d = %d\n", i, data[i]);
 	}
@@ -807,7 +904,7 @@ static int cx231xx_mbox_func(void *priv, u32 command, int in, int out,
  * mailbox will probably suffice
  */
 static int cx231xx_api_cmd(struct cx231xx *dev, u32 command,
-		u32 inputcnt, u32 outputcnt, ...)
+						   u32 inputcnt, u32 outputcnt, ...)
 {
 	u32 data[CX2341X_MBOX_MAX_DATA];
 	va_list vargs;
@@ -816,14 +913,20 @@ static int cx231xx_api_cmd(struct cx231xx *dev, u32 command,
 	dprintk(3, "%s() cmds = 0x%08x\n", __func__, command);
 
 	va_start(vargs, outputcnt);
+
 	for (i = 0; i < inputcnt; i++)
+	{
 		data[i] = va_arg(vargs, int);
+	}
 
 	err = cx231xx_mbox_func(dev, command, inputcnt, outputcnt, data);
-	for (i = 0; i < outputcnt; i++) {
+
+	for (i = 0; i < outputcnt; i++)
+	{
 		int *vptr = va_arg(vargs, int *);
 		*vptr = data[i];
 	}
+
 	va_end(vargs);
 
 	return err;
@@ -832,7 +935,8 @@ static int cx231xx_api_cmd(struct cx231xx *dev, u32 command,
 
 static int cx231xx_find_mailbox(struct cx231xx *dev)
 {
-	u32 signature[4] = {
+	u32 signature[4] =
+	{
 		0x12345678, 0x34567812, 0x56781234, 0x78123456
 	};
 	int signaturecnt = 0;
@@ -842,25 +946,37 @@ static int cx231xx_find_mailbox(struct cx231xx *dev)
 
 	dprintk(2, "%s()\n", __func__);
 
-	for (i = 0; i < 0x100; i++) {/*CX231xx_FIRM_IMAGE_SIZE*/
+	for (i = 0; i < 0x100; i++)  /*CX231xx_FIRM_IMAGE_SIZE*/
+	{
 		ret = mc417_memory_read(dev, i, &value);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		if (value == signature[signaturecnt])
+		{
 			signaturecnt++;
+		}
 		else
+		{
 			signaturecnt = 0;
-		if (4 == signaturecnt) {
+		}
+
+		if (4 == signaturecnt)
+		{
 			dprintk(1, "Mailbox signature found at 0x%x\n", i + 1);
 			return i + 1;
 		}
 	}
+
 	dprintk(3, "Mailbox signature values not found!\n");
 	return -EIO;
 }
 
 static void mci_write_memory_to_gpio(struct cx231xx *dev, u32 address, u32 value,
-		u32 *p_fw_image)
+									 u32 *p_fw_image)
 {
 	u32 temp = 0;
 	int i = 0;
@@ -902,7 +1018,7 @@ static void mci_write_memory_to_gpio(struct cx231xx *dev, u32 address, u32 value
 
 	/* write address byte 2;*/
 	temp = 0x82 | MCI_MEMORY_ADDRESS_BYTE2 | MCI_MODE_MEMORY_WRITE |
-		((address & 0x003F0000) >> 8);
+		   ((address & 0x003F0000) >> 8);
 	temp = temp << 10;
 	*p_fw_image = temp;
 	p_fw_image++;
@@ -928,7 +1044,8 @@ static void mci_write_memory_to_gpio(struct cx231xx *dev, u32 address, u32 value
 	*p_fw_image = temp;
 	p_fw_image++;
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		*p_fw_image = 0xFFFFFFFF;
 		p_fw_image++;
 	}
@@ -937,7 +1054,8 @@ static void mci_write_memory_to_gpio(struct cx231xx *dev, u32 address, u32 value
 
 static int cx231xx_load_firmware(struct cx231xx *dev)
 {
-	static const unsigned char magic[8] = {
+	static const unsigned char magic[8] =
+	{
 		0xa7, 0x0d, 0x00, 0x00, 0x66, 0xbb, 0x55, 0xaa
 	};
 	const struct firmware *firmware;
@@ -958,13 +1076,17 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
 
 	p_current_fw = vmalloc(1884180 * 4);
 	p_fw = p_current_fw;
-	if (p_current_fw == NULL) {
+
+	if (p_current_fw == NULL)
+	{
 		dprintk(2, "FAIL!!!\n");
 		return -ENOMEM;
 	}
 
 	p_buffer = vmalloc(4096);
-	if (p_buffer == NULL) {
+
+	if (p_buffer == NULL)
+	{
 		dprintk(2, "FAIL!!!\n");
 		vfree(p_current_fw);
 		return -ENOMEM;
@@ -977,51 +1099,55 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
 	retval |= mc417_memory_read(dev, 0x900C, &value);
 
 	retval  = mc417_register_write(dev,
-		IVTV_REG_VPU, 0xFFFFFFED);
+								   IVTV_REG_VPU, 0xFFFFFFED);
 	retval |= mc417_register_write(dev,
-		IVTV_REG_HW_BLOCKS, IVTV_CMD_HW_BLOCKS_RST);
+								   IVTV_REG_HW_BLOCKS, IVTV_CMD_HW_BLOCKS_RST);
 	retval |= mc417_register_write(dev,
-		IVTV_REG_ENC_SDRAM_REFRESH, 0x80000800);
+								   IVTV_REG_ENC_SDRAM_REFRESH, 0x80000800);
 	retval |= mc417_register_write(dev,
-		IVTV_REG_ENC_SDRAM_PRECHARGE, 0x1A);
+								   IVTV_REG_ENC_SDRAM_PRECHARGE, 0x1A);
 	retval |= mc417_register_write(dev,
-		IVTV_REG_APU, 0);
+								   IVTV_REG_APU, 0);
 
-	if (retval != 0) {
+	if (retval != 0)
+	{
 		dev_err(dev->dev,
-			"%s: Error with mc417_register_write\n", __func__);
+				"%s: Error with mc417_register_write\n", __func__);
 		vfree(p_current_fw);
 		vfree(p_buffer);
 		return retval;
 	}
 
 	retval = request_firmware(&firmware, CX231xx_FIRM_IMAGE_NAME,
-				  dev->dev);
+							  dev->dev);
 
-	if (retval != 0) {
+	if (retval != 0)
+	{
 		dev_err(dev->dev,
-			"ERROR: Hotplug firmware request failed (%s).\n",
-			CX231xx_FIRM_IMAGE_NAME);
+				"ERROR: Hotplug firmware request failed (%s).\n",
+				CX231xx_FIRM_IMAGE_NAME);
 		dev_err(dev->dev,
-			"Please fix your hotplug setup, the board will not work without firmware loaded!\n");
+				"Please fix your hotplug setup, the board will not work without firmware loaded!\n");
 		vfree(p_current_fw);
 		vfree(p_buffer);
 		return retval;
 	}
 
-	if (firmware->size != CX231xx_FIRM_IMAGE_SIZE) {
+	if (firmware->size != CX231xx_FIRM_IMAGE_SIZE)
+	{
 		dev_err(dev->dev,
-			"ERROR: Firmware size mismatch (have %zd, expected %d)\n",
-			firmware->size, CX231xx_FIRM_IMAGE_SIZE);
+				"ERROR: Firmware size mismatch (have %zd, expected %d)\n",
+				firmware->size, CX231xx_FIRM_IMAGE_SIZE);
 		release_firmware(firmware);
 		vfree(p_current_fw);
 		vfree(p_buffer);
 		return -EINVAL;
 	}
 
-	if (0 != memcmp(firmware->data, magic, 8)) {
+	if (0 != memcmp(firmware->data, magic, 8))
+	{
 		dev_err(dev->dev,
-			"ERROR: Firmware magic mismatch, wrong file?\n");
+				"ERROR: Firmware magic mismatch, wrong file?\n");
 		release_firmware(firmware);
 		vfree(p_current_fw);
 		vfree(p_buffer);
@@ -1034,8 +1160,10 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
 	dprintk(2, "Loading firmware to GPIO...\n");
 	p_fw_data = (u32 *)firmware->data;
 	dprintk(2, "firmware->size=%zd\n", firmware->size);
+
 	for (transfer_size = 0; transfer_size < firmware->size;
-		 transfer_size += 4) {
+		 transfer_size += 4)
+	{
 		fw_data = *p_fw_data;
 
 		mci_write_memory_to_gpio(dev, address, fw_data, p_current_fw);
@@ -1046,9 +1174,11 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
 
 	/*download the firmware by ep5-out*/
 
-	for (frame = 0; frame < (int)(CX231xx_FIRM_IMAGE_SIZE*20/_buffer_size);
-	     frame++) {
-		for (i = 0; i < _buffer_size; i++) {
+	for (frame = 0; frame < (int)(CX231xx_FIRM_IMAGE_SIZE * 20 / _buffer_size);
+		 frame++)
+	{
+		for (i = 0; i < _buffer_size; i++)
+		{
 			*(p_buffer + i) = (u8)(*(p_fw + (frame * 128 * 8 + (i / 4))) & 0x000000FF);
 			i++;
 			*(p_buffer + i) = (u8)((*(p_fw + (frame * 128 * 8 + (i / 4))) & 0x0000FF00) >> 8);
@@ -1057,6 +1187,7 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
 			i++;
 			*(p_buffer + i) = (u8)((*(p_fw + (frame * 128 * 8 + (i / 4))) & 0xFF000000) >> 24);
 		}
+
 		cx231xx_ep5_bulkout(dev, p_buffer, _buffer_size);
 	}
 
@@ -1068,13 +1199,16 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
 	dprintk(1, "Firmware upload successful.\n");
 
 	retval |= mc417_register_write(dev, IVTV_REG_HW_BLOCKS,
-		IVTV_CMD_HW_BLOCKS_RST);
-	if (retval < 0) {
+								   IVTV_CMD_HW_BLOCKS_RST);
+
+	if (retval < 0)
+	{
 		dev_err(dev->dev,
-			"%s: Error with mc417_register_write\n",
-			__func__);
+				"%s: Error with mc417_register_write\n",
+				__func__);
 		return retval;
 	}
+
 	/* F/W power up disturbs the GPIOs, restore state */
 	retval |= mc417_register_write(dev, 0x9020, gpio_output);
 	retval |= mc417_register_write(dev, 0x900C, value);
@@ -1082,12 +1216,14 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
 	retval |= mc417_register_read(dev, IVTV_REG_VPU, &value);
 	retval |= mc417_register_write(dev, IVTV_REG_VPU, value & 0xFFFFFFE8);
 
-	if (retval < 0) {
+	if (retval < 0)
+	{
 		dev_err(dev->dev,
-			"%s: Error with mc417_register_write\n",
-			__func__);
+				"%s: Error with mc417_register_write\n",
+				__func__);
 		return retval;
 	}
+
 	return 0;
 }
 
@@ -1107,7 +1243,7 @@ static void cx231xx_codec_settings(struct cx231xx *dev)
 
 	/* assign frame size */
 	cx231xx_api_cmd(dev, CX2341X_ENC_SET_FRAME_SIZE, 2, 0,
-				dev->ts1.height, dev->ts1.width);
+					dev->ts1.height, dev->ts1.width);
 
 	dev->mpeg_ctrl_handler.width = dev->ts1.width;
 	dev->mpeg_ctrl_handler.height = dev->ts1.height;
@@ -1128,44 +1264,62 @@ static int cx231xx_initialize_codec(struct cx231xx *dev)
 	dprintk(1, "%s()\n", __func__);
 	cx231xx_disable656(dev);
 	retval = cx231xx_api_cmd(dev, CX2341X_ENC_PING_FW, 0, 0); /* ping */
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		dprintk(2, "%s: PING OK\n", __func__);
 		retval = cx231xx_load_firmware(dev);
-		if (retval < 0) {
+
+		if (retval < 0)
+		{
 			dev_err(dev->dev,
-				"%s: f/w load failed\n", __func__);
+					"%s: f/w load failed\n", __func__);
 			return retval;
 		}
+
 		retval = cx231xx_find_mailbox(dev);
-		if (retval < 0) {
+
+		if (retval < 0)
+		{
 			dev_err(dev->dev, "%s: mailbox < 0, error\n",
-				__func__);
+					__func__);
 			return retval;
 		}
+
 		dev->cx23417_mailbox = retval;
 		retval = cx231xx_api_cmd(dev, CX2341X_ENC_PING_FW, 0, 0);
-		if (retval < 0) {
+
+		if (retval < 0)
+		{
 			dev_err(dev->dev,
-				"ERROR: cx23417 firmware ping failed!\n");
+					"ERROR: cx23417 firmware ping failed!\n");
 			return retval;
 		}
+
 		retval = cx231xx_api_cmd(dev, CX2341X_ENC_GET_VERSION, 0, 1,
-			&version);
-		if (retval < 0) {
+								 &version);
+
+		if (retval < 0)
+		{
 			dev_err(dev->dev,
-				"ERROR: cx23417 firmware get encoder: version failed!\n");
+					"ERROR: cx23417 firmware get encoder: version failed!\n");
 			return retval;
 		}
+
 		dprintk(1, "cx23417 firmware version is 0x%08x\n", version);
 		msleep(200);
 	}
 
-	for (i = 0; i < 1; i++) {
+	for (i = 0; i < 1; i++)
+	{
 		retval = mc417_register_read(dev, 0x20f8, &val);
 		dprintk(3, "***before enable656() VIM Capture Lines = %d ***\n",
-				 val);
+				val);
+
 		if (retval < 0)
+		{
 			return retval;
+		}
 	}
 
 	cx231xx_enable656(dev);
@@ -1176,12 +1330,12 @@ static int cx231xx_initialize_codec(struct cx231xx *dev)
 	cx231xx_codec_settings(dev);
 	msleep(60);
 
-/*	cx231xx_api_cmd(dev, CX2341X_ENC_SET_NUM_VSYNC_LINES, 2, 0,
-		CX231xx_FIELD1_SAA7115, CX231xx_FIELD2_SAA7115);
-	cx231xx_api_cmd(dev, CX2341X_ENC_SET_PLACEHOLDER, 12, 0,
-		CX231xx_CUSTOM_EXTENSION_USR_DATA, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0);
-*/
+	/*	cx231xx_api_cmd(dev, CX2341X_ENC_SET_NUM_VSYNC_LINES, 2, 0,
+			CX231xx_FIELD1_SAA7115, CX231xx_FIELD2_SAA7115);
+		cx231xx_api_cmd(dev, CX2341X_ENC_SET_PLACEHOLDER, 12, 0,
+			CX231xx_CUSTOM_EXTENSION_USR_DATA, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0);
+	*/
 
 #if 0
 	/* TODO */
@@ -1197,25 +1351,31 @@ static int cx231xx_initialize_codec(struct cx231xx *dev)
 	data[6] = 64;         /* BPL */
 
 	cx231xx_api_cmd(dev, CX2341X_ENC_SET_VBI_CONFIG, 7, 0, data[0], data[1],
-		data[2], data[3], data[4], data[5], data[6]);
+					data[2], data[3], data[4], data[5], data[6]);
 
-	for (i = 2; i <= 24; i++) {
+	for (i = 2; i <= 24; i++)
+	{
 		int valid;
 
 		valid = ((i >= 19) && (i <= 21));
 		cx231xx_api_cmd(dev, CX2341X_ENC_SET_VBI_LINE, 5, 0, i,
-				valid, 0 , 0, 0);
+						valid, 0 , 0, 0);
 		cx231xx_api_cmd(dev, CX2341X_ENC_SET_VBI_LINE, 5, 0,
-				i | 0x80000000, valid, 0, 0, 0);
+						i | 0x80000000, valid, 0, 0, 0);
 	}
+
 #endif
-/*	cx231xx_api_cmd(dev, CX2341X_ENC_MUTE_AUDIO, 1, 0, CX231xx_UNMUTE);
-	msleep(60);
-*/
+	/*	cx231xx_api_cmd(dev, CX2341X_ENC_MUTE_AUDIO, 1, 0, CX231xx_UNMUTE);
+		msleep(60);
+	*/
 	/* initialize the video input */
 	retval = cx231xx_api_cmd(dev, CX2341X_ENC_INITIALIZE_INPUT, 0, 0);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
+
 	msleep(60);
 
 	/* Enable VIP style pixel invalidation so we work with scaled mode */
@@ -1223,12 +1383,17 @@ static int cx231xx_initialize_codec(struct cx231xx *dev)
 
 	/* start capturing to the host interface */
 	retval = cx231xx_api_cmd(dev, CX2341X_ENC_START_CAPTURE, 2, 0,
-		CX231xx_MPEG_CAPTURE, CX231xx_RAW_BITS_NONE);
+							 CX231xx_MPEG_CAPTURE, CX231xx_RAW_BITS_NONE);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
+
 	msleep(10);
 
-	for (i = 0; i < 1; i++) {
+	for (i = 0; i < 1; i++)
+	{
 		mc417_register_read(dev, 0x20f8, &val);
 		dprintk(3, "***VIM Capture Lines =%d ***\n", val);
 	}
@@ -1239,7 +1404,7 @@ static int cx231xx_initialize_codec(struct cx231xx *dev)
 /* ------------------------------------------------------------------ */
 
 static int bb_buf_setup(struct videobuf_queue *q,
-	unsigned int *count, unsigned int *size)
+						unsigned int *count, unsigned int *size)
 {
 	struct cx231xx_fh *fh = q->priv_data;
 
@@ -1261,13 +1426,22 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
 	BUG_ON(in_interrupt());
 
 	spin_lock_irqsave(&dev->video_mode.slock, flags);
-	if (dev->USE_ISO) {
+
+	if (dev->USE_ISO)
+	{
 		if (dev->video_mode.isoc_ctl.buf == buf)
+		{
 			dev->video_mode.isoc_ctl.buf = NULL;
-	} else {
-		if (dev->video_mode.bulk_ctl.buf == buf)
-			dev->video_mode.bulk_ctl.buf = NULL;
+		}
 	}
+	else
+	{
+		if (dev->video_mode.bulk_ctl.buf == buf)
+		{
+			dev->video_mode.bulk_ctl.buf = NULL;
+		}
+	}
+
 	spin_unlock_irqrestore(&dev->video_mode.slock, flags);
 	videobuf_waiton(vq, &buf->vb, 0, 0);
 	videobuf_vmalloc_free(&buf->vb);
@@ -1275,47 +1449,56 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
 }
 
 static void buffer_copy(struct cx231xx *dev, char *data, int len, struct urb *urb,
-		struct cx231xx_dmaqueue *dma_q)
+						struct cx231xx_dmaqueue *dma_q)
 {
 	void *vbuf;
 	struct cx231xx_buffer *buf;
 	u32 tail_data = 0;
 	char *p_data;
 
-	if (dma_q->mpeg_buffer_done == 0) {
+	if (dma_q->mpeg_buffer_done == 0)
+	{
 		if (list_empty(&dma_q->active))
+		{
 			return;
+		}
 
 		buf = list_entry(dma_q->active.next,
-				struct cx231xx_buffer, vb.queue);
+						 struct cx231xx_buffer, vb.queue);
 		dev->video_mode.isoc_ctl.buf = buf;
 		dma_q->mpeg_buffer_done = 1;
 	}
+
 	/* Fill buffer */
 	buf = dev->video_mode.isoc_ctl.buf;
 	vbuf = videobuf_to_vmalloc(&buf->vb);
 
-	if ((dma_q->mpeg_buffer_completed+len) <
-			mpeglines*mpeglinesize) {
+	if ((dma_q->mpeg_buffer_completed + len) <
+		mpeglines * mpeglinesize)
+	{
 		if (dma_q->add_ps_package_head ==
-				CX231XX_NEED_ADD_PS_PACKAGE_HEAD) {
-			memcpy(vbuf+dma_q->mpeg_buffer_completed,
-					dma_q->ps_head, 3);
+			CX231XX_NEED_ADD_PS_PACKAGE_HEAD)
+		{
+			memcpy(vbuf + dma_q->mpeg_buffer_completed,
+				   dma_q->ps_head, 3);
 			dma_q->mpeg_buffer_completed =
 				dma_q->mpeg_buffer_completed + 3;
 			dma_q->add_ps_package_head =
 				CX231XX_NONEED_PS_PACKAGE_HEAD;
 		}
-		memcpy(vbuf+dma_q->mpeg_buffer_completed, data, len);
+
+		memcpy(vbuf + dma_q->mpeg_buffer_completed, data, len);
 		dma_q->mpeg_buffer_completed =
 			dma_q->mpeg_buffer_completed + len;
-	} else {
+	}
+	else
+	{
 		dma_q->mpeg_buffer_done = 0;
 
 		tail_data =
-			mpeglines*mpeglinesize - dma_q->mpeg_buffer_completed;
-		memcpy(vbuf+dma_q->mpeg_buffer_completed,
-				data, tail_data);
+			mpeglines * mpeglinesize - dma_q->mpeg_buffer_completed;
+		memcpy(vbuf + dma_q->mpeg_buffer_completed,
+			   data, tail_data);
 
 		buf->vb.state = VIDEOBUF_DONE;
 		buf->vb.field_count++;
@@ -1324,26 +1507,29 @@ static void buffer_copy(struct cx231xx *dev, char *data, int len, struct urb *ur
 		wake_up(&buf->vb.done);
 		dma_q->mpeg_buffer_completed = 0;
 
-		if (len - tail_data > 0) {
+		if (len - tail_data > 0)
+		{
 			p_data = data + tail_data;
 			dma_q->left_data_count = len - tail_data;
 			memcpy(dma_q->p_left_data,
-					p_data, len - tail_data);
+				   p_data, len - tail_data);
 		}
 	}
 }
 
 static void buffer_filled(char *data, int len, struct urb *urb,
-		struct cx231xx_dmaqueue *dma_q)
+						  struct cx231xx_dmaqueue *dma_q)
 {
 	void *vbuf;
 	struct cx231xx_buffer *buf;
 
 	if (list_empty(&dma_q->active))
+	{
 		return;
+	}
 
 	buf = list_entry(dma_q->active.next,
-			struct cx231xx_buffer, vb.queue);
+					 struct cx231xx_buffer, vb.queue);
 
 	/* Fill buffer */
 	vbuf = videobuf_to_vmalloc(&buf->vb);
@@ -1362,20 +1548,24 @@ static int cx231xx_isoc_copy(struct cx231xx *dev, struct urb *urb)
 	u32 buffer_size = 0;
 	u32 i = 0;
 
-	for (i = 0; i < urb->number_of_packets; i++) {
-		if (dma_q->left_data_count > 0) {
+	for (i = 0; i < urb->number_of_packets; i++)
+	{
+		if (dma_q->left_data_count > 0)
+		{
 			buffer_copy(dev, dma_q->p_left_data,
-				    dma_q->left_data_count, urb, dma_q);
+						dma_q->left_data_count, urb, dma_q);
 			dma_q->mpeg_buffer_completed = dma_q->left_data_count;
 			dma_q->left_data_count = 0;
 		}
 
 		p_buffer = urb->transfer_buffer +
-				urb->iso_frame_desc[i].offset;
+				   urb->iso_frame_desc[i].offset;
 		buffer_size = urb->iso_frame_desc[i].actual_length;
 
 		if (buffer_size > 0)
+		{
 			buffer_copy(dev, p_buffer, buffer_size, urb, dma_q);
+		}
 	}
 
 	return 0;
@@ -1391,12 +1581,15 @@ static int cx231xx_bulk_copy(struct cx231xx *dev, struct urb *urb)
 	buffer_size = urb->actual_length;
 
 	buffer = kmalloc(buffer_size, GFP_ATOMIC);
+
 	if (!buffer)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(buffer, dma_q->ps_head, 3);
-	memcpy(buffer+3, p_buffer, buffer_size-3);
-	memcpy(dma_q->ps_head, p_buffer+buffer_size-3, 3);
+	memcpy(buffer + 3, p_buffer, buffer_size - 3);
+	memcpy(dma_q->ps_head, p_buffer + buffer_size - 3, 3);
 
 	p_buffer = buffer;
 	buffer_filled(p_buffer, buffer_size, urb, dma_q);
@@ -1406,58 +1599,81 @@ static int cx231xx_bulk_copy(struct cx231xx *dev, struct urb *urb)
 }
 
 static int bb_buf_prepare(struct videobuf_queue *q,
-	struct videobuf_buffer *vb, enum v4l2_field field)
+						  struct videobuf_buffer *vb, enum v4l2_field field)
 {
 	struct cx231xx_fh *fh = q->priv_data;
 	struct cx231xx_buffer *buf =
-	    container_of(vb, struct cx231xx_buffer, vb);
+		container_of(vb, struct cx231xx_buffer, vb);
 	struct cx231xx *dev = fh->dev;
 	int rc = 0, urb_init = 0;
 	int size = fh->dev->ts1.ts_packet_size * fh->dev->ts1.ts_packet_count;
 
 	if (0 != buf->vb.baddr  &&  buf->vb.bsize < size)
+	{
 		return -EINVAL;
+	}
+
 	buf->vb.width = fh->dev->ts1.ts_packet_size;
 	buf->vb.height = fh->dev->ts1.ts_packet_count;
 	buf->vb.size = size;
 	buf->vb.field = field;
 
-	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
+	if (VIDEOBUF_NEEDS_INIT == buf->vb.state)
+	{
 		rc = videobuf_iolock(q, &buf->vb, NULL);
+
 		if (rc < 0)
+		{
 			goto fail;
+		}
 	}
 
-	if (dev->USE_ISO) {
+	if (dev->USE_ISO)
+	{
 		if (!dev->video_mode.isoc_ctl.num_bufs)
+		{
 			urb_init = 1;
-	} else {
-		if (!dev->video_mode.bulk_ctl.num_bufs)
-			urb_init = 1;
+		}
 	}
+	else
+	{
+		if (!dev->video_mode.bulk_ctl.num_bufs)
+		{
+			urb_init = 1;
+		}
+	}
+
 	dev_dbg(dev->dev,
-		"urb_init=%d dev->video_mode.max_pkt_size=%d\n",
-		urb_init, dev->video_mode.max_pkt_size);
+			"urb_init=%d dev->video_mode.max_pkt_size=%d\n",
+			urb_init, dev->video_mode.max_pkt_size);
 	dev->mode_tv = 1;
 
-	if (urb_init) {
+	if (urb_init)
+	{
 		rc = cx231xx_set_mode(dev, CX231XX_DIGITAL_MODE);
 		rc = cx231xx_unmute_audio(dev);
-		if (dev->USE_ISO) {
+
+		if (dev->USE_ISO)
+		{
 			cx231xx_set_alt_setting(dev, INDEX_TS1, 4);
 			rc = cx231xx_init_isoc(dev, mpeglines,
-				       mpegbufs,
-				       dev->ts1_mode.max_pkt_size,
-				       cx231xx_isoc_copy);
-		} else {
+								   mpegbufs,
+								   dev->ts1_mode.max_pkt_size,
+								   cx231xx_isoc_copy);
+		}
+		else
+		{
 			cx231xx_set_alt_setting(dev, INDEX_TS1, 0);
 			rc = cx231xx_init_bulk(dev, mpeglines,
-				       mpegbufs,
-				       dev->ts1_mode.max_pkt_size,
-				       cx231xx_bulk_copy);
+								   mpegbufs,
+								   dev->ts1_mode.max_pkt_size,
+								   cx231xx_bulk_copy);
 		}
+
 		if (rc < 0)
+		{
 			goto fail;
+		}
 	}
 
 	buf->vb.state = VIDEOBUF_PREPARED;
@@ -1469,12 +1685,12 @@ fail:
 }
 
 static void bb_buf_queue(struct videobuf_queue *q,
-	struct videobuf_buffer *vb)
+						 struct videobuf_buffer *vb)
 {
 	struct cx231xx_fh *fh = q->priv_data;
 
 	struct cx231xx_buffer *buf =
-	    container_of(vb, struct cx231xx_buffer, vb);
+		container_of(vb, struct cx231xx_buffer, vb);
 	struct cx231xx *dev = fh->dev;
 	struct cx231xx_dmaqueue *vidq = &dev->video_mode.vidq;
 
@@ -1484,17 +1700,18 @@ static void bb_buf_queue(struct videobuf_queue *q,
 }
 
 static void bb_buf_release(struct videobuf_queue *q,
-	struct videobuf_buffer *vb)
+						   struct videobuf_buffer *vb)
 {
 	struct cx231xx_buffer *buf =
-	    container_of(vb, struct cx231xx_buffer, vb);
+		container_of(vb, struct cx231xx_buffer, vb);
 	/*struct cx231xx_fh *fh = q->priv_data;*/
 	/*struct cx231xx *dev = (struct cx231xx *)fh->dev;*/
 
 	free_buffer(q, buf);
 }
 
-static struct videobuf_queue_ops cx231xx_qops = {
+static struct videobuf_queue_ops cx231xx_qops =
+{
 	.buf_setup    = bb_buf_setup,
 	.buf_prepare  = bb_buf_prepare,
 	.buf_queue    = bb_buf_queue,
@@ -1504,14 +1721,16 @@ static struct videobuf_queue_ops cx231xx_qops = {
 /* ------------------------------------------------------------------ */
 
 static int vidioc_cropcap(struct file *file, void *priv,
-			  struct v4l2_cropcap *cc)
+						  struct v4l2_cropcap *cc)
 {
 	struct cx231xx_fh *fh = priv;
 	struct cx231xx *dev = fh->dev;
 	bool is_50hz = dev->encodernorm.id & V4L2_STD_625_50;
 
 	if (cc->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+	{
 		return -EINVAL;
+	}
 
 	cc->bounds.left = 0;
 	cc->bounds.top = 0;
@@ -1541,22 +1760,32 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
 
 	for (i = 0; i < ARRAY_SIZE(cx231xx_tvnorms); i++)
 		if (id & cx231xx_tvnorms[i].id)
+		{
 			break;
+		}
+
 	if (i == ARRAY_SIZE(cx231xx_tvnorms))
+	{
 		return -EINVAL;
+	}
+
 	dev->encodernorm = cx231xx_tvnorms[i];
 
-	if (dev->encodernorm.id & 0xb000) {
+	if (dev->encodernorm.id & 0xb000)
+	{
 		dprintk(3, "encodernorm set to NTSC\n");
 		dev->norm = V4L2_STD_NTSC;
 		dev->ts1.height = 480;
 		cx2341x_handler_set_50hz(&dev->mpeg_ctrl_handler, false);
-	} else {
+	}
+	else
+	{
 		dprintk(3, "encodernorm set to PAL\n");
 		dev->norm = V4L2_STD_PAL_B;
 		dev->ts1.height = 576;
 		cx2341x_handler_set_50hz(&dev->mpeg_ctrl_handler, true);
 	}
+
 	call_all(dev, video, s_std, dev->norm);
 	/* do mode control overrides */
 	cx231xx_do_mode_ctrl_overrides(dev);
@@ -1566,7 +1795,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
 }
 
 static int vidioc_s_ctrl(struct file *file, void *priv,
-				struct v4l2_control *ctl)
+						 struct v4l2_control *ctl)
 {
 	struct cx231xx_fh  *fh  = file->private_data;
 	struct cx231xx *dev = fh->dev;
@@ -1575,16 +1804,18 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
 	dprintk(3, "enter vidioc_s_ctrl()\n");
 	/* Update the A/V core */
 	v4l2_device_for_each_subdev(sd, &dev->v4l2_dev)
-		v4l2_s_ctrl(NULL, sd->ctrl_handler, ctl);
+	v4l2_s_ctrl(NULL, sd->ctrl_handler, ctl);
 	dprintk(3, "exit vidioc_s_ctrl()\n");
 	return 0;
 }
 
 static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
-					struct v4l2_fmtdesc *f)
+								   struct v4l2_fmtdesc *f)
 {
 	if (f->index != 0)
+	{
 		return -EINVAL;
+	}
 
 	strlcpy(f->description, "MPEG", sizeof(f->description));
 	f->pixelformat = V4L2_PIX_FMT_MPEG;
@@ -1593,7 +1824,7 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
 }
 
 static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-				struct v4l2_format *f)
+								struct v4l2_format *f)
 {
 	struct cx231xx_fh  *fh  = file->private_data;
 	struct cx231xx *dev = fh->dev;
@@ -1607,13 +1838,13 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
 	f->fmt.pix.height = dev->ts1.height;
 	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
 	dprintk(1, "VIDIOC_G_FMT: w: %d, h: %d\n",
-		dev->ts1.width, dev->ts1.height);
+			dev->ts1.width, dev->ts1.height);
 	dprintk(3, "exit vidioc_g_fmt_vid_cap()\n");
 	return 0;
 }
 
 static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-				struct v4l2_format *f)
+								  struct v4l2_format *f)
 {
 	struct cx231xx_fh  *fh  = file->private_data;
 	struct cx231xx *dev = fh->dev;
@@ -1625,13 +1856,13 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
 	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
 	dprintk(1, "VIDIOC_TRY_FMT: w: %d, h: %d\n",
-		dev->ts1.width, dev->ts1.height);
+			dev->ts1.width, dev->ts1.height);
 	dprintk(3, "exit vidioc_try_fmt_vid_cap()\n");
 	return 0;
 }
 
 static int vidioc_reqbufs(struct file *file, void *priv,
-				struct v4l2_requestbuffers *p)
+						  struct v4l2_requestbuffers *p)
 {
 	struct cx231xx_fh  *fh  = file->private_data;
 
@@ -1639,7 +1870,7 @@ static int vidioc_reqbufs(struct file *file, void *priv,
 }
 
 static int vidioc_querybuf(struct file *file, void *priv,
-				struct v4l2_buffer *p)
+						   struct v4l2_buffer *p)
 {
 	struct cx231xx_fh  *fh  = file->private_data;
 
@@ -1647,7 +1878,7 @@ static int vidioc_querybuf(struct file *file, void *priv,
 }
 
 static int vidioc_qbuf(struct file *file, void *priv,
-				struct v4l2_buffer *p)
+					   struct v4l2_buffer *p)
 {
 	struct cx231xx_fh  *fh  = file->private_data;
 
@@ -1663,7 +1894,7 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b)
 
 
 static int vidioc_streamon(struct file *file, void *priv,
-				enum v4l2_buf_type i)
+						   enum v4l2_buf_type i)
 {
 	struct cx231xx_fh  *fh  = file->private_data;
 	struct cx231xx *dev = fh->dev;
@@ -1671,17 +1902,20 @@ static int vidioc_streamon(struct file *file, void *priv,
 	dprintk(3, "enter vidioc_streamon()\n");
 	cx231xx_set_alt_setting(dev, INDEX_TS1, 0);
 	cx231xx_set_mode(dev, CX231XX_DIGITAL_MODE);
+
 	if (dev->USE_ISO)
 		cx231xx_init_isoc(dev, CX231XX_NUM_PACKETS,
-				CX231XX_NUM_BUFS,
-				dev->video_mode.max_pkt_size,
-				cx231xx_isoc_copy);
-	else {
+						  CX231XX_NUM_BUFS,
+						  dev->video_mode.max_pkt_size,
+						  cx231xx_isoc_copy);
+	else
+	{
 		cx231xx_init_bulk(dev, 320,
-				5,
-				dev->ts1_mode.max_pkt_size,
-				cx231xx_bulk_copy);
+						  5,
+						  dev->ts1_mode.max_pkt_size,
+						  cx231xx_bulk_copy);
 	}
+
 	dprintk(3, "exit vidioc_streamon()\n");
 	return videobuf_streamon(&fh->vidq);
 }
@@ -1711,11 +1945,15 @@ static int mpeg_open(struct file *file)
 	dprintk(2, "%s()\n", __func__);
 
 	if (mutex_lock_interruptible(&dev->lock))
+	{
 		return -ERESTARTSYS;
+	}
 
 	/* allocate + initialize per filehandle data */
 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
-	if (NULL == fh) {
+
+	if (NULL == fh)
+	{
 		mutex_unlock(&dev->lock);
 		return -ENOMEM;
 	}
@@ -1726,17 +1964,17 @@ static int mpeg_open(struct file *file)
 
 
 	videobuf_queue_vmalloc_init(&fh->vidq, &cx231xx_qops,
-			    NULL, &dev->video_mode.slock,
-			    V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_INTERLACED,
-			    sizeof(struct cx231xx_buffer), fh, &dev->lock);
-/*
-	videobuf_queue_sg_init(&fh->vidq, &cx231xx_qops,
-			    dev->dev, &dev->ts1.slock,
-			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
-			    V4L2_FIELD_INTERLACED,
-			    sizeof(struct cx231xx_buffer),
-			    fh, &dev->lock);
-*/
+								NULL, &dev->video_mode.slock,
+								V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_INTERLACED,
+								sizeof(struct cx231xx_buffer), fh, &dev->lock);
+	/*
+		videobuf_queue_sg_init(&fh->vidq, &cx231xx_qops,
+				    dev->dev, &dev->ts1.slock,
+				    V4L2_BUF_TYPE_VIDEO_CAPTURE,
+				    V4L2_FIELD_INTERLACED,
+				    sizeof(struct cx231xx_buffer),
+				    fh, &dev->lock);
+	*/
 
 	cx231xx_set_alt_setting(dev, INDEX_VANC, 1);
 	cx231xx_set_gpio_value(dev, 2, 0);
@@ -1763,19 +2001,26 @@ static int mpeg_release(struct file *file)
 
 	/* do this before setting alternate! */
 	if (dev->USE_ISO)
+	{
 		cx231xx_uninit_isoc(dev);
+	}
 	else
+	{
 		cx231xx_uninit_bulk(dev);
+	}
+
 	cx231xx_set_mode(dev, CX231XX_SUSPEND);
 
 	cx231xx_api_cmd(fh->dev, CX2341X_ENC_STOP_CAPTURE, 3, 0,
-			CX231xx_END_NOW, CX231xx_MPEG_CAPTURE,
-			CX231xx_RAW_BITS_NONE);
+					CX231xx_END_NOW, CX231xx_MPEG_CAPTURE,
+					CX231xx_RAW_BITS_NONE);
 
 	/* FIXME: Review this crap */
 	/* Shut device down on last close */
-	if (atomic_cmpxchg(&fh->v4l_reading, 1, 0) == 1) {
-		if (atomic_dec_return(&dev->v4l_reader_count) == 0) {
+	if (atomic_cmpxchg(&fh->v4l_reading, 1, 0) == 1)
+	{
+		if (atomic_dec_return(&dev->v4l_reader_count) == 0)
+		{
 			/* stop mpeg capture */
 
 			msleep(500);
@@ -1785,9 +2030,14 @@ static int mpeg_release(struct file *file)
 	}
 
 	if (fh->vidq.streaming)
+	{
 		videobuf_streamoff(&fh->vidq);
+	}
+
 	if (fh->vidq.reading)
+	{
 		videobuf_read_stop(&fh->vidq);
+	}
 
 	videobuf_mmap_free(&fh->vidq);
 	v4l2_fh_del(&fh->fh);
@@ -1798,26 +2048,30 @@ static int mpeg_release(struct file *file)
 }
 
 static ssize_t mpeg_read(struct file *file, char __user *data,
-	size_t count, loff_t *ppos)
+						 size_t count, loff_t *ppos)
 {
 	struct cx231xx_fh *fh = file->private_data;
 	struct cx231xx *dev = fh->dev;
 
 	/* Deal w/ A/V decoder * and mpeg encoder sync issues. */
 	/* Start mpeg encoder on first read. */
-	if (atomic_cmpxchg(&fh->v4l_reading, 0, 1) == 0) {
-		if (atomic_inc_return(&dev->v4l_reader_count) == 1) {
+	if (atomic_cmpxchg(&fh->v4l_reading, 0, 1) == 0)
+	{
+		if (atomic_inc_return(&dev->v4l_reader_count) == 1)
+		{
 			if (cx231xx_initialize_codec(dev) < 0)
+			{
 				return -EINVAL;
+			}
 		}
 	}
 
 	return videobuf_read_stream(&fh->vidq, data, count, ppos, 0,
-				    file->f_flags & O_NONBLOCK);
+								file->f_flags & O_NONBLOCK);
 }
 
 static unsigned int mpeg_poll(struct file *file,
-	struct poll_table_struct *wait)
+							  struct poll_table_struct *wait)
 {
 	unsigned long req_events = poll_requested_events(wait);
 	struct cx231xx_fh *fh = file->private_data;
@@ -1825,12 +2079,18 @@ static unsigned int mpeg_poll(struct file *file,
 	unsigned int res = 0;
 
 	if (v4l2_event_pending(&fh->fh))
+	{
 		res |= POLLPRI;
+	}
 	else
+	{
 		poll_wait(file, &fh->fh.wait, wait);
+	}
 
 	if (!(req_events & (POLLIN | POLLRDNORM)))
+	{
 		return res;
+	}
 
 	mutex_lock(&dev->lock);
 	res |= videobuf_poll_stream(file, &fh->vidq, wait);
@@ -1847,7 +2107,8 @@ static int mpeg_mmap(struct file *file, struct vm_area_struct *vma)
 	return videobuf_mmap_mapper(&fh->vidq, vma);
 }
 
-static struct v4l2_file_operations mpeg_fops = {
+static struct v4l2_file_operations mpeg_fops =
+{
 	.owner	       = THIS_MODULE,
 	.open	       = mpeg_open,
 	.release       = mpeg_release,
@@ -1857,7 +2118,8 @@ static struct v4l2_file_operations mpeg_fops = {
 	.unlocked_ioctl = video_ioctl2,
 };
 
-static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+static const struct v4l2_ioctl_ops mpeg_ioctl_ops =
+{
 	.vidioc_s_std		 = vidioc_s_std,
 	.vidioc_g_std		 = vidioc_g_std,
 	.vidioc_g_tuner          = cx231xx_g_tuner,
@@ -1889,7 +2151,8 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
 };
 
-static struct video_device cx231xx_mpeg_template = {
+static struct video_device cx231xx_mpeg_template =
+{
 	.name          = "cx231xx",
 	.fops          = &mpeg_fops,
 	.ioctl_ops     = &mpeg_ioctl_ops,
@@ -1902,7 +2165,8 @@ void cx231xx_417_unregister(struct cx231xx *dev)
 	dprintk(1, "%s()\n", __func__);
 	dprintk(3, "%s()\n", __func__);
 
-	if (video_is_registered(&dev->v4l_device)) {
+	if (video_is_registered(&dev->v4l_device))
+	{
 		video_unregister_device(&dev->v4l_device);
 		v4l2_ctrl_handler_free(&dev->mpeg_ctrl_handler.hdl);
 	}
@@ -1912,7 +2176,8 @@ static int cx231xx_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
 {
 	struct cx231xx *dev = container_of(cxhdl, struct cx231xx, mpeg_ctrl_handler);
 	int is_mpeg1 = val == V4L2_MPEG_VIDEO_ENCODING_MPEG_1;
-	struct v4l2_subdev_format format = {
+	struct v4l2_subdev_format format =
+	{
 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
 	};
 
@@ -1932,11 +2197,15 @@ static int cx231xx_s_audio_sampling_freq(struct cx2341x_handler *cxhdl, u32 idx)
 	/* The audio clock of the digitizer must match the codec sample
 	   rate otherwise you get some very strange effects. */
 	if (idx < ARRAY_SIZE(freqs))
+	{
 		call_all(dev, audio, s_clock_freq, freqs[idx]);
+	}
+
 	return 0;
 }
 
-static const struct cx2341x_handler_ops cx231xx_ops = {
+static const struct cx2341x_handler_ops cx231xx_ops =
+{
 	/* needed for the video clock freq */
 	.s_audio_sampling_freq = cx231xx_s_audio_sampling_freq,
 	/* needed for setting up the video resolution */
@@ -1953,14 +2222,16 @@ static void cx231xx_video_dev_init(
 	dprintk(1, "%s()\n", __func__);
 	*vfd = *template;
 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)", dev->name,
-		type, cx231xx_boards[dev->model].name);
+			 type, cx231xx_boards[dev->model].name);
 
 	vfd->v4l2_dev = &dev->v4l2_dev;
 	vfd->lock = &dev->lock;
 	vfd->release = video_device_release_empty;
 	vfd->ctrl_handler = &dev->mpeg_ctrl_handler.hdl;
 	video_set_drvdata(vfd, dev);
-	if (dev->tuner_type == TUNER_ABSENT) {
+
+	if (dev->tuner_type == TUNER_ABSENT)
+	{
 		v4l2_disable_ioctl(vfd, VIDIOC_G_FREQUENCY);
 		v4l2_disable_ioctl(vfd, VIDIOC_S_FREQUENCY);
 		v4l2_disable_ioctl(vfd, VIDIOC_G_TUNER);
@@ -1980,28 +2251,39 @@ int cx231xx_417_register(struct cx231xx *dev)
 	dev->encodernorm = cx231xx_tvnorms[0];
 
 	if (dev->encodernorm.id & V4L2_STD_525_60)
+	{
 		tsport->height = 480;
+	}
 	else
+	{
 		tsport->height = 576;
+	}
 
 	tsport->width = 720;
 	err = cx2341x_handler_init(&dev->mpeg_ctrl_handler, 50);
-	if (err) {
+
+	if (err)
+	{
 		dprintk(3, "%s: can't init cx2341x controls\n", dev->name);
 		return err;
 	}
+
 	dev->mpeg_ctrl_handler.func = cx231xx_mbox_func;
 	dev->mpeg_ctrl_handler.priv = dev;
 	dev->mpeg_ctrl_handler.ops = &cx231xx_ops;
+
 	if (dev->sd_cx25840)
 		v4l2_ctrl_add_handler(&dev->mpeg_ctrl_handler.hdl,
-				dev->sd_cx25840->ctrl_handler, NULL);
-	if (dev->mpeg_ctrl_handler.hdl.error) {
+							  dev->sd_cx25840->ctrl_handler, NULL);
+
+	if (dev->mpeg_ctrl_handler.hdl.error)
+	{
 		err = dev->mpeg_ctrl_handler.hdl.error;
 		dprintk(3, "%s: can't add cx25840 controls\n", dev->name);
 		v4l2_ctrl_handler_free(&dev->mpeg_ctrl_handler.hdl);
 		return err;
 	}
+
 	dev->norm = V4L2_STD_NTSC;
 
 	dev->mpeg_ctrl_handler.port = CX2341X_PORT_SERIAL;
@@ -2009,17 +2291,19 @@ int cx231xx_417_register(struct cx231xx *dev)
 
 	/* Allocate and initialize V4L video device */
 	cx231xx_video_dev_init(dev, dev->udev,
-			&dev->v4l_device, &cx231xx_mpeg_template, "mpeg");
+						   &dev->v4l_device, &cx231xx_mpeg_template, "mpeg");
 	err = video_register_device(&dev->v4l_device,
-		VFL_TYPE_GRABBER, -1);
-	if (err < 0) {
+								VFL_TYPE_GRABBER, -1);
+
+	if (err < 0)
+	{
 		dprintk(3, "%s: can't register mpeg device\n", dev->name);
 		v4l2_ctrl_handler_free(&dev->mpeg_ctrl_handler.hdl);
 		return err;
 	}
 
 	dprintk(3, "%s: registered device video%d [mpeg]\n",
-	       dev->name, dev->v4l_device.num);
+			dev->name, dev->v4l_device.num);
 
 	return 0;
 }

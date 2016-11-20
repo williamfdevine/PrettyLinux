@@ -27,7 +27,8 @@
 
 #define CMDBUFF_ALIGN_SZ 512
 
-struct cmd_obj {
+struct cmd_obj
+{
 	struct adapter *padapter;
 	u16	cmdcode;
 	u8	res;
@@ -38,7 +39,8 @@ struct cmd_obj {
 	struct list_head list;
 };
 
-struct cmd_priv {
+struct cmd_priv
+{
 	struct completion cmd_queue_comp;
 	struct completion terminate_cmdthread_comp;
 	struct __queue cmd_queue;
@@ -47,14 +49,14 @@ struct cmd_priv {
 };
 
 #define init_h2fwcmd_w_parm_no_rsp(pcmd, pparm, code) \
-do {\
-	INIT_LIST_HEAD(&pcmd->list);\
-	pcmd->cmdcode = code;\
-	pcmd->parmbuf = (u8 *)(pparm);\
-	pcmd->cmdsz = sizeof(*pparm);\
-	pcmd->rsp = NULL;\
-	pcmd->rspsz = 0;\
-} while (0)
+	do {\
+		INIT_LIST_HEAD(&pcmd->list);\
+		pcmd->cmdcode = code;\
+		pcmd->parmbuf = (u8 *)(pparm);\
+		pcmd->cmdsz = sizeof(*pparm);\
+		pcmd->rsp = NULL;\
+		pcmd->rspsz = 0;\
+	} while (0)
 
 u32 rtw_enqueue_cmd(struct cmd_priv *pcmdpriv, struct cmd_obj *obj);
 struct cmd_obj *rtw_dequeue_cmd(struct __queue *queue);
@@ -64,7 +66,8 @@ int rtw_cmd_thread(void *context);
 
 int rtw_init_cmd_priv(struct cmd_priv *pcmdpriv);
 
-enum rtw_drvextra_cmd_id {
+enum rtw_drvextra_cmd_id
+{
 	NONE_WK_CID,
 	DYNAMIC_CHK_WK_CID,
 	DM_CTRL_WK_CID,
@@ -81,7 +84,8 @@ enum rtw_drvextra_cmd_id {
 	MAX_WK_CID
 };
 
-enum LPS_CTRL_TYPE {
+enum LPS_CTRL_TYPE
+{
 	LPS_CTRL_SCAN = 0,
 	LPS_CTRL_JOINBSS = 1,
 	LPS_CTRL_CONNECT = 2,
@@ -90,7 +94,8 @@ enum LPS_CTRL_TYPE {
 	LPS_CTRL_LEAVE = 5,
 };
 
-enum RFINTFS {
+enum RFINTFS
+{
 	SWSI,
 	HWSI,
 	HWPI,
@@ -104,11 +109,13 @@ Notes: To disconnect the current associated BSS
 Command Mode
 
 */
-struct disconnect_parm {
+struct disconnect_parm
+{
 	u32 deauth_timeout_ms;
 };
 
-struct	setopmode_parm {
+struct	setopmode_parm
+{
 	u8	mode;
 	u8	rsvd[3];
 };
@@ -124,7 +131,8 @@ Command-Event Mode
 
 #define RTW_SSID_SCAN_AMOUNT 9 /*  for WEXT_CSCAN_AMOUNT 9 */
 #define RTW_CHANNEL_SCAN_AMOUNT (14+37)
-struct sitesurvey_parm {
+struct sitesurvey_parm
+{
 	int scan_mode;	/* active: 1, passive: 0 */
 	u8 ssid_num;
 	u8 ch_num;
@@ -140,7 +148,8 @@ Notes: To set the auth type of RTL8711. open/shared/802.1x
 Command Mode
 
 */
-struct setauth_parm {
+struct setauth_parm
+{
 	u8 mode;  /* 0: legacy open, 1: legacy shared 2: 802.1x */
 	u8 _1x;   /* 0: PSK, 1: TLS */
 	u8 rsvd[2];
@@ -158,7 +167,8 @@ when 802.1x ==> keyid [0:1] ==> grp key
 when 802.1x ==> keyid > 2 ==> unicast key
 
 */
-struct setkey_parm {
+struct setkey_parm
+{
 	u8	algorithm;	/* could be none, wep40, TKIP, CCMP, wep104 */
 	u8	keyid;
 	u8	grpkey;		/* 1: this is the grpkey for 802.1x.
@@ -176,7 +186,8 @@ Command
 when shared key ==> algorithm/keyid
 
 */
-struct set_stakey_parm {
+struct set_stakey_parm
+{
 	u8	addr[ETH_ALEN];
 	u8	algorithm;
 	u8	id;/* currently for erasing cam entry if
@@ -184,7 +195,8 @@ struct set_stakey_parm {
 	u8	key[16];
 };
 
-struct set_stakey_rsp {
+struct set_stakey_rsp
+{
 	u8	addr[ETH_ALEN];
 	u8	keyid;
 	u8	rsvd;
@@ -200,11 +212,13 @@ This is to force fw to add an sta_data entry per driver's request.
 FW will write an cam entry associated with it.
 
 */
-struct set_assocsta_parm {
+struct set_assocsta_parm
+{
 	u8	addr[ETH_ALEN];
 };
 
-struct set_assocsta_rsp {
+struct set_assocsta_rsp
+{
 	u8	cam_id;
 	u8	rsvd[3];
 };
@@ -261,26 +275,30 @@ struct set_assocsta_rsp {
 */
 
 /*  CMD param Format for driver extra cmd handler */
-struct drvextra_cmd_parm {
+struct drvextra_cmd_parm
+{
 	int ec_id; /* extra cmd id */
 	int type_size; /*  Can use this field as the type id or command size */
 	unsigned char *pbuf;
 };
 
-struct addBaReq_parm {
+struct addBaReq_parm
+{
 	unsigned int tid;
 	u8	addr[ETH_ALEN];
 };
 
 /*H2C Handler index: 46 */
-struct set_ch_parm {
+struct set_ch_parm
+{
 	u8 ch;
 	u8 bw;
 	u8 ch_offset;
 };
 
 /*H2C Handler index: 59 */
-struct SetChannelPlan_param {
+struct SetChannelPlan_param
+{
 	u8 channel_plan;
 };
 
@@ -302,17 +320,17 @@ Result:
 #define H2C_REJECTED		0x05
 
 u8 rtw_sitesurvey_cmd(struct adapter *padapter, struct ndis_802_11_ssid *ssid,
-		      int ssid_num, struct rtw_ieee80211_channel *ch,
-		      int ch_num);
+					  int ssid_num, struct rtw_ieee80211_channel *ch,
+					  int ch_num);
 u8 rtw_createbss_cmd(struct adapter *padapter);
 u8 rtw_setstakey_cmd(struct adapter *padapter, u8 *psta, u8 unicast_key);
 u8 rtw_clearstakey_cmd(struct adapter *padapter, u8 *psta, u8 entry,
-		       u8 enqueue);
+					   u8 enqueue);
 u8 rtw_joinbss_cmd(struct adapter *padapter, struct wlan_network *pnetwork);
 u8 rtw_disassoc_cmd(struct adapter *padapter, u32 deauth_timeout_ms,
-		    bool enqueue);
+					bool enqueue);
 u8 rtw_setopmode_cmd(struct adapter *padapter,
-		     enum ndis_802_11_network_infra networktype);
+					 enum ndis_802_11_network_infra networktype);
 u8 rtw_addbareq_cmd(struct adapter *padapter, u8 tid, u8 *addr);
 
 u8 rtw_dynamic_chk_wk_cmd(struct adapter *adapter);
@@ -324,7 +342,7 @@ u8 rtw_antenna_select_cmd(struct adapter *padapter, u8 antenna, u8 enqueue);
 u8 rtw_ps_cmd(struct adapter *padapter);
 
 #ifdef CONFIG_88EU_AP_MODE
-u8 rtw_chk_hi_queue_cmd(struct adapter *padapter);
+	u8 rtw_chk_hi_queue_cmd(struct adapter *padapter);
 #endif
 
 u8 rtw_set_chplan_cmd(struct adapter *padapter, u8 chplan, u8 enqueue);
@@ -340,12 +358,14 @@ void rtw_setstaKey_cmdrsp_callback(struct adapter *adapt, struct cmd_obj *cmd);
 void rtw_setassocsta_cmdrsp_callback(struct adapter *adapt, struct cmd_obj *cm);
 void rtw_getrttbl_cmdrsp_callback(struct adapter *adapt, struct cmd_obj *cmd);
 
-struct _cmd_callback {
+struct _cmd_callback
+{
 	u32	cmd_code;
 	void (*callback)(struct adapter  *padapter, struct cmd_obj *cmd);
 };
 
-enum rtw_h2c_cmd {
+enum rtw_h2c_cmd
+{
 	_JoinBss_CMD_,
 	_DisConnect_CMD_,
 	_CreateBss_CMD_,
@@ -366,7 +386,8 @@ enum rtw_h2c_cmd {
 };
 
 #ifdef _RTW_CMD_C_
-static struct _cmd_callback	rtw_cmd_callback[] = {
+static struct _cmd_callback	rtw_cmd_callback[] =
+{
 	{_JoinBss_CMD_, &rtw_joinbss_cmd_callback},
 	{_DisConnect_CMD_, &rtw_disassoc_cmd_callback},
 	{_CreateBss_CMD_, &rtw_createbss_cmd_callback},

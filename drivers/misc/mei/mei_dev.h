@@ -54,7 +54,8 @@ extern const uuid_le mei_amthif_guid;
 #define  MEI_MAX_OPEN_HANDLE_COUNT (MEI_CLIENTS_MAX - 1)
 
 /* File state */
-enum file_state {
+enum file_state
+{
 	MEI_FILE_INITIALIZING = 0,
 	MEI_FILE_CONNECTING,
 	MEI_FILE_CONNECTED,
@@ -65,7 +66,8 @@ enum file_state {
 };
 
 /* MEI device states */
-enum mei_dev_state {
+enum mei_dev_state
+{
 	MEI_DEV_INITIALIZING = 0,
 	MEI_DEV_INIT_CLIENTS,
 	MEI_DEV_ENABLED,
@@ -77,13 +79,15 @@ enum mei_dev_state {
 
 const char *mei_dev_state_str(int state);
 
-enum iamthif_states {
+enum iamthif_states
+{
 	MEI_IAMTHIF_IDLE,
 	MEI_IAMTHIF_WRITING,
 	MEI_IAMTHIF_READING,
 };
 
-enum mei_file_transaction_states {
+enum mei_file_transaction_states
+{
 	MEI_IDLE,
 	MEI_WRITING,
 	MEI_WRITE_COMPLETE,
@@ -99,7 +103,8 @@ enum mei_file_transaction_states {
  * @MEI_FOP_NOTIFY_START:   start notification
  * @MEI_FOP_NOTIFY_STOP:    stop notification
  */
-enum mei_cb_file_ops {
+enum mei_cb_file_ops
+{
 	MEI_FOP_READ = 0,
 	MEI_FOP_WRITE,
 	MEI_FOP_CONNECT,
@@ -112,7 +117,8 @@ enum mei_cb_file_ops {
 /*
  * Intel MEI message data struct
  */
-struct mei_msg_data {
+struct mei_msg_data
+{
 	size_t size;
 	unsigned char *data;
 };
@@ -129,7 +135,8 @@ struct mei_msg_data {
  * @count: number of actually available elements in array
  * @status: FW status registers
  */
-struct mei_fw_status {
+struct mei_fw_status
+{
 	int count;
 	u32 status[MEI_FW_STATUS_MAX];
 };
@@ -145,7 +152,8 @@ struct mei_fw_status {
  * @connect_count: number connections to this client
  * @bus_added: added to bus
  */
-struct mei_me_client {
+struct mei_me_client
+{
 	struct list_head list;
 	struct kref refcnt;
 	struct mei_client_properties props;
@@ -171,7 +179,8 @@ struct mei_cl;
  * @internal: communication between driver and FW flag
  * @completed: the transfer or reception has completed
  */
-struct mei_cl_cb {
+struct mei_cl_cb
+{
 	struct list_head list;
 	struct mei_cl *cl;
 	enum mei_cb_file_ops fop_type;
@@ -179,8 +188,8 @@ struct mei_cl_cb {
 	size_t buf_idx;
 	const struct file *fp;
 	int status;
-	u32 internal:1;
-	u32 completed:1;
+	u32 internal: 1;
+	u32 completed: 1;
 };
 
 /**
@@ -210,7 +219,8 @@ struct mei_cl_cb {
  *
  * @cldev: device on the mei client bus
  */
-struct mei_cl {
+struct mei_cl
+{
 	struct list_head link;
 	struct mei_device *dev;
 	enum file_state state;
@@ -265,7 +275,8 @@ struct mei_cl {
  * @read_hdr         : get first 4 bytes (header)
  * @read             : read a buffer from the FW
  */
-struct mei_hw_ops {
+struct mei_hw_ops
+{
 
 	bool (*host_is_ready)(struct mei_device *dev);
 
@@ -289,14 +300,14 @@ struct mei_hw_ops {
 	size_t (*hbuf_max_len)(const struct mei_device *dev);
 
 	int (*write)(struct mei_device *dev,
-		     struct mei_msg_hdr *hdr,
-		     unsigned char *buf);
+				 struct mei_msg_hdr *hdr,
+				 unsigned char *buf);
 
 	int (*rdbuf_full_slots)(struct mei_device *dev);
 
 	u32 (*read_hdr)(const struct mei_device *dev);
 	int (*read)(struct mei_device *dev,
-		     unsigned char *buf, unsigned long len);
+				unsigned char *buf, unsigned long len);
 };
 
 /* MEI bus API*/
@@ -304,7 +315,7 @@ void mei_cl_bus_rescan(struct mei_device *bus);
 void mei_cl_bus_rescan_work(struct work_struct *work);
 void mei_cl_bus_dev_fixup(struct mei_cl_device *dev);
 ssize_t __mei_cl_send(struct mei_cl *cl, u8 *buf, size_t length,
-			bool blocking);
+					  bool blocking);
 ssize_t __mei_cl_recv(struct mei_cl *cl, u8 *buf, size_t length);
 bool mei_cl_bus_rx_event(struct mei_cl *cl);
 bool mei_cl_bus_notify_event(struct mei_cl *cl);
@@ -321,7 +332,8 @@ void mei_cl_bus_exit(void);
  * @MEI_PG_EVENT_INTR_WAIT: the driver is waiting for a pg event interrupt
  * @MEI_PG_EVENT_INTR_RECEIVED: the driver received pg event interrupt
  */
-enum mei_pg_event {
+enum mei_pg_event
+{
 	MEI_PG_EVENT_IDLE,
 	MEI_PG_EVENT_WAIT,
 	MEI_PG_EVENT_RECEIVED,
@@ -335,7 +347,8 @@ enum mei_pg_event {
  * @MEI_PG_OFF: device is not power gated - it is active
  * @MEI_PG_ON:  device is power gated - it is in lower power state
  */
-enum mei_pg_state {
+enum mei_pg_state
+{
 	MEI_PG_OFF = 0,
 	MEI_PG_ON =  1,
 };
@@ -414,7 +427,8 @@ const char *mei_pg_state_str(enum mei_pg_state state);
  * @ops:        : hw specific operations
  * @hw          : hw specific data
  */
-struct mei_device {
+struct mei_device
+{
 	struct device *dev;
 	struct cdev cdev;
 	int minor;
@@ -462,12 +476,12 @@ struct mei_device {
 	bool hbuf_is_ready;
 
 	struct hbm_version version;
-	unsigned int hbm_f_pg_supported:1;
-	unsigned int hbm_f_dc_supported:1;
-	unsigned int hbm_f_dot_supported:1;
-	unsigned int hbm_f_ev_supported:1;
-	unsigned int hbm_f_fa_supported:1;
-	unsigned int hbm_f_ie_supported:1;
+	unsigned int hbm_f_pg_supported: 1;
+	unsigned int hbm_f_dc_supported: 1;
+	unsigned int hbm_f_dot_supported: 1;
+	unsigned int hbm_f_ev_supported: 1;
+	unsigned int hbm_f_fa_supported: 1;
+	unsigned int hbm_f_ie_supported: 1;
 
 	struct rw_semaphore me_clients_rwsem;
 	struct list_head me_clients;
@@ -535,8 +549,8 @@ static inline u32 mei_slots2data(int slots)
  * mei init function prototypes
  */
 void mei_device_init(struct mei_device *dev,
-		     struct device *device,
-		     const struct mei_hw_ops *hw_ops);
+					 struct device *device,
+					 const struct mei_hw_ops *hw_ops);
 int mei_reset(struct mei_device *dev);
 int mei_start(struct mei_device *dev);
 int mei_restart(struct mei_device *dev);
@@ -550,7 +564,7 @@ void mei_cancel_work(struct mei_device *dev);
 void mei_timer(struct work_struct *work);
 void mei_schedule_stall_timer(struct mei_device *dev);
 int mei_irq_read_handler(struct mei_device *dev,
-		struct mei_cl_cb *cmpl_list, s32 *slots);
+						 struct mei_cl_cb *cmpl_list, s32 *slots);
 
 int mei_irq_write_handler(struct mei_device *dev, struct mei_cl_cb *cmpl_list);
 void mei_irq_compl_handler(struct mei_device *dev, struct mei_cl_cb *cmpl_list);
@@ -569,12 +583,12 @@ int mei_amthif_release(struct mei_device *dev, struct file *file);
 int mei_amthif_write(struct mei_cl *cl, struct mei_cl_cb *cb);
 int mei_amthif_run_next_cmd(struct mei_device *dev);
 int mei_amthif_irq_write(struct mei_cl *cl, struct mei_cl_cb *cb,
-			struct mei_cl_cb *cmpl_list);
+						 struct mei_cl_cb *cmpl_list);
 
 void mei_amthif_complete(struct mei_cl *cl, struct mei_cl_cb *cb);
 int mei_amthif_irq_read_msg(struct mei_cl *cl,
-			    struct mei_msg_hdr *mei_hdr,
-			    struct mei_cl_cb *complete_list);
+							struct mei_msg_hdr *mei_hdr,
+							struct mei_cl_cb *complete_list);
 int mei_amthif_irq_read(struct mei_device *dev, s32 *slots);
 
 /*
@@ -652,7 +666,7 @@ static inline size_t mei_hbuf_max_len(const struct mei_device *dev)
 }
 
 static inline int mei_write_message(struct mei_device *dev,
-			struct mei_msg_hdr *hdr, void *buf)
+									struct mei_msg_hdr *hdr, void *buf)
 {
 	return dev->ops->write(dev, hdr, buf);
 }
@@ -663,7 +677,7 @@ static inline u32 mei_read_hdr(const struct mei_device *dev)
 }
 
 static inline void mei_read_slots(struct mei_device *dev,
-		     unsigned char *buf, unsigned long len)
+								  unsigned char *buf, unsigned long len)
 {
 	dev->ops->read(dev, buf, len);
 }
@@ -674,7 +688,7 @@ static inline int mei_count_full_read_slots(struct mei_device *dev)
 }
 
 static inline int mei_fw_status(struct mei_device *dev,
-				struct mei_fw_status *fw_status)
+								struct mei_fw_status *fw_status)
 {
 	return dev->ops->fw_status(dev, fw_status);
 }
@@ -715,7 +729,7 @@ ssize_t mei_fw_status2str(struct mei_fw_status *fw_sts, char *buf, size_t len);
  * Return: number of bytes written or < 0 on failure
  */
 static inline ssize_t mei_fw_status_str(struct mei_device *dev,
-					char *buf, size_t len)
+										char *buf, size_t len)
 {
 	struct mei_fw_status fw_status;
 	int ret;
@@ -723,8 +737,11 @@ static inline ssize_t mei_fw_status_str(struct mei_device *dev,
 	buf[0] = '\0';
 
 	ret = mei_fw_status(dev, &fw_status);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = mei_fw_status2str(&fw_status, buf, MEI_FW_STATUS_STR_SZ);
 

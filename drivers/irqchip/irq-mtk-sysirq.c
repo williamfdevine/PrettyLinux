@@ -22,7 +22,8 @@
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 
-struct mtk_sysirq_chip_data {
+struct mtk_sysirq_chip_data
+{
 	spinlock_t lock;
 	void __iomem *intpol_base;
 };
@@ -40,15 +41,25 @@ static int mtk_sysirq_set_type(struct irq_data *data, unsigned int type)
 
 	spin_lock_irqsave(&chip_data->lock, flags);
 	value = readl_relaxed(chip_data->intpol_base + reg_index * 4);
-	if (type == IRQ_TYPE_LEVEL_LOW || type == IRQ_TYPE_EDGE_FALLING) {
+
+	if (type == IRQ_TYPE_LEVEL_LOW || type == IRQ_TYPE_EDGE_FALLING)
+	{
 		if (type == IRQ_TYPE_LEVEL_LOW)
+		{
 			type = IRQ_TYPE_LEVEL_HIGH;
+		}
 		else
+		{
 			type = IRQ_TYPE_EDGE_RISING;
+		}
+
 		value |= (1 << offset);
-	} else {
+	}
+	else
+	{
 		value &= ~(1 << offset);
 	}
+
 	writel(value, chip_data->intpol_base + reg_index * 4);
 
 	data = data->parent_data;
@@ -57,7 +68,8 @@ static int mtk_sysirq_set_type(struct irq_data *data, unsigned int type)
 	return ret;
 }
 
-static struct irq_chip mtk_sysirq_chip = {
+static struct irq_chip mtk_sysirq_chip =
+{
 	.name			= "MT_SYSIRQ",
 	.irq_mask		= irq_chip_mask_parent,
 	.irq_unmask		= irq_chip_unmask_parent,
@@ -68,17 +80,22 @@ static struct irq_chip mtk_sysirq_chip = {
 };
 
 static int mtk_sysirq_domain_translate(struct irq_domain *d,
-				       struct irq_fwspec *fwspec,
-				       unsigned long *hwirq,
-				       unsigned int *type)
+									   struct irq_fwspec *fwspec,
+									   unsigned long *hwirq,
+									   unsigned int *type)
 {
-	if (is_of_node(fwspec->fwnode)) {
+	if (is_of_node(fwspec->fwnode))
+	{
 		if (fwspec->param_count != 3)
+		{
 			return -EINVAL;
+		}
 
 		/* No PPI should point to this domain */
 		if (fwspec->param[0] != 0)
+		{
 			return -EINVAL;
+		}
 
 		*hwirq = fwspec->param[1];
 		*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
@@ -89,7 +106,7 @@ static int mtk_sysirq_domain_translate(struct irq_domain *d,
 }
 
 static int mtk_sysirq_domain_alloc(struct irq_domain *domain, unsigned int virq,
-				   unsigned int nr_irqs, void *arg)
+								   unsigned int nr_irqs, void *arg)
 {
 	int i;
 	irq_hw_number_t hwirq;
@@ -97,30 +114,36 @@ static int mtk_sysirq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 	struct irq_fwspec gic_fwspec = *fwspec;
 
 	if (fwspec->param_count != 3)
+	{
 		return -EINVAL;
+	}
 
 	/* sysirq doesn't support PPI */
 	if (fwspec->param[0])
+	{
 		return -EINVAL;
+	}
 
 	hwirq = fwspec->param[1];
+
 	for (i = 0; i < nr_irqs; i++)
 		irq_domain_set_hwirq_and_chip(domain, virq + i, hwirq + i,
-					      &mtk_sysirq_chip,
-					      domain->host_data);
+									  &mtk_sysirq_chip,
+									  domain->host_data);
 
 	gic_fwspec.fwnode = domain->parent->fwnode;
 	return irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, &gic_fwspec);
 }
 
-static const struct irq_domain_ops sysirq_domain_ops = {
+static const struct irq_domain_ops sysirq_domain_ops =
+{
 	.translate	= mtk_sysirq_domain_translate,
 	.alloc		= mtk_sysirq_domain_alloc,
 	.free		= irq_domain_free_irqs_common,
 };
 
 static int __init mtk_sysirq_of_init(struct device_node *node,
-				     struct device_node *parent)
+									 struct device_node *parent)
 {
 	struct irq_domain *domain, *domain_parent;
 	struct mtk_sysirq_chip_data *chip_data;
@@ -128,34 +151,47 @@ static int __init mtk_sysirq_of_init(struct device_node *node,
 	struct resource res;
 
 	domain_parent = irq_find_host(parent);
-	if (!domain_parent) {
+
+	if (!domain_parent)
+	{
 		pr_err("mtk_sysirq: interrupt-parent not found\n");
 		return -EINVAL;
 	}
 
 	ret = of_address_to_resource(node, 0, &res);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	chip_data = kzalloc(sizeof(*chip_data), GFP_KERNEL);
+
 	if (!chip_data)
+	{
 		return -ENOMEM;
+	}
 
 	size = resource_size(&res);
 	intpol_num = size * 8;
 	chip_data->intpol_base = ioremap(res.start, size);
-	if (!chip_data->intpol_base) {
+
+	if (!chip_data->intpol_base)
+	{
 		pr_err("mtk_sysirq: unable to map sysirq register\n");
 		ret = -ENXIO;
 		goto out_free;
 	}
 
 	domain = irq_domain_add_hierarchy(domain_parent, 0, intpol_num, node,
-					  &sysirq_domain_ops, chip_data);
-	if (!domain) {
+									  &sysirq_domain_ops, chip_data);
+
+	if (!domain)
+	{
 		ret = -ENOMEM;
 		goto out_unmap;
 	}
+
 	spin_lock_init(&chip_data->lock);
 
 	return 0;

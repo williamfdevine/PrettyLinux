@@ -5,7 +5,8 @@
 #include <linux/types.h>
 
 /* The header prepended to received packets. */
-struct rx_header {
+struct rx_header
+{
 	ushort pad;		/* Pad. */
 	ushort rx_count;
 	ushort rx_status;	/* Unknown bit assignments :-<.  */
@@ -29,7 +30,8 @@ struct rx_header {
 #define RdAddr	0xC0
 #define HNib	0x10
 
-enum page0_regs {
+enum page0_regs
+{
 	/* The first six registers hold
 	 * the ethernet physical station address.
 	 */
@@ -44,7 +46,8 @@ enum page0_regs {
 	CMR2_h = 0x1d,
 };
 
-enum eepage_regs {
+enum eepage_regs
+{
 	PROM_CMD = 6,
 	PROM_DATA = 7	/* Note that PROM_CMD is in the "high" bits. */
 };
@@ -93,11 +96,11 @@ static inline unsigned char read_nibble(short port, unsigned char offset)
 {
 	unsigned char retval;
 
-	outb(EOC+offset, port + PAR_DATA);
-	outb(RdAddr+offset, port + PAR_DATA);
+	outb(EOC + offset, port + PAR_DATA);
+	outb(RdAddr + offset, port + PAR_DATA);
 	inbyte(port + PAR_STATUS);	/* Settling time delay */
 	retval = inbyte(port + PAR_STATUS);
-	outb(EOC+offset, port + PAR_DATA);
+	outb(EOC + offset, port + PAR_DATA);
 
 	return retval;
 }
@@ -223,14 +226,14 @@ write_reg_byte(short port, unsigned char reg, unsigned char value)
 static inline void write_byte_mode0(short ioaddr, unsigned char value)
 {
 	outb(value & 0x0f, ioaddr + PAR_DATA);
-	outb((value>>4) | 0x10, ioaddr + PAR_DATA);
+	outb((value >> 4) | 0x10, ioaddr + PAR_DATA);
 }
 
 static inline void write_byte_mode1(short ioaddr, unsigned char value)
 {
 	outb(value & 0x0f, ioaddr + PAR_DATA);
 	outb(Ctrl_IRQEN | Ctrl_LNibWrite, ioaddr + PAR_CONTROL);
-	outb((value>>4) | 0x10, ioaddr + PAR_DATA);
+	outb((value >> 4) | 0x10, ioaddr + PAR_DATA);
 	outb(Ctrl_IRQEN | Ctrl_HNibWrite, ioaddr + PAR_CONTROL);
 }
 
@@ -256,7 +259,7 @@ static inline void write_word_mode0(short ioaddr, unsigned short value)
 
 /* Delay between EEPROM clock transitions. */
 #define eeprom_delay(ticks) \
-do { int _i = 40; while (--_i > 0) { __SLOW_DOWN_IO; } } while (0)
+	do { int _i = 40; while (--_i > 0) { __SLOW_DOWN_IO; } } while (0)
 
 /* The EEPROM commands include the alway-set leading bit. */
 #define EE_WRITE_CMD(offset)	(((5 << 6) + (offset)) << 17)

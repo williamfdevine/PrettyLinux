@@ -146,9 +146,9 @@
 #define SST_HMDC_HDDA_E1_CH2	SST_HMDC_HDDA1(SST_HMDC_HDDA_E0_CH2)
 #define SST_HMDC_HDDA_E1_CH3	SST_HMDC_HDDA1(SST_HMDC_HDDA_E0_CH3)
 #define SST_HMDC_HDDA_E0_ALLCH	(SST_HMDC_HDDA_E0_CH0 | SST_HMDC_HDDA_E0_CH1 | \
-				 SST_HMDC_HDDA_E0_CH2 | SST_HMDC_HDDA_E0_CH3)
+								 SST_HMDC_HDDA_E0_CH2 | SST_HMDC_HDDA_E0_CH3)
 #define SST_HMDC_HDDA_E1_ALLCH	(SST_HMDC_HDDA_E1_CH0 | SST_HMDC_HDDA_E1_CH1 | \
-				 SST_HMDC_HDDA_E1_CH2 | SST_HMDC_HDDA_E1_CH3)
+								 SST_HMDC_HDDA_E1_CH2 | SST_HMDC_HDDA_E1_CH3)
 
 
 /* SST Vendor Defined Registers and bits */
@@ -181,7 +181,8 @@ struct sst_dsp;
  *
  * This structure is populated by the SST core driver.
  */
-struct sst_dsp_device {
+struct sst_dsp_device
+{
 	/* Mandatory fields */
 	struct sst_ops *ops;
 	irqreturn_t (*thread)(int irq, void *context);
@@ -191,7 +192,8 @@ struct sst_dsp_device {
 /*
  * SST Platform Data.
  */
-struct sst_pdata {
+struct sst_pdata
+{
 	/* ACPI data */
 	u32 lpe_base;
 	u32 lpe_size;
@@ -219,7 +221,7 @@ struct sst_pdata {
 #if IS_ENABLED(CONFIG_DW_DMAC_CORE)
 /* Initialization */
 struct sst_dsp *sst_dsp_new(struct device *dev,
-	struct sst_dsp_device *sst_dev, struct sst_pdata *pdata);
+							struct sst_dsp_device *sst_dev, struct sst_pdata *pdata);
 void sst_dsp_free(struct sst_dsp *sst);
 #endif
 
@@ -227,25 +229,25 @@ void sst_dsp_free(struct sst_dsp *sst);
 void sst_dsp_shim_write(struct sst_dsp *sst, u32 offset, u32 value);
 u32 sst_dsp_shim_read(struct sst_dsp *sst, u32 offset);
 int sst_dsp_shim_update_bits(struct sst_dsp *sst, u32 offset,
-				u32 mask, u32 value);
+							 u32 mask, u32 value);
 void sst_dsp_shim_write64(struct sst_dsp *sst, u32 offset, u64 value);
 u64 sst_dsp_shim_read64(struct sst_dsp *sst, u32 offset);
 int sst_dsp_shim_update_bits64(struct sst_dsp *sst, u32 offset,
-				u64 mask, u64 value);
+							   u64 mask, u64 value);
 void sst_dsp_shim_update_bits_forced(struct sst_dsp *sst, u32 offset,
-				u32 mask, u32 value);
+									 u32 mask, u32 value);
 
 /* SHIM Read / Write Unlocked for callers already holding sst lock */
 void sst_dsp_shim_write_unlocked(struct sst_dsp *sst, u32 offset, u32 value);
 u32 sst_dsp_shim_read_unlocked(struct sst_dsp *sst, u32 offset);
 int sst_dsp_shim_update_bits_unlocked(struct sst_dsp *sst, u32 offset,
-				u32 mask, u32 value);
+									  u32 mask, u32 value);
 void sst_dsp_shim_write64_unlocked(struct sst_dsp *sst, u32 offset, u64 value);
 u64 sst_dsp_shim_read64_unlocked(struct sst_dsp *sst, u32 offset);
 int sst_dsp_shim_update_bits64_unlocked(struct sst_dsp *sst, u32 offset,
-					u64 mask, u64 value);
+										u64 mask, u64 value);
 void sst_dsp_shim_update_bits_forced_unlocked(struct sst_dsp *sst, u32 offset,
-				u32 mask, u32 value);
+		u32 mask, u32 value);
 
 /* Internal generic low-level SST IO functions - can be overidden */
 void sst_shim32_write(void __iomem *addr, u32 offset, u32 value);
@@ -253,9 +255,9 @@ u32 sst_shim32_read(void __iomem *addr, u32 offset);
 void sst_shim32_write64(void __iomem *addr, u32 offset, u64 value);
 u64 sst_shim32_read64(void __iomem *addr, u32 offset);
 void sst_memcpy_toio_32(struct sst_dsp *sst,
-			void __iomem *dest, void *src, size_t bytes);
+						void __iomem *dest, void *src, size_t bytes);
 void sst_memcpy_fromio_32(struct sst_dsp *sst,
-			  void *dest, void __iomem *src, size_t bytes);
+						  void *dest, void __iomem *src, size_t bytes);
 
 /* DSP reset & boot */
 void sst_dsp_reset(struct sst_dsp *sst);
@@ -268,9 +270,9 @@ void sst_dsp_stall(struct sst_dsp *sst);
 int sst_dsp_dma_get_channel(struct sst_dsp *dsp, int chan_id);
 void sst_dsp_dma_put_channel(struct sst_dsp *dsp);
 int sst_dsp_dma_copyfrom(struct sst_dsp *sst, dma_addr_t dest_addr,
-	dma_addr_t src_addr, size_t size);
+						 dma_addr_t src_addr, size_t size);
 int sst_dsp_dma_copyto(struct sst_dsp *sst, dma_addr_t dest_addr,
-	dma_addr_t src_addr, size_t size);
+					   dma_addr_t src_addr, size_t size);
 
 /* Msg IO */
 void sst_dsp_ipc_msg_tx(struct sst_dsp *dsp, u32 msg);
@@ -278,14 +280,14 @@ u32 sst_dsp_ipc_msg_rx(struct sst_dsp *dsp);
 
 /* Mailbox management */
 int sst_dsp_mailbox_init(struct sst_dsp *dsp, u32 inbox_offset,
-	size_t inbox_size, u32 outbox_offset, size_t outbox_size);
+						 size_t inbox_size, u32 outbox_offset, size_t outbox_size);
 void sst_dsp_inbox_write(struct sst_dsp *dsp, void *message, size_t bytes);
 void sst_dsp_inbox_read(struct sst_dsp *dsp, void *message, size_t bytes);
 void sst_dsp_outbox_write(struct sst_dsp *dsp, void *message, size_t bytes);
 void sst_dsp_outbox_read(struct sst_dsp *dsp, void *message, size_t bytes);
 void sst_dsp_mailbox_dump(struct sst_dsp *dsp, size_t bytes);
 int sst_dsp_register_poll(struct sst_dsp  *dsp, u32 offset, u32 mask,
-		 u32 expected_value, u32 timeout, char *operation);
+						  u32 expected_value, u32 timeout, char *operation);
 
 /* Debug */
 void sst_dsp_dump(struct sst_dsp *sst);

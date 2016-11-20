@@ -41,28 +41,30 @@
 #include "io.h"
 
 #ifndef SDIO_VENDOR_ID_TI
-#define SDIO_VENDOR_ID_TI		0x0097
+	#define SDIO_VENDOR_ID_TI		0x0097
 #endif
 
 #ifndef SDIO_DEVICE_ID_TI_WL1271
-#define SDIO_DEVICE_ID_TI_WL1271	0x4076
+	#define SDIO_DEVICE_ID_TI_WL1271	0x4076
 #endif
 
 static bool dump = false;
 
-struct wl12xx_sdio_glue {
+struct wl12xx_sdio_glue
+{
 	struct device *dev;
 	struct platform_device *core;
 };
 
-static const struct sdio_device_id wl1271_devices[] = {
+static const struct sdio_device_id wl1271_devices[] =
+{
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_TI, SDIO_DEVICE_ID_TI_WL1271) },
 	{}
 };
 MODULE_DEVICE_TABLE(sdio, wl1271_devices);
 
 static void wl1271_sdio_set_block_size(struct device *child,
-				       unsigned int blksz)
+									   unsigned int blksz)
 {
 	struct wl12xx_sdio_glue *glue = dev_get_drvdata(child->parent);
 	struct sdio_func *func = dev_to_sdio_func(glue->dev);
@@ -73,7 +75,7 @@ static void wl1271_sdio_set_block_size(struct device *child,
 }
 
 static int __must_check wl12xx_sdio_raw_read(struct device *child, int addr,
-					     void *buf, size_t len, bool fixed)
+		void *buf, size_t len, bool fixed)
 {
 	int ret;
 	struct wl12xx_sdio_glue *glue = dev_get_drvdata(child->parent);
@@ -81,37 +83,47 @@ static int __must_check wl12xx_sdio_raw_read(struct device *child, int addr,
 
 	sdio_claim_host(func);
 
-	if (unlikely(dump)) {
+	if (unlikely(dump))
+	{
 		printk(KERN_DEBUG "wlcore_sdio: READ from 0x%04x\n", addr);
 		print_hex_dump(KERN_DEBUG, "wlcore_sdio: READ ",
-				DUMP_PREFIX_OFFSET, 16, 1,
-				buf, len, false);
+					   DUMP_PREFIX_OFFSET, 16, 1,
+					   buf, len, false);
 	}
 
-	if (unlikely(addr == HW_ACCESS_ELP_CTRL_REG)) {
+	if (unlikely(addr == HW_ACCESS_ELP_CTRL_REG))
+	{
 		((u8 *)buf)[0] = sdio_f0_readb(func, addr, &ret);
 		dev_dbg(child->parent, "sdio read 52 addr 0x%x, byte 0x%02x\n",
-			addr, ((u8 *)buf)[0]);
-	} else {
+				addr, ((u8 *)buf)[0]);
+	}
+	else
+	{
 		if (fixed)
+		{
 			ret = sdio_readsb(func, buf, addr, len);
+		}
 		else
+		{
 			ret = sdio_memcpy_fromio(func, buf, addr, len);
+		}
 
 		dev_dbg(child->parent, "sdio read 53 addr 0x%x, %zu bytes\n",
-			addr, len);
+				addr, len);
 	}
 
 	sdio_release_host(func);
 
 	if (WARN_ON(ret))
+	{
 		dev_err(child->parent, "sdio read failed (%d)\n", ret);
+	}
 
 	return ret;
 }
 
 static int __must_check wl12xx_sdio_raw_write(struct device *child, int addr,
-					      void *buf, size_t len, bool fixed)
+		void *buf, size_t len, bool fixed)
 {
 	int ret;
 	struct wl12xx_sdio_glue *glue = dev_get_drvdata(child->parent);
@@ -119,31 +131,41 @@ static int __must_check wl12xx_sdio_raw_write(struct device *child, int addr,
 
 	sdio_claim_host(func);
 
-	if (unlikely(dump)) {
+	if (unlikely(dump))
+	{
 		printk(KERN_DEBUG "wlcore_sdio: WRITE to 0x%04x\n", addr);
 		print_hex_dump(KERN_DEBUG, "wlcore_sdio: WRITE ",
-				DUMP_PREFIX_OFFSET, 16, 1,
-				buf, len, false);
+					   DUMP_PREFIX_OFFSET, 16, 1,
+					   buf, len, false);
 	}
 
-	if (unlikely(addr == HW_ACCESS_ELP_CTRL_REG)) {
+	if (unlikely(addr == HW_ACCESS_ELP_CTRL_REG))
+	{
 		sdio_f0_writeb(func, ((u8 *)buf)[0], addr, &ret);
 		dev_dbg(child->parent, "sdio write 52 addr 0x%x, byte 0x%02x\n",
-			addr, ((u8 *)buf)[0]);
-	} else {
+				addr, ((u8 *)buf)[0]);
+	}
+	else
+	{
 		dev_dbg(child->parent, "sdio write 53 addr 0x%x, %zu bytes\n",
-			addr, len);
+				addr, len);
 
 		if (fixed)
+		{
 			ret = sdio_writesb(func, addr, buf, len);
+		}
 		else
+		{
 			ret = sdio_memcpy_toio(func, addr, buf, len);
+		}
 	}
 
 	sdio_release_host(func);
 
 	if (WARN_ON(ret))
+	{
 		dev_err(child->parent, "sdio write failed (%d)\n", ret);
+	}
 
 	return ret;
 }
@@ -155,14 +177,18 @@ static int wl12xx_sdio_power_on(struct wl12xx_sdio_glue *glue)
 	struct mmc_card *card = func->card;
 
 	ret = pm_runtime_get_sync(&card->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		/*
 		 * Runtime PM might be temporarily disabled, or the device
 		 * might have a positive reference counter. Make sure it is
 		 * really powered on.
 		 */
 		ret = mmc_power_restore_host(card->host);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pm_runtime_put_sync(&card->dev);
 			goto out;
 		}
@@ -188,8 +214,11 @@ static int wl12xx_sdio_power_off(struct wl12xx_sdio_glue *glue)
 
 	/* Power off the card manually in case it wasn't powered off above */
 	ret = mmc_power_save_host(card->host);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* Let runtime PM know the card is powered off */
 	pm_runtime_put_sync(&card->dev);
@@ -203,12 +232,17 @@ static int wl12xx_sdio_set_power(struct device *child, bool enable)
 	struct wl12xx_sdio_glue *glue = dev_get_drvdata(child->parent);
 
 	if (enable)
+	{
 		return wl12xx_sdio_power_on(glue);
+	}
 	else
+	{
 		return wl12xx_sdio_power_off(glue);
+	}
 }
 
-static struct wl1271_if_operations sdio_ops = {
+static struct wl1271_if_operations sdio_ops =
+{
 	.read		= wl12xx_sdio_raw_read,
 	.write		= wl12xx_sdio_raw_write,
 	.power		= wl12xx_sdio_set_power,
@@ -217,22 +251,26 @@ static struct wl1271_if_operations sdio_ops = {
 
 #ifdef CONFIG_OF
 
-static const struct wilink_family_data wl127x_data = {
+static const struct wilink_family_data wl127x_data =
+{
 	.name = "wl127x",
 	.nvs_name = "ti-connectivity/wl127x-nvs.bin",
 };
 
-static const struct wilink_family_data wl128x_data = {
+static const struct wilink_family_data wl128x_data =
+{
 	.name = "wl128x",
 	.nvs_name = "ti-connectivity/wl128x-nvs.bin",
 };
 
-static const struct wilink_family_data wl18xx_data = {
+static const struct wilink_family_data wl18xx_data =
+{
 	.name = "wl18xx",
 	.cfg_name = "ti-connectivity/wl18xx-conf.bin",
 };
 
-static const struct of_device_id wlcore_sdio_of_match_table[] = {
+static const struct of_device_id wlcore_sdio_of_match_table[] =
+{
 	{ .compatible = "ti,wl1271", .data = &wl127x_data },
 	{ .compatible = "ti,wl1273", .data = &wl127x_data },
 	{ .compatible = "ti,wl1281", .data = &wl128x_data },
@@ -247,41 +285,46 @@ static const struct of_device_id wlcore_sdio_of_match_table[] = {
 };
 
 static int wlcore_probe_of(struct device *dev, int *irq,
-			   struct wlcore_platdev_data *pdev_data)
+						   struct wlcore_platdev_data *pdev_data)
 {
 	struct device_node *np = dev->of_node;
 	const struct of_device_id *of_id;
 
 	of_id = of_match_node(wlcore_sdio_of_match_table, np);
+
 	if (!of_id)
+	{
 		return -ENODEV;
+	}
 
 	pdev_data->family = of_id->data;
 
 	*irq = irq_of_parse_and_map(np, 0);
-	if (!*irq) {
+
+	if (!*irq)
+	{
 		dev_err(dev, "No irq in platform data\n");
 		return -EINVAL;
 	}
 
 	/* optional clock frequency params */
 	of_property_read_u32(np, "ref-clock-frequency",
-			     &pdev_data->ref_clock_freq);
+						 &pdev_data->ref_clock_freq);
 	of_property_read_u32(np, "tcxo-clock-frequency",
-			     &pdev_data->tcxo_clock_freq);
+						 &pdev_data->tcxo_clock_freq);
 
 	return 0;
 }
 #else
 static int wlcore_probe_of(struct device *dev, int *irq,
-			   struct wlcore_platdev_data *pdev_data)
+						   struct wlcore_platdev_data *pdev_data)
 {
 	return -ENODATA;
 }
 #endif
 
 static int wl1271_probe(struct sdio_func *func,
-				  const struct sdio_device_id *id)
+						const struct sdio_device_id *id)
 {
 	struct wlcore_platdev_data *pdev_data;
 	struct wl12xx_sdio_glue *glue;
@@ -293,17 +336,25 @@ static int wl1271_probe(struct sdio_func *func,
 
 	/* We are only able to handle the wlan function */
 	if (func->num != 0x02)
+	{
 		return -ENODEV;
+	}
 
 	pdev_data = devm_kzalloc(&func->dev, sizeof(*pdev_data), GFP_KERNEL);
+
 	if (!pdev_data)
+	{
 		return -ENOMEM;
+	}
 
 	pdev_data->if_ops = &sdio_ops;
 
 	glue = devm_kzalloc(&func->dev, sizeof(*glue), GFP_KERNEL);
+
 	if (!glue)
+	{
 		return -ENOMEM;
+	}
 
 	glue->dev = &func->dev;
 
@@ -314,15 +365,20 @@ static int wl1271_probe(struct sdio_func *func,
 	func->card->quirks |= MMC_QUIRK_BLKSZ_FOR_BYTE_MODE;
 
 	ret = wlcore_probe_of(&func->dev, &irq, pdev_data);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* if sdio can keep power while host is suspended, enable wow */
 	mmcflags = sdio_get_host_pm_caps(func);
 	dev_dbg(glue->dev, "sdio PM caps = 0x%x\n", mmcflags);
 
 	if (mmcflags & MMC_PM_KEEP_POWER)
+	{
 		pdev_data->pwr_in_suspend = true;
+	}
 
 	sdio_set_drvdata(func, glue);
 
@@ -336,12 +392,18 @@ static int wl1271_probe(struct sdio_func *func,
 	 * which is 3.00 on the wl18xx chips.
 	 */
 	if (func->card->cccr.sdio_vsn == SDIO_SDIO_REV_3_00)
+	{
 		chip_family = "wl18xx";
+	}
 	else
+	{
 		chip_family = "wl12xx";
+	}
 
 	glue->core = platform_device_alloc(chip_family, PLATFORM_DEVID_AUTO);
-	if (!glue->core) {
+
+	if (!glue->core)
+	{
 		dev_err(glue->dev, "can't allocate platform_device");
 		ret = -ENOMEM;
 		goto out;
@@ -353,27 +415,34 @@ static int wl1271_probe(struct sdio_func *func,
 
 	res[0].start = irq;
 	res[0].flags = IORESOURCE_IRQ |
-		       irqd_get_trigger_type(irq_get_irq_data(irq));
+				   irqd_get_trigger_type(irq_get_irq_data(irq));
 	res[0].name = "irq";
 
 	ret = platform_device_add_resources(glue->core, res, ARRAY_SIZE(res));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(glue->dev, "can't add resources\n");
 		goto out_dev_put;
 	}
 
 	ret = platform_device_add_data(glue->core, pdev_data,
-				       sizeof(*pdev_data));
-	if (ret) {
+								   sizeof(*pdev_data));
+
+	if (ret)
+	{
 		dev_err(glue->dev, "can't add platform data\n");
 		goto out_dev_put;
 	}
 
 	ret = platform_device_add(glue->core);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(glue->dev, "can't add platform device\n");
 		goto out_dev_put;
 	}
+
 	return 0;
 
 out_dev_put:
@@ -405,26 +474,31 @@ static int wl1271_suspend(struct device *dev)
 	int ret = 0;
 
 	dev_dbg(dev, "wl1271 suspend. wow_enabled: %d\n",
-		wl->wow_enabled);
+			wl->wow_enabled);
 
 	/* check whether sdio should keep power */
-	if (wl->wow_enabled) {
+	if (wl->wow_enabled)
+	{
 		sdio_flags = sdio_get_host_pm_caps(func);
 
-		if (!(sdio_flags & MMC_PM_KEEP_POWER)) {
+		if (!(sdio_flags & MMC_PM_KEEP_POWER))
+		{
 			dev_err(dev, "can't keep power while host "
-				     "is suspended\n");
+					"is suspended\n");
 			ret = -EINVAL;
 			goto out;
 		}
 
 		/* keep power while host suspended */
 		ret = sdio_set_host_pm_flags(func, MMC_PM_KEEP_POWER);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "error while trying to keep power\n");
 			goto out;
 		}
 	}
+
 out:
 	return ret;
 }
@@ -436,13 +510,15 @@ static int wl1271_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops wl1271_sdio_pm_ops = {
+static const struct dev_pm_ops wl1271_sdio_pm_ops =
+{
 	.suspend	= wl1271_suspend,
 	.resume		= wl1271_resume,
 };
 #endif
 
-static struct sdio_driver wl1271_sdio_driver = {
+static struct sdio_driver wl1271_sdio_driver =
+{
 	.name		= "wl1271_sdio",
 	.id_table	= wl1271_devices,
 	.probe		= wl1271_probe,

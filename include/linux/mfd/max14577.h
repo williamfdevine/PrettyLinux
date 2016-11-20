@@ -31,7 +31,8 @@
 #include <linux/regulator/consumer.h>
 
 /* MAX14577 regulator IDs */
-enum max14577_regulators {
+enum max14577_regulators
+{
 	MAX14577_SAFEOUT = 0,
 	MAX14577_CHARGER,
 
@@ -39,7 +40,8 @@ enum max14577_regulators {
 };
 
 /* MAX77836 regulator IDs */
-enum max77836_regulators {
+enum max77836_regulators
+{
 	MAX77836_SAFEOUT = 0,
 	MAX77836_CHARGER,
 	MAX77836_LDO1,
@@ -48,13 +50,15 @@ enum max77836_regulators {
 	MAX77836_REGULATOR_NUM,
 };
 
-struct max14577_regulator_platform_data {
+struct max14577_regulator_platform_data
+{
 	int id;
 	struct regulator_init_data *initdata;
 	struct device_node *of_node;
 };
 
-struct max14577_charger_platform_data {
+struct max14577_charger_platform_data
+{
 	u32 constant_uvolt;
 	u32 fast_charge_uamp;
 	u32 eoc_uamp;
@@ -64,7 +68,8 @@ struct max14577_charger_platform_data {
 /*
  * MAX14577 MFD platform data
  */
-struct max14577_platform_data {
+struct max14577_platform_data
+{
 	/* IRQ */
 	int irq_base;
 
@@ -86,7 +91,8 @@ struct max14577_platform_data {
  * They must correspond to MBCICHWRCL and MBCICHWRCH fields in CHGCTRL4
  * register for given chipset.
  */
-struct maxim_charger_current {
+struct maxim_charger_current
+{
 	/* Minimal current, set in CHGCTRL4/MBCICHWRCL, uA */
 	unsigned int min;
 	/*

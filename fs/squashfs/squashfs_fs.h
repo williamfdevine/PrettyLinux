@@ -33,9 +33,9 @@
 
 /* default size of block device I/O */
 #ifdef CONFIG_SQUASHFS_4K_DEVBLK_SIZE
-#define SQUASHFS_DEVBLK_SIZE 4096
+	#define SQUASHFS_DEVBLK_SIZE 4096
 #else
-#define SQUASHFS_DEVBLK_SIZE 1024
+	#define SQUASHFS_DEVBLK_SIZE 1024
 #endif
 
 #define SQUASHFS_FILE_MAX_SIZE		1048576
@@ -64,28 +64,28 @@
 #define SQUASHFS_BIT(flag, bit)		((flag >> bit) & 1)
 
 #define SQUASHFS_UNCOMPRESSED_INODES(flags)	SQUASHFS_BIT(flags, \
-						SQUASHFS_NOI)
+		SQUASHFS_NOI)
 
 #define SQUASHFS_UNCOMPRESSED_DATA(flags)	SQUASHFS_BIT(flags, \
-						SQUASHFS_NOD)
+		SQUASHFS_NOD)
 
 #define SQUASHFS_UNCOMPRESSED_FRAGMENTS(flags)	SQUASHFS_BIT(flags, \
-						SQUASHFS_NOF)
+		SQUASHFS_NOF)
 
 #define SQUASHFS_NO_FRAGMENTS(flags)		SQUASHFS_BIT(flags, \
-						SQUASHFS_NO_FRAG)
+		SQUASHFS_NO_FRAG)
 
 #define SQUASHFS_ALWAYS_FRAGMENTS(flags)	SQUASHFS_BIT(flags, \
-						SQUASHFS_ALWAYS_FRAG)
+		SQUASHFS_ALWAYS_FRAG)
 
 #define SQUASHFS_DUPLICATES(flags)		SQUASHFS_BIT(flags, \
-						SQUASHFS_DUPLICATE)
+		SQUASHFS_DUPLICATE)
 
 #define SQUASHFS_EXPORTABLE(flags)		SQUASHFS_BIT(flags, \
-						SQUASHFS_EXPORT)
+		SQUASHFS_EXPORT)
 
 #define SQUASHFS_COMP_OPTS(flags)		SQUASHFS_BIT(flags, \
-						SQUASHFS_COMP_OPT)
+		SQUASHFS_COMP_OPT)
 
 /* Inode types including extended types */
 #define SQUASHFS_DIR_TYPE		1
@@ -118,14 +118,14 @@
 #define SQUASHFS_COMPRESSED_BIT		(1 << 15)
 
 #define SQUASHFS_COMPRESSED_SIZE(B)	(((B) & ~SQUASHFS_COMPRESSED_BIT) ? \
-		(B) & ~SQUASHFS_COMPRESSED_BIT :  SQUASHFS_COMPRESSED_BIT)
+									 (B) & ~SQUASHFS_COMPRESSED_BIT :  SQUASHFS_COMPRESSED_BIT)
 
 #define SQUASHFS_COMPRESSED(B)		(!((B) & SQUASHFS_COMPRESSED_BIT))
 
 #define SQUASHFS_COMPRESSED_BIT_BLOCK	(1 << 24)
 
 #define SQUASHFS_COMPRESSED_SIZE_BLOCK(B)	((B) & \
-						~SQUASHFS_COMPRESSED_BIT_BLOCK)
+		~SQUASHFS_COMPRESSED_BIT_BLOCK)
 
 #define SQUASHFS_COMPRESSED_BLOCK(B)	(!((B) & SQUASHFS_COMPRESSED_BIT_BLOCK))
 
@@ -138,71 +138,71 @@
 #define SQUASHFS_INODE_OFFSET(A)	((unsigned int) ((A) & 0xffff))
 
 #define SQUASHFS_MKINODE(A, B)		((long long)(((long long) (A)\
-					<< 16) + (B)))
+									 << 16) + (B)))
 
 /* fragment and fragment table defines */
 #define SQUASHFS_FRAGMENT_BYTES(A)	\
-				((A) * sizeof(struct squashfs_fragment_entry))
+	((A) * sizeof(struct squashfs_fragment_entry))
 
 #define SQUASHFS_FRAGMENT_INDEX(A)	(SQUASHFS_FRAGMENT_BYTES(A) / \
-					SQUASHFS_METADATA_SIZE)
+									 SQUASHFS_METADATA_SIZE)
 
 #define SQUASHFS_FRAGMENT_INDEX_OFFSET(A)	(SQUASHFS_FRAGMENT_BYTES(A) % \
-						SQUASHFS_METADATA_SIZE)
+		SQUASHFS_METADATA_SIZE)
 
 #define SQUASHFS_FRAGMENT_INDEXES(A)	((SQUASHFS_FRAGMENT_BYTES(A) + \
-					SQUASHFS_METADATA_SIZE - 1) / \
-					SQUASHFS_METADATA_SIZE)
+		SQUASHFS_METADATA_SIZE - 1) / \
+		SQUASHFS_METADATA_SIZE)
 
 #define SQUASHFS_FRAGMENT_INDEX_BYTES(A)	(SQUASHFS_FRAGMENT_INDEXES(A) *\
-						sizeof(u64))
+		sizeof(u64))
 
 /* inode lookup table defines */
 #define SQUASHFS_LOOKUP_BYTES(A)	((A) * sizeof(u64))
 
 #define SQUASHFS_LOOKUP_BLOCK(A)	(SQUASHFS_LOOKUP_BYTES(A) / \
-					SQUASHFS_METADATA_SIZE)
+									 SQUASHFS_METADATA_SIZE)
 
 #define SQUASHFS_LOOKUP_BLOCK_OFFSET(A)	(SQUASHFS_LOOKUP_BYTES(A) % \
-					SQUASHFS_METADATA_SIZE)
+		SQUASHFS_METADATA_SIZE)
 
 #define SQUASHFS_LOOKUP_BLOCKS(A)	((SQUASHFS_LOOKUP_BYTES(A) + \
-					SQUASHFS_METADATA_SIZE - 1) / \
-					SQUASHFS_METADATA_SIZE)
+									  SQUASHFS_METADATA_SIZE - 1) / \
+									 SQUASHFS_METADATA_SIZE)
 
 #define SQUASHFS_LOOKUP_BLOCK_BYTES(A)	(SQUASHFS_LOOKUP_BLOCKS(A) *\
-					sizeof(u64))
+		sizeof(u64))
 
 /* uid/gid lookup table defines */
 #define SQUASHFS_ID_BYTES(A)		((A) * sizeof(unsigned int))
 
 #define SQUASHFS_ID_BLOCK(A)		(SQUASHFS_ID_BYTES(A) / \
-					SQUASHFS_METADATA_SIZE)
+									 SQUASHFS_METADATA_SIZE)
 
 #define SQUASHFS_ID_BLOCK_OFFSET(A)	(SQUASHFS_ID_BYTES(A) % \
-					SQUASHFS_METADATA_SIZE)
+									 SQUASHFS_METADATA_SIZE)
 
 #define SQUASHFS_ID_BLOCKS(A)		((SQUASHFS_ID_BYTES(A) + \
-					SQUASHFS_METADATA_SIZE - 1) / \
-					SQUASHFS_METADATA_SIZE)
+									  SQUASHFS_METADATA_SIZE - 1) / \
+									 SQUASHFS_METADATA_SIZE)
 
 #define SQUASHFS_ID_BLOCK_BYTES(A)	(SQUASHFS_ID_BLOCKS(A) *\
-					sizeof(u64))
+									 sizeof(u64))
 /* xattr id lookup table defines */
 #define SQUASHFS_XATTR_BYTES(A)		((A) * sizeof(struct squashfs_xattr_id))
 
 #define SQUASHFS_XATTR_BLOCK(A)		(SQUASHFS_XATTR_BYTES(A) / \
-					SQUASHFS_METADATA_SIZE)
+									 SQUASHFS_METADATA_SIZE)
 
 #define SQUASHFS_XATTR_BLOCK_OFFSET(A)	(SQUASHFS_XATTR_BYTES(A) % \
-					SQUASHFS_METADATA_SIZE)
+		SQUASHFS_METADATA_SIZE)
 
 #define SQUASHFS_XATTR_BLOCKS(A)	((SQUASHFS_XATTR_BYTES(A) + \
-					SQUASHFS_METADATA_SIZE - 1) / \
-					SQUASHFS_METADATA_SIZE)
+									  SQUASHFS_METADATA_SIZE - 1) / \
+									 SQUASHFS_METADATA_SIZE)
 
 #define SQUASHFS_XATTR_BLOCK_BYTES(A)	(SQUASHFS_XATTR_BLOCKS(A) *\
-					sizeof(u64))
+		sizeof(u64))
 #define SQUASHFS_XATTR_BLK(A)		((unsigned int) ((A) >> 16))
 
 #define SQUASHFS_XATTR_OFFSET(A)	((unsigned int) ((A) & 0xffff))
@@ -215,14 +215,16 @@
 #define SQUASHFS_META_ENTRIES	127
 #define SQUASHFS_META_SLOTS	8
 
-struct meta_entry {
+struct meta_entry
+{
 	u64			data_block;
 	unsigned int		index_block;
 	unsigned short		offset;
 	unsigned short		pad;
 };
 
-struct meta_index {
+struct meta_index
+{
 	unsigned int		inode_number;
 	unsigned int		offset;
 	unsigned short		entries;
@@ -242,7 +244,8 @@ struct meta_index {
 #define XZ_COMPRESSION		4
 #define LZ4_COMPRESSION		5
 
-struct squashfs_super_block {
+struct squashfs_super_block
+{
 	__le32			s_magic;
 	__le32			inodes;
 	__le32			mkfs_time;
@@ -264,14 +267,16 @@ struct squashfs_super_block {
 	__le64			lookup_table_start;
 };
 
-struct squashfs_dir_index {
+struct squashfs_dir_index
+{
 	__le32			index;
 	__le32			start_block;
 	__le32			size;
 	unsigned char		name[0];
 };
 
-struct squashfs_base_inode {
+struct squashfs_base_inode
+{
 	__le16			inode_type;
 	__le16			mode;
 	__le16			uid;
@@ -280,7 +285,8 @@ struct squashfs_base_inode {
 	__le32			inode_number;
 };
 
-struct squashfs_ipc_inode {
+struct squashfs_ipc_inode
+{
 	__le16			inode_type;
 	__le16			mode;
 	__le16			uid;
@@ -290,7 +296,8 @@ struct squashfs_ipc_inode {
 	__le32			nlink;
 };
 
-struct squashfs_lipc_inode {
+struct squashfs_lipc_inode
+{
 	__le16			inode_type;
 	__le16			mode;
 	__le16			uid;
@@ -301,7 +308,8 @@ struct squashfs_lipc_inode {
 	__le32			xattr;
 };
 
-struct squashfs_dev_inode {
+struct squashfs_dev_inode
+{
 	__le16			inode_type;
 	__le16			mode;
 	__le16			uid;
@@ -312,7 +320,8 @@ struct squashfs_dev_inode {
 	__le32			rdev;
 };
 
-struct squashfs_ldev_inode {
+struct squashfs_ldev_inode
+{
 	__le16			inode_type;
 	__le16			mode;
 	__le16			uid;
@@ -324,7 +333,8 @@ struct squashfs_ldev_inode {
 	__le32			xattr;
 };
 
-struct squashfs_symlink_inode {
+struct squashfs_symlink_inode
+{
 	__le16			inode_type;
 	__le16			mode;
 	__le16			uid;
@@ -336,7 +346,8 @@ struct squashfs_symlink_inode {
 	char			symlink[0];
 };
 
-struct squashfs_reg_inode {
+struct squashfs_reg_inode
+{
 	__le16			inode_type;
 	__le16			mode;
 	__le16			uid;
@@ -350,7 +361,8 @@ struct squashfs_reg_inode {
 	__le16			block_list[0];
 };
 
-struct squashfs_lreg_inode {
+struct squashfs_lreg_inode
+{
 	__le16			inode_type;
 	__le16			mode;
 	__le16			uid;
@@ -367,7 +379,8 @@ struct squashfs_lreg_inode {
 	__le16			block_list[0];
 };
 
-struct squashfs_dir_inode {
+struct squashfs_dir_inode
+{
 	__le16			inode_type;
 	__le16			mode;
 	__le16			uid;
@@ -381,7 +394,8 @@ struct squashfs_dir_inode {
 	__le32			parent_inode;
 };
 
-struct squashfs_ldir_inode {
+struct squashfs_ldir_inode
+{
 	__le16			inode_type;
 	__le16			mode;
 	__le16			uid;
@@ -398,7 +412,8 @@ struct squashfs_ldir_inode {
 	struct squashfs_dir_index	index[0];
 };
 
-union squashfs_inode {
+union squashfs_inode
+{
 	struct squashfs_base_inode		base;
 	struct squashfs_dev_inode		dev;
 	struct squashfs_ldev_inode		ldev;
@@ -411,7 +426,8 @@ union squashfs_inode {
 	struct squashfs_lipc_inode		lipc;
 };
 
-struct squashfs_dir_entry {
+struct squashfs_dir_entry
+{
 	__le16			offset;
 	__le16			inode_number;
 	__le16			type;
@@ -419,36 +435,42 @@ struct squashfs_dir_entry {
 	char			name[0];
 };
 
-struct squashfs_dir_header {
+struct squashfs_dir_header
+{
 	__le32			count;
 	__le32			start_block;
 	__le32			inode_number;
 };
 
-struct squashfs_fragment_entry {
+struct squashfs_fragment_entry
+{
 	__le64			start_block;
 	__le32			size;
 	unsigned int		unused;
 };
 
-struct squashfs_xattr_entry {
+struct squashfs_xattr_entry
+{
 	__le16			type;
 	__le16			size;
 	char			data[0];
 };
 
-struct squashfs_xattr_val {
+struct squashfs_xattr_val
+{
 	__le32			vsize;
 	char			value[0];
 };
 
-struct squashfs_xattr_id {
+struct squashfs_xattr_id
+{
 	__le64			xattr;
 	__le32			count;
 	__le32			size;
 };
 
-struct squashfs_xattr_id_table {
+struct squashfs_xattr_id_table
+{
 	__le64			xattr_table_start;
 	__le32			xattr_ids;
 	__le32			unused;

@@ -64,7 +64,9 @@ static struct sk_buff *brcm_tag_xmit(struct sk_buff *skb, struct net_device *dev
 	u8 *brcm_tag;
 
 	if (skb_cow_head(skb, BRCM_TAG_LEN) < 0)
+	{
 		goto out_free;
+	}
 
 	skb_push(skb, BRCM_TAG_LEN);
 
@@ -77,11 +79,15 @@ static struct sk_buff *brcm_tag_xmit(struct sk_buff *skb, struct net_device *dev
 	 * deprecated
 	 */
 	brcm_tag[0] = (1 << BRCM_OPCODE_SHIFT) |
-			((skb->priority << BRCM_IG_TC_SHIFT) & BRCM_IG_TC_MASK);
+				  ((skb->priority << BRCM_IG_TC_SHIFT) & BRCM_IG_TC_MASK);
 	brcm_tag[1] = 0;
 	brcm_tag[2] = 0;
+
 	if (p->port == 8)
+	{
 		brcm_tag[2] = BRCM_IG_DSTMAP2_MASK;
+	}
+
 	brcm_tag[3] = (1 << p->port) & BRCM_IG_DSTMAP1_MASK;
 
 	return skb;
@@ -92,7 +98,7 @@ out_free:
 }
 
 static int brcm_tag_rcv(struct sk_buff *skb, struct net_device *dev,
-			struct packet_type *pt, struct net_device *orig_dev)
+						struct packet_type *pt, struct net_device *orig_dev)
 {
 	struct dsa_switch_tree *dst = dev->dsa_ptr;
 	struct dsa_switch *ds;
@@ -100,23 +106,32 @@ static int brcm_tag_rcv(struct sk_buff *skb, struct net_device *dev,
 	u8 *brcm_tag;
 
 	if (unlikely(dst == NULL))
+	{
 		goto out_drop;
+	}
 
 	ds = dst->ds[0];
 
 	skb = skb_unshare(skb, GFP_ATOMIC);
+
 	if (skb == NULL)
+	{
 		goto out;
+	}
 
 	if (unlikely(!pskb_may_pull(skb, BRCM_TAG_LEN)))
+	{
 		goto out_drop;
+	}
 
 	/* skb->data points to the EtherType, the tag is right before it */
 	brcm_tag = skb->data - 2;
 
 	/* The opcode should never be different than 0b000 */
 	if (unlikely((brcm_tag[0] >> BRCM_OPCODE_SHIFT) & BRCM_OPCODE_MASK))
+	{
 		goto out_drop;
+	}
 
 	/* We should never see a reserved reason code without knowing how to
 	 * handle it
@@ -128,15 +143,17 @@ static int brcm_tag_rcv(struct sk_buff *skb, struct net_device *dev,
 
 	/* Validate port against switch setup, either the port is totally */
 	if (source_port >= DSA_MAX_PORTS || !ds->ports[source_port].netdev)
+	{
 		goto out_drop;
+	}
 
 	/* Remove Broadcom tag and update checksum */
 	skb_pull_rcsum(skb, BRCM_TAG_LEN);
 
 	/* Move the Ethernet DA and SA */
 	memmove(skb->data - ETH_HLEN,
-		skb->data - ETH_HLEN - BRCM_TAG_LEN,
-		2 * ETH_ALEN);
+			skb->data - ETH_HLEN - BRCM_TAG_LEN,
+			2 * ETH_ALEN);
 
 	skb_push(skb, ETH_HLEN);
 	skb->pkt_type = PACKET_HOST;
@@ -156,7 +173,8 @@ out:
 	return 0;
 }
 
-const struct dsa_device_ops brcm_netdev_ops = {
+const struct dsa_device_ops brcm_netdev_ops =
+{
 	.xmit	= brcm_tag_xmit,
 	.rcv	= brcm_tag_rcv,
 };

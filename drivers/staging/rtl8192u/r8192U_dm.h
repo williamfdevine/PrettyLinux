@@ -16,7 +16,7 @@
  *	10/04/2007  MHC		Create initial version.
  *
  *****************************************************************************/
- /* Check to see if the file has been included already.  */
+/* Check to see if the file has been included already.  */
 #ifndef	__R8192UDM_H__
 #define __R8192UDM_H__
 
@@ -67,7 +67,8 @@
 
 /*------------------------------Define structure----------------------------*/
 /* 2007/10/04 MH Define upper and lower threshold of DIG enable or disable. */
-struct dig {
+struct dig
+{
 	u8		dig_enable_flag;
 	u8		dig_algorithm;
 	u8		dbg_mode;
@@ -100,7 +101,8 @@ struct dig {
 	long		rssi_val;
 };
 
-typedef enum tag_dynamic_init_gain_state_definition {
+typedef enum tag_dynamic_init_gain_state_definition
+{
 	DM_STA_DIG_OFF = 0,
 	DM_STA_DIG_ON,
 	DM_STA_DIG_MAX
@@ -108,7 +110,8 @@ typedef enum tag_dynamic_init_gain_state_definition {
 
 
 /* 2007/10/08 MH Define RATR state. */
-typedef enum tag_dynamic_ratr_state_definition {
+typedef enum tag_dynamic_ratr_state_definition
+{
 	DM_RATR_STA_HIGH = 0,
 	DM_RATR_STA_MIDDLE = 1,
 	DM_RATR_STA_LOW = 2,
@@ -116,7 +119,8 @@ typedef enum tag_dynamic_ratr_state_definition {
 } dm_ratr_sta_e;
 
 /* 2007/10/11 MH Define DIG operation type. */
-typedef enum tag_dynamic_init_gain_operation_type_definition {
+typedef enum tag_dynamic_init_gain_operation_type_definition
+{
 	DIG_TYPE_THRESH_HIGH	= 0,
 	DIG_TYPE_THRESH_LOW	= 1,
 	DIG_TYPE_THRESH_HIGHPWR_HIGH	= 2,
@@ -133,37 +137,43 @@ typedef enum tag_dynamic_init_gain_operation_type_definition {
 	DIG_OP_TYPE_MAX
 } dm_dig_op_e;
 
-typedef enum tag_dig_algorithm_definition {
+typedef enum tag_dig_algorithm_definition
+{
 	DIG_ALGO_BY_FALSE_ALARM = 0,
 	DIG_ALGO_BY_RSSI	= 1,
 	DIG_ALGO_MAX
 } dm_dig_alg_e;
 
-typedef enum tag_dig_dbgmode_definition {
+typedef enum tag_dig_dbgmode_definition
+{
 	DIG_DBG_OFF = 0,
 	DIG_DBG_ON = 1,
 	DIG_DBG_MAX
 } dm_dig_dbg_e;
 
-typedef enum tag_dig_connect_definition {
+typedef enum tag_dig_connect_definition
+{
 	DIG_DISCONNECT = 0,
 	DIG_CONNECT = 1,
 	DIG_CONNECT_MAX
 } dm_dig_connect_e;
 
-typedef enum tag_dig_packetdetection_threshold_definition {
+typedef enum tag_dig_packetdetection_threshold_definition
+{
 	DIG_PD_AT_LOW_POWER = 0,
 	DIG_PD_AT_NORMAL_POWER = 1,
 	DIG_PD_AT_HIGH_POWER = 2,
 	DIG_PD_MAX
 } dm_dig_pd_th_e;
 
-typedef enum tag_dig_cck_cs_ratio_state_definition {
+typedef enum tag_dig_cck_cs_ratio_state_definition
+{
 	DIG_CS_RATIO_LOWER = 0,
 	DIG_CS_RATIO_HIGHER = 1,
 	DIG_CS_MAX
 } dm_dig_cs_ratio_e;
-struct dynamic_rx_path_sel {
+struct dynamic_rx_path_sel
+{
 	u8		Enable;
 	u8		DbgMode;
 	u8		cck_method;
@@ -179,19 +189,22 @@ struct dynamic_rx_path_sel {
 	long		cck_pwdb_sta[4];
 };
 
-typedef enum tag_CCK_Rx_Path_Method_Definition {
+typedef enum tag_CCK_Rx_Path_Method_Definition
+{
 	CCK_Rx_Version_1 = 0,
 	CCK_Rx_Version_2 = 1,
 	CCK_Rx_Version_MAX
 } DM_CCK_Rx_Path_Method;
 
-typedef enum tag_DM_DbgMode_Definition {
+typedef enum tag_DM_DbgMode_Definition
+{
 	DM_DBG_OFF = 0,
 	DM_DBG_ON = 1,
 	DM_DBG_MAX
 } DM_DBG_E;
 
-typedef struct tag_Tx_Config_Cmd_Format {
+typedef struct tag_Tx_Config_Cmd_Format
+{
 	u32	Op;			/* Command packet type. */
 	u32	Length;			/* Command packet length. */
 	u32	Value;
@@ -220,9 +233,9 @@ void dm_txpower_trackingcallback(struct work_struct *work);
 void dm_restore_dynamic_mechanism_state(struct net_device *dev);
 void dm_backup_dynamic_mechanism_state(struct net_device *dev);
 void dm_change_dynamic_initgain_thresh(struct net_device *dev,
-				       u32 dm_type, u32 dm_value);
+									   u32 dm_type, u32 dm_value);
 void dm_force_tx_fw_info(struct net_device *dev,
-			 u32 force_type, u32 force_value);
+						 u32 force_type, u32 force_value);
 void dm_init_edca_turbo(struct net_device *dev);
 void dm_rf_operation_test_callback(unsigned long data);
 void dm_rf_pathcheck_workitemcallback(struct work_struct *work);

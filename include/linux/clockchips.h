@@ -31,7 +31,8 @@ struct module;
  * ONESHOT_STOPPED: Device was programmed in ONESHOT mode and is temporarily
  *		    stopped.
  */
-enum clock_event_state {
+enum clock_event_state
+{
 	CLOCK_EVT_STATE_DETACHED,
 	CLOCK_EVT_STATE_SHUTDOWN,
 	CLOCK_EVT_STATE_PERIODIC,
@@ -96,7 +97,8 @@ enum clock_event_state {
  * @list:		list head for the management code
  * @owner:		module reference
  */
-struct clock_event_device {
+struct clock_event_device
+{
 	void			(*event_handler)(struct clock_event_device *);
 	int			(*set_next_event)(unsigned long evt, struct clock_event_device *);
 	int			(*set_next_ktime)(ktime_t expires, struct clock_event_device *);
@@ -184,8 +186,8 @@ extern int clockevents_unbind_device(struct clock_event_device *ced, int cpu);
 
 extern void clockevents_config(struct clock_event_device *dev, u32 freq);
 extern void clockevents_config_and_register(struct clock_event_device *dev,
-					    u32 freq, unsigned long min_delta,
-					    unsigned long max_delta);
+		u32 freq, unsigned long min_delta,
+		unsigned long max_delta);
 
 extern int clockevents_update_freq(struct clock_event_device *ce, u32 freq);
 
@@ -198,14 +200,14 @@ clockevents_calc_mult_shift(struct clock_event_device *ce, u32 freq, u32 maxsec)
 extern void clockevents_suspend(void);
 extern void clockevents_resume(void);
 
-# ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
-#  ifdef CONFIG_ARCH_HAS_TICK_BROADCAST
-extern void tick_broadcast(const struct cpumask *mask);
-#  else
-#   define tick_broadcast	NULL
-#  endif
-extern int tick_receive_broadcast(void);
-# endif
+#ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
+	#ifdef CONFIG_ARCH_HAS_TICK_BROADCAST
+		extern void tick_broadcast(const struct cpumask *mask);
+	#else
+		#define tick_broadcast	NULL
+	#endif
+	extern int tick_receive_broadcast(void);
+#endif
 
 # if defined(CONFIG_GENERIC_CLOCKEVENTS_BROADCAST) && defined(CONFIG_TICK_ONESHOT)
 extern void tick_setup_hrtimer_broadcast(void);

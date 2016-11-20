@@ -24,11 +24,11 @@
  * see xfs_bulkstat_one() and xfs_dm_bulkstat_one() in dmapi_xfs.c
  */
 typedef int (*bulkstat_one_pf)(struct xfs_mount	*mp,
-			       xfs_ino_t	ino,
-			       void		__user *buffer,
-			       int		ubsize,
-			       int		*ubused,
-			       int		*stat);
+							   xfs_ino_t	ino,
+							   void		__user *buffer,
+							   int		ubsize,
+							   int		*ubused,
+							   int		*stat);
 
 /*
  * Values for stat return value.

@@ -23,10 +23,15 @@ static void wusbhc_channel_changed(struct uwb_pal *pal, int channel)
 	struct wusbhc *wusbhc = container_of(pal, struct wusbhc, pal);
 
 	dev_dbg(wusbhc->dev, "%s: channel = %d\n", __func__, channel);
+
 	if (channel < 0)
+	{
 		wusbhc_stop(wusbhc);
+	}
 	else
+	{
 		wusbhc_start(wusbhc);
+	}
 }
 
 /**
@@ -52,5 +57,7 @@ int wusbhc_pal_register(struct wusbhc *wusbhc)
 void wusbhc_pal_unregister(struct wusbhc *wusbhc)
 {
 	if (wusbhc->uwb_rc)
+	{
 		uwb_pal_unregister(&wusbhc->pal);
+	}
 }

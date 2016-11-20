@@ -125,8 +125,8 @@ static int cik_ih_irq_init(struct amdgpu_device *adev)
 	rb_bufsz = order_base_2(adev->irq.ih.ring_size / 4);
 
 	ih_rb_cntl = (IH_RB_CNTL__WPTR_OVERFLOW_ENABLE_MASK |
-		      IH_RB_CNTL__WPTR_OVERFLOW_CLEAR_MASK |
-		      (rb_bufsz << 1));
+				  IH_RB_CNTL__WPTR_OVERFLOW_CLEAR_MASK |
+				  (rb_bufsz << 1));
 
 	ih_rb_cntl |= IH_RB_CNTL__WPTR_WRITEBACK_ENABLE_MASK;
 
@@ -143,11 +143,15 @@ static int cik_ih_irq_init(struct amdgpu_device *adev)
 
 	/* Default settings for IH_CNTL (disabled at first) */
 	ih_cntl = (0x10 << IH_CNTL__MC_WRREQ_CREDIT__SHIFT) |
-		(0x10 << IH_CNTL__MC_WR_CLEAN_CNT__SHIFT) |
-		(0 << IH_CNTL__MC_VMID__SHIFT);
+			  (0x10 << IH_CNTL__MC_WR_CLEAN_CNT__SHIFT) |
+			  (0 << IH_CNTL__MC_VMID__SHIFT);
+
 	/* IH_CNTL__RPTR_REARM_MASK only works if msi's are enabled */
 	if (adev->irq.msi_enabled)
+	{
 		ih_cntl |= IH_CNTL__RPTR_REARM_MASK;
+	}
+
 	WREG32(mmIH_CNTL, ih_cntl);
 
 	pci_set_master(adev->pdev);
@@ -189,19 +193,21 @@ static u32 cik_ih_get_wptr(struct amdgpu_device *adev)
 
 	wptr = le32_to_cpu(adev->wb.wb[adev->irq.ih.wptr_offs]);
 
-	if (wptr & IH_RB_WPTR__RB_OVERFLOW_MASK) {
+	if (wptr & IH_RB_WPTR__RB_OVERFLOW_MASK)
+	{
 		wptr &= ~IH_RB_WPTR__RB_OVERFLOW_MASK;
 		/* When a ring buffer overflow happen start parsing interrupt
 		 * from the last not overwritten vector (wptr + 16). Hopefully
 		 * this should allow us to catchup.
 		 */
 		dev_warn(adev->dev, "IH ring buffer overflow (0x%08X, 0x%08X, 0x%08X)\n",
-			wptr, adev->irq.ih.rptr, (wptr + 16) & adev->irq.ih.ptr_mask);
+				 wptr, adev->irq.ih.rptr, (wptr + 16) & adev->irq.ih.ptr_mask);
 		adev->irq.ih.rptr = (wptr + 16) & adev->irq.ih.ptr_mask;
 		tmp = RREG32(mmIH_RB_CNTL);
 		tmp |= IH_RB_CNTL__WPTR_OVERFLOW_CLEAR_MASK;
 		WREG32(mmIH_RB_CNTL, tmp);
 	}
+
 	return (wptr & adev->irq.ih.ptr_mask);
 }
 
@@ -228,16 +234,16 @@ static u32 cik_ih_get_wptr(struct amdgpu_device *adev)
  * [127:96] - reserved
  */
 
- /**
- * cik_ih_decode_iv - decode an interrupt vector
- *
- * @adev: amdgpu_device pointer
- *
- * Decodes the interrupt vector at the current rptr
- * position and also advance the position.
- */
+/**
+* cik_ih_decode_iv - decode an interrupt vector
+*
+* @adev: amdgpu_device pointer
+*
+* Decodes the interrupt vector at the current rptr
+* position and also advance the position.
+*/
 static void cik_ih_decode_iv(struct amdgpu_device *adev,
-			     struct amdgpu_iv_entry *entry)
+							 struct amdgpu_iv_entry *entry)
 {
 	/* wptr/rptr are in bytes! */
 	u32 ring_index = adev->irq.ih.rptr >> 2;
@@ -276,8 +282,11 @@ static int cik_ih_early_init(void *handle)
 	int ret;
 
 	ret = amdgpu_irq_add_domain(adev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	cik_ih_set_interrupt_funcs(adev);
 
@@ -290,8 +299,11 @@ static int cik_ih_sw_init(void *handle)
 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
 
 	r = amdgpu_ih_ring_init(adev, 64 * 1024, false);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = amdgpu_irq_init(adev);
 
@@ -315,8 +327,11 @@ static int cik_ih_hw_init(void *handle)
 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
 
 	r = cik_ih_irq_init(adev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return 0;
 }
@@ -350,7 +365,9 @@ static bool cik_ih_is_idle(void *handle)
 	u32 tmp = RREG32(mmSRBM_STATUS);
 
 	if (tmp & SRBM_STATUS__IH_BUSY_MASK)
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -361,13 +378,19 @@ static int cik_ih_wait_for_idle(void *handle)
 	u32 tmp;
 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
 
-	for (i = 0; i < adev->usec_timeout; i++) {
+	for (i = 0; i < adev->usec_timeout; i++)
+	{
 		/* read MC_STATUS */
 		tmp = RREG32(mmSRBM_STATUS) & SRBM_STATUS__IH_BUSY_MASK;
+
 		if (!tmp)
+		{
 			return 0;
+		}
+
 		udelay(1);
 	}
+
 	return -ETIMEDOUT;
 }
 
@@ -379,9 +402,12 @@ static int cik_ih_soft_reset(void *handle)
 	u32 tmp = RREG32(mmSRBM_STATUS);
 
 	if (tmp & SRBM_STATUS__IH_BUSY_MASK)
+	{
 		srbm_soft_reset |= SRBM_SOFT_RESET__SOFT_RESET_IH_MASK;
+	}
 
-	if (srbm_soft_reset) {
+	if (srbm_soft_reset)
+	{
 		tmp = RREG32(mmSRBM_SOFT_RESET);
 		tmp |= srbm_soft_reset;
 		dev_info(adev->dev, "SRBM_SOFT_RESET=0x%08X\n", tmp);
@@ -402,18 +428,19 @@ static int cik_ih_soft_reset(void *handle)
 }
 
 static int cik_ih_set_clockgating_state(void *handle,
-					  enum amd_clockgating_state state)
+										enum amd_clockgating_state state)
 {
 	return 0;
 }
 
 static int cik_ih_set_powergating_state(void *handle,
-					  enum amd_powergating_state state)
+										enum amd_powergating_state state)
 {
 	return 0;
 }
 
-const struct amd_ip_funcs cik_ih_ip_funcs = {
+const struct amd_ip_funcs cik_ih_ip_funcs =
+{
 	.name = "cik_ih",
 	.early_init = cik_ih_early_init,
 	.late_init = NULL,
@@ -430,7 +457,8 @@ const struct amd_ip_funcs cik_ih_ip_funcs = {
 	.set_powergating_state = cik_ih_set_powergating_state,
 };
 
-static const struct amdgpu_ih_funcs cik_ih_funcs = {
+static const struct amdgpu_ih_funcs cik_ih_funcs =
+{
 	.get_wptr = cik_ih_get_wptr,
 	.decode_iv = cik_ih_decode_iv,
 	.set_rptr = cik_ih_set_rptr
@@ -439,5 +467,7 @@ static const struct amdgpu_ih_funcs cik_ih_funcs = {
 static void cik_ih_set_interrupt_funcs(struct amdgpu_device *adev)
 {
 	if (adev->irq.ih_funcs == NULL)
+	{
 		adev->irq.ih_funcs = &cik_ih_funcs;
+	}
 }

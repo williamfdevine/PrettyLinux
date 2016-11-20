@@ -32,7 +32,8 @@
  ******************************************************************************/
 
 static const struct gf100_gr_init
-gf100_grctx_init_icmd_0[] = {
+	gf100_grctx_init_icmd_0[] =
+{
 	{ 0x001000,   1, 0x01, 0x00000004 },
 	{ 0x0000a9,   1, 0x01, 0x0000ffff },
 	{ 0x000038,   1, 0x01, 0x0fac6881 },
@@ -270,13 +271,15 @@ gf100_grctx_init_icmd_0[] = {
 };
 
 const struct gf100_gr_pack
-gf100_grctx_pack_icmd[] = {
+	gf100_grctx_pack_icmd[] =
+{
 	{ gf100_grctx_init_icmd_0 },
 	{}
 };
 
 static const struct gf100_gr_init
-gf100_grctx_init_9097_0[] = {
+	gf100_grctx_init_9097_0[] =
+{
 	{ 0x000800,   8, 0x40, 0x00000000 },
 	{ 0x000804,   8, 0x40, 0x00000000 },
 	{ 0x000808,   8, 0x40, 0x00000400 },
@@ -579,7 +582,8 @@ gf100_grctx_init_9097_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_902d_0[] = {
+	gf100_grctx_init_902d_0[] =
+{
 	{ 0x000200,   1, 0x04, 0x000000cf },
 	{ 0x000204,   1, 0x04, 0x00000001 },
 	{ 0x000208,   1, 0x04, 0x00000020 },
@@ -598,7 +602,8 @@ gf100_grctx_init_902d_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_9039_0[] = {
+	gf100_grctx_init_9039_0[] =
+{
 	{ 0x00030c,   3, 0x04, 0x00000000 },
 	{ 0x000320,   1, 0x04, 0x00000000 },
 	{ 0x000238,   2, 0x04, 0x00000000 },
@@ -607,7 +612,8 @@ gf100_grctx_init_9039_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_90c0_0[] = {
+	gf100_grctx_init_90c0_0[] =
+{
 	{ 0x00270c,   8, 0x20, 0x00000000 },
 	{ 0x00030c,   1, 0x04, 0x00000001 },
 	{ 0x001944,   1, 0x04, 0x00000000 },
@@ -625,7 +631,8 @@ gf100_grctx_init_90c0_0[] = {
 };
 
 const struct gf100_gr_pack
-gf100_grctx_pack_mthd[] = {
+	gf100_grctx_pack_mthd[] =
+{
 	{ gf100_grctx_init_9097_0, 0x9097 },
 	{ gf100_grctx_init_902d_0, 0x902d },
 	{ gf100_grctx_init_9039_0, 0x9039 },
@@ -634,13 +641,15 @@ gf100_grctx_pack_mthd[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_main_0[] = {
+	gf100_grctx_init_main_0[] =
+{
 	{ 0x400204,   2, 0x04, 0x00000000 },
 	{}
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_fe_0[] = {
+	gf100_grctx_init_fe_0[] =
+{
 	{ 0x404004,  11, 0x04, 0x00000000 },
 	{ 0x404044,   1, 0x04, 0x00000000 },
 	{ 0x404094,  13, 0x04, 0x00000000 },
@@ -661,7 +670,8 @@ gf100_grctx_init_fe_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_pri_0[] = {
+	gf100_grctx_init_pri_0[] =
+{
 	{ 0x404404,  14, 0x04, 0x00000000 },
 	{ 0x404460,   2, 0x04, 0x00000000 },
 	{ 0x404468,   1, 0x04, 0x00ffffff },
@@ -672,7 +682,8 @@ gf100_grctx_init_pri_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_memfmt_0[] = {
+	gf100_grctx_init_memfmt_0[] =
+{
 	{ 0x404604,   1, 0x04, 0x00000015 },
 	{ 0x404608,   1, 0x04, 0x00000000 },
 	{ 0x40460c,   1, 0x04, 0x00002e00 },
@@ -694,7 +705,8 @@ gf100_grctx_init_memfmt_0[] = {
 };
 
 static const struct gf100_gr_init
-gf100_grctx_init_ds_0[] = {
+	gf100_grctx_init_ds_0[] =
+{
 	{ 0x405800,   1, 0x04, 0x078000bf },
 	{ 0x405830,   1, 0x04, 0x02180000 },
 	{ 0x405834,   2, 0x04, 0x00000000 },
@@ -706,7 +718,8 @@ gf100_grctx_init_ds_0[] = {
 };
 
 static const struct gf100_gr_init
-gf100_grctx_init_pd_0[] = {
+	gf100_grctx_init_pd_0[] =
+{
 	{ 0x406020,   1, 0x04, 0x000103c1 },
 	{ 0x406028,   4, 0x04, 0x00000001 },
 	{ 0x4064a8,   1, 0x04, 0x00000000 },
@@ -716,7 +729,8 @@ gf100_grctx_init_pd_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_rstr2d_0[] = {
+	gf100_grctx_init_rstr2d_0[] =
+{
 	{ 0x407804,   1, 0x04, 0x00000023 },
 	{ 0x40780c,   1, 0x04, 0x0a418820 },
 	{ 0x407810,   1, 0x04, 0x062080e6 },
@@ -729,7 +743,8 @@ gf100_grctx_init_rstr2d_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_scc_0[] = {
+	gf100_grctx_init_scc_0[] =
+{
 	{ 0x408000,   2, 0x04, 0x00000000 },
 	{ 0x408008,   1, 0x04, 0x00000018 },
 	{ 0x40800c,   2, 0x04, 0x00000000 },
@@ -740,7 +755,8 @@ gf100_grctx_init_scc_0[] = {
 };
 
 static const struct gf100_gr_init
-gf100_grctx_init_be_0[] = {
+	gf100_grctx_init_be_0[] =
+{
 	{ 0x408800,   1, 0x04, 0x02802a3c },
 	{ 0x408804,   1, 0x04, 0x00000040 },
 	{ 0x408808,   1, 0x04, 0x0003e00d },
@@ -752,7 +768,8 @@ gf100_grctx_init_be_0[] = {
 };
 
 const struct gf100_gr_pack
-gf100_grctx_pack_hub[] = {
+	gf100_grctx_pack_hub[] =
+{
 	{ gf100_grctx_init_main_0 },
 	{ gf100_grctx_init_fe_0 },
 	{ gf100_grctx_init_pri_0 },
@@ -766,13 +783,15 @@ gf100_grctx_pack_hub[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_gpc_unk_0[] = {
+	gf100_grctx_init_gpc_unk_0[] =
+{
 	{ 0x418380,   1, 0x04, 0x00000016 },
 	{}
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_prop_0[] = {
+	gf100_grctx_init_prop_0[] =
+{
 	{ 0x418400,   1, 0x04, 0x38004e00 },
 	{ 0x418404,   1, 0x04, 0x71e0ffff },
 	{ 0x418408,   1, 0x04, 0x00000000 },
@@ -786,7 +805,8 @@ gf100_grctx_init_prop_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_gpc_unk_1[] = {
+	gf100_grctx_init_gpc_unk_1[] =
+{
 	{ 0x418600,   1, 0x04, 0x0000001f },
 	{ 0x418684,   1, 0x04, 0x0000000f },
 	{ 0x418700,   1, 0x04, 0x00000002 },
@@ -798,7 +818,8 @@ gf100_grctx_init_gpc_unk_1[] = {
 };
 
 static const struct gf100_gr_init
-gf100_grctx_init_setup_0[] = {
+	gf100_grctx_init_setup_0[] =
+{
 	{ 0x418800,   1, 0x04, 0x0006860a },
 	{ 0x418808,   3, 0x04, 0x00000000 },
 	{ 0x418828,   1, 0x04, 0x00008442 },
@@ -811,7 +832,8 @@ gf100_grctx_init_setup_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_zcull_0[] = {
+	gf100_grctx_init_zcull_0[] =
+{
 	{ 0x41891c,   1, 0x04, 0x00ff00ff },
 	{ 0x418924,   1, 0x04, 0x00000000 },
 	{ 0x418928,   1, 0x04, 0x00ffff00 },
@@ -820,7 +842,8 @@ gf100_grctx_init_zcull_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_crstr_0[] = {
+	gf100_grctx_init_crstr_0[] =
+{
 	{ 0x418b00,   1, 0x04, 0x00000000 },
 	{ 0x418b08,   1, 0x04, 0x0a418820 },
 	{ 0x418b0c,   1, 0x04, 0x062080e6 },
@@ -833,7 +856,8 @@ gf100_grctx_init_crstr_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_gpm_0[] = {
+	gf100_grctx_init_gpm_0[] =
+{
 	{ 0x418c08,   1, 0x04, 0x00000001 },
 	{ 0x418c10,   8, 0x04, 0x00000000 },
 	{ 0x418c80,   1, 0x04, 0x20200004 },
@@ -842,7 +866,8 @@ gf100_grctx_init_gpm_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_gcc_0[] = {
+	gf100_grctx_init_gcc_0[] =
+{
 	{ 0x419000,   1, 0x04, 0x00000780 },
 	{ 0x419004,   2, 0x04, 0x00000000 },
 	{ 0x419014,   1, 0x04, 0x00000004 },
@@ -850,7 +875,8 @@ gf100_grctx_init_gcc_0[] = {
 };
 
 const struct gf100_gr_pack
-gf100_grctx_pack_gpc[] = {
+	gf100_grctx_pack_gpc[] =
+{
 	{ gf100_grctx_init_gpc_unk_0 },
 	{ gf100_grctx_init_prop_0 },
 	{ gf100_grctx_init_gpc_unk_1 },
@@ -863,7 +889,8 @@ gf100_grctx_pack_gpc[] = {
 };
 
 static const struct gf100_gr_init
-gf100_grctx_init_zcullr_0[] = {
+	gf100_grctx_init_zcullr_0[] =
+{
 	{ 0x418a00,   3, 0x04, 0x00000000 },
 	{ 0x418a0c,   1, 0x04, 0x00010000 },
 	{ 0x418a10,   3, 0x04, 0x00000000 },
@@ -892,13 +919,15 @@ gf100_grctx_init_zcullr_0[] = {
 };
 
 const struct gf100_gr_pack
-gf100_grctx_pack_zcull[] = {
+	gf100_grctx_pack_zcull[] =
+{
 	{ gf100_grctx_init_zcullr_0 },
 	{}
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_pe_0[] = {
+	gf100_grctx_init_pe_0[] =
+{
 	{ 0x419818,   1, 0x04, 0x00000000 },
 	{ 0x41983c,   1, 0x04, 0x00038bc7 },
 	{ 0x419848,   1, 0x04, 0x00000000 },
@@ -908,7 +937,8 @@ gf100_grctx_init_pe_0[] = {
 };
 
 static const struct gf100_gr_init
-gf100_grctx_init_tex_0[] = {
+	gf100_grctx_init_tex_0[] =
+{
 	{ 0x419a00,   1, 0x04, 0x000001f0 },
 	{ 0x419a04,   1, 0x04, 0x00000001 },
 	{ 0x419a08,   1, 0x04, 0x00000023 },
@@ -919,7 +949,8 @@ gf100_grctx_init_tex_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_wwdx_0[] = {
+	gf100_grctx_init_wwdx_0[] =
+{
 	{ 0x419b00,   1, 0x04, 0x0a418820 },
 	{ 0x419b04,   1, 0x04, 0x062080e6 },
 	{ 0x419b08,   1, 0x04, 0x020398a4 },
@@ -933,7 +964,8 @@ gf100_grctx_init_wwdx_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_mpc_0[] = {
+	gf100_grctx_init_mpc_0[] =
+{
 	{ 0x419c00,   1, 0x04, 0x00000002 },
 	{ 0x419c04,   1, 0x04, 0x00000006 },
 	{ 0x419c08,   1, 0x04, 0x00000002 },
@@ -942,7 +974,8 @@ gf100_grctx_init_mpc_0[] = {
 };
 
 static const struct gf100_gr_init
-gf100_grctx_init_l1c_0[] = {
+	gf100_grctx_init_l1c_0[] =
+{
 	{ 0x419cb0,   1, 0x04, 0x00060048 },
 	{ 0x419ce8,   1, 0x04, 0x00000000 },
 	{ 0x419cf4,   1, 0x04, 0x00000183 },
@@ -950,14 +983,16 @@ gf100_grctx_init_l1c_0[] = {
 };
 
 const struct gf100_gr_init
-gf100_grctx_init_tpccs_0[] = {
+	gf100_grctx_init_tpccs_0[] =
+{
 	{ 0x419d20,   1, 0x04, 0x02180000 },
 	{ 0x419d24,   1, 0x04, 0x00001fff },
 	{}
 };
 
 static const struct gf100_gr_init
-gf100_grctx_init_sm_0[] = {
+	gf100_grctx_init_sm_0[] =
+{
 	{ 0x419e04,   3, 0x04, 0x00000000 },
 	{ 0x419e10,   1, 0x04, 0x00000002 },
 	{ 0x419e44,   1, 0x04, 0x001beff2 },
@@ -970,7 +1005,8 @@ gf100_grctx_init_sm_0[] = {
 };
 
 const struct gf100_gr_pack
-gf100_grctx_pack_tpc[] = {
+	gf100_grctx_pack_tpc[] =
+{
 	{ gf100_grctx_init_pe_0 },
 	{ gf100_grctx_init_tex_0 },
 	{ gf100_grctx_init_wwdx_0 },
@@ -988,7 +1024,8 @@ gf100_grctx_pack_tpc[] = {
 int
 gf100_grctx_mmio_data(struct gf100_grctx *info, u32 size, u32 align, u32 access)
 {
-	if (info->data) {
+	if (info->data)
+	{
 		info->buffer[info->buffer_nr] = round_up(info->addr, align);
 		info->addr = info->buffer[info->buffer_nr] + size;
 		info->data->size = size;
@@ -997,28 +1034,43 @@ gf100_grctx_mmio_data(struct gf100_grctx *info, u32 size, u32 align, u32 access)
 		info->data++;
 		return info->buffer_nr++;
 	}
+
 	return -1;
 }
 
 void
 gf100_grctx_mmio_item(struct gf100_grctx *info, u32 addr, u32 data,
-		      int shift, int buffer)
+					  int shift, int buffer)
 {
 	struct nvkm_device *device = info->gr->base.engine.subdev.device;
-	if (info->data) {
-		if (shift >= 0) {
+
+	if (info->data)
+	{
+		if (shift >= 0)
+		{
 			info->mmio->addr = addr;
 			info->mmio->data = data;
 			info->mmio->shift = shift;
 			info->mmio->buffer = buffer;
+
 			if (buffer >= 0)
+			{
 				data |= info->buffer[buffer] >> shift;
+			}
+
 			info->mmio++;
-		} else
+		}
+		else
+		{
 			return;
-	} else {
+		}
+	}
+	else
+	{
 		if (buffer >= 0)
+		{
 			return;
+		}
 	}
 
 	nvkm_wr32(device, addr, data);
@@ -1067,8 +1119,10 @@ gf100_grctx_generate_attrib(struct gf100_grctx *info)
 	mmio_refn(info, 0x419848, 0x10000000, s, b);
 	mmio_wr32(info, 0x405830, (attrib << 16));
 
-	for (gpc = 0; gpc < gr->gpc_nr; gpc++) {
-		for (tpc = 0; tpc < gr->tpc_nr[gpc]; tpc++) {
+	for (gpc = 0; gpc < gr->gpc_nr; gpc++)
+	{
+		for (tpc = 0; tpc < gr->tpc_nr[gpc]; tpc++)
+		{
 			const u32 o = TPC_UNIT(gpc, tpc, 0x0520);
 			mmio_skip(info, o, (attrib << 16) | ++bo);
 			mmio_wr32(info, o, (attrib << 16) | --bo);
@@ -1088,9 +1142,12 @@ gf100_grctx_generate_tpcid(struct gf100_gr *gr)
 	struct nvkm_device *device = gr->base.engine.subdev.device;
 	int gpc, tpc, id;
 
-	for (tpc = 0, id = 0; tpc < 4; tpc++) {
-		for (gpc = 0; gpc < gr->gpc_nr; gpc++) {
-			if (tpc < gr->tpc_nr[gpc]) {
+	for (tpc = 0, id = 0; tpc < 4; tpc++)
+	{
+		for (gpc = 0; gpc < gr->gpc_nr; gpc++)
+		{
+			if (tpc < gr->tpc_nr[gpc])
+			{
 				nvkm_wr32(device, TPC_UNIT(gpc, tpc, 0x698), id);
 				nvkm_wr32(device, TPC_UNIT(gpc, tpc, 0x4e8), id);
 				nvkm_wr32(device, GPC_UNIT(gpc, 0x0c10 + tpc * 4), id);
@@ -1109,9 +1166,14 @@ gf100_grctx_generate_r406028(struct gf100_gr *gr)
 {
 	struct nvkm_device *device = gr->base.engine.subdev.device;
 	u32 tmp[GPC_MAX / 8] = {}, i = 0;
+
 	for (i = 0; i < gr->gpc_nr; i++)
+	{
 		tmp[i / 8] |= gr->tpc_nr[i] << ((i % 8) * 4);
-	for (i = 0; i < 4; i++) {
+	}
+
+	for (i = 0; i < 4; i++)
+	{
 		nvkm_wr32(device, 0x406028 + (i * 4), tmp[i]);
 		nvkm_wr32(device, 0x405870 + (i * 4), tmp[i]);
 	}
@@ -1128,16 +1190,23 @@ gf100_grctx_generate_r4060a8(struct gf100_gr *gr)
 	memset(data, 0x1f, sizeof(data));
 
 	gpc = -1;
-	for (tpc = 0; tpc < gr->tpc_total; tpc++) {
-		do {
+
+	for (tpc = 0; tpc < gr->tpc_total; tpc++)
+	{
+		do
+		{
 			gpc = (gpc + 1) % gr->gpc_nr;
-		} while (!tpcnr[gpc]);
+		}
+		while (!tpcnr[gpc]);
+
 		tpcnr[gpc]--;
 		data[tpc] = gpc;
 	}
 
 	for (i = 0; i < 4; i++)
+	{
 		nvkm_wr32(device, 0x4060a8 + (i * 4), ((u32 *)data)[i]);
+	}
 }
 
 void
@@ -1153,22 +1222,31 @@ gf100_grctx_generate_r418bb8(struct gf100_gr *gr)
 	memcpy(tpcnr, gr->tpc_nr, sizeof(gr->tpc_nr));
 
 	gpc = -1;
-	for (tpc = 0; tpc < gr->tpc_total; tpc++) {
-		do {
+
+	for (tpc = 0; tpc < gr->tpc_total; tpc++)
+	{
+		do
+		{
 			gpc = (gpc + 1) % gr->gpc_nr;
-		} while (!tpcnr[gpc]);
+		}
+		while (!tpcnr[gpc]);
+
 		tpcnr[gpc]--;
 
 		data[tpc / 6] |= gpc << ((tpc % 6) * 5);
 	}
 
 	for (; tpc < 32; tpc++)
+	{
 		data[tpc / 6] |= 7 << ((tpc % 6) * 5);
+	}
 
 	/* and the second... */
 	shift = 0;
 	ntpcv = gr->tpc_total;
-	while (!(ntpcv & (1 << 4))) {
+
+	while (!(ntpcv & (1 << 4)))
+	{
 		ntpcv <<= 1;
 		shift++;
 	}
@@ -1176,27 +1254,39 @@ gf100_grctx_generate_r418bb8(struct gf100_gr *gr)
 	data2[0]  = (ntpcv << 16);
 	data2[0] |= (shift << 21);
 	data2[0] |= (((1 << (0 + 5)) % ntpcv) << 24);
+
 	for (i = 1; i < 7; i++)
+	{
 		data2[1] |= ((1 << (i + 5)) % ntpcv) << ((i - 1) * 5);
+	}
 
 	/* GPC_BROADCAST */
 	nvkm_wr32(device, 0x418bb8, (gr->tpc_total << 8) |
-				     gr->screen_tile_row_offset);
+			  gr->screen_tile_row_offset);
+
 	for (i = 0; i < 6; i++)
+	{
 		nvkm_wr32(device, 0x418b08 + (i * 4), data[i]);
+	}
 
 	/* GPC_BROADCAST.TP_BROADCAST */
 	nvkm_wr32(device, 0x419bd0, (gr->tpc_total << 8) |
-				     gr->screen_tile_row_offset | data2[0]);
+			  gr->screen_tile_row_offset | data2[0]);
 	nvkm_wr32(device, 0x419be4, data2[1]);
+
 	for (i = 0; i < 6; i++)
+	{
 		nvkm_wr32(device, 0x419b00 + (i * 4), data[i]);
+	}
 
 	/* UNK78xx */
 	nvkm_wr32(device, 0x4078bc, (gr->tpc_total << 8) |
-				     gr->screen_tile_row_offset);
+			  gr->screen_tile_row_offset);
+
 	for (i = 0; i < 6; i++)
+	{
 		nvkm_wr32(device, 0x40780c + (i * 4), data[i]);
+	}
 }
 
 void
@@ -1209,16 +1299,26 @@ gf100_grctx_generate_r406800(struct gf100_gr *gr)
 	int i, a, b;
 
 	memcpy(tpcnr, gr->tpc_nr, sizeof(gr->tpc_nr));
-	for (gpc = 0; gpc < gr->gpc_nr; gpc++)
-		tpc_mask |= ((1ULL << gr->tpc_nr[gpc]) - 1) << (gpc * 8);
 
-	for (i = 0, gpc = -1, b = -1; i < 32; i++) {
+	for (gpc = 0; gpc < gr->gpc_nr; gpc++)
+	{
+		tpc_mask |= ((1ULL << gr->tpc_nr[gpc]) - 1) << (gpc * 8);
+	}
+
+	for (i = 0, gpc = -1, b = -1; i < 32; i++)
+	{
 		a = (i * (gr->tpc_total - 1)) / 32;
-		if (a != b) {
+
+		if (a != b)
+		{
 			b = a;
-			do {
+
+			do
+			{
 				gpc = (gpc + 1) % gr->gpc_nr;
-			} while (!tpcnr[gpc]);
+			}
+			while (!tpcnr[gpc]);
+
 			tpc = gr->tpc_nr[gpc] - tpcnr[gpc]--;
 
 			tpc_set |= 1ULL << ((gpc * 8) + tpc);
@@ -1226,7 +1326,9 @@ gf100_grctx_generate_r406800(struct gf100_gr *gr)
 
 		nvkm_wr32(device, 0x406800 + (i * 0x20), lower_32_bits(tpc_set));
 		nvkm_wr32(device, 0x406c00 + (i * 0x20), lower_32_bits(tpc_set ^ tpc_mask));
-		if (gr->gpc_nr > 4) {
+
+		if (gr->gpc_nr > 4)
+		{
 			nvkm_wr32(device, 0x406804 + (i * 0x20), upper_32_bits(tpc_set));
 			nvkm_wr32(device, 0x406c04 + (i * 0x20), upper_32_bits(tpc_set ^ tpc_mask));
 		}
@@ -1282,8 +1384,10 @@ gf100_grctx_generate(struct gf100_gr *gr)
 	 * the default context values
 	 */
 	ret = nvkm_memory_new(device, NVKM_MEM_TARGET_INST, 0x80000 + gr->size,
-			      0x1000, true, &chan);
-	if (ret) {
+						  0x1000, true, &chan);
+
+	if (ret)
+	{
 		nvkm_error(subdev, "failed to allocate chan memory, %d\n", ret);
 		return ret;
 	}
@@ -1302,7 +1406,8 @@ gf100_grctx_generate(struct gf100_gr *gr)
 	nvkm_wo32(chan, 0x1004, 0x00000001 | (addr + 0x2000) >> 8);
 
 	/* identity-map the whole "channel" into its own vm */
-	for (i = 0; i < nvkm_memory_size(chan) / 4096; i++) {
+	for (i = 0; i < nvkm_memory_size(chan) / 4096; i++)
+	{
 		u64 addr = ((nvkm_memory_addr(chan) + (i * 4096)) >> 8) | 1;
 		nvkm_wo32(chan, 0x2000 + (i * 8), lower_32_bits(addr));
 		nvkm_wo32(chan, 0x2004 + (i * 8), upper_32_bits(addr));
@@ -1316,9 +1421,10 @@ gf100_grctx_generate(struct gf100_gr *gr)
 	nvkm_wr32(device, 0x100cb8, (addr + 0x1000) >> 8);
 	nvkm_wr32(device, 0x100cbc, 0x80000001);
 	nvkm_msec(device, 2000,
-		if (nvkm_rd32(device, 0x100c80) & 0x00008000)
-			break;
-	);
+
+			  if (nvkm_rd32(device, 0x100c80) & 0x00008000)
+			  break;
+			 );
 
 	/* setup default state for mmio list construction */
 	info.gr = gr;
@@ -1328,14 +1434,16 @@ gf100_grctx_generate(struct gf100_gr *gr)
 	info.buffer_nr = 0;
 
 	/* make channel current */
-	if (gr->firmware) {
+	if (gr->firmware)
+	{
 		nvkm_wr32(device, 0x409840, 0x00000030);
 		nvkm_wr32(device, 0x409500, 0x80000000 | addr >> 12);
 		nvkm_wr32(device, 0x409504, 0x00000003);
 		nvkm_msec(device, 2000,
-			if (nvkm_rd32(device, 0x409800) & 0x00000010)
-				break;
-		);
+
+				  if (nvkm_rd32(device, 0x409800) & 0x00000010)
+				  break;
+				 );
 
 		nvkm_kmap(chan);
 		nvkm_wo32(chan, 0x8001c, 1);
@@ -1343,14 +1451,17 @@ gf100_grctx_generate(struct gf100_gr *gr)
 		nvkm_wo32(chan, 0x80028, 0);
 		nvkm_wo32(chan, 0x8002c, 0);
 		nvkm_done(chan);
-	} else {
+	}
+	else
+	{
 		nvkm_wr32(device, 0x409840, 0x80000000);
 		nvkm_wr32(device, 0x409500, 0x80000000 | addr >> 12);
 		nvkm_wr32(device, 0x409504, 0x00000001);
 		nvkm_msec(device, 2000,
-			if (nvkm_rd32(device, 0x409800) & 0x80000000)
-				break;
-		);
+
+				  if (nvkm_rd32(device, 0x409800) & 0x80000000)
+				  break;
+				 );
 	}
 
 	grctx->main(gr, &info);
@@ -1360,22 +1471,32 @@ gf100_grctx_generate(struct gf100_gr *gr)
 	 */
 	nvkm_mask(device, 0x409b04, 0x80000000, 0x00000000);
 	nvkm_wr32(device, 0x409000, 0x00000100);
+
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x409b00) & 0x80000000))
-			break;
-	) < 0) {
-		ret = -EBUSY;
-		goto done;
-	}
+				  if (!(nvkm_rd32(device, 0x409b00) & 0x80000000))
+					  break;
+					 ) < 0)
+		{
+			ret = -EBUSY;
+			goto done;
+		}
 
 	gr->data = kmalloc(gr->size, GFP_KERNEL);
-	if (gr->data) {
+
+	if (gr->data)
+	{
 		nvkm_kmap(chan);
+
 		for (i = 0; i < gr->size; i += 4)
+		{
 			gr->data[i / 4] = nvkm_ro32(chan, 0x80000 + i);
+		}
+
 		nvkm_done(chan);
 		ret = 0;
-	} else {
+	}
+	else
+	{
 		ret = -ENOMEM;
 	}
 
@@ -1385,7 +1506,8 @@ done:
 }
 
 const struct gf100_grctx_func
-gf100_grctx = {
+	gf100_grctx =
+{
 	.main  = gf100_grctx_generate_main,
 	.unkn  = gf100_grctx_generate_unkn,
 	.hub   = gf100_grctx_pack_hub,

@@ -48,7 +48,8 @@
 /* Architectural interrupt line count. */
 #define KVM_NR_INTERRUPTS 256
 
-struct kvm_memory_alias {
+struct kvm_memory_alias
+{
 	__u32 slot;  /* this has a different namespace than memory slots */
 	__u32 flags;
 	__u64 guest_phys_addr;
@@ -57,7 +58,8 @@ struct kvm_memory_alias {
 };
 
 /* for KVM_GET_IRQCHIP and KVM_SET_IRQCHIP */
-struct kvm_pic_state {
+struct kvm_pic_state
+{
 	__u8 last_irr;	/* edge detection */
 	__u8 irr;		/* interrupt request register */
 	__u8 imr;		/* interrupt mask register */
@@ -77,24 +79,27 @@ struct kvm_pic_state {
 };
 
 #define KVM_IOAPIC_NUM_PINS  24
-struct kvm_ioapic_state {
+struct kvm_ioapic_state
+{
 	__u64 base_address;
 	__u32 ioregsel;
 	__u32 id;
 	__u32 irr;
 	__u32 pad;
-	union {
+	union
+	{
 		__u64 bits;
-		struct {
+		struct
+		{
 			__u8 vector;
-			__u8 delivery_mode:3;
-			__u8 dest_mode:1;
-			__u8 delivery_status:1;
-			__u8 polarity:1;
-			__u8 remote_irr:1;
-			__u8 trig_mode:1;
-			__u8 mask:1;
-			__u8 reserve:7;
+			__u8 delivery_mode: 3;
+			__u8 dest_mode: 1;
+			__u8 delivery_status: 1;
+			__u8 polarity: 1;
+			__u8 remote_irr: 1;
+			__u8 trig_mode: 1;
+			__u8 mask: 1;
+			__u8 reserve: 7;
 			__u8 reserved[4];
 			__u8 dest_id;
 		} fields;
@@ -109,7 +114,8 @@ struct kvm_ioapic_state {
 #define KVM_RUN_X86_SMM		 (1 << 0)
 
 /* for KVM_GET_REGS and KVM_SET_REGS */
-struct kvm_regs {
+struct kvm_regs
+{
 	/* out (KVM_GET_REGS) / in (KVM_SET_REGS) */
 	__u64 rax, rbx, rcx, rdx;
 	__u64 rsi, rdi, rsp, rbp;
@@ -120,11 +126,13 @@ struct kvm_regs {
 
 /* for KVM_GET_LAPIC and KVM_SET_LAPIC */
 #define KVM_APIC_REG_SIZE 0x400
-struct kvm_lapic_state {
+struct kvm_lapic_state
+{
 	char regs[KVM_APIC_REG_SIZE];
 };
 
-struct kvm_segment {
+struct kvm_segment
+{
 	__u64 base;
 	__u32 limit;
 	__u16 selector;
@@ -134,7 +142,8 @@ struct kvm_segment {
 	__u8  padding;
 };
 
-struct kvm_dtable {
+struct kvm_dtable
+{
 	__u64 base;
 	__u16 limit;
 	__u16 padding[3];
@@ -142,7 +151,8 @@ struct kvm_dtable {
 
 
 /* for KVM_GET_SREGS and KVM_SET_SREGS */
-struct kvm_sregs {
+struct kvm_sregs
+{
 	/* out (KVM_GET_SREGS) / in (KVM_SET_SREGS) */
 	struct kvm_segment cs, ds, es, fs, gs, ss;
 	struct kvm_segment tr, ldt;
@@ -154,7 +164,8 @@ struct kvm_sregs {
 };
 
 /* for KVM_GET_FPU and KVM_SET_FPU */
-struct kvm_fpu {
+struct kvm_fpu
+{
 	__u8  fpr[8][16];
 	__u16 fcw;
 	__u16 fsw;
@@ -168,14 +179,16 @@ struct kvm_fpu {
 	__u32 pad2;
 };
 
-struct kvm_msr_entry {
+struct kvm_msr_entry
+{
 	__u32 index;
 	__u32 reserved;
 	__u64 data;
 };
 
 /* for KVM_GET_MSRS and KVM_SET_MSRS */
-struct kvm_msrs {
+struct kvm_msrs
+{
 	__u32 nmsrs; /* number of msrs in entries */
 	__u32 pad;
 
@@ -183,13 +196,15 @@ struct kvm_msrs {
 };
 
 /* for KVM_GET_MSR_INDEX_LIST */
-struct kvm_msr_list {
+struct kvm_msr_list
+{
 	__u32 nmsrs; /* number of msrs in entries */
 	__u32 indices[0];
 };
 
 
-struct kvm_cpuid_entry {
+struct kvm_cpuid_entry
+{
 	__u32 function;
 	__u32 eax;
 	__u32 ebx;
@@ -199,13 +214,15 @@ struct kvm_cpuid_entry {
 };
 
 /* for KVM_SET_CPUID */
-struct kvm_cpuid {
+struct kvm_cpuid
+{
 	__u32 nent;
 	__u32 padding;
 	struct kvm_cpuid_entry entries[0];
 };
 
-struct kvm_cpuid_entry2 {
+struct kvm_cpuid_entry2
+{
 	__u32 function;
 	__u32 index;
 	__u32 flags;
@@ -221,14 +238,16 @@ struct kvm_cpuid_entry2 {
 #define KVM_CPUID_FLAG_STATE_READ_NEXT		(1 << 2)
 
 /* for KVM_SET_CPUID2 */
-struct kvm_cpuid2 {
+struct kvm_cpuid2
+{
 	__u32 nent;
 	__u32 padding;
 	struct kvm_cpuid_entry2 entries[0];
 };
 
 /* for KVM_GET_PIT and KVM_SET_PIT */
-struct kvm_pit_channel_state {
+struct kvm_pit_channel_state
+{
 	__u32 count; /* can be 65536 */
 	__u16 latched_count;
 	__u8 count_latched;
@@ -244,7 +263,8 @@ struct kvm_pit_channel_state {
 	__s64 count_load_time;
 };
 
-struct kvm_debug_exit_arch {
+struct kvm_debug_exit_arch
+{
 	__u32 exception;
 	__u32 pad;
 	__u64 pc;
@@ -258,23 +278,27 @@ struct kvm_debug_exit_arch {
 #define KVM_GUESTDBG_INJECT_BP		0x00080000
 
 /* for KVM_SET_GUEST_DEBUG */
-struct kvm_guest_debug_arch {
+struct kvm_guest_debug_arch
+{
 	__u64 debugreg[8];
 };
 
-struct kvm_pit_state {
+struct kvm_pit_state
+{
 	struct kvm_pit_channel_state channels[3];
 };
 
 #define KVM_PIT_FLAGS_HPET_LEGACY  0x00000001
 
-struct kvm_pit_state2 {
+struct kvm_pit_state2
+{
 	struct kvm_pit_channel_state channels[3];
 	__u32 flags;
 	__u32 reserved[9];
 };
 
-struct kvm_reinject_control {
+struct kvm_reinject_control
+{
 	__u8 pit_reinject;
 	__u8 reserved[31];
 };
@@ -290,21 +314,25 @@ struct kvm_reinject_control {
 #define KVM_X86_SHADOW_INT_STI		0x02
 
 /* for KVM_GET/SET_VCPU_EVENTS */
-struct kvm_vcpu_events {
-	struct {
+struct kvm_vcpu_events
+{
+	struct
+	{
 		__u8 injected;
 		__u8 nr;
 		__u8 has_error_code;
 		__u8 pad;
 		__u32 error_code;
 	} exception;
-	struct {
+	struct
+	{
 		__u8 injected;
 		__u8 nr;
 		__u8 soft;
 		__u8 shadow;
 	} interrupt;
-	struct {
+	struct
+	{
 		__u8 injected;
 		__u8 pending;
 		__u8 masked;
@@ -312,7 +340,8 @@ struct kvm_vcpu_events {
 	} nmi;
 	__u32 sipi_vector;
 	__u32 flags;
-	struct {
+	struct
+	{
 		__u8 smm;
 		__u8 pending;
 		__u8 smm_inside_nmi;
@@ -322,7 +351,8 @@ struct kvm_vcpu_events {
 };
 
 /* for KVM_GET/SET_DEBUGREGS */
-struct kvm_debugregs {
+struct kvm_debugregs
+{
 	__u64 db[4];
 	__u64 dr6;
 	__u64 dr7;
@@ -331,19 +361,22 @@ struct kvm_debugregs {
 };
 
 /* for KVM_CAP_XSAVE */
-struct kvm_xsave {
+struct kvm_xsave
+{
 	__u32 region[1024];
 };
 
 #define KVM_MAX_XCRS	16
 
-struct kvm_xcr {
+struct kvm_xcr
+{
 	__u32 xcr;
 	__u32 reserved;
 	__u64 value;
 };
 
-struct kvm_xcrs {
+struct kvm_xcrs
+{
 	__u32 nr_xcrs;
 	__u32 flags;
 	struct kvm_xcr xcrs[KVM_MAX_XCRS];
@@ -351,7 +384,8 @@ struct kvm_xcrs {
 };
 
 /* definition of registers in kvm_run */
-struct kvm_sync_regs {
+struct kvm_sync_regs
+{
 };
 
 #define KVM_X86_QUIRK_LINT0_REENABLED	(1 << 0)

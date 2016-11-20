@@ -21,12 +21,12 @@
 
 /* We expect these MMDs to be in the package */
 #define TXC_REQUIRED_DEVS (MDIO_DEVS_PCS |	\
-			   MDIO_DEVS_PMAPMD |	\
-			   MDIO_DEVS_PHYXS)
+						   MDIO_DEVS_PMAPMD |	\
+						   MDIO_DEVS_PHYXS)
 
 #define TXC_LOOPBACKS ((1 << LOOPBACK_PCS) |	\
-		       (1 << LOOPBACK_PMAPMD) |	\
-		       (1 << LOOPBACK_PHYXS_WS))
+					   (1 << LOOPBACK_PMAPMD) |	\
+					   (1 << LOOPBACK_PHYXS_WS))
 
 /**************************************************************************
  *
@@ -156,7 +156,8 @@
 #define TXC_MTDIABLO_CTRL	0xc34f
 #define TXC_MTDIABLO_CTRL_PMA_LOOP_LBN	10
 
-struct txc43128_data {
+struct txc43128_data
+{
 	unsigned long bug10934_timer;
 	enum efx_phy_mode phy_mode;
 	enum efx_loopback_mode loopback_mode;
@@ -187,15 +188,21 @@ void falcon_txc_set_gpio_dir(struct efx_nic *efx, int pin, int dir)
 static int txc_reset_phy(struct efx_nic *efx)
 {
 	int rc = efx_mdio_reset_mmd(efx, MDIO_MMD_PMAPMD,
-				    TXC_MAX_RESET_TIME / TXC_RESET_WAIT,
-				    TXC_RESET_WAIT);
+								TXC_MAX_RESET_TIME / TXC_RESET_WAIT,
+								TXC_RESET_WAIT);
+
 	if (rc < 0)
+	{
 		goto fail;
+	}
 
 	/* Check that all the MMDs we expect are present and responding. */
 	rc = efx_mdio_check_mmds(efx, TXC_REQUIRED_DEVS);
+
 	if (rc < 0)
+	{
 		goto fail;
+	}
 
 	return 0;
 
@@ -227,7 +234,7 @@ static int txc_bist_one(struct efx_nic *efx, int mmd, int test)
 
 	/* Set the BSTRT bit in the BIST Control register */
 	efx_mdio_write(efx, mmd, TXC_BIST_CTL,
-		       bctl | (1 << TXC_BIST_CTRL_STRT_LBN));
+				   bctl | (1 << TXC_BIST_CTRL_STRT_LBN));
 
 	/* Wait. */
 	udelay(TXC_BIST_DURATION);
@@ -238,27 +245,37 @@ static int txc_bist_one(struct efx_nic *efx, int mmd, int test)
 
 	/* The STOP bit should go off when things have stopped */
 	while (bctl & (1 << TXC_BIST_CTRL_STOP_LBN))
+	{
 		bctl = efx_mdio_read(efx, mmd, TXC_BIST_CTL);
+	}
 
 	/* Check all the error counts are 0 and all the frame counts are
 	   non-zero */
-	for (lane = 0; lane < 4; lane++) {
+	for (lane = 0; lane < 4; lane++)
+	{
 		int count = efx_mdio_read(efx, mmd, TXC_BIST_RX0ERRCNT + lane);
-		if (count != 0) {
+
+		if (count != 0)
+		{
 			netif_err(efx, hw, efx->net_dev, TXCNAME": BIST error. "
-				  "Lane %d had %d errs\n", lane, count);
+					  "Lane %d had %d errs\n", lane, count);
 			rc = -EIO;
 		}
+
 		count = efx_mdio_read(efx, mmd, TXC_BIST_RX0FRMCNT + lane);
-		if (count == 0) {
+
+		if (count == 0)
+		{
 			netif_err(efx, hw, efx->net_dev, TXCNAME": BIST error. "
-				  "Lane %d got 0 frames\n", lane);
+					  "Lane %d got 0 frames\n", lane);
 			rc = -EIO;
 		}
 	}
 
 	if (rc == 0)
+	{
 		netif_info(efx, hw, efx->net_dev, TXCNAME": BIST pass\n");
+	}
 
 	/* Disable BIST */
 	efx_mdio_write(efx, mmd, TXC_BIST_CTL, 0);
@@ -292,21 +309,21 @@ static void txc_apply_defaults(struct efx_nic *efx)
 
 	/* Turn down the amplitude */
 	efx_mdio_write(efx, MDIO_MMD_PHYXS,
-		       TXC_ALRGS_ATXAMP0, TXC_ATXAMP_0820_BOTH);
+				   TXC_ALRGS_ATXAMP0, TXC_ATXAMP_0820_BOTH);
 	efx_mdio_write(efx, MDIO_MMD_PHYXS,
-		       TXC_ALRGS_ATXAMP1, TXC_ATXAMP_0820_BOTH);
+				   TXC_ALRGS_ATXAMP1, TXC_ATXAMP_0820_BOTH);
 
 	/* Set the line side amplitude and preemphasis to the databook
 	 * defaults as an erratum causes them to be 0 on at least some
 	 * PHY rev.s */
 	efx_mdio_write(efx, MDIO_MMD_PMAPMD,
-		       TXC_ALRGS_ATXPRE0, TXC_ATXPRE_DEFAULT);
+				   TXC_ALRGS_ATXPRE0, TXC_ATXPRE_DEFAULT);
 	efx_mdio_write(efx, MDIO_MMD_PMAPMD,
-		       TXC_ALRGS_ATXPRE1, TXC_ATXPRE_DEFAULT);
+				   TXC_ALRGS_ATXPRE1, TXC_ATXPRE_DEFAULT);
 	efx_mdio_write(efx, MDIO_MMD_PMAPMD,
-		       TXC_ALRGS_ATXAMP0, TXC_ATXAMP_DEFAULT);
+				   TXC_ALRGS_ATXAMP0, TXC_ATXAMP_DEFAULT);
 	efx_mdio_write(efx, MDIO_MMD_PMAPMD,
-		       TXC_ALRGS_ATXAMP1, TXC_ATXAMP_DEFAULT);
+				   TXC_ALRGS_ATXAMP1, TXC_ATXAMP_DEFAULT);
 
 	/* Set up the LEDs  */
 	mctrl = efx_mdio_read(efx, MDIO_MMD_PHYXS, TXC_MRGS_CTL);
@@ -327,8 +344,12 @@ static int txc43128_phy_probe(struct efx_nic *efx)
 
 	/* Allocate phy private storage */
 	phy_data = kzalloc(sizeof(*phy_data), GFP_KERNEL);
+
 	if (!phy_data)
+	{
 		return -ENOMEM;
+	}
+
 	efx->phy_data = phy_data;
 	phy_data->phy_mode = efx->phy_mode;
 
@@ -346,12 +367,18 @@ static int txc43128_phy_init(struct efx_nic *efx)
 	int rc;
 
 	rc = txc_reset_phy(efx);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	rc = txc_bist(efx);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	txc_apply_defaults(efx);
 
@@ -365,9 +392,13 @@ static void txc_glrgs_lane_power(struct efx_nic *efx, int mmd)
 	int ctl = efx_mdio_read(efx, mmd, TXC_GLRGS_GLCMD);
 
 	if (!(efx->phy_mode & PHY_MODE_LOW_POWER))
+	{
 		ctl &= ~pd;
+	}
 	else
+	{
 		ctl |= pd;
+	}
 
 	efx_mdio_write(efx, mmd, TXC_GLRGS_GLCMD, ctl);
 }
@@ -376,16 +407,19 @@ static void txc_glrgs_lane_power(struct efx_nic *efx, int mmd)
 static void txc_analog_lane_power(struct efx_nic *efx, int mmd)
 {
 	int txpd = (1 << TXC_ATXCTL_TXPD3_LBN) | (1 << TXC_ATXCTL_TXPD2_LBN)
-		| (1 << TXC_ATXCTL_TXPD1_LBN) | (1 << TXC_ATXCTL_TXPD0_LBN);
+			   | (1 << TXC_ATXCTL_TXPD1_LBN) | (1 << TXC_ATXCTL_TXPD0_LBN);
 	int rxpd = (1 << TXC_ARXCTL_RXPD3_LBN) | (1 << TXC_ARXCTL_RXPD2_LBN)
-		| (1 << TXC_ARXCTL_RXPD1_LBN) | (1 << TXC_ARXCTL_RXPD0_LBN);
+			   | (1 << TXC_ARXCTL_RXPD1_LBN) | (1 << TXC_ARXCTL_RXPD0_LBN);
 	int txctl = efx_mdio_read(efx, mmd, TXC_ALRGS_ATXCTL);
 	int rxctl = efx_mdio_read(efx, mmd, TXC_ALRGS_ARXCTL);
 
-	if (!(efx->phy_mode & PHY_MODE_LOW_POWER)) {
+	if (!(efx->phy_mode & PHY_MODE_LOW_POWER))
+	{
 		txctl &= ~txpd;
 		rxctl &= ~rxpd;
-	} else {
+	}
+	else
+	{
 		txctl |= txpd;
 		rxctl |= rxpd;
 	}
@@ -398,8 +432,8 @@ static void txc_set_power(struct efx_nic *efx)
 {
 	/* According to the data book, all the MMDs can do low power */
 	efx_mdio_set_mmds_lpower(efx,
-				 !!(efx->phy_mode & PHY_MODE_LOW_POWER),
-				 TXC_REQUIRED_DEVS);
+							 !!(efx->phy_mode & PHY_MODE_LOW_POWER),
+							 TXC_REQUIRED_DEVS);
 
 	/* Global register bank is in PCS, PHY XS. These control the host
 	 * side and line side settings respectively. */
@@ -418,15 +452,22 @@ static void txc_reset_logic_mmd(struct efx_nic *efx, int mmd)
 
 	val |= (1 << TXC_GLCMD_LMTSWRST_LBN);
 	efx_mdio_write(efx, mmd, TXC_GLRGS_GLCMD, val);
-	while (--tries) {
+
+	while (--tries)
+	{
 		val = efx_mdio_read(efx, mmd, TXC_GLRGS_GLCMD);
+
 		if (!(val & (1 << TXC_GLCMD_LMTSWRST_LBN)))
+		{
 			break;
+		}
+
 		udelay(1);
 	}
+
 	if (!tries)
 		netif_info(efx, hw, efx->net_dev,
-			   TXCNAME " Logic reset timed out!\n");
+				   TXCNAME " Logic reset timed out!\n");
 }
 
 /* Perform a logic reset. This preserves the configuration registers
@@ -450,7 +491,8 @@ static int txc43128_phy_reconfigure(struct efx_nic *efx)
 	enum efx_phy_mode mode_change = efx->phy_mode ^ phy_data->phy_mode;
 	bool loop_change = LOOPBACK_CHANGED(phy_data, efx, TXC_LOOPBACKS);
 
-	if (efx->phy_mode & mode_change & PHY_MODE_TX_DISABLED) {
+	if (efx->phy_mode & mode_change & PHY_MODE_TX_DISABLED)
+	{
 		txc_reset_phy(efx);
 		txc_apply_defaults(efx);
 		falcon_reset_xaui(efx);
@@ -459,15 +501,20 @@ static int txc43128_phy_reconfigure(struct efx_nic *efx)
 
 	efx_mdio_transmit_disable(efx);
 	efx_mdio_phy_reconfigure(efx);
+
 	if (mode_change & PHY_MODE_LOW_POWER)
+	{
 		txc_set_power(efx);
+	}
 
 	/* The data sheet claims this is required after every reconfiguration
 	 * (note at end of 7.1), but we mustn't do it when nothing changes as
 	 * it glitches the link, and reconfigure gets called on link change,
 	 * so we get an IRQ storm on link up. */
 	if (loop_change || mode_change)
+	{
 		txc_reset_logic(efx);
+	}
 
 	phy_data->phy_mode = efx->phy_mode;
 	phy_data->loopback_mode = efx->loopback_mode;
@@ -499,11 +546,15 @@ static bool txc43128_phy_poll(struct efx_nic *efx)
 	efx->link_state.fd = true;
 	efx->link_state.fc = efx->wanted_fc;
 
-	if (efx->link_state.up || (efx->loopback_mode != LOOPBACK_NONE)) {
+	if (efx->link_state.up || (efx->loopback_mode != LOOPBACK_NONE))
+	{
 		data->bug10934_timer = jiffies;
-	} else {
+	}
+	else
+	{
 		if (time_after_eq(jiffies, (data->bug10934_timer +
-					    BUG10934_RESET_INTERVAL))) {
+									BUG10934_RESET_INTERVAL)))
+		{
 			data->bug10934_timer = jiffies;
 			txc_reset_logic(efx);
 		}
@@ -512,14 +563,18 @@ static bool txc43128_phy_poll(struct efx_nic *efx)
 	return efx->link_state.up != was_up;
 }
 
-static const char *const txc43128_test_names[] = {
+static const char *const txc43128_test_names[] =
+{
 	"bist"
 };
 
 static const char *txc43128_test_name(struct efx_nic *efx, unsigned int index)
 {
 	if (index < ARRAY_SIZE(txc43128_test_names))
+	{
 		return txc43128_test_names[index];
+	}
+
 	return NULL;
 }
 
@@ -528,11 +583,16 @@ static int txc43128_run_tests(struct efx_nic *efx, int *results, unsigned flags)
 	int rc;
 
 	if (!(flags & ETH_TEST_FL_OFFLINE))
+	{
 		return 0;
+	}
 
 	rc = txc_reset_phy(efx);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	rc = txc_bist(efx);
 	txc_apply_defaults(efx);
@@ -545,7 +605,8 @@ static void txc43128_get_settings(struct efx_nic *efx, struct ethtool_cmd *ecmd)
 	mdio45_ethtool_gset(&efx->mdio, ecmd);
 }
 
-const struct efx_phy_operations falcon_txc_phy_ops = {
+const struct efx_phy_operations falcon_txc_phy_ops =
+{
 	.probe		= txc43128_phy_probe,
 	.init		= txc43128_phy_init,
 	.reconfigure	= txc43128_phy_reconfigure,

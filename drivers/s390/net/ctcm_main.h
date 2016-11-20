@@ -66,7 +66,8 @@
 /**
  * Enum for classifying detected devices
  */
-enum ctcm_channel_types {
+enum ctcm_channel_types
+{
 	/* Device is not a channel  */
 	ctcm_channel_type_none,
 
@@ -114,7 +115,8 @@ enum ctcm_channel_types {
 
 #define CTCM_ID_SIZE		20+3
 
-struct ctcm_profile {
+struct ctcm_profile
+{
 	unsigned long maxmulti;
 	unsigned long maxcqueue;
 	unsigned long doios_single;
@@ -127,7 +129,8 @@ struct ctcm_profile {
 /*
  * Definition of one channel
  */
-struct channel {
+struct channel
+{
 	struct channel *next;
 	char id[CTCM_ID_SIZE];
 	struct ccw_device *cdev;
@@ -198,7 +201,8 @@ struct channel {
 	__u8  sense_rc; /* last unit check sense code report control */
 };
 
-struct ctcm_priv {
+struct ctcm_priv
+{
 	struct net_device_stats	stats;
 	unsigned long	tbusy;
 
@@ -241,7 +245,9 @@ static inline void ctcm_clear_busy(struct net_device *dev)
 	grp = ((struct ctcm_priv *)dev->ml_priv)->mpcg;
 
 	if (!(grp && grp->in_sweep))
+	{
 		ctcm_clear_busy_do(dev);
+	}
 }
 
 
@@ -249,7 +255,7 @@ static inline int ctcm_test_and_set_busy(struct net_device *dev)
 {
 	netif_stop_queue(dev);
 	return test_and_set_bit(0,
-			&(((struct ctcm_priv *)dev->ml_priv)->tbusy));
+							&(((struct ctcm_priv *)dev->ml_priv)->tbusy));
 }
 
 extern int loglevel;
@@ -279,11 +285,16 @@ int ctcm_ch_alloc_buffer(struct channel *ch);
 static inline int ctcm_checkalloc_buffer(struct channel *ch)
 {
 	if (ch->trans_skb == NULL)
+	{
 		return ctcm_ch_alloc_buffer(ch);
-	if (ch->flags & CHANNEL_FLAGS_BUFSIZE_CHANGED) {
+	}
+
+	if (ch->flags & CHANNEL_FLAGS_BUFSIZE_CHANGED)
+	{
 		dev_kfree_skb(ch->trans_skb);
 		return ctcm_ch_alloc_buffer(ch);
 	}
+
 	return 0;
 }
 
@@ -305,7 +316,8 @@ static inline gfp_t gfp_type(void)
 /*
  * Definition of our link level header.
  */
-struct ll_header {
+struct ll_header
+{
 	__u16 length;
 	__u16 type;
 	__u16 unused;

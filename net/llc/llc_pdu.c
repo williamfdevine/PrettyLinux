@@ -40,14 +40,16 @@ void llc_pdu_set_pf_bit(struct sk_buff *skb, u8 bit_value)
 	llc_pdu_decode_pdu_type(skb, &pdu_type);
 	pdu = llc_pdu_sn_hdr(skb);
 
-	switch (pdu_type) {
-	case LLC_PDU_TYPE_I:
-	case LLC_PDU_TYPE_S:
-		pdu->ctrl_2 = (pdu->ctrl_2 & 0xFE) | bit_value;
-		break;
-	case LLC_PDU_TYPE_U:
-		pdu->ctrl_1 |= (pdu->ctrl_1 & 0xEF) | (bit_value << 4);
-		break;
+	switch (pdu_type)
+	{
+		case LLC_PDU_TYPE_I:
+		case LLC_PDU_TYPE_S:
+			pdu->ctrl_2 = (pdu->ctrl_2 & 0xFE) | bit_value;
+			break;
+
+		case LLC_PDU_TYPE_U:
+			pdu->ctrl_1 |= (pdu->ctrl_1 & 0xEF) | (bit_value << 4);
+			break;
 	}
 }
 
@@ -68,14 +70,16 @@ void llc_pdu_decode_pf_bit(struct sk_buff *skb, u8 *pf_bit)
 	llc_pdu_decode_pdu_type(skb, &pdu_type);
 	pdu = llc_pdu_sn_hdr(skb);
 
-	switch (pdu_type) {
-	case LLC_PDU_TYPE_I:
-	case LLC_PDU_TYPE_S:
-		*pf_bit = pdu->ctrl_2 & LLC_S_PF_BIT_MASK;
-		break;
-	case LLC_PDU_TYPE_U:
-		*pf_bit = (pdu->ctrl_1 & LLC_U_PF_BIT_MASK) >> 4;
-		break;
+	switch (pdu_type)
+	{
+		case LLC_PDU_TYPE_I:
+		case LLC_PDU_TYPE_S:
+			*pf_bit = pdu->ctrl_2 & LLC_S_PF_BIT_MASK;
+			break;
+
+		case LLC_PDU_TYPE_U:
+			*pf_bit = (pdu->ctrl_1 & LLC_U_PF_BIT_MASK) >> 4;
+			break;
 	}
 }
 
@@ -218,7 +222,7 @@ void llc_pdu_init_as_dm_rsp(struct sk_buff *skb, u8 f_bit)
  *	Builds a pdu frame as a FRMR response.
  */
 void llc_pdu_init_as_frmr_rsp(struct sk_buff *skb, struct llc_pdu_sn *prev_pdu,
-			      u8 f_bit, u8 vs, u8 vr, u8 vzyxw)
+							  u8 f_bit, u8 vs, u8 vr, u8 vzyxw)
 {
 	struct llc_frmr_info *frmr_info;
 	u8 prev_pf = 0;
@@ -231,7 +235,7 @@ void llc_pdu_init_as_frmr_rsp(struct sk_buff *skb, struct llc_pdu_sn *prev_pdu,
 
 	frmr_info = (struct llc_frmr_info *)&pdu->ctrl_2;
 	ctrl = (u8 *)&prev_pdu->ctrl_1;
-	FRMR_INFO_SET_REJ_CNTRL(frmr_info,ctrl);
+	FRMR_INFO_SET_REJ_CNTRL(frmr_info, ctrl);
 	FRMR_INFO_SET_Vs(frmr_info, vs);
 	FRMR_INFO_SET_Vr(frmr_info, vr);
 	prev_pf = llc_pdu_get_pf_bit(prev_pdu);
@@ -331,13 +335,21 @@ static void llc_pdu_decode_pdu_type(struct sk_buff *skb, u8 *type)
 {
 	struct llc_pdu_un *pdu = llc_pdu_un_hdr(skb);
 
-	if (pdu->ctrl_1 & 1) {
+	if (pdu->ctrl_1 & 1)
+	{
 		if ((pdu->ctrl_1 & LLC_PDU_TYPE_U) == LLC_PDU_TYPE_U)
+		{
 			*type = LLC_PDU_TYPE_U;
+		}
 		else
+		{
 			*type = LLC_PDU_TYPE_S;
-	} else
+		}
+	}
+	else
+	{
 		*type = LLC_PDU_TYPE_I;
+	}
 }
 
 /**
@@ -352,21 +364,33 @@ static u8 llc_pdu_get_pf_bit(struct llc_pdu_sn *pdu)
 	u8 pdu_type;
 	u8 pf_bit = 0;
 
-	if (pdu->ctrl_1 & 1) {
+	if (pdu->ctrl_1 & 1)
+	{
 		if ((pdu->ctrl_1 & LLC_PDU_TYPE_U) == LLC_PDU_TYPE_U)
+		{
 			pdu_type = LLC_PDU_TYPE_U;
+		}
 		else
+		{
 			pdu_type = LLC_PDU_TYPE_S;
-	} else
-		pdu_type = LLC_PDU_TYPE_I;
-	switch (pdu_type) {
-	case LLC_PDU_TYPE_I:
-	case LLC_PDU_TYPE_S:
-		pf_bit = pdu->ctrl_2 & LLC_S_PF_BIT_MASK;
-		break;
-	case LLC_PDU_TYPE_U:
-		pf_bit = (pdu->ctrl_1 & LLC_U_PF_BIT_MASK) >> 4;
-		break;
+		}
 	}
+	else
+	{
+		pdu_type = LLC_PDU_TYPE_I;
+	}
+
+	switch (pdu_type)
+	{
+		case LLC_PDU_TYPE_I:
+		case LLC_PDU_TYPE_S:
+			pf_bit = pdu->ctrl_2 & LLC_S_PF_BIT_MASK;
+			break;
+
+		case LLC_PDU_TYPE_U:
+			pf_bit = (pdu->ctrl_1 & LLC_U_PF_BIT_MASK) >> 4;
+			break;
+	}
+
 	return pf_bit;
 }

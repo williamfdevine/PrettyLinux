@@ -24,14 +24,16 @@
 #include <linux/slab.h>
 #include <linux/workqueue.h>
 
-struct i2c_smbus_alert {
-	unsigned int		alert_edge_triggered:1;
+struct i2c_smbus_alert
+{
+	unsigned int		alert_edge_triggered: 1;
 	int			irq;
 	struct work_struct	alert;
 	struct i2c_client	*ara;		/* Alert response address */
 };
 
-struct alert_data {
+struct alert_data
+{
 	unsigned short		addr;
 	enum i2c_alert_protocol	type;
 	unsigned int		data;
@@ -45,23 +47,39 @@ static int smbus_do_alert(struct device *dev, void *addrp)
 	struct i2c_driver *driver;
 
 	if (!client || client->addr != data->addr)
+	{
 		return 0;
+	}
+
 	if (client->flags & I2C_CLIENT_TEN)
+	{
 		return 0;
+	}
 
 	/*
 	 * Drivers should either disable alerts, or provide at least
 	 * a minimal handler.  Lock so the driver won't change.
 	 */
 	device_lock(dev);
-	if (client->dev.driver) {
+
+	if (client->dev.driver)
+	{
 		driver = to_i2c_driver(client->dev.driver);
+
 		if (driver->alert)
+		{
 			driver->alert(client, data->type, data->data);
+		}
 		else
+		{
 			dev_warn(&client->dev, "no driver alert()!\n");
-	} else
+		}
+	}
+	else
+	{
 		dev_dbg(&client->dev, "alert with no driver\n");
+	}
+
 	device_unlock(dev);
 
 	/* Stop iterating after we find the device */
@@ -81,7 +99,8 @@ static void smbus_alert(struct work_struct *work)
 	alert = container_of(work, struct i2c_smbus_alert, alert);
 	ara = alert->ara;
 
-	for (;;) {
+	for (;;)
+	{
 		s32 status;
 		struct alert_data data;
 
@@ -94,30 +113,37 @@ static void smbus_alert(struct work_struct *work)
 		 * use.  We neither handle them, nor try to use PEC here.
 		 */
 		status = i2c_smbus_read_byte(ara);
+
 		if (status < 0)
+		{
 			break;
+		}
 
 		data.data = status & 1;
 		data.addr = status >> 1;
 		data.type = I2C_PROTOCOL_SMBUS_ALERT;
 
-		if (data.addr == prev_addr) {
+		if (data.addr == prev_addr)
+		{
 			dev_warn(&ara->dev, "Duplicate SMBALERT# from dev "
-				"0x%02x, skipping\n", data.addr);
+					 "0x%02x, skipping\n", data.addr);
 			break;
 		}
+
 		dev_dbg(&ara->dev, "SMBALERT# from dev 0x%02x, flag %d\n",
-			data.addr, data.data);
+				data.addr, data.data);
 
 		/* Notify driver for the device which issued the alert */
 		device_for_each_child(&ara->adapter->dev, &data,
-				      smbus_do_alert);
+							  smbus_do_alert);
 		prev_addr = data.addr;
 	}
 
 	/* We handled all alerts; re-enable level-triggered IRQs */
 	if (!alert->alert_edge_triggered)
+	{
 		enable_irq(alert->irq);
+	}
 }
 
 static irqreturn_t smbalert_irq(int irq, void *d)
@@ -126,7 +152,9 @@ static irqreturn_t smbalert_irq(int irq, void *d)
 
 	/* Disable level-triggered IRQs until we handle them */
 	if (!alert->alert_edge_triggered)
+	{
 		disable_irq_nosync(irq);
+	}
 
 	schedule_work(&alert->alert);
 	return IRQ_HANDLED;
@@ -134,7 +162,7 @@ static irqreturn_t smbalert_irq(int irq, void *d)
 
 /* Setup SMBALERT# infrastructure */
 static int smbalert_probe(struct i2c_client *ara,
-			  const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct i2c_smbus_alert_setup *setup = dev_get_platdata(&ara->dev);
 	struct i2c_smbus_alert *alert;
@@ -142,25 +170,32 @@ static int smbalert_probe(struct i2c_client *ara,
 	int res;
 
 	alert = devm_kzalloc(&ara->dev, sizeof(struct i2c_smbus_alert),
-			     GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (!alert)
+	{
 		return -ENOMEM;
+	}
 
 	alert->alert_edge_triggered = setup->alert_edge_triggered;
 	alert->irq = setup->irq;
 	INIT_WORK(&alert->alert, smbus_alert);
 	alert->ara = ara;
 
-	if (setup->irq > 0) {
+	if (setup->irq > 0)
+	{
 		res = devm_request_irq(&ara->dev, setup->irq, smbalert_irq,
-				       0, "smbus_alert", alert);
+							   0, "smbus_alert", alert);
+
 		if (res)
+		{
 			return res;
+		}
 	}
 
 	i2c_set_clientdata(ara, alert);
 	dev_info(&adapter->dev, "supports SMBALERT#, %s trigger\n",
-		 setup->alert_edge_triggered ? "edge" : "level");
+			 setup->alert_edge_triggered ? "edge" : "level");
 
 	return 0;
 }
@@ -174,13 +209,15 @@ static int smbalert_remove(struct i2c_client *ara)
 	return 0;
 }
 
-static const struct i2c_device_id smbalert_ids[] = {
+static const struct i2c_device_id smbalert_ids[] =
+{
 	{ "smbus_alert", 0 },
 	{ /* LIST END */ }
 };
 MODULE_DEVICE_TABLE(i2c, smbalert_ids);
 
-static struct i2c_driver smbalert_driver = {
+static struct i2c_driver smbalert_driver =
+{
 	.driver = {
 		.name	= "smbus_alert",
 	},
@@ -210,9 +247,10 @@ static struct i2c_driver smbalert_driver = {
  * to indicate an error.
  */
 struct i2c_client *i2c_setup_smbus_alert(struct i2c_adapter *adapter,
-					 struct i2c_smbus_alert_setup *setup)
+		struct i2c_smbus_alert_setup *setup)
 {
-	struct i2c_board_info ara_board_info = {
+	struct i2c_board_info ara_board_info =
+	{
 		I2C_BOARD_INFO("smbus_alert", 0x0c),
 		.platform_data = setup,
 	};
@@ -262,7 +300,9 @@ static void smbus_host_notify_work(struct work_struct *work)
 	spin_unlock_irqrestore(&data->lock, flags);
 
 	if (!adapter || !addr)
+	{
 		return;
+	}
 
 	alert.type = I2C_PROTOCOL_SMBUS_HOST_NOTIFY;
 	alert.addr = addr;
@@ -285,9 +325,12 @@ struct smbus_host_notify *i2c_setup_smbus_host_notify(struct i2c_adapter *adap)
 	struct smbus_host_notify *host_notify;
 
 	host_notify = devm_kzalloc(&adap->dev, sizeof(struct smbus_host_notify),
-				   GFP_KERNEL);
+							   GFP_KERNEL);
+
 	if (!host_notify)
+	{
 		return NULL;
+	}
 
 	host_notify->adapter = adap;
 
@@ -314,19 +357,22 @@ EXPORT_SYMBOL_GPL(i2c_setup_smbus_host_notify);
  * i2c_setup_smbus_host_notify().
  */
 int i2c_handle_smbus_host_notify(struct smbus_host_notify *host_notify,
-				 unsigned short addr, unsigned int data)
+								 unsigned short addr, unsigned int data)
 {
 	unsigned long flags;
 	struct i2c_adapter *adapter;
 
 	if (!host_notify || !host_notify->adapter)
+	{
 		return -EINVAL;
+	}
 
 	adapter = host_notify->adapter;
 
 	spin_lock_irqsave(&host_notify->lock, flags);
 
-	if (host_notify->pending) {
+	if (host_notify->pending)
+	{
 		spin_unlock_irqrestore(&host_notify->lock, flags);
 		dev_warn(&adapter->dev, "Host Notify already scheduled.\n");
 		return -EBUSY;

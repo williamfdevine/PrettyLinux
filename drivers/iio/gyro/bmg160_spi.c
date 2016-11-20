@@ -5,7 +5,8 @@
 
 #include "bmg160.h"
 
-static const struct regmap_config bmg160_regmap_spi_conf = {
+static const struct regmap_config bmg160_regmap_spi_conf =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.max_register = 0x3f,
@@ -17,9 +18,11 @@ static int bmg160_spi_probe(struct spi_device *spi)
 	const struct spi_device_id *id = spi_get_device_id(spi);
 
 	regmap = devm_regmap_init_spi(spi, &bmg160_regmap_spi_conf);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(&spi->dev, "Failed to register spi regmap %d\n",
-			(int)PTR_ERR(regmap));
+				(int)PTR_ERR(regmap));
 		return PTR_ERR(regmap);
 	}
 
@@ -33,7 +36,8 @@ static int bmg160_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id bmg160_spi_id[] = {
+static const struct spi_device_id bmg160_spi_id[] =
+{
 	{"bmg160", 0},
 	{"bmi055_gyro", 0},
 	{}
@@ -41,7 +45,8 @@ static const struct spi_device_id bmg160_spi_id[] = {
 
 MODULE_DEVICE_TABLE(spi, bmg160_spi_id);
 
-static struct spi_driver bmg160_spi_driver = {
+static struct spi_driver bmg160_spi_driver =
+{
 	.driver = {
 		.name	= "bmg160_spi",
 		.pm	= &bmg160_pm_ops,

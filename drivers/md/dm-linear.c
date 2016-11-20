@@ -17,7 +17,8 @@
 /*
  * Linear: maps a linear range of a device.
  */
-struct linear_c {
+struct linear_c
+{
 	struct dm_dev *dev;
 	sector_t start;
 };
@@ -32,26 +33,34 @@ static int linear_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 	char dummy;
 	int ret;
 
-	if (argc != 2) {
+	if (argc != 2)
+	{
 		ti->error = "Invalid argument count";
 		return -EINVAL;
 	}
 
 	lc = kmalloc(sizeof(*lc), GFP_KERNEL);
-	if (lc == NULL) {
+
+	if (lc == NULL)
+	{
 		ti->error = "Cannot allocate linear context";
 		return -ENOMEM;
 	}
 
 	ret = -EINVAL;
-	if (sscanf(argv[1], "%llu%c", &tmp, &dummy) != 1) {
+
+	if (sscanf(argv[1], "%llu%c", &tmp, &dummy) != 1)
+	{
 		ti->error = "Invalid device sector";
 		goto bad;
 	}
+
 	lc->start = tmp;
 
 	ret = dm_get_device(ti, argv[0], dm_table_get_mode(ti->table), &lc->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		ti->error = "Device lookup failed";
 		goto bad;
 	}
@@ -62,7 +71,7 @@ static int linear_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 	ti->private = lc;
 	return 0;
 
-      bad:
+bad:
 	kfree(lc);
 	return ret;
 }
@@ -87,6 +96,7 @@ static void linear_map_bio(struct dm_target *ti, struct bio *bio)
 	struct linear_c *lc = ti->private;
 
 	bio->bi_bdev = lc->dev->bdev;
+
 	if (bio_sectors(bio))
 		bio->bi_iter.bi_sector =
 			linear_map_sector(ti, bio->bi_iter.bi_sector);
@@ -100,24 +110,25 @@ static int linear_map(struct dm_target *ti, struct bio *bio)
 }
 
 static void linear_status(struct dm_target *ti, status_type_t type,
-			  unsigned status_flags, char *result, unsigned maxlen)
+						  unsigned status_flags, char *result, unsigned maxlen)
 {
 	struct linear_c *lc = (struct linear_c *) ti->private;
 
-	switch (type) {
-	case STATUSTYPE_INFO:
-		result[0] = '\0';
-		break;
+	switch (type)
+	{
+		case STATUSTYPE_INFO:
+			result[0] = '\0';
+			break;
 
-	case STATUSTYPE_TABLE:
-		snprintf(result, maxlen, "%s %llu", lc->dev->name,
-				(unsigned long long)lc->start);
-		break;
+		case STATUSTYPE_TABLE:
+			snprintf(result, maxlen, "%s %llu", lc->dev->name,
+					 (unsigned long long)lc->start);
+			break;
 	}
 }
 
 static int linear_prepare_ioctl(struct dm_target *ti,
-		struct block_device **bdev, fmode_t *mode)
+								struct block_device **bdev, fmode_t *mode)
 {
 	struct linear_c *lc = (struct linear_c *) ti->private;
 	struct dm_dev *dev = lc->dev;
@@ -128,13 +139,16 @@ static int linear_prepare_ioctl(struct dm_target *ti,
 	 * Only pass ioctls through if the device sizes match exactly.
 	 */
 	if (lc->start ||
-	    ti->len != i_size_read(dev->bdev->bd_inode) >> SECTOR_SHIFT)
+		ti->len != i_size_read(dev->bdev->bd_inode) >> SECTOR_SHIFT)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static int linear_iterate_devices(struct dm_target *ti,
-				  iterate_devices_callout_fn fn, void *data)
+								  iterate_devices_callout_fn fn, void *data)
 {
 	struct linear_c *lc = ti->private;
 
@@ -142,11 +156,12 @@ static int linear_iterate_devices(struct dm_target *ti,
 }
 
 static long linear_direct_access(struct dm_target *ti, sector_t sector,
-				 void **kaddr, pfn_t *pfn, long size)
+								 void **kaddr, pfn_t *pfn, long size)
 {
 	struct linear_c *lc = ti->private;
 	struct block_device *bdev = lc->dev->bdev;
-	struct blk_dax_ctl dax = {
+	struct blk_dax_ctl dax =
+	{
 		.sector = linear_map_sector(ti, sector),
 		.size = size,
 	};
@@ -159,7 +174,8 @@ static long linear_direct_access(struct dm_target *ti, sector_t sector,
 	return ret;
 }
 
-static struct target_type linear_target = {
+static struct target_type linear_target =
+{
 	.name   = "linear",
 	.version = {1, 3, 0},
 	.module = THIS_MODULE,
@@ -177,7 +193,9 @@ int __init dm_linear_init(void)
 	int r = dm_register_target(&linear_target);
 
 	if (r < 0)
+	{
 		DMERR("register failed %d", r);
+	}
 
 	return r;
 }

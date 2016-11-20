@@ -10,7 +10,8 @@
 
 struct user_namespace;
 
-struct ipc_ids {
+struct ipc_ids
+{
 	int in_use;
 	unsigned short seq;
 	struct rw_semaphore rwsem;
@@ -18,7 +19,8 @@ struct ipc_ids {
 	int next_id;
 };
 
-struct ipc_namespace {
+struct ipc_namespace
+{
 	atomic_t	count;
 	struct ipc_ids	ids[3];
 
@@ -113,22 +115,27 @@ static inline int mq_init_ns(struct ipc_namespace *ns) { return 0; }
 
 #if defined(CONFIG_IPC_NS)
 extern struct ipc_namespace *copy_ipcs(unsigned long flags,
-	struct user_namespace *user_ns, struct ipc_namespace *ns);
+									   struct user_namespace *user_ns, struct ipc_namespace *ns);
 
 static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
 {
 	if (ns)
+	{
 		atomic_inc(&ns->count);
+	}
+
 	return ns;
 }
 
 extern void put_ipc_ns(struct ipc_namespace *ns);
 #else
 static inline struct ipc_namespace *copy_ipcs(unsigned long flags,
-	struct user_namespace *user_ns, struct ipc_namespace *ns)
+		struct user_namespace *user_ns, struct ipc_namespace *ns)
 {
 	if (flags & CLONE_NEWIPC)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	return ns;
 }

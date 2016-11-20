@@ -57,11 +57,11 @@
 #define GREG_STAT_TXNR_SHIFT	19
 
 #define GREG_STAT_ABNORMAL	(GREG_STAT_RXNOBUF | GREG_STAT_RXTAGERR | \
-				 GREG_STAT_PCS | GREG_STAT_TXMAC | GREG_STAT_RXMAC | \
-				 GREG_STAT_MAC | GREG_STAT_MIF | GREG_STAT_PCIERR)
+							 GREG_STAT_PCS | GREG_STAT_TXMAC | GREG_STAT_RXMAC | \
+							 GREG_STAT_MAC | GREG_STAT_MIF | GREG_STAT_PCIERR)
 
 #define GREG_STAT_NAPI		(GREG_STAT_TXALL  | GREG_STAT_TXINTME | \
-				 GREG_STAT_RXDONE | GREG_STAT_ABNORMAL)
+							 GREG_STAT_RXDONE | GREG_STAT_ABNORMAL)
 
 /* The layout of GREG_IMASK and GREG_IACK is identical to GREG_STAT.
  * Bits set in GREG_IMASK will prevent that interrupt type from being
@@ -827,7 +827,8 @@
  * use the buffer DMA address as a place to keep track of allocated
  * DMA mappings for a transmitted packet.
  */
-struct gem_txd {
+struct gem_txd
+{
 	__le64	control_word;
 	__le64	buffer;
 };
@@ -862,7 +863,8 @@ struct gem_txd {
  * updates.  Therefore it can be used to keep track of DMA mappings
  * by the host driver just as in the TX descriptor case above.
  */
-struct gem_rxd {
+struct gem_rxd
+{
 	__le64	status_word;
 	__le64	buffer;
 };
@@ -883,47 +885,47 @@ struct gem_rxd {
 #define RX_RING_SIZE 128
 
 #if TX_RING_SIZE == 32
-#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_32
+	#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_32
 #elif TX_RING_SIZE == 64
-#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_64
+	#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_64
 #elif TX_RING_SIZE == 128
-#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_128
+	#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_128
 #elif TX_RING_SIZE == 256
-#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_256
+	#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_256
 #elif TX_RING_SIZE == 512
-#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_512
+	#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_512
 #elif TX_RING_SIZE == 1024
-#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_1K
+	#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_1K
 #elif TX_RING_SIZE == 2048
-#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_2K
+	#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_2K
 #elif TX_RING_SIZE == 4096
-#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_4K
+	#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_4K
 #elif TX_RING_SIZE == 8192
-#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_8K
+	#define TXDMA_CFG_BASE	TXDMA_CFG_RINGSZ_8K
 #else
-#error TX_RING_SIZE value is illegal...
+	#error TX_RING_SIZE value is illegal...
 #endif
 
 #if RX_RING_SIZE == 32
-#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_32
+	#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_32
 #elif RX_RING_SIZE == 64
-#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_64
+	#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_64
 #elif RX_RING_SIZE == 128
-#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_128
+	#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_128
 #elif RX_RING_SIZE == 256
-#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_256
+	#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_256
 #elif RX_RING_SIZE == 512
-#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_512
+	#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_512
 #elif RX_RING_SIZE == 1024
-#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_1K
+	#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_1K
 #elif RX_RING_SIZE == 2048
-#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_2K
+	#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_2K
 #elif RX_RING_SIZE == 4096
-#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_4K
+	#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_4K
 #elif RX_RING_SIZE == 8192
-#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_8K
+	#define RXDMA_CFG_BASE	RXDMA_CFG_RINGSZ_8K
 #else
-#error RX_RING_SIZE is illegal...
+	#error RX_RING_SIZE is illegal...
 #endif
 
 #define NEXT_TX(N)	(((N) + 1) & (TX_RING_SIZE - 1))
@@ -931,8 +933,8 @@ struct gem_rxd {
 
 #define TX_BUFFS_AVAIL(GP)					\
 	(((GP)->tx_old <= (GP)->tx_new) ?			\
-	  (GP)->tx_old + (TX_RING_SIZE - 1) - (GP)->tx_new :	\
-	  (GP)->tx_old - (GP)->tx_new - 1)
+	 (GP)->tx_old + (TX_RING_SIZE - 1) - (GP)->tx_new :	\
+	 (GP)->tx_old - (GP)->tx_new - 1)
 
 #define RX_OFFSET          2
 #define RX_BUF_ALLOC_SIZE(gp)	((gp)->rx_buf_sz + 28 + RX_OFFSET + 64)
@@ -940,30 +942,33 @@ struct gem_rxd {
 #define RX_COPY_THRESHOLD  256
 
 #if TX_RING_SIZE < 128
-#define INIT_BLOCK_TX_RING_SIZE		128
+	#define INIT_BLOCK_TX_RING_SIZE		128
 #else
-#define INIT_BLOCK_TX_RING_SIZE		TX_RING_SIZE
+	#define INIT_BLOCK_TX_RING_SIZE		TX_RING_SIZE
 #endif
 
 #if RX_RING_SIZE < 128
-#define INIT_BLOCK_RX_RING_SIZE		128
+	#define INIT_BLOCK_RX_RING_SIZE		128
 #else
-#define INIT_BLOCK_RX_RING_SIZE		RX_RING_SIZE
+	#define INIT_BLOCK_RX_RING_SIZE		RX_RING_SIZE
 #endif
 
-struct gem_init_block {
+struct gem_init_block
+{
 	struct gem_txd	txd[INIT_BLOCK_TX_RING_SIZE];
 	struct gem_rxd	rxd[INIT_BLOCK_RX_RING_SIZE];
 };
 
-enum gem_phy_type {
+enum gem_phy_type
+{
 	phy_mii_mdio0,
 	phy_mii_mdio1,
 	phy_serialink,
 	phy_serdes,
 };
 
-enum link_state {
+enum link_state
+{
 	link_down = 0,	/* No link, will retry */
 	link_aneg,	/* Autoneg in progress */
 	link_force_try,	/* Try Forced link speed */
@@ -972,7 +977,8 @@ enum link_state {
 	link_up		/* Link is up */
 };
 
-struct gem {
+struct gem
+{
 	void __iomem		*regs;
 	int			rx_new, rx_old;
 	int			tx_new, tx_old;
@@ -1022,6 +1028,6 @@ struct gem {
 };
 
 #define found_mii_phy(gp) ((gp->phy_type == phy_mii_mdio0 || gp->phy_type == phy_mii_mdio1) && \
-			   gp->phy_mii.def && gp->phy_mii.def->ops)
+						   gp->phy_mii.def && gp->phy_mii.def->ops)
 
 #endif /* _SUNGEM_H */

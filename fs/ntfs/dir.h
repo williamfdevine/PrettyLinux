@@ -32,7 +32,8 @@
  * ntfs_lookup_inode_by_name() in order for the caller (namei.c::ntfs_lookup())
  * to be able to deal with dcache aliasing issues.
  */
-typedef struct {
+typedef struct
+{
 	MFT_REF mref;
 	FILE_NAME_TYPE_FLAGS type;
 	u8 len;

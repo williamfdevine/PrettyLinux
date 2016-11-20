@@ -24,7 +24,8 @@
  * The imx fixup multiplexer clock is a subclass of basic clk_mux
  * with an addtional fixup hook.
  */
-struct clk_fixup_mux {
+struct clk_fixup_mux
+{
 	struct clk_mux mux;
 	const struct clk_ops *ops;
 	void (*fixup)(u32 *val);
@@ -64,25 +65,31 @@ static int clk_fixup_mux_set_parent(struct clk_hw *hw, u8 index)
 	return 0;
 }
 
-static const struct clk_ops clk_fixup_mux_ops = {
+static const struct clk_ops clk_fixup_mux_ops =
+{
 	.get_parent = clk_fixup_mux_get_parent,
 	.set_parent = clk_fixup_mux_set_parent,
 };
 
 struct clk *imx_clk_fixup_mux(const char *name, void __iomem *reg,
-			      u8 shift, u8 width, const char **parents,
-			      int num_parents, void (*fixup)(u32 *val))
+							  u8 shift, u8 width, const char **parents,
+							  int num_parents, void (*fixup)(u32 *val))
 {
 	struct clk_fixup_mux *fixup_mux;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	if (!fixup)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	fixup_mux = kzalloc(sizeof(*fixup_mux), GFP_KERNEL);
+
 	if (!fixup_mux)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &clk_fixup_mux_ops;
@@ -99,8 +106,11 @@ struct clk *imx_clk_fixup_mux(const char *name, void __iomem *reg,
 	fixup_mux->fixup = fixup;
 
 	clk = clk_register(NULL, &fixup_mux->mux.hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(fixup_mux);
+	}
 
 	return clk;
 }

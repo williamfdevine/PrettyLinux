@@ -21,15 +21,18 @@
 int cpu_count;
 
 /* Hard to define the right names ...: */
-enum power_range_e {
+enum power_range_e
+{
 	RANGE_THREAD,	/* Lowest in topology hierarcy, AMD: core, Intel: thread
 			   kernel sysfs: cpu */
 	RANGE_CORE,	/* AMD: unit, Intel: core, kernel_sysfs: core_id */
 	RANGE_PACKAGE,	/* Package, processor socket */
 	RANGE_MACHINE,	/* Machine, platform wide */
-	RANGE_MAX };
+	RANGE_MAX
+};
 
-typedef struct cstate {
+typedef struct cstate
+{
 	int  id;
 	enum power_range_e range;
 	char name[CSTATE_NAME_LEN];
@@ -37,12 +40,13 @@ typedef struct cstate {
 
 	/* either provide a percentage or a general count */
 	int (*get_count_percent)(unsigned int self_id, double *percent,
-				 unsigned int cpu);
+							 unsigned int cpu);
 	int (*get_count)(unsigned int self_id, unsigned long long *count,
-			 unsigned int cpu);
+					 unsigned int cpu);
 } cstate_t;
 
-struct cpuidle_monitor {
+struct cpuidle_monitor
+{
 	/* Name must not contain whitespaces */
 	char name[MONITOR_NAME_LEN];
 	int name_len;
@@ -50,7 +54,7 @@ struct cpuidle_monitor {
 	cstate_t *hw_states;
 	int (*start) (void);
 	int (*stop) (void);
-	struct cpuidle_monitor* (*do_register) (void);
+	struct cpuidle_monitor *(*do_register) (void);
 	void (*unregister)(void);
 	unsigned int overflow_s;
 	int needs_root;
@@ -59,11 +63,11 @@ struct cpuidle_monitor {
 extern long long timespec_diff_us(struct timespec start, struct timespec end);
 
 #define print_overflow_err(mes, ov)						\
-{										\
-	fprintf(stderr, gettext("Measure took %u seconds, but registers could "	\
-				"overflow at %u seconds, results "		\
-				"could be inaccurate\n"), mes, ov);		\
-}
+	{										\
+		fprintf(stderr, gettext("Measure took %u seconds, but registers could "	\
+								"overflow at %u seconds, results "		\
+								"could be inaccurate\n"), mes, ov);		\
+	}
 
 
 /* Taken over from x86info project sources  -> return 0 on success */
@@ -74,11 +78,13 @@ static inline int bind_cpu(int cpu)
 {
 	cpu_set_t set;
 
-	if (sched_getaffinity(getpid(), sizeof(set), &set) == 0) {
+	if (sched_getaffinity(getpid(), sizeof(set), &set) == 0)
+	{
 		CPU_ZERO(&set);
 		CPU_SET(cpu, &set);
 		return sched_setaffinity(getpid(), sizeof(set), &set);
 	}
+
 	return 1;
 }
 

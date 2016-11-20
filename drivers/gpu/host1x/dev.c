@@ -62,7 +62,8 @@ u32 host1x_ch_readl(struct host1x_channel *ch, u32 r)
 	return readl(ch->regs + r);
 }
 
-static const struct host1x_info host1x01_info = {
+static const struct host1x_info host1x01_info =
+{
 	.nb_channels = 8,
 	.nb_pts = 32,
 	.nb_mlocks = 16,
@@ -72,7 +73,8 @@ static const struct host1x_info host1x01_info = {
 	.dma_mask = DMA_BIT_MASK(32),
 };
 
-static const struct host1x_info host1x02_info = {
+static const struct host1x_info host1x02_info =
+{
 	.nb_channels = 9,
 	.nb_pts = 32,
 	.nb_mlocks = 16,
@@ -82,7 +84,8 @@ static const struct host1x_info host1x02_info = {
 	.dma_mask = DMA_BIT_MASK(32),
 };
 
-static const struct host1x_info host1x04_info = {
+static const struct host1x_info host1x04_info =
+{
 	.nb_channels = 12,
 	.nb_pts = 192,
 	.nb_mlocks = 16,
@@ -92,7 +95,8 @@ static const struct host1x_info host1x04_info = {
 	.dma_mask = DMA_BIT_MASK(34),
 };
 
-static const struct host1x_info host1x05_info = {
+static const struct host1x_info host1x05_info =
+{
 	.nb_channels = 14,
 	.nb_pts = 192,
 	.nb_mlocks = 16,
@@ -102,7 +106,8 @@ static const struct host1x_info host1x05_info = {
 	.dma_mask = DMA_BIT_MASK(34),
 };
 
-static const struct of_device_id host1x_of_match[] = {
+static const struct of_device_id host1x_of_match[] =
+{
 	{ .compatible = "nvidia,tegra210-host1x", .data = &host1x05_info, },
 	{ .compatible = "nvidia,tegra124-host1x", .data = &host1x04_info, },
 	{ .compatible = "nvidia,tegra114-host1x", .data = &host1x02_info, },
@@ -121,24 +126,34 @@ static int host1x_probe(struct platform_device *pdev)
 	int err;
 
 	id = of_match_device(host1x_of_match, &pdev->dev);
+
 	if (!id)
+	{
 		return -EINVAL;
+	}
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!regs) {
+
+	if (!regs)
+	{
 		dev_err(&pdev->dev, "failed to get registers\n");
 		return -ENXIO;
 	}
 
 	syncpt_irq = platform_get_irq(pdev, 0);
-	if (syncpt_irq < 0) {
+
+	if (syncpt_irq < 0)
+	{
 		dev_err(&pdev->dev, "failed to get IRQ\n");
 		return -ENXIO;
 	}
 
 	host = devm_kzalloc(&pdev->dev, sizeof(*host), GFP_KERNEL);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&host->devices_lock);
 	INIT_LIST_HEAD(&host->devices);
@@ -150,44 +165,61 @@ static int host1x_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, host);
 
 	host->regs = devm_ioremap_resource(&pdev->dev, regs);
+
 	if (IS_ERR(host->regs))
+	{
 		return PTR_ERR(host->regs);
+	}
 
 	dma_set_mask_and_coherent(host->dev, host->info->dma_mask);
 
-	if (host->info->init) {
+	if (host->info->init)
+	{
 		err = host->info->init(host);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	host->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(host->clk)) {
+
+	if (IS_ERR(host->clk))
+	{
 		dev_err(&pdev->dev, "failed to get clock\n");
 		err = PTR_ERR(host->clk);
 		return err;
 	}
 
 	err = host1x_channel_list_init(host);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to initialize channel list\n");
 		return err;
 	}
 
 	err = clk_prepare_enable(host->clk);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev, "failed to enable clock\n");
 		return err;
 	}
 
 	err = host1x_syncpt_init(host);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to initialize syncpts\n");
 		goto fail_unprepare_disable;
 	}
 
 	err = host1x_intr_init(host, syncpt_irq);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to initialize interrupts\n");
 		goto fail_deinit_syncpt;
 	}
@@ -195,8 +227,11 @@ static int host1x_probe(struct platform_device *pdev)
 	host1x_debug_init(host);
 
 	err = host1x_register(host);
+
 	if (err < 0)
+	{
 		goto fail_deinit_intr;
+	}
 
 	return 0;
 
@@ -221,7 +256,8 @@ static int host1x_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver tegra_host1x_driver = {
+static struct platform_driver tegra_host1x_driver =
+{
 	.driver = {
 		.name = "tegra-host1x",
 		.of_match_table = host1x_of_match,
@@ -230,7 +266,8 @@ static struct platform_driver tegra_host1x_driver = {
 	.remove = host1x_remove,
 };
 
-static struct platform_driver * const drivers[] = {
+static struct platform_driver *const drivers[] =
+{
 	&tegra_host1x_driver,
 	&tegra_mipi_driver,
 };
@@ -240,12 +277,18 @@ static int __init tegra_host1x_init(void)
 	int err;
 
 	err = bus_register(&host1x_bus_type);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = platform_register_drivers(drivers, ARRAY_SIZE(drivers));
+
 	if (err < 0)
+	{
 		bus_unregister(&host1x_bus_type);
+	}
 
 	return err;
 }

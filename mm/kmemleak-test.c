@@ -31,7 +31,8 @@
 
 #include <linux/kmemleak.h>
 
-struct test_node {
+struct test_node
+{
 	long header[25];
 	struct list_head list;
 	long footer[25];
@@ -62,9 +63,9 @@ static int __init kmemleak_test_init(void)
 	pr_info("kmalloc(4096) = %p\n", kmalloc(4096, GFP_KERNEL));
 #ifndef CONFIG_MODULES
 	pr_info("kmem_cache_alloc(files_cachep) = %p\n",
-		kmem_cache_alloc(files_cachep, GFP_KERNEL));
+			kmem_cache_alloc(files_cachep, GFP_KERNEL));
 	pr_info("kmem_cache_alloc(files_cachep) = %p\n",
-		kmem_cache_alloc(files_cachep, GFP_KERNEL));
+			kmem_cache_alloc(files_cachep, GFP_KERNEL));
 #endif
 	pr_info("vmalloc(64) = %p\n", vmalloc(64));
 	pr_info("vmalloc(64) = %p\n", vmalloc(64));
@@ -76,19 +77,25 @@ static int __init kmemleak_test_init(void)
 	 * Add elements to a list. They should only appear as orphan
 	 * after the module is removed.
 	 */
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		elem = kzalloc(sizeof(*elem), GFP_KERNEL);
 		pr_info("kzalloc(sizeof(*elem)) = %p\n", elem);
+
 		if (!elem)
+		{
 			return -ENOMEM;
+		}
+
 		INIT_LIST_HEAD(&elem->list);
 		list_add_tail(&elem->list, &test_list);
 	}
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		per_cpu(kmemleak_test_pointer, i) = kmalloc(129, GFP_KERNEL);
 		pr_info("kmalloc(129) = %p\n",
-			per_cpu(kmemleak_test_pointer, i));
+				per_cpu(kmemleak_test_pointer, i));
 	}
 
 	return 0;
@@ -104,7 +111,7 @@ static void __exit kmemleak_test_exit(void)
 	 * memory.
 	 */
 	list_for_each_entry_safe(elem, tmp, &test_list, list)
-		list_del(&elem->list);
+	list_del(&elem->list);
 }
 module_exit(kmemleak_test_exit);
 

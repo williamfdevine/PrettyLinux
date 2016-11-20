@@ -58,13 +58,14 @@
 #define VIRTIO_NET_F_CTRL_MAC_ADDR 23	/* Set MAC address */
 
 #ifndef VIRTIO_NET_NO_LEGACY
-#define VIRTIO_NET_F_GSO	6	/* Host handles pkts w/ any GSO type */
+	#define VIRTIO_NET_F_GSO	6	/* Host handles pkts w/ any GSO type */
 #endif /* VIRTIO_NET_NO_LEGACY */
 
 #define VIRTIO_NET_S_LINK_UP	1	/* Link is up */
 #define VIRTIO_NET_S_ANNOUNCE	2	/* Announcement is needed */
 
-struct virtio_net_config {
+struct virtio_net_config
+{
 	/* The config defining mac address (if VIRTIO_NET_F_MAC) */
 	__u8 mac[ETH_ALEN];
 	/* See VIRTIO_NET_F_STATUS and VIRTIO_NET_S_* above */
@@ -85,7 +86,8 @@ struct virtio_net_config {
  * This is bitwise-equivalent to the legacy struct virtio_net_hdr_mrg_rxbuf,
  * only flattened.
  */
-struct virtio_net_hdr_v1 {
+struct virtio_net_hdr_v1
+{
 #define VIRTIO_NET_HDR_F_NEEDS_CSUM	1	/* Use csum_start, csum_offset */
 #define VIRTIO_NET_HDR_F_DATA_VALID	2	/* Csum is valid */
 	__u8 flags;
@@ -107,7 +109,8 @@ struct virtio_net_hdr_v1 {
  * For legacy virtio, if VIRTIO_F_ANY_LAYOUT is not negotiated, it must
  * be the first element of the scatter-gather list.  If you don't
  * specify GSO or CSUM features, you can simply ignore the header. */
-struct virtio_net_hdr {
+struct virtio_net_hdr
+{
 	/* See VIRTIO_NET_HDR_F_* */
 	__u8 flags;
 	/* See VIRTIO_NET_HDR_GSO_* */
@@ -120,7 +123,8 @@ struct virtio_net_hdr {
 
 /* This is the version of the header to use when the MRG_RXBUF
  * feature has been negotiated. */
-struct virtio_net_hdr_mrg_rxbuf {
+struct virtio_net_hdr_mrg_rxbuf
+{
 	struct virtio_net_hdr hdr;
 	__virtio16 num_buffers;	/* Number of merged rx buffers */
 };
@@ -133,7 +137,8 @@ struct virtio_net_hdr_mrg_rxbuf {
  * and an ack/status response in the last entry.  Data for the
  * command goes in between.
  */
-struct virtio_net_ctrl_hdr {
+struct virtio_net_ctrl_hdr
+{
 	__u8 class;
 	__u8 cmd;
 } __attribute__((packed));
@@ -151,12 +156,12 @@ typedef __u8 virtio_net_ctrl_ack;
  * Commands 2-5 are added with VIRTIO_NET_F_CTRL_RX_EXTRA.
  */
 #define VIRTIO_NET_CTRL_RX    0
- #define VIRTIO_NET_CTRL_RX_PROMISC      0
- #define VIRTIO_NET_CTRL_RX_ALLMULTI     1
- #define VIRTIO_NET_CTRL_RX_ALLUNI       2
- #define VIRTIO_NET_CTRL_RX_NOMULTI      3
- #define VIRTIO_NET_CTRL_RX_NOUNI        4
- #define VIRTIO_NET_CTRL_RX_NOBCAST      5
+#define VIRTIO_NET_CTRL_RX_PROMISC      0
+#define VIRTIO_NET_CTRL_RX_ALLMULTI     1
+#define VIRTIO_NET_CTRL_RX_ALLUNI       2
+#define VIRTIO_NET_CTRL_RX_NOMULTI      3
+#define VIRTIO_NET_CTRL_RX_NOUNI        4
+#define VIRTIO_NET_CTRL_RX_NOBCAST      5
 
 /*
  * Control the MAC
@@ -177,14 +182,15 @@ typedef __u8 virtio_net_ctrl_ack;
  * 6 bytes MAC address. This functionality is present if the
  * VIRTIO_NET_F_CTRL_MAC_ADDR feature is available.
  */
-struct virtio_net_ctrl_mac {
+struct virtio_net_ctrl_mac
+{
 	__virtio32 entries;
 	__u8 macs[][ETH_ALEN];
 } __attribute__((packed));
 
 #define VIRTIO_NET_CTRL_MAC    1
- #define VIRTIO_NET_CTRL_MAC_TABLE_SET        0
- #define VIRTIO_NET_CTRL_MAC_ADDR_SET         1
+#define VIRTIO_NET_CTRL_MAC_TABLE_SET        0
+#define VIRTIO_NET_CTRL_MAC_ADDR_SET         1
 
 /*
  * Control VLAN filtering
@@ -196,8 +202,8 @@ struct virtio_net_ctrl_mac {
  * VIRTIO_NET_F_CTRL_VLAN feature bit.
  */
 #define VIRTIO_NET_CTRL_VLAN       2
- #define VIRTIO_NET_CTRL_VLAN_ADD             0
- #define VIRTIO_NET_CTRL_VLAN_DEL             1
+#define VIRTIO_NET_CTRL_VLAN_ADD             0
+#define VIRTIO_NET_CTRL_VLAN_DEL             1
 
 /*
  * Control link announce acknowledgement
@@ -208,7 +214,7 @@ struct virtio_net_ctrl_mac {
  * this command.
  */
 #define VIRTIO_NET_CTRL_ANNOUNCE       3
- #define VIRTIO_NET_CTRL_ANNOUNCE_ACK         0
+#define VIRTIO_NET_CTRL_ANNOUNCE_ACK         0
 
 /*
  * Control Receive Flow Steering
@@ -221,14 +227,15 @@ struct virtio_net_ctrl_mac {
  * Accordingly, driver should not transmit new packets  on virtqueues other than
  * specified.
  */
-struct virtio_net_ctrl_mq {
+struct virtio_net_ctrl_mq
+{
 	__virtio16 virtqueue_pairs;
 };
 
 #define VIRTIO_NET_CTRL_MQ   4
- #define VIRTIO_NET_CTRL_MQ_VQ_PAIRS_SET        0
- #define VIRTIO_NET_CTRL_MQ_VQ_PAIRS_MIN        1
- #define VIRTIO_NET_CTRL_MQ_VQ_PAIRS_MAX        0x8000
+#define VIRTIO_NET_CTRL_MQ_VQ_PAIRS_SET        0
+#define VIRTIO_NET_CTRL_MQ_VQ_PAIRS_MIN        1
+#define VIRTIO_NET_CTRL_MQ_VQ_PAIRS_MAX        0x8000
 
 /*
  * Control network offloads

@@ -27,7 +27,8 @@ typedef u32 res_hndl_t;
  * IOARCB: 64 bytes, min 16 byte alignment required, host native endianness
  * except for SCSI CDB which remains big endian per SCSI standards.
  */
-struct sisl_ioarcb {
+struct sisl_ioarcb
+{
 	u16 ctx_id;		/* ctx_hndl_t */
 	u16 req_flags;
 #define SISL_REQ_FLAGS_RES_HNDL       0x8000U	/* bit 0 (MSB) */
@@ -47,7 +48,8 @@ struct sisl_ioarcb {
 #define SISL_REQ_FLAGS_HOST_WRITE     0x0001U	/* bit 15 (LSB) */
 #define SISL_REQ_FLAGS_HOST_READ      0x0000U
 
-	union {
+	union
+	{
 		u32 res_hndl;	/* res_hndl_t */
 		u32 port_sel;	/* this is a selection mask:
 				 * 0x1 -> port#0 can be selected,
@@ -58,7 +60,8 @@ struct sisl_ioarcb {
 	u64 lun_id;
 	u32 data_len;		/* 4K for read/write */
 	u32 ioadl_len;
-	union {
+	union
+	{
 		u64 data_ea;	/* min 16 byte aligned */
 		u64 ioadl_ea;
 	};
@@ -75,7 +78,8 @@ struct sisl_ioarcb {
 	struct scsi_cmnd *scp;
 } __packed;
 
-struct sisl_rc {
+struct sisl_rc
+{
 	u8 flags;
 #define SISL_RC_FLAGS_SENSE_VALID         0x80U
 #define SISL_RC_FLAGS_FCP_RSP_CODE_VALID  0x40U
@@ -157,8 +161,10 @@ struct sisl_rc {
  * IOASA: 64 bytes & must follow IOARCB, min 16 byte alignment required,
  * host native endianness
  */
-struct sisl_ioasa {
-	union {
+struct sisl_ioasa
+{
+	union
+	{
 		struct sisl_rc rc;
 		u32 ioasc;
 #define SISL_IOASC_GOOD_COMPLETION        0x00000000U
@@ -191,7 +197,8 @@ struct sisl_ioasa {
 	/* These fields are defined by the SISlite architecture for the
 	 * host to use as they see fit for their implementation.
 	 */
-	union {
+	union
+	{
 		u64 host_use[4];
 		u8 host_use_b[32];
 	};
@@ -217,13 +224,14 @@ struct sisl_ioasa {
 #define SISL_ENDIAN_CTRL_LE           0x0000000000000000ULL
 
 #ifdef __BIG_ENDIAN
-#define SISL_ENDIAN_CTRL              SISL_ENDIAN_CTRL_BE
+	#define SISL_ENDIAN_CTRL              SISL_ENDIAN_CTRL_BE
 #else
-#define SISL_ENDIAN_CTRL              SISL_ENDIAN_CTRL_LE
+	#define SISL_ENDIAN_CTRL              SISL_ENDIAN_CTRL_LE
 #endif
 
 /* per context host transport MMIO  */
-struct sisl_host_map {
+struct sisl_host_map
+{
 	__be64 endian_ctrl;     /* Per context Endian Control. The AFU will
 			      * operate on whatever the context is of the
 			      * host application.
@@ -263,7 +271,8 @@ struct sisl_host_map {
 };
 
 /* per context provisioning & control MMIO */
-struct sisl_ctrl_map {
+struct sisl_ctrl_map
+{
 	__be64 rht_start;
 	__be64 rht_cnt_id;
 	/* both cnt & ctx_id args must be ULL */
@@ -282,7 +291,8 @@ struct sisl_ctrl_map {
 };
 
 /* single copy global regs */
-struct sisl_global_regs {
+struct sisl_global_regs
+{
 	__be64 aintr_status;
 	/* In cxlflash, each FC port/link gets a byte of status */
 #define SISL_ASTATUS_FC0_OTHER	 0x8000ULL /* b48, other err,
@@ -333,11 +343,11 @@ struct sisl_global_regs {
 #define SISL_AFUCONF_AR_RSRC	0x0400ULL
 #define SISL_AFUCONF_AR_IOASA	0x0200ULL
 #define SISL_AFUCONF_AR_RRQ	0x0100ULL
-/* Aggregate all Auto Retry Bits */
+	/* Aggregate all Auto Retry Bits */
 #define SISL_AFUCONF_AR_ALL	(SISL_AFUCONF_AR_IOARCB|SISL_AFUCONF_AR_LXT| \
-				 SISL_AFUCONF_AR_RHT|SISL_AFUCONF_AR_DATA|   \
-				 SISL_AFUCONF_AR_RSRC|SISL_AFUCONF_AR_IOASA| \
-				 SISL_AFUCONF_AR_RRQ)
+							 SISL_AFUCONF_AR_RHT|SISL_AFUCONF_AR_DATA|   \
+							 SISL_AFUCONF_AR_RSRC|SISL_AFUCONF_AR_IOASA| \
+							 SISL_AFUCONF_AR_RRQ)
 #ifdef __BIG_ENDIAN
 #define SISL_AFUCONF_ENDIAN            0x0000ULL
 #else
@@ -354,8 +364,10 @@ struct sisl_global_regs {
 #define CXLFLASH_MAX_CONTEXT  512	/* how many contexts per afu */
 #define CXLFLASH_NUM_VLUNS    512
 
-struct sisl_global_map {
-	union {
+struct sisl_global_map
+{
+	union
+	{
 		struct sisl_global_regs regs;
 		char page0[SIZE_4K];	/* page 0 */
 	};
@@ -386,18 +398,22 @@ struct sisl_global_map {
  *	|   Trusted Process accessible  |
  *	+-------------------------------+
 */
-struct cxlflash_afu_map {
-	union {
+struct cxlflash_afu_map
+{
+	union
+	{
 		struct sisl_host_map host;
 		char harea[SIZE_64K];	/* 64KB each */
 	} hosts[CXLFLASH_MAX_CONTEXT];
 
-	union {
+	union
+	{
 		struct sisl_ctrl_map ctrl;
 		char carea[cache_line_size()];	/* 128B each */
 	} ctrls[CXLFLASH_MAX_CONTEXT];
 
-	union {
+	union
+	{
 		struct sisl_global_map global;
 		char garea[SIZE_64K];	/* 64KB single block */
 	};
@@ -407,7 +423,8 @@ struct cxlflash_afu_map {
  * LXT - LBA Translation Table
  * LXT control blocks
  */
-struct sisl_lxt_entry {
+struct sisl_lxt_entry
+{
 	u64 rlba_base;	/* bits 0:47 is base
 			 * b48:55 is lun index
 			 * b58:59 is write & read perms
@@ -420,7 +437,8 @@ struct sisl_lxt_entry {
  * RHT - Resource Handle Table
  * Per the SISlite spec, RHT entries are to be 16-byte aligned
  */
-struct sisl_rht_entry {
+struct sisl_rht_entry
+{
 	struct sisl_lxt_entry *lxt_start;
 	u32 lxt_cnt;
 	u16 rsvd;
@@ -430,10 +448,13 @@ struct sisl_rht_entry {
 	u8 nmask;
 } __packed __aligned(16);
 
-struct sisl_rht_entry_f1 {
+struct sisl_rht_entry_f1
+{
 	u64 lun_id;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8 valid;
 			u8 rsvd[5];
 			u8 fp;

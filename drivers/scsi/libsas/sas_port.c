@@ -33,9 +33,12 @@ static bool phy_is_wideport_member(struct asd_sas_port *port, struct asd_sas_phy
 	struct sas_ha_struct *sas_ha = phy->ha;
 
 	if (memcmp(port->attached_sas_addr, phy->attached_sas_addr,
-		   SAS_ADDR_SIZE) != 0 || (sas_ha->strict_wide_ports &&
-	     memcmp(port->sas_addr, phy->sas_addr, SAS_ADDR_SIZE) != 0))
+			   SAS_ADDR_SIZE) != 0 || (sas_ha->strict_wide_ports &&
+									   memcmp(port->sas_addr, phy->sas_addr, SAS_ADDR_SIZE) != 0))
+	{
 		return false;
+	}
+
 	return true;
 }
 
@@ -47,11 +50,16 @@ static void sas_resume_port(struct asd_sas_phy *phy)
 	struct sas_internal *si = to_sas_internal(sas_ha->core.shost->transportt);
 
 	if (si->dft->lldd_port_formed)
+	{
 		si->dft->lldd_port_formed(phy);
+	}
 
 	if (port->suspended)
+	{
 		port->suspended = 0;
-	else {
+	}
+	else
+	{
 		/* we only need to handle "link returned" actions once */
 		return;
 	}
@@ -60,18 +68,24 @@ static void sas_resume_port(struct asd_sas_phy *phy)
 	 * 1/ presume every device came back
 	 * 2/ force the next revalidation to check all expander phys
 	 */
-	list_for_each_entry(dev, &port->dev_list, dev_list_node) {
+	list_for_each_entry(dev, &port->dev_list, dev_list_node)
+	{
 		int i, rc;
 
 		rc = sas_notify_lldd_dev_found(dev);
-		if (rc) {
+
+		if (rc)
+		{
 			sas_unregister_dev(port, dev);
 			continue;
 		}
 
-		if (dev->dev_type == SAS_EDGE_EXPANDER_DEVICE || dev->dev_type == SAS_FANOUT_EXPANDER_DEVICE) {
+		if (dev->dev_type == SAS_EDGE_EXPANDER_DEVICE || dev->dev_type == SAS_FANOUT_EXPANDER_DEVICE)
+		{
 			dev->ex_dev.ex_change_count = -1;
-			for (i = 0; i < dev->ex_dev.num_phys; i++) {
+
+			for (i = 0; i < dev->ex_dev.num_phys; i++)
+			{
 				struct ex_phy *phy = &dev->ex_dev.ex_phy[i];
 
 				phy->phy_change_count = -1;
@@ -98,56 +112,74 @@ static void sas_form_port(struct asd_sas_phy *phy)
 		to_sas_internal(sas_ha->core.shost->transportt);
 	unsigned long flags;
 
-	if (port) {
+	if (port)
+	{
 		if (!phy_is_wideport_member(port, phy))
+		{
 			sas_deform_port(phy, 0);
-		else if (phy->suspended) {
+		}
+		else if (phy->suspended)
+		{
 			phy->suspended = 0;
 			sas_resume_port(phy);
 
 			/* phy came back, try to cancel the timeout */
 			wake_up(&sas_ha->eh_wait_q);
 			return;
-		} else {
+		}
+		else
+		{
 			SAS_DPRINTK("%s: phy%d belongs to port%d already(%d)!\n",
-				    __func__, phy->id, phy->port->id,
-				    phy->port->num_phys);
+						__func__, phy->id, phy->port->id,
+						phy->port->num_phys);
 			return;
 		}
 	}
 
 	/* see if the phy should be part of a wide port */
 	spin_lock_irqsave(&sas_ha->phy_port_lock, flags);
-	for (i = 0; i < sas_ha->num_phys; i++) {
+
+	for (i = 0; i < sas_ha->num_phys; i++)
+	{
 		port = sas_ha->sas_port[i];
 		spin_lock(&port->phy_list_lock);
+
 		if (*(u64 *) port->sas_addr &&
-		    phy_is_wideport_member(port, phy) && port->num_phys > 0) {
+			phy_is_wideport_member(port, phy) && port->num_phys > 0)
+		{
 			/* wide port */
 			SAS_DPRINTK("phy%d matched wide port%d\n", phy->id,
-				    port->id);
+						port->id);
 			break;
 		}
+
 		spin_unlock(&port->phy_list_lock);
 	}
+
 	/* The phy does not match any existing port, create a new one */
-	if (i == sas_ha->num_phys) {
-		for (i = 0; i < sas_ha->num_phys; i++) {
+	if (i == sas_ha->num_phys)
+	{
+		for (i = 0; i < sas_ha->num_phys; i++)
+		{
 			port = sas_ha->sas_port[i];
 			spin_lock(&port->phy_list_lock);
+
 			if (*(u64 *)port->sas_addr == 0
-				&& port->num_phys == 0) {
+				&& port->num_phys == 0)
+			{
 				memcpy(port->sas_addr, phy->sas_addr,
-					SAS_ADDR_SIZE);
+					   SAS_ADDR_SIZE);
 				break;
 			}
+
 			spin_unlock(&port->phy_list_lock);
 		}
 	}
 
-	if (i >= sas_ha->num_phys) {
+	if (i >= sas_ha->num_phys)
+	{
 		printk(KERN_NOTICE "%s: couldn't find a free port, bug?\n",
-		       __func__);
+			   __func__);
 		spin_unlock_irqrestore(&sas_ha->phy_port_lock, flags);
 		return;
 	}
@@ -159,37 +191,48 @@ static void sas_form_port(struct asd_sas_phy *phy)
 	port->num_phys++;
 	port->phy_mask |= (1U << phy->id);
 
-	if (*(u64 *)port->attached_sas_addr == 0) {
+	if (*(u64 *)port->attached_sas_addr == 0)
+	{
 		port->class = phy->class;
 		memcpy(port->attached_sas_addr, phy->attached_sas_addr,
-		       SAS_ADDR_SIZE);
+			   SAS_ADDR_SIZE);
 		port->iproto = phy->iproto;
 		port->tproto = phy->tproto;
 		port->oob_mode = phy->oob_mode;
 		port->linkrate = phy->linkrate;
-	} else
+	}
+	else
+	{
 		port->linkrate = max(port->linkrate, phy->linkrate);
+	}
+
 	spin_unlock(&port->phy_list_lock);
 	spin_unlock_irqrestore(&sas_ha->phy_port_lock, flags);
 
-	if (!port->port) {
+	if (!port->port)
+	{
 		port->port = sas_port_alloc(phy->phy->dev.parent, port->id);
 		BUG_ON(!port->port);
 		sas_port_add(port->port);
 	}
+
 	sas_port_add_phy(port->port, phy->phy);
 
 	SAS_DPRINTK("%s added to %s, phy_mask:0x%x (%16llx)\n",
-		    dev_name(&phy->phy->dev), dev_name(&port->port->dev),
-		    port->phy_mask,
-		    SAS_ADDR(port->attached_sas_addr));
+				dev_name(&phy->phy->dev), dev_name(&port->port->dev),
+				port->phy_mask,
+				SAS_ADDR(port->attached_sas_addr));
 
 	if (port->port_dev)
+	{
 		port->port_dev->pathways = port->num_phys;
+	}
 
 	/* Tell the LLDD about this port formation. */
 	if (si->dft->lldd_port_formed)
+	{
 		si->dft->lldd_port_formed(phy);
+	}
 
 	sas_discover_event(phy->port, DISCE_DISCOVER_DOMAIN);
 }
@@ -211,23 +254,33 @@ void sas_deform_port(struct asd_sas_phy *phy, int gone)
 	unsigned long flags;
 
 	if (!port)
-		return;		  /* done by a phy event */
+	{
+		return;    /* done by a phy event */
+	}
 
 	dev = port->port_dev;
-	if (dev)
-		dev->pathways--;
 
-	if (port->num_phys == 1) {
+	if (dev)
+	{
+		dev->pathways--;
+	}
+
+	if (port->num_phys == 1)
+	{
 		sas_unregister_domain_devices(port, gone);
 		sas_port_delete(port->port);
 		port->port = NULL;
-	} else {
+	}
+	else
+	{
 		sas_port_delete_phy(port->port, phy->phy);
 		sas_device_set_phy(dev, port->port);
 	}
 
 	if (si->dft->lldd_port_deformed)
+	{
 		si->dft->lldd_port_deformed(phy);
+	}
 
 	spin_lock_irqsave(&sas_ha->phy_port_lock, flags);
 	spin_lock(&port->phy_list_lock);
@@ -238,7 +291,8 @@ void sas_deform_port(struct asd_sas_phy *phy, int gone)
 	port->num_phys--;
 	port->phy_mask &= ~(1U << phy->id);
 
-	if (port->num_phys == 0) {
+	if (port->num_phys == 0)
+	{
 		INIT_LIST_HEAD(&port->phy_list);
 		memset(port->sas_addr, 0, SAS_ADDR_SIZE);
 		memset(port->attached_sas_addr, 0, SAS_ADDR_SIZE);
@@ -248,6 +302,7 @@ void sas_deform_port(struct asd_sas_phy *phy, int gone)
 		port->oob_mode = 0;
 		port->phy_mask = 0;
 	}
+
 	spin_unlock(&port->phy_list_lock);
 	spin_unlock_irqrestore(&sas_ha->phy_port_lock, flags);
 
@@ -316,7 +371,7 @@ void sas_porte_hard_reset(struct work_struct *work)
 /* ---------- SAS port registration ---------- */
 
 static void sas_init_port(struct asd_sas_port *port,
-			  struct sas_ha_struct *sas_ha, int i)
+						  struct sas_ha_struct *sas_ha, int i)
 {
 	memset(port, 0, sizeof(*port));
 	port->id = i;
@@ -335,12 +390,14 @@ int sas_register_ports(struct sas_ha_struct *sas_ha)
 	int i;
 
 	/* initialize the ports and discovery */
-	for (i = 0; i < sas_ha->num_phys; i++) {
+	for (i = 0; i < sas_ha->num_phys; i++)
+	{
 		struct asd_sas_port *port = sas_ha->sas_port[i];
 
 		sas_init_port(port, sas_ha, i);
 		sas_init_disc(&port->disc, port);
 	}
+
 	return 0;
 }
 
@@ -350,6 +407,8 @@ void sas_unregister_ports(struct sas_ha_struct *sas_ha)
 
 	for (i = 0; i < sas_ha->num_phys; i++)
 		if (sas_ha->sas_phy[i]->port)
+		{
 			sas_deform_port(sas_ha->sas_phy[i], 0);
+		}
 
 }

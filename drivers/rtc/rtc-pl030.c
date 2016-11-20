@@ -23,7 +23,8 @@
 #define RTC_CR		(16)
 #define RTC_CR_MIE	(1 << 0)
 
-struct pl030_rtc {
+struct pl030_rtc
+{
 	struct rtc_device	*rtc;
 	void __iomem		*base;
 };
@@ -53,10 +54,17 @@ static int pl030_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	 * At the moment, we can only deal with non-wildcarded alarm times.
 	 */
 	ret = rtc_valid_tm(&alrm->time);
+
 	if (ret == 0)
+	{
 		ret = rtc_tm_to_time(&alrm->time, &time);
+	}
+
 	if (ret == 0)
+	{
 		writel(time, rtc->base + RTC_MR);
+	}
+
 	return ret;
 }
 
@@ -84,13 +92,17 @@ static int pl030_set_time(struct device *dev, struct rtc_time *tm)
 	int ret;
 
 	ret = rtc_tm_to_time(tm, &time);
+
 	if (ret == 0)
+	{
 		writel(time + 1, rtc->base + RTC_LR);
+	}
 
 	return ret;
 }
 
-static const struct rtc_class_ops pl030_ops = {
+static const struct rtc_class_ops pl030_ops =
+{
 	.read_time	= pl030_read_time,
 	.set_time	= pl030_set_time,
 	.read_alarm	= pl030_read_alarm,
@@ -103,17 +115,24 @@ static int pl030_probe(struct amba_device *dev, const struct amba_id *id)
 	int ret;
 
 	ret = amba_request_regions(dev, NULL);
+
 	if (ret)
+	{
 		goto err_req;
+	}
 
 	rtc = devm_kzalloc(&dev->dev, sizeof(*rtc), GFP_KERNEL);
-	if (!rtc) {
+
+	if (!rtc)
+	{
 		ret = -ENOMEM;
 		goto err_rtc;
 	}
 
 	rtc->base = ioremap(dev->res.start, resource_size(&dev->res));
-	if (!rtc->base) {
+
+	if (!rtc->base)
+	{
 		ret = -ENOMEM;
 		goto err_rtc;
 	}
@@ -124,26 +143,31 @@ static int pl030_probe(struct amba_device *dev, const struct amba_id *id)
 	amba_set_drvdata(dev, rtc);
 
 	ret = request_irq(dev->irq[0], pl030_interrupt, 0,
-			  "rtc-pl030", rtc);
+					  "rtc-pl030", rtc);
+
 	if (ret)
+	{
 		goto err_irq;
+	}
 
 	rtc->rtc = rtc_device_register("pl030", &dev->dev, &pl030_ops,
-				       THIS_MODULE);
-	if (IS_ERR(rtc->rtc)) {
+								   THIS_MODULE);
+
+	if (IS_ERR(rtc->rtc))
+	{
 		ret = PTR_ERR(rtc->rtc);
 		goto err_reg;
 	}
 
 	return 0;
 
- err_reg:
+err_reg:
 	free_irq(dev->irq[0], rtc);
- err_irq:
+err_irq:
 	iounmap(rtc->base);
- err_rtc:
+err_rtc:
 	amba_release_regions(dev);
- err_req:
+err_req:
 	return ret;
 }
 
@@ -161,7 +185,8 @@ static int pl030_remove(struct amba_device *dev)
 	return 0;
 }
 
-static struct amba_id pl030_ids[] = {
+static struct amba_id pl030_ids[] =
+{
 	{
 		.id	= 0x00041030,
 		.mask	= 0x000fffff,
@@ -171,7 +196,8 @@ static struct amba_id pl030_ids[] = {
 
 MODULE_DEVICE_TABLE(amba, pl030_ids);
 
-static struct amba_driver pl030_driver = {
+static struct amba_driver pl030_driver =
+{
 	.drv		= {
 		.name	= "rtc-pl030",
 	},

@@ -16,7 +16,8 @@
 #include <linux/socket.h>
 
 #define __LLC_SOCK_SIZE__ 16	/* sizeof(sockaddr_llc), word align. */
-struct sockaddr_llc {
+struct sockaddr_llc
+{
 	__kernel_sa_family_t sllc_family; /* AF_LLC */
 	__kernel_sa_family_t sllc_arphrd; /* ARPHRD_ETHER */
 	unsigned char   sllc_test;
@@ -25,12 +26,13 @@ struct sockaddr_llc {
 	unsigned char   sllc_sap;
 	unsigned char   sllc_mac[IFHWADDRLEN];
 	unsigned char   __pad[__LLC_SOCK_SIZE__ -
-			      sizeof(__kernel_sa_family_t) * 2 -
-			      sizeof(unsigned char) * 4 - IFHWADDRLEN];
+						  sizeof(__kernel_sa_family_t) * 2 -
+						  sizeof(unsigned char) * 4 - IFHWADDRLEN];
 };
 
 /* sockopt definitions. */
-enum llc_sockopts {
+enum llc_sockopts
+{
 	LLC_OPT_UNKNOWN = 0,
 	LLC_OPT_RETRY,		/* max retrans attempts. */
 	LLC_OPT_SIZE,		/* max PDU size (octets). */
@@ -56,7 +58,7 @@ enum llc_sockopts {
 #define LLC_SAP_NULL	0x00		/* NULL SAP. 			*/
 #define LLC_SAP_LLC	0x02		/* LLC Sublayer Management. 	*/
 #define LLC_SAP_SNA	0x04		/* SNA Path Control. 		*/
-#define LLC_SAP_PNM	0x0E		/* Proway Network Management.	*/	
+#define LLC_SAP_PNM	0x0E		/* Proway Network Management.	*/
 #define LLC_SAP_IP	0x06		/* TCP/IP. 			*/
 #define LLC_SAP_BSPAN	0x42		/* Bridge Spanning Tree Proto	*/
 #define LLC_SAP_MMS	0x4E		/* Manufacturing Message Srv.	*/
@@ -75,7 +77,8 @@ enum llc_sockopts {
 #define LLC_SAP_RM	0xD4		/* Resource Management 		*/
 #define LLC_SAP_GLOBAL	0xFF		/* Global SAP. 			*/
 
-struct llc_pktinfo {
+struct llc_pktinfo
+{
 	int lpi_ifindex;
 	unsigned char lpi_sap;
 	unsigned char lpi_mac[IFHWADDRLEN];

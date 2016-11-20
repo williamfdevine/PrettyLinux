@@ -38,7 +38,8 @@ struct module;
 struct key_entry;
 struct asus_wmi;
 
-struct quirk_entry {
+struct quirk_entry
+{
 	bool no_rfkill;
 	bool hotplug_wireless;
 	bool scalar_panel_brightness;
@@ -55,10 +56,11 @@ struct quirk_entry {
 	int no_display_toggle;
 
 	bool (*i8042_filter)(unsigned char data, unsigned char str,
-			     struct serio *serio);
+						 struct serio *serio);
 };
 
-struct asus_wmi_driver {
+struct asus_wmi_driver
+{
 	int			brightness;
 	int			panel_power;
 	int			wlan_ctrl_by_user;
@@ -75,7 +77,7 @@ struct asus_wmi_driver {
 	/* Returns new code, value, and autorelease values in arguments.
 	 * Return ASUS_WMI_KEY_IGNORE in code if event should be ignored. */
 	void (*key_filter) (struct asus_wmi_driver *driver, int *code,
-			    unsigned int *value, bool *autorelease);
+						unsigned int *value, bool *autorelease);
 
 	int (*probe) (struct platform_device *device);
 	void (*detect_quirks) (struct asus_wmi_driver *driver);

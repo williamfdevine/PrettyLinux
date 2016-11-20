@@ -13,26 +13,27 @@
 #define POLLRDNORM	0x0040
 #define POLLRDBAND	0x0080
 #ifndef POLLWRNORM
-#define POLLWRNORM	0x0100
+	#define POLLWRNORM	0x0100
 #endif
 #ifndef POLLWRBAND
-#define POLLWRBAND	0x0200
+	#define POLLWRBAND	0x0200
 #endif
 #ifndef POLLMSG
-#define POLLMSG		0x0400
+	#define POLLMSG		0x0400
 #endif
 #ifndef POLLREMOVE
-#define POLLREMOVE	0x1000
+	#define POLLREMOVE	0x1000
 #endif
 #ifndef POLLRDHUP
-#define POLLRDHUP       0x2000
+	#define POLLRDHUP       0x2000
 #endif
 
 #define POLLFREE	0x4000	/* currently only for epoll */
 
 #define POLL_BUSY_LOOP	0x8000
 
-struct pollfd {
+struct pollfd
+{
 	int fd;
 	short events;
 	short revents;

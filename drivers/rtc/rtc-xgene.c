@@ -45,7 +45,8 @@
 #define RTC_EOI			0x18
 #define RTC_VER			0x1C
 
-struct xgene_rtc_dev {
+struct xgene_rtc_dev
+{
 	struct rtc_device *rtc;
 	struct device *dev;
 	unsigned long alarm_time;
@@ -92,13 +93,18 @@ static int xgene_rtc_alarm_irq_enable(struct device *dev, u32 enabled)
 	u32 ccr;
 
 	ccr = readl(pdata->csr_base + RTC_CCR);
-	if (enabled) {
+
+	if (enabled)
+	{
 		ccr &= ~RTC_CCR_MASK;
 		ccr |= RTC_CCR_IE;
-	} else {
+	}
+	else
+	{
 		ccr &= ~RTC_CCR_IE;
 		ccr |= RTC_CCR_MASK;
 	}
+
 	writel(ccr, pdata->csr_base + RTC_CCR);
 
 	return 0;
@@ -121,7 +127,8 @@ static int xgene_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	return 0;
 }
 
-static const struct rtc_class_ops xgene_rtc_ops = {
+static const struct rtc_class_ops xgene_rtc_ops =
+{
 	.read_time	= xgene_rtc_read_time,
 	.set_mmss	= xgene_rtc_set_mmss,
 	.read_alarm	= xgene_rtc_read_alarm,
@@ -135,7 +142,9 @@ static irqreturn_t xgene_rtc_interrupt(int irq, void *id)
 
 	/* Check if interrupt asserted */
 	if (!(readl(pdata->csr_base + RTC_STAT) & RTC_STAT_BIT))
+	{
 		return IRQ_NONE;
+	}
 
 	/* Clear interrupt */
 	readl(pdata->csr_base + RTC_EOI);
@@ -153,33 +162,48 @@ static int xgene_rtc_probe(struct platform_device *pdev)
 	int irq;
 
 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
+
 	platform_set_drvdata(pdev, pdata);
 	pdata->dev = &pdev->dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pdata->csr_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(pdata->csr_base))
+	{
 		return PTR_ERR(pdata->csr_base);
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "No IRQ resource\n");
 		return irq;
 	}
+
 	ret = devm_request_irq(&pdev->dev, irq, xgene_rtc_interrupt, 0,
-			       dev_name(&pdev->dev), pdata);
-	if (ret) {
+						   dev_name(&pdev->dev), pdata);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Could not request IRQ\n");
 		return ret;
 	}
 
 	pdata->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(pdata->clk)) {
+
+	if (IS_ERR(pdata->clk))
+	{
 		dev_err(&pdev->dev, "Couldn't get the clock for RTC\n");
 		return -ENODEV;
 	}
+
 	clk_prepare_enable(pdata->clk);
 
 	/* Turn on the clock and the crystal */
@@ -188,8 +212,10 @@ static int xgene_rtc_probe(struct platform_device *pdev)
 	device_init_wakeup(&pdev->dev, 1);
 
 	pdata->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-					 &xgene_rtc_ops, THIS_MODULE);
-	if (IS_ERR(pdata->rtc)) {
+										  &xgene_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(pdata->rtc))
+	{
 		clk_disable_unprepare(pdata->clk);
 		return PTR_ERR(pdata->rtc);
 	}
@@ -218,10 +244,16 @@ static int xgene_rtc_suspend(struct device *dev)
 	int irq;
 
 	irq = platform_get_irq(pdev, 0);
-	if (device_may_wakeup(&pdev->dev)) {
+
+	if (device_may_wakeup(&pdev->dev))
+	{
 		if (!enable_irq_wake(irq))
+		{
 			pdata->irq_wake = 1;
-	} else {
+		}
+	}
+	else
+	{
 		xgene_rtc_alarm_irq_enable(dev, 0);
 		clk_disable(pdata->clk);
 	}
@@ -236,12 +268,17 @@ static int xgene_rtc_resume(struct device *dev)
 	int irq;
 
 	irq = platform_get_irq(pdev, 0);
-	if (device_may_wakeup(&pdev->dev)) {
-		if (pdata->irq_wake) {
+
+	if (device_may_wakeup(&pdev->dev))
+	{
+		if (pdata->irq_wake)
+		{
 			disable_irq_wake(irq);
 			pdata->irq_wake = 0;
 		}
-	} else {
+	}
+	else
+	{
 		clk_enable(pdata->clk);
 		xgene_rtc_alarm_irq_enable(dev, 1);
 	}
@@ -253,14 +290,16 @@ static int xgene_rtc_resume(struct device *dev)
 static SIMPLE_DEV_PM_OPS(xgene_rtc_pm_ops, xgene_rtc_suspend, xgene_rtc_resume);
 
 #ifdef CONFIG_OF
-static const struct of_device_id xgene_rtc_of_match[] = {
+static const struct of_device_id xgene_rtc_of_match[] =
+{
 	{.compatible = "apm,xgene-rtc" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, xgene_rtc_of_match);
 #endif
 
-static struct platform_driver xgene_rtc_driver = {
+static struct platform_driver xgene_rtc_driver =
+{
 	.probe		= xgene_rtc_probe,
 	.remove		= xgene_rtc_remove,
 	.driver		= {

@@ -59,12 +59,18 @@ static unsigned verbosity = 7;
 static void _msg(unsigned level, const char *fmt, ...)
 {
 	if (level < 2)
+	{
 		level = 2;
+	}
 	else if (level > 7)
+	{
 		level = 7;
+	}
 
-	if (level <= verbosity) {
-		static const char levels[8][6] = {
+	if (level <= verbosity)
+	{
+		static const char levels[8][6] =
+		{
 			[2] = "crit:",
 			[3] = "err: ",
 			[4] = "warn:",
@@ -81,7 +87,8 @@ static void _msg(unsigned level, const char *fmt, ...)
 		vfprintf(stderr, fmt, ap);
 		va_end(ap);
 
-		if (fmt[strlen(fmt) - 1] != '\n') {
+		if (fmt[strlen(fmt) - 1] != '\n')
+		{
 			char buffer[128];
 			strerror_r(_errno, buffer, sizeof buffer);
 			fprintf(stderr, ": (-%d) %s\n", _errno, buffer);
@@ -99,27 +106,30 @@ static void _msg(unsigned level, const char *fmt, ...)
 #define debug(...) _msg(7, __VA_ARGS__)
 
 #define die_on(cond, ...) do { \
-	if (cond) \
-		die(__VA_ARGS__); \
+		if (cond) \
+			die(__VA_ARGS__); \
 	} while (0)
 
 
 /******************** Descriptors and Strings *******************************/
 
-static const struct {
+static const struct
+{
 	struct usb_functionfs_descs_head_v2 header;
 	__le32 fs_count;
 	__le32 hs_count;
-	struct {
+	struct
+	{
 		struct usb_interface_descriptor intf;
 		struct usb_endpoint_descriptor_no_audio sink;
 		struct usb_endpoint_descriptor_no_audio source;
 	} __attribute__((packed)) fs_descs, hs_descs;
-} __attribute__((packed)) descriptors = {
+} __attribute__((packed)) descriptors =
+{
 	.header = {
 		.magic = cpu_to_le32(FUNCTIONFS_DESCRIPTORS_MAGIC_V2),
 		.flags = cpu_to_le32(FUNCTIONFS_HAS_FS_DESC |
-				     FUNCTIONFS_HAS_HS_DESC),
+		FUNCTIONFS_HAS_HS_DESC),
 		.length = cpu_to_le32(sizeof descriptors),
 	},
 	.fs_count = cpu_to_le32(3),
@@ -180,7 +190,8 @@ static size_t descs_to_legacy(void **legacy, const void *descriptors_v2)
 
 	/* Read v2 header */
 	{
-		const struct {
+		const struct
+		{
 			const struct usb_functionfs_descs_head_v2 header;
 			const __le32 counts[];
 		} __attribute__((packed)) *const in = descriptors_v2;
@@ -188,34 +199,48 @@ static size_t descs_to_legacy(void **legacy, const void *descriptors_v2)
 		__u32 flags;
 
 		if (le32_to_cpu(in->header.magic) !=
-		    FUNCTIONFS_DESCRIPTORS_MAGIC_V2)
+			FUNCTIONFS_DESCRIPTORS_MAGIC_V2)
+		{
 			return 0;
+		}
+
 		length = le32_to_cpu(in->header.length);
+
 		if (length <= sizeof in->header)
+		{
 			return 0;
+		}
+
 		length -= sizeof in->header;
 		flags = le32_to_cpu(in->header.flags);
+
 		if (flags & ~(FUNCTIONFS_HAS_FS_DESC | FUNCTIONFS_HAS_HS_DESC |
-			      FUNCTIONFS_HAS_SS_DESC))
+					  FUNCTIONFS_HAS_SS_DESC))
+		{
 			return 0;
+		}
 
 #define GET_NEXT_COUNT_IF_FLAG(ret, flg) do {		\
-			if (!(flags & (flg)))		\
-				break;			\
-			if (length < 4)			\
-				return 0;		\
-			ret = le32_to_cpu(*counts);	\
-			length -= 4;			\
-			++counts;			\
-		} while (0)
+		if (!(flags & (flg)))		\
+			break;			\
+		if (length < 4)			\
+			return 0;		\
+		ret = le32_to_cpu(*counts);	\
+		length -= 4;			\
+		++counts;			\
+	} while (0)
 
 		GET_NEXT_COUNT_IF_FLAG(fs_count, FUNCTIONFS_HAS_FS_DESC);
 		GET_NEXT_COUNT_IF_FLAG(hs_count, FUNCTIONFS_HAS_HS_DESC);
 		GET_NEXT_COUNT_IF_FLAG(count, FUNCTIONFS_HAS_SS_DESC);
 
 		count = fs_count + hs_count;
+
 		if (!count)
+		{
 			return 0;
+		}
+
 		descs_start = (const void *)counts;
 
 #undef GET_NEXT_COUNT_IF_FLAG
@@ -226,18 +251,25 @@ static size_t descs_to_legacy(void **legacy, const void *descriptors_v2)
 	 * are ignored since legacy format does not support them.
 	 */
 	descs_end = descs_start;
-	do {
+
+	do
+	{
 		if (length < *descs_end)
+		{
 			return 0;
+		}
+
 		length -= *descs_end;
 		descs_end += *descs_end;
-	} while (--count);
+	}
+	while (--count);
 
 	/* Allocate legacy descriptors and copy the data. */
 	{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		struct {
+		struct
+		{
 			struct usb_functionfs_descs_head header;
 			__u8 descriptors[];
 		} __attribute__((packed)) *out;
@@ -259,13 +291,16 @@ static size_t descs_to_legacy(void **legacy, const void *descriptors_v2)
 
 #define STR_INTERFACE_ "Source/Sink"
 
-static const struct {
+static const struct
+{
 	struct usb_functionfs_strings_head header;
-	struct {
+	struct
+	{
 		__le16 code;
 		const char str1[sizeof STR_INTERFACE_];
 	} __attribute__((packed)) lang0;
-} __attribute__((packed)) strings = {
+} __attribute__((packed)) strings =
+{
 	.header = {
 		.magic = cpu_to_le32(FUNCTIONFS_STRINGS_MAGIC),
 		.length = cpu_to_le32(sizeof strings),
@@ -292,7 +327,8 @@ static ssize_t fill_in_buf(struct thread *t, void *buf, size_t nbytes);
 static ssize_t empty_out_buf(struct thread *t, const void *buf, size_t nbytes);
 
 
-static struct thread {
+static struct thread
+{
 	const char *const filename;
 	size_t buf_size;
 
@@ -306,7 +342,8 @@ static struct thread {
 	pthread_t id;
 	void *buf;
 	ssize_t status;
-} threads[] = {
+} threads[] =
+{
 	{
 		"ep0", 4 * sizeof(struct usb_functionfs_event),
 		read_wrap, NULL,
@@ -343,26 +380,42 @@ static void cleanup_thread(void *arg)
 	int ret, fd;
 
 	fd = t->fd;
+
 	if (t->fd < 0)
+	{
 		return;
+	}
+
 	t->fd = -1;
 
 	/* test the FIFO ioctls (non-ep0 code paths) */
-	if (t != threads) {
+	if (t != threads)
+	{
 		ret = ioctl(fd, FUNCTIONFS_FIFO_STATUS);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			/* ENODEV reported after disconnect */
 			if (errno != ENODEV)
+			{
 				err("%s: get fifo status", t->filename);
-		} else if (ret) {
+			}
+		}
+		else if (ret)
+		{
 			warn("%s: unclaimed = %d\n", t->filename, ret);
+
 			if (ioctl(fd, FUNCTIONFS_FIFO_FLUSH) < 0)
+			{
 				err("%s: fifo flush", t->filename);
+			}
 		}
 	}
 
 	if (close(fd) < 0)
+	{
 		err("%s: close", t->filename);
+	}
 
 	free(t->buf);
 	t->buf = NULL;
@@ -380,27 +433,39 @@ static void *start_thread_helper(void *arg)
 
 	pthread_cleanup_push(cleanup_thread, arg);
 
-	for (;;) {
+	for (;;)
+	{
 		pthread_testcancel();
 
 		ret = t->in(t, t->buf, t->buf_size);
-		if (ret > 0) {
+
+		if (ret > 0)
+		{
 			ret = t->out(t, t->buf, ret);
 			name = out_name;
 			op = "write";
-		} else {
+		}
+		else
+		{
 			name = in_name;
 			op = "read";
 		}
 
-		if (ret > 0) {
+		if (ret > 0)
+		{
 			/* nop */
-		} else if (!ret) {
+		}
+		else if (!ret)
+		{
 			debug("%s: %s: EOF", name, op);
 			break;
-		} else if (errno == EINTR || errno == EAGAIN) {
+		}
+		else if (errno == EINTR || errno == EAGAIN)
+		{
 			debug("%s: %s", name, op);
-		} else {
+		}
+		else
+		{
 			warn("%s: %s", name, op);
 			break;
 		}
@@ -418,7 +483,7 @@ static void start_thread(struct thread *t)
 	debug("%s: starting\n", t->filename);
 
 	die_on(pthread_create(&t->id, NULL, start_thread_helper, t) < 0,
-	       "pthread_create(%s)", t->filename);
+		   "pthread_create(%s)", t->filename);
 }
 
 static void join_thread(struct thread *t)
@@ -426,9 +491,13 @@ static void join_thread(struct thread *t)
 	int ret = pthread_join(t->id, NULL);
 
 	if (ret < 0)
+	{
 		err("%s: joining thread", t->filename);
+	}
 	else
+	{
 		debug("%s: joined\n", t->filename);
+	}
 }
 
 
@@ -457,18 +526,22 @@ fill_in_buf(struct thread *ignore, void *buf, size_t nbytes)
 
 	(void)ignore;
 
-	switch (pattern) {
-	case PAT_ZERO:
-		memset(buf, 0, nbytes);
-		break;
+	switch (pattern)
+	{
+		case PAT_ZERO:
+			memset(buf, 0, nbytes);
+			break;
 
-	case PAT_SEQ:
-		for (p = buf, i = 0; i < nbytes; ++i, ++p)
-			*p = i % 63;
-		break;
+		case PAT_SEQ:
+			for (p = buf, i = 0; i < nbytes; ++i, ++p)
+			{
+				*p = i % 63;
+			}
 
-	case PAT_PIPE:
-		return fread(buf, 1, nbytes, stdin);
+			break;
+
+		case PAT_PIPE:
+			return fread(buf, 1, nbytes, stdin);
 	}
 
 	return nbytes;
@@ -484,41 +557,61 @@ empty_out_buf(struct thread *ignore, const void *buf, size_t nbytes)
 
 	(void)ignore;
 
-	switch (pattern) {
-	case PAT_ZERO:
-		expected = 0;
-		for (p = buf, len = 0; len < nbytes; ++p, ++len)
-			if (*p)
-				goto invalid;
-		break;
+	switch (pattern)
+	{
+		case PAT_ZERO:
+			expected = 0;
 
-	case PAT_SEQ:
-		for (p = buf, len = 0; len < nbytes; ++p, ++len)
-			if (*p != len % 63) {
-				expected = len % 63;
-				goto invalid;
+			for (p = buf, len = 0; len < nbytes; ++p, ++len)
+				if (*p)
+				{
+					goto invalid;
+				}
+
+			break;
+
+		case PAT_SEQ:
+			for (p = buf, len = 0; len < nbytes; ++p, ++len)
+				if (*p != len % 63)
+				{
+					expected = len % 63;
+					goto invalid;
+				}
+
+			break;
+
+		case PAT_PIPE:
+			ret = fwrite(buf, nbytes, 1, stdout);
+
+			if (ret > 0)
+			{
+				fflush(stdout);
 			}
-		break;
 
-	case PAT_PIPE:
-		ret = fwrite(buf, nbytes, 1, stdout);
-		if (ret > 0)
-			fflush(stdout);
-		break;
+			break;
 
 invalid:
-		err("bad OUT byte %zd, expected %02x got %02x\n",
-		    len, expected, *p);
-		for (p = buf, len = 0; len < nbytes; ++p, ++len) {
-			if (0 == (len % 32))
-				fprintf(stderr, "%4zd:", len);
-			fprintf(stderr, " %02x", *p);
-			if (31 == (len % 32))
-				fprintf(stderr, "\n");
-		}
-		fflush(stderr);
-		errno = EILSEQ;
-		return -1;
+			err("bad OUT byte %zd, expected %02x got %02x\n",
+				len, expected, *p);
+
+			for (p = buf, len = 0; len < nbytes; ++p, ++len)
+			{
+				if (0 == (len % 32))
+				{
+					fprintf(stderr, "%4zd:", len);
+				}
+
+				fprintf(stderr, " %02x", *p);
+
+				if (31 == (len % 32))
+				{
+					fprintf(stderr, "\n");
+				}
+			}
+
+			fflush(stderr);
+			errno = EILSEQ;
+			return -1;
 	}
 
 	return len;
@@ -539,7 +632,8 @@ static void handle_setup(const struct usb_ctrlrequest *setup)
 static ssize_t
 ep0_consume(struct thread *ignore, const void *buf, size_t nbytes)
 {
-	static const char *const names[] = {
+	static const char *const names[] =
+	{
 		[FUNCTIONFS_BIND] = "BIND",
 		[FUNCTIONFS_UNBIND] = "UNBIND",
 		[FUNCTIONFS_ENABLE] = "ENABLE",
@@ -554,22 +648,27 @@ ep0_consume(struct thread *ignore, const void *buf, size_t nbytes)
 
 	(void)ignore;
 
-	for (n = nbytes / sizeof *event; n; --n, ++event)
-		switch (event->type) {
-		case FUNCTIONFS_BIND:
-		case FUNCTIONFS_UNBIND:
-		case FUNCTIONFS_ENABLE:
-		case FUNCTIONFS_DISABLE:
-		case FUNCTIONFS_SETUP:
-		case FUNCTIONFS_SUSPEND:
-		case FUNCTIONFS_RESUME:
-			printf("Event %s\n", names[event->type]);
-			if (event->type == FUNCTIONFS_SETUP)
-				handle_setup(&event->u.setup);
-			break;
+	for (n = nbytes / sizeof * event; n; --n, ++event)
+		switch (event->type)
+		{
+			case FUNCTIONFS_BIND:
+			case FUNCTIONFS_UNBIND:
+			case FUNCTIONFS_ENABLE:
+			case FUNCTIONFS_DISABLE:
+			case FUNCTIONFS_SETUP:
+			case FUNCTIONFS_SUSPEND:
+			case FUNCTIONFS_RESUME:
+				printf("Event %s\n", names[event->type]);
 
-		default:
-			printf("Event %03u (unknown)\n", event->type);
+				if (event->type == FUNCTIONFS_SETUP)
+				{
+					handle_setup(&event->u.setup);
+				}
+
+				break;
+
+			default:
+				printf("Event %03u (unknown)\n", event->type);
 		}
 
 	return nbytes;
@@ -581,7 +680,8 @@ static void ep0_init(struct thread *t, bool legacy_descriptors)
 	ssize_t ret;
 	size_t len;
 
-	if (legacy_descriptors) {
+	if (legacy_descriptors)
+	{
 		info("%s: writing descriptors\n", t->filename);
 		goto legacy;
 	}
@@ -589,15 +689,19 @@ static void ep0_init(struct thread *t, bool legacy_descriptors)
 	info("%s: writing descriptors (in v2 format)\n", t->filename);
 	ret = write(t->fd, &descriptors, sizeof descriptors);
 
-	if (ret < 0 && errno == EINVAL) {
+	if (ret < 0 && errno == EINVAL)
+	{
 		warn("%s: new format rejected, trying legacy\n", t->filename);
 legacy:
 		len = descs_to_legacy(&legacy, &descriptors);
-		if (len) {
+
+		if (len)
+		{
 			ret = write(t->fd, legacy, len);
 			free(legacy);
 		}
 	}
+
 	die_on(ret < 0, "%s: write: descriptors", t->filename);
 
 	info("%s: writing strings\n", t->filename);
@@ -618,16 +722,22 @@ int main(int argc, char **argv)
 	init_thread(threads);
 	ep0_init(threads, legacy_descriptors);
 
-	for (i = 1; i < sizeof threads / sizeof *threads; ++i)
+	for (i = 1; i < sizeof threads / sizeof * threads; ++i)
+	{
 		init_thread(threads + i);
+	}
 
-	for (i = 1; i < sizeof threads / sizeof *threads; ++i)
+	for (i = 1; i < sizeof threads / sizeof * threads; ++i)
+	{
 		start_thread(threads + i);
+	}
 
 	start_thread_helper(threads);
 
-	for (i = 1; i < sizeof threads / sizeof *threads; ++i)
+	for (i = 1; i < sizeof threads / sizeof * threads; ++i)
+	{
 		join_thread(threads + i);
+	}
 
 	return 0;
 }

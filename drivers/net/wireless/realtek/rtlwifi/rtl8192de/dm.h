@@ -74,7 +74,8 @@
 #define TX_POWER_NEAR_FIELD_THRESH_LVL1		67
 #define INDEX_MAPPING_NUM			13
 
-struct swat {
+struct swat
+{
 	u8 failure_cnt;
 	u8 try_flag;
 	u8 stop_trying;
@@ -84,7 +85,8 @@ struct swat {
 	u8 pre_antenna;
 };
 
-enum tag_dynamic_init_gain_operation_type_definition {
+enum tag_dynamic_init_gain_operation_type_definition
+{
 	DIG_TYPE_THRESH_HIGH = 0,
 	DIG_TYPE_THRESH_LOW = 1,
 	DIG_TYPE_BACKOFF = 2,
@@ -95,19 +97,22 @@ enum tag_dynamic_init_gain_operation_type_definition {
 	DIG_OP_TYPE_MAX
 };
 
-enum dm_1r_cca {
+enum dm_1r_cca
+{
 	CCA_1R = 0,
 	CCA_2R = 1,
 	CCA_MAX = 2,
 };
 
-enum dm_rf {
+enum dm_rf
+{
 	RF_SAVE = 0,
 	RF_NORMAL = 1,
 	RF_MAX = 2,
 };
 
-enum dm_sw_ant_switch {
+enum dm_sw_ant_switch
+{
 	ANS_ANTENNA_B = 1,
 	ANS_ANTENNA_A = 2,
 	ANS_ANTENNA_MAX = 3,

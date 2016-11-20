@@ -44,13 +44,15 @@
 #define ALARMINTENB		0x0001
 #define MODE24			0x0001
 
-struct nuc900_rtc {
+struct nuc900_rtc
+{
 	int			irq_num;
 	void __iomem		*rtc_reg;
 	struct rtc_device	*rtcdev;
 };
 
-struct nuc900_bcd_time {
+struct nuc900_bcd_time
+{
 	int bcd_sec;
 	int bcd_min;
 	int bcd_hour;
@@ -66,13 +68,15 @@ static irqreturn_t nuc900_rtc_interrupt(int irq, void *_rtc)
 
 	rtc_irq = __raw_readl(rtc->rtc_reg + REG_RTC_RIIR);
 
-	if (rtc_irq & ALARMINTENB) {
+	if (rtc_irq & ALARMINTENB)
+	{
 		rtc_irq &= ~ALARMINTENB;
 		__raw_writel(rtc_irq, rtc->rtc_reg + REG_RTC_RIIR);
 		events |= RTC_AF | RTC_IRQF;
 	}
 
-	if (rtc_irq & TICKINTENB) {
+	if (rtc_irq & TICKINTENB)
+	{
 		rtc_irq &= ~TICKINTENB;
 		__raw_writel(rtc_irq, rtc->rtc_reg + REG_RTC_RIIR);
 		events |= RTC_UF | RTC_IRQF;
@@ -93,17 +97,21 @@ static int *check_rtc_access_enable(struct nuc900_rtc *nuc900_rtc)
 	__raw_writel(AERPOWERON, nuc900_rtc->rtc_reg + REG_RTC_AER);
 
 	while (!(__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB)
-								&& timeout--)
+		   && timeout--)
+	{
 		mdelay(1);
+	}
 
 	if (!timeout)
+	{
 		return ERR_PTR(-EPERM);
+	}
 
 	return NULL;
 }
 
 static int nuc900_rtc_bcd2bin(unsigned int timereg,
-				unsigned int calreg, struct rtc_time *tm)
+							  unsigned int calreg, struct rtc_time *tm)
 {
 	tm->tm_mday	= bcd2bin(calreg >> 0);
 	tm->tm_mon	= bcd2bin(calreg >> 8);
@@ -117,15 +125,18 @@ static int nuc900_rtc_bcd2bin(unsigned int timereg,
 }
 
 static void nuc900_rtc_bin2bcd(struct device *dev, struct rtc_time *settm,
-						struct nuc900_bcd_time *gettm)
+							   struct nuc900_bcd_time *gettm)
 {
 	gettm->bcd_mday = bin2bcd(settm->tm_mday) << 0;
 	gettm->bcd_mon  = bin2bcd(settm->tm_mon) << 8;
 
-	if (settm->tm_year < 100) {
+	if (settm->tm_year < 100)
+	{
 		dev_warn(dev, "The year will be between 1970-1999, right?\n");
 		gettm->bcd_year = bin2bcd(settm->tm_year) << 16;
-	} else {
+	}
+	else
+	{
 		gettm->bcd_year = bin2bcd(settm->tm_year - 100) << 16;
 	}
 
@@ -139,11 +150,11 @@ static int nuc900_alarm_irq_enable(struct device *dev, unsigned int enabled)
 	struct nuc900_rtc *rtc = dev_get_drvdata(dev);
 
 	if (enabled)
-		__raw_writel(__raw_readl(rtc->rtc_reg + REG_RTC_RIER)|
-				(ALARMINTENB), rtc->rtc_reg + REG_RTC_RIER);
+		__raw_writel(__raw_readl(rtc->rtc_reg + REG_RTC_RIER) |
+					 (ALARMINTENB), rtc->rtc_reg + REG_RTC_RIER);
 	else
-		__raw_writel(__raw_readl(rtc->rtc_reg + REG_RTC_RIER)&
-				(~ALARMINTENB), rtc->rtc_reg + REG_RTC_RIER);
+		__raw_writel(__raw_readl(rtc->rtc_reg + REG_RTC_RIER) &
+					 (~ALARMINTENB), rtc->rtc_reg + REG_RTC_RIER);
 
 	return 0;
 }
@@ -169,8 +180,11 @@ static int nuc900_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	nuc900_rtc_bin2bcd(dev, tm, &gettm);
 
 	err = check_rtc_access_enable(rtc);
+
 	if (IS_ERR(err))
+	{
 		return PTR_ERR(err);
+	}
 
 	val = gettm.bcd_mday | gettm.bcd_mon | gettm.bcd_year;
 	__raw_writel(val, rtc->rtc_reg + REG_RTC_CLR);
@@ -202,8 +216,11 @@ static int nuc900_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	nuc900_rtc_bin2bcd(dev, &alrm->time, &tm);
 
 	err = check_rtc_access_enable(rtc);
+
 	if (IS_ERR(err))
+	{
 		return PTR_ERR(err);
+	}
 
 	val = tm.bcd_mday | tm.bcd_mon | tm.bcd_year;
 	__raw_writel(val, rtc->rtc_reg + REG_RTC_CAR);
@@ -214,7 +231,8 @@ static int nuc900_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	return 0;
 }
 
-static const struct rtc_class_ops nuc900_rtc_ops = {
+static const struct rtc_class_ops nuc900_rtc_ops =
+{
 	.read_time = nuc900_rtc_read_time,
 	.set_time = nuc900_rtc_set_time,
 	.read_alarm = nuc900_rtc_read_alarm,
@@ -228,30 +246,40 @@ static int __init nuc900_rtc_probe(struct platform_device *pdev)
 	struct nuc900_rtc *nuc900_rtc;
 
 	nuc900_rtc = devm_kzalloc(&pdev->dev, sizeof(struct nuc900_rtc),
-				GFP_KERNEL);
+							  GFP_KERNEL);
+
 	if (!nuc900_rtc)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	nuc900_rtc->rtc_reg = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(nuc900_rtc->rtc_reg))
+	{
 		return PTR_ERR(nuc900_rtc->rtc_reg);
+	}
 
 	platform_set_drvdata(pdev, nuc900_rtc);
 
 	nuc900_rtc->rtcdev = devm_rtc_device_register(&pdev->dev, pdev->name,
-						&nuc900_rtc_ops, THIS_MODULE);
-	if (IS_ERR(nuc900_rtc->rtcdev)) {
+						 &nuc900_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(nuc900_rtc->rtcdev))
+	{
 		dev_err(&pdev->dev, "rtc device register failed\n");
 		return PTR_ERR(nuc900_rtc->rtcdev);
 	}
 
 	__raw_writel(__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_TSSR) | MODE24,
-					nuc900_rtc->rtc_reg + REG_RTC_TSSR);
+				 nuc900_rtc->rtc_reg + REG_RTC_TSSR);
 
 	nuc900_rtc->irq_num = platform_get_irq(pdev, 0);
+
 	if (devm_request_irq(&pdev->dev, nuc900_rtc->irq_num,
-			nuc900_rtc_interrupt, 0, "nuc900rtc", nuc900_rtc)) {
+						 nuc900_rtc_interrupt, 0, "nuc900rtc", nuc900_rtc))
+	{
 		dev_err(&pdev->dev, "NUC900 RTC request irq failed\n");
 		return -EBUSY;
 	}
@@ -259,7 +287,8 @@ static int __init nuc900_rtc_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver nuc900_rtc_driver = {
+static struct platform_driver nuc900_rtc_driver =
+{
 	.driver		= {
 		.name	= "nuc900-rtc",
 	},

@@ -29,7 +29,8 @@
 #define XILINX_GMII2RGMII_REG		0x10
 #define XILINX_GMII2RGMII_SPEED_MASK	(BMCR_SPEED1000 | BMCR_SPEED100)
 
-struct gmii2rgmii {
+struct gmii2rgmii
+{
 	struct phy_device *phy_dev;
 	struct phy_driver *phy_drv;
 	struct phy_driver conv_phy_drv;
@@ -47,11 +48,17 @@ static int xgmiitorgmii_read_status(struct phy_device *phydev)
 	val &= XILINX_GMII2RGMII_SPEED_MASK;
 
 	if (phydev->speed == SPEED_1000)
+	{
 		val |= BMCR_SPEED1000;
+	}
 	else if (phydev->speed == SPEED_100)
+	{
 		val |= BMCR_SPEED100;
+	}
 	else
+	{
 		val |= BMCR_SPEED10;
+	}
 
 	mdiobus_write(phydev->mdio.bus, priv->addr, XILINX_GMII2RGMII_REG, val);
 
@@ -65,18 +72,25 @@ static int xgmiitorgmii_probe(struct mdio_device *mdiodev)
 	struct gmii2rgmii *priv;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	phy_node = of_parse_phandle(np, "phy-handle", 0);
-	if (!phy_node) {
+
+	if (!phy_node)
+	{
 		dev_err(dev, "Couldn't parse phy-handle\n");
 		return -ENODEV;
 	}
 
 	priv->phy_dev = of_phy_find_device(phy_node);
 	of_node_put(phy_node);
-	if (!priv->phy_dev) {
+
+	if (!priv->phy_dev)
+	{
 		dev_info(dev, "Couldn't find phydev\n");
 		return -EPROBE_DEFER;
 	}
@@ -84,7 +98,7 @@ static int xgmiitorgmii_probe(struct mdio_device *mdiodev)
 	priv->addr = mdiodev->addr;
 	priv->phy_drv = priv->phy_dev->drv;
 	memcpy(&priv->conv_phy_drv, priv->phy_dev->drv,
-	       sizeof(struct phy_driver));
+		   sizeof(struct phy_driver));
 	priv->conv_phy_drv.read_status = xgmiitorgmii_read_status;
 	priv->phy_dev->priv = priv;
 	priv->phy_dev->drv = &priv->conv_phy_drv;
@@ -92,13 +106,15 @@ static int xgmiitorgmii_probe(struct mdio_device *mdiodev)
 	return 0;
 }
 
-static const struct of_device_id xgmiitorgmii_of_match[] = {
+static const struct of_device_id xgmiitorgmii_of_match[] =
+{
 	{ .compatible = "xlnx,gmii-to-rgmii-1.0" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, xgmiitorgmii_of_match);
 
-static struct mdio_driver xgmiitorgmii_driver = {
+static struct mdio_driver xgmiitorgmii_driver =
+{
 	.probe	= xgmiitorgmii_probe,
 	.mdiodrv.driver = {
 		.name = "xgmiitorgmii",

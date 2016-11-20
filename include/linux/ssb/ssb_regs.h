@@ -646,7 +646,8 @@
 #define SSB_BFL2_GPLL_WAR		0x0400	/* altenative G-band PLL settings implemented */
 
 /* Values for SSB_SPROM1_BINF_CCODE */
-enum {
+enum
+{
 	SSB_SPROM1CCODE_WORLD = 0,
 	SSB_SPROM1CCODE_THAILAND,
 	SSB_SPROM1CCODE_ISRAEL,

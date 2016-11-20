@@ -52,7 +52,7 @@
  * error: logical '&&' with non-zero constant will always evaluate as true
  */
 #ifdef strchr
-#undef strchr
+	#undef strchr
 #endif
 
 #endif				/* __ACGCCEX_H__ */

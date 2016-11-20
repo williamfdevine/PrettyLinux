@@ -27,7 +27,8 @@
  * @ENVIRON_INDOOR: indicates country IE applies only to indoor operation
  * @ENVIRON_OUTDOOR: indicates country IE applies only to outdoor operation
  */
-enum environment_cap {
+enum environment_cap
+{
 	ENVIRON_ANY,
 	ENVIRON_INDOOR,
 	ENVIRON_OUTDOOR,
@@ -73,7 +74,8 @@ enum environment_cap {
  *	indoor, or if it doesn't matter
  * @list: used to insert into the reg_requests_list linked list
  */
-struct regulatory_request {
+struct regulatory_request
+{
 	struct rcu_head rcu_head;
 	int wiphy_idx;
 	enum nl80211_reg_initiator initiator;
@@ -166,7 +168,8 @@ struct regulatory_request {
  *	to register the wiphy. This flag implies
  *	%REGULATORY_DISABLE_BEACON_HINTS and %REGULATORY_COUNTRY_IE_IGNORE.
  */
-enum ieee80211_regulatory_flags {
+enum ieee80211_regulatory_flags
+{
 	REGULATORY_CUSTOM_REG			= BIT(0),
 	REGULATORY_STRICT_REG			= BIT(1),
 	REGULATORY_DISABLE_BEACON_HINTS		= BIT(2),
@@ -177,25 +180,29 @@ enum ieee80211_regulatory_flags {
 	REGULATORY_WIPHY_SELF_MANAGED		= BIT(7),
 };
 
-struct ieee80211_freq_range {
+struct ieee80211_freq_range
+{
 	u32 start_freq_khz;
 	u32 end_freq_khz;
 	u32 max_bandwidth_khz;
 };
 
-struct ieee80211_power_rule {
+struct ieee80211_power_rule
+{
 	u32 max_antenna_gain;
 	u32 max_eirp;
 };
 
-struct ieee80211_reg_rule {
+struct ieee80211_reg_rule
+{
 	struct ieee80211_freq_range freq_range;
 	struct ieee80211_power_rule power_rule;
 	u32 flags;
 	u32 dfs_cac_ms;
 };
 
-struct ieee80211_regdomain {
+struct ieee80211_regdomain
+{
 	struct rcu_head rcu_head;
 	u32 n_reg_rules;
 	char alpha2[3];
@@ -211,15 +218,15 @@ struct ieee80211_regdomain {
 #define MBM_TO_DBM(gain) ((gain) / 100)
 
 #define REG_RULE_EXT(start, end, bw, gain, eirp, dfs_cac, reg_flags)	\
-{									\
-	.freq_range.start_freq_khz = MHZ_TO_KHZ(start),			\
-	.freq_range.end_freq_khz = MHZ_TO_KHZ(end),			\
-	.freq_range.max_bandwidth_khz = MHZ_TO_KHZ(bw),			\
-	.power_rule.max_antenna_gain = DBI_TO_MBI(gain),		\
-	.power_rule.max_eirp = DBM_TO_MBM(eirp),			\
-	.flags = reg_flags,						\
-	.dfs_cac_ms = dfs_cac,						\
-}
+	{									\
+		.freq_range.start_freq_khz = MHZ_TO_KHZ(start),			\
+									 .freq_range.end_freq_khz = MHZ_TO_KHZ(end),			\
+											 .freq_range.max_bandwidth_khz = MHZ_TO_KHZ(bw),			\
+													 .power_rule.max_antenna_gain = DBI_TO_MBI(gain),		\
+															 .power_rule.max_eirp = DBM_TO_MBM(eirp),			\
+																	 .flags = reg_flags,						\
+																			 .dfs_cac_ms = dfs_cac,						\
+	}
 
 #define REG_RULE(start, end, bw, gain, eirp, reg_flags) \
 	REG_RULE_EXT(start, end, bw, gain, eirp, 0, reg_flags)

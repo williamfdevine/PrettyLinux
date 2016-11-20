@@ -49,24 +49,34 @@ get_a_bus_req(struct device *dev, struct device_attribute *attr, char *buf)
 
 static ssize_t
 set_a_bus_req(struct device *dev, struct device_attribute *attr,
-					const char *buf, size_t count)
+			  const char *buf, size_t count)
 {
 	struct ci_hdrc *ci = dev_get_drvdata(dev);
 
 	if (count > 2)
+	{
 		return -1;
+	}
 
 	mutex_lock(&ci->fsm.lock);
-	if (buf[0] == '0') {
+
+	if (buf[0] == '0')
+	{
 		ci->fsm.a_bus_req = 0;
-	} else if (buf[0] == '1') {
+	}
+	else if (buf[0] == '1')
+	{
 		/* If a_bus_drop is TRUE, a_bus_req can't be set */
-		if (ci->fsm.a_bus_drop) {
+		if (ci->fsm.a_bus_drop)
+		{
 			mutex_unlock(&ci->fsm.lock);
 			return count;
 		}
+
 		ci->fsm.a_bus_req = 1;
-		if (ci->fsm.otg->state == OTG_STATE_A_PERIPHERAL) {
+
+		if (ci->fsm.otg->state == OTG_STATE_A_PERIPHERAL)
+		{
 			ci->gadget.host_request_flag = 1;
 			mutex_unlock(&ci->fsm.lock);
 			return count;
@@ -98,17 +108,23 @@ get_a_bus_drop(struct device *dev, struct device_attribute *attr, char *buf)
 
 static ssize_t
 set_a_bus_drop(struct device *dev, struct device_attribute *attr,
-					const char *buf, size_t count)
+			   const char *buf, size_t count)
 {
 	struct ci_hdrc	*ci = dev_get_drvdata(dev);
 
 	if (count > 2)
+	{
 		return -1;
+	}
 
 	mutex_lock(&ci->fsm.lock);
-	if (buf[0] == '0') {
+
+	if (buf[0] == '0')
+	{
 		ci->fsm.a_bus_drop = 0;
-	} else if (buf[0] == '1') {
+	}
+	else if (buf[0] == '1')
+	{
 		ci->fsm.a_bus_drop = 1;
 		ci->fsm.a_bus_req = 0;
 	}
@@ -119,7 +135,7 @@ set_a_bus_drop(struct device *dev, struct device_attribute *attr,
 	return count;
 }
 static DEVICE_ATTR(a_bus_drop, S_IRUGO | S_IWUSR, get_a_bus_drop,
-						set_a_bus_drop);
+				   set_a_bus_drop);
 
 static ssize_t
 get_b_bus_req(struct device *dev, struct device_attribute *attr, char *buf)
@@ -139,19 +155,27 @@ get_b_bus_req(struct device *dev, struct device_attribute *attr, char *buf)
 
 static ssize_t
 set_b_bus_req(struct device *dev, struct device_attribute *attr,
-					const char *buf, size_t count)
+			  const char *buf, size_t count)
 {
 	struct ci_hdrc	*ci = dev_get_drvdata(dev);
 
 	if (count > 2)
+	{
 		return -1;
+	}
 
 	mutex_lock(&ci->fsm.lock);
+
 	if (buf[0] == '0')
+	{
 		ci->fsm.b_bus_req = 0;
-	else if (buf[0] == '1') {
+	}
+	else if (buf[0] == '1')
+	{
 		ci->fsm.b_bus_req = 1;
-		if (ci->fsm.otg->state == OTG_STATE_B_PERIPHERAL) {
+
+		if (ci->fsm.otg->state == OTG_STATE_B_PERIPHERAL)
+		{
 			ci->gadget.host_request_flag = 1;
 			mutex_unlock(&ci->fsm.lock);
 			return count;
@@ -167,16 +191,21 @@ static DEVICE_ATTR(b_bus_req, S_IRUGO | S_IWUSR, get_b_bus_req, set_b_bus_req);
 
 static ssize_t
 set_a_clr_err(struct device *dev, struct device_attribute *attr,
-					const char *buf, size_t count)
+			  const char *buf, size_t count)
 {
 	struct ci_hdrc	*ci = dev_get_drvdata(dev);
 
 	if (count > 2)
+	{
 		return -1;
+	}
 
 	mutex_lock(&ci->fsm.lock);
+
 	if (buf[0] == '1')
+	{
 		ci->fsm.a_clr_err = 1;
+	}
 
 	ci_otg_queue_work(ci);
 	mutex_unlock(&ci->fsm.lock);
@@ -185,7 +214,8 @@ set_a_clr_err(struct device *dev, struct device_attribute *attr,
 }
 static DEVICE_ATTR(a_clr_err, S_IWUSR, NULL, set_a_clr_err);
 
-static struct attribute *inputs_attrs[] = {
+static struct attribute *inputs_attrs[] =
+{
 	&dev_attr_a_bus_req.attr,
 	&dev_attr_a_bus_drop.attr,
 	&dev_attr_b_bus_req.attr,
@@ -193,7 +223,8 @@ static struct attribute *inputs_attrs[] = {
 	NULL,
 };
 
-static struct attribute_group inputs_attr_group = {
+static struct attribute_group inputs_attr_group =
+{
 	.name = "inputs",
 	.attrs = inputs_attrs,
 };
@@ -202,7 +233,8 @@ static struct attribute_group inputs_attr_group = {
  * Keep this list in the same order as timers indexed
  * by enum otg_fsm_timer in include/linux/usb/otg-fsm.h
  */
-static unsigned otg_timer_ms[] = {
+static unsigned otg_timer_ms[] =
+{
 	TA_WAIT_VRISE,
 	TA_WAIT_VFALL,
 	TA_WAIT_BCON,
@@ -225,22 +257,27 @@ static void ci_otg_add_timer(struct ci_hdrc *ci, enum otg_fsm_timer t)
 	unsigned long flags, timer_sec, timer_nsec;
 
 	if (t >= NUM_OTG_FSM_TIMERS)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&ci->lock, flags);
 	timer_sec = otg_timer_ms[t] / MSEC_PER_SEC;
 	timer_nsec = (otg_timer_ms[t] % MSEC_PER_SEC) * NSEC_PER_MSEC;
 	ci->hr_timeouts[t] = ktime_add(ktime_get(),
-				ktime_set(timer_sec, timer_nsec));
+								   ktime_set(timer_sec, timer_nsec));
 	ci->enabled_otg_timer_bits |= (1 << t);
+
 	if ((ci->next_otg_timer == NUM_OTG_FSM_TIMERS) ||
-			(ci->hr_timeouts[ci->next_otg_timer].tv64 >
-						ci->hr_timeouts[t].tv64)) {
-			ci->next_otg_timer = t;
-			hrtimer_start_range_ns(&ci->otg_fsm_hrtimer,
-					ci->hr_timeouts[t], NSEC_PER_MSEC,
-							HRTIMER_MODE_ABS);
+		(ci->hr_timeouts[ci->next_otg_timer].tv64 >
+		 ci->hr_timeouts[t].tv64))
+	{
+		ci->next_otg_timer = t;
+		hrtimer_start_range_ns(&ci->otg_fsm_hrtimer,
+							   ci->hr_timeouts[t], NSEC_PER_MSEC,
+							   HRTIMER_MODE_ABS);
 	}
+
 	spin_unlock_irqrestore(&ci->lock, flags);
 }
 
@@ -253,34 +290,47 @@ static void ci_otg_del_timer(struct ci_hdrc *ci, enum otg_fsm_timer t)
 	enum otg_fsm_timer cur_timer, next_timer = NUM_OTG_FSM_TIMERS;
 
 	if ((t >= NUM_OTG_FSM_TIMERS) ||
-			!(ci->enabled_otg_timer_bits & (1 << t)))
+		!(ci->enabled_otg_timer_bits & (1 << t)))
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&ci->lock, flags);
 	ci->enabled_otg_timer_bits &= ~(1 << t);
-	if (ci->next_otg_timer == t) {
-		if (ci->enabled_otg_timer_bits == 0) {
+
+	if (ci->next_otg_timer == t)
+	{
+		if (ci->enabled_otg_timer_bits == 0)
+		{
 			/* No enabled timers after delete it */
 			hrtimer_cancel(&ci->otg_fsm_hrtimer);
 			ci->next_otg_timer = NUM_OTG_FSM_TIMERS;
-		} else {
+		}
+		else
+		{
 			/* Find the next timer */
 			enabled_timer_bits = ci->enabled_otg_timer_bits;
 			for_each_set_bit(cur_timer, &enabled_timer_bits,
-							NUM_OTG_FSM_TIMERS) {
+							 NUM_OTG_FSM_TIMERS)
+			{
 				if ((next_timer == NUM_OTG_FSM_TIMERS) ||
 					(ci->hr_timeouts[next_timer].tv64 <
-					ci->hr_timeouts[cur_timer].tv64))
+					 ci->hr_timeouts[cur_timer].tv64))
+				{
 					next_timer = cur_timer;
+				}
 			}
 		}
 	}
-	if (next_timer != NUM_OTG_FSM_TIMERS) {
+
+	if (next_timer != NUM_OTG_FSM_TIMERS)
+	{
 		ci->next_otg_timer = next_timer;
 		hrtimer_start_range_ns(&ci->otg_fsm_hrtimer,
-			ci->hr_timeouts[next_timer], NSEC_PER_MSEC,
-							HRTIMER_MODE_ABS);
+							   ci->hr_timeouts[next_timer], NSEC_PER_MSEC,
+							   HRTIMER_MODE_ABS);
 	}
+
 	spin_unlock_irqrestore(&ci->lock, flags);
 }
 
@@ -343,8 +393,12 @@ static int b_data_pls_tmout(struct ci_hdrc *ci)
 {
 	ci->fsm.b_srp_done = 1;
 	ci->fsm.b_bus_req = 0;
+
 	if (ci->fsm.power_up)
+	{
 		ci->fsm.power_up = 0;
+	}
+
 	hw_write_otgsc(ci, OTGSC_HABA, 0);
 	pm_runtime_put(ci->dev);
 	return 0;
@@ -353,18 +407,24 @@ static int b_data_pls_tmout(struct ci_hdrc *ci)
 static int b_ssend_srp_tmout(struct ci_hdrc *ci)
 {
 	ci->fsm.b_ssend_srp = 1;
+
 	/* only vbus fall below B_sess_vld in b_idle state */
 	if (ci->fsm.otg->state == OTG_STATE_B_IDLE)
+	{
 		return 0;
+	}
 	else
+	{
 		return 1;
+	}
 }
 
 /*
  * Keep this list in the same order as timers indexed
  * by enum otg_fsm_timer in include/linux/usb/otg-fsm.h
  */
-static int (*otg_timer_handlers[])(struct ci_hdrc *) = {
+static int (*otg_timer_handlers[])(struct ci_hdrc *) =
+{
 	a_wait_vrise_tmout,	/* A_WAIT_VRISE */
 	a_wait_vfall_tmout,	/* A_WAIT_VFALL */
 	a_wait_bcon_tmout,	/* A_WAIT_BCON */
@@ -396,29 +456,43 @@ static enum hrtimer_restart ci_otg_hrtimer_func(struct hrtimer *t)
 	ci->next_otg_timer = NUM_OTG_FSM_TIMERS;
 
 	now = ktime_get();
-	for_each_set_bit(cur_timer, &enabled_timer_bits, NUM_OTG_FSM_TIMERS) {
-		if (now.tv64 >= ci->hr_timeouts[cur_timer].tv64) {
+	for_each_set_bit(cur_timer, &enabled_timer_bits, NUM_OTG_FSM_TIMERS)
+	{
+		if (now.tv64 >= ci->hr_timeouts[cur_timer].tv64)
+		{
 			ci->enabled_otg_timer_bits &= ~(1 << cur_timer);
+
 			if (otg_timer_handlers[cur_timer])
+			{
 				ret = otg_timer_handlers[cur_timer](ci);
-		} else {
+			}
+		}
+		else
+		{
 			if ((next_timer == NUM_OTG_FSM_TIMERS) ||
 				(ci->hr_timeouts[cur_timer].tv64 <
-					ci->hr_timeouts[next_timer].tv64))
+				 ci->hr_timeouts[next_timer].tv64))
+			{
 				next_timer = cur_timer;
+			}
 		}
 	}
+
 	/* Enable the next nearest timer */
-	if (next_timer < NUM_OTG_FSM_TIMERS) {
+	if (next_timer < NUM_OTG_FSM_TIMERS)
+	{
 		timeout = &ci->hr_timeouts[next_timer];
 		hrtimer_start_range_ns(&ci->otg_fsm_hrtimer, *timeout,
-					NSEC_PER_MSEC, HRTIMER_MODE_ABS);
+							   NSEC_PER_MSEC, HRTIMER_MODE_ABS);
 		ci->next_otg_timer = next_timer;
 	}
+
 	spin_unlock_irqrestore(&ci->lock, flags);
 
 	if (!ret)
+	{
 		ci_otg_queue_work(ci);
+	}
 
 	return HRTIMER_NORESTART;
 }
@@ -440,7 +514,10 @@ static void ci_otg_fsm_add_timer(struct otg_fsm *fsm, enum otg_fsm_timer t)
 	struct ci_hdrc	*ci = container_of(fsm, struct ci_hdrc, fsm);
 
 	if (t < NUM_OTG_FSM_TIMERS)
+	{
 		ci_otg_add_timer(ci, t);
+	}
+
 	return;
 }
 
@@ -449,7 +526,10 @@ static void ci_otg_fsm_del_timer(struct otg_fsm *fsm, enum otg_fsm_timer t)
 	struct ci_hdrc	*ci = container_of(fsm, struct ci_hdrc, fsm);
 
 	if (t < NUM_OTG_FSM_TIMERS)
+	{
 		ci_otg_del_timer(ci, t);
+	}
+
 	return;
 }
 
@@ -462,27 +542,37 @@ static void ci_otg_drv_vbus(struct otg_fsm *fsm, int on)
 	int ret;
 	struct ci_hdrc	*ci = container_of(fsm, struct ci_hdrc, fsm);
 
-	if (on) {
+	if (on)
+	{
 		/* Enable power power */
 		hw_write(ci, OP_PORTSC, PORTSC_W1C_BITS | PORTSC_PP,
-							PORTSC_PP);
-		if (ci->platdata->reg_vbus) {
+				 PORTSC_PP);
+
+		if (ci->platdata->reg_vbus)
+		{
 			ret = regulator_enable(ci->platdata->reg_vbus);
-			if (ret) {
+
+			if (ret)
+			{
 				dev_err(ci->dev,
-				"Failed to enable vbus regulator, ret=%d\n",
-				ret);
+						"Failed to enable vbus regulator, ret=%d\n",
+						ret);
 				return;
 			}
 		}
+
 		/* Disable data pulse irq */
 		hw_write_otgsc(ci, OTGSC_DPIE, 0);
 
 		fsm->a_srp_det = 0;
 		fsm->power_up = 0;
-	} else {
+	}
+	else
+	{
 		if (ci->platdata->reg_vbus)
+		{
 			regulator_disable(ci->platdata->reg_vbus);
+		}
 
 		fsm->a_bus_drop = 1;
 		fsm->a_bus_req = 0;
@@ -497,9 +587,13 @@ static void ci_otg_loc_conn(struct otg_fsm *fsm, int on)
 	struct ci_hdrc	*ci = container_of(fsm, struct ci_hdrc, fsm);
 
 	if (on)
+	{
 		hw_write(ci, OP_USBCMD, USBCMD_RS, USBCMD_RS);
+	}
 	else
+	{
 		hw_write(ci, OP_USBCMD, USBCMD_RS, 0);
+	}
 }
 
 /*
@@ -516,15 +610,23 @@ static void ci_otg_loc_sof(struct otg_fsm *fsm, int on)
 	struct usb_device *udev;
 
 	if (!fsm->otg->host)
+	{
 		return;
+	}
 
 	udev = usb_hub_find_child(fsm->otg->host->root_hub, 1);
-	if (!udev)
-		return;
 
-	if (on) {
+	if (!udev)
+	{
+		return;
+	}
+
+	if (on)
+	{
 		usb_disable_autosuspend(udev);
-	} else {
+	}
+	else
+	{
 		pm_runtime_set_autosuspend_delay(&udev->dev, 0);
 		usb_enable_autosuspend(udev);
 	}
@@ -549,13 +651,17 @@ static int ci_otg_start_host(struct otg_fsm *fsm, int on)
 {
 	struct ci_hdrc	*ci = container_of(fsm, struct ci_hdrc, fsm);
 
-	if (on) {
+	if (on)
+	{
 		ci_role_stop(ci);
 		ci_role_start(ci, CI_ROLE_HOST);
-	} else {
+	}
+	else
+	{
 		ci_role_stop(ci);
 		ci_role_start(ci, CI_ROLE_GADGET);
 	}
+
 	return 0;
 }
 
@@ -564,14 +670,19 @@ static int ci_otg_start_gadget(struct otg_fsm *fsm, int on)
 	struct ci_hdrc	*ci = container_of(fsm, struct ci_hdrc, fsm);
 
 	if (on)
+	{
 		usb_gadget_vbus_connect(&ci->gadget);
+	}
 	else
+	{
 		usb_gadget_vbus_disconnect(&ci->gadget);
+	}
 
 	return 0;
 }
 
-static struct otg_fsm_ops ci_otg_ops = {
+static struct otg_fsm_ops ci_otg_ops =
+{
 	.drv_vbus = ci_otg_drv_vbus,
 	.loc_conn = ci_otg_loc_conn,
 	.loc_sof = ci_otg_loc_sof,
@@ -590,11 +701,16 @@ int ci_otg_fsm_work(struct ci_hdrc *ci)
 	 */
 	if (ci->fsm.id && !(ci->driver) &&
 		ci->fsm.otg->state < OTG_STATE_A_IDLE)
+	{
 		return 0;
+	}
 
 	pm_runtime_get_sync(ci->dev);
-	if (otg_statemachine(&ci->fsm)) {
-		if (ci->fsm.otg->state == OTG_STATE_A_IDLE) {
+
+	if (otg_statemachine(&ci->fsm))
+	{
+		if (ci->fsm.otg->state == OTG_STATE_A_IDLE)
+		{
 			/*
 			 * Further state change for cases:
 			 * a_idle to b_idle; or
@@ -604,19 +720,28 @@ int ci_otg_fsm_work(struct ci_hdrc *ci)
 			 * a_idle to a_wait_vrise when power up
 			 */
 			if ((ci->fsm.id) || (ci->id_event) ||
-						(ci->fsm.power_up)) {
+				(ci->fsm.power_up))
+			{
 				ci_otg_queue_work(ci);
-			} else {
+			}
+			else
+			{
 				/* Enable data pulse irq */
 				hw_write(ci, OP_PORTSC, PORTSC_W1C_BITS |
-								PORTSC_PP, 0);
+						 PORTSC_PP, 0);
 				hw_write_otgsc(ci, OTGSC_DPIS, OTGSC_DPIS);
 				hw_write_otgsc(ci, OTGSC_DPIE, OTGSC_DPIE);
 			}
+
 			if (ci->id_event)
+			{
 				ci->id_event = false;
-		} else if (ci->fsm.otg->state == OTG_STATE_B_IDLE) {
-			if (ci->fsm.b_sess_vld) {
+			}
+		}
+		else if (ci->fsm.otg->state == OTG_STATE_B_IDLE)
+		{
+			if (ci->fsm.b_sess_vld)
+			{
 				ci->fsm.power_up = 0;
 				/*
 				 * Further transite to b_periphearl state
@@ -624,12 +749,15 @@ int ci_otg_fsm_work(struct ci_hdrc *ci)
 				 */
 				ci_otg_queue_work(ci);
 			}
-		} else if (ci->fsm.otg->state == OTG_STATE_A_HOST) {
+		}
+		else if (ci->fsm.otg->state == OTG_STATE_A_HOST)
+		{
 			pm_runtime_mark_last_busy(ci->dev);
 			pm_runtime_put_autosuspend(ci->dev);
 			return 0;
 		}
 	}
+
 	pm_runtime_put_sync(ci->dev);
 	return 0;
 }
@@ -647,83 +775,119 @@ static void ci_otg_fsm_event(struct ci_hdrc *ci)
 	otg_bsess_vld = hw_read_otgsc(ci, OTGSC_BSV);
 	port_conn = hw_read(ci, OP_PORTSC, PORTSC_CCS);
 
-	switch (ci->fsm.otg->state) {
-	case OTG_STATE_A_WAIT_BCON:
-		if (port_conn) {
-			fsm->b_conn = 1;
-			fsm->a_bus_req = 1;
-			ci_otg_queue_work(ci);
-		}
-		break;
-	case OTG_STATE_B_IDLE:
-		if (otg_bsess_vld && (intr_sts & USBi_PCI) && port_conn) {
-			fsm->b_sess_vld = 1;
-			ci_otg_queue_work(ci);
-		}
-		break;
-	case OTG_STATE_B_PERIPHERAL:
-		if ((intr_sts & USBi_SLI) && port_conn && otg_bsess_vld) {
-			ci_otg_add_timer(ci, B_AIDL_BDIS);
-		} else if (intr_sts & USBi_PCI) {
-			ci_otg_del_timer(ci, B_AIDL_BDIS);
-			if (fsm->a_bus_suspend == 1)
-				fsm->a_bus_suspend = 0;
-		}
-		break;
-	case OTG_STATE_B_HOST:
-		if ((intr_sts & USBi_PCI) && !port_conn) {
-			fsm->a_conn = 0;
-			fsm->b_bus_req = 0;
-			ci_otg_queue_work(ci);
-		}
-		break;
-	case OTG_STATE_A_PERIPHERAL:
-		if (intr_sts & USBi_SLI) {
-			 fsm->b_bus_suspend = 1;
-			/*
-			 * Init a timer to know how long this suspend
-			 * will continue, if time out, indicates B no longer
-			 * wants to be host role
-			 */
-			 ci_otg_add_timer(ci, A_BIDL_ADIS);
-		}
+	switch (ci->fsm.otg->state)
+	{
+		case OTG_STATE_A_WAIT_BCON:
+			if (port_conn)
+			{
+				fsm->b_conn = 1;
+				fsm->a_bus_req = 1;
+				ci_otg_queue_work(ci);
+			}
 
-		if (intr_sts & USBi_URI)
-			ci_otg_del_timer(ci, A_BIDL_ADIS);
+			break;
 
-		if (intr_sts & USBi_PCI) {
-			if (fsm->b_bus_suspend == 1) {
+		case OTG_STATE_B_IDLE:
+			if (otg_bsess_vld && (intr_sts & USBi_PCI) && port_conn)
+			{
+				fsm->b_sess_vld = 1;
+				ci_otg_queue_work(ci);
+			}
+
+			break;
+
+		case OTG_STATE_B_PERIPHERAL:
+			if ((intr_sts & USBi_SLI) && port_conn && otg_bsess_vld)
+			{
+				ci_otg_add_timer(ci, B_AIDL_BDIS);
+			}
+			else if (intr_sts & USBi_PCI)
+			{
+				ci_otg_del_timer(ci, B_AIDL_BDIS);
+
+				if (fsm->a_bus_suspend == 1)
+				{
+					fsm->a_bus_suspend = 0;
+				}
+			}
+
+			break;
+
+		case OTG_STATE_B_HOST:
+			if ((intr_sts & USBi_PCI) && !port_conn)
+			{
+				fsm->a_conn = 0;
+				fsm->b_bus_req = 0;
+				ci_otg_queue_work(ci);
+			}
+
+			break;
+
+		case OTG_STATE_A_PERIPHERAL:
+			if (intr_sts & USBi_SLI)
+			{
+				fsm->b_bus_suspend = 1;
+				/*
+				 * Init a timer to know how long this suspend
+				 * will continue, if time out, indicates B no longer
+				 * wants to be host role
+				 */
+				ci_otg_add_timer(ci, A_BIDL_ADIS);
+			}
+
+			if (intr_sts & USBi_URI)
+			{
 				ci_otg_del_timer(ci, A_BIDL_ADIS);
-				fsm->b_bus_suspend = 0;
 			}
-		}
-		break;
-	case OTG_STATE_A_SUSPEND:
-		if ((intr_sts & USBi_PCI) && !port_conn) {
-			fsm->b_conn = 0;
 
-			/* if gadget driver is binded */
-			if (ci->driver) {
-				/* A device to be peripheral mode */
-				ci->gadget.is_a_peripheral = 1;
+			if (intr_sts & USBi_PCI)
+			{
+				if (fsm->b_bus_suspend == 1)
+				{
+					ci_otg_del_timer(ci, A_BIDL_ADIS);
+					fsm->b_bus_suspend = 0;
+				}
 			}
-			ci_otg_queue_work(ci);
-		}
-		break;
-	case OTG_STATE_A_HOST:
-		if ((intr_sts & USBi_PCI) && !port_conn) {
-			fsm->b_conn = 0;
-			ci_otg_queue_work(ci);
-		}
-		break;
-	case OTG_STATE_B_WAIT_ACON:
-		if ((intr_sts & USBi_PCI) && port_conn) {
-			fsm->a_conn = 1;
-			ci_otg_queue_work(ci);
-		}
-		break;
-	default:
-		break;
+
+			break;
+
+		case OTG_STATE_A_SUSPEND:
+			if ((intr_sts & USBi_PCI) && !port_conn)
+			{
+				fsm->b_conn = 0;
+
+				/* if gadget driver is binded */
+				if (ci->driver)
+				{
+					/* A device to be peripheral mode */
+					ci->gadget.is_a_peripheral = 1;
+				}
+
+				ci_otg_queue_work(ci);
+			}
+
+			break;
+
+		case OTG_STATE_A_HOST:
+			if ((intr_sts & USBi_PCI) && !port_conn)
+			{
+				fsm->b_conn = 0;
+				ci_otg_queue_work(ci);
+			}
+
+			break;
+
+		case OTG_STATE_B_WAIT_ACON:
+			if ((intr_sts & USBi_PCI) && port_conn)
+			{
+				fsm->a_conn = 1;
+				ci_otg_queue_work(ci);
+			}
+
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -743,39 +907,61 @@ irqreturn_t ci_otg_fsm_irq(struct ci_hdrc *ci)
 	otg_int_src = otgsc & OTGSC_INT_STATUS_BITS & (otgsc >> 8);
 	fsm->id = (otgsc & OTGSC_ID) ? 1 : 0;
 
-	if (otg_int_src) {
-		if (otg_int_src & OTGSC_DPIS) {
+	if (otg_int_src)
+	{
+		if (otg_int_src & OTGSC_DPIS)
+		{
 			hw_write_otgsc(ci, OTGSC_DPIS, OTGSC_DPIS);
 			fsm->a_srp_det = 1;
 			fsm->a_bus_drop = 0;
-		} else if (otg_int_src & OTGSC_IDIS) {
+		}
+		else if (otg_int_src & OTGSC_IDIS)
+		{
 			hw_write_otgsc(ci, OTGSC_IDIS, OTGSC_IDIS);
-			if (fsm->id == 0) {
+
+			if (fsm->id == 0)
+			{
 				fsm->a_bus_drop = 0;
 				fsm->a_bus_req = 1;
 				ci->id_event = true;
 			}
-		} else if (otg_int_src & OTGSC_BSVIS) {
+		}
+		else if (otg_int_src & OTGSC_BSVIS)
+		{
 			hw_write_otgsc(ci, OTGSC_BSVIS, OTGSC_BSVIS);
-			if (otgsc & OTGSC_BSV) {
+
+			if (otgsc & OTGSC_BSV)
+			{
 				fsm->b_sess_vld = 1;
 				ci_otg_del_timer(ci, B_SSEND_SRP);
 				ci_otg_del_timer(ci, B_SRP_FAIL);
 				fsm->b_ssend_srp = 0;
-			} else {
-				fsm->b_sess_vld = 0;
-				if (fsm->id)
-					ci_otg_add_timer(ci, B_SSEND_SRP);
 			}
-		} else if (otg_int_src & OTGSC_AVVIS) {
+			else
+			{
+				fsm->b_sess_vld = 0;
+
+				if (fsm->id)
+				{
+					ci_otg_add_timer(ci, B_SSEND_SRP);
+				}
+			}
+		}
+		else if (otg_int_src & OTGSC_AVVIS)
+		{
 			hw_write_otgsc(ci, OTGSC_AVVIS, OTGSC_AVVIS);
-			if (otgsc & OTGSC_AVV) {
+
+			if (otgsc & OTGSC_AVV)
+			{
 				fsm->a_vbus_vld = 1;
-			} else {
+			}
+			else
+			{
 				fsm->a_vbus_vld = 0;
 				fsm->b_conn = 0;
 			}
 		}
+
 		ci_otg_queue_work(ci);
 		return IRQ_HANDLED;
 	}
@@ -795,9 +981,13 @@ int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci)
 	int retval = 0;
 
 	if (ci->phy)
+	{
 		ci->otg.phy = ci->phy;
+	}
 	else
+	{
 		ci->otg.usb_phy = ci->usb_phy;
+	}
 
 	ci->otg.gadget = &ci->gadget;
 	ci->fsm.otg = &ci->otg;
@@ -807,30 +997,39 @@ int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci)
 	ci->fsm.ops = &ci_otg_ops;
 	ci->gadget.hnp_polling_support = 1;
 	ci->fsm.host_req_flag = devm_kzalloc(ci->dev, 1, GFP_KERNEL);
+
 	if (!ci->fsm.host_req_flag)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&ci->fsm.lock);
 
 	retval = ci_otg_init_timers(ci);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(ci->dev, "Couldn't init OTG timers\n");
 		return retval;
 	}
+
 	ci->enabled_otg_timer_bits = 0;
 	ci->next_otg_timer = NUM_OTG_FSM_TIMERS;
 
 	retval = sysfs_create_group(&ci->dev->kobj, &inputs_attr_group);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		dev_dbg(ci->dev,
-			"Can't register sysfs attr group: %d\n", retval);
+				"Can't register sysfs attr group: %d\n", retval);
 		return retval;
 	}
 
 	/* Enable A vbus valid irq */
 	hw_write_otgsc(ci, OTGSC_AVVIE, OTGSC_AVVIE);
 
-	if (ci->fsm.id) {
+	if (ci->fsm.id)
+	{
 		ci->fsm.b_ssend_srp =
 			hw_read_otgsc(ci, OTGSC_BSV) ? 0 : 1;
 		ci->fsm.b_sess_vld =

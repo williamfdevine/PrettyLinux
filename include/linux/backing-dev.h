@@ -22,7 +22,7 @@ void bdi_exit(struct backing_dev_info *bdi);
 
 __printf(3, 4)
 int bdi_register(struct backing_dev_info *bdi, struct device *parent,
-		const char *fmt, ...);
+				 const char *fmt, ...);
 int bdi_register_dev(struct backing_dev_info *bdi, dev_t dev);
 int bdi_register_owner(struct backing_dev_info *bdi, struct device *owner);
 void bdi_unregister(struct backing_dev_info *bdi);
@@ -31,7 +31,7 @@ int __must_check bdi_setup_and_register(struct backing_dev_info *, char *);
 void bdi_destroy(struct backing_dev_info *bdi);
 
 void wb_start_writeback(struct bdi_writeback *wb, long nr_pages,
-			bool range_cyclic, enum wb_reason reason);
+						bool range_cyclic, enum wb_reason reason);
 void wb_start_background_writeback(struct bdi_writeback *wb);
 void wb_workfn(struct work_struct *work);
 void wb_wakeup_delayed(struct bdi_writeback *wb);
@@ -56,13 +56,13 @@ static inline bool bdi_has_dirty_io(struct backing_dev_info *bdi)
 }
 
 static inline void __add_wb_stat(struct bdi_writeback *wb,
-				 enum wb_stat_item item, s64 amount)
+								 enum wb_stat_item item, s64 amount)
 {
 	__percpu_counter_add(&wb->stat[item], amount, WB_STAT_BATCH);
 }
 
 static inline void __inc_wb_stat(struct bdi_writeback *wb,
-				 enum wb_stat_item item)
+								 enum wb_stat_item item)
 {
 	__add_wb_stat(wb, item, 1);
 }
@@ -77,7 +77,7 @@ static inline void inc_wb_stat(struct bdi_writeback *wb, enum wb_stat_item item)
 }
 
 static inline void __dec_wb_stat(struct bdi_writeback *wb,
-				 enum wb_stat_item item)
+								 enum wb_stat_item item)
 {
 	__add_wb_stat(wb, item, -1);
 }
@@ -97,7 +97,7 @@ static inline s64 wb_stat(struct bdi_writeback *wb, enum wb_stat_item item)
 }
 
 static inline s64 __wb_stat_sum(struct bdi_writeback *wb,
-				enum wb_stat_item item)
+								enum wb_stat_item item)
 {
 	return percpu_counter_sum_positive(&wb->stat[item]);
 }
@@ -178,12 +178,18 @@ static inline struct backing_dev_info *inode_to_bdi(struct inode *inode)
 	struct super_block *sb;
 
 	if (!inode)
+	{
 		return &noop_backing_dev_info;
+	}
 
 	sb = inode->i_sb;
 #ifdef CONFIG_BLOCK
+
 	if (sb_is_blkdev_sb(sb))
+	{
 		return blk_get_backing_dev_info(I_BDEV(inode));
+	}
+
 #endif
 	return sb->s_bdi;
 }
@@ -193,14 +199,17 @@ static inline int wb_congested(struct bdi_writeback *wb, int cong_bits)
 	struct backing_dev_info *bdi = wb->bdi;
 
 	if (bdi->congested_fn)
+	{
 		return bdi->congested_fn(bdi->congested_data, cong_bits);
+	}
+
 	return wb->congested->state & cong_bits;
 }
 
 long congestion_wait(int sync, long timeout);
 long wait_iff_congested(struct pglist_data *pgdat, int sync, long timeout);
 int pdflush_proc_obsolete(struct ctl_table *table, int write,
-		void __user *buffer, size_t *lenp, loff_t *ppos);
+						  void __user *buffer, size_t *lenp, loff_t *ppos);
 
 static inline bool bdi_cap_stable_pages_required(struct backing_dev_info *bdi)
 {
@@ -221,7 +230,7 @@ static inline bool bdi_cap_account_writeback(struct backing_dev_info *bdi)
 {
 	/* Paranoia: BDI_CAP_NO_WRITEBACK implies BDI_CAP_NO_ACCT_WB */
 	return !(bdi->capabilities & (BDI_CAP_NO_ACCT_WB |
-				      BDI_CAP_NO_WRITEBACK));
+								  BDI_CAP_NO_WRITEBACK));
 }
 
 static inline bool mapping_cap_writeback_dirty(struct address_space *mapping)
@@ -246,8 +255,8 @@ struct bdi_writeback_congested *
 wb_congested_get_create(struct backing_dev_info *bdi, int blkcg_id, gfp_t gfp);
 void wb_congested_put(struct bdi_writeback_congested *congested);
 struct bdi_writeback *wb_get_create(struct backing_dev_info *bdi,
-				    struct cgroup_subsys_state *memcg_css,
-				    gfp_t gfp);
+									struct cgroup_subsys_state *memcg_css,
+									gfp_t gfp);
 void wb_memcg_offline(struct mem_cgroup *memcg);
 void wb_blkcg_offline(struct blkcg *blkcg);
 int inode_congested(struct inode *inode, int cong_bits);
@@ -268,10 +277,10 @@ static inline bool inode_cgwb_enabled(struct inode *inode)
 	struct backing_dev_info *bdi = inode_to_bdi(inode);
 
 	return cgroup_subsys_on_dfl(memory_cgrp_subsys) &&
-		cgroup_subsys_on_dfl(io_cgrp_subsys) &&
-		bdi_cap_account_dirty(bdi) &&
-		(bdi->capabilities & BDI_CAP_CGROUP_WRITEBACK) &&
-		(inode->i_sb->s_iflags & SB_I_CGROUPWB);
+		   cgroup_subsys_on_dfl(io_cgrp_subsys) &&
+		   bdi_cap_account_dirty(bdi) &&
+		   (bdi->capabilities & BDI_CAP_CGROUP_WRITEBACK) &&
+		   (inode->i_sb->s_iflags & SB_I_CGROUPWB);
 }
 
 /**
@@ -288,8 +297,11 @@ static inline struct bdi_writeback *wb_find_current(struct backing_dev_info *bdi
 	struct bdi_writeback *wb;
 
 	memcg_css = task_css(current, memory_cgrp_id);
+
 	if (!memcg_css->parent)
+	{
 		return &bdi->wb;
+	}
 
 	wb = radix_tree_lookup(&bdi->cgwb_tree, memcg_css->id);
 
@@ -298,7 +310,10 @@ static inline struct bdi_writeback *wb_find_current(struct backing_dev_info *bdi
 	 * need to use the relatively expensive cgroup_get_e_css().
 	 */
 	if (likely(wb && wb->blkcg_css == task_css(current, io_cgrp_id)))
+	{
 		return wb;
+	}
+
 	return NULL;
 }
 
@@ -318,17 +333,23 @@ wb_get_create_current(struct backing_dev_info *bdi, gfp_t gfp)
 
 	rcu_read_lock();
 	wb = wb_find_current(bdi);
+
 	if (wb && unlikely(!wb_tryget(wb)))
+	{
 		wb = NULL;
+	}
+
 	rcu_read_unlock();
 
-	if (unlikely(!wb)) {
+	if (unlikely(!wb))
+	{
 		struct cgroup_subsys_state *memcg_css;
 
 		memcg_css = task_get_css(current, memory_cgrp_id);
 		wb = wb_get_create(bdi, memcg_css, gfp);
 		css_put(memcg_css);
 	}
+
 	return wb;
 }
 
@@ -356,9 +377,9 @@ static inline struct bdi_writeback *inode_to_wb(struct inode *inode)
 {
 #ifdef CONFIG_LOCKDEP
 	WARN_ON_ONCE(debug_locks &&
-		     (!lockdep_is_held(&inode->i_lock) &&
-		      !lockdep_is_held(&inode->i_mapping->tree_lock) &&
-		      !lockdep_is_held(&inode->i_wb->list_lock)));
+				 (!lockdep_is_held(&inode->i_lock) &&
+				  !lockdep_is_held(&inode->i_mapping->tree_lock) &&
+				  !lockdep_is_held(&inode->i_wb->list_lock)));
 #endif
 	return inode->i_wb;
 }
@@ -390,7 +411,9 @@ unlocked_inode_to_wb_begin(struct inode *inode, bool *lockedp)
 	*lockedp = smp_load_acquire(&inode->i_state) & I_WB_SWITCH;
 
 	if (unlikely(*lockedp))
+	{
 		spin_lock_irq(&inode->i_mapping->tree_lock);
+	}
 
 	/*
 	 * Protected by either !I_WB_SWITCH + rcu_read_lock() or tree_lock.
@@ -407,7 +430,9 @@ unlocked_inode_to_wb_begin(struct inode *inode, bool *lockedp)
 static inline void unlocked_inode_to_wb_end(struct inode *inode, bool locked)
 {
 	if (unlikely(locked))
+	{
 		spin_unlock_irq(&inode->i_mapping->tree_lock);
+	}
 
 	rcu_read_unlock();
 }
@@ -429,7 +454,9 @@ wb_congested_get_create(struct backing_dev_info *bdi, int blkcg_id, gfp_t gfp)
 static inline void wb_congested_put(struct bdi_writeback_congested *congested)
 {
 	if (atomic_dec_and_test(&congested->refcnt))
+	{
 		kfree(congested);
+	}
 }
 
 static inline struct bdi_writeback *wb_find_current(struct backing_dev_info *bdi)
@@ -491,7 +518,7 @@ static inline int inode_write_congested(struct inode *inode)
 static inline int inode_rw_congested(struct inode *inode)
 {
 	return inode_congested(inode, (1 << WB_sync_congested) |
-				      (1 << WB_async_congested));
+						   (1 << WB_async_congested));
 }
 
 static inline int bdi_congested(struct backing_dev_info *bdi, int cong_bits)
@@ -512,7 +539,7 @@ static inline int bdi_write_congested(struct backing_dev_info *bdi)
 static inline int bdi_rw_congested(struct backing_dev_info *bdi)
 {
 	return bdi_congested(bdi, (1 << WB_sync_congested) |
-				  (1 << WB_async_congested));
+						 (1 << WB_async_congested));
 }
 
 #endif	/* _LINUX_BACKING_DEV_H */

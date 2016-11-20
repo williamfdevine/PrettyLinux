@@ -23,7 +23,7 @@
 #include "sr.h"
 
 #if 0
-#define DEBUG
+	#define DEBUG
 #endif
 
 /* The sr_is_xa() seems to trigger firmware bugs with some drives :-(
@@ -37,7 +37,7 @@ module_param(xa_test, int, S_IRUGO | S_IWUSR);
 #define SR_GFP_DMA(cd) (((cd)->device->host->unchecked_isa_dma) ? GFP_DMA : 0)
 
 static int sr_read_tochdr(struct cdrom_device_info *cdi,
-		struct cdrom_tochdr *tochdr)
+						  struct cdrom_tochdr *tochdr)
 {
 	struct scsi_cd *cd = cdi->handle;
 	struct packet_command cgc;
@@ -45,8 +45,11 @@ static int sr_read_tochdr(struct cdrom_device_info *cdi,
 	unsigned char *buffer;
 
 	buffer = kmalloc(32, GFP_KERNEL | SR_GFP_DMA(cd));
+
 	if (!buffer)
+	{
 		return -ENOMEM;
+	}
 
 	memset(&cgc, 0, sizeof(struct packet_command));
 	cgc.timeout = IOCTL_TIMEOUT;
@@ -67,7 +70,7 @@ static int sr_read_tochdr(struct cdrom_device_info *cdi,
 }
 
 static int sr_read_tocentry(struct cdrom_device_info *cdi,
-		struct cdrom_tocentry *tocentry)
+							struct cdrom_tocentry *tocentry)
 {
 	struct scsi_cd *cd = cdi->handle;
 	struct packet_command cgc;
@@ -75,8 +78,11 @@ static int sr_read_tocentry(struct cdrom_device_info *cdi,
 	unsigned char *buffer;
 
 	buffer = kmalloc(32, GFP_KERNEL | SR_GFP_DMA(cd));
+
 	if (!buffer)
+	{
 		return -ENOMEM;
+	}
 
 	memset(&cgc, 0, sizeof(struct packet_command));
 	cgc.timeout = IOCTL_TIMEOUT;
@@ -93,13 +99,16 @@ static int sr_read_tocentry(struct cdrom_device_info *cdi,
 	tocentry->cdte_ctrl = buffer[5] & 0xf;
 	tocentry->cdte_adr = buffer[5] >> 4;
 	tocentry->cdte_datamode = (tocentry->cdte_ctrl & 0x04) ? 1 : 0;
-	if (tocentry->cdte_format == CDROM_MSF) {
+
+	if (tocentry->cdte_format == CDROM_MSF)
+	{
 		tocentry->cdte_addr.msf.minute = buffer[9];
 		tocentry->cdte_addr.msf.second = buffer[10];
 		tocentry->cdte_addr.msf.frame = buffer[11];
-	} else
+	}
+	else
 		tocentry->cdte_addr.lba = (((((buffer[8] << 8) + buffer[9]) << 8)
-			+ buffer[10]) << 8) + buffer[11];
+									+ buffer[10]) << 8) + buffer[11];
 
 	kfree(buffer);
 	return result;
@@ -119,27 +128,41 @@ static int sr_fake_playtrkind(struct cdrom_device_info *cdi, struct cdrom_ti *ti
 	int ntracks, ret;
 
 	ret = sr_read_tochdr(cdi, &tochdr);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ntracks = tochdr.cdth_trk1 - tochdr.cdth_trk0 + 1;
-	
-	if (ti->cdti_trk1 == ntracks) 
+
+	if (ti->cdti_trk1 == ntracks)
+	{
 		ti->cdti_trk1 = CDROM_LEADOUT;
+	}
 	else if (ti->cdti_trk1 != CDROM_LEADOUT)
+	{
 		ti->cdti_trk1 ++;
+	}
 
 	trk0_te.cdte_track = ti->cdti_trk0;
 	trk0_te.cdte_format = CDROM_MSF;
 	trk1_te.cdte_track = ti->cdti_trk1;
 	trk1_te.cdte_format = CDROM_MSF;
-	
+
 	ret = sr_read_tocentry(cdi, &trk0_te);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = sr_read_tocentry(cdi, &trk1_te);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	memset(&cgc, 0, sizeof(struct packet_command));
 	cgc.cmd[0] = GPCMD_PLAY_AUDIO_MSF;
@@ -155,7 +178,7 @@ static int sr_fake_playtrkind(struct cdrom_device_info *cdi, struct cdrom_ti *ti
 }
 
 static int sr_play_trkind(struct cdrom_device_info *cdi,
-		struct cdrom_ti *ti)
+						  struct cdrom_ti *ti)
 
 {
 	struct scsi_cd *cd = cdi->handle;
@@ -172,8 +195,11 @@ static int sr_play_trkind(struct cdrom_device_info *cdi,
 	cgc.data_direction = DMA_NONE;
 
 	result = sr_do_ioctl(cd, &cgc);
+
 	if (result == -EDRIVE_CANT_DO_THIS)
+	{
 		result = sr_fake_playtrkind(cdi, ti);
+	}
 
 	return result;
 }
@@ -191,78 +217,108 @@ int sr_do_ioctl(Scsi_CD *cd, struct packet_command *cgc)
 
 	SDev = cd->device;
 
-	if (!sense) {
+	if (!sense)
+	{
 		sense = kmalloc(SCSI_SENSE_BUFFERSIZE, GFP_KERNEL);
-		if (!sense) {
+
+		if (!sense)
+		{
 			err = -ENOMEM;
 			goto out;
 		}
 	}
 
-      retry:
-	if (!scsi_block_when_processing_errors(SDev)) {
+retry:
+
+	if (!scsi_block_when_processing_errors(SDev))
+	{
 		err = -ENODEV;
 		goto out;
 	}
 
 	memset(sense, 0, sizeof(*sense));
 	result = scsi_execute(SDev, cgc->cmd, cgc->data_direction,
-			      cgc->buffer, cgc->buflen, (char *)sense,
-			      cgc->timeout, IOCTL_RETRIES, 0, NULL);
+						  cgc->buffer, cgc->buflen, (char *)sense,
+						  cgc->timeout, IOCTL_RETRIES, 0, NULL);
 
 	scsi_normalize_sense((char *)sense, sizeof(*sense), &sshdr);
 
 	/* Minimal error checking.  Ignore cases we know about, and report the rest. */
-	if (driver_byte(result) != 0) {
-		switch (sshdr.sense_key) {
-		case UNIT_ATTENTION:
-			SDev->changed = 1;
-			if (!cgc->quiet)
-				sr_printk(KERN_INFO, cd,
-					  "disc change detected.\n");
-			if (retries++ < 10)
-				goto retry;
-			err = -ENOMEDIUM;
-			break;
-		case NOT_READY:	/* This happens if there is no disc in drive */
-			if (sshdr.asc == 0x04 &&
-			    sshdr.ascq == 0x01) {
-				/* sense: Logical unit is in process of becoming ready */
+	if (driver_byte(result) != 0)
+	{
+		switch (sshdr.sense_key)
+		{
+			case UNIT_ATTENTION:
+				SDev->changed = 1;
+
 				if (!cgc->quiet)
 					sr_printk(KERN_INFO, cd,
-						  "CDROM not ready yet.\n");
-				if (retries++ < 10) {
-					/* sleep 2 sec and try again */
-					ssleep(2);
+							  "disc change detected.\n");
+
+				if (retries++ < 10)
+				{
 					goto retry;
-				} else {
-					/* 20 secs are enough? */
-					err = -ENOMEDIUM;
-					break;
 				}
-			}
-			if (!cgc->quiet)
-				sr_printk(KERN_INFO, cd,
-					  "CDROM not ready.  Make sure there "
-					  "is a disc in the drive.\n");
-			err = -ENOMEDIUM;
-			break;
-		case ILLEGAL_REQUEST:
-			err = -EIO;
-			if (sshdr.asc == 0x20 &&
-			    sshdr.ascq == 0x00)
-				/* sense: Invalid command operation code */
-				err = -EDRIVE_CANT_DO_THIS;
-			break;
-		default:
-			err = -EIO;
+
+				err = -ENOMEDIUM;
+				break;
+
+			case NOT_READY:	/* This happens if there is no disc in drive */
+				if (sshdr.asc == 0x04 &&
+					sshdr.ascq == 0x01)
+				{
+					/* sense: Logical unit is in process of becoming ready */
+					if (!cgc->quiet)
+						sr_printk(KERN_INFO, cd,
+								  "CDROM not ready yet.\n");
+
+					if (retries++ < 10)
+					{
+						/* sleep 2 sec and try again */
+						ssleep(2);
+						goto retry;
+					}
+					else
+					{
+						/* 20 secs are enough? */
+						err = -ENOMEDIUM;
+						break;
+					}
+				}
+
+				if (!cgc->quiet)
+					sr_printk(KERN_INFO, cd,
+							  "CDROM not ready.  Make sure there "
+							  "is a disc in the drive.\n");
+
+				err = -ENOMEDIUM;
+				break;
+
+			case ILLEGAL_REQUEST:
+				err = -EIO;
+
+				if (sshdr.asc == 0x20 &&
+					sshdr.ascq == 0x00)
+					/* sense: Invalid command operation code */
+				{
+					err = -EDRIVE_CANT_DO_THIS;
+				}
+
+				break;
+
+			default:
+				err = -EIO;
 		}
 	}
 
 	/* Wake up a process waiting for device */
-      out:
+out:
+
 	if (!cgc->sense)
+	{
 		kfree(sense);
+	}
+
 	cgc->stat = err;
 	return err;
 }
@@ -288,7 +344,7 @@ int sr_lock_door(struct cdrom_device_info *cdi, int lock)
 	Scsi_CD *cd = cdi->handle;
 
 	return scsi_set_medium_removal(cd->device, lock ?
-		       SCSI_REMOVAL_PREVENT : SCSI_REMOVAL_ALLOW);
+								   SCSI_REMOVAL_PREVENT : SCSI_REMOVAL_ALLOW);
 }
 
 int sr_drive_status(struct cdrom_device_info *cdi, int slot)
@@ -297,25 +353,38 @@ int sr_drive_status(struct cdrom_device_info *cdi, int slot)
 	struct scsi_sense_hdr sshdr;
 	struct media_event_desc med;
 
-	if (CDSL_CURRENT != slot) {
+	if (CDSL_CURRENT != slot)
+	{
 		/* we have no changer support */
 		return -EINVAL;
 	}
+
 	if (!scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES, &sshdr))
+	{
 		return CDS_DISC_OK;
+	}
 
 	/* SK/ASC/ASCQ of 2/4/1 means "unit is becoming ready" */
 	if (scsi_sense_valid(&sshdr) && sshdr.sense_key == NOT_READY
-			&& sshdr.asc == 0x04 && sshdr.ascq == 0x01)
+		&& sshdr.asc == 0x04 && sshdr.ascq == 0x01)
+	{
 		return CDS_DRIVE_NOT_READY;
+	}
 
-	if (!cdrom_get_media_event(cdi, &med)) {
+	if (!cdrom_get_media_event(cdi, &med))
+	{
 		if (med.media_present)
+		{
 			return CDS_DISC_OK;
+		}
 		else if (med.door_open)
+		{
 			return CDS_TRAY_OPEN;
+		}
 		else
+		{
 			return CDS_NO_DISC;
+		}
 	}
 
 	/*
@@ -324,14 +393,18 @@ int sr_drive_status(struct cdrom_device_info *cdi, int slot)
 	 * the tray, which resolves the initialization requirement.
 	 */
 	if (scsi_sense_valid(&sshdr) && sshdr.sense_key == NOT_READY
-			&& sshdr.asc == 0x04 && sshdr.ascq == 0x02)
+		&& sshdr.asc == 0x04 && sshdr.ascq == 0x02)
+	{
 		return CDS_TRAY_OPEN;
+	}
 
 	/*
 	 * 0x04 is format in progress .. but there must be a disc present!
 	 */
 	if (sshdr.sense_key == NOT_READY && sshdr.asc == 0x04)
+	{
 		return CDS_DISC_OK;
+	}
 
 	/*
 	 * If not using Mt Fuji extended media tray reports,
@@ -339,11 +412,15 @@ int sr_drive_status(struct cdrom_device_info *cdi, int slot)
 	 * any other way to detect this...
 	 */
 	if (scsi_sense_valid(&sshdr) &&
-	    /* 0x3a is medium not present */
-	    sshdr.asc == 0x3a)
+		/* 0x3a is medium not present */
+		sshdr.asc == 0x3a)
+	{
 		return CDS_NO_DISC;
+	}
 	else
+	{
 		return CDS_TRAY_OPEN;
+	}
 
 	return CDS_DRIVE_NOT_READY;
 }
@@ -357,30 +434,46 @@ int sr_disk_status(struct cdrom_device_info *cdi)
 
 	/* look for data tracks */
 	rc = sr_read_tochdr(cdi, &toc_h);
-	if (rc)
-		return (rc == -ENOMEDIUM) ? CDS_NO_DISC : CDS_NO_INFO;
 
-	for (i = toc_h.cdth_trk0; i <= toc_h.cdth_trk1; i++) {
+	if (rc)
+	{
+		return (rc == -ENOMEDIUM) ? CDS_NO_DISC : CDS_NO_INFO;
+	}
+
+	for (i = toc_h.cdth_trk0; i <= toc_h.cdth_trk1; i++)
+	{
 		toc_e.cdte_track = i;
 		toc_e.cdte_format = CDROM_LBA;
+
 		if (sr_read_tocentry(cdi, &toc_e))
+		{
 			return CDS_NO_INFO;
-		if (toc_e.cdte_ctrl & CDROM_DATA_TRACK) {
+		}
+
+		if (toc_e.cdte_ctrl & CDROM_DATA_TRACK)
+		{
 			have_datatracks = 1;
 			break;
 		}
 	}
+
 	if (!have_datatracks)
+	{
 		return CDS_AUDIO;
+	}
 
 	if (cd->xa_flag)
+	{
 		return CDS_XA_2_1;
+	}
 	else
+	{
 		return CDS_DATA_1;
+	}
 }
 
 int sr_get_last_session(struct cdrom_device_info *cdi,
-			struct cdrom_multisession *ms_info)
+						struct cdrom_multisession *ms_info)
 {
 	Scsi_CD *cd = cdi->handle;
 
@@ -398,7 +491,9 @@ int sr_get_mcn(struct cdrom_device_info *cdi, struct cdrom_mcn *mcn)
 	int result;
 
 	if (!buffer)
+	{
 		return -ENOMEM;
+	}
 
 	memset(&cgc, 0, sizeof(struct packet_command));
 	cgc.cmd[0] = GPCMD_READ_SUBCHANNEL;
@@ -429,9 +524,13 @@ int sr_select_speed(struct cdrom_device_info *cdi, int speed)
 	struct packet_command cgc;
 
 	if (speed == 0)
-		speed = 0xffff;	/* set to max */
+	{
+		speed = 0xffff;    /* set to max */
+	}
 	else
-		speed *= 177;	/* Nx to kbyte/s */
+	{
+		speed *= 177;    /* Nx to kbyte/s */
+	}
 
 	memset(&cgc, 0, sizeof(struct packet_command));
 	cgc.cmd[0] = GPCMD_SET_SPEED;	/* SET CD SPEED */
@@ -441,7 +540,10 @@ int sr_select_speed(struct cdrom_device_info *cdi, int speed)
 	cgc.timeout = IOCTL_TIMEOUT;
 
 	if (sr_do_ioctl(cd, &cgc))
+	{
 		return -EIO;
+	}
+
 	return 0;
 }
 
@@ -453,15 +555,19 @@ int sr_select_speed(struct cdrom_device_info *cdi, int speed)
 
 int sr_audio_ioctl(struct cdrom_device_info *cdi, unsigned int cmd, void *arg)
 {
-	switch (cmd) {
-	case CDROMREADTOCHDR:
-		return sr_read_tochdr(cdi, arg);
-	case CDROMREADTOCENTRY:
-		return sr_read_tocentry(cdi, arg);
-	case CDROMPLAYTRKIND:
-		return sr_play_trkind(cdi, arg);
-	default:
-		return -EINVAL;
+	switch (cmd)
+	{
+		case CDROMREADTOCHDR:
+			return sr_read_tochdr(cdi, arg);
+
+		case CDROMREADTOCENTRY:
+			return sr_read_tocentry(cdi, arg);
+
+		case CDROMPLAYTRKIND:
+			return sr_play_trkind(cdi, arg);
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -485,7 +591,7 @@ static int sr_read_cd(Scsi_CD *cd, unsigned char *dest, int lba, int format, int
 
 #ifdef DEBUG
 	sr_printk(KERN_INFO, cd, "sr_read_cd lba=%d format=%d blksize=%d\n",
-		  lba, format, blksize);
+			  lba, format, blksize);
 #endif
 
 	memset(&cgc, 0, sizeof(struct packet_command));
@@ -496,20 +602,26 @@ static int sr_read_cd(Scsi_CD *cd, unsigned char *dest, int lba, int format, int
 	cgc.cmd[4] = (unsigned char) (lba >> 8) & 0xff;
 	cgc.cmd[5] = (unsigned char) lba & 0xff;
 	cgc.cmd[8] = 1;
-	switch (blksize) {
-	case 2336:
-		cgc.cmd[9] = 0x58;
-		break;
-	case 2340:
-		cgc.cmd[9] = 0x78;
-		break;
-	case 2352:
-		cgc.cmd[9] = 0xf8;
-		break;
-	default:
-		cgc.cmd[9] = 0x10;
-		break;
+
+	switch (blksize)
+	{
+		case 2336:
+			cgc.cmd[9] = 0x58;
+			break;
+
+		case 2340:
+			cgc.cmd[9] = 0x78;
+			break;
+
+		case 2352:
+			cgc.cmd[9] = 0xf8;
+			break;
+
+		default:
+			cgc.cmd[9] = 0x10;
+			break;
 	}
+
 	cgc.buffer = dest;
 	cgc.buflen = blksize;
 	cgc.data_direction = DMA_FROM_DEVICE;
@@ -527,23 +639,33 @@ static int sr_read_sector(Scsi_CD *cd, int lba, int blksize, unsigned char *dest
 	int rc;
 
 	/* we try the READ CD command first... */
-	if (cd->readcd_known) {
+	if (cd->readcd_known)
+	{
 		rc = sr_read_cd(cd, dest, lba, 0, blksize);
+
 		if (-EDRIVE_CANT_DO_THIS != rc)
+		{
 			return rc;
+		}
+
 		cd->readcd_known = 0;
 		sr_printk(KERN_INFO, cd,
-			  "CDROM does'nt support READ CD (0xbe) command\n");
+				  "CDROM does'nt support READ CD (0xbe) command\n");
 		/* fall & retry the other way */
 	}
+
 	/* ... if this fails, we switch the blocksize using MODE SELECT */
-	if (blksize != cd->device->sector_size) {
+	if (blksize != cd->device->sector_size)
+	{
 		if (0 != (rc = sr_set_blocklength(cd, blksize)))
+		{
 			return rc;
+		}
 	}
+
 #ifdef DEBUG
 	sr_printk(KERN_INFO, cd, "sr_read_sector lba=%d blksize=%d\n",
-		  lba, blksize);
+			  lba, blksize);
 #endif
 
 	memset(&cgc, 0, sizeof(struct packet_command));
@@ -564,7 +686,7 @@ static int sr_read_sector(Scsi_CD *cd, int lba, int blksize, unsigned char *dest
 
 /*
  * read a sector in raw mode to check the sector format
- * ret: 1 == mode2 (XA), 0 == mode1, <0 == error 
+ * ret: 1 == mode2 (XA), 0 == mode1, <0 == error
  */
 
 int sr_is_xa(Scsi_CD *cd)
@@ -573,18 +695,28 @@ int sr_is_xa(Scsi_CD *cd)
 	int is_xa;
 
 	if (!xa_test)
+	{
 		return 0;
+	}
 
 	raw_sector = kmalloc(2048, GFP_KERNEL | SR_GFP_DMA(cd));
+
 	if (!raw_sector)
+	{
 		return -ENOMEM;
+	}
+
 	if (0 == sr_read_sector(cd, cd->ms_offset + 16,
-				CD_FRAMESIZE_RAW1, raw_sector)) {
+							CD_FRAMESIZE_RAW1, raw_sector))
+	{
 		is_xa = (raw_sector[3] == 0x02) ? 1 : 0;
-	} else {
+	}
+	else
+	{
 		/* read a raw sector failed for some reason. */
 		is_xa = -1;
 	}
+
 	kfree(raw_sector);
 #ifdef DEBUG
 	sr_printk(KERN_INFO, cd, "sr_is_xa: %d\n", is_xa);

@@ -11,11 +11,11 @@
  * for s390-64 differ from the values for the rest of the world.
  */
 #if defined(__s390x__)
-#define POSIX_FADV_DONTNEED	6 /* Don't need these pages.  */
-#define POSIX_FADV_NOREUSE	7 /* Data will be accessed once.  */
+	#define POSIX_FADV_DONTNEED	6 /* Don't need these pages.  */
+	#define POSIX_FADV_NOREUSE	7 /* Data will be accessed once.  */
 #else
-#define POSIX_FADV_DONTNEED	4 /* Don't need these pages.  */
-#define POSIX_FADV_NOREUSE	5 /* Data will be accessed once.  */
+	#define POSIX_FADV_DONTNEED	4 /* Don't need these pages.  */
+	#define POSIX_FADV_NOREUSE	5 /* Data will be accessed once.  */
 #endif
 
 #endif	/* FADVISE_H_INCLUDED */

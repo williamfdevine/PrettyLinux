@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-enum ip6t_reject_with {
+enum ip6t_reject_with
+{
 	IP6T_ICMP6_NO_ROUTE,
 	IP6T_ICMP6_ADM_PROHIBITED,
 	IP6T_ICMP6_NOT_NEIGHBOUR,
@@ -15,7 +16,8 @@ enum ip6t_reject_with {
 	IP6T_ICMP6_REJECT_ROUTE
 };
 
-struct ip6t_reject_info {
+struct ip6t_reject_info
+{
 	__u32	with;	/* reject type */
 };
 

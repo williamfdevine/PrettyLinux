@@ -69,19 +69,22 @@
 #define TMC_FFCR_STOP_ON_FLUSH	BIT(12)
 
 
-enum tmc_config_type {
+enum tmc_config_type
+{
 	TMC_CONFIG_TYPE_ETB,
 	TMC_CONFIG_TYPE_ETR,
 	TMC_CONFIG_TYPE_ETF,
 };
 
-enum tmc_mode {
+enum tmc_mode
+{
 	TMC_MODE_CIRCULAR_BUFFER,
 	TMC_MODE_SOFTWARE_FIFO,
 	TMC_MODE_HARDWARE_FIFO,
 };
 
-enum tmc_mem_intf_width {
+enum tmc_mem_intf_width
+{
 	TMC_MEM_INTF_WIDTH_32BITS	= 1,
 	TMC_MEM_INTF_WIDTH_64BITS	= 2,
 	TMC_MEM_INTF_WIDTH_128BITS	= 4,
@@ -105,7 +108,8 @@ enum tmc_mem_intf_width {
  * @memwidth:	width of the memory interface databus, in bytes.
  * @trigger_cntr: amount of words to store after a trigger.
  */
-struct tmc_drvdata {
+struct tmc_drvdata
+{
 	void __iomem		*base;
 	struct device		*dev;
 	struct coresight_device	*csdev;

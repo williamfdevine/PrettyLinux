@@ -23,7 +23,8 @@
 
 #define V_DBLSCAN  1
 
-typedef struct {
+typedef struct
+{
 	int bitsPerPixel;
 	int depth;
 	int displayWidth;
@@ -37,14 +38,16 @@ typedef struct {
 
 struct nvidia_par;
 
-struct nvidia_i2c_chan {
+struct nvidia_i2c_chan
+{
 	struct nvidia_par *par;
 	unsigned long ddc_base;
 	struct i2c_adapter adapter;
 	struct i2c_algo_bit_data algo;
 };
 
-typedef struct _riva_hw_state {
+typedef struct _riva_hw_state
+{
 	u8 attr[NUM_ATC_REGS];
 	u8 crtc[NUM_CRT_REGS];
 	u8 gra[NUM_GRC_REGS];
@@ -88,11 +91,13 @@ typedef struct _riva_hw_state {
 	u32 control;
 } RIVA_HW_STATE;
 
-struct riva_regs {
+struct riva_regs
+{
 	RIVA_HW_STATE ext;
 };
 
-struct nvidia_par {
+struct nvidia_par
+{
 	RIVA_HW_STATE SavedReg;
 	RIVA_HW_STATE ModeReg;
 	RIVA_HW_STATE initial_state;

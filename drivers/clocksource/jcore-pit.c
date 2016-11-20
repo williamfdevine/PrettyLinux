@@ -32,7 +32,8 @@
 #define REG_SECLO		0x24
 #define REG_NSEC		0x28
 
-struct jcore_pit {
+struct jcore_pit
+{
 	struct clock_event_device	ced;
 	void __iomem			*base;
 	unsigned long			periodic_delta;
@@ -48,11 +49,14 @@ static notrace u64 jcore_sched_clock_read(void)
 	__iomem void *base = jcore_pit_base;
 
 	seclo = readl(base + REG_SECLO);
-	do {
+
+	do
+	{
 		seclo0 = seclo;
 		nsec  = readl(base + REG_NSEC);
 		seclo = readl(base + REG_SECLO);
-	} while (seclo0 != seclo);
+	}
+	while (seclo0 != seclo);
 
 	return seclo * NSEC_PER_SEC + nsec;
 }
@@ -98,7 +102,7 @@ static int jcore_pit_set_state_periodic(struct clock_event_device *ced)
 }
 
 static int jcore_pit_set_next_event(unsigned long delta,
-				    struct clock_event_device *ced)
+									struct clock_event_device *ced)
 {
 	struct jcore_pit *pit = container_of(ced, struct jcore_pit, ced);
 
@@ -126,7 +130,9 @@ static irqreturn_t jcore_timer_interrupt(int irq, void *dev_id)
 	struct jcore_pit *pit = this_cpu_ptr(dev_id);
 
 	if (clockevent_state_oneshot(&pit->ced))
+	{
 		jcore_pit_disable(pit);
+	}
 
 	pit->ced.event_handler(&pit->ced);
 
@@ -141,24 +147,30 @@ static int __init jcore_pit_init(struct device_node *node)
 	u32 irqprio, enable_val;
 
 	jcore_pit_base = of_iomap(node, 0);
-	if (!jcore_pit_base) {
+
+	if (!jcore_pit_base)
+	{
 		pr_err("Error: Cannot map base address for J-Core PIT\n");
 		return -ENXIO;
 	}
 
 	pit_irq = irq_of_parse_and_map(node, 0);
-	if (!pit_irq) {
+
+	if (!pit_irq)
+	{
 		pr_err("Error: J-Core PIT has no IRQ\n");
 		return -ENXIO;
 	}
 
 	pr_info("Initializing J-Core PIT at %p IRQ %d\n",
-		jcore_pit_base, pit_irq);
+			jcore_pit_base, pit_irq);
 
 	err = clocksource_mmio_init(jcore_pit_base, "jcore_pit_cs",
-				    NSEC_PER_SEC, 400, 32,
-				    jcore_clocksource_read);
-	if (err) {
+								NSEC_PER_SEC, 400, 32,
+								jcore_clocksource_read);
+
+	if (err)
+	{
 		pr_err("Error registering clocksource device: %d\n", err);
 		return err;
 	}
@@ -166,15 +178,19 @@ static int __init jcore_pit_init(struct device_node *node)
 	sched_clock_register(jcore_sched_clock_read, 32, NSEC_PER_SEC);
 
 	jcore_pit_percpu = alloc_percpu(struct jcore_pit);
-	if (!jcore_pit_percpu) {
+
+	if (!jcore_pit_percpu)
+	{
 		pr_err("Failed to allocate memory for clock event device\n");
 		return -ENOMEM;
 	}
 
 	err = request_irq(pit_irq, jcore_timer_interrupt,
-			  IRQF_TIMER | IRQF_PERCPU,
-			  "jcore_pit", jcore_pit_percpu);
-	if (err) {
+					  IRQF_TIMER | IRQF_PERCPU,
+					  "jcore_pit", jcore_pit_percpu);
+
+	if (err)
+	{
 		pr_err("pit irq request failed: %d\n", err);
 		free_percpu(jcore_pit_percpu);
 		return err;
@@ -212,22 +228,25 @@ static int __init jcore_pit_init(struct device_node *node)
 	hwirq = irq_get_irq_data(pit_irq)->hwirq;
 	irqprio = (hwirq >> 2) & PIT_PRIO_MASK;
 	enable_val = (1U << PIT_ENABLE_SHIFT)
-		   | (hwirq << PIT_IRQ_SHIFT)
-		   | (irqprio << PIT_PRIO_SHIFT);
+				 | (hwirq << PIT_IRQ_SHIFT)
+				 | (irqprio << PIT_PRIO_SHIFT);
 
-	for_each_present_cpu(cpu) {
+	for_each_present_cpu(cpu)
+	{
 		struct jcore_pit *pit = per_cpu_ptr(jcore_pit_percpu, cpu);
 
 		pit->base = of_iomap(node, cpu);
-		if (!pit->base) {
+
+		if (!pit->base)
+		{
 			pr_err("Unable to map PIT for cpu %u\n", cpu);
 			continue;
 		}
 
 		pit->ced.name = "jcore_pit";
 		pit->ced.features = CLOCK_EVT_FEAT_PERIODIC
-				  | CLOCK_EVT_FEAT_ONESHOT
-				  | CLOCK_EVT_FEAT_PERCPU;
+							| CLOCK_EVT_FEAT_ONESHOT
+							| CLOCK_EVT_FEAT_PERCPU;
 		pit->ced.cpumask = cpumask_of(cpu);
 		pit->ced.rating = 400;
 		pit->ced.irq = pit_irq;
@@ -240,8 +259,8 @@ static int __init jcore_pit_init(struct device_node *node)
 	}
 
 	cpuhp_setup_state(CPUHP_AP_JCORE_TIMER_STARTING,
-			  "AP_JCORE_TIMER_STARTING",
-			  jcore_pit_local_init, NULL);
+					  "AP_JCORE_TIMER_STARTING",
+					  jcore_pit_local_init, NULL);
 
 	return 0;
 }

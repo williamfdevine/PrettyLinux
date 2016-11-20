@@ -30,17 +30,22 @@ static bool ccu_data_offsets_valid(struct ccu_data *ccu)
 
 	limit = ccu->range - sizeof(u32);
 	limit = round_down(limit, sizeof(u32));
-	if (ccu_policy_exists(ccu_policy)) {
-		if (ccu_policy->enable.offset > limit) {
+
+	if (ccu_policy_exists(ccu_policy))
+	{
+		if (ccu_policy->enable.offset > limit)
+		{
 			pr_err("%s: bad policy enable offset for %s "
-					"(%u > %u)\n", __func__,
-				ccu->name, ccu_policy->enable.offset, limit);
+				   "(%u > %u)\n", __func__,
+				   ccu->name, ccu_policy->enable.offset, limit);
 			return false;
 		}
-		if (ccu_policy->control.offset > limit) {
+
+		if (ccu_policy->control.offset > limit)
+		{
 			pr_err("%s: bad policy control offset for %s "
-					"(%u > %u)\n", __func__,
-				ccu->name, ccu_policy->control.offset, limit);
+				   "(%u > %u)\n", __func__,
+				   ccu->name, ccu_policy->control.offset, limit);
 			return false;
 		}
 	}
@@ -55,19 +60,29 @@ static bool clk_requires_trigger(struct kona_clk *bcm_clk)
 	struct bcm_clk_div *div;
 
 	if (bcm_clk->type != bcm_clk_peri)
+	{
 		return false;
+	}
 
 	sel = &peri->sel;
+
 	if (sel->parent_count && selector_exists(sel))
+	{
 		return true;
+	}
 
 	div = &peri->div;
+
 	if (!divider_exists(div))
+	{
 		return false;
+	}
 
 	/* Fixed dividers don't need triggers */
 	if (!divider_is_fixed(div))
+	{
 		return true;
+	}
 
 	div = &peri->pre_div;
 
@@ -96,78 +111,103 @@ static bool peri_clk_data_offsets_valid(struct kona_clk *bcm_clk)
 	limit = round_down(limit, sizeof(u32));
 
 	policy = &peri->policy;
-	if (policy_exists(policy)) {
-		if (policy->offset > limit) {
+
+	if (policy_exists(policy))
+	{
+		if (policy->offset > limit)
+		{
 			pr_err("%s: bad policy offset for %s (%u > %u)\n",
-				__func__, name, policy->offset, limit);
+				   __func__, name, policy->offset, limit);
 			return false;
 		}
 	}
 
 	gate = &peri->gate;
 	hyst = &peri->hyst;
-	if (gate_exists(gate)) {
-		if (gate->offset > limit) {
+
+	if (gate_exists(gate))
+	{
+		if (gate->offset > limit)
+		{
 			pr_err("%s: bad gate offset for %s (%u > %u)\n",
-				__func__, name, gate->offset, limit);
+				   __func__, name, gate->offset, limit);
 			return false;
 		}
 
-		if (hyst_exists(hyst)) {
-			if (hyst->offset > limit) {
+		if (hyst_exists(hyst))
+		{
+			if (hyst->offset > limit)
+			{
 				pr_err("%s: bad hysteresis offset for %s "
-					"(%u > %u)\n", __func__,
-					name, hyst->offset, limit);
+					   "(%u > %u)\n", __func__,
+					   name, hyst->offset, limit);
 				return false;
 			}
 		}
-	} else if (hyst_exists(hyst)) {
+	}
+	else if (hyst_exists(hyst))
+	{
 		pr_err("%s: hysteresis but no gate for %s\n", __func__, name);
 		return false;
 	}
 
 	div = &peri->div;
-	if (divider_exists(div)) {
-		if (div->u.s.offset > limit) {
+
+	if (divider_exists(div))
+	{
+		if (div->u.s.offset > limit)
+		{
 			pr_err("%s: bad divider offset for %s (%u > %u)\n",
-				__func__, name, div->u.s.offset, limit);
+				   __func__, name, div->u.s.offset, limit);
 			return false;
 		}
 	}
 
 	div = &peri->pre_div;
-	if (divider_exists(div)) {
-		if (div->u.s.offset > limit) {
+
+	if (divider_exists(div))
+	{
+		if (div->u.s.offset > limit)
+		{
 			pr_err("%s: bad pre-divider offset for %s "
-					"(%u > %u)\n",
-				__func__, name, div->u.s.offset, limit);
+				   "(%u > %u)\n",
+				   __func__, name, div->u.s.offset, limit);
 			return false;
 		}
 	}
 
 	sel = &peri->sel;
-	if (selector_exists(sel)) {
-		if (sel->offset > limit) {
+
+	if (selector_exists(sel))
+	{
+		if (sel->offset > limit)
+		{
 			pr_err("%s: bad selector offset for %s (%u > %u)\n",
-				__func__, name, sel->offset, limit);
+				   __func__, name, sel->offset, limit);
 			return false;
 		}
 	}
 
 	trig = &peri->trig;
-	if (trigger_exists(trig)) {
-		if (trig->offset > limit) {
+
+	if (trigger_exists(trig))
+	{
+		if (trig->offset > limit)
+		{
 			pr_err("%s: bad trigger offset for %s (%u > %u)\n",
-				__func__, name, trig->offset, limit);
+				   __func__, name, trig->offset, limit);
 			return false;
 		}
 	}
 
 	trig = &peri->pre_trig;
-	if (trigger_exists(trig)) {
-		if (trig->offset > limit) {
+
+	if (trigger_exists(trig))
+	{
+		if (trig->offset > limit)
+		{
 			pr_err("%s: bad pre-trigger offset for %s (%u > %u)\n",
-				__func__, name, trig->offset, limit);
+				   __func__, name, trig->offset, limit);
 			return false;
 		}
 	}
@@ -177,15 +217,17 @@ static bool peri_clk_data_offsets_valid(struct kona_clk *bcm_clk)
 
 /* A bit position must be less than the number of bits in a 32-bit register. */
 static bool bit_posn_valid(u32 bit_posn, const char *field_name,
-			const char *clock_name)
+						   const char *clock_name)
 {
 	u32 limit = BITS_PER_BYTE * sizeof(u32) - 1;
 
-	if (bit_posn > limit) {
+	if (bit_posn > limit)
+	{
 		pr_err("%s: bad %s bit for %s (%u > %u)\n", __func__,
-			field_name, clock_name, bit_posn, limit);
+			   field_name, clock_name, bit_posn, limit);
 		return false;
 	}
+
 	return true;
 }
 
@@ -197,20 +239,24 @@ static bool bit_posn_valid(u32 bit_posn, const char *field_name,
  * is not well-defined by the C standard.
  */
 static bool bitfield_valid(u32 shift, u32 width, const char *field_name,
-			const char *clock_name)
+						   const char *clock_name)
 {
 	u32 limit = BITS_PER_BYTE * sizeof(u32);
 
-	if (!width) {
+	if (!width)
+	{
 		pr_err("%s: bad %s field width 0 for %s\n", __func__,
-			field_name, clock_name);
+			   field_name, clock_name);
 		return false;
 	}
-	if (shift + width > limit) {
+
+	if (shift + width > limit)
+	{
 		pr_err("%s: bad %s for %s (%u + %u > %u)\n", __func__,
-			field_name, clock_name, shift, width, limit);
+			   field_name, clock_name, shift, width, limit);
 		return false;
 	}
+
 	return true;
 }
 
@@ -221,17 +267,26 @@ ccu_policy_valid(struct ccu_policy *ccu_policy, const char *ccu_name)
 	struct bcm_policy_ctl *control;
 
 	if (!bit_posn_valid(enable->bit, "policy enable", ccu_name))
+	{
 		return false;
+	}
 
 	control = &ccu_policy->control;
+
 	if (!bit_posn_valid(control->go_bit, "policy control GO", ccu_name))
+	{
 		return false;
+	}
 
 	if (!bit_posn_valid(control->atl_bit, "policy control ATL", ccu_name))
+	{
 		return false;
+	}
 
 	if (!bit_posn_valid(control->ac_bit, "policy control AC", ccu_name))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -239,7 +294,9 @@ ccu_policy_valid(struct ccu_policy *ccu_policy, const char *ccu_name)
 static bool policy_valid(struct bcm_clk_policy *policy, const char *clock_name)
 {
 	if (!bit_posn_valid(policy->bit, "policy", clock_name))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -251,22 +308,32 @@ static bool policy_valid(struct bcm_clk_policy *policy, const char *clock_name)
  * controlled will have a hardware/software select bit.
  */
 static bool gate_valid(struct bcm_clk_gate *gate, const char *field_name,
-			const char *clock_name)
+					   const char *clock_name)
 {
 	if (!bit_posn_valid(gate->status_bit, "gate status", clock_name))
+	{
 		return false;
+	}
 
-	if (gate_is_sw_controllable(gate)) {
+	if (gate_is_sw_controllable(gate))
+	{
 		if (!bit_posn_valid(gate->en_bit, "gate enable", clock_name))
+		{
 			return false;
-
-		if (gate_is_hw_controllable(gate)) {
-			if (!bit_posn_valid(gate->hw_sw_sel_bit,
-						"gate hw/sw select",
-						clock_name))
-				return false;
 		}
-	} else {
+
+		if (gate_is_hw_controllable(gate))
+		{
+			if (!bit_posn_valid(gate->hw_sw_sel_bit,
+								"gate hw/sw select",
+								clock_name))
+			{
+				return false;
+			}
+		}
+	}
+	else
+	{
 		BUG_ON(!gate_is_hw_controllable(gate));
 	}
 
@@ -276,10 +343,14 @@ static bool gate_valid(struct bcm_clk_gate *gate, const char *field_name,
 static bool hyst_valid(struct bcm_clk_hyst *hyst, const char *clock_name)
 {
 	if (!bit_posn_valid(hyst->en_bit, "hysteresis enable", clock_name))
+	{
 		return false;
+	}
 
 	if (!bit_posn_valid(hyst->val_bit, "hysteresis value", clock_name))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -289,12 +360,15 @@ static bool hyst_valid(struct bcm_clk_hyst *hyst, const char *clock_name)
  * also be reasonable for the field.
  */
 static bool sel_valid(struct bcm_clk_sel *sel, const char *field_name,
-			const char *clock_name)
+					  const char *clock_name)
 {
 	if (!bitfield_valid(sel->shift, sel->width, field_name, clock_name))
+	{
 		return false;
+	}
 
-	if (sel->parent_count) {
+	if (sel->parent_count)
+	{
 		u32 max_sel;
 		u32 limit;
 
@@ -308,16 +382,20 @@ static bool sel_valid(struct bcm_clk_sel *sel, const char *field_name,
 		 */
 		max_sel = sel->parent_sel[sel->parent_count - 1];
 		limit = (1 << sel->width) - 1;
-		if (max_sel > limit) {
+
+		if (max_sel > limit)
+		{
 			pr_err("%s: bad selector for %s "
-					"(%u needs > %u bits)\n",
-				__func__, clock_name, max_sel,
-				sel->width);
+				   "(%u needs > %u bits)\n",
+				   __func__, clock_name, max_sel,
+				   sel->width);
 			return false;
 		}
-	} else {
+	}
+	else
+	{
 		pr_warn("%s: ignoring selector for %s (no parents)\n",
-			__func__, clock_name);
+				__func__, clock_name);
 		selector_clear_exists(sel);
 		kfree(sel->parent_sel);
 		sel->parent_sel = NULL;
@@ -333,26 +411,33 @@ static bool sel_valid(struct bcm_clk_sel *sel, const char *field_name,
  * the divider as a whole.
  */
 static bool div_valid(struct bcm_clk_div *div, const char *field_name,
-			const char *clock_name)
+					  const char *clock_name)
 {
-	if (divider_is_fixed(div)) {
+	if (divider_is_fixed(div))
+	{
 		/* Any fixed divider value but 0 is OK */
-		if (div->u.fixed == 0) {
+		if (div->u.fixed == 0)
+		{
 			pr_err("%s: bad %s fixed value 0 for %s\n", __func__,
-				field_name, clock_name);
+				   field_name, clock_name);
 			return false;
 		}
+
 		return true;
 	}
+
 	if (!bitfield_valid(div->u.s.shift, div->u.s.width,
-				field_name, clock_name))
+						field_name, clock_name))
+	{
 		return false;
+	}
 
 	if (divider_has_fraction(div))
-		if (div->u.s.frac_width > div->u.s.width) {
+		if (div->u.s.frac_width > div->u.s.width)
+		{
 			pr_warn("%s: bad %s fraction width for %s (%u > %u)\n",
-				__func__, field_name, clock_name,
-				div->u.s.frac_width, div->u.s.width);
+					__func__, field_name, clock_name,
+					div->u.s.frac_width, div->u.s.width);
 			return false;
 		}
 
@@ -375,12 +460,17 @@ static bool kona_dividers_valid(struct kona_clk *bcm_clk)
 	BUG_ON(bcm_clk->type != bcm_clk_peri);
 
 	if (!divider_exists(&peri->div) || !divider_exists(&peri->pre_div))
+	{
 		return true;
+	}
 
 	div = &peri->div;
 	pre_div = &peri->pre_div;
+
 	if (divider_is_fixed(div) || divider_is_fixed(pre_div))
+	{
 		return true;
+	}
 
 	limit = BITS_PER_BYTE * sizeof(u32);
 
@@ -390,7 +480,7 @@ static bool kona_dividers_valid(struct kona_clk *bcm_clk)
 
 /* A trigger just needs to represent a valid bit position */
 static bool trig_valid(struct bcm_clk_trig *trig, const char *field_name,
-			const char *clock_name)
+					   const char *clock_name)
 {
 	return bit_posn_valid(trig->bit, field_name, clock_name);
 }
@@ -417,72 +507,109 @@ peri_clk_data_valid(struct kona_clk *bcm_clk)
 	 * together.
 	 */
 	if (!peri_clk_data_offsets_valid(bcm_clk))
+	{
 		return false;
+	}
 
 	peri = bcm_clk->u.peri;
 	name = bcm_clk->init_data.name;
 
 	policy = &peri->policy;
+
 	if (policy_exists(policy) && !policy_valid(policy, name))
+	{
 		return false;
+	}
 
 	gate = &peri->gate;
+
 	if (gate_exists(gate) && !gate_valid(gate, "gate", name))
+	{
 		return false;
+	}
 
 	hyst = &peri->hyst;
+
 	if (hyst_exists(hyst) && !hyst_valid(hyst, name))
+	{
 		return false;
+	}
 
 	sel = &peri->sel;
-	if (selector_exists(sel)) {
-		if (!sel_valid(sel, "selector", name))
-			return false;
 
-	} else if (sel->parent_count > 1) {
+	if (selector_exists(sel))
+	{
+		if (!sel_valid(sel, "selector", name))
+		{
+			return false;
+		}
+
+	}
+	else if (sel->parent_count > 1)
+	{
 		pr_err("%s: multiple parents but no selector for %s\n",
-			__func__, name);
+			   __func__, name);
 
 		return false;
 	}
 
 	div = &peri->div;
 	pre_div = &peri->pre_div;
-	if (divider_exists(div)) {
+
+	if (divider_exists(div))
+	{
 		if (!div_valid(div, "divider", name))
+		{
 			return false;
+		}
 
 		if (divider_exists(pre_div))
 			if (!div_valid(pre_div, "pre-divider", name))
+			{
 				return false;
-	} else if (divider_exists(pre_div)) {
+			}
+	}
+	else if (divider_exists(pre_div))
+	{
 		pr_err("%s: pre-divider but no divider for %s\n", __func__,
-			name);
+			   name);
 		return false;
 	}
 
 	trig = &peri->trig;
-	if (trigger_exists(trig)) {
-		if (!trig_valid(trig, "trigger", name))
-			return false;
 
-		if (trigger_exists(&peri->pre_trig)) {
-			if (!trig_valid(trig, "pre-trigger", name)) {
+	if (trigger_exists(trig))
+	{
+		if (!trig_valid(trig, "trigger", name))
+		{
+			return false;
+		}
+
+		if (trigger_exists(&peri->pre_trig))
+		{
+			if (!trig_valid(trig, "pre-trigger", name))
+			{
 				return false;
 			}
 		}
-		if (!clk_requires_trigger(bcm_clk)) {
+
+		if (!clk_requires_trigger(bcm_clk))
+		{
 			pr_warn("%s: ignoring trigger for %s (not needed)\n",
-				__func__, name);
+					__func__, name);
 			trigger_clear_exists(trig);
 		}
-	} else if (trigger_exists(&peri->pre_trig)) {
+	}
+	else if (trigger_exists(&peri->pre_trig))
+	{
 		pr_err("%s: pre-trigger but no trigger for %s\n", __func__,
-			name);
+			   name);
 		return false;
-	} else if (clk_requires_trigger(bcm_clk)) {
+	}
+	else if (clk_requires_trigger(bcm_clk))
+	{
 		pr_err("%s: required trigger missing for %s\n", __func__,
-			name);
+			   name);
 		return false;
 	}
 
@@ -491,16 +618,22 @@ peri_clk_data_valid(struct kona_clk *bcm_clk)
 
 static bool kona_clk_valid(struct kona_clk *bcm_clk)
 {
-	switch (bcm_clk->type) {
-	case bcm_clk_peri:
-		if (!peri_clk_data_valid(bcm_clk))
+	switch (bcm_clk->type)
+	{
+		case bcm_clk_peri:
+			if (!peri_clk_data_valid(bcm_clk))
+			{
+				return false;
+			}
+
+			break;
+
+		default:
+			pr_err("%s: unrecognized clock type (%d)\n", __func__,
+				   (int)bcm_clk->type);
 			return false;
-		break;
-	default:
-		pr_err("%s: unrecognized clock type (%d)\n", __func__,
-			(int)bcm_clk->type);
-		return false;
 	}
+
 	return true;
 }
 
@@ -533,7 +666,7 @@ static bool kona_clk_valid(struct kona_clk *bcm_clk)
  * Returns a pointer-coded error if an error occurs.
  */
 static u32 *parent_process(const char *clocks[],
-			u32 *count, const char ***names)
+						   u32 *count, const char ***names)
 {
 	static const char **parent_names;
 	static u32 *parent_sel;
@@ -546,8 +679,11 @@ static u32 *parent_process(const char *clocks[],
 
 	*count = 0;	/* In case of early return */
 	*names = NULL;
+
 	if (!clocks)
+	{
 		return NULL;
+	}
 
 	/*
 	 * Count the number of names in the null-terminated array,
@@ -555,18 +691,24 @@ static u32 *parent_process(const char *clocks[],
 	 */
 	for (clock = clocks; *clock; clock++)
 		if (*clock == BAD_CLK_NAME)
+		{
 			bad_count++;
+		}
+
 	orig_count = (u32)(clock - clocks);
 	parent_count = orig_count - bad_count;
 
 	/* If all clocks are unsupported, we treat it as no clock */
 	if (!parent_count)
+	{
 		return NULL;
+	}
 
 	/* Avoid exceeding our parent clock limit */
-	if (parent_count > PARENT_COUNT_MAX) {
+	if (parent_count > PARENT_COUNT_MAX)
+	{
 		pr_err("%s: too many parents (%u > %u)\n", __func__,
-			parent_count, PARENT_COUNT_MAX);
+			   parent_count, PARENT_COUNT_MAX);
 		return ERR_PTR(-EINVAL);
 	}
 
@@ -578,32 +720,39 @@ static u32 *parent_process(const char *clocks[],
 	 * array anyway to keep things simple.
 	 */
 	parent_names = kmalloc_array(parent_count, sizeof(*parent_names),
-			       GFP_KERNEL);
-	if (!parent_names) {
+								 GFP_KERNEL);
+
+	if (!parent_names)
+	{
 		pr_err("%s: error allocating %u parent names\n", __func__,
-				parent_count);
+			   parent_count);
 		return ERR_PTR(-ENOMEM);
 	}
 
 	/* There is at least one parent, so allocate a selector array */
 	parent_sel = kmalloc_array(parent_count, sizeof(*parent_sel),
-				   GFP_KERNEL);
-	if (!parent_sel) {
+							   GFP_KERNEL);
+
+	if (!parent_sel)
+	{
 		pr_err("%s: error allocating %u parent selectors\n", __func__,
-				parent_count);
+			   parent_count);
 		kfree(parent_names);
 
 		return ERR_PTR(-ENOMEM);
 	}
 
 	/* Now fill in the parent names and selector arrays */
-	for (i = 0, j = 0; i < orig_count; i++) {
-		if (clocks[i] != BAD_CLK_NAME) {
+	for (i = 0, j = 0; i < orig_count; i++)
+	{
+		if (clocks[i] != BAD_CLK_NAME)
+		{
 			parent_names[j] = clocks[i];
 			parent_sel[j] = i;
 			j++;
 		}
 	}
+
 	*names = parent_names;
 	*count = parent_count;
 
@@ -612,7 +761,7 @@ static u32 *parent_process(const char *clocks[],
 
 static int
 clk_sel_setup(const char **clocks, struct bcm_clk_sel *sel,
-		struct clk_init_data *init_data)
+			  struct clk_init_data *init_data)
 {
 	const char **parent_names = NULL;
 	u32 parent_count = 0;
@@ -633,11 +782,13 @@ clk_sel_setup(const char **clocks, struct bcm_clk_sel *sel,
 	 * values we need.
 	 */
 	parent_sel = parent_process(clocks, &parent_count, &parent_names);
-	if (IS_ERR(parent_sel)) {
+
+	if (IS_ERR(parent_sel))
+	{
 		int ret = PTR_ERR(parent_sel);
 
 		pr_err("%s: error processing parent clocks for %s (%d)\n",
-			__func__, init_data->name, ret);
+			   __func__, init_data->name, ret);
 
 		return ret;
 	}
@@ -652,7 +803,7 @@ clk_sel_setup(const char **clocks, struct bcm_clk_sel *sel,
 }
 
 static void clk_sel_teardown(struct bcm_clk_sel *sel,
-		struct clk_init_data *init_data)
+							 struct clk_init_data *init_data)
 {
 	kfree(sel->parent_sel);
 	sel->parent_sel = NULL;
@@ -664,7 +815,7 @@ static void clk_sel_teardown(struct bcm_clk_sel *sel,
 }
 
 static void peri_clk_teardown(struct peri_clk_data *data,
-				struct clk_init_data *init_data)
+							  struct clk_init_data *init_data)
 {
 	clk_sel_teardown(&data->sel, init_data);
 }
@@ -685,13 +836,16 @@ peri_clk_setup(struct peri_clk_data *data, struct clk_init_data *init_data)
 
 static void bcm_clk_teardown(struct kona_clk *bcm_clk)
 {
-	switch (bcm_clk->type) {
-	case bcm_clk_peri:
-		peri_clk_teardown(bcm_clk->u.data, &bcm_clk->init_data);
-		break;
-	default:
-		break;
+	switch (bcm_clk->type)
+	{
+		case bcm_clk_peri:
+			peri_clk_teardown(bcm_clk->u.data, &bcm_clk->init_data);
+			break;
+
+		default:
+			break;
 	}
+
 	bcm_clk->u.data = NULL;
 	bcm_clk->type = bcm_clk_none;
 }
@@ -701,7 +855,9 @@ static void kona_clk_teardown(struct clk_hw *hw)
 	struct kona_clk *bcm_clk;
 
 	if (!hw)
+	{
 		return;
+	}
 
 	clk_hw_unregister(hw);
 
@@ -714,31 +870,40 @@ static int kona_clk_setup(struct kona_clk *bcm_clk)
 	int ret;
 	struct clk_init_data *init_data = &bcm_clk->init_data;
 
-	switch (bcm_clk->type) {
-	case bcm_clk_peri:
-		ret = peri_clk_setup(bcm_clk->u.data, init_data);
-		if (ret)
-			return ret;
-		break;
-	default:
-		pr_err("%s: clock type %d invalid for %s\n", __func__,
-			(int)bcm_clk->type, init_data->name);
-		return -EINVAL;
+	switch (bcm_clk->type)
+	{
+		case bcm_clk_peri:
+			ret = peri_clk_setup(bcm_clk->u.data, init_data);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			break;
+
+		default:
+			pr_err("%s: clock type %d invalid for %s\n", __func__,
+				   (int)bcm_clk->type, init_data->name);
+			return -EINVAL;
 	}
 
 	/* Make sure everything makes sense before we set it up */
-	if (!kona_clk_valid(bcm_clk)) {
+	if (!kona_clk_valid(bcm_clk))
+	{
 		pr_err("%s: clock data invalid for %s\n", __func__,
-			init_data->name);
+			   init_data->name);
 		ret = -EINVAL;
 		goto out_teardown;
 	}
 
 	bcm_clk->hw.init = init_data;
 	ret = clk_hw_register(NULL, &bcm_clk->hw);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: error registering clock %s (%d)\n", __func__,
-			init_data->name, ret);
+			   init_data->name, ret);
 		goto out_teardown;
 	}
 
@@ -754,13 +919,17 @@ static void ccu_clks_teardown(struct ccu_data *ccu)
 	u32 i;
 
 	for (i = 0; i < ccu->clk_num; i++)
+	{
 		kona_clk_teardown(&ccu->kona_clks[i].hw);
+	}
 }
 
 static void kona_ccu_teardown(struct ccu_data *ccu)
 {
 	if (!ccu->base)
+	{
 		return;
+	}
 
 	of_clk_del_provider(ccu->node);	/* safe if never added */
 	ccu_clks_teardown(ccu);
@@ -775,12 +944,17 @@ static bool ccu_data_valid(struct ccu_data *ccu)
 	struct ccu_policy *ccu_policy;
 
 	if (!ccu_data_offsets_valid(ccu))
+	{
 		return false;
+	}
 
 	ccu_policy = &ccu->policy;
+
 	if (ccu_policy_exists(ccu_policy))
 		if (!ccu_policy_valid(ccu_policy, ccu->name))
+		{
 			return false;
+		}
 
 	return true;
 }
@@ -791,7 +965,8 @@ of_clk_kona_onecell_get(struct of_phandle_args *clkspec, void *data)
 	struct ccu_data *ccu = data;
 	unsigned int idx = clkspec->args[0];
 
-	if (idx >= ccu->clk_num) {
+	if (idx >= ccu->clk_num)
+	{
 		pr_err("%s: invalid index %u\n", __func__, idx);
 		return ERR_PTR(-EINVAL);
 	}
@@ -804,7 +979,7 @@ of_clk_kona_onecell_get(struct of_phandle_args *clkspec, void *data)
  * initialize the array of clocks provided by the CCU.
  */
 void __init kona_dt_ccu_setup(struct ccu_data *ccu,
-			struct device_node *node)
+							  struct device_node *node)
 {
 	struct resource res = { 0 };
 	resource_size_t range;
@@ -812,32 +987,40 @@ void __init kona_dt_ccu_setup(struct ccu_data *ccu,
 	int ret;
 
 	ret = of_address_to_resource(node, 0, &res);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: no valid CCU registers found for %s\n", __func__,
-			node->name);
+			   node->name);
 		goto out_err;
 	}
 
 	range = resource_size(&res);
-	if (range > (resource_size_t)U32_MAX) {
+
+	if (range > (resource_size_t)U32_MAX)
+	{
 		pr_err("%s: address range too large for %s\n", __func__,
-			node->name);
+			   node->name);
 		goto out_err;
 	}
 
 	ccu->range = (u32)range;
 
-	if (!ccu_data_valid(ccu)) {
+	if (!ccu_data_valid(ccu))
+	{
 		pr_err("%s: ccu data not valid for %s\n", __func__, node->name);
 		goto out_err;
 	}
 
 	ccu->base = ioremap(res.start, ccu->range);
-	if (!ccu->base) {
+
+	if (!ccu->base)
+	{
 		pr_err("%s: unable to map CCU registers for %s\n", __func__,
-			node->name);
+			   node->name);
 		goto out_err;
 	}
+
 	ccu->node = of_node_get(node);
 
 	/*
@@ -845,21 +1028,29 @@ void __init kona_dt_ccu_setup(struct ccu_data *ccu,
 	 * the clock framework clock array (in ccu->data).  Then
 	 * register as a provider for these clocks.
 	 */
-	for (i = 0; i < ccu->clk_num; i++) {
+	for (i = 0; i < ccu->clk_num; i++)
+	{
 		if (!ccu->kona_clks[i].ccu)
+		{
 			continue;
+		}
+
 		kona_clk_setup(&ccu->kona_clks[i]);
 	}
 
 	ret = of_clk_add_hw_provider(node, of_clk_kona_onecell_get, ccu);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: error adding ccu %s as provider (%d)\n", __func__,
-				node->name, ret);
+			   node->name, ret);
 		goto out_err;
 	}
 
 	if (!kona_ccu_init(ccu))
+	{
 		pr_err("Broadcom %s initialization had errors\n", node->name);
+	}
 
 	return;
 out_err:

@@ -50,9 +50,9 @@ int cx18_alsa_debug;
 
 module_param_named(debug, cx18_alsa_debug, int, 0644);
 MODULE_PARM_DESC(debug,
-		 "Debug level (bitmask). Default: 0\n"
-		 "\t\t\t  1/0x0001: warning\n"
-		 "\t\t\t  2/0x0002: info\n");
+				 "Debug level (bitmask). Default: 0\n"
+				 "\t\t\t  1/0x0001: warning\n"
+				 "\t\t\t  2/0x0002: info\n");
 
 MODULE_AUTHOR("Andy Walls");
 MODULE_DESCRIPTION("CX23418 ALSA Interface");
@@ -76,10 +76,14 @@ struct snd_cx18_card *p_to_snd_cx18_card(struct v4l2_device **v4l2_dev)
 static void snd_cx18_card_free(struct snd_cx18_card *cxsc)
 {
 	if (cxsc == NULL)
+	{
 		return;
+	}
 
 	if (cxsc->v4l2_dev != NULL)
+	{
 		to_cx18(cxsc->v4l2_dev)->alsa = NULL;
+	}
 
 	/* FIXME - take any other stopping actions needed */
 
@@ -89,19 +93,25 @@ static void snd_cx18_card_free(struct snd_cx18_card *cxsc)
 static void snd_cx18_card_private_free(struct snd_card *sc)
 {
 	if (sc == NULL)
+	{
 		return;
+	}
+
 	snd_cx18_card_free(sc->private_data);
 	sc->private_data = NULL;
 	sc->private_free = NULL;
 }
 
 static int snd_cx18_card_create(struct v4l2_device *v4l2_dev,
-				       struct snd_card *sc,
-				       struct snd_cx18_card **cxsc)
+								struct snd_card *sc,
+								struct snd_cx18_card **cxsc)
 {
 	*cxsc = kzalloc(sizeof(struct snd_cx18_card), GFP_KERNEL);
+
 	if (*cxsc == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	(*cxsc)->v4l2_dev = v4l2_dev;
 	(*cxsc)->sc = sc;
@@ -122,12 +132,12 @@ static int snd_cx18_card_set_names(struct snd_cx18_card *cxsc)
 
 	/* sc->shortname is a symlink in /proc/asound: CX18-M -> cardN */
 	snprintf(sc->shortname,  sizeof(sc->shortname), "CX18-%d",
-		 cx->instance);
+			 cx->instance);
 
 	/* sc->longname is read from /proc/asound/cards */
 	snprintf(sc->longname, sizeof(sc->longname),
-		 "CX23418 #%d %s TV/FM Radio/Line-In Capture",
-		 cx->instance, cx->card_name);
+			 "CX23418 #%d %s TV/FM Radio/Line-In Capture",
+			 cx->instance, cx->card_name);
 
 	return 0;
 }
@@ -146,20 +156,24 @@ static int snd_cx18_init(struct v4l2_device *v4l2_dev)
 
 	/* (2) Create a card instance */
 	ret = snd_card_new(&cx->pci_dev->dev,
-			   SNDRV_DEFAULT_IDX1, /* use first available id */
-			   SNDRV_DEFAULT_STR1, /* xid from end of shortname*/
-			   THIS_MODULE, 0, &sc);
-	if (ret) {
+					   SNDRV_DEFAULT_IDX1, /* use first available id */
+					   SNDRV_DEFAULT_STR1, /* xid from end of shortname*/
+					   THIS_MODULE, 0, &sc);
+
+	if (ret)
+	{
 		CX18_ALSA_ERR("%s: snd_card_new() failed with err %d\n",
-			      __func__, ret);
+					  __func__, ret);
 		goto err_exit;
 	}
 
 	/* (3) Create a main component */
 	ret = snd_cx18_card_create(v4l2_dev, sc, &cxsc);
-	if (ret) {
+
+	if (ret)
+	{
 		CX18_ALSA_ERR("%s: snd_cx18_card_create() failed with err %d\n",
-			      __func__, ret);
+					  __func__, ret);
 		goto err_exit_free;
 	}
 
@@ -168,11 +182,14 @@ static int snd_cx18_init(struct v4l2_device *v4l2_dev)
 
 
 	ret = snd_cx18_pcm_create(cxsc);
-	if (ret) {
+
+	if (ret)
+	{
 		CX18_ALSA_ERR("%s: snd_cx18_pcm_create() failed with err %d\n",
-			      __func__, ret);
+					  __func__, ret);
 		goto err_exit_free;
 	}
+
 	/* FIXME - proc files */
 
 	/* (7) Set the driver data and return 0 */
@@ -181,18 +198,24 @@ static int snd_cx18_init(struct v4l2_device *v4l2_dev)
 
 	/* (6) Register the card instance */
 	ret = snd_card_register(sc);
-	if (ret) {
+
+	if (ret)
+	{
 		cx->alsa = NULL;
 		CX18_ALSA_ERR("%s: snd_card_register() failed with err %d\n",
-			      __func__, ret);
+					  __func__, ret);
 		goto err_exit_free;
 	}
 
 	return 0;
 
 err_exit_free:
+
 	if (sc != NULL)
+	{
 		snd_card_free(sc);
+	}
+
 	kfree(cxsc);
 err_exit:
 	return ret;
@@ -203,38 +226,48 @@ static int cx18_alsa_load(struct cx18 *cx)
 	struct v4l2_device *v4l2_dev = &cx->v4l2_dev;
 	struct cx18_stream *s;
 
-	if (v4l2_dev == NULL) {
+	if (v4l2_dev == NULL)
+	{
 		printk(KERN_ERR "cx18-alsa: %s: struct v4l2_device * is NULL\n",
-		       __func__);
+			   __func__);
 		return 0;
 	}
 
 	cx = to_cx18(v4l2_dev);
-	if (cx == NULL) {
+
+	if (cx == NULL)
+	{
 		printk(KERN_ERR "cx18-alsa cx is NULL\n");
 		return 0;
 	}
 
 	s = &cx->streams[CX18_ENC_STREAM_TYPE_PCM];
-	if (s->video_dev.v4l2_dev == NULL) {
+
+	if (s->video_dev.v4l2_dev == NULL)
+	{
 		CX18_DEBUG_ALSA_INFO("%s: PCM stream for card is disabled - "
-				     "skipping\n", __func__);
+							 "skipping\n", __func__);
 		return 0;
 	}
 
-	if (cx->alsa != NULL) {
+	if (cx->alsa != NULL)
+	{
 		CX18_ALSA_ERR("%s: struct snd_cx18_card * already exists\n",
-			      __func__);
+					  __func__);
 		return 0;
 	}
 
-	if (snd_cx18_init(v4l2_dev)) {
+	if (snd_cx18_init(v4l2_dev))
+	{
 		CX18_ALSA_ERR("%s: failed to create struct snd_cx18_card\n",
-			      __func__);
-	} else {
-		CX18_DEBUG_ALSA_INFO("%s: created cx18 ALSA interface instance "
-				     "\n", __func__);
+					  __func__);
 	}
+	else
+	{
+		CX18_DEBUG_ALSA_INFO("%s: created cx18 ALSA interface instance "
+							 "\n", __func__);
+	}
+
 	return 0;
 }
 
@@ -260,16 +293,19 @@ static int __exit cx18_alsa_exit_callback(struct device *dev, void *data)
 	struct v4l2_device *v4l2_dev = dev_get_drvdata(dev);
 	struct snd_cx18_card *cxsc;
 
-	if (v4l2_dev == NULL) {
+	if (v4l2_dev == NULL)
+	{
 		printk(KERN_ERR "cx18-alsa: %s: struct v4l2_device * is NULL\n",
-		       __func__);
+			   __func__);
 		return 0;
 	}
 
 	cxsc = to_snd_cx18_card(v4l2_dev);
-	if (cxsc == NULL) {
+
+	if (cxsc == NULL)
+	{
 		CX18_ALSA_WARN("%s: struct snd_cx18_card * is NULL\n",
-			       __func__);
+					   __func__);
 		return 0;
 	}
 

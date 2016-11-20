@@ -38,14 +38,17 @@
 #include "mantis_uart.h"
 #include "mantis_input.h"
 
-struct mantis_uart_params {
+struct mantis_uart_params
+{
 	enum mantis_baud	baud_rate;
 	enum mantis_parity	parity;
 };
 
-static struct {
+static struct
+{
 	char string[7];
-} rates[5] = {
+} rates[5] =
+{
 	{ "9600" },
 	{ "19200" },
 	{ "38400" },
@@ -53,9 +56,11 @@ static struct {
 	{ "115200" }
 };
 
-static struct {
+static struct
+{
 	char string[5];
-} parity[3] = {
+} parity[3] =
+{
 	{ "NONE" },
 	{ "ODD" },
 	{ "EVEN" }
@@ -68,7 +73,9 @@ static void mantis_uart_read(struct mantis_pci *mantis)
 
 	/* get data */
 	dprintk(MANTIS_DEBUG, 1, "UART Reading ...");
-	for (i = 0; i < (config->bytes + 1); i++) {
+
+	for (i = 0; i < (config->bytes + 1); i++)
+	{
 		int data = mmread(MANTIS_UART_RXD);
 
 		dprintk(MANTIS_DEBUG, 0, " <%02x>", data);
@@ -77,15 +84,22 @@ static void mantis_uart_read(struct mantis_pci *mantis)
 		err |= data;
 
 		if (data & (1 << 7))
+		{
 			dprintk(MANTIS_ERROR, 1, "UART framing error");
+		}
 
 		if (data & (1 << 6))
+		{
 			dprintk(MANTIS_ERROR, 1, "UART parity error");
+		}
 	}
+
 	dprintk(MANTIS_DEBUG, 0, "\n");
 
 	if ((err & 0xC0) == 0)
+	{
 		mantis_input_process(mantis, scancode);
+	}
 }
 
 static void mantis_uart_work(struct work_struct *work)
@@ -96,13 +110,16 @@ static void mantis_uart_work(struct work_struct *work)
 	stat = mmread(MANTIS_UART_STAT);
 
 	if (stat & MANTIS_UART_RXFIFO_FULL)
+	{
 		dprintk(MANTIS_ERROR, 1, "RX Fifo FULL");
+	}
 
 	/*
 	 * MANTIS_UART_RXFIFO_DATA is only set if at least
 	 * config->bytes + 1 bytes are in the FIFO.
 	 */
-	while (stat & MANTIS_UART_RXFIFO_DATA) {
+	while (stat & MANTIS_UART_RXFIFO_DATA)
+	{
 		mantis_uart_read(mantis);
 		stat = mmread(MANTIS_UART_STAT);
 	}
@@ -112,7 +129,7 @@ static void mantis_uart_work(struct work_struct *work)
 }
 
 static int mantis_uart_setup(struct mantis_pci *mantis,
-			     struct mantis_uart_params *params)
+							 struct mantis_uart_params *params)
 {
 	u32 reg;
 
@@ -120,24 +137,30 @@ static int mantis_uart_setup(struct mantis_pci *mantis,
 
 	reg = mmread(MANTIS_UART_BAUD);
 
-	switch (params->baud_rate) {
-	case MANTIS_BAUD_9600:
-		reg |= 0xd8;
-		break;
-	case MANTIS_BAUD_19200:
-		reg |= 0x6c;
-		break;
-	case MANTIS_BAUD_38400:
-		reg |= 0x36;
-		break;
-	case MANTIS_BAUD_57600:
-		reg |= 0x23;
-		break;
-	case MANTIS_BAUD_115200:
-		reg |= 0x11;
-		break;
-	default:
-		return -EINVAL;
+	switch (params->baud_rate)
+	{
+		case MANTIS_BAUD_9600:
+			reg |= 0xd8;
+			break;
+
+		case MANTIS_BAUD_19200:
+			reg |= 0x6c;
+			break;
+
+		case MANTIS_BAUD_38400:
+			reg |= 0x36;
+			break;
+
+		case MANTIS_BAUD_57600:
+			reg |= 0x23;
+			break;
+
+		case MANTIS_BAUD_115200:
+			reg |= 0x11;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	mmwrite(reg, MANTIS_UART_BAUD);
@@ -154,8 +177,8 @@ int mantis_uart_init(struct mantis_pci *mantis)
 	params.baud_rate = config->baud_rate;
 	params.parity = config->parity;
 	dprintk(MANTIS_INFO, 1, "Initializing UART @ %sbps parity:%s",
-		rates[params.baud_rate].string,
-		parity[params.parity].string);
+			rates[params.baud_rate].string,
+			parity[params.parity].string);
 
 	INIT_WORK(&mantis->uart_work, mantis_uart_work);
 

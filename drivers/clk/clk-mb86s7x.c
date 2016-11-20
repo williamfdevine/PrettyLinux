@@ -29,7 +29,8 @@
 #define to_crg_clk(p) container_of(p, struct crg_clk, hw)
 #define to_clc_clk(p) container_of(p, struct cl_clk, hw)
 
-struct mb86s7x_peri_clk {
+struct mb86s7x_peri_clk
+{
 	u32 payload_size;
 	u32 cntrlr;
 	u32 domain;
@@ -38,13 +39,15 @@ struct mb86s7x_peri_clk {
 	u64 frequency;
 } __packed __aligned(4);
 
-struct hack_rate {
+struct hack_rate
+{
 	unsigned clk_id;
 	unsigned long rate;
 	int gated;
 };
 
-struct crg_clk {
+struct crg_clk
+{
 	struct clk_hw hw;
 	u8 cntrlr, domain, port;
 };
@@ -63,28 +66,36 @@ static int crg_gate_control(struct clk_hw *hw, int en)
 
 	/* Port is UngatedCLK */
 	if (cmd.port == 8)
+	{
 		return en ? 0 : -EINVAL;
+	}
 
 	pr_debug("%s:%d CMD Cntrlr-%u Dom-%u Port-%u En-%u}\n",
-		 __func__, __LINE__, cmd.cntrlr,
-		 cmd.domain, cmd.port, cmd.en);
+			 __func__, __LINE__, cmd.cntrlr,
+			 cmd.domain, cmd.port, cmd.en);
 
 	ret = mb86s7x_send_packet(CMD_PERI_CLOCK_GATE_SET_REQ,
-				  &cmd, sizeof(cmd));
-	if (ret < 0) {
+							  &cmd, sizeof(cmd));
+
+	if (ret < 0)
+	{
 		pr_err("%s:%d failed!\n", __func__, __LINE__);
 		return ret;
 	}
 
 	pr_debug("%s:%d REP Cntrlr-%u Dom-%u Port-%u En-%u}\n",
-		 __func__, __LINE__, cmd.cntrlr,
-		 cmd.domain, cmd.port, cmd.en);
+			 __func__, __LINE__, cmd.cntrlr,
+			 cmd.domain, cmd.port, cmd.en);
 
 	/* If the request was rejected */
 	if (cmd.en != en)
+	{
 		ret = -EINVAL;
+	}
 	else
+	{
 		ret = 0;
+	}
 
 	return ret;
 }
@@ -112,32 +123,37 @@ crg_rate_control(struct clk_hw *hw, int set, unsigned long *rate)
 	cmd.port = crgclk->port;
 	cmd.frequency = *rate;
 
-	if (set) {
+	if (set)
+	{
 		code = CMD_PERI_CLOCK_RATE_SET_REQ;
 		pr_debug("%s:%d CMD Cntrlr-%u Dom-%u Port-%u Rate-SET %lluHz}\n",
-			 __func__, __LINE__, cmd.cntrlr,
-			 cmd.domain, cmd.port, cmd.frequency);
-	} else {
+				 __func__, __LINE__, cmd.cntrlr,
+				 cmd.domain, cmd.port, cmd.frequency);
+	}
+	else
+	{
 		code = CMD_PERI_CLOCK_RATE_GET_REQ;
 		pr_debug("%s:%d CMD Cntrlr-%u Dom-%u Port-%u Rate-GET}\n",
-			 __func__, __LINE__, cmd.cntrlr,
-			 cmd.domain, cmd.port);
+				 __func__, __LINE__, cmd.cntrlr,
+				 cmd.domain, cmd.port);
 	}
 
 	ret = mb86s7x_send_packet(code, &cmd, sizeof(cmd));
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("%s:%d failed!\n", __func__, __LINE__);
 		return ret;
 	}
 
 	if (set)
 		pr_debug("%s:%d REP Cntrlr-%u Dom-%u Port-%u Rate-SET %lluHz}\n",
-			 __func__, __LINE__, cmd.cntrlr,
-			 cmd.domain, cmd.port, cmd.frequency);
+				 __func__, __LINE__, cmd.cntrlr,
+				 cmd.domain, cmd.port, cmd.frequency);
 	else
 		pr_debug("%s:%d REP Cntrlr-%u Dom-%u Port-%u Rate-GOT %lluHz}\n",
-			 __func__, __LINE__, cmd.cntrlr,
-			 cmd.domain, cmd.port, cmd.frequency);
+				 __func__, __LINE__, cmd.cntrlr,
+				 cmd.domain, cmd.port, cmd.frequency);
 
 	*rate = cmd.frequency;
 	return 0;
@@ -155,19 +171,20 @@ crg_port_recalc_rate(struct clk_hw *hw,	unsigned long parent_rate)
 
 static long
 crg_port_round_rate(struct clk_hw *hw,
-		    unsigned long rate, unsigned long *pr)
+					unsigned long rate, unsigned long *pr)
 {
 	return rate;
 }
 
 static int
 crg_port_set_rate(struct clk_hw *hw,
-		  unsigned long rate, unsigned long parent_rate)
+				  unsigned long rate, unsigned long parent_rate)
 {
 	return crg_rate_control(hw, 1, &rate);
 }
 
-const struct clk_ops crg_port_ops = {
+const struct clk_ops crg_port_ops =
+{
 	.prepare = crg_port_prepare,
 	.unprepare = crg_port_unprepare,
 	.recalc_rate = crg_port_recalc_rate,
@@ -175,7 +192,8 @@ const struct clk_ops crg_port_ops = {
 	.set_rate = crg_port_set_rate,
 };
 
-struct mb86s70_crg11 {
+struct mb86s70_crg11
+{
 	struct mutex lock; /* protects CLK populating and searching */
 };
 
@@ -189,27 +207,37 @@ static struct clk *crg11_get(struct of_phandle_args *clkspec, void *data)
 	char clkp[20];
 
 	if (clkspec->args_count != 3)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	cntrlr = clkspec->args[0];
 	domain = clkspec->args[1];
 	port = clkspec->args[2];
 
 	if (port > 7)
+	{
 		snprintf(clkp, 20, "UngatedCLK%d_%X", cntrlr, domain);
+	}
 	else
+	{
 		snprintf(clkp, 20, "CLK%d_%X_%d", cntrlr, domain, port);
+	}
 
 	mutex_lock(&crg11->lock);
 
 	clk = __clk_lookup(clkp);
-	if (clk) {
+
+	if (clk)
+	{
 		mutex_unlock(&crg11->lock);
 		return clk;
 	}
 
 	crgclk = kzalloc(sizeof(*crgclk), GFP_KERNEL);
-	if (!crgclk) {
+
+	if (!crgclk)
+	{
 		mutex_unlock(&crg11->lock);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -223,10 +251,15 @@ static struct clk *crg11_get(struct of_phandle_args *clkspec, void *data)
 	crgclk->domain = domain;
 	crgclk->port = port;
 	clk = clk_register(NULL, &crgclk->hw);
+
 	if (IS_ERR(clk))
+	{
 		pr_err("%s:%d Error!\n", __func__, __LINE__);
+	}
 	else
+	{
 		pr_debug("Registered %s\n", clkp);
+	}
 
 	clk_register_clkdev(clk, clkp, NULL);
 	mutex_unlock(&crg11->lock);
@@ -238,8 +271,11 @@ static void __init crg_port_init(struct device_node *node)
 	struct mb86s70_crg11 *crg11;
 
 	crg11 = kzalloc(sizeof(*crg11), GFP_KERNEL);
+
 	if (!crg11)
+	{
 		return;
+	}
 
 	mutex_init(&crg11->lock);
 
@@ -247,12 +283,14 @@ static void __init crg_port_init(struct device_node *node)
 }
 CLK_OF_DECLARE(crg11_gate, "fujitsu,mb86s70-crg11", crg_port_init);
 
-struct cl_clk {
+struct cl_clk
+{
 	struct clk_hw hw;
 	int cluster;
 };
 
-struct mb86s7x_cpu_freq {
+struct mb86s7x_cpu_freq
+{
 	u32 payload_size;
 	u32 cluster_class;
 	u32 cluster_id;
@@ -273,23 +311,29 @@ static void mhu_cluster_rate(struct clk_hw *hw, unsigned long *rate, int get)
 	cmd.frequency = *rate;
 
 	if (get)
+	{
 		code = CMD_CPU_CLOCK_RATE_GET_REQ;
+	}
 	else
+	{
 		code = CMD_CPU_CLOCK_RATE_SET_REQ;
+	}
 
 	pr_debug("%s:%d CMD Cl_Class-%u CL_ID-%u CPU_ID-%u Freq-%llu}\n",
-		 __func__, __LINE__, cmd.cluster_class,
-		 cmd.cluster_id, cmd.cpu_id, cmd.frequency);
+			 __func__, __LINE__, cmd.cluster_class,
+			 cmd.cluster_id, cmd.cpu_id, cmd.frequency);
 
 	ret = mb86s7x_send_packet(code, &cmd, sizeof(cmd));
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("%s:%d failed!\n", __func__, __LINE__);
 		return;
 	}
 
 	pr_debug("%s:%d REP Cl_Class-%u CL_ID-%u CPU_ID-%u Freq-%llu}\n",
-		 __func__, __LINE__, cmd.cluster_class,
-		 cmd.cluster_id, cmd.cpu_id, cmd.frequency);
+			 __func__, __LINE__, cmd.cluster_class,
+			 cmd.cluster_id, cmd.cpu_id, cmd.frequency);
 
 	*rate = cmd.frequency;
 }
@@ -305,14 +349,14 @@ clc_recalc_rate(struct clk_hw *hw, unsigned long unused)
 
 static long
 clc_round_rate(struct clk_hw *hw, unsigned long rate,
-	       unsigned long *unused)
+			   unsigned long *unused)
 {
 	return rate;
 }
 
 static int
 clc_set_rate(struct clk_hw *hw, unsigned long rate,
-	     unsigned long unused)
+			 unsigned long unused)
 {
 	unsigned long res = rate;
 
@@ -321,7 +365,8 @@ clc_set_rate(struct clk_hw *hw, unsigned long rate,
 	return (res == rate) ? 0 : -EINVAL;
 }
 
-static struct clk_ops clk_clc_ops = {
+static struct clk_ops clk_clc_ops =
+{
 	.recalc_rate = clc_recalc_rate,
 	.round_rate = clc_round_rate,
 	.set_rate = clc_set_rate,
@@ -334,8 +379,11 @@ static struct clk_hw *mb86s7x_clclk_register(struct device *cpu_dev)
 	int ret;
 
 	clc = kzalloc(sizeof(*clc), GFP_KERNEL);
+
 	if (!clc)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	clc->hw.init = &init;
 	clc->cluster = topology_physical_package_id(cpu_dev->id);
@@ -346,8 +394,12 @@ static struct clk_hw *mb86s7x_clclk_register(struct device *cpu_dev)
 	init.num_parents = 0;
 
 	ret = devm_clk_hw_register(cpu_dev, &clc->hw);
+
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
+
 	return &clc->hw;
 }
 
@@ -358,26 +410,36 @@ static int mb86s7x_clclk_of_init(void)
 	struct clk_hw *hw;
 
 	np = of_find_compatible_node(NULL, NULL, "fujitsu,mb86s70-scb-1.0");
-	if (!np || !of_device_is_available(np))
-		goto exit;
 
-	for_each_possible_cpu(cpu) {
+	if (!np || !of_device_is_available(np))
+	{
+		goto exit;
+	}
+
+	for_each_possible_cpu(cpu)
+	{
 		struct device *cpu_dev = get_cpu_device(cpu);
 
-		if (!cpu_dev) {
+		if (!cpu_dev)
+		{
 			pr_err("failed to get cpu%d device\n", cpu);
 			continue;
 		}
 
 		hw = mb86s7x_clclk_register(cpu_dev);
-		if (IS_ERR(hw)) {
+
+		if (IS_ERR(hw))
+		{
 			pr_err("failed to register cpu%d clock\n", cpu);
 			continue;
 		}
-		if (clk_hw_register_clkdev(hw, NULL, dev_name(cpu_dev))) {
+
+		if (clk_hw_register_clkdev(hw, NULL, dev_name(cpu_dev)))
+		{
 			pr_err("failed to register cpu%d clock lookup\n", cpu);
 			continue;
 		}
+
 		pr_debug("registered clk for %s\n", dev_name(cpu_dev));
 	}
 	ret = 0;

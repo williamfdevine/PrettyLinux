@@ -85,7 +85,8 @@ struct go7007;
 #define V4L2_CID_MOTION_THRESHOLD3	(GO7007_CID_CUSTOM_BASE+11)
 #define V4L2_CID_MB_THRESHOLD3		(GO7007_CID_CUSTOM_BASE+12)
 
-struct go7007_board_info {
+struct go7007_board_info
+{
 	unsigned int flags;
 	int hpi_buffer_cap;
 	unsigned int sensor_flags;
@@ -99,28 +100,32 @@ struct go7007_board_info {
 	int audio_bclk_div;
 	int audio_main_div;
 	int num_i2c_devs;
-	struct go_i2c {
+	struct go_i2c
+	{
 		const char *type;
-		unsigned int is_video:1;
-		unsigned int is_audio:1;
+		unsigned int is_video: 1;
+		unsigned int is_audio: 1;
 		int addr;
 		u32 flags;
 	} i2c_devs[5];
 	int num_inputs;
-	struct {
+	struct
+	{
 		int video_input;
 		int audio_index;
 		char *name;
 	} inputs[4];
 	int video_config;
 	int num_aud_inputs;
-	struct {
+	struct
+	{
 		int audio_input;
 		char *name;
 	} aud_inputs[3];
 };
 
-struct go7007_hpi_ops {
+struct go7007_hpi_ops
+{
 	int (*interface_reset)(struct go7007 *go);
 	int (*write_interrupt)(struct go7007 *go, int addr, int data);
 	int (*read_interrupt)(struct go7007 *go);
@@ -135,7 +140,8 @@ struct go7007_hpi_ops {
 #define	GO7007_BUF_PAGES	(128 * 1024 / PAGE_SIZE)
 #define	GO7007_BUF_SIZE		(GO7007_BUF_PAGES << PAGE_SHIFT)
 
-struct go7007_buffer {
+struct go7007_buffer
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 	unsigned int frame_offset;
@@ -146,7 +152,8 @@ struct go7007_buffer {
 #define GO7007_RATIO_4_3	1
 #define GO7007_RATIO_16_9	2
 
-enum go7007_parser_state {
+enum go7007_parser_state
+{
 	STATE_DATA,
 	STATE_00,
 	STATE_00_00,
@@ -158,7 +165,8 @@ enum go7007_parser_state {
 	STATE_UNPARSED,
 };
 
-struct go7007 {
+struct go7007
+{
 	struct device *dev;
 	u8 bus_info[32];
 	const struct go7007_board_info *board_info;
@@ -198,9 +206,9 @@ struct go7007 {
 	int height;
 	int encoder_h_offset;
 	int encoder_v_offset;
-	unsigned int encoder_h_halve:1;
-	unsigned int encoder_v_halve:1;
-	unsigned int encoder_subsample:1;
+	unsigned int encoder_h_halve: 1;
+	unsigned int encoder_v_halve: 1;
+	unsigned int encoder_subsample: 1;
 
 	/* Encoder config */
 	u32 format;
@@ -209,18 +217,19 @@ struct go7007 {
 	int pali;
 	int aspect_ratio;
 	int gop_size;
-	unsigned int ipb:1;
-	unsigned int closed_gop:1;
-	unsigned int repeat_seqhead:1;
-	unsigned int seq_header_enable:1;
-	unsigned int gop_header_enable:1;
-	unsigned int dvd_mode:1;
-	unsigned int interlace_coding:1;
+	unsigned int ipb: 1;
+	unsigned int closed_gop: 1;
+	unsigned int repeat_seqhead: 1;
+	unsigned int seq_header_enable: 1;
+	unsigned int gop_header_enable: 1;
+	unsigned int dvd_mode: 1;
+	unsigned int interlace_coding: 1;
 
 	/* Motion detection */
-	unsigned int modet_enable:1;
-	struct {
-		unsigned int enable:1;
+	unsigned int modet_enable: 1;
+	struct
+	{
+		unsigned int enable: 1;
 		int pixel_threshold;
 		int motion_threshold;
 		int mb_threshold;
@@ -265,17 +274,17 @@ static inline struct go7007 *to_go7007(struct v4l2_device *v4l2_dev)
 
 /* All of these must be called with the hpi_lock mutex held! */
 #define go7007_interface_reset(go) \
-			((go)->hpi_ops->interface_reset(go))
+	((go)->hpi_ops->interface_reset(go))
 #define	go7007_write_interrupt(go, x, y) \
-			((go)->hpi_ops->write_interrupt)((go), (x), (y))
+	((go)->hpi_ops->write_interrupt)((go), (x), (y))
 #define go7007_stream_start(go) \
-			((go)->hpi_ops->stream_start(go))
+	((go)->hpi_ops->stream_start(go))
 #define go7007_stream_stop(go) \
-			((go)->hpi_ops->stream_stop(go))
+	((go)->hpi_ops->stream_stop(go))
 #define	go7007_send_firmware(go, x, y) \
-			((go)->hpi_ops->send_firmware)((go), (x), (y))
+	((go)->hpi_ops->send_firmware)((go), (x), (y))
 #define go7007_write_addr(go, x, y) \
-			((go)->hpi_ops->write_interrupt)((go), (x)|0x8000, (y))
+	((go)->hpi_ops->write_interrupt)((go), (x)|0x8000, (y))
 
 /* go7007-driver.c */
 int go7007_read_addr(struct go7007 *go, u16 addr, u16 *data);
@@ -286,7 +295,7 @@ int go7007_register_encoder(struct go7007 *go, unsigned num_i2c_devs);
 int go7007_start_encoder(struct go7007 *go);
 void go7007_parse_video_stream(struct go7007 *go, u8 *buf, int length);
 struct go7007 *go7007_alloc(const struct go7007_board_info *board,
-					struct device *dev);
+							struct device *dev);
 void go7007_update_board(struct go7007 *go);
 
 /* go7007-fw.c */

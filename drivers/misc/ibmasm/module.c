@@ -67,19 +67,25 @@ static int ibmasm_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	int result;
 	struct service_processor *sp;
 
-	if ((result = pci_enable_device(pdev))) {
+	if ((result = pci_enable_device(pdev)))
+	{
 		dev_err(&pdev->dev, "Failed to enable PCI device\n");
 		return result;
 	}
-	if ((result = pci_request_regions(pdev, DRIVER_NAME))) {
+
+	if ((result = pci_request_regions(pdev, DRIVER_NAME)))
+	{
 		dev_err(&pdev->dev, "Failed to allocate PCI resources\n");
 		goto error_resources;
 	}
+
 	/* vnc client won't work without bus-mastering */
 	pci_set_master(pdev);
 
 	sp = kzalloc(sizeof(struct service_processor), GFP_KERNEL);
-	if (sp == NULL) {
+
+	if (sp == NULL)
+	{
 		dev_err(&pdev->dev, "Failed to allocate memory\n");
 		result = -ENOMEM;
 		goto error_kmalloc;
@@ -94,26 +100,32 @@ static int ibmasm_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	snprintf(sp->dirname, IBMASM_NAME_SIZE, "%d", sp->number);
 	snprintf(sp->devname, IBMASM_NAME_SIZE, "%s%d", DRIVER_NAME, sp->number);
 
-	if (ibmasm_event_buffer_init(sp)) {
+	if (ibmasm_event_buffer_init(sp))
+	{
 		dev_err(sp->dev, "Failed to allocate event buffer\n");
 		goto error_eventbuffer;
 	}
 
-	if (ibmasm_heartbeat_init(sp)) {
+	if (ibmasm_heartbeat_init(sp))
+	{
 		dev_err(sp->dev, "Failed to allocate heartbeat command\n");
 		goto error_heartbeat;
 	}
 
 	sp->irq = pdev->irq;
 	sp->base_address = pci_ioremap_bar(pdev, 0);
-	if (!sp->base_address) {
+
+	if (!sp->base_address)
+	{
 		dev_err(sp->dev, "Failed to ioremap pci memory\n");
 		result =  -ENODEV;
 		goto error_ioremap;
 	}
 
-	result = request_irq(sp->irq, ibmasm_interrupt_handler, IRQF_SHARED, sp->devname, (void*)sp);
-	if (result) {
+	result = request_irq(sp->irq, ibmasm_interrupt_handler, IRQF_SHARED, sp->devname, (void *)sp);
+
+	if (result)
+	{
 		dev_err(sp->dev, "Failed to register interrupt handler\n");
 		goto error_request_irq;
 	}
@@ -121,21 +133,29 @@ static int ibmasm_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	enable_sp_interrupts(sp->base_address);
 
 	result = ibmasm_init_remote_input_dev(sp);
-	if (result) {
+
+	if (result)
+	{
 		dev_err(sp->dev, "Failed to initialize remote queue\n");
 		goto error_send_message;
 	}
 
 	result = ibmasm_send_driver_vpd(sp);
-	if (result) {
+
+	if (result)
+	{
 		dev_err(sp->dev, "Failed to send driver VPD to service processor\n");
 		goto error_send_message;
 	}
+
 	result = ibmasm_send_os_state(sp, SYSTEM_STATE_OS_UP);
-	if (result) {
+
+	if (result)
+	{
 		dev_err(sp->dev, "Failed to send OS state to service processor\n");
 		goto error_send_message;
 	}
+
 	ibmasmfs_add_sp(sp);
 
 	ibmasm_register_uart(sp);
@@ -155,9 +175,9 @@ error_heartbeat:
 error_eventbuffer:
 	kfree(sp);
 error_kmalloc:
-        pci_release_regions(pdev);
+	pci_release_regions(pdev);
 error_resources:
-        pci_disable_device(pdev);
+	pci_disable_device(pdev);
 
 	return result;
 }
@@ -169,8 +189,12 @@ static void ibmasm_remove_one(struct pci_dev *pdev)
 	dbg("Unregistering UART\n");
 	ibmasm_unregister_uart(sp);
 	dbg("Sending OS down message\n");
+
 	if (ibmasm_send_os_state(sp, SYSTEM_STATE_OS_DOWN))
+	{
 		err("failed to get repsonse to 'Send OS State' command\n");
+	}
+
 	dbg("Disabling heartbeats\n");
 	ibmasm_heartbeat_exit(sp);
 	dbg("Disabling interrupts\n");
@@ -192,7 +216,8 @@ static struct pci_device_id ibmasm_pci_table[] =
 	{},
 };
 
-static struct pci_driver ibmasm_driver = {
+static struct pci_driver ibmasm_driver =
+{
 	.name		= DRIVER_NAME,
 	.id_table	= ibmasm_pci_table,
 	.probe		= ibmasm_init_one,
@@ -210,11 +235,16 @@ static void __exit ibmasm_exit (void)
 static int __init ibmasm_init(void)
 {
 	int result = pci_register_driver(&ibmasm_driver);
+
 	if (result)
+	{
 		return result;
+	}
 
 	result = ibmasmfs_register();
-	if (result) {
+
+	if (result)
+	{
 		pci_unregister_driver(&ibmasm_driver);
 		err("Failed to register ibmasmfs file system");
 		return result;

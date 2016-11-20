@@ -46,7 +46,8 @@ lpfc_memcpy_to_slim(void __iomem *dest, void *src, unsigned int bytes)
 	src32  = (uint32_t *) src;
 
 	/* write input bytes, 4 bytes at a time */
-	for (four_bytes = bytes /4; four_bytes > 0; four_bytes--) {
+	for (four_bytes = bytes / 4; four_bytes > 0; four_bytes--)
+	{
 		writel( *src32, dest32);
 		readl(dest32); /* flush */
 		dest32++;
@@ -68,7 +69,8 @@ lpfc_memcpy_from_slim( void *dest, void __iomem *src, unsigned int bytes)
 	src32  = (uint32_t __iomem *) src;
 
 	/* read input bytes, 4 bytes at a time */
-	for (four_bytes = bytes /4; four_bytes > 0; four_bytes--) {
+	for (four_bytes = bytes / 4; four_bytes > 0; four_bytes--)
+	{
 		*dest32 = readl( src32);
 		dest32++;
 		src32++;

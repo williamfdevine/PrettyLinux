@@ -23,7 +23,8 @@
 
 struct host1x;
 
-struct output {
+struct output
+{
 	void (*fn)(void *ctx, const char *str, size_t len);
 	void *ctx;
 	char buf[256];

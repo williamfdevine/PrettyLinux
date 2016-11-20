@@ -19,20 +19,24 @@
 #include "bmi160.h"
 
 static int bmi160_i2c_probe(struct i2c_client *client,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct regmap *regmap;
 	const char *name = NULL;
 
 	regmap = devm_regmap_init_i2c(client, &bmi160_regmap_config);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(&client->dev, "Failed to register i2c regmap %d\n",
-			(int)PTR_ERR(regmap));
+				(int)PTR_ERR(regmap));
 		return PTR_ERR(regmap);
 	}
 
 	if (id)
+	{
 		name = id->name;
+	}
 
 	return bmi160_core_probe(&client->dev, regmap, name, false);
 }
@@ -44,19 +48,22 @@ static int bmi160_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id bmi160_i2c_id[] = {
+static const struct i2c_device_id bmi160_i2c_id[] =
+{
 	{"bmi160", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, bmi160_i2c_id);
 
-static const struct acpi_device_id bmi160_acpi_match[] = {
+static const struct acpi_device_id bmi160_acpi_match[] =
+{
 	{"BMI0160", 0},
 	{ },
 };
 MODULE_DEVICE_TABLE(acpi, bmi160_acpi_match);
 
-static struct i2c_driver bmi160_i2c_driver = {
+static struct i2c_driver bmi160_i2c_driver =
+{
 	.driver = {
 		.name			= "bmi160_i2c",
 		.acpi_match_table	= ACPI_PTR(bmi160_acpi_match),

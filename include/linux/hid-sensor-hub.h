@@ -36,7 +36,8 @@
  * @logical_minimum:	Logical minimum value for this attribute.
  * @logical_maximum:	Logical maximum value for this attribute.
  */
-struct hid_sensor_hub_attribute_info {
+struct hid_sensor_hub_attribute_info
+{
 	u32 usage_id;
 	u32 attrib_id;
 	s32 report_id;
@@ -57,7 +58,8 @@ struct hid_sensor_hub_attribute_info {
  * @raw_size:		Response size for a read request.
  * @raw_data:		Place holder for received response.
  */
-struct sensor_hub_pending {
+struct sensor_hub_pending
+{
 	bool status;
 	struct completion ready;
 	u32 usage_id;
@@ -77,7 +79,8 @@ struct sensor_hub_pending {
  * @mutex_ptr:		synchronizing mutex pointer.
  * @pending:		Holds information of pending sync read request.
  */
-struct hid_sensor_hub_device {
+struct hid_sensor_hub_device
+{
 	struct hid_device *hdev;
 	u32 vendor_id;
 	u32 product_id;
@@ -97,15 +100,16 @@ struct hid_sensor_hub_device {
  * @send_event:		Send notification to indicate all samples are
  *			captured, process and send event
  */
-struct hid_sensor_hub_callbacks {
+struct hid_sensor_hub_callbacks
+{
 	struct platform_device *pdev;
 	int (*suspend)(struct hid_sensor_hub_device *hsdev, void *priv);
 	int (*resume)(struct hid_sensor_hub_device *hsdev, void *priv);
 	int (*capture_sample)(struct hid_sensor_hub_device *hsdev,
-			u32 usage_id, size_t raw_len, char *raw_data,
-			void *priv);
+						  u32 usage_id, size_t raw_len, char *raw_data,
+						  void *priv);
 	int (*send_event)(struct hid_sensor_hub_device *hsdev, u32 usage_id,
-			 void *priv);
+					  void *priv);
 };
 
 /**
@@ -137,8 +141,8 @@ void sensor_hub_device_close(struct hid_sensor_hub_device *hsdev);
 * of data streams and notifications.
 */
 int sensor_hub_register_callback(struct hid_sensor_hub_device *hsdev,
-			u32 usage_id,
-			struct hid_sensor_hub_callbacks *usage_callback);
+								 u32 usage_id,
+								 struct hid_sensor_hub_callbacks *usage_callback);
 
 /**
 * sensor_hub_remove_callback() - Remove client callbacks
@@ -149,7 +153,7 @@ int sensor_hub_register_callback(struct hid_sensor_hub_device *hsdev,
 * callbacks, so that it will stop data and event notifications.
 */
 int sensor_hub_remove_callback(struct hid_sensor_hub_device *hsdev,
-			u32 usage_id);
+							   u32 usage_id);
 
 
 /* Hid sensor hub core interfaces */
@@ -166,9 +170,9 @@ int sensor_hub_remove_callback(struct hid_sensor_hub_device *hsdev,
 * field index, units and exponet etc.
 */
 int sensor_hub_input_get_attribute_info(struct hid_sensor_hub_device *hsdev,
-			u8 type,
-			u32 usage_id, u32 attr_usage_id,
-			struct hid_sensor_hub_attribute_info *info);
+										u8 type,
+										u32 usage_id, u32 attr_usage_id,
+										struct hid_sensor_hub_attribute_info *info);
 
 /**
 * sensor_hub_input_attr_get_raw_value() - Synchronous read request
@@ -182,16 +186,17 @@ int sensor_hub_input_get_attribute_info(struct hid_sensor_hub_device *hsdev,
 * Returns data upto 32 bits.
 */
 
-enum sensor_hub_read_flags {
+enum sensor_hub_read_flags
+{
 	SENSOR_HUB_SYNC,
 	SENSOR_HUB_ASYNC,
 };
 
 int sensor_hub_input_attr_get_raw_value(struct hid_sensor_hub_device *hsdev,
- 					u32 usage_id,
- 					u32 attr_usage_id, u32 report_id,
- 					enum sensor_hub_read_flags flag
-);
+										u32 usage_id,
+										u32 attr_usage_id, u32 report_id,
+										enum sensor_hub_read_flags flag
+									   );
 
 /**
 * sensor_hub_set_feature() - Feature set request
@@ -205,7 +210,7 @@ int sensor_hub_input_attr_get_raw_value(struct hid_sensor_hub_device *hsdev,
 * interval, sensitivity, activate/deactivate state.
 */
 int sensor_hub_set_feature(struct hid_sensor_hub_device *hsdev, u32 report_id,
-			   u32 field_index, int buffer_size, void *buffer);
+						   u32 field_index, int buffer_size, void *buffer);
 
 /**
 * sensor_hub_get_feature() - Feature get request
@@ -220,12 +225,13 @@ int sensor_hub_set_feature(struct hid_sensor_hub_device *hsdev, u32 report_id,
 * number of bytes copied to buffer. On failure, it returns value < 0.
 */
 int sensor_hub_get_feature(struct hid_sensor_hub_device *hsdev, u32 report_id,
-			   u32 field_index, int buffer_size, void *buffer);
+						   u32 field_index, int buffer_size, void *buffer);
 
 /* hid-sensor-attributes */
 
 /* Common hid sensor iio structure */
-struct hid_sensor_common {
+struct hid_sensor_common
+{
 	struct hid_sensor_hub_device *hsdev;
 	struct platform_device *pdev;
 	unsigned usage_id;
@@ -243,31 +249,37 @@ struct hid_sensor_common {
 static inline int hid_sensor_convert_exponent(int unit_expo)
 {
 	if (unit_expo < 0x08)
+	{
 		return unit_expo;
+	}
 	else if (unit_expo <= 0x0f)
-		return -(0x0f-unit_expo+1);
+	{
+		return -(0x0f - unit_expo + 1);
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 int hid_sensor_parse_common_attributes(struct hid_sensor_hub_device *hsdev,
-					u32 usage_id,
-					struct hid_sensor_common *st);
+									   u32 usage_id,
+									   struct hid_sensor_common *st);
 int hid_sensor_write_raw_hyst_value(struct hid_sensor_common *st,
-					int val1, int val2);
+									int val1, int val2);
 int hid_sensor_read_raw_hyst_value(struct hid_sensor_common *st,
-					int *val1, int *val2);
+								   int *val1, int *val2);
 int hid_sensor_write_samp_freq_value(struct hid_sensor_common *st,
-					int val1, int val2);
+									 int val1, int val2);
 int hid_sensor_read_samp_freq_value(struct hid_sensor_common *st,
-					int *val1, int *val2);
+									int *val1, int *val2);
 
 int hid_sensor_get_usage_index(struct hid_sensor_hub_device *hsdev,
-				u32 report_id, int field_index, u32 usage_id);
+							   u32 report_id, int field_index, u32 usage_id);
 
 int hid_sensor_format_scale(u32 usage_id,
-			    struct hid_sensor_hub_attribute_info *attr_info,
-			    int *val0, int *val1);
+							struct hid_sensor_hub_attribute_info *attr_info,
+							int *val0, int *val1);
 
 s32 hid_sensor_read_poll_value(struct hid_sensor_common *st);
 

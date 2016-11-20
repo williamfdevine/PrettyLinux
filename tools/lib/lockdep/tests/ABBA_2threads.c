@@ -12,7 +12,9 @@ void *ba_lock(void *arg)
 	pthread_mutex_lock(&b);
 
 	if (pthread_barrier_wait(&bar) == PTHREAD_BARRIER_SERIAL_THREAD)
+	{
 		pthread_barrier_destroy(&bar);
+	}
 
 	pthread_mutex_lock(&a);
 
@@ -26,14 +28,18 @@ int main(void)
 
 	pthread_barrier_init(&bar, NULL, 2);
 
-	if (pthread_create(&t, NULL, ba_lock, NULL)) {
+	if (pthread_create(&t, NULL, ba_lock, NULL))
+	{
 		fprintf(stderr, "pthread_create() failed\n");
 		return 1;
 	}
+
 	pthread_mutex_lock(&a);
 
 	if (pthread_barrier_wait(&bar) == PTHREAD_BARRIER_SERIAL_THREAD)
+	{
 		pthread_barrier_destroy(&bar);
+	}
 
 	pthread_mutex_lock(&b);
 

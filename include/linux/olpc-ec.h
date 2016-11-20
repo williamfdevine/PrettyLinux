@@ -17,7 +17,8 @@
 
 struct platform_device;
 
-struct olpc_ec_driver {
+struct olpc_ec_driver
+{
 	int (*probe)(struct platform_device *);
 	int (*suspend)(struct platform_device *);
 	int (*resume)(struct platform_device *);
@@ -30,12 +31,12 @@ struct olpc_ec_driver {
 extern void olpc_ec_driver_register(struct olpc_ec_driver *drv, void *arg);
 
 extern int olpc_ec_cmd(u8 cmd, u8 *inbuf, size_t inlen, u8 *outbuf,
-		size_t outlen);
+					   size_t outlen);
 
 #else
 
 static inline int olpc_ec_cmd(u8 cmd, u8 *inbuf, size_t inlen, u8 *outbuf,
-		size_t outlen) { return -ENODEV; }
+							  size_t outlen) { return -ENODEV; }
 
 #endif /* CONFIG_OLPC */
 

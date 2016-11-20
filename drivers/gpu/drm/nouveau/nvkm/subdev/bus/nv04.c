@@ -35,21 +35,28 @@ nv04_bus_intr(struct nvkm_bus *bus)
 	struct nvkm_device *device = subdev->device;
 	u32 stat = nvkm_rd32(device, 0x001100) & nvkm_rd32(device, 0x001140);
 
-	if (stat & 0x00000001) {
+	if (stat & 0x00000001)
+	{
 		nvkm_error(subdev, "BUS ERROR\n");
 		stat &= ~0x00000001;
 		nvkm_wr32(device, 0x001100, 0x00000001);
 	}
 
-	if (stat & 0x00000110) {
+	if (stat & 0x00000110)
+	{
 		struct nvkm_gpio *gpio = device->gpio;
+
 		if (gpio)
+		{
 			nvkm_subdev_intr(&gpio->subdev);
+		}
+
 		stat &= ~0x00000110;
 		nvkm_wr32(device, 0x001100, 0x00000110);
 	}
 
-	if (stat) {
+	if (stat)
+	{
 		nvkm_error(subdev, "intr %08x\n", stat);
 		nvkm_mask(device, 0x001140, stat, 0x00000000);
 	}
@@ -64,7 +71,8 @@ nv04_bus_init(struct nvkm_bus *bus)
 }
 
 static const struct nvkm_bus_func
-nv04_bus = {
+	nv04_bus =
+{
 	.init = nv04_bus_init,
 	.intr = nv04_bus_intr,
 };

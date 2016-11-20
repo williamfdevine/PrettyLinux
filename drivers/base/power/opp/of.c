@@ -25,8 +25,10 @@ static struct opp_table *_managed_opp(const struct device_node *np)
 {
 	struct opp_table *opp_table;
 
-	list_for_each_entry_rcu(opp_table, &opp_tables, node) {
-		if (opp_table->np == np) {
+	list_for_each_entry_rcu(opp_table, &opp_tables, node)
+	{
+		if (opp_table->np == np)
+		{
 			/*
 			 * Multiple devices can point to the same OPP table and
 			 * so will have same node-pointer, np.
@@ -35,7 +37,9 @@ static struct opp_table *_managed_opp(const struct device_node *np)
 			 * OPP table contains a "opp-shared" property.
 			 */
 			if (opp_table->shared_opp == OPP_TABLE_ACCESS_SHARED)
+			{
 				return opp_table;
+			}
 
 			return NULL;
 		}
@@ -53,25 +57,31 @@ void _of_init_opp_table(struct opp_table *opp_table, struct device *dev)
 	 * harmful for other cases. And so we do it unconditionally.
 	 */
 	np = of_node_get(dev->of_node);
-	if (np) {
+
+	if (np)
+	{
 		u32 val;
 
 		if (!of_property_read_u32(np, "clock-latency", &val))
+		{
 			opp_table->clock_latency_ns_max = val;
+		}
+
 		of_property_read_u32(np, "voltage-tolerance",
-				     &opp_table->voltage_tolerance_v1);
+							 &opp_table->voltage_tolerance_v1);
 		of_node_put(np);
 	}
 }
 
 static bool _opp_is_supported(struct device *dev, struct opp_table *opp_table,
-			      struct device_node *np)
+							  struct device_node *np)
 {
 	unsigned int count = opp_table->supported_hw_count;
 	u32 version;
 	int ret;
 
-	if (!opp_table->supported_hw) {
+	if (!opp_table->supported_hw)
+	{
 		/*
 		 * In the case that no supported_hw has been set by the
 		 * platform but there is an opp-supported-hw value set for
@@ -79,23 +89,32 @@ static bool _opp_is_supported(struct device *dev, struct opp_table *opp_table,
 		 * no way to see if the hardware supports it.
 		 */
 		if (of_find_property(np, "opp-supported-hw", NULL))
+		{
 			return false;
+		}
 		else
+		{
 			return true;
+		}
 	}
 
-	while (count--) {
+	while (count--)
+	{
 		ret = of_property_read_u32_index(np, "opp-supported-hw", count,
-						 &version);
-		if (ret) {
+										 &version);
+
+		if (ret)
+		{
 			dev_warn(dev, "%s: failed to read opp-supported-hw property at index %d: %d\n",
-				 __func__, count, ret);
+					 __func__, count, ret);
 			return false;
 		}
 
 		/* Both of these are bitwise masks of the versions */
 		if (!(version & opp_table->supported_hw[count]))
+		{
 			return false;
+		}
 	}
 
 	return true;
@@ -103,7 +122,7 @@ static bool _opp_is_supported(struct device *dev, struct opp_table *opp_table,
 
 /* TODO: Support multiple regulators */
 static int opp_parse_supplies(struct dev_pm_opp *opp, struct device *dev,
-			      struct opp_table *opp_table)
+							  struct opp_table *opp_table)
 {
 	u32 microvolt[3] = {0};
 	u32 val;
@@ -112,68 +131,85 @@ static int opp_parse_supplies(struct dev_pm_opp *opp, struct device *dev,
 	char name[NAME_MAX];
 
 	/* Search for "opp-microvolt-<name>" */
-	if (opp_table->prop_name) {
+	if (opp_table->prop_name)
+	{
 		snprintf(name, sizeof(name), "opp-microvolt-%s",
-			 opp_table->prop_name);
+				 opp_table->prop_name);
 		prop = of_find_property(opp->np, name, NULL);
 	}
 
-	if (!prop) {
+	if (!prop)
+	{
 		/* Search for "opp-microvolt" */
 		sprintf(name, "opp-microvolt");
 		prop = of_find_property(opp->np, name, NULL);
 
 		/* Missing property isn't a problem, but an invalid entry is */
 		if (!prop)
+		{
 			return 0;
+		}
 	}
 
 	count = of_property_count_u32_elems(opp->np, name);
-	if (count < 0) {
+
+	if (count < 0)
+	{
 		dev_err(dev, "%s: Invalid %s property (%d)\n",
-			__func__, name, count);
+				__func__, name, count);
 		return count;
 	}
 
 	/* There can be one or three elements here */
-	if (count != 1 && count != 3) {
+	if (count != 1 && count != 3)
+	{
 		dev_err(dev, "%s: Invalid number of elements in %s property (%d)\n",
-			__func__, name, count);
+				__func__, name, count);
 		return -EINVAL;
 	}
 
 	ret = of_property_read_u32_array(opp->np, name, microvolt, count);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "%s: error parsing %s: %d\n", __func__, name, ret);
 		return -EINVAL;
 	}
 
 	opp->u_volt = microvolt[0];
 
-	if (count == 1) {
+	if (count == 1)
+	{
 		opp->u_volt_min = opp->u_volt;
 		opp->u_volt_max = opp->u_volt;
-	} else {
+	}
+	else
+	{
 		opp->u_volt_min = microvolt[1];
 		opp->u_volt_max = microvolt[2];
 	}
 
 	/* Search for "opp-microamp-<name>" */
 	prop = NULL;
-	if (opp_table->prop_name) {
+
+	if (opp_table->prop_name)
+	{
 		snprintf(name, sizeof(name), "opp-microamp-%s",
-			 opp_table->prop_name);
+				 opp_table->prop_name);
 		prop = of_find_property(opp->np, name, NULL);
 	}
 
-	if (!prop) {
+	if (!prop)
+	{
 		/* Search for "opp-microamp" */
 		sprintf(name, "opp-microamp");
 		prop = of_find_property(opp->np, name, NULL);
 	}
 
 	if (prop && !of_property_read_u32(opp->np, name, &val))
+	{
 		opp->u_amp = val;
+	}
 
 	return 0;
 }
@@ -245,19 +281,24 @@ static int _opp_add_static_v2(struct device *dev, struct device_node *np)
 	mutex_lock(&opp_table_lock);
 
 	new_opp = _allocate_opp(dev, &opp_table);
-	if (!new_opp) {
+
+	if (!new_opp)
+	{
 		ret = -ENOMEM;
 		goto unlock;
 	}
 
 	ret = of_property_read_u64(np, "opp-hz", &rate);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "%s: opp-hz not found\n", __func__);
 		goto free_opp;
 	}
 
 	/* Check if the OPP supports hardware's hierarchy of versions or not */
-	if (!_opp_is_supported(dev, opp_table, np)) {
+	if (!_opp_is_supported(dev, opp_table, np))
+	{
 		dev_dbg(dev, "OPP not supported by hardware: %llu\n", rate);
 		goto free_opp;
 	}
@@ -275,37 +316,51 @@ static int _opp_add_static_v2(struct device *dev, struct device_node *np)
 	new_opp->available = true;
 
 	if (!of_property_read_u32(np, "clock-latency-ns", &val))
+	{
 		new_opp->clock_latency_ns = val;
+	}
 
 	ret = opp_parse_supplies(new_opp, dev, opp_table);
+
 	if (ret)
+	{
 		goto free_opp;
+	}
 
 	ret = _opp_add(dev, new_opp, opp_table);
+
 	if (ret)
+	{
 		goto free_opp;
+	}
 
 	/* OPP to select on device suspend */
-	if (of_property_read_bool(np, "opp-suspend")) {
-		if (opp_table->suspend_opp) {
+	if (of_property_read_bool(np, "opp-suspend"))
+	{
+		if (opp_table->suspend_opp)
+		{
 			dev_warn(dev, "%s: Multiple suspend OPPs found (%lu %lu)\n",
-				 __func__, opp_table->suspend_opp->rate,
-				 new_opp->rate);
-		} else {
+					 __func__, opp_table->suspend_opp->rate,
+					 new_opp->rate);
+		}
+		else
+		{
 			new_opp->suspend = true;
 			opp_table->suspend_opp = new_opp;
 		}
 	}
 
 	if (new_opp->clock_latency_ns > opp_table->clock_latency_ns_max)
+	{
 		opp_table->clock_latency_ns_max = new_opp->clock_latency_ns;
+	}
 
 	mutex_unlock(&opp_table_lock);
 
 	pr_debug("%s: turbo:%d rate:%lu uv:%lu uvmin:%lu uvmax:%lu latency:%lu\n",
-		 __func__, new_opp->turbo, new_opp->rate, new_opp->u_volt,
-		 new_opp->u_volt_min, new_opp->u_volt_max,
-		 new_opp->clock_latency_ns);
+			 __func__, new_opp->turbo, new_opp->rate, new_opp->u_volt,
+			 new_opp->u_volt_min, new_opp->u_volt_max,
+			 new_opp->clock_latency_ns);
 
 	/*
 	 * Notify the changes in the availability of the operable
@@ -331,45 +386,63 @@ static int _of_add_opp_table_v2(struct device *dev, struct device_node *opp_np)
 	mutex_lock(&opp_table_lock);
 
 	opp_table = _managed_opp(opp_np);
-	if (opp_table) {
+
+	if (opp_table)
+	{
 		/* OPPs are already managed */
 		if (!_add_opp_dev(dev, opp_table))
+		{
 			ret = -ENOMEM;
+		}
+
 		mutex_unlock(&opp_table_lock);
 		return ret;
 	}
+
 	mutex_unlock(&opp_table_lock);
 
 	/* We have opp-table node now, iterate over it and add OPPs */
-	for_each_available_child_of_node(opp_np, np) {
+	for_each_available_child_of_node(opp_np, np)
+	{
 		count++;
 
 		ret = _opp_add_static_v2(dev, np);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "%s: Failed to add OPP, %d\n", __func__,
-				ret);
+					ret);
 			goto free_table;
 		}
 	}
 
 	/* There should be one of more OPP defined */
 	if (WARN_ON(!count))
+	{
 		return -ENOENT;
+	}
 
 	mutex_lock(&opp_table_lock);
 
 	opp_table = _find_opp_table(dev);
-	if (WARN_ON(IS_ERR(opp_table))) {
+
+	if (WARN_ON(IS_ERR(opp_table)))
+	{
 		ret = PTR_ERR(opp_table);
 		mutex_unlock(&opp_table_lock);
 		goto free_table;
 	}
 
 	opp_table->np = opp_np;
+
 	if (of_property_read_bool(opp_np, "opp-shared"))
+	{
 		opp_table->shared_opp = OPP_TABLE_ACCESS_SHARED;
+	}
 	else
+	{
 		opp_table->shared_opp = OPP_TABLE_ACCESS_EXCLUSIVE;
+	}
 
 	mutex_unlock(&opp_table_lock);
 
@@ -389,29 +462,40 @@ static int _of_add_opp_table_v1(struct device *dev)
 	int nr;
 
 	prop = of_find_property(dev->of_node, "operating-points", NULL);
+
 	if (!prop)
+	{
 		return -ENODEV;
+	}
+
 	if (!prop->value)
+	{
 		return -ENODATA;
+	}
 
 	/*
 	 * Each OPP is a set of tuples consisting of frequency and
 	 * voltage like <freq-kHz vol-uV>.
 	 */
 	nr = prop->length / sizeof(u32);
-	if (nr % 2) {
+
+	if (nr % 2)
+	{
 		dev_err(dev, "%s: Invalid OPP table\n", __func__);
 		return -EINVAL;
 	}
 
 	val = prop->value;
-	while (nr) {
+
+	while (nr)
+	{
 		unsigned long freq = be32_to_cpup(val++) * 1000;
 		unsigned long volt = be32_to_cpup(val++);
 
 		if (_opp_add_v1(dev, freq, volt, false))
 			dev_warn(dev, "%s: Failed to add OPP %ld\n",
-				 __func__, freq);
+					 __func__, freq);
+
 		nr -= 2;
 	}
 
@@ -451,7 +535,9 @@ int dev_pm_opp_of_add_table(struct device *dev)
 	 * try for the new binding first.
 	 */
 	opp_np = _of_get_opp_desc_node(dev);
-	if (!opp_np) {
+
+	if (!opp_np)
+	{
 		/*
 		 * Try old-deprecated bindings for backward compatibility with
 		 * older dtbs.
@@ -506,18 +592,23 @@ int dev_pm_opp_of_cpumask_add_table(const struct cpumask *cpumask)
 
 	WARN_ON(cpumask_empty(cpumask));
 
-	for_each_cpu(cpu, cpumask) {
+	for_each_cpu(cpu, cpumask)
+	{
 		cpu_dev = get_cpu_device(cpu);
-		if (!cpu_dev) {
+
+		if (!cpu_dev)
+		{
 			pr_err("%s: failed to get cpu%d device\n", __func__,
-			       cpu);
+				   cpu);
 			continue;
 		}
 
 		ret = dev_pm_opp_of_add_table(cpu_dev);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("%s: couldn't find opp table for cpu:%d, %d\n",
-			       __func__, cpu, ret);
+				   __func__, cpu, ret);
 
 			/* Free all other OPPs */
 			dev_pm_opp_of_cpumask_remove_table(cpumask);
@@ -553,7 +644,7 @@ EXPORT_SYMBOL_GPL(dev_pm_opp_of_cpumask_add_table);
  * mutex cannot be locked.
  */
 int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev,
-				   struct cpumask *cpumask)
+								   struct cpumask *cpumask)
 {
 	struct device_node *np, *tmp_np;
 	struct device *tcpu_dev;
@@ -561,7 +652,9 @@ int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev,
 
 	/* Get OPP descriptor node */
 	np = _of_get_opp_desc_node(cpu_dev);
-	if (!np) {
+
+	if (!np)
+	{
 		dev_dbg(cpu_dev, "%s: Couldn't find cpu_dev node.\n", __func__);
 		return -ENOENT;
 	}
@@ -570,32 +663,43 @@ int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev,
 
 	/* OPPs are shared ? */
 	if (!of_property_read_bool(np, "opp-shared"))
+	{
 		goto put_cpu_node;
+	}
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		if (cpu == cpu_dev->id)
+		{
 			continue;
+		}
 
 		tcpu_dev = get_cpu_device(cpu);
-		if (!tcpu_dev) {
+
+		if (!tcpu_dev)
+		{
 			dev_err(cpu_dev, "%s: failed to get cpu%d device\n",
-				__func__, cpu);
+					__func__, cpu);
 			ret = -ENODEV;
 			goto put_cpu_node;
 		}
 
 		/* Get OPP descriptor node */
 		tmp_np = _of_get_opp_desc_node(tcpu_dev);
-		if (!tmp_np) {
+
+		if (!tmp_np)
+		{
 			dev_err(tcpu_dev, "%s: Couldn't find tcpu_dev node.\n",
-				__func__);
+					__func__);
 			ret = -ENOENT;
 			goto put_cpu_node;
 		}
 
 		/* CPUs are sharing opp node */
 		if (np == tmp_np)
+		{
 			cpumask_set_cpu(cpu, cpumask);
+		}
 
 		of_node_put(tmp_np);
 	}

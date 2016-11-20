@@ -66,27 +66,36 @@ static int rcar_sysc_pwr_on_off(const struct rcar_sysc_ch *sysc_ch, bool on)
 	unsigned int sr_bit, reg_offs;
 	int k;
 
-	if (on) {
+	if (on)
+	{
 		sr_bit = SYSCSR_PONENB;
 		reg_offs = PWRONCR_OFFS;
-	} else {
+	}
+	else
+	{
 		sr_bit = SYSCSR_POFFENB;
 		reg_offs = PWROFFCR_OFFS;
 	}
 
 	/* Wait until SYSC is ready to accept a power request */
-	for (k = 0; k < SYSCSR_RETRIES; k++) {
+	for (k = 0; k < SYSCSR_RETRIES; k++)
+	{
 		if (ioread32(rcar_sysc_base + SYSCSR) & BIT(sr_bit))
+		{
 			break;
+		}
+
 		udelay(SYSCSR_DELAY_US);
 	}
 
 	if (k == SYSCSR_RETRIES)
+	{
 		return -EAGAIN;
+	}
 
 	/* Submit power shutoff or power resume request */
 	iowrite32(BIT(sysc_ch->chan_bit),
-		  rcar_sysc_base + sysc_ch->chan_offs + reg_offs);
+			  rcar_sysc_base + sysc_ch->chan_offs + reg_offs);
 
 	return 0;
 }
@@ -105,41 +114,55 @@ static int rcar_sysc_power(const struct rcar_sysc_ch *sysc_ch, bool on)
 	iowrite32(isr_mask, rcar_sysc_base + SYSCISCR);
 
 	/* Submit power shutoff or resume request until it was accepted */
-	for (k = 0; k < PWRER_RETRIES; k++) {
+	for (k = 0; k < PWRER_RETRIES; k++)
+	{
 		ret = rcar_sysc_pwr_on_off(sysc_ch, on);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		status = ioread32(rcar_sysc_base +
-				  sysc_ch->chan_offs + PWRER_OFFS);
+						  sysc_ch->chan_offs + PWRER_OFFS);
+
 		if (!(status & chan_mask))
+		{
 			break;
+		}
 
 		udelay(PWRER_DELAY_US);
 	}
 
-	if (k == PWRER_RETRIES) {
+	if (k == PWRER_RETRIES)
+	{
 		ret = -EIO;
 		goto out;
 	}
 
 	/* Wait until the power shutoff or resume request has completed * */
-	for (k = 0; k < SYSCISR_RETRIES; k++) {
+	for (k = 0; k < SYSCISR_RETRIES; k++)
+	{
 		if (ioread32(rcar_sysc_base + SYSCISR) & isr_mask)
+		{
 			break;
+		}
+
 		udelay(SYSCISR_DELAY_US);
 	}
 
 	if (k == SYSCISR_RETRIES)
+	{
 		ret = -EIO;
+	}
 
 	iowrite32(isr_mask, rcar_sysc_base + SYSCISCR);
 
- out:
+out:
 	spin_unlock_irqrestore(&rcar_sysc_lock, flags);
 
 	pr_debug("sysc power %s domain %d: %08x -> %d\n", on ? "on" : "off",
-		 sysc_ch->isr_bit, ioread32(rcar_sysc_base + SYSCISR), ret);
+			 sysc_ch->isr_bit, ioread32(rcar_sysc_base + SYSCISR), ret);
 	return ret;
 }
 
@@ -158,13 +181,17 @@ static bool rcar_sysc_power_is_off(const struct rcar_sysc_ch *sysc_ch)
 	unsigned int st;
 
 	st = ioread32(rcar_sysc_base + sysc_ch->chan_offs + PWRSR_OFFS);
+
 	if (st & BIT(sysc_ch->chan_bit))
+	{
 		return true;
+	}
 
 	return false;
 }
 
-struct rcar_sysc_pd {
+struct rcar_sysc_pd
+{
 	struct generic_pm_domain genpd;
 	struct rcar_sysc_ch ch;
 	unsigned int flags;
@@ -182,12 +209,14 @@ static int rcar_sysc_pd_power_off(struct generic_pm_domain *genpd)
 
 	pr_debug("%s: %s\n", __func__, genpd->name);
 
-	if (pd->flags & PD_NO_CR) {
+	if (pd->flags & PD_NO_CR)
+	{
 		pr_debug("%s: Cannot control %s\n", __func__, genpd->name);
 		return -EBUSY;
 	}
 
-	if (pd->flags & PD_BUSY) {
+	if (pd->flags & PD_BUSY)
+	{
 		pr_debug("%s: %s busy\n", __func__, genpd->name);
 		return -EBUSY;
 	}
@@ -201,7 +230,8 @@ static int rcar_sysc_pd_power_on(struct generic_pm_domain *genpd)
 
 	pr_debug("%s: %s\n", __func__, genpd->name);
 
-	if (pd->flags & PD_NO_CR) {
+	if (pd->flags & PD_NO_CR)
+	{
 		pr_debug("%s: Cannot control %s\n", __func__, genpd->name);
 		return 0;
 	}
@@ -217,7 +247,8 @@ static void __init rcar_sysc_pd_setup(struct rcar_sysc_pd *pd)
 	const char *name = pd->genpd.name;
 	struct dev_power_governor *gov = &simple_qos_governor;
 
-	if (pd->flags & PD_CPU) {
+	if (pd->flags & PD_CPU)
+	{
 		/*
 		 * This domain contains a CPU core and therefore it should
 		 * only be turned off if the CPU is not in use.
@@ -225,7 +256,9 @@ static void __init rcar_sysc_pd_setup(struct rcar_sysc_pd *pd)
 		pr_debug("PM domain %s contains %s\n", name, "CPU");
 		pd->flags |= PD_BUSY;
 		gov = &pm_domain_always_on_gov;
-	} else if (pd->flags & PD_SCU) {
+	}
+	else if (pd->flags & PD_SCU)
+	{
 		/*
 		 * This domain contains an SCU and cache-controller, and
 		 * therefore it should only be turned off if the CPU cores are
@@ -234,7 +267,9 @@ static void __init rcar_sysc_pd_setup(struct rcar_sysc_pd *pd)
 		pr_debug("PM domain %s contains %s\n", name, "SCU");
 		pd->flags |= PD_BUSY;
 		gov = &pm_domain_always_on_gov;
-	} else if (pd->flags & PD_NO_CR) {
+	}
+	else if (pd->flags & PD_NO_CR)
+	{
 		/*
 		 * This domain cannot be turned off.
 		 */
@@ -242,13 +277,18 @@ static void __init rcar_sysc_pd_setup(struct rcar_sysc_pd *pd)
 		gov = &pm_domain_always_on_gov;
 	}
 
-	if (!(pd->flags & (PD_CPU | PD_SCU))) {
+	if (!(pd->flags & (PD_CPU | PD_SCU)))
+	{
 		/* Enable Clock Domain for I/O devices */
 		genpd->flags = GENPD_FLAG_PM_CLK;
-		if (has_cpg_mstp) {
+
+		if (has_cpg_mstp)
+		{
 			genpd->attach_dev = cpg_mstp_attach_dev;
 			genpd->detach_dev = cpg_mstp_detach_dev;
-		} else {
+		}
+		else
+		{
 			genpd->attach_dev = cpg_mssr_attach_dev;
 			genpd->detach_dev = cpg_mssr_detach_dev;
 		}
@@ -257,13 +297,15 @@ static void __init rcar_sysc_pd_setup(struct rcar_sysc_pd *pd)
 	genpd->power_off = rcar_sysc_pd_power_off;
 	genpd->power_on = rcar_sysc_pd_power_on;
 
-	if (pd->flags & (PD_CPU | PD_NO_CR)) {
+	if (pd->flags & (PD_CPU | PD_NO_CR))
+	{
 		/* Skip CPUs (handled by SMP code) and areas without control */
 		pr_debug("%s: Not touching %s\n", __func__, genpd->name);
 		goto finalize;
 	}
 
-	if (!rcar_sysc_power_is_off(&pd->ch)) {
+	if (!rcar_sysc_power_is_off(&pd->ch))
+	{
 		pr_debug("%s: %s is already powered\n", __func__, genpd->name);
 		goto finalize;
 	}
@@ -274,7 +316,8 @@ finalize:
 	pm_genpd_init(genpd, gov, false);
 }
 
-static const struct of_device_id rcar_sysc_matches[] = {
+static const struct of_device_id rcar_sysc_matches[] =
+{
 #ifdef CONFIG_ARCH_R8A7779
 	{ .compatible = "renesas,r8a7779-sysc", .data = &r8a7779_sysc_info },
 #endif
@@ -303,7 +346,8 @@ static const struct of_device_id rcar_sysc_matches[] = {
 	{ /* sentinel */ }
 };
 
-struct rcar_pm_domains {
+struct rcar_pm_domains
+{
 	struct genpd_onecell_data onecell_data;
 	struct generic_pm_domain *domains[RCAR_PD_ALWAYS_ON + 1];
 };
@@ -320,19 +364,26 @@ static int __init rcar_sysc_pd_init(void)
 	int error;
 
 	if (rcar_sysc_base)
+	{
 		return 0;
+	}
 
 	np = of_find_matching_node_and_match(NULL, rcar_sysc_matches, &match);
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	info = match->data;
 
 	has_cpg_mstp = of_find_compatible_node(NULL, NULL,
-					       "renesas,cpg-mstp-clocks");
+										   "renesas,cpg-mstp-clocks");
 
 	base = of_iomap(np, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		pr_warn("%s: Cannot map regs\n", np->full_name);
 		error = -ENOMEM;
 		goto out_put;
@@ -341,7 +392,9 @@ static int __init rcar_sysc_pd_init(void)
 	rcar_sysc_base = base;
 
 	domains = kzalloc(sizeof(*domains), GFP_KERNEL);
-	if (!domains) {
+
+	if (!domains)
+	{
 		error = -ENOMEM;
 		goto out_put;
 	}
@@ -350,7 +403,9 @@ static int __init rcar_sysc_pd_init(void)
 	domains->onecell_data.num_domains = ARRAY_SIZE(domains->domains);
 
 	for (i = 0, syscier = 0; i < info->num_areas; i++)
+	{
 		syscier |= BIT(info->areas[i].isr_bit);
+	}
 
 	/*
 	 * Mask all interrupt sources to prevent the CPU from receiving them.
@@ -367,12 +422,15 @@ static int __init rcar_sysc_pd_init(void)
 	pr_debug("%s: syscier = 0x%08x\n", np->full_name, syscier);
 	iowrite32(syscier, base + SYSCIER);
 
-	for (i = 0; i < info->num_areas; i++) {
+	for (i = 0; i < info->num_areas; i++)
+	{
 		const struct rcar_sysc_area *area = &info->areas[i];
 		struct rcar_sysc_pd *pd;
 
 		pd = kzalloc(sizeof(*pd) + strlen(area->name) + 1, GFP_KERNEL);
-		if (!pd) {
+
+		if (!pd)
+		{
 			error = -ENOMEM;
 			goto out_put;
 		}
@@ -385,9 +443,10 @@ static int __init rcar_sysc_pd_init(void)
 		pd->flags = area->flags;
 
 		rcar_sysc_pd_setup(pd);
+
 		if (area->parent >= 0)
 			pm_genpd_add_subdomain(domains->domains[area->parent],
-					       &pd->genpd);
+								   &pd->genpd);
 
 		domains->domains[area->isr_bit] = &pd->genpd;
 	}
@@ -405,7 +464,9 @@ void __init rcar_sysc_init(phys_addr_t base, u32 syscier)
 	u32 syscimr;
 
 	if (!rcar_sysc_pd_init())
+	{
 		return;
+	}
 
 	rcar_sysc_base = ioremap_nocache(base, PAGE_SIZE);
 

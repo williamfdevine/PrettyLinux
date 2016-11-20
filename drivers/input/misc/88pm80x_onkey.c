@@ -32,7 +32,8 @@
 #define PM800_LONKEY_PRESS_TIME_MASK	(0xF0)
 #define PM800_SW_PDOWN			(1 << 5)
 
-struct pm80x_onkey_info {
+struct pm80x_onkey_info
+{
 	struct input_dev *idev;
 	struct pm80x_chip *pm80x;
 	struct regmap *map;
@@ -47,10 +48,13 @@ static irqreturn_t pm80x_onkey_handler(int irq, void *data)
 	unsigned int val;
 
 	ret = regmap_read(info->map, PM800_STATUS_1, &val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(info->idev->dev.parent, "failed to read status: %d\n", ret);
 		return IRQ_NONE;
 	}
+
 	val &= PM800_ONKEY_STS1;
 
 	input_report_key(info->idev, KEY_POWER, val);
@@ -60,7 +64,7 @@ static irqreturn_t pm80x_onkey_handler(int irq, void *data)
 }
 
 static SIMPLE_DEV_PM_OPS(pm80x_onkey_pm_ops, pm80x_dev_suspend,
-			 pm80x_dev_resume);
+						 pm80x_dev_resume);
 
 static int pm80x_onkey_probe(struct platform_device *pdev)
 {
@@ -70,27 +74,36 @@ static int pm80x_onkey_probe(struct platform_device *pdev)
 	int err;
 
 	info = kzalloc(sizeof(struct pm80x_onkey_info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	info->pm80x = chip;
 
 	info->irq = platform_get_irq(pdev, 0);
-	if (info->irq < 0) {
+
+	if (info->irq < 0)
+	{
 		dev_err(&pdev->dev, "No IRQ resource!\n");
 		err = -EINVAL;
 		goto out;
 	}
 
 	info->map = info->pm80x->regmap;
-	if (!info->map) {
+
+	if (!info->map)
+	{
 		dev_err(&pdev->dev, "no regmap!\n");
 		err = -EINVAL;
 		goto out;
 	}
 
 	info->idev = input_allocate_device();
-	if (!info->idev) {
+
+	if (!info->idev)
+	{
 		dev_err(&pdev->dev, "Failed to allocate input dev\n");
 		err = -ENOMEM;
 		goto out;
@@ -104,15 +117,19 @@ static int pm80x_onkey_probe(struct platform_device *pdev)
 	__set_bit(KEY_POWER, info->idev->keybit);
 
 	err = pm80x_request_irq(info->pm80x, info->irq, pm80x_onkey_handler,
-					    IRQF_ONESHOT, "onkey", info);
-	if (err < 0) {
+							IRQF_ONESHOT, "onkey", info);
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev, "Failed to request IRQ: #%d: %d\n",
-			info->irq, err);
+				info->irq, err);
 		goto out_reg;
 	}
 
 	err = input_register_device(info->idev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Can't register input device: %d\n", err);
 		goto out_irq;
 	}
@@ -121,11 +138,11 @@ static int pm80x_onkey_probe(struct platform_device *pdev)
 
 	/* Enable long onkey detection */
 	regmap_update_bits(info->map, PM800_RTC_MISC4, PM800_LONG_ONKEY_EN,
-			   PM800_LONG_ONKEY_EN);
+					   PM800_LONG_ONKEY_EN);
 	/* Set 8-second interval */
 	regmap_update_bits(info->map, PM800_RTC_MISC3,
-			   PM800_LONKEY_PRESS_TIME_MASK,
-			   PM800_LONKEY_PRESS_TIME);
+					   PM800_LONKEY_PRESS_TIME_MASK,
+					   PM800_LONKEY_PRESS_TIME);
 
 	device_init_wakeup(&pdev->dev, 1);
 	return 0;
@@ -150,11 +167,12 @@ static int pm80x_onkey_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pm80x_onkey_driver = {
+static struct platform_driver pm80x_onkey_driver =
+{
 	.driver = {
-		   .name = "88pm80x-onkey",
-		   .pm = &pm80x_onkey_pm_ops,
-		   },
+		.name = "88pm80x-onkey",
+		.pm = &pm80x_onkey_pm_ops,
+	},
 	.probe = pm80x_onkey_probe,
 	.remove = pm80x_onkey_remove,
 };

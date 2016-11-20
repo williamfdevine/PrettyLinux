@@ -102,7 +102,7 @@ ACPI_EXPORT_SYMBOL(acpi_error)
  ******************************************************************************/
 void ACPI_INTERNAL_VAR_XFACE
 acpi_exception(const char *module_name,
-	       u32 line_number, acpi_status status, const char *format, ...)
+			   u32 line_number, acpi_status status, const char *format, ...)
 {
 	va_list arg_list;
 
@@ -110,12 +110,15 @@ acpi_exception(const char *module_name,
 
 	/* For AE_OK, just print the message */
 
-	if (ACPI_SUCCESS(status)) {
+	if (ACPI_SUCCESS(status))
+	{
 		acpi_os_printf(ACPI_MSG_EXCEPTION);
 
-	} else {
+	}
+	else
+	{
 		acpi_os_printf(ACPI_MSG_EXCEPTION "%s, ",
-			       acpi_format_exception(status));
+					   acpi_format_exception(status));
 	}
 
 	va_start(arg_list, format);
@@ -208,7 +211,7 @@ ACPI_EXPORT_SYMBOL(acpi_info)
  ******************************************************************************/
 void ACPI_INTERNAL_VAR_XFACE
 acpi_bios_error(const char *module_name,
-		u32 line_number, const char *format, ...)
+				u32 line_number, const char *format, ...)
 {
 	va_list arg_list;
 
@@ -241,7 +244,7 @@ ACPI_EXPORT_SYMBOL(acpi_bios_error)
  ******************************************************************************/
 void ACPI_INTERNAL_VAR_XFACE
 acpi_bios_warning(const char *module_name,
-		  u32 line_number, const char *format, ...)
+				  u32 line_number, const char *format, ...)
 {
 	va_list arg_list;
 

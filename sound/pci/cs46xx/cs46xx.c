@@ -21,7 +21,7 @@
 
 /*
   NOTES:
-  - sometimes the sound is metallic and sibilant, unloading and 
+  - sometimes the sound is metallic and sibilant, unloading and
     reloading the module may solve this.
 */
 
@@ -37,12 +37,12 @@ MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
 MODULE_DESCRIPTION("Cirrus Logic Sound Fusion CS46XX");
 MODULE_LICENSE("GPL");
 MODULE_SUPPORTED_DEVICE("{{Cirrus Logic,Sound Fusion (CS4280)},"
-		"{Cirrus Logic,Sound Fusion (CS4610)},"
-		"{Cirrus Logic,Sound Fusion (CS4612)},"
-		"{Cirrus Logic,Sound Fusion (CS4615)},"
-		"{Cirrus Logic,Sound Fusion (CS4622)},"
-		"{Cirrus Logic,Sound Fusion (CS4624)},"
-		"{Cirrus Logic,Sound Fusion (CS4630)}}");
+						"{Cirrus Logic,Sound Fusion (CS4610)},"
+						"{Cirrus Logic,Sound Fusion (CS4612)},"
+						"{Cirrus Logic,Sound Fusion (CS4615)},"
+						"{Cirrus Logic,Sound Fusion (CS4622)},"
+						"{Cirrus Logic,Sound Fusion (CS4624)},"
+						"{Cirrus Logic,Sound Fusion (CS4630)}}");
 
 static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
 static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	/* ID for this card */
@@ -64,7 +64,8 @@ MODULE_PARM_DESC(thinkpad, "Force to enable Thinkpad's CLKRUN control.");
 module_param_array(mmap_valid, bool, NULL, 0444);
 MODULE_PARM_DESC(mmap_valid, "Support OSS mmap.");
 
-static const struct pci_device_id snd_cs46xx_ids[] = {
+static const struct pci_device_id snd_cs46xx_ids[] =
+{
 	{ PCI_VDEVICE(CIRRUS, 0x6001), 0, },   /* CS4280 */
 	{ PCI_VDEVICE(CIRRUS, 0x6003), 0, },   /* CS4612 */
 	{ PCI_VDEVICE(CIRRUS, 0x6004), 0, },   /* CS4615 */
@@ -74,7 +75,7 @@ static const struct pci_device_id snd_cs46xx_ids[] = {
 MODULE_DEVICE_TABLE(pci, snd_cs46xx_ids);
 
 static int snd_card_cs46xx_probe(struct pci_dev *pci,
-				 const struct pci_device_id *pci_id)
+								 const struct pci_device_id *pci_id)
 {
 	static int dev;
 	struct snd_card *card;
@@ -82,55 +83,84 @@ static int snd_card_cs46xx_probe(struct pci_dev *pci,
 	int err;
 
 	if (dev >= SNDRV_CARDS)
+	{
 		return -ENODEV;
-	if (!enable[dev]) {
+	}
+
+	if (!enable[dev])
+	{
 		dev++;
 		return -ENOENT;
 	}
 
 	err = snd_card_new(&pci->dev, index[dev], id[dev], THIS_MODULE,
-			   0, &card);
+					   0, &card);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	if ((err = snd_cs46xx_create(card, pci,
-				     external_amp[dev], thinkpad[dev],
-				     &chip)) < 0) {
+								 external_amp[dev], thinkpad[dev],
+								 &chip)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 	card->private_data = chip;
 	chip->accept_valid = mmap_valid[dev];
-	if ((err = snd_cs46xx_pcm(chip, 0)) < 0) {
+
+	if ((err = snd_cs46xx_pcm(chip, 0)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
-	if ((err = snd_cs46xx_pcm_rear(chip, 1)) < 0) {
+
+	if ((err = snd_cs46xx_pcm_rear(chip, 1)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
-	if ((err = snd_cs46xx_pcm_iec958(chip, 2)) < 0) {
+
+	if ((err = snd_cs46xx_pcm_iec958(chip, 2)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 #endif
-	if ((err = snd_cs46xx_mixer(chip, 2)) < 0) {
+
+	if ((err = snd_cs46xx_mixer(chip, 2)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
-	if (chip->nr_ac97_codecs ==2) {
-		if ((err = snd_cs46xx_pcm_center_lfe(chip, 3)) < 0) {
+
+	if (chip->nr_ac97_codecs == 2)
+	{
+		if ((err = snd_cs46xx_pcm_center_lfe(chip, 3)) < 0)
+		{
 			snd_card_free(card);
 			return err;
 		}
 	}
+
 #endif
-	if ((err = snd_cs46xx_midi(chip, 0)) < 0) {
+
+	if ((err = snd_cs46xx_midi(chip, 0)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
-	if ((err = snd_cs46xx_start_dsp(chip)) < 0) {
+
+	if ((err = snd_cs46xx_start_dsp(chip)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
@@ -141,12 +171,13 @@ static int snd_card_cs46xx_probe(struct pci_dev *pci,
 	strcpy(card->driver, "CS46xx");
 	strcpy(card->shortname, "Sound Fusion CS46xx");
 	sprintf(card->longname, "%s at 0x%lx/0x%lx, irq %i",
-		card->shortname,
-		chip->ba0_addr,
-		chip->ba1_addr,
-		chip->irq);
+			card->shortname,
+			chip->ba0_addr,
+			chip->ba1_addr,
+			chip->irq);
 
-	if ((err = snd_card_register(card)) < 0) {
+	if ((err = snd_card_register(card)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
@@ -161,7 +192,8 @@ static void snd_card_cs46xx_remove(struct pci_dev *pci)
 	snd_card_free(pci_get_drvdata(pci));
 }
 
-static struct pci_driver cs46xx_driver = {
+static struct pci_driver cs46xx_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = snd_cs46xx_ids,
 	.probe = snd_card_cs46xx_probe,

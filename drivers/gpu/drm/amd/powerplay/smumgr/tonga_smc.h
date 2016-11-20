@@ -29,10 +29,11 @@
 
 #define ASICID_IS_TONGA_P(wDID, bRID)	 \
 	(((wDID == 0x6930) && ((bRID == 0xF0) || (bRID == 0xF1) || (bRID == 0xFF))) \
-	|| ((wDID == 0x6920) && ((bRID == 0) || (bRID == 1))))
+	 || ((wDID == 0x6920) && ((bRID == 0) || (bRID == 1))))
 
 
-struct tonga_pt_defaults {
+struct tonga_pt_defaults
+{
 	uint8_t   svi_load_line_en;
 	uint8_t   svi_load_line_vddC;
 	uint8_t   tdc_vddc_throttle_release_limit_perc;

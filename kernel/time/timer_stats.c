@@ -50,7 +50,8 @@
  * by the timer, its start/expire functions and the PID of the task that
  * started the timer. We count the number of times an event happens:
  */
-struct entry {
+struct entry
+{
 	/*
 	 * Hash list:
 	 */
@@ -146,7 +147,9 @@ static void reset_entries(void)
 static struct entry *alloc_entry(void)
 {
 	if (nr_entries >= MAX_ENTRIES)
+	{
 		return NULL;
+	}
 
 	return entries + nr_entries++;
 }
@@ -154,9 +157,9 @@ static struct entry *alloc_entry(void)
 static int match_entries(struct entry *entry1, struct entry *entry2)
 {
 	return entry1->timer       == entry2->timer	  &&
-	       entry1->start_func  == entry2->start_func  &&
-	       entry1->expire_func == entry2->expire_func &&
-	       entry1->pid	   == entry2->pid;
+		   entry1->start_func  == entry2->start_func  &&
+		   entry1->expire_func == entry2->expire_func &&
+		   entry1->pid	   == entry2->pid;
 }
 
 /*
@@ -176,12 +179,16 @@ static struct entry *tstat_lookup(struct entry *entry, char *comm)
 	 * we do this with the lookup lock held, but with the
 	 * table lock not held:
 	 */
-	while (curr) {
+	while (curr)
+	{
 		if (match_entries(curr, entry))
+		{
 			return curr;
+		}
 
 		curr = curr->next;
 	}
+
 	/*
 	 * Slowpath: allocate, set up and link a new hash entry:
 	 */
@@ -189,19 +196,25 @@ static struct entry *tstat_lookup(struct entry *entry, char *comm)
 	curr = *head;
 
 	raw_spin_lock(&table_lock);
+
 	/*
 	 * Make sure we have not raced with another CPU:
 	 */
-	while (curr) {
+	while (curr)
+	{
 		if (match_entries(curr, entry))
+		{
 			goto out_unlock;
+		}
 
 		prev = curr;
 		curr = curr->next;
 	}
 
 	curr = alloc_entry();
-	if (curr) {
+
+	if (curr)
+	{
 		*curr = *entry;
 		curr->count = 0;
 		curr->next = NULL;
@@ -210,11 +223,16 @@ static struct entry *tstat_lookup(struct entry *entry, char *comm)
 		smp_mb(); /* Ensure that curr is initialized before insert */
 
 		if (prev)
+		{
 			prev->next = curr;
+		}
 		else
+		{
 			*head = curr;
+		}
 	}
- out_unlock:
+
+out_unlock:
 	raw_spin_unlock(&table_lock);
 
 	return curr;
@@ -233,7 +251,7 @@ static struct entry *tstat_lookup(struct entry *entry, char *comm)
  * incremented. Otherwise the timer is registered in a free slot.
  */
 void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
-			      void *timerf, char *comm, u32 tflags)
+							  void *timerf, char *comm, u32 tflags)
 {
 	/*
 	 * It doesn't matter which lock we take:
@@ -243,7 +261,9 @@ void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
 	unsigned long flags;
 
 	if (likely(!timer_stats_active))
+	{
 		return;
+	}
 
 	lock = &per_cpu(tstats_lookup_lock, raw_smp_processor_id());
 
@@ -254,16 +274,24 @@ void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
 	input.flags = tflags;
 
 	raw_spin_lock_irqsave(lock, flags);
+
 	if (!timer_stats_active)
+	{
 		goto out_unlock;
+	}
 
 	entry = tstat_lookup(&input, comm);
-	if (likely(entry))
-		entry->count++;
-	else
-		atomic_inc(&overflow_count);
 
- out_unlock:
+	if (likely(entry))
+	{
+		entry->count++;
+	}
+	else
+	{
+		atomic_inc(&overflow_count);
+	}
+
+out_unlock:
 	raw_spin_unlock_irqrestore(lock, flags);
 }
 
@@ -272,9 +300,13 @@ static void print_name_offset(struct seq_file *m, unsigned long addr)
 	char symname[KSYM_NAME_LEN];
 
 	if (lookup_symbol_name(addr, symname) < 0)
+	{
 		seq_printf(m, "<%p>", (void *)addr);
+	}
 	else
+	{
 		seq_printf(m, "%s", symname);
+	}
 }
 
 static int tstats_show(struct seq_file *m, void *v)
@@ -287,11 +319,14 @@ static int tstats_show(struct seq_file *m, void *v)
 	int i;
 
 	mutex_lock(&show_mutex);
+
 	/*
 	 * If still active then calculate up to now:
 	 */
 	if (timer_stats_active)
+	{
 		time_stop = ktime_get();
+	}
 
 	time = ktime_sub(time_stop, time_start);
 
@@ -300,18 +335,27 @@ static int tstats_show(struct seq_file *m, void *v)
 
 	seq_puts(m, "Timer Stats Version: v0.3\n");
 	seq_printf(m, "Sample period: %ld.%03ld s\n", (long)period.tv_sec, ms);
+
 	if (atomic_read(&overflow_count))
+	{
 		seq_printf(m, "Overflow: %d entries\n", atomic_read(&overflow_count));
+	}
+
 	seq_printf(m, "Collection: %s\n", timer_stats_active ? "active" : "inactive");
 
-	for (i = 0; i < nr_entries; i++) {
+	for (i = 0; i < nr_entries; i++)
+	{
 		entry = entries + i;
-		if (entry->flags & TIMER_DEFERRABLE) {
+
+		if (entry->flags & TIMER_DEFERRABLE)
+		{
 			seq_printf(m, "%4luD, %5d %-16s ",
-				entry->count, entry->pid, entry->comm);
-		} else {
+					   entry->count, entry->pid, entry->comm);
+		}
+		else
+		{
 			seq_printf(m, " %4lu, %5d %-16s ",
-				entry->count, entry->pid, entry->comm);
+					   entry->count, entry->pid, entry->comm);
 		}
 
 		print_name_offset(m, (unsigned long)entry->start_func);
@@ -323,15 +367,20 @@ static int tstats_show(struct seq_file *m, void *v)
 	}
 
 	ms += period.tv_sec * 1000;
+
 	if (!ms)
+	{
 		ms = 1;
+	}
 
 	if (events && period.tv_sec)
 		seq_printf(m, "%ld total events, %ld.%03ld events/sec\n",
-			   events, events * 1000 / ms,
-			   (events * 1000000 / ms) % 1000);
+				   events, events * 1000 / ms,
+				   (events * 1000000 / ms) % 1000);
 	else
+	{
 		seq_printf(m, "%ld total events\n", events);
+	}
 
 	mutex_unlock(&show_mutex);
 
@@ -347,7 +396,8 @@ static void sync_access(void)
 	unsigned long flags;
 	int cpu;
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		raw_spinlock_t *lock = &per_cpu(tstats_lookup_lock, cpu);
 
 		raw_spin_lock_irqsave(lock, flags);
@@ -357,36 +407,49 @@ static void sync_access(void)
 }
 
 static ssize_t tstats_write(struct file *file, const char __user *buf,
-			    size_t count, loff_t *offs)
+							size_t count, loff_t *offs)
 {
 	char ctl[2];
 
 	if (count != 2 || *offs)
+	{
 		return -EINVAL;
+	}
 
 	if (copy_from_user(ctl, buf, count))
+	{
 		return -EFAULT;
+	}
 
 	mutex_lock(&show_mutex);
-	switch (ctl[0]) {
-	case '0':
-		if (timer_stats_active) {
-			timer_stats_active = 0;
-			time_stop = ktime_get();
-			sync_access();
-		}
-		break;
-	case '1':
-		if (!timer_stats_active) {
-			reset_entries();
-			time_start = ktime_get();
-			smp_mb();
-			timer_stats_active = 1;
-		}
-		break;
-	default:
-		count = -EINVAL;
+
+	switch (ctl[0])
+	{
+		case '0':
+			if (timer_stats_active)
+			{
+				timer_stats_active = 0;
+				time_stop = ktime_get();
+				sync_access();
+			}
+
+			break;
+
+		case '1':
+			if (!timer_stats_active)
+			{
+				reset_entries();
+				time_start = ktime_get();
+				smp_mb();
+				timer_stats_active = 1;
+			}
+
+			break;
+
+		default:
+			count = -EINVAL;
 	}
+
 	mutex_unlock(&show_mutex);
 
 	return count;
@@ -397,7 +460,8 @@ static int tstats_open(struct inode *inode, struct file *filp)
 	return single_open(filp, tstats_show, NULL);
 }
 
-static const struct file_operations tstats_fops = {
+static const struct file_operations tstats_fops =
+{
 	.open		= tstats_open,
 	.read		= seq_read,
 	.write		= tstats_write,
@@ -410,7 +474,7 @@ void __init init_timer_stats(void)
 	int cpu;
 
 	for_each_possible_cpu(cpu)
-		raw_spin_lock_init(&per_cpu(tstats_lookup_lock, cpu));
+	raw_spin_lock_init(&per_cpu(tstats_lookup_lock, cpu));
 }
 
 static int __init init_tstats_procfs(void)
@@ -418,8 +482,12 @@ static int __init init_tstats_procfs(void)
 	struct proc_dir_entry *pe;
 
 	pe = proc_create("timer_stats", 0644, NULL, &tstats_fops);
+
 	if (!pe)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 __initcall(init_tstats_procfs);

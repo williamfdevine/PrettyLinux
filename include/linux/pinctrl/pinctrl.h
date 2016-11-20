@@ -35,7 +35,8 @@ struct device_node;
  * @name: a name for this pin
  * @drv_data: driver-defined per-pin data. pinctrl core does not touch this
  */
-struct pinctrl_pin_desc {
+struct pinctrl_pin_desc
+{
 	unsigned number;
 	const char *name;
 	void *drv_data;
@@ -57,7 +58,8 @@ struct pinctrl_pin_desc {
  * @npins: number of pins in the GPIO range, including the base number
  * @gc: an optional pointer to a gpio_chip
  */
-struct pinctrl_gpio_range {
+struct pinctrl_gpio_range
+{
 	struct list_head node;
 	const char *name;
 	unsigned int id;
@@ -87,21 +89,22 @@ struct pinctrl_gpio_range {
  *	function is optional, and may be omitted for pinctrl drivers that do
  *	not support device tree.
  */
-struct pinctrl_ops {
+struct pinctrl_ops
+{
 	int (*get_groups_count) (struct pinctrl_dev *pctldev);
 	const char *(*get_group_name) (struct pinctrl_dev *pctldev,
-				       unsigned selector);
+								   unsigned selector);
 	int (*get_group_pins) (struct pinctrl_dev *pctldev,
-			       unsigned selector,
-			       const unsigned **pins,
-			       unsigned *num_pins);
+						   unsigned selector,
+						   const unsigned **pins,
+						   unsigned *num_pins);
 	void (*pin_dbg_show) (struct pinctrl_dev *pctldev, struct seq_file *s,
-			  unsigned offset);
+						  unsigned offset);
 	int (*dt_node_to_map) (struct pinctrl_dev *pctldev,
-			       struct device_node *np_config,
-			       struct pinctrl_map **map, unsigned *num_maps);
+						   struct device_node *np_config,
+						   struct pinctrl_map **map, unsigned *num_maps);
 	void (*dt_free_map) (struct pinctrl_dev *pctldev,
-			     struct pinctrl_map *map, unsigned num_maps);
+						 struct pinctrl_map *map, unsigned num_maps);
 };
 
 /**
@@ -125,7 +128,8 @@ struct pinctrl_ops {
  * @custom_conf_items: Information how to print @params in debugfs, must be
  *	the same size as the @custom_params, i.e. @num_custom_params
  */
-struct pinctrl_desc {
+struct pinctrl_desc
+{
 	const char *name;
 	const struct pinctrl_pin_desc *pins;
 	unsigned int npins;
@@ -142,31 +146,31 @@ struct pinctrl_desc {
 
 /* External interface to pin controller */
 extern struct pinctrl_dev *pinctrl_register(struct pinctrl_desc *pctldesc,
-				struct device *dev, void *driver_data);
+		struct device *dev, void *driver_data);
 extern void pinctrl_unregister(struct pinctrl_dev *pctldev);
 extern struct pinctrl_dev *devm_pinctrl_register(struct device *dev,
-				struct pinctrl_desc *pctldesc,
-				void *driver_data);
+		struct pinctrl_desc *pctldesc,
+		void *driver_data);
 extern void devm_pinctrl_unregister(struct device *dev,
-				struct pinctrl_dev *pctldev);
+									struct pinctrl_dev *pctldev);
 
 extern bool pin_is_valid(struct pinctrl_dev *pctldev, int pin);
 extern void pinctrl_add_gpio_range(struct pinctrl_dev *pctldev,
-				struct pinctrl_gpio_range *range);
+								   struct pinctrl_gpio_range *range);
 extern void pinctrl_add_gpio_ranges(struct pinctrl_dev *pctldev,
-				struct pinctrl_gpio_range *ranges,
-				unsigned nranges);
+									struct pinctrl_gpio_range *ranges,
+									unsigned nranges);
 extern void pinctrl_remove_gpio_range(struct pinctrl_dev *pctldev,
-				struct pinctrl_gpio_range *range);
+									  struct pinctrl_gpio_range *range);
 
 extern struct pinctrl_dev *pinctrl_find_and_add_gpio_range(const char *devname,
 		struct pinctrl_gpio_range *range);
 extern struct pinctrl_gpio_range *
 pinctrl_find_gpio_range_from_pin(struct pinctrl_dev *pctldev,
-				 unsigned int pin);
+								 unsigned int pin);
 extern int pinctrl_get_group_pins(struct pinctrl_dev *pctldev,
-				const char *pin_group, const unsigned **pins,
-				unsigned *num_pins);
+								  const char *pin_group, const unsigned **pins,
+								  unsigned *num_pins);
 
 #ifdef CONFIG_OF
 extern struct pinctrl_dev *of_pinctrl_get(struct device_node *np);

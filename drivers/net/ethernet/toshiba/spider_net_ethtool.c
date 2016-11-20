@@ -28,9 +28,11 @@
 #include "spider_net.h"
 
 
-static struct {
+static struct
+{
 	const char str[ETH_GSTRING_LEN];
-} ethtool_stats_keys[] = {
+} ethtool_stats_keys[] =
+{
 	{ "tx_packets" },
 	{ "tx_bytes" },
 	{ "rx_packets" },
@@ -48,15 +50,15 @@ static struct {
 
 static int
 spider_net_ethtool_get_settings(struct net_device *netdev,
-			       struct ethtool_cmd *cmd)
+								struct ethtool_cmd *cmd)
 {
 	struct spider_net_card *card;
 	card = netdev_priv(netdev);
 
 	cmd->supported   = (SUPPORTED_1000baseT_Full |
-			     SUPPORTED_FIBRE);
+						SUPPORTED_FIBRE);
 	cmd->advertising = (ADVERTISED_1000baseT_Full |
-			     ADVERTISED_FIBRE);
+						ADVERTISED_FIBRE);
 	cmd->port = PORT_FIBRE;
 	ethtool_cmd_speed_set(cmd, card->phy.speed);
 	cmd->duplex = DUPLEX_FULL;
@@ -66,24 +68,24 @@ spider_net_ethtool_get_settings(struct net_device *netdev,
 
 static void
 spider_net_ethtool_get_drvinfo(struct net_device *netdev,
-			       struct ethtool_drvinfo *drvinfo)
+							   struct ethtool_drvinfo *drvinfo)
 {
 	struct spider_net_card *card;
 	card = netdev_priv(netdev);
 
 	/* clear and fill out info */
 	strlcpy(drvinfo->driver, spider_net_driver_name,
-		sizeof(drvinfo->driver));
+			sizeof(drvinfo->driver));
 	strlcpy(drvinfo->version, VERSION, sizeof(drvinfo->version));
 	strlcpy(drvinfo->fw_version, "no information",
-		sizeof(drvinfo->fw_version));
+			sizeof(drvinfo->fw_version));
 	strlcpy(drvinfo->bus_info, pci_name(card->pdev),
-		sizeof(drvinfo->bus_info));
+			sizeof(drvinfo->bus_info));
 }
 
 static void
 spider_net_ethtool_get_wol(struct net_device *netdev,
-			   struct ethtool_wolinfo *wolinfo)
+						   struct ethtool_wolinfo *wolinfo)
 {
 	/* no support for wol */
 	wolinfo->supported = 0;
@@ -100,7 +102,7 @@ spider_net_ethtool_get_msglevel(struct net_device *netdev)
 
 static void
 spider_net_ethtool_set_msglevel(struct net_device *netdev,
-				u32 level)
+								u32 level)
 {
 	struct spider_net_card *card;
 	card = netdev_priv(netdev);
@@ -110,16 +112,18 @@ spider_net_ethtool_set_msglevel(struct net_device *netdev,
 static int
 spider_net_ethtool_nway_reset(struct net_device *netdev)
 {
-	if (netif_running(netdev)) {
+	if (netif_running(netdev))
+	{
 		spider_net_stop(netdev);
 		spider_net_open(netdev);
 	}
+
 	return 0;
 }
 
 static void
 spider_net_ethtool_get_ringparam(struct net_device *netdev,
-				 struct ethtool_ringparam *ering)
+								 struct ethtool_ringparam *ering)
 {
 	struct spider_net_card *card = netdev_priv(netdev);
 
@@ -131,11 +135,13 @@ spider_net_ethtool_get_ringparam(struct net_device *netdev,
 
 static int spider_net_get_sset_count(struct net_device *netdev, int sset)
 {
-	switch (sset) {
-	case ETH_SS_STATS:
-		return ARRAY_SIZE(ethtool_stats_keys);
-	default:
-		return -EOPNOTSUPP;
+	switch (sset)
+	{
+		case ETH_SS_STATS:
+			return ARRAY_SIZE(ethtool_stats_keys);
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
@@ -160,12 +166,13 @@ static void spider_net_get_ethtool_stats(struct net_device *netdev,
 }
 
 static void spider_net_get_strings(struct net_device *netdev, u32 stringset,
-				   u8 *data)
+								   u8 *data)
 {
 	memcpy(data, ethtool_stats_keys, sizeof(ethtool_stats_keys));
 }
 
-const struct ethtool_ops spider_net_ethtool_ops = {
+const struct ethtool_ops spider_net_ethtool_ops =
+{
 	.get_settings		= spider_net_ethtool_get_settings,
 	.get_drvinfo		= spider_net_ethtool_get_drvinfo,
 	.get_wol		= spider_net_ethtool_get_wol,

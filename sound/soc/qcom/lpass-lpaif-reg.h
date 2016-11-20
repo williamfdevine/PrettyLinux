@@ -125,8 +125,8 @@
 
 #define __LPAIF_DMA_REG(v, chan, dir, reg)  \
 	(dir ==  SNDRV_PCM_STREAM_PLAYBACK) ? \
-		LPAIF_RDMA##reg##_REG(v, chan) : \
-		LPAIF_WRDMA##reg##_REG(v, chan)
+	LPAIF_RDMA##reg##_REG(v, chan) : \
+	LPAIF_WRDMA##reg##_REG(v, chan)
 
 #define LPAIF_DMACTL_REG(v, chan, dir) __LPAIF_DMA_REG(v, chan, dir, CTL)
 #define LPAIF_DMABASE_REG(v, chan, dir) __LPAIF_DMA_REG(v, chan, dir, BASE)

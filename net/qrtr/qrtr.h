@@ -16,7 +16,8 @@ struct sk_buff;
  * driver.  As such, when the driver is done with the buffer, it should
  * call kfree_skb() on failure, or consume_skb() on success.
  */
-struct qrtr_endpoint {
+struct qrtr_endpoint
+{
 	int (*xmit)(struct qrtr_endpoint *ep, struct sk_buff *skb);
 	/* private: not for endpoint use */
 	struct qrtr_node *node;

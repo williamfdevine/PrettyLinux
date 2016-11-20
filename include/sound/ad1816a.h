@@ -123,7 +123,8 @@
 #define AD1816A_CAPTURE_NOT_EQUAL	0x1000
 #define AD1816A_WSS_ENABLE		0x8000
 
-struct snd_ad1816a {
+struct snd_ad1816a
+{
 	unsigned long port;
 	struct resource *res_port;
 	int irq;
@@ -162,20 +163,20 @@ struct snd_ad1816a {
 #define AD1816A_MODE_CAPTURE	0x02
 #define AD1816A_MODE_TIMER	0x04
 #define AD1816A_MODE_OPEN	(AD1816A_MODE_PLAYBACK |	\
-				AD1816A_MODE_CAPTURE |		\
-				AD1816A_MODE_TIMER)
+							 AD1816A_MODE_CAPTURE |		\
+							 AD1816A_MODE_TIMER)
 
 
 extern int snd_ad1816a_create(struct snd_card *card, unsigned long port,
-			      int irq, int dma1, int dma2,
-			      struct snd_ad1816a *chip);
+							  int irq, int dma1, int dma2,
+							  struct snd_ad1816a *chip);
 
 extern int snd_ad1816a_pcm(struct snd_ad1816a *chip, int device);
 extern int snd_ad1816a_mixer(struct snd_ad1816a *chip);
 extern int snd_ad1816a_timer(struct snd_ad1816a *chip, int device);
 #ifdef CONFIG_PM
-extern void snd_ad1816a_suspend(struct snd_ad1816a *chip);
-extern void snd_ad1816a_resume(struct snd_ad1816a *chip);
+	extern void snd_ad1816a_suspend(struct snd_ad1816a *chip);
+	extern void snd_ad1816a_resume(struct snd_ad1816a *chip);
 #endif
 
 #endif	/* __SOUND_AD1816A_H */

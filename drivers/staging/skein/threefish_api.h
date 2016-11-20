@@ -36,7 +36,8 @@
 /**
  * Which Threefish size to use
  */
-enum threefish_size {
+enum threefish_size
+{
 	THREEFISH_256 = 256,     /*!< Skein with 256 bit state */
 	THREEFISH_512 = 512,     /*!< Skein with 512 bit state */
 	THREEFISH_1024 = 1024    /*!< Skein with 1024 bit state */
@@ -50,7 +51,8 @@ enum threefish_size {
  * variables. If Skein implementation changes this, the adapt these
  * structures as well.
  */
-struct threefish_key {
+struct threefish_key
+{
 	u64 state_size;
 	u64 key[SKEIN_MAX_STATE_WORDS + 1];   /* max number of key words*/
 	u64 tweak[3];
@@ -73,8 +75,8 @@ struct threefish_key {
  *     Pointer to the two tweak words (word has 64 bits).
  */
 void threefish_set_key(struct threefish_key *key_ctx,
-		       enum threefish_size state_size,
-		       u64 *key_data, u64 *tweak);
+					   enum threefish_size state_size,
+					   u64 *key_data, u64 *tweak);
 
 /**
  * Encrypt Threefish block (bytes).
@@ -92,7 +94,7 @@ void threefish_set_key(struct threefish_key *key_ctx,
  *     Pointer to cipher buffer.
  */
 void threefish_encrypt_block_bytes(struct threefish_key *key_ctx, u8 *in,
-				   u8 *out);
+								   u8 *out);
 
 /**
  * Encrypt Threefish block (words).
@@ -112,7 +114,7 @@ void threefish_encrypt_block_bytes(struct threefish_key *key_ctx, u8 *in,
  *     Pointer to cipher buffer.
  */
 void threefish_encrypt_block_words(struct threefish_key *key_ctx, u64 *in,
-				   u64 *out);
+								   u64 *out);
 
 /**
  * Decrypt Threefish block (bytes).
@@ -130,7 +132,7 @@ void threefish_encrypt_block_words(struct threefish_key *key_ctx, u64 *in,
  *     Pointer to plaintext buffer.
  */
 void threefish_decrypt_block_bytes(struct threefish_key *key_ctx, u8 *in,
-				   u8 *out);
+								   u8 *out);
 
 /**
  * Decrypt Threefish block (words).
@@ -150,20 +152,20 @@ void threefish_decrypt_block_bytes(struct threefish_key *key_ctx, u8 *in,
  *     Pointer to plaintext buffer.
  */
 void threefish_decrypt_block_words(struct threefish_key *key_ctx, u64 *in,
-				   u64 *out);
+								   u64 *out);
 
 void threefish_encrypt_256(struct threefish_key *key_ctx, u64 *input,
-			   u64 *output);
+						   u64 *output);
 void threefish_encrypt_512(struct threefish_key *key_ctx, u64 *input,
-			   u64 *output);
+						   u64 *output);
 void threefish_encrypt_1024(struct threefish_key *key_ctx, u64 *input,
-			    u64 *output);
+							u64 *output);
 void threefish_decrypt_256(struct threefish_key *key_ctx, u64 *input,
-			   u64 *output);
+						   u64 *output);
 void threefish_decrypt_512(struct threefish_key *key_ctx, u64 *input,
-			   u64 *output);
+						   u64 *output);
 void threefish_decrypt_1024(struct threefish_key *key_ctx, u64 *input,
-			    u64 *output);
+							u64 *output);
 /**
  * @}
  */

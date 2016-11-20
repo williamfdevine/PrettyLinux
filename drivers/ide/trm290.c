@@ -153,7 +153,8 @@ static void trm290_prepare_drive (ide_drive_t *drive, unsigned int use_dma)
 
 	local_irq_save(flags);
 
-	if (reg != hwif->select_data) {
+	if (reg != hwif->select_data)
+	{
 		hwif->select_data = reg;
 		/* set PIO/DMA */
 		outb(0x51 | (hwif->channel << 3), hwif->config_data + 1);
@@ -161,7 +162,8 @@ static void trm290_prepare_drive (ide_drive_t *drive, unsigned int use_dma)
 	}
 
 	/* enable IRQ if not probing */
-	if (drive->dev_flags & IDE_DFLAG_PRESENT) {
+	if (drive->dev_flags & IDE_DFLAG_PRESENT)
+	{
 		reg = inw(hwif->config_data + 3);
 		reg &= 0x13;
 		reg &= ~(1 << hwif->channel);
@@ -180,12 +182,14 @@ static void trm290_dev_select(ide_drive_t *drive)
 
 static int trm290_dma_check(ide_drive_t *drive, struct ide_cmd *cmd)
 {
-	if (cmd->tf_flags & IDE_TFLAG_WRITE) {
+	if (cmd->tf_flags & IDE_TFLAG_WRITE)
+	{
 #ifdef TRM290_NO_DMA_WRITES
 		/* always use PIO for writes */
 		return 1;
 #endif
 	}
+
 	return 0;
 }
 
@@ -195,9 +199,12 @@ static int trm290_dma_setup(ide_drive_t *drive, struct ide_cmd *cmd)
 	unsigned int count, rw = (cmd->tf_flags & IDE_TFLAG_WRITE) ? 1 : 2;
 
 	count = ide_build_dmatable(drive, cmd);
+
 	if (count == 0)
 		/* try PIO instead of DMA */
+	{
 		return 1;
+	}
 
 	outl(hwif->dmatable_dma | rw, hwif->dma_base);
 	/* start DMA */
@@ -239,20 +246,26 @@ static void init_hwif_trm290(ide_hwif_t *hwif)
 	u8 reg = 0;
 
 	if ((dev->class & 5) && cfg_base)
+	{
 		printk(KERN_INFO DRV_NAME " %s: chip", pci_name(dev));
-	else {
+	}
+	else
+	{
 		cfg_base = 0x3df0;
 		printk(KERN_INFO DRV_NAME " %s: using default", pci_name(dev));
 	}
+
 	printk(KERN_CONT " config base at 0x%04x\n", cfg_base);
 	hwif->config_data = cfg_base;
 	hwif->dma_base = (cfg_base + 4) ^ (hwif->channel ? 0x80 : 0);
 
 	printk(KERN_INFO "    %s: BM-DMA at 0x%04lx-0x%04lx\n",
-	       hwif->name, hwif->dma_base, hwif->dma_base + 3);
+		   hwif->name, hwif->dma_base, hwif->dma_base + 3);
 
 	if (ide_allocate_dma_engine(hwif))
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 	/* put config reg into first byte of hwif->select_data */
@@ -269,15 +282,17 @@ static void init_hwif_trm290(ide_hwif_t *hwif)
 
 	if (reg & 0x10)
 		/* legacy mode */
+	{
 		hwif->irq = hwif->channel ? 15 : 14;
+	}
 
 #if 1
 	{
-	/*
-	 * My trm290-based card doesn't seem to work with all possible values
-	 * for the control basereg, so this kludge ensures that we use only
-	 * values that are known to work.  Ugh.		-ml
-	 */
+		/*
+		 * My trm290-based card doesn't seem to work with all possible values
+		 * for the control basereg, so this kludge ensures that we use only
+		 * values that are known to work.  Ugh.		-ml
+		 */
 		u16 new, old, compat = hwif->channel ? 0x374 : 0x3f4;
 		static u16 next_offset = 0;
 		u8 old_mask;
@@ -286,21 +301,24 @@ static void init_hwif_trm290(ide_hwif_t *hwif)
 		old = inw(hwif->config_data);
 		old &= ~1;
 		old_mask = inb(old + 2);
-		if (old != compat && old_mask == 0xff) {
+
+		if (old != compat && old_mask == 0xff)
+		{
 			/* leave lower 10 bits untouched */
 			compat += (next_offset += 0x400);
 			hwif->io_ports.ctl_addr = compat + 2;
 			outw(compat | 1, hwif->config_data);
 			new = inw(hwif->config_data);
 			printk(KERN_INFO "%s: control basereg workaround: "
-				"old=0x%04x, new=0x%04x\n",
-				hwif->name, old, new & ~1);
+				   "old=0x%04x, new=0x%04x\n",
+				   hwif->name, old, new & ~1);
 		}
 	}
 #endif
 }
 
-static const struct ide_tp_ops trm290_tp_ops = {
+static const struct ide_tp_ops trm290_tp_ops =
+{
 	.exec_command		= ide_exec_command,
 	.read_status		= ide_read_status,
 	.read_altstatus		= ide_read_altstatus,
@@ -314,7 +332,8 @@ static const struct ide_tp_ops trm290_tp_ops = {
 	.output_data		= ide_output_data,
 };
 
-static const struct ide_dma_ops trm290_dma_ops = {
+static const struct ide_dma_ops trm290_dma_ops =
+{
 	.dma_host_set		= trm290_dma_host_set,
 	.dma_setup 		= trm290_dma_setup,
 	.dma_start 		= trm290_dma_start,
@@ -324,18 +343,19 @@ static const struct ide_dma_ops trm290_dma_ops = {
 	.dma_check		= trm290_dma_check,
 };
 
-static const struct ide_port_info trm290_chipset = {
+static const struct ide_port_info trm290_chipset =
+{
 	.name		= DRV_NAME,
 	.init_hwif	= init_hwif_trm290,
 	.tp_ops 	= &trm290_tp_ops,
 	.dma_ops	= &trm290_dma_ops,
 	.host_flags	= IDE_HFLAG_TRM290 |
-			  IDE_HFLAG_NO_ATAPI_DMA |
+	IDE_HFLAG_NO_ATAPI_DMA |
 #if 0 /* play it safe for now */
-			  IDE_HFLAG_TRUST_BIOS_FOR_DMA |
+	IDE_HFLAG_TRUST_BIOS_FOR_DMA |
 #endif
-			  IDE_HFLAG_NO_AUTODMA |
-			  IDE_HFLAG_NO_LBA48,
+	IDE_HFLAG_NO_AUTODMA |
+	IDE_HFLAG_NO_LBA48,
 };
 
 static int trm290_init_one(struct pci_dev *dev, const struct pci_device_id *id)
@@ -343,13 +363,15 @@ static int trm290_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	return ide_pci_init_one(dev, &trm290_chipset, NULL);
 }
 
-static const struct pci_device_id trm290_pci_tbl[] = {
+static const struct pci_device_id trm290_pci_tbl[] =
+{
 	{ PCI_VDEVICE(TEKRAM, PCI_DEVICE_ID_TEKRAM_DC290), 0 },
 	{ 0, },
 };
 MODULE_DEVICE_TABLE(pci, trm290_pci_tbl);
 
-static struct pci_driver trm290_pci_driver = {
+static struct pci_driver trm290_pci_driver =
+{
 	.name		= "TRM290_IDE",
 	.id_table	= trm290_pci_tbl,
 	.probe		= trm290_init_one,

@@ -22,10 +22,13 @@
  * system is in its list of supported devices.
  */
 const struct of_device_id *of_match_device(const struct of_device_id *matches,
-					   const struct device *dev)
+		const struct device *dev)
 {
 	if ((!matches) || (!dev->of_node))
+	{
 		return NULL;
+	}
+
 	return of_match_node(matches, dev->of_node);
 }
 EXPORT_SYMBOL(of_match_device);
@@ -35,19 +38,29 @@ struct platform_device *of_dev_get(struct platform_device *dev)
 	struct device *tmp;
 
 	if (!dev)
+	{
 		return NULL;
+	}
+
 	tmp = get_device(&dev->dev);
+
 	if (tmp)
+	{
 		return to_platform_device(tmp);
+	}
 	else
+	{
 		return NULL;
+	}
 }
 EXPORT_SYMBOL(of_dev_get);
 
 void of_dev_put(struct platform_device *dev)
 {
 	if (dev)
+	{
 		put_device(&dev->dev);
+	}
 }
 EXPORT_SYMBOL(of_dev_put);
 
@@ -95,36 +108,47 @@ void of_dma_configure(struct device *dev, struct device_node *np)
 	 * setup the correct supported mask.
 	 */
 	if (!dev->coherent_dma_mask)
+	{
 		dev->coherent_dma_mask = DMA_BIT_MASK(32);
+	}
 
 	/*
 	 * Set it to coherent_dma_mask by default if the architecture
 	 * code has not set it.
 	 */
 	if (!dev->dma_mask)
+	{
 		dev->dma_mask = &dev->coherent_dma_mask;
+	}
 
 	ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dma_addr = offset = 0;
 		size = dev->coherent_dma_mask + 1;
-	} else {
+	}
+	else
+	{
 		offset = PFN_DOWN(paddr - dma_addr);
 
 		/*
 		 * Add a work around to treat the size as mask + 1 in case
 		 * it is defined in DT as a mask.
 		 */
-		if (size & 1) {
+		if (size & 1)
+		{
 			dev_warn(dev, "Invalid size 0x%llx for dma-range\n",
-				 size);
+					 size);
 			size = size + 1;
 		}
 
-		if (!size) {
+		if (!size)
+		{
 			dev_err(dev, "Adjusted size 0x%llx invalid\n", size);
 			return;
 		}
+
 		dev_dbg(dev, "dma_pfn_offset(%#08lx)\n", offset);
 	}
 
@@ -135,17 +159,17 @@ void of_dma_configure(struct device *dev, struct device_node *np)
 	 * set by the driver.
 	 */
 	dev->coherent_dma_mask = min(dev->coherent_dma_mask,
-				     DMA_BIT_MASK(ilog2(dma_addr + size)));
+								 DMA_BIT_MASK(ilog2(dma_addr + size)));
 	*dev->dma_mask = min((*dev->dma_mask),
-			     DMA_BIT_MASK(ilog2(dma_addr + size)));
+						 DMA_BIT_MASK(ilog2(dma_addr + size)));
 
 	coherent = of_dma_is_coherent(np);
 	dev_dbg(dev, "device is%sdma coherent\n",
-		coherent ? " " : " not ");
+			coherent ? " " : " not ");
 
 	iommu = of_iommu_configure(dev, np);
 	dev_dbg(dev, "device is%sbehind an iommu\n",
-		iommu ? " " : " not ");
+			iommu ? " " : " not ");
 
 	arch_setup_dma_ops(dev, dma_addr, size, iommu, coherent);
 }
@@ -169,8 +193,11 @@ const void *of_device_get_match_data(const struct device *dev)
 	const struct of_device_id *match;
 
 	match = of_match_device(dev->driver->of_match_table, dev);
+
 	if (!match)
+	{
 		return NULL;
+	}
 
 	return match->data;
 }
@@ -183,22 +210,33 @@ ssize_t of_device_get_modalias(struct device *dev, char *str, ssize_t len)
 	ssize_t tsize, csize, repend;
 
 	if ((!dev) || (!dev->of_node))
+	{
 		return -ENODEV;
+	}
 
 	/* Name & Type */
 	csize = snprintf(str, len, "of:N%sT%s", dev->of_node->name,
-			 dev->of_node->type);
+					 dev->of_node->type);
 
 	/* Get compatible property if any */
 	compat = of_get_property(dev->of_node, "compatible", &cplen);
+
 	if (!compat)
+	{
 		return csize;
+	}
 
 	/* Find true end (we tolerate multiple \0 at the end */
 	for (i = (cplen - 1); i >= 0 && !compat[i]; i--)
+	{
 		cplen--;
+	}
+
 	if (!cplen)
+	{
 		return csize;
+	}
+
 	cplen++;
 
 	/* Check space (need cplen+1 chars including final \0) */
@@ -206,21 +244,31 @@ ssize_t of_device_get_modalias(struct device *dev, char *str, ssize_t len)
 	repend = tsize;
 
 	if (csize >= len)		/* @ the limit, all is already filled */
+	{
 		return tsize;
+	}
 
-	if (tsize >= len) {		/* limit compat list */
+	if (tsize >= len)  		/* limit compat list */
+	{
 		cplen = len - csize - 1;
 		repend = len;
 	}
 
 	/* Copy and do char replacement */
 	memcpy(&str[csize + 1], compat, cplen);
-	for (i = csize; i < repend; i++) {
+
+	for (i = csize; i < repend; i++)
+	{
 		char c = str[i];
+
 		if (c == '\0')
+		{
 			str[i] = 'C';
+		}
 		else if (c == ' ')
+		{
 			str[i] = '_';
+		}
 	}
 
 	return tsize;
@@ -236,32 +284,42 @@ void of_device_uevent(struct device *dev, struct kobj_uevent_env *env)
 	int seen = 0, cplen, sl;
 
 	if ((!dev) || (!dev->of_node))
+	{
 		return;
+	}
 
 	add_uevent_var(env, "OF_NAME=%s", dev->of_node->name);
 	add_uevent_var(env, "OF_FULLNAME=%s", dev->of_node->full_name);
+
 	if (dev->of_node->type && strcmp("<NULL>", dev->of_node->type) != 0)
+	{
 		add_uevent_var(env, "OF_TYPE=%s", dev->of_node->type);
+	}
 
 	/* Since the compatible field can contain pretty much anything
 	 * it's not really legal to split it out with commas. We split it
 	 * up using a number of environment variables instead. */
 	compat = of_get_property(dev->of_node, "compatible", &cplen);
-	while (compat && *compat && cplen > 0) {
+
+	while (compat && *compat && cplen > 0)
+	{
 		add_uevent_var(env, "OF_COMPATIBLE_%d=%s", seen, compat);
 		sl = strlen(compat) + 1;
 		compat += sl;
 		cplen -= sl;
 		seen++;
 	}
+
 	add_uevent_var(env, "OF_COMPATIBLE_N=%d", seen);
 
 	seen = 0;
 	mutex_lock(&of_mutex);
-	list_for_each_entry(app, &aliases_lookup, link) {
-		if (dev->of_node == app->np) {
+	list_for_each_entry(app, &aliases_lookup, link)
+	{
+		if (dev->of_node == app->np)
+		{
 			add_uevent_var(env, "OF_ALIAS_%d=%s", seen,
-				       app->alias);
+						   app->alias);
 			seen++;
 		}
 	}
@@ -273,16 +331,24 @@ int of_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
 	int sl;
 
 	if ((!dev) || (!dev->of_node))
+	{
 		return -ENODEV;
+	}
 
 	/* Devicetree modalias is tricky, we add it in 2 steps */
 	if (add_uevent_var(env, "MODALIAS="))
+	{
 		return -ENOMEM;
+	}
 
-	sl = of_device_get_modalias(dev, &env->buf[env->buflen-1],
-				    sizeof(env->buf) - env->buflen);
+	sl = of_device_get_modalias(dev, &env->buf[env->buflen - 1],
+								sizeof(env->buf) - env->buflen);
+
 	if (sl >= (sizeof(env->buf) - env->buflen))
+	{
 		return -ENOMEM;
+	}
+
 	env->buflen += sl;
 
 	return 0;

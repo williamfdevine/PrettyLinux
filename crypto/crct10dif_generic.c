@@ -30,7 +30,8 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 
-struct chksum_desc_ctx {
+struct chksum_desc_ctx
+{
 	__u16 crc;
 };
 
@@ -49,7 +50,7 @@ static int chksum_init(struct shash_desc *desc)
 }
 
 static int chksum_update(struct shash_desc *desc, const u8 *data,
-			 unsigned int length)
+						 unsigned int length)
 {
 	struct chksum_desc_ctx *ctx = shash_desc_ctx(desc);
 
@@ -66,14 +67,14 @@ static int chksum_final(struct shash_desc *desc, u8 *out)
 }
 
 static int __chksum_finup(__u16 *crcp, const u8 *data, unsigned int len,
-			u8 *out)
+						  u8 *out)
 {
 	*(__u16 *)out = crc_t10dif_generic(*crcp, data, len);
 	return 0;
 }
 
 static int chksum_finup(struct shash_desc *desc, const u8 *data,
-			unsigned int len, u8 *out)
+						unsigned int len, u8 *out)
 {
 	struct chksum_desc_ctx *ctx = shash_desc_ctx(desc);
 
@@ -81,14 +82,15 @@ static int chksum_finup(struct shash_desc *desc, const u8 *data,
 }
 
 static int chksum_digest(struct shash_desc *desc, const u8 *data,
-			 unsigned int length, u8 *out)
+						 unsigned int length, u8 *out)
 {
 	struct chksum_desc_ctx *ctx = shash_desc_ctx(desc);
 
 	return __chksum_finup(&ctx->crc, data, length, out);
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize		=	CRC_T10DIF_DIGEST_SIZE,
 	.init		=	chksum_init,
 	.update		=	chksum_update,

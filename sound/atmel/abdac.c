@@ -59,7 +59,7 @@
 	 & ((1 << DAC_##name##_SIZE) - 1))
 #define DAC_BFINS(name, value, old)			\
 	(((old) & ~(((1 << DAC_##name##_SIZE) - 1)	\
-		    << DAC_##name##_OFFSET))		\
+				<< DAC_##name##_OFFSET))		\
 	 | DAC_BF(name, value))
 
 /* Register access macros */
@@ -78,16 +78,19 @@
 #define RATE_MAX	192000
 #define RATE_MIN	5112
 
-enum {
+enum
+{
 	DMA_READY = 0,
 };
 
-struct atmel_abdac_dma {
+struct atmel_abdac_dma
+{
 	struct dma_chan		*chan;
 	struct dw_cyclic_desc	*cdesc;
 };
 
-struct atmel_abdac {
+struct atmel_abdac
+{
 	struct clk				*pclk;
 	struct clk				*sample_clk;
 	struct platform_device			*pdev;
@@ -115,8 +118,8 @@ static void atmel_abdac_dma_period_done(void *arg)
 }
 
 static int atmel_abdac_prepare_dma(struct atmel_abdac *dac,
-		struct snd_pcm_substream *substream,
-		enum dma_data_direction direction)
+								   struct snd_pcm_substream *substream,
+								   enum dma_data_direction direction)
 {
 	struct dma_chan			*chan = dac->dma.chan;
 	struct dw_cyclic_desc		*cdesc;
@@ -127,7 +130,8 @@ static int atmel_abdac_prepare_dma(struct atmel_abdac *dac,
 	 * We don't do DMA on "complex" transfers, i.e. with
 	 * non-halfword-aligned buffers or lengths.
 	 */
-	if (runtime->dma_addr & 1 || runtime->buffer_size & 1) {
+	if (runtime->dma_addr & 1 || runtime->buffer_size & 1)
+	{
 		dev_dbg(&dac->pdev->dev, "too complex transfer\n");
 		return -EINVAL;
 	}
@@ -136,8 +140,10 @@ static int atmel_abdac_prepare_dma(struct atmel_abdac *dac,
 	period_len = frames_to_bytes(runtime, runtime->period_size);
 
 	cdesc = dw_dma_cyclic_prep(chan, runtime->dma_addr, buffer_len,
-			period_len, DMA_MEM_TO_DEV);
-	if (IS_ERR(cdesc)) {
+							   period_len, DMA_MEM_TO_DEV);
+
+	if (IS_ERR(cdesc))
+	{
 		dev_dbg(&dac->pdev->dev, "could not prepare cyclic DMA\n");
 		return PTR_ERR(cdesc);
 	}
@@ -152,13 +158,14 @@ static int atmel_abdac_prepare_dma(struct atmel_abdac *dac,
 	return 0;
 }
 
-static struct snd_pcm_hardware atmel_abdac_hw = {
+static struct snd_pcm_hardware atmel_abdac_hw =
+{
 	.info			= (SNDRV_PCM_INFO_MMAP
-				  | SNDRV_PCM_INFO_MMAP_VALID
-				  | SNDRV_PCM_INFO_INTERLEAVED
-				  | SNDRV_PCM_INFO_BLOCK_TRANSFER
-				  | SNDRV_PCM_INFO_RESUME
-				  | SNDRV_PCM_INFO_PAUSE),
+	| SNDRV_PCM_INFO_MMAP_VALID
+	| SNDRV_PCM_INFO_INTERLEAVED
+	| SNDRV_PCM_INFO_BLOCK_TRANSFER
+	| SNDRV_PCM_INFO_RESUME
+	| SNDRV_PCM_INFO_PAUSE),
 	.formats		= (SNDRV_PCM_FMTBIT_S16_BE),
 	.rates			= (SNDRV_PCM_RATE_KNOT),
 	.rate_min		= RATE_MIN,
@@ -182,7 +189,7 @@ static int atmel_abdac_open(struct snd_pcm_substream *substream)
 	substream->runtime->hw = atmel_abdac_hw;
 
 	return snd_pcm_hw_constraint_list(substream->runtime, 0,
-			SNDRV_PCM_HW_PARAM_RATE, &dac->constraints_rates);
+									  SNDRV_PCM_HW_PARAM_RATE, &dac->constraints_rates);
 }
 
 static int atmel_abdac_close(struct snd_pcm_substream *substream)
@@ -193,19 +200,25 @@ static int atmel_abdac_close(struct snd_pcm_substream *substream)
 }
 
 static int atmel_abdac_hw_params(struct snd_pcm_substream *substream,
-		struct snd_pcm_hw_params *hw_params)
+								 struct snd_pcm_hw_params *hw_params)
 {
 	struct atmel_abdac *dac = snd_pcm_substream_chip(substream);
 	int retval;
 
 	retval = snd_pcm_lib_malloc_pages(substream,
-			params_buffer_bytes(hw_params));
+									  params_buffer_bytes(hw_params));
+
 	if (retval < 0)
+	{
 		return retval;
+	}
+
 	/* snd_pcm_lib_malloc_pages returns 1 if buffer is changed. */
 	if (retval == 1)
 		if (test_and_clear_bit(DMA_READY, &dac->flags))
+		{
 			dw_dma_cyclic_free(dac->dma.chan);
+		}
 
 	return retval;
 }
@@ -213,8 +226,12 @@ static int atmel_abdac_hw_params(struct snd_pcm_substream *substream,
 static int atmel_abdac_hw_free(struct snd_pcm_substream *substream)
 {
 	struct atmel_abdac *dac = snd_pcm_substream_chip(substream);
+
 	if (test_and_clear_bit(DMA_READY, &dac->flags))
+	{
 		dw_dma_cyclic_free(dac->dma.chan);
+	}
+
 	return snd_pcm_lib_free_pages(substream);
 }
 
@@ -224,11 +241,16 @@ static int atmel_abdac_prepare(struct snd_pcm_substream *substream)
 	int retval;
 
 	retval = clk_set_rate(dac->sample_clk, 256 * substream->runtime->rate);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	if (!test_bit(DMA_READY, &dac->flags))
+	{
 		retval = atmel_abdac_prepare_dma(dac, substream, DMA_TO_DEVICE);
+	}
 
 	return retval;
 }
@@ -238,28 +260,36 @@ static int atmel_abdac_trigger(struct snd_pcm_substream *substream, int cmd)
 	struct atmel_abdac *dac = snd_pcm_substream_chip(substream);
 	int retval = 0;
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE: /* fall through */
-	case SNDRV_PCM_TRIGGER_RESUME: /* fall through */
-	case SNDRV_PCM_TRIGGER_START:
-		clk_prepare_enable(dac->sample_clk);
-		retval = dw_dma_cyclic_start(dac->dma.chan);
-		if (retval)
-			goto out;
-		dac_writel(dac, CTRL, DAC_BIT(EN));
-		break;
-	case SNDRV_PCM_TRIGGER_PAUSE_PUSH: /* fall through */
-	case SNDRV_PCM_TRIGGER_SUSPEND: /* fall through */
-	case SNDRV_PCM_TRIGGER_STOP:
-		dw_dma_cyclic_stop(dac->dma.chan);
-		dac_writel(dac, DATA, 0);
-		dac_writel(dac, CTRL, 0);
-		clk_disable_unprepare(dac->sample_clk);
-		break;
-	default:
-		retval = -EINVAL;
-		break;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_PAUSE_RELEASE: /* fall through */
+		case SNDRV_PCM_TRIGGER_RESUME: /* fall through */
+		case SNDRV_PCM_TRIGGER_START:
+			clk_prepare_enable(dac->sample_clk);
+			retval = dw_dma_cyclic_start(dac->dma.chan);
+
+			if (retval)
+			{
+				goto out;
+			}
+
+			dac_writel(dac, CTRL, DAC_BIT(EN));
+			break;
+
+		case SNDRV_PCM_TRIGGER_PAUSE_PUSH: /* fall through */
+		case SNDRV_PCM_TRIGGER_SUSPEND: /* fall through */
+		case SNDRV_PCM_TRIGGER_STOP:
+			dw_dma_cyclic_stop(dac->dma.chan);
+			dac_writel(dac, DATA, 0);
+			dac_writel(dac, CTRL, 0);
+			clk_disable_unprepare(dac->sample_clk);
+			break;
+
+		default:
+			retval = -EINVAL;
+			break;
 	}
+
 out:
 	return retval;
 }
@@ -276,8 +306,11 @@ atmel_abdac_pointer(struct snd_pcm_substream *substream)
 	bytes -= runtime->dma_addr;
 
 	frames = bytes_to_frames(runtime, bytes);
+
 	if (frames >= runtime->buffer_size)
+	{
 		frames -= runtime->buffer_size;
+	}
 
 	return frames;
 }
@@ -288,19 +321,24 @@ static irqreturn_t abdac_interrupt(int irq, void *dev_id)
 	u32 status;
 
 	status = dac_readl(dac, INT_STATUS);
-	if (status & DAC_BIT(UNDERRUN)) {
+
+	if (status & DAC_BIT(UNDERRUN))
+	{
 		dev_err(&dac->pdev->dev, "underrun detected\n");
 		dac_writel(dac, INT_CLR, DAC_BIT(UNDERRUN));
-	} else {
+	}
+	else
+	{
 		dev_err(&dac->pdev->dev, "spurious interrupt (status=0x%x)\n",
-			status);
+				status);
 		dac_writel(dac, INT_CLR, status);
 	}
 
 	return IRQ_HANDLED;
 }
 
-static struct snd_pcm_ops atmel_abdac_ops = {
+static struct snd_pcm_ops atmel_abdac_ops =
+{
 	.open		= atmel_abdac_open,
 	.close		= atmel_abdac_close,
 	.ioctl		= snd_pcm_lib_ioctl,
@@ -318,9 +356,12 @@ static int atmel_abdac_pcm_new(struct atmel_abdac *dac)
 	int retval;
 
 	retval = snd_pcm_new(dac->card, dac->card->shortname,
-			dac->pdev->id, 1, 0, &pcm);
+						 dac->pdev->id, 1, 0, &pcm);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	strcpy(pcm->name, dac->card->shortname);
 	pcm->private_data = dac;
@@ -330,8 +371,8 @@ static int atmel_abdac_pcm_new(struct atmel_abdac *dac)
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &atmel_abdac_ops);
 
 	retval = snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
-			&dac->pdev->dev, hw.periods_min * hw.period_bytes_min,
-			hw.buffer_bytes_max);
+			 &dac->pdev->dev, hw.periods_min * hw.period_bytes_min,
+			 hw.buffer_bytes_max);
 
 	return retval;
 }
@@ -340,11 +381,15 @@ static bool filter(struct dma_chan *chan, void *slave)
 {
 	struct dw_dma_slave *dws = slave;
 
-	if (dws->dma_dev == chan->device->dev) {
+	if (dws->dma_dev == chan->device->dev)
+	{
 		chan->private = dws;
 		return true;
-	} else
+	}
+	else
+	{
 		return false;
+	}
 }
 
 static int set_sample_rates(struct atmel_abdac *dac)
@@ -354,25 +399,34 @@ static int set_sample_rates(struct atmel_abdac *dac)
 	int index = 0;
 
 	/* we start at 192 kHz and work our way down to 5112 Hz */
-	while (new_rate >= RATE_MIN && index < (MAX_NUM_RATES + 1)) {
+	while (new_rate >= RATE_MIN && index < (MAX_NUM_RATES + 1))
+	{
 		new_rate = clk_round_rate(dac->sample_clk, 256 * new_rate);
+
 		if (new_rate <= 0)
+		{
 			break;
+		}
+
 		/* make sure we are below the ABDAC clock */
 		if (index < MAX_NUM_RATES &&
-		    new_rate <= clk_get_rate(dac->pclk)) {
+			new_rate <= clk_get_rate(dac->pclk))
+		{
 			dac->rates[index] = new_rate / 256;
 			index++;
 		}
+
 		/* divide by 256 and then by two to get next rate */
 		new_rate /= 256 * 2;
 	}
 
-	if (index) {
+	if (index)
+	{
 		int i;
 
 		/* reverse array, smallest go first */
-		for (i = 0; i < (index / 2); i++) {
+		for (i = 0; i < (index / 2); i++)
+		{
 			unsigned int tmp = dac->rates[index - 1 - i];
 			dac->rates[index - 1 - i] = dac->rates[i];
 			dac->rates[i] = tmp;
@@ -401,40 +455,54 @@ static int atmel_abdac_probe(struct platform_device *pdev)
 	int			irq;
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!regs) {
+
+	if (!regs)
+	{
 		dev_dbg(&pdev->dev, "no memory resource\n");
 		return -ENXIO;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_dbg(&pdev->dev, "could not get IRQ number\n");
 		return irq;
 	}
 
 	pdata = pdev->dev.platform_data;
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_dbg(&pdev->dev, "no platform data\n");
 		return -ENXIO;
 	}
 
 	pclk = clk_get(&pdev->dev, "pclk");
-	if (IS_ERR(pclk)) {
+
+	if (IS_ERR(pclk))
+	{
 		dev_dbg(&pdev->dev, "no peripheral clock\n");
 		return PTR_ERR(pclk);
 	}
+
 	sample_clk = clk_get(&pdev->dev, "sample_clk");
-	if (IS_ERR(sample_clk)) {
+
+	if (IS_ERR(sample_clk))
+	{
 		dev_dbg(&pdev->dev, "no sample clock\n");
 		retval = PTR_ERR(sample_clk);
 		goto out_put_pclk;
 	}
+
 	clk_prepare_enable(pclk);
 
 	retval = snd_card_new(&pdev->dev, SNDRV_DEFAULT_IDX1,
-			      SNDRV_DEFAULT_STR1, THIS_MODULE,
-			      sizeof(struct atmel_abdac), &card);
-	if (retval) {
+						  SNDRV_DEFAULT_STR1, THIS_MODULE,
+						  sizeof(struct atmel_abdac), &card);
+
+	if (retval)
+	{
 		dev_dbg(&pdev->dev, "could not create sound card device\n");
 		goto out_put_sample_clk;
 	}
@@ -448,13 +516,17 @@ static int atmel_abdac_probe(struct platform_device *pdev)
 	dac->pdev = pdev;
 
 	retval = set_sample_rates(dac);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		dev_dbg(&pdev->dev, "could not set supported rates\n");
 		goto out_free_card;
 	}
 
 	dac->regs = ioremap(regs->start, resource_size(regs));
-	if (!dac->regs) {
+
+	if (!dac->regs)
+	{
 		dev_dbg(&pdev->dev, "could not remap register memory\n");
 		retval = -ENOMEM;
 		goto out_free_card;
@@ -465,20 +537,26 @@ static int atmel_abdac_probe(struct platform_device *pdev)
 	dac_writel(dac, CTRL, 0);
 
 	retval = request_irq(irq, abdac_interrupt, 0, "abdac", dac);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_dbg(&pdev->dev, "could not request irq\n");
 		goto out_unmap_regs;
 	}
 
-	if (pdata->dws.dma_dev) {
+	if (pdata->dws.dma_dev)
+	{
 		dma_cap_mask_t mask;
 
 		dma_cap_zero(mask);
 		dma_cap_set(DMA_SLAVE, mask);
 
 		dac->dma.chan = dma_request_channel(mask, filter, &pdata->dws);
-		if (dac->dma.chan) {
-			struct dma_slave_config dma_conf = {
+
+		if (dac->dma.chan)
+		{
+			struct dma_slave_config dma_conf =
+			{
 				.dst_addr = regs->start + DAC_DATA,
 				.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES,
 				.src_maxburst = 1,
@@ -490,7 +568,9 @@ static int atmel_abdac_probe(struct platform_device *pdev)
 			dmaengine_slave_config(dac->dma.chan, &dma_conf);
 		}
 	}
-	if (!pdata->dws.dma_dev || !dac->dma.chan) {
+
+	if (!pdata->dws.dma_dev || !dac->dma.chan)
+	{
 		dev_dbg(&pdev->dev, "DMA not available\n");
 		retval = -ENODEV;
 		goto out_unmap_regs;
@@ -501,13 +581,17 @@ static int atmel_abdac_probe(struct platform_device *pdev)
 	sprintf(card->longname, "Atmel Audio Bitstream DAC");
 
 	retval = atmel_abdac_pcm_new(dac);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_dbg(&pdev->dev, "could not register ABDAC pcm device\n");
 		goto out_release_dma;
 	}
 
 	retval = snd_card_register(card);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_dbg(&pdev->dev, "could not register sound card\n");
 		goto out_release_dma;
 	}
@@ -515,7 +599,7 @@ static int atmel_abdac_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, card);
 
 	dev_info(&pdev->dev, "Atmel ABDAC at 0x%p using %s\n",
-			dac->regs, dev_name(&dac->dma.chan->dev->device));
+			 dac->regs, dev_name(&dac->dma.chan->dev->device));
 
 	return retval;
 
@@ -554,8 +638,11 @@ static int atmel_abdac_resume(struct device *pdev)
 
 	clk_prepare_enable(dac->pclk);
 	clk_prepare_enable(dac->sample_clk);
+
 	if (test_bit(DMA_READY, &dac->flags))
+	{
 		dw_dma_cyclic_start(dac->dma.chan);
+	}
 
 	return 0;
 }
@@ -584,7 +671,8 @@ static int atmel_abdac_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver atmel_abdac_driver = {
+static struct platform_driver atmel_abdac_driver =
+{
 	.remove		= atmel_abdac_remove,
 	.driver		= {
 		.name	= "atmel_abdac",
@@ -595,7 +683,7 @@ static struct platform_driver atmel_abdac_driver = {
 static int __init atmel_abdac_init(void)
 {
 	return platform_driver_probe(&atmel_abdac_driver,
-			atmel_abdac_probe);
+								 atmel_abdac_probe);
 }
 module_init(atmel_abdac_init);
 

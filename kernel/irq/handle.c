@@ -48,10 +48,12 @@ EXPORT_SYMBOL_GPL(no_action);
 static void warn_no_thread(unsigned int irq, struct irqaction *action)
 {
 	if (test_and_set_bit(IRQTF_WARNED, &action->thread_flags))
+	{
 		return;
+	}
 
 	printk(KERN_WARNING "IRQ %d device %s returned IRQ_WAKE_THREAD "
-	       "but no thread function available.", irq, action->name);
+		   "but no thread function available.", irq, action->name);
 }
 
 void __irq_wake_thread(struct irq_desc *desc, struct irqaction *action)
@@ -62,14 +64,18 @@ void __irq_wake_thread(struct irq_desc *desc, struct irqaction *action)
 	 * device interrupt, so no irq storm is lurking.
 	 */
 	if (action->thread->flags & PF_EXITING)
+	{
 		return;
+	}
 
 	/*
 	 * Wake up the handler thread for this action. If the
 	 * RUNTHREAD bit is already set, nothing to do.
 	 */
 	if (test_and_set_bit(IRQTF_RUNTHREAD, &action->thread_flags))
+	{
 		return;
+	}
 
 	/*
 	 * It's safe to OR the mask lockless here. We have only two
@@ -138,37 +144,43 @@ irqreturn_t __handle_irq_event_percpu(struct irq_desc *desc, unsigned int *flags
 	unsigned int irq = desc->irq_data.irq;
 	struct irqaction *action;
 
-	for_each_action_of_desc(desc, action) {
+	for_each_action_of_desc(desc, action)
+	{
 		irqreturn_t res;
 
 		trace_irq_handler_entry(irq, action);
 		res = action->handler(irq, action->dev_id);
 		trace_irq_handler_exit(irq, action, res);
 
-		if (WARN_ONCE(!irqs_disabled(),"irq %u handler %pF enabled interrupts\n",
-			      irq, action->handler))
+		if (WARN_ONCE(!irqs_disabled(), "irq %u handler %pF enabled interrupts\n",
+					  irq, action->handler))
+		{
 			local_irq_disable();
+		}
 
-		switch (res) {
-		case IRQ_WAKE_THREAD:
-			/*
-			 * Catch drivers which return WAKE_THREAD but
-			 * did not set up a thread function
-			 */
-			if (unlikely(!action->thread_fn)) {
-				warn_no_thread(irq, action);
-				break;
-			}
+		switch (res)
+		{
+			case IRQ_WAKE_THREAD:
 
-			__irq_wake_thread(desc, action);
+				/*
+				 * Catch drivers which return WAKE_THREAD but
+				 * did not set up a thread function
+				 */
+				if (unlikely(!action->thread_fn))
+				{
+					warn_no_thread(irq, action);
+					break;
+				}
+
+				__irq_wake_thread(desc, action);
 
 			/* Fall through to add to randomness */
-		case IRQ_HANDLED:
-			*flags |= action->flags;
-			break;
+			case IRQ_HANDLED:
+				*flags |= action->flags;
+				break;
 
-		default:
-			break;
+			default:
+				break;
 		}
 
 		retval |= res;
@@ -187,7 +199,10 @@ irqreturn_t handle_irq_event_percpu(struct irq_desc *desc)
 	add_interrupt_randomness(desc->irq_data.irq, flags);
 
 	if (!noirqdebug)
+	{
 		note_interrupt(desc, retval);
+	}
+
 	return retval;
 }
 

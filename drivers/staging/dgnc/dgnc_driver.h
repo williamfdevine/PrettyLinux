@@ -82,16 +82,17 @@
 #define	DEFAULT_OFLAGS	(OPOST | ONLCR)
 #define	DEFAULT_CFLAGS	(B9600 | CS8 | CREAD | HUPCL | CLOCAL)
 #define	DEFAULT_LFLAGS	(ISIG | ICANON | ECHO | ECHOE | ECHOK | \
-			ECHOCTL | ECHOKE | IEXTEN)
+						 ECHOCTL | ECHOKE | IEXTEN)
 
 #ifndef _POSIX_VDISABLE
-#define   _POSIX_VDISABLE '\0'
+	#define   _POSIX_VDISABLE '\0'
 #endif
 
 /*
  * All the possible states the driver can be while being loaded.
  */
-enum {
+enum
+{
 	DRIVER_INITIALIZED = 0,
 	DRIVER_READY
 };
@@ -99,7 +100,8 @@ enum {
 /*
  * All the possible states the board can be while booting up.
  */
-enum {
+enum
+{
 	BOARD_FAILED = 0,
 	BOARD_FOUND,
 	BOARD_READY
@@ -117,7 +119,8 @@ struct channel_t;
 /************************************************************************
  * Per board operations structure				       *
  ************************************************************************/
-struct board_ops {
+struct board_ops
+{
 	void (*tasklet)(unsigned long data);
 	irqreturn_t (*intr)(int irq, void *voidbrd);
 	void (*uart_init)(struct channel_t *ch);
@@ -146,7 +149,8 @@ struct board_ops {
 /*
  *	Per-board information
  */
-struct dgnc_board {
+struct dgnc_board
+{
 	int		magic;		/* Board Magic number.  */
 	int		boardnum;	/* Board number: 0-32 */
 
@@ -242,7 +246,8 @@ struct device;
 /************************************************************************
  * Structure for terminal or printer unit.
  ************************************************************************/
-struct un_t {
+struct un_t
+{
 	int	magic;		/* Unit Magic Number.			*/
 	struct	channel_t *un_ch;
 	ulong	un_time;
@@ -288,7 +293,8 @@ struct un_t {
 /************************************************************************
  * Channel information structure.
  ************************************************************************/
-struct channel_t {
+struct channel_t
+{
 	int magic;			/* Channel Magic Number		*/
 	struct dgnc_board	*ch_bd;		/* Board structure pointer */
 	struct digi_t	ch_digi;	/* Transparent Print structure  */

@@ -73,22 +73,25 @@ ACPI_MODULE_NAME("utaddress")
  ******************************************************************************/
 acpi_status
 acpi_ut_add_address_range(acpi_adr_space_type space_id,
-			  acpi_physical_address address,
-			  u32 length, struct acpi_namespace_node *region_node)
+						  acpi_physical_address address,
+						  u32 length, struct acpi_namespace_node *region_node)
 {
 	struct acpi_address_range *range_info;
 
 	ACPI_FUNCTION_TRACE(ut_add_address_range);
 
 	if ((space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY) &&
-	    (space_id != ACPI_ADR_SPACE_SYSTEM_IO)) {
+		(space_id != ACPI_ADR_SPACE_SYSTEM_IO))
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
 	/* Allocate/init a new info block, add it to the appropriate list */
 
 	range_info = ACPI_ALLOCATE(sizeof(struct acpi_address_range));
-	if (!range_info) {
+
+	if (!range_info)
+	{
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 
@@ -100,10 +103,10 @@ acpi_ut_add_address_range(acpi_adr_space_type space_id,
 	acpi_gbl_address_range_list[space_id] = range_info;
 
 	ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
-			  "\nAdded [%4.4s] address range: 0x%8.8X%8.8X-0x%8.8X%8.8X\n",
-			  acpi_ut_get_node_name(range_info->region_node),
-			  ACPI_FORMAT_UINT64(address),
-			  ACPI_FORMAT_UINT64(range_info->end_address)));
+					  "\nAdded [%4.4s] address range: 0x%8.8X%8.8X-0x%8.8X%8.8X\n",
+					  acpi_ut_get_node_name(range_info->region_node),
+					  ACPI_FORMAT_UINT64(address),
+					  ACPI_FORMAT_UINT64(range_info->end_address)));
 
 	return_ACPI_STATUS(AE_OK);
 }
@@ -127,7 +130,7 @@ acpi_ut_add_address_range(acpi_adr_space_type space_id,
 
 void
 acpi_ut_remove_address_range(acpi_adr_space_type space_id,
-			     struct acpi_namespace_node *region_node)
+							 struct acpi_namespace_node *region_node)
 {
 	struct acpi_address_range *range_info;
 	struct acpi_address_range *prev;
@@ -135,30 +138,37 @@ acpi_ut_remove_address_range(acpi_adr_space_type space_id,
 	ACPI_FUNCTION_TRACE(ut_remove_address_range);
 
 	if ((space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY) &&
-	    (space_id != ACPI_ADR_SPACE_SYSTEM_IO)) {
+		(space_id != ACPI_ADR_SPACE_SYSTEM_IO))
+	{
 		return_VOID;
 	}
 
 	/* Get the appropriate list head and check the list */
 
 	range_info = prev = acpi_gbl_address_range_list[space_id];
-	while (range_info) {
-		if (range_info->region_node == region_node) {
-			if (range_info == prev) {	/* Found at list head */
+
+	while (range_info)
+	{
+		if (range_info->region_node == region_node)
+		{
+			if (range_info == prev)  	/* Found at list head */
+			{
 				acpi_gbl_address_range_list[space_id] =
-				    range_info->next;
-			} else {
+					range_info->next;
+			}
+			else
+			{
 				prev->next = range_info->next;
 			}
 
 			ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
-					  "\nRemoved [%4.4s] address range: 0x%8.8X%8.8X-0x%8.8X%8.8X\n",
-					  acpi_ut_get_node_name(range_info->
-								region_node),
-					  ACPI_FORMAT_UINT64(range_info->
-							     start_address),
-					  ACPI_FORMAT_UINT64(range_info->
-							     end_address)));
+							  "\nRemoved [%4.4s] address range: 0x%8.8X%8.8X-0x%8.8X%8.8X\n",
+							  acpi_ut_get_node_name(range_info->
+													region_node),
+							  ACPI_FORMAT_UINT64(range_info->
+												 start_address),
+							  ACPI_FORMAT_UINT64(range_info->
+												 end_address)));
 
 			ACPI_FREE(range_info);
 			return_VOID;
@@ -193,7 +203,7 @@ acpi_ut_remove_address_range(acpi_adr_space_type space_id,
 
 u32
 acpi_ut_check_address_range(acpi_adr_space_type space_id,
-			    acpi_physical_address address, u32 length, u8 warn)
+							acpi_physical_address address, u32 length, u8 warn)
 {
 	struct acpi_address_range *range_info;
 	acpi_physical_address end_address;
@@ -203,7 +213,8 @@ acpi_ut_check_address_range(acpi_adr_space_type space_id,
 	ACPI_FUNCTION_TRACE(ut_check_address_range);
 
 	if ((space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY) &&
-	    (space_id != ACPI_ADR_SPACE_SYSTEM_IO)) {
+		(space_id != ACPI_ADR_SPACE_SYSTEM_IO))
+	{
 		return_UINT32(0);
 	}
 
@@ -212,7 +223,8 @@ acpi_ut_check_address_range(acpi_adr_space_type space_id,
 
 	/* Check entire list for all possible conflicts */
 
-	while (range_info) {
+	while (range_info)
+	{
 		/*
 		 * Check if the requested address/length overlaps this
 		 * address range. There are four cases to consider:
@@ -224,27 +236,30 @@ acpi_ut_check_address_range(acpi_adr_space_type space_id,
 		 * 4) Input address/length completely encompasses the range
 		 */
 		if ((address <= range_info->end_address) &&
-		    (end_address >= range_info->start_address)) {
+			(end_address >= range_info->start_address))
+		{
 
 			/* Found an address range overlap */
 
 			overlap_count++;
-			if (warn) {	/* Optional warning message */
+
+			if (warn)  	/* Optional warning message */
+			{
 				pathname =
-				    acpi_ns_get_normalized_pathname(range_info->
-								    region_node,
-								    TRUE);
+					acpi_ns_get_normalized_pathname(range_info->
+													region_node,
+													TRUE);
 
 				ACPI_WARNING((AE_INFO,
-					      "%s range 0x%8.8X%8.8X-0x%8.8X%8.8X conflicts with OpRegion 0x%8.8X%8.8X-0x%8.8X%8.8X (%s)",
-					      acpi_ut_get_region_name(space_id),
-					      ACPI_FORMAT_UINT64(address),
-					      ACPI_FORMAT_UINT64(end_address),
-					      ACPI_FORMAT_UINT64(range_info->
-								 start_address),
-					      ACPI_FORMAT_UINT64(range_info->
-								 end_address),
-					      pathname));
+							  "%s range 0x%8.8X%8.8X-0x%8.8X%8.8X conflicts with OpRegion 0x%8.8X%8.8X-0x%8.8X%8.8X (%s)",
+							  acpi_ut_get_region_name(space_id),
+							  ACPI_FORMAT_UINT64(address),
+							  ACPI_FORMAT_UINT64(end_address),
+							  ACPI_FORMAT_UINT64(range_info->
+												 start_address),
+							  ACPI_FORMAT_UINT64(range_info->
+												 end_address),
+							  pathname));
 				ACPI_FREE(pathname);
 			}
 		}
@@ -276,10 +291,12 @@ void acpi_ut_delete_address_lists(void)
 
 	/* Delete all elements in all address range lists */
 
-	for (i = 0; i < ACPI_ADDRESS_RANGE_MAX; i++) {
+	for (i = 0; i < ACPI_ADDRESS_RANGE_MAX; i++)
+	{
 		next = acpi_gbl_address_range_list[i];
 
-		while (next) {
+		while (next)
+		{
 			range_info = next;
 			next = range_info->next;
 			ACPI_FREE(range_info);

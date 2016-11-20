@@ -25,14 +25,16 @@
 
 #include <dt-bindings/mfd/qcom-rpm.h>
 
-struct qcom_rpm_resource {
+struct qcom_rpm_resource
+{
 	unsigned target_id;
 	unsigned status_id;
 	unsigned select_id;
 	unsigned size;
 };
 
-struct qcom_rpm_data {
+struct qcom_rpm_data
+{
 	u32 version;
 	const struct qcom_rpm_resource *resource_table;
 	unsigned int n_resources;
@@ -44,7 +46,8 @@ struct qcom_rpm_data {
 	unsigned int ack_sel_size;
 };
 
-struct qcom_rpm {
+struct qcom_rpm
+{
 	struct device *dev;
 	struct regmap *ipc_regmap;
 	unsigned ipc_offset;
@@ -74,7 +77,8 @@ struct qcom_rpm {
 #define RPM_NOTIFICATION	BIT(30)
 #define RPM_REJECTED		BIT(31)
 
-static const struct qcom_rpm_resource apq8064_rpm_resource_table[] = {
+static const struct qcom_rpm_resource apq8064_rpm_resource_table[] =
+{
 	[QCOM_RPM_CXO_CLK] =			{ 25, 9, 5, 1 },
 	[QCOM_RPM_PXO_CLK] =			{ 26, 10, 6, 1 },
 	[QCOM_RPM_APPS_FABRIC_CLK] =		{ 27, 11, 8, 1 },
@@ -155,7 +159,8 @@ static const struct qcom_rpm_resource apq8064_rpm_resource_table[] = {
 	[QCOM_RPM_VDDMIN_GPIO] =		{ 215, 131, 89, 1 },
 };
 
-static const struct qcom_rpm_data apq8064_template = {
+static const struct qcom_rpm_data apq8064_template =
+{
 	.version = 3,
 	.resource_table = apq8064_rpm_resource_table,
 	.n_resources = ARRAY_SIZE(apq8064_rpm_resource_table),
@@ -167,7 +172,8 @@ static const struct qcom_rpm_data apq8064_template = {
 	.ack_sel_size = 7,
 };
 
-static const struct qcom_rpm_resource msm8660_rpm_resource_table[] = {
+static const struct qcom_rpm_resource msm8660_rpm_resource_table[] =
+{
 	[QCOM_RPM_CXO_CLK] =			{ 32, 12, 5, 1 },
 	[QCOM_RPM_PXO_CLK] =			{ 33, 13, 6, 1 },
 	[QCOM_RPM_PLL_4] =			{ 34, 14, 7, 1 },
@@ -244,7 +250,8 @@ static const struct qcom_rpm_resource msm8660_rpm_resource_table[] = {
 	[QCOM_RPM_CXO_BUFFERS] =		{ 229, 132, 81, 1 },
 };
 
-static const struct qcom_rpm_data msm8660_template = {
+static const struct qcom_rpm_data msm8660_template =
+{
 	.version = 2,
 	.resource_table = msm8660_rpm_resource_table,
 	.n_resources = ARRAY_SIZE(msm8660_rpm_resource_table),
@@ -256,7 +263,8 @@ static const struct qcom_rpm_data msm8660_template = {
 	.ack_sel_size = 7,
 };
 
-static const struct qcom_rpm_resource msm8960_rpm_resource_table[] = {
+static const struct qcom_rpm_resource msm8960_rpm_resource_table[] =
+{
 	[QCOM_RPM_CXO_CLK] =			{ 25, 9, 5, 1 },
 	[QCOM_RPM_PXO_CLK] =			{ 26, 10, 6, 1 },
 	[QCOM_RPM_APPS_FABRIC_CLK] =		{ 27, 11, 8, 1 },
@@ -332,7 +340,8 @@ static const struct qcom_rpm_resource msm8960_rpm_resource_table[] = {
 	[QCOM_RPM_DDR_DMM] =			{ 207, 121, 84, 2 },
 };
 
-static const struct qcom_rpm_data msm8960_template = {
+static const struct qcom_rpm_data msm8960_template =
+{
 	.version = 3,
 	.resource_table = msm8960_rpm_resource_table,
 	.n_resources = ARRAY_SIZE(msm8960_rpm_resource_table),
@@ -344,7 +353,8 @@ static const struct qcom_rpm_data msm8960_template = {
 	.ack_sel_size = 7,
 };
 
-static const struct qcom_rpm_resource ipq806x_rpm_resource_table[] = {
+static const struct qcom_rpm_resource ipq806x_rpm_resource_table[] =
+{
 	[QCOM_RPM_CXO_CLK] =			{ 25, 9, 5, 1 },
 	[QCOM_RPM_PXO_CLK] =			{ 26, 10, 6, 1 },
 	[QCOM_RPM_APPS_FABRIC_CLK] =		{ 27, 11, 8, 1 },
@@ -378,7 +388,8 @@ static const struct qcom_rpm_resource ipq806x_rpm_resource_table[] = {
 	[QCOM_RPM_SMB208_S2b] =			{ 222, 47, 93, 2 },
 };
 
-static const struct qcom_rpm_data ipq806x_template = {
+static const struct qcom_rpm_data ipq806x_template =
+{
 	.version = 3,
 	.resource_table = ipq806x_rpm_resource_table,
 	.n_resources = ARRAY_SIZE(ipq806x_rpm_resource_table),
@@ -390,7 +401,8 @@ static const struct qcom_rpm_data ipq806x_template = {
 	.ack_sel_size = 7,
 };
 
-static const struct qcom_rpm_resource mdm9615_rpm_resource_table[] = {
+static const struct qcom_rpm_resource mdm9615_rpm_resource_table[] =
+{
 	[QCOM_RPM_CXO_CLK] =			{ 25, 9, 5, 1 },
 	[QCOM_RPM_SYS_FABRIC_CLK] =		{ 26, 10, 9, 1 },
 	[QCOM_RPM_DAYTONA_FABRIC_CLK] =		{ 27, 11, 11, 1 },
@@ -428,7 +440,8 @@ static const struct qcom_rpm_resource mdm9615_rpm_resource_table[] = {
 	[QCOM_RPM_VOLTAGE_CORNER] =		{ 109, 64, 87, 1 },
 };
 
-static const struct qcom_rpm_data mdm9615_template = {
+static const struct qcom_rpm_data mdm9615_template =
+{
 	.version = 3,
 	.resource_table = mdm9615_rpm_resource_table,
 	.n_resources = ARRAY_SIZE(mdm9615_rpm_resource_table),
@@ -440,7 +453,8 @@ static const struct qcom_rpm_data mdm9615_template = {
 	.ack_sel_size = 7,
 };
 
-static const struct of_device_id qcom_rpm_of_match[] = {
+static const struct of_device_id qcom_rpm_of_match[] =
+{
 	{ .compatible = "qcom,rpm-apq8064", .data = &apq8064_template },
 	{ .compatible = "qcom,rpm-msm8660", .data = &msm8660_template },
 	{ .compatible = "qcom,rpm-msm8960", .data = &msm8960_template },
@@ -451,9 +465,9 @@ static const struct of_device_id qcom_rpm_of_match[] = {
 MODULE_DEVICE_TABLE(of, qcom_rpm_of_match);
 
 int qcom_rpm_write(struct qcom_rpm *rpm,
-		   int state,
-		   int resource,
-		   u32 *buf, size_t count)
+				   int state,
+				   int resource,
+				   u32 *buf, size_t count)
 {
 	const struct qcom_rpm_resource *res;
 	const struct qcom_rpm_data *data = rpm->data;
@@ -463,21 +477,30 @@ int qcom_rpm_write(struct qcom_rpm *rpm,
 	int i;
 
 	if (WARN_ON(resource < 0 || resource >= data->n_resources))
+	{
 		return -EINVAL;
+	}
 
 	res = &data->resource_table[resource];
+
 	if (WARN_ON(res->size != count))
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&rpm->lock);
 
 	for (i = 0; i < res->size; i++)
+	{
 		writel_relaxed(buf[i], RPM_REQ_REG(rpm, res->target_id + i));
+	}
 
 	bitmap_set((unsigned long *)sel_mask, res->select_id, 1);
-	for (i = 0; i < rpm->data->req_sel_size; i++) {
+
+	for (i = 0; i < rpm->data->req_sel_size; i++)
+	{
 		writel_relaxed(sel_mask[i],
-			       RPM_CTRL_REG(rpm, rpm->data->req_sel_off + i));
+					   RPM_CTRL_REG(rpm, rpm->data->req_sel_off + i));
 	}
 
 	writel_relaxed(BIT(state), RPM_CTRL_REG(rpm, rpm->data->req_ctx_off));
@@ -486,10 +509,15 @@ int qcom_rpm_write(struct qcom_rpm *rpm,
 	regmap_write(rpm->ipc_regmap, rpm->ipc_offset, BIT(rpm->ipc_bit));
 
 	left = wait_for_completion_timeout(&rpm->ack, RPM_REQUEST_TIMEOUT);
+
 	if (!left)
+	{
 		ret = -ETIMEDOUT;
+	}
 	else if (rpm->ack_status & RPM_REJECTED)
+	{
 		ret = -EIO;
+	}
 
 	mutex_unlock(&rpm->lock);
 
@@ -504,14 +532,19 @@ static irqreturn_t qcom_rpm_ack_interrupt(int irq, void *dev)
 	int i;
 
 	ack = readl_relaxed(RPM_CTRL_REG(rpm, rpm->data->ack_ctx_off));
+
 	for (i = 0; i < rpm->data->ack_sel_size; i++)
 		writel_relaxed(0,
-			RPM_CTRL_REG(rpm, rpm->data->ack_sel_off + i));
+					   RPM_CTRL_REG(rpm, rpm->data->ack_sel_off + i));
+
 	writel(0, RPM_CTRL_REG(rpm, rpm->data->ack_ctx_off));
 
-	if (ack & RPM_NOTIFICATION) {
+	if (ack & RPM_NOTIFICATION)
+	{
 		dev_warn(rpm->dev, "ignoring notification!\n");
-	} else {
+	}
+	else
+	{
 		rpm->ack_status = ack;
 		complete(&rpm->ack);
 	}
@@ -547,8 +580,11 @@ static int qcom_rpm_probe(struct platform_device *pdev)
 	int ret;
 
 	rpm = devm_kzalloc(&pdev->dev, sizeof(*rpm), GFP_KERNEL);
+
 	if (!rpm)
+	{
 		return -ENOMEM;
+	}
 
 	rpm->dev = &pdev->dev;
 	mutex_init(&rpm->lock);
@@ -556,69 +592,99 @@ static int qcom_rpm_probe(struct platform_device *pdev)
 
 	/* Enable message RAM clock */
 	rpm->ramclk = devm_clk_get(&pdev->dev, "ram");
-	if (IS_ERR(rpm->ramclk)) {
+
+	if (IS_ERR(rpm->ramclk))
+	{
 		ret = PTR_ERR(rpm->ramclk);
+
 		if (ret == -EPROBE_DEFER)
+		{
 			return ret;
+		}
+
 		/*
 		 * Fall through in all other cases, as the clock is
 		 * optional. (Does not exist on all platforms.)
 		 */
 		rpm->ramclk = NULL;
 	}
+
 	clk_prepare_enable(rpm->ramclk); /* Accepts NULL */
 
 	irq_ack = platform_get_irq_byname(pdev, "ack");
-	if (irq_ack < 0) {
+
+	if (irq_ack < 0)
+	{
 		dev_err(&pdev->dev, "required ack interrupt missing\n");
 		return irq_ack;
 	}
 
 	irq_err = platform_get_irq_byname(pdev, "err");
-	if (irq_err < 0) {
+
+	if (irq_err < 0)
+	{
 		dev_err(&pdev->dev, "required err interrupt missing\n");
 		return irq_err;
 	}
 
 	irq_wakeup = platform_get_irq_byname(pdev, "wakeup");
-	if (irq_wakeup < 0) {
+
+	if (irq_wakeup < 0)
+	{
 		dev_err(&pdev->dev, "required wakeup interrupt missing\n");
 		return irq_wakeup;
 	}
 
 	match = of_match_device(qcom_rpm_of_match, &pdev->dev);
+
 	if (!match)
+	{
 		return -ENODEV;
+	}
+
 	rpm->data = match->data;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rpm->status_regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(rpm->status_regs))
+	{
 		return PTR_ERR(rpm->status_regs);
+	}
+
 	rpm->ctrl_regs = rpm->status_regs + 0x400;
 	rpm->req_regs = rpm->status_regs + 0x600;
 
 	syscon_np = of_parse_phandle(pdev->dev.of_node, "qcom,ipc", 0);
-	if (!syscon_np) {
+
+	if (!syscon_np)
+	{
 		dev_err(&pdev->dev, "no qcom,ipc node\n");
 		return -ENODEV;
 	}
 
 	rpm->ipc_regmap = syscon_node_to_regmap(syscon_np);
 	of_node_put(syscon_np);
+
 	if (IS_ERR(rpm->ipc_regmap))
+	{
 		return PTR_ERR(rpm->ipc_regmap);
+	}
 
 	ret = of_property_read_u32_index(pdev->dev.of_node, "qcom,ipc", 1,
-					 &rpm->ipc_offset);
-	if (ret < 0) {
+									 &rpm->ipc_offset);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "no offset in qcom,ipc\n");
 		return -EINVAL;
 	}
 
 	ret = of_property_read_u32_index(pdev->dev.of_node, "qcom,ipc", 2,
-					 &rpm->ipc_bit);
-	if (ret < 0) {
+									 &rpm->ipc_bit);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "no bit in qcom,ipc\n");
 		return -EINVAL;
 	}
@@ -628,60 +694,74 @@ static int qcom_rpm_probe(struct platform_device *pdev)
 	fw_version[0] = readl(RPM_STATUS_REG(rpm, 0));
 	fw_version[1] = readl(RPM_STATUS_REG(rpm, 1));
 	fw_version[2] = readl(RPM_STATUS_REG(rpm, 2));
-	if (fw_version[0] != rpm->data->version) {
+
+	if (fw_version[0] != rpm->data->version)
+	{
 		dev_err(&pdev->dev,
-			"RPM version %u.%u.%u incompatible with driver version %u",
-			fw_version[0],
-			fw_version[1],
-			fw_version[2],
-			rpm->data->version);
+				"RPM version %u.%u.%u incompatible with driver version %u",
+				fw_version[0],
+				fw_version[1],
+				fw_version[2],
+				rpm->data->version);
 		return -EFAULT;
 	}
 
 	dev_info(&pdev->dev, "RPM firmware %u.%u.%u\n", fw_version[0],
-							fw_version[1],
-							fw_version[2]);
+			 fw_version[1],
+			 fw_version[2]);
 
 	ret = devm_request_irq(&pdev->dev,
-			       irq_ack,
-			       qcom_rpm_ack_interrupt,
-			       IRQF_TRIGGER_RISING,
-			       "qcom_rpm_ack",
-			       rpm);
-	if (ret) {
+						   irq_ack,
+						   qcom_rpm_ack_interrupt,
+						   IRQF_TRIGGER_RISING,
+						   "qcom_rpm_ack",
+						   rpm);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to request ack interrupt\n");
 		return ret;
 	}
 
 	ret = irq_set_irq_wake(irq_ack, 1);
+
 	if (ret)
+	{
 		dev_warn(&pdev->dev, "failed to mark ack irq as wakeup\n");
+	}
 
 	ret = devm_request_irq(&pdev->dev,
-			       irq_err,
-			       qcom_rpm_err_interrupt,
-			       IRQF_TRIGGER_RISING,
-			       "qcom_rpm_err",
-			       rpm);
-	if (ret) {
+						   irq_err,
+						   qcom_rpm_err_interrupt,
+						   IRQF_TRIGGER_RISING,
+						   "qcom_rpm_err",
+						   rpm);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to request err interrupt\n");
 		return ret;
 	}
 
 	ret = devm_request_irq(&pdev->dev,
-			       irq_wakeup,
-			       qcom_rpm_wakeup_interrupt,
-			       IRQF_TRIGGER_RISING,
-			       "qcom_rpm_wakeup",
-			       rpm);
-	if (ret) {
+						   irq_wakeup,
+						   qcom_rpm_wakeup_interrupt,
+						   IRQF_TRIGGER_RISING,
+						   "qcom_rpm_wakeup",
+						   rpm);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to request wakeup interrupt\n");
 		return ret;
 	}
 
 	ret = irq_set_irq_wake(irq_wakeup, 1);
+
 	if (ret)
+	{
 		dev_warn(&pdev->dev, "failed to mark wakeup irq as wakeup\n");
+	}
 
 	return of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
 }
@@ -696,7 +776,8 @@ static int qcom_rpm_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver qcom_rpm_driver = {
+static struct platform_driver qcom_rpm_driver =
+{
 	.probe = qcom_rpm_probe,
 	.remove = qcom_rpm_remove,
 	.driver  = {

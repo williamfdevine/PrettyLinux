@@ -29,7 +29,8 @@ MODULE_AUTHOR("Jes Sorensen <Jes.Sorensen@gmail.com>");
 MODULE_DESCRIPTION("Toshiba Laptop ACPI Bluetooth Enable Driver");
 MODULE_LICENSE("GPL");
 
-struct toshiba_bluetooth_dev {
+struct toshiba_bluetooth_dev
+{
 	struct acpi_device *acpi_dev;
 	struct rfkill *rfk;
 
@@ -42,26 +43,28 @@ static int toshiba_bt_rfkill_add(struct acpi_device *device);
 static int toshiba_bt_rfkill_remove(struct acpi_device *device);
 static void toshiba_bt_rfkill_notify(struct acpi_device *device, u32 event);
 
-static const struct acpi_device_id bt_device_ids[] = {
+static const struct acpi_device_id bt_device_ids[] =
+{
 	{ "TOS6205", 0},
 	{ "", 0},
 };
 MODULE_DEVICE_TABLE(acpi, bt_device_ids);
 
 #ifdef CONFIG_PM_SLEEP
-static int toshiba_bt_resume(struct device *dev);
+	static int toshiba_bt_resume(struct device *dev);
 #endif
 static SIMPLE_DEV_PM_OPS(toshiba_bt_pm, NULL, toshiba_bt_resume);
 
-static struct acpi_driver toshiba_bt_rfkill_driver = {
+static struct acpi_driver toshiba_bt_rfkill_driver =
+{
 	.name =		"Toshiba BT",
 	.class =	"Toshiba",
 	.ids =		bt_device_ids,
 	.ops =		{
-				.add =		toshiba_bt_rfkill_add,
-				.remove =	toshiba_bt_rfkill_remove,
-				.notify =	toshiba_bt_rfkill_notify,
-			},
+		.add =		toshiba_bt_rfkill_add,
+		.remove =	toshiba_bt_rfkill_remove,
+		.notify =	toshiba_bt_rfkill_notify,
+	},
 	.owner = 	THIS_MODULE,
 	.drv.pm =	&toshiba_bt_pm,
 };
@@ -77,12 +80,15 @@ static int toshiba_bluetooth_present(acpi_handle handle)
 	 * is really anything there.
 	 */
 	result = acpi_evaluate_integer(handle, "_STA", NULL, &bt_present);
-	if (ACPI_FAILURE(result)) {
+
+	if (ACPI_FAILURE(result))
+	{
 		pr_err("ACPI call to query Bluetooth presence failed\n");
 		return -ENXIO;
 	}
 
-	if (!bt_present) {
+	if (!bt_present)
+	{
 		pr_info("Bluetooth device not present\n");
 		return -ENODEV;
 	}
@@ -96,7 +102,9 @@ static int toshiba_bluetooth_status(acpi_handle handle)
 	u64 status;
 
 	result = acpi_evaluate_integer(handle, "BTST", NULL, &status);
-	if (ACPI_FAILURE(result)) {
+
+	if (ACPI_FAILURE(result))
+	{
 		pr_err("Could not get Bluetooth device status\n");
 		return -ENXIO;
 	}
@@ -109,13 +117,17 @@ static int toshiba_bluetooth_enable(acpi_handle handle)
 	acpi_status result;
 
 	result = acpi_evaluate_object(handle, "AUSB", NULL, NULL);
-	if (ACPI_FAILURE(result)) {
+
+	if (ACPI_FAILURE(result))
+	{
 		pr_err("Could not attach USB Bluetooth device\n");
 		return -ENXIO;
 	}
 
 	result = acpi_evaluate_object(handle, "BTPO", NULL, NULL);
-	if (ACPI_FAILURE(result)) {
+
+	if (ACPI_FAILURE(result))
+	{
 		pr_err("Could not power ON Bluetooth device\n");
 		return -ENXIO;
 	}
@@ -128,13 +140,17 @@ static int toshiba_bluetooth_disable(acpi_handle handle)
 	acpi_status result;
 
 	result = acpi_evaluate_object(handle, "BTPF", NULL, NULL);
-	if (ACPI_FAILURE(result)) {
+
+	if (ACPI_FAILURE(result))
+	{
 		pr_err("Could not power OFF Bluetooth device\n");
 		return -ENXIO;
 	}
 
 	result = acpi_evaluate_object(handle, "DUSB", NULL, NULL);
-	if (ACPI_FAILURE(result)) {
+
+	if (ACPI_FAILURE(result))
+	{
 		pr_err("Could not detach USB Bluetooth device\n");
 		return -ENXIO;
 	}
@@ -148,7 +164,9 @@ static int toshiba_bluetooth_sync_status(struct toshiba_bluetooth_dev *bt_dev)
 	int status;
 
 	status = toshiba_bluetooth_status(bt_dev->acpi_dev->handle);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		pr_err("Could not sync bluetooth device status\n");
 		return status;
 	}
@@ -158,7 +176,7 @@ static int toshiba_bluetooth_sync_status(struct toshiba_bluetooth_dev *bt_dev)
 	bt_dev->powered = (status & BT_POWER_MASK) ? true : false;
 
 	pr_debug("Bluetooth status %d killswitch %d plugged %d powered %d\n",
-		 status, bt_dev->killswitch, bt_dev->plugged, bt_dev->powered);
+			 status, bt_dev->killswitch, bt_dev->plugged, bt_dev->powered);
 
 	return 0;
 }
@@ -170,16 +188,25 @@ static int bt_rfkill_set_block(void *data, bool blocked)
 	int ret;
 
 	ret = toshiba_bluetooth_sync_status(bt_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (!bt_dev->killswitch)
+	{
 		return 0;
+	}
 
 	if (blocked)
+	{
 		ret = toshiba_bluetooth_disable(bt_dev->acpi_dev->handle);
+	}
 	else
+	{
 		ret = toshiba_bluetooth_enable(bt_dev->acpi_dev->handle);
+	}
 
 	return ret;
 }
@@ -189,7 +216,9 @@ static void bt_rfkill_poll(struct rfkill *rfkill, void *data)
 	struct toshiba_bluetooth_dev *bt_dev = data;
 
 	if (toshiba_bluetooth_sync_status(bt_dev))
+	{
 		return;
+	}
 
 	/*
 	 * Note the Toshiba Bluetooth RFKill switch seems to be a strange
@@ -201,7 +230,8 @@ static void bt_rfkill_poll(struct rfkill *rfkill, void *data)
 	rfkill_set_hw_state(bt_dev->rfk, !bt_dev->killswitch);
 }
 
-static const struct rfkill_ops rfk_ops = {
+static const struct rfkill_ops rfk_ops =
+{
 	.set_block = bt_rfkill_set_block,
 	.poll = bt_rfkill_poll,
 };
@@ -212,7 +242,9 @@ static void toshiba_bt_rfkill_notify(struct acpi_device *device, u32 event)
 	struct toshiba_bluetooth_dev *bt_dev = acpi_driver_data(device);
 
 	if (toshiba_bluetooth_sync_status(bt_dev))
+	{
 		return;
+	}
 
 	rfkill_set_hw_state(bt_dev->rfk, !bt_dev->killswitch);
 }
@@ -226,8 +258,11 @@ static int toshiba_bt_resume(struct device *dev)
 	bt_dev = acpi_driver_data(to_acpi_device(dev));
 
 	ret = toshiba_bluetooth_sync_status(bt_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	rfkill_set_hw_state(bt_dev->rfk, !bt_dev->killswitch);
 
@@ -241,30 +276,41 @@ static int toshiba_bt_rfkill_add(struct acpi_device *device)
 	int result;
 
 	result = toshiba_bluetooth_present(device->handle);
+
 	if (result)
+	{
 		return result;
+	}
 
 	pr_info("Toshiba ACPI Bluetooth device driver\n");
 
 	bt_dev = kzalloc(sizeof(*bt_dev), GFP_KERNEL);
+
 	if (!bt_dev)
+	{
 		return -ENOMEM;
+	}
+
 	bt_dev->acpi_dev = device;
 	device->driver_data = bt_dev;
 	dev_set_drvdata(&device->dev, bt_dev);
 
 	result = toshiba_bluetooth_sync_status(bt_dev);
-	if (result) {
+
+	if (result)
+	{
 		kfree(bt_dev);
 		return result;
 	}
 
 	bt_dev->rfk = rfkill_alloc("Toshiba Bluetooth",
-				   &device->dev,
-				   RFKILL_TYPE_BLUETOOTH,
-				   &rfk_ops,
-				   bt_dev);
-	if (!bt_dev->rfk) {
+							   &device->dev,
+							   RFKILL_TYPE_BLUETOOTH,
+							   &rfk_ops,
+							   bt_dev);
+
+	if (!bt_dev->rfk)
+	{
 		pr_err("Unable to allocate rfkill device\n");
 		kfree(bt_dev);
 		return -ENOMEM;
@@ -273,7 +319,9 @@ static int toshiba_bt_rfkill_add(struct acpi_device *device)
 	rfkill_set_hw_state(bt_dev->rfk, !bt_dev->killswitch);
 
 	result = rfkill_register(bt_dev->rfk);
-	if (result) {
+
+	if (result)
+	{
 		pr_err("Unable to register rfkill device\n");
 		rfkill_destroy(bt_dev->rfk);
 		kfree(bt_dev);
@@ -287,7 +335,8 @@ static int toshiba_bt_rfkill_remove(struct acpi_device *device)
 	struct toshiba_bluetooth_dev *bt_dev = acpi_driver_data(device);
 
 	/* clean up */
-	if (bt_dev->rfk) {
+	if (bt_dev->rfk)
+	{
 		rfkill_unregister(bt_dev->rfk);
 		rfkill_destroy(bt_dev->rfk);
 	}

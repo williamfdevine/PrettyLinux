@@ -38,28 +38,29 @@
  * CMD64x specific registers definition.
  */
 
-enum {
+enum
+{
 	CFR 		= 0x50,
-		CFR_INTR_CH0  = 0x04,
+	CFR_INTR_CH0  = 0x04,
 	CNTRL		= 0x51,
-		CNTRL_CH0     = 0x04,
-		CNTRL_CH1     = 0x08,
+	CNTRL_CH0     = 0x04,
+	CNTRL_CH1     = 0x08,
 	CMDTIM 		= 0x52,
 	ARTTIM0 	= 0x53,
 	DRWTIM0 	= 0x54,
 	ARTTIM1 	= 0x55,
 	DRWTIM1 	= 0x56,
 	ARTTIM23 	= 0x57,
-		ARTTIM23_DIS_RA2  = 0x04,
-		ARTTIM23_DIS_RA3  = 0x08,
-		ARTTIM23_INTR_CH1 = 0x10,
+	ARTTIM23_DIS_RA2  = 0x04,
+	ARTTIM23_DIS_RA3  = 0x08,
+	ARTTIM23_INTR_CH1 = 0x10,
 	DRWTIM2 	= 0x58,
 	BRST 		= 0x59,
 	DRWTIM3 	= 0x5b,
 	BMIDECR0	= 0x70,
 	MRDMODE		= 0x71,
-		MRDMODE_INTR_CH0 = 0x04,
-		MRDMODE_INTR_CH1 = 0x08,
+	MRDMODE_INTR_CH0 = 0x04,
+	MRDMODE_INTR_CH1 = 0x08,
 	BMIDESR0	= 0x72,
 	UDIDETCR0	= 0x73,
 	DTPR0		= 0x74,
@@ -76,8 +77,12 @@ static int cmd648_cable_detect(struct ata_port *ap)
 
 	/* Check cable detect bits */
 	pci_read_config_byte(pdev, BMIDECSR, &r);
+
 	if (r & (1 << ap->port_no))
+	{
 		return ATA_CBL_PATA80;
+	}
+
 	return ATA_CBL_PATA40;
 }
 
@@ -100,11 +105,13 @@ static void cmd64x_set_timing(struct ata_port *ap, struct ata_device *adev, u8 m
 	u8 reg;
 
 	/* Port layout is not logical so use a table */
-	const u8 arttim_port[2][2] = {
+	const u8 arttim_port[2][2] =
+	{
 		{ ARTTIM0, ARTTIM1 },
 		{ ARTTIM23, ARTTIM23 }
 	};
-	const u8 drwtim_port[2][2] = {
+	const u8 drwtim_port[2][2] =
+	{
 		{ DRWTIM0, DRWTIM1 },
 		{ DRWTIM2, DRWTIM3 }
 	};
@@ -114,15 +121,19 @@ static void cmd64x_set_timing(struct ata_port *ap, struct ata_device *adev, u8 m
 
 	/* ata_timing_compute is smart and will produce timings for MWDMA
 	   that don't violate the drives PIO capabilities. */
-	if (ata_timing_compute(adev, mode, &t, T, 0) < 0) {
+	if (ata_timing_compute(adev, mode, &t, T, 0) < 0)
+	{
 		printk(KERN_ERR DRV_NAME ": mode computation failed.\n");
 		return;
 	}
-	if (ap->port_no) {
+
+	if (ap->port_no)
+	{
 		/* Slave has shared address setup */
 		struct ata_device *pair = ata_dev_pair(adev);
 
-		if (pair) {
+		if (pair)
+		{
 			struct ata_timing tp;
 			ata_timing_compute(pair, pair->pio_mode, &tp, T, 0);
 			ata_timing_merge(&t, &tp, &t, ATA_TIMING_SETUP);
@@ -130,28 +141,43 @@ static void cmd64x_set_timing(struct ata_port *ap, struct ata_device *adev, u8 m
 	}
 
 	printk(KERN_DEBUG DRV_NAME ": active %d recovery %d setup %d.\n",
-		t.active, t.recover, t.setup);
-	if (t.recover > 16) {
+		   t.active, t.recover, t.setup);
+
+	if (t.recover > 16)
+	{
 		t.active += t.recover - 16;
 		t.recover = 16;
 	}
+
 	if (t.active > 16)
+	{
 		t.active = 16;
+	}
 
 	/* Now convert the clocks into values we can actually stuff into
 	   the chip */
 
 	if (t.recover == 16)
+	{
 		t.recover = 0;
+	}
 	else if (t.recover > 1)
+	{
 		t.recover--;
+	}
 	else
+	{
 		t.recover = 15;
+	}
 
 	if (t.setup > 4)
+	{
 		t.setup = 0xC0;
+	}
 	else
+	{
 		t.setup = setup_data[t.setup];
+	}
 
 	t.active &= 0x0F;	/* 0 = 16 */
 
@@ -189,7 +215,8 @@ static void cmd64x_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 static void cmd64x_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 {
-	static const u8 udma_data[] = {
+	static const u8 udma_data[] =
+	{
 		0x30, 0x20, 0x10, 0x20, 0x10, 0x00
 	};
 
@@ -210,14 +237,20 @@ static void cmd64x_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 	/* DMA timing bits */
 	regU &= ~(0x05 << adev->devno);
 
-	if (adev->dma_mode >= XFER_UDMA_0) {
+	if (adev->dma_mode >= XFER_UDMA_0)
+	{
 		/* Merge the timing value */
 		regU |= udma_data[adev->dma_mode - XFER_UDMA_0] << shift;
 		/* Merge the control bits */
 		regU |= 1 << adev->devno; /* UDMA on */
+
 		if (adev->dma_mode > XFER_UDMA_2) /* 15nS timing */
+		{
 			regU |= 4 << adev->devno;
-	} else {
+		}
+	}
+	else
+	{
 		regU &= ~ (1 << adev->devno);	/* UDMA off */
 		cmd64x_set_timing(ap, adev, adev->dma_mode);
 	}
@@ -318,24 +351,28 @@ static void cmd646r1_bmdma_stop(struct ata_queued_cmd *qc)
 	ata_bmdma_stop(qc);
 }
 
-static struct scsi_host_template cmd64x_sht = {
+static struct scsi_host_template cmd64x_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static const struct ata_port_operations cmd64x_base_ops = {
+static const struct ata_port_operations cmd64x_base_ops =
+{
 	.inherits	= &ata_bmdma_port_ops,
 	.set_piomode	= cmd64x_set_piomode,
 	.set_dmamode	= cmd64x_set_dmamode,
 };
 
-static struct ata_port_operations cmd64x_port_ops = {
+static struct ata_port_operations cmd64x_port_ops =
+{
 	.inherits	= &cmd64x_base_ops,
 	.sff_irq_check	= cmd64x_sff_irq_check,
 	.sff_irq_clear	= cmd64x_sff_irq_clear,
 	.cable_detect	= ata_cable_40wire,
 };
 
-static struct ata_port_operations cmd646r1_port_ops = {
+static struct ata_port_operations cmd646r1_port_ops =
+{
 	.inherits	= &cmd64x_base_ops,
 	.sff_irq_check	= cmd64x_sff_irq_check,
 	.sff_irq_clear	= cmd64x_sff_irq_clear,
@@ -343,14 +380,16 @@ static struct ata_port_operations cmd646r1_port_ops = {
 	.cable_detect	= ata_cable_40wire,
 };
 
-static struct ata_port_operations cmd646r3_port_ops = {
+static struct ata_port_operations cmd646r3_port_ops =
+{
 	.inherits	= &cmd64x_base_ops,
 	.sff_irq_check	= cmd648_sff_irq_check,
 	.sff_irq_clear	= cmd648_sff_irq_clear,
 	.cable_detect	= ata_cable_40wire,
 };
 
-static struct ata_port_operations cmd648_port_ops = {
+static struct ata_port_operations cmd648_port_ops =
+{
 	.inherits	= &cmd64x_base_ops,
 	.sff_irq_check	= cmd648_sff_irq_check,
 	.sff_irq_clear	= cmd648_sff_irq_clear,
@@ -375,7 +414,8 @@ static void cmd64x_fixup(struct pci_dev *pdev)
 
 static int cmd64x_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 {
-	static const struct ata_port_info cmd_info[7] = {
+	static const struct ata_port_info cmd_info[7] =
+	{
 		{	/* CMD 643 - no UDMA */
 			.flags = ATA_FLAG_SLAVE_POSS,
 			.pio_mask = ATA_PIO4,
@@ -422,7 +462,8 @@ static int cmd64x_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 			.port_ops = &cmd648_port_ops
 		}
 	};
-	const struct ata_port_info *ppi[] = {
+	const struct ata_port_info *ppi[] =
+	{
 		&cmd_info[id->driver_data],
 		&cmd_info[id->driver_data],
 		NULL
@@ -432,54 +473,70 @@ static int cmd64x_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	struct pci_dev *bridge = pdev->bus->self;
 	/* mobility split bridges don't report enabled ports correctly */
 	int port_ok = !(bridge && bridge->vendor ==
-			PCI_VENDOR_ID_MOBILITY_ELECTRONICS);
+					PCI_VENDOR_ID_MOBILITY_ELECTRONICS);
 	/* all (with exceptions below) apart from 643 have CNTRL_CH0 bit */
 	int cntrl_ch0_ok = (id->driver_data != 0);
 
 	rc = pcim_enable_device(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (id->driver_data == 0)	/* 643 */
+	{
 		ata_pci_bmdma_clear_simplex(pdev);
+	}
 
 	if (pdev->device == PCI_DEVICE_ID_CMD_646)
-		switch (pdev->revision) {
-		/* UDMA works since rev 5 */
-		default:
-			ppi[0] = &cmd_info[3];
-			ppi[1] = &cmd_info[3];
-			break;
-		/* Interrupts in MRDMODE since rev 3 */
-		case 3:
-		case 4:
-			ppi[0] = &cmd_info[2];
-			ppi[1] = &cmd_info[2];
-			break;
-		/* Rev 1 with other problems? */
-		case 1:
-			ppi[0] = &cmd_info[4];
-			ppi[1] = &cmd_info[4];
+		switch (pdev->revision)
+		{
+			/* UDMA works since rev 5 */
+			default:
+				ppi[0] = &cmd_info[3];
+				ppi[1] = &cmd_info[3];
+				break;
+
+			/* Interrupts in MRDMODE since rev 3 */
+			case 3:
+			case 4:
+				ppi[0] = &cmd_info[2];
+				ppi[1] = &cmd_info[2];
+				break;
+
+			/* Rev 1 with other problems? */
+			case 1:
+				ppi[0] = &cmd_info[4];
+				ppi[1] = &cmd_info[4];
+
 			/* FALL THRU */
-		/* Early revs have no CNTRL_CH0 */
-		case 2:
-		case 0:
-			cntrl_ch0_ok = 0;
-			break;
+			/* Early revs have no CNTRL_CH0 */
+			case 2:
+			case 0:
+				cntrl_ch0_ok = 0;
+				break;
 		}
 
 	cmd64x_fixup(pdev);
 
 	/* check for enabled ports */
 	pci_read_config_byte(pdev, CNTRL, &reg);
+
 	if (!port_ok)
+	{
 		dev_notice(&pdev->dev, "Mobility Bridge detected, ignoring CNTRL port enable/disable\n");
-	if (port_ok && cntrl_ch0_ok && !(reg & CNTRL_CH0)) {
+	}
+
+	if (port_ok && cntrl_ch0_ok && !(reg & CNTRL_CH0))
+	{
 		dev_notice(&pdev->dev, "Primary port is disabled\n");
 		ppi[0] = &ata_dummy_port_info;
 
 	}
-	if (port_ok && !(reg & CNTRL_CH1)) {
+
+	if (port_ok && !(reg & CNTRL_CH1))
+	{
 		dev_notice(&pdev->dev, "Secondary port is disabled\n");
 		ppi[1] = &ata_dummy_port_info;
 	}
@@ -494,8 +551,11 @@ static int cmd64x_reinit_one(struct pci_dev *pdev)
 	int rc;
 
 	rc = ata_pci_device_do_resume(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	cmd64x_fixup(pdev);
 
@@ -504,7 +564,8 @@ static int cmd64x_reinit_one(struct pci_dev *pdev)
 }
 #endif
 
-static const struct pci_device_id cmd64x[] = {
+static const struct pci_device_id cmd64x[] =
+{
 	{ PCI_VDEVICE(CMD, PCI_DEVICE_ID_CMD_643), 0 },
 	{ PCI_VDEVICE(CMD, PCI_DEVICE_ID_CMD_646), 1 },
 	{ PCI_VDEVICE(CMD, PCI_DEVICE_ID_CMD_648), 5 },
@@ -513,7 +574,8 @@ static const struct pci_device_id cmd64x[] = {
 	{ },
 };
 
-static struct pci_driver cmd64x_pci_driver = {
+static struct pci_driver cmd64x_pci_driver =
+{
 	.name 		= DRV_NAME,
 	.id_table	= cmd64x,
 	.probe 		= cmd64x_init_one,

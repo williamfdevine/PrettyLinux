@@ -30,7 +30,8 @@ struct edp_ctrl;
 struct edp_aux;
 struct edp_phy;
 
-struct msm_edp {
+struct msm_edp
+{
 	struct drm_device *dev;
 	struct platform_device *pdev;
 
@@ -54,7 +55,7 @@ struct drm_connector *msm_edp_connector_init(struct msm_edp *edp);
 
 /* AUX */
 void *msm_edp_aux_init(struct device *dev, void __iomem *regbase,
-			struct drm_dp_aux **drm_aux);
+					   struct drm_dp_aux **drm_aux);
 void msm_edp_aux_destroy(struct device *dev, struct edp_aux *aux);
 irqreturn_t msm_edp_aux_irq(struct edp_aux *aux, u32 isr);
 void msm_edp_aux_ctrl(struct edp_aux *aux, int enable);
@@ -74,12 +75,12 @@ int msm_edp_ctrl_init(struct msm_edp *edp);
 void msm_edp_ctrl_destroy(struct edp_ctrl *ctrl);
 bool msm_edp_ctrl_panel_connected(struct edp_ctrl *ctrl);
 int msm_edp_ctrl_get_panel_info(struct edp_ctrl *ctrl,
-	struct drm_connector *connector, struct edid **edid);
+								struct drm_connector *connector, struct edid **edid);
 int msm_edp_ctrl_timing_cfg(struct edp_ctrl *ctrl,
-				const struct drm_display_mode *mode,
-				const struct drm_display_info *info);
+							const struct drm_display_mode *mode,
+							const struct drm_display_info *info);
 /* @pixel_rate is in kHz */
 bool msm_edp_ctrl_pixel_clock_valid(struct edp_ctrl *ctrl,
-	u32 pixel_rate, u32 *pm, u32 *pn);
+									u32 pixel_rate, u32 *pm, u32 *pn);
 
 #endif /* __EDP_CONNECTOR_H__ */

@@ -28,7 +28,8 @@
 
 struct cx25840_ir_state;
 
-enum cx25840_model {
+enum cx25840_model
+{
 	CX23885_AV,
 	CX23887_AV,
 	CX23888_AV,
@@ -41,7 +42,8 @@ enum cx25840_model {
 	CX25837,
 };
 
-enum cx25840_media_pads {
+enum cx25840_media_pads
+{
 	CX25840_PAD_INPUT,
 	CX25840_PAD_VID_OUT,
 	CX25840_PAD_VBI_OUT,
@@ -49,11 +51,13 @@ enum cx25840_media_pads {
 	CX25840_NUM_PADS
 };
 
-struct cx25840_state {
+struct cx25840_state
+{
 	struct i2c_client *c;
 	struct v4l2_subdev sd;
 	struct v4l2_ctrl_handler hdl;
-	struct {
+	struct
+	{
 		/* volume cluster */
 		struct v4l2_ctrl *volume;
 		struct v4l2_ctrl *mute;
@@ -91,7 +95,7 @@ static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
 static inline bool is_cx2583x(struct cx25840_state *state)
 {
 	return state->id == CX25836 ||
-	       state->id == CX25837;
+		   state->id == CX25837;
 }
 
 static inline bool is_cx231xx(struct cx25840_state *state)
@@ -102,8 +106,8 @@ static inline bool is_cx231xx(struct cx25840_state *state)
 static inline bool is_cx2388x(struct cx25840_state *state)
 {
 	return state->id == CX23885_AV ||
-	       state->id == CX23887_AV ||
-	       state->id == CX23888_AV;
+		   state->id == CX23887_AV ||
+		   state->id == CX23888_AV;
 }
 
 static inline bool is_cx23885(struct cx25840_state *state)
@@ -129,7 +133,7 @@ u8 cx25840_read(struct i2c_client *client, u16 addr);
 u32 cx25840_read4(struct i2c_client *client, u16 addr);
 int cx25840_and_or(struct i2c_client *client, u16 addr, unsigned mask, u8 value);
 int cx25840_and_or4(struct i2c_client *client, u16 addr, u32 and_mask,
-		    u32 or_value);
+					u32 or_value);
 void cx25840_std_setup(struct i2c_client *client);
 
 /* ----------------------------------------------------------------------- */

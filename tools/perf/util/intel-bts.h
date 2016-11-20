@@ -18,7 +18,8 @@
 
 #define INTEL_BTS_PMU_NAME "intel_bts"
 
-enum {
+enum
+{
 	INTEL_BTS_PMU_TYPE,
 	INTEL_BTS_TIME_SHIFT,
 	INTEL_BTS_TIME_MULT,
@@ -38,6 +39,6 @@ struct perf_session;
 struct auxtrace_record *intel_bts_recording_init(int *err);
 
 int intel_bts_process_auxtrace_info(union perf_event *event,
-				    struct perf_session *session);
+									struct perf_session *session);
 
 #endif

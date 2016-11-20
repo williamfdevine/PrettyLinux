@@ -8,7 +8,7 @@
  */
 
 #ifdef CONFIG_X86
-#include <asm/x86_init.h>
+	#include <asm/x86_init.h>
 #endif
 
 /*
@@ -24,9 +24,9 @@
  */
 
 #if defined(__ia64__)
-# define I8042_MAP_IRQ(x)	isa_irq_to_vector((x))
+	#define I8042_MAP_IRQ(x)	isa_irq_to_vector((x))
 #else
-# define I8042_MAP_IRQ(x)	(x)
+	#define I8042_MAP_IRQ(x)	(x)
 #endif
 
 #define I8042_KBD_IRQ	i8042_kbd_irq
@@ -71,7 +71,8 @@ static inline void i8042_write_command(int val)
 
 #include <linux/dmi.h>
 
-static const struct dmi_system_id __initconst i8042_dmi_noloop_table[] = {
+static const struct dmi_system_id __initconst i8042_dmi_noloop_table[] =
+{
 	{
 		/*
 		 * Arima-Rioworks HDAMB -
@@ -221,7 +222,8 @@ static const struct dmi_system_id __initconst i8042_dmi_noloop_table[] = {
  * ... apparently some Toshibas don't like MUX mode either and
  * die horrible death on reboot.
  */
-static const struct dmi_system_id __initconst i8042_dmi_nomux_table[] = {
+static const struct dmi_system_id __initconst i8042_dmi_nomux_table[] =
+{
 	{
 		/* Fujitsu Lifebook P7010/P7010D */
 		.matches = {
@@ -513,7 +515,8 @@ static const struct dmi_system_id __initconst i8042_dmi_nomux_table[] = {
 /*
  * On some Asus laptops, just running self tests cause problems.
  */
-static const struct dmi_system_id i8042_dmi_noselftest_table[] = {
+static const struct dmi_system_id i8042_dmi_noselftest_table[] =
+{
 	{
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
@@ -594,7 +597,8 @@ static const struct dmi_system_id i8042_dmi_noselftest_table[] = {
 	},
 	{ }
 };
-static const struct dmi_system_id __initconst i8042_dmi_reset_table[] = {
+static const struct dmi_system_id __initconst i8042_dmi_reset_table[] =
+{
 	{
 		/* MSI Wind U-100 */
 		.matches = {
@@ -676,7 +680,8 @@ static const struct dmi_system_id __initconst i8042_dmi_reset_table[] = {
 };
 
 #ifdef CONFIG_PNP
-static const struct dmi_system_id __initconst i8042_dmi_nopnp_table[] = {
+static const struct dmi_system_id __initconst i8042_dmi_nopnp_table[] =
+{
 	{
 		/* Intel MBO Desktop D845PESV */
 		.matches = {
@@ -704,7 +709,8 @@ static const struct dmi_system_id __initconst i8042_dmi_nopnp_table[] = {
 	{ }
 };
 
-static const struct dmi_system_id __initconst i8042_dmi_laptop_table[] = {
+static const struct dmi_system_id __initconst i8042_dmi_laptop_table[] =
+{
 	{
 		.matches = {
 			DMI_MATCH(DMI_CHASSIS_TYPE, "8"), /* Portable */
@@ -729,7 +735,8 @@ static const struct dmi_system_id __initconst i8042_dmi_laptop_table[] = {
 };
 #endif
 
-static const struct dmi_system_id __initconst i8042_dmi_notimeout_table[] = {
+static const struct dmi_system_id __initconst i8042_dmi_notimeout_table[] =
+{
 	{
 		/* Dell Vostro V13 */
 		.matches = {
@@ -777,7 +784,8 @@ static const struct dmi_system_id __initconst i8042_dmi_notimeout_table[] = {
  * Originally, this was just confined to older laptops, but a few Acer laptops
  * have turned up in 2007 that also need this again.
  */
-static const struct dmi_system_id __initconst i8042_dmi_dritek_table[] = {
+static const struct dmi_system_id __initconst i8042_dmi_dritek_table[] =
+{
 	{
 		/* Acer Aspire 5100 */
 		.matches = {
@@ -855,7 +863,8 @@ static const struct dmi_system_id __initconst i8042_dmi_dritek_table[] = {
  * Some laptops need keyboard reset before probing for the trackpad to get
  * it detected, initialised & finally work.
  */
-static const struct dmi_system_id __initconst i8042_dmi_kbdreset_table[] = {
+static const struct dmi_system_id __initconst i8042_dmi_kbdreset_table[] =
+{
 	{
 		/* Gigabyte P35 v2 - Elantech touchpad */
 		.matches = {
@@ -863,7 +872,7 @@ static const struct dmi_system_id __initconst i8042_dmi_kbdreset_table[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "P35V2"),
 		},
 	},
-		{
+	{
 		/* Aorus branded Gigabyte X3 Plus - Elantech touchpad */
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "GIGABYTE"),
@@ -909,7 +918,8 @@ static void i8042_pnp_id_to_string(struct pnp_id *id, char *dst, int dst_size)
 {
 	strlcpy(dst, "PNP:", dst_size);
 
-	while (id) {
+	while (id)
+	{
 		strlcat(dst, " ", dst_size);
 		strlcat(dst, id->id, dst_size);
 		id = id->next;
@@ -919,21 +929,30 @@ static void i8042_pnp_id_to_string(struct pnp_id *id, char *dst, int dst_size)
 static int i8042_pnp_kbd_probe(struct pnp_dev *dev, const struct pnp_device_id *did)
 {
 	if (pnp_port_valid(dev, 0) && pnp_port_len(dev, 0) == 1)
-		i8042_pnp_data_reg = pnp_port_start(dev,0);
+	{
+		i8042_pnp_data_reg = pnp_port_start(dev, 0);
+	}
 
 	if (pnp_port_valid(dev, 1) && pnp_port_len(dev, 1) == 1)
+	{
 		i8042_pnp_command_reg = pnp_port_start(dev, 1);
+	}
 
-	if (pnp_irq_valid(dev,0))
+	if (pnp_irq_valid(dev, 0))
+	{
 		i8042_pnp_kbd_irq = pnp_irq(dev, 0);
+	}
 
 	strlcpy(i8042_pnp_kbd_name, did->id, sizeof(i8042_pnp_kbd_name));
-	if (strlen(pnp_dev_name(dev))) {
+
+	if (strlen(pnp_dev_name(dev)))
+	{
 		strlcat(i8042_pnp_kbd_name, ":", sizeof(i8042_pnp_kbd_name));
 		strlcat(i8042_pnp_kbd_name, pnp_dev_name(dev), sizeof(i8042_pnp_kbd_name));
 	}
+
 	i8042_pnp_id_to_string(dev->id, i8042_kbd_firmware_id,
-			       sizeof(i8042_kbd_firmware_id));
+						   sizeof(i8042_kbd_firmware_id));
 
 	/* Keyboard ports are always supposed to be wakeup-enabled */
 	device_set_wakeup_enable(&dev->dev, true);
@@ -945,27 +964,37 @@ static int i8042_pnp_kbd_probe(struct pnp_dev *dev, const struct pnp_device_id *
 static int i8042_pnp_aux_probe(struct pnp_dev *dev, const struct pnp_device_id *did)
 {
 	if (pnp_port_valid(dev, 0) && pnp_port_len(dev, 0) == 1)
-		i8042_pnp_data_reg = pnp_port_start(dev,0);
+	{
+		i8042_pnp_data_reg = pnp_port_start(dev, 0);
+	}
 
 	if (pnp_port_valid(dev, 1) && pnp_port_len(dev, 1) == 1)
+	{
 		i8042_pnp_command_reg = pnp_port_start(dev, 1);
+	}
 
 	if (pnp_irq_valid(dev, 0))
+	{
 		i8042_pnp_aux_irq = pnp_irq(dev, 0);
+	}
 
 	strlcpy(i8042_pnp_aux_name, did->id, sizeof(i8042_pnp_aux_name));
-	if (strlen(pnp_dev_name(dev))) {
+
+	if (strlen(pnp_dev_name(dev)))
+	{
 		strlcat(i8042_pnp_aux_name, ":", sizeof(i8042_pnp_aux_name));
 		strlcat(i8042_pnp_aux_name, pnp_dev_name(dev), sizeof(i8042_pnp_aux_name));
 	}
+
 	i8042_pnp_id_to_string(dev->id, i8042_aux_firmware_id,
-			       sizeof(i8042_aux_firmware_id));
+						   sizeof(i8042_aux_firmware_id));
 
 	i8042_pnp_aux_devices++;
 	return 0;
 }
 
-static struct pnp_device_id pnp_kbd_devids[] = {
+static struct pnp_device_id pnp_kbd_devids[] =
+{
 	{ .id = "PNP0300", .driver_data = 0 },
 	{ .id = "PNP0301", .driver_data = 0 },
 	{ .id = "PNP0302", .driver_data = 0 },
@@ -985,13 +1014,15 @@ static struct pnp_device_id pnp_kbd_devids[] = {
 };
 MODULE_DEVICE_TABLE(pnp, pnp_kbd_devids);
 
-static struct pnp_driver i8042_pnp_kbd_driver = {
+static struct pnp_driver i8042_pnp_kbd_driver =
+{
 	.name           = "i8042 kbd",
 	.id_table       = pnp_kbd_devids,
 	.probe          = i8042_pnp_kbd_probe,
 };
 
-static struct pnp_device_id pnp_aux_devids[] = {
+static struct pnp_device_id pnp_aux_devids[] =
+{
 	{ .id = "AUI0200", .driver_data = 0 },
 	{ .id = "FJC6000", .driver_data = 0 },
 	{ .id = "FJC6001", .driver_data = 0 },
@@ -1007,7 +1038,8 @@ static struct pnp_device_id pnp_aux_devids[] = {
 };
 MODULE_DEVICE_TABLE(pnp, pnp_aux_devids);
 
-static struct pnp_driver i8042_pnp_aux_driver = {
+static struct pnp_driver i8042_pnp_aux_driver =
+{
 	.name           = "i8042 aux",
 	.id_table       = pnp_aux_devids,
 	.probe          = i8042_pnp_aux_probe,
@@ -1015,12 +1047,14 @@ static struct pnp_driver i8042_pnp_aux_driver = {
 
 static void i8042_pnp_exit(void)
 {
-	if (i8042_pnp_kbd_registered) {
+	if (i8042_pnp_kbd_registered)
+	{
 		i8042_pnp_kbd_registered = false;
 		pnp_unregister_driver(&i8042_pnp_kbd_driver);
 	}
 
-	if (i8042_pnp_aux_registered) {
+	if (i8042_pnp_aux_registered)
+	{
 		i8042_pnp_aux_registered = false;
 		pnp_unregister_driver(&i8042_pnp_aux_driver);
 	}
@@ -1033,24 +1067,36 @@ static int __init i8042_pnp_init(void)
 	int err;
 
 #ifdef CONFIG_X86
+
 	if (dmi_check_system(i8042_dmi_nopnp_table))
+	{
 		i8042_nopnp = true;
+	}
+
 #endif
 
-	if (i8042_nopnp) {
+	if (i8042_nopnp)
+	{
 		pr_info("PNP detection disabled\n");
 		return 0;
 	}
 
 	err = pnp_register_driver(&i8042_pnp_kbd_driver);
+
 	if (!err)
+	{
 		i8042_pnp_kbd_registered = true;
+	}
 
 	err = pnp_register_driver(&i8042_pnp_aux_driver);
-	if (!err)
-		i8042_pnp_aux_registered = true;
 
-	if (!i8042_pnp_kbd_devices && !i8042_pnp_aux_devices) {
+	if (!err)
+	{
+		i8042_pnp_aux_registered = true;
+	}
+
+	if (!i8042_pnp_kbd_devices && !i8042_pnp_aux_devices)
+	{
 		i8042_pnp_exit();
 #if defined(__ia64__)
 		return -ENODEV;
@@ -1062,58 +1108,73 @@ static int __init i8042_pnp_init(void)
 
 	if (i8042_pnp_kbd_devices)
 		snprintf(kbd_irq_str, sizeof(kbd_irq_str),
-			"%d", i8042_pnp_kbd_irq);
+				 "%d", i8042_pnp_kbd_irq);
+
 	if (i8042_pnp_aux_devices)
 		snprintf(aux_irq_str, sizeof(aux_irq_str),
-			"%d", i8042_pnp_aux_irq);
+				 "%d", i8042_pnp_aux_irq);
 
 	pr_info("PNP: PS/2 Controller [%s%s%s] at %#x,%#x irq %s%s%s\n",
-		i8042_pnp_kbd_name, (i8042_pnp_kbd_devices && i8042_pnp_aux_devices) ? "," : "",
-		i8042_pnp_aux_name,
-		i8042_pnp_data_reg, i8042_pnp_command_reg,
-		kbd_irq_str, (i8042_pnp_kbd_devices && i8042_pnp_aux_devices) ? "," : "",
-		aux_irq_str);
+			i8042_pnp_kbd_name, (i8042_pnp_kbd_devices && i8042_pnp_aux_devices) ? "," : "",
+			i8042_pnp_aux_name,
+			i8042_pnp_data_reg, i8042_pnp_command_reg,
+			kbd_irq_str, (i8042_pnp_kbd_devices && i8042_pnp_aux_devices) ? "," : "",
+			aux_irq_str);
 
 #if defined(__ia64__)
+
 	if (!i8042_pnp_kbd_devices)
+	{
 		i8042_nokbd = true;
+	}
+
 	if (!i8042_pnp_aux_devices)
+	{
 		i8042_noaux = true;
+	}
+
 #endif
 
 	if (((i8042_pnp_data_reg & ~0xf) == (i8042_data_reg & ~0xf) &&
-	      i8042_pnp_data_reg != i8042_data_reg) ||
-	    !i8042_pnp_data_reg) {
+		 i8042_pnp_data_reg != i8042_data_reg) ||
+		!i8042_pnp_data_reg)
+	{
 		pr_warn("PNP: PS/2 controller has invalid data port %#x; using default %#x\n",
-			i8042_pnp_data_reg, i8042_data_reg);
+				i8042_pnp_data_reg, i8042_data_reg);
 		i8042_pnp_data_reg = i8042_data_reg;
 		pnp_data_busted = true;
 	}
 
 	if (((i8042_pnp_command_reg & ~0xf) == (i8042_command_reg & ~0xf) &&
-	      i8042_pnp_command_reg != i8042_command_reg) ||
-	    !i8042_pnp_command_reg) {
+		 i8042_pnp_command_reg != i8042_command_reg) ||
+		!i8042_pnp_command_reg)
+	{
 		pr_warn("PNP: PS/2 controller has invalid command port %#x; using default %#x\n",
-			i8042_pnp_command_reg, i8042_command_reg);
+				i8042_pnp_command_reg, i8042_command_reg);
 		i8042_pnp_command_reg = i8042_command_reg;
 		pnp_data_busted = true;
 	}
 
-	if (!i8042_nokbd && !i8042_pnp_kbd_irq) {
+	if (!i8042_nokbd && !i8042_pnp_kbd_irq)
+	{
 		pr_warn("PNP: PS/2 controller doesn't have KBD irq; using default %d\n",
-			i8042_kbd_irq);
+				i8042_kbd_irq);
 		i8042_pnp_kbd_irq = i8042_kbd_irq;
 		pnp_data_busted = true;
 	}
 
-	if (!i8042_noaux && !i8042_pnp_aux_irq) {
-		if (!pnp_data_busted && i8042_pnp_kbd_irq) {
+	if (!i8042_noaux && !i8042_pnp_aux_irq)
+	{
+		if (!pnp_data_busted && i8042_pnp_kbd_irq)
+		{
 			pr_warn("PNP: PS/2 appears to have AUX port disabled, "
-				"if this is incorrect please boot with i8042.nopnp\n");
+					"if this is incorrect please boot with i8042.nopnp\n");
 			i8042_noaux = true;
-		} else {
+		}
+		else
+		{
 			pr_warn("PNP: PS/2 controller doesn't have AUX irq; using default %d\n",
-				i8042_aux_irq);
+					i8042_aux_irq);
 			i8042_pnp_aux_irq = i8042_aux_irq;
 		}
 	}
@@ -1125,7 +1186,7 @@ static int __init i8042_pnp_init(void)
 
 #ifdef CONFIG_X86
 	i8042_bypass_aux_irq_test = !pnp_data_busted &&
-				    dmi_check_system(i8042_dmi_laptop_table);
+								dmi_check_system(i8042_dmi_laptop_table);
 #endif
 
 	return 0;
@@ -1142,54 +1203,77 @@ static int __init i8042_platform_init(void)
 
 #ifdef CONFIG_X86
 	u8 a20_on = 0xdf;
+
 	/* Just return if pre-detection shows no i8042 controller exist */
 	if (!x86_platform.i8042_detect())
+	{
 		return -ENODEV;
+	}
+
 #endif
 
-/*
- * On ix86 platforms touching the i8042 data register region can do really
- * bad things. Because of this the region is always reserved on ix86 boxes.
- *
- *	if (!request_region(I8042_DATA_REG, 16, "i8042"))
- *		return -EBUSY;
- */
+	/*
+	 * On ix86 platforms touching the i8042 data register region can do really
+	 * bad things. Because of this the region is always reserved on ix86 boxes.
+	 *
+	 *	if (!request_region(I8042_DATA_REG, 16, "i8042"))
+	 *		return -EBUSY;
+	 */
 
 	i8042_kbd_irq = I8042_MAP_IRQ(1);
 	i8042_aux_irq = I8042_MAP_IRQ(12);
 
 	retval = i8042_pnp_init();
+
 	if (retval)
+	{
 		return retval;
+	}
 
 #if defined(__ia64__)
-        i8042_reset = I8042_RESET_ALWAYS;
+	i8042_reset = I8042_RESET_ALWAYS;
 #endif
 
 #ifdef CONFIG_X86
+
 	/* Honor module parameter when value is not default */
-	if (i8042_reset == I8042_RESET_DEFAULT) {
+	if (i8042_reset == I8042_RESET_DEFAULT)
+	{
 		if (dmi_check_system(i8042_dmi_reset_table))
+		{
 			i8042_reset = I8042_RESET_ALWAYS;
+		}
 
 		if (dmi_check_system(i8042_dmi_noselftest_table))
+		{
 			i8042_reset = I8042_RESET_NEVER;
+		}
 	}
 
 	if (dmi_check_system(i8042_dmi_noloop_table))
+	{
 		i8042_noloop = true;
+	}
 
 	if (dmi_check_system(i8042_dmi_nomux_table))
+	{
 		i8042_nomux = true;
+	}
 
 	if (dmi_check_system(i8042_dmi_notimeout_table))
+	{
 		i8042_notimeout = true;
+	}
 
 	if (dmi_check_system(i8042_dmi_dritek_table))
+	{
 		i8042_dritek = true;
+	}
 
 	if (dmi_check_system(i8042_dmi_kbdreset_table))
+	{
 		i8042_kbdreset = true;
+	}
 
 	/*
 	 * A20 was already enabled during early kernel init. But some buggy

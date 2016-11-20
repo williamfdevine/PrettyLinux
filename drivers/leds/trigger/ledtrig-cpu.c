@@ -30,7 +30,8 @@
 
 #define MAX_NAME_LEN	8
 
-struct led_trigger_cpu {
+struct led_trigger_cpu
+{
 	char name[MAX_NAME_LEN];
 	struct led_trigger *_trig;
 };
@@ -49,23 +50,24 @@ void ledtrig_cpu(enum cpu_led_event ledevt)
 	struct led_trigger_cpu *trig = this_cpu_ptr(&cpu_trig);
 
 	/* Locate the correct CPU LED */
-	switch (ledevt) {
-	case CPU_LED_IDLE_END:
-	case CPU_LED_START:
-		/* Will turn the LED on, max brightness */
-		led_trigger_event(trig->_trig, LED_FULL);
-		break;
+	switch (ledevt)
+	{
+		case CPU_LED_IDLE_END:
+		case CPU_LED_START:
+			/* Will turn the LED on, max brightness */
+			led_trigger_event(trig->_trig, LED_FULL);
+			break;
 
-	case CPU_LED_IDLE_START:
-	case CPU_LED_STOP:
-	case CPU_LED_HALTED:
-		/* Will turn the LED off */
-		led_trigger_event(trig->_trig, LED_OFF);
-		break;
+		case CPU_LED_IDLE_START:
+		case CPU_LED_STOP:
+		case CPU_LED_HALTED:
+			/* Will turn the LED off */
+			led_trigger_event(trig->_trig, LED_OFF);
+			break;
 
-	default:
-		/* Will leave the LED as it is */
-		break;
+		default:
+			/* Will leave the LED as it is */
+			break;
 	}
 }
 EXPORT_SYMBOL(ledtrig_cpu);
@@ -86,7 +88,8 @@ static void ledtrig_cpu_syscore_shutdown(void)
 	ledtrig_cpu(CPU_LED_HALTED);
 }
 
-static struct syscore_ops ledtrig_cpu_syscore_ops = {
+static struct syscore_ops ledtrig_cpu_syscore_ops =
+{
 	.shutdown	= ledtrig_cpu_syscore_shutdown,
 	.suspend	= ledtrig_cpu_syscore_suspend,
 	.resume		= ledtrig_cpu_syscore_resume,
@@ -117,7 +120,8 @@ static int __init ledtrig_cpu_init(void)
 	 * ignores CPU hotplug, but after this CPU hotplug works
 	 * fine with this trigger.
 	 */
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct led_trigger_cpu *trig = &per_cpu(cpu_trig, cpu);
 
 		snprintf(trig->name, MAX_NAME_LEN, "cpu%d", cpu);
@@ -128,10 +132,11 @@ static int __init ledtrig_cpu_init(void)
 	register_syscore_ops(&ledtrig_cpu_syscore_ops);
 
 	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "AP_LEDTRIG_STARTING",
-				ledtrig_online_cpu, ledtrig_prepare_down_cpu);
+							ledtrig_online_cpu, ledtrig_prepare_down_cpu);
+
 	if (ret < 0)
 		pr_err("CPU hotplug notifier for ledtrig-cpu could not be registered: %d\n",
-		       ret);
+			   ret);
 
 	pr_info("ledtrig-cpu: registered to indicate activity on CPUs\n");
 

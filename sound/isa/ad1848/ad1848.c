@@ -38,8 +38,8 @@ MODULE_DESCRIPTION(CRD_NAME);
 MODULE_AUTHOR("Tugrul Galatali <galatalt@stuy.edu>, Jaroslav Kysela <perex@perex.cz>");
 MODULE_LICENSE("GPL");
 MODULE_SUPPORTED_DEVICE("{{Analog Devices,AD1848},"
-	        "{Analog Devices,AD1847},"
-		"{Crystal Semiconductors,CS4248}}");
+						"{Analog Devices,AD1847},"
+						"{Crystal Semiconductors,CS4248}}");
 
 static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
 static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	/* ID for this card */
@@ -67,20 +67,28 @@ MODULE_PARM_DESC(thinkpad, "Enable only for the onboard CS4248 of IBM Thinkpad 3
 static int snd_ad1848_match(struct device *dev, unsigned int n)
 {
 	if (!enable[n])
+	{
 		return 0;
+	}
 
-	if (port[n] == SNDRV_AUTO_PORT) {
+	if (port[n] == SNDRV_AUTO_PORT)
+	{
 		dev_err(dev, "please specify port\n");
 		return 0;
 	}
-	if (irq[n] == SNDRV_AUTO_IRQ) {
+
+	if (irq[n] == SNDRV_AUTO_IRQ)
+	{
 		dev_err(dev, "please specify irq\n");
-		return 0;	
+		return 0;
 	}
-	if (dma1[n] == SNDRV_AUTO_DMA) {
+
+	if (dma1[n] == SNDRV_AUTO_DMA)
+	{
 		dev_err(dev, "please specify dma1\n");
 		return 0;
 	}
+
 	return 1;
 }
 
@@ -91,36 +99,54 @@ static int snd_ad1848_probe(struct device *dev, unsigned int n)
 	int error;
 
 	error = snd_card_new(dev, index[n], id[n], THIS_MODULE, 0, &card);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	error = snd_wss_create(card, port[n], -1, irq[n], dma1[n], -1,
-			thinkpad[n] ? WSS_HW_THINKPAD : WSS_HW_DETECT,
-			0, &chip);
+						   thinkpad[n] ? WSS_HW_THINKPAD : WSS_HW_DETECT,
+						   0, &chip);
+
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	card->private_data = chip;
 
 	error = snd_wss_pcm(chip, 0);
+
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	error = snd_wss_mixer(chip);
+
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	strcpy(card->driver, "AD1848");
 	strcpy(card->shortname, chip->pcm->name);
 
 	sprintf(card->longname, "%s at 0x%lx, irq %d, dma %d",
-		chip->pcm->name, chip->port, irq[n], dma1[n]);
+			chip->pcm->name, chip->port, irq[n], dma1[n]);
+
 	if (thinkpad[n])
+	{
 		strcat(card->longname, " [Thinkpad]");
+	}
 
 	error = snd_card_register(card);
+
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	dev_set_drvdata(dev, card);
 	return 0;
@@ -157,7 +183,8 @@ static int snd_ad1848_resume(struct device *dev, unsigned int n)
 }
 #endif
 
-static struct isa_driver snd_ad1848_driver = {
+static struct isa_driver snd_ad1848_driver =
+{
 	.match		= snd_ad1848_match,
 	.probe		= snd_ad1848_probe,
 	.remove		= snd_ad1848_remove,

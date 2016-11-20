@@ -34,7 +34,8 @@
 #define SSB_GIGE_MEM_RES_NAME		"SSB Broadcom 47xx GigE memory"
 #define SSB_GIGE_IO_RES_NAME		"SSB Broadcom 47xx GigE I/O"
 
-struct ssb_gige {
+struct ssb_gige
+{
 	struct ssb_device *dev;
 
 	spinlock_t lock;
@@ -54,10 +55,13 @@ struct ssb_gige {
 extern bool pdev_is_ssb_gige_core(struct pci_dev *pdev);
 
 /* Convert a pci_dev pointer to a ssb_gige pointer. */
-static inline struct ssb_gige * pdev_to_ssb_gige(struct pci_dev *pdev)
+static inline struct ssb_gige *pdev_to_ssb_gige(struct pci_dev *pdev)
 {
 	if (!pdev_is_ssb_gige_core(pdev))
+	{
 		return NULL;
+	}
+
 	return container_of(pdev->bus->ops, struct ssb_gige, pci_ops);
 }
 
@@ -72,9 +76,11 @@ static inline bool ssb_gige_is_rgmii(struct pci_dev *pdev)
 static inline bool ssb_gige_have_roboswitch(struct pci_dev *pdev)
 {
 	struct ssb_gige *dev = pdev_to_ssb_gige(pdev);
+
 	if (dev)
 		return !!(dev->dev->bus->sprom.boardflags_lo &
-			  SSB_GIGE_BFL_ROBOSWITCH);
+				  SSB_GIGE_BFL_ROBOSWITCH);
+
 	return 0;
 }
 
@@ -82,9 +88,11 @@ static inline bool ssb_gige_have_roboswitch(struct pci_dev *pdev)
 static inline bool ssb_gige_one_dma_at_once(struct pci_dev *pdev)
 {
 	struct ssb_gige *dev = pdev_to_ssb_gige(pdev);
+
 	if (dev)
 		return ((dev->dev->bus->chip_id == 0x4785) &&
-			(dev->dev->bus->chip_rev < 2));
+				(dev->dev->bus->chip_rev < 2));
+
 	return 0;
 }
 
@@ -92,8 +100,12 @@ static inline bool ssb_gige_one_dma_at_once(struct pci_dev *pdev)
 static inline bool ssb_gige_must_flush_posted_writes(struct pci_dev *pdev)
 {
 	struct ssb_gige *dev = pdev_to_ssb_gige(pdev);
+
 	if (dev)
+	{
 		return (dev->dev->bus->chip_id == 0x4785);
+	}
+
 	return 0;
 }
 
@@ -101,8 +113,11 @@ static inline bool ssb_gige_must_flush_posted_writes(struct pci_dev *pdev)
 static inline int ssb_gige_get_macaddr(struct pci_dev *pdev, u8 *macaddr)
 {
 	struct ssb_gige *dev = pdev_to_ssb_gige(pdev);
+
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	memcpy(macaddr, dev->dev->bus->sprom.et0mac, 6);
 	return 0;
@@ -112,16 +127,19 @@ static inline int ssb_gige_get_macaddr(struct pci_dev *pdev, u8 *macaddr)
 static inline int ssb_gige_get_phyaddr(struct pci_dev *pdev)
 {
 	struct ssb_gige *dev = pdev_to_ssb_gige(pdev);
+
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	return dev->dev->bus->sprom.et0phyaddr;
 }
 
 extern int ssb_gige_pcibios_plat_dev_init(struct ssb_device *sdev,
-					  struct pci_dev *pdev);
+		struct pci_dev *pdev);
 extern int ssb_gige_map_irq(struct ssb_device *sdev,
-			    const struct pci_dev *pdev);
+							const struct pci_dev *pdev);
 
 /* The GigE driver is not a standalone module, because we don't have support
  * for unregistering the driver. So we could not unload the module anyway. */
@@ -139,12 +157,12 @@ static inline void ssb_gige_exit(void)
 
 
 static inline int ssb_gige_pcibios_plat_dev_init(struct ssb_device *sdev,
-						 struct pci_dev *pdev)
+		struct pci_dev *pdev)
 {
 	return -ENOSYS;
 }
 static inline int ssb_gige_map_irq(struct ssb_device *sdev,
-				   const struct pci_dev *pdev)
+								   const struct pci_dev *pdev)
 {
 	return -ENOSYS;
 }
@@ -160,7 +178,7 @@ static inline bool pdev_is_ssb_gige_core(struct pci_dev *pdev)
 {
 	return 0;
 }
-static inline struct ssb_gige * pdev_to_ssb_gige(struct pci_dev *pdev)
+static inline struct ssb_gige *pdev_to_ssb_gige(struct pci_dev *pdev)
 {
 	return NULL;
 }

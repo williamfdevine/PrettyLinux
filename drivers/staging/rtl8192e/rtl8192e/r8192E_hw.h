@@ -17,7 +17,8 @@
 #ifndef R8180_HW
 #define R8180_HW
 
-enum baseband_config {
+enum baseband_config
+{
 	BaseBand_Config_PHY_REG = 0,
 	BaseBand_Config_AGC_TAB = 1,
 };
@@ -85,7 +86,8 @@ enum baseband_config {
 #define EEPROM_CID_Pronet				0x7
 #define EEPROM_CID_DLINK				0x8
 #define EEPROM_CID_WHQL					0xFE
-enum _RTL8192Pci_HW {
+enum _RTL8192Pci_HW
+{
 	MAC0			= 0x000,
 	MAC1			= 0x001,
 	MAC2			= 0x002,
@@ -138,7 +140,7 @@ enum _RTL8192Pci_HW {
 	TCR			= 0x040,
 	RCR			= 0x044,
 #define RCR_FILTER_MASK (BIT0 | BIT1 | BIT2 | BIT3 | BIT5 | BIT12 |	\
-			BIT18 | BIT19 | BIT20 | BIT21 | BIT22 | BIT23)
+						 BIT18 | BIT19 | BIT20 | BIT21 | BIT22 | BIT23)
 #define RCR_ONLYERLPKT		BIT31
 #define RCR_ENCS2		BIT30
 #define RCR_ENCS1		BIT29
@@ -421,13 +423,13 @@ enum _RTL8192Pci_HW {
 #define	RATR_MCS15		0x08000000
 #define RATE_ALL_CCK		(RATR_1M | RATR_2M | RATR_55M | RATR_11M)
 #define RATE_ALL_OFDM_AG	(RATR_6M | RATR_9M | RATR_12M | RATR_18M | \
-				RATR_24M | RATR_36M | RATR_48M | RATR_54M)
+							 RATR_24M | RATR_36M | RATR_48M | RATR_54M)
 #define RATE_ALL_OFDM_1SS	(RATR_MCS0 | RATR_MCS1 | RATR_MCS2 |	\
-				RATR_MCS3 | RATR_MCS4 | RATR_MCS5 |	\
-				RATR_MCS6 | RATR_MCS7)
+							 RATR_MCS3 | RATR_MCS4 | RATR_MCS5 |	\
+							 RATR_MCS6 | RATR_MCS7)
 #define RATE_ALL_OFDM_2SS	(RATR_MCS8 | RATR_MCS9 | RATR_MCS10 |	\
-				RATR_MCS11 | RATR_MCS12 | RATR_MCS13 |	\
-				RATR_MCS14|RATR_MCS15)
+							 RATR_MCS11 | RATR_MCS12 | RATR_MCS13 |	\
+							 RATR_MCS14|RATR_MCS15)
 
 
 	DRIVER_RSSI		= 0x32c,

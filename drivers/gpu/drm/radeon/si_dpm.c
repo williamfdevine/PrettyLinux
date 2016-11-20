@@ -1743,19 +1743,19 @@ extern int si_mc_load_microcode(struct radeon_device *rdev);
 extern void vce_v1_0_enable_mgcg(struct radeon_device *rdev, bool enable);
 
 static int si_populate_voltage_value(struct radeon_device *rdev,
-				     const struct atom_voltage_table *table,
-				     u16 value, SISLANDS_SMC_VOLTAGE_VALUE *voltage);
+									 const struct atom_voltage_table *table,
+									 u16 value, SISLANDS_SMC_VOLTAGE_VALUE *voltage);
 static int si_get_std_voltage_value(struct radeon_device *rdev,
-				    SISLANDS_SMC_VOLTAGE_VALUE *voltage,
-				    u16 *std_voltage);
+									SISLANDS_SMC_VOLTAGE_VALUE *voltage,
+									u16 *std_voltage);
 static int si_write_smc_soft_register(struct radeon_device *rdev,
-				      u16 reg_offset, u32 value);
+									  u16 reg_offset, u32 value);
 static int si_convert_power_level_to_smc(struct radeon_device *rdev,
-					 struct rv7xx_pl *pl,
-					 SISLANDS_SMC_HW_PERFORMANCE_LEVEL *level);
+		struct rv7xx_pl *pl,
+		SISLANDS_SMC_HW_PERFORMANCE_LEVEL *level);
 static int si_calculate_sclk_params(struct radeon_device *rdev,
-				    u32 engine_clock,
-				    SISLANDS_SMC_SCLK_VALUE *sclk);
+									u32 engine_clock,
+									SISLANDS_SMC_SCLK_VALUE *sclk);
 
 static void si_thermal_start_smc_fan_control(struct radeon_device *rdev);
 static void si_fan_ctrl_set_default_mode(struct radeon_device *rdev);
@@ -1768,7 +1768,7 @@ static struct si_power_info *si_get_pi(struct radeon_device *rdev)
 }
 
 static void si_calculate_leakage_for_v_and_t_formula(const struct ni_leakage_coeffients *coeff,
-						     u16 v, s32 t, u32 ileakage, u32 *leakage)
+		u16 v, s32 t, u32 ileakage, u32 *leakage)
 {
 	s64 kt, kv, leakage_w, i_leakage, vddc;
 	s64 temperature, t_slope, t_intercept, av, bv, t_ref;
@@ -1795,18 +1795,18 @@ static void si_calculate_leakage_for_v_and_t_formula(const struct ni_leakage_coe
 }
 
 static void si_calculate_leakage_for_v_and_t(struct radeon_device *rdev,
-					     const struct ni_leakage_coeffients *coeff,
-					     u16 v,
-					     s32 t,
-					     u32 i_leakage,
-					     u32 *leakage)
+		const struct ni_leakage_coeffients *coeff,
+		u16 v,
+		s32 t,
+		u32 i_leakage,
+		u32 *leakage)
 {
 	si_calculate_leakage_for_v_and_t_formula(coeff, v, t, i_leakage, leakage);
 }
 
 static void si_calculate_leakage_for_v_formula(const struct ni_leakage_coeffients *coeff,
-					       const u32 fixed_kt, u16 v,
-					       u32 ileakage, u32 *leakage)
+		const u32 fixed_kt, u16 v,
+		u32 ileakage, u32 *leakage)
 {
 	s64 kt, kv, leakage_w, i_leakage, vddc;
 
@@ -1815,7 +1815,7 @@ static void si_calculate_leakage_for_v_formula(const struct ni_leakage_coeffient
 
 	kt = div64_s64(drm_int2fixp(fixed_kt), 100000000);
 	kv = drm_fixp_mul(div64_s64(drm_int2fixp(coeff->av), 100000000),
-			  drm_fixp_exp(drm_fixp_mul(div64_s64(drm_int2fixp(coeff->bv), 100000000), vddc)));
+					  drm_fixp_exp(drm_fixp_mul(div64_s64(drm_int2fixp(coeff->bv), 100000000), vddc)));
 
 	leakage_w = drm_fixp_mul(drm_fixp_mul(drm_fixp_mul(i_leakage, kt), kv), vddc);
 
@@ -1823,18 +1823,18 @@ static void si_calculate_leakage_for_v_formula(const struct ni_leakage_coeffient
 }
 
 static void si_calculate_leakage_for_v(struct radeon_device *rdev,
-				       const struct ni_leakage_coeffients *coeff,
-				       const u32 fixed_kt,
-				       u16 v,
-				       u32 i_leakage,
-				       u32 *leakage)
+									   const struct ni_leakage_coeffients *coeff,
+									   const u32 fixed_kt,
+									   u16 v,
+									   u32 i_leakage,
+									   u32 *leakage)
 {
 	si_calculate_leakage_for_v_formula(coeff, fixed_kt, v, i_leakage, leakage);
 }
 
 
 static void si_update_dte_from_pl2(struct radeon_device *rdev,
-				   struct si_dte_data *dte_data)
+								   struct si_dte_data *dte_data)
 {
 	u32 p_limit1 = rdev->pm.dpm.tdp_limit;
 	u32 p_limit2 = rdev->pm.dpm.near_tdp_limit;
@@ -1844,21 +1844,26 @@ static void si_update_dte_from_pl2(struct radeon_device *rdev,
 	u32 t_0 = dte_data->t0;
 	u32 i;
 
-	if (p_limit2 != 0 && p_limit2 <= p_limit1) {
+	if (p_limit2 != 0 && p_limit2 <= p_limit1)
+	{
 		dte_data->tdep_count = 3;
 
-		for (i = 0; i < k; i++) {
+		for (i = 0; i < k; i++)
+		{
 			dte_data->r[i] =
-				(t_split[i] * (t_max - t_0/(u32)1000) * (1 << 14)) /
+				(t_split[i] * (t_max - t_0 / (u32)1000) * (1 << 14)) /
 				(p_limit2  * (u32)100);
 		}
 
 		dte_data->tdep_r[1] = dte_data->r[4] * 2;
 
-		for (i = 2; i < SMC_SISLANDS_DTE_MAX_TEMPERATURE_DEPENDENT_ARRAY_SIZE; i++) {
+		for (i = 2; i < SMC_SISLANDS_DTE_MAX_TEMPERATURE_DEPENDENT_ARRAY_SIZE; i++)
+		{
 			dte_data->tdep_r[i] = dte_data->r[4];
 		}
-	} else {
+	}
+	else
+	{
 		DRM_ERROR("Invalid PL2! DTE will not be updated.\n");
 	}
 }
@@ -1869,186 +1874,224 @@ static void si_initialize_powertune_defaults(struct radeon_device *rdev)
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	bool update_dte_from_pl2 = false;
 
-	if (rdev->family == CHIP_TAHITI) {
+	if (rdev->family == CHIP_TAHITI)
+	{
 		si_pi->cac_weights = cac_weights_tahiti;
 		si_pi->lcac_config = lcac_tahiti;
 		si_pi->cac_override = cac_override_tahiti;
 		si_pi->powertune_data = &powertune_data_tahiti;
 		si_pi->dte_data = dte_data_tahiti;
 
-		switch (rdev->pdev->device) {
-		case 0x6798:
-			si_pi->dte_data.enable_dte_by_default = true;
-			break;
-		case 0x6799:
-			si_pi->dte_data = dte_data_new_zealand;
-			break;
-		case 0x6790:
-		case 0x6791:
-		case 0x6792:
-		case 0x679E:
-			si_pi->dte_data = dte_data_aruba_pro;
-			update_dte_from_pl2 = true;
-			break;
-		case 0x679B:
-			si_pi->dte_data = dte_data_malta;
-			update_dte_from_pl2 = true;
-			break;
-		case 0x679A:
-			si_pi->dte_data = dte_data_tahiti_pro;
-			update_dte_from_pl2 = true;
-			break;
-		default:
-			if (si_pi->dte_data.enable_dte_by_default == true)
-				DRM_ERROR("DTE is not enabled!\n");
-			break;
+		switch (rdev->pdev->device)
+		{
+			case 0x6798:
+				si_pi->dte_data.enable_dte_by_default = true;
+				break;
+
+			case 0x6799:
+				si_pi->dte_data = dte_data_new_zealand;
+				break;
+
+			case 0x6790:
+			case 0x6791:
+			case 0x6792:
+			case 0x679E:
+				si_pi->dte_data = dte_data_aruba_pro;
+				update_dte_from_pl2 = true;
+				break;
+
+			case 0x679B:
+				si_pi->dte_data = dte_data_malta;
+				update_dte_from_pl2 = true;
+				break;
+
+			case 0x679A:
+				si_pi->dte_data = dte_data_tahiti_pro;
+				update_dte_from_pl2 = true;
+				break;
+
+			default:
+				if (si_pi->dte_data.enable_dte_by_default == true)
+				{
+					DRM_ERROR("DTE is not enabled!\n");
+				}
+
+				break;
 		}
-	} else if (rdev->family == CHIP_PITCAIRN) {
-		switch (rdev->pdev->device) {
-		case 0x6810:
-		case 0x6818:
-			si_pi->cac_weights = cac_weights_pitcairn;
-			si_pi->lcac_config = lcac_pitcairn;
-			si_pi->cac_override = cac_override_pitcairn;
-			si_pi->powertune_data = &powertune_data_pitcairn;
-			si_pi->dte_data = dte_data_curacao_xt;
-			update_dte_from_pl2 = true;
-			break;
-		case 0x6819:
-		case 0x6811:
-			si_pi->cac_weights = cac_weights_pitcairn;
-			si_pi->lcac_config = lcac_pitcairn;
-			si_pi->cac_override = cac_override_pitcairn;
-			si_pi->powertune_data = &powertune_data_pitcairn;
-			si_pi->dte_data = dte_data_curacao_pro;
-			update_dte_from_pl2 = true;
-			break;
-		case 0x6800:
-		case 0x6806:
-			si_pi->cac_weights = cac_weights_pitcairn;
-			si_pi->lcac_config = lcac_pitcairn;
-			si_pi->cac_override = cac_override_pitcairn;
-			si_pi->powertune_data = &powertune_data_pitcairn;
-			si_pi->dte_data = dte_data_neptune_xt;
-			update_dte_from_pl2 = true;
-			break;
-		default:
-			si_pi->cac_weights = cac_weights_pitcairn;
-			si_pi->lcac_config = lcac_pitcairn;
-			si_pi->cac_override = cac_override_pitcairn;
-			si_pi->powertune_data = &powertune_data_pitcairn;
-			si_pi->dte_data = dte_data_pitcairn;
-			break;
+	}
+	else if (rdev->family == CHIP_PITCAIRN)
+	{
+		switch (rdev->pdev->device)
+		{
+			case 0x6810:
+			case 0x6818:
+				si_pi->cac_weights = cac_weights_pitcairn;
+				si_pi->lcac_config = lcac_pitcairn;
+				si_pi->cac_override = cac_override_pitcairn;
+				si_pi->powertune_data = &powertune_data_pitcairn;
+				si_pi->dte_data = dte_data_curacao_xt;
+				update_dte_from_pl2 = true;
+				break;
+
+			case 0x6819:
+			case 0x6811:
+				si_pi->cac_weights = cac_weights_pitcairn;
+				si_pi->lcac_config = lcac_pitcairn;
+				si_pi->cac_override = cac_override_pitcairn;
+				si_pi->powertune_data = &powertune_data_pitcairn;
+				si_pi->dte_data = dte_data_curacao_pro;
+				update_dte_from_pl2 = true;
+				break;
+
+			case 0x6800:
+			case 0x6806:
+				si_pi->cac_weights = cac_weights_pitcairn;
+				si_pi->lcac_config = lcac_pitcairn;
+				si_pi->cac_override = cac_override_pitcairn;
+				si_pi->powertune_data = &powertune_data_pitcairn;
+				si_pi->dte_data = dte_data_neptune_xt;
+				update_dte_from_pl2 = true;
+				break;
+
+			default:
+				si_pi->cac_weights = cac_weights_pitcairn;
+				si_pi->lcac_config = lcac_pitcairn;
+				si_pi->cac_override = cac_override_pitcairn;
+				si_pi->powertune_data = &powertune_data_pitcairn;
+				si_pi->dte_data = dte_data_pitcairn;
+				break;
 		}
-	} else if (rdev->family == CHIP_VERDE) {
+	}
+	else if (rdev->family == CHIP_VERDE)
+	{
 		si_pi->lcac_config = lcac_cape_verde;
 		si_pi->cac_override = cac_override_cape_verde;
 		si_pi->powertune_data = &powertune_data_cape_verde;
 
-		switch (rdev->pdev->device) {
-		case 0x683B:
-		case 0x683F:
-		case 0x6829:
-		case 0x6835:
-			si_pi->cac_weights = cac_weights_cape_verde_pro;
-			si_pi->dte_data = dte_data_cape_verde;
-			break;
-		case 0x682C:
-			si_pi->cac_weights = cac_weights_cape_verde_pro;
-			si_pi->dte_data = dte_data_sun_xt;
-			break;
-		case 0x6825:
-		case 0x6827:
-			si_pi->cac_weights = cac_weights_heathrow;
-			si_pi->dte_data = dte_data_cape_verde;
-			break;
-		case 0x6824:
-		case 0x682D:
-			si_pi->cac_weights = cac_weights_chelsea_xt;
-			si_pi->dte_data = dte_data_cape_verde;
-			break;
-		case 0x682F:
-			si_pi->cac_weights = cac_weights_chelsea_pro;
-			si_pi->dte_data = dte_data_cape_verde;
-			break;
-		case 0x6820:
-			si_pi->cac_weights = cac_weights_heathrow;
-			si_pi->dte_data = dte_data_venus_xtx;
-			break;
-		case 0x6821:
-			si_pi->cac_weights = cac_weights_heathrow;
-			si_pi->dte_data = dte_data_venus_xt;
-			break;
-		case 0x6823:
-		case 0x682B:
-		case 0x6822:
-		case 0x682A:
-			si_pi->cac_weights = cac_weights_chelsea_pro;
-			si_pi->dte_data = dte_data_venus_pro;
-			break;
-		default:
-			si_pi->cac_weights = cac_weights_cape_verde;
-			si_pi->dte_data = dte_data_cape_verde;
-			break;
+		switch (rdev->pdev->device)
+		{
+			case 0x683B:
+			case 0x683F:
+			case 0x6829:
+			case 0x6835:
+				si_pi->cac_weights = cac_weights_cape_verde_pro;
+				si_pi->dte_data = dte_data_cape_verde;
+				break;
+
+			case 0x682C:
+				si_pi->cac_weights = cac_weights_cape_verde_pro;
+				si_pi->dte_data = dte_data_sun_xt;
+				break;
+
+			case 0x6825:
+			case 0x6827:
+				si_pi->cac_weights = cac_weights_heathrow;
+				si_pi->dte_data = dte_data_cape_verde;
+				break;
+
+			case 0x6824:
+			case 0x682D:
+				si_pi->cac_weights = cac_weights_chelsea_xt;
+				si_pi->dte_data = dte_data_cape_verde;
+				break;
+
+			case 0x682F:
+				si_pi->cac_weights = cac_weights_chelsea_pro;
+				si_pi->dte_data = dte_data_cape_verde;
+				break;
+
+			case 0x6820:
+				si_pi->cac_weights = cac_weights_heathrow;
+				si_pi->dte_data = dte_data_venus_xtx;
+				break;
+
+			case 0x6821:
+				si_pi->cac_weights = cac_weights_heathrow;
+				si_pi->dte_data = dte_data_venus_xt;
+				break;
+
+			case 0x6823:
+			case 0x682B:
+			case 0x6822:
+			case 0x682A:
+				si_pi->cac_weights = cac_weights_chelsea_pro;
+				si_pi->dte_data = dte_data_venus_pro;
+				break;
+
+			default:
+				si_pi->cac_weights = cac_weights_cape_verde;
+				si_pi->dte_data = dte_data_cape_verde;
+				break;
 		}
-	} else if (rdev->family == CHIP_OLAND) {
-		switch (rdev->pdev->device) {
-		case 0x6601:
-		case 0x6621:
-		case 0x6603:
-		case 0x6605:
-			si_pi->cac_weights = cac_weights_mars_pro;
-			si_pi->lcac_config = lcac_mars_pro;
-			si_pi->cac_override = cac_override_oland;
-			si_pi->powertune_data = &powertune_data_mars_pro;
-			si_pi->dte_data = dte_data_mars_pro;
-			update_dte_from_pl2 = true;
-			break;
-		case 0x6600:
-		case 0x6606:
-		case 0x6620:
-		case 0x6604:
-			si_pi->cac_weights = cac_weights_mars_xt;
-			si_pi->lcac_config = lcac_mars_pro;
-			si_pi->cac_override = cac_override_oland;
-			si_pi->powertune_data = &powertune_data_mars_pro;
-			si_pi->dte_data = dte_data_mars_pro;
-			update_dte_from_pl2 = true;
-			break;
-		case 0x6611:
-		case 0x6613:
-		case 0x6608:
-			si_pi->cac_weights = cac_weights_oland_pro;
-			si_pi->lcac_config = lcac_mars_pro;
-			si_pi->cac_override = cac_override_oland;
-			si_pi->powertune_data = &powertune_data_mars_pro;
-			si_pi->dte_data = dte_data_mars_pro;
-			update_dte_from_pl2 = true;
-			break;
-		case 0x6610:
-			si_pi->cac_weights = cac_weights_oland_xt;
-			si_pi->lcac_config = lcac_mars_pro;
-			si_pi->cac_override = cac_override_oland;
-			si_pi->powertune_data = &powertune_data_mars_pro;
-			si_pi->dte_data = dte_data_mars_pro;
-			update_dte_from_pl2 = true;
-			break;
-		default:
-			si_pi->cac_weights = cac_weights_oland;
-			si_pi->lcac_config = lcac_oland;
-			si_pi->cac_override = cac_override_oland;
-			si_pi->powertune_data = &powertune_data_oland;
-			si_pi->dte_data = dte_data_oland;
-			break;
+	}
+	else if (rdev->family == CHIP_OLAND)
+	{
+		switch (rdev->pdev->device)
+		{
+			case 0x6601:
+			case 0x6621:
+			case 0x6603:
+			case 0x6605:
+				si_pi->cac_weights = cac_weights_mars_pro;
+				si_pi->lcac_config = lcac_mars_pro;
+				si_pi->cac_override = cac_override_oland;
+				si_pi->powertune_data = &powertune_data_mars_pro;
+				si_pi->dte_data = dte_data_mars_pro;
+				update_dte_from_pl2 = true;
+				break;
+
+			case 0x6600:
+			case 0x6606:
+			case 0x6620:
+			case 0x6604:
+				si_pi->cac_weights = cac_weights_mars_xt;
+				si_pi->lcac_config = lcac_mars_pro;
+				si_pi->cac_override = cac_override_oland;
+				si_pi->powertune_data = &powertune_data_mars_pro;
+				si_pi->dte_data = dte_data_mars_pro;
+				update_dte_from_pl2 = true;
+				break;
+
+			case 0x6611:
+			case 0x6613:
+			case 0x6608:
+				si_pi->cac_weights = cac_weights_oland_pro;
+				si_pi->lcac_config = lcac_mars_pro;
+				si_pi->cac_override = cac_override_oland;
+				si_pi->powertune_data = &powertune_data_mars_pro;
+				si_pi->dte_data = dte_data_mars_pro;
+				update_dte_from_pl2 = true;
+				break;
+
+			case 0x6610:
+				si_pi->cac_weights = cac_weights_oland_xt;
+				si_pi->lcac_config = lcac_mars_pro;
+				si_pi->cac_override = cac_override_oland;
+				si_pi->powertune_data = &powertune_data_mars_pro;
+				si_pi->dte_data = dte_data_mars_pro;
+				update_dte_from_pl2 = true;
+				break;
+
+			default:
+				si_pi->cac_weights = cac_weights_oland;
+				si_pi->lcac_config = lcac_oland;
+				si_pi->cac_override = cac_override_oland;
+				si_pi->powertune_data = &powertune_data_oland;
+				si_pi->dte_data = dte_data_oland;
+				break;
 		}
-	} else if (rdev->family == CHIP_HAINAN) {
+	}
+	else if (rdev->family == CHIP_HAINAN)
+	{
 		si_pi->cac_weights = cac_weights_hainan;
 		si_pi->lcac_config = lcac_oland;
 		si_pi->cac_override = cac_override_oland;
 		si_pi->powertune_data = &powertune_data_hainan;
 		si_pi->dte_data = dte_data_sun_xt;
 		update_dte_from_pl2 = true;
-	} else {
+	}
+	else
+	{
 		DRM_ERROR("Unknown SI asic revision, failed to initialize PowerTune!\n");
 		return;
 	}
@@ -2058,28 +2101,38 @@ static void si_initialize_powertune_defaults(struct radeon_device *rdev)
 	ni_pi->enable_sq_ramping = false;
 	si_pi->enable_dte = false;
 
-	if (si_pi->powertune_data->enable_powertune_by_default) {
-		ni_pi->enable_power_containment= true;
+	if (si_pi->powertune_data->enable_powertune_by_default)
+	{
+		ni_pi->enable_power_containment = true;
 		ni_pi->enable_cac = true;
-		if (si_pi->dte_data.enable_dte_by_default) {
+
+		if (si_pi->dte_data.enable_dte_by_default)
+		{
 			si_pi->enable_dte = true;
+
 			if (update_dte_from_pl2)
+			{
 				si_update_dte_from_pl2(rdev, &si_pi->dte_data);
+			}
 
 		}
+
 		ni_pi->enable_sq_ramping = true;
 	}
 
 	ni_pi->driver_calculate_cac_leakage = true;
 	ni_pi->cac_configuration_required = true;
 
-	if (ni_pi->cac_configuration_required) {
+	if (ni_pi->cac_configuration_required)
+	{
 		ni_pi->support_cac_long_term_average = true;
 		si_pi->dyn_powertune_data.l2_lta_window_size =
 			si_pi->powertune_data->l2_lta_window_size_default;
 		si_pi->dyn_powertune_data.lts_truncate =
 			si_pi->powertune_data->lts_truncate_default;
-	} else {
+	}
+	else
+	{
 		ni_pi->support_cac_long_term_average = false;
 		si_pi->dyn_powertune_data.l2_lta_window_size = 0;
 		si_pi->dyn_powertune_data.lts_truncate = 0;
@@ -2103,7 +2156,9 @@ static u32 si_calculate_cac_wintime(struct radeon_device *rdev)
 	xclk = radeon_get_xclk(rdev);
 
 	if (xclk == 0)
+	{
 		return 0;
+	}
 
 	cac_window = RREG32(CG_CAC_CTRL) & CAC_WINDOW_MASK;
 	cac_window_size = ((cac_window & 0xFFFF0000) >> 16) * (cac_window & 0x0000FFFF);
@@ -2119,45 +2174,61 @@ static u32 si_scale_power_for_smc(u32 power_in_watts, u32 scaling_factor)
 }
 
 static int si_calculate_adjusted_tdp_limits(struct radeon_device *rdev,
-					    bool adjust_polarity,
-					    u32 tdp_adjustment,
-					    u32 *tdp_limit,
-					    u32 *near_tdp_limit)
+		bool adjust_polarity,
+		u32 tdp_adjustment,
+		u32 *tdp_limit,
+		u32 *near_tdp_limit)
 {
 	u32 adjustment_delta, max_tdp_limit;
 
 	if (tdp_adjustment > (u32)rdev->pm.dpm.tdp_od_limit)
+	{
 		return -EINVAL;
+	}
 
 	max_tdp_limit = ((100 + 100) * rdev->pm.dpm.tdp_limit) / 100;
 
-	if (adjust_polarity) {
+	if (adjust_polarity)
+	{
 		*tdp_limit = ((100 + tdp_adjustment) * rdev->pm.dpm.tdp_limit) / 100;
 		*near_tdp_limit = rdev->pm.dpm.near_tdp_limit_adjusted + (*tdp_limit - rdev->pm.dpm.tdp_limit);
-	} else {
+	}
+	else
+	{
 		*tdp_limit = ((100 - tdp_adjustment) * rdev->pm.dpm.tdp_limit) / 100;
 		adjustment_delta  = rdev->pm.dpm.tdp_limit - *tdp_limit;
+
 		if (adjustment_delta < rdev->pm.dpm.near_tdp_limit_adjusted)
+		{
 			*near_tdp_limit = rdev->pm.dpm.near_tdp_limit_adjusted - adjustment_delta;
+		}
 		else
+		{
 			*near_tdp_limit = 0;
+		}
 	}
 
 	if ((*tdp_limit <= 0) || (*tdp_limit > max_tdp_limit))
+	{
 		return -EINVAL;
+	}
+
 	if ((*near_tdp_limit <= 0) || (*near_tdp_limit > *tdp_limit))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int si_populate_smc_tdp_limits(struct radeon_device *rdev,
-				      struct radeon_ps *radeon_state)
+									  struct radeon_ps *radeon_state)
 {
 	struct ni_power_info *ni_pi = ni_get_pi(rdev);
 	struct si_power_info *si_pi = si_get_pi(rdev);
 
-	if (ni_pi->enable_power_containment) {
+	if (ni_pi->enable_power_containment)
+	{
 		SISLANDS_SMC_STATETABLE *smc_table = &si_pi->smc_statetable;
 		PP_SIslands_PAPMParameters *papm_parm;
 		struct radeon_ppm_table *ppm = rdev->pm.dpm.dyn_state.ppm_table;
@@ -2167,35 +2238,45 @@ static int si_populate_smc_tdp_limits(struct radeon_device *rdev,
 		int ret;
 
 		if (scaling_factor == 0)
+		{
 			return -EINVAL;
+		}
 
 		memset(smc_table, 0, sizeof(SISLANDS_SMC_STATETABLE));
 
 		ret = si_calculate_adjusted_tdp_limits(rdev,
-						       false, /* ??? */
-						       rdev->pm.dpm.tdp_adjustment,
-						       &tdp_limit,
-						       &near_tdp_limit);
+											   false, /* ??? */
+											   rdev->pm.dpm.tdp_adjustment,
+											   &tdp_limit,
+											   &near_tdp_limit);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		smc_table->dpm2Params.TDPLimit =
 			cpu_to_be32(si_scale_power_for_smc(tdp_limit, scaling_factor) * 1000);
 		smc_table->dpm2Params.NearTDPLimit =
 			cpu_to_be32(si_scale_power_for_smc(near_tdp_limit, scaling_factor) * 1000);
 		smc_table->dpm2Params.SafePowerLimit =
-			cpu_to_be32(si_scale_power_for_smc((near_tdp_limit * SISLANDS_DPM2_TDP_SAFE_LIMIT_PERCENT) / 100, scaling_factor) * 1000);
+			cpu_to_be32(si_scale_power_for_smc((near_tdp_limit * SISLANDS_DPM2_TDP_SAFE_LIMIT_PERCENT) / 100,
+											   scaling_factor) * 1000);
 
 		ret = si_copy_bytes_to_smc(rdev,
-					   (si_pi->state_table_start + offsetof(SISLANDS_SMC_STATETABLE, dpm2Params) +
-						 offsetof(PP_SIslands_DPM2Parameters, TDPLimit)),
-					   (u8 *)(&(smc_table->dpm2Params.TDPLimit)),
-					   sizeof(u32) * 3,
-					   si_pi->sram_end);
-		if (ret)
-			return ret;
+								   (si_pi->state_table_start + offsetof(SISLANDS_SMC_STATETABLE, dpm2Params) +
+									offsetof(PP_SIslands_DPM2Parameters, TDPLimit)),
+								   (u8 *)(&(smc_table->dpm2Params.TDPLimit)),
+								   sizeof(u32) * 3,
+								   si_pi->sram_end);
 
-		if (si_pi->enable_ppm) {
+		if (ret)
+		{
+			return ret;
+		}
+
+		if (si_pi->enable_ppm)
+		{
 			papm_parm = &si_pi->papm_parm;
 			memset(papm_parm, 0, sizeof(PP_SIslands_PAPMParameters));
 			papm_parm->NearTDPLimitTherm = cpu_to_be32(ppm->dgpu_tdp);
@@ -2206,23 +2287,28 @@ static int si_populate_smc_tdp_limits(struct radeon_device *rdev,
 			papm_parm->NearTDPLimitPAPM = 0xffffffff;
 
 			ret = si_copy_bytes_to_smc(rdev, si_pi->papm_cfg_table_start,
-						   (u8 *)papm_parm,
-						   sizeof(PP_SIslands_PAPMParameters),
-						   si_pi->sram_end);
+									   (u8 *)papm_parm,
+									   sizeof(PP_SIslands_PAPMParameters),
+									   si_pi->sram_end);
+
 			if (ret)
+			{
 				return ret;
+			}
 		}
 	}
+
 	return 0;
 }
 
 static int si_populate_smc_tdp_limits_2(struct radeon_device *rdev,
-					struct radeon_ps *radeon_state)
+										struct radeon_ps *radeon_state)
 {
 	struct ni_power_info *ni_pi = ni_get_pi(rdev);
 	struct si_power_info *si_pi = si_get_pi(rdev);
 
-	if (ni_pi->enable_power_containment) {
+	if (ni_pi->enable_power_containment)
+	{
 		SISLANDS_SMC_STATETABLE *smc_table = &si_pi->smc_statetable;
 		u32 scaling_factor = si_get_smc_power_scaling_factor(rdev);
 		int ret;
@@ -2232,25 +2318,29 @@ static int si_populate_smc_tdp_limits_2(struct radeon_device *rdev,
 		smc_table->dpm2Params.NearTDPLimit =
 			cpu_to_be32(si_scale_power_for_smc(rdev->pm.dpm.near_tdp_limit_adjusted, scaling_factor) * 1000);
 		smc_table->dpm2Params.SafePowerLimit =
-			cpu_to_be32(si_scale_power_for_smc((rdev->pm.dpm.near_tdp_limit_adjusted * SISLANDS_DPM2_TDP_SAFE_LIMIT_PERCENT) / 100, scaling_factor) * 1000);
+			cpu_to_be32(si_scale_power_for_smc((rdev->pm.dpm.near_tdp_limit_adjusted * SISLANDS_DPM2_TDP_SAFE_LIMIT_PERCENT) / 100,
+											   scaling_factor) * 1000);
 
 		ret = si_copy_bytes_to_smc(rdev,
-					   (si_pi->state_table_start +
-					    offsetof(SISLANDS_SMC_STATETABLE, dpm2Params) +
-					    offsetof(PP_SIslands_DPM2Parameters, NearTDPLimit)),
-					   (u8 *)(&(smc_table->dpm2Params.NearTDPLimit)),
-					   sizeof(u32) * 2,
-					   si_pi->sram_end);
+								   (si_pi->state_table_start +
+									offsetof(SISLANDS_SMC_STATETABLE, dpm2Params) +
+									offsetof(PP_SIslands_DPM2Parameters, NearTDPLimit)),
+								   (u8 *)(&(smc_table->dpm2Params.NearTDPLimit)),
+								   sizeof(u32) * 2,
+								   si_pi->sram_end);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
 }
 
 static u16 si_calculate_power_efficiency_ratio(struct radeon_device *rdev,
-					       const u16 prev_std_vddc,
-					       const u16 curr_std_vddc)
+		const u16 prev_std_vddc,
+		const u16 curr_std_vddc)
 {
 	u64 margin = (u64)SISLANDS_DPM2_PWREFFICIENCYRATIO_MARGIN;
 	u64 prev_vddc = (u64)prev_std_vddc;
@@ -2258,33 +2348,39 @@ static u16 si_calculate_power_efficiency_ratio(struct radeon_device *rdev,
 	u64 pwr_efficiency_ratio, n, d;
 
 	if ((prev_vddc == 0) || (curr_vddc == 0))
+	{
 		return 0;
+	}
 
 	n = div64_u64((u64)1024 * curr_vddc * curr_vddc * ((u64)1000 + margin), (u64)1000);
 	d = prev_vddc * prev_vddc;
 	pwr_efficiency_ratio = div64_u64(n, d);
 
 	if (pwr_efficiency_ratio > (u64)0xFFFF)
+	{
 		return 0;
+	}
 
 	return (u16)pwr_efficiency_ratio;
 }
 
 static bool si_should_disable_uvd_powertune(struct radeon_device *rdev,
-					    struct radeon_ps *radeon_state)
+		struct radeon_ps *radeon_state)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 
 	if (si_pi->dyn_powertune_data.disable_uvd_powertune &&
-	    radeon_state->vclk && radeon_state->dclk)
+		radeon_state->vclk && radeon_state->dclk)
+	{
 		return true;
+	}
 
 	return false;
 }
 
 static int si_populate_power_containment_values(struct radeon_device *rdev,
-						struct radeon_ps *radeon_state,
-						SISLANDS_SMC_SWSTATE *smc_state)
+		struct radeon_ps *radeon_state,
+		SISLANDS_SMC_SWSTATE *smc_state)
 {
 	struct evergreen_power_info *eg_pi = evergreen_get_pi(rdev);
 	struct ni_power_info *ni_pi = ni_get_pi(rdev);
@@ -2302,13 +2398,19 @@ static int si_populate_power_containment_values(struct radeon_device *rdev,
 	int ret;
 
 	if (ni_pi->enable_power_containment == false)
+	{
 		return 0;
+	}
 
 	if (state->performance_level_count == 0)
+	{
 		return -EINVAL;
+	}
 
 	if (smc_state->levelCount != state->performance_level_count)
+	{
 		return -EINVAL;
+	}
 
 	disable_uvd_power_tune = si_should_disable_uvd_powertune(rdev, radeon_state);
 
@@ -2318,53 +2420,82 @@ static int si_populate_power_containment_values(struct radeon_device *rdev,
 	smc_state->levels[0].dpm2.BelowSafeInc = 0;
 	smc_state->levels[0].dpm2.PwrEfficiencyRatio = 0;
 
-	for (i = 1; i < state->performance_level_count; i++) {
-		prev_sclk = state->performance_levels[i-1].sclk;
+	for (i = 1; i < state->performance_level_count; i++)
+	{
+		prev_sclk = state->performance_levels[i - 1].sclk;
 		max_sclk  = state->performance_levels[i].sclk;
+
 		if (i == 1)
+		{
 			max_ps_percent = SISLANDS_DPM2_MAXPS_PERCENT_M;
+		}
 		else
+		{
 			max_ps_percent = SISLANDS_DPM2_MAXPS_PERCENT_H;
+		}
 
 		if (prev_sclk > max_sclk)
+		{
 			return -EINVAL;
+		}
 
 		if ((max_ps_percent == 0) ||
-		    (prev_sclk == max_sclk) ||
-		    disable_uvd_power_tune) {
+			(prev_sclk == max_sclk) ||
+			disable_uvd_power_tune)
+		{
 			min_sclk = max_sclk;
-		} else if (i == 1) {
+		}
+		else if (i == 1)
+		{
 			min_sclk = prev_sclk;
-		} else {
+		}
+		else
+		{
 			min_sclk = (prev_sclk * (u32)max_ps_percent) / 100;
 		}
 
 		if (min_sclk < state->performance_levels[0].sclk)
+		{
 			min_sclk = state->performance_levels[0].sclk;
+		}
 
 		if (min_sclk == 0)
+		{
 			return -EINVAL;
+		}
 
 		ret = si_populate_voltage_value(rdev, &eg_pi->vddc_voltage_table,
-						state->performance_levels[i-1].vddc, &vddc);
+										state->performance_levels[i - 1].vddc, &vddc);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = si_get_std_voltage_value(rdev, &vddc, &prev_std_vddc);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = si_populate_voltage_value(rdev, &eg_pi->vddc_voltage_table,
-						state->performance_levels[i].vddc, &vddc);
+										state->performance_levels[i].vddc, &vddc);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = si_get_std_voltage_value(rdev, &vddc, &curr_std_vddc);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		pwr_efficiency_ratio = si_calculate_power_efficiency_ratio(rdev,
-									   prev_std_vddc, curr_std_vddc);
+							   prev_std_vddc, curr_std_vddc);
 
 		smc_state->levels[i].dpm2.MaxPS = (u8)((SISLANDS_DPM2_MAX_PULSE_SKIP * (max_sclk - min_sclk)) / max_sclk);
 		smc_state->levels[i].dpm2.NearTDPDec = SISLANDS_DPM2_NEAR_TDP_DEC;
@@ -2377,8 +2508,8 @@ static int si_populate_power_containment_values(struct radeon_device *rdev,
 }
 
 static int si_populate_sq_ramping_values(struct radeon_device *rdev,
-					 struct radeon_ps *radeon_state,
-					 SISLANDS_SMC_SWSTATE *smc_state)
+		struct radeon_ps *radeon_state,
+		SISLANDS_SMC_SWSTATE *smc_state)
 {
 	struct ni_power_info *ni_pi = ni_get_pi(rdev);
 	struct ni_ps *state = ni_get_ps(radeon_state);
@@ -2387,41 +2518,61 @@ static int si_populate_sq_ramping_values(struct radeon_device *rdev,
 	int i;
 
 	if (state->performance_level_count == 0)
+	{
 		return -EINVAL;
+	}
 
 	if (smc_state->levelCount != state->performance_level_count)
+	{
 		return -EINVAL;
+	}
 
 	if (rdev->pm.dpm.sq_ramping_threshold == 0)
+	{
 		return -EINVAL;
+	}
 
 	if (SISLANDS_DPM2_SQ_RAMP_MAX_POWER > (MAX_POWER_MASK >> MAX_POWER_SHIFT))
+	{
 		enable_sq_ramping = false;
+	}
 
 	if (SISLANDS_DPM2_SQ_RAMP_MIN_POWER > (MIN_POWER_MASK >> MIN_POWER_SHIFT))
+	{
 		enable_sq_ramping = false;
+	}
 
 	if (SISLANDS_DPM2_SQ_RAMP_MAX_POWER_DELTA > (MAX_POWER_DELTA_MASK >> MAX_POWER_DELTA_SHIFT))
+	{
 		enable_sq_ramping = false;
+	}
 
 	if (SISLANDS_DPM2_SQ_RAMP_STI_SIZE > (STI_SIZE_MASK >> STI_SIZE_SHIFT))
+	{
 		enable_sq_ramping = false;
+	}
 
 	if (SISLANDS_DPM2_SQ_RAMP_LTI_RATIO > (LTI_RATIO_MASK >> LTI_RATIO_SHIFT))
+	{
 		enable_sq_ramping = false;
+	}
 
-	for (i = 0; i < state->performance_level_count; i++) {
+	for (i = 0; i < state->performance_level_count; i++)
+	{
 		sq_power_throttle = 0;
 		sq_power_throttle2 = 0;
 
 		if ((state->performance_levels[i].sclk >= rdev->pm.dpm.sq_ramping_threshold) &&
-		    enable_sq_ramping) {
+			enable_sq_ramping)
+		{
 			sq_power_throttle |= MAX_POWER(SISLANDS_DPM2_SQ_RAMP_MAX_POWER);
 			sq_power_throttle |= MIN_POWER(SISLANDS_DPM2_SQ_RAMP_MIN_POWER);
 			sq_power_throttle2 |= MAX_POWER_DELTA(SISLANDS_DPM2_SQ_RAMP_MAX_POWER_DELTA);
 			sq_power_throttle2 |= STI_SIZE(SISLANDS_DPM2_SQ_RAMP_STI_SIZE);
 			sq_power_throttle2 |= LTI_RATIO(SISLANDS_DPM2_SQ_RAMP_LTI_RATIO);
-		} else {
+		}
+		else
+		{
 			sq_power_throttle |= MAX_POWER_MASK | MIN_POWER_MASK;
 			sq_power_throttle2 |= MAX_POWER_DELTA_MASK | STI_SIZE_MASK | LTI_RATIO_MASK;
 		}
@@ -2434,28 +2585,41 @@ static int si_populate_sq_ramping_values(struct radeon_device *rdev,
 }
 
 static int si_enable_power_containment(struct radeon_device *rdev,
-				       struct radeon_ps *radeon_new_state,
-				       bool enable)
+									   struct radeon_ps *radeon_new_state,
+									   bool enable)
 {
 	struct ni_power_info *ni_pi = ni_get_pi(rdev);
 	PPSMC_Result smc_result;
 	int ret = 0;
 
-	if (ni_pi->enable_power_containment) {
-		if (enable) {
-			if (!si_should_disable_uvd_powertune(rdev, radeon_new_state)) {
+	if (ni_pi->enable_power_containment)
+	{
+		if (enable)
+		{
+			if (!si_should_disable_uvd_powertune(rdev, radeon_new_state))
+			{
 				smc_result = si_send_msg_to_smc(rdev, PPSMC_TDPClampingActive);
-				if (smc_result != PPSMC_Result_OK) {
+
+				if (smc_result != PPSMC_Result_OK)
+				{
 					ret = -EINVAL;
 					ni_pi->pc_enabled = false;
-				} else {
+				}
+				else
+				{
 					ni_pi->pc_enabled = true;
 				}
 			}
-		} else {
+		}
+		else
+		{
 			smc_result = si_send_msg_to_smc(rdev, PPSMC_TDPClampingInactive);
+
 			if (smc_result != PPSMC_Result_OK)
+			{
 				ret = -EINVAL;
+			}
+
 			ni_pi->pc_enabled = false;
 		}
 	}
@@ -2474,16 +2638,24 @@ static int si_initialize_smc_dte_tables(struct radeon_device *rdev)
 	u32 i;
 
 	if (dte_data == NULL)
+	{
 		si_pi->enable_dte = false;
+	}
 
 	if (si_pi->enable_dte == false)
+	{
 		return 0;
+	}
 
 	if (dte_data->k <= 0)
+	{
 		return -EINVAL;
+	}
 
 	dte_tables = kzalloc(sizeof(Smc_SIslands_DTE_Configuration), GFP_KERNEL);
-	if (dte_tables == NULL) {
+
+	if (dte_tables == NULL)
+	{
 		si_pi->enable_dte = false;
 		return -ENOMEM;
 	}
@@ -2491,11 +2663,16 @@ static int si_initialize_smc_dte_tables(struct radeon_device *rdev)
 	table_size = dte_data->k;
 
 	if (table_size > SMC_SISLANDS_DTE_MAX_FILTER_STAGES)
+	{
 		table_size = SMC_SISLANDS_DTE_MAX_FILTER_STAGES;
+	}
 
 	tdep_count = dte_data->tdep_count;
+
 	if (tdep_count > SMC_SISLANDS_DTE_MAX_TEMPERATURE_DEPENDENT_ARRAY_SIZE)
+	{
 		tdep_count = SMC_SISLANDS_DTE_MAX_TEMPERATURE_DEPENDENT_ARRAY_SIZE;
+	}
 
 	dte_tables->K = cpu_to_be32(table_size);
 	dte_tables->T0 = cpu_to_be32(dte_data->t0);
@@ -2506,63 +2683,81 @@ static int si_initialize_smc_dte_tables(struct radeon_device *rdev)
 	dte_tables->Tthreshold = cpu_to_be32(dte_data->t_threshold);
 
 	if (tdep_count > 0)
+	{
 		table_size--;
+	}
 
-	for (i = 0; i < table_size; i++) {
+	for (i = 0; i < table_size; i++)
+	{
 		dte_tables->tau[i] = cpu_to_be32(dte_data->tau[i]);
 		dte_tables->R[i]   = cpu_to_be32(dte_data->r[i]);
 	}
 
 	dte_tables->Tdep_count = tdep_count;
 
-	for (i = 0; i < (u32)tdep_count; i++) {
+	for (i = 0; i < (u32)tdep_count; i++)
+	{
 		dte_tables->T_limits[i] = dte_data->t_limits[i];
 		dte_tables->Tdep_tau[i] = cpu_to_be32(dte_data->tdep_tau[i]);
 		dte_tables->Tdep_R[i] = cpu_to_be32(dte_data->tdep_r[i]);
 	}
 
 	ret = si_copy_bytes_to_smc(rdev, si_pi->dte_table_start, (u8 *)dte_tables,
-				   sizeof(Smc_SIslands_DTE_Configuration), si_pi->sram_end);
+							   sizeof(Smc_SIslands_DTE_Configuration), si_pi->sram_end);
 	kfree(dte_tables);
 
 	return ret;
 }
 
 static int si_get_cac_std_voltage_max_min(struct radeon_device *rdev,
-					  u16 *max, u16 *min)
+		u16 *max, u16 *min)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	struct radeon_cac_leakage_table *table =
-		&rdev->pm.dpm.dyn_state.cac_leakage_table;
+			&rdev->pm.dpm.dyn_state.cac_leakage_table;
 	u32 i;
 	u32 v0_loadline;
 
 
 	if (table == NULL)
+	{
 		return -EINVAL;
+	}
 
 	*max = 0;
 	*min = 0xFFFF;
 
-	for (i = 0; i < table->count; i++) {
+	for (i = 0; i < table->count; i++)
+	{
 		if (table->entries[i].vddc > *max)
+		{
 			*max = table->entries[i].vddc;
+		}
+
 		if (table->entries[i].vddc < *min)
+		{
 			*min = table->entries[i].vddc;
+		}
 	}
 
 	if (si_pi->powertune_data->lkge_lut_v0_percent > 100)
+	{
 		return -EINVAL;
+	}
 
 	v0_loadline = (*min) * (100 - si_pi->powertune_data->lkge_lut_v0_percent) / 100;
 
 	if (v0_loadline > 0xFFFFUL)
+	{
 		return -EINVAL;
+	}
 
 	*min = (u16)v0_loadline;
 
 	if ((*min > *max) || (*max == 0) || (*min == 0))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -2570,13 +2765,13 @@ static int si_get_cac_std_voltage_max_min(struct radeon_device *rdev,
 static u16 si_get_cac_std_voltage_step(u16 max, u16 min)
 {
 	return ((max - min) + (SMC_SISLANDS_LKGE_LUT_NUM_OF_VOLT_ENTRIES - 1)) /
-		SMC_SISLANDS_LKGE_LUT_NUM_OF_VOLT_ENTRIES;
+		   SMC_SISLANDS_LKGE_LUT_NUM_OF_VOLT_ENTRIES;
 }
 
 static int si_init_dte_leakage_table(struct radeon_device *rdev,
-				     PP_SIslands_CacConfig *cac_tables,
-				     u16 vddc_max, u16 vddc_min, u16 vddc_step,
-				     u16 t0, u16 t_step)
+									 PP_SIslands_CacConfig *cac_tables,
+									 u16 vddc_max, u16 vddc_min, u16 vddc_step,
+									 u16 t0, u16 t_step)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	u32 leakage;
@@ -2588,34 +2783,39 @@ static int si_init_dte_leakage_table(struct radeon_device *rdev,
 
 	scaling_factor = si_get_smc_power_scaling_factor(rdev);
 
-	for (i = 0; i < SMC_SISLANDS_LKGE_LUT_NUM_OF_TEMP_ENTRIES ; i++) {
+	for (i = 0; i < SMC_SISLANDS_LKGE_LUT_NUM_OF_TEMP_ENTRIES ; i++)
+	{
 		t = (1000 * (i * t_step + t0));
 
-		for (j = 0; j < SMC_SISLANDS_LKGE_LUT_NUM_OF_VOLT_ENTRIES; j++) {
+		for (j = 0; j < SMC_SISLANDS_LKGE_LUT_NUM_OF_VOLT_ENTRIES; j++)
+		{
 			voltage = vddc_max - (vddc_step * j);
 
 			si_calculate_leakage_for_v_and_t(rdev,
-							 &si_pi->powertune_data->leakage_coefficients,
-							 voltage,
-							 t,
-							 si_pi->dyn_powertune_data.cac_leakage,
-							 &leakage);
+											 &si_pi->powertune_data->leakage_coefficients,
+											 voltage,
+											 t,
+											 si_pi->dyn_powertune_data.cac_leakage,
+											 &leakage);
 
 			smc_leakage = si_scale_power_for_smc(leakage, scaling_factor) / 4;
 
 			if (smc_leakage > 0xFFFF)
+			{
 				smc_leakage = 0xFFFF;
+			}
 
-			cac_tables->cac_lkge_lut[i][SMC_SISLANDS_LKGE_LUT_NUM_OF_VOLT_ENTRIES-1-j] =
+			cac_tables->cac_lkge_lut[i][SMC_SISLANDS_LKGE_LUT_NUM_OF_VOLT_ENTRIES - 1 - j] =
 				cpu_to_be16((u16)smc_leakage);
 		}
 	}
+
 	return 0;
 }
 
 static int si_init_simplified_leakage_table(struct radeon_device *rdev,
-					    PP_SIslands_CacConfig *cac_tables,
-					    u16 vddc_max, u16 vddc_min, u16 vddc_step)
+		PP_SIslands_CacConfig *cac_tables,
+		u16 vddc_max, u16 vddc_min, u16 vddc_step)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	u32 leakage;
@@ -2626,25 +2826,29 @@ static int si_init_simplified_leakage_table(struct radeon_device *rdev,
 
 	scaling_factor = si_get_smc_power_scaling_factor(rdev);
 
-	for (j = 0; j < SMC_SISLANDS_LKGE_LUT_NUM_OF_VOLT_ENTRIES; j++) {
+	for (j = 0; j < SMC_SISLANDS_LKGE_LUT_NUM_OF_VOLT_ENTRIES; j++)
+	{
 		voltage = vddc_max - (vddc_step * j);
 
 		si_calculate_leakage_for_v(rdev,
-					   &si_pi->powertune_data->leakage_coefficients,
-					   si_pi->powertune_data->fixed_kt,
-					   voltage,
-					   si_pi->dyn_powertune_data.cac_leakage,
-					   &leakage);
+								   &si_pi->powertune_data->leakage_coefficients,
+								   si_pi->powertune_data->fixed_kt,
+								   voltage,
+								   si_pi->dyn_powertune_data.cac_leakage,
+								   &leakage);
 
 		smc_leakage = si_scale_power_for_smc(leakage, scaling_factor) / 4;
 
 		if (smc_leakage > 0xFFFF)
+		{
 			smc_leakage = 0xFFFF;
+		}
 
 		for (i = 0; i < SMC_SISLANDS_LKGE_LUT_NUM_OF_TEMP_ENTRIES ; i++)
-			cac_tables->cac_lkge_lut[i][SMC_SISLANDS_LKGE_LUT_NUM_OF_VOLT_ENTRIES-1-j] =
+			cac_tables->cac_lkge_lut[i][SMC_SISLANDS_LKGE_LUT_NUM_OF_VOLT_ENTRIES - 1 - j] =
 				cpu_to_be16((u16)smc_leakage);
 	}
+
 	return 0;
 }
 
@@ -2660,11 +2864,16 @@ static int si_initialize_smc_cac_tables(struct radeon_device *rdev)
 	u32 ticks_per_us = radeon_get_xclk(rdev) / 100;
 
 	if (ni_pi->enable_cac == false)
+	{
 		return 0;
+	}
 
 	cac_tables = kzalloc(sizeof(PP_SIslands_CacConfig), GFP_KERNEL);
+
 	if (!cac_tables)
+	{
 		return -ENOMEM;
+	}
 
 	reg = RREG32(CG_CAC_CTRL) & ~CAC_WINDOW_MASK;
 	reg |= CAC_WINDOW(si_pi->powertune_data->cac_window);
@@ -2679,8 +2888,11 @@ static int si_initialize_smc_cac_tables(struct radeon_device *rdev)
 	si_pi->dyn_powertune_data.leakage_minimum_temperature = 80 * 1000;
 
 	ret = si_get_cac_std_voltage_max_min(rdev, &vddc_max, &vddc_min);
+
 	if (ret)
+	{
 		goto done_free;
+	}
 
 	vddc_step = si_get_cac_std_voltage_step(vddc_max, vddc_min);
 	vddc_min = vddc_max - (vddc_step * (SMC_SISLANDS_LKGE_LUT_NUM_OF_VOLT_ENTRIES - 1));
@@ -2689,13 +2901,16 @@ static int si_initialize_smc_cac_tables(struct radeon_device *rdev)
 
 	if (si_pi->enable_dte || ni_pi->driver_calculate_cac_leakage)
 		ret = si_init_dte_leakage_table(rdev, cac_tables,
-						vddc_max, vddc_min, vddc_step,
-						t0, t_step);
+										vddc_max, vddc_min, vddc_step,
+										t0, t_step);
 	else
 		ret = si_init_simplified_leakage_table(rdev, cac_tables,
-						       vddc_max, vddc_min, vddc_step);
+											   vddc_max, vddc_min, vddc_step);
+
 	if (ret)
+	{
 		goto done_free;
+	}
 
 	load_line_slope = ((u32)rdev->pm.dpm.load_line_slope << SMC_SISLANDS_SCALE_R) / 100;
 
@@ -2714,15 +2929,19 @@ static int si_initialize_smc_cac_tables(struct radeon_device *rdev)
 	cac_tables->lkge_lut_Tstep = cpu_to_be32((u32)t_step);
 
 	ret = si_copy_bytes_to_smc(rdev, si_pi->cac_table_start, (u8 *)cac_tables,
-				   sizeof(PP_SIslands_CacConfig), si_pi->sram_end);
+							   sizeof(PP_SIslands_CacConfig), si_pi->sram_end);
 
 	if (ret)
+	{
 		goto done_free;
+	}
 
 	ret = si_write_smc_soft_register(rdev, SI_SMC_SOFT_REGISTER_ticks_per_us, ticks_per_us);
 
 done_free:
-	if (ret) {
+
+	if (ret)
+	{
 		ni_pi->enable_cac = false;
 		ni_pi->enable_power_containment = false;
 	}
@@ -2733,41 +2952,58 @@ done_free:
 }
 
 static int si_program_cac_config_registers(struct radeon_device *rdev,
-					   const struct si_cac_config_reg *cac_config_regs)
+		const struct si_cac_config_reg *cac_config_regs)
 {
 	const struct si_cac_config_reg *config_regs = cac_config_regs;
 	u32 data = 0, offset;
 
 	if (!config_regs)
+	{
 		return -EINVAL;
+	}
 
-	while (config_regs->offset != 0xFFFFFFFF) {
-		switch (config_regs->type) {
-		case SISLANDS_CACCONFIG_CGIND:
-			offset = SMC_CG_IND_START + config_regs->offset;
-			if (offset < SMC_CG_IND_END)
-				data = RREG32_SMC(offset);
-			break;
-		default:
-			data = RREG32(config_regs->offset << 2);
-			break;
+	while (config_regs->offset != 0xFFFFFFFF)
+	{
+		switch (config_regs->type)
+		{
+			case SISLANDS_CACCONFIG_CGIND:
+				offset = SMC_CG_IND_START + config_regs->offset;
+
+				if (offset < SMC_CG_IND_END)
+				{
+					data = RREG32_SMC(offset);
+				}
+
+				break;
+
+			default:
+				data = RREG32(config_regs->offset << 2);
+				break;
 		}
 
 		data &= ~config_regs->mask;
 		data |= ((config_regs->value << config_regs->shift) & config_regs->mask);
 
-		switch (config_regs->type) {
-		case SISLANDS_CACCONFIG_CGIND:
-			offset = SMC_CG_IND_START + config_regs->offset;
-			if (offset < SMC_CG_IND_END)
-				WREG32_SMC(offset, data);
-			break;
-		default:
-			WREG32(config_regs->offset << 2, data);
-			break;
+		switch (config_regs->type)
+		{
+			case SISLANDS_CACCONFIG_CGIND:
+				offset = SMC_CG_IND_START + config_regs->offset;
+
+				if (offset < SMC_CG_IND_END)
+				{
+					WREG32_SMC(offset, data);
+				}
+
+				break;
+
+			default:
+				WREG32(config_regs->offset << 2, data);
+				break;
 		}
+
 		config_regs++;
 	}
+
 	return 0;
 }
 
@@ -2778,66 +3014,101 @@ static int si_initialize_hardware_cac_manager(struct radeon_device *rdev)
 	int ret;
 
 	if ((ni_pi->enable_cac == false) ||
-	    (ni_pi->cac_configuration_required == false))
+		(ni_pi->cac_configuration_required == false))
+	{
 		return 0;
+	}
 
 	ret = si_program_cac_config_registers(rdev, si_pi->lcac_config);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = si_program_cac_config_registers(rdev, si_pi->cac_override);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = si_program_cac_config_registers(rdev, si_pi->cac_weights);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
 static int si_enable_smc_cac(struct radeon_device *rdev,
-			     struct radeon_ps *radeon_new_state,
-			     bool enable)
+							 struct radeon_ps *radeon_new_state,
+							 bool enable)
 {
 	struct ni_power_info *ni_pi = ni_get_pi(rdev);
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	PPSMC_Result smc_result;
 	int ret = 0;
 
-	if (ni_pi->enable_cac) {
-		if (enable) {
-			if (!si_should_disable_uvd_powertune(rdev, radeon_new_state)) {
-				if (ni_pi->support_cac_long_term_average) {
+	if (ni_pi->enable_cac)
+	{
+		if (enable)
+		{
+			if (!si_should_disable_uvd_powertune(rdev, radeon_new_state))
+			{
+				if (ni_pi->support_cac_long_term_average)
+				{
 					smc_result = si_send_msg_to_smc(rdev, PPSMC_CACLongTermAvgEnable);
+
 					if (smc_result != PPSMC_Result_OK)
+					{
 						ni_pi->support_cac_long_term_average = false;
+					}
 				}
 
 				smc_result = si_send_msg_to_smc(rdev, PPSMC_MSG_EnableCac);
-				if (smc_result != PPSMC_Result_OK) {
+
+				if (smc_result != PPSMC_Result_OK)
+				{
 					ret = -EINVAL;
 					ni_pi->cac_enabled = false;
-				} else {
+				}
+				else
+				{
 					ni_pi->cac_enabled = true;
 				}
 
-				if (si_pi->enable_dte) {
+				if (si_pi->enable_dte)
+				{
 					smc_result = si_send_msg_to_smc(rdev, PPSMC_MSG_EnableDTE);
+
 					if (smc_result != PPSMC_Result_OK)
+					{
 						ret = -EINVAL;
+					}
 				}
 			}
-		} else if (ni_pi->cac_enabled) {
+		}
+		else if (ni_pi->cac_enabled)
+		{
 			if (si_pi->enable_dte)
+			{
 				smc_result = si_send_msg_to_smc(rdev, PPSMC_MSG_DisableDTE);
+			}
 
 			smc_result = si_send_msg_to_smc(rdev, PPSMC_MSG_DisableCac);
 
 			ni_pi->cac_enabled = false;
 
 			if (ni_pi->support_cac_long_term_average)
+			{
 				smc_result = si_send_msg_to_smc(rdev, PPSMC_CACLongTermAvgDisable);
+			}
 		}
 	}
+
 	return ret;
 }
 
@@ -2855,16 +3126,25 @@ static int si_init_smc_spll_table(struct radeon_device *rdev)
 	int i;
 
 	if (si_pi->spll_table_start == 0)
+	{
 		return -EINVAL;
+	}
 
 	spll_table = kzalloc(sizeof(SMC_SISLANDS_SPLL_DIV_TABLE), GFP_KERNEL);
-	if (spll_table == NULL)
-		return -ENOMEM;
 
-	for (i = 0; i < 256; i++) {
+	if (spll_table == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < 256; i++)
+	{
 		ret = si_calculate_sclk_params(rdev, sclk, &sclk_params);
+
 		if (ret)
+		{
 			break;
+		}
 
 		p_div = (sclk_params.vCG_SPLL_FUNC_CNTL & SPLL_PDIV_A_MASK) >> SPLL_PDIV_A_SHIFT;
 		fb_div = (sclk_params.vCG_SPLL_FUNC_CNTL_3 & SPLL_FB_DIV_MASK) >> SPLL_FB_DIV_SHIFT;
@@ -2876,23 +3156,36 @@ static int si_init_smc_spll_table(struct radeon_device *rdev)
 		clk_v >>= 6;
 
 		if (p_div & ~(SMC_SISLANDS_SPLL_DIV_TABLE_PDIV_MASK >> SMC_SISLANDS_SPLL_DIV_TABLE_PDIV_SHIFT))
+		{
 			ret = -EINVAL;
+		}
+
 		if (fb_div & ~(SMC_SISLANDS_SPLL_DIV_TABLE_FBDIV_MASK >> SMC_SISLANDS_SPLL_DIV_TABLE_FBDIV_SHIFT))
+		{
 			ret = -EINVAL;
+		}
+
 		if (clk_s & ~(SMC_SISLANDS_SPLL_DIV_TABLE_CLKS_MASK >> SMC_SISLANDS_SPLL_DIV_TABLE_CLKS_SHIFT))
+		{
 			ret = -EINVAL;
+		}
+
 		if (clk_v & ~(SMC_SISLANDS_SPLL_DIV_TABLE_CLKV_MASK >> SMC_SISLANDS_SPLL_DIV_TABLE_CLKV_SHIFT))
+		{
 			ret = -EINVAL;
+		}
 
 		if (ret)
+		{
 			break;
+		}
 
 		tmp = ((fb_div << SMC_SISLANDS_SPLL_DIV_TABLE_FBDIV_SHIFT) & SMC_SISLANDS_SPLL_DIV_TABLE_FBDIV_MASK) |
-			((p_div << SMC_SISLANDS_SPLL_DIV_TABLE_PDIV_SHIFT) & SMC_SISLANDS_SPLL_DIV_TABLE_PDIV_MASK);
+			  ((p_div << SMC_SISLANDS_SPLL_DIV_TABLE_PDIV_SHIFT) & SMC_SISLANDS_SPLL_DIV_TABLE_PDIV_MASK);
 		spll_table->freq[i] = cpu_to_be32(tmp);
 
 		tmp = ((clk_v << SMC_SISLANDS_SPLL_DIV_TABLE_CLKV_SHIFT) & SMC_SISLANDS_SPLL_DIV_TABLE_CLKV_MASK) |
-			((clk_s << SMC_SISLANDS_SPLL_DIV_TABLE_CLKS_SHIFT) & SMC_SISLANDS_SPLL_DIV_TABLE_CLKS_MASK);
+			  ((clk_s << SMC_SISLANDS_SPLL_DIV_TABLE_CLKS_SHIFT) & SMC_SISLANDS_SPLL_DIV_TABLE_CLKS_MASK);
 		spll_table->ss[i] = cpu_to_be32(tmp);
 
 		sclk += 512;
@@ -2901,18 +3194,21 @@ static int si_init_smc_spll_table(struct radeon_device *rdev)
 
 	if (!ret)
 		ret = si_copy_bytes_to_smc(rdev, si_pi->spll_table_start,
-					   (u8 *)spll_table, sizeof(SMC_SISLANDS_SPLL_DIV_TABLE),
-					   si_pi->sram_end);
+								   (u8 *)spll_table, sizeof(SMC_SISLANDS_SPLL_DIV_TABLE),
+								   si_pi->sram_end);
 
 	if (ret)
+	{
 		ni_pi->enable_power_containment = false;
+	}
 
 	kfree(spll_table);
 
 	return ret;
 }
 
-struct si_dpm_quirk {
+struct si_dpm_quirk
+{
 	u32 chip_vendor;
 	u32 chip_device;
 	u32 subsys_vendor;
@@ -2922,7 +3218,8 @@ struct si_dpm_quirk {
 };
 
 /* cards with dpm stability problems */
-static struct si_dpm_quirk si_dpm_quirk_list[] = {
+static struct si_dpm_quirk si_dpm_quirk_list[] =
+{
 	/* PITCAIRN - https://bugs.freedesktop.org/show_bug.cgi?id=76490 */
 	{ PCI_VENDOR_ID_ATI, 0x6810, 0x1462, 0x3036, 0, 120000 },
 	{ PCI_VENDOR_ID_ATI, 0x6811, 0x174b, 0xe271, 0, 120000 },
@@ -2936,40 +3233,48 @@ static struct si_dpm_quirk si_dpm_quirk_list[] = {
 };
 
 static u16 si_get_lower_of_leakage_and_vce_voltage(struct radeon_device *rdev,
-						   u16 vce_voltage)
+		u16 vce_voltage)
 {
 	u16 highest_leakage = 0;
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	int i;
 
-	for (i = 0; i < si_pi->leakage_voltage.count; i++){
+	for (i = 0; i < si_pi->leakage_voltage.count; i++)
+	{
 		if (highest_leakage < si_pi->leakage_voltage.entries[i].voltage)
+		{
 			highest_leakage = si_pi->leakage_voltage.entries[i].voltage;
+		}
 	}
 
 	if (si_pi->leakage_voltage.count && (highest_leakage < vce_voltage))
+	{
 		return highest_leakage;
+	}
 
 	return vce_voltage;
 }
 
 static int si_get_vce_clock_voltage(struct radeon_device *rdev,
-				    u32 evclk, u32 ecclk, u16 *voltage)
+									u32 evclk, u32 ecclk, u16 *voltage)
 {
 	u32 i;
 	int ret = -EINVAL;
 	struct radeon_vce_clock_voltage_dependency_table *table =
-		&rdev->pm.dpm.dyn_state.vce_clock_voltage_dependency_table;
+			&rdev->pm.dpm.dyn_state.vce_clock_voltage_dependency_table;
 
 	if (((evclk == 0) && (ecclk == 0)) ||
-	    (table && (table->count == 0))) {
+		(table && (table->count == 0)))
+	{
 		*voltage = 0;
 		return 0;
 	}
 
-	for (i = 0; i < table->count; i++) {
+	for (i = 0; i < table->count; i++)
+	{
 		if ((evclk <= table->entries[i].evclk) &&
-		    (ecclk <= table->entries[i].ecclk)) {
+			(ecclk <= table->entries[i].ecclk))
+		{
 			*voltage = table->entries[i].v;
 			ret = 0;
 			break;
@@ -2978,7 +3283,9 @@ static int si_get_vce_clock_voltage(struct radeon_device *rdev,
 
 	/* if no match return the highest voltage */
 	if (ret)
+	{
 		*voltage = table->entries[table->count - 1].v;
+	}
 
 	*voltage = si_get_lower_of_leakage_and_vce_voltage(rdev, *voltage);
 
@@ -2986,7 +3293,7 @@ static int si_get_vce_clock_voltage(struct radeon_device *rdev,
 }
 
 static void si_apply_state_adjust_rules(struct radeon_device *rdev,
-					struct radeon_ps *rps)
+										struct radeon_ps *rps)
 {
 	struct ni_ps *ps = ni_get_ps(rps);
 	struct radeon_clock_and_voltage_limits *max_limits;
@@ -3000,156 +3307,231 @@ static void si_apply_state_adjust_rules(struct radeon_device *rdev,
 	struct si_dpm_quirk *p = si_dpm_quirk_list;
 
 	/* limit all SI kickers */
-	if (rdev->family == CHIP_PITCAIRN) {
+	if (rdev->family == CHIP_PITCAIRN)
+	{
 		if ((rdev->pdev->revision == 0x81) ||
-		    (rdev->pdev->device == 0x6810) ||
-		    (rdev->pdev->device == 0x6811) ||
-		    (rdev->pdev->device == 0x6816) ||
-		    (rdev->pdev->device == 0x6817) ||
-		    (rdev->pdev->device == 0x6806))
+			(rdev->pdev->device == 0x6810) ||
+			(rdev->pdev->device == 0x6811) ||
+			(rdev->pdev->device == 0x6816) ||
+			(rdev->pdev->device == 0x6817) ||
+			(rdev->pdev->device == 0x6806))
+		{
 			max_mclk = 120000;
-	} else if (rdev->family == CHIP_VERDE) {
-		if ((rdev->pdev->revision == 0x81) ||
-		    (rdev->pdev->revision == 0x83) ||
-		    (rdev->pdev->revision == 0x87) ||
-		    (rdev->pdev->device == 0x6820) ||
-		    (rdev->pdev->device == 0x6821) ||
-		    (rdev->pdev->device == 0x6822) ||
-		    (rdev->pdev->device == 0x6823) ||
-		    (rdev->pdev->device == 0x682A) ||
-		    (rdev->pdev->device == 0x682B)) {
-			max_sclk = 75000;
-			max_mclk = 80000;
 		}
-	} else if (rdev->family == CHIP_OLAND) {
-		if ((rdev->pdev->revision == 0xC7) ||
-		    (rdev->pdev->revision == 0x80) ||
-		    (rdev->pdev->revision == 0x81) ||
-		    (rdev->pdev->revision == 0x83) ||
-		    (rdev->pdev->device == 0x6604) ||
-		    (rdev->pdev->device == 0x6605)) {
-			max_sclk = 75000;
-			max_mclk = 80000;
-		}
-	} else if (rdev->family == CHIP_HAINAN) {
+	}
+	else if (rdev->family == CHIP_VERDE)
+	{
 		if ((rdev->pdev->revision == 0x81) ||
-		    (rdev->pdev->revision == 0x83) ||
-		    (rdev->pdev->revision == 0xC3) ||
-		    (rdev->pdev->device == 0x6664) ||
-		    (rdev->pdev->device == 0x6665) ||
-		    (rdev->pdev->device == 0x6667)) {
+			(rdev->pdev->revision == 0x83) ||
+			(rdev->pdev->revision == 0x87) ||
+			(rdev->pdev->device == 0x6820) ||
+			(rdev->pdev->device == 0x6821) ||
+			(rdev->pdev->device == 0x6822) ||
+			(rdev->pdev->device == 0x6823) ||
+			(rdev->pdev->device == 0x682A) ||
+			(rdev->pdev->device == 0x682B))
+		{
 			max_sclk = 75000;
 			max_mclk = 80000;
 		}
 	}
+	else if (rdev->family == CHIP_OLAND)
+	{
+		if ((rdev->pdev->revision == 0xC7) ||
+			(rdev->pdev->revision == 0x80) ||
+			(rdev->pdev->revision == 0x81) ||
+			(rdev->pdev->revision == 0x83) ||
+			(rdev->pdev->device == 0x6604) ||
+			(rdev->pdev->device == 0x6605))
+		{
+			max_sclk = 75000;
+			max_mclk = 80000;
+		}
+	}
+	else if (rdev->family == CHIP_HAINAN)
+	{
+		if ((rdev->pdev->revision == 0x81) ||
+			(rdev->pdev->revision == 0x83) ||
+			(rdev->pdev->revision == 0xC3) ||
+			(rdev->pdev->device == 0x6664) ||
+			(rdev->pdev->device == 0x6665) ||
+			(rdev->pdev->device == 0x6667))
+		{
+			max_sclk = 75000;
+			max_mclk = 80000;
+		}
+	}
+
 	/* Apply dpm quirks */
-	while (p && p->chip_device != 0) {
+	while (p && p->chip_device != 0)
+	{
 		if (rdev->pdev->vendor == p->chip_vendor &&
-		    rdev->pdev->device == p->chip_device &&
-		    rdev->pdev->subsystem_vendor == p->subsys_vendor &&
-		    rdev->pdev->subsystem_device == p->subsys_device) {
+			rdev->pdev->device == p->chip_device &&
+			rdev->pdev->subsystem_vendor == p->subsys_vendor &&
+			rdev->pdev->subsystem_device == p->subsys_device)
+		{
 			max_sclk = p->max_sclk;
 			max_mclk = p->max_mclk;
 			break;
 		}
+
 		++p;
 	}
 
-	if (rps->vce_active) {
+	if (rps->vce_active)
+	{
 		rps->evclk = rdev->pm.dpm.vce_states[rdev->pm.dpm.vce_level].evclk;
 		rps->ecclk = rdev->pm.dpm.vce_states[rdev->pm.dpm.vce_level].ecclk;
 		si_get_vce_clock_voltage(rdev, rps->evclk, rps->ecclk,
-					 &min_vce_voltage);
-	} else {
+								 &min_vce_voltage);
+	}
+	else
+	{
 		rps->evclk = 0;
 		rps->ecclk = 0;
 	}
 
 	if ((rdev->pm.dpm.new_active_crtc_count > 1) ||
-	    ni_dpm_vblank_too_short(rdev))
+		ni_dpm_vblank_too_short(rdev))
+	{
 		disable_mclk_switching = true;
+	}
 
-	if (rps->vclk || rps->dclk) {
+	if (rps->vclk || rps->dclk)
+	{
 		disable_mclk_switching = true;
 		disable_sclk_switching = true;
 	}
 
 	if (rdev->pm.dpm.ac_power)
+	{
 		max_limits = &rdev->pm.dpm.dyn_state.max_clock_voltage_on_ac;
-	else
-		max_limits = &rdev->pm.dpm.dyn_state.max_clock_voltage_on_dc;
-
-	for (i = ps->performance_level_count - 2; i >= 0; i--) {
-		if (ps->performance_levels[i].vddc > ps->performance_levels[i+1].vddc)
-			ps->performance_levels[i].vddc = ps->performance_levels[i+1].vddc;
 	}
-	if (rdev->pm.dpm.ac_power == false) {
-		for (i = 0; i < ps->performance_level_count; i++) {
+	else
+	{
+		max_limits = &rdev->pm.dpm.dyn_state.max_clock_voltage_on_dc;
+	}
+
+	for (i = ps->performance_level_count - 2; i >= 0; i--)
+	{
+		if (ps->performance_levels[i].vddc > ps->performance_levels[i + 1].vddc)
+		{
+			ps->performance_levels[i].vddc = ps->performance_levels[i + 1].vddc;
+		}
+	}
+
+	if (rdev->pm.dpm.ac_power == false)
+	{
+		for (i = 0; i < ps->performance_level_count; i++)
+		{
 			if (ps->performance_levels[i].mclk > max_limits->mclk)
+			{
 				ps->performance_levels[i].mclk = max_limits->mclk;
+			}
+
 			if (ps->performance_levels[i].sclk > max_limits->sclk)
+			{
 				ps->performance_levels[i].sclk = max_limits->sclk;
+			}
+
 			if (ps->performance_levels[i].vddc > max_limits->vddc)
+			{
 				ps->performance_levels[i].vddc = max_limits->vddc;
+			}
+
 			if (ps->performance_levels[i].vddci > max_limits->vddci)
+			{
 				ps->performance_levels[i].vddci = max_limits->vddci;
+			}
 		}
 	}
 
 	/* limit clocks to max supported clocks based on voltage dependency tables */
 	btc_get_max_clock_from_voltage_dependency_table(&rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk,
-							&max_sclk_vddc);
+			&max_sclk_vddc);
 	btc_get_max_clock_from_voltage_dependency_table(&rdev->pm.dpm.dyn_state.vddci_dependency_on_mclk,
-							&max_mclk_vddci);
+			&max_mclk_vddci);
 	btc_get_max_clock_from_voltage_dependency_table(&rdev->pm.dpm.dyn_state.vddc_dependency_on_mclk,
-							&max_mclk_vddc);
+			&max_mclk_vddc);
 
-	for (i = 0; i < ps->performance_level_count; i++) {
-		if (max_sclk_vddc) {
+	for (i = 0; i < ps->performance_level_count; i++)
+	{
+		if (max_sclk_vddc)
+		{
 			if (ps->performance_levels[i].sclk > max_sclk_vddc)
+			{
 				ps->performance_levels[i].sclk = max_sclk_vddc;
+			}
 		}
-		if (max_mclk_vddci) {
+
+		if (max_mclk_vddci)
+		{
 			if (ps->performance_levels[i].mclk > max_mclk_vddci)
+			{
 				ps->performance_levels[i].mclk = max_mclk_vddci;
+			}
 		}
-		if (max_mclk_vddc) {
+
+		if (max_mclk_vddc)
+		{
 			if (ps->performance_levels[i].mclk > max_mclk_vddc)
+			{
 				ps->performance_levels[i].mclk = max_mclk_vddc;
+			}
 		}
-		if (max_mclk) {
+
+		if (max_mclk)
+		{
 			if (ps->performance_levels[i].mclk > max_mclk)
+			{
 				ps->performance_levels[i].mclk = max_mclk;
+			}
 		}
-		if (max_sclk) {
+
+		if (max_sclk)
+		{
 			if (ps->performance_levels[i].sclk > max_sclk)
+			{
 				ps->performance_levels[i].sclk = max_sclk;
+			}
 		}
 	}
 
 	/* XXX validate the min clocks required for display */
 
-	if (disable_mclk_switching) {
+	if (disable_mclk_switching)
+	{
 		mclk  = ps->performance_levels[ps->performance_level_count - 1].mclk;
 		vddci = ps->performance_levels[ps->performance_level_count - 1].vddci;
-	} else {
+	}
+	else
+	{
 		mclk = ps->performance_levels[0].mclk;
 		vddci = ps->performance_levels[0].vddci;
 	}
 
-	if (disable_sclk_switching) {
+	if (disable_sclk_switching)
+	{
 		sclk = ps->performance_levels[ps->performance_level_count - 1].sclk;
 		vddc = ps->performance_levels[ps->performance_level_count - 1].vddc;
-	} else {
+	}
+	else
+	{
 		sclk = ps->performance_levels[0].sclk;
 		vddc = ps->performance_levels[0].vddc;
 	}
 
-	if (rps->vce_active) {
+	if (rps->vce_active)
+	{
 		if (sclk < rdev->pm.dpm.vce_states[rdev->pm.dpm.vce_level].sclk)
+		{
 			sclk = rdev->pm.dpm.vce_states[rdev->pm.dpm.vce_level].sclk;
+		}
+
 		if (mclk < rdev->pm.dpm.vce_states[rdev->pm.dpm.vce_level].mclk)
+		{
 			mclk = rdev->pm.dpm.vce_states[rdev->pm.dpm.vce_level].mclk;
+		}
 	}
 
 	/* adjusted low state */
@@ -3158,99 +3540,138 @@ static void si_apply_state_adjust_rules(struct radeon_device *rdev,
 	ps->performance_levels[0].vddc = vddc;
 	ps->performance_levels[0].vddci = vddci;
 
-	if (disable_sclk_switching) {
+	if (disable_sclk_switching)
+	{
 		sclk = ps->performance_levels[0].sclk;
-		for (i = 1; i < ps->performance_level_count; i++) {
+
+		for (i = 1; i < ps->performance_level_count; i++)
+		{
 			if (sclk < ps->performance_levels[i].sclk)
+			{
 				sclk = ps->performance_levels[i].sclk;
+			}
 		}
-		for (i = 0; i < ps->performance_level_count; i++) {
+
+		for (i = 0; i < ps->performance_level_count; i++)
+		{
 			ps->performance_levels[i].sclk = sclk;
 			ps->performance_levels[i].vddc = vddc;
 		}
-	} else {
-		for (i = 1; i < ps->performance_level_count; i++) {
+	}
+	else
+	{
+		for (i = 1; i < ps->performance_level_count; i++)
+		{
 			if (ps->performance_levels[i].sclk < ps->performance_levels[i - 1].sclk)
+			{
 				ps->performance_levels[i].sclk = ps->performance_levels[i - 1].sclk;
+			}
+
 			if (ps->performance_levels[i].vddc < ps->performance_levels[i - 1].vddc)
+			{
 				ps->performance_levels[i].vddc = ps->performance_levels[i - 1].vddc;
+			}
 		}
 	}
 
-	if (disable_mclk_switching) {
+	if (disable_mclk_switching)
+	{
 		mclk = ps->performance_levels[0].mclk;
-		for (i = 1; i < ps->performance_level_count; i++) {
+
+		for (i = 1; i < ps->performance_level_count; i++)
+		{
 			if (mclk < ps->performance_levels[i].mclk)
+			{
 				mclk = ps->performance_levels[i].mclk;
+			}
 		}
-		for (i = 0; i < ps->performance_level_count; i++) {
+
+		for (i = 0; i < ps->performance_level_count; i++)
+		{
 			ps->performance_levels[i].mclk = mclk;
 			ps->performance_levels[i].vddci = vddci;
 		}
-	} else {
-		for (i = 1; i < ps->performance_level_count; i++) {
+	}
+	else
+	{
+		for (i = 1; i < ps->performance_level_count; i++)
+		{
 			if (ps->performance_levels[i].mclk < ps->performance_levels[i - 1].mclk)
+			{
 				ps->performance_levels[i].mclk = ps->performance_levels[i - 1].mclk;
+			}
+
 			if (ps->performance_levels[i].vddci < ps->performance_levels[i - 1].vddci)
+			{
 				ps->performance_levels[i].vddci = ps->performance_levels[i - 1].vddci;
+			}
 		}
 	}
 
 	for (i = 0; i < ps->performance_level_count; i++)
 		btc_adjust_clock_combinations(rdev, max_limits,
-					      &ps->performance_levels[i]);
+									  &ps->performance_levels[i]);
 
-	for (i = 0; i < ps->performance_level_count; i++) {
+	for (i = 0; i < ps->performance_level_count; i++)
+	{
 		if (ps->performance_levels[i].vddc < min_vce_voltage)
+		{
 			ps->performance_levels[i].vddc = min_vce_voltage;
+		}
+
 		btc_apply_voltage_dependency_rules(&rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk,
-						   ps->performance_levels[i].sclk,
-						   max_limits->vddc,  &ps->performance_levels[i].vddc);
+										   ps->performance_levels[i].sclk,
+										   max_limits->vddc,  &ps->performance_levels[i].vddc);
 		btc_apply_voltage_dependency_rules(&rdev->pm.dpm.dyn_state.vddci_dependency_on_mclk,
-						   ps->performance_levels[i].mclk,
-						   max_limits->vddci, &ps->performance_levels[i].vddci);
+										   ps->performance_levels[i].mclk,
+										   max_limits->vddci, &ps->performance_levels[i].vddci);
 		btc_apply_voltage_dependency_rules(&rdev->pm.dpm.dyn_state.vddc_dependency_on_mclk,
-						   ps->performance_levels[i].mclk,
-						   max_limits->vddc,  &ps->performance_levels[i].vddc);
+										   ps->performance_levels[i].mclk,
+										   max_limits->vddc,  &ps->performance_levels[i].vddc);
 		btc_apply_voltage_dependency_rules(&rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk,
-						   rdev->clock.current_dispclk,
-						   max_limits->vddc,  &ps->performance_levels[i].vddc);
+										   rdev->clock.current_dispclk,
+										   max_limits->vddc,  &ps->performance_levels[i].vddc);
 	}
 
-	for (i = 0; i < ps->performance_level_count; i++) {
+	for (i = 0; i < ps->performance_level_count; i++)
+	{
 		btc_apply_voltage_delta_rules(rdev,
-					      max_limits->vddc, max_limits->vddci,
-					      &ps->performance_levels[i].vddc,
-					      &ps->performance_levels[i].vddci);
+									  max_limits->vddc, max_limits->vddci,
+									  &ps->performance_levels[i].vddc,
+									  &ps->performance_levels[i].vddci);
 	}
 
 	ps->dc_compatible = true;
-	for (i = 0; i < ps->performance_level_count; i++) {
+
+	for (i = 0; i < ps->performance_level_count; i++)
+	{
 		if (ps->performance_levels[i].vddc > rdev->pm.dpm.dyn_state.max_clock_voltage_on_dc.vddc)
+		{
 			ps->dc_compatible = false;
+		}
 	}
 }
 
 #if 0
 static int si_read_smc_soft_register(struct radeon_device *rdev,
-				     u16 reg_offset, u32 *value)
+									 u16 reg_offset, u32 *value)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 
 	return si_read_smc_sram_dword(rdev,
-				      si_pi->soft_regs_start + reg_offset, value,
-				      si_pi->sram_end);
+								  si_pi->soft_regs_start + reg_offset, value,
+								  si_pi->sram_end);
 }
 #endif
 
 static int si_write_smc_soft_register(struct radeon_device *rdev,
-				      u16 reg_offset, u32 value)
+									  u16 reg_offset, u32 value)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 
 	return si_write_smc_sram_dword(rdev,
-				       si_pi->soft_regs_start + reg_offset,
-				       value, si_pi->sram_end);
+								   si_pi->soft_regs_start + reg_offset,
+								   value, si_pi->sram_end);
 }
 
 static bool si_is_special_1gb_platform(struct radeon_device *rdev)
@@ -3262,7 +3683,7 @@ static bool si_is_special_1gb_platform(struct radeon_device *rdev)
 	tmp = RREG32(MC_SEQ_MISC0);
 	is_memory_gddr5 = (MC_SEQ_MISC0_GDDR5_VALUE == ((tmp & MC_SEQ_MISC0_GDDR5_MASK) >> MC_SEQ_MISC0_GDDR5_SHIFT));
 	is_special = (MC_SEQ_MISC0_REV_ID_VALUE == ((tmp & MC_SEQ_MISC0_REV_ID_MASK) >> MC_SEQ_MISC0_REV_ID_SHIFT))
-		& (MC_SEQ_MISC0_VEN_ID_VALUE == ((tmp & MC_SEQ_MISC0_VEN_ID_MASK) >> MC_SEQ_MISC0_VEN_ID_SHIFT));
+				 & (MC_SEQ_MISC0_VEN_ID_VALUE == ((tmp & MC_SEQ_MISC0_VEN_ID_MASK) >> MC_SEQ_MISC0_VEN_ID_SHIFT));
 
 	WREG32(MC_SEQ_IO_DEBUG_INDEX, 0xb);
 	width = ((RREG32(MC_SEQ_IO_DEBUG_DATA) >> 1) & 1) ? 16 : 32;
@@ -3275,8 +3696,10 @@ static bool si_is_special_1gb_platform(struct radeon_device *rdev)
 	density = (1 << (row + column - 20 + bank)) * width;
 
 	if ((rdev->pdev->device == 0x6819) &&
-	    is_memory_gddr5 && is_special && (density == 0x400))
+		is_memory_gddr5 && is_special && (density == 0x400))
+	{
 		ret = true;
+	}
 
 	return ret;
 }
@@ -3287,43 +3710,57 @@ static void si_get_leakage_vddc(struct radeon_device *rdev)
 	u16 vddc, count = 0;
 	int i, ret;
 
-	for (i = 0; i < SISLANDS_MAX_LEAKAGE_COUNT; i++) {
+	for (i = 0; i < SISLANDS_MAX_LEAKAGE_COUNT; i++)
+	{
 		ret = radeon_atom_get_leakage_vddc_based_on_leakage_idx(rdev, &vddc, SISLANDS_LEAKAGE_INDEX0 + i);
 
-		if (!ret && (vddc > 0) && (vddc != (SISLANDS_LEAKAGE_INDEX0 + i))) {
+		if (!ret && (vddc > 0) && (vddc != (SISLANDS_LEAKAGE_INDEX0 + i)))
+		{
 			si_pi->leakage_voltage.entries[count].voltage = vddc;
 			si_pi->leakage_voltage.entries[count].leakage_index =
 				SISLANDS_LEAKAGE_INDEX0 + i;
 			count++;
 		}
 	}
+
 	si_pi->leakage_voltage.count = count;
 }
 
 static int si_get_leakage_voltage_from_leakage_index(struct radeon_device *rdev,
-						     u32 index, u16 *leakage_voltage)
+		u32 index, u16 *leakage_voltage)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	int i;
 
 	if (leakage_voltage == NULL)
+	{
 		return -EINVAL;
+	}
 
 	if ((index & 0xff00) != 0xff00)
+	{
 		return -EINVAL;
+	}
 
 	if ((index & 0xff) > SISLANDS_MAX_LEAKAGE_COUNT + 1)
+	{
 		return -EINVAL;
+	}
 
 	if (index < SISLANDS_LEAKAGE_INDEX0)
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < si_pi->leakage_voltage.count; i++) {
-		if (si_pi->leakage_voltage.entries[i].leakage_index == index) {
+	for (i = 0; i < si_pi->leakage_voltage.count; i++)
+	{
+		if (si_pi->leakage_voltage.entries[i].leakage_index == index)
+		{
 			*leakage_voltage = si_pi->leakage_voltage.entries[i].voltage;
 			return 0;
 		}
 	}
+
 	return -EAGAIN;
 }
 
@@ -3333,48 +3770,63 @@ static void si_set_dpm_event_sources(struct radeon_device *rdev, u32 sources)
 	bool want_thermal_protection;
 	enum radeon_dpm_event_src dpm_event_src;
 
-	switch (sources) {
-	case 0:
-	default:
-		want_thermal_protection = false;
-		break;
-	case (1 << RADEON_DPM_AUTO_THROTTLE_SRC_THERMAL):
-		want_thermal_protection = true;
-		dpm_event_src = RADEON_DPM_EVENT_SRC_DIGITAL;
-		break;
-	case (1 << RADEON_DPM_AUTO_THROTTLE_SRC_EXTERNAL):
-		want_thermal_protection = true;
-		dpm_event_src = RADEON_DPM_EVENT_SRC_EXTERNAL;
-		break;
-	case ((1 << RADEON_DPM_AUTO_THROTTLE_SRC_EXTERNAL) |
-	      (1 << RADEON_DPM_AUTO_THROTTLE_SRC_THERMAL)):
-		want_thermal_protection = true;
-		dpm_event_src = RADEON_DPM_EVENT_SRC_DIGIAL_OR_EXTERNAL;
-		break;
+	switch (sources)
+	{
+		case 0:
+		default:
+			want_thermal_protection = false;
+			break;
+
+		case (1 << RADEON_DPM_AUTO_THROTTLE_SRC_THERMAL):
+			want_thermal_protection = true;
+			dpm_event_src = RADEON_DPM_EVENT_SRC_DIGITAL;
+			break;
+
+		case (1 << RADEON_DPM_AUTO_THROTTLE_SRC_EXTERNAL):
+			want_thermal_protection = true;
+			dpm_event_src = RADEON_DPM_EVENT_SRC_EXTERNAL;
+			break;
+
+		case ((1 << RADEON_DPM_AUTO_THROTTLE_SRC_EXTERNAL) |
+					  (1 << RADEON_DPM_AUTO_THROTTLE_SRC_THERMAL)):
+			want_thermal_protection = true;
+			dpm_event_src = RADEON_DPM_EVENT_SRC_DIGIAL_OR_EXTERNAL;
+			break;
 	}
 
-	if (want_thermal_protection) {
+	if (want_thermal_protection)
+	{
 		WREG32_P(CG_THERMAL_CTRL, DPM_EVENT_SRC(dpm_event_src), ~DPM_EVENT_SRC_MASK);
+
 		if (pi->thermal_protection)
+		{
 			WREG32_P(GENERAL_PWRMGT, 0, ~THERMAL_PROTECTION_DIS);
-	} else {
+		}
+	}
+	else
+	{
 		WREG32_P(GENERAL_PWRMGT, THERMAL_PROTECTION_DIS, ~THERMAL_PROTECTION_DIS);
 	}
 }
 
 static void si_enable_auto_throttle_source(struct radeon_device *rdev,
-					   enum radeon_dpm_auto_throttle_src source,
-					   bool enable)
+		enum radeon_dpm_auto_throttle_src source,
+		bool enable)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 
-	if (enable) {
-		if (!(pi->active_auto_throttle_sources & (1 << source))) {
+	if (enable)
+	{
+		if (!(pi->active_auto_throttle_sources & (1 << source)))
+		{
 			pi->active_auto_throttle_sources |= 1 << source;
 			si_set_dpm_event_sources(rdev, pi->active_auto_throttle_sources);
 		}
-	} else {
-		if (pi->active_auto_throttle_sources & (1 << source)) {
+	}
+	else
+	{
+		if (pi->active_auto_throttle_sources & (1 << source))
+		{
 			pi->active_auto_throttle_sources &= ~(1 << source);
 			si_set_dpm_event_sources(rdev, pi->active_auto_throttle_sources);
 		}
@@ -3394,25 +3846,36 @@ static void si_stop_dpm(struct radeon_device *rdev)
 static void si_enable_sclk_control(struct radeon_device *rdev, bool enable)
 {
 	if (enable)
+	{
 		WREG32_P(SCLK_PWRMGT_CNTL, 0, ~SCLK_PWRMGT_OFF);
+	}
 	else
+	{
 		WREG32_P(SCLK_PWRMGT_CNTL, SCLK_PWRMGT_OFF, ~SCLK_PWRMGT_OFF);
+	}
 
 }
 
 #if 0
 static int si_notify_hardware_of_thermal_state(struct radeon_device *rdev,
-					       u32 thermal_level)
+		u32 thermal_level)
 {
 	PPSMC_Result ret;
 
-	if (thermal_level == 0) {
+	if (thermal_level == 0)
+	{
 		ret = si_send_msg_to_smc(rdev, PPSMC_MSG_EnableThermalInterrupt);
+
 		if (ret == PPSMC_Result_OK)
+		{
 			return 0;
+		}
 		else
+		{
 			return -EINVAL;
+		}
 	}
+
 	return 0;
 }
 
@@ -3427,14 +3890,14 @@ static int si_notify_hw_of_powersource(struct radeon_device *rdev, bool ac_power
 {
 	if (ac_power)
 		return (si_send_msg_to_smc(rdev, PPSMC_MSG_RunningOnAC) == PPSMC_Result_OK) ?
-			0 : -EINVAL;
+			   0 : -EINVAL;
 
 	return 0;
 }
 #endif
 
 static PPSMC_Result si_send_msg_to_smc_with_parameter(struct radeon_device *rdev,
-						      PPSMC_Msg msg, u32 parameter)
+		PPSMC_Msg msg, u32 parameter)
 {
 	WREG32(SMC_SCRATCH0, parameter);
 	return si_send_msg_to_smc(rdev, msg);
@@ -3443,37 +3906,56 @@ static PPSMC_Result si_send_msg_to_smc_with_parameter(struct radeon_device *rdev
 static int si_restrict_performance_levels_before_switch(struct radeon_device *rdev)
 {
 	if (si_send_msg_to_smc(rdev, PPSMC_MSG_NoForcedLevel) != PPSMC_Result_OK)
+	{
 		return -EINVAL;
+	}
 
 	return (si_send_msg_to_smc_with_parameter(rdev, PPSMC_MSG_SetEnabledLevels, 1) == PPSMC_Result_OK) ?
-		0 : -EINVAL;
+		   0 : -EINVAL;
 }
 
 int si_dpm_force_performance_level(struct radeon_device *rdev,
-				   enum radeon_dpm_forced_level level)
+								   enum radeon_dpm_forced_level level)
 {
 	struct radeon_ps *rps = rdev->pm.dpm.current_ps;
 	struct ni_ps *ps = ni_get_ps(rps);
 	u32 levels = ps->performance_level_count;
 
-	if (level == RADEON_DPM_FORCED_LEVEL_HIGH) {
+	if (level == RADEON_DPM_FORCED_LEVEL_HIGH)
+	{
 		if (si_send_msg_to_smc_with_parameter(rdev, PPSMC_MSG_SetEnabledLevels, levels) != PPSMC_Result_OK)
+		{
 			return -EINVAL;
+		}
 
 		if (si_send_msg_to_smc_with_parameter(rdev, PPSMC_MSG_SetForcedLevels, 1) != PPSMC_Result_OK)
+		{
 			return -EINVAL;
-	} else if (level == RADEON_DPM_FORCED_LEVEL_LOW) {
+		}
+	}
+	else if (level == RADEON_DPM_FORCED_LEVEL_LOW)
+	{
 		if (si_send_msg_to_smc_with_parameter(rdev, PPSMC_MSG_SetForcedLevels, 0) != PPSMC_Result_OK)
+		{
 			return -EINVAL;
+		}
 
 		if (si_send_msg_to_smc_with_parameter(rdev, PPSMC_MSG_SetEnabledLevels, 1) != PPSMC_Result_OK)
+		{
 			return -EINVAL;
-	} else if (level == RADEON_DPM_FORCED_LEVEL_AUTO) {
+		}
+	}
+	else if (level == RADEON_DPM_FORCED_LEVEL_AUTO)
+	{
 		if (si_send_msg_to_smc_with_parameter(rdev, PPSMC_MSG_SetForcedLevels, 0) != PPSMC_Result_OK)
+		{
 			return -EINVAL;
+		}
 
 		if (si_send_msg_to_smc_with_parameter(rdev, PPSMC_MSG_SetEnabledLevels, levels) != PPSMC_Result_OK)
+		{
 			return -EINVAL;
+		}
 	}
 
 	rdev->pm.dpm.forced_level = level;
@@ -3485,32 +3967,36 @@ int si_dpm_force_performance_level(struct radeon_device *rdev,
 static int si_set_boot_state(struct radeon_device *rdev)
 {
 	return (si_send_msg_to_smc(rdev, PPSMC_MSG_SwitchToInitialState) == PPSMC_Result_OK) ?
-		0 : -EINVAL;
+		   0 : -EINVAL;
 }
 #endif
 
 static int si_set_sw_state(struct radeon_device *rdev)
 {
 	return (si_send_msg_to_smc(rdev, PPSMC_MSG_SwitchToSwState) == PPSMC_Result_OK) ?
-		0 : -EINVAL;
+		   0 : -EINVAL;
 }
 
 static int si_halt_smc(struct radeon_device *rdev)
 {
 	if (si_send_msg_to_smc(rdev, PPSMC_MSG_Halt) != PPSMC_Result_OK)
+	{
 		return -EINVAL;
+	}
 
 	return (si_wait_for_smc_inactive(rdev) == PPSMC_Result_OK) ?
-		0 : -EINVAL;
+		   0 : -EINVAL;
 }
 
 static int si_resume_smc(struct radeon_device *rdev)
 {
 	if (si_send_msg_to_smc(rdev, PPSMC_FlushDataCache) != PPSMC_Result_OK)
+	{
 		return -EINVAL;
+	}
 
 	return (si_send_msg_to_smc(rdev, PPSMC_MSG_Resume) == PPSMC_Result_OK) ?
-		0 : -EINVAL;
+		   0 : -EINVAL;
 }
 
 static void si_dpm_start_smc(struct radeon_device *rdev)
@@ -3533,83 +4019,110 @@ static int si_process_firmware_header(struct radeon_device *rdev)
 	int ret;
 
 	ret = si_read_smc_sram_dword(rdev,
-				     SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
-				     SISLANDS_SMC_FIRMWARE_HEADER_stateTable,
-				     &tmp, si_pi->sram_end);
+								 SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
+								 SISLANDS_SMC_FIRMWARE_HEADER_stateTable,
+								 &tmp, si_pi->sram_end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	si_pi->state_table_start = tmp;
 
 	ret = si_read_smc_sram_dword(rdev,
-				     SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
-				     SISLANDS_SMC_FIRMWARE_HEADER_softRegisters,
-				     &tmp, si_pi->sram_end);
+								 SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
+								 SISLANDS_SMC_FIRMWARE_HEADER_softRegisters,
+								 &tmp, si_pi->sram_end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	si_pi->soft_regs_start = tmp;
 
 	ret = si_read_smc_sram_dword(rdev,
-				     SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
-				     SISLANDS_SMC_FIRMWARE_HEADER_mcRegisterTable,
-				     &tmp, si_pi->sram_end);
+								 SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
+								 SISLANDS_SMC_FIRMWARE_HEADER_mcRegisterTable,
+								 &tmp, si_pi->sram_end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	si_pi->mc_reg_table_start = tmp;
 
 	ret = si_read_smc_sram_dword(rdev,
-				     SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
-				     SISLANDS_SMC_FIRMWARE_HEADER_fanTable,
-				     &tmp, si_pi->sram_end);
+								 SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
+								 SISLANDS_SMC_FIRMWARE_HEADER_fanTable,
+								 &tmp, si_pi->sram_end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	si_pi->fan_table_start = tmp;
 
 	ret = si_read_smc_sram_dword(rdev,
-				     SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
-				     SISLANDS_SMC_FIRMWARE_HEADER_mcArbDramAutoRefreshTable,
-				     &tmp, si_pi->sram_end);
+								 SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
+								 SISLANDS_SMC_FIRMWARE_HEADER_mcArbDramAutoRefreshTable,
+								 &tmp, si_pi->sram_end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	si_pi->arb_table_start = tmp;
 
 	ret = si_read_smc_sram_dword(rdev,
-				     SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
-				     SISLANDS_SMC_FIRMWARE_HEADER_CacConfigTable,
-				     &tmp, si_pi->sram_end);
+								 SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
+								 SISLANDS_SMC_FIRMWARE_HEADER_CacConfigTable,
+								 &tmp, si_pi->sram_end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	si_pi->cac_table_start = tmp;
 
 	ret = si_read_smc_sram_dword(rdev,
-				     SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
-				     SISLANDS_SMC_FIRMWARE_HEADER_DteConfiguration,
-				     &tmp, si_pi->sram_end);
+								 SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
+								 SISLANDS_SMC_FIRMWARE_HEADER_DteConfiguration,
+								 &tmp, si_pi->sram_end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	si_pi->dte_table_start = tmp;
 
 	ret = si_read_smc_sram_dword(rdev,
-				     SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
-				     SISLANDS_SMC_FIRMWARE_HEADER_spllTable,
-				     &tmp, si_pi->sram_end);
+								 SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
+								 SISLANDS_SMC_FIRMWARE_HEADER_spllTable,
+								 &tmp, si_pi->sram_end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	si_pi->spll_table_start = tmp;
 
 	ret = si_read_smc_sram_dword(rdev,
-				     SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
-				     SISLANDS_SMC_FIRMWARE_HEADER_PAPMParameters,
-				     &tmp, si_pi->sram_end);
+								 SISLANDS_SMC_FIRMWARE_HEADER_LOCATION +
+								 SISLANDS_SMC_FIRMWARE_HEADER_PAPMParameters,
+								 &tmp, si_pi->sram_end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	si_pi->papm_cfg_table_start = tmp;
 
@@ -3638,12 +4151,16 @@ static void si_read_clock_registers(struct radeon_device *rdev)
 }
 
 static void si_enable_thermal_protection(struct radeon_device *rdev,
-					  bool enable)
+		bool enable)
 {
 	if (enable)
+	{
 		WREG32_P(GENERAL_PWRMGT, 0, ~THERMAL_PROTECTION_DIS);
+	}
 	else
+	{
 		WREG32_P(GENERAL_PWRMGT, THERMAL_PROTECTION_DIS, ~THERMAL_PROTECTION_DIS);
+	}
 }
 
 static void si_enable_acpi_power_management(struct radeon_device *rdev)
@@ -3669,9 +4186,13 @@ static int si_exit_ulp_state(struct radeon_device *rdev)
 
 	udelay(7000);
 
-	for (i = 0; i < rdev->usec_timeout; i++) {
+	for (i = 0; i < rdev->usec_timeout; i++)
+	{
 		if (RREG32(SMC_RESP_0) == 1)
+		{
 			break;
+		}
+
 		udelay(1000);
 	}
 
@@ -3680,13 +4201,13 @@ static int si_exit_ulp_state(struct radeon_device *rdev)
 #endif
 
 static int si_notify_smc_display_change(struct radeon_device *rdev,
-				     bool has_display)
+										bool has_display)
 {
 	PPSMC_Msg msg = has_display ?
-		PPSMC_MSG_HasDisplay : PPSMC_MSG_NoDisplay;
+					PPSMC_MSG_HasDisplay : PPSMC_MSG_NoDisplay;
 
 	return (si_send_msg_to_smc(rdev, msg) == PPSMC_Result_OK) ?
-		0 : -EINVAL;
+		   0 : -EINVAL;
 }
 
 static void si_program_response_times(struct radeon_device *rdev)
@@ -3701,7 +4222,9 @@ static void si_program_response_times(struct radeon_device *rdev)
 	backbias_response_time = (u32)rdev->pm.dpm.backbias_response_time;
 
 	if (voltage_response_time == 0)
+	{
 		voltage_response_time = 1000;
+	}
 
 	acpi_delay_time = 15000;
 	vbi_time_out = 100000;
@@ -3723,10 +4246,11 @@ static void si_program_ds_registers(struct radeon_device *rdev)
 	struct evergreen_power_info *eg_pi = evergreen_get_pi(rdev);
 	u32 tmp = 1; /* XXX: 0x10 on tahiti A0 */
 
-	if (eg_pi->sclk_deep_sleep) {
+	if (eg_pi->sclk_deep_sleep)
+	{
 		WREG32_P(MISC_CLK_CNTL, DEEP_SLEEP_CLK_SEL(tmp), ~DEEP_SLEEP_CLK_SEL_MASK);
 		WREG32_P(CG_SPLL_AUTOSCALE_CNTL, AUTOSCALE_ON_SS_CLEAR,
-			 ~AUTOSCALE_ON_SS_CLEAR);
+				 ~AUTOSCALE_ON_SS_CLEAR);
 	}
 }
 
@@ -3736,15 +4260,24 @@ static void si_program_display_gap(struct radeon_device *rdev)
 	int i;
 
 	tmp = RREG32(CG_DISPLAY_GAP_CNTL) & ~(DISP1_GAP_MASK | DISP2_GAP_MASK);
+
 	if (rdev->pm.dpm.new_active_crtc_count > 0)
+	{
 		tmp |= DISP1_GAP(R600_PM_DISPLAY_GAP_VBLANK_OR_WM);
+	}
 	else
+	{
 		tmp |= DISP1_GAP(R600_PM_DISPLAY_GAP_IGNORE);
+	}
 
 	if (rdev->pm.dpm.new_active_crtc_count > 1)
+	{
 		tmp |= DISP2_GAP(R600_PM_DISPLAY_GAP_VBLANK_OR_WM);
+	}
 	else
+	{
 		tmp |= DISP2_GAP(R600_PM_DISPLAY_GAP_IGNORE);
+	}
 
 	WREG32(CG_DISPLAY_GAP_CNTL, tmp);
 
@@ -3752,16 +4285,25 @@ static void si_program_display_gap(struct radeon_device *rdev)
 	pipe = (tmp & DCCG_DISP1_SLOW_SELECT_MASK) >> DCCG_DISP1_SLOW_SELECT_SHIFT;
 
 	if ((rdev->pm.dpm.new_active_crtc_count > 0) &&
-	    (!(rdev->pm.dpm.new_active_crtcs & (1 << pipe)))) {
+		(!(rdev->pm.dpm.new_active_crtcs & (1 << pipe))))
+	{
 		/* find the first active crtc */
-		for (i = 0; i < rdev->num_crtc; i++) {
+		for (i = 0; i < rdev->num_crtc; i++)
+		{
 			if (rdev->pm.dpm.new_active_crtcs & (1 << i))
+			{
 				break;
+			}
 		}
+
 		if (i == rdev->num_crtc)
+		{
 			pipe = 0;
+		}
 		else
+		{
 			pipe = i;
+		}
 
 		tmp &= ~DCCG_DISP1_SLOW_SELECT_MASK;
 		tmp |= DCCG_DISP1_SLOW_SELECT(pipe);
@@ -3779,10 +4321,15 @@ static void si_enable_spread_spectrum(struct radeon_device *rdev, bool enable)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 
-	if (enable) {
+	if (enable)
+	{
 		if (pi->sclk_ss)
+		{
 			WREG32_P(GENERAL_PWRMGT, DYN_SPREAD_SPECTRUM_EN, ~DYN_SPREAD_SPECTRUM_EN);
-	} else {
+		}
+	}
+	else
+	{
 		WREG32_P(CG_SPLL_SPREAD_SPECTRUM, 0, ~SSEN);
 		WREG32_P(GENERAL_PWRMGT, 0, ~DYN_SPREAD_SPECTRUM_EN);
 	}
@@ -3794,16 +4341,16 @@ static void si_setup_bsp(struct radeon_device *rdev)
 	u32 xclk = radeon_get_xclk(rdev);
 
 	r600_calculate_u_and_p(pi->asi,
-			       xclk,
-			       16,
-			       &pi->bsp,
-			       &pi->bsu);
+						   xclk,
+						   16,
+						   &pi->bsp,
+						   &pi->bsu);
 
 	r600_calculate_u_and_p(pi->pasi,
-			       xclk,
-			       16,
-			       &pi->pbsp,
-			       &pi->pbsu);
+						   xclk,
+						   16,
+						   &pi->pbsp,
+						   &pi->pbsu);
 
 
 	pi->dsp = BSP(pi->bsp) | BSU(pi->bsu);
@@ -3823,18 +4370,28 @@ static void si_program_tp(struct radeon_device *rdev)
 	enum r600_td td = R600_TD_DFLT;
 
 	for (i = 0; i < R600_PM_NUMBER_OF_TC; i++)
+	{
 		WREG32(CG_FFCT_0 + (i * 4), (UTC_0(r600_utc[i]) | DTC_0(r600_dtc[i])));
+	}
 
 	if (td == R600_TD_AUTO)
+	{
 		WREG32_P(SCLK_PWRMGT_CNTL, 0, ~FIR_FORCE_TREND_SEL);
+	}
 	else
+	{
 		WREG32_P(SCLK_PWRMGT_CNTL, FIR_FORCE_TREND_SEL, ~FIR_FORCE_TREND_SEL);
+	}
 
 	if (td == R600_TD_UP)
+	{
 		WREG32_P(SCLK_PWRMGT_CNTL, 0, ~FIR_TREND_MODE);
+	}
 
 	if (td == R600_TD_DOWN)
+	{
 		WREG32_P(SCLK_PWRMGT_CNTL, FIR_TREND_MODE, ~FIR_TREND_MODE);
+	}
 }
 
 static void si_program_tpp(struct radeon_device *rdev)
@@ -3853,11 +4410,11 @@ static void si_enable_display_gap(struct radeon_device *rdev)
 
 	tmp &= ~(DISP1_GAP_MASK | DISP2_GAP_MASK);
 	tmp |= (DISP1_GAP(R600_PM_DISPLAY_GAP_IGNORE) |
-		DISP2_GAP(R600_PM_DISPLAY_GAP_IGNORE));
+			DISP2_GAP(R600_PM_DISPLAY_GAP_IGNORE));
 
 	tmp &= ~(DISP1_GAP_MCHG_MASK | DISP2_GAP_MCHG_MASK);
 	tmp |= (DISP1_GAP_MCHG(R600_PM_DISPLAY_GAP_VBLANK) |
-		DISP2_GAP_MCHG(R600_PM_DISPLAY_GAP_IGNORE));
+			DISP2_GAP_MCHG(R600_PM_DISPLAY_GAP_IGNORE));
 	WREG32(CG_DISPLAY_GAP_CNTL, tmp);
 }
 
@@ -3878,11 +4435,18 @@ u8 si_get_ddr3_mclk_frequency_ratio(u32 memory_clock)
 	u8 mc_para_index;
 
 	if (memory_clock < 10000)
+	{
 		mc_para_index = 0;
+	}
 	else if (memory_clock >= 80000)
+	{
 		mc_para_index = 0x0f;
+	}
 	else
+	{
 		mc_para_index = (u8)((memory_clock - 10000) / 5000 + 1);
+	}
+
 	return mc_para_index;
 }
 
@@ -3890,21 +4454,37 @@ u8 si_get_mclk_frequency_ratio(u32 memory_clock, bool strobe_mode)
 {
 	u8 mc_para_index;
 
-	if (strobe_mode) {
+	if (strobe_mode)
+	{
 		if (memory_clock < 12500)
+		{
 			mc_para_index = 0x00;
+		}
 		else if (memory_clock > 47500)
+		{
 			mc_para_index = 0x0f;
+		}
 		else
+		{
 			mc_para_index = (u8)((memory_clock - 10000) / 2500);
-	} else {
-		if (memory_clock < 65000)
-			mc_para_index = 0x00;
-		else if (memory_clock > 135000)
-			mc_para_index = 0x0f;
-		else
-			mc_para_index = (u8)((memory_clock - 60000) / 5000);
+		}
 	}
+	else
+	{
+		if (memory_clock < 65000)
+		{
+			mc_para_index = 0x00;
+		}
+		else if (memory_clock > 135000)
+		{
+			mc_para_index = 0x0f;
+		}
+		else
+		{
+			mc_para_index = (u8)((memory_clock - 60000) / 5000);
+		}
+	}
+
 	return mc_para_index;
 }
 
@@ -3915,15 +4495,23 @@ static u8 si_get_strobe_mode_settings(struct radeon_device *rdev, u32 mclk)
 	u8 result = 0;
 
 	if (mclk <= pi->mclk_strobe_mode_threshold)
+	{
 		strobe_mode = true;
+	}
 
 	if (pi->mem_gddr5)
+	{
 		result = si_get_mclk_frequency_ratio(mclk, strobe_mode);
+	}
 	else
+	{
 		result = si_get_ddr3_mclk_frequency_ratio(mclk);
+	}
 
 	if (strobe_mode)
+	{
 		result |= SISLANDS_SMC_STROBE_ENABLE;
+	}
 
 	return result;
 }
@@ -3942,63 +4530,79 @@ static int si_upload_firmware(struct radeon_device *rdev)
 }
 
 static bool si_validate_phase_shedding_tables(struct radeon_device *rdev,
-					      const struct atom_voltage_table *table,
-					      const struct radeon_phase_shedding_limits_table *limits)
+		const struct atom_voltage_table *table,
+		const struct radeon_phase_shedding_limits_table *limits)
 {
 	u32 data, num_bits, num_levels;
 
 	if ((table == NULL) || (limits == NULL))
+	{
 		return false;
+	}
 
 	data = table->mask_low;
 
 	num_bits = hweight32(data);
 
 	if (num_bits == 0)
+	{
 		return false;
+	}
 
 	num_levels = (1 << num_bits);
 
 	if (table->count != num_levels)
+	{
 		return false;
+	}
 
 	if (limits->count != (num_levels - 1))
+	{
 		return false;
+	}
 
 	return true;
 }
 
 void si_trim_voltage_table_to_fit_state_table(struct radeon_device *rdev,
-					      u32 max_voltage_steps,
-					      struct atom_voltage_table *voltage_table)
+		u32 max_voltage_steps,
+		struct atom_voltage_table *voltage_table)
 {
 	unsigned int i, diff;
 
 	if (voltage_table->count <= max_voltage_steps)
+	{
 		return;
+	}
 
 	diff = voltage_table->count - max_voltage_steps;
 
-	for (i= 0; i < max_voltage_steps; i++)
+	for (i = 0; i < max_voltage_steps; i++)
+	{
 		voltage_table->entries[i] = voltage_table->entries[i + diff];
+	}
 
 	voltage_table->count = max_voltage_steps;
 }
 
 static int si_get_svi2_voltage_table(struct radeon_device *rdev,
-				     struct radeon_clock_voltage_dependency_table *voltage_dependency_table,
-				     struct atom_voltage_table *voltage_table)
+									 struct radeon_clock_voltage_dependency_table *voltage_dependency_table,
+									 struct atom_voltage_table *voltage_table)
 {
 	u32 i;
 
 	if (voltage_dependency_table == NULL)
+	{
 		return -EINVAL;
+	}
 
 	voltage_table->mask_low = 0;
 	voltage_table->phase_delay = 0;
 
 	voltage_table->count = voltage_dependency_table->count;
-	for (i = 0; i < voltage_table->count; i++) {
+
+	for (i = 0; i < voltage_table->count; i++)
+	{
 		voltage_table->entries[i].value = voltage_dependency_table->entries[i].v;
 		voltage_table->entries[i].smio_low = 0;
 	}
@@ -4013,119 +4617,157 @@ static int si_construct_voltage_tables(struct radeon_device *rdev)
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	int ret;
 
-	if (pi->voltage_control) {
+	if (pi->voltage_control)
+	{
 		ret = radeon_atom_get_voltage_table(rdev, VOLTAGE_TYPE_VDDC,
-						    VOLTAGE_OBJ_GPIO_LUT, &eg_pi->vddc_voltage_table);
+											VOLTAGE_OBJ_GPIO_LUT, &eg_pi->vddc_voltage_table);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		if (eg_pi->vddc_voltage_table.count > SISLANDS_MAX_NO_VREG_STEPS)
 			si_trim_voltage_table_to_fit_state_table(rdev,
-								 SISLANDS_MAX_NO_VREG_STEPS,
-								 &eg_pi->vddc_voltage_table);
-	} else if (si_pi->voltage_control_svi2) {
+					SISLANDS_MAX_NO_VREG_STEPS,
+					&eg_pi->vddc_voltage_table);
+	}
+	else if (si_pi->voltage_control_svi2)
+	{
 		ret = si_get_svi2_voltage_table(rdev,
-						&rdev->pm.dpm.dyn_state.vddc_dependency_on_mclk,
-						&eg_pi->vddc_voltage_table);
+										&rdev->pm.dpm.dyn_state.vddc_dependency_on_mclk,
+										&eg_pi->vddc_voltage_table);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		return -EINVAL;
 	}
 
-	if (eg_pi->vddci_control) {
+	if (eg_pi->vddci_control)
+	{
 		ret = radeon_atom_get_voltage_table(rdev, VOLTAGE_TYPE_VDDCI,
-						    VOLTAGE_OBJ_GPIO_LUT, &eg_pi->vddci_voltage_table);
+											VOLTAGE_OBJ_GPIO_LUT, &eg_pi->vddci_voltage_table);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		if (eg_pi->vddci_voltage_table.count > SISLANDS_MAX_NO_VREG_STEPS)
 			si_trim_voltage_table_to_fit_state_table(rdev,
-								 SISLANDS_MAX_NO_VREG_STEPS,
-								 &eg_pi->vddci_voltage_table);
+					SISLANDS_MAX_NO_VREG_STEPS,
+					&eg_pi->vddci_voltage_table);
 	}
-	if (si_pi->vddci_control_svi2) {
+
+	if (si_pi->vddci_control_svi2)
+	{
 		ret = si_get_svi2_voltage_table(rdev,
-						&rdev->pm.dpm.dyn_state.vddci_dependency_on_mclk,
-						&eg_pi->vddci_voltage_table);
+										&rdev->pm.dpm.dyn_state.vddci_dependency_on_mclk,
+										&eg_pi->vddci_voltage_table);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
-	if (pi->mvdd_control) {
+	if (pi->mvdd_control)
+	{
 		ret = radeon_atom_get_voltage_table(rdev, VOLTAGE_TYPE_MVDDC,
-						    VOLTAGE_OBJ_GPIO_LUT, &si_pi->mvdd_voltage_table);
+											VOLTAGE_OBJ_GPIO_LUT, &si_pi->mvdd_voltage_table);
 
-		if (ret) {
+		if (ret)
+		{
 			pi->mvdd_control = false;
 			return ret;
 		}
 
-		if (si_pi->mvdd_voltage_table.count == 0) {
+		if (si_pi->mvdd_voltage_table.count == 0)
+		{
 			pi->mvdd_control = false;
 			return -EINVAL;
 		}
 
 		if (si_pi->mvdd_voltage_table.count > SISLANDS_MAX_NO_VREG_STEPS)
 			si_trim_voltage_table_to_fit_state_table(rdev,
-								 SISLANDS_MAX_NO_VREG_STEPS,
-								 &si_pi->mvdd_voltage_table);
+					SISLANDS_MAX_NO_VREG_STEPS,
+					&si_pi->mvdd_voltage_table);
 	}
 
-	if (si_pi->vddc_phase_shed_control) {
+	if (si_pi->vddc_phase_shed_control)
+	{
 		ret = radeon_atom_get_voltage_table(rdev, VOLTAGE_TYPE_VDDC,
-						    VOLTAGE_OBJ_PHASE_LUT, &si_pi->vddc_phase_shed_table);
+											VOLTAGE_OBJ_PHASE_LUT, &si_pi->vddc_phase_shed_table);
+
 		if (ret)
+		{
 			si_pi->vddc_phase_shed_control = false;
+		}
 
 		if ((si_pi->vddc_phase_shed_table.count == 0) ||
-		    (si_pi->vddc_phase_shed_table.count > SISLANDS_MAX_NO_VREG_STEPS))
+			(si_pi->vddc_phase_shed_table.count > SISLANDS_MAX_NO_VREG_STEPS))
+		{
 			si_pi->vddc_phase_shed_control = false;
+		}
 	}
 
 	return 0;
 }
 
 static void si_populate_smc_voltage_table(struct radeon_device *rdev,
-					  const struct atom_voltage_table *voltage_table,
-					  SISLANDS_SMC_STATETABLE *table)
+		const struct atom_voltage_table *voltage_table,
+		SISLANDS_SMC_STATETABLE *table)
 {
 	unsigned int i;
 
 	for (i = 0; i < voltage_table->count; i++)
+	{
 		table->lowSMIO[i] |= cpu_to_be32(voltage_table->entries[i].smio_low);
+	}
 }
 
 static int si_populate_smc_voltage_tables(struct radeon_device *rdev,
-					  SISLANDS_SMC_STATETABLE *table)
+		SISLANDS_SMC_STATETABLE *table)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	struct evergreen_power_info *eg_pi = evergreen_get_pi(rdev);
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	u8 i;
 
-	if (si_pi->voltage_control_svi2) {
+	if (si_pi->voltage_control_svi2)
+	{
 		si_write_smc_soft_register(rdev, SI_SMC_SOFT_REGISTER_svi_rework_gpio_id_svc,
-			si_pi->svc_gpio_id);
+								   si_pi->svc_gpio_id);
 		si_write_smc_soft_register(rdev, SI_SMC_SOFT_REGISTER_svi_rework_gpio_id_svd,
-			si_pi->svd_gpio_id);
+								   si_pi->svd_gpio_id);
 		si_write_smc_soft_register(rdev, SI_SMC_SOFT_REGISTER_svi_rework_plat_type,
-					   2);
-	} else {
-		if (eg_pi->vddc_voltage_table.count) {
+								   2);
+	}
+	else
+	{
+		if (eg_pi->vddc_voltage_table.count)
+		{
 			si_populate_smc_voltage_table(rdev, &eg_pi->vddc_voltage_table, table);
 			table->voltageMaskTable.lowMask[SISLANDS_SMC_VOLTAGEMASK_VDDC] =
 				cpu_to_be32(eg_pi->vddc_voltage_table.mask_low);
 
-			for (i = 0; i < eg_pi->vddc_voltage_table.count; i++) {
-				if (pi->max_vddc_in_table <= eg_pi->vddc_voltage_table.entries[i].value) {
+			for (i = 0; i < eg_pi->vddc_voltage_table.count; i++)
+			{
+				if (pi->max_vddc_in_table <= eg_pi->vddc_voltage_table.entries[i].value)
+				{
 					table->maxVDDCIndexInPPTable = i;
 					break;
 				}
 			}
 		}
 
-		if (eg_pi->vddci_voltage_table.count) {
+		if (eg_pi->vddci_voltage_table.count)
+		{
 			si_populate_smc_voltage_table(rdev, &eg_pi->vddci_voltage_table, table);
 
 			table->voltageMaskTable.lowMask[SISLANDS_SMC_VOLTAGEMASK_VDDCI] =
@@ -4133,24 +4775,29 @@ static int si_populate_smc_voltage_tables(struct radeon_device *rdev,
 		}
 
 
-		if (si_pi->mvdd_voltage_table.count) {
+		if (si_pi->mvdd_voltage_table.count)
+		{
 			si_populate_smc_voltage_table(rdev, &si_pi->mvdd_voltage_table, table);
 
 			table->voltageMaskTable.lowMask[SISLANDS_SMC_VOLTAGEMASK_MVDD] =
 				cpu_to_be32(si_pi->mvdd_voltage_table.mask_low);
 		}
 
-		if (si_pi->vddc_phase_shed_control) {
+		if (si_pi->vddc_phase_shed_control)
+		{
 			if (si_validate_phase_shedding_tables(rdev, &si_pi->vddc_phase_shed_table,
-							      &rdev->pm.dpm.dyn_state.phase_shedding_limits_table)) {
+												  &rdev->pm.dpm.dyn_state.phase_shedding_limits_table))
+			{
 				si_populate_smc_voltage_table(rdev, &si_pi->vddc_phase_shed_table, table);
 
 				table->phaseMaskTable.lowMask[SISLANDS_SMC_VOLTAGEMASK_VDDC_PHASE_SHEDDING] =
 					cpu_to_be32(si_pi->vddc_phase_shed_table.mask_low);
 
 				si_write_smc_soft_register(rdev, SI_SMC_SOFT_REGISTER_phase_shedding_delay,
-							   (u32)si_pi->vddc_phase_shed_table.phase_delay);
-			} else {
+										   (u32)si_pi->vddc_phase_shed_table.phase_delay);
+			}
+			else
+			{
 				si_pi->vddc_phase_shed_control = false;
 			}
 		}
@@ -4160,13 +4807,15 @@ static int si_populate_smc_voltage_tables(struct radeon_device *rdev,
 }
 
 static int si_populate_voltage_value(struct radeon_device *rdev,
-				     const struct atom_voltage_table *table,
-				     u16 value, SISLANDS_SMC_VOLTAGE_VALUE *voltage)
+									 const struct atom_voltage_table *table,
+									 u16 value, SISLANDS_SMC_VOLTAGE_VALUE *voltage)
 {
 	unsigned int i;
 
-	for (i = 0; i < table->count; i++) {
-		if (value <= table->entries[i].value) {
+	for (i = 0; i < table->count; i++)
+	{
+		if (value <= table->entries[i].value)
+		{
 			voltage->index = (u8)i;
 			voltage->value = cpu_to_be16(table->entries[i].value);
 			break;
@@ -4174,73 +4823,98 @@ static int si_populate_voltage_value(struct radeon_device *rdev,
 	}
 
 	if (i >= table->count)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int si_populate_mvdd_value(struct radeon_device *rdev, u32 mclk,
-				  SISLANDS_SMC_VOLTAGE_VALUE *voltage)
+								  SISLANDS_SMC_VOLTAGE_VALUE *voltage)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	struct si_power_info *si_pi = si_get_pi(rdev);
 
-	if (pi->mvdd_control) {
+	if (pi->mvdd_control)
+	{
 		if (mclk <= pi->mvdd_split_frequency)
+		{
 			voltage->index = 0;
+		}
 		else
+		{
 			voltage->index = (u8)(si_pi->mvdd_voltage_table.count) - 1;
+		}
 
 		voltage->value = cpu_to_be16(si_pi->mvdd_voltage_table.entries[voltage->index].value);
 	}
+
 	return 0;
 }
 
 static int si_get_std_voltage_value(struct radeon_device *rdev,
-				    SISLANDS_SMC_VOLTAGE_VALUE *voltage,
-				    u16 *std_voltage)
+									SISLANDS_SMC_VOLTAGE_VALUE *voltage,
+									u16 *std_voltage)
 {
 	u16 v_index;
 	bool voltage_found = false;
 	*std_voltage = be16_to_cpu(voltage->value);
 
-	if (rdev->pm.dpm.dyn_state.cac_leakage_table.entries) {
-		if (rdev->pm.dpm.platform_caps & ATOM_PP_PLATFORM_CAP_NEW_CAC_VOLTAGE) {
+	if (rdev->pm.dpm.dyn_state.cac_leakage_table.entries)
+	{
+		if (rdev->pm.dpm.platform_caps & ATOM_PP_PLATFORM_CAP_NEW_CAC_VOLTAGE)
+		{
 			if (rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk.entries == NULL)
+			{
 				return -EINVAL;
+			}
 
-			for (v_index = 0; (u32)v_index < rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk.count; v_index++) {
+			for (v_index = 0; (u32)v_index < rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk.count; v_index++)
+			{
 				if (be16_to_cpu(voltage->value) ==
-				    (u16)rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk.entries[v_index].v) {
+					(u16)rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk.entries[v_index].v)
+				{
 					voltage_found = true;
+
 					if ((u32)v_index < rdev->pm.dpm.dyn_state.cac_leakage_table.count)
 						*std_voltage =
 							rdev->pm.dpm.dyn_state.cac_leakage_table.entries[v_index].vddc;
 					else
 						*std_voltage =
-							rdev->pm.dpm.dyn_state.cac_leakage_table.entries[rdev->pm.dpm.dyn_state.cac_leakage_table.count-1].vddc;
+							rdev->pm.dpm.dyn_state.cac_leakage_table.entries[rdev->pm.dpm.dyn_state.cac_leakage_table.count - 1].vddc;
+
 					break;
 				}
 			}
 
-			if (!voltage_found) {
-				for (v_index = 0; (u32)v_index < rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk.count; v_index++) {
+			if (!voltage_found)
+			{
+				for (v_index = 0; (u32)v_index < rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk.count; v_index++)
+				{
 					if (be16_to_cpu(voltage->value) <=
-					    (u16)rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk.entries[v_index].v) {
+						(u16)rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk.entries[v_index].v)
+					{
 						voltage_found = true;
+
 						if ((u32)v_index < rdev->pm.dpm.dyn_state.cac_leakage_table.count)
 							*std_voltage =
 								rdev->pm.dpm.dyn_state.cac_leakage_table.entries[v_index].vddc;
 						else
 							*std_voltage =
-								rdev->pm.dpm.dyn_state.cac_leakage_table.entries[rdev->pm.dpm.dyn_state.cac_leakage_table.count-1].vddc;
+								rdev->pm.dpm.dyn_state.cac_leakage_table.entries[rdev->pm.dpm.dyn_state.cac_leakage_table.count - 1].vddc;
+
 						break;
 					}
 				}
 			}
-		} else {
+		}
+		else
+		{
 			if ((u32)voltage->index < rdev->pm.dpm.dyn_state.cac_leakage_table.count)
+			{
 				*std_voltage = rdev->pm.dpm.dyn_state.cac_leakage_table.entries[voltage->index].vddc;
+			}
 		}
 	}
 
@@ -4248,8 +4922,8 @@ static int si_get_std_voltage_value(struct radeon_device *rdev,
 }
 
 static int si_populate_std_voltage_value(struct radeon_device *rdev,
-					 u16 value, u8 index,
-					 SISLANDS_SMC_VOLTAGE_VALUE *voltage)
+		u16 value, u8 index,
+		SISLANDS_SMC_VOLTAGE_VALUE *voltage)
 {
 	voltage->index = index;
 	voltage->value = cpu_to_be16(value);
@@ -4258,17 +4932,20 @@ static int si_populate_std_voltage_value(struct radeon_device *rdev,
 }
 
 static int si_populate_phase_shedding_value(struct radeon_device *rdev,
-					    const struct radeon_phase_shedding_limits_table *limits,
-					    u16 voltage, u32 sclk, u32 mclk,
-					    SISLANDS_SMC_VOLTAGE_VALUE *smc_voltage)
+		const struct radeon_phase_shedding_limits_table *limits,
+		u16 voltage, u32 sclk, u32 mclk,
+		SISLANDS_SMC_VOLTAGE_VALUE *smc_voltage)
 {
 	unsigned int i;
 
-	for (i = 0; i < limits->count; i++) {
+	for (i = 0; i < limits->count; i++)
+	{
 		if ((voltage <= limits->entries[i].voltage) &&
-		    (sclk <= limits->entries[i].sclk) &&
-		    (mclk <= limits->entries[i].mclk))
+			(sclk <= limits->entries[i].sclk) &&
+			(mclk <= limits->entries[i].mclk))
+		{
 			break;
+		}
 	}
 
 	smc_voltage->phase_settings = (u8)i;
@@ -4283,8 +4960,11 @@ static int si_init_arb_table_index(struct radeon_device *rdev)
 	int ret;
 
 	ret = si_read_smc_sram_dword(rdev, si_pi->arb_table_start, &tmp, si_pi->sram_end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	tmp &= 0x00FFFFFF;
 	tmp |= MC_CG_ARB_FREQ_F1 << 24;
@@ -4300,7 +4980,7 @@ static int si_initial_switch_from_arb_f0_to_f1(struct radeon_device *rdev)
 static int si_reset_to_default(struct radeon_device *rdev)
 {
 	return (si_send_msg_to_smc(rdev, PPSMC_MSG_ResetToDefaults) == PPSMC_Result_OK) ?
-		0 : -EINVAL;
+		   0 : -EINVAL;
 }
 
 static int si_force_switch_to_arb_f0(struct radeon_device *rdev)
@@ -4310,20 +4990,25 @@ static int si_force_switch_to_arb_f0(struct radeon_device *rdev)
 	int ret;
 
 	ret = si_read_smc_sram_dword(rdev, si_pi->arb_table_start,
-				     &tmp, si_pi->sram_end);
+								 &tmp, si_pi->sram_end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	tmp = (tmp >> 24) & 0xff;
 
 	if (tmp == MC_CG_ARB_FREQ_F0)
+	{
 		return 0;
+	}
 
 	return ni_copy_and_switch_arb_sets(rdev, tmp, MC_CG_ARB_FREQ_F0);
 }
 
 static u32 si_calculate_memory_refresh_rate(struct radeon_device *rdev,
-					    u32 engine_clock)
+		u32 engine_clock)
 {
 	u32 dram_rows;
 	u32 dram_refresh_rate;
@@ -4331,9 +5016,13 @@ static u32 si_calculate_memory_refresh_rate(struct radeon_device *rdev,
 	u32 tmp = (RREG32(MC_ARB_RAMCFG) & NOOFROWS_MASK) >> NOOFROWS_SHIFT;
 
 	if (tmp >= 4)
+	{
 		dram_rows = 16384;
+	}
 	else
+	{
 		dram_rows = 1 << (tmp + 10);
+	}
 
 	dram_refresh_rate = 1 << ((RREG32(MC_SEQ_MISC0) & 0x3) + 3);
 	mc_arb_rfsh_rate = ((engine_clock * 10) * dram_refresh_rate / dram_rows - 32) / 64;
@@ -4342,8 +5031,8 @@ static u32 si_calculate_memory_refresh_rate(struct radeon_device *rdev,
 }
 
 static int si_populate_memory_timing_parameters(struct radeon_device *rdev,
-						struct rv7xx_pl *pl,
-						SMC_SIslands_MCArbDramTimingRegisterSet *arb_regs)
+		struct rv7xx_pl *pl,
+		SMC_SIslands_MCArbDramTimingRegisterSet *arb_regs)
 {
 	u32 dram_timing;
 	u32 dram_timing2;
@@ -4353,8 +5042,8 @@ static int si_populate_memory_timing_parameters(struct radeon_device *rdev,
 		(u8)si_calculate_memory_refresh_rate(rdev, pl->sclk);
 
 	radeon_atom_set_engine_dram_timings(rdev,
-					    pl->sclk,
-					    pl->mclk);
+										pl->sclk,
+										pl->mclk);
 
 	dram_timing  = RREG32(MC_ARB_DRAM_TIMING);
 	dram_timing2 = RREG32(MC_ARB_DRAM_TIMING2);
@@ -4368,55 +5057,63 @@ static int si_populate_memory_timing_parameters(struct radeon_device *rdev,
 }
 
 static int si_do_program_memory_timing_parameters(struct radeon_device *rdev,
-						  struct radeon_ps *radeon_state,
-						  unsigned int first_arb_set)
+		struct radeon_ps *radeon_state,
+		unsigned int first_arb_set)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	struct ni_ps *state = ni_get_ps(radeon_state);
 	SMC_SIslands_MCArbDramTimingRegisterSet arb_regs = { 0 };
 	int i, ret = 0;
 
-	for (i = 0; i < state->performance_level_count; i++) {
+	for (i = 0; i < state->performance_level_count; i++)
+	{
 		ret = si_populate_memory_timing_parameters(rdev, &state->performance_levels[i], &arb_regs);
+
 		if (ret)
+		{
 			break;
+		}
+
 		ret = si_copy_bytes_to_smc(rdev,
-					   si_pi->arb_table_start +
-					   offsetof(SMC_SIslands_MCArbDramTimingRegisters, data) +
-					   sizeof(SMC_SIslands_MCArbDramTimingRegisterSet) * (first_arb_set + i),
-					   (u8 *)&arb_regs,
-					   sizeof(SMC_SIslands_MCArbDramTimingRegisterSet),
-					   si_pi->sram_end);
+								   si_pi->arb_table_start +
+								   offsetof(SMC_SIslands_MCArbDramTimingRegisters, data) +
+								   sizeof(SMC_SIslands_MCArbDramTimingRegisterSet) * (first_arb_set + i),
+								   (u8 *)&arb_regs,
+								   sizeof(SMC_SIslands_MCArbDramTimingRegisterSet),
+								   si_pi->sram_end);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 
 	return ret;
 }
 
 static int si_program_memory_timing_parameters(struct radeon_device *rdev,
-					       struct radeon_ps *radeon_new_state)
+		struct radeon_ps *radeon_new_state)
 {
 	return si_do_program_memory_timing_parameters(rdev, radeon_new_state,
-						      SISLANDS_DRIVER_STATE_ARB_INDEX);
+			SISLANDS_DRIVER_STATE_ARB_INDEX);
 }
 
 static int si_populate_initial_mvdd_value(struct radeon_device *rdev,
-					  struct SISLANDS_SMC_VOLTAGE_VALUE *voltage)
+		struct SISLANDS_SMC_VOLTAGE_VALUE *voltage)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	struct si_power_info *si_pi = si_get_pi(rdev);
 
 	if (pi->mvdd_control)
 		return si_populate_voltage_value(rdev, &si_pi->mvdd_voltage_table,
-						 si_pi->mvdd_bootup_value, voltage);
+										 si_pi->mvdd_bootup_value, voltage);
 
 	return 0;
 }
 
 static int si_populate_smc_initial_state(struct radeon_device *rdev,
-					 struct radeon_ps *radeon_initial_state,
-					 SISLANDS_SMC_STATETABLE *table)
+		struct radeon_ps *radeon_initial_state,
+		SISLANDS_SMC_STATETABLE *table)
 {
 	struct ni_ps *initial_state = ni_get_ps(radeon_initial_state);
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
@@ -4469,34 +5166,36 @@ static int si_populate_smc_initial_state(struct radeon_device *rdev,
 	table->initialState.levels[0].ACIndex = 0;
 
 	ret = si_populate_voltage_value(rdev, &eg_pi->vddc_voltage_table,
-					initial_state->performance_levels[0].vddc,
-					&table->initialState.levels[0].vddc);
+									initial_state->performance_levels[0].vddc,
+									&table->initialState.levels[0].vddc);
 
-	if (!ret) {
+	if (!ret)
+	{
 		u16 std_vddc;
 
 		ret = si_get_std_voltage_value(rdev,
-					       &table->initialState.levels[0].vddc,
-					       &std_vddc);
+									   &table->initialState.levels[0].vddc,
+									   &std_vddc);
+
 		if (!ret)
 			si_populate_std_voltage_value(rdev, std_vddc,
-						      table->initialState.levels[0].vddc.index,
-						      &table->initialState.levels[0].std_vddc);
+										  table->initialState.levels[0].vddc.index,
+										  &table->initialState.levels[0].std_vddc);
 	}
 
 	if (eg_pi->vddci_control)
 		si_populate_voltage_value(rdev,
-					  &eg_pi->vddci_voltage_table,
-					  initial_state->performance_levels[0].vddci,
-					  &table->initialState.levels[0].vddci);
+								  &eg_pi->vddci_voltage_table,
+								  initial_state->performance_levels[0].vddci,
+								  &table->initialState.levels[0].vddci);
 
 	if (si_pi->vddc_phase_shed_control)
 		si_populate_phase_shedding_value(rdev,
-						 &rdev->pm.dpm.dyn_state.phase_shedding_limits_table,
-						 initial_state->performance_levels[0].vddc,
-						 initial_state->performance_levels[0].sclk,
-						 initial_state->performance_levels[0].mclk,
-						 &table->initialState.levels[0].vddc);
+										 &rdev->pm.dpm.dyn_state.phase_shedding_limits_table,
+										 initial_state->performance_levels[0].vddc,
+										 initial_state->performance_levels[0].sclk,
+										 initial_state->performance_levels[0].mclk,
+										 &table->initialState.levels[0].vddc);
 
 	si_populate_initial_mvdd_value(rdev, &table->initialState.levels[0].mvdd);
 
@@ -4507,15 +5206,20 @@ static int si_populate_smc_initial_state(struct radeon_device *rdev,
 
 	table->initialState.levels[0].gen2PCIE = (u8)si_pi->boot_pcie_gen;
 
-	if (pi->mem_gddr5) {
+	if (pi->mem_gddr5)
+	{
 		table->initialState.levels[0].strobeMode =
 			si_get_strobe_mode_settings(rdev,
-						    initial_state->performance_levels[0].mclk);
+										initial_state->performance_levels[0].mclk);
 
 		if (initial_state->performance_levels[0].mclk > pi->mclk_edc_enable_threshold)
+		{
 			table->initialState.levels[0].mcFlags = SISLANDS_SMC_MC_EDC_RD_FLAG | SISLANDS_SMC_MC_EDC_WR_FLAG;
+		}
 		else
+		{
 			table->initialState.levels[0].mcFlags =  0;
+		}
 	}
 
 	table->initialState.levelCount = 1;
@@ -4538,7 +5242,7 @@ static int si_populate_smc_initial_state(struct radeon_device *rdev,
 }
 
 static int si_populate_smc_acpi_state(struct radeon_device *rdev,
-				      SISLANDS_SMC_STATETABLE *table)
+									  SISLANDS_SMC_STATETABLE *table)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	struct evergreen_power_info *eg_pi = evergreen_get_pi(rdev);
@@ -4561,62 +5265,74 @@ static int si_populate_smc_acpi_state(struct radeon_device *rdev,
 
 	table->ACPIState.flags &= ~PPSMC_SWSTATE_FLAG_DC;
 
-	if (pi->acpi_vddc) {
+	if (pi->acpi_vddc)
+	{
 		ret = si_populate_voltage_value(rdev, &eg_pi->vddc_voltage_table,
-						pi->acpi_vddc, &table->ACPIState.levels[0].vddc);
-		if (!ret) {
+										pi->acpi_vddc, &table->ACPIState.levels[0].vddc);
+
+		if (!ret)
+		{
 			u16 std_vddc;
 
 			ret = si_get_std_voltage_value(rdev,
-						       &table->ACPIState.levels[0].vddc, &std_vddc);
+										   &table->ACPIState.levels[0].vddc, &std_vddc);
+
 			if (!ret)
 				si_populate_std_voltage_value(rdev, std_vddc,
-							      table->ACPIState.levels[0].vddc.index,
-							      &table->ACPIState.levels[0].std_vddc);
+											  table->ACPIState.levels[0].vddc.index,
+											  &table->ACPIState.levels[0].std_vddc);
 		}
+
 		table->ACPIState.levels[0].gen2PCIE = si_pi->acpi_pcie_gen;
 
-		if (si_pi->vddc_phase_shed_control) {
+		if (si_pi->vddc_phase_shed_control)
+		{
 			si_populate_phase_shedding_value(rdev,
-							 &rdev->pm.dpm.dyn_state.phase_shedding_limits_table,
-							 pi->acpi_vddc,
-							 0,
-							 0,
-							 &table->ACPIState.levels[0].vddc);
+											 &rdev->pm.dpm.dyn_state.phase_shedding_limits_table,
+											 pi->acpi_vddc,
+											 0,
+											 0,
+											 &table->ACPIState.levels[0].vddc);
 		}
-	} else {
+	}
+	else
+	{
 		ret = si_populate_voltage_value(rdev, &eg_pi->vddc_voltage_table,
-						pi->min_vddc_in_table, &table->ACPIState.levels[0].vddc);
-		if (!ret) {
+										pi->min_vddc_in_table, &table->ACPIState.levels[0].vddc);
+
+		if (!ret)
+		{
 			u16 std_vddc;
 
 			ret = si_get_std_voltage_value(rdev,
-						       &table->ACPIState.levels[0].vddc, &std_vddc);
+										   &table->ACPIState.levels[0].vddc, &std_vddc);
 
 			if (!ret)
 				si_populate_std_voltage_value(rdev, std_vddc,
-							      table->ACPIState.levels[0].vddc.index,
-							      &table->ACPIState.levels[0].std_vddc);
+											  table->ACPIState.levels[0].vddc.index,
+											  &table->ACPIState.levels[0].std_vddc);
 		}
+
 		table->ACPIState.levels[0].gen2PCIE = (u8)r600_get_pcie_gen_support(rdev,
-										    si_pi->sys_pcie_mask,
-										    si_pi->boot_pcie_gen,
-										    RADEON_PCIE_GEN1);
+											  si_pi->sys_pcie_mask,
+											  si_pi->boot_pcie_gen,
+											  RADEON_PCIE_GEN1);
 
 		if (si_pi->vddc_phase_shed_control)
 			si_populate_phase_shedding_value(rdev,
-							 &rdev->pm.dpm.dyn_state.phase_shedding_limits_table,
-							 pi->min_vddc_in_table,
-							 0,
-							 0,
-							 &table->ACPIState.levels[0].vddc);
+											 &rdev->pm.dpm.dyn_state.phase_shedding_limits_table,
+											 pi->min_vddc_in_table,
+											 0,
+											 0,
+											 &table->ACPIState.levels[0].vddc);
 	}
 
-	if (pi->acpi_vddc) {
+	if (pi->acpi_vddc)
+	{
 		if (eg_pi->acpi_vddci)
 			si_populate_voltage_value(rdev, &eg_pi->vddci_voltage_table,
-						  eg_pi->acpi_vddci,
-						  &table->ACPIState.levels[0].vddci);
+									  eg_pi->acpi_vddci,
+									  &table->ACPIState.levels[0].vddci);
 	}
 
 	mclk_pwrmgt_cntl |= MRDCK0_RESET | MRDCK1_RESET;
@@ -4661,7 +5377,9 @@ static int si_populate_smc_acpi_state(struct radeon_device *rdev,
 	si_populate_mvdd_value(rdev, 0, &table->ACPIState.levels[0].mvdd);
 
 	if (eg_pi->dynamic_ac_timing)
+	{
 		table->ACPIState.levels[0].ACIndex = 0;
+	}
 
 	table->ACPIState.levels[0].dpm2.MaxPS = 0;
 	table->ACPIState.levels[0].dpm2.NearTDPDec = 0;
@@ -4679,7 +5397,7 @@ static int si_populate_smc_acpi_state(struct radeon_device *rdev,
 }
 
 static int si_populate_ulv_state(struct radeon_device *rdev,
-				 SISLANDS_SMC_SWSTATE *state)
+								 SISLANDS_SMC_SWSTATE *state)
 {
 	struct evergreen_power_info *eg_pi = evergreen_get_pi(rdev);
 	struct si_power_info *si_pi = si_get_pi(rdev);
@@ -4688,16 +5406,27 @@ static int si_populate_ulv_state(struct radeon_device *rdev,
 	int ret;
 
 	ret = si_convert_power_level_to_smc(rdev, &ulv->pl,
-					    &state->levels[0]);
-	if (!ret) {
-		if (eg_pi->sclk_deep_sleep) {
+										&state->levels[0]);
+
+	if (!ret)
+	{
+		if (eg_pi->sclk_deep_sleep)
+		{
 			if (sclk_in_sr <= SCLK_MIN_DEEPSLEEP_FREQ)
+			{
 				state->levels[0].stateFlags |= PPSMC_STATEFLAG_DEEPSLEEP_BYPASS;
+			}
 			else
+			{
 				state->levels[0].stateFlags |= PPSMC_STATEFLAG_DEEPSLEEP_THROTTLE;
+			}
 		}
+
 		if (ulv->one_pcie_lane_in_ulv)
+		{
 			state->flags |= PPSMC_SWSTATE_FLAG_PCIE_X1;
+		}
+
 		state->levels[0].arbRefreshState = (u8)(SISLANDS_ULV_STATE_ARB_INDEX);
 		state->levels[0].ACIndex = 1;
 		state->levels[0].std_vddc = state->levels[0].vddc;
@@ -4717,20 +5446,23 @@ static int si_program_ulv_memory_timing_parameters(struct radeon_device *rdev)
 	int ret;
 
 	ret = si_populate_memory_timing_parameters(rdev, &ulv->pl,
-						   &arb_regs);
+			&arb_regs);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	si_write_smc_soft_register(rdev, SI_SMC_SOFT_REGISTER_ulv_volt_change_delay,
-				   ulv->volt_change_delay);
+							   ulv->volt_change_delay);
 
 	ret = si_copy_bytes_to_smc(rdev,
-				   si_pi->arb_table_start +
-				   offsetof(SMC_SIslands_MCArbDramTimingRegisters, data) +
-				   sizeof(SMC_SIslands_MCArbDramTimingRegisterSet) * SISLANDS_ULV_STATE_ARB_INDEX,
-				   (u8 *)&arb_regs,
-				   sizeof(SMC_SIslands_MCArbDramTimingRegisterSet),
-				   si_pi->sram_end);
+							   si_pi->arb_table_start +
+							   offsetof(SMC_SIslands_MCArbDramTimingRegisters, data) +
+							   sizeof(SMC_SIslands_MCArbDramTimingRegisterSet) * SISLANDS_ULV_STATE_ARB_INDEX,
+							   (u8 *)&arb_regs,
+							   sizeof(SMC_SIslands_MCArbDramTimingRegisterSet),
+							   si_pi->sram_end);
 
 	return ret;
 }
@@ -4755,84 +5487,117 @@ static int si_init_smc_table(struct radeon_device *rdev)
 
 	si_populate_smc_voltage_tables(rdev, table);
 
-	switch (rdev->pm.int_thermal_type) {
-	case THERMAL_TYPE_SI:
-	case THERMAL_TYPE_EMC2103_WITH_INTERNAL:
-		table->thermalProtectType = PPSMC_THERMAL_PROTECT_TYPE_INTERNAL;
-		break;
-	case THERMAL_TYPE_NONE:
-		table->thermalProtectType = PPSMC_THERMAL_PROTECT_TYPE_NONE;
-		break;
-	default:
-		table->thermalProtectType = PPSMC_THERMAL_PROTECT_TYPE_EXTERNAL;
-		break;
+	switch (rdev->pm.int_thermal_type)
+	{
+		case THERMAL_TYPE_SI:
+		case THERMAL_TYPE_EMC2103_WITH_INTERNAL:
+			table->thermalProtectType = PPSMC_THERMAL_PROTECT_TYPE_INTERNAL;
+			break;
+
+		case THERMAL_TYPE_NONE:
+			table->thermalProtectType = PPSMC_THERMAL_PROTECT_TYPE_NONE;
+			break;
+
+		default:
+			table->thermalProtectType = PPSMC_THERMAL_PROTECT_TYPE_EXTERNAL;
+			break;
 	}
 
 	if (rdev->pm.dpm.platform_caps & ATOM_PP_PLATFORM_CAP_HARDWAREDC)
+	{
 		table->systemFlags |= PPSMC_SYSTEMFLAG_GPIO_DC;
+	}
 
-	if (rdev->pm.dpm.platform_caps & ATOM_PP_PLATFORM_CAP_REGULATOR_HOT) {
+	if (rdev->pm.dpm.platform_caps & ATOM_PP_PLATFORM_CAP_REGULATOR_HOT)
+	{
 		if ((rdev->pdev->device != 0x6818) && (rdev->pdev->device != 0x6819))
+		{
 			table->systemFlags |= PPSMC_SYSTEMFLAG_REGULATOR_HOT;
+		}
 	}
 
 	if (rdev->pm.dpm.platform_caps & ATOM_PP_PLATFORM_CAP_STEPVDDC)
+	{
 		table->systemFlags |= PPSMC_SYSTEMFLAG_STEPVDDC;
+	}
 
 	if (pi->mem_gddr5)
+	{
 		table->systemFlags |= PPSMC_SYSTEMFLAG_GDDR5;
+	}
 
 	if (rdev->pm.dpm.platform_caps & ATOM_PP_PLATFORM_CAP_REVERT_GPIO5_POLARITY)
+	{
 		table->extraFlags |= PPSMC_EXTRAFLAGS_AC2DC_GPIO5_POLARITY_HIGH;
+	}
 
-	if (rdev->pm.dpm.platform_caps & ATOM_PP_PLATFORM_CAP_VRHOT_GPIO_CONFIGURABLE) {
+	if (rdev->pm.dpm.platform_caps & ATOM_PP_PLATFORM_CAP_VRHOT_GPIO_CONFIGURABLE)
+	{
 		table->systemFlags |= PPSMC_SYSTEMFLAG_REGULATOR_HOT_PROG_GPIO;
 		vr_hot_gpio = rdev->pm.dpm.backbias_response_time;
 		si_write_smc_soft_register(rdev, SI_SMC_SOFT_REGISTER_vr_hot_gpio,
-					   vr_hot_gpio);
+								   vr_hot_gpio);
 	}
 
 	ret = si_populate_smc_initial_state(rdev, radeon_boot_state, table);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = si_populate_smc_acpi_state(rdev, table);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	table->driverState = table->initialState;
 
 	ret = si_do_program_memory_timing_parameters(rdev, radeon_boot_state,
-						     SISLANDS_INITIAL_STATE_ARB_INDEX);
-	if (ret)
-		return ret;
+			SISLANDS_INITIAL_STATE_ARB_INDEX);
 
-	if (ulv->supported && ulv->pl.vddc) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (ulv->supported && ulv->pl.vddc)
+	{
 		ret = si_populate_ulv_state(rdev, &table->ULVState);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = si_program_ulv_memory_timing_parameters(rdev);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		WREG32(CG_ULV_CONTROL, ulv->cg_ulv_control);
 		WREG32(CG_ULV_PARAMETER, ulv->cg_ulv_parameter);
 
 		lane_width = radeon_get_pcie_lanes(rdev);
 		si_write_smc_soft_register(rdev, SI_SMC_SOFT_REGISTER_non_ulv_pcie_link_width, lane_width);
-	} else {
+	}
+	else
+	{
 		table->ULVState = table->initialState;
 	}
 
 	return si_copy_bytes_to_smc(rdev, si_pi->state_table_start,
-				    (u8 *)table, sizeof(SISLANDS_SMC_STATETABLE),
-				    si_pi->sram_end);
+								(u8 *)table, sizeof(SISLANDS_SMC_STATETABLE),
+								si_pi->sram_end);
 }
 
 static int si_calculate_sclk_params(struct radeon_device *rdev,
-				    u32 engine_clock,
-				    SISLANDS_SMC_SCLK_VALUE *sclk)
+									u32 engine_clock,
+									SISLANDS_SMC_SCLK_VALUE *sclk)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	struct si_power_info *si_pi = si_get_pi(rdev);
@@ -4850,9 +5615,12 @@ static int si_calculate_sclk_params(struct radeon_device *rdev,
 	int ret;
 
 	ret = radeon_atom_get_clock_dividers(rdev, COMPUTE_ENGINE_PLL_PARAM,
-					     engine_clock, false, &dividers);
+										 engine_clock, false, &dividers);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	reference_divider = 1 + dividers.ref_div;
 
@@ -4871,12 +5639,14 @@ static int si_calculate_sclk_params(struct radeon_device *rdev,
 	spll_func_cntl_3 |= SPLL_FB_DIV(fbdiv);
 	spll_func_cntl_3 |= SPLL_DITHEN;
 
-	if (pi->sclk_ss) {
+	if (pi->sclk_ss)
+	{
 		struct radeon_atom_ss ss;
 		u32 vco_freq = engine_clock * dividers.post_div;
 
 		if (radeon_atombios_get_asic_ss_info(rdev, &ss,
-						     ASIC_INTERNAL_ENGINE_SS, vco_freq)) {
+											 ASIC_INTERNAL_ENGINE_SS, vco_freq))
+		{
 			u32 clk_s = reference_clock * 5 / (reference_divider * ss.rate);
 			u32 clk_v = 4 * ss.percentage * fbdiv / (clk_s * 10000);
 
@@ -4901,14 +5671,16 @@ static int si_calculate_sclk_params(struct radeon_device *rdev,
 }
 
 static int si_populate_sclk_value(struct radeon_device *rdev,
-				  u32 engine_clock,
-				  SISLANDS_SMC_SCLK_VALUE *sclk)
+								  u32 engine_clock,
+								  SISLANDS_SMC_SCLK_VALUE *sclk)
 {
 	SISLANDS_SMC_SCLK_VALUE sclk_tmp;
 	int ret;
 
 	ret = si_calculate_sclk_params(rdev, engine_clock, &sclk_tmp);
-	if (!ret) {
+
+	if (!ret)
+	{
 		sclk->sclk_value = cpu_to_be32(sclk_tmp.sclk_value);
 		sclk->vCG_SPLL_FUNC_CNTL = cpu_to_be32(sclk_tmp.vCG_SPLL_FUNC_CNTL);
 		sclk->vCG_SPLL_FUNC_CNTL_2 = cpu_to_be32(sclk_tmp.vCG_SPLL_FUNC_CNTL_2);
@@ -4922,11 +5694,11 @@ static int si_populate_sclk_value(struct radeon_device *rdev,
 }
 
 static int si_populate_mclk_value(struct radeon_device *rdev,
-				  u32 engine_clock,
-				  u32 memory_clock,
-				  SISLANDS_SMC_MCLK_VALUE *mclk,
-				  bool strobe_mode,
-				  bool dll_state_on)
+								  u32 engine_clock,
+								  u32 memory_clock,
+								  SISLANDS_SMC_MCLK_VALUE *mclk,
+								  bool strobe_mode,
+								  bool dll_state_on)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	struct si_power_info *si_pi = si_get_pi(rdev);
@@ -4943,40 +5715,51 @@ static int si_populate_mclk_value(struct radeon_device *rdev,
 	int ret;
 
 	ret = radeon_atom_get_memory_pll_dividers(rdev, memory_clock, strobe_mode, &mpll_param);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mpll_func_cntl &= ~BWCTRL_MASK;
 	mpll_func_cntl |= BWCTRL(mpll_param.bwcntl);
 
 	mpll_func_cntl_1 &= ~(CLKF_MASK | CLKFRAC_MASK | VCO_MODE_MASK);
 	mpll_func_cntl_1 |= CLKF(mpll_param.clkf) |
-		CLKFRAC(mpll_param.clkfrac) | VCO_MODE(mpll_param.vco_mode);
+						CLKFRAC(mpll_param.clkfrac) | VCO_MODE(mpll_param.vco_mode);
 
 	mpll_ad_func_cntl &= ~YCLK_POST_DIV_MASK;
 	mpll_ad_func_cntl |= YCLK_POST_DIV(mpll_param.post_div);
 
-	if (pi->mem_gddr5) {
+	if (pi->mem_gddr5)
+	{
 		mpll_dq_func_cntl &= ~(YCLK_SEL_MASK | YCLK_POST_DIV_MASK);
 		mpll_dq_func_cntl |= YCLK_SEL(mpll_param.yclk_sel) |
-			YCLK_POST_DIV(mpll_param.post_div);
+							 YCLK_POST_DIV(mpll_param.post_div);
 	}
 
-	if (pi->mclk_ss) {
+	if (pi->mclk_ss)
+	{
 		struct radeon_atom_ss ss;
 		u32 freq_nom;
 		u32 tmp;
 		u32 reference_clock = rdev->clock.mpll.reference_freq;
 
 		if (pi->mem_gddr5)
+		{
 			freq_nom = memory_clock * 4;
+		}
 		else
+		{
 			freq_nom = memory_clock * 2;
+		}
 
 		tmp = freq_nom / reference_clock;
 		tmp = tmp * tmp;
+
 		if (radeon_atombios_get_asic_ss_info(rdev, &ss,
-						     ASIC_INTERNAL_MEMORY_SS, freq_nom)) {
+											 ASIC_INTERNAL_MEMORY_SS, freq_nom))
+		{
 			u32 clks = reference_clock * 5 / ss.rate;
 			u32 clkv = (u32)((((131 * ss.percentage * ss.rate) / 100) * tmp) / freq_nom);
 
@@ -4992,9 +5775,13 @@ static int si_populate_mclk_value(struct radeon_device *rdev,
 	mclk_pwrmgt_cntl |= DLL_SPEED(mpll_param.dll_speed);
 
 	if (dll_state_on)
+	{
 		mclk_pwrmgt_cntl |= MRDCK0_PDNB | MRDCK1_PDNB;
+	}
 	else
+	{
 		mclk_pwrmgt_cntl &= ~(MRDCK0_PDNB | MRDCK1_PDNB);
+	}
 
 	mclk->mclk_value = cpu_to_be32(memory_clock);
 	mclk->vMPLL_FUNC_CNTL = cpu_to_be32(mpll_func_cntl);
@@ -5011,23 +5798,25 @@ static int si_populate_mclk_value(struct radeon_device *rdev,
 }
 
 static void si_populate_smc_sp(struct radeon_device *rdev,
-			       struct radeon_ps *radeon_state,
-			       SISLANDS_SMC_SWSTATE *smc_state)
+							   struct radeon_ps *radeon_state,
+							   SISLANDS_SMC_SWSTATE *smc_state)
 {
 	struct ni_ps *ps = ni_get_ps(radeon_state);
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	int i;
 
 	for (i = 0; i < ps->performance_level_count - 1; i++)
+	{
 		smc_state->levels[i].bSP = cpu_to_be32(pi->dsp);
+	}
 
 	smc_state->levels[ps->performance_level_count - 1].bSP =
 		cpu_to_be32(pi->psp);
 }
 
 static int si_convert_power_level_to_smc(struct radeon_device *rdev,
-					 struct rv7xx_pl *pl,
-					 SISLANDS_SMC_HW_PERFORMANCE_LEVEL *level)
+		struct rv7xx_pl *pl,
+		SISLANDS_SMC_HW_PERFORMANCE_LEVEL *level)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	struct evergreen_power_info *eg_pi = evergreen_get_pi(rdev);
@@ -5038,93 +5827,137 @@ static int si_convert_power_level_to_smc(struct radeon_device *rdev,
 	bool gmc_pg = false;
 
 	if (eg_pi->pcie_performance_request &&
-	    (si_pi->force_pcie_gen != RADEON_PCIE_GEN_INVALID))
+		(si_pi->force_pcie_gen != RADEON_PCIE_GEN_INVALID))
+	{
 		level->gen2PCIE = (u8)si_pi->force_pcie_gen;
+	}
 	else
+	{
 		level->gen2PCIE = (u8)pl->pcie_gen;
+	}
 
 	ret = si_populate_sclk_value(rdev, pl->sclk, &level->sclk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	level->mcFlags =  0;
 
 	if (pi->mclk_stutter_mode_threshold &&
-	    (pl->mclk <= pi->mclk_stutter_mode_threshold) &&
-	    !eg_pi->uvd_enabled &&
-	    (RREG32(DPG_PIPE_STUTTER_CONTROL) & STUTTER_ENABLE) &&
-	    (rdev->pm.dpm.new_active_crtc_count <= 2)) {
+		(pl->mclk <= pi->mclk_stutter_mode_threshold) &&
+		!eg_pi->uvd_enabled &&
+		(RREG32(DPG_PIPE_STUTTER_CONTROL) & STUTTER_ENABLE) &&
+		(rdev->pm.dpm.new_active_crtc_count <= 2))
+	{
 		level->mcFlags |= SISLANDS_SMC_MC_STUTTER_EN;
 
 		if (gmc_pg)
+		{
 			level->mcFlags |= SISLANDS_SMC_MC_PG_EN;
+		}
 	}
 
-	if (pi->mem_gddr5) {
+	if (pi->mem_gddr5)
+	{
 		if (pl->mclk > pi->mclk_edc_enable_threshold)
+		{
 			level->mcFlags |= SISLANDS_SMC_MC_EDC_RD_FLAG;
+		}
 
 		if (pl->mclk > eg_pi->mclk_edc_wr_enable_threshold)
+		{
 			level->mcFlags |= SISLANDS_SMC_MC_EDC_WR_FLAG;
+		}
 
 		level->strobeMode = si_get_strobe_mode_settings(rdev, pl->mclk);
 
-		if (level->strobeMode & SISLANDS_SMC_STROBE_ENABLE) {
+		if (level->strobeMode & SISLANDS_SMC_STROBE_ENABLE)
+		{
 			if (si_get_mclk_frequency_ratio(pl->mclk, true) >=
-			    ((RREG32(MC_SEQ_MISC7) >> 16) & 0xf))
+				((RREG32(MC_SEQ_MISC7) >> 16) & 0xf))
+			{
 				dll_state_on = ((RREG32(MC_SEQ_MISC5) >> 1) & 0x1) ? true : false;
+			}
 			else
+			{
 				dll_state_on = ((RREG32(MC_SEQ_MISC6) >> 1) & 0x1) ? true : false;
-		} else {
+			}
+		}
+		else
+		{
 			dll_state_on = false;
 		}
-	} else {
+	}
+	else
+	{
 		level->strobeMode = si_get_strobe_mode_settings(rdev,
-								pl->mclk);
+							pl->mclk);
 
 		dll_state_on = ((RREG32(MC_SEQ_MISC5) >> 1) & 0x1) ? true : false;
 	}
 
 	ret = si_populate_mclk_value(rdev,
-				     pl->sclk,
-				     pl->mclk,
-				     &level->mclk,
-				     (level->strobeMode & SISLANDS_SMC_STROBE_ENABLE) != 0, dll_state_on);
+								 pl->sclk,
+								 pl->mclk,
+								 &level->mclk,
+								 (level->strobeMode & SISLANDS_SMC_STROBE_ENABLE) != 0, dll_state_on);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = si_populate_voltage_value(rdev,
-					&eg_pi->vddc_voltage_table,
-					pl->vddc, &level->vddc);
+									&eg_pi->vddc_voltage_table,
+									pl->vddc, &level->vddc);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 
 	ret = si_get_std_voltage_value(rdev, &level->vddc, &std_vddc);
-	if (ret)
-		return ret;
 
-	ret = si_populate_std_voltage_value(rdev, std_vddc,
-					    level->vddc.index, &level->std_vddc);
 	if (ret)
+	{
 		return ret;
-
-	if (eg_pi->vddci_control) {
-		ret = si_populate_voltage_value(rdev, &eg_pi->vddci_voltage_table,
-						pl->vddci, &level->vddci);
-		if (ret)
-			return ret;
 	}
 
-	if (si_pi->vddc_phase_shed_control) {
-		ret = si_populate_phase_shedding_value(rdev,
-						       &rdev->pm.dpm.dyn_state.phase_shedding_limits_table,
-						       pl->vddc,
-						       pl->sclk,
-						       pl->mclk,
-						       &level->vddc);
+	ret = si_populate_std_voltage_value(rdev, std_vddc,
+										level->vddc.index, &level->std_vddc);
+
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (eg_pi->vddci_control)
+	{
+		ret = si_populate_voltage_value(rdev, &eg_pi->vddci_voltage_table,
+										pl->vddci, &level->vddci);
+
 		if (ret)
+		{
 			return ret;
+		}
+	}
+
+	if (si_pi->vddc_phase_shed_control)
+	{
+		ret = si_populate_phase_shedding_value(rdev,
+											   &rdev->pm.dpm.dyn_state.phase_shedding_limits_table,
+											   pl->vddc,
+											   pl->sclk,
+											   pl->mclk,
+											   &level->vddc);
+
+		if (ret)
+		{
+			return ret;
+		}
 	}
 
 	level->MaxPoweredUpCU = si_pi->max_cu;
@@ -5135,8 +5968,8 @@ static int si_convert_power_level_to_smc(struct radeon_device *rdev,
 }
 
 static int si_populate_smc_t(struct radeon_device *rdev,
-			     struct radeon_ps *radeon_state,
-			     SISLANDS_SMC_SWSTATE *smc_state)
+							 struct radeon_ps *radeon_state,
+							 SISLANDS_SMC_SWSTATE *smc_state)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	struct ni_ps *state = ni_get_ps(radeon_state);
@@ -5146,9 +5979,12 @@ static int si_populate_smc_t(struct radeon_device *rdev,
 	int i, ret;
 
 	if (state->performance_level_count >= 9)
+	{
 		return -EINVAL;
+	}
 
-	if (state->performance_level_count < 2) {
+	if (state->performance_level_count < 2)
+	{
 		a_t = CG_R(0xffff) | CG_L(0);
 		smc_state->levels[0].aT = cpu_to_be32(a_t);
 		return 0;
@@ -5156,16 +5992,18 @@ static int si_populate_smc_t(struct radeon_device *rdev,
 
 	smc_state->levels[0].aT = cpu_to_be32(0);
 
-	for (i = 0; i <= state->performance_level_count - 2; i++) {
+	for (i = 0; i <= state->performance_level_count - 2; i++)
+	{
 		ret = r600_calculate_at(
-			(50 / SISLANDS_MAX_HARDWARE_POWERLEVELS) * 100 * (i + 1),
-			100 * R600_AH_DFLT,
-			state->performance_levels[i + 1].sclk,
-			state->performance_levels[i].sclk,
-			&t_l,
-			&t_h);
+				  (50 / SISLANDS_MAX_HARDWARE_POWERLEVELS) * 100 * (i + 1),
+				  100 * R600_AH_DFLT,
+				  state->performance_levels[i + 1].sclk,
+				  state->performance_levels[i].sclk,
+				  &t_l,
+				  &t_h);
 
-		if (ret) {
+		if (ret)
+		{
 			t_h = (i + 1) * 1000 - 50 * R600_AH_DFLT;
 			t_l = (i + 1) * 1000 + 50 * R600_AH_DFLT;
 		}
@@ -5175,7 +6013,7 @@ static int si_populate_smc_t(struct radeon_device *rdev,
 		smc_state->levels[i].aT = cpu_to_be32(a_t);
 
 		high_bsp = (i == state->performance_level_count - 2) ?
-			pi->pbsp : pi->bsp;
+				   pi->pbsp : pi->bsp;
 		a_t = CG_R(0xffff) | CG_L(t_h * high_bsp / 20000);
 		smc_state->levels[i + 1].aT = cpu_to_be32(a_t);
 	}
@@ -5190,13 +6028,13 @@ static int si_disable_ulv(struct radeon_device *rdev)
 
 	if (ulv->supported)
 		return (si_send_msg_to_smc(rdev, PPSMC_MSG_DisableULV) == PPSMC_Result_OK) ?
-			0 : -EINVAL;
+			   0 : -EINVAL;
 
 	return 0;
 }
 
 static bool si_is_state_ulv_compatible(struct radeon_device *rdev,
-				       struct radeon_ps *radeon_state)
+									   struct radeon_ps *radeon_state)
 {
 	const struct si_power_info *si_pi = si_get_pi(rdev);
 	const struct si_ulv_param *ulv = &si_pi->ulv;
@@ -5204,42 +6042,52 @@ static bool si_is_state_ulv_compatible(struct radeon_device *rdev,
 	int i;
 
 	if (state->performance_levels[0].mclk != ulv->pl.mclk)
+	{
 		return false;
+	}
 
 	/* XXX validate against display requirements! */
 
-	for (i = 0; i < rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.count; i++) {
+	for (i = 0; i < rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.count; i++)
+	{
 		if (rdev->clock.current_dispclk <=
-		    rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.entries[i].clk) {
+			rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.entries[i].clk)
+		{
 			if (ulv->pl.vddc <
-			    rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.entries[i].v)
+				rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.entries[i].v)
+			{
 				return false;
+			}
 		}
 	}
 
 	if ((radeon_state->vclk != 0) || (radeon_state->dclk != 0))
+	{
 		return false;
+	}
 
 	return true;
 }
 
 static int si_set_power_state_conditionally_enable_ulv(struct radeon_device *rdev,
-						       struct radeon_ps *radeon_new_state)
+		struct radeon_ps *radeon_new_state)
 {
 	const struct si_power_info *si_pi = si_get_pi(rdev);
 	const struct si_ulv_param *ulv = &si_pi->ulv;
 
-	if (ulv->supported) {
+	if (ulv->supported)
+	{
 		if (si_is_state_ulv_compatible(rdev, radeon_new_state))
 			return (si_send_msg_to_smc(rdev, PPSMC_MSG_EnableULV) == PPSMC_Result_OK) ?
-				0 : -EINVAL;
+				   0 : -EINVAL;
 	}
+
 	return 0;
 }
 
 static int si_convert_power_state_to_smc(struct radeon_device *rdev,
-					 struct radeon_ps *radeon_state,
-					 SISLANDS_SMC_SWSTATE *smc_state)
+		struct radeon_ps *radeon_state,
+		SISLANDS_SMC_SWSTATE *smc_state)
 {
 	struct evergreen_power_info *eg_pi = evergreen_get_pi(rdev);
 	struct ni_power_info *ni_pi = ni_get_pi(rdev);
@@ -5250,39 +6098,59 @@ static int si_convert_power_state_to_smc(struct radeon_device *rdev,
 	u32 sclk_in_sr = 1350; /* ??? */
 
 	if (state->performance_level_count > SISLANDS_MAX_HARDWARE_POWERLEVELS)
+	{
 		return -EINVAL;
+	}
 
-	threshold = state->performance_levels[state->performance_level_count-1].sclk * 100 / 100;
+	threshold = state->performance_levels[state->performance_level_count - 1].sclk * 100 / 100;
 
-	if (radeon_state->vclk && radeon_state->dclk) {
+	if (radeon_state->vclk && radeon_state->dclk)
+	{
 		eg_pi->uvd_enabled = true;
+
 		if (eg_pi->smu_uvd_hs)
+		{
 			smc_state->flags |= PPSMC_SWSTATE_FLAG_UVD;
-	} else {
+		}
+	}
+	else
+	{
 		eg_pi->uvd_enabled = false;
 	}
 
 	if (state->dc_compatible)
+	{
 		smc_state->flags |= PPSMC_SWSTATE_FLAG_DC;
+	}
 
 	smc_state->levelCount = 0;
-	for (i = 0; i < state->performance_level_count; i++) {
-		if (eg_pi->sclk_deep_sleep) {
-			if ((i == 0) || si_pi->sclk_deep_sleep_above_low) {
+
+	for (i = 0; i < state->performance_level_count; i++)
+	{
+		if (eg_pi->sclk_deep_sleep)
+		{
+			if ((i == 0) || si_pi->sclk_deep_sleep_above_low)
+			{
 				if (sclk_in_sr <= SCLK_MIN_DEEPSLEEP_FREQ)
+				{
 					smc_state->levels[i].stateFlags |= PPSMC_STATEFLAG_DEEPSLEEP_BYPASS;
+				}
 				else
+				{
 					smc_state->levels[i].stateFlags |= PPSMC_STATEFLAG_DEEPSLEEP_THROTTLE;
+				}
 			}
 		}
 
 		ret = si_convert_power_level_to_smc(rdev, &state->performance_levels[i],
-						    &smc_state->levels[i]);
+											&smc_state->levels[i]);
 		smc_state->levels[i].arbRefreshState =
 			(u8)(SISLANDS_DRIVER_STATE_ARB_INDEX + i);
 
 		if (ret)
+		{
 			return ret;
+		}
 
 		if (ni_pi->enable_power_containment)
 			smc_state->levels[i].displayWatermark =
@@ -5290,54 +6158,67 @@ static int si_convert_power_state_to_smc(struct radeon_device *rdev,
 				PPSMC_DISPLAY_WATERMARK_LOW : PPSMC_DISPLAY_WATERMARK_HIGH;
 		else
 			smc_state->levels[i].displayWatermark = (i < 2) ?
-				PPSMC_DISPLAY_WATERMARK_LOW : PPSMC_DISPLAY_WATERMARK_HIGH;
+													PPSMC_DISPLAY_WATERMARK_LOW : PPSMC_DISPLAY_WATERMARK_HIGH;
 
 		if (eg_pi->dynamic_ac_timing)
+		{
 			smc_state->levels[i].ACIndex = SISLANDS_MCREGISTERTABLE_FIRST_DRIVERSTATE_SLOT + i;
+		}
 		else
+		{
 			smc_state->levels[i].ACIndex = 0;
+		}
 
 		smc_state->levelCount++;
 	}
 
 	si_write_smc_soft_register(rdev,
-				   SI_SMC_SOFT_REGISTER_watermark_threshold,
-				   threshold / 512);
+							   SI_SMC_SOFT_REGISTER_watermark_threshold,
+							   threshold / 512);
 
 	si_populate_smc_sp(rdev, radeon_state, smc_state);
 
 	ret = si_populate_power_containment_values(rdev, radeon_state, smc_state);
+
 	if (ret)
+	{
 		ni_pi->enable_power_containment = false;
+	}
 
 	ret = si_populate_sq_ramping_values(rdev, radeon_state, smc_state);
+
 	if (ret)
+	{
 		ni_pi->enable_sq_ramping = false;
+	}
 
 	return si_populate_smc_t(rdev, radeon_state, smc_state);
 }
 
 static int si_upload_sw_state(struct radeon_device *rdev,
-			      struct radeon_ps *radeon_new_state)
+							  struct radeon_ps *radeon_new_state)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	struct ni_ps *new_state = ni_get_ps(radeon_new_state);
 	int ret;
 	u32 address = si_pi->state_table_start +
-		offsetof(SISLANDS_SMC_STATETABLE, driverState);
+				  offsetof(SISLANDS_SMC_STATETABLE, driverState);
 	u32 state_size = sizeof(SISLANDS_SMC_SWSTATE) +
-		((new_state->performance_level_count - 1) *
-		 sizeof(SISLANDS_SMC_HW_PERFORMANCE_LEVEL));
+					 ((new_state->performance_level_count - 1) *
+					  sizeof(SISLANDS_SMC_HW_PERFORMANCE_LEVEL));
 	SISLANDS_SMC_SWSTATE *smc_state = &si_pi->smc_statetable.driverState;
 
 	memset(smc_state, 0, state_size);
 
 	ret = si_convert_power_state_to_smc(rdev, radeon_new_state, smc_state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = si_copy_bytes_to_smc(rdev, address, (u8 *)smc_state,
-				   state_size, si_pi->sram_end);
+							   state_size, si_pi->sram_end);
 
 	return ret;
 }
@@ -5348,18 +6229,20 @@ static int si_upload_ulv_state(struct radeon_device *rdev)
 	struct si_ulv_param *ulv = &si_pi->ulv;
 	int ret = 0;
 
-	if (ulv->supported && ulv->pl.vddc) {
+	if (ulv->supported && ulv->pl.vddc)
+	{
 		u32 address = si_pi->state_table_start +
-			offsetof(SISLANDS_SMC_STATETABLE, ULVState);
+					  offsetof(SISLANDS_SMC_STATETABLE, ULVState);
 		SISLANDS_SMC_SWSTATE *smc_state = &si_pi->smc_statetable.ULVState;
 		u32 state_size = sizeof(SISLANDS_SMC_SWSTATE);
 
 		memset(smc_state, 0, state_size);
 
 		ret = si_populate_ulv_state(rdev, smc_state);
+
 		if (!ret)
 			ret = si_copy_bytes_to_smc(rdev, address, (u8 *)smc_state,
-						   state_size, si_pi->sram_end);
+									   state_size, si_pi->sram_end);
 	}
 
 	return ret;
@@ -5371,101 +6254,149 @@ static int si_upload_smc_data(struct radeon_device *rdev)
 	int i;
 
 	if (rdev->pm.dpm.new_active_crtc_count == 0)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < rdev->num_crtc; i++) {
-		if (rdev->pm.dpm.new_active_crtcs & (1 << i)) {
+	for (i = 0; i < rdev->num_crtc; i++)
+	{
+		if (rdev->pm.dpm.new_active_crtcs & (1 << i))
+		{
 			radeon_crtc = rdev->mode_info.crtcs[i];
 			break;
 		}
 	}
 
 	if (radeon_crtc == NULL)
+	{
 		return 0;
+	}
 
 	if (radeon_crtc->line_time <= 0)
+	{
 		return 0;
+	}
 
 	if (si_write_smc_soft_register(rdev,
-				       SI_SMC_SOFT_REGISTER_crtc_index,
-				       radeon_crtc->crtc_id) != PPSMC_Result_OK)
+								   SI_SMC_SOFT_REGISTER_crtc_index,
+								   radeon_crtc->crtc_id) != PPSMC_Result_OK)
+	{
 		return 0;
+	}
 
 	if (si_write_smc_soft_register(rdev,
-				       SI_SMC_SOFT_REGISTER_mclk_change_block_cp_min,
-				       radeon_crtc->wm_high / radeon_crtc->line_time) != PPSMC_Result_OK)
+								   SI_SMC_SOFT_REGISTER_mclk_change_block_cp_min,
+								   radeon_crtc->wm_high / radeon_crtc->line_time) != PPSMC_Result_OK)
+	{
 		return 0;
+	}
 
 	if (si_write_smc_soft_register(rdev,
-				       SI_SMC_SOFT_REGISTER_mclk_change_block_cp_max,
-				       radeon_crtc->wm_low / radeon_crtc->line_time) != PPSMC_Result_OK)
+								   SI_SMC_SOFT_REGISTER_mclk_change_block_cp_max,
+								   radeon_crtc->wm_low / radeon_crtc->line_time) != PPSMC_Result_OK)
+	{
 		return 0;
+	}
 
 	return 0;
 }
 
 static int si_set_mc_special_registers(struct radeon_device *rdev,
-				       struct si_mc_reg_table *table)
+									   struct si_mc_reg_table *table)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	u8 i, j, k;
 	u32 temp_reg;
 
-	for (i = 0, j = table->last; i < table->last; i++) {
+	for (i = 0, j = table->last; i < table->last; i++)
+	{
 		if (j >= SMC_SISLANDS_MC_REGISTER_ARRAY_SIZE)
+		{
 			return -EINVAL;
-		switch (table->mc_reg_address[i].s1 << 2) {
-		case MC_SEQ_MISC1:
-			temp_reg = RREG32(MC_PMG_CMD_EMRS);
-			table->mc_reg_address[j].s1 = MC_PMG_CMD_EMRS >> 2;
-			table->mc_reg_address[j].s0 = MC_SEQ_PMG_CMD_EMRS_LP >> 2;
-			for (k = 0; k < table->num_entries; k++)
-				table->mc_reg_table_entry[k].mc_data[j] =
-					((temp_reg & 0xffff0000)) |
-					((table->mc_reg_table_entry[k].mc_data[i] & 0xffff0000) >> 16);
-			j++;
-			if (j >= SMC_SISLANDS_MC_REGISTER_ARRAY_SIZE)
-				return -EINVAL;
+		}
 
-			temp_reg = RREG32(MC_PMG_CMD_MRS);
-			table->mc_reg_address[j].s1 = MC_PMG_CMD_MRS >> 2;
-			table->mc_reg_address[j].s0 = MC_SEQ_PMG_CMD_MRS_LP >> 2;
-			for (k = 0; k < table->num_entries; k++) {
-				table->mc_reg_table_entry[k].mc_data[j] =
-					(temp_reg & 0xffff0000) |
-					(table->mc_reg_table_entry[k].mc_data[i] & 0x0000ffff);
-				if (!pi->mem_gddr5)
-					table->mc_reg_table_entry[k].mc_data[j] |= 0x100;
-			}
-			j++;
-			if (j >= SMC_SISLANDS_MC_REGISTER_ARRAY_SIZE)
-				return -EINVAL;
+		switch (table->mc_reg_address[i].s1 << 2)
+		{
+			case MC_SEQ_MISC1:
+				temp_reg = RREG32(MC_PMG_CMD_EMRS);
+				table->mc_reg_address[j].s1 = MC_PMG_CMD_EMRS >> 2;
+				table->mc_reg_address[j].s0 = MC_SEQ_PMG_CMD_EMRS_LP >> 2;
 
-			if (!pi->mem_gddr5) {
-				table->mc_reg_address[j].s1 = MC_PMG_AUTO_CMD >> 2;
-				table->mc_reg_address[j].s0 = MC_PMG_AUTO_CMD >> 2;
 				for (k = 0; k < table->num_entries; k++)
 					table->mc_reg_table_entry[k].mc_data[j] =
-						(table->mc_reg_table_entry[k].mc_data[i] & 0xffff0000) >> 16;
+						((temp_reg & 0xffff0000)) |
+						((table->mc_reg_table_entry[k].mc_data[i] & 0xffff0000) >> 16);
+
 				j++;
+
 				if (j >= SMC_SISLANDS_MC_REGISTER_ARRAY_SIZE)
+				{
 					return -EINVAL;
-			}
-			break;
-		case MC_SEQ_RESERVE_M:
-			temp_reg = RREG32(MC_PMG_CMD_MRS1);
-			table->mc_reg_address[j].s1 = MC_PMG_CMD_MRS1 >> 2;
-			table->mc_reg_address[j].s0 = MC_SEQ_PMG_CMD_MRS1_LP >> 2;
-			for(k = 0; k < table->num_entries; k++)
-				table->mc_reg_table_entry[k].mc_data[j] =
-					(temp_reg & 0xffff0000) |
-					(table->mc_reg_table_entry[k].mc_data[i] & 0x0000ffff);
-			j++;
-			if (j >= SMC_SISLANDS_MC_REGISTER_ARRAY_SIZE)
-				return -EINVAL;
-			break;
-		default:
-			break;
+				}
+
+				temp_reg = RREG32(MC_PMG_CMD_MRS);
+				table->mc_reg_address[j].s1 = MC_PMG_CMD_MRS >> 2;
+				table->mc_reg_address[j].s0 = MC_SEQ_PMG_CMD_MRS_LP >> 2;
+
+				for (k = 0; k < table->num_entries; k++)
+				{
+					table->mc_reg_table_entry[k].mc_data[j] =
+						(temp_reg & 0xffff0000) |
+						(table->mc_reg_table_entry[k].mc_data[i] & 0x0000ffff);
+
+					if (!pi->mem_gddr5)
+					{
+						table->mc_reg_table_entry[k].mc_data[j] |= 0x100;
+					}
+				}
+
+				j++;
+
+				if (j >= SMC_SISLANDS_MC_REGISTER_ARRAY_SIZE)
+				{
+					return -EINVAL;
+				}
+
+				if (!pi->mem_gddr5)
+				{
+					table->mc_reg_address[j].s1 = MC_PMG_AUTO_CMD >> 2;
+					table->mc_reg_address[j].s0 = MC_PMG_AUTO_CMD >> 2;
+
+					for (k = 0; k < table->num_entries; k++)
+						table->mc_reg_table_entry[k].mc_data[j] =
+							(table->mc_reg_table_entry[k].mc_data[i] & 0xffff0000) >> 16;
+
+					j++;
+
+					if (j >= SMC_SISLANDS_MC_REGISTER_ARRAY_SIZE)
+					{
+						return -EINVAL;
+					}
+				}
+
+				break;
+
+			case MC_SEQ_RESERVE_M:
+				temp_reg = RREG32(MC_PMG_CMD_MRS1);
+				table->mc_reg_address[j].s1 = MC_PMG_CMD_MRS1 >> 2;
+				table->mc_reg_address[j].s0 = MC_SEQ_PMG_CMD_MRS1_LP >> 2;
+
+				for (k = 0; k < table->num_entries; k++)
+					table->mc_reg_table_entry[k].mc_data[j] =
+						(temp_reg & 0xffff0000) |
+						(table->mc_reg_table_entry[k].mc_data[i] & 0x0000ffff);
+
+				j++;
+
+				if (j >= SMC_SISLANDS_MC_REGISTER_ARRAY_SIZE)
+				{
+					return -EINVAL;
+				}
+
+				break;
+
+			default:
+				break;
 		}
 	}
 
@@ -5478,52 +6409,67 @@ static bool si_check_s0_mc_reg_index(u16 in_reg, u16 *out_reg)
 {
 	bool result = true;
 
-	switch (in_reg) {
-	case  MC_SEQ_RAS_TIMING >> 2:
-		*out_reg = MC_SEQ_RAS_TIMING_LP >> 2;
-		break;
-	case MC_SEQ_CAS_TIMING >> 2:
-		*out_reg = MC_SEQ_CAS_TIMING_LP >> 2;
-		break;
-	case MC_SEQ_MISC_TIMING >> 2:
-		*out_reg = MC_SEQ_MISC_TIMING_LP >> 2;
-		break;
-	case MC_SEQ_MISC_TIMING2 >> 2:
-		*out_reg = MC_SEQ_MISC_TIMING2_LP >> 2;
-		break;
-	case MC_SEQ_RD_CTL_D0 >> 2:
-		*out_reg = MC_SEQ_RD_CTL_D0_LP >> 2;
-		break;
-	case MC_SEQ_RD_CTL_D1 >> 2:
-		*out_reg = MC_SEQ_RD_CTL_D1_LP >> 2;
-		break;
-	case MC_SEQ_WR_CTL_D0 >> 2:
-		*out_reg = MC_SEQ_WR_CTL_D0_LP >> 2;
-		break;
-	case MC_SEQ_WR_CTL_D1 >> 2:
-		*out_reg = MC_SEQ_WR_CTL_D1_LP >> 2;
-		break;
-	case MC_PMG_CMD_EMRS >> 2:
-		*out_reg = MC_SEQ_PMG_CMD_EMRS_LP >> 2;
-		break;
-	case MC_PMG_CMD_MRS >> 2:
-		*out_reg = MC_SEQ_PMG_CMD_MRS_LP >> 2;
-		break;
-	case MC_PMG_CMD_MRS1 >> 2:
-		*out_reg = MC_SEQ_PMG_CMD_MRS1_LP >> 2;
-		break;
-	case MC_SEQ_PMG_TIMING >> 2:
-		*out_reg = MC_SEQ_PMG_TIMING_LP >> 2;
-		break;
-	case MC_PMG_CMD_MRS2 >> 2:
-		*out_reg = MC_SEQ_PMG_CMD_MRS2_LP >> 2;
-		break;
-	case MC_SEQ_WR_CTL_2 >> 2:
-		*out_reg = MC_SEQ_WR_CTL_2_LP >> 2;
-		break;
-	default:
-		result = false;
-		break;
+	switch (in_reg)
+	{
+		case  MC_SEQ_RAS_TIMING >> 2:
+			*out_reg = MC_SEQ_RAS_TIMING_LP >> 2;
+			break;
+
+		case MC_SEQ_CAS_TIMING >> 2:
+			*out_reg = MC_SEQ_CAS_TIMING_LP >> 2;
+			break;
+
+		case MC_SEQ_MISC_TIMING >> 2:
+			*out_reg = MC_SEQ_MISC_TIMING_LP >> 2;
+			break;
+
+		case MC_SEQ_MISC_TIMING2 >> 2:
+			*out_reg = MC_SEQ_MISC_TIMING2_LP >> 2;
+			break;
+
+		case MC_SEQ_RD_CTL_D0 >> 2:
+			*out_reg = MC_SEQ_RD_CTL_D0_LP >> 2;
+			break;
+
+		case MC_SEQ_RD_CTL_D1 >> 2:
+			*out_reg = MC_SEQ_RD_CTL_D1_LP >> 2;
+			break;
+
+		case MC_SEQ_WR_CTL_D0 >> 2:
+			*out_reg = MC_SEQ_WR_CTL_D0_LP >> 2;
+			break;
+
+		case MC_SEQ_WR_CTL_D1 >> 2:
+			*out_reg = MC_SEQ_WR_CTL_D1_LP >> 2;
+			break;
+
+		case MC_PMG_CMD_EMRS >> 2:
+			*out_reg = MC_SEQ_PMG_CMD_EMRS_LP >> 2;
+			break;
+
+		case MC_PMG_CMD_MRS >> 2:
+			*out_reg = MC_SEQ_PMG_CMD_MRS_LP >> 2;
+			break;
+
+		case MC_PMG_CMD_MRS1 >> 2:
+			*out_reg = MC_SEQ_PMG_CMD_MRS1_LP >> 2;
+			break;
+
+		case MC_SEQ_PMG_TIMING >> 2:
+			*out_reg = MC_SEQ_PMG_TIMING_LP >> 2;
+			break;
+
+		case MC_PMG_CMD_MRS2 >> 2:
+			*out_reg = MC_SEQ_PMG_CMD_MRS2_LP >> 2;
+			break;
+
+		case MC_SEQ_WR_CTL_2 >> 2:
+			*out_reg = MC_SEQ_WR_CTL_2_LP >> 2;
+			break;
+
+		default:
+			result = false;
+			break;
 	}
 
 	return result;
@@ -5533,9 +6479,12 @@ static void si_set_valid_flag(struct si_mc_reg_table *table)
 {
 	u8 i, j;
 
-	for (i = 0; i < table->last; i++) {
-		for (j = 1; j < table->num_entries; j++) {
-			if (table->mc_reg_table_entry[j-1].mc_data[i] != table->mc_reg_table_entry[j].mc_data[i]) {
+	for (i = 0; i < table->last; i++)
+	{
+		for (j = 1; j < table->num_entries; j++)
+		{
+			if (table->mc_reg_table_entry[j - 1].mc_data[i] != table->mc_reg_table_entry[j].mc_data[i])
+			{
 				table->valid_flag |= 1 << i;
 				break;
 			}
@@ -5550,32 +6499,44 @@ static void si_set_s0_mc_reg_index(struct si_mc_reg_table *table)
 
 	for (i = 0; i < table->last; i++)
 		table->mc_reg_address[i].s0 = si_check_s0_mc_reg_index(table->mc_reg_address[i].s1, &address) ?
-			address : table->mc_reg_address[i].s1;
+									  address : table->mc_reg_address[i].s1;
 
 }
 
 static int si_copy_vbios_mc_reg_table(struct atom_mc_reg_table *table,
-				      struct si_mc_reg_table *si_table)
+									  struct si_mc_reg_table *si_table)
 {
 	u8 i, j;
 
 	if (table->last > SMC_SISLANDS_MC_REGISTER_ARRAY_SIZE)
+	{
 		return -EINVAL;
+	}
+
 	if (table->num_entries > MAX_AC_TIMING_ENTRIES)
+	{
 		return -EINVAL;
+	}
 
 	for (i = 0; i < table->last; i++)
+	{
 		si_table->mc_reg_address[i].s1 = table->mc_reg_address[i].s1;
+	}
+
 	si_table->last = table->last;
 
-	for (i = 0; i < table->num_entries; i++) {
+	for (i = 0; i < table->num_entries; i++)
+	{
 		si_table->mc_reg_table_entry[i].mclk_max =
 			table->mc_reg_table_entry[i].mclk_max;
-		for (j = 0; j < table->last; j++) {
+
+		for (j = 0; j < table->last; j++)
+		{
 			si_table->mc_reg_table_entry[i].mc_data[j] =
 				table->mc_reg_table_entry[i].mc_data[j];
 		}
 	}
+
 	si_table->num_entries = table->num_entries;
 
 	return 0;
@@ -5590,8 +6551,11 @@ static int si_initialize_mc_reg_table(struct radeon_device *rdev)
 	int ret;
 
 	table = kzalloc(sizeof(struct atom_mc_reg_table), GFP_KERNEL);
+
 	if (!table)
+	{
 		return -ENOMEM;
+	}
 
 	WREG32(MC_SEQ_RAS_TIMING_LP, RREG32(MC_SEQ_RAS_TIMING));
 	WREG32(MC_SEQ_CAS_TIMING_LP, RREG32(MC_SEQ_CAS_TIMING));
@@ -5609,18 +6573,27 @@ static int si_initialize_mc_reg_table(struct radeon_device *rdev)
 	WREG32(MC_SEQ_WR_CTL_2_LP, RREG32(MC_SEQ_WR_CTL_2));
 
 	ret = radeon_atom_init_mc_reg_table(rdev, module_index, table);
+
 	if (ret)
+	{
 		goto init_mc_done;
+	}
 
 	ret = si_copy_vbios_mc_reg_table(table, si_table);
+
 	if (ret)
+	{
 		goto init_mc_done;
+	}
 
 	si_set_s0_mc_reg_index(si_table);
 
 	ret = si_set_mc_special_registers(rdev, si_table);
+
 	if (ret)
+	{
 		goto init_mc_done;
+	}
 
 	si_set_valid_flag(si_table);
 
@@ -5632,15 +6605,20 @@ init_mc_done:
 }
 
 static void si_populate_mc_reg_addresses(struct radeon_device *rdev,
-					 SMC_SIslands_MCRegisters *mc_reg_table)
+		SMC_SIslands_MCRegisters *mc_reg_table)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	u32 i, j;
 
-	for (i = 0, j = 0; j < si_pi->mc_reg_table.last; j++) {
-		if (si_pi->mc_reg_table.valid_flag & (1 << j)) {
+	for (i = 0, j = 0; j < si_pi->mc_reg_table.last; j++)
+	{
+		if (si_pi->mc_reg_table.valid_flag & (1 << j))
+		{
 			if (i >= SMC_SISLANDS_MC_REGISTER_ARRAY_SIZE)
+			{
 				break;
+			}
+
 			mc_reg_table->address[i].s0 =
 				cpu_to_be16(si_pi->mc_reg_table.mc_reg_address[j].s0);
 			mc_reg_table->address[i].s1 =
@@ -5648,17 +6626,20 @@ static void si_populate_mc_reg_addresses(struct radeon_device *rdev,
 			i++;
 		}
 	}
+
 	mc_reg_table->last = (u8)i;
 }
 
 static void si_convert_mc_registers(const struct si_mc_reg_entry *entry,
-				    SMC_SIslands_MCRegisterSet *data,
-				    u32 num_entries, u32 valid_flag)
+									SMC_SIslands_MCRegisterSet *data,
+									u32 num_entries, u32 valid_flag)
 {
 	u32 i, j;
 
-	for(i = 0, j = 0; j < num_entries; j++) {
-		if (valid_flag & (1 << j)) {
+	for (i = 0, j = 0; j < num_entries; j++)
+	{
+		if (valid_flag & (1 << j))
+		{
 			data->value[i] = cpu_to_be32(entry->mc_data[j]);
 			i++;
 		}
@@ -5666,41 +6647,47 @@ static void si_convert_mc_registers(const struct si_mc_reg_entry *entry,
 }
 
 static void si_convert_mc_reg_table_entry_to_smc(struct radeon_device *rdev,
-						 struct rv7xx_pl *pl,
-						 SMC_SIslands_MCRegisterSet *mc_reg_table_data)
+		struct rv7xx_pl *pl,
+		SMC_SIslands_MCRegisterSet *mc_reg_table_data)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	u32 i = 0;
 
-	for (i = 0; i < si_pi->mc_reg_table.num_entries; i++) {
+	for (i = 0; i < si_pi->mc_reg_table.num_entries; i++)
+	{
 		if (pl->mclk <= si_pi->mc_reg_table.mc_reg_table_entry[i].mclk_max)
+		{
 			break;
+		}
 	}
 
 	if ((i == si_pi->mc_reg_table.num_entries) && (i > 0))
+	{
 		--i;
+	}
 
 	si_convert_mc_registers(&si_pi->mc_reg_table.mc_reg_table_entry[i],
-				mc_reg_table_data, si_pi->mc_reg_table.last,
-				si_pi->mc_reg_table.valid_flag);
+							mc_reg_table_data, si_pi->mc_reg_table.last,
+							si_pi->mc_reg_table.valid_flag);
 }
 
 static void si_convert_mc_reg_table_to_smc(struct radeon_device *rdev,
-					   struct radeon_ps *radeon_state,
-					   SMC_SIslands_MCRegisters *mc_reg_table)
+		struct radeon_ps *radeon_state,
+		SMC_SIslands_MCRegisters *mc_reg_table)
 {
 	struct ni_ps *state = ni_get_ps(radeon_state);
 	int i;
 
-	for (i = 0; i < state->performance_level_count; i++) {
+	for (i = 0; i < state->performance_level_count; i++)
+	{
 		si_convert_mc_reg_table_entry_to_smc(rdev,
-						     &state->performance_levels[i],
-						     &mc_reg_table->data[SISLANDS_MCREGISTERTABLE_FIRST_DRIVERSTATE_SLOT + i]);
+											 &state->performance_levels[i],
+											 &mc_reg_table->data[SISLANDS_MCREGISTERTABLE_FIRST_DRIVERSTATE_SLOT + i]);
 	}
 }
 
 static int si_populate_mc_reg_table(struct radeon_device *rdev,
-				    struct radeon_ps *radeon_boot_state)
+									struct radeon_ps *radeon_boot_state)
 {
 	struct ni_ps *boot_state = ni_get_ps(radeon_boot_state);
 	struct si_power_info *si_pi = si_get_pi(rdev);
@@ -5714,37 +6701,37 @@ static int si_populate_mc_reg_table(struct radeon_device *rdev,
 	si_populate_mc_reg_addresses(rdev, smc_mc_reg_table);
 
 	si_convert_mc_reg_table_entry_to_smc(rdev, &boot_state->performance_levels[0],
-					     &smc_mc_reg_table->data[SISLANDS_MCREGISTERTABLE_INITIAL_SLOT]);
+										 &smc_mc_reg_table->data[SISLANDS_MCREGISTERTABLE_INITIAL_SLOT]);
 
 	si_convert_mc_registers(&si_pi->mc_reg_table.mc_reg_table_entry[0],
-				&smc_mc_reg_table->data[SISLANDS_MCREGISTERTABLE_ACPI_SLOT],
-				si_pi->mc_reg_table.last,
-				si_pi->mc_reg_table.valid_flag);
+							&smc_mc_reg_table->data[SISLANDS_MCREGISTERTABLE_ACPI_SLOT],
+							si_pi->mc_reg_table.last,
+							si_pi->mc_reg_table.valid_flag);
 
 	if (ulv->supported && ulv->pl.vddc != 0)
 		si_convert_mc_reg_table_entry_to_smc(rdev, &ulv->pl,
-						     &smc_mc_reg_table->data[SISLANDS_MCREGISTERTABLE_ULV_SLOT]);
+											 &smc_mc_reg_table->data[SISLANDS_MCREGISTERTABLE_ULV_SLOT]);
 	else
 		si_convert_mc_registers(&si_pi->mc_reg_table.mc_reg_table_entry[0],
-					&smc_mc_reg_table->data[SISLANDS_MCREGISTERTABLE_ULV_SLOT],
-					si_pi->mc_reg_table.last,
-					si_pi->mc_reg_table.valid_flag);
+								&smc_mc_reg_table->data[SISLANDS_MCREGISTERTABLE_ULV_SLOT],
+								si_pi->mc_reg_table.last,
+								si_pi->mc_reg_table.valid_flag);
 
 	si_convert_mc_reg_table_to_smc(rdev, radeon_boot_state, smc_mc_reg_table);
 
 	return si_copy_bytes_to_smc(rdev, si_pi->mc_reg_table_start,
-				    (u8 *)smc_mc_reg_table,
-				    sizeof(SMC_SIslands_MCRegisters), si_pi->sram_end);
+								(u8 *)smc_mc_reg_table,
+								sizeof(SMC_SIslands_MCRegisters), si_pi->sram_end);
 }
 
 static int si_upload_mc_reg_table(struct radeon_device *rdev,
-				  struct radeon_ps *radeon_new_state)
+								  struct radeon_ps *radeon_new_state)
 {
 	struct ni_ps *new_state = ni_get_ps(radeon_new_state);
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	u32 address = si_pi->mc_reg_table_start +
-		offsetof(SMC_SIslands_MCRegisters,
-			 data[SISLANDS_MCREGISTERTABLE_FIRST_DRIVERSTATE_SLOT]);
+				  offsetof(SMC_SIslands_MCRegisters,
+						   data[SISLANDS_MCREGISTERTABLE_FIRST_DRIVERSTATE_SLOT]);
 	SMC_SIslands_MCRegisters *smc_mc_reg_table = &si_pi->smc_mc_reg_table;
 
 	memset(smc_mc_reg_table, 0, sizeof(SMC_SIslands_MCRegisters));
@@ -5753,32 +6740,41 @@ static int si_upload_mc_reg_table(struct radeon_device *rdev,
 
 
 	return si_copy_bytes_to_smc(rdev, address,
-				    (u8 *)&smc_mc_reg_table->data[SISLANDS_MCREGISTERTABLE_FIRST_DRIVERSTATE_SLOT],
-				    sizeof(SMC_SIslands_MCRegisterSet) * new_state->performance_level_count,
-				    si_pi->sram_end);
+								(u8 *)&smc_mc_reg_table->data[SISLANDS_MCREGISTERTABLE_FIRST_DRIVERSTATE_SLOT],
+								sizeof(SMC_SIslands_MCRegisterSet) * new_state->performance_level_count,
+								si_pi->sram_end);
 
 }
 
 static void si_enable_voltage_control(struct radeon_device *rdev, bool enable)
 {
 	if (enable)
+	{
 		WREG32_P(GENERAL_PWRMGT, VOLT_PWRMGT_EN, ~VOLT_PWRMGT_EN);
+	}
 	else
+	{
 		WREG32_P(GENERAL_PWRMGT, 0, ~VOLT_PWRMGT_EN);
+	}
 }
 
 static enum radeon_pcie_gen si_get_maximum_link_speed(struct radeon_device *rdev,
-						      struct radeon_ps *radeon_state)
+		struct radeon_ps *radeon_state)
 {
 	struct ni_ps *state = ni_get_ps(radeon_state);
 	int i;
 	u16 pcie_speed, max_speed = 0;
 
-	for (i = 0; i < state->performance_level_count; i++) {
+	for (i = 0; i < state->performance_level_count; i++)
+	{
 		pcie_speed = state->performance_levels[i].pcie_gen;
+
 		if (max_speed < pcie_speed)
+		{
 			max_speed = pcie_speed;
+		}
 	}
+
 	return max_speed;
 }
 
@@ -5793,62 +6789,94 @@ static u16 si_get_current_pcie_speed(struct radeon_device *rdev)
 }
 
 static void si_request_link_speed_change_before_state_change(struct radeon_device *rdev,
-							     struct radeon_ps *radeon_new_state,
-							     struct radeon_ps *radeon_current_state)
+		struct radeon_ps *radeon_new_state,
+		struct radeon_ps *radeon_current_state)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	enum radeon_pcie_gen target_link_speed = si_get_maximum_link_speed(rdev, radeon_new_state);
 	enum radeon_pcie_gen current_link_speed;
 
 	if (si_pi->force_pcie_gen == RADEON_PCIE_GEN_INVALID)
+	{
 		current_link_speed = si_get_maximum_link_speed(rdev, radeon_current_state);
+	}
 	else
+	{
 		current_link_speed = si_pi->force_pcie_gen;
+	}
 
 	si_pi->force_pcie_gen = RADEON_PCIE_GEN_INVALID;
 	si_pi->pspp_notify_required = false;
-	if (target_link_speed > current_link_speed) {
-		switch (target_link_speed) {
+
+	if (target_link_speed > current_link_speed)
+	{
+		switch (target_link_speed)
+		{
 #if defined(CONFIG_ACPI)
-		case RADEON_PCIE_GEN3:
-			if (radeon_acpi_pcie_performance_request(rdev, PCIE_PERF_REQ_PECI_GEN3, false) == 0)
-				break;
-			si_pi->force_pcie_gen = RADEON_PCIE_GEN2;
-			if (current_link_speed == RADEON_PCIE_GEN2)
-				break;
-		case RADEON_PCIE_GEN2:
-			if (radeon_acpi_pcie_performance_request(rdev, PCIE_PERF_REQ_PECI_GEN2, false) == 0)
-				break;
+
+			case RADEON_PCIE_GEN3:
+				if (radeon_acpi_pcie_performance_request(rdev, PCIE_PERF_REQ_PECI_GEN3, false) == 0)
+				{
+					break;
+				}
+
+				si_pi->force_pcie_gen = RADEON_PCIE_GEN2;
+
+				if (current_link_speed == RADEON_PCIE_GEN2)
+				{
+					break;
+				}
+
+			case RADEON_PCIE_GEN2:
+				if (radeon_acpi_pcie_performance_request(rdev, PCIE_PERF_REQ_PECI_GEN2, false) == 0)
+				{
+					break;
+				}
+
 #endif
-		default:
-			si_pi->force_pcie_gen = si_get_current_pcie_speed(rdev);
-			break;
+
+			default:
+				si_pi->force_pcie_gen = si_get_current_pcie_speed(rdev);
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		if (target_link_speed < current_link_speed)
+		{
 			si_pi->pspp_notify_required = true;
+		}
 	}
 }
 
 static void si_notify_link_speed_change_after_state_change(struct radeon_device *rdev,
-							   struct radeon_ps *radeon_new_state,
-							   struct radeon_ps *radeon_current_state)
+		struct radeon_ps *radeon_new_state,
+		struct radeon_ps *radeon_current_state)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	enum radeon_pcie_gen target_link_speed = si_get_maximum_link_speed(rdev, radeon_new_state);
 	u8 request;
 
-	if (si_pi->pspp_notify_required) {
+	if (si_pi->pspp_notify_required)
+	{
 		if (target_link_speed == RADEON_PCIE_GEN3)
+		{
 			request = PCIE_PERF_REQ_PECI_GEN3;
+		}
 		else if (target_link_speed == RADEON_PCIE_GEN2)
+		{
 			request = PCIE_PERF_REQ_PECI_GEN2;
+		}
 		else
+		{
 			request = PCIE_PERF_REQ_PECI_GEN1;
+		}
 
 		if ((request == PCIE_PERF_REQ_PECI_GEN1) &&
-		    (si_get_current_pcie_speed(rdev) > 0))
+			(si_get_current_pcie_speed(rdev) > 0))
+		{
 			return;
+		}
 
 #if defined(CONFIG_ACPI)
 		radeon_acpi_pcie_performance_request(rdev, request, false);
@@ -5858,19 +6886,21 @@ static void si_notify_link_speed_change_after_state_change(struct radeon_device 
 
 #if 0
 static int si_ds_request(struct radeon_device *rdev,
-			 bool ds_status_on, u32 count_write)
+						 bool ds_status_on, u32 count_write)
 {
 	struct evergreen_power_info *eg_pi = evergreen_get_pi(rdev);
 
-	if (eg_pi->sclk_deep_sleep) {
+	if (eg_pi->sclk_deep_sleep)
+	{
 		if (ds_status_on)
 			return (si_send_msg_to_smc(rdev, PPSMC_MSG_CancelThrottleOVRDSCLKDS) ==
-				PPSMC_Result_OK) ?
-				0 : -EINVAL;
+					PPSMC_Result_OK) ?
+				   0 : -EINVAL;
 		else
 			return (si_send_msg_to_smc(rdev, PPSMC_MSG_ThrottleOVRDSCLKDS) ==
-				PPSMC_Result_OK) ? 0 : -EINVAL;
+					PPSMC_Result_OK) ? 0 : -EINVAL;
 	}
+
 	return 0;
 }
 #endif
@@ -5879,71 +6909,86 @@ static void si_set_max_cu_value(struct radeon_device *rdev)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 
-	if (rdev->family == CHIP_VERDE) {
-		switch (rdev->pdev->device) {
-		case 0x6820:
-		case 0x6825:
-		case 0x6821:
-		case 0x6823:
-		case 0x6827:
-			si_pi->max_cu = 10;
-			break;
-		case 0x682D:
-		case 0x6824:
-		case 0x682F:
-		case 0x6826:
-			si_pi->max_cu = 8;
-			break;
-		case 0x6828:
-		case 0x6830:
-		case 0x6831:
-		case 0x6838:
-		case 0x6839:
-		case 0x683D:
-			si_pi->max_cu = 10;
-			break;
-		case 0x683B:
-		case 0x683F:
-		case 0x6829:
-			si_pi->max_cu = 8;
-			break;
-		default:
-			si_pi->max_cu = 0;
-			break;
+	if (rdev->family == CHIP_VERDE)
+	{
+		switch (rdev->pdev->device)
+		{
+			case 0x6820:
+			case 0x6825:
+			case 0x6821:
+			case 0x6823:
+			case 0x6827:
+				si_pi->max_cu = 10;
+				break;
+
+			case 0x682D:
+			case 0x6824:
+			case 0x682F:
+			case 0x6826:
+				si_pi->max_cu = 8;
+				break;
+
+			case 0x6828:
+			case 0x6830:
+			case 0x6831:
+			case 0x6838:
+			case 0x6839:
+			case 0x683D:
+				si_pi->max_cu = 10;
+				break;
+
+			case 0x683B:
+			case 0x683F:
+			case 0x6829:
+				si_pi->max_cu = 8;
+				break;
+
+			default:
+				si_pi->max_cu = 0;
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		si_pi->max_cu = 0;
 	}
 }
 
 static int si_patch_single_dependency_table_based_on_leakage(struct radeon_device *rdev,
-							     struct radeon_clock_voltage_dependency_table *table)
+		struct radeon_clock_voltage_dependency_table *table)
 {
 	u32 i;
 	int j;
 	u16 leakage_voltage;
 
-	if (table) {
-		for (i = 0; i < table->count; i++) {
+	if (table)
+	{
+		for (i = 0; i < table->count; i++)
+		{
 			switch (si_get_leakage_voltage_from_leakage_index(rdev,
-									  table->entries[i].v,
-									  &leakage_voltage)) {
-			case 0:
-				table->entries[i].v = leakage_voltage;
-				break;
-			case -EAGAIN:
-				return -EINVAL;
-			case -EINVAL:
-			default:
-				break;
+					table->entries[i].v,
+					&leakage_voltage))
+			{
+				case 0:
+					table->entries[i].v = leakage_voltage;
+					break;
+
+				case -EAGAIN:
+					return -EINVAL;
+
+				case -EINVAL:
+				default:
+					break;
 			}
 		}
 
-		for (j = (table->count - 2); j >= 0; j--) {
+		for (j = (table->count - 2); j >= 0; j--)
+		{
 			table->entries[j].v = (table->entries[j].v <= table->entries[j + 1].v) ?
-				table->entries[j].v : table->entries[j + 1].v;
+								  table->entries[j].v : table->entries[j + 1].v;
 		}
 	}
+
 	return 0;
 }
 
@@ -5952,17 +6997,17 @@ static int si_patch_dependency_tables_based_on_leakage(struct radeon_device *rde
 	int ret = 0;
 
 	ret = si_patch_single_dependency_table_based_on_leakage(rdev,
-								&rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk);
+			&rdev->pm.dpm.dyn_state.vddc_dependency_on_sclk);
 	ret = si_patch_single_dependency_table_based_on_leakage(rdev,
-								&rdev->pm.dpm.dyn_state.vddc_dependency_on_mclk);
+			&rdev->pm.dpm.dyn_state.vddc_dependency_on_mclk);
 	ret = si_patch_single_dependency_table_based_on_leakage(rdev,
-								&rdev->pm.dpm.dyn_state.vddci_dependency_on_mclk);
+			&rdev->pm.dpm.dyn_state.vddci_dependency_on_mclk);
 	return ret;
 }
 
 static void si_set_pcie_lane_width_in_smc(struct radeon_device *rdev,
-					  struct radeon_ps *radeon_new_state,
-					  struct radeon_ps *radeon_current_state)
+		struct radeon_ps *radeon_new_state,
+		struct radeon_ps *radeon_current_state)
 {
 	u32 lane_width;
 	u32 new_lane_width =
@@ -5970,7 +7015,8 @@ static void si_set_pcie_lane_width_in_smc(struct radeon_device *rdev,
 	u32 current_lane_width =
 		(radeon_current_state->caps & ATOM_PPLIB_PCIE_LINK_WIDTH_MASK) >> ATOM_PPLIB_PCIE_LINK_WIDTH_SHIFT;
 
-	if (new_lane_width != current_lane_width) {
+	if (new_lane_width != current_lane_width)
+	{
 		radeon_set_pcie_lanes(rdev, new_lane_width);
 		lane_width = radeon_get_pcie_lanes(rdev);
 		si_write_smc_soft_register(rdev, SI_SMC_SOFT_REGISTER_non_ulv_pcie_link_width, lane_width);
@@ -5978,16 +7024,22 @@ static void si_set_pcie_lane_width_in_smc(struct radeon_device *rdev,
 }
 
 static void si_set_vce_clock(struct radeon_device *rdev,
-			     struct radeon_ps *new_rps,
-			     struct radeon_ps *old_rps)
+							 struct radeon_ps *new_rps,
+							 struct radeon_ps *old_rps)
 {
 	if ((old_rps->evclk != new_rps->evclk) ||
-	    (old_rps->ecclk != new_rps->ecclk)) {
+		(old_rps->ecclk != new_rps->ecclk))
+	{
 		/* turn the clocks on when encoding, off otherwise */
 		if (new_rps->evclk || new_rps->ecclk)
+		{
 			vce_v1_0_enable_mgcg(rdev, false);
+		}
 		else
+		{
 			vce_v1_0_enable_mgcg(rdev, true);
+		}
+
 		radeon_set_vce_clocks(rdev, new_rps->evclk, new_rps->ecclk);
 	}
 }
@@ -5997,30 +7049,39 @@ void si_dpm_setup_asic(struct radeon_device *rdev)
 	int r;
 
 	r = si_mc_load_microcode(rdev);
+
 	if (r)
+	{
 		DRM_ERROR("Failed to load MC firmware!\n");
+	}
+
 	rv770_get_memory_type(rdev);
 	si_read_clock_registers(rdev);
 	si_enable_acpi_power_management(rdev);
 }
 
 static int si_thermal_enable_alert(struct radeon_device *rdev,
-				   bool enable)
+								   bool enable)
 {
 	u32 thermal_int = RREG32(CG_THERMAL_INT);
 
-	if (enable) {
+	if (enable)
+	{
 		PPSMC_Result result;
 
 		thermal_int &= ~(THERM_INT_MASK_HIGH | THERM_INT_MASK_LOW);
 		WREG32(CG_THERMAL_INT, thermal_int);
 		rdev->irq.dpm_thermal = false;
 		result = si_send_msg_to_smc(rdev, PPSMC_MSG_EnableThermalInterrupt);
-		if (result != PPSMC_Result_OK) {
+
+		if (result != PPSMC_Result_OK)
+		{
 			DRM_DEBUG_KMS("Could not enable thermal interrupts.\n");
 			return -EINVAL;
 		}
-	} else {
+	}
+	else
+	{
 		thermal_int |= THERM_INT_MASK_HIGH | THERM_INT_MASK_LOW;
 		WREG32(CG_THERMAL_INT, thermal_int);
 		rdev->irq.dpm_thermal = true;
@@ -6030,16 +7091,23 @@ static int si_thermal_enable_alert(struct radeon_device *rdev,
 }
 
 static int si_thermal_set_temperature_range(struct radeon_device *rdev,
-					    int min_temp, int max_temp)
+		int min_temp, int max_temp)
 {
 	int low_temp = 0 * 1000;
 	int high_temp = 255 * 1000;
 
 	if (low_temp < min_temp)
+	{
 		low_temp = min_temp;
+	}
+
 	if (high_temp > max_temp)
+	{
 		high_temp = max_temp;
-	if (high_temp < low_temp) {
+	}
+
+	if (high_temp < low_temp)
+	{
 		DRM_ERROR("invalid thermal range: %d - %d\n", low_temp, high_temp);
 		return -EINVAL;
 	}
@@ -6059,7 +7127,8 @@ static void si_fan_ctrl_set_static_mode(struct radeon_device *rdev, u32 mode)
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	u32 tmp;
 
-	if (si_pi->fan_ctrl_is_in_default_mode) {
+	if (si_pi->fan_ctrl_is_in_default_mode)
+	{
 		tmp = (RREG32(CG_FDO_CTRL2) & FDO_PWM_MODE_MASK) >> FDO_PWM_MODE_SHIFT;
 		si_pi->fan_ctrl_default_mode = tmp;
 		tmp = (RREG32(CG_FDO_CTRL2) & TMIN_MASK) >> TMIN_SHIFT;
@@ -6087,14 +7156,16 @@ static int si_thermal_setup_fan_table(struct radeon_device *rdev)
 	int ret;
 	u64 tmp64;
 
-	if (!si_pi->fan_table_start) {
+	if (!si_pi->fan_table_start)
+	{
 		rdev->pm.dpm.fan.ucode_fan_control = false;
 		return 0;
 	}
 
 	duty100 = (RREG32(CG_FDO_CTRL1) & FMAX_DUTY100_MASK) >> FMAX_DUTY100_SHIFT;
 
-	if (duty100 == 0) {
+	if (duty100 == 0)
+	{
 		rdev->pm.dpm.fan.ucode_fan_control = false;
 		return 0;
 	}
@@ -6132,7 +7203,7 @@ static int si_thermal_setup_fan_table(struct radeon_device *rdev)
 	reference_clock = radeon_get_xclk(rdev);
 
 	fan_table.refresh_period = cpu_to_be32((rdev->pm.dpm.fan.cycle_delay *
-						reference_clock) / 1600);
+											reference_clock) / 1600);
 
 	fan_table.fdo_max = cpu_to_be16((u16)duty100);
 
@@ -6140,12 +7211,13 @@ static int si_thermal_setup_fan_table(struct radeon_device *rdev)
 	fan_table.temp_src = (uint8_t)tmp;
 
 	ret = si_copy_bytes_to_smc(rdev,
-				   si_pi->fan_table_start,
-				   (u8 *)(&fan_table),
-				   sizeof(fan_table),
-				   si_pi->sram_end);
+							   si_pi->fan_table_start,
+							   (u8 *)(&fan_table),
+							   sizeof(fan_table),
+							   si_pi->sram_end);
 
-	if (ret) {
+	if (ret)
+	{
 		DRM_ERROR("Failed to load fan table to the SMC.");
 		rdev->pm.dpm.fan.ucode_fan_control = false;
 	}
@@ -6159,10 +7231,14 @@ static int si_fan_ctrl_start_smc_fan_control(struct radeon_device *rdev)
 	PPSMC_Result ret;
 
 	ret = si_send_msg_to_smc(rdev, PPSMC_StartFanControl);
-	if (ret == PPSMC_Result_OK) {
+
+	if (ret == PPSMC_Result_OK)
+	{
 		si_pi->fan_is_controlled_by_smc = true;
 		return 0;
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 }
@@ -6174,41 +7250,50 @@ static int si_fan_ctrl_stop_smc_fan_control(struct radeon_device *rdev)
 
 	ret = si_send_msg_to_smc(rdev, PPSMC_StopFanControl);
 
-	if (ret == PPSMC_Result_OK) {
+	if (ret == PPSMC_Result_OK)
+	{
 		si_pi->fan_is_controlled_by_smc = false;
 		return 0;
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 }
 
 int si_fan_ctrl_get_fan_speed_percent(struct radeon_device *rdev,
-				      u32 *speed)
+									  u32 *speed)
 {
 	u32 duty, duty100;
 	u64 tmp64;
 
 	if (rdev->pm.no_fan)
+	{
 		return -ENOENT;
+	}
 
 	duty100 = (RREG32(CG_FDO_CTRL1) & FMAX_DUTY100_MASK) >> FMAX_DUTY100_SHIFT;
 	duty = (RREG32(CG_THERMAL_STATUS) & FDO_PWM_DUTY_MASK) >> FDO_PWM_DUTY_SHIFT;
 
 	if (duty100 == 0)
+	{
 		return -EINVAL;
+	}
 
 	tmp64 = (u64)duty * 100;
 	do_div(tmp64, duty100);
 	*speed = (u32)tmp64;
 
 	if (*speed > 100)
+	{
 		*speed = 100;
+	}
 
 	return 0;
 }
 
 int si_fan_ctrl_set_fan_speed_percent(struct radeon_device *rdev,
-				      u32 speed)
+									  u32 speed)
 {
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	u32 tmp;
@@ -6216,18 +7301,26 @@ int si_fan_ctrl_set_fan_speed_percent(struct radeon_device *rdev,
 	u64 tmp64;
 
 	if (rdev->pm.no_fan)
+	{
 		return -ENOENT;
+	}
 
 	if (si_pi->fan_is_controlled_by_smc)
+	{
 		return -EINVAL;
+	}
 
 	if (speed > 100)
+	{
 		return -EINVAL;
+	}
 
 	duty100 = (RREG32(CG_FDO_CTRL1) & FMAX_DUTY100_MASK) >> FMAX_DUTY100_SHIFT;
 
 	if (duty100 == 0)
+	{
 		return -EINVAL;
+	}
 
 	tmp64 = (u64)speed * duty100;
 	do_div(tmp64, 100);
@@ -6242,17 +7335,27 @@ int si_fan_ctrl_set_fan_speed_percent(struct radeon_device *rdev,
 
 void si_fan_ctrl_set_mode(struct radeon_device *rdev, u32 mode)
 {
-	if (mode) {
+	if (mode)
+	{
 		/* stop auto-manage */
 		if (rdev->pm.dpm.fan.ucode_fan_control)
+		{
 			si_fan_ctrl_stop_smc_fan_control(rdev);
+		}
+
 		si_fan_ctrl_set_static_mode(rdev, mode);
-	} else {
+	}
+	else
+	{
 		/* restart auto-manage */
 		if (rdev->pm.dpm.fan.ucode_fan_control)
+		{
 			si_thermal_start_smc_fan_control(rdev);
+		}
 		else
+		{
 			si_fan_ctrl_set_default_mode(rdev);
+		}
 	}
 }
 
@@ -6262,7 +7365,9 @@ u32 si_fan_ctrl_get_mode(struct radeon_device *rdev)
 	u32 tmp;
 
 	if (si_pi->fan_is_controlled_by_smc)
+	{
 		return 0;
+	}
 
 	tmp = RREG32(CG_FDO_CTRL2) & FDO_PWM_MODE_MASK;
 	return (tmp >> FDO_PWM_MODE_SHIFT);
@@ -6270,20 +7375,27 @@ u32 si_fan_ctrl_get_mode(struct radeon_device *rdev)
 
 #if 0
 static int si_fan_ctrl_get_fan_speed_rpm(struct radeon_device *rdev,
-					 u32 *speed)
+		u32 *speed)
 {
 	u32 tach_period;
 	u32 xclk = radeon_get_xclk(rdev);
 
 	if (rdev->pm.no_fan)
+	{
 		return -ENOENT;
+	}
 
 	if (rdev->pm.fan_pulses_per_revolution == 0)
+	{
 		return -ENOENT;
+	}
 
 	tach_period = (RREG32(CG_TACH_STATUS) & TACH_PERIOD_MASK) >> TACH_PERIOD_SHIFT;
+
 	if (tach_period == 0)
+	{
 		return -ENOENT;
+	}
 
 	*speed = 60 * xclk * 10000 / tach_period;
 
@@ -6291,23 +7403,31 @@ static int si_fan_ctrl_get_fan_speed_rpm(struct radeon_device *rdev,
 }
 
 static int si_fan_ctrl_set_fan_speed_rpm(struct radeon_device *rdev,
-					 u32 speed)
+		u32 speed)
 {
 	u32 tach_period, tmp;
 	u32 xclk = radeon_get_xclk(rdev);
 
 	if (rdev->pm.no_fan)
+	{
 		return -ENOENT;
+	}
 
 	if (rdev->pm.fan_pulses_per_revolution == 0)
+	{
 		return -ENOENT;
+	}
 
 	if ((speed < rdev->pm.fan_min_rpm) ||
-	    (speed > rdev->pm.fan_max_rpm))
+		(speed > rdev->pm.fan_max_rpm))
+	{
 		return -EINVAL;
+	}
 
 	if (rdev->pm.dpm.fan.ucode_fan_control)
+	{
 		si_fan_ctrl_stop_smc_fan_control(rdev);
+	}
 
 	tach_period = 60 * xclk * 10000 / (8 * speed);
 	tmp = RREG32(CG_TACH_CTRL) & ~TARGET_PERIOD_MASK;
@@ -6325,7 +7445,8 @@ static void si_fan_ctrl_set_default_mode(struct radeon_device *rdev)
 	struct si_power_info *si_pi = si_get_pi(rdev);
 	u32 tmp;
 
-	if (!si_pi->fan_ctrl_is_in_default_mode) {
+	if (!si_pi->fan_ctrl_is_in_default_mode)
+	{
 		tmp = RREG32(CG_FDO_CTRL2) & ~FDO_PWM_MODE_MASK;
 		tmp |= FDO_PWM_MODE(si_pi->fan_ctrl_default_mode);
 		WREG32(CG_FDO_CTRL2, tmp);
@@ -6339,7 +7460,8 @@ static void si_fan_ctrl_set_default_mode(struct radeon_device *rdev)
 
 static void si_thermal_start_smc_fan_control(struct radeon_device *rdev)
 {
-	if (rdev->pm.dpm.fan.ucode_fan_control) {
+	if (rdev->pm.dpm.fan.ucode_fan_control)
+	{
 		si_fan_ctrl_start_smc_fan_control(rdev);
 		si_fan_ctrl_set_static_mode(rdev, FDO_PWM_MODE_STATIC);
 	}
@@ -6349,9 +7471,10 @@ static void si_thermal_initialize(struct radeon_device *rdev)
 {
 	u32 tmp;
 
-	if (rdev->pm.fan_pulses_per_revolution) {
+	if (rdev->pm.fan_pulses_per_revolution)
+	{
 		tmp = RREG32(CG_TACH_CTRL) & ~EDGE_PER_REV_MASK;
-		tmp |= EDGE_PER_REV(rdev->pm.fan_pulses_per_revolution -1);
+		tmp |= EDGE_PER_REV(rdev->pm.fan_pulses_per_revolution - 1);
 		WREG32(CG_TACH_CTRL, tmp);
 	}
 
@@ -6366,21 +7489,42 @@ static int si_thermal_start_thermal_controller(struct radeon_device *rdev)
 
 	si_thermal_initialize(rdev);
 	ret = si_thermal_set_temperature_range(rdev, R600_TEMP_RANGE_MIN, R600_TEMP_RANGE_MAX);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = si_thermal_enable_alert(rdev, true);
+
 	if (ret)
+	{
 		return ret;
-	if (rdev->pm.dpm.fan.ucode_fan_control) {
+	}
+
+	if (rdev->pm.dpm.fan.ucode_fan_control)
+	{
 		ret = si_halt_smc(rdev);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = si_thermal_setup_fan_table(rdev);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = si_resume_smc(rdev);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		si_thermal_start_smc_fan_control(rdev);
 	}
 
@@ -6389,7 +7533,8 @@ static int si_thermal_start_thermal_controller(struct radeon_device *rdev)
 
 static void si_thermal_stop_thermal_controller(struct radeon_device *rdev)
 {
-	if (!rdev->pm.no_fan) {
+	if (!rdev->pm.no_fan)
+	{
 		si_fan_ctrl_set_default_mode(rdev);
 		si_fan_ctrl_stop_smc_fan_control(rdev);
 	}
@@ -6404,27 +7549,51 @@ int si_dpm_enable(struct radeon_device *rdev)
 	int ret;
 
 	if (si_is_smc_running(rdev))
+	{
 		return -EINVAL;
+	}
+
 	if (pi->voltage_control || si_pi->voltage_control_svi2)
+	{
 		si_enable_voltage_control(rdev, true);
+	}
+
 	if (pi->mvdd_control)
+	{
 		si_get_mvdd_configuration(rdev);
-	if (pi->voltage_control || si_pi->voltage_control_svi2) {
+	}
+
+	if (pi->voltage_control || si_pi->voltage_control_svi2)
+	{
 		ret = si_construct_voltage_tables(rdev);
-		if (ret) {
+
+		if (ret)
+		{
 			DRM_ERROR("si_construct_voltage_tables failed\n");
 			return ret;
 		}
 	}
-	if (eg_pi->dynamic_ac_timing) {
+
+	if (eg_pi->dynamic_ac_timing)
+	{
 		ret = si_initialize_mc_reg_table(rdev);
+
 		if (ret)
+		{
 			eg_pi->dynamic_ac_timing = false;
+		}
 	}
+
 	if (pi->dynamic_ss)
+	{
 		si_enable_spread_spectrum(rdev, true);
+	}
+
 	if (pi->thermal_protection)
+	{
 		si_enable_thermal_protection(rdev, true);
+	}
+
 	si_setup_bsp(rdev);
 	si_program_git(rdev);
 	si_program_tp(rdev);
@@ -6433,75 +7602,115 @@ int si_dpm_enable(struct radeon_device *rdev)
 	si_enable_display_gap(rdev);
 	si_program_vc(rdev);
 	ret = si_upload_firmware(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_upload_firmware failed\n");
 		return ret;
 	}
+
 	ret = si_process_firmware_header(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_process_firmware_header failed\n");
 		return ret;
 	}
+
 	ret = si_initial_switch_from_arb_f0_to_f1(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_initial_switch_from_arb_f0_to_f1 failed\n");
 		return ret;
 	}
+
 	ret = si_init_smc_table(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_init_smc_table failed\n");
 		return ret;
 	}
+
 	ret = si_init_smc_spll_table(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_init_smc_spll_table failed\n");
 		return ret;
 	}
+
 	ret = si_init_arb_table_index(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_init_arb_table_index failed\n");
 		return ret;
 	}
-	if (eg_pi->dynamic_ac_timing) {
+
+	if (eg_pi->dynamic_ac_timing)
+	{
 		ret = si_populate_mc_reg_table(rdev, boot_ps);
-		if (ret) {
+
+		if (ret)
+		{
 			DRM_ERROR("si_populate_mc_reg_table failed\n");
 			return ret;
 		}
 	}
+
 	ret = si_initialize_smc_cac_tables(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_initialize_smc_cac_tables failed\n");
 		return ret;
 	}
+
 	ret = si_initialize_hardware_cac_manager(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_initialize_hardware_cac_manager failed\n");
 		return ret;
 	}
+
 	ret = si_initialize_smc_dte_tables(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_initialize_smc_dte_tables failed\n");
 		return ret;
 	}
+
 	ret = si_populate_smc_tdp_limits(rdev, boot_ps);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_populate_smc_tdp_limits failed\n");
 		return ret;
 	}
+
 	ret = si_populate_smc_tdp_limits_2(rdev, boot_ps);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_populate_smc_tdp_limits_2 failed\n");
 		return ret;
 	}
+
 	si_program_response_times(rdev);
 	si_program_ds_registers(rdev);
 	si_dpm_start_smc(rdev);
 	ret = si_notify_smc_display_change(rdev, false);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_notify_smc_display_change failed\n");
 		return ret;
 	}
+
 	si_enable_sclk_control(rdev, true);
 	si_start_dpm(rdev);
 
@@ -6519,14 +7728,25 @@ static int si_set_temperature_range(struct radeon_device *rdev)
 	int ret;
 
 	ret = si_thermal_enable_alert(rdev, false);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = si_thermal_set_temperature_range(rdev, R600_TEMP_RANGE_MIN, R600_TEMP_RANGE_MAX);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = si_thermal_enable_alert(rdev, true);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return ret;
 }
@@ -6536,8 +7756,11 @@ int si_dpm_late_enable(struct radeon_device *rdev)
 	int ret;
 
 	ret = si_set_temperature_range(rdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return ret;
 }
@@ -6548,12 +7771,19 @@ void si_dpm_disable(struct radeon_device *rdev)
 	struct radeon_ps *boot_ps = rdev->pm.dpm.boot_ps;
 
 	if (!si_is_smc_running(rdev))
+	{
 		return;
+	}
+
 	si_thermal_stop_thermal_controller(rdev);
 	si_disable_ulv(rdev);
 	si_clear_vc(rdev);
+
 	if (pi->thermal_protection)
+	{
 		si_enable_thermal_protection(rdev, false);
+	}
+
 	si_enable_power_containment(rdev, boot_ps, false);
 	si_enable_smc_cac(rdev, boot_ps, false);
 	si_enable_spread_spectrum(rdev, false);
@@ -6585,23 +7815,47 @@ static int si_power_control_set_level(struct radeon_device *rdev)
 	int ret;
 
 	ret = si_restrict_performance_levels_before_switch(rdev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = si_halt_smc(rdev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = si_populate_smc_tdp_limits(rdev, new_ps);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = si_populate_smc_tdp_limits_2(rdev, new_ps);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = si_resume_smc(rdev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = si_set_sw_state(rdev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	return 0;
 }
 
@@ -6613,94 +7867,148 @@ int si_dpm_set_power_state(struct radeon_device *rdev)
 	int ret;
 
 	ret = si_disable_ulv(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_disable_ulv failed\n");
 		return ret;
 	}
+
 	ret = si_restrict_performance_levels_before_switch(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_restrict_performance_levels_before_switch failed\n");
 		return ret;
 	}
+
 	if (eg_pi->pcie_performance_request)
+	{
 		si_request_link_speed_change_before_state_change(rdev, new_ps, old_ps);
+	}
+
 	ni_set_uvd_clock_before_set_eng_clock(rdev, new_ps, old_ps);
 	ret = si_enable_power_containment(rdev, new_ps, false);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_enable_power_containment failed\n");
 		return ret;
 	}
+
 	ret = si_enable_smc_cac(rdev, new_ps, false);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_enable_smc_cac failed\n");
 		return ret;
 	}
+
 	ret = si_halt_smc(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_halt_smc failed\n");
 		return ret;
 	}
+
 	ret = si_upload_sw_state(rdev, new_ps);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_upload_sw_state failed\n");
 		return ret;
 	}
+
 	ret = si_upload_smc_data(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_upload_smc_data failed\n");
 		return ret;
 	}
+
 	ret = si_upload_ulv_state(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_upload_ulv_state failed\n");
 		return ret;
 	}
-	if (eg_pi->dynamic_ac_timing) {
+
+	if (eg_pi->dynamic_ac_timing)
+	{
 		ret = si_upload_mc_reg_table(rdev, new_ps);
-		if (ret) {
+
+		if (ret)
+		{
 			DRM_ERROR("si_upload_mc_reg_table failed\n");
 			return ret;
 		}
 	}
+
 	ret = si_program_memory_timing_parameters(rdev, new_ps);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_program_memory_timing_parameters failed\n");
 		return ret;
 	}
+
 	si_set_pcie_lane_width_in_smc(rdev, new_ps, old_ps);
 
 	ret = si_resume_smc(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_resume_smc failed\n");
 		return ret;
 	}
+
 	ret = si_set_sw_state(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_set_sw_state failed\n");
 		return ret;
 	}
+
 	ni_set_uvd_clock_after_set_eng_clock(rdev, new_ps, old_ps);
 	si_set_vce_clock(rdev, new_ps, old_ps);
+
 	if (eg_pi->pcie_performance_request)
+	{
 		si_notify_link_speed_change_after_state_change(rdev, new_ps, old_ps);
+	}
+
 	ret = si_set_power_state_conditionally_enable_ulv(rdev, new_ps);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_set_power_state_conditionally_enable_ulv failed\n");
 		return ret;
 	}
+
 	ret = si_enable_smc_cac(rdev, new_ps, true);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_enable_smc_cac failed\n");
 		return ret;
 	}
+
 	ret = si_enable_power_containment(rdev, new_ps, true);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_enable_power_containment failed\n");
 		return ret;
 	}
 
 	ret = si_power_control_set_level(rdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("si_power_control_set_level failed\n");
 		return ret;
 	}
@@ -6730,7 +8038,8 @@ void si_dpm_display_configuration_changed(struct radeon_device *rdev)
 	si_program_display_gap(rdev);
 }
 
-union power_info {
+union power_info
+{
 	struct _ATOM_POWERPLAY_INFO info;
 	struct _ATOM_POWERPLAY_INFO_V2 info_2;
 	struct _ATOM_POWERPLAY_INFO_V3 info_3;
@@ -6739,7 +8048,8 @@ union power_info {
 	struct _ATOM_PPLIB_POWERPLAYTABLE3 pplib3;
 };
 
-union pplib_clock_info {
+union pplib_clock_info
+{
 	struct _ATOM_PPLIB_R600_CLOCK_INFO r600;
 	struct _ATOM_PPLIB_RS780_CLOCK_INFO rs780;
 	struct _ATOM_PPLIB_EVERGREEN_CLOCK_INFO evergreen;
@@ -6747,40 +8057,51 @@ union pplib_clock_info {
 	struct _ATOM_PPLIB_SI_CLOCK_INFO si;
 };
 
-union pplib_power_state {
+union pplib_power_state
+{
 	struct _ATOM_PPLIB_STATE v1;
 	struct _ATOM_PPLIB_STATE_V2 v2;
 };
 
 static void si_parse_pplib_non_clock_info(struct radeon_device *rdev,
-					  struct radeon_ps *rps,
-					  struct _ATOM_PPLIB_NONCLOCK_INFO *non_clock_info,
-					  u8 table_rev)
+		struct radeon_ps *rps,
+		struct _ATOM_PPLIB_NONCLOCK_INFO *non_clock_info,
+		u8 table_rev)
 {
 	rps->caps = le32_to_cpu(non_clock_info->ulCapsAndSettings);
 	rps->class = le16_to_cpu(non_clock_info->usClassification);
 	rps->class2 = le16_to_cpu(non_clock_info->usClassification2);
 
-	if (ATOM_PPLIB_NONCLOCKINFO_VER1 < table_rev) {
+	if (ATOM_PPLIB_NONCLOCKINFO_VER1 < table_rev)
+	{
 		rps->vclk = le32_to_cpu(non_clock_info->ulVCLK);
 		rps->dclk = le32_to_cpu(non_clock_info->ulDCLK);
-	} else if (r600_is_uvd_state(rps->class, rps->class2)) {
+	}
+	else if (r600_is_uvd_state(rps->class, rps->class2))
+	{
 		rps->vclk = RV770_DEFAULT_VCLK_FREQ;
 		rps->dclk = RV770_DEFAULT_DCLK_FREQ;
-	} else {
+	}
+	else
+	{
 		rps->vclk = 0;
 		rps->dclk = 0;
 	}
 
 	if (rps->class & ATOM_PPLIB_CLASSIFICATION_BOOT)
+	{
 		rdev->pm.dpm.boot_ps = rps;
+	}
+
 	if (rps->class & ATOM_PPLIB_CLASSIFICATION_UVDSTATE)
+	{
 		rdev->pm.dpm.uvd_ps = rps;
+	}
 }
 
 static void si_parse_pplib_clock_info(struct radeon_device *rdev,
-				      struct radeon_ps *rps, int index,
-				      union pplib_clock_info *clock_info)
+									  struct radeon_ps *rps, int index,
+									  union pplib_clock_info *clock_info)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	struct evergreen_power_info *eg_pi = evergreen_get_pi(rdev);
@@ -6801,24 +8122,29 @@ static void si_parse_pplib_clock_info(struct radeon_device *rdev,
 	pl->vddci = le16_to_cpu(clock_info->si.usVDDCI);
 	pl->flags = le32_to_cpu(clock_info->si.ulFlags);
 	pl->pcie_gen = r600_get_pcie_gen_support(rdev,
-						 si_pi->sys_pcie_mask,
-						 si_pi->boot_pcie_gen,
-						 clock_info->si.ucPCIEGen);
+				   si_pi->sys_pcie_mask,
+				   si_pi->boot_pcie_gen,
+				   clock_info->si.ucPCIEGen);
 
 	/* patch up vddc if necessary */
 	ret = si_get_leakage_voltage_from_leakage_index(rdev, pl->vddc,
-							&leakage_voltage);
-	if (ret == 0)
-		pl->vddc = leakage_voltage;
+			&leakage_voltage);
 
-	if (rps->class & ATOM_PPLIB_CLASSIFICATION_ACPI) {
+	if (ret == 0)
+	{
+		pl->vddc = leakage_voltage;
+	}
+
+	if (rps->class & ATOM_PPLIB_CLASSIFICATION_ACPI)
+	{
 		pi->acpi_vddc = pl->vddc;
 		eg_pi->acpi_vddci = pl->vddci;
 		si_pi->acpi_pcie_gen = pl->pcie_gen;
 	}
 
 	if ((rps->class2 & ATOM_PPLIB_CLASSIFICATION2_ULV) &&
-	    index == 0) {
+		index == 0)
+	{
 		/* XXX disable for A0 tahiti */
 		si_pi->ulv.supported = false;
 		si_pi->ulv.pl = *pl;
@@ -6829,13 +8155,18 @@ static void si_parse_pplib_clock_info(struct radeon_device *rdev,
 	}
 
 	if (pi->min_vddc_in_table > pl->vddc)
+	{
 		pi->min_vddc_in_table = pl->vddc;
+	}
 
 	if (pi->max_vddc_in_table < pl->vddc)
+	{
 		pi->max_vddc_in_table = pl->vddc;
+	}
 
 	/* patch up boot state */
-	if (rps->class & ATOM_PPLIB_CLASSIFICATION_BOOT) {
+	if (rps->class & ATOM_PPLIB_CLASSIFICATION_BOOT)
+	{
 		u16 vddc, vddci, mvdd;
 		radeon_atombios_get_default_voltages(rdev, &vddc, &vddci, &mvdd);
 		pl->mclk = rdev->clock.default_mclk;
@@ -6846,7 +8177,8 @@ static void si_parse_pplib_clock_info(struct radeon_device *rdev,
 	}
 
 	if ((rps->class & ATOM_PPLIB_CLASSIFICATION_UI_MASK) ==
-	    ATOM_PPLIB_CLASSIFICATION_UI_PERFORMANCE) {
+		ATOM_PPLIB_CLASSIFICATION_UI_PERFORMANCE)
+	{
 		rdev->pm.dpm.dyn_state.max_clock_voltage_on_ac.sclk = pl->sclk;
 		rdev->pm.dpm.dyn_state.max_clock_voltage_on_ac.mclk = pl->mclk;
 		rdev->pm.dpm.dyn_state.max_clock_voltage_on_ac.vddc = pl->vddc;
@@ -6872,68 +8204,96 @@ static int si_parse_power_table(struct radeon_device *rdev)
 	struct ni_ps *ps;
 
 	if (!atom_parse_data_header(mode_info->atom_context, index, NULL,
-				   &frev, &crev, &data_offset))
+								&frev, &crev, &data_offset))
+	{
 		return -EINVAL;
+	}
+
 	power_info = (union power_info *)(mode_info->atom_context->bios + data_offset);
 
 	state_array = (struct _StateArray *)
-		(mode_info->atom_context->bios + data_offset +
-		 le16_to_cpu(power_info->pplib.usStateArrayOffset));
+				  (mode_info->atom_context->bios + data_offset +
+				   le16_to_cpu(power_info->pplib.usStateArrayOffset));
 	clock_info_array = (struct _ClockInfoArray *)
-		(mode_info->atom_context->bios + data_offset +
-		 le16_to_cpu(power_info->pplib.usClockInfoArrayOffset));
+					   (mode_info->atom_context->bios + data_offset +
+						le16_to_cpu(power_info->pplib.usClockInfoArrayOffset));
 	non_clock_info_array = (struct _NonClockInfoArray *)
-		(mode_info->atom_context->bios + data_offset +
-		 le16_to_cpu(power_info->pplib.usNonClockInfoArrayOffset));
+						   (mode_info->atom_context->bios + data_offset +
+							le16_to_cpu(power_info->pplib.usNonClockInfoArrayOffset));
 
 	rdev->pm.dpm.ps = kzalloc(sizeof(struct radeon_ps) *
-				  state_array->ucNumEntries, GFP_KERNEL);
+							  state_array->ucNumEntries, GFP_KERNEL);
+
 	if (!rdev->pm.dpm.ps)
+	{
 		return -ENOMEM;
+	}
+
 	power_state_offset = (u8 *)state_array->states;
-	for (i = 0; i < state_array->ucNumEntries; i++) {
+
+	for (i = 0; i < state_array->ucNumEntries; i++)
+	{
 		u8 *idx;
 		power_state = (union pplib_power_state *)power_state_offset;
 		non_clock_array_index = power_state->v2.nonClockInfoIndex;
 		non_clock_info = (struct _ATOM_PPLIB_NONCLOCK_INFO *)
-			&non_clock_info_array->nonClockInfo[non_clock_array_index];
+						 &non_clock_info_array->nonClockInfo[non_clock_array_index];
+
 		if (!rdev->pm.power_state[i].clock_info)
+		{
 			return -EINVAL;
+		}
+
 		ps = kzalloc(sizeof(struct ni_ps), GFP_KERNEL);
-		if (ps == NULL) {
+
+		if (ps == NULL)
+		{
 			kfree(rdev->pm.dpm.ps);
 			return -ENOMEM;
 		}
+
 		rdev->pm.dpm.ps[i].ps_priv = ps;
 		si_parse_pplib_non_clock_info(rdev, &rdev->pm.dpm.ps[i],
-					      non_clock_info,
-					      non_clock_info_array->ucEntrySize);
+									  non_clock_info,
+									  non_clock_info_array->ucEntrySize);
 		k = 0;
 		idx = (u8 *)&power_state->v2.clockInfoIndex[0];
-		for (j = 0; j < power_state->v2.ucNumDPMLevels; j++) {
+
+		for (j = 0; j < power_state->v2.ucNumDPMLevels; j++)
+		{
 			clock_array_index = idx[j];
+
 			if (clock_array_index >= clock_info_array->ucNumEntries)
+			{
 				continue;
+			}
+
 			if (k >= SISLANDS_MAX_HARDWARE_POWERLEVELS)
+			{
 				break;
+			}
+
 			clock_info = (union pplib_clock_info *)
-				((u8 *)&clock_info_array->clockInfo[0] +
-				 (clock_array_index * clock_info_array->ucEntrySize));
+						 ((u8 *)&clock_info_array->clockInfo[0] +
+						  (clock_array_index * clock_info_array->ucEntrySize));
 			si_parse_pplib_clock_info(rdev,
-						  &rdev->pm.dpm.ps[i], k,
-						  clock_info);
+									  &rdev->pm.dpm.ps[i], k,
+									  clock_info);
 			k++;
 		}
+
 		power_state_offset += 2 + power_state->v2.ucNumDPMLevels;
 	}
+
 	rdev->pm.dpm.num_ps = state_array->ucNumEntries;
 
 	/* fill in the vce power states */
-	for (i = 0; i < RADEON_MAX_VCE_LEVELS; i++) {
+	for (i = 0; i < RADEON_MAX_VCE_LEVELS; i++)
+	{
 		u32 sclk, mclk;
 		clock_array_index = rdev->pm.dpm.vce_states[i].clk_idx;
 		clock_info = (union pplib_clock_info *)
-			&clock_info_array->clockInfo[clock_array_index * clock_info_array->ucEntrySize];
+					 &clock_info_array->clockInfo[clock_array_index * clock_info_array->ucEntrySize];
 		sclk = le16_to_cpu(clock_info->si.usEngineClockLow);
 		sclk |= clock_info->si.ucEngineClockHigh << 16;
 		mclk = le16_to_cpu(clock_info->si.usMemoryClockLow);
@@ -6956,18 +8316,28 @@ int si_dpm_init(struct radeon_device *rdev)
 	u32 mask;
 
 	si_pi = kzalloc(sizeof(struct si_power_info), GFP_KERNEL);
+
 	if (si_pi == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	rdev->pm.dpm.priv = si_pi;
 	ni_pi = &si_pi->ni;
 	eg_pi = &ni_pi->eg;
 	pi = &eg_pi->rv7xx;
 
 	ret = drm_pcie_get_speed_cap_mask(rdev->ddev, &mask);
+
 	if (ret)
+	{
 		si_pi->sys_pcie_mask = 0;
+	}
 	else
+	{
 		si_pi->sys_pcie_mask = mask;
+	}
+
 	si_pi->force_pcie_gen = RADEON_PCIE_GEN_INVALID;
 	si_pi->boot_pcie_gen = si_get_current_pcie_speed(rdev);
 
@@ -6983,23 +8353,35 @@ int si_dpm_init(struct radeon_device *rdev)
 	pi->max_vddc_in_table = 0;
 
 	ret = r600_get_platform_caps(rdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = r600_parse_extended_power_table(rdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = si_parse_power_table(rdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.entries =
 		kzalloc(4 * sizeof(struct radeon_clock_voltage_dependency_entry), GFP_KERNEL);
-	if (!rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.entries) {
+
+	if (!rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.entries)
+	{
 		r600_free_extended_power_table(rdev);
 		return -ENOMEM;
 	}
+
 	rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.count = 4;
 	rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.entries[0].clk = 0;
 	rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.entries[0].v = 0;
@@ -7011,24 +8393,40 @@ int si_dpm_init(struct radeon_device *rdev)
 	rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.entries[3].v = 900;
 
 	if (rdev->pm.dpm.voltage_response_time == 0)
+	{
 		rdev->pm.dpm.voltage_response_time = R600_VOLTAGERESPONSETIME_DFLT;
+	}
+
 	if (rdev->pm.dpm.backbias_response_time == 0)
+	{
 		rdev->pm.dpm.backbias_response_time = R600_BACKBIASRESPONSETIME_DFLT;
+	}
 
 	ret = radeon_atom_get_clock_dividers(rdev, COMPUTE_ENGINE_PLL_PARAM,
-					     0, false, &dividers);
+										 0, false, &dividers);
+
 	if (ret)
+	{
 		pi->ref_div = dividers.ref_div + 1;
+	}
 	else
+	{
 		pi->ref_div = R600_REFERENCEDIVIDER_DFLT;
+	}
 
 	eg_pi->smu_uvd_hs = false;
 
 	pi->mclk_strobe_mode_threshold = 40000;
+
 	if (si_is_special_1gb_platform(rdev))
+	{
 		pi->mclk_stutter_mode_threshold = 0;
+	}
 	else
+	{
 		pi->mclk_stutter_mode_threshold = pi->mclk_strobe_mode_threshold;
+	}
+
 	pi->mclk_edc_enable_threshold = 40000;
 	eg_pi->mclk_edc_wr_enable_threshold = 40000;
 
@@ -7036,31 +8434,35 @@ int si_dpm_init(struct radeon_device *rdev)
 
 	pi->voltage_control =
 		radeon_atom_is_voltage_gpio(rdev, SET_VOLTAGE_TYPE_ASIC_VDDC,
-					    VOLTAGE_OBJ_GPIO_LUT);
-	if (!pi->voltage_control) {
+									VOLTAGE_OBJ_GPIO_LUT);
+
+	if (!pi->voltage_control)
+	{
 		si_pi->voltage_control_svi2 =
 			radeon_atom_is_voltage_gpio(rdev, SET_VOLTAGE_TYPE_ASIC_VDDC,
-						    VOLTAGE_OBJ_SVID2);
+										VOLTAGE_OBJ_SVID2);
+
 		if (si_pi->voltage_control_svi2)
 			radeon_atom_get_svi2_info(rdev, SET_VOLTAGE_TYPE_ASIC_VDDC,
-						  &si_pi->svd_gpio_id, &si_pi->svc_gpio_id);
+									  &si_pi->svd_gpio_id, &si_pi->svc_gpio_id);
 	}
 
 	pi->mvdd_control =
 		radeon_atom_is_voltage_gpio(rdev, SET_VOLTAGE_TYPE_ASIC_MVDDC,
-					    VOLTAGE_OBJ_GPIO_LUT);
+									VOLTAGE_OBJ_GPIO_LUT);
 
 	eg_pi->vddci_control =
 		radeon_atom_is_voltage_gpio(rdev, SET_VOLTAGE_TYPE_ASIC_VDDCI,
-					    VOLTAGE_OBJ_GPIO_LUT);
+									VOLTAGE_OBJ_GPIO_LUT);
+
 	if (!eg_pi->vddci_control)
 		si_pi->vddci_control_svi2 =
 			radeon_atom_is_voltage_gpio(rdev, SET_VOLTAGE_TYPE_ASIC_VDDCI,
-						    VOLTAGE_OBJ_SVID2);
+										VOLTAGE_OBJ_SVID2);
 
 	si_pi->vddc_phase_shed_control =
 		radeon_atom_is_voltage_gpio(rdev, SET_VOLTAGE_TYPE_ASIC_VDDC,
-					    VOLTAGE_OBJ_PHASE_LUT);
+									VOLTAGE_OBJ_PHASE_LUT);
 
 	rv770_get_engine_memory_ss(rdev);
 
@@ -7074,9 +8476,13 @@ int si_dpm_init(struct radeon_device *rdev)
 	si_pi->sclk_deep_sleep_above_low = false;
 
 	if (rdev->pm.int_thermal_type != THERMAL_TYPE_NONE)
+	{
 		pi->thermal_protection = true;
+	}
 	else
+	{
 		pi->thermal_protection = false;
+	}
 
 	eg_pi->dynamic_ac_timing = true;
 
@@ -7102,7 +8508,7 @@ int si_dpm_init(struct radeon_device *rdev)
 
 	/* make sure dc limits are valid */
 	if ((rdev->pm.dpm.dyn_state.max_clock_voltage_on_dc.sclk == 0) ||
-	    (rdev->pm.dpm.dyn_state.max_clock_voltage_on_dc.mclk == 0))
+		(rdev->pm.dpm.dyn_state.max_clock_voltage_on_dc.mclk == 0))
 		rdev->pm.dpm.dyn_state.max_clock_voltage_on_dc =
 			rdev->pm.dpm.dyn_state.max_clock_voltage_on_ac;
 
@@ -7115,9 +8521,11 @@ void si_dpm_fini(struct radeon_device *rdev)
 {
 	int i;
 
-	for (i = 0; i < rdev->pm.dpm.num_ps; i++) {
+	for (i = 0; i < rdev->pm.dpm.num_ps; i++)
+	{
 		kfree(rdev->pm.dpm.ps[i].ps_priv);
 	}
+
 	kfree(rdev->pm.dpm.ps);
 	kfree(rdev->pm.dpm.priv);
 	kfree(rdev->pm.dpm.dyn_state.vddc_dependency_on_dispclk.entries);
@@ -7125,7 +8533,7 @@ void si_dpm_fini(struct radeon_device *rdev)
 }
 
 void si_dpm_debugfs_print_current_performance_level(struct radeon_device *rdev,
-						    struct seq_file *m)
+		struct seq_file *m)
 {
 	struct evergreen_power_info *eg_pi = evergreen_get_pi(rdev);
 	struct radeon_ps *rps = &eg_pi->current_rps;
@@ -7135,13 +8543,16 @@ void si_dpm_debugfs_print_current_performance_level(struct radeon_device *rdev,
 		(RREG32(TARGET_AND_CURRENT_PROFILE_INDEX) & CURRENT_STATE_INDEX_MASK) >>
 		CURRENT_STATE_INDEX_SHIFT;
 
-	if (current_index >= ps->performance_level_count) {
+	if (current_index >= ps->performance_level_count)
+	{
 		seq_printf(m, "invalid dpm profile %d\n", current_index);
-	} else {
+	}
+	else
+	{
 		pl = &ps->performance_levels[current_index];
 		seq_printf(m, "uvd    vclk: %d dclk: %d\n", rps->vclk, rps->dclk);
 		seq_printf(m, "power level %d    sclk: %u mclk: %u vddc: %u vddci: %u pcie gen: %u\n",
-			   current_index, pl->sclk, pl->mclk, pl->vddc, pl->vddci, pl->pcie_gen + 1);
+				   current_index, pl->sclk, pl->mclk, pl->vddc, pl->vddci, pl->pcie_gen + 1);
 	}
 }
 
@@ -7155,9 +8566,12 @@ u32 si_dpm_get_current_sclk(struct radeon_device *rdev)
 		(RREG32(TARGET_AND_CURRENT_PROFILE_INDEX) & CURRENT_STATE_INDEX_MASK) >>
 		CURRENT_STATE_INDEX_SHIFT;
 
-	if (current_index >= ps->performance_level_count) {
+	if (current_index >= ps->performance_level_count)
+	{
 		return 0;
-	} else {
+	}
+	else
+	{
 		pl = &ps->performance_levels[current_index];
 		return pl->sclk;
 	}
@@ -7173,9 +8587,12 @@ u32 si_dpm_get_current_mclk(struct radeon_device *rdev)
 		(RREG32(TARGET_AND_CURRENT_PROFILE_INDEX) & CURRENT_STATE_INDEX_MASK) >>
 		CURRENT_STATE_INDEX_SHIFT;
 
-	if (current_index >= ps->performance_level_count) {
+	if (current_index >= ps->performance_level_count)
+	{
 		return 0;
-	} else {
+	}
+	else
+	{
 		pl = &ps->performance_levels[current_index];
 		return pl->mclk;
 	}

@@ -42,13 +42,14 @@ struct msm_gpu_perfcntr;
  *      + a2xx_gpu
  *    + z180_gpu
  */
-struct msm_gpu_funcs {
+struct msm_gpu_funcs
+{
 	int (*get_param)(struct msm_gpu *gpu, uint32_t param, uint64_t *value);
 	int (*hw_init)(struct msm_gpu *gpu);
 	int (*pm_suspend)(struct msm_gpu *gpu);
 	int (*pm_resume)(struct msm_gpu *gpu);
 	void (*submit)(struct msm_gpu *gpu, struct msm_gem_submit *submit,
-			struct msm_file_private *ctx);
+				   struct msm_file_private *ctx);
 	void (*flush)(struct msm_gpu *gpu);
 	void (*idle)(struct msm_gpu *gpu);
 	irqreturn_t (*irq)(struct msm_gpu *irq);
@@ -61,7 +62,8 @@ struct msm_gpu_funcs {
 #endif
 };
 
-struct msm_gpu {
+struct msm_gpu
+{
 	const char *name;
 	struct drm_device *dev;
 	const struct msm_gpu_funcs *funcs;
@@ -69,7 +71,8 @@ struct msm_gpu {
 	/* performance counters (hw & sw): */
 	spinlock_t perf_lock;
 	bool perfcntr_active;
-	struct {
+	struct
+	{
 		bool active;
 		ktime_t time;
 	} last_sample;
@@ -137,7 +140,8 @@ static inline bool msm_gpu_active(struct msm_gpu *gpu)
  * will handle sampling/displaying the counters.
  */
 
-struct msm_gpu_perfcntr {
+struct msm_gpu_perfcntr
+{
 	uint32_t select_reg;
 	uint32_t sample_reg;
 	uint32_t select_val;
@@ -160,15 +164,15 @@ int msm_gpu_pm_resume(struct msm_gpu *gpu);
 void msm_gpu_perfcntr_start(struct msm_gpu *gpu);
 void msm_gpu_perfcntr_stop(struct msm_gpu *gpu);
 int msm_gpu_perfcntr_sample(struct msm_gpu *gpu, uint32_t *activetime,
-		uint32_t *totaltime, uint32_t ncntrs, uint32_t *cntrs);
+							uint32_t *totaltime, uint32_t ncntrs, uint32_t *cntrs);
 
 void msm_gpu_retire(struct msm_gpu *gpu);
 void msm_gpu_submit(struct msm_gpu *gpu, struct msm_gem_submit *submit,
-		struct msm_file_private *ctx);
+					struct msm_file_private *ctx);
 
 int msm_gpu_init(struct drm_device *drm, struct platform_device *pdev,
-		struct msm_gpu *gpu, const struct msm_gpu_funcs *funcs,
-		const char *name, const char *ioname, const char *irqname, int ringsz);
+				 struct msm_gpu *gpu, const struct msm_gpu_funcs *funcs,
+				 const char *name, const char *ioname, const char *irqname, int ringsz);
 void msm_gpu_cleanup(struct msm_gpu *gpu);
 
 struct msm_gpu *adreno_load_gpu(struct drm_device *dev);

@@ -27,16 +27,19 @@
  */
 #define FC_FCTL_REQ	(FC_FC_FIRST_SEQ | FC_FC_END_SEQ | FC_FC_SEQ_INIT)
 #define FC_FCTL_RESP	(FC_FC_EX_CTX | FC_FC_LAST_SEQ | \
-			FC_FC_END_SEQ | FC_FC_SEQ_INIT)
+						 FC_FC_END_SEQ | FC_FC_SEQ_INIT)
 
-struct fc_ns_rft {
+struct fc_ns_rft
+{
 	struct fc_ns_fid fid;	/* port ID object */
 	struct fc_ns_fts fts;	/* FC4-types object */
 };
 
-struct fc_ct_req {
+struct fc_ct_req
+{
 	struct fc_ct_hdr hdr;
-	union {
+	union
+	{
 		struct fc_ns_gid_ft gid;
 		struct fc_ns_rn_id  rn;
 		struct fc_ns_rft rft;
@@ -52,9 +55,9 @@ struct fc_ct_req {
 };
 
 static inline void __fc_fill_fc_hdr(struct fc_frame_header *fh,
-				    enum fc_rctl r_ctl,
-				    u32 did, u32 sid, enum fc_fh_type type,
-				    u32 f_ctl, u32 parm_offset)
+									enum fc_rctl r_ctl,
+									u32 did, u32 sid, enum fc_fh_type type,
+									u32 f_ctl, u32 parm_offset)
 {
 	WARN_ON(r_ctl == 0);
 	fh->fh_r_ctl = r_ctl;
@@ -71,8 +74,8 @@ static inline void __fc_fill_fc_hdr(struct fc_frame_header *fh,
  * fill FC header fields in specified fc_frame
  */
 static inline void fc_fill_fc_hdr(struct fc_frame *fp, enum fc_rctl r_ctl,
-				  u32 did, u32 sid, enum fc_fh_type type,
-				  u32 f_ctl, u32 parm_offset)
+								  u32 did, u32 sid, enum fc_fh_type type,
+								  u32 f_ctl, u32 parm_offset)
 {
 	struct fc_frame_header *fh;
 
@@ -102,9 +105,9 @@ static inline void fc_adisc_fill(struct fc_lport *lport, struct fc_frame *fp)
  * returns pointer to ct request.
  */
 static inline struct fc_ct_req *fc_ct_hdr_fill(const struct fc_frame *fp,
-					       unsigned int op, size_t req_size,
-					       enum fc_ct_fs_type fs_type,
-					       u8 subtype)
+		unsigned int op, size_t req_size,
+		enum fc_ct_fs_type fs_type,
+		u8 subtype)
 {
 	struct fc_ct_req *ct;
 	size_t ct_plen;
@@ -129,75 +132,84 @@ static inline struct fc_ct_req *fc_ct_hdr_fill(const struct fc_frame *fp,
  * @fh_type: pointer to FC-4 type.
  */
 static inline int fc_ct_ns_fill(struct fc_lport *lport,
-		      u32 fc_id, struct fc_frame *fp,
-		      unsigned int op, enum fc_rctl *r_ctl,
-		      enum fc_fh_type *fh_type)
+								u32 fc_id, struct fc_frame *fp,
+								unsigned int op, enum fc_rctl *r_ctl,
+								enum fc_fh_type *fh_type)
 {
 	struct fc_ct_req *ct;
 	size_t len;
 
-	switch (op) {
-	case FC_NS_GPN_FT:
-		ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_gid_ft),
-				    FC_FST_DIR, FC_NS_SUBTYPE);
-		ct->payload.gid.fn_fc4_type = FC_TYPE_FCP;
-		break;
+	switch (op)
+	{
+		case FC_NS_GPN_FT:
+			ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_gid_ft),
+								FC_FST_DIR, FC_NS_SUBTYPE);
+			ct->payload.gid.fn_fc4_type = FC_TYPE_FCP;
+			break;
 
-	case FC_NS_GPN_ID:
-		ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_fid),
-				    FC_FST_DIR, FC_NS_SUBTYPE);
-		ct->payload.gid.fn_fc4_type = FC_TYPE_FCP;
-		hton24(ct->payload.fid.fp_fid, fc_id);
-		break;
+		case FC_NS_GPN_ID:
+			ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_fid),
+								FC_FST_DIR, FC_NS_SUBTYPE);
+			ct->payload.gid.fn_fc4_type = FC_TYPE_FCP;
+			hton24(ct->payload.fid.fp_fid, fc_id);
+			break;
 
-	case FC_NS_RFT_ID:
-		ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_rft),
-				    FC_FST_DIR, FC_NS_SUBTYPE);
-		hton24(ct->payload.rft.fid.fp_fid, lport->port_id);
-		ct->payload.rft.fts = lport->fcts;
-		break;
+		case FC_NS_RFT_ID:
+			ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_rft),
+								FC_FST_DIR, FC_NS_SUBTYPE);
+			hton24(ct->payload.rft.fid.fp_fid, lport->port_id);
+			ct->payload.rft.fts = lport->fcts;
+			break;
 
-	case FC_NS_RFF_ID:
-		ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_rff_id),
-				    FC_FST_DIR, FC_NS_SUBTYPE);
-		hton24(ct->payload.rff.fr_fid.fp_fid, lport->port_id);
-		ct->payload.rff.fr_type = FC_TYPE_FCP;
-		if (lport->service_params & FCP_SPPF_INIT_FCN)
-			ct->payload.rff.fr_feat = FCP_FEAT_INIT;
-		if (lport->service_params & FCP_SPPF_TARG_FCN)
-			ct->payload.rff.fr_feat |= FCP_FEAT_TARG;
-		break;
+		case FC_NS_RFF_ID:
+			ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_rff_id),
+								FC_FST_DIR, FC_NS_SUBTYPE);
+			hton24(ct->payload.rff.fr_fid.fp_fid, lport->port_id);
+			ct->payload.rff.fr_type = FC_TYPE_FCP;
 
-	case FC_NS_RNN_ID:
-		ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_rn_id),
-				    FC_FST_DIR, FC_NS_SUBTYPE);
-		hton24(ct->payload.rn.fr_fid.fp_fid, lport->port_id);
-		put_unaligned_be64(lport->wwnn, &ct->payload.rn.fr_wwn);
-		break;
+			if (lport->service_params & FCP_SPPF_INIT_FCN)
+			{
+				ct->payload.rff.fr_feat = FCP_FEAT_INIT;
+			}
 
-	case FC_NS_RSPN_ID:
-		len = strnlen(fc_host_symbolic_name(lport->host), 255);
-		ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_rspn) + len,
-				    FC_FST_DIR, FC_NS_SUBTYPE);
-		hton24(ct->payload.spn.fr_fid.fp_fid, lport->port_id);
-		strncpy(ct->payload.spn.fr_name,
-			fc_host_symbolic_name(lport->host), len);
-		ct->payload.spn.fr_name_len = len;
-		break;
+			if (lport->service_params & FCP_SPPF_TARG_FCN)
+			{
+				ct->payload.rff.fr_feat |= FCP_FEAT_TARG;
+			}
 
-	case FC_NS_RSNN_NN:
-		len = strnlen(fc_host_symbolic_name(lport->host), 255);
-		ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_rsnn) + len,
-				    FC_FST_DIR, FC_NS_SUBTYPE);
-		put_unaligned_be64(lport->wwnn, &ct->payload.snn.fr_wwn);
-		strncpy(ct->payload.snn.fr_name,
-			fc_host_symbolic_name(lport->host), len);
-		ct->payload.snn.fr_name_len = len;
-		break;
+			break;
 
-	default:
-		return -EINVAL;
+		case FC_NS_RNN_ID:
+			ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_rn_id),
+								FC_FST_DIR, FC_NS_SUBTYPE);
+			hton24(ct->payload.rn.fr_fid.fp_fid, lport->port_id);
+			put_unaligned_be64(lport->wwnn, &ct->payload.rn.fr_wwn);
+			break;
+
+		case FC_NS_RSPN_ID:
+			len = strnlen(fc_host_symbolic_name(lport->host), 255);
+			ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_rspn) + len,
+								FC_FST_DIR, FC_NS_SUBTYPE);
+			hton24(ct->payload.spn.fr_fid.fp_fid, lport->port_id);
+			strncpy(ct->payload.spn.fr_name,
+					fc_host_symbolic_name(lport->host), len);
+			ct->payload.spn.fr_name_len = len;
+			break;
+
+		case FC_NS_RSNN_NN:
+			len = strnlen(fc_host_symbolic_name(lport->host), 255);
+			ct = fc_ct_hdr_fill(fp, op, sizeof(struct fc_ns_rsnn) + len,
+								FC_FST_DIR, FC_NS_SUBTYPE);
+			put_unaligned_be64(lport->wwnn, &ct->payload.snn.fr_wwn);
+			strncpy(ct->payload.snn.fr_name,
+					fc_host_symbolic_name(lport->host), len);
+			ct->payload.snn.fr_name_len = len;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	*r_ctl = FC_RCTL_DD_UNSOL_CTL;
 	*fh_type = FC_TYPE_CT;
 	return 0;
@@ -213,9 +225,9 @@ static inline int fc_ct_ns_fill(struct fc_lport *lport,
  * @fh_type: pointer to FC-4 type.
  */
 static inline int fc_ct_ms_fill(struct fc_lport *lport,
-		      u32 fc_id, struct fc_frame *fp,
-		      unsigned int op, enum fc_rctl *r_ctl,
-		      enum fc_fh_type *fh_type)
+								u32 fc_id, struct fc_frame *fp,
+								unsigned int op, enum fc_rctl *r_ctl,
+								enum fc_fh_type *fh_type)
 {
 	struct fc_ct_req *ct;
 	size_t len;
@@ -223,275 +235,283 @@ static inline int fc_ct_ms_fill(struct fc_lport *lport,
 	struct fs_fdmi_attrs *hba_attrs;
 	int numattrs = 0;
 
-	switch (op) {
-	case FC_FDMI_RHBA:
-		numattrs = 10;
-		len = sizeof(struct fc_fdmi_rhba);
-		len -= sizeof(struct fc_fdmi_attr_entry);
-		len += (numattrs * FC_FDMI_ATTR_ENTRY_HEADER_LEN);
-		len += FC_FDMI_HBA_ATTR_NODENAME_LEN;
-		len += FC_FDMI_HBA_ATTR_MANUFACTURER_LEN;
-		len += FC_FDMI_HBA_ATTR_SERIALNUMBER_LEN;
-		len += FC_FDMI_HBA_ATTR_MODEL_LEN;
-		len += FC_FDMI_HBA_ATTR_MODELDESCR_LEN;
-		len += FC_FDMI_HBA_ATTR_HARDWAREVERSION_LEN;
-		len += FC_FDMI_HBA_ATTR_DRIVERVERSION_LEN;
-		len += FC_FDMI_HBA_ATTR_OPTIONROMVERSION_LEN;
-		len += FC_FDMI_HBA_ATTR_FIRMWAREVERSION_LEN;
-		len += FC_FDMI_HBA_ATTR_OSNAMEVERSION_LEN;
-		ct = fc_ct_hdr_fill(fp, op, len, FC_FST_MGMT,
-				    FC_FDMI_SUBTYPE);
+	switch (op)
+	{
+		case FC_FDMI_RHBA:
+			numattrs = 10;
+			len = sizeof(struct fc_fdmi_rhba);
+			len -= sizeof(struct fc_fdmi_attr_entry);
+			len += (numattrs * FC_FDMI_ATTR_ENTRY_HEADER_LEN);
+			len += FC_FDMI_HBA_ATTR_NODENAME_LEN;
+			len += FC_FDMI_HBA_ATTR_MANUFACTURER_LEN;
+			len += FC_FDMI_HBA_ATTR_SERIALNUMBER_LEN;
+			len += FC_FDMI_HBA_ATTR_MODEL_LEN;
+			len += FC_FDMI_HBA_ATTR_MODELDESCR_LEN;
+			len += FC_FDMI_HBA_ATTR_HARDWAREVERSION_LEN;
+			len += FC_FDMI_HBA_ATTR_DRIVERVERSION_LEN;
+			len += FC_FDMI_HBA_ATTR_OPTIONROMVERSION_LEN;
+			len += FC_FDMI_HBA_ATTR_FIRMWAREVERSION_LEN;
+			len += FC_FDMI_HBA_ATTR_OSNAMEVERSION_LEN;
+			ct = fc_ct_hdr_fill(fp, op, len, FC_FST_MGMT,
+								FC_FDMI_SUBTYPE);
 
-		/* HBA Identifier */
-		put_unaligned_be64(lport->wwpn, &ct->payload.rhba.hbaid.id);
-		/* Number of Ports - always 1 */
-		put_unaligned_be32(1, &ct->payload.rhba.port.numport);
-		/* Port Name */
-		put_unaligned_be64(lport->wwpn,
-				   &ct->payload.rhba.port.port[0].portname);
+			/* HBA Identifier */
+			put_unaligned_be64(lport->wwpn, &ct->payload.rhba.hbaid.id);
+			/* Number of Ports - always 1 */
+			put_unaligned_be32(1, &ct->payload.rhba.port.numport);
+			/* Port Name */
+			put_unaligned_be64(lport->wwpn,
+							   &ct->payload.rhba.port.port[0].portname);
 
-		/* HBA Attributes */
-		put_unaligned_be32(numattrs,
-				   &ct->payload.rhba.hba_attrs.numattrs);
-		hba_attrs = &ct->payload.rhba.hba_attrs;
-		entry = (struct fc_fdmi_attr_entry *)hba_attrs->attr;
-		/* NodeName*/
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_HBA_ATTR_NODENAME_LEN;
-		put_unaligned_be16(FC_FDMI_HBA_ATTR_NODENAME,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		put_unaligned_be64(lport->wwnn,
-				   (__be64 *)&entry->value[0]);
+			/* HBA Attributes */
+			put_unaligned_be32(numattrs,
+							   &ct->payload.rhba.hba_attrs.numattrs);
+			hba_attrs = &ct->payload.rhba.hba_attrs;
+			entry = (struct fc_fdmi_attr_entry *)hba_attrs->attr;
+			/* NodeName*/
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_HBA_ATTR_NODENAME_LEN;
+			put_unaligned_be16(FC_FDMI_HBA_ATTR_NODENAME,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			put_unaligned_be64(lport->wwnn,
+							   (__be64 *)&entry->value[0]);
 
-		/* Manufacturer */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
-					FC_FDMI_HBA_ATTR_NODENAME_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_HBA_ATTR_MANUFACTURER_LEN;
-		put_unaligned_be16(FC_FDMI_HBA_ATTR_MANUFACTURER,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		strncpy((char *)&entry->value,
-			fc_host_manufacturer(lport->host),
-			FC_FDMI_HBA_ATTR_MANUFACTURER_LEN);
-
-		/* SerialNumber */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+			/* Manufacturer */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_HBA_ATTR_NODENAME_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_HBA_ATTR_MANUFACTURER_LEN;
+			put_unaligned_be16(FC_FDMI_HBA_ATTR_MANUFACTURER,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			strncpy((char *)&entry->value,
+					fc_host_manufacturer(lport->host),
 					FC_FDMI_HBA_ATTR_MANUFACTURER_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_HBA_ATTR_SERIALNUMBER_LEN;
-		put_unaligned_be16(FC_FDMI_HBA_ATTR_SERIALNUMBER,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		strncpy((char *)&entry->value,
-			fc_host_serial_number(lport->host),
-			FC_FDMI_HBA_ATTR_SERIALNUMBER_LEN);
 
-		/* Model */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+			/* SerialNumber */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_HBA_ATTR_MANUFACTURER_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_HBA_ATTR_SERIALNUMBER_LEN;
+			put_unaligned_be16(FC_FDMI_HBA_ATTR_SERIALNUMBER,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			strncpy((char *)&entry->value,
+					fc_host_serial_number(lport->host),
 					FC_FDMI_HBA_ATTR_SERIALNUMBER_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_HBA_ATTR_MODEL_LEN;
-		put_unaligned_be16(FC_FDMI_HBA_ATTR_MODEL,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		strncpy((char *)&entry->value,
-			fc_host_model(lport->host),
-			FC_FDMI_HBA_ATTR_MODEL_LEN);
 
-		/* Model Description */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+			/* Model */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_HBA_ATTR_SERIALNUMBER_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_HBA_ATTR_MODEL_LEN;
+			put_unaligned_be16(FC_FDMI_HBA_ATTR_MODEL,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			strncpy((char *)&entry->value,
+					fc_host_model(lport->host),
 					FC_FDMI_HBA_ATTR_MODEL_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_HBA_ATTR_MODELDESCR_LEN;
-		put_unaligned_be16(FC_FDMI_HBA_ATTR_MODELDESCRIPTION,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		strncpy((char *)&entry->value,
-			fc_host_model_description(lport->host),
-			FC_FDMI_HBA_ATTR_MODELDESCR_LEN);
 
-		/* Hardware Version */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+			/* Model Description */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_HBA_ATTR_MODEL_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_HBA_ATTR_MODELDESCR_LEN;
+			put_unaligned_be16(FC_FDMI_HBA_ATTR_MODELDESCRIPTION,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			strncpy((char *)&entry->value,
+					fc_host_model_description(lport->host),
 					FC_FDMI_HBA_ATTR_MODELDESCR_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_HBA_ATTR_HARDWAREVERSION_LEN;
-		put_unaligned_be16(FC_FDMI_HBA_ATTR_HARDWAREVERSION,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		strncpy((char *)&entry->value,
-			fc_host_hardware_version(lport->host),
-			FC_FDMI_HBA_ATTR_HARDWAREVERSION_LEN);
 
-		/* Driver Version */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+			/* Hardware Version */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_HBA_ATTR_MODELDESCR_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_HBA_ATTR_HARDWAREVERSION_LEN;
+			put_unaligned_be16(FC_FDMI_HBA_ATTR_HARDWAREVERSION,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			strncpy((char *)&entry->value,
+					fc_host_hardware_version(lport->host),
 					FC_FDMI_HBA_ATTR_HARDWAREVERSION_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_HBA_ATTR_DRIVERVERSION_LEN;
-		put_unaligned_be16(FC_FDMI_HBA_ATTR_DRIVERVERSION,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		strncpy((char *)&entry->value,
-			fc_host_driver_version(lport->host),
-			FC_FDMI_HBA_ATTR_DRIVERVERSION_LEN);
 
-		/* OptionROM Version */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+			/* Driver Version */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_HBA_ATTR_HARDWAREVERSION_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_HBA_ATTR_DRIVERVERSION_LEN;
+			put_unaligned_be16(FC_FDMI_HBA_ATTR_DRIVERVERSION,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			strncpy((char *)&entry->value,
+					fc_host_driver_version(lport->host),
 					FC_FDMI_HBA_ATTR_DRIVERVERSION_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_HBA_ATTR_OPTIONROMVERSION_LEN;
-		put_unaligned_be16(FC_FDMI_HBA_ATTR_OPTIONROMVERSION,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		strncpy((char *)&entry->value,
-			fc_host_optionrom_version(lport->host),
-			FC_FDMI_HBA_ATTR_OPTIONROMVERSION_LEN);
 
-		/* Firmware Version */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+			/* OptionROM Version */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_HBA_ATTR_DRIVERVERSION_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_HBA_ATTR_OPTIONROMVERSION_LEN;
+			put_unaligned_be16(FC_FDMI_HBA_ATTR_OPTIONROMVERSION,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			strncpy((char *)&entry->value,
+					fc_host_optionrom_version(lport->host),
 					FC_FDMI_HBA_ATTR_OPTIONROMVERSION_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_HBA_ATTR_FIRMWAREVERSION_LEN;
-		put_unaligned_be16(FC_FDMI_HBA_ATTR_FIRMWAREVERSION,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		strncpy((char *)&entry->value,
-			fc_host_firmware_version(lport->host),
-			FC_FDMI_HBA_ATTR_FIRMWAREVERSION_LEN);
 
-		/* OS Name and Version */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+			/* Firmware Version */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_HBA_ATTR_OPTIONROMVERSION_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_HBA_ATTR_FIRMWAREVERSION_LEN;
+			put_unaligned_be16(FC_FDMI_HBA_ATTR_FIRMWAREVERSION,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			strncpy((char *)&entry->value,
+					fc_host_firmware_version(lport->host),
 					FC_FDMI_HBA_ATTR_FIRMWAREVERSION_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_HBA_ATTR_OSNAMEVERSION_LEN;
-		put_unaligned_be16(FC_FDMI_HBA_ATTR_OSNAMEVERSION,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		snprintf((char *)&entry->value,
-			FC_FDMI_HBA_ATTR_OSNAMEVERSION_LEN,
-			"%s v%s",
-			init_utsname()->sysname,
-			init_utsname()->release);
-		break;
-	case FC_FDMI_RPA:
-		numattrs = 6;
-		len = sizeof(struct fc_fdmi_rpa);
-		len -= sizeof(struct fc_fdmi_attr_entry);
-		len += (numattrs * FC_FDMI_ATTR_ENTRY_HEADER_LEN);
-		len += FC_FDMI_PORT_ATTR_FC4TYPES_LEN;
-		len += FC_FDMI_PORT_ATTR_SUPPORTEDSPEED_LEN;
-		len += FC_FDMI_PORT_ATTR_CURRENTPORTSPEED_LEN;
-		len += FC_FDMI_PORT_ATTR_MAXFRAMESIZE_LEN;
-		len += FC_FDMI_PORT_ATTR_OSDEVICENAME_LEN;
-		len += FC_FDMI_PORT_ATTR_HOSTNAME_LEN;
-		ct = fc_ct_hdr_fill(fp, op, len, FC_FST_MGMT,
-				    FC_FDMI_SUBTYPE);
 
-		/* Port Name */
-		put_unaligned_be64(lport->wwpn,
-				   &ct->payload.rpa.port.portname);
+			/* OS Name and Version */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_HBA_ATTR_FIRMWAREVERSION_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_HBA_ATTR_OSNAMEVERSION_LEN;
+			put_unaligned_be16(FC_FDMI_HBA_ATTR_OSNAMEVERSION,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			snprintf((char *)&entry->value,
+					 FC_FDMI_HBA_ATTR_OSNAMEVERSION_LEN,
+					 "%s v%s",
+					 init_utsname()->sysname,
+					 init_utsname()->release);
+			break;
 
-		/* Port Attributes */
-		put_unaligned_be32(numattrs,
-				   &ct->payload.rpa.hba_attrs.numattrs);
+		case FC_FDMI_RPA:
+			numattrs = 6;
+			len = sizeof(struct fc_fdmi_rpa);
+			len -= sizeof(struct fc_fdmi_attr_entry);
+			len += (numattrs * FC_FDMI_ATTR_ENTRY_HEADER_LEN);
+			len += FC_FDMI_PORT_ATTR_FC4TYPES_LEN;
+			len += FC_FDMI_PORT_ATTR_SUPPORTEDSPEED_LEN;
+			len += FC_FDMI_PORT_ATTR_CURRENTPORTSPEED_LEN;
+			len += FC_FDMI_PORT_ATTR_MAXFRAMESIZE_LEN;
+			len += FC_FDMI_PORT_ATTR_OSDEVICENAME_LEN;
+			len += FC_FDMI_PORT_ATTR_HOSTNAME_LEN;
+			ct = fc_ct_hdr_fill(fp, op, len, FC_FST_MGMT,
+								FC_FDMI_SUBTYPE);
 
-		hba_attrs = &ct->payload.rpa.hba_attrs;
-		entry = (struct fc_fdmi_attr_entry *)hba_attrs->attr;
+			/* Port Name */
+			put_unaligned_be64(lport->wwpn,
+							   &ct->payload.rpa.port.portname);
 
-		/* FC4 types */
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_PORT_ATTR_FC4TYPES_LEN;
-		put_unaligned_be16(FC_FDMI_PORT_ATTR_FC4TYPES,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		memcpy(&entry->value, fc_host_supported_fc4s(lport->host),
-		       FC_FDMI_PORT_ATTR_FC4TYPES_LEN);
+			/* Port Attributes */
+			put_unaligned_be32(numattrs,
+							   &ct->payload.rpa.hba_attrs.numattrs);
 
-		/* Supported Speed */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
-					FC_FDMI_PORT_ATTR_FC4TYPES_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_PORT_ATTR_SUPPORTEDSPEED_LEN;
-		put_unaligned_be16(FC_FDMI_PORT_ATTR_SUPPORTEDSPEED,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
+			hba_attrs = &ct->payload.rpa.hba_attrs;
+			entry = (struct fc_fdmi_attr_entry *)hba_attrs->attr;
 
-		put_unaligned_be32(fc_host_supported_speeds(lport->host),
-				   &entry->value);
+			/* FC4 types */
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_PORT_ATTR_FC4TYPES_LEN;
+			put_unaligned_be16(FC_FDMI_PORT_ATTR_FC4TYPES,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			memcpy(&entry->value, fc_host_supported_fc4s(lport->host),
+				   FC_FDMI_PORT_ATTR_FC4TYPES_LEN);
 
-		/* Current Port Speed */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
-					FC_FDMI_PORT_ATTR_SUPPORTEDSPEED_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_PORT_ATTR_CURRENTPORTSPEED_LEN;
-		put_unaligned_be16(FC_FDMI_PORT_ATTR_CURRENTPORTSPEED,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		put_unaligned_be32(lport->link_speed,
-				   &entry->value);
+			/* Supported Speed */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_PORT_ATTR_FC4TYPES_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_PORT_ATTR_SUPPORTEDSPEED_LEN;
+			put_unaligned_be16(FC_FDMI_PORT_ATTR_SUPPORTEDSPEED,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
 
-		/* Max Frame Size */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
-					FC_FDMI_PORT_ATTR_CURRENTPORTSPEED_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_PORT_ATTR_MAXFRAMESIZE_LEN;
-		put_unaligned_be16(FC_FDMI_PORT_ATTR_MAXFRAMESIZE,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		put_unaligned_be32(fc_host_maxframe_size(lport->host),
-				   &entry->value);
+			put_unaligned_be32(fc_host_supported_speeds(lport->host),
+							   &entry->value);
 
-		/* OS Device Name */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
-					FC_FDMI_PORT_ATTR_MAXFRAMESIZE_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_PORT_ATTR_OSDEVICENAME_LEN;
-		put_unaligned_be16(FC_FDMI_PORT_ATTR_OSDEVICENAME,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		/* Use the sysfs device name */
-		strncpy((char *)&entry->value,
-			dev_name(&lport->host->shost_gendev),
-			strnlen(dev_name(&lport->host->shost_gendev),
-				FC_FDMI_PORT_ATTR_HOSTNAME_LEN));
+			/* Current Port Speed */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_PORT_ATTR_SUPPORTEDSPEED_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_PORT_ATTR_CURRENTPORTSPEED_LEN;
+			put_unaligned_be16(FC_FDMI_PORT_ATTR_CURRENTPORTSPEED,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			put_unaligned_be32(lport->link_speed,
+							   &entry->value);
 
-		/* Host Name */
-		entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
-					FC_FDMI_PORT_ATTR_OSDEVICENAME_LEN);
-		len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
-		len += FC_FDMI_PORT_ATTR_HOSTNAME_LEN;
-		put_unaligned_be16(FC_FDMI_PORT_ATTR_HOSTNAME,
-				   &entry->type);
-		put_unaligned_be16(len, &entry->len);
-		if (strlen(fc_host_system_hostname(lport->host)))
+			/* Max Frame Size */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_PORT_ATTR_CURRENTPORTSPEED_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_PORT_ATTR_MAXFRAMESIZE_LEN;
+			put_unaligned_be16(FC_FDMI_PORT_ATTR_MAXFRAMESIZE,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			put_unaligned_be32(fc_host_maxframe_size(lport->host),
+							   &entry->value);
+
+			/* OS Device Name */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_PORT_ATTR_MAXFRAMESIZE_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_PORT_ATTR_OSDEVICENAME_LEN;
+			put_unaligned_be16(FC_FDMI_PORT_ATTR_OSDEVICENAME,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+			/* Use the sysfs device name */
 			strncpy((char *)&entry->value,
-				fc_host_system_hostname(lport->host),
-				strnlen(fc_host_system_hostname(lport->host),
-					FC_FDMI_PORT_ATTR_HOSTNAME_LEN));
-		else
-			strncpy((char *)&entry->value,
-				init_utsname()->nodename,
-				FC_FDMI_PORT_ATTR_HOSTNAME_LEN);
-		break;
-	case FC_FDMI_DPRT:
-		len = sizeof(struct fc_fdmi_dprt);
-		ct = fc_ct_hdr_fill(fp, op, len, FC_FST_MGMT,
-				    FC_FDMI_SUBTYPE);
-		/* Port Name */
-		put_unaligned_be64(lport->wwpn,
-				   &ct->payload.dprt.port.portname);
-		break;
-	case FC_FDMI_DHBA:
-		len = sizeof(struct fc_fdmi_dhba);
-		ct = fc_ct_hdr_fill(fp, op, len, FC_FST_MGMT,
-				    FC_FDMI_SUBTYPE);
-		/* HBA Identifier */
-		put_unaligned_be64(lport->wwpn, &ct->payload.dhba.hbaid.id);
-		break;
-	default:
-		return -EINVAL;
+					dev_name(&lport->host->shost_gendev),
+					strnlen(dev_name(&lport->host->shost_gendev),
+							FC_FDMI_PORT_ATTR_HOSTNAME_LEN));
+
+			/* Host Name */
+			entry = (struct fc_fdmi_attr_entry *)((char *)entry->value +
+												  FC_FDMI_PORT_ATTR_OSDEVICENAME_LEN);
+			len = FC_FDMI_ATTR_ENTRY_HEADER_LEN;
+			len += FC_FDMI_PORT_ATTR_HOSTNAME_LEN;
+			put_unaligned_be16(FC_FDMI_PORT_ATTR_HOSTNAME,
+							   &entry->type);
+			put_unaligned_be16(len, &entry->len);
+
+			if (strlen(fc_host_system_hostname(lport->host)))
+				strncpy((char *)&entry->value,
+						fc_host_system_hostname(lport->host),
+						strnlen(fc_host_system_hostname(lport->host),
+								FC_FDMI_PORT_ATTR_HOSTNAME_LEN));
+			else
+				strncpy((char *)&entry->value,
+						init_utsname()->nodename,
+						FC_FDMI_PORT_ATTR_HOSTNAME_LEN);
+
+			break;
+
+		case FC_FDMI_DPRT:
+			len = sizeof(struct fc_fdmi_dprt);
+			ct = fc_ct_hdr_fill(fp, op, len, FC_FST_MGMT,
+								FC_FDMI_SUBTYPE);
+			/* Port Name */
+			put_unaligned_be64(lport->wwpn,
+							   &ct->payload.dprt.port.portname);
+			break;
+
+		case FC_FDMI_DHBA:
+			len = sizeof(struct fc_fdmi_dhba);
+			ct = fc_ct_hdr_fill(fp, op, len, FC_FST_MGMT,
+								FC_FDMI_SUBTYPE);
+			/* HBA Identifier */
+			put_unaligned_be64(lport->wwpn, &ct->payload.dhba.hbaid.id);
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	*r_ctl = FC_RCTL_DD_UNSOL_CTL;
 	*fh_type = FC_TYPE_CT;
 	return 0;
@@ -507,22 +527,24 @@ static inline int fc_ct_ms_fill(struct fc_lport *lport,
  * @fh_type: pointer to FC-4 type.
  */
 static inline int fc_ct_fill(struct fc_lport *lport,
-		      u32 fc_id, struct fc_frame *fp,
-		      unsigned int op, enum fc_rctl *r_ctl,
-		      enum fc_fh_type *fh_type, u32 *did)
+							 u32 fc_id, struct fc_frame *fp,
+							 unsigned int op, enum fc_rctl *r_ctl,
+							 enum fc_fh_type *fh_type, u32 *did)
 {
 	int rc = -EINVAL;
 
-	switch (fc_id) {
-	case FC_FID_MGMT_SERV:
-		rc = fc_ct_ms_fill(lport, fc_id, fp, op, r_ctl, fh_type);
-		*did = FC_FID_MGMT_SERV;
-		break;
-	case FC_FID_DIR_SERV:
-	default:
-		rc = fc_ct_ns_fill(lport, fc_id, fp, op, r_ctl, fh_type);
-		*did = FC_FID_DIR_SERV;
-		break;
+	switch (fc_id)
+	{
+		case FC_FID_MGMT_SERV:
+			rc = fc_ct_ms_fill(lport, fc_id, fp, op, r_ctl, fh_type);
+			*did = FC_FID_MGMT_SERV;
+			break;
+
+		case FC_FID_DIR_SERV:
+		default:
+			rc = fc_ct_ns_fill(lport, fc_id, fp, op, r_ctl, fh_type);
+			*did = FC_FID_DIR_SERV;
+			break;
 	}
 
 	return rc;
@@ -531,7 +553,7 @@ static inline int fc_ct_fill(struct fc_lport *lport,
  * fc_plogi_fill - Fill in plogi request frame
  */
 static inline void fc_plogi_fill(struct fc_lport *lport, struct fc_frame *fp,
-				 unsigned int op)
+								 unsigned int op)
 {
 	struct fc_els_flogi *plogi;
 	struct fc_els_csp *csp;
@@ -581,8 +603,11 @@ static inline void fc_flogi_fill(struct fc_lport *lport, struct fc_frame *fp)
 	sp->sp_bb_data = htons((u16) lport->mfs);
 	cp = &flogi->fl_cssp[3 - 1];	/* class 3 parameters */
 	cp->cp_class = htons(FC_CPC_VALID | FC_CPC_SEQ);
+
 	if (lport->does_npiv)
+	{
 		sp->sp_features = htons(FC_SP_FT_NPIV);
+	}
 }
 
 /**
@@ -655,7 +680,8 @@ static inline void fc_rec_fill(struct fc_lport *lport, struct fc_frame *fp)
  */
 static inline void fc_prli_fill(struct fc_lport *lport, struct fc_frame *fp)
 {
-	struct {
+	struct
+	{
 		struct fc_els_prli prli;
 		struct fc_els_spp spp;
 	} *pp;
@@ -687,49 +713,50 @@ static inline void fc_scr_fill(struct fc_lport *lport, struct fc_frame *fp)
  * fc_els_fill - Fill in an ELS  request frame
  */
 static inline int fc_els_fill(struct fc_lport *lport,
-		       u32 did,
-		       struct fc_frame *fp, unsigned int op,
-		       enum fc_rctl *r_ctl, enum fc_fh_type *fh_type)
+							  u32 did,
+							  struct fc_frame *fp, unsigned int op,
+							  enum fc_rctl *r_ctl, enum fc_fh_type *fh_type)
 {
-	switch (op) {
-	case ELS_ADISC:
-		fc_adisc_fill(lport, fp);
-		break;
+	switch (op)
+	{
+		case ELS_ADISC:
+			fc_adisc_fill(lport, fp);
+			break;
 
-	case ELS_PLOGI:
-		fc_plogi_fill(lport, fp, ELS_PLOGI);
-		break;
+		case ELS_PLOGI:
+			fc_plogi_fill(lport, fp, ELS_PLOGI);
+			break;
 
-	case ELS_FLOGI:
-		fc_flogi_fill(lport, fp);
-		break;
+		case ELS_FLOGI:
+			fc_flogi_fill(lport, fp);
+			break;
 
-	case ELS_FDISC:
-		fc_fdisc_fill(lport, fp);
-		break;
+		case ELS_FDISC:
+			fc_fdisc_fill(lport, fp);
+			break;
 
-	case ELS_LOGO:
-		fc_logo_fill(lport, fp);
-		break;
+		case ELS_LOGO:
+			fc_logo_fill(lport, fp);
+			break;
 
-	case ELS_RTV:
-		fc_rtv_fill(lport, fp);
-		break;
+		case ELS_RTV:
+			fc_rtv_fill(lport, fp);
+			break;
 
-	case ELS_REC:
-		fc_rec_fill(lport, fp);
-		break;
+		case ELS_REC:
+			fc_rec_fill(lport, fp);
+			break;
 
-	case ELS_PRLI:
-		fc_prli_fill(lport, fp);
-		break;
+		case ELS_PRLI:
+			fc_prli_fill(lport, fp);
+			break;
 
-	case ELS_SCR:
-		fc_scr_fill(lport, fp);
-		break;
+		case ELS_SCR:
+			fc_scr_fill(lport, fp);
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	*r_ctl = FC_RCTL_ELS_REQ;

@@ -73,15 +73,16 @@
 static int heartbeat;
 module_param(heartbeat, int, 0);
 MODULE_PARM_DESC(heartbeat, "Watchdog heartbeats in seconds. "
-	"(default = " __MODULE_STRING(WDT_HEARTBEAT) ")");
+				 "(default = " __MODULE_STRING(WDT_HEARTBEAT) ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started "
-	"(default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "(default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 #define to_wdt(wdd) container_of(wdd, struct at91wdt, wdd)
-struct at91wdt {
+struct at91wdt
+{
 	struct watchdog_device wdd;
 	void __iomem *base;
 	unsigned long next_heartbeat;	/* the next_heartbeat for the timer */
@@ -100,7 +101,8 @@ static irqreturn_t wdt_interrupt(int irq, void *dev_id)
 {
 	struct at91wdt *wdt = (struct at91wdt *)dev_id;
 
-	if (wdt_read(wdt, AT91_WDT_SR)) {
+	if (wdt_read(wdt, AT91_WDT_SR))
+	{
 		pr_crit("at91sam9 WDT software reset\n");
 		emergency_restart();
 		pr_crit("Reboot didn't ?????\n");
@@ -123,11 +125,15 @@ static inline void at91_wdt_reset(struct at91wdt *wdt)
 static void at91_ping(unsigned long data)
 {
 	struct at91wdt *wdt = (struct at91wdt *)data;
+
 	if (time_before(jiffies, wdt->next_heartbeat) ||
-	    !watchdog_active(&wdt->wdd)) {
+		!watchdog_active(&wdt->wdd))
+	{
 		at91_wdt_reset(wdt);
 		mod_timer(&wdt->timer, jiffies + wdt->heartbeat);
-	} else {
+	}
+	else
+	{
 		pr_crit("I will reset your machine !\n");
 	}
 }
@@ -164,16 +170,23 @@ static int at91_wdt_init(struct platform_device *pdev, struct at91wdt *wdt)
 	struct device *dev = &pdev->dev;
 
 	tmp = wdt_read(wdt, AT91_WDT_MR);
-	if ((tmp & mask) != (wdt->mr & mask)) {
-		if (tmp == WDT_MR_RESET) {
+
+	if ((tmp & mask) != (wdt->mr & mask))
+	{
+		if (tmp == WDT_MR_RESET)
+		{
 			wdt_write(wdt, AT91_WDT_MR, wdt->mr);
 			tmp = wdt_read(wdt, AT91_WDT_MR);
 		}
 	}
 
-	if (tmp & AT91_WDT_WDDIS) {
+	if (tmp & AT91_WDT_WDDIS)
+	{
 		if (wdt->mr & AT91_WDT_WDDIS)
+		{
 			return 0;
+		}
+
 		dev_err(dev, "watchdog is disabled\n");
 		return -EINVAL;
 	}
@@ -182,12 +195,16 @@ static int at91_wdt_init(struct platform_device *pdev, struct at91wdt *wdt)
 	delta = (tmp & AT91_WDT_WDD) >> 16;
 
 	if (delta < value)
+	{
 		min_heartbeat = ticks_to_hz_roundup(value - delta);
+	}
 
 	max_heartbeat = ticks_to_hz_rounddown(value);
-	if (!max_heartbeat) {
+
+	if (!max_heartbeat)
+	{
 		dev_err(dev,
-			"heartbeat is too small for the system to handle it correctly\n");
+				"heartbeat is too small for the system to handle it correctly\n");
 		return -EINVAL;
 	}
 
@@ -198,29 +215,39 @@ static int at91_wdt_init(struct platform_device *pdev, struct at91wdt *wdt)
 	 * it at the min_heartbeat period.
 	 */
 	if ((max_heartbeat / 4) >= min_heartbeat)
+	{
 		wdt->heartbeat = max_heartbeat / 4;
+	}
 	else if ((max_heartbeat / 2) >= min_heartbeat)
+	{
 		wdt->heartbeat = max_heartbeat / 2;
+	}
 	else
+	{
 		wdt->heartbeat = min_heartbeat;
+	}
 
 	if (max_heartbeat < min_heartbeat + 4)
 		dev_warn(dev,
-			 "min heartbeat and max heartbeat might be too close for the system to handle it correctly\n");
+				 "min heartbeat and max heartbeat might be too close for the system to handle it correctly\n");
 
-	if ((tmp & AT91_WDT_WDFIEN) && wdt->irq) {
+	if ((tmp & AT91_WDT_WDFIEN) && wdt->irq)
+	{
 		err = request_irq(wdt->irq, wdt_interrupt,
-				  IRQF_SHARED | IRQF_IRQPOLL |
-				  IRQF_NO_SUSPEND,
-				  pdev->name, wdt);
+						  IRQF_SHARED | IRQF_IRQPOLL |
+						  IRQF_NO_SUSPEND,
+						  pdev->name, wdt);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	if ((tmp & wdt->mr_mask) != (wdt->mr & wdt->mr_mask))
 		dev_warn(dev,
-			 "watchdog already configured differently (mr = %x expecting %x)\n",
-			 tmp & wdt->mr_mask, wdt->mr & wdt->mr_mask);
+				 "watchdog already configured differently (mr = %x expecting %x)\n",
+				 tmp & wdt->mr_mask, wdt->mr & wdt->mr_mask);
 
 	setup_timer(&wdt->timer, at91_ping, (unsigned long)wdt);
 
@@ -235,11 +262,17 @@ static int at91_wdt_init(struct platform_device *pdev, struct at91wdt *wdt)
 
 	/* Try to set timeout from device tree first */
 	if (watchdog_init_timeout(&wdt->wdd, 0, dev))
+	{
 		watchdog_init_timeout(&wdt->wdd, heartbeat, dev);
+	}
+
 	watchdog_set_nowayout(&wdt->wdd, wdt->nowayout);
 	err = watchdog_register_device(&wdt->wdd);
+
 	if (err)
+	{
 		goto out_stop_timer;
+	}
 
 	wdt->next_heartbeat = jiffies + wdt->wdd.timeout * HZ;
 
@@ -252,13 +285,15 @@ out_stop_timer:
 
 /* ......................................................................... */
 
-static const struct watchdog_info at91_wdt_info = {
+static const struct watchdog_info at91_wdt_info =
+{
 	.identity	= DRV_NAME,
 	.options	= WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING |
-						WDIOF_MAGICCLOSE,
+	WDIOF_MAGICCLOSE,
 };
 
-static const struct watchdog_ops at91_wdt_ops = {
+static const struct watchdog_ops at91_wdt_ops =
+{
 	.owner =	THIS_MODULE,
 	.start =	at91_wdt_start,
 	.stop =		at91_wdt_stop,
@@ -274,18 +309,27 @@ static int of_at91wdt_init(struct device_node *np, struct at91wdt *wdt)
 
 	/* Get the interrupts property */
 	wdt->irq = irq_of_parse_and_map(np, 0);
+
 	if (!wdt->irq)
+	{
 		dev_warn(wdt->wdd.parent, "failed to get IRQ from DT\n");
+	}
 
 	if (!of_property_read_u32_index(np, "atmel,max-heartbeat-sec", 0,
-					&max)) {
+									&max))
+	{
 		if (!max || max > WDT_COUNTER_MAX_SECS)
+		{
 			max = WDT_COUNTER_MAX_SECS;
+		}
 
 		if (!of_property_read_u32_index(np, "atmel,min-heartbeat-sec",
-						0, &min)) {
+										0, &min))
+		{
 			if (min >= max)
+			{
 				min = max - 1;
+			}
 		}
 	}
 
@@ -294,28 +338,39 @@ static int of_at91wdt_init(struct device_node *np, struct at91wdt *wdt)
 
 	wdt->mr_mask = 0x3FFFFFFF;
 	wdt->mr = 0;
+
 	if (!of_property_read_string(np, "atmel,watchdog-type", &tmp) &&
-	    !strcmp(tmp, "software")) {
+		!strcmp(tmp, "software"))
+	{
 		wdt->mr |= AT91_WDT_WDFIEN;
 		wdt->mr_mask &= ~AT91_WDT_WDRPROC;
-	} else {
+	}
+	else
+	{
 		wdt->mr |= AT91_WDT_WDRSTEN;
 	}
 
 	if (!of_property_read_string(np, "atmel,reset-type", &tmp) &&
-	    !strcmp(tmp, "proc"))
+		!strcmp(tmp, "proc"))
+	{
 		wdt->mr |= AT91_WDT_WDRPROC;
+	}
 
-	if (of_property_read_bool(np, "atmel,disable")) {
+	if (of_property_read_bool(np, "atmel,disable"))
+	{
 		wdt->mr |= AT91_WDT_WDDIS;
 		wdt->mr_mask &= AT91_WDT_WDDIS;
 	}
 
 	if (of_property_read_bool(np, "atmel,idle-halt"))
+	{
 		wdt->mr |= AT91_WDT_WDIDLEHLT;
+	}
 
 	if (of_property_read_bool(np, "atmel,dbg-halt"))
+	{
 		wdt->mr |= AT91_WDT_WDDBGHLT;
+	}
 
 	wdt->mr |= max | ((max - min) << 16);
 
@@ -335,11 +390,14 @@ static int __init at91wdt_probe(struct platform_device *pdev)
 	struct at91wdt *wdt;
 
 	wdt = devm_kzalloc(&pdev->dev, sizeof(*wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	wdt->mr = (WDT_HW_TIMEOUT * 256) | AT91_WDT_WDRSTEN | AT91_WDT_WDD |
-		  AT91_WDT_WDDBGHLT | AT91_WDT_WDIDLEHLT;
+			  AT91_WDT_WDDBGHLT | AT91_WDT_WDIDLEHLT;
 	wdt->mr_mask = 0x3FFFFFFF;
 	wdt->nowayout = nowayout;
 	wdt->wdd.parent = &pdev->dev;
@@ -351,33 +409,48 @@ static int __init at91wdt_probe(struct platform_device *pdev)
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	wdt->base = devm_ioremap_resource(&pdev->dev, r);
+
 	if (IS_ERR(wdt->base))
+	{
 		return PTR_ERR(wdt->base);
+	}
 
 	wdt->sclk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(wdt->sclk))
+	{
 		return PTR_ERR(wdt->sclk);
+	}
 
 	err = clk_prepare_enable(wdt->sclk);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Could not enable slow clock\n");
 		return err;
 	}
 
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		err = of_at91wdt_init(pdev->dev.of_node, wdt);
+
 		if (err)
+		{
 			goto err_clk;
+		}
 	}
 
 	err = at91_wdt_init(pdev, wdt);
+
 	if (err)
+	{
 		goto err_clk;
+	}
 
 	platform_set_drvdata(pdev, wdt);
 
 	pr_info("enabled (heartbeat=%d sec, nowayout=%d)\n",
-		wdt->wdd.timeout, wdt->nowayout);
+			wdt->wdd.timeout, wdt->nowayout);
 
 	return 0;
 
@@ -400,7 +473,8 @@ static int __exit at91wdt_remove(struct platform_device *pdev)
 }
 
 #if defined(CONFIG_OF)
-static const struct of_device_id at91_wdt_dt_ids[] = {
+static const struct of_device_id at91_wdt_dt_ids[] =
+{
 	{ .compatible = "atmel,at91sam9260-wdt" },
 	{ /* sentinel */ }
 };
@@ -408,7 +482,8 @@ static const struct of_device_id at91_wdt_dt_ids[] = {
 MODULE_DEVICE_TABLE(of, at91_wdt_dt_ids);
 #endif
 
-static struct platform_driver at91wdt_driver = {
+static struct platform_driver at91wdt_driver =
+{
 	.remove		= __exit_p(at91wdt_remove),
 	.driver		= {
 		.name	= "at91_wdt",

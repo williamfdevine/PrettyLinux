@@ -33,7 +33,7 @@
 #include "../rtl8723com/fw_common.h"
 
 static bool _rtl8723e_check_fw_read_last_h2c(struct ieee80211_hw *hw,
-					     u8 boxnum)
+		u8 boxnum)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 	u8 val_hmetfr, val_mcutst_1;
@@ -43,12 +43,15 @@ static bool _rtl8723e_check_fw_read_last_h2c(struct ieee80211_hw *hw,
 	val_mcutst_1 = rtl_read_byte(rtlpriv, (REG_MCUTST_1 + boxnum));
 
 	if (((val_hmetfr >> boxnum) & BIT(0)) == 0 && val_mcutst_1 == 0)
+	{
 		result = true;
+	}
+
 	return result;
 }
 
 static void _rtl8723e_fill_h2c_command(struct ieee80211_hw *hw, u8 element_id,
-				       u32 cmd_len, u8 *cmdbuffer)
+									   u32 cmd_len, u8 *cmdbuffer)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 	struct rtl_hal *rtlhal = rtl_hal(rtl_priv(hw));
@@ -67,92 +70,116 @@ static void _rtl8723e_fill_h2c_command(struct ieee80211_hw *hw, u8 element_id,
 
 	RT_TRACE(rtlpriv, COMP_CMD, DBG_LOUD, "come in\n");
 
-	while (true) {
+	while (true)
+	{
 		spin_lock_irqsave(&rtlpriv->locks.h2c_lock, flag);
-		if (rtlhal->h2c_setinprogress) {
-			RT_TRACE(rtlpriv, COMP_CMD, DBG_LOUD,
-				 "H2C set in progress! Wait to set..element_id(%d).\n",
-				 element_id);
 
-			while (rtlhal->h2c_setinprogress) {
+		if (rtlhal->h2c_setinprogress)
+		{
+			RT_TRACE(rtlpriv, COMP_CMD, DBG_LOUD,
+					 "H2C set in progress! Wait to set..element_id(%d).\n",
+					 element_id);
+
+			while (rtlhal->h2c_setinprogress)
+			{
 				spin_unlock_irqrestore(&rtlpriv->locks.h2c_lock,
-						       flag);
+									   flag);
 				h2c_waitcounter++;
 				RT_TRACE(rtlpriv, COMP_CMD, DBG_LOUD,
-					 "Wait 100 us (%d times)...\n",
-					  h2c_waitcounter);
+						 "Wait 100 us (%d times)...\n",
+						 h2c_waitcounter);
 				udelay(100);
 
 				if (h2c_waitcounter > 1000)
+				{
 					return;
+				}
+
 				spin_lock_irqsave(&rtlpriv->locks.h2c_lock,
-						  flag);
+								  flag);
 			}
+
 			spin_unlock_irqrestore(&rtlpriv->locks.h2c_lock, flag);
-		} else {
+		}
+		else
+		{
 			rtlhal->h2c_setinprogress = true;
 			spin_unlock_irqrestore(&rtlpriv->locks.h2c_lock, flag);
 			break;
 		}
 	}
 
-	while (!bwrite_sucess) {
+	while (!bwrite_sucess)
+	{
 		wait_writeh2c_limmit--;
-		if (wait_writeh2c_limmit == 0) {
+
+		if (wait_writeh2c_limmit == 0)
+		{
 			RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-				 "Write H2C fail because no trigger for FW INT!\n");
+					 "Write H2C fail because no trigger for FW INT!\n");
 			break;
 		}
 
 		boxnum = rtlhal->last_hmeboxnum;
-		switch (boxnum) {
-		case 0:
-			box_reg = REG_HMEBOX_0;
-			box_extreg = REG_HMEBOX_EXT_0;
-			break;
-		case 1:
-			box_reg = REG_HMEBOX_1;
-			box_extreg = REG_HMEBOX_EXT_1;
-			break;
-		case 2:
-			box_reg = REG_HMEBOX_2;
-			box_extreg = REG_HMEBOX_EXT_2;
-			break;
-		case 3:
-			box_reg = REG_HMEBOX_3;
-			box_extreg = REG_HMEBOX_EXT_3;
-			break;
-		default:
-			RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-				 "switch case %#x not processed\n", boxnum);
-			break;
+
+		switch (boxnum)
+		{
+			case 0:
+				box_reg = REG_HMEBOX_0;
+				box_extreg = REG_HMEBOX_EXT_0;
+				break;
+
+			case 1:
+				box_reg = REG_HMEBOX_1;
+				box_extreg = REG_HMEBOX_EXT_1;
+				break;
+
+			case 2:
+				box_reg = REG_HMEBOX_2;
+				box_extreg = REG_HMEBOX_EXT_2;
+				break;
+
+			case 3:
+				box_reg = REG_HMEBOX_3;
+				box_extreg = REG_HMEBOX_EXT_3;
+				break;
+
+			default:
+				RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
+						 "switch case %#x not processed\n", boxnum);
+				break;
 		}
 
 		isfw_read = _rtl8723e_check_fw_read_last_h2c(hw, boxnum);
-		while (!isfw_read) {
+
+		while (!isfw_read)
+		{
 
 			wait_h2c_limmit--;
-			if (wait_h2c_limmit == 0) {
+
+			if (wait_h2c_limmit == 0)
+			{
 				RT_TRACE(rtlpriv, COMP_CMD, DBG_LOUD,
-					 "Wating too long for FW read clear HMEBox(%d)!\n",
-					 boxnum);
+						 "Wating too long for FW read clear HMEBox(%d)!\n",
+						 boxnum);
 				break;
 			}
 
 			udelay(10);
 
 			isfw_read = _rtl8723e_check_fw_read_last_h2c(hw,
-								boxnum);
+						boxnum);
 			u1b_tmp = rtl_read_byte(rtlpriv, 0x1BF);
 			RT_TRACE(rtlpriv, COMP_CMD, DBG_LOUD,
-				 "Waiting for FW read clear HMEBox(%d)!!! 0x1BF = %2x\n",
-				 boxnum, u1b_tmp);
+					 "Waiting for FW read clear HMEBox(%d)!!! 0x1BF = %2x\n",
+					 boxnum, u1b_tmp);
 		}
 
-		if (!isfw_read) {
+		if (!isfw_read)
+		{
 			RT_TRACE(rtlpriv, COMP_CMD, DBG_LOUD,
-				 "Write H2C register BOX[%d] fail!!!!! Fw do not read.\n",
-				 boxnum);
+					 "Write H2C register BOX[%d] fail!!!!! Fw do not read.\n",
+					 boxnum);
 			break;
 		}
 
@@ -160,89 +187,110 @@ static void _rtl8723e_fill_h2c_command(struct ieee80211_hw *hw, u8 element_id,
 		memset(boxextcontent, 0, sizeof(boxextcontent));
 		boxcontent[0] = element_id;
 		RT_TRACE(rtlpriv, COMP_CMD, DBG_LOUD,
-			 "Write element_id box_reg(%4x) = %2x\n",
-			  box_reg, element_id);
+				 "Write element_id box_reg(%4x) = %2x\n",
+				 box_reg, element_id);
 
-		switch (cmd_len) {
-		case 1:
-			boxcontent[0] &= ~(BIT(7));
-			memcpy((u8 *)(boxcontent) + 1,
-			       cmdbuffer + buf_index, 1);
+		switch (cmd_len)
+		{
+			case 1:
+				boxcontent[0] &= ~(BIT(7));
+				memcpy((u8 *)(boxcontent) + 1,
+					   cmdbuffer + buf_index, 1);
 
-			for (idx = 0; idx < 4; idx++) {
-				rtl_write_byte(rtlpriv, box_reg + idx,
-					       boxcontent[idx]);
-			}
-			break;
-		case 2:
-			boxcontent[0] &= ~(BIT(7));
-			memcpy((u8 *)(boxcontent) + 1,
-			       cmdbuffer + buf_index, 2);
+				for (idx = 0; idx < 4; idx++)
+				{
+					rtl_write_byte(rtlpriv, box_reg + idx,
+								   boxcontent[idx]);
+				}
 
-			for (idx = 0; idx < 4; idx++) {
-				rtl_write_byte(rtlpriv, box_reg + idx,
-					       boxcontent[idx]);
-			}
-			break;
-		case 3:
-			boxcontent[0] &= ~(BIT(7));
-			memcpy((u8 *)(boxcontent) + 1,
-			       cmdbuffer + buf_index, 3);
+				break;
 
-			for (idx = 0; idx < 4; idx++) {
-				rtl_write_byte(rtlpriv, box_reg + idx,
-					       boxcontent[idx]);
-			}
-			break;
-		case 4:
-			boxcontent[0] |= (BIT(7));
-			memcpy((u8 *)(boxextcontent),
-			       cmdbuffer + buf_index, 2);
-			memcpy((u8 *)(boxcontent) + 1,
-			       cmdbuffer + buf_index + 2, 2);
+			case 2:
+				boxcontent[0] &= ~(BIT(7));
+				memcpy((u8 *)(boxcontent) + 1,
+					   cmdbuffer + buf_index, 2);
 
-			for (idx = 0; idx < 2; idx++) {
-				rtl_write_byte(rtlpriv, box_extreg + idx,
-					       boxextcontent[idx]);
-			}
+				for (idx = 0; idx < 4; idx++)
+				{
+					rtl_write_byte(rtlpriv, box_reg + idx,
+								   boxcontent[idx]);
+				}
 
-			for (idx = 0; idx < 4; idx++) {
-				rtl_write_byte(rtlpriv, box_reg + idx,
-					       boxcontent[idx]);
-			}
-			break;
-		case 5:
-			boxcontent[0] |= (BIT(7));
-			memcpy((u8 *)(boxextcontent),
-			       cmdbuffer + buf_index, 2);
-			memcpy((u8 *)(boxcontent) + 1,
-			       cmdbuffer + buf_index + 2, 3);
+				break;
 
-			for (idx = 0; idx < 2; idx++) {
-				rtl_write_byte(rtlpriv, box_extreg + idx,
-					       boxextcontent[idx]);
-			}
+			case 3:
+				boxcontent[0] &= ~(BIT(7));
+				memcpy((u8 *)(boxcontent) + 1,
+					   cmdbuffer + buf_index, 3);
 
-			for (idx = 0; idx < 4; idx++) {
-				rtl_write_byte(rtlpriv, box_reg + idx,
-					       boxcontent[idx]);
-			}
-			break;
-		default:
-			RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-				 "switch case %#x not processed\n", cmd_len);
-			break;
+				for (idx = 0; idx < 4; idx++)
+				{
+					rtl_write_byte(rtlpriv, box_reg + idx,
+								   boxcontent[idx]);
+				}
+
+				break;
+
+			case 4:
+				boxcontent[0] |= (BIT(7));
+				memcpy((u8 *)(boxextcontent),
+					   cmdbuffer + buf_index, 2);
+				memcpy((u8 *)(boxcontent) + 1,
+					   cmdbuffer + buf_index + 2, 2);
+
+				for (idx = 0; idx < 2; idx++)
+				{
+					rtl_write_byte(rtlpriv, box_extreg + idx,
+								   boxextcontent[idx]);
+				}
+
+				for (idx = 0; idx < 4; idx++)
+				{
+					rtl_write_byte(rtlpriv, box_reg + idx,
+								   boxcontent[idx]);
+				}
+
+				break;
+
+			case 5:
+				boxcontent[0] |= (BIT(7));
+				memcpy((u8 *)(boxextcontent),
+					   cmdbuffer + buf_index, 2);
+				memcpy((u8 *)(boxcontent) + 1,
+					   cmdbuffer + buf_index + 2, 3);
+
+				for (idx = 0; idx < 2; idx++)
+				{
+					rtl_write_byte(rtlpriv, box_extreg + idx,
+								   boxextcontent[idx]);
+				}
+
+				for (idx = 0; idx < 4; idx++)
+				{
+					rtl_write_byte(rtlpriv, box_reg + idx,
+								   boxcontent[idx]);
+				}
+
+				break;
+
+			default:
+				RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
+						 "switch case %#x not processed\n", cmd_len);
+				break;
 		}
 
 		bwrite_sucess = true;
 
 		rtlhal->last_hmeboxnum = boxnum + 1;
+
 		if (rtlhal->last_hmeboxnum == 4)
+		{
 			rtlhal->last_hmeboxnum = 0;
+		}
 
 		RT_TRACE(rtlpriv, COMP_CMD, DBG_LOUD,
-			 "pHalData->last_hmeboxnum  = %d\n",
-			  rtlhal->last_hmeboxnum);
+				 "pHalData->last_hmeboxnum  = %d\n",
+				 rtlhal->last_hmeboxnum);
 	}
 
 	spin_lock_irqsave(&rtlpriv->locks.h2c_lock, flag);
@@ -253,20 +301,22 @@ static void _rtl8723e_fill_h2c_command(struct ieee80211_hw *hw, u8 element_id,
 }
 
 void rtl8723e_fill_h2c_cmd(struct ieee80211_hw *hw,
-			   u8 element_id, u32 cmd_len, u8 *cmdbuffer)
+						   u8 element_id, u32 cmd_len, u8 *cmdbuffer)
 {
 	struct rtl_hal *rtlhal = rtl_hal(rtl_priv(hw));
 	u32 tmp_cmdbuf[2];
 
-	if (!rtlhal->fw_ready) {
+	if (!rtlhal->fw_ready)
+	{
 		RT_ASSERT(false,
-			  "return H2C cmd because of Fw download fail!!!\n");
+				  "return H2C cmd because of Fw download fail!!!\n");
 		return;
 	}
+
 	memset(tmp_cmdbuf, 0, 8);
 	memcpy(tmp_cmdbuf, cmdbuffer, cmd_len);
 	_rtl8723e_fill_h2c_command(hw, element_id, cmd_len,
-				   (u8 *)&tmp_cmdbuf);
+							   (u8 *)&tmp_cmdbuf);
 }
 
 void rtl8723e_set_fw_pwrmode_cmd(struct ieee80211_hw *hw, u8 mode)
@@ -279,13 +329,13 @@ void rtl8723e_set_fw_pwrmode_cmd(struct ieee80211_hw *hw, u8 mode)
 
 	SET_H2CCMD_PWRMODE_PARM_MODE(u1_h2c_set_pwrmode, mode);
 	SET_H2CCMD_PWRMODE_PARM_SMART_PS(u1_h2c_set_pwrmode,
-		(rtlpriv->mac80211.p2p) ? ppsc->smart_ps : 1);
+									 (rtlpriv->mac80211.p2p) ? ppsc->smart_ps : 1);
 	SET_H2CCMD_PWRMODE_PARM_BCN_PASS_TIME(u1_h2c_set_pwrmode,
-					      ppsc->reg_max_lps_awakeintvl);
+										  ppsc->reg_max_lps_awakeintvl);
 
 	RT_PRINT_DATA(rtlpriv, COMP_CMD, DBG_DMESG,
-		      "rtl8723e_set_fw_rsvdpagepkt(): u1_h2c_set_pwrmode\n",
-		      u1_h2c_set_pwrmode, 3);
+				  "rtl8723e_set_fw_rsvdpagepkt(): u1_h2c_set_pwrmode\n",
+				  u1_h2c_set_pwrmode, 3);
 	rtl8723e_fill_h2c_cmd(hw, H2C_SETPWRMODE, 3, u1_h2c_set_pwrmode);
 }
 
@@ -296,7 +346,8 @@ void rtl8723e_set_fw_pwrmode_cmd(struct ieee80211_hw *hw, u8 mode)
 
 #define TOTAL_RESERVED_PKT_LEN	768
 
-static u8 reserved_page_packet[TOTAL_RESERVED_PKT_LEN] = {
+static u8 reserved_page_packet[TOTAL_RESERVED_PKT_LEN] =
+{
 	/* page 0 beacon */
 	0x80, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
 	0xFF, 0xFF, 0x00, 0xE0, 0x4C, 0x76, 0x00, 0x42,
@@ -464,32 +515,36 @@ void rtl8723e_set_fw_rsvdpagepkt(struct ieee80211_hw *hw, bool b_dl_finished)
 	totalpacketlen = TOTAL_RESERVED_PKT_LEN;
 
 	RT_PRINT_DATA(rtlpriv, COMP_CMD, DBG_LOUD,
-		      "rtl8723e_set_fw_rsvdpagepkt(): HW_VAR_SET_TX_CMD: ALL\n",
-		      &reserved_page_packet[0], totalpacketlen);
+				  "rtl8723e_set_fw_rsvdpagepkt(): HW_VAR_SET_TX_CMD: ALL\n",
+				  &reserved_page_packet[0], totalpacketlen);
 	RT_PRINT_DATA(rtlpriv, COMP_CMD, DBG_DMESG,
-		      "rtl8723e_set_fw_rsvdpagepkt(): HW_VAR_SET_TX_CMD: ALL\n",
-		      u1rsvdpageloc, 3);
+				  "rtl8723e_set_fw_rsvdpagepkt(): HW_VAR_SET_TX_CMD: ALL\n",
+				  u1rsvdpageloc, 3);
 
 	skb = dev_alloc_skb(totalpacketlen);
 	memcpy((u8 *)skb_put(skb, totalpacketlen),
-	       &reserved_page_packet, totalpacketlen);
+		   &reserved_page_packet, totalpacketlen);
 
 	rtstatus = rtl_cmd_send_packet(hw, skb);
 
 	if (rtstatus)
+	{
 		b_dlok = true;
+	}
 
-	if (b_dlok) {
+	if (b_dlok)
+	{
 		RT_TRACE(rtlpriv, COMP_POWER, DBG_LOUD,
-			 "Set RSVD page location to Fw.\n");
+				 "Set RSVD page location to Fw.\n");
 		RT_PRINT_DATA(rtlpriv, COMP_CMD, DBG_DMESG,
-			      "H2C_RSVDPAGE:\n",
-			      u1rsvdpageloc, 3);
+					  "H2C_RSVDPAGE:\n",
+					  u1rsvdpageloc, 3);
 		rtl8723e_fill_h2c_cmd(hw, H2C_RSVDPAGE,
-				      sizeof(u1rsvdpageloc), u1rsvdpageloc);
-	} else
+							  sizeof(u1rsvdpageloc), u1rsvdpageloc);
+	}
+	else
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_WARNING,
-			 "Set RSVD page location to Fw FAIL!!!!!!.\n");
+				 "Set RSVD page location to Fw FAIL!!!!!!.\n");
 }
 
 void rtl8723e_set_fw_joinbss_report_cmd(struct ieee80211_hw *hw, u8 mstatus)
@@ -502,7 +557,7 @@ void rtl8723e_set_fw_joinbss_report_cmd(struct ieee80211_hw *hw, u8 mstatus)
 }
 
 static void rtl8723e_set_p2p_ctw_period_cmd(struct ieee80211_hw *hw,
-					    u8 ctwindow)
+		u8 ctwindow)
 {
 	u8 u1_ctwindow_period[1] = { ctwindow};
 
@@ -521,81 +576,106 @@ void rtl8723e_set_p2p_ps_offload_cmd(struct ieee80211_hw *hw, u8 p2p_ps_state)
 	u16	ctwindow;
 	u32	start_time, tsf_low;
 
-	switch (p2p_ps_state) {
-	case P2P_PS_DISABLE:
-		RT_TRACE(rtlpriv, COMP_FW, DBG_LOUD, "P2P_PS_DISABLE\n");
-		memset(p2p_ps_offload, 0, sizeof(*p2p_ps_offload));
-		break;
-	case P2P_PS_ENABLE:
-		RT_TRACE(rtlpriv, COMP_FW, DBG_LOUD, "P2P_PS_ENABLE\n");
-		/* update CTWindow value. */
-		if (p2pinfo->ctwindow > 0) {
-			p2p_ps_offload->ctwindow_en = 1;
-			ctwindow = p2pinfo->ctwindow;
-			rtl8723e_set_p2p_ctw_period_cmd(hw, ctwindow);
-		}
+	switch (p2p_ps_state)
+	{
+		case P2P_PS_DISABLE:
+			RT_TRACE(rtlpriv, COMP_FW, DBG_LOUD, "P2P_PS_DISABLE\n");
+			memset(p2p_ps_offload, 0, sizeof(*p2p_ps_offload));
+			break;
 
-		/* hw only support 2 set of NoA */
-		for (i = 0 ; i < p2pinfo->noa_num ; i++) {
-			/* To control the register setting for which NOA*/
-			rtl_write_byte(rtlpriv, 0x5cf, (i << 4));
-			if (i == 0)
-				p2p_ps_offload->noa0_en = 1;
-			else
-				p2p_ps_offload->noa1_en = 1;
+		case P2P_PS_ENABLE:
+			RT_TRACE(rtlpriv, COMP_FW, DBG_LOUD, "P2P_PS_ENABLE\n");
 
-			/* config P2P NoA Descriptor Register */
-			rtl_write_dword(rtlpriv, 0x5E0,
-					p2pinfo->noa_duration[i]);
-			rtl_write_dword(rtlpriv, 0x5E4,
-					p2pinfo->noa_interval[i]);
+			/* update CTWindow value. */
+			if (p2pinfo->ctwindow > 0)
+			{
+				p2p_ps_offload->ctwindow_en = 1;
+				ctwindow = p2pinfo->ctwindow;
+				rtl8723e_set_p2p_ctw_period_cmd(hw, ctwindow);
+			}
 
-			/*Get Current TSF value */
-			tsf_low = rtl_read_dword(rtlpriv, REG_TSFTR);
+			/* hw only support 2 set of NoA */
+			for (i = 0 ; i < p2pinfo->noa_num ; i++)
+			{
+				/* To control the register setting for which NOA*/
+				rtl_write_byte(rtlpriv, 0x5cf, (i << 4));
 
-			start_time = p2pinfo->noa_start_time[i];
-			if (p2pinfo->noa_count_type[i] != 1) {
-				while (start_time <=
-					(tsf_low+(50*1024))) {
-					start_time +=
-						p2pinfo->noa_interval[i];
-					if (p2pinfo->noa_count_type[i] != 255)
-						p2pinfo->noa_count_type[i]--;
+				if (i == 0)
+				{
+					p2p_ps_offload->noa0_en = 1;
 				}
+				else
+				{
+					p2p_ps_offload->noa1_en = 1;
+				}
+
+				/* config P2P NoA Descriptor Register */
+				rtl_write_dword(rtlpriv, 0x5E0,
+								p2pinfo->noa_duration[i]);
+				rtl_write_dword(rtlpriv, 0x5E4,
+								p2pinfo->noa_interval[i]);
+
+				/*Get Current TSF value */
+				tsf_low = rtl_read_dword(rtlpriv, REG_TSFTR);
+
+				start_time = p2pinfo->noa_start_time[i];
+
+				if (p2pinfo->noa_count_type[i] != 1)
+				{
+					while (start_time <=
+						   (tsf_low + (50 * 1024)))
+					{
+						start_time +=
+							p2pinfo->noa_interval[i];
+
+						if (p2pinfo->noa_count_type[i] != 255)
+						{
+							p2pinfo->noa_count_type[i]--;
+						}
+					}
+				}
+
+				rtl_write_dword(rtlpriv, 0x5E8, start_time);
+				rtl_write_dword(rtlpriv, 0x5EC,
+								p2pinfo->noa_count_type[i]);
+
 			}
-			rtl_write_dword(rtlpriv, 0x5E8, start_time);
-			rtl_write_dword(rtlpriv, 0x5EC,
-				p2pinfo->noa_count_type[i]);
 
-		}
+			if ((p2pinfo->opp_ps == 1) || (p2pinfo->noa_num > 0))
+			{
+				/* rst p2p circuit */
+				rtl_write_byte(rtlpriv, REG_DUAL_TSF_RST, BIT(4));
 
-		if ((p2pinfo->opp_ps == 1) || (p2pinfo->noa_num > 0)) {
-			/* rst p2p circuit */
-			rtl_write_byte(rtlpriv, REG_DUAL_TSF_RST, BIT(4));
+				p2p_ps_offload->offload_en = 1;
 
-			p2p_ps_offload->offload_en = 1;
+				if (P2P_ROLE_GO == rtlpriv->mac80211.p2p)
+				{
+					p2p_ps_offload->role = 1;
+					p2p_ps_offload->allstasleep = 0;
+				}
+				else
+				{
+					p2p_ps_offload->role = 0;
+				}
 
-			if (P2P_ROLE_GO == rtlpriv->mac80211.p2p) {
-				p2p_ps_offload->role = 1;
-				p2p_ps_offload->allstasleep = 0;
-			} else {
-				p2p_ps_offload->role = 0;
+				p2p_ps_offload->discovery = 0;
 			}
 
+			break;
+
+		case P2P_PS_SCAN:
+			RT_TRACE(rtlpriv, COMP_FW, DBG_LOUD, "P2P_PS_SCAN\n");
+			p2p_ps_offload->discovery = 1;
+			break;
+
+		case P2P_PS_SCAN_DONE:
+			RT_TRACE(rtlpriv, COMP_FW, DBG_LOUD, "P2P_PS_SCAN_DONE\n");
 			p2p_ps_offload->discovery = 0;
-		}
-		break;
-	case P2P_PS_SCAN:
-		RT_TRACE(rtlpriv, COMP_FW, DBG_LOUD, "P2P_PS_SCAN\n");
-		p2p_ps_offload->discovery = 1;
-		break;
-	case P2P_PS_SCAN_DONE:
-		RT_TRACE(rtlpriv, COMP_FW, DBG_LOUD, "P2P_PS_SCAN_DONE\n");
-		p2p_ps_offload->discovery = 0;
-		p2pinfo->p2p_ps_state = P2P_PS_ENABLE;
-		break;
-	default:
-		break;
+			p2pinfo->p2p_ps_state = P2P_PS_ENABLE;
+			break;
+
+		default:
+			break;
 	}
 
 	rtl8723e_fill_h2c_cmd(hw, H2C_P2P_PS_OFFLOAD, 1, (u8 *)p2p_ps_offload);

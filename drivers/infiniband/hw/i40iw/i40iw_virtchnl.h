@@ -39,7 +39,8 @@
 
 #pragma pack(push, 1)
 
-struct i40iw_virtchnl_op_buf {
+struct i40iw_virtchnl_op_buf
+{
 	u16 iw_op_code;
 	u16 iw_op_ver;
 	u16 iw_chnl_buf_len;
@@ -49,7 +50,8 @@ struct i40iw_virtchnl_op_buf {
 	u8 iw_chnl_buf[1];
 };
 
-struct i40iw_virtchnl_resp_buf {
+struct i40iw_virtchnl_resp_buf
+{
 	u64 iw_chnl_op_ctx;
 	u16 iw_chnl_buf_len;
 	s16 iw_op_ret_code;
@@ -58,7 +60,8 @@ struct i40iw_virtchnl_resp_buf {
 	u8 iw_chnl_buf[1];
 };
 
-enum i40iw_virtchnl_ops {
+enum i40iw_virtchnl_ops
+{
 	I40IW_VCHNL_OP_GET_VER = 0,
 	I40IW_VCHNL_OP_GET_HMC_FCN,
 	I40IW_VCHNL_OP_ADD_HMC_OBJ_RANGE,
@@ -75,7 +78,8 @@ enum i40iw_virtchnl_ops {
 
 struct i40iw_dev_hw_stats;
 
-struct i40iw_virtchnl_hmc_obj_range {
+struct i40iw_virtchnl_hmc_obj_range
+{
 	u16 obj_type;
 	u16 rsvd;
 	u32 start_index;
@@ -83,16 +87,17 @@ struct i40iw_virtchnl_hmc_obj_range {
 };
 
 enum i40iw_status_code i40iw_vchnl_recv_pf(struct i40iw_sc_dev *dev,
-					   u32 vf_id,
-					   u8 *msg,
-					   u16 len);
+		u32 vf_id,
+		u8 *msg,
+		u16 len);
 
 enum i40iw_status_code i40iw_vchnl_recv_vf(struct i40iw_sc_dev *dev,
-					   u32 vf_id,
-					   u8 *msg,
-					   u16 len);
+		u32 vf_id,
+		u8 *msg,
+		u16 len);
 
-struct i40iw_virtchnl_req {
+struct i40iw_virtchnl_req
+{
 	struct i40iw_sc_dev *dev;
 	struct i40iw_virtchnl_op_buf *vchnl_msg;
 	void *parm;
@@ -104,21 +109,21 @@ struct i40iw_virtchnl_req {
 #pragma pack(pop)
 
 enum i40iw_status_code i40iw_vchnl_vf_get_ver(struct i40iw_sc_dev *dev,
-					      u32 *vchnl_ver);
+		u32 *vchnl_ver);
 
 enum i40iw_status_code i40iw_vchnl_vf_get_hmc_fcn(struct i40iw_sc_dev *dev,
-						  u16 *hmc_fcn);
+		u16 *hmc_fcn);
 
 enum i40iw_status_code i40iw_vchnl_vf_add_hmc_objs(struct i40iw_sc_dev *dev,
-						   enum i40iw_hmc_rsrc_type rsrc_type,
-						   u32 start_index,
-						   u32 rsrc_count);
+		enum i40iw_hmc_rsrc_type rsrc_type,
+		u32 start_index,
+		u32 rsrc_count);
 
 enum i40iw_status_code i40iw_vchnl_vf_del_hmc_obj(struct i40iw_sc_dev *dev,
-						  enum i40iw_hmc_rsrc_type rsrc_type,
-						  u32 start_index,
-						  u32 rsrc_count);
+		enum i40iw_hmc_rsrc_type rsrc_type,
+		u32 start_index,
+		u32 rsrc_count);
 
 enum i40iw_status_code i40iw_vchnl_vf_get_pe_stats(struct i40iw_sc_dev *dev,
-						   struct i40iw_dev_hw_stats *hw_stats);
+		struct i40iw_dev_hw_stats *hw_stats);
 #endif

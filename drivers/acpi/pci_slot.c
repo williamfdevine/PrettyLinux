@@ -41,7 +41,8 @@ ACPI_MODULE_NAME("pci_slot");
 
 #define SLOT_NAME_SIZE 21		/* Inspired by #define in acpiphp.h */
 
-struct acpi_pci_slot {
+struct acpi_pci_slot
+{
 	struct pci_slot *pci_slot;	/* corresponding pci_slot */
 	struct list_head list;		/* node in the list of slots */
 };
@@ -60,25 +61,33 @@ check_slot(acpi_handle handle, unsigned long long *sun)
 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
 	pr_debug("Checking slot on path: %s\n", (char *)buffer.pointer);
 
-	if (check_sta_before_sun) {
+	if (check_sta_before_sun)
+	{
 		/* If SxFy doesn't have _STA, we just assume it's there */
 		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+
 		if (ACPI_SUCCESS(status) && !(sta & ACPI_STA_DEVICE_PRESENT))
+		{
 			goto out;
+		}
 	}
 
 	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		pr_debug("_ADR returned %d on %s\n",
-			 status, (char *)buffer.pointer);
+				 status, (char *)buffer.pointer);
 		goto out;
 	}
 
 	/* No _SUN == not a slot == bail */
 	status = acpi_evaluate_integer(handle, "_SUN", NULL, sun);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		pr_debug("_SUN returned %d on %s\n",
-			 status, (char *)buffer.pointer);
+				 status, (char *)buffer.pointer);
 		goto out;
 	}
 
@@ -102,26 +111,38 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
 	struct pci_bus *pci_bus = context;
 
 	device = check_slot(handle, &sun);
+
 	if (device < 0)
+	{
 		return AE_OK;
+	}
 
 	/*
 	 * There may be multiple PCI functions associated with the same slot.
 	 * Check whether PCI slot has already been created for this PCI device.
 	 */
-	list_for_each_entry(slot, &slot_list, list) {
+	list_for_each_entry(slot, &slot_list, list)
+	{
 		pci_slot = slot->pci_slot;
+
 		if (pci_slot->bus == pci_bus && pci_slot->number == device)
+		{
 			return AE_OK;
+		}
 	}
 
 	slot = kmalloc(sizeof(*slot), GFP_KERNEL);
+
 	if (!slot)
+	{
 		return AE_OK;
+	}
 
 	snprintf(name, sizeof(name), "%llu", sun);
 	pci_slot = pci_create_slot(pci_bus, device, name, NULL);
-	if (IS_ERR(pci_slot)) {
+
+	if (IS_ERR(pci_slot))
+	{
 		pr_err("pci_create_slot returned %ld\n", PTR_ERR(pci_slot));
 		kfree(slot);
 		return AE_OK;
@@ -133,7 +154,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
 	get_device(&pci_bus->dev);
 
 	pr_debug("%p, pci_bus: %x, device: %d, name: %s\n",
-		 pci_slot, pci_bus->number, device, name);
+			 pci_slot, pci_bus->number, device, name);
 
 	return AE_OK;
 }
@@ -142,10 +163,11 @@ void acpi_pci_slot_enumerate(struct pci_bus *bus)
 {
 	acpi_handle handle = ACPI_HANDLE(bus->bridge);
 
-	if (handle) {
+	if (handle)
+	{
 		mutex_lock(&slot_list_lock);
 		acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-				    register_slot, NULL, bus, NULL);
+							register_slot, NULL, bus, NULL);
 		mutex_unlock(&slot_list_lock);
 	}
 }
@@ -155,8 +177,10 @@ void acpi_pci_slot_remove(struct pci_bus *bus)
 	struct acpi_pci_slot *slot, *tmp;
 
 	mutex_lock(&slot_list_lock);
-	list_for_each_entry_safe(slot, tmp, &slot_list, list) {
-		if (slot->pci_slot->bus == bus) {
+	list_for_each_entry_safe(slot, tmp, &slot_list, list)
+	{
+		if (slot->pci_slot->bus == bus)
+		{
 			list_del(&slot->list);
 			pci_destroy_slot(slot->pci_slot);
 			put_device(&bus->dev);
@@ -169,12 +193,13 @@ void acpi_pci_slot_remove(struct pci_bus *bus)
 static int do_sta_before_sun(const struct dmi_system_id *d)
 {
 	pr_info("%s detected: will evaluate _STA before calling _SUN\n",
-		d->ident);
+			d->ident);
 	check_sta_before_sun = 1;
 	return 0;
 }
 
-static struct dmi_system_id acpi_pci_slot_dmi_table[] __initdata = {
+static struct dmi_system_id acpi_pci_slot_dmi_table[] __initdata =
+{
 	/*
 	 * Fujitsu Primequest machines will return 1023 to indicate an
 	 * error if the _SUN method is evaluated on SxFy objects that
@@ -182,11 +207,11 @@ static struct dmi_system_id acpi_pci_slot_dmi_table[] __initdata = {
 	 * we want to check _STA before evaluating _SUN.
 	 */
 	{
-	 .callback = do_sta_before_sun,
-	 .ident = "Fujitsu PRIMEQUEST",
-	 .matches = {
-		DMI_MATCH(DMI_BIOS_VENDOR, "FUJITSU LIMITED"),
-		DMI_MATCH(DMI_BIOS_VERSION, "PRIMEQUEST"),
+		.callback = do_sta_before_sun,
+		.ident = "Fujitsu PRIMEQUEST",
+		.matches = {
+			DMI_MATCH(DMI_BIOS_VENDOR, "FUJITSU LIMITED"),
+			DMI_MATCH(DMI_BIOS_VERSION, "PRIMEQUEST"),
 		},
 	},
 	{}

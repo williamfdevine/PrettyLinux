@@ -69,11 +69,11 @@
 /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 #ifndef MODULEAUTHOR
-#define MODULEAUTHOR	"LSI Corporation"
+	#define MODULEAUTHOR	"LSI Corporation"
 #endif
 
 #ifndef COPYRIGHT
-#define COPYRIGHT	"Copyright (c) 1999-2008 " MODULEAUTHOR
+	#define COPYRIGHT	"Copyright (c) 1999-2008 " MODULEAUTHOR
 #endif
 
 #define MPT_LINUX_VERSION_COMMON	"3.04.20"
@@ -95,20 +95,20 @@
 #define MPT_MAX_SCSI_DEVICES		16
 #define MPT_LAST_LUN			255
 #define MPT_SENSE_BUFFER_ALLOC		64
-	/* allow for 256 max sense alloc, but only 255 max request */
+/* allow for 256 max sense alloc, but only 255 max request */
 #if MPT_SENSE_BUFFER_ALLOC >= 256
-#	undef MPT_SENSE_BUFFER_ALLOC
-#	define MPT_SENSE_BUFFER_ALLOC	256
-#	define MPT_SENSE_BUFFER_SIZE	255
+	#undef MPT_SENSE_BUFFER_ALLOC
+	#define MPT_SENSE_BUFFER_ALLOC	256
+	#define MPT_SENSE_BUFFER_SIZE	255
 #else
-#	define MPT_SENSE_BUFFER_SIZE	MPT_SENSE_BUFFER_ALLOC
+	#define MPT_SENSE_BUFFER_SIZE	MPT_SENSE_BUFFER_ALLOC
 #endif
 
 #define MPT_NAME_LENGTH			32
 #define MPT_KOBJ_NAME_LEN		20
 
 #define MPT_PROCFS_MPTBASEDIR		"mpt"
-						/* chg it to "driver/fusion" ? */
+/* chg it to "driver/fusion" ? */
 #define MPT_PROCFS_SUMMARY_ALL_NODE		MPT_PROCFS_MPTBASEDIR "/summary"
 #define MPT_PROCFS_SUMMARY_ALL_PATHNAME		"/proc/" MPT_PROCFS_SUMMARY_ALL_NODE
 #define MPT_FW_REV_MAGIC_ID_STRING		"FwRev="
@@ -166,27 +166,27 @@
  * Set the MAX_SGE value based on user input.
  */
 #ifdef CONFIG_FUSION_MAX_SGE
-#if CONFIG_FUSION_MAX_SGE  < 16
-#define MPT_SCSI_SG_DEPTH	16
-#elif CONFIG_FUSION_MAX_SGE  > 128
-#define MPT_SCSI_SG_DEPTH	128
+	#if CONFIG_FUSION_MAX_SGE  < 16
+		#define MPT_SCSI_SG_DEPTH	16
+	#elif CONFIG_FUSION_MAX_SGE  > 128
+		#define MPT_SCSI_SG_DEPTH	128
+	#else
+		#define MPT_SCSI_SG_DEPTH	CONFIG_FUSION_MAX_SGE
+	#endif
 #else
-#define MPT_SCSI_SG_DEPTH	CONFIG_FUSION_MAX_SGE
-#endif
-#else
-#define MPT_SCSI_SG_DEPTH	40
+	#define MPT_SCSI_SG_DEPTH	40
 #endif
 
 #ifdef CONFIG_FUSION_MAX_FC_SGE
-#if CONFIG_FUSION_MAX_FC_SGE  < 16
-#define MPT_SCSI_FC_SG_DEPTH	16
-#elif CONFIG_FUSION_MAX_FC_SGE  > 256
-#define MPT_SCSI_FC_SG_DEPTH	256
+	#if CONFIG_FUSION_MAX_FC_SGE  < 16
+		#define MPT_SCSI_FC_SG_DEPTH	16
+	#elif CONFIG_FUSION_MAX_FC_SGE  > 256
+		#define MPT_SCSI_FC_SG_DEPTH	256
+	#else
+		#define MPT_SCSI_FC_SG_DEPTH	CONFIG_FUSION_MAX_FC_SGE
+	#endif
 #else
-#define MPT_SCSI_FC_SG_DEPTH	CONFIG_FUSION_MAX_FC_SGE
-#endif
-#else
-#define MPT_SCSI_FC_SG_DEPTH	40
+	#define MPT_SCSI_FC_SG_DEPTH	40
 #endif
 
 /* debug print string length used for events and iocstatus */
@@ -228,7 +228,7 @@ typedef struct _ATTO_DEVICE_INFO
 	u8	Period;					/* 01h */
 	u16	ATTOFlags;				/* 02h */
 } ATTO_DEVICE_INFO, MPI_POINTER PTR_ATTO_DEVICE_INFO,
-  ATTODeviceInfo_t, MPI_POINTER pATTODeviceInfo_t;
+ATTODeviceInfo_t, MPI_POINTER pATTODeviceInfo_t;
 
 typedef struct _ATTO_CONFIG_PAGE_SCSI_PORT_2
 {
@@ -238,14 +238,15 @@ typedef struct _ATTO_CONFIG_PAGE_SCSI_PORT_2
 	u32			Unused2;		/* 08h */
 	ATTO_DEVICE_INFO	DeviceSettings[16];	/* 0Ch */
 } fATTO_CONFIG_PAGE_SCSI_PORT_2, MPI_POINTER PTR_ATTO_CONFIG_PAGE_SCSI_PORT_2,
-  ATTO_SCSIPortPage2_t, MPI_POINTER pATTO_SCSIPortPage2_t;
+ATTO_SCSIPortPage2_t, MPI_POINTER pATTO_SCSIPortPage2_t;
 
 
 /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 /*
  *  MPT protocol driver defs...
  */
-typedef enum {
+typedef enum
+{
 	MPTBASE_DRIVER,		/* MPT base class */
 	MPTCTL_DRIVER,		/* MPT ioctl class */
 	MPTSPI_DRIVER,		/* MPT SPI host class */
@@ -256,7 +257,8 @@ typedef enum {
 	MPTUNKNOWN_DRIVER
 } MPT_DRIVER_CLASS;
 
-struct mpt_pci_driver{
+struct mpt_pci_driver
+{
 	int  (*probe) (struct pci_dev *dev, const struct pci_device_id *id);
 	void (*remove) (struct pci_dev *dev);
 };
@@ -265,8 +267,10 @@ struct mpt_pci_driver{
  *  MPT adapter / port / bus / device info structures...
  */
 
-typedef union _MPT_FRAME_TRACKER {
-	struct {
+typedef union _MPT_FRAME_TRACKER
+{
+	struct
+	{
 		struct list_head	list;
 		u32			 arg1;
 		u32			 pad;
@@ -286,15 +290,18 @@ typedef union _MPT_FRAME_TRACKER {
 	 * are now reset in mpt_put_msg_frame() just prior to sending
 	 * a request off to the IOC.
 	 */
-	struct {
+	struct
+	{
 		u32 __hdr[2];
 		/*
 		 * The following _MUST_ match the location of the
 		 * MsgContext field in the MPT message headers.
 		 */
-		union {
+		union
+		{
 			u32		 MsgContext;
-			struct {
+			struct
+			{
 				u16	 req_idx;	/* Request index */
 				u8	 cb_idx;	/* callback function index */
 				u8	 rsvd;
@@ -317,8 +324,10 @@ typedef union _MPT_FRAME_TRACKER {
  *    4) MPIDefaultReply
  *    5) frame tracker
  */
-typedef struct _MPT_FRAME_HDR {
-	union {
+typedef struct _MPT_FRAME_HDR
+{
+	union
+	{
 		MPIHeader_t		hdr;
 		SCSIIORequest_t		scsireq;
 		SCSIIOReply_t		sreply;
@@ -330,11 +339,13 @@ typedef struct _MPT_FRAME_HDR {
 
 #define MPT_REQ_MSGFLAGS_DROPME		0x80
 
-typedef struct _MPT_SGL_HDR {
+typedef struct _MPT_SGL_HDR
+{
 	SGESimple32_t	 sge[1];
 } MPT_SGL_HDR;
 
-typedef struct _MPT_SGL64_HDR {
+typedef struct _MPT_SGL64_HDR
+{
 	SGESimple64_t	 sge[1];
 } MPT_SGL64_HDR;
 
@@ -384,7 +395,8 @@ typedef struct _SYSIF_REGS
 /*
  *	VirtDevice - FC LUN device or SCSI target device
  */
-typedef struct _VirtTarget {
+typedef struct _VirtTarget
+{
 	struct scsi_target	*starget;
 	u8			 tflags;
 	u8			 ioc_id;
@@ -402,7 +414,8 @@ typedef struct _VirtTarget {
 	u32			 num_luns;
 } VirtTarget;
 
-typedef struct _VirtDevice {
+typedef struct _VirtDevice
+{
 	VirtTarget		*vtarget;
 	u8			 configured_lun;
 	u64			 lun;
@@ -445,7 +458,8 @@ typedef struct _VirtDevice {
 #define SET_MGMT_MSG_CONTEXT(msg_context, value) \
 	msg_context = value;
 
-typedef struct _MPT_MGMT {
+typedef struct _MPT_MGMT
+{
 	struct mutex		 mutex;
 	struct completion	 done;
 	u8			 reply[MPT_DEFAULT_FRAME_SIZE]; /* reply frame data */
@@ -459,7 +473,8 @@ typedef struct _MPT_MGMT {
  *  Event Structure and define
  */
 #define MPTCTL_EVENT_LOG_SIZE		(0x000000032)
-typedef struct _mpt_ioctl_events {
+typedef struct _mpt_ioctl_events
+{
 	u32	event;		/* Specified by define above */
 	u32	eventContext;	/* Index or counter */
 	u32	data[2];	/* First 8 bytes of Event Data */
@@ -474,12 +489,13 @@ typedef struct _mpt_ioctl_events {
 /*
  *	Substructure to store SCSI specific configuration page data
  */
-						/* dvStatus defines: */
+/* dvStatus defines: */
 #define MPT_SCSICFG_USE_NVRAM		0x01	/* WriteSDP1 using NVRAM */
 #define MPT_SCSICFG_ALL_IDS		0x02	/* WriteSDP1 to all IDS */
 /* #define MPT_SCSICFG_BLK_NEGO		0x10	   WriteSDP1 with WDTR and SDTR disabled */
 
-typedef	struct _SpiCfgData {
+typedef	struct _SpiCfgData
+{
 	u32		 PortFlags;
 	int		*nvram;			/* table of device NVRAM values */
 	IOCPage4_t	*pIocPg4;		/* SEP devices addressing */
@@ -501,39 +517,44 @@ typedef	struct _SpiCfgData {
 						 */
 	u8		 bus_reset;		/* 1 to allow bus reset */
 	u8		 rsvd[1];
-}SpiCfgData;
+} SpiCfgData;
 
-typedef	struct _SasCfgData {
+typedef	struct _SasCfgData
+{
 	u8		 ptClear;		/* 1 to automatically clear the
 						 * persistent table.
 						 * 0 to disable
 						 * automatic clearing.
 						 */
-}SasCfgData;
+} SasCfgData;
 
 /*
  * Inactive volume link list of raid component data
  * @inactive_list
  */
-struct inactive_raid_component_info {
+struct inactive_raid_component_info
+{
 	struct 	 list_head list;
 	u8		 volumeID;		/* volume target id */
 	u8		 volumeBus;		/* volume channel */
 	IOC_3_PHYS_DISK	 d;			/* phys disk info */
 };
 
-typedef	struct _RaidCfgData {
+typedef	struct _RaidCfgData
+{
 	IOCPage2_t	*pIocPg2;		/* table of Raid Volumes */
 	IOCPage3_t	*pIocPg3;		/* table of physical disks */
 	struct mutex	inactive_list_mutex;
 	struct list_head	inactive_list; /* link list for physical
 						disk that belong in
 						inactive volumes */
-}RaidCfgData;
+} RaidCfgData;
 
-typedef struct _FcCfgData {
+typedef struct _FcCfgData
+{
 	/* will ultimately hold fc_port_page0 also */
-	struct {
+	struct
+	{
 		FCPortPage1_t	*data;
 		dma_addr_t	 dma;
 		int		 pg_sz;
@@ -576,13 +597,15 @@ struct mptfc_rport_info
 #define MPT_NVRAM_WIDE_DISABLE		(0x00100000)
 #define MPT_NVRAM_BOOT_CHOICE		(0x00200000)
 
-typedef enum {
+typedef enum
+{
 	FC,
 	SPI,
 	SAS
 } BUS_TYPE;
 
-typedef struct _MPT_SCSI_HOST {
+typedef struct _MPT_SCSI_HOST
+{
 	struct _MPT_ADAPTER		 *ioc;
 	ushort			  sel_timeout[MPT_MAX_FC_DEVICES];
 	char			  *info_kbuf;
@@ -593,7 +616,7 @@ typedef struct _MPT_SCSI_HOST {
 
 typedef void (*MPT_ADD_SGE)(void *pAddr, u32 flagslength, dma_addr_t dma_addr);
 typedef void (*MPT_ADD_CHAIN)(void *pAddr, u8 next, u16 length,
-		dma_addr_t dma_addr);
+							  dma_addr_t dma_addr);
 typedef void (*MPT_SCHEDULE_TARGET_RESET)(void *ioc);
 typedef void (*MPT_FLUSH_RUNNING_CMDS)(MPT_SCSI_HOST *hd);
 
@@ -641,11 +664,11 @@ typedef struct _MPT_ADAPTER
 						   function */
 	MPT_ADD_CHAIN		 add_chain;	/* Pointer to add_chain
 						   function */
-		/* Pool of buffers for chaining. ReqToChain
-		 * and ChainToChain track index of chain buffers.
-		 * ChainBuffer (DMA) virt/phys addresses.
-		 * FreeChainQ (lock) locking mechanisms.
-		 */
+	/* Pool of buffers for chaining. ReqToChain
+	 * and ChainToChain track index of chain buffers.
+	 * ChainBuffer (DMA) virt/phys addresses.
+	 * FreeChainQ (lock) locking mechanisms.
+	 */
 	int			*ReqToChain;
 	int			*RequestNB;
 	int			*ChainToChain;
@@ -653,7 +676,7 @@ typedef struct _MPT_ADAPTER
 	dma_addr_t		 ChainBufferDMA;
 	struct list_head	 FreeChainQ;
 	spinlock_t		 FreeChainQlock;
-		/* We (host driver) get to manage our own RequestQueue! */
+	/* We (host driver) get to manage our own RequestQueue! */
 	dma_addr_t		 req_frames_dma;
 	MPT_FRAME_HDR		*req_frames;	/* Request msg frames - rounded up! */
 	u32			 req_frames_low_dma;
@@ -661,10 +684,10 @@ typedef struct _MPT_ADAPTER
 	int			 req_sz;	/* Request frame size (bytes) */
 	spinlock_t		 FreeQlock;
 	struct list_head	 FreeQ;
-		/* Pool of SCSI sense buffers for commands coming from
-		 * the SCSI mid-layer.  We have one 256 byte sense buffer
-		 * for each REQ entry.
-		 */
+	/* Pool of SCSI sense buffers for commands coming from
+	 * the SCSI mid-layer.  We have one 256 byte sense buffer
+	 * for each REQ entry.
+	 */
 	u8			*sense_buf_pool;
 	dma_addr_t		 sense_buf_pool_dma;
 	u32			 sense_buf_low_dma;
@@ -696,8 +719,8 @@ typedef struct _MPT_ADAPTER
 	u32			 mfcnt;
 #endif
 	u32			 NB_for_64_byte_frame;
-	u32			 hs_req[MPT_MAX_FRAME_SIZE/sizeof(u32)];
-	u16			 hs_reply[MPT_MAX_FRAME_SIZE/sizeof(u16)];
+	u32			 hs_req[MPT_MAX_FRAME_SIZE / sizeof(u32)];
+	u16			 hs_reply[MPT_MAX_FRAME_SIZE / sizeof(u16)];
 	IOCFactsReply_t		 facts;
 	PortFactsReply_t	 pfacts[2];
 	FCPortPage0_t		 fc_port_page0[2];
@@ -806,7 +829,8 @@ typedef int (*MPT_RESETHANDLER)(MPT_ADAPTER *ioc, int reset_phase);
  * Invent MPT host event (super-set of MPI Events)
  * Fitted to 1030's 64-byte [max] request frame size
  */
-typedef struct _MPT_HOST_EVENT {
+typedef struct _MPT_HOST_EVENT
+{
 	EventNotificationReply_t	 MpiEvent;	/* 8 32-bit words! */
 	u32				 pad[6];
 	void				*next;
@@ -818,7 +842,8 @@ typedef struct _MPT_HOST_EVENT {
 /* Define the generic types based on the size
  * of the dma_addr_t type.
  */
-typedef struct _mpt_sge {
+typedef struct _mpt_sge
+{
 	u32		FlagsLength;
 	dma_addr_t	Address;
 } MptSge_t;
@@ -861,7 +886,8 @@ typedef struct _mpt_sge {
  * internally generated commands. These include:
  * bus scan, dv and config requests.
  */
-typedef struct _MPT_LOCAL_REPLY {
+typedef struct _MPT_LOCAL_REPLY
+{
 	ConfigPageHeader_t header;
 	int	completion;
 	u8	sense[SCSI_STD_SENSE_BYTES];
@@ -890,8 +916,10 @@ struct scsi_cmnd;
 /*
  * Generic structure passed to the base mpt_config function.
  */
-typedef struct _x_config_parms {
-	union {
+typedef struct _x_config_parms
+{
+	union
+	{
 		ConfigExtendedPageHeader_t	*ehdr;
 		ConfigPageHeader_t	*hdr;
 	} cfghdr;
@@ -910,17 +938,17 @@ typedef struct _x_config_parms {
 extern int	 mpt_attach(struct pci_dev *pdev, const struct pci_device_id *id);
 extern void	 mpt_detach(struct pci_dev *pdev);
 #ifdef CONFIG_PM
-extern int	 mpt_suspend(struct pci_dev *pdev, pm_message_t state);
-extern int	 mpt_resume(struct pci_dev *pdev);
+	extern int	 mpt_suspend(struct pci_dev *pdev, pm_message_t state);
+	extern int	 mpt_resume(struct pci_dev *pdev);
 #endif
 extern u8	 mpt_register(MPT_CALLBACK cbfunc, MPT_DRIVER_CLASS dclass,
-		char *func_name);
+						  char *func_name);
 extern void	 mpt_deregister(u8 cb_idx);
 extern int	 mpt_event_register(u8 cb_idx, MPT_EVHANDLER ev_cbfunc);
 extern void	 mpt_event_deregister(u8 cb_idx);
 extern int	 mpt_reset_register(u8 cb_idx, MPT_RESETHANDLER reset_func);
 extern void	 mpt_reset_deregister(u8 cb_idx);
-extern int	 mpt_device_driver_register(struct mpt_pci_driver * dd_cbfunc, u8 cb_idx);
+extern int	 mpt_device_driver_register(struct mpt_pci_driver *dd_cbfunc, u8 cb_idx);
 extern void	 mpt_device_driver_deregister(u8 cb_idx);
 extern MPT_FRAME_HDR	*mpt_get_msg_frame(u8 cb_idx, MPT_ADAPTER *ioc);
 extern void	 mpt_free_msg_frame(MPT_ADAPTER *ioc, MPT_FRAME_HDR *mf);
@@ -940,7 +968,7 @@ extern int	 mpt_findImVolumes(MPT_ADAPTER *ioc);
 extern int	 mptbase_sas_persist_operation(MPT_ADAPTER *ioc, u8 persist_opcode);
 extern int	 mpt_raid_phys_disk_pg0(MPT_ADAPTER *ioc, u8 phys_disk_num, pRaidPhysDiskPage0_t phys_disk);
 extern int	mpt_raid_phys_disk_pg1(MPT_ADAPTER *ioc, u8 phys_disk_num,
-		pRaidPhysDiskPage1_t phys_disk);
+								   pRaidPhysDiskPage1_t phys_disk);
 extern int	mpt_raid_phys_disk_get_num_paths(MPT_ADAPTER *ioc,
 		u8 phys_disk_num);
 extern int	 mpt_set_taskmgmt_in_progress_flag(MPT_ADAPTER *ioc);
@@ -958,11 +986,11 @@ extern int mpt_fwfault_debug;
 #endif		/* } __KERNEL__ */
 
 #ifdef CONFIG_64BIT
-#define CAST_U32_TO_PTR(x)	((void *)(u64)x)
-#define CAST_PTR_TO_U32(x)	((u32)(u64)x)
+	#define CAST_U32_TO_PTR(x)	((void *)(u64)x)
+	#define CAST_PTR_TO_U32(x)	((u32)(u64)x)
 #else
-#define CAST_U32_TO_PTR(x)	((void *)x)
-#define CAST_PTR_TO_U32(x)	((u32)x)
+	#define CAST_U32_TO_PTR(x)	((void *)x)
+	#define CAST_PTR_TO_U32(x)	((u32)x)
 #endif
 
 #define MPT_PROTOCOL_FLAGS_c_c_c_c(pflags) \

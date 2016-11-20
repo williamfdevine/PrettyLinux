@@ -17,7 +17,8 @@
 
 #include "../codecs/adau1373.h"
 
-static const struct snd_soc_dapm_widget bfin_eval_adau1373_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget bfin_eval_adau1373_dapm_widgets[] =
+{
 	SND_SOC_DAPM_LINE("Line In1", NULL),
 	SND_SOC_DAPM_LINE("Line In2", NULL),
 	SND_SOC_DAPM_LINE("Line In3", NULL),
@@ -31,7 +32,8 @@ static const struct snd_soc_dapm_widget bfin_eval_adau1373_dapm_widgets[] = {
 	SND_SOC_DAPM_SPK("Speaker", NULL),
 };
 
-static const struct snd_soc_dapm_route bfin_eval_adau1373_dapm_routes[] = {
+static const struct snd_soc_dapm_route bfin_eval_adau1373_dapm_routes[] =
+{
 	{ "AIN1L", NULL, "Line In1" },
 	{ "AIN1R", NULL, "Line In1" },
 	{ "AIN2L", NULL, "Line In2" },
@@ -64,41 +66,47 @@ static const struct snd_soc_dapm_route bfin_eval_adau1373_dapm_routes[] = {
 };
 
 static int bfin_eval_adau1373_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params)
+										struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	int ret;
 	int pll_rate;
 
-	switch (params_rate(params)) {
-	case 48000:
-	case 8000:
-	case 12000:
-	case 16000:
-	case 24000:
-	case 32000:
-		pll_rate = 48000 * 1024;
-		break;
-	case 44100:
-	case 7350:
-	case 11025:
-	case 14700:
-	case 22050:
-	case 29400:
-		pll_rate = 44100 * 1024;
-		break;
-	default:
-		return -EINVAL;
+	switch (params_rate(params))
+	{
+		case 48000:
+		case 8000:
+		case 12000:
+		case 16000:
+		case 24000:
+		case 32000:
+			pll_rate = 48000 * 1024;
+			break;
+
+		case 44100:
+		case 7350:
+		case 11025:
+		case 14700:
+		case 22050:
+		case 29400:
+			pll_rate = 44100 * 1024;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	ret = snd_soc_dai_set_pll(codec_dai, ADAU1373_PLL1,
-			ADAU1373_PLL_SRC_MCLK1, 12288000, pll_rate);
+							  ADAU1373_PLL_SRC_MCLK1, 12288000, pll_rate);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = snd_soc_dai_set_sysclk(codec_dai, ADAU1373_CLK_SRC_PLL1, pll_rate,
-			SND_SOC_CLOCK_IN);
+								 SND_SOC_CLOCK_IN);
 
 	return ret;
 }
@@ -110,20 +118,25 @@ static int bfin_eval_adau1373_codec_init(struct snd_soc_pcm_runtime *rtd)
 	int ret;
 
 	ret = snd_soc_dai_set_pll(codec_dai, ADAU1373_PLL1,
-			ADAU1373_PLL_SRC_MCLK1, 12288000, pll_rate);
+							  ADAU1373_PLL_SRC_MCLK1, 12288000, pll_rate);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = snd_soc_dai_set_sysclk(codec_dai, ADAU1373_CLK_SRC_PLL1, pll_rate,
-			SND_SOC_CLOCK_IN);
+								 SND_SOC_CLOCK_IN);
 
 	return ret;
 }
-static struct snd_soc_ops bfin_eval_adau1373_ops = {
+static struct snd_soc_ops bfin_eval_adau1373_ops =
+{
 	.hw_params = bfin_eval_adau1373_hw_params,
 };
 
-static struct snd_soc_dai_link bfin_eval_adau1373_dai = {
+static struct snd_soc_dai_link bfin_eval_adau1373_dai =
+{
 	.name = "adau1373",
 	.stream_name = "adau1373",
 	.cpu_dai_name = "bfin-i2s.0",
@@ -133,10 +146,11 @@ static struct snd_soc_dai_link bfin_eval_adau1373_dai = {
 	.ops = &bfin_eval_adau1373_ops,
 	.init = bfin_eval_adau1373_codec_init,
 	.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_CBM_CFM,
+	SND_SOC_DAIFMT_CBM_CFM,
 };
 
-static struct snd_soc_card bfin_eval_adau1373 = {
+static struct snd_soc_card bfin_eval_adau1373 =
+{
 	.name = "bfin-eval-adau1373",
 	.owner = THIS_MODULE,
 	.dai_link = &bfin_eval_adau1373_dai,
@@ -157,7 +171,8 @@ static int bfin_eval_adau1373_probe(struct platform_device *pdev)
 	return devm_snd_soc_register_card(&pdev->dev, &bfin_eval_adau1373);
 }
 
-static struct platform_driver bfin_eval_adau1373_driver = {
+static struct platform_driver bfin_eval_adau1373_driver =
+{
 	.driver = {
 		.name = "bfin-eval-adau1373",
 		.pm = &snd_soc_pm_ops,

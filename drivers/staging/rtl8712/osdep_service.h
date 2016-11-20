@@ -42,7 +42,8 @@
 
 #include "basic_types.h"
 
-struct	__queue	{
+struct	__queue
+{
 	struct	list_head	queue;
 	spinlock_t lock;
 };
@@ -58,7 +59,7 @@ struct	__queue	{
 	} while (0)
 
 static inline u32 end_of_queue_search(struct list_head *head,
-		struct list_head *plist)
+									  struct list_head *plist)
 {
 	return (head == plist);
 }
@@ -75,7 +76,9 @@ static inline void sleep_schedulable(int ms)
 static inline void flush_signals_thread(void)
 {
 	if (signal_pending(current))
+	{
 		flush_signals(current);
+	}
 }
 
 #endif

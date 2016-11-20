@@ -38,7 +38,8 @@
 #define MEM_PART_MURAM		2
 
 /* Clocks and BRGs */
-enum qe_clock {
+enum qe_clock
+{
 	QE_CLK_NONE = 0,
 	QE_BRG1,		/* Baud Rate Generator 1 */
 	QE_BRG2,		/* Baud Rate Generator 2 */
@@ -110,7 +111,7 @@ unsigned long cpm_muram_offset(void __iomem *addr);
 dma_addr_t cpm_muram_dma(void __iomem *addr);
 #else
 static inline unsigned long cpm_muram_alloc(unsigned long size,
-					    unsigned long align)
+		unsigned long align)
 {
 	return -ENOSYS;
 }
@@ -121,7 +122,7 @@ static inline int cpm_muram_free(unsigned long offset)
 }
 
 static inline unsigned long cpm_muram_alloc_fixed(unsigned long offset,
-						  unsigned long size)
+		unsigned long size)
 {
 	return -ENOSYS;
 }
@@ -145,7 +146,8 @@ static inline dma_addr_t cpm_muram_dma(void __iomem *addr)
 /* QE PIO */
 #define QE_PIO_PINS 32
 
-struct qe_pio_regs {
+struct qe_pio_regs
+{
 	__be32	cpodr;		/* Open drain register */
 	__be32	cpdata;		/* Data register */
 	__be32	cpdir1;		/* Direction register */
@@ -160,19 +162,19 @@ struct qe_pio_regs {
 #define QE_PIO_DIR_IN	2
 #define QE_PIO_DIR_OUT	1
 extern void __par_io_config_pin(struct qe_pio_regs __iomem *par_io, u8 pin,
-				int dir, int open_drain, int assignment,
-				int has_irq);
+								int dir, int open_drain, int assignment,
+								int has_irq);
 #ifdef CONFIG_QUICC_ENGINE
 extern int par_io_init(struct device_node *np);
 extern int par_io_of_config(struct device_node *np);
 extern int par_io_config_pin(u8 port, u8 pin, int dir, int open_drain,
-			     int assignment, int has_irq);
+							 int assignment, int has_irq);
 extern int par_io_data_set(u8 port, u8 pin, u8 val);
 #else
 static inline int par_io_init(struct device_node *np) { return -ENOSYS; }
 static inline int par_io_of_config(struct device_node *np) { return -ENOSYS; }
 static inline int par_io_config_pin(u8 port, u8 pin, int dir, int open_drain,
-		int assignment, int has_irq) { return -ENOSYS; }
+									int assignment, int has_irq) { return -ENOSYS; }
 static inline int par_io_data_set(u8 port, u8 pin, u8 val) { return -ENOSYS; }
 #endif /* CONFIG_QUICC_ENGINE */
 
@@ -199,7 +201,7 @@ static inline void qe_pin_set_dedicated(struct qe_pin *pin) {}
 int qe_issue_cmd(u32 cmd, u32 device, u8 mcn_protocol, u32 cmd_input);
 #else
 static inline int qe_issue_cmd(u32 cmd, u32 device, u8 mcn_protocol,
-			       u32 cmd_input)
+							   u32 cmd_input)
 {
 	return -ENOSYS;
 }
@@ -265,8 +267,10 @@ static inline int qe_alive_during_sleep(void)
  * See Documentation/powerpc/qe_firmware.txt for a description of these
  * fields.
  */
-struct qe_firmware {
-	struct qe_header {
+struct qe_firmware
+{
+	struct qe_header
+	{
 		__be32 length;  /* Length of the entire structure, in bytes */
 		u8 magic[3];    /* Set to { 'Q', 'E', 'F' } */
 		u8 version;     /* Version of this layout. First ver is '1' */
@@ -274,7 +278,8 @@ struct qe_firmware {
 	u8 id[62];      /* Null-terminated identifier string */
 	u8 split;	/* 0 = shared I-RAM, 1 = split I-RAM */
 	u8 count;       /* Number of microcode[] structures */
-	struct {
+	struct
+	{
 		__be16 model;   	/* The SOC model  */
 		u8 major;       	/* The SOC revision major */
 		u8 minor;       	/* The SOC revision minor */
@@ -283,7 +288,8 @@ struct qe_firmware {
 	__be64 extended_modes;		/* Extended modes */
 	__be32 vtraps[8];		/* Virtual trap addresses */
 	u8 reserved[4];			/* Reserved, for future expansion */
-	struct qe_microcode {
+	struct qe_microcode
+	{
 		u8 id[32];      	/* Null-terminated identifier */
 		__be32 traps[16];       /* Trap addresses, 0 == ignore */
 		__be32 eccr;    	/* The value for the ECCR register */
@@ -300,7 +306,8 @@ struct qe_firmware {
 	/* CRC32 should be located here, after the microcode binaries */
 } __attribute__ ((packed));
 
-struct qe_firmware_info {
+struct qe_firmware_info
+{
 	char id[64];		/* Firmware name */
 	u32 vtraps[8];		/* Virtual trap addresses */
 	u64 extended_modes;	/* Extended modes */
@@ -323,7 +330,8 @@ struct qe_firmware_info *qe_get_firmware_info(void);
 int qe_usb_clock_set(enum qe_clock clk, int rate);
 
 /* Buffer descriptors */
-struct qe_bd {
+struct qe_bd
+{
 	__be16 status;
 	__be16 length;
 	__be32 buf;
@@ -343,14 +351,15 @@ struct qe_bd {
 #define QE_RISC_ALLOCATION_RISC3	0x4  /* RISC 3 */
 #define QE_RISC_ALLOCATION_RISC4	0x8  /* RISC 4 */
 #define QE_RISC_ALLOCATION_RISC1_AND_RISC2	(QE_RISC_ALLOCATION_RISC1 | \
-						 QE_RISC_ALLOCATION_RISC2)
+		QE_RISC_ALLOCATION_RISC2)
 #define QE_RISC_ALLOCATION_FOUR_RISCS	(QE_RISC_ALLOCATION_RISC1 | \
-					 QE_RISC_ALLOCATION_RISC2 | \
-					 QE_RISC_ALLOCATION_RISC3 | \
-					 QE_RISC_ALLOCATION_RISC4)
+		QE_RISC_ALLOCATION_RISC2 | \
+		QE_RISC_ALLOCATION_RISC3 | \
+		QE_RISC_ALLOCATION_RISC4)
 
 /* QE extended filtering Table Lookup Key Size */
-enum qe_fltr_tbl_lookup_key_size {
+enum qe_fltr_tbl_lookup_key_size
+{
 	QE_FLTR_TABLE_LOOKUP_KEY_SIZE_8_BYTES
 		= 0x3f,		/* LookupKey parsed by the Generate LookupKey
 				   CMD is truncated to 8 bytes */
@@ -360,17 +369,19 @@ enum qe_fltr_tbl_lookup_key_size {
 };
 
 /* QE FLTR extended filtering Largest External Table Lookup Key Size */
-enum qe_fltr_largest_external_tbl_lookup_key_size {
+enum qe_fltr_largest_external_tbl_lookup_key_size
+{
 	QE_FLTR_LARGEST_EXTERNAL_TABLE_LOOKUP_KEY_SIZE_NONE
-		= 0x0,/* not used */
+	= 0x0,/* not used */
 	QE_FLTR_LARGEST_EXTERNAL_TABLE_LOOKUP_KEY_SIZE_8_BYTES
-		= QE_FLTR_TABLE_LOOKUP_KEY_SIZE_8_BYTES,	/* 8 bytes */
+	= QE_FLTR_TABLE_LOOKUP_KEY_SIZE_8_BYTES,	/* 8 bytes */
 	QE_FLTR_LARGEST_EXTERNAL_TABLE_LOOKUP_KEY_SIZE_16_BYTES
-		= QE_FLTR_TABLE_LOOKUP_KEY_SIZE_16_BYTES,	/* 16 bytes */
+	= QE_FLTR_TABLE_LOOKUP_KEY_SIZE_16_BYTES,	/* 16 bytes */
 };
 
 /* structure representing QE parameter RAM */
-struct qe_timer_tables {
+struct qe_timer_tables
+{
 	u16 tm_base;		/* QE timer table base adr */
 	u16 tm_ptr;		/* QE timer table pointer */
 	u16 r_tmr;		/* QE timer mode register */
@@ -382,12 +393,14 @@ struct qe_timer_tables {
 #define QE_FLTR_TAD_SIZE	8
 
 /* QE extended filtering Termination Action Descriptor (TAD) */
-struct qe_fltr_tad {
+struct qe_fltr_tad
+{
 	u8 serialized[QE_FLTR_TAD_SIZE];
 } __attribute__ ((packed));
 
 /* Communication Direction */
-enum comm_dir {
+enum comm_dir
+{
 	COMM_DIR_NONE = 0,
 	COMM_DIR_RX = 1,
 	COMM_DIR_TX = 2,
@@ -586,7 +599,8 @@ enum comm_dir {
 					   must be set 1 */
 
 /* structure representing UCC SLOW parameter RAM */
-struct ucc_slow_pram {
+struct ucc_slow_pram
+{
 	__be16 rbase;		/* RX BD base address */
 	__be16 tbase;		/* TX BD base address */
 	u8 rbmr;		/* RX bus mode register (same as CPM's RFCR) */

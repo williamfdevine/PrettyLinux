@@ -48,23 +48,31 @@
 
 const char *usnic_ib_qp_grp_state_to_string(enum ib_qp_state state)
 {
-	switch (state) {
-	case IB_QPS_RESET:
-		return "Rst";
-	case IB_QPS_INIT:
-		return "Init";
-	case IB_QPS_RTR:
-		return "RTR";
-	case IB_QPS_RTS:
-		return "RTS";
-	case IB_QPS_SQD:
-		return "SQD";
-	case IB_QPS_SQE:
-		return "SQE";
-	case IB_QPS_ERR:
-		return "ERR";
-	default:
-		return "UNKNOWN STATE";
+	switch (state)
+	{
+		case IB_QPS_RESET:
+			return "Rst";
+
+		case IB_QPS_INIT:
+			return "Init";
+
+		case IB_QPS_RTR:
+			return "RTR";
+
+		case IB_QPS_RTS:
+			return "RTS";
+
+		case IB_QPS_SQD:
+			return "SQD";
+
+		case IB_QPS_SQE:
+			return "SQE";
+
+		case IB_QPS_ERR:
+			return "ERR";
+
+		default:
+			return "UNKNOWN STATE";
 
 	}
 }
@@ -78,17 +86,21 @@ int usnic_ib_qp_grp_dump_rows(void *obj, char *buf, int buf_sz)
 {
 	struct usnic_ib_qp_grp *qp_grp = obj;
 	struct usnic_ib_qp_grp_flow *default_flow;
-	if (obj) {
+
+	if (obj)
+	{
 		default_flow = list_first_entry(&qp_grp->flows_lst,
-					struct usnic_ib_qp_grp_flow, link);
+										struct usnic_ib_qp_grp_flow, link);
 		return scnprintf(buf, buf_sz, "|%d\t|%s\t|%d\t|%hu\t|%d",
-					qp_grp->ibqp.qp_num,
-					usnic_ib_qp_grp_state_to_string(
-							qp_grp->state),
-					qp_grp->owner_pid,
-					usnic_vnic_get_index(qp_grp->vf->vnic),
-					default_flow->flow->flow_id);
-	} else {
+						 qp_grp->ibqp.qp_num,
+						 usnic_ib_qp_grp_state_to_string(
+							 qp_grp->state),
+						 qp_grp->owner_pid,
+						 usnic_vnic_get_index(qp_grp->vf->vnic),
+						 default_flow->flow->flow_id);
+	}
+	else
+	{
 		return scnprintf(buf, buf_sz, "|N/A\t|N/A\t|N/A\t|N/A\t|N/A");
 	}
 }
@@ -117,20 +129,25 @@ static int enable_qp_grp(struct usnic_ib_qp_grp *qp_grp)
 	vnic_idx = usnic_vnic_get_index(qp_grp->vf->vnic);
 
 	res_chunk = get_qp_res_chunk(qp_grp);
-	if (IS_ERR_OR_NULL(res_chunk)) {
+
+	if (IS_ERR_OR_NULL(res_chunk))
+	{
 		usnic_err("Unable to get qp res with err %ld\n",
-				PTR_ERR(res_chunk));
+				  PTR_ERR(res_chunk));
 		return res_chunk ? PTR_ERR(res_chunk) : -ENOMEM;
 	}
 
-	for (i = 0; i < res_chunk->cnt; i++) {
+	for (i = 0; i < res_chunk->cnt; i++)
+	{
 		res = res_chunk->res[i];
 		status = usnic_fwd_enable_qp(qp_grp->ufdev, vnic_idx,
-						res->vnic_idx);
-		if (status) {
+									 res->vnic_idx);
+
+		if (status)
+		{
 			usnic_err("Failed to enable qp %d of %s:%d\n with err %d\n",
-					res->vnic_idx, qp_grp->ufdev->name,
-					vnic_idx, status);
+					  res->vnic_idx, qp_grp->ufdev->name,
+					  vnic_idx, status);
 			goto out_err;
 		}
 	}
@@ -138,10 +155,12 @@ static int enable_qp_grp(struct usnic_ib_qp_grp *qp_grp)
 	return 0;
 
 out_err:
-	for (i--; i >= 0; i--) {
+
+	for (i--; i >= 0; i--)
+	{
 		res = res_chunk->res[i];
 		usnic_fwd_disable_qp(qp_grp->ufdev, vnic_idx,
-					res->vnic_idx);
+							 res->vnic_idx);
 	}
 
 	return status;
@@ -158,21 +177,26 @@ static int disable_qp_grp(struct usnic_ib_qp_grp *qp_grp)
 	vnic_idx = usnic_vnic_get_index(qp_grp->vf->vnic);
 
 	res_chunk = get_qp_res_chunk(qp_grp);
-	if (IS_ERR_OR_NULL(res_chunk)) {
+
+	if (IS_ERR_OR_NULL(res_chunk))
+	{
 		usnic_err("Unable to get qp res with err %ld\n",
-			PTR_ERR(res_chunk));
+				  PTR_ERR(res_chunk));
 		return res_chunk ? PTR_ERR(res_chunk) : -ENOMEM;
 	}
 
-	for (i = 0; i < res_chunk->cnt; i++) {
+	for (i = 0; i < res_chunk->cnt; i++)
+	{
 		res = res_chunk->res[i];
 		status = usnic_fwd_disable_qp(qp_grp->ufdev, vnic_idx,
-						res->vnic_idx);
-		if (status) {
+									  res->vnic_idx);
+
+		if (status)
+		{
 			usnic_err("Failed to disable rq %d of %s:%d\n with err %d\n",
-					res->vnic_idx,
-					qp_grp->ufdev->name,
-					vnic_idx, status);
+					  res->vnic_idx,
+					  qp_grp->ufdev->name,
+					  vnic_idx, status);
 		}
 	}
 
@@ -181,15 +205,17 @@ static int disable_qp_grp(struct usnic_ib_qp_grp *qp_grp)
 }
 
 static int init_filter_action(struct usnic_ib_qp_grp *qp_grp,
-				struct usnic_filter_action *uaction)
+							  struct usnic_filter_action *uaction)
 {
 	struct usnic_vnic_res_chunk *res_chunk;
 
 	res_chunk = usnic_ib_qp_grp_get_chunk(qp_grp, USNIC_VNIC_RES_TYPE_RQ);
-	if (IS_ERR_OR_NULL(res_chunk)) {
+
+	if (IS_ERR_OR_NULL(res_chunk))
+	{
 		usnic_err("Unable to get %s with err %ld\n",
-			usnic_vnic_res_type_to_str(USNIC_VNIC_RES_TYPE_RQ),
-			PTR_ERR(res_chunk));
+				  usnic_vnic_res_type_to_str(USNIC_VNIC_RES_TYPE_RQ),
+				  PTR_ERR(res_chunk));
 		return res_chunk ? PTR_ERR(res_chunk) : -ENOMEM;
 	}
 
@@ -200,9 +226,9 @@ static int init_filter_action(struct usnic_ib_qp_grp *qp_grp,
 	return 0;
 }
 
-static struct usnic_ib_qp_grp_flow*
+static struct usnic_ib_qp_grp_flow *
 create_roce_custom_flow(struct usnic_ib_qp_grp *qp_grp,
-			struct usnic_transport_spec *trans_spec)
+						struct usnic_transport_spec *trans_spec)
 {
 	uint16_t port_num;
 	int err;
@@ -217,29 +243,40 @@ create_roce_custom_flow(struct usnic_ib_qp_grp *qp_grp,
 
 	/* Reserve Port */
 	port_num = usnic_transport_rsrv_port(trans_type, port_num);
+
 	if (port_num == 0)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* Create Flow */
 	usnic_fwd_init_usnic_filter(&filter, port_num);
 	err = init_filter_action(qp_grp, &uaction);
+
 	if (err)
+	{
 		goto out_unreserve_port;
+	}
 
 	flow = usnic_fwd_alloc_flow(qp_grp->ufdev, &filter, &uaction);
-	if (IS_ERR_OR_NULL(flow)) {
+
+	if (IS_ERR_OR_NULL(flow))
+	{
 		usnic_err("Unable to alloc flow failed with err %ld\n",
-				PTR_ERR(flow));
+				  PTR_ERR(flow));
 		err = flow ? PTR_ERR(flow) : -EFAULT;
 		goto out_unreserve_port;
 	}
 
 	/* Create Flow Handle */
 	qp_flow = kzalloc(sizeof(*qp_flow), GFP_ATOMIC);
-	if (!qp_flow) {
+
+	if (!qp_flow)
+	{
 		err = -ENOMEM;
 		goto out_dealloc_flow;
 	}
+
 	qp_flow->flow = flow;
 	qp_flow->trans_type = trans_type;
 	qp_flow->usnic_roce.port_num = port_num;
@@ -257,13 +294,13 @@ static void release_roce_custom_flow(struct usnic_ib_qp_grp_flow *qp_flow)
 {
 	usnic_fwd_dealloc_flow(qp_flow->flow);
 	usnic_transport_unrsrv_port(qp_flow->trans_type,
-					qp_flow->usnic_roce.port_num);
+								qp_flow->usnic_roce.port_num);
 	kfree(qp_flow);
 }
 
-static struct usnic_ib_qp_grp_flow*
+static struct usnic_ib_qp_grp_flow *
 create_udp_flow(struct usnic_ib_qp_grp *qp_grp,
-		struct usnic_transport_spec *trans_spec)
+				struct usnic_transport_spec *trans_spec)
 {
 	struct socket *sock;
 	int sock_fd;
@@ -282,14 +319,21 @@ create_udp_flow(struct usnic_ib_qp_grp *qp_grp,
 
 	/* Get and check socket */
 	sock = usnic_transport_get_socket(sock_fd);
+
 	if (IS_ERR_OR_NULL(sock))
+	{
 		return ERR_CAST(sock);
+	}
 
 	err = usnic_transport_sock_get_addr(sock, &proto, &addr, &port_num);
-	if (err)
-		goto out_put_sock;
 
-	if (proto != IPPROTO_UDP) {
+	if (err)
+	{
+		goto out_put_sock;
+	}
+
+	if (proto != IPPROTO_UDP)
+	{
 		usnic_err("Protocol for fd %d is not UDP", sock_fd);
 		err = -EPERM;
 		goto out_put_sock;
@@ -298,23 +342,31 @@ create_udp_flow(struct usnic_ib_qp_grp *qp_grp,
 	/* Create flow */
 	usnic_fwd_init_udp_filter(&filter, addr, port_num);
 	err = init_filter_action(qp_grp, &uaction);
+
 	if (err)
+	{
 		goto out_put_sock;
+	}
 
 	flow = usnic_fwd_alloc_flow(qp_grp->ufdev, &filter, &uaction);
-	if (IS_ERR_OR_NULL(flow)) {
+
+	if (IS_ERR_OR_NULL(flow))
+	{
 		usnic_err("Unable to alloc flow failed with err %ld\n",
-				PTR_ERR(flow));
+				  PTR_ERR(flow));
 		err = flow ? PTR_ERR(flow) : -EFAULT;
 		goto out_put_sock;
 	}
 
 	/* Create qp_flow */
 	qp_flow = kzalloc(sizeof(*qp_flow), GFP_ATOMIC);
-	if (!qp_flow) {
+
+	if (!qp_flow)
+	{
 		err = -ENOMEM;
 		goto out_dealloc_flow;
 	}
+
 	qp_flow->flow = flow;
 	qp_flow->trans_type = trans_type;
 	qp_flow->udp.sock = sock;
@@ -335,28 +387,33 @@ static void release_udp_flow(struct usnic_ib_qp_grp_flow *qp_flow)
 	kfree(qp_flow);
 }
 
-static struct usnic_ib_qp_grp_flow*
+static struct usnic_ib_qp_grp_flow *
 create_and_add_flow(struct usnic_ib_qp_grp *qp_grp,
-			struct usnic_transport_spec *trans_spec)
+					struct usnic_transport_spec *trans_spec)
 {
 	struct usnic_ib_qp_grp_flow *qp_flow;
 	enum usnic_transport_type trans_type;
 
 	trans_type = trans_spec->trans_type;
-	switch (trans_type) {
-	case USNIC_TRANSPORT_ROCE_CUSTOM:
-		qp_flow = create_roce_custom_flow(qp_grp, trans_spec);
-		break;
-	case USNIC_TRANSPORT_IPV4_UDP:
-		qp_flow = create_udp_flow(qp_grp, trans_spec);
-		break;
-	default:
-		usnic_err("Unsupported transport %u\n",
-				trans_spec->trans_type);
-		return ERR_PTR(-EINVAL);
+
+	switch (trans_type)
+	{
+		case USNIC_TRANSPORT_ROCE_CUSTOM:
+			qp_flow = create_roce_custom_flow(qp_grp, trans_spec);
+			break;
+
+		case USNIC_TRANSPORT_IPV4_UDP:
+			qp_flow = create_udp_flow(qp_grp, trans_spec);
+			break;
+
+		default:
+			usnic_err("Unsupported transport %u\n",
+					  trans_spec->trans_type);
+			return ERR_PTR(-EINVAL);
 	}
 
-	if (!IS_ERR_OR_NULL(qp_flow)) {
+	if (!IS_ERR_OR_NULL(qp_flow))
+	{
 		list_add_tail(&qp_flow->link, &qp_grp->flows_lst);
 		usnic_debugfs_flow_add(qp_flow);
 	}
@@ -370,17 +427,20 @@ static void release_and_remove_flow(struct usnic_ib_qp_grp_flow *qp_flow)
 	usnic_debugfs_flow_remove(qp_flow);
 	list_del(&qp_flow->link);
 
-	switch (qp_flow->trans_type) {
-	case USNIC_TRANSPORT_ROCE_CUSTOM:
-		release_roce_custom_flow(qp_flow);
-		break;
-	case USNIC_TRANSPORT_IPV4_UDP:
-		release_udp_flow(qp_flow);
-		break;
-	default:
-		WARN(1, "Unsupported transport %u\n",
-				qp_flow->trans_type);
-		break;
+	switch (qp_flow->trans_type)
+	{
+		case USNIC_TRANSPORT_ROCE_CUSTOM:
+			release_roce_custom_flow(qp_flow);
+			break;
+
+		case USNIC_TRANSPORT_IPV4_UDP:
+			release_udp_flow(qp_flow);
+			break;
+
+		default:
+			WARN(1, "Unsupported transport %u\n",
+				 qp_flow->trans_type);
+			break;
 	}
 }
 
@@ -388,12 +448,12 @@ static void release_and_remove_all_flows(struct usnic_ib_qp_grp *qp_grp)
 {
 	struct usnic_ib_qp_grp_flow *qp_flow, *tmp;
 	list_for_each_entry_safe(qp_flow, tmp, &qp_grp->flows_lst, link)
-		release_and_remove_flow(qp_flow);
+	release_and_remove_flow(qp_flow);
 }
 
 int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *qp_grp,
-				enum ib_qp_state new_state,
-				void *data)
+						   enum ib_qp_state new_state,
+						   void *data)
 {
 	int status = 0;
 	int vnic_idx;
@@ -407,167 +467,219 @@ int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *qp_grp,
 	trans_spec = (struct usnic_transport_spec *) data;
 
 	spin_lock(&qp_grp->lock);
-	switch (new_state) {
-	case IB_QPS_RESET:
-		switch (old_state) {
-		case IB_QPS_RESET:
-			/* NO-OP */
-			break;
-		case IB_QPS_INIT:
-			release_and_remove_all_flows(qp_grp);
-			status = 0;
-			break;
-		case IB_QPS_RTR:
-		case IB_QPS_RTS:
-		case IB_QPS_ERR:
-			status = disable_qp_grp(qp_grp);
-			release_and_remove_all_flows(qp_grp);
-			break;
-		default:
-			status = -EINVAL;
-		}
-		break;
-	case IB_QPS_INIT:
-		switch (old_state) {
-		case IB_QPS_RESET:
-			if (trans_spec) {
-				qp_flow = create_and_add_flow(qp_grp,
-								trans_spec);
-				if (IS_ERR_OR_NULL(qp_flow)) {
-					status = qp_flow ? PTR_ERR(qp_flow) : -EFAULT;
-					break;
-				}
-			} else {
-				/*
-				 * Optional to specify filters.
-				 */
-				status = 0;
-			}
-			break;
-		case IB_QPS_INIT:
-			if (trans_spec) {
-				qp_flow = create_and_add_flow(qp_grp,
-								trans_spec);
-				if (IS_ERR_OR_NULL(qp_flow)) {
-					status = qp_flow ? PTR_ERR(qp_flow) : -EFAULT;
-					break;
-				}
-			} else {
-				/*
-				 * Doesn't make sense to go into INIT state
-				 * from INIT state w/o adding filters.
-				 */
-				status = -EINVAL;
-			}
-			break;
-		case IB_QPS_RTR:
-			status = disable_qp_grp(qp_grp);
-			break;
-		case IB_QPS_RTS:
-			status = disable_qp_grp(qp_grp);
-			break;
-		default:
-			status = -EINVAL;
-		}
-		break;
-	case IB_QPS_RTR:
-		switch (old_state) {
-		case IB_QPS_INIT:
-			status = enable_qp_grp(qp_grp);
-			break;
-		default:
-			status = -EINVAL;
-		}
-		break;
-	case IB_QPS_RTS:
-		switch (old_state) {
-		case IB_QPS_RTR:
-			/* NO-OP FOR NOW */
-			break;
-		default:
-			status = -EINVAL;
-		}
-		break;
-	case IB_QPS_ERR:
-		ib_event.device = &qp_grp->vf->pf->ib_dev;
-		ib_event.element.qp = &qp_grp->ibqp;
-		ib_event.event = IB_EVENT_QP_FATAL;
 
-		switch (old_state) {
+	switch (new_state)
+	{
 		case IB_QPS_RESET:
-			qp_grp->ibqp.event_handler(&ib_event,
-					qp_grp->ibqp.qp_context);
+			switch (old_state)
+			{
+				case IB_QPS_RESET:
+					/* NO-OP */
+					break;
+
+				case IB_QPS_INIT:
+					release_and_remove_all_flows(qp_grp);
+					status = 0;
+					break;
+
+				case IB_QPS_RTR:
+				case IB_QPS_RTS:
+				case IB_QPS_ERR:
+					status = disable_qp_grp(qp_grp);
+					release_and_remove_all_flows(qp_grp);
+					break;
+
+				default:
+					status = -EINVAL;
+			}
+
 			break;
+
 		case IB_QPS_INIT:
-			release_and_remove_all_flows(qp_grp);
-			qp_grp->ibqp.event_handler(&ib_event,
-					qp_grp->ibqp.qp_context);
+			switch (old_state)
+			{
+				case IB_QPS_RESET:
+					if (trans_spec)
+					{
+						qp_flow = create_and_add_flow(qp_grp,
+													  trans_spec);
+
+						if (IS_ERR_OR_NULL(qp_flow))
+						{
+							status = qp_flow ? PTR_ERR(qp_flow) : -EFAULT;
+							break;
+						}
+					}
+					else
+					{
+						/*
+						 * Optional to specify filters.
+						 */
+						status = 0;
+					}
+
+					break;
+
+				case IB_QPS_INIT:
+					if (trans_spec)
+					{
+						qp_flow = create_and_add_flow(qp_grp,
+													  trans_spec);
+
+						if (IS_ERR_OR_NULL(qp_flow))
+						{
+							status = qp_flow ? PTR_ERR(qp_flow) : -EFAULT;
+							break;
+						}
+					}
+					else
+					{
+						/*
+						 * Doesn't make sense to go into INIT state
+						 * from INIT state w/o adding filters.
+						 */
+						status = -EINVAL;
+					}
+
+					break;
+
+				case IB_QPS_RTR:
+					status = disable_qp_grp(qp_grp);
+					break;
+
+				case IB_QPS_RTS:
+					status = disable_qp_grp(qp_grp);
+					break;
+
+				default:
+					status = -EINVAL;
+			}
+
 			break;
+
 		case IB_QPS_RTR:
-		case IB_QPS_RTS:
-			status = disable_qp_grp(qp_grp);
-			release_and_remove_all_flows(qp_grp);
-			qp_grp->ibqp.event_handler(&ib_event,
-					qp_grp->ibqp.qp_context);
+			switch (old_state)
+			{
+				case IB_QPS_INIT:
+					status = enable_qp_grp(qp_grp);
+					break;
+
+				default:
+					status = -EINVAL;
+			}
+
 			break;
+
+		case IB_QPS_RTS:
+			switch (old_state)
+			{
+				case IB_QPS_RTR:
+					/* NO-OP FOR NOW */
+					break;
+
+				default:
+					status = -EINVAL;
+			}
+
+			break;
+
+		case IB_QPS_ERR:
+			ib_event.device = &qp_grp->vf->pf->ib_dev;
+			ib_event.element.qp = &qp_grp->ibqp;
+			ib_event.event = IB_EVENT_QP_FATAL;
+
+			switch (old_state)
+			{
+				case IB_QPS_RESET:
+					qp_grp->ibqp.event_handler(&ib_event,
+											   qp_grp->ibqp.qp_context);
+					break;
+
+				case IB_QPS_INIT:
+					release_and_remove_all_flows(qp_grp);
+					qp_grp->ibqp.event_handler(&ib_event,
+											   qp_grp->ibqp.qp_context);
+					break;
+
+				case IB_QPS_RTR:
+				case IB_QPS_RTS:
+					status = disable_qp_grp(qp_grp);
+					release_and_remove_all_flows(qp_grp);
+					qp_grp->ibqp.event_handler(&ib_event,
+											   qp_grp->ibqp.qp_context);
+					break;
+
+				default:
+					status = -EINVAL;
+			}
+
+			break;
+
 		default:
 			status = -EINVAL;
-		}
-		break;
-	default:
-		status = -EINVAL;
 	}
+
 	spin_unlock(&qp_grp->lock);
 
-	if (!status) {
+	if (!status)
+	{
 		qp_grp->state = new_state;
 		usnic_info("Transitioned %u from %s to %s",
-		qp_grp->grp_id,
-		usnic_ib_qp_grp_state_to_string(old_state),
-		usnic_ib_qp_grp_state_to_string(new_state));
-	} else {
+				   qp_grp->grp_id,
+				   usnic_ib_qp_grp_state_to_string(old_state),
+				   usnic_ib_qp_grp_state_to_string(new_state));
+	}
+	else
+	{
 		usnic_err("Failed to transition %u from %s to %s",
-		qp_grp->grp_id,
-		usnic_ib_qp_grp_state_to_string(old_state),
-		usnic_ib_qp_grp_state_to_string(new_state));
+				  qp_grp->grp_id,
+				  usnic_ib_qp_grp_state_to_string(old_state),
+				  usnic_ib_qp_grp_state_to_string(new_state));
 	}
 
 	return status;
 }
 
-static struct usnic_vnic_res_chunk**
+static struct usnic_vnic_res_chunk **
 alloc_res_chunk_list(struct usnic_vnic *vnic,
-			struct usnic_vnic_res_spec *res_spec, void *owner_obj)
+					 struct usnic_vnic_res_spec *res_spec, void *owner_obj)
 {
 	enum usnic_vnic_res_type res_type;
 	struct usnic_vnic_res_chunk **res_chunk_list;
 	int err, i, res_cnt, res_lst_sz;
 
 	for (res_lst_sz = 0;
-		res_spec->resources[res_lst_sz].type != USNIC_VNIC_RES_TYPE_EOL;
-		res_lst_sz++) {
+		 res_spec->resources[res_lst_sz].type != USNIC_VNIC_RES_TYPE_EOL;
+		 res_lst_sz++)
+	{
 		/* Do Nothing */
 	}
 
-	res_chunk_list = kzalloc(sizeof(*res_chunk_list)*(res_lst_sz+1),
-					GFP_ATOMIC);
+	res_chunk_list = kzalloc(sizeof(*res_chunk_list) * (res_lst_sz + 1),
+							 GFP_ATOMIC);
+
 	if (!res_chunk_list)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	for (i = 0; res_spec->resources[i].type != USNIC_VNIC_RES_TYPE_EOL;
-		i++) {
+		 i++)
+	{
 		res_type = res_spec->resources[i].type;
 		res_cnt = res_spec->resources[i].cnt;
 
 		res_chunk_list[i] = usnic_vnic_get_resources(vnic, res_type,
-					res_cnt, owner_obj);
-		if (IS_ERR_OR_NULL(res_chunk_list[i])) {
+							res_cnt, owner_obj);
+
+		if (IS_ERR_OR_NULL(res_chunk_list[i]))
+		{
 			err = res_chunk_list[i] ?
-					PTR_ERR(res_chunk_list[i]) : -ENOMEM;
+				  PTR_ERR(res_chunk_list[i]) : -ENOMEM;
 			usnic_err("Failed to get %s from %s with err %d\n",
-				usnic_vnic_res_type_to_str(res_type),
-				usnic_vnic_pci_name(vnic),
-				err);
+					  usnic_vnic_res_type_to_str(res_type),
+					  usnic_vnic_pci_name(vnic),
+					  err);
 			goto out_free_res;
 		}
 	}
@@ -575,8 +687,12 @@ alloc_res_chunk_list(struct usnic_vnic *vnic,
 	return res_chunk_list;
 
 out_free_res:
+
 	for (i--; i >= 0; i--)
+	{
 		usnic_vnic_put_resources(res_chunk_list[i]);
+	}
+
 	kfree(res_chunk_list);
 	return ERR_PTR(err);
 }
@@ -584,14 +700,18 @@ out_free_res:
 static void free_qp_grp_res(struct usnic_vnic_res_chunk **res_chunk_list)
 {
 	int i;
+
 	for (i = 0; res_chunk_list[i]; i++)
+	{
 		usnic_vnic_put_resources(res_chunk_list[i]);
+	}
+
 	kfree(res_chunk_list);
 }
 
 static int qp_grp_and_vf_bind(struct usnic_ib_vf *vf,
-				struct usnic_ib_pd *pd,
-				struct usnic_ib_qp_grp *qp_grp)
+							  struct usnic_ib_pd *pd,
+							  struct usnic_ib_qp_grp *qp_grp)
 {
 	int err;
 	struct pci_dev *pdev;
@@ -599,15 +719,21 @@ static int qp_grp_and_vf_bind(struct usnic_ib_vf *vf,
 	lockdep_assert_held(&vf->lock);
 
 	pdev = usnic_vnic_get_pdev(vf->vnic);
-	if (vf->qp_grp_ref_cnt == 0) {
+
+	if (vf->qp_grp_ref_cnt == 0)
+	{
 		err = usnic_uiom_attach_dev_to_pd(pd->umem_pd, &pdev->dev);
-		if (err) {
+
+		if (err)
+		{
 			usnic_err("Failed to attach %s to domain\n",
-					pci_name(pdev));
+					  pci_name(pdev));
 			return err;
 		}
+
 		vf->pd = pd;
 	}
+
 	vf->qp_grp_ref_cnt++;
 
 	WARN_ON(vf->pd != pd);
@@ -625,10 +751,13 @@ static void qp_grp_and_vf_unbind(struct usnic_ib_qp_grp *qp_grp)
 
 	pd = qp_grp->vf->pd;
 	pdev = usnic_vnic_get_pdev(qp_grp->vf->vnic);
-	if (--qp_grp->vf->qp_grp_ref_cnt == 0) {
+
+	if (--qp_grp->vf->qp_grp_ref_cnt == 0)
+	{
 		qp_grp->vf->pd = NULL;
 		usnic_uiom_detach_dev_from_pd(pd->umem_pd, &pdev->dev);
 	}
+
 	qp_grp->vf = NULL;
 }
 
@@ -640,32 +769,39 @@ static void log_spec(struct usnic_vnic_res_spec *res_spec)
 }
 
 static int qp_grp_id_from_flow(struct usnic_ib_qp_grp_flow *qp_flow,
-				uint32_t *id)
+							   uint32_t *id)
 {
 	enum usnic_transport_type trans_type = qp_flow->trans_type;
 	int err;
 	uint16_t port_num = 0;
 
-	switch (trans_type) {
-	case USNIC_TRANSPORT_ROCE_CUSTOM:
-		*id = qp_flow->usnic_roce.port_num;
-		break;
-	case USNIC_TRANSPORT_IPV4_UDP:
-		err = usnic_transport_sock_get_addr(qp_flow->udp.sock,
-							NULL, NULL,
-							&port_num);
-		if (err)
-			return err;
-		/*
-		 * Copy port_num to stack first and then to *id,
-		 * so that the short to int cast works for little
-		 * and big endian systems.
-		 */
-		*id = port_num;
-		break;
-	default:
-		usnic_err("Unsupported transport %u\n", trans_type);
-		return -EINVAL;
+	switch (trans_type)
+	{
+		case USNIC_TRANSPORT_ROCE_CUSTOM:
+			*id = qp_flow->usnic_roce.port_num;
+			break;
+
+		case USNIC_TRANSPORT_IPV4_UDP:
+			err = usnic_transport_sock_get_addr(qp_flow->udp.sock,
+												NULL, NULL,
+												&port_num);
+
+			if (err)
+			{
+				return err;
+			}
+
+			/*
+			 * Copy port_num to stack first and then to *id,
+			 * so that the short to int cast works for little
+			 * and big endian systems.
+			 */
+			*id = port_num;
+			break;
+
+		default:
+			usnic_err("Unsupported transport %u\n", trans_type);
+			return -EINVAL;
 	}
 
 	return 0;
@@ -673,9 +809,9 @@ static int qp_grp_id_from_flow(struct usnic_ib_qp_grp_flow *qp_flow,
 
 struct usnic_ib_qp_grp *
 usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev, struct usnic_ib_vf *vf,
-			struct usnic_ib_pd *pd,
-			struct usnic_vnic_res_spec *res_spec,
-			struct usnic_transport_spec *transport_spec)
+					   struct usnic_ib_pd *pd,
+					   struct usnic_vnic_res_spec *res_spec,
+					   struct usnic_transport_spec *transport_spec)
 {
 	struct usnic_ib_qp_grp *qp_grp;
 	int err;
@@ -685,33 +821,42 @@ usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev, struct usnic_ib_vf *vf,
 	lockdep_assert_held(&vf->lock);
 
 	err = usnic_vnic_res_spec_satisfied(&min_transport_spec[transport],
-						res_spec);
-	if (err) {
+										res_spec);
+
+	if (err)
+	{
 		usnic_err("Spec does not meet miniumum req for transport %d\n",
-				transport);
+				  transport);
 		log_spec(res_spec);
 		return ERR_PTR(err);
 	}
 
 	qp_grp = kzalloc(sizeof(*qp_grp), GFP_ATOMIC);
-	if (!qp_grp) {
+
+	if (!qp_grp)
+	{
 		usnic_err("Unable to alloc qp_grp - Out of memory\n");
 		return NULL;
 	}
 
 	qp_grp->res_chunk_list = alloc_res_chunk_list(vf->vnic, res_spec,
-							qp_grp);
-	if (IS_ERR_OR_NULL(qp_grp->res_chunk_list)) {
+							 qp_grp);
+
+	if (IS_ERR_OR_NULL(qp_grp->res_chunk_list))
+	{
 		err = qp_grp->res_chunk_list ?
-				PTR_ERR(qp_grp->res_chunk_list) : -ENOMEM;
+			  PTR_ERR(qp_grp->res_chunk_list) : -ENOMEM;
 		usnic_err("Unable to alloc res for %d with err %d\n",
-				qp_grp->grp_id, err);
+				  qp_grp->grp_id, err);
 		goto out_free_qp_grp;
 	}
 
 	err = qp_grp_and_vf_bind(vf, pd, qp_grp);
+
 	if (err)
+	{
 		goto out_free_res;
+	}
 
 	INIT_LIST_HEAD(&qp_grp->flows_lst);
 	spin_lock_init(&qp_grp->lock);
@@ -720,16 +865,22 @@ usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev, struct usnic_ib_vf *vf,
 	qp_grp->owner_pid = current->pid;
 
 	qp_flow = create_and_add_flow(qp_grp, transport_spec);
-	if (IS_ERR_OR_NULL(qp_flow)) {
+
+	if (IS_ERR_OR_NULL(qp_flow))
+	{
 		usnic_err("Unable to create and add flow with err %ld\n",
-				PTR_ERR(qp_flow));
+				  PTR_ERR(qp_flow));
 		err = qp_flow ? PTR_ERR(qp_flow) : -EFAULT;
 		goto out_qp_grp_vf_unbind;
 	}
 
 	err = qp_grp_id_from_flow(qp_flow, &qp_grp->grp_id);
+
 	if (err)
+	{
 		goto out_release_flow;
+	}
+
 	qp_grp->ibqp.qp_num = qp_grp->grp_id;
 
 	usnic_ib_sysfs_qpn_add(qp_grp);
@@ -761,15 +912,18 @@ void usnic_ib_qp_grp_destroy(struct usnic_ib_qp_grp *qp_grp)
 	kfree(qp_grp);
 }
 
-struct usnic_vnic_res_chunk*
+struct usnic_vnic_res_chunk *
 usnic_ib_qp_grp_get_chunk(struct usnic_ib_qp_grp *qp_grp,
-				enum usnic_vnic_res_type res_type)
+						  enum usnic_vnic_res_type res_type)
 {
 	int i;
 
-	for (i = 0; qp_grp->res_chunk_list[i]; i++) {
+	for (i = 0; qp_grp->res_chunk_list[i]; i++)
+	{
 		if (qp_grp->res_chunk_list[i]->type == res_type)
+		{
 			return qp_grp->res_chunk_list[i];
+		}
 	}
 
 	return ERR_PTR(-EINVAL);

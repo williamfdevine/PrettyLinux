@@ -52,7 +52,8 @@
 #include "adf_accel_devices.h"
 #include "icp_qat_fw_la.h"
 
-struct qat_crypto_instance {
+struct qat_crypto_instance
+{
 	struct adf_etr_ring_data *sym_tx;
 	struct adf_etr_ring_data *sym_rx;
 	struct adf_etr_ring_data *pke_tx;
@@ -64,7 +65,8 @@ struct qat_crypto_instance {
 	atomic_t refctr;
 };
 
-struct qat_crypto_request_buffs {
+struct qat_crypto_request_buffs
+{
 	struct qat_alg_buf_list *bl;
 	dma_addr_t blp;
 	struct qat_alg_buf_list *blout;
@@ -75,19 +77,22 @@ struct qat_crypto_request_buffs {
 
 struct qat_crypto_request;
 
-struct qat_crypto_request {
+struct qat_crypto_request
+{
 	struct icp_qat_fw_la_bulk_req req;
-	union {
+	union
+	{
 		struct qat_alg_aead_ctx *aead_ctx;
 		struct qat_alg_ablkcipher_ctx *ablkcipher_ctx;
 	};
-	union {
+	union
+	{
 		struct aead_request *aead_req;
 		struct ablkcipher_request *ablkcipher_req;
 	};
 	struct qat_crypto_request_buffs buf;
 	void (*cb)(struct icp_qat_fw_la_resp *resp,
-		   struct qat_crypto_request *req);
+			   struct qat_crypto_request *req);
 };
 
 #endif

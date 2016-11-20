@@ -34,7 +34,8 @@ MODULE_SUPPORTED_DEVICE("jsm");
 #define NR_PORTS	32
 #define JSM_MINOR_START	0
 
-struct uart_driver jsm_uart_driver = {
+struct uart_driver jsm_uart_driver =
+{
 	.owner		= THIS_MODULE,
 	.driver_name	= JSM_DRIVER_NAME,
 	.dev_name	= "ttyn",
@@ -44,11 +45,12 @@ struct uart_driver jsm_uart_driver = {
 };
 
 static pci_ers_result_t jsm_io_error_detected(struct pci_dev *pdev,
-					pci_channel_state_t state);
+		pci_channel_state_t state);
 static pci_ers_result_t jsm_io_slot_reset(struct pci_dev *pdev);
 static void jsm_io_resume(struct pci_dev *pdev);
 
-static const struct pci_error_handlers jsm_err_handler = {
+static const struct pci_error_handlers jsm_err_handler =
+{
 	.error_detected = jsm_io_error_detected,
 	.slot_reset = jsm_io_slot_reset,
 	.resume = jsm_io_resume,
@@ -65,19 +67,25 @@ static int jsm_probe_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	static int adapter_count;
 
 	rc = pci_enable_device(pdev);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "Device enable FAILED\n");
 		goto out;
 	}
 
 	rc = pci_request_regions(pdev, JSM_DRIVER_NAME);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "pci_request_region FAILED\n");
 		goto out_disable_device;
 	}
 
 	brd = kzalloc(sizeof(*brd), GFP_KERNEL);
-	if (!brd) {
+
+	if (!brd)
+	{
 		rc = -ENOMEM;
 		goto out_release_regions;
 	}
@@ -86,35 +94,36 @@ static int jsm_probe_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	brd->boardnum = adapter_count++;
 	brd->pci_dev = pdev;
 
-	switch (pdev->device) {
-	case PCI_DEVICE_ID_NEO_2DB9:
-	case PCI_DEVICE_ID_NEO_2DB9PRI:
-	case PCI_DEVICE_ID_NEO_2RJ45:
-	case PCI_DEVICE_ID_NEO_2RJ45PRI:
-	case PCI_DEVICE_ID_NEO_2_422_485:
-		brd->maxports = 2;
-		break;
+	switch (pdev->device)
+	{
+		case PCI_DEVICE_ID_NEO_2DB9:
+		case PCI_DEVICE_ID_NEO_2DB9PRI:
+		case PCI_DEVICE_ID_NEO_2RJ45:
+		case PCI_DEVICE_ID_NEO_2RJ45PRI:
+		case PCI_DEVICE_ID_NEO_2_422_485:
+			brd->maxports = 2;
+			break;
 
-	case PCI_DEVICE_ID_CLASSIC_4:
-	case PCI_DEVICE_ID_CLASSIC_4_422:
-	case PCI_DEVICE_ID_NEO_4:
-	case PCIE_DEVICE_ID_NEO_4:
-	case PCIE_DEVICE_ID_NEO_4RJ45:
-	case PCIE_DEVICE_ID_NEO_4_IBM:
-		brd->maxports = 4;
-		break;
+		case PCI_DEVICE_ID_CLASSIC_4:
+		case PCI_DEVICE_ID_CLASSIC_4_422:
+		case PCI_DEVICE_ID_NEO_4:
+		case PCIE_DEVICE_ID_NEO_4:
+		case PCIE_DEVICE_ID_NEO_4RJ45:
+		case PCIE_DEVICE_ID_NEO_4_IBM:
+			brd->maxports = 4;
+			break;
 
-	case PCI_DEVICE_ID_CLASSIC_8:
-	case PCI_DEVICE_ID_CLASSIC_8_422:
-	case PCI_DEVICE_ID_DIGI_NEO_8:
-	case PCIE_DEVICE_ID_NEO_8:
-	case PCIE_DEVICE_ID_NEO_8RJ45:
-		brd->maxports = 8;
-		break;
+		case PCI_DEVICE_ID_CLASSIC_8:
+		case PCI_DEVICE_ID_CLASSIC_8_422:
+		case PCI_DEVICE_ID_DIGI_NEO_8:
+		case PCIE_DEVICE_ID_NEO_8:
+		case PCIE_DEVICE_ID_NEO_8RJ45:
+			brd->maxports = 8;
+			break;
 
-	default:
-		brd->maxports = 1;
-		break;
+		default:
+			brd->maxports = 1;
+			break;
 	}
 
 	spin_lock_init(&brd->bd_intr_lock);
@@ -124,121 +133,141 @@ static int jsm_probe_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	brd->irq = pdev->irq;
 
-	switch (pdev->device) {
-	case PCI_DEVICE_ID_CLASSIC_4:
-	case PCI_DEVICE_ID_CLASSIC_4_422:
-	case PCI_DEVICE_ID_CLASSIC_8:
-	case PCI_DEVICE_ID_CLASSIC_8_422:
+	switch (pdev->device)
+	{
+		case PCI_DEVICE_ID_CLASSIC_4:
+		case PCI_DEVICE_ID_CLASSIC_4_422:
+		case PCI_DEVICE_ID_CLASSIC_8:
+		case PCI_DEVICE_ID_CLASSIC_8_422:
 
-		jsm_dbg(INIT, &brd->pci_dev,
-			"jsm_found_board - Classic adapter\n");
+			jsm_dbg(INIT, &brd->pci_dev,
+					"jsm_found_board - Classic adapter\n");
 
-		/*
-		 * For PCI ClassicBoards
-		 * PCI Local Address (.i.e. "resource" number) space
-		 * 0	PLX Memory Mapped Config
-		 * 1	PLX I/O Mapped Config
-		 * 2	I/O Mapped UARTs and Status
-		 * 3	Memory Mapped VPD
-		 * 4	Memory Mapped UARTs and Status
-		 */
+			/*
+			 * For PCI ClassicBoards
+			 * PCI Local Address (.i.e. "resource" number) space
+			 * 0	PLX Memory Mapped Config
+			 * 1	PLX I/O Mapped Config
+			 * 2	I/O Mapped UARTs and Status
+			 * 3	Memory Mapped VPD
+			 * 4	Memory Mapped UARTs and Status
+			 */
 
-		/* Get the PCI Base Address Registers */
-		brd->membase = pci_resource_start(pdev, 4);
-		brd->membase_end = pci_resource_end(pdev, 4);
+			/* Get the PCI Base Address Registers */
+			brd->membase = pci_resource_start(pdev, 4);
+			brd->membase_end = pci_resource_end(pdev, 4);
 
-		if (brd->membase & 0x1)
-			brd->membase &= ~0x3;
-		else
-			brd->membase &= ~0xF;
+			if (brd->membase & 0x1)
+			{
+				brd->membase &= ~0x3;
+			}
+			else
+			{
+				brd->membase &= ~0xF;
+			}
 
-		brd->iobase = pci_resource_start(pdev, 1);
-		brd->iobase_end = pci_resource_end(pdev, 1);
-		brd->iobase = ((unsigned int)(brd->iobase)) & 0xFFFE;
+			brd->iobase = pci_resource_start(pdev, 1);
+			brd->iobase_end = pci_resource_end(pdev, 1);
+			brd->iobase = ((unsigned int)(brd->iobase)) & 0xFFFE;
 
-		/* Assign the board_ops struct */
-		brd->bd_ops = &jsm_cls_ops;
+			/* Assign the board_ops struct */
+			brd->bd_ops = &jsm_cls_ops;
 
-		brd->bd_uart_offset = 0x8;
-		brd->bd_dividend = 921600;
+			brd->bd_uart_offset = 0x8;
+			brd->bd_dividend = 921600;
 
-		brd->re_map_membase = ioremap(brd->membase,
-						pci_resource_len(pdev, 4));
-		if (!brd->re_map_membase) {
-			dev_err(&pdev->dev,
-				"Card has no PCI Memory resources, failing board.\n");
-			rc = -ENOMEM;
-			goto out_kfree_brd;
-		}
+			brd->re_map_membase = ioremap(brd->membase,
+										  pci_resource_len(pdev, 4));
 
-		/*
-		 * Enable Local Interrupt 1			(0x1),
-		 * Local Interrupt 1 Polarity Active high	(0x2),
-		 * Enable PCI interrupt				(0x43)
-		 */
-		outb(0x43, brd->iobase + 0x4c);
+			if (!brd->re_map_membase)
+			{
+				dev_err(&pdev->dev,
+						"Card has no PCI Memory resources, failing board.\n");
+				rc = -ENOMEM;
+				goto out_kfree_brd;
+			}
 
-		break;
+			/*
+			 * Enable Local Interrupt 1			(0x1),
+			 * Local Interrupt 1 Polarity Active high	(0x2),
+			 * Enable PCI interrupt				(0x43)
+			 */
+			outb(0x43, brd->iobase + 0x4c);
 
-	case PCI_DEVICE_ID_NEO_2DB9:
-	case PCI_DEVICE_ID_NEO_2DB9PRI:
-	case PCI_DEVICE_ID_NEO_2RJ45:
-	case PCI_DEVICE_ID_NEO_2RJ45PRI:
-	case PCI_DEVICE_ID_NEO_2_422_485:
-	case PCI_DEVICE_ID_NEO_4:
-	case PCIE_DEVICE_ID_NEO_4:
-	case PCIE_DEVICE_ID_NEO_4RJ45:
-	case PCIE_DEVICE_ID_NEO_4_IBM:
-	case PCI_DEVICE_ID_DIGI_NEO_8:
-	case PCIE_DEVICE_ID_NEO_8:
-	case PCIE_DEVICE_ID_NEO_8RJ45:
+			break;
 
-		jsm_dbg(INIT, &brd->pci_dev, "jsm_found_board - NEO adapter\n");
+		case PCI_DEVICE_ID_NEO_2DB9:
+		case PCI_DEVICE_ID_NEO_2DB9PRI:
+		case PCI_DEVICE_ID_NEO_2RJ45:
+		case PCI_DEVICE_ID_NEO_2RJ45PRI:
+		case PCI_DEVICE_ID_NEO_2_422_485:
+		case PCI_DEVICE_ID_NEO_4:
+		case PCIE_DEVICE_ID_NEO_4:
+		case PCIE_DEVICE_ID_NEO_4RJ45:
+		case PCIE_DEVICE_ID_NEO_4_IBM:
+		case PCI_DEVICE_ID_DIGI_NEO_8:
+		case PCIE_DEVICE_ID_NEO_8:
+		case PCIE_DEVICE_ID_NEO_8RJ45:
 
-		/* get the PCI Base Address Registers */
-		brd->membase	= pci_resource_start(pdev, 0);
-		brd->membase_end = pci_resource_end(pdev, 0);
+			jsm_dbg(INIT, &brd->pci_dev, "jsm_found_board - NEO adapter\n");
 
-		if (brd->membase & 1)
-			brd->membase &= ~0x3;
-		else
-			brd->membase &= ~0xF;
+			/* get the PCI Base Address Registers */
+			brd->membase	= pci_resource_start(pdev, 0);
+			brd->membase_end = pci_resource_end(pdev, 0);
 
-		/* Assign the board_ops struct */
-		brd->bd_ops = &jsm_neo_ops;
+			if (brd->membase & 1)
+			{
+				brd->membase &= ~0x3;
+			}
+			else
+			{
+				brd->membase &= ~0xF;
+			}
 
-		brd->bd_uart_offset = 0x200;
-		brd->bd_dividend = 921600;
+			/* Assign the board_ops struct */
+			brd->bd_ops = &jsm_neo_ops;
 
-		brd->re_map_membase = ioremap(brd->membase,
-						pci_resource_len(pdev, 0));
-		if (!brd->re_map_membase) {
-			dev_err(&pdev->dev,
-				"Card has no PCI Memory resources, failing board.\n");
-			rc = -ENOMEM;
-			goto out_kfree_brd;
-		}
+			brd->bd_uart_offset = 0x200;
+			brd->bd_dividend = 921600;
 
-		break;
-	default:
-		return -ENXIO;
+			brd->re_map_membase = ioremap(brd->membase,
+										  pci_resource_len(pdev, 0));
+
+			if (!brd->re_map_membase)
+			{
+				dev_err(&pdev->dev,
+						"Card has no PCI Memory resources, failing board.\n");
+				rc = -ENOMEM;
+				goto out_kfree_brd;
+			}
+
+			break;
+
+		default:
+			return -ENXIO;
 	}
 
 	rc = request_irq(brd->irq, brd->bd_ops->intr, IRQF_SHARED, "JSM", brd);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_warn(&pdev->dev, "Failed to hook IRQ %d\n", brd->irq);
 		goto out_iounmap;
 	}
 
 	rc = jsm_tty_init(brd);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dev_err(&pdev->dev, "Can't init tty devices (%d)\n", rc);
 		rc = -ENXIO;
 		goto out_free_irq;
 	}
 
 	rc = jsm_uart_port_init(brd);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		/* XXX: leaking all resources from jsm_tty_init here! */
 		dev_err(&pdev->dev, "Can't init uart port (%d)\n", rc);
 		rc = -ENXIO;
@@ -247,24 +276,24 @@ static int jsm_probe_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* Log the information about the board */
 	dev_info(&pdev->dev, "board %d: Digi Classic/Neo (rev %d), irq %d\n",
-			adapter_count, brd->rev, brd->irq);
+			 adapter_count, brd->rev, brd->irq);
 
 	pci_set_drvdata(pdev, brd);
 	pci_save_state(pdev);
 
 	return 0;
- out_free_irq:
+out_free_irq:
 	jsm_remove_uart_port(brd);
 	free_irq(brd->irq, brd);
- out_iounmap:
+out_iounmap:
 	iounmap(brd->re_map_membase);
- out_kfree_brd:
+out_kfree_brd:
 	kfree(brd);
- out_release_regions:
+out_release_regions:
 	pci_release_regions(pdev);
- out_disable_device:
+out_disable_device:
 	pci_disable_device(pdev);
- out:
+out:
 	return rc;
 }
 
@@ -273,16 +302,18 @@ static void jsm_remove_one(struct pci_dev *pdev)
 	struct jsm_board *brd = pci_get_drvdata(pdev);
 	int i = 0;
 
-	switch (pdev->device) {
-	case PCI_DEVICE_ID_CLASSIC_4:
-	case PCI_DEVICE_ID_CLASSIC_4_422:
-	case PCI_DEVICE_ID_CLASSIC_8:
-	case PCI_DEVICE_ID_CLASSIC_8_422:
-		/* Tell card not to interrupt anymore. */
-		outb(0x0, brd->iobase + 0x4c);
-		break;
-	default:
-		break;
+	switch (pdev->device)
+	{
+		case PCI_DEVICE_ID_CLASSIC_4:
+		case PCI_DEVICE_ID_CLASSIC_4_422:
+		case PCI_DEVICE_ID_CLASSIC_8:
+		case PCI_DEVICE_ID_CLASSIC_8_422:
+			/* Tell card not to interrupt anymore. */
+			outb(0x0, brd->iobase + 0x4c);
+			break;
+
+		default:
+			break;
 	}
 
 	jsm_remove_uart_port(brd);
@@ -291,8 +322,10 @@ static void jsm_remove_one(struct pci_dev *pdev)
 	iounmap(brd->re_map_membase);
 
 	/* Free all allocated channels structs */
-	for (i = 0; i < brd->maxports; i++) {
-		if (brd->channels[i]) {
+	for (i = 0; i < brd->maxports; i++)
+	{
+		if (brd->channels[i])
+		{
 			kfree(brd->channels[i]->ch_rqueue);
 			kfree(brd->channels[i]->ch_equeue);
 			kfree(brd->channels[i]);
@@ -304,7 +337,8 @@ static void jsm_remove_one(struct pci_dev *pdev)
 	kfree(brd);
 }
 
-static struct pci_device_id jsm_pci_tbl[] = {
+static struct pci_device_id jsm_pci_tbl[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_DIGI, PCI_DEVICE_ID_NEO_2DB9), 0, 0, 0 },
 	{ PCI_DEVICE(PCI_VENDOR_ID_DIGI, PCI_DEVICE_ID_NEO_2DB9PRI), 0, 0, 1 },
 	{ PCI_DEVICE(PCI_VENDOR_ID_DIGI, PCI_DEVICE_ID_NEO_2RJ45), 0, 0, 2 },
@@ -327,7 +361,8 @@ static struct pci_device_id jsm_pci_tbl[] = {
 };
 MODULE_DEVICE_TABLE(pci, jsm_pci_tbl);
 
-static struct pci_driver jsm_driver = {
+static struct pci_driver jsm_driver =
+{
 	.name		= JSM_DRIVER_NAME,
 	.id_table	= jsm_pci_tbl,
 	.probe		= jsm_probe_one,
@@ -336,7 +371,7 @@ static struct pci_driver jsm_driver = {
 };
 
 static pci_ers_result_t jsm_io_error_detected(struct pci_dev *pdev,
-					pci_channel_state_t state)
+		pci_channel_state_t state)
 {
 	struct jsm_board *brd = pci_get_drvdata(pdev);
 
@@ -352,7 +387,9 @@ static pci_ers_result_t jsm_io_slot_reset(struct pci_dev *pdev)
 	rc = pci_enable_device(pdev);
 
 	if (rc)
+	{
 		return PCI_ERS_RESULT_DISCONNECT;
+	}
 
 	pci_set_master(pdev);
 
@@ -374,11 +411,17 @@ static int __init jsm_init_module(void)
 	int rc;
 
 	rc = uart_register_driver(&jsm_uart_driver);
-	if (!rc) {
+
+	if (!rc)
+	{
 		rc = pci_register_driver(&jsm_driver);
+
 		if (rc)
+		{
 			uart_unregister_driver(&jsm_uart_driver);
+		}
 	}
+
 	return rc;
 }
 

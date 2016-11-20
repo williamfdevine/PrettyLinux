@@ -43,7 +43,8 @@
 /*
  * notifications from guest to vgpu device model
  */
-enum vgt_g2v_type {
+enum vgt_g2v_type
+{
 	VGT_G2V_PPGTT_L3_PAGE_TABLE_CREATE = 2,
 	VGT_G2V_PPGTT_L3_PAGE_TABLE_DESTROY,
 	VGT_G2V_PPGTT_L4_PAGE_TABLE_CREATE,
@@ -53,7 +54,8 @@ enum vgt_g2v_type {
 	VGT_G2V_MAX,
 };
 
-struct vgt_if {
+struct vgt_if
+{
 	u64 magic;		/* VGT_MAGIC */
 	uint16_t version_major;
 	uint16_t version_minor;
@@ -65,14 +67,17 @@ struct vgt_if {
 	 *  (May support scattered resource in future)
 	 *  (starting from offset 0x40)
 	 */
-	struct {
+	struct
+	{
 		/* Aperture register balooning */
-		struct {
+		struct
+		{
 			u32 base;
 			u32 size;
 		} mappable_gmadr;	/* aperture */
 		/* GMADR register balooning */
-		struct {
+		struct
+		{
 			u32 base;
 			u32 size;
 		} nonmappable_gmadr;	/* non aperture */
@@ -92,7 +97,8 @@ struct vgt_if {
 	u32 g2v_notify;
 	u32 rsv6[7];
 
-	struct {
+	struct
+	{
 		u32 lo;
 		u32 hi;
 	} pdp[4];

@@ -34,23 +34,23 @@
 
 #define IEEE80211_CCK_RATES_MASK	  0x0000000F
 #define IEEE80211_CCK_BASIC_RATES_MASK	 (IEEE80211_CCK_RATE_1MB_MASK | \
-	IEEE80211_CCK_RATE_2MB_MASK)
+		IEEE80211_CCK_RATE_2MB_MASK)
 #define IEEE80211_CCK_DEFAULT_RATES_MASK (IEEE80211_CCK_BASIC_RATES_MASK | \
-	IEEE80211_CCK_RATE_5MB_MASK | \
-	IEEE80211_CCK_RATE_11MB_MASK)
+		IEEE80211_CCK_RATE_5MB_MASK | \
+		IEEE80211_CCK_RATE_11MB_MASK)
 
 #define IEEE80211_OFDM_RATES_MASK	  0x00000FF0
 #define IEEE80211_OFDM_BASIC_RATES_MASK	  (IEEE80211_OFDM_RATE_6MB_MASK | \
-	IEEE80211_OFDM_RATE_12MB_MASK | \
-	IEEE80211_OFDM_RATE_24MB_MASK)
+		IEEE80211_OFDM_RATE_12MB_MASK | \
+		IEEE80211_OFDM_RATE_24MB_MASK)
 #define IEEE80211_OFDM_DEFAULT_RATES_MASK (IEEE80211_OFDM_BASIC_RATES_MASK | \
-	IEEE80211_OFDM_RATE_9MB_MASK  | \
-	IEEE80211_OFDM_RATE_18MB_MASK | \
-	IEEE80211_OFDM_RATE_36MB_MASK | \
-	IEEE80211_OFDM_RATE_48MB_MASK | \
-	IEEE80211_OFDM_RATE_54MB_MASK)
+		IEEE80211_OFDM_RATE_9MB_MASK  | \
+		IEEE80211_OFDM_RATE_18MB_MASK | \
+		IEEE80211_OFDM_RATE_36MB_MASK | \
+		IEEE80211_OFDM_RATE_48MB_MASK | \
+		IEEE80211_OFDM_RATE_54MB_MASK)
 #define IEEE80211_DEFAULT_RATES_MASK (IEEE80211_OFDM_DEFAULT_RATES_MASK | \
-				      IEEE80211_CCK_DEFAULT_RATES_MASK)
+									  IEEE80211_CCK_DEFAULT_RATES_MASK)
 
 
 /* This really should be 8, but not for our firmware */
@@ -58,7 +58,8 @@
 #define MAX_COUNTRY_TRIPLETS 32
 
 /* Headers */
-struct ieee80211_header {
+struct ieee80211_header
+{
 	__le16 frame_ctl;
 	__le16 duration_id;
 	u8 da[ETH_ALEN];
@@ -68,35 +69,41 @@ struct ieee80211_header {
 	u8 payload[0];
 } __packed;
 
-struct wl12xx_ie_header {
+struct wl12xx_ie_header
+{
 	u8 id;
 	u8 len;
 } __packed;
 
 /* IEs */
 
-struct wl12xx_ie_ssid {
+struct wl12xx_ie_ssid
+{
 	struct wl12xx_ie_header header;
 	char ssid[IEEE80211_MAX_SSID_LEN];
 } __packed;
 
-struct wl12xx_ie_rates {
+struct wl12xx_ie_rates
+{
 	struct wl12xx_ie_header header;
 	u8 rates[MAX_SUPPORTED_RATES];
 } __packed;
 
-struct wl12xx_ie_ds_params {
+struct wl12xx_ie_ds_params
+{
 	struct wl12xx_ie_header header;
 	u8 channel;
 } __packed;
 
-struct country_triplet {
+struct country_triplet
+{
 	u8 channel;
 	u8 num_channels;
 	u8 max_tx_power;
 } __packed;
 
-struct wl12xx_ie_country {
+struct wl12xx_ie_country
+{
 	struct wl12xx_ie_header header;
 	u8 country_string[IEEE80211_COUNTRY_STRING_LEN];
 	struct country_triplet triplets[MAX_COUNTRY_TRIPLETS];
@@ -105,18 +112,21 @@ struct wl12xx_ie_country {
 
 /* Templates */
 
-struct wl12xx_null_data_template {
+struct wl12xx_null_data_template
+{
 	struct ieee80211_header header;
 } __packed;
 
-struct wl12xx_ps_poll_template {
+struct wl12xx_ps_poll_template
+{
 	__le16 fc;
 	__le16 aid;
 	u8 bssid[ETH_ALEN];
 	u8 ta[ETH_ALEN];
 } __packed;
 
-struct wl12xx_arp_rsp_template {
+struct wl12xx_arp_rsp_template
+{
 	/* not including ieee80211 header */
 
 	u8 llc_hdr[sizeof(rfc1042_header)];
@@ -129,7 +139,8 @@ struct wl12xx_arp_rsp_template {
 	__be32 target_ip;
 } __packed;
 
-struct wl12xx_disconn_template {
+struct wl12xx_disconn_template
+{
 	struct ieee80211_header header;
 	__le16 disconn_reason;
 } __packed;

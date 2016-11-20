@@ -63,9 +63,9 @@
 
 /*  Default options set when device is initialized or reset */
 #define XAE_OPTION_DEFAULTS				   \
-				(XAE_OPTION_TXEN |	   \
-				 XAE_OPTION_FLOW_CONTROL | \
-				 XAE_OPTION_RXEN)
+	(XAE_OPTION_TXEN |	   \
+	 XAE_OPTION_FLOW_CONTROL | \
+	 XAE_OPTION_RXEN)
 
 /* Axi DMA Register definitions */
 
@@ -323,7 +323,7 @@
 #define XAE_PHY_TYPE_SGMII		4
 #define XAE_PHY_TYPE_1000BASE_X		5
 
- /* Total number of entries in the hardware multicast table. */
+/* Total number of entries in the hardware multicast table. */
 #define XAE_MULTICAST_CAM_TABLE_NUM	4
 
 /* Axi Ethernet Synthesis features */
@@ -359,7 +359,8 @@
  * @reserved5:    Reserved and not used
  * @reserved6:    Reserved and not used
  */
-struct axidma_bd {
+struct axidma_bd
+{
 	u32 next;	/* Physical address of next buffer descriptor */
 	u32 reserved1;
 	u32 phys;
@@ -414,7 +415,8 @@ struct axidma_bd {
  * @coalesce_count_rx:	Store the irq coalesce on RX side.
  * @coalesce_count_tx:	Store the irq coalesce on TX side.
  */
-struct axienet_local {
+struct axienet_local
+{
 	struct net_device *ndev;
 	struct device *dev;
 
@@ -463,7 +465,8 @@ struct axienet_local {
  * @reg:	Register offset to be written for setting the option
  * @m_or:	Mask to be ORed for setting the option in the register
  */
-struct axienet_option {
+struct axienet_option
+{
 	u32 opt;
 	u32 reg;
 	u32 m_or;
@@ -493,7 +496,7 @@ static inline u32 axienet_ior(struct axienet_local *lp, off_t offset)
  * register.
  */
 static inline void axienet_iow(struct axienet_local *lp, off_t offset,
-			       u32 value)
+							   u32 value)
 {
 	out_be32((lp->regs + offset), value);
 }

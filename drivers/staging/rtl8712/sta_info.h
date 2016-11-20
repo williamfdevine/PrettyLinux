@@ -37,17 +37,20 @@
 /* if mode ==0, then the sta is allowed once the addr is hit.
  * if mode ==1, then the sta is rejected once the addr is non-hit.
  */
-struct wlan_acl_node {
+struct wlan_acl_node
+{
 	struct list_head list;
 	u8       addr[ETH_ALEN];
 	u8       mode;
 };
 
-struct wlan_acl_pool {
+struct wlan_acl_pool
+{
 	struct wlan_acl_node aclnode[NUM_ACL];
 };
 
-struct	stainfo_stats {
+struct	stainfo_stats
+{
 
 	uint	rx_pkts;
 	uint	rx_bytes;
@@ -55,7 +58,8 @@ struct	stainfo_stats {
 	uint	tx_bytes;
 };
 
-struct sta_info {
+struct sta_info
+{
 	spinlock_t lock;
 	struct list_head list; /*free_sta_queue*/
 	struct list_head hash_list; /*sta_hash*/
@@ -99,7 +103,8 @@ struct sta_info {
 	unsigned int tx_ra_bitmap;
 };
 
-struct	sta_priv {
+struct	sta_priv
+{
 	u8 *pallocated_stainfo_buf;
 	u8 *pstainfo_buf;
 	struct  __queue	free_sta_queue;
@@ -134,7 +139,7 @@ static inline u32 wifi_mac_hash(u8 *mac)
 u32 _r8712_init_sta_priv(struct sta_priv *pstapriv);
 u32 _r8712_free_sta_priv(struct sta_priv *pstapriv);
 struct sta_info *r8712_alloc_stainfo(struct sta_priv *pstapriv,
-				     u8 *hwaddr);
+									 u8 *hwaddr);
 void r8712_free_stainfo(struct _adapter *padapter, struct sta_info *psta);
 void r8712_free_all_stainfo(struct _adapter *padapter);
 struct sta_info *r8712_get_stainfo(struct sta_priv *pstapriv, u8 *hwaddr);

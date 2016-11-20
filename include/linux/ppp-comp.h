@@ -21,10 +21,10 @@ struct module;
  */
 
 #ifndef DO_BSD_COMPRESS
-#define DO_BSD_COMPRESS	1	/* by default, include BSD-Compress */
+	#define DO_BSD_COMPRESS	1	/* by default, include BSD-Compress */
 #endif
 #ifndef DO_DEFLATE
-#define DO_DEFLATE	1	/* by default, include Deflate */
+	#define DO_DEFLATE	1	/* by default, include Deflate */
 #endif
 #define DO_PREDICTOR_1	0
 #define DO_PREDICTOR_2	0
@@ -33,7 +33,8 @@ struct module;
  * Structure giving methods for compression/decompression.
  */
 
-struct compressor {
+struct compressor
+{
 	int	compress_proto;	/* CCP compression protocol number */
 
 	/* Allocate space for a compressor (transmit side) */
@@ -44,14 +45,14 @@ struct compressor {
 
 	/* Initialize a compressor */
 	int	(*comp_init) (void *state, unsigned char *options,
-			      int opt_len, int unit, int opthdr, int debug);
+					  int opt_len, int unit, int opthdr, int debug);
 
 	/* Reset a compressor */
 	void	(*comp_reset) (void *state);
 
 	/* Compress a packet */
 	int     (*compress) (void *state, unsigned char *rptr,
-			      unsigned char *obuf, int isize, int osize);
+						 unsigned char *obuf, int isize, int osize);
 
 	/* Return compression statistics */
 	void	(*comp_stat) (void *state, struct compstat *stats);
@@ -64,15 +65,15 @@ struct compressor {
 
 	/* Initialize a decompressor */
 	int	(*decomp_init) (void *state, unsigned char *options,
-				int opt_len, int unit, int opthdr, int mru,
-				int debug);
+						int opt_len, int unit, int opthdr, int mru,
+						int debug);
 
 	/* Reset a decompressor */
 	void	(*decomp_reset) (void *state);
 
 	/* Decompress a packet. */
 	int	(*decompress) (void *state, unsigned char *ibuf, int isize,
-				unsigned char *obuf, int osize);
+					   unsigned char *obuf, int osize);
 
 	/* Update state for an incompressible packet received */
 	void	(*incomp) (void *state, unsigned char *ibuf, int icnt);
@@ -90,7 +91,7 @@ struct compressor {
  * The return value from decompress routine is the length of the
  * decompressed packet if successful, otherwise DECOMP_ERROR
  * or DECOMP_FATALERROR if an error occurred.
- * 
+ *
  * We need to make this distinction so that we can disable certain
  * useful functionality, namely sending a CCP reset-request as a result
  * of an error detected after decompression.  This is to avoid infringing

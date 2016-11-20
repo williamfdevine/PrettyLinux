@@ -46,21 +46,25 @@ int main(int argc, char **argv)
 	int ret;
 	int fd;
 
-	if (argc < 2) {
+	if (argc < 2)
+	{
 		printf("Usage: %s [-d </dev/videoX>]\n", argv[0]);
 		exit(-1);
 	}
 
 	/* Process arguments */
-	while ((opt = getopt(argc, argv, "d:")) != -1) {
-		switch (opt) {
-		case 'd':
-			strncpy(video_dev, optarg, sizeof(video_dev) - 1);
-			video_dev[sizeof(video_dev)-1] = '\0';
-			break;
-		default:
-			printf("Usage: %s [-d </dev/videoX>]\n", argv[0]);
-			exit(-1);
+	while ((opt = getopt(argc, argv, "d:")) != -1)
+	{
+		switch (opt)
+		{
+			case 'd':
+				strncpy(video_dev, optarg, sizeof(video_dev) - 1);
+				video_dev[sizeof(video_dev) - 1] = '\0';
+				break;
+
+			default:
+				printf("Usage: %s [-d </dev/videoX>]\n", argv[0]);
+				exit(-1);
 		}
 	}
 
@@ -70,30 +74,42 @@ int main(int argc, char **argv)
 
 	/* Open Video device and keep it open */
 	fd = open(video_dev, O_RDWR);
-	if (fd == -1) {
+
+	if (fd == -1)
+	{
 		printf("Video Device open errno %s\n", strerror(errno));
 		exit(-1);
 	}
 
 	printf("\nNote:\n"
-	       "While test is running, remove the device or unbind\n"
-	       "driver and ensure there are no use after free errors\n"
-	       "and other Oops in the dmesg. When possible, enable KaSan\n"
-	       "kernel config option for use-after-free error detection.\n\n");
+		   "While test is running, remove the device or unbind\n"
+		   "driver and ensure there are no use after free errors\n"
+		   "and other Oops in the dmesg. When possible, enable KaSan\n"
+		   "kernel config option for use-after-free error detection.\n\n");
 
-	while (count > 0) {
+	while (count > 0)
+	{
 		ret = ioctl(fd, VIDIOC_QUERYCAP, &vcap);
+
 		if (ret < 0)
+		{
 			printf("VIDIOC_QUERYCAP errno %s\n", strerror(errno));
+		}
 		else
+		{
 			printf("Video device driver %s\n", vcap.driver);
+		}
 
 		ret = ioctl(fd, VIDIOC_G_TUNER, &vtuner);
+
 		if (ret < 0)
+		{
 			printf("VIDIOC_G_TUNER, errno %s\n", strerror(errno));
+		}
 		else
 			printf("type %d rangelow %d rangehigh %d\n",
-				vtuner.type, vtuner.rangelow, vtuner.rangehigh);
+				   vtuner.type, vtuner.rangelow, vtuner.rangehigh);
+
 		sleep(10);
 		count--;
 	}

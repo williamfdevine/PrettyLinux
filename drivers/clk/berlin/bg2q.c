@@ -51,14 +51,16 @@ static DEFINE_SPINLOCK(lock);
 static void __iomem *gbase;
 static void __iomem *cpupll_base;
 
-enum {
+enum
+{
 	REFCLK,
 	SYSPLL, CPUPLL,
 	AVPLL_B1, AVPLL_B2, AVPLL_B3, AVPLL_B4,
 	AVPLL_B5, AVPLL_B6, AVPLL_B7, AVPLL_B8,
 };
 
-static const char *clk_names[] = {
+static const char *clk_names[] =
+{
 	[REFCLK]		= "refclk",
 	[SYSPLL]		= "syspll",
 	[CPUPLL]		= "cpupll",
@@ -72,7 +74,8 @@ static const char *clk_names[] = {
 	[AVPLL_B8]		= "avpll_b8",
 };
 
-static const struct berlin2_pll_map bg2q_pll_map __initconst = {
+static const struct berlin2_pll_map bg2q_pll_map __initconst =
+{
 	.vcodiv		= {1, 0, 2, 0, 3, 4, 0, 6, 8},
 	.mult		= 1,
 	.fbdiv_shift	= 7,
@@ -80,11 +83,13 @@ static const struct berlin2_pll_map bg2q_pll_map __initconst = {
 	.divsel_shift	= 9,
 };
 
-static const u8 default_parent_ids[] = {
+static const u8 default_parent_ids[] =
+{
 	SYSPLL, AVPLL_B4, AVPLL_B5, AVPLL_B6, AVPLL_B7, SYSPLL
 };
 
-static const struct berlin2_div_data bg2q_divs[] __initconst = {
+static const struct berlin2_div_data bg2q_divs[] __initconst =
+{
 	{
 		.name = "sys",
 		.parent_ids = default_parent_ids,
@@ -272,7 +277,8 @@ static const struct berlin2_div_data bg2q_divs[] __initconst = {
 	},
 };
 
-static const struct berlin2_gate_data bg2q_gates[] __initconst = {
+static const struct berlin2_gate_data bg2q_gates[] __initconst =
+{
 	{ "gfx2daxi",	"perif",	5 },
 	{ "geth0",	"perif",	8 },
 	{ "sata",	"perif",	9 },
@@ -296,21 +302,29 @@ static void __init berlin2q_clock_setup(struct device_node *np)
 	int n, ret;
 
 	clk_data = kzalloc(sizeof(*clk_data) +
-			   sizeof(*clk_data->hws) * MAX_CLKS, GFP_KERNEL);
+					   sizeof(*clk_data->hws) * MAX_CLKS, GFP_KERNEL);
+
 	if (!clk_data)
+	{
 		return;
+	}
+
 	clk_data->num = MAX_CLKS;
 	hws = clk_data->hws;
 
 	gbase = of_iomap(parent_np, 0);
-	if (!gbase) {
+
+	if (!gbase)
+	{
 		pr_err("%s: Unable to map global base\n", np->full_name);
 		return;
 	}
 
 	/* BG2Q CPU PLL is not part of global registers */
 	cpupll_base = of_iomap(parent_np, 1);
-	if (!cpupll_base) {
+
+	if (!cpupll_base)
+	{
 		pr_err("%s: Unable to map cpupll base\n", np->full_name);
 		iounmap(gbase);
 		return;
@@ -318,21 +332,29 @@ static void __init berlin2q_clock_setup(struct device_node *np)
 
 	/* overwrite default clock names with DT provided ones */
 	clk = of_clk_get_by_name(np, clk_names[REFCLK]);
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		clk_names[REFCLK] = __clk_get_name(clk);
 		clk_put(clk);
 	}
 
 	/* simple register PLLs */
 	ret = berlin2_pll_register(&bg2q_pll_map, gbase + REG_SYSPLLCTL0,
-				   clk_names[SYSPLL], clk_names[REFCLK], 0);
+							   clk_names[SYSPLL], clk_names[REFCLK], 0);
+
 	if (ret)
+	{
 		goto bg2q_fail;
+	}
 
 	ret = berlin2_pll_register(&bg2q_pll_map, cpupll_base,
-				   clk_names[CPUPLL], clk_names[REFCLK], 0);
+							   clk_names[CPUPLL], clk_names[REFCLK], 0);
+
 	if (ret)
+	{
 		goto bg2q_fail;
+	}
 
 	/* TODO: add BG2Q AVPLL */
 
@@ -342,42 +364,49 @@ static void __init berlin2q_clock_setup(struct device_node *np)
 	 */
 
 	/* clock divider cells */
-	for (n = 0; n < ARRAY_SIZE(bg2q_divs); n++) {
+	for (n = 0; n < ARRAY_SIZE(bg2q_divs); n++)
+	{
 		const struct berlin2_div_data *dd = &bg2q_divs[n];
 		int k;
 
 		for (k = 0; k < dd->num_parents; k++)
+		{
 			parent_names[k] = clk_names[dd->parent_ids[k]];
+		}
 
 		hws[CLKID_SYS + n] = berlin2_div_register(&dd->map, gbase,
-				dd->name, dd->div_flags, parent_names,
-				dd->num_parents, dd->flags, &lock);
+							 dd->name, dd->div_flags, parent_names,
+							 dd->num_parents, dd->flags, &lock);
 	}
 
 	/* clock gate cells */
-	for (n = 0; n < ARRAY_SIZE(bg2q_gates); n++) {
+	for (n = 0; n < ARRAY_SIZE(bg2q_gates); n++)
+	{
 		const struct berlin2_gate_data *gd = &bg2q_gates[n];
 
 		hws[CLKID_GFX2DAXI + n] = clk_hw_register_gate(NULL, gd->name,
-			    gd->parent_name, gd->flags, gbase + REG_CLKENABLE,
-			    gd->bit_idx, 0, &lock);
+								  gd->parent_name, gd->flags, gbase + REG_CLKENABLE,
+								  gd->bit_idx, 0, &lock);
 	}
 
 	/* cpuclk divider is fixed to 1 */
 	hws[CLKID_CPU] =
 		clk_hw_register_fixed_factor(NULL, "cpu", clk_names[CPUPLL],
-					  0, 1, 1);
+									 0, 1, 1);
 	/* twdclk is derived from cpu/3 */
 	hws[CLKID_TWD] =
 		clk_hw_register_fixed_factor(NULL, "twd", "cpu", 0, 1, 3);
 
 	/* check for errors on leaf clocks */
-	for (n = 0; n < MAX_CLKS; n++) {
+	for (n = 0; n < MAX_CLKS; n++)
+	{
 		if (!IS_ERR(hws[n]))
+		{
 			continue;
+		}
 
 		pr_err("%s: Unable to register leaf clock %d\n",
-		       np->full_name, n);
+			   np->full_name, n);
 		goto bg2q_fail;
 	}
 
@@ -391,4 +420,4 @@ bg2q_fail:
 	iounmap(gbase);
 }
 CLK_OF_DECLARE(berlin2q_clk, "marvell,berlin2q-clk",
-	       berlin2q_clock_setup);
+			   berlin2q_clock_setup);

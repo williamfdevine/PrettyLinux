@@ -22,7 +22,8 @@
 
 struct snd_card;
 
-struct snd_ivtv_card {
+struct snd_ivtv_card
+{
 	struct v4l2_device *v4l2_dev;
 	struct snd_card *sc;
 	unsigned int capture_transfer_done;
@@ -56,7 +57,7 @@ static inline void snd_ivtv_unlock(struct snd_ivtv_card *itvsc)
 	do { \
 		if ((x) & ivtv_alsa_debug) \
 			pr_info("%s-alsa: " type ": " fmt, \
-				v4l2_dev->name , ## args); \
+					v4l2_dev->name , ## args); \
 	} while (0)
 
 #define IVTV_ALSA_DEBUG_WARN(fmt, args...) \

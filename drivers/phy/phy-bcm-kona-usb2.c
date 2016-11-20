@@ -35,7 +35,8 @@
 #define P1CTL_SOFT_RESET	BIT(1)
 #define P1CTL_NON_DRIVING	BIT(0)
 
-struct bcm_kona_usb {
+struct bcm_kona_usb
+{
 	void __iomem *regs;
 };
 
@@ -44,14 +45,19 @@ static void bcm_kona_usb_phy_power(struct bcm_kona_usb *phy, int on)
 	u32 val;
 
 	val = readl(phy->regs + OTGCTL);
-	if (on) {
+
+	if (on)
+	{
 		/* Configure and power PHY */
 		val &= ~(OTGCTL_OTGSTAT2 | OTGCTL_OTGSTAT1 |
-			 OTGCTL_UTMI_LINE_STATE1 | OTGCTL_UTMI_LINE_STATE0);
+				 OTGCTL_UTMI_LINE_STATE1 | OTGCTL_UTMI_LINE_STATE0);
 		val |= OTGCTL_PRST_N_SW | OTGCTL_HRESET_N;
-	} else {
+	}
+	else
+	{
 		val &= ~(OTGCTL_PRST_N_SW | OTGCTL_HRESET_N);
 	}
+
 	writel(val, phy->regs + OTGCTL);
 }
 
@@ -91,7 +97,8 @@ static int bcm_kona_usb_phy_power_off(struct phy *gphy)
 	return 0;
 }
 
-static const struct phy_ops ops = {
+static const struct phy_ops ops =
+{
 	.init		= bcm_kona_usb_phy_init,
 	.power_on	= bcm_kona_usb_phy_power_on,
 	.power_off	= bcm_kona_usb_phy_power_off,
@@ -107,19 +114,28 @@ static int bcm_kona_usb2_probe(struct platform_device *pdev)
 	struct phy_provider *phy_provider;
 
 	phy = devm_kzalloc(dev, sizeof(*phy), GFP_KERNEL);
+
 	if (!phy)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	phy->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(phy->regs))
+	{
 		return PTR_ERR(phy->regs);
+	}
 
 	platform_set_drvdata(pdev, phy);
 
 	gphy = devm_phy_create(dev, NULL, &ops);
+
 	if (IS_ERR(gphy))
+	{
 		return PTR_ERR(gphy);
+	}
 
 	/* The Kona PHY supports an 8-bit wide UTMI interface */
 	phy_set_bus_width(gphy, 8);
@@ -127,19 +143,21 @@ static int bcm_kona_usb2_probe(struct platform_device *pdev)
 	phy_set_drvdata(gphy, phy);
 
 	phy_provider = devm_of_phy_provider_register(dev,
-			of_phy_simple_xlate);
+				   of_phy_simple_xlate);
 
 	return PTR_ERR_OR_ZERO(phy_provider);
 }
 
-static const struct of_device_id bcm_kona_usb2_dt_ids[] = {
+static const struct of_device_id bcm_kona_usb2_dt_ids[] =
+{
 	{ .compatible = "brcm,kona-usb2-phy" },
 	{ /* sentinel */ }
 };
 
 MODULE_DEVICE_TABLE(of, bcm_kona_usb2_dt_ids);
 
-static struct platform_driver bcm_kona_usb2_driver = {
+static struct platform_driver bcm_kona_usb2_driver =
+{
 	.probe		= bcm_kona_usb2_probe,
 	.driver		= {
 		.name	= "bcm-kona-usb2",

@@ -168,7 +168,8 @@
  * @tx_skb:         socket buffer of sent frame.
  * @napi:           Structure for NAPI.
  */
-struct nps_enet_priv {
+struct nps_enet_priv
+{
 	void __iomem *regs_base;
 	s32 irq;
 	struct sk_buff *tx_skb;
@@ -184,7 +185,7 @@ struct nps_enet_priv {
  * @value:      Value to set in register.
  */
 static inline void nps_enet_reg_set(struct nps_enet_priv *priv,
-				    s32 reg, s32 value)
+									s32 reg, s32 value)
 {
 	iowrite32be(value, priv->regs_base + reg);
 }

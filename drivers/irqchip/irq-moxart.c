@@ -35,7 +35,8 @@
 #define FIQ_STATUS_REG		0x34
 
 
-struct moxart_irq_data {
+struct moxart_irq_data
+{
 	void __iomem *base;
 	struct irq_domain *domain;
 	unsigned int interrupt_mask;
@@ -50,7 +51,8 @@ static void __exception_irq_entry handle_irq(struct pt_regs *regs)
 
 	irqstat = readl(intc.base + IRQ_STATUS_REG);
 
-	while (irqstat) {
+	while (irqstat)
+	{
 		hwirq = ffs(irqstat) - 1;
 		handle_IRQ(irq_linear_revmap(intc.domain, hwirq), regs);
 		irqstat &= ~(1 << hwirq);
@@ -58,41 +60,48 @@ static void __exception_irq_entry handle_irq(struct pt_regs *regs)
 }
 
 static int __init moxart_of_intc_init(struct device_node *node,
-				      struct device_node *parent)
+									  struct device_node *parent)
 {
 	unsigned int clr = IRQ_NOREQUEST | IRQ_NOPROBE | IRQ_NOAUTOEN;
 	int ret;
 	struct irq_chip_generic *gc;
 
 	intc.base = of_iomap(node, 0);
-	if (!intc.base) {
+
+	if (!intc.base)
+	{
 		pr_err("%s: unable to map IC registers\n",
-		       node->full_name);
+			   node->full_name);
 		return -EINVAL;
 	}
 
 	intc.domain = irq_domain_add_linear(node, 32, &irq_generic_chip_ops,
-					    intc.base);
-	if (!intc.domain) {
+										intc.base);
+
+	if (!intc.domain)
+	{
 		pr_err("%s: unable to create IRQ domain\n", node->full_name);
 		return -EINVAL;
 	}
 
 	ret = irq_alloc_domain_generic_chips(intc.domain, 32, 1,
-					     "MOXARTINTC", handle_edge_irq,
-					     clr, 0, IRQ_GC_INIT_MASK_CACHE);
-	if (ret) {
+										 "MOXARTINTC", handle_edge_irq,
+										 clr, 0, IRQ_GC_INIT_MASK_CACHE);
+
+	if (ret)
+	{
 		pr_err("%s: could not allocate generic chip\n",
-		       node->full_name);
+			   node->full_name);
 		irq_domain_remove(intc.domain);
 		return -EINVAL;
 	}
 
 	ret = of_property_read_u32(node, "interrupt-mask",
-				   &intc.interrupt_mask);
+							   &intc.interrupt_mask);
+
 	if (ret)
 		pr_err("%s: could not read interrupt-mask DT property\n",
-		       node->full_name);
+			   node->full_name);
 
 	gc = irq_get_domain_generic_chip(intc.domain, 0);
 

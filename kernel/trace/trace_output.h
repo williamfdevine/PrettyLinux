@@ -13,7 +13,7 @@ trace_print_printk_msg_only(struct trace_iterator *iter);
 
 extern int
 seq_print_ip_sym(struct trace_seq *s, unsigned long ip,
-		unsigned long sym_flags);
+				 unsigned long sym_flags);
 
 extern int trace_print_context(struct trace_iterator *iter);
 extern int trace_print_lat_context(struct trace_iterator *iter);
@@ -23,7 +23,7 @@ extern void trace_event_read_unlock(void);
 extern struct trace_event *ftrace_find_event(int type);
 
 extern enum print_line_t trace_nop_print(struct trace_iterator *iter,
-					 int flags, struct trace_event *event);
+		int flags, struct trace_event *event);
 extern int
 trace_print_lat_fmt(struct trace_seq *s, struct trace_entry *entry);
 

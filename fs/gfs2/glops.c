@@ -34,13 +34,13 @@ struct workqueue_struct *gfs2_freeze_wq;
 static void gfs2_ail_error(struct gfs2_glock *gl, const struct buffer_head *bh)
 {
 	fs_err(gl->gl_name.ln_sbd,
-	       "AIL buffer %p: blocknr %llu state 0x%08lx mapping %p page "
-	       "state 0x%lx\n",
-	       bh, (unsigned long long)bh->b_blocknr, bh->b_state,
-	       bh->b_page->mapping, bh->b_page->flags);
+		   "AIL buffer %p: blocknr %llu state 0x%08lx mapping %p page "
+		   "state 0x%lx\n",
+		   bh, (unsigned long long)bh->b_blocknr, bh->b_state,
+		   bh->b_page->mapping, bh->b_page->flags);
 	fs_err(gl->gl_name.ln_sbd, "AIL glock %u:%llu mapping %p\n",
-	       gl->gl_name.ln_type, gl->gl_name.ln_number,
-	       gfs2_glock2aspace(gl));
+		   gl->gl_name.ln_type, gl->gl_name.ln_number,
+		   gfs2_glock2aspace(gl));
 	gfs2_lm_withdraw(gl->gl_name.ln_sbd, "AIL error\n");
 }
 
@@ -53,25 +53,35 @@ static void gfs2_ail_error(struct gfs2_glock *gl, const struct buffer_head *bh)
  */
 
 static void __gfs2_ail_flush(struct gfs2_glock *gl, bool fsync,
-			     unsigned int nr_revokes)
+							 unsigned int nr_revokes)
 {
 	struct gfs2_sbd *sdp = gl->gl_name.ln_sbd;
 	struct list_head *head = &gl->gl_ail_list;
 	struct gfs2_bufdata *bd, *tmp;
 	struct buffer_head *bh;
-	const unsigned long b_state = (1UL << BH_Dirty)|(1UL << BH_Pinned)|(1UL << BH_Lock);
+	const unsigned long b_state = (1UL << BH_Dirty) | (1UL << BH_Pinned) | (1UL << BH_Lock);
 
 	gfs2_log_lock(sdp);
 	spin_lock(&sdp->sd_ail_lock);
-	list_for_each_entry_safe_reverse(bd, tmp, head, bd_ail_gl_list) {
+	list_for_each_entry_safe_reverse(bd, tmp, head, bd_ail_gl_list)
+	{
 		if (nr_revokes == 0)
+		{
 			break;
+		}
+
 		bh = bd->bd_bh;
-		if (bh->b_state & b_state) {
+
+		if (bh->b_state & b_state)
+		{
 			if (fsync)
+			{
 				continue;
+			}
+
 			gfs2_ail_error(gl, bh);
 		}
+
 		gfs2_trans_add_revoke(sdp, bd);
 		nr_revokes--;
 	}
@@ -92,15 +102,21 @@ static void gfs2_ail_empty_gl(struct gfs2_glock *gl)
 	tr.tr_revokes = atomic_read(&gl->gl_ail_count);
 
 	if (!tr.tr_revokes)
+	{
 		return;
+	}
 
 	/* A shortened, inline version of gfs2_trans_begin()
-         * tr->alloced is not set since the transaction structure is
-         * on the stack */
+	     * tr->alloced is not set since the transaction structure is
+	     * on the stack */
 	tr.tr_reserved = 1 + gfs2_struct2blk(sdp, tr.tr_revokes, sizeof(u64));
 	tr.tr_ip = _RET_IP_;
+
 	if (gfs2_log_reserve(sdp, tr.tr_reserved) < 0)
+	{
 		return;
+	}
+
 	WARN_ON_ONCE(current->journal_info);
 	current->journal_info = &tr;
 
@@ -118,14 +134,22 @@ void gfs2_ail_flush(struct gfs2_glock *gl, bool fsync)
 	int ret;
 
 	if (!revokes)
+	{
 		return;
+	}
 
 	while (revokes > max_revokes)
+	{
 		max_revokes += (sdp->sd_sb.sb_bsize - sizeof(struct gfs2_meta_header)) / sizeof(u64);
+	}
 
 	ret = gfs2_trans_begin(sdp, 0, max_revokes);
+
 	if (ret)
+	{
 		return;
+	}
+
 	__gfs2_ail_flush(gl, fsync, max_revokes);
 	gfs2_trans_end(sdp);
 	gfs2_log_flush(sdp, NULL, NORMAL_FLUSH);
@@ -149,12 +173,19 @@ static void rgrp_go_sync(struct gfs2_glock *gl)
 
 	spin_lock(&gl->gl_lockref.lock);
 	rgd = gl->gl_object;
+
 	if (rgd)
+	{
 		gfs2_rgrp_brelse(rgd);
+	}
+
 	spin_unlock(&gl->gl_lockref.lock);
 
 	if (!test_and_clear_bit(GLF_DIRTY, &gl->gl_flags))
+	{
 		return;
+	}
+
 	GLOCK_BUG_ON(gl, gl->gl_state != LM_ST_EXCLUSIVE);
 
 	gfs2_log_flush(sdp, gl, NORMAL_FLUSH);
@@ -165,8 +196,12 @@ static void rgrp_go_sync(struct gfs2_glock *gl)
 
 	spin_lock(&gl->gl_lockref.lock);
 	rgd = gl->gl_object;
+
 	if (rgd)
+	{
 		gfs2_free_clones(rgd);
+	}
+
 	spin_unlock(&gl->gl_lockref.lock);
 }
 
@@ -187,14 +222,18 @@ static void rgrp_go_inval(struct gfs2_glock *gl, int flags)
 	struct gfs2_rgrpd *rgd = gl->gl_object;
 
 	if (rgd)
+	{
 		gfs2_rgrp_brelse(rgd);
+	}
 
 	WARN_ON_ONCE(!(flags & DIO_METADATA));
 	gfs2_assert_withdraw(sdp, !atomic_read(&gl->gl_ail_count));
 	truncate_inode_pages_range(mapping, gl->gl_vm.start, gl->gl_vm.end);
 
 	if (rgd)
+	{
 		rgd->rd_flags &= ~GFS2_RDF_UPTODATE;
+	}
 }
 
 /**
@@ -210,25 +249,38 @@ static void inode_go_sync(struct gfs2_glock *gl)
 	int error;
 
 	if (ip && !S_ISREG(ip->i_inode.i_mode))
+	{
 		ip = NULL;
-	if (ip) {
+	}
+
+	if (ip)
+	{
 		if (test_and_clear_bit(GIF_SW_PAGED, &ip->i_flags))
+		{
 			unmap_shared_mapping_range(ip->i_inode.i_mapping, 0, 0);
+		}
+
 		inode_dio_wait(&ip->i_inode);
 	}
+
 	if (!test_and_clear_bit(GLF_DIRTY, &gl->gl_flags))
+	{
 		return;
+	}
 
 	GLOCK_BUG_ON(gl, gl->gl_state != LM_ST_EXCLUSIVE);
 
 	gfs2_log_flush(gl->gl_name.ln_sbd, gl, NORMAL_FLUSH);
 	filemap_fdatawrite(metamapping);
-	if (ip) {
+
+	if (ip)
+	{
 		struct address_space *mapping = ip->i_inode.i_mapping;
 		filemap_fdatawrite(mapping);
 		error = filemap_fdatawait(mapping);
 		mapping_set_error(mapping, error);
 	}
+
 	error = filemap_fdatawait(metamapping);
 	mapping_set_error(metamapping, error);
 	gfs2_ail_empty_gl(gl);
@@ -257,10 +309,13 @@ static void inode_go_inval(struct gfs2_glock *gl, int flags)
 
 	gfs2_assert_withdraw(gl->gl_name.ln_sbd, !atomic_read(&gl->gl_ail_count));
 
-	if (flags & DIO_METADATA) {
+	if (flags & DIO_METADATA)
+	{
 		struct address_space *mapping = gfs2_glock2aspace(gl);
 		truncate_inode_pages(mapping, 0);
-		if (ip) {
+
+		if (ip)
+		{
 			set_bit(GIF_INVALID, &ip->i_flags);
 			forget_all_cached_acls(&ip->i_inode);
 			security_inode_invalidate_secctx(&ip->i_inode);
@@ -268,12 +323,16 @@ static void inode_go_inval(struct gfs2_glock *gl, int flags)
 		}
 	}
 
-	if (ip == GFS2_I(gl->gl_name.ln_sbd->sd_rindex)) {
+	if (ip == GFS2_I(gl->gl_name.ln_sbd->sd_rindex))
+	{
 		gfs2_log_flush(gl->gl_name.ln_sbd, NULL, NORMAL_FLUSH);
 		gl->gl_name.ln_sbd->sd_rindex_uptodate = 0;
 	}
+
 	if (ip && S_ISREG(ip->i_inode.i_mode))
+	{
 		truncate_inode_pages(ip->i_inode.i_mapping, 0);
+	}
 }
 
 /**
@@ -288,7 +347,9 @@ static int inode_go_demote_ok(const struct gfs2_glock *gl)
 	struct gfs2_sbd *sdp = gl->gl_name.ln_sbd;
 
 	if (sdp->sd_jindex == gl->gl_object || sdp->sd_rindex == gl->gl_object)
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -311,11 +372,16 @@ static void gfs2_set_nlink(struct inode *inode, u32 nlink)
 	 * light of the forthcoming ro bind mount work. This is a reminder
 	 * to do that.
 	 */
-	if ((inode->i_nlink != nlink) && (inode->i_nlink != 0)) {
+	if ((inode->i_nlink != nlink) && (inode->i_nlink != 0))
+	{
 		if (nlink == 0)
+		{
 			clear_nlink(inode);
+		}
 		else
+		{
 			set_nlink(inode, nlink);
+		}
 	}
 }
 
@@ -326,16 +392,21 @@ static int gfs2_dinode_in(struct gfs2_inode *ip, const void *buf)
 	u16 height, depth;
 
 	if (unlikely(ip->i_no_addr != be64_to_cpu(str->di_num.no_addr)))
+	{
 		goto corrupt;
+	}
+
 	ip->i_no_formal_ino = be64_to_cpu(str->di_num.no_formal_ino);
 	ip->i_inode.i_mode = be32_to_cpu(str->di_mode);
 	ip->i_inode.i_rdev = 0;
-	switch (ip->i_inode.i_mode & S_IFMT) {
-	case S_IFBLK:
-	case S_IFCHR:
-		ip->i_inode.i_rdev = MKDEV(be32_to_cpu(str->di_major),
-					   be32_to_cpu(str->di_minor));
-		break;
+
+	switch (ip->i_inode.i_mode & S_IFMT)
+	{
+		case S_IFBLK:
+		case S_IFCHR:
+			ip->i_inode.i_rdev = MKDEV(be32_to_cpu(str->di_major),
+									   be32_to_cpu(str->di_minor));
+			break;
 	};
 
 	i_uid_write(&ip->i_inode, be32_to_cpu(str->di_uid));
@@ -345,8 +416,12 @@ static int gfs2_dinode_in(struct gfs2_inode *ip, const void *buf)
 	gfs2_set_inode_blocks(&ip->i_inode, be64_to_cpu(str->di_blocks));
 	atime.tv_sec = be64_to_cpu(str->di_atime);
 	atime.tv_nsec = be32_to_cpu(str->di_atime_nsec);
+
 	if (timespec_compare(&ip->i_inode.i_atime, &atime) < 0)
+	{
 		ip->i_inode.i_atime = atime;
+	}
+
 	ip->i_inode.i_mtime.tv_sec = be64_to_cpu(str->di_mtime);
 	ip->i_inode.i_mtime.tv_nsec = be32_to_cpu(str->di_mtime_nsec);
 	ip->i_inode.i_ctime.tv_sec = be64_to_cpu(str->di_ctime);
@@ -360,18 +435,28 @@ static int gfs2_dinode_in(struct gfs2_inode *ip, const void *buf)
 	/* i_diskflags and i_eattr must be set before gfs2_set_inode_flags() */
 	gfs2_set_inode_flags(&ip->i_inode);
 	height = be16_to_cpu(str->di_height);
+
 	if (unlikely(height > GFS2_MAX_META_HEIGHT))
+	{
 		goto corrupt;
+	}
+
 	ip->i_height = (u8)height;
 
 	depth = be16_to_cpu(str->di_depth);
+
 	if (unlikely(depth > GFS2_DIR_MAX_DEPTH))
+	{
 		goto corrupt;
+	}
+
 	ip->i_depth = (u8)depth;
 	ip->i_entries = be32_to_cpu(str->di_entries);
 
 	if (S_ISREG(ip->i_inode.i_mode))
+	{
 		gfs2_set_aops(&ip->i_inode);
+	}
 
 	return 0;
 corrupt:
@@ -392,8 +477,11 @@ int gfs2_inode_refresh(struct gfs2_inode *ip)
 	int error;
 
 	error = gfs2_meta_inode_buffer(ip, &dibh);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = gfs2_dinode_in(ip, dibh->b_data);
 	brelse(dibh);
@@ -418,23 +506,36 @@ static int inode_go_lock(struct gfs2_holder *gh)
 	int error = 0;
 
 	if (!ip || (gh->gh_flags & GL_SKIP))
+	{
 		return 0;
+	}
 
-	if (test_bit(GIF_INVALID, &ip->i_flags)) {
+	if (test_bit(GIF_INVALID, &ip->i_flags))
+	{
 		error = gfs2_inode_refresh(ip);
+
 		if (error)
+		{
 			return error;
+		}
 	}
 
 	if (gh->gh_state != LM_ST_DEFERRED)
+	{
 		inode_dio_wait(&ip->i_inode);
+	}
 
 	if ((ip->i_diskflags & GFS2_DIF_TRUNC_IN_PROG) &&
-	    (gl->gl_state == LM_ST_EXCLUSIVE) &&
-	    (gh->gh_state == LM_ST_EXCLUSIVE)) {
+		(gl->gl_state == LM_ST_EXCLUSIVE) &&
+		(gh->gh_state == LM_ST_EXCLUSIVE))
+	{
 		spin_lock(&sdp->sd_trunc_lock);
+
 		if (list_empty(&ip->i_trunc_list))
+		{
 			list_add(&sdp->sd_trunc_list, &ip->i_trunc_list);
+		}
+
 		spin_unlock(&sdp->sd_trunc_lock);
 		wake_up(&sdp->sd_quota_wait);
 		return 1;
@@ -453,14 +554,18 @@ static int inode_go_lock(struct gfs2_holder *gh)
 static void inode_go_dump(struct seq_file *seq, const struct gfs2_glock *gl)
 {
 	const struct gfs2_inode *ip = gl->gl_object;
+
 	if (ip == NULL)
+	{
 		return;
+	}
+
 	gfs2_print_dbg(seq, " I: n:%llu/%llu t:%u f:0x%02lx d:0x%08x s:%llu\n",
-		  (unsigned long long)ip->i_no_formal_ino,
-		  (unsigned long long)ip->i_no_addr,
-		  IF2DT(ip->i_inode.i_mode), ip->i_flags,
-		  (unsigned int)ip->i_diskflags,
-		  (unsigned long long)i_size_read(&ip->i_inode));
+				   (unsigned long long)ip->i_no_formal_ino,
+				   (unsigned long long)ip->i_no_addr,
+				   IF2DT(ip->i_inode.i_mode), ip->i_flags,
+				   (unsigned int)ip->i_diskflags,
+				   (unsigned long long)i_size_read(&ip->i_inode));
 }
 
 /**
@@ -477,13 +582,17 @@ static void freeze_go_sync(struct gfs2_glock *gl)
 	struct gfs2_sbd *sdp = gl->gl_name.ln_sbd;
 
 	if (gl->gl_state == LM_ST_SHARED &&
-	    test_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags)) {
+		test_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags))
+	{
 		atomic_set(&sdp->sd_freeze_state, SFS_STARTING_FREEZE);
 		error = freeze_super(sdp->sd_vfs);
-		if (error) {
+
+		if (error)
+		{
 			printk(KERN_INFO "GFS2: couldn't freeze filesystem: %d\n", error);
 			gfs2_assert_withdraw(sdp, 0);
 		}
+
 		queue_work(gfs2_freeze_wq, &sdp->sd_freeze_work);
 		gfs2_log_flush(sdp, NULL, FREEZE_FLUSH);
 	}
@@ -503,21 +612,30 @@ static int freeze_go_xmote_bh(struct gfs2_glock *gl, struct gfs2_holder *gh)
 	struct gfs2_log_header_host head;
 	int error;
 
-	if (test_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags)) {
+	if (test_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags))
+	{
 		j_gl->gl_ops->go_inval(j_gl, DIO_METADATA);
 
 		error = gfs2_find_jhead(sdp->sd_jdesc, &head);
+
 		if (error)
+		{
 			gfs2_consist(sdp);
+		}
+
 		if (!(head.lh_flags & GFS2_LOG_HEAD_UNMOUNT))
+		{
 			gfs2_consist(sdp);
+		}
 
 		/*  Initialize some head of the log stuff  */
-		if (!test_bit(SDF_SHUTDOWN, &sdp->sd_flags)) {
+		if (!test_bit(SDF_SHUTDOWN, &sdp->sd_flags))
+		{
 			sdp->sd_log_sequence = head.lh_sequence + 1;
 			gfs2_log_pointers_init(sdp, head.lh_blkno);
 		}
 	}
+
 	return 0;
 }
 
@@ -545,21 +663,29 @@ static void iopen_go_callback(struct gfs2_glock *gl, bool remote)
 	struct gfs2_sbd *sdp = gl->gl_name.ln_sbd;
 
 	if (!remote || (sdp->sd_vfs->s_flags & MS_RDONLY))
+	{
 		return;
+	}
 
 	if (gl->gl_demote_state == LM_ST_UNLOCKED &&
-	    gl->gl_state == LM_ST_SHARED && ip) {
+		gl->gl_state == LM_ST_SHARED && ip)
+	{
 		gl->gl_lockref.count++;
+
 		if (queue_work(gfs2_delete_workqueue, &gl->gl_delete) == 0)
+		{
 			gl->gl_lockref.count--;
+		}
 	}
 }
 
-const struct gfs2_glock_operations gfs2_meta_glops = {
+const struct gfs2_glock_operations gfs2_meta_glops =
+{
 	.go_type = LM_TYPE_META,
 };
 
-const struct gfs2_glock_operations gfs2_inode_glops = {
+const struct gfs2_glock_operations gfs2_inode_glops =
+{
 	.go_sync = inode_go_sync,
 	.go_inval = inode_go_inval,
 	.go_demote_ok = inode_go_demote_ok,
@@ -569,7 +695,8 @@ const struct gfs2_glock_operations gfs2_inode_glops = {
 	.go_flags = GLOF_ASPACE | GLOF_LRU,
 };
 
-const struct gfs2_glock_operations gfs2_rgrp_glops = {
+const struct gfs2_glock_operations gfs2_rgrp_glops =
+{
 	.go_sync = rgrp_go_sync,
 	.go_inval = rgrp_go_inval,
 	.go_lock = gfs2_rgrp_go_lock,
@@ -579,38 +706,45 @@ const struct gfs2_glock_operations gfs2_rgrp_glops = {
 	.go_flags = GLOF_LVB,
 };
 
-const struct gfs2_glock_operations gfs2_freeze_glops = {
+const struct gfs2_glock_operations gfs2_freeze_glops =
+{
 	.go_sync = freeze_go_sync,
 	.go_xmote_bh = freeze_go_xmote_bh,
 	.go_demote_ok = freeze_go_demote_ok,
 	.go_type = LM_TYPE_NONDISK,
 };
 
-const struct gfs2_glock_operations gfs2_iopen_glops = {
+const struct gfs2_glock_operations gfs2_iopen_glops =
+{
 	.go_type = LM_TYPE_IOPEN,
 	.go_callback = iopen_go_callback,
 	.go_flags = GLOF_LRU,
 };
 
-const struct gfs2_glock_operations gfs2_flock_glops = {
+const struct gfs2_glock_operations gfs2_flock_glops =
+{
 	.go_type = LM_TYPE_FLOCK,
 	.go_flags = GLOF_LRU,
 };
 
-const struct gfs2_glock_operations gfs2_nondisk_glops = {
+const struct gfs2_glock_operations gfs2_nondisk_glops =
+{
 	.go_type = LM_TYPE_NONDISK,
 };
 
-const struct gfs2_glock_operations gfs2_quota_glops = {
+const struct gfs2_glock_operations gfs2_quota_glops =
+{
 	.go_type = LM_TYPE_QUOTA,
 	.go_flags = GLOF_LVB | GLOF_LRU,
 };
 
-const struct gfs2_glock_operations gfs2_journal_glops = {
+const struct gfs2_glock_operations gfs2_journal_glops =
+{
 	.go_type = LM_TYPE_JOURNAL,
 };
 
-const struct gfs2_glock_operations *gfs2_glops_list[] = {
+const struct gfs2_glock_operations *gfs2_glops_list[] =
+{
 	[LM_TYPE_META] = &gfs2_meta_glops,
 	[LM_TYPE_INODE] = &gfs2_inode_glops,
 	[LM_TYPE_RGRP] = &gfs2_rgrp_glops,

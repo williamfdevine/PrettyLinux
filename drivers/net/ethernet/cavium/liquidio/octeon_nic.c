@@ -31,8 +31,8 @@
 
 void *
 octeon_alloc_soft_command_resp(struct octeon_device    *oct,
-			       union octeon_instr_64B *cmd,
-			       u32		       rdatasize)
+							   union octeon_instr_64B *cmd,
+							   u32		       rdatasize)
 {
 	struct octeon_soft_command *sc;
 	struct octeon_instr_ih3  *ih3;
@@ -41,10 +41,12 @@ octeon_alloc_soft_command_resp(struct octeon_device    *oct,
 	struct octeon_instr_rdp *rdp;
 
 	sc = (struct octeon_soft_command *)
-		octeon_alloc_soft_command(oct, 0, rdatasize, 0);
+		 octeon_alloc_soft_command(oct, 0, rdatasize, 0);
 
 	if (!sc)
+	{
 		return NULL;
+	}
 
 	/* Copy existing command structure into the soft command */
 	memcpy(&sc->cmd, cmd, sizeof(union octeon_instr_64B));
@@ -52,13 +54,16 @@ octeon_alloc_soft_command_resp(struct octeon_device    *oct,
 	/* Add in the response related fields. Opcode and Param are already
 	 * there.
 	 */
-	if (OCTEON_CN23XX_PF(oct)) {
+	if (OCTEON_CN23XX_PF(oct))
+	{
 		ih3      = (struct octeon_instr_ih3 *)&sc->cmd.cmd3.ih3;
 		rdp     = (struct octeon_instr_rdp *)&sc->cmd.cmd3.rdp;
 		irh     = (struct octeon_instr_irh *)&sc->cmd.cmd3.irh;
 		/*pkiih3 + irh + ossp[0] + ossp[1] + rdp + rptr = 40 bytes */
 		ih3->fsz = LIO_SOFTCMDRESP_IH3;
-	} else {
+	}
+	else
+	{
 		ih2      = (struct octeon_instr_ih2 *)&sc->cmd.cmd2.ih2;
 		rdp     = (struct octeon_instr_rdp *)&sc->cmd.cmd2.rdp;
 		irh     = (struct octeon_instr_irh *)&sc->cmd.cmd2.irh;
@@ -74,9 +79,13 @@ octeon_alloc_soft_command_resp(struct octeon_device    *oct,
 	*sc->status_word = COMPLETION_WORD_INIT;
 
 	if (OCTEON_CN23XX_PF(oct))
+	{
 		sc->cmd.cmd3.rptr =  sc->dmarptr;
+	}
 	else
+	{
 		sc->cmd.cmd2.rptr =  sc->dmarptr;
+	}
 
 	sc->wait_time = 1000;
 	sc->timeout = jiffies + sc->wait_time;
@@ -85,18 +94,18 @@ octeon_alloc_soft_command_resp(struct octeon_device    *oct,
 }
 
 int octnet_send_nic_data_pkt(struct octeon_device *oct,
-			     struct octnic_data_pkt *ndata)
+							 struct octnic_data_pkt *ndata)
 {
 	int ring_doorbell = 1;
 
 	return octeon_send_command(oct, ndata->q_no, ring_doorbell, &ndata->cmd,
-				   ndata->buf, ndata->datasize,
-				   ndata->reqtype);
+							   ndata->buf, ndata->datasize,
+							   ndata->reqtype);
 }
 
 static void octnet_link_ctrl_callback(struct octeon_device *oct,
-				      u32 status,
-				      void *sc_ptr)
+									  u32 status,
+									  void *sc_ptr)
 {
 	struct octeon_soft_command *sc = (struct octeon_soft_command *)sc_ptr;
 	struct octnic_ctrl_pkt *nctrl;
@@ -110,14 +119,16 @@ static void octnet_link_ctrl_callback(struct octeon_device *oct,
 	 * successfully.
 	 */
 	if (!status && nctrl->cb_fn)
+	{
 		nctrl->cb_fn(nctrl);
+	}
 
 	octeon_free_soft_command(oct, sc);
 }
 
 static inline struct octeon_soft_command
 *octnic_alloc_ctrl_pkt_sc(struct octeon_device *oct,
-			  struct octnic_ctrl_pkt *nctrl)
+						  struct octnic_ctrl_pkt *nctrl)
 {
 	struct octeon_soft_command *sc = NULL;
 	u8 *data;
@@ -130,11 +141,13 @@ static inline struct octeon_soft_command
 	rdatasize = (nctrl->wait_time) ? 16 : 0;
 
 	sc = (struct octeon_soft_command *)
-		octeon_alloc_soft_command(oct, datasize, rdatasize,
-					  sizeof(struct octnic_ctrl_pkt));
+		 octeon_alloc_soft_command(oct, datasize, rdatasize,
+								   sizeof(struct octnic_ctrl_pkt));
 
 	if (!sc)
+	{
 		return NULL;
+	}
 
 	memcpy(sc->ctxptr, nctrl, sizeof(struct octnic_ctrl_pkt));
 
@@ -144,7 +157,8 @@ static inline struct octeon_soft_command
 
 	octeon_swap_8B_data((u64 *)data, (OCTNET_CMD_SIZE >> 3));
 
-	if (uddsize) {
+	if (uddsize)
+	{
 		/* Endian-Swap for UDD should have been done by caller. */
 		memcpy(data + OCTNET_CMD_SIZE, nctrl->udd, uddsize);
 	}
@@ -152,7 +166,7 @@ static inline struct octeon_soft_command
 	sc->iq_no = (u32)nctrl->iq_no;
 
 	octeon_prepare_soft_command(oct, sc, OPCODE_NIC, OPCODE_NIC_CMD,
-				    0, 0, 0);
+								0, 0, 0);
 
 	sc->callback = octnet_link_ctrl_callback;
 	sc->callback_arg = sc;
@@ -163,37 +177,43 @@ static inline struct octeon_soft_command
 
 int
 octnet_send_nic_ctrl_pkt(struct octeon_device *oct,
-			 struct octnic_ctrl_pkt *nctrl)
+						 struct octnic_ctrl_pkt *nctrl)
 {
 	int retval;
 	struct octeon_soft_command *sc = NULL;
 
 	spin_lock_bh(&oct->cmd_resp_wqlock);
+
 	/* Allow only rx ctrl command to stop traffic on the chip
 	 * during offline operations
 	 */
 	if ((oct->cmd_resp_state == OCT_DRV_OFFLINE) &&
-	    (nctrl->ncmd.s.cmd != OCTNET_CMD_RX_CTL)) {
+		(nctrl->ncmd.s.cmd != OCTNET_CMD_RX_CTL))
+	{
 		spin_unlock_bh(&oct->cmd_resp_wqlock);
 		dev_err(&oct->pci_dev->dev,
-			"%s cmd:%d not processed since driver offline\n",
-			__func__, nctrl->ncmd.s.cmd);
+				"%s cmd:%d not processed since driver offline\n",
+				__func__, nctrl->ncmd.s.cmd);
 		return -1;
 	}
 
 	sc = octnic_alloc_ctrl_pkt_sc(oct, nctrl);
-	if (!sc) {
+
+	if (!sc)
+	{
 		dev_err(&oct->pci_dev->dev, "%s soft command alloc failed\n",
-			__func__);
+				__func__);
 		spin_unlock_bh(&oct->cmd_resp_wqlock);
 		return -1;
 	}
 
 	retval = octeon_send_soft_command(oct, sc);
-	if (retval == IQ_SEND_FAILED) {
+
+	if (retval == IQ_SEND_FAILED)
+	{
 		octeon_free_soft_command(oct, sc);
 		dev_err(&oct->pci_dev->dev, "%s pf_num:%d soft command:%d send failed status: %x\n",
-			__func__, oct->pf_num, nctrl->ncmd.s.cmd, retval);
+				__func__, oct->pf_num, nctrl->ncmd.s.cmd, retval);
 		spin_unlock_bh(&oct->cmd_resp_wqlock);
 		return -1;
 	}

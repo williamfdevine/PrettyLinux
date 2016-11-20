@@ -58,33 +58,33 @@
  * Routines used for growing the Btree.
  */
 STATIC int xfs_attr3_leaf_create(struct xfs_da_args *args,
-				 xfs_dablk_t which_block, struct xfs_buf **bpp);
+								 xfs_dablk_t which_block, struct xfs_buf **bpp);
 STATIC int xfs_attr3_leaf_add_work(struct xfs_buf *leaf_buffer,
-				   struct xfs_attr3_icleaf_hdr *ichdr,
-				   struct xfs_da_args *args, int freemap_index);
+								   struct xfs_attr3_icleaf_hdr *ichdr,
+								   struct xfs_da_args *args, int freemap_index);
 STATIC void xfs_attr3_leaf_compact(struct xfs_da_args *args,
-				   struct xfs_attr3_icleaf_hdr *ichdr,
-				   struct xfs_buf *leaf_buffer);
+								   struct xfs_attr3_icleaf_hdr *ichdr,
+								   struct xfs_buf *leaf_buffer);
 STATIC void xfs_attr3_leaf_rebalance(xfs_da_state_t *state,
-						   xfs_da_state_blk_t *blk1,
-						   xfs_da_state_blk_t *blk2);
+									 xfs_da_state_blk_t *blk1,
+									 xfs_da_state_blk_t *blk2);
 STATIC int xfs_attr3_leaf_figure_balance(xfs_da_state_t *state,
-			xfs_da_state_blk_t *leaf_blk_1,
-			struct xfs_attr3_icleaf_hdr *ichdr1,
-			xfs_da_state_blk_t *leaf_blk_2,
-			struct xfs_attr3_icleaf_hdr *ichdr2,
-			int *number_entries_in_blk1,
-			int *number_usedbytes_in_blk1);
+		xfs_da_state_blk_t *leaf_blk_1,
+		struct xfs_attr3_icleaf_hdr *ichdr1,
+		xfs_da_state_blk_t *leaf_blk_2,
+		struct xfs_attr3_icleaf_hdr *ichdr2,
+		int *number_entries_in_blk1,
+		int *number_usedbytes_in_blk1);
 
 /*
  * Utility routines.
  */
 STATIC void xfs_attr3_leaf_moveents(struct xfs_da_args *args,
-			struct xfs_attr_leafblock *src_leaf,
-			struct xfs_attr3_icleaf_hdr *src_ichdr, int src_start,
-			struct xfs_attr_leafblock *dst_leaf,
-			struct xfs_attr3_icleaf_hdr *dst_ichdr, int dst_start,
-			int move_count);
+									struct xfs_attr_leafblock *src_leaf,
+									struct xfs_attr3_icleaf_hdr *src_ichdr, int src_start,
+									struct xfs_attr_leafblock *dst_leaf,
+									struct xfs_attr3_icleaf_hdr *dst_ichdr, int dst_start,
+									int move_count);
 STATIC int xfs_attr_leaf_entsize(xfs_attr_leafblock_t *leaf, int index);
 
 /*
@@ -111,10 +111,13 @@ xfs_attr3_leaf_firstused_from_disk(
 {
 	struct xfs_attr3_leaf_hdr	*hdr3;
 
-	if (from->hdr.info.magic == cpu_to_be16(XFS_ATTR3_LEAF_MAGIC)) {
+	if (from->hdr.info.magic == cpu_to_be16(XFS_ATTR3_LEAF_MAGIC))
+	{
 		hdr3 = (struct xfs_attr3_leaf_hdr *) from;
 		to->firstused = be16_to_cpu(hdr3->firstused);
-	} else {
+	}
+	else
+	{
 		to->firstused = be16_to_cpu(from->hdr.firstused);
 	}
 
@@ -123,7 +126,8 @@ xfs_attr3_leaf_firstused_from_disk(
 	 * should only occur for empty blocks when the block size overflows
 	 * 16-bits.
 	 */
-	if (to->firstused == XFS_ATTR3_LEAF_NULLOFF) {
+	if (to->firstused == XFS_ATTR3_LEAF_NULLOFF)
+	{
 		ASSERT(!to->count && !to->usedbytes);
 		ASSERT(geo->blksize > USHRT_MAX);
 		to->firstused = geo->blksize;
@@ -148,15 +152,20 @@ xfs_attr3_leaf_firstused_to_disk(
 	 * magic on-disk value to represent block size in this case.
 	 */
 	firstused = from->firstused;
-	if (firstused > USHRT_MAX) {
+
+	if (firstused > USHRT_MAX)
+	{
 		ASSERT(from->firstused == geo->blksize);
 		firstused = XFS_ATTR3_LEAF_NULLOFF;
 	}
 
-	if (from->magic == XFS_ATTR3_LEAF_MAGIC) {
+	if (from->magic == XFS_ATTR3_LEAF_MAGIC)
+	{
 		hdr3 = (struct xfs_attr3_leaf_hdr *) to;
 		hdr3->firstused = cpu_to_be16(firstused);
-	} else {
+	}
+	else
+	{
 		to->hdr.firstused = cpu_to_be16(firstused);
 	}
 }
@@ -170,9 +179,10 @@ xfs_attr3_leaf_hdr_from_disk(
 	int	i;
 
 	ASSERT(from->hdr.info.magic == cpu_to_be16(XFS_ATTR_LEAF_MAGIC) ||
-	       from->hdr.info.magic == cpu_to_be16(XFS_ATTR3_LEAF_MAGIC));
+		   from->hdr.info.magic == cpu_to_be16(XFS_ATTR3_LEAF_MAGIC));
 
-	if (from->hdr.info.magic == cpu_to_be16(XFS_ATTR3_LEAF_MAGIC)) {
+	if (from->hdr.info.magic == cpu_to_be16(XFS_ATTR3_LEAF_MAGIC))
+	{
 		struct xfs_attr3_leaf_hdr *hdr3 = (struct xfs_attr3_leaf_hdr *)from;
 
 		to->forw = be32_to_cpu(hdr3->info.hdr.forw);
@@ -183,12 +193,15 @@ xfs_attr3_leaf_hdr_from_disk(
 		xfs_attr3_leaf_firstused_from_disk(geo, to, from);
 		to->holes = hdr3->holes;
 
-		for (i = 0; i < XFS_ATTR_LEAF_MAPSIZE; i++) {
+		for (i = 0; i < XFS_ATTR_LEAF_MAPSIZE; i++)
+		{
 			to->freemap[i].base = be16_to_cpu(hdr3->freemap[i].base);
 			to->freemap[i].size = be16_to_cpu(hdr3->freemap[i].size);
 		}
+
 		return;
 	}
+
 	to->forw = be32_to_cpu(from->hdr.info.forw);
 	to->back = be32_to_cpu(from->hdr.info.back);
 	to->magic = be16_to_cpu(from->hdr.info.magic);
@@ -197,7 +210,8 @@ xfs_attr3_leaf_hdr_from_disk(
 	xfs_attr3_leaf_firstused_from_disk(geo, to, from);
 	to->holes = from->hdr.holes;
 
-	for (i = 0; i < XFS_ATTR_LEAF_MAPSIZE; i++) {
+	for (i = 0; i < XFS_ATTR_LEAF_MAPSIZE; i++)
+	{
 		to->freemap[i].base = be16_to_cpu(from->hdr.freemap[i].base);
 		to->freemap[i].size = be16_to_cpu(from->hdr.freemap[i].size);
 	}
@@ -212,9 +226,10 @@ xfs_attr3_leaf_hdr_to_disk(
 	int				i;
 
 	ASSERT(from->magic == XFS_ATTR_LEAF_MAGIC ||
-	       from->magic == XFS_ATTR3_LEAF_MAGIC);
+		   from->magic == XFS_ATTR3_LEAF_MAGIC);
 
-	if (from->magic == XFS_ATTR3_LEAF_MAGIC) {
+	if (from->magic == XFS_ATTR3_LEAF_MAGIC)
+	{
 		struct xfs_attr3_leaf_hdr *hdr3 = (struct xfs_attr3_leaf_hdr *)to;
 
 		hdr3->info.hdr.forw = cpu_to_be32(from->forw);
@@ -226,12 +241,15 @@ xfs_attr3_leaf_hdr_to_disk(
 		hdr3->holes = from->holes;
 		hdr3->pad1 = 0;
 
-		for (i = 0; i < XFS_ATTR_LEAF_MAPSIZE; i++) {
+		for (i = 0; i < XFS_ATTR_LEAF_MAPSIZE; i++)
+		{
 			hdr3->freemap[i].base = cpu_to_be16(from->freemap[i].base);
 			hdr3->freemap[i].size = cpu_to_be16(from->freemap[i].size);
 		}
+
 		return;
 	}
+
 	to->hdr.info.forw = cpu_to_be32(from->forw);
 	to->hdr.info.back = cpu_to_be32(from->back);
 	to->hdr.info.magic = cpu_to_be16(from->magic);
@@ -241,7 +259,8 @@ xfs_attr3_leaf_hdr_to_disk(
 	to->hdr.holes = from->holes;
 	to->hdr.pad1 = 0;
 
-	for (i = 0; i < XFS_ATTR_LEAF_MAPSIZE; i++) {
+	for (i = 0; i < XFS_ATTR_LEAF_MAPSIZE; i++)
+	{
 		to->hdr.freemap[i].base = cpu_to_be16(from->freemap[i].base);
 		to->hdr.freemap[i].size = cpu_to_be16(from->freemap[i].size);
 	}
@@ -257,24 +276,42 @@ xfs_attr3_leaf_verify(
 
 	xfs_attr3_leaf_hdr_from_disk(mp->m_attr_geo, &ichdr, leaf);
 
-	if (xfs_sb_version_hascrc(&mp->m_sb)) {
+	if (xfs_sb_version_hascrc(&mp->m_sb))
+	{
 		struct xfs_da3_node_hdr *hdr3 = bp->b_addr;
 
 		if (ichdr.magic != XFS_ATTR3_LEAF_MAGIC)
+		{
 			return false;
+		}
 
 		if (!uuid_equal(&hdr3->info.uuid, &mp->m_sb.sb_meta_uuid))
+		{
 			return false;
+		}
+
 		if (be64_to_cpu(hdr3->info.blkno) != bp->b_bn)
+		{
 			return false;
+		}
+
 		if (!xfs_log_check_lsn(mp, be64_to_cpu(hdr3->info.lsn)))
+		{
 			return false;
-	} else {
-		if (ichdr.magic != XFS_ATTR_LEAF_MAGIC)
-			return false;
+		}
 	}
+	else
+	{
+		if (ichdr.magic != XFS_ATTR_LEAF_MAGIC)
+		{
+			return false;
+		}
+	}
+
 	if (ichdr.count == 0)
+	{
 		return false;
+	}
 
 	/* XXX: need to range check rest of attr header values */
 	/* XXX: hash order check? */
@@ -290,17 +327,22 @@ xfs_attr3_leaf_write_verify(
 	struct xfs_buf_log_item	*bip = bp->b_fspriv;
 	struct xfs_attr3_leaf_hdr *hdr3 = bp->b_addr;
 
-	if (!xfs_attr3_leaf_verify(bp)) {
+	if (!xfs_attr3_leaf_verify(bp))
+	{
 		xfs_buf_ioerror(bp, -EFSCORRUPTED);
 		xfs_verifier_error(bp);
 		return;
 	}
 
 	if (!xfs_sb_version_hascrc(&mp->m_sb))
+	{
 		return;
+	}
 
 	if (bip)
+	{
 		hdr3->info.lsn = cpu_to_be64(bip->bli_item.li_lsn);
+	}
 
 	xfs_buf_update_cksum(bp, XFS_ATTR3_LEAF_CRC_OFF);
 }
@@ -318,16 +360,23 @@ xfs_attr3_leaf_read_verify(
 	struct xfs_mount	*mp = bp->b_target->bt_mount;
 
 	if (xfs_sb_version_hascrc(&mp->m_sb) &&
-	     !xfs_buf_verify_cksum(bp, XFS_ATTR3_LEAF_CRC_OFF))
+		!xfs_buf_verify_cksum(bp, XFS_ATTR3_LEAF_CRC_OFF))
+	{
 		xfs_buf_ioerror(bp, -EFSBADCRC);
+	}
 	else if (!xfs_attr3_leaf_verify(bp))
+	{
 		xfs_buf_ioerror(bp, -EFSCORRUPTED);
+	}
 
 	if (bp->b_error)
+	{
 		xfs_verifier_error(bp);
+	}
 }
 
-const struct xfs_buf_ops xfs_attr3_leaf_buf_ops = {
+const struct xfs_buf_ops xfs_attr3_leaf_buf_ops =
+{
 	.name = "xfs_attr3_leaf",
 	.verify_read = xfs_attr3_leaf_read_verify,
 	.verify_write = xfs_attr3_leaf_write_verify,
@@ -344,9 +393,13 @@ xfs_attr3_leaf_read(
 	int			err;
 
 	err = xfs_da_read_buf(tp, dp, bno, mappedbno, bpp,
-				XFS_ATTR_FORK, &xfs_attr3_leaf_buf_ops);
+						  XFS_ATTR_FORK, &xfs_attr3_leaf_buf_ops);
+
 	if (!err && tp)
+	{
 		xfs_trans_buf_set_type(tp, *bpp, XFS_BLFT_ATTR_LEAF_BUF);
+	}
+
 	return err;
 }
 
@@ -391,13 +444,15 @@ xfs_attr_shortform_bytesfit(xfs_inode_t *dp, int bytes)
 	/* rounded down */
 	offset = (XFS_LITINO(mp, dp->i_d.di_version) - bytes) >> 3;
 
-	switch (dp->i_d.di_format) {
-	case XFS_DINODE_FMT_DEV:
-		minforkoff = roundup(sizeof(xfs_dev_t), 8) >> 3;
-		return (offset >= minforkoff) ? minforkoff : 0;
-	case XFS_DINODE_FMT_UUID:
-		minforkoff = roundup(sizeof(uuid_t), 8) >> 3;
-		return (offset >= minforkoff) ? minforkoff : 0;
+	switch (dp->i_d.di_format)
+	{
+		case XFS_DINODE_FMT_DEV:
+			minforkoff = roundup(sizeof(xfs_dev_t), 8) >> 3;
+			return (offset >= minforkoff) ? minforkoff : 0;
+
+		case XFS_DINODE_FMT_UUID:
+			minforkoff = roundup(sizeof(uuid_t), 8) >> 3;
+			return (offset >= minforkoff) ? minforkoff : 0;
 	}
 
 	/*
@@ -411,7 +466,9 @@ xfs_attr_shortform_bytesfit(xfs_inode_t *dp, int bytes)
 	 * literal area rebalancing.
 	 */
 	if (bytes <= XFS_IFORK_ASIZE(dp))
+	{
 		return dp->i_d.di_forkoff;
+	}
 
 	/*
 	 * For attr2 we can try to move the forkoff if there is space in the
@@ -419,37 +476,51 @@ xfs_attr_shortform_bytesfit(xfs_inode_t *dp, int bytes)
 	 * space in the fixed attribute fork.
 	 */
 	if (!(mp->m_flags & XFS_MOUNT_ATTR2))
+	{
 		return 0;
+	}
 
 	dsize = dp->i_df.if_bytes;
 
-	switch (dp->i_d.di_format) {
-	case XFS_DINODE_FMT_EXTENTS:
-		/*
-		 * If there is no attr fork and the data fork is extents, 
-		 * determine if creating the default attr fork will result
-		 * in the extents form migrating to btree. If so, the
-		 * minimum offset only needs to be the space required for
-		 * the btree root.
-		 */
-		if (!dp->i_d.di_forkoff && dp->i_df.if_bytes >
-		    xfs_default_attroffset(dp))
-			dsize = XFS_BMDR_SPACE_CALC(MINDBTPTRS);
-		break;
-	case XFS_DINODE_FMT_BTREE:
-		/*
-		 * If we have a data btree then keep forkoff if we have one,
-		 * otherwise we are adding a new attr, so then we set
-		 * minforkoff to where the btree root can finish so we have
-		 * plenty of room for attrs
-		 */
-		if (dp->i_d.di_forkoff) {
-			if (offset < dp->i_d.di_forkoff)
-				return 0;
-			return dp->i_d.di_forkoff;
-		}
-		dsize = XFS_BMAP_BROOT_SPACE(mp, dp->i_df.if_broot);
-		break;
+	switch (dp->i_d.di_format)
+	{
+		case XFS_DINODE_FMT_EXTENTS:
+
+			/*
+			 * If there is no attr fork and the data fork is extents,
+			 * determine if creating the default attr fork will result
+			 * in the extents form migrating to btree. If so, the
+			 * minimum offset only needs to be the space required for
+			 * the btree root.
+			 */
+			if (!dp->i_d.di_forkoff && dp->i_df.if_bytes >
+				xfs_default_attroffset(dp))
+			{
+				dsize = XFS_BMDR_SPACE_CALC(MINDBTPTRS);
+			}
+
+			break;
+
+		case XFS_DINODE_FMT_BTREE:
+
+			/*
+			 * If we have a data btree then keep forkoff if we have one,
+			 * otherwise we are adding a new attr, so then we set
+			 * minforkoff to where the btree root can finish so we have
+			 * plenty of room for attrs
+			 */
+			if (dp->i_d.di_forkoff)
+			{
+				if (offset < dp->i_d.di_forkoff)
+				{
+					return 0;
+				}
+
+				return dp->i_d.di_forkoff;
+			}
+
+			dsize = XFS_BMAP_BROOT_SPACE(mp, dp->i_df.if_broot);
+			break;
 	}
 
 	/*
@@ -461,13 +532,19 @@ xfs_attr_shortform_bytesfit(xfs_inode_t *dp, int bytes)
 
 	/* attr fork btree root can have at least this many key/ptr pairs */
 	maxforkoff = XFS_LITINO(mp, dp->i_d.di_version) -
-			XFS_BMDR_SPACE_CALC(MINABTPTRS);
+				 XFS_BMDR_SPACE_CALC(MINABTPTRS);
 	maxforkoff = maxforkoff >> 3;	/* rounded down */
 
 	if (offset >= maxforkoff)
+	{
 		return maxforkoff;
+	}
+
 	if (offset >= minforkoff)
+	{
 		return offset;
+	}
+
 	return 0;
 }
 
@@ -478,14 +555,20 @@ STATIC void
 xfs_sbversion_add_attr2(xfs_mount_t *mp, xfs_trans_t *tp)
 {
 	if ((mp->m_flags & XFS_MOUNT_ATTR2) &&
-	    !(xfs_sb_version_hasattr2(&mp->m_sb))) {
+		!(xfs_sb_version_hasattr2(&mp->m_sb)))
+	{
 		spin_lock(&mp->m_sb_lock);
-		if (!xfs_sb_version_hasattr2(&mp->m_sb)) {
+
+		if (!xfs_sb_version_hasattr2(&mp->m_sb))
+		{
 			xfs_sb_version_addattr2(&mp->m_sb);
 			spin_unlock(&mp->m_sb_lock);
 			xfs_log_sb(tp);
-		} else
+		}
+		else
+		{
 			spin_unlock(&mp->m_sb_lock);
+		}
 	}
 }
 
@@ -506,13 +589,18 @@ xfs_attr_shortform_create(xfs_da_args_t *args)
 	ifp = dp->i_afp;
 	ASSERT(ifp != NULL);
 	ASSERT(ifp->if_bytes == 0);
-	if (dp->i_d.di_aformat == XFS_DINODE_FMT_EXTENTS) {
+
+	if (dp->i_d.di_aformat == XFS_DINODE_FMT_EXTENTS)
+	{
 		ifp->if_flags &= ~XFS_IFEXTENTS;	/* just in case */
 		dp->i_d.di_aformat = XFS_DINODE_FMT_LOCAL;
 		ifp->if_flags |= XFS_IFINLINE;
-	} else {
+	}
+	else
+	{
 		ASSERT(ifp->if_flags & XFS_IFINLINE);
 	}
+
 	xfs_idata_realloc(dp, sizeof(*hdr), XFS_ATTR_FORK);
 	hdr = (xfs_attr_sf_hdr_t *)ifp->if_u1.if_data;
 	hdr->count = 0;
@@ -544,14 +632,26 @@ xfs_attr_shortform_add(xfs_da_args_t *args, int forkoff)
 	ASSERT(ifp->if_flags & XFS_IFINLINE);
 	sf = (xfs_attr_shortform_t *)ifp->if_u1.if_data;
 	sfe = &sf->list[0];
-	for (i = 0; i < sf->hdr.count; sfe = XFS_ATTR_SF_NEXTENTRY(sfe), i++) {
+
+	for (i = 0; i < sf->hdr.count; sfe = XFS_ATTR_SF_NEXTENTRY(sfe), i++)
+	{
 #ifdef DEBUG
+
 		if (sfe->namelen != args->namelen)
+		{
 			continue;
+		}
+
 		if (memcmp(args->name, sfe->nameval, args->namelen) != 0)
+		{
 			continue;
+		}
+
 		if (!xfs_attr_namesp_match(args->flags, sfe->flags))
+		{
 			continue;
+		}
+
 		ASSERT(0);
 #endif
 	}
@@ -601,7 +701,7 @@ xfs_attr_shortform_remove(xfs_da_args_t *args)
 {
 	xfs_attr_shortform_t *sf;
 	xfs_attr_sf_entry_t *sfe;
-	int base, size=0, end, totsize, i;
+	int base, size = 0, end, totsize, i;
 	xfs_mount_t *mp;
 	xfs_inode_t *dp;
 
@@ -613,27 +713,46 @@ xfs_attr_shortform_remove(xfs_da_args_t *args)
 	sf = (xfs_attr_shortform_t *)dp->i_afp->if_u1.if_data;
 	sfe = &sf->list[0];
 	end = sf->hdr.count;
+
 	for (i = 0; i < end; sfe = XFS_ATTR_SF_NEXTENTRY(sfe),
-					base += size, i++) {
+		 base += size, i++)
+	{
 		size = XFS_ATTR_SF_ENTSIZE(sfe);
+
 		if (sfe->namelen != args->namelen)
+		{
 			continue;
+		}
+
 		if (memcmp(sfe->nameval, args->name, args->namelen) != 0)
+		{
 			continue;
+		}
+
 		if (!xfs_attr_namesp_match(args->flags, sfe->flags))
+		{
 			continue;
+		}
+
 		break;
 	}
+
 	if (i == end)
+	{
 		return -ENOATTR;
+	}
 
 	/*
 	 * Fix up the attribute fork data, covering the hole
 	 */
 	end = base + size;
 	totsize = be16_to_cpu(sf->hdr.totsize);
+
 	if (end != totsize)
+	{
 		memmove(&((char *)sf)[base], &((char *)sf)[end], totsize - end);
+	}
+
 	sf->hdr.count--;
 	be16_add_cpu(&sf->hdr.totsize, -size);
 
@@ -641,21 +760,25 @@ xfs_attr_shortform_remove(xfs_da_args_t *args)
 	 * Fix up the start offset of the attribute fork
 	 */
 	totsize -= size;
+
 	if (totsize == sizeof(xfs_attr_sf_hdr_t) &&
-	    (mp->m_flags & XFS_MOUNT_ATTR2) &&
-	    (dp->i_d.di_format != XFS_DINODE_FMT_BTREE) &&
-	    !(args->op_flags & XFS_DA_OP_ADDNAME)) {
+		(mp->m_flags & XFS_MOUNT_ATTR2) &&
+		(dp->i_d.di_format != XFS_DINODE_FMT_BTREE) &&
+		!(args->op_flags & XFS_DA_OP_ADDNAME))
+	{
 		xfs_attr_fork_remove(dp, args->trans);
-	} else {
+	}
+	else
+	{
 		xfs_idata_realloc(dp, -size, XFS_ATTR_FORK);
 		dp->i_d.di_forkoff = xfs_attr_shortform_bytesfit(dp, totsize);
 		ASSERT(dp->i_d.di_forkoff);
 		ASSERT(totsize > sizeof(xfs_attr_sf_hdr_t) ||
-				(args->op_flags & XFS_DA_OP_ADDNAME) ||
-				!(mp->m_flags & XFS_MOUNT_ATTR2) ||
-				dp->i_d.di_format == XFS_DINODE_FMT_BTREE);
+			   (args->op_flags & XFS_DA_OP_ADDNAME) ||
+			   !(mp->m_flags & XFS_MOUNT_ATTR2) ||
+			   dp->i_d.di_format == XFS_DINODE_FMT_BTREE);
 		xfs_trans_log_inode(args->trans, dp,
-					XFS_ILOG_CORE | XFS_ILOG_ADATA);
+							XFS_ILOG_CORE | XFS_ILOG_ADATA);
 	}
 
 	xfs_sbversion_add_attr2(mp, args->trans);
@@ -681,16 +804,28 @@ xfs_attr_shortform_lookup(xfs_da_args_t *args)
 	ASSERT(ifp->if_flags & XFS_IFINLINE);
 	sf = (xfs_attr_shortform_t *)ifp->if_u1.if_data;
 	sfe = &sf->list[0];
+
 	for (i = 0; i < sf->hdr.count;
-				sfe = XFS_ATTR_SF_NEXTENTRY(sfe), i++) {
+		 sfe = XFS_ATTR_SF_NEXTENTRY(sfe), i++)
+	{
 		if (sfe->namelen != args->namelen)
+		{
 			continue;
+		}
+
 		if (memcmp(args->name, sfe->nameval, args->namelen) != 0)
+		{
 			continue;
+		}
+
 		if (!xfs_attr_namesp_match(args->flags, sfe->flags))
+		{
 			continue;
+		}
+
 		return -EEXIST;
 	}
+
 	return -ENOATTR;
 }
 
@@ -708,27 +843,43 @@ xfs_attr_shortform_getvalue(xfs_da_args_t *args)
 	ASSERT(args->dp->i_afp->if_flags == XFS_IFINLINE);
 	sf = (xfs_attr_shortform_t *)args->dp->i_afp->if_u1.if_data;
 	sfe = &sf->list[0];
+
 	for (i = 0; i < sf->hdr.count;
-				sfe = XFS_ATTR_SF_NEXTENTRY(sfe), i++) {
+		 sfe = XFS_ATTR_SF_NEXTENTRY(sfe), i++)
+	{
 		if (sfe->namelen != args->namelen)
+		{
 			continue;
+		}
+
 		if (memcmp(args->name, sfe->nameval, args->namelen) != 0)
+		{
 			continue;
+		}
+
 		if (!xfs_attr_namesp_match(args->flags, sfe->flags))
+		{
 			continue;
-		if (args->flags & ATTR_KERNOVAL) {
+		}
+
+		if (args->flags & ATTR_KERNOVAL)
+		{
 			args->valuelen = sfe->valuelen;
 			return -EEXIST;
 		}
-		if (args->valuelen < sfe->valuelen) {
+
+		if (args->valuelen < sfe->valuelen)
+		{
 			args->valuelen = sfe->valuelen;
 			return -ERANGE;
 		}
+
 		args->valuelen = sfe->valuelen;
 		memcpy(args->value, &sfe->nameval[args->namelen],
-						    args->valuelen);
+			   args->valuelen);
 		return -EEXIST;
 	}
+
 	return -ENOATTR;
 }
 
@@ -764,13 +915,18 @@ xfs_attr_shortform_to_leaf(xfs_da_args_t *args)
 
 	bp = NULL;
 	error = xfs_da_grow_inode(args, &blkno);
-	if (error) {
+
+	if (error)
+	{
 		/*
 		 * If we hit an IO error middle of the transaction inside
 		 * grow_inode(), we may have inconsistent data. Bail out.
 		 */
 		if (error == -EIO)
+		{
 			goto out;
+		}
+
 		xfs_idata_realloc(dp, size, XFS_ATTR_FORK);	/* try to put */
 		memcpy(ifp->if_u1.if_data, tmpbuffer, size);	/* it back */
 		goto out;
@@ -778,11 +934,17 @@ xfs_attr_shortform_to_leaf(xfs_da_args_t *args)
 
 	ASSERT(blkno == 0);
 	error = xfs_attr3_leaf_create(args, blkno, &bp);
-	if (error) {
+
+	if (error)
+	{
 		error = xfs_da_shrink_inode(args, 0, bp);
 		bp = NULL;
+
 		if (error)
+		{
 			goto out;
+		}
+
 		xfs_idata_realloc(dp, size, XFS_ATTR_FORK);	/* try to put */
 		memcpy(ifp->if_u1.if_data, tmpbuffer, size);	/* it back */
 		goto out;
@@ -799,22 +961,29 @@ xfs_attr_shortform_to_leaf(xfs_da_args_t *args)
 	nargs.op_flags = XFS_DA_OP_OKNOENT;
 
 	sfe = &sf->list[0];
-	for (i = 0; i < sf->hdr.count; i++) {
+
+	for (i = 0; i < sf->hdr.count; i++)
+	{
 		nargs.name = sfe->nameval;
 		nargs.namelen = sfe->namelen;
 		nargs.value = &sfe->nameval[nargs.namelen];
 		nargs.valuelen = sfe->valuelen;
 		nargs.hashval = xfs_da_hashname(sfe->nameval,
-						sfe->namelen);
+										sfe->namelen);
 		nargs.flags = XFS_ATTR_NSP_ONDISK_TO_ARGS(sfe->flags);
 		error = xfs_attr3_leaf_lookup_int(bp, &nargs); /* set a->index */
 		ASSERT(error == -ENOATTR);
 		error = xfs_attr3_leaf_add(bp, &nargs);
 		ASSERT(error != -ENOSPC);
+
 		if (error)
+		{
 			goto out;
+		}
+
 		sfe = XFS_ATTR_SF_NEXTENTRY(sfe);
 	}
+
 	error = 0;
 
 out:
@@ -844,24 +1013,43 @@ xfs_attr_shortform_allfit(
 	entry = xfs_attr3_leaf_entryp(leaf);
 
 	bytes = sizeof(struct xfs_attr_sf_hdr);
-	for (i = 0; i < leafhdr.count; entry++, i++) {
+
+	for (i = 0; i < leafhdr.count; entry++, i++)
+	{
 		if (entry->flags & XFS_ATTR_INCOMPLETE)
-			continue;		/* don't copy partial entries */
+		{
+			continue;    /* don't copy partial entries */
+		}
+
 		if (!(entry->flags & XFS_ATTR_LOCAL))
+		{
 			return 0;
+		}
+
 		name_loc = xfs_attr3_leaf_name_local(leaf, i);
+
 		if (name_loc->namelen >= XFS_ATTR_SF_ENTSIZE_MAX)
+		{
 			return 0;
+		}
+
 		if (be16_to_cpu(name_loc->valuelen) >= XFS_ATTR_SF_ENTSIZE_MAX)
+		{
 			return 0;
+		}
+
 		bytes += sizeof(struct xfs_attr_sf_entry) - 1
-				+ name_loc->namelen
-				+ be16_to_cpu(name_loc->valuelen);
+				 + name_loc->namelen
+				 + be16_to_cpu(name_loc->valuelen);
 	}
+
 	if ((dp->i_mount->m_flags & XFS_MOUNT_ATTR2) &&
-	    (dp->i_d.di_format != XFS_DINODE_FMT_BTREE) &&
-	    (bytes == sizeof(struct xfs_attr_sf_hdr)))
+		(dp->i_d.di_format != XFS_DINODE_FMT_BTREE) &&
+		(bytes == sizeof(struct xfs_attr_sf_hdr)))
+	{
 		return -1;
+	}
+
 	return xfs_attr_shortform_bytesfit(dp, bytes);
 }
 
@@ -887,8 +1075,11 @@ xfs_attr3_leaf_to_shortform(
 	trace_xfs_attr_leaf_to_sf(args);
 
 	tmpbuffer = kmem_alloc(args->geo->blksize, KM_SLEEP);
+
 	if (!tmpbuffer)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(tmpbuffer, bp->b_addr, args->geo->blksize);
 
@@ -903,10 +1094,14 @@ xfs_attr3_leaf_to_shortform(
 	 * Clean out the prior contents of the attribute list.
 	 */
 	error = xfs_da_shrink_inode(args, 0, bp);
-	if (error)
-		goto out;
 
-	if (forkoff == -1) {
+	if (error)
+	{
+		goto out;
+	}
+
+	if (forkoff == -1)
+	{
 		ASSERT(dp->i_mount->m_flags & XFS_MOUNT_ATTR2);
 		ASSERT(dp->i_d.di_format != XFS_DINODE_FMT_BTREE);
 		xfs_attr_fork_remove(dp, args->trans);
@@ -928,11 +1123,18 @@ xfs_attr3_leaf_to_shortform(
 	nargs.trans = args->trans;
 	nargs.op_flags = XFS_DA_OP_OKNOENT;
 
-	for (i = 0; i < ichdr.count; entry++, i++) {
+	for (i = 0; i < ichdr.count; entry++, i++)
+	{
 		if (entry->flags & XFS_ATTR_INCOMPLETE)
-			continue;	/* don't copy partial entries */
+		{
+			continue;    /* don't copy partial entries */
+		}
+
 		if (!entry->nameidx)
+		{
 			continue;
+		}
+
 		ASSERT(entry->flags & XFS_ATTR_LOCAL);
 		name_loc = xfs_attr3_leaf_name_local(leaf, i);
 		nargs.name = name_loc->nameval;
@@ -943,6 +1145,7 @@ xfs_attr3_leaf_to_shortform(
 		nargs.flags = XFS_ATTR_NSP_ONDISK_TO_ARGS(entry->flags);
 		xfs_attr_shortform_add(&nargs, forkoff);
 	}
+
 	error = 0;
 
 out:
@@ -973,32 +1176,49 @@ xfs_attr3_leaf_to_node(
 	trace_xfs_attr_leaf_to_node(args);
 
 	error = xfs_da_grow_inode(args, &blkno);
+
 	if (error)
+	{
 		goto out;
+	}
+
 	error = xfs_attr3_leaf_read(args->trans, dp, 0, -1, &bp1);
+
 	if (error)
+	{
 		goto out;
+	}
 
 	error = xfs_da_get_buf(args->trans, dp, blkno, -1, &bp2, XFS_ATTR_FORK);
+
 	if (error)
+	{
 		goto out;
+	}
 
 	/* copy leaf to new buffer, update identifiers */
 	xfs_trans_buf_set_type(args->trans, bp2, XFS_BLFT_ATTR_LEAF_BUF);
 	bp2->b_ops = bp1->b_ops;
 	memcpy(bp2->b_addr, bp1->b_addr, args->geo->blksize);
-	if (xfs_sb_version_hascrc(&mp->m_sb)) {
+
+	if (xfs_sb_version_hascrc(&mp->m_sb))
+	{
 		struct xfs_da3_blkinfo *hdr3 = bp2->b_addr;
 		hdr3->blkno = cpu_to_be64(bp2->b_bn);
 	}
+
 	xfs_trans_log_buf(args->trans, bp2, 0, args->geo->blksize - 1);
 
 	/*
 	 * Set up the new root node.
 	 */
 	error = xfs_da3_node_create(args, 0, 1, &bp1, XFS_ATTR_FORK);
+
 	if (error)
+	{
 		goto out;
+	}
+
 	node = bp1->b_addr;
 	dp->d_ops->node_hdr_from_disk(&icnodehdr, node);
 	btree = dp->d_ops->node_tree_p(node);
@@ -1042,9 +1262,13 @@ xfs_attr3_leaf_create(
 	trace_xfs_attr_leaf_create(args);
 
 	error = xfs_da_get_buf(args->trans, args->dp, blkno, -1, &bp,
-					    XFS_ATTR_FORK);
+						   XFS_ATTR_FORK);
+
 	if (error)
+	{
 		return error;
+	}
+
 	bp->b_ops = &xfs_attr3_leaf_buf_ops;
 	xfs_trans_buf_set_type(args->trans, bp, XFS_BLFT_ATTR_LEAF_BUF);
 	leaf = bp->b_addr;
@@ -1053,7 +1277,8 @@ xfs_attr3_leaf_create(
 	memset(&ichdr, 0, sizeof(ichdr));
 	ichdr.firstused = args->geo->blksize;
 
-	if (xfs_sb_version_hascrc(&mp->m_sb)) {
+	if (xfs_sb_version_hascrc(&mp->m_sb))
+	{
 		struct xfs_da3_blkinfo *hdr3 = bp->b_addr;
 
 		ichdr.magic = XFS_ATTR3_LEAF_MAGIC;
@@ -1063,10 +1288,13 @@ xfs_attr3_leaf_create(
 		uuid_copy(&hdr3->uuid, &mp->m_sb.sb_meta_uuid);
 
 		ichdr.freemap[0].base = sizeof(struct xfs_attr3_leaf_hdr);
-	} else {
+	}
+	else
+	{
 		ichdr.magic = XFS_ATTR_LEAF_MAGIC;
 		ichdr.freemap[0].base = sizeof(struct xfs_attr_leaf_hdr);
 	}
+
 	ichdr.freemap[0].size = ichdr.firstused - ichdr.freemap[0].base;
 
 	xfs_attr3_leaf_hdr_to_disk(args->geo, leaf, &ichdr);
@@ -1095,11 +1323,19 @@ xfs_attr3_leaf_split(
 	 */
 	ASSERT(oldblk->magic == XFS_ATTR_LEAF_MAGIC);
 	error = xfs_da_grow_inode(state->args, &blkno);
+
 	if (error)
+	{
 		return error;
+	}
+
 	error = xfs_attr3_leaf_create(state->args, blkno, &newblk->bp);
+
 	if (error)
+	{
 		return error;
+	}
+
 	newblk->blkno = blkno;
 	newblk->magic = XFS_ATTR_LEAF_MAGIC;
 
@@ -1109,8 +1345,11 @@ xfs_attr3_leaf_split(
 	 */
 	xfs_attr3_leaf_rebalance(state, oldblk, newblk);
 	error = xfs_da3_blk_link(state, oldblk, newblk);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/*
 	 * Save info on "old" attribute for "atomic rename" ops, leaf_add()
@@ -1119,10 +1358,13 @@ xfs_attr3_leaf_split(
 	 *
 	 * Insert the "new" entry in the correct block.
 	 */
-	if (state->inleaf) {
+	if (state->inleaf)
+	{
 		trace_xfs_attr_leaf_add_old(state->args);
 		error = xfs_attr3_leaf_add(oldblk->bp, state->args);
-	} else {
+	}
+	else
+	{
 		trace_xfs_attr_leaf_add_new(state->args);
 		error = xfs_attr3_leaf_add(newblk->bp, state->args);
 	}
@@ -1163,21 +1405,34 @@ xfs_attr3_leaf_add(
 	 * (may need to figure in size of entry struct too)
 	 */
 	tablesize = (ichdr.count + 1) * sizeof(xfs_attr_leaf_entry_t)
-					+ xfs_attr3_leaf_hdr_size(leaf);
-	for (sum = 0, i = XFS_ATTR_LEAF_MAPSIZE - 1; i >= 0; i--) {
-		if (tablesize > ichdr.firstused) {
+				+ xfs_attr3_leaf_hdr_size(leaf);
+
+	for (sum = 0, i = XFS_ATTR_LEAF_MAPSIZE - 1; i >= 0; i--)
+	{
+		if (tablesize > ichdr.firstused)
+		{
 			sum += ichdr.freemap[i].size;
 			continue;
 		}
+
 		if (!ichdr.freemap[i].size)
-			continue;	/* no space in this map */
+		{
+			continue;    /* no space in this map */
+		}
+
 		tmp = entsize;
+
 		if (ichdr.freemap[i].base < ichdr.firstused)
+		{
 			tmp += sizeof(xfs_attr_leaf_entry_t);
-		if (ichdr.freemap[i].size >= tmp) {
+		}
+
+		if (ichdr.freemap[i].size >= tmp)
+		{
 			tmp = xfs_attr3_leaf_add_work(bp, &ichdr, args, i);
 			goto out_log_hdr;
 		}
+
 		sum += ichdr.freemap[i].size;
 	}
 
@@ -1187,7 +1442,9 @@ xfs_attr3_leaf_add(
 	 * no good and we should just give up.
 	 */
 	if (!ichdr.holes && sum < entsize)
+	{
 		return -ENOSPC;
+	}
 
 	/*
 	 * Compact the entries to coalesce free space.
@@ -1199,7 +1456,8 @@ xfs_attr3_leaf_add(
 	 * After compaction, the block is guaranteed to have only one
 	 * free region, in freemap[0].  If it is not big enough, give up.
 	 */
-	if (ichdr.freemap[0].size < (entsize + sizeof(xfs_attr_leaf_entry_t))) {
+	if (ichdr.freemap[0].size < (entsize + sizeof(xfs_attr_leaf_entry_t)))
+	{
 		tmp = -ENOSPC;
 		goto out_log_hdr;
 	}
@@ -1209,8 +1467,8 @@ xfs_attr3_leaf_add(
 out_log_hdr:
 	xfs_attr3_leaf_hdr_to_disk(args->geo, leaf, &ichdr);
 	xfs_trans_log_buf(args->trans, bp,
-		XFS_DA_LOGRANGE(leaf, &leaf->hdr,
-				xfs_attr3_leaf_hdr_size(leaf)));
+					  XFS_DA_LOGRANGE(leaf, &leaf->hdr,
+									  xfs_attr3_leaf_hdr_size(leaf)));
 	return tmp;
 }
 
@@ -1242,13 +1500,16 @@ xfs_attr3_leaf_add_work(
 	 * Force open some space in the entry array and fill it in.
 	 */
 	entry = &xfs_attr3_leaf_entryp(leaf)[args->index];
-	if (args->index < ichdr->count) {
+
+	if (args->index < ichdr->count)
+	{
 		tmp  = ichdr->count - args->index;
 		tmp *= sizeof(xfs_attr_leaf_entry_t);
 		memmove(entry + 1, entry, tmp);
 		xfs_trans_log_buf(args->trans, bp,
-		    XFS_DA_LOGRANGE(leaf, entry, tmp + sizeof(*entry)));
+						  XFS_DA_LOGRANGE(leaf, entry, tmp + sizeof(*entry)));
 	}
+
 	ichdr->count++;
 
 	/*
@@ -1258,30 +1519,35 @@ xfs_attr3_leaf_add_work(
 	ASSERT(ichdr->freemap[mapindex].base < args->geo->blksize);
 	ASSERT((ichdr->freemap[mapindex].base & 0x3) == 0);
 	ASSERT(ichdr->freemap[mapindex].size >=
-		xfs_attr_leaf_newentsize(args, NULL));
+		   xfs_attr_leaf_newentsize(args, NULL));
 	ASSERT(ichdr->freemap[mapindex].size < args->geo->blksize);
 	ASSERT((ichdr->freemap[mapindex].size & 0x3) == 0);
 
 	ichdr->freemap[mapindex].size -= xfs_attr_leaf_newentsize(args, &tmp);
 
 	entry->nameidx = cpu_to_be16(ichdr->freemap[mapindex].base +
-				     ichdr->freemap[mapindex].size);
+								 ichdr->freemap[mapindex].size);
 	entry->hashval = cpu_to_be32(args->hashval);
 	entry->flags = tmp ? XFS_ATTR_LOCAL : 0;
 	entry->flags |= XFS_ATTR_NSP_ARGS_TO_ONDISK(args->flags);
-	if (args->op_flags & XFS_DA_OP_RENAME) {
+
+	if (args->op_flags & XFS_DA_OP_RENAME)
+	{
 		entry->flags |= XFS_ATTR_INCOMPLETE;
+
 		if ((args->blkno2 == args->blkno) &&
-		    (args->index2 <= args->index)) {
+			(args->index2 <= args->index))
+		{
 			args->index2++;
 		}
 	}
+
 	xfs_trans_log_buf(args->trans, bp,
-			  XFS_DA_LOGRANGE(leaf, entry, sizeof(*entry)));
+					  XFS_DA_LOGRANGE(leaf, entry, sizeof(*entry)));
 	ASSERT((args->index == 0) ||
-	       (be32_to_cpu(entry->hashval) >= be32_to_cpu((entry-1)->hashval)));
+		   (be32_to_cpu(entry->hashval) >= be32_to_cpu((entry - 1)->hashval)));
 	ASSERT((args->index == ichdr->count - 1) ||
-	       (be32_to_cpu(entry->hashval) <= be32_to_cpu((entry+1)->hashval)));
+		   (be32_to_cpu(entry->hashval) <= be32_to_cpu((entry + 1)->hashval)));
 
 	/*
 	 * For "remote" attribute values, simply note that we need to
@@ -1290,14 +1556,17 @@ xfs_attr3_leaf_add_work(
 	 * which blocks they should be as we might allocate more blocks
 	 * as part of this transaction (a split operation for example).
 	 */
-	if (entry->flags & XFS_ATTR_LOCAL) {
+	if (entry->flags & XFS_ATTR_LOCAL)
+	{
 		name_loc = xfs_attr3_leaf_name_local(leaf, args->index);
 		name_loc->namelen = args->namelen;
 		name_loc->valuelen = cpu_to_be16(args->valuelen);
 		memcpy((char *)name_loc->nameval, args->name, args->namelen);
 		memcpy((char *)&name_loc->nameval[args->namelen], args->value,
-				   be16_to_cpu(name_loc->valuelen));
-	} else {
+			   be16_to_cpu(name_loc->valuelen));
+	}
+	else
+	{
 		name_rmt = xfs_attr3_leaf_name_remote(leaf, args->index);
 		name_rmt->namelen = args->namelen;
 		memcpy((char *)name_rmt->name, args->name, args->namelen);
@@ -1309,27 +1578,33 @@ xfs_attr3_leaf_add_work(
 		args->rmtblkcnt = xfs_attr3_rmt_blocks(mp, args->valuelen);
 		args->rmtvaluelen = args->valuelen;
 	}
+
 	xfs_trans_log_buf(args->trans, bp,
-	     XFS_DA_LOGRANGE(leaf, xfs_attr3_leaf_name(leaf, args->index),
-				   xfs_attr_leaf_entsize(leaf, args->index)));
+					  XFS_DA_LOGRANGE(leaf, xfs_attr3_leaf_name(leaf, args->index),
+									  xfs_attr_leaf_entsize(leaf, args->index)));
 
 	/*
 	 * Update the control info for this leaf node
 	 */
 	if (be16_to_cpu(entry->nameidx) < ichdr->firstused)
+	{
 		ichdr->firstused = be16_to_cpu(entry->nameidx);
+	}
 
 	ASSERT(ichdr->firstused >= ichdr->count * sizeof(xfs_attr_leaf_entry_t)
-					+ xfs_attr3_leaf_hdr_size(leaf));
+		   + xfs_attr3_leaf_hdr_size(leaf));
 	tmp = (ichdr->count - 1) * sizeof(xfs_attr_leaf_entry_t)
-					+ xfs_attr3_leaf_hdr_size(leaf);
+		  + xfs_attr3_leaf_hdr_size(leaf);
 
-	for (i = 0; i < XFS_ATTR_LEAF_MAPSIZE; i++) {
-		if (ichdr->freemap[i].base == tmp) {
+	for (i = 0; i < XFS_ATTR_LEAF_MAPSIZE; i++)
+	{
+		if (ichdr->freemap[i].base == tmp)
+		{
 			ichdr->freemap[i].base += sizeof(xfs_attr_leaf_entry_t);
 			ichdr->freemap[i].size -= sizeof(xfs_attr_leaf_entry_t);
 		}
 	}
+
 	ichdr->usedbytes += xfs_attr_leaf_entsize(leaf, args->index);
 	return 0;
 }
@@ -1372,7 +1647,7 @@ xfs_attr3_leaf_compact(
 	ichdr_dst->holes = 0;
 	ichdr_dst->freemap[0].base = xfs_attr3_leaf_hdr_size(leaf_src);
 	ichdr_dst->freemap[0].size = ichdr_dst->firstused -
-						ichdr_dst->freemap[0].base;
+								 ichdr_dst->freemap[0].base;
 
 	/* write the header back to initialise the underlying buffer */
 	xfs_attr3_leaf_hdr_to_disk(args->geo, leaf_dst, ichdr_dst);
@@ -1382,7 +1657,7 @@ xfs_attr3_leaf_compact(
 	 * but allocate name/value pairs packed and in sequence.
 	 */
 	xfs_attr3_leaf_moveents(args, leaf_src, &ichdr_src, 0,
-				leaf_dst, ichdr_dst, 0, ichdr_src.count);
+							leaf_dst, ichdr_dst, 0, ichdr_src.count);
 	/*
 	 * this logs the entire buffer, but the caller must write the header
 	 * back to the buffer when it is finished modifying it.
@@ -1408,13 +1683,16 @@ xfs_attr3_leaf_order(
 
 	entries1 = xfs_attr3_leaf_entryp(leaf1_bp->b_addr);
 	entries2 = xfs_attr3_leaf_entryp(leaf2_bp->b_addr);
+
 	if (leaf1hdr->count > 0 && leaf2hdr->count > 0 &&
-	    ((be32_to_cpu(entries2[0].hashval) <
-	      be32_to_cpu(entries1[0].hashval)) ||
-	     (be32_to_cpu(entries2[leaf2hdr->count - 1].hashval) <
-	      be32_to_cpu(entries1[leaf1hdr->count - 1].hashval)))) {
+		((be32_to_cpu(entries2[0].hashval) <
+		  be32_to_cpu(entries1[0].hashval)) ||
+		 (be32_to_cpu(entries2[leaf2hdr->count - 1].hashval) <
+		  be32_to_cpu(entries1[leaf1hdr->count - 1].hashval))))
+	{
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -1484,7 +1762,9 @@ xfs_attr3_leaf_rebalance(
 	 * second block, this code should never set "swap".
 	 */
 	swap = 0;
-	if (xfs_attr3_leaf_order(blk1->bp, &ichdr1, blk2->bp, &ichdr2)) {
+
+	if (xfs_attr3_leaf_order(blk1->bp, &ichdr1, blk2->bp, &ichdr2))
+	{
 		struct xfs_da_state_blk	*tmp_blk;
 		struct xfs_attr3_icleaf_hdr tmp_ichdr;
 
@@ -1511,15 +1791,19 @@ xfs_attr3_leaf_rebalance(
 	 * If "swap" is also true, then reverse the sense of "inleaf".
 	 */
 	state->inleaf = xfs_attr3_leaf_figure_balance(state, blk1, &ichdr1,
-						      blk2, &ichdr2,
-						      &count, &totallen);
+					blk2, &ichdr2,
+					&count, &totallen);
+
 	if (swap)
+	{
 		state->inleaf = !state->inleaf;
+	}
 
 	/*
 	 * Move any entries required from leaf to leaf:
 	 */
-	if (count < ichdr1.count) {
+	if (count < ichdr1.count)
+	{
 		/*
 		 * Figure the total bytes to be added to the destination leaf.
 		 */
@@ -1533,16 +1817,21 @@ xfs_attr3_leaf_rebalance(
 		 */
 		max  = ichdr2.firstused - xfs_attr3_leaf_hdr_size(leaf1);
 		max -= ichdr2.count * sizeof(xfs_attr_leaf_entry_t);
+
 		if (space > max)
+		{
 			xfs_attr3_leaf_compact(args, &ichdr2, blk2->bp);
+		}
 
 		/*
 		 * Move high entries from leaf1 to low end of leaf2.
 		 */
 		xfs_attr3_leaf_moveents(args, leaf1, &ichdr1,
-				ichdr1.count - count, leaf2, &ichdr2, 0, count);
+								ichdr1.count - count, leaf2, &ichdr2, 0, count);
 
-	} else if (count > ichdr1.count) {
+	}
+	else if (count > ichdr1.count)
+	{
 		/*
 		 * I assert that since all callers pass in an empty
 		 * second buffer, this code should never execute.
@@ -1562,14 +1851,17 @@ xfs_attr3_leaf_rebalance(
 		 */
 		max  = ichdr1.firstused - xfs_attr3_leaf_hdr_size(leaf1);
 		max -= ichdr1.count * sizeof(xfs_attr_leaf_entry_t);
+
 		if (space > max)
+		{
 			xfs_attr3_leaf_compact(args, &ichdr1, blk1->bp);
+		}
 
 		/*
 		 * Move low entries from leaf2 to high end of leaf1.
 		 */
 		xfs_attr3_leaf_moveents(args, leaf2, &ichdr2, 0, leaf1, &ichdr1,
-					ichdr1.count, count);
+								ichdr1.count, count);
 	}
 
 	xfs_attr3_leaf_hdr_to_disk(state->args->geo, leaf1, &ichdr1);
@@ -1597,18 +1889,24 @@ xfs_attr3_leaf_rebalance(
 	 * inserting.  The index/blkno fields refer to the "old" entry,
 	 * while the index2/blkno2 fields refer to the "new" entry.
 	 */
-	if (blk1->index > ichdr1.count) {
+	if (blk1->index > ichdr1.count)
+	{
 		ASSERT(state->inleaf == 0);
 		blk2->index = blk1->index - ichdr1.count;
 		args->index = args->index2 = blk2->index;
 		args->blkno = args->blkno2 = blk2->blkno;
-	} else if (blk1->index == ichdr1.count) {
-		if (state->inleaf) {
+	}
+	else if (blk1->index == ichdr1.count)
+	{
+		if (state->inleaf)
+		{
 			args->index = blk1->index;
 			args->blkno = blk1->blkno;
 			args->index2 = 0;
 			args->blkno2 = blk2->blkno;
-		} else {
+		}
+		else
+		{
 			/*
 			 * On a double leaf split, the original attr location
 			 * is already stored in blkno2/index2, so don't
@@ -1617,7 +1915,9 @@ xfs_attr3_leaf_rebalance(
 			blk2->index = blk1->index - ichdr1.count;
 			args->index = blk2->index;
 			args->blkno = blk2->blkno;
-			if (!state->extravalid) {
+
+			if (!state->extravalid)
+			{
 				/*
 				 * set the new attr location to match the old
 				 * one and let the higher level split code
@@ -1627,7 +1927,9 @@ xfs_attr3_leaf_rebalance(
 				args->blkno2 = blk2->blkno;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		ASSERT(state->inleaf == 1);
 		args->index = args->index2 = blk1->index;
 		args->blkno = args->blkno2 = blk1->blkno;
@@ -1674,17 +1976,25 @@ xfs_attr3_leaf_figure_balance(
 	half /= 2;
 	lastdelta = state->args->geo->blksize;
 	entry = xfs_attr3_leaf_entryp(leaf1);
-	for (count = index = 0; count < max; entry++, index++, count++) {
+
+	for (count = index = 0; count < max; entry++, index++, count++)
+	{
 
 #define XFS_ATTR_ABS(A)	(((A) < 0) ? -(A) : (A))
+
 		/*
 		 * The new entry is in the first block, account for it.
 		 */
-		if (count == blk1->index) {
+		if (count == blk1->index)
+		{
 			tmp = totallen + sizeof(*entry) +
-				xfs_attr_leaf_newentsize(state->args, NULL);
+				  xfs_attr_leaf_newentsize(state->args, NULL);
+
 			if (XFS_ATTR_ABS(half - tmp) > lastdelta)
+			{
 				break;
+			}
+
 			lastdelta = XFS_ATTR_ABS(half - tmp);
 			totallen = tmp;
 			foundit = 1;
@@ -1693,7 +2003,8 @@ xfs_attr3_leaf_figure_balance(
 		/*
 		 * Wrap around into the second block if necessary.
 		 */
-		if (count == ichdr1->count) {
+		if (count == ichdr1->count)
+		{
 			leaf1 = leaf2;
 			entry = xfs_attr3_leaf_entryp(leaf1);
 			index = 0;
@@ -1703,9 +2014,13 @@ xfs_attr3_leaf_figure_balance(
 		 * Figure out if next leaf entry would be too much.
 		 */
 		tmp = totallen + sizeof(*entry) + xfs_attr_leaf_entsize(leaf1,
-									index);
+				index);
+
 		if (XFS_ATTR_ABS(half - tmp) > lastdelta)
+		{
 			break;
+		}
+
 		lastdelta = XFS_ATTR_ABS(half - tmp);
 		totallen = tmp;
 #undef XFS_ATTR_ABS
@@ -1716,9 +2031,11 @@ xfs_attr3_leaf_figure_balance(
 	 * If new entry not in lower block, fix up the count.
 	 */
 	totallen -= count * sizeof(*entry);
-	if (foundit) {
+
+	if (foundit)
+	{
 		totallen -= sizeof(*entry) +
-				xfs_attr_leaf_newentsize(state->args, NULL);
+					xfs_attr_leaf_newentsize(state->args, NULL);
 	}
 
 	*countarg = count;
@@ -1764,13 +2081,15 @@ xfs_attr3_leaf_toosmall(
 	 * If so, it's not worth even looking to see if we might be able
 	 * to coalesce with a sibling.
 	 */
-	blk = &state->path.blk[ state->path.active-1 ];
+	blk = &state->path.blk[ state->path.active - 1 ];
 	leaf = blk->bp->b_addr;
 	xfs_attr3_leaf_hdr_from_disk(state->args->geo, &ichdr, leaf);
 	bytes = xfs_attr3_leaf_hdr_size(leaf) +
-		ichdr.count * sizeof(xfs_attr_leaf_entry_t) +
-		ichdr.usedbytes;
-	if (bytes > (state->args->geo->blksize >> 1)) {
+			ichdr.count * sizeof(xfs_attr_leaf_entry_t) +
+			ichdr.usedbytes;
+
+	if (bytes > (state->args->geo->blksize >> 1))
+	{
 		*action = 0;	/* blk over 50%, don't try to join */
 		return 0;
 	}
@@ -1781,7 +2100,8 @@ xfs_attr3_leaf_toosmall(
 	 * coalesce it with a sibling block.  We choose (arbitrarily)
 	 * to merge with the forward block unless it is NULL.
 	 */
-	if (ichdr.count == 0) {
+	if (ichdr.count == 0)
+	{
 		/*
 		 * Make altpath point to the block we want to keep and
 		 * path point to the block we want to drop (this one).
@@ -1789,14 +2109,22 @@ xfs_attr3_leaf_toosmall(
 		forward = (ichdr.forw != 0);
 		memcpy(&state->altpath, &state->path, sizeof(state->path));
 		error = xfs_da3_path_shift(state, &state->altpath, forward,
-						 0, &retval);
+								   0, &retval);
+
 		if (error)
+		{
 			return error;
-		if (retval) {
+		}
+
+		if (retval)
+		{
 			*action = 0;
-		} else {
+		}
+		else
+		{
 			*action = 2;
 		}
+
 		return 0;
 	}
 
@@ -1809,33 +2137,52 @@ xfs_attr3_leaf_toosmall(
 	 */
 	/* start with smaller blk num */
 	forward = ichdr.forw < ichdr.back;
-	for (i = 0; i < 2; forward = !forward, i++) {
+
+	for (i = 0; i < 2; forward = !forward, i++)
+	{
 		struct xfs_attr3_icleaf_hdr ichdr2;
+
 		if (forward)
+		{
 			blkno = ichdr.forw;
+		}
 		else
+		{
 			blkno = ichdr.back;
+		}
+
 		if (blkno == 0)
+		{
 			continue;
+		}
+
 		error = xfs_attr3_leaf_read(state->args->trans, state->args->dp,
-					blkno, -1, &bp);
+									blkno, -1, &bp);
+
 		if (error)
+		{
 			return error;
+		}
 
 		xfs_attr3_leaf_hdr_from_disk(state->args->geo, &ichdr2, bp->b_addr);
 
 		bytes = state->args->geo->blksize -
-			(state->args->geo->blksize >> 2) -
-			ichdr.usedbytes - ichdr2.usedbytes -
-			((ichdr.count + ichdr2.count) *
-					sizeof(xfs_attr_leaf_entry_t)) -
-			xfs_attr3_leaf_hdr_size(leaf);
+				(state->args->geo->blksize >> 2) -
+				ichdr.usedbytes - ichdr2.usedbytes -
+				((ichdr.count + ichdr2.count) *
+				 sizeof(xfs_attr_leaf_entry_t)) -
+				xfs_attr3_leaf_hdr_size(leaf);
 
 		xfs_trans_brelse(state->args->trans, bp);
+
 		if (bytes >= 0)
-			break;	/* fits with at least 25% to spare */
+		{
+			break;    /* fits with at least 25% to spare */
+		}
 	}
-	if (i >= 2) {
+
+	if (i >= 2)
+	{
 		*action = 0;
 		return 0;
 	}
@@ -1845,20 +2192,32 @@ xfs_attr3_leaf_toosmall(
 	 * numbered block) and path point to the block we want to drop.
 	 */
 	memcpy(&state->altpath, &state->path, sizeof(state->path));
-	if (blkno < blk->blkno) {
+
+	if (blkno < blk->blkno)
+	{
 		error = xfs_da3_path_shift(state, &state->altpath, forward,
-						 0, &retval);
-	} else {
-		error = xfs_da3_path_shift(state, &state->path, forward,
-						 0, &retval);
+								   0, &retval);
 	}
+	else
+	{
+		error = xfs_da3_path_shift(state, &state->path, forward,
+								   0, &retval);
+	}
+
 	if (error)
+	{
 		return error;
-	if (retval) {
+	}
+
+	if (retval)
+	{
 		*action = 0;
-	} else {
+	}
+	else
+	{
 		*action = 1;
 	}
+
 	return 0;
 }
 
@@ -1892,7 +2251,7 @@ xfs_attr3_leaf_remove(
 	ASSERT(ichdr.count > 0 && ichdr.count < args->geo->blksize / 8);
 	ASSERT(args->index >= 0 && args->index < ichdr.count);
 	ASSERT(ichdr.firstused >= ichdr.count * sizeof(*entry) +
-					xfs_attr3_leaf_hdr_size(leaf));
+		   xfs_attr3_leaf_hdr_size(leaf));
 
 	entry = &xfs_attr3_leaf_entryp(leaf)[args->index];
 
@@ -1906,26 +2265,35 @@ xfs_attr3_leaf_remove(
 	 *    adjust any map that borders the entry table,
 	 */
 	tablesize = ichdr.count * sizeof(xfs_attr_leaf_entry_t)
-					+ xfs_attr3_leaf_hdr_size(leaf);
+				+ xfs_attr3_leaf_hdr_size(leaf);
 	tmp = ichdr.freemap[0].size;
 	before = after = -1;
 	smallest = XFS_ATTR_LEAF_MAPSIZE - 1;
 	entsize = xfs_attr_leaf_entsize(leaf, args->index);
-	for (i = 0; i < XFS_ATTR_LEAF_MAPSIZE; i++) {
+
+	for (i = 0; i < XFS_ATTR_LEAF_MAPSIZE; i++)
+	{
 		ASSERT(ichdr.freemap[i].base < args->geo->blksize);
 		ASSERT(ichdr.freemap[i].size < args->geo->blksize);
-		if (ichdr.freemap[i].base == tablesize) {
+
+		if (ichdr.freemap[i].base == tablesize)
+		{
 			ichdr.freemap[i].base -= sizeof(xfs_attr_leaf_entry_t);
 			ichdr.freemap[i].size += sizeof(xfs_attr_leaf_entry_t);
 		}
 
 		if (ichdr.freemap[i].base + ichdr.freemap[i].size ==
-				be16_to_cpu(entry->nameidx)) {
+			be16_to_cpu(entry->nameidx))
+		{
 			before = i;
-		} else if (ichdr.freemap[i].base ==
-				(be16_to_cpu(entry->nameidx) + entsize)) {
+		}
+		else if (ichdr.freemap[i].base ==
+				 (be16_to_cpu(entry->nameidx) + entsize))
+		{
 			after = i;
-		} else if (ichdr.freemap[i].size < tmp) {
+		}
+		else if (ichdr.freemap[i].size < tmp)
+		{
 			tmp = ichdr.freemap[i].size;
 			smallest = i;
 		}
@@ -1935,23 +2303,32 @@ xfs_attr3_leaf_remove(
 	 * Coalesce adjacent freemap regions,
 	 * or replace the smallest region.
 	 */
-	if ((before >= 0) || (after >= 0)) {
-		if ((before >= 0) && (after >= 0)) {
+	if ((before >= 0) || (after >= 0))
+	{
+		if ((before >= 0) && (after >= 0))
+		{
 			ichdr.freemap[before].size += entsize;
 			ichdr.freemap[before].size += ichdr.freemap[after].size;
 			ichdr.freemap[after].base = 0;
 			ichdr.freemap[after].size = 0;
-		} else if (before >= 0) {
+		}
+		else if (before >= 0)
+		{
 			ichdr.freemap[before].size += entsize;
-		} else {
+		}
+		else
+		{
 			ichdr.freemap[after].base = be16_to_cpu(entry->nameidx);
 			ichdr.freemap[after].size += entsize;
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * Replace smallest region (if it is smaller than free'd entry)
 		 */
-		if (ichdr.freemap[smallest].size < entsize) {
+		if (ichdr.freemap[smallest].size < entsize)
+		{
 			ichdr.freemap[smallest].base = be16_to_cpu(entry->nameidx);
 			ichdr.freemap[smallest].size = entsize;
 		}
@@ -1961,9 +2338,13 @@ xfs_attr3_leaf_remove(
 	 * Did we remove the first entry?
 	 */
 	if (be16_to_cpu(entry->nameidx) == ichdr.firstused)
+	{
 		smallest = 1;
+	}
 	else
+	{
 		smallest = 0;
+	}
 
 	/*
 	 * Compress the remaining entries and zero out the removed stuff.
@@ -1971,14 +2352,14 @@ xfs_attr3_leaf_remove(
 	memset(xfs_attr3_leaf_name(leaf, args->index), 0, entsize);
 	ichdr.usedbytes -= entsize;
 	xfs_trans_log_buf(args->trans, bp,
-	     XFS_DA_LOGRANGE(leaf, xfs_attr3_leaf_name(leaf, args->index),
-				   entsize));
+					  XFS_DA_LOGRANGE(leaf, xfs_attr3_leaf_name(leaf, args->index),
+									  entsize));
 
 	tmp = (ichdr.count - args->index) * sizeof(xfs_attr_leaf_entry_t);
 	memmove(entry, entry + 1, tmp);
 	ichdr.count--;
 	xfs_trans_log_buf(args->trans, bp,
-	    XFS_DA_LOGRANGE(leaf, entry, tmp + sizeof(xfs_attr_leaf_entry_t)));
+					  XFS_DA_LOGRANGE(leaf, entry, tmp + sizeof(xfs_attr_leaf_entry_t)));
 
 	entry = &xfs_attr3_leaf_entryp(leaf)[ichdr.count];
 	memset(entry, 0, sizeof(xfs_attr_leaf_entry_t));
@@ -1989,32 +2370,41 @@ xfs_attr3_leaf_remove(
 	 * then we don't have a "hole" in our block resulting from
 	 * removing the name.
 	 */
-	if (smallest) {
+	if (smallest)
+	{
 		tmp = args->geo->blksize;
 		entry = xfs_attr3_leaf_entryp(leaf);
-		for (i = ichdr.count - 1; i >= 0; entry++, i--) {
+
+		for (i = ichdr.count - 1; i >= 0; entry++, i--)
+		{
 			ASSERT(be16_to_cpu(entry->nameidx) >= ichdr.firstused);
 			ASSERT(be16_to_cpu(entry->nameidx) < args->geo->blksize);
 
 			if (be16_to_cpu(entry->nameidx) < tmp)
+			{
 				tmp = be16_to_cpu(entry->nameidx);
+			}
 		}
+
 		ichdr.firstused = tmp;
 		ASSERT(ichdr.firstused != 0);
-	} else {
+	}
+	else
+	{
 		ichdr.holes = 1;	/* mark as needing compaction */
 	}
+
 	xfs_attr3_leaf_hdr_to_disk(args->geo, leaf, &ichdr);
 	xfs_trans_log_buf(args->trans, bp,
-			  XFS_DA_LOGRANGE(leaf, &leaf->hdr,
-					  xfs_attr3_leaf_hdr_size(leaf)));
+					  XFS_DA_LOGRANGE(leaf, &leaf->hdr,
+									  xfs_attr3_leaf_hdr_size(leaf)));
 
 	/*
 	 * Check if leaf is less than 50% full, caller may want to
 	 * "join" the leaf with a sibling if so.
 	 */
 	tmp = ichdr.usedbytes + xfs_attr3_leaf_hdr_size(leaf) +
-	      ichdr.count * sizeof(xfs_attr_leaf_entry_t);
+		  ichdr.count * sizeof(xfs_attr_leaf_entry_t);
 
 	return tmp < args->geo->magicpct; /* leaf is < 37% full */
 }
@@ -2052,24 +2442,30 @@ xfs_attr3_leaf_unbalance(
 	 * Note that we don't check "leaf" for holes because we will
 	 * always be dropping it, toosmall() decided that for us already.
 	 */
-	if (savehdr.holes == 0) {
+	if (savehdr.holes == 0)
+	{
 		/*
 		 * dest leaf has no holes, so we add there.  May need
 		 * to make some room in the entry array.
 		 */
 		if (xfs_attr3_leaf_order(save_blk->bp, &savehdr,
-					 drop_blk->bp, &drophdr)) {
+								 drop_blk->bp, &drophdr))
+		{
 			xfs_attr3_leaf_moveents(state->args,
-						drop_leaf, &drophdr, 0,
-						save_leaf, &savehdr, 0,
-						drophdr.count);
-		} else {
-			xfs_attr3_leaf_moveents(state->args,
-						drop_leaf, &drophdr, 0,
-						save_leaf, &savehdr,
-						savehdr.count, drophdr.count);
+									drop_leaf, &drophdr, 0,
+									save_leaf, &savehdr, 0,
+									drophdr.count);
 		}
-	} else {
+		else
+		{
+			xfs_attr3_leaf_moveents(state->args,
+									drop_leaf, &drophdr, 0,
+									save_leaf, &savehdr,
+									savehdr.count, drophdr.count);
+		}
+	}
+	else
+	{
 		/*
 		 * Destination has holes, so we make a temporary copy
 		 * of the leaf and add them both to that.
@@ -2096,25 +2492,29 @@ xfs_attr3_leaf_unbalance(
 		xfs_attr3_leaf_hdr_to_disk(state->args->geo, tmp_leaf, &tmphdr);
 
 		if (xfs_attr3_leaf_order(save_blk->bp, &savehdr,
-					 drop_blk->bp, &drophdr)) {
+								 drop_blk->bp, &drophdr))
+		{
 			xfs_attr3_leaf_moveents(state->args,
-						drop_leaf, &drophdr, 0,
-						tmp_leaf, &tmphdr, 0,
-						drophdr.count);
+									drop_leaf, &drophdr, 0,
+									tmp_leaf, &tmphdr, 0,
+									drophdr.count);
 			xfs_attr3_leaf_moveents(state->args,
-						save_leaf, &savehdr, 0,
-						tmp_leaf, &tmphdr, tmphdr.count,
-						savehdr.count);
-		} else {
-			xfs_attr3_leaf_moveents(state->args,
-						save_leaf, &savehdr, 0,
-						tmp_leaf, &tmphdr, 0,
-						savehdr.count);
-			xfs_attr3_leaf_moveents(state->args,
-						drop_leaf, &drophdr, 0,
-						tmp_leaf, &tmphdr, tmphdr.count,
-						drophdr.count);
+									save_leaf, &savehdr, 0,
+									tmp_leaf, &tmphdr, tmphdr.count,
+									savehdr.count);
 		}
+		else
+		{
+			xfs_attr3_leaf_moveents(state->args,
+									save_leaf, &savehdr, 0,
+									tmp_leaf, &tmphdr, 0,
+									savehdr.count);
+			xfs_attr3_leaf_moveents(state->args,
+									drop_leaf, &drophdr, 0,
+									tmp_leaf, &tmphdr, tmphdr.count,
+									drophdr.count);
+		}
+
 		memcpy(save_leaf, tmp_leaf, state->args->geo->blksize);
 		savehdr = tmphdr; /* struct copy */
 		kmem_free(tmp_leaf);
@@ -2122,7 +2522,7 @@ xfs_attr3_leaf_unbalance(
 
 	xfs_attr3_leaf_hdr_to_disk(state->args->geo, save_leaf, &savehdr);
 	xfs_trans_log_buf(state->args->trans, save_blk->bp, 0,
-					   state->args->geo->blksize - 1);
+					  state->args->geo->blksize - 1);
 
 	/*
 	 * Copy out last hashval in each block for B-tree code.
@@ -2175,15 +2575,25 @@ xfs_attr3_leaf_lookup_int(
 	 */
 	hashval = args->hashval;
 	probe = span = ichdr.count / 2;
-	for (entry = &entries[probe]; span > 4; entry = &entries[probe]) {
+
+	for (entry = &entries[probe]; span > 4; entry = &entries[probe])
+	{
 		span /= 2;
+
 		if (be32_to_cpu(entry->hashval) < hashval)
+		{
 			probe += span;
+		}
 		else if (be32_to_cpu(entry->hashval) > hashval)
+		{
 			probe -= span;
+		}
 		else
+		{
 			break;
+		}
 	}
+
 	ASSERT(probe >= 0 && (!ichdr.count || probe < ichdr.count));
 	ASSERT(span <= 4 || be32_to_cpu(entry->hashval) == hashval);
 
@@ -2191,16 +2601,21 @@ xfs_attr3_leaf_lookup_int(
 	 * Since we may have duplicate hashval's, find the first matching
 	 * hashval in the leaf.
 	 */
-	while (probe > 0 && be32_to_cpu(entry->hashval) >= hashval) {
+	while (probe > 0 && be32_to_cpu(entry->hashval) >= hashval)
+	{
 		entry--;
 		probe--;
 	}
+
 	while (probe < ichdr.count &&
-	       be32_to_cpu(entry->hashval) < hashval) {
+		   be32_to_cpu(entry->hashval) < hashval)
+	{
 		entry++;
 		probe++;
 	}
-	if (probe == ichdr.count || be32_to_cpu(entry->hashval) != hashval) {
+
+	if (probe == ichdr.count || be32_to_cpu(entry->hashval) != hashval)
+	{
 		args->index = probe;
 		return -ENOATTR;
 	}
@@ -2209,47 +2624,74 @@ xfs_attr3_leaf_lookup_int(
 	 * Duplicate keys may be present, so search all of them for a match.
 	 */
 	for (; probe < ichdr.count && (be32_to_cpu(entry->hashval) == hashval);
-			entry++, probe++) {
-/*
- * GROT: Add code to remove incomplete entries.
- */
+		 entry++, probe++)
+	{
+		/*
+		 * GROT: Add code to remove incomplete entries.
+		 */
 		/*
 		 * If we are looking for INCOMPLETE entries, show only those.
 		 * If we are looking for complete entries, show only those.
 		 */
 		if ((args->flags & XFS_ATTR_INCOMPLETE) !=
-		    (entry->flags & XFS_ATTR_INCOMPLETE)) {
+			(entry->flags & XFS_ATTR_INCOMPLETE))
+		{
 			continue;
 		}
-		if (entry->flags & XFS_ATTR_LOCAL) {
+
+		if (entry->flags & XFS_ATTR_LOCAL)
+		{
 			name_loc = xfs_attr3_leaf_name_local(leaf, probe);
+
 			if (name_loc->namelen != args->namelen)
+			{
 				continue;
+			}
+
 			if (memcmp(args->name, name_loc->nameval,
-							args->namelen) != 0)
+					   args->namelen) != 0)
+			{
 				continue;
+			}
+
 			if (!xfs_attr_namesp_match(args->flags, entry->flags))
+			{
 				continue;
+			}
+
 			args->index = probe;
 			return -EEXIST;
-		} else {
+		}
+		else
+		{
 			name_rmt = xfs_attr3_leaf_name_remote(leaf, probe);
+
 			if (name_rmt->namelen != args->namelen)
+			{
 				continue;
+			}
+
 			if (memcmp(args->name, name_rmt->name,
-							args->namelen) != 0)
+					   args->namelen) != 0)
+			{
 				continue;
+			}
+
 			if (!xfs_attr_namesp_match(args->flags, entry->flags))
+			{
 				continue;
+			}
+
 			args->index = probe;
 			args->rmtvaluelen = be32_to_cpu(name_rmt->valuelen);
 			args->rmtblkno = be32_to_cpu(name_rmt->valueblk);
 			args->rmtblkcnt = xfs_attr3_rmt_blocks(
-							args->dp->i_mount,
-							args->rmtvaluelen);
+								  args->dp->i_mount,
+								  args->rmtvaluelen);
 			return -EEXIST;
 		}
 	}
+
 	args->index = probe;
 	return -ENOATTR;
 }
@@ -2276,39 +2718,54 @@ xfs_attr3_leaf_getvalue(
 	ASSERT(args->index < ichdr.count);
 
 	entry = &xfs_attr3_leaf_entryp(leaf)[args->index];
-	if (entry->flags & XFS_ATTR_LOCAL) {
+
+	if (entry->flags & XFS_ATTR_LOCAL)
+	{
 		name_loc = xfs_attr3_leaf_name_local(leaf, args->index);
 		ASSERT(name_loc->namelen == args->namelen);
 		ASSERT(memcmp(args->name, name_loc->nameval, args->namelen) == 0);
 		valuelen = be16_to_cpu(name_loc->valuelen);
-		if (args->flags & ATTR_KERNOVAL) {
+
+		if (args->flags & ATTR_KERNOVAL)
+		{
 			args->valuelen = valuelen;
 			return 0;
 		}
-		if (args->valuelen < valuelen) {
+
+		if (args->valuelen < valuelen)
+		{
 			args->valuelen = valuelen;
 			return -ERANGE;
 		}
+
 		args->valuelen = valuelen;
 		memcpy(args->value, &name_loc->nameval[args->namelen], valuelen);
-	} else {
+	}
+	else
+	{
 		name_rmt = xfs_attr3_leaf_name_remote(leaf, args->index);
 		ASSERT(name_rmt->namelen == args->namelen);
 		ASSERT(memcmp(args->name, name_rmt->name, args->namelen) == 0);
 		args->rmtvaluelen = be32_to_cpu(name_rmt->valuelen);
 		args->rmtblkno = be32_to_cpu(name_rmt->valueblk);
 		args->rmtblkcnt = xfs_attr3_rmt_blocks(args->dp->i_mount,
-						       args->rmtvaluelen);
-		if (args->flags & ATTR_KERNOVAL) {
+											   args->rmtvaluelen);
+
+		if (args->flags & ATTR_KERNOVAL)
+		{
 			args->valuelen = args->rmtvaluelen;
 			return 0;
 		}
-		if (args->valuelen < args->rmtvaluelen) {
+
+		if (args->valuelen < args->rmtvaluelen)
+		{
 			args->valuelen = args->rmtvaluelen;
 			return -ERANGE;
 		}
+
 		args->valuelen = args->rmtvaluelen;
 	}
+
 	return 0;
 }
 
@@ -2342,20 +2799,22 @@ xfs_attr3_leaf_moveents(
 	 * Check for nothing to do.
 	 */
 	if (count == 0)
+	{
 		return;
+	}
 
 	/*
 	 * Set up environment.
 	 */
 	ASSERT(ichdr_s->magic == XFS_ATTR_LEAF_MAGIC ||
-	       ichdr_s->magic == XFS_ATTR3_LEAF_MAGIC);
+		   ichdr_s->magic == XFS_ATTR3_LEAF_MAGIC);
 	ASSERT(ichdr_s->magic == ichdr_d->magic);
 	ASSERT(ichdr_s->count > 0 && ichdr_s->count < args->geo->blksize / 8);
 	ASSERT(ichdr_s->firstused >= (ichdr_s->count * sizeof(*entry_s))
-					+ xfs_attr3_leaf_hdr_size(leaf_s));
+		   + xfs_attr3_leaf_hdr_size(leaf_s));
 	ASSERT(ichdr_d->count < args->geo->blksize / 8);
 	ASSERT(ichdr_d->firstused >= (ichdr_d->count * sizeof(*entry_d))
-					+ xfs_attr3_leaf_hdr_size(leaf_d));
+		   + xfs_attr3_leaf_hdr_size(leaf_d));
 
 	ASSERT(start_s < ichdr_s->count);
 	ASSERT(start_d <= ichdr_d->count);
@@ -2365,7 +2824,8 @@ xfs_attr3_leaf_moveents(
 	/*
 	 * Move the entries in the destination leaf up to make a hole?
 	 */
-	if (start_d < ichdr_d->count) {
+	if (start_d < ichdr_d->count)
+	{
 		tmp  = ichdr_d->count - start_d;
 		tmp *= sizeof(xfs_attr_leaf_entry_t);
 		entry_s = &xfs_attr3_leaf_entryp(leaf_d)[start_d];
@@ -2380,24 +2840,33 @@ xfs_attr3_leaf_moveents(
 	entry_s = &xfs_attr3_leaf_entryp(leaf_s)[start_s];
 	entry_d = &xfs_attr3_leaf_entryp(leaf_d)[start_d];
 	desti = start_d;
-	for (i = 0; i < count; entry_s++, entry_d++, desti++, i++) {
+
+	for (i = 0; i < count; entry_s++, entry_d++, desti++, i++)
+	{
 		ASSERT(be16_to_cpu(entry_s->nameidx) >= ichdr_s->firstused);
 		tmp = xfs_attr_leaf_entsize(leaf_s, start_s + i);
 #ifdef GROT
+
 		/*
 		 * Code to drop INCOMPLETE entries.  Difficult to use as we
 		 * may also need to change the insertion index.  Code turned
 		 * off for 6.2, should be revisited later.
 		 */
-		if (entry_s->flags & XFS_ATTR_INCOMPLETE) { /* skip partials? */
+		if (entry_s->flags & XFS_ATTR_INCOMPLETE)   /* skip partials? */
+		{
 			memset(xfs_attr3_leaf_name(leaf_s, start_s + i), 0, tmp);
 			ichdr_s->usedbytes -= tmp;
 			ichdr_s->count -= 1;
 			entry_d--;	/* to compensate for ++ in loop hdr */
 			desti--;
+
 			if ((start_s + i) < offset)
-				result++;	/* insertion index adjustment */
-		} else {
+			{
+				result++;    /* insertion index adjustment */
+			}
+		}
+		else
+		{
 #endif /* GROT */
 			ichdr_d->firstused -= tmp;
 			/* both on-disk, don't endian flip twice */
@@ -2405,34 +2874,38 @@ xfs_attr3_leaf_moveents(
 			entry_d->nameidx = cpu_to_be16(ichdr_d->firstused);
 			entry_d->flags = entry_s->flags;
 			ASSERT(be16_to_cpu(entry_d->nameidx) + tmp
-							<= args->geo->blksize);
+				   <= args->geo->blksize);
 			memmove(xfs_attr3_leaf_name(leaf_d, desti),
-				xfs_attr3_leaf_name(leaf_s, start_s + i), tmp);
+					xfs_attr3_leaf_name(leaf_s, start_s + i), tmp);
 			ASSERT(be16_to_cpu(entry_s->nameidx) + tmp
-							<= args->geo->blksize);
+				   <= args->geo->blksize);
 			memset(xfs_attr3_leaf_name(leaf_s, start_s + i), 0, tmp);
 			ichdr_s->usedbytes -= tmp;
 			ichdr_d->usedbytes += tmp;
 			ichdr_s->count -= 1;
 			ichdr_d->count += 1;
 			tmp = ichdr_d->count * sizeof(xfs_attr_leaf_entry_t)
-					+ xfs_attr3_leaf_hdr_size(leaf_d);
+				  + xfs_attr3_leaf_hdr_size(leaf_d);
 			ASSERT(ichdr_d->firstused >= tmp);
 #ifdef GROT
 		}
+
 #endif /* GROT */
 	}
 
 	/*
 	 * Zero out the entries we just copied.
 	 */
-	if (start_s == ichdr_s->count) {
+	if (start_s == ichdr_s->count)
+	{
 		tmp = count * sizeof(xfs_attr_leaf_entry_t);
 		entry_s = &xfs_attr3_leaf_entryp(leaf_s)[start_s];
 		ASSERT(((char *)entry_s + tmp) <=
-		       ((char *)leaf_s + args->geo->blksize));
+			   ((char *)leaf_s + args->geo->blksize));
 		memset(entry_s, 0, tmp);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Move the remaining entries down to fill the hole,
 		 * then zero the entries at the top.
@@ -2445,7 +2918,7 @@ xfs_attr3_leaf_moveents(
 		tmp = count * sizeof(xfs_attr_leaf_entry_t);
 		entry_s = &xfs_attr3_leaf_entryp(leaf_s)[ichdr_s->count];
 		ASSERT(((char *)entry_s + tmp) <=
-		       ((char *)leaf_s + args->geo->blksize));
+			   ((char *)leaf_s + args->geo->blksize));
 		memset(entry_s, 0, tmp);
 	}
 
@@ -2476,10 +2949,17 @@ xfs_attr_leaf_lasthash(
 
 	xfs_attr3_leaf_hdr_from_disk(mp->m_attr_geo, &ichdr, bp->b_addr);
 	entries = xfs_attr3_leaf_entryp(bp->b_addr);
+
 	if (count)
+	{
 		*count = ichdr.count;
+	}
+
 	if (!ichdr.count)
+	{
 		return 0;
+	}
+
 	return be32_to_cpu(entries[ichdr.count - 1].hashval);
 }
 
@@ -2496,14 +2976,19 @@ xfs_attr_leaf_entsize(xfs_attr_leafblock_t *leaf, int index)
 	int size;
 
 	entries = xfs_attr3_leaf_entryp(leaf);
-	if (entries[index].flags & XFS_ATTR_LOCAL) {
+
+	if (entries[index].flags & XFS_ATTR_LOCAL)
+	{
 		name_loc = xfs_attr3_leaf_name_local(leaf, index);
 		size = xfs_attr_leaf_entsize_local(name_loc->namelen,
-						   be16_to_cpu(name_loc->valuelen));
-	} else {
+										   be16_to_cpu(name_loc->valuelen));
+	}
+	else
+	{
 		name_rmt = xfs_attr3_leaf_name_remote(leaf, index);
 		size = xfs_attr_leaf_entsize_remote(name_rmt->namelen);
 	}
+
 	return size;
 }
 
@@ -2521,13 +3006,22 @@ xfs_attr_leaf_newentsize(
 	int			size;
 
 	size = xfs_attr_leaf_entsize_local(args->namelen, args->valuelen);
-	if (size < xfs_attr_leaf_entsize_local_max(args->geo->blksize)) {
+
+	if (size < xfs_attr_leaf_entsize_local_max(args->geo->blksize))
+	{
 		if (local)
+		{
 			*local = 1;
+		}
+
 		return size;
 	}
+
 	if (local)
+	{
 		*local = 0;
+	}
+
 	return xfs_attr_leaf_entsize_remote(args->namelen);
 }
 
@@ -2560,8 +3054,11 @@ xfs_attr3_leaf_clearflag(
 	 * Set up the operation.
 	 */
 	error = xfs_attr3_leaf_read(args->trans, args->dp, args->blkno, -1, &bp);
+
 	if (error)
+	{
 		return error;
+	}
 
 	leaf = bp->b_addr;
 	entry = &xfs_attr3_leaf_entryp(leaf)[args->index];
@@ -2572,15 +3069,19 @@ xfs_attr3_leaf_clearflag(
 	ASSERT(args->index < ichdr.count);
 	ASSERT(args->index >= 0);
 
-	if (entry->flags & XFS_ATTR_LOCAL) {
+	if (entry->flags & XFS_ATTR_LOCAL)
+	{
 		name_loc = xfs_attr3_leaf_name_local(leaf, args->index);
 		namelen = name_loc->namelen;
 		name = (char *)name_loc->nameval;
-	} else {
+	}
+	else
+	{
 		name_rmt = xfs_attr3_leaf_name_remote(leaf, args->index);
 		namelen = name_rmt->namelen;
 		name = (char *)name_rmt->name;
 	}
+
 	ASSERT(be32_to_cpu(entry->hashval) == args->hashval);
 	ASSERT(namelen == args->namelen);
 	ASSERT(memcmp(name, args->name, namelen) == 0);
@@ -2588,15 +3089,16 @@ xfs_attr3_leaf_clearflag(
 
 	entry->flags &= ~XFS_ATTR_INCOMPLETE;
 	xfs_trans_log_buf(args->trans, bp,
-			 XFS_DA_LOGRANGE(leaf, entry, sizeof(*entry)));
+					  XFS_DA_LOGRANGE(leaf, entry, sizeof(*entry)));
 
-	if (args->rmtblkno) {
+	if (args->rmtblkno)
+	{
 		ASSERT((entry->flags & XFS_ATTR_LOCAL) == 0);
 		name_rmt = xfs_attr3_leaf_name_remote(leaf, args->index);
 		name_rmt->valueblk = cpu_to_be32(args->rmtblkno);
 		name_rmt->valuelen = cpu_to_be32(args->rmtvaluelen);
 		xfs_trans_log_buf(args->trans, bp,
-			 XFS_DA_LOGRANGE(leaf, name_rmt, sizeof(*name_rmt)));
+						  XFS_DA_LOGRANGE(leaf, name_rmt, sizeof(*name_rmt)));
 	}
 
 	/*
@@ -2627,8 +3129,11 @@ xfs_attr3_leaf_setflag(
 	 * Set up the operation.
 	 */
 	error = xfs_attr3_leaf_read(args->trans, args->dp, args->blkno, -1, &bp);
+
 	if (error)
+	{
 		return error;
+	}
 
 	leaf = bp->b_addr;
 #ifdef DEBUG
@@ -2641,13 +3146,15 @@ xfs_attr3_leaf_setflag(
 	ASSERT((entry->flags & XFS_ATTR_INCOMPLETE) == 0);
 	entry->flags |= XFS_ATTR_INCOMPLETE;
 	xfs_trans_log_buf(args->trans, bp,
-			XFS_DA_LOGRANGE(leaf, entry, sizeof(*entry)));
-	if ((entry->flags & XFS_ATTR_LOCAL) == 0) {
+					  XFS_DA_LOGRANGE(leaf, entry, sizeof(*entry)));
+
+	if ((entry->flags & XFS_ATTR_LOCAL) == 0)
+	{
 		name_rmt = xfs_attr3_leaf_name_remote(leaf, args->index);
 		name_rmt->valueblk = 0;
 		name_rmt->valuelen = 0;
 		xfs_trans_log_buf(args->trans, bp,
-			 XFS_DA_LOGRANGE(leaf, name_rmt, sizeof(*name_rmt)));
+						  XFS_DA_LOGRANGE(leaf, name_rmt, sizeof(*name_rmt)));
 	}
 
 	/*
@@ -2689,18 +3196,27 @@ xfs_attr3_leaf_flipflags(
 	 * Read the block containing the "old" attr
 	 */
 	error = xfs_attr3_leaf_read(args->trans, args->dp, args->blkno, -1, &bp1);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/*
 	 * Read the block containing the "new" attr, if it is different
 	 */
-	if (args->blkno2 != args->blkno) {
+	if (args->blkno2 != args->blkno)
+	{
 		error = xfs_attr3_leaf_read(args->trans, args->dp, args->blkno2,
-					   -1, &bp2);
+									-1, &bp2);
+
 		if (error)
+		{
 			return error;
-	} else {
+		}
+	}
+	else
+	{
 		bp2 = bp1;
 	}
 
@@ -2719,24 +3235,32 @@ xfs_attr3_leaf_flipflags(
 	ASSERT(args->index2 < ichdr2.count);
 	ASSERT(args->index2 >= 0);
 
-	if (entry1->flags & XFS_ATTR_LOCAL) {
+	if (entry1->flags & XFS_ATTR_LOCAL)
+	{
 		name_loc = xfs_attr3_leaf_name_local(leaf1, args->index);
 		namelen1 = name_loc->namelen;
 		name1 = (char *)name_loc->nameval;
-	} else {
+	}
+	else
+	{
 		name_rmt = xfs_attr3_leaf_name_remote(leaf1, args->index);
 		namelen1 = name_rmt->namelen;
 		name1 = (char *)name_rmt->name;
 	}
-	if (entry2->flags & XFS_ATTR_LOCAL) {
+
+	if (entry2->flags & XFS_ATTR_LOCAL)
+	{
 		name_loc = xfs_attr3_leaf_name_local(leaf2, args->index2);
 		namelen2 = name_loc->namelen;
 		name2 = (char *)name_loc->nameval;
-	} else {
+	}
+	else
+	{
 		name_rmt = xfs_attr3_leaf_name_remote(leaf2, args->index2);
 		namelen2 = name_rmt->namelen;
 		name2 = (char *)name_rmt->name;
 	}
+
 	ASSERT(be32_to_cpu(entry1->hashval) == be32_to_cpu(entry2->hashval));
 	ASSERT(namelen1 == namelen2);
 	ASSERT(memcmp(name1, name2, namelen1) == 0);
@@ -2747,25 +3271,29 @@ xfs_attr3_leaf_flipflags(
 
 	entry1->flags &= ~XFS_ATTR_INCOMPLETE;
 	xfs_trans_log_buf(args->trans, bp1,
-			  XFS_DA_LOGRANGE(leaf1, entry1, sizeof(*entry1)));
-	if (args->rmtblkno) {
+					  XFS_DA_LOGRANGE(leaf1, entry1, sizeof(*entry1)));
+
+	if (args->rmtblkno)
+	{
 		ASSERT((entry1->flags & XFS_ATTR_LOCAL) == 0);
 		name_rmt = xfs_attr3_leaf_name_remote(leaf1, args->index);
 		name_rmt->valueblk = cpu_to_be32(args->rmtblkno);
 		name_rmt->valuelen = cpu_to_be32(args->rmtvaluelen);
 		xfs_trans_log_buf(args->trans, bp1,
-			 XFS_DA_LOGRANGE(leaf1, name_rmt, sizeof(*name_rmt)));
+						  XFS_DA_LOGRANGE(leaf1, name_rmt, sizeof(*name_rmt)));
 	}
 
 	entry2->flags |= XFS_ATTR_INCOMPLETE;
 	xfs_trans_log_buf(args->trans, bp2,
-			  XFS_DA_LOGRANGE(leaf2, entry2, sizeof(*entry2)));
-	if ((entry2->flags & XFS_ATTR_LOCAL) == 0) {
+					  XFS_DA_LOGRANGE(leaf2, entry2, sizeof(*entry2)));
+
+	if ((entry2->flags & XFS_ATTR_LOCAL) == 0)
+	{
 		name_rmt = xfs_attr3_leaf_name_remote(leaf2, args->index2);
 		name_rmt->valueblk = 0;
 		name_rmt->valuelen = 0;
 		xfs_trans_log_buf(args->trans, bp2,
-			 XFS_DA_LOGRANGE(leaf2, name_rmt, sizeof(*name_rmt)));
+						  XFS_DA_LOGRANGE(leaf2, name_rmt, sizeof(*name_rmt)));
 	}
 
 	/*

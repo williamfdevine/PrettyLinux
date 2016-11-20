@@ -3,7 +3,7 @@
  *
  *      This chip is a horrid piece of engineering, and National
  *      denies any knowledge of its existence. Thus no datasheet is
- *      available off www.national.com. 
+ *      available off www.national.com.
  *
  *	(C) Copyright 2000 Linuxcare, Inc.
  * 	(C) Copyright 2000 Linuxcare Canada, Inc.
@@ -17,7 +17,7 @@
  *	This program is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License as
  *	published by the Free Software Foundation; either version 2 of
- *	the License, or (at your option) any later version.  
+ *	the License, or (at your option) any later version.
  *
  *	The initial version of this is by Martin Peterson.  Alex deVries
  *	has spent a bit of time trying to coax it into working.
@@ -32,7 +32,7 @@
 
 
 /* NOTES:
- * 
+ *
  * Function 0 is an IDE controller. It is identical to a PC87415 IDE
  * controller (and identifies itself as such).
  *
@@ -86,9 +86,9 @@ static struct superio_device sio_dev;
 #undef DEBUG_SUPERIO_INIT
 
 #ifdef DEBUG_SUPERIO_INIT
-#define DBG_INIT(x...)  printk(x)
+	#define DBG_INIT(x...)  printk(x)
 #else
-#define DBG_INIT(x...)
+	#define DBG_INIT(x...)
 #endif
 
 #define SUPERIO	"SuperIO"
@@ -101,16 +101,17 @@ superio_interrupt(int parent_irq, void *devp)
 	u8 local_irq;
 
 	/* Poll the 8259 to see if there's an interrupt. */
-	outb (OCW3_POLL,IC_PIC1+0);
+	outb (OCW3_POLL, IC_PIC1 + 0);
 
-	results = inb(IC_PIC1+0);
+	results = inb(IC_PIC1 + 0);
 
 	/*
 	 * Bit    7:	1 = active Interrupt; 0 = no Interrupt pending
 	 * Bits 6-3:	zero
 	 * Bits 2-0:	highest priority, active requesting interrupt ID (0-7)
 	 */
-	if ((results & 0x80) == 0) {
+	if ((results & 0x80) == 0)
+	{
 		/* I suspect "spurious" interrupts are from unmasking an IRQ.
 		 * We don't know if an interrupt was/is pending and thus
 		 * just call the handler for that IRQ as if it were pending.
@@ -121,18 +122,22 @@ superio_interrupt(int parent_irq, void *devp)
 	/* Check to see which device is interrupting */
 	local_irq = results & 0x0f;
 
-	if (local_irq == 2 || local_irq > 7) {
+	if (local_irq == 2 || local_irq > 7)
+	{
 		printk(KERN_ERR PFX "slave interrupted!\n");
 		return IRQ_HANDLED;
 	}
 
-	if (local_irq == 7) {
+	if (local_irq == 7)
+	{
 
 		/* Could be spurious. Check in service bits */
 
-		outb(OCW3_ISR,IC_PIC1+0);
-		results = inb(IC_PIC1+0);
-		if ((results & 0x80) == 0) { /* if ISR7 not set: spurious */
+		outb(OCW3_ISR, IC_PIC1 + 0);
+		results = inb(IC_PIC1 + 0);
+
+		if ((results & 0x80) == 0)   /* if ISR7 not set: spurious */
+		{
 			printk(KERN_WARNING PFX "spurious interrupt!\n");
 			return IRQ_HANDLED;
 		}
@@ -144,7 +149,7 @@ superio_interrupt(int parent_irq, void *devp)
 	/* set EOI - forces a new interrupt if a lower priority device
 	 * still needs service.
 	 */
-	outb((OCW2_SEOI|local_irq),IC_PIC1 + 0);
+	outb((OCW2_SEOI | local_irq), IC_PIC1 + 0);
 	return IRQ_HANDLED;
 }
 
@@ -158,7 +163,9 @@ superio_init(struct pci_dev *pcidev)
 	int ret;
 
 	if (sio->suckyio_irq_enabled)
+	{
 		return;
+	}
 
 	BUG_ON(!pdev);
 	BUG_ON(!sio->usb_pdev);
@@ -170,7 +177,7 @@ superio_init(struct pci_dev *pcidev)
 	sio->usb_pdev->irq = superio_fixup_irq(sio->usb_pdev);
 
 	printk(KERN_INFO PFX "Found NS87560 Legacy I/O device at %s (IRQ %i)\n",
-	       pci_name(pdev), pdev->irq);
+		   pci_name(pdev), pdev->irq);
 
 	pci_read_config_dword (pdev, SIO_SP1BAR, &sio->sp1_base);
 	sio->sp1_base &= ~1;
@@ -245,37 +252,43 @@ superio_init(struct pci_dev *pcidev)
 	pci_write_config_dword (pdev, CFG_IR_USB, 0x4c880000U);
 
 	/* PIC1 Initialization Command Word register programming */
-	outb (0x11,IC_PIC1+0);	/* ICW1: ICW4 write req | ICW1 */
-	outb (0x00,IC_PIC1+1);	/* ICW2: interrupt vector table - not used */
-	outb (0x04,IC_PIC1+1);	/* ICW3: Cascade */
-	outb (0x01,IC_PIC1+1);	/* ICW4: x86 mode */
+	outb (0x11, IC_PIC1 + 0);	/* ICW1: ICW4 write req | ICW1 */
+	outb (0x00, IC_PIC1 + 1);	/* ICW2: interrupt vector table - not used */
+	outb (0x04, IC_PIC1 + 1);	/* ICW3: Cascade */
+	outb (0x01, IC_PIC1 + 1);	/* ICW4: x86 mode */
 
 	/* PIC1 Program Operational Control Words */
-	outb (0xff,IC_PIC1+1);	/* OCW1: Mask all interrupts */
-	outb (0xc2,IC_PIC1+0);  /* OCW2: priority (3-7,0-2) */
+	outb (0xff, IC_PIC1 + 1);	/* OCW1: Mask all interrupts */
+	outb (0xc2, IC_PIC1 + 0); /* OCW2: priority (3-7,0-2) */
 
 	/* PIC2 Initialization Command Word register programming */
-	outb (0x11,IC_PIC2+0);	/* ICW1: ICW4 write req | ICW1 */
-	outb (0x00,IC_PIC2+1);	/* ICW2: N/A */
-	outb (0x02,IC_PIC2+1);	/* ICW3: Slave ID code */
-	outb (0x01,IC_PIC2+1);	/* ICW4: x86 mode */
-		
+	outb (0x11, IC_PIC2 + 0);	/* ICW1: ICW4 write req | ICW1 */
+	outb (0x00, IC_PIC2 + 1);	/* ICW2: N/A */
+	outb (0x02, IC_PIC2 + 1);	/* ICW3: Slave ID code */
+	outb (0x01, IC_PIC2 + 1);	/* ICW4: x86 mode */
+
 	/* Program Operational Control Words */
-	outb (0xff,IC_PIC1+1);	/* OCW1: Mask all interrupts */
-	outb (0x68,IC_PIC1+0);	/* OCW3: OCW3 select | ESMM | SMM */
+	outb (0xff, IC_PIC1 + 1);	/* OCW1: Mask all interrupts */
+	outb (0x68, IC_PIC1 + 0);	/* OCW3: OCW3 select | ESMM | SMM */
 
 	/* Write master mask reg */
-	outb (0xff,IC_PIC1+1);
+	outb (0xff, IC_PIC1 + 1);
 
 	/* Setup USB power regulation */
 	outb(1, sio->acpi_base + USB_REG_CR);
+
 	if (inb(sio->acpi_base + USB_REG_CR) & 1)
+	{
 		printk(KERN_INFO PFX "USB regulator enabled\n");
+	}
 	else
+	{
 		printk(KERN_ERR PFX "USB regulator not initialized!\n");
+	}
 
 	if (request_irq(pdev->irq, superio_interrupt, 0,
-			SUPERIO, (void *)sio)) {
+					SUPERIO, (void *)sio))
+	{
 
 		printk(KERN_ERR PFX "could not get irq\n");
 		BUG();
@@ -291,7 +304,8 @@ static void superio_mask_irq(struct irq_data *d)
 	unsigned int irq = d->irq;
 	u8 r8;
 
-	if ((irq < 1) || (irq == 2) || (irq > 7)) {
+	if ((irq < 1) || (irq == 2) || (irq > 7))
+	{
 		printk(KERN_ERR PFX "Illegal irq number.\n");
 		BUG();
 		return;
@@ -299,9 +313,9 @@ static void superio_mask_irq(struct irq_data *d)
 
 	/* Mask interrupt */
 
-	r8 = inb(IC_PIC1+1);
+	r8 = inb(IC_PIC1 + 1);
 	r8 |= (1 << irq);
-	outb (r8,IC_PIC1+1);
+	outb (r8, IC_PIC1 + 1);
 }
 
 static void superio_unmask_irq(struct irq_data *d)
@@ -309,26 +323,29 @@ static void superio_unmask_irq(struct irq_data *d)
 	unsigned int irq = d->irq;
 	u8 r8;
 
-	if ((irq < 1) || (irq == 2) || (irq > 7)) {
+	if ((irq < 1) || (irq == 2) || (irq > 7))
+	{
 		printk(KERN_ERR PFX "Illegal irq number (%d).\n", irq);
 		BUG();
 		return;
 	}
 
 	/* Unmask interrupt */
-	r8 = inb(IC_PIC1+1);
+	r8 = inb(IC_PIC1 + 1);
 	r8 &= ~(1 << irq);
-	outb (r8,IC_PIC1+1);
+	outb (r8, IC_PIC1 + 1);
 }
 
-static struct irq_chip superio_interrupt_type = {
+static struct irq_chip superio_interrupt_type =
+{
 	.name		=	SUPERIO,
 	.irq_unmask	=	superio_unmask_irq,
 	.irq_mask	=	superio_mask_irq,
 };
 
 #ifdef DEBUG_SUPERIO_INIT
-static unsigned short expected_device[3] = {
+static unsigned short expected_device[3] =
+{
 	PCI_DEVICE_ID_NS_87415,
 	PCI_DEVICE_ID_NS_87560_LIO,
 	PCI_DEVICE_ID_NS_87560_USB
@@ -344,19 +361,22 @@ int superio_fixup_irq(struct pci_dev *pcidev)
 	fn = PCI_FUNC(pcidev->devfn);
 
 	/* Verify the function number matches the expected device id. */
-	if (expected_device[fn] != pcidev->device) {
+	if (expected_device[fn] != pcidev->device)
+	{
 		BUG();
 		return -1;
 	}
+
 	printk(KERN_DEBUG "superio_fixup_irq(%s) ven 0x%x dev 0x%x from %ps\n",
-		pci_name(pcidev),
-		pcidev->vendor, pcidev->device,
-		__builtin_return_address(0));
+		   pci_name(pcidev),
+		   pcidev->vendor, pcidev->device,
+		   __builtin_return_address(0));
 #endif
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		irq_set_chip_and_handler(i, &superio_interrupt_type,
-					 handle_simple_irq);
+								 handle_simple_irq);
 	}
 
 	/*
@@ -365,21 +385,25 @@ int superio_fixup_irq(struct pci_dev *pcidev)
 	 * each legacy device as they are initialized.
 	 */
 
-	switch(pcidev->device) {
-	case PCI_DEVICE_ID_NS_87415:		/* Function 0 */
-		local_irq = IDE_IRQ;
-		break;
-	case PCI_DEVICE_ID_NS_87560_LIO:	/* Function 1 */
-		sio_dev.lio_pdev = pcidev;	/* save for superio_init() */
-		return -1;
-	case PCI_DEVICE_ID_NS_87560_USB:	/* Function 2 */
-		sio_dev.usb_pdev = pcidev;	/* save for superio_init() */
-		local_irq = USB_IRQ;
-		break;
-	default:
-		local_irq = -1;
-		BUG();
-		break;
+	switch (pcidev->device)
+	{
+		case PCI_DEVICE_ID_NS_87415:		/* Function 0 */
+			local_irq = IDE_IRQ;
+			break;
+
+		case PCI_DEVICE_ID_NS_87560_LIO:	/* Function 1 */
+			sio_dev.lio_pdev = pcidev;	/* save for superio_init() */
+			return -1;
+
+		case PCI_DEVICE_ID_NS_87560_USB:	/* Function 2 */
+			sio_dev.usb_pdev = pcidev;	/* save for superio_init() */
+			local_irq = USB_IRQ;
+			break;
+
+		default:
+			local_irq = -1;
+			BUG();
+			break;
 	}
 
 	return local_irq;
@@ -394,16 +418,18 @@ static void __init superio_serial_init(void)
 	memset(&serial_port, 0, sizeof(serial_port));
 	serial_port.iotype	= UPIO_PORT;
 	serial_port.type	= PORT_16550A;
-	serial_port.uartclk	= 115200*16;
+	serial_port.uartclk	= 115200 * 16;
 	serial_port.flags	= UPF_FIXED_PORT | UPF_FIXED_TYPE |
-				  UPF_BOOT_AUTOCONF;
+						  UPF_BOOT_AUTOCONF;
 
 	/* serial port #1 */
 	serial_port.iobase	= sio_dev.sp1_base;
 	serial_port.irq		= SP1_IRQ;
 	serial_port.line	= 0;
 	retval = early_serial_setup(&serial_port);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		printk(KERN_WARNING PFX "Register Serial #0 failed.\n");
 		return;
 	}
@@ -413,8 +439,12 @@ static void __init superio_serial_init(void)
 	serial_port.irq		= SP2_IRQ;
 	serial_port.line	= 1;
 	retval = early_serial_setup(&serial_port);
+
 	if (retval < 0)
+	{
 		printk(KERN_WARNING PFX "Register Serial #1 failed.\n");
+	}
+
 #endif /* CONFIG_SERIAL_8250 */
 }
 
@@ -422,14 +452,18 @@ static void __init superio_serial_init(void)
 static void __init superio_parport_init(void)
 {
 #ifdef CONFIG_PARPORT_PC
-	if (!parport_pc_probe_port(sio_dev.pp_base,
-			0 /*base_hi*/,
-			PAR_IRQ, 
-			PARPORT_DMA_NONE /* dma */,
-			NULL /*struct pci_dev* */,
-			0 /* shared irq flags */))
 
+	if (!parport_pc_probe_port(sio_dev.pp_base,
+							   0 /*base_hi*/,
+							   PAR_IRQ,
+							   PARPORT_DMA_NONE /* dma */,
+							   NULL /*struct pci_dev* */,
+							   0 /* shared irq flags */))
+
+	{
 		printk(KERN_WARNING PFX "Probing parallel port failed.\n");
+	}
+
 #endif	/* CONFIG_PARPORT_PC */
 }
 
@@ -458,23 +492,30 @@ superio_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	** superio_probe(00:0e.2) ven 0x100b dev 0x12 sv 0x0 sd 0x0 class 0xc0310
 	*/
 	DBG_INIT("superio_probe(%s) ven 0x%x dev 0x%x sv 0x%x sd 0x%x class 0x%x\n",
-		pci_name(dev),
-		dev->vendor, dev->device,
-		dev->subsystem_vendor, dev->subsystem_device,
-		dev->class);
+			 pci_name(dev),
+			 dev->vendor, dev->device,
+			 dev->subsystem_vendor, dev->subsystem_device,
+			 dev->class);
 
 	BUG_ON(!sio->suckyio_irq_enabled);	/* Enabled by PCI_FIXUP_FINAL */
 
-	if (dev->device == PCI_DEVICE_ID_NS_87560_LIO) {	/* Function 1 */
+	if (dev->device == PCI_DEVICE_ID_NS_87560_LIO)  	/* Function 1 */
+	{
 		superio_parport_init();
 		superio_serial_init();
 		/* REVISIT XXX : superio_fdc_init() ? */
 		return 0;
-	} else if (dev->device == PCI_DEVICE_ID_NS_87415) {	/* Function 0 */
+	}
+	else if (dev->device == PCI_DEVICE_ID_NS_87415)  	/* Function 0 */
+	{
 		DBG_INIT("superio_probe: ignoring IDE 87415\n");
-	} else if (dev->device == PCI_DEVICE_ID_NS_87560_USB) {	/* Function 2 */
+	}
+	else if (dev->device == PCI_DEVICE_ID_NS_87560_USB)  	/* Function 2 */
+	{
 		DBG_INIT("superio_probe: ignoring USB OHCI controller\n");
-	} else {
+	}
+	else
+	{
 		DBG_INIT("superio_probe: WTF? Fire Extinguisher?\n");
 	}
 
@@ -482,14 +523,16 @@ superio_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	return -ENODEV;
 }
 
-static const struct pci_device_id superio_tbl[] = {
+static const struct pci_device_id superio_tbl[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_87560_LIO) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_87560_USB) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_87415) },
 	{ 0, }
 };
 
-static struct pci_driver superio_driver = {
+static struct pci_driver superio_driver =
+{
 	.name =         SUPERIO,
 	.id_table =     superio_tbl,
 	.probe =        superio_probe,

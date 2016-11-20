@@ -3,8 +3,9 @@
 
 #include <linux/types.h>
 
-struct sock_extended_err {
-	__u32	ee_errno;	
+struct sock_extended_err
+{
+	__u32	ee_errno;
 	__u8	ee_origin;
 	__u8	ee_type;
 	__u8	ee_code;
@@ -29,7 +30,8 @@ struct sock_extended_err {
  *	communicate network timestamps by passing this struct in a cmsg with
  *	recvmsg(). See Documentation/networking/timestamping.txt for details.
  */
-struct scm_timestamping {
+struct scm_timestamping
+{
 	struct timespec ts[3];
 };
 
@@ -37,7 +39,8 @@ struct scm_timestamping {
  * This defines the type of ts[0]. For SCM_TSTAMP_SND only, if ts[0]
  * is zero, then this is a hardware timestamp and recorded in ts[2].
  */
-enum {
+enum
+{
 	SCM_TSTAMP_SND,		/* driver passed skb to NIC, or HW */
 	SCM_TSTAMP_SCHED,	/* data entered the packet scheduler */
 	SCM_TSTAMP_ACK,		/* data acknowledged by peer */

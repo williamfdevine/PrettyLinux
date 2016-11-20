@@ -39,16 +39,21 @@
  */
 static inline unsigned radeon_mem_type_to_domain(u32 mem_type)
 {
-	switch (mem_type) {
-	case TTM_PL_VRAM:
-		return RADEON_GEM_DOMAIN_VRAM;
-	case TTM_PL_TT:
-		return RADEON_GEM_DOMAIN_GTT;
-	case TTM_PL_SYSTEM:
-		return RADEON_GEM_DOMAIN_CPU;
-	default:
-		break;
+	switch (mem_type)
+	{
+		case TTM_PL_VRAM:
+			return RADEON_GEM_DOMAIN_VRAM;
+
+		case TTM_PL_TT:
+			return RADEON_GEM_DOMAIN_GTT;
+
+		case TTM_PL_SYSTEM:
+			return RADEON_GEM_DOMAIN_CPU;
+
+		default:
+			break;
 	}
+
 	return 0;
 }
 
@@ -66,11 +71,17 @@ static inline int radeon_bo_reserve(struct radeon_bo *bo, bool no_intr)
 	int r;
 
 	r = ttm_bo_reserve(&bo->tbo, !no_intr, false, NULL);
-	if (unlikely(r != 0)) {
+
+	if (unlikely(r != 0))
+	{
 		if (r != -ERESTARTSYS)
+		{
 			dev_err(bo->rdev->dev, "%p reserve failed\n", bo);
+		}
+
 		return r;
 	}
+
 	return 0;
 }
 
@@ -120,41 +131,41 @@ static inline u64 radeon_bo_mmap_offset(struct radeon_bo *bo)
 }
 
 extern int radeon_bo_wait(struct radeon_bo *bo, u32 *mem_type,
-			  bool no_wait);
+						  bool no_wait);
 
 extern int radeon_bo_create(struct radeon_device *rdev,
-			    unsigned long size, int byte_align,
-			    bool kernel, u32 domain, u32 flags,
-			    struct sg_table *sg,
-			    struct reservation_object *resv,
-			    struct radeon_bo **bo_ptr);
+							unsigned long size, int byte_align,
+							bool kernel, u32 domain, u32 flags,
+							struct sg_table *sg,
+							struct reservation_object *resv,
+							struct radeon_bo **bo_ptr);
 extern int radeon_bo_kmap(struct radeon_bo *bo, void **ptr);
 extern void radeon_bo_kunmap(struct radeon_bo *bo);
 extern struct radeon_bo *radeon_bo_ref(struct radeon_bo *bo);
 extern void radeon_bo_unref(struct radeon_bo **bo);
 extern int radeon_bo_pin(struct radeon_bo *bo, u32 domain, u64 *gpu_addr);
 extern int radeon_bo_pin_restricted(struct radeon_bo *bo, u32 domain,
-				    u64 max_offset, u64 *gpu_addr);
+									u64 max_offset, u64 *gpu_addr);
 extern int radeon_bo_unpin(struct radeon_bo *bo);
 extern int radeon_bo_evict_vram(struct radeon_device *rdev);
 extern void radeon_bo_force_delete(struct radeon_device *rdev);
 extern int radeon_bo_init(struct radeon_device *rdev);
 extern void radeon_bo_fini(struct radeon_device *rdev);
 extern int radeon_bo_list_validate(struct radeon_device *rdev,
-				   struct ww_acquire_ctx *ticket,
-				   struct list_head *head, int ring);
+								   struct ww_acquire_ctx *ticket,
+								   struct list_head *head, int ring);
 extern int radeon_bo_set_tiling_flags(struct radeon_bo *bo,
-				u32 tiling_flags, u32 pitch);
+									  u32 tiling_flags, u32 pitch);
 extern void radeon_bo_get_tiling_flags(struct radeon_bo *bo,
-				u32 *tiling_flags, u32 *pitch);
+									   u32 *tiling_flags, u32 *pitch);
 extern int radeon_bo_check_tiling(struct radeon_bo *bo, bool has_moved,
-				bool force_drop);
+								  bool force_drop);
 extern void radeon_bo_move_notify(struct ttm_buffer_object *bo,
-				  struct ttm_mem_reg *new_mem);
+								  struct ttm_mem_reg *new_mem);
 extern int radeon_bo_fault_reserve_notify(struct ttm_buffer_object *bo);
 extern int radeon_bo_get_surface_reg(struct radeon_bo *bo);
 extern void radeon_bo_fence(struct radeon_bo *bo, struct radeon_fence *fence,
-			    bool shared);
+							bool shared);
 
 /*
  * sub allocation
@@ -165,31 +176,31 @@ static inline uint64_t radeon_sa_bo_gpu_addr(struct radeon_sa_bo *sa_bo)
 	return sa_bo->manager->gpu_addr + sa_bo->soffset;
 }
 
-static inline void * radeon_sa_bo_cpu_addr(struct radeon_sa_bo *sa_bo)
+static inline void *radeon_sa_bo_cpu_addr(struct radeon_sa_bo *sa_bo)
 {
 	return sa_bo->manager->cpu_ptr + sa_bo->soffset;
 }
 
 extern int radeon_sa_bo_manager_init(struct radeon_device *rdev,
-				     struct radeon_sa_manager *sa_manager,
-				     unsigned size, u32 align, u32 domain,
-				     u32 flags);
+									 struct radeon_sa_manager *sa_manager,
+									 unsigned size, u32 align, u32 domain,
+									 u32 flags);
 extern void radeon_sa_bo_manager_fini(struct radeon_device *rdev,
-				      struct radeon_sa_manager *sa_manager);
+									  struct radeon_sa_manager *sa_manager);
 extern int radeon_sa_bo_manager_start(struct radeon_device *rdev,
-				      struct radeon_sa_manager *sa_manager);
+									  struct radeon_sa_manager *sa_manager);
 extern int radeon_sa_bo_manager_suspend(struct radeon_device *rdev,
-					struct radeon_sa_manager *sa_manager);
+										struct radeon_sa_manager *sa_manager);
 extern int radeon_sa_bo_new(struct radeon_device *rdev,
-			    struct radeon_sa_manager *sa_manager,
-			    struct radeon_sa_bo **sa_bo,
-			    unsigned size, unsigned align);
+							struct radeon_sa_manager *sa_manager,
+							struct radeon_sa_bo **sa_bo,
+							unsigned size, unsigned align);
 extern void radeon_sa_bo_free(struct radeon_device *rdev,
-			      struct radeon_sa_bo **sa_bo,
-			      struct radeon_fence *fence);
+							  struct radeon_sa_bo **sa_bo,
+							  struct radeon_fence *fence);
 #if defined(CONFIG_DEBUG_FS)
 extern void radeon_sa_bo_dump_debug_info(struct radeon_sa_manager *sa_manager,
-					 struct seq_file *m);
+		struct seq_file *m);
 #endif
 
 

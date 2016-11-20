@@ -19,7 +19,8 @@
 
 #define BROADCOM_OUI	0x001018
 
-enum brcmf_vndr_cmds {
+enum brcmf_vndr_cmds
+{
 	BRCMF_VNDR_CMDS_UNSPEC,
 	BRCMF_VNDR_CMDS_DCMD,
 	BRCMF_VNDR_CMDS_LAST
@@ -31,7 +32,8 @@ enum brcmf_vndr_cmds {
  * @BRCMF_NLATTR_LEN: message body length
  * @BRCMF_NLATTR_DATA: message body
  */
-enum brcmf_nlattrs {
+enum brcmf_nlattrs
+{
 	BRCMF_NLATTR_UNSPEC,
 
 	BRCMF_NLATTR_LEN,
@@ -51,7 +53,8 @@ enum brcmf_nlattrs {
  * @set: get or set request(optional)
  * @magic: magic number for verification
  */
-struct brcmf_vndr_dcmd_hdr {
+struct brcmf_vndr_dcmd_hdr
+{
 	uint cmd;
 	int len;
 	uint offset;

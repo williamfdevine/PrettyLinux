@@ -16,18 +16,21 @@ struct fib_rules_ops;
 struct hlist_head;
 struct fib_table;
 struct sock;
-struct local_ports {
+struct local_ports
+{
 	seqlock_t	lock;
 	int		range[2];
 	bool		warned;
 };
 
-struct ping_group_range {
+struct ping_group_range
+{
 	seqlock_t	lock;
 	kgid_t		range[2];
 };
 
-struct netns_ipv4 {
+struct netns_ipv4
+{
 #ifdef CONFIG_SYSCTL
 	struct ctl_table_header	*forw_hdr;
 	struct ctl_table_header	*frags_hdr;
@@ -50,11 +53,11 @@ struct netns_ipv4 {
 	bool			fib_offload_disabled;
 	struct sock		*fibnl;
 
-	struct sock  * __percpu	*icmp_sk;
+	struct sock   *__percpu	*icmp_sk;
 	struct sock		*mc_autojoin_sk;
 
 	struct inet_peer_base	*peers;
-	struct sock  * __percpu	*tcp_sk;
+	struct sock   *__percpu	*tcp_sk;
 	struct netns_frags	frags;
 #ifdef CONFIG_NETFILTER
 	struct xt_table		*iptable_filter;

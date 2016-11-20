@@ -47,57 +47,74 @@ static inline unsigned int databuf_limit(struct gfs2_sbd *sdp)
 }
 
 static inline void lops_before_commit(struct gfs2_sbd *sdp,
-				      struct gfs2_trans *tr)
+									  struct gfs2_trans *tr)
 {
 	int x;
+
 	for (x = 0; gfs2_log_ops[x]; x++)
 		if (gfs2_log_ops[x]->lo_before_commit)
+		{
 			gfs2_log_ops[x]->lo_before_commit(sdp, tr);
+		}
 }
 
 static inline void lops_after_commit(struct gfs2_sbd *sdp,
-				     struct gfs2_trans *tr)
+									 struct gfs2_trans *tr)
 {
 	int x;
+
 	for (x = 0; gfs2_log_ops[x]; x++)
 		if (gfs2_log_ops[x]->lo_after_commit)
+		{
 			gfs2_log_ops[x]->lo_after_commit(sdp, tr);
+		}
 }
 
 static inline void lops_before_scan(struct gfs2_jdesc *jd,
-				    struct gfs2_log_header_host *head,
-				    unsigned int pass)
+									struct gfs2_log_header_host *head,
+									unsigned int pass)
 {
 	int x;
+
 	for (x = 0; gfs2_log_ops[x]; x++)
 		if (gfs2_log_ops[x]->lo_before_scan)
+		{
 			gfs2_log_ops[x]->lo_before_scan(jd, head, pass);
+		}
 }
 
 static inline int lops_scan_elements(struct gfs2_jdesc *jd, unsigned int start,
-				     struct gfs2_log_descriptor *ld,
-				     __be64 *ptr,
-				     unsigned int pass)
+									 struct gfs2_log_descriptor *ld,
+									 __be64 *ptr,
+									 unsigned int pass)
 {
 	int x, error;
+
 	for (x = 0; gfs2_log_ops[x]; x++)
-		if (gfs2_log_ops[x]->lo_scan_elements) {
+		if (gfs2_log_ops[x]->lo_scan_elements)
+		{
 			error = gfs2_log_ops[x]->lo_scan_elements(jd, start,
-								  ld, ptr, pass);
+					ld, ptr, pass);
+
 			if (error)
+			{
 				return error;
+			}
 		}
 
 	return 0;
 }
 
 static inline void lops_after_scan(struct gfs2_jdesc *jd, int error,
-				   unsigned int pass)
+								   unsigned int pass)
 {
 	int x;
+
 	for (x = 0; gfs2_log_ops[x]; x++)
 		if (gfs2_log_ops[x]->lo_before_scan)
+		{
 			gfs2_log_ops[x]->lo_after_scan(jd, error, pass);
+		}
 }
 
 #endif /* __LOPS_DOT_H__ */

@@ -41,7 +41,8 @@
 #define LM363X_STEP_50mV		50000
 #define LM363X_STEP_500mV		500000
 
-static const int ldo_cont_enable_time[] = {
+static const int ldo_cont_enable_time[] =
+{
 	0, 2000, 5000, 10000, 20000, 50000, 100000, 200000,
 };
 
@@ -50,45 +51,58 @@ static int lm363x_regulator_enable_time(struct regulator_dev *rdev)
 	enum lm363x_regulator_id id = rdev_get_id(rdev);
 	u8 val, addr, mask;
 
-	switch (id) {
-	case LM3631_LDO_CONT:
-		addr = LM3631_REG_ENTIME_VCONT;
-		mask = LM3631_ENTIME_CONT_MASK;
-		break;
-	case LM3631_LDO_OREF:
-		addr = LM3631_REG_ENTIME_VOREF;
-		mask = LM3631_ENTIME_MASK;
-		break;
-	case LM3631_LDO_POS:
-		addr = LM3631_REG_ENTIME_VPOS;
-		mask = LM3631_ENTIME_MASK;
-		break;
-	case LM3631_LDO_NEG:
-		addr = LM3631_REG_ENTIME_VNEG;
-		mask = LM3631_ENTIME_MASK;
-		break;
-	default:
-		return 0;
+	switch (id)
+	{
+		case LM3631_LDO_CONT:
+			addr = LM3631_REG_ENTIME_VCONT;
+			mask = LM3631_ENTIME_CONT_MASK;
+			break;
+
+		case LM3631_LDO_OREF:
+			addr = LM3631_REG_ENTIME_VOREF;
+			mask = LM3631_ENTIME_MASK;
+			break;
+
+		case LM3631_LDO_POS:
+			addr = LM3631_REG_ENTIME_VPOS;
+			mask = LM3631_ENTIME_MASK;
+			break;
+
+		case LM3631_LDO_NEG:
+			addr = LM3631_REG_ENTIME_VNEG;
+			mask = LM3631_ENTIME_MASK;
+			break;
+
+		default:
+			return 0;
 	}
 
 	if (regmap_read(rdev->regmap, addr, (unsigned int *)&val))
+	{
 		return -EINVAL;
+	}
 
 	val = (val & mask) >> LM3631_ENTIME_SHIFT;
 
 	if (id == LM3631_LDO_CONT)
+	{
 		return ldo_cont_enable_time[val];
+	}
 	else
+	{
 		return ENABLE_TIME_USEC * val;
+	}
 }
 
-static struct regulator_ops lm363x_boost_voltage_table_ops = {
+static struct regulator_ops lm363x_boost_voltage_table_ops =
+{
 	.list_voltage     = regulator_list_voltage_linear,
 	.set_voltage_sel  = regulator_set_voltage_sel_regmap,
 	.get_voltage_sel  = regulator_get_voltage_sel_regmap,
 };
 
-static struct regulator_ops lm363x_regulator_voltage_table_ops = {
+static struct regulator_ops lm363x_regulator_voltage_table_ops =
+{
 	.list_voltage     = regulator_list_voltage_linear,
 	.set_voltage_sel  = regulator_set_voltage_sel_regmap,
 	.get_voltage_sel  = regulator_get_voltage_sel_regmap,
@@ -98,7 +112,8 @@ static struct regulator_ops lm363x_regulator_voltage_table_ops = {
 	.enable_time      = lm363x_regulator_enable_time,
 };
 
-static const struct regulator_desc lm363x_regulator_desc[] = {
+static const struct regulator_desc lm363x_regulator_desc[] =
+{
 	/* LM3631 */
 	{
 		.name           = "vboost",
@@ -225,13 +240,16 @@ static int lm363x_regulator_of_get_enable_gpio(struct device_node *np, int id)
 	 * Check LCM_EN1/2_GPIO is configured.
 	 * Those pins are used for enabling VPOS/VNEG LDOs.
 	 */
-	switch (id) {
-	case LM3632_LDO_POS:
-		return of_get_named_gpio(np, "ti,lcm-en1-gpio", 0);
-	case LM3632_LDO_NEG:
-		return of_get_named_gpio(np, "ti,lcm-en2-gpio", 0);
-	default:
-		return -EINVAL;
+	switch (id)
+	{
+		case LM3632_LDO_POS:
+			return of_get_named_gpio(np, "ti,lcm-en1-gpio", 0);
+
+		case LM3632_LDO_NEG:
+			return of_get_named_gpio(np, "ti,lcm-en2-gpio", 0);
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -253,21 +271,27 @@ static int lm363x_regulator_probe(struct platform_device *pdev)
 	 * Register update is required if the pin is used.
 	 */
 	ena_gpio = lm363x_regulator_of_get_enable_gpio(dev->of_node, id);
-	if (gpio_is_valid(ena_gpio)) {
+
+	if (gpio_is_valid(ena_gpio))
+	{
 		cfg.ena_gpio = ena_gpio;
 		cfg.ena_gpio_flags = GPIOF_OUT_INIT_LOW;
 
 		ret = regmap_update_bits(regmap, LM3632_REG_BIAS_CONFIG,
-					 LM3632_EXT_EN_MASK,
-					 LM3632_EXT_EN_MASK);
-		if (ret) {
+								 LM3632_EXT_EN_MASK,
+								 LM3632_EXT_EN_MASK);
+
+		if (ret)
+		{
 			dev_err(dev, "External pin err: %d\n", ret);
 			return ret;
 		}
 	}
 
 	rdev = devm_regulator_register(dev, &lm363x_regulator_desc[id], &cfg);
-	if (IS_ERR(rdev)) {
+
+	if (IS_ERR(rdev))
+	{
 		ret = PTR_ERR(rdev);
 		dev_err(dev, "[%d] regulator register err: %d\n", id, ret);
 		return ret;
@@ -276,7 +300,8 @@ static int lm363x_regulator_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver lm363x_regulator_driver = {
+static struct platform_driver lm363x_regulator_driver =
+{
 	.probe = lm363x_regulator_probe,
 	.driver = {
 		.name = "lm363x-regulator",

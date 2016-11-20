@@ -68,11 +68,14 @@ static u64 notrace _gt_counter_read(void)
 	u32 upper, old_upper;
 
 	upper = readl_relaxed(gt_base + GT_COUNTER1);
-	do {
+
+	do
+	{
 		old_upper = upper;
 		lower = readl_relaxed(gt_base + GT_COUNTER0);
 		upper = readl_relaxed(gt_base + GT_COUNTER1);
-	} while (upper != old_upper);
+	}
+	while (upper != old_upper);
 
 	counter = upper;
 	counter <<= 32;
@@ -104,7 +107,8 @@ static void gt_compare_set(unsigned long delta, int periodic)
 	writel_relaxed(lower_32_bits(counter), gt_base + GT_COMP0);
 	writel_relaxed(upper_32_bits(counter), gt_base + GT_COMP1);
 
-	if (periodic) {
+	if (periodic)
+	{
 		writel_relaxed(delta, gt_base + GT_AUTO_INC);
 		ctrl |= GT_CONTROL_AUTO_INC;
 	}
@@ -119,7 +123,7 @@ static int gt_clockevent_shutdown(struct clock_event_device *evt)
 
 	ctrl = readl(gt_base + GT_CONTROL);
 	ctrl &= ~(GT_CONTROL_COMP_ENABLE | GT_CONTROL_IRQ_ENABLE |
-		  GT_CONTROL_AUTO_INC);
+			  GT_CONTROL_AUTO_INC);
 	writel(ctrl, gt_base + GT_CONTROL);
 	return 0;
 }
@@ -131,7 +135,7 @@ static int gt_clockevent_set_periodic(struct clock_event_device *evt)
 }
 
 static int gt_clockevent_set_next_event(unsigned long evt,
-					struct clock_event_device *unused)
+										struct clock_event_device *unused)
 {
 	gt_compare_set(evt, 0);
 	return 0;
@@ -142,8 +146,10 @@ static irqreturn_t gt_clockevent_interrupt(int irq, void *dev_id)
 	struct clock_event_device *evt = dev_id;
 
 	if (!(readl_relaxed(gt_base + GT_INT_STATUS) &
-				GT_INT_STATUS_EVENT_FLAG))
+		  GT_INT_STATUS_EVENT_FLAG))
+	{
 		return IRQ_NONE;
+	}
 
 	/**
 	 * ERRATA 740657( Global Timer can send 2 interrupts for
@@ -157,7 +163,9 @@ static irqreturn_t gt_clockevent_interrupt(int irq, void *dev_id)
 	 *	the Comparator register	value to a higher value.
 	 */
 	if (clockevent_state_oneshot(evt))
+	{
 		gt_compare_set(ULONG_MAX, 0);
+	}
 
 	writel_relaxed(GT_INT_STATUS_EVENT_FLAG, gt_base + GT_INT_STATUS);
 	evt->event_handler(evt);
@@ -171,7 +179,7 @@ static int gt_starting_cpu(unsigned int cpu)
 
 	clk->name = "arm_global_timer";
 	clk->features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT |
-		CLOCK_EVT_FEAT_PERCPU;
+					CLOCK_EVT_FEAT_PERCPU;
 	clk->set_state_shutdown = gt_clockevent_shutdown;
 	clk->set_state_periodic = gt_clockevent_set_periodic;
 	clk->set_state_oneshot = gt_clockevent_shutdown;
@@ -181,7 +189,7 @@ static int gt_starting_cpu(unsigned int cpu)
 	clk->rating = 300;
 	clk->irq = gt_ppi;
 	clockevents_config_and_register(clk, gt_clk_rate,
-					1, 0xffffffff);
+									1, 0xffffffff);
 	enable_percpu_irq(clk->irq, IRQ_TYPE_NONE);
 	return 0;
 }
@@ -205,12 +213,16 @@ static void gt_resume(struct clocksource *cs)
 	unsigned long ctrl;
 
 	ctrl = readl(gt_base + GT_CONTROL);
+
 	if (!(ctrl & GT_CONTROL_TIMER_ENABLE))
 		/* re-enable timer on resume */
+	{
 		writel(GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
+	}
 }
 
-static struct clocksource gt_clocksource = {
+static struct clocksource gt_clocksource =
+{
 	.name	= "arm_global_timer",
 	.rating	= 300,
 	.read	= gt_clocksource_read,
@@ -231,7 +243,8 @@ static unsigned long gt_read_long(void)
 	return readl_relaxed(gt_base + GT_COUNTER0);
 }
 
-static struct delay_timer gt_delay_timer = {
+static struct delay_timer gt_delay_timer =
+{
 	.read_current_timer = gt_read_long,
 };
 
@@ -266,29 +279,41 @@ static int __init global_timer_of_register(struct device_node *np)
 	 * revisions the comparators fired when the timer value was equal to.
 	 */
 	if (read_cpuid_part() == ARM_CPU_PART_CORTEX_A9
-	    && (read_cpuid_id() & 0xf0000f) < 0x200000) {
+		&& (read_cpuid_id() & 0xf0000f) < 0x200000)
+	{
 		pr_warn("global-timer: non support for this cpu version.\n");
 		return -ENOSYS;
 	}
 
 	gt_ppi = irq_of_parse_and_map(np, 0);
-	if (!gt_ppi) {
+
+	if (!gt_ppi)
+	{
 		pr_warn("global-timer: unable to parse irq\n");
 		return -EINVAL;
 	}
 
 	gt_base = of_iomap(np, 0);
-	if (!gt_base) {
+
+	if (!gt_base)
+	{
 		pr_warn("global-timer: invalid base address\n");
 		return -ENXIO;
 	}
 
 	gt_clk = of_clk_get(np, 0);
-	if (!IS_ERR(gt_clk)) {
+
+	if (!IS_ERR(gt_clk))
+	{
 		err = clk_prepare_enable(gt_clk);
+
 		if (err)
+		{
 			goto out_unmap;
-	} else {
+		}
+	}
+	else
+	{
 		pr_warn("global-timer: clk not found\n");
 		err = -EINVAL;
 		goto out_unmap;
@@ -296,30 +321,40 @@ static int __init global_timer_of_register(struct device_node *np)
 
 	gt_clk_rate = clk_get_rate(gt_clk);
 	gt_evt = alloc_percpu(struct clock_event_device);
-	if (!gt_evt) {
+
+	if (!gt_evt)
+	{
 		pr_warn("global-timer: can't allocate memory\n");
 		err = -ENOMEM;
 		goto out_clk;
 	}
 
 	err = request_percpu_irq(gt_ppi, gt_clockevent_interrupt,
-				 "gt", gt_evt);
-	if (err) {
+							 "gt", gt_evt);
+
+	if (err)
+	{
 		pr_warn("global-timer: can't register interrupt %d (%d)\n",
-			gt_ppi, err);
+				gt_ppi, err);
 		goto out_free;
 	}
 
 	/* Register and immediately configure the timer on the boot CPU */
 	err = gt_clocksource_init();
+
 	if (err)
+	{
 		goto out_irq;
-	
+	}
+
 	err = cpuhp_setup_state(CPUHP_AP_ARM_GLOBAL_TIMER_STARTING,
-				"AP_ARM_GLOBAL_TIMER_STARTING",
-				gt_starting_cpu, gt_dying_cpu);
+							"AP_ARM_GLOBAL_TIMER_STARTING",
+							gt_starting_cpu, gt_dying_cpu);
+
 	if (err)
+	{
 		goto out_irq;
+	}
 
 	gt_delay_timer_init();
 
@@ -340,4 +375,4 @@ out_unmap:
 
 /* Only tested on r2p2 and r3p0  */
 CLOCKSOURCE_OF_DECLARE(arm_gt, "arm,cortex-a9-global-timer",
-			global_timer_of_register);
+					   global_timer_of_register);

@@ -27,11 +27,13 @@
 #define SCLP_ERRNOTIFY_AQ_INFO_LOG		2
 
 static DEFINE_MUTEX(sclp_pci_mutex);
-static struct sclp_register sclp_pci_event = {
+static struct sclp_register sclp_pci_event =
+{
 	.send_mask = EVTYP_ERRNOTIFY_MASK,
 };
 
-struct err_notify_evbuf {
+struct err_notify_evbuf
+{
 	struct evbuf_header header;
 	u8 action;
 	u8 atype;
@@ -40,12 +42,14 @@ struct err_notify_evbuf {
 	u8 data[0];
 } __packed;
 
-struct err_notify_sccb {
+struct err_notify_sccb
+{
 	struct sccb_header header;
 	struct err_notify_evbuf evbuf;
 } __packed;
 
-struct pci_cfg_sccb {
+struct pci_cfg_sccb
+{
 	struct sccb_header header;
 	u8 atype;		/* adapter type */
 	u8 reserved1;
@@ -59,28 +63,40 @@ static int do_pci_configure(sclp_cmdw_t cmd, u32 fid)
 	int rc;
 
 	if (!SCLP_HAS_PCI_RECONFIG)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	sccb = (struct pci_cfg_sccb *) get_zeroed_page(GFP_KERNEL | GFP_DMA);
+
 	if (!sccb)
+	{
 		return -ENOMEM;
+	}
 
 	sccb->header.length = PAGE_SIZE;
 	sccb->atype = SCLP_ATYPE_PCI;
 	sccb->aid = fid;
 	rc = sclp_sync_request(cmd, sccb);
+
 	if (rc)
+	{
 		goto out;
-	switch (sccb->header.response_code) {
-	case 0x0020:
-	case 0x0120:
-		break;
-	default:
-		pr_warn("configure PCI I/O adapter failed: cmd=0x%08x  response=0x%04x\n",
-			cmd, sccb->header.response_code);
-		rc = -EIO;
-		break;
 	}
+
+	switch (sccb->header.response_code)
+	{
+		case 0x0020:
+		case 0x0120:
+			break;
+
+		default:
+			pr_warn("configure PCI I/O adapter failed: cmd=0x%08x  response=0x%04x\n",
+					cmd, sccb->header.response_code);
+			rc = -EIO;
+			break;
+	}
+
 out:
 	free_page((unsigned long) sccb);
 	return rc;
@@ -108,14 +124,20 @@ static void sclp_pci_callback(struct sclp_req *req, void *data)
 static int sclp_pci_check_report(struct zpci_report_error_header *report)
 {
 	if (report->version != 1)
+	{
 		return -EINVAL;
+	}
 
 	if (report->action != SCLP_ERRNOTIFY_AQ_REPAIR &&
-	    report->action != SCLP_ERRNOTIFY_AQ_INFO_LOG)
+		report->action != SCLP_ERRNOTIFY_AQ_INFO_LOG)
+	{
 		return -EINVAL;
+	}
 
 	if (report->length > (PAGE_SIZE - sizeof(struct err_notify_sccb)))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -128,21 +150,30 @@ int sclp_pci_report(struct zpci_report_error_header *report, u32 fh, u32 fid)
 	int ret;
 
 	ret = sclp_pci_check_report(report);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_lock(&sclp_pci_mutex);
 	ret = sclp_register(&sclp_pci_event);
-	if (ret)
-		goto out_unlock;
 
-	if (!(sclp_pci_event.sclp_receive_mask & EVTYP_ERRNOTIFY_MASK)) {
+	if (ret)
+	{
+		goto out_unlock;
+	}
+
+	if (!(sclp_pci_event.sclp_receive_mask & EVTYP_ERRNOTIFY_MASK))
+	{
 		ret = -EOPNOTSUPP;
 		goto out_unregister;
 	}
 
 	sccb = (void *) get_zeroed_page(GFP_KERNEL | GFP_DMA);
-	if (!sccb) {
+
+	if (!sccb)
+	{
 		ret = -ENOMEM;
 		goto out_unregister;
 	}
@@ -166,20 +197,26 @@ int sclp_pci_report(struct zpci_report_error_header *report, u32 fh, u32 fid)
 	memcpy(sccb->evbuf.data, report->data, report->length);
 
 	ret = sclp_add_request(&req);
+
 	if (ret)
+	{
 		goto out_free_req;
+	}
 
 	wait_for_completion(&completion);
-	if (req.status != SCLP_REQ_DONE) {
+
+	if (req.status != SCLP_REQ_DONE)
+	{
 		pr_warn("request failed (status=0x%02x)\n",
-			req.status);
+				req.status);
 		ret = -EIO;
 		goto out_free_req;
 	}
 
-	if (sccb->header.response_code != 0x0020) {
+	if (sccb->header.response_code != 0x0020)
+	{
 		pr_warn("request failed with response code 0x%x\n",
-			sccb->header.response_code);
+				sccb->header.response_code);
 		ret = -EIO;
 	}
 

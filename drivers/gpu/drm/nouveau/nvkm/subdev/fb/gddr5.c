@@ -40,35 +40,42 @@ nvkm_gddr5_calc(struct nvkm_ram *ram, bool nuts)
 
 	xd = !ram->next->bios.ramcfg_DLLoff;
 
-	switch (ram->next->bios.ramcfg_ver) {
-	case 0x11:
-		pd =  ram->next->bios.ramcfg_11_01_80;
-		lf =  ram->next->bios.ramcfg_11_01_40;
-		vh =  ram->next->bios.ramcfg_11_02_10;
-		vr =  ram->next->bios.ramcfg_11_02_04;
-		vo =  ram->next->bios.ramcfg_11_06;
-		l3 = !ram->next->bios.ramcfg_11_07_02;
-		break;
-	default:
-		return -ENOSYS;
+	switch (ram->next->bios.ramcfg_ver)
+	{
+		case 0x11:
+			pd =  ram->next->bios.ramcfg_11_01_80;
+			lf =  ram->next->bios.ramcfg_11_01_40;
+			vh =  ram->next->bios.ramcfg_11_02_10;
+			vr =  ram->next->bios.ramcfg_11_02_04;
+			vo =  ram->next->bios.ramcfg_11_06;
+			l3 = !ram->next->bios.ramcfg_11_07_02;
+			break;
+
+		default:
+			return -ENOSYS;
 	}
 
-	switch (ram->next->bios.timing_ver) {
-	case 0x20:
-		WL = (ram->next->bios.timing[1] & 0x00000f80) >> 7;
-		CL = (ram->next->bios.timing[1] & 0x0000001f);
-		WR = (ram->next->bios.timing[2] & 0x007f0000) >> 16;
-		at[0] = ram->next->bios.timing_20_2e_c0;
-		at[1] = ram->next->bios.timing_20_2e_30;
-		dt =  ram->next->bios.timing_20_2e_03;
-		ds =  ram->next->bios.timing_20_2f_03;
-		break;
-	default:
-		return -ENOSYS;
+	switch (ram->next->bios.timing_ver)
+	{
+		case 0x20:
+			WL = (ram->next->bios.timing[1] & 0x00000f80) >> 7;
+			CL = (ram->next->bios.timing[1] & 0x0000001f);
+			WR = (ram->next->bios.timing[2] & 0x007f0000) >> 16;
+			at[0] = ram->next->bios.timing_20_2e_c0;
+			at[1] = ram->next->bios.timing_20_2e_30;
+			dt =  ram->next->bios.timing_20_2e_03;
+			ds =  ram->next->bios.timing_20_2f_03;
+			break;
+
+		default:
+			return -ENOSYS;
 	}
 
 	if (WL < 1 || WL > 7 || CL < 5 || CL > 36 || WR < 4 || WR > 35)
+	{
 		return -EINVAL;
+	}
+
 	CL -= 5;
 	WR -= 4;
 
@@ -87,7 +94,9 @@ nvkm_gddr5_calc(struct nvkm_ram *ram, bool nuts)
 	 * on nuts vs non-nuts configs..  meh, it matches for now.
 	 */
 	ram->mr1_nuts = ram->mr[1];
-	if (nuts) {
+
+	if (nuts)
+	{
 		ram->mr[1] &= ~0x030;
 		ram->mr[1] |= (at[1] & 0x03) << 4;
 	}
@@ -99,17 +108,25 @@ nvkm_gddr5_calc(struct nvkm_ram *ram, bool nuts)
 	ram->mr[5] |= (l3 << 2);
 
 	if (!vo)
+	{
 		vo = (ram->mr[6] & 0xff0) >> 4;
+	}
+
 	if (ram->mr[6] & 0x001)
-		pd = 1; /* binary driver does this.. bug? */
+	{
+		pd = 1;    /* binary driver does this.. bug? */
+	}
+
 	ram->mr[6] &= ~0xff1;
 	ram->mr[6] |= (vo & 0xff) << 4;
 	ram->mr[6] |= (pd & 0x01) << 0;
 
-	if (NOTE00(vr)) {
+	if (NOTE00(vr))
+	{
 		ram->mr[7] &= ~0x300;
 		ram->mr[7] |= (vr & 0x03) << 8;
 	}
+
 	ram->mr[7] &= ~0x088;
 	ram->mr[7] |= (vh & 0x01) << 7;
 	ram->mr[7] |= (lf & 0x01) << 3;

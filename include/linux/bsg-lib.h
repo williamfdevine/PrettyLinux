@@ -30,13 +30,15 @@ struct device;
 struct scatterlist;
 struct request_queue;
 
-struct bsg_buffer {
+struct bsg_buffer
+{
 	unsigned int payload_len;
 	int sg_cnt;
 	struct scatterlist *sg_list;
 };
 
-struct bsg_job {
+struct bsg_job
+{
 	struct device *dev;
 	struct request *req;
 
@@ -63,9 +65,9 @@ struct bsg_job {
 };
 
 void bsg_job_done(struct bsg_job *job, int result,
-		  unsigned int reply_payload_rcv_len);
+				  unsigned int reply_payload_rcv_len);
 int bsg_setup_queue(struct device *dev, struct request_queue *q, char *name,
-		    bsg_job_fn *job_fn, int dd_job_size);
+					bsg_job_fn *job_fn, int dd_job_size);
 void bsg_request_fn(struct request_queue *q);
 
 #endif

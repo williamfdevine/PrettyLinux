@@ -63,7 +63,8 @@
 DEFINE_SPINLOCK(samsung_pwm_lock);
 EXPORT_SYMBOL(samsung_pwm_lock);
 
-struct samsung_pwm_clocksource {
+struct samsung_pwm_clocksource
+{
 	void __iomem *base;
 	void __iomem *source_reg;
 	unsigned int irq[SAMSUNG_PWM_NUM];
@@ -89,7 +90,9 @@ static void samsung_timer_set_prescale(unsigned int channel, u16 prescale)
 	u32 reg;
 
 	if (channel >= 2)
+	{
 		shift = TCFG0_PRESCALER1_SHIFT;
+	}
 
 	spin_lock_irqsave(&samsung_pwm_lock, flags);
 
@@ -126,7 +129,9 @@ static void samsung_time_stop(unsigned int channel)
 	unsigned long flags;
 
 	if (channel > 0)
+	{
 		++channel;
+	}
 
 	spin_lock_irqsave(&samsung_pwm_lock, flags);
 
@@ -144,7 +149,9 @@ static void samsung_time_setup(unsigned int channel, unsigned long tcnt)
 	unsigned int tcon_chan = channel;
 
 	if (tcon_chan > 0)
+	{
 		++tcon_chan;
+	}
 
 	spin_lock_irqsave(&samsung_pwm_lock, flags);
 
@@ -166,7 +173,9 @@ static void samsung_time_start(unsigned int channel, bool periodic)
 	unsigned long flags;
 
 	if (channel > 0)
+	{
 		++channel;
+	}
 
 	spin_lock_irqsave(&samsung_pwm_lock, flags);
 
@@ -176,9 +185,13 @@ static void samsung_time_start(unsigned int channel, bool periodic)
 	tcon |= TCON_START(channel);
 
 	if (periodic)
+	{
 		tcon |= TCON_AUTORELOAD(channel);
+	}
 	else
+	{
 		tcon &= ~TCON_AUTORELOAD(channel);
+	}
 
 	writel_relaxed(tcon, pwm.base + REG_TCON);
 
@@ -186,7 +199,7 @@ static void samsung_time_start(unsigned int channel, bool periodic)
 }
 
 static int samsung_set_next_event(unsigned long cycles,
-				struct clock_event_device *evt)
+								  struct clock_event_device *evt)
 {
 	/*
 	 * This check is needed to account for internal rounding
@@ -199,7 +212,9 @@ static int samsung_set_next_event(unsigned long cycles,
 	 * the minimum sleep period.
 	 */
 	if (!cycles)
+	{
 		cycles = 1;
+	}
 
 	samsung_time_setup(pwm.event_id, cycles);
 	samsung_time_start(pwm.event_id, false);
@@ -226,16 +241,18 @@ static void samsung_clockevent_resume(struct clock_event_device *cev)
 	samsung_timer_set_prescale(pwm.event_id, pwm.tscaler_div);
 	samsung_timer_set_divisor(pwm.event_id, pwm.tdiv);
 
-	if (pwm.variant.has_tint_cstat) {
+	if (pwm.variant.has_tint_cstat)
+	{
 		u32 mask = (1 << pwm.event_id);
 		writel(mask | (mask << 5), pwm.base + REG_TINT_CSTAT);
 	}
 }
 
-static struct clock_event_device time_event_device = {
+static struct clock_event_device time_event_device =
+{
 	.name			= "samsung_event_timer",
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.rating			= 200,
 	.set_next_event		= samsung_set_next_event,
 	.set_state_shutdown	= samsung_shutdown,
@@ -249,7 +266,8 @@ static irqreturn_t samsung_clock_event_isr(int irq, void *dev_id)
 {
 	struct clock_event_device *evt = dev_id;
 
-	if (pwm.variant.has_tint_cstat) {
+	if (pwm.variant.has_tint_cstat)
+	{
 		u32 mask = (1 << pwm.event_id);
 		writel(mask | (mask << 5), pwm.base + REG_TINT_CSTAT);
 	}
@@ -259,7 +277,8 @@ static irqreturn_t samsung_clock_event_isr(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction samsung_clock_event_irq = {
+static struct irqaction samsung_clock_event_irq =
+{
 	.name		= "samsung_time_irq",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= samsung_clock_event_isr,
@@ -282,12 +301,13 @@ static void __init samsung_clockevent_init(void)
 
 	time_event_device.cpumask = cpumask_of(0);
 	clockevents_config_and_register(&time_event_device,
-						clock_rate, 1, pwm.tcnt_max);
+									clock_rate, 1, pwm.tcnt_max);
 
 	irq_number = pwm.irq[pwm.event_id];
 	setup_irq(irq_number, &samsung_clock_event_irq);
 
-	if (pwm.variant.has_tint_cstat) {
+	if (pwm.variant.has_tint_cstat)
+	{
 		u32 mask = (1 << pwm.event_id);
 		writel(mask | (mask << 5), pwm.base + REG_TINT_CSTAT);
 	}
@@ -312,7 +332,8 @@ static cycle_t notrace samsung_clocksource_read(struct clocksource *c)
 	return ~readl_relaxed(pwm.source_reg);
 }
 
-static struct clocksource samsung_clocksource = {
+static struct clocksource samsung_clocksource =
+{
 	.name		= "samsung_clocksource_timer",
 	.rating		= 250,
 	.read		= samsung_clocksource_read,
@@ -349,12 +370,16 @@ static int __init samsung_clocksource_init(void)
 	samsung_time_start(pwm.source_id, true);
 
 	if (pwm.source_id == 4)
+	{
 		pwm.source_reg = pwm.base + 0x40;
+	}
 	else
+	{
 		pwm.source_reg = pwm.base + pwm.source_id * 0x0c + 0x14;
+	}
 
 	sched_clock_register(samsung_read_sched_clock,
-						pwm.variant.bits, clock_rate);
+						 pwm.variant.bits, clock_rate);
 
 	samsung_clocksource.mask = CLOCKSOURCE_MASK(pwm.variant.bits);
 	return clocksource_register_hz(&samsung_clocksource, clock_rate);
@@ -365,10 +390,14 @@ static void __init samsung_timer_resources(void)
 	clk_prepare_enable(pwm.timerclk);
 
 	pwm.tcnt_max = (1UL << pwm.variant.bits) - 1;
-	if (pwm.variant.bits == 16) {
+
+	if (pwm.variant.bits == 16)
+	{
 		pwm.tscaler_div = 25;
 		pwm.tdiv = 2;
-	} else {
+	}
+	else
+	{
 		pwm.tscaler_div = 2;
 		pwm.tdiv = 1;
 	}
@@ -384,18 +413,24 @@ static int __init _samsung_pwm_clocksource_init(void)
 
 	mask = ~pwm.variant.output_mask & ((1 << SAMSUNG_PWM_NUM) - 1);
 	channel = fls(mask) - 1;
-	if (channel < 0) {
+
+	if (channel < 0)
+	{
 		pr_crit("failed to find PWM channel for clocksource");
 		return -EINVAL;
 	}
+
 	pwm.source_id = channel;
 
 	mask &= ~(1 << channel);
 	channel = fls(mask) - 1;
-	if (channel < 0) {
+
+	if (channel < 0)
+	{
 		pr_crit("failed to find PWM channel for clock event");
 		return -EINVAL;
 	}
+
 	pwm.event_id = channel;
 
 	samsung_timer_resources();
@@ -405,22 +440,25 @@ static int __init _samsung_pwm_clocksource_init(void)
 }
 
 void __init samsung_pwm_clocksource_init(void __iomem *base,
-			unsigned int *irqs, struct samsung_pwm_variant *variant)
+		unsigned int *irqs, struct samsung_pwm_variant *variant)
 {
 	pwm.base = base;
 	memcpy(&pwm.variant, variant, sizeof(pwm.variant));
 	memcpy(pwm.irq, irqs, SAMSUNG_PWM_NUM * sizeof(*irqs));
 
 	pwm.timerclk = clk_get(NULL, "timers");
+
 	if (IS_ERR(pwm.timerclk))
+	{
 		panic("failed to get timers clock for timer");
+	}
 
 	_samsung_pwm_clocksource_init();
 }
 
 #ifdef CONFIG_CLKSRC_OF
 static int __init samsung_pwm_alloc(struct device_node *np,
-				    const struct samsung_pwm_variant *variant)
+									const struct samsung_pwm_variant *variant)
 {
 	struct property *prop;
 	const __be32 *cur;
@@ -428,26 +466,36 @@ static int __init samsung_pwm_alloc(struct device_node *np,
 	int i;
 
 	memcpy(&pwm.variant, variant, sizeof(pwm.variant));
-	for (i = 0; i < SAMSUNG_PWM_NUM; ++i)
-		pwm.irq[i] = irq_of_parse_and_map(np, i);
 
-	of_property_for_each_u32(np, "samsung,pwm-outputs", prop, cur, val) {
-		if (val >= SAMSUNG_PWM_NUM) {
+	for (i = 0; i < SAMSUNG_PWM_NUM; ++i)
+	{
+		pwm.irq[i] = irq_of_parse_and_map(np, i);
+	}
+
+	of_property_for_each_u32(np, "samsung,pwm-outputs", prop, cur, val)
+	{
+		if (val >= SAMSUNG_PWM_NUM)
+		{
 			pr_warning("%s: invalid channel index in samsung,pwm-outputs property\n",
-								__func__);
+					   __func__);
 			continue;
 		}
+
 		pwm.variant.output_mask |= 1 << val;
 	}
 
 	pwm.base = of_iomap(np, 0);
-	if (!pwm.base) {
+
+	if (!pwm.base)
+	{
 		pr_err("%s: failed to map PWM registers\n", __func__);
 		return -ENXIO;
 	}
 
 	pwm.timerclk = of_clk_get_by_name(np, "timers");
-	if (IS_ERR(pwm.timerclk)) {
+
+	if (IS_ERR(pwm.timerclk))
+	{
 		pr_crit("failed to get timers clock for timer");
 		return PTR_ERR(pwm.timerclk);
 	}
@@ -455,7 +503,8 @@ static int __init samsung_pwm_alloc(struct device_node *np,
 	return _samsung_pwm_clocksource_init();
 }
 
-static const struct samsung_pwm_variant s3c24xx_variant = {
+static const struct samsung_pwm_variant s3c24xx_variant =
+{
 	.bits		= 16,
 	.div_base	= 1,
 	.has_tint_cstat	= false,
@@ -468,7 +517,8 @@ static int __init s3c2410_pwm_clocksource_init(struct device_node *np)
 }
 CLOCKSOURCE_OF_DECLARE(s3c2410_pwm, "samsung,s3c2410-pwm", s3c2410_pwm_clocksource_init);
 
-static const struct samsung_pwm_variant s3c64xx_variant = {
+static const struct samsung_pwm_variant s3c64xx_variant =
+{
 	.bits		= 32,
 	.div_base	= 0,
 	.has_tint_cstat	= true,
@@ -481,7 +531,8 @@ static int __init s3c64xx_pwm_clocksource_init(struct device_node *np)
 }
 CLOCKSOURCE_OF_DECLARE(s3c6400_pwm, "samsung,s3c6400-pwm", s3c64xx_pwm_clocksource_init);
 
-static const struct samsung_pwm_variant s5p64x0_variant = {
+static const struct samsung_pwm_variant s5p64x0_variant =
+{
 	.bits		= 32,
 	.div_base	= 0,
 	.has_tint_cstat	= true,
@@ -494,7 +545,8 @@ static int __init s5p64x0_pwm_clocksource_init(struct device_node *np)
 }
 CLOCKSOURCE_OF_DECLARE(s5p6440_pwm, "samsung,s5p6440-pwm", s5p64x0_pwm_clocksource_init);
 
-static const struct samsung_pwm_variant s5p_variant = {
+static const struct samsung_pwm_variant s5p_variant =
+{
 	.bits		= 32,
 	.div_base	= 0,
 	.has_tint_cstat	= true,

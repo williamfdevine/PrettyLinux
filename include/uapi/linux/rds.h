@@ -102,7 +102,8 @@
 #define RDS_INFO_IWARP_CONNECTIONS	10010
 #define RDS_INFO_LAST			10010
 
-struct rds_info_counter {
+struct rds_info_counter
+{
 	uint8_t	name[32];
 	uint64_t	value;
 } __attribute__((packed));
@@ -113,7 +114,8 @@ struct rds_info_counter {
 
 #define TRANSNAMSIZ	16
 
-struct rds_info_connection {
+struct rds_info_connection
+{
 	uint64_t	next_tx_seq;
 	uint64_t	next_rx_seq;
 	__be32		laddr;
@@ -125,7 +127,8 @@ struct rds_info_connection {
 #define RDS_INFO_MESSAGE_FLAG_ACK               0x01
 #define RDS_INFO_MESSAGE_FLAG_FAST_ACK          0x02
 
-struct rds_info_message {
+struct rds_info_message
+{
 	uint64_t	seq;
 	uint32_t	len;
 	__be32		laddr;
@@ -135,7 +138,8 @@ struct rds_info_message {
 	uint8_t	flags;
 } __attribute__((packed));
 
-struct rds_info_socket {
+struct rds_info_socket
+{
 	uint32_t	sndbuf;
 	__be32		bound_addr;
 	__be32		connected_addr;
@@ -145,7 +149,8 @@ struct rds_info_socket {
 	uint64_t	inum;
 } __attribute__((packed));
 
-struct rds_info_tcp_socket {
+struct rds_info_tcp_socket
+{
 	__be32          local_addr;
 	__be16          local_port;
 	__be32          peer_addr;
@@ -158,7 +163,8 @@ struct rds_info_tcp_socket {
 } __attribute__((packed));
 
 #define RDS_IB_GID_LEN	16
-struct rds_info_rdma_connection {
+struct rds_info_rdma_connection
+{
 	__be32		src_addr;
 	__be32		dst_addr;
 	uint8_t		src_gid[RDS_IB_GID_LEN];
@@ -211,30 +217,35 @@ struct rds_info_rdma_connection {
  */
 typedef uint64_t	rds_rdma_cookie_t;
 
-struct rds_iovec {
+struct rds_iovec
+{
 	uint64_t	addr;
 	uint64_t	bytes;
 };
 
-struct rds_get_mr_args {
+struct rds_get_mr_args
+{
 	struct rds_iovec vec;
 	uint64_t	cookie_addr;
 	uint64_t	flags;
 };
 
-struct rds_get_mr_for_dest_args {
+struct rds_get_mr_for_dest_args
+{
 	struct sockaddr_storage	dest_addr;
 	struct rds_iovec 	vec;
 	uint64_t		cookie_addr;
 	uint64_t		flags;
 };
 
-struct rds_free_mr_args {
+struct rds_free_mr_args
+{
 	rds_rdma_cookie_t cookie;
 	uint64_t	flags;
 };
 
-struct rds_rdma_args {
+struct rds_rdma_args
+{
 	rds_rdma_cookie_t cookie;
 	struct rds_iovec remote_vec;
 	uint64_t	local_vec_addr;
@@ -243,25 +254,31 @@ struct rds_rdma_args {
 	uint64_t	user_token;
 };
 
-struct rds_atomic_args {
+struct rds_atomic_args
+{
 	rds_rdma_cookie_t cookie;
 	uint64_t 	local_addr;
 	uint64_t 	remote_addr;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint64_t	compare;
 			uint64_t	swap;
 		} cswp;
-		struct {
+		struct
+		{
 			uint64_t	add;
 		} fadd;
-		struct {
+		struct
+		{
 			uint64_t	compare;
 			uint64_t	swap;
 			uint64_t	compare_mask;
 			uint64_t	swap_mask;
 		} m_cswp;
-		struct {
+		struct
+		{
 			uint64_t	add;
 			uint64_t	nocarry_mask;
 		} m_fadd;
@@ -270,7 +287,8 @@ struct rds_atomic_args {
 	uint64_t	user_token;
 };
 
-struct rds_rdma_notify {
+struct rds_rdma_notify
+{
 	uint64_t	user_token;
 	int32_t		status;
 };

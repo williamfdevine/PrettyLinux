@@ -31,7 +31,8 @@
 #include "ppc_cbe_cpufreq.h"
 
 /* the CBE supports an 8 step frequency scaling */
-static struct cpufreq_frequency_table cbe_freqs[] = {
+static struct cpufreq_frequency_table cbe_freqs[] =
+{
 	{0, 1,	0},
 	{0, 2,	0},
 	{0, 3,	0},
@@ -52,9 +53,13 @@ static int set_pmode(unsigned int cpu, unsigned int slow_mode)
 	int rc;
 
 	if (cbe_cpufreq_has_pmi)
+	{
 		rc = cbe_cpufreq_set_pmode_pmi(cpu, slow_mode);
+	}
 	else
+	{
 		rc = cbe_cpufreq_set_pmode(cpu, slow_mode);
+	}
 
 	pr_debug("register contains slow mode %d\n", cbe_cpufreq_get_pmode(cpu));
 
@@ -76,7 +81,9 @@ static int cbe_cpufreq_cpu_init(struct cpufreq_policy *policy)
 	cpu = of_get_cpu_node(policy->cpu, NULL);
 
 	if (!cpu)
+	{
 		return -ENODEV;
+	}
 
 	pr_debug("init cpufreq on CPU %d\n", policy->cpu);
 
@@ -84,7 +91,8 @@ static int cbe_cpufreq_cpu_init(struct cpufreq_policy *policy)
 	 * Let's check we can actually get to the CELL regs
 	 */
 	if (!cbe_get_cpu_pmd_regs(policy->cpu) ||
-	    !cbe_get_cpu_mic_tm_regs(policy->cpu)) {
+		!cbe_get_cpu_mic_tm_regs(policy->cpu))
+	{
 		pr_info("invalid CBE regs pointers for cpufreq\n");
 		return -EINVAL;
 	}
@@ -94,7 +102,9 @@ static int cbe_cpufreq_cpu_init(struct cpufreq_policy *policy)
 	of_node_put(cpu);
 
 	if (!max_freqp)
+	{
 		return -EINVAL;
+	}
 
 	/* we need the freq in kHz */
 	max_freq = *max_freqp / 1000;
@@ -103,7 +113,8 @@ static int cbe_cpufreq_cpu_init(struct cpufreq_policy *policy)
 	pr_debug("initializing frequency table\n");
 
 	/* initialize frequency table */
-	cpufreq_for_each_entry(pos, cbe_freqs) {
+	cpufreq_for_each_entry(pos, cbe_freqs)
+	{
 		pos->frequency = max_freq / pos->driver_data;
 		pr_debug("%d: %d\n", (int)(pos - cbe_freqs), pos->frequency);
 	}
@@ -113,7 +124,7 @@ static int cbe_cpufreq_cpu_init(struct cpufreq_policy *policy)
 	policy->cpuinfo.transition_latency = 25000;
 
 	cur_pmode = cbe_cpufreq_get_pmode(policy->cpu);
-	pr_debug("current pmode is at %d\n",cur_pmode);
+	pr_debug("current pmode is at %d\n", cur_pmode);
 
 	policy->cur = cbe_freqs[cur_pmode].frequency;
 
@@ -127,18 +138,19 @@ static int cbe_cpufreq_cpu_init(struct cpufreq_policy *policy)
 }
 
 static int cbe_cpufreq_target(struct cpufreq_policy *policy,
-			      unsigned int cbe_pmode_new)
+							  unsigned int cbe_pmode_new)
 {
 	pr_debug("setting frequency for cpu %d to %d kHz, " \
-		 "1/%d of max frequency\n",
-		 policy->cpu,
-		 cbe_freqs[cbe_pmode_new].frequency,
-		 cbe_freqs[cbe_pmode_new].driver_data);
+			 "1/%d of max frequency\n",
+			 policy->cpu,
+			 cbe_freqs[cbe_pmode_new].frequency,
+			 cbe_freqs[cbe_pmode_new].driver_data);
 
 	return set_pmode(policy->cpu, cbe_pmode_new);
 }
 
-static struct cpufreq_driver cbe_cpufreq_driver = {
+static struct cpufreq_driver cbe_cpufreq_driver =
+{
 	.verify		= cpufreq_generic_frequency_table_verify,
 	.target_index	= cbe_cpufreq_target,
 	.init		= cbe_cpufreq_cpu_init,
@@ -153,7 +165,9 @@ static struct cpufreq_driver cbe_cpufreq_driver = {
 static int __init cbe_cpufreq_init(void)
 {
 	if (!machine_is(cell))
+	{
 		return -ENODEV;
+	}
 
 	return cpufreq_register_driver(&cbe_cpufreq_driver);
 }

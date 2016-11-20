@@ -23,7 +23,8 @@ struct public_key_signature;
  * Keys of this type declare a subtype that indicates the handlers and
  * capabilities.
  */
-struct asymmetric_key_subtype {
+struct asymmetric_key_subtype
+{
 	struct module		*owner;
 	const char		*name;
 	unsigned short		name_len;	/* length of name */
@@ -36,7 +37,7 @@ struct asymmetric_key_subtype {
 
 	/* Verify the signature on a key of this subtype (optional) */
 	int (*verify_signature)(const struct key *key,
-				const struct public_key_signature *sig);
+							const struct public_key_signature *sig);
 };
 
 /**

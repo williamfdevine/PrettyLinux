@@ -8,10 +8,11 @@
 #define MISSING_WINDOW 20
 #define WRAPPED(curseq, lastseq)\
 	((((curseq) & 0xffffff00) == 0) &&\
-	(((lastseq) & 0xffffff00) == 0xffffff00))
+	 (((lastseq) & 0xffffff00) == 0xffffff00))
 
 #define PPTP_HEADER_OVERHEAD (2+sizeof(struct pptp_gre_header))
-struct pptp_gre_header {
+struct pptp_gre_header
+{
 	struct gre_base_hdr gre_hd;
 	__be16 payload_len;
 	__be16 call_id;

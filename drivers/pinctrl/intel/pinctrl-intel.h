@@ -24,7 +24,8 @@ struct device;
  * @npins: Number of pins in this groups
  * @mode: Native mode in which the group is muxed out @pins
  */
-struct intel_pingroup {
+struct intel_pingroup
+{
 	const char *name;
 	const unsigned *pins;
 	size_t npins;
@@ -37,9 +38,10 @@ struct intel_pingroup {
  * @groups: An array of groups for this function
  * @ngroups: Number of groups in @groups
  */
-struct intel_function {
+struct intel_function
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	size_t ngroups;
 };
 
@@ -63,7 +65,8 @@ struct intel_function {
  * @ngpps: Number of groups (hw groups) in this community (reserved for
  *         core driver)
  */
-struct intel_community {
+struct intel_community
+{
 	unsigned barno;
 	unsigned padown_offset;
 	unsigned padcfglock_offset;
@@ -80,16 +83,16 @@ struct intel_community {
 #define PIN_GROUP(n, p, m)			\
 	{					\
 		.name = (n),			\
-		.pins = (p),			\
-		.npins = ARRAY_SIZE((p)),	\
-		.mode = (m),			\
+				.pins = (p),			\
+						.npins = ARRAY_SIZE((p)),	\
+								 .mode = (m),			\
 	}
 
 #define FUNCTION(n, g)				\
 	{					\
 		.name = (n),			\
-		.groups = (g),			\
-		.ngroups = ARRAY_SIZE((g)),	\
+				.groups = (g),			\
+						  .ngroups = ARRAY_SIZE((g)),	\
 	}
 
 /**
@@ -107,7 +110,8 @@ struct intel_community {
  * The @communities is used as a template by the core driver. It will make
  * copy of all communities and fill in rest of the information.
  */
-struct intel_pinctrl_soc_data {
+struct intel_pinctrl_soc_data
+{
 	const char *uid;
 	const struct pinctrl_pin_desc *pins;
 	size_t npins;
@@ -120,12 +124,12 @@ struct intel_pinctrl_soc_data {
 };
 
 int intel_pinctrl_probe(struct platform_device *pdev,
-			const struct intel_pinctrl_soc_data *soc_data);
+						const struct intel_pinctrl_soc_data *soc_data);
 int intel_pinctrl_remove(struct platform_device *pdev);
 
 #ifdef CONFIG_PM_SLEEP
-int intel_pinctrl_suspend(struct device *dev);
-int intel_pinctrl_resume(struct device *dev);
+	int intel_pinctrl_suspend(struct device *dev);
+	int intel_pinctrl_resume(struct device *dev);
 #endif
 
 #endif /* PINCTRL_INTEL_H */

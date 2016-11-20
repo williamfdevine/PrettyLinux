@@ -35,14 +35,15 @@
 
 //#define AGP_DEBUG 1
 #ifdef AGP_DEBUG
-#define DBG(x,y...) printk (KERN_DEBUG PFX "%s: " x "\n", __func__ , ## y)
+	#define DBG(x,y...) printk (KERN_DEBUG PFX "%s: " x "\n", __func__ , ## y)
 #else
-#define DBG(x,y...) do { } while (0)
+	#define DBG(x,y...) do { } while (0)
 #endif
 
 extern struct agp_bridge_data *agp_bridge;
 
-enum aper_size_type {
+enum aper_size_type
+{
 	U8_APER_SIZE,
 	U16_APER_SIZE,
 	U32_APER_SIZE,
@@ -50,7 +51,8 @@ enum aper_size_type {
 	FIXED_APER_SIZE
 };
 
-struct gatt_mask {
+struct gatt_mask
+{
 	unsigned long mask;
 	u32 type;
 	/* totally device specific, for integrated chipsets that
@@ -61,40 +63,46 @@ struct gatt_mask {
 #define AGP_PAGE_DESTROY_UNMAP 1
 #define AGP_PAGE_DESTROY_FREE 2
 
-struct aper_size_info_8 {
+struct aper_size_info_8
+{
 	int size;
 	int num_entries;
 	int page_order;
 	u8 size_value;
 };
 
-struct aper_size_info_16 {
+struct aper_size_info_16
+{
 	int size;
 	int num_entries;
 	int page_order;
 	u16 size_value;
 };
 
-struct aper_size_info_32 {
+struct aper_size_info_32
+{
 	int size;
 	int num_entries;
 	int page_order;
 	u32 size_value;
 };
 
-struct aper_size_info_lvl2 {
+struct aper_size_info_lvl2
+{
 	int size;
 	int num_entries;
 	u32 size_value;
 };
 
-struct aper_size_info_fixed {
+struct aper_size_info_fixed
+{
 	int size;
 	int num_entries;
 	int page_order;
 };
 
-struct agp_bridge_driver {
+struct agp_bridge_driver
+{
 	struct module *owner;
 	const void *aperture_sizes;
 	int num_aperture_sizes;
@@ -122,7 +130,8 @@ struct agp_bridge_driver {
 	int (*agp_type_to_mask_type) (struct agp_bridge_data *, int);
 };
 
-struct agp_bridge_data {
+struct agp_bridge_data
+{
 	const struct agp_version *version;
 	const struct agp_bridge_driver *driver;
 	const struct vm_operations_struct *vm_ops;
@@ -172,7 +181,8 @@ struct agp_bridge_data {
 #define PGE_EMPTY(b, p)	(!(p) || (p) == (unsigned long) (b)->scratch_page)
 
 
-struct agp_device_ids {
+struct agp_device_ids
+{
 	unsigned short device_id; /* first, to make table easier to read */
 	enum chipset_type chipset;
 	const char *chipset_name;
@@ -200,7 +210,7 @@ struct agp_memory *agp_generic_alloc_by_type(size_t page_count, int type);
 void agp_generic_free_by_type(struct agp_memory *curr);
 struct page *agp_generic_alloc_page(struct agp_bridge_data *bridge);
 int agp_generic_alloc_pages(struct agp_bridge_data *agp_bridge,
-			    struct agp_memory *memory, size_t page_count);
+							struct agp_memory *memory, size_t page_count);
 void agp_generic_destroy_page(struct page *page, int flags);
 void agp_generic_destroy_pages(struct agp_memory *memory);
 void agp_free_key(int key);
@@ -211,9 +221,9 @@ int agp_3_5_enable(struct agp_bridge_data *bridge);
 void global_cache_flush(void);
 void get_agp_version(struct agp_bridge_data *bridge);
 unsigned long agp_generic_mask_memory(struct agp_bridge_data *bridge,
-				      dma_addr_t phys, int type);
+									  dma_addr_t phys, int type);
 int agp_generic_type_to_mask_type(struct agp_bridge_data *bridge,
-				  int type);
+								  int type);
 struct agp_bridge_data *agp_generic_find_bridge(struct pci_dev *pdev);
 
 /* generic functions for user-populated AGP memory types */

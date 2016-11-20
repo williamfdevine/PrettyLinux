@@ -35,21 +35,21 @@
 #define GetBF(var,mask) (((unsigned)((var) & MASKEXPAND(mask))) >> (0?mask) )
 
 #define MaskAndSetBF(var,mask,value) (var)=(((var)&(~MASKEXPAND(mask)) \
-                                             | SetBF(mask,value)))
+		| SetBF(mask,value)))
 
 #define DEVICE_BASE(device) (0?NV##_##device)
 #define DEVICE_SIZE(device) ((1?NV##_##device) - DEVICE_BASE(device)+1)
 
 /* This is where we will have to have conditional compilation */
 #define DEVICE_ACCESS(device,reg) \
-  nvCONTROL[(NV_##device##_##reg)/4]
+	nvCONTROL[(NV_##device##_##reg)/4]
 
 #define DEVICE_WRITE(device,reg,value) DEVICE_ACCESS(device,reg)=(value)
 #define DEVICE_READ(device,reg)        DEVICE_ACCESS(device,reg)
 #define DEVICE_PRINT(device,reg) \
-  ErrorF("NV_"#device"_"#reg"=#%08lx\n",DEVICE_ACCESS(device,reg))
+	ErrorF("NV_"#device"_"#reg"=#%08lx\n",DEVICE_ACCESS(device,reg))
 #define DEVICE_DEF(device,mask,value) \
-  SetBF(NV_##device##_##mask,NV_##device##_##mask##_##value)
+	SetBF(NV_##device##_##mask,NV_##device##_##mask##_##value)
 #define DEVICE_VALUE(device,mask,value) SetBF(NV_##device##_##mask,value)
 #define DEVICE_MASK(device,mask) MASKEXPAND(NV_##device##_##mask)
 
@@ -155,14 +155,14 @@
 
 
 #define PDAC_ReadExt(reg) \
-  ((PDAC_Write(INDEX_LO,(NV_PDAC_EXT_##reg) & 0xff)),\
-  (PDAC_Write(INDEX_HI,((NV_PDAC_EXT_##reg) >> 8) & 0xff)),\
-  (PDAC_Read(INDEX_DATA)))
+	((PDAC_Write(INDEX_LO,(NV_PDAC_EXT_##reg) & 0xff)),\
+	 (PDAC_Write(INDEX_HI,((NV_PDAC_EXT_##reg) >> 8) & 0xff)),\
+	 (PDAC_Read(INDEX_DATA)))
 
 #define PDAC_WriteExt(reg,value)\
-  ((PDAC_Write(INDEX_LO,(NV_PDAC_EXT_##reg) & 0xff)),\
-  (PDAC_Write(INDEX_HI,((NV_PDAC_EXT_##reg) >> 8) & 0xff)),\
-  (PDAC_Write(INDEX_DATA,(value))))
+	((PDAC_Write(INDEX_LO,(NV_PDAC_EXT_##reg) & 0xff)),\
+	 (PDAC_Write(INDEX_HI,((NV_PDAC_EXT_##reg) >> 8) & 0xff)),\
+	 (PDAC_Write(INDEX_DATA,(value))))
 
 #define CRTC_Write(index,value) outb((index), 0x3d4); outb(value, 0x3d5)
 #define CRTC_Read(index) (outb(index, 0x3d4),inb(0x3d5))
@@ -179,7 +179,7 @@
 
 extern volatile unsigned  *nvCONTROL;
 
-typedef enum {NV1,NV3,NV4,NumNVChips} NVChipType;
+typedef enum {NV1, NV3, NV4, NumNVChips} NVChipType;
 
 NVChipType GetChipType(void);
 

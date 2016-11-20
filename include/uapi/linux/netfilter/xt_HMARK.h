@@ -4,7 +4,8 @@
 #include <linux/types.h>
 #include <linux/netfilter.h>
 
-enum {
+enum
+{
 	XT_HMARK_SADDR_MASK,
 	XT_HMARK_DADDR_MASK,
 	XT_HMARK_SPI,
@@ -23,12 +24,15 @@ enum {
 };
 #define XT_HMARK_FLAG(flag)	(1 << flag)
 
-union hmark_ports {
-	struct {
+union hmark_ports
+{
+	struct
+	{
 		__u16	src;
 		__u16	dst;
 	} p16;
-	struct {
+	struct
+	{
 		__be16	src;
 		__be16	dst;
 	} b16;
@@ -36,7 +40,8 @@ union hmark_ports {
 	__be32	b32;
 };
 
-struct xt_hmark_info {
+struct xt_hmark_info
+{
 	union nf_inet_addr	src_mask;
 	union nf_inet_addr	dst_mask;
 	union hmark_ports	port_mask;

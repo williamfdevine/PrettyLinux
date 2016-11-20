@@ -34,7 +34,8 @@ gf100_msppp_init(struct nvkm_falcon *msppp)
 }
 
 static const struct nvkm_falcon_func
-gf100_msppp = {
+	gf100_msppp =
+{
 	.init = gf100_msppp_init,
 	.sclass = {
 		{ -1, -1, GF100_MSPPP },
@@ -44,7 +45,7 @@ gf100_msppp = {
 
 int
 gf100_msppp_new(struct nvkm_device *device, int index,
-		struct nvkm_engine **pengine)
+				struct nvkm_engine **pengine)
 {
 	return nvkm_msppp_new_(&gf100_msppp, device, index, pengine);
 }

@@ -19,7 +19,8 @@
 
 #include "dvb_frontend.h"
 
-struct mxl301rf_config {
+struct mxl301rf_config
+{
 	struct dvb_frontend *fe;
 };
 

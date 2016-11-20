@@ -33,7 +33,7 @@
  * by defining MPI_POINTER as "far *" before this header file is included.
  */
 #ifndef MPI_POINTER
-#define MPI_POINTER     *
+	#define MPI_POINTER     *
 #endif
 
 
@@ -54,14 +54,14 @@ typedef u_int32_t U32;
 
 typedef struct _S64
 {
-    U32          Low;
-    S32          High;
+	U32          Low;
+	S32          High;
 } S64;
 
 typedef struct _U64
 {
-    U32          Low;
-    U32          High;
+	U32          Low;
+	U32          High;
 } U64;
 
 

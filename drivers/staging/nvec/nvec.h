@@ -50,7 +50,8 @@
  * Events can be fixed or variable sized. This is useless on other message
  * types, which are always variable sized.
  */
-enum nvec_event_size {
+enum nvec_event_size
+{
 	NVEC_2BYTES,
 	NVEC_3BYTES,
 	NVEC_VAR_SIZE,
@@ -69,7 +70,8 @@ enum nvec_event_size {
  * Events can be fixed or variable sized. This is useless on other message
  * types, which are always variable sized.
  */
-enum nvec_msg_type {
+enum nvec_msg_type
+{
 	NVEC_SYS = 1,
 	NVEC_BAT,
 	NVEC_GPIO,
@@ -95,7 +97,8 @@ enum nvec_msg_type {
  * messages have a different format than incoming messages, and that is not
  * documented yet.
  */
-struct nvec_msg {
+struct nvec_msg
+{
 	struct list_head node;
 	unsigned char data[NVEC_MSG_SIZE];
 	unsigned short size;
@@ -134,7 +137,8 @@ struct nvec_msg {
  * @last_sync_msg: The last synchronous message.
  * @state: State of our finite state machine used in nvec_interrupt()
  */
-struct nvec_chip {
+struct nvec_chip
+{
 	struct device *dev;
 	int gpio;
 	int irq;
@@ -166,15 +170,15 @@ struct nvec_chip {
 };
 
 int nvec_write_async(struct nvec_chip *nvec, const unsigned char *data,
-		     short size);
+					 short size);
 
 int nvec_write_sync(struct nvec_chip *nvec,
-		    const unsigned char *data, short size,
-		    struct nvec_msg **msg);
+					const unsigned char *data, short size,
+					struct nvec_msg **msg);
 
 int nvec_register_notifier(struct nvec_chip *nvec,
-			   struct notifier_block *nb,
-			   unsigned int events);
+						   struct notifier_block *nb,
+						   unsigned int events);
 
 int nvec_unregister_notifier(struct nvec_chip *dev, struct notifier_block *nb);
 

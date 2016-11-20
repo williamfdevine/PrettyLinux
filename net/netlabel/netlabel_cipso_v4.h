@@ -98,7 +98,8 @@
  */
 
 /* NetLabel CIPSOv4 commands */
-enum {
+enum
+{
 	NLBL_CIPSOV4_C_UNSPEC,
 	NLBL_CIPSOV4_C_ADD,
 	NLBL_CIPSOV4_C_REMOVE,
@@ -108,7 +109,8 @@ enum {
 };
 
 /* NetLabel CIPSOv4 attributes */
-enum {
+enum
+{
 	NLBL_CIPSOV4_A_UNSPEC,
 	NLBL_CIPSOV4_A_DOI,
 	/* (NLA_U32)

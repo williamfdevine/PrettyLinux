@@ -23,7 +23,7 @@
 #define PLL_DIV_MAX		PLL_DIV_MASK
 #define PLL_DIV(reg)		((reg) & PLL_DIV_MASK)
 #define PLL_MUL(reg, layout)	(((reg) >> (layout)->mul_shift) & \
-				 (layout)->mul_mask)
+								 (layout)->mul_mask)
 #define PLL_MUL_MIN		2
 #define PLL_MUL_MASK(layout)	((layout)->mul_mask)
 #define PLL_MUL_MAX(layout)	(PLL_MUL_MASK(layout) + 1)
@@ -34,7 +34,8 @@
 #define PLL_OUT_SHIFT		14
 #define PLL_MAX_ID		1
 
-struct clk_pll_characteristics {
+struct clk_pll_characteristics
+{
 	struct clk_range input;
 	int num_output;
 	struct clk_range *output;
@@ -42,7 +43,8 @@ struct clk_pll_characteristics {
 	u8 *out;
 };
 
-struct clk_pll_layout {
+struct clk_pll_layout
+{
 	u32 pllr_mask;
 	u16 mul_mask;
 	u8 mul_shift;
@@ -50,7 +52,8 @@ struct clk_pll_layout {
 
 #define to_clk_pll(hw) container_of(hw, struct clk_pll, hw)
 
-struct clk_pll {
+struct clk_pll
+{
 	struct clk_hw hw;
 	struct regmap *regmap;
 	u8 id;
@@ -76,7 +79,7 @@ static int clk_pll_prepare(struct clk_hw *hw)
 	struct regmap *regmap = pll->regmap;
 	const struct clk_pll_layout *layout = pll->layout;
 	const struct clk_pll_characteristics *characteristics =
-							pll->characteristics;
+			pll->characteristics;
 	u8 id = pll->id;
 	u32 mask = PLL_STATUS_MASK(id);
 	int offset = PLL_REG(id);
@@ -91,24 +94,31 @@ static int clk_pll_prepare(struct clk_hw *hw)
 	mul = PLL_MUL(pllr, layout);
 
 	regmap_read(regmap, AT91_PMC_SR, &status);
+
 	if ((status & mask) &&
-	    (div == pll->div && mul == pll->mul))
+		(div == pll->div && mul == pll->mul))
+	{
 		return 0;
+	}
 
 	if (characteristics->out)
+	{
 		out = characteristics->out[pll->range];
+	}
 
 	if (characteristics->icpll)
 		regmap_update_bits(regmap, AT91_PMC_PLLICPR, PLL_ICPR_MASK(id),
-			characteristics->icpll[pll->range] << PLL_ICPR_SHIFT(id));
+						   characteristics->icpll[pll->range] << PLL_ICPR_SHIFT(id));
 
 	regmap_update_bits(regmap, offset, layout->pllr_mask,
-			pll->div | (PLL_MAX_COUNT << PLL_COUNT_SHIFT) |
-			(out << PLL_OUT_SHIFT) |
-			((pll->mul & layout->mul_mask) << layout->mul_shift));
+					   pll->div | (PLL_MAX_COUNT << PLL_COUNT_SHIFT) |
+					   (out << PLL_OUT_SHIFT) |
+					   ((pll->mul & layout->mul_mask) << layout->mul_shift));
 
 	while (!clk_pll_ready(regmap, pll->id))
+	{
 		cpu_relax();
+	}
 
 	return 0;
 }
@@ -129,7 +139,7 @@ static void clk_pll_unprepare(struct clk_hw *hw)
 }
 
 static unsigned long clk_pll_recalc_rate(struct clk_hw *hw,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_pll *pll = to_clk_pll(hw);
 	unsigned int pllr;
@@ -142,18 +152,21 @@ static unsigned long clk_pll_recalc_rate(struct clk_hw *hw,
 	mul = PLL_MUL(pllr, pll->layout);
 
 	if (!div || !mul)
+	{
 		return 0;
+	}
 
 	return (parent_rate / div) * (mul + 1);
 }
 
 static long clk_pll_get_best_div_mul(struct clk_pll *pll, unsigned long rate,
-				     unsigned long parent_rate,
-				     u32 *div, u32 *mul,
-				     u32 *index) {
+									 unsigned long parent_rate,
+									 u32 *div, u32 *mul,
+									 u32 *index)
+{
 	const struct clk_pll_layout *layout = pll->layout;
 	const struct clk_pll_characteristics *characteristics =
-							pll->characteristics;
+			pll->characteristics;
 	unsigned long bestremainder = ULONG_MAX;
 	unsigned long maxdiv, mindiv, tmpdiv;
 	long bestrate = -ERANGE;
@@ -163,7 +176,9 @@ static long clk_pll_get_best_div_mul(struct clk_pll *pll, unsigned long rate,
 
 	/* Check if parent_rate is a valid input rate */
 	if (parent_rate < characteristics->input.min)
+	{
 		return -ERANGE;
+	}
 
 	/*
 	 * Calculate minimum divider based on the minimum multiplier, the
@@ -172,16 +187,25 @@ static long clk_pll_get_best_div_mul(struct clk_pll *pll, unsigned long rate,
 	 * of the PLL blocks.
 	 */
 	mindiv = (parent_rate * PLL_MUL_MIN) / rate;
-	if (!mindiv)
-		mindiv = 1;
 
-	if (parent_rate > characteristics->input.max) {
+	if (!mindiv)
+	{
+		mindiv = 1;
+	}
+
+	if (parent_rate > characteristics->input.max)
+	{
 		tmpdiv = DIV_ROUND_UP(parent_rate, characteristics->input.max);
+
 		if (tmpdiv > PLL_DIV_MAX)
+		{
 			return -ERANGE;
+		}
 
 		if (tmpdiv > mindiv)
+		{
 			mindiv = tmpdiv;
+		}
 	}
 
 	/*
@@ -189,15 +213,19 @@ static long clk_pll_get_best_div_mul(struct clk_pll *pll, unsigned long rate,
 	 * layout (limited by the MUL or DIV field size).
 	 */
 	maxdiv = DIV_ROUND_UP(parent_rate * PLL_MUL_MAX(layout), rate);
+
 	if (maxdiv > PLL_DIV_MAX)
+	{
 		maxdiv = PLL_DIV_MAX;
+	}
 
 	/*
 	 * Iterate over the acceptable divider values to find the best
 	 * divider/multiplier pair (the one that generates the closest
 	 * rate to the requested one).
 	 */
-	for (tmpdiv = mindiv; tmpdiv <= maxdiv; tmpdiv++) {
+	for (tmpdiv = mindiv; tmpdiv <= maxdiv; tmpdiv++)
+	{
 		unsigned long remainder;
 		unsigned long tmprate;
 		unsigned long tmpmul;
@@ -208,17 +236,23 @@ static long clk_pll_get_best_div_mul(struct clk_pll *pll, unsigned long rate,
 		 */
 		tmpmul = DIV_ROUND_CLOSEST(rate, parent_rate / tmpdiv);
 		tmprate = (parent_rate / tmpdiv) * tmpmul;
+
 		if (tmprate > rate)
+		{
 			remainder = tmprate - rate;
+		}
 		else
+		{
 			remainder = rate - tmprate;
+		}
 
 		/*
 		 * Compare the remainder with the best remainder found until
 		 * now and elect a new best multiplier/divider pair if the
 		 * current remainder is smaller than the best one.
 		 */
-		if (remainder < bestremainder) {
+		if (remainder < bestremainder)
+		{
 			bestremainder = remainder;
 			bestdiv = tmpdiv;
 			bestmul = tmpmul;
@@ -230,44 +264,61 @@ static long clk_pll_get_best_div_mul(struct clk_pll *pll, unsigned long rate,
 		 * Stop searching now and use this multiplier/divider pair.
 		 */
 		if (!remainder)
+		{
 			break;
+		}
 	}
 
 	/* We haven't found any multiplier/divider pair => return -ERANGE */
 	if (bestrate < 0)
+	{
 		return bestrate;
+	}
 
 	/* Check if bestrate is a valid output rate  */
-	for (i = 0; i < characteristics->num_output; i++) {
+	for (i = 0; i < characteristics->num_output; i++)
+	{
 		if (bestrate >= characteristics->output[i].min &&
-		    bestrate <= characteristics->output[i].max)
+			bestrate <= characteristics->output[i].max)
+		{
 			break;
+		}
 	}
 
 	if (i >= characteristics->num_output)
+	{
 		return -ERANGE;
+	}
 
 	if (div)
+	{
 		*div = bestdiv;
+	}
+
 	if (mul)
+	{
 		*mul = bestmul - 1;
+	}
+
 	if (index)
+	{
 		*index = i;
+	}
 
 	return bestrate;
 }
 
 static long clk_pll_round_rate(struct clk_hw *hw, unsigned long rate,
-					unsigned long *parent_rate)
+							   unsigned long *parent_rate)
 {
 	struct clk_pll *pll = to_clk_pll(hw);
 
 	return clk_pll_get_best_div_mul(pll, rate, *parent_rate,
-					NULL, NULL, NULL);
+									NULL, NULL, NULL);
 }
 
 static int clk_pll_set_rate(struct clk_hw *hw, unsigned long rate,
-			    unsigned long parent_rate)
+							unsigned long parent_rate)
 {
 	struct clk_pll *pll = to_clk_pll(hw);
 	long ret;
@@ -276,9 +327,12 @@ static int clk_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 	u32 index;
 
 	ret = clk_pll_get_best_div_mul(pll, rate, parent_rate,
-				       &div, &mul, &index);
+								   &div, &mul, &index);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	pll->range = index;
 	pll->div = div;
@@ -287,7 +341,8 @@ static int clk_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-static const struct clk_ops pll_ops = {
+static const struct clk_ops pll_ops =
+{
 	.prepare = clk_pll_prepare,
 	.unprepare = clk_pll_unprepare,
 	.is_prepared = clk_pll_is_prepared,
@@ -296,11 +351,11 @@ static const struct clk_ops pll_ops = {
 	.set_rate = clk_pll_set_rate,
 };
 
-static struct clk_hw * __init
+static struct clk_hw *__init
 at91_clk_register_pll(struct regmap *regmap, const char *name,
-		      const char *parent_name, u8 id,
-		      const struct clk_pll_layout *layout,
-		      const struct clk_pll_characteristics *characteristics)
+					  const char *parent_name, u8 id,
+					  const struct clk_pll_layout *layout,
+					  const struct clk_pll_characteristics *characteristics)
 {
 	struct clk_pll *pll;
 	struct clk_hw *hw;
@@ -310,11 +365,16 @@ at91_clk_register_pll(struct regmap *regmap, const char *name,
 	int ret;
 
 	if (id > PLL_MAX_ID)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	pll = kzalloc(sizeof(*pll), GFP_KERNEL);
+
 	if (!pll)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &pll_ops;
@@ -333,7 +393,9 @@ at91_clk_register_pll(struct regmap *regmap, const char *name,
 
 	hw = &pll->hw;
 	ret = clk_hw_register(NULL, &pll->hw);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(pll);
 		hw = ERR_PTR(ret);
 	}
@@ -342,32 +404,36 @@ at91_clk_register_pll(struct regmap *regmap, const char *name,
 }
 
 
-static const struct clk_pll_layout at91rm9200_pll_layout = {
+static const struct clk_pll_layout at91rm9200_pll_layout =
+{
 	.pllr_mask = 0x7FFFFFF,
 	.mul_shift = 16,
 	.mul_mask = 0x7FF,
 };
 
-static const struct clk_pll_layout at91sam9g45_pll_layout = {
+static const struct clk_pll_layout at91sam9g45_pll_layout =
+{
 	.pllr_mask = 0xFFFFFF,
 	.mul_shift = 16,
 	.mul_mask = 0xFF,
 };
 
-static const struct clk_pll_layout at91sam9g20_pllb_layout = {
+static const struct clk_pll_layout at91sam9g20_pllb_layout =
+{
 	.pllr_mask = 0x3FFFFF,
 	.mul_shift = 16,
 	.mul_mask = 0x3F,
 };
 
-static const struct clk_pll_layout sama5d3_pll_layout = {
+static const struct clk_pll_layout sama5d3_pll_layout =
+{
 	.pllr_mask = 0x1FFFFFF,
 	.mul_shift = 18,
 	.mul_mask = 0x7F,
 };
 
 
-static struct clk_pll_characteristics * __init
+static struct clk_pll_characteristics *__init
 of_at91_clk_pll_get_characteristics(struct device_node *np)
 {
 	int i;
@@ -382,68 +448,110 @@ of_at91_clk_pll_get_characteristics(struct device_node *np)
 	struct clk_pll_characteristics *characteristics;
 
 	if (of_at91_get_clk_range(np, "atmel,clk-input-range", &input))
+	{
 		return NULL;
+	}
 
 	if (of_property_read_u32(np, "#atmel,pll-clk-output-range-cells",
-				 &num_cells))
+							 &num_cells))
+	{
 		return NULL;
+	}
 
 	if (num_cells < 2 || num_cells > 4)
+	{
 		return NULL;
+	}
 
 	if (!of_get_property(np, "atmel,pll-clk-output-ranges", &tmp))
+	{
 		return NULL;
+	}
+
 	num_output = tmp / (sizeof(u32) * num_cells);
 
 	characteristics = kzalloc(sizeof(*characteristics), GFP_KERNEL);
+
 	if (!characteristics)
+	{
 		return NULL;
+	}
 
 	output = kzalloc(sizeof(*output) * num_output, GFP_KERNEL);
+
 	if (!output)
+	{
 		goto out_free_characteristics;
+	}
 
-	if (num_cells > 2) {
+	if (num_cells > 2)
+	{
 		out = kzalloc(sizeof(*out) * num_output, GFP_KERNEL);
+
 		if (!out)
+		{
 			goto out_free_output;
+		}
 	}
 
-	if (num_cells > 3) {
+	if (num_cells > 3)
+	{
 		icpll = kzalloc(sizeof(*icpll) * num_output, GFP_KERNEL);
+
 		if (!icpll)
+		{
 			goto out_free_output;
+		}
 	}
 
-	for (i = 0; i < num_output; i++) {
+	for (i = 0; i < num_output; i++)
+	{
 		offset = i * num_cells;
+
 		if (of_property_read_u32_index(np,
-					       "atmel,pll-clk-output-ranges",
-					       offset, &tmp))
+									   "atmel,pll-clk-output-ranges",
+									   offset, &tmp))
+		{
 			goto out_free_output;
+		}
+
 		output[i].min = tmp;
+
 		if (of_property_read_u32_index(np,
-					       "atmel,pll-clk-output-ranges",
-					       offset + 1, &tmp))
+									   "atmel,pll-clk-output-ranges",
+									   offset + 1, &tmp))
+		{
 			goto out_free_output;
+		}
+
 		output[i].max = tmp;
 
 		if (num_cells == 2)
+		{
 			continue;
+		}
 
 		if (of_property_read_u32_index(np,
-					       "atmel,pll-clk-output-ranges",
-					       offset + 2, &tmp))
+									   "atmel,pll-clk-output-ranges",
+									   offset + 2, &tmp))
+		{
 			goto out_free_output;
+		}
+
 		out[i] = tmp;
 
 		if (num_cells == 3)
+		{
 			continue;
+		}
 
 		if (of_property_read_u32_index(np,
-					       "atmel,pll-clk-output-ranges",
-					       offset + 3, &tmp))
+									   "atmel,pll-clk-output-ranges",
+									   offset + 3, &tmp))
+		{
 			goto out_free_output;
+		}
+
 		icpll[i] = tmp;
 	}
 
@@ -465,7 +573,7 @@ out_free_characteristics:
 
 static void __init
 of_at91_clk_pll_setup(struct device_node *np,
-		      const struct clk_pll_layout *layout)
+					  const struct clk_pll_layout *layout)
 {
 	u32 id;
 	struct clk_hw *hw;
@@ -475,24 +583,35 @@ of_at91_clk_pll_setup(struct device_node *np,
 	struct clk_pll_characteristics *characteristics;
 
 	if (of_property_read_u32(np, "reg", &id))
+	{
 		return;
+	}
 
 	parent_name = of_clk_get_parent_name(np, 0);
 
 	of_property_read_string(np, "clock-output-names", &name);
 
 	regmap = syscon_node_to_regmap(of_get_parent(np));
+
 	if (IS_ERR(regmap))
+	{
 		return;
+	}
 
 	characteristics = of_at91_clk_pll_get_characteristics(np);
+
 	if (!characteristics)
+	{
 		return;
+	}
 
 	hw = at91_clk_register_pll(regmap, name, parent_name, id, layout,
-				    characteristics);
+							   characteristics);
+
 	if (IS_ERR(hw))
+	{
 		goto out_free_characteristics;
+	}
 
 	of_clk_add_hw_provider(np, of_clk_hw_simple_get, hw);
 	return;
@@ -506,25 +625,25 @@ static void __init of_at91rm9200_clk_pll_setup(struct device_node *np)
 	of_at91_clk_pll_setup(np, &at91rm9200_pll_layout);
 }
 CLK_OF_DECLARE(at91rm9200_clk_pll, "atmel,at91rm9200-clk-pll",
-	       of_at91rm9200_clk_pll_setup);
+			   of_at91rm9200_clk_pll_setup);
 
 static void __init of_at91sam9g45_clk_pll_setup(struct device_node *np)
 {
 	of_at91_clk_pll_setup(np, &at91sam9g45_pll_layout);
 }
 CLK_OF_DECLARE(at91sam9g45_clk_pll, "atmel,at91sam9g45-clk-pll",
-	       of_at91sam9g45_clk_pll_setup);
+			   of_at91sam9g45_clk_pll_setup);
 
 static void __init of_at91sam9g20_clk_pllb_setup(struct device_node *np)
 {
 	of_at91_clk_pll_setup(np, &at91sam9g20_pllb_layout);
 }
 CLK_OF_DECLARE(at91sam9g20_clk_pllb, "atmel,at91sam9g20-clk-pllb",
-	       of_at91sam9g20_clk_pllb_setup);
+			   of_at91sam9g20_clk_pllb_setup);
 
 static void __init of_sama5d3_clk_pll_setup(struct device_node *np)
 {
 	of_at91_clk_pll_setup(np, &sama5d3_pll_layout);
 }
 CLK_OF_DECLARE(sama5d3_clk_pll, "atmel,sama5d3-clk-pll",
-	       of_sama5d3_clk_pll_setup);
+			   of_sama5d3_clk_pll_setup);

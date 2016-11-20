@@ -40,9 +40,10 @@
 struct ixgbe_hw;
 
 /* iterator type for walking multicast address lists */
-typedef u8* (*ixgbe_mc_addr_itr) (struct ixgbe_hw *hw, u8 **mc_addr_ptr,
-				  u32 *vmdq);
-struct ixgbe_mac_operations {
+typedef u8 *(*ixgbe_mc_addr_itr) (struct ixgbe_hw *hw, u8 **mc_addr_ptr,
+								  u32 *vmdq);
+struct ixgbe_mac_operations
+{
 	s32 (*init_hw)(struct ixgbe_hw *);
 	s32 (*reset_hw)(struct ixgbe_hw *);
 	s32 (*start_hw)(struct ixgbe_hw *);
@@ -57,7 +58,7 @@ struct ixgbe_mac_operations {
 	s32 (*setup_link)(struct ixgbe_hw *, ixgbe_link_speed, bool, bool);
 	s32 (*check_link)(struct ixgbe_hw *, ixgbe_link_speed *, bool *, bool);
 	s32 (*get_link_capabilities)(struct ixgbe_hw *, ixgbe_link_speed *,
-				     bool *);
+								 bool *);
 
 	/* RAR, Multicast, VLAN */
 	s32 (*set_rar)(struct ixgbe_hw *, u32, u8 *, u32);
@@ -72,7 +73,8 @@ struct ixgbe_mac_operations {
 	s32 (*set_rlpml)(struct ixgbe_hw *, u16);
 };
 
-enum ixgbe_mac_type {
+enum ixgbe_mac_type
+{
 	ixgbe_mac_unknown = 0,
 	ixgbe_mac_82599_vf,
 	ixgbe_mac_X540_vf,
@@ -82,7 +84,8 @@ enum ixgbe_mac_type {
 	ixgbe_num_macs
 };
 
-struct ixgbe_mac_info {
+struct ixgbe_mac_info
+{
 	struct ixgbe_mac_operations ops;
 	u8 addr[6];
 	u8 perm_addr[6];
@@ -97,7 +100,8 @@ struct ixgbe_mac_info {
 	u32  max_msix_vectors;
 };
 
-struct ixgbe_mbx_operations {
+struct ixgbe_mbx_operations
+{
 	s32 (*init_params)(struct ixgbe_hw *hw);
 	s32 (*read)(struct ixgbe_hw *, u32 *, u16);
 	s32 (*write)(struct ixgbe_hw *, u32 *, u16);
@@ -108,7 +112,8 @@ struct ixgbe_mbx_operations {
 	s32 (*check_for_rst)(struct ixgbe_hw *);
 };
 
-struct ixgbe_mbx_stats {
+struct ixgbe_mbx_stats
+{
 	u32 msgs_tx;
 	u32 msgs_rx;
 
@@ -117,7 +122,8 @@ struct ixgbe_mbx_stats {
 	u32 rsts;
 };
 
-struct ixgbe_mbx_info {
+struct ixgbe_mbx_info
+{
 	struct ixgbe_mbx_operations ops;
 	struct ixgbe_mbx_stats stats;
 	u32 timeout;
@@ -126,7 +132,8 @@ struct ixgbe_mbx_info {
 	u16 size;
 };
 
-struct ixgbe_hw {
+struct ixgbe_hw
+{
 	void *back;
 
 	u8 __iomem *hw_addr;
@@ -145,7 +152,8 @@ struct ixgbe_hw {
 	int api_version;
 };
 
-struct ixgbevf_hw_stats {
+struct ixgbevf_hw_stats
+{
 	u64 base_vfgprc;
 	u64 base_vfgptc;
 	u64 base_vfgorc;
@@ -171,7 +179,8 @@ struct ixgbevf_hw_stats {
 	u64 saved_reset_vfmprc;
 };
 
-struct ixgbevf_info {
+struct ixgbevf_info
+{
 	enum ixgbe_mac_type mac;
 	const struct ixgbe_mac_operations *mac_ops;
 };
@@ -185,7 +194,10 @@ static inline void ixgbe_write_reg(struct ixgbe_hw *hw, u32 reg, u32 value)
 	u8 __iomem *reg_addr = ACCESS_ONCE(hw->hw_addr);
 
 	if (IXGBE_REMOVED(reg_addr))
+	{
 		return;
+	}
+
 	writel(value, reg_addr + reg);
 }
 
@@ -195,7 +207,7 @@ u32 ixgbevf_read_reg(struct ixgbe_hw *hw, u32 reg);
 #define IXGBE_READ_REG(h, r) ixgbevf_read_reg(h, r)
 
 static inline void ixgbe_write_reg_array(struct ixgbe_hw *hw, u32 reg,
-					 u32 offset, u32 value)
+		u32 offset, u32 value)
 {
 	ixgbe_write_reg(hw, reg + (offset << 2), value);
 }
@@ -203,7 +215,7 @@ static inline void ixgbe_write_reg_array(struct ixgbe_hw *hw, u32 reg,
 #define IXGBE_WRITE_REG_ARRAY(h, r, o, v) ixgbe_write_reg_array(h, r, o, v)
 
 static inline u32 ixgbe_read_reg_array(struct ixgbe_hw *hw, u32 reg,
-				       u32 offset)
+									   u32 offset)
 {
 	return ixgbevf_read_reg(hw, reg + (offset << 2));
 }
@@ -211,7 +223,7 @@ static inline u32 ixgbe_read_reg_array(struct ixgbe_hw *hw, u32 reg,
 #define IXGBE_READ_REG_ARRAY(h, r, o) ixgbe_read_reg_array(h, r, o)
 
 int ixgbevf_get_queues(struct ixgbe_hw *hw, unsigned int *num_tcs,
-		       unsigned int *default_tc);
+					   unsigned int *default_tc);
 int ixgbevf_get_reta_locked(struct ixgbe_hw *hw, u32 *reta, int num_rx_queues);
 int ixgbevf_get_rss_key_locked(struct ixgbe_hw *hw, u8 *rss_key);
 #endif /* __IXGBE_VF_H__ */

@@ -64,25 +64,25 @@ typedef unsigned short u16;
  * headers.
  */
 #ifdef __x86_64__
-/*
- * UC_SIGCONTEXT_SS will be set when delivering 64-bit or x32 signals on
- * kernels that save SS in the sigcontext.  All kernels that set
- * UC_SIGCONTEXT_SS will correctly restore at least the low 32 bits of esp
- * regardless of SS (i.e. they implement espfix).
- *
- * Kernels that set UC_SIGCONTEXT_SS will also set UC_STRICT_RESTORE_SS
- * when delivering a signal that came from 64-bit code.
- *
- * Sigreturn restores SS as follows:
- *
- * if (saved SS is valid || UC_STRICT_RESTORE_SS is set ||
- *     saved CS is not 64-bit)
- *         new SS = saved SS  (will fail IRET and signal if invalid)
- * else
- *         new SS = a flat 32-bit data segment
- */
-#define UC_SIGCONTEXT_SS       0x2
-#define UC_STRICT_RESTORE_SS   0x4
+	/*
+	* UC_SIGCONTEXT_SS will be set when delivering 64-bit or x32 signals on
+	* kernels that save SS in the sigcontext.  All kernels that set
+	* UC_SIGCONTEXT_SS will correctly restore at least the low 32 bits of esp
+	* regardless of SS (i.e. they implement espfix).
+	*
+	* Kernels that set UC_SIGCONTEXT_SS will also set UC_STRICT_RESTORE_SS
+	* when delivering a signal that came from 64-bit code.
+	*
+	* Sigreturn restores SS as follows:
+	*
+	* if (saved SS is valid || UC_STRICT_RESTORE_SS is set ||
+	*     saved CS is not 64-bit)
+	*         new SS = saved SS  (will fail IRET and signal if invalid)
+	* else
+	*         new SS = a flat 32-bit data segment
+	*/
+	#define UC_SIGCONTEXT_SS       0x2
+	#define UC_STRICT_RESTORE_SS   0x4
 #endif
 
 /*
@@ -103,14 +103,14 @@ static unsigned char stack16[65536] __attribute__((aligned(4096)));
  * before the int3.
  */
 asm (".pushsection .text\n\t"
-     ".type int3, @function\n\t"
-     ".align 4096\n\t"
-     "int3:\n\t"
-     "mov %ss,%ecx\n\t"
-     "int3\n\t"
-     ".size int3, . - int3\n\t"
-     ".align 4096, 0xcc\n\t"
-     ".popsection");
+	 ".type int3, @function\n\t"
+	 ".align 4096\n\t"
+	 "int3:\n\t"
+	 "mov %ss,%ecx\n\t"
+	 "int3\n\t"
+	 ".size int3, . - int3\n\t"
+	 ".align 4096, 0xcc\n\t"
+	 ".popsection");
 extern char int3[4096];
 
 /*
@@ -150,15 +150,18 @@ static unsigned short LDT3(int idx)
 static char altstack_data[SIGSTKSZ];
 
 static void sethandler(int sig, void (*handler)(int, siginfo_t *, void *),
-		       int flags)
+					   int flags)
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_sigaction = handler;
 	sa.sa_flags = SA_SIGINFO | flags;
 	sigemptyset(&sa.sa_mask);
+
 	if (sigaction(sig, &sa, 0))
+	{
 		err(1, "sigaction");
+	}
 }
 
 static void clearhandler(int sig)
@@ -167,16 +170,22 @@ static void clearhandler(int sig)
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
 	sigemptyset(&sa.sa_mask);
+
 	if (sigaction(sig, &sa, 0))
+	{
 		err(1, "sigaction");
+	}
 }
 
 static void add_ldt(const struct user_desc *desc, unsigned short *var,
-		    const char *name)
+					const char *name)
 {
-	if (syscall(SYS_modify_ldt, 1, desc, sizeof(*desc)) == 0) {
+	if (syscall(SYS_modify_ldt, 1, desc, sizeof(*desc)) == 0)
+	{
 		*var = LDT3(desc->entry_number);
-	} else {
+	}
+	else
+	{
 		printf("[NOTE]\tFailed to create %s segment\n", name);
 		*var = 0;
 	}
@@ -185,13 +194,19 @@ static void add_ldt(const struct user_desc *desc, unsigned short *var,
 static void setup_ldt(void)
 {
 	if ((unsigned long)stack16 > (1ULL << 32) - sizeof(stack16))
+	{
 		errx(1, "stack16 is too high\n");
+	}
+
 	if ((unsigned long)int3 > (1ULL << 32) - sizeof(int3))
+	{
 		errx(1, "int3 is too high\n");
+	}
 
 	ldt_nonexistent_sel = LDT3(LDT_OFFSET + 2);
 
-	const struct user_desc code16_desc = {
+	const struct user_desc code16_desc =
+	{
 		.entry_number    = LDT_OFFSET + 0,
 		.base_addr       = (unsigned long)int3,
 		.limit           = 4095,
@@ -204,7 +219,8 @@ static void setup_ldt(void)
 	};
 	add_ldt(&code16_desc, &code16_sel, "code16");
 
-	const struct user_desc data16_desc = {
+	const struct user_desc data16_desc =
+	{
 		.entry_number    = LDT_OFFSET + 1,
 		.base_addr       = (unsigned long)stack16,
 		.limit           = 0xffff,
@@ -217,7 +233,8 @@ static void setup_ldt(void)
 	};
 	add_ldt(&data16_desc, &data16_sel, "data16");
 
-	const struct user_desc npcode32_desc = {
+	const struct user_desc npcode32_desc =
+	{
 		.entry_number    = LDT_OFFSET + 3,
 		.base_addr       = (unsigned long)int3,
 		.limit           = 4095,
@@ -230,7 +247,8 @@ static void setup_ldt(void)
 	};
 	add_ldt(&npcode32_desc, &npcode32_sel, "npcode32");
 
-	const struct user_desc npdata32_desc = {
+	const struct user_desc npdata32_desc =
+	{
 		.entry_number    = LDT_OFFSET + 4,
 		.base_addr       = (unsigned long)stack16,
 		.limit           = 0xffff,
@@ -243,7 +261,8 @@ static void setup_ldt(void)
 	};
 	add_ldt(&npdata32_desc, &npdata32_sel, "npdata32");
 
-	struct user_desc gdt_data16_desc = {
+	struct user_desc gdt_data16_desc =
+	{
 		.entry_number    = -1,
 		.base_addr       = (unsigned long)stack16,
 		.limit           = 0xffff,
@@ -255,20 +274,24 @@ static void setup_ldt(void)
 		.useable         = 0
 	};
 
-	if (syscall(SYS_set_thread_area, &gdt_data16_desc) == 0) {
+	if (syscall(SYS_set_thread_area, &gdt_data16_desc) == 0)
+	{
 		/*
 		 * This probably indicates vulnerability to CVE-2014-8133.
 		 * Merely getting here isn't definitive, though, and we'll
 		 * diagnose the problem for real later on.
 		 */
 		printf("[WARN]\tset_thread_area allocated data16 at index %d\n",
-		       gdt_data16_desc.entry_number);
+			   gdt_data16_desc.entry_number);
 		gdt_data16_idx = gdt_data16_desc.entry_number;
-	} else {
+	}
+	else
+	{
 		printf("[OK]\tset_thread_area refused 16-bit data\n");
 	}
 
-	struct user_desc gdt_npdata32_desc = {
+	struct user_desc gdt_npdata32_desc =
+	{
 		.entry_number    = -1,
 		.base_addr       = (unsigned long)stack16,
 		.limit           = 0xffff,
@@ -280,14 +303,17 @@ static void setup_ldt(void)
 		.useable         = 0
 	};
 
-	if (syscall(SYS_set_thread_area, &gdt_npdata32_desc) == 0) {
+	if (syscall(SYS_set_thread_area, &gdt_npdata32_desc) == 0)
+	{
 		/*
 		 * As a hardening measure, newer kernels don't allow this.
 		 */
 		printf("[WARN]\tset_thread_area allocated npdata32 at index %d\n",
-		       gdt_npdata32_desc.entry_number);
+			   gdt_npdata32_desc.entry_number);
 		gdt_npdata32_idx = gdt_npdata32_desc.entry_number;
-	} else {
+	}
+	else
+	{
 		printf("[OK]\tset_thread_area refused 16-bit data\n");
 	}
 }
@@ -299,7 +325,7 @@ static gregset_t initial_regs, requested_regs, resulting_regs;
 static volatile unsigned short sig_cs, sig_ss;
 static volatile sig_atomic_t sig_trapped, sig_err, sig_trapno;
 #ifdef __x86_64__
-static volatile sig_atomic_t sig_corrupt_final_ss;
+	static volatile sig_atomic_t sig_corrupt_final_ss;
 #endif
 
 /* Abstractions for some 32-bit vs 64-bit differences. */
@@ -308,7 +334,8 @@ static volatile sig_atomic_t sig_corrupt_final_ss;
 # define REG_SP REG_RSP
 # define REG_CX REG_RCX
 
-struct selectors {
+struct selectors
+{
 	unsigned short cs, gs, fs, ss;
 };
 
@@ -347,29 +374,41 @@ int cs_bitness(unsigned short cs)
 {
 	uint32_t valid = 0, ar;
 	asm ("lar %[cs], %[ar]\n\t"
-	     "jnz 1f\n\t"
-	     "mov $1, %[valid]\n\t"
-	     "1:"
-	     : [ar] "=r" (ar), [valid] "+rm" (valid)
-	     : [cs] "r" (cs));
+		 "jnz 1f\n\t"
+		 "mov $1, %[valid]\n\t"
+		 "1:"
+		 : [ar] "=r" (ar), [valid] "+rm" (valid)
+		 : [cs] "r" (cs));
 
 	if (!valid)
+	{
 		return -1;
+	}
 
 	bool db = (ar & (1 << 22));
 	bool l = (ar & (1 << 21));
 
-	if (!(ar & (1<<11)))
-	    return -1;	/* Not code. */
+	if (!(ar & (1 << 11)))
+	{
+		return -1;    /* Not code. */
+	}
 
 	if (l && !db)
+	{
 		return 64;
+	}
 	else if (!l && db)
+	{
 		return 32;
+	}
 	else if (!l && !db)
+	{
 		return 16;
+	}
 	else
-		return -1;	/* Unknown bitness. */
+	{
+		return -1;    /* Unknown bitness. */
+	}
 }
 
 /*
@@ -380,18 +419,22 @@ bool is_valid_ss(unsigned short cs)
 {
 	uint32_t valid = 0, ar;
 	asm ("lar %[cs], %[ar]\n\t"
-	     "jnz 1f\n\t"
-	     "mov $1, %[valid]\n\t"
-	     "1:"
-	     : [ar] "=r" (ar), [valid] "+rm" (valid)
-	     : [cs] "r" (cs));
+		 "jnz 1f\n\t"
+		 "mov $1, %[valid]\n\t"
+		 "1:"
+		 : [ar] "=r" (ar), [valid] "+rm" (valid)
+		 : [cs] "r" (cs));
 
 	if (!valid)
+	{
 		return false;
+	}
 
 	if ((ar & AR_TYPE_MASK) != AR_TYPE_RWDATA &&
-	    (ar & AR_TYPE_MASK) != AR_TYPE_RWDATA_EXPDOWN)
+		(ar & AR_TYPE_MASK) != AR_TYPE_RWDATA_EXPDOWN)
+	{
 		return false;
+	}
 
 	return (ar & AR_P);
 }
@@ -404,7 +447,8 @@ static void validate_signal_ss(int sig, ucontext_t *ctx)
 #ifdef __x86_64__
 	bool was_64bit = (cs_bitness(*csptr(ctx)) == 64);
 
-	if (!(ctx->uc_flags & UC_SIGCONTEXT_SS)) {
+	if (!(ctx->uc_flags & UC_SIGCONTEXT_SS))
+	{
 		printf("[FAIL]\tUC_SIGCONTEXT_SS was not set\n");
 		nerrs++;
 
@@ -416,13 +460,15 @@ static void validate_signal_ss(int sig, ucontext_t *ctx)
 	}
 
 	/* UC_STRICT_RESTORE_SS is set iff we came from 64-bit mode. */
-	if (!!(ctx->uc_flags & UC_STRICT_RESTORE_SS) != was_64bit) {
+	if (!!(ctx->uc_flags & UC_STRICT_RESTORE_SS) != was_64bit)
+	{
 		printf("[FAIL]\tUC_STRICT_RESTORE_SS was wrong in signal %d\n",
-		       sig);
+			   sig);
 		nerrs++;
 	}
 
-	if (is_valid_ss(*ssptr(ctx))) {
+	if (is_valid_ss(*ssptr(ctx)))
+	{
 		/*
 		 * DOSEMU was written before 64-bit sigcontext had SS, and
 		 * it tries to figure out the signal source SS by looking at
@@ -430,11 +476,14 @@ static void validate_signal_ss(int sig, ucontext_t *ctx)
 		 */
 		unsigned short hw_ss;
 		asm ("mov %%ss, %0" : "=rm" (hw_ss));
-		if (hw_ss != *ssptr(ctx)) {
+
+		if (hw_ss != *ssptr(ctx))
+		{
 			printf("[FAIL]\tHW SS didn't match saved SS\n");
 			nerrs++;
 		}
 	}
+
 #endif
 }
 
@@ -445,7 +494,7 @@ static void validate_signal_ss(int sig, ucontext_t *ctx)
  */
 static void sigusr1(int sig, siginfo_t *info, void *ctx_void)
 {
-	ucontext_t *ctx = (ucontext_t*)ctx_void;
+	ucontext_t *ctx = (ucontext_t *)ctx_void;
 
 	validate_signal_ss(sig, ctx);
 
@@ -472,7 +521,7 @@ static void sigusr1(int sig, siginfo_t *info, void *ctx_void)
  */
 static void sigtrap(int sig, siginfo_t *info, void *ctx_void)
 {
-	ucontext_t *ctx = (ucontext_t*)ctx_void;
+	ucontext_t *ctx = (ucontext_t *)ctx_void;
 
 	validate_signal_ss(sig, ctx);
 
@@ -483,10 +532,12 @@ static void sigtrap(int sig, siginfo_t *info, void *ctx_void)
 	asm ("mov %%ss,%0" : "=r" (ss));
 
 	greg_t asm_ss = ctx->uc_mcontext.gregs[REG_CX];
-	if (asm_ss != sig_ss && sig == SIGTRAP) {
+
+	if (asm_ss != sig_ss && sig == SIGTRAP)
+	{
 		/* Sanity check failure. */
 		printf("[FAIL]\tSIGTRAP: ss = %hx, frame ss = %hx, ax = %llx\n",
-		       ss, *ssptr(ctx), (unsigned long long)asm_ss);
+			   ss, *ssptr(ctx), (unsigned long long)asm_ss);
 		nerrs++;
 	}
 
@@ -494,11 +545,16 @@ static void sigtrap(int sig, siginfo_t *info, void *ctx_void)
 	memcpy(&ctx->uc_mcontext.gregs, &initial_regs, sizeof(gregset_t));
 
 #ifdef __x86_64__
-	if (sig_corrupt_final_ss) {
-		if (ctx->uc_flags & UC_STRICT_RESTORE_SS) {
+
+	if (sig_corrupt_final_ss)
+	{
+		if (ctx->uc_flags & UC_STRICT_RESTORE_SS)
+		{
 			printf("[FAIL]\tUC_STRICT_RESTORE_SS was set inappropriately\n");
 			nerrs++;
-		} else {
+		}
+		else
+		{
 			/*
 			 * DOSEMU transitions from 32-bit to 64-bit mode by
 			 * adjusting sigcontext, and it requires that this work
@@ -508,6 +564,7 @@ static void sigtrap(int sig, siginfo_t *info, void *ctx_void)
 			*ssptr(ctx) = 0;
 		}
 	}
+
 #endif
 
 	sig_trapped = sig;
@@ -517,9 +574,10 @@ static void sigtrap(int sig, siginfo_t *info, void *ctx_void)
 /* Tests recovery if !UC_STRICT_RESTORE_SS */
 static void sigusr2(int sig, siginfo_t *info, void *ctx_void)
 {
-	ucontext_t *ctx = (ucontext_t*)ctx_void;
+	ucontext_t *ctx = (ucontext_t *)ctx_void;
 
-	if (!(ctx->uc_flags & UC_STRICT_RESTORE_SS)) {
+	if (!(ctx->uc_flags & UC_STRICT_RESTORE_SS))
+	{
 		printf("[FAIL]\traise(2) didn't set UC_STRICT_RESTORE_SS\n");
 		nerrs++;
 		return;  /* We can't do the rest. */
@@ -543,8 +601,11 @@ static int test_nonstrict_ss(void)
 
 	printf("[RUN]\tClear UC_STRICT_RESTORE_SS and corrupt SS\n");
 	raise(SIGUSR2);
+
 	if (!nerrs)
+	{
 		printf("[OK]\tIt worked\n");
+	}
 
 	return nerrs;
 }
@@ -558,13 +619,24 @@ int find_cs(int bitness)
 	asm ("mov %%cs,%0" :  "=r" (my_cs));
 
 	if (cs_bitness(my_cs) == bitness)
+	{
 		return my_cs;
+	}
+
 	if (cs_bitness(my_cs + (2 << 3)) == bitness)
+	{
 		return my_cs + (2 << 3);
-	if (my_cs > (2<<3) && cs_bitness(my_cs - (2 << 3)) == bitness)
-	    return my_cs - (2 << 3);
+	}
+
+	if (my_cs > (2 << 3) && cs_bitness(my_cs - (2 << 3)) == bitness)
+	{
+		return my_cs - (2 << 3);
+	}
+
 	if (cs_bitness(code16_sel) == bitness)
+	{
 		return code16_sel;
+	}
 
 	printf("[WARN]\tCould not find %d-bit CS\n", bitness);
 	return -1;
@@ -573,23 +645,33 @@ int find_cs(int bitness)
 static int test_valid_sigreturn(int cs_bits, bool use_16bit_ss, int force_ss)
 {
 	int cs = find_cs(cs_bits);
-	if (cs == -1) {
+
+	if (cs == -1)
+	{
 		printf("[SKIP]\tCode segment unavailable for %d-bit CS, %d-bit SS\n",
-		       cs_bits, use_16bit_ss ? 16 : 32);
+			   cs_bits, use_16bit_ss ? 16 : 32);
 		return 0;
 	}
 
-	if (force_ss != -1) {
+	if (force_ss != -1)
+	{
 		sig_ss = force_ss;
-	} else {
-		if (use_16bit_ss) {
-			if (!data16_sel) {
+	}
+	else
+	{
+		if (use_16bit_ss)
+		{
+			if (!data16_sel)
+			{
 				printf("[SKIP]\tData segment unavailable for %d-bit CS, 16-bit SS\n",
-				       cs_bits);
+					   cs_bits);
 				return 0;
 			}
+
 			sig_ss = data16_sel;
-		} else {
+		}
+		else
+		{
 			asm volatile ("mov %%ss,%0" : "=r" (sig_ss));
 		}
 	}
@@ -597,8 +679,8 @@ static int test_valid_sigreturn(int cs_bits, bool use_16bit_ss, int force_ss)
 	sig_cs = cs;
 
 	printf("[RUN]\tValid sigreturn: %d-bit CS (%hx), %d-bit SS (%hx%s)\n",
-	       cs_bits, sig_cs, use_16bit_ss ? 16 : 32, sig_ss,
-	       (sig_ss & 4) ? "" : ", GDT");
+		   cs_bits, sig_cs, use_16bit_ss ? 16 : 32, sig_ss,
+		   (sig_ss & 4) ? "" : ", GDT");
 
 	raise(SIGUSR1);
 
@@ -608,13 +690,19 @@ static int test_valid_sigreturn(int cs_bits, bool use_16bit_ss, int force_ss)
 	 * Check that each register had an acceptable value when the
 	 * int3 trampoline was invoked.
 	 */
-	for (int i = 0; i < NGREG; i++) {
+	for (int i = 0; i < NGREG; i++)
+	{
 		greg_t req = requested_regs[i], res = resulting_regs[i];
+
 		if (i == REG_TRAPNO || i == REG_IP)
-			continue;	/* don't care */
-		if (i == REG_SP) {
+		{
+			continue;    /* don't care */
+		}
+
+		if (i == REG_SP)
+		{
 			printf("\tSP: %llx -> %llx\n", (unsigned long long)req,
-			       (unsigned long long)res);
+				   (unsigned long long)res);
 
 			/*
 			 * In many circumstances, the high 32 bits of rsp
@@ -624,45 +712,59 @@ static int test_valid_sigreturn(int cs_bits, bool use_16bit_ss, int force_ss)
 			 * oddities.  If this happens, it's okay.
 			 */
 			if (res == (req & 0xFFFFFFFF))
-				continue;  /* OK; not expected to work */
+			{
+				continue;    /* OK; not expected to work */
+			}
 		}
 
 		bool ignore_reg = false;
 #if __i386__
+
 		if (i == REG_UESP)
+		{
 			ignore_reg = true;
+		}
+
 #else
-		if (i == REG_CSGSFS) {
+
+		if (i == REG_CSGSFS)
+		{
 			struct selectors *req_sels =
 				(void *)&requested_regs[REG_CSGSFS];
 			struct selectors *res_sels =
 				(void *)&resulting_regs[REG_CSGSFS];
-			if (req_sels->cs != res_sels->cs) {
+
+			if (req_sels->cs != res_sels->cs)
+			{
 				printf("[FAIL]\tCS mismatch: requested 0x%hx; got 0x%hx\n",
-				       req_sels->cs, res_sels->cs);
+					   req_sels->cs, res_sels->cs);
 				nerrs++;
 			}
 
-			if (req_sels->ss != res_sels->ss) {
+			if (req_sels->ss != res_sels->ss)
+			{
 				printf("[FAIL]\tSS mismatch: requested 0x%hx; got 0x%hx\n",
-				       req_sels->ss, res_sels->ss);
+					   req_sels->ss, res_sels->ss);
 				nerrs++;
 			}
 
 			continue;
 		}
+
 #endif
 
 		/* Sanity check on the kernel */
-		if (i == REG_CX && requested_regs[i] != resulting_regs[i]) {
+		if (i == REG_CX && requested_regs[i] != resulting_regs[i])
+		{
 			printf("[FAIL]\tCX (saved SP) mismatch: requested 0x%llx; got 0x%llx\n",
-			       (unsigned long long)requested_regs[i],
-			       (unsigned long long)resulting_regs[i]);
+				   (unsigned long long)requested_regs[i],
+				   (unsigned long long)resulting_regs[i]);
 			nerrs++;
 			continue;
 		}
 
-		if (requested_regs[i] != resulting_regs[i] && !ignore_reg) {
+		if (requested_regs[i] != resulting_regs[i] && !ignore_reg)
+		{
 			/*
 			 * SP is particularly interesting here.  The
 			 * usual cause of failures is that we hit the
@@ -671,14 +773,16 @@ static int test_valid_sigreturn(int cs_bits, bool use_16bit_ss, int force_ss)
 			 * stack pointer persist in ESP.
 			 */
 			printf("[FAIL]\tReg %d mismatch: requested 0x%llx; got 0x%llx\n",
-			       i, (unsigned long long)requested_regs[i],
-			       (unsigned long long)resulting_regs[i]);
+				   i, (unsigned long long)requested_regs[i],
+				   (unsigned long long)resulting_regs[i]);
 			nerrs++;
 		}
 	}
 
 	if (nerrs == 0)
+	{
 		printf("[OK]\tall registers okay\n");
+	}
 
 	return nerrs;
 }
@@ -686,52 +790,81 @@ static int test_valid_sigreturn(int cs_bits, bool use_16bit_ss, int force_ss)
 static int test_bad_iret(int cs_bits, unsigned short ss, int force_cs)
 {
 	int cs = force_cs == -1 ? find_cs(cs_bits) : force_cs;
+
 	if (cs == -1)
+	{
 		return 0;
+	}
 
 	sig_cs = cs;
 	sig_ss = ss;
 
 	printf("[RUN]\t%d-bit CS (%hx), bogus SS (%hx)\n",
-	       cs_bits, sig_cs, sig_ss);
+		   cs_bits, sig_cs, sig_ss);
 
 	sig_trapped = 0;
 	raise(SIGUSR1);
-	if (sig_trapped) {
+
+	if (sig_trapped)
+	{
 		char errdesc[32] = "";
-		if (sig_err) {
+
+		if (sig_err)
+		{
 			const char *src = (sig_err & 1) ? " EXT" : "";
 			const char *table;
+
 			if ((sig_err & 0x6) == 0x0)
+			{
 				table = "GDT";
+			}
 			else if ((sig_err & 0x6) == 0x4)
+			{
 				table = "LDT";
+			}
 			else if ((sig_err & 0x6) == 0x2)
+			{
 				table = "IDT";
+			}
 			else
+			{
 				table = "???";
+			}
 
 			sprintf(errdesc, "%s%s index %d, ",
-				table, src, sig_err >> 3);
+					table, src, sig_err >> 3);
 		}
 
 		char trapname[32];
+
 		if (sig_trapno == 13)
+		{
 			strcpy(trapname, "GP");
+		}
 		else if (sig_trapno == 11)
+		{
 			strcpy(trapname, "NP");
+		}
 		else if (sig_trapno == 12)
+		{
 			strcpy(trapname, "SS");
+		}
 		else if (sig_trapno == 32)
-			strcpy(trapname, "IRET");  /* X86_TRAP_IRET */
+		{
+			strcpy(trapname, "IRET");    /* X86_TRAP_IRET */
+		}
 		else
+		{
 			sprintf(trapname, "%d", sig_trapno);
+		}
 
 		printf("[OK]\tGot #%s(0x%lx) (i.e. %s%s)\n",
-		       trapname, (unsigned long)sig_err,
-		       errdesc, strsignal(sig_trapped));
+			   trapname, (unsigned long)sig_err,
+			   errdesc, strsignal(sig_trapped));
 		return 0;
-	} else {
+	}
+	else
+	{
 		/*
 		 * This also implicitly tests UC_STRICT_RESTORE_SS:
 		 * We check that these signals set UC_STRICT_RESTORE_SS and,
@@ -752,12 +885,16 @@ int main()
 	asm volatile ("mov %%ss,%0" : "=r" (my_ss));
 	setup_ldt();
 
-	stack_t stack = {
+	stack_t stack =
+	{
 		.ss_sp = altstack_data,
 		.ss_size = SIGSTKSZ,
 	};
+
 	if (sigaltstack(&stack, NULL) != 0)
+	{
 		err(1, "sigaltstack");
+	}
 
 	sethandler(SIGUSR1, sigusr1, 0);
 	sethandler(SIGTRAP, sigtrap, SA_ONSTACK);
@@ -778,7 +915,8 @@ int main()
 	total_nerrs += test_valid_sigreturn(32, true, -1);
 	total_nerrs += test_valid_sigreturn(16, true, -1);
 
-	if (gdt_data16_idx) {
+	if (gdt_data16_idx)
+	{
 		/*
 		 * For performance reasons, Linux skips espfix if SS points
 		 * to the GDT.  If we were able to allocate a 16-bit SS in
@@ -787,11 +925,11 @@ int main()
 		 * This tests for CVE-2014-8133.
 		 */
 		total_nerrs += test_valid_sigreturn(64, true,
-						    GDT3(gdt_data16_idx));
+											GDT3(gdt_data16_idx));
 		total_nerrs += test_valid_sigreturn(32, true,
-						    GDT3(gdt_data16_idx));
+											GDT3(gdt_data16_idx));
 		total_nerrs += test_valid_sigreturn(16, true,
-						    GDT3(gdt_data16_idx));
+											GDT3(gdt_data16_idx));
 	}
 
 #ifdef __x86_64__
@@ -848,7 +986,9 @@ int main()
 	 * this can trigger CVE-2014-9322.
 	 */
 	if (gdt_npdata32_idx)
+	{
 		test_bad_iret(32, GDT3(gdt_npdata32_idx), -1);
+	}
 
 #ifdef __x86_64__
 	total_nerrs += test_nonstrict_ss();

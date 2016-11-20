@@ -8,12 +8,12 @@
 #include <linux/spinlock.h>
 
 #ifdef CONFIG_LIBERTAS_DEBUG
-#define DEBUG
-#define PROC_DEBUG
+	#define DEBUG
+	#define PROC_DEBUG
 #endif
 
 #ifndef DRV_NAME
-#define DRV_NAME "libertas"
+	#define DRV_NAME "libertas"
 #endif
 
 
@@ -48,22 +48,22 @@ extern unsigned int lbs_debug;
 
 #ifdef DEBUG
 #define LBS_DEB_LL(grp, grpnam, fmt, args...) \
-do { if ((lbs_debug & (grp)) == (grp)) \
-  printk(KERN_DEBUG DRV_NAME grpnam "%s: " fmt, \
-         in_interrupt() ? " (INT)" : "", ## args); } while (0)
+	do { if ((lbs_debug & (grp)) == (grp)) \
+			printk(KERN_DEBUG DRV_NAME grpnam "%s: " fmt, \
+				   in_interrupt() ? " (INT)" : "", ## args); } while (0)
 #else
 #define LBS_DEB_LL(grp, grpnam, fmt, args...) do {} while (0)
 #endif
 
 #define lbs_deb_enter(grp) \
-  LBS_DEB_LL(grp | LBS_DEB_ENTER, " enter", "%s()\n", __func__);
+	LBS_DEB_LL(grp | LBS_DEB_ENTER, " enter", "%s()\n", __func__);
 #define lbs_deb_enter_args(grp, fmt, args...) \
-  LBS_DEB_LL(grp | LBS_DEB_ENTER, " enter", "%s(" fmt ")\n", __func__, ## args);
+	LBS_DEB_LL(grp | LBS_DEB_ENTER, " enter", "%s(" fmt ")\n", __func__, ## args);
 #define lbs_deb_leave(grp) \
-  LBS_DEB_LL(grp | LBS_DEB_LEAVE, " leave", "%s()\n", __func__);
+	LBS_DEB_LL(grp | LBS_DEB_LEAVE, " leave", "%s()\n", __func__);
 #define lbs_deb_leave_args(grp, fmt, args...) \
-  LBS_DEB_LL(grp | LBS_DEB_LEAVE, " leave", "%s(), " fmt "\n", \
-  __func__, ##args);
+	LBS_DEB_LL(grp | LBS_DEB_LEAVE, " leave", "%s(), " fmt "\n", \
+			   __func__, ##args);
 #define lbs_deb_main(fmt, args...)      LBS_DEB_LL(LBS_DEB_MAIN, " main", fmt, ##args)
 #define lbs_deb_net(fmt, args...)       LBS_DEB_LL(LBS_DEB_NET, " net", fmt, ##args)
 #define lbs_deb_mesh(fmt, args...)      LBS_DEB_LL(LBS_DEB_MESH, " mesh", fmt, ##args)
@@ -91,23 +91,30 @@ do { if ((lbs_debug & (grp)) == (grp)) \
 
 #ifdef DEBUG
 static inline void lbs_deb_hex(unsigned int grp, const char *prompt,
-			       const u8 *buf, int len)
+							   const u8 *buf, int len)
 {
 	int i = 0;
 
 	if (len &&
-	    (lbs_debug & LBS_DEB_HEX) &&
-	    (lbs_debug & grp))
+		(lbs_debug & LBS_DEB_HEX) &&
+		(lbs_debug & grp))
 	{
-		for (i = 1; i <= len; i++) {
-			if ((i & 0xf) == 1) {
+		for (i = 1; i <= len; i++)
+		{
+			if ((i & 0xf) == 1)
+			{
 				if (i != 1)
+				{
 					printk("\n");
+				}
+
 				printk(DRV_NAME " %s: ", prompt);
 			}
+
 			printk("%02x ", (u8) * buf);
 			buf++;
 		}
+
 		printk("\n");
 	}
 }
@@ -306,21 +313,24 @@ extern u16 lbs_region_code_to_index[MRVDRV_MAX_REGION_CODE];
 
 /* ENUM definition */
 /* SNRNF_TYPE */
-enum SNRNF_TYPE {
+enum SNRNF_TYPE
+{
 	TYPE_BEACON = 0,
 	TYPE_RXPD,
 	MAX_TYPE_B
 };
 
 /* SNRNF_DATA */
-enum SNRNF_DATA {
+enum SNRNF_DATA
+{
 	TYPE_NOAVG = 0,
 	TYPE_AVG,
 	MAX_TYPE_AVG
 };
 
 /* LBS_802_11_POWER_MODE */
-enum LBS_802_11_POWER_MODE {
+enum LBS_802_11_POWER_MODE
+{
 	LBS802_11POWERMODECAM,
 	LBS802_11POWERMODEMAX_PSP,
 	LBS802_11POWERMODEFAST_PSP,
@@ -329,7 +339,8 @@ enum LBS_802_11_POWER_MODE {
 };
 
 /* PS_STATE */
-enum PS_STATE {
+enum PS_STATE
+{
 	PS_STATE_FULL_POWER,
 	PS_STATE_AWAKE,
 	PS_STATE_PRE_SLEEP,
@@ -337,7 +348,8 @@ enum PS_STATE {
 };
 
 /* DNLD_STATE */
-enum DNLD_STATE {
+enum DNLD_STATE
+{
 	DNLD_RES_RECEIVED,
 	DNLD_DATA_SENT,
 	DNLD_CMD_SENT,
@@ -345,19 +357,22 @@ enum DNLD_STATE {
 };
 
 /* LBS_MEDIA_STATE */
-enum LBS_MEDIA_STATE {
+enum LBS_MEDIA_STATE
+{
 	LBS_CONNECTED,
 	LBS_DISCONNECTED
 };
 
 /* LBS_802_11_PRIVACY_FILTER */
-enum LBS_802_11_PRIVACY_FILTER {
+enum LBS_802_11_PRIVACY_FILTER
+{
 	LBS802_11PRIVFILTERACCEPTALL,
 	LBS802_11PRIVFILTER8021XWEP
 };
 
 /* mv_ms_type */
-enum mv_ms_type {
+enum mv_ms_type
+{
 	MVMS_DAT = 0,
 	MVMS_CMD = 1,
 	MVMS_TXDONE = 2,
@@ -365,14 +380,16 @@ enum mv_ms_type {
 };
 
 /* KEY_TYPE_ID */
-enum KEY_TYPE_ID {
+enum KEY_TYPE_ID
+{
 	KEY_TYPE_ID_WEP = 0,
 	KEY_TYPE_ID_TKIP,
 	KEY_TYPE_ID_AES
 };
 
 /* KEY_INFO_WPA (applies to both TKIP and AES/CCMP) */
-enum KEY_INFO_WPA {
+enum KEY_INFO_WPA
+{
 	KEY_INFO_WPA_MCAST = 0x01,
 	KEY_INFO_WPA_UNICAST = 0x02,
 	KEY_INFO_WPA_ENABLED = 0x04

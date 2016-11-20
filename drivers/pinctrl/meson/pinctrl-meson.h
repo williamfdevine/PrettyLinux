@@ -27,7 +27,8 @@
  * @bit		bit index enabling the group
  * @domain:	index of the domain this group belongs to
  */
-struct meson_pmx_group {
+struct meson_pmx_group
+{
 	const char *name;
 	const unsigned int *pins;
 	unsigned int num_pins;
@@ -43,9 +44,10 @@ struct meson_pmx_group {
  * @groups:	groups in the function
  * @num_groups:	number of groups in the function
  */
-struct meson_pmx_func {
+struct meson_pmx_func
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	unsigned int num_groups;
 };
 
@@ -58,7 +60,8 @@ struct meson_pmx_func {
  * The structure describes the information needed to control pull,
  * pull-enable, direction, etc. for a single pin
  */
-struct meson_reg_desc {
+struct meson_reg_desc
+{
 	unsigned int reg;
 	unsigned int bit;
 };
@@ -66,7 +69,8 @@ struct meson_reg_desc {
 /**
  * enum meson_reg_type - type of registers encoded in @meson_reg_desc
  */
-enum meson_reg_type {
+enum meson_reg_type
+{
 	REG_PULLEN,
 	REG_PULL,
 	REG_DIR,
@@ -88,14 +92,16 @@ enum meson_reg_type {
  * the regmap control the different functionalities. Each member of
  * the @regs array refers to the first pin of the bank.
  */
-struct meson_bank {
+struct meson_bank
+{
 	const char *name;
 	unsigned int first;
 	unsigned int last;
 	struct meson_reg_desc regs[NUM_REG];
 };
 
-struct meson_pinctrl_data {
+struct meson_pinctrl_data
+{
 	const char *name;
 	const struct pinctrl_pin_desc *pins;
 	struct meson_pmx_group *groups;
@@ -108,7 +114,8 @@ struct meson_pinctrl_data {
 	unsigned int num_banks;
 };
 
-struct meson_pinctrl {
+struct meson_pinctrl
+{
 	struct device *dev;
 	struct pinctrl_dev *pcdev;
 	struct pinctrl_desc desc;
@@ -126,40 +133,40 @@ struct meson_pinctrl {
 #define GROUP(grp, r, b)						\
 	{								\
 		.name = #grp,						\
-		.pins = grp ## _pins,					\
-		.num_pins = ARRAY_SIZE(grp ## _pins),			\
-		.reg = r,						\
-		.bit = b,						\
-	 }
+				.pins = grp ## _pins,					\
+						.num_pins = ARRAY_SIZE(grp ## _pins),			\
+									.reg = r,						\
+										   .bit = b,						\
+	}
 
 #define GPIO_GROUP(gpio, b)						\
 	{								\
 		.name = #gpio,						\
 		.pins = (const unsigned int[]){ PIN(gpio, b) },		\
 		.num_pins = 1,						\
-		.is_gpio = true,					\
-	 }
+					.is_gpio = true,					\
+	}
 
 #define FUNCTION(fn)							\
 	{								\
 		.name = #fn,						\
-		.groups = fn ## _groups,				\
-		.num_groups = ARRAY_SIZE(fn ## _groups),		\
+				.groups = fn ## _groups,				\
+						  .num_groups = ARRAY_SIZE(fn ## _groups),		\
 	}
 
 #define BANK(n, f, l, per, peb, pr, pb, dr, db, or, ob, ir, ib)		\
 	{								\
 		.name	= n,						\
-		.first	= f,						\
-		.last	= l,						\
-		.regs	= {						\
-			[REG_PULLEN]	= { per, peb },			\
-			[REG_PULL]	= { pr, pb },			\
-			[REG_DIR]	= { dr, db },			\
-			[REG_OUT]	= { or, ob },			\
-			[REG_IN]	= { ir, ib },			\
-		},							\
-	 }
+				  .first	= f,						\
+							.last	= l,						\
+									  .regs	= {						\
+																	  [REG_PULLEN]	= { per, peb },			\
+																	  [REG_PULL]	= { pr, pb },			\
+																	  [REG_DIR]	= { dr, db },			\
+																	  [REG_OUT]	= { or, ob },			\
+																	  [REG_IN]	= { ir, ib },			\
+											  },							\
+	}
 
 #define MESON_PIN(x, b) PINCTRL_PIN(PIN(x, b), #x)
 

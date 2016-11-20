@@ -29,14 +29,15 @@
 #define MAX_SPATIAL_EXPANSION	1
 
 #define BRCMS_STF_SS_STBC_RX(wlc) (BRCMS_ISNPHY(wlc->band) && \
-	NREV_GT(wlc->band->phyrev, 3) && NREV_LE(wlc->band->phyrev, 6))
+								   NREV_GT(wlc->band->phyrev, 3) && NREV_LE(wlc->band->phyrev, 6))
 
 #define NSTS_1	1
 #define NSTS_2	2
 #define NSTS_3	3
 #define NSTS_4	4
 
-static const u8 txcore_default[5] = {
+static const u8 txcore_default[5] =
+{
 	(0),			/* bitmap of the core enabled */
 	(0x01),			/* For Nsts = 1, enable core 1 */
 	(0x03),			/* For Nsts = 2, enable core 1 & 2 */
@@ -47,12 +48,16 @@ static const u8 txcore_default[5] = {
 static void brcms_c_stf_stbc_rx_ht_update(struct brcms_c_info *wlc, int val)
 {
 	/* MIMOPHYs rev3-6 cannot receive STBC with only one rx core active */
-	if (BRCMS_STF_SS_STBC_RX(wlc)) {
+	if (BRCMS_STF_SS_STBC_RX(wlc))
+	{
 		if ((wlc->stf->rxstreams == 1) && (val != HT_CAP_RX_STBC_NO))
+		{
 			return;
+		}
 	}
 
-	if (wlc->pub->up) {
+	if (wlc->pub->up)
+	{
 		brcms_c_update_beacon(wlc);
 		brcms_c_update_probe_resp(wlc, true);
 	}
@@ -72,20 +77,27 @@ void brcms_c_tempsense_upd(struct brcms_c_info *wlc)
 	active_chains = wlc_phy_stf_chain_active_get(pi);
 	txchain = active_chains & 0xf;
 
-	if (wlc->stf->txchain == wlc->stf->hw_txchain) {
+	if (wlc->stf->txchain == wlc->stf->hw_txchain)
+	{
 		if (txchain && (txchain < wlc->stf->hw_txchain))
 			/* turn off 1 tx chain */
+		{
 			brcms_c_stf_txchain_set(wlc, txchain, true);
-	} else if (wlc->stf->txchain < wlc->stf->hw_txchain) {
+		}
+	}
+	else if (wlc->stf->txchain < wlc->stf->hw_txchain)
+	{
 		if (txchain == wlc->stf->hw_txchain)
 			/* turn back on txchain */
+		{
 			brcms_c_stf_txchain_set(wlc, txchain, true);
+		}
 	}
 }
 
 void
 brcms_c_stf_ss_algo_channel_get(struct brcms_c_info *wlc, u16 *ss_algo_channel,
-			    u16 chanspec)
+								u16 chanspec)
 {
 	struct tx_power power = { };
 	u8 siso_mcs_id, cdd_mcs_id, stbc_mcs_id;
@@ -93,20 +105,21 @@ brcms_c_stf_ss_algo_channel_get(struct brcms_c_info *wlc, u16 *ss_algo_channel,
 	/* Clear previous settings */
 	*ss_algo_channel = 0;
 
-	if (!wlc->pub->up) {
-		*ss_algo_channel = (u16) -1;
+	if (!wlc->pub->up)
+	{
+		*ss_algo_channel = (u16) - 1;
 		return;
 	}
 
 	wlc_phy_txpower_get_current(wlc->band->pi, &power,
-				    CHSPEC_CHANNEL(chanspec));
+								CHSPEC_CHANNEL(chanspec));
 
 	siso_mcs_id = (CHSPEC_IS40(chanspec)) ?
-	    WL_TX_POWER_MCS40_SISO_FIRST : WL_TX_POWER_MCS20_SISO_FIRST;
+				  WL_TX_POWER_MCS40_SISO_FIRST : WL_TX_POWER_MCS20_SISO_FIRST;
 	cdd_mcs_id = (CHSPEC_IS40(chanspec)) ?
-	    WL_TX_POWER_MCS40_CDD_FIRST : WL_TX_POWER_MCS20_CDD_FIRST;
+				 WL_TX_POWER_MCS40_CDD_FIRST : WL_TX_POWER_MCS20_CDD_FIRST;
 	stbc_mcs_id = (CHSPEC_IS40(chanspec)) ?
-	    WL_TX_POWER_MCS40_STBC_FIRST : WL_TX_POWER_MCS20_STBC_FIRST;
+				  WL_TX_POWER_MCS40_STBC_FIRST : WL_TX_POWER_MCS20_STBC_FIRST;
 
 	/* criteria to choose stf mode */
 
@@ -115,9 +128,13 @@ brcms_c_stf_ss_algo_channel_get(struct brcms_c_info *wlc, u16 *ss_algo_channel,
 	 * CDD, tx occurs on both chains
 	 */
 	if (power.target[siso_mcs_id] > (power.target[cdd_mcs_id] + 12))
+	{
 		setbit(ss_algo_channel, PHY_TXC1_MODE_SISO);
+	}
 	else
+	{
 		setbit(ss_algo_channel, PHY_TXC1_MODE_CDD);
+	}
 
 	/*
 	 * STBC is ORed into to algo channel as STBC requires per-packet SCB
@@ -125,16 +142,22 @@ brcms_c_stf_ss_algo_channel_get(struct brcms_c_info *wlc, u16 *ss_algo_channel,
 	 * SISO, CDD have to be set
 	 */
 	if (power.target[siso_mcs_id] <= (power.target[stbc_mcs_id] + 12))
+	{
 		setbit(ss_algo_channel, PHY_TXC1_MODE_STBC);
+	}
 }
 
 static bool brcms_c_stf_stbc_tx_set(struct brcms_c_info *wlc, s32 int_val)
 {
 	if ((int_val != AUTO) && (int_val != OFF) && (int_val != ON))
+	{
 		return false;
+	}
 
 	if ((int_val == ON) && (wlc->stf->txstreams == 1))
+	{
 		return false;
+	}
 
 	wlc->bandstate[BAND_2G_INDEX]->band_stf_stbc_tx = (s8) int_val;
 	wlc->bandstate[BAND_5G_INDEX]->band_stf_stbc_tx = (s8) int_val;
@@ -145,13 +168,18 @@ static bool brcms_c_stf_stbc_tx_set(struct brcms_c_info *wlc, s32 int_val)
 bool brcms_c_stf_stbc_rx_set(struct brcms_c_info *wlc, s32 int_val)
 {
 	if ((int_val != HT_CAP_RX_STBC_NO)
-	    && (int_val != HT_CAP_RX_STBC_ONE_STREAM))
+		&& (int_val != HT_CAP_RX_STBC_ONE_STREAM))
+	{
 		return false;
+	}
 
-	if (BRCMS_STF_SS_STBC_RX(wlc)) {
+	if (BRCMS_STF_SS_STBC_RX(wlc))
+	{
 		if ((int_val != HT_CAP_RX_STBC_NO)
-		    && (wlc->stf->rxstreams == 1))
+			&& (wlc->stf->rxstreams == 1))
+		{
 			return false;
+		}
 	}
 
 	brcms_c_stf_stbc_rx_ht_update(wlc, int_val);
@@ -159,28 +187,36 @@ bool brcms_c_stf_stbc_rx_set(struct brcms_c_info *wlc, s32 int_val)
 }
 
 static int brcms_c_stf_txcore_set(struct brcms_c_info *wlc, u8 Nsts,
-				  u8 core_mask)
+								  u8 core_mask)
 {
 	brcms_dbg_ht(wlc->hw->d11core, "wl%d: Nsts %d core_mask %x\n",
-		     wlc->pub->unit, Nsts, core_mask);
+				 wlc->pub->unit, Nsts, core_mask);
 
 	if (hweight8(core_mask) > wlc->stf->txstreams)
+	{
 		core_mask = 0;
+	}
 
 	if ((hweight8(core_mask) == wlc->stf->txstreams) &&
-	    ((core_mask & ~wlc->stf->txchain)
-	     || !(core_mask & wlc->stf->txchain)))
+		((core_mask & ~wlc->stf->txchain)
+		 || !(core_mask & wlc->stf->txchain)))
+	{
 		core_mask = wlc->stf->txchain;
+	}
 
 	wlc->stf->txcore[Nsts] = core_mask;
+
 	/* Nsts = 1..4, txcore index = 1..4 */
-	if (Nsts == 1) {
+	if (Nsts == 1)
+	{
 		/* Needs to update beacon and ucode generated response
 		 * frames when 1 stream core map changed
 		 */
 		wlc->stf->phytxant = core_mask << PHY_TXC_ANT_SHIFT;
 		brcms_b_txant_set(wlc->hw, wlc->stf->phytxant);
-		if (wlc->clk) {
+
+		if (wlc->clk)
+		{
 			brcms_c_suspend_mac_and_wait(wlc);
 			brcms_c_beacon_phytxctl_txant_upd(wlc, wlc->bcn_rspec);
 			brcms_c_enable_mac(wlc);
@@ -196,14 +232,17 @@ static int brcms_c_stf_spatial_policy_set(struct brcms_c_info *wlc, int val)
 	u8 core_mask = 0;
 
 	brcms_dbg_ht(wlc->hw->d11core, "wl%d: val %x\n", wlc->pub->unit,
-		     val);
+				 val);
 
 	wlc->stf->spatial_policy = (s8) val;
-	for (i = 1; i <= MAX_STREAMS_SUPPORTED; i++) {
+
+	for (i = 1; i <= MAX_STREAMS_SUPPORTED; i++)
+	{
 		core_mask = (val == MAX_SPATIAL_EXPANSION) ?
-		    wlc->stf->txchain : txcore_default[i];
+					wlc->stf->txchain : txcore_default[i];
 		brcms_c_stf_txcore_set(wlc, (u8) i, core_mask);
 	}
+
 	return 0;
 }
 
@@ -228,34 +267,54 @@ static void _brcms_c_stf_phy_txant_upd(struct brcms_c_info *wlc)
 	s8 txant;
 
 	txant = (s8) wlc->stf->txant;
-	if (BRCMS_PHY_11N_CAP(wlc->band)) {
-		if (txant == ANT_TX_FORCE_0) {
+
+	if (BRCMS_PHY_11N_CAP(wlc->band))
+	{
+		if (txant == ANT_TX_FORCE_0)
+		{
 			wlc->stf->phytxant = PHY_TXC_ANT_0;
-		} else if (txant == ANT_TX_FORCE_1) {
+		}
+		else if (txant == ANT_TX_FORCE_1)
+		{
 			wlc->stf->phytxant = PHY_TXC_ANT_1;
 
 			if (BRCMS_ISNPHY(wlc->band) &&
-			    NREV_GE(wlc->band->phyrev, 3)
-			    && NREV_LT(wlc->band->phyrev, 7))
+				NREV_GE(wlc->band->phyrev, 3)
+				&& NREV_LT(wlc->band->phyrev, 7))
+			{
 				wlc->stf->phytxant = PHY_TXC_ANT_2;
-		} else {
+			}
+		}
+		else
+		{
 			if (BRCMS_ISLCNPHY(wlc->band) ||
-			    BRCMS_ISSSLPNPHY(wlc->band))
+				BRCMS_ISSSLPNPHY(wlc->band))
+			{
 				wlc->stf->phytxant = PHY_TXC_LCNPHY_ANT_LAST;
-			else {
+			}
+			else
+			{
 				/* catch out of sync wlc->stf->txcore */
 				WARN_ON(wlc->stf->txchain <= 0);
 				wlc->stf->phytxant =
-				    wlc->stf->txchain << PHY_TXC_ANT_SHIFT;
+					wlc->stf->txchain << PHY_TXC_ANT_SHIFT;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		if (txant == ANT_TX_FORCE_0)
+		{
 			wlc->stf->phytxant = PHY_TXC_OLD_ANT_0;
+		}
 		else if (txant == ANT_TX_FORCE_1)
+		{
 			wlc->stf->phytxant = PHY_TXC_OLD_ANT_1;
+		}
 		else
+		{
 			wlc->stf->phytxant = PHY_TXC_OLD_ANT_LAST;
+		}
 	}
 
 	brcms_b_txant_set(wlc->hw, wlc->stf->phytxant);
@@ -268,19 +327,26 @@ int brcms_c_stf_txchain_set(struct brcms_c_info *wlc, s32 int_val, bool force)
 	uint i;
 
 	if (wlc->stf->txchain == txchain)
+	{
 		return 0;
+	}
 
 	if ((txchain & ~wlc->stf->hw_txchain)
-	    || !(txchain & wlc->stf->hw_txchain))
+		|| !(txchain & wlc->stf->hw_txchain))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * if nrate override is configured to be non-SISO STF mode, reject
 	 * reducing txchain to 1
 	 */
 	txstreams = (u8) hweight8(txchain);
+
 	if (txstreams > MAX_STREAMS_SUPPORTED)
+	{
 		return -EINVAL;
+	}
 
 	wlc->stf->txchain = txchain;
 	wlc->stf->txstreams = txstreams;
@@ -288,14 +354,16 @@ int brcms_c_stf_txchain_set(struct brcms_c_info *wlc, s32 int_val, bool force)
 	brcms_c_stf_ss_update(wlc, wlc->bandstate[BAND_2G_INDEX]);
 	brcms_c_stf_ss_update(wlc, wlc->bandstate[BAND_5G_INDEX]);
 	wlc->stf->txant =
-	    (wlc->stf->txstreams == 1) ? ANT_TX_FORCE_0 : ANT_TX_DEF;
+		(wlc->stf->txstreams == 1) ? ANT_TX_FORCE_0 : ANT_TX_DEF;
 	_brcms_c_stf_phy_txant_upd(wlc);
 
 	wlc_phy_stf_chain_set(wlc->band->pi, wlc->stf->txchain,
-			      wlc->stf->rxchain);
+						  wlc->stf->rxchain);
 
 	for (i = 1; i <= MAX_STREAMS_SUPPORTED; i++)
+	{
 		brcms_c_stf_txcore_set(wlc, (u8) i, txcore_default[i]);
+	}
 
 	return 0;
 }
@@ -317,19 +385,27 @@ int brcms_c_stf_ss_update(struct brcms_c_info *wlc, struct brcms_band *band)
 	 * per-packet basis
 	 */
 	if (BRCMS_STBC_CAP_PHY(wlc) &&
-	    wlc->stf->ss_algosel_auto
-	    && (wlc->stf->ss_algo_channel != (u16) -1)) {
+		wlc->stf->ss_algosel_auto
+		&& (wlc->stf->ss_algo_channel != (u16) - 1))
+	{
 		upd_stf_ss = (wlc->stf->txstreams == 1 ||
-			      isset(&wlc->stf->ss_algo_channel,
-				    PHY_TXC1_MODE_SISO)) ?
-				    PHY_TXC1_MODE_SISO : PHY_TXC1_MODE_CDD;
-	} else {
-		if (wlc->band != band)
-			return ret_code;
-		upd_stf_ss = (wlc->stf->txstreams == 1) ?
-				PHY_TXC1_MODE_SISO : band->band_stf_ss_mode;
+					  isset(&wlc->stf->ss_algo_channel,
+							PHY_TXC1_MODE_SISO)) ?
+					 PHY_TXC1_MODE_SISO : PHY_TXC1_MODE_CDD;
 	}
-	if (prev_stf_ss != upd_stf_ss) {
+	else
+	{
+		if (wlc->band != band)
+		{
+			return ret_code;
+		}
+
+		upd_stf_ss = (wlc->stf->txstreams == 1) ?
+					 PHY_TXC1_MODE_SISO : band->band_stf_ss_mode;
+	}
+
+	if (prev_stf_ss != upd_stf_ss)
+	{
 		wlc->stf->ss_opmode = upd_stf_ss;
 		brcms_b_band_stf_ss_set(wlc->hw, upd_stf_ss);
 	}
@@ -343,9 +419,10 @@ int brcms_c_stf_attach(struct brcms_c_info *wlc)
 	wlc->bandstate[BAND_5G_INDEX]->band_stf_ss_mode = PHY_TXC1_MODE_CDD;
 
 	if (BRCMS_ISNPHY(wlc->band) &&
-	    (wlc_phy_txpower_hw_ctrl_get(wlc->band->pi) != PHY_TPC_HW_ON))
+		(wlc_phy_txpower_hw_ctrl_get(wlc->band->pi) != PHY_TPC_HW_ON))
 		wlc->bandstate[BAND_2G_INDEX]->band_stf_ss_mode =
-		    PHY_TXC1_MODE_CDD;
+			PHY_TXC1_MODE_CDD;
+
 	brcms_c_stf_ss_update(wlc, wlc->bandstate[BAND_2G_INDEX]);
 	brcms_c_stf_ss_update(wlc, wlc->bandstate[BAND_5G_INDEX]);
 
@@ -353,11 +430,13 @@ int brcms_c_stf_attach(struct brcms_c_info *wlc)
 	wlc->bandstate[BAND_2G_INDEX]->band_stf_stbc_tx = OFF;
 	wlc->bandstate[BAND_5G_INDEX]->band_stf_stbc_tx = OFF;
 
-	if (BRCMS_STBC_CAP_PHY(wlc)) {
+	if (BRCMS_STBC_CAP_PHY(wlc))
+	{
 		wlc->stf->ss_algosel_auto = true;
 		/* Init the default value */
-		wlc->stf->ss_algo_channel = (u16) -1;
+		wlc->stf->ss_algo_channel = (u16) - 1;
 	}
+
 	return 0;
 }
 
@@ -379,21 +458,31 @@ void brcms_c_stf_phy_chain_calc(struct brcms_c_info *wlc)
 	wlc->stf->hw_rxchain = sprom->rxchain;
 
 	/* these parameter are intended to be used for all PHY types */
-	if (wlc->stf->hw_txchain == 0 || wlc->stf->hw_txchain == 0xf) {
+	if (wlc->stf->hw_txchain == 0 || wlc->stf->hw_txchain == 0xf)
+	{
 		if (BRCMS_ISNPHY(wlc->band))
+		{
 			wlc->stf->hw_txchain = TXCHAIN_DEF_NPHY;
+		}
 		else
+		{
 			wlc->stf->hw_txchain = TXCHAIN_DEF;
+		}
 	}
 
 	wlc->stf->txchain = wlc->stf->hw_txchain;
 	wlc->stf->txstreams = (u8) hweight8(wlc->stf->hw_txchain);
 
-	if (wlc->stf->hw_rxchain == 0 || wlc->stf->hw_rxchain == 0xf) {
+	if (wlc->stf->hw_rxchain == 0 || wlc->stf->hw_rxchain == 0xf)
+	{
 		if (BRCMS_ISNPHY(wlc->band))
+		{
 			wlc->stf->hw_rxchain = RXCHAIN_DEF_NPHY;
+		}
 		else
+		{
 			wlc->stf->hw_rxchain = RXCHAIN_DEF;
+		}
 	}
 
 	wlc->stf->rxchain = wlc->stf->hw_rxchain;
@@ -408,14 +497,19 @@ void brcms_c_stf_phy_chain_calc(struct brcms_c_info *wlc)
 }
 
 static u16 _brcms_c_stf_phytxchain_sel(struct brcms_c_info *wlc,
-				       u32 rspec)
+									   u32 rspec)
 {
 	u16 phytxant = wlc->stf->phytxant;
 
 	if (rspec_stf(rspec) != PHY_TXC1_MODE_SISO)
+	{
 		phytxant = wlc->stf->txchain << PHY_TXC_ANT_SHIFT;
+	}
 	else if (wlc->stf->txant == ANT_TX_DEF)
+	{
 		phytxant = wlc->stf->txchain << PHY_TXC_ANT_SHIFT;
+	}
+
 	phytxant &= PHY_TXC_ANT_MASK;
 	return phytxant;
 }
@@ -431,10 +525,12 @@ u16 brcms_c_stf_d11hdrs_phyctl_txant(struct brcms_c_info *wlc, u32 rspec)
 	u16 mask = PHY_TXC_ANT_MASK;
 
 	/* for non-siso rates or default setting, use the available chains */
-	if (BRCMS_ISNPHY(wlc->band)) {
+	if (BRCMS_ISNPHY(wlc->band))
+	{
 		phytxant = _brcms_c_stf_phytxchain_sel(wlc, rspec);
 		mask = PHY_TXC_HTANT_MASK;
 	}
+
 	phytxant |= phytxant & mask;
 	return phytxant;
 }

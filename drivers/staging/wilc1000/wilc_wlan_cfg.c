@@ -18,7 +18,8 @@
  *      Global Data
  *
  ********************************************/
-enum cfg_cmd_type {
+enum cfg_cmd_type
+{
 	CFG_BYTE_CMD	= 0,
 	CFG_HWORD_CMD	= 1,
 	CFG_WORD_CMD	= 2,
@@ -26,7 +27,8 @@ enum cfg_cmd_type {
 	CFG_BIN_CMD	= 4
 };
 
-struct wilc_mac_cfg {
+struct wilc_mac_cfg
+{
 	int mac_status;
 	u8 mac_address[7];
 	u8 ip_address[5];
@@ -49,7 +51,8 @@ struct wilc_mac_cfg {
 
 static struct wilc_mac_cfg g_mac;
 
-static struct wilc_cfg_byte g_cfg_byte[] = {
+static struct wilc_cfg_byte g_cfg_byte[] =
+{
 	{WID_BSS_TYPE, 0},
 	{WID_CURRENT_TX_RATE, 0},
 	{WID_CURRENT_CHANNEL, 0},
@@ -92,7 +95,8 @@ static struct wilc_cfg_byte g_cfg_byte[] = {
 	{WID_NIL, 0}
 };
 
-static struct wilc_cfg_hword g_cfg_hword[] = {
+static struct wilc_cfg_hword g_cfg_hword[] =
+{
 	{WID_LINK_LOSS_THRESHOLD, 0},
 	{WID_RTS_THRESHOLD, 0},
 	{WID_FRAG_THRESHOLD, 0},
@@ -113,7 +117,8 @@ static struct wilc_cfg_hword g_cfg_hword[] = {
 	{WID_NIL, 0}
 };
 
-static struct wilc_cfg_word g_cfg_word[] = {
+static struct wilc_cfg_word g_cfg_word[] =
+{
 	{WID_FAILED_COUNT, 0},
 	{WID_RETRY_COUNT, 0},
 	{WID_MULTIPLE_RETRY_COUNT, 0},
@@ -136,7 +141,8 @@ static struct wilc_cfg_word g_cfg_word[] = {
 
 };
 
-static struct wilc_cfg_str g_cfg_str[] = {
+static struct wilc_cfg_str g_cfg_str[] =
+{
 	{WID_SSID, g_mac.ssid},	/* 33 + 1 bytes */
 	{WID_FIRMWARE_VERSION, g_mac.firmware_version},
 	{WID_OPERATIONAL_RATE_SET, g_mac.supp_rate},
@@ -168,7 +174,9 @@ static int wilc_wlan_cfg_set_byte(u8 *frame, u32 offset, u16 id, u8 val8)
 	u8 *buf;
 
 	if ((offset + 4) >= MAX_CFG_FRAME_SIZE)
+	{
 		return 0;
+	}
 
 	buf = &frame[offset];
 
@@ -184,7 +192,9 @@ static int wilc_wlan_cfg_set_hword(u8 *frame, u32 offset, u16 id, u16 val16)
 	u8 *buf;
 
 	if ((offset + 5) >= MAX_CFG_FRAME_SIZE)
+	{
 		return 0;
+	}
 
 	buf = &frame[offset];
 
@@ -202,7 +212,9 @@ static int wilc_wlan_cfg_set_word(u8 *frame, u32 offset, u16 id, u32 val32)
 	u8 *buf;
 
 	if ((offset + 7) >= MAX_CFG_FRAME_SIZE)
+	{
 		return 0;
+	}
 
 	buf = &frame[offset];
 
@@ -222,7 +234,9 @@ static int wilc_wlan_cfg_set_str(u8 *frame, u32 offset, u16 id, u8 *str, u32 siz
 	u8 *buf;
 
 	if ((offset + size + 3) >= MAX_CFG_FRAME_SIZE)
+	{
 		return 0;
+	}
 
 	buf = &frame[offset];
 
@@ -231,7 +245,9 @@ static int wilc_wlan_cfg_set_str(u8 *frame, u32 offset, u16 id, u8 *str, u32 siz
 	buf[2] = (u8)size;
 
 	if ((str) && (size != 0))
+	{
 		memcpy(&buf[3], str, size);
+	}
 
 	return (size + 3);
 }
@@ -243,7 +259,9 @@ static int wilc_wlan_cfg_set_bin(u8 *frame, u32 offset, u16 id, u8 *b, u32 size)
 	u8 checksum = 0;
 
 	if ((offset + size + 5) >= MAX_CFG_FRAME_SIZE)
+	{
 		return 0;
+	}
 
 	buf = &frame[offset];
 	buf[0] = (u8)id;
@@ -251,10 +269,14 @@ static int wilc_wlan_cfg_set_bin(u8 *frame, u32 offset, u16 id, u8 *b, u32 size)
 	buf[2] = (u8)size;
 	buf[3] = (u8)(size >> 8);
 
-	if ((b) && (size != 0)) {
+	if ((b) && (size != 0))
+	{
 		memcpy(&buf[4], b, size);
+
 		for (i = 0; i < size; i++)
+		{
 			checksum += buf[i + 4];
+		}
 	}
 
 	buf[size + 4] = checksum;
@@ -272,77 +294,110 @@ static void wilc_wlan_parse_response_frame(u8 *info, int size)
 {
 	u32 wid, len = 0, i = 0;
 
-	while (size > 0) {
+	while (size > 0)
+	{
 		i = 0;
 		wid = info[0] | (info[1] << 8);
 		wid = cpu_to_le32(wid);
 
-		switch ((wid >> 12) & 0x7) {
-		case WID_CHAR:
-			do {
-				if (g_cfg_byte[i].id == WID_NIL)
-					break;
-
-				if (g_cfg_byte[i].id == wid) {
-					g_cfg_byte[i].val = info[3];
-					break;
-				}
-				i++;
-			} while (1);
-			len = 2;
-			break;
-
-		case WID_SHORT:
-			do {
-				if (g_cfg_hword[i].id == WID_NIL)
-					break;
-
-				if (g_cfg_hword[i].id == wid) {
-					g_cfg_hword[i].val = cpu_to_le16(info[3] | (info[4] << 8));
-					break;
-				}
-				i++;
-			} while (1);
-			len = 3;
-			break;
-
-		case WID_INT:
-			do {
-				if (g_cfg_word[i].id == WID_NIL)
-					break;
-
-				if (g_cfg_word[i].id == wid) {
-					g_cfg_word[i].val = cpu_to_le32(info[3] | (info[4] << 8) | (info[5] << 16) | (info[6] << 24));
-					break;
-				}
-				i++;
-			} while (1);
-			len = 5;
-			break;
-
-		case WID_STR:
-			do {
-				if (g_cfg_str[i].id == WID_NIL)
-					break;
-
-				if (g_cfg_str[i].id == wid) {
-					if (wid == WID_SITE_SURVEY_RESULTS) {
-						static int toggle;
-
-						i += toggle;
-						toggle ^= 1;
+		switch ((wid >> 12) & 0x7)
+		{
+			case WID_CHAR:
+				do
+				{
+					if (g_cfg_byte[i].id == WID_NIL)
+					{
+						break;
 					}
-					memcpy(g_cfg_str[i].str, &info[2], (info[2] + 1));
-					break;
-				}
-				i++;
-			} while (1);
-			len = 1 + info[2];
-			break;
 
-		default:
-			break;
+					if (g_cfg_byte[i].id == wid)
+					{
+						g_cfg_byte[i].val = info[3];
+						break;
+					}
+
+					i++;
+				}
+				while (1);
+
+				len = 2;
+				break;
+
+			case WID_SHORT:
+				do
+				{
+					if (g_cfg_hword[i].id == WID_NIL)
+					{
+						break;
+					}
+
+					if (g_cfg_hword[i].id == wid)
+					{
+						g_cfg_hword[i].val = cpu_to_le16(info[3] | (info[4] << 8));
+						break;
+					}
+
+					i++;
+				}
+				while (1);
+
+				len = 3;
+				break;
+
+			case WID_INT:
+				do
+				{
+					if (g_cfg_word[i].id == WID_NIL)
+					{
+						break;
+					}
+
+					if (g_cfg_word[i].id == wid)
+					{
+						g_cfg_word[i].val = cpu_to_le32(info[3] | (info[4] << 8) | (info[5] << 16) | (info[6] << 24));
+						break;
+					}
+
+					i++;
+				}
+				while (1);
+
+				len = 5;
+				break;
+
+			case WID_STR:
+				do
+				{
+					if (g_cfg_str[i].id == WID_NIL)
+					{
+						break;
+					}
+
+					if (g_cfg_str[i].id == wid)
+					{
+						if (wid == WID_SITE_SURVEY_RESULTS)
+						{
+							static int toggle;
+
+							i += toggle;
+							toggle ^= 1;
+						}
+
+						memcpy(g_cfg_str[i].str, &info[2], (info[2] + 1));
+						break;
+					}
+
+					i++;
+				}
+				while (1);
+
+				len = 1 + info[2];
+				break;
+
+			default:
+				break;
 		}
+
 		size -= (2 + len);
 		info += (2 + len);
 	}
@@ -358,7 +413,8 @@ static int wilc_wlan_parse_info_frame(u8 *info, int size)
 
 	len = info[2];
 
-	if ((len == 1) && (wid == WID_STATUS)) {
+	if ((len == 1) && (wid == WID_STATUS))
+	{
 		pd->mac_status = info[3];
 		type = WILC_CFG_RSP_STATUS;
 	}
@@ -377,31 +433,37 @@ int wilc_wlan_cfg_set_wid(u8 *frame, u32 offset, u16 id, u8 *buf, int size)
 	u8 type = (id >> 12) & 0xf;
 	int ret = 0;
 
-	switch (type) {
-	case CFG_BYTE_CMD:
-		if (size >= 1)
-			ret = wilc_wlan_cfg_set_byte(frame, offset, id, *buf);
-		break;
+	switch (type)
+	{
+		case CFG_BYTE_CMD:
+			if (size >= 1)
+			{
+				ret = wilc_wlan_cfg_set_byte(frame, offset, id, *buf);
+			}
 
-	case CFG_HWORD_CMD:
-		if (size >= 2)
-			ret = wilc_wlan_cfg_set_hword(frame, offset, id,
-						      *((u16 *)buf));
-		break;
+			break;
 
-	case CFG_WORD_CMD:
-		if (size >= 4)
-			ret = wilc_wlan_cfg_set_word(frame, offset, id,
-						     *((u32 *)buf));
-		break;
+		case CFG_HWORD_CMD:
+			if (size >= 2)
+				ret = wilc_wlan_cfg_set_hword(frame, offset, id,
+											  *((u16 *)buf));
 
-	case CFG_STR_CMD:
-		ret = wilc_wlan_cfg_set_str(frame, offset, id, buf, size);
-		break;
+			break;
 
-	case CFG_BIN_CMD:
-		ret = wilc_wlan_cfg_set_bin(frame, offset, id, buf, size);
-		break;
+		case CFG_WORD_CMD:
+			if (size >= 4)
+				ret = wilc_wlan_cfg_set_word(frame, offset, id,
+											 *((u32 *)buf));
+
+			break;
+
+		case CFG_STR_CMD:
+			ret = wilc_wlan_cfg_set_str(frame, offset, id, buf, size);
+			break;
+
+		case CFG_BIN_CMD:
+			ret = wilc_wlan_cfg_set_bin(frame, offset, id, buf, size);
+			break;
 	}
 
 	return ret;
@@ -412,7 +474,9 @@ int wilc_wlan_cfg_get_wid(u8 *frame, u32 offset, u16 id)
 	u8 *buf;
 
 	if ((offset + 2) >= MAX_CFG_FRAME_SIZE)
+	{
 		return 0;
+	}
 
 	buf = &frame[offset];
 
@@ -427,78 +491,115 @@ int wilc_wlan_cfg_get_wid_value(u16 wid, u8 *buffer, u32 buffer_size)
 	u32 type = (wid >> 12) & 0xf;
 	int i, ret = 0;
 
-	if (wid == WID_STATUS) {
+	if (wid == WID_STATUS)
+	{
 		*((u32 *)buffer) = g_mac.mac_status;
 		return 4;
 	}
 
 	i = 0;
-	if (type == CFG_BYTE_CMD) {
-		do {
-			if (g_cfg_byte[i].id == WID_NIL)
-				break;
 
-			if (g_cfg_byte[i].id == wid) {
+	if (type == CFG_BYTE_CMD)
+	{
+		do
+		{
+			if (g_cfg_byte[i].id == WID_NIL)
+			{
+				break;
+			}
+
+			if (g_cfg_byte[i].id == wid)
+			{
 				memcpy(buffer,  &g_cfg_byte[i].val, 1);
 				ret = 1;
 				break;
 			}
-			i++;
-		} while (1);
-	} else if (type == CFG_HWORD_CMD) {
-		do {
-			if (g_cfg_hword[i].id == WID_NIL)
-				break;
 
-			if (g_cfg_hword[i].id == wid) {
+			i++;
+		}
+		while (1);
+	}
+	else if (type == CFG_HWORD_CMD)
+	{
+		do
+		{
+			if (g_cfg_hword[i].id == WID_NIL)
+			{
+				break;
+			}
+
+			if (g_cfg_hword[i].id == wid)
+			{
 				memcpy(buffer,  &g_cfg_hword[i].val, 2);
 				ret = 2;
 				break;
 			}
-			i++;
-		} while (1);
-	} else if (type == CFG_WORD_CMD) {
-		do {
-			if (g_cfg_word[i].id == WID_NIL)
-				break;
 
-			if (g_cfg_word[i].id == wid) {
+			i++;
+		}
+		while (1);
+	}
+	else if (type == CFG_WORD_CMD)
+	{
+		do
+		{
+			if (g_cfg_word[i].id == WID_NIL)
+			{
+				break;
+			}
+
+			if (g_cfg_word[i].id == wid)
+			{
 				memcpy(buffer,  &g_cfg_word[i].val, 4);
 				ret = 4;
 				break;
 			}
-			i++;
-		} while (1);
-	} else if (type == CFG_STR_CMD) {
-		do {
-			if (g_cfg_str[i].id == WID_NIL)
-				break;
 
-			if (g_cfg_str[i].id == wid) {
+			i++;
+		}
+		while (1);
+	}
+	else if (type == CFG_STR_CMD)
+	{
+		do
+		{
+			if (g_cfg_str[i].id == WID_NIL)
+			{
+				break;
+			}
+
+			if (g_cfg_str[i].id == wid)
+			{
 				u32 size =  g_cfg_str[i].str[0];
 
-				if (buffer_size >= size) {
-					if (g_cfg_str[i].id == WID_SITE_SURVEY_RESULTS)	{
+				if (buffer_size >= size)
+				{
+					if (g_cfg_str[i].id == WID_SITE_SURVEY_RESULTS)
+					{
 						static int toggle;
 
 						i += toggle;
 						toggle ^= 1;
 
 					}
+
 					memcpy(buffer,  &g_cfg_str[i].str[1], size);
 					ret = size;
 				}
+
 				break;
 			}
+
 			i++;
-		} while (1);
+		}
+		while (1);
 	}
 
 	return ret;
 }
 
 int wilc_wlan_cfg_indicate_rx(struct wilc *wilc, u8 *frame, int size,
-			      struct wilc_cfg_rsp *rsp)
+							  struct wilc_cfg_rsp *rsp)
 {
 	int ret = 1;
 	u8 msg_type;
@@ -513,34 +614,35 @@ int wilc_wlan_cfg_indicate_rx(struct wilc *wilc, u8 *frame, int size,
 	 *      The  valid types of response messages are 'R' (Response), 'I' (Information), and 'N' (Network Information)
 	 **/
 
-	switch (msg_type) {
-	case 'R':
-		wilc_wlan_parse_response_frame(frame, size);
-		rsp->type = WILC_CFG_RSP;
-		rsp->seq_no = msg_id;
-		break;
+	switch (msg_type)
+	{
+		case 'R':
+			wilc_wlan_parse_response_frame(frame, size);
+			rsp->type = WILC_CFG_RSP;
+			rsp->seq_no = msg_id;
+			break;
 
-	case 'I':
-		rsp->type = wilc_wlan_parse_info_frame(frame, size);
-		rsp->seq_no = msg_id;
-		/*call host interface info parse as well*/
-		wilc_gnrl_async_info_received(wilc, frame - 4, size + 4);
-		break;
+		case 'I':
+			rsp->type = wilc_wlan_parse_info_frame(frame, size);
+			rsp->seq_no = msg_id;
+			/*call host interface info parse as well*/
+			wilc_gnrl_async_info_received(wilc, frame - 4, size + 4);
+			break;
 
-	case 'N':
-		wilc_network_info_received(wilc, frame - 4, size + 4);
-		rsp->type = 0;
-		break;
+		case 'N':
+			wilc_network_info_received(wilc, frame - 4, size + 4);
+			rsp->type = 0;
+			break;
 
-	case 'S':
-		wilc_scan_complete_received(wilc, frame - 4, size + 4);
-		break;
+		case 'S':
+			wilc_scan_complete_received(wilc, frame - 4, size + 4);
+			break;
 
-	default:
-		rsp->type = 0;
-		rsp->seq_no = msg_id;
-		ret = 0;
-		break;
+		default:
+			rsp->type = 0;
+			rsp->seq_no = msg_id;
+			ret = 0;
+			break;
 	}
 
 	return ret;

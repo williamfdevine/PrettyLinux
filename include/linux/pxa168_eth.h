@@ -6,7 +6,8 @@
 
 #include <linux/phy.h>
 
-struct pxa168_eth_platform_data {
+struct pxa168_eth_platform_data
+{
 	int	port_number;
 	int	phy_addr;
 

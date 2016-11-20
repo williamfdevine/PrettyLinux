@@ -34,7 +34,8 @@
 
 #define VERSION "1.0"
 
-static struct memory_type_mapping mem_type_mapping_tbl[] = {
+static struct memory_type_mapping mem_type_mapping_tbl[] =
+{
 	{"ITCM", NULL, 0, 0xF0},
 	{"DTCM", NULL, 0, 0xF1},
 	{"SQRAM", NULL, 0, 0xF2},
@@ -52,7 +53,8 @@ static struct memory_type_mapping mem_type_mapping_tbl[] = {
 	{"EXTLAST", NULL, 0, 0xFE},
 };
 
-static const struct of_device_id btmrvl_sdio_of_match_table[] = {
+static const struct of_device_id btmrvl_sdio_of_match_table[] =
+{
 	{ .compatible = "marvell,sd8897-bt" },
 	{ .compatible = "marvell,sd8997-bt" },
 	{ }
@@ -62,7 +64,8 @@ static irqreturn_t btmrvl_wake_irq_bt(int irq, void *priv)
 {
 	struct btmrvl_plt_wake_cfg *cfg = priv;
 
-	if (cfg->irq_bt >= 0) {
+	if (cfg->irq_bt >= 0)
+	{
 		pr_info("%s: wake by bt", __func__);
 		cfg->wake_by_bt = true;
 		disable_irq_nosync(irq);
@@ -77,13 +80,14 @@ static irqreturn_t btmrvl_wake_irq_bt(int irq, void *priv)
  * function will request platform specific wakeup interrupt.
  */
 static int btmrvl_sdio_probe_of(struct device *dev,
-				struct btmrvl_sdio_card *card)
+								struct btmrvl_sdio_card *card)
 {
 	struct btmrvl_plt_wake_cfg *cfg;
 	int ret;
 
 	if (!dev->of_node ||
-	    !of_match_node(btmrvl_sdio_of_match_table, dev->of_node)) {
+		!of_match_node(btmrvl_sdio_of_match_table, dev->of_node))
+	{
 		pr_err("sdio platform data not available");
 		return -1;
 	}
@@ -91,22 +95,31 @@ static int btmrvl_sdio_probe_of(struct device *dev,
 	card->plt_of_node = dev->of_node;
 
 	card->plt_wake_cfg = devm_kzalloc(dev, sizeof(*card->plt_wake_cfg),
-					  GFP_KERNEL);
+									  GFP_KERNEL);
 	cfg = card->plt_wake_cfg;
-	if (cfg && card->plt_of_node) {
+
+	if (cfg && card->plt_of_node)
+	{
 		cfg->irq_bt = irq_of_parse_and_map(card->plt_of_node, 0);
-		if (!cfg->irq_bt) {
+
+		if (!cfg->irq_bt)
+		{
 			dev_err(dev, "fail to parse irq_bt from device tree");
-		} else {
+		}
+		else
+		{
 			ret = devm_request_irq(dev, cfg->irq_bt,
-					       btmrvl_wake_irq_bt,
-					       IRQF_TRIGGER_LOW,
-					       "bt_wake", cfg);
-			if (ret) {
+								   btmrvl_wake_irq_bt,
+								   IRQF_TRIGGER_LOW,
+								   "bt_wake", cfg);
+
+			if (ret)
+			{
 				dev_err(dev,
-					"Failed to request irq_bt %d (%d)\n",
-					cfg->irq_bt, ret);
+						"Failed to request irq_bt %d (%d)\n",
+						cfg->irq_bt, ret);
 			}
+
 			disable_irq(cfg->irq_bt);
 		}
 	}
@@ -131,7 +144,8 @@ static int btmrvl_sdio_probe_of(struct device *dev,
 static u8 user_rmmod;
 static u8 sdio_ireg;
 
-static const struct btmrvl_sdio_card_reg btmrvl_reg_8688 = {
+static const struct btmrvl_sdio_card_reg btmrvl_reg_8688 =
+{
 	.cfg = 0x03,
 	.host_int_mask = 0x04,
 	.host_intstatus = 0x05,
@@ -147,7 +161,8 @@ static const struct btmrvl_sdio_card_reg btmrvl_reg_8688 = {
 	.io_port_2 = 0x02,
 	.int_read_to_clear = false,
 };
-static const struct btmrvl_sdio_card_reg btmrvl_reg_87xx = {
+static const struct btmrvl_sdio_card_reg btmrvl_reg_87xx =
+{
 	.cfg = 0x00,
 	.host_int_mask = 0x02,
 	.host_intstatus = 0x03,
@@ -165,7 +180,8 @@ static const struct btmrvl_sdio_card_reg btmrvl_reg_87xx = {
 	.int_read_to_clear = false,
 };
 
-static const struct btmrvl_sdio_card_reg btmrvl_reg_8887 = {
+static const struct btmrvl_sdio_card_reg btmrvl_reg_8887 =
+{
 	.cfg = 0x00,
 	.host_int_mask = 0x08,
 	.host_intstatus = 0x0C,
@@ -185,7 +201,8 @@ static const struct btmrvl_sdio_card_reg btmrvl_reg_8887 = {
 	.card_misc_cfg = 0xD8,
 };
 
-static const struct btmrvl_sdio_card_reg btmrvl_reg_8897 = {
+static const struct btmrvl_sdio_card_reg btmrvl_reg_8897 =
+{
 	.cfg = 0x00,
 	.host_int_mask = 0x02,
 	.host_intstatus = 0x03,
@@ -208,7 +225,8 @@ static const struct btmrvl_sdio_card_reg btmrvl_reg_8897 = {
 	.fw_dump_end = 0xea,
 };
 
-static const struct btmrvl_sdio_card_reg btmrvl_reg_8997 = {
+static const struct btmrvl_sdio_card_reg btmrvl_reg_8997 =
+{
 	.cfg = 0x00,
 	.host_int_mask = 0x08,
 	.host_intstatus = 0x0c,
@@ -231,7 +249,8 @@ static const struct btmrvl_sdio_card_reg btmrvl_reg_8997 = {
 	.fw_dump_end = 0xf8,
 };
 
-static const struct btmrvl_sdio_device btmrvl_sdio_sd8688 = {
+static const struct btmrvl_sdio_device btmrvl_sdio_sd8688 =
+{
 	.helper		= "mrvl/sd8688_helper.bin",
 	.firmware	= "mrvl/sd8688.bin",
 	.reg		= &btmrvl_reg_8688,
@@ -240,7 +259,8 @@ static const struct btmrvl_sdio_device btmrvl_sdio_sd8688 = {
 	.supports_fw_dump = false,
 };
 
-static const struct btmrvl_sdio_device btmrvl_sdio_sd8787 = {
+static const struct btmrvl_sdio_device btmrvl_sdio_sd8787 =
+{
 	.helper		= NULL,
 	.firmware	= "mrvl/sd8787_uapsta.bin",
 	.reg		= &btmrvl_reg_87xx,
@@ -249,7 +269,8 @@ static const struct btmrvl_sdio_device btmrvl_sdio_sd8787 = {
 	.supports_fw_dump = false,
 };
 
-static const struct btmrvl_sdio_device btmrvl_sdio_sd8797 = {
+static const struct btmrvl_sdio_device btmrvl_sdio_sd8797 =
+{
 	.helper		= NULL,
 	.firmware	= "mrvl/sd8797_uapsta.bin",
 	.reg		= &btmrvl_reg_87xx,
@@ -258,7 +279,8 @@ static const struct btmrvl_sdio_device btmrvl_sdio_sd8797 = {
 	.supports_fw_dump = false,
 };
 
-static const struct btmrvl_sdio_device btmrvl_sdio_sd8887 = {
+static const struct btmrvl_sdio_device btmrvl_sdio_sd8887 =
+{
 	.helper		= NULL,
 	.firmware	= "mrvl/sd8887_uapsta.bin",
 	.reg		= &btmrvl_reg_8887,
@@ -267,7 +289,8 @@ static const struct btmrvl_sdio_device btmrvl_sdio_sd8887 = {
 	.supports_fw_dump = false,
 };
 
-static const struct btmrvl_sdio_device btmrvl_sdio_sd8897 = {
+static const struct btmrvl_sdio_device btmrvl_sdio_sd8897 =
+{
 	.helper		= NULL,
 	.firmware	= "mrvl/sd8897_uapsta.bin",
 	.reg		= &btmrvl_reg_8897,
@@ -276,7 +299,8 @@ static const struct btmrvl_sdio_device btmrvl_sdio_sd8897 = {
 	.supports_fw_dump = true,
 };
 
-static const struct btmrvl_sdio_device btmrvl_sdio_sd8997 = {
+static const struct btmrvl_sdio_device btmrvl_sdio_sd8997 =
+{
 	.helper         = NULL,
 	.firmware       = "mrvl/sd8997_uapsta.bin",
 	.reg            = &btmrvl_reg_8997,
@@ -285,28 +309,43 @@ static const struct btmrvl_sdio_device btmrvl_sdio_sd8997 = {
 	.supports_fw_dump = true,
 };
 
-static const struct sdio_device_id btmrvl_sdio_ids[] = {
+static const struct sdio_device_id btmrvl_sdio_ids[] =
+{
 	/* Marvell SD8688 Bluetooth device */
-	{ SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x9105),
-			.driver_data = (unsigned long)&btmrvl_sdio_sd8688 },
+	{
+		SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x9105),
+		.driver_data = (unsigned long) &btmrvl_sdio_sd8688
+	},
 	/* Marvell SD8787 Bluetooth device */
-	{ SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x911A),
-			.driver_data = (unsigned long)&btmrvl_sdio_sd8787 },
+	{
+		SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x911A),
+		.driver_data = (unsigned long) &btmrvl_sdio_sd8787
+	},
 	/* Marvell SD8787 Bluetooth AMP device */
-	{ SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x911B),
-			.driver_data = (unsigned long)&btmrvl_sdio_sd8787 },
+	{
+		SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x911B),
+		.driver_data = (unsigned long) &btmrvl_sdio_sd8787
+	},
 	/* Marvell SD8797 Bluetooth device */
-	{ SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x912A),
-			.driver_data = (unsigned long)&btmrvl_sdio_sd8797 },
+	{
+		SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x912A),
+		.driver_data = (unsigned long) &btmrvl_sdio_sd8797
+	},
 	/* Marvell SD8887 Bluetooth device */
-	{ SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x9136),
-			.driver_data = (unsigned long)&btmrvl_sdio_sd8887 },
+	{
+		SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x9136),
+		.driver_data = (unsigned long) &btmrvl_sdio_sd8887
+	},
 	/* Marvell SD8897 Bluetooth device */
-	{ SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x912E),
-			.driver_data = (unsigned long)&btmrvl_sdio_sd8897 },
+	{
+		SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x912E),
+		.driver_data = (unsigned long) &btmrvl_sdio_sd8897
+	},
 	/* Marvell SD8997 Bluetooth device */
-	{ SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x9142),
-			.driver_data = (unsigned long)&btmrvl_sdio_sd8997 },
+	{
+		SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x9142),
+		.driver_data = (unsigned long) &btmrvl_sdio_sd8997
+	},
 
 	{ }	/* Terminating entry */
 };
@@ -319,8 +358,11 @@ static int btmrvl_sdio_get_rx_unit(struct btmrvl_sdio_card *card)
 	int ret;
 
 	reg = sdio_readb(card->func, card->reg->card_rx_unit, &ret);
+
 	if (!ret)
+	{
 		card->rx_unit = reg;
+	}
 
 	return ret;
 }
@@ -333,12 +375,18 @@ static int btmrvl_sdio_read_fw_status(struct btmrvl_sdio_card *card, u16 *dat)
 	*dat = 0;
 
 	fws0 = sdio_readb(card->func, card->reg->card_fw_status0, &ret);
+
 	if (ret)
+	{
 		return -EIO;
+	}
 
 	fws1 = sdio_readb(card->func, card->reg->card_fw_status1, &ret);
+
 	if (ret)
+	{
 		return -EIO;
+	}
 
 	*dat = (((u16) fws1) << 8) | fws0;
 
@@ -351,19 +399,24 @@ static int btmrvl_sdio_read_rx_len(struct btmrvl_sdio_card *card, u16 *dat)
 	int ret;
 
 	reg = sdio_readb(card->func, card->reg->card_rx_len, &ret);
+
 	if (!ret)
+	{
 		*dat = (u16) reg << card->rx_unit;
+	}
 
 	return ret;
 }
 
 static int btmrvl_sdio_enable_host_int_mask(struct btmrvl_sdio_card *card,
-								u8 mask)
+		u8 mask)
 {
 	int ret;
 
 	sdio_writeb(card->func, mask, card->reg->host_int_mask, &ret);
-	if (ret) {
+
+	if (ret)
+	{
 		BT_ERR("Unable to enable the host interrupt!");
 		ret = -EIO;
 	}
@@ -372,19 +425,24 @@ static int btmrvl_sdio_enable_host_int_mask(struct btmrvl_sdio_card *card,
 }
 
 static int btmrvl_sdio_disable_host_int_mask(struct btmrvl_sdio_card *card,
-								u8 mask)
+		u8 mask)
 {
 	u8 host_int_mask;
 	int ret;
 
 	host_int_mask = sdio_readb(card->func, card->reg->host_int_mask, &ret);
+
 	if (ret)
+	{
 		return -EIO;
+	}
 
 	host_int_mask &= ~mask;
 
 	sdio_writeb(card->func, host_int_mask, card->reg->host_int_mask, &ret);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		BT_ERR("Unable to disable the host interrupt!");
 		return -EIO;
 	}
@@ -398,12 +456,19 @@ static int btmrvl_sdio_poll_card_status(struct btmrvl_sdio_card *card, u8 bits)
 	u8 status;
 	int ret;
 
-	for (tries = 0; tries < MAX_POLL_TRIES * 1000; tries++) {
+	for (tries = 0; tries < MAX_POLL_TRIES * 1000; tries++)
+	{
 		status = sdio_readb(card->func, card->reg->card_status,	&ret);
+
 		if (ret)
+		{
 			goto failed;
+		}
+
 		if ((status & bits) == bits)
+		{
 			return ret;
+		}
 
 		udelay(1);
 	}
@@ -417,21 +482,27 @@ failed:
 }
 
 static int btmrvl_sdio_verify_fw_download(struct btmrvl_sdio_card *card,
-								int pollnum)
+		int pollnum)
 {
 	u16 firmwarestat;
 	int tries, ret;
 
-	 /* Wait for firmware to become ready */
-	for (tries = 0; tries < pollnum; tries++) {
+	/* Wait for firmware to become ready */
+	for (tries = 0; tries < pollnum; tries++)
+	{
 		sdio_claim_host(card->func);
 		ret = btmrvl_sdio_read_fw_status(card, &firmwarestat);
 		sdio_release_host(card->func);
+
 		if (ret < 0)
+		{
 			continue;
+		}
 
 		if (firmwarestat == FIRMWARE_READY)
+		{
 			return 0;
+		}
 
 		msleep(100);
 	}
@@ -450,10 +521,12 @@ static int btmrvl_sdio_download_helper(struct btmrvl_sdio_card *card)
 	u32 tx_len;
 
 	ret = request_firmware(&fw_helper, card->helper,
-						&card->func->dev);
-	if ((ret < 0) || !fw_helper) {
+						   &card->func->dev);
+
+	if ((ret < 0) || !fw_helper)
+	{
 		BT_ERR("request_firmware(helper) failed, error code = %d",
-									ret);
+			   ret);
 		ret = -ENOENT;
 		goto done;
 	}
@@ -462,14 +535,16 @@ static int btmrvl_sdio_download_helper(struct btmrvl_sdio_card *card)
 	helperlen = fw_helper->size;
 
 	BT_DBG("Downloading helper image (%d bytes), block size %d bytes",
-						helperlen, SDIO_BLOCK_SIZE);
+		   helperlen, SDIO_BLOCK_SIZE);
 
 	tmphlprbufsz = ALIGN_SZ(BTM_UPLD_SIZE, BTSDIO_DMA_ALIGN);
 
 	tmphlprbuf = kzalloc(tmphlprbufsz, GFP_KERNEL);
-	if (!tmphlprbuf) {
+
+	if (!tmphlprbuf)
+	{
 		BT_ERR("Unable to allocate buffer for helper."
-			" Terminating download");
+			   " Terminating download");
 		ret = -ENOMEM;
 		goto done;
 	}
@@ -478,24 +553,31 @@ static int btmrvl_sdio_download_helper(struct btmrvl_sdio_card *card)
 
 	/* Perform helper data transfer */
 	tx_len = (FIRMWARE_TRANSFER_NBLOCK * SDIO_BLOCK_SIZE)
-			- SDIO_HEADER_LEN;
+			 - SDIO_HEADER_LEN;
 	hlprblknow = 0;
 
-	do {
+	do
+	{
 		ret = btmrvl_sdio_poll_card_status(card,
-					    CARD_IO_READY | DN_LD_CARD_RDY);
-		if (ret < 0) {
+										   CARD_IO_READY | DN_LD_CARD_RDY);
+
+		if (ret < 0)
+		{
 			BT_ERR("Helper download poll status timeout @ %d",
-				hlprblknow);
+				   hlprblknow);
 			goto done;
 		}
 
 		/* Check if there is more data? */
 		if (hlprblknow >= helperlen)
+		{
 			break;
+		}
 
 		if (helperlen - hlprblknow < tx_len)
+		{
 			tx_len = helperlen - hlprblknow;
+		}
 
 		/* Little-endian */
 		helperbuf[0] = ((tx_len & 0x000000ff) >> 0);
@@ -504,27 +586,32 @@ static int btmrvl_sdio_download_helper(struct btmrvl_sdio_card *card)
 		helperbuf[3] = ((tx_len & 0xff000000) >> 24);
 
 		memcpy(&helperbuf[SDIO_HEADER_LEN], &helper[hlprblknow],
-				tx_len);
+			   tx_len);
 
 		/* Now send the data */
 		ret = sdio_writesb(card->func, card->ioport, helperbuf,
-				FIRMWARE_TRANSFER_NBLOCK * SDIO_BLOCK_SIZE);
-		if (ret < 0) {
+						   FIRMWARE_TRANSFER_NBLOCK * SDIO_BLOCK_SIZE);
+
+		if (ret < 0)
+		{
 			BT_ERR("IO error during helper download @ %d",
-				hlprblknow);
+				   hlprblknow);
 			goto done;
 		}
 
 		hlprblknow += tx_len;
-	} while (true);
+	}
+	while (true);
 
 	BT_DBG("Transferring helper image EOF block");
 
 	memset(helperbuf, 0x0, SDIO_BLOCK_SIZE);
 
 	ret = sdio_writesb(card->func, card->ioport, helperbuf,
-							SDIO_BLOCK_SIZE);
-	if (ret < 0) {
+					   SDIO_BLOCK_SIZE);
+
+	if (ret < 0)
+	{
 		BT_ERR("IO error in writing helper image EOF block");
 		goto done;
 	}
@@ -550,10 +637,12 @@ static int btmrvl_sdio_download_fw_w_helper(struct btmrvl_sdio_card *card)
 	int txlen = 0, tx_blocks = 0, count = 0;
 
 	ret = request_firmware(&fw_firmware, card->firmware,
-							&card->func->dev);
-	if ((ret < 0) || !fw_firmware) {
+						   &card->func->dev);
+
+	if ((ret < 0) || !fw_firmware)
+	{
 		BT_ERR("request_firmware(firmware) failed, error code = %d",
-									ret);
+			   ret);
 		ret = -ENOENT;
 		goto done;
 	}
@@ -565,9 +654,11 @@ static int btmrvl_sdio_download_fw_w_helper(struct btmrvl_sdio_card *card)
 
 	tmpfwbufsz = ALIGN_SZ(BTM_UPLD_SIZE, BTSDIO_DMA_ALIGN);
 	tmpfwbuf = kzalloc(tmpfwbufsz, GFP_KERNEL);
-	if (!tmpfwbuf) {
+
+	if (!tmpfwbuf)
+	{
 		BT_ERR("Unable to allocate buffer for firmware."
-		       " Terminating download");
+			   " Terminating download");
 		ret = -ENOMEM;
 		goto done;
 	}
@@ -577,78 +668,104 @@ static int btmrvl_sdio_download_fw_w_helper(struct btmrvl_sdio_card *card)
 
 	/* Perform firmware data transfer */
 	offset = 0;
-	do {
+
+	do
+	{
 		ret = btmrvl_sdio_poll_card_status(card,
-					CARD_IO_READY | DN_LD_CARD_RDY);
-		if (ret < 0) {
+										   CARD_IO_READY | DN_LD_CARD_RDY);
+
+		if (ret < 0)
+		{
 			BT_ERR("FW download with helper poll status"
-						" timeout @ %d", offset);
+				   " timeout @ %d", offset);
 			goto done;
 		}
 
 		/* Check if there is more data ? */
 		if (offset >= firmwarelen)
+		{
 			break;
+		}
 
-		for (tries = 0; tries < MAX_POLL_TRIES; tries++) {
+		for (tries = 0; tries < MAX_POLL_TRIES; tries++)
+		{
 			base0 = sdio_readb(card->func,
-					card->reg->sq_read_base_addr_a0, &ret);
-			if (ret) {
+							   card->reg->sq_read_base_addr_a0, &ret);
+
+			if (ret)
+			{
 				BT_ERR("BASE0 register read failed:"
-					" base0 = 0x%04X(%d)."
-					" Terminating download",
-					base0, base0);
+					   " base0 = 0x%04X(%d)."
+					   " Terminating download",
+					   base0, base0);
 				ret = -EIO;
 				goto done;
 			}
+
 			base1 = sdio_readb(card->func,
-					card->reg->sq_read_base_addr_a1, &ret);
-			if (ret) {
+							   card->reg->sq_read_base_addr_a1, &ret);
+
+			if (ret)
+			{
 				BT_ERR("BASE1 register read failed:"
-					" base1 = 0x%04X(%d)."
-					" Terminating download",
-					base1, base1);
+					   " base1 = 0x%04X(%d)."
+					   " Terminating download",
+					   base1, base1);
 				ret = -EIO;
 				goto done;
 			}
 
 			len = (((u16) base1) << 8) | base0;
+
 			if (len)
+			{
 				break;
+			}
 
 			udelay(10);
 		}
 
 		if (!len)
+		{
 			break;
-		else if (len > BTM_UPLD_SIZE) {
+		}
+		else if (len > BTM_UPLD_SIZE)
+		{
 			BT_ERR("FW download failure @%d, invalid length %d",
-								offset, len);
+				   offset, len);
 			ret = -EINVAL;
 			goto done;
 		}
 
 		txlen = len;
 
-		if (len & BIT(0)) {
+		if (len & BIT(0))
+		{
 			count++;
-			if (count > MAX_WRITE_IOMEM_RETRY) {
+
+			if (count > MAX_WRITE_IOMEM_RETRY)
+			{
 				BT_ERR("FW download failure @%d, "
-					"over max retry count", offset);
+					   "over max retry count", offset);
 				ret = -EIO;
 				goto done;
 			}
+
 			BT_ERR("FW CRC error indicated by the helper: "
-				"len = 0x%04X, txlen = %d", len, txlen);
+				   "len = 0x%04X, txlen = %d", len, txlen);
 			len &= ~BIT(0);
 			/* Set txlen to 0 so as to resend from same offset */
 			txlen = 0;
-		} else {
+		}
+		else
+		{
 			count = 0;
 
 			/* Last block ? */
 			if (firmwarelen - offset < txlen)
+			{
 				txlen = firmwarelen - offset;
+			}
 
 			tx_blocks = DIV_ROUND_UP(txlen, blksz_dl);
 
@@ -656,19 +773,24 @@ static int btmrvl_sdio_download_fw_w_helper(struct btmrvl_sdio_card *card)
 		}
 
 		ret = sdio_writesb(card->func, card->ioport, fwbuf,
-						tx_blocks * blksz_dl);
+						   tx_blocks * blksz_dl);
 
-		if (ret < 0) {
+		if (ret < 0)
+		{
 			BT_ERR("FW download, writesb(%d) failed @%d",
-							count, offset);
+				   count, offset);
 			sdio_writeb(card->func, HOST_CMD53_FIN,
 						card->reg->cfg, &ret);
+
 			if (ret)
+			{
 				BT_ERR("writeb failed (CFG)");
+			}
 		}
 
 		offset += txlen;
-	} while (true);
+	}
+	while (true);
 
 	BT_INFO("FW download over, size %d bytes", offset);
 
@@ -690,7 +812,8 @@ static int btmrvl_sdio_card_to_host(struct btmrvl_private *priv)
 	struct hci_dev *hdev = priv->btmrvl_dev.hcidev;
 	struct btmrvl_sdio_card *card = priv->btmrvl_dev.card;
 
-	if (!card || !card->func) {
+	if (!card || !card->func)
+	{
 		BT_ERR("card or function is NULL!");
 		ret = -EINVAL;
 		goto exit;
@@ -698,7 +821,9 @@ static int btmrvl_sdio_card_to_host(struct btmrvl_private *priv)
 
 	/* Read the length of data to be transferred */
 	ret = btmrvl_sdio_read_rx_len(card, &buf_len);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		BT_ERR("read rx_len failed");
 		ret = -EIO;
 		goto exit;
@@ -708,7 +833,8 @@ static int btmrvl_sdio_card_to_host(struct btmrvl_private *priv)
 	num_blocks = DIV_ROUND_UP(buf_len, blksz);
 
 	if (buf_len <= SDIO_HEADER_LEN
-	    || (num_blocks * blksz) > ALLOC_BUF_SIZE) {
+		|| (num_blocks * blksz) > ALLOC_BUF_SIZE)
+	{
 		BT_ERR("invalid packet length: %d", buf_len);
 		ret = -EINVAL;
 		goto exit;
@@ -716,24 +842,29 @@ static int btmrvl_sdio_card_to_host(struct btmrvl_private *priv)
 
 	/* Allocate buffer */
 	skb = bt_skb_alloc(num_blocks * blksz + BTSDIO_DMA_ALIGN, GFP_ATOMIC);
-	if (!skb) {
+
+	if (!skb)
+	{
 		BT_ERR("No free skb");
 		ret = -ENOMEM;
 		goto exit;
 	}
 
-	if ((unsigned long) skb->data & (BTSDIO_DMA_ALIGN - 1)) {
+	if ((unsigned long) skb->data & (BTSDIO_DMA_ALIGN - 1))
+	{
 		skb_put(skb, (unsigned long) skb->data &
-					(BTSDIO_DMA_ALIGN - 1));
+				(BTSDIO_DMA_ALIGN - 1));
 		skb_pull(skb, (unsigned long) skb->data &
-					(BTSDIO_DMA_ALIGN - 1));
+				 (BTSDIO_DMA_ALIGN - 1));
 	}
 
 	payload = skb->data;
 
 	ret = sdio_readsb(card->func, payload, card->ioport,
-			  num_blocks * blksz);
-	if (ret < 0) {
+					  num_blocks * blksz);
+
+	if (ret < 0)
+	{
 		BT_ERR("readsb failed: %d", ret);
 		ret = -EIO;
 		goto exit;
@@ -747,55 +878,66 @@ static int btmrvl_sdio_card_to_host(struct btmrvl_private *priv)
 	buf_len |= payload[1] << 8;
 	buf_len |= payload[2] << 16;
 
-	if (buf_len > blksz * num_blocks) {
+	if (buf_len > blksz * num_blocks)
+	{
 		BT_ERR("Skip incorrect packet: hdrlen %d buffer %d",
-		       buf_len, blksz * num_blocks);
+			   buf_len, blksz * num_blocks);
 		ret = -EIO;
 		goto exit;
 	}
 
 	type = payload[3];
 
-	switch (type) {
-	case HCI_ACLDATA_PKT:
-	case HCI_SCODATA_PKT:
-	case HCI_EVENT_PKT:
-		hci_skb_pkt_type(skb) = type;
-		skb_put(skb, buf_len);
-		skb_pull(skb, SDIO_HEADER_LEN);
+	switch (type)
+	{
+		case HCI_ACLDATA_PKT:
+		case HCI_SCODATA_PKT:
+		case HCI_EVENT_PKT:
+			hci_skb_pkt_type(skb) = type;
+			skb_put(skb, buf_len);
+			skb_pull(skb, SDIO_HEADER_LEN);
 
-		if (type == HCI_EVENT_PKT) {
-			if (btmrvl_check_evtpkt(priv, skb))
+			if (type == HCI_EVENT_PKT)
+			{
+				if (btmrvl_check_evtpkt(priv, skb))
+				{
+					hci_recv_frame(hdev, skb);
+				}
+			}
+			else
+			{
 				hci_recv_frame(hdev, skb);
-		} else {
-			hci_recv_frame(hdev, skb);
-		}
+			}
 
-		hdev->stat.byte_rx += buf_len;
-		break;
+			hdev->stat.byte_rx += buf_len;
+			break;
 
-	case MRVL_VENDOR_PKT:
-		hci_skb_pkt_type(skb) = HCI_VENDOR_PKT;
-		skb_put(skb, buf_len);
-		skb_pull(skb, SDIO_HEADER_LEN);
+		case MRVL_VENDOR_PKT:
+			hci_skb_pkt_type(skb) = HCI_VENDOR_PKT;
+			skb_put(skb, buf_len);
+			skb_pull(skb, SDIO_HEADER_LEN);
 
-		if (btmrvl_process_event(priv, skb))
-			hci_recv_frame(hdev, skb);
+			if (btmrvl_process_event(priv, skb))
+			{
+				hci_recv_frame(hdev, skb);
+			}
 
-		hdev->stat.byte_rx += buf_len;
-		break;
+			hdev->stat.byte_rx += buf_len;
+			break;
 
-	default:
-		BT_ERR("Unknown packet type:%d", type);
-		BT_ERR("hex: %*ph", blksz * num_blocks, payload);
+		default:
+			BT_ERR("Unknown packet type:%d", type);
+			BT_ERR("hex: %*ph", blksz * num_blocks, payload);
 
-		kfree_skb(skb);
-		skb = NULL;
-		break;
+			kfree_skb(skb);
+			skb = NULL;
+			break;
 	}
 
 exit:
-	if (ret) {
+
+	if (ret)
+	{
 		hdev->stat.err_rx++;
 		kfree_skb(skb);
 	}
@@ -815,16 +957,22 @@ static int btmrvl_sdio_process_int_status(struct btmrvl_private *priv)
 	spin_unlock_irqrestore(&priv->driver_lock, flags);
 
 	sdio_claim_host(card->func);
-	if (ireg & DN_LD_HOST_INT_STATUS) {
+
+	if (ireg & DN_LD_HOST_INT_STATUS)
+	{
 		if (priv->btmrvl_dev.tx_dnld_rdy)
 			BT_DBG("tx_done already received: "
-				" int_status=0x%x", ireg);
+				   " int_status=0x%x", ireg);
 		else
+		{
 			priv->btmrvl_dev.tx_dnld_rdy = true;
+		}
 	}
 
 	if (ireg & UP_LD_HOST_INT_STATUS)
+	{
 		btmrvl_sdio_card_to_host(priv);
+	}
 
 	sdio_release_host(card->func);
 
@@ -837,7 +985,9 @@ static int btmrvl_sdio_read_to_clear(struct btmrvl_sdio_card *card, u8 *ireg)
 	int ret;
 
 	ret = sdio_readsb(card->func, adapter->hw_regs, 0, SDIO_BLOCK_SIZE);
-	if (ret) {
+
+	if (ret)
+	{
 		BT_ERR("sdio_readsb: read int hw_regs failed: %d", ret);
 		return ret;
 	}
@@ -853,12 +1003,15 @@ static int btmrvl_sdio_write_to_clear(struct btmrvl_sdio_card *card, u8 *ireg)
 	int ret;
 
 	*ireg = sdio_readb(card->func, card->reg->host_intstatus, &ret);
-	if (ret) {
+
+	if (ret)
+	{
 		BT_ERR("sdio_readb: read int status failed: %d", ret);
 		return ret;
 	}
 
-	if (*ireg) {
+	if (*ireg)
+	{
 		/*
 		 * DN_LD_HOST_INT_STATUS and/or UP_LD_HOST_INT_STATUS
 		 * Clear the interrupt status register and re-enable the
@@ -867,9 +1020,11 @@ static int btmrvl_sdio_write_to_clear(struct btmrvl_sdio_card *card, u8 *ireg)
 		BT_DBG("int_status = 0x%x", *ireg);
 
 		sdio_writeb(card->func, ~(*ireg) & (DN_LD_HOST_INT_STATUS |
-						    UP_LD_HOST_INT_STATUS),
-			    card->reg->host_intstatus, &ret);
-		if (ret) {
+											UP_LD_HOST_INT_STATUS),
+					card->reg->host_intstatus, &ret);
+
+		if (ret)
+		{
 			BT_ERR("sdio_writeb: clear int status failed: %d", ret);
 			return ret;
 		}
@@ -887,24 +1042,34 @@ static void btmrvl_sdio_interrupt(struct sdio_func *func)
 	int ret;
 
 	card = sdio_get_drvdata(func);
-	if (!card || !card->priv) {
+
+	if (!card || !card->priv)
+	{
 		BT_ERR("sbi_interrupt(%p) card or priv is NULL, card=%p",
-		       func, card);
+			   func, card);
 		return;
 	}
 
 	priv = card->priv;
 
 	if (priv->surprise_removed)
+	{
 		return;
+	}
 
 	if (card->reg->int_read_to_clear)
+	{
 		ret = btmrvl_sdio_read_to_clear(card, &ireg);
+	}
 	else
+	{
 		ret = btmrvl_sdio_write_to_clear(card, &ireg);
+	}
 
 	if (ret)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&priv->driver_lock, flags);
 	sdio_ireg |= ireg;
@@ -919,7 +1084,8 @@ static int btmrvl_sdio_register_dev(struct btmrvl_sdio_card *card)
 	u8 reg;
 	int ret = 0;
 
-	if (!card || !card->func) {
+	if (!card || !card->func)
+	{
 		BT_ERR("Error: card or function is NULL!");
 		ret = -EINVAL;
 		goto failed;
@@ -930,28 +1096,36 @@ static int btmrvl_sdio_register_dev(struct btmrvl_sdio_card *card)
 	sdio_claim_host(func);
 
 	ret = sdio_enable_func(func);
-	if (ret) {
+
+	if (ret)
+	{
 		BT_ERR("sdio_enable_func() failed: ret=%d", ret);
 		ret = -EIO;
 		goto release_host;
 	}
 
 	ret = sdio_claim_irq(func, btmrvl_sdio_interrupt);
-	if (ret) {
+
+	if (ret)
+	{
 		BT_ERR("sdio_claim_irq failed: ret=%d", ret);
 		ret = -EIO;
 		goto disable_func;
 	}
 
 	ret = sdio_set_block_size(card->func, SDIO_BLOCK_SIZE);
-	if (ret) {
+
+	if (ret)
+	{
 		BT_ERR("cannot set SDIO block size");
 		ret = -EIO;
 		goto release_irq;
 	}
 
 	reg = sdio_readb(func, card->reg->io_port_0, &ret);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		ret = -EIO;
 		goto release_irq;
 	}
@@ -959,7 +1133,9 @@ static int btmrvl_sdio_register_dev(struct btmrvl_sdio_card *card)
 	card->ioport = reg;
 
 	reg = sdio_readb(func, card->reg->io_port_1, &ret);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		ret = -EIO;
 		goto release_irq;
 	}
@@ -967,7 +1143,9 @@ static int btmrvl_sdio_register_dev(struct btmrvl_sdio_card *card)
 	card->ioport |= (reg << 8);
 
 	reg = sdio_readb(func, card->reg->io_port_2, &ret);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		ret = -EIO;
 		goto release_irq;
 	}
@@ -976,25 +1154,36 @@ static int btmrvl_sdio_register_dev(struct btmrvl_sdio_card *card)
 
 	BT_DBG("SDIO FUNC%d IO port: 0x%x", func->num, card->ioport);
 
-	if (card->reg->int_read_to_clear) {
+	if (card->reg->int_read_to_clear)
+	{
 		reg = sdio_readb(func, card->reg->host_int_rsr, &ret);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			ret = -EIO;
 			goto release_irq;
 		}
+
 		sdio_writeb(func, reg | 0x3f, card->reg->host_int_rsr, &ret);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			ret = -EIO;
 			goto release_irq;
 		}
 
 		reg = sdio_readb(func, card->reg->card_misc_cfg, &ret);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			ret = -EIO;
 			goto release_irq;
 		}
+
 		sdio_writeb(func, reg | 0x10, card->reg->card_misc_cfg, &ret);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			ret = -EIO;
 			goto release_irq;
 		}
@@ -1021,7 +1210,8 @@ failed:
 
 static int btmrvl_sdio_unregister_dev(struct btmrvl_sdio_card *card)
 {
-	if (card && card->func) {
+	if (card && card->func)
+	{
 		sdio_claim_host(card->func);
 		sdio_release_irq(card->func);
 		sdio_disable_func(card->func);
@@ -1037,7 +1227,9 @@ static int btmrvl_sdio_enable_host_int(struct btmrvl_sdio_card *card)
 	int ret;
 
 	if (!card || !card->func)
+	{
 		return -EINVAL;
+	}
 
 	sdio_claim_host(card->func);
 
@@ -1055,7 +1247,9 @@ static int btmrvl_sdio_disable_host_int(struct btmrvl_sdio_card *card)
 	int ret;
 
 	if (!card || !card->func)
+	{
 		return -EINVAL;
+	}
 
 	sdio_claim_host(card->func);
 
@@ -1067,7 +1261,7 @@ static int btmrvl_sdio_disable_host_int(struct btmrvl_sdio_card *card)
 }
 
 static int btmrvl_sdio_host_to_card(struct btmrvl_private *priv,
-				u8 *payload, u16 nb)
+									u8 *payload, u16 nb)
 {
 	struct btmrvl_sdio_card *card = priv->btmrvl_dev.card;
 	int ret = 0;
@@ -1077,7 +1271,8 @@ static int btmrvl_sdio_host_to_card(struct btmrvl_private *priv,
 	void *tmpbuf = NULL;
 	int tmpbufsz;
 
-	if (!card || !card->func) {
+	if (!card || !card->func)
+	{
 		BT_ERR("card or function is NULL!");
 		return -EINVAL;
 	}
@@ -1085,32 +1280,45 @@ static int btmrvl_sdio_host_to_card(struct btmrvl_private *priv,
 	blksz = DIV_ROUND_UP(nb, SDIO_BLOCK_SIZE) * SDIO_BLOCK_SIZE;
 
 	buf = payload;
+
 	if ((unsigned long) payload & (BTSDIO_DMA_ALIGN - 1) ||
-	    nb < blksz) {
+		nb < blksz)
+	{
 		tmpbufsz = ALIGN_SZ(blksz, BTSDIO_DMA_ALIGN) +
-			   BTSDIO_DMA_ALIGN;
+				   BTSDIO_DMA_ALIGN;
 		tmpbuf = kzalloc(tmpbufsz, GFP_KERNEL);
+
 		if (!tmpbuf)
+		{
 			return -ENOMEM;
+		}
+
 		buf = (u8 *) ALIGN_ADDR(tmpbuf, BTSDIO_DMA_ALIGN);
 		memcpy(buf, payload, nb);
 	}
 
 	sdio_claim_host(card->func);
 
-	do {
+	do
+	{
 		/* Transfer data to card */
 		ret = sdio_writesb(card->func, card->ioport, buf,
-				   blksz);
-		if (ret < 0) {
+						   blksz);
+
+		if (ret < 0)
+		{
 			i++;
 			BT_ERR("i=%d writesb failed: %d", i, ret);
 			BT_ERR("hex: %*ph", nb, payload);
 			ret = -EIO;
+
 			if (i > MAX_WRITE_IOMEM_RETRY)
+			{
 				goto exit;
+			}
 		}
-	} while (ret);
+	}
+	while (ret);
 
 	priv->btmrvl_dev.tx_dnld_rdy = false;
 
@@ -1127,12 +1335,14 @@ static int btmrvl_sdio_download_fw(struct btmrvl_sdio_card *card)
 	u8 fws0;
 	int pollnum = MAX_POLL_TRIES;
 
-	if (!card || !card->func) {
+	if (!card || !card->func)
+	{
 		BT_ERR("card or function is NULL!");
 		return -EINVAL;
 	}
 
-	if (!btmrvl_sdio_verify_fw_download(card, 1)) {
+	if (!btmrvl_sdio_verify_fw_download(card, 1))
+	{
 		BT_DBG("Firmware already downloaded!");
 		return 0;
 	}
@@ -1141,27 +1351,37 @@ static int btmrvl_sdio_download_fw(struct btmrvl_sdio_card *card)
 
 	/* Check if other function driver is downloading the firmware */
 	fws0 = sdio_readb(card->func, card->reg->card_fw_status0, &ret);
-	if (ret) {
+
+	if (ret)
+	{
 		BT_ERR("Failed to read FW downloading status!");
 		ret = -EIO;
 		goto done;
 	}
-	if (fws0) {
+
+	if (fws0)
+	{
 		BT_DBG("BT not the winner (%#x). Skip FW downloading", fws0);
 
 		/* Give other function more time to download the firmware */
 		pollnum *= 10;
-	} else {
-		if (card->helper) {
+	}
+	else
+	{
+		if (card->helper)
+		{
 			ret = btmrvl_sdio_download_helper(card);
-			if (ret) {
+
+			if (ret)
+			{
 				BT_ERR("Failed to download helper!");
 				ret = -EIO;
 				goto done;
 			}
 		}
 
-		if (btmrvl_sdio_download_fw_w_helper(card)) {
+		if (btmrvl_sdio_download_fw_w_helper(card))
+		{
 			BT_ERR("Failed to download firmware!");
 			ret = -EIO;
 			goto done;
@@ -1172,7 +1392,8 @@ static int btmrvl_sdio_download_fw(struct btmrvl_sdio_card *card)
 	 * winner or not, with this test the FW synchronizes when the
 	 * module can continue its initialization
 	 */
-	if (btmrvl_sdio_verify_fw_download(card, pollnum)) {
+	if (btmrvl_sdio_verify_fw_download(card, pollnum))
+	{
 		BT_ERR("FW failed to be active in time!");
 		ret = -ETIMEDOUT;
 		goto done;
@@ -1192,7 +1413,8 @@ static int btmrvl_sdio_wakeup_fw(struct btmrvl_private *priv)
 	struct btmrvl_sdio_card *card = priv->btmrvl_dev.card;
 	int ret = 0;
 
-	if (!card || !card->func) {
+	if (!card || !card->func)
+	{
 		BT_ERR("card or function is NULL!");
 		return -EINVAL;
 	}
@@ -1220,32 +1442,45 @@ static void btmrvl_sdio_dump_regs(struct btmrvl_private *priv)
 	btmrvl_sdio_wakeup_fw(priv);
 	sdio_claim_host(card->func);
 
-	for (loop = 0; loop < MAX_LOOP; loop++) {
+	for (loop = 0; loop < MAX_LOOP; loop++)
+	{
 		memset(buf, 0, sizeof(buf));
 		ptr = buf;
 
-		if (loop == 0) {
+		if (loop == 0)
+		{
 			/* Read the registers of SDIO function0 */
 			func = loop;
 			reg_start = 0;
 			reg_end = 9;
-		} else {
+		}
+		else
+		{
 			func = 2;
 			reg_start = 0;
 			reg_end = 0x09;
 		}
 
 		ptr += sprintf(ptr, "SDIO Func%d (%#x-%#x): ",
-			       func, reg_start, reg_end);
-		for (reg = reg_start; reg <= reg_end; reg++) {
-			if (func == 0)
-				data = sdio_f0_readb(card->func, reg, &ret);
-			else
-				data = sdio_readb(card->func, reg, &ret);
+					   func, reg_start, reg_end);
 
-			if (!ret) {
+		for (reg = reg_start; reg <= reg_end; reg++)
+		{
+			if (func == 0)
+			{
+				data = sdio_f0_readb(card->func, reg, &ret);
+			}
+			else
+			{
+				data = sdio_readb(card->func, reg, &ret);
+			}
+
+			if (!ret)
+			{
 				ptr += sprintf(ptr, "%02x ", data);
-			} else {
+			}
+			else
+			{
 				ptr += sprintf(ptr, "ERR");
 				break;
 			}
@@ -1260,46 +1495,60 @@ static void btmrvl_sdio_dump_regs(struct btmrvl_private *priv)
 /* This function read/write firmware */
 static enum
 rdwr_status btmrvl_sdio_rdwr_firmware(struct btmrvl_private *priv,
-				      u8 doneflag)
+									  u8 doneflag)
 {
 	struct btmrvl_sdio_card *card = priv->btmrvl_dev.card;
 	int ret, tries;
 	u8 ctrl_data = 0;
 
 	sdio_writeb(card->func, FW_DUMP_HOST_READY, card->reg->fw_dump_ctrl,
-		    &ret);
+	&ret);
 
-	if (ret) {
+	if (ret)
+	{
 		BT_ERR("SDIO write err");
 		return RDWR_STATUS_FAILURE;
 	}
 
-	for (tries = 0; tries < MAX_POLL_TRIES; tries++) {
+	for (tries = 0; tries < MAX_POLL_TRIES; tries++)
+	{
 		ctrl_data = sdio_readb(card->func, card->reg->fw_dump_ctrl,
-				       &ret);
+		&ret);
 
-		if (ret) {
+		if (ret)
+		{
 			BT_ERR("SDIO read err");
 			return RDWR_STATUS_FAILURE;
 		}
 
 		if (ctrl_data == FW_DUMP_DONE)
+		{
 			break;
+		}
+
 		if (doneflag && ctrl_data == doneflag)
+		{
 			return RDWR_STATUS_DONE;
-		if (ctrl_data != FW_DUMP_HOST_READY) {
+		}
+
+		if (ctrl_data != FW_DUMP_HOST_READY)
+		{
 			BT_INFO("The ctrl reg was changed, re-try again!");
 			sdio_writeb(card->func, FW_DUMP_HOST_READY,
-				    card->reg->fw_dump_ctrl, &ret);
-			if (ret) {
+						card->reg->fw_dump_ctrl, &ret);
+
+			if (ret)
+			{
 				BT_ERR("SDIO write err");
 				return RDWR_STATUS_FAILURE;
 			}
 		}
+
 		usleep_range(100, 200);
 	}
 
-	if (ctrl_data == FW_DUMP_HOST_READY) {
+	if (ctrl_data == FW_DUMP_HOST_READY)
+	{
 		BT_ERR("Fail to pull ctrl_data");
 		return RDWR_STATUS_FAILURE;
 	}
@@ -1321,18 +1570,22 @@ static void btmrvl_sdio_dump_firmware(struct btmrvl_private *priv)
 	/* dump sdio register first */
 	btmrvl_sdio_dump_regs(priv);
 
-	if (!card->supports_fw_dump) {
+	if (!card->supports_fw_dump)
+	{
 		BT_ERR("Firmware dump not supported for this card!");
 		return;
 	}
 
-	for (idx = 0; idx < ARRAY_SIZE(mem_type_mapping_tbl); idx++) {
+	for (idx = 0; idx < ARRAY_SIZE(mem_type_mapping_tbl); idx++)
+	{
 		struct memory_type_mapping *entry = &mem_type_mapping_tbl[idx];
 
-		if (entry->mem_ptr) {
+		if (entry->mem_ptr)
+		{
 			vfree(entry->mem_ptr);
 			entry->mem_ptr = NULL;
 		}
+
 		entry->mem_size = 0;
 	}
 
@@ -1342,98 +1595,134 @@ static void btmrvl_sdio_dump_firmware(struct btmrvl_private *priv)
 	BT_INFO("== btmrvl firmware dump start ==");
 
 	stat = btmrvl_sdio_rdwr_firmware(priv, doneflag);
+
 	if (stat == RDWR_STATUS_FAILURE)
+	{
 		goto done;
+	}
 
 	reg = card->reg->fw_dump_start;
 	/* Read the number of the memories which will dump */
 	dump_num = sdio_readb(card->func, reg, &ret);
 
-	if (ret) {
+	if (ret)
+	{
 		BT_ERR("SDIO read memory length err");
 		goto done;
 	}
 
 	/* Read the length of every memory which will dump */
-	for (idx = 0; idx < dump_num; idx++) {
+	for (idx = 0; idx < dump_num; idx++)
+	{
 		struct memory_type_mapping *entry = &mem_type_mapping_tbl[idx];
 
 		stat = btmrvl_sdio_rdwr_firmware(priv, doneflag);
+
 		if (stat == RDWR_STATUS_FAILURE)
+		{
 			goto done;
+		}
 
 		memory_size = 0;
 		reg = card->reg->fw_dump_start;
-		for (i = 0; i < 4; i++) {
+
+		for (i = 0; i < 4; i++)
+		{
 			read_reg = sdio_readb(card->func, reg, &ret);
-			if (ret) {
+
+			if (ret)
+			{
 				BT_ERR("SDIO read err");
 				goto done;
 			}
-			memory_size |= (read_reg << i*8);
+
+			memory_size |= (read_reg << i * 8);
 			reg++;
 		}
 
-		if (memory_size == 0) {
+		if (memory_size == 0)
+		{
 			BT_INFO("Firmware dump finished!");
 			sdio_writeb(card->func, FW_DUMP_READ_DONE,
-				    card->reg->fw_dump_ctrl, &ret);
-			if (ret) {
+						card->reg->fw_dump_ctrl, &ret);
+
+			if (ret)
+			{
 				BT_ERR("SDIO Write MEMDUMP_FINISH ERR");
 				goto done;
 			}
+
 			break;
 		}
 
 		BT_INFO("%s_SIZE=0x%x", entry->mem_name, memory_size);
 		entry->mem_ptr = vzalloc(memory_size + 1);
 		entry->mem_size = memory_size;
-		if (!entry->mem_ptr) {
+
+		if (!entry->mem_ptr)
+		{
 			BT_ERR("Vzalloc %s failed", entry->mem_name);
 			goto done;
 		}
 
 		fw_dump_len += (strlen("========Start dump ") +
-				strlen(entry->mem_name) +
-				strlen("========\n") +
-				(memory_size + 1) +
-				strlen("\n========End dump========\n"));
+						strlen(entry->mem_name) +
+						strlen("========\n") +
+						(memory_size + 1) +
+						strlen("\n========End dump========\n"));
 
 		dbg_ptr = entry->mem_ptr;
 		end_ptr = dbg_ptr + memory_size;
 
 		doneflag = entry->done_flag;
 		BT_INFO("Start %s output, please wait...",
-			entry->mem_name);
+				entry->mem_name);
 
-		do {
+		do
+		{
 			stat = btmrvl_sdio_rdwr_firmware(priv, doneflag);
+
 			if (stat == RDWR_STATUS_FAILURE)
+			{
 				goto done;
+			}
 
 			reg_start = card->reg->fw_dump_start;
 			reg_end = card->reg->fw_dump_end;
-			for (reg = reg_start; reg <= reg_end; reg++) {
+
+			for (reg = reg_start; reg <= reg_end; reg++)
+			{
 				*dbg_ptr = sdio_readb(card->func, reg, &ret);
-				if (ret) {
+
+				if (ret)
+				{
 					BT_ERR("SDIO read err");
 					goto done;
 				}
+
 				if (dbg_ptr < end_ptr)
+				{
 					dbg_ptr++;
+				}
 				else
+				{
 					BT_ERR("Allocated buffer not enough");
+				}
 			}
 
-			if (stat != RDWR_STATUS_DONE) {
+			if (stat != RDWR_STATUS_DONE)
+			{
 				continue;
-			} else {
+			}
+			else
+			{
 				BT_INFO("%s done: size=0x%tx",
-					entry->mem_name,
-					dbg_ptr - entry->mem_ptr);
+						entry->mem_name,
+						dbg_ptr - entry->mem_ptr);
 				break;
 			}
-		} while (1);
+		}
+		while (1);
 	}
 
 	BT_INFO("== btmrvl firmware dump end ==");
@@ -1442,22 +1731,30 @@ done:
 	sdio_release_host(card->func);
 
 	if (fw_dump_len == 0)
+	{
 		return;
+	}
 
-	fw_dump_data = vzalloc(fw_dump_len+1);
-	if (!fw_dump_data) {
+	fw_dump_data = vzalloc(fw_dump_len + 1);
+
+	if (!fw_dump_data)
+	{
 		BT_ERR("Vzalloc fw_dump_data fail!");
 		return;
 	}
+
 	fw_dump_ptr = fw_dump_data;
 
 	/* Dump all the memory data into single file, a userspace script will
 	   be used to split all the memory data to multiple files*/
 	BT_INFO("== btmrvl firmware dump to /sys/class/devcoredump start");
-	for (idx = 0; idx < dump_num; idx++) {
+
+	for (idx = 0; idx < dump_num; idx++)
+	{
 		struct memory_type_mapping *entry = &mem_type_mapping_tbl[idx];
 
-		if (entry->mem_ptr) {
+		if (entry->mem_ptr)
+		{
 			strcpy(fw_dump_ptr, "========Start dump ");
 			fw_dump_ptr += strlen("========Start dump ");
 
@@ -1485,7 +1782,7 @@ done:
 }
 
 static int btmrvl_sdio_probe(struct sdio_func *func,
-					const struct sdio_device_id *id)
+							 const struct sdio_device_id *id)
 {
 	int ret = 0;
 	struct btmrvl_private *priv = NULL;
@@ -1495,12 +1792,16 @@ static int btmrvl_sdio_probe(struct sdio_func *func,
 			id->vendor, id->device, id->class, func->num);
 
 	card = devm_kzalloc(&func->dev, sizeof(*card), GFP_KERNEL);
+
 	if (!card)
+	{
 		return -ENOMEM;
+	}
 
 	card->func = func;
 
-	if (id->driver_data) {
+	if (id->driver_data)
+	{
 		struct btmrvl_sdio_device *data = (void *) id->driver_data;
 		card->helper = data->helper;
 		card->firmware = data->firmware;
@@ -1510,7 +1811,8 @@ static int btmrvl_sdio_probe(struct sdio_func *func,
 		card->supports_fw_dump = data->supports_fw_dump;
 	}
 
-	if (btmrvl_sdio_register_dev(card) < 0) {
+	if (btmrvl_sdio_register_dev(card) < 0)
+	{
 		BT_ERR("Failed to register BT device!");
 		return -ENODEV;
 	}
@@ -1518,7 +1820,8 @@ static int btmrvl_sdio_probe(struct sdio_func *func,
 	/* Disable the interrupts on the card */
 	btmrvl_sdio_disable_host_int(card);
 
-	if (btmrvl_sdio_download_fw(card)) {
+	if (btmrvl_sdio_download_fw(card))
+	{
 		BT_ERR("Downloading firmware failed!");
 		ret = -ENODEV;
 		goto unreg_dev;
@@ -1530,7 +1833,9 @@ static int btmrvl_sdio_probe(struct sdio_func *func,
 	btmrvl_sdio_probe_of(&func->dev, card);
 
 	priv = btmrvl_add_card(card);
-	if (!priv) {
+
+	if (!priv)
+	{
 		BT_ERR("Initializing card failed!");
 		ret = -ENODEV;
 		goto disable_host_int;
@@ -1544,7 +1849,8 @@ static int btmrvl_sdio_probe(struct sdio_func *func,
 	priv->hw_process_int_status = btmrvl_sdio_process_int_status;
 	priv->firmware_dump = btmrvl_sdio_dump_firmware;
 
-	if (btmrvl_register_hdev(priv)) {
+	if (btmrvl_register_hdev(priv))
+	{
 		BT_ERR("Register hdev failed!");
 		ret = -ENODEV;
 		goto disable_host_int;
@@ -1563,17 +1869,22 @@ static void btmrvl_sdio_remove(struct sdio_func *func)
 {
 	struct btmrvl_sdio_card *card;
 
-	if (func) {
+	if (func)
+	{
 		card = sdio_get_drvdata(func);
-		if (card) {
+
+		if (card)
+		{
 			/* Send SHUTDOWN command & disable interrupt
 			 * if user removes the module.
 			 */
-			if (user_rmmod) {
+			if (user_rmmod)
+			{
 				btmrvl_send_module_cfg_cmd(card->priv,
-							MODULE_SHUTDOWN_REQ);
+										   MODULE_SHUTDOWN_REQ);
 				btmrvl_sdio_disable_host_int(card);
 			}
+
 			BT_DBG("unregester dev");
 			card->priv->surprise_removed = true;
 			btmrvl_sdio_unregister_dev(card);
@@ -1590,27 +1901,36 @@ static int btmrvl_sdio_suspend(struct device *dev)
 	mmc_pm_flag_t pm_flags;
 	struct hci_dev *hcidev;
 
-	if (func) {
+	if (func)
+	{
 		pm_flags = sdio_get_host_pm_caps(func);
 		BT_DBG("%s: suspend: PM flags = 0x%x", sdio_func_id(func),
-		       pm_flags);
-		if (!(pm_flags & MMC_PM_KEEP_POWER)) {
+			   pm_flags);
+
+		if (!(pm_flags & MMC_PM_KEEP_POWER))
+		{
 			BT_ERR("%s: cannot remain alive while suspended",
-			       sdio_func_id(func));
+				   sdio_func_id(func));
 			return -ENOSYS;
 		}
+
 		card = sdio_get_drvdata(func);
-		if (!card || !card->priv) {
+
+		if (!card || !card->priv)
+		{
 			BT_ERR("card or priv structure is not valid");
 			return 0;
 		}
-	} else {
+	}
+	else
+	{
 		BT_ERR("sdio_func is not specified");
 		return 0;
 	}
 
 	/* Enable platform specific wakeup interrupt */
-	if (card->plt_wake_cfg && card->plt_wake_cfg->irq_bt >= 0) {
+	if (card->plt_wake_cfg && card->plt_wake_cfg->irq_bt >= 0)
+	{
 		card->plt_wake_cfg->wake_by_bt = false;
 		enable_irq(card->plt_wake_cfg->irq_bt);
 		enable_irq_wake(card->plt_wake_cfg->irq_bt);
@@ -1622,8 +1942,10 @@ static int btmrvl_sdio_suspend(struct device *dev)
 	BT_DBG("%s: SDIO suspend", hcidev->name);
 	hci_suspend_dev(hcidev);
 
-	if (priv->adapter->hs_state != HS_ACTIVATED) {
-		if (btmrvl_enable_hs(priv)) {
+	if (priv->adapter->hs_state != HS_ACTIVATED)
+	{
+		if (btmrvl_enable_hs(priv))
+		{
 			BT_ERR("HS not actived, suspend failed!");
 			priv->adapter->is_suspending = false;
 			return -EBUSY;
@@ -1634,10 +1956,13 @@ static int btmrvl_sdio_suspend(struct device *dev)
 	priv->adapter->is_suspended = true;
 
 	/* We will keep the power when hs enabled successfully */
-	if (priv->adapter->hs_state == HS_ACTIVATED) {
+	if (priv->adapter->hs_state == HS_ACTIVATED)
+	{
 		BT_DBG("suspend with MMC_PM_KEEP_POWER");
 		return sdio_set_host_pm_flags(func, MMC_PM_KEEP_POWER);
-	} else {
+	}
+	else
+	{
 		BT_DBG("suspend without MMC_PM_KEEP_POWER");
 		return 0;
 	}
@@ -1651,22 +1976,29 @@ static int btmrvl_sdio_resume(struct device *dev)
 	mmc_pm_flag_t pm_flags;
 	struct hci_dev *hcidev;
 
-	if (func) {
+	if (func)
+	{
 		pm_flags = sdio_get_host_pm_caps(func);
 		BT_DBG("%s: resume: PM flags = 0x%x", sdio_func_id(func),
-		       pm_flags);
+			   pm_flags);
 		card = sdio_get_drvdata(func);
-		if (!card || !card->priv) {
+
+		if (!card || !card->priv)
+		{
 			BT_ERR("card or priv structure is not valid");
 			return 0;
 		}
-	} else {
+	}
+	else
+	{
 		BT_ERR("sdio_func is not specified");
 		return 0;
 	}
+
 	priv = card->priv;
 
-	if (!priv->adapter->is_suspended) {
+	if (!priv->adapter->is_suspended)
+	{
 		BT_DBG("device already resumed");
 		return 0;
 	}
@@ -1680,21 +2012,27 @@ static int btmrvl_sdio_resume(struct device *dev)
 	hci_resume_dev(hcidev);
 
 	/* Disable platform specific wakeup interrupt */
-	if (card->plt_wake_cfg && card->plt_wake_cfg->irq_bt >= 0) {
+	if (card->plt_wake_cfg && card->plt_wake_cfg->irq_bt >= 0)
+	{
 		disable_irq_wake(card->plt_wake_cfg->irq_bt);
+
 		if (!card->plt_wake_cfg->wake_by_bt)
+		{
 			disable_irq(card->plt_wake_cfg->irq_bt);
+		}
 	}
 
 	return 0;
 }
 
-static const struct dev_pm_ops btmrvl_sdio_pm_ops = {
+static const struct dev_pm_ops btmrvl_sdio_pm_ops =
+{
 	.suspend	= btmrvl_sdio_suspend,
 	.resume		= btmrvl_sdio_resume,
 };
 
-static struct sdio_driver bt_mrvl_sdio = {
+static struct sdio_driver bt_mrvl_sdio =
+{
 	.name		= "btmrvl_sdio",
 	.id_table	= btmrvl_sdio_ids,
 	.probe		= btmrvl_sdio_probe,
@@ -1707,7 +2045,8 @@ static struct sdio_driver bt_mrvl_sdio = {
 
 static int __init btmrvl_sdio_init_module(void)
 {
-	if (sdio_register_driver(&bt_mrvl_sdio) != 0) {
+	if (sdio_register_driver(&bt_mrvl_sdio) != 0)
+	{
 		BT_ERR("SDIO Driver Registration Failed");
 		return -ENODEV;
 	}

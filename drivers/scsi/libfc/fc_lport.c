@@ -119,7 +119,8 @@ static void fc_lport_enter_logo(struct fc_lport *);
 static void fc_lport_enter_fdmi(struct fc_lport *lport);
 static void fc_lport_enter_ms(struct fc_lport *, enum fc_lport_state);
 
-static const char *fc_lport_state_names[] = {
+static const char *fc_lport_state_names[] =
+{
 	[LPORT_ST_DISABLED] = "disabled",
 	[LPORT_ST_FLOGI] =    "FLOGI",
 	[LPORT_ST_DNS] =      "dNS",
@@ -148,7 +149,8 @@ static const char *fc_lport_state_names[] = {
  * @nents:    job->reply_payload.sg_cnt
  * @offset:   The offset into the response data
  */
-struct fc_bsg_info {
+struct fc_bsg_info
+{
 	struct fc_bsg_job *job;
 	struct fc_lport *lport;
 	u16 rsp_code;
@@ -178,42 +180,58 @@ static int fc_frame_drop(struct fc_lport *lport, struct fc_frame *fp)
  *		 this function.
  */
 static void fc_lport_rport_callback(struct fc_lport *lport,
-				    struct fc_rport_priv *rdata,
-				    enum fc_rport_event event)
+									struct fc_rport_priv *rdata,
+									enum fc_rport_event event)
 {
 	FC_LPORT_DBG(lport, "Received a %d event for port (%6.6x)\n", event,
-		     rdata->ids.port_id);
+				 rdata->ids.port_id);
 
 	mutex_lock(&lport->lp_mutex);
-	switch (event) {
-	case RPORT_EV_READY:
-		if (lport->state == LPORT_ST_DNS) {
-			lport->dns_rdata = rdata;
-			fc_lport_enter_ns(lport, LPORT_ST_RNN_ID);
-		} else if (lport->state == LPORT_ST_FDMI) {
-			lport->ms_rdata = rdata;
-			fc_lport_enter_ms(lport, LPORT_ST_DHBA);
-		} else {
-			FC_LPORT_DBG(lport, "Received an READY event "
-				     "on port (%6.6x) for the directory "
-				     "server, but the lport is not "
-				     "in the DNS or FDMI state, it's in the "
-				     "%d state", rdata->ids.port_id,
-				     lport->state);
-			lport->tt.rport_logoff(rdata);
-		}
-		break;
-	case RPORT_EV_LOGO:
-	case RPORT_EV_FAILED:
-	case RPORT_EV_STOP:
-		if (rdata->ids.port_id == FC_FID_DIR_SERV)
-			lport->dns_rdata = NULL;
-		else if (rdata->ids.port_id == FC_FID_MGMT_SERV)
-			lport->ms_rdata = NULL;
-		break;
-	case RPORT_EV_NONE:
-		break;
+
+	switch (event)
+	{
+		case RPORT_EV_READY:
+			if (lport->state == LPORT_ST_DNS)
+			{
+				lport->dns_rdata = rdata;
+				fc_lport_enter_ns(lport, LPORT_ST_RNN_ID);
+			}
+			else if (lport->state == LPORT_ST_FDMI)
+			{
+				lport->ms_rdata = rdata;
+				fc_lport_enter_ms(lport, LPORT_ST_DHBA);
+			}
+			else
+			{
+				FC_LPORT_DBG(lport, "Received an READY event "
+							 "on port (%6.6x) for the directory "
+							 "server, but the lport is not "
+							 "in the DNS or FDMI state, it's in the "
+							 "%d state", rdata->ids.port_id,
+							 lport->state);
+				lport->tt.rport_logoff(rdata);
+			}
+
+			break;
+
+		case RPORT_EV_LOGO:
+		case RPORT_EV_FAILED:
+		case RPORT_EV_STOP:
+			if (rdata->ids.port_id == FC_FID_DIR_SERV)
+			{
+				lport->dns_rdata = NULL;
+			}
+			else if (rdata->ids.port_id == FC_FID_MGMT_SERV)
+			{
+				lport->ms_rdata = NULL;
+			}
+
+			break;
+
+		case RPORT_EV_NONE:
+			break;
 	}
+
 	mutex_unlock(&lport->lp_mutex);
 }
 
@@ -226,8 +244,12 @@ static const char *fc_lport_state(struct fc_lport *lport)
 	const char *cp;
 
 	cp = fc_lport_state_names[lport->state];
+
 	if (!cp)
+	{
 		cp = "unknown";
+	}
+
 	return cp;
 }
 
@@ -239,14 +261,17 @@ static const char *fc_lport_state(struct fc_lport *lport)
  * @remote_wwnn: The WWNN of the ptp rport
  */
 static void fc_lport_ptp_setup(struct fc_lport *lport,
-			       u32 remote_fid, u64 remote_wwpn,
-			       u64 remote_wwnn)
+							   u32 remote_fid, u64 remote_wwpn,
+							   u64 remote_wwnn)
 {
 	mutex_lock(&lport->disc.disc_mutex);
-	if (lport->ptp_rdata) {
+
+	if (lport->ptp_rdata)
+	{
 		lport->tt.rport_logoff(lport->ptp_rdata);
 		kref_put(&lport->ptp_rdata->kref, lport->tt.rport_destroy);
 	}
+
 	lport->ptp_rdata = lport->tt.rport_create(lport, remote_fid);
 	kref_get(&lport->ptp_rdata->kref);
 	lport->ptp_rdata->ids.port_name = remote_wwpn;
@@ -267,16 +292,22 @@ void fc_get_host_port_state(struct Scsi_Host *shost)
 	struct fc_lport *lport = shost_priv(shost);
 
 	mutex_lock(&lport->lp_mutex);
+
 	if (!lport->link_up)
+	{
 		fc_host_port_state(shost) = FC_PORTSTATE_LINKDOWN;
+	}
 	else
-		switch (lport->state) {
-		case LPORT_ST_READY:
-			fc_host_port_state(shost) = FC_PORTSTATE_ONLINE;
-			break;
-		default:
-			fc_host_port_state(shost) = FC_PORTSTATE_OFFLINE;
+		switch (lport->state)
+		{
+			case LPORT_ST_READY:
+				fc_host_port_state(shost) = FC_PORTSTATE_ONLINE;
+				break;
+
+			default:
+				fc_host_port_state(shost) = FC_PORTSTATE_OFFLINE;
 		}
+
 	mutex_unlock(&lport->lp_mutex);
 }
 EXPORT_SYMBOL(fc_get_host_port_state);
@@ -310,7 +341,8 @@ struct fc_host_statistics *fc_get_host_stats(struct Scsi_Host *shost)
 
 	fc_stats->seconds_since_last_reset = (lport->boot_time - jiffies) / HZ;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct fc_stats *stats;
 
 		stats = per_cpu_ptr(lport->stats, cpu);
@@ -354,8 +386,8 @@ EXPORT_SYMBOL(fc_get_host_stats);
  * @op:	   The opcode
  */
 static void fc_lport_flogi_fill(struct fc_lport *lport,
-				struct fc_els_flogi *flogi,
-				unsigned int op)
+								struct fc_els_flogi *flogi,
+								unsigned int op)
 {
 	struct fc_els_csp *sp;
 	struct fc_els_cssp *cp;
@@ -371,7 +403,9 @@ static void fc_lport_flogi_fill(struct fc_lport *lport,
 	sp->sp_bb_data = htons((u16) lport->mfs);
 	cp = &flogi->fl_cssp[3 - 1];	/* class 3 parameters */
 	cp->cp_class = htons(FC_CPC_VALID | FC_CPC_SEQ);
-	if (op != ELS_FLOGI) {
+
+	if (op != ELS_FLOGI)
+	{
 		sp->sp_features = htons(FC_SP_FT_CIRO);
 		sp->sp_tot_seq = htons(255);	/* seq. we accept */
 		sp->sp_rel_off = htons(0x1f);
@@ -407,7 +441,7 @@ static void fc_lport_add_fc4_type(struct fc_lport *lport, enum fc_fh_type type)
 static void fc_lport_recv_rlir_req(struct fc_lport *lport, struct fc_frame *fp)
 {
 	FC_LPORT_DBG(lport, "Received RLIR request while in state %s\n",
-		     fc_lport_state(lport));
+				 fc_lport_state(lport));
 
 	lport->tt.seq_els_rsp_send(fp, ELS_LS_ACC, NULL);
 	fc_frame_free(fp);
@@ -422,7 +456,7 @@ static void fc_lport_recv_rlir_req(struct fc_lport *lport, struct fc_frame *fp)
  * this function.
  */
 static void fc_lport_recv_echo_req(struct fc_lport *lport,
-				   struct fc_frame *in_fp)
+								   struct fc_frame *in_fp)
 {
 	struct fc_frame *fp;
 	unsigned int len;
@@ -430,22 +464,27 @@ static void fc_lport_recv_echo_req(struct fc_lport *lport,
 	void *dp;
 
 	FC_LPORT_DBG(lport, "Received ECHO request while in state %s\n",
-		     fc_lport_state(lport));
+				 fc_lport_state(lport));
 
 	len = fr_len(in_fp) - sizeof(struct fc_frame_header);
 	pp = fc_frame_payload_get(in_fp, len);
 
 	if (len < sizeof(__be32))
+	{
 		len = sizeof(__be32);
+	}
 
 	fp = fc_frame_alloc(lport, len);
-	if (fp) {
+
+	if (fp)
+	{
 		dp = fc_frame_payload_get(fp, len);
 		memcpy(dp, pp, len);
 		*((__be32 *)dp) = htonl(ELS_LS_ACC << 24);
 		fc_fill_reply_hdr(fp, in_fp, FC_RCTL_ELS_REP, 0);
 		lport->tt.frame_send(lport, fp);
 	}
+
 	fc_frame_free(in_fp);
 }
 
@@ -458,11 +497,12 @@ static void fc_lport_recv_echo_req(struct fc_lport *lport,
  * this function.
  */
 static void fc_lport_recv_rnid_req(struct fc_lport *lport,
-				   struct fc_frame *in_fp)
+								   struct fc_frame *in_fp)
 {
 	struct fc_frame *fp;
 	struct fc_els_rnid *req;
-	struct {
+	struct
+	{
 		struct fc_els_rnid_resp rnid;
 		struct fc_els_rnid_cid cid;
 		struct fc_els_rnid_gen gen;
@@ -472,23 +512,32 @@ static void fc_lport_recv_rnid_req(struct fc_lport *lport,
 	size_t len;
 
 	FC_LPORT_DBG(lport, "Received RNID request while in state %s\n",
-		     fc_lport_state(lport));
+				 fc_lport_state(lport));
 
 	req = fc_frame_payload_get(in_fp, sizeof(*req));
-	if (!req) {
+
+	if (!req)
+	{
 		rjt_data.reason = ELS_RJT_LOGIC;
 		rjt_data.explan = ELS_EXPL_NONE;
 		lport->tt.seq_els_rsp_send(in_fp, ELS_LS_RJT, &rjt_data);
-	} else {
+	}
+	else
+	{
 		fmt = req->rnid_fmt;
 		len = sizeof(*rp);
+
 		if (fmt != ELS_RNIDF_GEN ||
-		    ntohl(lport->rnid_gen.rnid_atype) == 0) {
+			ntohl(lport->rnid_gen.rnid_atype) == 0)
+		{
 			fmt = ELS_RNIDF_NONE;	/* nothing to provide */
 			len -= sizeof(rp->gen);
 		}
+
 		fp = fc_frame_alloc(lport, len);
-		if (fp) {
+
+		if (fp)
+		{
 			rp = fc_frame_payload_get(fp, len);
 			memset(rp, 0, len);
 			rp->rnid.rnid_cmd = ELS_LS_ACC;
@@ -496,15 +545,19 @@ static void fc_lport_recv_rnid_req(struct fc_lport *lport,
 			rp->rnid.rnid_cid_len = sizeof(rp->cid);
 			rp->cid.rnid_wwpn = htonll(lport->wwpn);
 			rp->cid.rnid_wwnn = htonll(lport->wwnn);
-			if (fmt == ELS_RNIDF_GEN) {
+
+			if (fmt == ELS_RNIDF_GEN)
+			{
 				rp->rnid.rnid_sid_len = sizeof(rp->gen);
 				memcpy(&rp->gen, &lport->rnid_gen,
-				       sizeof(rp->gen));
+					   sizeof(rp->gen));
 			}
+
 			fc_fill_reply_hdr(fp, in_fp, FC_RCTL_ELS_REP, 0);
 			lport->tt.frame_send(lport, fp);
 		}
 	}
+
 	fc_frame_free(in_fp);
 }
 
@@ -535,12 +588,15 @@ int fc_fabric_login(struct fc_lport *lport)
 	int rc = -1;
 
 	mutex_lock(&lport->lp_mutex);
+
 	if (lport->state == LPORT_ST_DISABLED ||
-	    lport->state == LPORT_ST_LOGO) {
+		lport->state == LPORT_ST_LOGO)
+	{
 		fc_lport_state_enter(lport, LPORT_ST_RESET);
 		fc_lport_enter_reset(lport);
 		rc = 0;
 	}
+
 	mutex_unlock(&lport->lp_mutex);
 
 	return rc;
@@ -555,11 +611,14 @@ EXPORT_SYMBOL(fc_fabric_login);
  */
 void __fc_linkup(struct fc_lport *lport)
 {
-	if (!lport->link_up) {
+	if (!lport->link_up)
+	{
 		lport->link_up = 1;
 
 		if (lport->state == LPORT_ST_RESET)
+		{
 			fc_lport_enter_flogi(lport);
+		}
 	}
 }
 
@@ -570,7 +629,7 @@ void __fc_linkup(struct fc_lport *lport)
 void fc_linkup(struct fc_lport *lport)
 {
 	printk(KERN_INFO "host%d: libfc: Link up on port (%6.6x)\n",
-	       lport->host->host_no, lport->port_id);
+		   lport->host->host_no, lport->port_id);
 
 	mutex_lock(&lport->lp_mutex);
 	__fc_linkup(lport);
@@ -586,7 +645,8 @@ EXPORT_SYMBOL(fc_linkup);
  */
 void __fc_linkdown(struct fc_lport *lport)
 {
-	if (lport->link_up) {
+	if (lport->link_up)
+	{
 		lport->link_up = 0;
 		fc_lport_enter_reset(lport);
 		lport->tt.fcp_cleanup(lport);
@@ -600,7 +660,7 @@ void __fc_linkdown(struct fc_lport *lport)
 void fc_linkdown(struct fc_lport *lport)
 {
 	printk(KERN_INFO "host%d: libfc: Link down on port (%6.6x)\n",
-	       lport->host->host_no, lport->port_id);
+		   lport->host->host_no, lport->port_id);
 
 	mutex_lock(&lport->lp_mutex);
 	__fc_linkdown(lport);
@@ -619,8 +679,12 @@ int fc_fabric_logoff(struct fc_lport *lport)
 {
 	lport->tt.disc_stop_final(lport);
 	mutex_lock(&lport->lp_mutex);
+
 	if (lport->dns_rdata)
+	{
 		lport->tt.rport_logoff(lport->dns_rdata);
+	}
+
 	mutex_unlock(&lport->lp_mutex);
 	lport->tt.rport_flush_queue();
 	mutex_lock(&lport->lp_mutex);
@@ -672,17 +736,24 @@ int fc_set_mfs(struct fc_lport *lport, u32 mfs)
 
 	old_mfs = lport->mfs;
 
-	if (mfs >= FC_MIN_MAX_FRAME) {
+	if (mfs >= FC_MIN_MAX_FRAME)
+	{
 		mfs &= ~3;
+
 		if (mfs > FC_MAX_FRAME)
+		{
 			mfs = FC_MAX_FRAME;
+		}
+
 		mfs -= sizeof(struct fc_frame_header);
 		lport->mfs = mfs;
 		rc = 0;
 	}
 
 	if (!rc && mfs < old_mfs)
+	{
 		fc_lport_enter_reset(lport);
+	}
 
 	mutex_unlock(&lport->lp_mutex);
 
@@ -696,23 +767,26 @@ EXPORT_SYMBOL(fc_set_mfs);
  * @event: The discovery event
  */
 static void fc_lport_disc_callback(struct fc_lport *lport,
-				   enum fc_disc_event event)
+								   enum fc_disc_event event)
 {
-	switch (event) {
-	case DISC_EV_SUCCESS:
-		FC_LPORT_DBG(lport, "Discovery succeeded\n");
-		break;
-	case DISC_EV_FAILED:
-		printk(KERN_ERR "host%d: libfc: "
-		       "Discovery failed for port (%6.6x)\n",
-		       lport->host->host_no, lport->port_id);
-		mutex_lock(&lport->lp_mutex);
-		fc_lport_enter_reset(lport);
-		mutex_unlock(&lport->lp_mutex);
-		break;
-	case DISC_EV_NONE:
-		WARN_ON(1);
-		break;
+	switch (event)
+	{
+		case DISC_EV_SUCCESS:
+			FC_LPORT_DBG(lport, "Discovery succeeded\n");
+			break;
+
+		case DISC_EV_FAILED:
+			printk(KERN_ERR "host%d: libfc: "
+				   "Discovery failed for port (%6.6x)\n",
+				   lport->host->host_no, lport->port_id);
+			mutex_lock(&lport->lp_mutex);
+			fc_lport_enter_reset(lport);
+			mutex_unlock(&lport->lp_mutex);
+			break;
+
+		case DISC_EV_NONE:
+			WARN_ON(1);
+			break;
 	}
 }
 
@@ -726,15 +800,21 @@ static void fc_lport_disc_callback(struct fc_lport *lport,
 static void fc_lport_enter_ready(struct fc_lport *lport)
 {
 	FC_LPORT_DBG(lport, "Entered READY from state %s\n",
-		     fc_lport_state(lport));
+				 fc_lport_state(lport));
 
 	fc_lport_state_enter(lport, LPORT_ST_READY);
+
 	if (lport->vport)
+	{
 		fc_vport_set_state(lport->vport, FC_VPORT_ACTIVE);
+	}
+
 	fc_vports_linkchange(lport);
 
 	if (!lport->ptp_rdata)
+	{
 		lport->tt.disc_start(fc_lport_disc_callback, lport);
+	}
 }
 
 /**
@@ -747,11 +827,11 @@ static void fc_lport_enter_ready(struct fc_lport *lport)
  * this function.
  */
 static void fc_lport_set_port_id(struct fc_lport *lport, u32 port_id,
-				 struct fc_frame *fp)
+								 struct fc_frame *fp)
 {
 	if (port_id)
 		printk(KERN_INFO "host%d: Assigned Port ID %6.6x\n",
-		       lport->host->host_no, port_id);
+			   lport->host->host_no, port_id);
 
 	lport->port_id = port_id;
 
@@ -759,7 +839,9 @@ static void fc_lport_set_port_id(struct fc_lport *lport, u32 port_id,
 	fc_host_port_id(lport->host) = port_id;
 
 	if (lport->tt.lport_set_port_id)
+	{
 		lport->tt.lport_set_port_id(lport, port_id, fp);
+	}
 }
 
 /**
@@ -777,15 +859,21 @@ void fc_lport_set_local_id(struct fc_lport *lport, u32 port_id)
 
 	fc_lport_set_port_id(lport, port_id, NULL);
 
-	switch (lport->state) {
-	case LPORT_ST_RESET:
-	case LPORT_ST_FLOGI:
-		if (port_id)
-			fc_lport_enter_ready(lport);
-		break;
-	default:
-		break;
+	switch (lport->state)
+	{
+		case LPORT_ST_RESET:
+		case LPORT_ST_FLOGI:
+			if (port_id)
+			{
+				fc_lport_enter_ready(lport);
+			}
+
+			break;
+
+		default:
+			break;
 	}
+
 	mutex_unlock(&lport->lp_mutex);
 }
 EXPORT_SYMBOL(fc_lport_set_local_id);
@@ -803,7 +891,7 @@ EXPORT_SYMBOL(fc_lport_set_local_id);
  * this function.
  */
 static void fc_lport_recv_flogi_req(struct fc_lport *lport,
-				    struct fc_frame *rx_fp)
+									struct fc_frame *rx_fp)
 {
 	struct fc_frame *fp;
 	struct fc_frame_header *fh;
@@ -814,19 +902,26 @@ static void fc_lport_recv_flogi_req(struct fc_lport *lport,
 	u32 local_fid;
 
 	FC_LPORT_DBG(lport, "Received FLOGI request while in state %s\n",
-		     fc_lport_state(lport));
+				 fc_lport_state(lport));
 
 	remote_fid = fc_frame_sid(rx_fp);
 	flp = fc_frame_payload_get(rx_fp, sizeof(*flp));
+
 	if (!flp)
-		goto out;
-	remote_wwpn = get_unaligned_be64(&flp->fl_wwpn);
-	if (remote_wwpn == lport->wwpn) {
-		printk(KERN_WARNING "host%d: libfc: Received FLOGI from port "
-		       "with same WWPN %16.16llx\n",
-		       lport->host->host_no, remote_wwpn);
+	{
 		goto out;
 	}
+
+	remote_wwpn = get_unaligned_be64(&flp->fl_wwpn);
+
+	if (remote_wwpn == lport->wwpn)
+	{
+		printk(KERN_WARNING "host%d: libfc: Received FLOGI from port "
+			   "with same WWPN %16.16llx\n",
+			   lport->host->host_no, remote_wwpn);
+		goto out;
+	}
+
 	FC_LPORT_DBG(lport, "FLOGI from port WWPN %16.16llx\n", remote_wwpn);
 
 	/*
@@ -835,18 +930,27 @@ static void fc_lport_recv_flogi_req(struct fc_lport *lport,
 	 * But if so, both of us could end up with the same FID.
 	 */
 	local_fid = FC_LOCAL_PTP_FID_LO;
-	if (remote_wwpn < lport->wwpn) {
+
+	if (remote_wwpn < lport->wwpn)
+	{
 		local_fid = FC_LOCAL_PTP_FID_HI;
+
 		if (!remote_fid || remote_fid == local_fid)
+		{
 			remote_fid = FC_LOCAL_PTP_FID_LO;
-	} else if (!remote_fid) {
+		}
+	}
+	else if (!remote_fid)
+	{
 		remote_fid = FC_LOCAL_PTP_FID_HI;
 	}
 
 	fc_lport_set_port_id(lport, local_fid, rx_fp);
 
 	fp = fc_frame_alloc(lport, sizeof(*flp));
-	if (fp) {
+
+	if (fp)
+	{
 		new_flp = fc_frame_payload_get(fp, sizeof(*flp));
 		fc_lport_flogi_fill(lport, new_flp, ELS_FLOGI);
 		new_flp->fl_cmd = (u8) ELS_LS_ACC;
@@ -861,11 +965,14 @@ static void fc_lport_recv_flogi_req(struct fc_lport *lport,
 		hton24(fh->fh_d_id, remote_fid);
 		lport->tt.frame_send(lport, fp);
 
-	} else {
+	}
+	else
+	{
 		fc_lport_error(lport, fp);
 	}
+
 	fc_lport_ptp_setup(lport, remote_fid, remote_wwpn,
-			   get_unaligned_be64(&flp->fl_wwnn));
+					   get_unaligned_be64(&flp->fl_wwnn));
 out:
 	fc_frame_free(rx_fp);
 }
@@ -882,7 +989,7 @@ out:
  *		 lock held because it will grab the lock.
  */
 static void fc_lport_recv_els_req(struct fc_lport *lport,
-				  struct fc_frame *fp)
+								  struct fc_frame *fp)
 {
 	void (*recv)(struct fc_lport *, struct fc_frame *);
 
@@ -894,48 +1001,66 @@ static void fc_lport_recv_els_req(struct fc_lport *lport,
 	 * Even if we had a session, it might not be ready.
 	 */
 	if (!lport->link_up)
+	{
 		fc_frame_free(fp);
-	else {
+	}
+	else
+	{
 		/*
 		 * Check opcode.
 		 */
 		recv = lport->tt.rport_recv_req;
-		switch (fc_frame_payload_op(fp)) {
-		case ELS_FLOGI:
-			if (!lport->point_to_multipoint)
-				recv = fc_lport_recv_flogi_req;
-			break;
-		case ELS_LOGO:
-			if (fc_frame_sid(fp) == FC_FID_FLOGI)
-				recv = fc_lport_recv_logo_req;
-			break;
-		case ELS_RSCN:
-			recv = lport->tt.disc_recv_req;
-			break;
-		case ELS_ECHO:
-			recv = fc_lport_recv_echo_req;
-			break;
-		case ELS_RLIR:
-			recv = fc_lport_recv_rlir_req;
-			break;
-		case ELS_RNID:
-			recv = fc_lport_recv_rnid_req;
-			break;
+
+		switch (fc_frame_payload_op(fp))
+		{
+			case ELS_FLOGI:
+				if (!lport->point_to_multipoint)
+				{
+					recv = fc_lport_recv_flogi_req;
+				}
+
+				break;
+
+			case ELS_LOGO:
+				if (fc_frame_sid(fp) == FC_FID_FLOGI)
+				{
+					recv = fc_lport_recv_logo_req;
+				}
+
+				break;
+
+			case ELS_RSCN:
+				recv = lport->tt.disc_recv_req;
+				break;
+
+			case ELS_ECHO:
+				recv = fc_lport_recv_echo_req;
+				break;
+
+			case ELS_RLIR:
+				recv = fc_lport_recv_rlir_req;
+				break;
+
+			case ELS_RNID:
+				recv = fc_lport_recv_rnid_req;
+				break;
 		}
 
 		recv(lport, fp);
 	}
+
 	mutex_unlock(&lport->lp_mutex);
 }
 
 static int fc_lport_els_prli(struct fc_rport_priv *rdata, u32 spp_len,
-			     const struct fc_els_spp *spp_in,
-			     struct fc_els_spp *spp_out)
+							 const struct fc_els_spp *spp_in,
+							 struct fc_els_spp *spp_out)
 {
 	return FC_SPP_RESP_INVL;
 }
 
-struct fc4_prov fc_lport_els_prov = {
+struct fc4_prov fc_lport_els_prov =
+{
 	.prli = fc_lport_els_prli,
 	.recv = fc_lport_recv_els_req,
 };
@@ -949,7 +1074,7 @@ struct fc4_prov fc_lport_els_prov = {
  *		 lock held because it may grab the lock.
  */
 static void fc_lport_recv_req(struct fc_lport *lport,
-			      struct fc_frame *fp)
+							  struct fc_frame *fp)
 {
 	struct fc_frame_header *fh = fc_frame_header_get(fp);
 	struct fc_seq *sp = fr_seq(fp);
@@ -964,11 +1089,19 @@ static void fc_lport_recv_req(struct fc_lport *lport,
 	 */
 
 	rcu_read_lock();
+
 	if (fh->fh_type >= FC_FC4_PROV_SIZE)
+	{
 		goto drop;
+	}
+
 	prov = rcu_dereference(fc_passive_prov[fh->fh_type]);
+
 	if (!prov || !try_module_get(prov->module))
+	{
 		goto drop;
+	}
+
 	rcu_read_unlock();
 	prov->recv(lport, fp);
 	module_put(prov->module);
@@ -977,8 +1110,11 @@ drop:
 	rcu_read_unlock();
 	FC_LPORT_DBG(lport, "dropping unexpected frame type %x\n", fh->fh_type);
 	fc_frame_free(fp);
+
 	if (sp)
+	{
 		lport->tt.exch_done(sp);
+	}
 }
 
 /**
@@ -1008,9 +1144,12 @@ EXPORT_SYMBOL(fc_lport_reset);
 static void fc_lport_reset_locked(struct fc_lport *lport)
 {
 	if (lport->dns_rdata)
+	{
 		lport->tt.rport_logoff(lport->dns_rdata);
+	}
 
-	if (lport->ptp_rdata) {
+	if (lport->ptp_rdata)
+	{
 		lport->tt.rport_logoff(lport->ptp_rdata);
 		kref_put(&lport->ptp_rdata->kref, lport->tt.rport_destroy);
 		lport->ptp_rdata = NULL;
@@ -1022,7 +1161,9 @@ static void fc_lport_reset_locked(struct fc_lport *lport)
 	fc_host_fabric_name(lport->host) = 0;
 
 	if (lport->port_id && (!lport->point_to_multipoint || !lport->link_up))
+	{
 		fc_lport_set_port_id(lport, 0, NULL);
+	}
 }
 
 /**
@@ -1035,24 +1176,35 @@ static void fc_lport_reset_locked(struct fc_lport *lport)
 static void fc_lport_enter_reset(struct fc_lport *lport)
 {
 	FC_LPORT_DBG(lport, "Entered RESET state from %s state\n",
-		     fc_lport_state(lport));
+				 fc_lport_state(lport));
 
 	if (lport->state == LPORT_ST_DISABLED || lport->state == LPORT_ST_LOGO)
+	{
 		return;
-
-	if (lport->vport) {
-		if (lport->link_up)
-			fc_vport_set_state(lport->vport, FC_VPORT_INITIALIZING);
-		else
-			fc_vport_set_state(lport->vport, FC_VPORT_LINKDOWN);
 	}
+
+	if (lport->vport)
+	{
+		if (lport->link_up)
+		{
+			fc_vport_set_state(lport->vport, FC_VPORT_INITIALIZING);
+		}
+		else
+		{
+			fc_vport_set_state(lport->vport, FC_VPORT_LINKDOWN);
+		}
+	}
+
 	fc_lport_state_enter(lport, LPORT_ST_RESET);
 	fc_host_post_event(lport->host, fc_get_event_number(),
-			   FCH_EVT_LIPRESET, 0);
+					   FCH_EVT_LIPRESET, 0);
 	fc_vports_linkchange(lport);
 	fc_lport_reset_locked(lport);
+
 	if (lport->link_up)
+	{
 		fc_lport_enter_flogi(lport);
+	}
 }
 
 /**
@@ -1065,7 +1217,7 @@ static void fc_lport_enter_reset(struct fc_lport *lport)
 static void fc_lport_enter_disabled(struct fc_lport *lport)
 {
 	FC_LPORT_DBG(lport, "Entered disabled state from %s state\n",
-		     fc_lport_state(lport));
+				 fc_lport_state(lport));
 
 	fc_lport_state_enter(lport, LPORT_ST_DISABLED);
 	fc_vports_linkchange(lport);
@@ -1085,27 +1237,38 @@ static void fc_lport_error(struct fc_lport *lport, struct fc_frame *fp)
 {
 	unsigned long delay = 0;
 	FC_LPORT_DBG(lport, "Error %ld in state %s, retries %d\n",
-		     IS_ERR(fp) ? -PTR_ERR(fp) : 0, fc_lport_state(lport),
-		     lport->retry_count);
+				 IS_ERR(fp) ? -PTR_ERR(fp) : 0, fc_lport_state(lport),
+				 lport->retry_count);
 
 	if (PTR_ERR(fp) == -FC_EX_CLOSED)
+	{
 		return;
+	}
 
 	/*
 	 * Memory allocation failure, or the exchange timed out
 	 * or we received LS_RJT.
 	 * Retry after delay
 	 */
-	if (lport->retry_count < lport->max_retry_count) {
+	if (lport->retry_count < lport->max_retry_count)
+	{
 		lport->retry_count++;
+
 		if (!fp)
+		{
 			delay = msecs_to_jiffies(500);
+		}
 		else
+		{
 			delay =	msecs_to_jiffies(lport->e_d_tov);
+		}
 
 		schedule_delayed_work(&lport->retry_work, delay);
-	} else
+	}
+	else
+	{
 		fc_lport_enter_reset(lport);
+	}
 }
 
 /**
@@ -1120,7 +1283,7 @@ static void fc_lport_error(struct fc_lport *lport, struct fc_frame *fp)
  * and then unlock the lport.
  */
 static void fc_lport_ns_resp(struct fc_seq *sp, struct fc_frame *fp,
-			     void *lp_arg)
+							 void *lp_arg)
 {
 	struct fc_lport *lport = lp_arg;
 	struct fc_frame_header *fh;
@@ -1129,19 +1292,27 @@ static void fc_lport_ns_resp(struct fc_seq *sp, struct fc_frame *fp,
 	FC_LPORT_DBG(lport, "Received a ns %s\n", fc_els_resp_type(fp));
 
 	if (fp == ERR_PTR(-FC_EX_CLOSED))
+	{
 		return;
+	}
 
 	mutex_lock(&lport->lp_mutex);
 
-	if (lport->state < LPORT_ST_RNN_ID || lport->state > LPORT_ST_RFF_ID) {
+	if (lport->state < LPORT_ST_RNN_ID || lport->state > LPORT_ST_RFF_ID)
+	{
 		FC_LPORT_DBG(lport, "Received a name server response, "
-			     "but in state %s\n", fc_lport_state(lport));
+					 "but in state %s\n", fc_lport_state(lport));
+
 		if (IS_ERR(fp))
+		{
 			goto err;
+		}
+
 		goto out;
 	}
 
-	if (IS_ERR(fp)) {
+	if (IS_ERR(fp))
+	{
 		fc_lport_error(lport, fp);
 		goto err;
 	}
@@ -1150,34 +1321,48 @@ static void fc_lport_ns_resp(struct fc_seq *sp, struct fc_frame *fp,
 	ct = fc_frame_payload_get(fp, sizeof(*ct));
 
 	if (fh && ct && fh->fh_type == FC_TYPE_CT &&
-	    ct->ct_fs_type == FC_FST_DIR &&
-	    ct->ct_fs_subtype == FC_NS_SUBTYPE &&
-	    ntohs(ct->ct_cmd) == FC_FS_ACC)
-		switch (lport->state) {
-		case LPORT_ST_RNN_ID:
-			fc_lport_enter_ns(lport, LPORT_ST_RSNN_NN);
-			break;
-		case LPORT_ST_RSNN_NN:
-			fc_lport_enter_ns(lport, LPORT_ST_RSPN_ID);
-			break;
-		case LPORT_ST_RSPN_ID:
-			fc_lport_enter_ns(lport, LPORT_ST_RFT_ID);
-			break;
-		case LPORT_ST_RFT_ID:
-			fc_lport_enter_ns(lport, LPORT_ST_RFF_ID);
-			break;
-		case LPORT_ST_RFF_ID:
-			if (lport->fdmi_enabled)
-				fc_lport_enter_fdmi(lport);
-			else
-				fc_lport_enter_scr(lport);
-			break;
-		default:
-			/* should have already been caught by state checks */
-			break;
+		ct->ct_fs_type == FC_FST_DIR &&
+		ct->ct_fs_subtype == FC_NS_SUBTYPE &&
+		ntohs(ct->ct_cmd) == FC_FS_ACC)
+		switch (lport->state)
+		{
+			case LPORT_ST_RNN_ID:
+				fc_lport_enter_ns(lport, LPORT_ST_RSNN_NN);
+				break;
+
+			case LPORT_ST_RSNN_NN:
+				fc_lport_enter_ns(lport, LPORT_ST_RSPN_ID);
+				break;
+
+			case LPORT_ST_RSPN_ID:
+				fc_lport_enter_ns(lport, LPORT_ST_RFT_ID);
+				break;
+
+			case LPORT_ST_RFT_ID:
+				fc_lport_enter_ns(lport, LPORT_ST_RFF_ID);
+				break;
+
+			case LPORT_ST_RFF_ID:
+				if (lport->fdmi_enabled)
+				{
+					fc_lport_enter_fdmi(lport);
+				}
+				else
+				{
+					fc_lport_enter_scr(lport);
+				}
+
+				break;
+
+			default:
+				/* should have already been caught by state checks */
+				break;
 		}
 	else
+	{
 		fc_lport_error(lport, fp);
+	}
+
 out:
 	fc_frame_free(fp);
 err:
@@ -1196,7 +1381,7 @@ err:
  * and then unlock the lport.
  */
 static void fc_lport_ms_resp(struct fc_seq *sp, struct fc_frame *fp,
-			     void *lp_arg)
+							 void *lp_arg)
 {
 	struct fc_lport *lport = lp_arg;
 	struct fc_frame_header *fh;
@@ -1205,19 +1390,27 @@ static void fc_lport_ms_resp(struct fc_seq *sp, struct fc_frame *fp,
 	FC_LPORT_DBG(lport, "Received a ms %s\n", fc_els_resp_type(fp));
 
 	if (fp == ERR_PTR(-FC_EX_CLOSED))
+	{
 		return;
+	}
 
 	mutex_lock(&lport->lp_mutex);
 
-	if (lport->state < LPORT_ST_RHBA || lport->state > LPORT_ST_DPRT) {
+	if (lport->state < LPORT_ST_RHBA || lport->state > LPORT_ST_DPRT)
+	{
 		FC_LPORT_DBG(lport, "Received a management server response, "
-			     "but in state %s\n", fc_lport_state(lport));
+					 "but in state %s\n", fc_lport_state(lport));
+
 		if (IS_ERR(fp))
+		{
 			goto err;
+		}
+
 		goto out;
 	}
 
-	if (IS_ERR(fp)) {
+	if (IS_ERR(fp))
+	{
 		fc_lport_error(lport, fp);
 		goto err;
 	}
@@ -1226,37 +1419,51 @@ static void fc_lport_ms_resp(struct fc_seq *sp, struct fc_frame *fp,
 	ct = fc_frame_payload_get(fp, sizeof(*ct));
 
 	if (fh && ct && fh->fh_type == FC_TYPE_CT &&
-	    ct->ct_fs_type == FC_FST_MGMT &&
-	    ct->ct_fs_subtype == FC_FDMI_SUBTYPE) {
+		ct->ct_fs_type == FC_FST_MGMT &&
+		ct->ct_fs_subtype == FC_FDMI_SUBTYPE)
+	{
 		FC_LPORT_DBG(lport, "Received a management server response, "
-				    "reason=%d explain=%d\n",
-				    ct->ct_reason,
-				    ct->ct_explan);
+					 "reason=%d explain=%d\n",
+					 ct->ct_reason,
+					 ct->ct_explan);
 
-		switch (lport->state) {
-		case LPORT_ST_RHBA:
-			if (ntohs(ct->ct_cmd) == FC_FS_ACC)
-				fc_lport_enter_ms(lport, LPORT_ST_RPA);
-			else /* Error Skip RPA */
+		switch (lport->state)
+		{
+			case LPORT_ST_RHBA:
+				if (ntohs(ct->ct_cmd) == FC_FS_ACC)
+				{
+					fc_lport_enter_ms(lport, LPORT_ST_RPA);
+				}
+				else /* Error Skip RPA */
+				{
+					fc_lport_enter_scr(lport);
+				}
+
+				break;
+
+			case LPORT_ST_RPA:
 				fc_lport_enter_scr(lport);
-			break;
-		case LPORT_ST_RPA:
-			fc_lport_enter_scr(lport);
-			break;
-		case LPORT_ST_DPRT:
-			fc_lport_enter_ms(lport, LPORT_ST_RHBA);
-			break;
-		case LPORT_ST_DHBA:
-			fc_lport_enter_ms(lport, LPORT_ST_DPRT);
-			break;
-		default:
-			/* should have already been caught by state checks */
-			break;
+				break;
+
+			case LPORT_ST_DPRT:
+				fc_lport_enter_ms(lport, LPORT_ST_RHBA);
+				break;
+
+			case LPORT_ST_DHBA:
+				fc_lport_enter_ms(lport, LPORT_ST_DPRT);
+				break;
+
+			default:
+				/* should have already been caught by state checks */
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		/* Invalid Frame? */
 		fc_lport_error(lport, fp);
 	}
+
 out:
 	fc_frame_free(fp);
 err:
@@ -1274,7 +1481,7 @@ err:
  * and then unlock the lport.
  */
 static void fc_lport_scr_resp(struct fc_seq *sp, struct fc_frame *fp,
-			      void *lp_arg)
+							  void *lp_arg)
 {
 	struct fc_lport *lport = lp_arg;
 	u8 op;
@@ -1282,28 +1489,41 @@ static void fc_lport_scr_resp(struct fc_seq *sp, struct fc_frame *fp,
 	FC_LPORT_DBG(lport, "Received a SCR %s\n", fc_els_resp_type(fp));
 
 	if (fp == ERR_PTR(-FC_EX_CLOSED))
+	{
 		return;
+	}
 
 	mutex_lock(&lport->lp_mutex);
 
-	if (lport->state != LPORT_ST_SCR) {
+	if (lport->state != LPORT_ST_SCR)
+	{
 		FC_LPORT_DBG(lport, "Received a SCR response, but in state "
-			     "%s\n", fc_lport_state(lport));
+					 "%s\n", fc_lport_state(lport));
+
 		if (IS_ERR(fp))
+		{
 			goto err;
+		}
+
 		goto out;
 	}
 
-	if (IS_ERR(fp)) {
+	if (IS_ERR(fp))
+	{
 		fc_lport_error(lport, fp);
 		goto err;
 	}
 
 	op = fc_frame_payload_op(fp);
+
 	if (op == ELS_LS_ACC)
+	{
 		fc_lport_enter_ready(lport);
+	}
 	else
+	{
 		fc_lport_error(lport, fp);
+	}
 
 out:
 	fc_frame_free(fp);
@@ -1323,20 +1543,24 @@ static void fc_lport_enter_scr(struct fc_lport *lport)
 	struct fc_frame *fp;
 
 	FC_LPORT_DBG(lport, "Entered SCR state from %s state\n",
-		     fc_lport_state(lport));
+				 fc_lport_state(lport));
 
 	fc_lport_state_enter(lport, LPORT_ST_SCR);
 
 	fp = fc_frame_alloc(lport, sizeof(struct fc_els_scr));
-	if (!fp) {
+
+	if (!fp)
+	{
 		fc_lport_error(lport, fp);
 		return;
 	}
 
 	if (!lport->tt.elsct_send(lport, FC_FID_FCTRL, fp, ELS_SCR,
-				  fc_lport_scr_resp, lport,
-				  2 * lport->r_a_tov))
+							  fc_lport_scr_resp, lport,
+							  2 * lport->r_a_tov))
+	{
 		fc_lport_error(lport, NULL);
+	}
 }
 
 /**
@@ -1354,58 +1578,77 @@ static void fc_lport_enter_ns(struct fc_lport *lport, enum fc_lport_state state)
 	size_t len;
 
 	FC_LPORT_DBG(lport, "Entered %s state from %s state\n",
-		     fc_lport_state_names[state],
-		     fc_lport_state(lport));
+				 fc_lport_state_names[state],
+				 fc_lport_state(lport));
 
 	fc_lport_state_enter(lport, state);
 
-	switch (state) {
-	case LPORT_ST_RNN_ID:
-		cmd = FC_NS_RNN_ID;
-		size += sizeof(struct fc_ns_rn_id);
-		break;
-	case LPORT_ST_RSNN_NN:
-		len = strnlen(fc_host_symbolic_name(lport->host), 255);
-		/* if there is no symbolic name, skip to RFT_ID */
-		if (!len)
-			return fc_lport_enter_ns(lport, LPORT_ST_RFT_ID);
-		cmd = FC_NS_RSNN_NN;
-		size += sizeof(struct fc_ns_rsnn) + len;
-		break;
-	case LPORT_ST_RSPN_ID:
-		len = strnlen(fc_host_symbolic_name(lport->host), 255);
-		/* if there is no symbolic name, skip to RFT_ID */
-		if (!len)
-			return fc_lport_enter_ns(lport, LPORT_ST_RFT_ID);
-		cmd = FC_NS_RSPN_ID;
-		size += sizeof(struct fc_ns_rspn) + len;
-		break;
-	case LPORT_ST_RFT_ID:
-		cmd = FC_NS_RFT_ID;
-		size += sizeof(struct fc_ns_rft);
-		break;
-	case LPORT_ST_RFF_ID:
-		cmd = FC_NS_RFF_ID;
-		size += sizeof(struct fc_ns_rff_id);
-		break;
-	default:
-		fc_lport_error(lport, NULL);
-		return;
+	switch (state)
+	{
+		case LPORT_ST_RNN_ID:
+			cmd = FC_NS_RNN_ID;
+			size += sizeof(struct fc_ns_rn_id);
+			break;
+
+		case LPORT_ST_RSNN_NN:
+			len = strnlen(fc_host_symbolic_name(lport->host), 255);
+
+			/* if there is no symbolic name, skip to RFT_ID */
+			if (!len)
+			{
+				return fc_lport_enter_ns(lport, LPORT_ST_RFT_ID);
+			}
+
+			cmd = FC_NS_RSNN_NN;
+			size += sizeof(struct fc_ns_rsnn) + len;
+			break;
+
+		case LPORT_ST_RSPN_ID:
+			len = strnlen(fc_host_symbolic_name(lport->host), 255);
+
+			/* if there is no symbolic name, skip to RFT_ID */
+			if (!len)
+			{
+				return fc_lport_enter_ns(lport, LPORT_ST_RFT_ID);
+			}
+
+			cmd = FC_NS_RSPN_ID;
+			size += sizeof(struct fc_ns_rspn) + len;
+			break;
+
+		case LPORT_ST_RFT_ID:
+			cmd = FC_NS_RFT_ID;
+			size += sizeof(struct fc_ns_rft);
+			break;
+
+		case LPORT_ST_RFF_ID:
+			cmd = FC_NS_RFF_ID;
+			size += sizeof(struct fc_ns_rff_id);
+			break;
+
+		default:
+			fc_lport_error(lport, NULL);
+			return;
 	}
 
 	fp = fc_frame_alloc(lport, size);
-	if (!fp) {
+
+	if (!fp)
+	{
 		fc_lport_error(lport, fp);
 		return;
 	}
 
 	if (!lport->tt.elsct_send(lport, FC_FID_DIR_SERV, fp, cmd,
-				  fc_lport_ns_resp,
-				  lport, 3 * lport->r_a_tov))
+							  fc_lport_ns_resp,
+							  lport, 3 * lport->r_a_tov))
+	{
 		fc_lport_error(lport, fp);
+	}
 }
 
-static struct fc_rport_operations fc_lport_rport_ops = {
+static struct fc_rport_operations fc_lport_rport_ops =
+{
 	.event_callback = fc_lport_rport_callback,
 };
 
@@ -1421,15 +1664,18 @@ static void fc_lport_enter_dns(struct fc_lport *lport)
 	struct fc_rport_priv *rdata;
 
 	FC_LPORT_DBG(lport, "Entered DNS state from %s state\n",
-		     fc_lport_state(lport));
+				 fc_lport_state(lport));
 
 	fc_lport_state_enter(lport, LPORT_ST_DNS);
 
 	mutex_lock(&lport->disc.disc_mutex);
 	rdata = lport->tt.rport_create(lport, FC_FID_DIR_SERV);
 	mutex_unlock(&lport->disc.disc_mutex);
+
 	if (!rdata)
+	{
 		goto err;
+	}
 
 	rdata->ops = &fc_lport_rport_ops;
 	lport->tt.rport_login(rdata);
@@ -1455,75 +1701,84 @@ static void fc_lport_enter_ms(struct fc_lport *lport, enum fc_lport_state state)
 	int numattrs;
 
 	FC_LPORT_DBG(lport, "Entered %s state from %s state\n",
-		     fc_lport_state_names[state],
-		     fc_lport_state(lport));
+				 fc_lport_state_names[state],
+				 fc_lport_state(lport));
 
 	fc_lport_state_enter(lport, state);
 
-	switch (state) {
-	case LPORT_ST_RHBA:
-		cmd = FC_FDMI_RHBA;
-		/* Number of HBA Attributes */
-		numattrs = 10;
-		len = sizeof(struct fc_fdmi_rhba);
-		len -= sizeof(struct fc_fdmi_attr_entry);
-		len += (numattrs * FC_FDMI_ATTR_ENTRY_HEADER_LEN);
-		len += FC_FDMI_HBA_ATTR_NODENAME_LEN;
-		len += FC_FDMI_HBA_ATTR_MANUFACTURER_LEN;
-		len += FC_FDMI_HBA_ATTR_SERIALNUMBER_LEN;
-		len += FC_FDMI_HBA_ATTR_MODEL_LEN;
-		len += FC_FDMI_HBA_ATTR_MODELDESCR_LEN;
-		len += FC_FDMI_HBA_ATTR_HARDWAREVERSION_LEN;
-		len += FC_FDMI_HBA_ATTR_DRIVERVERSION_LEN;
-		len += FC_FDMI_HBA_ATTR_OPTIONROMVERSION_LEN;
-		len += FC_FDMI_HBA_ATTR_FIRMWAREVERSION_LEN;
-		len += FC_FDMI_HBA_ATTR_OSNAMEVERSION_LEN;
+	switch (state)
+	{
+		case LPORT_ST_RHBA:
+			cmd = FC_FDMI_RHBA;
+			/* Number of HBA Attributes */
+			numattrs = 10;
+			len = sizeof(struct fc_fdmi_rhba);
+			len -= sizeof(struct fc_fdmi_attr_entry);
+			len += (numattrs * FC_FDMI_ATTR_ENTRY_HEADER_LEN);
+			len += FC_FDMI_HBA_ATTR_NODENAME_LEN;
+			len += FC_FDMI_HBA_ATTR_MANUFACTURER_LEN;
+			len += FC_FDMI_HBA_ATTR_SERIALNUMBER_LEN;
+			len += FC_FDMI_HBA_ATTR_MODEL_LEN;
+			len += FC_FDMI_HBA_ATTR_MODELDESCR_LEN;
+			len += FC_FDMI_HBA_ATTR_HARDWAREVERSION_LEN;
+			len += FC_FDMI_HBA_ATTR_DRIVERVERSION_LEN;
+			len += FC_FDMI_HBA_ATTR_OPTIONROMVERSION_LEN;
+			len += FC_FDMI_HBA_ATTR_FIRMWAREVERSION_LEN;
+			len += FC_FDMI_HBA_ATTR_OSNAMEVERSION_LEN;
 
-		size += len;
-		break;
-	case LPORT_ST_RPA:
-		cmd = FC_FDMI_RPA;
-		/* Number of Port Attributes */
-		numattrs = 6;
-		len = sizeof(struct fc_fdmi_rpa);
-		len -= sizeof(struct fc_fdmi_attr_entry);
-		len += (numattrs * FC_FDMI_ATTR_ENTRY_HEADER_LEN);
-		len += FC_FDMI_PORT_ATTR_FC4TYPES_LEN;
-		len += FC_FDMI_PORT_ATTR_SUPPORTEDSPEED_LEN;
-		len += FC_FDMI_PORT_ATTR_CURRENTPORTSPEED_LEN;
-		len += FC_FDMI_PORT_ATTR_MAXFRAMESIZE_LEN;
-		len += FC_FDMI_PORT_ATTR_OSDEVICENAME_LEN;
-		len += FC_FDMI_PORT_ATTR_HOSTNAME_LEN;
+			size += len;
+			break;
 
-		size += len;
-		break;
-	case LPORT_ST_DPRT:
-		cmd = FC_FDMI_DPRT;
-		len = sizeof(struct fc_fdmi_dprt);
-		size += len;
-		break;
-	case LPORT_ST_DHBA:
-		cmd = FC_FDMI_DHBA;
-		len = sizeof(struct fc_fdmi_dhba);
-		size += len;
-		break;
-	default:
-		fc_lport_error(lport, NULL);
-		return;
+		case LPORT_ST_RPA:
+			cmd = FC_FDMI_RPA;
+			/* Number of Port Attributes */
+			numattrs = 6;
+			len = sizeof(struct fc_fdmi_rpa);
+			len -= sizeof(struct fc_fdmi_attr_entry);
+			len += (numattrs * FC_FDMI_ATTR_ENTRY_HEADER_LEN);
+			len += FC_FDMI_PORT_ATTR_FC4TYPES_LEN;
+			len += FC_FDMI_PORT_ATTR_SUPPORTEDSPEED_LEN;
+			len += FC_FDMI_PORT_ATTR_CURRENTPORTSPEED_LEN;
+			len += FC_FDMI_PORT_ATTR_MAXFRAMESIZE_LEN;
+			len += FC_FDMI_PORT_ATTR_OSDEVICENAME_LEN;
+			len += FC_FDMI_PORT_ATTR_HOSTNAME_LEN;
+
+			size += len;
+			break;
+
+		case LPORT_ST_DPRT:
+			cmd = FC_FDMI_DPRT;
+			len = sizeof(struct fc_fdmi_dprt);
+			size += len;
+			break;
+
+		case LPORT_ST_DHBA:
+			cmd = FC_FDMI_DHBA;
+			len = sizeof(struct fc_fdmi_dhba);
+			size += len;
+			break;
+
+		default:
+			fc_lport_error(lport, NULL);
+			return;
 	}
 
 	FC_LPORT_DBG(lport, "Cmd=0x%x Len %d size %d\n",
-			     cmd, (int)len, size);
+				 cmd, (int)len, size);
 	fp = fc_frame_alloc(lport, size);
-	if (!fp) {
+
+	if (!fp)
+	{
 		fc_lport_error(lport, fp);
 		return;
 	}
 
 	if (!lport->tt.elsct_send(lport, FC_FID_MGMT_SERV, fp, cmd,
-				  fc_lport_ms_resp,
-				  lport, 3 * lport->r_a_tov))
+							  fc_lport_ms_resp,
+							  lport, 3 * lport->r_a_tov))
+	{
 		fc_lport_error(lport, fp);
+	}
 }
 
 /**
@@ -1538,15 +1793,18 @@ static void fc_lport_enter_fdmi(struct fc_lport *lport)
 	struct fc_rport_priv *rdata;
 
 	FC_LPORT_DBG(lport, "Entered FDMI state from %s state\n",
-		     fc_lport_state(lport));
+				 fc_lport_state(lport));
 
 	fc_lport_state_enter(lport, LPORT_ST_FDMI);
 
 	mutex_lock(&lport->disc.disc_mutex);
 	rdata = lport->tt.rport_create(lport, FC_FID_MGMT_SERV);
 	mutex_unlock(&lport->disc.disc_mutex);
+
 	if (!rdata)
+	{
 		goto err;
+	}
 
 	rdata->ops = &fc_lport_rport_ops;
 	lport->tt.rport_login(rdata);
@@ -1564,46 +1822,56 @@ static void fc_lport_timeout(struct work_struct *work)
 {
 	struct fc_lport *lport =
 		container_of(work, struct fc_lport,
-			     retry_work.work);
+					 retry_work.work);
 
 	mutex_lock(&lport->lp_mutex);
 
-	switch (lport->state) {
-	case LPORT_ST_DISABLED:
-		break;
-	case LPORT_ST_READY:
-		break;
-	case LPORT_ST_RESET:
-		break;
-	case LPORT_ST_FLOGI:
-		fc_lport_enter_flogi(lport);
-		break;
-	case LPORT_ST_DNS:
-		fc_lport_enter_dns(lport);
-		break;
-	case LPORT_ST_RNN_ID:
-	case LPORT_ST_RSNN_NN:
-	case LPORT_ST_RSPN_ID:
-	case LPORT_ST_RFT_ID:
-	case LPORT_ST_RFF_ID:
-		fc_lport_enter_ns(lport, lport->state);
-		break;
-	case LPORT_ST_FDMI:
-		fc_lport_enter_fdmi(lport);
-		break;
-	case LPORT_ST_RHBA:
-	case LPORT_ST_RPA:
-	case LPORT_ST_DHBA:
-	case LPORT_ST_DPRT:
-		FC_LPORT_DBG(lport, "Skipping lport state %s to SCR\n",
-			     fc_lport_state(lport));
+	switch (lport->state)
+	{
+		case LPORT_ST_DISABLED:
+			break;
+
+		case LPORT_ST_READY:
+			break;
+
+		case LPORT_ST_RESET:
+			break;
+
+		case LPORT_ST_FLOGI:
+			fc_lport_enter_flogi(lport);
+			break;
+
+		case LPORT_ST_DNS:
+			fc_lport_enter_dns(lport);
+			break;
+
+		case LPORT_ST_RNN_ID:
+		case LPORT_ST_RSNN_NN:
+		case LPORT_ST_RSPN_ID:
+		case LPORT_ST_RFT_ID:
+		case LPORT_ST_RFF_ID:
+			fc_lport_enter_ns(lport, lport->state);
+			break;
+
+		case LPORT_ST_FDMI:
+			fc_lport_enter_fdmi(lport);
+			break;
+
+		case LPORT_ST_RHBA:
+		case LPORT_ST_RPA:
+		case LPORT_ST_DHBA:
+		case LPORT_ST_DPRT:
+			FC_LPORT_DBG(lport, "Skipping lport state %s to SCR\n",
+						 fc_lport_state(lport));
+
 		/* fall thru */
-	case LPORT_ST_SCR:
-		fc_lport_enter_scr(lport);
-		break;
-	case LPORT_ST_LOGO:
-		fc_lport_enter_logo(lport);
-		break;
+		case LPORT_ST_SCR:
+			fc_lport_enter_scr(lport);
+			break;
+
+		case LPORT_ST_LOGO:
+			fc_lport_enter_logo(lport);
+			break;
 	}
 
 	mutex_unlock(&lport->lp_mutex);
@@ -1620,7 +1888,7 @@ static void fc_lport_timeout(struct work_struct *work)
  * and then unlock the lport.
  */
 void fc_lport_logo_resp(struct fc_seq *sp, struct fc_frame *fp,
-			void *lp_arg)
+						void *lp_arg)
 {
 	struct fc_lport *lport = lp_arg;
 	u8 op;
@@ -1628,28 +1896,41 @@ void fc_lport_logo_resp(struct fc_seq *sp, struct fc_frame *fp,
 	FC_LPORT_DBG(lport, "Received a LOGO %s\n", fc_els_resp_type(fp));
 
 	if (fp == ERR_PTR(-FC_EX_CLOSED))
+	{
 		return;
+	}
 
 	mutex_lock(&lport->lp_mutex);
 
-	if (lport->state != LPORT_ST_LOGO) {
+	if (lport->state != LPORT_ST_LOGO)
+	{
 		FC_LPORT_DBG(lport, "Received a LOGO response, but in state "
-			     "%s\n", fc_lport_state(lport));
+					 "%s\n", fc_lport_state(lport));
+
 		if (IS_ERR(fp))
+		{
 			goto err;
+		}
+
 		goto out;
 	}
 
-	if (IS_ERR(fp)) {
+	if (IS_ERR(fp))
+	{
 		fc_lport_error(lport, fp);
 		goto err;
 	}
 
 	op = fc_frame_payload_op(fp);
+
 	if (op == ELS_LS_ACC)
+	{
 		fc_lport_enter_disabled(lport);
+	}
 	else
+	{
 		fc_lport_error(lport, fp);
+	}
 
 out:
 	fc_frame_free(fp);
@@ -1671,21 +1952,25 @@ static void fc_lport_enter_logo(struct fc_lport *lport)
 	struct fc_els_logo *logo;
 
 	FC_LPORT_DBG(lport, "Entered LOGO state from %s state\n",
-		     fc_lport_state(lport));
+				 fc_lport_state(lport));
 
 	fc_lport_state_enter(lport, LPORT_ST_LOGO);
 	fc_vports_linkchange(lport);
 
 	fp = fc_frame_alloc(lport, sizeof(*logo));
-	if (!fp) {
+
+	if (!fp)
+	{
 		fc_lport_error(lport, fp);
 		return;
 	}
 
 	if (!lport->tt.elsct_send(lport, FC_FID_FLOGI, fp, ELS_LOGO,
-				  fc_lport_logo_resp, lport,
-				  2 * lport->r_a_tov))
+							  fc_lport_logo_resp, lport,
+							  2 * lport->r_a_tov))
+	{
 		fc_lport_error(lport, NULL);
+	}
 }
 
 /**
@@ -1699,7 +1984,7 @@ static void fc_lport_enter_logo(struct fc_lport *lport)
  * and then unlock the lport.
  */
 void fc_lport_flogi_resp(struct fc_seq *sp, struct fc_frame *fp,
-			 void *lp_arg)
+						 void *lp_arg)
 {
 	struct fc_lport *lport = lp_arg;
 	struct fc_frame_header *fh;
@@ -1713,50 +1998,64 @@ void fc_lport_flogi_resp(struct fc_seq *sp, struct fc_frame *fp,
 	FC_LPORT_DBG(lport, "Received a FLOGI %s\n", fc_els_resp_type(fp));
 
 	if (fp == ERR_PTR(-FC_EX_CLOSED))
+	{
 		return;
+	}
 
 	mutex_lock(&lport->lp_mutex);
 
-	if (lport->state != LPORT_ST_FLOGI) {
+	if (lport->state != LPORT_ST_FLOGI)
+	{
 		FC_LPORT_DBG(lport, "Received a FLOGI response, but in state "
-			     "%s\n", fc_lport_state(lport));
+					 "%s\n", fc_lport_state(lport));
+
 		if (IS_ERR(fp))
+		{
 			goto err;
+		}
+
 		goto out;
 	}
 
-	if (IS_ERR(fp)) {
+	if (IS_ERR(fp))
+	{
 		fc_lport_error(lport, fp);
 		goto err;
 	}
 
 	fh = fc_frame_header_get(fp);
 	did = fc_frame_did(fp);
+
 	if (fh->fh_r_ctl != FC_RCTL_ELS_REP || did == 0 ||
-	    fc_frame_payload_op(fp) != ELS_LS_ACC) {
+		fc_frame_payload_op(fp) != ELS_LS_ACC)
+	{
 		FC_LPORT_DBG(lport, "FLOGI not accepted or bad response\n");
 		fc_lport_error(lport, fp);
 		goto err;
 	}
 
 	flp = fc_frame_payload_get(fp, sizeof(*flp));
-	if (!flp) {
+
+	if (!flp)
+	{
 		FC_LPORT_DBG(lport, "FLOGI bad response\n");
 		fc_lport_error(lport, fp);
 		goto err;
 	}
 
 	mfs = ntohs(flp->fl_csp.sp_bb_data) &
-		FC_SP_BB_DATA_MASK;
+		  FC_SP_BB_DATA_MASK;
 
-	if (mfs < FC_SP_MIN_MAX_PAYLOAD || mfs > FC_SP_MAX_MAX_PAYLOAD) {
+	if (mfs < FC_SP_MIN_MAX_PAYLOAD || mfs > FC_SP_MAX_MAX_PAYLOAD)
+	{
 		FC_LPORT_DBG(lport, "FLOGI bad mfs:%hu response, "
-			     "lport->mfs:%hu\n", mfs, lport->mfs);
+					 "lport->mfs:%hu\n", mfs, lport->mfs);
 		fc_lport_error(lport, fp);
 		goto err;
 	}
 
-	if (mfs <= lport->mfs) {
+	if (mfs <= lport->mfs)
+	{
 		lport->mfs = mfs;
 		fc_host_maxframe_size(lport->host) = mfs;
 	}
@@ -1764,26 +2063,35 @@ void fc_lport_flogi_resp(struct fc_seq *sp, struct fc_frame *fp,
 	csp_flags = ntohs(flp->fl_csp.sp_features);
 	r_a_tov = ntohl(flp->fl_csp.sp_r_a_tov);
 	e_d_tov = ntohl(flp->fl_csp.sp_e_d_tov);
+
 	if (csp_flags & FC_SP_FT_EDTR)
+	{
 		e_d_tov /= 1000000;
+	}
 
 	lport->npiv_enabled = !!(csp_flags & FC_SP_FT_NPIV_ACC);
 
-	if ((csp_flags & FC_SP_FT_FPORT) == 0) {
+	if ((csp_flags & FC_SP_FT_FPORT) == 0)
+	{
 		if (e_d_tov > lport->e_d_tov)
+		{
 			lport->e_d_tov = e_d_tov;
+		}
+
 		lport->r_a_tov = 2 * e_d_tov;
 		fc_lport_set_port_id(lport, did, fp);
 		printk(KERN_INFO "host%d: libfc: "
-		       "Port (%6.6x) entered "
-		       "point-to-point mode\n",
-		       lport->host->host_no, did);
+			   "Port (%6.6x) entered "
+			   "point-to-point mode\n",
+			   lport->host->host_no, did);
 		fc_lport_ptp_setup(lport, fc_frame_sid(fp),
-				   get_unaligned_be64(
-					   &flp->fl_wwpn),
-				   get_unaligned_be64(
-					   &flp->fl_wwnn));
-	} else {
+						   get_unaligned_be64(
+							   &flp->fl_wwpn),
+						   get_unaligned_be64(
+							   &flp->fl_wwnn));
+	}
+	else
+	{
 		lport->e_d_tov = e_d_tov;
 		lport->r_a_tov = r_a_tov;
 		fc_host_fabric_name(lport->host) =
@@ -1811,26 +2119,35 @@ static void fc_lport_enter_flogi(struct fc_lport *lport)
 	struct fc_frame *fp;
 
 	FC_LPORT_DBG(lport, "Entered FLOGI state from %s state\n",
-		     fc_lport_state(lport));
+				 fc_lport_state(lport));
 
 	fc_lport_state_enter(lport, LPORT_ST_FLOGI);
 
-	if (lport->point_to_multipoint) {
+	if (lport->point_to_multipoint)
+	{
 		if (lport->port_id)
+		{
 			fc_lport_enter_ready(lport);
+		}
+
 		return;
 	}
 
 	fp = fc_frame_alloc(lport, sizeof(struct fc_els_flogi));
+
 	if (!fp)
+	{
 		return fc_lport_error(lport, fp);
+	}
 
 	if (!lport->tt.elsct_send(lport, FC_FID_FLOGI, fp,
-				  lport->vport ? ELS_FDISC : ELS_FLOGI,
-				  fc_lport_flogi_resp, lport,
-				  lport->vport ? 2 * lport->r_a_tov :
-				  lport->e_d_tov))
+							  lport->vport ? ELS_FDISC : ELS_FLOGI,
+							  fc_lport_flogi_resp, lport,
+							  lport->vport ? 2 * lport->r_a_tov :
+							  lport->e_d_tov))
+	{
 		fc_lport_error(lport, NULL);
+	}
 }
 
 /**
@@ -1859,31 +2176,42 @@ EXPORT_SYMBOL(fc_lport_config);
 int fc_lport_init(struct fc_lport *lport)
 {
 	if (!lport->tt.lport_recv)
+	{
 		lport->tt.lport_recv = fc_lport_recv_req;
+	}
 
 	if (!lport->tt.lport_reset)
+	{
 		lport->tt.lport_reset = fc_lport_reset;
+	}
 
 	fc_host_port_type(lport->host) = FC_PORTTYPE_NPORT;
 	fc_host_node_name(lport->host) = lport->wwnn;
 	fc_host_port_name(lport->host) = lport->wwpn;
 	fc_host_supported_classes(lport->host) = FC_COS_CLASS3;
 	memset(fc_host_supported_fc4s(lport->host), 0,
-	       sizeof(fc_host_supported_fc4s(lport->host)));
+		   sizeof(fc_host_supported_fc4s(lport->host)));
 	fc_host_supported_fc4s(lport->host)[2] = 1;
 	fc_host_supported_fc4s(lport->host)[7] = 1;
 
 	/* This value is also unchanging */
 	memset(fc_host_active_fc4s(lport->host), 0,
-	       sizeof(fc_host_active_fc4s(lport->host)));
+		   sizeof(fc_host_active_fc4s(lport->host)));
 	fc_host_active_fc4s(lport->host)[2] = 1;
 	fc_host_active_fc4s(lport->host)[7] = 1;
 	fc_host_maxframe_size(lport->host) = lport->mfs;
 	fc_host_supported_speeds(lport->host) = 0;
+
 	if (lport->link_supported_speeds & FC_PORTSPEED_1GBIT)
+	{
 		fc_host_supported_speeds(lport->host) |= FC_PORTSPEED_1GBIT;
+	}
+
 	if (lport->link_supported_speeds & FC_PORTSPEED_10GBIT)
+	{
 		fc_host_supported_speeds(lport->host) |= FC_PORTSPEED_10GBIT;
+	}
+
 	fc_fc4_add_lport(lport);
 
 	return 0;
@@ -1897,7 +2225,7 @@ EXPORT_SYMBOL(fc_lport_init);
  * @info_arg: The BSG info that the response is for
  */
 static void fc_lport_bsg_resp(struct fc_seq *sp, struct fc_frame *fp,
-			      void *info_arg)
+							  void *info_arg)
 {
 	struct fc_bsg_info *info = info_arg;
 	struct fc_bsg_job *job = info->job;
@@ -1906,9 +2234,10 @@ static void fc_lport_bsg_resp(struct fc_seq *sp, struct fc_frame *fp,
 	size_t len;
 	void *buf;
 
-	if (IS_ERR(fp)) {
+	if (IS_ERR(fp))
+	{
 		job->reply->result = (PTR_ERR(fp) == -FC_EX_CLOSED) ?
-			-ECONNABORTED : -ETIMEDOUT;
+							 -ECONNABORTED : -ETIMEDOUT;
 		job->reply_len = sizeof(uint32_t);
 		job->state_flags |= FC_RQST_STATE_DONE;
 		job->job_done(job);
@@ -1921,11 +2250,12 @@ static void fc_lport_bsg_resp(struct fc_seq *sp, struct fc_frame *fp,
 	len = fr_len(fp) - sizeof(*fh);
 	buf = fc_frame_payload_get(fp, 0);
 
-	if (fr_sof(fp) == FC_SOF_I3 && !ntohs(fh->fh_seq_cnt)) {
+	if (fr_sof(fp) == FC_SOF_I3 && !ntohs(fh->fh_seq_cnt))
+	{
 		/* Get the response code from the first frame payload */
 		unsigned short cmd = (info->rsp_code == FC_FS_ACC) ?
-			ntohs(((struct fc_ct_hdr *)buf)->ct_cmd) :
-			(unsigned short)fc_frame_payload_op(fp);
+							 ntohs(((struct fc_ct_hdr *)buf)->ct_cmd) :
+							 (unsigned short)fc_frame_payload_op(fp);
 
 		/* Save the reply status of the job */
 		job->reply->reply_data.ctels_reply.status =
@@ -1935,20 +2265,23 @@ static void fc_lport_bsg_resp(struct fc_seq *sp, struct fc_frame *fp,
 
 	job->reply->reply_payload_rcv_len +=
 		fc_copy_buffer_to_sglist(buf, len, info->sg, &info->nents,
-					 &info->offset, NULL);
+								 &info->offset, NULL);
 
 	if (fr_eof(fp) == FC_EOF_T &&
-	    (ntoh24(fh->fh_f_ctl) & (FC_FC_LAST_SEQ | FC_FC_END_SEQ)) ==
-	    (FC_FC_LAST_SEQ | FC_FC_END_SEQ)) {
+		(ntoh24(fh->fh_f_ctl) & (FC_FC_LAST_SEQ | FC_FC_END_SEQ)) ==
+		(FC_FC_LAST_SEQ | FC_FC_END_SEQ))
+	{
 		if (job->reply->reply_payload_rcv_len >
-		    job->reply_payload.payload_len)
+			job->reply_payload.payload_len)
 			job->reply->reply_payload_rcv_len =
 				job->reply_payload.payload_len;
+
 		job->reply->result = 0;
 		job->state_flags |= FC_RQST_STATE_DONE;
 		job->job_done(job);
 		kfree(info);
 	}
+
 	fc_frame_free(fp);
 	mutex_unlock(&lport->lp_mutex);
 }
@@ -1963,8 +2296,8 @@ static void fc_lport_bsg_resp(struct fc_seq *sp, struct fc_frame *fp,
  * this routine.
  */
 static int fc_lport_els_request(struct fc_bsg_job *job,
-				struct fc_lport *lport,
-				u32 did, u32 tov)
+								struct fc_lport *lport,
+								u32 did, u32 tov)
 {
 	struct fc_bsg_info *info;
 	struct fc_frame *fp;
@@ -1973,15 +2306,18 @@ static int fc_lport_els_request(struct fc_bsg_job *job,
 	int len;
 
 	fp = fc_frame_alloc(lport, job->request_payload.payload_len);
+
 	if (!fp)
+	{
 		return -ENOMEM;
+	}
 
 	len = job->request_payload.payload_len;
 	pp = fc_frame_payload_get(fp, len);
 
 	sg_copy_to_buffer(job->request_payload.sg_list,
-			  job->request_payload.sg_cnt,
-			  pp, len);
+					  job->request_payload.sg_cnt,
+					  pp, len);
 
 	fh = fc_frame_header_get(fp);
 	fh->fh_r_ctl = FC_RCTL_ELS_REQ;
@@ -1994,7 +2330,9 @@ static int fc_lport_els_request(struct fc_bsg_job *job,
 	fh->fh_parm_offset = 0;
 
 	info = kzalloc(sizeof(struct fc_bsg_info), GFP_KERNEL);
-	if (!info) {
+
+	if (!info)
+	{
 		fc_frame_free(fp);
 		return -ENOMEM;
 	}
@@ -2006,10 +2344,12 @@ static int fc_lport_els_request(struct fc_bsg_job *job,
 	info->sg = job->reply_payload.sg_list;
 
 	if (!lport->tt.exch_seq_send(lport, fp, fc_lport_bsg_resp,
-				     NULL, info, tov)) {
+								 NULL, info, tov))
+	{
 		kfree(info);
 		return -ECOMM;
 	}
+
 	return 0;
 }
 
@@ -2024,7 +2364,7 @@ static int fc_lport_els_request(struct fc_bsg_job *job,
  * this routine.
  */
 static int fc_lport_ct_request(struct fc_bsg_job *job,
-			       struct fc_lport *lport, u32 did, u32 tov)
+							   struct fc_lport *lport, u32 did, u32 tov)
 {
 	struct fc_bsg_info *info;
 	struct fc_frame *fp;
@@ -2033,16 +2373,19 @@ static int fc_lport_ct_request(struct fc_bsg_job *job,
 	size_t len;
 
 	fp = fc_frame_alloc(lport, sizeof(struct fc_ct_hdr) +
-			    job->request_payload.payload_len);
+						job->request_payload.payload_len);
+
 	if (!fp)
+	{
 		return -ENOMEM;
+	}
 
 	len = job->request_payload.payload_len;
 	ct = fc_frame_payload_get(fp, len);
 
 	sg_copy_to_buffer(job->request_payload.sg_list,
-			  job->request_payload.sg_cnt,
-			  ct, len);
+					  job->request_payload.sg_cnt,
+					  ct, len);
 
 	fh = fc_frame_header_get(fp);
 	fh->fh_r_ctl = FC_RCTL_DD_UNSOL_CTL;
@@ -2055,7 +2398,9 @@ static int fc_lport_ct_request(struct fc_bsg_job *job,
 	fh->fh_parm_offset = 0;
 
 	info = kzalloc(sizeof(struct fc_bsg_info), GFP_KERNEL);
-	if (!info) {
+
+	if (!info)
+	{
 		fc_frame_free(fp);
 		return -ENOMEM;
 	}
@@ -2067,10 +2412,12 @@ static int fc_lport_ct_request(struct fc_bsg_job *job,
 	info->sg = job->reply_payload.sg_list;
 
 	if (!lport->tt.exch_seq_send(lport, fp, fc_lport_bsg_resp,
-				     NULL, info, tov)) {
+								 NULL, info, tov))
+	{
 		kfree(info);
 		return -ECOMM;
 	}
+
 	return 0;
 }
 
@@ -2090,54 +2437,76 @@ int fc_lport_bsg_request(struct fc_bsg_job *job)
 	u32 did, tov;
 
 	job->reply->reply_payload_rcv_len = 0;
+
 	if (rsp)
+	{
 		rsp->resid_len = job->reply_payload.payload_len;
+	}
 
 	mutex_lock(&lport->lp_mutex);
 
-	switch (job->request->msgcode) {
-	case FC_BSG_RPT_ELS:
-		rport = job->rport;
-		if (!rport)
+	switch (job->request->msgcode)
+	{
+		case FC_BSG_RPT_ELS:
+			rport = job->rport;
+
+			if (!rport)
+			{
+				break;
+			}
+
+			rdata = rport->dd_data;
+			rc = fc_lport_els_request(job, lport, rport->port_id,
+									  rdata->e_d_tov);
 			break;
 
-		rdata = rport->dd_data;
-		rc = fc_lport_els_request(job, lport, rport->port_id,
-					  rdata->e_d_tov);
-		break;
+		case FC_BSG_RPT_CT:
+			rport = job->rport;
 
-	case FC_BSG_RPT_CT:
-		rport = job->rport;
-		if (!rport)
+			if (!rport)
+			{
+				break;
+			}
+
+			rdata = rport->dd_data;
+			rc = fc_lport_ct_request(job, lport, rport->port_id,
+									 rdata->e_d_tov);
 			break;
 
-		rdata = rport->dd_data;
-		rc = fc_lport_ct_request(job, lport, rport->port_id,
-					 rdata->e_d_tov);
-		break;
+		case FC_BSG_HST_CT:
+			did = ntoh24(job->request->rqst_data.h_ct.port_id);
 
-	case FC_BSG_HST_CT:
-		did = ntoh24(job->request->rqst_data.h_ct.port_id);
-		if (did == FC_FID_DIR_SERV) {
-			rdata = lport->dns_rdata;
-			if (!rdata)
-				break;
-			tov = rdata->e_d_tov;
-		} else {
-			rdata = lport->tt.rport_lookup(lport, did);
-			if (!rdata)
-				break;
-			tov = rdata->e_d_tov;
-			kref_put(&rdata->kref, lport->tt.rport_destroy);
-		}
+			if (did == FC_FID_DIR_SERV)
+			{
+				rdata = lport->dns_rdata;
 
-		rc = fc_lport_ct_request(job, lport, did, tov);
-		break;
+				if (!rdata)
+				{
+					break;
+				}
 
-	case FC_BSG_HST_ELS_NOLOGIN:
-		did = ntoh24(job->request->rqst_data.h_els.port_id);
-		rc = fc_lport_els_request(job, lport, did, lport->e_d_tov);
-		break;
+				tov = rdata->e_d_tov;
+			}
+			else
+			{
+				rdata = lport->tt.rport_lookup(lport, did);
+
+				if (!rdata)
+				{
+					break;
+				}
+
+				tov = rdata->e_d_tov;
+				kref_put(&rdata->kref, lport->tt.rport_destroy);
+			}
+
+			rc = fc_lport_ct_request(job, lport, did, tov);
+			break;
+
+		case FC_BSG_HST_ELS_NOLOGIN:
+			did = ntoh24(job->request->rqst_data.h_els.port_id);
+			rc = fc_lport_els_request(job, lport, did, lport->e_d_tov);
+			break;
 	}
 
 	mutex_unlock(&lport->lp_mutex);

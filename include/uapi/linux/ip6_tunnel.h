@@ -19,7 +19,8 @@
 /* copy fwmark from inner packet */
 #define IP6_TNL_F_USE_ORIG_FWMARK 0x20
 
-struct ip6_tnl_parm {
+struct ip6_tnl_parm
+{
 	char name[IFNAMSIZ];	/* name of tunnel device */
 	int link;		/* ifindex of underlying L2 interface */
 	__u8 proto;		/* tunnel protocol */
@@ -31,7 +32,8 @@ struct ip6_tnl_parm {
 	struct in6_addr raddr;	/* remote tunnel end-point address */
 };
 
-struct ip6_tnl_parm2 {
+struct ip6_tnl_parm2
+{
 	char name[IFNAMSIZ];	/* name of tunnel device */
 	int link;		/* ifindex of underlying L2 interface */
 	__u8 proto;		/* tunnel protocol */

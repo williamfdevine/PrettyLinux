@@ -49,7 +49,8 @@ MODULE_LICENSE("GPL");
 #define FW_CFG_MAX_FILE_PATH 56
 
 /* fw_cfg file directory entry type */
-struct fw_cfg_file {
+struct fw_cfg_file
+{
 	u32 size;
 	u16 select;
 	u16 reserved;
@@ -75,7 +76,7 @@ static inline u16 fw_cfg_sel_endianness(u16 key)
 
 /* read chunk of given fw_cfg blob (caller responsible for sanity-check) */
 static inline void fw_cfg_read_blob(u16 key,
-				    void *buf, loff_t pos, size_t count)
+									void *buf, loff_t pos, size_t count)
 {
 	u32 glk = -1U;
 	acpi_status status;
@@ -84,7 +85,9 @@ static inline void fw_cfg_read_blob(u16 key,
 	 * device access by the firmware, e.g. via AML methods:
 	 */
 	status = acpi_acquire_global_lock(ACPI_WAIT_FOREVER, &glk);
-	if (ACPI_FAILURE(status) && status != AE_NOT_CONFIGURED) {
+
+	if (ACPI_FAILURE(status) && status != AE_NOT_CONFIGURED)
+	{
 		/* Should never get here */
 		WARN(1, "fw_cfg_read_blob: Failed to lock ACPI!\n");
 		memset(buf, 0, count);
@@ -93,8 +96,12 @@ static inline void fw_cfg_read_blob(u16 key,
 
 	mutex_lock(&fw_cfg_dev_lock);
 	iowrite16(fw_cfg_sel_endianness(key), fw_cfg_reg_ctrl);
+
 	while (pos-- > 0)
+	{
 		ioread8(fw_cfg_reg_data);
+	}
+
 	ioread8_rep(fw_cfg_reg_data, buf, count);
 	mutex_unlock(&fw_cfg_dev_lock);
 
@@ -104,10 +111,13 @@ static inline void fw_cfg_read_blob(u16 key,
 /* clean up fw_cfg device i/o */
 static void fw_cfg_io_cleanup(void)
 {
-	if (fw_cfg_is_mmio) {
+	if (fw_cfg_is_mmio)
+	{
 		iounmap(fw_cfg_dev_base);
 		release_mem_region(fw_cfg_p_base, fw_cfg_p_size);
-	} else {
+	}
+	else
+	{
 		ioport_unmap(fw_cfg_dev_base);
 		release_region(fw_cfg_p_base, fw_cfg_p_size);
 	}
@@ -115,18 +125,18 @@ static void fw_cfg_io_cleanup(void)
 
 /* arch-specific ctrl & data register offsets are not available in ACPI, DT */
 #if !(defined(FW_CFG_CTRL_OFF) && defined(FW_CFG_DATA_OFF))
-# if (defined(CONFIG_ARM) || defined(CONFIG_ARM64))
-#  define FW_CFG_CTRL_OFF 0x08
-#  define FW_CFG_DATA_OFF 0x00
-# elif (defined(CONFIG_PPC_PMAC) || defined(CONFIG_SPARC32)) /* ppc/mac,sun4m */
-#  define FW_CFG_CTRL_OFF 0x00
-#  define FW_CFG_DATA_OFF 0x02
-# elif (defined(CONFIG_X86) || defined(CONFIG_SPARC64)) /* x86, sun4u */
-#  define FW_CFG_CTRL_OFF 0x00
-#  define FW_CFG_DATA_OFF 0x01
-# else
-#  error "QEMU FW_CFG not available on this architecture!"
-# endif
+	#if (defined(CONFIG_ARM) || defined(CONFIG_ARM64))
+		#define FW_CFG_CTRL_OFF 0x08
+		#define FW_CFG_DATA_OFF 0x00
+	#elif (defined(CONFIG_PPC_PMAC) || defined(CONFIG_SPARC32)) /* ppc/mac,sun4m */
+		#define FW_CFG_CTRL_OFF 0x00
+		#define FW_CFG_DATA_OFF 0x02
+	#elif (defined(CONFIG_X86) || defined(CONFIG_SPARC64)) /* x86, sun4u */
+		#define FW_CFG_CTRL_OFF 0x00
+		#define FW_CFG_DATA_OFF 0x01
+	#else
+		#  error "QEMU FW_CFG not available on this architecture!"
+	#endif
 #endif
 
 /* initialize fw_cfg device i/o from platform data */
@@ -138,30 +148,49 @@ static int fw_cfg_do_platform_probe(struct platform_device *pdev)
 	/* acquire i/o range details */
 	fw_cfg_is_mmio = false;
 	range = platform_get_resource(pdev, IORESOURCE_IO, 0);
-	if (!range) {
+
+	if (!range)
+	{
 		fw_cfg_is_mmio = true;
 		range = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 		if (!range)
+		{
 			return -EINVAL;
+		}
 	}
+
 	fw_cfg_p_base = range->start;
 	fw_cfg_p_size = resource_size(range);
 
-	if (fw_cfg_is_mmio) {
+	if (fw_cfg_is_mmio)
+	{
 		if (!request_mem_region(fw_cfg_p_base,
-					fw_cfg_p_size, "fw_cfg_mem"))
+								fw_cfg_p_size, "fw_cfg_mem"))
+		{
 			return -EBUSY;
+		}
+
 		fw_cfg_dev_base = ioremap(fw_cfg_p_base, fw_cfg_p_size);
-		if (!fw_cfg_dev_base) {
+
+		if (!fw_cfg_dev_base)
+		{
 			release_mem_region(fw_cfg_p_base, fw_cfg_p_size);
 			return -EFAULT;
 		}
-	} else {
+	}
+	else
+	{
 		if (!request_region(fw_cfg_p_base,
-				    fw_cfg_p_size, "fw_cfg_io"))
+							fw_cfg_p_size, "fw_cfg_io"))
+		{
 			return -EBUSY;
+		}
+
 		fw_cfg_dev_base = ioport_map(fw_cfg_p_base, fw_cfg_p_size);
-		if (!fw_cfg_dev_base) {
+
+		if (!fw_cfg_dev_base)
+		{
 			release_region(fw_cfg_p_base, fw_cfg_p_size);
 			return -EFAULT;
 		}
@@ -170,10 +199,14 @@ static int fw_cfg_do_platform_probe(struct platform_device *pdev)
 	/* were custom register offsets provided (e.g. on the command line)? */
 	ctrl = platform_get_resource_byname(pdev, IORESOURCE_REG, "ctrl");
 	data = platform_get_resource_byname(pdev, IORESOURCE_REG, "data");
-	if (ctrl && data) {
+
+	if (ctrl && data)
+	{
 		fw_cfg_reg_ctrl = fw_cfg_dev_base + ctrl->start;
 		fw_cfg_reg_data = fw_cfg_dev_base + data->start;
-	} else {
+	}
+	else
+	{
 		/* use architecture-specific offsets */
 		fw_cfg_reg_ctrl = fw_cfg_dev_base + FW_CFG_CTRL_OFF;
 		fw_cfg_reg_data = fw_cfg_dev_base + FW_CFG_DATA_OFF;
@@ -181,7 +214,9 @@ static int fw_cfg_do_platform_probe(struct platform_device *pdev)
 
 	/* verify fw_cfg device signature */
 	fw_cfg_read_blob(FW_CFG_SIGNATURE, sig, 0, FW_CFG_SIG_SIZE);
-	if (memcmp(sig, "QEMU", FW_CFG_SIG_SIZE) != 0) {
+
+	if (memcmp(sig, "QEMU", FW_CFG_SIG_SIZE) != 0)
+	{
 		fw_cfg_io_cleanup();
 		return -ENODEV;
 	}
@@ -197,16 +232,19 @@ static ssize_t fw_cfg_showrev(struct kobject *k, struct attribute *a, char *buf)
 	return sprintf(buf, "%u\n", fw_cfg_rev);
 }
 
-static const struct {
+static const struct
+{
 	struct attribute attr;
 	ssize_t (*show)(struct kobject *k, struct attribute *a, char *buf);
-} fw_cfg_rev_attr = {
+} fw_cfg_rev_attr =
+{
 	.attr = { .name = "rev", .mode = S_IRUSR },
 	.show = fw_cfg_showrev,
 };
 
 /* fw_cfg_sysfs_entry type */
-struct fw_cfg_sysfs_entry {
+struct fw_cfg_sysfs_entry
+{
 	struct kobject kobj;
 	struct fw_cfg_file f;
 	struct list_head list;
@@ -219,7 +257,8 @@ static inline struct fw_cfg_sysfs_entry *to_entry(struct kobject *kobj)
 }
 
 /* fw_cfg_sysfs_attribute type */
-struct fw_cfg_sysfs_attribute {
+struct fw_cfg_sysfs_attribute
+{
 	struct attribute attr;
 	ssize_t (*show)(struct fw_cfg_sysfs_entry *entry, char *buf);
 };
@@ -254,7 +293,8 @@ static void fw_cfg_sysfs_cache_cleanup(void)
 {
 	struct fw_cfg_sysfs_entry *entry, *next;
 
-	list_for_each_entry_safe(entry, next, &fw_cfg_entry_cache, list) {
+	list_for_each_entry_safe(entry, next, &fw_cfg_entry_cache, list)
+	{
 		/* will end up invoking fw_cfg_sysfs_cache_delist()
 		 * via each object's release() method (i.e. destructor)
 		 */
@@ -265,10 +305,10 @@ static void fw_cfg_sysfs_cache_cleanup(void)
 /* default_attrs: per-entry attributes and show methods */
 
 #define FW_CFG_SYSFS_ATTR(_attr) \
-struct fw_cfg_sysfs_attribute fw_cfg_sysfs_attr_##_attr = { \
-	.attr = { .name = __stringify(_attr), .mode = S_IRUSR }, \
-	.show = fw_cfg_sysfs_show_##_attr, \
-}
+	struct fw_cfg_sysfs_attribute fw_cfg_sysfs_attr_##_attr = { \
+		.attr = { .name = __stringify(_attr), .mode = S_IRUSR }, \
+				.show = fw_cfg_sysfs_show_##_attr, \
+	}
 
 static ssize_t fw_cfg_sysfs_show_size(struct fw_cfg_sysfs_entry *e, char *buf)
 {
@@ -289,7 +329,8 @@ static FW_CFG_SYSFS_ATTR(size);
 static FW_CFG_SYSFS_ATTR(key);
 static FW_CFG_SYSFS_ATTR(name);
 
-static struct attribute *fw_cfg_sysfs_entry_attrs[] = {
+static struct attribute *fw_cfg_sysfs_entry_attrs[] =
+{
 	&fw_cfg_sysfs_attr_size.attr,
 	&fw_cfg_sysfs_attr_key.attr,
 	&fw_cfg_sysfs_attr_name.attr,
@@ -298,7 +339,7 @@ static struct attribute *fw_cfg_sysfs_entry_attrs[] = {
 
 /* sysfs_ops: find fw_cfg_[entry, attribute] and call appropriate show method */
 static ssize_t fw_cfg_sysfs_attr_show(struct kobject *kobj, struct attribute *a,
-				      char *buf)
+									  char *buf)
 {
 	struct fw_cfg_sysfs_entry *entry = to_entry(kobj);
 	struct fw_cfg_sysfs_attribute *attr = to_attr(a);
@@ -306,7 +347,8 @@ static ssize_t fw_cfg_sysfs_attr_show(struct kobject *kobj, struct attribute *a,
 	return attr->show(entry, buf);
 }
 
-static const struct sysfs_ops fw_cfg_sysfs_attr_ops = {
+static const struct sysfs_ops fw_cfg_sysfs_attr_ops =
+{
 	.show = fw_cfg_sysfs_attr_show,
 };
 
@@ -320,7 +362,8 @@ static void fw_cfg_sysfs_release_entry(struct kobject *kobj)
 }
 
 /* kobj_type: ties together all properties required to register an entry */
-static struct kobj_type fw_cfg_sysfs_entry_ktype = {
+static struct kobj_type fw_cfg_sysfs_entry_ktype =
+{
 	.default_attrs = fw_cfg_sysfs_entry_attrs,
 	.sysfs_ops = &fw_cfg_sysfs_attr_ops,
 	.release = fw_cfg_sysfs_release_entry,
@@ -328,22 +371,27 @@ static struct kobj_type fw_cfg_sysfs_entry_ktype = {
 
 /* raw-read method and attribute */
 static ssize_t fw_cfg_sysfs_read_raw(struct file *filp, struct kobject *kobj,
-				     struct bin_attribute *bin_attr,
-				     char *buf, loff_t pos, size_t count)
+									 struct bin_attribute *bin_attr,
+									 char *buf, loff_t pos, size_t count)
 {
 	struct fw_cfg_sysfs_entry *entry = to_entry(kobj);
 
 	if (pos > entry->f.size)
+	{
 		return -EINVAL;
+	}
 
 	if (count > entry->f.size - pos)
+	{
 		count = entry->f.size - pos;
+	}
 
 	fw_cfg_read_blob(entry->f.select, buf, pos, count);
 	return count;
 }
 
-static struct bin_attribute fw_cfg_sysfs_attr_raw = {
+static struct bin_attribute fw_cfg_sysfs_attr_raw =
+{
 	.attr = { .name = "raw", .mode = S_IRUSR },
 	.read = fw_cfg_sysfs_read_raw,
 };
@@ -359,7 +407,7 @@ static struct bin_attribute fw_cfg_sysfs_attr_raw = {
  * own, slightly less scary error messages explaining the situation :)
  */
 static int fw_cfg_build_symlink(struct kset *dir,
-				struct kobject *target, const char *name)
+								struct kobject *target, const char *name)
 {
 	int ret;
 	struct kset *subdir;
@@ -367,52 +415,72 @@ static int fw_cfg_build_symlink(struct kset *dir,
 	char *name_copy, *p, *tok;
 
 	if (!dir || !target || !name || !*name)
+	{
 		return -EINVAL;
+	}
 
 	/* clone a copy of name for parsing */
 	name_copy = p = kstrdup(name, GFP_KERNEL);
+
 	if (!name_copy)
+	{
 		return -ENOMEM;
+	}
 
 	/* create folders for each dirname token, then symlink for basename */
-	while ((tok = strsep(&p, "/")) && *tok) {
+	while ((tok = strsep(&p, "/")) && *tok)
+	{
 
 		/* last (basename) token? If so, add symlink here */
-		if (!p || !*p) {
+		if (!p || !*p)
+		{
 			ret = sysfs_create_link(&dir->kobj, target, tok);
 			break;
 		}
 
 		/* does the current dir contain an item named after tok ? */
 		ko = kset_find_obj(dir, tok);
-		if (ko) {
+
+		if (ko)
+		{
 			/* drop reference added by kset_find_obj */
 			kobject_put(ko);
 
 			/* ko MUST be a kset - we're about to use it as one ! */
-			if (ko->ktype != dir->kobj.ktype) {
+			if (ko->ktype != dir->kobj.ktype)
+			{
 				ret = -EINVAL;
 				break;
 			}
 
 			/* descend into already existing subdirectory */
 			dir = to_kset(ko);
-		} else {
+		}
+		else
+		{
 			/* create new subdirectory kset */
 			subdir = kzalloc(sizeof(struct kset), GFP_KERNEL);
-			if (!subdir) {
+
+			if (!subdir)
+			{
 				ret = -ENOMEM;
 				break;
 			}
+
 			subdir->kobj.kset = dir;
 			subdir->kobj.ktype = dir->kobj.ktype;
 			ret = kobject_set_name(&subdir->kobj, "%s", tok);
-			if (ret) {
+
+			if (ret)
+			{
 				kfree(subdir);
 				break;
 			}
+
 			ret = kset_register(subdir);
-			if (ret) {
+
+			if (ret)
+			{
 				kfree(subdir);
 				break;
 			}
@@ -433,9 +501,12 @@ static void fw_cfg_kset_unregister_recursive(struct kset *kset)
 	struct kobject *k, *next;
 
 	list_for_each_entry_safe(k, next, &kset->list, entry)
-		/* all set members are ksets too, but check just in case... */
-		if (k->ktype == kset->kobj.ktype)
-			fw_cfg_kset_unregister_recursive(to_kset(k));
+
+	/* all set members are ksets too, but check just in case... */
+	if (k->ktype == kset->kobj.ktype)
+	{
+		fw_cfg_kset_unregister_recursive(to_kset(k));
+	}
 
 	/* symlinks are cleanly and automatically removed with the directory */
 	kset_unregister(kset);
@@ -454,22 +525,31 @@ static int fw_cfg_register_file(const struct fw_cfg_file *f)
 
 	/* allocate new entry */
 	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
+
 	if (!entry)
+	{
 		return -ENOMEM;
+	}
 
 	/* set file entry information */
 	memcpy(&entry->f, f, sizeof(struct fw_cfg_file));
 
 	/* register entry under "/sys/firmware/qemu_fw_cfg/by_key/" */
 	err = kobject_init_and_add(&entry->kobj, &fw_cfg_sysfs_entry_ktype,
-				   fw_cfg_sel_ko, "%d", entry->f.select);
+							   fw_cfg_sel_ko, "%d", entry->f.select);
+
 	if (err)
+	{
 		goto err_register;
+	}
 
 	/* add raw binary content access */
 	err = sysfs_create_bin_file(&entry->kobj, &fw_cfg_sysfs_attr_raw);
+
 	if (err)
+	{
 		goto err_add_raw;
+	}
 
 	/* try adding "/sys/firmware/qemu_fw_cfg/by_name/" symlink */
 	fw_cfg_build_symlink(fw_cfg_fname_kset, &entry->kobj, entry->f.name);
@@ -498,17 +578,24 @@ static int fw_cfg_register_dir_entries(void)
 	dir_size = count * sizeof(struct fw_cfg_file);
 
 	dir = kmalloc(dir_size, GFP_KERNEL);
+
 	if (!dir)
+	{
 		return -ENOMEM;
+	}
 
 	fw_cfg_read_blob(FW_CFG_FILE_DIR, dir, sizeof(count), dir_size);
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		dir[i].size = be32_to_cpu(dir[i].size);
 		dir[i].select = be16_to_cpu(dir[i].select);
 		ret = fw_cfg_register_file(&dir[i]);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 
 	kfree(dir);
@@ -533,33 +620,51 @@ static int fw_cfg_sysfs_probe(struct platform_device *pdev)
 	 * earlier, we might as well stop here.
 	 */
 	if (fw_cfg_sel_ko)
+	{
 		return -EBUSY;
+	}
 
 	/* create by_key and by_name subdirs of /sys/firmware/qemu_fw_cfg/ */
 	err = -ENOMEM;
 	fw_cfg_sel_ko = kobject_create_and_add("by_key", fw_cfg_top_ko);
+
 	if (!fw_cfg_sel_ko)
+	{
 		goto err_sel;
+	}
+
 	fw_cfg_fname_kset = kset_create_and_add("by_name", NULL, fw_cfg_top_ko);
+
 	if (!fw_cfg_fname_kset)
+	{
 		goto err_name;
+	}
 
 	/* initialize fw_cfg device i/o from platform data */
 	err = fw_cfg_do_platform_probe(pdev);
+
 	if (err)
+	{
 		goto err_probe;
+	}
 
 	/* get revision number, add matching top-level attribute */
 	fw_cfg_read_blob(FW_CFG_ID, &fw_cfg_rev, 0, sizeof(fw_cfg_rev));
 	fw_cfg_rev = le32_to_cpu(fw_cfg_rev);
 	err = sysfs_create_file(fw_cfg_top_ko, &fw_cfg_rev_attr.attr);
+
 	if (err)
+	{
 		goto err_rev;
+	}
 
 	/* process fw_cfg file directory entry, registering each file */
 	err = fw_cfg_register_dir_entries();
+
 	if (err)
+	{
 		goto err_dir;
+	}
 
 	/* success */
 	pr_debug("fw_cfg: loaded.\n");
@@ -588,21 +693,24 @@ static int fw_cfg_sysfs_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id fw_cfg_sysfs_mmio_match[] = {
+static const struct of_device_id fw_cfg_sysfs_mmio_match[] =
+{
 	{ .compatible = "qemu,fw-cfg-mmio", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, fw_cfg_sysfs_mmio_match);
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id fw_cfg_sysfs_acpi_match[] = {
+static const struct acpi_device_id fw_cfg_sysfs_acpi_match[] =
+{
 	{ "QEMU0002", },
 	{},
 };
 MODULE_DEVICE_TABLE(acpi, fw_cfg_sysfs_acpi_match);
 #endif
 
-static struct platform_driver fw_cfg_sysfs_driver = {
+static struct platform_driver fw_cfg_sysfs_driver =
+{
 	.probe = fw_cfg_sysfs_probe,
 	.remove = fw_cfg_sysfs_remove,
 	.driver = {
@@ -620,22 +728,22 @@ static struct platform_device *fw_cfg_cmdline_dev;
  * but right now we are the only ones doing it...
  */
 #ifdef CONFIG_PHYS_ADDR_T_64BIT
-#define __PHYS_ADDR_PREFIX "ll"
+	#define __PHYS_ADDR_PREFIX "ll"
 #else
-#define __PHYS_ADDR_PREFIX ""
+	#define __PHYS_ADDR_PREFIX ""
 #endif
 
 /* use special scanf/printf modifier for phys_addr_t, resource_size_t */
 #define PH_ADDR_SCAN_FMT "@%" __PHYS_ADDR_PREFIX "i%n" \
-			 ":%" __PHYS_ADDR_PREFIX "i" \
-			 ":%" __PHYS_ADDR_PREFIX "i%n"
+	":%" __PHYS_ADDR_PREFIX "i" \
+	":%" __PHYS_ADDR_PREFIX "i%n"
 
 #define PH_ADDR_PR_1_FMT "0x%" __PHYS_ADDR_PREFIX "x@" \
-			 "0x%" __PHYS_ADDR_PREFIX "x"
+	"0x%" __PHYS_ADDR_PREFIX "x"
 
 #define PH_ADDR_PR_3_FMT PH_ADDR_PR_1_FMT \
-			 ":%" __PHYS_ADDR_PREFIX "u" \
-			 ":%" __PHYS_ADDR_PREFIX "u"
+	":%" __PHYS_ADDR_PREFIX "u" \
+	":%" __PHYS_ADDR_PREFIX "u"
 
 static int fw_cfg_cmdline_set(const char *arg, const struct kernel_param *kp)
 {
@@ -649,7 +757,8 @@ static int fw_cfg_cmdline_set(const char *arg, const struct kernel_param *kp)
 	 * was processed on the command line already, we might as
 	 * well stop here.
 	 */
-	if (fw_cfg_cmdline_dev) {
+	if (fw_cfg_cmdline_dev)
+	{
 		/* avoid leaking previously registered device */
 		platform_device_unregister(fw_cfg_cmdline_dev);
 		return -EINVAL;
@@ -660,8 +769,8 @@ static int fw_cfg_cmdline_set(const char *arg, const struct kernel_param *kp)
 
 	/* get "@<base>[:<ctrl_off>:<data_off>]" chunks */
 	processed = sscanf(str, PH_ADDR_SCAN_FMT,
-			   &base, &consumed,
-			   &ctrl_off, &data_off, &consumed);
+					   &base, &consumed,
+					   &ctrl_off, &data_off, &consumed);
 
 	/* sscanf() must process precisely 1 or 3 chunks:
 	 * <base> is mandatory, optionally followed by <ctrl_off>
@@ -670,16 +779,19 @@ static int fw_cfg_cmdline_set(const char *arg, const struct kernel_param *kp)
 	 * so str[consumed] must be '\0'.
 	 */
 	if (str[consumed] ||
-	    (processed != 1 && processed != 3))
+		(processed != 1 && processed != 3))
+	{
 		return -EINVAL;
+	}
 
 	res[0].start = base;
 	res[0].end = base + size - 1;
 	res[0].flags = !strcmp(kp->name, "mmio") ? IORESOURCE_MEM :
-						   IORESOURCE_IO;
+				   IORESOURCE_IO;
 
 	/* insert register offsets, if provided */
-	if (processed > 1) {
+	if (processed > 1)
+	{
 		res[1].name = "ctrl";
 		res[1].start = ctrl_off;
 		res[1].flags = IORESOURCE_REG;
@@ -692,9 +804,12 @@ static int fw_cfg_cmdline_set(const char *arg, const struct kernel_param *kp)
 	 * we need to pass in to this platform device.
 	 */
 	fw_cfg_cmdline_dev = platform_device_register_simple("fw_cfg",
-					PLATFORM_DEVID_NONE, res, processed);
+						 PLATFORM_DEVID_NONE, res, processed);
+
 	if (IS_ERR(fw_cfg_cmdline_dev))
+	{
 		return PTR_ERR(fw_cfg_cmdline_dev);
+	}
 
 	return 0;
 }
@@ -706,30 +821,35 @@ static int fw_cfg_cmdline_get(char *buf, const struct kernel_param *kp)
 	 * the device setting
 	 */
 	if (!fw_cfg_cmdline_dev ||
-	    (!strcmp(kp->name, "mmio") ^
-	     (fw_cfg_cmdline_dev->resource[0].flags == IORESOURCE_MEM)))
+		(!strcmp(kp->name, "mmio") ^
+		 (fw_cfg_cmdline_dev->resource[0].flags == IORESOURCE_MEM)))
+	{
 		return 0;
+	}
 
-	switch (fw_cfg_cmdline_dev->num_resources) {
-	case 1:
-		return snprintf(buf, PAGE_SIZE, PH_ADDR_PR_1_FMT,
-				resource_size(&fw_cfg_cmdline_dev->resource[0]),
-				fw_cfg_cmdline_dev->resource[0].start);
-	case 3:
-		return snprintf(buf, PAGE_SIZE, PH_ADDR_PR_3_FMT,
-				resource_size(&fw_cfg_cmdline_dev->resource[0]),
-				fw_cfg_cmdline_dev->resource[0].start,
-				fw_cfg_cmdline_dev->resource[1].start,
-				fw_cfg_cmdline_dev->resource[2].start);
+	switch (fw_cfg_cmdline_dev->num_resources)
+	{
+		case 1:
+			return snprintf(buf, PAGE_SIZE, PH_ADDR_PR_1_FMT,
+							resource_size(&fw_cfg_cmdline_dev->resource[0]),
+							fw_cfg_cmdline_dev->resource[0].start);
+
+		case 3:
+			return snprintf(buf, PAGE_SIZE, PH_ADDR_PR_3_FMT,
+							resource_size(&fw_cfg_cmdline_dev->resource[0]),
+							fw_cfg_cmdline_dev->resource[0].start,
+							fw_cfg_cmdline_dev->resource[1].start,
+							fw_cfg_cmdline_dev->resource[2].start);
 	}
 
 	/* Should never get here */
 	WARN(1, "Unexpected number of resources: %d\n",
-		fw_cfg_cmdline_dev->num_resources);
+		 fw_cfg_cmdline_dev->num_resources);
 	return 0;
 }
 
-static const struct kernel_param_ops fw_cfg_cmdline_param_ops = {
+static const struct kernel_param_ops fw_cfg_cmdline_param_ops =
+{
 	.set = fw_cfg_cmdline_set,
 	.get = fw_cfg_cmdline_get,
 };
@@ -745,12 +865,18 @@ static int __init fw_cfg_sysfs_init(void)
 
 	/* create /sys/firmware/qemu_fw_cfg/ top level directory */
 	fw_cfg_top_ko = kobject_create_and_add("qemu_fw_cfg", firmware_kobj);
+
 	if (!fw_cfg_top_ko)
+	{
 		return -ENOMEM;
+	}
 
 	ret = platform_driver_register(&fw_cfg_sysfs_driver);
+
 	if (ret)
+	{
 		fw_cfg_kobj_cleanup(fw_cfg_top_ko);
+	}
 
 	return ret;
 }

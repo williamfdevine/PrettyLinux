@@ -32,12 +32,14 @@
 #define ATMEL_HLCDC_PWMPS_MAX		0x6
 #define ATMEL_HLCDC_PWMPS(x)		((x) & ATMEL_HLCDC_PWMPS_MASK)
 
-struct atmel_hlcdc_pwm_errata {
+struct atmel_hlcdc_pwm_errata
+{
 	bool slow_clk_erratum;
 	bool div1_clk_erratum;
 };
 
-struct atmel_hlcdc_pwm {
+struct atmel_hlcdc_pwm
+{
 	struct pwm_chip chip;
 	struct atmel_hlcdc *hlcdc;
 	struct clk *cur_clk;
@@ -50,8 +52,8 @@ static inline struct atmel_hlcdc_pwm *to_atmel_hlcdc_pwm(struct pwm_chip *chip)
 }
 
 static int atmel_hlcdc_pwm_config(struct pwm_chip *c,
-				  struct pwm_device *pwm,
-				  int duty_ns, int period_ns)
+								  struct pwm_device *pwm,
+								  int duty_ns, int period_ns)
 {
 	struct atmel_hlcdc_pwm *chip = to_atmel_hlcdc_pwm(c);
 	struct atmel_hlcdc *hlcdc = chip->hlcdc;
@@ -62,10 +64,14 @@ static int atmel_hlcdc_pwm_config(struct pwm_chip *c,
 	u32 pwmcfg;
 	int pres;
 
-	if (!chip->errata || !chip->errata->slow_clk_erratum) {
+	if (!chip->errata || !chip->errata->slow_clk_erratum)
+	{
 		clk_freq = clk_get_rate(new_clk);
+
 		if (!clk_freq)
+		{
 			return -EINVAL;
+		}
 
 		clk_period_ns = (u64)NSEC_PER_SEC * 256;
 		do_div(clk_period_ns, clk_freq);
@@ -73,48 +79,68 @@ static int atmel_hlcdc_pwm_config(struct pwm_chip *c,
 
 	/* Errata: cannot use slow clk on some IP revisions */
 	if ((chip->errata && chip->errata->slow_clk_erratum) ||
-	    clk_period_ns > period_ns) {
+		clk_period_ns > period_ns)
+	{
 		new_clk = hlcdc->sys_clk;
 		clk_freq = clk_get_rate(new_clk);
+
 		if (!clk_freq)
+		{
 			return -EINVAL;
+		}
 
 		clk_period_ns = (u64)NSEC_PER_SEC * 256;
 		do_div(clk_period_ns, clk_freq);
 	}
 
-	for (pres = 0; pres <= ATMEL_HLCDC_PWMPS_MAX; pres++) {
+	for (pres = 0; pres <= ATMEL_HLCDC_PWMPS_MAX; pres++)
+	{
 		/* Errata: cannot divide by 1 on some IP revisions */
 		if (!pres && chip->errata && chip->errata->div1_clk_erratum)
+		{
 			continue;
+		}
 
 		if ((clk_period_ns << pres) >= period_ns)
+		{
 			break;
+		}
 	}
 
 	if (pres > ATMEL_HLCDC_PWMPS_MAX)
+	{
 		return -EINVAL;
+	}
 
 	pwmcfg = ATMEL_HLCDC_PWMPS(pres);
 
-	if (new_clk != chip->cur_clk) {
+	if (new_clk != chip->cur_clk)
+	{
 		u32 gencfg = 0;
 		int ret;
 
 		ret = clk_prepare_enable(new_clk);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		clk_disable_unprepare(chip->cur_clk);
 		chip->cur_clk = new_clk;
 
 		if (new_clk == hlcdc->sys_clk)
+		{
 			gencfg = ATMEL_HLCDC_CLKPWMSEL;
+		}
 
 		ret = regmap_update_bits(hlcdc->regmap, ATMEL_HLCDC_CFG(0),
-					 ATMEL_HLCDC_CLKPWMSEL, gencfg);
+								 ATMEL_HLCDC_CLKPWMSEL, gencfg);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	do_div(pwmcval, period_ns);
@@ -126,29 +152,33 @@ static int atmel_hlcdc_pwm_config(struct pwm_chip *c,
 	 * Set it to 255 if pwmcval is greater than 256.
 	 */
 	if (pwmcval > 255)
+	{
 		pwmcval = 255;
+	}
 
 	pwmcfg |= ATMEL_HLCDC_PWMCVAL(pwmcval);
 
 	return regmap_update_bits(hlcdc->regmap, ATMEL_HLCDC_CFG(6),
-				  ATMEL_HLCDC_PWMCVAL_MASK |
-				  ATMEL_HLCDC_PWMPS_MASK,
-				  pwmcfg);
+							  ATMEL_HLCDC_PWMCVAL_MASK |
+							  ATMEL_HLCDC_PWMPS_MASK,
+							  pwmcfg);
 }
 
 static int atmel_hlcdc_pwm_set_polarity(struct pwm_chip *c,
-					struct pwm_device *pwm,
-					enum pwm_polarity polarity)
+										struct pwm_device *pwm,
+										enum pwm_polarity polarity)
 {
 	struct atmel_hlcdc_pwm *chip = to_atmel_hlcdc_pwm(c);
 	struct atmel_hlcdc *hlcdc = chip->hlcdc;
 	u32 cfg = 0;
 
 	if (polarity == PWM_POLARITY_NORMAL)
+	{
 		cfg = ATMEL_HLCDC_PWMPOL;
+	}
 
 	return regmap_update_bits(hlcdc->regmap, ATMEL_HLCDC_CFG(6),
-				  ATMEL_HLCDC_PWMPOL, cfg);
+							  ATMEL_HLCDC_PWMPOL, cfg);
 }
 
 static int atmel_hlcdc_pwm_enable(struct pwm_chip *c, struct pwm_device *pwm)
@@ -159,16 +189,25 @@ static int atmel_hlcdc_pwm_enable(struct pwm_chip *c, struct pwm_device *pwm)
 	int ret;
 
 	ret = regmap_write(hlcdc->regmap, ATMEL_HLCDC_EN, ATMEL_HLCDC_PWM);
-	if (ret)
-		return ret;
 
-	while (true) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	while (true)
+	{
 		ret = regmap_read(hlcdc->regmap, ATMEL_HLCDC_SR, &status);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		if ((status & ATMEL_HLCDC_PWM) != 0)
+		{
 			break;
+		}
 
 		usleep_range(1, 10);
 	}
@@ -177,7 +216,7 @@ static int atmel_hlcdc_pwm_enable(struct pwm_chip *c, struct pwm_device *pwm)
 }
 
 static void atmel_hlcdc_pwm_disable(struct pwm_chip *c,
-				    struct pwm_device *pwm)
+									struct pwm_device *pwm)
 {
 	struct atmel_hlcdc_pwm *chip = to_atmel_hlcdc_pwm(c);
 	struct atmel_hlcdc *hlcdc = chip->hlcdc;
@@ -185,22 +224,32 @@ static void atmel_hlcdc_pwm_disable(struct pwm_chip *c,
 	int ret;
 
 	ret = regmap_write(hlcdc->regmap, ATMEL_HLCDC_DIS, ATMEL_HLCDC_PWM);
-	if (ret)
-		return;
 
-	while (true) {
+	if (ret)
+	{
+		return;
+	}
+
+	while (true)
+	{
 		ret = regmap_read(hlcdc->regmap, ATMEL_HLCDC_SR, &status);
+
 		if (ret)
+		{
 			return;
+		}
 
 		if ((status & ATMEL_HLCDC_PWM) == 0)
+		{
 			break;
+		}
 
 		usleep_range(1, 10);
 	}
 }
 
-static const struct pwm_ops atmel_hlcdc_pwm_ops = {
+static const struct pwm_ops atmel_hlcdc_pwm_ops =
+{
 	.config = atmel_hlcdc_pwm_config,
 	.set_polarity = atmel_hlcdc_pwm_set_polarity,
 	.enable = atmel_hlcdc_pwm_enable,
@@ -208,15 +257,18 @@ static const struct pwm_ops atmel_hlcdc_pwm_ops = {
 	.owner = THIS_MODULE,
 };
 
-static const struct atmel_hlcdc_pwm_errata atmel_hlcdc_pwm_at91sam9x5_errata = {
+static const struct atmel_hlcdc_pwm_errata atmel_hlcdc_pwm_at91sam9x5_errata =
+{
 	.slow_clk_erratum = true,
 };
 
-static const struct atmel_hlcdc_pwm_errata atmel_hlcdc_pwm_sama5d3_errata = {
+static const struct atmel_hlcdc_pwm_errata atmel_hlcdc_pwm_sama5d3_errata =
+{
 	.div1_clk_erratum = true,
 };
 
-static const struct of_device_id atmel_hlcdc_dt_ids[] = {
+static const struct of_device_id atmel_hlcdc_dt_ids[] =
+{
 	{
 		.compatible = "atmel,at91sam9n12-hlcdc",
 		/* 9n12 has same errata as 9x5 HLCDC PWM */
@@ -252,16 +304,25 @@ static int atmel_hlcdc_pwm_probe(struct platform_device *pdev)
 	hlcdc = dev_get_drvdata(dev->parent);
 
 	chip = devm_kzalloc(dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	ret = clk_prepare_enable(hlcdc->periph_clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	match = of_match_node(atmel_hlcdc_dt_ids, dev->parent->of_node);
+
 	if (match)
+	{
 		chip->errata = match->data;
+	}
 
 	chip->hlcdc = hlcdc;
 	chip->chip.ops = &atmel_hlcdc_pwm_ops;
@@ -273,7 +334,9 @@ static int atmel_hlcdc_pwm_probe(struct platform_device *pdev)
 	chip->chip.can_sleep = 1;
 
 	ret = pwmchip_add_with_polarity(&chip->chip, PWM_POLARITY_INVERSED);
-	if (ret) {
+
+	if (ret)
+	{
 		clk_disable_unprepare(hlcdc->periph_clk);
 		return ret;
 	}
@@ -289,20 +352,25 @@ static int atmel_hlcdc_pwm_remove(struct platform_device *pdev)
 	int ret;
 
 	ret = pwmchip_remove(&chip->chip);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	clk_disable_unprepare(chip->hlcdc->periph_clk);
 
 	return 0;
 }
 
-static const struct of_device_id atmel_hlcdc_pwm_dt_ids[] = {
+static const struct of_device_id atmel_hlcdc_pwm_dt_ids[] =
+{
 	{ .compatible = "atmel,hlcdc-pwm" },
 	{ /* sentinel */ },
 };
 
-static struct platform_driver atmel_hlcdc_pwm_driver = {
+static struct platform_driver atmel_hlcdc_pwm_driver =
+{
 	.driver = {
 		.name = "atmel-hlcdc-pwm",
 		.of_match_table = atmel_hlcdc_pwm_dt_ids,

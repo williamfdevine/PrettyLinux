@@ -1,23 +1,24 @@
 /* sonet.h - SONET/SHD physical layer control */
- 
+
 /* Written 1995-2000 by Werner Almesberger, EPFL LRC/ICA */
- 
+
 
 #ifndef _UAPILINUX_SONET_H
 #define _UAPILINUX_SONET_H
 
 #define __SONET_ITEMS \
-    __HANDLE_ITEM(section_bip); 	/* section parity errors (B1) */ \
-    __HANDLE_ITEM(line_bip);		/* line parity errors (B2) */ \
-    __HANDLE_ITEM(path_bip);		/* path parity errors (B3) */ \
-    __HANDLE_ITEM(line_febe);		/* line parity errors at remote */ \
-    __HANDLE_ITEM(path_febe);		/* path parity errors at remote */ \
-    __HANDLE_ITEM(corr_hcs);		/* correctable header errors */ \
-    __HANDLE_ITEM(uncorr_hcs);		/* uncorrectable header errors */ \
-    __HANDLE_ITEM(tx_cells);		/* cells sent */ \
-    __HANDLE_ITEM(rx_cells);		/* cells received */
+	__HANDLE_ITEM(section_bip); 	/* section parity errors (B1) */ \
+	__HANDLE_ITEM(line_bip);		/* line parity errors (B2) */ \
+	__HANDLE_ITEM(path_bip);		/* path parity errors (B3) */ \
+	__HANDLE_ITEM(line_febe);		/* line parity errors at remote */ \
+	__HANDLE_ITEM(path_febe);		/* path parity errors at remote */ \
+	__HANDLE_ITEM(corr_hcs);		/* correctable header errors */ \
+	__HANDLE_ITEM(uncorr_hcs);		/* uncorrectable header errors */ \
+	__HANDLE_ITEM(tx_cells);		/* cells sent */ \
+	__HANDLE_ITEM(rx_cells);		/* cells received */
 
-struct sonet_stats {
+struct sonet_stats
+{
 #define __HANDLE_ITEM(i) int i
 	__SONET_ITEMS
 #undef __HANDLE_ITEM
@@ -25,21 +26,21 @@ struct sonet_stats {
 
 
 #define SONET_GETSTAT	_IOR('a',ATMIOC_PHYTYP,struct sonet_stats)
-					/* get statistics */
+/* get statistics */
 #define SONET_GETSTATZ	_IOR('a',ATMIOC_PHYTYP+1,struct sonet_stats)
-					/* ... and zero counters */
+/* ... and zero counters */
 #define SONET_SETDIAG	_IOWR('a',ATMIOC_PHYTYP+2,int)
-					/* set error insertion */
+/* set error insertion */
 #define SONET_CLRDIAG	_IOWR('a',ATMIOC_PHYTYP+3,int)
-					/* clear error insertion */
+/* clear error insertion */
 #define SONET_GETDIAG	_IOR('a',ATMIOC_PHYTYP+4,int)
-					/* query error insertion */
+/* query error insertion */
 #define SONET_SETFRAMING _IOW('a',ATMIOC_PHYTYP+5,int)
-					/* set framing mode (SONET/SDH) */
+/* set framing mode (SONET/SDH) */
 #define SONET_GETFRAMING _IOR('a',ATMIOC_PHYTYP+6,int)
-					/* get framing mode */
+/* get framing mode */
 #define SONET_GETFRSENSE _IOR('a',ATMIOC_PHYTYP+7, \
-  unsigned char[SONET_FRSENSE_SIZE])	/* get framing sense information */
+							  unsigned char[SONET_FRSENSE_SIZE])	/* get framing sense information */
 
 #define SONET_INS_SBIP	  1		/* section BIP */
 #define SONET_INS_LBIP	  2		/* line BIP */

@@ -35,7 +35,9 @@ int speakup_add_virtual_keyboard(void)
 	virt_keyboard = input_allocate_device();
 
 	if (!virt_keyboard)
+	{
 		return -ENOMEM;
+	}
 
 	virt_keyboard->name = "Speakup";
 	virt_keyboard->id.bustype = BUS_VIRTUAL;
@@ -46,7 +48,9 @@ int speakup_add_virtual_keyboard(void)
 	__set_bit(KEY_DOWN, virt_keyboard->keybit);
 
 	err = input_register_device(virt_keyboard);
-	if (err) {
+
+	if (err)
+	{
 		input_free_device(virt_keyboard);
 		virt_keyboard = NULL;
 	}
@@ -56,7 +60,8 @@ int speakup_add_virtual_keyboard(void)
 
 void speakup_remove_virtual_keyboard(void)
 {
-	if (virt_keyboard != NULL) {
+	if (virt_keyboard != NULL)
+	{
 		input_unregister_device(virt_keyboard);
 		virt_keyboard = NULL;
 	}

@@ -1,5 +1,5 @@
 /*
- * Device driver for the SYMBIOS/LSILOGIC 53C8XX and 53C1010 family 
+ * Device driver for the SYMBIOS/LSILOGIC 53C8XX and 53C1010 family
  * of PCI-SCSI IO processors.
  *
  * Copyright (C) 1999-2001  Gerard Roudier <groudier@free.fr>
@@ -7,7 +7,7 @@
  * This driver is derived from the Linux sym53c8xx driver.
  * Copyright (C) 1998-2000  Gerard Roudier
  *
- * The sym53c8xx driver is derived from the ncr53c8xx driver that had been 
+ * The sym53c8xx driver is derived from the ncr53c8xx driver that had been
  * a port of the FreeBSD ncr driver to Linux-1.2.13.
  *
  * The original ncr driver has been written for 386bsd and FreeBSD by
@@ -51,7 +51,7 @@
 
 #include <asm/io.h>
 #ifdef __sparc__
-#  include <asm/irq.h>
+	#include <asm/irq.h>
 #endif
 
 #include <scsi/scsi.h>
@@ -86,19 +86,19 @@
 #define	printf(args...)		printk(args)
 
 /*
- *  A 'read barrier' flushes any data that have been prefetched 
- *  by the processor due to out of order execution. Such a barrier 
- *  must notably be inserted prior to looking at data that have 
- *  been DMAed, assuming that program does memory READs in proper 
+ *  A 'read barrier' flushes any data that have been prefetched
+ *  by the processor due to out of order execution. Such a barrier
+ *  must notably be inserted prior to looking at data that have
+ *  been DMAed, assuming that program does memory READs in proper
  *  order and that the device ensured proper ordering of WRITEs.
  *
- *  A 'write barrier' prevents any previous WRITEs to pass further 
- *  WRITEs. Such barriers must be inserted each time another agent 
+ *  A 'write barrier' prevents any previous WRITEs to pass further
+ *  WRITEs. Such barriers must be inserted each time another agent
  *  relies on ordering of WRITEs.
  *
- *  Note that, due to posting of PCI memory writes, we also must 
- *  insert dummy PCI read transactions when some ordering involving 
- *  both directions over the PCI does matter. PCI transactions are 
+ *  Note that, due to posting of PCI memory writes, we also must
+ *  insert dummy PCI read transactions when some ordering involving
+ *  both directions over the PCI does matter. PCI transactions are
  *  fully ordered in each direction.
  */
 
@@ -107,34 +107,34 @@
 
 /*
  *  IO functions definition for big/little endian CPU support.
- *  For now, PCI chips are only supported in little endian addressing mode, 
+ *  For now, PCI chips are only supported in little endian addressing mode,
  */
 
 #ifdef	__BIG_ENDIAN
 
-#define	readw_l2b	readw
-#define	readl_l2b	readl
-#define	writew_b2l	writew
-#define	writel_b2l	writel
+	#define	readw_l2b	readw
+	#define	readl_l2b	readl
+	#define	writew_b2l	writew
+	#define	writel_b2l	writel
 
 #else	/* little endian */
 
-#define	readw_raw	readw
-#define	readl_raw	readl
-#define	writew_raw	writew
-#define	writel_raw	writel
+	#define	readw_raw	readw
+	#define	readl_raw	readl
+	#define	writew_raw	writew
+	#define	writel_raw	writel
 
 #endif /* endian */
 
 #ifdef	SYM_CONF_CHIP_BIG_ENDIAN
-#error	"Chips in BIG ENDIAN addressing mode are not (yet) supported"
+	#error	"Chips in BIG ENDIAN addressing mode are not (yet) supported"
 #endif
 
 /*
  *  If the CPU and the chip use same endian-ness addressing,
  *  no byte reordering is needed for script patching.
  *  Macro cpu_to_scr() is to be used for script patching.
- *  Macro scr_to_cpu() is to be used for getting a DWORD 
+ *  Macro scr_to_cpu() is to be used for getting a DWORD
  *  from the script.
  */
 
@@ -142,7 +142,7 @@
 #define scr_to_cpu(dw)	le32_to_cpu(dw)
 
 /*
- *  These ones are used as return code from 
+ *  These ones are used as return code from
  *  error recovery handlers under Linux.
  */
 #define SCSI_SUCCESS	SUCCESS
@@ -158,7 +158,8 @@
  *  System specific lun data structure.
  */
 #define SYM_HAVE_SLCB
-struct sym_slcb {
+struct sym_slcb
+{
 	u_short	reqtags;	/* Number of tags requested by user */
 	u_short scdev_depth;	/* Queue depth set in select_queue_depth() */
 };
@@ -172,7 +173,8 @@ struct sym_slcb {
 /*
  *  System specific host data structure.
  */
-struct sym_shcb {
+struct sym_shcb
+{
 	/*
 	 *  Chip and controller identification.
 	 */
@@ -182,8 +184,8 @@ struct sym_shcb {
 
 	struct Scsi_Host *host;
 
-	void __iomem *	ioaddr;		/* MMIO kernel io address	*/
-	void __iomem *	ramaddr;	/* RAM  kernel io address	*/
+	void __iomem 	*ioaddr;		/* MMIO kernel io address	*/
+	void __iomem 	*ramaddr;	/* RAM  kernel io address	*/
 
 	struct timer_list timer;	/* Timer handler link header	*/
 	u_long		lasttime;
@@ -201,11 +203,13 @@ struct sym_nvram;
 /*
  * The IO macros require a struct called 's' and are abused in sym_nvram.c
  */
-struct sym_device {
+struct sym_device
+{
 	struct pci_dev *pdev;
 	unsigned long mmio_base;
 	unsigned long ram_base;
-	struct {
+	struct
+	{
 		void __iomem *ioaddr;
 		void __iomem *ramaddr;
 	} s;
@@ -217,13 +221,14 @@ struct sym_device {
 /*
  *  Driver host data structure.
  */
-struct sym_data {
+struct sym_data
+{
 	struct sym_hcb *ncb;
 	struct completion *io_reset;		/* PCI error handling */
 	struct pci_dev *pdev;
 };
 
-static inline struct sym_hcb * sym_get_hcb(struct Scsi_Host *host)
+static inline struct sym_hcb *sym_get_hcb(struct Scsi_Host *host)
 {
 	return ((struct sym_data *)host->hostdata)->ncb;
 }

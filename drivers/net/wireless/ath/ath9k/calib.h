@@ -27,7 +27,8 @@
 #define NUM_NF_READINGS       6
 #define ATH9K_NF_CAL_HIST_MAX 5
 
-struct ar5416IniArray {
+struct ar5416IniArray
+{
 	u32 *ia_array;
 	u32 ia_rows;
 	u32 ia_columns;
@@ -35,8 +36,8 @@ struct ar5416IniArray {
 
 #define STATIC_INI_ARRAY(array) {			\
 		.ia_array = (u32 *)(array),		\
-		.ia_rows = ARRAY_SIZE(array),		\
-		.ia_columns = ARRAY_SIZE(array[0]),	\
+					.ia_rows = ARRAY_SIZE(array),		\
+							   .ia_columns = ARRAY_SIZE(array[0]),	\
 	}
 
 #define INIT_INI_ARRAY(iniarray, array) do {	\
@@ -57,7 +58,7 @@ struct ar5416IniArray {
 	do {								\
 		if ((_ahp)->cal_list_last == NULL) {			\
 			(_ahp)->cal_list =				\
-				(_ahp)->cal_list_last = (_perCal);	\
+											(_ahp)->cal_list_last = (_perCal);	\
 			((_ahp)->cal_list_last)->calNext = (_perCal); \
 		} else {						\
 			((_ahp)->cal_list_last)->calNext = (_perCal); \
@@ -66,7 +67,8 @@ struct ar5416IniArray {
 		}							\
 	} while (0)
 
-enum ath9k_cal_state {
+enum ath9k_cal_state
+{
 	CAL_INACTIVE,
 	CAL_WAITING,
 	CAL_RUNNING,
@@ -79,7 +81,8 @@ enum ath9k_cal_state {
 #define PER_MIN_LOG_COUNT   2
 #define PER_MAX_LOG_COUNT  10
 
-struct ath9k_percal_data {
+struct ath9k_percal_data
+{
 	u32 calType;
 	u32 calNumSamples;
 	u32 calCountMax;
@@ -87,13 +90,15 @@ struct ath9k_percal_data {
 	void (*calPostProc) (struct ath_hw *, u8);
 };
 
-struct ath9k_cal_list {
+struct ath9k_cal_list
+{
 	const struct ath9k_percal_data *calData;
 	enum ath9k_cal_state calState;
 	struct ath9k_cal_list *calNext;
 };
 
-struct ath9k_nfcal_hist {
+struct ath9k_nfcal_hist
+{
 	int16_t nfCalBuffer[ATH9K_NF_CAL_HIST_MAX];
 	u8 currIndex;
 	int16_t privNF;
@@ -101,7 +106,8 @@ struct ath9k_nfcal_hist {
 };
 
 #define MAX_PACAL_SKIPCOUNT 8
-struct ath9k_pacal_info{
+struct ath9k_pacal_info
+{
 	int32_t prev_offset;	/* Previous value of PA offset value */
 	int8_t max_skipcount;	/* Max No. of times PACAL can be skipped */
 	int8_t skipcount;	/* No. of times the PACAL to be skipped */
@@ -112,12 +118,12 @@ void ath9k_hw_start_nfcal(struct ath_hw *ah, bool update);
 int ath9k_hw_loadnf(struct ath_hw *ah, struct ath9k_channel *chan);
 bool ath9k_hw_getnf(struct ath_hw *ah, struct ath9k_channel *chan);
 void ath9k_init_nfcal_hist_buffer(struct ath_hw *ah,
-				  struct ath9k_channel *chan);
+								  struct ath9k_channel *chan);
 void ath9k_hw_bstuck_nfcal(struct ath_hw *ah);
 void ath9k_hw_reset_calibration(struct ath_hw *ah,
-				struct ath9k_cal_list *currCal);
+								struct ath9k_cal_list *currCal);
 s16 ath9k_hw_getchan_noise(struct ath_hw *ah, struct ath9k_channel *chan,
-			   s16 nf);
+						   s16 nf);
 
 
 #endif /* CALIB_H */

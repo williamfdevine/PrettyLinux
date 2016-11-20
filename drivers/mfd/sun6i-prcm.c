@@ -12,12 +12,14 @@
 #include <linux/init.h>
 #include <linux/of.h>
 
-struct prcm_data {
+struct prcm_data
+{
 	int nsubdevs;
 	const struct mfd_cell *subdevs;
 };
 
-static const struct resource sun6i_a31_ar100_clk_res[] = {
+static const struct resource sun6i_a31_ar100_clk_res[] =
+{
 	{
 		.start = 0x0,
 		.end = 0x3,
@@ -25,7 +27,8 @@ static const struct resource sun6i_a31_ar100_clk_res[] = {
 	},
 };
 
-static const struct resource sun6i_a31_apb0_clk_res[] = {
+static const struct resource sun6i_a31_apb0_clk_res[] =
+{
 	{
 		.start = 0xc,
 		.end = 0xf,
@@ -33,7 +36,8 @@ static const struct resource sun6i_a31_apb0_clk_res[] = {
 	},
 };
 
-static const struct resource sun6i_a31_apb0_gates_clk_res[] = {
+static const struct resource sun6i_a31_apb0_gates_clk_res[] =
+{
 	{
 		.start = 0x28,
 		.end = 0x2b,
@@ -41,7 +45,8 @@ static const struct resource sun6i_a31_apb0_gates_clk_res[] = {
 	},
 };
 
-static const struct resource sun6i_a31_ir_clk_res[] = {
+static const struct resource sun6i_a31_ir_clk_res[] =
+{
 	{
 		.start = 0x54,
 		.end = 0x57,
@@ -49,7 +54,8 @@ static const struct resource sun6i_a31_ir_clk_res[] = {
 	},
 };
 
-static const struct resource sun6i_a31_apb0_rstc_res[] = {
+static const struct resource sun6i_a31_apb0_rstc_res[] =
+{
 	{
 		.start = 0xb0,
 		.end = 0xb3,
@@ -57,7 +63,8 @@ static const struct resource sun6i_a31_apb0_rstc_res[] = {
 	},
 };
 
-static const struct mfd_cell sun6i_a31_prcm_subdevs[] = {
+static const struct mfd_cell sun6i_a31_prcm_subdevs[] =
+{
 	{
 		.name = "sun6i-a31-ar100-clk",
 		.of_compatible = "allwinner,sun6i-a31-ar100-clk",
@@ -90,7 +97,8 @@ static const struct mfd_cell sun6i_a31_prcm_subdevs[] = {
 	},
 };
 
-static const struct mfd_cell sun8i_a23_prcm_subdevs[] = {
+static const struct mfd_cell sun8i_a23_prcm_subdevs[] =
+{
 	{
 		.name = "sun8i-a23-apb0-clk",
 		.of_compatible = "allwinner,sun8i-a23-apb0-clk",
@@ -111,17 +119,20 @@ static const struct mfd_cell sun8i_a23_prcm_subdevs[] = {
 	},
 };
 
-static const struct prcm_data sun6i_a31_prcm_data = {
+static const struct prcm_data sun6i_a31_prcm_data =
+{
 	.nsubdevs = ARRAY_SIZE(sun6i_a31_prcm_subdevs),
 	.subdevs = sun6i_a31_prcm_subdevs,
 };
 
-static const struct prcm_data sun8i_a23_prcm_data = {
+static const struct prcm_data sun8i_a23_prcm_data =
+{
 	.nsubdevs = ARRAY_SIZE(sun8i_a23_prcm_subdevs),
 	.subdevs = sun8i_a23_prcm_subdevs,
 };
 
-static const struct of_device_id sun6i_prcm_dt_ids[] = {
+static const struct of_device_id sun6i_prcm_dt_ids[] =
+{
 	{
 		.compatible = "allwinner,sun6i-a31-prcm",
 		.data = &sun6i_a31_prcm_data,
@@ -142,20 +153,27 @@ static int sun6i_prcm_probe(struct platform_device *pdev)
 	int ret;
 
 	match = of_match_node(sun6i_prcm_dt_ids, np);
+
 	if (!match)
+	{
 		return -EINVAL;
+	}
 
 	data = match->data;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "no prcm memory region provided\n");
 		return -ENOENT;
 	}
 
 	ret = mfd_add_devices(&pdev->dev, 0, data->subdevs, data->nsubdevs,
-			      res, -1, NULL);
-	if (ret) {
+						  res, -1, NULL);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to add subdevices\n");
 		return ret;
 	}
@@ -163,7 +181,8 @@ static int sun6i_prcm_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver sun6i_prcm_driver = {
+static struct platform_driver sun6i_prcm_driver =
+{
 	.driver = {
 		.name = "sun6i-prcm",
 		.of_match_table = sun6i_prcm_dt_ids,

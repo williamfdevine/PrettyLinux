@@ -13,7 +13,8 @@
 /* The USB role is defined by the connector used on the board, so long as
  * standards are being followed.  (Developer boards sometimes won't.)
  */
-enum musb_mode {
+enum musb_mode
+{
 	MUSB_UNDEFINED = 0,
 	MUSB_HOST,		/* A or Mini-A connector */
 	MUSB_PERIPHERAL,	/* B or Mini-B connector */
@@ -22,18 +23,21 @@ enum musb_mode {
 
 struct clk;
 
-enum musb_fifo_style {
+enum musb_fifo_style
+{
 	FIFO_RXTX,
 	FIFO_TX,
 	FIFO_RX
 } __attribute__ ((packed));
 
-enum musb_buf_mode {
+enum musb_buf_mode
+{
 	BUF_SINGLE,
 	BUF_DOUBLE
 } __attribute__ ((packed));
 
-struct musb_fifo_cfg {
+struct musb_fifo_cfg
+{
 	u8			hw_ep_num;
 	enum musb_fifo_style	style;
 	enum musb_buf_mode	mode;
@@ -41,12 +45,12 @@ struct musb_fifo_cfg {
 };
 
 #define MUSB_EP_FIFO(ep, st, m, pkt)		\
-{						\
-	.hw_ep_num	= ep,			\
-	.style		= st,			\
-	.mode		= m,			\
-	.maxpacket	= pkt,			\
-}
+	{						\
+		.hw_ep_num	= ep,			\
+					  .style		= st,			\
+									.mode		= m,			\
+											.maxpacket	= pkt,			\
+	}
 
 #define MUSB_EP_FIFO_SINGLE(ep, st, pkt)	\
 	MUSB_EP_FIFO(ep, st, BUF_SINGLE, pkt)
@@ -54,30 +58,32 @@ struct musb_fifo_cfg {
 #define MUSB_EP_FIFO_DOUBLE(ep, st, pkt)	\
 	MUSB_EP_FIFO(ep, st, BUF_DOUBLE, pkt)
 
-struct musb_hdrc_eps_bits {
+struct musb_hdrc_eps_bits
+{
 	const char	name[16];
 	u8		bits;
 };
 
-struct musb_hdrc_config {
+struct musb_hdrc_config
+{
 	struct musb_fifo_cfg	*fifo_cfg;	/* board fifo configuration */
 	unsigned		fifo_cfg_size;	/* size of the fifo configuration */
 
 	/* MUSB configuration-specific details */
-	unsigned	multipoint:1;	/* multipoint device */
-	unsigned	dyn_fifo:1 __deprecated; /* supports dynamic fifo sizing */
-	unsigned	soft_con:1 __deprecated; /* soft connect required */
-	unsigned	utm_16:1 __deprecated; /* utm data witdh is 16 bits */
-	unsigned	big_endian:1;	/* true if CPU uses big-endian */
-	unsigned	mult_bulk_tx:1;	/* Tx ep required for multbulk pkts */
-	unsigned	mult_bulk_rx:1;	/* Rx ep required for multbulk pkts */
-	unsigned	high_iso_tx:1;	/* Tx ep required for HB iso */
-	unsigned	high_iso_rx:1;	/* Rx ep required for HD iso */
-	unsigned	dma:1 __deprecated; /* supports DMA */
-	unsigned	vendor_req:1 __deprecated; /* vendor registers required */
+	unsigned	multipoint: 1;	/* multipoint device */
+	unsigned	dyn_fifo: 1 __deprecated; /* supports dynamic fifo sizing */
+	unsigned	soft_con: 1 __deprecated; /* soft connect required */
+	unsigned	utm_16: 1 __deprecated; /* utm data witdh is 16 bits */
+	unsigned	big_endian: 1;	/* true if CPU uses big-endian */
+	unsigned	mult_bulk_tx: 1;	/* Tx ep required for multbulk pkts */
+	unsigned	mult_bulk_rx: 1;	/* Rx ep required for multbulk pkts */
+	unsigned	high_iso_tx: 1;	/* Tx ep required for HB iso */
+	unsigned	high_iso_rx: 1;	/* Rx ep required for HD iso */
+	unsigned	dma: 1 __deprecated; /* supports DMA */
+	unsigned	vendor_req: 1 __deprecated; /* vendor registers required */
 
 	/* need to explicitly de-assert the port reset after resume? */
-	unsigned	host_port_deassert_reset_at_resume:1;
+	unsigned	host_port_deassert_reset_at_resume: 1;
 
 	u8		num_eps;	/* number of endpoints _with_ ep0 */
 	u8		dma_channels __deprecated; /* number of dma channels */
@@ -98,7 +104,8 @@ struct musb_hdrc_config {
 	u32		maximum_speed;
 };
 
-struct musb_hdrc_platform_data {
+struct musb_hdrc_platform_data
+{
 	/* MUSB_HOST, MUSB_PERIPHERAL, or MUSB_OTG */
 	u8		mode;
 
@@ -118,7 +125,7 @@ struct musb_hdrc_platform_data {
 	u8		potpgt;
 
 	/* (HOST or OTG) program PHY for external Vbus */
-	unsigned	extvbus:1;
+	unsigned	extvbus: 1;
 
 	/* Power the device on or off */
 	int		(*set_power)(int state);
@@ -133,7 +140,8 @@ struct musb_hdrc_platform_data {
 	const void	*platform_ops;
 };
 
-enum musb_vbus_id_status {
+enum musb_vbus_id_status
+{
 	MUSB_UNKNOWN = 0,
 	MUSB_ID_GROUND,
 	MUSB_ID_FLOAT,
@@ -159,10 +167,10 @@ static inline int musb_mailbox(enum musb_vbus_id_status status)
 #ifdef	CONFIG_ARCH_OMAP2
 
 extern int __init tusb6010_setup_interface(
-		struct musb_hdrc_platform_data *data,
-		unsigned ps_refclk, unsigned waitpin,
-		unsigned async_cs, unsigned sync_cs,
-		unsigned irq, unsigned dmachan);
+	struct musb_hdrc_platform_data *data,
+	unsigned ps_refclk, unsigned waitpin,
+	unsigned async_cs, unsigned sync_cs,
+	unsigned irq, unsigned dmachan);
 
 extern int tusb6010_platform_retime(unsigned is_refclk);
 

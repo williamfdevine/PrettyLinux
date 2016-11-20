@@ -63,19 +63,39 @@ void setup_pager(void)
 	struct winsize sz;
 
 	if (!isatty(1))
+	{
 		return;
+	}
+
 	if (ioctl(1, TIOCGWINSZ, &sz) == 0)
+	{
 		pager_columns = sz.ws_col;
+	}
+
 	if (!pager)
+	{
 		pager = getenv("PAGER");
+	}
+
 	if (!(pager || access("/usr/bin/pager", X_OK)))
+	{
 		pager = "/usr/bin/pager";
+	}
+
 	if (!(pager || access("/usr/bin/less", X_OK)))
+	{
 		pager = "/usr/bin/less";
+	}
+
 	if (!pager)
+	{
 		pager = "cat";
+	}
+
 	if (!*pager || !strcmp(pager, "cat"))
+	{
 		return;
+	}
 
 	spawned_pager = 1; /* means we are emitting to terminal */
 
@@ -86,12 +106,18 @@ void setup_pager(void)
 	pager_process.preexec_cb = pager_preexec;
 
 	if (start_command(&pager_process))
+	{
 		return;
+	}
 
 	/* original process continues, but writes to the pipe */
 	dup2(pager_process.in, 1);
+
 	if (isatty(2))
+	{
 		dup2(pager_process.in, 2);
+	}
+
 	close(pager_process.in);
 
 	/* this makes sure that the parent terminates after the pager */
@@ -109,8 +135,11 @@ int pager_get_columns(void)
 	char *s;
 
 	s = getenv("COLUMNS");
+
 	if (s)
+	{
 		return atoi(s);
+	}
 
 	return (pager_columns ? pager_columns : 80) - 2;
 }

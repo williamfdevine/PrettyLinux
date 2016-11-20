@@ -19,7 +19,8 @@
 
 #define DM_RESERVED_MAX_IOS		1024
 
-struct dm_kobject_holder {
+struct dm_kobject_holder
+{
 	struct kobject kobj;
 	struct completion completion;
 };
@@ -28,7 +29,8 @@ struct dm_kobject_holder {
  * DM core internal structure that used directly by dm.c and dm-rq.c
  * DM targets must _not_ deference a mapped_device to directly access its members!
  */
-struct mapped_device {
+struct mapped_device
+{
 	struct srcu_struct io_barrier;
 	struct mutex suspend_lock;
 
@@ -125,8 +127,8 @@ struct mapped_device {
 
 	/* for blk-mq request-based DM support */
 	struct blk_mq_tag_set *tag_set;
-	bool use_blk_mq:1;
-	bool init_tio_pdu:1;
+	bool use_blk_mq: 1;
+	bool init_tio_pdu: 1;
 };
 
 void dm_init_md_queue(struct mapped_device *md);

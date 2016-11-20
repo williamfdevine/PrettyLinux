@@ -39,7 +39,8 @@ typedef int __bitwise suspend_state_t;
 #define PM_SUSPEND_MIN		PM_SUSPEND_FREEZE
 #define PM_SUSPEND_MAX		((__force suspend_state_t) 4)
 
-enum suspend_stat_step {
+enum suspend_stat_step
+{
 	SUSPEND_FREEZE = 1,
 	SUSPEND_PREPARE,
 	SUSPEND_SUSPEND,
@@ -50,7 +51,8 @@ enum suspend_stat_step {
 	SUSPEND_RESUME
 };
 
-struct suspend_stats {
+struct suspend_stats
+{
 	int	success;
 	int	fail;
 	int	failed_freeze;
@@ -75,8 +77,8 @@ extern struct suspend_stats suspend_stats;
 static inline void dpm_save_failed_dev(const char *name)
 {
 	strlcpy(suspend_stats.failed_devs[suspend_stats.last_failed_dev],
-		name,
-		sizeof(suspend_stats.failed_devs[0]));
+			name,
+			sizeof(suspend_stats.failed_devs[0]));
 	suspend_stats.last_failed_dev++;
 	suspend_stats.last_failed_dev %= REC_FAILED_NUM;
 }
@@ -173,7 +175,8 @@ static inline void dpm_save_failed_step(enum suspend_stat_step step)
  *	This callback is optional and should only be implemented by platforms
  *	which require special recovery actions in that situation.
  */
-struct platform_suspend_ops {
+struct platform_suspend_ops
+{
 	int (*valid)(suspend_state_t state);
 	int (*begin)(suspend_state_t state);
 	int (*prepare)(void);
@@ -186,7 +189,8 @@ struct platform_suspend_ops {
 	void (*recover)(void);
 };
 
-struct platform_freeze_ops {
+struct platform_freeze_ops
+{
 	int (*begin)(void);
 	int (*prepare)(void);
 	void (*restore)(void);
@@ -232,7 +236,8 @@ static inline bool pm_resume_via_firmware(void)
 }
 
 /* Suspend-to-idle state machnine. */
-enum freeze_state {
+enum freeze_state
+{
 	FREEZE_STATE_NONE,      /* Not suspended/suspending. */
 	FREEZE_STATE_ENTER,     /* Enter suspend-to-idle. */
 	FREEZE_STATE_WAKE,      /* Wake up from suspend-to-idle. */
@@ -289,7 +294,8 @@ static inline void freeze_wake(void) {}
  * atomically during the resume from disk, because the page frames they have
  * occupied before the suspend are in use.
  */
-struct pbe {
+struct pbe
+{
 	void *address;		/* address of the copy */
 	void *orig_address;	/* original address of a page */
 	struct pbe *next;
@@ -350,7 +356,8 @@ extern void mark_free_pages(struct zone *zone);
  *	fails.  This callback is optional and should only be implemented by
  *	platforms which require special recovery actions in that situation.
  */
-struct platform_hibernation_ops {
+struct platform_hibernation_ops
+{
 	int (*begin)(void);
 	void (*end)(void);
 	int (*pre_snapshot)(void);
@@ -417,10 +424,10 @@ extern int register_pm_notifier(struct notifier_block *nb);
 extern int unregister_pm_notifier(struct notifier_block *nb);
 
 #define pm_notifier(fn, pri) {				\
-	static struct notifier_block fn##_nb =			\
+		static struct notifier_block fn##_nb =			\
 		{ .notifier_call = fn, .priority = pri };	\
-	register_pm_notifier(&fn##_nb);			\
-}
+		register_pm_notifier(&fn##_nb);			\
+	}
 
 /* drivers/base/power/wakeup.c */
 extern bool events_check_enabled;
@@ -487,9 +494,9 @@ static inline void unlock_system_sleep(void) {}
 #endif /* !CONFIG_PM_SLEEP */
 
 #ifdef CONFIG_PM_SLEEP_DEBUG
-extern bool pm_print_times_enabled;
+	extern bool pm_print_times_enabled;
 #else
-#define pm_print_times_enabled	(false)
+	#define pm_print_times_enabled	(false)
 #endif
 
 #ifdef CONFIG_PM_AUTOSLEEP

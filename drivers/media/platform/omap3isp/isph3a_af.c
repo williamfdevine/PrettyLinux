@@ -39,13 +39,17 @@ static void h3a_af_setup_regs(struct ispstat *af, void *priv)
 	int index;
 
 	if (af->state == ISPSTAT_DISABLED)
+	{
 		return;
+	}
 
 	isp_reg_writel(af->isp, af->active_buf->dma_addr, OMAP3_ISP_IOMEM_H3A,
-		       ISPH3A_AFBUFST);
+				   ISPH3A_AFBUFST);
 
 	if (!af->update)
+	{
 		return;
+	}
 
 	/* Configure Hardware Registers */
 	pax1 = ((conf->paxel.width >> 1) - 1) << AF_PAXW_SHIFT;
@@ -68,59 +72,71 @@ static void h3a_af_setup_regs(struct ispstat *af, void *priv)
 	/* Configure Vertical Start */
 	paxstart |= conf->paxel.v_start;
 	isp_reg_writel(af->isp, paxstart, OMAP3_ISP_IOMEM_H3A,
-		       ISPH3A_AFPAXSTART);
+				   ISPH3A_AFPAXSTART);
 
 	/*SetIIRSH Register */
 	isp_reg_writel(af->isp, conf->iir.h_start,
-		       OMAP3_ISP_IOMEM_H3A, ISPH3A_AFIIRSH);
+				   OMAP3_ISP_IOMEM_H3A, ISPH3A_AFIIRSH);
 
 	base_coef_set0 = ISPH3A_AFCOEF010;
 	base_coef_set1 = ISPH3A_AFCOEF110;
-	for (index = 0; index <= 8; index += 2) {
+
+	for (index = 0; index <= 8; index += 2)
+	{
 		/*Set IIR Filter0 Coefficients */
 		coef = 0;
 		coef |= conf->iir.coeff_set0[index];
 		coef |= conf->iir.coeff_set0[index + 1] <<
-			AF_COEF_SHIFT;
+				AF_COEF_SHIFT;
 		isp_reg_writel(af->isp, coef, OMAP3_ISP_IOMEM_H3A,
-			       base_coef_set0);
+					   base_coef_set0);
 		base_coef_set0 += AFCOEF_OFFSET;
 
 		/*Set IIR Filter1 Coefficients */
 		coef = 0;
 		coef |= conf->iir.coeff_set1[index];
 		coef |= conf->iir.coeff_set1[index + 1] <<
-			AF_COEF_SHIFT;
+				AF_COEF_SHIFT;
 		isp_reg_writel(af->isp, coef, OMAP3_ISP_IOMEM_H3A,
-			       base_coef_set1);
+					   base_coef_set1);
 		base_coef_set1 += AFCOEF_OFFSET;
 	}
+
 	/* set AFCOEF0010 Register */
 	isp_reg_writel(af->isp, conf->iir.coeff_set0[10],
-		       OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF0010);
+				   OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF0010);
 	/* set AFCOEF1010 Register */
 	isp_reg_writel(af->isp, conf->iir.coeff_set1[10],
-		       OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF1010);
+				   OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF1010);
 
 	/* PCR Register */
 	/* Set RGB Position */
 	pcr = conf->rgb_pos << AF_RGBPOS_SHIFT;
+
 	/* Set Accumulator Mode */
 	if (conf->fvmode == OMAP3ISP_AF_MODE_PEAK)
+	{
 		pcr |= AF_FVMODE;
+	}
+
 	/* Set A-law */
 	if (conf->alaw_enable)
+	{
 		pcr |= AF_ALAW_EN;
+	}
+
 	/* HMF Configurations */
-	if (conf->hmf.enable) {
+	if (conf->hmf.enable)
+	{
 		/* Enable HMF */
 		pcr |= AF_MED_EN;
 		/* Set Median Threshold */
 		pcr |= conf->hmf.threshold << AF_MED_TH_SHIFT;
 	}
+
 	/* Set PCR Register */
 	isp_reg_clr_set(af->isp, OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR,
-			AF_PCR_MASK, pcr);
+					AF_PCR_MASK, pcr);
 
 	af->update = 0;
 	af->config_counter += af->inc_config;
@@ -130,13 +146,16 @@ static void h3a_af_setup_regs(struct ispstat *af, void *priv)
 
 static void h3a_af_enable(struct ispstat *af, int enable)
 {
-	if (enable) {
+	if (enable)
+	{
 		isp_reg_set(af->isp, OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR,
-			    ISPH3A_PCR_AF_EN);
+					ISPH3A_PCR_AF_EN);
 		omap3isp_subclk_enable(af->isp, OMAP3_ISP_SUBCLK_AF);
-	} else {
+	}
+	else
+	{
 		isp_reg_clr(af->isp, OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR,
-			    ISPH3A_PCR_AF_EN);
+					ISPH3A_PCR_AF_EN);
 		omap3isp_subclk_disable(af->isp, OMAP3_ISP_SUBCLK_AF);
 	}
 }
@@ -144,7 +163,7 @@ static void h3a_af_enable(struct ispstat *af, int enable)
 static int h3a_af_busy(struct ispstat *af)
 {
 	return isp_reg_readl(af->isp, OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR)
-						& ISPH3A_PCR_BUSYAF;
+		   & ISPH3A_PCR_BUSYAF;
 }
 
 static u32 h3a_af_get_buf_size(struct omap3isp_h3a_af_config *conf)
@@ -163,65 +182,91 @@ static int h3a_af_validate_params(struct ispstat *af, void *new_conf)
 
 	/* Check horizontal Count */
 	if (IS_OUT_OF_BOUNDS(paxel_cfg->h_cnt,
-			     OMAP3ISP_AF_PAXEL_HORIZONTAL_COUNT_MIN,
-			     OMAP3ISP_AF_PAXEL_HORIZONTAL_COUNT_MAX))
+						 OMAP3ISP_AF_PAXEL_HORIZONTAL_COUNT_MIN,
+						 OMAP3ISP_AF_PAXEL_HORIZONTAL_COUNT_MAX))
+	{
 		return -EINVAL;
+	}
 
 	/* Check Vertical Count */
 	if (IS_OUT_OF_BOUNDS(paxel_cfg->v_cnt,
-			     OMAP3ISP_AF_PAXEL_VERTICAL_COUNT_MIN,
-			     OMAP3ISP_AF_PAXEL_VERTICAL_COUNT_MAX))
+						 OMAP3ISP_AF_PAXEL_VERTICAL_COUNT_MIN,
+						 OMAP3ISP_AF_PAXEL_VERTICAL_COUNT_MAX))
+	{
 		return -EINVAL;
+	}
 
 	if (IS_OUT_OF_BOUNDS(paxel_cfg->height, OMAP3ISP_AF_PAXEL_HEIGHT_MIN,
-			     OMAP3ISP_AF_PAXEL_HEIGHT_MAX) ||
-	    paxel_cfg->height % 2)
+						 OMAP3ISP_AF_PAXEL_HEIGHT_MAX) ||
+		paxel_cfg->height % 2)
+	{
 		return -EINVAL;
+	}
 
 	/* Check width */
 	if (IS_OUT_OF_BOUNDS(paxel_cfg->width, OMAP3ISP_AF_PAXEL_WIDTH_MIN,
-			     OMAP3ISP_AF_PAXEL_WIDTH_MAX) ||
-	    paxel_cfg->width % 2)
+						 OMAP3ISP_AF_PAXEL_WIDTH_MAX) ||
+		paxel_cfg->width % 2)
+	{
 		return -EINVAL;
+	}
 
 	/* Check Line Increment */
 	if (IS_OUT_OF_BOUNDS(paxel_cfg->line_inc,
-			     OMAP3ISP_AF_PAXEL_INCREMENT_MIN,
-			     OMAP3ISP_AF_PAXEL_INCREMENT_MAX) ||
-	    paxel_cfg->line_inc % 2)
+						 OMAP3ISP_AF_PAXEL_INCREMENT_MIN,
+						 OMAP3ISP_AF_PAXEL_INCREMENT_MAX) ||
+		paxel_cfg->line_inc % 2)
+	{
 		return -EINVAL;
+	}
 
 	/* Check Horizontal Start */
 	if ((paxel_cfg->h_start < iir_cfg->h_start) ||
-	    IS_OUT_OF_BOUNDS(paxel_cfg->h_start,
-			     OMAP3ISP_AF_PAXEL_HZSTART_MIN,
-			     OMAP3ISP_AF_PAXEL_HZSTART_MAX))
+		IS_OUT_OF_BOUNDS(paxel_cfg->h_start,
+						 OMAP3ISP_AF_PAXEL_HZSTART_MIN,
+						 OMAP3ISP_AF_PAXEL_HZSTART_MAX))
+	{
 		return -EINVAL;
+	}
 
 	/* Check IIR */
-	for (index = 0; index < OMAP3ISP_AF_NUM_COEF; index++) {
+	for (index = 0; index < OMAP3ISP_AF_NUM_COEF; index++)
+	{
 		if ((iir_cfg->coeff_set0[index]) > OMAP3ISP_AF_COEF_MAX)
+		{
 			return -EINVAL;
+		}
 
 		if ((iir_cfg->coeff_set1[index]) > OMAP3ISP_AF_COEF_MAX)
+		{
 			return -EINVAL;
+		}
 	}
 
 	if (IS_OUT_OF_BOUNDS(iir_cfg->h_start, OMAP3ISP_AF_IIRSH_MIN,
-			     OMAP3ISP_AF_IIRSH_MAX))
+						 OMAP3ISP_AF_IIRSH_MAX))
+	{
 		return -EINVAL;
+	}
 
 	/* Hack: If paxel size is 12, the 10th AF window may be corrupted */
 	if ((paxel_cfg->h_cnt * paxel_cfg->v_cnt > 9) &&
-	    (paxel_cfg->width * paxel_cfg->height == 12))
+		(paxel_cfg->width * paxel_cfg->height == 12))
+	{
 		return -EINVAL;
+	}
 
 	buf_size = h3a_af_get_buf_size(user_cfg);
+
 	if (buf_size > user_cfg->buf_size)
 		/* User buf_size request wasn't enough */
+	{
 		user_cfg->buf_size = buf_size;
+	}
 	else if (user_cfg->buf_size > OMAP3ISP_AF_MAX_BUF_SIZE)
+	{
 		user_cfg->buf_size = OMAP3ISP_AF_MAX_BUF_SIZE;
+	}
 
 	return 0;
 }
@@ -235,40 +280,51 @@ static void h3a_af_set_params(struct ispstat *af, void *new_conf)
 	int index;
 
 	/* alaw */
-	if (cur_cfg->alaw_enable != user_cfg->alaw_enable) {
+	if (cur_cfg->alaw_enable != user_cfg->alaw_enable)
+	{
 		update = 1;
 		goto out;
 	}
 
 	/* hmf */
-	if (cur_cfg->hmf.enable != user_cfg->hmf.enable) {
+	if (cur_cfg->hmf.enable != user_cfg->hmf.enable)
+	{
 		update = 1;
 		goto out;
 	}
-	if (cur_cfg->hmf.threshold != user_cfg->hmf.threshold) {
+
+	if (cur_cfg->hmf.threshold != user_cfg->hmf.threshold)
+	{
 		update = 1;
 		goto out;
 	}
 
 	/* rgbpos */
-	if (cur_cfg->rgb_pos != user_cfg->rgb_pos) {
+	if (cur_cfg->rgb_pos != user_cfg->rgb_pos)
+	{
 		update = 1;
 		goto out;
 	}
 
 	/* iir */
-	if (cur_cfg->iir.h_start != user_cfg->iir.h_start) {
+	if (cur_cfg->iir.h_start != user_cfg->iir.h_start)
+	{
 		update = 1;
 		goto out;
 	}
-	for (index = 0; index < OMAP3ISP_AF_NUM_COEF; index++) {
+
+	for (index = 0; index < OMAP3ISP_AF_NUM_COEF; index++)
+	{
 		if (cur_cfg->iir.coeff_set0[index] !=
-				user_cfg->iir.coeff_set0[index]) {
+			user_cfg->iir.coeff_set0[index])
+		{
 			update = 1;
 			goto out;
 		}
+
 		if (cur_cfg->iir.coeff_set1[index] !=
-				user_cfg->iir.coeff_set1[index]) {
+			user_cfg->iir.coeff_set1[index])
+		{
 			update = 1;
 			goto out;
 		}
@@ -276,22 +332,27 @@ static void h3a_af_set_params(struct ispstat *af, void *new_conf)
 
 	/* paxel */
 	if ((cur_cfg->paxel.width != user_cfg->paxel.width) ||
-	    (cur_cfg->paxel.height != user_cfg->paxel.height) ||
-	    (cur_cfg->paxel.h_start != user_cfg->paxel.h_start) ||
-	    (cur_cfg->paxel.v_start != user_cfg->paxel.v_start) ||
-	    (cur_cfg->paxel.h_cnt != user_cfg->paxel.h_cnt) ||
-	    (cur_cfg->paxel.v_cnt != user_cfg->paxel.v_cnt) ||
-	    (cur_cfg->paxel.line_inc != user_cfg->paxel.line_inc)) {
+		(cur_cfg->paxel.height != user_cfg->paxel.height) ||
+		(cur_cfg->paxel.h_start != user_cfg->paxel.h_start) ||
+		(cur_cfg->paxel.v_start != user_cfg->paxel.v_start) ||
+		(cur_cfg->paxel.h_cnt != user_cfg->paxel.h_cnt) ||
+		(cur_cfg->paxel.v_cnt != user_cfg->paxel.v_cnt) ||
+		(cur_cfg->paxel.line_inc != user_cfg->paxel.line_inc))
+	{
 		update = 1;
 		goto out;
 	}
 
 	/* af_mode */
 	if (cur_cfg->fvmode != user_cfg->fvmode)
+	{
 		update = 1;
+	}
 
 out:
-	if (update || !af->configured) {
+
+	if (update || !af->configured)
+	{
 		memcpy(cur_cfg, user_cfg, sizeof(*cur_cfg));
 		af->inc_config++;
 		af->update = 1;
@@ -309,22 +370,27 @@ static long h3a_af_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 {
 	struct ispstat *stat = v4l2_get_subdevdata(sd);
 
-	switch (cmd) {
-	case VIDIOC_OMAP3ISP_AF_CFG:
-		return omap3isp_stat_config(stat, arg);
-	case VIDIOC_OMAP3ISP_STAT_REQ:
-		return omap3isp_stat_request_statistics(stat, arg);
-	case VIDIOC_OMAP3ISP_STAT_EN: {
-		int *en = arg;
-		return omap3isp_stat_enable(stat, !!*en);
-	}
+	switch (cmd)
+	{
+		case VIDIOC_OMAP3ISP_AF_CFG:
+			return omap3isp_stat_config(stat, arg);
+
+		case VIDIOC_OMAP3ISP_STAT_REQ:
+			return omap3isp_stat_request_statistics(stat, arg);
+
+		case VIDIOC_OMAP3ISP_STAT_EN:
+			{
+				int *en = arg;
+				return omap3isp_stat_enable(stat, !!*en);
+			}
 	}
 
 	return -ENOIOCTLCMD;
 
 }
 
-static const struct ispstat_ops h3a_af_ops = {
+static const struct ispstat_ops h3a_af_ops =
+{
 	.validate_params	= h3a_af_validate_params,
 	.set_params		= h3a_af_set_params,
 	.setup_regs		= h3a_af_setup_regs,
@@ -332,17 +398,20 @@ static const struct ispstat_ops h3a_af_ops = {
 	.busy			= h3a_af_busy,
 };
 
-static const struct v4l2_subdev_core_ops h3a_af_subdev_core_ops = {
+static const struct v4l2_subdev_core_ops h3a_af_subdev_core_ops =
+{
 	.ioctl = h3a_af_ioctl,
 	.subscribe_event = omap3isp_stat_subscribe_event,
 	.unsubscribe_event = omap3isp_stat_unsubscribe_event,
 };
 
-static const struct v4l2_subdev_video_ops h3a_af_subdev_video_ops = {
+static const struct v4l2_subdev_video_ops h3a_af_subdev_video_ops =
+{
 	.s_stream = omap3isp_stat_s_stream,
 };
 
-static const struct v4l2_subdev_ops h3a_af_subdev_ops = {
+static const struct v4l2_subdev_ops h3a_af_subdev_ops =
+{
 	.core = &h3a_af_subdev_core_ops,
 	.video = &h3a_af_subdev_video_ops,
 };
@@ -355,8 +424,11 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
 	struct omap3isp_h3a_af_config *af_recover_cfg;
 
 	af_cfg = devm_kzalloc(isp->dev, sizeof(*af_cfg), GFP_KERNEL);
+
 	if (af_cfg == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	af->ops = &h3a_af_ops;
 	af->priv = af_cfg;
@@ -365,10 +437,12 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
 
 	/* Set recover state configuration */
 	af_recover_cfg = devm_kzalloc(isp->dev, sizeof(*af_recover_cfg),
-				      GFP_KERNEL);
-	if (!af_recover_cfg) {
+								  GFP_KERNEL);
+
+	if (!af_recover_cfg)
+	{
 		dev_err(af->isp->dev, "AF: cannot allocate memory for recover "
-				      "configuration.\n");
+				"configuration.\n");
 		return -ENOMEM;
 	}
 
@@ -378,9 +452,11 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
 	af_recover_cfg->paxel.h_cnt = OMAP3ISP_AF_PAXEL_HORIZONTAL_COUNT_MIN;
 	af_recover_cfg->paxel.v_cnt = OMAP3ISP_AF_PAXEL_VERTICAL_COUNT_MIN;
 	af_recover_cfg->paxel.line_inc = OMAP3ISP_AF_PAXEL_INCREMENT_MIN;
-	if (h3a_af_validate_params(af, af_recover_cfg)) {
+
+	if (h3a_af_validate_params(af, af_recover_cfg))
+	{
 		dev_err(af->isp->dev, "AF: recover configuration is "
-				      "invalid.\n");
+				"invalid.\n");
 		return -EINVAL;
 	}
 

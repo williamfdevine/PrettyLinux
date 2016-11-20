@@ -19,12 +19,14 @@
 #include <linux/regulator/driver.h>
 #include <linux/mfd/wm8400-private.h>
 
-static const struct regulator_linear_range wm8400_ldo_ranges[] = {
+static const struct regulator_linear_range wm8400_ldo_ranges[] =
+{
 	REGULATOR_LINEAR_RANGE(900000, 0, 14, 50000),
 	REGULATOR_LINEAR_RANGE(1700000, 15, 31, 100000),
 };
 
-static const struct regulator_ops wm8400_ldo_ops = {
+static const struct regulator_ops wm8400_ldo_ops =
+{
 	.is_enabled = regulator_is_enabled_regmap,
 	.enable = regulator_enable_regmap,
 	.disable = regulator_disable_regmap,
@@ -42,23 +44,34 @@ static unsigned int wm8400_dcdc_get_mode(struct regulator_dev *dev)
 	int ret;
 
 	ret = wm8400_block_read(wm8400, WM8400_DCDC1_CONTROL_1 + offset, 2,
-				data);
+							data);
+
 	if (ret != 0)
+	{
 		return 0;
+	}
 
 	/* Datasheet: hibernate */
 	if (data[0] & WM8400_DC1_SLEEP)
+	{
 		return REGULATOR_MODE_STANDBY;
+	}
 
 	/* Datasheet: standby */
 	if (!(data[0] & WM8400_DC1_ACTIVE))
+	{
 		return REGULATOR_MODE_IDLE;
+	}
 
 	/* Datasheet: active with or without force PWM */
 	if (data[1] & WM8400_DC1_FRC_PWM)
+	{
 		return REGULATOR_MODE_FAST;
+	}
 	else
+	{
 		return REGULATOR_MODE_NORMAL;
+	}
 }
 
 static int wm8400_dcdc_set_mode(struct regulator_dev *dev, unsigned int mode)
@@ -67,46 +80,55 @@ static int wm8400_dcdc_set_mode(struct regulator_dev *dev, unsigned int mode)
 	int offset = (rdev_get_id(dev) - WM8400_DCDC1) * 2;
 	int ret;
 
-	switch (mode) {
-	case REGULATOR_MODE_FAST:
-		/* Datasheet: active with force PWM */
-		ret = wm8400_set_bits(wm8400, WM8400_DCDC1_CONTROL_2 + offset,
-				      WM8400_DC1_FRC_PWM, WM8400_DC1_FRC_PWM);
-		if (ret != 0)
-			return ret;
+	switch (mode)
+	{
+		case REGULATOR_MODE_FAST:
+			/* Datasheet: active with force PWM */
+			ret = wm8400_set_bits(wm8400, WM8400_DCDC1_CONTROL_2 + offset,
+								  WM8400_DC1_FRC_PWM, WM8400_DC1_FRC_PWM);
 
-		return wm8400_set_bits(wm8400, WM8400_DCDC1_CONTROL_1 + offset,
-				       WM8400_DC1_ACTIVE | WM8400_DC1_SLEEP,
-				       WM8400_DC1_ACTIVE);
+			if (ret != 0)
+			{
+				return ret;
+			}
 
-	case REGULATOR_MODE_NORMAL:
-		/* Datasheet: active */
-		ret = wm8400_set_bits(wm8400, WM8400_DCDC1_CONTROL_2 + offset,
-				      WM8400_DC1_FRC_PWM, 0);
-		if (ret != 0)
-			return ret;
+			return wm8400_set_bits(wm8400, WM8400_DCDC1_CONTROL_1 + offset,
+								   WM8400_DC1_ACTIVE | WM8400_DC1_SLEEP,
+								   WM8400_DC1_ACTIVE);
 
-		return wm8400_set_bits(wm8400, WM8400_DCDC1_CONTROL_1 + offset,
-				       WM8400_DC1_ACTIVE | WM8400_DC1_SLEEP,
-				       WM8400_DC1_ACTIVE);
+		case REGULATOR_MODE_NORMAL:
+			/* Datasheet: active */
+			ret = wm8400_set_bits(wm8400, WM8400_DCDC1_CONTROL_2 + offset,
+								  WM8400_DC1_FRC_PWM, 0);
 
-	case REGULATOR_MODE_IDLE:
-		/* Datasheet: standby */
-		return wm8400_set_bits(wm8400, WM8400_DCDC1_CONTROL_1 + offset,
-				       WM8400_DC1_ACTIVE | WM8400_DC1_SLEEP, 0);
-	default:
-		return -EINVAL;
+			if (ret != 0)
+			{
+				return ret;
+			}
+
+			return wm8400_set_bits(wm8400, WM8400_DCDC1_CONTROL_1 + offset,
+								   WM8400_DC1_ACTIVE | WM8400_DC1_SLEEP,
+								   WM8400_DC1_ACTIVE);
+
+		case REGULATOR_MODE_IDLE:
+			/* Datasheet: standby */
+			return wm8400_set_bits(wm8400, WM8400_DCDC1_CONTROL_1 + offset,
+								   WM8400_DC1_ACTIVE | WM8400_DC1_SLEEP, 0);
+
+		default:
+			return -EINVAL;
 	}
 }
 
 static unsigned int wm8400_dcdc_get_optimum_mode(struct regulator_dev *dev,
-						 int input_uV, int output_uV,
-						 int load_uA)
+		int input_uV, int output_uV,
+		int load_uA)
 {
 	return REGULATOR_MODE_NORMAL;
 }
 
-static const struct regulator_ops wm8400_dcdc_ops = {
+static const struct regulator_ops wm8400_dcdc_ops =
+{
 	.is_enabled = regulator_is_enabled_regmap,
 	.enable = regulator_enable_regmap,
 	.disable = regulator_disable_regmap,
@@ -119,7 +141,8 @@ static const struct regulator_ops wm8400_dcdc_ops = {
 	.get_optimum_mode = wm8400_dcdc_get_optimum_mode,
 };
 
-static struct regulator_desc regulators[] = {
+static struct regulator_desc regulators[] =
+{
 	{
 		.name = "LDO1",
 		.id = WM8400_LDO1,
@@ -218,16 +241,20 @@ static int wm8400_regulator_probe(struct platform_device *pdev)
 	config.regmap = wm8400->regmap;
 
 	rdev = devm_regulator_register(&pdev->dev, &regulators[pdev->id],
-				       &config);
+								   &config);
+
 	if (IS_ERR(rdev))
+	{
 		return PTR_ERR(rdev);
+	}
 
 	platform_set_drvdata(pdev, rdev);
 
 	return 0;
 }
 
-static struct platform_driver wm8400_regulator_driver = {
+static struct platform_driver wm8400_regulator_driver =
+{
 	.driver = {
 		.name = "wm8400-regulator",
 	},
@@ -246,12 +273,14 @@ static struct platform_driver wm8400_regulator_driver = {
  * @param initdata Regulator initdata for the regulator.
  */
 int wm8400_register_regulator(struct device *dev, int reg,
-			      struct regulator_init_data *initdata)
+							  struct regulator_init_data *initdata)
 {
 	struct wm8400 *wm8400 = dev_get_drvdata(dev);
 
 	if (wm8400->regulators[reg].name)
+	{
 		return -EBUSY;
+	}
 
 	initdata->driver_data = wm8400;
 

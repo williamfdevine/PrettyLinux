@@ -56,7 +56,8 @@
  * @torch_max_current:	Max torch current (mA, >= AS3645A_TORCH_INTENSITY_MAX)
  * @timeout_max:	Max flash timeout (us, <= AS3645A_FLASH_TIMEOUT_MAX)
  */
-struct as3645a_platform_data {
+struct as3645a_platform_data
+{
 	int (*set_power)(struct v4l2_subdev *subdev, int on);
 	unsigned int vref;
 	unsigned int peak;

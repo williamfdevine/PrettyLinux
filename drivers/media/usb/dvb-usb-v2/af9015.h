@@ -81,7 +81,8 @@
 
 #define AF9015_EEPROM_OFFSET (AF9015_EEPROM_SAW_BW2 - AF9015_EEPROM_SAW_BW1)
 
-struct req_t {
+struct req_t
+{
 	u8  cmd;       /* [0] */
 	/*  seq */     /* [1] */
 	u8  i2c_addr;  /* [2] */
@@ -92,7 +93,8 @@ struct req_t {
 	u8  *data;
 };
 
-enum af9015_cmd {
+enum af9015_cmd
+{
 	GET_CONFIG           = 0x10,
 	DOWNLOAD_FIRMWARE    = 0x11,
 	BOOT                 = 0x13,
@@ -107,7 +109,8 @@ enum af9015_cmd {
 	WRITE_I2C,
 };
 
-enum af9015_ir_mode {
+enum af9015_ir_mode
+{
 	AF9015_IR_MODE_DISABLED = 0,
 	AF9015_IR_MODE_HID,
 	AF9015_IR_MODE_RLC,
@@ -116,7 +119,8 @@ enum af9015_ir_mode {
 };
 
 #define BUF_LEN 63
-struct af9015_state {
+struct af9015_state
+{
 	u8 buf[BUF_LEN]; /* bulk USB control message */
 	u8 ir_mode;
 	u8 rc_repeat;
@@ -141,13 +145,14 @@ struct af9015_state {
 	struct mutex fe_mutex;
 };
 
-enum af9015_remote {
+enum af9015_remote
+{
 	AF9015_REMOTE_NONE                    = 0,
-/* 1 */	AF9015_REMOTE_A_LINK_DTU_M,
+	/* 1 */	AF9015_REMOTE_A_LINK_DTU_M,
 	AF9015_REMOTE_MSI_DIGIVOX_MINI_II_V3,
 	AF9015_REMOTE_MYGICTV_U718,
 	AF9015_REMOTE_DIGITTRADE_DVB_T,
-/* 5 */	AF9015_REMOTE_AVERMEDIA_KS,
+	/* 5 */	AF9015_REMOTE_AVERMEDIA_KS,
 };
 
 #endif

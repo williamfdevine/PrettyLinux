@@ -52,31 +52,31 @@
 
 #define show_gfp_flags(flags)						\
 	(flags) ? __print_flags(flags, "|",				\
-	__def_gfpflag_names						\
-	) : "none"
+							__def_gfpflag_names						\
+						   ) : "none"
 
 #ifdef CONFIG_MMU
-#define IF_HAVE_PG_MLOCK(flag,string) ,{1UL << flag, string}
+	#define IF_HAVE_PG_MLOCK(flag,string) ,{1UL << flag, string}
 #else
-#define IF_HAVE_PG_MLOCK(flag,string)
+	#define IF_HAVE_PG_MLOCK(flag,string)
 #endif
 
 #ifdef CONFIG_ARCH_USES_PG_UNCACHED
-#define IF_HAVE_PG_UNCACHED(flag,string) ,{1UL << flag, string}
+	#define IF_HAVE_PG_UNCACHED(flag,string) ,{1UL << flag, string}
 #else
-#define IF_HAVE_PG_UNCACHED(flag,string)
+	#define IF_HAVE_PG_UNCACHED(flag,string)
 #endif
 
 #ifdef CONFIG_MEMORY_FAILURE
-#define IF_HAVE_PG_HWPOISON(flag,string) ,{1UL << flag, string}
+	#define IF_HAVE_PG_HWPOISON(flag,string) ,{1UL << flag, string}
 #else
-#define IF_HAVE_PG_HWPOISON(flag,string)
+	#define IF_HAVE_PG_HWPOISON(flag,string)
 #endif
 
 #if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
-#define IF_HAVE_PG_IDLE(flag,string) ,{1UL << flag, string}
+	#define IF_HAVE_PG_IDLE(flag,string) ,{1UL << flag, string}
 #else
-#define IF_HAVE_PG_IDLE(flag,string)
+	#define IF_HAVE_PG_IDLE(flag,string)
 #endif
 
 #define __def_pageflag_names						\
@@ -100,39 +100,39 @@
 	{1UL << PG_reclaim,		"reclaim"	},		\
 	{1UL << PG_swapbacked,		"swapbacked"	},		\
 	{1UL << PG_unevictable,		"unevictable"	}		\
-IF_HAVE_PG_MLOCK(PG_mlocked,		"mlocked"	)		\
-IF_HAVE_PG_UNCACHED(PG_uncached,	"uncached"	)		\
-IF_HAVE_PG_HWPOISON(PG_hwpoison,	"hwpoison"	)		\
-IF_HAVE_PG_IDLE(PG_young,		"young"		)		\
-IF_HAVE_PG_IDLE(PG_idle,		"idle"		)
+	IF_HAVE_PG_MLOCK(PG_mlocked,		"mlocked"	)		\
+	IF_HAVE_PG_UNCACHED(PG_uncached,	"uncached"	)		\
+	IF_HAVE_PG_HWPOISON(PG_hwpoison,	"hwpoison"	)		\
+	IF_HAVE_PG_IDLE(PG_young,		"young"		)		\
+	IF_HAVE_PG_IDLE(PG_idle,		"idle"		)
 
 #define show_page_flags(flags)						\
 	(flags) ? __print_flags(flags, "|",				\
-	__def_pageflag_names						\
-	) : "none"
+							__def_pageflag_names						\
+						   ) : "none"
 
 #if defined(CONFIG_X86)
-#define __VM_ARCH_SPECIFIC_1 {VM_PAT,     "pat"           }
+	#define __VM_ARCH_SPECIFIC_1 {VM_PAT,     "pat"           }
 #elif defined(CONFIG_PPC)
-#define __VM_ARCH_SPECIFIC_1 {VM_SAO,     "sao"           }
+	#define __VM_ARCH_SPECIFIC_1 {VM_SAO,     "sao"           }
 #elif defined(CONFIG_PARISC) || defined(CONFIG_METAG) || defined(CONFIG_IA64)
-#define __VM_ARCH_SPECIFIC_1 {VM_GROWSUP,	"growsup"	}
+	#define __VM_ARCH_SPECIFIC_1 {VM_GROWSUP,	"growsup"	}
 #elif !defined(CONFIG_MMU)
-#define __VM_ARCH_SPECIFIC_1 {VM_MAPPED_COPY,"mappedcopy"	}
+	#define __VM_ARCH_SPECIFIC_1 {VM_MAPPED_COPY,"mappedcopy"	}
 #else
-#define __VM_ARCH_SPECIFIC_1 {VM_ARCH_1,	"arch_1"	}
+	#define __VM_ARCH_SPECIFIC_1 {VM_ARCH_1,	"arch_1"	}
 #endif
 
 #if defined(CONFIG_X86)
-#define __VM_ARCH_SPECIFIC_2 {VM_MPX,		"mpx"		}
+	#define __VM_ARCH_SPECIFIC_2 {VM_MPX,		"mpx"		}
 #else
-#define __VM_ARCH_SPECIFIC_2 {VM_ARCH_2,	"arch_2"	}
+	#define __VM_ARCH_SPECIFIC_2 {VM_ARCH_2,	"arch_2"	}
 #endif
 
 #ifdef CONFIG_MEM_SOFT_DIRTY
-#define IF_HAVE_VM_SOFTDIRTY(flag,name) {flag, name },
+	#define IF_HAVE_VM_SOFTDIRTY(flag,name) {flag, name },
 #else
-#define IF_HAVE_VM_SOFTDIRTY(flag,name)
+	#define IF_HAVE_VM_SOFTDIRTY(flag,name)
 #endif
 
 #define __def_vmaflag_names						\
@@ -162,7 +162,7 @@ IF_HAVE_PG_IDLE(PG_idle,		"idle"		)
 	__VM_ARCH_SPECIFIC_1				,		\
 	__VM_ARCH_SPECIFIC_2				,		\
 	{VM_DONTDUMP,			"dontdump"	},		\
-IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"softdirty"	)		\
+	IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"softdirty"	)		\
 	{VM_MIXEDMAP,			"mixedmap"	},		\
 	{VM_HUGEPAGE,			"hugepage"	},		\
 	{VM_NOHUGEPAGE,			"nohugepage"	},		\
@@ -170,5 +170,5 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"softdirty"	)		\
 
 #define show_vma_flags(flags)						\
 	(flags) ? __print_flags(flags, "|",				\
-	__def_vmaflag_names						\
-	) : "none"
+							__def_vmaflag_names						\
+						   ) : "none"

@@ -40,7 +40,8 @@
 
 #define ZX_GPIO_NR	16
 
-struct zx_gpio {
+struct zx_gpio
+{
 	spinlock_t		lock;
 
 	void __iomem		*base;
@@ -54,7 +55,9 @@ static int zx_direction_input(struct gpio_chip *gc, unsigned offset)
 	u16 gpiodir;
 
 	if (offset >= gc->ngpio)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&chip->lock, flags);
 	gpiodir = readw_relaxed(chip->base + ZX_GPIO_DIR);
@@ -66,14 +69,16 @@ static int zx_direction_input(struct gpio_chip *gc, unsigned offset)
 }
 
 static int zx_direction_output(struct gpio_chip *gc, unsigned offset,
-		int value)
+							   int value)
 {
 	struct zx_gpio *chip = gpiochip_get_data(gc);
 	unsigned long flags;
 	u16 gpiodir;
 
 	if (offset >= gc->ngpio)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&chip->lock, flags);
 	gpiodir = readw_relaxed(chip->base + ZX_GPIO_DIR);
@@ -81,9 +86,14 @@ static int zx_direction_output(struct gpio_chip *gc, unsigned offset,
 	writew_relaxed(gpiodir, chip->base + ZX_GPIO_DIR);
 
 	if (value)
+	{
 		writew_relaxed(BIT(offset), chip->base + ZX_GPIO_DO1);
+	}
 	else
+	{
 		writew_relaxed(BIT(offset), chip->base + ZX_GPIO_DO0);
+	}
+
 	spin_unlock_irqrestore(&chip->lock, flags);
 
 	return 0;
@@ -101,9 +111,13 @@ static void zx_set_value(struct gpio_chip *gc, unsigned offset, int value)
 	struct zx_gpio *chip = gpiochip_get_data(gc);
 
 	if (value)
+	{
 		writew_relaxed(BIT(offset), chip->base + ZX_GPIO_DO1);
+	}
 	else
+	{
 		writew_relaxed(BIT(offset), chip->base + ZX_GPIO_DO0);
+	}
 }
 
 static int zx_irq_type(struct irq_data *d, unsigned trigger)
@@ -116,7 +130,9 @@ static int zx_irq_type(struct irq_data *d, unsigned trigger)
 	u16 bit = BIT(offset);
 
 	if (offset < 0 || offset >= ZX_GPIO_NR)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&chip->lock, flags);
 
@@ -125,23 +141,38 @@ static int zx_irq_type(struct irq_data *d, unsigned trigger)
 	gpioi_epos = readw_relaxed(chip->base + ZX_GPIO_IEP);
 	gpioi_eneg = readw_relaxed(chip->base + ZX_GPIO_IEN);
 
-	if (trigger & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW)) {
+	if (trigger & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW))
+	{
 		gpiois |= bit;
-		if (trigger & IRQ_TYPE_LEVEL_HIGH)
-			gpioiev |= bit;
-		else
-			gpioiev &= ~bit;
-	} else
-		gpiois &= ~bit;
 
-	if ((trigger & IRQ_TYPE_EDGE_BOTH) == IRQ_TYPE_EDGE_BOTH) {
+		if (trigger & IRQ_TYPE_LEVEL_HIGH)
+		{
+			gpioiev |= bit;
+		}
+		else
+		{
+			gpioiev &= ~bit;
+		}
+	}
+	else
+	{
+		gpiois &= ~bit;
+	}
+
+	if ((trigger & IRQ_TYPE_EDGE_BOTH) == IRQ_TYPE_EDGE_BOTH)
+	{
 		gpioi_epos |= bit;
 		gpioi_eneg |= bit;
-	} else {
-		if (trigger & IRQ_TYPE_EDGE_RISING) {
+	}
+	else
+	{
+		if (trigger & IRQ_TYPE_EDGE_RISING)
+		{
 			gpioi_epos |= bit;
 			gpioi_eneg &= ~bit;
-		} else if (trigger & IRQ_TYPE_EDGE_FALLING) {
+		}
+		else if (trigger & IRQ_TYPE_EDGE_FALLING)
+		{
 			gpioi_eneg |= bit;
 			gpioi_epos &= ~bit;
 		}
@@ -168,10 +199,12 @@ static void zx_irq_handler(struct irq_desc *desc)
 
 	pending = readw_relaxed(chip->base + ZX_GPIO_MIS);
 	writew_relaxed(pending, chip->base + ZX_GPIO_IC);
-	if (pending) {
+
+	if (pending)
+	{
 		for_each_set_bit(offset, &pending, ZX_GPIO_NR)
-			generic_handle_irq(irq_find_mapping(gc->irqdomain,
-							    offset));
+		generic_handle_irq(irq_find_mapping(gc->irqdomain,
+											offset));
 	}
 
 	chained_irq_exit(irqchip, desc);
@@ -207,7 +240,8 @@ static void zx_irq_unmask(struct irq_data *d)
 	spin_unlock(&chip->lock);
 }
 
-static struct irq_chip zx_irqchip = {
+static struct irq_chip zx_irqchip =
+{
 	.name		= "zx-gpio",
 	.irq_mask	= zx_irq_mask,
 	.irq_unmask	= zx_irq_unmask,
@@ -222,16 +256,24 @@ static int zx_gpio_probe(struct platform_device *pdev)
 	int irq, id, ret;
 
 	chip = devm_kzalloc(dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	chip->base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(chip->base))
+	{
 		return PTR_ERR(chip->base);
+	}
 
 	spin_lock_init(&chip->lock);
-	if (of_property_read_bool(dev->of_node, "gpio-ranges")) {
+
+	if (of_property_read_bool(dev->of_node, "gpio-ranges"))
+	{
 		chip->gc.request = gpiochip_generic_request;
 		chip->gc.free = gpiochip_generic_free;
 	}
@@ -248,8 +290,11 @@ static int zx_gpio_probe(struct platform_device *pdev)
 	chip->gc.owner = THIS_MODULE;
 
 	ret = gpiochip_add_data(&chip->gc, chip);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * irq_chip support
@@ -257,22 +302,27 @@ static int zx_gpio_probe(struct platform_device *pdev)
 	writew_relaxed(0xffff, chip->base + ZX_GPIO_IM);
 	writew_relaxed(0, chip->base + ZX_GPIO_IE);
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(dev, "invalid IRQ\n");
 		gpiochip_remove(&chip->gc);
 		return -ENODEV;
 	}
 
 	ret = gpiochip_irqchip_add(&chip->gc, &zx_irqchip,
-				   0, handle_simple_irq,
-				   IRQ_TYPE_NONE);
-	if (ret) {
+							   0, handle_simple_irq,
+							   IRQ_TYPE_NONE);
+
+	if (ret)
+	{
 		dev_err(dev, "could not add irqchip\n");
 		gpiochip_remove(&chip->gc);
 		return ret;
 	}
+
 	gpiochip_set_chained_irqchip(&chip->gc, &zx_irqchip,
-				     irq, zx_irq_handler);
+								 irq, zx_irq_handler);
 
 	platform_set_drvdata(pdev, chip);
 	dev_info(dev, "ZX GPIO chip registered\n");
@@ -280,14 +330,16 @@ static int zx_gpio_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id zx_gpio_match[] = {
+static const struct of_device_id zx_gpio_match[] =
+{
 	{
 		.compatible = "zte,zx296702-gpio",
 	},
 	{ },
 };
 
-static struct platform_driver zx_gpio_driver = {
+static struct platform_driver zx_gpio_driver =
+{
 	.probe		= zx_gpio_probe,
 	.driver = {
 		.name	= "zx_gpio",

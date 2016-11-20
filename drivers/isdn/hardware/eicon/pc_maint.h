@@ -24,27 +24,27 @@
  *
  */
 #ifdef PLATFORM_GT_32BIT
-/* #define POINTER_32BIT byte * __ptr32 */
-#define POINTER_32BIT dword
+	/* #define POINTER_32BIT byte * __ptr32 */
+	#define POINTER_32BIT dword
 #else
-#define POINTER_32BIT byte *
+	#define POINTER_32BIT byte *
 #endif
 #if !defined(MIPS_SCOM)
-#define BUFFER_SZ  48
-#define MAINT_OFFS 0x380
+	#define BUFFER_SZ  48
+	#define MAINT_OFFS 0x380
 #else
-#define BUFFER_SZ  128
-#if defined(PRI)
-#define MAINT_OFFS 0xef00
-#else
-#define MAINT_OFFS 0xff00
-#endif
+	#define BUFFER_SZ  128
+	#if defined(PRI)
+		#define MAINT_OFFS 0xef00
+	#else
+		#define MAINT_OFFS 0xff00
+	#endif
 #endif
 #define MIPS_BUFFER_SZ  128
 #if defined(PRI)
-#define MIPS_MAINT_OFFS 0xef00
+	#define MIPS_MAINT_OFFS 0xef00
 #else
-#define MIPS_MAINT_OFFS 0xff00
+	#define MIPS_MAINT_OFFS 0xff00
 #endif
 #define LOG                     1
 #define MEMR                    2
@@ -80,7 +80,8 @@ struct DSigStruc
 	byte hlc[6];
 	byte oad[20];
 };
-struct BL1Struc {
+struct BL1Struc
+{
 	dword cx_b1;
 	dword cx_b2;
 	dword cr_b1;
@@ -92,13 +93,15 @@ struct BL1Struc {
 	word er_b1;
 	word er_b2;
 };
-struct L2Struc {
+struct L2Struc
+{
 	dword XTotal;
 	dword RTotal;
 	word XError;
 	word RError;
 };
-struct OSStruc {
+struct OSStruc
+{
 	dword free_n;
 };
 typedef union

@@ -121,7 +121,9 @@ ufshcd_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	int err;
 
 	err = pcim_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "pcim_enable_device failed\n");
 		return err;
 	}
@@ -129,7 +131,9 @@ ufshcd_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	pci_set_master(pdev);
 
 	err = pcim_iomap_regions(pdev, 1 << 0, UFSHCD);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev, "request and iomap failed\n");
 		return err;
 	}
@@ -137,7 +141,9 @@ ufshcd_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	mmio_base = pcim_iomap_table(pdev)[0];
 
 	err = ufshcd_alloc_host(&pdev->dev, &hba);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Allocation failed\n");
 		return err;
 	}
@@ -145,7 +151,9 @@ ufshcd_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	INIT_LIST_HEAD(&hba->clk_list_head);
 
 	err = ufshcd_init(hba, mmio_base, pdev->irq);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Initialization failed\n");
 		return err;
 	}
@@ -157,7 +165,8 @@ ufshcd_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	return 0;
 }
 
-static const struct dev_pm_ops ufshcd_pci_pm_ops = {
+static const struct dev_pm_ops ufshcd_pci_pm_ops =
+{
 	.suspend	= ufshcd_pci_suspend,
 	.resume		= ufshcd_pci_resume,
 	.runtime_suspend = ufshcd_pci_runtime_suspend,
@@ -165,14 +174,16 @@ static const struct dev_pm_ops ufshcd_pci_pm_ops = {
 	.runtime_idle    = ufshcd_pci_runtime_idle,
 };
 
-static const struct pci_device_id ufshcd_pci_tbl[] = {
+static const struct pci_device_id ufshcd_pci_tbl[] =
+{
 	{ PCI_VENDOR_ID_SAMSUNG, 0xC00C, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
 	{ }	/* terminate list */
 };
 
 MODULE_DEVICE_TABLE(pci, ufshcd_pci_tbl);
 
-static struct pci_driver ufshcd_pci_driver = {
+static struct pci_driver ufshcd_pci_driver =
+{
 	.name = UFSHCD,
 	.id_table = ufshcd_pci_tbl,
 	.probe = ufshcd_pci_probe,

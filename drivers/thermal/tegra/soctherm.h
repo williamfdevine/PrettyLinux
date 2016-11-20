@@ -60,7 +60,8 @@
     PLLX sensor group
  * @pllx_hotspot_mask: register bitfield mask for the HOTSPOT field
  */
-struct tegra_tsensor_group {
+struct tegra_tsensor_group
+{
 	const char *name;
 	u8 id;
 	u16 sensor_temp_offset;
@@ -75,11 +76,13 @@ struct tegra_tsensor_group {
 	u32 thermctl_lvl0_dn_thresh_mask;
 };
 
-struct tegra_tsensor_configuration {
+struct tegra_tsensor_configuration
+{
 	u32 tall, tiddq_en, ten_count, pdiv, pdiv_ate, tsample, tsample_ate;
 };
 
-struct tegra_tsensor {
+struct tegra_tsensor
+{
 	const char *name;
 	const u32 base;
 	const struct tegra_tsensor_configuration *config;
@@ -92,19 +95,22 @@ struct tegra_tsensor {
 	const struct tegra_tsensor_group *group;
 };
 
-struct tegra_soctherm_fuse {
+struct tegra_soctherm_fuse
+{
 	u32 fuse_base_cp_mask, fuse_base_cp_shift;
 	u32 fuse_base_ft_mask, fuse_base_ft_shift;
 	u32 fuse_shift_ft_mask, fuse_shift_ft_shift;
 	u32 fuse_spare_realignment;
 };
 
-struct tsensor_shared_calib {
+struct tsensor_shared_calib
+{
 	u32 base_cp, base_ft;
 	u32 actual_temp_cp, actual_temp_ft;
 };
 
-struct tegra_soctherm_soc {
+struct tegra_soctherm_soc
+{
 	const struct tegra_tsensor *tsensors;
 	const unsigned int num_tsensors;
 	const struct tegra_tsensor_group **ttgs;
@@ -116,21 +122,21 @@ struct tegra_soctherm_soc {
 };
 
 int tegra_calc_shared_calib(const struct tegra_soctherm_fuse *tfuse,
-			    struct tsensor_shared_calib *shared);
+							struct tsensor_shared_calib *shared);
 int tegra_calc_tsensor_calib(const struct tegra_tsensor *sensor,
-			     const struct tsensor_shared_calib *shared,
-			     u32 *calib);
+							 const struct tsensor_shared_calib *shared,
+							 u32 *calib);
 
 #ifdef CONFIG_ARCH_TEGRA_124_SOC
-extern const struct tegra_soctherm_soc tegra124_soctherm;
+	extern const struct tegra_soctherm_soc tegra124_soctherm;
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_132_SOC
-extern const struct tegra_soctherm_soc tegra132_soctherm;
+	extern const struct tegra_soctherm_soc tegra132_soctherm;
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_210_SOC
-extern const struct tegra_soctherm_soc tegra210_soctherm;
+	extern const struct tegra_soctherm_soc tegra210_soctherm;
 #endif
 
 #endif

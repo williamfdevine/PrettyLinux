@@ -34,17 +34,18 @@ static void csiphy_lanes_config(struct iss_csiphy *phy)
 
 	reg = iss_reg_read(phy->iss, phy->cfg_regs, CSI2_COMPLEXIO_CFG);
 
-	for (i = 0; i < phy->max_data_lanes; i++) {
+	for (i = 0; i < phy->max_data_lanes; i++)
+	{
 		reg &= ~(CSI2_COMPLEXIO_CFG_DATA_POL(i + 1) |
-			 CSI2_COMPLEXIO_CFG_DATA_POSITION_MASK(i + 1));
+				 CSI2_COMPLEXIO_CFG_DATA_POSITION_MASK(i + 1));
 		reg |= (phy->lanes.data[i].pol ?
-			CSI2_COMPLEXIO_CFG_DATA_POL(i + 1) : 0);
+				CSI2_COMPLEXIO_CFG_DATA_POL(i + 1) : 0);
 		reg |= (phy->lanes.data[i].pos <<
-			CSI2_COMPLEXIO_CFG_DATA_POSITION_SHIFT(i + 1));
+				CSI2_COMPLEXIO_CFG_DATA_POSITION_SHIFT(i + 1));
 	}
 
 	reg &= ~(CSI2_COMPLEXIO_CFG_CLOCK_POL |
-		 CSI2_COMPLEXIO_CFG_CLOCK_POSITION_MASK);
+			 CSI2_COMPLEXIO_CFG_CLOCK_POSITION_MASK);
 	reg |= phy->lanes.clk.pol ? CSI2_COMPLEXIO_CFG_CLOCK_POL : 0;
 	reg |= phy->lanes.clk.pos << CSI2_COMPLEXIO_CFG_CLOCK_POSITION_SHIFT;
 
@@ -63,21 +64,27 @@ static int csiphy_set_power(struct iss_csiphy *phy, u32 power)
 	u8 retry_count;
 
 	iss_reg_update(phy->iss, phy->cfg_regs, CSI2_COMPLEXIO_CFG,
-		       CSI2_COMPLEXIO_CFG_PWD_CMD_MASK,
-		       power | CSI2_COMPLEXIO_CFG_PWR_AUTO);
+				   CSI2_COMPLEXIO_CFG_PWD_CMD_MASK,
+				   power | CSI2_COMPLEXIO_CFG_PWR_AUTO);
 
 	retry_count = 0;
-	do {
+
+	do
+	{
 		udelay(1);
 		reg = iss_reg_read(phy->iss, phy->cfg_regs, CSI2_COMPLEXIO_CFG)
-		    & CSI2_COMPLEXIO_CFG_PWD_STATUS_MASK;
+			  & CSI2_COMPLEXIO_CFG_PWD_STATUS_MASK;
 
 		if (reg != power >> 2)
+		{
 			retry_count++;
+		}
 
-	} while ((reg != power >> 2) && (retry_count < 250));
+	}
+	while ((reg != power >> 2) && (retry_count < 250));
 
-	if (retry_count == 250) {
+	if (retry_count == 250)
+	{
 		dev_err(phy->iss->dev, "CSI2 CIO set power failed!\n");
 		return -EBUSY;
 	}
@@ -117,7 +124,7 @@ static void csiphy_dphy_config(struct iss_csiphy *phy)
 #define TCLK_SETTLE	14
 
 int omap4iss_csiphy_config(struct iss_device *iss,
-			   struct v4l2_subdev *csi2_subdev)
+						   struct v4l2_subdev *csi2_subdev)
 {
 	struct iss_csi2_device *csi2 = v4l2_get_subdevdata(csi2_subdev);
 	struct iss_pipeline *pipe = to_iss_pipeline(&csi2_subdev->entity);
@@ -147,9 +154,10 @@ int omap4iss_csiphy_config(struct iss_device *iss,
 	 */
 	regmap_read(iss->syscon, 0x68, &cam_rx_ctrl);
 
-	if (subdevs->interface == ISS_INTERFACE_CSI2A_PHY1) {
+	if (subdevs->interface == ISS_INTERFACE_CSI2A_PHY1)
+	{
 		cam_rx_ctrl &= ~(OMAP4_CAMERARX_CSI21_LANEENABLE_MASK |
-				OMAP4_CAMERARX_CSI21_CAMMODE_MASK);
+						 OMAP4_CAMERARX_CSI21_CAMMODE_MASK);
 		/* NOTE: Leave CSIPHY1 config to 0x0: D-PHY mode */
 		/* Enable all lanes for now */
 		cam_rx_ctrl |=
@@ -158,9 +166,10 @@ int omap4iss_csiphy_config(struct iss_device *iss,
 		cam_rx_ctrl |= OMAP4_CAMERARX_CSI21_CTRLCLKEN_MASK;
 	}
 
-	if (subdevs->interface == ISS_INTERFACE_CSI2B_PHY2) {
+	if (subdevs->interface == ISS_INTERFACE_CSI2B_PHY2)
+	{
 		cam_rx_ctrl &= ~(OMAP4_CAMERARX_CSI22_LANEENABLE_MASK |
-				OMAP4_CAMERARX_CSI22_CAMMODE_MASK);
+						 OMAP4_CAMERARX_CSI22_CAMMODE_MASK);
 		/* NOTE: Leave CSIPHY2 config to 0x0: D-PHY mode */
 		/* Enable all lanes for now */
 		cam_rx_ctrl |=
@@ -175,31 +184,42 @@ int omap4iss_csiphy_config(struct iss_device *iss,
 	csi2->phy->used_data_lanes = 0;
 
 	/* Clock and data lanes verification */
-	for (i = 0; i < csi2->phy->max_data_lanes; i++) {
+	for (i = 0; i < csi2->phy->max_data_lanes; i++)
+	{
 		if (lanes->data[i].pos == 0)
+		{
 			continue;
+		}
 
 		if (lanes->data[i].pol > 1 ||
-		    lanes->data[i].pos > (csi2->phy->max_data_lanes + 1))
+			lanes->data[i].pos > (csi2->phy->max_data_lanes + 1))
+		{
 			return -EINVAL;
+		}
 
 		if (used_lanes & (1 << lanes->data[i].pos))
+		{
 			return -EINVAL;
+		}
 
 		used_lanes |= 1 << lanes->data[i].pos;
 		csi2->phy->used_data_lanes++;
 	}
 
 	if (lanes->clk.pol > 1 ||
-	    lanes->clk.pos > (csi2->phy->max_data_lanes + 1))
+		lanes->clk.pos > (csi2->phy->max_data_lanes + 1))
+	{
 		return -EINVAL;
+	}
 
 	if (lanes->clk.pos == 0 || used_lanes & (1 << lanes->clk.pos))
+	{
 		return -EINVAL;
+	}
 
 	csi2_ddrclk_khz = pipe->external_rate / 1000
-		/ (2 * csi2->phy->used_data_lanes)
-		* pipe->external_bpp;
+					  / (2 * csi2->phy->used_data_lanes)
+					  * pipe->external_bpp;
 
 	/*
 	 * THS_TERM: Programmed value = ceil(12.5 ns/DDRClk period) - 1.
@@ -226,15 +246,21 @@ int omap4iss_csiphy_acquire(struct iss_csiphy *phy)
 	mutex_lock(&phy->mutex);
 
 	rval = omap4iss_csi2_reset(phy->csi2);
+
 	if (rval)
+	{
 		goto done;
+	}
 
 	csiphy_dphy_config(phy);
 	csiphy_lanes_config(phy);
 
 	rval = csiphy_set_power(phy, CSI2_COMPLEXIO_CFG_PWD_CMD_ON);
+
 	if (rval)
+	{
 		goto done;
+	}
 
 	phy->phy_in_use = 1;
 
@@ -246,10 +272,13 @@ done:
 void omap4iss_csiphy_release(struct iss_csiphy *phy)
 {
 	mutex_lock(&phy->mutex);
-	if (phy->phy_in_use) {
+
+	if (phy->phy_in_use)
+	{
 		csiphy_set_power(phy, CSI2_COMPLEXIO_CFG_PWD_CMD_OFF);
 		phy->phy_in_use = 0;
 	}
+
 	mutex_unlock(&phy->mutex);
 }
 

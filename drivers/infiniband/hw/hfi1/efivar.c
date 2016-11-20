@@ -49,7 +49,7 @@
 
 /* GUID for HFI1 variables in EFI */
 #define HFI1_EFIVAR_GUID EFI_GUID(0xc50a953e, 0xa8b2, 0x42a6, \
-		0xbf, 0x89, 0xd3, 0x33, 0xa6, 0xe9, 0xe6, 0xd4)
+								  0xbf, 0x89, 0xd3, 0x33, 0xa6, 0xe9, 0xe6, 0xd4)
 /* largest EFI data size we expect */
 #define EFI_DATA_SIZE 4096
 
@@ -62,7 +62,7 @@
  * Return 0 on success, -errno on failure.
  */
 static int read_efi_var(const char *name, unsigned long *size,
-			void **return_data)
+						void **return_data)
 {
 	efi_status_t status;
 	efi_char16_t *uni_name;
@@ -78,12 +78,15 @@ static int read_efi_var(const char *name, unsigned long *size,
 	*return_data = NULL;
 
 	if (!efi_enabled(EFI_RUNTIME_SERVICES))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	uni_name = kcalloc(strlen(name) + 1, sizeof(efi_char16_t), GFP_KERNEL);
 	temp_buffer = kzalloc(EFI_DATA_SIZE, GFP_KERNEL);
 
-	if (!uni_name || !temp_buffer) {
+	if (!uni_name || !temp_buffer)
+	{
 		ret = -ENOMEM;
 		goto fail;
 	}
@@ -93,18 +96,20 @@ static int read_efi_var(const char *name, unsigned long *size,
 
 	/* convert ASCII to unicode - it is a 1:1 mapping */
 	for (i = 0; name[i]; i++)
+	{
 		uni_name[i] = name[i];
+	}
 
 	/* need a variable for our GUID */
 	guid = HFI1_EFIVAR_GUID;
 
 	/* call into EFI runtime services */
 	status = efi.get_variable(
-			uni_name,
-			&guid,
-			NULL,
-			&temp_size,
-			temp_buffer);
+				 uni_name,
+				 &guid,
+				 NULL,
+				 &temp_size,
+				 temp_buffer);
 
 	/*
 	 * It would be nice to call efi_status_to_err() here, but that
@@ -114,10 +119,13 @@ static int read_efi_var(const char *name, unsigned long *size,
 	 * For now, just split out succces or not found.
 	 */
 	ret = status == EFI_SUCCESS   ? 0 :
-	      status == EFI_NOT_FOUND ? -ENOENT :
-					-EINVAL;
+		  status == EFI_NOT_FOUND ? -ENOENT :
+		  -EINVAL;
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	/*
 	 * We have successfully read the EFI variable into our
@@ -125,7 +133,9 @@ static int read_efi_var(const char *name, unsigned long *size,
 	 * buffer.
 	 */
 	data = kmemdup(temp_buffer, temp_size, GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		ret = -ENOMEM;
 		goto fail;
 	}
@@ -148,17 +158,17 @@ fail:
  * Returns 0 on success, -errno on failure.
  */
 int read_hfi1_efi_var(struct hfi1_devdata *dd, const char *kind,
-		      unsigned long *size, void **return_data)
+					  unsigned long *size, void **return_data)
 {
 	char name[64];
 
 	/* create a common prefix */
 	snprintf(name, sizeof(name), "%04x:%02x:%02x.%x-%s",
-		 pci_domain_nr(dd->pcidev->bus),
-		 dd->pcidev->bus->number,
-		 PCI_SLOT(dd->pcidev->devfn),
-		 PCI_FUNC(dd->pcidev->devfn),
-		 kind);
+			 pci_domain_nr(dd->pcidev->bus),
+			 dd->pcidev->bus->number,
+			 PCI_SLOT(dd->pcidev->devfn),
+			 PCI_FUNC(dd->pcidev->devfn),
+			 kind);
 
 	return read_efi_var(name, size, return_data);
 }

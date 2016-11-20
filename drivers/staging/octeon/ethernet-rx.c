@@ -22,8 +22,8 @@
 #include <linux/interrupt.h>
 #include <net/dst.h>
 #ifdef CONFIG_XFRM
-#include <linux/xfrm.h>
-#include <net/xfrm.h>
+	#include <linux/xfrm.h>
+	#include <net/xfrm.h>
 #endif /* CONFIG_XFRM */
 
 #include <asm/octeon/octeon.h>
@@ -45,7 +45,8 @@
 
 static atomic_t oct_rx_ready = ATOMIC_INIT(0);
 
-static struct oct_rx_group {
+static struct oct_rx_group
+{
 	int irq;
 	int group;
 	struct napi_struct napi;
@@ -79,19 +80,26 @@ static inline int cvm_oct_check_rcv_error(cvmx_wqe_t *work)
 	int port;
 
 	if (octeon_has_feature(OCTEON_FEATURE_PKND))
+	{
 		port = work->word0.pip.cn68xx.pknd;
+	}
 	else
+	{
 		port = work->word1.cn38xx.ipprt;
+	}
 
-	if ((work->word2.snoip.err_code == 10) && (work->word1.len <= 64)) {
+	if ((work->word2.snoip.err_code == 10) && (work->word1.len <= 64))
+	{
 		/*
 		 * Ignore length errors on min size packets. Some
 		 * equipment incorrectly pads packets to 64+4FCS
 		 * instead of 60+4FCS.  Note these packets still get
 		 * counted as frame errors.
 		 */
-	} else if (work->word2.snoip.err_code == 5 ||
-		   work->word2.snoip.err_code == 7) {
+	}
+	else if (work->word2.snoip.err_code == 5 ||
+			 work->word2.snoip.err_code == 7)
+	{
 		/*
 		 * We received a packet with either an alignment error
 		 * or a FCS error. This may be signalling that we are
@@ -105,43 +113,58 @@ static inline int cvm_oct_check_rcv_error(cvmx_wqe_t *work)
 		union cvmx_gmxx_rxx_frm_ctl gmxx_rxx_frm_ctl;
 
 		gmxx_rxx_frm_ctl.u64 =
-		    cvmx_read_csr(CVMX_GMXX_RXX_FRM_CTL(index, interface));
-		if (gmxx_rxx_frm_ctl.s.pre_chk == 0) {
+			cvmx_read_csr(CVMX_GMXX_RXX_FRM_CTL(index, interface));
+
+		if (gmxx_rxx_frm_ctl.s.pre_chk == 0)
+		{
 			u8 *ptr =
-			    cvmx_phys_to_ptr(work->packet_ptr.s.addr);
+				cvmx_phys_to_ptr(work->packet_ptr.s.addr);
 			int i = 0;
 
-			while (i < work->word1.len - 1) {
+			while (i < work->word1.len - 1)
+			{
 				if (*ptr != 0x55)
+				{
 					break;
+				}
+
 				ptr++;
 				i++;
 			}
 
-			if (*ptr == 0xd5) {
+			if (*ptr == 0xd5)
+			{
 				/* Port received 0xd5 preamble */
 				work->packet_ptr.s.addr += i + 1;
 				work->word1.len -= i + 5;
-			} else if ((*ptr & 0xf) == 0xd) {
+			}
+			else if ((*ptr & 0xf) == 0xd)
+			{
 				/* Port received 0xd preamble */
 				work->packet_ptr.s.addr += i;
 				work->word1.len -= i + 4;
-				for (i = 0; i < work->word1.len; i++) {
+
+				for (i = 0; i < work->word1.len; i++)
+				{
 					*ptr =
-					    ((*ptr & 0xf0) >> 4) |
-					    ((*(ptr + 1) & 0xf) << 4);
+						((*ptr & 0xf0) >> 4) |
+						((*(ptr + 1) & 0xf) << 4);
 					ptr++;
 				}
-			} else {
+			}
+			else
+			{
 				printk_ratelimited("Port %d unknown preamble, packet dropped\n",
-						   port);
+								   port);
 				cvm_oct_free_work(work);
 				return 1;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		printk_ratelimited("Port %d receive error code %d, packet dropped\n",
-				   port, work->word2.snoip.err_code);
+						   port, work->word2.snoip.err_code);
 		cvm_oct_free_work(work);
 		return 1;
 	}
@@ -161,31 +184,37 @@ static int cvm_oct_poll(struct oct_rx_group *rx_group, int budget)
 	/* Prefetch cvm_oct_device since we know we need it soon */
 	prefetch(cvm_oct_device);
 
-	if (USE_ASYNC_IOBDMA) {
+	if (USE_ASYNC_IOBDMA)
+	{
 		/* Save scratch in case userspace is using it */
 		CVMX_SYNCIOBDMA;
 		old_scratch = cvmx_scratch_read64(CVMX_SCR_SCRATCH);
 	}
 
 	/* Only allow work for our group (and preserve priorities) */
-	if (OCTEON_IS_MODEL(OCTEON_CN68XX)) {
+	if (OCTEON_IS_MODEL(OCTEON_CN68XX))
+	{
 		old_group_mask = cvmx_read_csr(CVMX_SSO_PPX_GRP_MSK(coreid));
 		cvmx_write_csr(CVMX_SSO_PPX_GRP_MSK(coreid),
-			       BIT(rx_group->group));
+					   BIT(rx_group->group));
 		cvmx_read_csr(CVMX_SSO_PPX_GRP_MSK(coreid)); /* Flush */
-	} else {
+	}
+	else
+	{
 		old_group_mask = cvmx_read_csr(CVMX_POW_PP_GRP_MSKX(coreid));
 		cvmx_write_csr(CVMX_POW_PP_GRP_MSKX(coreid),
-			       (old_group_mask & ~0xFFFFull) |
-			       BIT(rx_group->group));
+					   (old_group_mask & ~0xFFFFull) |
+					   BIT(rx_group->group));
 	}
 
-	if (USE_ASYNC_IOBDMA) {
+	if (USE_ASYNC_IOBDMA)
+	{
 		cvmx_pow_work_request_async(CVMX_SCR_SCRATCH, CVMX_POW_NO_WAIT);
 		did_work_request = 1;
 	}
 
-	while (rx_count < budget) {
+	while (rx_count < budget)
+	{
 		struct sk_buff *skb = NULL;
 		struct sk_buff **pskb = NULL;
 		int skb_in_hw;
@@ -193,19 +222,28 @@ static int cvm_oct_poll(struct oct_rx_group *rx_group, int budget)
 		int port;
 
 		if (USE_ASYNC_IOBDMA && did_work_request)
+		{
 			work = cvmx_pow_work_response_async(CVMX_SCR_SCRATCH);
+		}
 		else
+		{
 			work = cvmx_pow_work_request_sync(CVMX_POW_NO_WAIT);
+		}
 
 		prefetch(work);
 		did_work_request = 0;
-		if (!work) {
-			if (OCTEON_IS_MODEL(OCTEON_CN68XX)) {
+
+		if (!work)
+		{
+			if (OCTEON_IS_MODEL(OCTEON_CN68XX))
+			{
 				cvmx_write_csr(CVMX_SSO_WQ_IQ_DIS,
-					       BIT(rx_group->group));
+							   BIT(rx_group->group));
 				cvmx_write_csr(CVMX_SSO_WQ_INT,
-					       BIT(rx_group->group));
-			} else {
+							   BIT(rx_group->group));
+			}
+			else
+			{
 				union cvmx_pow_wq_int wq_int;
 
 				wq_int.u64 = 0;
@@ -213,38 +251,51 @@ static int cvm_oct_poll(struct oct_rx_group *rx_group, int budget)
 				wq_int.s.wq_int = BIT(rx_group->group);
 				cvmx_write_csr(CVMX_POW_WQ_INT, wq_int.u64);
 			}
+
 			break;
 		}
+
 		pskb = (struct sk_buff **)
-			(cvm_oct_get_buffer_ptr(work->packet_ptr) -
-			sizeof(void *));
+			   (cvm_oct_get_buffer_ptr(work->packet_ptr) -
+				sizeof(void *));
 		prefetch(pskb);
 
-		if (USE_ASYNC_IOBDMA && rx_count < (budget - 1)) {
+		if (USE_ASYNC_IOBDMA && rx_count < (budget - 1))
+		{
 			cvmx_pow_work_request_async_nocheck(CVMX_SCR_SCRATCH,
-							    CVMX_POW_NO_WAIT);
+												CVMX_POW_NO_WAIT);
 			did_work_request = 1;
 		}
+
 		rx_count++;
 
 		skb_in_hw = work->word2.s.bufs == 1;
-		if (likely(skb_in_hw)) {
+
+		if (likely(skb_in_hw))
+		{
 			skb = *pskb;
 			prefetch(&skb->head);
 			prefetch(&skb->len);
 		}
 
 		if (octeon_has_feature(OCTEON_FEATURE_PKND))
+		{
 			port = work->word0.pip.cn68xx.pknd;
+		}
 		else
+		{
 			port = work->word1.cn38xx.ipprt;
+		}
 
 		prefetch(cvm_oct_device[port]);
 
 		/* Immediately throw away all packets with receive errors */
-		if (unlikely(work->word2.snoip.rcv_error)) {
+		if (unlikely(work->word2.snoip.rcv_error))
+		{
 			if (cvm_oct_check_rcv_error(work))
+			{
 				continue;
+			}
 		}
 
 		/*
@@ -252,20 +303,25 @@ static int cvm_oct_poll(struct oct_rx_group *rx_group, int budget)
 		 * in the FPA pool and the packet fits in a single
 		 * buffer.
 		 */
-		if (likely(skb_in_hw)) {
+		if (likely(skb_in_hw))
+		{
 			skb->data = skb->head + work->packet_ptr.s.addr -
-				cvmx_ptr_to_phys(skb->head);
+						cvmx_ptr_to_phys(skb->head);
 			prefetch(skb->data);
 			skb->len = work->word1.len;
 			skb_set_tail_pointer(skb, skb->len);
 			packet_not_copied = 1;
-		} else {
+		}
+		else
+		{
 			/*
 			 * We have to copy the packet. First allocate
 			 * an skbuff for it.
 			 */
 			skb = dev_alloc_skb(work->word1.len);
-			if (!skb) {
+
+			if (!skb)
+			{
 				cvm_oct_free_work(work);
 				continue;
 			}
@@ -274,67 +330,84 @@ static int cvm_oct_poll(struct oct_rx_group *rx_group, int budget)
 			 * Check if we've received a packet that was
 			 * entirely stored in the work entry.
 			 */
-			if (unlikely(work->word2.s.bufs == 0)) {
+			if (unlikely(work->word2.s.bufs == 0))
+			{
 				u8 *ptr = work->packet_data;
 
-				if (likely(!work->word2.s.not_IP)) {
+				if (likely(!work->word2.s.not_IP))
+				{
 					/*
 					 * The beginning of the packet
 					 * moves for IP packets.
 					 */
 					if (work->word2.s.is_v6)
+					{
 						ptr += 2;
+					}
 					else
+					{
 						ptr += 6;
+					}
 				}
+
 				memcpy(skb_put(skb, work->word1.len), ptr,
-				       work->word1.len);
+					   work->word1.len);
 				/* No packet buffers to free */
-			} else {
+			}
+			else
+			{
 				int segments = work->word2.s.bufs;
 				union cvmx_buf_ptr segment_ptr =
-				    work->packet_ptr;
+						work->packet_ptr;
 				int len = work->word1.len;
 
-				while (segments--) {
+				while (segments--)
+				{
 					union cvmx_buf_ptr next_ptr =
-					    *(union cvmx_buf_ptr *)
-					      cvmx_phys_to_ptr(
-					      segment_ptr.s.addr - 8);
+							*(union cvmx_buf_ptr *)
+							cvmx_phys_to_ptr(
+								segment_ptr.s.addr - 8);
 
-			/*
-			 * Octeon Errata PKI-100: The segment size is
-			 * wrong. Until it is fixed, calculate the
-			 * segment size based on the packet pool
-			 * buffer size. When it is fixed, the
-			 * following line should be replaced with this
-			 * one: int segment_size =
-			 * segment_ptr.s.size;
-			 */
+					/*
+					 * Octeon Errata PKI-100: The segment size is
+					 * wrong. Until it is fixed, calculate the
+					 * segment size based on the packet pool
+					 * buffer size. When it is fixed, the
+					 * following line should be replaced with this
+					 * one: int segment_size =
+					 * segment_ptr.s.size;
+					 */
 					int segment_size =
-					    CVMX_FPA_PACKET_POOL_SIZE -
-					    (segment_ptr.s.addr -
-					     (((segment_ptr.s.addr >> 7) -
-					       segment_ptr.s.back) << 7));
+						CVMX_FPA_PACKET_POOL_SIZE -
+						(segment_ptr.s.addr -
+						 (((segment_ptr.s.addr >> 7) -
+						   segment_ptr.s.back) << 7));
+
 					/*
 					 * Don't copy more than what
 					 * is left in the packet.
 					 */
 					if (segment_size > len)
+					{
 						segment_size = len;
+					}
+
 					/* Copy the data into the packet */
 					memcpy(skb_put(skb, segment_size),
-					       cvmx_phys_to_ptr(
-					       segment_ptr.s.addr),
-					       segment_size);
+						   cvmx_phys_to_ptr(
+							   segment_ptr.s.addr),
+						   segment_size);
 					len -= segment_size;
 					segment_ptr = next_ptr;
 				}
 			}
+
 			packet_not_copied = 0;
 		}
+
 		if (likely((port < TOTAL_NUMBER_OF_PORTS) &&
-			   cvm_oct_device[port])) {
+				   cvm_oct_device[port]))
+		{
 			struct net_device *dev = cvm_oct_device[port];
 			struct octeon_ethernet *priv = netdev_priv(dev);
 
@@ -342,25 +415,34 @@ static int cvm_oct_poll(struct oct_rx_group *rx_group, int budget)
 			 * Only accept packets for devices that are
 			 * currently up.
 			 */
-			if (likely(dev->flags & IFF_UP)) {
+			if (likely(dev->flags & IFF_UP))
+			{
 				skb->protocol = eth_type_trans(skb, dev);
 				skb->dev = dev;
 
 				if (unlikely(work->word2.s.not_IP ||
-					     work->word2.s.IP_exc ||
-					     work->word2.s.L4_error ||
-					     !work->word2.s.tcp_or_udp))
+							 work->word2.s.IP_exc ||
+							 work->word2.s.L4_error ||
+							 !work->word2.s.tcp_or_udp))
+				{
 					skb->ip_summed = CHECKSUM_NONE;
+				}
 				else
+				{
 					skb->ip_summed = CHECKSUM_UNNECESSARY;
+				}
 
 				/* Increment RX stats for virtual ports */
-				if (port >= CVMX_PIP_NUM_INPUT_PORTS) {
+				if (port >= CVMX_PIP_NUM_INPUT_PORTS)
+				{
 					priv->stats.rx_packets++;
 					priv->stats.rx_bytes += skb->len;
 				}
+
 				netif_receive_skb(skb);
-			} else {
+			}
+			else
+			{
 				/*
 				 * Drop any packet received for a device that
 				 * isn't up.
@@ -368,45 +450,57 @@ static int cvm_oct_poll(struct oct_rx_group *rx_group, int budget)
 				priv->stats.rx_dropped++;
 				dev_kfree_skb_irq(skb);
 			}
-		} else {
+		}
+		else
+		{
 			/*
 			 * Drop any packet received for a device that
 			 * doesn't exist.
 			 */
 			printk_ratelimited("Port %d not controlled by Linux, packet dropped\n",
-					   port);
+							   port);
 			dev_kfree_skb_irq(skb);
 		}
+
 		/*
 		 * Check to see if the skbuff and work share the same
 		 * packet buffer.
 		 */
-		if (likely(packet_not_copied)) {
+		if (likely(packet_not_copied))
+		{
 			/*
 			 * This buffer needs to be replaced, increment
 			 * the number of buffers we need to free by
 			 * one.
 			 */
 			cvmx_fau_atomic_add32(FAU_NUM_PACKET_BUFFERS_TO_FREE,
-					      1);
+								  1);
 
 			cvmx_fpa_free(work, CVMX_FPA_WQE_POOL, 1);
-		} else {
+		}
+		else
+		{
 			cvm_oct_free_work(work);
 		}
 	}
+
 	/* Restore the original POW group mask */
-	if (OCTEON_IS_MODEL(OCTEON_CN68XX)) {
+	if (OCTEON_IS_MODEL(OCTEON_CN68XX))
+	{
 		cvmx_write_csr(CVMX_SSO_PPX_GRP_MSK(coreid), old_group_mask);
 		cvmx_read_csr(CVMX_SSO_PPX_GRP_MSK(coreid)); /* Flush */
-	} else {
+	}
+	else
+	{
 		cvmx_write_csr(CVMX_POW_PP_GRP_MSKX(coreid), old_group_mask);
 	}
 
-	if (USE_ASYNC_IOBDMA) {
+	if (USE_ASYNC_IOBDMA)
+	{
 		/* Restore the scratch area */
 		cvmx_scratch_write64(CVMX_SCR_SCRATCH, old_scratch);
 	}
+
 	cvm_oct_rx_refill_pool(0);
 
 	return rx_count;
@@ -422,16 +516,18 @@ static int cvm_oct_poll(struct oct_rx_group *rx_group, int budget)
 static int cvm_oct_napi_poll(struct napi_struct *napi, int budget)
 {
 	struct oct_rx_group *rx_group = container_of(napi, struct oct_rx_group,
-						     napi);
+									napi);
 	int rx_count;
 
 	rx_count = cvm_oct_poll(rx_group, budget);
 
-	if (rx_count < budget) {
+	if (rx_count < budget)
+	{
 		/* No more work */
 		napi_complete(napi);
 		enable_irq(rx_group->irq);
 	}
+
 	return rx_count;
 }
 
@@ -447,11 +543,16 @@ void cvm_oct_poll_controller(struct net_device *dev)
 	int i;
 
 	if (!atomic_read(&oct_rx_ready))
+	{
 		return;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(oct_rx_group); i++) {
+	for (i = 0; i < ARRAY_SIZE(oct_rx_group); i++)
+	{
 		if (!(pow_receive_groups & BIT(i)))
+		{
 			continue;
+		}
 
 		cvm_oct_poll(&oct_rx_group[i], 16);
 	}
@@ -463,24 +564,31 @@ void cvm_oct_rx_initialize(void)
 	int i;
 	struct net_device *dev_for_napi = NULL;
 
-	for (i = 0; i < TOTAL_NUMBER_OF_PORTS; i++) {
-		if (cvm_oct_device[i]) {
+	for (i = 0; i < TOTAL_NUMBER_OF_PORTS; i++)
+	{
+		if (cvm_oct_device[i])
+		{
 			dev_for_napi = cvm_oct_device[i];
 			break;
 		}
 	}
 
 	if (!dev_for_napi)
+	{
 		panic("No net_devices were allocated.");
+	}
 
-	for (i = 0; i < ARRAY_SIZE(oct_rx_group); i++) {
+	for (i = 0; i < ARRAY_SIZE(oct_rx_group); i++)
+	{
 		int ret;
 
 		if (!(pow_receive_groups & BIT(i)))
+		{
 			continue;
+		}
 
 		netif_napi_add(dev_for_napi, &oct_rx_group[i].napi,
-			       cvm_oct_napi_poll, rx_napi_weight);
+					   cvm_oct_napi_poll, rx_napi_weight);
 		napi_enable(&oct_rx_group[i].napi);
 
 		oct_rx_group[i].irq = OCTEON_IRQ_WORKQ0 + i;
@@ -488,15 +596,17 @@ void cvm_oct_rx_initialize(void)
 
 		/* Register an IRQ handler to receive POW interrupts */
 		ret = request_irq(oct_rx_group[i].irq, cvm_oct_do_interrupt, 0,
-				  "Ethernet", &oct_rx_group[i].napi);
+						  "Ethernet", &oct_rx_group[i].napi);
+
 		if (ret)
 			panic("Could not acquire Ethernet IRQ %d\n",
-			      oct_rx_group[i].irq);
+				  oct_rx_group[i].irq);
 
 		disable_irq_nosync(oct_rx_group[i].irq);
 
 		/* Enable POW interrupt when our port has at least one packet */
-		if (OCTEON_IS_MODEL(OCTEON_CN68XX)) {
+		if (OCTEON_IS_MODEL(OCTEON_CN68XX))
+		{
 			union cvmx_sso_wq_int_thrx int_thr;
 			union cvmx_pow_wq_int_pc int_pc;
 
@@ -508,7 +618,9 @@ void cvm_oct_rx_initialize(void)
 			int_pc.u64 = 0;
 			int_pc.s.pc_thr = 5;
 			cvmx_write_csr(CVMX_SSO_WQ_INT_PC, int_pc.u64);
-		} else {
+		}
+		else
+		{
 			union cvmx_pow_wq_int_thrx int_thr;
 			union cvmx_pow_wq_int_pc int_pc;
 
@@ -527,6 +639,7 @@ void cvm_oct_rx_initialize(void)
 		 */
 		napi_schedule(&oct_rx_group[i].napi);
 	}
+
 	atomic_inc(&oct_rx_ready);
 }
 
@@ -534,15 +647,22 @@ void cvm_oct_rx_shutdown(void)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(oct_rx_group); i++) {
+	for (i = 0; i < ARRAY_SIZE(oct_rx_group); i++)
+	{
 		if (!(pow_receive_groups & BIT(i)))
+		{
 			continue;
+		}
 
 		/* Disable POW interrupt */
 		if (OCTEON_IS_MODEL(OCTEON_CN68XX))
+		{
 			cvmx_write_csr(CVMX_SSO_WQ_INT_THRX(i), 0);
+		}
 		else
+		{
 			cvmx_write_csr(CVMX_POW_WQ_INT_THRX(i), 0);
+		}
 
 		/* Free the interrupt handler */
 		free_irq(oct_rx_group[i].irq, cvm_oct_device);

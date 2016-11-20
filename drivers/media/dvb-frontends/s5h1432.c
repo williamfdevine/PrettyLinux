@@ -27,7 +27,8 @@
 #include "dvb_frontend.h"
 #include "s5h1432.h"
 
-struct s5h1432_state {
+struct s5h1432_state
+{
 
 	struct i2c_adapter *i2c;
 
@@ -37,7 +38,7 @@ struct s5h1432_state {
 	struct dvb_frontend frontend;
 
 	enum fe_modulation current_modulation;
-	unsigned int first_tune:1;
+	unsigned int first_tune: 1;
 
 	u32 current_frequency;
 	int if_freq;
@@ -48,12 +49,12 @@ struct s5h1432_state {
 static int debug;
 
 #define dprintk(arg...) do {	\
-	if (debug)		\
-		printk(arg);	\
+		if (debug)		\
+			printk(arg);	\
 	} while (0)
 
 static int s5h1432_writereg(struct s5h1432_state *state,
-			    u8 addr, u8 reg, u8 data)
+							u8 addr, u8 reg, u8 data)
 {
 	int ret;
 	u8 buf[] = { reg, data };
@@ -64,7 +65,7 @@ static int s5h1432_writereg(struct s5h1432_state *state,
 
 	if (ret != 1)
 		printk(KERN_ERR "%s: writereg error 0x%02x 0x%02x 0x%04x, "
-		       "ret == %i)\n", __func__, addr, reg, data, ret);
+			   "ret == %i)\n", __func__, addr, reg, data, ret);
 
 	return (ret != 1) ? -1 : 0;
 }
@@ -75,7 +76,8 @@ static u8 s5h1432_readreg(struct s5h1432_state *state, u8 addr, u8 reg)
 	u8 b0[] = { reg };
 	u8 b1[] = { 0 };
 
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{.addr = addr, .flags = 0, .buf = b0, .len = 1},
 		{.addr = addr, .flags = I2C_M_RD, .buf = b1, .len = 1}
 	};
@@ -84,7 +86,8 @@ static u8 s5h1432_readreg(struct s5h1432_state *state, u8 addr, u8 reg)
 
 	if (ret != 2)
 		printk(KERN_ERR "%s: readreg error (ret == %i)\n",
-		       __func__, ret);
+			   __func__, ret);
+
 	return b1[0];
 }
 
@@ -94,7 +97,7 @@ static int s5h1432_sleep(struct dvb_frontend *fe)
 }
 
 static int s5h1432_set_channel_bandwidth(struct dvb_frontend *fe,
-					 u32 bandwidth)
+		u32 bandwidth)
 {
 	struct s5h1432_state *state = fe->demodulator_priv;
 
@@ -103,19 +106,25 @@ static int s5h1432_set_channel_bandwidth(struct dvb_frontend *fe,
 	/* Register [0x2E] bit 3:2 : 8MHz = 0; 7MHz = 1; 6MHz = 2 */
 	reg = s5h1432_readreg(state, S5H1432_I2C_TOP_ADDR, 0x2E);
 	reg &= ~(0x0C);
-	switch (bandwidth) {
-	case 6:
-		reg |= 0x08;
-		break;
-	case 7:
-		reg |= 0x04;
-		break;
-	case 8:
-		reg |= 0x00;
-		break;
-	default:
-		return 0;
+
+	switch (bandwidth)
+	{
+		case 6:
+			reg |= 0x08;
+			break;
+
+		case 7:
+			reg |= 0x04;
+			break;
+
+		case 8:
+			reg |= 0x00;
+			break;
+
+		default:
+			return 0;
 	}
+
 	s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0x2E, reg);
 	return 1;
 }
@@ -124,53 +133,60 @@ static int s5h1432_set_IF(struct dvb_frontend *fe, u32 ifFreqHz)
 {
 	struct s5h1432_state *state = fe->demodulator_priv;
 
-	switch (ifFreqHz) {
-	case TAIWAN_HI_IF_FREQ_44_MHZ:
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4, 0x55);
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5, 0x55);
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7, 0x15);
-		break;
-	case EUROPE_HI_IF_FREQ_36_MHZ:
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4, 0x00);
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5, 0x00);
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7, 0x40);
-		break;
-	case IF_FREQ_6_MHZ:
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4, 0x00);
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5, 0x00);
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7, 0xe0);
-		break;
-	case IF_FREQ_3point3_MHZ:
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4, 0x66);
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5, 0x66);
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7, 0xEE);
-		break;
-	case IF_FREQ_3point5_MHZ:
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4, 0x55);
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5, 0x55);
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7, 0xED);
-		break;
-	case IF_FREQ_4_MHZ:
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4, 0xAA);
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5, 0xAA);
-		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7, 0xEA);
-		break;
-	default:
-		{
-			u32 value = 0;
-			value = (u32) (((48000 - (ifFreqHz / 1000)) * 512 *
-					(u32) 32768) / (48 * 1000));
-			printk(KERN_INFO
-			       "Default IFFreq %d :reg value = 0x%x\n",
-			       ifFreqHz, value);
-			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4,
-					 (u8) value & 0xFF);
-			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5,
-					 (u8) (value >> 8) & 0xFF);
-			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7,
-					 (u8) (value >> 16) & 0xFF);
+	switch (ifFreqHz)
+	{
+		case TAIWAN_HI_IF_FREQ_44_MHZ:
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4, 0x55);
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5, 0x55);
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7, 0x15);
 			break;
-		}
+
+		case EUROPE_HI_IF_FREQ_36_MHZ:
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4, 0x00);
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5, 0x00);
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7, 0x40);
+			break;
+
+		case IF_FREQ_6_MHZ:
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4, 0x00);
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5, 0x00);
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7, 0xe0);
+			break;
+
+		case IF_FREQ_3point3_MHZ:
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4, 0x66);
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5, 0x66);
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7, 0xEE);
+			break;
+
+		case IF_FREQ_3point5_MHZ:
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4, 0x55);
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5, 0x55);
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7, 0xED);
+			break;
+
+		case IF_FREQ_4_MHZ:
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4, 0xAA);
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5, 0xAA);
+			s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7, 0xEA);
+			break;
+
+		default:
+			{
+				u32 value = 0;
+				value = (u32) (((48000 - (ifFreqHz / 1000)) * 512 *
+								(u32) 32768) / (48 * 1000));
+				printk(KERN_INFO
+					   "Default IFFreq %d :reg value = 0x%x\n",
+					   ifFreqHz, value);
+				s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe4,
+								 (u8) value & 0xFF);
+				s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe5,
+								 (u8) (value >> 8) & 0xFF);
+				s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0xe7,
+								 (u8) (value >> 16) & 0xFF);
+				break;
+			}
 
 	}
 
@@ -184,53 +200,68 @@ static int s5h1432_set_frontend(struct dvb_frontend *fe)
 	u32 dvb_bandwidth = 8;
 	struct s5h1432_state *state = fe->demodulator_priv;
 
-	if (p->frequency == state->current_frequency) {
+	if (p->frequency == state->current_frequency)
+	{
 		/*current_frequency = p->frequency; */
 		/*state->current_frequency = p->frequency; */
-	} else {
+	}
+	else
+	{
 		fe->ops.tuner_ops.set_params(fe);
 		msleep(300);
 		s5h1432_set_channel_bandwidth(fe, dvb_bandwidth);
-		switch (p->bandwidth_hz) {
-		case 6000000:
-			dvb_bandwidth = 6;
-			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
-			break;
-		case 7000000:
-			dvb_bandwidth = 7;
-			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
-			break;
-		case 8000000:
-			dvb_bandwidth = 8;
-			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
-			break;
-		default:
-			return 0;
+
+		switch (p->bandwidth_hz)
+		{
+			case 6000000:
+				dvb_bandwidth = 6;
+				s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
+				break;
+
+			case 7000000:
+				dvb_bandwidth = 7;
+				s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
+				break;
+
+			case 8000000:
+				dvb_bandwidth = 8;
+				s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
+				break;
+
+			default:
+				return 0;
 		}
+
 		/*fe->ops.tuner_ops.set_params(fe); */
-/*Soft Reset chip*/
+		/*Soft Reset chip*/
 		msleep(30);
 		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0x09, 0x1a);
 		msleep(30);
 		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0x09, 0x1b);
 
 		s5h1432_set_channel_bandwidth(fe, dvb_bandwidth);
-		switch (p->bandwidth_hz) {
-		case 6000000:
-			dvb_bandwidth = 6;
-			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
-			break;
-		case 7000000:
-			dvb_bandwidth = 7;
-			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
-			break;
-		case 8000000:
-			dvb_bandwidth = 8;
-			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
-			break;
-		default:
-			return 0;
+
+		switch (p->bandwidth_hz)
+		{
+			case 6000000:
+				dvb_bandwidth = 6;
+				s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
+				break;
+
+			case 7000000:
+				dvb_bandwidth = 7;
+				s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
+				break;
+
+			case 8000000:
+				dvb_bandwidth = 8;
+				s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
+				break;
+
+			default:
+				return 0;
 		}
+
 		/*fe->ops.tuner_ops.set_params(fe); */
 		/*Soft Reset chip*/
 		msleep(30);
@@ -308,7 +339,7 @@ static int s5h1432_read_status(struct dvb_frontend *fe, enum fe_status *status)
 }
 
 static int s5h1432_read_signal_strength(struct dvb_frontend *fe,
-					u16 *signal_strength)
+										u16 *signal_strength)
 {
 	return 0;
 }
@@ -330,7 +361,7 @@ static int s5h1432_read_ber(struct dvb_frontend *fe, u32 *ber)
 }
 
 static int s5h1432_get_tune_settings(struct dvb_frontend *fe,
-				     struct dvb_frontend_tune_settings *tune)
+									 struct dvb_frontend_tune_settings *tune)
 {
 	return 0;
 }
@@ -344,15 +375,18 @@ static void s5h1432_release(struct dvb_frontend *fe)
 static struct dvb_frontend_ops s5h1432_ops;
 
 struct dvb_frontend *s5h1432_attach(const struct s5h1432_config *config,
-				    struct i2c_adapter *i2c)
+									struct i2c_adapter *i2c)
 {
 	struct s5h1432_state *state = NULL;
 
 	printk(KERN_INFO " Enter s5h1432_attach(). attach success!\n");
 	/* allocate memory for the internal state */
 	state = kmalloc(sizeof(struct s5h1432_state), GFP_KERNEL);
+
 	if (!state)
+	{
 		return NULL;
+	}
 
 	/* setup the state */
 	state->config = config;
@@ -362,7 +396,7 @@ struct dvb_frontend *s5h1432_attach(const struct s5h1432_config *config,
 
 	/* create dvb_frontend */
 	memcpy(&state->frontend.ops, &s5h1432_ops,
-	       sizeof(struct dvb_frontend_ops));
+		   sizeof(struct dvb_frontend_ops));
 
 	state->frontend.demodulator_priv = state;
 
@@ -370,18 +404,20 @@ struct dvb_frontend *s5h1432_attach(const struct s5h1432_config *config,
 }
 EXPORT_SYMBOL(s5h1432_attach);
 
-static struct dvb_frontend_ops s5h1432_ops = {
+static struct dvb_frontend_ops s5h1432_ops =
+{
 	.delsys = { SYS_DVBT },
 	.info = {
-		 .name = "Samsung s5h1432 DVB-T Frontend",
-		 .frequency_min = 177000000,
-		 .frequency_max = 858000000,
-		 .frequency_stepsize = 166666,
-		 .caps = FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
-		 FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
-		 FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_AUTO |
-		 FE_CAN_HIERARCHY_AUTO | FE_CAN_GUARD_INTERVAL_AUTO |
-		 FE_CAN_TRANSMISSION_MODE_AUTO | FE_CAN_RECOVER},
+		.name = "Samsung s5h1432 DVB-T Frontend",
+		.frequency_min = 177000000,
+		.frequency_max = 858000000,
+		.frequency_stepsize = 166666,
+		.caps = FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+		FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+		FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_AUTO |
+		FE_CAN_HIERARCHY_AUTO | FE_CAN_GUARD_INTERVAL_AUTO |
+		FE_CAN_TRANSMISSION_MODE_AUTO | FE_CAN_RECOVER
+	},
 
 	.init = s5h1432_init,
 	.sleep = s5h1432_sleep,

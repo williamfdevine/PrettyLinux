@@ -42,7 +42,8 @@ struct device;
  * Drivers may register a callback to take action when
  * new entities get registered with the media device.
  */
-struct media_entity_notify {
+struct media_entity_notify
+{
 	struct list_head list;
 	void *notify_data;
 	void (*notify)(struct media_entity *entity, void *notify_data);
@@ -53,9 +54,10 @@ struct media_entity_notify {
  * @link_notify: Link state change notification callback. This callback is
  *		 called with the graph_mutex held.
  */
-struct media_device_ops {
+struct media_device_ops
+{
 	int (*link_notify)(struct media_link *link, u32 flags,
-			   unsigned int notification);
+					   unsigned int notification);
 };
 
 /**
@@ -124,7 +126,8 @@ struct media_device_ops {
  *    Bridge driver sets source_priv with information
  *    necessary to run @enable_source and @disable_source handlers.
  */
-struct media_device {
+struct media_device
+{
 	/* dev->driver_data points to this struct. */
 	struct device *dev;
 	struct media_devnode *devnode;
@@ -156,7 +159,7 @@ struct media_device {
 
 	void *source_priv;
 	int (*enable_source)(struct media_entity *entity,
-			     struct media_pipeline *pipe);
+						 struct media_pipeline *pipe);
 	void (*disable_source)(struct media_entity *entity);
 
 	const struct media_device_ops *ops;
@@ -184,7 +187,7 @@ static inline __must_check int media_entity_enum_init(
 	struct media_entity_enum *ent_enum, struct media_device *mdev)
 {
 	return __media_entity_enum_init(ent_enum,
-					mdev->entity_internal_idx_max + 1);
+									mdev->entity_internal_idx_max + 1);
 }
 
 /**
@@ -263,7 +266,7 @@ void media_device_cleanup(struct media_device *mdev);
  * Return: returns zero on success or a negative error code.
  */
 int __must_check __media_device_register(struct media_device *mdev,
-					 struct module *owner);
+		struct module *owner);
 
 
 /**
@@ -323,7 +326,7 @@ void media_device_unregister(struct media_device *mdev);
  *    %MEDIA_ENT_F_UNKNOWN should not be used by the drivers.
  */
 int __must_check media_device_register_entity(struct media_device *mdev,
-					      struct media_entity *entity);
+		struct media_entity *entity);
 
 /**
  * media_device_unregister_entity() - unregisters a media entity.
@@ -360,7 +363,7 @@ void media_device_unregister_entity(struct media_entity *entity);
  */
 
 int __must_check media_device_register_entity_notify(struct media_device *mdev,
-					struct media_entity_notify *nptr);
+		struct media_entity_notify *nptr);
 
 /**
  * media_device_unregister_entity_notify() - Unregister a media entity notify
@@ -371,7 +374,7 @@ int __must_check media_device_register_entity_notify(struct media_device *mdev,
  *
  */
 void media_device_unregister_entity_notify(struct media_device *mdev,
-					struct media_entity_notify *nptr);
+		struct media_entity_notify *nptr);
 
 /**
  * media_device_get_devres() -	get media device as device resource
@@ -423,8 +426,8 @@ struct media_device *media_device_find_devres(struct device *dev);
  *		name for the pci device, given by pci_name() macro.
  */
 void media_device_pci_init(struct media_device *mdev,
-			   struct pci_dev *pci_dev,
-			   const char *name);
+						   struct pci_dev *pci_dev,
+						   const char *name);
 /**
  * __media_device_usb_init() - create and initialize a
  *	struct &media_device from a PCI device.
@@ -443,9 +446,9 @@ void media_device_pci_init(struct media_device *mdev,
  *    such macro fills driver_name with %KBUILD_MODNAME.
  */
 void __media_device_usb_init(struct media_device *mdev,
-			     struct usb_device *udev,
-			     const char *board_name,
-			     const char *driver_name);
+							 struct usb_device *udev,
+							 const char *board_name,
+							 const char *driver_name);
 
 #else
 static inline int media_device_register(struct media_device *mdev)
@@ -456,7 +459,7 @@ static inline void media_device_unregister(struct media_device *mdev)
 {
 }
 static inline int media_device_register_entity(struct media_device *mdev,
-						struct media_entity *entity)
+		struct media_entity *entity)
 {
 	return 0;
 }
@@ -464,14 +467,14 @@ static inline void media_device_unregister_entity(struct media_entity *entity)
 {
 }
 static inline int media_device_register_entity_notify(
-					struct media_device *mdev,
-					struct media_entity_notify *nptr)
+	struct media_device *mdev,
+	struct media_entity_notify *nptr)
 {
 	return 0;
 }
 static inline void media_device_unregister_entity_notify(
-					struct media_device *mdev,
-					struct media_entity_notify *nptr)
+	struct media_device *mdev,
+	struct media_entity_notify *nptr)
 {
 }
 static inline struct media_device *media_device_get_devres(struct device *dev)
@@ -484,15 +487,15 @@ static inline struct media_device *media_device_find_devres(struct device *dev)
 }
 
 static inline void media_device_pci_init(struct media_device *mdev,
-					 struct pci_dev *pci_dev,
-					 char *name)
+		struct pci_dev *pci_dev,
+		char *name)
 {
 }
 
 static inline void __media_device_usb_init(struct media_device *mdev,
-					   struct usb_device *udev,
-					   char *board_name,
-					   char *driver_name)
+		struct usb_device *udev,
+		char *board_name,
+		char *driver_name)
 {
 }
 

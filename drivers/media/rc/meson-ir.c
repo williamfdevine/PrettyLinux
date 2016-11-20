@@ -65,7 +65,8 @@
 
 #define MESON_TRATE		10	/* us */
 
-struct meson_ir {
+struct meson_ir
+{
 	void __iomem	*reg;
 	struct rc_dev	*rc;
 	int		irq;
@@ -73,7 +74,7 @@ struct meson_ir {
 };
 
 static void meson_ir_set_mask(struct meson_ir *ir, unsigned int reg,
-			      u32 mask, u32 value)
+							  u32 mask, u32 value)
 {
 	u32 data;
 
@@ -115,24 +116,33 @@ static int meson_ir_probe(struct platform_device *pdev)
 	int ret;
 
 	ir = devm_kzalloc(dev, sizeof(struct meson_ir), GFP_KERNEL);
+
 	if (!ir)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ir->reg = devm_ioremap_resource(dev, res);
-	if (IS_ERR(ir->reg)) {
+
+	if (IS_ERR(ir->reg))
+	{
 		dev_err(dev, "failed to map registers\n");
 		return PTR_ERR(ir->reg);
 	}
 
 	ir->irq = platform_get_irq(pdev, 0);
-	if (ir->irq < 0) {
+
+	if (ir->irq < 0)
+	{
 		dev_err(dev, "no irq resource\n");
 		return ir->irq;
 	}
 
 	ir->rc = rc_allocate_device();
-	if (!ir->rc) {
+
+	if (!ir->rc)
+	{
 		dev_err(dev, "failed to allocate rc device\n");
 		return -ENOMEM;
 	}
@@ -154,13 +164,17 @@ static int meson_ir_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, ir);
 
 	ret = rc_register_device(ir->rc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to register rc device\n");
 		goto out_free;
 	}
 
 	ret = devm_request_irq(dev, ir->irq, meson_ir_irq, 0, "ir-meson", ir);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to request irq\n");
 		goto out_unreg;
 	}
@@ -172,16 +186,16 @@ static int meson_ir_probe(struct platform_device *pdev)
 	/* Set general operation mode (= raw/software decoding) */
 	if (of_device_is_compatible(node, "amlogic,meson6-ir"))
 		meson_ir_set_mask(ir, IR_DEC_REG1, REG1_MODE_MASK,
-				  DECODE_MODE_RAW << REG1_MODE_SHIFT);
+						  DECODE_MODE_RAW << REG1_MODE_SHIFT);
 	else
 		meson_ir_set_mask(ir, IR_DEC_REG2, REG2_MODE_MASK,
-				  DECODE_MODE_RAW << REG2_MODE_SHIFT);
+						  DECODE_MODE_RAW << REG2_MODE_SHIFT);
 
 	/* Set rate */
 	meson_ir_set_mask(ir, IR_DEC_REG0, REG0_RATE_MASK, MESON_TRATE - 1);
 	/* IRQ on rising and falling edges */
 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_IRQSEL_MASK,
-			  REG1_IRQSEL_RISE_FALL);
+					  REG1_IRQSEL_RISE_FALL);
 	/* Enable the decoder */
 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, REG1_ENABLE);
 
@@ -212,14 +226,16 @@ static int meson_ir_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id meson_ir_match[] = {
+static const struct of_device_id meson_ir_match[] =
+{
 	{ .compatible = "amlogic,meson6-ir" },
 	{ .compatible = "amlogic,meson8b-ir" },
 	{ .compatible = "amlogic,meson-gxbb-ir" },
 	{ },
 };
 
-static struct platform_driver meson_ir_driver = {
+static struct platform_driver meson_ir_driver =
+{
 	.probe		= meson_ir_probe,
 	.remove		= meson_ir_remove,
 	.driver = {

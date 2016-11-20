@@ -4,13 +4,15 @@
 #include <engine/pm.h>
 
 int nvkm_pm_ctor(const struct nvkm_pm_func *, struct nvkm_device *,
-		 int index, struct nvkm_pm *);
+				 int index, struct nvkm_pm *);
 
-struct nvkm_pm_func {
+struct nvkm_pm_func
+{
 	void (*fini)(struct nvkm_pm *);
 };
 
-struct nvkm_perfctr {
+struct nvkm_perfctr
+{
 	struct list_head head;
 	u8 domain;
 	u8  signal[4];
@@ -20,20 +22,23 @@ struct nvkm_perfctr {
 	u32 ctr;
 };
 
-struct nvkm_specmux {
+struct nvkm_specmux
+{
 	u32 mask;
 	u8 shift;
 	const char *name;
 	bool enable;
 };
 
-struct nvkm_specsrc {
+struct nvkm_specsrc
+{
 	u32 addr;
 	const struct nvkm_specmux *mux;
 	const char *name;
 };
 
-struct nvkm_perfsrc {
+struct nvkm_perfsrc
+{
 	struct list_head head;
 	char *name;
 	u32 addr;
@@ -49,18 +54,21 @@ extern const struct nvkm_specsrc gt200_crop_sources[];
 extern const struct nvkm_specsrc gt200_prop_sources[];
 extern const struct nvkm_specsrc gt200_tex_sources[];
 
-struct nvkm_specsig {
+struct nvkm_specsig
+{
 	u8 signal;
 	const char *name;
 	const struct nvkm_specsrc *source;
 };
 
-struct nvkm_perfsig {
+struct nvkm_perfsig
+{
 	const char *name;
 	u8 source[8];
 };
 
-struct nvkm_specdom {
+struct nvkm_specdom
+{
 	u16 signal_nr;
 	const struct nvkm_specsig *signal;
 	const struct nvkm_funcdom *func;
@@ -68,7 +76,8 @@ struct nvkm_specdom {
 
 #define nvkm_perfdom(p) container_of((p), struct nvkm_perfdom, object)
 
-struct nvkm_perfdom {
+struct nvkm_perfdom
+{
 	struct nvkm_object object;
 	struct nvkm_perfmon *perfmon;
 	struct list_head head;
@@ -83,20 +92,22 @@ struct nvkm_perfdom {
 	struct nvkm_perfsig signal[];
 };
 
-struct nvkm_funcdom {
+struct nvkm_funcdom
+{
 	void (*init)(struct nvkm_pm *, struct nvkm_perfdom *,
-		     struct nvkm_perfctr *);
+				 struct nvkm_perfctr *);
 	void (*read)(struct nvkm_pm *, struct nvkm_perfdom *,
-		     struct nvkm_perfctr *);
+				 struct nvkm_perfctr *);
 	void (*next)(struct nvkm_pm *, struct nvkm_perfdom *);
 };
 
 int nvkm_perfdom_new(struct nvkm_pm *, const char *, u32, u32, u32, u32,
-		     const struct nvkm_specdom *);
+					 const struct nvkm_specdom *);
 
 #define nvkm_perfmon(p) container_of((p), struct nvkm_perfmon, object)
 
-struct nvkm_perfmon {
+struct nvkm_perfmon
+{
 	struct nvkm_object object;
 	struct nvkm_pm *pm;
 };

@@ -6,7 +6,8 @@
 
 #define IP6T_RT_HOPS 16
 
-struct ip6t_rt {
+struct ip6t_rt
+{
 	__u32 rt_type;			/* Routing Type */
 	__u32 segsleft[2];			/* Segments Left */
 	__u32 hdrlen;			/* Header Length */

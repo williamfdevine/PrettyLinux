@@ -14,7 +14,8 @@
 
 #include <linux/types.h>
 
-struct ltc4245_platform_data {
+struct ltc4245_platform_data
+{
 	bool use_extra_gpios;
 };
 

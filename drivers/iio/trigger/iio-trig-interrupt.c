@@ -18,7 +18,8 @@
 #include <linux/iio/trigger.h>
 
 
-struct iio_interrupt_trigger_info {
+struct iio_interrupt_trigger_info
+{
 	unsigned int irq;
 };
 
@@ -28,7 +29,8 @@ static irqreturn_t iio_interrupt_trigger_poll(int irq, void *private)
 	return IRQ_HANDLED;
 }
 
-static const struct iio_trigger_ops iio_interrupt_trigger_ops = {
+static const struct iio_trigger_ops iio_interrupt_trigger_ops =
+{
 	.owner = THIS_MODULE,
 };
 
@@ -43,42 +45,55 @@ static int iio_interrupt_trigger_probe(struct platform_device *pdev)
 	irq_res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 
 	if (irq_res == NULL)
+	{
 		return -ENODEV;
+	}
 
 	irqflags = (irq_res->flags & IRQF_TRIGGER_MASK) | IRQF_SHARED;
 
 	irq = irq_res->start;
 
 	trig = iio_trigger_alloc("irqtrig%d", irq);
-	if (!trig) {
+
+	if (!trig)
+	{
 		ret = -ENOMEM;
 		goto error_ret;
 	}
 
 	trig_info = kzalloc(sizeof(*trig_info), GFP_KERNEL);
-	if (!trig_info) {
+
+	if (!trig_info)
+	{
 		ret = -ENOMEM;
 		goto error_put_trigger;
 	}
+
 	iio_trigger_set_drvdata(trig, trig_info);
 	trig_info->irq = irq;
 	trig->ops = &iio_interrupt_trigger_ops;
 	ret = request_irq(irq, iio_interrupt_trigger_poll,
-			  irqflags, trig->name, trig);
-	if (ret) {
+					  irqflags, trig->name, trig);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"request IRQ-%d failed", irq);
+				"request IRQ-%d failed", irq);
 		goto error_free_trig_info;
 	}
 
 	ret = iio_trigger_register(trig);
+
 	if (ret)
+	{
 		goto error_release_irq;
+	}
+
 	platform_set_drvdata(pdev, trig);
 
 	return 0;
 
-/* First clean up the partly allocated trigger */
+	/* First clean up the partly allocated trigger */
 error_release_irq:
 	free_irq(irq, trig);
 error_free_trig_info:
@@ -104,7 +119,8 @@ static int iio_interrupt_trigger_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver iio_interrupt_trigger_driver = {
+static struct platform_driver iio_interrupt_trigger_driver =
+{
 	.probe = iio_interrupt_trigger_probe,
 	.remove = iio_interrupt_trigger_remove,
 	.driver = {

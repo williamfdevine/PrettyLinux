@@ -46,9 +46,13 @@ xfs_rui_item_free(
 	struct xfs_rui_log_item	*ruip)
 {
 	if (ruip->rui_format.rui_nextents > XFS_RUI_MAX_FAST_EXTENTS)
+	{
 		kmem_free(ruip);
+	}
 	else
+	{
 		kmem_zone_free(xfs_rui_zone, ruip);
+	}
 }
 
 STATIC void
@@ -79,13 +83,13 @@ xfs_rui_item_format(
 	struct xfs_log_iovec	*vecp = NULL;
 
 	ASSERT(atomic_read(&ruip->rui_next_extent) ==
-			ruip->rui_format.rui_nextents);
+		   ruip->rui_format.rui_nextents);
 
 	ruip->rui_format.rui_type = XFS_LI_RUI;
 	ruip->rui_format.rui_size = 1;
 
 	xlog_copy_iovec(lv, &vecp, XLOG_REG_TYPE_RUI_FORMAT, &ruip->rui_format,
-			xfs_rui_log_format_sizeof(ruip->rui_format.rui_nextents));
+					xfs_rui_log_format_sizeof(ruip->rui_format.rui_nextents));
 }
 
 /*
@@ -140,7 +144,9 @@ xfs_rui_item_unlock(
 	struct xfs_log_item	*lip)
 {
 	if (lip->li_flags & XFS_LI_ABORTED)
+	{
 		xfs_rui_item_free(RUI_ITEM(lip));
+	}
 }
 
 /*
@@ -172,7 +178,8 @@ xfs_rui_item_committing(
 /*
  * This is the ops vector shared by all rui log items.
  */
-static const struct xfs_item_ops xfs_rui_item_ops = {
+static const struct xfs_item_ops xfs_rui_item_ops =
+{
 	.iop_size	= xfs_rui_item_size,
 	.iop_format	= xfs_rui_item_format,
 	.iop_pin	= xfs_rui_item_pin,
@@ -195,10 +202,15 @@ xfs_rui_init(
 	struct xfs_rui_log_item		*ruip;
 
 	ASSERT(nextents > 0);
+
 	if (nextents > XFS_RUI_MAX_FAST_EXTENTS)
+	{
 		ruip = kmem_zalloc(xfs_rui_log_item_sizeof(nextents), KM_SLEEP);
+	}
 	else
+	{
 		ruip = kmem_zone_zalloc(xfs_rui_zone, KM_SLEEP);
+	}
 
 	xfs_log_item_init(mp, &ruip->rui_item, XFS_LI_RUI, &xfs_rui_item_ops);
 	ruip->rui_format.rui_nextents = nextents;
@@ -226,7 +238,9 @@ xfs_rui_copy_format(
 	len = xfs_rui_log_format_sizeof(src_rui_fmt->rui_nextents);
 
 	if (buf->i_len != len)
+	{
 		return -EFSCORRUPTED;
+	}
 
 	memcpy(dst_rui_fmt, src_rui_fmt, len);
 	return 0;
@@ -243,7 +257,8 @@ void
 xfs_rui_release(
 	struct xfs_rui_log_item	*ruip)
 {
-	if (atomic_dec_and_test(&ruip->rui_refcount)) {
+	if (atomic_dec_and_test(&ruip->rui_refcount))
+	{
 		xfs_trans_ail_remove(&ruip->rui_item, SHUTDOWN_LOG_IO_ERROR);
 		xfs_rui_item_free(ruip);
 	}
@@ -283,7 +298,7 @@ xfs_rud_item_format(
 	rudp->rud_format.rud_size = 1;
 
 	xlog_copy_iovec(lv, &vecp, XLOG_REG_TYPE_RUD_FORMAT, &rudp->rud_format,
-			sizeof(struct xfs_rud_log_format));
+					sizeof(struct xfs_rud_log_format));
 }
 
 /*
@@ -329,7 +344,8 @@ xfs_rud_item_unlock(
 {
 	struct xfs_rud_log_item	*rudp = RUD_ITEM(lip);
 
-	if (lip->li_flags & XFS_LI_ABORTED) {
+	if (lip->li_flags & XFS_LI_ABORTED)
+	{
 		xfs_rui_release(rudp->rud_ruip);
 		kmem_zone_free(xfs_rud_zone, rudp);
 	}
@@ -357,7 +373,7 @@ xfs_rud_item_committed(
 	xfs_rui_release(rudp->rud_ruip);
 	kmem_zone_free(xfs_rud_zone, rudp);
 
-	return (xfs_lsn_t)-1;
+	return (xfs_lsn_t) - 1;
 }
 
 /*
@@ -377,7 +393,8 @@ xfs_rud_item_committing(
 /*
  * This is the ops vector shared by all rud log items.
  */
-static const struct xfs_item_ops xfs_rud_item_ops = {
+static const struct xfs_item_ops xfs_rud_item_ops =
+{
 	.iop_size	= xfs_rud_item_size,
 	.iop_format	= xfs_rud_item_format,
 	.iop_pin	= xfs_rud_item_pin,
@@ -435,30 +452,36 @@ xfs_rui_recover(
 	 * RUI.  If any are bad, then assume that all are bad and
 	 * just toss the RUI.
 	 */
-	for (i = 0; i < ruip->rui_format.rui_nextents; i++) {
+	for (i = 0; i < ruip->rui_format.rui_nextents; i++)
+	{
 		rmap = &ruip->rui_format.rui_extents[i];
 		startblock_fsb = XFS_BB_TO_FSB(mp,
-				   XFS_FSB_TO_DADDR(mp, rmap->me_startblock));
-		switch (rmap->me_flags & XFS_RMAP_EXTENT_TYPE_MASK) {
-		case XFS_RMAP_EXTENT_MAP:
-		case XFS_RMAP_EXTENT_MAP_SHARED:
-		case XFS_RMAP_EXTENT_UNMAP:
-		case XFS_RMAP_EXTENT_UNMAP_SHARED:
-		case XFS_RMAP_EXTENT_CONVERT:
-		case XFS_RMAP_EXTENT_CONVERT_SHARED:
-		case XFS_RMAP_EXTENT_ALLOC:
-		case XFS_RMAP_EXTENT_FREE:
-			op_ok = true;
-			break;
-		default:
-			op_ok = false;
-			break;
+									   XFS_FSB_TO_DADDR(mp, rmap->me_startblock));
+
+		switch (rmap->me_flags & XFS_RMAP_EXTENT_TYPE_MASK)
+		{
+			case XFS_RMAP_EXTENT_MAP:
+			case XFS_RMAP_EXTENT_MAP_SHARED:
+			case XFS_RMAP_EXTENT_UNMAP:
+			case XFS_RMAP_EXTENT_UNMAP_SHARED:
+			case XFS_RMAP_EXTENT_CONVERT:
+			case XFS_RMAP_EXTENT_CONVERT_SHARED:
+			case XFS_RMAP_EXTENT_ALLOC:
+			case XFS_RMAP_EXTENT_FREE:
+				op_ok = true;
+				break;
+
+			default:
+				op_ok = false;
+				break;
 		}
+
 		if (!op_ok || startblock_fsb == 0 ||
-		    rmap->me_len == 0 ||
-		    startblock_fsb >= mp->m_sb.sb_dblocks ||
-		    rmap->me_len >= mp->m_sb.sb_agblocks ||
-		    (rmap->me_flags & ~XFS_RMAP_EXTENT_FLAGS)) {
+			rmap->me_len == 0 ||
+			startblock_fsb >= mp->m_sb.sb_dblocks ||
+			rmap->me_len >= mp->m_sb.sb_agblocks ||
+			(rmap->me_flags & ~XFS_RMAP_EXTENT_FLAGS))
+		{
 			/*
 			 * This will pull the RUI from the AIL and
 			 * free the memory associated with it.
@@ -470,51 +493,70 @@ xfs_rui_recover(
 	}
 
 	error = xfs_trans_alloc(mp, &M_RES(mp)->tr_itruncate, 0, 0, 0, &tp);
+
 	if (error)
+	{
 		return error;
+	}
+
 	rudp = xfs_trans_get_rud(tp, ruip);
 
-	for (i = 0; i < ruip->rui_format.rui_nextents; i++) {
+	for (i = 0; i < ruip->rui_format.rui_nextents; i++)
+	{
 		rmap = &ruip->rui_format.rui_extents[i];
 		state = (rmap->me_flags & XFS_RMAP_EXTENT_UNWRITTEN) ?
 				XFS_EXT_UNWRITTEN : XFS_EXT_NORM;
 		whichfork = (rmap->me_flags & XFS_RMAP_EXTENT_ATTR_FORK) ?
-				XFS_ATTR_FORK : XFS_DATA_FORK;
-		switch (rmap->me_flags & XFS_RMAP_EXTENT_TYPE_MASK) {
-		case XFS_RMAP_EXTENT_MAP:
-			type = XFS_RMAP_MAP;
-			break;
-		case XFS_RMAP_EXTENT_MAP_SHARED:
-			type = XFS_RMAP_MAP_SHARED;
-			break;
-		case XFS_RMAP_EXTENT_UNMAP:
-			type = XFS_RMAP_UNMAP;
-			break;
-		case XFS_RMAP_EXTENT_UNMAP_SHARED:
-			type = XFS_RMAP_UNMAP_SHARED;
-			break;
-		case XFS_RMAP_EXTENT_CONVERT:
-			type = XFS_RMAP_CONVERT;
-			break;
-		case XFS_RMAP_EXTENT_CONVERT_SHARED:
-			type = XFS_RMAP_CONVERT_SHARED;
-			break;
-		case XFS_RMAP_EXTENT_ALLOC:
-			type = XFS_RMAP_ALLOC;
-			break;
-		case XFS_RMAP_EXTENT_FREE:
-			type = XFS_RMAP_FREE;
-			break;
-		default:
-			error = -EFSCORRUPTED;
-			goto abort_error;
+					XFS_ATTR_FORK : XFS_DATA_FORK;
+
+		switch (rmap->me_flags & XFS_RMAP_EXTENT_TYPE_MASK)
+		{
+			case XFS_RMAP_EXTENT_MAP:
+				type = XFS_RMAP_MAP;
+				break;
+
+			case XFS_RMAP_EXTENT_MAP_SHARED:
+				type = XFS_RMAP_MAP_SHARED;
+				break;
+
+			case XFS_RMAP_EXTENT_UNMAP:
+				type = XFS_RMAP_UNMAP;
+				break;
+
+			case XFS_RMAP_EXTENT_UNMAP_SHARED:
+				type = XFS_RMAP_UNMAP_SHARED;
+				break;
+
+			case XFS_RMAP_EXTENT_CONVERT:
+				type = XFS_RMAP_CONVERT;
+				break;
+
+			case XFS_RMAP_EXTENT_CONVERT_SHARED:
+				type = XFS_RMAP_CONVERT_SHARED;
+				break;
+
+			case XFS_RMAP_EXTENT_ALLOC:
+				type = XFS_RMAP_ALLOC;
+				break;
+
+			case XFS_RMAP_EXTENT_FREE:
+				type = XFS_RMAP_FREE;
+				break;
+
+			default:
+				error = -EFSCORRUPTED;
+				goto abort_error;
 		}
+
 		error = xfs_trans_log_finish_rmap_update(tp, rudp, type,
 				rmap->me_owner, whichfork,
 				rmap->me_startoff, rmap->me_startblock,
 				rmap->me_len, state, &rcur);
+
 		if (error)
+		{
 			goto abort_error;
+		}
 
 	}
 

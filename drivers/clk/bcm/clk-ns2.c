@@ -24,21 +24,22 @@
 #define REG_VAL(o, s, w) { .offset = o, .shift = s, .width = w, }
 
 #define AON_VAL(o, pw, ps, is) { .offset = o, .pwr_width = pw, \
-	.pwr_shift = ps, .iso_shift = is }
+			.pwr_shift = ps, .iso_shift = is }
 
 #define RESET_VAL(o, rs, prs) { .offset = o, .reset_shift = rs, \
-	.p_reset_shift = prs }
+			.p_reset_shift = prs }
 
 #define DF_VAL(o, kis, kiw, kps, kpw, kas, kaw) { .offset = o, .ki_shift = kis,\
-	.ki_width = kiw, .kp_shift = kps, .kp_width = kpw, .ka_shift = kas,    \
-	.ka_width = kaw }
+			.ki_width = kiw, .kp_shift = kps, .kp_width = kpw, .ka_shift = kas,    \
+										 .ka_width = kaw }
 
 #define VCO_CTRL_VAL(uo, lo) { .u_offset = uo, .l_offset = lo }
 
 #define ENABLE_VAL(o, es, hs, bs) { .offset = o, .enable_shift = es, \
-	.hold_shift = hs, .bypass_shift = bs }
+			.hold_shift = hs, .bypass_shift = bs }
 
-static const struct iproc_pll_ctrl genpll_scr = {
+static const struct iproc_pll_ctrl genpll_scr =
+{
 	.flags = IPROC_CLK_AON | IPROC_CLK_PLL_SPLIT_STAT_CTRL,
 	.aon = AON_VAL(0x0, 1, 15, 12),
 	.reset = RESET_VAL(0x4, 2, 1),
@@ -50,7 +51,8 @@ static const struct iproc_pll_ctrl genpll_scr = {
 };
 
 
-static const struct iproc_clk_ctrl genpll_scr_clk[] = {
+static const struct iproc_clk_ctrl genpll_scr_clk[] =
+{
 	/* bypass_shift, the last value passed into ENABLE_VAL(), is not defined
 	 * in NS2.  However, it doesn't appear to be used anywhere, so setting
 	 * it to 0.
@@ -96,12 +98,13 @@ static const struct iproc_clk_ctrl genpll_scr_clk[] = {
 static void __init ns2_genpll_scr_clk_init(struct device_node *node)
 {
 	iproc_pll_clk_setup(node, &genpll_scr, NULL, 0, genpll_scr_clk,
-			    ARRAY_SIZE(genpll_scr_clk));
+						ARRAY_SIZE(genpll_scr_clk));
 }
 CLK_OF_DECLARE(ns2_genpll_src_clk, "brcm,ns2-genpll-scr",
-	       ns2_genpll_scr_clk_init);
+			   ns2_genpll_scr_clk_init);
 
-static const struct iproc_pll_ctrl genpll_sw = {
+static const struct iproc_pll_ctrl genpll_sw =
+{
 	.flags = IPROC_CLK_AON | IPROC_CLK_PLL_SPLIT_STAT_CTRL,
 	.aon = AON_VAL(0x0, 2, 9, 8),
 	.reset = RESET_VAL(0x4, 2, 1),
@@ -112,7 +115,8 @@ static const struct iproc_pll_ctrl genpll_sw = {
 	.status = REG_VAL(0x0, 13, 1),
 };
 
-static const struct iproc_clk_ctrl genpll_sw_clk[] = {
+static const struct iproc_clk_ctrl genpll_sw_clk[] =
+{
 	/* bypass_shift, the last value passed into ENABLE_VAL(), is not defined
 	 * in NS2.  However, it doesn't appear to be used anywhere, so setting
 	 * it to 0.
@@ -158,12 +162,13 @@ static const struct iproc_clk_ctrl genpll_sw_clk[] = {
 static void __init ns2_genpll_sw_clk_init(struct device_node *node)
 {
 	iproc_pll_clk_setup(node, &genpll_sw, NULL, 0, genpll_sw_clk,
-			    ARRAY_SIZE(genpll_sw_clk));
+						ARRAY_SIZE(genpll_sw_clk));
 }
 CLK_OF_DECLARE(ns2_genpll_sw_clk, "brcm,ns2-genpll-sw",
-	       ns2_genpll_sw_clk_init);
+			   ns2_genpll_sw_clk_init);
 
-static const struct iproc_pll_ctrl lcpll_ddr = {
+static const struct iproc_pll_ctrl lcpll_ddr =
+{
 	.flags = IPROC_CLK_AON | IPROC_CLK_PLL_SPLIT_STAT_CTRL,
 	.aon = AON_VAL(0x0, 2, 1, 0),
 	.reset = RESET_VAL(0x4, 2, 1),
@@ -174,7 +179,8 @@ static const struct iproc_pll_ctrl lcpll_ddr = {
 	.status = REG_VAL(0x0, 0, 1),
 };
 
-static const struct iproc_clk_ctrl lcpll_ddr_clk[] = {
+static const struct iproc_clk_ctrl lcpll_ddr_clk[] =
+{
 	/* bypass_shift, the last value passed into ENABLE_VAL(), is not defined
 	 * in NS2.  However, it doesn't appear to be used anywhere, so setting
 	 * it to 0.
@@ -220,12 +226,13 @@ static const struct iproc_clk_ctrl lcpll_ddr_clk[] = {
 static void __init ns2_lcpll_ddr_clk_init(struct device_node *node)
 {
 	iproc_pll_clk_setup(node, &lcpll_ddr, NULL, 0, lcpll_ddr_clk,
-			    ARRAY_SIZE(lcpll_ddr_clk));
+						ARRAY_SIZE(lcpll_ddr_clk));
 }
 CLK_OF_DECLARE(ns2_lcpll_ddr_clk, "brcm,ns2-lcpll-ddr",
-	       ns2_lcpll_ddr_clk_init);
+			   ns2_lcpll_ddr_clk_init);
 
-static const struct iproc_pll_ctrl lcpll_ports = {
+static const struct iproc_pll_ctrl lcpll_ports =
+{
 	.flags = IPROC_CLK_AON | IPROC_CLK_PLL_SPLIT_STAT_CTRL,
 	.aon = AON_VAL(0x0, 2, 5, 4),
 	.reset = RESET_VAL(0x4, 2, 1),
@@ -236,7 +243,8 @@ static const struct iproc_pll_ctrl lcpll_ports = {
 	.status = REG_VAL(0x0, 0, 1),
 };
 
-static const struct iproc_clk_ctrl lcpll_ports_clk[] = {
+static const struct iproc_clk_ctrl lcpll_ports_clk[] =
+{
 	/* bypass_shift, the last value passed into ENABLE_VAL(), is not defined
 	 * in NS2.  However, it doesn't appear to be used anywhere, so setting
 	 * it to 0.
@@ -282,7 +290,7 @@ static const struct iproc_clk_ctrl lcpll_ports_clk[] = {
 static void __init ns2_lcpll_ports_clk_init(struct device_node *node)
 {
 	iproc_pll_clk_setup(node, &lcpll_ports, NULL, 0, lcpll_ports_clk,
-			    ARRAY_SIZE(lcpll_ports_clk));
+						ARRAY_SIZE(lcpll_ports_clk));
 }
 CLK_OF_DECLARE(ns2_lcpll_ports_clk, "brcm,ns2-lcpll-ports",
-	       ns2_lcpll_ports_clk_init);
+			   ns2_lcpll_ports_clk_init);

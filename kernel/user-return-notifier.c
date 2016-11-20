@@ -25,8 +25,11 @@ EXPORT_SYMBOL_GPL(user_return_notifier_register);
 void user_return_notifier_unregister(struct user_return_notifier *urn)
 {
 	hlist_del(&urn->link);
+
 	if (hlist_empty(this_cpu_ptr(&return_notifier_list)))
+	{
 		clear_tsk_thread_flag(current, TIF_USER_RETURN_NOTIFY);
+	}
 }
 EXPORT_SYMBOL_GPL(user_return_notifier_unregister);
 
@@ -39,6 +42,6 @@ void fire_user_return_notifiers(void)
 
 	head = &get_cpu_var(return_notifier_list);
 	hlist_for_each_entry_safe(urn, tmp2, head, link)
-		urn->on_user_return(urn);
+	urn->on_user_return(urn);
 	put_cpu_var(return_notifier_list);
 }

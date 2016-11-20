@@ -30,46 +30,46 @@
 #include <linux/mtd/xip.h>
 
 #ifdef CONFIG_MTD_CFI_I1
-#define cfi_interleave(cfi) 1
-#define cfi_interleave_is_1(cfi) (cfi_interleave(cfi) == 1)
+	#define cfi_interleave(cfi) 1
+	#define cfi_interleave_is_1(cfi) (cfi_interleave(cfi) == 1)
 #else
-#define cfi_interleave_is_1(cfi) (0)
+	#define cfi_interleave_is_1(cfi) (0)
 #endif
 
 #ifdef CONFIG_MTD_CFI_I2
-# ifdef cfi_interleave
-#  undef cfi_interleave
-#  define cfi_interleave(cfi) ((cfi)->interleave)
-# else
-#  define cfi_interleave(cfi) 2
-# endif
-#define cfi_interleave_is_2(cfi) (cfi_interleave(cfi) == 2)
+	#ifdef cfi_interleave
+		#undef cfi_interleave
+		#define cfi_interleave(cfi) ((cfi)->interleave)
+	#else
+		#define cfi_interleave(cfi) 2
+	#endif
+	#define cfi_interleave_is_2(cfi) (cfi_interleave(cfi) == 2)
 #else
-#define cfi_interleave_is_2(cfi) (0)
+	#define cfi_interleave_is_2(cfi) (0)
 #endif
 
 #ifdef CONFIG_MTD_CFI_I4
-# ifdef cfi_interleave
-#  undef cfi_interleave
-#  define cfi_interleave(cfi) ((cfi)->interleave)
-# else
-#  define cfi_interleave(cfi) 4
-# endif
-#define cfi_interleave_is_4(cfi) (cfi_interleave(cfi) == 4)
+	#ifdef cfi_interleave
+		#undef cfi_interleave
+		#define cfi_interleave(cfi) ((cfi)->interleave)
+	#else
+		#define cfi_interleave(cfi) 4
+	#endif
+	#define cfi_interleave_is_4(cfi) (cfi_interleave(cfi) == 4)
 #else
-#define cfi_interleave_is_4(cfi) (0)
+	#define cfi_interleave_is_4(cfi) (0)
 #endif
 
 #ifdef CONFIG_MTD_CFI_I8
-# ifdef cfi_interleave
-#  undef cfi_interleave
-#  define cfi_interleave(cfi) ((cfi)->interleave)
-# else
-#  define cfi_interleave(cfi) 8
-# endif
-#define cfi_interleave_is_8(cfi) (cfi_interleave(cfi) == 8)
+	#ifdef cfi_interleave
+		#undef cfi_interleave
+		#define cfi_interleave(cfi) ((cfi)->interleave)
+	#else
+		#define cfi_interleave(cfi) 8
+	#endif
+	#define cfi_interleave_is_8(cfi) (cfi_interleave(cfi) == 8)
 #else
-#define cfi_interleave_is_8(cfi) (0)
+	#define cfi_interleave_is_8(cfi) (0)
 #endif
 
 #ifndef cfi_interleave
@@ -83,23 +83,25 @@ static inline int cfi_interleave(void *cfi)
 
 static inline int cfi_interleave_supported(int i)
 {
-	switch (i) {
+	switch (i)
+	{
 #ifdef CONFIG_MTD_CFI_I1
-	case 1:
+
+		case 1:
 #endif
 #ifdef CONFIG_MTD_CFI_I2
-	case 2:
+		case 2:
 #endif
 #ifdef CONFIG_MTD_CFI_I4
-	case 4:
+		case 4:
 #endif
 #ifdef CONFIG_MTD_CFI_I8
-	case 8:
+		case 8:
 #endif
-		return 1;
+			return 1;
 
-	default:
-		return 0;
+		default:
+			return 0;
 	}
 }
 
@@ -130,7 +132,8 @@ static inline int cfi_interleave_supported(int i)
  */
 
 /* Basic Query Structure */
-struct cfi_ident {
+struct cfi_ident
+{
 	uint8_t  qry[3];
 	uint16_t P_ID;
 	uint16_t P_ADR;
@@ -157,7 +160,8 @@ struct cfi_ident {
 
 /* Extended Query Structure for both PRI and ALT */
 
-struct cfi_extquery {
+struct cfi_extquery
+{
 	uint8_t  pri[3];
 	uint8_t  MajorVersion;
 	uint8_t  MinorVersion;
@@ -165,7 +169,8 @@ struct cfi_extquery {
 
 /* Vendor-Specific PRI for Intel/Sharp Extended Command Set (0x0001) */
 
-struct cfi_pri_intelext {
+struct cfi_pri_intelext
+{
 	uint8_t  pri[3];
 	uint8_t  MajorVersion;
 	uint8_t  MinorVersion;
@@ -182,7 +187,8 @@ struct cfi_pri_intelext {
 	uint8_t  extra[0];
 } __packed;
 
-struct cfi_intelext_otpinfo {
+struct cfi_intelext_otpinfo
+{
 	uint32_t ProtRegAddr;
 	uint16_t FactGroups;
 	uint8_t  FactProtRegSize;
@@ -190,7 +196,8 @@ struct cfi_intelext_otpinfo {
 	uint8_t  UserProtRegSize;
 } __packed;
 
-struct cfi_intelext_blockinfo {
+struct cfi_intelext_blockinfo
+{
 	uint16_t NumIdentBlocks;
 	uint16_t BlockSize;
 	uint16_t MinBlockEraseCycles;
@@ -198,7 +205,8 @@ struct cfi_intelext_blockinfo {
 	uint8_t  BlockCap;
 } __packed;
 
-struct cfi_intelext_regioninfo {
+struct cfi_intelext_regioninfo
+{
 	uint16_t NumIdentPartitions;
 	uint8_t  NumOpAllowed;
 	uint8_t  NumOpAllowedSimProgMode;
@@ -207,7 +215,8 @@ struct cfi_intelext_regioninfo {
 	struct cfi_intelext_blockinfo BlockTypes[1];
 } __packed;
 
-struct cfi_intelext_programming_regioninfo {
+struct cfi_intelext_programming_regioninfo
+{
 	uint8_t  ProgRegShift;
 	uint8_t  Reserved1;
 	uint8_t  ControlValid;
@@ -218,7 +227,8 @@ struct cfi_intelext_programming_regioninfo {
 
 /* Vendor-Specific PRI for AMD/Fujitsu Extended Command Set (0x0002) */
 
-struct cfi_pri_amdstd {
+struct cfi_pri_amdstd
+{
 	uint8_t  pri[3];
 	uint8_t  MajorVersion;
 	uint8_t  MinorVersion;
@@ -237,7 +247,8 @@ struct cfi_pri_amdstd {
 
 /* Vendor-Specific PRI for Atmel chips (command set 0x0002) */
 
-struct cfi_pri_atmel {
+struct cfi_pri_atmel
+{
 	uint8_t pri[3];
 	uint8_t MajorVersion;
 	uint8_t MinorVersion;
@@ -247,12 +258,14 @@ struct cfi_pri_atmel {
 	uint8_t PageMode;
 } __packed;
 
-struct cfi_pri_query {
+struct cfi_pri_query
+{
 	uint8_t  NumFields;
 	uint32_t ProtField[1]; /* Not host ordered */
 } __packed;
 
-struct cfi_bri_query {
+struct cfi_bri_query
+{
 	uint8_t  PageModeReadCap;
 	uint8_t  NumFields;
 	uint32_t ConfField[1]; /* Not host ordered */
@@ -277,7 +290,8 @@ struct cfi_bri_query {
 #define CFI_MODE_CFI	1
 #define CFI_MODE_JEDEC	0
 
-struct cfi_private {
+struct cfi_private
+{
 	uint16_t cmdset;
 	void *cmdset_priv;
 	int interleave;
@@ -297,28 +311,33 @@ struct cfi_private {
 };
 
 uint32_t cfi_build_cmd_addr(uint32_t cmd_ofs,
-				struct map_info *map, struct cfi_private *cfi);
+							struct map_info *map, struct cfi_private *cfi);
 
 map_word cfi_build_cmd(u_long cmd, struct map_info *map, struct cfi_private *cfi);
 #define CMD(x)  cfi_build_cmd((x), map, cfi)
 
 unsigned long cfi_merge_status(map_word val, struct map_info *map,
-					   struct cfi_private *cfi);
+							   struct cfi_private *cfi);
 #define MERGESTATUS(x) cfi_merge_status((x), map, cfi)
 
 uint32_t cfi_send_gen_cmd(u_char cmd, uint32_t cmd_addr, uint32_t base,
-				struct map_info *map, struct cfi_private *cfi,
-				int type, map_word *prev_val);
+						  struct map_info *map, struct cfi_private *cfi,
+						  int type, map_word *prev_val);
 
 static inline uint8_t cfi_read_query(struct map_info *map, uint32_t addr)
 {
 	map_word val = map_read(map, addr);
 
-	if (map_bankwidth_is_1(map)) {
+	if (map_bankwidth_is_1(map))
+	{
 		return val.x[0];
-	} else if (map_bankwidth_is_2(map)) {
+	}
+	else if (map_bankwidth_is_2(map))
+	{
 		return cfi16_to_cpu(map, val.x[0]);
-	} else {
+	}
+	else
+	{
 		/* No point in a 64-bit byteswap since that would just be
 		   swapping the responses from different chips, and we are
 		   only interested in one chip (a representative sample) */
@@ -330,11 +349,16 @@ static inline uint16_t cfi_read_query16(struct map_info *map, uint32_t addr)
 {
 	map_word val = map_read(map, addr);
 
-	if (map_bankwidth_is_1(map)) {
+	if (map_bankwidth_is_1(map))
+	{
 		return val.x[0] & 0xff;
-	} else if (map_bankwidth_is_2(map)) {
+	}
+	else if (map_bankwidth_is_2(map))
+	{
 		return cfi16_to_cpu(map, val.x[0]);
-	} else {
+	}
+	else
+	{
 		/* No point in a 64-bit byteswap since that would just be
 		   swapping the responses from different chips, and we are
 		   only interested in one chip (a representative sample) */
@@ -345,15 +369,16 @@ static inline uint16_t cfi_read_query16(struct map_info *map, uint32_t addr)
 void cfi_udelay(int us);
 
 int __xipram cfi_qry_present(struct map_info *map, __u32 base,
-			     struct cfi_private *cfi);
+							 struct cfi_private *cfi);
 int __xipram cfi_qry_mode_on(uint32_t base, struct map_info *map,
-			     struct cfi_private *cfi);
+							 struct cfi_private *cfi);
 void __xipram cfi_qry_mode_off(uint32_t base, struct map_info *map,
-			       struct cfi_private *cfi);
+							   struct cfi_private *cfi);
 
 struct cfi_extquery *cfi_read_pri(struct map_info *map, uint16_t adr, uint16_t size,
-			     const char* name);
-struct cfi_fixup {
+								  const char *name);
+struct cfi_fixup
+{
 	uint16_t mfr;
 	uint16_t id;
 	void (*fixup)(struct mtd_info *mtd);
@@ -380,13 +405,13 @@ struct cfi_fixup {
 #define CFI_MFR_TOSHIBA		0x0098
 #define CFI_MFR_WINBOND		0x00DA
 
-void cfi_fixup(struct mtd_info *mtd, struct cfi_fixup* fixups);
+void cfi_fixup(struct mtd_info *mtd, struct cfi_fixup *fixups);
 
 typedef int (*varsize_frob_t)(struct map_info *map, struct flchip *chip,
-			      unsigned long adr, int len, void *thunk);
+							  unsigned long adr, int len, void *thunk);
 
 int cfi_varsize_frob(struct mtd_info *mtd, varsize_frob_t frob,
-	loff_t ofs, size_t len, void *thunk);
+					 loff_t ofs, size_t len, void *thunk);
 
 
 #endif /* __MTD_CFI_H__ */

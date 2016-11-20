@@ -89,7 +89,8 @@
 #define	RSSI_OFDM				1
 #define	RSSI_DEFAULT				2
 
-struct swat_t {
+struct swat_t
+{
 	u8 failure_cnt;
 	u8 try_flag;
 	u8 stop_trying;
@@ -99,7 +100,8 @@ struct swat_t {
 	u8 pre_antenna;
 };
 
-enum tag_dynamic_init_gain_operation_type_definition {
+enum tag_dynamic_init_gain_operation_type_definition
+{
 	DIG_TYPE_THRESH_HIGH = 0,
 	DIG_TYPE_THRESH_LOW = 1,
 	DIG_TYPE_BACKOFF = 2,
@@ -110,19 +112,22 @@ enum tag_dynamic_init_gain_operation_type_definition {
 	DIG_OP_TYPE_MAX
 };
 
-enum dm_1r_cca_e {
+enum dm_1r_cca_e
+{
 	CCA_1R = 0,
 	CCA_2R = 1,
 	CCA_MAX = 2,
 };
 
-enum dm_rf_e {
+enum dm_rf_e
+{
 	RF_SAVE = 0,
 	RF_NORMAL = 1,
 	RF_MAX = 2,
 };
 
-enum dm_sw_ant_switch_e {
+enum dm_sw_ant_switch_e
+{
 	ANS_ANTENNA_B = 1,
 	ANS_ANTENNA_A = 2,
 	ANS_ANTENNA_MAX = 3,

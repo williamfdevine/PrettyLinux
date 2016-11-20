@@ -36,12 +36,13 @@
 
 #ifdef CONFIG_DRAGONRISE_FF
 
-struct drff_device {
+struct drff_device
+{
 	struct hid_report *report;
 };
 
 static int drff_play(struct input_dev *dev, void *data,
-				 struct ff_effect *effect)
+					 struct ff_effect *effect)
 {
 	struct hid_device *hid = input_get_drvdata(dev);
 	struct drff_device *drff = data;
@@ -52,7 +53,8 @@ static int drff_play(struct input_dev *dev, void *data,
 
 	dbg_hid("called with 0x%04x 0x%04x", strong, weak);
 
-	if (strong || weak) {
+	if (strong || weak)
+	{
 		strong = strong * 0xff / 0xffff;
 		weak = weak * 0xff / 0xffff;
 
@@ -60,7 +62,9 @@ static int drff_play(struct input_dev *dev, void *data,
 		   this value is set, it causes the strong rumble to function
 		   at a near maximum speed, so we'll bypass it. */
 		if (weak == 0x0a)
+		{
 			weak = 0x0b;
+		}
 
 		drff->report->field[0]->value[0] = 0x51;
 		drff->report->field[0]->value[1] = 0x00;
@@ -70,7 +74,9 @@ static int drff_play(struct input_dev *dev, void *data,
 
 		drff->report->field[0]->value[0] = 0xfa;
 		drff->report->field[0]->value[1] = 0xfe;
-	} else {
+	}
+	else
+	{
 		drff->report->field[0]->value[0] = 0xf3;
 		drff->report->field[0]->value[1] = 0x00;
 	}
@@ -88,36 +94,45 @@ static int drff_init(struct hid_device *hid)
 	struct drff_device *drff;
 	struct hid_report *report;
 	struct hid_input *hidinput = list_first_entry(&hid->inputs,
-						struct hid_input, list);
+								 struct hid_input, list);
 	struct list_head *report_list =
 			&hid->report_enum[HID_OUTPUT_REPORT].report_list;
 	struct input_dev *dev = hidinput->input;
 	int error;
 
-	if (list_empty(report_list)) {
+	if (list_empty(report_list))
+	{
 		hid_err(hid, "no output reports found\n");
 		return -ENODEV;
 	}
 
 	report = list_first_entry(report_list, struct hid_report, list);
-	if (report->maxfield < 1) {
+
+	if (report->maxfield < 1)
+	{
 		hid_err(hid, "no fields in the report\n");
 		return -ENODEV;
 	}
 
-	if (report->field[0]->report_count < 7) {
+	if (report->field[0]->report_count < 7)
+	{
 		hid_err(hid, "not enough values in the field\n");
 		return -ENODEV;
 	}
 
 	drff = kzalloc(sizeof(struct drff_device), GFP_KERNEL);
+
 	if (!drff)
+	{
 		return -ENOMEM;
+	}
 
 	set_bit(FF_RUMBLE, dev->ffbit);
 
 	error = input_ff_create_memless(dev, drff, drff_play);
-	if (error) {
+
+	if (error)
+	{
 		kfree(drff);
 		return error;
 	}
@@ -133,7 +148,7 @@ static int drff_init(struct hid_device *hid)
 	hid_hw_request(hid, drff->report, HID_REQ_SET_REPORT);
 
 	hid_info(hid, "Force Feedback for DragonRise Inc. "
-		 "game controllers by Richard Walmsley <richwalm@gmail.com>\n");
+			 "game controllers by Richard Walmsley <richwalm@gmail.com>\n");
 
 	return 0;
 }
@@ -205,7 +220,8 @@ static inline int drff_init(struct hid_device *hid)
 #define PID0011_RDESC_ORIG_SIZE	101
 
 /* Fixed report descriptor for PID 0x011 joystick */
-static __u8 pid0011_rdesc_fixed[] = {
+static __u8 pid0011_rdesc_fixed[] =
+{
 	0x05, 0x01,         /*  Usage Page (Desktop),           */
 	0x09, 0x04,         /*  Usage (Joystick),               */
 	0xA1, 0x01,         /*  Collection (Application),       */
@@ -235,16 +251,20 @@ static __u8 pid0011_rdesc_fixed[] = {
 };
 
 static __u8 *dr_report_fixup(struct hid_device *hdev, __u8 *rdesc,
-				unsigned int *rsize)
+							 unsigned int *rsize)
 {
-	switch (hdev->product) {
-	case 0x0011:
-		if (*rsize == PID0011_RDESC_ORIG_SIZE) {
-			rdesc = pid0011_rdesc_fixed;
-			*rsize = sizeof(pid0011_rdesc_fixed);
-		}
-		break;
+	switch (hdev->product)
+	{
+		case 0x0011:
+			if (*rsize == PID0011_RDESC_ORIG_SIZE)
+			{
+				rdesc = pid0011_rdesc_fixed;
+				*rsize = sizeof(pid0011_rdesc_fixed);
+			}
+
+			break;
 	}
+
 	return rdesc;
 }
 
@@ -252,21 +272,27 @@ static __u8 *dr_report_fixup(struct hid_device *hdev, __u8 *rdesc,
 #define map_rel(c)      hid_map_usage(hi, usage, bit, max, EV_REL, (c))
 
 static int dr_input_mapping(struct hid_device *hdev, struct hid_input *hi,
-			    struct hid_field *field, struct hid_usage *usage,
-			    unsigned long **bit, int *max)
+							struct hid_field *field, struct hid_usage *usage,
+							unsigned long **bit, int *max)
 {
-	switch (usage->hid) {
-	/*
-	 * revert to the old hid-input behavior where axes
-	 * can be randomly assigned when hid->usage is reused.
-	 */
-	case HID_GD_X: case HID_GD_Y: case HID_GD_Z:
-	case HID_GD_RX: case HID_GD_RY: case HID_GD_RZ:
-		if (field->flags & HID_MAIN_ITEM_RELATIVE)
-			map_rel(usage->hid & 0xf);
-		else
-			map_abs(usage->hid & 0xf);
-		return 1;
+	switch (usage->hid)
+	{
+		/*
+		 * revert to the old hid-input behavior where axes
+		 * can be randomly assigned when hid->usage is reused.
+		 */
+		case HID_GD_X: case HID_GD_Y: case HID_GD_Z:
+		case HID_GD_RX: case HID_GD_RY: case HID_GD_RZ:
+			if (field->flags & HID_MAIN_ITEM_RELATIVE)
+			{
+				map_rel(usage->hid & 0xf);
+			}
+			else
+			{
+				map_abs(usage->hid & 0xf);
+			}
+
+			return 1;
 	}
 
 	return 0;
@@ -279,26 +305,34 @@ static int dr_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	dev_dbg(&hdev->dev, "DragonRise Inc. HID hardware probe...");
 
 	ret = hid_parse(hdev);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hdev, "parse failed\n");
 		goto err;
 	}
 
 	ret = hid_hw_start(hdev, HID_CONNECT_DEFAULT & ~HID_CONNECT_FF);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hdev, "hw start failed\n");
 		goto err;
 	}
 
-	switch (hdev->product) {
-	case 0x0006:
-		ret = drff_init(hdev);
-		if (ret) {
-			dev_err(&hdev->dev, "force feedback init failed\n");
-			hid_hw_stop(hdev);
-			goto err;
-		}
-		break;
+	switch (hdev->product)
+	{
+		case 0x0006:
+			ret = drff_init(hdev);
+
+			if (ret)
+			{
+				dev_err(&hdev->dev, "force feedback init failed\n");
+				hid_hw_stop(hdev);
+				goto err;
+			}
+
+			break;
 	}
 
 	return 0;
@@ -306,14 +340,16 @@ err:
 	return ret;
 }
 
-static const struct hid_device_id dr_devices[] = {
+static const struct hid_device_id dr_devices[] =
+{
 	{ HID_USB_DEVICE(USB_VENDOR_ID_DRAGONRISE, 0x0006),  },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_DRAGONRISE, 0x0011),  },
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, dr_devices);
 
-static struct hid_driver dr_driver = {
+static struct hid_driver dr_driver =
+{
 	.name = "dragonrise",
 	.id_table = dr_devices,
 	.report_fixup = dr_report_fixup,

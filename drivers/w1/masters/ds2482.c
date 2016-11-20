@@ -76,9 +76,9 @@ module_param_named(active_pullup, ds2482_active_pullup, int, 0644);
  * Read and compare against the corresponding value to verify the change.
  */
 static const u8 ds2482_chan_wr[8] =
-	{ 0xF0, 0xE1, 0xD2, 0xC3, 0xB4, 0xA5, 0x96, 0x87 };
+{ 0xF0, 0xE1, 0xD2, 0xC3, 0xB4, 0xA5, 0x96, 0x87 };
 static const u8 ds2482_chan_rd[8] =
-	{ 0xB8, 0xB1, 0xAA, 0xA3, 0x9C, 0x95, 0x8E, 0x87 };
+{ 0xB8, 0xB1, 0xAA, 0xA3, 0x9C, 0x95, 0x8E, 0x87 };
 
 
 /**
@@ -95,20 +95,22 @@ static const u8 ds2482_chan_rd[8] =
 
 
 static int ds2482_probe(struct i2c_client *client,
-			const struct i2c_device_id *id);
+						const struct i2c_device_id *id);
 static int ds2482_remove(struct i2c_client *client);
 
 
 /**
  * Driver data (common to all clients)
  */
-static const struct i2c_device_id ds2482_id[] = {
+static const struct i2c_device_id ds2482_id[] =
+{
 	{ "ds2482", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ds2482_id);
 
-static struct i2c_driver ds2482_driver = {
+static struct i2c_driver ds2482_driver =
+{
 	.driver = {
 		.name	= "ds2482",
 	},
@@ -123,13 +125,15 @@ static struct i2c_driver ds2482_driver = {
 
 struct ds2482_data;
 
-struct ds2482_w1_chan {
+struct ds2482_w1_chan
+{
 	struct ds2482_data	*pdev;
 	u8			channel;
 	struct w1_bus_master	w1_bm;
 };
 
-struct ds2482_data {
+struct ds2482_data
+{
 	struct i2c_client	*client;
 	struct mutex		access_lock;
 
@@ -152,7 +156,9 @@ struct ds2482_data {
 static inline u8 ds2482_calculate_config(u8 conf)
 {
 	if (ds2482_active_pullup)
+	{
 		conf |= DS2482_REG_CFG_APU;
+	}
 
 	return conf | ((~conf & 0x0f) << 4);
 }
@@ -166,14 +172,18 @@ static inline u8 ds2482_calculate_config(u8 conf)
  */
 static inline int ds2482_select_register(struct ds2482_data *pdev, u8 read_ptr)
 {
-	if (pdev->read_prt != read_ptr) {
+	if (pdev->read_prt != read_ptr)
+	{
 		if (i2c_smbus_write_byte_data(pdev->client,
-					      DS2482_CMD_SET_READ_PTR,
-					      read_ptr) < 0)
+									  DS2482_CMD_SET_READ_PTR,
+									  read_ptr) < 0)
+		{
 			return -1;
+		}
 
 		pdev->read_prt = read_ptr;
 	}
+
 	return 0;
 }
 
@@ -188,7 +198,9 @@ static inline int ds2482_select_register(struct ds2482_data *pdev, u8 read_ptr)
 static inline int ds2482_send_cmd(struct ds2482_data *pdev, u8 cmd)
 {
 	if (i2c_smbus_write_byte(pdev->client, cmd) < 0)
+	{
 		return -1;
+	}
 
 	pdev->read_prt = DS2482_PTR_CODE_STATUS;
 	return 0;
@@ -205,14 +217,16 @@ static inline int ds2482_send_cmd(struct ds2482_data *pdev, u8 cmd)
  * @return -1 on failure, 0 on success
  */
 static inline int ds2482_send_cmd_data(struct ds2482_data *pdev,
-				       u8 cmd, u8 byte)
+									   u8 cmd, u8 byte)
 {
 	if (i2c_smbus_write_byte_data(pdev->client, cmd, byte) < 0)
+	{
 		return -1;
+	}
 
 	/* all cmds leave in STATUS, except CONFIG */
 	pdev->read_prt = (cmd != DS2482_CMD_WRITE_CONFIG) ?
-			 DS2482_PTR_CODE_STATUS : DS2482_PTR_CODE_CONFIG;
+					 DS2482_PTR_CODE_STATUS : DS2482_PTR_CODE_CONFIG;
 	return 0;
 }
 
@@ -234,16 +248,19 @@ static int ds2482_wait_1wire_idle(struct ds2482_data *pdev)
 	int temp = -1;
 	int retries = 0;
 
-	if (!ds2482_select_register(pdev, DS2482_PTR_CODE_STATUS)) {
-		do {
+	if (!ds2482_select_register(pdev, DS2482_PTR_CODE_STATUS))
+	{
+		do
+		{
 			temp = i2c_smbus_read_byte(pdev->client);
-		} while ((temp >= 0) && (temp & DS2482_REG_STS_1WB) &&
-			 (++retries < DS2482_WAIT_IDLE_TIMEOUT));
+		}
+		while ((temp >= 0) && (temp & DS2482_REG_STS_1WB) &&
+			   (++retries < DS2482_WAIT_IDLE_TIMEOUT));
 	}
 
 	if (retries >= DS2482_WAIT_IDLE_TIMEOUT)
 		pr_err("%s: timeout on channel %d\n",
-		       __func__, pdev->channel);
+			   __func__, pdev->channel);
 
 	return temp;
 }
@@ -259,15 +276,20 @@ static int ds2482_wait_1wire_idle(struct ds2482_data *pdev)
 static int ds2482_set_channel(struct ds2482_data *pdev, u8 channel)
 {
 	if (i2c_smbus_write_byte_data(pdev->client, DS2482_CMD_CHANNEL_SELECT,
-				      ds2482_chan_wr[channel]) < 0)
+								  ds2482_chan_wr[channel]) < 0)
+	{
 		return -1;
+	}
 
 	pdev->read_prt = DS2482_PTR_CODE_CHANNEL;
 	pdev->channel = -1;
-	if (i2c_smbus_read_byte(pdev->client) == ds2482_chan_rd[channel]) {
+
+	if (i2c_smbus_read_byte(pdev->client) == ds2482_chan_rd[channel])
+	{
 		pdev->channel = channel;
 		return 0;
 	}
+
 	return -1;
 }
 
@@ -289,13 +311,18 @@ static u8 ds2482_w1_touch_bit(void *data, u8 bit)
 
 	/* Select the channel */
 	ds2482_wait_1wire_idle(pdev);
+
 	if (pdev->w1_count > 1)
+	{
 		ds2482_set_channel(pdev, pchan->channel);
+	}
 
 	/* Send the touch command, wait until 1WB == 0, return the status */
 	if (!ds2482_send_cmd_data(pdev, DS2482_CMD_1WIRE_SINGLE_BIT,
-				  bit ? 0xFF : 0))
+							  bit ? 0xFF : 0))
+	{
 		status = ds2482_wait_1wire_idle(pdev);
+	}
 
 	mutex_unlock(&pdev->access_lock);
 
@@ -321,13 +348,18 @@ static u8 ds2482_w1_triplet(void *data, u8 dbit)
 
 	/* Select the channel */
 	ds2482_wait_1wire_idle(pdev);
+
 	if (pdev->w1_count > 1)
+	{
 		ds2482_set_channel(pdev, pchan->channel);
+	}
 
 	/* Send the triplet command, wait until 1WB == 0, return the status */
 	if (!ds2482_send_cmd_data(pdev, DS2482_CMD_1WIRE_TRIPLET,
-				  dbit ? 0xFF : 0))
+							  dbit ? 0xFF : 0))
+	{
 		status = ds2482_wait_1wire_idle(pdev);
+	}
 
 	mutex_unlock(&pdev->access_lock);
 
@@ -350,8 +382,11 @@ static void ds2482_w1_write_byte(void *data, u8 byte)
 
 	/* Select the channel */
 	ds2482_wait_1wire_idle(pdev);
+
 	if (pdev->w1_count > 1)
+	{
 		ds2482_set_channel(pdev, pchan->channel);
+	}
 
 	/* Send the write byte command */
 	ds2482_send_cmd_data(pdev, DS2482_CMD_1WIRE_WRITE_BYTE, byte);
@@ -375,8 +410,11 @@ static u8 ds2482_w1_read_byte(void *data)
 
 	/* Select the channel */
 	ds2482_wait_1wire_idle(pdev);
+
 	if (pdev->w1_count > 1)
+	{
 		ds2482_set_channel(pdev, pchan->channel);
+	}
 
 	/* Send the read byte command */
 	ds2482_send_cmd(pdev, DS2482_CMD_1WIRE_READ_BYTE);
@@ -413,12 +451,17 @@ static u8 ds2482_w1_reset_bus(void *data)
 
 	/* Select the channel */
 	ds2482_wait_1wire_idle(pdev);
+
 	if (pdev->w1_count > 1)
+	{
 		ds2482_set_channel(pdev, pchan->channel);
+	}
 
 	/* Send the reset command */
 	err = ds2482_send_cmd(pdev, DS2482_CMD_1WIRE_RESET);
-	if (err >= 0) {
+
+	if (err >= 0)
+	{
 		/* Wait until the reset is complete */
 		err = ds2482_wait_1wire_idle(pdev);
 		retval = !(err & DS2482_REG_STS_PPD);
@@ -426,7 +469,7 @@ static u8 ds2482_w1_reset_bus(void *data)
 		/* If the chip did reset since detect, re-config it */
 		if (err & DS2482_REG_STS_RST)
 			ds2482_send_cmd_data(pdev, DS2482_CMD_WRITE_CONFIG,
-					     ds2482_calculate_config(0x00));
+								 ds2482_calculate_config(0x00));
 	}
 
 	mutex_unlock(&pdev->access_lock);
@@ -444,7 +487,8 @@ static u8 ds2482_w1_set_pullup(void *data, int delay)
 	 * the strong pullup will be automatically deactivated
 	 * by the master, so do not explicitly deactive it
 	 */
-	if (delay) {
+	if (delay)
+	{
 		/* both waits are crucial, otherwise devices might not be
 		 * powered long enough, causing e.g. a w1_therm sensor to
 		 * provide wrong conversion results
@@ -452,8 +496,8 @@ static u8 ds2482_w1_set_pullup(void *data, int delay)
 		ds2482_wait_1wire_idle(pdev);
 		/* note: it seems like both SPU and APU have to be set! */
 		retval = ds2482_send_cmd_data(pdev, DS2482_CMD_WRITE_CONFIG,
-			ds2482_calculate_config(DS2482_REG_CFG_SPU |
-						DS2482_REG_CFG_APU));
+									  ds2482_calculate_config(DS2482_REG_CFG_SPU |
+											  DS2482_REG_CFG_APU));
 		ds2482_wait_1wire_idle(pdev);
 	}
 
@@ -462,7 +506,7 @@ static u8 ds2482_w1_set_pullup(void *data, int delay)
 
 
 static int ds2482_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct ds2482_data *data;
 	int err = -ENODEV;
@@ -470,11 +514,14 @@ static int ds2482_probe(struct i2c_client *client,
 	int idx;
 
 	if (!i2c_check_functionality(client->adapter,
-				     I2C_FUNC_SMBUS_WRITE_BYTE_DATA |
-				     I2C_FUNC_SMBUS_BYTE))
+								 I2C_FUNC_SMBUS_WRITE_BYTE_DATA |
+								 I2C_FUNC_SMBUS_BYTE))
+	{
 		return -ENODEV;
+	}
 
-	if (!(data = kzalloc(sizeof(struct ds2482_data), GFP_KERNEL))) {
+	if (!(data = kzalloc(sizeof(struct ds2482_data), GFP_KERNEL)))
+	{
 		err = -ENOMEM;
 		goto exit;
 	}
@@ -483,7 +530,8 @@ static int ds2482_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, data);
 
 	/* Reset the device (sets the read_ptr to status) */
-	if (ds2482_send_cmd(data, DS2482_CMD_RESET) < 0) {
+	if (ds2482_send_cmd(data, DS2482_CMD_RESET) < 0)
+	{
 		dev_warn(&client->dev, "DS2482 reset failed.\n");
 		goto exit_free;
 	}
@@ -493,25 +541,31 @@ static int ds2482_probe(struct i2c_client *client,
 
 	/* Read the status byte - only reset bit and line should be set */
 	temp1 = i2c_smbus_read_byte(client);
-	if (temp1 != (DS2482_REG_STS_LL | DS2482_REG_STS_RST)) {
+
+	if (temp1 != (DS2482_REG_STS_LL | DS2482_REG_STS_RST))
+	{
 		dev_warn(&client->dev, "DS2482 reset status "
-			 "0x%02X - not a DS2482\n", temp1);
+				 "0x%02X - not a DS2482\n", temp1);
 		goto exit_free;
 	}
 
 	/* Detect the 8-port version */
 	data->w1_count = 1;
+
 	if (ds2482_set_channel(data, 7) == 0)
+	{
 		data->w1_count = 8;
+	}
 
 	/* Set all config items to 0 (off) */
 	ds2482_send_cmd_data(data, DS2482_CMD_WRITE_CONFIG,
-		ds2482_calculate_config(0x00));
+						 ds2482_calculate_config(0x00));
 
 	mutex_init(&data->access_lock);
 
 	/* Register 1-wire interface(s) */
-	for (idx = 0; idx < data->w1_count; idx++) {
+	for (idx = 0; idx < data->w1_count; idx++)
+	{
 		data->w1_ch[idx].pdev = data;
 		data->w1_ch[idx].channel = idx;
 
@@ -525,7 +579,9 @@ static int ds2482_probe(struct i2c_client *client,
 		data->w1_ch[idx].w1_bm.set_pullup = ds2482_w1_set_pullup;
 
 		err = w1_add_master_device(&data->w1_ch[idx].w1_bm);
-		if (err) {
+
+		if (err)
+		{
 			data->w1_ch[idx].pdev = NULL;
 			goto exit_w1_remove;
 		}
@@ -534,10 +590,15 @@ static int ds2482_probe(struct i2c_client *client,
 	return 0;
 
 exit_w1_remove:
-	for (idx = 0; idx < data->w1_count; idx++) {
+
+	for (idx = 0; idx < data->w1_count; idx++)
+	{
 		if (data->w1_ch[idx].pdev != NULL)
+		{
 			w1_remove_master_device(&data->w1_ch[idx].w1_bm);
+		}
 	}
+
 exit_free:
 	kfree(data);
 exit:
@@ -550,9 +611,12 @@ static int ds2482_remove(struct i2c_client *client)
 	int idx;
 
 	/* Unregister the 1-wire bridge(s) */
-	for (idx = 0; idx < data->w1_count; idx++) {
+	for (idx = 0; idx < data->w1_count; idx++)
+	{
 		if (data->w1_ch[idx].pdev != NULL)
+		{
 			w1_remove_master_device(&data->w1_ch[idx].w1_bm);
+		}
 	}
 
 	/* Free the memory */
@@ -563,7 +627,7 @@ static int ds2482_remove(struct i2c_client *client)
 module_i2c_driver(ds2482_driver);
 
 MODULE_PARM_DESC(active_pullup, "Active pullup (apply to all buses): " \
-				"0-disable, 1-enable (default)");
+				 "0-disable, 1-enable (default)");
 MODULE_AUTHOR("Ben Gardner <bgardner@wabtec.com>");
 MODULE_DESCRIPTION("DS2482 driver");
 MODULE_LICENSE("GPL");

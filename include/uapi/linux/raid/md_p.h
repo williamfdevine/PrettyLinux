@@ -1,15 +1,15 @@
 /*
    md_p.h : physical layout of Linux RAID devices
           Copyright (C) 1996-98 Ingo Molnar, Gadi Oxman
-	  
+
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
-   
+
    You should have received a copy of the GNU General Public License
    (for example /usr/src/linux/COPYING); if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 #ifndef _MD_P_H
@@ -96,7 +96,8 @@
 #define MD_DISK_ROLE_JOURNAL	0xfffd
 #define MD_DISK_ROLE_MAX	0xff00 /* max value of regular disk role */
 
-typedef struct mdp_device_descriptor_s {
+typedef struct mdp_device_descriptor_s
+{
 	__u32 number;		/* 0 Device number in the entire set	      */
 	__u32 major;		/* 1 Device major number		      */
 	__u32 minor;		/* 2 Device minor number		      */
@@ -127,7 +128,8 @@ typedef struct mdp_device_descriptor_s {
  */
 
 
-typedef struct mdp_superblock_s {
+typedef struct mdp_superblock_s
+{
 	/*
 	 * Constant generic information
 	 */
@@ -207,9 +209,10 @@ typedef struct mdp_superblock_s {
 
 } mdp_super_t;
 
-static inline __u64 md_event(mdp_super_t *sb) {
+static inline __u64 md_event(mdp_super_t *sb)
+{
 	__u64 ev = sb->events_hi;
-	return (ev<<32)| sb->events_lo;
+	return (ev << 32) | sb->events_lo;
 }
 
 #define MD_SUPERBLOCK_1_TIME_SEC_MASK ((1ULL<<40) - 1)
@@ -221,7 +224,8 @@ static inline __u64 md_event(mdp_super_t *sb) {
  * total size: 256 bytes plus 2 per device.
  *  1K allows 384 devices.
  */
-struct mdp_superblock_1 {
+struct mdp_superblock_1
+{
 	/* constant array information - 128 bytes */
 	__le32	magic;		/* MD_SB_MAGIC: 0xa92b4efc - little endian */
 	__le32	major_version;	/* 1 */
@@ -258,7 +262,8 @@ struct mdp_superblock_1 {
 	__le64	data_offset;	/* sector start of data, often 0 */
 	__le64	data_size;	/* sectors in this device that can be used for data */
 	__le64	super_offset;	/* sector start of this superblock */
-	union {
+	union
+	{
 		__le64	recovery_offset;/* sectors before this offset (from data_offset) have been recovered */
 		__le64	journal_tail;/* journal tail of journal device (from data_offset) */
 	};
@@ -281,7 +286,7 @@ struct mdp_superblock_1 {
 	__le64	resync_offset;	/* data before this offset (from data_offset) known to be in sync */
 	__le32	sb_csum;	/* checksum up to devs[max_dev] */
 	__le32	max_dev;	/* size of devs[] array to consider */
-	__u8	pad3[64-32];	/* set to 0 when writing */
+	__u8	pad3[64 - 32];	/* set to 0 when writing */
 
 	/* device state information. Indexed by dev_number.
 	 * 2 bytes per device
@@ -314,29 +319,32 @@ struct mdp_superblock_1 {
 #define MD_FEATURE_CLUSTERED		256 /* clustered MD */
 #define	MD_FEATURE_JOURNAL		512 /* support write cache */
 #define	MD_FEATURE_ALL			(MD_FEATURE_BITMAP_OFFSET	\
-					|MD_FEATURE_RECOVERY_OFFSET	\
-					|MD_FEATURE_RESHAPE_ACTIVE	\
-					|MD_FEATURE_BAD_BLOCKS		\
-					|MD_FEATURE_REPLACEMENT		\
-					|MD_FEATURE_RESHAPE_BACKWARDS	\
-					|MD_FEATURE_NEW_OFFSET		\
-					|MD_FEATURE_RECOVERY_BITMAP	\
-					|MD_FEATURE_CLUSTERED		\
-					|MD_FEATURE_JOURNAL		\
-					)
+								 |MD_FEATURE_RECOVERY_OFFSET	\
+								 |MD_FEATURE_RESHAPE_ACTIVE	\
+								 |MD_FEATURE_BAD_BLOCKS		\
+								 |MD_FEATURE_REPLACEMENT		\
+								 |MD_FEATURE_RESHAPE_BACKWARDS	\
+								 |MD_FEATURE_NEW_OFFSET		\
+								 |MD_FEATURE_RECOVERY_BITMAP	\
+								 |MD_FEATURE_CLUSTERED		\
+								 |MD_FEATURE_JOURNAL		\
+						 )
 
-struct r5l_payload_header {
+struct r5l_payload_header
+{
 	__le16 type;
 	__le16 flags;
 } __attribute__ ((__packed__));
 
-enum r5l_payload_type {
+enum r5l_payload_type
+{
 	R5LOG_PAYLOAD_DATA = 0,
 	R5LOG_PAYLOAD_PARITY = 1,
 	R5LOG_PAYLOAD_FLUSH = 2,
 };
 
-struct r5l_payload_data_parity {
+struct r5l_payload_data_parity
+{
 	struct r5l_payload_header header;
 	__le32 size;		/* sector. data/parity size. each 4k
 				 * has a checksum */
@@ -345,7 +353,8 @@ struct r5l_payload_data_parity {
 	__le32 checksum[];
 } __attribute__ ((__packed__));
 
-enum r5l_payload_data_parity_flag {
+enum r5l_payload_data_parity_flag
+{
 	R5LOG_PAYLOAD_FLAG_DISCARD = 1, /* payload is discard */
 	/*
 	 * RESHAPED/RESHAPING is only set when there is reshape activity. Note,
@@ -358,17 +367,20 @@ enum r5l_payload_data_parity_flag {
 	R5LOG_PAYLOAD_FLAG_RESHAPING = 3,
 };
 
-struct r5l_payload_flush {
+struct r5l_payload_flush
+{
 	struct r5l_payload_header header;
 	__le32 size; /* flush_stripes size, bytes */
 	__le64 flush_stripes[];
 } __attribute__ ((__packed__));
 
-enum r5l_payload_flush_flag {
+enum r5l_payload_flush_flag
+{
 	R5LOG_PAYLOAD_FLAG_FLUSH_STRIPE = 1, /* data represents whole stripe */
 };
 
-struct r5l_meta_block {
+struct r5l_meta_block
+{
 	__le32 magic;
 	__le32 checksum;
 	__u8 version;

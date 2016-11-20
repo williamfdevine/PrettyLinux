@@ -26,7 +26,8 @@
 #include <sound/core.h>
 
 /* Define the descriptor of a daio resource */
-enum DAIOTYP {
+enum DAIOTYP
+{
 	LINEO1,
 	LINEO2,
 	LINEO3,
@@ -43,13 +44,15 @@ struct dao_rsc_ops;
 struct dai_rsc_ops;
 struct daio_mgr;
 
-struct daio {
+struct daio
+{
 	struct rsc rscl;	/* Basic resource info for left TX/RX */
 	struct rsc rscr;	/* Basic resource info for right TX/RX */
 	enum DAIOTYP type;
 };
 
-struct dao {
+struct dao
+{
 	struct daio daio;
 	const struct dao_rsc_ops *ops;	/* DAO specific operations */
 	struct imapper **imappers;
@@ -58,19 +61,22 @@ struct dao {
 	void *ctrl_blk;
 };
 
-struct dai {
+struct dai
+{
 	struct daio daio;
 	const struct dai_rsc_ops *ops;	/* DAI specific operations */
 	struct hw *hw;
 	void *ctrl_blk;
 };
 
-struct dao_desc {
-	unsigned int msr:4;
-	unsigned int passthru:1;
+struct dao_desc
+{
+	unsigned int msr: 4;
+	unsigned int passthru: 1;
 };
 
-struct dao_rsc_ops {
+struct dao_rsc_ops
+{
 	int (*set_spos)(struct dao *dao, unsigned int spos);
 	int (*commit_write)(struct dao *dao);
 	int (*get_spos)(struct dao *dao, unsigned int *spos);
@@ -81,7 +87,8 @@ struct dao_rsc_ops {
 	int (*clear_right_input)(struct dao *dao);
 };
 
-struct dai_rsc_ops {
+struct dai_rsc_ops
+{
 	int (*set_srt_srcl)(struct dai *dai, struct rsc *src);
 	int (*set_srt_srcr)(struct dai *dai, struct rsc *src);
 	int (*set_srt_msr)(struct dai *dai, unsigned int msr);
@@ -91,13 +98,15 @@ struct dai_rsc_ops {
 };
 
 /* Define daio resource request description info */
-struct daio_desc {
-	unsigned int type:4;
-	unsigned int msr:4;
-	unsigned int passthru:1;
+struct daio_desc
+{
+	unsigned int type: 4;
+	unsigned int msr: 4;
+	unsigned int passthru: 1;
 };
 
-struct daio_mgr {
+struct daio_mgr
+{
 	struct rsc_mgr mgr;	/* Basic resource manager info */
 	struct snd_card *card;	/* pointer to this card */
 	spinlock_t mgr_lock;
@@ -106,9 +115,9 @@ struct daio_mgr {
 	struct imapper *init_imap;
 	unsigned int init_imap_added;
 
-	 /* request one daio resource */
+	/* request one daio resource */
 	int (*get_daio)(struct daio_mgr *mgr,
-			const struct daio_desc *desc, struct daio **rdaio);
+					const struct daio_desc *desc, struct daio **rdaio);
 	/* return one daio resource */
 	int (*put_daio)(struct daio_mgr *mgr, struct daio *daio);
 	int (*daio_enable)(struct daio_mgr *mgr, struct daio *daio);

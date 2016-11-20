@@ -35,7 +35,8 @@
 
 #define MAX_MSI_VECTORS		32
 
-struct altera_msi {
+struct altera_msi
+{
 	DECLARE_BITMAP(used, MAX_MSI_VECTORS);
 	struct mutex		lock;	/* protect "used" bitmap */
 	struct platform_device	*pdev;
@@ -49,7 +50,7 @@ struct altera_msi {
 };
 
 static inline void msi_writel(struct altera_msi *msi, const u32 value,
-			      const u32 reg)
+							  const u32 reg)
 {
 	writel_relaxed(value, msi->csr_base + reg);
 }
@@ -72,31 +73,40 @@ static void altera_msi_isr(struct irq_desc *desc)
 	msi = irq_desc_get_handler_data(desc);
 	num_of_vectors = msi->num_of_vectors;
 
-	while ((status = msi_readl(msi, MSI_STATUS)) != 0) {
-		for_each_set_bit(bit, &status, msi->num_of_vectors) {
+	while ((status = msi_readl(msi, MSI_STATUS)) != 0)
+	{
+		for_each_set_bit(bit, &status, msi->num_of_vectors)
+		{
 			/* Dummy read from vector to clear the interrupt */
 			readl_relaxed(msi->vector_base + (bit * sizeof(u32)));
 
 			virq = irq_find_mapping(msi->inner_domain, bit);
+
 			if (virq)
+			{
 				generic_handle_irq(virq);
+			}
 			else
+			{
 				dev_err(&msi->pdev->dev, "unexpected MSI\n");
+			}
 		}
 	}
 
 	chained_irq_exit(chip, desc);
 }
 
-static struct irq_chip altera_msi_irq_chip = {
+static struct irq_chip altera_msi_irq_chip =
+{
 	.name = "Altera PCIe MSI",
 	.irq_mask = pci_msi_mask_irq,
 	.irq_unmask = pci_msi_unmask_irq,
 };
 
-static struct msi_domain_info altera_msi_domain_info = {
+static struct msi_domain_info altera_msi_domain_info =
+{
 	.flags	= (MSI_FLAG_USE_DEF_DOM_OPS | MSI_FLAG_USE_DEF_CHIP_OPS |
-		     MSI_FLAG_PCI_MSIX),
+	MSI_FLAG_PCI_MSIX),
 	.chip	= &altera_msi_irq_chip,
 };
 
@@ -110,23 +120,24 @@ static void altera_compose_msi_msg(struct irq_data *data, struct msi_msg *msg)
 	msg->data = data->hwirq;
 
 	dev_dbg(&msi->pdev->dev, "msi#%d address_hi %#x address_lo %#x\n",
-		(int)data->hwirq, msg->address_hi, msg->address_lo);
+			(int)data->hwirq, msg->address_hi, msg->address_lo);
 }
 
 static int altera_msi_set_affinity(struct irq_data *irq_data,
-				   const struct cpumask *mask, bool force)
+								   const struct cpumask *mask, bool force)
 {
-	 return -EINVAL;
+	return -EINVAL;
 }
 
-static struct irq_chip altera_msi_bottom_irq_chip = {
+static struct irq_chip altera_msi_bottom_irq_chip =
+{
 	.name			= "Altera MSI",
 	.irq_compose_msi_msg	= altera_compose_msi_msg,
 	.irq_set_affinity	= altera_msi_set_affinity,
 };
 
 static int altera_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
-				   unsigned int nr_irqs, void *args)
+								   unsigned int nr_irqs, void *args)
 {
 	struct altera_msi *msi = domain->host_data;
 	unsigned long bit;
@@ -136,7 +147,9 @@ static int altera_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 	mutex_lock(&msi->lock);
 
 	bit = find_first_zero_bit(msi->used, msi->num_of_vectors);
-	if (bit >= msi->num_of_vectors) {
+
+	if (bit >= msi->num_of_vectors)
+	{
 		mutex_unlock(&msi->lock);
 		return -ENOSPC;
 	}
@@ -146,8 +159,8 @@ static int altera_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 	mutex_unlock(&msi->lock);
 
 	irq_domain_set_info(domain, virq, bit, &altera_msi_bottom_irq_chip,
-			    domain->host_data, handle_simple_irq,
-			    NULL, NULL);
+						domain->host_data, handle_simple_irq,
+						NULL, NULL);
 
 	mask = msi_readl(msi, MSI_INTMASK);
 	mask |= 1 << bit;
@@ -157,7 +170,7 @@ static int altera_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 }
 
 static void altera_irq_domain_free(struct irq_domain *domain,
-				   unsigned int virq, unsigned int nr_irqs)
+								   unsigned int virq, unsigned int nr_irqs)
 {
 	struct irq_data *d = irq_domain_get_irq_data(domain, virq);
 	struct altera_msi *msi = irq_data_get_irq_chip_data(d);
@@ -165,10 +178,13 @@ static void altera_irq_domain_free(struct irq_domain *domain,
 
 	mutex_lock(&msi->lock);
 
-	if (!test_bit(d->hwirq, msi->used)) {
+	if (!test_bit(d->hwirq, msi->used))
+	{
 		dev_err(&msi->pdev->dev, "trying to free unused MSI#%lu\n",
-			d->hwirq);
-	} else {
+				d->hwirq);
+	}
+	else
+	{
 		__clear_bit(d->hwirq, msi->used);
 		mask = msi_readl(msi, MSI_INTMASK);
 		mask &= ~(1 << d->hwirq);
@@ -178,7 +194,8 @@ static void altera_irq_domain_free(struct irq_domain *domain,
 	mutex_unlock(&msi->lock);
 }
 
-static const struct irq_domain_ops msi_domain_ops = {
+static const struct irq_domain_ops msi_domain_ops =
+{
 	.alloc	= altera_irq_domain_alloc,
 	.free	= altera_irq_domain_free,
 };
@@ -188,15 +205,19 @@ static int altera_allocate_domains(struct altera_msi *msi)
 	struct fwnode_handle *fwnode = of_node_to_fwnode(msi->pdev->dev.of_node);
 
 	msi->inner_domain = irq_domain_add_linear(NULL, msi->num_of_vectors,
-					     &msi_domain_ops, msi);
-	if (!msi->inner_domain) {
+						&msi_domain_ops, msi);
+
+	if (!msi->inner_domain)
+	{
 		dev_err(&msi->pdev->dev, "failed to create IRQ domain\n");
 		return -ENOMEM;
 	}
 
 	msi->msi_domain = pci_msi_create_irq_domain(fwnode,
-				&altera_msi_domain_info, msi->inner_domain);
-	if (!msi->msi_domain) {
+					  &altera_msi_domain_info, msi->inner_domain);
+
+	if (!msi->msi_domain)
+	{
 		dev_err(&msi->pdev->dev, "failed to create MSI domain\n");
 		irq_domain_remove(msi->inner_domain);
 		return -ENOMEM;
@@ -233,41 +254,54 @@ static int altera_msi_probe(struct platform_device *pdev)
 	int ret;
 
 	msi = devm_kzalloc(&pdev->dev, sizeof(struct altera_msi),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!msi)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&msi->lock);
 	msi->pdev = pdev;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "csr");
 	msi->csr_base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(msi->csr_base)) {
+
+	if (IS_ERR(msi->csr_base))
+	{
 		dev_err(&pdev->dev, "failed to map csr memory\n");
 		return PTR_ERR(msi->csr_base);
 	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-					   "vector_slave");
+									   "vector_slave");
 	msi->vector_base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(msi->vector_base)) {
+
+	if (IS_ERR(msi->vector_base))
+	{
 		dev_err(&pdev->dev, "failed to map vector_slave memory\n");
 		return PTR_ERR(msi->vector_base);
 	}
 
 	msi->vector_phy = res->start;
 
-	if (of_property_read_u32(np, "num-vectors", &msi->num_of_vectors)) {
+	if (of_property_read_u32(np, "num-vectors", &msi->num_of_vectors))
+	{
 		dev_err(&pdev->dev, "failed to parse the number of vectors\n");
 		return -EINVAL;
 	}
 
 	ret = altera_allocate_domains(msi);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	msi->irq = platform_get_irq(pdev, 0);
-	if (msi->irq <= 0) {
+
+	if (msi->irq <= 0)
+	{
 		dev_err(&pdev->dev, "failed to map IRQ: %d\n", msi->irq);
 		ret = -ENODEV;
 		goto err;
@@ -283,12 +317,14 @@ err:
 	return ret;
 }
 
-static const struct of_device_id altera_msi_of_match[] = {
+static const struct of_device_id altera_msi_of_match[] =
+{
 	{ .compatible = "altr,msi-1.0", NULL },
 	{ },
 };
 
-static struct platform_driver altera_msi_driver = {
+static struct platform_driver altera_msi_driver =
+{
 	.driver = {
 		.name = "altera-msi",
 		.of_match_table = altera_msi_of_match,

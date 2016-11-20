@@ -36,7 +36,8 @@ enum lguest_req
  * the trap address, insn is the instruction), or 13 for a GPF
  * (insn is the instruction).
  */
-struct lguest_pending {
+struct lguest_pending
+{
 	__u8 trap;
 	__u8 insn[7];
 	__u32 addr;

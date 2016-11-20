@@ -32,7 +32,7 @@
 #define ACPI_KEYBOARD_BACKLIGHT_MAX		100
 
 static void keyboard_led_set_brightness(struct led_classdev *cdev,
-					enum led_brightness brightness)
+										enum led_brightness brightness)
 {
 	union acpi_object param;
 	struct acpi_object_list input;
@@ -44,10 +44,11 @@ static void keyboard_led_set_brightness(struct led_classdev *cdev,
 	input.pointer = &param;
 
 	status = acpi_evaluate_object(NULL, ACPI_KEYBOARD_BACKLIGHT_WRITE,
-				      &input, NULL);
+								  &input, NULL);
+
 	if (ACPI_FAILURE(status))
 		dev_err(cdev->dev, "Error setting keyboard LED value: %d\n",
-			status);
+				status);
 }
 
 static enum led_brightness
@@ -57,10 +58,12 @@ keyboard_led_get_brightness(struct led_classdev *cdev)
 	acpi_status status;
 
 	status = acpi_evaluate_integer(NULL, ACPI_KEYBOARD_BACKLIGHT_READ,
-				       NULL, &brightness);
-	if (ACPI_FAILURE(status)) {
+	NULL, &brightness);
+
+	if (ACPI_FAILURE(status))
+	{
 		dev_err(cdev->dev, "Error getting keyboard LED value: %d\n",
-			status);
+		status);
 		return -EIO;
 	}
 
@@ -76,17 +79,22 @@ static int keyboard_led_probe(struct platform_device *pdev)
 
 	/* Look for the keyboard LED ACPI Device */
 	status = acpi_get_handle(ACPI_ROOT_OBJECT,
-				 ACPI_KEYBOARD_BACKLIGHT_DEVICE,
-				 &handle);
-	if (ACPI_FAILURE(status)) {
+							 ACPI_KEYBOARD_BACKLIGHT_DEVICE,
+							 &handle);
+
+	if (ACPI_FAILURE(status))
+	{
 		dev_err(&pdev->dev, "Unable to find ACPI device %s: %d\n",
-			ACPI_KEYBOARD_BACKLIGHT_DEVICE, status);
+				ACPI_KEYBOARD_BACKLIGHT_DEVICE, status);
 		return -ENXIO;
 	}
 
 	cdev = devm_kzalloc(&pdev->dev, sizeof(*cdev), GFP_KERNEL);
+
 	if (!cdev)
+	{
 		return -ENOMEM;
+	}
 
 	cdev->name = "chromeos::kbd_backlight";
 	cdev->max_brightness = ACPI_KEYBOARD_BACKLIGHT_MAX;
@@ -95,19 +103,24 @@ static int keyboard_led_probe(struct platform_device *pdev)
 	cdev->brightness_get = keyboard_led_get_brightness;
 
 	error = devm_led_classdev_register(&pdev->dev, cdev);
+
 	if (error)
+	{
 		return error;
+	}
 
 	return 0;
 }
 
-static const struct acpi_device_id keyboard_led_id[] = {
+static const struct acpi_device_id keyboard_led_id[] =
+{
 	{ "GOOG0002", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(acpi, keyboard_led_id);
 
-static struct platform_driver keyboard_led_driver = {
+static struct platform_driver keyboard_led_driver =
+{
 	.driver		= {
 		.name	= "chromeos-keyboard-leds",
 		.acpi_match_table = ACPI_PTR(keyboard_led_id),

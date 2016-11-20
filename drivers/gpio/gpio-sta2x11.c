@@ -30,7 +30,8 @@
 #include <linux/platform_device.h>
 #include <linux/mfd/sta2x11-mfd.h>
 
-struct gsta_regs {
+struct gsta_regs
+{
 	u32 dat;		/* 0x00 */
 	u32 dats;
 	u32 datc;
@@ -47,7 +48,8 @@ struct gsta_regs {
 	u32 ic;
 };
 
-struct gsta_gpio {
+struct gsta_gpio
+{
 	spinlock_t			lock;
 	struct device			*dev;
 	void __iomem			*reg_base;
@@ -79,9 +81,13 @@ static void gsta_gpio_set(struct gpio_chip *gpio, unsigned nr, int val)
 	u32 bit = __bit(nr);
 
 	if (val)
+	{
 		writel(bit, &regs->dats);
+	}
 	else
+	{
 		writel(bit, &regs->datc);
+	}
 }
 
 static int gsta_gpio_get(struct gpio_chip *gpio, unsigned nr)
@@ -94,18 +100,24 @@ static int gsta_gpio_get(struct gpio_chip *gpio, unsigned nr)
 }
 
 static int gsta_gpio_direction_output(struct gpio_chip *gpio, unsigned nr,
-				      int val)
+									  int val)
 {
 	struct gsta_gpio *chip = gpiochip_get_data(gpio);
 	struct gsta_regs __iomem *regs = __regs(chip, nr);
 	u32 bit = __bit(nr);
 
 	writel(bit, &regs->dirs);
+
 	/* Data register after direction, otherwise pullup/down is selected */
 	if (val)
+	{
 		writel(bit, &regs->dats);
+	}
 	else
+	{
 		writel(bit, &regs->datc);
+	}
+
 	return 0;
 }
 
@@ -154,7 +166,9 @@ static void gsta_gpio_setup(struct gsta_gpio *chip) /* called from probe */
 	 * For example, with ARCH_NR_GPIOS = 256 we can fit two cards
 	 */
 	if (!gpio_base)
+	{
 		gpio_base = -1;
+	}
 }
 
 /*
@@ -174,55 +188,73 @@ static void gsta_set_config(struct gsta_gpio *chip, int nr, unsigned cfg)
 	pr_info("%s: %p %i %i\n", __func__, chip, nr, cfg);
 
 	if (cfg == PINMUX_TYPE_NONE)
+	{
 		return;
+	}
 
 	/* Alternate function or not? */
 	spin_lock_irqsave(&chip->lock, flags);
 	val = readl(&regs->afsela);
+
 	if (cfg == PINMUX_TYPE_FUNCTION)
+	{
 		val |= bit;
+	}
 	else
+	{
 		val &= ~bit;
+	}
+
 	writel(val | bit, &regs->afsela);
-	if (cfg == PINMUX_TYPE_FUNCTION) {
+
+	if (cfg == PINMUX_TYPE_FUNCTION)
+	{
 		spin_unlock_irqrestore(&chip->lock, flags);
 		return;
 	}
 
 	/* not alternate function: set details */
-	switch (cfg) {
-	case PINMUX_TYPE_OUTPUT_LOW:
-		writel(bit, &regs->dirs);
-		writel(bit, &regs->datc);
-		break;
-	case PINMUX_TYPE_OUTPUT_HIGH:
-		writel(bit, &regs->dirs);
-		writel(bit, &regs->dats);
-		break;
-	case PINMUX_TYPE_INPUT:
-		writel(bit, &regs->dirc);
-		val = readl(&regs->pdis) | bit;
-		writel(val, &regs->pdis);
-		break;
-	case PINMUX_TYPE_INPUT_PULLUP:
-		writel(bit, &regs->dirc);
-		val = readl(&regs->pdis) & ~bit;
-		writel(val, &regs->pdis);
-		writel(bit, &regs->dats);
-		break;
-	case PINMUX_TYPE_INPUT_PULLDOWN:
-		writel(bit, &regs->dirc);
-		val = readl(&regs->pdis) & ~bit;
-		writel(val, &regs->pdis);
-		writel(bit, &regs->datc);
-		break;
-	default:
-		err = 1;
+	switch (cfg)
+	{
+		case PINMUX_TYPE_OUTPUT_LOW:
+			writel(bit, &regs->dirs);
+			writel(bit, &regs->datc);
+			break;
+
+		case PINMUX_TYPE_OUTPUT_HIGH:
+			writel(bit, &regs->dirs);
+			writel(bit, &regs->dats);
+			break;
+
+		case PINMUX_TYPE_INPUT:
+			writel(bit, &regs->dirc);
+			val = readl(&regs->pdis) | bit;
+			writel(val, &regs->pdis);
+			break;
+
+		case PINMUX_TYPE_INPUT_PULLUP:
+			writel(bit, &regs->dirc);
+			val = readl(&regs->pdis) & ~bit;
+			writel(val, &regs->pdis);
+			writel(bit, &regs->dats);
+			break;
+
+		case PINMUX_TYPE_INPUT_PULLDOWN:
+			writel(bit, &regs->dirc);
+			val = readl(&regs->pdis) & ~bit;
+			writel(val, &regs->pdis);
+			writel(bit, &regs->datc);
+			break;
+
+		default:
+			err = 1;
 	}
+
 	spin_unlock_irqrestore(&chip->lock, flags);
+
 	if (err)
 		pr_err("%s: chip %p, pin %i, cfg %i is invalid\n",
-		       __func__, chip, nr, cfg);
+			   __func__, chip, nr, cfg);
 }
 
 /*
@@ -240,14 +272,19 @@ static void gsta_irq_disable(struct irq_data *data)
 	unsigned long flags;
 
 	spin_lock_irqsave(&chip->lock, flags);
-	if (chip->irq_type[nr] & IRQ_TYPE_EDGE_RISING) {
+
+	if (chip->irq_type[nr] & IRQ_TYPE_EDGE_RISING)
+	{
 		val = readl(&regs->rimsc) & ~bit;
 		writel(val, &regs->rimsc);
 	}
-	if (chip->irq_type[nr] & IRQ_TYPE_EDGE_FALLING) {
+
+	if (chip->irq_type[nr] & IRQ_TYPE_EDGE_FALLING)
+	{
 		val = readl(&regs->fimsc) & ~bit;
 		writel(val, &regs->fimsc);
 	}
+
 	spin_unlock_irqrestore(&chip->lock, flags);
 	return;
 }
@@ -267,15 +304,27 @@ static void gsta_irq_enable(struct irq_data *data)
 
 	spin_lock_irqsave(&chip->lock, flags);
 	val = readl(&regs->rimsc);
+
 	if (type & IRQ_TYPE_EDGE_RISING)
+	{
 		writel(val | bit, &regs->rimsc);
+	}
 	else
+	{
 		writel(val & ~bit, &regs->rimsc);
+	}
+
 	val = readl(&regs->rimsc);
+
 	if (type & IRQ_TYPE_EDGE_FALLING)
+	{
 		writel(val | bit, &regs->fimsc);
+	}
 	else
+	{
 		writel(val & ~bit, &regs->fimsc);
+	}
+
 	spin_unlock_irqrestore(&chip->lock, flags);
 	return;
 }
@@ -287,7 +336,8 @@ static int gsta_irq_type(struct irq_data *d, unsigned int type)
 	int nr = d->irq - chip->irq_base;
 
 	/* We only support edge interrupts */
-	if (!(type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING))) {
+	if (!(type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING)))
+	{
 		pr_debug("%s: unsupported type 0x%x\n", __func__, type);
 		return -EINVAL;
 	}
@@ -306,10 +356,13 @@ static irqreturn_t gsta_gpio_handler(int irq, void *dev_id)
 	int i, nr, base;
 	irqreturn_t ret = IRQ_NONE;
 
-	for (i = 0; i < GSTA_NR_BLOCKS; i++) {
+	for (i = 0; i < GSTA_NR_BLOCKS; i++)
+	{
 		regs = chip->regs[i];
 		base = chip->irq_base + i * GSTA_GPIO_PER_BLOCK;
-		while ((is = readl(&regs->is))) {
+
+		while ((is = readl(&regs->is)))
+		{
 			nr = __ffs(is);
 			irq = base + nr;
 			generic_handle_irq(irq);
@@ -317,6 +370,7 @@ static irqreturn_t gsta_gpio_handler(int irq, void *dev_id)
 			ret = IRQ_HANDLED;
 		}
 	}
+
 	return ret;
 }
 
@@ -326,7 +380,7 @@ static void gsta_alloc_irq_chip(struct gsta_gpio *chip)
 	struct irq_chip_type *ct;
 
 	gc = irq_alloc_generic_chip(KBUILD_MODNAME, 1, chip->irq_base,
-				     chip->reg_base, handle_simple_irq);
+								chip->reg_base, handle_simple_irq);
 	gc->private = chip;
 	ct = gc->chip_types;
 
@@ -336,18 +390,21 @@ static void gsta_alloc_irq_chip(struct gsta_gpio *chip)
 
 	/* FIXME: this makes at most 32 interrupts. Request 0 by now */
 	irq_setup_generic_chip(gc, 0 /* IRQ_MSK(GSTA_GPIO_PER_BLOCK) */, 0,
-			       IRQ_NOREQUEST | IRQ_NOPROBE, 0);
+						   IRQ_NOREQUEST | IRQ_NOPROBE, 0);
 
 	/* Set up all all 128 interrupts: code from setup_generic_chip */
 	{
 		struct irq_chip_type *ct = gc->chip_types;
 		int i, j;
-		for (j = 0; j < GSTA_NR_GPIO; j++) {
+
+		for (j = 0; j < GSTA_NR_GPIO; j++)
+		{
 			i = chip->irq_base + j;
 			irq_set_chip_and_handler(i, &ct->chip, ct->handler);
 			irq_set_chip_data(i, gc);
 			irq_clear_status_flags(i, IRQ_NOREQUEST | IRQ_NOPROBE);
 		}
+
 		gc->irq_cnt = i - gc->irq_base;
 	}
 }
@@ -365,54 +422,76 @@ static int gsta_probe(struct platform_device *dev)
 	gpio_pdata = dev_get_platdata(&pdev->dev);
 
 	if (gpio_pdata == NULL)
+	{
 		dev_err(&dev->dev, "no gpio config\n");
+	}
+
 	pr_debug("gpio config: %p\n", gpio_pdata);
 
 	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
 
 	chip = devm_kzalloc(&dev->dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
+
 	chip->dev = &dev->dev;
 	chip->reg_base = devm_ioremap_resource(&dev->dev, res);
-	if (IS_ERR(chip->reg_base))
-		return PTR_ERR(chip->reg_base);
 
-	for (i = 0; i < GSTA_NR_BLOCKS; i++) {
+	if (IS_ERR(chip->reg_base))
+	{
+		return PTR_ERR(chip->reg_base);
+	}
+
+	for (i = 0; i < GSTA_NR_BLOCKS; i++)
+	{
 		chip->regs[i] = chip->reg_base + i * 4096;
 		/* disable all irqs */
 		writel(0, &chip->regs[i]->rimsc);
 		writel(0, &chip->regs[i]->fimsc);
 		writel(~0, &chip->regs[i]->ic);
 	}
+
 	spin_lock_init(&chip->lock);
 	gsta_gpio_setup(chip);
+
 	if (gpio_pdata)
 		for (i = 0; i < GSTA_NR_GPIO; i++)
+		{
 			gsta_set_config(chip, i, gpio_pdata->pinconfig[i]);
+		}
 
 	/* 384 was used in previous code: be compatible for other drivers */
 	err = irq_alloc_descs(-1, 384, GSTA_NR_GPIO, NUMA_NO_NODE);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_warn(&dev->dev, "sta2x11 gpio: Can't get irq base (%i)\n",
-			 -err);
+				 -err);
 		return err;
 	}
+
 	chip->irq_base = err;
 	gsta_alloc_irq_chip(chip);
 
 	err = request_irq(pdev->irq, gsta_gpio_handler,
-			     IRQF_SHARED, KBUILD_MODNAME, chip);
-	if (err < 0) {
+					  IRQF_SHARED, KBUILD_MODNAME, chip);
+
+	if (err < 0)
+	{
 		dev_err(&dev->dev, "sta2x11 gpio: Can't request irq (%i)\n",
-			-err);
+				-err);
 		goto err_free_descs;
 	}
 
 	err = devm_gpiochip_add_data(&dev->dev, &chip->gpio, chip);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&dev->dev, "sta2x11 gpio: Can't register (%i)\n",
-			-err);
+				-err);
 		goto err_free_irq;
 	}
 
@@ -426,7 +505,8 @@ err_free_descs:
 	return err;
 }
 
-static struct platform_driver sta2x11_gpio_platform_driver = {
+static struct platform_driver sta2x11_gpio_platform_driver =
+{
 	.driver = {
 		.name	= "sta2x11-gpio",
 	},

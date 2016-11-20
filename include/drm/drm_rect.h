@@ -38,7 +38,8 @@
  * @y1: vertical starting coordinate (inclusive)
  * @y2: vertical ending coordinate (exclusive)
  */
-struct drm_rect {
+struct drm_rect
+{
 	int x1, y1, x2, y2;
 };
 
@@ -140,35 +141,35 @@ static inline bool drm_rect_visible(const struct drm_rect *r)
  * %true if the rectangles are equal, %false otherwise.
  */
 static inline bool drm_rect_equals(const struct drm_rect *r1,
-				   const struct drm_rect *r2)
+								   const struct drm_rect *r2)
 {
 	return r1->x1 == r2->x1 && r1->x2 == r2->x2 &&
-		r1->y1 == r2->y1 && r1->y2 == r2->y2;
+		   r1->y1 == r2->y1 && r1->y2 == r2->y2;
 }
 
 bool drm_rect_intersect(struct drm_rect *r, const struct drm_rect *clip);
 bool drm_rect_clip_scaled(struct drm_rect *src, struct drm_rect *dst,
-			  const struct drm_rect *clip,
-			  int hscale, int vscale);
+						  const struct drm_rect *clip,
+						  int hscale, int vscale);
 int drm_rect_calc_hscale(const struct drm_rect *src,
-			 const struct drm_rect *dst,
-			 int min_hscale, int max_hscale);
+						 const struct drm_rect *dst,
+						 int min_hscale, int max_hscale);
 int drm_rect_calc_vscale(const struct drm_rect *src,
-			 const struct drm_rect *dst,
-			 int min_vscale, int max_vscale);
+						 const struct drm_rect *dst,
+						 int min_vscale, int max_vscale);
 int drm_rect_calc_hscale_relaxed(struct drm_rect *src,
-				 struct drm_rect *dst,
-				 int min_hscale, int max_hscale);
+								 struct drm_rect *dst,
+								 int min_hscale, int max_hscale);
 int drm_rect_calc_vscale_relaxed(struct drm_rect *src,
-				 struct drm_rect *dst,
-				 int min_vscale, int max_vscale);
+								 struct drm_rect *dst,
+								 int min_vscale, int max_vscale);
 void drm_rect_debug_print(const char *prefix,
-			  const struct drm_rect *r, bool fixed_point);
+						  const struct drm_rect *r, bool fixed_point);
 void drm_rect_rotate(struct drm_rect *r,
-		     int width, int height,
-		     unsigned int rotation);
+					 int width, int height,
+					 unsigned int rotation);
 void drm_rect_rotate_inv(struct drm_rect *r,
-			 int width, int height,
-			 unsigned int rotation);
+						 int width, int height,
+						 unsigned int rotation);
 
 #endif

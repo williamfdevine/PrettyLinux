@@ -63,16 +63,18 @@ int main()
 {
 	int nerrs = 0;
 
-	if (sp == 0) {
+	if (sp == 0)
+	{
 		printf("[FAIL]\tTest was built incorrectly\n");
 		return 1;
 	}
 
 	if (ax || bx || cx || dx || si || di || bp
 #ifdef __x86_64__
-	    || r8 || r9 || r10 || r11 || r12 || r13 || r14 || r15
+		|| r8 || r9 || r10 || r11 || r12 || r13 || r14 || r15
 #endif
-		) {
+	   )
+	{
 		printf("[FAIL]\tAll GPRs except SP should be 0\n");
 #define SHOW(x) printf("\t" #x " = 0x%lx\n", x);
 		SHOW(ax);
@@ -94,14 +96,19 @@ int main()
 		SHOW(r15);
 #endif
 		nerrs++;
-	} else {
+	}
+	else
+	{
 		printf("[OK]\tAll GPRs except SP are 0\n");
 	}
 
-	if (flags != 0x202) {
+	if (flags != 0x202)
+	{
 		printf("[FAIL]\tFLAGS is 0x%lx, but it should be 0x202\n", flags);
 		nerrs++;
-	} else {
+	}
+	else
+	{
 		printf("[OK]\tFLAGS is 0x202\n");
 	}
 

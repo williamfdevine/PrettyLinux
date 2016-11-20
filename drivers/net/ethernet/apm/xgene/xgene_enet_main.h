@@ -83,13 +83,15 @@
 #define PHY_POLL_LINK_ON	(10 * HZ)
 #define PHY_POLL_LINK_OFF	(PHY_POLL_LINK_ON / 5)
 
-enum xgene_enet_id {
+enum xgene_enet_id
+{
 	XGENE_ENET1 = 1,
 	XGENE_ENET2
 };
 
 /* software context of a descriptor ring */
-struct xgene_enet_desc_ring {
+struct xgene_enet_desc_ring
+{
 	struct net_device *ndev;
 	u16 id;
 	u16 num;
@@ -116,7 +118,8 @@ struct xgene_enet_desc_ring {
 	struct xgene_enet_desc_ring *cp_ring;
 	struct xgene_enet_desc_ring *buf_pool;
 	struct napi_struct napi;
-	union {
+	union
+	{
 		void *desc_addr;
 		struct xgene_enet_raw_desc *raw_desc;
 		struct xgene_enet_raw_desc16 *raw_desc16;
@@ -134,7 +137,8 @@ struct xgene_enet_desc_ring {
 	u64 rx_fifo_errors;
 };
 
-struct xgene_mac_ops {
+struct xgene_mac_ops
+{
 	void (*init)(struct xgene_enet_pdata *pdata);
 	void (*reset)(struct xgene_enet_pdata *pdata);
 	void (*tx_enable)(struct xgene_enet_pdata *pdata);
@@ -147,31 +151,35 @@ struct xgene_mac_ops {
 	void (*link_state)(struct work_struct *work);
 };
 
-struct xgene_port_ops {
+struct xgene_port_ops
+{
 	int (*reset)(struct xgene_enet_pdata *pdata);
 	void (*clear)(struct xgene_enet_pdata *pdata,
-		      struct xgene_enet_desc_ring *ring);
+				  struct xgene_enet_desc_ring *ring);
 	void (*cle_bypass)(struct xgene_enet_pdata *pdata,
-			   u32 dst_ring_num, u16 bufpool_id);
+					   u32 dst_ring_num, u16 bufpool_id);
 	void (*shutdown)(struct xgene_enet_pdata *pdata);
 };
 
-struct xgene_ring_ops {
+struct xgene_ring_ops
+{
 	u8 num_ring_config;
 	u8 num_ring_id_shift;
-	struct xgene_enet_desc_ring * (*setup)(struct xgene_enet_desc_ring *);
+	struct xgene_enet_desc_ring *(*setup)(struct xgene_enet_desc_ring *);
 	void (*clear)(struct xgene_enet_desc_ring *);
 	void (*wr_cmd)(struct xgene_enet_desc_ring *, int);
 	u32 (*len)(struct xgene_enet_desc_ring *);
 	void (*coalesce)(struct xgene_enet_desc_ring *);
 };
 
-struct xgene_cle_ops {
+struct xgene_cle_ops
+{
 	int (*cle_init)(struct xgene_enet_pdata *pdata);
 };
 
 /* ethernet private data */
-struct xgene_enet_pdata {
+struct xgene_enet_pdata
+{
 	struct net_device *ndev;
 	struct mii_bus *mdio_bus;
 	int phy_speed;
@@ -221,7 +229,8 @@ struct xgene_enet_pdata {
 	struct gpio_desc *sfp_rdy;
 };
 
-struct xgene_indirect_ctl {
+struct xgene_indirect_ctl
+{
 	void __iomem *addr;
 	void __iomem *ctl;
 	void __iomem *cmd;

@@ -45,7 +45,8 @@
 
 #define ST_NCI_GPIO_NAME_RESET "reset"
 
-struct st_nci_spi_phy {
+struct st_nci_spi_phy
+{
 	struct spi_device *spi_dev;
 	struct llt_ndlc *ndlc;
 
@@ -66,7 +67,8 @@ static int st_nci_spi_enable(void *phy_id)
 	gpio_set_value(phy->gpio_reset, 1);
 	usleep_range(80000, 85000);
 
-	if (phy->ndlc->powered == 0 && phy->irq_active == 0) {
+	if (phy->ndlc->powered == 0 && phy->irq_active == 0)
+	{
 		enable_irq(phy->spi_dev->irq);
 		phy->irq_active = true;
 	}
@@ -94,24 +96,31 @@ static int st_nci_spi_write(void *phy_id, struct sk_buff *skb)
 	struct spi_device *dev = phy->spi_dev;
 	struct sk_buff *skb_rx;
 	u8 buf[ST_NCI_SPI_MAX_SIZE + NCI_DATA_HDR_SIZE +
-	       ST_NCI_FRAME_HEADROOM + ST_NCI_FRAME_TAILROOM];
-	struct spi_transfer spi_xfer = {
+		   ST_NCI_FRAME_HEADROOM + ST_NCI_FRAME_TAILROOM];
+	struct spi_transfer spi_xfer =
+	{
 		.tx_buf = skb->data,
 		.rx_buf = buf,
 		.len = skb->len,
 	};
 
 	if (phy->ndlc->hard_fault != 0)
+	{
 		return phy->ndlc->hard_fault;
+	}
 
 	r = spi_sync_transfer(dev, &spi_xfer, 1);
+
 	/*
 	 * We may have received some valuable data on miso line.
 	 * Send them back in the ndlc state machine.
 	 */
-	if (!r) {
+	if (!r)
+	{
 		skb_rx = alloc_skb(skb->len, GFP_KERNEL);
-		if (!skb_rx) {
+
+		if (!skb_rx)
+		{
 			r = -ENOMEM;
 			goto exit;
 		}
@@ -134,42 +143,55 @@ exit:
  * -ENOMEM : cannot allocate skb, frame dropped
  */
 static int st_nci_spi_read(struct st_nci_spi_phy *phy,
-			struct sk_buff **skb)
+						   struct sk_buff **skb)
 {
 	int r;
 	u8 len;
 	u8 buf[ST_NCI_SPI_MAX_SIZE];
 	struct spi_device *dev = phy->spi_dev;
-	struct spi_transfer spi_xfer = {
+	struct spi_transfer spi_xfer =
+	{
 		.rx_buf = buf,
 		.len = ST_NCI_SPI_MIN_SIZE,
 	};
 
 	r = spi_sync_transfer(dev, &spi_xfer, 1);
+
 	if (r < 0)
+	{
 		return -EREMOTEIO;
+	}
 
 	len = be16_to_cpu(*(__be16 *) (buf + 2));
-	if (len > ST_NCI_SPI_MAX_SIZE) {
+
+	if (len > ST_NCI_SPI_MAX_SIZE)
+	{
 		nfc_err(&dev->dev, "invalid frame len\n");
 		phy->ndlc->hard_fault = 1;
 		return -EBADMSG;
 	}
 
 	*skb = alloc_skb(ST_NCI_SPI_MIN_SIZE + len, GFP_KERNEL);
+
 	if (*skb == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	skb_reserve(*skb, ST_NCI_SPI_MIN_SIZE);
 	skb_put(*skb, ST_NCI_SPI_MIN_SIZE);
 	memcpy((*skb)->data, buf, ST_NCI_SPI_MIN_SIZE);
 
 	if (!len)
+	{
 		return 0;
+	}
 
 	spi_xfer.len = len;
 	r = spi_sync_transfer(dev, &spi_xfer, 1);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		kfree_skb(*skb);
 		return -EREMOTEIO;
 	}
@@ -192,7 +214,8 @@ static irqreturn_t st_nci_irq_thread_fn(int irq, void *phy_id)
 	struct sk_buff *skb = NULL;
 	int r;
 
-	if (!phy || !phy->ndlc || irq != phy->spi_dev->irq) {
+	if (!phy || !phy->ndlc || irq != phy->spi_dev->irq)
+	{
 		WARN_ON_ONCE(1);
 		return IRQ_NONE;
 	}
@@ -201,23 +224,30 @@ static irqreturn_t st_nci_irq_thread_fn(int irq, void *phy_id)
 	dev_dbg(&dev->dev, "IRQ\n");
 
 	if (phy->ndlc->hard_fault)
+	{
 		return IRQ_HANDLED;
+	}
 
-	if (!phy->ndlc->powered) {
+	if (!phy->ndlc->powered)
+	{
 		st_nci_spi_disable(phy);
 		return IRQ_HANDLED;
 	}
 
 	r = st_nci_spi_read(phy, &skb);
+
 	if (r == -EREMOTEIO || r == -ENOMEM || r == -EBADMSG)
+	{
 		return IRQ_HANDLED;
+	}
 
 	ndlc_recv(phy->ndlc, skb);
 
 	return IRQ_HANDLED;
 }
 
-static struct nfc_phy_ops spi_phy_ops = {
+static struct nfc_phy_ops spi_phy_ops =
+{
 	.write = st_nci_spi_write,
 	.enable = st_nci_spi_enable,
 	.disable = st_nci_spi_disable,
@@ -232,8 +262,10 @@ static int st_nci_spi_acpi_request_resources(struct spi_device *spi_dev)
 
 	/* Get RESET GPIO from ACPI */
 	gpiod_reset = devm_gpiod_get_index(dev, ST_NCI_GPIO_NAME_RESET, 1,
-					   GPIOD_OUT_HIGH);
-	if (IS_ERR(gpiod_reset)) {
+									   GPIOD_OUT_HIGH);
+
+	if (IS_ERR(gpiod_reset))
+	{
 		nfc_err(dev, "Unable to get RESET GPIO\n");
 		return -ENODEV;
 	}
@@ -245,12 +277,14 @@ static int st_nci_spi_acpi_request_resources(struct spi_device *spi_dev)
 	phy->se_status.is_ese_present = false;
 	phy->se_status.is_uicc_present = false;
 
-	if (device_property_present(dev, "ese-present")) {
+	if (device_property_present(dev, "ese-present"))
+	{
 		device_property_read_u8(dev, "ese-present", &tmp);
 		tmp = phy->se_status.is_ese_present;
 	}
 
-	if (device_property_present(dev, "uicc-present")) {
+	if (device_property_present(dev, "uicc-present"))
+	{
 		device_property_read_u8(dev, "uicc-present", &tmp);
 		tmp = phy->se_status.is_uicc_present;
 	}
@@ -266,32 +300,40 @@ static int st_nci_spi_of_request_resources(struct spi_device *dev)
 	int r;
 
 	pp = dev->dev.of_node;
+
 	if (!pp)
+	{
 		return -ENODEV;
+	}
 
 	/* Get GPIO from device tree */
 	gpio = of_get_named_gpio(pp, "reset-gpios", 0);
-	if (gpio < 0) {
+
+	if (gpio < 0)
+	{
 		nfc_err(&dev->dev,
-			"Failed to retrieve reset-gpios from device tree\n");
+				"Failed to retrieve reset-gpios from device tree\n");
 		return gpio;
 	}
 
 	/* GPIO request and configuration */
 	r = devm_gpio_request_one(&dev->dev, gpio,
-				GPIOF_OUT_INIT_HIGH, ST_NCI_GPIO_NAME_RESET);
-	if (r) {
+							  GPIOF_OUT_INIT_HIGH, ST_NCI_GPIO_NAME_RESET);
+
+	if (r)
+	{
 		nfc_err(&dev->dev, "Failed to request reset pin\n");
 		return r;
 	}
+
 	phy->gpio_reset = gpio;
 
 	phy->irq_polarity = irq_get_trigger_type(dev->irq);
 
 	phy->se_status.is_ese_present =
-				of_property_read_bool(pp, "ese-present");
+		of_property_read_bool(pp, "ese-present");
 	phy->se_status.is_uicc_present =
-				of_property_read_bool(pp, "uicc-present");
+		of_property_read_bool(pp, "uicc-present");
 
 	return 0;
 }
@@ -303,7 +345,9 @@ static int st_nci_spi_request_resources(struct spi_device *dev)
 	int r;
 
 	pdata = dev->dev.platform_data;
-	if (pdata == NULL) {
+
+	if (pdata == NULL)
+	{
 		nfc_err(&dev->dev, "No platform data\n");
 		return -EINVAL;
 	}
@@ -313,9 +357,11 @@ static int st_nci_spi_request_resources(struct spi_device *dev)
 	phy->irq_polarity = pdata->irq_polarity;
 
 	r = devm_gpio_request_one(&dev->dev,
-			phy->gpio_reset, GPIOF_OUT_INIT_HIGH,
-			ST_NCI_GPIO_NAME_RESET);
-	if (r) {
+							  phy->gpio_reset, GPIOF_OUT_INIT_HIGH,
+							  ST_NCI_GPIO_NAME_RESET);
+
+	if (r)
+	{
 		pr_err("%s : reset gpio_request failed\n", __FILE__);
 		return r;
 	}
@@ -336,62 +382,85 @@ static int st_nci_spi_probe(struct spi_device *dev)
 	dev_dbg(&dev->dev, "IRQ: %d\n", dev->irq);
 
 	/* Check SPI platform functionnalities */
-	if (!dev) {
+	if (!dev)
+	{
 		pr_debug("%s: dev is NULL. Device is not accessible.\n",
-			__func__);
+				 __func__);
 		return -ENODEV;
 	}
 
 	phy = devm_kzalloc(&dev->dev, sizeof(struct st_nci_spi_phy),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!phy)
+	{
 		return -ENOMEM;
+	}
 
 	phy->spi_dev = dev;
 
 	spi_set_drvdata(dev, phy);
 
 	pdata = dev->dev.platform_data;
-	if (!pdata && dev->dev.of_node) {
+
+	if (!pdata && dev->dev.of_node)
+	{
 		r = st_nci_spi_of_request_resources(dev);
-		if (r) {
+
+		if (r)
+		{
 			nfc_err(&dev->dev, "No platform data\n");
 			return r;
 		}
-	} else if (pdata) {
+	}
+	else if (pdata)
+	{
 		r = st_nci_spi_request_resources(dev);
-		if (r) {
+
+		if (r)
+		{
 			nfc_err(&dev->dev,
-				"Cannot get platform resources\n");
+					"Cannot get platform resources\n");
 			return r;
 		}
-	} else if (ACPI_HANDLE(&dev->dev)) {
+	}
+	else if (ACPI_HANDLE(&dev->dev))
+	{
 		r = st_nci_spi_acpi_request_resources(dev);
-		if (r) {
+
+		if (r)
+		{
 			nfc_err(&dev->dev, "Cannot get ACPI data\n");
 			return r;
 		}
-	} else {
+	}
+	else
+	{
 		nfc_err(&dev->dev,
-			"st_nci platform resources not available\n");
+				"st_nci platform resources not available\n");
 		return -ENODEV;
 	}
 
 	r = ndlc_probe(phy, &spi_phy_ops, &dev->dev,
-			ST_NCI_FRAME_HEADROOM, ST_NCI_FRAME_TAILROOM,
-			&phy->ndlc, &phy->se_status);
-	if (r < 0) {
+				   ST_NCI_FRAME_HEADROOM, ST_NCI_FRAME_TAILROOM,
+				   &phy->ndlc, &phy->se_status);
+
+	if (r < 0)
+	{
 		nfc_err(&dev->dev, "Unable to register ndlc layer\n");
 		return r;
 	}
 
 	phy->irq_active = true;
 	r = devm_request_threaded_irq(&dev->dev, dev->irq, NULL,
-				st_nci_irq_thread_fn,
-				phy->irq_polarity | IRQF_ONESHOT,
-				ST_NCI_SPI_DRIVER_NAME, phy);
+								  st_nci_irq_thread_fn,
+								  phy->irq_polarity | IRQF_ONESHOT,
+								  ST_NCI_SPI_DRIVER_NAME, phy);
+
 	if (r < 0)
+	{
 		nfc_err(&dev->dev, "Unable to register IRQ handler\n");
+	}
 
 	return r;
 }
@@ -407,25 +476,29 @@ static int st_nci_spi_remove(struct spi_device *dev)
 	return 0;
 }
 
-static struct spi_device_id st_nci_spi_id_table[] = {
+static struct spi_device_id st_nci_spi_id_table[] =
+{
 	{ST_NCI_SPI_DRIVER_NAME, 0},
 	{}
 };
 MODULE_DEVICE_TABLE(spi, st_nci_spi_id_table);
 
-static const struct acpi_device_id st_nci_spi_acpi_match[] = {
+static const struct acpi_device_id st_nci_spi_acpi_match[] =
+{
 	{"SMO2101", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(acpi, st_nci_spi_acpi_match);
 
-static const struct of_device_id of_st_nci_spi_match[] = {
+static const struct of_device_id of_st_nci_spi_match[] =
+{
 	{ .compatible = "st,st21nfcb-spi", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, of_st_nci_spi_match);
 
-static struct spi_driver st_nci_spi_driver = {
+static struct spi_driver st_nci_spi_driver =
+{
 	.driver = {
 		.name = ST_NCI_SPI_DRIVER_NAME,
 		.of_match_table = of_match_ptr(of_st_nci_spi_match),

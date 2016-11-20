@@ -44,7 +44,8 @@
 /* Reset Control Register fields for watchdog */
 #define RESETCON_DMT_TIMEOUT	BIT(5)
 
-struct pic32_dmt {
+struct pic32_dmt
+{
 	void __iomem	*regs;
 	struct clk	*clk;
 };
@@ -70,8 +71,11 @@ static inline int dmt_bad_status(struct pic32_dmt *dmt)
 
 	val = readl(dmt->regs + DMTSTAT_REG);
 	val &= (DMTSTAT_BAD1 | DMTSTAT_BAD2 | DMTSTAT_EVENT);
+
 	if (val)
+	{
 		return -EAGAIN;
+	}
 
 	return 0;
 }
@@ -85,10 +89,14 @@ static inline int dmt_keepalive(struct pic32_dmt *dmt)
 	writel(DMT_STEP1_KEY << 8, dmt->regs + DMTPRECLR_REG);
 
 	/* wait for DMT window to open */
-	while (--timeout) {
+	while (--timeout)
+	{
 		v = readl(dmt->regs + DMTSTAT_REG) & DMTSTAT_WINOPN;
+
 		if (v == DMTSTAT_WINOPN)
+		{
 			break;
+		}
 	}
 
 	/* apply key2 */
@@ -103,8 +111,11 @@ static inline u32 pic32_dmt_get_timeout_secs(struct pic32_dmt *dmt)
 	unsigned long rate;
 
 	rate = clk_get_rate(dmt->clk);
+
 	if (rate)
+	{
 		return readl(dmt->regs + DMTPSCNT_REG) / rate;
+	}
 
 	return 0;
 }
@@ -115,8 +126,11 @@ static inline u32 pic32_dmt_bootstatus(struct pic32_dmt *dmt)
 	void __iomem *rst_base;
 
 	rst_base = ioremap(PIC32_BASE_RESET, 0x10);
+
 	if (!rst_base)
+	{
 		return 0;
+	}
 
 	v = readl(rst_base);
 
@@ -150,20 +164,23 @@ static int pic32_dmt_ping(struct watchdog_device *wdd)
 	return dmt_keepalive(dmt);
 }
 
-static const struct watchdog_ops pic32_dmt_fops = {
+static const struct watchdog_ops pic32_dmt_fops =
+{
 	.owner		= THIS_MODULE,
 	.start		= pic32_dmt_start,
 	.stop		= pic32_dmt_stop,
 	.ping		= pic32_dmt_ping,
 };
 
-static const struct watchdog_info pic32_dmt_ident = {
+static const struct watchdog_info pic32_dmt_ident =
+{
 	.options	= WDIOF_KEEPALIVEPING |
-			  WDIOF_MAGICCLOSE,
+	WDIOF_MAGICCLOSE,
 	.identity	= "PIC32 Deadman Timer",
 };
 
-static struct watchdog_device pic32_dmt_wdd = {
+static struct watchdog_device pic32_dmt_wdd =
+{
 	.info		= &pic32_dmt_ident,
 	.ops		= &pic32_dmt_fops,
 };
@@ -176,28 +193,41 @@ static int pic32_dmt_probe(struct platform_device *pdev)
 	struct watchdog_device *wdd = &pic32_dmt_wdd;
 
 	dmt = devm_kzalloc(&pdev->dev, sizeof(*dmt), GFP_KERNEL);
+
 	if (!dmt)
+	{
 		return -ENOMEM;
+	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	dmt->regs = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(dmt->regs))
+	{
 		return PTR_ERR(dmt->regs);
+	}
 
 	dmt->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(dmt->clk)) {
+
+	if (IS_ERR(dmt->clk))
+	{
 		dev_err(&pdev->dev, "clk not found\n");
 		return PTR_ERR(dmt->clk);
 	}
 
 	ret = clk_prepare_enable(dmt->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	wdd->timeout = pic32_dmt_get_timeout_secs(dmt);
-	if (!wdd->timeout) {
+
+	if (!wdd->timeout)
+	{
 		dev_err(&pdev->dev,
-			"failed to read watchdog register timeout\n");
+				"failed to read watchdog register timeout\n");
 		ret = -EINVAL;
 		goto out_disable_clk;
 	}
@@ -210,7 +240,9 @@ static int pic32_dmt_probe(struct platform_device *pdev)
 	watchdog_set_drvdata(wdd, dmt);
 
 	ret = watchdog_register_device(wdd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "watchdog register failed, err %d\n", ret);
 		goto out_disable_clk;
 	}
@@ -234,13 +266,15 @@ static int pic32_dmt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id pic32_dmt_of_ids[] = {
+static const struct of_device_id pic32_dmt_of_ids[] =
+{
 	{ .compatible = "microchip,pic32mzda-dmt",},
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, pic32_dmt_of_ids);
 
-static struct platform_driver pic32_dmt_driver = {
+static struct platform_driver pic32_dmt_driver =
+{
 	.probe		= pic32_dmt_probe,
 	.remove		= pic32_dmt_remove,
 	.driver		= {

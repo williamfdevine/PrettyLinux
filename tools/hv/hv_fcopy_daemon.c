@@ -47,47 +47,63 @@ static int hv_start_fcopy(struct hv_start_fcopy *smsg)
 	filesize = 0;
 	p = (char *)smsg->path_name;
 	snprintf(target_fname, sizeof(target_fname), "%s/%s",
-		 (char *)smsg->path_name, (char *)smsg->file_name);
+			 (char *)smsg->path_name, (char *)smsg->file_name);
 
 	syslog(LOG_INFO, "Target file name: %s", target_fname);
+
 	/*
 	 * Check to see if the path is already in place; if not,
 	 * create if required.
 	 */
-	while ((q = strchr(p, '/')) != NULL) {
-		if (q == p) {
+	while ((q = strchr(p, '/')) != NULL)
+	{
+		if (q == p)
+		{
 			p++;
 			continue;
 		}
+
 		*q = '\0';
-		if (access((char *)smsg->path_name, F_OK)) {
-			if (smsg->copy_flags & CREATE_PATH) {
-				if (mkdir((char *)smsg->path_name, 0755)) {
+
+		if (access((char *)smsg->path_name, F_OK))
+		{
+			if (smsg->copy_flags & CREATE_PATH)
+			{
+				if (mkdir((char *)smsg->path_name, 0755))
+				{
 					syslog(LOG_ERR, "Failed to create %s",
-						(char *)smsg->path_name);
+						   (char *)smsg->path_name);
 					goto done;
 				}
-			} else {
+			}
+			else
+			{
 				syslog(LOG_ERR, "Invalid path: %s",
-					(char *)smsg->path_name);
+					   (char *)smsg->path_name);
 				goto done;
 			}
 		}
+
 		p = q + 1;
 		*q = '/';
 	}
 
-	if (!access(target_fname, F_OK)) {
+	if (!access(target_fname, F_OK))
+	{
 		syslog(LOG_INFO, "File: %s exists", target_fname);
-		if (!(smsg->copy_flags & OVER_WRITE)) {
+
+		if (!(smsg->copy_flags & OVER_WRITE))
+		{
 			error = HV_ERROR_ALREADY_EXISTS;
 			goto done;
 		}
 	}
 
 	target_fd = open(target_fname,
-			 O_RDWR | O_CREAT | O_TRUNC | O_CLOEXEC, 0744);
-	if (target_fd == -1) {
+					 O_RDWR | O_CREAT | O_TRUNC | O_CLOEXEC, 0744);
+
+	if (target_fd == -1)
+	{
 		syslog(LOG_INFO, "Open Failed: %s", strerror(errno));
 		goto done;
 	}
@@ -103,20 +119,25 @@ static int hv_copy_data(struct hv_do_fcopy *cpmsg)
 	int ret = 0;
 
 	bytes_written = pwrite(target_fd, cpmsg->data, cpmsg->size,
-				cpmsg->offset);
+						   cpmsg->offset);
 
 	filesize += cpmsg->size;
-	if (bytes_written != cpmsg->size) {
-		switch (errno) {
-		case ENOSPC:
-			ret = HV_ERROR_DISK_FULL;
-			break;
-		default:
-			ret = HV_E_FAIL;
-			break;
+
+	if (bytes_written != cpmsg->size)
+	{
+		switch (errno)
+		{
+			case ENOSPC:
+				ret = HV_ERROR_DISK_FULL;
+				break;
+
+			default:
+				ret = HV_E_FAIL;
+				break;
 		}
+
 		syslog(LOG_ERR, "pwrite failed to write %llu bytes: %ld (%s)",
-		       filesize, (long)bytes_written, strerror(errno));
+			   filesize, (long)bytes_written, strerror(errno));
 	}
 
 	return ret;
@@ -138,9 +159,9 @@ static int hv_copy_cancel(void)
 void print_usage(char *argv[])
 {
 	fprintf(stderr, "Usage: %s [options]\n"
-		"Options are:\n"
-		"  -n, --no-daemon        stay in foreground, don't daemonize\n"
-		"  -h, --help             print this help\n", argv[0]);
+			"Options are:\n"
+			"  -n, --no-daemon        stay in foreground, don't daemonize\n"
+			"  -h, --help             print this help\n", argv[0]);
 }
 
 int main(int argc, char *argv[])
@@ -154,26 +175,31 @@ int main(int argc, char *argv[])
 	int in_handshake = 1;
 	__u32 kernel_modver;
 
-	static struct option long_options[] = {
+	static struct option long_options[] =
+	{
 		{"help",	no_argument,	   0,  'h' },
 		{"no-daemon",	no_argument,	   0,  'n' },
 		{0,		0,		   0,  0   }
 	};
 
 	while ((opt = getopt_long(argc, argv, "hn", long_options,
-				  &long_index)) != -1) {
-		switch (opt) {
-		case 'n':
-			daemonize = 0;
-			break;
-		case 'h':
-		default:
-			print_usage(argv);
-			exit(EXIT_FAILURE);
+							  &long_index)) != -1)
+	{
+		switch (opt)
+		{
+			case 'n':
+				daemonize = 0;
+				break;
+
+			case 'h':
+			default:
+				print_usage(argv);
+				exit(EXIT_FAILURE);
 		}
 	}
 
-	if (daemonize && daemon(1, 0)) {
+	if (daemonize && daemon(1, 0))
+	{
 		syslog(LOG_ERR, "daemon() failed; error: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
@@ -183,66 +209,79 @@ int main(int argc, char *argv[])
 
 	fcopy_fd = open("/dev/vmbus/hv_fcopy", O_RDWR);
 
-	if (fcopy_fd < 0) {
+	if (fcopy_fd < 0)
+	{
 		syslog(LOG_ERR, "open /dev/vmbus/hv_fcopy failed; error: %d %s",
-			errno, strerror(errno));
+			   errno, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
 	/*
 	 * Register with the kernel.
 	 */
-	if ((write(fcopy_fd, &version, sizeof(int))) != sizeof(int)) {
+	if ((write(fcopy_fd, &version, sizeof(int))) != sizeof(int))
+	{
 		syslog(LOG_ERR, "Registration failed: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
-	while (1) {
+	while (1)
+	{
 		/*
 		 * In this loop we process fcopy messages after the
 		 * handshake is complete.
 		 */
 		len = pread(fcopy_fd, buffer, (4096 * 2), 0);
-		if (len < 0) {
+
+		if (len < 0)
+		{
 			syslog(LOG_ERR, "pread failed: %s", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
-		if (in_handshake) {
-			if (len != sizeof(kernel_modver)) {
+		if (in_handshake)
+		{
+			if (len != sizeof(kernel_modver))
+			{
 				syslog(LOG_ERR, "invalid version negotiation");
 				exit(EXIT_FAILURE);
 			}
+
 			kernel_modver = *(__u32 *)buffer;
 			in_handshake = 0;
 			syslog(LOG_INFO, "kernel module version: %d",
-			       kernel_modver);
+				   kernel_modver);
 			continue;
 		}
 
 		in_msg = (struct hv_fcopy_hdr *)buffer;
 
-		switch (in_msg->operation) {
-		case START_FILE_COPY:
-			error = hv_start_fcopy((struct hv_start_fcopy *)in_msg);
-			break;
-		case WRITE_TO_FILE:
-			error = hv_copy_data((struct hv_do_fcopy *)in_msg);
-			break;
-		case COMPLETE_FCOPY:
-			error = hv_copy_finished();
-			break;
-		case CANCEL_FCOPY:
-			error = hv_copy_cancel();
-			break;
+		switch (in_msg->operation)
+		{
+			case START_FILE_COPY:
+				error = hv_start_fcopy((struct hv_start_fcopy *)in_msg);
+				break;
 
-		default:
-			syslog(LOG_ERR, "Unknown operation: %d",
-				in_msg->operation);
+			case WRITE_TO_FILE:
+				error = hv_copy_data((struct hv_do_fcopy *)in_msg);
+				break;
+
+			case COMPLETE_FCOPY:
+				error = hv_copy_finished();
+				break;
+
+			case CANCEL_FCOPY:
+				error = hv_copy_cancel();
+				break;
+
+			default:
+				syslog(LOG_ERR, "Unknown operation: %d",
+					   in_msg->operation);
 
 		}
 
-		if (pwrite(fcopy_fd, &error, sizeof(int), 0) != sizeof(int)) {
+		if (pwrite(fcopy_fd, &error, sizeof(int), 0) != sizeof(int))
+		{
 			syslog(LOG_ERR, "pwrite failed: %s", strerror(errno));
 			exit(EXIT_FAILURE);
 		}

@@ -43,7 +43,8 @@ static int kfd_mmap(struct file *, struct vm_area_struct *);
 
 static const char kfd_dev_name[] = "kfd";
 
-static const struct file_operations kfd_fops = {
+static const struct file_operations kfd_fops =
+{
 	.owner = THIS_MODULE,
 	.unlocked_ioctl = kfd_ioctl,
 	.compat_ioctl = kfd_ioctl,
@@ -61,20 +62,29 @@ int kfd_chardev_init(void)
 
 	kfd_char_dev_major = register_chrdev(0, kfd_dev_name, &kfd_fops);
 	err = kfd_char_dev_major;
+
 	if (err < 0)
+	{
 		goto err_register_chrdev;
+	}
 
 	kfd_class = class_create(THIS_MODULE, kfd_dev_name);
 	err = PTR_ERR(kfd_class);
+
 	if (IS_ERR(kfd_class))
+	{
 		goto err_class_create;
+	}
 
 	kfd_device = device_create(kfd_class, NULL,
-					MKDEV(kfd_char_dev_major, 0),
-					NULL, kfd_dev_name);
+							   MKDEV(kfd_char_dev_major, 0),
+							   NULL, kfd_dev_name);
 	err = PTR_ERR(kfd_device);
+
 	if (IS_ERR(kfd_device))
+	{
 		goto err_device_create;
+	}
 
 	return 0;
 
@@ -105,30 +115,36 @@ static int kfd_open(struct inode *inode, struct file *filep)
 	bool is_32bit_user_mode;
 
 	if (iminor(inode) != 0)
+	{
 		return -ENODEV;
+	}
 
 	is_32bit_user_mode = in_compat_syscall();
 
-	if (is_32bit_user_mode) {
+	if (is_32bit_user_mode)
+	{
 		dev_warn(kfd_device,
-			"Process %d (32-bit) failed to open /dev/kfd\n"
-			"32-bit processes are not supported by amdkfd\n",
-			current->pid);
+				 "Process %d (32-bit) failed to open /dev/kfd\n"
+				 "32-bit processes are not supported by amdkfd\n",
+				 current->pid);
 		return -EPERM;
 	}
 
 	process = kfd_create_process(current);
+
 	if (IS_ERR(process))
+	{
 		return PTR_ERR(process);
+	}
 
 	dev_dbg(kfd_device, "process %d opened, compat mode (32 bit) - %d\n",
-		process->pasid, process->is_32bit_user_mode);
+			process->pasid, process->is_32bit_user_mode);
 
 	return 0;
 }
 
 static int kfd_ioctl_get_version(struct file *filep, struct kfd_process *p,
-					void *data)
+								 void *data)
 {
 	struct kfd_ioctl_get_version_args *args = data;
 
@@ -139,57 +155,65 @@ static int kfd_ioctl_get_version(struct file *filep, struct kfd_process *p,
 }
 
 static int set_queue_properties_from_user(struct queue_properties *q_properties,
-				struct kfd_ioctl_create_queue_args *args)
+		struct kfd_ioctl_create_queue_args *args)
 {
-	if (args->queue_percentage > KFD_MAX_QUEUE_PERCENTAGE) {
+	if (args->queue_percentage > KFD_MAX_QUEUE_PERCENTAGE)
+	{
 		pr_err("kfd: queue percentage must be between 0 to KFD_MAX_QUEUE_PERCENTAGE\n");
 		return -EINVAL;
 	}
 
-	if (args->queue_priority > KFD_MAX_QUEUE_PRIORITY) {
+	if (args->queue_priority > KFD_MAX_QUEUE_PRIORITY)
+	{
 		pr_err("kfd: queue priority must be between 0 to KFD_MAX_QUEUE_PRIORITY\n");
 		return -EINVAL;
 	}
 
 	if ((args->ring_base_address) &&
 		(!access_ok(VERIFY_WRITE,
-			(const void __user *) args->ring_base_address,
-			sizeof(uint64_t)))) {
+					(const void __user *) args->ring_base_address,
+					sizeof(uint64_t))))
+	{
 		pr_err("kfd: can't access ring base address\n");
 		return -EFAULT;
 	}
 
-	if (!is_power_of_2(args->ring_size) && (args->ring_size != 0)) {
+	if (!is_power_of_2(args->ring_size) && (args->ring_size != 0))
+	{
 		pr_err("kfd: ring size must be a power of 2 or 0\n");
 		return -EINVAL;
 	}
 
 	if (!access_ok(VERIFY_WRITE,
-			(const void __user *) args->read_pointer_address,
-			sizeof(uint32_t))) {
+				   (const void __user *) args->read_pointer_address,
+				   sizeof(uint32_t)))
+	{
 		pr_err("kfd: can't access read pointer\n");
 		return -EFAULT;
 	}
 
 	if (!access_ok(VERIFY_WRITE,
-			(const void __user *) args->write_pointer_address,
-			sizeof(uint32_t))) {
+				   (const void __user *) args->write_pointer_address,
+				   sizeof(uint32_t)))
+	{
 		pr_err("kfd: can't access write pointer\n");
 		return -EFAULT;
 	}
 
 	if (args->eop_buffer_address &&
 		!access_ok(VERIFY_WRITE,
-			(const void __user *) args->eop_buffer_address,
-			sizeof(uint32_t))) {
+				   (const void __user *) args->eop_buffer_address,
+				   sizeof(uint32_t)))
+	{
 		pr_debug("kfd: can't access eop buffer");
 		return -EFAULT;
 	}
 
 	if (args->ctx_save_restore_address &&
 		!access_ok(VERIFY_WRITE,
-			(const void __user *) args->ctx_save_restore_address,
-			sizeof(uint32_t))) {
+				   (const void __user *) args->ctx_save_restore_address,
+				   sizeof(uint32_t)))
+	{
 		pr_debug("kfd: can't access ctx save restore buffer");
 		return -EFAULT;
 	}
@@ -204,49 +228,60 @@ static int set_queue_properties_from_user(struct queue_properties *q_properties,
 	q_properties->eop_ring_buffer_address = args->eop_buffer_address;
 	q_properties->eop_ring_buffer_size = args->eop_buffer_size;
 	q_properties->ctx_save_restore_area_address =
-			args->ctx_save_restore_address;
+		args->ctx_save_restore_address;
 	q_properties->ctx_save_restore_area_size = args->ctx_save_restore_size;
+
 	if (args->queue_type == KFD_IOC_QUEUE_TYPE_COMPUTE ||
 		args->queue_type == KFD_IOC_QUEUE_TYPE_COMPUTE_AQL)
+	{
 		q_properties->type = KFD_QUEUE_TYPE_COMPUTE;
+	}
 	else if (args->queue_type == KFD_IOC_QUEUE_TYPE_SDMA)
+	{
 		q_properties->type = KFD_QUEUE_TYPE_SDMA;
+	}
 	else
+	{
 		return -ENOTSUPP;
+	}
 
 	if (args->queue_type == KFD_IOC_QUEUE_TYPE_COMPUTE_AQL)
+	{
 		q_properties->format = KFD_QUEUE_FORMAT_AQL;
+	}
 	else
+	{
 		q_properties->format = KFD_QUEUE_FORMAT_PM4;
+	}
 
 	pr_debug("Queue Percentage (%d, %d)\n",
-			q_properties->queue_percent, args->queue_percentage);
+			 q_properties->queue_percent, args->queue_percentage);
 
 	pr_debug("Queue Priority (%d, %d)\n",
-			q_properties->priority, args->queue_priority);
+			 q_properties->priority, args->queue_priority);
 
 	pr_debug("Queue Address (0x%llX, 0x%llX)\n",
-			q_properties->queue_address, args->ring_base_address);
+			 q_properties->queue_address, args->ring_base_address);
 
 	pr_debug("Queue Size (0x%llX, %u)\n",
-			q_properties->queue_size, args->ring_size);
+			 q_properties->queue_size, args->ring_size);
 
 	pr_debug("Queue r/w Pointers (0x%llX, 0x%llX)\n",
-			(uint64_t) q_properties->read_ptr,
-			(uint64_t) q_properties->write_ptr);
+			 (uint64_t) q_properties->read_ptr,
+			 (uint64_t) q_properties->write_ptr);
 
 	pr_debug("Queue Format (%d)\n", q_properties->format);
 
 	pr_debug("Queue EOP (0x%llX)\n", q_properties->eop_ring_buffer_address);
 
 	pr_debug("Queue CTX save arex (0x%llX)\n",
-			q_properties->ctx_save_restore_area_address);
+			 q_properties->ctx_save_restore_area_address);
 
 	return 0;
 }
 
 static int kfd_ioctl_create_queue(struct file *filep, struct kfd_process *p,
-					void *data)
+								  void *data)
 {
 	struct kfd_ioctl_create_queue_args *args = data;
 	struct kfd_dev *dev;
@@ -260,12 +295,17 @@ static int kfd_ioctl_create_queue(struct file *filep, struct kfd_process *p,
 	pr_debug("kfd: creating queue ioctl\n");
 
 	err = set_queue_properties_from_user(&q_properties, args);
+
 	if (err)
+	{
 		return err;
+	}
 
 	pr_debug("kfd: looking for gpu id 0x%x\n", args->gpu_id);
 	dev = kfd_device_by_id(args->gpu_id);
-	if (dev == NULL) {
+
+	if (dev == NULL)
+	{
 		pr_debug("kfd: gpu id 0x%x was not found\n", args->gpu_id);
 		return -EINVAL;
 	}
@@ -273,19 +313,24 @@ static int kfd_ioctl_create_queue(struct file *filep, struct kfd_process *p,
 	mutex_lock(&p->mutex);
 
 	pdd = kfd_bind_process_to_device(dev, p);
-	if (IS_ERR(pdd)) {
+
+	if (IS_ERR(pdd))
+	{
 		err = -ESRCH;
 		goto err_bind_process;
 	}
 
 	pr_debug("kfd: creating queue for PASID %d on GPU 0x%x\n",
-			p->pasid,
-			dev->id);
+			 p->pasid,
+			 dev->id);
 
 	err = pqm_create_queue(&p->pqm, dev, filep, &q_properties,
-				0, q_properties.type, &queue_id);
+						   0, q_properties.type, &queue_id);
+
 	if (err != 0)
+	{
 		goto err_create_queue;
+	}
 
 	args->queue_id = queue_id;
 
@@ -299,13 +344,13 @@ static int kfd_ioctl_create_queue(struct file *filep, struct kfd_process *p,
 	pr_debug("kfd: queue id %d was created successfully\n", args->queue_id);
 
 	pr_debug("ring buffer address == 0x%016llX\n",
-			args->ring_base_address);
+			 args->ring_base_address);
 
 	pr_debug("read ptr address    == 0x%016llX\n",
-			args->read_pointer_address);
+			 args->read_pointer_address);
 
 	pr_debug("write ptr address   == 0x%016llX\n",
-			args->write_pointer_address);
+			 args->write_pointer_address);
 
 	return 0;
 
@@ -316,14 +361,14 @@ err_bind_process:
 }
 
 static int kfd_ioctl_destroy_queue(struct file *filp, struct kfd_process *p,
-					void *data)
+								   void *data)
 {
 	int retval;
 	struct kfd_ioctl_destroy_queue_args *args = data;
 
 	pr_debug("kfd: destroying queue id %d for PASID %d\n",
-				args->queue_id,
-				p->pasid);
+			 args->queue_id,
+			 p->pasid);
 
 	mutex_lock(&p->mutex);
 
@@ -334,31 +379,35 @@ static int kfd_ioctl_destroy_queue(struct file *filp, struct kfd_process *p,
 }
 
 static int kfd_ioctl_update_queue(struct file *filp, struct kfd_process *p,
-					void *data)
+								  void *data)
 {
 	int retval;
 	struct kfd_ioctl_update_queue_args *args = data;
 	struct queue_properties properties;
 
-	if (args->queue_percentage > KFD_MAX_QUEUE_PERCENTAGE) {
+	if (args->queue_percentage > KFD_MAX_QUEUE_PERCENTAGE)
+	{
 		pr_err("kfd: queue percentage must be between 0 to KFD_MAX_QUEUE_PERCENTAGE\n");
 		return -EINVAL;
 	}
 
-	if (args->queue_priority > KFD_MAX_QUEUE_PRIORITY) {
+	if (args->queue_priority > KFD_MAX_QUEUE_PRIORITY)
+	{
 		pr_err("kfd: queue priority must be between 0 to KFD_MAX_QUEUE_PRIORITY\n");
 		return -EINVAL;
 	}
 
 	if ((args->ring_base_address) &&
 		(!access_ok(VERIFY_WRITE,
-			(const void __user *) args->ring_base_address,
-			sizeof(uint64_t)))) {
+					(const void __user *) args->ring_base_address,
+					sizeof(uint64_t))))
+	{
 		pr_err("kfd: can't access ring base address\n");
 		return -EFAULT;
 	}
 
-	if (!is_power_of_2(args->ring_size) && (args->ring_size != 0)) {
+	if (!is_power_of_2(args->ring_size) && (args->ring_size != 0))
+	{
 		pr_err("kfd: ring size must be a power of 2 or 0\n");
 		return -EINVAL;
 	}
@@ -369,7 +418,7 @@ static int kfd_ioctl_update_queue(struct file *filp, struct kfd_process *p,
 	properties.priority = args->queue_priority;
 
 	pr_debug("kfd: updating queue id %d for PASID %d\n",
-			args->queue_id, p->pasid);
+			 args->queue_id, p->pasid);
 
 	mutex_lock(&p->mutex);
 
@@ -381,7 +430,7 @@ static int kfd_ioctl_update_queue(struct file *filp, struct kfd_process *p,
 }
 
 static int kfd_ioctl_set_memory_policy(struct file *filep,
-					struct kfd_process *p, void *data)
+									   struct kfd_process *p, void *data)
 {
 	struct kfd_ioctl_set_memory_policy_args *args = data;
 	struct kfd_dev *dev;
@@ -390,41 +439,50 @@ static int kfd_ioctl_set_memory_policy(struct file *filep,
 	enum cache_policy default_policy, alternate_policy;
 
 	if (args->default_policy != KFD_IOC_CACHE_POLICY_COHERENT
-	    && args->default_policy != KFD_IOC_CACHE_POLICY_NONCOHERENT) {
+		&& args->default_policy != KFD_IOC_CACHE_POLICY_NONCOHERENT)
+	{
 		return -EINVAL;
 	}
 
 	if (args->alternate_policy != KFD_IOC_CACHE_POLICY_COHERENT
-	    && args->alternate_policy != KFD_IOC_CACHE_POLICY_NONCOHERENT) {
+		&& args->alternate_policy != KFD_IOC_CACHE_POLICY_NONCOHERENT)
+	{
 		return -EINVAL;
 	}
 
 	dev = kfd_device_by_id(args->gpu_id);
+
 	if (dev == NULL)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&p->mutex);
 
 	pdd = kfd_bind_process_to_device(dev, p);
-	if (IS_ERR(pdd)) {
+
+	if (IS_ERR(pdd))
+	{
 		err = -ESRCH;
 		goto out;
 	}
 
 	default_policy = (args->default_policy == KFD_IOC_CACHE_POLICY_COHERENT)
-			 ? cache_policy_coherent : cache_policy_noncoherent;
+					 ? cache_policy_coherent : cache_policy_noncoherent;
 
 	alternate_policy =
 		(args->alternate_policy == KFD_IOC_CACHE_POLICY_COHERENT)
-		   ? cache_policy_coherent : cache_policy_noncoherent;
+		? cache_policy_coherent : cache_policy_noncoherent;
 
 	if (!dev->dqm->ops.set_cache_memory_policy(dev->dqm,
-				&pdd->qpd,
-				default_policy,
-				alternate_policy,
-				(void __user *)args->alternate_aperture_base,
-				args->alternate_aperture_size))
+			&pdd->qpd,
+			default_policy,
+			alternate_policy,
+			(void __user *)args->alternate_aperture_base,
+			args->alternate_aperture_size))
+	{
 		err = -EINVAL;
+	}
 
 out:
 	mutex_unlock(&p->mutex);
@@ -433,7 +491,7 @@ out:
 }
 
 static int kfd_ioctl_dbg_register(struct file *filep,
-				struct kfd_process *p, void *data)
+								  struct kfd_process *p, void *data)
 {
 	struct kfd_ioctl_dbg_register_args *args = data;
 	struct kfd_dev *dev;
@@ -443,10 +501,14 @@ static int kfd_ioctl_dbg_register(struct file *filep,
 	long status = 0;
 
 	dev = kfd_device_by_id(args->gpu_id);
-	if (dev == NULL)
-		return -EINVAL;
 
-	if (dev->device_info->asic_family == CHIP_CARRIZO) {
+	if (dev == NULL)
+	{
+		return -EINVAL;
+	}
+
+	if (dev->device_info->asic_family == CHIP_CARRIZO)
+	{
 		pr_debug("kfd_ioctl_dbg_register not supported on CZ\n");
 		return -EINVAL;
 	}
@@ -459,23 +521,35 @@ static int kfd_ioctl_dbg_register(struct file *filep,
 	 * this process
 	 */
 	pdd = kfd_bind_process_to_device(dev, p);
-	if (IS_ERR(pdd)) {
+
+	if (IS_ERR(pdd))
+	{
 		mutex_unlock(&p->mutex);
 		mutex_unlock(kfd_get_dbgmgr_mutex());
 		return PTR_ERR(pdd);
 	}
 
-	if (dev->dbgmgr == NULL) {
+	if (dev->dbgmgr == NULL)
+	{
 		/* In case of a legal call, we have no dbgmgr yet */
 		create_ok = kfd_dbgmgr_create(&dbgmgr_ptr, dev);
-		if (create_ok) {
+
+		if (create_ok)
+		{
 			status = kfd_dbgmgr_register(dbgmgr_ptr, p);
+
 			if (status != 0)
+			{
 				kfd_dbgmgr_destroy(dbgmgr_ptr);
+			}
 			else
+			{
 				dev->dbgmgr = dbgmgr_ptr;
+			}
 		}
-	} else {
+	}
+	else
+	{
 		pr_debug("debugger already registered\n");
 		status = -EINVAL;
 	}
@@ -487,17 +561,21 @@ static int kfd_ioctl_dbg_register(struct file *filep,
 }
 
 static int kfd_ioctl_dbg_unrgesiter(struct file *filep,
-				struct kfd_process *p, void *data)
+									struct kfd_process *p, void *data)
 {
 	struct kfd_ioctl_dbg_unregister_args *args = data;
 	struct kfd_dev *dev;
 	long status;
 
 	dev = kfd_device_by_id(args->gpu_id);
-	if (dev == NULL)
-		return -EINVAL;
 
-	if (dev->device_info->asic_family == CHIP_CARRIZO) {
+	if (dev == NULL)
+	{
+		return -EINVAL;
+	}
+
+	if (dev->device_info->asic_family == CHIP_CARRIZO)
+	{
 		pr_debug("kfd_ioctl_dbg_unrgesiter not supported on CZ\n");
 		return -EINVAL;
 	}
@@ -505,7 +583,9 @@ static int kfd_ioctl_dbg_unrgesiter(struct file *filep,
 	mutex_lock(kfd_get_dbgmgr_mutex());
 
 	status = kfd_dbgmgr_unregister(dev->dbgmgr, p);
-	if (status == 0) {
+
+	if (status == 0)
+	{
 		kfd_dbgmgr_destroy(dev->dbgmgr);
 		dev->dbgmgr = NULL;
 	}
@@ -525,7 +605,7 @@ static int kfd_ioctl_dbg_unrgesiter(struct file *filep,
  *
  */
 static int kfd_ioctl_dbg_address_watch(struct file *filep,
-					struct kfd_process *p, void *data)
+									   struct kfd_process *p, void *data)
 {
 	struct kfd_ioctl_dbg_address_watch_args *args = data;
 	struct kfd_dev *dev;
@@ -539,10 +619,14 @@ static int kfd_ioctl_dbg_address_watch(struct file *filep,
 	memset((void *) &aw_info, 0, sizeof(struct dbg_address_watch_info));
 
 	dev = kfd_device_by_id(args->gpu_id);
-	if (dev == NULL)
-		return -EINVAL;
 
-	if (dev->device_info->asic_family == CHIP_CARRIZO) {
+	if (dev == NULL)
+	{
+		return -EINVAL;
+	}
+
+	if (dev->device_info->asic_family == CHIP_CARRIZO)
+	{
 		pr_debug("kfd_ioctl_dbg_wave_control not supported on CZ\n");
 		return -EINVAL;
 	}
@@ -554,13 +638,18 @@ static int kfd_ioctl_dbg_address_watch(struct file *filep,
 	if ((args->buf_size_in_bytes > MAX_ALLOWED_AW_BUFF_SIZE) ||
 		(args->buf_size_in_bytes <= sizeof(*args) + sizeof(int) * 2) ||
 		(cmd_from_user == NULL))
+	{
 		return -EINVAL;
+	}
 
 	/* this is the actual buffer to work with */
 	args_buff = memdup_user(cmd_from_user,
-				args->buf_size_in_bytes - sizeof(*args));
+							args->buf_size_in_bytes - sizeof(*args));
+
 	if (IS_ERR(args_buff))
+	{
 		return PTR_ERR(args_buff);
+	}
 
 	aw_info.process = p;
 
@@ -579,14 +668,16 @@ static int kfd_ioctl_dbg_address_watch(struct file *filep,
 	/* skip over the addresses buffer */
 	args_idx += sizeof(aw_info.watch_address) * aw_info.num_watch_points;
 
-	if (args_idx >= args->buf_size_in_bytes - sizeof(*args)) {
+	if (args_idx >= args->buf_size_in_bytes - sizeof(*args))
+	{
 		kfree(args_buff);
 		return -EINVAL;
 	}
 
 	watch_mask_value = (uint64_t) args_buff[args_idx];
 
-	if (watch_mask_value > 0) {
+	if (watch_mask_value > 0)
+	{
 		/*
 		 * There is an array of masks.
 		 * set watch mask base pointer to point on the array base
@@ -596,14 +687,17 @@ static int kfd_ioctl_dbg_address_watch(struct file *filep,
 
 		/* skip over the masks buffer */
 		args_idx += sizeof(aw_info.watch_mask) *
-				aw_info.num_watch_points;
-	} else {
+					aw_info.num_watch_points;
+	}
+	else
+	{
 		/* just the NULL mask, set to NULL and skip over it */
 		aw_info.watch_mask = NULL;
 		args_idx += sizeof(aw_info.watch_mask);
 	}
 
-	if (args_idx >= args->buf_size_in_bytes - sizeof(args)) {
+	if (args_idx >= args->buf_size_in_bytes - sizeof(args))
+	{
 		kfree(args_buff);
 		return -EINVAL;
 	}
@@ -624,7 +718,7 @@ static int kfd_ioctl_dbg_address_watch(struct file *filep,
 
 /* Parse and generate fixed size data structure for wave control */
 static int kfd_ioctl_dbg_wave_control(struct file *filep,
-					struct kfd_process *p, void *data)
+									  struct kfd_process *p, void *data)
 {
 	struct kfd_ioctl_dbg_wave_control_args *args = data;
 	struct kfd_dev *dev;
@@ -639,39 +733,49 @@ static int kfd_ioctl_dbg_wave_control(struct file *filep,
 
 	/* we use compact form, independent of the packing attribute value */
 	computed_buff_size = sizeof(*args) +
-				sizeof(wac_info.mode) +
-				sizeof(wac_info.operand) +
-				sizeof(wac_info.dbgWave_msg.DbgWaveMsg) +
-				sizeof(wac_info.dbgWave_msg.MemoryVA) +
-				sizeof(wac_info.trapId);
+						 sizeof(wac_info.mode) +
+						 sizeof(wac_info.operand) +
+						 sizeof(wac_info.dbgWave_msg.DbgWaveMsg) +
+						 sizeof(wac_info.dbgWave_msg.MemoryVA) +
+						 sizeof(wac_info.trapId);
 
 	dev = kfd_device_by_id(args->gpu_id);
-	if (dev == NULL)
-		return -EINVAL;
 
-	if (dev->device_info->asic_family == CHIP_CARRIZO) {
+	if (dev == NULL)
+	{
+		return -EINVAL;
+	}
+
+	if (dev->device_info->asic_family == CHIP_CARRIZO)
+	{
 		pr_debug("kfd_ioctl_dbg_wave_control not supported on CZ\n");
 		return -EINVAL;
 	}
 
 	/* input size must match the computed "compact" size */
-	if (args->buf_size_in_bytes != computed_buff_size) {
+	if (args->buf_size_in_bytes != computed_buff_size)
+	{
 		pr_debug("size mismatch, computed : actual %u : %u\n",
-				args->buf_size_in_bytes, computed_buff_size);
+				 args->buf_size_in_bytes, computed_buff_size);
 		return -EINVAL;
 	}
 
 	cmd_from_user = (void __user *) args->content_ptr;
 
 	if (cmd_from_user == NULL)
+	{
 		return -EINVAL;
+	}
 
 	/* copy the entire buffer from user */
 
 	args_buff = memdup_user(cmd_from_user,
-				args->buf_size_in_bytes - sizeof(*args));
+							args->buf_size_in_bytes - sizeof(*args));
+
 	if (IS_ERR(args_buff))
+	{
 		return PTR_ERR(args_buff);
+	}
 
 	/* move ptr to the start of the "pay-load" area */
 	wac_info.process = p;
@@ -686,15 +790,15 @@ static int kfd_ioctl_dbg_wave_control(struct file *filep,
 	args_idx += sizeof(wac_info.trapId);
 
 	wac_info.dbgWave_msg.DbgWaveMsg.WaveMsgInfoGen2.Value =
-					*((uint32_t *)(&args_buff[args_idx]));
+		*((uint32_t *)(&args_buff[args_idx]));
 	wac_info.dbgWave_msg.MemoryVA = NULL;
 
 	mutex_lock(kfd_get_dbgmgr_mutex());
 
 	pr_debug("Calling dbg manager process %p, operand %u, mode %u, trapId %u, message %u\n",
-			wac_info.process, wac_info.operand,
-			wac_info.mode, wac_info.trapId,
-			wac_info.dbgWave_msg.DbgWaveMsg.WaveMsgInfoGen2.Value);
+			 wac_info.process, wac_info.operand,
+			 wac_info.mode, wac_info.trapId,
+			 wac_info.dbgWave_msg.DbgWaveMsg.WaveMsgInfoGen2.Value);
 
 	status = kfd_dbgmgr_wave_control(dev->dbgmgr, &wac_info);
 
@@ -708,15 +812,18 @@ static int kfd_ioctl_dbg_wave_control(struct file *filep,
 }
 
 static int kfd_ioctl_get_clock_counters(struct file *filep,
-				struct kfd_process *p, void *data)
+										struct kfd_process *p, void *data)
 {
 	struct kfd_ioctl_get_clock_counters_args *args = data;
 	struct kfd_dev *dev;
 	struct timespec64 time;
 
 	dev = kfd_device_by_id(args->gpu_id);
+
 	if (dev == NULL)
+	{
 		return -EINVAL;
+	}
 
 	/* Reading GPU clock counter from KGD */
 	args->gpu_clock_counter =
@@ -737,7 +844,7 @@ static int kfd_ioctl_get_clock_counters(struct file *filep,
 
 
 static int kfd_ioctl_get_process_apertures(struct file *filp,
-				struct kfd_process *p, void *data)
+		struct kfd_process *p, void *data)
 {
 	struct kfd_ioctl_get_process_apertures_args *args = data;
 	struct kfd_process_device_apertures *pAperture;
@@ -750,10 +857,13 @@ static int kfd_ioctl_get_process_apertures(struct file *filp,
 	mutex_lock(&p->mutex);
 
 	/*if the process-device list isn't empty*/
-	if (kfd_has_process_device_data(p)) {
+	if (kfd_has_process_device_data(p))
+	{
 		/* Run over all pdd of the process */
 		pdd = kfd_get_first_process_device_data(p);
-		do {
+
+		do
+		{
 			pAperture =
 				&args->process_apertures[args->num_of_nodes];
 			pAperture->gpu_id = pdd->dev->id;
@@ -765,25 +875,26 @@ static int kfd_ioctl_get_process_apertures(struct file *filp,
 			pAperture->scratch_limit = pdd->scratch_limit;
 
 			dev_dbg(kfd_device,
-				"node id %u\n", args->num_of_nodes);
+					"node id %u\n", args->num_of_nodes);
 			dev_dbg(kfd_device,
-				"gpu id %u\n", pdd->dev->id);
+					"gpu id %u\n", pdd->dev->id);
 			dev_dbg(kfd_device,
-				"lds_base %llX\n", pdd->lds_base);
+					"lds_base %llX\n", pdd->lds_base);
 			dev_dbg(kfd_device,
-				"lds_limit %llX\n", pdd->lds_limit);
+					"lds_limit %llX\n", pdd->lds_limit);
 			dev_dbg(kfd_device,
-				"gpuvm_base %llX\n", pdd->gpuvm_base);
+					"gpuvm_base %llX\n", pdd->gpuvm_base);
 			dev_dbg(kfd_device,
-				"gpuvm_limit %llX\n", pdd->gpuvm_limit);
+					"gpuvm_limit %llX\n", pdd->gpuvm_limit);
 			dev_dbg(kfd_device,
-				"scratch_base %llX\n", pdd->scratch_base);
+					"scratch_base %llX\n", pdd->scratch_base);
 			dev_dbg(kfd_device,
-				"scratch_limit %llX\n", pdd->scratch_limit);
+					"scratch_limit %llX\n", pdd->scratch_limit);
 
 			args->num_of_nodes++;
-		} while ((pdd = kfd_get_next_process_device_data(p, pdd)) != NULL &&
-				(args->num_of_nodes < NUM_OF_SUPPORTED_GPUS));
+		}
+		while ((pdd = kfd_get_next_process_device_data(p, pdd)) != NULL &&
+			   (args->num_of_nodes < NUM_OF_SUPPORTED_GPUS));
 	}
 
 	mutex_unlock(&p->mutex);
@@ -792,22 +903,22 @@ static int kfd_ioctl_get_process_apertures(struct file *filp,
 }
 
 static int kfd_ioctl_create_event(struct file *filp, struct kfd_process *p,
-					void *data)
+								  void *data)
 {
 	struct kfd_ioctl_create_event_args *args = data;
 	int err;
 
 	err = kfd_event_create(filp, p, args->event_type,
-				args->auto_reset != 0, args->node_id,
-				&args->event_id, &args->event_trigger_data,
-				&args->event_page_offset,
-				&args->event_slot_index);
+						   args->auto_reset != 0, args->node_id,
+						   &args->event_id, &args->event_trigger_data,
+						   &args->event_page_offset,
+						   &args->event_slot_index);
 
 	return err;
 }
 
 static int kfd_ioctl_destroy_event(struct file *filp, struct kfd_process *p,
-					void *data)
+								   void *data)
 {
 	struct kfd_ioctl_destroy_event_args *args = data;
 
@@ -815,7 +926,7 @@ static int kfd_ioctl_destroy_event(struct file *filp, struct kfd_process *p,
 }
 
 static int kfd_ioctl_set_event(struct file *filp, struct kfd_process *p,
-				void *data)
+							   void *data)
 {
 	struct kfd_ioctl_set_event_args *args = data;
 
@@ -823,7 +934,7 @@ static int kfd_ioctl_set_event(struct file *filp, struct kfd_process *p,
 }
 
 static int kfd_ioctl_reset_event(struct file *filp, struct kfd_process *p,
-				void *data)
+								 void *data)
 {
 	struct kfd_ioctl_reset_event_args *args = data;
 
@@ -831,16 +942,16 @@ static int kfd_ioctl_reset_event(struct file *filp, struct kfd_process *p,
 }
 
 static int kfd_ioctl_wait_events(struct file *filp, struct kfd_process *p,
-				void *data)
+								 void *data)
 {
 	struct kfd_ioctl_wait_events_args *args = data;
 	enum kfd_event_wait_result wait_result;
 	int err;
 
 	err = kfd_wait_on_events(p, args->num_events,
-			(void __user *)args->events_ptr,
-			(args->wait_for_all != 0),
-			args->timeout, &wait_result);
+							 (void __user *)args->events_ptr,
+							 (args->wait_for_all != 0),
+							 args->timeout, &wait_result);
 
 	args->wait_result = wait_result;
 
@@ -851,54 +962,55 @@ static int kfd_ioctl_wait_events(struct file *filp, struct kfd_process *p,
 	[_IOC_NR(ioctl)] = {.cmd = ioctl, .func = _func, .flags = _flags, .cmd_drv = 0, .name = #ioctl}
 
 /** Ioctl table */
-static const struct amdkfd_ioctl_desc amdkfd_ioctls[] = {
+static const struct amdkfd_ioctl_desc amdkfd_ioctls[] =
+{
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_GET_VERSION,
-			kfd_ioctl_get_version, 0),
+	kfd_ioctl_get_version, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_CREATE_QUEUE,
-			kfd_ioctl_create_queue, 0),
+	kfd_ioctl_create_queue, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_DESTROY_QUEUE,
-			kfd_ioctl_destroy_queue, 0),
+	kfd_ioctl_destroy_queue, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_SET_MEMORY_POLICY,
-			kfd_ioctl_set_memory_policy, 0),
+	kfd_ioctl_set_memory_policy, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_GET_CLOCK_COUNTERS,
-			kfd_ioctl_get_clock_counters, 0),
+	kfd_ioctl_get_clock_counters, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_GET_PROCESS_APERTURES,
-			kfd_ioctl_get_process_apertures, 0),
+	kfd_ioctl_get_process_apertures, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_UPDATE_QUEUE,
-			kfd_ioctl_update_queue, 0),
+	kfd_ioctl_update_queue, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_CREATE_EVENT,
-			kfd_ioctl_create_event, 0),
+	kfd_ioctl_create_event, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_DESTROY_EVENT,
-			kfd_ioctl_destroy_event, 0),
+	kfd_ioctl_destroy_event, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_SET_EVENT,
-			kfd_ioctl_set_event, 0),
+	kfd_ioctl_set_event, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_RESET_EVENT,
-			kfd_ioctl_reset_event, 0),
+	kfd_ioctl_reset_event, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_WAIT_EVENTS,
-			kfd_ioctl_wait_events, 0),
+	kfd_ioctl_wait_events, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_DBG_REGISTER,
-			kfd_ioctl_dbg_register, 0),
+	kfd_ioctl_dbg_register, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_DBG_UNREGISTER,
-			kfd_ioctl_dbg_unrgesiter, 0),
+	kfd_ioctl_dbg_unrgesiter, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_DBG_ADDRESS_WATCH,
-			kfd_ioctl_dbg_address_watch, 0),
+	kfd_ioctl_dbg_address_watch, 0),
 
 	AMDKFD_IOCTL_DEF(AMDKFD_IOC_DBG_WAVE_CONTROL,
-			kfd_ioctl_dbg_wave_control, 0),
+	kfd_ioctl_dbg_wave_control, 0),
 };
 
 #define AMDKFD_CORE_IOCTL_COUNT	ARRAY_SIZE(amdkfd_ioctls)
@@ -915,26 +1027,37 @@ static long kfd_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 	int retcode = -EINVAL;
 
 	if (nr >= AMDKFD_CORE_IOCTL_COUNT)
+	{
 		goto err_i1;
+	}
 
-	if ((nr >= AMDKFD_COMMAND_START) && (nr < AMDKFD_COMMAND_END)) {
+	if ((nr >= AMDKFD_COMMAND_START) && (nr < AMDKFD_COMMAND_END))
+	{
 		u32 amdkfd_size;
 
 		ioctl = &amdkfd_ioctls[nr];
 
 		amdkfd_size = _IOC_SIZE(ioctl->cmd);
 		usize = asize = _IOC_SIZE(cmd);
+
 		if (amdkfd_size > asize)
+		{
 			asize = amdkfd_size;
+		}
 
 		cmd = ioctl->cmd;
-	} else
+	}
+	else
+	{
 		goto err_i1;
+	}
 
 	dev_dbg(kfd_device, "ioctl cmd 0x%x (#%d), arg 0x%lx\n", cmd, nr, arg);
 
 	process = kfd_get_process(current);
-	if (IS_ERR(process)) {
+
+	if (IS_ERR(process))
+	{
 		dev_dbg(kfd_device, "no process\n");
 		goto err_i1;
 	}
@@ -942,32 +1065,46 @@ static long kfd_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 	/* Do not trust userspace, use our own definition */
 	func = ioctl->func;
 
-	if (unlikely(!func)) {
+	if (unlikely(!func))
+	{
 		dev_dbg(kfd_device, "no function\n");
 		retcode = -EINVAL;
 		goto err_i1;
 	}
 
-	if (cmd & (IOC_IN | IOC_OUT)) {
-		if (asize <= sizeof(stack_kdata)) {
+	if (cmd & (IOC_IN | IOC_OUT))
+	{
+		if (asize <= sizeof(stack_kdata))
+		{
 			kdata = stack_kdata;
-		} else {
+		}
+		else
+		{
 			kdata = kmalloc(asize, GFP_KERNEL);
-			if (!kdata) {
+
+			if (!kdata)
+			{
 				retcode = -ENOMEM;
 				goto err_i1;
 			}
 		}
+
 		if (asize > usize)
+		{
 			memset(kdata + usize, 0, asize - usize);
+		}
 	}
 
-	if (cmd & IOC_IN) {
-		if (copy_from_user(kdata, (void __user *)arg, usize) != 0) {
+	if (cmd & IOC_IN)
+	{
+		if (copy_from_user(kdata, (void __user *)arg, usize) != 0)
+		{
 			retcode = -EFAULT;
 			goto err_i1;
 		}
-	} else if (cmd & IOC_OUT) {
+	}
+	else if (cmd & IOC_OUT)
+	{
 		memset(kdata, 0, usize);
 	}
 
@@ -975,18 +1112,25 @@ static long kfd_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 
 	if (cmd & IOC_OUT)
 		if (copy_to_user((void __user *)arg, kdata, usize) != 0)
+		{
 			retcode = -EFAULT;
+		}
 
 err_i1:
+
 	if (!ioctl)
 		dev_dbg(kfd_device, "invalid ioctl: pid=%d, cmd=0x%02x, nr=0x%02x\n",
-			  task_pid_nr(current), cmd, nr);
+				task_pid_nr(current), cmd, nr);
 
 	if (kdata != stack_kdata)
+	{
 		kfree(kdata);
+	}
 
 	if (retcode)
+	{
 		dev_dbg(kfd_device, "ret = %d\n", retcode);
+	}
 
 	return retcode;
 }
@@ -996,15 +1140,21 @@ static int kfd_mmap(struct file *filp, struct vm_area_struct *vma)
 	struct kfd_process *process;
 
 	process = kfd_get_process(current);
+
 	if (IS_ERR(process))
+	{
 		return PTR_ERR(process);
+	}
 
 	if ((vma->vm_pgoff & KFD_MMAP_DOORBELL_MASK) ==
-			KFD_MMAP_DOORBELL_MASK) {
+		KFD_MMAP_DOORBELL_MASK)
+	{
 		vma->vm_pgoff = vma->vm_pgoff ^ KFD_MMAP_DOORBELL_MASK;
 		return kfd_doorbell_mmap(process, vma);
-	} else if ((vma->vm_pgoff & KFD_MMAP_EVENTS_MASK) ==
-			KFD_MMAP_EVENTS_MASK) {
+	}
+	else if ((vma->vm_pgoff & KFD_MMAP_EVENTS_MASK) ==
+			 KFD_MMAP_EVENTS_MASK)
+	{
 		vma->vm_pgoff = vma->vm_pgoff ^ KFD_MMAP_EVENTS_MASK;
 		return kfd_event_mmap(process, vma);
 	}

@@ -12,11 +12,11 @@
 #include <linux/types.h>
 
 #ifndef CMD_PER_LUN
-#define CMD_PER_LUN		2
+	#define CMD_PER_LUN		2
 #endif
 
 #ifndef CAN_QUEUE
-#define CAN_QUEUE		16
+	#define CAN_QUEUE		16
 #endif
 
 /*
@@ -25,26 +25,27 @@
  */
 #define A3000_XFER_MASK		(0x00000003)
 
-struct a3000_scsiregs {
-		 unsigned char	pad1[2];
+struct a3000_scsiregs
+{
+	unsigned char	pad1[2];
 	volatile unsigned short	DAWR;
 	volatile unsigned int	WTC;
-		 unsigned char	pad2[2];
+	unsigned char	pad2[2];
 	volatile unsigned short	CNTR;
 	volatile unsigned long	ACR;
-		 unsigned char	pad3[2];
+	unsigned char	pad3[2];
 	volatile unsigned short	ST_DMA;
-		 unsigned char	pad4[2];
+	unsigned char	pad4[2];
 	volatile unsigned short	FLUSH;
-		 unsigned char	pad5[2];
+	unsigned char	pad5[2];
 	volatile unsigned short	CINT;
-		 unsigned char	pad6[2];
+	unsigned char	pad6[2];
 	volatile unsigned short	ISTR;
-		 unsigned char	pad7[30];
+	unsigned char	pad7[30];
 	volatile unsigned short	SP_DMA;
-		 unsigned char	pad8;
+	unsigned char	pad8;
 	volatile unsigned char	SASR;
-		 unsigned char	pad9;
+	unsigned char	pad9;
 	volatile unsigned char	SCMD;
 };
 

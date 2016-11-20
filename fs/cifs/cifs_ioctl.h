@@ -17,7 +17,8 @@
  *
  */
 
-struct smb_mnt_fs_info {
+struct smb_mnt_fs_info
+{
 	__u32	version; /* 0001 */
 	__u16	protocol_id;
 	__u16	tcon_flags;
@@ -36,7 +37,8 @@ struct smb_mnt_fs_info {
 	__u64   cifs_posix_caps;
 } __packed;
 
-struct smb_snapshot_array {
+struct smb_snapshot_array
+{
 	__u32	number_of_snapshots;
 	__u32	number_of_snapshots_returned;
 	__u32	snapshot_array_size;

@@ -36,7 +36,8 @@
 
 #define MAX_FRAME_RATE  30
 
-struct vs6624 {
+struct vs6624
+{
 	struct v4l2_subdev sd;
 	struct v4l2_ctrl_handler hdl;
 	struct v4l2_fract frame_rate;
@@ -44,10 +45,12 @@ struct vs6624 {
 	unsigned ce_pin;
 };
 
-static const struct vs6624_format {
+static const struct vs6624_format
+{
 	u32 mbus_code;
 	enum v4l2_colorspace colorspace;
-} vs6624_formats[] = {
+} vs6624_formats[] =
+{
 	{
 		.mbus_code      = MEDIA_BUS_FMT_UYVY8_2X8,
 		.colorspace     = V4L2_COLORSPACE_JPEG,
@@ -62,7 +65,8 @@ static const struct vs6624_format {
 	},
 };
 
-static struct v4l2_mbus_framefmt vs6624_default_fmt = {
+static struct v4l2_mbus_framefmt vs6624_default_fmt =
+{
 	.width = VGA_WIDTH,
 	.height = VGA_HEIGHT,
 	.code = MEDIA_BUS_FMT_UYVY8_2X8,
@@ -70,7 +74,8 @@ static struct v4l2_mbus_framefmt vs6624_default_fmt = {
 	.colorspace = V4L2_COLORSPACE_JPEG,
 };
 
-static const u16 vs6624_p1[] = {
+static const u16 vs6624_p1[] =
+{
 	0x8104, 0x03,
 	0x8105, 0x01,
 	0xc900, 0x03,
@@ -396,13 +401,15 @@ static const u16 vs6624_p1[] = {
 	0x0000, 0x00,
 };
 
-static const u16 vs6624_p2[] = {
+static const u16 vs6624_p2[] =
+{
 	0x806f, 0x01,
 	0x058c, 0x01,
 	0x0000, 0x00,
 };
 
-static const u16 vs6624_run_setup[] = {
+static const u16 vs6624_run_setup[] =
+{
 	0x1d18, 0x00,				/* Enableconstrainedwhitebalance */
 	VS6624_PEAK_MIN_OUT_G_MSB, 0x3c,	/* Damper PeakGain Output MSB */
 	VS6624_PEAK_MIN_OUT_G_LSB, 0x66,	/* Damper PeakGain Output LSB */
@@ -444,7 +451,8 @@ static const u16 vs6624_run_setup[] = {
 	0x0000, 0x00,
 };
 
-static const u16 vs6624_default[] = {
+static const u16 vs6624_default[] =
+{
 	VS6624_CONTRAST0, 0x84,
 	VS6624_SATURATION0, 0x75,
 	VS6624_GAMMA0, 0x11,
@@ -507,7 +515,7 @@ static int vs6624_read(struct v4l2_subdev *sd, u16 index)
 #endif
 
 static int vs6624_write(struct v4l2_subdev *sd, u16 index,
-				u8 value)
+						u8 value)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	u8 buf[3];
@@ -524,12 +532,14 @@ static int vs6624_writeregs(struct v4l2_subdev *sd, const u16 *regs)
 	u16 reg;
 	u8 data;
 
-	while (*regs != 0x00) {
+	while (*regs != 0x00)
+	{
 		reg = *regs++;
 		data = *regs++;
 
 		vs6624_write(sd, reg, data);
 	}
+
 	return 0;
 }
 
@@ -537,52 +547,65 @@ static int vs6624_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct v4l2_subdev *sd = to_sd(ctrl);
 
-	switch (ctrl->id) {
-	case V4L2_CID_CONTRAST:
-		vs6624_write(sd, VS6624_CONTRAST0, ctrl->val);
-		break;
-	case V4L2_CID_SATURATION:
-		vs6624_write(sd, VS6624_SATURATION0, ctrl->val);
-		break;
-	case V4L2_CID_HFLIP:
-		vs6624_write(sd, VS6624_HMIRROR0, ctrl->val);
-		break;
-	case V4L2_CID_VFLIP:
-		vs6624_write(sd, VS6624_VFLIP0, ctrl->val);
-		break;
-	default:
-		return -EINVAL;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_CONTRAST:
+			vs6624_write(sd, VS6624_CONTRAST0, ctrl->val);
+			break;
+
+		case V4L2_CID_SATURATION:
+			vs6624_write(sd, VS6624_SATURATION0, ctrl->val);
+			break;
+
+		case V4L2_CID_HFLIP:
+			vs6624_write(sd, VS6624_HMIRROR0, ctrl->val);
+			break;
+
+		case V4L2_CID_VFLIP:
+			vs6624_write(sd, VS6624_VFLIP0, ctrl->val);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int vs6624_enum_mbus_code(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_mbus_code_enum *code)
+								 struct v4l2_subdev_pad_config *cfg,
+								 struct v4l2_subdev_mbus_code_enum *code)
 {
 	if (code->pad || code->index >= ARRAY_SIZE(vs6624_formats))
+	{
 		return -EINVAL;
+	}
 
 	code->code = vs6624_formats[code->index].mbus_code;
 	return 0;
 }
 
 static int vs6624_set_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *fmt = &format->format;
 	struct vs6624 *sensor = to_vs6624(sd);
 	int index;
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
 	for (index = 0; index < ARRAY_SIZE(vs6624_formats); index++)
 		if (vs6624_formats[index].mbus_code == fmt->code)
+		{
 			break;
-	if (index >= ARRAY_SIZE(vs6624_formats)) {
+		}
+
+	if (index >= ARRAY_SIZE(vs6624_formats))
+	{
 		/* default to first format */
 		index = 0;
 		fmt->code = vs6624_formats[0].mbus_code;
@@ -590,51 +613,75 @@ static int vs6624_set_fmt(struct v4l2_subdev *sd,
 
 	/* sensor mode is VGA */
 	if (fmt->width > VGA_WIDTH)
+	{
 		fmt->width = VGA_WIDTH;
+	}
+
 	if (fmt->height > VGA_HEIGHT)
+	{
 		fmt->height = VGA_HEIGHT;
+	}
+
 	fmt->width = fmt->width & (~3);
 	fmt->height = fmt->height & (~3);
 	fmt->field = V4L2_FIELD_NONE;
 	fmt->colorspace = vs6624_formats[index].colorspace;
 
-	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 		cfg->try_fmt = *fmt;
 		return 0;
 	}
 
 	/* set image format */
-	switch (fmt->code) {
-	case MEDIA_BUS_FMT_UYVY8_2X8:
-		vs6624_write(sd, VS6624_IMG_FMT0, 0x0);
-		vs6624_write(sd, VS6624_YUV_SETUP, 0x1);
-		break;
-	case MEDIA_BUS_FMT_YUYV8_2X8:
-		vs6624_write(sd, VS6624_IMG_FMT0, 0x0);
-		vs6624_write(sd, VS6624_YUV_SETUP, 0x3);
-		break;
-	case MEDIA_BUS_FMT_RGB565_2X8_LE:
-		vs6624_write(sd, VS6624_IMG_FMT0, 0x4);
-		vs6624_write(sd, VS6624_RGB_SETUP, 0x0);
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt->code)
+	{
+		case MEDIA_BUS_FMT_UYVY8_2X8:
+			vs6624_write(sd, VS6624_IMG_FMT0, 0x0);
+			vs6624_write(sd, VS6624_YUV_SETUP, 0x1);
+			break;
+
+		case MEDIA_BUS_FMT_YUYV8_2X8:
+			vs6624_write(sd, VS6624_IMG_FMT0, 0x0);
+			vs6624_write(sd, VS6624_YUV_SETUP, 0x3);
+			break;
+
+		case MEDIA_BUS_FMT_RGB565_2X8_LE:
+			vs6624_write(sd, VS6624_IMG_FMT0, 0x4);
+			vs6624_write(sd, VS6624_RGB_SETUP, 0x0);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* set image size */
 	if ((fmt->width == VGA_WIDTH) && (fmt->height == VGA_HEIGHT))
+	{
 		vs6624_write(sd, VS6624_IMAGE_SIZE0, 0x2);
+	}
 	else if ((fmt->width == QVGA_WIDTH) && (fmt->height == QVGA_HEIGHT))
+	{
 		vs6624_write(sd, VS6624_IMAGE_SIZE0, 0x4);
+	}
 	else if ((fmt->width == QQVGA_WIDTH) && (fmt->height == QQVGA_HEIGHT))
+	{
 		vs6624_write(sd, VS6624_IMAGE_SIZE0, 0x6);
+	}
 	else if ((fmt->width == CIF_WIDTH) && (fmt->height == CIF_HEIGHT))
+	{
 		vs6624_write(sd, VS6624_IMAGE_SIZE0, 0x3);
+	}
 	else if ((fmt->width == QCIF_WIDTH) && (fmt->height == QCIF_HEIGHT))
+	{
 		vs6624_write(sd, VS6624_IMAGE_SIZE0, 0x5);
+	}
 	else if ((fmt->width == QQCIF_WIDTH) && (fmt->height == QQCIF_HEIGHT))
+	{
 		vs6624_write(sd, VS6624_IMAGE_SIZE0, 0x7);
-	else {
+	}
+	else
+	{
 		vs6624_write(sd, VS6624_IMAGE_SIZE0, 0x8);
 		vs6624_write(sd, VS6624_MAN_HSIZE0_MSB, fmt->width >> 8);
 		vs6624_write(sd, VS6624_MAN_HSIZE0_LSB, fmt->width & 0xFF);
@@ -649,13 +696,15 @@ static int vs6624_set_fmt(struct v4l2_subdev *sd,
 }
 
 static int vs6624_get_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *format)
 {
 	struct vs6624 *sensor = to_vs6624(sd);
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
 	format->format = sensor->fmt;
 	return 0;
@@ -667,7 +716,9 @@ static int vs6624_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
 	struct v4l2_captureparm *cp = &parms->parm.capture;
 
 	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+	{
 		return -EINVAL;
+	}
 
 	memset(cp, 0, sizeof(*cp));
 	cp->capability = V4L2_CAP_TIMEPERFRAME;
@@ -683,34 +734,46 @@ static int vs6624_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
 	struct v4l2_fract *tpf = &cp->timeperframe;
 
 	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+	{
 		return -EINVAL;
+	}
+
 	if (cp->extendedmode != 0)
+	{
 		return -EINVAL;
+	}
 
 	if (tpf->numerator == 0 || tpf->denominator == 0
-		|| (tpf->denominator > tpf->numerator * MAX_FRAME_RATE)) {
+		|| (tpf->denominator > tpf->numerator * MAX_FRAME_RATE))
+	{
 		/* reset to max frame rate */
 		tpf->numerator = 1;
 		tpf->denominator = MAX_FRAME_RATE;
 	}
+
 	sensor->frame_rate.numerator = tpf->denominator;
 	sensor->frame_rate.denominator = tpf->numerator;
 	vs6624_write(sd, VS6624_DISABLE_FR_DAMPER, 0x0);
 	vs6624_write(sd, VS6624_FR_NUM_MSB,
-			sensor->frame_rate.numerator >> 8);
+				 sensor->frame_rate.numerator >> 8);
 	vs6624_write(sd, VS6624_FR_NUM_LSB,
-			sensor->frame_rate.numerator & 0xFF);
+				 sensor->frame_rate.numerator & 0xFF);
 	vs6624_write(sd, VS6624_FR_DEN,
-			sensor->frame_rate.denominator & 0xFF);
+				 sensor->frame_rate.denominator & 0xFF);
 	return 0;
 }
 
 static int vs6624_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	if (enable)
+	{
 		vs6624_write(sd, VS6624_USER_CMD, 0x2);
+	}
 	else
+	{
 		vs6624_write(sd, VS6624_USER_CMD, 0x4);
+	}
+
 	udelay(100);
 	return 0;
 }
@@ -730,37 +793,42 @@ static int vs6624_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_regis
 }
 #endif
 
-static const struct v4l2_ctrl_ops vs6624_ctrl_ops = {
+static const struct v4l2_ctrl_ops vs6624_ctrl_ops =
+{
 	.s_ctrl = vs6624_s_ctrl,
 };
 
-static const struct v4l2_subdev_core_ops vs6624_core_ops = {
+static const struct v4l2_subdev_core_ops vs6624_core_ops =
+{
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register = vs6624_g_register,
 	.s_register = vs6624_s_register,
 #endif
 };
 
-static const struct v4l2_subdev_video_ops vs6624_video_ops = {
+static const struct v4l2_subdev_video_ops vs6624_video_ops =
+{
 	.s_parm = vs6624_s_parm,
 	.g_parm = vs6624_g_parm,
 	.s_stream = vs6624_s_stream,
 };
 
-static const struct v4l2_subdev_pad_ops vs6624_pad_ops = {
+static const struct v4l2_subdev_pad_ops vs6624_pad_ops =
+{
 	.enum_mbus_code = vs6624_enum_mbus_code,
 	.get_fmt = vs6624_get_fmt,
 	.set_fmt = vs6624_set_fmt,
 };
 
-static const struct v4l2_subdev_ops vs6624_ops = {
+static const struct v4l2_subdev_ops vs6624_ops =
+{
 	.core = &vs6624_core_ops,
 	.video = &vs6624_video_ops,
 	.pad = &vs6624_pad_ops,
 };
 
 static int vs6624_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct vs6624 *sensor;
 	struct v4l2_subdev *sd;
@@ -770,24 +838,35 @@ static int vs6624_probe(struct i2c_client *client,
 
 	/* Check if the adapter supports the needed features */
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		return -EIO;
+	}
 
 	ce = client->dev.platform_data;
+
 	if (ce == NULL)
+	{
 		return -EINVAL;
+	}
 
 	ret = devm_gpio_request_one(&client->dev, *ce, GPIOF_OUT_INIT_HIGH,
-				    "VS6624 Chip Enable");
-	if (ret) {
+								"VS6624 Chip Enable");
+
+	if (ret)
+	{
 		v4l_err(client, "failed to request GPIO %d\n", *ce);
 		return ret;
 	}
+
 	/* wait 100ms before any further i2c writes are performed */
 	mdelay(100);
 
 	sensor = devm_kzalloc(&client->dev, sizeof(*sensor), GFP_KERNEL);
+
 	if (sensor == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	sd = &sensor->sd;
 	v4l2_i2c_subdev_init(sd, client, &vs6624_ops);
@@ -807,31 +886,33 @@ static int vs6624_probe(struct i2c_client *client,
 	sensor->frame_rate.denominator = 1;
 	vs6624_write(sd, VS6624_DISABLE_FR_DAMPER, 0x0);
 	vs6624_write(sd, VS6624_FR_NUM_MSB,
-			sensor->frame_rate.numerator >> 8);
+				 sensor->frame_rate.numerator >> 8);
 	vs6624_write(sd, VS6624_FR_NUM_LSB,
-			sensor->frame_rate.numerator & 0xFF);
+				 sensor->frame_rate.numerator & 0xFF);
 	vs6624_write(sd, VS6624_FR_DEN,
-			sensor->frame_rate.denominator & 0xFF);
+				 sensor->frame_rate.denominator & 0xFF);
 
 	sensor->fmt = vs6624_default_fmt;
 	sensor->ce_pin = *ce;
 
 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
-			client->addr << 1, client->adapter->name);
+			 client->addr << 1, client->adapter->name);
 
 	hdl = &sensor->hdl;
 	v4l2_ctrl_handler_init(hdl, 4);
 	v4l2_ctrl_new_std(hdl, &vs6624_ctrl_ops,
-			V4L2_CID_CONTRAST, 0, 0xFF, 1, 0x87);
+					  V4L2_CID_CONTRAST, 0, 0xFF, 1, 0x87);
 	v4l2_ctrl_new_std(hdl, &vs6624_ctrl_ops,
-			V4L2_CID_SATURATION, 0, 0xFF, 1, 0x78);
+					  V4L2_CID_SATURATION, 0, 0xFF, 1, 0x78);
 	v4l2_ctrl_new_std(hdl, &vs6624_ctrl_ops,
-			V4L2_CID_HFLIP, 0, 1, 1, 0);
+					  V4L2_CID_HFLIP, 0, 1, 1, 0);
 	v4l2_ctrl_new_std(hdl, &vs6624_ctrl_ops,
-			V4L2_CID_VFLIP, 0, 1, 1, 0);
+					  V4L2_CID_VFLIP, 0, 1, 1, 0);
 	/* hook the control handler into the driver */
 	sd->ctrl_handler = hdl;
-	if (hdl->error) {
+
+	if (hdl->error)
+	{
 		int err = hdl->error;
 
 		v4l2_ctrl_handler_free(hdl);
@@ -840,8 +921,12 @@ static int vs6624_probe(struct i2c_client *client,
 
 	/* initialize the hardware to the default control values */
 	ret = v4l2_ctrl_handler_setup(hdl);
+
 	if (ret)
+	{
 		v4l2_ctrl_handler_free(hdl);
+	}
+
 	return ret;
 }
 
@@ -854,14 +939,16 @@ static int vs6624_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id vs6624_id[] = {
+static const struct i2c_device_id vs6624_id[] =
+{
 	{"vs6624", 0},
 	{},
 };
 
 MODULE_DEVICE_TABLE(i2c, vs6624_id);
 
-static struct i2c_driver vs6624_driver = {
+static struct i2c_driver vs6624_driver =
+{
 	.driver = {
 		.name   = "vs6624",
 	},

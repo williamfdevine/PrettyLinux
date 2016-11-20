@@ -3,13 +3,14 @@
 #define nv20_gr(p) container_of((p), struct nv20_gr, base)
 #include "priv.h"
 
-struct nv20_gr {
+struct nv20_gr
+{
 	struct nvkm_gr base;
 	struct nvkm_memory *ctxtab;
 };
 
 int nv20_gr_new_(const struct nvkm_gr_func *, struct nvkm_device *,
-		 int, struct nvkm_gr **);
+				 int, struct nvkm_gr **);
 void *nv20_gr_dtor(struct nvkm_gr *);
 int nv20_gr_oneinit(struct nvkm_gr *);
 int nv20_gr_init(struct nvkm_gr *);
@@ -20,7 +21,8 @@ int nv30_gr_init(struct nvkm_gr *);
 
 #define nv20_gr_chan(p) container_of((p), struct nv20_gr_chan, object)
 
-struct nv20_gr_chan {
+struct nv20_gr_chan
+{
 	struct nvkm_object object;
 	struct nv20_gr *gr;
 	int chid;

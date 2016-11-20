@@ -28,7 +28,8 @@
  * @sleep_state: the state at suspend time, if found
  * @idle_state: the state at idle (runtime suspend) time, if found
  */
-struct dev_pin_info {
+struct dev_pin_info
+{
 	struct pinctrl *p;
 	struct pinctrl_state *default_state;
 	struct pinctrl_state *init_state;

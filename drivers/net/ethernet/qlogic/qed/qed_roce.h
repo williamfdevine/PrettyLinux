@@ -62,17 +62,20 @@
 #define QED_RDMA_MAX_CQE_32_BIT             (0x7FFFFFFF - 1)
 #define QED_RDMA_MAX_CQE_16_BIT             (0x7FFF - 1)
 
-enum qed_rdma_toggle_bit {
+enum qed_rdma_toggle_bit
+{
 	QED_RDMA_TOGGLE_BIT_CLEAR = 0,
 	QED_RDMA_TOGGLE_BIT_SET = 1
 };
 
-struct qed_bmap {
+struct qed_bmap
+{
 	unsigned long *bitmap;
 	u32 max_count;
 };
 
-struct qed_rdma_info {
+struct qed_rdma_info
+{
 	/* spin lock to protect bitmaps */
 	spinlock_t lock;
 
@@ -95,7 +98,8 @@ struct qed_rdma_info {
 	enum protocol_type proto;
 };
 
-struct qed_rdma_qp {
+struct qed_rdma_qp
+{
 	struct regpair qp_handle;
 	struct regpair qp_handle_async;
 	u32 qpid;
@@ -164,52 +168,52 @@ struct qed_rdma_qp {
 #if IS_ENABLED(CONFIG_QED_RDMA)
 void qed_rdma_dpm_bar(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt);
 void qed_async_roce_event(struct qed_hwfn *p_hwfn,
-			  struct event_ring_entry *p_eqe);
+						  struct event_ring_entry *p_eqe);
 void qed_ll2b_complete_tx_gsi_packet(struct qed_hwfn *p_hwfn,
-				     u8 connection_handle,
-				     void *cookie,
-				     dma_addr_t first_frag_addr,
-				     bool b_last_fragment, bool b_last_packet);
+									 u8 connection_handle,
+									 void *cookie,
+									 dma_addr_t first_frag_addr,
+									 bool b_last_fragment, bool b_last_packet);
 void qed_ll2b_release_tx_gsi_packet(struct qed_hwfn *p_hwfn,
-				    u8 connection_handle,
-				    void *cookie,
-				    dma_addr_t first_frag_addr,
-				    bool b_last_fragment, bool b_last_packet);
+									u8 connection_handle,
+									void *cookie,
+									dma_addr_t first_frag_addr,
+									bool b_last_fragment, bool b_last_packet);
 void qed_ll2b_complete_rx_gsi_packet(struct qed_hwfn *p_hwfn,
-				     u8 connection_handle,
-				     void *cookie,
-				     dma_addr_t rx_buf_addr,
-				     u16 data_length,
-				     u8 data_length_error,
-				     u16 parse_flags,
-				     u16 vlan,
-				     u32 src_mac_addr_hi,
-				     u16 src_mac_addr_lo, bool b_last_packet);
+									 u8 connection_handle,
+									 void *cookie,
+									 dma_addr_t rx_buf_addr,
+									 u16 data_length,
+									 u8 data_length_error,
+									 u16 parse_flags,
+									 u16 vlan,
+									 u32 src_mac_addr_hi,
+									 u16 src_mac_addr_lo, bool b_last_packet);
 #else
 static inline void qed_rdma_dpm_bar(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt) {}
 static inline void qed_async_roce_event(struct qed_hwfn *p_hwfn, struct event_ring_entry *p_eqe) {}
 static inline void qed_ll2b_complete_tx_gsi_packet(struct qed_hwfn *p_hwfn,
-						   u8 connection_handle,
-						   void *cookie,
-						   dma_addr_t first_frag_addr,
-						   bool b_last_fragment,
-						   bool b_last_packet) {}
+		u8 connection_handle,
+		void *cookie,
+		dma_addr_t first_frag_addr,
+		bool b_last_fragment,
+		bool b_last_packet) {}
 static inline void qed_ll2b_release_tx_gsi_packet(struct qed_hwfn *p_hwfn,
-						  u8 connection_handle,
-						  void *cookie,
-						  dma_addr_t first_frag_addr,
-						  bool b_last_fragment,
-						  bool b_last_packet) {}
+		u8 connection_handle,
+		void *cookie,
+		dma_addr_t first_frag_addr,
+		bool b_last_fragment,
+		bool b_last_packet) {}
 static inline void qed_ll2b_complete_rx_gsi_packet(struct qed_hwfn *p_hwfn,
-						   u8 connection_handle,
-						   void *cookie,
-						   dma_addr_t rx_buf_addr,
-						   u16 data_length,
-						   u8 data_length_error,
-						   u16 parse_flags,
-						   u16 vlan,
-						   u32 src_mac_addr_hi,
-						   u16 src_mac_addr_lo,
-						   bool b_last_packet) {}
+		u8 connection_handle,
+		void *cookie,
+		dma_addr_t rx_buf_addr,
+		u16 data_length,
+		u8 data_length_error,
+		u16 parse_flags,
+		u16 vlan,
+		u32 src_mac_addr_hi,
+		u16 src_mac_addr_lo,
+		bool b_last_packet) {}
 #endif
 #endif

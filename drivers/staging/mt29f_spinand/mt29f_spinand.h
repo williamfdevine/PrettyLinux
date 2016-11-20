@@ -77,19 +77,22 @@
 #define BL_1_64_LOCKED     0x08
 #define BL_ALL_UNLOCKED    0
 
-struct spinand_info {
+struct spinand_info
+{
 	struct spi_device *spi;
 	void *priv;
 };
 
-struct spinand_state {
+struct spinand_state
+{
 	u32	col;
 	u32	row;
 	int		buf_ptr;
 	u8		*buf;
 };
 
-struct spinand_cmd {
+struct spinand_cmd
+{
 	u8		cmd;
 	u32		n_addr;		/* Number of address */
 	u8		addr[3];	/* Reg Offset */

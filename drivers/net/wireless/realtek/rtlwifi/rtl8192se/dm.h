@@ -29,7 +29,8 @@
 #ifndef	__RTL_92S_DM_H__
 #define __RTL_92S_DM_H__
 
-enum dm_dig_alg {
+enum dm_dig_alg
+{
 	DIG_ALGO_BY_FALSE_ALARM = 0,
 	DIG_ALGO_BY_RSSI	= 1,
 	DIG_ALGO_BEFORE_CONNECT_BY_RSSI_AND_ALARM = 2,
@@ -37,24 +38,28 @@ enum dm_dig_alg {
 	DIG_ALGO_MAX
 };
 
-enum dm_dig_two_port_alg {
+enum dm_dig_two_port_alg
+{
 	DIG_TWO_PORT_ALGO_RSSI = 0,
 	DIG_TWO_PORT_ALGO_FALSE_ALARM = 1,
 };
 
-enum dm_dig_dbg {
+enum dm_dig_dbg
+{
 	DM_DBG_OFF = 0,
 	DM_DBG_ON = 1,
 	DM_DBG_MAX
 };
 
-enum dm_dig_sta {
+enum dm_dig_sta
+{
 	DM_STA_DIG_OFF = 0,
 	DM_STA_DIG_ON,
 	DM_STA_DIG_MAX
 };
 
-enum dm_ratr_sta {
+enum dm_ratr_sta
+{
 	DM_RATR_STA_HIGH = 0,
 	DM_RATR_STA_MIDDLEHIGH = 1,
 	DM_RATR_STA_MIDDLE = 2,

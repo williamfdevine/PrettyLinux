@@ -33,7 +33,8 @@ BPF_CALL_2(bpf_map_lookup_elem, struct bpf_map *, map, void *, key)
 	return (unsigned long) map->ops->map_lookup_elem(map, key);
 }
 
-const struct bpf_func_proto bpf_map_lookup_elem_proto = {
+const struct bpf_func_proto bpf_map_lookup_elem_proto =
+{
 	.func		= bpf_map_lookup_elem,
 	.gpl_only	= false,
 	.pkt_access	= true,
@@ -43,13 +44,14 @@ const struct bpf_func_proto bpf_map_lookup_elem_proto = {
 };
 
 BPF_CALL_4(bpf_map_update_elem, struct bpf_map *, map, void *, key,
-	   void *, value, u64, flags)
+		   void *, value, u64, flags)
 {
 	WARN_ON_ONCE(!rcu_read_lock_held());
 	return map->ops->map_update_elem(map, key, value, flags);
 }
 
-const struct bpf_func_proto bpf_map_update_elem_proto = {
+const struct bpf_func_proto bpf_map_update_elem_proto =
+{
 	.func		= bpf_map_update_elem,
 	.gpl_only	= false,
 	.pkt_access	= true,
@@ -66,7 +68,8 @@ BPF_CALL_2(bpf_map_delete_elem, struct bpf_map *, map, void *, key)
 	return map->ops->map_delete_elem(map, key);
 }
 
-const struct bpf_func_proto bpf_map_delete_elem_proto = {
+const struct bpf_func_proto bpf_map_delete_elem_proto =
+{
 	.func		= bpf_map_delete_elem,
 	.gpl_only	= false,
 	.pkt_access	= true,
@@ -75,7 +78,8 @@ const struct bpf_func_proto bpf_map_delete_elem_proto = {
 	.arg2_type	= ARG_PTR_TO_MAP_KEY,
 };
 
-const struct bpf_func_proto bpf_get_prandom_u32_proto = {
+const struct bpf_func_proto bpf_get_prandom_u32_proto =
+{
 	.func		= bpf_user_rnd_u32,
 	.gpl_only	= false,
 	.ret_type	= RET_INTEGER,
@@ -86,7 +90,8 @@ BPF_CALL_0(bpf_get_smp_processor_id)
 	return smp_processor_id();
 }
 
-const struct bpf_func_proto bpf_get_smp_processor_id_proto = {
+const struct bpf_func_proto bpf_get_smp_processor_id_proto =
+{
 	.func		= bpf_get_smp_processor_id,
 	.gpl_only	= false,
 	.ret_type	= RET_INTEGER,
@@ -98,7 +103,8 @@ BPF_CALL_0(bpf_ktime_get_ns)
 	return ktime_get_mono_fast_ns();
 }
 
-const struct bpf_func_proto bpf_ktime_get_ns_proto = {
+const struct bpf_func_proto bpf_ktime_get_ns_proto =
+{
 	.func		= bpf_ktime_get_ns,
 	.gpl_only	= true,
 	.ret_type	= RET_INTEGER,
@@ -109,12 +115,15 @@ BPF_CALL_0(bpf_get_current_pid_tgid)
 	struct task_struct *task = current;
 
 	if (unlikely(!task))
+	{
 		return -EINVAL;
+	}
 
 	return (u64) task->tgid << 32 | task->pid;
 }
 
-const struct bpf_func_proto bpf_get_current_pid_tgid_proto = {
+const struct bpf_func_proto bpf_get_current_pid_tgid_proto =
+{
 	.func		= bpf_get_current_pid_tgid,
 	.gpl_only	= false,
 	.ret_type	= RET_INTEGER,
@@ -127,14 +136,17 @@ BPF_CALL_0(bpf_get_current_uid_gid)
 	kgid_t gid;
 
 	if (unlikely(!task))
+	{
 		return -EINVAL;
+	}
 
 	current_uid_gid(&uid, &gid);
 	return (u64) from_kgid(&init_user_ns, gid) << 32 |
-		     from_kuid(&init_user_ns, uid);
+		   from_kuid(&init_user_ns, uid);
 }
 
-const struct bpf_func_proto bpf_get_current_uid_gid_proto = {
+const struct bpf_func_proto bpf_get_current_uid_gid_proto =
+{
 	.func		= bpf_get_current_uid_gid,
 	.gpl_only	= false,
 	.ret_type	= RET_INTEGER,
@@ -145,7 +157,9 @@ BPF_CALL_2(bpf_get_current_comm, char *, buf, u32, size)
 	struct task_struct *task = current;
 
 	if (unlikely(!task))
+	{
 		goto err_clear;
+	}
 
 	strncpy(buf, task->comm, size);
 
@@ -160,7 +174,8 @@ err_clear:
 	return -EINVAL;
 }
 
-const struct bpf_func_proto bpf_get_current_comm_proto = {
+const struct bpf_func_proto bpf_get_current_comm_proto =
+{
 	.func		= bpf_get_current_comm,
 	.gpl_only	= false,
 	.ret_type	= RET_INTEGER,

@@ -32,7 +32,8 @@
 
 #define HNS_PPEV2_MAX_FRAME_LEN 0X980
 
-enum ppe_qid_mode {
+enum ppe_qid_mode
+{
 	PPE_QID_MODE0 = 0, /* fixed queue id mode */
 	PPE_QID_MODE1,	   /* switch:128VM non switch:6Port/4VM/4TC */
 	PPE_QID_MODE2,	   /* switch:32VM/4TC non switch:6Port/16VM */
@@ -47,18 +48,21 @@ enum ppe_qid_mode {
 	PPE_QID_MODE11,	   /* non switch:2Port/4TC/16RSS */
 };
 
-enum ppe_port_mode {
+enum ppe_port_mode
+{
 	PPE_MODE_GE = 0,
 	PPE_MODE_XGE,
 };
 
-enum ppe_common_mode {
+enum ppe_common_mode
+{
 	PPE_COMMON_MODE_DEBUG = 0,
 	PPE_COMMON_MODE_SERVICE,
 	PPE_COMMON_MODE_MAX
 };
 
-struct hns_ppe_hw_stats {
+struct hns_ppe_hw_stats
+{
 	u64 rx_pkts_from_sw;
 	u64 rx_pkts;
 	u64 rx_drop_no_bd;
@@ -73,7 +77,8 @@ struct hns_ppe_hw_stats {
 	u64 tx_err_checksum;
 };
 
-struct hns_ppe_cb {
+struct hns_ppe_cb
+{
 	struct device *dev;
 	struct hns_ppe_cb *next;	/* pointer to next ppe device */
 	struct ppe_common_cb *ppe_common_cb; /* belong to */
@@ -86,7 +91,8 @@ struct hns_ppe_cb {
 	u32 rss_key[HNS_PPEV2_RSS_KEY_NUM]; /* rss hash key */
 };
 
-struct ppe_common_cb {
+struct ppe_common_cb
+{
 	struct device *dev;
 	struct dsaf_device *dsaf_dev;
 	void __iomem *io_base;
@@ -116,7 +122,7 @@ void hns_ppe_get_strings(struct hns_ppe_cb *ppe_cb, int stringset, u8 *data);
 void hns_ppe_get_stats(struct hns_ppe_cb *ppe_cb, u64 *data);
 void hns_ppe_set_tso_enable(struct hns_ppe_cb *ppe_cb, u32 value);
 void hns_ppe_set_rss_key(struct hns_ppe_cb *ppe_cb,
-			 const u32 rss_key[HNS_PPEV2_RSS_KEY_NUM]);
+						 const u32 rss_key[HNS_PPEV2_RSS_KEY_NUM]);
 void hns_ppe_set_indir_table(struct hns_ppe_cb *ppe_cb,
-			     const u32 rss_tab[HNS_PPEV2_RSS_IND_TBL_SIZE]);
+							 const u32 rss_tab[HNS_PPEV2_RSS_IND_TBL_SIZE]);
 #endif /* _HNS_DSAF_PPE_H */

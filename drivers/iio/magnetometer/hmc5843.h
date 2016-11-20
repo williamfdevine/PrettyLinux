@@ -23,7 +23,8 @@
 #define HMC5843_ID_REG				0x0a
 #define HMC5843_ID_END				0x0c
 
-enum hmc5843_ids {
+enum hmc5843_ids
+{
 	HMC5843_ID,
 	HMC5883_ID,
 	HMC5883L_ID,
@@ -38,7 +39,8 @@ enum hmc5843_ids {
  * @variant:		describe chip variants
  * @buffer:		3x 16-bit channels + padding + 64-bit timestamp
  */
-struct hmc5843_data {
+struct hmc5843_data
+{
 	struct device *dev;
 	struct mutex lock;
 	struct regmap *regmap;
@@ -47,7 +49,7 @@ struct hmc5843_data {
 };
 
 int hmc5843_common_probe(struct device *dev, struct regmap *regmap,
-			 enum hmc5843_ids id, const char *name);
+						 enum hmc5843_ids id, const char *name);
 int hmc5843_common_remove(struct device *dev);
 
 int hmc5843_common_suspend(struct device *dev);
@@ -55,8 +57,8 @@ int hmc5843_common_resume(struct device *dev);
 
 #ifdef CONFIG_PM_SLEEP
 static SIMPLE_DEV_PM_OPS(hmc5843_pm_ops,
-		hmc5843_common_suspend,
-		hmc5843_common_resume);
+						 hmc5843_common_suspend,
+						 hmc5843_common_resume);
 #define HMC5843_PM_OPS (&hmc5843_pm_ops)
 #else
 #define HMC5843_PM_OPS NULL

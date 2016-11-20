@@ -12,30 +12,35 @@
 #ifndef DA8XX_FB_H
 #define DA8XX_FB_H
 
-enum panel_shade {
+enum panel_shade
+{
 	MONOCHROME = 0,
 	COLOR_ACTIVE,
 	COLOR_PASSIVE,
 };
 
-enum raster_load_mode {
+enum raster_load_mode
+{
 	LOAD_DATA = 1,
 	LOAD_PALETTE,
 };
 
-enum da8xx_frame_complete {
+enum da8xx_frame_complete
+{
 	DA8XX_FRAME_WAIT,
 	DA8XX_FRAME_NOWAIT,
 };
 
-struct da8xx_lcdc_platform_data {
+struct da8xx_lcdc_platform_data
+{
 	const char manu_name[10];
 	void *controller_data;
 	const char type[25];
 	void (*panel_power_ctrl)(int);
 };
 
-struct lcd_ctrl_config {
+struct lcd_ctrl_config
+{
 	enum panel_shade panel_shade;
 
 	/* AC Bias Pin Frequency */
@@ -72,7 +77,8 @@ struct lcd_ctrl_config {
 	int fifo_th;
 };
 
-struct lcd_sync_arg {
+struct lcd_sync_arg
+{
 	int back_porch;
 	int front_porch;
 	int pulse_width;

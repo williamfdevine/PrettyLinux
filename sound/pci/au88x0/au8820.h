@@ -193,7 +193,7 @@
 #define VORTEX_ENGINE_CTRL 0x1060c
 #define 	ENGINE_INIT 0x0L
 
-		     /* MIDI *//* GAME. */
+/* MIDI *//* GAME. */
 #define VORTEX_MIDI_DATA 0x11000
 #define VORTEX_MIDI_CMD 0x11004	/* Write command / Read status */
 #define VORTEX_GAME_LEGACY 0x11008

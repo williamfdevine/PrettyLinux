@@ -463,7 +463,8 @@ static void debug_printf(char *fmt, ...)
  */
 struct cfb_info;
 
-struct cyberpro_info {
+struct cyberpro_info
+{
 	struct device	*dev;
 	struct i2c_adapter *i2c;
 	unsigned char	__iomem *regs;

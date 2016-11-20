@@ -51,18 +51,22 @@ static int whc_start(struct usb_hcd *usb_hcd)
 	mutex_lock(&wusbhc->mutex);
 
 	le_writel(WUSBINTR_GEN_CMD_DONE
-		  | WUSBINTR_HOST_ERR
-		  | WUSBINTR_ASYNC_SCHED_SYNCED
-		  | WUSBINTR_DNTS_INT
-		  | WUSBINTR_ERR_INT
-		  | WUSBINTR_INT,
-		  whc->base + WUSBINTR);
+			  | WUSBINTR_HOST_ERR
+			  | WUSBINTR_ASYNC_SCHED_SYNCED
+			  | WUSBINTR_DNTS_INT
+			  | WUSBINTR_ERR_INT
+			  | WUSBINTR_INT,
+			  whc->base + WUSBINTR);
 
 	/* set cluster ID */
 	bcid = wusb_cluster_id_get();
 	ret = whc_set_cluster_id(whc, bcid);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
+
 	wusbhc->cluster_id = bcid;
 
 	/* start HC */
@@ -96,8 +100,8 @@ static void whc_stop(struct usb_hcd *usb_hcd)
 	le_writel(0, whc->base + WUSBINTR);
 	whc_write_wusbcmd(whc, WUSBCMD_RUN, 0);
 	whci_wait_for(&whc->umc->dev, whc->base + WUSBSTS,
-		      WUSBSTS_HCHALTED, WUSBSTS_HCHALTED,
-		      100, "HC to halt");
+				  WUSBSTS_HCHALTED, WUSBSTS_HCHALTED,
+				  100, "HC to halt");
 
 	wusb_cluster_id_put(wusbhc->cluster_id);
 
@@ -115,25 +119,28 @@ static int whc_get_frame_number(struct usb_hcd *usb_hcd)
  * Queue an URB to the ASL or PZL
  */
 static int whc_urb_enqueue(struct usb_hcd *usb_hcd, struct urb *urb,
-			   gfp_t mem_flags)
+						   gfp_t mem_flags)
 {
 	struct wusbhc *wusbhc = usb_hcd_to_wusbhc(usb_hcd);
 	struct whc *whc = wusbhc_to_whc(wusbhc);
 	int ret;
 
-	switch (usb_pipetype(urb->pipe)) {
-	case PIPE_INTERRUPT:
-		ret = pzl_urb_enqueue(whc, urb, mem_flags);
-		break;
-	case PIPE_ISOCHRONOUS:
-		dev_err(&whc->umc->dev, "isochronous transfers unsupported\n");
-		ret = -ENOTSUPP;
-		break;
-	case PIPE_CONTROL:
-	case PIPE_BULK:
-	default:
-		ret = asl_urb_enqueue(whc, urb, mem_flags);
-		break;
+	switch (usb_pipetype(urb->pipe))
+	{
+		case PIPE_INTERRUPT:
+			ret = pzl_urb_enqueue(whc, urb, mem_flags);
+			break;
+
+		case PIPE_ISOCHRONOUS:
+			dev_err(&whc->umc->dev, "isochronous transfers unsupported\n");
+			ret = -ENOTSUPP;
+			break;
+
+		case PIPE_CONTROL:
+		case PIPE_BULK:
+		default:
+			ret = asl_urb_enqueue(whc, urb, mem_flags);
+			break;
 	}
 
 	return ret;
@@ -148,18 +155,21 @@ static int whc_urb_dequeue(struct usb_hcd *usb_hcd, struct urb *urb, int status)
 	struct whc *whc = wusbhc_to_whc(wusbhc);
 	int ret;
 
-	switch (usb_pipetype(urb->pipe)) {
-	case PIPE_INTERRUPT:
-		ret = pzl_urb_dequeue(whc, urb, status);
-		break;
-	case PIPE_ISOCHRONOUS:
-		ret = -ENOTSUPP;
-		break;
-	case PIPE_CONTROL:
-	case PIPE_BULK:
-	default:
-		ret = asl_urb_dequeue(whc, urb, status);
-		break;
+	switch (usb_pipetype(urb->pipe))
+	{
+		case PIPE_INTERRUPT:
+			ret = pzl_urb_dequeue(whc, urb, status);
+			break;
+
+		case PIPE_ISOCHRONOUS:
+			ret = -ENOTSUPP;
+			break;
+
+		case PIPE_CONTROL:
+		case PIPE_BULK:
+		default:
+			ret = asl_urb_dequeue(whc, urb, status);
+			break;
 	}
 
 	return ret;
@@ -170,25 +180,32 @@ static int whc_urb_dequeue(struct usb_hcd *usb_hcd, struct urb *urb, int status)
  * qset.
  */
 static void whc_endpoint_disable(struct usb_hcd *usb_hcd,
-				 struct usb_host_endpoint *ep)
+								 struct usb_host_endpoint *ep)
 {
 	struct wusbhc *wusbhc = usb_hcd_to_wusbhc(usb_hcd);
 	struct whc *whc = wusbhc_to_whc(wusbhc);
 	struct whc_qset *qset;
 
 	qset = ep->hcpriv;
-	if (qset) {
+
+	if (qset)
+	{
 		ep->hcpriv = NULL;
+
 		if (usb_endpoint_xfer_bulk(&ep->desc)
-		    || usb_endpoint_xfer_control(&ep->desc))
+			|| usb_endpoint_xfer_control(&ep->desc))
+		{
 			asl_qset_delete(whc, qset);
+		}
 		else
+		{
 			pzl_qset_delete(whc, qset);
+		}
 	}
 }
 
 static void whc_endpoint_reset(struct usb_hcd *usb_hcd,
-			       struct usb_host_endpoint *ep)
+							   struct usb_host_endpoint *ep)
 {
 	struct wusbhc *wusbhc = usb_hcd_to_wusbhc(usb_hcd);
 	struct whc *whc = wusbhc_to_whc(wusbhc);
@@ -198,22 +215,29 @@ static void whc_endpoint_reset(struct usb_hcd *usb_hcd,
 	spin_lock_irqsave(&whc->lock, flags);
 
 	qset = ep->hcpriv;
-	if (qset) {
+
+	if (qset)
+	{
 		qset->remove = 1;
 		qset->reset = 1;
 
 		if (usb_endpoint_xfer_bulk(&ep->desc)
-		    || usb_endpoint_xfer_control(&ep->desc))
+			|| usb_endpoint_xfer_control(&ep->desc))
+		{
 			queue_work(whc->workqueue, &whc->async_work);
+		}
 		else
+		{
 			queue_work(whc->workqueue, &whc->periodic_work);
+		}
 	}
 
 	spin_unlock_irqrestore(&whc->lock, flags);
 }
 
 
-static struct hc_driver whc_hc_driver = {
+static struct hc_driver whc_hc_driver =
+{
 	.description = "whci-hcd",
 	.product_desc = "Wireless host controller",
 	.hcd_priv_size = sizeof(struct whc) - sizeof(struct usb_hcd),
@@ -243,7 +267,9 @@ static int whc_probe(struct umc_dev *umc)
 	struct device *dev = &umc->dev;
 
 	usb_hcd = usb_create_hcd(&whc_hc_driver, dev, "whci");
-	if (usb_hcd == NULL) {
+
+	if (usb_hcd == NULL)
+	{
 		dev_err(dev, "unable to create hcd\n");
 		return -ENOMEM;
 	}
@@ -256,23 +282,33 @@ static int whc_probe(struct umc_dev *umc)
 	whc->umc = umc;
 
 	ret = whc_init(whc);
+
 	if (ret)
+	{
 		goto error_whc_init;
+	}
 
 	wusbhc->dev = dev;
 	wusbhc->uwb_rc = uwb_rc_get_by_grandpa(umc->dev.parent);
-	if (!wusbhc->uwb_rc) {
+
+	if (!wusbhc->uwb_rc)
+	{
 		ret = -ENODEV;
 		dev_err(dev, "cannot get radio controller\n");
 		goto error_uwb_rc;
 	}
 
-	if (whc->n_devices > USB_MAXCHILDREN) {
+	if (whc->n_devices > USB_MAXCHILDREN)
+	{
 		dev_warn(dev, "USB_MAXCHILDREN too low for WUSB adapter (%u ports)\n",
-			 whc->n_devices);
+				 whc->n_devices);
 		wusbhc->ports_max = USB_MAXCHILDREN;
-	} else
+	}
+	else
+	{
 		wusbhc->ports_max = whc->n_devices;
+	}
+
 	wusbhc->mmcies_max      = whc->n_mmc_ies;
 	wusbhc->start           = whc_wusbhc_start;
 	wusbhc->stop            = whc_wusbhc_stop;
@@ -285,18 +321,26 @@ static int whc_probe(struct umc_dev *umc)
 	wusbhc->set_gtk         = whc_set_gtk;
 
 	ret = wusbhc_create(wusbhc);
+
 	if (ret)
+	{
 		goto error_wusbhc_create;
+	}
 
 	ret = usb_add_hcd(usb_hcd, whc->umc->irq, IRQF_SHARED);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "cannot add HCD: %d\n", ret);
 		goto error_usb_add_hcd;
 	}
+
 	device_wakeup_enable(usb_hcd->self.controller);
 
 	ret = wusbhc_b_create(wusbhc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "WUSBHC phase B setup failed: %d\n", ret);
 		goto error_wusbhc_b_create;
 	}
@@ -325,7 +369,8 @@ static void whc_remove(struct umc_dev *umc)
 	struct wusbhc *wusbhc = usb_hcd_to_wusbhc(usb_hcd);
 	struct whc *whc = wusbhc_to_whc(wusbhc);
 
-	if (usb_hcd) {
+	if (usb_hcd)
+	{
 		whc_dbg_clean_up(whc);
 		wusbhc_b_destroy(wusbhc);
 		usb_remove_hcd(usb_hcd);
@@ -336,7 +381,8 @@ static void whc_remove(struct umc_dev *umc)
 	}
 }
 
-static struct umc_driver whci_hc_driver = {
+static struct umc_driver whci_hc_driver =
+{
 	.name =		"whci-hcd",
 	.cap_id =       UMC_CAP_ID_WHCI_WUSB_HC,
 	.probe =	whc_probe,
@@ -356,7 +402,8 @@ static void __exit whci_hc_driver_exit(void)
 module_exit(whci_hc_driver_exit);
 
 /* PCI device ID's that we handle (so it gets loaded) */
-static struct pci_device_id __used whci_hcd_id_table[] = {
+static struct pci_device_id __used whci_hcd_id_table[] =
+{
 	{ PCI_DEVICE_CLASS(PCI_CLASS_WIRELESS_WHCI, ~0) },
 	{ /* empty last entry */ }
 };

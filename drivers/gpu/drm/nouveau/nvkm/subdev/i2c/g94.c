@@ -30,12 +30,18 @@ g94_aux_stat(struct nvkm_i2c *i2c, u32 *hi, u32 *lo, u32 *rq, u32 *tx)
 	struct nvkm_device *device = i2c->subdev.device;
 	u32 intr = nvkm_rd32(device, 0x00e06c);
 	u32 stat = nvkm_rd32(device, 0x00e068) & intr, i;
-	for (i = 0, *hi = *lo = *rq = *tx = 0; i < 8; i++) {
-		if ((stat & (1 << (i * 4)))) *hi |= 1 << i;
-		if ((stat & (2 << (i * 4)))) *lo |= 1 << i;
-		if ((stat & (4 << (i * 4)))) *rq |= 1 << i;
-		if ((stat & (8 << (i * 4)))) *tx |= 1 << i;
+
+	for (i = 0, *hi = *lo = *rq = *tx = 0; i < 8; i++)
+	{
+		if ((stat & (1 << (i * 4)))) { *hi |= 1 << i; }
+
+		if ((stat & (2 << (i * 4)))) { *lo |= 1 << i; }
+
+		if ((stat & (4 << (i * 4)))) { *rq |= 1 << i; }
+
+		if ((stat & (8 << (i * 4)))) { *tx |= 1 << i; }
 	}
+
 	nvkm_wr32(device, 0x00e06c, intr);
 }
 
@@ -44,20 +50,27 @@ g94_aux_mask(struct nvkm_i2c *i2c, u32 type, u32 mask, u32 data)
 {
 	struct nvkm_device *device = i2c->subdev.device;
 	u32 temp = nvkm_rd32(device, 0x00e068), i;
-	for (i = 0; i < 8; i++) {
-		if (mask & (1 << i)) {
-			if (!(data & (1 << i))) {
+
+	for (i = 0; i < 8; i++)
+	{
+		if (mask & (1 << i))
+		{
+			if (!(data & (1 << i)))
+			{
 				temp &= ~(type << (i * 4));
 				continue;
 			}
+
 			temp |= type << (i * 4);
 		}
 	}
+
 	nvkm_wr32(device, 0x00e068, temp);
 }
 
 static const struct nvkm_i2c_func
-g94_i2c = {
+	g94_i2c =
+{
 	.pad_x_new = g94_i2c_pad_x_new,
 	.pad_s_new = g94_i2c_pad_s_new,
 	.aux = 4,

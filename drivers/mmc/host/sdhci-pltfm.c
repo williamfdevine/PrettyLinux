@@ -32,7 +32,7 @@
 #include <linux/module.h>
 #include <linux/of.h>
 #ifdef CONFIG_PPC
-#include <asm/machdep.h>
+	#include <asm/machdep.h>
 #endif
 #include "sdhci-pltfm.h"
 
@@ -44,7 +44,8 @@ unsigned int sdhci_pltfm_clk_get_max_clock(struct sdhci_host *host)
 }
 EXPORT_SYMBOL_GPL(sdhci_pltfm_clk_get_max_clock);
 
-static const struct sdhci_ops sdhci_pltfm_ops = {
+static const struct sdhci_ops sdhci_pltfm_ops =
+{
 	.set_clock = sdhci_set_clock,
 	.set_bus_width = sdhci_set_bus_width,
 	.reset = sdhci_reset,
@@ -55,8 +56,10 @@ static const struct sdhci_ops sdhci_pltfm_ops = {
 static bool sdhci_of_wp_inverted(struct device_node *np)
 {
 	if (of_get_property(np, "sdhci,wp-inverted", NULL) ||
-	    of_get_property(np, "wp-inverted", NULL))
+		of_get_property(np, "wp-inverted", NULL))
+	{
 		return true;
+	}
 
 	/* Old device trees don't have the wp-inverted property. */
 #ifdef CONFIG_PPC
@@ -74,39 +77,57 @@ void sdhci_get_of_property(struct platform_device *pdev)
 	u32 bus_width;
 
 	if (of_get_property(np, "sdhci,auto-cmd12", NULL))
+	{
 		host->quirks |= SDHCI_QUIRK_MULTIBLOCK_READ_ACMD12;
+	}
 
 	if (of_get_property(np, "sdhci,1-bit-only", NULL) ||
-	    (of_property_read_u32(np, "bus-width", &bus_width) == 0 &&
-	    bus_width == 1))
+		(of_property_read_u32(np, "bus-width", &bus_width) == 0 &&
+		 bus_width == 1))
+	{
 		host->quirks |= SDHCI_QUIRK_FORCE_1_BIT_DATA;
+	}
 
 	if (sdhci_of_wp_inverted(np))
+	{
 		host->quirks |= SDHCI_QUIRK_INVERTED_WRITE_PROTECT;
+	}
 
 	if (of_get_property(np, "broken-cd", NULL))
+	{
 		host->quirks |= SDHCI_QUIRK_BROKEN_CARD_DETECTION;
+	}
 
 	if (of_get_property(np, "no-1-8-v", NULL))
+	{
 		host->quirks2 |= SDHCI_QUIRK2_NO_1_8_V;
+	}
 
 	if (of_device_is_compatible(np, "fsl,p2020-rev1-esdhc"))
+	{
 		host->quirks |= SDHCI_QUIRK_BROKEN_DMA;
+	}
 
 	if (of_device_is_compatible(np, "fsl,p2020-esdhc") ||
-	    of_device_is_compatible(np, "fsl,p1010-esdhc") ||
-	    of_device_is_compatible(np, "fsl,t4240-esdhc") ||
-	    of_device_is_compatible(np, "fsl,mpc8536-esdhc"))
+		of_device_is_compatible(np, "fsl,p1010-esdhc") ||
+		of_device_is_compatible(np, "fsl,t4240-esdhc") ||
+		of_device_is_compatible(np, "fsl,mpc8536-esdhc"))
+	{
 		host->quirks |= SDHCI_QUIRK_BROKEN_TIMEOUT_VAL;
+	}
 
 	of_property_read_u32(np, "clock-frequency", &pltfm_host->clock);
 
 	if (of_find_property(np, "keep-power-in-suspend", NULL))
+	{
 		host->mmc->pm_caps |= MMC_PM_KEEP_POWER;
+	}
 
 	if (of_property_read_bool(np, "wakeup-source") ||
-	    of_property_read_bool(np, "enable-sdio-wakeup")) /* legacy */
+		of_property_read_bool(np, "enable-sdio-wakeup")) /* legacy */
+	{
 		host->mmc->pm_caps |= MMC_PM_WAKE_SDIO_IRQ;
+	}
 }
 #else
 void sdhci_get_of_property(struct platform_device *pdev) {}
@@ -114,8 +135,8 @@ void sdhci_get_of_property(struct platform_device *pdev) {}
 EXPORT_SYMBOL_GPL(sdhci_get_of_property);
 
 struct sdhci_host *sdhci_pltfm_init(struct platform_device *pdev,
-				    const struct sdhci_pltfm_data *pdata,
-				    size_t priv_size)
+									const struct sdhci_pltfm_data *pdata,
+									size_t priv_size)
 {
 	struct sdhci_host *host;
 	struct resource *iomem;
@@ -124,22 +145,27 @@ struct sdhci_host *sdhci_pltfm_init(struct platform_device *pdev,
 
 	iomem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ioaddr = devm_ioremap_resource(&pdev->dev, iomem);
-	if (IS_ERR(ioaddr)) {
+
+	if (IS_ERR(ioaddr))
+	{
 		ret = PTR_ERR(ioaddr);
 		goto err;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "failed to get IRQ number\n");
 		ret = irq;
 		goto err;
 	}
 
 	host = sdhci_alloc_host(&pdev->dev,
-		sizeof(struct sdhci_pltfm_host) + priv_size);
+							sizeof(struct sdhci_pltfm_host) + priv_size);
 
-	if (IS_ERR(host)) {
+	if (IS_ERR(host))
+	{
 		ret = PTR_ERR(host);
 		goto err;
 	}
@@ -147,11 +173,18 @@ struct sdhci_host *sdhci_pltfm_init(struct platform_device *pdev,
 	host->ioaddr = ioaddr;
 	host->irq = irq;
 	host->hw_name = dev_name(&pdev->dev);
+
 	if (pdata && pdata->ops)
+	{
 		host->ops = pdata->ops;
+	}
 	else
+	{
 		host->ops = &sdhci_pltfm_ops;
-	if (pdata) {
+	}
+
+	if (pdata)
+	{
 		host->quirks = pdata->quirks;
 		host->quirks2 = pdata->quirks2;
 	}
@@ -174,21 +207,27 @@ void sdhci_pltfm_free(struct platform_device *pdev)
 EXPORT_SYMBOL_GPL(sdhci_pltfm_free);
 
 int sdhci_pltfm_register(struct platform_device *pdev,
-			const struct sdhci_pltfm_data *pdata,
-			size_t priv_size)
+						 const struct sdhci_pltfm_data *pdata,
+						 size_t priv_size)
 {
 	struct sdhci_host *host;
 	int ret = 0;
 
 	host = sdhci_pltfm_init(pdev, pdata, priv_size);
+
 	if (IS_ERR(host))
+	{
 		return PTR_ERR(host);
+	}
 
 	sdhci_get_of_property(pdev);
 
 	ret = sdhci_add_host(host);
+
 	if (ret)
+	{
 		sdhci_pltfm_free(pdev);
+	}
 
 	return ret;
 }
@@ -224,7 +263,8 @@ static int sdhci_pltfm_resume(struct device *dev)
 }
 #endif
 
-const struct dev_pm_ops sdhci_pltfm_pmops = {
+const struct dev_pm_ops sdhci_pltfm_pmops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(sdhci_pltfm_suspend, sdhci_pltfm_resume)
 };
 EXPORT_SYMBOL_GPL(sdhci_pltfm_pmops);

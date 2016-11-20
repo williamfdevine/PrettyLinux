@@ -13,7 +13,8 @@
 #include <linux/kfifo.h>
 
 /* sleep_params */
-struct sleep_params {
+struct sleep_params
+{
 	uint16_t sp_error;
 	uint16_t sp_offset;
 	uint16_t sp_stabletime;
@@ -23,7 +24,8 @@ struct sleep_params {
 };
 
 /* Mesh statistics */
-struct lbs_mesh_stats {
+struct lbs_mesh_stats
+{
 	u32	fwd_bcast_cnt;		/* Fwd: Broadcast counter */
 	u32	fwd_unicast_cnt;	/* Fwd: Unicast counter */
 	u32	fwd_drop_ttl;		/* Fwd: TTL zero */
@@ -35,7 +37,8 @@ struct lbs_mesh_stats {
 };
 
 /* Private structure for the MV device */
-struct lbs_private {
+struct lbs_private
+{
 
 	/* Basic networking */
 	struct net_device *dev;
@@ -203,8 +206,11 @@ static inline int lbs_iface_active(struct lbs_private *priv)
 	int r;
 
 	r = netif_running(priv->dev);
+
 	if (priv->mesh_dev)
+	{
 		r |= netif_running(priv->mesh_dev);
+	}
 
 	return r;
 }

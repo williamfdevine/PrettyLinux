@@ -34,7 +34,8 @@
 #ifndef __SELFTEST_TIMER_H__
 #define __SELFTEST_TIMER_H__
 
-struct stt_timer {
+struct stt_timer
+{
 	struct list_head stt_list;
 	time64_t	 stt_expires;
 	void		 (*stt_func)(void *);

@@ -25,7 +25,8 @@
 
 #include <subdev/timer.h>
 
-static const struct nvkm_bitfield nv50_gr_status[] = {
+static const struct nvkm_bitfield nv50_gr_status[] =
+{
 	{ 0x00000001, "BUSY" }, /* set when any bit is set */
 	{ 0x00000002, "DISPATCH" },
 	{ 0x00000004, "UNK2" },
@@ -55,7 +56,8 @@ static const struct nvkm_bitfield nv50_gr_status[] = {
 };
 
 static const struct nvkm_bitfield
-nv50_gr_vstatus_0[] = {
+	nv50_gr_vstatus_0[] =
+{
 	{ 0x01, "VFETCH" },
 	{ 0x02, "CCACHE" },
 	{ 0x04, "PREGEOM" },
@@ -67,7 +69,8 @@ nv50_gr_vstatus_0[] = {
 };
 
 static const struct nvkm_bitfield
-nv50_gr_vstatus_1[] = {
+	nv50_gr_vstatus_1[] =
+{
 	{ 0x01, "TPC_RAST" },
 	{ 0x02, "TPC_PROP" },
 	{ 0x04, "TPC_TEX" },
@@ -77,7 +80,8 @@ nv50_gr_vstatus_1[] = {
 };
 
 static const struct nvkm_bitfield
-nv50_gr_vstatus_2[] = {
+	nv50_gr_vstatus_2[] =
+{
 	{ 0x01, "RATTR" },
 	{ 0x02, "APLANE" },
 	{ 0x04, "TRAST" },
@@ -91,7 +95,7 @@ nv50_gr_vstatus_2[] = {
 
 static void
 nvkm_gr_vstatus_print(struct nv50_gr *gr, int r,
-		      const struct nvkm_bitfield *units, u32 status)
+					  const struct nvkm_bitfield *units, u32 status)
 {
 	struct nvkm_subdev *subdev = &gr->base.engine.subdev;
 	u32 stat = status;
@@ -99,9 +103,13 @@ nvkm_gr_vstatus_print(struct nv50_gr *gr, int r,
 	char msg[64];
 	int i;
 
-	for (i = 0; units[i].name && status; i++) {
+	for (i = 0; units[i].name && status; i++)
+	{
 		if ((status & 7) == 1)
+		{
 			mask |= (1 << i);
+		}
+
 		status >>= 3;
 	}
 
@@ -126,27 +134,40 @@ g84_gr_tlb_flush(struct nvkm_gr *base)
 	nvkm_mask(device, 0x400500, 0x00000001, 0x00000000);
 
 	start = nvkm_timer_read(tmr);
-	do {
+
+	do
+	{
 		idle = true;
 
-		for (tmp = nvkm_rd32(device, 0x400380); tmp && idle; tmp >>= 3) {
+		for (tmp = nvkm_rd32(device, 0x400380); tmp && idle; tmp >>= 3)
+		{
 			if ((tmp & 7) == 1)
+			{
 				idle = false;
+			}
 		}
 
-		for (tmp = nvkm_rd32(device, 0x400384); tmp && idle; tmp >>= 3) {
+		for (tmp = nvkm_rd32(device, 0x400384); tmp && idle; tmp >>= 3)
+		{
 			if ((tmp & 7) == 1)
+			{
 				idle = false;
+			}
 		}
 
-		for (tmp = nvkm_rd32(device, 0x400388); tmp && idle; tmp >>= 3) {
+		for (tmp = nvkm_rd32(device, 0x400388); tmp && idle; tmp >>= 3)
+		{
 			if ((tmp & 7) == 1)
+			{
 				idle = false;
+			}
 		}
-	} while (!idle &&
-		 !(timeout = nvkm_timer_read(tmr) - start > 2000000000));
+	}
+	while (!idle &&
+		   !(timeout = nvkm_timer_read(tmr) - start > 2000000000));
 
-	if (timeout) {
+	if (timeout)
+	{
 		nvkm_error(subdev, "PGRAPH TLB flush idle timeout fail\n");
 
 		tmp = nvkm_rd32(device, 0x400700);
@@ -154,26 +175,29 @@ g84_gr_tlb_flush(struct nvkm_gr *base)
 		nvkm_error(subdev, "PGRAPH_STATUS %08x [%s]\n", tmp, status);
 
 		nvkm_gr_vstatus_print(gr, 0, nv50_gr_vstatus_0,
-				       nvkm_rd32(device, 0x400380));
+							  nvkm_rd32(device, 0x400380));
 		nvkm_gr_vstatus_print(gr, 1, nv50_gr_vstatus_1,
-				       nvkm_rd32(device, 0x400384));
+							  nvkm_rd32(device, 0x400384));
 		nvkm_gr_vstatus_print(gr, 2, nv50_gr_vstatus_2,
-				       nvkm_rd32(device, 0x400388));
+							  nvkm_rd32(device, 0x400388));
 	}
 
 
 	nvkm_wr32(device, 0x100c80, 0x00000001);
 	nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x100c80) & 0x00000001))
-			break;
-	);
+
+			  if (!(nvkm_rd32(device, 0x100c80) & 0x00000001))
+			  break;
+			 );
+
 	nvkm_mask(device, 0x400500, 0x00000001, 0x00000001);
 	spin_unlock_irqrestore(&gr->lock, flags);
 	return timeout ? -EBUSY : 0;
 }
 
 static const struct nvkm_gr_func
-g84_gr = {
+	g84_gr =
+{
 	.init = nv50_gr_init,
 	.intr = nv50_gr_intr,
 	.chan_new = nv50_gr_chan_new,

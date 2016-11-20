@@ -29,15 +29,18 @@ static unsigned long load_addr = 0x10000;
 static int nerrs = 0;
 
 static void sethandler(int sig, void (*handler)(int, siginfo_t *, void *),
-		       int flags)
+					   int flags)
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_sigaction = handler;
 	sa.sa_flags = SA_SIGINFO | flags;
 	sigemptyset(&sa.sa_mask);
+
 	if (sigaction(sig, &sa, 0))
+	{
 		err(1, "sigaction");
+	}
 }
 
 static void clearhandler(int sig)
@@ -46,33 +49,44 @@ static void clearhandler(int sig)
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
 	sigemptyset(&sa.sa_mask);
+
 	if (sigaction(sig, &sa, 0))
+	{
 		err(1, "sigaction");
+	}
 }
 
 static sig_atomic_t got_signal;
 
 static void sighandler(int sig, siginfo_t *info, void *ctx_void)
 {
-	ucontext_t *ctx = (ucontext_t*)ctx_void;
+	ucontext_t *ctx = (ucontext_t *)ctx_void;
 
 	if (ctx->uc_mcontext.gregs[REG_EFL] & X86_EFLAGS_VM ||
-	    (ctx->uc_mcontext.gregs[REG_CS] & 3) != 3) {
+		(ctx->uc_mcontext.gregs[REG_CS] & 3) != 3)
+	{
 		printf("[FAIL]\tSignal frame should not reflect vm86 mode\n");
 		nerrs++;
 	}
 
 	const char *signame;
+
 	if (sig == SIGSEGV)
+	{
 		signame = "SIGSEGV";
+	}
 	else if (sig == SIGILL)
+	{
 		signame = "SIGILL";
+	}
 	else
+	{
 		signame = "unexpected signal";
+	}
 
 	printf("[INFO]\t%s: FLAGS = 0x%lx, CS = 0x%hx\n", signame,
-	       (unsigned long)ctx->uc_mcontext.gregs[REG_EFL],
-	       (unsigned short)ctx->uc_mcontext.gregs[REG_CS]);
+		   (unsigned long)ctx->uc_mcontext.gregs[REG_EFL],
+		   (unsigned short)ctx->uc_mcontext.gregs[REG_CS]);
 
 	got_signal = 1;
 }
@@ -99,16 +113,16 @@ asm (
 	"end_vmcode:\n\t"
 	".code32\n\t"
 	".popsection"
-	);
+);
 
 extern unsigned char vmcode[], end_vmcode[];
 extern unsigned char vmcode_bound[], vmcode_sysenter[], vmcode_syscall[],
-	vmcode_sti[], vmcode_int3[], vmcode_int80[];
+	   vmcode_sti[], vmcode_int3[], vmcode_int80[];
 
 /* Returns false if the test was skipped. */
 static bool do_test(struct vm86plus_struct *v86, unsigned long eip,
-		    unsigned int rettype, unsigned int retarg,
-		    const char *text)
+					unsigned int rettype, unsigned int retarg,
+					const char *text)
 {
 	long ret;
 
@@ -116,43 +130,67 @@ static bool do_test(struct vm86plus_struct *v86, unsigned long eip,
 	v86->regs.eip = eip;
 	ret = vm86(VM86_ENTER, v86);
 
-	if (ret == -1 && (errno == ENOSYS || errno == EPERM)) {
+	if (ret == -1 && (errno == ENOSYS || errno == EPERM))
+	{
 		printf("[SKIP]\tvm86 %s\n",
-		       errno == ENOSYS ? "not supported" : "not allowed");
+			   errno == ENOSYS ? "not supported" : "not allowed");
 		return false;
 	}
 
-	if (VM86_TYPE(ret) == VM86_INTx) {
+	if (VM86_TYPE(ret) == VM86_INTx)
+	{
 		char trapname[32];
 		int trapno = VM86_ARG(ret);
+
 		if (trapno == 13)
+		{
 			strcpy(trapname, "GP");
+		}
 		else if (trapno == 5)
+		{
 			strcpy(trapname, "BR");
+		}
 		else if (trapno == 14)
+		{
 			strcpy(trapname, "PF");
+		}
 		else
+		{
 			sprintf(trapname, "%d", trapno);
+		}
 
 		printf("[INFO]\tExited vm86 mode due to #%s\n", trapname);
-	} else if (VM86_TYPE(ret) == VM86_UNKNOWN) {
+	}
+	else if (VM86_TYPE(ret) == VM86_UNKNOWN)
+	{
 		printf("[INFO]\tExited vm86 mode due to unhandled GP fault\n");
-	} else if (VM86_TYPE(ret) == VM86_TRAP) {
+	}
+	else if (VM86_TYPE(ret) == VM86_TRAP)
+	{
 		printf("[INFO]\tExited vm86 mode due to a trap (arg=%ld)\n",
-		       VM86_ARG(ret));
-	} else if (VM86_TYPE(ret) == VM86_SIGNAL) {
+			   VM86_ARG(ret));
+	}
+	else if (VM86_TYPE(ret) == VM86_SIGNAL)
+	{
 		printf("[INFO]\tExited vm86 mode due to a signal\n");
-	} else if (VM86_TYPE(ret) == VM86_STI) {
+	}
+	else if (VM86_TYPE(ret) == VM86_STI)
+	{
 		printf("[INFO]\tExited vm86 mode due to STI\n");
-	} else {
+	}
+	else
+	{
 		printf("[INFO]\tExited vm86 mode due to type %ld, arg %ld\n",
-		       VM86_TYPE(ret), VM86_ARG(ret));
+			   VM86_TYPE(ret), VM86_ARG(ret));
 	}
 
 	if (rettype == -1 ||
-	    (VM86_TYPE(ret) == rettype && VM86_ARG(ret) == retarg)) {
+		(VM86_TYPE(ret) == rettype && VM86_ARG(ret) == retarg))
+	{
 		printf("[OK]\tReturned correctly\n");
-	} else {
+	}
+	else
+	{
 		printf("[FAIL]\tIncorrect return reason\n");
 		nerrs++;
 	}
@@ -164,10 +202,13 @@ int main(void)
 {
 	struct vm86plus_struct v86;
 	unsigned char *addr = mmap((void *)load_addr, 4096,
-				   PROT_READ | PROT_WRITE | PROT_EXEC,
-				   MAP_ANONYMOUS | MAP_PRIVATE, -1,0);
+							   PROT_READ | PROT_WRITE | PROT_EXEC,
+							   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+
 	if (addr != (unsigned char *)load_addr)
+	{
 		err(1, "mmap");
+	}
 
 	memcpy(addr, vmcode, end_vmcode - vmcode);
 	addr[2048] = 2;
@@ -215,7 +256,7 @@ int main(void)
 	do_test(&v86, vmcode_int3 - vmcode, VM86_TRAP, 3, "INT3");
 
 	/* INT80 -- should exit with "INTx 0x80" */
-	v86.regs.eax = (unsigned int)-1;
+	v86.regs.eax = (unsigned int) - 1;
 	do_test(&v86, vmcode_int80 - vmcode, VM86_INTx, 0x80, "int80");
 
 	/* Execute a null pointer */
@@ -223,16 +264,21 @@ int main(void)
 	v86.regs.ss = 0;
 	sethandler(SIGSEGV, sighandler, 0);
 	got_signal = 0;
+
 	if (do_test(&v86, 0, VM86_SIGNAL, 0, "Execute null pointer") &&
-	    !got_signal) {
+		!got_signal)
+	{
 		printf("[FAIL]\tDid not receive SIGSEGV\n");
 		nerrs++;
 	}
+
 	clearhandler(SIGSEGV);
 
 	/* Make sure nothing explodes if we fork. */
 	if (fork() > 0)
+	{
 		return 0;
+	}
 
 	return (nerrs == 0 ? 0 : 1);
 }

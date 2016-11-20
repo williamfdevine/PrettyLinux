@@ -10,13 +10,15 @@
  * @offset_before: sequence number offset before last modification
  * @offset_after: sequence number offset after last modification
  */
-struct nf_ct_seqadj {
+struct nf_ct_seqadj
+{
 	u32		correction_pos;
 	s32		offset_before;
 	s32		offset_after;
 };
 
-struct nf_conn_seqadj {
+struct nf_conn_seqadj
+{
 	struct nf_ct_seqadj	seq[IP_CT_DIR_MAX];
 };
 
@@ -31,14 +33,14 @@ static inline struct nf_conn_seqadj *nfct_seqadj_ext_add(struct nf_conn *ct)
 }
 
 int nf_ct_seqadj_init(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-		      s32 off);
+					  s32 off);
 int nf_ct_seqadj_set(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-		     __be32 seq, s32 off);
+					 __be32 seq, s32 off);
 void nf_ct_tcp_seqadj_set(struct sk_buff *skb, struct nf_conn *ct,
-			  enum ip_conntrack_info ctinfo, s32 off);
+						  enum ip_conntrack_info ctinfo, s32 off);
 
 int nf_ct_seq_adjust(struct sk_buff *skb, struct nf_conn *ct,
-		     enum ip_conntrack_info ctinfo, unsigned int protoff);
+					 enum ip_conntrack_info ctinfo, unsigned int protoff);
 s32 nf_ct_seq_offset(const struct nf_conn *ct, enum ip_conntrack_dir, u32 seq);
 
 int nf_conntrack_seqadj_init(void);

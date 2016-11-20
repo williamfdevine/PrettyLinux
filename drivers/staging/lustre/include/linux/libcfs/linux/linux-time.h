@@ -38,7 +38,7 @@
 #define __LIBCFS_LINUX_LINUX_TIME_H__
 
 #ifndef __LIBCFS_LIBCFS_H__
-#error Do not #include this file directly. #include <linux/libcfs/libcfs.h> instead
+	#error Do not #include this file directly. #include <linux/libcfs/libcfs.h> instead
 #endif
 
 #define ONE_BILLION ((u_int64_t)1000000000)
@@ -84,7 +84,7 @@ static inline __u64 cfs_time_add_64(__u64 t, __u64 d)
 static inline __u64 cfs_time_shift_64(int seconds)
 {
 	return cfs_time_add_64(cfs_time_current_64(),
-			       cfs_time_seconds(seconds));
+						   cfs_time_seconds(seconds));
 }
 
 static inline int cfs_time_before_64(__u64 t1, __u64 t2)

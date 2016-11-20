@@ -17,7 +17,8 @@
 #include <linux/if_ether.h>
 #include <linux/phy.h>
 
-struct cpsw_slave_data {
+struct cpsw_slave_data
+{
 	struct device_node *phy_node;
 	char		phy_id[MII_BUS_ID_SIZE];
 	int		phy_if;
@@ -25,7 +26,8 @@ struct cpsw_slave_data {
 	u16		dual_emac_res_vlan;	/* Reserved VLAN for DualEMAC */
 };
 
-struct cpsw_platform_data {
+struct cpsw_platform_data
+{
 	struct cpsw_slave_data	*slave_data;
 	u32	ss_reg_ofs;	/* Subsystem control register offset */
 	u32	channels;	/* number of cpdma channels (symmetric) */

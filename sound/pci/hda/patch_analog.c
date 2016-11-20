@@ -32,7 +32,8 @@
 #include "hda_generic.h"
 
 
-struct ad198x_spec {
+struct ad198x_spec
+{
 	struct hda_gen_spec gen;
 
 	/* for auto parser */
@@ -46,7 +47,8 @@ struct ad198x_spec {
 
 #ifdef CONFIG_SND_HDA_INPUT_BEEP
 /* additional beep mixers; the actual parameters are overwritten at build */
-static const struct snd_kcontrol_new ad_beep_mixer[] = {
+static const struct snd_kcontrol_new ad_beep_mixer[] =
+{
 	HDA_CODEC_VOLUME("Beep Playback Volume", 0, 0, HDA_OUTPUT),
 	HDA_CODEC_MUTE_BEEP("Beep Playback Switch", 0, 0, HDA_OUTPUT),
 	{ } /* end */
@@ -65,19 +67,30 @@ static int create_beep_ctls(struct hda_codec *codec)
 	const struct snd_kcontrol_new *knew;
 
 	if (!spec->beep_amp)
+	{
 		return 0;
+	}
 
-	for (knew = ad_beep_mixer ; knew->name; knew++) {
+	for (knew = ad_beep_mixer ; knew->name; knew++)
+	{
 		int err;
 		struct snd_kcontrol *kctl;
 		kctl = snd_ctl_new1(knew, codec);
+
 		if (!kctl)
+		{
 			return -ENOMEM;
+		}
+
 		kctl->private_value = spec->beep_amp;
 		err = snd_hda_ctl_add(codec, 0, kctl);
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
+
 	return 0;
 }
 #else
@@ -86,41 +99,45 @@ static int create_beep_ctls(struct hda_codec *codec)
 
 
 static void ad198x_power_eapd_write(struct hda_codec *codec, hda_nid_t front,
-				hda_nid_t hp)
+									hda_nid_t hp)
 {
 	if (snd_hda_query_pin_caps(codec, front) & AC_PINCAP_EAPD)
 		snd_hda_codec_write(codec, front, 0, AC_VERB_SET_EAPD_BTLENABLE,
-			    !codec->inv_eapd ? 0x00 : 0x02);
+							!codec->inv_eapd ? 0x00 : 0x02);
+
 	if (snd_hda_query_pin_caps(codec, hp) & AC_PINCAP_EAPD)
 		snd_hda_codec_write(codec, hp, 0, AC_VERB_SET_EAPD_BTLENABLE,
-			    !codec->inv_eapd ? 0x00 : 0x02);
+							!codec->inv_eapd ? 0x00 : 0x02);
 }
 
 static void ad198x_power_eapd(struct hda_codec *codec)
 {
 	/* We currently only handle front, HP */
-	switch (codec->core.vendor_id) {
-	case 0x11d41882:
-	case 0x11d4882a:
-	case 0x11d41884:
-	case 0x11d41984:
-	case 0x11d41883:
-	case 0x11d4184a:
-	case 0x11d4194a:
-	case 0x11d4194b:
-	case 0x11d41988:
-	case 0x11d4198b:
-	case 0x11d4989a:
-	case 0x11d4989b:
-		ad198x_power_eapd_write(codec, 0x12, 0x11);
-		break;
-	case 0x11d41981:
-	case 0x11d41983:
-		ad198x_power_eapd_write(codec, 0x05, 0x06);
-		break;
-	case 0x11d41986:
-		ad198x_power_eapd_write(codec, 0x1b, 0x1a);
-		break;
+	switch (codec->core.vendor_id)
+	{
+		case 0x11d41882:
+		case 0x11d4882a:
+		case 0x11d41884:
+		case 0x11d41984:
+		case 0x11d41883:
+		case 0x11d4184a:
+		case 0x11d4194a:
+		case 0x11d4194b:
+		case 0x11d41988:
+		case 0x11d4198b:
+		case 0x11d4989a:
+		case 0x11d4989b:
+			ad198x_power_eapd_write(codec, 0x12, 0x11);
+			break;
+
+		case 0x11d41981:
+		case 0x11d41983:
+			ad198x_power_eapd_write(codec, 0x05, 0x06);
+			break;
+
+		case 0x11d41986:
+			ad198x_power_eapd_write(codec, 0x1b, 0x1a);
+			break;
 	}
 }
 
@@ -145,12 +162,18 @@ static void ad_vmaster_eapd_hook(void *private_data, int enabled)
 	struct ad198x_spec *spec = codec->spec;
 
 	if (!spec->eapd_nid)
+	{
 		return;
+	}
+
 	if (codec->inv_eapd)
+	{
 		enabled = !enabled;
+	}
+
 	snd_hda_codec_update_cache(codec, spec->eapd_nid, 0,
-				   AC_VERB_SET_EAPD_BTLENABLE,
-				   enabled ? 0x02 : 0x00);
+							   AC_VERB_SET_EAPD_BTLENABLE,
+							   enabled ? 0x02 : 0x00);
 }
 
 /*
@@ -162,15 +185,24 @@ static int ad198x_auto_build_controls(struct hda_codec *codec)
 	int err;
 
 	err = snd_hda_gen_build_controls(codec);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err = create_beep_ctls(codec);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	return 0;
 }
 
-static const struct hda_codec_ops ad198x_auto_patch_ops = {
+static const struct hda_codec_ops ad198x_auto_patch_ops =
+{
 	.build_controls = ad198x_auto_build_controls,
 	.build_pcms = snd_hda_gen_build_pcms,
 	.init = snd_hda_gen_init,
@@ -195,15 +227,25 @@ static int ad198x_parse_auto_config(struct hda_codec *codec, bool indep_hp)
 	codec->no_sticky_stream = 1;
 
 	spec->gen.indep_hp = indep_hp;
+
 	if (!spec->gen.add_stereo_mix_input)
+	{
 		spec->gen.add_stereo_mix_input = HDA_HINT_STEREO_MIX_AUTO;
+	}
 
 	err = snd_hda_parse_pin_defcfg(codec, cfg, NULL, 0);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err = snd_hda_gen_parse_auto_config(codec, cfg);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -217,8 +259,12 @@ static int alloc_ad_spec(struct hda_codec *codec)
 	struct ad198x_spec *spec;
 
 	spec = kzalloc(sizeof(*spec), GFP_KERNEL);
+
 	if (!spec)
+	{
 		return -ENOMEM;
+	}
+
 	codec->spec = spec;
 	snd_hda_gen_spec_init(&spec->gen);
 	codec->patch_ops = ad198x_auto_patch_ops;
@@ -231,11 +277,12 @@ static int alloc_ad_spec(struct hda_codec *codec)
 
 /* Lenovo N100 seems to report the reversed bit for HP jack-sensing */
 static void ad_fixup_inv_jack_detect(struct hda_codec *codec,
-				     const struct hda_fixup *fix, int action)
+									 const struct hda_fixup *fix, int action)
 {
 	struct ad198x_spec *spec = codec->spec;
 
-	if (action == HDA_FIXUP_ACT_PRE_PROBE) {
+	if (action == HDA_FIXUP_ACT_PRE_PROBE)
+	{
 		codec->inv_jack_detect = 1;
 		spec->gen.keep_eapd_on = 1;
 		spec->gen.vmaster_mute.hook = ad_vmaster_eapd_hook;
@@ -245,11 +292,12 @@ static void ad_fixup_inv_jack_detect(struct hda_codec *codec,
 
 /* Toshiba Satellite L40 implements EAPD in a standard way unlike others */
 static void ad1986a_fixup_eapd(struct hda_codec *codec,
-			       const struct hda_fixup *fix, int action)
+							   const struct hda_fixup *fix, int action)
 {
 	struct ad198x_spec *spec = codec->spec;
 
-	if (action == HDA_FIXUP_ACT_PRE_PROBE) {
+	if (action == HDA_FIXUP_ACT_PRE_PROBE)
+	{
 		codec->inv_eapd = 0;
 		spec->gen.keep_eapd_on = 1;
 		spec->eapd_nid = 0x1b;
@@ -258,17 +306,19 @@ static void ad1986a_fixup_eapd(struct hda_codec *codec,
 
 /* enable stereo-mix input for avoiding regression on KDE (bko#88251) */
 static void ad1986a_fixup_eapd_mix_in(struct hda_codec *codec,
-				      const struct hda_fixup *fix, int action)
+									  const struct hda_fixup *fix, int action)
 {
 	struct ad198x_spec *spec = codec->spec;
 
-	if (action == HDA_FIXUP_ACT_PRE_PROBE) {
+	if (action == HDA_FIXUP_ACT_PRE_PROBE)
+	{
 		ad1986a_fixup_eapd(codec, fix, action);
 		spec->gen.add_stereo_mix_input = HDA_HINT_STEREO_MIX_ENABLE;
 	}
 }
 
-enum {
+enum
+{
 	AD1986A_FIXUP_INV_JACK_DETECT,
 	AD1986A_FIXUP_ULTRA,
 	AD1986A_FIXUP_SAMSUNG,
@@ -280,14 +330,16 @@ enum {
 	AD1986A_FIXUP_EASYNOTE,
 };
 
-static const struct hda_fixup ad1986a_fixups[] = {
+static const struct hda_fixup ad1986a_fixups[] =
+{
 	[AD1986A_FIXUP_INV_JACK_DETECT] = {
 		.type = HDA_FIXUP_FUNC,
 		.v.func = ad_fixup_inv_jack_detect,
 	},
 	[AD1986A_FIXUP_ULTRA] = {
 		.type = HDA_FIXUP_PINS,
-		.v.pins = (const struct hda_pintbl[]) {
+		.v.pins = (const struct hda_pintbl[])
+		{
 			{ 0x1b, 0x90170110 }, /* speaker */
 			{ 0x1d, 0x90a7013e }, /* int mic */
 			{}
@@ -295,7 +347,8 @@ static const struct hda_fixup ad1986a_fixups[] = {
 	},
 	[AD1986A_FIXUP_SAMSUNG] = {
 		.type = HDA_FIXUP_PINS,
-		.v.pins = (const struct hda_pintbl[]) {
+		.v.pins = (const struct hda_pintbl[])
+		{
 			{ 0x1b, 0x90170110 }, /* speaker */
 			{ 0x1d, 0x90a7013e }, /* int mic */
 			{ 0x20, 0x411111f0 }, /* N/A */
@@ -305,7 +358,8 @@ static const struct hda_fixup ad1986a_fixups[] = {
 	},
 	[AD1986A_FIXUP_3STACK] = {
 		.type = HDA_FIXUP_PINS,
-		.v.pins = (const struct hda_pintbl[]) {
+		.v.pins = (const struct hda_pintbl[])
+		{
 			{ 0x1a, 0x02214021 }, /* headphone */
 			{ 0x1b, 0x01014011 }, /* front */
 			{ 0x1c, 0x01813030 }, /* line-in */
@@ -318,7 +372,8 @@ static const struct hda_fixup ad1986a_fixups[] = {
 	},
 	[AD1986A_FIXUP_LAPTOP] = {
 		.type = HDA_FIXUP_PINS,
-		.v.pins = (const struct hda_pintbl[]) {
+		.v.pins = (const struct hda_pintbl[])
+		{
 			{ 0x1a, 0x02214021 }, /* headphone */
 			{ 0x1b, 0x90170110 }, /* speaker */
 			{ 0x1c, 0x411111f0 }, /* N/A */
@@ -331,12 +386,13 @@ static const struct hda_fixup ad1986a_fixups[] = {
 	},
 	[AD1986A_FIXUP_LAPTOP_IMIC] = {
 		.type = HDA_FIXUP_PINS,
-		.v.pins = (const struct hda_pintbl[]) {
+		.v.pins = (const struct hda_pintbl[])
+		{
 			{ 0x1d, 0x90a7013e }, /* int mic */
 			{}
 		},
 		.chained_before = 1,
-		.chain_id = AD1986A_FIXUP_LAPTOP,
+		 .chain_id = AD1986A_FIXUP_LAPTOP,
 	},
 	[AD1986A_FIXUP_EAPD] = {
 		.type = HDA_FIXUP_FUNC,
@@ -348,7 +404,8 @@ static const struct hda_fixup ad1986a_fixups[] = {
 	},
 	[AD1986A_FIXUP_EASYNOTE] = {
 		.type = HDA_FIXUP_PINS,
-		.v.pins = (const struct hda_pintbl[]) {
+		.v.pins = (const struct hda_pintbl[])
+		{
 			{ 0x1a, 0x0421402f }, /* headphone */
 			{ 0x1b, 0x90170110 }, /* speaker */
 			{ 0x1c, 0x411111f0 }, /* N/A */
@@ -364,11 +421,12 @@ static const struct hda_fixup ad1986a_fixups[] = {
 			{}
 		},
 		.chained = true,
-		.chain_id = AD1986A_FIXUP_EAPD_MIX_IN,
+		 .chain_id = AD1986A_FIXUP_EAPD_MIX_IN,
 	},
 };
 
-static const struct snd_pci_quirk ad1986a_fixup_tbl[] = {
+static const struct snd_pci_quirk ad1986a_fixup_tbl[] =
+{
 	SND_PCI_QUIRK(0x103c, 0x30af, "HP B2800", AD1986A_FIXUP_LAPTOP_IMIC),
 	SND_PCI_QUIRK(0x1043, 0x1443, "ASUS Z99He", AD1986A_FIXUP_EAPD),
 	SND_PCI_QUIRK(0x1043, 0x1447, "ASUS A8JN", AD1986A_FIXUP_EAPD),
@@ -386,7 +444,8 @@ static const struct snd_pci_quirk ad1986a_fixup_tbl[] = {
 	{}
 };
 
-static const struct hda_model_fixup ad1986a_fixup_models[] = {
+static const struct hda_model_fixup ad1986a_fixup_models[] =
+{
 	{ .id = AD1986A_FIXUP_3STACK, .name = "3stack" },
 	{ .id = AD1986A_FIXUP_LAPTOP, .name = "laptop" },
 	{ .id = AD1986A_FIXUP_LAPTOP_IMIC, .name = "laptop-imic" },
@@ -401,7 +460,8 @@ static int patch_ad1986a(struct hda_codec *codec)
 {
 	int err;
 	struct ad198x_spec *spec;
-	static hda_nid_t preferred_pairs[] = {
+	static hda_nid_t preferred_pairs[] =
+	{
 		0x1a, 0x03,
 		0x1b, 0x03,
 		0x1c, 0x04,
@@ -411,8 +471,12 @@ static int patch_ad1986a(struct hda_codec *codec)
 	};
 
 	err = alloc_ad_spec(codec);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	spec = codec->spec;
 
 	/* AD1986A has the inverted EAPD implementation */
@@ -436,11 +500,13 @@ static int patch_ad1986a(struct hda_codec *codec)
 	spec->gen.auto_mute_via_amp = 1;
 
 	snd_hda_pick_fixup(codec, ad1986a_fixup_models, ad1986a_fixup_tbl,
-			   ad1986a_fixups);
+					   ad1986a_fixups);
 	snd_hda_apply_fixup(codec, HDA_FIXUP_ACT_PRE_PROBE);
 
 	err = ad198x_parse_auto_config(codec, false);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		snd_hda_gen_free(codec);
 		return err;
 	}
@@ -459,25 +525,31 @@ static int patch_ad1986a(struct hda_codec *codec)
  * SPDIF mux control for AD1983 auto-parser
  */
 static int ad1983_auto_smux_enum_info(struct snd_kcontrol *kcontrol,
-				      struct snd_ctl_elem_info *uinfo)
+									  struct snd_ctl_elem_info *uinfo)
 {
 	struct hda_codec *codec = snd_kcontrol_chip(kcontrol);
 	struct ad198x_spec *spec = codec->spec;
-	static const char * const texts2[] = { "PCM", "ADC" };
-	static const char * const texts3[] = { "PCM", "ADC1", "ADC2" };
+	static const char *const texts2[] = { "PCM", "ADC" };
+	static const char *const texts3[] = { "PCM", "ADC1", "ADC2" };
 	hda_nid_t dig_out = spec->gen.multiout.dig_out_nid;
 	int num_conns = snd_hda_get_num_conns(codec, dig_out);
 
 	if (num_conns == 2)
+	{
 		return snd_hda_enum_helper_info(kcontrol, uinfo, 2, texts2);
+	}
 	else if (num_conns == 3)
+	{
 		return snd_hda_enum_helper_info(kcontrol, uinfo, 3, texts3);
+	}
 	else
+	{
 		return -EINVAL;
+	}
 }
 
 static int ad1983_auto_smux_enum_get(struct snd_kcontrol *kcontrol,
-				     struct snd_ctl_elem_value *ucontrol)
+									 struct snd_ctl_elem_value *ucontrol)
 {
 	struct hda_codec *codec = snd_kcontrol_chip(kcontrol);
 	struct ad198x_spec *spec = codec->spec;
@@ -487,7 +559,7 @@ static int ad1983_auto_smux_enum_get(struct snd_kcontrol *kcontrol,
 }
 
 static int ad1983_auto_smux_enum_put(struct snd_kcontrol *kcontrol,
-				     struct snd_ctl_elem_value *ucontrol)
+									 struct snd_ctl_elem_value *ucontrol)
 {
 	struct hda_codec *codec = snd_kcontrol_chip(kcontrol);
 	struct ad198x_spec *spec = codec->spec;
@@ -496,16 +568,23 @@ static int ad1983_auto_smux_enum_put(struct snd_kcontrol *kcontrol,
 	int num_conns = snd_hda_get_num_conns(codec, dig_out);
 
 	if (val >= num_conns)
+	{
 		return -EINVAL;
+	}
+
 	if (spec->cur_smux == val)
+	{
 		return 0;
+	}
+
 	spec->cur_smux = val;
 	snd_hda_codec_write_cache(codec, dig_out, 0,
-				  AC_VERB_SET_CONNECT_SEL, val);
+							  AC_VERB_SET_CONNECT_SEL, val);
 	return 1;
 }
 
-static struct snd_kcontrol_new ad1983_auto_smux_mixer = {
+static struct snd_kcontrol_new ad1983_auto_smux_mixer =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "IEC958 Playback Source",
 	.info = ad1983_auto_smux_enum_info,
@@ -520,12 +599,22 @@ static int ad1983_add_spdif_mux_ctl(struct hda_codec *codec)
 	int num_conns;
 
 	if (!dig_out)
+	{
 		return 0;
+	}
+
 	num_conns = snd_hda_get_num_conns(codec, dig_out);
+
 	if (num_conns != 2 && num_conns != 3)
+	{
 		return 0;
+	}
+
 	if (!snd_hda_gen_add_kctl(&spec->gen, NULL, &ad1983_auto_smux_mixer))
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -537,8 +626,12 @@ static int patch_ad1983(struct hda_codec *codec)
 	int err;
 
 	err = alloc_ad_spec(codec);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	spec = codec->spec;
 
 	spec->gen.mixer_nid = 0x0e;
@@ -550,14 +643,22 @@ static int patch_ad1983(struct hda_codec *codec)
 	snd_hda_override_conn_list(codec, 0x0d, ARRAY_SIZE(conn_0d), conn_0d);
 
 	err = ad198x_parse_auto_config(codec, false);
+
 	if (err < 0)
+	{
 		goto error;
+	}
+
 	err = ad1983_add_spdif_mux_ctl(codec);
+
 	if (err < 0)
+	{
 		goto error;
+	}
+
 	return 0;
 
- error:
+error:
 	snd_hda_gen_free(codec);
 	return err;
 }
@@ -568,11 +669,12 @@ static int patch_ad1983(struct hda_codec *codec)
  */
 
 static void ad1981_fixup_hp_eapd(struct hda_codec *codec,
-				 const struct hda_fixup *fix, int action)
+								 const struct hda_fixup *fix, int action)
 {
 	struct ad198x_spec *spec = codec->spec;
 
-	if (action == HDA_FIXUP_ACT_PRE_PROBE) {
+	if (action == HDA_FIXUP_ACT_PRE_PROBE)
+	{
 		spec->gen.vmaster_mute.hook = ad_vmaster_eapd_hook;
 		spec->eapd_nid = 0x05;
 	}
@@ -582,22 +684,24 @@ static void ad1981_fixup_hp_eapd(struct hda_codec *codec,
  * damage by overloading
  */
 static void ad1981_fixup_amp_override(struct hda_codec *codec,
-				      const struct hda_fixup *fix, int action)
+									  const struct hda_fixup *fix, int action)
 {
 	if (action == HDA_FIXUP_ACT_PRE_PROBE)
 		snd_hda_override_amp_caps(codec, 0x11, HDA_INPUT,
-					  (0x17 << AC_AMPCAP_OFFSET_SHIFT) |
-					  (0x17 << AC_AMPCAP_NUM_STEPS_SHIFT) |
-					  (0x05 << AC_AMPCAP_STEP_SIZE_SHIFT) |
-					  (1 << AC_AMPCAP_MUTE_SHIFT));
+								  (0x17 << AC_AMPCAP_OFFSET_SHIFT) |
+								  (0x17 << AC_AMPCAP_NUM_STEPS_SHIFT) |
+								  (0x05 << AC_AMPCAP_STEP_SIZE_SHIFT) |
+								  (1 << AC_AMPCAP_MUTE_SHIFT));
 }
 
-enum {
+enum
+{
 	AD1981_FIXUP_AMP_OVERRIDE,
 	AD1981_FIXUP_HP_EAPD,
 };
 
-static const struct hda_fixup ad1981_fixups[] = {
+static const struct hda_fixup ad1981_fixups[] =
+{
 	[AD1981_FIXUP_AMP_OVERRIDE] = {
 		.type = HDA_FIXUP_FUNC,
 		.v.func = ad1981_fixup_amp_override,
@@ -610,7 +714,8 @@ static const struct hda_fixup ad1981_fixups[] = {
 	},
 };
 
-static const struct snd_pci_quirk ad1981_fixup_tbl[] = {
+static const struct snd_pci_quirk ad1981_fixup_tbl[] =
+{
 	SND_PCI_QUIRK_VENDOR(0x1014, "Lenovo", AD1981_FIXUP_AMP_OVERRIDE),
 	SND_PCI_QUIRK_VENDOR(0x103c, "HP", AD1981_FIXUP_HP_EAPD),
 	SND_PCI_QUIRK_VENDOR(0x17aa, "Lenovo", AD1981_FIXUP_AMP_OVERRIDE),
@@ -625,8 +730,12 @@ static int patch_ad1981(struct hda_codec *codec)
 	int err;
 
 	err = alloc_ad_spec(codec);
+
 	if (err < 0)
+	{
 		return -ENOMEM;
+	}
+
 	spec = codec->spec;
 
 	spec->gen.mixer_nid = 0x0e;
@@ -637,17 +746,24 @@ static int patch_ad1981(struct hda_codec *codec)
 	snd_hda_apply_fixup(codec, HDA_FIXUP_ACT_PRE_PROBE);
 
 	err = ad198x_parse_auto_config(codec, false);
+
 	if (err < 0)
+	{
 		goto error;
+	}
+
 	err = ad1983_add_spdif_mux_ctl(codec);
+
 	if (err < 0)
+	{
 		goto error;
+	}
 
 	snd_hda_apply_fixup(codec, HDA_FIXUP_ACT_PROBE);
 
 	return 0;
 
- error:
+error:
 	snd_hda_gen_free(codec);
 	return err;
 }
@@ -739,20 +855,25 @@ static int patch_ad1981(struct hda_codec *codec)
  */
 
 static int ad1988_auto_smux_enum_info(struct snd_kcontrol *kcontrol,
-				      struct snd_ctl_elem_info *uinfo)
+									  struct snd_ctl_elem_info *uinfo)
 {
 	struct hda_codec *codec = snd_kcontrol_chip(kcontrol);
-	static const char * const texts[] = {
+	static const char *const texts[] =
+	{
 		"PCM", "ADC1", "ADC2", "ADC3",
 	};
 	int num_conns = snd_hda_get_num_conns(codec, 0x0b) + 1;
+
 	if (num_conns > 4)
+	{
 		num_conns = 4;
+	}
+
 	return snd_hda_enum_helper_info(kcontrol, uinfo, num_conns, texts);
 }
 
 static int ad1988_auto_smux_enum_get(struct snd_kcontrol *kcontrol,
-				     struct snd_ctl_elem_value *ucontrol)
+									 struct snd_ctl_elem_value *ucontrol)
 {
 	struct hda_codec *codec = snd_kcontrol_chip(kcontrol);
 	struct ad198x_spec *spec = codec->spec;
@@ -762,7 +883,7 @@ static int ad1988_auto_smux_enum_get(struct snd_kcontrol *kcontrol,
 }
 
 static int ad1988_auto_smux_enum_put(struct snd_kcontrol *kcontrol,
-				     struct snd_ctl_elem_value *ucontrol)
+									 struct snd_ctl_elem_value *ucontrol)
 {
 	struct hda_codec *codec = snd_kcontrol_chip(kcontrol);
 	struct ad198x_spec *spec = codec->spec;
@@ -771,24 +892,38 @@ static int ad1988_auto_smux_enum_put(struct snd_kcontrol *kcontrol,
 	int num_conns = snd_hda_get_num_conns(codec, 0x0b) + 1;
 
 	if (val >= num_conns)
+	{
 		return -EINVAL;
+	}
+
 	if (spec->cur_smux == val)
+	{
 		return 0;
+	}
 
 	mutex_lock(&codec->control_mutex);
 	path = snd_hda_get_path_from_idx(codec,
-					 spec->smux_paths[spec->cur_smux]);
+									 spec->smux_paths[spec->cur_smux]);
+
 	if (path)
+	{
 		snd_hda_activate_path(codec, path, false, true);
+	}
+
 	path = snd_hda_get_path_from_idx(codec, spec->smux_paths[val]);
+
 	if (path)
+	{
 		snd_hda_activate_path(codec, path, true, true);
+	}
+
 	spec->cur_smux = val;
 	mutex_unlock(&codec->control_mutex);
 	return 1;
 }
 
-static struct snd_kcontrol_new ad1988_auto_smux_mixer = {
+static struct snd_kcontrol_new ad1988_auto_smux_mixer =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "IEC958 Playback Source",
 	.info = ad1988_auto_smux_enum_info,
@@ -802,16 +937,26 @@ static int ad1988_auto_init(struct hda_codec *codec)
 	int i, err;
 
 	err = snd_hda_gen_init(codec);
-	if (err < 0)
-		return err;
-	if (!spec->gen.autocfg.dig_outs)
-		return 0;
 
-	for (i = 0; i < 4; i++) {
+	if (err < 0)
+	{
+		return err;
+	}
+
+	if (!spec->gen.autocfg.dig_outs)
+	{
+		return 0;
+	}
+
+	for (i = 0; i < 4; i++)
+	{
 		struct nid_path *path;
 		path = snd_hda_get_path_from_idx(codec, spec->smux_paths[i]);
+
 		if (path)
+		{
 			snd_hda_activate_path(codec, path, path->active, false);
+		}
 	}
 
 	return 0;
@@ -824,7 +969,8 @@ static int ad1988_add_spdif_mux_ctl(struct hda_codec *codec)
 	/* we create four static faked paths, since AD codecs have odd
 	 * widget connections regarding the SPDIF out source
 	 */
-	static struct nid_path fake_paths[4] = {
+	static struct nid_path fake_paths[4] =
+	{
 		{
 			.depth = 3,
 			.path = { 0x02, 0x1d, 0x1b },
@@ -853,25 +999,41 @@ static int ad1988_add_spdif_mux_ctl(struct hda_codec *codec)
 
 	/* SPDIF source mux appears to be present only on AD1988A */
 	if (!spec->gen.autocfg.dig_outs ||
-	    get_wcaps_type(get_wcaps(codec, 0x1d)) != AC_WID_AUD_MIX)
+		get_wcaps_type(get_wcaps(codec, 0x1d)) != AC_WID_AUD_MIX)
+	{
 		return 0;
+	}
 
 	num_conns = snd_hda_get_num_conns(codec, 0x0b) + 1;
-	if (num_conns != 3 && num_conns != 4)
-		return 0;
 
-	for (i = 0; i < num_conns; i++) {
+	if (num_conns != 3 && num_conns != 4)
+	{
+		return 0;
+	}
+
+	for (i = 0; i < num_conns; i++)
+	{
 		struct nid_path *path = snd_array_new(&spec->gen.paths);
+
 		if (!path)
+		{
 			return -ENOMEM;
+		}
+
 		*path = fake_paths[i];
+
 		if (!i)
+		{
 			path->active = 1;
+		}
+
 		spec->smux_paths[i] = snd_hda_get_path_idx(codec, path);
 	}
 
 	if (!snd_hda_gen_add_kctl(&spec->gen, NULL, &ad1988_auto_smux_mixer))
+	{
 		return -ENOMEM;
+	}
 
 	codec->patch_ops.init = ad1988_auto_init;
 
@@ -881,14 +1043,17 @@ static int ad1988_add_spdif_mux_ctl(struct hda_codec *codec)
 /*
  */
 
-enum {
+enum
+{
 	AD1988_FIXUP_6STACK_DIG,
 };
 
-static const struct hda_fixup ad1988_fixups[] = {
+static const struct hda_fixup ad1988_fixups[] =
+{
 	[AD1988_FIXUP_6STACK_DIG] = {
 		.type = HDA_FIXUP_PINS,
-		.v.pins = (const struct hda_pintbl[]) {
+		.v.pins = (const struct hda_pintbl[])
+		{
 			{ 0x11, 0x02214130 }, /* front-hp */
 			{ 0x12, 0x01014010 }, /* line-out */
 			{ 0x14, 0x02a19122 }, /* front-mic */
@@ -903,7 +1068,8 @@ static const struct hda_fixup ad1988_fixups[] = {
 	},
 };
 
-static const struct hda_model_fixup ad1988_fixup_models[] = {
+static const struct hda_model_fixup ad1988_fixup_models[] =
+{
 	{ .id = AD1988_FIXUP_6STACK_DIG, .name = "6stack-dig" },
 	{}
 };
@@ -914,8 +1080,12 @@ static int patch_ad1988(struct hda_codec *codec)
 	int err;
 
 	err = alloc_ad_spec(codec);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	spec = codec->spec;
 
 	spec->gen.mixer_nid = 0x20;
@@ -927,17 +1097,24 @@ static int patch_ad1988(struct hda_codec *codec)
 	snd_hda_apply_fixup(codec, HDA_FIXUP_ACT_PRE_PROBE);
 
 	err = ad198x_parse_auto_config(codec, true);
+
 	if (err < 0)
+	{
 		goto error;
+	}
+
 	err = ad1988_add_spdif_mux_ctl(codec);
+
 	if (err < 0)
+	{
 		goto error;
+	}
 
 	snd_hda_apply_fixup(codec, HDA_FIXUP_ACT_PROBE);
 
 	return 0;
 
- error:
+error:
 	snd_hda_gen_free(codec);
 	return err;
 }
@@ -973,14 +1150,14 @@ static int patch_ad1988(struct hda_codec *codec)
  * damage by overloading
  */
 static void ad1884_fixup_amp_override(struct hda_codec *codec,
-				      const struct hda_fixup *fix, int action)
+									  const struct hda_fixup *fix, int action)
 {
 	if (action == HDA_FIXUP_ACT_PRE_PROBE)
 		snd_hda_override_amp_caps(codec, 0x20, HDA_INPUT,
-					  (0x17 << AC_AMPCAP_OFFSET_SHIFT) |
-					  (0x17 << AC_AMPCAP_NUM_STEPS_SHIFT) |
-					  (0x05 << AC_AMPCAP_STEP_SIZE_SHIFT) |
-					  (1 << AC_AMPCAP_MUTE_SHIFT));
+								  (0x17 << AC_AMPCAP_OFFSET_SHIFT) |
+								  (0x17 << AC_AMPCAP_NUM_STEPS_SHIFT) |
+								  (0x05 << AC_AMPCAP_STEP_SIZE_SHIFT) |
+								  (1 << AC_AMPCAP_MUTE_SHIFT));
 }
 
 /* toggle GPIO1 according to the mute state */
@@ -990,43 +1167,54 @@ static void ad1884_vmaster_hp_gpio_hook(void *private_data, int enabled)
 	struct ad198x_spec *spec = codec->spec;
 
 	if (spec->eapd_nid)
+	{
 		ad_vmaster_eapd_hook(private_data, enabled);
+	}
+
 	snd_hda_codec_update_cache(codec, 0x01, 0,
-				   AC_VERB_SET_GPIO_DATA,
-				   enabled ? 0x00 : 0x02);
+							   AC_VERB_SET_GPIO_DATA,
+							   enabled ? 0x00 : 0x02);
 }
 
 static void ad1884_fixup_hp_eapd(struct hda_codec *codec,
-				 const struct hda_fixup *fix, int action)
+								 const struct hda_fixup *fix, int action)
 {
 	struct ad198x_spec *spec = codec->spec;
 
-	switch (action) {
-	case HDA_FIXUP_ACT_PRE_PROBE:
-		spec->gen.vmaster_mute.hook = ad1884_vmaster_hp_gpio_hook;
-		spec->gen.own_eapd_ctl = 1;
-		snd_hda_codec_write_cache(codec, 0x01, 0,
-					  AC_VERB_SET_GPIO_MASK, 0x02);
-		snd_hda_codec_write_cache(codec, 0x01, 0,
-					  AC_VERB_SET_GPIO_DIRECTION, 0x02);
-		snd_hda_codec_write_cache(codec, 0x01, 0,
-					  AC_VERB_SET_GPIO_DATA, 0x02);
-		break;
-	case HDA_FIXUP_ACT_PROBE:
-		if (spec->gen.autocfg.line_out_type == AUTO_PIN_SPEAKER_OUT)
-			spec->eapd_nid = spec->gen.autocfg.line_out_pins[0];
-		else
-			spec->eapd_nid = spec->gen.autocfg.speaker_pins[0];
-		break;
+	switch (action)
+	{
+		case HDA_FIXUP_ACT_PRE_PROBE:
+			spec->gen.vmaster_mute.hook = ad1884_vmaster_hp_gpio_hook;
+			spec->gen.own_eapd_ctl = 1;
+			snd_hda_codec_write_cache(codec, 0x01, 0,
+									  AC_VERB_SET_GPIO_MASK, 0x02);
+			snd_hda_codec_write_cache(codec, 0x01, 0,
+									  AC_VERB_SET_GPIO_DIRECTION, 0x02);
+			snd_hda_codec_write_cache(codec, 0x01, 0,
+									  AC_VERB_SET_GPIO_DATA, 0x02);
+			break;
+
+		case HDA_FIXUP_ACT_PROBE:
+			if (spec->gen.autocfg.line_out_type == AUTO_PIN_SPEAKER_OUT)
+			{
+				spec->eapd_nid = spec->gen.autocfg.line_out_pins[0];
+			}
+			else
+			{
+				spec->eapd_nid = spec->gen.autocfg.speaker_pins[0];
+			}
+
+			break;
 	}
 }
 
 static void ad1884_fixup_thinkpad(struct hda_codec *codec,
-				  const struct hda_fixup *fix, int action)
+								  const struct hda_fixup *fix, int action)
 {
 	struct ad198x_spec *spec = codec->spec;
 
-	if (action == HDA_FIXUP_ACT_PRE_PROBE) {
+	if (action == HDA_FIXUP_ACT_PRE_PROBE)
+	{
 		spec->gen.keep_eapd_on = 1;
 		spec->gen.vmaster_mute.hook = ad_vmaster_eapd_hook;
 		spec->eapd_nid = 0x12;
@@ -1037,13 +1225,15 @@ static void ad1884_fixup_thinkpad(struct hda_codec *codec,
 }
 
 /* set magic COEFs for dmic */
-static const struct hda_verb ad1884_dmic_init_verbs[] = {
+static const struct hda_verb ad1884_dmic_init_verbs[] =
+{
 	{0x01, AC_VERB_SET_COEF_INDEX, 0x13f7},
 	{0x01, AC_VERB_SET_PROC_COEF, 0x08},
 	{}
 };
 
-enum {
+enum
+{
 	AD1884_FIXUP_AMP_OVERRIDE,
 	AD1884_FIXUP_HP_EAPD,
 	AD1884_FIXUP_DMIC_COEF,
@@ -1051,7 +1241,8 @@ enum {
 	AD1884_FIXUP_HP_TOUCHSMART,
 };
 
-static const struct hda_fixup ad1884_fixups[] = {
+static const struct hda_fixup ad1884_fixups[] =
+{
 	[AD1884_FIXUP_AMP_OVERRIDE] = {
 		.type = HDA_FIXUP_FUNC,
 		.v.func = ad1884_fixup_amp_override,
@@ -1080,7 +1271,8 @@ static const struct hda_fixup ad1884_fixups[] = {
 	},
 };
 
-static const struct snd_pci_quirk ad1884_fixup_tbl[] = {
+static const struct snd_pci_quirk ad1884_fixup_tbl[] =
+{
 	SND_PCI_QUIRK(0x103c, 0x2a82, "HP Touchsmart", AD1884_FIXUP_HP_TOUCHSMART),
 	SND_PCI_QUIRK_VENDOR(0x103c, "HP", AD1884_FIXUP_HP_EAPD),
 	SND_PCI_QUIRK_VENDOR(0x17aa, "Lenovo Thinkpad", AD1884_FIXUP_THINKPAD),
@@ -1094,8 +1286,12 @@ static int patch_ad1884(struct hda_codec *codec)
 	int err;
 
 	err = alloc_ad_spec(codec);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	spec = codec->spec;
 
 	spec->gen.mixer_nid = 0x20;
@@ -1107,17 +1303,24 @@ static int patch_ad1884(struct hda_codec *codec)
 	snd_hda_apply_fixup(codec, HDA_FIXUP_ACT_PRE_PROBE);
 
 	err = ad198x_parse_auto_config(codec, true);
+
 	if (err < 0)
+	{
 		goto error;
+	}
+
 	err = ad1983_add_spdif_mux_ctl(codec);
+
 	if (err < 0)
+	{
 		goto error;
+	}
 
 	snd_hda_apply_fixup(codec, HDA_FIXUP_ACT_PROBE);
 
 	return 0;
 
- error:
+error:
 	snd_hda_gen_free(codec);
 	return err;
 }
@@ -1140,8 +1343,12 @@ static int patch_ad1882(struct hda_codec *codec)
 	int err;
 
 	err = alloc_ad_spec(codec);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	spec = codec->spec;
 
 	spec->gen.mixer_nid = 0x20;
@@ -1149,14 +1356,22 @@ static int patch_ad1882(struct hda_codec *codec)
 	spec->gen.beep_nid = 0x10;
 	set_beep_amp(spec, 0x10, 0, HDA_OUTPUT);
 	err = ad198x_parse_auto_config(codec, true);
+
 	if (err < 0)
+	{
 		goto error;
+	}
+
 	err = ad1988_add_spdif_mux_ctl(codec);
+
 	if (err < 0)
+	{
 		goto error;
+	}
+
 	return 0;
 
- error:
+error:
 	snd_hda_gen_free(codec);
 	return err;
 }
@@ -1165,7 +1380,8 @@ static int patch_ad1882(struct hda_codec *codec)
 /*
  * patch entries
  */
-static const struct hda_device_id snd_hda_id_analog[] = {
+static const struct hda_device_id snd_hda_id_analog[] =
+{
 	HDA_CODEC_ENTRY(0x11d4184a, "AD1884A", patch_ad1884),
 	HDA_CODEC_ENTRY(0x11d41882, "AD1882", patch_ad1882),
 	HDA_CODEC_ENTRY(0x11d41883, "AD1883", patch_ad1884),
@@ -1188,7 +1404,8 @@ MODULE_DEVICE_TABLE(hdaudio, snd_hda_id_analog);
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Analog Devices HD-audio codec");
 
-static struct hda_codec_driver analog_driver = {
+static struct hda_codec_driver analog_driver =
+{
 	.id = snd_hda_id_analog,
 };
 

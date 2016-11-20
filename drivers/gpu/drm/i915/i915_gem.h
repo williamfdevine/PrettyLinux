@@ -26,9 +26,9 @@
 #define __I915_GEM_H__
 
 #ifdef CONFIG_DRM_I915_DEBUG_GEM
-#define GEM_BUG_ON(expr) BUG_ON(expr)
+	#define GEM_BUG_ON(expr) BUG_ON(expr)
 #else
-#define GEM_BUG_ON(expr)
+	#define GEM_BUG_ON(expr)
 #endif
 
 #endif /* __I915_GEM_H__ */

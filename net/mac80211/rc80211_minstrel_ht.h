@@ -16,31 +16,32 @@
 #define MINSTREL_MAX_STREAMS		3
 #define MINSTREL_HT_STREAM_GROUPS	4 /* BW(=2) * SGI(=2) */
 #ifdef CONFIG_MAC80211_RC_MINSTREL_VHT
-#define MINSTREL_VHT_STREAM_GROUPS	6 /* BW(=3) * SGI(=2) */
+	#define MINSTREL_VHT_STREAM_GROUPS	6 /* BW(=3) * SGI(=2) */
 #else
-#define MINSTREL_VHT_STREAM_GROUPS	0
+	#define MINSTREL_VHT_STREAM_GROUPS	0
 #endif
 
 #define MINSTREL_HT_GROUPS_NB	(MINSTREL_MAX_STREAMS *		\
-				 MINSTREL_HT_STREAM_GROUPS)
+								 MINSTREL_HT_STREAM_GROUPS)
 #define MINSTREL_VHT_GROUPS_NB	(MINSTREL_MAX_STREAMS *		\
-				 MINSTREL_VHT_STREAM_GROUPS)
+								 MINSTREL_VHT_STREAM_GROUPS)
 #define MINSTREL_CCK_GROUPS_NB	1
 #define MINSTREL_GROUPS_NB	(MINSTREL_HT_GROUPS_NB +	\
-				 MINSTREL_VHT_GROUPS_NB +	\
-				 MINSTREL_CCK_GROUPS_NB)
+							 MINSTREL_VHT_GROUPS_NB +	\
+							 MINSTREL_CCK_GROUPS_NB)
 
 #define MINSTREL_HT_GROUP_0	0
 #define MINSTREL_CCK_GROUP	(MINSTREL_HT_GROUP_0 + MINSTREL_HT_GROUPS_NB)
 #define MINSTREL_VHT_GROUP_0	(MINSTREL_CCK_GROUP + 1)
 
 #ifdef CONFIG_MAC80211_RC_MINSTREL_VHT
-#define MCS_GROUP_RATES		10
+	#define MCS_GROUP_RATES		10
 #else
-#define MCS_GROUP_RATES		8
+	#define MCS_GROUP_RATES		8
 #endif
 
-struct mcs_group {
+struct mcs_group
+{
 	u32 flags;
 	unsigned int streams;
 	unsigned int duration[MCS_GROUP_RATES];
@@ -48,7 +49,8 @@ struct mcs_group {
 
 extern const struct mcs_group minstrel_mcs_groups[];
 
-struct minstrel_mcs_group_data {
+struct minstrel_mcs_group_data
+{
 	u8 index;
 	u8 column;
 
@@ -63,7 +65,8 @@ struct minstrel_mcs_group_data {
 	struct minstrel_rate_stats rates[MCS_GROUP_RATES];
 };
 
-struct minstrel_ht_sta {
+struct minstrel_ht_sta
+{
 	struct ieee80211_sta *sta;
 
 	/* ampdu length (average, per sampling interval) */
@@ -105,8 +108,10 @@ struct minstrel_ht_sta {
 	struct minstrel_mcs_group_data groups[MINSTREL_GROUPS_NB];
 };
 
-struct minstrel_ht_sta_priv {
-	union {
+struct minstrel_ht_sta_priv
+{
+	union
+	{
 		struct minstrel_ht_sta ht;
 		struct minstrel_sta_info legacy;
 	};
@@ -122,6 +127,6 @@ struct minstrel_ht_sta_priv {
 void minstrel_ht_add_sta_debugfs(void *priv, void *priv_sta, struct dentry *dir);
 void minstrel_ht_remove_sta_debugfs(void *priv, void *priv_sta);
 int minstrel_ht_get_tp_avg(struct minstrel_ht_sta *mi, int group, int rate,
-			   int prob_ewma);
+						   int prob_ewma);
 
 #endif

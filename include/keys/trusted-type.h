@@ -20,7 +20,8 @@
 #define MAX_PCRINFO_SIZE		64
 #define MAX_DIGEST_SIZE			64
 
-struct trusted_key_payload {
+struct trusted_key_payload
+{
 	struct rcu_head rcu;
 	unsigned int key_len;
 	unsigned int blob_len;
@@ -29,7 +30,8 @@ struct trusted_key_payload {
 	unsigned char blob[MAX_BLOB_SIZE];
 };
 
-struct trusted_key_options {
+struct trusted_key_options
+{
 	uint16_t keytype;
 	uint32_t keyhandle;
 	unsigned char keyauth[TPM_DIGEST_SIZE];

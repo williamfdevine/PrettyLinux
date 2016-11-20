@@ -28,7 +28,7 @@
 
 MODULE_AUTHOR("David Gibson <hermes@gibson.dropbear.id.au>");
 MODULE_DESCRIPTION("Driver for PCMCIA Lucent Orinoco,"
-		   " Prism II based and similar wireless cards");
+				   " Prism II based and similar wireless cards");
 MODULE_LICENSE("Dual MPL/GPL");
 
 /* Module parameters */
@@ -45,7 +45,8 @@ MODULE_PARM_DESC(ignore_cis_vcc, "Allow voltage mismatch between card and socket
 
 /* PCMCIA specific device information (goes in the card field of
  * struct orinoco_private */
-struct orinoco_pccard {
+struct orinoco_pccard
+{
 	struct pcmcia_device	*p_dev;
 
 	/* Used to handle hard reset */
@@ -78,8 +79,11 @@ orinoco_cs_hard_reset(struct orinoco_private *priv)
 	set_bit(0, &card->hard_reset_in_progress);
 
 	err = pcmcia_reset_card(link->socket);
+
 	if (err)
+	{
 		return err;
+	}
 
 	msleep(100);
 	clear_bit(0, &card->hard_reset_in_progress);
@@ -98,9 +102,13 @@ orinoco_cs_probe(struct pcmcia_device *link)
 	struct orinoco_pccard *card;
 
 	priv = alloc_orinocodev(sizeof(*card), &link->dev,
-				orinoco_cs_hard_reset, NULL);
+							orinoco_cs_hard_reset, NULL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
+
 	card = priv->card;
 
 	/* Link both structures together */
@@ -125,7 +133,9 @@ static void orinoco_cs_detach(struct pcmcia_device *link)
 static int orinoco_cs_config_check(struct pcmcia_device *p_dev, void *priv_data)
 {
 	if (p_dev->config_index == 0)
+	{
 		return -EINVAL;
+	}
 
 	return pcmcia_request_io(p_dev);
 };
@@ -139,22 +149,32 @@ orinoco_cs_config(struct pcmcia_device *link)
 	void __iomem *mem;
 
 	link->config_flags |= CONF_AUTO_SET_VPP | CONF_AUTO_CHECK_VCC |
-		CONF_AUTO_SET_IO | CONF_ENABLE_IRQ;
+						  CONF_AUTO_SET_IO | CONF_ENABLE_IRQ;
+
 	if (ignore_cis_vcc)
+	{
 		link->config_flags &= ~CONF_AUTO_CHECK_VCC;
+	}
+
 	ret = pcmcia_loop_config(link, orinoco_cs_config_check, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		if (!ignore_cis_vcc)
 			printk(KERN_ERR PFX "GetNextTuple(): No matching "
-			       "CIS configuration.  Maybe you need the "
-			       "ignore_cis_vcc=1 parameter.\n");
+				   "CIS configuration.  Maybe you need the "
+				   "ignore_cis_vcc=1 parameter.\n");
+
 		goto failed;
 	}
 
 	mem = ioport_map(link->resource[0]->start,
-			resource_size(link->resource[0]));
+					 resource_size(link->resource[0]));
+
 	if (!mem)
+	{
 		goto failed;
+	}
 
 	/* We initialize the hermes structure before completing PCMCIA
 	 * configuration just in case the interrupt handler gets
@@ -162,29 +182,37 @@ orinoco_cs_config(struct pcmcia_device *link)
 	hermes_struct_init(hw, mem, HERMES_16BIT_REGSPACING);
 
 	ret = pcmcia_request_irq(link, orinoco_interrupt);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	ret = pcmcia_enable_device(link);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	/* Initialise the main driver */
-	if (orinoco_init(priv) != 0) {
+	if (orinoco_init(priv) != 0)
+	{
 		printk(KERN_ERR PFX "orinoco_init() failed\n");
 		goto failed;
 	}
 
 	/* Register an interface with the stack */
 	if (orinoco_if_add(priv, link->resource[0]->start,
-			   link->irq, NULL) != 0) {
+					   link->irq, NULL) != 0)
+	{
 		printk(KERN_ERR PFX "orinoco_if_add() failed\n");
 		goto failed;
 	}
 
 	return 0;
 
- failed:
+failed:
 	orinoco_cs_release(link);
 	return -ENODEV;
 }				/* orinoco_cs_config */
@@ -202,8 +230,11 @@ orinoco_cs_release(struct pcmcia_device *link)
 	priv->hw.ops->unlock_irqrestore(&priv->lock, &flags);
 
 	pcmcia_disable_device(link);
+
 	if (priv->hw.iobase)
+	{
 		ioport_unmap(priv->hw.iobase);
+	}
 }				/* orinoco_cs_release */
 
 static int orinoco_cs_suspend(struct pcmcia_device *link)
@@ -215,7 +246,9 @@ static int orinoco_cs_suspend(struct pcmcia_device *link)
 	   a better way, short of rewriting the PCMCIA
 	   layer to not suck :-( */
 	if (!test_bit(0, &card->hard_reset_in_progress))
+	{
 		orinoco_down(priv);
+	}
 
 	return 0;
 }
@@ -227,7 +260,9 @@ static int orinoco_cs_resume(struct pcmcia_device *link)
 	int err = 0;
 
 	if (!test_bit(0, &card->hard_reset_in_progress))
+	{
 		err = orinoco_up(priv);
+	}
 
 	return err;
 }
@@ -237,7 +272,8 @@ static int orinoco_cs_resume(struct pcmcia_device *link)
 /* Module initialization					    */
 /********************************************************************/
 
-static const struct pcmcia_device_id orinoco_cs_ids[] = {
+static const struct pcmcia_device_id orinoco_cs_ids[] =
+{
 	PCMCIA_DEVICE_MANF_CARD(0x0101, 0x0777), /* 3Com AirConnect PCI 777A */
 	PCMCIA_DEVICE_MANF_CARD(0x016b, 0x0001), /* Ericsson WLAN Card C11 */
 	PCMCIA_DEVICE_MANF_CARD(0x01eb, 0x080a), /* Nortel Networks eMobility 802.11 Wireless Adapter */
@@ -329,7 +365,8 @@ static const struct pcmcia_device_id orinoco_cs_ids[] = {
 };
 MODULE_DEVICE_TABLE(pcmcia, orinoco_cs_ids);
 
-static struct pcmcia_driver orinoco_driver = {
+static struct pcmcia_driver orinoco_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= DRIVER_NAME,
 	.probe		= orinoco_cs_probe,

@@ -35,16 +35,19 @@ static cycle_t notrace clksrc_dbx500_prcmu_read(struct clocksource *cs)
 	void __iomem *base = clksrc_dbx500_timer_base;
 	u32 count, count2;
 
-	do {
+	do
+	{
 		count = readl_relaxed(base + PRCMU_TIMER_DOWNCOUNT);
 		count2 = readl_relaxed(base + PRCMU_TIMER_DOWNCOUNT);
-	} while (count2 != count);
+	}
+	while (count2 != count);
 
 	/* Negate because the timer is a decrementing counter */
 	return ~count;
 }
 
-static struct clocksource clocksource_dbx500_prcmu = {
+static struct clocksource clocksource_dbx500_prcmu =
+{
 	.name		= "dbx500-prcmu-timer",
 	.rating		= 300,
 	.read		= clksrc_dbx500_prcmu_read,
@@ -57,7 +60,9 @@ static struct clocksource clocksource_dbx500_prcmu = {
 static u64 notrace dbx500_prcmu_sched_clock_read(void)
 {
 	if (unlikely(!clksrc_dbx500_timer_base))
+	{
 		return 0;
+	}
 
 	return clksrc_dbx500_prcmu_read(&clocksource_dbx500_prcmu);
 }
@@ -75,16 +80,18 @@ static int __init clksrc_dbx500_prcmu_init(struct device_node *node)
 	 * don't we do it here.
 	 */
 	if (readl(clksrc_dbx500_timer_base + PRCMU_TIMER_MODE) !=
-	    TIMER_MODE_CONTINOUS) {
+		TIMER_MODE_CONTINOUS)
+	{
 		writel(TIMER_MODE_CONTINOUS,
-		       clksrc_dbx500_timer_base + PRCMU_TIMER_MODE);
+			   clksrc_dbx500_timer_base + PRCMU_TIMER_MODE);
 		writel(TIMER_DOWNCOUNT_VAL,
-		       clksrc_dbx500_timer_base + PRCMU_TIMER_REF);
+			   clksrc_dbx500_timer_base + PRCMU_TIMER_REF);
 	}
+
 #ifdef CONFIG_CLKSRC_DBX500_PRCMU_SCHED_CLOCK
 	sched_clock_register(dbx500_prcmu_sched_clock_read, 32, RATE_32K);
 #endif
 	return clocksource_register_hz(&clocksource_dbx500_prcmu, RATE_32K);
 }
 CLOCKSOURCE_OF_DECLARE(dbx500_prcmu, "stericsson,db8500-prcmu-timer-4",
-		       clksrc_dbx500_prcmu_init);
+					   clksrc_dbx500_prcmu_init);

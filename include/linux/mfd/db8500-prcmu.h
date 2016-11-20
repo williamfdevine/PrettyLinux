@@ -32,7 +32,8 @@
  * @ON: State is OFF
  *
  */
-enum state {
+enum state
+{
 	OFF = 0x0,
 	ON  = 0x1,
 };
@@ -41,7 +42,8 @@ enum state {
  * enum ret_state - general purpose On/Off/Retention states
  *
  */
-enum ret_state {
+enum ret_state
+{
 	OFFST = 0,
 	ONST  = 1,
 	RETST = 2
@@ -55,7 +57,8 @@ enum ret_state {
  * @A9_OPPT2:
  * @A9_EXTCLK:
  */
-enum clk_arm {
+enum clk_arm
+{
 	A9_OFF,
 	A9_BOOT,
 	A9_OPPT1,
@@ -69,7 +72,8 @@ enum clk_arm {
  * @GEN_BOOT:
  * @GEN_OPPT1:
  */
-enum clk_gen {
+enum clk_gen
+{
 	GEN_OFF,
 	GEN_BOOT,
 	GEN_OPPT1,
@@ -83,7 +87,8 @@ enum clk_gen {
  * @RDY_2_XP70_RST: Value set when 0x0F has been successfully polled by the
  *                 romcode. The xp70 will go into self-reset
  */
-enum romcode_write {
+enum romcode_write
+{
 	RDY_2_DS = 0x09,
 	RDY_2_XP70_RST = 0x10
 };
@@ -103,7 +108,8 @@ enum romcode_write {
  * @END_SWR: Value set when the xp70 finished executing ApReset actions and
  *          waits for romcode acknowledgment to go to self-reset
  */
-enum romcode_read {
+enum romcode_read
+{
 	INIT = 0x00,
 	FS_2_DS = 0x0A,
 	END_DS = 0x0B,
@@ -123,7 +129,8 @@ enum romcode_read {
  * @AP_IDLE: Current power state is apIdle
  * @AP_RESET: Current power state is apReset
  */
-enum ap_pwrst {
+enum ap_pwrst
+{
 	NO_PWRST = 0x00,
 	AP_BOOT = 0x01,
 	AP_EXECUTE = 0x02,
@@ -143,7 +150,8 @@ enum ap_pwrst {
  *                          ApDeepSleep
  * @APEXECUTE_TO_APIDLE: Power state transition from ApExecute to ApIdle
  */
-enum ap_pwrst_trans {
+enum ap_pwrst_trans
+{
 	PRCMU_AP_NO_CHANGE		= 0x00,
 	APEXECUTE_TO_APSLEEP		= 0x01,
 	APIDLE_TO_APSLEEP		= 0x02, /* To be removed */
@@ -167,7 +175,8 @@ enum ap_pwrst_trans {
  * NOTE! Deprecated, to be removed when all users switched over to use the
  * regulator API.
  */
-enum hw_acc_state {
+enum hw_acc_state
+{
 	HW_NO_CHANGE = 0x00,
 	HW_OFF = 0x01,
 	HW_OFF_RAMRET = 0x02,
@@ -201,7 +210,8 @@ enum hw_acc_state {
  *                    completed
  * @INIT_STATUS: Status init
  */
-enum ap_pwrsttr_status {
+enum ap_pwrsttr_status
+{
 	BOOT_TO_EXECUTEOK = 0xFF,
 	DEEPSLEEPOK = 0xFE,
 	SLEEPOK = 0xFD,
@@ -262,7 +272,8 @@ enum ap_pwrsttr_status {
  *                   NOCHGCLK
  * @DVFS_INITSTATUS: Value init
  */
-enum dvfs_stat {
+enum dvfs_stat
+{
 	DVFS_GO = 0xFF,
 	DVFS_ARM100OPPOK = 0xFE,
 	DVFS_ARM50OPPOK = 0xFD,
@@ -276,7 +287,8 @@ enum dvfs_stat {
  * @SVA_MMDSP_GO: SVAMMDSP interrupt has happened
  * @SVA_MMDSP_INIT: Status init
  */
-enum sva_mmdsp_stat {
+enum sva_mmdsp_stat
+{
 	SVA_MMDSP_GO = 0xFF,
 	SVA_MMDSP_INIT = 0x00
 };
@@ -286,7 +298,8 @@ enum sva_mmdsp_stat {
  * @SIA_MMDSP_GO: SIAMMDSP interrupt has happened
  * @SIA_MMDSP_INIT: Status init
  */
-enum sia_mmdsp_stat {
+enum sia_mmdsp_stat
+{
 	SIA_MMDSP_GO = 0xFF,
 	SIA_MMDSP_INIT = 0x00
 };
@@ -348,7 +361,8 @@ enum sia_mmdsp_stat {
  * @VMODREGUVALTO_ERR: The VModemRegu value transfered through I2C has not
  *                    been correctly executed in the given time
  */
-enum mbox_to_arm_err {
+enum mbox_to_arm_err
+{
 	INIT_ERR = 0x00,
 	PLLARMLOCKP_ERR = 0x01,
 	PLLDDRLOCKP_ERR = 0x02,
@@ -382,7 +396,8 @@ enum mbox_to_arm_err {
 	VMODREGUVALTO_ERR = 0x28
 };
 
-enum hw_acc {
+enum hw_acc
+{
 	SVAMMDSP = 0,
 	SVAPIPE = 1,
 	SIAMMDSP = 2,
@@ -393,7 +408,8 @@ enum hw_acc {
 	ESRAM34 = 7,
 };
 
-enum cs_pwrmgt {
+enum cs_pwrmgt
+{
 	PWRDNCS0  = 0,
 	WKUPCS0   = 1,
 	PWRDNCS1  = 2,
@@ -411,7 +427,8 @@ enum cs_pwrmgt {
  * @DSPCLKOFF_HWPCLKOFF:
  *
  */
-enum sia_sva_pwr_policy {
+enum sia_sva_pwr_policy
+{
 	NO_CHGT			= 0x0,
 	DSPOFF_HWPOFF		= 0x1,
 	DSPOFFRAMRET_HWPOFF	= 0x2,
@@ -425,7 +442,8 @@ enum sia_sva_pwr_policy {
  * @AUTO_ON:
  *
  */
-enum auto_enable {
+enum auto_enable
+{
 	AUTO_OFF	= 0x0,
 	AUTO_ON		= 0x1,
 };
@@ -442,7 +460,8 @@ enum auto_enable {
  * @PRCMU_ARMPENDINGIT_ER: Pending interrupt detected
  *
  */
-enum prcmu_power_status {
+enum prcmu_power_status
+{
 	PRCMU_SLEEP_OK			= 0xf3,
 	PRCMU_DEEP_SLEEP_OK		= 0xf6,
 	PRCMU_IDLE_OK			= 0xf0,
@@ -461,7 +480,8 @@ enum prcmu_power_status {
 #define PRCMU_AUTO_PM_POWER_ON_HSEM BIT(0)
 #define PRCMU_AUTO_PM_POWER_ON_ABB_FIFO_IT BIT(1)
 
-enum prcmu_auto_pm_policy {
+enum prcmu_auto_pm_policy
+{
 	PRCMU_AUTO_PM_POLICY_NO_CHANGE,
 	PRCMU_AUTO_PM_POLICY_DSP_OFF_HWP_OFF,
 	PRCMU_AUTO_PM_POLICY_DSP_OFF_RAMRET_HWP_OFF,
@@ -478,7 +498,8 @@ enum prcmu_auto_pm_policy {
  * @sva_power_on:       SVA power ON enable. (PRCMU_AUTO_PM_POWER_ON_* bitmask)
  * @sva_policy:         SVA power policy. (enum prcmu_auto_pm_policy)
  */
-struct prcmu_auto_pm_config {
+struct prcmu_auto_pm_config
+{
 	u8 sia_auto_pm_enable;
 	u8 sia_power_on;
 	u8 sia_policy;
@@ -497,7 +518,7 @@ bool prcmu_has_arm_maxopp(void);
 struct prcmu_fw_version *prcmu_get_fw_version(void);
 int prcmu_release_usb_wakeup_state(void);
 void prcmu_configure_auto_pm(struct prcmu_auto_pm_config *sleep,
-	struct prcmu_auto_pm_config *idle);
+							 struct prcmu_auto_pm_config *idle);
 bool prcmu_is_auto_pm_enabled(void);
 
 int prcmu_config_clkout(u8 clkout, u8 source, u8 div);
@@ -599,7 +620,7 @@ static inline int db8500_prcmu_get_ddr_opp(void)
 }
 
 static inline void prcmu_configure_auto_pm(struct prcmu_auto_pm_config *sleep,
-	struct prcmu_auto_pm_config *idle)
+		struct prcmu_auto_pm_config *idle)
 {
 }
 
@@ -660,7 +681,7 @@ static inline void db8500_prcmu_modem_reset(void) {}
 static inline void db8500_prcmu_system_reset(u16 reset_code) {}
 
 static inline int db8500_prcmu_set_power_state(u8 state, bool keep_ulp_clk,
-	bool keep_ap_pll)
+		bool keep_ap_pll)
 {
 	return 0;
 }
@@ -759,7 +780,7 @@ static inline u32 db8500_prcmu_read(unsigned int reg)
 static inline void db8500_prcmu_write(unsigned int reg, u32 value) {}
 
 static inline void db8500_prcmu_write_masked(unsigned int reg, u32 mask,
-	u32 value) {}
+		u32 value) {}
 
 #endif /* !CONFIG_MFD_DB8500_PRCMU */
 

@@ -36,7 +36,8 @@
 /**
  * enum mtk_hw_reg_idx - MTK hw register base index
  */
-enum mtk_hw_reg_idx {
+enum mtk_hw_reg_idx
+{
 	VDEC_SYS,
 	VDEC_MISC,
 	VDEC_LD,
@@ -60,7 +61,8 @@ enum mtk_hw_reg_idx {
 /**
  * enum mtk_instance_type - The type of an MTK Vcodec instance.
  */
-enum mtk_instance_type {
+enum mtk_instance_type
+{
 	MTK_INST_DECODER		= 0,
 	MTK_INST_ENCODER		= 1,
 };
@@ -74,7 +76,8 @@ enum mtk_instance_type {
  * @MTK_STATE_FLUSH - vdec is flushing. Only used by decoder
  * @MTK_STATE_ABORT - vcodec should be aborted
  */
-enum mtk_instance_state {
+enum mtk_instance_state
+{
 	MTK_STATE_FREE = 0,
 	MTK_STATE_INIT = 1,
 	MTK_STATE_HEADER = 2,
@@ -85,7 +88,8 @@ enum mtk_instance_state {
 /**
  * struct mtk_encode_param - General encoding parameters type
  */
-enum mtk_encode_param {
+enum mtk_encode_param
+{
 	MTK_ENCODE_PARAM_NONE = 0,
 	MTK_ENCODE_PARAM_BITRATE = (1 << 0),
 	MTK_ENCODE_PARAM_FRAMERATE = (1 << 1),
@@ -94,7 +98,8 @@ enum mtk_encode_param {
 	MTK_ENCODE_PARAM_GOP_SIZE = (1 << 4),
 };
 
-enum mtk_fmt_type {
+enum mtk_fmt_type
+{
 	MTK_FMT_DEC = 0,
 	MTK_FMT_ENC = 1,
 	MTK_FMT_FRAME = 2,
@@ -103,7 +108,8 @@ enum mtk_fmt_type {
 /**
  * struct mtk_video_fmt - Structure used to store information about pixelformats
  */
-struct mtk_video_fmt {
+struct mtk_video_fmt
+{
 	u32	fourcc;
 	enum mtk_fmt_type	type;
 	u32	num_planes;
@@ -113,7 +119,8 @@ struct mtk_video_fmt {
  * struct mtk_codec_framesizes - Structure used to store information about
  *							framesizes
  */
-struct mtk_codec_framesizes {
+struct mtk_codec_framesizes
+{
 	u32	fourcc;
 	struct	v4l2_frmsize_stepwise	stepwise;
 };
@@ -121,7 +128,8 @@ struct mtk_codec_framesizes {
 /**
  * struct mtk_q_type - Type of queue
  */
-enum mtk_q_type {
+enum mtk_q_type
+{
 	MTK_Q_DATA_SRC = 0,
 	MTK_Q_DATA_DST = 1,
 };
@@ -129,7 +137,8 @@ enum mtk_q_type {
 /**
  * struct mtk_q_data - Structure used to store information about queue
  */
-struct mtk_q_data {
+struct mtk_q_data
+{
 	unsigned int	visible_width;
 	unsigned int	visible_height;
 	unsigned int	coded_width;
@@ -159,7 +168,8 @@ struct mtk_q_data {
  * @h264_level: V4L2 defined H.264 level
  * @force_intra: force/insert intra frame
  */
-struct mtk_enc_params {
+struct mtk_enc_params
+{
 	unsigned int	bitrate;
 	unsigned int	num_b_frame;
 	unsigned int	rc_frame;
@@ -178,7 +188,8 @@ struct mtk_enc_params {
 /**
  * struct mtk_vcodec_pm - Power management data structure
  */
-struct mtk_vcodec_pm {
+struct mtk_vcodec_pm
+{
 	struct clk	*vcodecpll;
 	struct clk	*univpll_d2;
 	struct clk	*clk_cci400_sel;
@@ -226,7 +237,8 @@ struct mtk_vcodec_pm {
  * @quantization: enum v4l2_quantization, colorspace quantization
  * @xfer_func: enum v4l2_xfer_func, colorspace transfer function
  */
-struct mtk_vcodec_ctx {
+struct mtk_vcodec_ctx
+{
 	enum mtk_instance_type type;
 	struct mtk_vcodec_dev *dev;
 	struct list_head list;
@@ -289,7 +301,8 @@ struct mtk_vcodec_ctx {
  * @dec_capability: used to identify decode capability, ex: 4k
  * @enc_capability: used to identify encode capability
  */
-struct mtk_vcodec_dev {
+struct mtk_vcodec_dev
+{
 	struct v4l2_device v4l2_dev;
 	struct video_device *vfd_enc;
 

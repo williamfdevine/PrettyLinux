@@ -53,7 +53,8 @@
 
 struct etraxfs_gpio_info;
 
-struct etraxfs_gpio_block {
+struct etraxfs_gpio_block
+{
 	spinlock_t lock;
 	u32 mask;
 	u32 cfg;
@@ -64,12 +65,14 @@ struct etraxfs_gpio_block {
 	const struct etraxfs_gpio_info *info;
 };
 
-struct etraxfs_gpio_chip {
+struct etraxfs_gpio_chip
+{
 	struct gpio_chip gc;
 	struct etraxfs_gpio_block *block;
 };
 
-struct etraxfs_gpio_port {
+struct etraxfs_gpio_port
+{
 	const char *label;
 	unsigned int oe;
 	unsigned int dout;
@@ -77,7 +80,8 @@ struct etraxfs_gpio_port {
 	unsigned int ngpio;
 };
 
-struct etraxfs_gpio_info {
+struct etraxfs_gpio_info
+{
 	unsigned int num_ports;
 	const struct etraxfs_gpio_port *ports;
 
@@ -88,7 +92,8 @@ struct etraxfs_gpio_info {
 	unsigned int r_masked_intr;
 };
 
-static const struct etraxfs_gpio_port etraxfs_gpio_etraxfs_ports[] = {
+static const struct etraxfs_gpio_port etraxfs_gpio_etraxfs_ports[] =
+{
 	{
 		.label	= "A",
 		.ngpio	= 8,
@@ -126,7 +131,8 @@ static const struct etraxfs_gpio_port etraxfs_gpio_etraxfs_ports[] = {
 	},
 };
 
-static const struct etraxfs_gpio_info etraxfs_gpio_etraxfs = {
+static const struct etraxfs_gpio_info etraxfs_gpio_etraxfs =
+{
 	.num_ports = ARRAY_SIZE(etraxfs_gpio_etraxfs_ports),
 	.ports = etraxfs_gpio_etraxfs_ports,
 	.rw_ack_intr	= ETRAX_FS_rw_ack_intr,
@@ -135,7 +141,8 @@ static const struct etraxfs_gpio_info etraxfs_gpio_etraxfs = {
 	.r_masked_intr	= ETRAX_FS_r_masked_intr,
 };
 
-static const struct etraxfs_gpio_port etraxfs_gpio_artpec3_ports[] = {
+static const struct etraxfs_gpio_port etraxfs_gpio_artpec3_ports[] =
+{
 	{
 		.label	= "A",
 		.ngpio	= 32,
@@ -164,7 +171,8 @@ static const struct etraxfs_gpio_port etraxfs_gpio_artpec3_ports[] = {
 	},
 };
 
-static const struct etraxfs_gpio_info etraxfs_gpio_artpec3 = {
+static const struct etraxfs_gpio_info etraxfs_gpio_artpec3 =
+{
 	.num_ports = ARRAY_SIZE(etraxfs_gpio_artpec3_ports),
 	.ports = etraxfs_gpio_artpec3_ports,
 	.rw_ack_intr	= ARTPEC3_rw_ack_intr,
@@ -180,20 +188,23 @@ static unsigned int etraxfs_gpio_chip_to_port(struct gpio_chip *gc)
 }
 
 static int etraxfs_gpio_of_xlate(struct gpio_chip *gc,
-			       const struct of_phandle_args *gpiospec,
-			       u32 *flags)
+								 const struct of_phandle_args *gpiospec,
+								 u32 *flags)
 {
 	/*
 	 * Port numbers are A to E, and the properties are integers, so we
 	 * specify them as 0xA - 0xE.
 	 */
 	if (etraxfs_gpio_chip_to_port(gc) + 0xA != gpiospec->args[2])
+	{
 		return -EINVAL;
+	}
 
 	return of_gpio_simple_xlate(gc, gpiospec, flags);
 }
 
-static const struct of_device_id etraxfs_gpio_of_table[] = {
+static const struct of_device_id etraxfs_gpio_of_table[] =
+{
 	{
 		.compatible = "axis,etraxfs-gio",
 		.data = &etraxfs_gpio_etraxfs,
@@ -211,7 +222,7 @@ static unsigned int etraxfs_gpio_to_group_irq(unsigned int gpio)
 }
 
 static unsigned int etraxfs_gpio_to_group_pin(struct etraxfs_gpio_chip *chip,
-					      unsigned int gpio)
+		unsigned int gpio)
 {
 	return 4 * etraxfs_gpio_chip_to_port(&chip->gc) + gpio / 8;
 }
@@ -260,24 +271,30 @@ static int etraxfs_gpio_irq_set_type(struct irq_data *d, u32 type)
 	unsigned int grpirq = etraxfs_gpio_to_group_irq(d->hwirq);
 	u32 cfg;
 
-	switch (type) {
-	case IRQ_TYPE_EDGE_RISING:
-		cfg = GIO_CFG_POSEDGE;
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		cfg = GIO_CFG_NEGEDGE;
-		break;
-	case IRQ_TYPE_EDGE_BOTH:
-		cfg = GIO_CFG_ANYEDGE;
-		break;
-	case IRQ_TYPE_LEVEL_LOW:
-		cfg = GIO_CFG_LO;
-		break;
-	case IRQ_TYPE_LEVEL_HIGH:
-		cfg = GIO_CFG_HI;
-		break;
-	default:
-		return -EINVAL;
+	switch (type)
+	{
+		case IRQ_TYPE_EDGE_RISING:
+			cfg = GIO_CFG_POSEDGE;
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			cfg = GIO_CFG_NEGEDGE;
+			break;
+
+		case IRQ_TYPE_EDGE_BOTH:
+			cfg = GIO_CFG_ANYEDGE;
+			break;
+
+		case IRQ_TYPE_LEVEL_LOW:
+			cfg = GIO_CFG_LO;
+			break;
+
+		case IRQ_TYPE_LEVEL_HIGH:
+			cfg = GIO_CFG_HI;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	spin_lock(&block->lock);
@@ -298,15 +315,23 @@ static int etraxfs_gpio_irq_request_resources(struct irq_data *d)
 	int ret = -EBUSY;
 
 	spin_lock(&block->lock);
+
 	if (block->group[grpirq])
+	{
 		goto out;
+	}
 
 	ret = gpiochip_lock_as_irq(&chip->gc, d->hwirq);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	block->group[grpirq] = d->irq;
-	if (block->info->rw_intr_pins) {
+
+	if (block->info->rw_intr_pins)
+	{
 		unsigned int pin = etraxfs_gpio_to_group_pin(chip, d->hwirq);
 
 		block->pins &= ~(0xf << (grpirq * 4));
@@ -333,7 +358,8 @@ static void etraxfs_gpio_irq_release_resources(struct irq_data *d)
 	spin_unlock(&block->lock);
 }
 
-static struct irq_chip etraxfs_gpio_irq_chip = {
+static struct irq_chip etraxfs_gpio_irq_chip =
+{
 	.name		= "gpio-etraxfs",
 	.irq_ack	= etraxfs_gpio_irq_ack,
 	.irq_mask	= etraxfs_gpio_irq_mask,
@@ -350,7 +376,7 @@ static irqreturn_t etraxfs_gpio_interrupt(int irq, void *dev_id)
 	int bit;
 
 	for_each_set_bit(bit, &intr, 8)
-		generic_handle_irq(block->group[bit]);
+	generic_handle_irq(block->group[bit]);
 
 	return IRQ_RETVAL(intr & 0xff);
 }
@@ -370,26 +396,41 @@ static int etraxfs_gpio_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	regs = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(regs))
+	{
 		return PTR_ERR(regs);
+	}
 
 	match = of_match_node(etraxfs_gpio_of_table, dev->of_node);
+
 	if (!match)
+	{
 		return -EINVAL;
+	}
 
 	info = match->data;
 
 	chips = devm_kzalloc(dev, sizeof(*chips) * info->num_ports, GFP_KERNEL);
+
 	if (!chips)
+	{
 		return -ENOMEM;
+	}
 
 	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+
 	if (!irq)
+	{
 		return -EINVAL;
+	}
 
 	block = devm_kzalloc(dev, sizeof(*block), GFP_KERNEL);
+
 	if (!block)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&block->lock);
 
@@ -398,19 +439,24 @@ static int etraxfs_gpio_probe(struct platform_device *pdev)
 
 	writel(0, block->regs + info->rw_intr_mask);
 	writel(0, block->regs + info->rw_intr_cfg);
-	if (info->rw_intr_pins) {
+
+	if (info->rw_intr_pins)
+	{
 		allportsirq = true;
 		writel(0, block->regs + info->rw_intr_pins);
 	}
 
 	ret = devm_request_irq(dev, irq->start, etraxfs_gpio_interrupt,
-			       IRQF_SHARED, dev_name(dev), block);
-	if (ret) {
+						   IRQF_SHARED, dev_name(dev), block);
+
+	if (ret)
+	{
 		dev_err(dev, "Unable to request irq %d\n", ret);
 		return ret;
 	}
 
-	for (i = 0; i < info->num_ports; i++) {
+	for (i = 0; i < info->num_ports; i++)
+	{
 		struct etraxfs_gpio_chip *chip = &chips[i];
 		struct gpio_chip *gc = &chip->gc;
 		const struct etraxfs_gpio_port *port = &info->ports[i];
@@ -421,17 +467,20 @@ static int etraxfs_gpio_probe(struct platform_device *pdev)
 
 		chip->block = block;
 
-		if (dirout == set) {
+		if (dirout == set)
+		{
 			dirout = set = NULL;
 			flags = BGPIOF_NO_OUTPUT;
 		}
 
 		ret = bgpio_init(gc, dev, 4,
-				 dat, set, NULL, dirout, NULL,
-				 flags);
-		if (ret) {
+						 dat, set, NULL, dirout, NULL,
+						 flags);
+
+		if (ret)
+		{
 			dev_err(dev, "Unable to init port %s\n",
-				port->label);
+					port->label);
 			continue;
 		}
 
@@ -443,27 +492,34 @@ static int etraxfs_gpio_probe(struct platform_device *pdev)
 		gc->of_xlate = etraxfs_gpio_of_xlate;
 
 		ret = gpiochip_add_data(gc, chip);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "Unable to register port %s\n",
-				gc->label);
+					gc->label);
 			continue;
 		}
 
 		if (i > 0 && !allportsirq)
+		{
 			continue;
+		}
 
 		ret = gpiochip_irqchip_add(gc, &etraxfs_gpio_irq_chip, 0,
-					   handle_level_irq, IRQ_TYPE_NONE);
-		if (ret) {
+								   handle_level_irq, IRQ_TYPE_NONE);
+
+		if (ret)
+		{
 			dev_err(dev, "Unable to add irqchip to port %s\n",
-				gc->label);
+					gc->label);
 		}
 	}
 
 	return 0;
 }
 
-static struct platform_driver etraxfs_gpio_driver = {
+static struct platform_driver etraxfs_gpio_driver =
+{
 	.driver = {
 		.name		= "etraxfs-gpio",
 		.of_match_table = of_match_ptr(etraxfs_gpio_of_table),

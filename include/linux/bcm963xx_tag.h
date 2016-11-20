@@ -23,9 +23,9 @@
 #define IMAGETAG_CRC_START	0xFFFFFFFF
 
 #define PIRELLI_BOARDS { \
-	"AGPF-S0", \
-	"DWV-S0", \
-}
+		"AGPF-S0", \
+		"DWV-S0", \
+	}
 
 /* Extended flash address, needs to be subtracted
  * from bcm_tag flash image offsets.
@@ -42,7 +42,8 @@
  * needs to be rootfs + deadcode (jffs2 EOF marker)
 */
 
-struct bcm_tag {
+struct bcm_tag
+{
 	/* 0-3: Version of the image tag */
 	char tag_version[TAGVER_LEN];
 	/* 4-23: Company Line 1 */

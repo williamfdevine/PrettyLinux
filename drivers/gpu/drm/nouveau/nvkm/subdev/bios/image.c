@@ -36,29 +36,40 @@ nvbios_imagen(struct nvkm_bios *bios, struct nvbios_image *image)
 	u16 hdr;
 	u32 data;
 
-	switch ((data = nvbios_rd16(bios, image->base + 0x00))) {
-	case 0xaa55:
-	case 0xbb77:
-	case 0x4e56: /* NV */
-		break;
-	default:
-		nvkm_debug(subdev, "%08x: ROM signature (%04x) unknown\n",
-			   image->base, data);
-		return false;
+	switch ((data = nvbios_rd16(bios, image->base + 0x00)))
+	{
+		case 0xaa55:
+		case 0xbb77:
+		case 0x4e56: /* NV */
+			break;
+
+		default:
+			nvkm_debug(subdev, "%08x: ROM signature (%04x) unknown\n",
+					   image->base, data);
+			return false;
 	}
 
 	if (!(data = nvbios_pcirTp(bios, image->base, &ver, &hdr, &pcir)))
+	{
 		return false;
+	}
+
 	image->size = pcir.image_size;
 	image->type = pcir.image_type;
 	image->last = pcir.last;
 
-	if (image->type != 0x70) {
+	if (image->type != 0x70)
+	{
 		if (!(data = nvbios_npdeTp(bios, image->base, &npde)))
+		{
 			return true;
+		}
+
 		image->size = npde.image_size;
 		image->last = npde.last;
-	} else {
+	}
+	else
+	{
 		image->last = true;
 	}
 
@@ -71,13 +82,19 @@ nvbios_image(struct nvkm_bios *bios, int idx, struct nvbios_image *image)
 	u32 imaged_addr = bios->imaged_addr;
 	memset(image, 0x00, sizeof(*image));
 	bios->imaged_addr = 0;
-	do {
+
+	do
+	{
 		image->base += image->size;
-		if (image->last || !nvbios_imagen(bios, image)) {
+
+		if (image->last || !nvbios_imagen(bios, image))
+		{
 			bios->imaged_addr = imaged_addr;
 			return false;
 		}
-	} while(idx--);
+	}
+	while (idx--);
+
 	bios->imaged_addr = imaged_addr;
 	return true;
 }

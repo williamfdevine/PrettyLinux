@@ -37,28 +37,31 @@ struct device;
 #define SIZE_MAX_CMD    0x10
 #define SIZE_MAX_STATUS 0x10
 
-struct vx_rmh {
+struct vx_rmh
+{
 	u16	LgCmd;		/* length of the command to send (WORDs) */
 	u16	LgStat;		/* length of the status received (WORDs) */
 	u32	Cmd[SIZE_MAX_CMD];
 	u32	Stat[SIZE_MAX_STATUS];
 	u16	DspStat;	/* status type, RMP_SSIZE_XXX */
 };
-	
+
 typedef u64 pcx_time_t;
 
 #define VX_MAX_PIPES	16
 #define VX_MAX_PERIODS	32
 #define VX_MAX_CODECS	2
 
-struct vx_ibl_info {
+struct vx_ibl_info
+{
 	int size;	/* the current IBL size (0 = query) in bytes */
 	int max_size;	/* max. IBL size in bytes */
 	int min_size;	/* min. IBL size in bytes */
 	int granularity;	/* granularity */
 };
 
-struct vx_pipe {
+struct vx_pipe
+{
 	int number;
 	unsigned int is_capture: 1;
 	unsigned int data_mode: 1;
@@ -84,7 +87,8 @@ struct vx_pipe {
 
 struct vx_core;
 
-struct snd_vx_ops {
+struct snd_vx_ops
+{
 	/* low-level i/o */
 	unsigned char (*in8)(struct vx_core *chip, int reg);
 	unsigned int (*in32)(struct vx_core *chip, int reg);
@@ -106,12 +110,13 @@ struct snd_vx_ops {
 	int (*add_controls)(struct vx_core *chip);
 	/* pcm */
 	void (*dma_write)(struct vx_core *chip, struct snd_pcm_runtime *runtime,
-			  struct vx_pipe *pipe, int count);
+					  struct vx_pipe *pipe, int count);
 	void (*dma_read)(struct vx_core *chip, struct snd_pcm_runtime *runtime,
-			  struct vx_pipe *pipe, int count);
+					 struct vx_pipe *pipe, int count);
 };
 
-struct snd_vx_hardware {
+struct snd_vx_hardware
+{
 	const char *name;
 	int type;	/* VX_TYPE_XXX */
 
@@ -127,7 +132,8 @@ struct snd_vx_hardware {
 #define SND_VX_HWDEP_ID		"VX Loader"
 
 /* hardware type */
-enum {
+enum
+{
 	/* VX222 PCI */
 	VX_TYPE_BOARD,		/* old VX222 PCI */
 	VX_TYPE_V2,		/* VX222 V2 PCI */
@@ -139,7 +145,8 @@ enum {
 };
 
 /* chip status */
-enum {
+enum
+{
 	VX_STAT_XILINX_LOADED	= (1 << 0),	/* devices are registered */
 	VX_STAT_DEVICE_INIT	= (1 << 1),	/* devices are registered */
 	VX_STAT_CHIP_INIT	= (1 << 2),	/* all operational */
@@ -150,7 +157,8 @@ enum {
 /* min/max values for analog output for old codecs */
 #define VX_ANALOG_OUT_LEVEL_MAX		0xe3
 
-struct vx_core {
+struct vx_core
+{
 	/* ALSA stuff */
 	struct snd_card *card;
 	struct snd_pcm *pcm[VX_MAX_CODECS];
@@ -207,7 +215,7 @@ struct vx_core {
  * constructor
  */
 struct vx_core *snd_vx_create(struct snd_card *card, struct snd_vx_hardware *hw,
-			      struct snd_vx_ops *ops, int extra_size);
+							  struct snd_vx_ops *ops, int extra_size);
 int snd_vx_setup_firmware(struct vx_core *chip);
 int snd_vx_load_boot_image(struct vx_core *chip, const struct firmware *dsp);
 int snd_vx_dsp_boot(struct vx_core *chip, const struct firmware *dsp);
@@ -286,13 +294,13 @@ int snd_vx_check_reg_bit(struct vx_core *chip, int reg, int mask, int bit, int t
  * pseudo-DMA transfer
  */
 static inline void vx_pseudo_dma_write(struct vx_core *chip, struct snd_pcm_runtime *runtime,
-				       struct vx_pipe *pipe, int count)
+									   struct vx_pipe *pipe, int count)
 {
 	chip->ops->dma_write(chip, runtime, pipe, count);
 }
 
 static inline void vx_pseudo_dma_read(struct vx_core *chip, struct snd_pcm_runtime *runtime,
-				      struct vx_pipe *pipe, int count)
+									  struct vx_pipe *pipe, int count)
 {
 	chip->ops->dma_read(chip, runtime, pipe, count);
 }
@@ -343,34 +351,39 @@ int snd_vx_resume(struct vx_core *card);
 #define vx_is_pcmcia(chip)	((chip)->type >= VX_TYPE_VXPOCKET)
 
 /* audio input source */
-enum {
+enum
+{
 	VX_AUDIO_SRC_DIGITAL,
 	VX_AUDIO_SRC_LINE,
 	VX_AUDIO_SRC_MIC
 };
 
 /* clock source */
-enum {
+enum
+{
 	INTERNAL_QUARTZ,
 	UER_SYNC
 };
 
 /* clock mode */
-enum {
+enum
+{
 	VX_CLOCK_MODE_AUTO,	/* depending on the current audio source */
 	VX_CLOCK_MODE_INTERNAL,	/* fixed to internal quartz */
 	VX_CLOCK_MODE_EXTERNAL	/* fixed to UER sync */
 };
 
 /* SPDIF/UER type */
-enum {
+enum
+{
 	VX_UER_MODE_CONSUMER,
 	VX_UER_MODE_PROFESSIONAL,
 	VX_UER_MODE_NOT_PRESENT,
 };
 
 /* register indices */
-enum {
+enum
+{
 	VX_ICR,
 	VX_CVR,
 	VX_ISR,
@@ -426,7 +439,8 @@ enum {
 };
 
 /* RMH status type */
-enum {
+enum
+{
 	RMH_SSIZE_FIXED = 0,	/* status size given by the driver (in LgStat) */
 	RMH_SSIZE_ARG = 1,	/* status size given in the LSB byte */
 	RMH_SSIZE_MASK = 2,	/* status size given in bitmask */
@@ -503,7 +517,7 @@ enum {
 #define END_OF_BUFFER_EVENTS_PENDING    0x000400
 #define FATAL_DSP_ERROR                 0xff0000
 
-/* Stream Format Header Defines */ 
+/* Stream Format Header Defines */
 #define HEADER_FMT_BASE			0xFED00000
 #define HEADER_FMT_MONO			0x000000C0
 #define HEADER_FMT_INTEL		0x00008000

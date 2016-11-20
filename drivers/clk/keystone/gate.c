@@ -50,7 +50,8 @@ static void __iomem *domain_transition_base;
  * @domain_base: Base address for a PSC domain
  * @domain_id: PSC domain id number
  */
-struct clk_psc_data {
+struct clk_psc_data
+{
 	void __iomem *control_base;
 	void __iomem *domain_base;
 	u32 domain_id;
@@ -62,7 +63,8 @@ struct clk_psc_data {
  * @psc_data: PSC driver specific data
  * @lock: Spinlock used by the driver
  */
-struct clk_psc {
+struct clk_psc
+{
 	struct clk_hw hw;
 	struct clk_psc_data *psc_data;
 	spinlock_t *lock;
@@ -73,7 +75,7 @@ static DEFINE_SPINLOCK(psc_lock);
 #define to_clk_psc(_hw) container_of(_hw, struct clk_psc, hw)
 
 static void psc_config(void __iomem *control_base, void __iomem *domain_base,
-						u32 next_state, u32 domain_id)
+					   u32 next_state, u32 domain_id)
 {
 	u32 ptcmd, pdstat, pdctl, mdstat, mdctl, ptstat;
 	u32 count = STATE_TRANS_MAX_COUNT;
@@ -81,13 +83,19 @@ static void psc_config(void __iomem *control_base, void __iomem *domain_base,
 	mdctl = readl(control_base + MDCTL);
 	mdctl &= ~MDSTAT_STATE_MASK;
 	mdctl |= next_state;
+
 	/* For disable, we always put the module in local reset */
 	if (next_state == PSC_STATE_DISABLE)
+	{
 		mdctl &= ~MDCTL_LRESET;
+	}
+
 	writel(mdctl, control_base + MDCTL);
 
 	pdstat = readl(domain_base + PDSTAT);
-	if (!(pdstat & PDSTAT_STATE_MASK)) {
+
+	if (!(pdstat & PDSTAT_STATE_MASK))
+	{
 		pdctl = readl(domain_base + PDCTL);
 		pdctl |= PDCTL_NEXT;
 		writel(pdctl, domain_base + PDCTL);
@@ -95,14 +103,20 @@ static void psc_config(void __iomem *control_base, void __iomem *domain_base,
 
 	ptcmd = 1 << domain_id;
 	writel(ptcmd, domain_transition_base + PTCMD);
-	do {
+
+	do
+	{
 		ptstat = readl(domain_transition_base + PTSTAT);
-	} while (((ptstat >> domain_id) & 1) && count--);
+	}
+	while (((ptstat >> domain_id) & 1) && count--);
 
 	count = STATE_TRANS_MAX_COUNT;
-	do {
+
+	do
+	{
 		mdstat = readl(control_base + MDSTAT);
-	} while (!((mdstat & MDSTAT_STATE_MASK) == next_state) && count--);
+	}
+	while (!((mdstat & MDSTAT_STATE_MASK) == next_state) && count--);
 }
 
 static int keystone_clk_is_enabled(struct clk_hw *hw)
@@ -121,13 +135,17 @@ static int keystone_clk_enable(struct clk_hw *hw)
 	unsigned long flags = 0;
 
 	if (psc->lock)
+	{
 		spin_lock_irqsave(psc->lock, flags);
+	}
 
 	psc_config(data->control_base, data->domain_base,
-				PSC_STATE_ENABLE, data->domain_id);
+			   PSC_STATE_ENABLE, data->domain_id);
 
 	if (psc->lock)
+	{
 		spin_unlock_irqrestore(psc->lock, flags);
+	}
 
 	return 0;
 }
@@ -139,16 +157,21 @@ static void keystone_clk_disable(struct clk_hw *hw)
 	unsigned long flags = 0;
 
 	if (psc->lock)
+	{
 		spin_lock_irqsave(psc->lock, flags);
+	}
 
 	psc_config(data->control_base, data->domain_base,
-				PSC_STATE_DISABLE, data->domain_id);
+			   PSC_STATE_DISABLE, data->domain_id);
 
 	if (psc->lock)
+	{
 		spin_unlock_irqrestore(psc->lock, flags);
+	}
 }
 
-static const struct clk_ops clk_psc_ops = {
+static const struct clk_ops clk_psc_ops =
+{
 	.enable = keystone_clk_enable,
 	.disable = keystone_clk_disable,
 	.is_enabled = keystone_clk_is_enabled,
@@ -163,18 +186,21 @@ static const struct clk_ops clk_psc_ops = {
  * @lock: spinlock used by this clock
  */
 static struct clk *clk_register_psc(struct device *dev,
-			const char *name,
-			const char *parent_name,
-			struct clk_psc_data *psc_data,
-			spinlock_t *lock)
+									const char *name,
+									const char *parent_name,
+									struct clk_psc_data *psc_data,
+									spinlock_t *lock)
 {
 	struct clk_init_data init;
 	struct clk_psc *psc;
 	struct clk *clk;
 
 	psc = kzalloc(sizeof(*psc), GFP_KERNEL);
+
 	if (!psc)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &clk_psc_ops;
@@ -187,8 +213,11 @@ static struct clk *clk_register_psc(struct device *dev,
 	psc->hw.init = &init;
 
 	clk = clk_register(NULL, &psc->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(psc);
+	}
 
 	return clk;
 }
@@ -207,21 +236,27 @@ static void __init of_psc_clk_init(struct device_node *node, spinlock_t *lock)
 	int i;
 
 	data = kzalloc(sizeof(*data), GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		pr_err("%s: Out of memory\n", __func__);
 		return;
 	}
 
 	i = of_property_match_string(node, "reg-names", "control");
 	data->control_base = of_iomap(node, i);
-	if (!data->control_base) {
+
+	if (!data->control_base)
+	{
 		pr_err("%s: control ioremap failed\n", __func__);
 		goto out;
 	}
 
 	i = of_property_match_string(node, "reg-names", "domain");
 	data->domain_base = of_iomap(node, i);
-	if (!data->domain_base) {
+
+	if (!data->domain_base)
+	{
 		pr_err("%s: domain ioremap failed\n", __func__);
 		goto unmap_ctrl;
 	}
@@ -230,17 +265,23 @@ static void __init of_psc_clk_init(struct device_node *node, spinlock_t *lock)
 
 	/* Domain transition registers at fixed address space of domain_id 0 */
 	if (!domain_transition_base && !data->domain_id)
+	{
 		domain_transition_base = data->domain_base;
+	}
 
 	of_property_read_string(node, "clock-output-names", &clk_name);
 	parent_name = of_clk_get_parent_name(node, 0);
-	if (!parent_name) {
+
+	if (!parent_name)
+	{
 		pr_err("%s: Parent clock not found\n", __func__);
 		goto unmap_domain;
 	}
 
 	clk = clk_register_psc(NULL, clk_name, parent_name, data, lock);
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
 		return;
 	}
@@ -265,4 +306,4 @@ static void __init of_keystone_psc_clk_init(struct device_node *node)
 	of_psc_clk_init(node, &psc_lock);
 }
 CLK_OF_DECLARE(keystone_gate_clk, "ti,keystone,psc-clock",
-					of_keystone_psc_clk_init);
+			   of_keystone_psc_clk_init);

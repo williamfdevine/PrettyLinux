@@ -303,11 +303,11 @@
 
 /* The command set exported by the boot ROM (MCDI v0) */
 #define MC_CMD_GET_VERSION_V0_SUPPORTED_FUNCS {		\
-	(1 << MC_CMD_READ32)	|			\
-	(1 << MC_CMD_WRITE32)	|			\
-	(1 << MC_CMD_COPYCODE)	|			\
-	(1 << MC_CMD_GET_VERSION),			\
-	0, 0, 0 }
+		(1 << MC_CMD_READ32)	|			\
+		(1 << MC_CMD_WRITE32)	|			\
+		(1 << MC_CMD_COPYCODE)	|			\
+		(1 << MC_CMD_GET_VERSION),			\
+		0, 0, 0 }
 
 #define MC_CMD_SENSOR_INFO_OUT_OFFSET_OFST(_x)		\
 	(MC_CMD_SENSOR_ENTRY_OFST + (_x))

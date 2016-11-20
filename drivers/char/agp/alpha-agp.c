@@ -12,7 +12,7 @@
 #include "agp.h"
 
 static int alpha_core_agp_vm_fault(struct vm_area_struct *vma,
-					struct vm_fault *vmf)
+								   struct vm_fault *vmf)
 {
 	alpha_agp_info *agp = agp_bridge->dev_private_data;
 	dma_addr_t dma_addr;
@@ -20,11 +20,13 @@ static int alpha_core_agp_vm_fault(struct vm_area_struct *vma,
 	struct page *page;
 
 	dma_addr = (unsigned long)vmf->virtual_address - vma->vm_start
-						+ agp->aperture.bus_base;
+			   + agp->aperture.bus_base;
 	pa = agp->ops->translate(agp, dma_addr);
 
-	if (pa == (unsigned long)-EINVAL)
-		return VM_FAULT_SIGBUS;	/* no translation */
+	if (pa == (unsigned long) - EINVAL)
+	{
+		return VM_FAULT_SIGBUS;    /* no translation */
+	}
 
 	/*
 	 * Get the page, inc the use count, and return it
@@ -40,7 +42,8 @@ static struct aper_size_info_fixed alpha_core_agp_sizes[] =
 	{ 0, 0, 0 }, /* filled in by alpha_core_agp_setup */
 };
 
-static const struct vm_operations_struct alpha_core_agp_vm_ops = {
+static const struct vm_operations_struct alpha_core_agp_vm_ops =
+{
 	.fault = alpha_core_agp_vm_fault,
 };
 
@@ -75,7 +78,7 @@ static void alpha_core_agp_enable(struct agp_bridge_data *bridge, u32 mode)
 	alpha_agp_info *agp = bridge->dev_private_data;
 
 	agp->mode.lw = agp_collect_device_status(bridge, mode,
-					agp->capability.lw);
+				   agp->capability.lw);
 
 	agp->mode.bits.enable = 1;
 	agp->ops->configure(agp);
@@ -84,19 +87,24 @@ static void alpha_core_agp_enable(struct agp_bridge_data *bridge, u32 mode)
 }
 
 static int alpha_core_agp_insert_memory(struct agp_memory *mem, off_t pg_start,
-					int type)
+										int type)
 {
 	alpha_agp_info *agp = agp_bridge->dev_private_data;
 	int num_entries, status;
 	void *temp;
 
 	if (type >= AGP_USER_TYPES || mem->type >= AGP_USER_TYPES)
+	{
 		return -EINVAL;
+	}
 
 	temp = agp_bridge->current_size;
 	num_entries = A_SIZE_FIX(temp)->num_entries;
+
 	if ((pg_start + mem->page_count) > num_entries)
+	{
 		return -EINVAL;
+	}
 
 	status = agp->ops->bind(agp, pg_start, mem);
 	mb();
@@ -106,7 +114,7 @@ static int alpha_core_agp_insert_memory(struct agp_memory *mem, off_t pg_start,
 }
 
 static int alpha_core_agp_remove_memory(struct agp_memory *mem, off_t pg_start,
-					int type)
+										int type)
 {
 	alpha_agp_info *agp = agp_bridge->dev_private_data;
 	int status;
@@ -121,7 +129,8 @@ static int alpha_core_agp_create_free_gatt_table(struct agp_bridge_data *a)
 	return 0;
 }
 
-struct agp_bridge_driver alpha_core_agp_driver = {
+struct agp_bridge_driver alpha_core_agp_driver =
+{
 	.owner			= THIS_MODULE,
 	.aperture_sizes		= alpha_core_agp_sizes,
 	.num_aperture_sizes	= 1,
@@ -159,9 +168,14 @@ alpha_core_agp_setup(void)
 	struct aper_size_info_fixed *aper_size;
 
 	if (!agp)
+	{
 		return -ENODEV;
+	}
+
 	if (agp->ops->setup(agp))
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * Build the aperture size descriptor
@@ -175,15 +189,22 @@ alpha_core_agp_setup(void)
 	 * Build a fake pci_dev struct
 	 */
 	pdev = pci_alloc_dev(NULL);
+
 	if (!pdev)
+	{
 		return -ENOMEM;
+	}
+
 	pdev->vendor = 0xffff;
 	pdev->device = 0xffff;
 	pdev->sysdata = agp->hose;
 
 	alpha_bridge = agp_alloc_bridge();
+
 	if (!alpha_bridge)
+	{
 		goto fail;
+	}
 
 	alpha_bridge->driver = &alpha_core_agp_driver;
 	alpha_bridge->vm_ops = &alpha_core_agp_vm_ops;
@@ -195,7 +216,7 @@ alpha_core_agp_setup(void)
 	printk(KERN_INFO PFX "Detected AGP on hose %d\n", agp->hose->index);
 	return agp_add_bridge(alpha_bridge);
 
- fail:
+fail:
 	kfree(pdev);
 	return -ENOMEM;
 }
@@ -203,9 +224,15 @@ alpha_core_agp_setup(void)
 static int __init agp_alpha_core_init(void)
 {
 	if (agp_off)
+	{
 		return -EINVAL;
+	}
+
 	if (alpha_mv.agp_info)
+	{
 		return alpha_core_agp_setup();
+	}
+
 	return -ENODEV;
 }
 

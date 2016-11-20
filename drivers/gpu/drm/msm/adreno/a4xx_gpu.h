@@ -21,7 +21,8 @@
 
 #include "a4xx.xml.h"
 
-struct a4xx_gpu {
+struct a4xx_gpu
+{
 	struct adreno_gpu base;
 	struct platform_device *pdev;
 

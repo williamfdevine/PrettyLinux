@@ -44,16 +44,21 @@ static void lapb_send_iframe(struct lapb_cb *lapb, struct sk_buff *skb, int poll
 	unsigned char *frame;
 
 	if (!skb)
+	{
 		return;
+	}
 
-	if (lapb->mode & LAPB_EXTENDED) {
+	if (lapb->mode & LAPB_EXTENDED)
+	{
 		frame = skb_push(skb, 2);
 
 		frame[0] = LAPB_I;
 		frame[0] |= lapb->vs << 1;
 		frame[1] = poll_bit ? LAPB_EPF : 0;
 		frame[1] |= lapb->vr << 1;
-	} else {
+	}
+	else
+	{
 		frame = skb_push(skb, 1);
 
 		*frame = LAPB_I;
@@ -63,7 +68,7 @@ static void lapb_send_iframe(struct lapb_cb *lapb, struct sk_buff *skb, int poll
 	}
 
 	lapb_dbg(1, "(%p) S%d TX I(%d) S%d R%d\n",
-		 lapb->dev, lapb->state, poll_bit, lapb->vs, lapb->vr);
+			 lapb->dev, lapb->state, poll_bit, lapb->vs, lapb->vr);
 
 	lapb_transmit_buffer(lapb, skb, LAPB_COMMAND);
 }
@@ -78,7 +83,8 @@ void lapb_kick(struct lapb_cb *lapb)
 	end   = (lapb->va + lapb->window) % modulus;
 
 	if (!(lapb->condition & LAPB_PEER_RX_BUSY_CONDITION) &&
-	    start != end && skb_peek(&lapb->write_queue)) {
+		start != end && skb_peek(&lapb->write_queue))
+	{
 		lapb->vs = start;
 
 		/*
@@ -86,14 +92,18 @@ void lapb_kick(struct lapb_cb *lapb)
 		 */
 		skb = skb_dequeue(&lapb->write_queue);
 
-		do {
-			if ((skbn = skb_clone(skb, GFP_ATOMIC)) == NULL) {
+		do
+		{
+			if ((skbn = skb_clone(skb, GFP_ATOMIC)) == NULL)
+			{
 				skb_queue_head(&lapb->write_queue, skb);
 				break;
 			}
 
 			if (skb->sk)
+			{
 				skb_set_owner_w(skbn, skb->sk);
+			}
 
 			/*
 			 * Transmit the frame copy.
@@ -107,12 +117,15 @@ void lapb_kick(struct lapb_cb *lapb)
 			 */
 			skb_queue_tail(&lapb->ack_queue, skb);
 
-		} while (lapb->vs != end && (skb = skb_dequeue(&lapb->write_queue)) != NULL);
+		}
+		while (lapb->vs != end && (skb = skb_dequeue(&lapb->write_queue)) != NULL);
 
 		lapb->condition &= ~LAPB_ACK_PENDING_CONDITION;
 
 		if (!lapb_t1timer_running(lapb))
+		{
 			lapb_start_t1timer(lapb);
+		}
 	}
 }
 
@@ -122,36 +135,67 @@ void lapb_transmit_buffer(struct lapb_cb *lapb, struct sk_buff *skb, int type)
 
 	ptr = skb_push(skb, 1);
 
-	if (lapb->mode & LAPB_MLP) {
-		if (lapb->mode & LAPB_DCE) {
+	if (lapb->mode & LAPB_MLP)
+	{
+		if (lapb->mode & LAPB_DCE)
+		{
 			if (type == LAPB_COMMAND)
+			{
 				*ptr = LAPB_ADDR_C;
+			}
+
 			if (type == LAPB_RESPONSE)
+			{
 				*ptr = LAPB_ADDR_D;
-		} else {
-			if (type == LAPB_COMMAND)
-				*ptr = LAPB_ADDR_D;
-			if (type == LAPB_RESPONSE)
-				*ptr = LAPB_ADDR_C;
+			}
 		}
-	} else {
-		if (lapb->mode & LAPB_DCE) {
+		else
+		{
 			if (type == LAPB_COMMAND)
-				*ptr = LAPB_ADDR_A;
+			{
+				*ptr = LAPB_ADDR_D;
+			}
+
 			if (type == LAPB_RESPONSE)
-				*ptr = LAPB_ADDR_B;
-		} else {
+			{
+				*ptr = LAPB_ADDR_C;
+			}
+		}
+	}
+	else
+	{
+		if (lapb->mode & LAPB_DCE)
+		{
 			if (type == LAPB_COMMAND)
-				*ptr = LAPB_ADDR_B;
-			if (type == LAPB_RESPONSE)
+			{
 				*ptr = LAPB_ADDR_A;
+			}
+
+			if (type == LAPB_RESPONSE)
+			{
+				*ptr = LAPB_ADDR_B;
+			}
+		}
+		else
+		{
+			if (type == LAPB_COMMAND)
+			{
+				*ptr = LAPB_ADDR_B;
+			}
+
+			if (type == LAPB_RESPONSE)
+			{
+				*ptr = LAPB_ADDR_A;
+			}
 		}
 	}
 
 	lapb_dbg(2, "(%p) S%d TX %3ph\n", lapb->dev, lapb->state, skb->data);
 
 	if (!lapb_data_transmit(lapb, skb))
+	{
 		kfree_skb(skb);
+	}
 }
 
 void lapb_establish_data_link(struct lapb_cb *lapb)
@@ -159,10 +203,13 @@ void lapb_establish_data_link(struct lapb_cb *lapb)
 	lapb->condition = 0x00;
 	lapb->n2count   = 0;
 
-	if (lapb->mode & LAPB_EXTENDED) {
+	if (lapb->mode & LAPB_EXTENDED)
+	{
 		lapb_dbg(1, "(%p) S%d TX SABME(1)\n", lapb->dev, lapb->state);
 		lapb_send_control(lapb, LAPB_SABME, LAPB_POLLON, LAPB_COMMAND);
-	} else {
+	}
+	else
+	{
 		lapb_dbg(1, "(%p) S%d TX SABM(1)\n", lapb->dev, lapb->state);
 		lapb_send_control(lapb, LAPB_SABM, LAPB_POLLON, LAPB_COMMAND);
 	}
@@ -174,7 +221,7 @@ void lapb_establish_data_link(struct lapb_cb *lapb)
 void lapb_enquiry_response(struct lapb_cb *lapb)
 {
 	lapb_dbg(1, "(%p) S%d TX RR(1) R%d\n",
-		 lapb->dev, lapb->state, lapb->vr);
+			 lapb->dev, lapb->state, lapb->vr);
 
 	lapb_send_control(lapb, LAPB_RR, LAPB_POLLON, LAPB_RESPONSE);
 
@@ -184,7 +231,7 @@ void lapb_enquiry_response(struct lapb_cb *lapb)
 void lapb_timeout_response(struct lapb_cb *lapb)
 {
 	lapb_dbg(1, "(%p) S%d TX RR(0) R%d\n",
-		 lapb->dev, lapb->state, lapb->vr);
+			 lapb->dev, lapb->state, lapb->vr);
 	lapb_send_control(lapb, LAPB_RR, LAPB_POLLOFF, LAPB_RESPONSE);
 
 	lapb->condition &= ~LAPB_ACK_PENDING_CONDITION;
@@ -192,11 +239,14 @@ void lapb_timeout_response(struct lapb_cb *lapb)
 
 void lapb_check_iframes_acked(struct lapb_cb *lapb, unsigned short nr)
 {
-	if (lapb->vs == nr) {
+	if (lapb->vs == nr)
+	{
 		lapb_frames_acked(lapb, nr);
 		lapb_stop_t1timer(lapb);
 		lapb->n2count = 0;
-	} else if (lapb->va != nr) {
+	}
+	else if (lapb->va != nr)
+	{
 		lapb_frames_acked(lapb, nr);
 		lapb_start_t1timer(lapb);
 	}
@@ -205,5 +255,7 @@ void lapb_check_iframes_acked(struct lapb_cb *lapb, unsigned short nr)
 void lapb_check_need_response(struct lapb_cb *lapb, int type, int pf)
 {
 	if (type == LAPB_COMMAND && pf)
+	{
 		lapb_enquiry_response(lapb);
+	}
 }

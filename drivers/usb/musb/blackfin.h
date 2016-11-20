@@ -48,7 +48,7 @@
  */
 #if ANOMALY_05000380 && defined(CONFIG_BF52x) && \
 	!defined(CONFIG_MUSB_PIO_ONLY)
-# error "Please use PIO mode in MUSB driver on bf52x chip v0.0 and v0.1"
+	# error "Please use PIO mode in MUSB driver on bf52x chip v0.0 and v0.1"
 #endif
 
 #undef DUMP_FIFO_DATA
@@ -58,11 +58,16 @@ static void dump_fifo_data(u8 *buf, u16 len)
 	u8 *tmp = buf;
 	int i;
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		if (!(i % 16) && i)
+		{
 			pr_debug("\n");
+		}
+
 		pr_debug("%02x ", *tmp++);
 	}
+
 	pr_debug("\n");
 }
 #else

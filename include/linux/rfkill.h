@@ -21,7 +21,8 @@
 #include <uapi/linux/rfkill.h>
 
 /* don't allow anyone to use these in the kernel */
-enum rfkill_user_states {
+enum rfkill_user_states
+{
 	RFKILL_USER_STATE_SOFT_BLOCKED	= RFKILL_STATE_SOFT_BLOCKED,
 	RFKILL_USER_STATE_UNBLOCKED	= RFKILL_STATE_UNBLOCKED,
 	RFKILL_USER_STATE_HARD_BLOCKED	= RFKILL_STATE_HARD_BLOCKED,
@@ -58,7 +59,8 @@ struct rfkill;
  *	(blocked == true) -- ignore and return 0 when hard blocked.
  *	This callback must be assigned.
  */
-struct rfkill_ops {
+struct rfkill_ops
+{
 	void	(*poll)(struct rfkill *rfkill, void *data);
 	void	(*query)(struct rfkill *rfkill, void *data);
 	int	(*set_block)(void *data, bool blocked);
@@ -76,11 +78,11 @@ struct rfkill_ops {
  * This function should be called by the transmitter driver to allocate an
  * rfkill structure. Returns %NULL on failure.
  */
-struct rfkill * __must_check rfkill_alloc(const char *name,
-					  struct device *parent,
-					  const enum rfkill_type type,
-					  const struct rfkill_ops *ops,
-					  void *ops_data);
+struct rfkill *__must_check rfkill_alloc(const char *name,
+		struct device *parent,
+		const enum rfkill_type type,
+		const struct rfkill_ops *ops,
+		void *ops_data);
 
 /**
  * rfkill_register - Register a rfkill structure.
@@ -223,12 +225,12 @@ bool rfkill_blocked(struct rfkill *rfkill);
 enum rfkill_type rfkill_find_type(const char *name);
 
 #else /* !RFKILL */
-static inline struct rfkill * __must_check
+static inline struct rfkill *__must_check
 rfkill_alloc(const char *name,
-	     struct device *parent,
-	     const enum rfkill_type type,
-	     const struct rfkill_ops *ops,
-	     void *ops_data)
+			 struct device *parent,
+			 const enum rfkill_type type,
+			 const struct rfkill_ops *ops,
+			 void *ops_data)
 {
 	return ERR_PTR(-ENODEV);
 }
@@ -236,7 +238,10 @@ rfkill_alloc(const char *name,
 static inline int __must_check rfkill_register(struct rfkill *rfkill)
 {
 	if (rfkill == ERR_PTR(-ENODEV))
+	{
 		return 0;
+	}
+
 	return -EINVAL;
 }
 

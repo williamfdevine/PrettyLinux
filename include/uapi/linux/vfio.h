@@ -71,7 +71,8 @@
  * while the version field is specific to the capability id.  The
  * contents following the header are specific to the capability id.
  */
-struct vfio_info_cap_header {
+struct vfio_info_cap_header
+{
 	__u16	id;		/* Identifies capability */
 	__u16	version;	/* Version specific to the capability ID */
 	__u32	next;		/* Offset of next capability */
@@ -132,7 +133,8 @@ struct vfio_info_cap_header {
  * Return: 0 on succes, -errno on failure.
  * Availability: Always
  */
-struct vfio_group_status {
+struct vfio_group_status
+{
 	__u32	argsz;
 	__u32	flags;
 #define VFIO_GROUP_FLAGS_VIABLE		(1 << 0)
@@ -191,7 +193,8 @@ struct vfio_group_status {
  * struct vfio_device_info.  Caller sets argsz.
  * Return: 0 on success, -errno on failure.
  */
-struct vfio_device_info {
+struct vfio_device_info
+{
 	__u32	argsz;
 	__u32	flags;
 #define VFIO_DEVICE_FLAGS_RESET	(1 << 0)	/* Device supports reset */
@@ -215,7 +218,8 @@ struct vfio_device_info {
  * to describe unimplemented regions (ex. unimplemented PCI BARs).
  * Return: 0 on success, -errno on failure.
  */
-struct vfio_region_info {
+struct vfio_region_info
+{
 	__u32	argsz;
 	__u32	flags;
 #define VFIO_REGION_INFO_FLAG_READ	(1 << 0) /* Region supports read */
@@ -240,12 +244,14 @@ struct vfio_region_info {
  */
 #define VFIO_REGION_INFO_CAP_SPARSE_MMAP	1
 
-struct vfio_region_sparse_mmap_area {
+struct vfio_region_sparse_mmap_area
+{
 	__u64	offset;	/* Offset of mmap'able area within region */
 	__u64	size;	/* Size of mmap'able area */
 };
 
-struct vfio_region_info_cap_sparse_mmap {
+struct vfio_region_info_cap_sparse_mmap
+{
 	struct vfio_info_cap_header header;
 	__u32	nr_areas;
 	__u32	reserved;
@@ -274,7 +280,8 @@ struct vfio_region_info_cap_sparse_mmap {
  */
 #define VFIO_REGION_INFO_CAP_TYPE	2
 
-struct vfio_region_info_cap_type {
+struct vfio_region_info_cap_type
+{
 	struct vfio_info_cap_header header;
 	__u32 type;	/* global per bus driver */
 	__u32 subtype;	/* type specific */
@@ -320,7 +327,8 @@ struct vfio_region_info_cap_type {
  * whether to allocate the maximum supported number of vectors or tear
  * down setup and incrementally increase the vectors as each is enabled.
  */
-struct vfio_irq_info {
+struct vfio_irq_info
+{
 	__u32	argsz;
 	__u32	flags;
 #define VFIO_IRQ_INFO_EVENTFD		(1 << 0)
@@ -370,7 +378,8 @@ struct vfio_irq_info {
  * Note that ACTION_[UN]MASK specify user->kernel signaling (irqfds) while
  * ACTION_TRIGGER specifies kernel->user signaling.
  */
-struct vfio_irq_set {
+struct vfio_irq_set
+{
 	__u32	argsz;
 	__u32	flags;
 #define VFIO_IRQ_SET_DATA_NONE		(1 << 0) /* Data not present */
@@ -387,11 +396,11 @@ struct vfio_irq_set {
 #define VFIO_DEVICE_SET_IRQS		_IO(VFIO_TYPE, VFIO_BASE + 10)
 
 #define VFIO_IRQ_SET_DATA_TYPE_MASK	(VFIO_IRQ_SET_DATA_NONE | \
-					 VFIO_IRQ_SET_DATA_BOOL | \
-					 VFIO_IRQ_SET_DATA_EVENTFD)
+									 VFIO_IRQ_SET_DATA_BOOL | \
+									 VFIO_IRQ_SET_DATA_EVENTFD)
 #define VFIO_IRQ_SET_ACTION_TYPE_MASK	(VFIO_IRQ_SET_ACTION_MASK | \
-					 VFIO_IRQ_SET_ACTION_UNMASK | \
-					 VFIO_IRQ_SET_ACTION_TRIGGER)
+		VFIO_IRQ_SET_ACTION_UNMASK | \
+		VFIO_IRQ_SET_ACTION_TRIGGER)
 /**
  * VFIO_DEVICE_RESET - _IO(VFIO_TYPE, VFIO_BASE + 11)
  *
@@ -405,7 +414,8 @@ struct vfio_irq_set {
  * Unimplemented IRQ types return a count of zero.
  */
 
-enum {
+enum
+{
 	VFIO_PCI_BAR0_REGION_INDEX,
 	VFIO_PCI_BAR1_REGION_INDEX,
 	VFIO_PCI_BAR2_REGION_INDEX,
@@ -424,10 +434,11 @@ enum {
 	 */
 	VFIO_PCI_VGA_REGION_INDEX,
 	VFIO_PCI_NUM_REGIONS = 9 /* Fixed user ABI, region indexes >=9 use */
-				 /* device specific cap to define content. */
+						   /* device specific cap to define content. */
 };
 
-enum {
+enum
+{
 	VFIO_PCI_INTX_IRQ_INDEX,
 	VFIO_PCI_MSI_IRQ_INDEX,
 	VFIO_PCI_MSIX_IRQ_INDEX,
@@ -443,14 +454,16 @@ enum {
  * Return: 0 on success, -errno on failure:
  *	-enospc = insufficient buffer, -enodev = unsupported for device.
  */
-struct vfio_pci_dependent_device {
+struct vfio_pci_dependent_device
+{
 	__u32	group_id;
 	__u16	segment;
 	__u8	bus;
 	__u8	devfn; /* Use PCI_SLOT/PCI_FUNC */
 };
 
-struct vfio_pci_hot_reset_info {
+struct vfio_pci_hot_reset_info
+{
 	__u32	argsz;
 	__u32	flags;
 	__u32	count;
@@ -465,7 +478,8 @@ struct vfio_pci_hot_reset_info {
  *
  * Return: 0 on success, -errno on failure.
  */
-struct vfio_pci_hot_reset {
+struct vfio_pci_hot_reset
+{
 	__u32	argsz;
 	__u32	flags;
 	__u32	count;
@@ -484,7 +498,8 @@ struct vfio_pci_hot_reset {
  *
  * XXX Should we do these by CHECK_EXTENSION too?
  */
-struct vfio_iommu_type1_info {
+struct vfio_iommu_type1_info
+{
 	__u32	argsz;
 	__u32	flags;
 #define VFIO_IOMMU_INFO_PGSIZES (1 << 0)	/* supported page sizes info */
@@ -499,7 +514,8 @@ struct vfio_iommu_type1_info {
  * Map process virtual addresses to IO virtual addresses using the
  * provided struct vfio_dma_map. Caller sets argsz. READ &/ WRITE required.
  */
-struct vfio_iommu_type1_dma_map {
+struct vfio_iommu_type1_dma_map
+{
 	__u32	argsz;
 	__u32	flags;
 #define VFIO_DMA_MAP_FLAG_READ (1 << 0)		/* readable from device */
@@ -521,7 +537,8 @@ struct vfio_iommu_type1_dma_map {
  * or size different from those used in the original mapping call will
  * succeed.
  */
-struct vfio_iommu_type1_dma_unmap {
+struct vfio_iommu_type1_dma_unmap
+{
 	__u32	argsz;
 	__u32	flags;
 	__u64	iova;				/* IO virtual address */
@@ -550,7 +567,8 @@ struct vfio_iommu_type1_dma_unmap {
  * this allows splitting a table into smaller chunks which reduces
  * the amount of physically contiguous memory required for the table.
  */
-struct vfio_iommu_spapr_tce_ddw_info {
+struct vfio_iommu_spapr_tce_ddw_info
+{
 	__u64 pgsizes;			/* Bitmap of supported page sizes */
 	__u32 max_dynamic_windows_supported;
 	__u32 levels;
@@ -570,7 +588,8 @@ struct vfio_iommu_spapr_tce_ddw_info {
  * - VFIO_IOMMU_SPAPR_INFO_DDW: informs the userspace that dynamic DMA windows
  *   (DDW) support is present. @ddw is only supported when DDW is present.
  */
-struct vfio_iommu_spapr_tce_info {
+struct vfio_iommu_spapr_tce_info
+{
 	__u32 argsz;
 	__u32 flags;
 #define VFIO_IOMMU_SPAPR_INFO_DDW	(1 << 0)	/* DDW supported */
@@ -590,18 +609,21 @@ struct vfio_iommu_spapr_tce_info {
  * - configure PE;
  * - inject EEH error.
  */
-struct vfio_eeh_pe_err {
+struct vfio_eeh_pe_err
+{
 	__u32 type;
 	__u32 func;
 	__u64 addr;
 	__u64 mask;
 };
 
-struct vfio_eeh_pe_op {
+struct vfio_eeh_pe_op
+{
 	__u32 argsz;
 	__u32 flags;
 	__u32 op;
-	union {
+	union
+	{
 		struct vfio_eeh_pe_err err;
 	};
 };
@@ -632,7 +654,8 @@ struct vfio_eeh_pe_op {
  * subsequent VFIO_IOMMU_MAP_DMA/VFIO_IOMMU_UNMAP_DMA calls
  * get faster.
  */
-struct vfio_iommu_spapr_register_memory {
+struct vfio_iommu_spapr_register_memory
+{
 	__u32	argsz;
 	__u32	flags;
 	__u64	vaddr;				/* Process virtual address */
@@ -658,7 +681,8 @@ struct vfio_iommu_spapr_register_memory {
  *
  * It allocates and returns an offset on a PCI bus of the new DMA window.
  */
-struct vfio_iommu_spapr_tce_create {
+struct vfio_iommu_spapr_tce_create
+{
 	__u32 argsz;
 	__u32 flags;
 	/* in */
@@ -678,7 +702,8 @@ struct vfio_iommu_spapr_tce_create {
  * Unprograms a TCE table from all groups in the container and destroys it.
  * It receives a PCI bus offset as a window id.
  */
-struct vfio_iommu_spapr_tce_remove {
+struct vfio_iommu_spapr_tce_remove
+{
 	__u32 argsz;
 	__u32 flags;
 	/* in */

@@ -93,7 +93,7 @@ void ks0108_displaystate(unsigned char state)
 void ks0108_startline(unsigned char startline)
 {
 	ks0108_writedata(min_t(unsigned char, startline, 63) | bit(6) |
-			 bit(7));
+					 bit(7));
 }
 
 void ks0108_address(unsigned char address)
@@ -104,7 +104,7 @@ void ks0108_address(unsigned char address)
 void ks0108_page(unsigned char page)
 {
 	ks0108_writedata(min_t(unsigned char, page, 7) | bit(3) | bit(4) |
-			 bit(5) | bit(7));
+					 bit(5) | bit(7));
 }
 
 EXPORT_SYMBOL_GPL(ks0108_writedata);
@@ -130,19 +130,25 @@ static void ks0108_parport_attach(struct parport *port)
 	struct pardev_cb ks0108_cb;
 
 	if (port->base != ks0108_port)
+	{
 		return;
+	}
 
 	memset(&ks0108_cb, 0, sizeof(ks0108_cb));
 	ks0108_cb.flags = PARPORT_DEV_EXCL;
 	ks0108_pardevice = parport_register_dev_model(port, KS0108_NAME,
-						      &ks0108_cb, 0);
-	if (!ks0108_pardevice) {
+					   &ks0108_cb, 0);
+
+	if (!ks0108_pardevice)
+	{
 		pr_err("ERROR: parport didn't register new device\n");
 		return;
 	}
-	if (parport_claim(ks0108_pardevice)) {
+
+	if (parport_claim(ks0108_pardevice))
+	{
 		pr_err("could not claim access to parport %i. Aborting.\n",
-		       ks0108_port);
+			   ks0108_port);
 		goto err_unreg_device;
 	}
 
@@ -158,9 +164,12 @@ err_unreg_device:
 static void ks0108_parport_detach(struct parport *port)
 {
 	if (port->base != ks0108_port)
+	{
 		return;
+	}
 
-	if (!ks0108_pardevice) {
+	if (!ks0108_pardevice)
+	{
 		pr_err("%s: already unregistered.\n", KS0108_NAME);
 		return;
 	}
@@ -175,7 +184,8 @@ static void ks0108_parport_detach(struct parport *port)
  * Module Init & Exit
  */
 
-static struct parport_driver ks0108_parport_driver = {
+static struct parport_driver ks0108_parport_driver =
+{
 	.name = "ks0108",
 	.match_port = ks0108_parport_attach,
 	.detach = ks0108_parport_detach,

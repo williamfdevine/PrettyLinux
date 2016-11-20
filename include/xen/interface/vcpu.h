@@ -74,7 +74,8 @@
  * @extra_arg == pointer to vcpu_runstate_info structure.
  */
 #define VCPUOP_get_runstate_info	 4
-struct vcpu_runstate_info {
+struct vcpu_runstate_info
+{
 	/* VCPU's current state (RUNSTATE_*). */
 	int		 state;
 	/* When was current state entered (system time, ns)? */
@@ -124,12 +125,14 @@ DEFINE_GUEST_HANDLE_STRUCT(vcpu_runstate_info);
  * @extra_arg == pointer to vcpu_register_runstate_memory_area structure.
  */
 #define VCPUOP_register_runstate_memory_area 5
-struct vcpu_register_runstate_memory_area {
-		union {
-				GUEST_HANDLE(vcpu_runstate_info) h;
-				struct vcpu_runstate_info *v;
-				uint64_t p;
-		} addr;
+struct vcpu_register_runstate_memory_area
+{
+	union
+	{
+		GUEST_HANDLE(vcpu_runstate_info) h;
+		struct vcpu_runstate_info *v;
+		uint64_t p;
+	} addr;
 };
 
 /*
@@ -139,8 +142,9 @@ struct vcpu_register_runstate_memory_area {
  */
 #define VCPUOP_set_periodic_timer	 6 /* arg == vcpu_set_periodic_timer_t */
 #define VCPUOP_stop_periodic_timer	 7 /* arg == NULL */
-struct vcpu_set_periodic_timer {
-		uint64_t period_ns;
+struct vcpu_set_periodic_timer
+{
+	uint64_t period_ns;
 };
 DEFINE_GUEST_HANDLE_STRUCT(vcpu_set_periodic_timer);
 
@@ -150,14 +154,15 @@ DEFINE_GUEST_HANDLE_STRUCT(vcpu_set_periodic_timer);
  */
 #define VCPUOP_set_singleshot_timer	 8 /* arg == vcpu_set_singleshot_timer_t */
 #define VCPUOP_stop_singleshot_timer 9 /* arg == NULL */
-struct vcpu_set_singleshot_timer {
-		uint64_t timeout_abs_ns;
-		uint32_t flags;			   /* VCPU_SSHOTTMR_??? */
+struct vcpu_set_singleshot_timer
+{
+	uint64_t timeout_abs_ns;
+	uint32_t flags;			   /* VCPU_SSHOTTMR_??? */
 };
 DEFINE_GUEST_HANDLE_STRUCT(vcpu_set_singleshot_timer);
 
 /* Flags to VCPUOP_set_singleshot_timer. */
- /* Require the timeout to be in the future (return -ETIME if it's passed). */
+/* Require the timeout to be in the future (return -ETIME if it's passed). */
 #define _VCPU_SSHOTTMR_future (0)
 #define VCPU_SSHOTTMR_future  (1U << _VCPU_SSHOTTMR_future)
 
@@ -169,10 +174,11 @@ DEFINE_GUEST_HANDLE_STRUCT(vcpu_set_singleshot_timer);
  * cross a page boundary.
  */
 #define VCPUOP_register_vcpu_info   10  /* arg == struct vcpu_info */
-struct vcpu_register_vcpu_info {
-    uint64_t mfn;    /* mfn of page to place vcpu_info */
-    uint32_t offset; /* offset within page */
-    uint32_t rsvd;   /* unused */
+struct vcpu_register_vcpu_info
+{
+	uint64_t mfn;    /* mfn of page to place vcpu_info */
+	uint32_t offset; /* offset within page */
+	uint32_t rsvd;   /* unused */
 };
 DEFINE_GUEST_HANDLE_STRUCT(vcpu_register_vcpu_info);
 

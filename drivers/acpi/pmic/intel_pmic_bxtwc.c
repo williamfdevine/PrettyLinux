@@ -32,7 +32,8 @@
 #define VSWITCH1_OUTPUT         BIT(4)
 #define VUSBPHY_CHARGE          BIT(1)
 
-static struct pmic_table power_table[] = {
+static struct pmic_table power_table[] =
+{
 	{
 		.address = 0x0,
 		.reg = 0x63,
@@ -185,7 +186,8 @@ static struct pmic_table power_table[] = {
 	} /* MOFF -> MODEMCTRL Bit 0 */
 };
 
-static struct pmic_table thermal_table[] = {
+static struct pmic_table thermal_table[] =
+{
 	{
 		.address = 0x00,
 		.reg = 0x4F39
@@ -279,12 +281,14 @@ static struct pmic_table thermal_table[] = {
 };
 
 static int intel_bxtwc_pmic_get_power(struct regmap *regmap, int reg,
-		int bit, u64 *value)
+									  int bit, u64 *value)
 {
 	int data;
 
 	if (regmap_read(regmap, reg, &data))
+	{
 		return -EIO;
+	}
 
 	*value = (data & bit) ? 1 : 0;
 	return 0;
@@ -296,9 +300,13 @@ static int intel_bxtwc_pmic_update_power(struct regmap *regmap, int reg,
 	u8 val, mask = bit;
 
 	if (on)
+	{
 		val = 0xFF;
+	}
 	else
+	{
 		val = 0x0;
+	}
 
 	return regmap_update_bits(regmap, reg, mask, val);
 }
@@ -308,16 +316,24 @@ static int intel_bxtwc_pmic_get_raw_temp(struct regmap *regmap, int reg)
 	unsigned int val, adc_val, reg_val;
 	u8 temp_l, temp_h, cursrc;
 	unsigned long rlsb;
-	static const unsigned long rlsb_array[] = {
+	static const unsigned long rlsb_array[] =
+	{
 		0, 260420, 130210, 65100, 32550, 16280,
-		8140, 4070, 2030, 0, 260420, 130210 };
+		8140, 4070, 2030, 0, 260420, 130210
+	};
 
 	if (regmap_read(regmap, reg, &val))
+	{
 		return -EIO;
+	}
+
 	temp_l = (u8) val;
 
 	if (regmap_read(regmap, (reg - 1), &val))
+	{
 		return -EIO;
+	}
+
 	temp_h = (u8) val;
 
 	reg_val = temp_l | WHISKEY_COVE_ADC_HIGH_BIT(temp_h);
@@ -345,11 +361,14 @@ intel_bxtwc_pmic_update_aux(struct regmap *regmap, int reg, int raw)
 
 	resi_val = (cursel << 9) | thrsh;
 	alrt_h = (resi_val >> 8) & WHISKEY_COVE_ALRT_HIGH_BIT_MASK;
+
 	if (regmap_update_bits(regmap,
-				reg - 1,
-				WHISKEY_COVE_ALRT_HIGH_BIT_MASK,
-				alrt_h))
+						   reg - 1,
+						   WHISKEY_COVE_ALRT_HIGH_BIT_MASK,
+						   alrt_h))
+	{
 		return -EIO;
+	}
 
 	alrt_l = (u8)resi_val;
 	return regmap_write(regmap, reg, alrt_l);
@@ -362,7 +381,9 @@ intel_bxtwc_pmic_get_policy(struct regmap *regmap, int reg, int bit, u64 *value)
 	unsigned int val;
 
 	if (regmap_read(regmap, reg, &val))
+	{
 		return -EIO;
+	}
 
 	*value = (val & mask) >> bit;
 	return 0;
@@ -370,14 +391,15 @@ intel_bxtwc_pmic_get_policy(struct regmap *regmap, int reg, int bit, u64 *value)
 
 static int
 intel_bxtwc_pmic_update_policy(struct regmap *regmap,
-				int reg, int bit, int enable)
+							   int reg, int bit, int enable)
 {
 	u8 mask = BIT(bit), val = enable << bit;
 
 	return regmap_update_bits(regmap, reg, mask, val);
 }
 
-static struct intel_pmic_opregion_data intel_bxtwc_pmic_opregion_data = {
+static struct intel_pmic_opregion_data intel_bxtwc_pmic_opregion_data =
+{
 	.get_power      = intel_bxtwc_pmic_get_power,
 	.update_power   = intel_bxtwc_pmic_update_power,
 	.get_raw_temp   = intel_bxtwc_pmic_get_raw_temp,
@@ -400,12 +422,14 @@ static int intel_bxtwc_pmic_opregion_probe(struct platform_device *pdev)
 			&intel_bxtwc_pmic_opregion_data);
 }
 
-static struct platform_device_id bxt_wc_opregion_id_table[] = {
+static struct platform_device_id bxt_wc_opregion_id_table[] =
+{
 	{ .name = "bxt_wcove_region" },
 	{},
 };
 
-static struct platform_driver intel_bxtwc_pmic_opregion_driver = {
+static struct platform_driver intel_bxtwc_pmic_opregion_driver =
+{
 	.probe = intel_bxtwc_pmic_opregion_probe,
 	.driver = {
 		.name = "bxt_whiskey_cove_pmic",

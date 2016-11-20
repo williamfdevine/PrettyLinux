@@ -29,7 +29,8 @@
  * @VENC_YUV_FORMAT_NV12: NV12 YUV format
  * @VENC_YUV_FORMAT_NV21: NV21 YUV format
  */
-enum venc_yuv_fmt {
+enum venc_yuv_fmt
+{
 	VENC_YUV_FORMAT_I420 = 3,
 	VENC_YUV_FORMAT_YV12 = 5,
 	VENC_YUV_FORMAT_NV12 = 6,
@@ -41,7 +42,8 @@ enum venc_yuv_fmt {
  * @VENC_START_OPT_ENCODE_SEQUENCE_HEADER: encode SPS/PPS for H264
  * @VENC_START_OPT_ENCODE_FRAME: encode normal frame
  */
-enum venc_start_opt {
+enum venc_start_opt
+{
 	VENC_START_OPT_ENCODE_SEQUENCE_HEADER,
 	VENC_START_OPT_ENCODE_FRAME,
 };
@@ -60,7 +62,8 @@ enum venc_start_opt {
  * @VENC_SET_PARAM_PREPEND_HEADER: set H264 prepend SPS/PPS before IDR
  * @VENC_SET_PARAM_TS_MODE: set VP8 temporal scalability mode
  */
-enum venc_set_param_type {
+enum venc_set_param_type
+{
 	VENC_SET_PARAM_ENC,
 	VENC_SET_PARAM_FORCE_INTRA,
 	VENC_SET_PARAM_ADJUST_BITRATE,
@@ -87,7 +90,8 @@ enum venc_set_param_type {
  * @bitrate: target bitrate in bps
  * @gop_size: group of picture size
  */
-struct venc_enc_param {
+struct venc_enc_param
+{
 	enum venc_yuv_fmt input_yuv_fmt;
 	unsigned int h264_profile;
 	unsigned int h264_level;
@@ -105,7 +109,8 @@ struct venc_enc_param {
  * struct venc_frm_buf - frame buffer information used in venc_if_encode()
  * @fb_addr: plane frame buffer addresses
  */
-struct venc_frm_buf {
+struct venc_frm_buf
+{
 	struct mtk_vcodec_mem fb_addr[MTK_VCODEC_MAX_PLANES];
 };
 
@@ -114,7 +119,8 @@ struct venc_frm_buf {
  * @bs_size: output bitstream size
  * @is_key_frm: output is key frame or not
  */
-struct venc_done_result {
+struct venc_done_result
+{
 	unsigned int bs_size;
 	bool is_key_frm;
 };
@@ -142,8 +148,8 @@ int venc_if_deinit(struct mtk_vcodec_ctx *ctx);
  * Return: 0 if setting param successfully, otherwise it is failed.
  */
 int venc_if_set_param(struct mtk_vcodec_ctx *ctx,
-		      enum venc_set_param_type type,
-		      struct venc_enc_param *in);
+					  enum venc_set_param_type type,
+					  struct venc_enc_param *in);
 
 /*
  * venc_if_encode - Encode one frame
@@ -155,9 +161,9 @@ int venc_if_set_param(struct mtk_vcodec_ctx *ctx,
  * Return: 0 if encoding frame successfully, otherwise it is failed.
  */
 int venc_if_encode(struct mtk_vcodec_ctx *ctx,
-		   enum venc_start_opt opt,
-		   struct venc_frm_buf *frm_buf,
-		   struct mtk_vcodec_mem *bs_buf,
-		   struct venc_done_result *result);
+				   enum venc_start_opt opt,
+				   struct venc_frm_buf *frm_buf,
+				   struct mtk_vcodec_mem *bs_buf,
+				   struct venc_done_result *result);
 
 #endif /* _VENC_DRV_IF_H_ */

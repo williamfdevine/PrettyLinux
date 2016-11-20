@@ -6,14 +6,16 @@
 #include <linux/timerqueue.h>
 #include <linux/rtc.h>
 
-enum alarmtimer_type {
+enum alarmtimer_type
+{
 	ALARM_REALTIME,
 	ALARM_BOOTTIME,
 
 	ALARM_NUMTYPE,
 };
 
-enum alarmtimer_restart {
+enum alarmtimer_restart
+{
 	ALARMTIMER_NORESTART,
 	ALARMTIMER_RESTART,
 };
@@ -32,7 +34,8 @@ enum alarmtimer_restart {
  * @state:	Flag that represents if the alarm is set to fire or not.
  * @data:	Internal data value.
  */
-struct alarm {
+struct alarm
+{
 	struct timerqueue_node	node;
 	struct hrtimer		timer;
 	enum alarmtimer_restart	(*function)(struct alarm *, ktime_t now);
@@ -42,7 +45,7 @@ struct alarm {
 };
 
 void alarm_init(struct alarm *alarm, enum alarmtimer_type type,
-		enum alarmtimer_restart (*function)(struct alarm *, ktime_t));
+				enum alarmtimer_restart (*function)(struct alarm *, ktime_t));
 void alarm_start(struct alarm *alarm, ktime_t start);
 void alarm_start_relative(struct alarm *alarm, ktime_t start);
 void alarm_restart(struct alarm *alarm);

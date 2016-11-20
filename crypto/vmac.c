@@ -47,11 +47,11 @@ static const u64 mpoly = UINT64_C(0x1fffffff1fffffff);	/* Poly key mask     */
 #define pe64_to_cpup le64_to_cpup		/* Prefer little endian */
 
 #ifdef __LITTLE_ENDIAN
-#define INDEX_HIGH 1
-#define INDEX_LOW 0
+	#define INDEX_HIGH 1
+	#define INDEX_LOW 0
 #else
-#define INDEX_HIGH 0
-#define INDEX_LOW 1
+	#define INDEX_HIGH 0
+	#define INDEX_LOW 1
 #endif
 
 /*
@@ -114,7 +114,7 @@ static const u64 mpoly = UINT64_C(0x1fffffff1fffffff);	/* Poly key mask     */
 		rh = rl = 0;						\
 		for (i = 0; i < nw; i += 2) {				\
 			MUL64(th, tl, pe64_to_cpup((mp)+i)+(kp)[i],	\
-				pe64_to_cpup((mp)+i+1)+(kp)[i+1]);	\
+				  pe64_to_cpup((mp)+i+1)+(kp)[i+1]);	\
 			ADD128(rh, rl, th, tl);				\
 		}							\
 	} while (0)
@@ -125,10 +125,10 @@ static const u64 mpoly = UINT64_C(0x1fffffff1fffffff);	/* Poly key mask     */
 		rh1 = rl1 = rh = rl = 0;				\
 		for (i = 0; i < nw; i += 2) {				\
 			MUL64(th, tl, pe64_to_cpup((mp)+i)+(kp)[i],	\
-				pe64_to_cpup((mp)+i+1)+(kp)[i+1]);	\
+				  pe64_to_cpup((mp)+i+1)+(kp)[i+1]);	\
 			ADD128(rh, rl, th, tl);				\
 			MUL64(th, tl, pe64_to_cpup((mp)+i)+(kp)[i+2],	\
-				pe64_to_cpup((mp)+i+1)+(kp)[i+3]);	\
+				  pe64_to_cpup((mp)+i+1)+(kp)[i+3]);	\
 			ADD128(rh1, rl1, th, tl);			\
 		}							\
 	} while (0)
@@ -140,16 +140,16 @@ static const u64 mpoly = UINT64_C(0x1fffffff1fffffff);	/* Poly key mask     */
 		rh = rl = 0;						\
 		for (i = 0; i < nw; i += 8) {				\
 			MUL64(th, tl, pe64_to_cpup((mp)+i)+(kp)[i],	\
-				pe64_to_cpup((mp)+i+1)+(kp)[i+1]);	\
+				  pe64_to_cpup((mp)+i+1)+(kp)[i+1]);	\
 			ADD128(rh, rl, th, tl);				\
 			MUL64(th, tl, pe64_to_cpup((mp)+i+2)+(kp)[i+2],	\
-				pe64_to_cpup((mp)+i+3)+(kp)[i+3]);	\
+				  pe64_to_cpup((mp)+i+3)+(kp)[i+3]);	\
 			ADD128(rh, rl, th, tl);				\
 			MUL64(th, tl, pe64_to_cpup((mp)+i+4)+(kp)[i+4],	\
-				pe64_to_cpup((mp)+i+5)+(kp)[i+5]);	\
+				  pe64_to_cpup((mp)+i+5)+(kp)[i+5]);	\
 			ADD128(rh, rl, th, tl);				\
 			MUL64(th, tl, pe64_to_cpup((mp)+i+6)+(kp)[i+6],	\
-				pe64_to_cpup((mp)+i+7)+(kp)[i+7]);	\
+				  pe64_to_cpup((mp)+i+7)+(kp)[i+7]);	\
 			ADD128(rh, rl, th, tl);				\
 		}							\
 	} while (0)
@@ -160,28 +160,28 @@ static const u64 mpoly = UINT64_C(0x1fffffff1fffffff);	/* Poly key mask     */
 		rh1 = rl1 = rh = rl = 0;				\
 		for (i = 0; i < nw; i += 8) {				\
 			MUL64(th, tl, pe64_to_cpup((mp)+i)+(kp)[i],	\
-				pe64_to_cpup((mp)+i+1)+(kp)[i+1]);	\
+				  pe64_to_cpup((mp)+i+1)+(kp)[i+1]);	\
 			ADD128(rh, rl, th, tl);				\
 			MUL64(th, tl, pe64_to_cpup((mp)+i)+(kp)[i+2],	\
-				pe64_to_cpup((mp)+i+1)+(kp)[i+3]);	\
+				  pe64_to_cpup((mp)+i+1)+(kp)[i+3]);	\
 			ADD128(rh1, rl1, th, tl);			\
 			MUL64(th, tl, pe64_to_cpup((mp)+i+2)+(kp)[i+2],	\
-				pe64_to_cpup((mp)+i+3)+(kp)[i+3]);	\
+				  pe64_to_cpup((mp)+i+3)+(kp)[i+3]);	\
 			ADD128(rh, rl, th, tl);				\
 			MUL64(th, tl, pe64_to_cpup((mp)+i+2)+(kp)[i+4],	\
-				pe64_to_cpup((mp)+i+3)+(kp)[i+5]);	\
+				  pe64_to_cpup((mp)+i+3)+(kp)[i+5]);	\
 			ADD128(rh1, rl1, th, tl);			\
 			MUL64(th, tl, pe64_to_cpup((mp)+i+4)+(kp)[i+4],	\
-				pe64_to_cpup((mp)+i+5)+(kp)[i+5]);	\
+				  pe64_to_cpup((mp)+i+5)+(kp)[i+5]);	\
 			ADD128(rh, rl, th, tl);				\
 			MUL64(th, tl, pe64_to_cpup((mp)+i+4)+(kp)[i+6],	\
-				pe64_to_cpup((mp)+i+5)+(kp)[i+7]);	\
+				  pe64_to_cpup((mp)+i+5)+(kp)[i+7]);	\
 			ADD128(rh1, rl1, th, tl);			\
 			MUL64(th, tl, pe64_to_cpup((mp)+i+6)+(kp)[i+6],	\
-				pe64_to_cpup((mp)+i+7)+(kp)[i+7]);	\
+				  pe64_to_cpup((mp)+i+7)+(kp)[i+7]);	\
 			ADD128(rh, rl, th, tl);				\
 			MUL64(th, tl, pe64_to_cpup((mp)+i+6)+(kp)[i+8],	\
-				pe64_to_cpup((mp)+i+7)+(kp)[i+9]);	\
+				  pe64_to_cpup((mp)+i+7)+(kp)[i+9]);	\
 			ADD128(rh1, rl1, th, tl);			\
 		}							\
 	} while (0)
@@ -224,9 +224,9 @@ static const u64 mpoly = UINT64_C(0x1fffffff1fffffff);	/* Poly key mask     */
 			m2 = MUL32(t1 >> 32, t2);			\
 			m1 = MUL32(t1, t2 >> 32);			\
 			ADD128(rh, rl, MUL32(t1 >> 32, t2 >> 32),	\
-				MUL32(t1, t2));				\
+				   MUL32(t1, t2));				\
 			rh += (u64)(u32)(m1 >> 32)			\
-				+ (u32)(m2 >> 32);			\
+				  + (u32)(m2 >> 32);			\
 			t += (u64)(u32)m1 + (u32)m2;			\
 		}							\
 		ADD128(rh, rl, (t >> 32), (t << 32));			\
@@ -234,8 +234,8 @@ static const u64 mpoly = UINT64_C(0x1fffffff1fffffff);	/* Poly key mask     */
 #endif
 
 static void poly_step_func(u64 *ahi, u64 *alo,
-			const u64 *kh, const u64 *kl,
-			const u64 *mh, const u64 *ml)
+						   const u64 *kh, const u64 *kl,
+						   const u64 *mh, const u64 *ml)
 {
 #define a0 (*(((u32 *)alo)+INDEX_LOW))
 #define a1 (*(((u32 *)alo)+INDEX_HIGH))
@@ -360,13 +360,13 @@ static u64 l3hash(u64 p1, u64 p2, u64 k1, u64 k2, u64 len)
 	t += t << 8;
 	rl += t;
 	rl += (0 - (rl < t)) & 257;
-	rl += (0 - (rl > p64-1)) & 257;
+	rl += (0 - (rl > p64 - 1)) & 257;
 	return rl;
 }
 
 static void vhash_update(const unsigned char *m,
-			unsigned int mbytes, /* Pos multiple of VMAC_NHBYTES */
-			struct vmac_ctx *ctx)
+						 unsigned int mbytes, /* Pos multiple of VMAC_NHBYTES */
+						 struct vmac_ctx *ctx)
 {
 	u64 rh, rl, *mptr;
 	const u64 *kptr = (u64 *)ctx->nhkey;
@@ -376,7 +376,9 @@ static void vhash_update(const unsigned char *m,
 	u64 pkl = ctx->polykey[1];
 
 	if (!mbytes)
+	{
 		return;
+	}
 
 	BUG_ON(mbytes % VMAC_NHBYTES);
 
@@ -386,20 +388,22 @@ static void vhash_update(const unsigned char *m,
 	ch = ctx->polytmp[0];
 	cl = ctx->polytmp[1];
 
-	if (!ctx->first_block_processed) {
+	if (!ctx->first_block_processed)
+	{
 		ctx->first_block_processed = 1;
-		nh_vmac_nhbytes(mptr, kptr, VMAC_NHBYTES/8, rh, rl);
+		nh_vmac_nhbytes(mptr, kptr, VMAC_NHBYTES / 8, rh, rl);
 		rh &= m62;
 		ADD128(ch, cl, rh, rl);
-		mptr += (VMAC_NHBYTES/sizeof(u64));
+		mptr += (VMAC_NHBYTES / sizeof(u64));
 		i--;
 	}
 
-	while (i--) {
-		nh_vmac_nhbytes(mptr, kptr, VMAC_NHBYTES/8, rh, rl);
+	while (i--)
+	{
+		nh_vmac_nhbytes(mptr, kptr, VMAC_NHBYTES / 8, rh, rl);
 		rh &= m62;
 		poly_step(ch, cl, pkh, pkl, rh, rl);
-		mptr += (VMAC_NHBYTES/sizeof(u64));
+		mptr += (VMAC_NHBYTES / sizeof(u64));
 	}
 
 	ctx->polytmp[0] = ch;
@@ -407,7 +411,7 @@ static void vhash_update(const unsigned char *m,
 }
 
 static u64 vhash(unsigned char m[], unsigned int mbytes,
-			u64 *tagl, struct vmac_ctx *ctx)
+				 u64 *tagl, struct vmac_ctx *ctx)
 {
 	u64 rh, rl, *mptr;
 	const u64 *kptr = (u64 *)ctx->nhkey;
@@ -420,34 +424,44 @@ static u64 vhash(unsigned char m[], unsigned int mbytes,
 	i = mbytes / VMAC_NHBYTES;
 	remaining = mbytes % VMAC_NHBYTES;
 
-	if (ctx->first_block_processed) {
+	if (ctx->first_block_processed)
+	{
 		ch = ctx->polytmp[0];
 		cl = ctx->polytmp[1];
-	} else if (i) {
-		nh_vmac_nhbytes(mptr, kptr, VMAC_NHBYTES/8, ch, cl);
+	}
+	else if (i)
+	{
+		nh_vmac_nhbytes(mptr, kptr, VMAC_NHBYTES / 8, ch, cl);
 		ch &= m62;
 		ADD128(ch, cl, pkh, pkl);
-		mptr += (VMAC_NHBYTES/sizeof(u64));
+		mptr += (VMAC_NHBYTES / sizeof(u64));
 		i--;
-	} else if (remaining) {
-		nh_16(mptr, kptr, 2*((remaining+15)/16), ch, cl);
+	}
+	else if (remaining)
+	{
+		nh_16(mptr, kptr, 2 * ((remaining + 15) / 16), ch, cl);
 		ch &= m62;
 		ADD128(ch, cl, pkh, pkl);
-		mptr += (VMAC_NHBYTES/sizeof(u64));
+		mptr += (VMAC_NHBYTES / sizeof(u64));
 		goto do_l3;
-	} else {/* Empty String */
+	}
+	else    /* Empty String */
+	{
 		ch = pkh; cl = pkl;
 		goto do_l3;
 	}
 
-	while (i--) {
-		nh_vmac_nhbytes(mptr, kptr, VMAC_NHBYTES/8, rh, rl);
+	while (i--)
+	{
+		nh_vmac_nhbytes(mptr, kptr, VMAC_NHBYTES / 8, rh, rl);
 		rh &= m62;
 		poly_step(ch, cl, pkh, pkl, rh, rl);
-		mptr += (VMAC_NHBYTES/sizeof(u64));
+		mptr += (VMAC_NHBYTES / sizeof(u64));
 	}
-	if (remaining) {
-		nh_16(mptr, kptr, 2*((remaining+15)/16), rh, rl);
+
+	if (remaining)
+	{
+		nh_16(mptr, kptr, 2 * ((remaining + 15) / 16), rh, rl);
 		rh &= m62;
 		poly_step(ch, cl, pkh, pkl, rh, rl);
 	}
@@ -459,8 +473,8 @@ do_l3:
 }
 
 static u64 vmac(unsigned char m[], unsigned int mbytes,
-			const unsigned char n[16], u64 *tagl,
-			struct vmac_ctx_t *ctx)
+				const unsigned char n[16], u64 *tagl,
+				struct vmac_ctx_t *ctx)
 {
 	u64 *in_n, *out_p;
 	u64 p, h;
@@ -470,15 +484,18 @@ static u64 vmac(unsigned char m[], unsigned int mbytes,
 	out_p = ctx->__vmac_ctx.cached_aes;
 
 	i = n[15] & 1;
-	if ((*(u64 *)(n+8) != in_n[1]) || (*(u64 *)(n) != in_n[0])) {
+
+	if ((*(u64 *)(n + 8) != in_n[1]) || (*(u64 *)(n) != in_n[0]))
+	{
 		in_n[0] = *(u64 *)(n);
-		in_n[1] = *(u64 *)(n+8);
+		in_n[1] = *(u64 *)(n + 8);
 		((unsigned char *)in_n)[15] &= 0xFE;
 		crypto_cipher_encrypt_one(ctx->child,
-			(unsigned char *)out_p, (unsigned char *)in_n);
+								  (unsigned char *)out_p, (unsigned char *)in_n);
 
-		((unsigned char *)in_n)[15] |= (unsigned char)(1-i);
+		((unsigned char *)in_n)[15] |= (unsigned char)(1 - i);
 	}
+
 	p = be64_to_cpup(out_p + i);
 	h = vhash(m, mbytes, (u64 *)0, &ctx->__vmac_ctx);
 	return le64_to_cpu(p + h);
@@ -491,50 +508,61 @@ static int vmac_set_key(unsigned char user_key[], struct vmac_ctx_t *ctx)
 	int err = 0;
 
 	err = crypto_cipher_setkey(ctx->child, user_key, VMAC_KEY_LEN);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Fill nh key */
 	((unsigned char *)in)[0] = 0x80;
-	for (i = 0; i < sizeof(ctx->__vmac_ctx.nhkey)/8; i += 2) {
+
+	for (i = 0; i < sizeof(ctx->__vmac_ctx.nhkey) / 8; i += 2)
+	{
 		crypto_cipher_encrypt_one(ctx->child,
-			(unsigned char *)out, (unsigned char *)in);
+								  (unsigned char *)out, (unsigned char *)in);
 		ctx->__vmac_ctx.nhkey[i] = be64_to_cpup(out);
-		ctx->__vmac_ctx.nhkey[i+1] = be64_to_cpup(out+1);
+		ctx->__vmac_ctx.nhkey[i + 1] = be64_to_cpup(out + 1);
 		((unsigned char *)in)[15] += 1;
 	}
 
 	/* Fill poly key */
 	((unsigned char *)in)[0] = 0xC0;
 	in[1] = 0;
-	for (i = 0; i < sizeof(ctx->__vmac_ctx.polykey)/8; i += 2) {
+
+	for (i = 0; i < sizeof(ctx->__vmac_ctx.polykey) / 8; i += 2)
+	{
 		crypto_cipher_encrypt_one(ctx->child,
-			(unsigned char *)out, (unsigned char *)in);
+								  (unsigned char *)out, (unsigned char *)in);
 		ctx->__vmac_ctx.polytmp[i] =
 			ctx->__vmac_ctx.polykey[i] =
 				be64_to_cpup(out) & mpoly;
-		ctx->__vmac_ctx.polytmp[i+1] =
-			ctx->__vmac_ctx.polykey[i+1] =
-				be64_to_cpup(out+1) & mpoly;
+		ctx->__vmac_ctx.polytmp[i + 1] =
+			ctx->__vmac_ctx.polykey[i + 1] =
+				be64_to_cpup(out + 1) & mpoly;
 		((unsigned char *)in)[15] += 1;
 	}
 
 	/* Fill ip key */
 	((unsigned char *)in)[0] = 0xE0;
 	in[1] = 0;
-	for (i = 0; i < sizeof(ctx->__vmac_ctx.l3key)/8; i += 2) {
-		do {
+
+	for (i = 0; i < sizeof(ctx->__vmac_ctx.l3key) / 8; i += 2)
+	{
+		do
+		{
 			crypto_cipher_encrypt_one(ctx->child,
-				(unsigned char *)out, (unsigned char *)in);
+									  (unsigned char *)out, (unsigned char *)in);
 			ctx->__vmac_ctx.l3key[i] = be64_to_cpup(out);
-			ctx->__vmac_ctx.l3key[i+1] = be64_to_cpup(out+1);
+			ctx->__vmac_ctx.l3key[i + 1] = be64_to_cpup(out + 1);
 			((unsigned char *)in)[15] += 1;
-		} while (ctx->__vmac_ctx.l3key[i] >= p64
-			|| ctx->__vmac_ctx.l3key[i+1] >= p64);
+		}
+		while (ctx->__vmac_ctx.l3key[i] >= p64
+			   || ctx->__vmac_ctx.l3key[i + 1] >= p64);
 	}
 
 	/* Invalidate nonce/aes cache and reset other elements */
-	ctx->__vmac_ctx.cached_nonce[0] = (u64)-1; /* Ensure illegal nonce */
+	ctx->__vmac_ctx.cached_nonce[0] = (u64) - 1; /* Ensure illegal nonce */
 	ctx->__vmac_ctx.cached_nonce[1] = (u64)0;  /* Ensure illegal nonce */
 	ctx->__vmac_ctx.first_block_processed = 0;
 
@@ -542,11 +570,12 @@ static int vmac_set_key(unsigned char user_key[], struct vmac_ctx_t *ctx)
 }
 
 static int vmac_setkey(struct crypto_shash *parent,
-		const u8 *key, unsigned int keylen)
+					   const u8 *key, unsigned int keylen)
 {
 	struct vmac_ctx_t *ctx = crypto_shash_ctx(parent);
 
-	if (keylen != VMAC_KEY_LEN) {
+	if (keylen != VMAC_KEY_LEN)
+	{
 		crypto_shash_set_flags(parent, CRYPTO_TFM_RES_BAD_KEY_LEN);
 		return -EINVAL;
 	}
@@ -560,7 +589,7 @@ static int vmac_init(struct shash_desc *pdesc)
 }
 
 static int vmac_update(struct shash_desc *pdesc, const u8 *p,
-		unsigned int len)
+					   unsigned int len)
 {
 	struct crypto_shash *parent = pdesc->tfm;
 	struct vmac_ctx_t *ctx = crypto_shash_ctx(parent);
@@ -568,7 +597,7 @@ static int vmac_update(struct shash_desc *pdesc, const u8 *p,
 	int min;
 
 	expand = VMAC_NHBYTES - ctx->partial_size > 0 ?
-			VMAC_NHBYTES - ctx->partial_size : 0;
+			 VMAC_NHBYTES - ctx->partial_size : 0;
 
 	min = len < expand ? len : expand;
 
@@ -576,7 +605,9 @@ static int vmac_update(struct shash_desc *pdesc, const u8 *p,
 	ctx->partial_size += min;
 
 	if (len < expand)
+	{
 		return 0;
+	}
 
 	vhash_update(ctx->partial, VMAC_NHBYTES, &ctx->__vmac_ctx);
 	ctx->partial_size = 0;
@@ -584,9 +615,10 @@ static int vmac_update(struct shash_desc *pdesc, const u8 *p,
 	len -= expand;
 	p += expand;
 
-	if (len % VMAC_NHBYTES) {
+	if (len % VMAC_NHBYTES)
+	{
 		memcpy(ctx->partial, p + len - (len % VMAC_NHBYTES),
-			len % VMAC_NHBYTES);
+			   len % VMAC_NHBYTES);
 		ctx->partial_size = len % VMAC_NHBYTES;
 	}
 
@@ -607,10 +639,12 @@ static int vmac_final(struct shash_desc *pdesc, u8 *out)
 	 * boundary.  We'll just be uber cautious and zero the
 	 * unwritten bytes in the buffer.
 	 */
-	if (ctx->partial_size) {
+	if (ctx->partial_size)
+	{
 		memset(ctx->partial + ctx->partial_size, 0,
-			VMAC_NHBYTES - ctx->partial_size);
+			   VMAC_NHBYTES - ctx->partial_size);
 	}
+
 	mac = vmac(ctx->partial, ctx->partial_size, nonce, NULL, ctx);
 	memcpy(out, &mac, sizeof(vmac_t));
 	memzero_explicit(&mac, sizeof(vmac_t));
@@ -627,8 +661,11 @@ static int vmac_init_tfm(struct crypto_tfm *tfm)
 	struct vmac_ctx_t *ctx = crypto_tfm_ctx(tfm);
 
 	cipher = crypto_spawn_cipher(spawn);
+
 	if (IS_ERR(cipher))
+	{
 		return PTR_ERR(cipher);
+	}
 
 	ctx->child = cipher;
 	return 0;
@@ -647,24 +684,36 @@ static int vmac_create(struct crypto_template *tmpl, struct rtattr **tb)
 	int err;
 
 	err = crypto_check_attr_type(tb, CRYPTO_ALG_TYPE_SHASH);
+
 	if (err)
+	{
 		return err;
+	}
 
 	alg = crypto_get_attr_alg(tb, CRYPTO_ALG_TYPE_CIPHER,
-			CRYPTO_ALG_TYPE_MASK);
+							  CRYPTO_ALG_TYPE_MASK);
+
 	if (IS_ERR(alg))
+	{
 		return PTR_ERR(alg);
+	}
 
 	inst = shash_alloc_instance("vmac", alg);
 	err = PTR_ERR(inst);
+
 	if (IS_ERR(inst))
+	{
 		goto out_put_alg;
+	}
 
 	err = crypto_init_spawn(shash_instance_ctx(inst), alg,
-			shash_crypto_instance(inst),
-			CRYPTO_ALG_TYPE_MASK);
+							shash_crypto_instance(inst),
+							CRYPTO_ALG_TYPE_MASK);
+
 	if (err)
+	{
 		goto out_free_inst;
+	}
 
 	inst->alg.base.cra_priority = alg->cra_priority;
 	inst->alg.base.cra_blocksize = alg->cra_blocksize;
@@ -681,7 +730,9 @@ static int vmac_create(struct crypto_template *tmpl, struct rtattr **tb)
 	inst->alg.setkey = vmac_setkey;
 
 	err = shash_register_instance(tmpl, inst);
-	if (err) {
+
+	if (err)
+	{
 out_free_inst:
 		shash_free_instance(shash_crypto_instance(inst));
 	}
@@ -691,7 +742,8 @@ out_put_alg:
 	return err;
 }
 
-static struct crypto_template vmac_tmpl = {
+static struct crypto_template vmac_tmpl =
+{
 	.name = "vmac",
 	.create = vmac_create,
 	.free = shash_free_instance,

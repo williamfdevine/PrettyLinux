@@ -32,7 +32,8 @@
 #include <linux/gpio.h>
 #include <linux/mfd/rc5t583.h>
 
-struct rc5t583_regulator_info {
+struct rc5t583_regulator_info
+{
 	int			deepsleep_id;
 
 	/* Regulator register address.*/
@@ -47,7 +48,8 @@ struct rc5t583_regulator_info {
 	struct regulator_desc	desc;
 };
 
-struct rc5t583_regulator {
+struct rc5t583_regulator
+{
 	struct rc5t583_regulator_info *reg_info;
 	struct regulator_dev	*rdev;
 };
@@ -61,7 +63,8 @@ static int rc5t583_regulator_enable_time(struct regulator_dev *rdev)
 	return DIV_ROUND_UP(curr_uV, reg->reg_info->enable_uv_per_us);
 }
 
-static struct regulator_ops rc5t583_ops = {
+static struct regulator_ops rc5t583_ops =
+{
 	.is_enabled		= regulator_is_enabled_regmap,
 	.enable			= regulator_enable_regmap,
 	.disable		= regulator_disable_regmap,
@@ -74,31 +77,32 @@ static struct regulator_ops rc5t583_ops = {
 };
 
 #define RC5T583_REG(_id, _en_reg, _en_bit, _disc_reg, _disc_bit, \
-		_vout_mask, _min_mv, _max_mv, _step_uV, _enable_mv) \
+					_vout_mask, _min_mv, _max_mv, _step_uV, _enable_mv) \
 {								\
 	.reg_disc_reg	= RC5T583_REG_##_disc_reg,		\
-	.disc_bit	= _disc_bit,				\
-	.deepsleep_reg	= RC5T583_REG_##_id##DAC_DS,		\
-	.enable_uv_per_us = _enable_mv * 1000,			\
-	.deepsleep_id	= RC5T583_DS_##_id,			\
-	.desc = {						\
-		.name = "rc5t583-regulator-"#_id,		\
-		.id = RC5T583_REGULATOR_##_id,			\
-		.n_voltages = (_max_mv - _min_mv) * 1000 / _step_uV + 1, \
-		.ops = &rc5t583_ops,				\
-		.type = REGULATOR_VOLTAGE,			\
-		.owner = THIS_MODULE,				\
-		.vsel_reg = RC5T583_REG_##_id##DAC,		\
-		.vsel_mask = _vout_mask,			\
-		.enable_reg = RC5T583_REG_##_en_reg,		\
-		.enable_mask = BIT(_en_bit),			\
-		.min_uV	= _min_mv * 1000,			\
-		.uV_step = _step_uV,				\
-		.ramp_delay = 40 * 1000,			\
-	},							\
+					  .disc_bit	= _disc_bit,				\
+									.deepsleep_reg	= RC5T583_REG_##_id##DAC_DS,		\
+											.enable_uv_per_us = _enable_mv * 1000,			\
+													.deepsleep_id	= RC5T583_DS_##_id,			\
+															.desc = {						\
+																							.name = "rc5t583-regulator-"#_id,		\
+																							.id = RC5T583_REGULATOR_##_id,			\
+																							.n_voltages = (_max_mv - _min_mv) * 1000 / _step_uV + 1, \
+																							.ops = &rc5t583_ops,				\
+																							.type = REGULATOR_VOLTAGE,			\
+																							.owner = THIS_MODULE,				\
+																							.vsel_reg = RC5T583_REG_##_id##DAC,		\
+																							.vsel_mask = _vout_mask,			\
+																							.enable_reg = RC5T583_REG_##_en_reg,		\
+																							.enable_mask = BIT(_en_bit),			\
+																							.min_uV	= _min_mv * 1000,			\
+																							.uV_step = _step_uV,				\
+																							.ramp_delay = 40 * 1000,			\
+																	},							\
 }
 
-static struct rc5t583_regulator_info rc5t583_reg_info[RC5T583_REGULATOR_MAX] = {
+static struct rc5t583_regulator_info rc5t583_reg_info[RC5T583_REGULATOR_MAX] =
+{
 	RC5T583_REG(DC0, DC0CTL, 0, DC0CTL, 1, 0x7F, 700, 1500, 12500, 4),
 	RC5T583_REG(DC1, DC1CTL, 0, DC1CTL, 1, 0x7F, 700, 1500, 12500, 14),
 	RC5T583_REG(DC2, DC2CTL, 0, DC2CTL, 1, 0x7F, 900, 2400, 12500, 14),
@@ -127,36 +131,44 @@ static int rc5t583_regulator_probe(struct platform_device *pdev)
 	int ret;
 	int id;
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "No platform data, exiting...\n");
 		return -ENODEV;
 	}
 
 	regs = devm_kzalloc(&pdev->dev, RC5T583_REGULATOR_MAX *
-			sizeof(struct rc5t583_regulator), GFP_KERNEL);
+						sizeof(struct rc5t583_regulator), GFP_KERNEL);
+
 	if (!regs)
+	{
 		return -ENOMEM;
+	}
 
 
-	for (id = 0; id < RC5T583_REGULATOR_MAX; ++id) {
+	for (id = 0; id < RC5T583_REGULATOR_MAX; ++id)
+	{
 		reg = &regs[id];
 		ri = &rc5t583_reg_info[id];
 		reg->reg_info = ri;
 
 		if (ri->deepsleep_id == RC5T583_DS_NONE)
+		{
 			goto skip_ext_pwr_config;
+		}
 
 		ret = rc5t583_ext_power_req_config(rc5t583->dev,
-				ri->deepsleep_id,
-				pdata->regulator_ext_pwr_control[id],
-				pdata->regulator_deepsleep_slot[id]);
+										   ri->deepsleep_id,
+										   pdata->regulator_ext_pwr_control[id],
+										   pdata->regulator_deepsleep_slot[id]);
+
 		/*
 		 * Configuring external control is not a major issue,
 		 * just give warning.
 		 */
 		if (ret < 0)
 			dev_warn(&pdev->dev,
-				"Failed to configure ext control %d\n", id);
+					 "Failed to configure ext control %d\n", id);
 
 skip_ext_pwr_config:
 		config.dev = &pdev->dev;
@@ -165,18 +177,23 @@ skip_ext_pwr_config:
 		config.regmap = rc5t583->regmap;
 
 		rdev = devm_regulator_register(&pdev->dev, &ri->desc, &config);
-		if (IS_ERR(rdev)) {
+
+		if (IS_ERR(rdev))
+		{
 			dev_err(&pdev->dev, "Failed to register regulator %s\n",
-						ri->desc.name);
+					ri->desc.name);
 			return PTR_ERR(rdev);
 		}
+
 		reg->rdev = rdev;
 	}
+
 	platform_set_drvdata(pdev, regs);
 	return 0;
 }
 
-static struct platform_driver rc5t583_regulator_driver = {
+static struct platform_driver rc5t583_regulator_driver =
+{
 	.driver	= {
 		.name	= "rc5t583-regulator",
 	},

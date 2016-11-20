@@ -40,7 +40,8 @@ u8 r8712_usb_hal_bus_init(struct _adapter *padapter)
 	int PollingCnt = 20;
 	struct registry_priv *pregistrypriv = &padapter->registrypriv;
 
-	if (pregistrypriv->chip_version == RTL8712_FPGA) {
+	if (pregistrypriv->chip_version == RTL8712_FPGA)
+	{
 		val8 = 0x01;
 		/* switch to 80M clock */
 		r8712_write8(padapter, SYS_CLKR, val8);
@@ -104,11 +105,13 @@ u8 r8712_usb_hal_bus_init(struct _adapter *padapter)
 		r8712_write8(padapter, CR + 1, val8);
 		/* reduce EndPoint & init it */
 		r8712_write8(padapter, 0x102500ab, r8712_read8(padapter,
-			     0x102500ab) | BIT(6) | BIT(7));
+					 0x102500ab) | BIT(6) | BIT(7));
 		/* consideration of power consumption - init */
 		r8712_write8(padapter, 0x10250008, r8712_read8(padapter,
-			     0x10250008) & 0xfffffffb);
-	} else if (pregistrypriv->chip_version == RTL8712_1stCUT) {
+					 0x10250008) & 0xfffffffb);
+	}
+	else if (pregistrypriv->chip_version == RTL8712_1stCUT)
+	{
 		/* Initialization for power on sequence, */
 		r8712_write8(padapter, SPS0_CTRL + 1, 0x53);
 		r8712_write8(padapter, SPS0_CTRL, 0x57);
@@ -117,7 +120,7 @@ u8 r8712_usb_hal_bus_init(struct _adapter *padapter)
 		 */
 		val8 = r8712_read8(padapter, AFE_MISC);
 		r8712_write8(padapter, AFE_MISC, (val8 | AFE_MISC_BGEN |
-			     AFE_MISC_MBEN));
+										  AFE_MISC_MBEN));
 		/* Enable LDOA15 block */
 		val8 = r8712_read8(padapter, LDOA15_CTRL);
 		r8712_write8(padapter, LDOA15_CTRL, (val8 | LDA15_EN));
@@ -173,8 +176,10 @@ u8 r8712_usb_hal_bus_init(struct _adapter *padapter)
 		/* For power save, used this in the bit file after 970621 */
 		val8 = r8712_read8(padapter, SYS_CLKR);
 		r8712_write8(padapter, SYS_CLKR, val8 & (~CPU_CLKSEL));
-	} else if (pregistrypriv->chip_version == RTL8712_2ndCUT ||
-		  pregistrypriv->chip_version == RTL8712_3rdCUT) {
+	}
+	else if (pregistrypriv->chip_version == RTL8712_2ndCUT ||
+			 pregistrypriv->chip_version == RTL8712_3rdCUT)
+	{
 		/* Initialization for power on sequence,
 		 * E-Fuse leakage prevention sequence
 		 */
@@ -186,10 +191,13 @@ u8 r8712_usb_hal_bus_init(struct _adapter *padapter)
 		 * from resume sate.
 		 */
 		val8 = r8712_read8(padapter, SYS_CLKR + 1);
-		if (val8 & 0x80) {
+
+		if (val8 & 0x80)
+		{
 			val8 &= 0x3f;
 			r8712_write8(padapter, SYS_CLKR + 1, val8);
 		}
+
 		val8 = r8712_read8(padapter, SYS_FUNC_EN + 1);
 		val8 &= 0x73;
 		r8712_write8(padapter, SYS_FUNC_EN + 1, val8);
@@ -204,7 +212,7 @@ u8 r8712_usb_hal_bus_init(struct _adapter *padapter)
 		/*Bandgap*/
 		r8712_write8(padapter, AFE_MISC, (val8 | AFE_MISC_BGEN));
 		r8712_write8(padapter, AFE_MISC, (val8 | AFE_MISC_BGEN |
-			     AFE_MISC_MBEN | AFE_MISC_I32_EN));
+										  AFE_MISC_MBEN | AFE_MISC_I32_EN));
 		/* Enable PLL Power (LDOA15V) */
 		val8 = r8712_read8(padapter, LDOA15_CTRL);
 		r8712_write8(padapter, LDOA15_CTRL, (val8 | LDA15_EN));
@@ -269,26 +277,37 @@ u8 r8712_usb_hal_bus_init(struct _adapter *padapter)
 		r8712_write8(padapter, SYS_CLKR, val8 & (~CPU_CLKSEL));
 		/* Revised for 8051 ROM code wrong operation. */
 		r8712_write8(padapter, 0x1025fe1c, 0x80);
+
 		/* To make sure that TxDMA can ready to download FW.
 		 * We should reset TxDMA if IMEM RPT was not ready.
 		 */
-		do {
+		do
+		{
 			val8 = r8712_read8(padapter, TCR);
-			if ((val8 & _TXDMA_INIT_VALUE) == _TXDMA_INIT_VALUE)
-				break;
-			udelay(5); /* PlatformStallExecution(5); */
-		} while (PollingCnt--);	/* Delay 1ms */
 
-		if (PollingCnt <= 0) {
+			if ((val8 & _TXDMA_INIT_VALUE) == _TXDMA_INIT_VALUE)
+			{
+				break;
+			}
+
+			udelay(5); /* PlatformStallExecution(5); */
+		}
+		while (PollingCnt--);	/* Delay 1ms */
+
+		if (PollingCnt <= 0)
+		{
 			val8 = r8712_read8(padapter, CR);
 			r8712_write8(padapter, CR, val8 & (~_TXDMA_EN));
 			udelay(2); /* PlatformStallExecution(2); */
 			/* Reset TxDMA */
 			r8712_write8(padapter, CR, val8 | _TXDMA_EN);
 		}
-	} else {
+	}
+	else
+	{
 		ret = _FAIL;
 	}
+
 	return ret;
 }
 
@@ -302,13 +321,19 @@ unsigned int r8712_usb_inirp_init(struct _adapter *padapter)
 	precvpriv->ff_hwaddr = RTL8712_DMA_RX0FF; /* mapping rx fifo address */
 	/* issue Rx irp to receive data */
 	precvbuf = (struct recv_buf *)precvpriv->precv_buf;
-	for (i = 0; i < NR_RECVBUFF; i++) {
+
+	for (i = 0; i < NR_RECVBUFF; i++)
+	{
 		if (r8712_usb_read_port(pintfhdl, precvpriv->ff_hwaddr, 0,
-		   (unsigned char *)precvbuf) == false)
+								(unsigned char *)precvbuf) == false)
+		{
 			return _FAIL;
+		}
+
 		precvbuf++;
 		precvpriv->free_recv_buf_queue_cnt--;
 	}
+
 	return _SUCCESS;
 }
 

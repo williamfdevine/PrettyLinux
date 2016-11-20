@@ -29,7 +29,8 @@
 
 /* Igu control commands
  */
-enum igu_ctrl_cmd {
+enum igu_ctrl_cmd
+{
 	IGU_CTRL_CMD_TYPE_RD,
 	IGU_CTRL_CMD_TYPE_WR,
 	MAX_IGU_CTRL_CMD
@@ -37,7 +38,8 @@ enum igu_ctrl_cmd {
 
 /* Control register for the IGU command register
  */
-struct igu_ctrl_reg {
+struct igu_ctrl_reg
+{
 	u32 ctrl_data;
 #define IGU_CTRL_REG_FID_MASK           0xFFFF  /* Opaque_FID	 */
 #define IGU_CTRL_REG_FID_SHIFT          0
@@ -49,7 +51,8 @@ struct igu_ctrl_reg {
 #define IGU_CTRL_REG_TYPE_SHIFT         31
 };
 
-enum qed_coalescing_fsm {
+enum qed_coalescing_fsm
+{
 	QED_COAL_RX_STATE_MACHINE,
 	QED_COAL_TX_STATE_MACHINE
 };
@@ -66,11 +69,11 @@ enum qed_coalescing_fsm {
  * @param timeset
  */
 void qed_int_cau_conf_pi(struct qed_hwfn *p_hwfn,
-			 struct qed_ptt *p_ptt,
-			 u16 igu_sb_id,
-			 u32 pi_index,
-			 enum qed_coalescing_fsm coalescing_fsm,
-			 u8 timeset);
+						 struct qed_ptt *p_ptt,
+						 u16 igu_sb_id,
+						 u32 pi_index,
+						 enum qed_coalescing_fsm coalescing_fsm,
+						 u8 timeset);
 
 /**
  * @brief qed_int_igu_enable_int - enable device interrupts
@@ -80,8 +83,8 @@ void qed_int_cau_conf_pi(struct qed_hwfn *p_hwfn,
  * @param int_mode - interrupt mode to use
  */
 void qed_int_igu_enable_int(struct qed_hwfn *p_hwfn,
-			    struct qed_ptt *p_ptt,
-			    enum qed_int_mode int_mode);
+							struct qed_ptt *p_ptt,
+							enum qed_int_mode int_mode);
 
 /**
  * @brief qed_int_igu_disable_int - disable device interrupts
@@ -90,7 +93,7 @@ void qed_int_igu_enable_int(struct qed_hwfn *p_hwfn,
  * @param p_ptt
  */
 void qed_int_igu_disable_int(struct qed_hwfn *p_hwfn,
-			     struct qed_ptt *p_ptt);
+							 struct qed_ptt *p_ptt);
 
 /**
  * @brief qed_int_igu_read_sisr_reg - Reads the single isr multiple dpc
@@ -120,11 +123,11 @@ u64 qed_int_igu_read_sisr_reg(struct qed_hwfn *p_hwfn);
  * @return int
  */
 int qed_int_sb_init(struct qed_hwfn *p_hwfn,
-		    struct qed_ptt *p_ptt,
-		    struct qed_sb_info *sb_info,
-		    void *sb_virt_addr,
-		    dma_addr_t sb_phy_addr,
-		    u16 sb_id);
+					struct qed_ptt *p_ptt,
+					struct qed_sb_info *sb_info,
+					void *sb_virt_addr,
+					dma_addr_t sb_phy_addr,
+					u16 sb_id);
 /**
  * @brief qed_int_sb_setup - Setup the sb.
  *
@@ -133,8 +136,8 @@ int qed_int_sb_init(struct qed_hwfn *p_hwfn,
  * @param sb_info	initialized sb_info structure
  */
 void qed_int_sb_setup(struct qed_hwfn *p_hwfn,
-		      struct qed_ptt *p_ptt,
-		      struct qed_sb_info *sb_info);
+					  struct qed_ptt *p_ptt,
+					  struct qed_sb_info *sb_info);
 
 /**
  * @brief qed_int_sb_release - releases the sb_info structure.
@@ -150,8 +153,8 @@ void qed_int_sb_setup(struct qed_hwfn *p_hwfn,
  * @return int
  */
 int qed_int_sb_release(struct qed_hwfn *p_hwfn,
-		       struct qed_sb_info *sb_info,
-		       u16 sb_id);
+					   struct qed_sb_info *sb_info,
+					   u16 sb_id);
 
 /**
  * @brief qed_int_sp_dpc - To be called when an interrupt is received on the
@@ -172,7 +175,7 @@ void qed_int_sp_dpc(unsigned long hwfn_cookie);
  * @return int - number of status blocks configured
  */
 void qed_int_get_num_sbs(struct qed_hwfn	*p_hwfn,
-			 struct qed_sb_cnt_info *p_sb_cnt_info);
+						 struct qed_sb_cnt_info *p_sb_cnt_info);
 
 /**
  * @brief qed_int_disable_post_isr_release - performs the cleanup post ISR
@@ -193,7 +196,8 @@ void qed_int_disable_post_isr_release(struct qed_dev *cdev);
 #define SB_ALIGNED_SIZE(p_hwfn)	\
 	ALIGNED_TYPE_SIZE(struct status_block, p_hwfn)
 
-struct qed_igu_block {
+struct qed_igu_block
+{
 	u8	status;
 #define QED_IGU_STATUS_FREE     0x01
 #define QED_IGU_STATUS_VALID    0x02
@@ -204,11 +208,13 @@ struct qed_igu_block {
 	u8	is_pf;
 };
 
-struct qed_igu_map {
+struct qed_igu_map
+{
 	struct qed_igu_block igu_blocks[MAX_TOT_SB_PER_PATH];
 };
 
-struct qed_igu_info {
+struct qed_igu_info
+{
 	struct qed_igu_map	igu_map;
 	u16			igu_dsb_id;
 	u16			igu_base_sb;
@@ -220,9 +226,9 @@ struct qed_igu_info {
 
 /* TODO Names of function may change... */
 void qed_int_igu_init_pure_rt(struct qed_hwfn *p_hwfn,
-			      struct qed_ptt *p_ptt,
-			      bool b_set,
-			      bool b_slowpath);
+							  struct qed_ptt *p_ptt,
+							  bool b_set,
+							  bool b_slowpath);
 
 void qed_int_igu_init_rt(struct qed_hwfn *p_hwfn);
 
@@ -238,10 +244,10 @@ void qed_int_igu_init_rt(struct qed_hwfn *p_hwfn);
  * @return int
  */
 int qed_int_igu_read_cam(struct qed_hwfn *p_hwfn,
-			 struct qed_ptt *p_ptt);
+						 struct qed_ptt *p_ptt);
 
 typedef int (*qed_int_comp_cb_t)(struct qed_hwfn *p_hwfn,
-				 void *cookie);
+								 void *cookie);
 /**
  * @brief qed_int_register_cb - Register callback func for
  *      slowhwfn statusblock.
@@ -263,10 +269,10 @@ typedef int (*qed_int_comp_cb_t)(struct qed_hwfn *p_hwfn,
  * @return int
  */
 int qed_int_register_cb(struct qed_hwfn *p_hwfn,
-			qed_int_comp_cb_t comp_cb,
-			void *cookie,
-			u8 *sb_idx,
-			__le16 **p_fw_cons);
+						qed_int_comp_cb_t comp_cb,
+						void *cookie,
+						u8 *sb_idx,
+						__le16 **p_fw_cons);
 
 /**
  * @brief qed_int_unregister_cb - Unregisters callback
@@ -280,7 +286,7 @@ int qed_int_register_cb(struct qed_hwfn *p_hwfn,
  * @return int
  */
 int qed_int_unregister_cb(struct qed_hwfn *p_hwfn,
-			  u8 pi);
+						  u8 pi);
 
 /**
  * @brief qed_int_get_sp_sb_id - Get the slowhwfn sb id.
@@ -302,10 +308,10 @@ u16 qed_int_get_sp_sb_id(struct qed_hwfn *p_hwfn);
  * @param b_set		- set(1) / clear(0)
  */
 void qed_int_igu_init_pure_rt_single(struct qed_hwfn *p_hwfn,
-				     struct qed_ptt *p_ptt,
-				     u32 sb_id,
-				     u16 opaque,
-				     bool b_set);
+									 struct qed_ptt *p_ptt,
+									 u32 sb_id,
+									 u16 opaque,
+									 bool b_set);
 
 /**
  * @brief qed_int_cau_conf - configure cau for a given status
@@ -319,11 +325,11 @@ void qed_int_igu_init_pure_rt_single(struct qed_hwfn *p_hwfn,
  * @param vf_valid
  */
 void qed_int_cau_conf_sb(struct qed_hwfn *p_hwfn,
-			 struct qed_ptt *p_ptt,
-			 dma_addr_t sb_phys,
-			 u16 igu_sb_id,
-			 u16 vf_number,
-			 u8 vf_valid);
+						 struct qed_ptt *p_ptt,
+						 dma_addr_t sb_phys,
+						 u16 igu_sb_id,
+						 u16 vf_number,
+						 u8 vf_valid);
 
 /**
  * @brief qed_int_alloc
@@ -334,7 +340,7 @@ void qed_int_cau_conf_sb(struct qed_hwfn *p_hwfn,
  * @return int
  */
 int qed_int_alloc(struct qed_hwfn *p_hwfn,
-		  struct qed_ptt *p_ptt);
+				  struct qed_ptt *p_ptt);
 
 /**
  * @brief qed_int_free
@@ -350,7 +356,7 @@ void qed_int_free(struct qed_hwfn *p_hwfn);
  * @param p_ptt
  */
 void qed_int_setup(struct qed_hwfn *p_hwfn,
-		   struct qed_ptt *p_ptt);
+				   struct qed_ptt *p_ptt);
 
 /**
  * @brief - Returns an Rx queue index appropriate for usage with given SB.
@@ -372,7 +378,7 @@ u16 qed_int_queue_id_from_sb_id(struct qed_hwfn *p_hwfn, u16 sb_id);
  * @return int
  */
 int qed_int_igu_enable(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt,
-		       enum qed_int_mode int_mode);
+					   enum qed_int_mode int_mode);
 
 /**
  * @brief - Initialize CAU status block entry
@@ -384,13 +390,13 @@ int qed_int_igu_enable(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt,
  * @param vf_valid
  */
 void qed_init_cau_sb_entry(struct qed_hwfn *p_hwfn,
-			   struct cau_sb_entry *p_sb_entry,
-			   u8 pf_id,
-			   u16 vf_number,
-			   u8 vf_valid);
+						   struct cau_sb_entry *p_sb_entry,
+						   u8 pf_id,
+						   u16 vf_number,
+						   u8 vf_valid);
 
 int qed_int_set_timer_res(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt,
-			  u8 timer_res, u16 sb_id, bool tx);
+						  u8 timer_res, u16 sb_id, bool tx);
 
 #define QED_MAPPING_MEMORY_SIZE(dev)	(NUM_OF_SBS(dev))
 

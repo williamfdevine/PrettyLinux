@@ -40,19 +40,19 @@ static DEFINE_SPINLOCK(rio_doorbell_lock);
  * configuration space registers on the local device.
  */
 #define RIO_LOP_READ(size,type,len) \
-int __rio_local_read_config_##size \
+	int __rio_local_read_config_##size \
 	(struct rio_mport *mport, u32 offset, type *value)		\
-{									\
-	int res;							\
-	unsigned long flags;						\
-	u32 data = 0;							\
-	if (RIO_##size##_BAD) return RIO_BAD_SIZE;			\
-	spin_lock_irqsave(&rio_config_lock, flags);			\
-	res = mport->ops->lcread(mport, mport->id, offset, len, &data);	\
-	*value = (type)data;						\
-	spin_unlock_irqrestore(&rio_config_lock, flags);		\
-	return res;							\
-}
+	{									\
+		int res;							\
+		unsigned long flags;						\
+		u32 data = 0;							\
+		if (RIO_##size##_BAD) return RIO_BAD_SIZE;			\
+		spin_lock_irqsave(&rio_config_lock, flags);			\
+		res = mport->ops->lcread(mport, mport->id, offset, len, &data);	\
+		*value = (type)data;						\
+		spin_unlock_irqrestore(&rio_config_lock, flags);		\
+		return res;							\
+	}
 
 /**
  * RIO_LOP_WRITE - Generate rio_local_write_config_* functions
@@ -64,17 +64,17 @@ int __rio_local_read_config_##size \
  * configuration space registers on the local device.
  */
 #define RIO_LOP_WRITE(size,type,len) \
-int __rio_local_write_config_##size \
+	int __rio_local_write_config_##size \
 	(struct rio_mport *mport, u32 offset, type value)		\
-{									\
-	int res;							\
-	unsigned long flags;						\
-	if (RIO_##size##_BAD) return RIO_BAD_SIZE;			\
-	spin_lock_irqsave(&rio_config_lock, flags);			\
-	res = mport->ops->lcwrite(mport, mport->id, offset, len, value);\
-	spin_unlock_irqrestore(&rio_config_lock, flags);		\
-	return res;							\
-}
+	{									\
+		int res;							\
+		unsigned long flags;						\
+		if (RIO_##size##_BAD) return RIO_BAD_SIZE;			\
+		spin_lock_irqsave(&rio_config_lock, flags);			\
+		res = mport->ops->lcwrite(mport, mport->id, offset, len, value);\
+		spin_unlock_irqrestore(&rio_config_lock, flags);		\
+		return res;							\
+	}
 
 RIO_LOP_READ(8, u8, 1)
 RIO_LOP_READ(16, u16, 2)
@@ -100,19 +100,19 @@ EXPORT_SYMBOL_GPL(__rio_local_write_config_32);
  * configuration space registers on the local device.
  */
 #define RIO_OP_READ(size,type,len) \
-int rio_mport_read_config_##size \
+	int rio_mport_read_config_##size \
 	(struct rio_mport *mport, u16 destid, u8 hopcount, u32 offset, type *value)	\
-{									\
-	int res;							\
-	unsigned long flags;						\
-	u32 data = 0;							\
-	if (RIO_##size##_BAD) return RIO_BAD_SIZE;			\
-	spin_lock_irqsave(&rio_config_lock, flags);			\
-	res = mport->ops->cread(mport, mport->id, destid, hopcount, offset, len, &data); \
-	*value = (type)data;						\
-	spin_unlock_irqrestore(&rio_config_lock, flags);		\
-	return res;							\
-}
+	{									\
+		int res;							\
+		unsigned long flags;						\
+		u32 data = 0;							\
+		if (RIO_##size##_BAD) return RIO_BAD_SIZE;			\
+		spin_lock_irqsave(&rio_config_lock, flags);			\
+		res = mport->ops->cread(mport, mport->id, destid, hopcount, offset, len, &data); \
+		*value = (type)data;						\
+		spin_unlock_irqrestore(&rio_config_lock, flags);		\
+		return res;							\
+	}
 
 /**
  * RIO_OP_WRITE - Generate rio_mport_write_config_* functions
@@ -124,17 +124,17 @@ int rio_mport_read_config_##size \
  * configuration space registers on the local device.
  */
 #define RIO_OP_WRITE(size,type,len) \
-int rio_mport_write_config_##size \
+	int rio_mport_write_config_##size \
 	(struct rio_mport *mport, u16 destid, u8 hopcount, u32 offset, type value)	\
-{									\
-	int res;							\
-	unsigned long flags;						\
-	if (RIO_##size##_BAD) return RIO_BAD_SIZE;			\
-	spin_lock_irqsave(&rio_config_lock, flags);			\
-	res = mport->ops->cwrite(mport, mport->id, destid, hopcount, offset, len, value); \
-	spin_unlock_irqrestore(&rio_config_lock, flags);		\
-	return res;							\
-}
+	{									\
+		int res;							\
+		unsigned long flags;						\
+		if (RIO_##size##_BAD) return RIO_BAD_SIZE;			\
+		spin_lock_irqsave(&rio_config_lock, flags);			\
+		res = mport->ops->cwrite(mport, mport->id, destid, hopcount, offset, len, value); \
+		spin_unlock_irqrestore(&rio_config_lock, flags);		\
+		return res;							\
+	}
 
 RIO_OP_READ(8, u8, 1)
 RIO_OP_READ(16, u16, 2)

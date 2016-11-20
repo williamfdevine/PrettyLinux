@@ -51,15 +51,16 @@
 
 /* Definitions for online/offline exerciser. */
 bool torture_offline(int cpu, long *n_onl_attempts, long *n_onl_successes,
-		     unsigned long *sum_offl, int *min_onl, int *max_onl);
+					 unsigned long *sum_offl, int *min_onl, int *max_onl);
 bool torture_online(int cpu, long *n_onl_attempts, long *n_onl_successes,
-		    unsigned long *sum_onl, int *min_onl, int *max_onl);
+					unsigned long *sum_onl, int *min_onl, int *max_onl);
 int torture_onoff_init(long ooholdoff, long oointerval);
 void torture_onoff_stats(void);
 bool torture_onoff_failures(void);
 
 /* Low-rider random number generator. */
-struct torture_random_state {
+struct torture_random_state
+{
 	unsigned long trs_state;
 	long trs_count;
 };
@@ -87,12 +88,12 @@ bool torture_must_stop(void);
 bool torture_must_stop_irq(void);
 void torture_kthread_stopping(char *title);
 int _torture_create_kthread(int (*fn)(void *arg), void *arg, char *s, char *m,
-			     char *f, struct task_struct **tp);
+							char *f, struct task_struct **tp);
 void _torture_stop_kthread(char *m, struct task_struct **tp);
 
 #define torture_create_kthread(n, arg, tp) \
 	_torture_create_kthread(n, (arg), #n, "Creating " #n " task", \
-				"Failed to create " #n, &(tp))
+							"Failed to create " #n, &(tp))
 #define torture_stop_kthread(n, tp) \
 	_torture_stop_kthread("Stopping " #n " task", &(tp))
 

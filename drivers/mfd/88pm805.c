@@ -29,14 +29,16 @@
 #include <linux/slab.h>
 #include <linux/delay.h>
 
-static const struct i2c_device_id pm80x_id_table[] = {
+static const struct i2c_device_id pm80x_id_table[] =
+{
 	{"88PM805", 0},
 	{} /* NULL terminated */
 };
 MODULE_DEVICE_TABLE(i2c, pm80x_id_table);
 
 /* Interrupt Number in 88PM805 */
-enum {
+enum
+{
 	PM805_IRQ_LDO_OFF,	/*0 */
 	PM805_IRQ_SRC_DPLL_LOCK,	/*1 */
 	PM805_IRQ_CLIP_FAULT,
@@ -53,40 +55,43 @@ enum {
 	PM805_MAX_IRQ,
 };
 
-static struct resource codec_resources[] = {
+static struct resource codec_resources[] =
+{
 	{
-	 /* Headset microphone insertion or removal */
-	 .name = "micin",
-	 .start = PM805_IRQ_MIC_DET,
-	 .end = PM805_IRQ_MIC_DET,
-	 .flags = IORESOURCE_IRQ,
-	 },
+		/* Headset microphone insertion or removal */
+		.name = "micin",
+		.start = PM805_IRQ_MIC_DET,
+		.end = PM805_IRQ_MIC_DET,
+		.flags = IORESOURCE_IRQ,
+	},
 	{
-	 /* Audio short HP1 */
-	 .name = "audio-short1",
-	 .start = PM805_IRQ_HP1_SHRT,
-	 .end = PM805_IRQ_HP1_SHRT,
-	 .flags = IORESOURCE_IRQ,
-	 },
+		/* Audio short HP1 */
+		.name = "audio-short1",
+		.start = PM805_IRQ_HP1_SHRT,
+		.end = PM805_IRQ_HP1_SHRT,
+		.flags = IORESOURCE_IRQ,
+	},
 	{
-	 /* Audio short HP2 */
-	 .name = "audio-short2",
-	 .start = PM805_IRQ_HP2_SHRT,
-	 .end = PM805_IRQ_HP2_SHRT,
-	 .flags = IORESOURCE_IRQ,
-	 },
+		/* Audio short HP2 */
+		.name = "audio-short2",
+		.start = PM805_IRQ_HP2_SHRT,
+		.end = PM805_IRQ_HP2_SHRT,
+		.flags = IORESOURCE_IRQ,
+	},
 };
 
-static const struct mfd_cell codec_devs[] = {
+static const struct mfd_cell codec_devs[] =
+{
 	{
-	 .name = "88pm80x-codec",
-	 .num_resources = ARRAY_SIZE(codec_resources),
-	 .resources = &codec_resources[0],
-	 .id = -1,
-	 },
+		.name = "88pm80x-codec",
+		.num_resources = ARRAY_SIZE(codec_resources),
+		.resources = &codec_resources[0],
+		.id = -1,
+	},
 };
 
-static struct regmap_irq pm805_irqs[] = {
+static struct regmap_irq pm805_irqs[] =
+{
 	/* INT0 */
 	[PM805_IRQ_LDO_OFF] = {
 		.mask = PM805_INT1_HP1_SHRT,
@@ -139,7 +144,8 @@ static int device_irq_init_805(struct pm80x_chip *chip)
 	unsigned long flags = IRQF_ONESHOT;
 	int data, mask, ret = -EINVAL;
 
-	if (!map || !chip->irq) {
+	if (!map || !chip->irq)
+	{
 		dev_err(chip->dev, "incorrect parameters\n");
 		return -EINVAL;
 	}
@@ -149,8 +155,8 @@ static int device_irq_init_805(struct pm80x_chip *chip)
 	 * default.
 	 */
 	mask =
-	    PM805_STATUS0_INT_CLEAR | PM805_STATUS0_INV_INT |
-	    PM800_STATUS0_INT_MASK;
+		PM805_STATUS0_INT_CLEAR | PM805_STATUS0_INV_INT |
+		PM800_STATUS0_INT_MASK;
 
 	data = PM805_STATUS0_INT_CLEAR;
 	ret = regmap_update_bits(map, PM805_INT_STATUS0, mask, data);
@@ -161,11 +167,13 @@ static int device_irq_init_805(struct pm80x_chip *chip)
 	usleep_range(1000, 3000);
 
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret =
-	    regmap_add_irq_chip(chip->regmap, chip->irq, flags, -1,
-				chip->regmap_irq_chip, &chip->irq_data);
+		regmap_add_irq_chip(chip->regmap, chip->irq, flags, -1,
+							chip->regmap_irq_chip, &chip->irq_data);
 
 out:
 	return ret;
@@ -176,7 +184,8 @@ static void device_irq_exit_805(struct pm80x_chip *chip)
 	regmap_del_irq_chip(chip->irq, chip->irq_data);
 }
 
-static struct regmap_irq_chip pm805_irq_chip = {
+static struct regmap_irq_chip pm805_irq_chip =
+{
 	.name = "88pm805",
 	.irqs = pm805_irqs,
 	.num_irqs = ARRAY_SIZE(pm805_irqs),
@@ -192,7 +201,8 @@ static int device_805_init(struct pm80x_chip *chip)
 	int ret = 0;
 	struct regmap *map = chip->regmap;
 
-	if (!map) {
+	if (!map)
+	{
 		dev_err(chip->dev, "regmap is invalid\n");
 		return -EINVAL;
 	}
@@ -200,19 +210,26 @@ static int device_805_init(struct pm80x_chip *chip)
 	chip->regmap_irq_chip = &pm805_irq_chip;
 
 	ret = device_irq_init_805(chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "Failed to init pm805 irq!\n");
 		goto out_irq_init;
 	}
 
 	ret = mfd_add_devices(chip->dev, 0, &codec_devs[0],
-			      ARRAY_SIZE(codec_devs), &codec_resources[0], 0,
-			      NULL);
-	if (ret < 0) {
+						  ARRAY_SIZE(codec_devs), &codec_resources[0], 0,
+						  NULL);
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "Failed to add codec subdev\n");
 		goto out_codec;
-	} else
+	}
+	else
+	{
 		dev_info(chip->dev, "[%s]:Added mfd codec_devs\n", __func__);
+	}
 
 	return 0;
 
@@ -223,14 +240,16 @@ out_irq_init:
 }
 
 static int pm805_probe(struct i2c_client *client,
-				 const struct i2c_device_id *id)
+					   const struct i2c_device_id *id)
 {
 	int ret = 0;
 	struct pm80x_chip *chip;
 	struct pm80x_platform_data *pdata = dev_get_platdata(&client->dev);
 
 	ret = pm80x_init(client);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&client->dev, "pm805_init fail!\n");
 		goto out_init;
 	}
@@ -238,13 +257,17 @@ static int pm805_probe(struct i2c_client *client,
 	chip = i2c_get_clientdata(client);
 
 	ret = device_805_init(chip);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(chip->dev, "Failed to initialize 88pm805 devices\n");
 		goto err_805_init;
 	}
 
 	if (pdata && pdata->plat_config)
+	{
 		pdata->plat_config(chip, pdata);
+	}
 
 err_805_init:
 	pm80x_deinit();
@@ -264,11 +287,12 @@ static int pm805_remove(struct i2c_client *client)
 	return 0;
 }
 
-static struct i2c_driver pm805_driver = {
+static struct i2c_driver pm805_driver =
+{
 	.driver = {
 		.name = "88PM805",
 		.pm = &pm80x_pm_ops,
-		},
+	},
 	.probe = pm805_probe,
 	.remove = pm805_remove,
 	.id_table = pm80x_id_table,

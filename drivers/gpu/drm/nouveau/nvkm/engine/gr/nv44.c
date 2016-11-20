@@ -38,43 +38,48 @@ nv44_gr_tile(struct nvkm_gr *base, int i, struct nvkm_fb_tile *tile)
 	nvkm_fifo_pause(fifo, &flags);
 	nv04_gr_idle(&gr->base);
 
-	switch (device->chipset) {
-	case 0x44:
-	case 0x4a:
-		nvkm_wr32(device, NV20_PGRAPH_TSIZE(i), tile->pitch);
-		nvkm_wr32(device, NV20_PGRAPH_TLIMIT(i), tile->limit);
-		nvkm_wr32(device, NV20_PGRAPH_TILE(i), tile->addr);
-		break;
-	case 0x46:
-	case 0x4c:
-	case 0x63:
-	case 0x67:
-	case 0x68:
-		nvkm_wr32(device, NV47_PGRAPH_TSIZE(i), tile->pitch);
-		nvkm_wr32(device, NV47_PGRAPH_TLIMIT(i), tile->limit);
-		nvkm_wr32(device, NV47_PGRAPH_TILE(i), tile->addr);
-		nvkm_wr32(device, NV40_PGRAPH_TSIZE1(i), tile->pitch);
-		nvkm_wr32(device, NV40_PGRAPH_TLIMIT1(i), tile->limit);
-		nvkm_wr32(device, NV40_PGRAPH_TILE1(i), tile->addr);
-		break;
-	case 0x4e:
-		nvkm_wr32(device, NV20_PGRAPH_TSIZE(i), tile->pitch);
-		nvkm_wr32(device, NV20_PGRAPH_TLIMIT(i), tile->limit);
-		nvkm_wr32(device, NV20_PGRAPH_TILE(i), tile->addr);
-		nvkm_wr32(device, NV40_PGRAPH_TSIZE1(i), tile->pitch);
-		nvkm_wr32(device, NV40_PGRAPH_TLIMIT1(i), tile->limit);
-		nvkm_wr32(device, NV40_PGRAPH_TILE1(i), tile->addr);
-		break;
-	default:
-		WARN_ON(1);
-		break;
+	switch (device->chipset)
+	{
+		case 0x44:
+		case 0x4a:
+			nvkm_wr32(device, NV20_PGRAPH_TSIZE(i), tile->pitch);
+			nvkm_wr32(device, NV20_PGRAPH_TLIMIT(i), tile->limit);
+			nvkm_wr32(device, NV20_PGRAPH_TILE(i), tile->addr);
+			break;
+
+		case 0x46:
+		case 0x4c:
+		case 0x63:
+		case 0x67:
+		case 0x68:
+			nvkm_wr32(device, NV47_PGRAPH_TSIZE(i), tile->pitch);
+			nvkm_wr32(device, NV47_PGRAPH_TLIMIT(i), tile->limit);
+			nvkm_wr32(device, NV47_PGRAPH_TILE(i), tile->addr);
+			nvkm_wr32(device, NV40_PGRAPH_TSIZE1(i), tile->pitch);
+			nvkm_wr32(device, NV40_PGRAPH_TLIMIT1(i), tile->limit);
+			nvkm_wr32(device, NV40_PGRAPH_TILE1(i), tile->addr);
+			break;
+
+		case 0x4e:
+			nvkm_wr32(device, NV20_PGRAPH_TSIZE(i), tile->pitch);
+			nvkm_wr32(device, NV20_PGRAPH_TLIMIT(i), tile->limit);
+			nvkm_wr32(device, NV20_PGRAPH_TILE(i), tile->addr);
+			nvkm_wr32(device, NV40_PGRAPH_TSIZE1(i), tile->pitch);
+			nvkm_wr32(device, NV40_PGRAPH_TLIMIT1(i), tile->limit);
+			nvkm_wr32(device, NV40_PGRAPH_TILE1(i), tile->addr);
+			break;
+
+		default:
+			WARN_ON(1);
+			break;
 	}
 
 	nvkm_fifo_start(fifo, &flags);
 }
 
 static const struct nvkm_gr_func
-nv44_gr = {
+	nv44_gr =
+{
 	.init = nv40_gr_init,
 	.intr = nv40_gr_intr,
 	.tile = nv44_gr_tile,

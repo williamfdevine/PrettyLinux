@@ -35,18 +35,20 @@ int run_as_root;
 struct bitmask *cpus_chosen;
 
 #ifdef DEBUG
-int be_verbose;
+	int be_verbose;
 #endif
 
 static void print_help(void);
 
-struct cmd_struct {
+struct cmd_struct
+{
 	const char *cmd;
 	int (*main)(int, const char **);
 	int needs_root;
 };
 
-static struct cmd_struct commands[] = {
+static struct cmd_struct commands[] =
+{
 	{ "frequency-info",	cmd_freq_info,	0	},
 	{ "frequency-set",	cmd_freq_set,	1	},
 	{ "idle-info",		cmd_idle_info,	0	},
@@ -68,8 +70,12 @@ static void print_help(void)
 	printf(_("Usage:\tcpupower [-c|--cpu cpulist ] <command> [<args>]\n"));
 #endif
 	printf(_("Supported commands are:\n"));
+
 	for (i = 0; i < ARRAY_SIZE(commands); i++)
+	{
 		printf("\t%s\n", commands[i].cmd);
+	}
+
 	printf(_("\nNot all commands can make use of the -c cpulist option.\n"));
 	printf(_("\nUse 'cpupower help <command>' for getting help for above commands.\n"));
 }
@@ -80,15 +86,23 @@ static int print_man_page(const char *subpage)
 	char *page;
 
 	len = 10; /* enough for "cpupower-" */
+
 	if (subpage != NULL)
+	{
 		len += strlen(subpage);
+	}
 
 	page = malloc(len);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	sprintf(page, "cpupower");
-	if ((subpage != NULL) && strcmp(subpage, "help")) {
+
+	if ((subpage != NULL) && strcmp(subpage, "help"))
+	{
 		strcat(page, "-");
 		strcat(page, subpage);
 	}
@@ -101,7 +115,8 @@ static int print_man_page(const char *subpage)
 
 static int cmd_help(int argc, const char **argv)
 {
-	if (argc > 1) {
+	if (argc > 1)
+	{
 		print_man_page(argv[1]); /* exits within execlp() */
 		return EXIT_FAILURE;
 	}
@@ -121,49 +136,71 @@ static void handle_options(int *argc, const char ***argv)
 	int ret, x, new_argc = 0;
 
 	if (*argc < 1)
+	{
 		return;
+	}
 
-	for (x = 0;  x < *argc && ((*argv)[x])[0] == '-'; x++) {
+	for (x = 0;  x < *argc && ((*argv)[x])[0] == '-'; x++)
+	{
 		const char *param = (*argv)[x];
-		if (!strcmp(param, "-h") || !strcmp(param, "--help")) {
+
+		if (!strcmp(param, "-h") || !strcmp(param, "--help"))
+		{
 			print_help();
 			exit(EXIT_SUCCESS);
-		} else if (!strcmp(param, "-c") || !strcmp(param, "--cpu")) {
-			if (*argc < 2) {
+		}
+		else if (!strcmp(param, "-c") || !strcmp(param, "--cpu"))
+		{
+			if (*argc < 2)
+			{
 				print_help();
 				exit(EXIT_FAILURE);
 			}
-			if (!strcmp((*argv)[x+1], "all"))
+
+			if (!strcmp((*argv)[x + 1], "all"))
+			{
 				bitmask_setall(cpus_chosen);
-			else {
+			}
+			else
+			{
 				ret = bitmask_parselist(
-						(*argv)[x+1], cpus_chosen);
-				if (ret < 0) {
+						  (*argv)[x + 1], cpus_chosen);
+
+				if (ret < 0)
+				{
 					fprintf(stderr, _("Error parsing cpu "
-							  "list\n"));
+									  "list\n"));
 					exit(EXIT_FAILURE);
 				}
 			}
+
 			x += 1;
 			/* Cut out param: cpupower -c 1 info -> cpupower info */
 			new_argc += 2;
 			continue;
-		} else if (!strcmp(param, "-v") ||
-			!strcmp(param, "--version")) {
+		}
+		else if (!strcmp(param, "-v") ||
+				 !strcmp(param, "--version"))
+		{
 			print_version();
 			exit(EXIT_SUCCESS);
 #ifdef DEBUG
-		} else if (!strcmp(param, "-d") || !strcmp(param, "--debug")) {
+		}
+		else if (!strcmp(param, "-d") || !strcmp(param, "--debug"))
+		{
 			be_verbose = 1;
 			new_argc++;
 			continue;
 #endif
-		} else {
+		}
+		else
+		{
 			fprintf(stderr, "Unknown option: %s\n", param);
 			print_help();
 			exit(EXIT_FAILURE);
 		}
 	}
+
 	*argc -= new_argc;
 	*argv += new_argc;
 }
@@ -184,7 +221,8 @@ int main(int argc, const char *argv[])
 
 	cmd = argv[0];
 
-	if (argc < 1) {
+	if (argc < 1)
+	{
 		print_help();
 		return EXIT_FAILURE;
 	}
@@ -193,37 +231,56 @@ int main(int argc, const char *argv[])
 	textdomain(PACKAGE);
 
 	/* Turn "perf cmd --help" into "perf help cmd" */
-	if (argc > 1 && !strcmp(argv[1], "--help")) {
+	if (argc > 1 && !strcmp(argv[1], "--help"))
+	{
 		argv[1] = argv[0];
 		argv[0] = cmd = "help";
 	}
 
 	get_cpu_info(0, &cpupower_cpu_info);
 	run_as_root = !geteuid();
-	if (run_as_root) {
+
+	if (run_as_root)
+	{
 		ret = uname(&uts);
+
 		if (!ret && !strcmp(uts.machine, "x86_64") &&
-		    stat("/dev/cpu/0/msr", &statbuf) != 0) {
+			stat("/dev/cpu/0/msr", &statbuf) != 0)
+		{
 			if (system("modprobe msr") == -1)
-	fprintf(stderr, _("MSR access not available.\n"));
+			{
+				fprintf(stderr, _("MSR access not available.\n"));
+			}
 		}
 	}
-		
 
-	for (i = 0; i < ARRAY_SIZE(commands); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(commands); i++)
+	{
 		struct cmd_struct *p = commands + i;
+
 		if (strcmp(p->cmd, cmd))
+		{
 			continue;
-		if (!run_as_root && p->needs_root) {
+		}
+
+		if (!run_as_root && p->needs_root)
+		{
 			fprintf(stderr, _("Subcommand %s needs root "
-					  "privileges\n"), cmd);
+							  "privileges\n"), cmd);
 			return EXIT_FAILURE;
 		}
+
 		ret = p->main(argc, argv);
+
 		if (cpus_chosen)
+		{
 			bitmask_free(cpus_chosen);
+		}
+
 		return ret;
 	}
+
 	print_help();
 	return EXIT_FAILURE;
 }

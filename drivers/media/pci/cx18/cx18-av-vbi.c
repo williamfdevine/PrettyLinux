@@ -57,7 +57,8 @@
  */
 static const u8 sliced_vbi_did[2] = { 0x91, 0x55 };
 
-struct vbi_anc_data {
+struct vbi_anc_data
+{
 	/* u8 eav[4]; */
 	/* u8 idle[]; Variable number of idle bytes */
 	u8 preamble[3];
@@ -81,7 +82,8 @@ static int odd_parity(u8 c)
 
 static int decode_vps(u8 *dst, u8 *p)
 {
-	static const u8 biphase_tbl[] = {
+	static const u8 biphase_tbl[] =
+	{
 		0xf0, 0x78, 0x70, 0xf0, 0xb4, 0x3c, 0x34, 0xb4,
 		0xb0, 0x38, 0x30, 0xb0, 0xf0, 0x78, 0x70, 0xf0,
 		0xd2, 0x5a, 0x52, 0xd2, 0x96, 0x1e, 0x16, 0x96,
@@ -119,10 +121,11 @@ static int decode_vps(u8 *dst, u8 *p)
 	u8 c, err = 0;
 	int i;
 
-	for (i = 0; i < 2 * 13; i += 2) {
+	for (i = 0; i < 2 * 13; i += 2)
+	{
 		err |= biphase_tbl[p[i]] | biphase_tbl[p[i + 1]];
 		c = (biphase_tbl[p[i + 1]] & 0xf) |
-		    ((biphase_tbl[p[i]] & 0xf) << 4);
+			((biphase_tbl[p[i]] & 0xf) << 4);
 		dst[i / 2] = c;
 	}
 
@@ -133,7 +136,8 @@ int cx18_av_g_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *
 {
 	struct cx18 *cx = v4l2_get_subdevdata(sd);
 	struct cx18_av_state *state = &cx->av_state;
-	static const u16 lcr2vbi[] = {
+	static const u16 lcr2vbi[] =
+	{
 		0, V4L2_SLICED_TELETEXT_B, 0,	/* 1 */
 		0, V4L2_SLICED_WSS_625, 0,	/* 4 */
 		V4L2_SLICED_CAPTION_525,	/* 6 */
@@ -148,27 +152,35 @@ int cx18_av_g_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *
 
 	/* we're done if raw VBI is active */
 	if ((cx18_av_read(cx, 0x404) & 0x10) == 0)
+	{
 		return 0;
+	}
 
-	if (is_pal) {
-		for (i = 7; i <= 23; i++) {
+	if (is_pal)
+	{
+		for (i = 7; i <= 23; i++)
+		{
 			u8 v = cx18_av_read(cx, 0x424 + i - 7);
 
 			svbi->service_lines[0][i] = lcr2vbi[v >> 4];
 			svbi->service_lines[1][i] = lcr2vbi[v & 0xf];
 			svbi->service_set |= svbi->service_lines[0][i] |
-				svbi->service_lines[1][i];
+								 svbi->service_lines[1][i];
 		}
-	} else {
-		for (i = 10; i <= 21; i++) {
+	}
+	else
+	{
+		for (i = 10; i <= 21; i++)
+		{
 			u8 v = cx18_av_read(cx, 0x424 + i - 10);
 
 			svbi->service_lines[0][i] = lcr2vbi[v >> 4];
 			svbi->service_lines[1][i] = lcr2vbi[v & 0xf];
 			svbi->service_set |= svbi->service_lines[0][i] |
-				svbi->service_lines[1][i];
+								 svbi->service_lines[1][i];
 		}
 	}
+
 	return 0;
 }
 
@@ -195,7 +207,9 @@ int cx18_av_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *
 	u8 lcr[24];
 
 	for (x = 0; x <= 23; x++)
+	{
 		lcr[x] = 0x00;
+	}
 
 	/* Setup standard */
 	cx18_av_std_setup(cx);
@@ -206,11 +220,14 @@ int cx18_av_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *
 	cx18_av_write(cx, 0x47f, state->slicer_line_delay);
 
 	/* Force impossible lines to 0 */
-	if (is_pal) {
+	if (is_pal)
+	{
 		for (i = 0; i <= 6; i++)
 			svbi->service_lines[0][i] =
 				svbi->service_lines[1][i] = 0;
-	} else {
+	}
+	else
+	{
 		for (i = 0; i <= 9; i++)
 			svbi->service_lines[0][i] =
 				svbi->service_lines[1][i] = 0;
@@ -221,33 +238,49 @@ int cx18_av_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *
 	}
 
 	/* Build register values for requested service lines */
-	for (i = 7; i <= 23; i++) {
-		for (x = 0; x <= 1; x++) {
-			switch (svbi->service_lines[1-x][i]) {
-			case V4L2_SLICED_TELETEXT_B:
-				lcr[i] |= 1 << (4 * x);
-				break;
-			case V4L2_SLICED_WSS_625:
-				lcr[i] |= 4 << (4 * x);
-				break;
-			case V4L2_SLICED_CAPTION_525:
-				lcr[i] |= 6 << (4 * x);
-				break;
-			case V4L2_SLICED_VPS:
-				lcr[i] |= 9 << (4 * x);
-				break;
+	for (i = 7; i <= 23; i++)
+	{
+		for (x = 0; x <= 1; x++)
+		{
+			switch (svbi->service_lines[1 - x][i])
+			{
+				case V4L2_SLICED_TELETEXT_B:
+					lcr[i] |= 1 << (4 * x);
+					break;
+
+				case V4L2_SLICED_WSS_625:
+					lcr[i] |= 4 << (4 * x);
+					break;
+
+				case V4L2_SLICED_CAPTION_525:
+					lcr[i] |= 6 << (4 * x);
+					break;
+
+				case V4L2_SLICED_VPS:
+					lcr[i] |= 9 << (4 * x);
+					break;
 			}
 		}
 	}
 
-	if (is_pal) {
+	if (is_pal)
+	{
 		for (x = 1, i = 0x424; i <= 0x434; i++, x++)
+		{
 			cx18_av_write(cx, i, lcr[6 + x]);
-	} else {
+		}
+	}
+	else
+	{
 		for (x = 1, i = 0x424; i <= 0x430; i++, x++)
+		{
 			cx18_av_write(cx, i, lcr[9 + x]);
+		}
+
 		for (i = 0x431; i <= 0x434; i++)
+		{
 			cx18_av_write(cx, i, 0);
+		}
 	}
 
 	cx18_av_write(cx, 0x43c, 0x16);
@@ -257,7 +290,7 @@ int cx18_av_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *
 }
 
 int cx18_av_decode_vbi_line(struct v4l2_subdev *sd,
-				   struct v4l2_decode_vbi_line *vbi)
+							struct v4l2_decode_vbi_line *vbi)
 {
 	struct cx18 *cx = v4l2_get_subdevdata(sd);
 	struct cx18_av_state *state = &cx->av_state;
@@ -269,9 +302,10 @@ int cx18_av_decode_vbi_line(struct v4l2_subdev *sd,
 	 * Check for the ancillary data header for sliced VBI
 	 */
 	if (anc->preamble[0] ||
-			anc->preamble[1] != 0xff || anc->preamble[2] != 0xff ||
-			(anc->did != sliced_vbi_did[0] &&
-			 anc->did != sliced_vbi_did[1])) {
+		anc->preamble[1] != 0xff || anc->preamble[2] != 0xff ||
+		(anc->did != sliced_vbi_did[0] &&
+		 anc->did != sliced_vbi_did[1]))
+	{
 		vbi->line = vbi->type = 0;
 		return 0;
 	}
@@ -283,26 +317,35 @@ int cx18_av_decode_vbi_line(struct v4l2_subdev *sd,
 	p = anc->payload;
 
 	/* Decode the SDID set by the slicer */
-	switch (sdid) {
-	case 1:
-		sdid = V4L2_SLICED_TELETEXT_B;
-		break;
-	case 4:
-		sdid = V4L2_SLICED_WSS_625;
-		break;
-	case 6:
-		sdid = V4L2_SLICED_CAPTION_525;
-		err = !odd_parity(p[0]) || !odd_parity(p[1]);
-		break;
-	case 9:
-		sdid = V4L2_SLICED_VPS;
-		if (decode_vps(p, p) != 0)
+	switch (sdid)
+	{
+		case 1:
+			sdid = V4L2_SLICED_TELETEXT_B;
+			break;
+
+		case 4:
+			sdid = V4L2_SLICED_WSS_625;
+			break;
+
+		case 6:
+			sdid = V4L2_SLICED_CAPTION_525;
+			err = !odd_parity(p[0]) || !odd_parity(p[1]);
+			break;
+
+		case 9:
+			sdid = V4L2_SLICED_VPS;
+
+			if (decode_vps(p, p) != 0)
+			{
+				err = 1;
+			}
+
+			break;
+
+		default:
+			sdid = 0;
 			err = 1;
-		break;
-	default:
-		sdid = 0;
-		err = 1;
-		break;
+			break;
 	}
 
 	vbi->type = err ? 0 : sdid;

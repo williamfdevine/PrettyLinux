@@ -30,7 +30,8 @@
  * use different Host NQNs with the same Host ID we generate a Host ID and
  * use this structure to keep track of the relation between the two.
  */
-struct nvmf_host {
+struct nvmf_host
+{
 	struct kref		ref;
 	struct list_head	list;
 	char			nqn[NVMF_NQN_SIZE];
@@ -40,7 +41,8 @@ struct nvmf_host {
 /**
  * enum nvmf_parsing_opts - used to define the sysfs parsing options used.
  */
-enum {
+enum
+{
 	NVMF_OPT_ERR		= 0,
 	NVMF_OPT_TRANSPORT	= 1 << 0,
 	NVMF_OPT_NQN		= 1 << 1,
@@ -78,7 +80,8 @@ enum {
  * @kato:	Keep-alive timeout.
  * @host:	Virtual NVMe host, contains the NQN and Host ID.
  */
-struct nvmf_ctrl_options {
+struct nvmf_ctrl_options
+{
 	unsigned		mask;
 	char			*transport;
 	char			*subsysnqn;
@@ -114,13 +117,14 @@ struct nvmf_ctrl_options {
  *	   be set to the same enum parsing options defined earlier.
  *	2. create_ctrl() must be defined (even if it does nothing)
  */
-struct nvmf_transport_ops {
+struct nvmf_transport_ops
+{
 	struct list_head	entry;
 	const char		*name;
 	int			required_opts;
 	int			allowed_opts;
 	struct nvme_ctrl	*(*create_ctrl)(struct device *dev,
-					struct nvmf_ctrl_options *opts);
+										struct nvmf_ctrl_options *opts);
 };
 
 int nvmf_reg_read32(struct nvme_ctrl *ctrl, u32 off, u32 *val);

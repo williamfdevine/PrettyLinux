@@ -26,7 +26,8 @@
 #define UNKNOWN_DEV 0x3000
 #define CIR_PORT	0x0800
 
-static const struct pnp_device_id pnp_dev_table[] = {
+static const struct pnp_device_id pnp_dev_table[] =
+{
 	/* Archtek America Corp. */
 	/* Archtek SmartLink Modem 3334BT Plug & Play */
 	{	"AAC000F",		0	},
@@ -382,7 +383,8 @@ static const struct pnp_device_id pnp_dev_table[] = {
 
 MODULE_DEVICE_TABLE(pnp, pnp_dev_table);
 
-static const char *modem_names[] = {
+static const char *modem_names[] =
+{
 	"MODEM", "Modem", "modem", "FAX", "Fax", "fax",
 	"56K", "56k", "K56", "33.6", "28.8", "14.4",
 	"33,600", "28,800", "14,400", "33.600", "28.800", "14.400",
@@ -395,7 +397,9 @@ static bool check_name(const char *name)
 
 	for (tmp = modem_names; *tmp; tmp++)
 		if (strstr(name, *tmp))
+		{
 			return true;
+		}
 
 	return false;
 }
@@ -405,9 +409,12 @@ static bool check_resources(struct pnp_dev *dev)
 	static const resource_size_t base[] = {0x2f8, 0x3f8, 0x2e8, 0x3e8};
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(base); i++) {
+	for (i = 0; i < ARRAY_SIZE(base); i++)
+	{
 		if (pnp_possible_config(dev, IORESOURCE_IO, base[i], 8))
+		{
 			return true;
+		}
 	}
 
 	return false;
@@ -427,11 +434,15 @@ static bool check_resources(struct pnp_dev *dev)
 static int serial_pnp_guess_board(struct pnp_dev *dev)
 {
 	if (!(check_name(pnp_dev_name(dev)) ||
-	    (dev->card && check_name(dev->card->name))))
+		  (dev->card && check_name(dev->card->name))))
+	{
 		return -ENODEV;
+	}
 
 	if (check_resources(dev))
+	{
 		return 0;
+	}
 
 	return -ENODEV;
 }
@@ -442,51 +453,78 @@ serial_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *dev_id)
 	struct uart_8250_port uart, *port;
 	int ret, line, flags = dev_id->driver_data;
 
-	if (flags & UNKNOWN_DEV) {
+	if (flags & UNKNOWN_DEV)
+	{
 		ret = serial_pnp_guess_board(dev);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	memset(&uart, 0, sizeof(uart));
+
 	if (pnp_irq_valid(dev, 0))
+	{
 		uart.port.irq = pnp_irq(dev, 0);
-	if ((flags & CIR_PORT) && pnp_port_valid(dev, 2)) {
+	}
+
+	if ((flags & CIR_PORT) && pnp_port_valid(dev, 2))
+	{
 		uart.port.iobase = pnp_port_start(dev, 2);
 		uart.port.iotype = UPIO_PORT;
-	} else if (pnp_port_valid(dev, 0)) {
+	}
+	else if (pnp_port_valid(dev, 0))
+	{
 		uart.port.iobase = pnp_port_start(dev, 0);
 		uart.port.iotype = UPIO_PORT;
-	} else if (pnp_mem_valid(dev, 0)) {
+	}
+	else if (pnp_mem_valid(dev, 0))
+	{
 		uart.port.mapbase = pnp_mem_start(dev, 0);
 		uart.port.iotype = UPIO_MEM;
 		uart.port.flags = UPF_IOREMAP;
-	} else
+	}
+	else
+	{
 		return -ENODEV;
+	}
 
 	dev_dbg(&dev->dev,
-		 "Setup PNP port: port %lx, mem %pa, irq %d, type %d\n",
-		 uart.port.iobase, &uart.port.mapbase,
-		 uart.port.irq, uart.port.iotype);
+			"Setup PNP port: port %lx, mem %pa, irq %d, type %d\n",
+			uart.port.iobase, &uart.port.mapbase,
+			uart.port.irq, uart.port.iotype);
 
-	if (flags & CIR_PORT) {
+	if (flags & CIR_PORT)
+	{
 		uart.port.flags |= UPF_FIXED_PORT | UPF_FIXED_TYPE;
 		uart.port.type = PORT_8250_CIR;
 	}
 
 	uart.port.flags |= UPF_SKIP_TEST | UPF_BOOT_AUTOCONF;
+
 	if (pnp_irq_flags(dev, 0) & IORESOURCE_IRQ_SHAREABLE)
+	{
 		uart.port.flags |= UPF_SHARE_IRQ;
+	}
+
 	uart.port.uartclk = 1843200;
 	uart.port.dev = &dev->dev;
 
 	line = serial8250_register_8250_port(&uart);
+
 	if (line < 0 || (flags & CIR_PORT))
+	{
 		return -ENODEV;
+	}
 
 	port = serial8250_get_port(line);
+
 	if (uart_console(&port->port))
+	{
 		dev->capabilities |= PNP_CONSOLE;
+	}
 
 	pnp_set_drvdata(dev, (void *)((long)line + 1));
 	return 0;
@@ -497,8 +535,11 @@ static void serial_pnp_remove(struct pnp_dev *dev)
 	long line = (long)pnp_get_drvdata(dev);
 
 	dev->capabilities &= ~PNP_CONSOLE;
+
 	if (line)
+	{
 		serial8250_unregister_port(line - 1);
+	}
 }
 
 #ifdef CONFIG_PM
@@ -507,7 +548,10 @@ static int serial_pnp_suspend(struct pnp_dev *dev, pm_message_t state)
 	long line = (long)pnp_get_drvdata(dev);
 
 	if (!line)
+	{
 		return -ENODEV;
+	}
+
 	serial8250_suspend_port(line - 1);
 	return 0;
 }
@@ -517,7 +561,10 @@ static int serial_pnp_resume(struct pnp_dev *dev)
 	long line = (long)pnp_get_drvdata(dev);
 
 	if (!line)
+	{
 		return -ENODEV;
+	}
+
 	serial8250_resume_port(line - 1);
 	return 0;
 }
@@ -526,7 +573,8 @@ static int serial_pnp_resume(struct pnp_dev *dev)
 #define serial_pnp_resume NULL
 #endif /* CONFIG_PM */
 
-static struct pnp_driver serial_pnp_driver = {
+static struct pnp_driver serial_pnp_driver =
+{
 	.name		= "serial",
 	.probe		= serial_pnp_probe,
 	.remove		= serial_pnp_remove,

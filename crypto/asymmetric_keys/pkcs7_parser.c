@@ -19,7 +19,8 @@
 #include "pkcs7_parser.h"
 #include "pkcs7-asn1.h"
 
-struct pkcs7_parse_context {
+struct pkcs7_parse_context
+{
 	struct pkcs7_message	*msg;		/* Message being constructed */
 	struct pkcs7_signed_info *sinfo;	/* SignedInfo being constructed */
 	struct pkcs7_signed_info **ppsinfo;
@@ -43,7 +44,8 @@ struct pkcs7_parse_context {
  */
 static void pkcs7_free_signed_info(struct pkcs7_signed_info *sinfo)
 {
-	if (sinfo) {
+	if (sinfo)
+	{
 		public_key_signature_free(sinfo->sig);
 		kfree(sinfo);
 	}
@@ -58,22 +60,29 @@ void pkcs7_free_message(struct pkcs7_message *pkcs7)
 	struct x509_certificate *cert;
 	struct pkcs7_signed_info *sinfo;
 
-	if (pkcs7) {
-		while (pkcs7->certs) {
+	if (pkcs7)
+	{
+		while (pkcs7->certs)
+		{
 			cert = pkcs7->certs;
 			pkcs7->certs = cert->next;
 			x509_free_certificate(cert);
 		}
-		while (pkcs7->crl) {
+
+		while (pkcs7->crl)
+		{
 			cert = pkcs7->crl;
 			pkcs7->crl = cert->next;
 			x509_free_certificate(cert);
 		}
-		while (pkcs7->signed_infos) {
+
+		while (pkcs7->signed_infos)
+		{
 			sinfo = pkcs7->signed_infos;
 			pkcs7->signed_infos = sinfo->next;
 			pkcs7_free_signed_info(sinfo);
 		}
+
 		kfree(pkcs7);
 	}
 }
@@ -88,14 +97,19 @@ static int pkcs7_check_authattrs(struct pkcs7_message *msg)
 	bool want = false;
 
 	sinfo = msg->signed_infos;
-	if (sinfo->authattrs) {
+
+	if (sinfo->authattrs)
+	{
 		want = true;
 		msg->have_authattrs = true;
 	}
 
 	for (sinfo = sinfo->next; sinfo; sinfo = sinfo->next)
 		if (!!sinfo->authattrs != want)
+		{
 			goto inconsistent;
+		}
+
 	return 0;
 
 inconsistent:
@@ -115,18 +129,33 @@ struct pkcs7_message *pkcs7_parse_message(const void *data, size_t datalen)
 	int ret;
 
 	ctx = kzalloc(sizeof(struct pkcs7_parse_context), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		goto out_no_ctx;
+	}
+
 	ctx->msg = kzalloc(sizeof(struct pkcs7_message), GFP_KERNEL);
+
 	if (!ctx->msg)
+	{
 		goto out_no_msg;
+	}
+
 	ctx->sinfo = kzalloc(sizeof(struct pkcs7_signed_info), GFP_KERNEL);
+
 	if (!ctx->sinfo)
+	{
 		goto out_no_sinfo;
+	}
+
 	ctx->sinfo->sig = kzalloc(sizeof(struct public_key_signature),
-				  GFP_KERNEL);
+							  GFP_KERNEL);
+
 	if (!ctx->sinfo->sig)
+	{
 		goto out_no_sig;
+	}
 
 	ctx->data = (unsigned long)data;
 	ctx->ppcerts = &ctx->certs;
@@ -134,24 +163,32 @@ struct pkcs7_message *pkcs7_parse_message(const void *data, size_t datalen)
 
 	/* Attempt to decode the signature */
 	ret = asn1_ber_decoder(&pkcs7_decoder, ctx, data, datalen);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		msg = ERR_PTR(ret);
 		goto out;
 	}
 
 	ret = pkcs7_check_authattrs(ctx->msg);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	msg = ctx->msg;
 	ctx->msg = NULL;
 
 out:
-	while (ctx->certs) {
+
+	while (ctx->certs)
+	{
 		struct x509_certificate *cert = ctx->certs;
 		ctx->certs = cert->next;
 		x509_free_certificate(cert);
 	}
+
 out_no_sig:
 	pkcs7_free_signed_info(ctx->sinfo);
 out_no_sinfo:
@@ -177,16 +214,22 @@ EXPORT_SYMBOL_GPL(pkcs7_parse_message);
  * Returns -ENODATA if the data object was missing from the message.
  */
 int pkcs7_get_content_data(const struct pkcs7_message *pkcs7,
-			   const void **_data, size_t *_data_len,
-			   size_t *_headerlen)
+						   const void **_data, size_t *_data_len,
+						   size_t *_headerlen)
 {
 	if (!pkcs7->data)
+	{
 		return -ENODATA;
+	}
 
 	*_data = pkcs7->data;
 	*_data_len = pkcs7->data_len;
+
 	if (_headerlen)
+	{
 		*_headerlen = pkcs7->data_hdrlen;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(pkcs7_get_content_data);
@@ -196,18 +239,21 @@ EXPORT_SYMBOL_GPL(pkcs7_get_content_data);
  * to interpret it.
  */
 int pkcs7_note_OID(void *context, size_t hdrlen,
-		   unsigned char tag,
-		   const void *value, size_t vlen)
+				   unsigned char tag,
+				   const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 
 	ctx->last_oid = look_up_OID(value, vlen);
-	if (ctx->last_oid == OID__NR) {
+
+	if (ctx->last_oid == OID__NR)
+	{
 		char buffer[50];
 		sprint_oid(value, vlen, buffer, sizeof(buffer));
 		printk("PKCS7: Unknown OID: [%lu] %s\n",
-		       (unsigned long)value - ctx->data, buffer);
+			   (unsigned long)value - ctx->data, buffer);
 	}
+
 	return 0;
 }
 
@@ -215,37 +261,46 @@ int pkcs7_note_OID(void *context, size_t hdrlen,
  * Note the digest algorithm for the signature.
  */
 int pkcs7_sig_note_digest_algo(void *context, size_t hdrlen,
-			       unsigned char tag,
-			       const void *value, size_t vlen)
+							   unsigned char tag,
+							   const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 
-	switch (ctx->last_oid) {
-	case OID_md4:
-		ctx->sinfo->sig->hash_algo = "md4";
-		break;
-	case OID_md5:
-		ctx->sinfo->sig->hash_algo = "md5";
-		break;
-	case OID_sha1:
-		ctx->sinfo->sig->hash_algo = "sha1";
-		break;
-	case OID_sha256:
-		ctx->sinfo->sig->hash_algo = "sha256";
-		break;
-	case OID_sha384:
-		ctx->sinfo->sig->hash_algo = "sha384";
-		break;
-	case OID_sha512:
-		ctx->sinfo->sig->hash_algo = "sha512";
-		break;
-	case OID_sha224:
-		ctx->sinfo->sig->hash_algo = "sha224";
-		break;
-	default:
-		printk("Unsupported digest algo: %u\n", ctx->last_oid);
-		return -ENOPKG;
+	switch (ctx->last_oid)
+	{
+		case OID_md4:
+			ctx->sinfo->sig->hash_algo = "md4";
+			break;
+
+		case OID_md5:
+			ctx->sinfo->sig->hash_algo = "md5";
+			break;
+
+		case OID_sha1:
+			ctx->sinfo->sig->hash_algo = "sha1";
+			break;
+
+		case OID_sha256:
+			ctx->sinfo->sig->hash_algo = "sha256";
+			break;
+
+		case OID_sha384:
+			ctx->sinfo->sig->hash_algo = "sha384";
+			break;
+
+		case OID_sha512:
+			ctx->sinfo->sig->hash_algo = "sha512";
+			break;
+
+		case OID_sha224:
+			ctx->sinfo->sig->hash_algo = "sha224";
+			break;
+
+		default:
+			printk("Unsupported digest algo: %u\n", ctx->last_oid);
+			return -ENOPKG;
 	}
+
 	return 0;
 }
 
@@ -253,19 +308,22 @@ int pkcs7_sig_note_digest_algo(void *context, size_t hdrlen,
  * Note the public key algorithm for the signature.
  */
 int pkcs7_sig_note_pkey_algo(void *context, size_t hdrlen,
-			     unsigned char tag,
-			     const void *value, size_t vlen)
+							 unsigned char tag,
+							 const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 
-	switch (ctx->last_oid) {
-	case OID_rsaEncryption:
-		ctx->sinfo->sig->pkey_algo = "rsa";
-		break;
-	default:
-		printk("Unsupported pkey algo: %u\n", ctx->last_oid);
-		return -ENOPKG;
+	switch (ctx->last_oid)
+	{
+		case OID_rsaEncryption:
+			ctx->sinfo->sig->pkey_algo = "rsa";
+			break;
+
+		default:
+			printk("Unsupported pkey algo: %u\n", ctx->last_oid);
+			return -ENOPKG;
 	}
+
 	return 0;
 }
 
@@ -273,12 +331,13 @@ int pkcs7_sig_note_pkey_algo(void *context, size_t hdrlen,
  * We only support signed data [RFC2315 sec 9].
  */
 int pkcs7_check_content_type(void *context, size_t hdrlen,
-			     unsigned char tag,
-			     const void *value, size_t vlen)
+							 unsigned char tag,
+							 const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 
-	if (ctx->last_oid != OID_signed_data) {
+	if (ctx->last_oid != OID_signed_data)
+	{
 		pr_warn("Only support pkcs7_signedData type\n");
 		return -EINVAL;
 	}
@@ -290,27 +349,33 @@ int pkcs7_check_content_type(void *context, size_t hdrlen,
  * Note the SignedData version
  */
 int pkcs7_note_signeddata_version(void *context, size_t hdrlen,
-				  unsigned char tag,
-				  const void *value, size_t vlen)
+								  unsigned char tag,
+								  const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 	unsigned version;
 
 	if (vlen != 1)
+	{
 		goto unsupported;
+	}
 
 	ctx->msg->version = version = *(const u8 *)value;
-	switch (version) {
-	case 1:
-		/* PKCS#7 SignedData [RFC2315 sec 9.1]
-		 * CMS ver 1 SignedData [RFC5652 sec 5.1]
-		 */
-		break;
-	case 3:
-		/* CMS ver 3 SignedData [RFC2315 sec 5.1] */
-		break;
-	default:
-		goto unsupported;
+
+	switch (version)
+	{
+		case 1:
+			/* PKCS#7 SignedData [RFC2315 sec 9.1]
+			 * CMS ver 1 SignedData [RFC5652 sec 5.1]
+			 */
+			break;
+
+		case 3:
+			/* CMS ver 3 SignedData [RFC2315 sec 5.1] */
+			break;
+
+		default:
+			goto unsupported;
 	}
 
 	return 0;
@@ -324,33 +389,47 @@ unsupported:
  * Note the SignerInfo version
  */
 int pkcs7_note_signerinfo_version(void *context, size_t hdrlen,
-				  unsigned char tag,
-				  const void *value, size_t vlen)
+								  unsigned char tag,
+								  const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 	unsigned version;
 
 	if (vlen != 1)
+	{
 		goto unsupported;
+	}
 
 	version = *(const u8 *)value;
-	switch (version) {
-	case 1:
-		/* PKCS#7 SignerInfo [RFC2315 sec 9.2]
-		 * CMS ver 1 SignerInfo [RFC5652 sec 5.3]
-		 */
-		if (ctx->msg->version != 1)
-			goto version_mismatch;
-		ctx->expect_skid = false;
-		break;
-	case 3:
-		/* CMS ver 3 SignerInfo [RFC2315 sec 5.3] */
-		if (ctx->msg->version == 1)
-			goto version_mismatch;
-		ctx->expect_skid = true;
-		break;
-	default:
-		goto unsupported;
+
+	switch (version)
+	{
+		case 1:
+
+			/* PKCS#7 SignerInfo [RFC2315 sec 9.2]
+			 * CMS ver 1 SignerInfo [RFC5652 sec 5.3]
+			 */
+			if (ctx->msg->version != 1)
+			{
+				goto version_mismatch;
+			}
+
+			ctx->expect_skid = false;
+			break;
+
+		case 3:
+
+			/* CMS ver 3 SignerInfo [RFC2315 sec 5.3] */
+			if (ctx->msg->version == 1)
+			{
+				goto version_mismatch;
+			}
+
+			ctx->expect_skid = true;
+			break;
+
+		default:
+			goto unsupported;
 	}
 
 	return 0;
@@ -367,15 +446,16 @@ version_mismatch:
  * Extract a certificate and store it in the context.
  */
 int pkcs7_extract_cert(void *context, size_t hdrlen,
-		       unsigned char tag,
-		       const void *value, size_t vlen)
+					   unsigned char tag,
+					   const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 	struct x509_certificate *x509;
 
-	if (tag != ((ASN1_UNIV << 6) | ASN1_CONS_BIT | ASN1_SEQ)) {
+	if (tag != ((ASN1_UNIV << 6) | ASN1_CONS_BIT | ASN1_SEQ))
+	{
 		pr_debug("Cert began with tag %02x at %lu\n",
-			 tag, (unsigned long)ctx - ctx->data);
+				 tag, (unsigned long)ctx - ctx->data);
 		return -EBADMSG;
 	}
 
@@ -387,12 +467,17 @@ int pkcs7_extract_cert(void *context, size_t hdrlen,
 	value -= hdrlen;
 	vlen += hdrlen;
 
-	if (((u8*)value)[1] == 0x80)
-		vlen += 2; /* Indefinite length - there should be an EOC */
+	if (((u8 *)value)[1] == 0x80)
+	{
+		vlen += 2;    /* Indefinite length - there should be an EOC */
+	}
 
 	x509 = x509_cert_parse(value, vlen);
+
 	if (IS_ERR(x509))
+	{
 		return PTR_ERR(x509);
+	}
 
 	x509->index = ++ctx->x509_index;
 	pr_debug("Got cert %u for %s\n", x509->index, x509->subject);
@@ -407,8 +492,8 @@ int pkcs7_extract_cert(void *context, size_t hdrlen,
  * Save the certificate list
  */
 int pkcs7_note_certificate_list(void *context, size_t hdrlen,
-				unsigned char tag,
-				const void *value, size_t vlen)
+								unsigned char tag,
+								const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 
@@ -425,13 +510,14 @@ int pkcs7_note_certificate_list(void *context, size_t hdrlen,
  * Note the content type.
  */
 int pkcs7_note_content(void *context, size_t hdrlen,
-		       unsigned char tag,
-		       const void *value, size_t vlen)
+					   unsigned char tag,
+					   const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 
 	if (ctx->last_oid != OID_data &&
-	    ctx->last_oid != OID_msIndirectData) {
+		ctx->last_oid != OID_msIndirectData)
+	{
 		pr_warn("Unsupported data type %d\n", ctx->last_oid);
 		return -EINVAL;
 	}
@@ -445,8 +531,8 @@ int pkcs7_note_content(void *context, size_t hdrlen,
  * the context.
  */
 int pkcs7_note_data(void *context, size_t hdrlen,
-		    unsigned char tag,
-		    const void *value, size_t vlen)
+					unsigned char tag,
+					const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 
@@ -462,8 +548,8 @@ int pkcs7_note_data(void *context, size_t hdrlen,
  * Parse authenticated attributes.
  */
 int pkcs7_sig_note_authenticated_attr(void *context, size_t hdrlen,
-				      unsigned char tag,
-				      const void *value, size_t vlen)
+									  unsigned char tag,
+									  const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 	struct pkcs7_signed_info *sinfo = ctx->sinfo;
@@ -471,45 +557,66 @@ int pkcs7_sig_note_authenticated_attr(void *context, size_t hdrlen,
 
 	pr_devel("AuthAttr: %02x %zu [%*ph]\n", tag, vlen, (unsigned)vlen, value);
 
-	switch (ctx->last_oid) {
-	case OID_contentType:
-		if (__test_and_set_bit(sinfo_has_content_type, &sinfo->aa_set))
-			goto repeated;
-		content_type = look_up_OID(value, vlen);
-		if (content_type != ctx->msg->data_type) {
-			pr_warn("Mismatch between global data type (%d) and sinfo %u (%d)\n",
-				ctx->msg->data_type, sinfo->index,
-				content_type);
-			return -EBADMSG;
-		}
-		return 0;
+	switch (ctx->last_oid)
+	{
+		case OID_contentType:
+			if (__test_and_set_bit(sinfo_has_content_type, &sinfo->aa_set))
+			{
+				goto repeated;
+			}
 
-	case OID_signingTime:
-		if (__test_and_set_bit(sinfo_has_signing_time, &sinfo->aa_set))
-			goto repeated;
-		/* Should we check that the signing time is consistent
-		 * with the signer's X.509 cert?
-		 */
-		return x509_decode_time(&sinfo->signing_time,
-					hdrlen, tag, value, vlen);
+			content_type = look_up_OID(value, vlen);
 
-	case OID_messageDigest:
-		if (__test_and_set_bit(sinfo_has_message_digest, &sinfo->aa_set))
-			goto repeated;
-		if (tag != ASN1_OTS)
-			return -EBADMSG;
-		sinfo->msgdigest = value;
-		sinfo->msgdigest_len = vlen;
-		return 0;
+			if (content_type != ctx->msg->data_type)
+			{
+				pr_warn("Mismatch between global data type (%d) and sinfo %u (%d)\n",
+						ctx->msg->data_type, sinfo->index,
+						content_type);
+				return -EBADMSG;
+			}
 
-	case OID_smimeCapabilites:
-		if (__test_and_set_bit(sinfo_has_smime_caps, &sinfo->aa_set))
-			goto repeated;
-		if (ctx->msg->data_type != OID_msIndirectData) {
-			pr_warn("S/MIME Caps only allowed with Authenticode\n");
-			return -EKEYREJECTED;
-		}
-		return 0;
+			return 0;
+
+		case OID_signingTime:
+			if (__test_and_set_bit(sinfo_has_signing_time, &sinfo->aa_set))
+			{
+				goto repeated;
+			}
+
+			/* Should we check that the signing time is consistent
+			 * with the signer's X.509 cert?
+			 */
+			return x509_decode_time(&sinfo->signing_time,
+									hdrlen, tag, value, vlen);
+
+		case OID_messageDigest:
+			if (__test_and_set_bit(sinfo_has_message_digest, &sinfo->aa_set))
+			{
+				goto repeated;
+			}
+
+			if (tag != ASN1_OTS)
+			{
+				return -EBADMSG;
+			}
+
+			sinfo->msgdigest = value;
+			sinfo->msgdigest_len = vlen;
+			return 0;
+
+		case OID_smimeCapabilites:
+			if (__test_and_set_bit(sinfo_has_smime_caps, &sinfo->aa_set))
+			{
+				goto repeated;
+			}
+
+			if (ctx->msg->data_type != OID_msIndirectData)
+			{
+				pr_warn("S/MIME Caps only allowed with Authenticode\n");
+				return -EKEYREJECTED;
+			}
+
+			return 0;
 
 		/* Microsoft SpOpusInfo seems to be contain cont[0] 16-bit BE
 		 * char URLs and cont[1] 8-bit char URLs.
@@ -517,22 +624,33 @@ int pkcs7_sig_note_authenticated_attr(void *context, size_t hdrlen,
 		 * Microsoft StatementType seems to contain a list of OIDs that
 		 * are also used as extendedKeyUsage types in X.509 certs.
 		 */
-	case OID_msSpOpusInfo:
-		if (__test_and_set_bit(sinfo_has_ms_opus_info, &sinfo->aa_set))
-			goto repeated;
-		goto authenticode_check;
-	case OID_msStatementType:
-		if (__test_and_set_bit(sinfo_has_ms_statement_type, &sinfo->aa_set))
-			goto repeated;
-	authenticode_check:
-		if (ctx->msg->data_type != OID_msIndirectData) {
-			pr_warn("Authenticode AuthAttrs only allowed with Authenticode\n");
-			return -EKEYREJECTED;
-		}
-		/* I'm not sure how to validate these */
-		return 0;
-	default:
-		return 0;
+		case OID_msSpOpusInfo:
+			if (__test_and_set_bit(sinfo_has_ms_opus_info, &sinfo->aa_set))
+			{
+				goto repeated;
+			}
+
+			goto authenticode_check;
+
+		case OID_msStatementType:
+			if (__test_and_set_bit(sinfo_has_ms_statement_type, &sinfo->aa_set))
+			{
+				goto repeated;
+			}
+
+authenticode_check:
+
+			if (ctx->msg->data_type != OID_msIndirectData)
+			{
+				pr_warn("Authenticode AuthAttrs only allowed with Authenticode\n");
+				return -EKEYREJECTED;
+			}
+
+			/* I'm not sure how to validate these */
+			return 0;
+
+		default:
+			return 0;
 	}
 
 repeated:
@@ -545,20 +663,22 @@ repeated:
  * Note the set of auth attributes for digestion purposes [RFC2315 sec 9.3]
  */
 int pkcs7_sig_note_set_of_authattrs(void *context, size_t hdrlen,
-				    unsigned char tag,
-				    const void *value, size_t vlen)
+									unsigned char tag,
+									const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 	struct pkcs7_signed_info *sinfo = ctx->sinfo;
 
 	if (!test_bit(sinfo_has_content_type, &sinfo->aa_set) ||
-	    !test_bit(sinfo_has_message_digest, &sinfo->aa_set)) {
+		!test_bit(sinfo_has_message_digest, &sinfo->aa_set))
+	{
 		pr_warn("Missing required AuthAttr\n");
 		return -EBADMSG;
 	}
 
 	if (ctx->msg->data_type != OID_msIndirectData &&
-	    test_bit(sinfo_has_ms_opus_info, &sinfo->aa_set)) {
+		test_bit(sinfo_has_ms_opus_info, &sinfo->aa_set))
+	{
 		pr_warn("Unexpected Authenticode AuthAttr\n");
 		return -EBADMSG;
 	}
@@ -573,8 +693,8 @@ int pkcs7_sig_note_set_of_authattrs(void *context, size_t hdrlen,
  * Note the issuing certificate serial number
  */
 int pkcs7_sig_note_serial(void *context, size_t hdrlen,
-			  unsigned char tag,
-			  const void *value, size_t vlen)
+						  unsigned char tag,
+						  const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 	ctx->raw_serial = value;
@@ -586,8 +706,8 @@ int pkcs7_sig_note_serial(void *context, size_t hdrlen,
  * Note the issuer's name
  */
 int pkcs7_sig_note_issuer(void *context, size_t hdrlen,
-			  unsigned char tag,
-			  const void *value, size_t vlen)
+						  unsigned char tag,
+						  const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 	ctx->raw_issuer = value;
@@ -599,8 +719,8 @@ int pkcs7_sig_note_issuer(void *context, size_t hdrlen,
  * Note the issuing cert's subjectKeyIdentifier
  */
 int pkcs7_sig_note_skid(void *context, size_t hdrlen,
-			unsigned char tag,
-			const void *value, size_t vlen)
+						unsigned char tag,
+						const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 
@@ -615,14 +735,17 @@ int pkcs7_sig_note_skid(void *context, size_t hdrlen,
  * Note the signature data
  */
 int pkcs7_sig_note_signature(void *context, size_t hdrlen,
-			     unsigned char tag,
-			     const void *value, size_t vlen)
+							 unsigned char tag,
+							 const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 
 	ctx->sinfo->sig->s = kmemdup(value, vlen, GFP_KERNEL);
+
 	if (!ctx->sinfo->sig->s)
+	{
 		return -ENOMEM;
+	}
 
 	ctx->sinfo->sig->s_size = vlen;
 	return 0;
@@ -632,31 +755,38 @@ int pkcs7_sig_note_signature(void *context, size_t hdrlen,
  * Note a signature information block
  */
 int pkcs7_note_signed_info(void *context, size_t hdrlen,
-			   unsigned char tag,
-			   const void *value, size_t vlen)
+						   unsigned char tag,
+						   const void *value, size_t vlen)
 {
 	struct pkcs7_parse_context *ctx = context;
 	struct pkcs7_signed_info *sinfo = ctx->sinfo;
 	struct asymmetric_key_id *kid;
 
-	if (ctx->msg->data_type == OID_msIndirectData && !sinfo->authattrs) {
+	if (ctx->msg->data_type == OID_msIndirectData && !sinfo->authattrs)
+	{
 		pr_warn("Authenticode requires AuthAttrs\n");
 		return -EBADMSG;
 	}
 
 	/* Generate cert issuer + serial number key ID */
-	if (!ctx->expect_skid) {
+	if (!ctx->expect_skid)
+	{
 		kid = asymmetric_key_generate_id(ctx->raw_serial,
-						 ctx->raw_serial_size,
-						 ctx->raw_issuer,
-						 ctx->raw_issuer_size);
-	} else {
-		kid = asymmetric_key_generate_id(ctx->raw_skid,
-						 ctx->raw_skid_size,
-						 "", 0);
+										 ctx->raw_serial_size,
+										 ctx->raw_issuer,
+										 ctx->raw_issuer_size);
 	}
+	else
+	{
+		kid = asymmetric_key_generate_id(ctx->raw_skid,
+										 ctx->raw_skid_size,
+										 "", 0);
+	}
+
 	if (IS_ERR(kid))
+	{
 		return PTR_ERR(kid);
+	}
 
 	pr_devel("SINFO KID: %u [%*phN]\n", kid->len, kid->len, kid->data);
 
@@ -665,11 +795,19 @@ int pkcs7_note_signed_info(void *context, size_t hdrlen,
 	*ctx->ppsinfo = sinfo;
 	ctx->ppsinfo = &sinfo->next;
 	ctx->sinfo = kzalloc(sizeof(struct pkcs7_signed_info), GFP_KERNEL);
+
 	if (!ctx->sinfo)
+	{
 		return -ENOMEM;
+	}
+
 	ctx->sinfo->sig = kzalloc(sizeof(struct public_key_signature),
-				  GFP_KERNEL);
+							  GFP_KERNEL);
+
 	if (!ctx->sinfo->sig)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }

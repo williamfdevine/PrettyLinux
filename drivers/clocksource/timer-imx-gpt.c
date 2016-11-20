@@ -75,7 +75,8 @@
 
 #define V2_TIMER_RATE_OSC_DIV8	3000000
 
-struct imx_timer {
+struct imx_timer
+{
 	enum imx_gpt_type type;
 	void __iomem *base;
 	int irq;
@@ -86,7 +87,8 @@ struct imx_timer {
 	struct irqaction act;
 };
 
-struct imx_gpt_data {
+struct imx_gpt_data
+{
 	int reg_tstat;
 	int reg_tcn;
 	int reg_tcmp;
@@ -95,7 +97,7 @@ struct imx_gpt_data {
 	void (*gpt_irq_disable)(struct imx_timer *imxtm);
 	void (*gpt_irq_acknowledge)(struct imx_timer *imxtm);
 	int (*set_next_event)(unsigned long evt,
-			      struct clock_event_device *ced);
+						  struct clock_event_device *ced);
 };
 
 static inline struct imx_timer *to_imx_timer(struct clock_event_device *ced)
@@ -129,7 +131,7 @@ static void imx1_gpt_irq_enable(struct imx_timer *imxtm)
 
 static void imx31_gpt_irq_enable(struct imx_timer *imxtm)
 {
-	writel_relaxed(1<<0, imxtm->base + V2_IR);
+	writel_relaxed(1 << 0, imxtm->base + V2_IR);
 }
 #define imx6dl_gpt_irq_enable imx31_gpt_irq_enable
 
@@ -141,7 +143,7 @@ static void imx1_gpt_irq_acknowledge(struct imx_timer *imxtm)
 static void imx21_gpt_irq_acknowledge(struct imx_timer *imxtm)
 {
 	writel_relaxed(MX2_TSTAT_CAPT | MX2_TSTAT_COMP,
-				imxtm->base + MX1_2_TSTAT);
+				   imxtm->base + MX1_2_TSTAT);
 }
 
 static void imx31_gpt_irq_acknowledge(struct imx_timer *imxtm)
@@ -177,13 +179,13 @@ static int __init mxc_clocksource_init(struct imx_timer *imxtm)
 
 	sched_clock_register(mxc_read_sched_clock, 32, c);
 	return clocksource_mmio_init(reg, "mxc_timer1", c, 200, 32,
-			clocksource_mmio_readl_up);
+								 clocksource_mmio_readl_up);
 }
 
 /* clock event */
 
 static int mx1_2_set_next_event(unsigned long evt,
-			      struct clock_event_device *ced)
+								struct clock_event_device *ced)
 {
 	struct imx_timer *imxtm = to_imx_timer(ced);
 	unsigned long tcmp;
@@ -193,11 +195,11 @@ static int mx1_2_set_next_event(unsigned long evt,
 	writel_relaxed(tcmp, imxtm->base + MX1_2_TCMP);
 
 	return (int)(tcmp - readl_relaxed(imxtm->base + MX1_2_TCN)) < 0 ?
-				-ETIME : 0;
+		   -ETIME : 0;
 }
 
 static int v2_set_next_event(unsigned long evt,
-			      struct clock_event_device *ced)
+							 struct clock_event_device *ced)
 {
 	struct imx_timer *imxtm = to_imx_timer(ced);
 	unsigned long tcmp;
@@ -207,8 +209,8 @@ static int v2_set_next_event(unsigned long evt,
 	writel_relaxed(tcmp, imxtm->base + V2_TCMP);
 
 	return evt < 0x7fffffff &&
-		(int)(tcmp - readl_relaxed(imxtm->base + V2_TCN)) < 0 ?
-				-ETIME : 0;
+		   (int)(tcmp - readl_relaxed(imxtm->base + V2_TCN)) < 0 ?
+		   -ETIME : 0;
 }
 
 static int mxc_shutdown(struct clock_event_device *ced)
@@ -256,7 +258,8 @@ static int mxc_set_oneshot(struct clock_event_device *ced)
 	/* Disable interrupt in GPT module */
 	imxtm->gpt->gpt_irq_disable(imxtm);
 
-	if (!clockevent_state_oneshot(ced)) {
+	if (!clockevent_state_oneshot(ced))
+	{
 		u32 tcn = readl_relaxed(imxtm->base + imxtm->gpt->reg_tcn);
 		/* Set event time into far-far future */
 		writel_relaxed(tcn - 3, imxtm->base + imxtm->gpt->reg_tcmp);
@@ -314,7 +317,7 @@ static int __init mxc_clockevent_init(struct imx_timer *imxtm)
 	ced->cpumask = cpumask_of(0);
 	ced->irq = imxtm->irq;
 	clockevents_config_and_register(ced, clk_get_rate(imxtm->clk_per),
-					0xff, 0xfffffffe);
+									0xff, 0xfffffffe);
 
 	act->name = "i.MX Timer Tick";
 	act->flags = IRQF_TIMER | IRQF_IRQPOLL;
@@ -338,10 +341,15 @@ static void imx31_gpt_setup_tctl(struct imx_timer *imxtm)
 	u32 tctl_val;
 
 	tctl_val = V2_TCTL_FRR | V2_TCTL_WAITEN | MXC_TCTL_TEN;
+
 	if (clk_get_rate(imxtm->clk_per) == V2_TIMER_RATE_OSC_DIV8)
+	{
 		tctl_val |= V2_TCTL_CLK_OSC_DIV8;
+	}
 	else
+	{
 		tctl_val |= V2_TCTL_CLK_PER;
+	}
 
 	writel_relaxed(tctl_val, imxtm->base + MXC_TCTL);
 }
@@ -351,19 +359,24 @@ static void imx6dl_gpt_setup_tctl(struct imx_timer *imxtm)
 	u32 tctl_val;
 
 	tctl_val = V2_TCTL_FRR | V2_TCTL_WAITEN | MXC_TCTL_TEN;
-	if (clk_get_rate(imxtm->clk_per) == V2_TIMER_RATE_OSC_DIV8) {
+
+	if (clk_get_rate(imxtm->clk_per) == V2_TIMER_RATE_OSC_DIV8)
+	{
 		tctl_val |= V2_TCTL_CLK_OSC_DIV8;
 		/* 24 / 8 = 3 MHz */
 		writel_relaxed(7 << V2_TPRER_PRE24M, imxtm->base + MXC_TPRER);
 		tctl_val |= V2_TCTL_24MEN;
-	} else {
+	}
+	else
+	{
 		tctl_val |= V2_TCTL_CLK_PER;
 	}
 
 	writel_relaxed(tctl_val, imxtm->base + MXC_TCTL);
 }
 
-static const struct imx_gpt_data imx1_gpt_data = {
+static const struct imx_gpt_data imx1_gpt_data =
+{
 	.reg_tstat = MX1_2_TSTAT,
 	.reg_tcn = MX1_2_TCN,
 	.reg_tcmp = MX1_2_TCMP,
@@ -374,7 +387,8 @@ static const struct imx_gpt_data imx1_gpt_data = {
 	.set_next_event = mx1_2_set_next_event,
 };
 
-static const struct imx_gpt_data imx21_gpt_data = {
+static const struct imx_gpt_data imx21_gpt_data =
+{
 	.reg_tstat = MX1_2_TSTAT,
 	.reg_tcn = MX1_2_TCN,
 	.reg_tcmp = MX1_2_TCMP,
@@ -385,7 +399,8 @@ static const struct imx_gpt_data imx21_gpt_data = {
 	.set_next_event = mx1_2_set_next_event,
 };
 
-static const struct imx_gpt_data imx31_gpt_data = {
+static const struct imx_gpt_data imx31_gpt_data =
+{
 	.reg_tstat = V2_TSTAT,
 	.reg_tcn = V2_TCN,
 	.reg_tcmp = V2_TCMP,
@@ -396,7 +411,8 @@ static const struct imx_gpt_data imx31_gpt_data = {
 	.set_next_event = v2_set_next_event,
 };
 
-static const struct imx_gpt_data imx6dl_gpt_data = {
+static const struct imx_gpt_data imx6dl_gpt_data =
+{
 	.reg_tstat = V2_TSTAT,
 	.reg_tcn = V2_TCN,
 	.reg_tcmp = V2_TCMP,
@@ -411,30 +427,38 @@ static int __init _mxc_timer_init(struct imx_timer *imxtm)
 {
 	int ret;
 
-	switch (imxtm->type) {
-	case GPT_TYPE_IMX1:
-		imxtm->gpt = &imx1_gpt_data;
-		break;
-	case GPT_TYPE_IMX21:
-		imxtm->gpt = &imx21_gpt_data;
-		break;
-	case GPT_TYPE_IMX31:
-		imxtm->gpt = &imx31_gpt_data;
-		break;
-	case GPT_TYPE_IMX6DL:
-		imxtm->gpt = &imx6dl_gpt_data;
-		break;
-	default:
-		return -EINVAL;
+	switch (imxtm->type)
+	{
+		case GPT_TYPE_IMX1:
+			imxtm->gpt = &imx1_gpt_data;
+			break;
+
+		case GPT_TYPE_IMX21:
+			imxtm->gpt = &imx21_gpt_data;
+			break;
+
+		case GPT_TYPE_IMX31:
+			imxtm->gpt = &imx31_gpt_data;
+			break;
+
+		case GPT_TYPE_IMX6DL:
+			imxtm->gpt = &imx6dl_gpt_data;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	if (IS_ERR(imxtm->clk_per)) {
+	if (IS_ERR(imxtm->clk_per))
+	{
 		pr_err("i.MX timer: unable to get clk\n");
 		return PTR_ERR(imxtm->clk_per);
 	}
 
 	if (!IS_ERR(imxtm->clk_ipg))
+	{
 		clk_prepare_enable(imxtm->clk_ipg);
+	}
 
 	clk_prepare_enable(imxtm->clk_per);
 
@@ -449,8 +473,11 @@ static int __init _mxc_timer_init(struct imx_timer *imxtm)
 
 	/* init and register the timer to the framework */
 	ret = mxc_clocksource_init(imxtm);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return mxc_clockevent_init(imxtm);
 }
@@ -482,32 +509,49 @@ static int __init mxc_timer_init_dt(struct device_node *np,  enum imx_gpt_type t
 
 	/* Support one instance only */
 	if (initialized)
+	{
 		return 0;
+	}
 
 	imxtm = kzalloc(sizeof(*imxtm), GFP_KERNEL);
+
 	if (!imxtm)
+	{
 		return -ENOMEM;
+	}
 
 	imxtm->base = of_iomap(np, 0);
+
 	if (!imxtm->base)
+	{
 		return -ENXIO;
+	}
 
 	imxtm->irq = irq_of_parse_and_map(np, 0);
+
 	if (imxtm->irq <= 0)
+	{
 		return -EINVAL;
+	}
 
 	imxtm->clk_ipg = of_clk_get_by_name(np, "ipg");
 
 	/* Try osc_per first, and fall back to per otherwise */
 	imxtm->clk_per = of_clk_get_by_name(np, "osc_per");
+
 	if (IS_ERR(imxtm->clk_per))
+	{
 		imxtm->clk_per = of_clk_get_by_name(np, "per");
+	}
 
 	imxtm->type = type;
 
 	ret = _mxc_timer_init(imxtm);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	initialized = 1;
 
@@ -535,7 +579,9 @@ static int __init imx31_timer_init_dt(struct device_node *np)
 	 * working with the new kernel.
 	 */
 	if (of_machine_is_compatible("fsl,imx6dl"))
+	{
 		type = GPT_TYPE_IMX6DL;
+	}
 
 	return mxc_timer_init_dt(np, type);
 }

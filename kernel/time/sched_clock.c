@@ -35,7 +35,8 @@
  * with the seqcount used to synchronize access, comfortably fits into
  * a 64 byte cache line.
  */
-struct clock_read_data {
+struct clock_read_data
+{
 	u64 epoch_ns;
 	u64 epoch_cyc;
 	u64 sched_clock_mask;
@@ -59,7 +60,8 @@ struct clock_read_data {
  * performance. In particular 'seq' and 'read_data[0]' (combined) should fit
  * into a single 64-byte cache line.
  */
-struct clock_data {
+struct clock_data
+{
 	seqcount_t		seq;
 	struct clock_read_data	read_data[2];
 	ktime_t			wrap_kt;
@@ -82,9 +84,12 @@ static u64 notrace jiffy_sched_clock_read(void)
 	return (u64)(jiffies - INITIAL_JIFFIES);
 }
 
-static struct clock_data cd ____cacheline_aligned = {
-	.read_data[0] = { .mult = NSEC_PER_SEC / HZ,
-			  .read_sched_clock = jiffy_sched_clock_read, },
+static struct clock_data cd ____cacheline_aligned =
+{
+	.read_data[0] = {
+		.mult = NSEC_PER_SEC / HZ,
+		.read_sched_clock = jiffy_sched_clock_read,
+	},
 	.actual_read_sched_clock = jiffy_sched_clock_read,
 };
 
@@ -99,14 +104,16 @@ unsigned long long notrace sched_clock(void)
 	unsigned long seq;
 	struct clock_read_data *rd;
 
-	do {
+	do
+	{
 		seq = raw_read_seqcount(&cd.seq);
 		rd = cd.read_data + (seq & 1);
 
 		cyc = (rd->read_sched_clock() - rd->epoch_cyc) &
-		      rd->sched_clock_mask;
+			  rd->sched_clock_mask;
 		res = rd->epoch_ns + cyc_to_ns(cyc, rd->mult, rd->shift);
-	} while (read_seqcount_retry(&cd.seq, seq));
+	}
+	while (read_seqcount_retry(&cd.seq, seq));
 
 	return res;
 }
@@ -174,7 +181,9 @@ sched_clock_register(u64 (*read)(void), int bits, unsigned long rate)
 	struct clock_read_data rd;
 
 	if (cd.rate > rate)
+	{
 		return;
+	}
 
 	WARN_ON(!irqs_disabled());
 
@@ -206,14 +215,21 @@ sched_clock_register(u64 (*read)(void), int bits, unsigned long rate)
 	update_clock_read_data(&rd);
 
 	r = rate;
-	if (r >= 4000000) {
+
+	if (r >= 4000000)
+	{
 		r /= 1000000;
 		r_unit = 'M';
-	} else {
-		if (r >= 1000) {
+	}
+	else
+	{
+		if (r >= 1000)
+		{
 			r /= 1000;
 			r_unit = 'k';
-		} else {
+		}
+		else
+		{
 			r_unit = ' ';
 		}
 	}
@@ -222,11 +238,13 @@ sched_clock_register(u64 (*read)(void), int bits, unsigned long rate)
 	res = cyc_to_ns(1ULL, new_mult, new_shift);
 
 	pr_info("sched_clock: %u bits at %lu%cHz, resolution %lluns, wraps every %lluns\n",
-		bits, r, r_unit, res, wrap);
+			bits, r, r_unit, res, wrap);
 
 	/* Enable IRQ time accounting if we have a fast enough sched_clock() */
 	if (irqtime > 0 || (irqtime == -1 && rate >= 1000000))
+	{
 		enable_sched_clock_irqtime();
+	}
 
 	pr_debug("Registered %pF as sched_clock source\n", read);
 }
@@ -238,7 +256,9 @@ void __init sched_clock_postinit(void)
 	 * make it the final one one.
 	 */
 	if (cd.actual_read_sched_clock == jiffy_sched_clock_read)
+	{
 		sched_clock_register(jiffy_sched_clock_read, BITS_PER_LONG, HZ);
+	}
 
 	update_sched_clock();
 
@@ -289,7 +309,8 @@ static void sched_clock_resume(void)
 	rd->read_sched_clock = cd.actual_read_sched_clock;
 }
 
-static struct syscore_ops sched_clock_ops = {
+static struct syscore_ops sched_clock_ops =
+{
 	.suspend	= sched_clock_suspend,
 	.resume		= sched_clock_resume,
 };

@@ -46,7 +46,8 @@
 
 #define APDS9300_THRESH_MAX	0xffff /* Max threshold value */
 
-struct apds9300_data {
+struct apds9300_data
+{
 	struct i2c_client *client;
 	struct mutex mutex;
 	int power_state;
@@ -58,7 +59,8 @@ struct apds9300_data {
 /* Lux calculation */
 
 /* Calculated values 1000 * (CH1/CH0)^1.4 for CH1/CH0 from 0 to 0.52 */
-static const u16 apds9300_lux_ratio[] = {
+static const u16 apds9300_lux_ratio[] =
+{
 	0, 2, 4, 7, 11, 15, 19, 24, 29, 34, 40, 45, 51, 57, 64, 70, 77, 84, 91,
 	98, 105, 112, 120, 128, 136, 144, 152, 160, 168, 177, 185, 194, 203,
 	212, 221, 230, 239, 249, 258, 268, 277, 287, 297, 307, 317, 327, 337,
@@ -71,19 +73,31 @@ static unsigned long apds9300_calculate_lux(u16 ch0, u16 ch1)
 
 	/* avoid division by zero */
 	if (ch0 == 0)
+	{
 		return 0;
+	}
 
 	tmp = DIV_ROUND_UP(ch1 * 100, ch0);
-	if (tmp <= 52) {
+
+	if (tmp <= 52)
+	{
 		lux = 3150 * ch0 - (unsigned long)DIV_ROUND_UP_ULL(ch0
 				* apds9300_lux_ratio[tmp] * 5930ull, 1000);
-	} else if (tmp <= 65) {
+	}
+	else if (tmp <= 65)
+	{
 		lux = 2290 * ch0 - 2910 * ch1;
-	} else if (tmp <= 80) {
+	}
+	else if (tmp <= 80)
+	{
 		lux = 1570 * ch0 - 1800 * ch1;
-	} else if (tmp <= 130) {
+	}
+	else if (tmp <= 130)
+	{
 		lux = 338 * ch0 - 260 * ch1;
-	} else {
+	}
+	else
+	{
 		lux = 0;
 	}
 
@@ -96,15 +110,18 @@ static int apds9300_get_adc_val(struct apds9300_data *data, int adc_number)
 	u8 flags = APDS9300_CMD | APDS9300_WORD;
 
 	if (!data->power_state)
+	{
 		return -EBUSY;
+	}
 
 	/* Select ADC0 or ADC1 data register */
 	flags |= adc_number ? APDS9300_DATA1LOW : APDS9300_DATA0LOW;
 
 	ret = i2c_smbus_read_word_data(data->client, flags);
+
 	if (ret < 0)
 		dev_err(&data->client->dev,
-			"failed to read ADC%d value\n", adc_number);
+				"failed to read ADC%d value\n", adc_number);
 
 	return ret;
 }
@@ -114,17 +131,24 @@ static int apds9300_set_thresh_low(struct apds9300_data *data, int value)
 	int ret;
 
 	if (!data->power_state)
+	{
 		return -EBUSY;
+	}
 
 	if (value > APDS9300_THRESH_MAX)
+	{
 		return -EINVAL;
+	}
 
 	ret = i2c_smbus_write_word_data(data->client, APDS9300_THRESHLOWLOW
-			| APDS9300_CMD | APDS9300_WORD, value);
-	if (ret) {
+									| APDS9300_CMD | APDS9300_WORD, value);
+
+	if (ret)
+	{
 		dev_err(&data->client->dev, "failed to set thresh_low\n");
 		return ret;
 	}
+
 	data->thresh_low = value;
 
 	return 0;
@@ -135,17 +159,24 @@ static int apds9300_set_thresh_hi(struct apds9300_data *data, int value)
 	int ret;
 
 	if (!data->power_state)
+	{
 		return -EBUSY;
+	}
 
 	if (value > APDS9300_THRESH_MAX)
+	{
 		return -EINVAL;
+	}
 
 	ret = i2c_smbus_write_word_data(data->client, APDS9300_THRESHHIGHLOW
-			| APDS9300_CMD | APDS9300_WORD, value);
-	if (ret) {
+									| APDS9300_CMD | APDS9300_WORD, value);
+
+	if (ret)
+	{
 		dev_err(&data->client->dev, "failed to set thresh_hi\n");
 		return ret;
 	}
+
 	data->thresh_hi = value;
 
 	return 0;
@@ -157,16 +188,21 @@ static int apds9300_set_intr_state(struct apds9300_data *data, int state)
 	u8 cmd;
 
 	if (!data->power_state)
+	{
 		return -EBUSY;
+	}
 
 	cmd = state ? APDS9300_INTR_ENABLE | APDS9300_THRESH_INTR : 0x00;
 	ret = i2c_smbus_write_byte_data(data->client,
-			APDS9300_INTERRUPT | APDS9300_CMD, cmd);
-	if (ret) {
+									APDS9300_INTERRUPT | APDS9300_CMD, cmd);
+
+	if (ret)
+	{
 		dev_err(&data->client->dev,
-			"failed to set interrupt state %d\n", state);
+				"failed to set interrupt state %d\n", state);
 		return ret;
 	}
+
 	data->intr_en = state;
 
 	return 0;
@@ -179,12 +215,15 @@ static int apds9300_set_power_state(struct apds9300_data *data, int state)
 
 	cmd = state ? APDS9300_POWER_ON : APDS9300_POWER_OFF;
 	ret = i2c_smbus_write_byte_data(data->client,
-			APDS9300_CONTROL | APDS9300_CMD, cmd);
-	if (ret) {
+									APDS9300_CONTROL | APDS9300_CMD, cmd);
+
+	if (ret)
+	{
 		dev_err(&data->client->dev,
-			"failed to set power state %d\n", state);
+				"failed to set power state %d\n", state);
 		return ret;
 	}
+
 	data->power_state = state;
 
 	return 0;
@@ -195,8 +234,11 @@ static void apds9300_clear_intr(struct apds9300_data *data)
 	int ret;
 
 	ret = i2c_smbus_write_byte(data->client, APDS9300_CLEAR | APDS9300_CMD);
+
 	if (ret < 0)
+	{
 		dev_err(&data->client->dev, "failed to clear interrupt\n");
+	}
 }
 
 static int apds9300_chip_init(struct apds9300_data *data)
@@ -205,28 +247,42 @@ static int apds9300_chip_init(struct apds9300_data *data)
 
 	/* Need to set power off to ensure that the chip is off */
 	ret = apds9300_set_power_state(data, 0);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
+
 	/*
 	 * Probe the chip. To do so we try to power up the device and then to
 	 * read back the 0x03 code
 	 */
 	ret = apds9300_set_power_state(data, 1);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
+
 	ret = i2c_smbus_read_byte_data(data->client,
-			APDS9300_CONTROL | APDS9300_CMD);
-	if (ret != APDS9300_POWER_ON) {
+								   APDS9300_CONTROL | APDS9300_CMD);
+
+	if (ret != APDS9300_POWER_ON)
+	{
 		ret = -ENODEV;
 		goto err;
 	}
+
 	/*
 	 * Disable interrupt to ensure thai it is doesn't enable
 	 * i.e. after device soft reset
 	 */
 	ret = apds9300_set_intr_state(data, 0);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -236,77 +292,101 @@ err:
 }
 
 static int apds9300_read_raw(struct iio_dev *indio_dev,
-		struct iio_chan_spec const *chan, int *val, int *val2,
-		long mask)
+							 struct iio_chan_spec const *chan, int *val, int *val2,
+							 long mask)
 {
 	int ch0, ch1, ret = -EINVAL;
 	struct apds9300_data *data = iio_priv(indio_dev);
 
 	mutex_lock(&data->mutex);
-	switch (chan->type) {
-	case IIO_LIGHT:
-		ch0 = apds9300_get_adc_val(data, 0);
-		if (ch0 < 0) {
-			ret = ch0;
+
+	switch (chan->type)
+	{
+		case IIO_LIGHT:
+			ch0 = apds9300_get_adc_val(data, 0);
+
+			if (ch0 < 0)
+			{
+				ret = ch0;
+				break;
+			}
+
+			ch1 = apds9300_get_adc_val(data, 1);
+
+			if (ch1 < 0)
+			{
+				ret = ch1;
+				break;
+			}
+
+			*val = apds9300_calculate_lux(ch0, ch1);
+			ret = IIO_VAL_INT;
 			break;
-		}
-		ch1 = apds9300_get_adc_val(data, 1);
-		if (ch1 < 0) {
-			ret = ch1;
+
+		case IIO_INTENSITY:
+			ret = apds9300_get_adc_val(data, chan->channel);
+
+			if (ret < 0)
+			{
+				break;
+			}
+
+			*val = ret;
+			ret = IIO_VAL_INT;
 			break;
-		}
-		*val = apds9300_calculate_lux(ch0, ch1);
-		ret = IIO_VAL_INT;
-		break;
-	case IIO_INTENSITY:
-		ret = apds9300_get_adc_val(data, chan->channel);
-		if (ret < 0)
+
+		default:
 			break;
-		*val = ret;
-		ret = IIO_VAL_INT;
-		break;
-	default:
-		break;
 	}
+
 	mutex_unlock(&data->mutex);
 
 	return ret;
 }
 
 static int apds9300_read_thresh(struct iio_dev *indio_dev,
-		const struct iio_chan_spec *chan, enum iio_event_type type,
-		enum iio_event_direction dir, enum iio_event_info info,
-		int *val, int *val2)
+								const struct iio_chan_spec *chan, enum iio_event_type type,
+								enum iio_event_direction dir, enum iio_event_info info,
+								int *val, int *val2)
 {
 	struct apds9300_data *data = iio_priv(indio_dev);
 
-	switch (dir) {
-	case IIO_EV_DIR_RISING:
-		*val = data->thresh_hi;
-		break;
-	case IIO_EV_DIR_FALLING:
-		*val = data->thresh_low;
-		break;
-	default:
-		return -EINVAL;
+	switch (dir)
+	{
+		case IIO_EV_DIR_RISING:
+			*val = data->thresh_hi;
+			break;
+
+		case IIO_EV_DIR_FALLING:
+			*val = data->thresh_low;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return IIO_VAL_INT;
 }
 
 static int apds9300_write_thresh(struct iio_dev *indio_dev,
-		const struct iio_chan_spec *chan, enum iio_event_type type,
-		enum iio_event_direction dir, enum iio_event_info info, int val,
-		int val2)
+								 const struct iio_chan_spec *chan, enum iio_event_type type,
+								 enum iio_event_direction dir, enum iio_event_info info, int val,
+								 int val2)
 {
 	struct apds9300_data *data = iio_priv(indio_dev);
 	int ret;
 
 	mutex_lock(&data->mutex);
+
 	if (dir == IIO_EV_DIR_RISING)
+	{
 		ret = apds9300_set_thresh_hi(data, val);
+	}
 	else
+	{
 		ret = apds9300_set_thresh_low(data, val);
+	}
+
 	mutex_unlock(&data->mutex);
 
 	return ret;
@@ -336,12 +416,14 @@ static int apds9300_write_interrupt_config(struct iio_dev *indio_dev,
 	return ret;
 }
 
-static const struct iio_info apds9300_info_no_irq = {
+static const struct iio_info apds9300_info_no_irq =
+{
 	.driver_module	= THIS_MODULE,
 	.read_raw	= apds9300_read_raw,
 };
 
-static const struct iio_info apds9300_info = {
+static const struct iio_info apds9300_info =
+{
 	.driver_module		= THIS_MODULE,
 	.read_raw		= apds9300_read_raw,
 	.read_event_value	= apds9300_read_thresh,
@@ -350,21 +432,23 @@ static const struct iio_info apds9300_info = {
 	.write_event_config	= apds9300_write_interrupt_config,
 };
 
-static const struct iio_event_spec apds9300_event_spec[] = {
+static const struct iio_event_spec apds9300_event_spec[] =
+{
 	{
 		.type = IIO_EV_TYPE_THRESH,
 		.dir = IIO_EV_DIR_RISING,
 		.mask_separate = BIT(IIO_EV_INFO_VALUE) |
-			BIT(IIO_EV_INFO_ENABLE),
+		BIT(IIO_EV_INFO_ENABLE),
 	}, {
 		.type = IIO_EV_TYPE_THRESH,
 		.dir = IIO_EV_DIR_FALLING,
 		.mask_separate = BIT(IIO_EV_INFO_VALUE) |
-			BIT(IIO_EV_INFO_ENABLE),
+		BIT(IIO_EV_INFO_ENABLE),
 	},
 };
 
-static const struct iio_chan_spec apds9300_channels[] = {
+static const struct iio_chan_spec apds9300_channels[] =
+{
 	{
 		.type = IIO_LIGHT,
 		.channel = 0,
@@ -393,10 +477,10 @@ static irqreturn_t apds9300_interrupt_handler(int irq, void *private)
 	struct apds9300_data *data = iio_priv(dev_info);
 
 	iio_push_event(dev_info,
-		       IIO_UNMOD_EVENT_CODE(IIO_INTENSITY, 0,
-					    IIO_EV_TYPE_THRESH,
-					    IIO_EV_DIR_EITHER),
-		       iio_get_time_ns(dev_info));
+				   IIO_UNMOD_EVENT_CODE(IIO_INTENSITY, 0,
+										IIO_EV_TYPE_THRESH,
+										IIO_EV_DIR_EITHER),
+				   iio_get_time_ns(dev_info));
 
 	apds9300_clear_intr(data);
 
@@ -404,23 +488,29 @@ static irqreturn_t apds9300_interrupt_handler(int irq, void *private)
 }
 
 static int apds9300_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct apds9300_data *data;
 	struct iio_dev *indio_dev;
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	data = iio_priv(indio_dev);
 	i2c_set_clientdata(client, indio_dev);
 	data->client = client;
 
 	ret = apds9300_chip_init(data);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	mutex_init(&data->mutex);
 
@@ -431,24 +521,34 @@ static int apds9300_probe(struct i2c_client *client,
 	indio_dev->modes = INDIO_DIRECT_MODE;
 
 	if (client->irq)
+	{
 		indio_dev->info = &apds9300_info;
+	}
 	else
+	{
 		indio_dev->info = &apds9300_info_no_irq;
+	}
 
-	if (client->irq) {
+	if (client->irq)
+	{
 		ret = devm_request_threaded_irq(&client->dev, client->irq,
-				NULL, apds9300_interrupt_handler,
-				IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-				APDS9300_IRQ_NAME, indio_dev);
-		if (ret) {
+										NULL, apds9300_interrupt_handler,
+										IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+										APDS9300_IRQ_NAME, indio_dev);
+
+		if (ret)
+		{
 			dev_err(&client->dev, "irq request error %d\n", -ret);
 			goto err;
 		}
 	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -505,14 +605,16 @@ static SIMPLE_DEV_PM_OPS(apds9300_pm_ops, apds9300_suspend, apds9300_resume);
 #define APDS9300_PM_OPS NULL
 #endif
 
-static struct i2c_device_id apds9300_id[] = {
+static struct i2c_device_id apds9300_id[] =
+{
 	{ APDS9300_DRV_NAME, 0 },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(i2c, apds9300_id);
 
-static struct i2c_driver apds9300_driver = {
+static struct i2c_driver apds9300_driver =
+{
 	.driver = {
 		.name	= APDS9300_DRV_NAME,
 		.pm	= APDS9300_PM_OPS,

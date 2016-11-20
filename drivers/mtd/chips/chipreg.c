@@ -35,24 +35,29 @@ static struct mtd_chip_driver *get_mtd_chip_driver (const char *name)
 
 	spin_lock(&chip_drvs_lock);
 
-	list_for_each(pos, &chip_drvs_list) {
+	list_for_each(pos, &chip_drvs_list)
+	{
 		this = list_entry(pos, typeof(*this), list);
 
-		if (!strcmp(this->name, name)) {
+		if (!strcmp(this->name, name))
+		{
 			ret = this;
 			break;
 		}
 	}
+
 	if (ret && !try_module_get(ret->module))
+	{
 		ret = NULL;
+	}
 
 	spin_unlock(&chip_drvs_lock);
 
 	return ret;
 }
 
-	/* Hide all the horrid details, like some silly person taking
-	   get_module_symbol() away from us, from the caller. */
+/* Hide all the horrid details, like some silly person taking
+   get_module_symbol() away from us, from the caller. */
 
 struct mtd_info *do_map_probe(const char *name, struct map_info *map)
 {
@@ -62,10 +67,14 @@ struct mtd_info *do_map_probe(const char *name, struct map_info *map)
 	drv = get_mtd_chip_driver(name);
 
 	if (!drv && !request_module("%s", name))
+	{
 		drv = get_mtd_chip_driver(name);
+	}
 
 	if (!drv)
+	{
 		return NULL;
+	}
 
 	ret = drv->probe(map);
 
@@ -87,7 +96,9 @@ void map_destroy(struct mtd_info *mtd)
 	struct map_info *map = mtd->priv;
 
 	if (map->fldrv->destroy)
+	{
 		map->fldrv->destroy(mtd);
+	}
 
 	module_put(map->fldrv->module);
 

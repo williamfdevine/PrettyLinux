@@ -2,14 +2,16 @@
 #define FWH_LOCK_H
 
 
-enum fwh_lock_state {
-        FWH_UNLOCKED   = 0,
+enum fwh_lock_state
+{
+	FWH_UNLOCKED   = 0,
 	FWH_DENY_WRITE = 1,
 	FWH_IMMUTABLE  = 2,
 	FWH_DENY_READ  = 4,
 };
 
-struct fwh_xxlock_thunk {
+struct fwh_xxlock_thunk
+{
 	enum fwh_lock_state val;
 	flstate_t state;
 };
@@ -26,18 +28,20 @@ struct fwh_xxlock_thunk {
  * and will likely fail in that context.
  */
 static int fwh_xxlock_oneblock(struct map_info *map, struct flchip *chip,
-	unsigned long adr, int len, void *thunk)
+							   unsigned long adr, int len, void *thunk)
 {
 	struct cfi_private *cfi = map->fldrv_priv;
 	struct fwh_xxlock_thunk *xxlt = (struct fwh_xxlock_thunk *)thunk;
 	int ret;
 
 	/* Refuse the operation if the we cannot look behind the chip */
-	if (chip->start < 0x400000) {
+	if (chip->start < 0x400000)
+	{
 		pr_debug( "MTD %s(): chip->start: %lx wanted >= 0x400000\n",
-			__func__, chip->start );
+				  __func__, chip->start );
 		return -EIO;
 	}
+
 	/*
 	 * lock block registers:
 	 * - on 64k boundariesand
@@ -59,7 +63,9 @@ static int fwh_xxlock_oneblock(struct map_info *map, struct flchip *chip,
 	 */
 	mutex_lock(&chip->mutex);
 	ret = get_chip(map, chip, adr, FL_LOCKING);
-	if (ret) {
+
+	if (ret)
+	{
 		mutex_unlock(&chip->mutex);
 		return ret;
 	}
@@ -81,7 +87,7 @@ static int fwh_lock_varsize(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 	int ret;
 
 	ret = cfi_varsize_frob(mtd, fwh_xxlock_oneblock, ofs, len,
-		(void *)&FWH_XXLOCK_ONEBLOCK_LOCK);
+						   (void *)&FWH_XXLOCK_ONEBLOCK_LOCK);
 
 	return ret;
 }
@@ -92,7 +98,7 @@ static int fwh_unlock_varsize(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 	int ret;
 
 	ret = cfi_varsize_frob(mtd, fwh_xxlock_oneblock, ofs, len,
-		(void *)&FWH_XXLOCK_ONEBLOCK_UNLOCK);
+						   (void *)&FWH_XXLOCK_ONEBLOCK_UNLOCK);
 
 	return ret;
 }

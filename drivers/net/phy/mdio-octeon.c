@@ -27,11 +27,16 @@ static int octeon_mdiobus_probe(struct platform_device *pdev)
 	int err = -ENOENT;
 
 	mii_bus = devm_mdiobus_alloc_size(&pdev->dev, sizeof(*bus));
+
 	if (!mii_bus)
+	{
 		return -ENOMEM;
+	}
 
 	res_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (res_mem == NULL) {
+
+	if (res_mem == NULL)
+	{
 		dev_err(&pdev->dev, "found no memory resource\n");
 		return -ENXIO;
 	}
@@ -42,14 +47,17 @@ static int octeon_mdiobus_probe(struct platform_device *pdev)
 	regsize = resource_size(res_mem);
 
 	if (!devm_request_mem_region(&pdev->dev, mdio_phys, regsize,
-				     res_mem->name)) {
+								 res_mem->name))
+	{
 		dev_err(&pdev->dev, "request_mem_region failed\n");
 		return -ENXIO;
 	}
 
 	bus->register_base =
 		(u64)devm_ioremap(&pdev->dev, mdio_phys, regsize);
-	if (!bus->register_base) {
+
+	if (!bus->register_base)
+	{
 		dev_err(&pdev->dev, "dev_ioremap failed\n");
 		return -ENOMEM;
 	}
@@ -68,8 +76,11 @@ static int octeon_mdiobus_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, bus);
 
 	err = of_mdiobus_register(bus->mii_bus, pdev->dev.of_node);
+
 	if (err)
+	{
 		goto fail_register;
+	}
 
 	dev_info(&pdev->dev, "Probed\n");
 
@@ -95,7 +106,8 @@ static int octeon_mdiobus_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id octeon_mdiobus_match[] = {
+static const struct of_device_id octeon_mdiobus_match[] =
+{
 	{
 		.compatible = "cavium,octeon-3860-mdio",
 	},
@@ -103,7 +115,8 @@ static const struct of_device_id octeon_mdiobus_match[] = {
 };
 MODULE_DEVICE_TABLE(of, octeon_mdiobus_match);
 
-static struct platform_driver octeon_mdiobus_driver = {
+static struct platform_driver octeon_mdiobus_driver =
+{
 	.driver = {
 		.name		= KBUILD_MODNAME,
 		.of_match_table = octeon_mdiobus_match,

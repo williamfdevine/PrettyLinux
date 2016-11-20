@@ -37,7 +37,8 @@
 
 #define OCFS2_DENTRY_LOCK_INO_START 18
 
-enum ocfs2_lock_type {
+enum ocfs2_lock_type
+{
 	OCFS2_LOCK_TYPE_META = 0,
 	OCFS2_LOCK_TYPE_DATA,
 	OCFS2_LOCK_TYPE_SUPER,
@@ -56,43 +57,57 @@ enum ocfs2_lock_type {
 static inline char ocfs2_lock_type_char(enum ocfs2_lock_type type)
 {
 	char c;
-	switch (type) {
+
+	switch (type)
+	{
 		case OCFS2_LOCK_TYPE_META:
 			c = 'M';
 			break;
+
 		case OCFS2_LOCK_TYPE_DATA:
 			c = 'D';
 			break;
+
 		case OCFS2_LOCK_TYPE_SUPER:
 			c = 'S';
 			break;
+
 		case OCFS2_LOCK_TYPE_RENAME:
 			c = 'R';
 			break;
+
 		case OCFS2_LOCK_TYPE_RW:
 			c = 'W';
 			break;
+
 		case OCFS2_LOCK_TYPE_DENTRY:
 			c = 'N';
 			break;
+
 		case OCFS2_LOCK_TYPE_OPEN:
 			c = 'O';
 			break;
+
 		case OCFS2_LOCK_TYPE_FLOCK:
 			c = 'F';
 			break;
+
 		case OCFS2_LOCK_TYPE_QINFO:
 			c = 'Q';
 			break;
+
 		case OCFS2_LOCK_TYPE_NFS_SYNC:
 			c = 'Y';
 			break;
+
 		case OCFS2_LOCK_TYPE_ORPHAN_SCAN:
 			c = 'P';
 			break;
+
 		case OCFS2_LOCK_TYPE_REFCOUNT:
 			c = 'T';
 			break;
+
 		default:
 			c = '\0';
 	}
@@ -100,7 +115,8 @@ static inline char ocfs2_lock_type_char(enum ocfs2_lock_type type)
 	return c;
 }
 
-static char *ocfs2_lock_type_strings[] = {
+static char *ocfs2_lock_type_strings[] =
+{
 	[OCFS2_LOCK_TYPE_META] = "Meta",
 	[OCFS2_LOCK_TYPE_DATA] = "Data",
 	[OCFS2_LOCK_TYPE_SUPER] = "Super",

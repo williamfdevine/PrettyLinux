@@ -21,13 +21,15 @@
 #include <linux/pwm.h>
 #include <linux/gpio/consumer.h>
 
-struct pwm_continuous_reg_data {
+struct pwm_continuous_reg_data
+{
 	unsigned int min_uV_dutycycle;
 	unsigned int max_uV_dutycycle;
 	unsigned int dutycycle_unit;
 };
 
-struct pwm_regulator_data {
+struct pwm_regulator_data
+{
 	/*  Shared */
 	struct pwm_device *pwm;
 
@@ -49,7 +51,8 @@ struct pwm_regulator_data {
 	struct gpio_desc *enb_gpio;
 };
 
-struct pwm_voltages {
+struct pwm_voltages
+{
 	unsigned int uV;
 	unsigned int dutycycle;
 };
@@ -67,8 +70,10 @@ static void pwm_regulator_init_state(struct regulator_dev *rdev)
 	pwm_get_state(drvdata->pwm, &pwm_state);
 	dutycycle = pwm_get_relative_duty_cycle(&pwm_state, 100);
 
-	for (i = 0; i < rdev->desc->n_voltages; i++) {
-		if (dutycycle == drvdata->duty_cycle_table[i].dutycycle) {
+	for (i = 0; i < rdev->desc->n_voltages; i++)
+	{
+		if (dutycycle == drvdata->duty_cycle_table[i].dutycycle)
+		{
 			drvdata->state = i;
 			return;
 		}
@@ -80,13 +85,15 @@ static int pwm_regulator_get_voltage_sel(struct regulator_dev *rdev)
 	struct pwm_regulator_data *drvdata = rdev_get_drvdata(rdev);
 
 	if (drvdata->state < 0)
+	{
 		pwm_regulator_init_state(rdev);
+	}
 
 	return drvdata->state;
 }
 
 static int pwm_regulator_set_voltage_sel(struct regulator_dev *rdev,
-					 unsigned selector)
+		unsigned selector)
 {
 	struct pwm_regulator_data *drvdata = rdev_get_drvdata(rdev);
 	struct pwm_state pstate;
@@ -94,10 +101,12 @@ static int pwm_regulator_set_voltage_sel(struct regulator_dev *rdev,
 
 	pwm_init_state(drvdata->pwm, &pstate);
 	pwm_set_relative_duty_cycle(&pstate,
-			drvdata->duty_cycle_table[selector].dutycycle, 100);
+								drvdata->duty_cycle_table[selector].dutycycle, 100);
 
 	ret = pwm_apply_state(drvdata->pwm, &pstate);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&rdev->dev, "Failed to configure PWM: %d\n", ret);
 		return ret;
 	}
@@ -108,12 +117,14 @@ static int pwm_regulator_set_voltage_sel(struct regulator_dev *rdev,
 }
 
 static int pwm_regulator_list_voltage(struct regulator_dev *rdev,
-				      unsigned selector)
+									  unsigned selector)
 {
 	struct pwm_regulator_data *drvdata = rdev_get_drvdata(rdev);
 
 	if (selector >= rdev->desc->n_voltages)
+	{
 		return -EINVAL;
+	}
 
 	return drvdata->duty_cycle_table[selector].uV;
 }
@@ -123,7 +134,9 @@ static int pwm_regulator_enable(struct regulator_dev *dev)
 	struct pwm_regulator_data *drvdata = rdev_get_drvdata(dev);
 
 	if (drvdata->enb_gpio)
+	{
 		gpiod_set_value_cansleep(drvdata->enb_gpio, 1);
+	}
 
 	return pwm_enable(drvdata->pwm);
 }
@@ -135,7 +148,9 @@ static int pwm_regulator_disable(struct regulator_dev *dev)
 	pwm_disable(drvdata->pwm);
 
 	if (drvdata->enb_gpio)
+	{
 		gpiod_set_value_cansleep(drvdata->enb_gpio, 0);
+	}
 
 	return 0;
 }
@@ -145,7 +160,9 @@ static int pwm_regulator_is_enabled(struct regulator_dev *dev)
 	struct pwm_regulator_data *drvdata = rdev_get_drvdata(dev);
 
 	if (drvdata->enb_gpio && !gpiod_get_value_cansleep(drvdata->enb_gpio))
+	{
 		return false;
+	}
 
 	return pwm_is_enabled(drvdata->pwm);
 }
@@ -172,10 +189,13 @@ static int pwm_regulator_get_voltage(struct regulator_dev *rdev)
 	 * This is happening when the user needs an inversed polarity, but the
 	 * PWM device does not support inversing it in hardware.
 	 */
-	if (max_uV_duty < min_uV_duty) {
+	if (max_uV_duty < min_uV_duty)
+	{
 		voltage = min_uV_duty - voltage;
 		diff_duty = min_uV_duty - max_uV_duty;
-	} else {
+	}
+	else
+	{
 		voltage = voltage - min_uV_duty;
 		diff_duty = max_uV_duty - min_uV_duty;
 	}
@@ -186,8 +206,8 @@ static int pwm_regulator_get_voltage(struct regulator_dev *rdev)
 }
 
 static int pwm_regulator_set_voltage(struct regulator_dev *rdev,
-				     int req_min_uV, int req_max_uV,
-				     unsigned int *selector)
+									 int req_min_uV, int req_max_uV,
+									 unsigned int *selector)
 {
 	struct pwm_regulator_data *drvdata = rdev_get_drvdata(rdev);
 	unsigned int min_uV_duty = drvdata->continuous.min_uV_dutycycle;
@@ -209,23 +229,33 @@ static int pwm_regulator_set_voltage(struct regulator_dev *rdev,
 	 * PWM device does not support inversing it in hardware.
 	 */
 	if (max_uV_duty < min_uV_duty)
+	{
 		diff_duty = min_uV_duty - max_uV_duty;
+	}
 	else
+	{
 		diff_duty = max_uV_duty - min_uV_duty;
+	}
 
 	dutycycle = DIV_ROUND_CLOSEST_ULL((u64)(req_min_uV - min_uV) *
-					  diff_duty,
-					  diff_uV);
+									  diff_duty,
+									  diff_uV);
 
 	if (max_uV_duty < min_uV_duty)
+	{
 		dutycycle = min_uV_duty - dutycycle;
+	}
 	else
+	{
 		dutycycle = min_uV_duty + dutycycle;
+	}
 
 	pwm_set_relative_duty_cycle(&pstate, dutycycle, duty_unit);
 
 	ret = pwm_apply_state(drvdata->pwm, &pstate);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&rdev->dev, "Failed to configure PWM: %d\n", ret);
 		return ret;
 	}
@@ -233,7 +263,8 @@ static int pwm_regulator_set_voltage(struct regulator_dev *rdev,
 	return 0;
 }
 
-static struct regulator_ops pwm_regulator_voltage_table_ops = {
+static struct regulator_ops pwm_regulator_voltage_table_ops =
+{
 	.set_voltage_sel = pwm_regulator_set_voltage_sel,
 	.get_voltage_sel = pwm_regulator_get_voltage_sel,
 	.list_voltage    = pwm_regulator_list_voltage,
@@ -243,7 +274,8 @@ static struct regulator_ops pwm_regulator_voltage_table_ops = {
 	.is_enabled      = pwm_regulator_is_enabled,
 };
 
-static struct regulator_ops pwm_regulator_voltage_continuous_ops = {
+static struct regulator_ops pwm_regulator_voltage_continuous_ops =
+{
 	.get_voltage = pwm_regulator_get_voltage,
 	.set_voltage = pwm_regulator_set_voltage,
 	.enable          = pwm_regulator_enable,
@@ -251,7 +283,8 @@ static struct regulator_ops pwm_regulator_voltage_continuous_ops = {
 	.is_enabled      = pwm_regulator_is_enabled,
 };
 
-static struct regulator_desc pwm_regulator_desc = {
+static struct regulator_desc pwm_regulator_desc =
+{
 	.name		= "pwm-regulator",
 	.type		= REGULATOR_VOLTAGE,
 	.owner		= THIS_MODULE,
@@ -259,7 +292,7 @@ static struct regulator_desc pwm_regulator_desc = {
 };
 
 static int pwm_regulator_init_table(struct platform_device *pdev,
-				    struct pwm_regulator_data *drvdata)
+									struct pwm_regulator_data *drvdata)
 {
 	struct device_node *np = pdev->dev.of_node;
 	struct pwm_voltages *duty_cycle_table;
@@ -269,20 +302,26 @@ static int pwm_regulator_init_table(struct platform_device *pdev,
 	of_find_property(np, "voltage-table", &length);
 
 	if ((length < sizeof(*duty_cycle_table)) ||
-	    (length % sizeof(*duty_cycle_table))) {
+		(length % sizeof(*duty_cycle_table)))
+	{
 		dev_err(&pdev->dev, "voltage-table length(%d) is invalid\n",
-			length);
+				length);
 		return -EINVAL;
 	}
 
 	duty_cycle_table = devm_kzalloc(&pdev->dev, length, GFP_KERNEL);
+
 	if (!duty_cycle_table)
+	{
 		return -ENOMEM;
+	}
 
 	ret = of_property_read_u32_array(np, "voltage-table",
-					 (u32 *)duty_cycle_table,
-					 length / sizeof(u32));
-	if (ret) {
+									 (u32 *)duty_cycle_table,
+									 length / sizeof(u32));
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to read voltage-table: %d\n", ret);
 		return ret;
 	}
@@ -290,7 +329,7 @@ static int pwm_regulator_init_table(struct platform_device *pdev,
 	drvdata->state			= -EINVAL;
 	drvdata->duty_cycle_table	= duty_cycle_table;
 	memcpy(&drvdata->ops, &pwm_regulator_voltage_table_ops,
-	       sizeof(drvdata->ops));
+		   sizeof(drvdata->ops));
 	drvdata->desc.ops = &drvdata->ops;
 	drvdata->desc.n_voltages	= length / sizeof(*duty_cycle_table);
 
@@ -298,25 +337,27 @@ static int pwm_regulator_init_table(struct platform_device *pdev,
 }
 
 static int pwm_regulator_init_continuous(struct platform_device *pdev,
-					 struct pwm_regulator_data *drvdata)
+		struct pwm_regulator_data *drvdata)
 {
 	u32 dutycycle_range[2] = { 0, 100 };
 	u32 dutycycle_unit = 100;
 
 	memcpy(&drvdata->ops, &pwm_regulator_voltage_continuous_ops,
-	       sizeof(drvdata->ops));
+		   sizeof(drvdata->ops));
 	drvdata->desc.ops = &drvdata->ops;
 	drvdata->desc.continuous_voltage_range = true;
 
 	of_property_read_u32_array(pdev->dev.of_node,
-				   "pwm-dutycycle-range",
-				   dutycycle_range, 2);
+							   "pwm-dutycycle-range",
+							   dutycycle_range, 2);
 	of_property_read_u32(pdev->dev.of_node, "pwm-dutycycle-unit",
-			     &dutycycle_unit);
+						 &dutycycle_unit);
 
 	if (dutycycle_range[0] > dutycycle_unit ||
-	    dutycycle_range[1] > dutycycle_unit)
+		dutycycle_range[1] > dutycycle_unit)
+	{
 		return -EINVAL;
+	}
 
 	drvdata->continuous.dutycycle_unit = dutycycle_unit;
 	drvdata->continuous.min_uV_dutycycle = dutycycle_range[0];
@@ -335,28 +376,42 @@ static int pwm_regulator_probe(struct platform_device *pdev)
 	enum gpiod_flags gpio_flags;
 	int ret;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&pdev->dev, "Device Tree node missing\n");
 		return -EINVAL;
 	}
 
 	drvdata = devm_kzalloc(&pdev->dev, sizeof(*drvdata), GFP_KERNEL);
+
 	if (!drvdata)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(&drvdata->desc, &pwm_regulator_desc, sizeof(drvdata->desc));
 
 	if (of_find_property(np, "voltage-table", NULL))
+	{
 		ret = pwm_regulator_init_table(pdev, drvdata);
+	}
 	else
+	{
 		ret = pwm_regulator_init_continuous(pdev, drvdata);
+	}
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	init_data = of_get_regulator_init_data(&pdev->dev, np,
-					       &drvdata->desc);
+										   &drvdata->desc);
+
 	if (!init_data)
+	{
 		return -ENOMEM;
+	}
 
 	config.of_node = np;
 	config.dev = &pdev->dev;
@@ -364,47 +419,63 @@ static int pwm_regulator_probe(struct platform_device *pdev)
 	config.init_data = init_data;
 
 	drvdata->pwm = devm_pwm_get(&pdev->dev, NULL);
-	if (IS_ERR(drvdata->pwm)) {
+
+	if (IS_ERR(drvdata->pwm))
+	{
 		ret = PTR_ERR(drvdata->pwm);
 		dev_err(&pdev->dev, "Failed to get PWM: %d\n", ret);
 		return ret;
 	}
 
 	if (init_data->constraints.boot_on || init_data->constraints.always_on)
+	{
 		gpio_flags = GPIOD_OUT_HIGH;
+	}
 	else
+	{
 		gpio_flags = GPIOD_OUT_LOW;
+	}
+
 	drvdata->enb_gpio = devm_gpiod_get_optional(&pdev->dev, "enable",
-						    gpio_flags);
-	if (IS_ERR(drvdata->enb_gpio)) {
+						gpio_flags);
+
+	if (IS_ERR(drvdata->enb_gpio))
+	{
 		ret = PTR_ERR(drvdata->enb_gpio);
 		dev_err(&pdev->dev, "Failed to get enable GPIO: %d\n", ret);
 		return ret;
 	}
 
 	ret = pwm_adjust_config(drvdata->pwm);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	regulator = devm_regulator_register(&pdev->dev,
-					    &drvdata->desc, &config);
-	if (IS_ERR(regulator)) {
+										&drvdata->desc, &config);
+
+	if (IS_ERR(regulator))
+	{
 		ret = PTR_ERR(regulator);
 		dev_err(&pdev->dev, "Failed to register regulator %s: %d\n",
-			drvdata->desc.name, ret);
+				drvdata->desc.name, ret);
 		return ret;
 	}
 
 	return 0;
 }
 
-static const struct of_device_id pwm_of_match[] = {
+static const struct of_device_id pwm_of_match[] =
+{
 	{ .compatible = "pwm-regulator" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, pwm_of_match);
 
-static struct platform_driver pwm_regulator_driver = {
+static struct platform_driver pwm_regulator_driver =
+{
 	.driver = {
 		.name		= "pwm-regulator",
 		.of_match_table = of_match_ptr(pwm_of_match),

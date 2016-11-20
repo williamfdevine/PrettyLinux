@@ -28,7 +28,8 @@ struct mempolicy;
  * parent, but "subdir" is empty for all non-directory entries).
  * subdir_node is used to build the rb tree "subdir" of the parent.
  */
-struct proc_dir_entry {
+struct proc_dir_entry
+{
 	unsigned int low_ino;
 	umode_t mode;
 	nlink_t nlink;
@@ -43,7 +44,7 @@ struct proc_dir_entry {
 	void *data;
 	atomic_t count;		/* use count */
 	atomic_t in_use;	/* number of callers into module in progress; */
-			/* negative -> it's going away RSN */
+	/* negative -> it's going away RSN */
 	struct completion *pde_unload_completion;
 	struct list_head pde_openers;	/* who did ->open, but not ->release */
 	spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
@@ -51,14 +52,16 @@ struct proc_dir_entry {
 	char name[];
 };
 
-union proc_op {
+union proc_op
+{
 	int (*proc_get_link)(struct dentry *, struct path *);
 	int (*proc_show)(struct seq_file *m,
-		struct pid_namespace *ns, struct pid *pid,
-		struct task_struct *task);
+					 struct pid_namespace *ns, struct pid *pid,
+					 struct task_struct *task);
 };
 
-struct proc_inode {
+struct proc_inode
+{
 	struct pid *pid;
 	unsigned int fd;
 	union proc_op op;
@@ -104,11 +107,19 @@ static inline int task_dumpable(struct task_struct *task)
 
 	task_lock(task);
 	mm = task->mm;
+
 	if (mm)
+	{
 		dumpable = get_dumpable(mm);
+	}
+
 	task_unlock(task);
+
 	if (dumpable == SUID_DUMP_USER)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -119,16 +130,28 @@ static inline unsigned name_to_int(const struct qstr *qstr)
 	unsigned n = 0;
 
 	if (len > 1 && *name == '0')
+	{
 		goto out;
-	while (len-- > 0) {
+	}
+
+	while (len-- > 0)
+	{
 		unsigned c = *name++ - '0';
+
 		if (c > 9)
+		{
 			goto out;
-		if (n >= (~0U-9)/10)
+		}
+
+		if (n >= (~0U - 9) / 10)
+		{
 			goto out;
+		}
+
 		n *= 10;
 		n += c;
 	}
+
 	return n;
 out:
 	return ~0U;
@@ -148,13 +171,13 @@ out:
 extern const struct file_operations proc_tid_children_operations;
 
 extern int proc_tid_stat(struct seq_file *, struct pid_namespace *,
-			 struct pid *, struct task_struct *);
+						 struct pid *, struct task_struct *);
 extern int proc_tgid_stat(struct seq_file *, struct pid_namespace *,
-			  struct pid *, struct task_struct *);
+						  struct pid *, struct task_struct *);
 extern int proc_pid_status(struct seq_file *, struct pid_namespace *,
-			   struct pid *, struct task_struct *);
+						   struct pid *, struct task_struct *);
 extern int proc_pid_statm(struct seq_file *, struct pid_namespace *,
-			  struct pid *, struct task_struct *);
+						  struct pid *, struct task_struct *);
 
 /*
  * base.c
@@ -171,16 +194,16 @@ extern loff_t mem_lseek(struct file *, loff_t, int);
 
 /* Lookups */
 typedef int instantiate_t(struct inode *, struct dentry *,
-				     struct task_struct *, const void *);
+						  struct task_struct *, const void *);
 extern bool proc_fill_cache(struct file *, struct dir_context *, const char *, int,
-			   instantiate_t, struct task_struct *, const void *);
+							instantiate_t, struct task_struct *, const void *);
 
 /*
  * generic.c
  */
 extern struct dentry *proc_lookup(struct inode *, struct dentry *, unsigned int);
 extern struct dentry *proc_lookup_de(struct proc_dir_entry *, struct inode *,
-				     struct dentry *);
+									 struct dentry *);
 extern int proc_readdir(struct file *, struct dir_context *);
 extern int proc_readdir_de(struct proc_dir_entry *, struct file *, struct dir_context *);
 
@@ -200,7 +223,8 @@ struct proc_dir_entry *proc_create_mount_point(const char *name);
 /*
  * inode.c
  */
-struct pde_opener {
+struct pde_opener
+{
 	struct file *file;
 	struct list_head lh;
 	int closing;
@@ -276,7 +300,8 @@ extern int proc_remount(struct super_block *, int *, char *);
 /*
  * task_[no]mmu.c
  */
-struct proc_maps_private {
+struct proc_maps_private
+{
 	struct inode *inode;
 	struct task_struct *task;
 	struct mm_struct *mm;
@@ -301,6 +326,6 @@ extern const struct file_operations proc_pagemap_operations;
 
 extern unsigned long task_vsize(struct mm_struct *);
 extern unsigned long task_statm(struct mm_struct *,
-				unsigned long *, unsigned long *,
-				unsigned long *, unsigned long *);
+								unsigned long *, unsigned long *,
+								unsigned long *, unsigned long *);
 extern void task_mem(struct seq_file *, struct mm_struct *);

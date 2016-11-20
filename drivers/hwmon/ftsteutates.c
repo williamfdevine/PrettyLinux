@@ -60,18 +60,21 @@
 
 static const unsigned short normal_i2c[] = { 0x73, I2C_CLIENT_END };
 
-static struct i2c_device_id fts_id[] = {
+static struct i2c_device_id fts_id[] =
+{
 	{ "ftsteutates", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, fts_id);
 
-enum WATCHDOG_RESOLUTION {
+enum WATCHDOG_RESOLUTION
+{
 	seconds = 1,
 	minutes = 60
 };
 
-struct fts_data {
+struct fts_data
+{
 	struct i2c_client *client;
 	/* update sensor data lock */
 	struct mutex update_lock;
@@ -115,8 +118,11 @@ static int fts_read_byte(struct i2c_client *client, unsigned short reg)
 
 	dev_dbg(&client->dev, "page select - page: 0x%.02x\n", page);
 	ret = i2c_smbus_write_byte_data(client, FTS_PAGE_SELECT_REG, page);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	reg &= 0xFF;
 	ret = i2c_smbus_read_byte_data(client, reg);
@@ -128,7 +134,7 @@ error:
 }
 
 static int fts_write_byte(struct i2c_client *client, unsigned short reg,
-			  unsigned char value)
+						  unsigned char value)
 {
 	int ret;
 	unsigned char page = reg >> 8;
@@ -138,12 +144,15 @@ static int fts_write_byte(struct i2c_client *client, unsigned short reg,
 
 	dev_dbg(&client->dev, "page select - page: 0x%.02x\n", page);
 	ret = i2c_smbus_write_byte_data(client, FTS_PAGE_SELECT_REG, page);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	reg &= 0xFF;
 	dev_dbg(&client->dev,
-		"write - reg: 0x%.02x: val: 0x%.02x\n", reg, value);
+			"write - reg: 0x%.02x: val: 0x%.02x\n", reg, value);
 	ret = i2c_smbus_write_byte_data(client, reg, value);
 
 error:
@@ -160,65 +169,108 @@ static int fts_update_device(struct fts_data *data)
 	int err = 0;
 
 	mutex_lock(&data->update_lock);
+
 	if (!time_after(jiffies, data->last_updated + 2 * HZ) && data->valid)
+	{
 		goto exit;
+	}
 
 	err = fts_read_byte(data->client, FTS_DEVICE_STATUS_REG);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
 
 	data->valid = !!(err & 0x02); /* Data not ready yet */
-	if (unlikely(!data->valid)) {
+
+	if (unlikely(!data->valid))
+	{
 		err = -EAGAIN;
 		goto exit;
 	}
 
 	err = fts_read_byte(data->client, FTS_FAN_PRESENT_REG);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
+
 	data->fan_present = err;
 
 	err = fts_read_byte(data->client, FTS_FAN_EVENT_REG);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
+
 	data->fan_alarm = err;
 
-	for (i = 0; i < FTS_NO_FAN_SENSORS; i++) {
-		if (data->fan_present & BIT(i)) {
+	for (i = 0; i < FTS_NO_FAN_SENSORS; i++)
+	{
+		if (data->fan_present & BIT(i))
+		{
 			err = fts_read_byte(data->client, FTS_REG_FAN_INPUT(i));
+
 			if (err < 0)
+			{
 				goto exit;
+			}
+
 			data->fan_input[i] = err;
 
 			err = fts_read_byte(data->client,
-					    FTS_REG_FAN_SOURCE(i));
+								FTS_REG_FAN_SOURCE(i));
+
 			if (err < 0)
+			{
 				goto exit;
+			}
+
 			data->fan_source[i] = err;
-		} else {
+		}
+		else
+		{
 			data->fan_input[i] = 0;
 			data->fan_source[i] = 0;
 		}
 	}
 
 	err = fts_read_byte(data->client, FTS_SENSOR_EVENT_REG);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
+
 	data->temp_alarm = err;
 
-	for (i = 0; i < FTS_NO_TEMP_SENSORS; i++) {
+	for (i = 0; i < FTS_NO_TEMP_SENSORS; i++)
+	{
 		err = fts_read_byte(data->client, FTS_REG_TEMP_INPUT(i));
+
 		if (err < 0)
+		{
 			goto exit;
+		}
+
 		data->temp_input[i] = err;
 	}
 
-	for (i = 0; i < FTS_NO_VOLT_SENSORS; i++) {
+	for (i = 0; i < FTS_NO_VOLT_SENSORS; i++)
+	{
 		err = fts_read_byte(data->client, FTS_REG_VOLT(i));
+
 		if (err < 0)
+		{
 			goto exit;
+		}
+
 		data->volt[i] = err;
 	}
+
 	data->last_updated = jiffies;
 	err = 0;
 exit:
@@ -230,31 +282,44 @@ exit:
 /* Watchdog functions							     */
 /*****************************************************************************/
 static int fts_wd_set_resolution(struct fts_data *data,
-				 enum WATCHDOG_RESOLUTION resolution)
+								 enum WATCHDOG_RESOLUTION resolution)
 {
 	int ret;
 
 	if (data->resolution == resolution)
+	{
 		return 0;
+	}
 
 	ret = fts_read_byte(data->client, FTS_WATCHDOG_CONTROL);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if ((resolution == seconds && ret & BIT(1)) ||
-	    (resolution == minutes && (ret & BIT(1)) == 0)) {
+		(resolution == minutes && (ret & BIT(1)) == 0))
+	{
 		data->resolution = resolution;
 		return 0;
 	}
 
 	if (resolution == seconds)
+	{
 		ret |= BIT(1);
+	}
 	else
+	{
 		ret &= ~BIT(1);
+	}
 
 	ret = fts_write_byte(data->client, FTS_WATCHDOG_CONTROL, ret);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	data->resolution = resolution;
 	return ret;
@@ -267,17 +332,22 @@ static int fts_wd_set_timeout(struct watchdog_device *wdd, unsigned int timeout)
 	int ret;
 
 	data = watchdog_get_drvdata(wdd);
+
 	/* switch watchdog resolution to minutes if timeout does not fit
 	 * into a byte
 	 */
-	if (timeout > 0xFF) {
+	if (timeout > 0xFF)
+	{
 		timeout = DIV_ROUND_UP(timeout, 60) * 60;
 		resolution = minutes;
 	}
 
 	ret = fts_wd_set_resolution(data, resolution);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	wdd->timeout = timeout;
 	return 0;
@@ -288,7 +358,7 @@ static int fts_wd_start(struct watchdog_device *wdd)
 	struct fts_data *data = watchdog_get_drvdata(wdd);
 
 	return fts_write_byte(data->client, FTS_WATCHDOG_TIME_PRESET,
-			      wdd->timeout / (u8)data->resolution);
+						  wdd->timeout / (u8)data->resolution);
 }
 
 static int fts_wd_stop(struct watchdog_device *wdd)
@@ -299,12 +369,14 @@ static int fts_wd_stop(struct watchdog_device *wdd)
 	return fts_write_byte(data->client, FTS_WATCHDOG_TIME_PRESET, 0);
 }
 
-static const struct watchdog_info fts_wd_info = {
+static const struct watchdog_info fts_wd_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 	.identity = "FTS Teutates Hardware Watchdog",
 };
 
-static const struct watchdog_ops fts_wd_ops = {
+static const struct watchdog_ops fts_wd_ops =
+{
 	.owner = THIS_MODULE,
 	.start = fts_wd_start,
 	.stop = fts_wd_stop,
@@ -318,19 +390,32 @@ static int fts_watchdog_init(struct fts_data *data)
 	watchdog_set_drvdata(&data->wdd, data);
 
 	timeout = fts_read_byte(data->client, FTS_WATCHDOG_TIME_PRESET);
+
 	if (timeout < 0)
+	{
 		return timeout;
+	}
 
 	/* watchdog not running, set timeout to a default of 60 sec. */
-	if (timeout == 0) {
+	if (timeout == 0)
+	{
 		ret = fts_wd_set_resolution(data, seconds);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		data->wdd.timeout = 60;
-	} else {
+	}
+	else
+	{
 		ret = fts_read_byte(data->client, FTS_WATCHDOG_CONTROL);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		data->resolution = ret & BIT(1) ? seconds : minutes;
 		data->wdd.timeout = timeout * (u8)data->resolution;
@@ -353,86 +438,109 @@ static int fts_watchdog_init(struct fts_data *data)
 /* SysFS handler functions						     */
 /*****************************************************************************/
 static ssize_t show_in_value(struct device *dev,
-			     struct device_attribute *devattr, char *buf)
+							 struct device_attribute *devattr, char *buf)
 {
 	struct fts_data *data = dev_get_drvdata(dev);
 	int index = to_sensor_dev_attr(devattr)->index;
 	int err;
 
 	err = fts_update_device(data);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return sprintf(buf, "%u\n", data->volt[index]);
 }
 
 static ssize_t show_temp_value(struct device *dev,
-			       struct device_attribute *devattr, char *buf)
+							   struct device_attribute *devattr, char *buf)
 {
 	struct fts_data *data = dev_get_drvdata(dev);
 	int index = to_sensor_dev_attr(devattr)->index;
 	int err;
 
 	err = fts_update_device(data);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return sprintf(buf, "%u\n", data->temp_input[index]);
 }
 
 static ssize_t show_temp_fault(struct device *dev,
-			       struct device_attribute *devattr, char *buf)
+							   struct device_attribute *devattr, char *buf)
 {
 	struct fts_data *data = dev_get_drvdata(dev);
 	int index = to_sensor_dev_attr(devattr)->index;
 	int err;
 
 	err = fts_update_device(data);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* 00h Temperature = Sensor Error */
 	return sprintf(buf, "%d\n", data->temp_input[index] == 0);
 }
 
 static ssize_t show_temp_alarm(struct device *dev,
-			       struct device_attribute *devattr, char *buf)
+							   struct device_attribute *devattr, char *buf)
 {
 	struct fts_data *data = dev_get_drvdata(dev);
 	int index = to_sensor_dev_attr(devattr)->index;
 	int err;
 
 	err = fts_update_device(data);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return sprintf(buf, "%u\n", !!(data->temp_alarm & BIT(index)));
 }
 
 static ssize_t
 clear_temp_alarm(struct device *dev, struct device_attribute *devattr,
-		 const char *buf, size_t count)
+				 const char *buf, size_t count)
 {
 	struct fts_data *data = dev_get_drvdata(dev);
 	int index = to_sensor_dev_attr(devattr)->index;
 	long ret;
 
 	ret = fts_update_device(data);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (kstrtoul(buf, 10, &ret) || ret != 0)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->update_lock);
 	ret = fts_read_byte(data->client, FTS_REG_TEMP_CONTROL(index));
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	ret = fts_write_byte(data->client, FTS_REG_TEMP_CONTROL(index),
-			     ret | 0x1);
+						 ret | 0x1);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	data->valid = false;
 error:
@@ -441,71 +549,91 @@ error:
 }
 
 static ssize_t show_fan_value(struct device *dev,
-			      struct device_attribute *devattr, char *buf)
+							  struct device_attribute *devattr, char *buf)
 {
 	struct fts_data *data = dev_get_drvdata(dev);
 	int index = to_sensor_dev_attr(devattr)->index;
 	int err;
 
 	err = fts_update_device(data);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return sprintf(buf, "%u\n", data->fan_input[index]);
 }
 
 static ssize_t show_fan_source(struct device *dev,
-			       struct device_attribute *devattr, char *buf)
+							   struct device_attribute *devattr, char *buf)
 {
 	struct fts_data *data = dev_get_drvdata(dev);
 	int index = to_sensor_dev_attr(devattr)->index;
 	int err;
 
 	err = fts_update_device(data);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return sprintf(buf, "%u\n", data->fan_source[index]);
 }
 
 static ssize_t show_fan_alarm(struct device *dev,
-			      struct device_attribute *devattr, char *buf)
+							  struct device_attribute *devattr, char *buf)
 {
 	struct fts_data *data = dev_get_drvdata(dev);
 	int index = to_sensor_dev_attr(devattr)->index;
 	int err;
 
 	err = fts_update_device(data);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return sprintf(buf, "%d\n", !!(data->fan_alarm & BIT(index)));
 }
 
 static ssize_t
 clear_fan_alarm(struct device *dev, struct device_attribute *devattr,
-		const char *buf, size_t count)
+				const char *buf, size_t count)
 {
 	struct fts_data *data = dev_get_drvdata(dev);
 	int index = to_sensor_dev_attr(devattr)->index;
 	long ret;
 
 	ret = fts_update_device(data);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (kstrtoul(buf, 10, &ret) || ret != 0)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->update_lock);
 	ret = fts_read_byte(data->client, FTS_REG_FAN_CONTROL(index));
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	ret = fts_write_byte(data->client, FTS_REG_FAN_CONTROL(index),
-			     ret | 0x1);
+						 ret | 0x1);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	data->valid = false;
 error:
@@ -553,39 +681,40 @@ static SENSOR_DEVICE_ATTR(temp15_fault, S_IRUGO, show_temp_fault, NULL, 14);
 static SENSOR_DEVICE_ATTR(temp16_fault, S_IRUGO, show_temp_fault, NULL, 15);
 
 static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 0);
+						  clear_temp_alarm, 0);
 static SENSOR_DEVICE_ATTR(temp2_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 1);
+						  clear_temp_alarm, 1);
 static SENSOR_DEVICE_ATTR(temp3_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 2);
+						  clear_temp_alarm, 2);
 static SENSOR_DEVICE_ATTR(temp4_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 3);
+						  clear_temp_alarm, 3);
 static SENSOR_DEVICE_ATTR(temp5_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 4);
+						  clear_temp_alarm, 4);
 static SENSOR_DEVICE_ATTR(temp6_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 5);
+						  clear_temp_alarm, 5);
 static SENSOR_DEVICE_ATTR(temp7_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 6);
+						  clear_temp_alarm, 6);
 static SENSOR_DEVICE_ATTR(temp8_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 7);
+						  clear_temp_alarm, 7);
 static SENSOR_DEVICE_ATTR(temp9_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 8);
+						  clear_temp_alarm, 8);
 static SENSOR_DEVICE_ATTR(temp10_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 9);
+						  clear_temp_alarm, 9);
 static SENSOR_DEVICE_ATTR(temp11_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 10);
+						  clear_temp_alarm, 10);
 static SENSOR_DEVICE_ATTR(temp12_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 11);
+						  clear_temp_alarm, 11);
 static SENSOR_DEVICE_ATTR(temp13_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 12);
+						  clear_temp_alarm, 12);
 static SENSOR_DEVICE_ATTR(temp14_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 13);
+						  clear_temp_alarm, 13);
 static SENSOR_DEVICE_ATTR(temp15_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 14);
+						  clear_temp_alarm, 14);
 static SENSOR_DEVICE_ATTR(temp16_alarm, S_IRUGO | S_IWUSR, show_temp_alarm,
-			  clear_temp_alarm, 15);
+						  clear_temp_alarm, 15);
 
-static struct attribute *fts_temp_attrs[] = {
+static struct attribute *fts_temp_attrs[] =
+{
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	&sensor_dev_attr_temp2_input.dev_attr.attr,
 	&sensor_dev_attr_temp3_input.dev_attr.attr,
@@ -659,23 +788,24 @@ static SENSOR_DEVICE_ATTR(fan7_source, S_IRUGO, show_fan_source, NULL, 6);
 static SENSOR_DEVICE_ATTR(fan8_source, S_IRUGO, show_fan_source, NULL, 7);
 
 static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO | S_IWUSR,
-			 show_fan_alarm, clear_fan_alarm, 0);
+						  show_fan_alarm, clear_fan_alarm, 0);
 static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO | S_IWUSR,
-			 show_fan_alarm, clear_fan_alarm, 1);
+						  show_fan_alarm, clear_fan_alarm, 1);
 static SENSOR_DEVICE_ATTR(fan3_alarm, S_IRUGO | S_IWUSR,
-			 show_fan_alarm, clear_fan_alarm, 2);
+						  show_fan_alarm, clear_fan_alarm, 2);
 static SENSOR_DEVICE_ATTR(fan4_alarm, S_IRUGO | S_IWUSR,
-			 show_fan_alarm, clear_fan_alarm, 3);
+						  show_fan_alarm, clear_fan_alarm, 3);
 static SENSOR_DEVICE_ATTR(fan5_alarm, S_IRUGO | S_IWUSR,
-			 show_fan_alarm, clear_fan_alarm, 4);
+						  show_fan_alarm, clear_fan_alarm, 4);
 static SENSOR_DEVICE_ATTR(fan6_alarm, S_IRUGO | S_IWUSR,
-			 show_fan_alarm, clear_fan_alarm, 5);
+						  show_fan_alarm, clear_fan_alarm, 5);
 static SENSOR_DEVICE_ATTR(fan7_alarm, S_IRUGO | S_IWUSR,
-			 show_fan_alarm, clear_fan_alarm, 6);
+						  show_fan_alarm, clear_fan_alarm, 6);
 static SENSOR_DEVICE_ATTR(fan8_alarm, S_IRUGO | S_IWUSR,
-			 show_fan_alarm, clear_fan_alarm, 7);
+						  show_fan_alarm, clear_fan_alarm, 7);
 
-static struct attribute *fts_fan_attrs[] = {
+static struct attribute *fts_fan_attrs[] =
+{
 	&sensor_dev_attr_fan1_input.dev_attr.attr,
 	&sensor_dev_attr_fan2_input.dev_attr.attr,
 	&sensor_dev_attr_fan3_input.dev_attr.attr,
@@ -710,7 +840,8 @@ static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_in_value, NULL, 0);
 static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_in_value, NULL, 1);
 static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_in_value, NULL, 2);
 static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, show_in_value, NULL, 3);
-static struct attribute *fts_voltage_attrs[] = {
+static struct attribute *fts_voltage_attrs[] =
+{
 	&sensor_dev_attr_in1_input.dev_attr.attr,
 	&sensor_dev_attr_in2_input.dev_attr.attr,
 	&sensor_dev_attr_in3_input.dev_attr.attr,
@@ -718,19 +849,23 @@ static struct attribute *fts_voltage_attrs[] = {
 	NULL
 };
 
-static const struct attribute_group fts_voltage_attr_group = {
+static const struct attribute_group fts_voltage_attr_group =
+{
 	.attrs = fts_voltage_attrs
 };
 
-static const struct attribute_group fts_temp_attr_group = {
+static const struct attribute_group fts_temp_attr_group =
+{
 	.attrs = fts_temp_attrs
 };
 
-static const struct attribute_group fts_fan_attr_group = {
+static const struct attribute_group fts_fan_attr_group =
+{
 	.attrs = fts_fan_attrs
 };
 
-static const struct attribute_group *fts_attr_groups[] = {
+static const struct attribute_group *fts_attr_groups[] =
+{
 	&fts_voltage_attr_group,
 	&fts_temp_attr_group,
 	&fts_fan_attr_group,
@@ -741,35 +876,50 @@ static const struct attribute_group *fts_attr_groups[] = {
 /* Module initialization / remove functions				     */
 /*****************************************************************************/
 static int fts_detect(struct i2c_client *client,
-		      struct i2c_board_info *info)
+					  struct i2c_board_info *info)
 {
 	int val;
 
 	/* detection works with revsion greater or equal to 0x2b */
 	val = i2c_smbus_read_byte_data(client, FTS_DEVICE_REVISION_REG);
+
 	if (val < 0x2b)
+	{
 		return -ENODEV;
+	}
 
 	/* Device Detect Regs must have 0x17 0x34 and 0x54 */
 	val = i2c_smbus_read_byte_data(client, FTS_DEVICE_DETECT_REG_1);
+
 	if (val != 0x17)
+	{
 		return -ENODEV;
+	}
 
 	val = i2c_smbus_read_byte_data(client, FTS_DEVICE_DETECT_REG_2);
+
 	if (val != 0x34)
+	{
 		return -ENODEV;
+	}
 
 	val = i2c_smbus_read_byte_data(client, FTS_DEVICE_DETECT_REG_3);
+
 	if (val != 0x54)
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * 0x10 == Baseboard Management Controller, 0x01 == Teutates
 	 * Device ID Reg needs to be 0x11
 	 */
 	val = i2c_smbus_read_byte_data(client, FTS_DEVICE_ID_REG);
+
 	if (val != 0x11)
+	{
 		return -ENODEV;
+	}
 
 	strlcpy(info->type, fts_id[0].name, I2C_NAME_SIZE);
 	info->flags = 0;
@@ -793,28 +943,39 @@ static int fts_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	struct device *hwmon_dev;
 
 	if (client->addr != 0x73)
+	{
 		return -ENODEV;
+	}
 
 	/* Baseboard Management Controller check */
 	deviceid = i2c_smbus_read_byte_data(client, FTS_DEVICE_ID_REG);
-	if (deviceid > 0 && (deviceid & 0xF0) == 0x10) {
-		switch (deviceid & 0x0F) {
-		case 0x01:
-			break;
-		default:
-			dev_dbg(&client->dev,
-				"No Baseboard Management Controller\n");
-			return -ENODEV;
+
+	if (deviceid > 0 && (deviceid & 0xF0) == 0x10)
+	{
+		switch (deviceid & 0x0F)
+		{
+			case 0x01:
+				break;
+
+			default:
+				dev_dbg(&client->dev,
+						"No Baseboard Management Controller\n");
+				return -ENODEV;
 		}
-	} else {
+	}
+	else
+	{
 		dev_dbg(&client->dev, "No fujitsu board\n");
 		return -ENODEV;
 	}
 
 	data = devm_kzalloc(&client->dev, sizeof(struct fts_data),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&data->update_lock);
 	mutex_init(&data->access_lock);
@@ -822,30 +983,41 @@ static int fts_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	dev_set_drvdata(&client->dev, data);
 
 	err = i2c_smbus_read_byte_data(client, FTS_DEVICE_REVISION_REG);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	revision = err;
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(&client->dev,
-							   "ftsteutates",
-							   data,
-							   fts_attr_groups);
+				"ftsteutates",
+				data,
+				fts_attr_groups);
+
 	if (IS_ERR(hwmon_dev))
+	{
 		return PTR_ERR(hwmon_dev);
+	}
 
 	err = fts_watchdog_init(data);
+
 	if (err)
+	{
 		return err;
+	}
 
 	dev_info(&client->dev, "Detected FTS Teutates chip, revision: %d.%d\n",
-		 (revision & 0xF0) >> 4, revision & 0x0F);
+			 (revision & 0xF0) >> 4, revision & 0x0F);
 	return 0;
 }
 
 /*****************************************************************************/
 /* Module Details							     */
 /*****************************************************************************/
-static struct i2c_driver fts_driver = {
+static struct i2c_driver fts_driver =
+{
 	.class = I2C_CLASS_HWMON,
 	.driver = {
 		.name = "ftsteutates",

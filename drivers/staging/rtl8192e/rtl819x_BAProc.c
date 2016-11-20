@@ -19,11 +19,14 @@
 #include "rtl819x_BA.h"
 
 static void ActivateBAEntry(struct rtllib_device *ieee, struct ba_record *pBA,
-			    u16 Time)
+							u16 Time)
 {
 	pBA->bValid = true;
+
 	if (Time != 0)
+	{
 		mod_timer(&pBA->Timer, jiffies + msecs_to_jiffies(Time));
+	}
 }
 
 static void DeActivateBAEntry(struct rtllib_device *ieee, struct ba_record *pBA)
@@ -38,15 +41,18 @@ static u8 TxTsDeleteBA(struct rtllib_device *ieee, struct tx_ts_record *pTxTs)
 	struct ba_record *pPendingBa = &pTxTs->TxPendingBARecord;
 	u8 bSendDELBA = false;
 
-	if (pPendingBa->bValid) {
+	if (pPendingBa->bValid)
+	{
 		DeActivateBAEntry(ieee, pPendingBa);
 		bSendDELBA = true;
 	}
 
-	if (pAdmittedBa->bValid) {
+	if (pAdmittedBa->bValid)
+	{
 		DeActivateBAEntry(ieee, pAdmittedBa);
 		bSendDELBA = true;
 	}
+
 	return bSendDELBA;
 }
 
@@ -55,7 +61,8 @@ static u8 RxTsDeleteBA(struct rtllib_device *ieee, struct rx_ts_record *pRxTs)
 	struct ba_record *pBa = &pRxTs->RxAdmittedBARecord;
 	u8			bSendDELBA = false;
 
-	if (pBa->bValid) {
+	if (pBa->bValid)
+	{
 		DeActivateBAEntry(ieee, pBa);
 		bSendDELBA = true;
 	}
@@ -72,31 +79,36 @@ void ResetBaEntry(struct ba_record *pBA)
 	pBA->BaStartSeqCtrl.ShortData	= 0;
 }
 static struct sk_buff *rtllib_ADDBA(struct rtllib_device *ieee, u8 *Dst,
-				    struct ba_record *pBA,
-				    u16 StatusCode, u8 type)
+									struct ba_record *pBA,
+									u16 StatusCode, u8 type)
 {
 	struct sk_buff *skb = NULL;
-	 struct rtllib_hdr_3addr *BAReq = NULL;
+	struct rtllib_hdr_3addr *BAReq = NULL;
 	u8 *tag = NULL;
 	u16 len = ieee->tx_headroom + 9;
 
 	netdev_dbg(ieee->dev, "%s(): frame(%d) sentd to: %pM, ieee->dev:%p\n",
-		   __func__, type, Dst, ieee->dev);
+			   __func__, type, Dst, ieee->dev);
 
-	if (pBA == NULL) {
+	if (pBA == NULL)
+	{
 		netdev_warn(ieee->dev, "pBA is NULL\n");
 		return NULL;
 	}
+
 	skb = dev_alloc_skb(len + sizeof(struct rtllib_hdr_3addr));
+
 	if (skb == NULL)
+	{
 		return NULL;
+	}
 
 	memset(skb->data, 0, sizeof(struct rtllib_hdr_3addr));
 
 	skb_reserve(skb, ieee->tx_headroom);
 
 	BAReq = (struct rtllib_hdr_3addr *)skb_put(skb,
-		 sizeof(struct rtllib_hdr_3addr));
+			sizeof(struct rtllib_hdr_3addr));
 
 	ether_addr_copy(BAReq->addr1, Dst);
 	ether_addr_copy(BAReq->addr2, ieee->dev->dev_addr);
@@ -109,7 +121,8 @@ static struct sk_buff *rtllib_ADDBA(struct rtllib_device *ieee, u8 *Dst,
 	*tag++ = type;
 	*tag++ = pBA->DialogToken;
 
-	if (type == ACT_ADDBARSP) {
+	if (type == ACT_ADDBARSP)
+	{
 		RT_TRACE(COMP_DBG, "====>to send ADDBARSP\n");
 
 		put_unaligned_le16(StatusCode, tag);
@@ -122,31 +135,32 @@ static struct sk_buff *rtllib_ADDBA(struct rtllib_device *ieee, u8 *Dst,
 	put_unaligned_le16(pBA->BaTimeoutValue, tag);
 	tag += 2;
 
-	if (type == ACT_ADDBAREQ) {
-		memcpy(tag, (u8 *)&(pBA->BaStartSeqCtrl), 2);
+	if (type == ACT_ADDBAREQ)
+	{
+		memcpy(tag, (u8 *) & (pBA->BaStartSeqCtrl), 2);
 		tag += 2;
 	}
 
 #ifdef VERBOSE_DEBUG
 	print_hex_dump_bytes("rtllib_ADDBA(): ", DUMP_PREFIX_NONE, skb->data,
-			     skb->len);
+						 skb->len);
 #endif
 	return skb;
 }
 
 static struct sk_buff *rtllib_DELBA(struct rtllib_device *ieee, u8 *dst,
-				    struct ba_record *pBA,
-				    enum tr_select TxRxSelect, u16 ReasonCode)
+									struct ba_record *pBA,
+									enum tr_select TxRxSelect, u16 ReasonCode)
 {
 	union delba_param_set DelbaParamSet;
 	struct sk_buff *skb = NULL;
-	 struct rtllib_hdr_3addr *Delba = NULL;
+	struct rtllib_hdr_3addr *Delba = NULL;
 	u8 *tag = NULL;
 	u16 len = 6 + ieee->tx_headroom;
 
 	if (net_ratelimit())
 		netdev_dbg(ieee->dev, "%s(): ReasonCode(%d) sentd to: %pM\n",
-			   __func__, ReasonCode, dst);
+				   __func__, ReasonCode, dst);
 
 	memset(&DelbaParamSet, 0, 2);
 
@@ -154,13 +168,16 @@ static struct sk_buff *rtllib_DELBA(struct rtllib_device *ieee, u8 *dst,
 	DelbaParamSet.field.TID	= pBA->BaParamSet.field.TID;
 
 	skb = dev_alloc_skb(len + sizeof(struct rtllib_hdr_3addr));
+
 	if (skb == NULL)
+	{
 		return NULL;
+	}
 
 	skb_reserve(skb, ieee->tx_headroom);
 
 	Delba = (struct rtllib_hdr_3addr *) skb_put(skb,
-		 sizeof(struct rtllib_hdr_3addr));
+			sizeof(struct rtllib_hdr_3addr));
 
 	ether_addr_copy(Delba->addr1, dst);
 	ether_addr_copy(Delba->addr2, ieee->dev->dev_addr);
@@ -181,49 +198,62 @@ static struct sk_buff *rtllib_DELBA(struct rtllib_device *ieee, u8 *dst,
 
 #ifdef VERBOSE_DEBUG
 	print_hex_dump_bytes("rtllib_DELBA(): ", DUMP_PREFIX_NONE, skb->data,
-			     skb->len);
+						 skb->len);
 #endif
 	return skb;
 }
 
 static void rtllib_send_ADDBAReq(struct rtllib_device *ieee, u8 *dst,
-				 struct ba_record *pBA)
+								 struct ba_record *pBA)
 {
 	struct sk_buff *skb;
 
 	skb = rtllib_ADDBA(ieee, dst, pBA, 0, ACT_ADDBAREQ);
 
-	if (skb) {
+	if (skb)
+	{
 		RT_TRACE(COMP_DBG, "====>to send ADDBAREQ!!!!!\n");
 		softmac_mgmt_xmit(skb, ieee);
-	} else {
+	}
+	else
+	{
 		netdev_dbg(ieee->dev, "Failed to generate ADDBAReq packet.\n");
 	}
 }
 
 static void rtllib_send_ADDBARsp(struct rtllib_device *ieee, u8 *dst,
-				 struct ba_record *pBA, u16 StatusCode)
+								 struct ba_record *pBA, u16 StatusCode)
 {
 	struct sk_buff *skb;
 
 	skb = rtllib_ADDBA(ieee, dst, pBA, StatusCode, ACT_ADDBARSP);
+
 	if (skb)
+	{
 		softmac_mgmt_xmit(skb, ieee);
+	}
 	else
+	{
 		netdev_dbg(ieee->dev, "Failed to generate ADDBARsp packet.\n");
+	}
 }
 
 static void rtllib_send_DELBA(struct rtllib_device *ieee, u8 *dst,
-			      struct ba_record *pBA, enum tr_select TxRxSelect,
-			      u16 ReasonCode)
+							  struct ba_record *pBA, enum tr_select TxRxSelect,
+							  u16 ReasonCode)
 {
 	struct sk_buff *skb;
 
 	skb = rtllib_DELBA(ieee, dst, pBA, TxRxSelect, ReasonCode);
+
 	if (skb)
+	{
 		softmac_mgmt_xmit(skb, ieee);
+	}
 	else
+	{
 		netdev_dbg(ieee->dev, "Failed to generate DELBA packet.\n");
+	}
 }
 
 int rtllib_rx_ADDBAReq(struct rtllib_device *ieee, struct sk_buff *skb)
@@ -237,16 +267,17 @@ int rtllib_rx_ADDBAReq(struct rtllib_device *ieee, struct sk_buff *skb)
 	union sequence_control *pBaStartSeqCtrl = NULL;
 	struct rx_ts_record *pTS = NULL;
 
-	if (skb->len < sizeof(struct rtllib_hdr_3addr) + 9) {
+	if (skb->len < sizeof(struct rtllib_hdr_3addr) + 9)
+	{
 		netdev_warn(ieee->dev, "Invalid skb len in BAREQ(%d / %d)\n",
-			    (int)skb->len,
-			    (int)(sizeof(struct rtllib_hdr_3addr) + 9));
+					(int)skb->len,
+					(int)(sizeof(struct rtllib_hdr_3addr) + 9));
 		return -1;
 	}
 
 #ifdef VERBOSE_DEBUG
 	print_hex_dump_bytes("rtllib_rx_ADDBAReq(): ", DUMP_PREFIX_NONE,
-			     skb->data, skb->len);
+						 skb->data, skb->len);
 #endif
 
 	req = (struct rtllib_hdr_3addr *) skb->data;
@@ -259,28 +290,34 @@ int rtllib_rx_ADDBAReq(struct rtllib_device *ieee, struct sk_buff *skb)
 	pBaStartSeqCtrl = (union sequence_control *)(req + 7);
 
 	RT_TRACE(COMP_DBG, "====>rx ADDBAREQ from : %pM\n", dst);
+
 	if (ieee->current_network.qos_data.active == 0  ||
-	    (ieee->pHTInfo->bCurrentHTSupport == false) ||
-	    (ieee->pHTInfo->IOTAction & HT_IOT_ACT_REJECT_ADDBA_REQ)) {
+		(ieee->pHTInfo->bCurrentHTSupport == false) ||
+		(ieee->pHTInfo->IOTAction & HT_IOT_ACT_REJECT_ADDBA_REQ))
+	{
 		rc = ADDBA_STATUS_REFUSED;
 		netdev_warn(ieee->dev,
-			    "Failed to reply on ADDBA_REQ as some capability is not ready(%d, %d)\n",
-			    ieee->current_network.qos_data.active,
-			    ieee->pHTInfo->bCurrentHTSupport);
+					"Failed to reply on ADDBA_REQ as some capability is not ready(%d, %d)\n",
+					ieee->current_network.qos_data.active,
+					ieee->pHTInfo->bCurrentHTSupport);
 		goto OnADDBAReq_Fail;
 	}
+
 	if (!GetTs(ieee, (struct ts_common_info **)(&pTS), dst,
-	    (u8)(pBaParamSet->field.TID), RX_DIR, true)) {
+			   (u8)(pBaParamSet->field.TID), RX_DIR, true))
+	{
 		rc = ADDBA_STATUS_REFUSED;
 		netdev_warn(ieee->dev, "%s(): can't get TS\n", __func__);
 		goto OnADDBAReq_Fail;
 	}
+
 	pBA = &pTS->RxAdmittedBARecord;
 
-	if (pBaParamSet->field.BAPolicy == BA_POLICY_DELAYED) {
+	if (pBaParamSet->field.BAPolicy == BA_POLICY_DELAYED)
+	{
 		rc = ADDBA_STATUS_INVALID_PARAM;
 		netdev_warn(ieee->dev, "%s(): BA Policy is not correct\n",
-			    __func__);
+					__func__);
 		goto OnADDBAReq_Fail;
 	}
 
@@ -293,10 +330,14 @@ int rtllib_rx_ADDBAReq(struct rtllib_device *ieee, struct sk_buff *skb)
 	pBA->BaStartSeqCtrl = *pBaStartSeqCtrl;
 
 	if (ieee->GetHalfNmodeSupportByAPsHandler(ieee->dev) ||
-	   (ieee->pHTInfo->IOTAction & HT_IOT_ACT_ALLOW_PEER_AGG_ONE_PKT))
+		(ieee->pHTInfo->IOTAction & HT_IOT_ACT_ALLOW_PEER_AGG_ONE_PKT))
+	{
 		pBA->BaParamSet.field.BufferSize = 1;
+	}
 	else
+	{
 		pBA->BaParamSet.field.BufferSize = 32;
+	}
 
 	ActivateBAEntry(ieee, pBA, 0);
 	rtllib_send_ADDBARsp(ieee, dst, pBA, ADDBA_STATUS_SUCCESS);
@@ -318,7 +359,7 @@ OnADDBAReq_Fail:
 
 int rtllib_rx_ADDBARsp(struct rtllib_device *ieee, struct sk_buff *skb)
 {
-	 struct rtllib_hdr_3addr *rsp = NULL;
+	struct rtllib_hdr_3addr *rsp = NULL;
 	struct ba_record *pPendingBA, *pAdmittedBA;
 	struct tx_ts_record *pTS = NULL;
 	u8 *dst = NULL, *pDialogToken = NULL, *tag = NULL;
@@ -326,12 +367,14 @@ int rtllib_rx_ADDBARsp(struct rtllib_device *ieee, struct sk_buff *skb)
 	union ba_param_set *pBaParamSet = NULL;
 	u16			ReasonCode;
 
-	if (skb->len < sizeof(struct rtllib_hdr_3addr) + 9) {
+	if (skb->len < sizeof(struct rtllib_hdr_3addr) + 9)
+	{
 		netdev_warn(ieee->dev, "Invalid skb len in BARSP(%d / %d)\n",
-			    (int)skb->len,
-			    (int)(sizeof(struct rtllib_hdr_3addr) + 9));
+					(int)skb->len,
+					(int)(sizeof(struct rtllib_hdr_3addr) + 9));
 		return -1;
 	}
+
 	rsp = (struct rtllib_hdr_3addr *)skb->data;
 	tag = (u8 *)rsp;
 	dst = (u8 *)(&rsp->addr2[0]);
@@ -342,21 +385,24 @@ int rtllib_rx_ADDBARsp(struct rtllib_device *ieee, struct sk_buff *skb)
 	pBaTimeoutVal = (u16 *)(tag + 7);
 
 	RT_TRACE(COMP_DBG, "====>rx ADDBARSP from : %pM\n", dst);
+
 	if (ieee->current_network.qos_data.active == 0  ||
-	    ieee->pHTInfo->bCurrentHTSupport == false ||
-	    ieee->pHTInfo->bCurrentAMPDUEnable == false) {
+		ieee->pHTInfo->bCurrentHTSupport == false ||
+		ieee->pHTInfo->bCurrentAMPDUEnable == false)
+	{
 		netdev_warn(ieee->dev,
-			    "reject to ADDBA_RSP as some capability is not ready(%d, %d, %d)\n",
-			    ieee->current_network.qos_data.active,
-			    ieee->pHTInfo->bCurrentHTSupport,
-			    ieee->pHTInfo->bCurrentAMPDUEnable);
+					"reject to ADDBA_RSP as some capability is not ready(%d, %d, %d)\n",
+					ieee->current_network.qos_data.active,
+					ieee->pHTInfo->bCurrentHTSupport,
+					ieee->pHTInfo->bCurrentAMPDUEnable);
 		ReasonCode = DELBA_REASON_UNKNOWN_BA;
 		goto OnADDBARsp_Reject;
 	}
 
 
 	if (!GetTs(ieee, (struct ts_common_info **)(&pTS), dst,
-		   (u8)(pBaParamSet->field.TID), TX_DIR, false)) {
+			   (u8)(pBaParamSet->field.TID), TX_DIR, false))
+	{
 		netdev_warn(ieee->dev, "%s(): can't get TS\n", __func__);
 		ReasonCode = DELBA_REASON_UNKNOWN_BA;
 		goto OnADDBARsp_Reject;
@@ -367,27 +413,34 @@ int rtllib_rx_ADDBARsp(struct rtllib_device *ieee, struct sk_buff *skb)
 	pAdmittedBA = &pTS->TxAdmittedBARecord;
 
 
-	if (pAdmittedBA->bValid == true) {
+	if (pAdmittedBA->bValid == true)
+	{
 		netdev_dbg(ieee->dev, "%s(): ADDBA response already admitted\n",
-			   __func__);
+				   __func__);
 		return -1;
-	} else if ((pPendingBA->bValid == false) ||
-		   (*pDialogToken != pPendingBA->DialogToken)) {
+	}
+	else if ((pPendingBA->bValid == false) ||
+			 (*pDialogToken != pPendingBA->DialogToken))
+	{
 		netdev_warn(ieee->dev,
-			    "%s(): ADDBA Rsp. BA invalid, DELBA!\n",
-			    __func__);
+					"%s(): ADDBA Rsp. BA invalid, DELBA!\n",
+					__func__);
 		ReasonCode = DELBA_REASON_UNKNOWN_BA;
 		goto OnADDBARsp_Reject;
-	} else {
+	}
+	else
+	{
 		netdev_dbg(ieee->dev,
-			   "%s(): Recv ADDBA Rsp. BA is admitted! Status code:%X\n",
-			   __func__, *pStatusCode);
+				   "%s(): Recv ADDBA Rsp. BA is admitted! Status code:%X\n",
+				   __func__, *pStatusCode);
 		DeActivateBAEntry(ieee, pPendingBA);
 	}
 
 
-	if (*pStatusCode == ADDBA_STATUS_SUCCESS) {
-		if (pBaParamSet->field.BAPolicy == BA_POLICY_DELAYED) {
+	if (*pStatusCode == ADDBA_STATUS_SUCCESS)
+	{
+		if (pBaParamSet->field.BAPolicy == BA_POLICY_DELAYED)
+		{
 			pTS->bAddBaReqDelayed = true;
 			DeActivateBAEntry(ieee, pAdmittedBA);
 			ReasonCode = DELBA_REASON_END_BA;
@@ -401,7 +454,9 @@ int rtllib_rx_ADDBARsp(struct rtllib_device *ieee, struct sk_buff *skb)
 		pAdmittedBA->BaParamSet = *pBaParamSet;
 		DeActivateBAEntry(ieee, pAdmittedBA);
 		ActivateBAEntry(ieee, pAdmittedBA, *pBaTimeoutVal);
-	} else {
+	}
+	else
+	{
 		pTS->bAddBaReqDelayed = true;
 		pTS->bDisable_AddBa = true;
 		ReasonCode = DELBA_REASON_END_BA;
@@ -422,54 +477,61 @@ OnADDBARsp_Reject:
 
 int rtllib_rx_DELBA(struct rtllib_device *ieee, struct sk_buff *skb)
 {
-	 struct rtllib_hdr_3addr *delba = NULL;
+	struct rtllib_hdr_3addr *delba = NULL;
 	union delba_param_set *pDelBaParamSet = NULL;
 	u8 *dst = NULL;
 
-	if (skb->len < sizeof(struct rtllib_hdr_3addr) + 6) {
+	if (skb->len < sizeof(struct rtllib_hdr_3addr) + 6)
+	{
 		netdev_warn(ieee->dev, "Invalid skb len in DELBA(%d / %d)\n",
-			    (int)skb->len,
-			    (int)(sizeof(struct rtllib_hdr_3addr) + 6));
+					(int)skb->len,
+					(int)(sizeof(struct rtllib_hdr_3addr) + 6));
 		return -1;
 	}
 
 	if (ieee->current_network.qos_data.active == 0  ||
-		ieee->pHTInfo->bCurrentHTSupport == false) {
+		ieee->pHTInfo->bCurrentHTSupport == false)
+	{
 		netdev_warn(ieee->dev,
-			    "received DELBA while QOS or HT is not supported(%d, %d)\n",
-			    ieee->current_network. qos_data.active,
-			    ieee->pHTInfo->bCurrentHTSupport);
+					"received DELBA while QOS or HT is not supported(%d, %d)\n",
+					ieee->current_network. qos_data.active,
+					ieee->pHTInfo->bCurrentHTSupport);
 		return -1;
 	}
 
 #ifdef VERBOSE_DEBUG
 	print_hex_dump_bytes("rtllib_rx_DELBA(): ", DUMP_PREFIX_NONE, skb->data,
-			     skb->len);
+						 skb->len);
 #endif
 	delba = (struct rtllib_hdr_3addr *)skb->data;
 	dst = (u8 *)(&delba->addr2[0]);
 	pDelBaParamSet = (union delba_param_set *)&delba->payload[2];
 
-	if (pDelBaParamSet->field.Initiator == 1) {
+	if (pDelBaParamSet->field.Initiator == 1)
+	{
 		struct rx_ts_record *pRxTs;
 
 		if (!GetTs(ieee, (struct ts_common_info **)&pRxTs, dst,
-		    (u8)pDelBaParamSet->field.TID, RX_DIR, false)) {
+				   (u8)pDelBaParamSet->field.TID, RX_DIR, false))
+		{
 			netdev_warn(ieee->dev,
-				    "%s(): can't get TS for RXTS. dst:%pM TID:%d\n",
-				    __func__, dst,
-				    (u8)pDelBaParamSet->field.TID);
+						"%s(): can't get TS for RXTS. dst:%pM TID:%d\n",
+						__func__, dst,
+						(u8)pDelBaParamSet->field.TID);
 			return -1;
 		}
 
 		RxTsDeleteBA(ieee, pRxTs);
-	} else {
+	}
+	else
+	{
 		struct tx_ts_record *pTxTs;
 
 		if (!GetTs(ieee, (struct ts_common_info **)&pTxTs, dst,
-			   (u8)pDelBaParamSet->field.TID, TX_DIR, false)) {
+				   (u8)pDelBaParamSet->field.TID, TX_DIR, false))
+		{
 			netdev_warn(ieee->dev, "%s(): can't get TS for TXTS\n",
-				    __func__);
+						__func__);
 			return -1;
 		}
 
@@ -479,16 +541,19 @@ int rtllib_rx_DELBA(struct rtllib_device *ieee, struct sk_buff *skb)
 		del_timer_sync(&pTxTs->TsAddBaTimer);
 		TxTsDeleteBA(ieee, pTxTs);
 	}
+
 	return 0;
 }
 
 void TsInitAddBA(struct rtllib_device *ieee, struct tx_ts_record *pTS,
-		 u8 Policy, u8	bOverwritePending)
+				 u8 Policy, u8	bOverwritePending)
 {
 	struct ba_record *pBA = &pTS->TxPendingBARecord;
 
 	if (pBA->bValid == true && bOverwritePending == false)
+	{
 		return;
+	}
 
 	DeActivateBAEntry(ieee, pBA);
 
@@ -496,7 +561,7 @@ void TsInitAddBA(struct rtllib_device *ieee, struct tx_ts_record *pTS,
 	pBA->BaParamSet.field.AMSDU_Support = 0;
 	pBA->BaParamSet.field.BAPolicy = Policy;
 	pBA->BaParamSet.field.TID =
-			 pTS->TsCommonInfo.TSpec.f.TSInfo.field.ucTSID;
+		pTS->TsCommonInfo.TSpec.f.TSInfo.field.ucTSID;
 	pBA->BaParamSet.field.BufferSize = 32;
 	pBA->BaTimeoutValue = 0;
 	pBA->BaStartSeqCtrl.field.SeqNum = (pTS->TxCurSeq + 3) % 4096;
@@ -507,26 +572,30 @@ void TsInitAddBA(struct rtllib_device *ieee, struct tx_ts_record *pTS,
 }
 
 void TsInitDelBA(struct rtllib_device *ieee,
-		 struct ts_common_info *pTsCommonInfo,
-		 enum tr_select TxRxSelect)
+				 struct ts_common_info *pTsCommonInfo,
+				 enum tr_select TxRxSelect)
 {
-	if (TxRxSelect == TX_DIR) {
+	if (TxRxSelect == TX_DIR)
+	{
 		struct tx_ts_record *pTxTs =
-			 (struct tx_ts_record *)pTsCommonInfo;
+			(struct tx_ts_record *)pTsCommonInfo;
 
 		if (TxTsDeleteBA(ieee, pTxTs))
 			rtllib_send_DELBA(ieee, pTsCommonInfo->Addr,
-					  (pTxTs->TxAdmittedBARecord.bValid) ?
-					 (&pTxTs->TxAdmittedBARecord) :
-					(&pTxTs->TxPendingBARecord),
-					 TxRxSelect, DELBA_REASON_END_BA);
-	} else if (TxRxSelect == RX_DIR) {
+							  (pTxTs->TxAdmittedBARecord.bValid) ?
+							  (&pTxTs->TxAdmittedBARecord) :
+							  (&pTxTs->TxPendingBARecord),
+							  TxRxSelect, DELBA_REASON_END_BA);
+	}
+	else if (TxRxSelect == RX_DIR)
+	{
 		struct rx_ts_record *pRxTs =
-				 (struct rx_ts_record *)pTsCommonInfo;
+			(struct rx_ts_record *)pTsCommonInfo;
+
 		if (RxTsDeleteBA(ieee, pRxTs))
 			rtllib_send_DELBA(ieee, pTsCommonInfo->Addr,
-					  &pRxTs->RxAdmittedBARecord,
-					  TxRxSelect, DELBA_REASON_END_BA);
+							  &pRxTs->RxAdmittedBARecord,
+							  TxRxSelect, DELBA_REASON_END_BA);
 	}
 }
 
@@ -543,21 +612,21 @@ void TxBaInactTimeout(unsigned long data)
 {
 	struct tx_ts_record *pTxTs = (struct tx_ts_record *)data;
 	struct rtllib_device *ieee = container_of(pTxTs, struct rtllib_device,
-				     TxTsRecord[pTxTs->num]);
+								 TxTsRecord[pTxTs->num]);
 	TxTsDeleteBA(ieee, pTxTs);
 	rtllib_send_DELBA(ieee, pTxTs->TsCommonInfo.Addr,
-			  &pTxTs->TxAdmittedBARecord, TX_DIR,
-			  DELBA_REASON_TIMEOUT);
+					  &pTxTs->TxAdmittedBARecord, TX_DIR,
+					  DELBA_REASON_TIMEOUT);
 }
 
 void RxBaInactTimeout(unsigned long data)
 {
 	struct rx_ts_record *pRxTs = (struct rx_ts_record *)data;
 	struct rtllib_device *ieee = container_of(pRxTs, struct rtllib_device,
-				     RxTsRecord[pRxTs->num]);
+								 RxTsRecord[pRxTs->num]);
 
 	RxTsDeleteBA(ieee, pRxTs);
 	rtllib_send_DELBA(ieee, pRxTs->TsCommonInfo.Addr,
-			  &pRxTs->RxAdmittedBARecord, RX_DIR,
-			  DELBA_REASON_TIMEOUT);
+					  &pRxTs->RxAdmittedBARecord, RX_DIR,
+					  DELBA_REASON_TIMEOUT);
 }

@@ -41,7 +41,9 @@ u32 mga_get_vblank_counter(struct drm_device *dev, unsigned int pipe)
 		(drm_mga_private_t *) dev->dev_private;
 
 	if (pipe != 0)
+	{
 		return 0;
+	}
 
 	return atomic_read(&dev_priv->vbl_received);
 }
@@ -57,7 +59,8 @@ irqreturn_t mga_driver_irq_handler(int irq, void *arg)
 	status = MGA_READ(MGA_STATUS);
 
 	/* VBLANK interrupt */
-	if (status & MGA_VLINEPEN) {
+	if (status & MGA_VLINEPEN)
+	{
 		MGA_WRITE(MGA_ICLEAR, MGA_VLINEICLR);
 		atomic_inc(&dev_priv->vbl_received);
 		drm_handle_vblank(dev, 0);
@@ -65,7 +68,8 @@ irqreturn_t mga_driver_irq_handler(int irq, void *arg)
 	}
 
 	/* SOFTRAP interrupt */
-	if (status & MGA_SOFTRAPEN) {
+	if (status & MGA_SOFTRAPEN)
+	{
 		const u32 prim_start = MGA_READ(MGA_PRIMADDRESS);
 		const u32 prim_end = MGA_READ(MGA_PRIMEND);
 
@@ -76,7 +80,9 @@ irqreturn_t mga_driver_irq_handler(int irq, void *arg)
 		 * have to write to MGA_PRIMEND to re-start the DMA operation.
 		 */
 		if ((prim_start & ~0x03) != (prim_end & ~0x03))
+		{
 			MGA_WRITE(MGA_PRIMEND, prim_end);
+		}
 
 		atomic_inc(&dev_priv->last_fence_retired);
 		wake_up(&dev_priv->fence_queue);
@@ -84,7 +90,10 @@ irqreturn_t mga_driver_irq_handler(int irq, void *arg)
 	}
 
 	if (handled)
+	{
 		return IRQ_HANDLED;
+	}
+
 	return IRQ_NONE;
 }
 
@@ -92,9 +101,10 @@ int mga_enable_vblank(struct drm_device *dev, unsigned int pipe)
 {
 	drm_mga_private_t *dev_priv = (drm_mga_private_t *) dev->dev_private;
 
-	if (pipe != 0) {
+	if (pipe != 0)
+	{
 		DRM_ERROR("tried to enable vblank on non-existent crtc %u\n",
-			  pipe);
+				  pipe);
 		return 0;
 	}
 
@@ -105,9 +115,10 @@ int mga_enable_vblank(struct drm_device *dev, unsigned int pipe)
 
 void mga_disable_vblank(struct drm_device *dev, unsigned int pipe)
 {
-	if (pipe != 0) {
+	if (pipe != 0)
+	{
 		DRM_ERROR("tried to disable vblank on non-existent crtc %u\n",
-			  pipe);
+				  pipe);
 	}
 
 	/* Do *NOT* disable the vertical refresh interrupt.  MGA doesn't have
@@ -129,8 +140,8 @@ int mga_driver_fence_wait(struct drm_device *dev, unsigned int *sequence)
 	 * using fences.
 	 */
 	DRM_WAIT_ON(ret, dev_priv->fence_queue, 3 * HZ,
-		    (((cur_fence = atomic_read(&dev_priv->last_fence_retired))
-		      - *sequence) <= (1 << 23)));
+				(((cur_fence = atomic_read(&dev_priv->last_fence_retired))
+				  - *sequence) <= (1 << 23)));
 
 	*sequence = cur_fence;
 
@@ -163,8 +174,11 @@ int mga_driver_irq_postinstall(struct drm_device *dev)
 void mga_driver_irq_uninstall(struct drm_device *dev)
 {
 	drm_mga_private_t *dev_priv = (drm_mga_private_t *) dev->dev_private;
+
 	if (!dev_priv)
+	{
 		return;
+	}
 
 	/* Disable *all* interrupts */
 	MGA_WRITE(MGA_IEN, 0);

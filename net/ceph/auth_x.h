@@ -11,7 +11,8 @@
 /*
  * Handle ticket for a single service.
  */
-struct ceph_x_ticket_handler {
+struct ceph_x_ticket_handler
+{
 	struct rb_node node;
 	unsigned int service;
 
@@ -25,7 +26,8 @@ struct ceph_x_ticket_handler {
 };
 
 
-struct ceph_x_authorizer {
+struct ceph_x_authorizer
+{
 	struct ceph_authorizer base;
 	struct ceph_crypto_key session_key;
 	struct ceph_buffer *buf;
@@ -35,7 +37,8 @@ struct ceph_x_authorizer {
 	char reply_buf[128];  /* big enough for encrypted blob */
 };
 
-struct ceph_x_info {
+struct ceph_x_info
+{
 	struct ceph_crypto_key secret;
 
 	bool starting;

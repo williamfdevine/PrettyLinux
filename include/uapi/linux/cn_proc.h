@@ -24,7 +24,8 @@
  * Userspace sends this enum to register with the kernel that it is listening
  * for events on the connector.
  */
-enum proc_cn_mcast_op {
+enum proc_cn_mcast_op
+{
 	PROC_CN_MCAST_LISTEN = 1,
 	PROC_CN_MCAST_IGNORE = 2
 };
@@ -42,8 +43,10 @@ enum proc_cn_mcast_op {
  * child  thread  ID  =  child->pid
  */
 
-struct proc_event {
-	enum what {
+struct proc_event
+{
+	enum what
+	{
 		/* Use successive bits so the enums can be used to record
 		 * sets of events as well
 		 */
@@ -63,61 +66,73 @@ struct proc_event {
 	} what;
 	__u32 cpu;
 	__u64 __attribute__((aligned(8))) timestamp_ns;
-		/* Number of nano seconds since system boot */
-	union { /* must be last field of proc_event struct */
-		struct {
+	/* Number of nano seconds since system boot */
+	union   /* must be last field of proc_event struct */
+	{
+		struct
+		{
 			__u32 err;
 		} ack;
 
-		struct fork_proc_event {
+		struct fork_proc_event
+		{
 			__kernel_pid_t parent_pid;
 			__kernel_pid_t parent_tgid;
 			__kernel_pid_t child_pid;
 			__kernel_pid_t child_tgid;
 		} fork;
 
-		struct exec_proc_event {
+		struct exec_proc_event
+		{
 			__kernel_pid_t process_pid;
 			__kernel_pid_t process_tgid;
 		} exec;
 
-		struct id_proc_event {
+		struct id_proc_event
+		{
 			__kernel_pid_t process_pid;
 			__kernel_pid_t process_tgid;
-			union {
+			union
+			{
 				__u32 ruid; /* task uid */
 				__u32 rgid; /* task gid */
 			} r;
-			union {
+			union
+			{
 				__u32 euid;
 				__u32 egid;
 			} e;
 		} id;
 
-		struct sid_proc_event {
+		struct sid_proc_event
+		{
 			__kernel_pid_t process_pid;
 			__kernel_pid_t process_tgid;
 		} sid;
 
-		struct ptrace_proc_event {
+		struct ptrace_proc_event
+		{
 			__kernel_pid_t process_pid;
 			__kernel_pid_t process_tgid;
 			__kernel_pid_t tracer_pid;
 			__kernel_pid_t tracer_tgid;
 		} ptrace;
 
-		struct comm_proc_event {
+		struct comm_proc_event
+		{
 			__kernel_pid_t process_pid;
 			__kernel_pid_t process_tgid;
 			char           comm[16];
 		} comm;
 
-		struct coredump_proc_event {
+		struct coredump_proc_event
+		{
 			__kernel_pid_t process_pid;
 			__kernel_pid_t process_tgid;
 		} coredump;
 
-		struct exit_proc_event {
+		struct exit_proc_event
+		{
 			__kernel_pid_t process_pid;
 			__kernel_pid_t process_tgid;
 			__u32 exit_code, exit_signal;

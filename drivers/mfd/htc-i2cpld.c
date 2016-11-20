@@ -37,7 +37,8 @@
 #include <linux/gpio.h>
 #include <linux/slab.h>
 
-struct htcpld_chip {
+struct htcpld_chip
+{
 	spinlock_t              lock;
 
 	/* chip info */
@@ -66,7 +67,8 @@ struct htcpld_chip {
 	struct work_struct set_val_work;
 };
 
-struct htcpld_data {
+struct htcpld_data
+{
 	/* irq info */
 	u16                irqs_enabled;
 	uint               irq_start;
@@ -101,17 +103,22 @@ static int htcpld_set_type(struct irq_data *data, unsigned int flags)
 	struct htcpld_chip *chip = irq_data_get_irq_chip_data(data);
 
 	if (flags & ~IRQ_TYPE_SENSE_MASK)
+	{
 		return -EINVAL;
+	}
 
 	/* We only allow edge triggering */
-	if (flags & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH))
+	if (flags & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
+	{
 		return -EINVAL;
+	}
 
 	chip->flow_type = flags;
 	return 0;
 }
 
-static struct irq_chip htcpld_muxed_chip = {
+static struct irq_chip htcpld_muxed_chip =
+{
 	.name         = "htcpld",
 	.irq_mask     = htcpld_mask,
 	.irq_unmask   = htcpld_unmask,
@@ -130,7 +137,8 @@ static irqreturn_t htcpld_handler(int irq, void *dev)
 	unsigned long flags;
 	int irqpin;
 
-	if (!htcpld) {
+	if (!htcpld)
+	{
 		pr_debug("htcpld is null in ISR\n");
 		return IRQ_HANDLED;
 	}
@@ -142,32 +150,40 @@ static irqreturn_t htcpld_handler(int irq, void *dev)
 	 *
 	 * For chips that have no interrupt range specified, just skip 'em.
 	 */
-	for (i = 0; i < htcpld->nchips; i++) {
+	for (i = 0; i < htcpld->nchips; i++)
+	{
 		struct htcpld_chip *chip = &htcpld->chip[i];
 		struct i2c_client *client;
 		int val;
 		unsigned long uval, old_val;
 
-		if (!chip) {
+		if (!chip)
+		{
 			pr_debug("chip %d is null in ISR\n", i);
 			continue;
 		}
 
 		if (chip->nirqs == 0)
+		{
 			continue;
+		}
 
 		client = chip->client;
-		if (!client) {
+
+		if (!client)
+		{
 			pr_debug("client %d is null in ISR\n", i);
 			continue;
 		}
 
 		/* Scan the chip */
 		val = i2c_smbus_read_byte_data(client, chip->cache_out);
-		if (val < 0) {
+
+		if (val < 0)
+		{
 			/* Throw a warning and skip this chip */
 			dev_warn(chip->dev, "Unable to read from chip: %d\n",
-				 val);
+					 val);
 			continue;
 		}
 
@@ -187,7 +203,8 @@ static irqreturn_t htcpld_handler(int irq, void *dev)
 		 * For each bit in the data (starting at bit 0), trigger
 		 * associated interrupts.
 		 */
-		for (irqpin = 0; irqpin < chip->nirqs; irqpin++) {
+		for (irqpin = 0; irqpin < chip->nirqs; irqpin++)
+		{
 			unsigned oldb, newb, type = chip->flow_type;
 
 			irq = chip->irq_start + irqpin;
@@ -198,7 +215,8 @@ static irqreturn_t htcpld_handler(int irq, void *dev)
 			newb = (uval >> irqpin) & 1;
 
 			if ((!oldb && newb && (type & IRQ_TYPE_EDGE_RISING)) ||
-			    (oldb && !newb && (type & IRQ_TYPE_EDGE_FALLING))) {
+				(oldb && !newb && (type & IRQ_TYPE_EDGE_FALLING)))
+			{
 				pr_debug("fire IRQ %d\n", irqpin);
 				generic_handle_irq(irq);
 			}
@@ -210,9 +228,14 @@ static irqreturn_t htcpld_handler(int irq, void *dev)
 	 * be asserted.
 	 */
 	if (htcpld->int_reset_gpio_hi)
+	{
 		gpio_set_value(htcpld->int_reset_gpio_hi, 1);
+	}
+
 	if (htcpld->int_reset_gpio_lo)
+	{
 		gpio_set_value(htcpld->int_reset_gpio_lo, 0);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -231,14 +254,23 @@ static void htcpld_chip_set(struct gpio_chip *chip, unsigned offset, int val)
 	unsigned long flags;
 
 	client = chip_data->client;
+
 	if (!client)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&chip_data->lock, flags);
+
 	if (val)
+	{
 		chip_data->cache_out |= (1 << offset);
+	}
 	else
+	{
 		chip_data->cache_out &= ~(1 << offset);
+	}
+
 	spin_unlock_irqrestore(&chip_data->lock, flags);
 
 	schedule_work(&(chip_data->set_val_work));
@@ -259,25 +291,31 @@ static int htcpld_chip_get(struct gpio_chip *chip, unsigned offset)
 	struct htcpld_chip *chip_data = gpiochip_get_data(chip);
 	u8 cache;
 
-	if (!strncmp(chip->label, "htcpld-out", 10)) {
+	if (!strncmp(chip->label, "htcpld-out", 10))
+	{
 		cache = chip_data->cache_out;
-	} else if (!strncmp(chip->label, "htcpld-in", 9)) {
+	}
+	else if (!strncmp(chip->label, "htcpld-in", 9))
+	{
 		cache = chip_data->cache_in;
-	} else
+	}
+	else
+	{
 		return -EINVAL;
+	}
 
 	return (cache >> offset) & 1;
 }
 
 static int htcpld_direction_output(struct gpio_chip *chip,
-					unsigned offset, int value)
+								   unsigned offset, int value)
 {
 	htcpld_chip_set(chip, offset, value);
 	return 0;
 }
 
 static int htcpld_direction_input(struct gpio_chip *chip,
-					unsigned offset)
+								  unsigned offset)
 {
 	/*
 	 * No-op: this function can only be called on the input chip.
@@ -291,24 +329,31 @@ static int htcpld_chip_to_irq(struct gpio_chip *chip, unsigned offset)
 	struct htcpld_chip *chip_data = gpiochip_get_data(chip);
 
 	if (offset < chip_data->nirqs)
+	{
 		return chip_data->irq_start + offset;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 }
 
 static void htcpld_chip_reset(struct i2c_client *client)
 {
 	struct htcpld_chip *chip_data = i2c_get_clientdata(client);
+
 	if (!chip_data)
+	{
 		return;
+	}
 
 	i2c_smbus_read_byte_data(
 		client, (chip_data->cache_out = chip_data->reset));
 }
 
 static int htcpld_setup_chip_irq(
-		struct platform_device *pdev,
-		int chip_index)
+	struct platform_device *pdev,
+	int chip_index)
 {
 	struct htcpld_data *htcpld;
 	struct htcpld_chip *chip;
@@ -320,9 +365,11 @@ static int htcpld_setup_chip_irq(
 
 	/* Setup irq handlers */
 	irq_end = chip->irq_start + chip->nirqs;
-	for (irq = chip->irq_start; irq < irq_end; irq++) {
+
+	for (irq = chip->irq_start; irq < irq_end; irq++)
+	{
 		irq_set_chip_and_handler(irq, &htcpld_muxed_chip,
-					 handle_simple_irq);
+								 handle_simple_irq);
 		irq_set_chip_data(irq, chip);
 		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
 	}
@@ -331,8 +378,8 @@ static int htcpld_setup_chip_irq(
 }
 
 static int htcpld_register_chip_i2c(
-		struct platform_device *pdev,
-		int chip_index)
+	struct platform_device *pdev,
+	int chip_index)
 {
 	struct htcpld_data *htcpld;
 	struct device *dev = &pdev->dev;
@@ -350,16 +397,19 @@ static int htcpld_register_chip_i2c(
 	plat_chip_data = &pdata->chip[chip_index];
 
 	adapter = i2c_get_adapter(pdata->i2c_adapter_id);
-	if (!adapter) {
+
+	if (!adapter)
+	{
 		/* Eek, no such I2C adapter!  Bail out. */
 		dev_warn(dev, "Chip at i2c address 0x%x: Invalid i2c adapter %d\n",
-			 plat_chip_data->addr, pdata->i2c_adapter_id);
+				 plat_chip_data->addr, pdata->i2c_adapter_id);
 		return -ENODEV;
 	}
 
-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE_DATA)) {
+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE_DATA))
+	{
 		dev_warn(dev, "i2c adapter %d non-functional\n",
-			 pdata->i2c_adapter_id);
+				 pdata->i2c_adapter_id);
 		return -EINVAL;
 	}
 
@@ -370,10 +420,12 @@ static int htcpld_register_chip_i2c(
 
 	/* Add the I2C device.  This calls the probe() function. */
 	client = i2c_new_device(adapter, &info);
-	if (!client) {
+
+	if (!client)
+	{
 		/* I2C device registration failed, contineu with the next */
 		dev_warn(dev, "Unable to add I2C device for 0x%x\n",
-			 plat_chip_data->addr);
+				 plat_chip_data->addr);
 		return -ENODEV;
 	}
 
@@ -389,8 +441,8 @@ static int htcpld_register_chip_i2c(
 }
 
 static void htcpld_unregister_chip_i2c(
-		struct platform_device *pdev,
-		int chip_index)
+	struct platform_device *pdev,
+	int chip_index)
 {
 	struct htcpld_data *htcpld;
 	struct htcpld_chip *chip;
@@ -400,12 +452,14 @@ static void htcpld_unregister_chip_i2c(
 	chip = &htcpld->chip[chip_index];
 
 	if (chip->client)
+	{
 		i2c_unregister_device(chip->client);
+	}
 }
 
 static int htcpld_register_chip_gpio(
-		struct platform_device *pdev,
-		int chip_index)
+	struct platform_device *pdev,
+	int chip_index)
 {
 	struct htcpld_data *htcpld;
 	struct device *dev = &pdev->dev;
@@ -447,16 +501,20 @@ static int htcpld_register_chip_gpio(
 
 	/* Add the GPIO chips */
 	ret = gpiochip_add_data(&(chip->chip_out), chip);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(dev, "Unable to register output GPIOs for 0x%x: %d\n",
-			 plat_chip_data->addr, ret);
+				 plat_chip_data->addr, ret);
 		return ret;
 	}
 
 	ret = gpiochip_add_data(&(chip->chip_in), chip);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(dev, "Unable to register input GPIOs for 0x%x: %d\n",
-			 plat_chip_data->addr, ret);
+				 plat_chip_data->addr, ret);
 		gpiochip_remove(&(chip->chip_out));
 		return ret;
 	}
@@ -478,14 +536,17 @@ static int htcpld_setup_chips(struct platform_device *pdev)
 	/* Setup each chip's output GPIOs */
 	htcpld->nchips = pdata->num_chip;
 	htcpld->chip = devm_kzalloc(dev, sizeof(struct htcpld_chip) * htcpld->nchips,
-				    GFP_KERNEL);
-	if (!htcpld->chip) {
+								GFP_KERNEL);
+
+	if (!htcpld->chip)
+	{
 		dev_warn(dev, "Unable to allocate memory for chips\n");
 		return -ENOMEM;
 	}
 
 	/* Add the chips as best we can */
-	for (i = 0; i < htcpld->nchips; i++) {
+	for (i = 0; i < htcpld->nchips; i++)
+	{
 		int ret;
 
 		/* Setup the HTCPLD chips */
@@ -500,21 +561,30 @@ static int htcpld_setup_chips(struct platform_device *pdev)
 		spin_lock_init(&(htcpld->chip[i].lock));
 
 		/* Setup the interrupts for the chip */
-		if (htcpld->chained_irq) {
+		if (htcpld->chained_irq)
+		{
 			ret = htcpld_setup_chip_irq(pdev, i);
+
 			if (ret)
+			{
 				continue;
+			}
 		}
 
 		/* Register the chip with I2C */
 		ret = htcpld_register_chip_i2c(pdev, i);
+
 		if (ret)
+		{
 			continue;
+		}
 
 
 		/* Register the chips with the GPIO subsystem */
 		ret = htcpld_register_chip_gpio(pdev, i);
-		if (ret) {
+
+		if (ret)
+		{
 			/* Unregister the chip from i2c and continue */
 			htcpld_unregister_chip_i2c(pdev, i);
 			continue;
@@ -535,35 +605,49 @@ static int htcpld_core_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	pdata = dev_get_platdata(dev);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_warn(dev, "Platform data not found for htcpld core!\n");
 		return -ENXIO;
 	}
 
 	htcpld = devm_kzalloc(dev, sizeof(struct htcpld_data), GFP_KERNEL);
+
 	if (!htcpld)
+	{
 		return -ENOMEM;
+	}
 
 	/* Find chained irq */
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	if (res) {
+
+	if (res)
+	{
 		int flags;
 		htcpld->chained_irq = res->start;
 
 		/* Setup the chained interrupt handler */
 		flags = IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING |
-			IRQF_ONESHOT;
+				IRQF_ONESHOT;
 		ret = request_threaded_irq(htcpld->chained_irq,
-					   NULL, htcpld_handler,
-					   flags, pdev->name, htcpld);
-		if (ret) {
+								   NULL, htcpld_handler,
+								   flags, pdev->name, htcpld);
+
+		if (ret)
+		{
 			dev_warn(dev, "Unable to setup chained irq handler: %d\n", ret);
 			return ret;
-		} else
+		}
+		else
+		{
 			device_init_wakeup(dev, 0);
+		}
 	}
 
 	/* Set the driver data */
@@ -571,35 +655,48 @@ static int htcpld_core_probe(struct platform_device *pdev)
 
 	/* Setup the htcpld chips */
 	ret = htcpld_setup_chips(pdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Request the GPIO(s) for the int reset and set them up */
-	if (pdata->int_reset_gpio_hi) {
+	if (pdata->int_reset_gpio_hi)
+	{
 		ret = gpio_request(pdata->int_reset_gpio_hi, "htcpld-core");
-		if (ret) {
+
+		if (ret)
+		{
 			/*
 			 * If it failed, that sucks, but we can probably
 			 * continue on without it.
 			 */
 			dev_warn(dev, "Unable to request int_reset_gpio_hi -- interrupts may not work\n");
 			htcpld->int_reset_gpio_hi = 0;
-		} else {
+		}
+		else
+		{
 			htcpld->int_reset_gpio_hi = pdata->int_reset_gpio_hi;
 			gpio_set_value(htcpld->int_reset_gpio_hi, 1);
 		}
 	}
 
-	if (pdata->int_reset_gpio_lo) {
+	if (pdata->int_reset_gpio_lo)
+	{
 		ret = gpio_request(pdata->int_reset_gpio_lo, "htcpld-core");
-		if (ret) {
+
+		if (ret)
+		{
 			/*
 			 * If it failed, that sucks, but we can probably
 			 * continue on without it.
 			 */
 			dev_warn(dev, "Unable to request int_reset_gpio_lo -- interrupts may not work\n");
 			htcpld->int_reset_gpio_lo = 0;
-		} else {
+		}
+		else
+		{
 			htcpld->int_reset_gpio_lo = pdata->int_reset_gpio_lo;
 			gpio_set_value(htcpld->int_reset_gpio_lo, 0);
 		}
@@ -610,14 +707,16 @@ static int htcpld_core_probe(struct platform_device *pdev)
 }
 
 /* The I2C Driver -- used internally */
-static const struct i2c_device_id htcpld_chip_id[] = {
+static const struct i2c_device_id htcpld_chip_id[] =
+{
 	{ "htcpld-chip", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, htcpld_chip_id);
 
 
-static struct i2c_driver htcpld_chip_driver = {
+static struct i2c_driver htcpld_chip_driver =
+{
 	.driver = {
 		.name	= "htcpld-chip",
 	},
@@ -625,7 +724,8 @@ static struct i2c_driver htcpld_chip_driver = {
 };
 
 /* The Core Driver */
-static struct platform_driver htcpld_core_driver = {
+static struct platform_driver htcpld_core_driver =
+{
 	.driver = {
 		.name = "i2c-htcpld",
 	},
@@ -637,8 +737,11 @@ static int __init htcpld_core_init(void)
 
 	/* Register the I2C Chip driver */
 	ret = i2c_add_driver(&htcpld_chip_driver);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Probe for our chips */
 	return platform_driver_probe(&htcpld_core_driver, htcpld_core_probe);

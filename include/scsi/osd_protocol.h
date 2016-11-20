@@ -21,7 +21,8 @@
 #include <asm/unaligned.h>
 #include <scsi/scsi.h>
 
-enum {
+enum
+{
 	OSDv1_ADDITIONAL_CDB_LENGTH = 192,
 	OSDv1_TOTAL_CDB_LEN = OSDv1_ADDITIONAL_CDB_LENGTH + 8,
 	OSDv1_CAP_LEN = 80,
@@ -48,7 +49,8 @@ enum {
 /* (osd-r10 5.2.4)
  * osd2r03: 5.2.3 Caching control bits
  */
-enum osd_options_byte {
+enum osd_options_byte
+{
 	OSD_CDB_FUA = 0x08,	/* Force Unit Access */
 	OSD_CDB_DPO = 0x10,	/* Disable Page Out */
 };
@@ -58,7 +60,8 @@ enum osd_options_byte {
  * First 3 bits, V2-only.
  * Also for attr 110h "default isolation method" at Root Information page
  */
-enum osd_options_byte_isolation {
+enum osd_options_byte_isolation
+{
 	OSD_ISOLATION_DEFAULT = 0,
 	OSD_ISOLATION_NONE = 1,
 	OSD_ISOLATION_STRICT = 2,
@@ -70,7 +73,8 @@ enum osd_options_byte_isolation {
 /* (osd-r10: 6.7)
  * osd2r03: 6.8 FLUSH, FLUSH COLLECTION, FLUSH OSD, FLUSH PARTITION
  */
-enum osd_options_flush_scope_values {
+enum osd_options_flush_scope_values
+{
 	OSD_CDB_FLUSH_ALL = 0,
 	OSD_CDB_FLUSH_ATTR_ONLY = 1,
 
@@ -80,7 +84,8 @@ enum osd_options_flush_scope_values {
 };
 
 /* osd2r03: 5.2.10 Timestamps control */
-enum {
+enum
+{
 	OSD_CDB_NORMAL_TIMESTAMPS = 0,
 	OSD_CDB_BYPASS_TIMESTAMPS = 0x7f,
 };
@@ -89,7 +94,8 @@ enum {
  * osd2r03: 5.2.4.1 Get and set attributes CDB format selection
  *	2 bits at second nibble of command_specific_options byte
  */
-enum osd_attributes_mode {
+enum osd_attributes_mode
+{
 	/* V2-only */
 	OSD_CDB_SET_ONE_ATTR = 0x10,
 
@@ -109,7 +115,8 @@ enum osd_attributes_mode {
  */
 typedef __be32 osd_cdb_offset;
 
-enum {
+enum
+{
 	OSD_OFFSET_UNUSED = 0xFFFFFFFF,
 	OSD_OFFSET_MAX_BITS = 28,
 
@@ -124,7 +131,7 @@ enum {
  * (up to max_shift, non-inclusive)
  */
 osd_cdb_offset __osd_encode_offset(u64 offset, unsigned *padding,
-	int min_shift, int max_shift);
+								   int min_shift, int max_shift);
 
 /* Minimum alignment is 256 bytes
  * Note: Seems from std v1 that exponent can be from 0+8 to 0xE+8 (inclusive)
@@ -133,7 +140,7 @@ osd_cdb_offset __osd_encode_offset(u64 offset, unsigned *padding,
 static inline osd_cdb_offset osd_encode_offset_v1(u64 offset, unsigned *padding)
 {
 	return __osd_encode_offset(offset, padding,
-				OSDv1_OFFSET_MIN_SHIFT, OSD_OFFSET_MAX_SHIFT);
+							   OSDv1_OFFSET_MIN_SHIFT, OSD_OFFSET_MAX_SHIFT);
 }
 
 /* Minimum 8 bytes alignment
@@ -143,111 +150,131 @@ static inline osd_cdb_offset osd_encode_offset_v1(u64 offset, unsigned *padding)
 static inline osd_cdb_offset osd_encode_offset_v2(u64 offset, unsigned *padding)
 {
 	return __osd_encode_offset(offset, padding,
-				   OSD_OFFSET_MIN_SHIFT, OSD_OFFSET_MAX_SHIFT);
+							   OSD_OFFSET_MIN_SHIFT, OSD_OFFSET_MAX_SHIFT);
 }
 
 /* osd2r03: 5.2.1 Overview */
-struct osd_cdb_head {
+struct osd_cdb_head
+{
 	struct scsi_varlen_cdb_hdr varlen_cdb;
-/*10*/	u8		options;
+	/*10*/	u8		options;
 	u8		command_specific_options;
 	u8		timestamp_control;
-/*13*/	u8		reserved1[3];
-/*16*/	__be64		partition;
-/*24*/	__be64		object;
-/*32*/	union { /* V1 vs V2 alignment differences */
-		struct __osdv1_cdb_addr_len {
-/*32*/			__be32 		list_identifier;/* Rarely used */
-/*36*/			__be64		length;
-/*44*/			__be64		start_address;
+	/*13*/	u8		reserved1[3];
+	/*16*/	__be64		partition;
+	/*24*/	__be64		object;
+	/*32*/	union   /* V1 vs V2 alignment differences */
+	{
+		struct __osdv1_cdb_addr_len
+		{
+			/*32*/			__be32 		list_identifier;/* Rarely used */
+			/*36*/			__be64		length;
+			/*44*/			__be64		start_address;
 		} __packed v1;
 
-		struct __osdv2_cdb_addr_len {
+		struct __osdv2_cdb_addr_len
+		{
 			/* called allocation_length in some commands */
-/*32*/			__be64	length;
-/*40*/			__be64	start_address;
-			union {
-/*48*/				__be32 list_identifier;/* Rarely used */
+			/*32*/			__be64	length;
+			/*40*/			__be64	start_address;
+			union
+			{
+				/*48*/				__be32 list_identifier;/* Rarely used */
 				/* OSD2r05 5.2.5 CDB continuation length */
-/*48*/				__be32 cdb_continuation_length;
+				/*48*/				__be32 cdb_continuation_length;
 			};
 		} __packed v2;
 	};
-/*52*/	union { /* selected attributes mode Page/List/Single */
-		struct osd_attributes_page_mode {
-/*52*/			__be32		get_attr_page;
-/*56*/			__be32		get_attr_alloc_length;
-/*60*/			osd_cdb_offset	get_attr_offset;
+	/*52*/	union   /* selected attributes mode Page/List/Single */
+	{
+		struct osd_attributes_page_mode
+		{
+			/*52*/			__be32		get_attr_page;
+			/*56*/			__be32		get_attr_alloc_length;
+			/*60*/			osd_cdb_offset	get_attr_offset;
 
-/*64*/			__be32		set_attr_page;
-/*68*/			__be32		set_attr_id;
-/*72*/			__be32		set_attr_length;
-/*76*/			osd_cdb_offset	set_attr_offset;
-/*80*/		} __packed attrs_page;
+			/*64*/			__be32		set_attr_page;
+			/*68*/			__be32		set_attr_id;
+			/*72*/			__be32		set_attr_length;
+			/*76*/			osd_cdb_offset	set_attr_offset;
+			/*80*/
+		} __packed attrs_page;
 
-		struct osd_attributes_list_mode {
-/*52*/			__be32		get_attr_desc_bytes;
-/*56*/			osd_cdb_offset	get_attr_desc_offset;
+		struct osd_attributes_list_mode
+		{
+			/*52*/			__be32		get_attr_desc_bytes;
+			/*56*/			osd_cdb_offset	get_attr_desc_offset;
 
-/*60*/			__be32		get_attr_alloc_length;
-/*64*/			osd_cdb_offset	get_attr_offset;
+			/*60*/			__be32		get_attr_alloc_length;
+			/*64*/			osd_cdb_offset	get_attr_offset;
 
-/*68*/			__be32		set_attr_bytes;
-/*72*/			osd_cdb_offset	set_attr_offset;
+			/*68*/			__be32		set_attr_bytes;
+			/*72*/			osd_cdb_offset	set_attr_offset;
 			__be32 not_used;
-/*80*/		} __packed attrs_list;
+			/*80*/
+		} __packed attrs_list;
 
 		/* osd2r03:5.2.4.2 Set one attribute value using CDB fields */
-		struct osd_attributes_cdb_mode {
-/*52*/			__be32		set_attr_page;
-/*56*/			__be32		set_attr_id;
-/*60*/			__be16		set_attr_len;
-/*62*/			u8		set_attr_val[18];
-/*80*/		} __packed attrs_cdb;
-/*52*/		u8 get_set_attributes_parameters[28];
+		struct osd_attributes_cdb_mode
+		{
+			/*52*/			__be32		set_attr_page;
+			/*56*/			__be32		set_attr_id;
+			/*60*/			__be16		set_attr_len;
+			/*62*/			u8		set_attr_val[18];
+			/*80*/
+		} __packed attrs_cdb;
+		/*52*/		u8 get_set_attributes_parameters[28];
 	};
 } __packed;
 /*80*/
 
 /*160 v1*/
-struct osdv1_security_parameters {
-/*160*/u8	integrity_check_value[OSDv1_CRYPTO_KEYID_SIZE];
-/*180*/u8	request_nonce[OSD_CRYPTO_NONCE_SIZE];
-/*192*/osd_cdb_offset	data_in_integrity_check_offset;
-/*196*/osd_cdb_offset	data_out_integrity_check_offset;
+struct osdv1_security_parameters
+{
+	/*160*/u8	integrity_check_value[OSDv1_CRYPTO_KEYID_SIZE];
+	/*180*/u8	request_nonce[OSD_CRYPTO_NONCE_SIZE];
+	/*192*/osd_cdb_offset	data_in_integrity_check_offset;
+	/*196*/osd_cdb_offset	data_out_integrity_check_offset;
 } __packed;
 /*200 v1*/
 
 /*184 v2*/
-struct osdv2_security_parameters {
-/*184*/u8	integrity_check_value[OSDv2_CRYPTO_KEYID_SIZE];
-/*216*/u8	request_nonce[OSD_CRYPTO_NONCE_SIZE];
-/*228*/osd_cdb_offset	data_in_integrity_check_offset;
-/*232*/osd_cdb_offset	data_out_integrity_check_offset;
+struct osdv2_security_parameters
+{
+	/*184*/u8	integrity_check_value[OSDv2_CRYPTO_KEYID_SIZE];
+	/*216*/u8	request_nonce[OSD_CRYPTO_NONCE_SIZE];
+	/*228*/osd_cdb_offset	data_in_integrity_check_offset;
+	/*232*/osd_cdb_offset	data_out_integrity_check_offset;
 } __packed;
 /*236 v2*/
 
-struct osd_security_parameters {
-	union {
+struct osd_security_parameters
+{
+	union
+	{
 		struct osdv1_security_parameters v1;
 		struct osdv2_security_parameters v2;
 	};
 };
 
-struct osdv1_cdb {
+struct osdv1_cdb
+{
 	struct osd_cdb_head h;
 	u8 caps[OSDv1_CAP_LEN];
 	struct osdv1_security_parameters sec_params;
 } __packed;
 
-struct osdv2_cdb {
+struct osdv2_cdb
+{
 	struct osd_cdb_head h;
 	u8 caps[OSD_CAP_LEN];
 	struct osdv2_security_parameters sec_params;
 } __packed;
 
-struct osd_cdb {
-	union {
+struct osd_cdb
+{
+	union
+	{
 		struct osdv1_cdb v1;
 		struct osdv2_cdb v2;
 		u8 buff[OSD_TOTAL_CDB_LEN];
@@ -264,7 +291,7 @@ static inline struct osd_cdb_head *osd_cdb_head(struct osd_cdb *ocdb)
  */
 #define OSD_ACT___(Name, Num) \
 	OSD_ACT_##Name = cpu_to_be16(0x8880 + Num), \
-	OSDv1_ACT_##Name = cpu_to_be16(0x8800 + Num),
+					 OSDv1_ACT_##Name = cpu_to_be16(0x8800 + Num),
 
 /* V2 only actions */
 #define OSD_ACT_V2(Name, Num) \
@@ -272,9 +299,10 @@ static inline struct osd_cdb_head *osd_cdb_head(struct osd_cdb *ocdb)
 
 #define OSD_ACT_V1_V2(Name, Num1, Num2) \
 	OSD_ACT_##Name = cpu_to_be16(Num2), \
-	OSDv1_ACT_##Name = cpu_to_be16(Num1),
+					 OSDv1_ACT_##Name = cpu_to_be16(Num1),
 
-enum osd_service_actions {
+enum osd_service_actions
+{
 	OSD_ACT_V2(OBJECT_STRUCTURE_CHECK,	0x00)
 	OSD_ACT___(FORMAT_OSD,			0x01)
 	OSD_ACT___(CREATE,			0x02)
@@ -320,7 +348,8 @@ enum osd_service_actions {
 };
 
 /* osd2r03: 7.1.3.2 List entry format for retrieving attributes */
-struct osd_attributes_list_attrid {
+struct osd_attributes_list_attrid
+{
 	__be32 attr_page;
 	__be32 attr_id;
 } __packed;
@@ -328,7 +357,8 @@ struct osd_attributes_list_attrid {
 /*
  * NOTE: v1: is not aligned.
  */
-struct osdv1_attributes_list_element {
+struct osdv1_attributes_list_element
+{
 	__be32 attr_page;
 	__be32 attr_id;
 	__be16 attr_bytes; /* valid bytes at attr_val without padding */
@@ -340,7 +370,8 @@ struct osdv1_attributes_list_element {
  *                  for setting attributes
  * NOTE: v2 is 8-bytes aligned
  */
-struct osdv2_attributes_list_element {
+struct osdv2_attributes_list_element
+{
 	__be32 attr_page;
 	__be32 attr_id;
 	u8 reserved[6];
@@ -348,12 +379,14 @@ struct osdv2_attributes_list_element {
 	u8 attr_val[0];
 } __packed;
 
-enum {
+enum
+{
 	OSDv1_ATTRIBUTES_ELEM_ALIGN = 1,
 	OSD_ATTRIBUTES_ELEM_ALIGN = 8,
 };
 
-enum {
+enum
+{
 	OSD_ATTR_LIST_ALL_PAGES = 0xFFFFFFFF,
 	OSD_ATTR_LIST_ALL_IN_PAGE = 0xFFFFFFFF,
 };
@@ -361,19 +394,20 @@ enum {
 static inline unsigned osdv1_attr_list_elem_size(unsigned len)
 {
 	return ALIGN(len + sizeof(struct osdv1_attributes_list_element),
-		     OSDv1_ATTRIBUTES_ELEM_ALIGN);
+				 OSDv1_ATTRIBUTES_ELEM_ALIGN);
 }
 
 static inline unsigned osdv2_attr_list_elem_size(unsigned len)
 {
 	return ALIGN(len + sizeof(struct osdv2_attributes_list_element),
-		     OSD_ATTRIBUTES_ELEM_ALIGN);
+				 OSD_ATTRIBUTES_ELEM_ALIGN);
 }
 
 /*
  * osd2r03: 7.1.3 OSD attributes lists (Table 184) — List type values
  */
-enum osd_attr_list_types {
+enum osd_attr_list_types
+{
 	OSD_ATTR_LIST_GET = 0x1, 	/* descriptors only */
 	OSD_ATTR_LIST_SET_RETRIEVE = 0x9, /*descriptors/values variable-length*/
 	OSD_V2_ATTR_LIST_MULTIPLE = 0xE,  /* ver2, Multiple Objects lists*/
@@ -381,7 +415,8 @@ enum osd_attr_list_types {
 };
 
 /* osd2r03: 7.1.3.4 Multi-object retrieved attributes format */
-struct osd_attributes_list_multi_header {
+struct osd_attributes_list_multi_header
+{
 	__be64 object_id;
 	u8 object_type; /* object_type enum below */
 	u8 reserved[5];
@@ -389,7 +424,8 @@ struct osd_attributes_list_multi_header {
 	/* followed by struct osd_attributes_list_element's */
 };
 
-struct osdv1_attributes_list_header {
+struct osdv1_attributes_list_header
+{
 	u8 type;	/* low 4-bit only */
 	u8 pad;
 	__be16 list_bytes; /* Initiator shall set to Zero. Only set by target */
@@ -404,10 +440,11 @@ static inline unsigned osdv1_list_size(struct osdv1_attributes_list_header *h)
 	return be16_to_cpu(h->list_bytes);
 }
 
-struct osdv2_attributes_list_header {
+struct osdv2_attributes_list_header
+{
 	u8 type;	/* lower 4-bits only */
 	u8 pad[3];
-/*4*/	__be32 list_bytes; /* Initiator shall set to zero. Only set by target */
+	/*4*/	__be32 list_bytes; /* Initiator shall set to zero. Only set by target */
 	/*
 	 * type=9 followed by struct osd_attributes_list_element's
 	 * type=E followed by struct osd_attributes_list_multi_header's
@@ -423,7 +460,8 @@ static inline unsigned osdv2_list_size(struct osdv2_attributes_list_header *h)
  * osd2r03: 6.15 LIST (Table 79) LIST command parameter data.
  *	for root_lstchg below
  */
-enum {
+enum
+{
 	OSD_OBJ_ID_LIST_PAR = 0x1, /* V1-only. Not used in V2 */
 	OSD_OBJ_ID_LIST_LSTCHG = 0x2,
 };
@@ -432,7 +470,8 @@ enum {
  * osd2r03: 6.15.2 LIST command parameter data
  * (Also for LIST COLLECTION)
  */
-struct osd_obj_id_list {
+struct osd_obj_id_list
+{
 	__be64 list_bytes; /* bytes in list excluding list_bytes (-8) */
 	__be64 continuation_id;
 	__be32 list_identifier;
@@ -442,7 +481,7 @@ struct osd_obj_id_list {
 } __packed;
 
 static inline bool osd_is_obj_list_done(struct osd_obj_id_list *list,
-	bool *is_changed)
+										bool *is_changed)
 {
 	*is_changed = (0 != (list->root_lstchg & OSD_OBJ_ID_LIST_LSTCHG));
 	return 0 != list->continuation_id;
@@ -451,7 +490,8 @@ static inline bool osd_is_obj_list_done(struct osd_obj_id_list *list,
 /*
  * osd2r03: 4.12.4.5 The ALLDATA security method
  */
-struct osd_data_out_integrity_info {
+struct osd_data_out_integrity_info
+{
 	__be64 data_bytes;
 	__be64 set_attributes_bytes;
 	__be64 get_attributes_bytes;
@@ -465,10 +505,11 @@ struct osd_data_out_integrity_info {
 static inline int osd_data_out_integrity_info_sizeof(bool is_ver1)
 {
 	return sizeof(struct osd_data_out_integrity_info) -
-		(is_ver1 * (OSDv2_CRYPTO_KEYID_SIZE - OSDv1_CRYPTO_KEYID_SIZE));
+		   (is_ver1 * (OSDv2_CRYPTO_KEYID_SIZE - OSDv1_CRYPTO_KEYID_SIZE));
 }
 
-struct osd_data_in_integrity_info {
+struct osd_data_in_integrity_info
+{
 	__be64 data_bytes;
 	__be64 retrieved_attributes_bytes;
 	__u8 integrity_check_value[OSD_CRYPTO_KEYID_SIZE];
@@ -481,10 +522,11 @@ struct osd_data_in_integrity_info {
 static inline int osd_data_in_integrity_info_sizeof(bool is_ver1)
 {
 	return sizeof(struct osd_data_in_integrity_info) -
-		(is_ver1 * (OSDv2_CRYPTO_KEYID_SIZE - OSDv1_CRYPTO_KEYID_SIZE));
+		   (is_ver1 * (OSDv2_CRYPTO_KEYID_SIZE - OSDv1_CRYPTO_KEYID_SIZE));
 }
 
-struct osd_timestamp {
+struct osd_timestamp
+{
 	u8 time[6]; /* number of milliseconds since 1/1/1970 UT (big endian) */
 } __packed;
 /* FIXME: define helper functions to convert to/from osd time format */
@@ -495,33 +537,38 @@ struct osd_timestamp {
  * osd2r03: 5.2.8 Security parameters
  */
 
-struct osd_key_identifier {
+struct osd_key_identifier
+{
 	u8 id[7]; /* if you know why 7 please email ooo@electrozaur.com */
 } __packed;
 
 /* for osd_capability.format */
-enum {
+enum
+{
 	OSD_SEC_CAP_FORMAT_NO_CAPS = 0,
 	OSD_SEC_CAP_FORMAT_VER1 = 1,
 	OSD_SEC_CAP_FORMAT_VER2 = 2,
 };
 
 /* security_method */
-enum {
+enum
+{
 	OSD_SEC_NOSEC = 0,
 	OSD_SEC_CAPKEY = 1,
 	OSD_SEC_CMDRSP = 2,
 	OSD_SEC_ALLDATA = 3,
 };
 
-enum object_type {
+enum object_type
+{
 	OSD_SEC_OBJ_ROOT = 0x1,
 	OSD_SEC_OBJ_PARTITION = 0x2,
 	OSD_SEC_OBJ_COLLECTION = 0x40,
 	OSD_SEC_OBJ_USER = 0x80,
 };
 
-enum osd_capability_bit_masks {
+enum osd_capability_bit_masks
+{
 	OSD_SEC_CAP_APPEND	= BIT(0),
 	OSD_SEC_CAP_OBJ_MGMT	= BIT(1),
 	OSD_SEC_CAP_REMOVE	= BIT(2),
@@ -542,7 +589,8 @@ enum osd_capability_bit_masks {
 };
 
 /* for object_descriptor_type (hi nibble used) */
-enum {
+enum
+{
 	OSD_SEC_OBJ_DESC_NONE = 0,     /* Not allowed */
 	OSD_SEC_OBJ_DESC_OBJ = 1 << 4, /* v1: also collection */
 	OSD_SEC_OBJ_DESC_PAR = 2 << 4, /* also root */
@@ -552,61 +600,70 @@ enum {
 /* (osd-r10:4.9.2.2)
  * osd2r03:4.11.2.2 Capability format
  */
-struct osd_capability_head {
+struct osd_capability_head
+{
 	u8 format; /* low nibble */
 	u8 integrity_algorithm__key_version; /* MAKE_BYTE(integ_alg, key_ver) */
 	u8 security_method;
 	u8 reserved1;
-/*04*/	struct osd_timestamp expiration_time;
-/*10*/	u8 audit[20];
-/*30*/	u8 discriminator[12];
-/*42*/	struct osd_timestamp object_created_time;
-/*48*/	u8 object_type;
-/*49*/	u8 permissions_bit_mask[5];
-/*54*/	u8 reserved2;
-/*55*/	u8 object_descriptor_type; /* high nibble */
+	/*04*/	struct osd_timestamp expiration_time;
+	/*10*/	u8 audit[20];
+	/*30*/	u8 discriminator[12];
+	/*42*/	struct osd_timestamp object_created_time;
+	/*48*/	u8 object_type;
+	/*49*/	u8 permissions_bit_mask[5];
+	/*54*/	u8 reserved2;
+	/*55*/	u8 object_descriptor_type; /* high nibble */
 } __packed;
 
 /*56 v1*/
-struct osdv1_cap_object_descriptor {
-	union {
-		struct {
-/*56*/			__be32 policy_access_tag;
-/*60*/			__be64 allowed_partition_id;
-/*68*/			__be64 allowed_object_id;
-/*76*/			__be32 reserved;
+struct osdv1_cap_object_descriptor
+{
+	union
+	{
+		struct
+		{
+			/*56*/			__be32 policy_access_tag;
+			/*60*/			__be64 allowed_partition_id;
+			/*68*/			__be64 allowed_object_id;
+			/*76*/			__be32 reserved;
 		} __packed obj_desc;
 
-/*56*/		u8 object_descriptor[24];
+		/*56*/		u8 object_descriptor[24];
 	};
 } __packed;
 /*80 v1*/
 
 /*56 v2*/
-struct osd_cap_object_descriptor {
-	union {
-		struct {
-/*56*/			__be32 allowed_attributes_access;
-/*60*/			__be32 policy_access_tag;
-/*64*/			__be16 boot_epoch;
-/*66*/			u8 reserved[6];
-/*72*/			__be64 allowed_partition_id;
-/*80*/			__be64 allowed_object_id;
-/*88*/			__be64 allowed_range_length;
-/*96*/			__be64 allowed_range_start;
+struct osd_cap_object_descriptor
+{
+	union
+	{
+		struct
+		{
+			/*56*/			__be32 allowed_attributes_access;
+			/*60*/			__be32 policy_access_tag;
+			/*64*/			__be16 boot_epoch;
+			/*66*/			u8 reserved[6];
+			/*72*/			__be64 allowed_partition_id;
+			/*80*/			__be64 allowed_object_id;
+			/*88*/			__be64 allowed_range_length;
+			/*96*/			__be64 allowed_range_start;
 		} __packed obj_desc;
 
-/*56*/		u8 object_descriptor[48];
+		/*56*/		u8 object_descriptor[48];
 	};
 } __packed;
 /*104 v2*/
 
-struct osdv1_capability {
+struct osdv1_capability
+{
 	struct osd_capability_head h;
 	struct osdv1_cap_object_descriptor od;
 } __packed;
 
-struct osd_capability {
+struct osd_capability
+{
 	struct osd_capability_head h;
 	struct osd_cap_object_descriptor od;
 } __packed;
@@ -621,7 +678,7 @@ struct osd_capability {
  * in a version independent way
  */
 static inline void osd_sec_set_caps(struct osd_capability_head *cap,
-	u16 bit_mask)
+									u16 bit_mask)
 {
 	/*
 	 *Note: The bits above are defined LE order this is because this way
@@ -632,11 +689,13 @@ static inline void osd_sec_set_caps(struct osd_capability_head *cap,
 }
 
 /* osd2r05a sec 5.3: CDB continuation segment formats */
-enum osd_continuation_segment_format {
+enum osd_continuation_segment_format
+{
 	CDB_CONTINUATION_FORMAT_V2 = 0x01,
 };
 
-struct osd_continuation_segment_header {
+struct osd_continuation_segment_header
+{
 	u8	format;
 	u8	reserved1;
 	__be16	service_action;
@@ -645,7 +704,8 @@ struct osd_continuation_segment_header {
 } __packed;
 
 /* osd2r05a sec 5.4.1: CDB continuation descriptors */
-enum osd_continuation_descriptor_type {
+enum osd_continuation_descriptor_type
+{
 	NO_MORE_DESCRIPTORS = 0x0000,
 	SCATTER_GATHER_LIST = 0x0001,
 	QUERY_LIST = 0x0002,
@@ -654,7 +714,8 @@ enum osd_continuation_descriptor_type {
 	EXTENSION_CAPABILITIES = 0xFFEE
 };
 
-struct osd_continuation_descriptor_header {
+struct osd_continuation_descriptor_header
+{
 	__be16	type;
 	u8	reserved;
 	u8	pad_length;
@@ -663,12 +724,14 @@ struct osd_continuation_descriptor_header {
 
 
 /* osd2r05a sec 5.4.2: Scatter/gather list */
-struct osd_sg_list_entry {
+struct osd_sg_list_entry
+{
 	__be64 offset;
 	__be64 len;
 };
 
-struct osd_sg_continuation_descriptor {
+struct osd_sg_continuation_descriptor
+{
 	struct osd_continuation_descriptor_header hdr;
 	struct osd_sg_list_entry entries[];
 };

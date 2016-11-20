@@ -29,7 +29,8 @@
  * @hflip:      horizontal flip
  * @vflip:      vertical flip
  */
-struct bdisp_ctrls {
+struct bdisp_ctrls
+{
 	struct v4l2_ctrl        *hflip;
 	struct v4l2_ctrl        *vflip;
 };
@@ -43,7 +44,8 @@ struct bdisp_ctrls {
  * @w_align:    width alignment in pixel (multiple of)
  * @h_align:    height alignment in pixel (multiple of)
  */
-struct bdisp_fmt {
+struct bdisp_fmt
+{
 	u32                     pixelformat;
 	u8                      nb_planes;
 	u8                      bpp;
@@ -65,7 +67,8 @@ struct bdisp_fmt {
  * @crop:       crop area
  * @paddr:      image physical addresses per plane ([0]=RGB/Y - [1]=Cb/Cr, ...)
  */
-struct bdisp_frame {
+struct bdisp_frame
+{
 	u32                     width;
 	u32                     height;
 	const struct bdisp_fmt  *fmt;
@@ -86,11 +89,12 @@ struct bdisp_frame {
  * @vflip:      vertical flip
  * @nb_req:     number of run request
  */
-struct bdisp_request {
+struct bdisp_request
+{
 	struct bdisp_frame      src;
 	struct bdisp_frame      dst;
-	unsigned int            hflip:1;
-	unsigned int            vflip:1;
+	unsigned int            hflip: 1;
+	unsigned int            vflip: 1;
 	int                     nb_req;
 };
 
@@ -110,12 +114,13 @@ struct bdisp_request {
  * @bdisp_ctrls: bdisp control set
  * @ctrls_rdy:  true if the control handler is initialized
  */
-struct bdisp_ctx {
+struct bdisp_ctx
+{
 	struct bdisp_frame      src;
 	struct bdisp_frame      dst;
 	u32                     state;
-	unsigned int            hflip:1;
-	unsigned int            vflip:1;
+	unsigned int            hflip: 1;
+	unsigned int            vflip: 1;
 	struct bdisp_dev        *bdisp_dev;
 	struct bdisp_node       *node[MAX_NB_NODE];
 	dma_addr_t              node_paddr[MAX_NB_NODE];
@@ -133,7 +138,8 @@ struct bdisp_ctx {
  * @ctx:        hardware context data
  * @refcnt:     reference counter
  */
-struct bdisp_m2m_device {
+struct bdisp_m2m_device
+{
 	struct video_device     *vdev;
 	struct v4l2_m2m_dev     *m2m_dev;
 	struct bdisp_ctx        *ctx;
@@ -152,7 +158,8 @@ struct bdisp_m2m_device {
  * @max_duration:  max HW processing duration in microsecs
  * @tot_duration:  total HW processing duration in microsecs
  */
-struct bdisp_dbg {
+struct bdisp_dbg
+{
 	struct dentry           *debugfs_entry;
 	struct bdisp_node       *copy_node[MAX_NB_NODE];
 	struct bdisp_request    copy_request;
@@ -182,7 +189,8 @@ struct bdisp_dbg {
  * @timeout_work: IRQ timeout structure
  * @dbg:        debug info
  */
-struct bdisp_dev {
+struct bdisp_dev
+{
 	struct v4l2_device      v4l2_dev;
 	struct video_device     vdev;
 	struct platform_device  *pdev;

@@ -60,9 +60,9 @@ static inline struct vvp_req *cl2vvp_req(const struct cl_req_slice *slice)
  *
  */
 static void vvp_req_attr_set(const struct lu_env *env,
-			     const struct cl_req_slice *slice,
-			     const struct cl_object *obj,
-			     struct cl_req_attr *attr, u64 flags)
+							 const struct cl_req_slice *slice,
+							 const struct cl_object *obj,
+							 struct cl_req_attr *attr, u64 flags)
 {
 	struct inode *inode;
 	struct obdo  *oa;
@@ -72,51 +72,66 @@ static void vvp_req_attr_set(const struct lu_env *env,
 	inode = vvp_object_inode(obj);
 	valid_flags = OBD_MD_FLTYPE;
 
-	if (slice->crs_req->crq_type == CRT_WRITE) {
-		if (flags & OBD_MD_FLEPOCH) {
+	if (slice->crs_req->crq_type == CRT_WRITE)
+	{
+		if (flags & OBD_MD_FLEPOCH)
+		{
 			oa->o_valid |= OBD_MD_FLEPOCH;
 			oa->o_ioepoch = ll_i2info(inode)->lli_ioepoch;
 			valid_flags |= OBD_MD_FLMTIME | OBD_MD_FLCTIME |
-				       OBD_MD_FLUID | OBD_MD_FLGID;
+						   OBD_MD_FLUID | OBD_MD_FLGID;
 		}
 	}
+
 	obdo_from_inode(oa, inode, valid_flags & flags);
 	obdo_set_parent_fid(oa, &ll_i2info(inode)->lli_fid);
+
 	if (OBD_FAIL_CHECK(OBD_FAIL_LFSCK_INVALID_PFID))
+	{
 		oa->o_parent_oid++;
+	}
+
 	memcpy(attr->cra_jobid, ll_i2info(inode)->lli_jobid,
-	       LUSTRE_JOBID_SIZE);
+		   LUSTRE_JOBID_SIZE);
 }
 
 static void vvp_req_completion(const struct lu_env *env,
-			       const struct cl_req_slice *slice, int ioret)
+							   const struct cl_req_slice *slice, int ioret)
 {
 	struct vvp_req *vrq;
 
 	if (ioret > 0)
+	{
 		cl_stats_tally(slice->crs_dev, slice->crs_req->crq_type, ioret);
+	}
 
 	vrq = cl2vvp_req(slice);
 	kmem_cache_free(vvp_req_kmem, vrq);
 }
 
-static const struct cl_req_operations vvp_req_ops = {
+static const struct cl_req_operations vvp_req_ops =
+{
 	.cro_attr_set   = vvp_req_attr_set,
 	.cro_completion = vvp_req_completion
 };
 
 int vvp_req_init(const struct lu_env *env, struct cl_device *dev,
-		 struct cl_req *req)
+				 struct cl_req *req)
 {
 	struct vvp_req *vrq;
 	int result;
 
 	vrq = kmem_cache_zalloc(vvp_req_kmem, GFP_NOFS);
-	if (vrq) {
+
+	if (vrq)
+	{
 		cl_req_slice_add(req, &vrq->vrq_cl, dev, &vvp_req_ops);
 		result = 0;
-	} else {
+	}
+	else
+	{
 		result = -ENOMEM;
 	}
+
 	return result;
 }

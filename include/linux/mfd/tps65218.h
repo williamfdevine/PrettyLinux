@@ -197,7 +197,8 @@
 #define TPS65218_PROTECT_NONE		0
 #define TPS65218_PROTECT_L1		1
 
-enum tps65218_regulator_id {
+enum tps65218_regulator_id
+{
 	/* DCDC's */
 	TPS65218_DCDC_1,
 	TPS65218_DCDC_2,
@@ -221,10 +222,11 @@ enum tps65218_regulator_id {
 #define TPS65218_NUM_LS			1
 /* Number of total regulators available */
 #define TPS65218_NUM_REGULATOR		(TPS65218_NUM_DCDC + TPS65218_NUM_LDO \
-					 + TPS65218_NUM_LS)
+									 + TPS65218_NUM_LS)
 
 /* Define the TPS65218 IRQ numbers */
-enum tps65218_irqs {
+enum tps65218_irqs
+{
 	/* INT1 registers */
 	TPS65218_PRGC_IRQ,
 	TPS65218_CC_AQC_IRQ,
@@ -255,7 +257,8 @@ enum tps65218_irqs {
  *
  * This data is used to check the regualtor voltage limits while setting.
  */
-struct tps_info {
+struct tps_info
+{
 	int id;
 	const char *name;
 	int min_uV;
@@ -269,7 +272,8 @@ struct tps_info {
  * Device data may be used to access the TPS65218 chip
  */
 
-struct tps65218 {
+struct tps65218
+{
 	struct device *dev;
 	unsigned int id;
 	u8 rev;
@@ -285,12 +289,12 @@ struct tps65218 {
 };
 
 int tps65218_reg_read(struct tps65218 *tps, unsigned int reg,
-					unsigned int *val);
+					  unsigned int *val);
 int tps65218_reg_write(struct tps65218 *tps, unsigned int reg,
-			unsigned int val, unsigned int level);
+					   unsigned int val, unsigned int level);
 int tps65218_set_bits(struct tps65218 *tps, unsigned int reg,
-		unsigned int mask, unsigned int val, unsigned int level);
+					  unsigned int mask, unsigned int val, unsigned int level);
 int tps65218_clear_bits(struct tps65218 *tps, unsigned int reg,
-		unsigned int mask, unsigned int level);
+						unsigned int mask, unsigned int level);
 
 #endif /*  __LINUX_MFD_TPS65218_H */

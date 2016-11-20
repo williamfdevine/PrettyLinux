@@ -33,7 +33,8 @@
 
 /* There is only one interface. */
 
-struct usb_interface_descriptor fsg_intf_desc = {
+struct usb_interface_descriptor fsg_intf_desc =
+{
 	.bLength =		sizeof fsg_intf_desc,
 	.bDescriptorType =	USB_DT_INTERFACE,
 
@@ -50,7 +51,8 @@ EXPORT_SYMBOL_GPL(fsg_intf_desc);
  * interrupt-in.
  */
 
-struct usb_endpoint_descriptor fsg_fs_bulk_in_desc = {
+struct usb_endpoint_descriptor fsg_fs_bulk_in_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -60,7 +62,8 @@ struct usb_endpoint_descriptor fsg_fs_bulk_in_desc = {
 };
 EXPORT_SYMBOL_GPL(fsg_fs_bulk_in_desc);
 
-struct usb_endpoint_descriptor fsg_fs_bulk_out_desc = {
+struct usb_endpoint_descriptor fsg_fs_bulk_out_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -70,7 +73,8 @@ struct usb_endpoint_descriptor fsg_fs_bulk_out_desc = {
 };
 EXPORT_SYMBOL_GPL(fsg_fs_bulk_out_desc);
 
-struct usb_descriptor_header *fsg_fs_function[] = {
+struct usb_descriptor_header *fsg_fs_function[] =
+{
 	(struct usb_descriptor_header *) &fsg_intf_desc,
 	(struct usb_descriptor_header *) &fsg_fs_bulk_in_desc,
 	(struct usb_descriptor_header *) &fsg_fs_bulk_out_desc,
@@ -85,7 +89,8 @@ EXPORT_SYMBOL_GPL(fsg_fs_function);
  *
  * That means alternate endpoint descriptors (bigger packets).
  */
-struct usb_endpoint_descriptor fsg_hs_bulk_in_desc = {
+struct usb_endpoint_descriptor fsg_hs_bulk_in_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -95,7 +100,8 @@ struct usb_endpoint_descriptor fsg_hs_bulk_in_desc = {
 };
 EXPORT_SYMBOL_GPL(fsg_hs_bulk_in_desc);
 
-struct usb_endpoint_descriptor fsg_hs_bulk_out_desc = {
+struct usb_endpoint_descriptor fsg_hs_bulk_out_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -107,7 +113,8 @@ struct usb_endpoint_descriptor fsg_hs_bulk_out_desc = {
 EXPORT_SYMBOL_GPL(fsg_hs_bulk_out_desc);
 
 
-struct usb_descriptor_header *fsg_hs_function[] = {
+struct usb_descriptor_header *fsg_hs_function[] =
+{
 	(struct usb_descriptor_header *) &fsg_intf_desc,
 	(struct usb_descriptor_header *) &fsg_hs_bulk_in_desc,
 	(struct usb_descriptor_header *) &fsg_hs_bulk_out_desc,
@@ -115,7 +122,8 @@ struct usb_descriptor_header *fsg_hs_function[] = {
 };
 EXPORT_SYMBOL_GPL(fsg_hs_function);
 
-struct usb_endpoint_descriptor fsg_ss_bulk_in_desc = {
+struct usb_endpoint_descriptor fsg_ss_bulk_in_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -125,7 +133,8 @@ struct usb_endpoint_descriptor fsg_ss_bulk_in_desc = {
 };
 EXPORT_SYMBOL_GPL(fsg_ss_bulk_in_desc);
 
-struct usb_ss_ep_comp_descriptor fsg_ss_bulk_in_comp_desc = {
+struct usb_ss_ep_comp_descriptor fsg_ss_bulk_in_comp_desc =
+{
 	.bLength =		sizeof(fsg_ss_bulk_in_comp_desc),
 	.bDescriptorType =	USB_DT_SS_ENDPOINT_COMP,
 
@@ -133,7 +142,8 @@ struct usb_ss_ep_comp_descriptor fsg_ss_bulk_in_comp_desc = {
 };
 EXPORT_SYMBOL_GPL(fsg_ss_bulk_in_comp_desc);
 
-struct usb_endpoint_descriptor fsg_ss_bulk_out_desc = {
+struct usb_endpoint_descriptor fsg_ss_bulk_out_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -143,7 +153,8 @@ struct usb_endpoint_descriptor fsg_ss_bulk_out_desc = {
 };
 EXPORT_SYMBOL_GPL(fsg_ss_bulk_out_desc);
 
-struct usb_ss_ep_comp_descriptor fsg_ss_bulk_out_comp_desc = {
+struct usb_ss_ep_comp_descriptor fsg_ss_bulk_out_comp_desc =
+{
 	.bLength =		sizeof(fsg_ss_bulk_in_comp_desc),
 	.bDescriptorType =	USB_DT_SS_ENDPOINT_COMP,
 
@@ -151,7 +162,8 @@ struct usb_ss_ep_comp_descriptor fsg_ss_bulk_out_comp_desc = {
 };
 EXPORT_SYMBOL_GPL(fsg_ss_bulk_out_comp_desc);
 
-struct usb_descriptor_header *fsg_ss_function[] = {
+struct usb_descriptor_header *fsg_ss_function[] =
+{
 	(struct usb_descriptor_header *) &fsg_intf_desc,
 	(struct usb_descriptor_header *) &fsg_ss_bulk_in_desc,
 	(struct usb_descriptor_header *) &fsg_ss_bulk_in_comp_desc,
@@ -162,7 +174,7 @@ struct usb_descriptor_header *fsg_ss_function[] = {
 EXPORT_SYMBOL_GPL(fsg_ss_function);
 
 
- /*-------------------------------------------------------------------------*/
+/*-------------------------------------------------------------------------*/
 
 /*
  * If the next two routines are called while the gadget is registered,
@@ -171,7 +183,8 @@ EXPORT_SYMBOL_GPL(fsg_ss_function);
 
 void fsg_lun_close(struct fsg_lun *curlun)
 {
-	if (curlun->filp) {
+	if (curlun->filp)
+	{
 		LDBG(curlun, "close backing file\n");
 		fput(curlun->filp);
 		curlun->filp = NULL;
@@ -193,23 +206,37 @@ int fsg_lun_open(struct fsg_lun *curlun, const char *filename)
 
 	/* R/W if we can, R/O if we must */
 	ro = curlun->initially_ro;
-	if (!ro) {
+
+	if (!ro)
+	{
 		filp = filp_open(filename, O_RDWR | O_LARGEFILE, 0);
+
 		if (PTR_ERR(filp) == -EROFS || PTR_ERR(filp) == -EACCES)
+		{
 			ro = 1;
+		}
 	}
+
 	if (ro)
+	{
 		filp = filp_open(filename, O_RDONLY | O_LARGEFILE, 0);
-	if (IS_ERR(filp)) {
+	}
+
+	if (IS_ERR(filp))
+	{
 		LINFO(curlun, "unable to open backing file: %s\n", filename);
 		return PTR_ERR(filp);
 	}
 
 	if (!(filp->f_mode & FMODE_WRITE))
+	{
 		ro = 1;
+	}
 
 	inode = file_inode(filp);
-	if ((!S_ISREG(inode->i_mode) && !S_ISBLK(inode->i_mode))) {
+
+	if ((!S_ISREG(inode->i_mode) && !S_ISBLK(inode->i_mode)))
+	{
 		LINFO(curlun, "invalid file type: %s\n", filename);
 		goto out;
 	}
@@ -218,50 +245,69 @@ int fsg_lun_open(struct fsg_lun *curlun, const char *filename)
 	 * If we can't read the file, it's no good.
 	 * If we can't write the file, use it read-only.
 	 */
-	if (!(filp->f_mode & FMODE_CAN_READ)) {
+	if (!(filp->f_mode & FMODE_CAN_READ))
+	{
 		LINFO(curlun, "file not readable: %s\n", filename);
 		goto out;
 	}
+
 	if (!(filp->f_mode & FMODE_CAN_WRITE))
+	{
 		ro = 1;
+	}
 
 	size = i_size_read(inode->i_mapping->host);
-	if (size < 0) {
+
+	if (size < 0)
+	{
 		LINFO(curlun, "unable to find file size: %s\n", filename);
 		rc = (int) size;
 		goto out;
 	}
 
-	if (curlun->cdrom) {
+	if (curlun->cdrom)
+	{
 		blksize = 2048;
 		blkbits = 11;
-	} else if (inode->i_bdev) {
+	}
+	else if (inode->i_bdev)
+	{
 		blksize = bdev_logical_block_size(inode->i_bdev);
 		blkbits = blksize_bits(blksize);
-	} else {
+	}
+	else
+	{
 		blksize = 512;
 		blkbits = 9;
 	}
 
 	num_sectors = size >> blkbits; /* File size in logic-block-size blocks */
 	min_sectors = 1;
-	if (curlun->cdrom) {
+
+	if (curlun->cdrom)
+	{
 		min_sectors = 300;	/* Smallest track is 300 frames */
-		if (num_sectors >= 256*60*75) {
-			num_sectors = 256*60*75 - 1;
+
+		if (num_sectors >= 256 * 60 * 75)
+		{
+			num_sectors = 256 * 60 * 75 - 1;
 			LINFO(curlun, "file too big: %s\n", filename);
 			LINFO(curlun, "using only first %d blocks\n",
-					(int) num_sectors);
+				  (int) num_sectors);
 		}
 	}
-	if (num_sectors < min_sectors) {
+
+	if (num_sectors < min_sectors)
+	{
 		LINFO(curlun, "file too small: %s\n", filename);
 		rc = -ETOOSMALL;
 		goto out;
 	}
 
 	if (fsg_lun_is_open(curlun))
+	{
 		fsg_lun_close(curlun);
+	}
 
 	curlun->blksize = blksize;
 	curlun->blkbits = blkbits;
@@ -290,24 +336,30 @@ int fsg_lun_fsync_sub(struct fsg_lun *curlun)
 	struct file	*filp = curlun->filp;
 
 	if (curlun->ro || !filp)
+	{
 		return 0;
+	}
+
 	return vfs_fsync(filp, 1);
 }
 EXPORT_SYMBOL_GPL(fsg_lun_fsync_sub);
 
 void store_cdrom_address(u8 *dest, int msf, u32 addr)
 {
-	if (msf) {
+	if (msf)
+	{
 		/* Convert to Minutes-Seconds-Frames */
 		addr >>= 2;		/* Convert to 2048-byte frames */
-		addr += 2*75;		/* Lead-in occupies 2 seconds */
+		addr += 2 * 75;		/* Lead-in occupies 2 seconds */
 		dest[3] = addr % 75;	/* Frames */
 		addr /= 75;
 		dest[2] = addr % 60;	/* Seconds */
 		addr /= 60;
 		dest[1] = addr;		/* Minutes */
 		dest[0] = 0;		/* Reserved */
-	} else {
+	}
+	else
+	{
 		/* Absolute sector */
 		put_unaligned_be32(addr, dest);
 	}
@@ -320,8 +372,8 @@ EXPORT_SYMBOL_GPL(store_cdrom_address);
 ssize_t fsg_show_ro(struct fsg_lun *curlun, char *buf)
 {
 	return sprintf(buf, "%d\n", fsg_lun_is_open(curlun)
-				  ? curlun->ro
-				  : curlun->initially_ro);
+				   ? curlun->ro
+				   : curlun->initially_ro);
 }
 EXPORT_SYMBOL_GPL(fsg_show_ro);
 
@@ -332,26 +384,35 @@ ssize_t fsg_show_nofua(struct fsg_lun *curlun, char *buf)
 EXPORT_SYMBOL_GPL(fsg_show_nofua);
 
 ssize_t fsg_show_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
-		      char *buf)
+					  char *buf)
 {
 	char		*p;
 	ssize_t		rc;
 
 	down_read(filesem);
-	if (fsg_lun_is_open(curlun)) {	/* Get the complete pathname */
+
+	if (fsg_lun_is_open(curlun))  	/* Get the complete pathname */
+	{
 		p = file_path(curlun->filp, buf, PAGE_SIZE - 1);
+
 		if (IS_ERR(p))
+		{
 			rc = PTR_ERR(p);
-		else {
+		}
+		else
+		{
 			rc = strlen(p);
 			memmove(buf, p, rc);
 			buf[rc] = '\n';		/* Add a newline */
 			buf[++rc] = 0;
 		}
-	} else {				/* No file, return 0 bytes */
+	}
+	else  				/* No file, return 0 bytes */
+	{
 		*buf = 0;
 		rc = 0;
 	}
+
 	up_read(filesem);
 	return rc;
 }
@@ -380,7 +441,8 @@ EXPORT_SYMBOL_GPL(fsg_show_inquiry_string);
  */
 static ssize_t _fsg_store_ro(struct fsg_lun *curlun, bool ro)
 {
-	if (fsg_lun_is_open(curlun)) {
+	if (fsg_lun_is_open(curlun))
+	{
 		LDBG(curlun, "read-only status change prevented\n");
 		return -EBUSY;
 	}
@@ -393,14 +455,17 @@ static ssize_t _fsg_store_ro(struct fsg_lun *curlun, bool ro)
 }
 
 ssize_t fsg_store_ro(struct fsg_lun *curlun, struct rw_semaphore *filesem,
-		     const char *buf, size_t count)
+					 const char *buf, size_t count)
 {
 	ssize_t		rc;
 	bool		ro;
 
 	rc = strtobool(buf, &ro);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/*
 	 * Allow the write-enable status to change only while the
@@ -408,8 +473,12 @@ ssize_t fsg_store_ro(struct fsg_lun *curlun, struct rw_semaphore *filesem,
 	 */
 	down_read(filesem);
 	rc = _fsg_store_ro(curlun, ro);
+
 	if (!rc)
+	{
 		rc = count;
+	}
+
 	up_read(filesem);
 
 	return rc;
@@ -422,12 +491,17 @@ ssize_t fsg_store_nofua(struct fsg_lun *curlun, const char *buf, size_t count)
 	int		ret;
 
 	ret = strtobool(buf, &nofua);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Sync data when switching from async mode to sync */
 	if (!nofua && curlun->nofua)
+	{
 		fsg_lun_fsync_sub(curlun);
+	}
 
 	curlun->nofua = nofua;
 
@@ -436,53 +510,67 @@ ssize_t fsg_store_nofua(struct fsg_lun *curlun, const char *buf, size_t count)
 EXPORT_SYMBOL_GPL(fsg_store_nofua);
 
 ssize_t fsg_store_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
-		       const char *buf, size_t count)
+					   const char *buf, size_t count)
 {
 	int		rc = 0;
 
-	if (curlun->prevent_medium_removal && fsg_lun_is_open(curlun)) {
+	if (curlun->prevent_medium_removal && fsg_lun_is_open(curlun))
+	{
 		LDBG(curlun, "eject attempt prevented\n");
 		return -EBUSY;				/* "Door is locked" */
 	}
 
 	/* Remove a trailing newline */
-	if (count > 0 && buf[count-1] == '\n')
-		((char *) buf)[count-1] = 0;		/* Ugh! */
+	if (count > 0 && buf[count - 1] == '\n')
+	{
+		((char *) buf)[count - 1] = 0;    /* Ugh! */
+	}
 
 	/* Load new medium */
 	down_write(filesem);
-	if (count > 0 && buf[0]) {
+
+	if (count > 0 && buf[0])
+	{
 		/* fsg_lun_open() will close existing file if any. */
 		rc = fsg_lun_open(curlun, buf);
+
 		if (rc == 0)
 			curlun->unit_attention_data =
-					SS_NOT_READY_TO_READY_TRANSITION;
-	} else if (fsg_lun_is_open(curlun)) {
+				SS_NOT_READY_TO_READY_TRANSITION;
+	}
+	else if (fsg_lun_is_open(curlun))
+	{
 		fsg_lun_close(curlun);
 		curlun->unit_attention_data = SS_MEDIUM_NOT_PRESENT;
 	}
+
 	up_write(filesem);
 	return (rc < 0 ? rc : count);
 }
 EXPORT_SYMBOL_GPL(fsg_store_file);
 
 ssize_t fsg_store_cdrom(struct fsg_lun *curlun, struct rw_semaphore *filesem,
-			const char *buf, size_t count)
+						const char *buf, size_t count)
 {
 	bool		cdrom;
 	int		ret;
 
 	ret = strtobool(buf, &cdrom);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	down_read(filesem);
 	ret = cdrom ? _fsg_store_ro(curlun, true) : 0;
 
-	if (!ret) {
+	if (!ret)
+	{
 		curlun->cdrom = cdrom;
 		ret = count;
 	}
+
 	up_read(filesem);
 
 	return ret;
@@ -490,14 +578,17 @@ ssize_t fsg_store_cdrom(struct fsg_lun *curlun, struct rw_semaphore *filesem,
 EXPORT_SYMBOL_GPL(fsg_store_cdrom);
 
 ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
-			    size_t count)
+							size_t count)
 {
 	bool		removable;
 	int		ret;
 
 	ret = strtobool(buf, &removable);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	curlun->removable = removable;
 
@@ -506,17 +597,23 @@ ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
 EXPORT_SYMBOL_GPL(fsg_store_removable);
 
 ssize_t fsg_store_inquiry_string(struct fsg_lun *curlun, const char *buf,
-				 size_t count)
+								 size_t count)
 {
 	const size_t len = min(count, sizeof(curlun->inquiry_string));
 
-	if (len == 0 || buf[0] == '\n') {
+	if (len == 0 || buf[0] == '\n')
+	{
 		curlun->inquiry_string[0] = 0;
-	} else {
+	}
+	else
+	{
 		snprintf(curlun->inquiry_string,
-			 sizeof(curlun->inquiry_string), "%-28s", buf);
-		if (curlun->inquiry_string[len-1] == '\n')
-			curlun->inquiry_string[len-1] = ' ';
+				 sizeof(curlun->inquiry_string), "%-28s", buf);
+
+		if (curlun->inquiry_string[len - 1] == '\n')
+		{
+			curlun->inquiry_string[len - 1] = ' ';
+		}
 	}
 
 	return count;

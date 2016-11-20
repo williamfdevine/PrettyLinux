@@ -12,7 +12,8 @@
  * used by existing userspace programs, so I kepth the awkward "bIFSD" naming
  * not to break compilation of userspace apps. -HW */
 
-typedef struct atreq {
+typedef struct atreq
+{
 	__s32 atr_len;
 	unsigned char atr[64];
 	__s32 power_act;
@@ -30,11 +31,12 @@ typedef struct atreq {
  * 32bit apps work, too.
  */
 
-typedef struct ptsreq {
+typedef struct ptsreq
+{
 	__u32 protocol; /*T=0: 2^0, T=1:  2^1*/
- 	unsigned char flags;
- 	unsigned char pts1;
- 	unsigned char pts2;
+	unsigned char flags;
+	unsigned char pts1;
+	unsigned char pts2;
 	unsigned char pts3;
 } ptsreq_t;
 

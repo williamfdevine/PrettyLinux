@@ -54,7 +54,8 @@ static ntfschar *default_upcase;
 static unsigned long ntfs_nr_upcase_users;
 
 /* Error constants/strings used in inode.c::ntfs_show_options(). */
-typedef enum {
+typedef enum
+{
 	/* One of these must be present, default is ON_ERRORS_CONTINUE. */
 	ON_ERRORS_PANIC			= 0x01,
 	ON_ERRORS_REMOUNT_RO		= 0x02,
@@ -63,7 +64,8 @@ typedef enum {
 	ON_ERRORS_RECOVER		= 0x10,
 } ON_ERRORS_ACTIONS;
 
-const option_t on_errors_arr[] = {
+const option_t on_errors_arr[] =
+{
 	{ ON_ERRORS_PANIC,	"panic" },
 	{ ON_ERRORS_REMOUNT_RO,	"remount-ro", },
 	{ ON_ERRORS_CONTINUE,	"continue", },
@@ -78,16 +80,27 @@ const option_t on_errors_arr[] = {
  */
 static int simple_getbool(char *s, bool *setval)
 {
-	if (s) {
+	if (s)
+	{
 		if (!strcmp(s, "1") || !strcmp(s, "yes") || !strcmp(s, "true"))
+		{
 			*setval = true;
+		}
 		else if (!strcmp(s, "0") || !strcmp(s, "no") ||
-							!strcmp(s, "false"))
+				 !strcmp(s, "false"))
+		{
 			*setval = false;
+		}
 		else
+		{
 			return 0;
-	} else
+		}
+	}
+	else
+	{
 		*setval = true;
+	}
+
 	return 1;
 }
 
@@ -105,7 +118,7 @@ static bool parse_options(ntfs_volume *vol, char *opt)
 	int errors = 0, sloppy = 0;
 	kuid_t uid = INVALID_UID;
 	kgid_t gid = INVALID_GID;
-	umode_t fmask = (umode_t)-1, dmask = (umode_t)-1;
+	umode_t fmask = (umode_t) - 1, dmask = (umode_t) - 1;
 	int mft_zone_multiplier = -1, on_errors = -1;
 	int show_sys_files = -1, case_sensitive = -1, disable_sparse = -1;
 	struct nls_table *nls_map = NULL, *old_nls;
@@ -184,165 +197,265 @@ static bool parse_options(ntfs_volume *vol, char *opt)
 		if (!opt_array[_i].str || !*opt_array[_i].str)		\
 			goto needs_val;					\
 	}
+
 	if (!opt || !*opt)
+	{
 		goto no_mount_options;
+	}
+
 	ntfs_debug("Entering with mount options string: %s", opt);
-	while ((p = strsep(&opt, ","))) {
+
+	while ((p = strsep(&opt, ",")))
+	{
 		if ((v = strchr(p, '=')))
+		{
 			*v++ = 0;
+		}
+
 		NTFS_GETOPT_UID("uid", uid)
 		else NTFS_GETOPT_GID("gid", gid)
-		else NTFS_GETOPT_OCTAL("umask", fmask = dmask)
-		else NTFS_GETOPT_OCTAL("fmask", fmask)
-		else NTFS_GETOPT_OCTAL("dmask", dmask)
-		else NTFS_GETOPT("mft_zone_multiplier", mft_zone_multiplier)
-		else NTFS_GETOPT_WITH_DEFAULT("sloppy", sloppy, true)
-		else NTFS_GETOPT_BOOL("show_sys_files", show_sys_files)
-		else NTFS_GETOPT_BOOL("case_sensitive", case_sensitive)
-		else NTFS_GETOPT_BOOL("disable_sparse", disable_sparse)
-		else NTFS_GETOPT_OPTIONS_ARRAY("errors", on_errors,
-				on_errors_arr)
-		else if (!strcmp(p, "posix") || !strcmp(p, "show_inodes"))
-			ntfs_warning(vol->sb, "Ignoring obsolete option %s.",
-					p);
-		else if (!strcmp(p, "nls") || !strcmp(p, "iocharset")) {
-			if (!strcmp(p, "iocharset"))
-				ntfs_warning(vol->sb, "Option iocharset is "
-						"deprecated. Please use "
-						"option nls=<charsetname> in "
-						"the future.");
-			if (!v || !*v)
-				goto needs_arg;
+			else NTFS_GETOPT_OCTAL("umask", fmask = dmask)
+				else NTFS_GETOPT_OCTAL("fmask", fmask)
+					else NTFS_GETOPT_OCTAL("dmask", dmask)
+						else NTFS_GETOPT("mft_zone_multiplier", mft_zone_multiplier)
+							else NTFS_GETOPT_WITH_DEFAULT("sloppy", sloppy, true)
+								else NTFS_GETOPT_BOOL("show_sys_files", show_sys_files)
+									else NTFS_GETOPT_BOOL("case_sensitive", case_sensitive)
+										else NTFS_GETOPT_BOOL("disable_sparse", disable_sparse)
+											else NTFS_GETOPT_OPTIONS_ARRAY("errors", on_errors,
+																			   on_errors_arr)
+												else if (!strcmp(p, "posix") || !strcmp(p, "show_inodes"))
+													ntfs_warning(vol->sb, "Ignoring obsolete option %s.",
+																 p);
+												else if (!strcmp(p, "nls") || !strcmp(p, "iocharset"))
+												{
+													if (!strcmp(p, "iocharset"))
+														ntfs_warning(vol->sb, "Option iocharset is "
+																	 "deprecated. Please use "
+																	 "option nls=<charsetname> in "
+																	 "the future.");
+
+													if (!v || !*v)
+													{
+														goto needs_arg;
+													}
+
 use_utf8:
-			old_nls = nls_map;
-			nls_map = load_nls(v);
-			if (!nls_map) {
-				if (!old_nls) {
-					ntfs_error(vol->sb, "NLS character set "
-							"%s not found.", v);
-					return false;
-				}
-				ntfs_error(vol->sb, "NLS character set %s not "
-						"found. Using previous one %s.",
-						v, old_nls->charset);
-				nls_map = old_nls;
-			} else /* nls_map */ {
-				unload_nls(old_nls);
-			}
-		} else if (!strcmp(p, "utf8")) {
-			bool val = false;
-			ntfs_warning(vol->sb, "Option utf8 is no longer "
-				   "supported, using option nls=utf8. Please "
-				   "use option nls=utf8 in the future and "
-				   "make sure utf8 is compiled either as a "
-				   "module or into the kernel.");
-			if (!v || !*v)
-				val = true;
-			else if (!simple_getbool(v, &val))
-				goto needs_bool;
-			if (val) {
-				v = utf8;
-				goto use_utf8;
-			}
-		} else {
-			ntfs_error(vol->sb, "Unrecognized mount option %s.", p);
-			if (errors < INT_MAX)
-				errors++;
-		}
+													old_nls = nls_map;
+													nls_map = load_nls(v);
+
+													if (!nls_map)
+													{
+														if (!old_nls)
+														{
+															ntfs_error(vol->sb, "NLS character set "
+																	   "%s not found.", v);
+															return false;
+														}
+
+														ntfs_error(vol->sb, "NLS character set %s not "
+																   "found. Using previous one %s.",
+																   v, old_nls->charset);
+														nls_map = old_nls;
+													}
+													else /* nls_map */
+													{
+														unload_nls(old_nls);
+													}
+												}
+												else if (!strcmp(p, "utf8"))
+												{
+													bool val = false;
+													ntfs_warning(vol->sb, "Option utf8 is no longer "
+																 "supported, using option nls=utf8. Please "
+																 "use option nls=utf8 in the future and "
+																 "make sure utf8 is compiled either as a "
+																 "module or into the kernel.");
+
+													if (!v || !*v)
+													{
+														val = true;
+													}
+													else if (!simple_getbool(v, &val))
+													{
+														goto needs_bool;
+													}
+
+													if (val)
+													{
+														v = utf8;
+														goto use_utf8;
+													}
+												}
+												else
+												{
+													ntfs_error(vol->sb, "Unrecognized mount option %s.", p);
+
+													if (errors < INT_MAX)
+													{
+														errors++;
+													}
+												}
+
 #undef NTFS_GETOPT_OPTIONS_ARRAY
 #undef NTFS_GETOPT_BOOL
 #undef NTFS_GETOPT
 #undef NTFS_GETOPT_WITH_DEFAULT
 	}
+
 no_mount_options:
+
 	if (errors && !sloppy)
+	{
 		return false;
+	}
+
 	if (sloppy)
 		ntfs_warning(vol->sb, "Sloppy option given. Ignoring "
-				"unrecognized mount option(s) and continuing.");
+					 "unrecognized mount option(s) and continuing.");
+
 	/* Keep this first! */
-	if (on_errors != -1) {
-		if (!on_errors) {
+	if (on_errors != -1)
+	{
+		if (!on_errors)
+		{
 			ntfs_error(vol->sb, "Invalid errors option argument "
-					"or bug in options parser.");
+					   "or bug in options parser.");
 			return false;
 		}
 	}
-	if (nls_map) {
-		if (vol->nls_map && vol->nls_map != nls_map) {
+
+	if (nls_map)
+	{
+		if (vol->nls_map && vol->nls_map != nls_map)
+		{
 			ntfs_error(vol->sb, "Cannot change NLS character set "
-					"on remount.");
+					   "on remount.");
 			return false;
 		} /* else (!vol->nls_map) */
+
 		ntfs_debug("Using NLS character set %s.", nls_map->charset);
 		vol->nls_map = nls_map;
-	} else /* (!nls_map) */ {
-		if (!vol->nls_map) {
+	}
+	else /* (!nls_map) */
+	{
+		if (!vol->nls_map)
+		{
 			vol->nls_map = load_nls_default();
-			if (!vol->nls_map) {
+
+			if (!vol->nls_map)
+			{
 				ntfs_error(vol->sb, "Failed to load default "
-						"NLS character set.");
+						   "NLS character set.");
 				return false;
 			}
+
 			ntfs_debug("Using default NLS character set (%s).",
-					vol->nls_map->charset);
+					   vol->nls_map->charset);
 		}
 	}
-	if (mft_zone_multiplier != -1) {
+
+	if (mft_zone_multiplier != -1)
+	{
 		if (vol->mft_zone_multiplier && vol->mft_zone_multiplier !=
-				mft_zone_multiplier) {
+			mft_zone_multiplier)
+		{
 			ntfs_error(vol->sb, "Cannot change mft_zone_multiplier "
-					"on remount.");
+					   "on remount.");
 			return false;
 		}
-		if (mft_zone_multiplier < 1 || mft_zone_multiplier > 4) {
+
+		if (mft_zone_multiplier < 1 || mft_zone_multiplier > 4)
+		{
 			ntfs_error(vol->sb, "Invalid mft_zone_multiplier. "
-					"Using default value, i.e. 1.");
+					   "Using default value, i.e. 1.");
 			mft_zone_multiplier = 1;
 		}
+
 		vol->mft_zone_multiplier = mft_zone_multiplier;
 	}
+
 	if (!vol->mft_zone_multiplier)
+	{
 		vol->mft_zone_multiplier = 1;
+	}
+
 	if (on_errors != -1)
+	{
 		vol->on_errors = on_errors;
+	}
+
 	if (!vol->on_errors || vol->on_errors == ON_ERRORS_RECOVER)
+	{
 		vol->on_errors |= ON_ERRORS_CONTINUE;
+	}
+
 	if (uid_valid(uid))
+	{
 		vol->uid = uid;
+	}
+
 	if (gid_valid(gid))
+	{
 		vol->gid = gid;
-	if (fmask != (umode_t)-1)
+	}
+
+	if (fmask != (umode_t) - 1)
+	{
 		vol->fmask = fmask;
-	if (dmask != (umode_t)-1)
+	}
+
+	if (dmask != (umode_t) - 1)
+	{
 		vol->dmask = dmask;
-	if (show_sys_files != -1) {
+	}
+
+	if (show_sys_files != -1)
+	{
 		if (show_sys_files)
+		{
 			NVolSetShowSystemFiles(vol);
+		}
 		else
+		{
 			NVolClearShowSystemFiles(vol);
-	}
-	if (case_sensitive != -1) {
-		if (case_sensitive)
-			NVolSetCaseSensitive(vol);
-		else
-			NVolClearCaseSensitive(vol);
-	}
-	if (disable_sparse != -1) {
-		if (disable_sparse)
-			NVolClearSparseEnabled(vol);
-		else {
-			if (!NVolSparseEnabled(vol) &&
-					vol->major_ver && vol->major_ver < 3)
-				ntfs_warning(vol->sb, "Not enabling sparse "
-						"support due to NTFS volume "
-						"version %i.%i (need at least "
-						"version 3.0).", vol->major_ver,
-						vol->minor_ver);
-			else
-				NVolSetSparseEnabled(vol);
 		}
 	}
+
+	if (case_sensitive != -1)
+	{
+		if (case_sensitive)
+		{
+			NVolSetCaseSensitive(vol);
+		}
+		else
+		{
+			NVolClearCaseSensitive(vol);
+		}
+	}
+
+	if (disable_sparse != -1)
+	{
+		if (disable_sparse)
+		{
+			NVolClearSparseEnabled(vol);
+		}
+		else
+		{
+			if (!NVolSparseEnabled(vol) &&
+				vol->major_ver && vol->major_ver < 3)
+				ntfs_warning(vol->sb, "Not enabling sparse "
+							 "support due to NTFS volume "
+							 "version %i.%i (need at least "
+							 "version 3.0).", vol->major_ver,
+							 vol->minor_ver);
+			else
+			{
+				NVolSetSparseEnabled(vol);
+			}
+		}
+	}
+
 	return true;
 needs_arg:
 	ntfs_error(vol->sb, "The %s option requires an argument.", p);
@@ -381,26 +494,40 @@ static int ntfs_write_volume_flags(ntfs_volume *vol, const VOLUME_FLAGS flags)
 	int err;
 
 	ntfs_debug("Entering, old flags = 0x%x, new flags = 0x%x.",
-			le16_to_cpu(vol->vol_flags), le16_to_cpu(flags));
+			   le16_to_cpu(vol->vol_flags), le16_to_cpu(flags));
+
 	if (vol->vol_flags == flags)
+	{
 		goto done;
+	}
+
 	BUG_ON(!ni);
 	m = map_mft_record(ni);
-	if (IS_ERR(m)) {
+
+	if (IS_ERR(m))
+	{
 		err = PTR_ERR(m);
 		goto err_out;
 	}
+
 	ctx = ntfs_attr_get_search_ctx(ni, m);
-	if (!ctx) {
+
+	if (!ctx)
+	{
 		err = -ENOMEM;
 		goto put_unm_err_out;
 	}
+
 	err = ntfs_attr_lookup(AT_VOLUME_INFORMATION, NULL, 0, 0, 0, NULL, 0,
-			ctx);
+						   ctx);
+
 	if (err)
+	{
 		goto put_unm_err_out;
-	vi = (VOLUME_INFORMATION*)((u8*)ctx->attr +
-			le16_to_cpu(ctx->attr->data.resident.value_offset));
+	}
+
+	vi = (VOLUME_INFORMATION *)((u8 *)ctx->attr +
+								le16_to_cpu(ctx->attr->data.resident.value_offset));
 	vol->vol_flags = vi->flags = flags;
 	flush_dcache_mft_record_page(ctx->ntfs_ino);
 	mark_mft_record_dirty(ctx->ntfs_ino);
@@ -410,8 +537,12 @@ done:
 	ntfs_debug("Done.");
 	return 0;
 put_unm_err_out:
+
 	if (ctx)
+	{
 		ntfs_attr_put_search_ctx(ctx);
+	}
+
 	unmap_mft_record(ni);
 err_out:
 	ntfs_error(vol->sb, "Failed with error code %i.", -err);
@@ -475,6 +606,7 @@ static int ntfs_remount(struct super_block *sb, int *flags, char *opt)
 	/* For read-only compiled driver, enforce read-only flag. */
 	*flags |= MS_RDONLY;
 #else /* NTFS_RW */
+
 	/*
 	 * For the read-write compiled driver, if we are remounting read-write,
 	 * make sure there are no volume errors and that no unsupported volume
@@ -487,82 +619,109 @@ static int ntfs_remount(struct super_block *sb, int *flags, char *opt)
 	 * When remounting read-only, mark the volume clean if no volume errors
 	 * have occurred.
 	 */
-	if ((sb->s_flags & MS_RDONLY) && !(*flags & MS_RDONLY)) {
+	if ((sb->s_flags & MS_RDONLY) && !(*flags & MS_RDONLY))
+	{
 		static const char *es = ".  Cannot remount read-write.";
 
 		/* Remounting read-write. */
-		if (NVolErrors(vol)) {
+		if (NVolErrors(vol))
+		{
 			ntfs_error(sb, "Volume has errors and is read-only%s",
-					es);
+					   es);
 			return -EROFS;
 		}
-		if (vol->vol_flags & VOLUME_IS_DIRTY) {
+
+		if (vol->vol_flags & VOLUME_IS_DIRTY)
+		{
 			ntfs_error(sb, "Volume is dirty and read-only%s", es);
 			return -EROFS;
 		}
-		if (vol->vol_flags & VOLUME_MODIFIED_BY_CHKDSK) {
+
+		if (vol->vol_flags & VOLUME_MODIFIED_BY_CHKDSK)
+		{
 			ntfs_error(sb, "Volume has been modified by chkdsk "
-					"and is read-only%s", es);
+					   "and is read-only%s", es);
 			return -EROFS;
 		}
-		if (vol->vol_flags & VOLUME_MUST_MOUNT_RO_MASK) {
+
+		if (vol->vol_flags & VOLUME_MUST_MOUNT_RO_MASK)
+		{
 			ntfs_error(sb, "Volume has unsupported flags set "
-					"(0x%x) and is read-only%s",
-					(unsigned)le16_to_cpu(vol->vol_flags),
-					es);
+					   "(0x%x) and is read-only%s",
+					   (unsigned)le16_to_cpu(vol->vol_flags),
+					   es);
 			return -EROFS;
 		}
-		if (ntfs_set_volume_flags(vol, VOLUME_IS_DIRTY)) {
+
+		if (ntfs_set_volume_flags(vol, VOLUME_IS_DIRTY))
+		{
 			ntfs_error(sb, "Failed to set dirty bit in volume "
-					"information flags%s", es);
+					   "information flags%s", es);
 			return -EROFS;
 		}
+
 #if 0
+
 		// TODO: Enable this code once we start modifying anything that
 		//	 is different between NTFS 1.2 and 3.x...
 		/* Set NT4 compatibility flag on newer NTFS version volumes. */
-		if ((vol->major_ver > 1)) {
-			if (ntfs_set_volume_flags(vol, VOLUME_MOUNTED_ON_NT4)) {
+		if ((vol->major_ver > 1))
+		{
+			if (ntfs_set_volume_flags(vol, VOLUME_MOUNTED_ON_NT4))
+			{
 				ntfs_error(sb, "Failed to set NT4 "
-						"compatibility flag%s", es);
+						   "compatibility flag%s", es);
 				NVolSetErrors(vol);
 				return -EROFS;
 			}
 		}
+
 #endif
-		if (!ntfs_empty_logfile(vol->logfile_ino)) {
+
+		if (!ntfs_empty_logfile(vol->logfile_ino))
+		{
 			ntfs_error(sb, "Failed to empty journal $LogFile%s",
-					es);
+					   es);
 			NVolSetErrors(vol);
 			return -EROFS;
 		}
-		if (!ntfs_mark_quotas_out_of_date(vol)) {
+
+		if (!ntfs_mark_quotas_out_of_date(vol))
+		{
 			ntfs_error(sb, "Failed to mark quotas out of date%s",
-					es);
+					   es);
 			NVolSetErrors(vol);
 			return -EROFS;
 		}
-		if (!ntfs_stamp_usnjrnl(vol)) {
+
+		if (!ntfs_stamp_usnjrnl(vol))
+		{
 			ntfs_error(sb, "Failed to stamp transaction log "
-					"($UsnJrnl)%s", es);
+					   "($UsnJrnl)%s", es);
 			NVolSetErrors(vol);
 			return -EROFS;
-		}
-	} else if (!(sb->s_flags & MS_RDONLY) && (*flags & MS_RDONLY)) {
-		/* Remounting read-only. */
-		if (!NVolErrors(vol)) {
-			if (ntfs_clear_volume_flags(vol, VOLUME_IS_DIRTY))
-				ntfs_warning(sb, "Failed to clear dirty bit "
-						"in volume information "
-						"flags.  Run chkdsk.");
 		}
 	}
+	else if (!(sb->s_flags & MS_RDONLY) && (*flags & MS_RDONLY))
+	{
+		/* Remounting read-only. */
+		if (!NVolErrors(vol))
+		{
+			if (ntfs_clear_volume_flags(vol, VOLUME_IS_DIRTY))
+				ntfs_warning(sb, "Failed to clear dirty bit "
+							 "in volume information "
+							 "flags.  Run chkdsk.");
+		}
+	}
+
 #endif /* NTFS_RW */
 
 	// TODO: Deal with *flags.
 
 	if (!parse_options(vol, opt))
+	{
 		return -EINVAL;
+	}
 
 	ntfs_debug("Done.");
 	return 0;
@@ -581,7 +740,7 @@ static int ntfs_remount(struct super_block *sb, int *flags, char *opt)
  * is 'true'.
  */
 static bool is_boot_sector_ntfs(const struct super_block *sb,
-		const NTFS_BOOT_SECTOR *b, const bool silent)
+								const NTFS_BOOT_SECTOR *b, const bool silent)
 {
 	/*
 	 * Check that checksum == sum of u32 values from b to the checksum
@@ -590,65 +749,96 @@ static bool is_boot_sector_ntfs(const struct super_block *sb,
 	 * ignoring the checksum which leaves the checksum out-of-date.  We
 	 * report a warning if this is the case.
 	 */
-	if ((void*)b < (void*)&b->checksum && b->checksum && !silent) {
+	if ((void *)b < (void *)&b->checksum && b->checksum && !silent)
+	{
 		le32 *u;
 		u32 i;
 
-		for (i = 0, u = (le32*)b; u < (le32*)(&b->checksum); ++u)
+		for (i = 0, u = (le32 *)b; u < (le32 *)(&b->checksum); ++u)
+		{
 			i += le32_to_cpup(u);
+		}
+
 		if (le32_to_cpu(b->checksum) != i)
+		{
 			ntfs_warning(sb, "Invalid boot sector checksum.");
+		}
 	}
+
 	/* Check OEMidentifier is "NTFS    " */
 	if (b->oem_id != magicNTFS)
-		goto not_ntfs;
-	/* Check bytes per sector value is between 256 and 4096. */
-	if (le16_to_cpu(b->bpb.bytes_per_sector) < 0x100 ||
-			le16_to_cpu(b->bpb.bytes_per_sector) > 0x1000)
-		goto not_ntfs;
-	/* Check sectors per cluster value is valid. */
-	switch (b->bpb.sectors_per_cluster) {
-	case 1: case 2: case 4: case 8: case 16: case 32: case 64: case 128:
-		break;
-	default:
+	{
 		goto not_ntfs;
 	}
+
+	/* Check bytes per sector value is between 256 and 4096. */
+	if (le16_to_cpu(b->bpb.bytes_per_sector) < 0x100 ||
+		le16_to_cpu(b->bpb.bytes_per_sector) > 0x1000)
+	{
+		goto not_ntfs;
+	}
+
+	/* Check sectors per cluster value is valid. */
+	switch (b->bpb.sectors_per_cluster)
+	{
+		case 1: case 2: case 4: case 8: case 16: case 32: case 64: case 128:
+			break;
+
+		default:
+			goto not_ntfs;
+	}
+
 	/* Check the cluster size is not above the maximum (64kiB). */
 	if ((u32)le16_to_cpu(b->bpb.bytes_per_sector) *
-			b->bpb.sectors_per_cluster > NTFS_MAX_CLUSTER_SIZE)
+		b->bpb.sectors_per_cluster > NTFS_MAX_CLUSTER_SIZE)
+	{
 		goto not_ntfs;
+	}
+
 	/* Check reserved/unused fields are really zero. */
 	if (le16_to_cpu(b->bpb.reserved_sectors) ||
-			le16_to_cpu(b->bpb.root_entries) ||
-			le16_to_cpu(b->bpb.sectors) ||
-			le16_to_cpu(b->bpb.sectors_per_fat) ||
-			le32_to_cpu(b->bpb.large_sectors) || b->bpb.fats)
+		le16_to_cpu(b->bpb.root_entries) ||
+		le16_to_cpu(b->bpb.sectors) ||
+		le16_to_cpu(b->bpb.sectors_per_fat) ||
+		le32_to_cpu(b->bpb.large_sectors) || b->bpb.fats)
+	{
 		goto not_ntfs;
+	}
+
 	/* Check clusters per file mft record value is valid. */
 	if ((u8)b->clusters_per_mft_record < 0xe1 ||
-			(u8)b->clusters_per_mft_record > 0xf7)
-		switch (b->clusters_per_mft_record) {
-		case 1: case 2: case 4: case 8: case 16: case 32: case 64:
-			break;
-		default:
-			goto not_ntfs;
+		(u8)b->clusters_per_mft_record > 0xf7)
+		switch (b->clusters_per_mft_record)
+		{
+			case 1: case 2: case 4: case 8: case 16: case 32: case 64:
+				break;
+
+			default:
+				goto not_ntfs;
 		}
+
 	/* Check clusters per index block value is valid. */
 	if ((u8)b->clusters_per_index_record < 0xe1 ||
-			(u8)b->clusters_per_index_record > 0xf7)
-		switch (b->clusters_per_index_record) {
-		case 1: case 2: case 4: case 8: case 16: case 32: case 64:
-			break;
-		default:
-			goto not_ntfs;
+		(u8)b->clusters_per_index_record > 0xf7)
+		switch (b->clusters_per_index_record)
+		{
+			case 1: case 2: case 4: case 8: case 16: case 32: case 64:
+				break;
+
+			default:
+				goto not_ntfs;
 		}
+
 	/*
 	 * Check for valid end of sector marker. We will work without it, but
 	 * many BIOSes will refuse to boot from a bootsector if the magic is
 	 * incorrect, so we emit a warning.
 	 */
 	if (!silent && b->end_of_sector_marker != cpu_to_le16(0xaa55))
+	{
 		ntfs_warning(sb, "Invalid end of sector marker.");
+	}
+
 	return true;
 not_ntfs:
 	return false;
@@ -681,47 +871,85 @@ static struct buffer_head *read_ntfs_boot_sector(struct super_block *sb,
 	sector_t nr_blocks = NTFS_SB(sb)->nr_blocks;
 
 	/* Try to read primary boot sector. */
-	if ((bh_primary = sb_bread(sb, 0))) {
-		if (is_boot_sector_ntfs(sb, (NTFS_BOOT_SECTOR*)
-				bh_primary->b_data, silent))
+	if ((bh_primary = sb_bread(sb, 0)))
+	{
+		if (is_boot_sector_ntfs(sb, (NTFS_BOOT_SECTOR *)
+								bh_primary->b_data, silent))
+		{
 			return bh_primary;
+		}
+
 		if (!silent)
+		{
 			ntfs_error(sb, "Primary boot sector is invalid.");
-	} else if (!silent)
+		}
+	}
+	else if (!silent)
+	{
 		ntfs_error(sb, read_err_str, "primary");
-	if (!(NTFS_SB(sb)->on_errors & ON_ERRORS_RECOVER)) {
+	}
+
+	if (!(NTFS_SB(sb)->on_errors & ON_ERRORS_RECOVER))
+	{
 		if (bh_primary)
+		{
 			brelse(bh_primary);
+		}
+
 		if (!silent)
 			ntfs_error(sb, "Mount option errors=recover not used. "
-					"Aborting without trying to recover.");
+					   "Aborting without trying to recover.");
+
 		return NULL;
 	}
+
 	/* Try to read NT4+ backup boot sector. */
-	if ((bh_backup = sb_bread(sb, nr_blocks - 1))) {
-		if (is_boot_sector_ntfs(sb, (NTFS_BOOT_SECTOR*)
-				bh_backup->b_data, silent))
+	if ((bh_backup = sb_bread(sb, nr_blocks - 1)))
+	{
+		if (is_boot_sector_ntfs(sb, (NTFS_BOOT_SECTOR *)
+								bh_backup->b_data, silent))
+		{
 			goto hotfix_primary_boot_sector;
+		}
+
 		brelse(bh_backup);
-	} else if (!silent)
+	}
+	else if (!silent)
+	{
 		ntfs_error(sb, read_err_str, "backup");
+	}
+
 	/* Try to read NT3.51- backup boot sector. */
-	if ((bh_backup = sb_bread(sb, nr_blocks >> 1))) {
-		if (is_boot_sector_ntfs(sb, (NTFS_BOOT_SECTOR*)
-				bh_backup->b_data, silent))
+	if ((bh_backup = sb_bread(sb, nr_blocks >> 1)))
+	{
+		if (is_boot_sector_ntfs(sb, (NTFS_BOOT_SECTOR *)
+								bh_backup->b_data, silent))
+		{
 			goto hotfix_primary_boot_sector;
+		}
+
 		if (!silent)
 			ntfs_error(sb, "Could not find a valid backup boot "
-					"sector.");
+					   "sector.");
+
 		brelse(bh_backup);
-	} else if (!silent)
+	}
+	else if (!silent)
+	{
 		ntfs_error(sb, read_err_str, "backup");
+	}
+
 	/* We failed. Cleanup and return. */
 	if (bh_primary)
+	{
 		brelse(bh_primary);
+	}
+
 	return NULL;
 hotfix_primary_boot_sector:
-	if (bh_primary) {
+
+	if (bh_primary)
+	{
 		/*
 		 * If we managed to read sector zero and the volume is not
 		 * read-only, copy the found, valid backup boot sector to the
@@ -732,25 +960,33 @@ hotfix_primary_boot_sector:
 		 * on a large sector device contains the whole boot loader or
 		 * just the first 512 bytes).
 		 */
-		if (!(sb->s_flags & MS_RDONLY)) {
+		if (!(sb->s_flags & MS_RDONLY))
+		{
 			ntfs_warning(sb, "Hot-fix: Recovering invalid primary "
-					"boot sector from backup copy.");
+						 "boot sector from backup copy.");
 			memcpy(bh_primary->b_data, bh_backup->b_data,
-					NTFS_BLOCK_SIZE);
+				   NTFS_BLOCK_SIZE);
 			mark_buffer_dirty(bh_primary);
 			sync_dirty_buffer(bh_primary);
-			if (buffer_uptodate(bh_primary)) {
+
+			if (buffer_uptodate(bh_primary))
+			{
 				brelse(bh_backup);
 				return bh_primary;
 			}
+
 			ntfs_error(sb, "Hot-fix: Device write error while "
-					"recovering primary boot sector.");
-		} else {
-			ntfs_warning(sb, "Hot-fix: Recovery of primary boot "
-					"sector failed: Read-only mount.");
+					   "recovering primary boot sector.");
 		}
+		else
+		{
+			ntfs_warning(sb, "Hot-fix: Recovery of primary boot "
+						 "sector failed: Read-only mount.");
+		}
+
 		brelse(bh_primary);
 	}
+
 	ntfs_warning(sb, "Using backup boot sector.");
 	return bh_backup;
 }
@@ -772,81 +1008,97 @@ static bool parse_ntfs_boot_sector(ntfs_volume *vol, const NTFS_BOOT_SECTOR *b)
 	vol->sector_size = le16_to_cpu(b->bpb.bytes_per_sector);
 	vol->sector_size_bits = ffs(vol->sector_size) - 1;
 	ntfs_debug("vol->sector_size = %i (0x%x)", vol->sector_size,
-			vol->sector_size);
+			   vol->sector_size);
 	ntfs_debug("vol->sector_size_bits = %i (0x%x)", vol->sector_size_bits,
-			vol->sector_size_bits);
-	if (vol->sector_size < vol->sb->s_blocksize) {
+			   vol->sector_size_bits);
+
+	if (vol->sector_size < vol->sb->s_blocksize)
+	{
 		ntfs_error(vol->sb, "Sector size (%i) is smaller than the "
-				"device block size (%lu).  This is not "
-				"supported.  Sorry.", vol->sector_size,
-				vol->sb->s_blocksize);
+				   "device block size (%lu).  This is not "
+				   "supported.  Sorry.", vol->sector_size,
+				   vol->sb->s_blocksize);
 		return false;
 	}
+
 	ntfs_debug("sectors_per_cluster = 0x%x", b->bpb.sectors_per_cluster);
 	sectors_per_cluster_bits = ffs(b->bpb.sectors_per_cluster) - 1;
 	ntfs_debug("sectors_per_cluster_bits = 0x%x",
-			sectors_per_cluster_bits);
+			   sectors_per_cluster_bits);
 	nr_hidden_sects = le32_to_cpu(b->bpb.hidden_sectors);
 	ntfs_debug("number of hidden sectors = 0x%x", nr_hidden_sects);
 	vol->cluster_size = vol->sector_size << sectors_per_cluster_bits;
 	vol->cluster_size_mask = vol->cluster_size - 1;
 	vol->cluster_size_bits = ffs(vol->cluster_size) - 1;
 	ntfs_debug("vol->cluster_size = %i (0x%x)", vol->cluster_size,
-			vol->cluster_size);
+			   vol->cluster_size);
 	ntfs_debug("vol->cluster_size_mask = 0x%x", vol->cluster_size_mask);
 	ntfs_debug("vol->cluster_size_bits = %i", vol->cluster_size_bits);
-	if (vol->cluster_size < vol->sector_size) {
+
+	if (vol->cluster_size < vol->sector_size)
+	{
 		ntfs_error(vol->sb, "Cluster size (%i) is smaller than the "
-				"sector size (%i).  This is not supported.  "
-				"Sorry.", vol->cluster_size, vol->sector_size);
+				   "sector size (%i).  This is not supported.  "
+				   "Sorry.", vol->cluster_size, vol->sector_size);
 		return false;
 	}
+
 	clusters_per_mft_record = b->clusters_per_mft_record;
 	ntfs_debug("clusters_per_mft_record = %i (0x%x)",
-			clusters_per_mft_record, clusters_per_mft_record);
+			   clusters_per_mft_record, clusters_per_mft_record);
+
 	if (clusters_per_mft_record > 0)
 		vol->mft_record_size = vol->cluster_size <<
-				(ffs(clusters_per_mft_record) - 1);
+							   (ffs(clusters_per_mft_record) - 1);
 	else
 		/*
 		 * When mft_record_size < cluster_size, clusters_per_mft_record
 		 * = -log2(mft_record_size) bytes. mft_record_size normaly is
 		 * 1024 bytes, which is encoded as 0xF6 (-10 in decimal).
 		 */
+	{
 		vol->mft_record_size = 1 << -clusters_per_mft_record;
+	}
+
 	vol->mft_record_size_mask = vol->mft_record_size - 1;
 	vol->mft_record_size_bits = ffs(vol->mft_record_size) - 1;
 	ntfs_debug("vol->mft_record_size = %i (0x%x)", vol->mft_record_size,
-			vol->mft_record_size);
+			   vol->mft_record_size);
 	ntfs_debug("vol->mft_record_size_mask = 0x%x",
-			vol->mft_record_size_mask);
+			   vol->mft_record_size_mask);
 	ntfs_debug("vol->mft_record_size_bits = %i (0x%x)",
-			vol->mft_record_size_bits, vol->mft_record_size_bits);
+			   vol->mft_record_size_bits, vol->mft_record_size_bits);
+
 	/*
 	 * We cannot support mft record sizes above the PAGE_SIZE since
 	 * we store $MFT/$DATA, the table of mft records in the page cache.
 	 */
-	if (vol->mft_record_size > PAGE_SIZE) {
+	if (vol->mft_record_size > PAGE_SIZE)
+	{
 		ntfs_error(vol->sb, "Mft record size (%i) exceeds the "
-				"PAGE_SIZE on your system (%lu).  "
-				"This is not supported.  Sorry.",
-				vol->mft_record_size, PAGE_SIZE);
+				   "PAGE_SIZE on your system (%lu).  "
+				   "This is not supported.  Sorry.",
+				   vol->mft_record_size, PAGE_SIZE);
 		return false;
 	}
+
 	/* We cannot support mft record sizes below the sector size. */
-	if (vol->mft_record_size < vol->sector_size) {
+	if (vol->mft_record_size < vol->sector_size)
+	{
 		ntfs_error(vol->sb, "Mft record size (%i) is smaller than the "
-				"sector size (%i).  This is not supported.  "
-				"Sorry.", vol->mft_record_size,
-				vol->sector_size);
+				   "sector size (%i).  This is not supported.  "
+				   "Sorry.", vol->mft_record_size,
+				   vol->sector_size);
 		return false;
 	}
+
 	clusters_per_index_record = b->clusters_per_index_record;
 	ntfs_debug("clusters_per_index_record = %i (0x%x)",
-			clusters_per_index_record, clusters_per_index_record);
+			   clusters_per_index_record, clusters_per_index_record);
+
 	if (clusters_per_index_record > 0)
 		vol->index_record_size = vol->cluster_size <<
-				(ffs(clusters_per_index_record) - 1);
+								 (ffs(clusters_per_index_record) - 1);
 	else
 		/*
 		 * When index_record_size < cluster_size,
@@ -854,70 +1106,90 @@ static bool parse_ntfs_boot_sector(ntfs_volume *vol, const NTFS_BOOT_SECTOR *b)
 		 * index_record_size normaly equals 4096 bytes, which is
 		 * encoded as 0xF4 (-12 in decimal).
 		 */
+	{
 		vol->index_record_size = 1 << -clusters_per_index_record;
+	}
+
 	vol->index_record_size_mask = vol->index_record_size - 1;
 	vol->index_record_size_bits = ffs(vol->index_record_size) - 1;
 	ntfs_debug("vol->index_record_size = %i (0x%x)",
-			vol->index_record_size, vol->index_record_size);
+			   vol->index_record_size, vol->index_record_size);
 	ntfs_debug("vol->index_record_size_mask = 0x%x",
-			vol->index_record_size_mask);
+			   vol->index_record_size_mask);
 	ntfs_debug("vol->index_record_size_bits = %i (0x%x)",
-			vol->index_record_size_bits,
-			vol->index_record_size_bits);
+			   vol->index_record_size_bits,
+			   vol->index_record_size_bits);
+
 	/* We cannot support index record sizes below the sector size. */
-	if (vol->index_record_size < vol->sector_size) {
+	if (vol->index_record_size < vol->sector_size)
+	{
 		ntfs_error(vol->sb, "Index record size (%i) is smaller than "
-				"the sector size (%i).  This is not "
-				"supported.  Sorry.", vol->index_record_size,
-				vol->sector_size);
+				   "the sector size (%i).  This is not "
+				   "supported.  Sorry.", vol->index_record_size,
+				   vol->sector_size);
 		return false;
 	}
+
 	/*
 	 * Get the size of the volume in clusters and check for 64-bit-ness.
 	 * Windows currently only uses 32 bits to save the clusters so we do
 	 * the same as it is much faster on 32-bit CPUs.
 	 */
 	ll = sle64_to_cpu(b->number_of_sectors) >> sectors_per_cluster_bits;
-	if ((u64)ll >= 1ULL << 32) {
+
+	if ((u64)ll >= 1ULL << 32)
+	{
 		ntfs_error(vol->sb, "Cannot handle 64-bit clusters.  Sorry.");
 		return false;
 	}
+
 	vol->nr_clusters = ll;
 	ntfs_debug("vol->nr_clusters = 0x%llx", (long long)vol->nr_clusters);
+
 	/*
 	 * On an architecture where unsigned long is 32-bits, we restrict the
 	 * volume size to 2TiB (2^41). On a 64-bit architecture, the compiler
 	 * will hopefully optimize the whole check away.
 	 */
-	if (sizeof(unsigned long) < 8) {
-		if ((ll << vol->cluster_size_bits) >= (1ULL << 41)) {
+	if (sizeof(unsigned long) < 8)
+	{
+		if ((ll << vol->cluster_size_bits) >= (1ULL << 41))
+		{
 			ntfs_error(vol->sb, "Volume size (%lluTiB) is too "
-					"large for this architecture.  "
-					"Maximum supported is 2TiB.  Sorry.",
-					(unsigned long long)ll >> (40 -
-					vol->cluster_size_bits));
+					   "large for this architecture.  "
+					   "Maximum supported is 2TiB.  Sorry.",
+					   (unsigned long long)ll >> (40 -
+												  vol->cluster_size_bits));
 			return false;
 		}
 	}
+
 	ll = sle64_to_cpu(b->mft_lcn);
-	if (ll >= vol->nr_clusters) {
+
+	if (ll >= vol->nr_clusters)
+	{
 		ntfs_error(vol->sb, "MFT LCN (%lli, 0x%llx) is beyond end of "
-				"volume.  Weird.", (unsigned long long)ll,
-				(unsigned long long)ll);
+				   "volume.  Weird.", (unsigned long long)ll,
+				   (unsigned long long)ll);
 		return false;
 	}
+
 	vol->mft_lcn = ll;
 	ntfs_debug("vol->mft_lcn = 0x%llx", (long long)vol->mft_lcn);
 	ll = sle64_to_cpu(b->mftmirr_lcn);
-	if (ll >= vol->nr_clusters) {
+
+	if (ll >= vol->nr_clusters)
+	{
 		ntfs_error(vol->sb, "MFTMirr LCN (%lli, 0x%llx) is beyond end "
-				"of volume.  Weird.", (unsigned long long)ll,
-				(unsigned long long)ll);
+				   "of volume.  Weird.", (unsigned long long)ll,
+				   (unsigned long long)ll);
 		return false;
 	}
+
 	vol->mftmirr_lcn = ll;
 	ntfs_debug("vol->mftmirr_lcn = 0x%llx", (long long)vol->mftmirr_lcn);
 #ifdef NTFS_RW
+
 	/*
 	 * Work out the size of the mft mirror in number of mft records. If the
 	 * cluster size is less than or equal to the size taken by four mft
@@ -927,15 +1199,18 @@ static bool parse_ntfs_boot_sector(ntfs_volume *vol, const NTFS_BOOT_SECTOR *b)
 	 * cluster.
 	 */
 	if (vol->cluster_size <= (4 << vol->mft_record_size_bits))
+	{
 		vol->mftmirr_size = 4;
+	}
 	else
 		vol->mftmirr_size = vol->cluster_size >>
-				vol->mft_record_size_bits;
+							vol->mft_record_size_bits;
+
 	ntfs_debug("vol->mftmirr_size = %i", vol->mftmirr_size);
 #endif /* NTFS_RW */
 	vol->serial_no = le64_to_cpu(b->volume_serial_number);
 	ntfs_debug("vol->serial_no = 0x%llx",
-			(unsigned long long)vol->serial_no);
+			   (unsigned long long)vol->serial_no);
 	return true;
 }
 
@@ -952,30 +1227,36 @@ static void ntfs_setup_allocators(ntfs_volume *vol)
 #endif /* NTFS_RW */
 
 	ntfs_debug("vol->mft_zone_multiplier = 0x%x",
-			vol->mft_zone_multiplier);
+			   vol->mft_zone_multiplier);
 #ifdef NTFS_RW
 	/* Determine the size of the MFT zone. */
 	mft_zone_size = vol->nr_clusters;
-	switch (vol->mft_zone_multiplier) {  /* % of volume size in clusters */
-	case 4:
-		mft_zone_size >>= 1;			/* 50%   */
-		break;
-	case 3:
-		mft_zone_size = (mft_zone_size +
-				(mft_zone_size >> 1)) >> 2;	/* 37.5% */
-		break;
-	case 2:
-		mft_zone_size >>= 2;			/* 25%   */
-		break;
-	/* case 1: */
-	default:
-		mft_zone_size >>= 3;			/* 12.5% */
-		break;
+
+	switch (vol->mft_zone_multiplier)    /* % of volume size in clusters */
+	{
+		case 4:
+			mft_zone_size >>= 1;			/* 50%   */
+			break;
+
+		case 3:
+			mft_zone_size = (mft_zone_size +
+							 (mft_zone_size >> 1)) >> 2;	/* 37.5% */
+			break;
+
+		case 2:
+			mft_zone_size >>= 2;			/* 25%   */
+			break;
+
+		/* case 1: */
+		default:
+			mft_zone_size >>= 3;			/* 12.5% */
+			break;
 	}
+
 	/* Setup the mft zone. */
 	vol->mft_zone_start = vol->mft_zone_pos = vol->mft_lcn;
 	ntfs_debug("vol->mft_zone_pos = 0x%llx",
-			(unsigned long long)vol->mft_zone_pos);
+			   (unsigned long long)vol->mft_zone_pos);
 	/*
 	 * Calculate the mft_lcn for an unmodified NTFS volume (see mkntfs
 	 * source) and if the actual mft_lcn is in the expected place or even
@@ -986,40 +1267,48 @@ static void ntfs_setup_allocators(ntfs_volume *vol)
 	 * be higher than the speed increase we would get by doing it.
 	 */
 	mft_lcn = (8192 + 2 * vol->cluster_size - 1) / vol->cluster_size;
+
 	if (mft_lcn * vol->cluster_size < 16 * 1024)
 		mft_lcn = (16 * 1024 + vol->cluster_size - 1) /
-				vol->cluster_size;
+				  vol->cluster_size;
+
 	if (vol->mft_zone_start <= mft_lcn)
+	{
 		vol->mft_zone_start = 0;
+	}
+
 	ntfs_debug("vol->mft_zone_start = 0x%llx",
-			(unsigned long long)vol->mft_zone_start);
+			   (unsigned long long)vol->mft_zone_start);
 	/*
 	 * Need to cap the mft zone on non-standard volumes so that it does
 	 * not point outside the boundaries of the volume.  We do this by
 	 * halving the zone size until we are inside the volume.
 	 */
 	vol->mft_zone_end = vol->mft_lcn + mft_zone_size;
-	while (vol->mft_zone_end >= vol->nr_clusters) {
+
+	while (vol->mft_zone_end >= vol->nr_clusters)
+	{
 		mft_zone_size >>= 1;
 		vol->mft_zone_end = vol->mft_lcn + mft_zone_size;
 	}
+
 	ntfs_debug("vol->mft_zone_end = 0x%llx",
-			(unsigned long long)vol->mft_zone_end);
+			   (unsigned long long)vol->mft_zone_end);
 	/*
 	 * Set the current position within each data zone to the start of the
 	 * respective zone.
 	 */
 	vol->data1_zone_pos = vol->mft_zone_end;
 	ntfs_debug("vol->data1_zone_pos = 0x%llx",
-			(unsigned long long)vol->data1_zone_pos);
+			   (unsigned long long)vol->data1_zone_pos);
 	vol->data2_zone_pos = 0;
 	ntfs_debug("vol->data2_zone_pos = 0x%llx",
-			(unsigned long long)vol->data2_zone_pos);
+			   (unsigned long long)vol->data2_zone_pos);
 
 	/* Set the mft data allocation position to mft record 24. */
 	vol->mft_data_pos = 24;
 	ntfs_debug("vol->mft_data_pos = 0x%llx",
-			(unsigned long long)vol->mft_data_pos);
+			   (unsigned long long)vol->mft_data_pos);
 #endif /* NTFS_RW */
 }
 
@@ -1039,12 +1328,18 @@ static bool load_and_init_mft_mirror(ntfs_volume *vol)
 	ntfs_debug("Entering.");
 	/* Get mft mirror inode. */
 	tmp_ino = ntfs_iget(vol->sb, FILE_MFTMirr);
-	if (IS_ERR(tmp_ino) || is_bad_inode(tmp_ino)) {
+
+	if (IS_ERR(tmp_ino) || is_bad_inode(tmp_ino))
+	{
 		if (!IS_ERR(tmp_ino))
+		{
 			iput(tmp_ino);
+		}
+
 		/* Caller will display error message. */
 		return false;
 	}
+
 	/*
 	 * Re-initialize some specifics about $MFTMirr's inode as
 	 * ntfs_read_inode() will have set up the default ones.
@@ -1102,40 +1397,54 @@ static bool check_mft_mirror(ntfs_volume *vol)
 	mft_page = mirr_page = NULL;
 	kmft = kmirr = NULL;
 	index = i = 0;
-	do {
+
+	do
+	{
 		u32 bytes;
 
 		/* Switch pages if necessary. */
-		if (!(i % mrecs_per_page)) {
-			if (index) {
+		if (!(i % mrecs_per_page))
+		{
+			if (index)
+			{
 				ntfs_unmap_page(mft_page);
 				ntfs_unmap_page(mirr_page);
 			}
+
 			/* Get the $MFT page. */
 			mft_page = ntfs_map_page(vol->mft_ino->i_mapping,
-					index);
-			if (IS_ERR(mft_page)) {
+									 index);
+
+			if (IS_ERR(mft_page))
+			{
 				ntfs_error(sb, "Failed to read $MFT.");
 				return false;
 			}
+
 			kmft = page_address(mft_page);
 			/* Get the $MFTMirr page. */
 			mirr_page = ntfs_map_page(vol->mftmirr_ino->i_mapping,
-					index);
-			if (IS_ERR(mirr_page)) {
+									  index);
+
+			if (IS_ERR(mirr_page))
+			{
 				ntfs_error(sb, "Failed to read $MFTMirr.");
 				goto mft_unmap_out;
 			}
+
 			kmirr = page_address(mirr_page);
 			++index;
 		}
+
 		/* Do not check the record if it is not in use. */
-		if (((MFT_RECORD*)kmft)->flags & MFT_RECORD_IN_USE) {
+		if (((MFT_RECORD *)kmft)->flags & MFT_RECORD_IN_USE)
+		{
 			/* Make sure the record is ok. */
-			if (ntfs_is_baad_recordp((le32*)kmft)) {
+			if (ntfs_is_baad_recordp((le32 *)kmft))
+			{
 				ntfs_error(sb, "Incomplete multi sector "
-						"transfer detected in mft "
-						"record %i.", i);
+						   "transfer detected in mft "
+						   "record %i.", i);
 mm_unmap_out:
 				ntfs_unmap_page(mirr_page);
 mft_unmap_out:
@@ -1143,35 +1452,49 @@ mft_unmap_out:
 				return false;
 			}
 		}
+
 		/* Do not check the mirror record if it is not in use. */
-		if (((MFT_RECORD*)kmirr)->flags & MFT_RECORD_IN_USE) {
-			if (ntfs_is_baad_recordp((le32*)kmirr)) {
+		if (((MFT_RECORD *)kmirr)->flags & MFT_RECORD_IN_USE)
+		{
+			if (ntfs_is_baad_recordp((le32 *)kmirr))
+			{
 				ntfs_error(sb, "Incomplete multi sector "
-						"transfer detected in mft "
-						"mirror record %i.", i);
+						   "transfer detected in mft "
+						   "mirror record %i.", i);
 				goto mm_unmap_out;
 			}
 		}
+
 		/* Get the amount of data in the current record. */
-		bytes = le32_to_cpu(((MFT_RECORD*)kmft)->bytes_in_use);
+		bytes = le32_to_cpu(((MFT_RECORD *)kmft)->bytes_in_use);
+
 		if (bytes < sizeof(MFT_RECORD_OLD) ||
-				bytes > vol->mft_record_size ||
-				ntfs_is_baad_recordp((le32*)kmft)) {
-			bytes = le32_to_cpu(((MFT_RECORD*)kmirr)->bytes_in_use);
+			bytes > vol->mft_record_size ||
+			ntfs_is_baad_recordp((le32 *)kmft))
+		{
+			bytes = le32_to_cpu(((MFT_RECORD *)kmirr)->bytes_in_use);
+
 			if (bytes < sizeof(MFT_RECORD_OLD) ||
-					bytes > vol->mft_record_size ||
-					ntfs_is_baad_recordp((le32*)kmirr))
+				bytes > vol->mft_record_size ||
+				ntfs_is_baad_recordp((le32 *)kmirr))
+			{
 				bytes = vol->mft_record_size;
+			}
 		}
+
 		/* Compare the two records. */
-		if (memcmp(kmft, kmirr, bytes)) {
+		if (memcmp(kmft, kmirr, bytes))
+		{
 			ntfs_error(sb, "$MFT and $MFTMirr (record %i) do not "
-					"match.  Run ntfsfix or chkdsk.", i);
+					   "match.  Run ntfsfix or chkdsk.", i);
 			goto mm_unmap_out;
 		}
+
 		kmft += vol->mft_record_size;
 		kmirr += vol->mft_record_size;
-	} while (++i < vol->mftmirr_size);
+	}
+	while (++i < vol->mftmirr_size);
+
 	/* Release the last pages. */
 	ntfs_unmap_page(mft_page);
 	ntfs_unmap_page(mirr_page);
@@ -1180,7 +1503,7 @@ mft_unmap_out:
 	rl2[0].vcn = 0;
 	rl2[0].lcn = vol->mftmirr_lcn;
 	rl2[0].length = (vol->mftmirr_size * vol->mft_record_size +
-			vol->cluster_size - 1) / vol->cluster_size;
+					 vol->cluster_size - 1) / vol->cluster_size;
 	rl2[1].vcn = rl2[0].length;
 	rl2[1].lcn = LCN_ENOENT;
 	rl2[1].length = 0;
@@ -1193,15 +1516,20 @@ mft_unmap_out:
 	rl = mirr_ni->runlist.rl;
 	/* Compare the two runlists.  They must be identical. */
 	i = 0;
-	do {
+
+	do
+	{
 		if (rl2[i].vcn != rl[i].vcn || rl2[i].lcn != rl[i].lcn ||
-				rl2[i].length != rl[i].length) {
+			rl2[i].length != rl[i].length)
+		{
 			ntfs_error(sb, "$MFTMirr location mismatch.  "
-					"Run chkdsk.");
+					   "Run chkdsk.");
 			up_read(&mirr_ni->runlist.lock);
 			return false;
 		}
-	} while (rl2[i++].length);
+	}
+	while (rl2[i++].length);
+
 	up_read(&mirr_ni->runlist.lock);
 	ntfs_debug("Done.");
 	return true;
@@ -1214,23 +1542,31 @@ mft_unmap_out:
  * Return 'true' on success or 'false' on error.
  */
 static bool load_and_check_logfile(ntfs_volume *vol,
-		RESTART_PAGE_HEADER **rp)
+								   RESTART_PAGE_HEADER **rp)
 {
 	struct inode *tmp_ino;
 
 	ntfs_debug("Entering.");
 	tmp_ino = ntfs_iget(vol->sb, FILE_LogFile);
-	if (IS_ERR(tmp_ino) || is_bad_inode(tmp_ino)) {
+
+	if (IS_ERR(tmp_ino) || is_bad_inode(tmp_ino))
+	{
 		if (!IS_ERR(tmp_ino))
+		{
 			iput(tmp_ino);
+		}
+
 		/* Caller will display error message. */
 		return false;
 	}
-	if (!ntfs_check_logfile(tmp_ino, rp)) {
+
+	if (!ntfs_check_logfile(tmp_ino, rp))
+	{
 		iput(tmp_ino);
 		/* ntfs_check_logfile() will have displayed error output. */
 		return false;
 	}
+
 	NInoSetSparseDisabled(NTFS_I(tmp_ino));
 	vol->logfile_ino = tmp_ino;
 	ntfs_debug("Done.");
@@ -1272,12 +1608,13 @@ static int check_windows_hibernation_status(ntfs_volume *vol)
 	ntfs_name *name = NULL;
 	int ret = 1;
 	static const ntfschar hiberfil[13] = { cpu_to_le16('h'),
-			cpu_to_le16('i'), cpu_to_le16('b'),
-			cpu_to_le16('e'), cpu_to_le16('r'),
-			cpu_to_le16('f'), cpu_to_le16('i'),
-			cpu_to_le16('l'), cpu_to_le16('.'),
-			cpu_to_le16('s'), cpu_to_le16('y'),
-			cpu_to_le16('s'), 0 };
+										   cpu_to_le16('i'), cpu_to_le16('b'),
+										   cpu_to_le16('e'), cpu_to_le16('r'),
+										   cpu_to_le16('f'), cpu_to_le16('i'),
+										   cpu_to_le16('l'), cpu_to_le16('.'),
+										   cpu_to_le16('s'), cpu_to_le16('y'),
+										   cpu_to_le16('s'), 0
+										 };
 
 	ntfs_debug("Entering.");
 	/*
@@ -1286,65 +1623,90 @@ static int check_windows_hibernation_status(ntfs_volume *vol)
 	 */
 	inode_lock(vol->root_ino);
 	mref = ntfs_lookup_inode_by_name(NTFS_I(vol->root_ino), hiberfil, 12,
-			&name);
+									 &name);
 	inode_unlock(vol->root_ino);
-	if (IS_ERR_MREF(mref)) {
+
+	if (IS_ERR_MREF(mref))
+	{
 		ret = MREF_ERR(mref);
+
 		/* If the file does not exist, Windows is not hibernated. */
-		if (ret == -ENOENT) {
+		if (ret == -ENOENT)
+		{
 			ntfs_debug("hiberfil.sys not present.  Windows is not "
-					"hibernated on the volume.");
+					   "hibernated on the volume.");
 			return 0;
 		}
+
 		/* A real error occurred. */
 		ntfs_error(vol->sb, "Failed to find inode number for "
-				"hiberfil.sys.");
+				   "hiberfil.sys.");
 		return ret;
 	}
+
 	/* We do not care for the type of match that was found. */
 	kfree(name);
 	/* Get the inode. */
 	vi = ntfs_iget(vol->sb, MREF(mref));
-	if (IS_ERR(vi) || is_bad_inode(vi)) {
+
+	if (IS_ERR(vi) || is_bad_inode(vi))
+	{
 		if (!IS_ERR(vi))
+		{
 			iput(vi);
+		}
+
 		ntfs_error(vol->sb, "Failed to load hiberfil.sys.");
 		return IS_ERR(vi) ? PTR_ERR(vi) : -EIO;
 	}
-	if (unlikely(i_size_read(vi) < NTFS_HIBERFIL_HEADER_SIZE)) {
+
+	if (unlikely(i_size_read(vi) < NTFS_HIBERFIL_HEADER_SIZE))
+	{
 		ntfs_debug("hiberfil.sys is smaller than 4kiB (0x%llx).  "
-				"Windows is hibernated on the volume.  This "
-				"is not the system volume.", i_size_read(vi));
+				   "Windows is hibernated on the volume.  This "
+				   "is not the system volume.", i_size_read(vi));
 		goto iput_out;
 	}
+
 	page = ntfs_map_page(vi->i_mapping, 0);
-	if (IS_ERR(page)) {
+
+	if (IS_ERR(page))
+	{
 		ntfs_error(vol->sb, "Failed to read from hiberfil.sys.");
 		ret = PTR_ERR(page);
 		goto iput_out;
 	}
-	kaddr = (u32*)page_address(page);
-	if (*(le32*)kaddr == cpu_to_le32(0x72626968)/*'hibr'*/) {
+
+	kaddr = (u32 *)page_address(page);
+
+	if (*(le32 *)kaddr == cpu_to_le32(0x72626968)/*'hibr'*/)
+	{
 		ntfs_debug("Magic \"hibr\" found in hiberfil.sys.  Windows is "
-				"hibernated on the volume.  This is the "
-				"system volume.");
+				   "hibernated on the volume.  This is the "
+				   "system volume.");
 		goto unm_iput_out;
 	}
-	kend = kaddr + NTFS_HIBERFIL_HEADER_SIZE/sizeof(*kaddr);
-	do {
-		if (unlikely(*kaddr)) {
+
+	kend = kaddr + NTFS_HIBERFIL_HEADER_SIZE / sizeof(*kaddr);
+
+	do
+	{
+		if (unlikely(*kaddr))
+		{
 			ntfs_debug("hiberfil.sys is larger than 4kiB "
-					"(0x%llx), does not contain the "
-					"\"hibr\" magic, and does not have a "
-					"zero header.  Windows is hibernated "
-					"on the volume.  This is not the "
-					"system volume.", i_size_read(vi));
+					   "(0x%llx), does not contain the "
+					   "\"hibr\" magic, and does not have a "
+					   "zero header.  Windows is hibernated "
+					   "on the volume.  This is not the "
+					   "system volume.", i_size_read(vi));
 			goto unm_iput_out;
 		}
-	} while (++kaddr < kend);
+	}
+	while (++kaddr < kend);
+
 	ntfs_debug("hiberfil.sys contains a zero header.  Windows is not "
-			"hibernated on the volume.  This is the system "
-			"volume.");
+			   "hibernated on the volume.  This is the system "
+			   "volume.");
 	ret = 0;
 unm_iput_out:
 	ntfs_unmap_page(page);
@@ -1366,11 +1728,13 @@ static bool load_and_init_quota(ntfs_volume *vol)
 	struct inode *tmp_ino;
 	ntfs_name *name = NULL;
 	static const ntfschar Quota[7] = { cpu_to_le16('$'),
-			cpu_to_le16('Q'), cpu_to_le16('u'),
-			cpu_to_le16('o'), cpu_to_le16('t'),
-			cpu_to_le16('a'), 0 };
+									   cpu_to_le16('Q'), cpu_to_le16('u'),
+									   cpu_to_le16('o'), cpu_to_le16('t'),
+									   cpu_to_le16('a'), 0
+									 };
 	static ntfschar Q[3] = { cpu_to_le16('$'),
-			cpu_to_le16('Q'), 0 };
+							 cpu_to_le16('Q'), 0
+						   };
 
 	ntfs_debug("Entering.");
 	/*
@@ -1379,16 +1743,19 @@ static bool load_and_init_quota(ntfs_volume *vol)
 	 */
 	inode_lock(vol->extend_ino);
 	mref = ntfs_lookup_inode_by_name(NTFS_I(vol->extend_ino), Quota, 6,
-			&name);
+									 &name);
 	inode_unlock(vol->extend_ino);
-	if (IS_ERR_MREF(mref)) {
+
+	if (IS_ERR_MREF(mref))
+	{
 		/*
 		 * If the file does not exist, quotas are disabled and have
 		 * never been enabled on this volume, just return success.
 		 */
-		if (MREF_ERR(mref) == -ENOENT) {
+		if (MREF_ERR(mref) == -ENOENT)
+		{
 			ntfs_debug("$Quota not present.  Volume does not have "
-					"quotas enabled.");
+					   "quotas enabled.");
 			/*
 			 * No need to try to set quotas out of date if they are
 			 * not enabled.
@@ -1396,27 +1763,38 @@ static bool load_and_init_quota(ntfs_volume *vol)
 			NVolSetQuotaOutOfDate(vol);
 			return true;
 		}
+
 		/* A real error occurred. */
 		ntfs_error(vol->sb, "Failed to find inode number for $Quota.");
 		return false;
 	}
+
 	/* We do not care for the type of match that was found. */
 	kfree(name);
 	/* Get the inode. */
 	tmp_ino = ntfs_iget(vol->sb, MREF(mref));
-	if (IS_ERR(tmp_ino) || is_bad_inode(tmp_ino)) {
+
+	if (IS_ERR(tmp_ino) || is_bad_inode(tmp_ino))
+	{
 		if (!IS_ERR(tmp_ino))
+		{
 			iput(tmp_ino);
+		}
+
 		ntfs_error(vol->sb, "Failed to load $Quota.");
 		return false;
 	}
+
 	vol->quota_ino = tmp_ino;
 	/* Get the $Q index allocation attribute. */
 	tmp_ino = ntfs_index_iget(vol->quota_ino, Q, 2);
-	if (IS_ERR(tmp_ino)) {
+
+	if (IS_ERR(tmp_ino))
+	{
 		ntfs_error(vol->sb, "Failed to load $Quota/$Q index.");
 		return false;
 	}
+
 	vol->quota_q_ino = tmp_ino;
 	ntfs_debug("Done.");
 	return true;
@@ -1445,15 +1823,18 @@ static bool load_and_init_usnjrnl(ntfs_volume *vol)
 	ntfs_name *name = NULL;
 	USN_HEADER *uh;
 	static const ntfschar UsnJrnl[9] = { cpu_to_le16('$'),
-			cpu_to_le16('U'), cpu_to_le16('s'),
-			cpu_to_le16('n'), cpu_to_le16('J'),
-			cpu_to_le16('r'), cpu_to_le16('n'),
-			cpu_to_le16('l'), 0 };
+										 cpu_to_le16('U'), cpu_to_le16('s'),
+										 cpu_to_le16('n'), cpu_to_le16('J'),
+										 cpu_to_le16('r'), cpu_to_le16('n'),
+										 cpu_to_le16('l'), 0
+									   };
 	static ntfschar Max[5] = { cpu_to_le16('$'),
-			cpu_to_le16('M'), cpu_to_le16('a'),
-			cpu_to_le16('x'), 0 };
+							   cpu_to_le16('M'), cpu_to_le16('a'),
+							   cpu_to_le16('x'), 0
+							 };
 	static ntfschar J[3] = { cpu_to_le16('$'),
-			cpu_to_le16('J'), 0 };
+							 cpu_to_le16('J'), 0
+						   };
 
 	ntfs_debug("Entering.");
 	/*
@@ -1462,16 +1843,19 @@ static bool load_and_init_usnjrnl(ntfs_volume *vol)
 	 */
 	inode_lock(vol->extend_ino);
 	mref = ntfs_lookup_inode_by_name(NTFS_I(vol->extend_ino), UsnJrnl, 8,
-			&name);
+									 &name);
 	inode_unlock(vol->extend_ino);
-	if (IS_ERR_MREF(mref)) {
+
+	if (IS_ERR_MREF(mref))
+	{
 		/*
 		 * If the file does not exist, transaction logging is disabled,
 		 * just return success.
 		 */
-		if (MREF_ERR(mref) == -ENOENT) {
+		if (MREF_ERR(mref) == -ENOENT)
+		{
 			ntfs_debug("$UsnJrnl not present.  Volume does not "
-					"have transaction logging enabled.");
+					   "have transaction logging enabled.");
 not_enabled:
 			/*
 			 * No need to try to stamp the transaction log if
@@ -1480,104 +1864,137 @@ not_enabled:
 			NVolSetUsnJrnlStamped(vol);
 			return true;
 		}
+
 		/* A real error occurred. */
 		ntfs_error(vol->sb, "Failed to find inode number for "
-				"$UsnJrnl.");
+				   "$UsnJrnl.");
 		return false;
 	}
+
 	/* We do not care for the type of match that was found. */
 	kfree(name);
 	/* Get the inode. */
 	tmp_ino = ntfs_iget(vol->sb, MREF(mref));
-	if (unlikely(IS_ERR(tmp_ino) || is_bad_inode(tmp_ino))) {
+
+	if (unlikely(IS_ERR(tmp_ino) || is_bad_inode(tmp_ino)))
+	{
 		if (!IS_ERR(tmp_ino))
+		{
 			iput(tmp_ino);
+		}
+
 		ntfs_error(vol->sb, "Failed to load $UsnJrnl.");
 		return false;
 	}
+
 	vol->usnjrnl_ino = tmp_ino;
+
 	/*
 	 * If the transaction log is in the process of being deleted, we can
 	 * ignore it.
 	 */
-	if (unlikely(vol->vol_flags & VOLUME_DELETE_USN_UNDERWAY)) {
+	if (unlikely(vol->vol_flags & VOLUME_DELETE_USN_UNDERWAY))
+	{
 		ntfs_debug("$UsnJrnl in the process of being disabled.  "
-				"Volume does not have transaction logging "
-				"enabled.");
+				   "Volume does not have transaction logging "
+				   "enabled.");
 		goto not_enabled;
 	}
+
 	/* Get the $DATA/$Max attribute. */
 	tmp_ino = ntfs_attr_iget(vol->usnjrnl_ino, AT_DATA, Max, 4);
-	if (IS_ERR(tmp_ino)) {
+
+	if (IS_ERR(tmp_ino))
+	{
 		ntfs_error(vol->sb, "Failed to load $UsnJrnl/$DATA/$Max "
-				"attribute.");
+				   "attribute.");
 		return false;
 	}
+
 	vol->usnjrnl_max_ino = tmp_ino;
-	if (unlikely(i_size_read(tmp_ino) < sizeof(USN_HEADER))) {
+
+	if (unlikely(i_size_read(tmp_ino) < sizeof(USN_HEADER)))
+	{
 		ntfs_error(vol->sb, "Found corrupt $UsnJrnl/$DATA/$Max "
-				"attribute (size is 0x%llx but should be at "
-				"least 0x%zx bytes).", i_size_read(tmp_ino),
-				sizeof(USN_HEADER));
+				   "attribute (size is 0x%llx but should be at "
+				   "least 0x%zx bytes).", i_size_read(tmp_ino),
+				   sizeof(USN_HEADER));
 		return false;
 	}
+
 	/* Get the $DATA/$J attribute. */
 	tmp_ino = ntfs_attr_iget(vol->usnjrnl_ino, AT_DATA, J, 2);
-	if (IS_ERR(tmp_ino)) {
+
+	if (IS_ERR(tmp_ino))
+	{
 		ntfs_error(vol->sb, "Failed to load $UsnJrnl/$DATA/$J "
-				"attribute.");
+				   "attribute.");
 		return false;
 	}
+
 	vol->usnjrnl_j_ino = tmp_ino;
 	/* Verify $J is non-resident and sparse. */
 	tmp_ni = NTFS_I(vol->usnjrnl_j_ino);
-	if (unlikely(!NInoNonResident(tmp_ni) || !NInoSparse(tmp_ni))) {
+
+	if (unlikely(!NInoNonResident(tmp_ni) || !NInoSparse(tmp_ni)))
+	{
 		ntfs_error(vol->sb, "$UsnJrnl/$DATA/$J attribute is resident "
-				"and/or not sparse.");
+				   "and/or not sparse.");
 		return false;
 	}
+
 	/* Read the USN_HEADER from $DATA/$Max. */
 	page = ntfs_map_page(vol->usnjrnl_max_ino->i_mapping, 0);
-	if (IS_ERR(page)) {
+
+	if (IS_ERR(page))
+	{
 		ntfs_error(vol->sb, "Failed to read from $UsnJrnl/$DATA/$Max "
-				"attribute.");
+				   "attribute.");
 		return false;
 	}
-	uh = (USN_HEADER*)page_address(page);
+
+	uh = (USN_HEADER *)page_address(page);
+
 	/* Sanity check the $Max. */
 	if (unlikely(sle64_to_cpu(uh->allocation_delta) >
-			sle64_to_cpu(uh->maximum_size))) {
+				 sle64_to_cpu(uh->maximum_size)))
+	{
 		ntfs_error(vol->sb, "Allocation delta (0x%llx) exceeds "
-				"maximum size (0x%llx).  $UsnJrnl is corrupt.",
-				(long long)sle64_to_cpu(uh->allocation_delta),
-				(long long)sle64_to_cpu(uh->maximum_size));
+				   "maximum size (0x%llx).  $UsnJrnl is corrupt.",
+				   (long long)sle64_to_cpu(uh->allocation_delta),
+				   (long long)sle64_to_cpu(uh->maximum_size));
 		ntfs_unmap_page(page);
 		return false;
 	}
+
 	/*
 	 * If the transaction log has been stamped and nothing has been written
 	 * to it since, we do not need to stamp it.
 	 */
 	if (unlikely(sle64_to_cpu(uh->lowest_valid_usn) >=
-			i_size_read(vol->usnjrnl_j_ino))) {
+				 i_size_read(vol->usnjrnl_j_ino)))
+	{
 		if (likely(sle64_to_cpu(uh->lowest_valid_usn) ==
-				i_size_read(vol->usnjrnl_j_ino))) {
+				   i_size_read(vol->usnjrnl_j_ino)))
+		{
 			ntfs_unmap_page(page);
 			ntfs_debug("$UsnJrnl is enabled but nothing has been "
-					"logged since it was last stamped.  "
-					"Treating this as if the volume does "
-					"not have transaction logging "
-					"enabled.");
+					   "logged since it was last stamped.  "
+					   "Treating this as if the volume does "
+					   "not have transaction logging "
+					   "enabled.");
 			goto not_enabled;
 		}
+
 		ntfs_error(vol->sb, "$UsnJrnl has lowest valid usn (0x%llx) "
-				"which is out of bounds (0x%llx).  $UsnJrnl "
-				"is corrupt.",
-				(long long)sle64_to_cpu(uh->lowest_valid_usn),
-				i_size_read(vol->usnjrnl_j_ino));
+				   "which is out of bounds (0x%llx).  $UsnJrnl "
+				   "is corrupt.",
+				   (long long)sle64_to_cpu(uh->lowest_valid_usn),
+				   i_size_read(vol->usnjrnl_j_ino));
 		ntfs_unmap_page(page);
 		return false;
 	}
+
 	ntfs_unmap_page(page);
 	ntfs_debug("Done.");
 	return true;
@@ -1601,37 +2018,63 @@ static bool load_and_init_attrdef(ntfs_volume *vol)
 	ntfs_debug("Entering.");
 	/* Read attrdef table and setup vol->attrdef and vol->attrdef_size. */
 	ino = ntfs_iget(sb, FILE_AttrDef);
-	if (IS_ERR(ino) || is_bad_inode(ino)) {
+
+	if (IS_ERR(ino) || is_bad_inode(ino))
+	{
 		if (!IS_ERR(ino))
+		{
 			iput(ino);
+		}
+
 		goto failed;
 	}
+
 	NInoSetSparseDisabled(NTFS_I(ino));
 	/* The size of FILE_AttrDef must be above 0 and fit inside 31 bits. */
 	i_size = i_size_read(ino);
+
 	if (i_size <= 0 || i_size > 0x7fffffff)
+	{
 		goto iput_failed;
-	vol->attrdef = (ATTR_DEF*)ntfs_malloc_nofs(i_size);
+	}
+
+	vol->attrdef = (ATTR_DEF *)ntfs_malloc_nofs(i_size);
+
 	if (!vol->attrdef)
+	{
 		goto iput_failed;
+	}
+
 	index = 0;
 	max_index = i_size >> PAGE_SHIFT;
 	size = PAGE_SIZE;
-	while (index < max_index) {
+
+	while (index < max_index)
+	{
 		/* Read the attrdef table and copy it into the linear buffer. */
 read_partial_attrdef_page:
 		page = ntfs_map_page(ino->i_mapping, index);
+
 		if (IS_ERR(page))
+		{
 			goto free_iput_failed;
-		memcpy((u8*)vol->attrdef + (index++ << PAGE_SHIFT),
-				page_address(page), size);
+		}
+
+		memcpy((u8 *)vol->attrdef + (index++ << PAGE_SHIFT),
+			   page_address(page), size);
 		ntfs_unmap_page(page);
 	};
-	if (size == PAGE_SIZE) {
+
+	if (size == PAGE_SIZE)
+	{
 		size = i_size & ~PAGE_MASK;
+
 		if (size)
+		{
 			goto read_partial_attrdef_page;
+		}
 	}
+
 	vol->attrdef_size = i_size;
 	ntfs_debug("Read %llu bytes from $AttrDef.", i_size);
 	iput(ino);
@@ -1667,70 +2110,108 @@ static bool load_and_init_upcase(ntfs_volume *vol)
 	ntfs_debug("Entering.");
 	/* Read upcase table and setup vol->upcase and vol->upcase_len. */
 	ino = ntfs_iget(sb, FILE_UpCase);
-	if (IS_ERR(ino) || is_bad_inode(ino)) {
+
+	if (IS_ERR(ino) || is_bad_inode(ino))
+	{
 		if (!IS_ERR(ino))
+		{
 			iput(ino);
+		}
+
 		goto upcase_failed;
 	}
+
 	/*
 	 * The upcase size must not be above 64k Unicode characters, must not
 	 * be zero and must be a multiple of sizeof(ntfschar).
 	 */
 	i_size = i_size_read(ino);
+
 	if (!i_size || i_size & (sizeof(ntfschar) - 1) ||
-			i_size > 64ULL * 1024 * sizeof(ntfschar))
+		i_size > 64ULL * 1024 * sizeof(ntfschar))
+	{
 		goto iput_upcase_failed;
-	vol->upcase = (ntfschar*)ntfs_malloc_nofs(i_size);
+	}
+
+	vol->upcase = (ntfschar *)ntfs_malloc_nofs(i_size);
+
 	if (!vol->upcase)
+	{
 		goto iput_upcase_failed;
+	}
+
 	index = 0;
 	max_index = i_size >> PAGE_SHIFT;
 	size = PAGE_SIZE;
-	while (index < max_index) {
+
+	while (index < max_index)
+	{
 		/* Read the upcase table and copy it into the linear buffer. */
 read_partial_upcase_page:
 		page = ntfs_map_page(ino->i_mapping, index);
+
 		if (IS_ERR(page))
+		{
 			goto iput_upcase_failed;
-		memcpy((char*)vol->upcase + (index++ << PAGE_SHIFT),
-				page_address(page), size);
+		}
+
+		memcpy((char *)vol->upcase + (index++ << PAGE_SHIFT),
+			   page_address(page), size);
 		ntfs_unmap_page(page);
 	};
-	if (size == PAGE_SIZE) {
+
+	if (size == PAGE_SIZE)
+	{
 		size = i_size & ~PAGE_MASK;
+
 		if (size)
+		{
 			goto read_partial_upcase_page;
+		}
 	}
+
 	vol->upcase_len = i_size >> UCHAR_T_SIZE_BITS;
 	ntfs_debug("Read %llu bytes from $UpCase (expected %zu bytes).",
-			i_size, 64 * 1024 * sizeof(ntfschar));
+			   i_size, 64 * 1024 * sizeof(ntfschar));
 	iput(ino);
 	mutex_lock(&ntfs_lock);
-	if (!default_upcase) {
+
+	if (!default_upcase)
+	{
 		ntfs_debug("Using volume specified $UpCase since default is "
-				"not present.");
+				   "not present.");
 		mutex_unlock(&ntfs_lock);
 		return true;
 	}
+
 	max = default_upcase_len;
+
 	if (max > vol->upcase_len)
+	{
 		max = vol->upcase_len;
+	}
+
 	for (i = 0; i < max; i++)
 		if (vol->upcase[i] != default_upcase[i])
+		{
 			break;
-	if (i == max) {
+		}
+
+	if (i == max)
+	{
 		ntfs_free(vol->upcase);
 		vol->upcase = default_upcase;
 		vol->upcase_len = max;
 		ntfs_nr_upcase_users++;
 		mutex_unlock(&ntfs_lock);
 		ntfs_debug("Volume specified $UpCase matches default. Using "
-				"default.");
+				   "default.");
 		return true;
 	}
+
 	mutex_unlock(&ntfs_lock);
 	ntfs_debug("Using volume specified $UpCase since it does not match "
-			"the default.");
+			   "the default.");
 	return true;
 iput_upcase_failed:
 	iput(ino);
@@ -1738,15 +2219,18 @@ iput_upcase_failed:
 	vol->upcase = NULL;
 upcase_failed:
 	mutex_lock(&ntfs_lock);
-	if (default_upcase) {
+
+	if (default_upcase)
+	{
 		vol->upcase = default_upcase;
 		vol->upcase_len = default_upcase_len;
 		ntfs_nr_upcase_users++;
 		mutex_unlock(&ntfs_lock);
 		ntfs_error(sb, "Failed to load $UpCase from the volume. Using "
-				"default.");
+				   "default.");
 		return true;
 	}
+
 	mutex_unlock(&ntfs_lock);
 	ntfs_error(sb, "Failed to initialize upcase table.");
 	return false;
@@ -1782,54 +2266,73 @@ static bool load_system_files(ntfs_volume *vol)
 
 	ntfs_debug("Entering.");
 #ifdef NTFS_RW
+
 	/* Get mft mirror inode compare the contents of $MFT and $MFTMirr. */
-	if (!load_and_init_mft_mirror(vol) || !check_mft_mirror(vol)) {
+	if (!load_and_init_mft_mirror(vol) || !check_mft_mirror(vol))
+	{
 		static const char *es1 = "Failed to load $MFTMirr";
 		static const char *es2 = "$MFTMirr does not match $MFT";
 		static const char *es3 = ".  Run ntfsfix and/or chkdsk.";
 
 		/* If a read-write mount, convert it to a read-only mount. */
-		if (!(sb->s_flags & MS_RDONLY)) {
+		if (!(sb->s_flags & MS_RDONLY))
+		{
 			if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
-					ON_ERRORS_CONTINUE))) {
+									ON_ERRORS_CONTINUE)))
+			{
 				ntfs_error(sb, "%s and neither on_errors="
-						"continue nor on_errors="
-						"remount-ro was specified%s",
-						!vol->mftmirr_ino ? es1 : es2,
-						es3);
+						   "continue nor on_errors="
+						   "remount-ro was specified%s",
+						   !vol->mftmirr_ino ? es1 : es2,
+						   es3);
 				goto iput_mirr_err_out;
 			}
+
 			sb->s_flags |= MS_RDONLY;
 			ntfs_error(sb, "%s.  Mounting read-only%s",
-					!vol->mftmirr_ino ? es1 : es2, es3);
-		} else
+					   !vol->mftmirr_ino ? es1 : es2, es3);
+		}
+		else
 			ntfs_warning(sb, "%s.  Will not be able to remount "
-					"read-write%s",
-					!vol->mftmirr_ino ? es1 : es2, es3);
+						 "read-write%s",
+						 !vol->mftmirr_ino ? es1 : es2, es3);
+
 		/* This will prevent a read-write remount. */
 		NVolSetErrors(vol);
 	}
+
 #endif /* NTFS_RW */
 	/* Get mft bitmap attribute inode. */
 	vol->mftbmp_ino = ntfs_attr_iget(vol->mft_ino, AT_BITMAP, NULL, 0);
-	if (IS_ERR(vol->mftbmp_ino)) {
+
+	if (IS_ERR(vol->mftbmp_ino))
+	{
 		ntfs_error(sb, "Failed to load $MFT/$BITMAP attribute.");
 		goto iput_mirr_err_out;
 	}
+
 	lockdep_set_class(&NTFS_I(vol->mftbmp_ino)->runlist.lock,
-			   &mftbmp_runlist_lock_key);
+					  &mftbmp_runlist_lock_key);
 	lockdep_set_class(&NTFS_I(vol->mftbmp_ino)->mrec_lock,
-			   &mftbmp_mrec_lock_key);
+					  &mftbmp_mrec_lock_key);
+
 	/* Read upcase table and setup @vol->upcase and @vol->upcase_len. */
 	if (!load_and_init_upcase(vol))
+	{
 		goto iput_mftbmp_err_out;
+	}
+
 #ifdef NTFS_RW
+
 	/*
 	 * Read attribute definitions table and setup @vol->attrdef and
 	 * @vol->attrdef_size.
 	 */
 	if (!load_and_init_attrdef(vol))
+	{
 		goto iput_upcase_err_out;
+	}
+
 #endif /* NTFS_RW */
 	/*
 	 * Get the cluster allocation bitmap inode and verify the size, no
@@ -1837,60 +2340,86 @@ static bool load_system_files(ntfs_volume *vol)
 	 * exclusively as we are mount in progress task.
 	 */
 	vol->lcnbmp_ino = ntfs_iget(sb, FILE_Bitmap);
-	if (IS_ERR(vol->lcnbmp_ino) || is_bad_inode(vol->lcnbmp_ino)) {
+
+	if (IS_ERR(vol->lcnbmp_ino) || is_bad_inode(vol->lcnbmp_ino))
+	{
 		if (!IS_ERR(vol->lcnbmp_ino))
+		{
 			iput(vol->lcnbmp_ino);
+		}
+
 		goto bitmap_failed;
 	}
+
 	lockdep_set_class(&NTFS_I(vol->lcnbmp_ino)->runlist.lock,
-			   &lcnbmp_runlist_lock_key);
+					  &lcnbmp_runlist_lock_key);
 	lockdep_set_class(&NTFS_I(vol->lcnbmp_ino)->mrec_lock,
-			   &lcnbmp_mrec_lock_key);
+					  &lcnbmp_mrec_lock_key);
 
 	NInoSetSparseDisabled(NTFS_I(vol->lcnbmp_ino));
-	if ((vol->nr_clusters + 7) >> 3 > i_size_read(vol->lcnbmp_ino)) {
+
+	if ((vol->nr_clusters + 7) >> 3 > i_size_read(vol->lcnbmp_ino))
+	{
 		iput(vol->lcnbmp_ino);
 bitmap_failed:
 		ntfs_error(sb, "Failed to load $Bitmap.");
 		goto iput_attrdef_err_out;
 	}
+
 	/*
 	 * Get the volume inode and setup our cache of the volume flags and
 	 * version.
 	 */
 	vol->vol_ino = ntfs_iget(sb, FILE_Volume);
-	if (IS_ERR(vol->vol_ino) || is_bad_inode(vol->vol_ino)) {
+
+	if (IS_ERR(vol->vol_ino) || is_bad_inode(vol->vol_ino))
+	{
 		if (!IS_ERR(vol->vol_ino))
+		{
 			iput(vol->vol_ino);
+		}
+
 volume_failed:
 		ntfs_error(sb, "Failed to load $Volume.");
 		goto iput_lcnbmp_err_out;
 	}
+
 	m = map_mft_record(NTFS_I(vol->vol_ino));
-	if (IS_ERR(m)) {
+
+	if (IS_ERR(m))
+	{
 iput_volume_failed:
 		iput(vol->vol_ino);
 		goto volume_failed;
 	}
-	if (!(ctx = ntfs_attr_get_search_ctx(NTFS_I(vol->vol_ino), m))) {
+
+	if (!(ctx = ntfs_attr_get_search_ctx(NTFS_I(vol->vol_ino), m)))
+	{
 		ntfs_error(sb, "Failed to get attribute search context.");
 		goto get_ctx_vol_failed;
 	}
+
 	if (ntfs_attr_lookup(AT_VOLUME_INFORMATION, NULL, 0, 0, 0, NULL, 0,
-			ctx) || ctx->attr->non_resident || ctx->attr->flags) {
+						 ctx) || ctx->attr->non_resident || ctx->attr->flags)
+	{
 err_put_vol:
 		ntfs_attr_put_search_ctx(ctx);
 get_ctx_vol_failed:
 		unmap_mft_record(NTFS_I(vol->vol_ino));
 		goto iput_volume_failed;
 	}
-	vi = (VOLUME_INFORMATION*)((char*)ctx->attr +
-			le16_to_cpu(ctx->attr->data.resident.value_offset));
+
+	vi = (VOLUME_INFORMATION *)((char *)ctx->attr +
+								le16_to_cpu(ctx->attr->data.resident.value_offset));
+
 	/* Some bounds checks. */
-	if ((u8*)vi < (u8*)ctx->attr || (u8*)vi +
-			le32_to_cpu(ctx->attr->data.resident.value_length) >
-			(u8*)ctx->attr + le32_to_cpu(ctx->attr->length))
+	if ((u8 *)vi < (u8 *)ctx->attr || (u8 *)vi +
+		le32_to_cpu(ctx->attr->data.resident.value_length) >
+		(u8 *)ctx->attr + le32_to_cpu(ctx->attr->length))
+	{
 		goto err_put_vol;
+	}
+
 	/* Copy the volume flags and version to the ntfs_volume structure. */
 	vol->vol_flags = vi->flags;
 	vol->major_ver = vi->major_ver;
@@ -1899,15 +2428,20 @@ get_ctx_vol_failed:
 	unmap_mft_record(NTFS_I(vol->vol_ino));
 	pr_info("volume version %i.%i.\n", vol->major_ver,
 			vol->minor_ver);
-	if (vol->major_ver < 3 && NVolSparseEnabled(vol)) {
+
+	if (vol->major_ver < 3 && NVolSparseEnabled(vol))
+	{
 		ntfs_warning(vol->sb, "Disabling sparse support due to NTFS "
-				"volume version %i.%i (need at least version "
-				"3.0).", vol->major_ver, vol->minor_ver);
+					 "volume version %i.%i (need at least version "
+					 "3.0).", vol->major_ver, vol->minor_ver);
 		NVolClearSparseEnabled(vol);
 	}
+
 #ifdef NTFS_RW
+
 	/* Make sure that no unsupported volume flags are set. */
-	if (vol->vol_flags & VOLUME_MUST_MOUNT_RO_MASK) {
+	if (vol->vol_flags & VOLUME_MUST_MOUNT_RO_MASK)
+	{
 		static const char *es1a = "Volume is dirty";
 		static const char *es1b = "Volume has been modified by chkdsk";
 		static const char *es1c = "Volume has unsupported flags set";
@@ -1916,82 +2450,113 @@ get_ctx_vol_failed:
 		const char *es1, *es2;
 
 		es2 = es2a;
+
 		if (vol->vol_flags & VOLUME_IS_DIRTY)
+		{
 			es1 = es1a;
-		else if (vol->vol_flags & VOLUME_MODIFIED_BY_CHKDSK) {
+		}
+		else if (vol->vol_flags & VOLUME_MODIFIED_BY_CHKDSK)
+		{
 			es1 = es1b;
 			es2 = es2b;
-		} else {
+		}
+		else
+		{
 			es1 = es1c;
 			ntfs_warning(sb, "Unsupported volume flags 0x%x "
-					"encountered.",
-					(unsigned)le16_to_cpu(vol->vol_flags));
+						 "encountered.",
+						 (unsigned)le16_to_cpu(vol->vol_flags));
 		}
+
 		/* If a read-write mount, convert it to a read-only mount. */
-		if (!(sb->s_flags & MS_RDONLY)) {
+		if (!(sb->s_flags & MS_RDONLY))
+		{
 			if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
-					ON_ERRORS_CONTINUE))) {
+									ON_ERRORS_CONTINUE)))
+			{
 				ntfs_error(sb, "%s and neither on_errors="
-						"continue nor on_errors="
-						"remount-ro was specified%s",
-						es1, es2);
+						   "continue nor on_errors="
+						   "remount-ro was specified%s",
+						   es1, es2);
 				goto iput_vol_err_out;
 			}
+
 			sb->s_flags |= MS_RDONLY;
 			ntfs_error(sb, "%s.  Mounting read-only%s", es1, es2);
-		} else
+		}
+		else
 			ntfs_warning(sb, "%s.  Will not be able to remount "
-					"read-write%s", es1, es2);
+						 "read-write%s", es1, es2);
+
 		/*
 		 * Do not set NVolErrors() because ntfs_remount() re-checks the
 		 * flags which we need to do in case any flags have changed.
 		 */
 	}
+
 	/*
 	 * Get the inode for the logfile, check it and determine if the volume
 	 * was shutdown cleanly.
 	 */
 	rp = NULL;
+
 	if (!load_and_check_logfile(vol, &rp) ||
-			!ntfs_is_logfile_clean(vol->logfile_ino, rp)) {
+		!ntfs_is_logfile_clean(vol->logfile_ino, rp))
+	{
 		static const char *es1a = "Failed to load $LogFile";
 		static const char *es1b = "$LogFile is not clean";
 		static const char *es2 = ".  Mount in Windows.";
 		const char *es1;
 
 		es1 = !vol->logfile_ino ? es1a : es1b;
+
 		/* If a read-write mount, convert it to a read-only mount. */
-		if (!(sb->s_flags & MS_RDONLY)) {
+		if (!(sb->s_flags & MS_RDONLY))
+		{
 			if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
-					ON_ERRORS_CONTINUE))) {
+									ON_ERRORS_CONTINUE)))
+			{
 				ntfs_error(sb, "%s and neither on_errors="
-						"continue nor on_errors="
-						"remount-ro was specified%s",
-						es1, es2);
-				if (vol->logfile_ino) {
+						   "continue nor on_errors="
+						   "remount-ro was specified%s",
+						   es1, es2);
+
+				if (vol->logfile_ino)
+				{
 					BUG_ON(!rp);
 					ntfs_free(rp);
 				}
+
 				goto iput_logfile_err_out;
 			}
+
 			sb->s_flags |= MS_RDONLY;
 			ntfs_error(sb, "%s.  Mounting read-only%s", es1, es2);
-		} else
+		}
+		else
 			ntfs_warning(sb, "%s.  Will not be able to remount "
-					"read-write%s", es1, es2);
+						 "read-write%s", es1, es2);
+
 		/* This will prevent a read-write remount. */
 		NVolSetErrors(vol);
 	}
+
 	ntfs_free(rp);
 #endif /* NTFS_RW */
 	/* Get the root directory inode so we can do path lookups. */
 	vol->root_ino = ntfs_iget(sb, FILE_root);
-	if (IS_ERR(vol->root_ino) || is_bad_inode(vol->root_ino)) {
+
+	if (IS_ERR(vol->root_ino) || is_bad_inode(vol->root_ino))
+	{
 		if (!IS_ERR(vol->root_ino))
+		{
 			iput(vol->root_ino);
+		}
+
 		ntfs_error(sb, "Failed to load root directory.");
 		goto iput_logfile_err_out;
 	}
+
 #ifdef NTFS_RW
 	/*
 	 * Check if Windows is suspended to disk on the target volume.  If it
@@ -2001,47 +2566,59 @@ get_ctx_vol_failed:
 	 * prevent all writes.
 	 */
 	err = check_windows_hibernation_status(vol);
-	if (unlikely(err)) {
+
+	if (unlikely(err))
+	{
 		static const char *es1a = "Failed to determine if Windows is "
-				"hibernated";
+								  "hibernated";
 		static const char *es1b = "Windows is hibernated";
 		static const char *es2 = ".  Run chkdsk.";
 		const char *es1;
 
 		es1 = err < 0 ? es1a : es1b;
+
 		/* If a read-write mount, convert it to a read-only mount. */
-		if (!(sb->s_flags & MS_RDONLY)) {
+		if (!(sb->s_flags & MS_RDONLY))
+		{
 			if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
-					ON_ERRORS_CONTINUE))) {
+									ON_ERRORS_CONTINUE)))
+			{
 				ntfs_error(sb, "%s and neither on_errors="
-						"continue nor on_errors="
-						"remount-ro was specified%s",
-						es1, es2);
+						   "continue nor on_errors="
+						   "remount-ro was specified%s",
+						   es1, es2);
 				goto iput_root_err_out;
 			}
+
 			sb->s_flags |= MS_RDONLY;
 			ntfs_error(sb, "%s.  Mounting read-only%s", es1, es2);
-		} else
+		}
+		else
 			ntfs_warning(sb, "%s.  Will not be able to remount "
-					"read-write%s", es1, es2);
+						 "read-write%s", es1, es2);
+
 		/* This will prevent a read-write remount. */
 		NVolSetErrors(vol);
 	}
+
 	/* If (still) a read-write mount, mark the volume dirty. */
 	if (!(sb->s_flags & MS_RDONLY) &&
-			ntfs_set_volume_flags(vol, VOLUME_IS_DIRTY)) {
+		ntfs_set_volume_flags(vol, VOLUME_IS_DIRTY))
+	{
 		static const char *es1 = "Failed to set dirty bit in volume "
-				"information flags";
+								 "information flags";
 		static const char *es2 = ".  Run chkdsk.";
 
 		/* Convert to a read-only mount. */
 		if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
-				ON_ERRORS_CONTINUE))) {
+								ON_ERRORS_CONTINUE)))
+		{
 			ntfs_error(sb, "%s and neither on_errors=continue nor "
-					"on_errors=remount-ro was specified%s",
-					es1, es2);
+					   "on_errors=remount-ro was specified%s",
+					   es1, es2);
 			goto iput_root_err_out;
 		}
+
 		ntfs_error(sb, "%s.  Mounting read-only%s", es1, es2);
 		sb->s_flags |= MS_RDONLY;
 		/*
@@ -2049,7 +2626,9 @@ get_ctx_vol_failed:
 		 * to set the dirty flag in which case all would be well.
 		 */
 	}
+
 #if 0
+
 	// TODO: Enable this code once we start modifying anything that is
 	//	 different between NTFS 1.2 and 3.x...
 	/*
@@ -2057,149 +2636,197 @@ get_ctx_vol_failed:
 	 * newer NTFS version volumes.
 	 */
 	if (!(sb->s_flags & MS_RDONLY) && (vol->major_ver > 1) &&
-			ntfs_set_volume_flags(vol, VOLUME_MOUNTED_ON_NT4)) {
+		ntfs_set_volume_flags(vol, VOLUME_MOUNTED_ON_NT4))
+	{
 		static const char *es1 = "Failed to set NT4 compatibility flag";
 		static const char *es2 = ".  Run chkdsk.";
 
 		/* Convert to a read-only mount. */
 		if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
-				ON_ERRORS_CONTINUE))) {
+								ON_ERRORS_CONTINUE)))
+		{
 			ntfs_error(sb, "%s and neither on_errors=continue nor "
-					"on_errors=remount-ro was specified%s",
-					es1, es2);
+					   "on_errors=remount-ro was specified%s",
+					   es1, es2);
 			goto iput_root_err_out;
 		}
+
 		ntfs_error(sb, "%s.  Mounting read-only%s", es1, es2);
 		sb->s_flags |= MS_RDONLY;
 		NVolSetErrors(vol);
 	}
+
 #endif
+
 	/* If (still) a read-write mount, empty the logfile. */
 	if (!(sb->s_flags & MS_RDONLY) &&
-			!ntfs_empty_logfile(vol->logfile_ino)) {
+		!ntfs_empty_logfile(vol->logfile_ino))
+	{
 		static const char *es1 = "Failed to empty $LogFile";
 		static const char *es2 = ".  Mount in Windows.";
 
 		/* Convert to a read-only mount. */
 		if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
-				ON_ERRORS_CONTINUE))) {
+								ON_ERRORS_CONTINUE)))
+		{
 			ntfs_error(sb, "%s and neither on_errors=continue nor "
-					"on_errors=remount-ro was specified%s",
-					es1, es2);
+					   "on_errors=remount-ro was specified%s",
+					   es1, es2);
 			goto iput_root_err_out;
 		}
+
 		ntfs_error(sb, "%s.  Mounting read-only%s", es1, es2);
 		sb->s_flags |= MS_RDONLY;
 		NVolSetErrors(vol);
 	}
+
 #endif /* NTFS_RW */
+
 	/* If on NTFS versions before 3.0, we are done. */
 	if (unlikely(vol->major_ver < 3))
+	{
 		return true;
+	}
+
 	/* NTFS 3.0+ specific initialization. */
 	/* Get the security descriptors inode. */
 	vol->secure_ino = ntfs_iget(sb, FILE_Secure);
-	if (IS_ERR(vol->secure_ino) || is_bad_inode(vol->secure_ino)) {
+
+	if (IS_ERR(vol->secure_ino) || is_bad_inode(vol->secure_ino))
+	{
 		if (!IS_ERR(vol->secure_ino))
+		{
 			iput(vol->secure_ino);
+		}
+
 		ntfs_error(sb, "Failed to load $Secure.");
 		goto iput_root_err_out;
 	}
+
 	// TODO: Initialize security.
 	/* Get the extended system files' directory inode. */
 	vol->extend_ino = ntfs_iget(sb, FILE_Extend);
-	if (IS_ERR(vol->extend_ino) || is_bad_inode(vol->extend_ino)) {
+
+	if (IS_ERR(vol->extend_ino) || is_bad_inode(vol->extend_ino))
+	{
 		if (!IS_ERR(vol->extend_ino))
+		{
 			iput(vol->extend_ino);
+		}
+
 		ntfs_error(sb, "Failed to load $Extend.");
 		goto iput_sec_err_out;
 	}
+
 #ifdef NTFS_RW
+
 	/* Find the quota file, load it if present, and set it up. */
-	if (!load_and_init_quota(vol)) {
+	if (!load_and_init_quota(vol))
+	{
 		static const char *es1 = "Failed to load $Quota";
 		static const char *es2 = ".  Run chkdsk.";
 
 		/* If a read-write mount, convert it to a read-only mount. */
-		if (!(sb->s_flags & MS_RDONLY)) {
+		if (!(sb->s_flags & MS_RDONLY))
+		{
 			if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
-					ON_ERRORS_CONTINUE))) {
+									ON_ERRORS_CONTINUE)))
+			{
 				ntfs_error(sb, "%s and neither on_errors="
-						"continue nor on_errors="
-						"remount-ro was specified%s",
-						es1, es2);
+						   "continue nor on_errors="
+						   "remount-ro was specified%s",
+						   es1, es2);
 				goto iput_quota_err_out;
 			}
+
 			sb->s_flags |= MS_RDONLY;
 			ntfs_error(sb, "%s.  Mounting read-only%s", es1, es2);
-		} else
+		}
+		else
 			ntfs_warning(sb, "%s.  Will not be able to remount "
-					"read-write%s", es1, es2);
+						 "read-write%s", es1, es2);
+
 		/* This will prevent a read-write remount. */
 		NVolSetErrors(vol);
 	}
+
 	/* If (still) a read-write mount, mark the quotas out of date. */
 	if (!(sb->s_flags & MS_RDONLY) &&
-			!ntfs_mark_quotas_out_of_date(vol)) {
+		!ntfs_mark_quotas_out_of_date(vol))
+	{
 		static const char *es1 = "Failed to mark quotas out of date";
 		static const char *es2 = ".  Run chkdsk.";
 
 		/* Convert to a read-only mount. */
 		if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
-				ON_ERRORS_CONTINUE))) {
+								ON_ERRORS_CONTINUE)))
+		{
 			ntfs_error(sb, "%s and neither on_errors=continue nor "
-					"on_errors=remount-ro was specified%s",
-					es1, es2);
+					   "on_errors=remount-ro was specified%s",
+					   es1, es2);
 			goto iput_quota_err_out;
 		}
+
 		ntfs_error(sb, "%s.  Mounting read-only%s", es1, es2);
 		sb->s_flags |= MS_RDONLY;
 		NVolSetErrors(vol);
 	}
+
 	/*
 	 * Find the transaction log file ($UsnJrnl), load it if present, check
 	 * it, and set it up.
 	 */
-	if (!load_and_init_usnjrnl(vol)) {
+	if (!load_and_init_usnjrnl(vol))
+	{
 		static const char *es1 = "Failed to load $UsnJrnl";
 		static const char *es2 = ".  Run chkdsk.";
 
 		/* If a read-write mount, convert it to a read-only mount. */
-		if (!(sb->s_flags & MS_RDONLY)) {
+		if (!(sb->s_flags & MS_RDONLY))
+		{
 			if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
-					ON_ERRORS_CONTINUE))) {
+									ON_ERRORS_CONTINUE)))
+			{
 				ntfs_error(sb, "%s and neither on_errors="
-						"continue nor on_errors="
-						"remount-ro was specified%s",
-						es1, es2);
+						   "continue nor on_errors="
+						   "remount-ro was specified%s",
+						   es1, es2);
 				goto iput_usnjrnl_err_out;
 			}
+
 			sb->s_flags |= MS_RDONLY;
 			ntfs_error(sb, "%s.  Mounting read-only%s", es1, es2);
-		} else
+		}
+		else
 			ntfs_warning(sb, "%s.  Will not be able to remount "
-					"read-write%s", es1, es2);
+						 "read-write%s", es1, es2);
+
 		/* This will prevent a read-write remount. */
 		NVolSetErrors(vol);
 	}
+
 	/* If (still) a read-write mount, stamp the transaction log. */
-	if (!(sb->s_flags & MS_RDONLY) && !ntfs_stamp_usnjrnl(vol)) {
+	if (!(sb->s_flags & MS_RDONLY) && !ntfs_stamp_usnjrnl(vol))
+	{
 		static const char *es1 = "Failed to stamp transaction log "
-				"($UsnJrnl)";
+								 "($UsnJrnl)";
 		static const char *es2 = ".  Run chkdsk.";
 
 		/* Convert to a read-only mount. */
 		if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
-				ON_ERRORS_CONTINUE))) {
+								ON_ERRORS_CONTINUE)))
+		{
 			ntfs_error(sb, "%s and neither on_errors=continue nor "
-					"on_errors=remount-ro was specified%s",
-					es1, es2);
+					   "on_errors=remount-ro was specified%s",
+					   es1, es2);
 			goto iput_usnjrnl_err_out;
 		}
+
 		ntfs_error(sb, "%s.  Mounting read-only%s", es1, es2);
 		sb->s_flags |= MS_RDONLY;
 		NVolSetErrors(vol);
 	}
+
 #endif /* NTFS_RW */
 	return true;
 #ifdef NTFS_RW
@@ -2226,24 +2853,33 @@ iput_lcnbmp_err_out:
 	iput(vol->lcnbmp_ino);
 iput_attrdef_err_out:
 	vol->attrdef_size = 0;
-	if (vol->attrdef) {
+
+	if (vol->attrdef)
+	{
 		ntfs_free(vol->attrdef);
 		vol->attrdef = NULL;
 	}
+
 #ifdef NTFS_RW
 iput_upcase_err_out:
 #endif /* NTFS_RW */
 	vol->upcase_len = 0;
 	mutex_lock(&ntfs_lock);
-	if (vol->upcase == default_upcase) {
+
+	if (vol->upcase == default_upcase)
+	{
 		ntfs_nr_upcase_users--;
 		vol->upcase = NULL;
 	}
+
 	mutex_unlock(&ntfs_lock);
-	if (vol->upcase) {
+
+	if (vol->upcase)
+	{
 		ntfs_free(vol->upcase);
 		vol->upcase = NULL;
 	}
+
 iput_mftbmp_err_out:
 	iput(vol->mftbmp_ino);
 iput_mirr_err_out:
@@ -2276,21 +2912,42 @@ static void ntfs_put_super(struct super_block *sb)
 	ntfs_commit_inode(vol->vol_ino);
 
 	/* NTFS 3.0+ specific. */
-	if (vol->major_ver >= 3) {
+	if (vol->major_ver >= 3)
+	{
 		if (vol->usnjrnl_j_ino)
+		{
 			ntfs_commit_inode(vol->usnjrnl_j_ino);
+		}
+
 		if (vol->usnjrnl_max_ino)
+		{
 			ntfs_commit_inode(vol->usnjrnl_max_ino);
+		}
+
 		if (vol->usnjrnl_ino)
+		{
 			ntfs_commit_inode(vol->usnjrnl_ino);
+		}
+
 		if (vol->quota_q_ino)
+		{
 			ntfs_commit_inode(vol->quota_q_ino);
+		}
+
 		if (vol->quota_ino)
+		{
 			ntfs_commit_inode(vol->quota_ino);
+		}
+
 		if (vol->extend_ino)
+		{
 			ntfs_commit_inode(vol->extend_ino);
+		}
+
 		if (vol->secure_ino)
+		{
 			ntfs_commit_inode(vol->secure_ino);
+		}
 	}
 
 	ntfs_commit_inode(vol->root_ino);
@@ -2304,66 +2961,97 @@ static void ntfs_put_super(struct super_block *sb)
 	up_write(&vol->mftbmp_lock);
 
 	if (vol->logfile_ino)
+	{
 		ntfs_commit_inode(vol->logfile_ino);
+	}
 
 	if (vol->mftmirr_ino)
+	{
 		ntfs_commit_inode(vol->mftmirr_ino);
+	}
+
 	ntfs_commit_inode(vol->mft_ino);
 
 	/*
 	 * If a read-write mount and no volume errors have occurred, mark the
 	 * volume clean.  Also, re-commit all affected inodes.
 	 */
-	if (!(sb->s_flags & MS_RDONLY)) {
-		if (!NVolErrors(vol)) {
+	if (!(sb->s_flags & MS_RDONLY))
+	{
+		if (!NVolErrors(vol))
+		{
 			if (ntfs_clear_volume_flags(vol, VOLUME_IS_DIRTY))
 				ntfs_warning(sb, "Failed to clear dirty bit "
-						"in volume information "
-						"flags.  Run chkdsk.");
+							 "in volume information "
+							 "flags.  Run chkdsk.");
+
 			ntfs_commit_inode(vol->vol_ino);
 			ntfs_commit_inode(vol->root_ino);
+
 			if (vol->mftmirr_ino)
+			{
 				ntfs_commit_inode(vol->mftmirr_ino);
+			}
+
 			ntfs_commit_inode(vol->mft_ino);
-		} else {
+		}
+		else
+		{
 			ntfs_warning(sb, "Volume has errors.  Leaving volume "
-					"marked dirty.  Run chkdsk.");
+						 "marked dirty.  Run chkdsk.");
 		}
 	}
+
 #endif /* NTFS_RW */
 
 	iput(vol->vol_ino);
 	vol->vol_ino = NULL;
 
 	/* NTFS 3.0+ specific clean up. */
-	if (vol->major_ver >= 3) {
+	if (vol->major_ver >= 3)
+	{
 #ifdef NTFS_RW
-		if (vol->usnjrnl_j_ino) {
+
+		if (vol->usnjrnl_j_ino)
+		{
 			iput(vol->usnjrnl_j_ino);
 			vol->usnjrnl_j_ino = NULL;
 		}
-		if (vol->usnjrnl_max_ino) {
+
+		if (vol->usnjrnl_max_ino)
+		{
 			iput(vol->usnjrnl_max_ino);
 			vol->usnjrnl_max_ino = NULL;
 		}
-		if (vol->usnjrnl_ino) {
+
+		if (vol->usnjrnl_ino)
+		{
 			iput(vol->usnjrnl_ino);
 			vol->usnjrnl_ino = NULL;
 		}
-		if (vol->quota_q_ino) {
+
+		if (vol->quota_q_ino)
+		{
 			iput(vol->quota_q_ino);
 			vol->quota_q_ino = NULL;
 		}
-		if (vol->quota_ino) {
+
+		if (vol->quota_ino)
+		{
 			iput(vol->quota_ino);
 			vol->quota_ino = NULL;
 		}
+
 #endif /* NTFS_RW */
-		if (vol->extend_ino) {
+
+		if (vol->extend_ino)
+		{
 			iput(vol->extend_ino);
 			vol->extend_ino = NULL;
 		}
-		if (vol->secure_ino) {
+
+		if (vol->secure_ino)
+		{
 			iput(vol->secure_ino);
 			vol->secure_ino = NULL;
 		}
@@ -2383,17 +3071,22 @@ static void ntfs_put_super(struct super_block *sb)
 	up_write(&vol->mftbmp_lock);
 
 #ifdef NTFS_RW
-	if (vol->logfile_ino) {
+
+	if (vol->logfile_ino)
+	{
 		iput(vol->logfile_ino);
 		vol->logfile_ino = NULL;
 	}
-	if (vol->mftmirr_ino) {
+
+	if (vol->mftmirr_ino)
+	{
 		/* Re-commit the mft mirror and mft just in case. */
 		ntfs_commit_inode(vol->mftmirr_ino);
 		ntfs_commit_inode(vol->mft_ino);
 		iput(vol->mftmirr_ino);
 		vol->mftmirr_ino = NULL;
 	}
+
 	/*
 	 * We should have no dirty inodes left, due to
 	 * mft.c::ntfs_mft_writepage() cleaning all the dirty pages as
@@ -2408,28 +3101,41 @@ static void ntfs_put_super(struct super_block *sb)
 
 	/* Throw away the table of attribute definitions. */
 	vol->attrdef_size = 0;
-	if (vol->attrdef) {
+
+	if (vol->attrdef)
+	{
 		ntfs_free(vol->attrdef);
 		vol->attrdef = NULL;
 	}
+
 	vol->upcase_len = 0;
 	/*
 	 * Destroy the global default upcase table if necessary.  Also decrease
 	 * the number of upcase users if we are a user.
 	 */
 	mutex_lock(&ntfs_lock);
-	if (vol->upcase == default_upcase) {
+
+	if (vol->upcase == default_upcase)
+	{
 		ntfs_nr_upcase_users--;
 		vol->upcase = NULL;
 	}
-	if (!ntfs_nr_upcase_users && default_upcase) {
+
+	if (!ntfs_nr_upcase_users && default_upcase)
+	{
 		ntfs_free(default_upcase);
 		default_upcase = NULL;
 	}
+
 	if (vol->cluster_size <= 4096 && !--ntfs_nr_compression_users)
+	{
 		free_compression_buffers();
+	}
+
 	mutex_unlock(&ntfs_lock);
-	if (vol->upcase) {
+
+	if (vol->upcase)
+	{
 		ntfs_free(vol->upcase);
 		vol->upcase = NULL;
 	}
@@ -2475,11 +3181,13 @@ static s64 get_nr_free_clusters(ntfs_volume *vol)
 	 * full and one partial page max_index = 2.
 	 */
 	max_index = (((vol->nr_clusters + 7) >> 3) + PAGE_SIZE - 1) >>
-			PAGE_SHIFT;
+				PAGE_SHIFT;
 	/* Use multiples of 4 bytes, thus max_size is PAGE_SIZE / 4. */
 	ntfs_debug("Reading $Bitmap, max_index = 0x%lx, max_size = 0x%lx.",
-			max_index, PAGE_SIZE / 4);
-	for (index = 0; index < max_index; index++) {
+			   max_index, PAGE_SIZE / 4);
+
+	for (index = 0; index < max_index; index++)
+	{
 		unsigned long *kaddr;
 
 		/*
@@ -2487,13 +3195,16 @@ static s64 get_nr_free_clusters(ntfs_volume *vol)
 		 * if necessary, and increment the use count.
 		 */
 		page = read_mapping_page(mapping, index, NULL);
+
 		/* Ignore pages which errored synchronously. */
-		if (IS_ERR(page)) {
+		if (IS_ERR(page))
+		{
 			ntfs_debug("read_mapping_page() error. Skipping "
-					"page (index 0x%lx).", index);
+					   "page (index 0x%lx).", index);
 			nr_free -= PAGE_SIZE * 8;
 			continue;
 		}
+
 		kaddr = kmap_atomic(page);
 		/*
 		 * Subtract the number of set bits. If this
@@ -2503,21 +3214,30 @@ static s64 get_nr_free_clusters(ntfs_volume *vol)
 		 * ntfs_readpage().
 		 */
 		nr_free -= bitmap_weight(kaddr,
-					PAGE_SIZE * BITS_PER_BYTE);
+								 PAGE_SIZE * BITS_PER_BYTE);
 		kunmap_atomic(kaddr);
 		put_page(page);
 	}
+
 	ntfs_debug("Finished reading $Bitmap, last index = 0x%lx.", index - 1);
+
 	/*
 	 * Fixup for eventual bits outside logical ntfs volume (see function
 	 * description above).
 	 */
 	if (vol->nr_clusters & 63)
+	{
 		nr_free += 64 - (vol->nr_clusters & 63);
+	}
+
 	up_read(&vol->lcnbmp_lock);
+
 	/* If errors occurred we may well have gone below zero, fix this. */
 	if (nr_free < 0)
+	{
 		nr_free = 0;
+	}
+
 	ntfs_debug("Exiting.");
 	return nr_free;
 }
@@ -2549,8 +3269,10 @@ static unsigned long __get_nr_free_mft_records(ntfs_volume *vol,
 	ntfs_debug("Entering.");
 	/* Use multiples of 4 bytes, thus max_size is PAGE_SIZE / 4. */
 	ntfs_debug("Reading $MFT/$BITMAP, max_index = 0x%lx, max_size = "
-			"0x%lx.", max_index, PAGE_SIZE / 4);
-	for (index = 0; index < max_index; index++) {
+			   "0x%lx.", max_index, PAGE_SIZE / 4);
+
+	for (index = 0; index < max_index; index++)
+	{
 		unsigned long *kaddr;
 
 		/*
@@ -2558,13 +3280,16 @@ static unsigned long __get_nr_free_mft_records(ntfs_volume *vol,
 		 * if necessary, and increment the use count.
 		 */
 		page = read_mapping_page(mapping, index, NULL);
+
 		/* Ignore pages which errored synchronously. */
-		if (IS_ERR(page)) {
+		if (IS_ERR(page))
+		{
 			ntfs_debug("read_mapping_page() error. Skipping "
-					"page (index 0x%lx).", index);
+					   "page (index 0x%lx).", index);
 			nr_free -= PAGE_SIZE * 8;
 			continue;
 		}
+
 		kaddr = kmap_atomic(page);
 		/*
 		 * Subtract the number of set bits. If this
@@ -2574,15 +3299,20 @@ static unsigned long __get_nr_free_mft_records(ntfs_volume *vol,
 		 * ntfs_readpage().
 		 */
 		nr_free -= bitmap_weight(kaddr,
-					PAGE_SIZE * BITS_PER_BYTE);
+								 PAGE_SIZE * BITS_PER_BYTE);
 		kunmap_atomic(kaddr);
 		put_page(page);
 	}
+
 	ntfs_debug("Finished reading $MFT/$BITMAP, last index = 0x%lx.",
-			index - 1);
+			   index - 1);
+
 	/* If errors occurred we may well have gone below zero, fix this. */
 	if (nr_free < 0)
+	{
 		nr_free = 0;
+	}
+
 	ntfs_debug("Exiting.");
 	return nr_free;
 }
@@ -2625,12 +3355,16 @@ static int ntfs_statfs(struct dentry *dentry, struct kstatfs *sfs)
 	 * the total clusters.
 	 */
 	sfs->f_blocks = vol->nr_clusters << vol->cluster_size_bits >>
-				PAGE_SHIFT;
+					PAGE_SHIFT;
 	/* Free data blocks in filesystem in units of f_bsize. */
 	size	      = get_nr_free_clusters(vol) << vol->cluster_size_bits >>
-				PAGE_SHIFT;
+					PAGE_SHIFT;
+
 	if (size < 0LL)
+	{
 		size = 0LL;
+	}
+
 	/* Free blocks avail to non-superuser, same as above on NTFS. */
 	sfs->f_bavail = sfs->f_bfree = size;
 	/* Serialize accesses to the inode bitmap. */
@@ -2643,7 +3377,7 @@ static int ntfs_statfs(struct dentry *dentry, struct kstatfs *sfs)
 	 * have one full and one partial page max_index = 2.
 	 */
 	max_index = ((((mft_ni->initialized_size >> vol->mft_record_size_bits)
-			+ 7) >> 3) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+				   + 7) >> 3) + PAGE_SIZE - 1) >> PAGE_SHIFT;
 	read_unlock_irqrestore(&mft_ni->size_lock, flags);
 	/* Number of inodes in filesystem (at this point in time). */
 	sfs->f_files = size;
@@ -2677,7 +3411,8 @@ static int ntfs_write_inode(struct inode *vi, struct writeback_control *wbc)
 /**
  * The complete super operations.
  */
-static const struct super_operations ntfs_sops = {
+static const struct super_operations ntfs_sops =
+{
 	.alloc_inode	= ntfs_alloc_big_inode,	  /* VFS: Allocate new inode. */
 	.destroy_inode	= ntfs_destroy_big_inode, /* VFS: Deallocate inode. */
 #ifdef NTFS_RW
@@ -2736,24 +3471,29 @@ static int ntfs_fill_super(struct super_block *sb, void *opt, const int silent)
 	/* Allocate a new ntfs_volume and place it in sb->s_fs_info. */
 	sb->s_fs_info = kmalloc(sizeof(ntfs_volume), GFP_NOFS);
 	vol = NTFS_SB(sb);
-	if (!vol) {
+
+	if (!vol)
+	{
 		if (!silent)
 			ntfs_error(sb, "Allocation of NTFS volume structure "
-					"failed. Aborting mount...");
+					   "failed. Aborting mount...");
+
 		lockdep_on();
 		return -ENOMEM;
 	}
+
 	/* Initialize ntfs_volume structure. */
-	*vol = (ntfs_volume) {
+	*vol = (ntfs_volume)
+	{
 		.sb = sb,
-		/*
-		 * Default is group and other don't have any access to files or
-		 * directories while owner has full access. Further, files by
-		 * default are not executable but directories are of course
-		 * browseable.
-		 */
-		.fmask = 0177,
-		.dmask = 0077,
+		 /*
+		  * Default is group and other don't have any access to files or
+		  * directories while owner has full access. Further, files by
+		  * default are not executable but directories are of course
+		  * browseable.
+		  */
+		 .fmask = 0177,
+		  .dmask = 0077,
 	};
 	init_rwsem(&vol->mftbmp_lock);
 	init_rwsem(&vol->lcnbmp_lock);
@@ -2762,58 +3502,87 @@ static int ntfs_fill_super(struct super_block *sb, void *opt, const int silent)
 	NVolSetSparseEnabled(vol);
 
 	/* Important to get the mount options dealt with now. */
-	if (!parse_options(vol, (char*)opt))
-		goto err_out_now;
-
-	/* We support sector sizes up to the PAGE_SIZE. */
-	if (bdev_logical_block_size(sb->s_bdev) > PAGE_SIZE) {
-		if (!silent)
-			ntfs_error(sb, "Device has unsupported sector size "
-					"(%i).  The maximum supported sector "
-					"size on this architecture is %lu "
-					"bytes.",
-					bdev_logical_block_size(sb->s_bdev),
-					PAGE_SIZE);
+	if (!parse_options(vol, (char *)opt))
+	{
 		goto err_out_now;
 	}
+
+	/* We support sector sizes up to the PAGE_SIZE. */
+	if (bdev_logical_block_size(sb->s_bdev) > PAGE_SIZE)
+	{
+		if (!silent)
+			ntfs_error(sb, "Device has unsupported sector size "
+					   "(%i).  The maximum supported sector "
+					   "size on this architecture is %lu "
+					   "bytes.",
+					   bdev_logical_block_size(sb->s_bdev),
+					   PAGE_SIZE);
+
+		goto err_out_now;
+	}
+
 	/*
 	 * Setup the device access block size to NTFS_BLOCK_SIZE or the hard
 	 * sector size, whichever is bigger.
 	 */
 	blocksize = sb_min_blocksize(sb, NTFS_BLOCK_SIZE);
-	if (blocksize < NTFS_BLOCK_SIZE) {
+
+	if (blocksize < NTFS_BLOCK_SIZE)
+	{
 		if (!silent)
+		{
 			ntfs_error(sb, "Unable to set device block size.");
+		}
+
 		goto err_out_now;
 	}
+
 	BUG_ON(blocksize != sb->s_blocksize);
 	ntfs_debug("Set device block size to %i bytes (block size bits %i).",
-			blocksize, sb->s_blocksize_bits);
+			   blocksize, sb->s_blocksize_bits);
+
 	/* Determine the size of the device in units of block_size bytes. */
-	if (!i_size_read(sb->s_bdev->bd_inode)) {
+	if (!i_size_read(sb->s_bdev->bd_inode))
+	{
 		if (!silent)
+		{
 			ntfs_error(sb, "Unable to determine device size.");
+		}
+
 		goto err_out_now;
 	}
+
 	vol->nr_blocks = i_size_read(sb->s_bdev->bd_inode) >>
-			sb->s_blocksize_bits;
+					 sb->s_blocksize_bits;
+
 	/* Read the boot sector and return unlocked buffer head to it. */
-	if (!(bh = read_ntfs_boot_sector(sb, silent))) {
+	if (!(bh = read_ntfs_boot_sector(sb, silent)))
+	{
 		if (!silent)
+		{
 			ntfs_error(sb, "Not an NTFS volume.");
+		}
+
 		goto err_out_now;
 	}
+
 	/*
 	 * Extract the data from the boot sector and setup the ntfs volume
 	 * using it.
 	 */
-	result = parse_ntfs_boot_sector(vol, (NTFS_BOOT_SECTOR*)bh->b_data);
+	result = parse_ntfs_boot_sector(vol, (NTFS_BOOT_SECTOR *)bh->b_data);
 	brelse(bh);
-	if (!result) {
+
+	if (!result)
+	{
 		if (!silent)
+		{
 			ntfs_error(sb, "Unsupported NTFS filesystem.");
+		}
+
 		goto err_out_now;
 	}
+
 	/*
 	 * If the boot sector indicates a sector size bigger than the current
 	 * device block size, switch the device block size to the sector size.
@@ -2824,22 +3593,28 @@ static int ntfs_fill_super(struct super_block *sb, void *opt, const int silent)
 	 * error message and then we can get them to try it without the setting
 	 * so we know for sure that it works.
 	 */
-	if (vol->sector_size > blocksize) {
+	if (vol->sector_size > blocksize)
+	{
 		blocksize = sb_set_blocksize(sb, vol->sector_size);
-		if (blocksize != vol->sector_size) {
+
+		if (blocksize != vol->sector_size)
+		{
 			if (!silent)
 				ntfs_error(sb, "Unable to set device block "
-						"size to sector size (%i).",
-						vol->sector_size);
+						   "size to sector size (%i).",
+						   vol->sector_size);
+
 			goto err_out_now;
 		}
+
 		BUG_ON(blocksize != sb->s_blocksize);
 		vol->nr_blocks = i_size_read(sb->s_bdev->bd_inode) >>
-				sb->s_blocksize_bits;
+						 sb->s_blocksize_bits;
 		ntfs_debug("Changed device block size to %i bytes (block size "
-				"bits %i) to match volume sector size.",
-				blocksize, sb->s_blocksize_bits);
+				   "bits %i) to match volume sector size.",
+				   blocksize, sb->s_blocksize_bits);
 	}
+
 	/* Initialize the cluster and mft allocators. */
 	ntfs_setup_allocators(vol);
 	/* Setup remaining fields in the super block. */
@@ -2864,42 +3639,63 @@ static int ntfs_fill_super(struct super_block *sb, void *opt, const int silent)
 	 */
 	sb->s_op = &ntfs_sops;
 	tmp_ino = new_inode(sb);
-	if (!tmp_ino) {
+
+	if (!tmp_ino)
+	{
 		if (!silent)
+		{
 			ntfs_error(sb, "Failed to load essential metadata.");
+		}
+
 		goto err_out_now;
 	}
+
 	tmp_ino->i_ino = FILE_MFT;
 	insert_inode_hash(tmp_ino);
-	if (ntfs_read_inode_mount(tmp_ino) < 0) {
+
+	if (ntfs_read_inode_mount(tmp_ino) < 0)
+	{
 		if (!silent)
+		{
 			ntfs_error(sb, "Failed to load essential metadata.");
+		}
+
 		goto iput_tmp_ino_err_out_now;
 	}
+
 	mutex_lock(&ntfs_lock);
+
 	/*
 	 * The current mount is a compression user if the cluster size is
 	 * less than or equal 4kiB.
 	 */
-	if (vol->cluster_size <= 4096 && !ntfs_nr_compression_users++) {
+	if (vol->cluster_size <= 4096 && !ntfs_nr_compression_users++)
+	{
 		result = allocate_compression_buffers();
-		if (result) {
+
+		if (result)
+		{
 			ntfs_error(NULL, "Failed to allocate buffers "
-					"for compression engine.");
+					   "for compression engine.");
 			ntfs_nr_compression_users--;
 			mutex_unlock(&ntfs_lock);
 			goto iput_tmp_ino_err_out_now;
 		}
 	}
+
 	/*
 	 * Generate the global default upcase table if necessary.  Also
 	 * temporarily increment the number of upcase users to avoid race
 	 * conditions with concurrent (u)mounts.
 	 */
 	if (!default_upcase)
+	{
 		default_upcase = generate_default_upcase();
+	}
+
 	ntfs_nr_upcase_users++;
 	mutex_unlock(&ntfs_lock);
+
 	/*
 	 * From now on, ignore @silent parameter. If we fail below this line,
 	 * it will be due to a corrupt fs or a system error, so we report it.
@@ -2908,26 +3704,33 @@ static int ntfs_fill_super(struct super_block *sb, void *opt, const int silent)
 	 * Open the system files with normal access functions and complete
 	 * setting up the ntfs super block.
 	 */
-	if (!load_system_files(vol)) {
+	if (!load_system_files(vol))
+	{
 		ntfs_error(sb, "Failed to load system files.");
 		goto unl_upcase_iput_tmp_ino_err_out_now;
 	}
 
 	/* We grab a reference, simulating an ntfs_iget(). */
 	ihold(vol->root_ino);
-	if ((sb->s_root = d_make_root(vol->root_ino))) {
+
+	if ((sb->s_root = d_make_root(vol->root_ino)))
+	{
 		ntfs_debug("Exiting, status successful.");
 		/* Release the default upcase if it has no users. */
 		mutex_lock(&ntfs_lock);
-		if (!--ntfs_nr_upcase_users && default_upcase) {
+
+		if (!--ntfs_nr_upcase_users && default_upcase)
+		{
 			ntfs_free(default_upcase);
 			default_upcase = NULL;
 		}
+
 		mutex_unlock(&ntfs_lock);
 		sb->s_export_op = &ntfs_export_ops;
 		lockdep_on();
 		return 0;
 	}
+
 	ntfs_error(sb, "Failed to allocate root directory.");
 	/* Clean up after the successful load_system_files() call from above. */
 	// TODO: Use ntfs_put_super() instead of repeating all this code...
@@ -2935,39 +3738,57 @@ static int ntfs_fill_super(struct super_block *sb, void *opt, const int silent)
 	// 	  -ENOMEM.
 	iput(vol->vol_ino);
 	vol->vol_ino = NULL;
+
 	/* NTFS 3.0+ specific clean up. */
-	if (vol->major_ver >= 3) {
+	if (vol->major_ver >= 3)
+	{
 #ifdef NTFS_RW
-		if (vol->usnjrnl_j_ino) {
+
+		if (vol->usnjrnl_j_ino)
+		{
 			iput(vol->usnjrnl_j_ino);
 			vol->usnjrnl_j_ino = NULL;
 		}
-		if (vol->usnjrnl_max_ino) {
+
+		if (vol->usnjrnl_max_ino)
+		{
 			iput(vol->usnjrnl_max_ino);
 			vol->usnjrnl_max_ino = NULL;
 		}
-		if (vol->usnjrnl_ino) {
+
+		if (vol->usnjrnl_ino)
+		{
 			iput(vol->usnjrnl_ino);
 			vol->usnjrnl_ino = NULL;
 		}
-		if (vol->quota_q_ino) {
+
+		if (vol->quota_q_ino)
+		{
 			iput(vol->quota_q_ino);
 			vol->quota_q_ino = NULL;
 		}
-		if (vol->quota_ino) {
+
+		if (vol->quota_ino)
+		{
 			iput(vol->quota_ino);
 			vol->quota_ino = NULL;
 		}
+
 #endif /* NTFS_RW */
-		if (vol->extend_ino) {
+
+		if (vol->extend_ino)
+		{
 			iput(vol->extend_ino);
 			vol->extend_ino = NULL;
 		}
-		if (vol->secure_ino) {
+
+		if (vol->secure_ino)
+		{
 			iput(vol->secure_ino);
 			vol->secure_ino = NULL;
 		}
 	}
+
 	iput(vol->root_ino);
 	vol->root_ino = NULL;
 	iput(vol->lcnbmp_ino);
@@ -2975,36 +3796,52 @@ static int ntfs_fill_super(struct super_block *sb, void *opt, const int silent)
 	iput(vol->mftbmp_ino);
 	vol->mftbmp_ino = NULL;
 #ifdef NTFS_RW
-	if (vol->logfile_ino) {
+
+	if (vol->logfile_ino)
+	{
 		iput(vol->logfile_ino);
 		vol->logfile_ino = NULL;
 	}
-	if (vol->mftmirr_ino) {
+
+	if (vol->mftmirr_ino)
+	{
 		iput(vol->mftmirr_ino);
 		vol->mftmirr_ino = NULL;
 	}
+
 #endif /* NTFS_RW */
 	/* Throw away the table of attribute definitions. */
 	vol->attrdef_size = 0;
-	if (vol->attrdef) {
+
+	if (vol->attrdef)
+	{
 		ntfs_free(vol->attrdef);
 		vol->attrdef = NULL;
 	}
+
 	vol->upcase_len = 0;
 	mutex_lock(&ntfs_lock);
-	if (vol->upcase == default_upcase) {
+
+	if (vol->upcase == default_upcase)
+	{
 		ntfs_nr_upcase_users--;
 		vol->upcase = NULL;
 	}
+
 	mutex_unlock(&ntfs_lock);
-	if (vol->upcase) {
+
+	if (vol->upcase)
+	{
 		ntfs_free(vol->upcase);
 		vol->upcase = NULL;
 	}
-	if (vol->nls_map) {
+
+	if (vol->nls_map)
+	{
 		unload_nls(vol->nls_map);
 		vol->nls_map = NULL;
 	}
+
 	/* Error exit code path. */
 unl_upcase_iput_tmp_ino_err_out_now:
 	/*
@@ -3012,17 +3849,27 @@ unl_upcase_iput_tmp_ino_err_out_now:
 	 * upcase table if necessary.
 	 */
 	mutex_lock(&ntfs_lock);
-	if (!--ntfs_nr_upcase_users && default_upcase) {
+
+	if (!--ntfs_nr_upcase_users && default_upcase)
+	{
 		ntfs_free(default_upcase);
 		default_upcase = NULL;
 	}
+
 	if (vol->cluster_size <= 4096 && !--ntfs_nr_compression_users)
+	{
 		free_compression_buffers();
+	}
+
 	mutex_unlock(&ntfs_lock);
 iput_tmp_ino_err_out_now:
 	iput(tmp_ino);
+
 	if (vol->mft_ino && vol->mft_ino != tmp_ino)
+	{
 		iput(vol->mft_ino);
+	}
+
 	vol->mft_ino = NULL;
 	/* Errors at this stage are irrelevant. */
 err_out_now:
@@ -3063,12 +3910,13 @@ struct kmem_cache *ntfs_index_ctx_cache;
 DEFINE_MUTEX(ntfs_lock);
 
 static struct dentry *ntfs_mount(struct file_system_type *fs_type,
-	int flags, const char *dev_name, void *data)
+								 int flags, const char *dev_name, void *data)
 {
 	return mount_bdev(fs_type, flags, dev_name, data, ntfs_fill_super);
 }
 
-static struct file_system_type ntfs_fs_type = {
+static struct file_system_type ntfs_fs_type =
+{
 	.owner		= THIS_MODULE,
 	.name		= "ntfs",
 	.mount		= ntfs_mount,
@@ -3106,58 +3954,74 @@ static int __init init_ntfs_fs(void)
 	ntfs_debug("Debug messages are enabled.");
 
 	ntfs_index_ctx_cache = kmem_cache_create(ntfs_index_ctx_cache_name,
-			sizeof(ntfs_index_context), 0 /* offset */,
-			SLAB_HWCACHE_ALIGN, NULL /* ctor */);
-	if (!ntfs_index_ctx_cache) {
+						   sizeof(ntfs_index_context), 0 /* offset */,
+						   SLAB_HWCACHE_ALIGN, NULL /* ctor */);
+
+	if (!ntfs_index_ctx_cache)
+	{
 		pr_crit("Failed to create %s!\n", ntfs_index_ctx_cache_name);
 		goto ictx_err_out;
 	}
+
 	ntfs_attr_ctx_cache = kmem_cache_create(ntfs_attr_ctx_cache_name,
-			sizeof(ntfs_attr_search_ctx), 0 /* offset */,
-			SLAB_HWCACHE_ALIGN, NULL /* ctor */);
-	if (!ntfs_attr_ctx_cache) {
+											sizeof(ntfs_attr_search_ctx), 0 /* offset */,
+											SLAB_HWCACHE_ALIGN, NULL /* ctor */);
+
+	if (!ntfs_attr_ctx_cache)
+	{
 		pr_crit("NTFS: Failed to create %s!\n",
-			ntfs_attr_ctx_cache_name);
+				ntfs_attr_ctx_cache_name);
 		goto actx_err_out;
 	}
 
 	ntfs_name_cache = kmem_cache_create(ntfs_name_cache_name,
-			(NTFS_MAX_NAME_LEN+1) * sizeof(ntfschar), 0,
-			SLAB_HWCACHE_ALIGN, NULL);
-	if (!ntfs_name_cache) {
+										(NTFS_MAX_NAME_LEN + 1) * sizeof(ntfschar), 0,
+										SLAB_HWCACHE_ALIGN, NULL);
+
+	if (!ntfs_name_cache)
+	{
 		pr_crit("Failed to create %s!\n", ntfs_name_cache_name);
 		goto name_err_out;
 	}
 
 	ntfs_inode_cache = kmem_cache_create(ntfs_inode_cache_name,
-			sizeof(ntfs_inode), 0,
-			SLAB_RECLAIM_ACCOUNT|SLAB_MEM_SPREAD, NULL);
-	if (!ntfs_inode_cache) {
+										 sizeof(ntfs_inode), 0,
+										 SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD, NULL);
+
+	if (!ntfs_inode_cache)
+	{
 		pr_crit("Failed to create %s!\n", ntfs_inode_cache_name);
 		goto inode_err_out;
 	}
 
 	ntfs_big_inode_cache = kmem_cache_create(ntfs_big_inode_cache_name,
-			sizeof(big_ntfs_inode), 0,
-			SLAB_HWCACHE_ALIGN|SLAB_RECLAIM_ACCOUNT|SLAB_MEM_SPREAD|
-			SLAB_ACCOUNT, ntfs_big_inode_init_once);
-	if (!ntfs_big_inode_cache) {
+						   sizeof(big_ntfs_inode), 0,
+						   SLAB_HWCACHE_ALIGN | SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD |
+						   SLAB_ACCOUNT, ntfs_big_inode_init_once);
+
+	if (!ntfs_big_inode_cache)
+	{
 		pr_crit("Failed to create %s!\n", ntfs_big_inode_cache_name);
 		goto big_inode_err_out;
 	}
 
 	/* Register the ntfs sysctls. */
 	err = ntfs_sysctl(1);
-	if (err) {
+
+	if (err)
+	{
 		pr_crit("Failed to register NTFS sysctls!\n");
 		goto sysctl_err_out;
 	}
 
 	err = register_filesystem(&ntfs_fs_type);
-	if (!err) {
+
+	if (!err)
+	{
 		ntfs_debug("NTFS driver registered successfully.");
 		return 0; /* Success! */
 	}
+
 	pr_crit("Failed to register NTFS filesystem driver!\n");
 
 	/* Unregister the ntfs sysctls. */
@@ -3173,10 +4037,13 @@ name_err_out:
 actx_err_out:
 	kmem_cache_destroy(ntfs_index_ctx_cache);
 ictx_err_out:
-	if (!err) {
+
+	if (!err)
+	{
 		pr_crit("Aborting NTFS filesystem driver registration...\n");
 		err = -ENOMEM;
 	}
+
 	return err;
 }
 
@@ -3205,8 +4072,8 @@ MODULE_DESCRIPTION("NTFS 1.2/3.x driver - Copyright (c) 2001-2014 Anton Altaparm
 MODULE_VERSION(NTFS_VERSION);
 MODULE_LICENSE("GPL");
 #ifdef DEBUG
-module_param(debug_msgs, bint, 0);
-MODULE_PARM_DESC(debug_msgs, "Enable debug messages.");
+	module_param(debug_msgs, bint, 0);
+	MODULE_PARM_DESC(debug_msgs, "Enable debug messages.");
 #endif
 
 module_init(init_ntfs_fs)

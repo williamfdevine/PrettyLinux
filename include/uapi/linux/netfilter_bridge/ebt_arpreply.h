@@ -3,7 +3,8 @@
 
 #include <linux/if_ether.h>
 
-struct ebt_arpreply_info {
+struct ebt_arpreply_info
+{
 	unsigned char mac[ETH_ALEN];
 	int target;
 };

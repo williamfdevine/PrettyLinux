@@ -45,7 +45,7 @@
 
 #define Q_EMPTY(rptr,wptr) ((rptr)==(wptr))
 #define Q_FULL(rptr,wptr,size_log2)  ( (((wptr)-(rptr))>>(size_log2)) && \
-				       ((rptr)!=(wptr)) )
+									   ((rptr)!=(wptr)) )
 #define Q_GENBIT(ptr,size_log2) (!(((ptr)>>size_log2)&0x1))
 #define Q_FREECNT(rptr,wptr,size_log2) ((1UL<<size_log2)-((wptr)-(rptr)))
 #define Q_COUNT(rptr,wptr) ((wptr)-(rptr))
@@ -53,12 +53,13 @@
 
 static inline void ring_doorbell(void __iomem *doorbell, u32 qpid)
 {
-	writel(((1<<31) | qpid), doorbell);
+	writel(((1 << 31) | qpid), doorbell);
 }
 
 #define SEQ32_GE(x,y) (!( (((u32) (x)) - ((u32) (y))) & 0x80000000 ))
 
-enum t3_wr_flags {
+enum t3_wr_flags
+{
 	T3_COMPLETION_FLAG = 0x01,
 	T3_NOTIFY_FLAG = 0x02,
 	T3_SOLICITED_EVENT_FLAG = 0x04,
@@ -66,7 +67,8 @@ enum t3_wr_flags {
 	T3_LOCAL_FENCE_FLAG = 0x10
 } __attribute__ ((packed));
 
-enum t3_wr_opcode {
+enum t3_wr_opcode
+{
 	T3_WR_BP = FW_WROPCODE_RI_BYPASS,
 	T3_WR_SEND = FW_WROPCODE_RI_SEND,
 	T3_WR_WRITE = FW_WROPCODE_RI_RDMA_WRITE,
@@ -79,7 +81,8 @@ enum t3_wr_opcode {
 	T3_WR_FASTREG = FW_WROPCODE_RI_FASTREGISTER_MR
 } __attribute__ ((packed));
 
-enum t3_rdma_opcode {
+enum t3_rdma_opcode
+{
 	T3_RDMA_WRITE,		/* IETF RDMAP v1.0 ... */
 	T3_READ_REQ,
 	T3_READ_RESP,
@@ -99,25 +102,38 @@ enum t3_rdma_opcode {
 
 static inline enum t3_rdma_opcode wr2opcode(enum t3_wr_opcode wrop)
 {
-	switch (wrop) {
+	switch (wrop)
+	{
 		case T3_WR_BP: return T3_BYPASS;
-		case T3_WR_SEND: return T3_SEND;
-		case T3_WR_WRITE: return T3_RDMA_WRITE;
-		case T3_WR_READ: return T3_READ_REQ;
-		case T3_WR_INV_STAG: return T3_LOCAL_INV;
-		case T3_WR_BIND: return T3_BIND_MW;
-		case T3_WR_INIT: return T3_RDMA_INIT;
-		case T3_WR_QP_MOD: return T3_QP_MOD;
-		case T3_WR_FASTREG: return T3_FAST_REGISTER;
-		default: break;
+
+			case T3_WR_SEND: return T3_SEND;
+
+			case T3_WR_WRITE: return T3_RDMA_WRITE;
+
+			case T3_WR_READ: return T3_READ_REQ;
+
+			case T3_WR_INV_STAG: return T3_LOCAL_INV;
+
+			case T3_WR_BIND: return T3_BIND_MW;
+
+			case T3_WR_INIT: return T3_RDMA_INIT;
+
+			case T3_WR_QP_MOD: return T3_QP_MOD;
+
+			case T3_WR_FASTREG: return T3_FAST_REGISTER;
+
+			default: break;
+		}
+
+		return -1;
 	}
-	return -1;
-}
 
 
-/* Work request id */
-union t3_wrid {
-	struct {
+	/* Work request id */
+	union t3_wrid
+{
+	struct
+	{
 		u32 hi;
 		u32 low;
 	} id0;
@@ -129,7 +145,8 @@ union t3_wrid {
 #define WRID_IDX(wrid)		(wrid.id0.wr_idx)
 #define WRID_LO(wrid)		(wrid.id0.wr_lo)
 
-struct fw_riwrh {
+struct fw_riwrh
+{
 	__be32 op_seop_flags;
 	__be32 gen_tid_len;
 };
@@ -157,14 +174,16 @@ struct fw_riwrh {
 #define S_FW_RIWR_GEN           31
 #define V_FW_RIWR_GEN(x)        ((x)  << S_FW_RIWR_GEN)
 
-struct t3_sge {
+struct t3_sge
+{
 	__be32 stag;
 	__be32 len;
 	__be64 to;
 };
 
 /* If num_sgle is zero, flit 5+ contains immediate data.*/
-struct t3_send_wr {
+struct t3_send_wr
+{
 	struct fw_riwrh wrh;	/* 0 */
 	union t3_wrid wrid;	/* 1 */
 
@@ -179,7 +198,8 @@ struct t3_send_wr {
 #define T3_MAX_FASTREG_DEPTH 10
 #define T3_MAX_FASTREG_FRAG 10
 
-struct t3_fastreg_wr {
+struct t3_fastreg_wr
+{
 	struct fw_riwrh wrh;	/* 0 */
 	union t3_wrid wrid;	/* 1 */
 	__be32 stag;		/* 2 */
@@ -194,7 +214,8 @@ struct t3_fastreg_wr {
 /*
  * If a fastreg wr spans multiple wqes, then the 2nd fragment look like this.
  */
-struct t3_pbl_frag {
+struct t3_pbl_frag
+{
 	struct fw_riwrh wrh;	/* 0 */
 	__be64 pbl_addrs[14];	/* 1..14 */
 };
@@ -219,14 +240,16 @@ struct t3_pbl_frag {
 #define V_FR_PERMS(x)		((x) << S_FR_PERMS)
 #define G_FR_PERMS(x)		((((x) >> S_FR_PERMS)) & M_FR_PERMS)
 
-struct t3_local_inv_wr {
+struct t3_local_inv_wr
+{
 	struct fw_riwrh wrh;	/* 0 */
 	union t3_wrid wrid;	/* 1 */
 	__be32 stag;		/* 2 */
 	__be32 reserved;
 };
 
-struct t3_rdma_write_wr {
+struct t3_rdma_write_wr
+{
 	struct fw_riwrh wrh;	/* 0 */
 	union t3_wrid wrid;	/* 1 */
 	u8 rdmaop;		/* 2 */
@@ -238,7 +261,8 @@ struct t3_rdma_write_wr {
 	struct t3_sge sgl[T3_MAX_SGE];	/* 5+ */
 };
 
-struct t3_rdma_read_wr {
+struct t3_rdma_read_wr
+{
 	struct fw_riwrh wrh;	/* 0 */
 	union t3_wrid wrid;	/* 1 */
 	u8 rdmaop;		/* 2 */
@@ -251,7 +275,8 @@ struct t3_rdma_read_wr {
 	__be64 local_to;	/* 5 */
 };
 
-struct t3_bind_mw_wr {
+struct t3_bind_mw_wr
+{
 	struct fw_riwrh wrh;	/* 0 */
 	union t3_wrid wrid;	/* 1 */
 	u16 reserved;		/* 2 */
@@ -266,7 +291,8 @@ struct t3_bind_mw_wr {
 	u8 mr_pagesz;
 };
 
-struct t3_receive_wr {
+struct t3_receive_wr
+{
 	struct fw_riwrh wrh;	/* 0 */
 	union t3_wrid wrid;	/* 1 */
 	u8 pagesz[T3_MAX_SGE];
@@ -275,12 +301,14 @@ struct t3_receive_wr {
 	__be32 pbl_addr[T3_MAX_SGE];
 };
 
-struct t3_bypass_wr {
+struct t3_bypass_wr
+{
 	struct fw_riwrh wrh;
 	union t3_wrid wrid;	/* 1 */
 };
 
-struct t3_modify_qp_wr {
+struct t3_modify_qp_wr
+{
 	struct fw_riwrh wrh;	/* 0 */
 	union t3_wrid wrid;	/* 1 */
 	__be32 flags;		/* 2 */
@@ -292,7 +320,8 @@ struct t3_modify_qp_wr {
 	__be64 ctx0;		/* 6 */
 };
 
-enum t3_modify_qp_flags {
+enum t3_modify_qp_flags
+{
 	MODQP_QUIESCE  = 0x01,
 	MODQP_MAX_IRD  = 0x02,
 	MODQP_MAX_ORD  = 0x04,
@@ -301,14 +330,16 @@ enum t3_modify_qp_flags {
 };
 
 
-enum t3_mpa_attrs {
+enum t3_mpa_attrs
+{
 	uP_RI_MPA_RX_MARKER_ENABLE = 0x1,
 	uP_RI_MPA_TX_MARKER_ENABLE = 0x2,
 	uP_RI_MPA_CRC_ENABLE = 0x4,
 	uP_RI_MPA_IETF_ENABLE = 0x8
 } __attribute__ ((packed));
 
-enum t3_qp_caps {
+enum t3_qp_caps
+{
 	uP_RI_QP_RDMA_READ_ENABLE = 0x01,
 	uP_RI_QP_RDMA_WRITE_ENABLE = 0x02,
 	uP_RI_QP_BIND_ENABLE = 0x04,
@@ -316,7 +347,8 @@ enum t3_qp_caps {
 	uP_RI_QP_STAG0_ENABLE = 0x10
 } __attribute__ ((packed));
 
-enum rdma_init_rtr_types {
+enum rdma_init_rtr_types
+{
 	RTR_READ = 1,
 	RTR_WRITE = 2,
 	RTR_SEND = 3,
@@ -332,7 +364,8 @@ enum rdma_init_rtr_types {
 #define V_CHAN(x)	((x) << S_CHAN)
 #define G_CHAN(x)	((((x) >> S_CHAN)) & M_CHAN)
 
-struct t3_rdma_init_attr {
+struct t3_rdma_init_attr
+{
 	u32 tid;
 	u32 qpid;
 	u32 pdid;
@@ -354,7 +387,8 @@ struct t3_rdma_init_attr {
 	u32 chan;
 };
 
-struct t3_rdma_init_wr {
+struct t3_rdma_init_wr
+{
 	struct fw_riwrh wrh;	/* 0 */
 	union t3_wrid wrid;	/* 1 */
 	__be32 qpid;		/* 2 */
@@ -375,22 +409,26 @@ struct t3_rdma_init_wr {
 	__be32 irs;
 };
 
-struct t3_genbit {
+struct t3_genbit
+{
 	u64 flit[15];
 	__be64 genbit;
 };
 
-struct t3_wq_in_err {
+struct t3_wq_in_err
+{
 	u64 flit[13];
 	u64 err;
 };
 
-enum rdma_init_wr_flags {
-	MPA_INITIATOR = (1<<0),
-	PRIV_QP = (1<<1),
+enum rdma_init_wr_flags
+{
+	MPA_INITIATOR = (1 << 0),
+	PRIV_QP = (1 << 1),
 };
 
-union t3_wr {
+union t3_wr
+{
 	struct t3_send_wr send;
 	struct t3_rdma_write_wr write;
 	struct t3_rdma_read_wr read;
@@ -418,23 +456,24 @@ static inline enum t3_wr_opcode fw_riwrh_opcode(struct fw_riwrh *wqe)
 	return G_FW_RIWR_OP(be32_to_cpu(wqe->op_seop_flags));
 }
 
-enum t3_wr_hdr_bits {
+enum t3_wr_hdr_bits
+{
 	T3_EOP = 1,
 	T3_SOP = 2,
-	T3_SOPEOP = T3_EOP|T3_SOP,
+	T3_SOPEOP = T3_EOP | T3_SOP,
 };
 
 static inline void build_fw_riwrh(struct fw_riwrh *wqe, enum t3_wr_opcode op,
-				  enum t3_wr_flags flags, u8 genbit, u32 tid,
-				  u8 len, u8 sopeop)
+								  enum t3_wr_flags flags, u8 genbit, u32 tid,
+								  u8 len, u8 sopeop)
 {
 	wqe->op_seop_flags = cpu_to_be32(V_FW_RIWR_OP(op) |
-					 V_FW_RIWR_SOPEOP(sopeop) |
-					 V_FW_RIWR_FLAGS(flags));
+									 V_FW_RIWR_SOPEOP(sopeop) |
+									 V_FW_RIWR_FLAGS(flags));
 	wmb();
 	wqe->gen_tid_len = cpu_to_be32(V_FW_RIWR_GEN(genbit) |
-				       V_FW_RIWR_TID(tid) |
-				       V_FW_RIWR_LEN(len));
+								   V_FW_RIWR_TID(tid) |
+								   V_FW_RIWR_LEN(len));
 	/* 2nd gen bit... */
 	((union t3_wr *)wqe)->genbit.genbit = cpu_to_be64(genbit);
 }
@@ -442,26 +481,30 @@ static inline void build_fw_riwrh(struct fw_riwrh *wqe, enum t3_wr_opcode op,
 /*
  * T3 ULP2_TX commands
  */
-enum t3_utx_mem_op {
+enum t3_utx_mem_op
+{
 	T3_UTX_MEM_READ = 2,
 	T3_UTX_MEM_WRITE = 3
 };
 
 /* T3 MC7 RDMA TPT entry format */
 
-enum tpt_mem_type {
+enum tpt_mem_type
+{
 	TPT_NON_SHARED_MR = 0x0,
 	TPT_SHARED_MR = 0x1,
 	TPT_MW = 0x2,
 	TPT_MW_RELAXED_PROTECTION = 0x3
 };
 
-enum tpt_addr_type {
+enum tpt_addr_type
+{
 	TPT_ZBTO = 0,
 	TPT_VATO = 1
 };
 
-enum tpt_mem_perm {
+enum tpt_mem_perm
+{
 	TPT_MW_BIND = 0x10,
 	TPT_LOCAL_READ = 0x8,
 	TPT_LOCAL_WRITE = 0x4,
@@ -469,7 +512,8 @@ enum tpt_mem_perm {
 	TPT_REMOTE_WRITE = 0x1
 };
 
-struct tpt_entry {
+struct tpt_entry
+{
 	__be32 valid_stag_pdid;
 	__be32 flags_pagesize_qpid;
 
@@ -550,15 +594,19 @@ struct tpt_entry {
 /*
  * CQE defs
  */
-struct t3_cqe {
+struct t3_cqe
+{
 	__be32 header;
 	__be32 len;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__be32 stag;
 			__be32 msn;
 		} rcqe;
-		struct {
+		struct
+		{
 			u32 wrid_hi;
 			u32 wrid_low;
 		} scqe;
@@ -611,10 +659,10 @@ struct t3_cqe {
 #define CQE_OPCODE(x)     (G_CQE_OPCODE(be32_to_cpu((x).header)))
 
 #define CQE_SEND_OPCODE(x)( \
-	(G_CQE_OPCODE(be32_to_cpu((x).header)) == T3_SEND) || \
-	(G_CQE_OPCODE(be32_to_cpu((x).header)) == T3_SEND_WITH_SE) || \
-	(G_CQE_OPCODE(be32_to_cpu((x).header)) == T3_SEND_WITH_INV) || \
-	(G_CQE_OPCODE(be32_to_cpu((x).header)) == T3_SEND_WITH_SE_INV))
+							(G_CQE_OPCODE(be32_to_cpu((x).header)) == T3_SEND) || \
+							(G_CQE_OPCODE(be32_to_cpu((x).header)) == T3_SEND_WITH_SE) || \
+							(G_CQE_OPCODE(be32_to_cpu((x).header)) == T3_SEND_WITH_INV) || \
+							(G_CQE_OPCODE(be32_to_cpu((x).header)) == T3_SEND_WITH_SE_INV))
 
 #define CQE_LEN(x)        (be32_to_cpu((x).len))
 
@@ -632,23 +680,23 @@ struct t3_cqe {
 
 #define TPT_ERR_SUCCESS                     0x0
 #define TPT_ERR_STAG                        0x1	 /* STAG invalid: either the */
-						 /* STAG is offlimt, being 0, */
-						 /* or STAG_key mismatch */
+/* STAG is offlimt, being 0, */
+/* or STAG_key mismatch */
 #define TPT_ERR_PDID                        0x2	 /* PDID mismatch */
 #define TPT_ERR_QPID                        0x3	 /* QPID mismatch */
 #define TPT_ERR_ACCESS                      0x4	 /* Invalid access right */
 #define TPT_ERR_WRAP                        0x5	 /* Wrap error */
 #define TPT_ERR_BOUND                       0x6	 /* base and bounds voilation */
 #define TPT_ERR_INVALIDATE_SHARED_MR        0x7	 /* attempt to invalidate a  */
-						 /* shared memory region */
+/* shared memory region */
 #define TPT_ERR_INVALIDATE_MR_WITH_MW_BOUND 0x8	 /* attempt to invalidate a  */
-						 /* shared memory region */
+/* shared memory region */
 #define TPT_ERR_ECC                         0x9	 /* ECC error detected */
 #define TPT_ERR_ECC_PSTAG                   0xA	 /* ECC error detected when  */
-						 /* reading PSTAG for a MW  */
-						 /* Invalidate */
+/* reading PSTAG for a MW  */
+/* Invalidate */
 #define TPT_ERR_PBL_ADDR_BOUND              0xB	 /* pbl addr out of bounds:  */
-						 /* software error */
+/* software error */
 #define TPT_ERR_SWFLUSH			    0xC	 /* SW FLUSHED */
 #define TPT_ERR_CRC                         0x10 /* CRC error */
 #define TPT_ERR_MARKER                      0x11 /* Marker error */
@@ -661,16 +709,17 @@ struct t3_cqe {
 #define TPT_ERR_MSN                         0x18 /* MSN error */
 #define TPT_ERR_TBIT                        0x19 /* tag bit not set correctly */
 #define TPT_ERR_MO                          0x1A /* MO not 0 for TERMINATE  */
-						 /* or READ_REQ */
+/* or READ_REQ */
 #define TPT_ERR_MSN_GAP                     0x1B
 #define TPT_ERR_MSN_RANGE                   0x1C
 #define TPT_ERR_IRD_OVERFLOW                0x1D
 #define TPT_ERR_RQE_ADDR_BOUND              0x1E /* RQE addr out of bounds:  */
-						 /* software error */
+/* software error */
 #define TPT_ERR_INTERNAL_ERR                0x1F /* internal error (opcode  */
-						 /* mismatch) */
+/* mismatch) */
 
-struct t3_swsq {
+struct t3_swsq
+{
 	__u64			wr_id;
 	struct t3_cqe		cqe;
 	__u32			sq_wptr;
@@ -680,7 +729,8 @@ struct t3_swsq {
 	int			signaled;
 };
 
-struct t3_swrq {
+struct t3_swrq
+{
 	__u64			wr_id;
 	__u32			pbl_addr;
 };
@@ -688,7 +738,8 @@ struct t3_swrq {
 /*
  * A T3 WQ implements both the SQ and RQ.
  */
-struct t3_wq {
+struct t3_wq
+{
 	union t3_wr *queue;		/* DMA accessible memory */
 	dma_addr_t dma_addr;		/* DMA address for HW */
 	DEFINE_DMA_UNMAP_ADDR(mapping); /* unmap kruft */
@@ -712,7 +763,8 @@ struct t3_wq {
 	struct cxio_rdev *rdev;
 };
 
-struct t3_cq {
+struct t3_cq
+{
 	u32 cqid;
 	u32 rptr;
 	u32 wptr;
@@ -726,16 +778,17 @@ struct t3_cq {
 };
 
 #define CQ_VLD_ENTRY(ptr,size_log2,cqe) (Q_GENBIT(ptr,size_log2) == \
-					 CQE_GENBIT(*cqe))
+		CQE_GENBIT(*cqe))
 
-struct t3_cq_status_page {
+struct t3_cq_status_page
+{
 	u32 cq_err;
 };
 
 static inline int cxio_cq_in_error(struct t3_cq *cq)
 {
 	return ((struct t3_cq_status_page *)
-		&cq->queue[1 << cq->size_log2])->cq_err;
+			&cq->queue[1 << cq->size_log2])->cq_err;
 }
 
 static inline void cxio_set_cq_in_error(struct t3_cq *cq)
@@ -769,8 +822,12 @@ static inline struct t3_cqe *cxio_next_hw_cqe(struct t3_cq *cq)
 	struct t3_cqe *cqe;
 
 	cqe = cq->queue + (Q_PTR2IDX(cq->rptr, cq->size_log2));
+
 	if (CQ_VLD_ENTRY(cq->rptr, cq->size_log2, cqe))
+	{
 		return cqe;
+	}
+
 	return NULL;
 }
 
@@ -778,10 +835,12 @@ static inline struct t3_cqe *cxio_next_sw_cqe(struct t3_cq *cq)
 {
 	struct t3_cqe *cqe;
 
-	if (!Q_EMPTY(cq->sw_rptr, cq->sw_wptr)) {
+	if (!Q_EMPTY(cq->sw_rptr, cq->sw_wptr))
+	{
 		cqe = cq->sw_queue + (Q_PTR2IDX(cq->sw_rptr, cq->size_log2));
 		return cqe;
 	}
+
 	return NULL;
 }
 
@@ -789,13 +848,19 @@ static inline struct t3_cqe *cxio_next_cqe(struct t3_cq *cq)
 {
 	struct t3_cqe *cqe;
 
-	if (!Q_EMPTY(cq->sw_rptr, cq->sw_wptr)) {
+	if (!Q_EMPTY(cq->sw_rptr, cq->sw_wptr))
+	{
 		cqe = cq->sw_queue + (Q_PTR2IDX(cq->sw_rptr, cq->size_log2));
 		return cqe;
 	}
+
 	cqe = cq->queue + (Q_PTR2IDX(cq->rptr, cq->size_log2));
+
 	if (CQ_VLD_ENTRY(cq->rptr, cq->size_log2, cqe))
+	{
 		return cqe;
+	}
+
 	return NULL;
 }
 

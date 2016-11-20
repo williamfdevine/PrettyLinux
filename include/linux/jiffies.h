@@ -17,27 +17,27 @@
  * nearest power of two in order to avoid hardware multiply operations.
  */
 #if HZ >= 12 && HZ < 24
-# define SHIFT_HZ	4
+	#define SHIFT_HZ	4
 #elif HZ >= 24 && HZ < 48
-# define SHIFT_HZ	5
+	#define SHIFT_HZ	5
 #elif HZ >= 48 && HZ < 96
-# define SHIFT_HZ	6
+	#define SHIFT_HZ	6
 #elif HZ >= 96 && HZ < 192
-# define SHIFT_HZ	7
+	#define SHIFT_HZ	7
 #elif HZ >= 192 && HZ < 384
-# define SHIFT_HZ	8
+	#define SHIFT_HZ	8
 #elif HZ >= 384 && HZ < 768
-# define SHIFT_HZ	9
+	#define SHIFT_HZ	9
 #elif HZ >= 768 && HZ < 1536
-# define SHIFT_HZ	10
+	#define SHIFT_HZ	10
 #elif HZ >= 1536 && HZ < 3072
-# define SHIFT_HZ	11
+	#define SHIFT_HZ	11
 #elif HZ >= 3072 && HZ < 6144
-# define SHIFT_HZ	12
+	#define SHIFT_HZ	12
 #elif HZ >= 6144 && HZ < 12288
-# define SHIFT_HZ	13
+	#define SHIFT_HZ	13
 #else
-# error Invalid value of HZ.
+	# error Invalid value of HZ.
 #endif
 
 /* Suppose we want to divide two numbers NOM and DEN: NOM/DEN, then we can
@@ -50,7 +50,7 @@
  *   - (NOM % DEN) fits in (32 - LSH) bits.
  */
 #define SH_DIV(NOM,DEN,LSH) (   (((NOM) / (DEN)) << (LSH))              \
-                             + ((((NOM) % (DEN)) << (LSH)) + (DEN) / 2) / (DEN))
+								+ ((((NOM) % (DEN)) << (LSH)) + (DEN) / 2) / (DEN))
 
 /* LATCH is used in the interval timer and ftape setup. */
 #define LATCH ((CLOCK_TICK_RATE + HZ/2) / HZ)	/* For divider */
@@ -87,7 +87,7 @@ static inline u64 get_jiffies_64(void)
 #endif
 
 /*
- *	These inlines deal with timer wrapping correctly. You are 
+ *	These inlines deal with timer wrapping correctly. You are
  *	strongly encouraged to use them
  *	1. Because people otherwise forget
  *	2. Because if the timer wrap changes in future you won't have to
@@ -259,15 +259,15 @@ extern unsigned long preset_lpj;
 
 #define SEC_JIFFIE_SC (31 - SHIFT_HZ)
 #if !((((NSEC_PER_SEC << 2) / TICK_NSEC) << (SEC_JIFFIE_SC - 2)) & 0x80000000)
-#undef SEC_JIFFIE_SC
-#define SEC_JIFFIE_SC (32 - SHIFT_HZ)
+	#undef SEC_JIFFIE_SC
+	#define SEC_JIFFIE_SC (32 - SHIFT_HZ)
 #endif
 #define NSEC_JIFFIE_SC (SEC_JIFFIE_SC + 29)
 #define SEC_CONVERSION ((unsigned long)((((u64)NSEC_PER_SEC << SEC_JIFFIE_SC) +\
-                                TICK_NSEC -1) / (u64)TICK_NSEC))
+										TICK_NSEC -1) / (u64)TICK_NSEC))
 
 #define NSEC_CONVERSION ((unsigned long)((((u64)1 << NSEC_JIFFIE_SC) +\
-                                        TICK_NSEC -1) / (u64)TICK_NSEC))
+						 TICK_NSEC -1) / (u64)TICK_NSEC))
 /*
  * The maximum jiffie value is (MAX_INT >> 1).  Here we translate that
  * into seconds.  The 64-bit case will overflow if we are not careful,
@@ -314,7 +314,10 @@ static inline unsigned long _msecs_to_jiffies(const unsigned int m)
 static inline unsigned long _msecs_to_jiffies(const unsigned int m)
 {
 	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
+	{
 		return MAX_JIFFY_OFFSET;
+	}
+
 	return m * (HZ / MSEC_PER_SEC);
 }
 #else
@@ -325,7 +328,9 @@ static inline unsigned long _msecs_to_jiffies(const unsigned int m)
 static inline unsigned long _msecs_to_jiffies(const unsigned int m)
 {
 	if (HZ > MSEC_PER_SEC && m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
+	{
 		return MAX_JIFFY_OFFSET;
+	}
 
 	return (MSEC_TO_HZ_MUL32 * m + MSEC_TO_HZ_ADJ32) >> MSEC_TO_HZ_SHR32;
 }
@@ -357,11 +362,17 @@ static inline unsigned long _msecs_to_jiffies(const unsigned int m)
  */
 static __always_inline unsigned long msecs_to_jiffies(const unsigned int m)
 {
-	if (__builtin_constant_p(m)) {
+	if (__builtin_constant_p(m))
+	{
 		if ((int)m < 0)
+		{
 			return MAX_JIFFY_OFFSET;
+		}
+
 		return _msecs_to_jiffies(m);
-	} else {
+	}
+	else
+	{
 		return __msecs_to_jiffies(m);
 	}
 }
@@ -376,7 +387,7 @@ static inline unsigned long _usecs_to_jiffies(const unsigned int u)
 static inline unsigned long _usecs_to_jiffies(const unsigned int u)
 {
 	return (USEC_TO_HZ_MUL32 * u + USEC_TO_HZ_ADJ32)
-		>> USEC_TO_HZ_SHR32;
+		   >> USEC_TO_HZ_SHR32;
 }
 #endif
 
@@ -404,18 +415,24 @@ static inline unsigned long _usecs_to_jiffies(const unsigned int u)
  */
 static __always_inline unsigned long usecs_to_jiffies(const unsigned int u)
 {
-	if (__builtin_constant_p(u)) {
+	if (__builtin_constant_p(u))
+	{
 		if (u > jiffies_to_usecs(MAX_JIFFY_OFFSET))
+		{
 			return MAX_JIFFY_OFFSET;
+		}
+
 		return _usecs_to_jiffies(u);
-	} else {
+	}
+	else
+	{
 		return __usecs_to_jiffies(u);
 	}
 }
 
 extern unsigned long timespec64_to_jiffies(const struct timespec64 *value);
 extern void jiffies_to_timespec64(const unsigned long jiffies,
-				  struct timespec64 *value);
+								  struct timespec64 *value);
 static inline unsigned long timespec_to_jiffies(const struct timespec *value)
 {
 	struct timespec64 ts = timespec_to_timespec64(*value);
@@ -424,7 +441,7 @@ static inline unsigned long timespec_to_jiffies(const struct timespec *value)
 }
 
 static inline void jiffies_to_timespec(const unsigned long jiffies,
-				       struct timespec *value)
+									   struct timespec *value)
 {
 	struct timespec64 ts;
 
@@ -434,7 +451,7 @@ static inline void jiffies_to_timespec(const unsigned long jiffies,
 
 extern unsigned long timeval_to_jiffies(const struct timeval *value);
 extern void jiffies_to_timeval(const unsigned long jiffies,
-			       struct timeval *value);
+							   struct timeval *value);
 
 extern clock_t jiffies_to_clock_t(unsigned long x);
 static inline clock_t jiffies_delta_to_clock_t(long delta)

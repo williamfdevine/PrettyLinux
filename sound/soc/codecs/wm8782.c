@@ -26,17 +26,20 @@
 #include <sound/initval.h>
 #include <sound/soc.h>
 
-static const struct snd_soc_dapm_widget wm8782_dapm_widgets[] = {
-SND_SOC_DAPM_INPUT("AINL"),
-SND_SOC_DAPM_INPUT("AINR"),
+static const struct snd_soc_dapm_widget wm8782_dapm_widgets[] =
+{
+	SND_SOC_DAPM_INPUT("AINL"),
+	SND_SOC_DAPM_INPUT("AINR"),
 };
 
-static const struct snd_soc_dapm_route wm8782_dapm_routes[] = {
+static const struct snd_soc_dapm_route wm8782_dapm_routes[] =
+{
 	{ "Capture", NULL, "AINL" },
 	{ "Capture", NULL, "AINR" },
 };
 
-static struct snd_soc_dai_driver wm8782_dai = {
+static struct snd_soc_dai_driver wm8782_dai =
+{
 	.name = "wm8782",
 	.capture = {
 		.stream_name = "Capture",
@@ -45,12 +48,13 @@ static struct snd_soc_dai_driver wm8782_dai = {
 		/* For configurations with FSAMPEN=0 */
 		.rates = SNDRV_PCM_RATE_8000_48000,
 		.formats = SNDRV_PCM_FMTBIT_S16_LE |
-			   SNDRV_PCM_FMTBIT_S20_3LE |
-			   SNDRV_PCM_FMTBIT_S24_LE,
+		SNDRV_PCM_FMTBIT_S20_3LE |
+		SNDRV_PCM_FMTBIT_S24_LE,
 	},
 };
 
-static const struct snd_soc_codec_driver soc_codec_dev_wm8782 = {
+static const struct snd_soc_codec_driver soc_codec_dev_wm8782 =
+{
 	.component_driver = {
 		.dapm_widgets		= wm8782_dapm_widgets,
 		.num_dapm_widgets	= ARRAY_SIZE(wm8782_dapm_widgets),
@@ -62,7 +66,7 @@ static const struct snd_soc_codec_driver soc_codec_dev_wm8782 = {
 static int wm8782_probe(struct platform_device *pdev)
 {
 	return snd_soc_register_codec(&pdev->dev,
-			&soc_codec_dev_wm8782, &wm8782_dai, 1);
+								  &soc_codec_dev_wm8782, &wm8782_dai, 1);
 }
 
 static int wm8782_remove(struct platform_device *pdev)
@@ -71,7 +75,8 @@ static int wm8782_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver wm8782_codec_driver = {
+static struct platform_driver wm8782_codec_driver =
+{
 	.driver = {
 		.name = "wm8782",
 	},

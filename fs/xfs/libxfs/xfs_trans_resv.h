@@ -23,14 +23,16 @@ struct xfs_mount;
 /*
  * structure for maintaining pre-calculated transaction reservations.
  */
-struct xfs_trans_res {
+struct xfs_trans_res
+{
 	uint	tr_logres;	/* log space unit in bytes per log ticket */
 	int	tr_logcount;	/* number of log operations per log ticket */
 	int	tr_logflags;	/* log flags, currently only used for indicating
 				 * a reservation request is permanent or not */
 };
 
-struct xfs_trans_resv {
+struct xfs_trans_resv
+{
 	struct xfs_trans_res	tr_write;	/* extent alloc trans */
 	struct xfs_trans_res	tr_itruncate;	/* truncate trans */
 	struct xfs_trans_res	tr_rename;	/* rename trans */

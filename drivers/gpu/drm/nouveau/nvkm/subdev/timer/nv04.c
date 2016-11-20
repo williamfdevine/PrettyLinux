@@ -45,10 +45,12 @@ nv04_timer_read(struct nvkm_timer *tmr)
 	struct nvkm_device *device = tmr->subdev.device;
 	u32 hi, lo;
 
-	do {
+	do
+	{
 		hi = nvkm_rd32(device, NV04_PTIMER_TIME_1);
 		lo = nvkm_rd32(device, NV04_PTIMER_TIME_0);
-	} while (hi != nvkm_rd32(device, NV04_PTIMER_TIME_1));
+	}
+	while (hi != nvkm_rd32(device, NV04_PTIMER_TIME_1));
 
 	return ((u64)hi << 32 | lo);
 }
@@ -75,13 +77,15 @@ nv04_timer_intr(struct nvkm_timer *tmr)
 	struct nvkm_device *device = subdev->device;
 	u32 stat = nvkm_rd32(device, NV04_PTIMER_INTR_0);
 
-	if (stat & 0x00000001) {
+	if (stat & 0x00000001)
+	{
 		nvkm_timer_alarm_trigger(tmr);
 		nvkm_wr32(device, NV04_PTIMER_INTR_0, 0x00000001);
 		stat &= ~0x00000001;
 	}
 
-	if (stat) {
+	if (stat)
+	{
 		nvkm_error(subdev, "intr %08x\n", stat);
 		nvkm_wr32(device, NV04_PTIMER_INTR_0, stat);
 	}
@@ -99,28 +103,35 @@ nv04_timer_init(struct nvkm_timer *tmr)
 	d = 1000000 / 32;
 	n = f;
 
-	if (!f) {
+	if (!f)
+	{
 		n = nvkm_rd32(device, NV04_PTIMER_NUMERATOR);
 		d = nvkm_rd32(device, NV04_PTIMER_DENOMINATOR);
-		if (!n || !d) {
+
+		if (!n || !d)
+		{
 			n = 1;
 			d = 1;
 		}
+
 		nvkm_warn(subdev, "unknown input clock freq\n");
 	}
 
 	/* reduce ratio to acceptable values */
-	while (((n % 5) == 0) && ((d % 5) == 0)) {
+	while (((n % 5) == 0) && ((d % 5) == 0))
+	{
 		n /= 5;
 		d /= 5;
 	}
 
-	while (((n % 2) == 0) && ((d % 2) == 0)) {
+	while (((n % 2) == 0) && ((d % 2) == 0))
+	{
 		n /= 2;
 		d /= 2;
 	}
 
-	while (n > 0xffff || d > 0xffff) {
+	while (n > 0xffff || d > 0xffff)
+	{
 		n >>= 1;
 		d >>= 1;
 	}
@@ -135,7 +146,8 @@ nv04_timer_init(struct nvkm_timer *tmr)
 }
 
 static const struct nvkm_timer_func
-nv04_timer = {
+	nv04_timer =
+{
 	.init = nv04_timer_init,
 	.intr = nv04_timer_intr,
 	.read = nv04_timer_read,

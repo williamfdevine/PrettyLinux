@@ -22,12 +22,14 @@
 #ifndef _DAVINCI_VPFE_DM365_RESIZER_H
 #define _DAVINCI_VPFE_DM365_RESIZER_H
 
-enum resizer_oper_mode {
+enum resizer_oper_mode
+{
 	RESIZER_MODE_CONTINIOUS = 0,
 	RESIZER_MODE_ONE_SHOT = 1,
 };
 
-struct f_div_pass {
+struct f_div_pass
+{
 	unsigned int o_hsz;
 	unsigned int i_hps;
 	unsigned int h_phs;
@@ -37,14 +39,16 @@ struct f_div_pass {
 
 #define MAX_PASSES		2
 
-struct f_div_param {
+struct f_div_param
+{
 	unsigned char en;
 	unsigned int num_passes;
 	struct f_div_pass pass[MAX_PASSES];
 };
 
 /* Resizer Rescale Parameters*/
-struct resizer_scale_param {
+struct resizer_scale_param
+{
 	bool h_flip;
 	bool v_flip;
 	bool cen;
@@ -81,18 +85,21 @@ struct resizer_scale_param {
 	struct f_div_param f_div;
 };
 
-enum resizer_rgb_t {
+enum resizer_rgb_t
+{
 	OUTPUT_32BIT,
 	OUTPUT_16BIT
 };
 
-enum resizer_rgb_msk_t {
+enum resizer_rgb_msk_t
+{
 	NOMASK = 0,
 	MASKLAST2 = 1,
 };
 
 /* Resizer RGB Conversion Parameters */
-struct resizer_rgb {
+struct resizer_rgb
+{
 	bool rgb_en;
 	enum resizer_rgb_t rgb_typ;
 	enum resizer_rgb_msk_t rgb_msk0;
@@ -101,7 +108,8 @@ struct resizer_rgb {
 };
 
 /* Resizer External Memory Parameters */
-struct rsz_ext_mem_param {
+struct rsz_ext_mem_param
+{
 	unsigned int rsz_sdr_oft_y;
 	unsigned int rsz_sdr_ptr_s_y;
 	unsigned int rsz_sdr_ptr_e_y;
@@ -120,22 +128,26 @@ struct rsz_ext_mem_param {
 	unsigned int user_c_ofst;
 };
 
-enum rsz_data_source {
+enum rsz_data_source
+{
 	IPIPE_DATA,
 	IPIPEIF_DATA
 };
 
-enum rsz_src_img_fmt {
+enum rsz_src_img_fmt
+{
 	RSZ_IMG_422,
 	RSZ_IMG_420
 };
 
-enum rsz_dpaths_bypass_t {
+enum rsz_dpaths_bypass_t
+{
 	BYPASS_OFF = 0,
 	BYPASS_ON = 1,
 };
 
-struct rsz_common_params {
+struct rsz_common_params
+{
 	unsigned int vps;
 	unsigned int vsz;
 	unsigned int hps;
@@ -157,7 +169,8 @@ struct rsz_common_params {
 	enum vpfe_chr_pos out_chr_pos;
 };
 
-struct resizer_params {
+struct resizer_params
+{
 	enum resizer_oper_mode oper_mode;
 	struct rsz_common_params rsz_common;
 	struct resizer_scale_param rsz_rsc_param[2];
@@ -176,19 +189,22 @@ struct resizer_params {
 
 #define RESIZER_CROP_PADS_NUM		3
 
-enum resizer_crop_input_entity {
+enum resizer_crop_input_entity
+{
 	RESIZER_CROP_INPUT_NONE = 0,
 	RESIZER_CROP_INPUT_IPIPEIF = 1,
 	RESIZER_CROP_INPUT_IPIPE = 2,
 };
 
-enum resizer_crop_output_entity {
+enum resizer_crop_output_entity
+{
 	RESIZER_CROP_OUTPUT_NONE,
 	RESIZER_A,
 	RESIZER_B,
 };
 
-struct dm365_crop_resizer_device {
+struct dm365_crop_resizer_device
+{
 	struct v4l2_subdev			subdev;
 	struct media_pad			pads[RESIZER_CROP_PADS_NUM];
 	struct v4l2_mbus_framefmt		formats[RESIZER_CROP_PADS_NUM];
@@ -203,17 +219,20 @@ struct dm365_crop_resizer_device {
 
 #define RESIZER_PADS_NUM		2
 
-enum resizer_input_entity {
+enum resizer_input_entity
+{
 	RESIZER_INPUT_NONE = 0,
 	RESIZER_INPUT_CROP_RESIZER = 1,
 };
 
-enum resizer_output_entity {
+enum resizer_output_entity
+{
 	RESIZER_OUTPUT_NONE = 0,
 	RESIZER_OUPUT_MEMORY = 1,
 };
 
-struct dm365_resizer_device {
+struct dm365_resizer_device
+{
 	struct v4l2_subdev		subdev;
 	struct media_pad		pads[RESIZER_PADS_NUM];
 	struct v4l2_mbus_framefmt	formats[RESIZER_PADS_NUM];
@@ -223,7 +242,8 @@ struct dm365_resizer_device {
 	struct vpfe_resizer_device	*rsz_device;
 };
 
-struct vpfe_resizer_device {
+struct vpfe_resizer_device
+{
 	struct dm365_crop_resizer_device	crop_resizer;
 	struct dm365_resizer_device		resizer_a;
 	struct dm365_resizer_device		resizer_b;
@@ -232,12 +252,12 @@ struct vpfe_resizer_device {
 };
 
 int vpfe_resizer_init(struct vpfe_resizer_device *vpfe_rsz,
-		      struct platform_device *pdev);
+					  struct platform_device *pdev);
 int vpfe_resizer_register_entities(struct vpfe_resizer_device *vpfe_rsz,
-				   struct v4l2_device *v4l2_dev);
+								   struct v4l2_device *v4l2_dev);
 void vpfe_resizer_unregister_entities(struct vpfe_resizer_device *vpfe_rsz);
 void vpfe_resizer_cleanup(struct vpfe_resizer_device *vpfe_rsz,
-			  struct platform_device *pdev);
+						  struct platform_device *pdev);
 void vpfe_resizer_buffer_isr(struct vpfe_resizer_device *resizer);
 void vpfe_resizer_dma_isr(struct vpfe_resizer_device *resizer);
 

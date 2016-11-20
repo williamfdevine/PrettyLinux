@@ -1,5 +1,5 @@
 /*********************************************************************
- *                
+ *
  * Filename:      esi.c
  * Version:       1.6
  * Description:   Driver for the Extended Systems JetEye PC dongle
@@ -8,25 +8,25 @@
  * Created at:    Sat Feb 21 18:54:38 1998
  * Modified at:   Sun Oct 27 22:01:04 2002
  * Modified by:   Martin Diehl <mad@mdiehl.de>
- * 
+ *
  *     Copyright (c) 1999 Dag Brattli, <dagb@cs.uit.no>,
  *     Copyright (c) 1998 Thomas Davis, <ratbert@radiks.net>,
  *     Copyright (c) 2002 Martin Diehl, <mad@mdiehl.de>,
  *     All Rights Reserved.
- *     
- *     This program is free software; you can redistribute it and/or 
- *     modify it under the terms of the GNU General Public License as 
- *     published by the Free Software Foundation; either version 2 of 
+ *
+ *     This program is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of
  *     the License, or (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *     GNU General Public License for more details.
- * 
- *     You should have received a copy of the GNU General Public License 
+ *
+ *     You should have received a copy of the GNU General Public License
  *     along with this program; if not, see <http://www.gnu.org/licenses/>.
- *     
+ *
  ********************************************************************/
 
 #include <linux/module.h>
@@ -42,7 +42,8 @@ static int esi_close(struct sir_dev *);
 static int esi_change_speed(struct sir_dev *, unsigned);
 static int esi_reset(struct sir_dev *);
 
-static struct dongle_driver esi = {
+static struct dongle_driver esi =
+{
 	.owner		= THIS_MODULE,
 	.driver_name	= "JetEye PC ESI-9680 PC",
 	.type		= IRDA_ESI_DONGLE,
@@ -69,7 +70,7 @@ static int esi_open(struct sir_dev *dev)
 	/* Power up and set dongle to 9600 baud */
 	sirdev_set_dtr_rts(dev, FALSE, TRUE);
 
-	qos->baud_rate.bits &= IR_9600|IR_19200|IR_115200;
+	qos->baud_rate.bits &= IR_9600 | IR_19200 | IR_115200;
 	qos->min_turn_time.bits = 0x01; /* Needs at least 10 ms */
 	irda_qos_bits_to_value(qos);
 
@@ -97,23 +98,27 @@ static int esi_change_speed(struct sir_dev *dev, unsigned speed)
 {
 	int ret = 0;
 	int dtr, rts;
-	
-	switch (speed) {
-	case 19200:
-		dtr = TRUE;
-		rts = FALSE;
-		break;
-	case 115200:
-		dtr = rts = TRUE;
-		break;
-	default:
-		ret = -EINVAL;
-		speed = 9600;
+
+	switch (speed)
+	{
+		case 19200:
+			dtr = TRUE;
+			rts = FALSE;
+			break;
+
+		case 115200:
+			dtr = rts = TRUE;
+			break;
+
+		default:
+			ret = -EINVAL;
+			speed = 9600;
+
 		/* fall through */
-	case 9600:
-		dtr = FALSE;
-		rts = TRUE;
-		break;
+		case 9600:
+			dtr = FALSE;
+			rts = TRUE;
+			break;
 	}
 
 	/* Change speed of dongle */

@@ -59,15 +59,16 @@ static LIST_HEAD(loop_conns);
  * is handed the sending conn so the sense of the addresses is reversed.
  */
 static int rds_loop_xmit(struct rds_connection *conn, struct rds_message *rm,
-			 unsigned int hdr_off, unsigned int sg,
-			 unsigned int off)
+						 unsigned int hdr_off, unsigned int sg,
+						 unsigned int off)
 {
 	struct scatterlist *sgp = &rm->data.op_sg[sg];
 	int ret = sizeof(struct rds_header) +
-			be32_to_cpu(rm->m_inc.i_hdr.h_len);
+			  be32_to_cpu(rm->m_inc.i_hdr.h_len);
 
 	/* Do not send cong updates to loopback */
-	if (rm->m_inc.i_hdr.h_flags & RDS_FLAG_CONG_BITMAP) {
+	if (rm->m_inc.i_hdr.h_flags & RDS_FLAG_CONG_BITMAP)
+	{
 		rds_cong_map_updated(conn->c_fcong, ~(u64) 0);
 		ret = min_t(int, ret, sgp->length - conn->c_xmit_data_off);
 		goto out;
@@ -80,10 +81,10 @@ static int rds_loop_xmit(struct rds_connection *conn, struct rds_message *rm,
 	rds_message_addref(rm);
 
 	rds_recv_incoming(conn, conn->c_laddr, conn->c_faddr, &rm->m_inc,
-			  GFP_KERNEL);
+					  GFP_KERNEL);
 
 	rds_send_drop_acked(conn, be64_to_cpu(rm->m_inc.i_hdr.h_sequence),
-			    NULL);
+						NULL);
 
 	rds_inc_put(&rm->m_inc);
 out:
@@ -107,7 +108,8 @@ static int rds_loop_recv_path(struct rds_conn_path *cp)
 	return 0;
 }
 
-struct rds_loop_connection {
+struct rds_loop_connection
+{
 	struct list_head loop_node;
 	struct rds_connection *conn;
 };
@@ -124,8 +126,11 @@ static int rds_loop_conn_alloc(struct rds_connection *conn, gfp_t gfp)
 	unsigned long flags;
 
 	lc = kzalloc(sizeof(struct rds_loop_connection), gfp);
+
 	if (!lc)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&lc->loop_node);
 	lc->conn = conn;
@@ -171,7 +176,8 @@ void rds_loop_exit(void)
 	INIT_LIST_HEAD(&loop_conns);
 	spin_unlock_irq(&loop_conns_lock);
 
-	list_for_each_entry_safe(lc, _lc, &tmp_list, loop_node) {
+	list_for_each_entry_safe(lc, _lc, &tmp_list, loop_node)
+	{
 		WARN_ON(lc->conn->c_passive);
 		rds_conn_destroy(lc->conn);
 	}
@@ -183,7 +189,8 @@ void rds_loop_exit(void)
  * .laddr_check are missing because transport.c doesn't iterate over
  * rds_loop_transport.
  */
-struct rds_transport rds_loop_transport = {
+struct rds_transport rds_loop_transport =
+{
 	.xmit			= rds_loop_xmit,
 	.recv_path		= rds_loop_recv_path,
 	.conn_alloc		= rds_loop_conn_alloc,

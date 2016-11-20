@@ -50,7 +50,8 @@ void bcmgenet_get_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
 	wol->wolopts = priv->wolopts;
 	memset(wol->sopass, 0, sizeof(wol->sopass));
 
-	if (wol->wolopts & WAKE_MAGICSECURE) {
+	if (wol->wolopts & WAKE_MAGICSECURE)
+	{
 		reg = bcmgenet_umac_readl(priv, UMAC_MPD_PW_MS);
 		put_unaligned_be16(reg, &wol->sopass[0]);
 		reg = bcmgenet_umac_readl(priv, UMAC_MPD_PW_LS);
@@ -68,35 +69,55 @@ int bcmgenet_set_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
 	u32 reg;
 
 	if (!device_can_wakeup(kdev))
+	{
 		return -ENOTSUPP;
+	}
 
 	if (wol->wolopts & ~(WAKE_MAGIC | WAKE_MAGICSECURE))
+	{
 		return -EINVAL;
+	}
 
 	reg = bcmgenet_umac_readl(priv, UMAC_MPD_CTRL);
-	if (wol->wolopts & WAKE_MAGICSECURE) {
+
+	if (wol->wolopts & WAKE_MAGICSECURE)
+	{
 		bcmgenet_umac_writel(priv, get_unaligned_be16(&wol->sopass[0]),
-				     UMAC_MPD_PW_MS);
+							 UMAC_MPD_PW_MS);
 		bcmgenet_umac_writel(priv, get_unaligned_be32(&wol->sopass[2]),
-				     UMAC_MPD_PW_LS);
+							 UMAC_MPD_PW_LS);
 		reg |= MPD_PW_EN;
-	} else {
+	}
+	else
+	{
 		reg &= ~MPD_PW_EN;
 	}
+
 	bcmgenet_umac_writel(priv, reg, UMAC_MPD_CTRL);
 
 	/* Flag the device and relevant IRQ as wakeup capable */
-	if (wol->wolopts) {
+	if (wol->wolopts)
+	{
 		device_set_wakeup_enable(kdev, 1);
+
 		/* Avoid unbalanced enable_irq_wake calls */
 		if (priv->wol_irq_disabled)
+		{
 			enable_irq_wake(priv->wol_irq);
+		}
+
 		priv->wol_irq_disabled = false;
-	} else {
+	}
+	else
+	{
 		device_set_wakeup_enable(kdev, 0);
+
 		/* Avoid unbalanced disable_irq_wake calls */
 		if (!priv->wol_irq_disabled)
+		{
 			disable_irq_wake(priv->wol_irq);
+		}
+
 		priv->wol_irq_disabled = true;
 	}
 
@@ -111,12 +132,16 @@ static int bcmgenet_poll_wol_status(struct bcmgenet_priv *priv)
 	int retries = 0;
 
 	while (!(bcmgenet_rbuf_readl(priv, RBUF_STATUS)
-		& RBUF_STATUS_WOL)) {
+			 & RBUF_STATUS_WOL))
+	{
 		retries++;
-		if (retries > 5) {
+
+		if (retries > 5)
+		{
 			netdev_crit(dev, "polling wol mode timeout\n");
 			return -ETIMEDOUT;
 		}
+
 		mdelay(1);
 	}
 
@@ -124,14 +149,15 @@ static int bcmgenet_poll_wol_status(struct bcmgenet_priv *priv)
 }
 
 int bcmgenet_wol_power_down_cfg(struct bcmgenet_priv *priv,
-				enum bcmgenet_power_mode mode)
+								enum bcmgenet_power_mode mode)
 {
 	struct net_device *dev = priv->dev;
 	u32 cpu_mask_clear;
 	int retries = 0;
 	u32 reg;
 
-	if (mode != GENET_POWER_WOL_MAGIC) {
+	if (mode != GENET_POWER_WOL_MAGIC)
+	{
 		netif_err(priv, wol, dev, "unsupported mode: %d\n", mode);
 		return -EINVAL;
 	}
@@ -148,7 +174,9 @@ int bcmgenet_wol_power_down_cfg(struct bcmgenet_priv *priv,
 
 	/* Do not leave UniMAC in MPD mode only */
 	retries = bcmgenet_poll_wol_status(priv);
-	if (retries < 0) {
+
+	if (retries < 0)
+	{
 		reg = bcmgenet_umac_readl(priv, UMAC_MPD_CTRL);
 		reg &= ~MPD_EN;
 		bcmgenet_umac_writel(priv, reg, UMAC_MPD_CTRL);
@@ -156,7 +184,7 @@ int bcmgenet_wol_power_down_cfg(struct bcmgenet_priv *priv,
 	}
 
 	netif_dbg(priv, wol, dev, "MPD WOL-ready status set after %d msec\n",
-		  retries);
+			  retries);
 
 	/* Enable CRC forward */
 	reg = bcmgenet_umac_readl(priv, UMAC_CMD);
@@ -167,7 +195,8 @@ int bcmgenet_wol_power_down_cfg(struct bcmgenet_priv *priv,
 	reg |= CMD_RX_EN;
 	bcmgenet_umac_writel(priv, reg, UMAC_CMD);
 
-	if (priv->hw_params->flags & GENET_HAS_EXT) {
+	if (priv->hw_params->flags & GENET_HAS_EXT)
+	{
 		reg = bcmgenet_ext_readl(priv, EXT_EXT_PWR_MGMT);
 		reg &= ~EXT_ENERGY_DET_MASK;
 		bcmgenet_ext_writel(priv, reg, EXT_EXT_PWR_MGMT);
@@ -182,12 +211,13 @@ int bcmgenet_wol_power_down_cfg(struct bcmgenet_priv *priv,
 }
 
 void bcmgenet_wol_power_up_cfg(struct bcmgenet_priv *priv,
-			       enum bcmgenet_power_mode mode)
+							   enum bcmgenet_power_mode mode)
 {
 	u32 cpu_mask_set;
 	u32 reg;
 
-	if (mode != GENET_POWER_WOL_MAGIC) {
+	if (mode != GENET_POWER_WOL_MAGIC)
+	{
 		netif_err(priv, wol, priv->dev, "invalid mode: %d\n", mode);
 		return;
 	}

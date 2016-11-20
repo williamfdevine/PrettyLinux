@@ -33,7 +33,7 @@ typedef __u32 ceph_seq_t;
 
 static inline __s32 ceph_seq_cmp(__u32 a, __u32 b)
 {
-       return (__s32)a - (__s32)b;
+	return (__s32)a - (__s32)b;
 }
 
 
@@ -41,7 +41,8 @@ static inline __s32 ceph_seq_cmp(__u32 a, __u32 b)
  * entity_name -- logical name for a process participating in the
  * network, e.g. 'mds0' or 'osd3'.
  */
-struct ceph_entity_name {
+struct ceph_entity_name
+{
 	__u8 type;      /* CEPH_ENTITY_TYPE_* */
 	__le64 num;
 } __attribute__ ((packed));
@@ -59,13 +60,15 @@ extern const char *ceph_entity_type_name(int type);
 /*
  * entity_addr -- network address
  */
-struct ceph_entity_addr {
+struct ceph_entity_addr
+{
 	__le32 type;
 	__le32 nonce;  /* unique id for process (e.g. pid) */
 	struct sockaddr_storage in_addr;
 } __attribute__ ((packed));
 
-struct ceph_entity_inst {
+struct ceph_entity_inst
+{
 	struct ceph_entity_name name;
 	struct ceph_entity_addr addr;
 } __attribute__ ((packed));
@@ -95,7 +98,8 @@ struct ceph_entity_inst {
 /*
  * connection negotiation
  */
-struct ceph_msg_connect {
+struct ceph_msg_connect
+{
 	__le64 features;     /* supported feature bits */
 	__le32 host_type;    /* CEPH_ENTITY_TYPE_* */
 	__le32 global_seq;   /* count connections initiated by this host */
@@ -106,7 +110,8 @@ struct ceph_msg_connect {
 	__u8  flags;         /* CEPH_MSG_CONNECT_* */
 } __attribute__ ((packed));
 
-struct ceph_msg_connect_reply {
+struct ceph_msg_connect_reply
+{
 	__u8 tag;
 	__le64 features;     /* feature bits for this session */
 	__le32 global_seq;
@@ -122,7 +127,8 @@ struct ceph_msg_connect_reply {
 /*
  * message header
  */
-struct ceph_msg_header_old {
+struct ceph_msg_header_old
+{
 	__le64 seq;       /* message seq# for this session */
 	__le64 tid;       /* transaction id */
 	__le16 type;      /* message type */
@@ -140,7 +146,8 @@ struct ceph_msg_header_old {
 	__le32 crc;       /* header crc32c */
 } __attribute__ ((packed));
 
-struct ceph_msg_header {
+struct ceph_msg_header
+{
 	__le64 seq;       /* message seq# for this session */
 	__le64 tid;       /* transaction id */
 	__le16 type;      /* message type */
@@ -167,12 +174,14 @@ struct ceph_msg_header {
 /*
  * follows data payload
  */
-struct ceph_msg_footer_old {
+struct ceph_msg_footer_old
+{
 	__le32 front_crc, middle_crc, data_crc;
 	__u8 flags;
 } __attribute__ ((packed));
 
-struct ceph_msg_footer {
+struct ceph_msg_footer
+{
 	__le32 front_crc, middle_crc, data_crc;
 	// sig holds the 64 bits of the digital signature for the message PLR
 	__le64  sig;

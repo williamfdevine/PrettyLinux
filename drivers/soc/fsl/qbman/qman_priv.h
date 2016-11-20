@@ -36,10 +36,11 @@
 #include <linux/iommu.h>
 
 #if defined(CONFIG_FSL_PAMU)
-#include <asm/fsl_pamu_stash.h>
+	#include <asm/fsl_pamu_stash.h>
 #endif
 
-struct qm_mcr_querywq {
+struct qm_mcr_querywq
+{
 	u8 verb;
 	u8 result;
 	u16 channel_wq; /* ignores wq (3 lsbits): _res[0-2] */
@@ -52,12 +53,14 @@ static inline u16 qm_mcr_querywq_get_chan(const struct qm_mcr_querywq *wq)
 	return wq->channel_wq >> 3;
 }
 
-struct __qm_mcr_querycongestion {
+struct __qm_mcr_querycongestion
+{
 	u32 state[8];
 };
 
 /* "Query Congestion Group State" */
-struct qm_mcr_querycongestion {
+struct qm_mcr_querycongestion
+{
 	u8 verb;
 	u8 result;
 	u8 __reserved[30];
@@ -66,7 +69,8 @@ struct qm_mcr_querycongestion {
 } __packed;
 
 /* "Query CGR" */
-struct qm_mcr_querycgr {
+struct qm_mcr_querycgr
+{
 	u8 verb;
 	u8 result;
 	u16 __reserved1;
@@ -90,14 +94,16 @@ static inline u64 qm_mcr_querycgr_a_get64(const struct qm_mcr_querycgr *q)
 }
 
 /* "Query FQ Non-Programmable Fields" */
-struct qm_mcc_queryfq_np {
+struct qm_mcc_queryfq_np
+{
 	u8 _ncw_verb;
 	u8 __reserved1[3];
 	u32 fqid;	/* 24-bit */
 	u8 __reserved2[56];
 } __packed;
 
-struct qm_mcr_queryfq_np {
+struct qm_mcr_queryfq_np
+{
 	u8 verb;
 	u8 result;
 	u8 __reserved1;
@@ -140,18 +146,19 @@ struct qm_mcr_queryfq_np {
 #define QM_MCR_NP_OD1_NOD(v)		(((v) >> 14) & 0x3)	/* FQD::NOD */
 #define QM_MCR_NP_OD3_NPC(v)		(((v) >> 14) & 0x3)	/* FQD::NPC */
 
-enum qm_mcr_queryfq_np_masks {
-	qm_mcr_fqd_link_mask = BIT(24)-1,
-	qm_mcr_odp_seq_mask = BIT(14)-1,
-	qm_mcr_orp_nesn_mask = BIT(14)-1,
-	qm_mcr_orp_ea_hseq_mask = BIT(15)-1,
-	qm_mcr_orp_ea_tseq_mask = BIT(15)-1,
-	qm_mcr_orp_ea_hptr_mask = BIT(24)-1,
-	qm_mcr_orp_ea_tptr_mask = BIT(24)-1,
-	qm_mcr_pfdr_hptr_mask = BIT(24)-1,
-	qm_mcr_pfdr_tptr_mask = BIT(24)-1,
-	qm_mcr_is_mask = BIT(1)-1,
-	qm_mcr_frm_cnt_mask = BIT(24)-1,
+enum qm_mcr_queryfq_np_masks
+{
+	qm_mcr_fqd_link_mask = BIT(24) - 1,
+	qm_mcr_odp_seq_mask = BIT(14) - 1,
+	qm_mcr_orp_nesn_mask = BIT(14) - 1,
+	qm_mcr_orp_ea_hseq_mask = BIT(15) - 1,
+	qm_mcr_orp_ea_tseq_mask = BIT(15) - 1,
+	qm_mcr_orp_ea_hptr_mask = BIT(24) - 1,
+	qm_mcr_orp_ea_tptr_mask = BIT(24) - 1,
+	qm_mcr_pfdr_hptr_mask = BIT(24) - 1,
+	qm_mcr_pfdr_tptr_mask = BIT(24) - 1,
+	qm_mcr_is_mask = BIT(1) - 1,
+	qm_mcr_frm_cnt_mask = BIT(24) - 1,
 };
 #define qm_mcr_np_get(np, field) \
 	((np)->field & (qm_mcr_##field##_mask))
@@ -169,7 +176,8 @@ enum qm_mcr_queryfq_np_masks {
 #define CGR_BIT(x)	(BIT(31) >> ((x) & 0x1f))
 #define CGR_NUM	(sizeof(struct __qm_mcr_querycongestion) << 3)
 
-struct qman_cgrs {
+struct qman_cgrs
+{
 	struct __qm_mcr_querycongestion q;
 };
 
@@ -189,13 +197,13 @@ static inline int qman_cgrs_get(struct qman_cgrs *c, u8 cgr)
 }
 
 static inline void qman_cgrs_cp(struct qman_cgrs *dest,
-				const struct qman_cgrs *src)
+								const struct qman_cgrs *src)
 {
 	*dest = *src;
 }
 
 static inline void qman_cgrs_and(struct qman_cgrs *dest,
-			const struct qman_cgrs *a, const struct qman_cgrs *b)
+								 const struct qman_cgrs *a, const struct qman_cgrs *b)
 {
 	int ret;
 	u32 *_d = dest->q.state;
@@ -203,11 +211,13 @@ static inline void qman_cgrs_and(struct qman_cgrs *dest,
 	const u32 *_b = b->q.state;
 
 	for (ret = 0; ret < 8; ret++)
+	{
 		*_d++ = *_a++ & *_b++;
+	}
 }
 
 static inline void qman_cgrs_xor(struct qman_cgrs *dest,
-			const struct qman_cgrs *a, const struct qman_cgrs *b)
+								 const struct qman_cgrs *a, const struct qman_cgrs *b)
 {
 	int ret;
 	u32 *_d = dest->q.state;
@@ -215,12 +225,15 @@ static inline void qman_cgrs_xor(struct qman_cgrs *dest,
 	const u32 *_b = b->q.state;
 
 	for (ret = 0; ret < 8; ret++)
+	{
 		*_d++ = *_a++ ^ *_b++;
+	}
 }
 
 void qman_init_cgr_all(void);
 
-struct qm_portal_config {
+struct qm_portal_config
+{
 	/*
 	 * Corenet portal addresses;
 	 * [0]==cache-enabled, [1]==cache-inhibited.
@@ -266,8 +279,8 @@ void qman_liodn_fixup(u16 channel);
 void qman_set_sdest(u16 channel, unsigned int cpu_idx);
 
 struct qman_portal *qman_create_affine_portal(
-			const struct qm_portal_config *config,
-			const struct qman_cgrs *cgrs);
+	const struct qm_portal_config *config,
+	const struct qman_cgrs *cgrs);
 const struct qm_portal_config *qman_destroy_affine_portal(void);
 
 /*
@@ -368,4 +381,4 @@ int qman_alloc_fq_table(u32 num_fqids);
 
 extern struct qman_portal *affine_portals[NR_CPUS];
 const struct qm_portal_config *qman_get_qm_portal_config(
-						struct qman_portal *portal);
+	struct qman_portal *portal);

@@ -22,18 +22,19 @@
 #include <linux/spinlock.h>
 #include <linux/types.h>
 
-struct sunxi_reset_data {
+struct sunxi_reset_data
+{
 	spinlock_t			lock;
 	void __iomem			*membase;
 	struct reset_controller_dev	rcdev;
 };
 
 static int sunxi_reset_assert(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+							  unsigned long id)
 {
 	struct sunxi_reset_data *data = container_of(rcdev,
-						     struct sunxi_reset_data,
-						     rcdev);
+									struct sunxi_reset_data,
+									rcdev);
 	int bank = id / BITS_PER_LONG;
 	int offset = id % BITS_PER_LONG;
 	unsigned long flags;
@@ -50,11 +51,11 @@ static int sunxi_reset_assert(struct reset_controller_dev *rcdev,
 }
 
 static int sunxi_reset_deassert(struct reset_controller_dev *rcdev,
-				unsigned long id)
+								unsigned long id)
 {
 	struct sunxi_reset_data *data = container_of(rcdev,
-						     struct sunxi_reset_data,
-						     rcdev);
+									struct sunxi_reset_data,
+									rcdev);
 	int bank = id / BITS_PER_LONG;
 	int offset = id % BITS_PER_LONG;
 	unsigned long flags;
@@ -70,7 +71,8 @@ static int sunxi_reset_deassert(struct reset_controller_dev *rcdev,
 	return 0;
 }
 
-static const struct reset_control_ops sunxi_reset_ops = {
+static const struct reset_control_ops sunxi_reset_ops =
+{
 	.assert		= sunxi_reset_assert,
 	.deassert	= sunxi_reset_deassert,
 };
@@ -83,21 +85,31 @@ static int sunxi_reset_init(struct device_node *np)
 	int ret;
 
 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	ret = of_address_to_resource(np, 0, &res);
+
 	if (ret)
+	{
 		goto err_alloc;
+	}
 
 	size = resource_size(&res);
-	if (!request_mem_region(res.start, size, np->name)) {
+
+	if (!request_mem_region(res.start, size, np->name))
+	{
 		ret = -EBUSY;
 		goto err_alloc;
 	}
 
 	data->membase = ioremap(res.start, size);
-	if (!data->membase) {
+
+	if (!data->membase)
+	{
 		ret = -ENOMEM;
 		goto err_alloc;
 	}
@@ -121,7 +133,8 @@ err_alloc:
  * our system, before we can even think of using a regular device
  * driver for it.
  */
-static const struct of_device_id sunxi_early_reset_dt_ids[] __initconst = {
+static const struct of_device_id sunxi_early_reset_dt_ids[] __initconst =
+{
 	{ .compatible = "allwinner,sun6i-a31-ahb1-reset", },
 	{ /* sentinel */ },
 };
@@ -131,16 +144,17 @@ void __init sun6i_reset_init(void)
 	struct device_node *np;
 
 	for_each_matching_node(np, sunxi_early_reset_dt_ids)
-		sunxi_reset_init(np);
+	sunxi_reset_init(np);
 }
 
 /*
  * And these are the controllers we can register through the regular
  * device model.
  */
-static const struct of_device_id sunxi_reset_dt_ids[] = {
-	 { .compatible = "allwinner,sun6i-a31-clock-reset", },
-	 { /* sentinel */ },
+static const struct of_device_id sunxi_reset_dt_ids[] =
+{
+	{ .compatible = "allwinner,sun6i-a31-clock-reset", },
+	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, sunxi_reset_dt_ids);
 
@@ -150,13 +164,19 @@ static int sunxi_reset_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	data->membase = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(data->membase))
+	{
 		return PTR_ERR(data->membase);
+	}
 
 	spin_lock_init(&data->lock);
 
@@ -168,7 +188,8 @@ static int sunxi_reset_probe(struct platform_device *pdev)
 	return devm_reset_controller_register(&pdev->dev, &data->rcdev);
 }
 
-static struct platform_driver sunxi_reset_driver = {
+static struct platform_driver sunxi_reset_driver =
+{
 	.probe	= sunxi_reset_probe,
 	.driver = {
 		.name		= "sunxi-reset",

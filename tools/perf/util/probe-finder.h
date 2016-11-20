@@ -26,7 +26,8 @@ static inline int is_c_varname(const char *name)
 /* TODO: export debuginfo data structure even if no dwarf support */
 
 /* debug information structure */
-struct debuginfo {
+struct debuginfo
+{
 	Dwarf		*dbg;
 	Dwfl_Module	*mod;
 	Dwfl		*dwfl;
@@ -39,26 +40,27 @@ void debuginfo__delete(struct debuginfo *dbg);
 
 /* Find probe_trace_events specified by perf_probe_event from debuginfo */
 int debuginfo__find_trace_events(struct debuginfo *dbg,
-				 struct perf_probe_event *pev,
-				 struct probe_trace_event **tevs);
+								 struct perf_probe_event *pev,
+								 struct probe_trace_event **tevs);
 
 /* Find a perf_probe_point from debuginfo */
 int debuginfo__find_probe_point(struct debuginfo *dbg, unsigned long addr,
-				struct perf_probe_point *ppt);
+								struct perf_probe_point *ppt);
 
 /* Find a line range */
 int debuginfo__find_line_range(struct debuginfo *dbg, struct line_range *lr);
 
 /* Find available variables */
 int debuginfo__find_available_vars_at(struct debuginfo *dbg,
-				      struct perf_probe_event *pev,
-				      struct variable_list **vls);
+									  struct perf_probe_event *pev,
+									  struct variable_list **vls);
 
 /* Find a src file from a DWARF tag path */
 int get_real_path(const char *raw_path, const char *comp_dir,
-			 char **new_path);
+				  char **new_path);
 
-struct probe_finder {
+struct probe_finder
+{
 	struct perf_probe_event	*pev;		/* Target probe event */
 
 	/* Callback when a probe point is found */
@@ -85,7 +87,8 @@ struct probe_finder {
 	struct probe_trace_arg	*tvar;		/* Current result variable */
 };
 
-struct trace_event_finder {
+struct trace_event_finder
+{
 	struct probe_finder	pf;
 	Dwfl_Module		*mod;		/* For solving symbols */
 	struct probe_trace_event *tevs;		/* Found trace events */
@@ -93,7 +96,8 @@ struct trace_event_finder {
 	int			max_tevs;	/* Max number of trace events */
 };
 
-struct available_var_finder {
+struct available_var_finder
+{
 	struct probe_finder	pf;
 	Dwfl_Module		*mod;		/* For solving symbols */
 	struct variable_list	*vls;		/* Found variable lists */
@@ -102,7 +106,8 @@ struct available_var_finder {
 	bool			child;		/* Search child scopes */
 };
 
-struct line_finder {
+struct line_finder
+{
 	struct line_range	*lr;		/* Target line range */
 
 	const char		*fname;		/* File name */

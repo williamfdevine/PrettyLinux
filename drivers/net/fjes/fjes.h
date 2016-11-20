@@ -35,7 +35,8 @@
 #define FJES_IRQ_WATCH_DELAY	(HZ)
 
 /* board specific private data structure */
-struct fjes_adapter {
+struct fjes_adapter
+{
 	struct net_device *netdev;
 	struct platform_device *plat_dev;
 

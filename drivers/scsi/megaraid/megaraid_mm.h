@@ -30,7 +30,7 @@
 
 #define LSI_COMMON_MOD_VERSION	"2.20.2.7"
 #define LSI_COMMON_MOD_EXT_VERSION	\
-		"(Release Date: Sun Jul 16 00:01:03 EST 2006)"
+	"(Release Date: Sun Jul 16 00:01:03 EST 2006)"
 
 
 #define LSI_DBGLVL			dbglevel
@@ -61,14 +61,17 @@
  *		: new uioc_t format and send it to the hba drivers.
  */
 
-typedef struct mimd {
+typedef struct mimd
+{
 
 	uint32_t inlen;
 	uint32_t outlen;
 
-	union {
+	union
+	{
 		uint8_t fca[16];
-		struct {
+		struct
+		{
 			uint8_t opcode;
 			uint8_t subopcode;
 			uint16_t adapno;

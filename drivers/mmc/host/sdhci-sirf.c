@@ -19,7 +19,8 @@
 #define SDHCI_SIRF_8BITBUS BIT(3)
 #define SIRF_TUNING_COUNT 16384
 
-struct sdhci_sirf_priv {
+struct sdhci_sirf_priv
+{
 	int gpio_cd;
 };
 
@@ -36,9 +37,13 @@ static void sdhci_sirf_set_bus_width(struct sdhci_host *host, int width)
 	 * while stardard hosts use bit 5
 	 */
 	if (width == MMC_BUS_WIDTH_8)
+	{
 		ctrl |= SDHCI_SIRF_8BITBUS;
+	}
 	else if (width == MMC_BUS_WIDTH_4)
+	{
 		ctrl |= SDHCI_CTRL_4BITBUS;
+	}
 
 	sdhci_writeb(host, ctrl, SDHCI_HOST_CONTROL);
 }
@@ -48,18 +53,21 @@ static u32 sdhci_sirf_readl_le(struct sdhci_host *host, int reg)
 	u32 val = readl(host->ioaddr + reg);
 
 	if (unlikely((reg == SDHCI_CAPABILITIES_1) &&
-			(host->mmc->caps & MMC_CAP_UHS_SDR50))) {
+				 (host->mmc->caps & MMC_CAP_UHS_SDR50)))
+	{
 		/* fake CAP_1 register */
 		val = SDHCI_SUPPORT_DDR50 |
-			SDHCI_SUPPORT_SDR50 | SDHCI_USE_SDR50_TUNING;
+			  SDHCI_SUPPORT_SDR50 | SDHCI_USE_SDR50_TUNING;
 	}
 
-	if (unlikely(reg == SDHCI_SLOT_INT_STATUS)) {
+	if (unlikely(reg == SDHCI_SLOT_INT_STATUS))
+	{
 		u32 prss = val;
 		/* fake chips as V3.0 host conreoller */
 		prss &= ~(0xFF << 16);
 		val = prss | (SDHCI_SPEC_300 << 16);
 	}
+
 	return val;
 }
 
@@ -69,7 +77,8 @@ static u16 sdhci_sirf_readw_le(struct sdhci_host *host, int reg)
 
 	ret = readw(host->ioaddr + reg);
 
-	if (unlikely(reg == SDHCI_HOST_VERSION)) {
+	if (unlikely(reg == SDHCI_HOST_VERSION))
+	{
 		ret = readw(host->ioaddr + SDHCI_HOST_VERSION);
 		ret |= SDHCI_SPEC_300;
 	}
@@ -93,60 +102,83 @@ static int sdhci_sirf_execute_tuning(struct sdhci_host *host, u32 opcode)
 retry:
 	phase = 0;
 	tuned_phase_cnt = 0;
-	do {
-		sdhci_writel(host,
-			clock_setting | phase,
-			SDHCI_CLK_DELAY_SETTING);
 
-		if (!mmc_send_tuning(mmc, opcode, NULL)) {
+	do
+	{
+		sdhci_writel(host,
+					 clock_setting | phase,
+					 SDHCI_CLK_DELAY_SETTING);
+
+		if (!mmc_send_tuning(mmc, opcode, NULL))
+		{
 			/* Tuning is successful at this tuning point */
 			tuned_phase_cnt++;
 			dev_dbg(mmc_dev(mmc), "%s: Found good phase = %d\n",
-				 mmc_hostname(mmc), phase);
+					mmc_hostname(mmc), phase);
+
 			if (start == -1)
+			{
 				start = phase;
+			}
+
 			end = phase;
 			range++;
+
 			if (phase == (SIRF_TUNING_COUNT - 1)
 				&& range > longest_range)
+			{
 				tuning_value = (start + end) / 2;
-		} else {
+			}
+		}
+		else
+		{
 			dev_dbg(mmc_dev(mmc), "%s: Found bad phase = %d\n",
-				 mmc_hostname(mmc), phase);
-			if (range > longest_range) {
+					mmc_hostname(mmc), phase);
+
+			if (range > longest_range)
+			{
 				tuning_value = (start + end) / 2;
 				longest_range = range;
 			}
+
 			start = -1;
 			end = range = 0;
 		}
-	} while (++phase < SIRF_TUNING_COUNT);
+	}
+	while (++phase < SIRF_TUNING_COUNT);
 
-	if (tuned_phase_cnt && tuning_value > 0) {
+	if (tuned_phase_cnt && tuning_value > 0)
+	{
 		/*
 		 * Finally set the selected phase in delay
 		 * line hw block.
 		 */
 		phase = tuning_value;
 		sdhci_writel(host,
-			clock_setting | phase,
-			SDHCI_CLK_DELAY_SETTING);
+					 clock_setting | phase,
+					 SDHCI_CLK_DELAY_SETTING);
 
 		dev_dbg(mmc_dev(mmc), "%s: Setting the tuning phase to %d\n",
-			 mmc_hostname(mmc), phase);
-	} else {
+				mmc_hostname(mmc), phase);
+	}
+	else
+	{
 		if (--tuning_seq_cnt)
+		{
 			goto retry;
+		}
+
 		/* Tuning failed */
 		dev_dbg(mmc_dev(mmc), "%s: No tuning point found\n",
-		       mmc_hostname(mmc));
+				mmc_hostname(mmc));
 		rc = -EIO;
 	}
 
 	return rc;
 }
 
-static struct sdhci_ops sdhci_sirf_ops = {
+static struct sdhci_ops sdhci_sirf_ops =
+{
 	.read_l = sdhci_sirf_readl_le,
 	.read_w = sdhci_sirf_readw_le,
 	.platform_execute_tuning = sdhci_sirf_execute_tuning,
@@ -157,12 +189,13 @@ static struct sdhci_ops sdhci_sirf_ops = {
 	.set_uhs_signaling = sdhci_set_uhs_signaling,
 };
 
-static struct sdhci_pltfm_data sdhci_sirf_pdata = {
+static struct sdhci_pltfm_data sdhci_sirf_pdata =
+{
 	.ops = &sdhci_sirf_ops,
 	.quirks = SDHCI_QUIRK_BROKEN_TIMEOUT_VAL |
-		SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK |
-		SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN |
-		SDHCI_QUIRK_RESET_CMD_DATA_ON_IOS,
+	SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK |
+	SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN |
+	SDHCI_QUIRK_RESET_CMD_DATA_ON_IOS,
 	.quirks2 = SDHCI_QUIRK2_PRESET_VALUE_BROKEN,
 };
 
@@ -176,19 +209,28 @@ static int sdhci_sirf_probe(struct platform_device *pdev)
 	int ret;
 
 	clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "unable to get clock");
 		return PTR_ERR(clk);
 	}
 
 	if (pdev->dev.of_node)
+	{
 		gpio_cd = of_get_named_gpio(pdev->dev.of_node, "cd-gpios", 0);
+	}
 	else
+	{
 		gpio_cd = -EINVAL;
+	}
 
 	host = sdhci_pltfm_init(pdev, &sdhci_sirf_pdata, sizeof(struct sdhci_sirf_priv));
+
 	if (IS_ERR(host))
+	{
 		return PTR_ERR(host);
+	}
 
 	pltfm_host = sdhci_priv(host);
 	pltfm_host->clk = clk;
@@ -198,24 +240,34 @@ static int sdhci_sirf_probe(struct platform_device *pdev)
 	sdhci_get_of_property(pdev);
 
 	ret = clk_prepare_enable(pltfm_host->clk);
+
 	if (ret)
+	{
 		goto err_clk_prepare;
+	}
 
 	ret = sdhci_add_host(host);
+
 	if (ret)
+	{
 		goto err_sdhci_add;
+	}
 
 	/*
 	 * We must request the IRQ after sdhci_add_host(), as the tasklet only
 	 * gets setup in sdhci_add_host() and we oops.
 	 */
-	if (gpio_is_valid(priv->gpio_cd)) {
+	if (gpio_is_valid(priv->gpio_cd))
+	{
 		ret = mmc_gpio_request_cd(host->mmc, priv->gpio_cd, 0);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&pdev->dev, "card detect irq request failed: %d\n",
-				ret);
+					ret);
 			goto err_request_cd;
 		}
+
 		mmc_gpiod_request_cd_irq(host->mmc);
 	}
 
@@ -238,8 +290,11 @@ static int sdhci_sirf_suspend(struct device *dev)
 	int ret;
 
 	ret = sdhci_suspend_host(host);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	clk_disable(pltfm_host->clk);
 
@@ -253,7 +308,9 @@ static int sdhci_sirf_resume(struct device *dev)
 	int ret;
 
 	ret = clk_enable(pltfm_host->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_dbg(dev, "Resume: Error enabling clock\n");
 		return ret;
 	}
@@ -264,13 +321,15 @@ static int sdhci_sirf_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(sdhci_sirf_pm_ops, sdhci_sirf_suspend, sdhci_sirf_resume);
 
-static const struct of_device_id sdhci_sirf_of_match[] = {
+static const struct of_device_id sdhci_sirf_of_match[] =
+{
 	{ .compatible = "sirf,prima2-sdhc" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, sdhci_sirf_of_match);
 
-static struct platform_driver sdhci_sirf_driver = {
+static struct platform_driver sdhci_sirf_driver =
+{
 	.driver		= {
 		.name	= "sdhci-sirf",
 		.of_match_table = sdhci_sirf_of_match,

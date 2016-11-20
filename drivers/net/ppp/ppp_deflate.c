@@ -24,14 +24,15 @@
 /*
  * State for a Deflate (de)compressor.
  */
-struct ppp_deflate_state {
-    int		seqno;
-    int		w_size;
-    int		unit;
-    int		mru;
-    int		debug;
-    z_stream	strm;
-    struct compstat stats;
+struct ppp_deflate_state
+{
+	int		seqno;
+	int		w_size;
+	int		unit;
+	int		mru;
+	int		debug;
+	z_stream	strm;
+	struct compstat stats;
 };
 
 #define DEFLATE_OVHD	2		/* Deflate overhead/packet */
@@ -41,17 +42,17 @@ static void	*z_decomp_alloc(unsigned char *options, int opt_len);
 static void	z_comp_free(void *state);
 static void	z_decomp_free(void *state);
 static int	z_comp_init(void *state, unsigned char *options,
-				 int opt_len,
-				 int unit, int hdrlen, int debug);
+						int opt_len,
+						int unit, int hdrlen, int debug);
 static int	z_decomp_init(void *state, unsigned char *options,
-				   int opt_len,
-				   int unit, int hdrlen, int mru, int debug);
+						  int opt_len,
+						  int unit, int hdrlen, int mru, int debug);
 static int	z_compress(void *state, unsigned char *rptr,
-				unsigned char *obuf,
-				int isize, int osize);
+					   unsigned char *obuf,
+					   int isize, int osize);
 static void	z_incomp(void *state, unsigned char *ibuf, int icnt);
 static int	z_decompress(void *state, unsigned char *ibuf,
-				int isize, unsigned char *obuf, int osize);
+						 int isize, unsigned char *obuf, int osize);
 static void	z_comp_reset(void *state);
 static void	z_decomp_reset(void *state);
 static void	z_comp_stats(void *state, struct compstat *stats);
@@ -64,7 +65,8 @@ static void z_comp_free(void *arg)
 {
 	struct ppp_deflate_state *state = (struct ppp_deflate_state *) arg;
 
-	if (state) {
+	if (state)
+	{
 		zlib_deflateEnd(&state->strm);
 		vfree(state->strm.workspace);
 		kfree(state);
@@ -91,30 +93,45 @@ static void *z_comp_alloc(unsigned char *options, int opt_len)
 	int w_size;
 
 	if (opt_len != CILEN_DEFLATE ||
-	    (options[0] != CI_DEFLATE && options[0] != CI_DEFLATE_DRAFT) ||
-	    options[1] != CILEN_DEFLATE ||
-	    DEFLATE_METHOD(options[2]) != DEFLATE_METHOD_VAL ||
-	    options[3] != DEFLATE_CHK_SEQUENCE)
+		(options[0] != CI_DEFLATE && options[0] != CI_DEFLATE_DRAFT) ||
+		options[1] != CILEN_DEFLATE ||
+		DEFLATE_METHOD(options[2]) != DEFLATE_METHOD_VAL ||
+		options[3] != DEFLATE_CHK_SEQUENCE)
+	{
 		return NULL;
+	}
+
 	w_size = DEFLATE_SIZE(options[2]);
+
 	if (w_size < DEFLATE_MIN_SIZE || w_size > DEFLATE_MAX_SIZE)
+	{
 		return NULL;
+	}
 
 	state = kzalloc(sizeof(*state),
-						     GFP_KERNEL);
+					GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		return NULL;
+	}
 
 	state->strm.next_in   = NULL;
 	state->w_size         = w_size;
 	state->strm.workspace = vmalloc(zlib_deflate_workspacesize(-w_size, 8));
+
 	if (state->strm.workspace == NULL)
+	{
 		goto out_free;
+	}
 
 	if (zlib_deflateInit2(&state->strm, Z_DEFAULT_COMPRESSION,
-			 DEFLATE_METHOD_VAL, -w_size, 8, Z_DEFAULT_STRATEGY)
-	    != Z_OK)
+						  DEFLATE_METHOD_VAL, -w_size, 8, Z_DEFAULT_STRATEGY)
+		!= Z_OK)
+	{
 		goto out_free;
+	}
+
 	return (void *) state;
 
 out_free:
@@ -138,17 +155,19 @@ out_free:
  *	match) or 1 for success.
  */
 static int z_comp_init(void *arg, unsigned char *options, int opt_len,
-		       int unit, int hdrlen, int debug)
+					   int unit, int hdrlen, int debug)
 {
 	struct ppp_deflate_state *state = (struct ppp_deflate_state *) arg;
 
 	if (opt_len < CILEN_DEFLATE ||
-	    (options[0] != CI_DEFLATE && options[0] != CI_DEFLATE_DRAFT) ||
-	    options[1] != CILEN_DEFLATE ||
-	    DEFLATE_METHOD(options[2]) != DEFLATE_METHOD_VAL ||
-	    DEFLATE_SIZE(options[2]) != state->w_size ||
-	    options[3] != DEFLATE_CHK_SEQUENCE)
+		(options[0] != CI_DEFLATE && options[0] != CI_DEFLATE_DRAFT) ||
+		options[1] != CILEN_DEFLATE ||
+		DEFLATE_METHOD(options[2]) != DEFLATE_METHOD_VAL ||
+		DEFLATE_SIZE(options[2]) != state->w_size ||
+		options[3] != DEFLATE_CHK_SEQUENCE)
+	{
 		return 0;
+	}
 
 	state->seqno = 0;
 	state->unit  = unit;
@@ -186,7 +205,7 @@ static void z_comp_reset(void *arg)
  *	packet is incompressible.
  */
 static int z_compress(void *arg, unsigned char *rptr, unsigned char *obuf,
-	       int isize, int osize)
+					  int isize, int osize)
 {
 	struct ppp_deflate_state *state = (struct ppp_deflate_state *) arg;
 	int r, proto, off, olen, oavail;
@@ -196,13 +215,18 @@ static int z_compress(void *arg, unsigned char *rptr, unsigned char *obuf,
 	 * Check that the protocol is in the range we handle.
 	 */
 	proto = PPP_PROTOCOL(rptr);
+
 	if (proto > 0x3fff || proto == 0xfd || proto == 0xfb)
+	{
 		return 0;
+	}
 
 	/* Don't generate compressed packets which are larger than
 	   the uncompressed packet. */
 	if (osize > isize)
+	{
 		osize = isize;
+	}
 
 	wptr = obuf;
 
@@ -225,35 +249,48 @@ static int z_compress(void *arg, unsigned char *rptr, unsigned char *obuf,
 	state->strm.next_in = rptr;
 	state->strm.avail_in = (isize - off);
 
-	for (;;) {
+	for (;;)
+	{
 		r = zlib_deflate(&state->strm, Z_PACKET_FLUSH);
-		if (r != Z_OK) {
+
+		if (r != Z_OK)
+		{
 			if (state->debug)
 				printk(KERN_ERR
-				       "z_compress: deflate returned %d\n", r);
+					   "z_compress: deflate returned %d\n", r);
+
 			break;
 		}
-		if (state->strm.avail_out == 0) {
+
+		if (state->strm.avail_out == 0)
+		{
 			olen += oavail;
 			state->strm.next_out = NULL;
 			state->strm.avail_out = oavail = 1000000;
-		} else {
+		}
+		else
+		{
 			break;		/* all done */
 		}
 	}
+
 	olen += oavail - state->strm.avail_out;
 
 	/*
 	 * See if we managed to reduce the size of the packet.
 	 */
-	if (olen < isize && olen <= osize) {
+	if (olen < isize && olen <= osize)
+	{
 		state->stats.comp_bytes += olen;
 		state->stats.comp_packets++;
-	} else {
+	}
+	else
+	{
 		state->stats.inc_bytes += isize;
 		state->stats.inc_packets++;
 		olen = 0;
 	}
+
 	state->stats.unc_bytes += isize;
 	state->stats.unc_packets++;
 
@@ -281,7 +318,8 @@ static void z_decomp_free(void *arg)
 {
 	struct ppp_deflate_state *state = (struct ppp_deflate_state *) arg;
 
-	if (state) {
+	if (state)
+	{
 		zlib_inflateEnd(&state->strm);
 		vfree(state->strm.workspace);
 		kfree(state);
@@ -308,27 +346,42 @@ static void *z_decomp_alloc(unsigned char *options, int opt_len)
 	int w_size;
 
 	if (opt_len != CILEN_DEFLATE ||
-	    (options[0] != CI_DEFLATE && options[0] != CI_DEFLATE_DRAFT) ||
-	    options[1] != CILEN_DEFLATE ||
-	    DEFLATE_METHOD(options[2]) != DEFLATE_METHOD_VAL ||
-	    options[3] != DEFLATE_CHK_SEQUENCE)
+		(options[0] != CI_DEFLATE && options[0] != CI_DEFLATE_DRAFT) ||
+		options[1] != CILEN_DEFLATE ||
+		DEFLATE_METHOD(options[2]) != DEFLATE_METHOD_VAL ||
+		options[3] != DEFLATE_CHK_SEQUENCE)
+	{
 		return NULL;
+	}
+
 	w_size = DEFLATE_SIZE(options[2]);
+
 	if (w_size < DEFLATE_MIN_SIZE || w_size > DEFLATE_MAX_SIZE)
+	{
 		return NULL;
+	}
 
 	state = kzalloc(sizeof(*state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		return NULL;
+	}
 
 	state->w_size         = w_size;
 	state->strm.next_out  = NULL;
 	state->strm.workspace = vmalloc(zlib_inflate_workspacesize());
+
 	if (state->strm.workspace == NULL)
+	{
 		goto out_free;
+	}
 
 	if (zlib_inflateInit2(&state->strm, -w_size) != Z_OK)
+	{
 		goto out_free;
+	}
+
 	return (void *) state;
 
 out_free:
@@ -353,17 +406,19 @@ out_free:
  *	match) or 1 for success.
  */
 static int z_decomp_init(void *arg, unsigned char *options, int opt_len,
-			 int unit, int hdrlen, int mru, int debug)
+						 int unit, int hdrlen, int mru, int debug)
 {
 	struct ppp_deflate_state *state = (struct ppp_deflate_state *) arg;
 
 	if (opt_len < CILEN_DEFLATE ||
-	    (options[0] != CI_DEFLATE && options[0] != CI_DEFLATE_DRAFT) ||
-	    options[1] != CILEN_DEFLATE ||
-	    DEFLATE_METHOD(options[2]) != DEFLATE_METHOD_VAL ||
-	    DEFLATE_SIZE(options[2]) != state->w_size ||
-	    options[3] != DEFLATE_CHK_SEQUENCE)
+		(options[0] != CI_DEFLATE && options[0] != CI_DEFLATE_DRAFT) ||
+		options[1] != CILEN_DEFLATE ||
+		DEFLATE_METHOD(options[2]) != DEFLATE_METHOD_VAL ||
+		DEFLATE_SIZE(options[2]) != state->w_size ||
+		options[3] != DEFLATE_CHK_SEQUENCE)
+	{
 		return 0;
+	}
 
 	state->seqno = 0;
 	state->unit  = unit;
@@ -412,28 +467,34 @@ static void z_decomp_reset(void *arg)
  * compression, even though they are detected by inspecting the input.
  */
 static int z_decompress(void *arg, unsigned char *ibuf, int isize,
-		 unsigned char *obuf, int osize)
+						unsigned char *obuf, int osize)
 {
 	struct ppp_deflate_state *state = (struct ppp_deflate_state *) arg;
 	int olen, seq, r;
 	int decode_proto, overflow;
 	unsigned char overflow_buf[1];
 
-	if (isize <= PPP_HDRLEN + DEFLATE_OVHD) {
+	if (isize <= PPP_HDRLEN + DEFLATE_OVHD)
+	{
 		if (state->debug)
 			printk(KERN_DEBUG "z_decompress%d: short pkt (%d)\n",
-			       state->unit, isize);
+				   state->unit, isize);
+
 		return DECOMP_ERROR;
 	}
 
 	/* Check the sequence number. */
 	seq = get_unaligned_be16(ibuf + PPP_HDRLEN);
-	if (seq != (state->seqno & 0xffff)) {
+
+	if (seq != (state->seqno & 0xffff))
+	{
 		if (state->debug)
 			printk(KERN_DEBUG "z_decompress%d: bad seq # %d, expected %d\n",
-			       state->unit, seq, state->seqno & 0xffff);
+				   state->unit, seq, state->seqno & 0xffff);
+
 		return DECOMP_ERROR;
 	}
+
 	++state->seqno;
 
 	/*
@@ -459,26 +520,40 @@ static int z_decompress(void *arg, unsigned char *ibuf, int isize,
 	/*
 	 * Call inflate, supplying more input or output as needed.
 	 */
-	for (;;) {
+	for (;;)
+	{
 		r = zlib_inflate(&state->strm, Z_PACKET_FLUSH);
-		if (r != Z_OK) {
+
+		if (r != Z_OK)
+		{
 			if (state->debug)
 				printk(KERN_DEBUG "z_decompress%d: inflate returned %d (%s)\n",
-				       state->unit, r, (state->strm.msg? state->strm.msg: ""));
+					   state->unit, r, (state->strm.msg ? state->strm.msg : ""));
+
 			return DECOMP_FATALERROR;
 		}
+
 		if (state->strm.avail_out != 0)
-			break;		/* all done */
-		if (decode_proto) {
+		{
+			break;    /* all done */
+		}
+
+		if (decode_proto)
+		{
 			state->strm.avail_out = osize - PPP_HDRLEN;
-			if ((obuf[3] & 1) == 0) {
+
+			if ((obuf[3] & 1) == 0)
+			{
 				/* 2-byte protocol field */
 				obuf[2] = obuf[3];
 				--state->strm.next_out;
 				++state->strm.avail_out;
 			}
+
 			decode_proto = 0;
-		} else if (!overflow) {
+		}
+		else if (!overflow)
+		{
 			/*
 			 * We've filled up the output buffer; the only way to
 			 * find out whether inflate has any more characters
@@ -487,18 +562,23 @@ static int z_decompress(void *arg, unsigned char *ibuf, int isize,
 			state->strm.next_out = overflow_buf;
 			state->strm.avail_out = 1;
 			overflow = 1;
-		} else {
+		}
+		else
+		{
 			if (state->debug)
 				printk(KERN_DEBUG "z_decompress%d: ran out of mru\n",
-				       state->unit);
+					   state->unit);
+
 			return DECOMP_FATALERROR;
 		}
 	}
 
-	if (decode_proto) {
+	if (decode_proto)
+	{
 		if (state->debug)
 			printk(KERN_DEBUG "z_decompress%d: didn't get proto\n",
-			       state->unit);
+				   state->unit);
+
 		return DECOMP_ERROR;
 	}
 
@@ -526,8 +606,11 @@ static void z_incomp(void *arg, unsigned char *ibuf, int icnt)
 	 * Check that the protocol is one we handle.
 	 */
 	proto = PPP_PROTOCOL(ibuf);
+
 	if (proto > 0x3fff || proto == 0xfd || proto == 0xfb)
+	{
 		return;
+	}
 
 	++state->seqno;
 
@@ -537,18 +620,24 @@ static void z_incomp(void *arg, unsigned char *ibuf, int icnt)
 	 */
 	state->strm.next_in = ibuf + 3;
 	state->strm.avail_in = icnt - 3;
-	if (proto > 0xff) {
+
+	if (proto > 0xff)
+	{
 		--state->strm.next_in;
 		++state->strm.avail_in;
 	}
 
 	r = zlib_inflateIncomp(&state->strm);
-	if (r != Z_OK) {
+
+	if (r != Z_OK)
+	{
 		/* gak! */
-		if (state->debug) {
+		if (state->debug)
+		{
 			printk(KERN_DEBUG "z_incomp%d: inflateIncomp returned %d (%s)\n",
-			       state->unit, r, (state->strm.msg? state->strm.msg: ""));
+				   state->unit, r, (state->strm.msg ? state->strm.msg : ""));
 		}
+
 		return;
 	}
 
@@ -572,7 +661,8 @@ extern void ppp_unregister_compressor (struct compressor *cp);
 /*
  * Procedures exported to if_ppp.c.
  */
-static struct compressor ppp_deflate = {
+static struct compressor ppp_deflate =
+{
 	.compress_proto =	CI_DEFLATE,
 	.comp_alloc =		z_comp_alloc,
 	.comp_free =		z_comp_free,
@@ -590,7 +680,8 @@ static struct compressor ppp_deflate = {
 	.owner =		THIS_MODULE
 };
 
-static struct compressor ppp_deflate_draft = {
+static struct compressor ppp_deflate_draft =
+{
 	.compress_proto =	CI_DEFLATE_DRAFT,
 	.comp_alloc =		z_comp_alloc,
 	.comp_free =		z_comp_free,
@@ -610,12 +701,14 @@ static struct compressor ppp_deflate_draft = {
 
 static int __init deflate_init(void)
 {
-        int answer = ppp_register_compressor(&ppp_deflate);
-        if (answer == 0)
-                printk(KERN_INFO
-		       "PPP Deflate Compression module registered\n");
+	int answer = ppp_register_compressor(&ppp_deflate);
+
+	if (answer == 0)
+		printk(KERN_INFO
+			   "PPP Deflate Compression module registered\n");
+
 	ppp_register_compressor(&ppp_deflate_draft);
-        return answer;
+	return answer;
 }
 
 static void __exit deflate_cleanup(void)

@@ -45,11 +45,13 @@
 #define CHKSUM_BLOCK_SIZE	1
 #define CHKSUM_DIGEST_SIZE	4
 
-struct chksum_ctx {
+struct chksum_ctx
+{
 	u32 key;
 };
 
-struct chksum_desc_ctx {
+struct chksum_desc_ctx
+{
 	u32 crc;
 };
 
@@ -74,20 +76,22 @@ static int chksum_init(struct shash_desc *desc)
  * the seed.
  */
 static int chksum_setkey(struct crypto_shash *tfm, const u8 *key,
-			 unsigned int keylen)
+						 unsigned int keylen)
 {
 	struct chksum_ctx *mctx = crypto_shash_ctx(tfm);
 
-	if (keylen != sizeof(mctx->key)) {
+	if (keylen != sizeof(mctx->key))
+	{
 		crypto_shash_set_flags(tfm, CRYPTO_TFM_RES_BAD_KEY_LEN);
 		return -EINVAL;
 	}
+
 	mctx->key = le32_to_cpu(*(__le32 *)key);
 	return 0;
 }
 
 static int chksum_update(struct shash_desc *desc, const u8 *data,
-			 unsigned int length)
+						 unsigned int length)
 {
 	struct chksum_desc_ctx *ctx = shash_desc_ctx(desc);
 
@@ -110,7 +114,7 @@ static int __chksum_finup(u32 *crcp, const u8 *data, unsigned int len, u8 *out)
 }
 
 static int chksum_finup(struct shash_desc *desc, const u8 *data,
-			unsigned int len, u8 *out)
+						unsigned int len, u8 *out)
 {
 	struct chksum_desc_ctx *ctx = shash_desc_ctx(desc);
 
@@ -118,7 +122,7 @@ static int chksum_finup(struct shash_desc *desc, const u8 *data,
 }
 
 static int chksum_digest(struct shash_desc *desc, const u8 *data,
-			 unsigned int length, u8 *out)
+						 unsigned int length, u8 *out)
 {
 	struct chksum_ctx *mctx = crypto_shash_ctx(desc->tfm);
 
@@ -133,7 +137,8 @@ static int crc32c_cra_init(struct crypto_tfm *tfm)
 	return 0;
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize		=	CHKSUM_DIGEST_SIZE,
 	.setkey			=	chksum_setkey,
 	.init		=	chksum_init,

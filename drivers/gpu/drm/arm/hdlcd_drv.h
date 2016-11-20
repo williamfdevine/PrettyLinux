@@ -5,7 +5,8 @@
 #ifndef __HDLCD_DRV_H__
 #define __HDLCD_DRV_H__
 
-struct hdlcd_drm_private {
+struct hdlcd_drm_private
+{
 	void __iomem			*mmio;
 	struct clk			*clk;
 	struct drm_fbdev_cma		*fbdev;
@@ -23,7 +24,7 @@ struct hdlcd_drm_private {
 #define crtc_to_hdlcd_priv(x)	container_of(x, struct hdlcd_drm_private, crtc)
 
 static inline void hdlcd_write(struct hdlcd_drm_private *hdlcd,
-			       unsigned int reg, u32 value)
+							   unsigned int reg, u32 value)
 {
 	writel(value, hdlcd->mmio + reg);
 }

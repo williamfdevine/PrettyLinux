@@ -79,7 +79,8 @@
  * @pcellId2		- FF8
  * @pcellId3		- FFC
  */
-struct cryp_register {
+struct cryp_register
+{
 	u32 cr;			/* Configuration register   */
 	u32 sr;			/* Status register          */
 	u32 din;		/* Data input register      */

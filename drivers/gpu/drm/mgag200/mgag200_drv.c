@@ -28,7 +28,8 @@ module_param_named(modeset, mgag200_modeset, int, 0400);
 
 static struct drm_driver driver;
 
-static const struct pci_device_id pciidlist[] = {
+static const struct pci_device_id pciidlist[] =
+{
 	{ PCI_VENDOR_ID_MATROX, 0x522, PCI_ANY_ID, PCI_ANY_ID, 0, 0, G200_SE_A },
 	{ PCI_VENDOR_ID_MATROX, 0x524, PCI_ANY_ID, PCI_ANY_ID, 0, 0, G200_SE_B },
 	{ PCI_VENDOR_ID_MATROX, 0x530, PCI_ANY_ID, PCI_ANY_ID, 0, 0, G200_EV },
@@ -47,8 +48,11 @@ static void mgag200_kick_out_firmware_fb(struct pci_dev *pdev)
 	bool primary = false;
 
 	ap = alloc_apertures(1);
+
 	if (!ap)
+	{
 		return;
+	}
 
 	ap->ranges[0].base = pci_resource_start(pdev, 0);
 	ap->ranges[0].size = pci_resource_len(pdev, 0);
@@ -75,7 +79,8 @@ static void mga_pci_remove(struct pci_dev *pdev)
 	drm_put_dev(dev);
 }
 
-static const struct file_operations mgag200_driver_fops = {
+static const struct file_operations mgag200_driver_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -88,7 +93,8 @@ static const struct file_operations mgag200_driver_fops = {
 	.read = drm_read,
 };
 
-static struct drm_driver driver = {
+static struct drm_driver driver =
+{
 	.driver_features = DRIVER_GEM | DRIVER_MODESET,
 	.load = mgag200_driver_load,
 	.unload = mgag200_driver_unload,
@@ -107,7 +113,8 @@ static struct drm_driver driver = {
 	.dumb_destroy = drm_gem_dumb_destroy,
 };
 
-static struct pci_driver mgag200_pci_driver = {
+static struct pci_driver mgag200_pci_driver =
+{
 	.name = DRIVER_NAME,
 	.id_table = pciidlist,
 	.probe = mga_pci_probe,
@@ -117,10 +124,15 @@ static struct pci_driver mgag200_pci_driver = {
 static int __init mgag200_init(void)
 {
 	if (vgacon_text_force() && mgag200_modeset == -1)
+	{
 		return -EINVAL;
+	}
 
 	if (mgag200_modeset == 0)
+	{
 		return -EINVAL;
+	}
+
 	return drm_pci_init(&driver, &mgag200_pci_driver);
 }
 

@@ -25,8 +25,8 @@
 
 int
 nvkm_mspdec_new_(const struct nvkm_falcon_func *func,
-		 struct nvkm_device *device, int index,
-		 struct nvkm_engine **pengine)
+				 struct nvkm_device *device, int index,
+				 struct nvkm_engine **pengine)
 {
 	return nvkm_falcon_new_(func, device, index, true, 0x085000, pengine);
 }

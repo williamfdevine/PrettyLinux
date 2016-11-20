@@ -74,7 +74,8 @@
 #define VB_DISPLAY_MODE		(SINGLE_MODE | MIRROR_MODE | DUALVIEW_MODE)
 
 /* Structure argument for SISFB_GET_INFO ioctl  */
-struct sisfb_info {
+struct sisfb_info
+{
 	__u32	sisfb_id;		/* for identifying sisfb */
 #ifndef SISFB_ID
 #define SISFB_ID	  0x53495346    /* Identify myself with 'SISF' */
@@ -107,7 +108,7 @@ struct sisfb_info {
 	__u32	sisfb_specialtiming;
 
 	__u8	sisfb_haveemi;
-	__u8	sisfb_emi30,sisfb_emi31,sisfb_emi32,sisfb_emi33;
+	__u8	sisfb_emi30, sisfb_emi31, sisfb_emi32, sisfb_emi33;
 	__u8	sisfb_haveemilcd;
 
 	__u8	sisfb_lcdpdca;		/* PanelDelayCompensation for LCD-via-CRT1 */
@@ -145,7 +146,8 @@ struct sisfb_info {
 #define SISFB_CMD_ERR_OTHER	0x80010000	/* Other error */
 
 /* Argument for SISFB_CMD ioctl */
-struct sisfb_cmd {
+struct sisfb_cmd
+{
 	__u32  sisfb_cmd;
 	__u32  sisfb_arg[16];
 	__u32  sisfb_result[4];
@@ -195,7 +197,8 @@ struct sisfb_cmd {
 /****************************************************************/
 
 /* For fb memory manager (FBIO_ALLOC, FBIO_FREE) */
-struct sis_memreq {
+struct sis_memreq
+{
 	__u32	offset;
 	__u32	size;
 };

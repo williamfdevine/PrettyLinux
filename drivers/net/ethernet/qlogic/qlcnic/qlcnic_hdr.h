@@ -17,7 +17,8 @@
  * The basic unit of access when reading/writing control registers.
  */
 
-enum {
+enum
+{
 	QLCNIC_HW_H0_CH_HUB_ADR = 0x05,
 	QLCNIC_HW_H1_CH_HUB_ADR = 0x0E,
 	QLCNIC_HW_H2_CH_HUB_ADR = 0x03,
@@ -28,13 +29,15 @@ enum {
 };
 
 /*  Hub 0 */
-enum {
+enum
+{
 	QLCNIC_HW_MN_CRB_AGT_ADR = 0x15,
 	QLCNIC_HW_MS_CRB_AGT_ADR = 0x25
 };
 
 /*  Hub 1 */
-enum {
+enum
+{
 	QLCNIC_HW_PS_CRB_AGT_ADR = 0x73,
 	QLCNIC_HW_SS_CRB_AGT_ADR = 0x20,
 	QLCNIC_HW_RPMX3_CRB_AGT_ADR = 0x0b,
@@ -54,7 +57,8 @@ enum {
 };
 
 /*  Hub 2 */
-enum {
+enum
+{
 	QLCNIC_HW_NIU_CRB_AGT_ADR = 0x31,
 	QLCNIC_HW_I2C0_CRB_AGT_ADR = 0x19,
 	QLCNIC_HW_I2C1_CRB_AGT_ADR = 0x29,
@@ -75,7 +79,8 @@ enum {
 };
 
 /*  Hub 3 */
-enum {
+enum
+{
 	QLCNIC_HW_PH_CRB_AGT_ADR = 0x1A,
 	QLCNIC_HW_SRE_CRB_AGT_ADR = 0x50,
 	QLCNIC_HW_EG_CRB_AGT_ADR = 0x51,
@@ -83,7 +88,8 @@ enum {
 };
 
 /*  Hub 4 */
-enum {
+enum
+{
 	QLCNIC_HW_PEGN0_CRB_AGT_ADR = 0x40,
 	QLCNIC_HW_PEGN1_CRB_AGT_ADR,
 	QLCNIC_HW_PEGN2_CRB_AGT_ADR,
@@ -99,7 +105,8 @@ enum {
 };
 
 /*  Hub 5 */
-enum {
+enum
+{
 	QLCNIC_HW_PEGS0_CRB_AGT_ADR = 0x40,
 	QLCNIC_HW_PEGS1_CRB_AGT_ADR,
 	QLCNIC_HW_PEGS2_CRB_AGT_ADR,
@@ -110,7 +117,8 @@ enum {
 };
 
 /*  Hub 6 */
-enum {
+enum
+{
 	QLCNIC_HW_CAS0_CRB_AGT_ADR = 0x46,
 	QLCNIC_HW_CAS1_CRB_AGT_ADR = 0x47,
 	QLCNIC_HW_CAS2_CRB_AGT_ADR = 0x48,
@@ -126,7 +134,8 @@ enum {
 #define QLCNIC_HW_EFC_RPMX0_CRB_AGT_ADR	0x67
 
 /*  This field defines PCI/X adr [25:20] of agents on the CRB */
-enum {
+enum
+{
 	QLCNIC_HW_PX_MAP_CRB_PH = 0,
 	QLCNIC_HW_PX_MAP_CRB_PS,
 	QLCNIC_HW_PX_MAP_CRB_MN,
@@ -483,9 +492,9 @@ enum {
 #define QLCNIC_NIU_XG_PAUSE_CTL		(QLCNIC_CRB_NIU + 0x00098)
 
 #define QLCNIC_NIU_GB_MAC_CONFIG_0(I)		\
-		(QLCNIC_CRB_NIU + 0x30000 + (I)*0x10000)
+	(QLCNIC_CRB_NIU + 0x30000 + (I)*0x10000)
 #define QLCNIC_NIU_GB_MAC_CONFIG_1(I)		\
-		(QLCNIC_CRB_NIU + 0x30004 + (I)*0x10000)
+	(QLCNIC_CRB_NIU + 0x30004 + (I)*0x10000)
 
 #define MAX_CTL_CHECK	1000
 #define TEST_AGT_CTRL	(0x00)
@@ -550,7 +559,8 @@ enum {
 /*
  * Temperature control.
  */
-enum {
+enum
+{
 	QLCNIC_TEMP_NORMAL = 0x1,	/* Normal operating range */
 	QLCNIC_TEMP_WARN,	/* Sound alert, temperature getting high */
 	QLCNIC_TEMP_PANIC	/* Fatal error, hardware has shut down. */
@@ -690,7 +700,8 @@ enum {
 #define	PCIX_INT_VECTOR_BIT_F6	0x2000
 #define	PCIX_INT_VECTOR_BIT_F7	0x4000
 
-struct qlcnic_legacy_intr_set {
+struct qlcnic_legacy_intr_set
+{
 	u32	int_vec_bit;
 	u32	tgt_status_reg;
 	u32	tgt_mask_reg;
@@ -710,7 +721,8 @@ struct qlcnic_legacy_intr_set {
 #define QLCNIC_FLASH_LOCK_ID	0x001B2100
 
 /* PCI function operational mode */
-enum {
+enum
+{
 	QLCNIC_MGMT_FUNC	= 0,
 	QLCNIC_PRIV_FUNC	= 1,
 	QLCNIC_NON_PRIV_FUNC	= 2,
@@ -719,7 +731,8 @@ enum {
 	QLCNIC_UNKNOWN_FUNC_MODE = 5
 };
 
-enum {
+enum
+{
 	QLCNIC_PORT_DEFAULTS	= 0,
 	QLCNIC_ADD_VLAN	= 1,
 	QLCNIC_DEL_VLAN	= 2
@@ -753,47 +766,47 @@ enum {
 #define QLCNIC_TA_START_ENABLE	(TA_CTL_START | TA_CTL_ENABLE)
 
 #define	QLCNIC_LEGACY_INTR_CONFIG					\
-{									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F0,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS,		\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK, },		\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F1,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F1,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F1, },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F2,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F2,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F2, },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F3,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F3,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F3, },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F4,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F4,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F4, },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F5,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F5,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F5, },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F6,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F6,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F6, },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F7,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F7,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F7, },	\
-}
+	{									\
+		{								\
+			.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F0,		\
+								.tgt_status_reg	=	ISR_INT_TARGET_STATUS,		\
+													.tgt_mask_reg	=	ISR_INT_TARGET_MASK, },		\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F1,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F1,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F1, },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F2,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F2,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F2, },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F3,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F3,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F3, },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F4,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F4,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F4, },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F5,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F5,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F5, },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F6,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F6,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F6, },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F7,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F7,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F7, },	\
+	}
 
 /* NIU REGS */
 
@@ -918,16 +931,16 @@ enum {
 #define qlcnic_get_phy_speed(config_word) (((config_word) >> 14) & 0x03)
 
 #define qlcnic_set_phy_speed(config_word, val)	\
-		((config_word) |= ((val & 0x03) << 14))
+	((config_word) |= ((val & 0x03) << 14))
 #define qlcnic_set_phy_duplex(config_word)	\
-		((config_word) |= 1 << 13)
+	((config_word) |= 1 << 13)
 #define qlcnic_clear_phy_duplex(config_word)	\
-		((config_word) &= ~(1 << 13))
+	((config_word) &= ~(1 << 13))
 
 #define qlcnic_get_phy_link(config_word)	\
-		_qlcnic_crb_get_bit(config_word, 10)
+	_qlcnic_crb_get_bit(config_word, 10)
 #define qlcnic_get_phy_duplex(config_word)	\
-		_qlcnic_crb_get_bit(config_word, 13)
+	_qlcnic_crb_get_bit(config_word, 13)
 
 #define QLCNIC_NIU_NON_PROMISC_MODE	0
 #define QLCNIC_NIU_PROMISC_MODE		1
@@ -935,14 +948,16 @@ enum {
 
 #define QLCNIC_PCIE_SEM_TIMEOUT	10000
 
-struct crb_128M_2M_sub_block_map {
+struct crb_128M_2M_sub_block_map
+{
 	unsigned valid;
 	unsigned start_128M;
 	unsigned end_128M;
 	unsigned start_2M;
 };
 
-struct crb_128M_2M_block_map{
+struct crb_128M_2M_block_map
+{
 	struct crb_128M_2M_sub_block_map sub_block[16];
 };
 #endif				/* __QLCNIC_HDR_H_ */

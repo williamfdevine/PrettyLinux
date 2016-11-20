@@ -32,13 +32,15 @@
 
 #define to_imx6_pcie(x)	container_of(x, struct imx6_pcie, pp)
 
-enum imx6_pcie_variants {
+enum imx6_pcie_variants
+{
 	IMX6Q,
 	IMX6SX,
 	IMX6QP,
 };
 
-struct imx6_pcie {
+struct imx6_pcie
+{
 	struct pcie_port	pp;	/* pp.dbi_base is DT 0th resource */
 	int			reset_gpio;
 	bool			gpio_active_high;
@@ -102,16 +104,20 @@ static int pcie_phy_poll_ack(struct imx6_pcie *imx6_pcie, int exp_val)
 	u32 max_iterations = 10;
 	u32 wait_counter = 0;
 
-	do {
+	do
+	{
 		val = dw_pcie_readl_rc(pp, PCIE_PHY_STAT);
 		val = (val >> PCIE_PHY_STAT_ACK_LOC) & 0x1;
 		wait_counter++;
 
 		if (val == exp_val)
+		{
 			return 0;
+		}
 
 		udelay(1);
-	} while (wait_counter < max_iterations);
+	}
+	while (wait_counter < max_iterations);
 
 	return -ETIMEDOUT;
 }
@@ -129,8 +135,11 @@ static int pcie_phy_wait_ack(struct imx6_pcie *imx6_pcie, int addr)
 	dw_pcie_writel_rc(pp, PCIE_PHY_CTRL, val);
 
 	ret = pcie_phy_poll_ack(imx6_pcie, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	val = addr << PCIE_PHY_CTRL_DATA_LOC;
 	dw_pcie_writel_rc(pp, PCIE_PHY_CTRL, val);
@@ -146,16 +155,22 @@ static int pcie_phy_read(struct imx6_pcie *imx6_pcie, int addr, int *data)
 	int ret;
 
 	ret = pcie_phy_wait_ack(imx6_pcie, addr);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* assert Read signal */
 	phy_ctl = 0x1 << PCIE_PHY_CTRL_RD_LOC;
 	dw_pcie_writel_rc(pp, PCIE_PHY_CTRL, phy_ctl);
 
 	ret = pcie_phy_poll_ack(imx6_pcie, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	val = dw_pcie_readl_rc(pp, PCIE_PHY_STAT);
 	*data = val & 0xffff;
@@ -175,8 +190,11 @@ static int pcie_phy_write(struct imx6_pcie *imx6_pcie, int addr, int data)
 	/* write addr */
 	/* cap addr */
 	ret = pcie_phy_wait_ack(imx6_pcie, addr);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	var = data << PCIE_PHY_CTRL_DATA_LOC;
 	dw_pcie_writel_rc(pp, PCIE_PHY_CTRL, var);
@@ -186,8 +204,11 @@ static int pcie_phy_write(struct imx6_pcie *imx6_pcie, int addr, int data)
 	dw_pcie_writel_rc(pp, PCIE_PHY_CTRL, var);
 
 	ret = pcie_phy_poll_ack(imx6_pcie, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* deassert cap data */
 	var = data << PCIE_PHY_CTRL_DATA_LOC;
@@ -195,8 +216,11 @@ static int pcie_phy_write(struct imx6_pcie *imx6_pcie, int addr, int data)
 
 	/* wait for ack de-assertion */
 	ret = pcie_phy_poll_ack(imx6_pcie, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* assert wr signal */
 	var = 0x1 << PCIE_PHY_CTRL_WR_LOC;
@@ -204,8 +228,11 @@ static int pcie_phy_write(struct imx6_pcie *imx6_pcie, int addr, int data)
 
 	/* wait for ack */
 	ret = pcie_phy_poll_ack(imx6_pcie, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* deassert wr signal */
 	var = data << PCIE_PHY_CTRL_DATA_LOC;
@@ -213,8 +240,11 @@ static int pcie_phy_write(struct imx6_pcie *imx6_pcie, int addr, int data)
 
 	/* wait for ack de-assertion */
 	ret = pcie_phy_poll_ack(imx6_pcie, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dw_pcie_writel_rc(pp, PCIE_PHY_CTRL, 0x0);
 
@@ -227,20 +257,20 @@ static void imx6_pcie_reset_phy(struct imx6_pcie *imx6_pcie)
 
 	pcie_phy_read(imx6_pcie, PHY_RX_OVRD_IN_LO, &tmp);
 	tmp |= (PHY_RX_OVRD_IN_LO_RX_DATA_EN |
-		PHY_RX_OVRD_IN_LO_RX_PLL_EN);
+			PHY_RX_OVRD_IN_LO_RX_PLL_EN);
 	pcie_phy_write(imx6_pcie, PHY_RX_OVRD_IN_LO, tmp);
 
 	usleep_range(2000, 3000);
 
 	pcie_phy_read(imx6_pcie, PHY_RX_OVRD_IN_LO, &tmp);
 	tmp &= ~(PHY_RX_OVRD_IN_LO_RX_DATA_EN |
-		  PHY_RX_OVRD_IN_LO_RX_PLL_EN);
+			 PHY_RX_OVRD_IN_LO_RX_PLL_EN);
 	pcie_phy_write(imx6_pcie, PHY_RX_OVRD_IN_LO, tmp);
 }
 
 /*  Added for PCI abort handling */
 static int imx6q_pcie_abort_handler(unsigned long addr,
-		unsigned int fsr, struct pt_regs *regs)
+									unsigned int fsr, struct pt_regs *regs)
 {
 	return 0;
 }
@@ -250,54 +280,58 @@ static void imx6_pcie_assert_core_reset(struct imx6_pcie *imx6_pcie)
 	struct pcie_port *pp = &imx6_pcie->pp;
 	u32 val, gpr1, gpr12;
 
-	switch (imx6_pcie->variant) {
-	case IMX6SX:
-		regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12,
-				   IMX6SX_GPR12_PCIE_TEST_POWERDOWN,
-				   IMX6SX_GPR12_PCIE_TEST_POWERDOWN);
-		/* Force PCIe PHY reset */
-		regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR5,
-				   IMX6SX_GPR5_PCIE_BTNRST_RESET,
-				   IMX6SX_GPR5_PCIE_BTNRST_RESET);
-		break;
-	case IMX6QP:
-		regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1,
-				   IMX6Q_GPR1_PCIE_SW_RST,
-				   IMX6Q_GPR1_PCIE_SW_RST);
-		break;
-	case IMX6Q:
-		/*
-		 * If the bootloader already enabled the link we need some
-		 * special handling to get the core back into a state where
-		 * it is safe to touch it for configuration.  As there is
-		 * no dedicated reset signal wired up for MX6QDL, we need
-		 * to manually force LTSSM into "detect" state before
-		 * completely disabling LTSSM, which is a prerequisite for
-		 * core configuration.
-		 *
-		 * If both LTSSM_ENABLE and REF_SSP_ENABLE are active we
-		 * have a strong indication that the bootloader activated
-		 * the link.
-		 */
-		regmap_read(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1, &gpr1);
-		regmap_read(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12, &gpr12);
-
-		if ((gpr1 & IMX6Q_GPR1_PCIE_REF_CLK_EN) &&
-		    (gpr12 & IMX6Q_GPR12_PCIE_CTL_2)) {
-			val = dw_pcie_readl_rc(pp, PCIE_PL_PFLR);
-			val &= ~PCIE_PL_PFLR_LINK_STATE_MASK;
-			val |= PCIE_PL_PFLR_FORCE_LINK;
-			dw_pcie_writel_rc(pp, PCIE_PL_PFLR, val);
-
+	switch (imx6_pcie->variant)
+	{
+		case IMX6SX:
 			regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12,
-					   IMX6Q_GPR12_PCIE_CTL_2, 0 << 10);
-		}
+							   IMX6SX_GPR12_PCIE_TEST_POWERDOWN,
+							   IMX6SX_GPR12_PCIE_TEST_POWERDOWN);
+			/* Force PCIe PHY reset */
+			regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR5,
+							   IMX6SX_GPR5_PCIE_BTNRST_RESET,
+							   IMX6SX_GPR5_PCIE_BTNRST_RESET);
+			break;
 
-		regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1,
-				   IMX6Q_GPR1_PCIE_TEST_PD, 1 << 18);
-		regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1,
-				   IMX6Q_GPR1_PCIE_REF_CLK_EN, 0 << 16);
-		break;
+		case IMX6QP:
+			regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1,
+							   IMX6Q_GPR1_PCIE_SW_RST,
+							   IMX6Q_GPR1_PCIE_SW_RST);
+			break;
+
+		case IMX6Q:
+			/*
+			 * If the bootloader already enabled the link we need some
+			 * special handling to get the core back into a state where
+			 * it is safe to touch it for configuration.  As there is
+			 * no dedicated reset signal wired up for MX6QDL, we need
+			 * to manually force LTSSM into "detect" state before
+			 * completely disabling LTSSM, which is a prerequisite for
+			 * core configuration.
+			 *
+			 * If both LTSSM_ENABLE and REF_SSP_ENABLE are active we
+			 * have a strong indication that the bootloader activated
+			 * the link.
+			 */
+			regmap_read(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1, &gpr1);
+			regmap_read(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12, &gpr12);
+
+			if ((gpr1 & IMX6Q_GPR1_PCIE_REF_CLK_EN) &&
+				(gpr12 & IMX6Q_GPR12_PCIE_CTL_2))
+			{
+				val = dw_pcie_readl_rc(pp, PCIE_PL_PFLR);
+				val &= ~PCIE_PL_PFLR_LINK_STATE_MASK;
+				val |= PCIE_PL_PFLR_FORCE_LINK;
+				dw_pcie_writel_rc(pp, PCIE_PL_PFLR, val);
+
+				regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12,
+								   IMX6Q_GPR12_PCIE_CTL_2, 0 << 10);
+			}
+
+			regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1,
+							   IMX6Q_GPR1_PCIE_TEST_PD, 1 << 18);
+			regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1,
+							   IMX6Q_GPR1_PCIE_REF_CLK_EN, 0 << 16);
+			break;
 	}
 }
 
@@ -307,32 +341,36 @@ static int imx6_pcie_enable_ref_clk(struct imx6_pcie *imx6_pcie)
 	struct device *dev = pp->dev;
 	int ret = 0;
 
-	switch (imx6_pcie->variant) {
-	case IMX6SX:
-		ret = clk_prepare_enable(imx6_pcie->pcie_inbound_axi);
-		if (ret) {
-			dev_err(dev, "unable to enable pcie_axi clock\n");
-			break;
-		}
+	switch (imx6_pcie->variant)
+	{
+		case IMX6SX:
+			ret = clk_prepare_enable(imx6_pcie->pcie_inbound_axi);
 
-		regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12,
-				   IMX6SX_GPR12_PCIE_TEST_POWERDOWN, 0);
-		break;
-	case IMX6QP: 		/* FALLTHROUGH */
-	case IMX6Q:
-		/* power up core phy and enable ref clock */
-		regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1,
-				   IMX6Q_GPR1_PCIE_TEST_PD, 0 << 18);
-		/*
-		 * the async reset input need ref clock to sync internally,
-		 * when the ref clock comes after reset, internal synced
-		 * reset time is too short, cannot meet the requirement.
-		 * add one ~10us delay here.
-		 */
-		udelay(10);
-		regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1,
-				   IMX6Q_GPR1_PCIE_REF_CLK_EN, 1 << 16);
-		break;
+			if (ret)
+			{
+				dev_err(dev, "unable to enable pcie_axi clock\n");
+				break;
+			}
+
+			regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12,
+							   IMX6SX_GPR12_PCIE_TEST_POWERDOWN, 0);
+			break;
+
+		case IMX6QP: 		/* FALLTHROUGH */
+		case IMX6Q:
+			/* power up core phy and enable ref clock */
+			regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1,
+							   IMX6Q_GPR1_PCIE_TEST_PD, 0 << 18);
+			/*
+			 * the async reset input need ref clock to sync internally,
+			 * when the ref clock comes after reset, internal synced
+			 * reset time is too short, cannot meet the requirement.
+			 * add one ~10us delay here.
+			 */
+			udelay(10);
+			regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1,
+							   IMX6Q_GPR1_PCIE_REF_CLK_EN, 1 << 16);
+			break;
 	}
 
 	return ret;
@@ -345,25 +383,33 @@ static void imx6_pcie_deassert_core_reset(struct imx6_pcie *imx6_pcie)
 	int ret;
 
 	ret = clk_prepare_enable(imx6_pcie->pcie_phy);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "unable to enable pcie_phy clock\n");
 		return;
 	}
 
 	ret = clk_prepare_enable(imx6_pcie->pcie_bus);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "unable to enable pcie_bus clock\n");
 		goto err_pcie_bus;
 	}
 
 	ret = clk_prepare_enable(imx6_pcie->pcie);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "unable to enable pcie clock\n");
 		goto err_pcie;
 	}
 
 	ret = imx6_pcie_enable_ref_clk(imx6_pcie);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "unable to enable pcie ref clock\n");
 		goto err_ref_clk;
 	}
@@ -372,27 +418,31 @@ static void imx6_pcie_deassert_core_reset(struct imx6_pcie *imx6_pcie)
 	usleep_range(200, 500);
 
 	/* Some boards don't have PCIe reset GPIO. */
-	if (gpio_is_valid(imx6_pcie->reset_gpio)) {
+	if (gpio_is_valid(imx6_pcie->reset_gpio))
+	{
 		gpio_set_value_cansleep(imx6_pcie->reset_gpio,
-					imx6_pcie->gpio_active_high);
+								imx6_pcie->gpio_active_high);
 		msleep(100);
 		gpio_set_value_cansleep(imx6_pcie->reset_gpio,
-					!imx6_pcie->gpio_active_high);
+								!imx6_pcie->gpio_active_high);
 	}
 
-	switch (imx6_pcie->variant) {
-	case IMX6SX:
-		regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR5,
-				   IMX6SX_GPR5_PCIE_BTNRST_RESET, 0);
-		break;
-	case IMX6QP:
-		regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1,
-				   IMX6Q_GPR1_PCIE_SW_RST, 0);
+	switch (imx6_pcie->variant)
+	{
+		case IMX6SX:
+			regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR5,
+							   IMX6SX_GPR5_PCIE_BTNRST_RESET, 0);
+			break;
 
-		usleep_range(200, 500);
-		break;
-	case IMX6Q:		/* Nothing to do */
-		break;
+		case IMX6QP:
+			regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR1,
+							   IMX6Q_GPR1_PCIE_SW_RST, 0);
+
+			usleep_range(200, 500);
+			break;
+
+		case IMX6Q:		/* Nothing to do */
+			break;
 	}
 
 	return;
@@ -409,33 +459,33 @@ static void imx6_pcie_init_phy(struct imx6_pcie *imx6_pcie)
 {
 	if (imx6_pcie->variant == IMX6SX)
 		regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12,
-				   IMX6SX_GPR12_PCIE_RX_EQ_MASK,
-				   IMX6SX_GPR12_PCIE_RX_EQ_2);
+						   IMX6SX_GPR12_PCIE_RX_EQ_MASK,
+						   IMX6SX_GPR12_PCIE_RX_EQ_2);
 
 	regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12,
-			IMX6Q_GPR12_PCIE_CTL_2, 0 << 10);
+					   IMX6Q_GPR12_PCIE_CTL_2, 0 << 10);
 
 	/* configure constant input signal to the pcie ctrl and phy */
 	regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12,
-			IMX6Q_GPR12_DEVICE_TYPE, PCI_EXP_TYPE_ROOT_PORT << 12);
+					   IMX6Q_GPR12_DEVICE_TYPE, PCI_EXP_TYPE_ROOT_PORT << 12);
 	regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12,
-			IMX6Q_GPR12_LOS_LEVEL, 9 << 4);
+					   IMX6Q_GPR12_LOS_LEVEL, 9 << 4);
 
 	regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR8,
-			   IMX6Q_GPR8_TX_DEEMPH_GEN1,
-			   imx6_pcie->tx_deemph_gen1 << 0);
+					   IMX6Q_GPR8_TX_DEEMPH_GEN1,
+					   imx6_pcie->tx_deemph_gen1 << 0);
 	regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR8,
-			   IMX6Q_GPR8_TX_DEEMPH_GEN2_3P5DB,
-			   imx6_pcie->tx_deemph_gen2_3p5db << 6);
+					   IMX6Q_GPR8_TX_DEEMPH_GEN2_3P5DB,
+					   imx6_pcie->tx_deemph_gen2_3p5db << 6);
 	regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR8,
-			   IMX6Q_GPR8_TX_DEEMPH_GEN2_6DB,
-			   imx6_pcie->tx_deemph_gen2_6db << 12);
+					   IMX6Q_GPR8_TX_DEEMPH_GEN2_6DB,
+					   imx6_pcie->tx_deemph_gen2_6db << 12);
 	regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR8,
-			   IMX6Q_GPR8_TX_SWING_FULL,
-			   imx6_pcie->tx_swing_full << 18);
+					   IMX6Q_GPR8_TX_SWING_FULL,
+					   imx6_pcie->tx_swing_full << 18);
 	regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR8,
-			   IMX6Q_GPR8_TX_SWING_LOW,
-			   imx6_pcie->tx_swing_low << 25);
+					   IMX6Q_GPR8_TX_SWING_LOW,
+					   imx6_pcie->tx_swing_low << 25);
 }
 
 static int imx6_pcie_wait_for_link(struct imx6_pcie *imx6_pcie)
@@ -445,11 +495,13 @@ static int imx6_pcie_wait_for_link(struct imx6_pcie *imx6_pcie)
 
 	/* check if the link is up or not */
 	if (!dw_pcie_wait_for_link(pp))
+	{
 		return 0;
+	}
 
 	dev_dbg(dev, "DEBUG_R0: 0x%08x, DEBUG_R1: 0x%08x\n",
-		dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R0),
-		dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R1));
+			dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R0),
+			dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R1));
 	return -ETIMEDOUT;
 }
 
@@ -460,11 +512,16 @@ static int imx6_pcie_wait_for_speed_change(struct imx6_pcie *imx6_pcie)
 	u32 tmp;
 	unsigned int retries;
 
-	for (retries = 0; retries < 200; retries++) {
+	for (retries = 0; retries < 200; retries++)
+	{
 		tmp = dw_pcie_readl_rc(pp, PCIE_LINK_WIDTH_SPEED_CONTROL);
+
 		/* Test if the speed change finished. */
 		if (!(tmp & PORT_LOGIC_SPEED_CHANGE))
+		{
 			return 0;
+		}
+
 		usleep_range(100, 1000);
 	}
 
@@ -499,21 +556,26 @@ static int imx6_pcie_establish_link(struct imx6_pcie *imx6_pcie)
 
 	/* Start LTSSM. */
 	regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12,
-			IMX6Q_GPR12_PCIE_CTL_2, 1 << 10);
+					   IMX6Q_GPR12_PCIE_CTL_2, 1 << 10);
 
 	ret = imx6_pcie_wait_for_link(imx6_pcie);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_info(dev, "Link never came up\n");
 		goto err_reset_phy;
 	}
 
-	if (imx6_pcie->link_gen == 2) {
+	if (imx6_pcie->link_gen == 2)
+	{
 		/* Allow Gen2 mode after the link is up. */
 		tmp = dw_pcie_readl_rc(pp, PCIE_RC_LCR);
 		tmp &= ~PCIE_RC_LCR_MAX_LINK_SPEEDS_MASK;
 		tmp |= PCIE_RC_LCR_MAX_LINK_SPEEDS_GEN2;
 		dw_pcie_writel_rc(pp, PCIE_RC_LCR, tmp);
-	} else {
+	}
+	else
+	{
 		dev_info(dev, "Link: Gen2 disabled\n");
 	}
 
@@ -526,14 +588,18 @@ static int imx6_pcie_establish_link(struct imx6_pcie *imx6_pcie)
 	dw_pcie_writel_rc(pp, PCIE_LINK_WIDTH_SPEED_CONTROL, tmp);
 
 	ret = imx6_pcie_wait_for_speed_change(imx6_pcie);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to bring link up!\n");
 		goto err_reset_phy;
 	}
 
 	/* Make sure link training is finished as well! */
 	ret = imx6_pcie_wait_for_link(imx6_pcie);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to bring link up!\n");
 		goto err_reset_phy;
 	}
@@ -544,8 +610,8 @@ static int imx6_pcie_establish_link(struct imx6_pcie *imx6_pcie)
 
 err_reset_phy:
 	dev_dbg(dev, "PHY DEBUG_R0=0x%08x DEBUG_R1=0x%08x\n",
-		dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R0),
-		dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R1));
+			dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R0),
+			dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R1));
 	imx6_pcie_reset_phy(imx6_pcie);
 	return ret;
 }
@@ -561,39 +627,47 @@ static void imx6_pcie_host_init(struct pcie_port *pp)
 	imx6_pcie_establish_link(imx6_pcie);
 
 	if (IS_ENABLED(CONFIG_PCI_MSI))
+	{
 		dw_pcie_msi_init(pp);
+	}
 }
 
 static int imx6_pcie_link_up(struct pcie_port *pp)
 {
 	return dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R1) &
-			PCIE_PHY_DEBUG_R1_XMLH_LINK_UP;
+		   PCIE_PHY_DEBUG_R1_XMLH_LINK_UP;
 }
 
-static struct pcie_host_ops imx6_pcie_host_ops = {
+static struct pcie_host_ops imx6_pcie_host_ops =
+{
 	.link_up = imx6_pcie_link_up,
 	.host_init = imx6_pcie_host_init,
 };
 
 static int __init imx6_add_pcie_port(struct imx6_pcie *imx6_pcie,
-				     struct platform_device *pdev)
+									 struct platform_device *pdev)
 {
 	struct pcie_port *pp = &imx6_pcie->pp;
 	struct device *dev = pp->dev;
 	int ret;
 
-	if (IS_ENABLED(CONFIG_PCI_MSI)) {
+	if (IS_ENABLED(CONFIG_PCI_MSI))
+	{
 		pp->msi_irq = platform_get_irq_byname(pdev, "msi");
-		if (pp->msi_irq <= 0) {
+
+		if (pp->msi_irq <= 0)
+		{
 			dev_err(dev, "failed to get MSI irq\n");
 			return -ENODEV;
 		}
 
 		ret = devm_request_irq(dev, pp->msi_irq,
-				       imx6_pcie_msi_handler,
-				       IRQF_SHARED | IRQF_NO_THREAD,
-				       "mx6-pcie-msi", imx6_pcie);
-		if (ret) {
+							   imx6_pcie_msi_handler,
+							   IRQF_SHARED | IRQF_NO_THREAD,
+							   "mx6-pcie-msi", imx6_pcie);
+
+		if (ret)
+		{
 			dev_err(dev, "failed to request MSI irq\n");
 			return ret;
 		}
@@ -603,7 +677,9 @@ static int __init imx6_add_pcie_port(struct imx6_pcie *imx6_pcie,
 	pp->ops = &imx6_pcie_host_ops;
 
 	ret = dw_pcie_host_init(pp);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to initialize host\n");
 		return ret;
 	}
@@ -621,8 +697,11 @@ static int __init imx6_pcie_probe(struct platform_device *pdev)
 	int ret;
 
 	imx6_pcie = devm_kzalloc(dev, sizeof(*imx6_pcie), GFP_KERNEL);
+
 	if (!imx6_pcie)
+	{
 		return -ENOMEM;
+	}
 
 	pp = &imx6_pcie->pp;
 	pp->dev = dev;
@@ -632,24 +711,31 @@ static int __init imx6_pcie_probe(struct platform_device *pdev)
 
 	/* Added for PCI abort handling */
 	hook_fault_code(16 + 6, imx6q_pcie_abort_handler, SIGBUS, 0,
-		"imprecise external abort");
+					"imprecise external abort");
 
 	dbi_base = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pp->dbi_base = devm_ioremap_resource(dev, dbi_base);
+
 	if (IS_ERR(pp->dbi_base))
+	{
 		return PTR_ERR(pp->dbi_base);
+	}
 
 	/* Fetch GPIOs */
 	imx6_pcie->reset_gpio = of_get_named_gpio(node, "reset-gpio", 0);
 	imx6_pcie->gpio_active_high = of_property_read_bool(node,
-						"reset-gpio-active-high");
-	if (gpio_is_valid(imx6_pcie->reset_gpio)) {
+								  "reset-gpio-active-high");
+
+	if (gpio_is_valid(imx6_pcie->reset_gpio))
+	{
 		ret = devm_gpio_request_one(dev, imx6_pcie->reset_gpio,
-				imx6_pcie->gpio_active_high ?
-					GPIOF_OUT_INIT_HIGH :
-					GPIOF_OUT_INIT_LOW,
-				"PCIe reset");
-		if (ret) {
+									imx6_pcie->gpio_active_high ?
+									GPIOF_OUT_INIT_HIGH :
+									GPIOF_OUT_INIT_LOW,
+									"PCIe reset");
+
+		if (ret)
+		{
 			dev_err(dev, "unable to get reset gpio\n");
 			return ret;
 		}
@@ -657,71 +743,98 @@ static int __init imx6_pcie_probe(struct platform_device *pdev)
 
 	/* Fetch clocks */
 	imx6_pcie->pcie_phy = devm_clk_get(dev, "pcie_phy");
-	if (IS_ERR(imx6_pcie->pcie_phy)) {
+
+	if (IS_ERR(imx6_pcie->pcie_phy))
+	{
 		dev_err(dev, "pcie_phy clock source missing or invalid\n");
 		return PTR_ERR(imx6_pcie->pcie_phy);
 	}
 
 	imx6_pcie->pcie_bus = devm_clk_get(dev, "pcie_bus");
-	if (IS_ERR(imx6_pcie->pcie_bus)) {
+
+	if (IS_ERR(imx6_pcie->pcie_bus))
+	{
 		dev_err(dev, "pcie_bus clock source missing or invalid\n");
 		return PTR_ERR(imx6_pcie->pcie_bus);
 	}
 
 	imx6_pcie->pcie = devm_clk_get(dev, "pcie");
-	if (IS_ERR(imx6_pcie->pcie)) {
+
+	if (IS_ERR(imx6_pcie->pcie))
+	{
 		dev_err(dev, "pcie clock source missing or invalid\n");
 		return PTR_ERR(imx6_pcie->pcie);
 	}
 
-	if (imx6_pcie->variant == IMX6SX) {
+	if (imx6_pcie->variant == IMX6SX)
+	{
 		imx6_pcie->pcie_inbound_axi = devm_clk_get(dev,
-							   "pcie_inbound_axi");
-		if (IS_ERR(imx6_pcie->pcie_inbound_axi)) {
+									  "pcie_inbound_axi");
+
+		if (IS_ERR(imx6_pcie->pcie_inbound_axi))
+		{
 			dev_err(dev,
-				"pcie_incbound_axi clock missing or invalid\n");
+					"pcie_incbound_axi clock missing or invalid\n");
 			return PTR_ERR(imx6_pcie->pcie_inbound_axi);
 		}
 	}
 
 	/* Grab GPR config register range */
 	imx6_pcie->iomuxc_gpr =
-		 syscon_regmap_lookup_by_compatible("fsl,imx6q-iomuxc-gpr");
-	if (IS_ERR(imx6_pcie->iomuxc_gpr)) {
+		syscon_regmap_lookup_by_compatible("fsl,imx6q-iomuxc-gpr");
+
+	if (IS_ERR(imx6_pcie->iomuxc_gpr))
+	{
 		dev_err(dev, "unable to find iomuxc registers\n");
 		return PTR_ERR(imx6_pcie->iomuxc_gpr);
 	}
 
 	/* Grab PCIe PHY Tx Settings */
 	if (of_property_read_u32(node, "fsl,tx-deemph-gen1",
-				 &imx6_pcie->tx_deemph_gen1))
+							 &imx6_pcie->tx_deemph_gen1))
+	{
 		imx6_pcie->tx_deemph_gen1 = 0;
+	}
 
 	if (of_property_read_u32(node, "fsl,tx-deemph-gen2-3p5db",
-				 &imx6_pcie->tx_deemph_gen2_3p5db))
+							 &imx6_pcie->tx_deemph_gen2_3p5db))
+	{
 		imx6_pcie->tx_deemph_gen2_3p5db = 0;
+	}
 
 	if (of_property_read_u32(node, "fsl,tx-deemph-gen2-6db",
-				 &imx6_pcie->tx_deemph_gen2_6db))
+							 &imx6_pcie->tx_deemph_gen2_6db))
+	{
 		imx6_pcie->tx_deemph_gen2_6db = 20;
+	}
 
 	if (of_property_read_u32(node, "fsl,tx-swing-full",
-				 &imx6_pcie->tx_swing_full))
+							 &imx6_pcie->tx_swing_full))
+	{
 		imx6_pcie->tx_swing_full = 127;
+	}
 
 	if (of_property_read_u32(node, "fsl,tx-swing-low",
-				 &imx6_pcie->tx_swing_low))
+							 &imx6_pcie->tx_swing_low))
+	{
 		imx6_pcie->tx_swing_low = 127;
+	}
 
 	/* Limit link speed */
 	ret = of_property_read_u32(node, "fsl,max-link-speed",
-				   &imx6_pcie->link_gen);
+							   &imx6_pcie->link_gen);
+
 	if (ret)
+	{
 		imx6_pcie->link_gen = 1;
+	}
 
 	ret = imx6_add_pcie_port(imx6_pcie, pdev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	platform_set_drvdata(pdev, imx6_pcie);
 	return 0;
@@ -735,14 +848,16 @@ static void imx6_pcie_shutdown(struct platform_device *pdev)
 	imx6_pcie_assert_core_reset(imx6_pcie);
 }
 
-static const struct of_device_id imx6_pcie_of_match[] = {
+static const struct of_device_id imx6_pcie_of_match[] =
+{
 	{ .compatible = "fsl,imx6q-pcie",  .data = (void *)IMX6Q,  },
 	{ .compatible = "fsl,imx6sx-pcie", .data = (void *)IMX6SX, },
 	{ .compatible = "fsl,imx6qp-pcie", .data = (void *)IMX6QP, },
 	{},
 };
 
-static struct platform_driver imx6_pcie_driver = {
+static struct platform_driver imx6_pcie_driver =
+{
 	.driver = {
 		.name	= "imx6q-pcie",
 		.of_match_table = imx6_pcie_of_match,

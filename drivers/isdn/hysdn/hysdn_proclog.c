@@ -29,7 +29,8 @@ static void put_log_buffer(hysdn_card *card, char *cp);
 /*************************************************/
 /* structure keeping ascii log for device output */
 /*************************************************/
-struct log_data {
+struct log_data
+{
 	struct log_data *next;
 	unsigned long usage_cnt;/* number of files still to work */
 	void *proc_ctrl;	/* pointer to own control procdata structure */
@@ -39,7 +40,8 @@ struct log_data {
 /**********************************************/
 /* structure holding proc entrys for one card */
 /**********************************************/
-struct procdata {
+struct procdata
+{
 	struct proc_dir_entry *log;	/* log entry */
 	char log_name[15];	/* log filename */
 	struct log_data *log_head, *log_tail;	/* head and tail for queue */
@@ -73,7 +75,9 @@ hysdn_addlog(hysdn_card *card, char *fmt, ...)
 	va_list args;
 
 	if (!pd)
-		return;		/* log structure non existent */
+	{
+		return;    /* log structure non existent */
+	}
 
 	cp = pd->logtmp;
 	cp += sprintf(cp, "HYSDN: card %d ", card->myid);
@@ -85,9 +89,13 @@ hysdn_addlog(hysdn_card *card, char *fmt, ...)
 	*cp = 0;
 
 	if (card->debug_flags & DEB_OUT_SYSLOG)
+	{
 		printk(KERN_INFO "%s", pd->logtmp);
+	}
 	else
+	{
 		put_log_buffer(card, pd->logtmp);
+	}
 
 }				/* hysdn_addlog */
 
@@ -106,40 +114,66 @@ put_log_buffer(hysdn_card *card, char *cp)
 	unsigned long flags;
 
 	if (!pd)
+	{
 		return;
+	}
+
 	if (!cp)
+	{
 		return;
+	}
+
 	if (!*cp)
+	{
 		return;
+	}
+
 	if (pd->if_used <= 0)
-		return;		/* no open file for read */
+	{
+		return;    /* no open file for read */
+	}
 
 	if (!(ib = kmalloc(sizeof(struct log_data) + strlen(cp), GFP_ATOMIC)))
-		return;	/* no memory */
+	{
+		return;    /* no memory */
+	}
+
 	strcpy(ib->log_start, cp);	/* set output string */
 	ib->next = NULL;
 	ib->proc_ctrl = pd;	/* point to own control structure */
 	spin_lock_irqsave(&card->hysdn_lock, flags);
 	ib->usage_cnt = pd->if_used;
+
 	if (!pd->log_head)
-		pd->log_head = ib;	/* new head */
+	{
+		pd->log_head = ib;    /* new head */
+	}
 	else
-		pd->log_tail->next = ib;	/* follows existing messages */
+	{
+		pd->log_tail->next = ib;    /* follows existing messages */
+	}
+
 	pd->log_tail = ib;	/* new tail */
 	i = pd->del_lock++;	/* get lock state */
 	spin_unlock_irqrestore(&card->hysdn_lock, flags);
 
 	/* delete old entrys */
 	if (!i)
-		while (pd->log_head->next) {
+		while (pd->log_head->next)
+		{
 			if ((pd->log_head->usage_cnt <= 0) &&
-			    (pd->log_head->next->usage_cnt <= 0)) {
+				(pd->log_head->next->usage_cnt <= 0))
+			{
 				ib = pd->log_head;
 				pd->log_head = pd->log_head->next;
 				kfree(ib);
-			} else
+			}
+			else
+			{
 				break;
+			}
 		}		/* pd->log_head->next */
+
 	pd->del_lock--;		/* release lock level */
 	wake_up_interruptible(&(pd->rd_queue));		/* announce new entry */
 }				/* put_log_buffer */
@@ -159,8 +193,12 @@ hysdn_log_write(struct file *file, const char __user *buf, size_t count, loff_t 
 	hysdn_card *card = file->private_data;
 
 	rc = kstrtoul_from_user(buf, count, 0, &card->debug_flags);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
+
 	hysdn_addlog(card, "debug set to 0x%lx", card->debug_flags);
 	return (count);
 }				/* hysdn_log_write */
@@ -175,25 +213,38 @@ hysdn_log_read(struct file *file, char __user *buf, size_t count, loff_t *off)
 	int len;
 	hysdn_card *card = PDE_DATA(file_inode(file));
 
-	if (!(inf = *((struct log_data **) file->private_data))) {
+	if (!(inf = *((struct log_data **) file->private_data)))
+	{
 		struct procdata *pd = card->proclog;
+
 		if (file->f_flags & O_NONBLOCK)
+		{
 			return (-EAGAIN);
+		}
 
 		wait_event_interruptible(pd->rd_queue, (inf =
 				*((struct log_data **) file->private_data)));
 	}
+
 	if (!inf)
+	{
 		return (0);
+	}
 
 	inf->usage_cnt--;	/* new usage count */
 	file->private_data = &inf->next;	/* next structure */
-	if ((len = strlen(inf->log_start)) <= count) {
+
+	if ((len = strlen(inf->log_start)) <= count)
+	{
 		if (copy_to_user(buf, inf->log_start, len))
+		{
 			return -EFAULT;
+		}
+
 		*off += len;
 		return (len);
 	}
+
 	return (0);
 }				/* hysdn_log_read */
 
@@ -206,25 +257,38 @@ hysdn_log_open(struct inode *ino, struct file *filep)
 	hysdn_card *card = PDE_DATA(ino);
 
 	mutex_lock(&hysdn_log_mutex);
-	if ((filep->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_WRITE) {
+
+	if ((filep->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_WRITE)
+	{
 		/* write only access -> write log level only */
 		filep->private_data = card;	/* remember our own card */
-	} else if ((filep->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_READ) {
+	}
+	else if ((filep->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_READ)
+	{
 		struct procdata *pd = card->proclog;
 		unsigned long flags;
 
 		/* read access -> log/debug read */
 		spin_lock_irqsave(&card->hysdn_lock, flags);
 		pd->if_used++;
+
 		if (pd->log_head)
+		{
 			filep->private_data = &pd->log_tail->next;
+		}
 		else
+		{
 			filep->private_data = &pd->log_head;
+		}
+
 		spin_unlock_irqrestore(&card->hysdn_lock, flags);
-	} else {		/* simultaneous read/write access forbidden ! */
+	}
+	else  		/* simultaneous read/write access forbidden ! */
+	{
 		mutex_unlock(&hysdn_log_mutex);
 		return (-EPERM);	/* no permission this time */
 	}
+
 	mutex_unlock(&hysdn_log_mutex);
 	return nonseekable_open(ino, filep);
 }				/* hysdn_log_open */
@@ -245,36 +309,50 @@ hysdn_log_close(struct inode *ino, struct file *filep)
 	int retval = 0;
 
 	mutex_lock(&hysdn_log_mutex);
-	if ((filep->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_WRITE) {
+
+	if ((filep->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_WRITE)
+	{
 		/* write only access -> write debug level written */
 		retval = 0;	/* success */
-	} else {
+	}
+	else
+	{
 		/* read access -> log/debug read, mark one further file as closed */
 
 		inf = *((struct log_data **) filep->private_data);	/* get first log entry */
+
 		if (inf)
-			pd = (struct procdata *) inf->proc_ctrl;	/* still entries there */
-		else {
+		{
+			pd = (struct procdata *) inf->proc_ctrl;    /* still entries there */
+		}
+		else
+		{
 			/* no info available -> search card */
 			card = PDE_DATA(file_inode(filep));
 			pd = card->proclog;	/* pointer to procfs log */
 		}
-		if (pd)
-			pd->if_used--;	/* decrement interface usage count by one */
 
-		while (inf) {
+		if (pd)
+		{
+			pd->if_used--;    /* decrement interface usage count by one */
+		}
+
+		while (inf)
+		{
 			inf->usage_cnt--;	/* decrement usage count for buffers */
 			inf = inf->next;
 		}
 
 		if (pd)
 			if (pd->if_used <= 0)	/* delete buffers if last file closed */
-				while (pd->log_head) {
+				while (pd->log_head)
+				{
 					inf = pd->log_head;
 					pd->log_head = pd->log_head->next;
 					kfree(inf);
 				}
 	}			/* read access */
+
 	mutex_unlock(&hysdn_log_mutex);
 
 	return (retval);
@@ -291,12 +369,16 @@ hysdn_log_poll(struct file *file, poll_table *wait)
 	struct procdata *pd = card->proclog;
 
 	if ((file->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_WRITE)
-		return (mask);	/* no polling for write supported */
+	{
+		return (mask);    /* no polling for write supported */
+	}
 
 	poll_wait(file, &(pd->rd_queue), wait);
 
 	if (*((struct log_data **) file->private_data))
+	{
 		mask |= POLLIN | POLLRDNORM;
+	}
 
 	return mask;
 }				/* hysdn_log_poll */
@@ -327,16 +409,18 @@ hysdn_proclog_init(hysdn_card *card)
 
 	/* create a cardlog proc entry */
 
-	if ((pd = kzalloc(sizeof(struct procdata), GFP_KERNEL)) != NULL) {
+	if ((pd = kzalloc(sizeof(struct procdata), GFP_KERNEL)) != NULL)
+	{
 		sprintf(pd->log_name, "%s%d", PROC_LOG_BASENAME, card->myid);
 		pd->log = proc_create_data(pd->log_name,
-				      S_IFREG | S_IRUGO | S_IWUSR, hysdn_proc_entry,
-				      &log_fops, card);
+								   S_IFREG | S_IRUGO | S_IWUSR, hysdn_proc_entry,
+								   &log_fops, card);
 
 		init_waitqueue_head(&(pd->rd_queue));
 
 		card->proclog = (void *) pd;	/* remember procfs structure */
 	}
+
 	return (0);
 }				/* hysdn_proclog_init */
 
@@ -350,9 +434,13 @@ hysdn_proclog_release(hysdn_card *card)
 {
 	struct procdata *pd;
 
-	if ((pd = (struct procdata *) card->proclog) != NULL) {
+	if ((pd = (struct procdata *) card->proclog) != NULL)
+	{
 		if (pd->log)
+		{
 			remove_proc_entry(pd->log_name, hysdn_proc_entry);
+		}
+
 		kfree(pd);	/* release memory */
 		card->proclog = NULL;
 	}

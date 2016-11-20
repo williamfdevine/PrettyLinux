@@ -4,7 +4,7 @@
 #include <linux/serial.h>	/* for rs_table, serial constants */
 #include <linux/serial_reg.h>	/* for more serial constants */
 #ifndef __sparc__
-#include <linux/serial.h>
+	#include <linux/serial.h>
 #endif
 #include <linux/serial_core.h>
 
@@ -12,7 +12,8 @@
  * this is cut&paste from 8250.h. Get rid of the structure, the definitions
  * and this whole broken driver.
  */
-struct old_serial_port {
+struct old_serial_port
+{
 	unsigned int uart; /* unused */
 	unsigned int baud_base;
 	unsigned int port;

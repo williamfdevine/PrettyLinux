@@ -103,11 +103,11 @@
 #define DEVICE_N_IRQ_EN_REG(x)	((x) ? 0xC0AC : 0xC08C)
 
 #define DEVICE_N_ENDPOINT_N_CTL_REG(dev, ep)	((dev)  		\
-						 ? (0x0280 + (ep << 4)) \
-						 : (0x0200 + (ep << 4)))
+		? (0x0280 + (ep << 4)) \
+		: (0x0200 + (ep << 4)))
 #define DEVICE_N_ENDPOINT_N_STAT_REG(dev, ep)	((dev)			\
-						 ? (0x0286 + (ep << 4)) \
-						 : (0x0206 + (ep << 4)))
+		? (0x0286 + (ep << 4)) \
+		: (0x0206 + (ep << 4)))
 
 #define DEVICE_N_ADDRESS(dev)	((dev) ? (0xC0AE) : (0xC08E))
 
@@ -179,14 +179,14 @@
 #define CY_UDC_REQ_HEADER_SIZE	8
 
 #define CY_UDC_REQ_HEADER_ADDR(ep_num)	(CY_UDC_REQ_HEADER_BASE + \
-					 ((ep_num) * CY_UDC_REQ_HEADER_SIZE))
+		((ep_num) * CY_UDC_REQ_HEADER_SIZE))
 #define CY_UDC_DESC_BASE_ADDRESS	(CY_UDC_REQ_HEADER_ADDR(8))
 
 #define CY_UDC_BIOS_REPLACE_BASE	0x1800
 #define CY_UDC_REQ_BUFFER_BASE		0x2000
 #define CY_UDC_REQ_BUFFER_SIZE		0x0400
 #define CY_UDC_REQ_BUFFER_ADDR(ep_num)	(CY_UDC_REQ_BUFFER_BASE + \
-					 ((ep_num) * CY_UDC_REQ_BUFFER_SIZE))
+		((ep_num) * CY_UDC_REQ_BUFFER_SIZE))
 
 /* ---------------------------------------------------------------------
  * Driver data structures
@@ -203,7 +203,8 @@ struct c67x00_device;
  * @sie_num: SIE number on chip, starting from 0
  * @mode: SIE mode (host/peripheral/otg/not used)
  */
-struct c67x00_sie {
+struct c67x00_sie
+{
 	/* Entries to be used by the subdrivers */
 	spinlock_t lock;	/* protect this structure */
 	void *private_data;
@@ -220,7 +221,8 @@ struct c67x00_sie {
 /**
  * struct c67x00_lcp
  */
-struct c67x00_lcp {
+struct c67x00_lcp
+{
 	/* Internal use only */
 	struct mutex mutex;
 	struct completion msg_received;
@@ -230,7 +232,8 @@ struct c67x00_lcp {
 /*
  * struct c67x00_hpi
  */
-struct c67x00_hpi {
+struct c67x00_hpi
+{
 	void __iomem *base;
 	int regstep;
 	spinlock_t lock;
@@ -247,7 +250,8 @@ struct c67x00_hpi {
  * @pdev: platform device of instance
  * @pdata: configuration provided by the platform
  */
-struct c67x00_device {
+struct c67x00_device
+{
 	struct c67x00_hpi hpi;
 	struct c67x00_sie sie[C67X00_SIES];
 	struct platform_device *pdev;
@@ -270,9 +274,9 @@ u16 c67x00_ll_get_usb_ctl(struct c67x00_sie *sie);
 void c67x00_ll_usb_clear_status(struct c67x00_sie *sie, u16 bits);
 u16 c67x00_ll_usb_get_status(struct c67x00_sie *sie);
 void c67x00_ll_write_mem_le16(struct c67x00_device *dev, u16 addr,
-			      void *data, int len);
+							  void *data, int len);
 void c67x00_ll_read_mem_le16(struct c67x00_device *dev, u16 addr,
-			     void *data, int len);
+							 void *data, int len);
 
 /* Host specific functions */
 void c67x00_ll_set_husb_eot(struct c67x00_device *dev, u16 value);

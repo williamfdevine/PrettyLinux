@@ -42,18 +42,21 @@
 
 static const char hvc_opal_name[] = "hvc_opal";
 
-static const struct of_device_id hvc_opal_match[] = {
+static const struct of_device_id hvc_opal_match[] =
+{
 	{ .name = "serial", .compatible = "ibm,opal-console-raw" },
 	{ .name = "serial", .compatible = "ibm,opal-console-hvsi" },
 	{ },
 };
 
-typedef enum hv_protocol {
+typedef enum hv_protocol
+{
 	HV_PROTOCOL_RAW,
 	HV_PROTOCOL_HVSI
 } hv_protocol_t;
 
-struct hvc_opal_priv {
+struct hvc_opal_priv
+{
 	hv_protocol_t		proto;	/* Raw data or HVSI packets */
 	struct hvsi_priv	hvsi;	/* HVSI specific data */
 };
@@ -63,7 +66,8 @@ static struct hvc_opal_priv *hvc_opal_privs[MAX_NR_HVC_CONSOLES];
 static struct hvc_opal_priv hvc_opal_boot_priv;
 static u32 hvc_opal_boot_termno;
 
-static const struct hv_ops hvc_opal_raw_ops = {
+static const struct hv_ops hvc_opal_raw_ops =
+{
 	.get_chars = opal_get_chars,
 	.put_chars = opal_put_chars,
 	.notifier_add = notifier_add_irq,
@@ -76,7 +80,9 @@ static int hvc_opal_hvsi_get_chars(uint32_t vtermno, char *buf, int count)
 	struct hvc_opal_priv *pv = hvc_opal_privs[vtermno];
 
 	if (WARN_ON(!pv))
+	{
 		return -ENODEV;
+	}
 
 	return hvsilib_get_chars(&pv->hvsi, buf, count);
 }
@@ -86,7 +92,9 @@ static int hvc_opal_hvsi_put_chars(uint32_t vtermno, const char *buf, int count)
 	struct hvc_opal_priv *pv = hvc_opal_privs[vtermno];
 
 	if (WARN_ON(!pv))
+	{
 		return -ENODEV;
+	}
 
 	return hvsilib_put_chars(&pv->hvsi, buf, count);
 }
@@ -99,8 +107,11 @@ static int hvc_opal_hvsi_open(struct hvc_struct *hp, int data)
 	pr_devel("HVSI@%x: do open !\n", hp->vtermno);
 
 	rc = notifier_add_irq(hp, data);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return hvsilib_open(&pv->hvsi, hp);
 }
@@ -132,27 +143,35 @@ static int hvc_opal_hvsi_tiocmget(struct hvc_struct *hp)
 	struct hvc_opal_priv *pv = hvc_opal_privs[hp->vtermno];
 
 	if (!pv)
+	{
 		return -EINVAL;
+	}
+
 	return pv->hvsi.mctrl;
 }
 
 static int hvc_opal_hvsi_tiocmset(struct hvc_struct *hp, unsigned int set,
-				unsigned int clear)
+								  unsigned int clear)
 {
 	struct hvc_opal_priv *pv = hvc_opal_privs[hp->vtermno];
 
 	pr_devel("HVSI@%x: Set modem control, set=%x,clr=%x\n",
-		 hp->vtermno, set, clear);
+			 hp->vtermno, set, clear);
 
 	if (set & TIOCM_DTR)
+	{
 		hvsilib_write_mctrl(&pv->hvsi, 1);
+	}
 	else if (clear & TIOCM_DTR)
+	{
 		hvsilib_write_mctrl(&pv->hvsi, 0);
+	}
 
 	return 0;
 }
 
-static const struct hv_ops hvc_opal_hvsi_ops = {
+static const struct hv_ops hvc_opal_hvsi_ops =
+{
 	.get_chars = hvc_opal_hvsi_get_chars,
 	.put_chars = hvc_opal_hvsi_put_chars,
 	.notifier_add = hvc_opal_hvsi_open,
@@ -171,16 +190,21 @@ static int hvc_opal_probe(struct platform_device *dev)
 	unsigned int termno, irq, boot = 0;
 	const __be32 *reg;
 
-	if (of_device_is_compatible(dev->dev.of_node, "ibm,opal-console-raw")) {
+	if (of_device_is_compatible(dev->dev.of_node, "ibm,opal-console-raw"))
+	{
 		proto = HV_PROTOCOL_RAW;
 		ops = &hvc_opal_raw_ops;
-	} else if (of_device_is_compatible(dev->dev.of_node,
-					   "ibm,opal-console-hvsi")) {
+	}
+	else if (of_device_is_compatible(dev->dev.of_node,
+									 "ibm,opal-console-hvsi"))
+	{
 		proto = HV_PROTOCOL_HVSI;
 		ops = &hvc_opal_hvsi_ops;
-	} else {
+	}
+	else
+	{
 		pr_err("hvc_opal: Unknown protocol for %s\n",
-		       dev->dev.of_node->full_name);
+			   dev->dev.of_node->full_name);
 		return -ENXIO;
 	}
 
@@ -188,48 +212,64 @@ static int hvc_opal_probe(struct platform_device *dev)
 	termno = reg ? be32_to_cpup(reg) : 0;
 
 	/* Is it our boot one ? */
-	if (hvc_opal_privs[termno] == &hvc_opal_boot_priv) {
+	if (hvc_opal_privs[termno] == &hvc_opal_boot_priv)
+	{
 		pv = hvc_opal_privs[termno];
 		boot = 1;
-	} else if (hvc_opal_privs[termno] == NULL) {
+	}
+	else if (hvc_opal_privs[termno] == NULL)
+	{
 		pv = kzalloc(sizeof(struct hvc_opal_priv), GFP_KERNEL);
+
 		if (!pv)
+		{
 			return -ENOMEM;
+		}
+
 		pv->proto = proto;
 		hvc_opal_privs[termno] = pv;
+
 		if (proto == HV_PROTOCOL_HVSI)
 			hvsilib_init(&pv->hvsi, opal_get_chars, opal_put_chars,
-				     termno, 0);
+						 termno, 0);
 
 		/* Instanciate now to establish a mapping index==vtermno */
 		hvc_instantiate(termno, termno, ops);
-	} else {
+	}
+	else
+	{
 		pr_err("hvc_opal: Device %s has duplicate terminal number #%d\n",
-		       dev->dev.of_node->full_name, termno);
+			   dev->dev.of_node->full_name, termno);
 		return -ENXIO;
 	}
 
 	pr_info("hvc%d: %s protocol on %s%s\n", termno,
-		proto == HV_PROTOCOL_RAW ? "raw" : "hvsi",
-		dev->dev.of_node->full_name,
-		boot ? " (boot console)" : "");
+			proto == HV_PROTOCOL_RAW ? "raw" : "hvsi",
+			dev->dev.of_node->full_name,
+			boot ? " (boot console)" : "");
 
 	irq = irq_of_parse_and_map(dev->dev.of_node, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		pr_info("hvc%d: No interrupts property, using OPAL event\n",
 				termno);
 		irq = opal_event_request(ilog2(OPAL_EVENT_CONSOLE_INPUT));
 	}
 
-	if (!irq) {
+	if (!irq)
+	{
 		pr_err("hvc_opal: Unable to map interrupt for device %s\n",
-			dev->dev.of_node->full_name);
+			   dev->dev.of_node->full_name);
 		return irq;
 	}
 
 	hp = hvc_alloc(termno, irq, ops, MAX_VIO_PUT_CHARS);
+
 	if (IS_ERR(hp))
+	{
 		return PTR_ERR(hp);
+	}
 
 	/* hvc consoles on powernv may need to share a single irq */
 	hp->flags = IRQF_SHARED;
@@ -245,15 +285,22 @@ static int hvc_opal_remove(struct platform_device *dev)
 
 	termno = hp->vtermno;
 	rc = hvc_remove(hp);
-	if (rc == 0) {
+
+	if (rc == 0)
+	{
 		if (hvc_opal_privs[termno] != &hvc_opal_boot_priv)
+		{
 			kfree(hvc_opal_privs[termno]);
+		}
+
 		hvc_opal_privs[termno] = NULL;
 	}
+
 	return rc;
 }
 
-static struct platform_driver hvc_opal_driver = {
+static struct platform_driver hvc_opal_driver =
+{
 	.probe		= hvc_opal_probe,
 	.remove		= hvc_opal_remove,
 	.driver		= {
@@ -265,7 +312,9 @@ static struct platform_driver hvc_opal_driver = {
 static int __init hvc_opal_init(void)
 {
 	if (!firmware_has_feature(FW_FEATURE_OPAL))
+	{
 		return -ENODEV;
+	}
 
 	/* Register as a vio device to receive callbacks */
 	return platform_driver_register(&hvc_opal_driver);
@@ -278,18 +327,24 @@ static void udbg_opal_putc(char c)
 	int count = -1;
 
 	if (c == '\n')
+	{
 		udbg_opal_putc('\r');
+	}
 
-	do {
-		switch(hvc_opal_boot_priv.proto) {
-		case HV_PROTOCOL_RAW:
-			count = opal_put_chars(termno, &c, 1);
-			break;
-		case HV_PROTOCOL_HVSI:
-			count = hvc_opal_hvsi_put_chars(termno, &c, 1);
-			break;
+	do
+	{
+		switch (hvc_opal_boot_priv.proto)
+		{
+			case HV_PROTOCOL_RAW:
+				count = opal_put_chars(termno, &c, 1);
+				break;
+
+			case HV_PROTOCOL_HVSI:
+				count = hvc_opal_hvsi_put_chars(termno, &c, 1);
+				break;
 		}
-	} while(count == 0 || count == -EAGAIN);
+	}
+	while (count == 0 || count == -EAGAIN);
 }
 
 static int udbg_opal_getc_poll(void)
@@ -298,30 +353,43 @@ static int udbg_opal_getc_poll(void)
 	int rc = 0;
 	char c;
 
-	switch(hvc_opal_boot_priv.proto) {
-	case HV_PROTOCOL_RAW:
-		rc = opal_get_chars(termno, &c, 1);
-		break;
-	case HV_PROTOCOL_HVSI:
-		rc = hvc_opal_hvsi_get_chars(termno, &c, 1);
-		break;
+	switch (hvc_opal_boot_priv.proto)
+	{
+		case HV_PROTOCOL_RAW:
+			rc = opal_get_chars(termno, &c, 1);
+			break;
+
+		case HV_PROTOCOL_HVSI:
+			rc = hvc_opal_hvsi_get_chars(termno, &c, 1);
+			break;
 	}
+
 	if (!rc)
+	{
 		return -1;
+	}
+
 	return c;
 }
 
 static int udbg_opal_getc(void)
 {
 	int ch;
-	for (;;) {
+
+	for (;;)
+	{
 		ch = udbg_opal_getc_poll();
-		if (ch == -1) {
+
+		if (ch == -1)
+		{
 			/* This shouldn't be needed...but... */
 			volatile unsigned long delay;
-			for (delay=0; delay < 2000000; delay++)
+
+			for (delay = 0; delay < 2000000; delay++)
 				;
-		} else {
+		}
+		else
+		{
 			return ch;
 		}
 	}
@@ -343,55 +411,82 @@ void __init hvc_opal_init_early(void)
 	u32 index;
 
 	/* If the console wasn't in /chosen, try /ibm,opal */
-	if (!stdout_node) {
+	if (!stdout_node)
+	{
 		struct device_node *opal, *np;
 
 		/* Current OPAL takeover doesn't provide the stdout
 		 * path, so we hard wire it
 		 */
 		opal = of_find_node_by_path("/ibm,opal/consoles");
+
 		if (opal)
+		{
 			pr_devel("hvc_opal: Found consoles in new location\n");
-		if (!opal) {
+		}
+
+		if (!opal)
+		{
 			opal = of_find_node_by_path("/ibm,opal");
+
 			if (opal)
 				pr_devel("hvc_opal: "
-					 "Found consoles in old location\n");
+						 "Found consoles in old location\n");
 		}
+
 		if (!opal)
+		{
 			return;
-		for_each_child_of_node(opal, np) {
-			if (!strcmp(np->name, "serial")) {
+		}
+
+		for_each_child_of_node(opal, np)
+		{
+			if (!strcmp(np->name, "serial"))
+			{
 				stdout_node = np;
 				break;
 			}
 		}
 		of_node_put(opal);
 	}
+
 	if (!stdout_node)
+	{
 		return;
+	}
+
 	termno = of_get_property(stdout_node, "reg", NULL);
 	index = termno ? be32_to_cpup(termno) : 0;
+
 	if (index >= MAX_NR_HVC_CONSOLES)
+	{
 		return;
+	}
+
 	hvc_opal_privs[index] = &hvc_opal_boot_priv;
 
 	/* Check the protocol */
-	if (of_device_is_compatible(stdout_node, "ibm,opal-console-raw")) {
+	if (of_device_is_compatible(stdout_node, "ibm,opal-console-raw"))
+	{
 		hvc_opal_boot_priv.proto = HV_PROTOCOL_RAW;
 		ops = &hvc_opal_raw_ops;
 		pr_devel("hvc_opal: Found RAW console\n");
 	}
-	else if (of_device_is_compatible(stdout_node,"ibm,opal-console-hvsi")) {
+	else if (of_device_is_compatible(stdout_node, "ibm,opal-console-hvsi"))
+	{
 		hvc_opal_boot_priv.proto = HV_PROTOCOL_HVSI;
 		ops = &hvc_opal_hvsi_ops;
 		hvsilib_init(&hvc_opal_boot_priv.hvsi, opal_get_chars,
-			     opal_put_chars, index, 1);
+					 opal_put_chars, index, 1);
 		/* HVSI, perform the handshake now */
 		hvsilib_establish(&hvc_opal_boot_priv.hvsi);
 		pr_devel("hvc_opal: Found HVSI console\n");
-	} else
+	}
+	else
+	{
 		goto out;
+	}
+
 	hvc_opal_boot_termno = index;
 	udbg_init_opal_common();
 	add_preferred_console("hvc", index, NULL);
@@ -419,7 +514,7 @@ void __init udbg_init_debug_opal_hvsi(void)
 	hvc_opal_boot_termno = index;
 	udbg_init_opal_common();
 	hvsilib_init(&hvc_opal_boot_priv.hvsi, opal_get_chars, opal_put_chars,
-		     index, 1);
+				 index, 1);
 	hvsilib_establish(&hvc_opal_boot_priv.hvsi);
 }
 #endif /* CONFIG_PPC_EARLY_DEBUG_OPAL_HVSI */

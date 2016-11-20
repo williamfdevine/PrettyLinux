@@ -22,7 +22,8 @@ extern struct config_item_type iscsi_stat_sess_cit;
 #define ISCSI_SESS_ERR_PDU_FORMAT	3
 
 /* iSCSI session error stats */
-struct iscsi_sess_err_stats {
+struct iscsi_sess_err_stats
+{
 	spinlock_t	lock;
 	u32		digest_errors;
 	u32		cxn_timeout_errors;
@@ -39,7 +40,8 @@ struct iscsi_sess_err_stats {
 #define ISCSI_LOGIN_FAIL_NEGOTIATE	6
 
 /* iSCSI login stats */
-struct iscsi_login_stats {
+struct iscsi_login_stats
+{
 	spinlock_t	lock;
 	u32		accepts;
 	u32		other_fails;
@@ -55,7 +57,8 @@ struct iscsi_login_stats {
 } ____cacheline_aligned;
 
 /* iSCSI logout stats */
-struct iscsi_logout_stats {
+struct iscsi_logout_stats
+{
 	spinlock_t	lock;
 	u32		normal_logouts;
 	u32		abnormal_logouts;

@@ -8,15 +8,20 @@
 static void tui_progress__update(struct ui_progress *p)
 {
 	int bar, y;
+
 	/*
 	 * FIXME: We should have a per UI backend way of showing progress,
 	 * stdio will just show a percentage as NN%, etc.
 	 */
 	if (use_browser <= 0)
+	{
 		return;
+	}
 
 	if (p->total == 0)
+	{
 		return;
+	}
 
 	ui__refresh_dimensions(false);
 	pthread_mutex_lock(&ui__lock);
@@ -38,7 +43,9 @@ static void tui_progress__finish(void)
 	int y;
 
 	if (use_browser <= 0)
+	{
 		return;
+	}
 
 	ui__refresh_dimensions(false);
 	pthread_mutex_lock(&ui__lock);

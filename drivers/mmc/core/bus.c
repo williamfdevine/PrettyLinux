@@ -29,26 +29,32 @@
 #define to_mmc_driver(d)	container_of(d, struct mmc_driver, drv)
 
 static ssize_t type_show(struct device *dev,
-	struct device_attribute *attr, char *buf)
+						 struct device_attribute *attr, char *buf)
 {
 	struct mmc_card *card = mmc_dev_to_card(dev);
 
-	switch (card->type) {
-	case MMC_TYPE_MMC:
-		return sprintf(buf, "MMC\n");
-	case MMC_TYPE_SD:
-		return sprintf(buf, "SD\n");
-	case MMC_TYPE_SDIO:
-		return sprintf(buf, "SDIO\n");
-	case MMC_TYPE_SD_COMBO:
-		return sprintf(buf, "SDcombo\n");
-	default:
-		return -EFAULT;
+	switch (card->type)
+	{
+		case MMC_TYPE_MMC:
+			return sprintf(buf, "MMC\n");
+
+		case MMC_TYPE_SD:
+			return sprintf(buf, "SD\n");
+
+		case MMC_TYPE_SDIO:
+			return sprintf(buf, "SDIO\n");
+
+		case MMC_TYPE_SD_COMBO:
+			return sprintf(buf, "SDcombo\n");
+
+		default:
+			return -EFAULT;
 	}
 }
 static DEVICE_ATTR_RO(type);
 
-static struct attribute *mmc_dev_attrs[] = {
+static struct attribute *mmc_dev_attrs[] =
+{
 	&dev_attr_type.attr,
 	NULL,
 };
@@ -71,32 +77,44 @@ mmc_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
 	const char *type;
 	int retval = 0;
 
-	switch (card->type) {
-	case MMC_TYPE_MMC:
-		type = "MMC";
-		break;
-	case MMC_TYPE_SD:
-		type = "SD";
-		break;
-	case MMC_TYPE_SDIO:
-		type = "SDIO";
-		break;
-	case MMC_TYPE_SD_COMBO:
-		type = "SDcombo";
-		break;
-	default:
-		type = NULL;
+	switch (card->type)
+	{
+		case MMC_TYPE_MMC:
+			type = "MMC";
+			break;
+
+		case MMC_TYPE_SD:
+			type = "SD";
+			break;
+
+		case MMC_TYPE_SDIO:
+			type = "SDIO";
+			break;
+
+		case MMC_TYPE_SD_COMBO:
+			type = "SDcombo";
+			break;
+
+		default:
+			type = NULL;
 	}
 
-	if (type) {
+	if (type)
+	{
 		retval = add_uevent_var(env, "MMC_TYPE=%s", type);
+
 		if (retval)
+		{
 			return retval;
+		}
 	}
 
 	retval = add_uevent_var(env, "MMC_NAME=%s", mmc_card_name(card));
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	/*
 	 * Request the mmc_block device.  Note: that this is a direct request
@@ -133,13 +151,17 @@ static void mmc_bus_shutdown(struct device *dev)
 	int ret;
 
 	if (dev->driver && drv->shutdown)
+	{
 		drv->shutdown(card);
+	}
 
-	if (host->bus_ops->shutdown) {
+	if (host->bus_ops->shutdown)
+	{
 		ret = host->bus_ops->shutdown(host);
+
 		if (ret)
 			pr_warn("%s: error %d during shutdown\n",
-				mmc_hostname(host), ret);
+					mmc_hostname(host), ret);
 	}
 }
 
@@ -151,8 +173,11 @@ static int mmc_bus_suspend(struct device *dev)
 	int ret;
 
 	ret = pm_generic_suspend(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = host->bus_ops->suspend(host);
 	return ret;
@@ -165,9 +190,10 @@ static int mmc_bus_resume(struct device *dev)
 	int ret;
 
 	ret = host->bus_ops->resume(host);
+
 	if (ret)
 		pr_warn("%s: error %d during resume (card was removed?)\n",
-			mmc_hostname(host), ret);
+				mmc_hostname(host), ret);
 
 	ret = pm_generic_resume(dev);
 	return ret;
@@ -192,12 +218,14 @@ static int mmc_runtime_resume(struct device *dev)
 }
 #endif /* !CONFIG_PM */
 
-static const struct dev_pm_ops mmc_bus_pm_ops = {
+static const struct dev_pm_ops mmc_bus_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(mmc_runtime_suspend, mmc_runtime_resume, NULL)
 	SET_SYSTEM_SLEEP_PM_OPS(mmc_bus_suspend, mmc_bus_resume)
 };
 
-static struct bus_type mmc_bus_type = {
+static struct bus_type mmc_bus_type =
+{
 	.name		= "mmc",
 	.dev_groups	= mmc_dev_groups,
 	.match		= mmc_bus_match,
@@ -261,8 +289,11 @@ struct mmc_card *mmc_alloc_card(struct mmc_host *host, struct device_type *type)
 	struct mmc_card *card;
 
 	card = kzalloc(sizeof(struct mmc_card), GFP_KERNEL);
+
 	if (!card)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	card->host = host;
 
@@ -284,7 +315,8 @@ int mmc_add_card(struct mmc_card *card)
 	int ret;
 	const char *type;
 	const char *uhs_bus_speed_mode = "";
-	static const char *const uhs_speeds[] = {
+	static const char *const uhs_speeds[] =
+	{
 		[UHS_SDR12_BUS_SPEED] = "SDR12 ",
 		[UHS_SDR25_BUS_SPEED] = "SDR25 ",
 		[UHS_SDR50_BUS_SPEED] = "SDR50 ",
@@ -295,52 +327,73 @@ int mmc_add_card(struct mmc_card *card)
 
 	dev_set_name(&card->dev, "%s:%04x", mmc_hostname(card->host), card->rca);
 
-	switch (card->type) {
-	case MMC_TYPE_MMC:
-		type = "MMC";
-		break;
-	case MMC_TYPE_SD:
-		type = "SD";
-		if (mmc_card_blockaddr(card)) {
-			if (mmc_card_ext_capacity(card))
-				type = "SDXC";
-			else
-				type = "SDHC";
-		}
-		break;
-	case MMC_TYPE_SDIO:
-		type = "SDIO";
-		break;
-	case MMC_TYPE_SD_COMBO:
-		type = "SD-combo";
-		if (mmc_card_blockaddr(card))
-			type = "SDHC-combo";
-		break;
-	default:
-		type = "?";
-		break;
+	switch (card->type)
+	{
+		case MMC_TYPE_MMC:
+			type = "MMC";
+			break;
+
+		case MMC_TYPE_SD:
+			type = "SD";
+
+			if (mmc_card_blockaddr(card))
+			{
+				if (mmc_card_ext_capacity(card))
+				{
+					type = "SDXC";
+				}
+				else
+				{
+					type = "SDHC";
+				}
+			}
+
+			break;
+
+		case MMC_TYPE_SDIO:
+			type = "SDIO";
+			break;
+
+		case MMC_TYPE_SD_COMBO:
+			type = "SD-combo";
+
+			if (mmc_card_blockaddr(card))
+			{
+				type = "SDHC-combo";
+			}
+
+			break;
+
+		default:
+			type = "?";
+			break;
 	}
 
 	if (mmc_card_uhs(card) &&
 		(card->sd_bus_speed < ARRAY_SIZE(uhs_speeds)))
+	{
 		uhs_bus_speed_mode = uhs_speeds[card->sd_bus_speed];
+	}
 
-	if (mmc_host_is_spi(card->host)) {
+	if (mmc_host_is_spi(card->host))
+	{
 		pr_info("%s: new %s%s%s card on SPI\n",
-			mmc_hostname(card->host),
-			mmc_card_hs(card) ? "high speed " : "",
-			mmc_card_ddr52(card) ? "DDR " : "",
-			type);
-	} else {
+				mmc_hostname(card->host),
+				mmc_card_hs(card) ? "high speed " : "",
+				mmc_card_ddr52(card) ? "DDR " : "",
+				type);
+	}
+	else
+	{
 		pr_info("%s: new %s%s%s%s%s%s card at address %04x\n",
-			mmc_hostname(card->host),
-			mmc_card_uhs(card) ? "ultra high speed " :
-			(mmc_card_hs(card) ? "high speed " : ""),
-			mmc_card_hs400(card) ? "HS400 " :
-			(mmc_card_hs200(card) ? "HS200 " : ""),
-			mmc_card_hs400es(card) ? "Enhanced strobe " : "",
-			mmc_card_ddr52(card) ? "DDR " : "",
-			uhs_bus_speed_mode, type, card->rca);
+				mmc_hostname(card->host),
+				mmc_card_uhs(card) ? "ultra high speed " :
+				(mmc_card_hs(card) ? "high speed " : ""),
+				mmc_card_hs400(card) ? "HS400 " :
+				(mmc_card_hs200(card) ? "HS200 " : ""),
+				mmc_card_hs400es(card) ? "Enhanced strobe " : "",
+				mmc_card_ddr52(card) ? "DDR " : "",
+				uhs_bus_speed_mode, type, card->rca);
 	}
 
 #ifdef CONFIG_DEBUG_FS
@@ -353,8 +406,11 @@ int mmc_add_card(struct mmc_card *card)
 	device_enable_async_suspend(&card->dev);
 
 	ret = device_add(&card->dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mmc_card_set_present(card);
 
@@ -371,14 +427,19 @@ void mmc_remove_card(struct mmc_card *card)
 	mmc_remove_card_debugfs(card);
 #endif
 
-	if (mmc_card_present(card)) {
-		if (mmc_host_is_spi(card->host)) {
+	if (mmc_card_present(card))
+	{
+		if (mmc_host_is_spi(card->host))
+		{
 			pr_info("%s: SPI card removed\n",
-				mmc_hostname(card->host));
-		} else {
-			pr_info("%s: card %04x removed\n",
-				mmc_hostname(card->host), card->rca);
+					mmc_hostname(card->host));
 		}
+		else
+		{
+			pr_info("%s: card %04x removed\n",
+					mmc_hostname(card->host), card->rca);
+		}
+
 		device_del(&card->dev);
 		of_node_put(card->dev.of_node);
 	}

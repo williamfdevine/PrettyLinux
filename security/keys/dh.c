@@ -41,7 +41,9 @@ static ssize_t mpi_from_key(key_serial_t keyid, size_t maxlen, MPI *mpi)
 	ssize_t ret;
 
 	key_ref = lookup_user_key(keyid, 0, KEY_NEED_READ);
-	if (IS_ERR(key_ref)) {
+
+	if (IS_ERR(key_ref))
+	{
 		ret = -ENOKEY;
 		goto error;
 	}
@@ -49,26 +51,39 @@ static ssize_t mpi_from_key(key_serial_t keyid, size_t maxlen, MPI *mpi)
 	key = key_ref_to_ptr(key_ref);
 
 	ret = -EOPNOTSUPP;
-	if (key->type == &key_type_user) {
+
+	if (key->type == &key_type_user)
+	{
 		down_read(&key->sem);
 		status = key_validate(key);
-		if (status == 0) {
+
+		if (status == 0)
+		{
 			const struct user_key_payload *payload;
 
 			payload = user_key_payload(key);
 
-			if (maxlen == 0) {
+			if (maxlen == 0)
+			{
 				*mpi = NULL;
 				ret = payload->datalen;
-			} else if (payload->datalen <= maxlen) {
+			}
+			else if (payload->datalen <= maxlen)
+			{
 				*mpi = mpi_read_raw_data(payload->data,
-							 payload->datalen);
+										 payload->datalen);
+
 				if (*mpi)
+				{
 					ret = payload->datalen;
-			} else {
+				}
+			}
+			else
+			{
 				ret = -EINVAL;
 			}
 		}
+
 		up_read(&key->sem);
 	}
 
@@ -78,8 +93,8 @@ error:
 }
 
 long keyctl_dh_compute(struct keyctl_dh_params __user *params,
-		       char __user *buffer, size_t buflen,
-		       void __user *reserved)
+					   char __user *buffer, size_t buflen,
+					   void __user *reserved)
 {
 	long ret;
 	MPI base, private, prime, result;
@@ -89,22 +104,28 @@ long keyctl_dh_compute(struct keyctl_dh_params __user *params,
 	ssize_t keylen;
 	size_t resultlen;
 
-	if (!params || (!buffer && buflen)) {
+	if (!params || (!buffer && buflen))
+	{
 		ret = -EINVAL;
 		goto out;
 	}
-	if (copy_from_user(&pcopy, params, sizeof(pcopy)) != 0) {
+
+	if (copy_from_user(&pcopy, params, sizeof(pcopy)) != 0)
+	{
 		ret = -EFAULT;
 		goto out;
 	}
 
-	if (reserved) {
+	if (reserved)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
 	keylen = mpi_from_key(pcopy.prime, buflen, &prime);
-	if (keylen < 0 || !prime) {
+
+	if (keylen < 0 || !prime)
+	{
 		/* buflen == 0 may be used to query the required buffer size,
 		 * which is the prime key length.
 		 */
@@ -116,40 +137,57 @@ long keyctl_dh_compute(struct keyctl_dh_params __user *params,
 	resultlen = keylen;
 
 	keylen = mpi_from_key(pcopy.base, SIZE_MAX, &base);
-	if (keylen < 0 || !base) {
+
+	if (keylen < 0 || !base)
+	{
 		ret = keylen;
 		goto error1;
 	}
 
 	keylen = mpi_from_key(pcopy.private, SIZE_MAX, &private);
-	if (keylen < 0 || !private) {
+
+	if (keylen < 0 || !private)
+	{
 		ret = keylen;
 		goto error2;
 	}
 
 	result = mpi_alloc(0);
-	if (!result) {
+
+	if (!result)
+	{
 		ret = -ENOMEM;
 		goto error3;
 	}
 
 	kbuf = kmalloc(resultlen, GFP_KERNEL);
-	if (!kbuf) {
+
+	if (!kbuf)
+	{
 		ret = -ENOMEM;
 		goto error4;
 	}
 
 	ret = do_dh(result, base, private, prime);
+
 	if (ret)
+	{
 		goto error5;
+	}
 
 	ret = mpi_read_buffer(result, kbuf, resultlen, &nbytes, NULL);
+
 	if (ret != 0)
+	{
 		goto error5;
+	}
 
 	ret = nbytes;
+
 	if (copy_to_user(buffer, kbuf, nbytes) != 0)
+	{
 		ret = -EFAULT;
+	}
 
 error5:
 	kfree(kbuf);

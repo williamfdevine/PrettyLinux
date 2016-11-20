@@ -100,7 +100,8 @@
 #define HHF_BIT_MASK	 0x3FF /* bitmask of 10 bits */
 
 #define WDRR_BUCKET_CNT  2     /* two buckets for Weighted DRR */
-enum wdrr_bucket_idx {
+enum wdrr_bucket_idx
+{
 	WDRR_BUCKET_FOR_HH	= 0, /* bucket id for heavy-hitters */
 	WDRR_BUCKET_FOR_NON_HH	= 1  /* bucket id for non-heavy-hitters */
 };
@@ -109,21 +110,24 @@ enum wdrr_bucket_idx {
 	(typecheck(u32, a) && typecheck(u32, b) && ((s32)((a) - (b)) < 0))
 
 /* Heavy-hitter per-flow state */
-struct hh_flow_state {
+struct hh_flow_state
+{
 	u32		 hash_id;	/* hash of flow-id (e.g. TCP 5-tuple) */
 	u32		 hit_timestamp;	/* last time heavy-hitter was seen */
 	struct list_head flowchain;	/* chaining under hash collision */
 };
 
 /* Weighted Deficit Round Robin (WDRR) scheduler */
-struct wdrr_bucket {
+struct wdrr_bucket
+{
 	struct sk_buff	  *head;
 	struct sk_buff	  *tail;
 	struct list_head  bucketchain;
 	int		  deficit;
 };
 
-struct hhf_sched_data {
+struct hhf_sched_data
+{
 	struct wdrr_bucket buckets[WDRR_BUCKET_CNT];
 	u32		   perturbation;   /* hash perturbation */
 	u32		   quantum;        /* psched_mtu(qdisc_dev(sch)); */
@@ -177,28 +181,37 @@ static u32 hhf_time_stamp(void)
 
 /* Looks up a heavy-hitter flow in a chaining list of table T. */
 static struct hh_flow_state *seek_list(const u32 hash,
-				       struct list_head *head,
-				       struct hhf_sched_data *q)
+									   struct list_head *head,
+									   struct hhf_sched_data *q)
 {
 	struct hh_flow_state *flow, *next;
 	u32 now = hhf_time_stamp();
 
 	if (list_empty(head))
+	{
 		return NULL;
+	}
 
-	list_for_each_entry_safe(flow, next, head, flowchain) {
+	list_for_each_entry_safe(flow, next, head, flowchain)
+	{
 		u32 prev = flow->hit_timestamp + q->hhf_evict_timeout;
 
-		if (hhf_time_before(prev, now)) {
+		if (hhf_time_before(prev, now))
+		{
 			/* Delete expired heavy-hitters, but preserve one entry
 			 * to avoid kzalloc() when next time this slot is hit.
 			 */
 			if (list_is_last(&flow->flowchain, head))
+			{
 				return NULL;
+			}
+
 			list_del(&flow->flowchain);
 			kfree(flow);
 			q->hh_flows_current_cnt--;
-		} else if (flow->hash_id == hash) {
+		}
+		else if (flow->hash_id == hash)
+		{
 			return flow;
 		}
 	}
@@ -209,29 +222,38 @@ static struct hh_flow_state *seek_list(const u32 hash,
  * entry or dynamically alloc a new entry.
  */
 static struct hh_flow_state *alloc_new_hh(struct list_head *head,
-					  struct hhf_sched_data *q)
+		struct hhf_sched_data *q)
 {
 	struct hh_flow_state *flow;
 	u32 now = hhf_time_stamp();
 
-	if (!list_empty(head)) {
+	if (!list_empty(head))
+	{
 		/* Find an expired heavy-hitter flow entry. */
-		list_for_each_entry(flow, head, flowchain) {
+		list_for_each_entry(flow, head, flowchain)
+		{
 			u32 prev = flow->hit_timestamp + q->hhf_evict_timeout;
 
 			if (hhf_time_before(prev, now))
+			{
 				return flow;
+			}
 		}
 	}
 
-	if (q->hh_flows_current_cnt >= q->hh_flows_limit) {
+	if (q->hh_flows_current_cnt >= q->hh_flows_limit)
+	{
 		q->hh_flows_overlimit++;
 		return NULL;
 	}
+
 	/* Create new entry. */
 	flow = kzalloc(sizeof(struct hh_flow_state), GFP_ATOMIC);
+
 	if (!flow)
+	{
 		return NULL;
+	}
 
 	q->hh_flows_current_cnt++;
 	INIT_LIST_HEAD(&flow->flowchain);
@@ -256,9 +278,14 @@ static enum wdrr_bucket_idx hhf_classify(struct sk_buff *skb, struct Qdisc *sch)
 
 	/* Reset the HHF counter arrays if this is the right time. */
 	prev = q->hhf_arrays_reset_timestamp + q->hhf_reset_timeout;
-	if (hhf_time_before(prev, now)) {
+
+	if (hhf_time_before(prev, now))
+	{
 		for (i = 0; i < HHF_ARRAYS_CNT; i++)
+		{
 			bitmap_zero(q->hhf_valid_bits[i], HHF_ARRAYS_LEN);
+		}
+
 		q->hhf_arrays_reset_timestamp = now;
 	}
 
@@ -268,7 +295,9 @@ static enum wdrr_bucket_idx hhf_classify(struct sk_buff *skb, struct Qdisc *sch)
 	/* Check if this packet belongs to an already established HH flow. */
 	flow_pos = hash & HHF_BIT_MASK;
 	flow = seek_list(hash, &q->hh_flows[flow_pos], q);
-	if (flow) { /* found its HH flow */
+
+	if (flow)   /* found its HH flow */
+	{
 		flow->hit_timestamp = now;
 		return WDRR_BUCKET_FOR_HH;
 	}
@@ -276,36 +305,50 @@ static enum wdrr_bucket_idx hhf_classify(struct sk_buff *skb, struct Qdisc *sch)
 	/* Now pass the packet through the multi-stage filter. */
 	tmp_hash = hash;
 	xorsum = 0;
-	for (i = 0; i < HHF_ARRAYS_CNT - 1; i++) {
+
+	for (i = 0; i < HHF_ARRAYS_CNT - 1; i++)
+	{
 		/* Split the skb_hash into three 10-bit chunks. */
 		filter_pos[i] = tmp_hash & HHF_BIT_MASK;
 		xorsum ^= filter_pos[i];
 		tmp_hash >>= HHF_BIT_MASK_LEN;
 	}
+
 	/* The last chunk is computed as XOR sum of other chunks. */
 	filter_pos[HHF_ARRAYS_CNT - 1] = xorsum ^ tmp_hash;
 
 	pkt_len = qdisc_pkt_len(skb);
 	min_hhf_val = ~0U;
-	for (i = 0; i < HHF_ARRAYS_CNT; i++) {
+
+	for (i = 0; i < HHF_ARRAYS_CNT; i++)
+	{
 		u32 val;
 
-		if (!test_bit(filter_pos[i], q->hhf_valid_bits[i])) {
+		if (!test_bit(filter_pos[i], q->hhf_valid_bits[i]))
+		{
 			q->hhf_arrays[i][filter_pos[i]] = 0;
 			__set_bit(filter_pos[i], q->hhf_valid_bits[i]);
 		}
 
 		val = q->hhf_arrays[i][filter_pos[i]] + pkt_len;
+
 		if (min_hhf_val > val)
+		{
 			min_hhf_val = val;
+		}
 	}
 
 	/* Found a new HH iff all counter values > HH admit threshold. */
-	if (min_hhf_val > q->hhf_admit_bytes) {
+	if (min_hhf_val > q->hhf_admit_bytes)
+	{
 		/* Just captured a new heavy-hitter. */
 		flow = alloc_new_hh(&q->hh_flows[flow_pos], q);
+
 		if (!flow) /* memory alloc problem */
+		{
 			return WDRR_BUCKET_FOR_NON_HH;
+		}
+
 		flow->hash_id = hash;
 		flow->hit_timestamp = now;
 		q->hh_flows_total_cnt++;
@@ -317,10 +360,14 @@ static enum wdrr_bucket_idx hhf_classify(struct sk_buff *skb, struct Qdisc *sch)
 	}
 
 	/* Conservative update of HHF arrays (see Optimization O2). */
-	for (i = 0; i < HHF_ARRAYS_CNT; i++) {
+	for (i = 0; i < HHF_ARRAYS_CNT; i++)
+	{
 		if (q->hhf_arrays[i][filter_pos[i]] < min_hhf_val)
+		{
 			q->hhf_arrays[i][filter_pos[i]] = min_hhf_val;
+		}
 	}
+
 	return WDRR_BUCKET_FOR_NON_HH;
 }
 
@@ -338,9 +385,14 @@ static struct sk_buff *dequeue_head(struct wdrr_bucket *bucket)
 static void bucket_add(struct wdrr_bucket *bucket, struct sk_buff *skb)
 {
 	if (bucket->head == NULL)
+	{
 		bucket->head = skb;
+	}
 	else
+	{
 		bucket->tail->next = skb;
+	}
+
 	bucket->tail = skb;
 	skb->next = NULL;
 }
@@ -352,10 +404,14 @@ static unsigned int hhf_drop(struct Qdisc *sch, struct sk_buff **to_free)
 
 	/* Always try to drop from heavy-hitters first. */
 	bucket = &q->buckets[WDRR_BUCKET_FOR_HH];
-	if (!bucket->head)
-		bucket = &q->buckets[WDRR_BUCKET_FOR_NON_HH];
 
-	if (bucket->head) {
+	if (!bucket->head)
+	{
+		bucket = &q->buckets[WDRR_BUCKET_FOR_NON_HH];
+	}
+
+	if (bucket->head)
+	{
 		struct sk_buff *skb = dequeue_head(bucket);
 
 		sch->q.qlen--;
@@ -368,7 +424,7 @@ static unsigned int hhf_drop(struct Qdisc *sch, struct sk_buff **to_free)
 }
 
 static int hhf_enqueue(struct sk_buff *skb, struct Qdisc *sch,
-		       struct sk_buff **to_free)
+					   struct sk_buff **to_free)
 {
 	struct hhf_sched_data *q = qdisc_priv(sch);
 	enum wdrr_bucket_idx idx;
@@ -381,33 +437,44 @@ static int hhf_enqueue(struct sk_buff *skb, struct Qdisc *sch,
 	bucket_add(bucket, skb);
 	qdisc_qstats_backlog_inc(sch, skb);
 
-	if (list_empty(&bucket->bucketchain)) {
+	if (list_empty(&bucket->bucketchain))
+	{
 		unsigned int weight;
 
 		/* The logic of new_buckets vs. old_buckets is the same as
 		 * new_flows vs. old_flows in the implementation of fq_codel,
 		 * i.e., short bursts of non-HHs should have strict priority.
 		 */
-		if (idx == WDRR_BUCKET_FOR_HH) {
+		if (idx == WDRR_BUCKET_FOR_HH)
+		{
 			/* Always move heavy-hitters to old bucket. */
 			weight = 1;
 			list_add_tail(&bucket->bucketchain, &q->old_buckets);
-		} else {
+		}
+		else
+		{
 			weight = q->hhf_non_hh_weight;
 			list_add_tail(&bucket->bucketchain, &q->new_buckets);
 		}
+
 		bucket->deficit = weight * q->quantum;
 	}
+
 	if (++sch->q.qlen <= sch->limit)
+	{
 		return NET_XMIT_SUCCESS;
+	}
 
 	prev_backlog = sch->qstats.backlog;
 	q->drop_overlimit++;
+
 	/* Return Congestion Notification only if we dropped a packet from this
 	 * bucket.
 	 */
 	if (hhf_drop(sch, to_free) == idx)
+	{
 		return NET_XMIT_CN;
+	}
 
 	/* As we dropped a packet, better let upper stack know this. */
 	qdisc_tree_reduce_backlog(sch, 1, prev_backlog - sch->qstats.backlog);
@@ -423,36 +490,51 @@ static struct sk_buff *hhf_dequeue(struct Qdisc *sch)
 
 begin:
 	head = &q->new_buckets;
-	if (list_empty(head)) {
+
+	if (list_empty(head))
+	{
 		head = &q->old_buckets;
+
 		if (list_empty(head))
+		{
 			return NULL;
+		}
 	}
+
 	bucket = list_first_entry(head, struct wdrr_bucket, bucketchain);
 
-	if (bucket->deficit <= 0) {
+	if (bucket->deficit <= 0)
+	{
 		int weight = (bucket - q->buckets == WDRR_BUCKET_FOR_HH) ?
-			      1 : q->hhf_non_hh_weight;
+					 1 : q->hhf_non_hh_weight;
 
 		bucket->deficit += weight * q->quantum;
 		list_move_tail(&bucket->bucketchain, &q->old_buckets);
 		goto begin;
 	}
 
-	if (bucket->head) {
+	if (bucket->head)
+	{
 		skb = dequeue_head(bucket);
 		sch->q.qlen--;
 		qdisc_qstats_backlog_dec(sch, skb);
 	}
 
-	if (!skb) {
+	if (!skb)
+	{
 		/* Force a pass through old_buckets to prevent starvation. */
 		if ((head == &q->new_buckets) && !list_empty(&q->old_buckets))
+		{
 			list_move_tail(&bucket->bucketchain, &q->old_buckets);
+		}
 		else
+		{
 			list_del_init(&bucket->bucketchain);
+		}
+
 		goto begin;
 	}
+
 	qdisc_bstats_update(sch, skb);
 	bucket->deficit -= qdisc_pkt_len(skb);
 
@@ -464,7 +546,9 @@ static void hhf_reset(struct Qdisc *sch)
 	struct sk_buff *skb;
 
 	while ((skb = hhf_dequeue(sch)) != NULL)
+	{
 		rtnl_kfree_skbs(skb, skb);
+	}
 }
 
 static void *hhf_zalloc(size_t sz)
@@ -472,7 +556,9 @@ static void *hhf_zalloc(size_t sz)
 	void *ptr = kzalloc(sz, GFP_KERNEL | __GFP_NOWARN);
 
 	if (!ptr)
+	{
 		ptr = vzalloc(sz);
+	}
 
 	return ptr;
 }
@@ -487,26 +573,34 @@ static void hhf_destroy(struct Qdisc *sch)
 	int i;
 	struct hhf_sched_data *q = qdisc_priv(sch);
 
-	for (i = 0; i < HHF_ARRAYS_CNT; i++) {
+	for (i = 0; i < HHF_ARRAYS_CNT; i++)
+	{
 		hhf_free(q->hhf_arrays[i]);
 		hhf_free(q->hhf_valid_bits[i]);
 	}
 
-	for (i = 0; i < HH_FLOWS_CNT; i++) {
+	for (i = 0; i < HH_FLOWS_CNT; i++)
+	{
 		struct hh_flow_state *flow, *next;
 		struct list_head *head = &q->hh_flows[i];
 
 		if (list_empty(head))
+		{
 			continue;
-		list_for_each_entry_safe(flow, next, head, flowchain) {
+		}
+
+		list_for_each_entry_safe(flow, next, head, flowchain)
+		{
 			list_del(&flow->flowchain);
 			kfree(flow);
 		}
 	}
+
 	hhf_free(q->hh_flows);
 }
 
-static const struct nla_policy hhf_policy[TCA_HHF_MAX + 1] = {
+static const struct nla_policy hhf_policy[TCA_HHF_MAX + 1] =
+{
 	[TCA_HHF_BACKLOG_LIMIT]	 = { .type = NLA_U32 },
 	[TCA_HHF_QUANTUM]	 = { .type = NLA_U32 },
 	[TCA_HHF_HH_FLOWS_LIMIT] = { .type = NLA_U32 },
@@ -527,43 +621,63 @@ static int hhf_change(struct Qdisc *sch, struct nlattr *opt)
 	u32 new_hhf_non_hh_weight = q->hhf_non_hh_weight;
 
 	if (!opt)
+	{
 		return -EINVAL;
+	}
 
 	err = nla_parse_nested(tb, TCA_HHF_MAX, opt, hhf_policy);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (tb[TCA_HHF_QUANTUM])
+	{
 		new_quantum = nla_get_u32(tb[TCA_HHF_QUANTUM]);
+	}
 
 	if (tb[TCA_HHF_NON_HH_WEIGHT])
+	{
 		new_hhf_non_hh_weight = nla_get_u32(tb[TCA_HHF_NON_HH_WEIGHT]);
+	}
 
 	non_hh_quantum = (u64)new_quantum * new_hhf_non_hh_weight;
+
 	if (non_hh_quantum > INT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	sch_tree_lock(sch);
 
 	if (tb[TCA_HHF_BACKLOG_LIMIT])
+	{
 		sch->limit = nla_get_u32(tb[TCA_HHF_BACKLOG_LIMIT]);
+	}
 
 	q->quantum = new_quantum;
 	q->hhf_non_hh_weight = new_hhf_non_hh_weight;
 
 	if (tb[TCA_HHF_HH_FLOWS_LIMIT])
+	{
 		q->hh_flows_limit = nla_get_u32(tb[TCA_HHF_HH_FLOWS_LIMIT]);
+	}
 
-	if (tb[TCA_HHF_RESET_TIMEOUT]) {
+	if (tb[TCA_HHF_RESET_TIMEOUT])
+	{
 		u32 us = nla_get_u32(tb[TCA_HHF_RESET_TIMEOUT]);
 
 		q->hhf_reset_timeout = usecs_to_jiffies(us);
 	}
 
 	if (tb[TCA_HHF_ADMIT_BYTES])
+	{
 		q->hhf_admit_bytes = nla_get_u32(tb[TCA_HHF_ADMIT_BYTES]);
+	}
 
-	if (tb[TCA_HHF_EVICT_TIMEOUT]) {
+	if (tb[TCA_HHF_EVICT_TIMEOUT])
+	{
 		u32 us = nla_get_u32(tb[TCA_HHF_EVICT_TIMEOUT]);
 
 		q->hhf_evict_timeout = usecs_to_jiffies(us);
@@ -571,13 +685,16 @@ static int hhf_change(struct Qdisc *sch, struct nlattr *opt)
 
 	qlen = sch->q.qlen;
 	prev_backlog = sch->qstats.backlog;
-	while (sch->q.qlen > sch->limit) {
+
+	while (sch->q.qlen > sch->limit)
+	{
 		struct sk_buff *skb = hhf_dequeue(sch);
 
 		rtnl_kfree_skbs(skb, skb);
 	}
+
 	qdisc_tree_reduce_backlog(sch, qlen - sch->q.qlen,
-				  prev_backlog - sch->qstats.backlog);
+							  prev_backlog - sch->qstats.backlog);
 
 	sch_tree_unlock(sch);
 	return 0;
@@ -600,21 +717,31 @@ static int hhf_init(struct Qdisc *sch, struct nlattr *opt)
 	q->hhf_evict_timeout = HZ;      /* 1  sec */
 	q->hhf_non_hh_weight = 2;
 
-	if (opt) {
+	if (opt)
+	{
 		int err = hhf_change(sch, opt);
 
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	if (!q->hh_flows) {
+	if (!q->hh_flows)
+	{
 		/* Initialize heavy-hitter flow table. */
 		q->hh_flows = hhf_zalloc(HH_FLOWS_CNT *
-					 sizeof(struct list_head));
+								 sizeof(struct list_head));
+
 		if (!q->hh_flows)
+		{
 			return -ENOMEM;
+		}
+
 		for (i = 0; i < HH_FLOWS_CNT; i++)
+		{
 			INIT_LIST_HEAD(&q->hh_flows[i]);
+		}
 
 		/* Cap max active HHs at twice len of hh_flows table. */
 		q->hh_flows_limit = 2 * HH_FLOWS_CNT;
@@ -623,28 +750,36 @@ static int hhf_init(struct Qdisc *sch, struct nlattr *opt)
 		q->hh_flows_current_cnt = 0;
 
 		/* Initialize heavy-hitter filter arrays. */
-		for (i = 0; i < HHF_ARRAYS_CNT; i++) {
+		for (i = 0; i < HHF_ARRAYS_CNT; i++)
+		{
 			q->hhf_arrays[i] = hhf_zalloc(HHF_ARRAYS_LEN *
-						      sizeof(u32));
-			if (!q->hhf_arrays[i]) {
+										  sizeof(u32));
+
+			if (!q->hhf_arrays[i])
+			{
 				hhf_destroy(sch);
 				return -ENOMEM;
 			}
 		}
+
 		q->hhf_arrays_reset_timestamp = hhf_time_stamp();
 
 		/* Initialize valid bits of heavy-hitter filter arrays. */
-		for (i = 0; i < HHF_ARRAYS_CNT; i++) {
+		for (i = 0; i < HHF_ARRAYS_CNT; i++)
+		{
 			q->hhf_valid_bits[i] = hhf_zalloc(HHF_ARRAYS_LEN /
-							  BITS_PER_BYTE);
-			if (!q->hhf_valid_bits[i]) {
+											  BITS_PER_BYTE);
+
+			if (!q->hhf_valid_bits[i])
+			{
 				hhf_destroy(sch);
 				return -ENOMEM;
 			}
 		}
 
 		/* Initialize Weighted DRR buckets. */
-		for (i = 0; i < WDRR_BUCKET_CNT; i++) {
+		for (i = 0; i < WDRR_BUCKET_CNT; i++)
+		{
 			struct wdrr_bucket *bucket = q->buckets + i;
 
 			INIT_LIST_HEAD(&bucket->bucketchain);
@@ -660,19 +795,24 @@ static int hhf_dump(struct Qdisc *sch, struct sk_buff *skb)
 	struct nlattr *opts;
 
 	opts = nla_nest_start(skb, TCA_OPTIONS);
+
 	if (opts == NULL)
+	{
 		goto nla_put_failure;
+	}
 
 	if (nla_put_u32(skb, TCA_HHF_BACKLOG_LIMIT, sch->limit) ||
-	    nla_put_u32(skb, TCA_HHF_QUANTUM, q->quantum) ||
-	    nla_put_u32(skb, TCA_HHF_HH_FLOWS_LIMIT, q->hh_flows_limit) ||
-	    nla_put_u32(skb, TCA_HHF_RESET_TIMEOUT,
-			jiffies_to_usecs(q->hhf_reset_timeout)) ||
-	    nla_put_u32(skb, TCA_HHF_ADMIT_BYTES, q->hhf_admit_bytes) ||
-	    nla_put_u32(skb, TCA_HHF_EVICT_TIMEOUT,
-			jiffies_to_usecs(q->hhf_evict_timeout)) ||
-	    nla_put_u32(skb, TCA_HHF_NON_HH_WEIGHT, q->hhf_non_hh_weight))
+		nla_put_u32(skb, TCA_HHF_QUANTUM, q->quantum) ||
+		nla_put_u32(skb, TCA_HHF_HH_FLOWS_LIMIT, q->hh_flows_limit) ||
+		nla_put_u32(skb, TCA_HHF_RESET_TIMEOUT,
+					jiffies_to_usecs(q->hhf_reset_timeout)) ||
+		nla_put_u32(skb, TCA_HHF_ADMIT_BYTES, q->hhf_admit_bytes) ||
+		nla_put_u32(skb, TCA_HHF_EVICT_TIMEOUT,
+					jiffies_to_usecs(q->hhf_evict_timeout)) ||
+		nla_put_u32(skb, TCA_HHF_NON_HH_WEIGHT, q->hhf_non_hh_weight))
+	{
 		goto nla_put_failure;
+	}
 
 	return nla_nest_end(skb, opts);
 
@@ -683,7 +823,8 @@ nla_put_failure:
 static int hhf_dump_stats(struct Qdisc *sch, struct gnet_dump *d)
 {
 	struct hhf_sched_data *q = qdisc_priv(sch);
-	struct tc_hhf_xstats st = {
+	struct tc_hhf_xstats st =
+	{
 		.drop_overlimit = q->drop_overlimit,
 		.hh_overlimit	= q->hh_flows_overlimit,
 		.hh_tot_count	= q->hh_flows_total_cnt,
@@ -693,7 +834,8 @@ static int hhf_dump_stats(struct Qdisc *sch, struct gnet_dump *d)
 	return gnet_stats_copy_app(d, &st, sizeof(st));
 }
 
-static struct Qdisc_ops hhf_qdisc_ops __read_mostly = {
+static struct Qdisc_ops hhf_qdisc_ops __read_mostly =
+{
 	.id		=	"hhf",
 	.priv_size	=	sizeof(struct hhf_sched_data),
 

@@ -14,13 +14,15 @@
 
 #include <linux/regulator/machine.h>
 
-enum {
+enum
+{
 	MAX8649_EXTCLK_26MHZ = 0,
 	MAX8649_EXTCLK_13MHZ,
 	MAX8649_EXTCLK_19MHZ,	/* 19.2MHz */
 };
 
-enum {
+enum
+{
 	MAX8649_RAMP_32MV = 0,
 	MAX8649_RAMP_16MV,
 	MAX8649_RAMP_8MV,
@@ -31,14 +33,15 @@ enum {
 	MAX8649_RAMP_0_25MV,
 };
 
-struct max8649_platform_data {
+struct max8649_platform_data
+{
 	struct regulator_init_data *regulator;
 
-	unsigned	mode:2;		/* bit[1:0] = VID1,VID0 */
-	unsigned	extclk_freq:2;
-	unsigned	extclk:1;
-	unsigned	ramp_timing:3;
-	unsigned	ramp_down:1;
+	unsigned	mode: 2;		/* bit[1:0] = VID1,VID0 */
+	unsigned	extclk_freq: 2;
+	unsigned	extclk: 1;
+	unsigned	ramp_timing: 3;
+	unsigned	ramp_down: 1;
 };
 
 #endif	/* __LINUX_REGULATOR_MAX8649_H */

@@ -23,7 +23,8 @@
 #define __IBM_NEWEMAC_TAH_H
 
 /* TAH */
-struct tah_regs {
+struct tah_regs
+{
 	u32 revid;
 	u32 pad[3];
 	u32 mr;
@@ -38,7 +39,8 @@ struct tah_regs {
 
 
 /* TAH device */
-struct tah_instance {
+struct tah_instance
+{
 	struct tah_regs __iomem		*base;
 
 	/* Only one EMAC whacks us at a time */
@@ -72,23 +74,23 @@ struct tah_instance {
 
 #ifdef CONFIG_IBM_EMAC_TAH
 
-int tah_init(void);
-void tah_exit(void);
-int tah_attach(struct platform_device *ofdev, int channel);
-void tah_detach(struct platform_device *ofdev, int channel);
-void tah_reset(struct platform_device *ofdev);
-int tah_get_regs_len(struct platform_device *ofdev);
-void *tah_dump_regs(struct platform_device *ofdev, void *buf);
+	int tah_init(void);
+	void tah_exit(void);
+	int tah_attach(struct platform_device *ofdev, int channel);
+	void tah_detach(struct platform_device *ofdev, int channel);
+	void tah_reset(struct platform_device *ofdev);
+	int tah_get_regs_len(struct platform_device *ofdev);
+	void *tah_dump_regs(struct platform_device *ofdev, void *buf);
 
 #else
 
-# define tah_init()		0
-# define tah_exit()		do { } while(0)
-# define tah_attach(x,y)	(-ENXIO)
-# define tah_detach(x,y)	do { } while(0)
-# define tah_reset(x)		do { } while(0)
-# define tah_get_regs_len(x)	0
-# define tah_dump_regs(x,buf)	(buf)
+	#define tah_init()		0
+	#define tah_exit()		do { } while(0)
+	#define tah_attach(x,y)	(-ENXIO)
+	#define tah_detach(x,y)	do { } while(0)
+	#define tah_reset(x)		do { } while(0)
+	#define tah_get_regs_len(x)	0
+	#define tah_dump_regs(x,buf)	(buf)
 
 #endif				/* !CONFIG_IBM_EMAC_TAH */
 

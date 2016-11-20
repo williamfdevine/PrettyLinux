@@ -45,7 +45,7 @@
 
 static unsigned int bxt_get_errorcode(struct sst_dsp *ctx)
 {
-	 return sst_dsp_shim_read(ctx, BXT_ADSP_ERROR_CODE);
+	return sst_dsp_shim_read(ctx, BXT_ADSP_ERROR_CODE);
 }
 
 static int
@@ -58,19 +58,26 @@ bxt_load_library(struct sst_dsp *ctx, struct skl_dfw_manifest *minfo)
 	int ret = 0, i, dma_id, stream_tag;
 
 	/* library indices start from 1 to N. 0 represents base FW */
-	for (i = 1; i < minfo->lib_count; i++) {
+	for (i = 1; i < minfo->lib_count; i++)
+	{
 		ret = request_firmware(&fw, minfo->lib[i].name, ctx->dev);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(ctx->dev, "Request lib %s failed:%d\n",
 					minfo->lib[i].name, ret);
 			return ret;
 		}
 
-		if (skl->is_first_boot) {
+		if (skl->is_first_boot)
+		{
 			ret = snd_skl_parse_uuids(ctx, fw,
-					BXT_ADSP_FW_BIN_HDR_OFFSET, i);
+									  BXT_ADSP_FW_BIN_HDR_OFFSET, i);
+
 			if (ret < 0)
+			{
 				goto load_library_failed;
+			}
 		}
 
 		stripped_fw.data = fw->data;
@@ -78,8 +85,10 @@ bxt_load_library(struct sst_dsp *ctx, struct skl_dfw_manifest *minfo)
 		skl_dsp_strip_extended_manifest(&stripped_fw);
 
 		stream_tag = ctx->dsp_ops.prepare(ctx->dev, 0x40,
-					stripped_fw.size, &dmab);
-		if (stream_tag <= 0) {
+										  stripped_fw.size, &dmab);
+
+		if (stream_tag <= 0)
+		{
 			dev_err(ctx->dev, "Lib prepare DMA err: %x\n",
 					stream_tag);
 			ret = stream_tag;
@@ -91,6 +100,7 @@ bxt_load_library(struct sst_dsp *ctx, struct skl_dfw_manifest *minfo)
 
 		ctx->dsp_ops.trigger(ctx->dev, true, stream_tag);
 		ret = skl_sst_ipc_load_library(&skl->ipc, dma_id, i);
+
 		if (ret < 0)
 			dev_err(ctx->dev, "IPC Load Lib for %s fail: %d\n",
 					minfo->lib[i].name, ret);
@@ -114,13 +124,15 @@ load_library_failed:
  * reset/stall and then turn it off
  */
 static int sst_bxt_prepare_fw(struct sst_dsp *ctx,
-			const void *fwdata, u32 fwsize)
+							  const void *fwdata, u32 fwsize)
 {
 	int stream_tag, ret, i;
 	u32 reg;
 
 	stream_tag = ctx->dsp_ops.prepare(ctx->dev, 0x40, fwsize, &ctx->dmab);
-	if (stream_tag <= 0) {
+
+	if (stream_tag <= 0)
+	{
 		dev_err(ctx->dev, "Failed to prepare DMA FW loading err: %x\n",
 				stream_tag);
 		return stream_tag;
@@ -131,47 +143,58 @@ static int sst_bxt_prepare_fw(struct sst_dsp *ctx,
 
 	/* Step 1: Power up core 0 and core1 */
 	ret = skl_dsp_core_power_up(ctx, SKL_DSP_CORE0_MASK |
-				SKL_DSP_CORE_MASK(1));
-	if (ret < 0) {
+								SKL_DSP_CORE_MASK(1));
+
+	if (ret < 0)
+	{
 		dev_err(ctx->dev, "dsp core0/1 power up failed\n");
 		goto base_fw_load_failed;
 	}
 
 	/* Step 2: Purge FW request */
 	sst_dsp_shim_write(ctx, SKL_ADSP_REG_HIPCI, SKL_ADSP_REG_HIPCI_BUSY |
-				(BXT_IPC_PURGE_FW | ((stream_tag - 1) << 9)));
+					   (BXT_IPC_PURGE_FW | ((stream_tag - 1) << 9)));
 
 	/* Step 3: Unset core0 reset state & unstall/run core0 */
 	ret = skl_dsp_start_core(ctx, SKL_DSP_CORE0_MASK);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(ctx->dev, "Start dsp core failed ret: %d\n", ret);
 		ret = -EIO;
 		goto base_fw_load_failed;
 	}
 
 	/* Step 4: Wait for DONE Bit */
-	for (i = BXT_INIT_TIMEOUT; i > 0; --i) {
+	for (i = BXT_INIT_TIMEOUT; i > 0; --i)
+	{
 		reg = sst_dsp_shim_read(ctx, SKL_ADSP_REG_HIPCIE);
 
-		if (reg & SKL_ADSP_REG_HIPCIE_DONE) {
+		if (reg & SKL_ADSP_REG_HIPCIE_DONE)
+		{
 			sst_dsp_shim_update_bits_forced(ctx,
-					SKL_ADSP_REG_HIPCIE,
-					SKL_ADSP_REG_HIPCIE_DONE,
-					SKL_ADSP_REG_HIPCIE_DONE);
+											SKL_ADSP_REG_HIPCIE,
+											SKL_ADSP_REG_HIPCIE_DONE,
+											SKL_ADSP_REG_HIPCIE_DONE);
 			break;
 		}
+
 		mdelay(1);
 	}
-	if (!i) {
+
+	if (!i)
+	{
 		dev_info(ctx->dev, "Waiting for HIPCIE done, reg: 0x%x\n", reg);
 		sst_dsp_shim_update_bits(ctx, SKL_ADSP_REG_HIPCIE,
-				SKL_ADSP_REG_HIPCIE_DONE,
-				SKL_ADSP_REG_HIPCIE_DONE);
+								 SKL_ADSP_REG_HIPCIE_DONE,
+								 SKL_ADSP_REG_HIPCIE_DONE);
 	}
 
 	/* Step 5: power down core1 */
 	ret = skl_dsp_core_power_down(ctx, SKL_DSP_CORE_MASK(1));
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(ctx->dev, "dsp core1 power down failed\n");
 		goto base_fw_load_failed;
 	}
@@ -181,17 +204,22 @@ static int sst_bxt_prepare_fw(struct sst_dsp *ctx,
 	skl_ipc_op_int_enable(ctx);
 
 	/* Step 7: Wait for ROM init */
-	for (i = BXT_INIT_TIMEOUT; i > 0; --i) {
+	for (i = BXT_INIT_TIMEOUT; i > 0; --i)
+	{
 		if (SKL_FW_INIT ==
-				(sst_dsp_shim_read(ctx, BXT_ADSP_FW_STATUS) &
-				SKL_FW_STS_MASK)) {
+			(sst_dsp_shim_read(ctx, BXT_ADSP_FW_STATUS) &
+			 SKL_FW_STS_MASK))
+		{
 
 			dev_info(ctx->dev, "ROM loaded, continue FW loading\n");
 			break;
 		}
+
 		mdelay(1);
 	}
-	if (!i) {
+
+	if (!i)
+	{
 		dev_err(ctx->dev, "Timeout for ROM init, HIPCIE: 0x%x\n", reg);
 		ret = -EIO;
 		goto base_fw_load_failed;
@@ -212,7 +240,7 @@ static int sst_transfer_fw_host_dma(struct sst_dsp *ctx)
 
 	ctx->dsp_ops.trigger(ctx->dev, true, ctx->dsp_ops.stream_tag);
 	ret = sst_dsp_register_poll(ctx, BXT_ADSP_FW_STATUS, SKL_FW_STS_MASK,
-			BXT_ROM_INIT, BXT_BASEFW_TIMEOUT, "Firmware boot");
+								BXT_ROM_INIT, BXT_BASEFW_TIMEOUT, "Firmware boot");
 
 	ctx->dsp_ops.trigger(ctx->dev, false, ctx->dsp_ops.stream_tag);
 	ctx->dsp_ops.cleanup(ctx->dev, &ctx->dmab, ctx->dsp_ops.stream_tag);
@@ -227,20 +255,28 @@ static int bxt_load_base_firmware(struct sst_dsp *ctx)
 	int ret;
 
 	ret = request_firmware(&ctx->fw, ctx->fw_name, ctx->dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(ctx->dev, "Request firmware failed %d\n", ret);
 		goto sst_load_base_firmware_failed;
 	}
 
 	/* check for extended manifest */
 	if (ctx->fw == NULL)
+	{
 		goto sst_load_base_firmware_failed;
+	}
 
 	/* prase uuids on first boot */
-	if (skl->is_first_boot) {
+	if (skl->is_first_boot)
+	{
 		ret = snd_skl_parse_uuids(ctx, ctx->fw, BXT_ADSP_FW_BIN_HDR_OFFSET, 0);
+
 		if (ret < 0)
+		{
 			goto sst_load_base_firmware_failed;
+		}
 	}
 
 	stripped_fw.data = ctx->fw->data;
@@ -248,13 +284,17 @@ static int bxt_load_base_firmware(struct sst_dsp *ctx)
 	skl_dsp_strip_extended_manifest(&stripped_fw);
 
 	ret = sst_bxt_prepare_fw(ctx, stripped_fw.data, stripped_fw.size);
+
 	/* Retry Enabling core and ROM load. Retry seemed to help */
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		ret = sst_bxt_prepare_fw(ctx, stripped_fw.data, stripped_fw.size);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(ctx->dev, "Error code=0x%x: FW status=0x%x\n",
-			sst_dsp_shim_read(ctx, BXT_ADSP_ERROR_CODE),
-			sst_dsp_shim_read(ctx, BXT_ADSP_FW_STATUS));
+					sst_dsp_shim_read(ctx, BXT_ADSP_ERROR_CODE),
+					sst_dsp_shim_read(ctx, BXT_ADSP_FW_STATUS));
 
 			dev_err(ctx->dev, "Core En/ROM load fail:%d\n", ret);
 			goto sst_load_base_firmware_failed;
@@ -262,22 +302,30 @@ static int bxt_load_base_firmware(struct sst_dsp *ctx)
 	}
 
 	ret = sst_transfer_fw_host_dma(ctx);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(ctx->dev, "Transfer firmware failed %d\n", ret);
 		dev_info(ctx->dev, "Error code=0x%x: FW status=0x%x\n",
-			sst_dsp_shim_read(ctx, BXT_ADSP_ERROR_CODE),
-			sst_dsp_shim_read(ctx, BXT_ADSP_FW_STATUS));
+				 sst_dsp_shim_read(ctx, BXT_ADSP_ERROR_CODE),
+				 sst_dsp_shim_read(ctx, BXT_ADSP_FW_STATUS));
 
 		skl_dsp_disable_core(ctx, SKL_DSP_CORE0_MASK);
-	} else {
+	}
+	else
+	{
 		dev_dbg(ctx->dev, "Firmware download successful\n");
 		ret = wait_event_timeout(skl->boot_wait, skl->boot_complete,
-					msecs_to_jiffies(SKL_IPC_BOOT_MSECS));
-		if (ret == 0) {
+								 msecs_to_jiffies(SKL_IPC_BOOT_MSECS));
+
+		if (ret == 0)
+		{
 			dev_err(ctx->dev, "DSP boot fail, FW Ready timeout\n");
 			skl_dsp_disable_core(ctx, SKL_DSP_CORE0_MASK);
 			ret = -EIO;
-		} else {
+		}
+		else
+		{
 			ret = 0;
 			skl->fw_loaded = true;
 		}
@@ -296,35 +344,47 @@ static int bxt_set_dsp_D0(struct sst_dsp *ctx, unsigned int core_id)
 	unsigned int core_mask = SKL_DSP_CORE_MASK(core_id);
 	struct skl_dfw_manifest *minfo = &skl->manifest;
 
-	if (skl->fw_loaded == false) {
+	if (skl->fw_loaded == false)
+	{
 		skl->boot_complete = false;
 		ret = bxt_load_base_firmware(ctx);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(ctx->dev, "reload fw failed: %d\n", ret);
 			return ret;
 		}
 
-		if (minfo->lib_count > 1) {
+		if (minfo->lib_count > 1)
+		{
 			ret = bxt_load_library(ctx, minfo);
-			if (ret < 0) {
+
+			if (ret < 0)
+			{
 				dev_err(ctx->dev, "reload libs failed: %d\n", ret);
 				return ret;
 			}
 		}
+
 		return ret;
 	}
 
 	/* If core 0 is being turned on, turn on core 1 as well */
 	if (core_id == SKL_DSP_CORE0_ID)
 		ret = skl_dsp_core_power_up(ctx, core_mask |
-				SKL_DSP_CORE_MASK(1));
+									SKL_DSP_CORE_MASK(1));
 	else
+	{
 		ret = skl_dsp_core_power_up(ctx, core_mask);
+	}
 
 	if (ret < 0)
+	{
 		goto err;
+	}
 
-	if (core_id == SKL_DSP_CORE0_ID) {
+	if (core_id == SKL_DSP_CORE0_ID)
+	{
 
 		/*
 		 * Enable interrupt after SPA is set and before
@@ -336,21 +396,27 @@ static int bxt_set_dsp_D0(struct sst_dsp *ctx, unsigned int core_id)
 	}
 
 	ret = skl_dsp_start_core(ctx, core_mask);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
-	if (core_id == SKL_DSP_CORE0_ID) {
+	if (core_id == SKL_DSP_CORE0_ID)
+	{
 		ret = wait_event_timeout(skl->boot_wait,
-				skl->boot_complete,
-				msecs_to_jiffies(SKL_IPC_BOOT_MSECS));
+								 skl->boot_complete,
+								 msecs_to_jiffies(SKL_IPC_BOOT_MSECS));
 
-	/* If core 1 was turned on for booting core 0, turn it off */
+		/* If core 1 was turned on for booting core 0, turn it off */
 		skl_dsp_core_power_down(ctx, SKL_DSP_CORE_MASK(1));
-		if (ret == 0) {
+
+		if (ret == 0)
+		{
 			dev_err(ctx->dev, "%s: DSP boot timeout\n", __func__);
 			dev_err(ctx->dev, "Error code=0x%x: FW status=0x%x\n",
-				sst_dsp_shim_read(ctx, BXT_ADSP_ERROR_CODE),
-				sst_dsp_shim_read(ctx, BXT_ADSP_FW_STATUS));
+					sst_dsp_shim_read(ctx, BXT_ADSP_ERROR_CODE),
+					sst_dsp_shim_read(ctx, BXT_ADSP_FW_STATUS));
 			dev_err(ctx->dev, "Failed to set core0 to D0 state\n");
 			ret = -EIO;
 			goto err;
@@ -359,15 +425,18 @@ static int bxt_set_dsp_D0(struct sst_dsp *ctx, unsigned int core_id)
 
 	/* Tell FW if additional core in now On */
 
-	if (core_id != SKL_DSP_CORE0_ID) {
+	if (core_id != SKL_DSP_CORE0_ID)
+	{
 		dx.core_mask = core_mask;
 		dx.dx_mask = core_mask;
 
 		ret = skl_ipc_set_dx(&skl->ipc, BXT_INSTANCE_ID,
-					BXT_BASE_FW_MODULE_ID, &dx);
-		if (ret < 0) {
+							 BXT_BASE_FW_MODULE_ID, &dx);
+
+		if (ret < 0)
+		{
 			dev_err(ctx->dev, "IPC set_dx for core %d fail: %d\n",
-								core_id, ret);
+					core_id, ret);
 			goto err;
 		}
 	}
@@ -375,8 +444,12 @@ static int bxt_set_dsp_D0(struct sst_dsp *ctx, unsigned int core_id)
 	skl->cores.state[core_id] = SKL_DSP_RUNNING;
 	return 0;
 err:
+
 	if (core_id == SKL_DSP_CORE0_ID)
+	{
 		core_mask |= SKL_DSP_CORE_MASK(1);
+	}
+
 	skl_dsp_disable_core(ctx, core_mask);
 
 	return ret;
@@ -396,22 +469,27 @@ static int bxt_set_dsp_D3(struct sst_dsp *ctx, unsigned int core_id)
 			dx.core_mask, dx.dx_mask);
 
 	ret = skl_ipc_set_dx(&skl->ipc, BXT_INSTANCE_ID,
-				BXT_BASE_FW_MODULE_ID, &dx);
+						 BXT_BASE_FW_MODULE_ID, &dx);
+
 	if (ret < 0)
 		dev_err(ctx->dev,
-		"Failed to set DSP to D3:core id = %d;Continue reset\n",
-		core_id);
+				"Failed to set DSP to D3:core id = %d;Continue reset\n",
+				core_id);
 
 	ret = skl_dsp_disable_core(ctx, core_mask);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(ctx->dev, "Failed to disable core %d\n", ret);
 		return ret;
 	}
+
 	skl->cores.state[core_id] = SKL_DSP_RESET;
 	return 0;
 }
 
-static struct skl_dsp_fw_ops bxt_fw_ops = {
+static struct skl_dsp_fw_ops bxt_fw_ops =
+{
 	.set_state_D0 = bxt_set_dsp_D0,
 	.set_state_D3 = bxt_set_dsp_D3,
 	.load_fw = bxt_load_base_firmware,
@@ -419,7 +497,8 @@ static struct skl_dsp_fw_ops bxt_fw_ops = {
 	.load_library = bxt_load_library,
 };
 
-static struct sst_ops skl_ops = {
+static struct sst_ops skl_ops =
+{
 	.irq_handler = skl_dsp_sst_interrupt,
 	.write = sst_shim32_write,
 	.read = sst_shim32_read,
@@ -428,29 +507,35 @@ static struct sst_ops skl_ops = {
 	.free = skl_dsp_free,
 };
 
-static struct sst_dsp_device skl_dev = {
+static struct sst_dsp_device skl_dev =
+{
 	.thread = skl_dsp_irq_thread_handler,
 	.ops = &skl_ops,
 };
 
 int bxt_sst_dsp_init(struct device *dev, void __iomem *mmio_base, int irq,
-			const char *fw_name, struct skl_dsp_loader_ops dsp_ops,
-			struct skl_sst **dsp)
+					 const char *fw_name, struct skl_dsp_loader_ops dsp_ops,
+					 struct skl_sst **dsp)
 {
 	struct skl_sst *skl;
 	struct sst_dsp *sst;
 	int ret;
 
 	skl = devm_kzalloc(dev, sizeof(*skl), GFP_KERNEL);
+
 	if (skl == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	skl->dev = dev;
 	skl_dev.thread_context = skl;
 	INIT_LIST_HEAD(&skl->uuid_list);
 
 	skl->dsp = skl_dsp_ctx_init(dev, &skl_dev, irq);
-	if (!skl->dsp) {
+
+	if (!skl->dsp)
+	{
 		dev_err(skl->dev, "skl_dsp_ctx_init failed\n");
 		return -ENODEV;
 	}
@@ -463,12 +548,15 @@ int bxt_sst_dsp_init(struct device *dev, void __iomem *mmio_base, int irq,
 	sst->addr.shim = mmio_base;
 
 	sst_dsp_mailbox_init(sst, (BXT_ADSP_SRAM0_BASE + SKL_ADSP_W0_STAT_SZ),
-			SKL_ADSP_W0_UP_SZ, BXT_ADSP_SRAM1_BASE, SKL_ADSP_W1_SZ);
+						 SKL_ADSP_W0_UP_SZ, BXT_ADSP_SRAM1_BASE, SKL_ADSP_W1_SZ);
 
 	INIT_LIST_HEAD(&sst->module_list);
 	ret = skl_ipc_init(dev, skl);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	skl->cores.count = 2;
 	skl->boot_complete = false;
@@ -476,7 +564,9 @@ int bxt_sst_dsp_init(struct device *dev, void __iomem *mmio_base, int irq,
 	skl->is_first_boot = true;
 
 	if (dsp)
+	{
 		*dsp = skl;
+	}
 
 	return 0;
 }
@@ -488,20 +578,26 @@ int bxt_sst_init_fw(struct device *dev, struct skl_sst *ctx)
 	struct sst_dsp *sst = ctx->dsp;
 
 	ret = sst->fw_ops.load_fw(sst);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "Load base fw failed: %x\n", ret);
 		return ret;
 	}
 
 	skl_dsp_init_core_state(sst);
 
-	if (ctx->manifest.lib_count > 1) {
+	if (ctx->manifest.lib_count > 1)
+	{
 		ret = sst->fw_ops.load_library(sst, &ctx->manifest);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(dev, "Load Library failed : %x\n", ret);
 			return ret;
 		}
 	}
+
 	ctx->is_first_boot = false;
 
 	return 0;
@@ -515,7 +611,9 @@ void bxt_sst_dsp_cleanup(struct device *dev, struct skl_sst *ctx)
 	ctx->dsp->cl_dev.ops.cl_cleanup_controller(ctx->dsp);
 
 	if (ctx->dsp->addr.lpe)
+	{
 		iounmap(ctx->dsp->addr.lpe);
+	}
 
 	ctx->dsp->ops->free(ctx->dsp);
 }

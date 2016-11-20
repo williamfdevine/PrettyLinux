@@ -1,7 +1,8 @@
 #ifndef __NVIF_CL0080_H__
 #define __NVIF_CL0080_H__
 
-struct nv_device_v0 {
+struct nv_device_v0
+{
 	__u8  version;
 	__u8  pad01[7];
 	__u64 device;	/* device identifier, ~0 for client default */
@@ -10,7 +11,8 @@ struct nv_device_v0 {
 #define NV_DEVICE_V0_INFO                                                  0x00
 #define NV_DEVICE_V0_TIME                                                  0x01
 
-struct nv_device_info_v0 {
+struct nv_device_info_v0
+{
 	__u8  version;
 #define NV_DEVICE_INFO_V0_IGP                                              0x00
 #define NV_DEVICE_INFO_V0_PCI                                              0x01
@@ -38,7 +40,8 @@ struct nv_device_info_v0 {
 	char  name[64];
 };
 
-struct nv_device_time_v0 {
+struct nv_device_time_v0
+{
 	__u8  version;
 	__u8  pad01[7];
 	__u64 time;

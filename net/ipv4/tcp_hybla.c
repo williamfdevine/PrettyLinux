@@ -14,7 +14,8 @@
 #include <net/tcp.h>
 
 /* Tcp Hybla structure. */
-struct hybla {
+struct hybla
+{
 	bool  hybla_en;
 	u32   snd_cwnd_cents; /* Keeps increment values when it is <1, <<7 */
 	u32   rho;	      /* Rho parameter, integer part  */
@@ -35,8 +36,8 @@ static inline void hybla_recalc_param (struct sock *sk)
 	struct hybla *ca = inet_csk_ca(sk);
 
 	ca->rho_3ls = max_t(u32,
-			    tcp_sk(sk)->srtt_us / (rtt0 * USEC_PER_MSEC),
-			    8U);
+						tcp_sk(sk)->srtt_us / (rtt0 * USEC_PER_MSEC),
+						8U);
 	ca->rho = ca->rho_3ls >> 3;
 	ca->rho2_7ls = (ca->rho_3ls * ca->rho_3ls) << 1;
 	ca->rho2 = ca->rho2_7ls >> 7;
@@ -73,7 +74,8 @@ static void hybla_state(struct sock *sk, u8 ca_state)
 
 static inline u32 hybla_fraction(u32 odds)
 {
-	static const u32 fractions[] = {
+	static const u32 fractions[] =
+	{
 		128, 139, 152, 165, 181, 197, 215, 234,
 	};
 
@@ -94,25 +96,32 @@ static void hybla_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 	int is_slowstart = 0;
 
 	/*  Recalculate rho only if this srtt is the lowest */
-	if (tp->srtt_us < ca->minrtt_us) {
+	if (tp->srtt_us < ca->minrtt_us)
+	{
 		hybla_recalc_param(sk);
 		ca->minrtt_us = tp->srtt_us;
 	}
 
 	if (!tcp_is_cwnd_limited(sk))
+	{
 		return;
+	}
 
-	if (!ca->hybla_en) {
+	if (!ca->hybla_en)
+	{
 		tcp_reno_cong_avoid(sk, ack, acked);
 		return;
 	}
 
 	if (ca->rho == 0)
+	{
 		hybla_recalc_param(sk);
+	}
 
 	rho_fractions = ca->rho_3ls - (ca->rho << 3);
 
-	if (tcp_in_slow_start(tp)) {
+	if (tcp_in_slow_start(tp))
+	{
 		/*
 		 * slow start
 		 *      INC = 2^RHO - 1
@@ -128,8 +137,10 @@ static void hybla_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 		 */
 		is_slowstart = 1;
 		increment = ((1 << min(ca->rho, 16U)) *
-			hybla_fraction(rho_fractions)) - 128;
-	} else {
+					 hybla_fraction(rho_fractions)) - 128;
+	}
+	else
+	{
 		/*
 		 * congestion avoidance
 		 * INC = RHO^2 / W
@@ -137,8 +148,11 @@ static void hybla_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 		 * it already is <<7 and we can easily count its fractions.
 		 */
 		increment = ca->rho2_7ls / tp->snd_cwnd;
+
 		if (increment < 128)
+		{
 			tp->snd_cwnd_cnt++;
+		}
 	}
 
 	odd = increment % 128;
@@ -146,24 +160,31 @@ static void hybla_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 	ca->snd_cwnd_cents += odd;
 
 	/* check when fractions goes >=128 and increase cwnd by 1. */
-	while (ca->snd_cwnd_cents >= 128) {
+	while (ca->snd_cwnd_cents >= 128)
+	{
 		tp->snd_cwnd++;
 		ca->snd_cwnd_cents -= 128;
 		tp->snd_cwnd_cnt = 0;
 	}
+
 	/* check when cwnd has not been incremented for a while */
-	if (increment == 0 && odd == 0 && tp->snd_cwnd_cnt >= tp->snd_cwnd) {
+	if (increment == 0 && odd == 0 && tp->snd_cwnd_cnt >= tp->snd_cwnd)
+	{
 		tp->snd_cwnd++;
 		tp->snd_cwnd_cnt = 0;
 	}
+
 	/* clamp down slowstart cwnd to ssthresh value. */
 	if (is_slowstart)
+	{
 		tp->snd_cwnd = min(tp->snd_cwnd, tp->snd_ssthresh);
+	}
 
 	tp->snd_cwnd = min_t(u32, tp->snd_cwnd, tp->snd_cwnd_clamp);
 }
 
-static struct tcp_congestion_ops tcp_hybla __read_mostly = {
+static struct tcp_congestion_ops tcp_hybla __read_mostly =
+{
 	.init		= hybla_init,
 	.ssthresh	= tcp_reno_ssthresh,
 	.cong_avoid	= hybla_cong_avoid,

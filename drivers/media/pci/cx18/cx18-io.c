@@ -31,28 +31,38 @@ void cx18_memset_io(struct cx18 *cx, void __iomem *addr, int val, size_t count)
 	u32 val4 = val2 | (val2 << 16);
 
 	/* Align writes on the CX23418's addresses */
-	if ((count > 0) && ((unsigned long)dst & 1)) {
+	if ((count > 0) && ((unsigned long)dst & 1))
+	{
 		cx18_writeb(cx, (u8) val, dst);
 		count--;
 		dst++;
 	}
-	if ((count > 1) && ((unsigned long)dst & 2)) {
+
+	if ((count > 1) && ((unsigned long)dst & 2))
+	{
 		cx18_writew(cx, val2, dst);
 		count -= 2;
 		dst += 2;
 	}
-	while (count > 3) {
+
+	while (count > 3)
+	{
 		cx18_writel(cx, val4, dst);
 		count -= 4;
 		dst += 4;
 	}
-	if (count > 1) {
+
+	if (count > 1)
+	{
 		cx18_writew(cx, val2, dst);
 		count -= 2;
 		dst += 2;
 	}
+
 	if (count > 0)
+	{
 		cx18_writeb(cx, (u8) val, dst);
+	}
 }
 
 void cx18_sw1_irq_enable(struct cx18 *cx, u32 val)

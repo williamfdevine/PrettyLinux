@@ -27,14 +27,16 @@
 
 #include "psb_drv.h"
 
-struct psb_framebuffer {
+struct psb_framebuffer
+{
 	struct drm_framebuffer base;
 	struct address_space *addr_space;
 	struct fb_info *fbdev;
 	struct gtt_range *gtt;
 };
 
-struct psb_fbdev {
+struct psb_fbdev
+{
 	struct drm_fb_helper psb_fb_helper;
 	struct psb_framebuffer pfb;
 };

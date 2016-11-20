@@ -17,7 +17,7 @@
 #include <linux/init.h>
 #include <linux/atomic.h>
 #ifdef CONFIG_HAVE_ARCH_KGDB
-#include <asm/kgdb.h>
+	#include <asm/kgdb.h>
 #endif
 
 #ifdef CONFIG_KGDB
@@ -57,7 +57,8 @@ extern atomic_t			kgdb_cpu_doing_single_step;
 extern struct task_struct	*kgdb_usethread;
 extern struct task_struct	*kgdb_contthread;
 
-enum kgdb_bptype {
+enum kgdb_bptype
+{
 	BP_BREAKPOINT = 0,
 	BP_HARDWARE_BREAKPOINT,
 	BP_WRITE_WATCHPOINT,
@@ -66,35 +67,38 @@ enum kgdb_bptype {
 	BP_POKE_BREAKPOINT,
 };
 
-enum kgdb_bpstate {
+enum kgdb_bpstate
+{
 	BP_UNDEFINED = 0,
 	BP_REMOVED,
 	BP_SET,
 	BP_ACTIVE
 };
 
-struct kgdb_bkpt {
+struct kgdb_bkpt
+{
 	unsigned long		bpt_addr;
 	unsigned char		saved_instr[BREAK_INSTR_SIZE];
 	enum kgdb_bptype	type;
 	enum kgdb_bpstate	state;
 };
 
-struct dbg_reg_def_t {
+struct dbg_reg_def_t
+{
 	char *name;
 	int size;
 	int offset;
 };
 
 #ifndef DBG_MAX_REG_NUM
-#define DBG_MAX_REG_NUM 0
+	#define DBG_MAX_REG_NUM 0
 #else
-extern struct dbg_reg_def_t dbg_reg_def[];
-extern char *dbg_get_reg(int regno, void *mem, struct pt_regs *regs);
-extern int dbg_set_reg(int regno, void *mem, struct pt_regs *regs);
+	extern struct dbg_reg_def_t dbg_reg_def[];
+	extern char *dbg_get_reg(int regno, void *mem, struct pt_regs *regs);
+	extern int dbg_set_reg(int regno, void *mem, struct pt_regs *regs);
 #endif
 #ifndef KGDB_MAX_BREAKPOINTS
-# define KGDB_MAX_BREAKPOINTS	1000
+	#define KGDB_MAX_BREAKPOINTS	1000
 #endif
 
 #define KGDB_HW_BREAKPOINT	1
@@ -172,9 +176,9 @@ extern void gdb_regs_to_pt_regs(unsigned long *gdb_regs, struct pt_regs *regs);
  */
 extern int
 kgdb_arch_handle_exception(int vector, int signo, int err_code,
-			   char *remcom_in_buffer,
-			   char *remcom_out_buffer,
-			   struct pt_regs *regs);
+						   char *remcom_in_buffer,
+						   char *remcom_out_buffer,
+						   struct pt_regs *regs);
 
 /**
  *	kgdb_roundup_cpus - Get other CPUs into a holding pattern
@@ -241,7 +245,8 @@ extern void kgdb_arch_late(void);
  * hardware debug registers.
  * @enable_nmi: Manage NMI-triggered entry to KGDB
  */
-struct kgdb_arch {
+struct kgdb_arch
+{
 	unsigned char		gdb_bpt_instr[BREAK_INSTR_SIZE];
 	unsigned long		flags;
 
@@ -270,7 +275,8 @@ struct kgdb_arch {
  * @is_console: 1 if the end device is a console 0 if the I/O device is
  * not a console
  */
-struct kgdb_io {
+struct kgdb_io
+{
 	const char		*name;
 	int			(*read_char) (void);
 	void			(*write_char) (u8);
@@ -308,10 +314,10 @@ extern void kgdb_schedule_breakpoint(void);
 
 extern int
 kgdb_handle_exception(int ex_vector, int signo, int err_code,
-		      struct pt_regs *regs);
+					  struct pt_regs *regs);
 extern int kgdb_nmicallback(int cpu, void *regs);
 extern int kgdb_nmicallin(int cpu, int trapnr, void *regs, int err_code,
-			  atomic_t *snd_rdy);
+						  atomic_t *snd_rdy);
 extern void gdbstub_exit(int status);
 
 extern int			kgdb_single_step;

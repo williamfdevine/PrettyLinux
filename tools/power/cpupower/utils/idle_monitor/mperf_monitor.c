@@ -27,12 +27,13 @@
 enum mperf_id { C0 = 0, Cx, AVG_FREQ, MPERF_CSTATE_COUNT };
 
 static int mperf_get_count_percent(unsigned int self_id, double *percent,
-				   unsigned int cpu);
+								   unsigned int cpu);
 static int mperf_get_count_freq(unsigned int id, unsigned long long *count,
-				unsigned int cpu);
+								unsigned int cpu);
 static struct timespec time_start, time_end;
 
-static cstate_t mperf_cstates[MPERF_CSTATE_COUNT] = {
+static cstate_t mperf_cstates[MPERF_CSTATE_COUNT] =
+{
 	{
 		.name			= "C0",
 		.desc			= N_("Processor Core not idle"),
@@ -81,8 +82,12 @@ static int mperf_get_tsc(unsigned long long *tsc)
 {
 	int ret;
 	ret = read_msr(0, MSR_TSC, tsc);
+
 	if (ret)
+	{
 		dprint("Reading TSC MSR failed, returning %llu\n", *tsc);
+	}
+
 	return ret;
 }
 
@@ -115,57 +120,74 @@ static int mperf_measure_stats(unsigned int cpu)
 }
 
 static int mperf_get_count_percent(unsigned int id, double *percent,
-				   unsigned int cpu)
+								   unsigned int cpu)
 {
 	unsigned long long aperf_diff, mperf_diff, tsc_diff;
 	unsigned long long timediff;
 
 	if (!is_valid[cpu])
+	{
 		return -1;
+	}
 
 	if (id != C0 && id != Cx)
+	{
 		return -1;
+	}
 
 	mperf_diff = mperf_current_count[cpu] - mperf_previous_count[cpu];
 	aperf_diff = aperf_current_count[cpu] - aperf_previous_count[cpu];
 
-	if (max_freq_mode == MAX_FREQ_TSC_REF) {
+	if (max_freq_mode == MAX_FREQ_TSC_REF)
+	{
 		tsc_diff = tsc_at_measure_end - tsc_at_measure_start;
 		*percent = 100.0 * mperf_diff / tsc_diff;
 		dprint("%s: TSC Ref - mperf_diff: %llu, tsc_diff: %llu\n",
-		       mperf_cstates[id].name, mperf_diff, tsc_diff);
-	} else if (max_freq_mode == MAX_FREQ_SYSFS) {
+			   mperf_cstates[id].name, mperf_diff, tsc_diff);
+	}
+	else if (max_freq_mode == MAX_FREQ_SYSFS)
+	{
 		timediff = max_frequency * timespec_diff_us(time_start, time_end);
 		*percent = 100.0 * mperf_diff / timediff;
 		dprint("%s: MAXFREQ - mperf_diff: %llu, time_diff: %llu\n",
-		       mperf_cstates[id].name, mperf_diff, timediff);
-	} else
+			   mperf_cstates[id].name, mperf_diff, timediff);
+	}
+	else
+	{
 		return -1;
+	}
 
 	if (id == Cx)
+	{
 		*percent = 100.0 - *percent;
+	}
 
 	dprint("%s: previous: %llu - current: %llu - (%u)\n",
-		mperf_cstates[id].name, mperf_diff, aperf_diff, cpu);
+		   mperf_cstates[id].name, mperf_diff, aperf_diff, cpu);
 	dprint("%s: %f\n", mperf_cstates[id].name, *percent);
 	return 0;
 }
 
 static int mperf_get_count_freq(unsigned int id, unsigned long long *count,
-				unsigned int cpu)
+								unsigned int cpu)
 {
 	unsigned long long aperf_diff, mperf_diff, time_diff, tsc_diff;
 
 	if (id != AVG_FREQ)
+	{
 		return 1;
+	}
 
 	if (!is_valid[cpu])
+	{
 		return -1;
+	}
 
 	mperf_diff = mperf_current_count[cpu] - mperf_previous_count[cpu];
 	aperf_diff = aperf_current_count[cpu] - aperf_previous_count[cpu];
 
-	if (max_freq_mode == MAX_FREQ_TSC_REF) {
+	if (max_freq_mode == MAX_FREQ_TSC_REF)
+	{
 		/* Calculate max_freq from TSC count */
 		tsc_diff = tsc_at_measure_end - tsc_at_measure_start;
 		time_diff = timespec_diff_us(time_start, time_end);
@@ -174,8 +196,8 @@ static int mperf_get_count_freq(unsigned int id, unsigned long long *count,
 
 	*count = max_frequency * ((double)aperf_diff / mperf_diff);
 	dprint("%s: Average freq based on %s maximum frequency:\n",
-	       mperf_cstates[id].name,
-	       (max_freq_mode == MAX_FREQ_TSC_REF) ? "TSC calculated" : "sysfs read");
+		   mperf_cstates[id].name,
+		   (max_freq_mode == MAX_FREQ_TSC_REF) ? "TSC calculated" : "sysfs read");
 	dprint("max_frequency: %lu\n", max_frequency);
 	dprint("aperf_diff: %llu\n", aperf_diff);
 	dprint("mperf_diff: %llu\n", mperf_diff);
@@ -192,7 +214,9 @@ static int mperf_start(void)
 	mperf_get_tsc(&tsc_at_measure_start);
 
 	for (cpu = 0; cpu < cpu_count; cpu++)
+	{
 		mperf_init_stats(cpu);
+	}
 
 	mperf_get_tsc(&dbg);
 	dprint("TSC diff: %llu\n", dbg - tsc_at_measure_start);
@@ -205,7 +229,9 @@ static int mperf_stop(void)
 	int cpu;
 
 	for (cpu = 0; cpu < cpu_count; cpu++)
+	{
 		mperf_measure_stats(cpu);
+	}
 
 	mperf_get_tsc(&tsc_at_measure_end);
 	clock_gettime(CLOCK_REALTIME, &time_end);
@@ -238,9 +264,12 @@ static int init_maxfreq_mode(void)
 	unsigned long min;
 
 	if (!(cpupower_cpu_info.caps & CPUPOWER_CAP_INV_TSC))
+	{
 		goto use_sysfs;
+	}
 
-	if (cpupower_cpu_info.vendor == X86_VENDOR_AMD) {
+	if (cpupower_cpu_info.vendor == X86_VENDOR_AMD)
+	{
 		/* MSR_AMD_HWCR tells us whether TSC runs at P0/mperf
 		 * freq.
 		 * A test whether hwcr is accessable/available would be:
@@ -252,19 +281,26 @@ static int init_maxfreq_mode(void)
 		 * Compare with Linus kernel git commit: acf01734b1747b1ec4
 		 */
 		ret = read_msr(0, MSR_AMD_HWCR, &hwcr);
+
 		/*
 		 * If the MSR read failed, assume a Xen system that did
 		 * not explicitly provide access to it and assume TSC works
 		*/
-		if (ret != 0) {
+		if (ret != 0)
+		{
 			dprint("TSC read 0x%x failed - assume TSC working\n",
-			       MSR_AMD_HWCR);
+				   MSR_AMD_HWCR);
 			return 0;
-		} else if (1 & (hwcr >> 24)) {
+		}
+		else if (1 & (hwcr >> 24))
+		{
 			max_freq_mode = MAX_FREQ_TSC_REF;
 			return 0;
-		} else { /* Use sysfs max frequency if available */ }
-	} else if (cpupower_cpu_info.vendor == X86_VENDOR_INTEL) {
+		}
+		else { /* Use sysfs max frequency if available */ }
+	}
+	else if (cpupower_cpu_info.vendor == X86_VENDOR_INTEL)
+	{
 		/*
 		 * On Intel we assume mperf (in C0) is ticking at same
 		 * rate than TSC
@@ -272,12 +308,16 @@ static int init_maxfreq_mode(void)
 		max_freq_mode = MAX_FREQ_TSC_REF;
 		return 0;
 	}
+
 use_sysfs:
-	if (cpufreq_get_hardware_limits(0, &min, &max_frequency)) {
+
+	if (cpufreq_get_hardware_limits(0, &min, &max_frequency))
+	{
 		dprint("Cannot retrieve max freq from cpufreq kernel "
-		       "subsystem\n");
+			   "subsystem\n");
 		return -1;
 	}
+
 	max_freq_mode = MAX_FREQ_SYSFS;
 	max_frequency /= 1000; /* Default automatically to MHz value */
 	return 0;
@@ -299,10 +339,14 @@ struct cpuidle_monitor mperf_monitor;
 struct cpuidle_monitor *mperf_register(void)
 {
 	if (!(cpupower_cpu_info.caps & CPUPOWER_CAP_APERF))
+	{
 		return NULL;
+	}
 
 	if (init_maxfreq_mode())
+	{
 		return NULL;
+	}
 
 	/* Free this at program termination */
 	is_valid = calloc(cpu_count, sizeof(int));
@@ -324,7 +368,8 @@ void mperf_unregister(void)
 	free(is_valid);
 }
 
-struct cpuidle_monitor mperf_monitor = {
+struct cpuidle_monitor mperf_monitor =
+{
 	.name			= "Mperf",
 	.hw_states_num		= MPERF_CSTATE_COUNT,
 	.hw_states		= mperf_cstates,

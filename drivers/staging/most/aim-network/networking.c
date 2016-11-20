@@ -58,12 +58,14 @@
 	 EXTRACT_BIT_SET(PMS_FIFONO, (buf)[3]) == PMS_FIFONO_MDP && \
 	 EXTRACT_BIT_SET(PMS_TELID, (buf)[14]) == PMS_TELID_UNSEGM_MAMAC)
 
-struct net_dev_channel {
+struct net_dev_channel
+{
 	bool linked;
 	int ch_id;
 };
 
-struct net_dev_context {
+struct net_dev_context
+{
 	struct most_interface *iface;
 	bool channels_opened;
 	bool is_mamac;
@@ -87,19 +89,23 @@ static int skb_to_mamac(const struct sk_buff *skb, struct mbo *mbo)
 	unsigned int payload_len = skb->len - ETH_HLEN;
 	unsigned int mdp_len = payload_len + MDP_HDR_LEN;
 
-	if (mbo->buffer_length < mdp_len) {
+	if (mbo->buffer_length < mdp_len)
+	{
 		pr_err("drop: too small buffer! (%d for %d)\n",
-		       mbo->buffer_length, mdp_len);
+			   mbo->buffer_length, mdp_len);
 		return -EINVAL;
 	}
 
-	if (skb->len < ETH_HLEN) {
+	if (skb->len < ETH_HLEN)
+	{
 		pr_err("drop: too small packet! (%d)\n", skb->len);
 		return -EINVAL;
 	}
 
 	if (dest_addr[0] == 0xFF && dest_addr[1] == 0xFF)
+	{
 		dest_addr = broadcast;
+	}
 
 	*buff++ = HB(mdp_len - 2);
 	*buff++ = LB(mdp_len - 2);
@@ -134,9 +140,10 @@ static int skb_to_mep(const struct sk_buff *skb, struct mbo *mbo)
 	u8 *buff = mbo->virt_address;
 	unsigned int mep_len = skb->len + MEP_HDR_LEN;
 
-	if (mbo->buffer_length < mep_len) {
+	if (mbo->buffer_length < mep_len)
+	{
 		pr_err("drop: too small buffer! (%d for %d)\n",
-		       mbo->buffer_length, mep_len);
+			   mbo->buffer_length, mep_len);
 		return -EINVAL;
 	}
 
@@ -161,7 +168,9 @@ static int most_nd_set_mac_address(struct net_device *dev, void *p)
 	int err = eth_mac_addr(dev, p);
 
 	if (err)
+	{
 		return err;
+	}
 
 	BUG_ON(nd->dev != dev);
 
@@ -187,16 +196,20 @@ static int most_nd_open(struct net_device *dev)
 	BUG_ON(nd->dev != dev);
 
 	if (nd->channels_opened)
+	{
 		return -EFAULT;
+	}
 
 	BUG_ON(!nd->tx.linked || !nd->rx.linked);
 
-	if (most_start_channel(nd->iface, nd->rx.ch_id, &aim)) {
+	if (most_start_channel(nd->iface, nd->rx.ch_id, &aim))
+	{
 		netdev_err(dev, "most_start_channel() failed\n");
 		return -EBUSY;
 	}
 
-	if (most_start_channel(nd->iface, nd->tx.ch_id, &aim)) {
+	if (most_start_channel(nd->iface, nd->tx.ch_id, &aim))
+	{
 		netdev_err(dev, "most_start_channel() failed\n");
 		most_stop_channel(nd->iface, nd->rx.ch_id, &aim);
 		return -EBUSY;
@@ -204,10 +217,13 @@ static int most_nd_open(struct net_device *dev)
 
 	nd->channels_opened = true;
 
-	if (nd->is_mamac) {
+	if (nd->is_mamac)
+	{
 		nd->link_stat = 1;
 		netif_wake_queue(dev);
-	} else {
+	}
+	else
+	{
 		nd->iface->request_netinfo(nd->iface, nd->tx.ch_id);
 	}
 
@@ -223,7 +239,8 @@ static int most_nd_stop(struct net_device *dev)
 	BUG_ON(nd->dev != dev);
 	netif_stop_queue(dev);
 
-	if (nd->channels_opened) {
+	if (nd->channels_opened)
+	{
 		most_stop_channel(nd->iface, nd->rx.ch_id, &aim);
 		most_stop_channel(nd->iface, nd->tx.ch_id, &aim);
 		nd->channels_opened = false;
@@ -233,7 +250,7 @@ static int most_nd_stop(struct net_device *dev)
 }
 
 static netdev_tx_t most_nd_start_xmit(struct sk_buff *skb,
-				      struct net_device *dev)
+									  struct net_device *dev)
 {
 	struct net_dev_context *nd = dev->ml_priv;
 	struct mbo *mbo;
@@ -243,18 +260,24 @@ static netdev_tx_t most_nd_start_xmit(struct sk_buff *skb,
 
 	mbo = most_get_mbo(nd->iface, nd->tx.ch_id, &aim);
 
-	if (!mbo) {
+	if (!mbo)
+	{
 		netif_stop_queue(dev);
 		dev->stats.tx_fifo_errors++;
 		return NETDEV_TX_BUSY;
 	}
 
 	if (nd->is_mamac)
+	{
 		ret = skb_to_mamac(skb, mbo);
+	}
 	else
+	{
 		ret = skb_to_mep(skb, mbo);
+	}
 
-	if (ret) {
+	if (ret)
+	{
 		most_put_mbo(mbo);
 		dev->stats.tx_dropped++;
 		kfree_skb(skb);
@@ -268,7 +291,8 @@ static netdev_tx_t most_nd_start_xmit(struct sk_buff *skb,
 	return NETDEV_TX_OK;
 }
 
-static const struct net_device_ops most_nd_ops = {
+static const struct net_device_ops most_nd_ops =
+{
 	.ndo_open = most_nd_open,
 	.ndo_stop = most_nd_stop,
 	.ndo_start_xmit = most_nd_start_xmit,
@@ -285,7 +309,9 @@ static void most_nd_setup(struct net_device *dev)
 static void most_net_rm_netdev_safe(struct net_dev_context *nd)
 {
 	if (!nd->dev)
+	{
 		return;
+	}
 
 	pr_info("remove net device %p\n", nd->dev);
 
@@ -301,8 +327,10 @@ static struct net_dev_context *get_net_dev_context(
 	unsigned long flags;
 
 	spin_lock_irqsave(&list_lock, flags);
-	list_for_each_entry_safe(nd, tmp, &net_devices, list) {
-		if (nd->iface == iface) {
+	list_for_each_entry_safe(nd, tmp, &net_devices, list)
+	{
+		if (nd->iface == iface)
+		{
 			spin_unlock_irqrestore(&list_lock, flags);
 			return nd;
 		}
@@ -312,25 +340,33 @@ static struct net_dev_context *get_net_dev_context(
 }
 
 static int aim_probe_channel(struct most_interface *iface, int channel_idx,
-			     struct most_channel_config *ccfg,
-			     struct kobject *parent, char *name)
+							 struct most_channel_config *ccfg,
+							 struct kobject *parent, char *name)
 {
 	struct net_dev_context *nd;
 	struct net_dev_channel *ch;
 	unsigned long flags;
 
 	if (!iface)
+	{
 		return -EINVAL;
+	}
 
 	if (ccfg->data_type != MOST_CH_ASYNC)
+	{
 		return -EINVAL;
+	}
 
 	nd = get_net_dev_context(iface);
 
-	if (!nd) {
+	if (!nd)
+	{
 		nd = kzalloc(sizeof(*nd), GFP_KERNEL);
+
 		if (!nd)
+		{
 			return -ENOMEM;
+		}
 
 		nd->iface = iface;
 
@@ -340,17 +376,21 @@ static int aim_probe_channel(struct most_interface *iface, int channel_idx,
 	}
 
 	ch = ccfg->direction == MOST_CH_TX ? &nd->tx : &nd->rx;
-	if (ch->linked) {
+
+	if (ch->linked)
+	{
 		pr_err("only one channel per instance & direction allowed\n");
 		return -EINVAL;
 	}
 
-	if (nd->tx.linked || nd->rx.linked) {
+	if (nd->tx.linked || nd->rx.linked)
+	{
 		struct net_device *dev =
 			alloc_netdev(0, "meth%d", NET_NAME_UNKNOWN,
-				     most_nd_setup);
+						 most_nd_setup);
 
-		if (!dev) {
+		if (!dev)
+		{
 			pr_err("no memory for net_device\n");
 			return -ENOMEM;
 		}
@@ -360,7 +400,9 @@ static int aim_probe_channel(struct most_interface *iface, int channel_idx,
 		ch->linked = true;
 
 		dev->ml_priv = nd;
-		if (register_netdev(dev)) {
+
+		if (register_netdev(dev))
+		{
 			pr_err("registering net device failed\n");
 			ch->linked = false;
 			free_netdev(dev);
@@ -375,22 +417,31 @@ static int aim_probe_channel(struct most_interface *iface, int channel_idx,
 }
 
 static int aim_disconnect_channel(struct most_interface *iface,
-				  int channel_idx)
+								  int channel_idx)
 {
 	struct net_dev_context *nd;
 	struct net_dev_channel *ch;
 	unsigned long flags;
 
 	nd = get_net_dev_context(iface);
+
 	if (!nd)
+	{
 		return -EINVAL;
+	}
 
 	if (nd->rx.linked && channel_idx == nd->rx.ch_id)
+	{
 		ch = &nd->rx;
+	}
 	else if (nd->tx.linked && channel_idx == nd->tx.ch_id)
+	{
 		ch = &nd->tx;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	ch->linked = false;
 
@@ -400,7 +451,8 @@ static int aim_disconnect_channel(struct most_interface *iface,
 	 */
 	most_net_rm_netdev_safe(nd);
 
-	if (!nd->rx.linked && !nd->tx.linked) {
+	if (!nd->rx.linked && !nd->tx.linked)
+	{
 		spin_lock_irqsave(&list_lock, flags);
 		list_del(&nd->list);
 		spin_unlock_irqrestore(&list_lock, flags);
@@ -411,16 +463,21 @@ static int aim_disconnect_channel(struct most_interface *iface,
 }
 
 static int aim_resume_tx_channel(struct most_interface *iface,
-				 int channel_idx)
+								 int channel_idx)
 {
 	struct net_dev_context *nd;
 
 	nd = get_net_dev_context(iface);
+
 	if (!nd || !nd->channels_opened || nd->tx.ch_id != channel_idx)
+	{
 		return 0;
+	}
 
 	if (!nd->dev)
+	{
 		return 0;
+	}
 
 	netif_wake_queue(nd->dev);
 	return 0;
@@ -437,28 +494,41 @@ static int aim_rx_data(struct mbo *mbo)
 	unsigned int skb_len;
 
 	nd = get_net_dev_context(mbo->ifp);
+
 	if (!nd || !nd->channels_opened || nd->rx.ch_id != mbo->hdm_channel_id)
+	{
 		return -EIO;
+	}
 
 	dev = nd->dev;
-	if (!dev) {
+
+	if (!dev)
+	{
 		pr_err_once("drop packet: missing net_device\n");
 		return -EIO;
 	}
 
-	if (nd->is_mamac) {
+	if (nd->is_mamac)
+	{
 		if (!PMS_IS_MAMAC(buf, len))
+		{
 			return -EIO;
+		}
 
 		skb = dev_alloc_skb(len - MDP_HDR_LEN + 2 * ETH_ALEN + 2);
-	} else {
+	}
+	else
+	{
 		if (!PMS_IS_MEP(buf, len))
+		{
 			return -EIO;
+		}
 
 		skb = dev_alloc_skb(len - MEP_HDR_LEN);
 	}
 
-	if (!skb) {
+	if (!skb)
+	{
 		dev->stats.rx_dropped++;
 		pr_err_once("drop packet: no memory for skb\n");
 		goto out;
@@ -466,7 +536,8 @@ static int aim_rx_data(struct mbo *mbo)
 
 	skb->dev = dev;
 
-	if (nd->is_mamac) {
+	if (nd->is_mamac)
+	{
 		/* dest */
 		ether_addr_copy(skb_put(skb, ETH_ALEN), dev->dev_addr);
 
@@ -479,7 +550,9 @@ static int aim_rx_data(struct mbo *mbo)
 
 		buf += MDP_HDR_LEN;
 		len -= MDP_HDR_LEN;
-	} else {
+	}
+	else
+	{
 		buf += MEP_HDR_LEN;
 		len -= MEP_HDR_LEN;
 	}
@@ -487,10 +560,14 @@ static int aim_rx_data(struct mbo *mbo)
 	memcpy(skb_put(skb, len), buf, len);
 	skb->protocol = eth_type_trans(skb, dev);
 	skb_len = skb->len;
-	if (netif_rx(skb) == NET_RX_SUCCESS) {
+
+	if (netif_rx(skb) == NET_RX_SUCCESS)
+	{
 		dev->stats.rx_packets++;
 		dev->stats.rx_bytes += skb_len;
-	} else {
+	}
+	else
+	{
 		dev->stats.rx_dropped++;
 	}
 
@@ -499,7 +576,8 @@ out:
 	return 0;
 }
 
-static struct most_aim aim = {
+static struct most_aim aim =
+{
 	.name = "networking",
 	.probe_channel = aim_probe_channel,
 	.disconnect_channel = aim_disconnect_channel,
@@ -520,7 +598,8 @@ static void __exit most_net_exit(void)
 	unsigned long flags;
 
 	spin_lock_irqsave(&list_lock, flags);
-	list_for_each_entry_safe(nd, tmp, &net_devices, list) {
+	list_for_each_entry_safe(nd, tmp, &net_devices, list)
+	{
 		list_del(&nd->list);
 		spin_unlock_irqrestore(&list_lock, flags);
 		/*
@@ -544,7 +623,7 @@ static void __exit most_net_exit(void)
  * @param mac_addr - MAC address
  */
 void most_deliver_netinfo(struct most_interface *iface,
-			  unsigned char link_stat, unsigned char *mac_addr)
+						  unsigned char link_stat, unsigned char *mac_addr)
 {
 	struct net_dev_context *nd;
 	struct net_device *dev;
@@ -552,22 +631,36 @@ void most_deliver_netinfo(struct most_interface *iface,
 	pr_info("Received netinfo from %s\n", iface->description);
 
 	nd = get_net_dev_context(iface);
+
 	if (!nd)
+	{
 		return;
+	}
 
 	dev = nd->dev;
+
 	if (!dev)
+	{
 		return;
+	}
 
 	if (mac_addr)
+	{
 		ether_addr_copy(dev->dev_addr, mac_addr);
+	}
 
-	if (nd->link_stat != link_stat) {
+	if (nd->link_stat != link_stat)
+	{
 		nd->link_stat = link_stat;
+
 		if (nd->link_stat)
+		{
 			netif_wake_queue(dev);
+		}
 		else
+		{
 			netif_stop_queue(dev);
+		}
 	}
 }
 EXPORT_SYMBOL(most_deliver_netinfo);

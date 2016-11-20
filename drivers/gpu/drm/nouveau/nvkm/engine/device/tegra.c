@@ -29,20 +29,36 @@ nvkm_device_tegra_power_up(struct nvkm_device_tegra *tdev)
 	int ret;
 
 	ret = regulator_enable(tdev->vdd);
+
 	if (ret)
+	{
 		goto err_power;
+	}
 
 	ret = clk_prepare_enable(tdev->clk);
+
 	if (ret)
+	{
 		goto err_clk;
-	if (tdev->clk_ref) {
-		ret = clk_prepare_enable(tdev->clk_ref);
-		if (ret)
-			goto err_clk_ref;
 	}
+
+	if (tdev->clk_ref)
+	{
+		ret = clk_prepare_enable(tdev->clk_ref);
+
+		if (ret)
+		{
+			goto err_clk_ref;
+		}
+	}
+
 	ret = clk_prepare_enable(tdev->clk_pwr);
+
 	if (ret)
+	{
 		goto err_clk_pwr;
+	}
+
 	clk_set_rate(tdev->clk_pwr, 204000000);
 	udelay(10);
 
@@ -50,8 +66,12 @@ nvkm_device_tegra_power_up(struct nvkm_device_tegra *tdev)
 	udelay(10);
 
 	ret = tegra_powergate_remove_clamping(TEGRA_POWERGATE_3D);
+
 	if (ret)
+	{
 		goto err_clamp;
+	}
+
 	udelay(10);
 
 	reset_control_deassert(tdev->rst);
@@ -62,8 +82,12 @@ nvkm_device_tegra_power_up(struct nvkm_device_tegra *tdev)
 err_clamp:
 	clk_disable_unprepare(tdev->clk_pwr);
 err_clk_pwr:
+
 	if (tdev->clk_ref)
+	{
 		clk_disable_unprepare(tdev->clk_ref);
+	}
+
 err_clk_ref:
 	clk_disable_unprepare(tdev->clk);
 err_clk:
@@ -79,8 +103,12 @@ nvkm_device_tegra_power_down(struct nvkm_device_tegra *tdev)
 	udelay(10);
 
 	clk_disable_unprepare(tdev->clk_pwr);
+
 	if (tdev->clk_ref)
+	{
 		clk_disable_unprepare(tdev->clk_ref);
+	}
+
 	clk_disable_unprepare(tdev->clk);
 	udelay(10);
 
@@ -96,14 +124,20 @@ nvkm_device_tegra_probe_iommu(struct nvkm_device_tegra *tdev)
 	int ret;
 
 	if (!tdev->func->iommu_bit)
+	{
 		return;
+	}
 
 	mutex_init(&tdev->iommu.mutex);
 
-	if (iommu_present(&platform_bus_type)) {
+	if (iommu_present(&platform_bus_type))
+	{
 		tdev->iommu.domain = iommu_domain_alloc(&platform_bus_type);
+
 		if (IS_ERR(tdev->iommu.domain))
+		{
 			goto error;
+		}
 
 		/*
 		 * A IOMMU is only usable if it supports page sizes smaller
@@ -111,26 +145,39 @@ nvkm_device_tegra_probe_iommu(struct nvkm_device_tegra *tdev)
 		 * both are equal.
 		 */
 		pgsize_bitmap = tdev->iommu.domain->ops->pgsize_bitmap;
-		if (pgsize_bitmap & PAGE_SIZE) {
+
+		if (pgsize_bitmap & PAGE_SIZE)
+		{
 			tdev->iommu.pgshift = PAGE_SHIFT;
-		} else {
+		}
+		else
+		{
 			tdev->iommu.pgshift = fls(pgsize_bitmap & ~PAGE_MASK);
-			if (tdev->iommu.pgshift == 0) {
+
+			if (tdev->iommu.pgshift == 0)
+			{
 				dev_warn(dev, "unsupported IOMMU page size\n");
 				goto free_domain;
 			}
+
 			tdev->iommu.pgshift -= 1;
 		}
 
 		ret = iommu_attach_device(tdev->iommu.domain, dev);
+
 		if (ret)
+		{
 			goto free_domain;
+		}
 
 		ret = nvkm_mm_init(&tdev->iommu.mm, 0,
-				   (1ULL << tdev->func->iommu_bit) >>
-				   tdev->iommu.pgshift, 1);
+						   (1ULL << tdev->func->iommu_bit) >>
+						   tdev->iommu.pgshift, 1);
+
 		if (ret)
+		{
 			goto detach_device;
+		}
 	}
 
 	return;
@@ -152,11 +199,14 @@ static void
 nvkm_device_tegra_remove_iommu(struct nvkm_device_tegra *tdev)
 {
 #if IS_ENABLED(CONFIG_IOMMU_API)
-	if (tdev->iommu.domain) {
+
+	if (tdev->iommu.domain)
+	{
 		nvkm_mm_fini(&tdev->iommu.mm);
 		iommu_detach_device(tdev->iommu.domain, tdev->device.dev);
 		iommu_domain_free(tdev->iommu.domain);
 	}
+
 #endif
 }
 
@@ -203,7 +253,9 @@ static void
 nvkm_device_tegra_fini(struct nvkm_device *device, bool suspend)
 {
 	struct nvkm_device_tegra *tdev = nvkm_device_tegra(device);
-	if (tdev->irq) {
+
+	if (tdev->irq)
+	{
 		free_irq(tdev->irq, tdev);
 		tdev->irq = 0;
 	};
@@ -216,13 +268,19 @@ nvkm_device_tegra_init(struct nvkm_device *device)
 	int irq, ret;
 
 	irq = platform_get_irq_byname(tdev->pdev, "stall");
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	ret = request_irq(irq, nvkm_device_tegra_intr,
-			  IRQF_SHARED, "nvkm", tdev);
+					  IRQF_SHARED, "nvkm", tdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	tdev->irq = irq;
 	return 0;
@@ -238,7 +296,8 @@ nvkm_device_tegra_dtor(struct nvkm_device *device)
 }
 
 static const struct nvkm_device_func
-nvkm_device_tegra_func = {
+	nvkm_device_tegra_func =
+{
 	.tegra = nvkm_device_tegra,
 	.dtor = nvkm_device_tegra_dtor,
 	.init = nvkm_device_tegra_init,
@@ -250,47 +309,61 @@ nvkm_device_tegra_func = {
 
 int
 nvkm_device_tegra_new(const struct nvkm_device_tegra_func *func,
-		      struct platform_device *pdev,
-		      const char *cfg, const char *dbg,
-		      bool detect, bool mmio, u64 subdev_mask,
-		      struct nvkm_device **pdevice)
+					  struct platform_device *pdev,
+					  const char *cfg, const char *dbg,
+					  bool detect, bool mmio, u64 subdev_mask,
+					  struct nvkm_device **pdevice)
 {
 	struct nvkm_device_tegra *tdev;
 	int ret;
 
 	if (!(tdev = kzalloc(sizeof(*tdev), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
 
 	tdev->func = func;
 	tdev->pdev = pdev;
 
 	tdev->vdd = devm_regulator_get(&pdev->dev, "vdd");
-	if (IS_ERR(tdev->vdd)) {
+
+	if (IS_ERR(tdev->vdd))
+	{
 		ret = PTR_ERR(tdev->vdd);
 		goto free;
 	}
 
 	tdev->rst = devm_reset_control_get(&pdev->dev, "gpu");
-	if (IS_ERR(tdev->rst)) {
+
+	if (IS_ERR(tdev->rst))
+	{
 		ret = PTR_ERR(tdev->rst);
 		goto free;
 	}
 
 	tdev->clk = devm_clk_get(&pdev->dev, "gpu");
-	if (IS_ERR(tdev->clk)) {
+
+	if (IS_ERR(tdev->clk))
+	{
 		ret = PTR_ERR(tdev->clk);
 		goto free;
 	}
 
 	if (func->require_ref_clk)
+	{
 		tdev->clk_ref = devm_clk_get(&pdev->dev, "ref");
-	if (IS_ERR(tdev->clk_ref)) {
+	}
+
+	if (IS_ERR(tdev->clk_ref))
+	{
 		ret = PTR_ERR(tdev->clk_ref);
 		goto free;
 	}
 
 	tdev->clk_pwr = devm_clk_get(&pdev->dev, "pwr");
-	if (IS_ERR(tdev->clk_pwr)) {
+
+	if (IS_ERR(tdev->clk_pwr))
+	{
 		ret = PTR_ERR(tdev->clk_pwr);
 		goto free;
 	}
@@ -301,23 +374,32 @@ nvkm_device_tegra_new(const struct nvkm_device_tegra_func *func,
 	 * for instmem to behave properly
 	 */
 	ret = dma_set_mask(&pdev->dev, DMA_BIT_MASK(tdev->func->iommu_bit));
+
 	if (ret)
+	{
 		goto free;
+	}
 
 	nvkm_device_tegra_probe_iommu(tdev);
 
 	ret = nvkm_device_tegra_power_up(tdev);
+
 	if (ret)
+	{
 		goto remove;
+	}
 
 	tdev->gpu_speedo = tegra_sku_info.gpu_speedo_value;
 	tdev->gpu_speedo_id = tegra_sku_info.gpu_speedo_id;
 	ret = nvkm_device_ctor(&nvkm_device_tegra_func, NULL, &pdev->dev,
-			       NVKM_DEVICE_TEGRA, pdev->id, NULL,
-			       cfg, dbg, detect, mmio, subdev_mask,
-			       &tdev->device);
+						   NVKM_DEVICE_TEGRA, pdev->id, NULL,
+						   cfg, dbg, detect, mmio, subdev_mask,
+						   &tdev->device);
+
 	if (ret)
+	{
 		goto powerdown;
+	}
 
 	*pdevice = &tdev->device;
 
@@ -334,10 +416,10 @@ free:
 #else
 int
 nvkm_device_tegra_new(const struct nvkm_device_tegra_func *func,
-		      struct platform_device *pdev,
-		      const char *cfg, const char *dbg,
-		      bool detect, bool mmio, u64 subdev_mask,
-		      struct nvkm_device **pdevice)
+					  struct platform_device *pdev,
+					  const char *cfg, const char *dbg,
+					  bool detect, bool mmio, u64 subdev_mask,
+					  struct nvkm_device **pdevice)
 {
 	return -ENOSYS;
 }

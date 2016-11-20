@@ -39,7 +39,8 @@
 
 #define VERSION "0.1"
 
-static const struct sdio_device_id btsdio_table[] = {
+static const struct sdio_device_id btsdio_table[] =
+{
 	/* Generic Bluetooth Type-A SDIO device */
 	{ SDIO_DEVICE_CLASS(SDIO_CLASS_BT_A) },
 
@@ -54,7 +55,8 @@ static const struct sdio_device_id btsdio_table[] = {
 
 MODULE_DEVICE_TABLE(sdio, btsdio_table);
 
-struct btsdio_data {
+struct btsdio_data
+{
 	struct hci_dev   *hdev;
 	struct sdio_func *func;
 
@@ -89,7 +91,9 @@ static int btsdio_tx_packet(struct btsdio_data *data, struct sk_buff *skb)
 	skb->data[3] = hci_skb_pkt_type(skb);
 
 	err = sdio_writesb(data->func, REG_TDAT, skb->data, skb->len);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		skb_pull(skb, 4);
 		sdio_writeb(data->func, 0x01, REG_PC_WRT, NULL);
 		return err;
@@ -112,9 +116,12 @@ static void btsdio_work(struct work_struct *work)
 
 	sdio_claim_host(data->func);
 
-	while ((skb = skb_dequeue(&data->txq))) {
+	while ((skb = skb_dequeue(&data->txq)))
+	{
 		err = btsdio_tx_packet(data, skb);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			data->hdev->stat.err_tx++;
 			skb_queue_head(&data->txq, skb);
 			break;
@@ -133,15 +140,23 @@ static int btsdio_rx_packet(struct btsdio_data *data)
 	BT_DBG("%s", data->hdev->name);
 
 	err = sdio_readsb(data->func, hdr, REG_RDAT, 4);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	len = hdr[0] | (hdr[1] << 8) | (hdr[2] << 16);
+
 	if (len < 4 || len > 65543)
+	{
 		return -EILSEQ;
+	}
 
 	skb = bt_skb_alloc(len - 4, GFP_KERNEL);
-	if (!skb) {
+
+	if (!skb)
+	{
 		/* Out of memory. Prepare a read retry and just
 		 * return with the expectation that the next time
 		 * we're called we'll have more memory. */
@@ -151,7 +166,9 @@ static int btsdio_rx_packet(struct btsdio_data *data)
 	skb_put(skb, len - 4);
 
 	err = sdio_readsb(data->func, skb->data, REG_RDAT, len - 4);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		kfree_skb(skb);
 		return err;
 	}
@@ -161,8 +178,11 @@ static int btsdio_rx_packet(struct btsdio_data *data)
 	hci_skb_pkt_type(skb) = hdr[3];
 
 	err = hci_recv_frame(data->hdev, skb);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	sdio_writeb(data->func, 0x00, REG_PC_RRT, NULL);
 
@@ -177,10 +197,13 @@ static void btsdio_interrupt(struct sdio_func *func)
 	BT_DBG("%s", data->hdev->name);
 
 	intrd = sdio_readb(func, REG_INTRD, NULL);
-	if (intrd & 0x01) {
+
+	if (intrd & 0x01)
+	{
 		sdio_writeb(func, 0x01, REG_CL_INTRD, NULL);
 
-		if (btsdio_rx_packet(data) < 0) {
+		if (btsdio_rx_packet(data) < 0)
+		{
 			data->hdev->stat.err_rx++;
 			sdio_writeb(data->func, 0x01, REG_PC_RRT, NULL);
 		}
@@ -197,17 +220,24 @@ static int btsdio_open(struct hci_dev *hdev)
 	sdio_claim_host(data->func);
 
 	err = sdio_enable_func(data->func);
+
 	if (err < 0)
+	{
 		goto release;
+	}
 
 	err = sdio_claim_irq(data->func, btsdio_interrupt);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		sdio_disable_func(data->func);
 		goto release;
 	}
 
 	if (data->func->class == SDIO_CLASS_BT_B)
+	{
 		sdio_writeb(data->func, 0x00, REG_MD_SET, NULL);
+	}
 
 	sdio_writeb(data->func, 0x01, REG_EN_INTRD, NULL);
 
@@ -252,21 +282,22 @@ static int btsdio_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 
 	BT_DBG("%s", hdev->name);
 
-	switch (hci_skb_pkt_type(skb)) {
-	case HCI_COMMAND_PKT:
-		hdev->stat.cmd_tx++;
-		break;
+	switch (hci_skb_pkt_type(skb))
+	{
+		case HCI_COMMAND_PKT:
+			hdev->stat.cmd_tx++;
+			break;
 
-	case HCI_ACLDATA_PKT:
-		hdev->stat.acl_tx++;
-		break;
+		case HCI_ACLDATA_PKT:
+			hdev->stat.acl_tx++;
+			break;
 
-	case HCI_SCODATA_PKT:
-		hdev->stat.sco_tx++;
-		break;
+		case HCI_SCODATA_PKT:
+			hdev->stat.sco_tx++;
+			break;
 
-	default:
-		return -EILSEQ;
+		default:
+			return -EILSEQ;
 	}
 
 	skb_queue_tail(&data->txq, skb);
@@ -277,7 +308,7 @@ static int btsdio_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 }
 
 static int btsdio_probe(struct sdio_func *func,
-				const struct sdio_device_id *id)
+						const struct sdio_device_id *id)
 {
 	struct btsdio_data *data;
 	struct hci_dev *hdev;
@@ -286,14 +317,18 @@ static int btsdio_probe(struct sdio_func *func,
 
 	BT_DBG("func %p id %p class 0x%04x", func, id, func->class);
 
-	while (tuple) {
+	while (tuple)
+	{
 		BT_DBG("code 0x%x size %d", tuple->code, tuple->size);
 		tuple = tuple->next;
 	}
 
 	data = devm_kzalloc(&func->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->func = func;
 
@@ -302,16 +337,23 @@ static int btsdio_probe(struct sdio_func *func,
 	skb_queue_head_init(&data->txq);
 
 	hdev = hci_alloc_dev();
+
 	if (!hdev)
+	{
 		return -ENOMEM;
+	}
 
 	hdev->bus = HCI_SDIO;
 	hci_set_drvdata(hdev, data);
 
 	if (id->class == SDIO_CLASS_BT_AMP)
+	{
 		hdev->dev_type = HCI_AMP;
+	}
 	else
+	{
 		hdev->dev_type = HCI_PRIMARY;
+	}
 
 	data->hdev = hdev;
 
@@ -323,10 +365,14 @@ static int btsdio_probe(struct sdio_func *func,
 	hdev->send     = btsdio_send_frame;
 
 	if (func->vendor == 0x0104 && func->device == 0x00c5)
+	{
 		set_bit(HCI_QUIRK_RESET_ON_CLOSE, &hdev->quirks);
+	}
 
 	err = hci_register_dev(hdev);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		hci_free_dev(hdev);
 		return err;
 	}
@@ -344,7 +390,9 @@ static void btsdio_remove(struct sdio_func *func)
 	BT_DBG("func %p", func);
 
 	if (!data)
+	{
 		return;
+	}
 
 	hdev = data->hdev;
 
@@ -355,7 +403,8 @@ static void btsdio_remove(struct sdio_func *func)
 	hci_free_dev(hdev);
 }
 
-static struct sdio_driver btsdio_driver = {
+static struct sdio_driver btsdio_driver =
+{
 	.name		= "btsdio",
 	.probe		= btsdio_probe,
 	.remove		= btsdio_remove,

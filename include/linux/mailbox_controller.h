@@ -44,7 +44,8 @@ struct mbox_chan;
  * @peek_data: Atomic check for any received data. Return true if controller
  *		  has some data to push to the client. False otherwise.
  */
-struct mbox_chan_ops {
+struct mbox_chan_ops
+{
 	int (*send_data)(struct mbox_chan *chan, void *data);
 	int (*startup)(struct mbox_chan *chan);
 	void (*shutdown)(struct mbox_chan *chan);
@@ -71,7 +72,8 @@ struct mbox_chan_ops {
  *			channels.
  * @node:		API private. To hook into list of controllers.
  */
-struct mbox_controller {
+struct mbox_controller
+{
 	struct device *dev;
 	const struct mbox_chan_ops *ops;
 	struct mbox_chan *chans;
@@ -80,7 +82,7 @@ struct mbox_controller {
 	bool txdone_poll;
 	unsigned txpoll_period;
 	struct mbox_chan *(*of_xlate)(struct mbox_controller *mbox,
-				      const struct of_phandle_args *sp);
+								  const struct of_phandle_args *sp);
 	/* Internal to API */
 	struct hrtimer poll_hrt;
 	struct list_head node;
@@ -114,7 +116,8 @@ struct mbox_controller {
  * @lock:		Serialise access to the channel
  * @con_priv:		Hook for controller driver to attach private data
  */
-struct mbox_chan {
+struct mbox_chan
+{
 	struct mbox_controller *mbox;
 	unsigned txdone_method;
 	struct mbox_client *cl;

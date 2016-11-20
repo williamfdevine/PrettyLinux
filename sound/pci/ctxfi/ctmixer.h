@@ -23,7 +23,8 @@
 
 #define INIT_VOL	0x1c00
 
-enum MIXER_PORT_T {
+enum MIXER_PORT_T
+{
 	MIX_WAVE_FRONT,
 	MIX_WAVE_REAR,
 	MIX_WAVE_CENTLFE,
@@ -42,7 +43,8 @@ enum MIXER_PORT_T {
 };
 
 /* alsa mixer descriptor */
-struct ct_mixer {
+struct ct_mixer
+{
 	struct ct_atc *atc;
 
 	void **amixers;		/* amixer resources for volume control */
@@ -50,20 +52,20 @@ struct ct_mixer {
 	unsigned int switch_state; /* A bit-map to indicate state of switches */
 
 	int (*get_output_ports)(struct ct_mixer *mixer, enum MIXER_PORT_T type,
-				  struct rsc **rleft, struct rsc **rright);
+							struct rsc **rleft, struct rsc **rright);
 
 	int (*set_input_left)(struct ct_mixer *mixer,
-			      enum MIXER_PORT_T type, struct rsc *rsc);
+						  enum MIXER_PORT_T type, struct rsc *rsc);
 	int (*set_input_right)(struct ct_mixer *mixer,
-			       enum MIXER_PORT_T type, struct rsc *rsc);
+						   enum MIXER_PORT_T type, struct rsc *rsc);
 #ifdef CONFIG_PM_SLEEP
 	int (*resume)(struct ct_mixer *mixer);
 #endif
 };
 
 int ct_alsa_mix_create(struct ct_atc *atc,
-		       enum CTALSADEVS device,
-		       const char *device_name);
+					   enum CTALSADEVS device,
+					   const char *device_name);
 int ct_mixer_create(struct ct_atc *atc, struct ct_mixer **rmixer);
 int ct_mixer_destroy(struct ct_mixer *mixer);
 

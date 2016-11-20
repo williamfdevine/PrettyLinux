@@ -36,7 +36,7 @@ cifs_dump_mem(char *label, void *data, int length)
 {
 	pr_debug("%s: dump of %d bytes of data at 0x%p\n", label, length, data);
 	print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_OFFSET, 16, 4,
-		       data, length, true);
+				   data, length, true);
 }
 
 #ifdef CONFIG_CIFS_DEBUG
@@ -62,8 +62,8 @@ void cifs_dump_detail(void *buf)
 	struct smb_hdr *smb = (struct smb_hdr *)buf;
 
 	cifs_dbg(VFS, "Cmd: %d Err: 0x%x Flags: 0x%x Flgs2: 0x%x Mid: %d Pid: %d\n",
-		 smb->Command, smb->Status.CifsError,
-		 smb->Flags, smb->Flags2, smb->Mid, smb->Pid);
+			 smb->Command, smb->Status.CifsError,
+			 smb->Flags, smb->Flags2, smb->Mid, smb->Pid);
 	cifs_dbg(VFS, "smb buf %p len %u\n", smb, smbCalcSize(smb));
 #endif /* CONFIG_CIFS_DEBUG2 */
 }
@@ -75,31 +75,36 @@ void cifs_dump_mids(struct TCP_Server_Info *server)
 	struct mid_q_entry *mid_entry;
 
 	if (server == NULL)
+	{
 		return;
+	}
 
 	cifs_dbg(VFS, "Dump pending requests:\n");
 	spin_lock(&GlobalMid_Lock);
-	list_for_each(tmp, &server->pending_mid_q) {
+	list_for_each(tmp, &server->pending_mid_q)
+	{
 		mid_entry = list_entry(tmp, struct mid_q_entry, qhead);
 		cifs_dbg(VFS, "State: %d Cmd: %d Pid: %d Cbdata: %p Mid %llu\n",
-			 mid_entry->mid_state,
-			 le16_to_cpu(mid_entry->command),
-			 mid_entry->pid,
-			 mid_entry->callback_data,
-			 mid_entry->mid);
+				 mid_entry->mid_state,
+				 le16_to_cpu(mid_entry->command),
+				 mid_entry->pid,
+				 mid_entry->callback_data,
+				 mid_entry->mid);
 #ifdef CONFIG_CIFS_STATS2
 		cifs_dbg(VFS, "IsLarge: %d buf: %p time rcv: %ld now: %ld\n",
-			 mid_entry->large_buf,
-			 mid_entry->resp_buf,
-			 mid_entry->when_received,
-			 jiffies);
+				 mid_entry->large_buf,
+				 mid_entry->resp_buf,
+				 mid_entry->when_received,
+				 jiffies);
 #endif /* STATS2 */
 		cifs_dbg(VFS, "IsMult: %d IsEnd: %d\n",
-			 mid_entry->multiRsp, mid_entry->multiEnd);
-		if (mid_entry->resp_buf) {
+				 mid_entry->multiRsp, mid_entry->multiEnd);
+
+		if (mid_entry->resp_buf)
+		{
 			cifs_dump_detail(mid_entry->resp_buf);
 			cifs_dump_mem("existing buf: ",
-				mid_entry->resp_buf, 62);
+						  mid_entry->resp_buf, 62);
 		}
 	}
 	spin_unlock(&GlobalMid_Lock);
@@ -118,8 +123,8 @@ static int cifs_debug_data_proc_show(struct seq_file *m, void *v)
 	__u32 dev_type;
 
 	seq_puts(m,
-		    "Display Internal CIFS Data Structures for Debugging\n"
-		    "---------------------------------------------------\n");
+			 "Display Internal CIFS Data Structures for Debugging\n"
+			 "---------------------------------------------------\n");
 	seq_printf(m, "CIFS Version %s\n", CIFS_VERSION);
 	seq_printf(m, "Features:");
 #ifdef CONFIG_CIFS_DFS_UPCALL
@@ -149,85 +154,110 @@ static int cifs_debug_data_proc_show(struct seq_file *m, void *v)
 
 	i = 0;
 	spin_lock(&cifs_tcp_ses_lock);
-	list_for_each(tmp1, &cifs_tcp_ses_list) {
+	list_for_each(tmp1, &cifs_tcp_ses_list)
+	{
 		server = list_entry(tmp1, struct TCP_Server_Info,
-				    tcp_ses_list);
+							tcp_ses_list);
 		seq_printf(m, "\nNumber of credits: %d", server->credits);
 		i++;
-		list_for_each(tmp2, &server->smb_ses_list) {
+		list_for_each(tmp2, &server->smb_ses_list)
+		{
 			ses = list_entry(tmp2, struct cifs_ses,
-					 smb_ses_list);
+							 smb_ses_list);
+
 			if ((ses->serverDomain == NULL) ||
 				(ses->serverOS == NULL) ||
-				(ses->serverNOS == NULL)) {
+				(ses->serverNOS == NULL))
+			{
 				seq_printf(m, "\n%d) entry for %s not fully "
-					   "displayed\n\t", i, ses->serverName);
-			} else {
-				seq_printf(m,
-				    "\n%d) Name: %s  Domain: %s Uses: %d OS:"
-				    " %s\n\tNOS: %s\tCapability: 0x%x\n\tSMB"
-				    " session status: %d\t",
-				i, ses->serverName, ses->serverDomain,
-				ses->ses_count, ses->serverOS, ses->serverNOS,
-				ses->capabilities, ses->status);
+						   "displayed\n\t", i, ses->serverName);
 			}
+			else
+			{
+				seq_printf(m,
+						   "\n%d) Name: %s  Domain: %s Uses: %d OS:"
+						   " %s\n\tNOS: %s\tCapability: 0x%x\n\tSMB"
+						   " session status: %d\t",
+						   i, ses->serverName, ses->serverDomain,
+						   ses->ses_count, ses->serverOS, ses->serverNOS,
+						   ses->capabilities, ses->status);
+			}
+
 			seq_printf(m, "TCP status: %d\n\tLocal Users To "
-				   "Server: %d SecMode: 0x%x Req On Wire: %d",
-				   server->tcpStatus, server->srv_count,
-				   server->sec_mode, in_flight(server));
+					   "Server: %d SecMode: 0x%x Req On Wire: %d",
+					   server->tcpStatus, server->srv_count,
+					   server->sec_mode, in_flight(server));
 
 #ifdef CONFIG_CIFS_STATS2
 			seq_printf(m, " In Send: %d In MaxReq Wait: %d",
-				atomic_read(&server->in_send),
-				atomic_read(&server->num_waiters));
+					   atomic_read(&server->in_send),
+					   atomic_read(&server->num_waiters));
 #endif
 
 			seq_puts(m, "\n\tShares:");
 			j = 0;
-			list_for_each(tmp3, &ses->tcon_list) {
+			list_for_each(tmp3, &ses->tcon_list)
+			{
 				tcon = list_entry(tmp3, struct cifs_tcon,
-						  tcon_list);
+								  tcon_list);
 				++j;
 				dev_type = le32_to_cpu(tcon->fsDevInfo.DeviceType);
 				seq_printf(m, "\n\t%d) %s Mounts: %d ", j,
-					   tcon->treeName, tcon->tc_count);
-				if (tcon->nativeFileSystem) {
+						   tcon->treeName, tcon->tc_count);
+
+				if (tcon->nativeFileSystem)
+				{
 					seq_printf(m, "Type: %s ",
-						   tcon->nativeFileSystem);
+							   tcon->nativeFileSystem);
 				}
+
 				seq_printf(m, "DevInfo: 0x%x Attributes: 0x%x"
-					"\n\tPathComponentMax: %d Status: %d",
-					le32_to_cpu(tcon->fsDevInfo.DeviceCharacteristics),
-					le32_to_cpu(tcon->fsAttrInfo.Attributes),
-					le32_to_cpu(tcon->fsAttrInfo.MaxPathNameComponentLength),
-					tcon->tidStatus);
+						   "\n\tPathComponentMax: %d Status: %d",
+						   le32_to_cpu(tcon->fsDevInfo.DeviceCharacteristics),
+						   le32_to_cpu(tcon->fsAttrInfo.Attributes),
+						   le32_to_cpu(tcon->fsAttrInfo.MaxPathNameComponentLength),
+						   tcon->tidStatus);
+
 				if (dev_type == FILE_DEVICE_DISK)
+				{
 					seq_puts(m, " type: DISK ");
+				}
 				else if (dev_type == FILE_DEVICE_CD_ROM)
+				{
 					seq_puts(m, " type: CDROM ");
+				}
 				else
+				{
 					seq_printf(m, " type: %d ", dev_type);
+				}
+
 				if (server->ops->dump_share_caps)
+				{
 					server->ops->dump_share_caps(m, tcon);
+				}
 
 				if (tcon->need_reconnect)
+				{
 					seq_puts(m, "\tDISCONNECTED ");
+				}
+
 				seq_putc(m, '\n');
 			}
 
 			seq_puts(m, "\n\tMIDs:\n");
 
 			spin_lock(&GlobalMid_Lock);
-			list_for_each(tmp3, &server->pending_mid_q) {
+			list_for_each(tmp3, &server->pending_mid_q)
+			{
 				mid_entry = list_entry(tmp3, struct mid_q_entry,
-					qhead);
+									   qhead);
 				seq_printf(m, "\tState: %d com: %d pid:"
-					      " %d cbdata: %p mid %llu\n",
-					      mid_entry->mid_state,
-					      le16_to_cpu(mid_entry->command),
-					      mid_entry->pid,
-					      mid_entry->callback_data,
-					      mid_entry->mid);
+						   " %d cbdata: %p mid %llu\n",
+						   mid_entry->mid_state,
+						   le16_to_cpu(mid_entry->command),
+						   mid_entry->pid,
+						   mid_entry->callback_data,
+						   mid_entry->mid);
 			}
 			spin_unlock(&GlobalMid_Lock);
 		}
@@ -244,7 +274,8 @@ static int cifs_debug_data_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, cifs_debug_data_proc_show, NULL);
 }
 
-static const struct file_operations cifs_debug_data_proc_fops = {
+static const struct file_operations cifs_debug_data_proc_fops =
+{
 	.open		= cifs_debug_data_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -253,7 +284,7 @@ static const struct file_operations cifs_debug_data_proc_fops = {
 
 #ifdef CONFIG_CIFS_STATS
 static ssize_t cifs_stats_proc_write(struct file *file,
-		const char __user *buffer, size_t count, loff_t *ppos)
+									 const char __user *buffer, size_t count, loff_t *ppos)
 {
 	bool bv;
 	int rc;
@@ -263,30 +294,40 @@ static ssize_t cifs_stats_proc_write(struct file *file,
 	struct cifs_tcon *tcon;
 
 	rc = kstrtobool_from_user(buffer, count, &bv);
-	if (rc == 0) {
+
+	if (rc == 0)
+	{
 #ifdef CONFIG_CIFS_STATS2
 		atomic_set(&totBufAllocCount, 0);
 		atomic_set(&totSmBufAllocCount, 0);
 #endif /* CONFIG_CIFS_STATS2 */
 		spin_lock(&cifs_tcp_ses_lock);
-		list_for_each(tmp1, &cifs_tcp_ses_list) {
+		list_for_each(tmp1, &cifs_tcp_ses_list)
+		{
 			server = list_entry(tmp1, struct TCP_Server_Info,
-					    tcp_ses_list);
-			list_for_each(tmp2, &server->smb_ses_list) {
+								tcp_ses_list);
+			list_for_each(tmp2, &server->smb_ses_list)
+			{
 				ses = list_entry(tmp2, struct cifs_ses,
-						 smb_ses_list);
-				list_for_each(tmp3, &ses->tcon_list) {
+								 smb_ses_list);
+				list_for_each(tmp3, &ses->tcon_list)
+				{
 					tcon = list_entry(tmp3,
-							  struct cifs_tcon,
-							  tcon_list);
+									  struct cifs_tcon,
+									  tcon_list);
 					atomic_set(&tcon->num_smbs_sent, 0);
+
 					if (server->ops->clear_stats)
+					{
 						server->ops->clear_stats(tcon);
+					}
 				}
 			}
 		}
 		spin_unlock(&cifs_tcp_ses_lock);
-	} else {
+	}
+	else
+	{
 		return rc;
 	}
 
@@ -302,50 +343,60 @@ static int cifs_stats_proc_show(struct seq_file *m, void *v)
 	struct cifs_tcon *tcon;
 
 	seq_printf(m,
-			"Resources in use\nCIFS Session: %d\n",
-			sesInfoAllocCount.counter);
+			   "Resources in use\nCIFS Session: %d\n",
+			   sesInfoAllocCount.counter);
 	seq_printf(m, "Share (unique mount targets): %d\n",
-			tconInfoAllocCount.counter);
+			   tconInfoAllocCount.counter);
 	seq_printf(m, "SMB Request/Response Buffer: %d Pool size: %d\n",
-			bufAllocCount.counter,
-			cifs_min_rcv + tcpSesAllocCount.counter);
+			   bufAllocCount.counter,
+			   cifs_min_rcv + tcpSesAllocCount.counter);
 	seq_printf(m, "SMB Small Req/Resp Buffer: %d Pool size: %d\n",
-			smBufAllocCount.counter, cifs_min_small);
+			   smBufAllocCount.counter, cifs_min_small);
 #ifdef CONFIG_CIFS_STATS2
 	seq_printf(m, "Total Large %d Small %d Allocations\n",
-				atomic_read(&totBufAllocCount),
-				atomic_read(&totSmBufAllocCount));
+			   atomic_read(&totBufAllocCount),
+			   atomic_read(&totSmBufAllocCount));
 #endif /* CONFIG_CIFS_STATS2 */
 
 	seq_printf(m, "Operations (MIDs): %d\n", atomic_read(&midCount));
 	seq_printf(m,
-		"\n%d session %d share reconnects\n",
-		tcpSesReconnectCount.counter, tconInfoReconnectCount.counter);
+			   "\n%d session %d share reconnects\n",
+			   tcpSesReconnectCount.counter, tconInfoReconnectCount.counter);
 
 	seq_printf(m,
-		"Total vfs operations: %d maximum at one time: %d\n",
-		GlobalCurrentXid, GlobalMaxActiveXid);
+			   "Total vfs operations: %d maximum at one time: %d\n",
+			   GlobalCurrentXid, GlobalMaxActiveXid);
 
 	i = 0;
 	spin_lock(&cifs_tcp_ses_lock);
-	list_for_each(tmp1, &cifs_tcp_ses_list) {
+	list_for_each(tmp1, &cifs_tcp_ses_list)
+	{
 		server = list_entry(tmp1, struct TCP_Server_Info,
-				    tcp_ses_list);
-		list_for_each(tmp2, &server->smb_ses_list) {
+							tcp_ses_list);
+		list_for_each(tmp2, &server->smb_ses_list)
+		{
 			ses = list_entry(tmp2, struct cifs_ses,
-					 smb_ses_list);
-			list_for_each(tmp3, &ses->tcon_list) {
+							 smb_ses_list);
+			list_for_each(tmp3, &ses->tcon_list)
+			{
 				tcon = list_entry(tmp3,
-						  struct cifs_tcon,
-						  tcon_list);
+								  struct cifs_tcon,
+								  tcon_list);
 				i++;
 				seq_printf(m, "\n%d) %s", i, tcon->treeName);
+
 				if (tcon->need_reconnect)
+				{
 					seq_puts(m, "\tDISCONNECTED ");
+				}
+
 				seq_printf(m, "\nSMBs: %d",
-					   atomic_read(&tcon->num_smbs_sent));
+						   atomic_read(&tcon->num_smbs_sent));
+
 				if (server->ops->print_stats)
+				{
 					server->ops->print_stats(m, tcon);
+				}
 			}
 		}
 	}
@@ -360,7 +411,8 @@ static int cifs_stats_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, cifs_stats_proc_show, NULL);
 }
 
-static const struct file_operations cifs_stats_proc_fops = {
+static const struct file_operations cifs_stats_proc_fops =
+{
 	.open		= cifs_stats_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -380,8 +432,11 @@ void
 cifs_proc_init(void)
 {
 	proc_fs_cifs = proc_mkdir("fs/cifs", NULL);
+
 	if (proc_fs_cifs == NULL)
+	{
 		return;
+	}
 
 	proc_create("DebugData", 0, proc_fs_cifs, &cifs_debug_data_proc_fops);
 
@@ -391,18 +446,20 @@ cifs_proc_init(void)
 	proc_create("cifsFYI", 0, proc_fs_cifs, &cifsFYI_proc_fops);
 	proc_create("traceSMB", 0, proc_fs_cifs, &traceSMB_proc_fops);
 	proc_create("LinuxExtensionsEnabled", 0, proc_fs_cifs,
-		    &cifs_linux_ext_proc_fops);
+				&cifs_linux_ext_proc_fops);
 	proc_create("SecurityFlags", 0, proc_fs_cifs,
-		    &cifs_security_flags_proc_fops);
+				&cifs_security_flags_proc_fops);
 	proc_create("LookupCacheEnabled", 0, proc_fs_cifs,
-		    &cifs_lookup_cache_proc_fops);
+				&cifs_lookup_cache_proc_fops);
 }
 
 void
 cifs_proc_clean(void)
 {
 	if (proc_fs_cifs == NULL)
+	{
 		return;
+	}
 
 	remove_proc_entry("DebugData", proc_fs_cifs);
 	remove_proc_entry("cifsFYI", proc_fs_cifs);
@@ -428,24 +485,33 @@ static int cifsFYI_proc_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t cifsFYI_proc_write(struct file *file, const char __user *buffer,
-		size_t count, loff_t *ppos)
+								  size_t count, loff_t *ppos)
 {
 	char c[2] = { '\0' };
 	bool bv;
 	int rc;
 
 	rc = get_user(c[0], buffer);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	if (strtobool(c, &bv) == 0)
+	{
 		cifsFYI = bv;
+	}
 	else if ((c[0] > '1') && (c[0] <= '9'))
-		cifsFYI = (int) (c[0] - '0'); /* see cifs_debug.h for meanings */
+	{
+		cifsFYI = (int) (c[0] - '0');    /* see cifs_debug.h for meanings */
+	}
 
 	return count;
 }
 
-static const struct file_operations cifsFYI_proc_fops = {
+static const struct file_operations cifsFYI_proc_fops =
+{
 	.open		= cifsFYI_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -470,13 +536,17 @@ static ssize_t cifs_linux_ext_proc_write(struct file *file,
 	int rc;
 
 	rc = kstrtobool_from_user(buffer, count, &linuxExtEnabled);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return count;
 }
 
-static const struct file_operations cifs_linux_ext_proc_fops = {
+static const struct file_operations cifs_linux_ext_proc_fops =
+{
 	.open		= cifs_linux_ext_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -501,13 +571,17 @@ static ssize_t cifs_lookup_cache_proc_write(struct file *file,
 	int rc;
 
 	rc = kstrtobool_from_user(buffer, count, &lookupCacheEnabled);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return count;
 }
 
-static const struct file_operations cifs_lookup_cache_proc_fops = {
+static const struct file_operations cifs_lookup_cache_proc_fops =
+{
 	.open		= cifs_lookup_cache_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -527,18 +601,22 @@ static int traceSMB_proc_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t traceSMB_proc_write(struct file *file, const char __user *buffer,
-		size_t count, loff_t *ppos)
+								   size_t count, loff_t *ppos)
 {
 	int rc;
 
 	rc = kstrtobool_from_user(buffer, count, &traceSMB);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return count;
 }
 
-static const struct file_operations traceSMB_proc_fops = {
+static const struct file_operations traceSMB_proc_fops =
+{
 	.open		= traceSMB_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -568,19 +646,31 @@ cifs_security_flags_handle_must_flags(unsigned int *flags)
 	unsigned int signflags = *flags & CIFSSEC_MUST_SIGN;
 
 	if ((*flags & CIFSSEC_MUST_KRB5) == CIFSSEC_MUST_KRB5)
+	{
 		*flags = CIFSSEC_MUST_KRB5;
+	}
 	else if ((*flags & CIFSSEC_MUST_NTLMSSP) == CIFSSEC_MUST_NTLMSSP)
+	{
 		*flags = CIFSSEC_MUST_NTLMSSP;
+	}
 	else if ((*flags & CIFSSEC_MUST_NTLMV2) == CIFSSEC_MUST_NTLMV2)
+	{
 		*flags = CIFSSEC_MUST_NTLMV2;
+	}
 	else if ((*flags & CIFSSEC_MUST_NTLM) == CIFSSEC_MUST_NTLM)
+	{
 		*flags = CIFSSEC_MUST_NTLM;
+	}
 	else if (CIFSSEC_MUST_LANMAN &&
-		 (*flags & CIFSSEC_MUST_LANMAN) == CIFSSEC_MUST_LANMAN)
+			 (*flags & CIFSSEC_MUST_LANMAN) == CIFSSEC_MUST_LANMAN)
+	{
 		*flags = CIFSSEC_MUST_LANMAN;
+	}
 	else if (CIFSSEC_MUST_PLNTXT &&
-		 (*flags & CIFSSEC_MUST_PLNTXT) == CIFSSEC_MUST_PLNTXT)
+			 (*flags & CIFSSEC_MUST_PLNTXT) == CIFSSEC_MUST_PLNTXT)
+	{
 		*flags = CIFSSEC_MUST_PLNTXT;
+	}
 
 	*flags |= signflags;
 }
@@ -594,43 +684,55 @@ static ssize_t cifs_security_flags_proc_write(struct file *file,
 	bool bv;
 
 	if ((count < 1) || (count > 11))
+	{
 		return -EINVAL;
+	}
 
 	memset(flags_string, 0, 12);
 
 	if (copy_from_user(flags_string, buffer, count))
+	{
 		return -EFAULT;
+	}
 
-	if (count < 3) {
+	if (count < 3)
+	{
 		/* single char or single char followed by null */
-		if (strtobool(flags_string, &bv) == 0) {
+		if (strtobool(flags_string, &bv) == 0)
+		{
 			global_secflags = bv ? CIFSSEC_MAX : CIFSSEC_DEF;
 			return count;
-		} else if (!isdigit(flags_string[0])) {
+		}
+		else if (!isdigit(flags_string[0]))
+		{
 			cifs_dbg(VFS, "Invalid SecurityFlags: %s\n",
-					flags_string);
+					 flags_string);
 			return -EINVAL;
 		}
 	}
 
 	/* else we have a number */
 	rc = kstrtouint(flags_string, 0, &flags);
-	if (rc) {
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "Invalid SecurityFlags: %s\n",
-				flags_string);
+				 flags_string);
 		return rc;
 	}
 
 	cifs_dbg(FYI, "sec flags 0x%x\n", flags);
 
-	if (flags == 0)  {
+	if (flags == 0)
+	{
 		cifs_dbg(VFS, "Invalid SecurityFlags: %s\n", flags_string);
 		return -EINVAL;
 	}
 
-	if (flags & ~CIFSSEC_MASK) {
+	if (flags & ~CIFSSEC_MASK)
+	{
 		cifs_dbg(VFS, "Unsupported security flags: 0x%x\n",
-			 flags & ~CIFSSEC_MASK);
+				 flags & ~CIFSSEC_MASK);
 		return -EINVAL;
 	}
 
@@ -638,18 +740,24 @@ static ssize_t cifs_security_flags_proc_write(struct file *file,
 
 	/* flags look ok - update the global security flags for cifs module */
 	global_secflags = flags;
-	if (global_secflags & CIFSSEC_MUST_SIGN) {
+
+	if (global_secflags & CIFSSEC_MUST_SIGN)
+	{
 		/* requiring signing implies signing is allowed */
 		global_secflags |= CIFSSEC_MAY_SIGN;
 		cifs_dbg(FYI, "packet signing now required\n");
-	} else if ((global_secflags & CIFSSEC_MAY_SIGN) == 0) {
+	}
+	else if ((global_secflags & CIFSSEC_MAY_SIGN) == 0)
+	{
 		cifs_dbg(FYI, "packet signing disabled\n");
 	}
+
 	/* BB should we turn on MAY flags for other MUST options? */
 	return count;
 }
 
-static const struct file_operations cifs_security_flags_proc_fops = {
+static const struct file_operations cifs_security_flags_proc_fops =
+{
 	.open		= cifs_security_flags_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

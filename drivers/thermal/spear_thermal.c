@@ -28,7 +28,8 @@
 #define MD_FACTOR	1000
 
 /* SPEAr Thermal Sensor Dev Structure */
-struct spear_thermal_dev {
+struct spear_thermal_dev
+{
 	/* pointer to base address of the thermal sensor */
 	void __iomem *thermal_base;
 	/* clk structure */
@@ -38,7 +39,7 @@ struct spear_thermal_dev {
 };
 
 static inline int thermal_get_temp(struct thermal_zone_device *thermal,
-				int *temp)
+								   int *temp)
 {
 	struct spear_thermal_dev *stdev = thermal->devdata;
 
@@ -50,7 +51,8 @@ static inline int thermal_get_temp(struct thermal_zone_device *thermal,
 	return 0;
 }
 
-static struct thermal_zone_device_ops ops = {
+static struct thermal_zone_device_ops ops =
+{
 	.get_temp = thermal_get_temp,
 };
 
@@ -80,7 +82,9 @@ static int __maybe_unused spear_thermal_resume(struct device *dev)
 	int ret = 0;
 
 	ret = clk_enable(stdev->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Can't enable clock\n");
 		return ret;
 	}
@@ -95,7 +99,7 @@ static int __maybe_unused spear_thermal_resume(struct device *dev)
 }
 
 static SIMPLE_DEV_PM_OPS(spear_thermal_pm_ops, spear_thermal_suspend,
-		spear_thermal_resume);
+						 spear_thermal_resume);
 
 static int spear_thermal_probe(struct platform_device *pdev)
 {
@@ -105,29 +109,40 @@ static int spear_thermal_probe(struct platform_device *pdev)
 	struct resource *res;
 	int ret = 0, val;
 
-	if (!np || !of_property_read_u32(np, "st,thermal-flags", &val)) {
+	if (!np || !of_property_read_u32(np, "st,thermal-flags", &val))
+	{
 		dev_err(&pdev->dev, "Failed: DT Pdata not passed\n");
 		return -EINVAL;
 	}
 
 	stdev = devm_kzalloc(&pdev->dev, sizeof(*stdev), GFP_KERNEL);
+
 	if (!stdev)
+	{
 		return -ENOMEM;
+	}
 
 	/* Enable thermal sensor */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	stdev->thermal_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(stdev->thermal_base))
+	{
 		return PTR_ERR(stdev->thermal_base);
+	}
 
 	stdev->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(stdev->clk)) {
+
+	if (IS_ERR(stdev->clk))
+	{
 		dev_err(&pdev->dev, "Can't get clock\n");
 		return PTR_ERR(stdev->clk);
 	}
 
 	ret = clk_enable(stdev->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Can't enable clock\n");
 		return ret;
 	}
@@ -136,8 +151,10 @@ static int spear_thermal_probe(struct platform_device *pdev)
 	writel_relaxed(stdev->flags, stdev->thermal_base);
 
 	spear_thermal = thermal_zone_device_register("spear_thermal", 0, 0,
-				stdev, &ops, NULL, 0, 0);
-	if (IS_ERR(spear_thermal)) {
+					stdev, &ops, NULL, 0, 0);
+
+	if (IS_ERR(spear_thermal))
+	{
 		dev_err(&pdev->dev, "thermal zone device is NULL\n");
 		ret = PTR_ERR(spear_thermal);
 		goto disable_clk;
@@ -146,7 +163,7 @@ static int spear_thermal_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, spear_thermal);
 
 	dev_info(&spear_thermal->device, "Thermal Sensor Loaded at: 0x%p.\n",
-			stdev->thermal_base);
+			 stdev->thermal_base);
 
 	return 0;
 
@@ -173,13 +190,15 @@ static int spear_thermal_exit(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id spear_thermal_id_table[] = {
+static const struct of_device_id spear_thermal_id_table[] =
+{
 	{ .compatible = "st,thermal-spear1340" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, spear_thermal_id_table);
 
-static struct platform_driver spear_thermal_driver = {
+static struct platform_driver spear_thermal_driver =
+{
 	.probe = spear_thermal_probe,
 	.remove = spear_thermal_exit,
 	.driver = {

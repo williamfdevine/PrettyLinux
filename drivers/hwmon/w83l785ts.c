@@ -76,9 +76,9 @@ static const unsigned short normal_i2c[] = { 0x2e, I2C_CLIENT_END };
  */
 
 static int w83l785ts_probe(struct i2c_client *client,
-			   const struct i2c_device_id *id);
+						   const struct i2c_device_id *id);
 static int w83l785ts_detect(struct i2c_client *client,
-			    struct i2c_board_info *info);
+							struct i2c_board_info *info);
 static int w83l785ts_remove(struct i2c_client *client);
 static u8 w83l785ts_read_value(struct i2c_client *client, u8 reg, u8 defval);
 static struct w83l785ts_data *w83l785ts_update_device(struct device *dev);
@@ -87,13 +87,15 @@ static struct w83l785ts_data *w83l785ts_update_device(struct device *dev);
  * Driver data (common to all clients)
  */
 
-static const struct i2c_device_id w83l785ts_id[] = {
+static const struct i2c_device_id w83l785ts_id[] =
+{
 	{ "w83l785ts", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, w83l785ts_id);
 
-static struct i2c_driver w83l785ts_driver = {
+static struct i2c_driver w83l785ts_driver =
+{
 	.class		= I2C_CLASS_HWMON,
 	.driver = {
 		.name	= "w83l785ts",
@@ -109,7 +111,8 @@ static struct i2c_driver w83l785ts_driver = {
  * Client data (each client gets its own)
  */
 
-struct w83l785ts_data {
+struct w83l785ts_data
+{
 	struct device *hwmon_dev;
 	struct mutex update_lock;
 	char valid; /* zero until following fields are valid */
@@ -124,7 +127,7 @@ struct w83l785ts_data {
  */
 
 static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
-	char *buf)
+						 char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct w83l785ts_data *data = w83l785ts_update_device(dev);
@@ -140,34 +143,38 @@ static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, show_temp, NULL, 1);
 
 /* Return 0 if detection is successful, -ENODEV otherwise */
 static int w83l785ts_detect(struct i2c_client *client,
-			    struct i2c_board_info *info)
+							struct i2c_board_info *info)
 {
 	struct i2c_adapter *adapter = client->adapter;
 	u16 man_id;
 	u8 chip_id;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -ENODEV;
+	}
 
 	/* detection */
 	if ((w83l785ts_read_value(client, W83L785TS_REG_CONFIG, 0) & 0x80)
-	 || (w83l785ts_read_value(client, W83L785TS_REG_TYPE, 0) & 0xFC)) {
+		|| (w83l785ts_read_value(client, W83L785TS_REG_TYPE, 0) & 0xFC))
+	{
 		dev_dbg(&adapter->dev,
-			"W83L785TS-S detection failed at 0x%02x\n",
-			client->addr);
+				"W83L785TS-S detection failed at 0x%02x\n",
+				client->addr);
 		return -ENODEV;
 	}
 
 	/* Identification */
 	man_id = (w83l785ts_read_value(client, W83L785TS_REG_MAN_ID1, 0) << 8)
-	       + w83l785ts_read_value(client, W83L785TS_REG_MAN_ID2, 0);
+			 + w83l785ts_read_value(client, W83L785TS_REG_MAN_ID2, 0);
 	chip_id = w83l785ts_read_value(client, W83L785TS_REG_CHIP_ID, 0);
 
 	if (man_id != 0x5CA3		/* Winbond */
-	 || chip_id != 0x70) {		/* W83L785TS-S */
+		|| chip_id != 0x70)  		/* W83L785TS-S */
+	{
 		dev_dbg(&adapter->dev,
-			"Unsupported chip (man_id=0x%04X, chip_id=0x%02X)\n",
-			man_id, chip_id);
+				"Unsupported chip (man_id=0x%04X, chip_id=0x%02X)\n",
+				man_id, chip_id);
 		return -ENODEV;
 	}
 
@@ -177,15 +184,18 @@ static int w83l785ts_detect(struct i2c_client *client,
 }
 
 static int w83l785ts_probe(struct i2c_client *client,
-			   const struct i2c_device_id *id)
+						   const struct i2c_device_id *id)
 {
 	struct w83l785ts_data *data;
 	struct device *dev = &client->dev;
 	int err;
 
 	data = devm_kzalloc(dev, sizeof(struct w83l785ts_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, data);
 	mutex_init(&data->update_lock);
@@ -196,16 +206,24 @@ static int w83l785ts_probe(struct i2c_client *client,
 	 */
 
 	err = device_create_file(dev, &sensor_dev_attr_temp1_input.dev_attr);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = device_create_file(dev, &sensor_dev_attr_temp1_max.dev_attr);
+
 	if (err)
+	{
 		goto exit_remove;
+	}
 
 	/* Register sysfs hooks */
 	data->hwmon_dev = hwmon_device_register(dev);
-	if (IS_ERR(data->hwmon_dev)) {
+
+	if (IS_ERR(data->hwmon_dev))
+	{
 		err = PTR_ERR(data->hwmon_dev);
 		goto exit_remove;
 	}
@@ -224,9 +242,9 @@ static int w83l785ts_remove(struct i2c_client *client)
 
 	hwmon_device_unregister(data->hwmon_dev);
 	device_remove_file(&client->dev,
-			   &sensor_dev_attr_temp1_input.dev_attr);
+					   &sensor_dev_attr_temp1_input.dev_attr);
 	device_remove_file(&client->dev,
-			   &sensor_dev_attr_temp1_max.dev_attr);
+					   &sensor_dev_attr_temp1_max.dev_attr);
 
 	return 0;
 }
@@ -241,10 +259,13 @@ static u8 w83l785ts_read_value(struct i2c_client *client, u8 reg, u8 defval)
 	 * We might be called during detection, at which point the client
 	 * isn't yet fully initialized, so we can't use dev_dbg on it
 	 */
-	if (i2c_get_clientdata(client)) {
+	if (i2c_get_clientdata(client))
+	{
 		dev = &client->dev;
 		prefix = "";
-	} else {
+	}
+	else
+	{
 		dev = &client->adapter->dev;
 		prefix = "w83l785ts: ";
 	}
@@ -254,19 +275,23 @@ static u8 w83l785ts_read_value(struct i2c_client *client, u8 reg, u8 defval)
 	 * retry on read errors. If it still fails (unlikely), return the
 	 * default value requested by the caller.
 	 */
-	for (i = 1; i <= MAX_RETRIES; i++) {
+	for (i = 1; i <= MAX_RETRIES; i++)
+	{
 		value = i2c_smbus_read_byte_data(client, reg);
-		if (value >= 0) {
+
+		if (value >= 0)
+		{
 			dev_dbg(dev, "%sRead 0x%02x from register 0x%02x.\n",
-				prefix, value, reg);
+					prefix, value, reg);
 			return value;
 		}
+
 		dev_dbg(dev, "%sRead failed, will retry in %d.\n", prefix, i);
 		msleep(i);
 	}
 
 	dev_err(dev, "%sCouldn't read value from register 0x%02x.\n", prefix,
-		reg);
+			reg);
 	return defval;
 }
 
@@ -277,12 +302,13 @@ static struct w83l785ts_data *w83l785ts_update_device(struct device *dev)
 
 	mutex_lock(&data->update_lock);
 
-	if (!data->valid || time_after(jiffies, data->last_updated + HZ * 2)) {
+	if (!data->valid || time_after(jiffies, data->last_updated + HZ * 2))
+	{
 		dev_dbg(&client->dev, "Updating w83l785ts data.\n");
 		data->temp[0] = w83l785ts_read_value(client,
-				W83L785TS_REG_TEMP, data->temp[0]);
+											 W83L785TS_REG_TEMP, data->temp[0]);
 		data->temp[1] = w83l785ts_read_value(client,
-				W83L785TS_REG_TEMP_OVER, data->temp[1]);
+											 W83L785TS_REG_TEMP_OVER, data->temp[1]);
 
 		data->last_updated = jiffies;
 		data->valid = 1;

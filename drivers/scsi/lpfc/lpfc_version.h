@@ -29,5 +29,5 @@
 #define LPFC_DRIVER_HANDLER_NAME	"lpfc:"
 
 #define LPFC_MODULE_DESC "Emulex LightPulse Fibre Channel SCSI driver " \
-		LPFC_DRIVER_VERSION
+	LPFC_DRIVER_VERSION
 #define LPFC_COPYRIGHT "Copyright(c) 2004-2016 Emulex.  All rights reserved."

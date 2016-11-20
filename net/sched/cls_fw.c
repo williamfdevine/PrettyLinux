@@ -31,13 +31,15 @@
 
 #define HTSIZE 256
 
-struct fw_head {
+struct fw_head
+{
 	u32			mask;
 	struct fw_filter __rcu	*ht[HTSIZE];
 	struct rcu_head		rcu;
 };
 
-struct fw_filter {
+struct fw_filter
+{
 	struct fw_filter __rcu	*next;
 	u32			id;
 	struct tcf_result	res;
@@ -57,35 +59,48 @@ static u32 fw_hash(u32 handle)
 }
 
 static int fw_classify(struct sk_buff *skb, const struct tcf_proto *tp,
-		       struct tcf_result *res)
+					   struct tcf_result *res)
 {
 	struct fw_head *head = rcu_dereference_bh(tp->root);
 	struct fw_filter *f;
 	int r;
 	u32 id = skb->mark;
 
-	if (head != NULL) {
+	if (head != NULL)
+	{
 		id &= head->mask;
 
 		for (f = rcu_dereference_bh(head->ht[fw_hash(id)]); f;
-		     f = rcu_dereference_bh(f->next)) {
-			if (f->id == id) {
+			 f = rcu_dereference_bh(f->next))
+		{
+			if (f->id == id)
+			{
 				*res = f->res;
 #ifdef CONFIG_NET_CLS_IND
+
 				if (!tcf_match_indev(skb, f->ifindex))
+				{
 					continue;
+				}
+
 #endif /* CONFIG_NET_CLS_IND */
 				r = tcf_exts_exec(skb, &f->exts, res);
+
 				if (r < 0)
+				{
 					continue;
+				}
 
 				return r;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		/* Old method: classify the packet using its skb mark. */
 		if (id && (TC_H_MAJ(id) == 0 ||
-			   !(TC_H_MAJ(id ^ tp->q->handle)))) {
+				   !(TC_H_MAJ(id ^ tp->q->handle))))
+		{
 			res->classid = id;
 			res->class = 0;
 			return 0;
@@ -101,13 +116,20 @@ static unsigned long fw_get(struct tcf_proto *tp, u32 handle)
 	struct fw_filter *f;
 
 	if (head == NULL)
+	{
 		return 0;
+	}
 
 	f = rtnl_dereference(head->ht[fw_hash(handle)]);
-	for (; f; f = rtnl_dereference(f->next)) {
+
+	for (; f; f = rtnl_dereference(f->next))
+	{
 		if (f->id == handle)
+		{
 			return (unsigned long)f;
+		}
 	}
+
 	return 0;
 }
 
@@ -134,22 +156,30 @@ static bool fw_destroy(struct tcf_proto *tp, bool force)
 	int h;
 
 	if (head == NULL)
+	{
 		return true;
-
-	if (!force) {
-		for (h = 0; h < HTSIZE; h++)
-			if (rcu_access_pointer(head->ht[h]))
-				return false;
 	}
 
-	for (h = 0; h < HTSIZE; h++) {
-		while ((f = rtnl_dereference(head->ht[h])) != NULL) {
+	if (!force)
+	{
+		for (h = 0; h < HTSIZE; h++)
+			if (rcu_access_pointer(head->ht[h]))
+			{
+				return false;
+			}
+	}
+
+	for (h = 0; h < HTSIZE; h++)
+	{
+		while ((f = rtnl_dereference(head->ht[h])) != NULL)
+		{
 			RCU_INIT_POINTER(head->ht[h],
-					 rtnl_dereference(f->next));
+							 rtnl_dereference(f->next));
 			tcf_unbind_filter(tp, &f->res);
 			call_rcu(&f->rcu, fw_delete_filter);
 		}
 	}
+
 	RCU_INIT_POINTER(tp->root, NULL);
 	kfree_rcu(head, rcu);
 	return true;
@@ -163,24 +193,30 @@ static int fw_delete(struct tcf_proto *tp, unsigned long arg)
 	struct fw_filter *pfp;
 
 	if (head == NULL || f == NULL)
+	{
 		goto out;
+	}
 
 	fp = &head->ht[fw_hash(f->id)];
 
 	for (pfp = rtnl_dereference(*fp); pfp;
-	     fp = &pfp->next, pfp = rtnl_dereference(*fp)) {
-		if (pfp == f) {
+		 fp = &pfp->next, pfp = rtnl_dereference(*fp))
+	{
+		if (pfp == f)
+		{
 			RCU_INIT_POINTER(*fp, rtnl_dereference(f->next));
 			tcf_unbind_filter(tp, &f->res);
 			call_rcu(&f->rcu, fw_delete_filter);
 			return 0;
 		}
 	}
+
 out:
 	return -EINVAL;
 }
 
-static const struct nla_policy fw_policy[TCA_FW_MAX + 1] = {
+static const struct nla_policy fw_policy[TCA_FW_MAX + 1] =
+{
 	[TCA_FW_CLASSID]	= { .type = NLA_U32 },
 	[TCA_FW_INDEV]		= { .type = NLA_STRING, .len = IFNAMSIZ },
 	[TCA_FW_MASK]		= { .type = NLA_U32 },
@@ -188,8 +224,8 @@ static const struct nla_policy fw_policy[TCA_FW_MAX + 1] = {
 
 static int
 fw_change_attrs(struct net *net, struct tcf_proto *tp, struct fw_filter *f,
-		struct nlattr **tb, struct nlattr **tca, unsigned long base,
-		bool ovr)
+				struct nlattr **tb, struct nlattr **tca, unsigned long base,
+				bool ovr)
 {
 	struct fw_head *head = rtnl_dereference(tp->root);
 	struct tcf_exts e;
@@ -197,36 +233,58 @@ fw_change_attrs(struct net *net, struct tcf_proto *tp, struct fw_filter *f,
 	int err;
 
 	err = tcf_exts_init(&e, TCA_FW_ACT, TCA_FW_POLICE);
-	if (err < 0)
-		return err;
-	err = tcf_exts_validate(net, tp, tb, tca[TCA_RATE], &e, ovr);
-	if (err < 0)
-		goto errout;
 
-	if (tb[TCA_FW_CLASSID]) {
+	if (err < 0)
+	{
+		return err;
+	}
+
+	err = tcf_exts_validate(net, tp, tb, tca[TCA_RATE], &e, ovr);
+
+	if (err < 0)
+	{
+		goto errout;
+	}
+
+	if (tb[TCA_FW_CLASSID])
+	{
 		f->res.classid = nla_get_u32(tb[TCA_FW_CLASSID]);
 		tcf_bind_filter(tp, &f->res, base);
 	}
 
 #ifdef CONFIG_NET_CLS_IND
-	if (tb[TCA_FW_INDEV]) {
+
+	if (tb[TCA_FW_INDEV])
+	{
 		int ret;
 		ret = tcf_change_indev(net, tb[TCA_FW_INDEV]);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			err = ret;
 			goto errout;
 		}
+
 		f->ifindex = ret;
 	}
+
 #endif /* CONFIG_NET_CLS_IND */
 
 	err = -EINVAL;
-	if (tb[TCA_FW_MASK]) {
+
+	if (tb[TCA_FW_MASK])
+	{
 		mask = nla_get_u32(tb[TCA_FW_MASK]);
+
 		if (mask != head->mask)
+		{
 			goto errout;
-	} else if (head->mask != 0xFFFFFFFF)
+		}
+	}
+	else if (head->mask != 0xFFFFFFFF)
+	{
 		goto errout;
+	}
 
 	tcf_exts_change(tp, &f->exts, &e);
 
@@ -237,9 +295,9 @@ errout:
 }
 
 static int fw_change(struct net *net, struct sk_buff *in_skb,
-		     struct tcf_proto *tp, unsigned long base,
-		     u32 handle, struct nlattr **tca, unsigned long *arg,
-		     bool ovr)
+					 struct tcf_proto *tp, unsigned long base,
+					 u32 handle, struct nlattr **tca, unsigned long *arg,
+					 bool ovr)
 {
 	struct fw_head *head = rtnl_dereference(tp->root);
 	struct fw_filter *f = (struct fw_filter *) *arg;
@@ -248,22 +306,33 @@ static int fw_change(struct net *net, struct sk_buff *in_skb,
 	int err;
 
 	if (!opt)
-		return handle ? -EINVAL : 0; /* Succeed if it is old method. */
+	{
+		return handle ? -EINVAL : 0;    /* Succeed if it is old method. */
+	}
 
 	err = nla_parse_nested(tb, TCA_FW_MAX, opt, fw_policy);
-	if (err < 0)
-		return err;
 
-	if (f) {
+	if (err < 0)
+	{
+		return err;
+	}
+
+	if (f)
+	{
 		struct fw_filter *pfp, *fnew;
 		struct fw_filter __rcu **fp;
 
 		if (f->id != handle && handle)
+		{
 			return -EINVAL;
+		}
 
 		fnew = kzalloc(sizeof(struct fw_filter), GFP_KERNEL);
+
 		if (!fnew)
+		{
 			return -ENOBUFS;
+		}
 
 		fnew->id = f->id;
 		fnew->res = f->res;
@@ -273,23 +342,30 @@ static int fw_change(struct net *net, struct sk_buff *in_skb,
 		fnew->tp = f->tp;
 
 		err = tcf_exts_init(&fnew->exts, TCA_FW_ACT, TCA_FW_POLICE);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			kfree(fnew);
 			return err;
 		}
 
 		err = fw_change_attrs(net, tp, fnew, tb, tca, base, ovr);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			tcf_exts_destroy(&fnew->exts);
 			kfree(fnew);
 			return err;
 		}
 
 		fp = &head->ht[fw_hash(fnew->id)];
+
 		for (pfp = rtnl_dereference(*fp); pfp;
-		     fp = &pfp->next, pfp = rtnl_dereference(*fp))
+			 fp = &pfp->next, pfp = rtnl_dereference(*fp))
 			if (pfp == f)
+			{
 				break;
+			}
 
 		RCU_INIT_POINTER(fnew->next, rtnl_dereference(pfp->next));
 		rcu_assign_pointer(*fp, fnew);
@@ -301,34 +377,54 @@ static int fw_change(struct net *net, struct sk_buff *in_skb,
 	}
 
 	if (!handle)
+	{
 		return -EINVAL;
+	}
 
-	if (!head) {
+	if (!head)
+	{
 		u32 mask = 0xFFFFFFFF;
+
 		if (tb[TCA_FW_MASK])
+		{
 			mask = nla_get_u32(tb[TCA_FW_MASK]);
+		}
 
 		head = kzalloc(sizeof(*head), GFP_KERNEL);
+
 		if (!head)
+		{
 			return -ENOBUFS;
+		}
+
 		head->mask = mask;
 
 		rcu_assign_pointer(tp->root, head);
 	}
 
 	f = kzalloc(sizeof(struct fw_filter), GFP_KERNEL);
+
 	if (f == NULL)
+	{
 		return -ENOBUFS;
+	}
 
 	err = tcf_exts_init(&f->exts, TCA_FW_ACT, TCA_FW_POLICE);
+
 	if (err < 0)
+	{
 		goto errout;
+	}
+
 	f->id = handle;
 	f->tp = tp;
 
 	err = fw_change_attrs(net, tp, f, tb, tca, base, ovr);
+
 	if (err < 0)
+	{
 		goto errout;
+	}
 
 	RCU_INIT_POINTER(f->next, head->ht[fw_hash(handle)]);
 	rcu_assign_pointer(head->ht[fw_hash(handle)], f);
@@ -348,70 +444,103 @@ static void fw_walk(struct tcf_proto *tp, struct tcf_walker *arg)
 	int h;
 
 	if (head == NULL)
+	{
 		arg->stop = 1;
+	}
 
 	if (arg->stop)
+	{
 		return;
+	}
 
-	for (h = 0; h < HTSIZE; h++) {
+	for (h = 0; h < HTSIZE; h++)
+	{
 		struct fw_filter *f;
 
 		for (f = rtnl_dereference(head->ht[h]); f;
-		     f = rtnl_dereference(f->next)) {
-			if (arg->count < arg->skip) {
+			 f = rtnl_dereference(f->next))
+		{
+			if (arg->count < arg->skip)
+			{
 				arg->count++;
 				continue;
 			}
-			if (arg->fn(tp, (unsigned long)f, arg) < 0) {
+
+			if (arg->fn(tp, (unsigned long)f, arg) < 0)
+			{
 				arg->stop = 1;
 				return;
 			}
+
 			arg->count++;
 		}
 	}
 }
 
 static int fw_dump(struct net *net, struct tcf_proto *tp, unsigned long fh,
-		   struct sk_buff *skb, struct tcmsg *t)
+				   struct sk_buff *skb, struct tcmsg *t)
 {
 	struct fw_head *head = rtnl_dereference(tp->root);
 	struct fw_filter *f = (struct fw_filter *)fh;
 	struct nlattr *nest;
 
 	if (f == NULL)
+	{
 		return skb->len;
+	}
 
 	t->tcm_handle = f->id;
 
 	if (!f->res.classid && !tcf_exts_is_available(&f->exts))
+	{
 		return skb->len;
+	}
 
 	nest = nla_nest_start(skb, TCA_OPTIONS);
+
 	if (nest == NULL)
+	{
 		goto nla_put_failure;
+	}
 
 	if (f->res.classid &&
-	    nla_put_u32(skb, TCA_FW_CLASSID, f->res.classid))
+		nla_put_u32(skb, TCA_FW_CLASSID, f->res.classid))
+	{
 		goto nla_put_failure;
+	}
+
 #ifdef CONFIG_NET_CLS_IND
-	if (f->ifindex) {
+
+	if (f->ifindex)
+	{
 		struct net_device *dev;
 		dev = __dev_get_by_index(net, f->ifindex);
+
 		if (dev && nla_put_string(skb, TCA_FW_INDEV, dev->name))
+		{
 			goto nla_put_failure;
+		}
 	}
+
 #endif /* CONFIG_NET_CLS_IND */
+
 	if (head->mask != 0xFFFFFFFF &&
-	    nla_put_u32(skb, TCA_FW_MASK, head->mask))
+		nla_put_u32(skb, TCA_FW_MASK, head->mask))
+	{
 		goto nla_put_failure;
+	}
 
 	if (tcf_exts_dump(skb, &f->exts) < 0)
+	{
 		goto nla_put_failure;
+	}
 
 	nla_nest_end(skb, nest);
 
 	if (tcf_exts_dump_stats(skb, &f->exts) < 0)
+	{
 		goto nla_put_failure;
+	}
 
 	return skb->len;
 
@@ -420,7 +549,8 @@ nla_put_failure:
 	return -1;
 }
 
-static struct tcf_proto_ops cls_fw_ops __read_mostly = {
+static struct tcf_proto_ops cls_fw_ops __read_mostly =
+{
 	.kind		=	"fw",
 	.classify	=	fw_classify,
 	.init		=	fw_init,

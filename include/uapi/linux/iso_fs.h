@@ -11,11 +11,12 @@
 /* This part borrowed from the bsd386 isofs */
 #define ISODCL(from, to) (to - from + 1)
 
-struct iso_volume_descriptor {
-	char type[ISODCL(1,1)]; /* 711 */
-	char id[ISODCL(2,6)];
-	char version[ISODCL(7,7)];
-	char data[ISODCL(8,2048)];
+struct iso_volume_descriptor
+{
+	char type[ISODCL(1, 1)]; /* 711 */
+	char id[ISODCL(2, 6)];
+	char version[ISODCL(7, 7)];
+	char data[ISODCL(8, 2048)];
 };
 
 /* volume descriptor types */
@@ -25,7 +26,8 @@ struct iso_volume_descriptor {
 
 #define ISO_STANDARD_ID "CD001"
 
-struct iso_primary_descriptor {
+struct iso_primary_descriptor
+{
 	char type			[ISODCL (  1,   1)]; /* 711 */
 	char id				[ISODCL (  2,   6)];
 	char version			[ISODCL (  7,   7)]; /* 711 */
@@ -62,7 +64,8 @@ struct iso_primary_descriptor {
 };
 
 /* Almost the same as the primary descriptor but two fields are specified */
-struct iso_supplementary_descriptor {
+struct iso_supplementary_descriptor
+{
 	char type			[ISODCL (  1,   1)]; /* 711 */
 	char id				[ISODCL (  2,   6)];
 	char version			[ISODCL (  7,   7)]; /* 711 */
@@ -101,16 +104,18 @@ struct iso_supplementary_descriptor {
 
 #define HS_STANDARD_ID "CDROM"
 
-struct  hs_volume_descriptor {
+struct  hs_volume_descriptor
+{
 	char foo			[ISODCL (  1,   8)]; /* 733 */
 	char type			[ISODCL (  9,   9)]; /* 711 */
 	char id				[ISODCL ( 10,  14)];
 	char version			[ISODCL ( 15,  15)]; /* 711 */
-	char data[ISODCL(16,2048)];
+	char data[ISODCL(16, 2048)];
 };
 
 
-struct hs_primary_descriptor {
+struct hs_primary_descriptor
+{
 	char foo			[ISODCL (  1,   8)]; /* 733 */
 	char type			[ISODCL (  9,   9)]; /* 711 */
 	char id				[ISODCL ( 10,  14)];
@@ -132,7 +137,8 @@ struct hs_primary_descriptor {
 
 /* We use this to help us look up the parent inode numbers. */
 
-struct iso_path_table{
+struct iso_path_table
+{
 	unsigned char  name_len[2];	/* 721 */
 	char extent[4];		/* 731 */
 	char  parent[2];	/* 721 */
@@ -142,7 +148,8 @@ struct iso_path_table{
 /* high sierra is identical to iso, except that the date is only 6 bytes, and
    there is an extra reserved byte after the flags */
 
-struct iso_directory_record {
+struct iso_directory_record
+{
 	char length			[ISODCL (1, 1)]; /* 711 */
 	char ext_attr_length		[ISODCL (2, 2)]; /* 711 */
 	char extent			[ISODCL (3, 10)]; /* 733 */

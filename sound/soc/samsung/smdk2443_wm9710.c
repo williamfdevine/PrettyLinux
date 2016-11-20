@@ -17,18 +17,20 @@
 
 static struct snd_soc_card smdk2443;
 
-static struct snd_soc_dai_link smdk2443_dai[] = {
+static struct snd_soc_dai_link smdk2443_dai[] =
 {
-	.name = "AC97",
-	.stream_name = "AC97 HiFi",
-	.cpu_dai_name = "samsung-ac97",
-	.codec_dai_name = "ac97-hifi",
-	.codec_name = "ac97-codec",
-	.platform_name = "samsung-ac97",
-},
+	{
+		.name = "AC97",
+		.stream_name = "AC97 HiFi",
+		.cpu_dai_name = "samsung-ac97",
+		.codec_dai_name = "ac97-hifi",
+		.codec_name = "ac97-codec",
+		.platform_name = "samsung-ac97",
+	},
 };
 
-static struct snd_soc_card smdk2443 = {
+static struct snd_soc_card smdk2443 =
+{
 	.name = "SMDK2443",
 	.owner = THIS_MODULE,
 	.dai_link = smdk2443_dai,
@@ -42,14 +44,19 @@ static int __init smdk2443_init(void)
 	int ret;
 
 	smdk2443_snd_ac97_device = platform_device_alloc("soc-audio", -1);
+
 	if (!smdk2443_snd_ac97_device)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(smdk2443_snd_ac97_device, &smdk2443);
 	ret = platform_device_add(smdk2443_snd_ac97_device);
 
 	if (ret)
+	{
 		platform_device_put(smdk2443_snd_ac97_device);
+	}
 
 	return ret;
 }

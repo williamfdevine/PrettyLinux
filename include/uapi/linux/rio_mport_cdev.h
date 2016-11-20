@@ -42,7 +42,8 @@
 #include <linux/ioctl.h>
 #include <linux/types.h>
 
-struct rio_mport_maint_io {
+struct rio_mport_maint_io
+{
 	__u16 rioid;		/* destID of remote device */
 	__u8  hopcount;		/* hopcount to remote device */
 	__u8  pad0[5];
@@ -65,7 +66,8 @@ struct rio_mport_maint_io {
 #define RIO_CAP_MAP_OUTB		(1 << 6)
 #define RIO_CAP_MAP_INB			(1 << 7)
 
-struct rio_mport_properties {
+struct rio_mport_properties
+{
 	__u16 hdid;
 	__u8  id;			/* Physical port ID */
 	__u8  index;
@@ -93,12 +95,14 @@ struct rio_mport_properties {
 #define RIO_DOORBELL	(1 << 0)
 #define RIO_PORTWRITE	(1 << 1)
 
-struct rio_doorbell {
+struct rio_doorbell
+{
 	__u16 rioid;
 	__u16 payload;
 };
 
-struct rio_doorbell_filter {
+struct rio_doorbell_filter
+{
 	__u16 rioid;	/* Use RIO_INVALID_DESTID to match all ids */
 	__u16 low;
 	__u16 high;
@@ -106,11 +110,13 @@ struct rio_doorbell_filter {
 };
 
 
-struct rio_portwrite {
+struct rio_portwrite
+{
 	__u32 payload[16];
 };
 
-struct rio_pw_filter {
+struct rio_pw_filter
+{
 	__u32 mask;
 	__u32 low;
 	__u32 high;
@@ -123,7 +129,8 @@ struct rio_pw_filter {
 */
 #define RIO_MAP_ANY_ADDR	(__u64)(~((__u64) 0))
 
-struct rio_mmap {
+struct rio_mmap
+{
 	__u16 rioid;
 	__u16 pad0[3];
 	__u64 rio_addr;
@@ -132,28 +139,33 @@ struct rio_mmap {
 	__u64 address;
 };
 
-struct rio_dma_mem {
+struct rio_dma_mem
+{
 	__u64 length;		/* length of DMA memory */
 	__u64 dma_handle;	/* handle associated with this memory */
 	__u64 address;
 };
 
-struct rio_event {
+struct rio_event
+{
 	__u32 header;	/* event type RIO_DOORBELL or RIO_PORTWRITE */
-	union {
+	union
+	{
 		struct rio_doorbell doorbell;	/* header for RIO_DOORBELL */
 		struct rio_portwrite portwrite; /* header for RIO_PORTWRITE */
 	} u;
 	__u32 pad0;
 };
 
-enum rio_transfer_sync {
+enum rio_transfer_sync
+{
 	RIO_TRANSFER_SYNC,	/* synchronous transfer */
 	RIO_TRANSFER_ASYNC,	/* asynchronous transfer */
 	RIO_TRANSFER_FAF,	/* fire-and-forget transfer */
 };
 
-enum rio_transfer_dir {
+enum rio_transfer_dir
+{
 	RIO_TRANSFER_DIR_READ,	/* Read operation */
 	RIO_TRANSFER_DIR_WRITE,	/* Write operation */
 };
@@ -178,7 +190,8 @@ enum rio_transfer_dir {
  * driver sees fit. For write requests the user can explicitly choose between
  * any of the write modes for each transaction.
  */
-enum rio_exchange {
+enum rio_exchange
+{
 	RIO_EXCHANGE_DEFAULT,	/* Default method */
 	RIO_EXCHANGE_NWRITE,	/* All packets using NWRITE */
 	RIO_EXCHANGE_SWRITE,	/* All packets using SWRITE */
@@ -187,7 +200,8 @@ enum rio_exchange {
 	RIO_EXCHANGE_NWRITE_R_ALL, /* All packets using NWRITE_R */
 };
 
-struct rio_transfer_io {
+struct rio_transfer_io
+{
 	__u64 rio_addr;	/* Address in target's RIO mem space */
 	__u64 loc_addr;
 	__u64 handle;
@@ -198,7 +212,8 @@ struct rio_transfer_io {
 	__u32 completion_code;	/* Completion code for this transfer */
 };
 
-struct rio_transaction {
+struct rio_transaction
+{
 	__u64 block;	/* Pointer to array of <count> transfers */
 	__u32 count;	/* Number of transfers */
 	__u32 transfer_mode;	/* Data transfer mode */
@@ -207,14 +222,16 @@ struct rio_transaction {
 	__u32 pad0;
 };
 
-struct rio_async_tx_wait {
+struct rio_async_tx_wait
+{
 	__u32 token;	/* DMA transaction ID token */
 	__u32 timeout;	/* Wait timeout in msec, if 0 use default TO */
 };
 
 #define RIO_MAX_DEVNAME_SZ	20
 
-struct rio_rdev_info {
+struct rio_rdev_info
+{
 	__u16 destid;
 	__u8 hopcount;
 	__u8 pad0;

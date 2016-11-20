@@ -23,7 +23,8 @@
 #define	EXT2_XATTR_INDEX_LUSTRE			5
 #define EXT2_XATTR_INDEX_SECURITY	        6
 
-struct ext2_xattr_header {
+struct ext2_xattr_header
+{
 	__le32	h_magic;	/* magic number for identification */
 	__le32	h_refcount;	/* reference count */
 	__le32	h_blocks;	/* number of disk blocks used */
@@ -31,7 +32,8 @@ struct ext2_xattr_header {
 	__u32	h_reserved[4];	/* zero right now */
 };
 
-struct ext2_xattr_entry {
+struct ext2_xattr_entry
+{
 	__u8	e_name_len;	/* length of name */
 	__u8	e_name_index;	/* attribute name index */
 	__le16	e_value_offs;	/* offset in disk block of value */
@@ -46,10 +48,10 @@ struct ext2_xattr_entry {
 #define EXT2_XATTR_ROUND		(EXT2_XATTR_PAD-1)
 #define EXT2_XATTR_LEN(name_len) \
 	(((name_len) + EXT2_XATTR_ROUND + \
-	sizeof(struct ext2_xattr_entry)) & ~EXT2_XATTR_ROUND)
+	  sizeof(struct ext2_xattr_entry)) & ~EXT2_XATTR_ROUND)
 #define EXT2_XATTR_NEXT(entry) \
 	( (struct ext2_xattr_entry *)( \
-	  (char *)(entry) + EXT2_XATTR_LEN((entry)->e_name_len)) )
+								   (char *)(entry) + EXT2_XATTR_LEN((entry)->e_name_len)) )
 #define EXT2_XATTR_SIZE(size) \
 	(((size) + EXT2_XATTR_ROUND) & ~EXT2_XATTR_ROUND)
 
@@ -77,14 +79,14 @@ extern const struct xattr_handler *ext2_xattr_handlers[];
 
 static inline int
 ext2_xattr_get(struct inode *inode, int name_index,
-	       const char *name, void *buffer, size_t size)
+			   const char *name, void *buffer, size_t size)
 {
 	return -EOPNOTSUPP;
 }
 
 static inline int
 ext2_xattr_set(struct inode *inode, int name_index, const char *name,
-	       const void *value, size_t size, int flags)
+			   const void *value, size_t size, int flags)
 {
 	return -EOPNOTSUPP;
 }
@@ -104,10 +106,10 @@ static inline void ext2_xattr_destroy_cache(struct mb_cache *cache)
 
 #ifdef CONFIG_EXT2_FS_SECURITY
 extern int ext2_init_security(struct inode *inode, struct inode *dir,
-			      const struct qstr *qstr);
+							  const struct qstr *qstr);
 #else
 static inline int ext2_init_security(struct inode *inode, struct inode *dir,
-				     const struct qstr *qstr)
+									 const struct qstr *qstr)
 {
 	return 0;
 }

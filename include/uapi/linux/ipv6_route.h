@@ -1,8 +1,8 @@
 /*
- *	Linux INET6 implementation 
+ *	Linux INET6 implementation
  *
  *	Authors:
- *	Pedro Roque		<roque@di.fc.ul.pt>	
+ *	Pedro Roque		<roque@di.fc.ul.pt>
  *
  *	This program is free software; you can redistribute it and/or
  *      modify it under the terms of the GNU General Public License
@@ -38,7 +38,8 @@
 #define RTF_LOCAL	0x80000000
 
 
-struct in6_rtmsg {
+struct in6_rtmsg
+{
 	struct in6_addr		rtmsg_dst;
 	struct in6_addr		rtmsg_src;
 	struct in6_addr		rtmsg_gateway;
@@ -47,7 +48,7 @@ struct in6_rtmsg {
 	__u16			rtmsg_src_len;
 	__u32			rtmsg_metric;
 	unsigned long		rtmsg_info;
-        __u32			rtmsg_flags;
+	__u32			rtmsg_flags;
 	int			rtmsg_ifindex;
 };
 

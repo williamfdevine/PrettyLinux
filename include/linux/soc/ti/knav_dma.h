@@ -48,7 +48,8 @@
 #define KNAV_DMA_FDQ_PER_CHAN			4
 
 /* Tx channel scheduling priority */
-enum knav_dma_tx_priority {
+enum knav_dma_tx_priority
+{
 	DMA_PRIO_HIGH	= 0,
 	DMA_PRIO_MED_H,
 	DMA_PRIO_MED_L,
@@ -56,13 +57,15 @@ enum knav_dma_tx_priority {
 };
 
 /* Rx channel error handling mode during buffer starvation */
-enum knav_dma_rx_err_mode {
+enum knav_dma_rx_err_mode
+{
 	DMA_DROP = 0,
 	DMA_RETRY
 };
 
 /* Rx flow size threshold configuration */
-enum knav_dma_rx_thresholds {
+enum knav_dma_rx_thresholds
+{
 	DMA_THRESH_NONE		= 0,
 	DMA_THRESH_0		= 1,
 	DMA_THRESH_0_1		= 3,
@@ -70,7 +73,8 @@ enum knav_dma_rx_thresholds {
 };
 
 /* Descriptor type */
-enum knav_dma_desc_type {
+enum knav_dma_desc_type
+{
 	DMA_DESC_HOST = 0,
 	DMA_DESC_MONOLITHIC = 2
 };
@@ -81,7 +85,8 @@ enum knav_dma_desc_type {
  * @filt_pswords:		Filter PS words present
  * @knav_dma_tx_priority:	Tx channel scheduling priority
  */
-struct knav_dma_tx_cfg {
+struct knav_dma_tx_cfg
+{
 	bool				filt_einfo;
 	bool				filt_pswords;
 	enum knav_dma_tx_priority	priority;
@@ -102,7 +107,8 @@ struct knav_dma_tx_cfg {
  * @sz_thresh1:			RX packet size threshold 1
  * @sz_thresh2:			RX packet size threshold 2
  */
-struct knav_dma_rx_cfg {
+struct knav_dma_rx_cfg
+{
 	bool				einfo_present;
 	bool				psinfo_present;
 	enum knav_dma_rx_err_mode	err_mode;
@@ -123,9 +129,11 @@ struct knav_dma_rx_cfg {
  * @tx:				Tx channel configuration
  * @rx:				Rx flow configuration
  */
-struct knav_dma_cfg {
+struct knav_dma_cfg
+{
 	enum dma_transfer_direction direction;
-	union {
+	union
+	{
 		struct knav_dma_tx_cfg	tx;
 		struct knav_dma_rx_cfg	rx;
 	} u;
@@ -145,7 +153,8 @@ struct knav_dma_cfg {
  * @psdata:			Protocol specific
  * @sw_data:			Software private data not touched by h/w
  */
-struct knav_dma_desc {
+struct knav_dma_desc
+{
 	__le32	desc_info;
 	__le32	tag_info;
 	__le32	packet_info;
@@ -161,11 +170,11 @@ struct knav_dma_desc {
 
 #if IS_ENABLED(CONFIG_KEYSTONE_NAVIGATOR_DMA)
 void *knav_dma_open_channel(struct device *dev, const char *name,
-				struct knav_dma_cfg *config);
+							struct knav_dma_cfg *config);
 void knav_dma_close_channel(void *channel);
 #else
 static inline void *knav_dma_open_channel(struct device *dev, const char *name,
-				struct knav_dma_cfg *config)
+		struct knav_dma_cfg *config)
 {
 	return (void *) NULL;
 }

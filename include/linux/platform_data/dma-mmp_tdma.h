@@ -17,13 +17,15 @@
 /* ARBITRARY:  SRAM allocations are multiples of this 2^N size */
 #define SRAM_GRANULARITY	512
 
-enum sram_type {
+enum sram_type
+{
 	MMP_SRAM_UNDEFINED = 0,
 	MMP_ASRAM,
 	MMP_ISRAM,
 };
 
-struct sram_platdata {
+struct sram_platdata
+{
 	char *pool_name;
 	int granularity;
 };

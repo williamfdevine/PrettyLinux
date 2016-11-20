@@ -17,22 +17,31 @@ void show_mem(unsigned int filter)
 	printk("Mem-Info:\n");
 	show_free_areas(filter);
 
-	for_each_online_pgdat(pgdat) {
+	for_each_online_pgdat(pgdat)
+	{
 		unsigned long flags;
 		int zoneid;
 
 		pgdat_resize_lock(pgdat, &flags);
-		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
+
+		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++)
+		{
 			struct zone *zone = &pgdat->node_zones[zoneid];
+
 			if (!populated_zone(zone))
+			{
 				continue;
+			}
 
 			total += zone->present_pages;
 			reserved += zone->present_pages - zone->managed_pages;
 
 			if (is_highmem_idx(zoneid))
+			{
 				highmem += zone->present_pages;
+			}
 		}
+
 		pgdat_resize_unlock(pgdat, &flags);
 	}
 
@@ -44,7 +53,7 @@ void show_mem(unsigned int filter)
 #endif
 #ifdef CONFIG_QUICKLIST
 	printk("%lu pages in pagetable cache\n",
-		quicklist_total_size());
+		   quicklist_total_size());
 #endif
 #ifdef CONFIG_MEMORY_FAILURE
 	printk("%lu pages hwpoisoned\n", atomic_long_read(&num_poisoned_pages));

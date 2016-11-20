@@ -47,7 +47,8 @@
 #define SELECTSLAVE	0x01
 #define GOBUSY		0x01
 
-struct nuc900_spi {
+struct nuc900_spi
+{
 	struct spi_bitbang	 bitbang;
 	struct completion	 done;
 	void __iomem		*regs;
@@ -80,23 +81,35 @@ static void nuc900_slave_select(struct spi_device *spi, unsigned int ssr)
 	val = __raw_readl(hw->regs + USI_SSR);
 
 	if (!cs)
+	{
 		val &= ~SELECTLEV;
+	}
 	else
+	{
 		val |= SELECTLEV;
+	}
 
 	if (!ssr)
+	{
 		val &= ~SELECTSLAVE;
+	}
 	else
+	{
 		val |= SELECTSLAVE;
+	}
 
 	__raw_writel(val, hw->regs + USI_SSR);
 
 	val = __raw_readl(hw->regs + USI_CNT);
 
 	if (!cpol)
+	{
 		val &= ~SELECTPOL;
+	}
 	else
+	{
 		val |= SELECTPOL;
+	}
 
 	__raw_writel(val, hw->regs + USI_CNT);
 
@@ -105,14 +118,15 @@ static void nuc900_slave_select(struct spi_device *spi, unsigned int ssr)
 
 static void nuc900_spi_chipsel(struct spi_device *spi, int value)
 {
-	switch (value) {
-	case BITBANG_CS_INACTIVE:
-		nuc900_slave_select(spi, 0);
-		break;
+	switch (value)
+	{
+		case BITBANG_CS_INACTIVE:
+			nuc900_slave_select(spi, 0);
+			break;
 
-	case BITBANG_CS_ACTIVE:
-		nuc900_slave_select(spi, 1);
-		break;
+		case BITBANG_CS_ACTIVE:
+			nuc900_slave_select(spi, 1);
+			break;
 	}
 }
 
@@ -126,7 +140,9 @@ static void nuc900_spi_setup_txnum(struct nuc900_spi *hw, unsigned int txnum)
 	val = __raw_readl(hw->regs + USI_CNT) & ~TXNUM;
 
 	if (txnum)
+	{
 		val |= txnum << 0x08;
+	}
 
 	__raw_writel(val, hw->regs + USI_CNT);
 
@@ -135,7 +151,7 @@ static void nuc900_spi_setup_txnum(struct nuc900_spi *hw, unsigned int txnum)
 }
 
 static void nuc900_spi_setup_txbitlen(struct nuc900_spi *hw,
-							unsigned int txbitlen)
+									  unsigned int txbitlen)
 {
 	unsigned int val;
 	unsigned long flags;
@@ -199,17 +215,24 @@ static irqreturn_t nuc900_spi_irq(int irq, void *dev)
 	status = __raw_readl(hw->regs + USI_CNT);
 	__raw_writel(status, hw->regs + USI_CNT);
 
-	if (status & ENFLG) {
+	if (status & ENFLG)
+	{
 		hw->count++;
 
 		if (hw->rx)
+		{
 			hw->rx[count] = __raw_readl(hw->regs + USI_RX0);
+		}
+
 		count++;
 
-		if (count < hw->len) {
+		if (count < hw->len)
+		{
 			__raw_writel(hw_txbyte(hw, count), hw->regs + USI_TX0);
 			nuc900_spi_gobusy(hw);
-		} else {
+		}
+		else
+		{
 			complete(&hw->done);
 		}
 
@@ -230,9 +253,14 @@ static void nuc900_tx_edge(struct nuc900_spi *hw, unsigned int edge)
 	val = __raw_readl(hw->regs + USI_CNT);
 
 	if (edge)
+	{
 		val |= TXNEG;
+	}
 	else
+	{
 		val &= ~TXNEG;
+	}
+
 	__raw_writel(val, hw->regs + USI_CNT);
 
 	spin_unlock_irqrestore(&hw->lock, flags);
@@ -248,9 +276,14 @@ static void nuc900_rx_edge(struct nuc900_spi *hw, unsigned int edge)
 	val = __raw_readl(hw->regs + USI_CNT);
 
 	if (edge)
+	{
 		val |= RXNEG;
+	}
 	else
+	{
 		val &= ~RXNEG;
+	}
+
 	__raw_writel(val, hw->regs + USI_CNT);
 
 	spin_unlock_irqrestore(&hw->lock, flags);
@@ -266,9 +299,14 @@ static void nuc900_send_first(struct nuc900_spi *hw, unsigned int lsb)
 	val = __raw_readl(hw->regs + USI_CNT);
 
 	if (lsb)
+	{
 		val |= LSB;
+	}
 	else
+	{
 		val &= ~LSB;
+	}
+
 	__raw_writel(val, hw->regs + USI_CNT);
 
 	spin_unlock_irqrestore(&hw->lock, flags);
@@ -284,7 +322,9 @@ static void nuc900_set_sleep(struct nuc900_spi *hw, unsigned int sleep)
 	val = __raw_readl(hw->regs + USI_CNT) & ~SLEEP;
 
 	if (sleep)
+	{
 		val |= (sleep << 12);
+	}
 
 	__raw_writel(val, hw->regs + USI_CNT);
 
@@ -335,7 +375,9 @@ static int nuc900_spi_probe(struct platform_device *pdev)
 	int err = 0;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(struct nuc900_spi));
-	if (master == NULL) {
+
+	if (master == NULL)
+	{
 		dev_err(&pdev->dev, "No memory for spi_master\n");
 		return -ENOMEM;
 	}
@@ -344,7 +386,8 @@ static int nuc900_spi_probe(struct platform_device *pdev)
 	hw->master = master;
 	hw->pdata  = dev_get_platdata(&pdev->dev);
 
-	if (hw->pdata == NULL) {
+	if (hw->pdata == NULL)
+	{
 		dev_err(&pdev->dev, "No platform data supplied\n");
 		err = -ENOENT;
 		goto err_pdata;
@@ -354,8 +397,12 @@ static int nuc900_spi_probe(struct platform_device *pdev)
 	init_completion(&hw->done);
 
 	master->mode_bits          = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH;
+
 	if (hw->pdata->lsb)
+	{
 		master->mode_bits |= SPI_LSB_FIRST;
+	}
+
 	master->num_chipselect     = hw->pdata->num_cs;
 	master->bus_num            = hw->pdata->bus_num;
 	hw->bitbang.master         = hw->master;
@@ -364,27 +411,35 @@ static int nuc900_spi_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hw->regs = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(hw->regs)) {
+
+	if (IS_ERR(hw->regs))
+	{
 		err = PTR_ERR(hw->regs);
 		goto err_pdata;
 	}
 
 	hw->irq = platform_get_irq(pdev, 0);
-	if (hw->irq < 0) {
+
+	if (hw->irq < 0)
+	{
 		dev_err(&pdev->dev, "No IRQ specified\n");
 		err = -ENOENT;
 		goto err_pdata;
 	}
 
 	err = devm_request_irq(&pdev->dev, hw->irq, nuc900_spi_irq, 0,
-				pdev->name, hw);
-	if (err) {
+						   pdev->name, hw);
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Cannot claim IRQ\n");
 		goto err_pdata;
 	}
 
 	hw->clk = devm_clk_get(&pdev->dev, "spi");
-	if (IS_ERR(hw->clk)) {
+
+	if (IS_ERR(hw->clk))
+	{
 		dev_err(&pdev->dev, "No clock for device\n");
 		err = PTR_ERR(hw->clk);
 		goto err_pdata;
@@ -394,7 +449,9 @@ static int nuc900_spi_probe(struct platform_device *pdev)
 	nuc900_init_spi(hw);
 
 	err = spi_bitbang_start(&hw->bitbang);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Failed to register SPI master\n");
 		goto err_register;
 	}
@@ -418,7 +475,8 @@ static int nuc900_spi_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver nuc900_spi_driver = {
+static struct platform_driver nuc900_spi_driver =
+{
 	.probe		= nuc900_spi_probe,
 	.remove		= nuc900_spi_remove,
 	.driver		= {

@@ -14,11 +14,13 @@
 #include <linux/if_ether.h>
 #include <linux/nvmem-consumer.h>
 
-struct mdio_platform_data {
+struct mdio_platform_data
+{
 	unsigned long		bus_freq;
 };
 
-struct emac_platform_data {
+struct emac_platform_data
+{
 	char mac_addr[ETH_ALEN];
 	u32 ctrl_reg_offset;
 	u32 ctrl_mod_reg_offset;
@@ -41,7 +43,8 @@ struct emac_platform_data {
 	void (*interrupt_disable) (void);
 };
 
-enum {
+enum
+{
 	EMAC_VERSION_1,	/* DM644x */
 	EMAC_VERSION_2,	/* DM646x */
 };

@@ -77,8 +77,8 @@ static inline void cancel_mac_stats_update(struct adapter *ap)
 #define MIN_FL_ENTRIES		32
 
 #define DFLT_MSG_ENABLE (NETIF_MSG_DRV | NETIF_MSG_PROBE | NETIF_MSG_LINK | \
-			 NETIF_MSG_TIMER | NETIF_MSG_IFDOWN | NETIF_MSG_IFUP |\
-			 NETIF_MSG_RX_ERR | NETIF_MSG_TX_ERR)
+						 NETIF_MSG_TIMER | NETIF_MSG_IFDOWN | NETIF_MSG_IFUP |\
+						 NETIF_MSG_RX_ERR | NETIF_MSG_TX_ERR)
 
 /*
  * The EEPROM is actually bigger but only the first few bytes are used so we
@@ -109,7 +109,8 @@ static int disable_msi = 0;
 module_param(disable_msi, int, 0);
 MODULE_PARM_DESC(disable_msi, "Disable Message Signaled Interrupt (MSI)");
 
-static const char pci_speed[][4] = {
+static const char pci_speed[][4] =
+{
 	"33", "66", "100", "133"
 };
 
@@ -129,48 +130,66 @@ static void t1_set_rxmode(struct net_device *dev)
 static void link_report(struct port_info *p)
 {
 	if (!netif_carrier_ok(p->dev))
+	{
 		netdev_info(p->dev, "link down\n");
-	else {
+	}
+	else
+	{
 		const char *s = "10Mbps";
 
-		switch (p->link_config.speed) {
+		switch (p->link_config.speed)
+		{
 			case SPEED_10000: s = "10Gbps"; break;
+
 			case SPEED_1000:  s = "1000Mbps"; break;
+
 			case SPEED_100:   s = "100Mbps"; break;
 		}
 
 		netdev_info(p->dev, "link up, %s, %s-duplex\n",
-			    s, p->link_config.duplex == DUPLEX_FULL
-			    ? "full" : "half");
+					s, p->link_config.duplex == DUPLEX_FULL
+					? "full" : "half");
 	}
 }
 
 void t1_link_negotiated(struct adapter *adapter, int port_id, int link_stat,
-			int speed, int duplex, int pause)
+						int speed, int duplex, int pause)
 {
 	struct port_info *p = &adapter->port[port_id];
 
-	if (link_stat != netif_carrier_ok(p->dev)) {
+	if (link_stat != netif_carrier_ok(p->dev))
+	{
 		if (link_stat)
+		{
 			netif_carrier_on(p->dev);
+		}
 		else
+		{
 			netif_carrier_off(p->dev);
+		}
+
 		link_report(p);
 
 		/* multi-ports: inform toe */
-		if ((speed > 0) && (adapter->params.nports > 1)) {
+		if ((speed > 0) && (adapter->params.nports > 1))
+		{
 			unsigned int sched_speed = 10;
-			switch (speed) {
-			case SPEED_1000:
-				sched_speed = 1000;
-				break;
-			case SPEED_100:
-				sched_speed = 100;
-				break;
-			case SPEED_10:
-				sched_speed = 10;
-				break;
+
+			switch (speed)
+			{
+				case SPEED_1000:
+					sched_speed = 1000;
+					break;
+
+				case SPEED_100:
+					sched_speed = 100;
+					break;
+
+				case SPEED_10:
+					sched_speed = 10;
+					break;
 			}
+
 			t1_sched_update_parms(adapter->sge, port_id, 0, sched_speed);
 		}
 	}
@@ -181,8 +200,12 @@ static void link_start(struct port_info *p)
 	struct cmac *mac = p->mac;
 
 	mac->ops->reset(mac);
+
 	if (mac->ops->macaddress_set)
+	{
 		mac->ops->macaddress_set(mac, p->dev->dev_addr);
+	}
+
 	t1_set_rxmode(p->dev);
 	t1_link_start(p->phy, mac, &p->link_config);
 	mac->ops->enable(mac, MAC_DIRECTION_RX | MAC_DIRECTION_TX);
@@ -191,7 +214,10 @@ static void link_start(struct port_info *p)
 static void enable_hw_csum(struct adapter *adapter)
 {
 	if (adapter->port[0].dev->hw_features & NETIF_F_TSO)
-		t1_tp_set_ip_checksum_offload(adapter->tp, 1);	/* for TSO only */
+	{
+		t1_tp_set_ip_checksum_offload(adapter->tp, 1);    /* for TSO only */
+	}
+
 	t1_tp_set_tcp_checksum_offload(adapter->tp, 1);
 }
 
@@ -203,10 +229,14 @@ static int cxgb_up(struct adapter *adapter)
 {
 	int err = 0;
 
-	if (!(adapter->flags & FULL_INIT_DONE)) {
+	if (!(adapter->flags & FULL_INIT_DONE))
+	{
 		err = t1_init_hw_modules(adapter);
+
 		if (err)
+		{
 			goto out_err;
+		}
 
 		enable_hw_csum(adapter);
 		adapter->flags |= FULL_INIT_DONE;
@@ -216,11 +246,15 @@ static int cxgb_up(struct adapter *adapter)
 
 	adapter->params.has_msi = !disable_msi && !pci_enable_msi(adapter->pdev);
 	err = request_irq(adapter->pdev->irq, t1_interrupt,
-			  adapter->params.has_msi ? 0 : IRQF_SHARED,
-			  adapter->name, adapter);
-	if (err) {
+					  adapter->params.has_msi ? 0 : IRQF_SHARED,
+					  adapter->name, adapter);
+
+	if (err)
+	{
 		if (adapter->params.has_msi)
+		{
 			pci_disable_msi(adapter->pdev);
+		}
 
 		goto out_err;
 	}
@@ -239,8 +273,11 @@ static void cxgb_down(struct adapter *adapter)
 	t1_sge_stop(adapter->sge);
 	t1_interrupts_disable(adapter);
 	free_irq(adapter->pdev->irq, adapter);
+
 	if (adapter->params.has_msi)
+	{
 		pci_disable_msi(adapter->pdev);
+	}
 }
 
 static int cxgb_open(struct net_device *dev)
@@ -250,7 +287,9 @@ static int cxgb_open(struct net_device *dev)
 	int other_ports = adapter->open_device_map & PORT_MASK;
 
 	napi_enable(&adapter->napi);
-	if (!adapter->open_device_map && (err = cxgb_up(adapter)) < 0) {
+
+	if (!adapter->open_device_map && (err = cxgb_up(adapter)) < 0)
+	{
 		napi_disable(&adapter->napi);
 		return err;
 	}
@@ -258,9 +297,10 @@ static int cxgb_open(struct net_device *dev)
 	__set_bit(dev->if_port, &adapter->open_device_map);
 	link_start(&adapter->port[dev->if_port]);
 	netif_start_queue(dev);
+
 	if (!other_ports && adapter->params.stats_update_period)
 		schedule_mac_stats_update(adapter,
-					  adapter->params.stats_update_period);
+								  adapter->params.stats_update_period);
 
 	t1_vlan_mode(adapter, dev->features);
 	return 0;
@@ -278,8 +318,10 @@ static int cxgb_close(struct net_device *dev)
 	netif_carrier_off(dev);
 
 	clear_bit(dev->if_port, &adapter->open_device_map);
+
 	if (adapter->params.stats_update_period &&
-	    !(adapter->open_device_map & PORT_MASK)) {
+		!(adapter->open_device_map & PORT_MASK))
+	{
 		/* Stop statistics accumulation. */
 		smp_mb__after_atomic();
 		spin_lock(&adapter->work_lock);   /* sync with update task */
@@ -288,7 +330,10 @@ static int cxgb_close(struct net_device *dev)
 	}
 
 	if (!adapter->open_device_map)
+	{
 		cxgb_down(adapter);
+	}
+
 	return 0;
 }
 
@@ -301,30 +346,30 @@ static struct net_device_stats *t1_get_stats(struct net_device *dev)
 
 	/* Do a full update of the MAC stats */
 	pstats = p->mac->ops->statistics_update(p->mac,
-						MAC_STATS_UPDATE_FULL);
+											MAC_STATS_UPDATE_FULL);
 
 	ns->tx_packets = pstats->TxUnicastFramesOK +
-		pstats->TxMulticastFramesOK + pstats->TxBroadcastFramesOK;
+					 pstats->TxMulticastFramesOK + pstats->TxBroadcastFramesOK;
 
 	ns->rx_packets = pstats->RxUnicastFramesOK +
-		pstats->RxMulticastFramesOK + pstats->RxBroadcastFramesOK;
+					 pstats->RxMulticastFramesOK + pstats->RxBroadcastFramesOK;
 
 	ns->tx_bytes = pstats->TxOctetsOK;
 	ns->rx_bytes = pstats->RxOctetsOK;
 
 	ns->tx_errors = pstats->TxLateCollisions + pstats->TxLengthErrors +
-		pstats->TxUnderrun + pstats->TxFramesAbortedDueToXSCollisions;
+					pstats->TxUnderrun + pstats->TxFramesAbortedDueToXSCollisions;
 	ns->rx_errors = pstats->RxDataErrors + pstats->RxJabberErrors +
-		pstats->RxFCSErrors + pstats->RxAlignErrors +
-		pstats->RxSequenceErrors + pstats->RxFrameTooLongErrors +
-		pstats->RxSymbolErrors + pstats->RxRuntErrors;
+					pstats->RxFCSErrors + pstats->RxAlignErrors +
+					pstats->RxSequenceErrors + pstats->RxFrameTooLongErrors +
+					pstats->RxSymbolErrors + pstats->RxRuntErrors;
 
 	ns->multicast  = pstats->RxMulticastFramesOK;
 	ns->collisions = pstats->TxTotalCollisions;
 
 	/* detailed rx_errors */
 	ns->rx_length_errors = pstats->RxFrameTooLongErrors +
-		pstats->RxJabberErrors;
+						   pstats->RxJabberErrors;
 	ns->rx_over_errors   = 0;
 	ns->rx_crc_errors    = pstats->RxFCSErrors;
 	ns->rx_frame_errors  = pstats->RxAlignErrors;
@@ -354,7 +399,8 @@ static void set_msglevel(struct net_device *dev, u32 val)
 	adapter->msg_enable = val;
 }
 
-static const char stats_strings[][ETH_GSTRING_LEN] = {
+static const char stats_strings[][ETH_GSTRING_LEN] =
+{
 	"TxOctetsOK",
 	"TxOctetsBad",
 	"TxUnicastFramesOK",
@@ -372,7 +418,7 @@ static const char stats_strings[][ETH_GSTRING_LEN] = {
 	"TxFCSErrors",
 	"TxJumboFramesOk",
 	"TxJumboOctetsOk",
-	
+
 	"RxOctetsOK",
 	"RxOctetsBad",
 	"RxUnicastFramesOK",
@@ -399,8 +445,8 @@ static const char stats_strings[][ETH_GSTRING_LEN] = {
 	"TxTso",
 	"RxVlan",
 	"TxVlan",
-	"TxNeedHeadroom", 
-	
+	"TxNeedHeadroom",
+
 	/* Interrupt stats */
 	"rx drops",
 	"pure_rsps",
@@ -435,27 +481,31 @@ static void get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *info)
 	strlcpy(info->driver, DRV_NAME, sizeof(info->driver));
 	strlcpy(info->version, DRV_VERSION, sizeof(info->version));
 	strlcpy(info->bus_info, pci_name(adapter->pdev),
-		sizeof(info->bus_info));
+			sizeof(info->bus_info));
 }
 
 static int get_sset_count(struct net_device *dev, int sset)
 {
-	switch (sset) {
-	case ETH_SS_STATS:
-		return ARRAY_SIZE(stats_strings);
-	default:
-		return -EOPNOTSUPP;
+	switch (sset)
+	{
+		case ETH_SS_STATS:
+			return ARRAY_SIZE(stats_strings);
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
 static void get_strings(struct net_device *dev, u32 stringset, u8 *data)
 {
 	if (stringset == ETH_SS_STATS)
+	{
 		memcpy(data, stats_strings, sizeof(stats_strings));
+	}
 }
 
 static void get_stats(struct net_device *dev, struct ethtool_stats *stats,
-		      u64 *data)
+					  u64 *data)
 {
 	struct adapter *adapter = dev->ml_priv;
 	struct cmac *mac = adapter->port[dev->if_port].mac;
@@ -511,7 +561,7 @@ static void get_stats(struct net_device *dev, struct ethtool_stats *stats,
 	*data++ = ss.vlan_xtract;
 	*data++ = ss.vlan_insert;
 	*data++ = ss.tx_need_hdrroom;
-	
+
 	*data++ = t->rx_drops;
 	*data++ = t->pure_rsps;
 	*data++ = t->unhandled_irqs;
@@ -523,7 +573,8 @@ static void get_stats(struct net_device *dev, struct ethtool_stats *stats,
 	*data++ = t->cmdQ_full[0];
 	*data++ = t->cmdQ_full[1];
 
-	if (adapter->espi) {
+	if (adapter->espi)
+	{
 		const struct espi_intr_counts *e;
 
 		e = t1_espi_get_intr_counts(adapter->espi);
@@ -537,16 +588,18 @@ static void get_stats(struct net_device *dev, struct ethtool_stats *stats,
 }
 
 static inline void reg_block_dump(struct adapter *ap, void *buf,
-				  unsigned int start, unsigned int end)
+								  unsigned int start, unsigned int end)
 {
 	u32 *p = buf + start;
 
 	for ( ; start <= end; start += sizeof(u32))
+	{
 		*p++ = readl(ap->regs + start);
+	}
 }
 
 static void get_regs(struct net_device *dev, struct ethtool_regs *regs,
-		     void *buf)
+					 void *buf)
 {
 	struct adapter *ap = dev->ml_priv;
 
@@ -576,10 +629,13 @@ static int get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 	cmd->supported = p->link_config.supported;
 	cmd->advertising = p->link_config.advertising;
 
-	if (netif_carrier_ok(dev)) {
+	if (netif_carrier_ok(dev))
+	{
 		ethtool_cmd_speed_set(cmd, p->link_config.speed);
 		cmd->duplex = p->link_config.duplex;
-	} else {
+	}
+	else
+	{
 		ethtool_cmd_speed_set(cmd, SPEED_UNKNOWN);
 		cmd->duplex = DUPLEX_UNKNOWN;
 	}
@@ -597,36 +653,58 @@ static int speed_duplex_to_caps(int speed, int duplex)
 {
 	int cap = 0;
 
-	switch (speed) {
-	case SPEED_10:
-		if (duplex == DUPLEX_FULL)
-			cap = SUPPORTED_10baseT_Full;
-		else
-			cap = SUPPORTED_10baseT_Half;
-		break;
-	case SPEED_100:
-		if (duplex == DUPLEX_FULL)
-			cap = SUPPORTED_100baseT_Full;
-		else
-			cap = SUPPORTED_100baseT_Half;
-		break;
-	case SPEED_1000:
-		if (duplex == DUPLEX_FULL)
-			cap = SUPPORTED_1000baseT_Full;
-		else
-			cap = SUPPORTED_1000baseT_Half;
-		break;
-	case SPEED_10000:
-		if (duplex == DUPLEX_FULL)
-			cap = SUPPORTED_10000baseT_Full;
+	switch (speed)
+	{
+		case SPEED_10:
+			if (duplex == DUPLEX_FULL)
+			{
+				cap = SUPPORTED_10baseT_Full;
+			}
+			else
+			{
+				cap = SUPPORTED_10baseT_Half;
+			}
+
+			break;
+
+		case SPEED_100:
+			if (duplex == DUPLEX_FULL)
+			{
+				cap = SUPPORTED_100baseT_Full;
+			}
+			else
+			{
+				cap = SUPPORTED_100baseT_Half;
+			}
+
+			break;
+
+		case SPEED_1000:
+			if (duplex == DUPLEX_FULL)
+			{
+				cap = SUPPORTED_1000baseT_Full;
+			}
+			else
+			{
+				cap = SUPPORTED_1000baseT_Half;
+			}
+
+			break;
+
+		case SPEED_10000:
+			if (duplex == DUPLEX_FULL)
+			{
+				cap = SUPPORTED_10000baseT_Full;
+			}
 	}
+
 	return cap;
 }
 
 #define ADVERTISED_MASK (ADVERTISED_10baseT_Half | ADVERTISED_10baseT_Full | \
-		      ADVERTISED_100baseT_Half | ADVERTISED_100baseT_Full | \
-		      ADVERTISED_1000baseT_Half | ADVERTISED_1000baseT_Full | \
-		      ADVERTISED_10000baseT_Full)
+						 ADVERTISED_100baseT_Half | ADVERTISED_100baseT_Full | \
+						 ADVERTISED_1000baseT_Half | ADVERTISED_1000baseT_Full | \
+						 ADVERTISED_10000baseT_Full)
 
 static int set_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 {
@@ -635,36 +713,57 @@ static int set_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 	struct link_config *lc = &p->link_config;
 
 	if (!(lc->supported & SUPPORTED_Autoneg))
-		return -EOPNOTSUPP;             /* can't change speed/duplex */
+	{
+		return -EOPNOTSUPP;    /* can't change speed/duplex */
+	}
 
-	if (cmd->autoneg == AUTONEG_DISABLE) {
+	if (cmd->autoneg == AUTONEG_DISABLE)
+	{
 		u32 speed = ethtool_cmd_speed(cmd);
 		int cap = speed_duplex_to_caps(speed, cmd->duplex);
 
 		if (!(lc->supported & cap) || (speed == SPEED_1000))
+		{
 			return -EINVAL;
+		}
+
 		lc->requested_speed = speed;
 		lc->requested_duplex = cmd->duplex;
 		lc->advertising = 0;
-	} else {
+	}
+	else
+	{
 		cmd->advertising &= ADVERTISED_MASK;
+
 		if (cmd->advertising & (cmd->advertising - 1))
+		{
 			cmd->advertising = lc->supported;
+		}
+
 		cmd->advertising &= lc->supported;
+
 		if (!cmd->advertising)
+		{
 			return -EINVAL;
+		}
+
 		lc->requested_speed = SPEED_INVALID;
 		lc->requested_duplex = DUPLEX_INVALID;
 		lc->advertising = cmd->advertising | ADVERTISED_Autoneg;
 	}
+
 	lc->autoneg = cmd->autoneg;
+
 	if (netif_running(dev))
+	{
 		t1_link_start(p->phy, p->mac, lc);
+	}
+
 	return 0;
 }
 
 static void get_pauseparam(struct net_device *dev,
-			   struct ethtool_pauseparam *epause)
+						   struct ethtool_pauseparam *epause)
 {
 	struct adapter *adapter = dev->ml_priv;
 	struct port_info *p = &adapter->port[dev->if_port];
@@ -675,32 +774,51 @@ static void get_pauseparam(struct net_device *dev,
 }
 
 static int set_pauseparam(struct net_device *dev,
-			  struct ethtool_pauseparam *epause)
+						  struct ethtool_pauseparam *epause)
 {
 	struct adapter *adapter = dev->ml_priv;
 	struct port_info *p = &adapter->port[dev->if_port];
 	struct link_config *lc = &p->link_config;
 
 	if (epause->autoneg == AUTONEG_DISABLE)
+	{
 		lc->requested_fc = 0;
+	}
 	else if (lc->supported & SUPPORTED_Autoneg)
+	{
 		lc->requested_fc = PAUSE_AUTONEG;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	if (epause->rx_pause)
+	{
 		lc->requested_fc |= PAUSE_RX;
+	}
+
 	if (epause->tx_pause)
+	{
 		lc->requested_fc |= PAUSE_TX;
-	if (lc->autoneg == AUTONEG_ENABLE) {
+	}
+
+	if (lc->autoneg == AUTONEG_ENABLE)
+	{
 		if (netif_running(dev))
+		{
 			t1_link_start(p->phy, p->mac, lc);
-	} else {
+		}
+	}
+	else
+	{
 		lc->fc = lc->requested_fc & (PAUSE_RX | PAUSE_TX);
+
 		if (netif_running(dev))
 			p->mac->ops->set_speed_duplex_fc(p->mac, -1, -1,
-							 lc->fc);
+											 lc->fc);
 	}
+
 	return 0;
 }
 
@@ -724,21 +842,25 @@ static int set_sge_param(struct net_device *dev, struct ethtool_ringparam *e)
 	int jumbo_fl = t1_is_T1B(adapter) ? 1 : 0;
 
 	if (e->rx_pending > MAX_RX_BUFFERS || e->rx_mini_pending ||
-	    e->rx_jumbo_pending > MAX_RX_JUMBO_BUFFERS ||
-	    e->tx_pending > MAX_CMDQ_ENTRIES ||
-	    e->rx_pending < MIN_FL_ENTRIES ||
-	    e->rx_jumbo_pending < MIN_FL_ENTRIES ||
-	    e->tx_pending < (adapter->params.nports + 1) * (MAX_SKB_FRAGS + 1))
+		e->rx_jumbo_pending > MAX_RX_JUMBO_BUFFERS ||
+		e->tx_pending > MAX_CMDQ_ENTRIES ||
+		e->rx_pending < MIN_FL_ENTRIES ||
+		e->rx_jumbo_pending < MIN_FL_ENTRIES ||
+		e->tx_pending < (adapter->params.nports + 1) * (MAX_SKB_FRAGS + 1))
+	{
 		return -EINVAL;
+	}
 
 	if (adapter->flags & FULL_INIT_DONE)
+	{
 		return -EBUSY;
+	}
 
 	adapter->params.sge.freelQ_size[!jumbo_fl] = e->rx_pending;
 	adapter->params.sge.freelQ_size[jumbo_fl] = e->rx_jumbo_pending;
 	adapter->params.sge.cmdQ_size[0] = e->tx_pending;
 	adapter->params.sge.cmdQ_size[1] = e->tx_pending > MAX_CMDQ1_ENTRIES ?
-		MAX_CMDQ1_ENTRIES : e->tx_pending;
+									   MAX_CMDQ1_ENTRIES : e->tx_pending;
 	return 0;
 }
 
@@ -774,20 +896,25 @@ static int get_eeprom_len(struct net_device *dev)
 	(PCI_VENDOR_ID_CHELSIO | ((ap)->params.chip_version << 16))
 
 static int get_eeprom(struct net_device *dev, struct ethtool_eeprom *e,
-		      u8 *data)
+					  u8 *data)
 {
 	int i;
 	u8 buf[EEPROM_SIZE] __attribute__((aligned(4)));
 	struct adapter *adapter = dev->ml_priv;
 
 	e->magic = EEPROM_MAGIC(adapter);
+
 	for (i = e->offset & ~3; i < e->offset + e->len; i += sizeof(u32))
+	{
 		t1_seeprom_read(adapter, i, (__le32 *)&buf[i]);
+	}
+
 	memcpy(data, buf + e->offset, e->len);
 	return 0;
 }
 
-static const struct ethtool_ops t1_ethtool_ops = {
+static const struct ethtool_ops t1_ethtool_ops =
+{
 	.get_settings      = get_settings,
 	.set_settings      = set_settings,
 	.get_drvinfo       = get_drvinfo,
@@ -824,11 +951,20 @@ static int t1_change_mtu(struct net_device *dev, int new_mtu)
 	struct cmac *mac = adapter->port[dev->if_port].mac;
 
 	if (!mac->ops->set_mtu)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	if (new_mtu < 68)
+	{
 		return -EINVAL;
+	}
+
 	if ((ret = mac->ops->set_mtu(mac, new_mtu)))
+	{
 		return ret;
+	}
+
 	dev->mtu = new_mtu;
 	return 0;
 }
@@ -840,7 +976,9 @@ static int t1_set_mac_addr(struct net_device *dev, void *p)
 	struct sockaddr *addr = p;
 
 	if (!mac->ops->macaddress_set)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
 	mac->ops->macaddress_set(mac, dev->dev_addr);
@@ -848,16 +986,20 @@ static int t1_set_mac_addr(struct net_device *dev, void *p)
 }
 
 static netdev_features_t t1_fix_features(struct net_device *dev,
-	netdev_features_t features)
+		netdev_features_t features)
 {
 	/*
 	 * Since there is no support for separate rx/tx vlan accel
 	 * enable/disable make sure tx flag is always in same state as rx.
 	 */
 	if (features & NETIF_F_HW_VLAN_CTAG_RX)
+	{
 		features |= NETIF_F_HW_VLAN_CTAG_TX;
+	}
 	else
+	{
 		features &= ~NETIF_F_HW_VLAN_CTAG_TX;
+	}
 
 	return features;
 }
@@ -868,7 +1010,9 @@ static int t1_set_features(struct net_device *dev, netdev_features_t features)
 	struct adapter *adapter = dev->ml_priv;
 
 	if (changed & NETIF_F_HW_VLAN_CTAG_RX)
+	{
 		t1_vlan_mode(adapter, features);
+	}
 
 	return 0;
 }
@@ -894,19 +1038,22 @@ static void mac_stats_task(struct work_struct *work)
 	struct adapter *adapter =
 		container_of(work, struct adapter, stats_update_task.work);
 
-	for_each_port(adapter, i) {
+	for_each_port(adapter, i)
+	{
 		struct port_info *p = &adapter->port[i];
 
 		if (netif_running(p->dev))
 			p->mac->ops->statistics_update(p->mac,
-						       MAC_STATS_UPDATE_FAST);
+										   MAC_STATS_UPDATE_FAST);
 	}
 
 	/* Schedule the next statistics update if any port is active. */
 	spin_lock(&adapter->work_lock);
+
 	if (adapter->open_device_map & PORT_MASK)
 		schedule_mac_stats_update(adapter,
-					  adapter->params.stats_update_period);
+								  adapter->params.stats_update_period);
+
 	spin_unlock(&adapter->work_lock);
 }
 
@@ -947,15 +1094,18 @@ void t1_elmer0_ext_intr(struct adapter *adapter)
 
 void t1_fatal_err(struct adapter *adapter)
 {
-	if (adapter->flags & FULL_INIT_DONE) {
+	if (adapter->flags & FULL_INIT_DONE)
+	{
 		t1_sge_stop(adapter->sge);
 		t1_interrupts_disable(adapter);
 	}
+
 	pr_alert("%s: encountered fatal error, operation suspended\n",
-		 adapter->name);
+			 adapter->name);
 }
 
-static const struct net_device_ops cxgb_netdev_ops = {
+static const struct net_device_ops cxgb_netdev_ops =
+{
 	.ndo_open		= cxgb_open,
 	.ndo_stop		= cxgb_close,
 	.ndo_start_xmit		= t1_start_xmit,
@@ -983,33 +1133,43 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pr_info_once("%s - version %s\n", DRV_DESCRIPTION, DRV_VERSION);
 
 	err = pci_enable_device(pdev);
-	if (err)
-		return err;
 
-	if (!(pci_resource_flags(pdev, 0) & IORESOURCE_MEM)) {
+	if (err)
+	{
+		return err;
+	}
+
+	if (!(pci_resource_flags(pdev, 0) & IORESOURCE_MEM))
+	{
 		pr_err("%s: cannot find PCI device memory base address\n",
-		       pci_name(pdev));
+			   pci_name(pdev));
 		err = -ENODEV;
 		goto out_disable_pdev;
 	}
 
-	if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(64))) {
+	if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(64)))
+	{
 		pci_using_dac = 1;
 
-		if (pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64))) {
+		if (pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64)))
+		{
 			pr_err("%s: unable to obtain 64-bit DMA for "
-			       "consistent allocations\n", pci_name(pdev));
+				   "consistent allocations\n", pci_name(pdev));
 			err = -ENODEV;
 			goto out_disable_pdev;
 		}
 
-	} else if ((err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32))) != 0) {
+	}
+	else if ((err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32))) != 0)
+	{
 		pr_err("%s: no usable DMA configuration\n", pci_name(pdev));
 		goto out_disable_pdev;
 	}
 
 	err = pci_request_regions(pdev, DRV_NAME);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("%s: cannot obtain PCI resources\n", pci_name(pdev));
 		goto out_disable_pdev;
 	}
@@ -1020,31 +1180,38 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	mmio_len = pci_resource_len(pdev, 0);
 	bi = t1_get_board_info(ent->driver_data);
 
-	for (i = 0; i < bi->port_number; ++i) {
+	for (i = 0; i < bi->port_number; ++i)
+	{
 		struct net_device *netdev;
 
 		netdev = alloc_etherdev(adapter ? 0 : sizeof(*adapter));
-		if (!netdev) {
+
+		if (!netdev)
+		{
 			err = -ENOMEM;
 			goto out_free_dev;
 		}
 
 		SET_NETDEV_DEV(netdev, &pdev->dev);
 
-		if (!adapter) {
+		if (!adapter)
+		{
 			adapter = netdev_priv(netdev);
 			adapter->pdev = pdev;
 			adapter->port[0].dev = netdev;  /* so we don't leak it */
 
 			adapter->regs = ioremap(mmio_start, mmio_len);
-			if (!adapter->regs) {
+
+			if (!adapter->regs)
+			{
 				pr_err("%s: cannot map device registers\n",
-				       pci_name(pdev));
+					   pci_name(pdev));
 				err = -ENOMEM;
 				goto out_free_dev;
 			}
 
-			if (t1_get_board_rev(adapter, bi, &adapter->params)) {
+			if (t1_get_board_rev(adapter, bi, &adapter->params))
+			{
 				err = -ENODEV;	  /* Can't handle this chip rev */
 				goto out_free_dev;
 			}
@@ -1059,9 +1226,9 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 			spin_lock_init(&adapter->mac_lock);
 
 			INIT_WORK(&adapter->ext_intr_handler_task,
-				  ext_intr_task);
+					  ext_intr_task);
 			INIT_DELAYED_WORK(&adapter->stats_update_task,
-					  mac_stats_task);
+							  mac_stats_task);
 
 			pci_set_drvdata(pdev, netdev);
 		}
@@ -1075,20 +1242,25 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 		netdev->mem_end = mmio_start + mmio_len - 1;
 		netdev->ml_priv = adapter;
 		netdev->hw_features |= NETIF_F_SG | NETIF_F_IP_CSUM |
-			NETIF_F_RXCSUM;
+							   NETIF_F_RXCSUM;
 		netdev->features |= NETIF_F_SG | NETIF_F_IP_CSUM |
-			NETIF_F_RXCSUM | NETIF_F_LLTX;
+							NETIF_F_RXCSUM | NETIF_F_LLTX;
 
 		if (pci_using_dac)
+		{
 			netdev->features |= NETIF_F_HIGHDMA;
-		if (vlan_tso_capable(adapter)) {
+		}
+
+		if (vlan_tso_capable(adapter))
+		{
 			netdev->features |=
 				NETIF_F_HW_VLAN_CTAG_TX |
 				NETIF_F_HW_VLAN_CTAG_RX;
 			netdev->hw_features |= NETIF_F_HW_VLAN_CTAG_RX;
 
 			/* T204: disable TSO */
-			if (!(is_T2(adapter)) || bi->port_number != 4) {
+			if (!(is_T2(adapter)) || bi->port_number != 4)
+			{
 				netdev->hw_features |= NETIF_F_TSO;
 				netdev->features |= NETIF_F_TSO;
 			}
@@ -1096,14 +1268,15 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 		netdev->netdev_ops = &cxgb_netdev_ops;
 		netdev->hard_header_len += (netdev->hw_features & NETIF_F_TSO) ?
-			sizeof(struct cpl_tx_pkt_lso) : sizeof(struct cpl_tx_pkt);
+								   sizeof(struct cpl_tx_pkt_lso) : sizeof(struct cpl_tx_pkt);
 
 		netif_napi_add(netdev, &adapter->napi, t1_poll, 64);
 
 		netdev->ethtool_ops = &t1_ethtool_ops;
 	}
 
-	if (t1_init_sw_modules(adapter, bi) < 0) {
+	if (t1_init_sw_modules(adapter, bi) < 0)
+	{
 		err = -ENODEV;
 		goto out_free_dev;
 	}
@@ -1114,55 +1287,77 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 * with the ports we manage to register successfully.  However we must
 	 * register at least one net device.
 	 */
-	for (i = 0; i < bi->port_number; ++i) {
+	for (i = 0; i < bi->port_number; ++i)
+	{
 		err = register_netdev(adapter->port[i].dev);
+
 		if (err)
 			pr_warn("%s: cannot register net device %s, skipping\n",
-				pci_name(pdev), adapter->port[i].dev->name);
-		else {
+					pci_name(pdev), adapter->port[i].dev->name);
+		else
+		{
 			/*
 			 * Change the name we use for messages to the name of
 			 * the first successfully registered interface.
 			 */
 			if (!adapter->registered_device_map)
+			{
 				adapter->name = adapter->port[i].dev->name;
+			}
 
 			__set_bit(i, &adapter->registered_device_map);
 		}
 	}
-	if (!adapter->registered_device_map) {
+
+	if (!adapter->registered_device_map)
+	{
 		pr_err("%s: could not register any net devices\n",
-		       pci_name(pdev));
+			   pci_name(pdev));
 		goto out_release_adapter_res;
 	}
 
 	pr_info("%s: %s (rev %d), %s %dMHz/%d-bit\n",
-		adapter->name, bi->desc, adapter->params.chip_revision,
-		adapter->params.pci.is_pcix ? "PCIX" : "PCI",
-		adapter->params.pci.speed, adapter->params.pci.width);
+			adapter->name, bi->desc, adapter->params.chip_revision,
+			adapter->params.pci.is_pcix ? "PCIX" : "PCI",
+			adapter->params.pci.speed, adapter->params.pci.width);
 
 	/*
 	 * Set the T1B ASIC and memory clocks.
 	 */
 	if (t1powersave)
-		adapter->t1powersave = LCLOCK;	/* HW default is powersave mode. */
+	{
+		adapter->t1powersave = LCLOCK;    /* HW default is powersave mode. */
+	}
 	else
+	{
 		adapter->t1powersave = HCLOCK;
+	}
+
 	if (t1_is_T1B(adapter))
+	{
 		t1_clock(adapter, t1powersave);
+	}
 
 	return 0;
 
 out_release_adapter_res:
 	t1_free_sw_modules(adapter);
 out_free_dev:
-	if (adapter) {
+
+	if (adapter)
+	{
 		if (adapter->regs)
+		{
 			iounmap(adapter->regs);
+		}
+
 		for (i = bi->port_number - 1; i >= 0; --i)
 			if (adapter->port[i].dev)
+			{
 				free_netdev(adapter->port[i].dev);
+			}
 	}
+
 	pci_release_regions(pdev);
 out_disable_pdev:
 	pci_disable_device(pdev);
@@ -1175,12 +1370,14 @@ static void bit_bang(struct adapter *adapter, int bitdata, int nbits)
 	int i;
 	u32 val;
 
-	enum {
+	enum
+	{
 		S_CLOCK = 1 << 3,
 		S_DATA = 1 << 4
 	};
 
-	for (i = (nbits - 1); i > -1; i--) {
+	for (i = (nbits - 1); i > -1; i--)
+	{
 
 		udelay(50);
 
@@ -1188,9 +1385,13 @@ static void bit_bang(struct adapter *adapter, int bitdata, int nbits)
 		__t1_tpi_read(adapter, A_ELMER0_GPO, &val);
 
 		if (data)
+		{
 			val |= S_DATA;
+		}
 		else
+		{
 			val &= ~S_DATA;
+		}
 
 		udelay(50);
 
@@ -1213,7 +1414,8 @@ static int t1_clock(struct adapter *adapter, int mode)
 	int M_CORE_VAL;
 	int M_MEM_VAL;
 
-	enum {
+	enum
+	{
 		M_CORE_BITS	= 9,
 		T_CORE_VAL	= 0,
 		T_CORE_BITS	= 2,
@@ -1231,19 +1433,28 @@ static int t1_clock(struct adapter *adapter, int mode)
 	};
 
 	if (!t1_is_T1B(adapter))
-		return -ENODEV;	/* Can't re-clock this chip. */
+	{
+		return -ENODEV;    /* Can't re-clock this chip. */
+	}
 
 	if (mode & 2)
-		return 0;	/* show current mode. */
+	{
+		return 0;    /* show current mode. */
+	}
 
 	if ((adapter->t1powersave & 1) == (mode & 1))
-		return -EALREADY;	/* ASIC already running in mode. */
+	{
+		return -EALREADY;    /* ASIC already running in mode. */
+	}
 
-	if ((mode & 1) == HCLOCK) {
+	if ((mode & 1) == HCLOCK)
+	{
 		M_CORE_VAL = 0x14;
 		M_MEM_VAL = 0x18;
 		adapter->t1powersave = HCLOCK;	/* overclock */
-	} else {
+	}
+	else
+	{
 		M_CORE_VAL = 0xe;
 		M_MEM_VAL = 0x10;
 		adapter->t1powersave = LCLOCK;	/* underclock */
@@ -1329,17 +1540,23 @@ static void remove_one(struct pci_dev *pdev)
 	struct adapter *adapter = dev->ml_priv;
 	int i;
 
-	for_each_port(adapter, i) {
+	for_each_port(adapter, i)
+	{
 		if (test_bit(i, &adapter->registered_device_map))
+		{
 			unregister_netdev(adapter->port[i].dev);
+		}
 	}
 
 	t1_free_sw_modules(adapter);
 	iounmap(adapter->regs);
 
-	while (--i >= 0) {
+	while (--i >= 0)
+	{
 		if (adapter->port[i].dev)
+		{
 			free_netdev(adapter->port[i].dev);
+		}
 	}
 
 	pci_release_regions(pdev);
@@ -1347,7 +1564,8 @@ static void remove_one(struct pci_dev *pdev)
 	t1_sw_reset(pdev);
 }
 
-static struct pci_driver cxgb_pci_driver = {
+static struct pci_driver cxgb_pci_driver =
+{
 	.name     = DRV_NAME,
 	.id_table = t1_pci_tbl,
 	.probe    = init_one,

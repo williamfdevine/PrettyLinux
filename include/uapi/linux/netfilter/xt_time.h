@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct xt_time_info {
+struct xt_time_info
+{
 	__u32 date_start;
 	__u32 date_stop;
 	__u32 daytime_start;
@@ -13,7 +14,8 @@ struct xt_time_info {
 	__u8 flags;
 };
 
-enum {
+enum
+{
 	/* Match against local time (instead of UTC) */
 	XT_TIME_LOCAL_TZ = 1 << 0,
 

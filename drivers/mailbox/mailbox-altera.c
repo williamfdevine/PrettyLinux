@@ -40,14 +40,16 @@
 #define MBOX_PENDING(status)	(((status) & STS_PENDING_MSK))
 #define MBOX_FULL(status)	(((status) & STS_FULL_MSK) >> STS_FULL_OFT)
 
-enum altera_mbox_msg {
+enum altera_mbox_msg
+{
 	MBOX_CMD = 0,
 	MBOX_PTR,
 };
 
 #define MBOX_POLLING_MS		5	/* polling interval 5ms */
 
-struct altera_mbox {
+struct altera_mbox
+{
 	bool is_sender;		/* 1-sender, 0-receiver */
 	bool intr_mode;
 	int irq;
@@ -62,7 +64,9 @@ struct altera_mbox {
 static struct altera_mbox *mbox_chan_to_altera_mbox(struct mbox_chan *chan)
 {
 	if (!chan || !chan->con_priv)
+	{
 		return NULL;
+	}
 
 	return (struct altera_mbox *)chan->con_priv;
 }
@@ -88,10 +92,16 @@ static void altera_mbox_rx_intmask(struct altera_mbox *mbox, bool enable)
 	u32 mask;
 
 	mask = readl_relaxed(mbox->mbox_base + MAILBOX_INTMASK_REG);
+
 	if (enable)
+	{
 		mask |= INT_PENDING_MSK;
+	}
 	else
+	{
 		mask &= ~INT_PENDING_MSK;
+	}
+
 	writel_relaxed(mask, mbox->mbox_base + MAILBOX_INTMASK_REG);
 }
 
@@ -100,10 +110,16 @@ static void altera_mbox_tx_intmask(struct altera_mbox *mbox, bool enable)
 	u32 mask;
 
 	mask = readl_relaxed(mbox->mbox_base + MAILBOX_INTMASK_REG);
+
 	if (enable)
+	{
 		mask |= INT_SPACE_MSK;
+	}
 	else
+	{
 		mask &= ~INT_SPACE_MSK;
+	}
+
 	writel_relaxed(mask, mbox->mbox_base + MAILBOX_INTMASK_REG);
 }
 
@@ -113,14 +129,17 @@ static bool altera_mbox_is_sender(struct altera_mbox *mbox)
 	/* Write a magic number to PTR register and read back this register.
 	 * This register is read-write if it is a sender.
 	 */
-	#define MBOX_MAGIC	0xA5A5AA55
+#define MBOX_MAGIC	0xA5A5AA55
 	writel_relaxed(MBOX_MAGIC, mbox->mbox_base + MAILBOX_PTR_REG);
 	reg = readl_relaxed(mbox->mbox_base + MAILBOX_PTR_REG);
-	if (reg == MBOX_MAGIC) {
+
+	if (reg == MBOX_MAGIC)
+	{
 		/* Clear to 0 */
 		writel_relaxed(0, mbox->mbox_base + MAILBOX_PTR_REG);
 		return true;
 	}
+
 	return false;
 }
 
@@ -129,7 +148,8 @@ static void altera_mbox_rx_data(struct mbox_chan *chan)
 	struct altera_mbox *mbox = mbox_chan_to_altera_mbox(chan);
 	u32 data[2];
 
-	if (altera_mbox_pending(mbox)) {
+	if (altera_mbox_pending(mbox))
+	{
 		data[MBOX_PTR] =
 			readl_relaxed(mbox->mbox_base + MAILBOX_PTR_REG);
 		data[MBOX_CMD] =
@@ -146,7 +166,7 @@ static void altera_mbox_poll_rx(unsigned long data)
 	altera_mbox_rx_data(chan);
 
 	mod_timer(&mbox->rxpoll_timer,
-		  jiffies + msecs_to_jiffies(MBOX_POLLING_MS));
+			  jiffies + msecs_to_jiffies(MBOX_POLLING_MS));
 }
 
 static irqreturn_t altera_mbox_tx_interrupt(int irq, void *p)
@@ -173,13 +193,16 @@ static int altera_mbox_startup_sender(struct mbox_chan *chan)
 	int ret;
 	struct altera_mbox *mbox = mbox_chan_to_altera_mbox(chan);
 
-	if (mbox->intr_mode) {
+	if (mbox->intr_mode)
+	{
 		ret = request_irq(mbox->irq, altera_mbox_tx_interrupt, 0,
-				  DRIVER_NAME, chan);
-		if (unlikely(ret)) {
+						  DRIVER_NAME, chan);
+
+		if (unlikely(ret))
+		{
 			dev_err(mbox->dev,
-				"failed to register mailbox interrupt:%d\n",
-				ret);
+					"failed to register mailbox interrupt:%d\n",
+					ret);
 			return ret;
 		}
 	}
@@ -192,10 +215,13 @@ static int altera_mbox_startup_receiver(struct mbox_chan *chan)
 	int ret;
 	struct altera_mbox *mbox = mbox_chan_to_altera_mbox(chan);
 
-	if (mbox->intr_mode) {
+	if (mbox->intr_mode)
+	{
 		ret = request_irq(mbox->irq, altera_mbox_rx_interrupt, 0,
-				  DRIVER_NAME, chan);
-		if (unlikely(ret)) {
+						  DRIVER_NAME, chan);
+
+		if (unlikely(ret))
+		{
 			mbox->intr_mode = false;
 			goto polling; /* use polling if failed */
 		}
@@ -207,9 +233,9 @@ static int altera_mbox_startup_receiver(struct mbox_chan *chan)
 polling:
 	/* Setup polling timer */
 	setup_timer(&mbox->rxpoll_timer, altera_mbox_poll_rx,
-		    (unsigned long)chan);
+				(unsigned long)chan);
 	mod_timer(&mbox->rxpoll_timer,
-		  jiffies + msecs_to_jiffies(MBOX_POLLING_MS));
+			  jiffies + msecs_to_jiffies(MBOX_POLLING_MS));
 
 	return 0;
 }
@@ -220,19 +246,27 @@ static int altera_mbox_send_data(struct mbox_chan *chan, void *data)
 	u32 *udata = (u32 *)data;
 
 	if (!mbox || !data)
+	{
 		return -EINVAL;
-	if (!mbox->is_sender) {
+	}
+
+	if (!mbox->is_sender)
+	{
 		dev_warn(mbox->dev,
-			 "failed to send. This is receiver mailbox.\n");
+				 "failed to send. This is receiver mailbox.\n");
 		return -EINVAL;
 	}
 
 	if (altera_mbox_full(mbox))
+	{
 		return -EBUSY;
+	}
 
 	/* Enable interrupt before send */
 	if (mbox->intr_mode)
+	{
 		altera_mbox_tx_intmask(mbox, true);
+	}
 
 	/* Pointer register must write before command register */
 	writel_relaxed(udata[MBOX_PTR], mbox->mbox_base + MAILBOX_PTR_REG);
@@ -262,12 +296,18 @@ static int altera_mbox_startup(struct mbox_chan *chan)
 	int ret = 0;
 
 	if (!mbox)
+	{
 		return -EINVAL;
+	}
 
 	if (mbox->is_sender)
+	{
 		ret = altera_mbox_startup_sender(chan);
+	}
 	else
+	{
 		ret = altera_mbox_startup_receiver(chan);
+	}
 
 	return ret;
 }
@@ -276,16 +316,20 @@ static void altera_mbox_shutdown(struct mbox_chan *chan)
 {
 	struct altera_mbox *mbox = mbox_chan_to_altera_mbox(chan);
 
-	if (mbox->intr_mode) {
+	if (mbox->intr_mode)
+	{
 		/* Unmask all interrupt masks */
 		writel_relaxed(~0, mbox->mbox_base + MAILBOX_INTMASK_REG);
 		free_irq(mbox->irq, chan);
-	} else if (!mbox->is_sender) {
+	}
+	else if (!mbox->is_sender)
+	{
 		del_timer_sync(&mbox->rxpoll_timer);
 	}
 }
 
-static const struct mbox_chan_ops altera_mbox_ops = {
+static const struct mbox_chan_ops altera_mbox_ops =
+{
 	.send_data = altera_mbox_send_data,
 	.startup = altera_mbox_startup,
 	.shutdown = altera_mbox_shutdown,
@@ -301,27 +345,39 @@ static int altera_mbox_probe(struct platform_device *pdev)
 	int ret;
 
 	mbox = devm_kzalloc(&pdev->dev, sizeof(*mbox),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!mbox)
+	{
 		return -ENOMEM;
+	}
 
 	/* Allocated one channel */
 	chans = devm_kzalloc(&pdev->dev, sizeof(*chans), GFP_KERNEL);
+
 	if (!chans)
+	{
 		return -ENOMEM;
+	}
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	mbox->mbox_base = devm_ioremap_resource(&pdev->dev, regs);
+
 	if (IS_ERR(mbox->mbox_base))
+	{
 		return PTR_ERR(mbox->mbox_base);
+	}
 
 	/* Check is it a sender or receiver? */
 	mbox->is_sender = altera_mbox_is_sender(mbox);
 
 	mbox->irq = platform_get_irq(pdev, 0);
+
 	if (mbox->irq >= 0)
+	{
 		mbox->intr_mode = true;
+	}
 
 	mbox->dev = &pdev->dev;
 
@@ -332,17 +388,23 @@ static int altera_mbox_probe(struct platform_device *pdev)
 	mbox->controller.chans = chans;
 	mbox->controller.ops = &altera_mbox_ops;
 
-	if (mbox->is_sender) {
-		if (mbox->intr_mode) {
+	if (mbox->is_sender)
+	{
+		if (mbox->intr_mode)
+		{
 			mbox->controller.txdone_irq = true;
-		} else {
+		}
+		else
+		{
 			mbox->controller.txdone_poll = true;
 			mbox->controller.txpoll_period = MBOX_POLLING_MS;
 		}
 	}
 
 	ret = mbox_controller_register(&mbox->controller);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Register mailbox failed\n");
 		goto err;
 	}
@@ -357,21 +419,25 @@ static int altera_mbox_remove(struct platform_device *pdev)
 	struct altera_mbox *mbox = platform_get_drvdata(pdev);
 
 	if (!mbox)
+	{
 		return -EINVAL;
+	}
 
 	mbox_controller_unregister(&mbox->controller);
 
 	return 0;
 }
 
-static const struct of_device_id altera_mbox_match[] = {
+static const struct of_device_id altera_mbox_match[] =
+{
 	{ .compatible = "altr,mailbox-1.0" },
 	{ /* Sentinel */ }
 };
 
 MODULE_DEVICE_TABLE(of, altera_mbox_match);
 
-static struct platform_driver altera_mbox_driver = {
+static struct platform_driver altera_mbox_driver =
+{
 	.probe	= altera_mbox_probe,
 	.remove	= altera_mbox_remove,
 	.driver	= {

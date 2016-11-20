@@ -46,7 +46,8 @@
 
 int __initdata init_ohci1394_dma_early;
 
-struct ohci {
+struct ohci
+{
 	void __iomem *registers;
 };
 
@@ -70,11 +71,16 @@ static inline u8 __init get_phy_reg(struct ohci *ohci, u8 addr)
 
 	reg_write(ohci, OHCI1394_PhyControl, (addr << 8) | 0x00008000);
 
-	for (i = 0; i < OHCI_LOOP_COUNT; i++) {
+	for (i = 0; i < OHCI_LOOP_COUNT; i++)
+	{
 		if (reg_read(ohci, OHCI1394_PhyControl) & 0x80000000)
+		{
 			break;
+		}
+
 		mdelay(1);
 	}
+
 	r = reg_read(ohci, OHCI1394_PhyControl);
 
 	return (r & 0x00ff0000) >> 16;
@@ -87,9 +93,13 @@ static inline void __init set_phy_reg(struct ohci *ohci, u8 addr, u8 data)
 
 	reg_write(ohci, OHCI1394_PhyControl, (addr << 8) | data | 0x00004000);
 
-	for (i = 0; i < OHCI_LOOP_COUNT; i++) {
+	for (i = 0; i < OHCI_LOOP_COUNT; i++)
+	{
 		if (!(reg_read(ohci, OHCI1394_PhyControl) & 0x00004000))
+		{
 			break;
+		}
+
 		mdelay(1);
 	}
 }
@@ -101,10 +111,14 @@ static inline void __init init_ohci1394_soft_reset(struct ohci *ohci)
 
 	reg_write(ohci, OHCI1394_HCControlSet, OHCI1394_HCControl_softReset);
 
-	for (i = 0; i < OHCI_LOOP_COUNT; i++) {
+	for (i = 0; i < OHCI_LOOP_COUNT; i++)
+	{
 		if (!(reg_read(ohci, OHCI1394_HCControlSet)
-				   & OHCI1394_HCControl_softReset))
+			  & OHCI1394_HCControl_softReset))
+		{
 			break;
+		}
+
 		mdelay(1);
 	}
 }
@@ -131,14 +145,14 @@ static inline void __init init_ohci1394_initialize(struct ohci *ohci)
 
 	/* Enable posted writes */
 	reg_write(ohci, OHCI1394_HCControlSet,
-			OHCI1394_HCControl_postedWriteEnable);
+			  OHCI1394_HCControl_postedWriteEnable);
 
 	/* Clear link control register */
 	reg_write(ohci, OHCI1394_LinkControlClear, 0xffffffff);
 
 	/* enable phys */
 	reg_write(ohci, OHCI1394_LinkControlSet,
-			OHCI1394_LinkControl_rcvPhyPkt);
+			  OHCI1394_LinkControl_rcvPhyPkt);
 
 	/* Don't accept phy packets into AR request context */
 	reg_write(ohci, OHCI1394_LinkControlClear, 0x00000400);
@@ -154,27 +168,31 @@ static inline void __init init_ohci1394_initialize(struct ohci *ohci)
 
 	/* Specify asynchronous transfer retries */
 	reg_write(ohci, OHCI1394_ATRetries,
-		  OHCI1394_MAX_AT_REQ_RETRIES |
-		  (OHCI1394_MAX_AT_RESP_RETRIES<<4) |
-		  (OHCI1394_MAX_PHYS_RESP_RETRIES<<8));
+			  OHCI1394_MAX_AT_REQ_RETRIES |
+			  (OHCI1394_MAX_AT_RESP_RETRIES << 4) |
+			  (OHCI1394_MAX_PHYS_RESP_RETRIES << 8));
 
 	/* We don't want hardware swapping */
 	reg_write(ohci, OHCI1394_HCControlClear,
-		  OHCI1394_HCControl_noByteSwapData);
+			  OHCI1394_HCControl_noByteSwapData);
 
 	/* Enable link */
 	reg_write(ohci, OHCI1394_HCControlSet, OHCI1394_HCControl_linkEnable);
 
 	/* If anything is connected to a port, make sure it is enabled */
 	num_ports = get_phy_reg(ohci, 2) & 0xf;
-	for (i = 0; i < num_ports; i++) {
+
+	for (i = 0; i < num_ports; i++)
+	{
 		unsigned int status;
 
 		set_phy_reg(ohci, 7, i);
 		status = get_phy_reg(ohci, 8);
 
 		if (status & 0x20)
+		{
 			set_phy_reg(ohci, 8, status & ~1);
+		}
 	}
 }
 
@@ -191,12 +209,14 @@ static inline void __init init_ohci1394_wait_for_busresets(struct ohci *ohci)
 {
 	int i, events;
 
-	for (i = 0; i < 9; i++) {
+	for (i = 0; i < 9; i++)
+	{
 		mdelay(200);
 		events = reg_read(ohci, OHCI1394_IntEventSet);
+
 		if (events & OHCI1394_busReset)
 			reg_write(ohci, OHCI1394_IntEventClear,
-					OHCI1394_busReset);
+					  OHCI1394_busReset);
 	}
 }
 
@@ -251,10 +271,10 @@ static inline void __init init_ohci1394_controller(int num, int slot, int func)
 	struct ohci ohci;
 
 	printk(KERN_INFO "init_ohci1394_dma: initializing OHCI-1394"
-			 " at %02x:%02x.%x\n", num, slot, func);
+		   " at %02x:%02x.%x\n", num, slot, func);
 
-	ohci_base = read_pci_config(num, slot, func, PCI_BASE_ADDRESS_0+(0<<2))
-						   & PCI_BASE_ADDRESS_MEM_MASK;
+	ohci_base = read_pci_config(num, slot, func, PCI_BASE_ADDRESS_0 + (0 << 2))
+				& PCI_BASE_ADDRESS_MEM_MASK;
 
 	set_fixmap_nocache(FIX_OHCI1394_BASE, ohci_base);
 
@@ -273,25 +293,36 @@ void __init init_ohci1394_dma_on_all_controllers(void)
 	u32 class;
 
 	if (!early_pci_allowed())
+	{
 		return;
+	}
 
 	/* Poor man's PCI discovery, the only thing we can do at early boot */
-	for (num = 0; num < 32; num++) {
-		for (slot = 0; slot < 32; slot++) {
-			for (func = 0; func < 8; func++) {
+	for (num = 0; num < 32; num++)
+	{
+		for (slot = 0; slot < 32; slot++)
+		{
+			for (func = 0; func < 8; func++)
+			{
 				class = read_pci_config(num, slot, func,
-							PCI_CLASS_REVISION);
-				if (class == 0xffffffff)
-					continue; /* No device at this func */
+											PCI_CLASS_REVISION);
 
-				if (class>>8 != PCI_CLASS_SERIAL_FIREWIRE_OHCI)
-					continue; /* Not an OHCI-1394 device */
+				if (class == 0xffffffff)
+				{
+					continue;    /* No device at this func */
+				}
+
+				if (class >> 8 != PCI_CLASS_SERIAL_FIREWIRE_OHCI)
+				{
+					continue;    /* Not an OHCI-1394 device */
+				}
 
 				init_ohci1394_controller(num, slot, func);
 				break; /* Assume one controller per device */
 			}
 		}
 	}
+
 	printk(KERN_INFO "init_ohci1394_dma: finished initializing OHCI DMA\n");
 }
 
@@ -301,7 +332,10 @@ void __init init_ohci1394_dma_on_all_controllers(void)
 static int __init setup_ohci1394_dma(char *opt)
 {
 	if (!strcmp(opt, "early"))
+	{
 		init_ohci1394_dma_early = 1;
+	}
+
 	return 0;
 }
 

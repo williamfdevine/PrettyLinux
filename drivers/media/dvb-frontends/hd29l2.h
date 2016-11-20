@@ -25,7 +25,8 @@
 
 #include <linux/dvb/frontend.h>
 
-struct hd29l2_config {
+struct hd29l2_config
+{
 	/*
 	 * demodulator I2C address
 	 */
@@ -52,10 +53,10 @@ struct hd29l2_config {
 
 #if IS_REACHABLE(CONFIG_DVB_HD29L2)
 extern struct dvb_frontend *hd29l2_attach(const struct hd29l2_config *config,
-	struct i2c_adapter *i2c);
+		struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *hd29l2_attach(
-const struct hd29l2_config *config, struct i2c_adapter *i2c)
+	const struct hd29l2_config *config, struct i2c_adapter *i2c)
 {
 	pr_warn("%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

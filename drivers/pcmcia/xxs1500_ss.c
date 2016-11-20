@@ -51,7 +51,8 @@
 #define GPIO_BATTWARN	211
 #define GPIO_POWER	214
 
-struct xxs1500_pcmcia_sock {
+struct xxs1500_pcmcia_sock
+{
 	struct pcmcia_socket	socket;
 	void		*virt_io;
 
@@ -75,31 +76,38 @@ static irqreturn_t cdirq(int irq, void *data)
 }
 
 static int xxs1500_pcmcia_configure(struct pcmcia_socket *skt,
-				    struct socket_state_t *state)
+									struct socket_state_t *state)
 {
 	struct xxs1500_pcmcia_sock *sock = to_xxs_socket(skt);
 	unsigned int changed;
 
 	/* power control */
-	switch (state->Vcc) {
-	case 0:
-		gpio_set_value(GPIO_POWER, 1);	/* power off */
-		break;
-	case 33:
-		gpio_set_value(GPIO_POWER, 0);	/* power on */
-		break;
-	case 50:
-	default:
-		return -EINVAL;
+	switch (state->Vcc)
+	{
+		case 0:
+			gpio_set_value(GPIO_POWER, 1);	/* power off */
+			break;
+
+		case 33:
+			gpio_set_value(GPIO_POWER, 0);	/* power on */
+			break;
+
+		case 50:
+		default:
+			return -EINVAL;
 	}
 
 	changed = state->flags ^ sock->old_flags;
 
-	if (changed & SS_RESET) {
-		if (state->flags & SS_RESET) {
+	if (changed & SS_RESET)
+	{
+		if (state->flags & SS_RESET)
+		{
 			gpio_set_value(GPIO_RESET, 1);	/* assert reset */
 			gpio_set_value(GPIO_OUTEN, 1);	/* buffers off */
-		} else {
+		}
+		else
+		{
 			gpio_set_value(GPIO_RESET, 0);	/* deassert reset */
 			gpio_set_value(GPIO_OUTEN, 0);	/* buffers on */
 			msleep(500);
@@ -112,7 +120,7 @@ static int xxs1500_pcmcia_configure(struct pcmcia_socket *skt,
 }
 
 static int xxs1500_pcmcia_get_status(struct pcmcia_socket *skt,
-				     unsigned int *value)
+									 unsigned int *value)
 {
 	unsigned int status;
 	int i;
@@ -121,20 +129,24 @@ static int xxs1500_pcmcia_get_status(struct pcmcia_socket *skt,
 
 	/* check carddetects: GPIO[0:1] must both be low */
 	if (!gpio_get_value(GPIO_CDA) && !gpio_get_value(GPIO_CDB))
+	{
 		status |= SS_DETECT;
+	}
 
 	/* determine card voltage: GPIO[208:209] binary value */
 	i = (!!gpio_get_value(GPIO_VSL)) | ((!!gpio_get_value(GPIO_VSH)) << 1);
 
-	switch (i) {
-	case 0:
-	case 1:
-	case 2:
-		status |= SS_3VCARD;	/* 3V card */
-		break;
-	case 3:				/* 5V card, unsupported */
-	default:
-		status |= SS_XVCARD;	/* treated as unsupported in core */
+	switch (i)
+	{
+		case 0:
+		case 1:
+		case 2:
+			status |= SS_3VCARD;	/* 3V card */
+			break;
+
+		case 3:				/* 5V card, unsupported */
+		default:
+			status |= SS_XVCARD;	/* treated as unsupported in core */
 	}
 
 	/* GPIO214: low active power switch */
@@ -173,7 +185,7 @@ static int xxs1500_pcmcia_sock_suspend(struct pcmcia_socket *skt)
 }
 
 static int au1x00_pcmcia_set_io_map(struct pcmcia_socket *skt,
-				    struct pccard_io_map *map)
+									struct pccard_io_map *map)
 {
 	struct xxs1500_pcmcia_sock *sock = to_xxs_socket(skt);
 
@@ -184,19 +196,24 @@ static int au1x00_pcmcia_set_io_map(struct pcmcia_socket *skt,
 }
 
 static int au1x00_pcmcia_set_mem_map(struct pcmcia_socket *skt,
-				     struct pccard_mem_map *map)
+									 struct pccard_mem_map *map)
 {
 	struct xxs1500_pcmcia_sock *sock = to_xxs_socket(skt);
 
 	if (map->flags & MAP_ATTRIB)
+	{
 		map->static_start = sock->phys_attr + map->card_start;
+	}
 	else
+	{
 		map->static_start = sock->phys_mem + map->card_start;
+	}
 
 	return 0;
 }
 
-static struct pccard_operations xxs1500_pcmcia_operations = {
+static struct pccard_operations xxs1500_pcmcia_operations =
+{
 	.init			= xxs1500_pcmcia_sock_init,
 	.suspend		= xxs1500_pcmcia_sock_suspend,
 	.get_status		= xxs1500_pcmcia_get_status,
@@ -212,33 +229,45 @@ static int xxs1500_pcmcia_probe(struct platform_device *pdev)
 	int ret, irq;
 
 	sock = kzalloc(sizeof(struct xxs1500_pcmcia_sock), GFP_KERNEL);
+
 	if (!sock)
+	{
 		return -ENOMEM;
+	}
 
 	ret = -ENODEV;
 
 	/* 36bit PCMCIA Attribute area address */
 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pcmcia-attr");
-	if (!r) {
+
+	if (!r)
+	{
 		dev_err(&pdev->dev, "missing 'pcmcia-attr' resource!\n");
 		goto out0;
 	}
+
 	sock->phys_attr = r->start;
 
 	/* 36bit PCMCIA Memory area address */
 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pcmcia-mem");
-	if (!r) {
+
+	if (!r)
+	{
 		dev_err(&pdev->dev, "missing 'pcmcia-mem' resource!\n");
 		goto out0;
 	}
+
 	sock->phys_mem = r->start;
 
 	/* 36bit PCMCIA IO area address */
 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pcmcia-io");
-	if (!r) {
+
+	if (!r)
+	{
 		dev_err(&pdev->dev, "missing 'pcmcia-io' resource!\n");
 		goto out0;
 	}
+
 	sock->phys_io = r->start;
 
 
@@ -251,9 +280,10 @@ static int xxs1500_pcmcia_probe(struct platform_device *pdev)
 	 * going through this "mips_io_port_base" mechanism.
 	 */
 	sock->virt_io = (void *)(ioremap(sock->phys_io, IO_MAP_SIZE) -
-				 mips_io_port_base);
+							 mips_io_port_base);
 
-	if (!sock->virt_io) {
+	if (!sock->virt_io)
+	{
 		dev_err(&pdev->dev, "cannot remap IO area\n");
 		ret = -ENOMEM;
 		goto out0;
@@ -276,13 +306,17 @@ static int xxs1500_pcmcia_probe(struct platform_device *pdev)
 	irq = gpio_to_irq(GPIO_CDA);
 	irq_set_irq_type(irq, IRQ_TYPE_EDGE_BOTH);
 	ret = request_irq(irq, cdirq, 0, "pcmcia_carddetect", sock);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "cannot setup cd irq\n");
 		goto out1;
 	}
 
 	ret = pcmcia_register_socket(&sock->socket);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register\n");
 		goto out2;
 	}
@@ -312,7 +346,8 @@ static int xxs1500_pcmcia_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver xxs1500_pcmcia_socket_driver = {
+static struct platform_driver xxs1500_pcmcia_socket_driver =
+{
 	.driver	= {
 		.name	= "xxs1500_pcmcia",
 	},

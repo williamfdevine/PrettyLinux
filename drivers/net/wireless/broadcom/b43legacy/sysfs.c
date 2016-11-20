@@ -41,7 +41,10 @@ static int get_integer(const char *buf, size_t count)
 	int ret = -EINVAL;
 
 	if (count == 0)
+	{
 		goto out;
+	}
+
 	count = min_t(size_t, count, 10);
 	memcpy(tmp, buf, count);
 	ret = simple_strtol(tmp, NULL, 10);
@@ -51,54 +54,85 @@ out:
 
 static int get_boolean(const char *buf, size_t count)
 {
-	if (count != 0) {
+	if (count != 0)
+	{
 		if (buf[0] == '1')
+		{
 			return 1;
+		}
+
 		if (buf[0] == '0')
+		{
 			return 0;
+		}
+
 		if (count >= 4 && memcmp(buf, "true", 4) == 0)
+		{
 			return 1;
+		}
+
 		if (count >= 5 && memcmp(buf, "false", 5) == 0)
+		{
 			return 0;
+		}
+
 		if (count >= 3 && memcmp(buf, "yes", 3) == 0)
+		{
 			return 1;
+		}
+
 		if (count >= 2 && memcmp(buf, "no", 2) == 0)
+		{
 			return 0;
+		}
+
 		if (count >= 2 && memcmp(buf, "on", 2) == 0)
+		{
 			return 1;
+		}
+
 		if (count >= 3 && memcmp(buf, "off", 3) == 0)
+		{
 			return 0;
+		}
 	}
+
 	return -EINVAL;
 }
 
 static ssize_t b43legacy_attr_interfmode_show(struct device *dev,
-					      struct device_attribute *attr,
-					      char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	struct b43legacy_wldev *wldev = dev_to_b43legacy_wldev(dev);
 	ssize_t count = 0;
 
 	if (!capable(CAP_NET_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	mutex_lock(&wldev->wl->mutex);
 
-	switch (wldev->phy.interfmode) {
-	case B43legacy_INTERFMODE_NONE:
-		count = snprintf(buf, PAGE_SIZE, "0 (No Interference"
-				 " Mitigation)\n");
-		break;
-	case B43legacy_INTERFMODE_NONWLAN:
-		count = snprintf(buf, PAGE_SIZE, "1 (Non-WLAN Interference"
-				 " Mitigation)\n");
-		break;
-	case B43legacy_INTERFMODE_MANUALWLAN:
-		count = snprintf(buf, PAGE_SIZE, "2 (WLAN Interference"
-				 " Mitigation)\n");
-		break;
-	default:
-		B43legacy_WARN_ON(1);
+	switch (wldev->phy.interfmode)
+	{
+		case B43legacy_INTERFMODE_NONE:
+			count = snprintf(buf, PAGE_SIZE, "0 (No Interference"
+							 " Mitigation)\n");
+			break;
+
+		case B43legacy_INTERFMODE_NONWLAN:
+			count = snprintf(buf, PAGE_SIZE, "1 (Non-WLAN Interference"
+							 " Mitigation)\n");
+			break;
+
+		case B43legacy_INTERFMODE_MANUALWLAN:
+			count = snprintf(buf, PAGE_SIZE, "2 (WLAN Interference"
+							 " Mitigation)\n");
+			break;
+
+		default:
+			B43legacy_WARN_ON(1);
 	}
 
 	mutex_unlock(&wldev->wl->mutex);
@@ -107,8 +141,8 @@ static ssize_t b43legacy_attr_interfmode_show(struct device *dev,
 }
 
 static ssize_t b43legacy_attr_interfmode_store(struct device *dev,
-					       struct device_attribute *attr,
-					       const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct b43legacy_wldev *wldev = dev_to_b43legacy_wldev(dev);
 	unsigned long flags;
@@ -116,33 +150,43 @@ static ssize_t b43legacy_attr_interfmode_store(struct device *dev,
 	int mode;
 
 	if (!capable(CAP_NET_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	mode = get_integer(buf, count);
-	switch (mode) {
-	case 0:
-		mode = B43legacy_INTERFMODE_NONE;
-		break;
-	case 1:
-		mode = B43legacy_INTERFMODE_NONWLAN;
-		break;
-	case 2:
-		mode = B43legacy_INTERFMODE_MANUALWLAN;
-		break;
-	case 3:
-		mode = B43legacy_INTERFMODE_AUTOWLAN;
-		break;
-	default:
-		return -EINVAL;
+
+	switch (mode)
+	{
+		case 0:
+			mode = B43legacy_INTERFMODE_NONE;
+			break;
+
+		case 1:
+			mode = B43legacy_INTERFMODE_NONWLAN;
+			break;
+
+		case 2:
+			mode = B43legacy_INTERFMODE_MANUALWLAN;
+			break;
+
+		case 3:
+			mode = B43legacy_INTERFMODE_AUTOWLAN;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	mutex_lock(&wldev->wl->mutex);
 	spin_lock_irqsave(&wldev->wl->irq_lock, flags);
 
 	err = b43legacy_radio_set_interference_mitigation(wldev, mode);
+
 	if (err)
 		b43legacyerr(wldev->wl, "Interference Mitigation not "
-		       "supported by device\n");
+					 "supported by device\n");
+
 	mmiowb();
 	spin_unlock_irqrestore(&wldev->wl->irq_lock, flags);
 	mutex_unlock(&wldev->wl->mutex);
@@ -151,27 +195,29 @@ static ssize_t b43legacy_attr_interfmode_store(struct device *dev,
 }
 
 static DEVICE_ATTR(interference, 0644,
-		   b43legacy_attr_interfmode_show,
-		   b43legacy_attr_interfmode_store);
+				   b43legacy_attr_interfmode_show,
+				   b43legacy_attr_interfmode_store);
 
 static ssize_t b43legacy_attr_preamble_show(struct device *dev,
-					    struct device_attribute *attr,
-					    char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	struct b43legacy_wldev *wldev = dev_to_b43legacy_wldev(dev);
 	ssize_t count;
 
 	if (!capable(CAP_NET_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	mutex_lock(&wldev->wl->mutex);
 
 	if (wldev->short_preamble)
 		count = snprintf(buf, PAGE_SIZE, "1 (Short Preamble"
-				 " enabled)\n");
+						 " enabled)\n");
 	else
 		count = snprintf(buf, PAGE_SIZE, "0 (Short Preamble"
-				 " disabled)\n");
+						 " disabled)\n");
 
 	mutex_unlock(&wldev->wl->mutex);
 
@@ -179,19 +225,25 @@ static ssize_t b43legacy_attr_preamble_show(struct device *dev,
 }
 
 static ssize_t b43legacy_attr_preamble_store(struct device *dev,
-					     struct device_attribute *attr,
-					     const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct b43legacy_wldev *wldev = dev_to_b43legacy_wldev(dev);
 	unsigned long flags;
 	int value;
 
 	if (!capable(CAP_NET_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	value = get_boolean(buf, count);
+
 	if (value < 0)
+	{
 		return value;
+	}
+
 	mutex_lock(&wldev->wl->mutex);
 	spin_lock_irqsave(&wldev->wl->irq_lock, flags);
 
@@ -204,8 +256,8 @@ static ssize_t b43legacy_attr_preamble_store(struct device *dev,
 }
 
 static DEVICE_ATTR(shortpreamble, 0644,
-		   b43legacy_attr_preamble_show,
-		   b43legacy_attr_preamble_store);
+				   b43legacy_attr_preamble_show,
+				   b43legacy_attr_preamble_store);
 
 int b43legacy_sysfs_register(struct b43legacy_wldev *wldev)
 {
@@ -213,14 +265,21 @@ int b43legacy_sysfs_register(struct b43legacy_wldev *wldev)
 	int err;
 
 	B43legacy_WARN_ON(b43legacy_status(wldev) !=
-			  B43legacy_STAT_INITIALIZED);
+					  B43legacy_STAT_INITIALIZED);
 
 	err = device_create_file(dev, &dev_attr_interference);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	err = device_create_file(dev, &dev_attr_shortpreamble);
+
 	if (err)
+	{
 		goto err_remove_interfmode;
+	}
 
 out:
 	return err;

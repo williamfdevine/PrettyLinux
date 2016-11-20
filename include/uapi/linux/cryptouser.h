@@ -19,7 +19,8 @@
  */
 
 /* Netlink configuration messages.  */
-enum {
+enum
+{
 	CRYPTO_MSG_BASE = 0x10,
 	CRYPTO_MSG_NEWALG = 0x10,
 	CRYPTO_MSG_DELALG,
@@ -34,7 +35,8 @@ enum {
 #define CRYPTO_MAX_NAME CRYPTO_MAX_ALG_NAME
 
 /* Netlink message attributes.  */
-enum crypto_attr_type_t {
+enum crypto_attr_type_t
+{
 	CRYPTOCFGA_UNSPEC,
 	CRYPTOCFGA_PRIORITY_VAL,	/* __u32 */
 	CRYPTOCFGA_REPORT_LARVAL,	/* struct crypto_report_larval */
@@ -51,7 +53,8 @@ enum crypto_attr_type_t {
 #define CRYPTOCFGA_MAX (__CRYPTOCFGA_MAX - 1)
 };
 
-struct crypto_user_alg {
+struct crypto_user_alg
+{
 	char cru_name[CRYPTO_MAX_ALG_NAME];
 	char cru_driver_name[CRYPTO_MAX_ALG_NAME];
 	char cru_module_name[CRYPTO_MAX_ALG_NAME];
@@ -61,24 +64,28 @@ struct crypto_user_alg {
 	__u32 cru_flags;
 };
 
-struct crypto_report_larval {
+struct crypto_report_larval
+{
 	char type[CRYPTO_MAX_NAME];
 };
 
-struct crypto_report_hash {
+struct crypto_report_hash
+{
 	char type[CRYPTO_MAX_NAME];
 	unsigned int blocksize;
 	unsigned int digestsize;
 };
 
-struct crypto_report_cipher {
+struct crypto_report_cipher
+{
 	char type[CRYPTO_MAX_ALG_NAME];
 	unsigned int blocksize;
 	unsigned int min_keysize;
 	unsigned int max_keysize;
 };
 
-struct crypto_report_blkcipher {
+struct crypto_report_blkcipher
+{
 	char type[CRYPTO_MAX_NAME];
 	char geniv[CRYPTO_MAX_NAME];
 	unsigned int blocksize;
@@ -87,7 +94,8 @@ struct crypto_report_blkcipher {
 	unsigned int ivsize;
 };
 
-struct crypto_report_aead {
+struct crypto_report_aead
+{
 	char type[CRYPTO_MAX_NAME];
 	char geniv[CRYPTO_MAX_NAME];
 	unsigned int blocksize;
@@ -95,22 +103,26 @@ struct crypto_report_aead {
 	unsigned int ivsize;
 };
 
-struct crypto_report_comp {
+struct crypto_report_comp
+{
 	char type[CRYPTO_MAX_NAME];
 };
 
-struct crypto_report_rng {
+struct crypto_report_rng
+{
 	char type[CRYPTO_MAX_NAME];
 	unsigned int seedsize;
 };
 
-struct crypto_report_akcipher {
+struct crypto_report_akcipher
+{
 	char type[CRYPTO_MAX_NAME];
 };
 
-struct crypto_report_kpp {
+struct crypto_report_kpp
+{
 	char type[CRYPTO_MAX_NAME];
 };
 
 #define CRYPTO_REPORT_MAXSIZE (sizeof(struct crypto_user_alg) + \
-			       sizeof(struct crypto_report_blkcipher))
+							   sizeof(struct crypto_report_blkcipher))

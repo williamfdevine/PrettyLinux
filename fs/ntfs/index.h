@@ -72,7 +72,8 @@
  * or ntfs_index_entry_write() before the call to ntfs_index_ctx_put() to
  * ensure that the changes are written to disk.
  */
-typedef struct {
+typedef struct
+{
 	ntfs_inode *idx_ni;
 	INDEX_ENTRY *entry;
 	void *data;
@@ -89,7 +90,7 @@ extern ntfs_index_context *ntfs_index_ctx_get(ntfs_inode *idx_ni);
 extern void ntfs_index_ctx_put(ntfs_index_context *ictx);
 
 extern int ntfs_index_lookup(const void *key, const int key_len,
-		ntfs_index_context *ictx);
+							 ntfs_index_context *ictx);
 
 #ifdef NTFS_RW
 
@@ -111,9 +112,13 @@ extern int ntfs_index_lookup(const void *key, const int key_len,
 static inline void ntfs_index_entry_flush_dcache_page(ntfs_index_context *ictx)
 {
 	if (ictx->is_in_root)
+	{
 		flush_dcache_mft_record_page(ictx->actx->ntfs_ino);
+	}
 	else
+	{
 		flush_dcache_page(ictx->page);
+	}
 }
 
 /**
@@ -137,10 +142,12 @@ static inline void ntfs_index_entry_flush_dcache_page(ntfs_index_context *ictx)
 static inline void ntfs_index_entry_mark_dirty(ntfs_index_context *ictx)
 {
 	if (ictx->is_in_root)
+	{
 		mark_mft_record_dirty(ictx->actx->ntfs_ino);
+	}
 	else
 		mark_ntfs_record_dirty(ictx->page,
-				(u8*)ictx->ia - (u8*)page_address(ictx->page));
+							   (u8 *)ictx->ia - (u8 *)page_address(ictx->page));
 }
 
 #endif /* NTFS_RW */

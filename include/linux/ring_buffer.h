@@ -12,9 +12,10 @@ struct ring_buffer_iter;
 /*
  * Don't refer to this struct directly, use functions below.
  */
-struct ring_buffer_event {
+struct ring_buffer_event
+{
 	kmemcheck_bitfield_begin(bitfield);
-	u32		type_len:5, time_delta:27;
+	u32		type_len: 5, time_delta: 27;
 	kmemcheck_bitfield_end(bitfield);
 
 	u32		array[];
@@ -52,7 +53,8 @@ struct ring_buffer_event {
  *				  array[0..(length+3)/4-1] holds data
  *				  size = 4 + length (bytes)
  */
-enum ring_buffer_type {
+enum ring_buffer_type
+{
 	RINGBUF_TYPE_DATA_TYPE_LEN_MAX = 28,
 	RINGBUF_TYPE_PADDING,
 	RINGBUF_TYPE_TIME_EXTEND,
@@ -78,7 +80,7 @@ void *ring_buffer_event_data(struct ring_buffer_event *event);
  *    ring_buffer_unlock_commit(buffer, event);
  */
 void ring_buffer_discard_commit(struct ring_buffer *buffer,
-				struct ring_buffer_event *event);
+								struct ring_buffer_event *event);
 
 /*
  * size is in bytes for each per CPU buffer.
@@ -92,14 +94,14 @@ __ring_buffer_alloc(unsigned long size, unsigned flags, struct lock_class_key *k
  * ring buffer's lock class separate.
  */
 #define ring_buffer_alloc(size, flags)			\
-({							\
-	static struct lock_class_key __key;		\
-	__ring_buffer_alloc((size), (flags), &__key);	\
-})
+	({							\
+		static struct lock_class_key __key;		\
+		__ring_buffer_alloc((size), (flags), &__key);	\
+	})
 
 int ring_buffer_wait(struct ring_buffer *buffer, int cpu, bool full);
 int ring_buffer_poll_wait(struct ring_buffer *buffer, int cpu,
-			  struct file *filp, poll_table *poll_table);
+						  struct file *filp, poll_table *poll_table);
 
 
 #define RING_BUFFER_ALL_CPUS -1
@@ -111,18 +113,18 @@ int ring_buffer_resize(struct ring_buffer *buffer, unsigned long size, int cpu);
 void ring_buffer_change_overwrite(struct ring_buffer *buffer, int val);
 
 struct ring_buffer_event *ring_buffer_lock_reserve(struct ring_buffer *buffer,
-						   unsigned long length);
+		unsigned long length);
 int ring_buffer_unlock_commit(struct ring_buffer *buffer,
-			      struct ring_buffer_event *event);
+							  struct ring_buffer_event *event);
 int ring_buffer_write(struct ring_buffer *buffer,
-		      unsigned long length, void *data);
+					  unsigned long length, void *data);
 
 struct ring_buffer_event *
 ring_buffer_peek(struct ring_buffer *buffer, int cpu, u64 *ts,
-		 unsigned long *lost_events);
+				 unsigned long *lost_events);
 struct ring_buffer_event *
 ring_buffer_consume(struct ring_buffer *buffer, int cpu, u64 *ts,
-		    unsigned long *lost_events);
+					unsigned long *lost_events);
 
 struct ring_buffer_iter *
 ring_buffer_read_prepare(struct ring_buffer *buffer, int cpu);
@@ -144,11 +146,11 @@ void ring_buffer_reset(struct ring_buffer *buffer);
 
 #ifdef CONFIG_RING_BUFFER_ALLOW_SWAP
 int ring_buffer_swap_cpu(struct ring_buffer *buffer_a,
-			 struct ring_buffer *buffer_b, int cpu);
+						 struct ring_buffer *buffer_b, int cpu);
 #else
 static inline int
 ring_buffer_swap_cpu(struct ring_buffer *buffer_a,
-		     struct ring_buffer *buffer_b, int cpu)
+					 struct ring_buffer *buffer_b, int cpu)
 {
 	return -ENODEV;
 }
@@ -177,9 +179,9 @@ unsigned long ring_buffer_read_events_cpu(struct ring_buffer *buffer, int cpu);
 
 u64 ring_buffer_time_stamp(struct ring_buffer *buffer, int cpu);
 void ring_buffer_normalize_time_stamp(struct ring_buffer *buffer,
-				      int cpu, u64 *ts);
+									  int cpu, u64 *ts);
 void ring_buffer_set_clock(struct ring_buffer *buffer,
-			   u64 (*clock)(void));
+						   u64 (*clock)(void));
 
 size_t ring_buffer_page_len(void *page);
 
@@ -187,14 +189,15 @@ size_t ring_buffer_page_len(void *page);
 void *ring_buffer_alloc_read_page(struct ring_buffer *buffer, int cpu);
 void ring_buffer_free_read_page(struct ring_buffer *buffer, void *data);
 int ring_buffer_read_page(struct ring_buffer *buffer, void **data_page,
-			  size_t len, int cpu, int full);
+						  size_t len, int cpu, int full);
 
 struct trace_seq;
 
 int ring_buffer_print_entry_header(struct trace_seq *s);
 int ring_buffer_print_page_header(struct trace_seq *s);
 
-enum ring_buffer_flags {
+enum ring_buffer_flags
+{
 	RB_FL_OVERWRITE		= 1 << 0,
 };
 

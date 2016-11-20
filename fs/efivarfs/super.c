@@ -25,7 +25,8 @@ static void efivarfs_evict_inode(struct inode *inode)
 	clear_inode(inode);
 }
 
-static const struct super_operations efivarfs_ops = {
+static const struct super_operations efivarfs_ops =
+{
 	.statfs = simple_statfs,
 	.drop_inode = generic_delete_inode,
 	.evict_inode = efivarfs_evict_inode,
@@ -46,17 +47,21 @@ static struct super_block *efivarfs_sb;
  * case-insensitive match on part 2.
  */
 static int efivarfs_d_compare(const struct dentry *dentry,
-			      unsigned int len, const char *str,
-			      const struct qstr *name)
+							  unsigned int len, const char *str,
+							  const struct qstr *name)
 {
 	int guid = len - EFI_VARIABLE_GUID_LEN;
 
 	if (name->len != len)
+	{
 		return 1;
+	}
 
 	/* Case-sensitive compare for the variable name */
 	if (memcmp(str, name->name, guid))
+	{
 		return 1;
+	}
 
 	/* Case-insensitive compare for the GUID */
 	return strncasecmp(name->name + guid, str + guid, EFI_VARIABLE_GUID_LEN);
@@ -69,20 +74,27 @@ static int efivarfs_d_hash(const struct dentry *dentry, struct qstr *qstr)
 	unsigned int len = qstr->len;
 
 	if (!efivarfs_valid_name(s, len))
+	{
 		return -EINVAL;
+	}
 
 	while (len-- > EFI_VARIABLE_GUID_LEN)
+	{
 		hash = partial_name_hash(*s++, hash);
+	}
 
 	/* GUID is case-insensitive. */
 	while (len--)
+	{
 		hash = partial_name_hash(tolower(*s++), hash);
+	}
 
 	qstr->hash = end_name_hash(hash);
 	return 0;
 }
 
-static const struct dentry_operations efivarfs_d_ops = {
+static const struct dentry_operations efivarfs_d_ops =
+{
 	.d_compare = efivarfs_d_compare,
 	.d_hash = efivarfs_d_hash,
 	.d_delete = always_delete_dentry,
@@ -98,18 +110,24 @@ static struct dentry *efivarfs_alloc_dentry(struct dentry *parent, char *name)
 	q.len = strlen(name);
 
 	err = efivarfs_d_hash(parent, &q);
+
 	if (err)
+	{
 		return ERR_PTR(err);
+	}
 
 	d = d_alloc(parent, &q);
+
 	if (d)
+	{
 		return d;
+	}
 
 	return ERR_PTR(-ENOMEM);
 }
 
 static int efivarfs_callback(efi_char16_t *name16, efi_guid_t vendor,
-			     unsigned long name_size, void *data)
+							 unsigned long name_size, void *data)
 {
 	struct super_block *sb = (struct super_block *)data;
 	struct efivar_entry *entry;
@@ -122,8 +140,11 @@ static int efivarfs_callback(efi_char16_t *name16, efi_guid_t vendor,
 	bool is_removable = false;
 
 	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
+
 	if (!entry)
+	{
 		return err;
+	}
 
 	memcpy(entry->var.VariableName, name16, name_size);
 	memcpy(&(entry->var.VendorGuid), &vendor, sizeof(efi_guid_t));
@@ -132,35 +153,48 @@ static int efivarfs_callback(efi_char16_t *name16, efi_guid_t vendor,
 
 	/* name, plus '-', plus GUID, plus NUL*/
 	name = kmalloc(len + 1 + EFI_VARIABLE_GUID_LEN + 1, GFP_KERNEL);
+
 	if (!name)
+	{
 		goto fail;
+	}
 
 	ucs2_as_utf8(name, entry->var.VariableName, len);
 
 	if (efivar_variable_is_removable(entry->var.VendorGuid, name, len))
+	{
 		is_removable = true;
+	}
 
 	name[len] = '-';
 
 	efi_guid_to_str(&entry->var.VendorGuid, name + len + 1);
 
-	name[len + EFI_VARIABLE_GUID_LEN+1] = '\0';
+	name[len + EFI_VARIABLE_GUID_LEN + 1] = '\0';
 
 	inode = efivarfs_get_inode(sb, d_inode(root), S_IFREG | 0644, 0,
-				   is_removable);
+							   is_removable);
+
 	if (!inode)
+	{
 		goto fail_name;
+	}
 
 	dentry = efivarfs_alloc_dentry(root, name);
-	if (IS_ERR(dentry)) {
+
+	if (IS_ERR(dentry))
+	{
 		err = PTR_ERR(dentry);
 		goto fail_inode;
 	}
 
 	efivar_entry_size(entry, &size);
 	err = efivar_entry_add(entry, &efivarfs_list);
+
 	if (err)
+	{
 		goto fail_inode;
+	}
 
 	/* copied by the above to local storage in the dentry. */
 	kfree(name);
@@ -187,7 +221,10 @@ static int efivarfs_destroy(struct efivar_entry *entry, void *data)
 	int err = efivar_entry_remove(entry);
 
 	if (err)
+	{
 		return err;
+	}
+
 	kfree(entry);
 	return 0;
 }
@@ -209,26 +246,36 @@ static int efivarfs_fill_super(struct super_block *sb, void *data, int silent)
 	sb->s_time_gran         = 1;
 
 	inode = efivarfs_get_inode(sb, NULL, S_IFDIR | 0755, 0, true);
+
 	if (!inode)
+	{
 		return -ENOMEM;
+	}
+
 	inode->i_op = &efivarfs_dir_inode_operations;
 
 	root = d_make_root(inode);
 	sb->s_root = root;
+
 	if (!root)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&efivarfs_list);
 
 	err = efivar_init(efivarfs_callback, (void *)sb, true, &efivarfs_list);
+
 	if (err)
+	{
 		__efivar_entry_iter(efivarfs_destroy, &efivarfs_list, NULL, NULL);
+	}
 
 	return err;
 }
 
 static struct dentry *efivarfs_mount(struct file_system_type *fs_type,
-				    int flags, const char *dev_name, void *data)
+									 int flags, const char *dev_name, void *data)
 {
 	return mount_single(fs_type, flags, data, efivarfs_fill_super);
 }
@@ -242,7 +289,8 @@ static void efivarfs_kill_sb(struct super_block *sb)
 	__efivar_entry_iter(efivarfs_destroy, &efivarfs_list, NULL, NULL);
 }
 
-static struct file_system_type efivarfs_type = {
+static struct file_system_type efivarfs_type =
+{
 	.owner   = THIS_MODULE,
 	.name    = "efivarfs",
 	.mount   = efivarfs_mount,
@@ -252,10 +300,14 @@ static struct file_system_type efivarfs_type = {
 static __init int efivarfs_init(void)
 {
 	if (!efi_enabled(EFI_RUNTIME_SERVICES))
+	{
 		return -ENODEV;
+	}
 
 	if (!efivars_kobject())
+	{
 		return -ENODEV;
+	}
 
 	return register_filesystem(&efivarfs_type);
 }

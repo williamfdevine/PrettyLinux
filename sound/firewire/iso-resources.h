@@ -14,7 +14,8 @@ struct fw_unit;
  * This structure manages (de)allocation of isochronous resources (channel and
  * bandwidth) for one isochronous stream.
  */
-struct fw_iso_resources {
+struct fw_iso_resources
+{
 	u64 channels_mask;
 	/* private: */
 	struct fw_unit *unit;
@@ -27,11 +28,11 @@ struct fw_iso_resources {
 };
 
 int fw_iso_resources_init(struct fw_iso_resources *r,
-			  struct fw_unit *unit);
+						  struct fw_unit *unit);
 void fw_iso_resources_destroy(struct fw_iso_resources *r);
 
 int fw_iso_resources_allocate(struct fw_iso_resources *r,
-			      unsigned int max_payload_bytes, int speed);
+							  unsigned int max_payload_bytes, int speed);
 int fw_iso_resources_update(struct fw_iso_resources *r);
 void fw_iso_resources_free(struct fw_iso_resources *r);
 

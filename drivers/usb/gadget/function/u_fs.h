@@ -23,13 +23,13 @@
 
 #ifdef VERBOSE_DEBUG
 #ifndef pr_vdebug
-#  define pr_vdebug pr_debug
+	#define pr_vdebug pr_debug
 #endif /* pr_vdebug */
 #  define ffs_dump_mem(prefix, ptr, len) \
 	print_hex_dump_bytes(pr_fmt(prefix ": "), DUMP_PREFIX_NONE, ptr, len)
 #else
 #ifndef pr_vdebug
-#  define pr_vdebug(...)                 do { } while (0)
+	#define pr_vdebug(...)                 do { } while (0)
 #endif /* pr_vdebug */
 #  define ffs_dump_mem(prefix, ptr, len) do { } while (0)
 #endif /* VERBOSE_DEBUG */
@@ -38,7 +38,8 @@
 
 struct f_fs_opts;
 
-struct ffs_dev {
+struct ffs_dev
+{
 	const char *name;
 	bool name_allocated;
 	bool mounted;
@@ -72,7 +73,8 @@ int ffs_single_dev(struct ffs_dev *dev);
 struct ffs_epfile;
 struct ffs_function;
 
-enum ffs_state {
+enum ffs_state
+{
 	/*
 	 * Waiting for descriptors and strings.
 	 *
@@ -129,7 +131,8 @@ enum ffs_state {
 	FFS_CLOSING
 };
 
-enum ffs_setup_state {
+enum ffs_setup_state
+{
 	/* There is no setup request pending. */
 	FFS_NO_SETUP,
 	/*
@@ -147,7 +150,8 @@ enum ffs_setup_state {
 	FFS_SETUP_CANCELLED
 };
 
-struct ffs_data {
+struct ffs_data
+{
 	struct usb_gadget		*gadget;
 
 	/*
@@ -199,7 +203,8 @@ struct ffs_data {
 	enum ffs_setup_state		setup_state;
 
 	/* Events & such. */
-	struct {
+	struct
+	{
 		u8				types[4];
 		unsigned short			count;
 		/* XXX REVISIT need to update it in some places, or do we? */
@@ -266,7 +271,8 @@ struct ffs_data {
 	struct super_block		*sb;
 
 	/* File permissions, written once when fs is mounted */
-	struct ffs_file_perms {
+	struct ffs_file_perms
+	{
 		umode_t				mode;
 		kuid_t				uid;
 		kgid_t				gid;
@@ -284,7 +290,8 @@ struct ffs_data {
 };
 
 
-struct f_fs_opts {
+struct f_fs_opts
+{
 	struct usb_function_instance	func_inst;
 	struct ffs_dev			*dev;
 	unsigned			refcnt;

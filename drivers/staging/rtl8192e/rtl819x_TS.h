@@ -20,12 +20,14 @@
 #define TOTAL_TS_NUM		16
 #define TCLAS_NUM		4
 
-enum tr_select {
+enum tr_select
+{
 	TX_DIR = 0,
 	RX_DIR = 1,
 };
 
-struct ts_common_info {
+struct ts_common_info
+{
 	struct list_head		List;
 	struct timer_list		SetupTimer;
 	struct timer_list		InactTimer;
@@ -36,7 +38,8 @@ struct ts_common_info {
 	u8				TClasNum;
 };
 
-struct tx_ts_record {
+struct tx_ts_record
+{
 	struct ts_common_info TsCommonInfo;
 	u16				TxCurSeq;
 	struct ba_record TxPendingBARecord;
@@ -49,7 +52,8 @@ struct tx_ts_record {
 	u8				num;
 };
 
-struct rx_ts_record {
+struct rx_ts_record
+{
 	struct ts_common_info TsCommonInfo;
 	u16				RxIndicateSeq;
 	u16				RxTimeoutIndicateSeq;

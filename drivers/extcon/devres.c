@@ -21,7 +21,9 @@ static int devm_extcon_dev_match(struct device *dev, void *res, void *data)
 	struct extcon_dev **r = res;
 
 	if (WARN_ON(!r || !*r))
+	{
 		return 0;
+	}
 
 	return *r == data;
 }
@@ -37,7 +39,8 @@ static void devm_extcon_dev_unreg(struct device *dev, void *res)
 	extcon_dev_unregister(*(struct extcon_dev **)res);
 }
 
-struct extcon_dev_notifier_devres {
+struct extcon_dev_notifier_devres
+{
 	struct extcon_dev *edev;
 	unsigned int id;
 	struct notifier_block *nb;
@@ -65,16 +68,21 @@ static void devm_extcon_dev_notifier_unreg(struct device *dev, void *res)
  * or ERR_PTR(err) if fail
  */
 struct extcon_dev *devm_extcon_dev_allocate(struct device *dev,
-					const unsigned int *supported_cable)
+		const unsigned int *supported_cable)
 {
 	struct extcon_dev **ptr, *edev;
 
 	ptr = devres_alloc(devm_extcon_dev_release, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	edev = extcon_dev_allocate(supported_cable);
-	if (IS_ERR(edev)) {
+
+	if (IS_ERR(edev))
+	{
 		devres_free(ptr);
 		return edev;
 	}
@@ -99,7 +107,7 @@ EXPORT_SYMBOL_GPL(devm_extcon_dev_allocate);
 void devm_extcon_dev_free(struct device *dev, struct extcon_dev *edev)
 {
 	WARN_ON(devres_release(dev, devm_extcon_dev_release,
-			       devm_extcon_dev_match, edev));
+						   devm_extcon_dev_match, edev));
 }
 EXPORT_SYMBOL_GPL(devm_extcon_dev_free);
 
@@ -124,11 +132,16 @@ int devm_extcon_dev_register(struct device *dev, struct extcon_dev *edev)
 	int ret;
 
 	ptr = devres_alloc(devm_extcon_dev_unreg, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return -ENOMEM;
+	}
 
 	ret = extcon_dev_register(edev);
-	if (ret) {
+
+	if (ret)
+	{
 		devres_free(ptr);
 		return ret;
 	}
@@ -151,7 +164,7 @@ EXPORT_SYMBOL_GPL(devm_extcon_dev_register);
 void devm_extcon_dev_unregister(struct device *dev, struct extcon_dev *edev)
 {
 	WARN_ON(devres_release(dev, devm_extcon_dev_unreg,
-			       devm_extcon_dev_match, edev));
+						   devm_extcon_dev_match, edev));
 }
 EXPORT_SYMBOL_GPL(devm_extcon_dev_unregister);
 
@@ -173,18 +186,23 @@ EXPORT_SYMBOL_GPL(devm_extcon_dev_unregister);
  * Returns 0 if success or negaive error number if failure.
  */
 int devm_extcon_register_notifier(struct device *dev, struct extcon_dev *edev,
-				unsigned int id, struct notifier_block *nb)
+								  unsigned int id, struct notifier_block *nb)
 {
 	struct extcon_dev_notifier_devres *ptr;
 	int ret;
 
 	ptr = devres_alloc(devm_extcon_dev_notifier_unreg, sizeof(*ptr),
-				GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return -ENOMEM;
+	}
 
 	ret = extcon_register_notifier(edev, id, nb);
-	if (ret) {
+
+	if (ret)
+	{
 		devres_free(ptr);
 		return ret;
 	}
@@ -207,10 +225,10 @@ EXPORT_SYMBOL(devm_extcon_register_notifier);
  * @nb:		a notifier block to be registered.
  */
 void devm_extcon_unregister_notifier(struct device *dev,
-				struct extcon_dev *edev, unsigned int id,
-				struct notifier_block *nb)
+									 struct extcon_dev *edev, unsigned int id,
+									 struct notifier_block *nb)
 {
 	WARN_ON(devres_release(dev, devm_extcon_dev_notifier_unreg,
-			       devm_extcon_dev_match, edev));
+						   devm_extcon_dev_match, edev));
 }
 EXPORT_SYMBOL(devm_extcon_unregister_notifier);

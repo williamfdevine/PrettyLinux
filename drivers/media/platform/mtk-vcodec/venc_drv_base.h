@@ -22,7 +22,8 @@
 
 #include "venc_drv_if.h"
 
-struct venc_common_if {
+struct venc_common_if
+{
 	/**
 	 * (*init)() - initialize driver
 	 * @ctx:	[in] mtk v4l2 context
@@ -39,9 +40,9 @@ struct venc_common_if {
 	 * @result: [out] encode result
 	 */
 	int (*encode)(unsigned long handle, enum venc_start_opt opt,
-		      struct venc_frm_buf *frm_buf,
-		      struct mtk_vcodec_mem *bs_buf,
-		      struct venc_done_result *result);
+				  struct venc_frm_buf *frm_buf,
+				  struct mtk_vcodec_mem *bs_buf,
+				  struct venc_done_result *result);
 
 	/**
 	 * (*set_param)() - set driver's parameter
@@ -50,7 +51,7 @@ struct venc_common_if {
 	 * @in: [in] buffer to store the parameter
 	 */
 	int (*set_param)(unsigned long handle, enum venc_set_param_type type,
-			 struct venc_enc_param *in);
+					 struct venc_enc_param *in);
 
 	/**
 	 * (*deinit)() - deinitialize driver.

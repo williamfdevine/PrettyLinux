@@ -70,13 +70,14 @@
 #define GP8PSK_FW_VERS(_fw_vers) \
 	((_fw_vers)[2]<<0x10 | (_fw_vers)[1]<<0x08 | (_fw_vers)[0])
 
-struct gp8psk_fe_ops {
+struct gp8psk_fe_ops
+{
 	int (*in)(void *priv, u8 req, u16 value, u16 index, u8 *b, int blen);
 	int (*out)(void *priv, u8 req, u16 value, u16 index, u8 *b, int blen);
 	int (*reload)(void *priv);
 };
 
 struct dvb_frontend *gp8psk_fe_attach(const struct gp8psk_fe_ops *ops,
-				      void *priv, bool is_rev1);
+									  void *priv, bool is_rev1);
 
 #endif

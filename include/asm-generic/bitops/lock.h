@@ -19,10 +19,10 @@
  * This operation is atomic and provides release barrier semantics.
  */
 #define clear_bit_unlock(nr, addr)	\
-do {					\
-	smp_mb__before_atomic();	\
-	clear_bit(nr, addr);		\
-} while (0)
+	do {					\
+		smp_mb__before_atomic();	\
+		clear_bit(nr, addr);		\
+	} while (0)
 
 /**
  * __clear_bit_unlock - Clear a bit in memory, for unlock
@@ -36,10 +36,10 @@ do {					\
  * See for example x86's implementation.
  */
 #define __clear_bit_unlock(nr, addr)	\
-do {					\
-	smp_mb__before_atomic();	\
-	clear_bit(nr, addr);		\
-} while (0)
+	do {					\
+		smp_mb__before_atomic();	\
+		clear_bit(nr, addr);		\
+	} while (0)
 
 #endif /* _ASM_GENERIC_BITOPS_LOCK_H_ */
 

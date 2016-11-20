@@ -421,12 +421,12 @@
 #define	VM_CONTEXT1_PROTECTION_FAULT_STATUS		0x14DC
 #define		PROTECTIONS_MASK			(0xf << 0)
 #define		PROTECTIONS_SHIFT			0
-		/* bit 0: range
-		 * bit 1: pde0
-		 * bit 2: valid
-		 * bit 3: read
-		 * bit 4: write
-		 */
+/* bit 0: range
+ * bit 1: pde0
+ * bit 2: valid
+ * bit 3: read
+ * bit 4: write
+ */
 #define		MEMORY_CLIENT_ID_MASK			(0xff << 12)
 #define		MEMORY_CLIENT_ID_SHIFT			12
 #define		MEMORY_CLIENT_RW_MASK			(1 << 24)
@@ -1572,7 +1572,7 @@
 #	define CLK_OD(x)				((x) << 6)
 #	define CLK_OD_MASK				(0x1f << 6)
 
- /* UVD CTX indirect */
+/* UVD CTX indirect */
 #define	UVD_CGC_MEM_CTRL				0xC0
 #define	UVD_CGC_CTRL2					0xC1
 #	define DYN_OR_EN				(1 << 0)
@@ -1584,8 +1584,8 @@
  * PM4
  */
 #define PACKET0(reg, n)	((RADEON_PACKET_TYPE0 << 30) |			\
-			 (((reg) >> 2) & 0xFFFF) |			\
-			 ((n) & 0x3FFF) << 16)
+						 (((reg) >> 2) & 0xFFFF) |			\
+						 ((n) & 0x3FFF) << 16)
 #define CP_PACKET2			0x80000000
 #define		PACKET2_PAD_SHIFT		0
 #define		PACKET2_PAD_MASK		(0x3fffffff << 0)
@@ -1593,8 +1593,8 @@
 #define PACKET2(v)	(CP_PACKET2 | REG_SET(PACKET2_PAD, (v)))
 
 #define PACKET3(op, n)	((RADEON_PACKET_TYPE3 << 30) |			\
-			 (((op) & 0xFF) << 8) |				\
-			 ((n) & 0x3FFF) << 16)
+						 (((op) & 0xFF) << 8) |				\
+						 ((n) & 0x3FFF) << 16)
 
 #define PACKET3_COMPUTE(op, n) (PACKET3(op, n) | 1 << 1)
 
@@ -1635,42 +1635,42 @@
 #define	PACKET3_DRAW_INDEX_MULTI_ELEMENT		0x36
 #define	PACKET3_WRITE_DATA				0x37
 #define		WRITE_DATA_DST_SEL(x)                   ((x) << 8)
-                /* 0 - register
-		 * 1 - memory (sync - via GRBM)
-		 * 2 - tc/l2
-		 * 3 - gds
-		 * 4 - reserved
-		 * 5 - memory (async - direct)
-		 */
+/* 0 - register
+* 1 - memory (sync - via GRBM)
+	 * 2 - tc/l2
+	 * 3 - gds
+	 * 4 - reserved
+	 * 5 - memory (async - direct)
+	 */
 #define		WR_ONE_ADDR                             (1 << 16)
 #define		WR_CONFIRM                              (1 << 20)
 #define		WRITE_DATA_ENGINE_SEL(x)                ((x) << 30)
-                /* 0 - me
-		 * 1 - pfp
-		 * 2 - ce
-		 */
+/* 0 - me
+* 1 - pfp
+	 * 2 - ce
+	 */
 #define	PACKET3_DRAW_INDEX_INDIRECT_MULTI		0x38
 #define	PACKET3_MEM_SEMAPHORE				0x39
 #define	PACKET3_MPEG_INDEX				0x3A
 #define	PACKET3_COPY_DW					0x3B
 #define	PACKET3_WAIT_REG_MEM				0x3C
 #define		WAIT_REG_MEM_FUNCTION(x)                ((x) << 0)
-                /* 0 - always
-		 * 1 - <
-		 * 2 - <=
-		 * 3 - ==
-		 * 4 - !=
-		 * 5 - >=
-		 * 6 - >
-		 */
+/* 0 - always
+* 1 - <
+	 * 2 - <=
+	 * 3 - ==
+	 * 4 - !=
+	 * 5 - >=
+	 * 6 - >
+	 */
 #define		WAIT_REG_MEM_MEM_SPACE(x)               ((x) << 4)
-                /* 0 - reg
-		 * 1 - mem
-		 */
+/* 0 - reg
+* 1 - mem
+	 */
 #define		WAIT_REG_MEM_ENGINE(x)                  ((x) << 8)
-                /* 0 - me
-		 * 1 - pfp
-		 */
+/* 0 - me
+* 1 - pfp
+	 */
 #define	PACKET3_MEM_WRITE				0x3D
 #define	PACKET3_COPY_DATA				0x40
 #define	PACKET3_CP_DMA					0x41
@@ -1683,41 +1683,41 @@
  * 6. COMMAND [30:21] | BYTE_COUNT [20:0]
  */
 #              define PACKET3_CP_DMA_DST_SEL(x)    ((x) << 20)
-                /* 0 - DST_ADDR
-		 * 1 - GDS
-		 */
+/* 0 - DST_ADDR
+* 1 - GDS
+	 */
 #              define PACKET3_CP_DMA_ENGINE(x)     ((x) << 27)
-                /* 0 - ME
-		 * 1 - PFP
-		 */
+/* 0 - ME
+* 1 - PFP
+	 */
 #              define PACKET3_CP_DMA_SRC_SEL(x)    ((x) << 29)
-                /* 0 - SRC_ADDR
-		 * 1 - GDS
-		 * 2 - DATA
-		 */
+/* 0 - SRC_ADDR
+* 1 - GDS
+	 * 2 - DATA
+	 */
 #              define PACKET3_CP_DMA_CP_SYNC       (1 << 31)
 /* COMMAND */
 #              define PACKET3_CP_DMA_DIS_WC        (1 << 21)
 #              define PACKET3_CP_DMA_CMD_SRC_SWAP(x) ((x) << 22)
-                /* 0 - none
-		 * 1 - 8 in 16
-		 * 2 - 8 in 32
-		 * 3 - 8 in 64
-		 */
+/* 0 - none
+* 1 - 8 in 16
+	 * 2 - 8 in 32
+	 * 3 - 8 in 64
+	 */
 #              define PACKET3_CP_DMA_CMD_DST_SWAP(x) ((x) << 24)
-                /* 0 - none
-		 * 1 - 8 in 16
-		 * 2 - 8 in 32
-		 * 3 - 8 in 64
-		 */
+/* 0 - none
+* 1 - 8 in 16
+	 * 2 - 8 in 32
+	 * 3 - 8 in 64
+	 */
 #              define PACKET3_CP_DMA_CMD_SAS       (1 << 26)
-                /* 0 - memory
-		 * 1 - register
-		 */
+/* 0 - memory
+* 1 - register
+	 */
 #              define PACKET3_CP_DMA_CMD_DAS       (1 << 27)
-                /* 0 - memory
-		 * 1 - register
-		 */
+/* 0 - memory
+* 1 - register
+	 */
 #              define PACKET3_CP_DMA_CMD_SAIC      (1 << 28)
 #              define PACKET3_CP_DMA_CMD_DAIC      (1 << 29)
 #              define PACKET3_CP_DMA_CMD_RAW_WAIT  (1 << 30)
@@ -1748,29 +1748,29 @@
 #define	PACKET3_EVENT_WRITE				0x46
 #define		EVENT_TYPE(x)                           ((x) << 0)
 #define		EVENT_INDEX(x)                          ((x) << 8)
-                /* 0 - any non-TS event
-		 * 1 - ZPASS_DONE
-		 * 2 - SAMPLE_PIPELINESTAT
-		 * 3 - SAMPLE_STREAMOUTSTAT*
-		 * 4 - *S_PARTIAL_FLUSH
-		 * 5 - EOP events
-		 * 6 - EOS events
-		 * 7 - CACHE_FLUSH, CACHE_FLUSH_AND_INV_EVENT
-		 */
+/* 0 - any non-TS event
+* 1 - ZPASS_DONE
+	 * 2 - SAMPLE_PIPELINESTAT
+	 * 3 - SAMPLE_STREAMOUTSTAT*
+	 * 4 - *S_PARTIAL_FLUSH
+	 * 5 - EOP events
+	 * 6 - EOS events
+	 * 7 - CACHE_FLUSH, CACHE_FLUSH_AND_INV_EVENT
+	 */
 #define		INV_L2                                  (1 << 20)
-                /* INV TC L2 cache when EVENT_INDEX = 7 */
+/* INV TC L2 cache when EVENT_INDEX = 7 */
 #define	PACKET3_EVENT_WRITE_EOP				0x47
 #define		DATA_SEL(x)                             ((x) << 29)
-                /* 0 - discard
-		 * 1 - send low 32bit data
-		 * 2 - send 64bit data
-		 * 3 - send 64bit counter value
-		 */
+/* 0 - discard
+* 1 - send low 32bit data
+	 * 2 - send 64bit data
+	 * 3 - send 64bit counter value
+	 */
 #define		INT_SEL(x)                              ((x) << 24)
-                /* 0 - none
-		 * 1 - interrupt only (DATA_SEL = 0)
-		 * 2 - interrupt when data write is confirmed
-		 */
+/* 0 - none
+* 1 - interrupt only (DATA_SEL = 0)
+	 * 2 - interrupt when data write is confirmed
+	 */
 #define	PACKET3_EVENT_WRITE_EOS				0x48
 #define	PACKET3_PREAMBLE_CNTL				0x4A
 #              define PACKET3_PREAMBLE_BEGIN_CLEAR_STATE     (2 << 28)
@@ -1851,19 +1851,19 @@
 #define	DMA_PGFSM_WRITE					0xd0dc
 
 #define DMA_PACKET(cmd, b, t, s, n)	((((cmd) & 0xF) << 28) |	\
-					 (((b) & 0x1) << 26) |		\
-					 (((t) & 0x1) << 23) |		\
-					 (((s) & 0x1) << 22) |		\
-					 (((n) & 0xFFFFF) << 0))
+									 (((b) & 0x1) << 26) |		\
+									 (((t) & 0x1) << 23) |		\
+									 (((s) & 0x1) << 22) |		\
+									 (((n) & 0xFFFFF) << 0))
 
 #define DMA_IB_PACKET(cmd, vmid, n)	((((cmd) & 0xF) << 28) |	\
-					 (((vmid) & 0xF) << 20) |	\
-					 (((n) & 0xFFFFF) << 0))
+									 (((vmid) & 0xF) << 20) |	\
+									 (((n) & 0xFFFFF) << 0))
 
 #define DMA_PTE_PDE_PACKET(n)		((2 << 28) |			\
-					 (1 << 26) |			\
-					 (1 << 21) |			\
-					 (((n) & 0xFFFFF) << 0))
+									 (1 << 26) |			\
+									 (1 << 21) |			\
+									 (((n) & 0xFFFFF) << 0))
 
 /* async DMA Packet types */
 #define	DMA_PACKET_WRITE				  0x2

@@ -42,7 +42,8 @@
 /* register offset that IPC driver should use
  * 8 GPIO + 8 GPOSW (6 controllable) + 8GPO
  */
-enum pmic_gpio_register {
+enum pmic_gpio_register
+{
 	GPIO0		= 0xE0,
 	GPIO7		= 0xE7,
 	GPIOINT		= 0xE8,
@@ -67,7 +68,8 @@ enum pmic_gpio_register {
 
 #define NUM_GPIO 24
 
-struct pmic_gpio {
+struct pmic_gpio
+{
 	struct mutex		buslock;
 	struct gpio_chip	chip;
 	void			*gpiointr;
@@ -80,44 +82,55 @@ struct pmic_gpio {
 static void pmic_program_irqtype(int gpio, int type)
 {
 	if (type & IRQ_TYPE_EDGE_RISING)
+	{
 		intel_scu_ipc_update_register(GPIO0 + gpio, 0x20, 0x20);
+	}
 	else
+	{
 		intel_scu_ipc_update_register(GPIO0 + gpio, 0x00, 0x20);
+	}
 
 	if (type & IRQ_TYPE_EDGE_FALLING)
+	{
 		intel_scu_ipc_update_register(GPIO0 + gpio, 0x10, 0x10);
+	}
 	else
+	{
 		intel_scu_ipc_update_register(GPIO0 + gpio, 0x00, 0x10);
+	}
 };
 
 static int pmic_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 {
-	if (offset >= 8) {
+	if (offset >= 8)
+	{
 		pr_err("only pin 0-7 support input\n");
 		return -1;/* we only have 8 GPIO can use as input */
 	}
+
 	return intel_scu_ipc_update_register(GPIO0 + offset,
-							GPIO_DIR, GPIO_DIR);
+										 GPIO_DIR, GPIO_DIR);
 }
 
 static int pmic_gpio_direction_output(struct gpio_chip *chip,
-			unsigned offset, int value)
+									  unsigned offset, int value)
 {
 	int rc = 0;
 
 	if (offset < 8)/* it is GPIO */
 		rc = intel_scu_ipc_update_register(GPIO0 + offset,
-				GPIO_DRV | (value ? GPIO_DOU : 0),
-				GPIO_DRV | GPIO_DOU | GPIO_DIR);
+										   GPIO_DRV | (value ? GPIO_DOU : 0),
+										   GPIO_DRV | GPIO_DOU | GPIO_DIR);
 	else if (offset < 16)/* it is GPOSW */
 		rc = intel_scu_ipc_update_register(GPOSWCTL0 + offset - 8,
-				GPOSW_DRV | (value ? GPOSW_DOU : 0),
-				GPOSW_DRV | GPOSW_DOU | GPOSW_RDRV);
+										   GPOSW_DRV | (value ? GPOSW_DOU : 0),
+										   GPOSW_DRV | GPOSW_DOU | GPOSW_RDRV);
 	else if (offset > 15 && offset < 24)/* it is GPO */
 		rc = intel_scu_ipc_update_register(GPO,
-				value ? 1 << (offset - 16) : 0,
-				1 << (offset - 16));
-	else {
+										   value ? 1 << (offset - 16) : 0,
+										   1 << (offset - 16));
+	else
+	{
 		pr_err("invalid PMIC GPIO pin %d!\n", offset);
 		WARN_ON(1);
 	}
@@ -132,10 +145,17 @@ static int pmic_gpio_get(struct gpio_chip *chip, unsigned offset)
 
 	/* we only have 8 GPIO pins we can use as input */
 	if (offset >= 8)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	ret = intel_scu_ipc_ioread8(GPIO0 + offset, &r);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return r & GPIO_DIN;
 }
 
@@ -143,16 +163,16 @@ static void pmic_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 {
 	if (offset < 8)/* it is GPIO */
 		intel_scu_ipc_update_register(GPIO0 + offset,
-			GPIO_DRV | (value ? GPIO_DOU : 0),
-			GPIO_DRV | GPIO_DOU);
+									  GPIO_DRV | (value ? GPIO_DOU : 0),
+									  GPIO_DRV | GPIO_DOU);
 	else if (offset < 16)/* it is GPOSW */
 		intel_scu_ipc_update_register(GPOSWCTL0 + offset - 8,
-			GPOSW_DRV | (value ? GPOSW_DOU : 0),
-			GPOSW_DRV | GPOSW_DOU | GPOSW_RDRV);
+									  GPOSW_DRV | (value ? GPOSW_DOU : 0),
+									  GPOSW_DRV | GPOSW_DOU | GPOSW_RDRV);
 	else if (offset > 15 && offset < 24) /* it is GPO */
 		intel_scu_ipc_update_register(GPO,
-			value ? 1 << (offset - 16) : 0,
-			1 << (offset - 16));
+									  value ? 1 << (offset - 16) : 0,
+									  1 << (offset - 16));
 }
 
 /*
@@ -166,7 +186,9 @@ static int pmic_irq_type(struct irq_data *data, unsigned type)
 	u32 gpio = data->irq - pg->irq_base;
 
 	if (gpio >= pg->chip.ngpio)
+	{
 		return -EINVAL;
+	}
 
 	pg->trigger_type = type;
 	pg->update_type = gpio | GPIO_UPDATE_TYPE;
@@ -191,12 +213,14 @@ static void pmic_bus_sync_unlock(struct irq_data *data)
 {
 	struct pmic_gpio *pg = irq_data_get_irq_chip_data(data);
 
-	if (pg->update_type) {
+	if (pg->update_type)
+	{
 		unsigned int gpio = pg->update_type & ~GPIO_UPDATE_TYPE;
 
 		pmic_program_irqtype(gpio, pg->trigger_type);
 		pg->update_type = 0;
 	}
+
 	mutex_unlock(&pg->buslock);
 }
 
@@ -205,7 +229,8 @@ static void pmic_irq_unmask(struct irq_data *data) { }
 
 static void pmic_irq_mask(struct irq_data *data) { }
 
-static struct irq_chip pmic_irqchip = {
+static struct irq_chip pmic_irqchip =
+{
 	.name			= "PMIC-GPIO",
 	.irq_mask		= pmic_irq_mask,
 	.irq_unmask		= pmic_irq_unmask,
@@ -221,13 +246,16 @@ static irqreturn_t pmic_irq_handler(int irq, void *data)
 	int gpio;
 	irqreturn_t ret = IRQ_NONE;
 
-	for (gpio = 0; gpio < 8; gpio++) {
-		if (intsts & (1 << gpio)) {
+	for (gpio = 0; gpio < 8; gpio++)
+	{
+		if (intsts & (1 << gpio))
+		{
 			pr_debug("pmic pin %d triggered\n", gpio);
 			generic_handle_irq(pg->irq_base + gpio);
 			ret = IRQ_HANDLED;
 		}
 	}
+
 	return ret;
 }
 
@@ -241,30 +269,38 @@ static int platform_pmic_gpio_probe(struct platform_device *pdev)
 	int retval;
 	int i;
 
-	if (irq < 0) {
+	if (irq < 0)
+	{
 		dev_dbg(dev, "no IRQ line\n");
 		return -EINVAL;
 	}
 
-	if (!pdata || !pdata->gpio_base || !pdata->irq_base) {
+	if (!pdata || !pdata->gpio_base || !pdata->irq_base)
+	{
 		dev_dbg(dev, "incorrect or missing platform data\n");
 		return -EINVAL;
 	}
 
 	pg = kzalloc(sizeof(*pg), GFP_KERNEL);
+
 	if (!pg)
+	{
 		return -ENOMEM;
+	}
 
 	dev_set_drvdata(dev, pg);
 
 	pg->irq = irq;
 	/* setting up SRAM mapping for GPIOINT register */
 	pg->gpiointr = ioremap_nocache(pdata->gpiointr, 8);
-	if (!pg->gpiointr) {
+
+	if (!pg->gpiointr)
+	{
 		pr_err("Can not map GPIOINT\n");
 		retval = -EINVAL;
 		goto err2;
 	}
+
 	pg->irq_base = pdata->irq_base;
 	pg->chip.label = "intel_pmic";
 	pg->chip.direction_input = pmic_gpio_direction_input;
@@ -281,24 +317,30 @@ static int platform_pmic_gpio_probe(struct platform_device *pdev)
 
 	pg->chip.parent = dev;
 	retval = gpiochip_add_data(&pg->chip, pg);
-	if (retval) {
+
+	if (retval)
+	{
 		pr_err("Can not add pmic gpio chip\n");
 		goto err;
 	}
 
 	retval = request_irq(pg->irq, pmic_irq_handler, 0, "pmic", pg);
-	if (retval) {
+
+	if (retval)
+	{
 		pr_warn("Interrupt request failed\n");
 		goto fail_request_irq;
 	}
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		irq_set_chip_and_handler_name(i + pg->irq_base,
-					      &pmic_irqchip,
-					      handle_simple_irq,
-					      "demux");
+									  &pmic_irqchip,
+									  handle_simple_irq,
+									  "demux");
 		irq_set_chip_data(i + pg->irq_base, pg);
 	}
+
 	return 0;
 
 fail_request_irq:
@@ -312,7 +354,8 @@ err2:
 
 /* at the same time, register a platform driver
  * this supports the sfi 0.81 fw */
-static struct platform_driver platform_pmic_gpio_driver = {
+static struct platform_driver platform_pmic_gpio_driver =
+{
 	.driver = {
 		.name		= DRIVER_NAME,
 	},

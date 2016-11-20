@@ -13,7 +13,8 @@
 /*
  * path management control word
  */
-struct pmcw {
+struct pmcw
+{
 	u32 intparm;		/* interruption parameter */
 	u32 qf	 : 1;		/* qdio facility */
 	u32 w	 : 1;
@@ -40,62 +41,68 @@ struct pmcw {
 	u32 mbfc    : 1;	/* measurement block format control */
 	u32 xmwme   : 1;	/* extended measurement word mode enable */
 	u32 csense  : 1;	/* concurrent sense; can be enabled ...*/
-				/*  ... per MSCH, however, if facility */
-				/*  ... is not installed, this results */
-				/*  ... in an operand exception.       */
+	/*  ... per MSCH, however, if facility */
+	/*  ... is not installed, this results */
+	/*  ... in an operand exception.       */
 } __attribute__ ((packed));
 
 /* I/O-Interruption Code as stored by TEST PENDING INTERRUPTION (TPI). */
-struct tpi_info {
+struct tpi_info
+{
 	struct subchannel_id schid;
 	u32 intparm;
-	u32 adapter_IO:1;
-	u32 :1;
-	u32 isc:3;
-	u32 :27;
-	u32 type:3;
-	u32 :12;
+	u32 adapter_IO: 1;
+	u32 : 1;
+	u32 isc: 3;
+	u32 : 27;
+	u32 type: 3;
+	u32 : 12;
 } __packed __aligned(4);
 
 /* Target SCHIB configuration. */
-struct schib_config {
+struct schib_config
+{
 	u64 mba;
 	u32 intparm;
 	u16 mbi;
-	u32 isc:3;
-	u32 ena:1;
-	u32 mme:2;
-	u32 mp:1;
-	u32 csense:1;
-	u32 mbfc:1;
+	u32 isc: 3;
+	u32 ena: 1;
+	u32 mme: 2;
+	u32 mp: 1;
+	u32 csense: 1;
+	u32 mbfc: 1;
 } __attribute__ ((packed));
 
 /*
  * subchannel information block
  */
-struct schib {
+struct schib
+{
 	struct pmcw pmcw;	 /* path management control word */
 	union scsw scsw;	 /* subchannel status word */
 	__u64 mba;               /* measurement block address */
 	__u8 mda[4];		 /* model dependent area */
-} __attribute__ ((packed,aligned(4)));
+} __attribute__ ((packed, aligned(4)));
 
 /*
  * When rescheduled, todo's with higher values will overwrite those
  * with lower values.
  */
-enum sch_todo {
+enum sch_todo
+{
 	SCH_TODO_NOTHING,
 	SCH_TODO_EVAL,
 	SCH_TODO_UNREG,
 };
 
 /* subchannel data structure used by I/O subroutines */
-struct subchannel {
+struct subchannel
+{
 	struct subchannel_id schid;
 	spinlock_t *lock;	/* subchannel lock */
 	struct mutex reg_mutex;
-	enum {
+	enum
+	{
 		SUBCHANNEL_TYPE_IO = 0,
 		SUBCHANNEL_TYPE_CHSC = 1,
 		SUBCHANNEL_TYPE_MSG = 2,

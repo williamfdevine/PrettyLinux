@@ -12,13 +12,15 @@
 #ifndef JANZ_H
 #define JANZ_H
 
-struct janz_platform_data {
+struct janz_platform_data
+{
 	/* MODULbus Module Number */
 	unsigned int modno;
 };
 
 /* PLX bridge chip onboard registers */
-struct janz_cmodio_onboard_regs {
+struct janz_cmodio_onboard_regs
+{
 	u8 unused1;
 
 	/*

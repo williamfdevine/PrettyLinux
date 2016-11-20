@@ -7,7 +7,8 @@
  * Some registers must be read back to modify.
  * To save time we cache them here in memory
  */
-struct max7301 {
+struct max7301
+{
 	struct mutex	lock;
 	u8		port_config[8];	/* field 0 is unused */
 	u32		out_level;	/* cached output levels */
@@ -18,7 +19,8 @@ struct max7301 {
 	int (*read)(struct device *dev, unsigned int reg);
 };
 
-struct max7301_platform_data {
+struct max7301_platform_data
+{
 	/* number assigned to the first GPIO */
 	unsigned	base;
 	/*

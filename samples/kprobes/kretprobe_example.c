@@ -28,10 +28,11 @@
 static char func_name[NAME_MAX] = "_do_fork";
 module_param_string(func, func_name, NAME_MAX, S_IRUGO);
 MODULE_PARM_DESC(func, "Function to kretprobe; this module will report the"
-			" function's execution time");
+				 " function's execution time");
 
 /* per-instance private data */
-struct my_data {
+struct my_data
+{
 	ktime_t entry_stamp;
 };
 
@@ -41,7 +42,9 @@ static int entry_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
 	struct my_data *data;
 
 	if (!current->mm)
-		return 1;	/* Skip kernel threads */
+	{
+		return 1;    /* Skip kernel threads */
+	}
 
 	data = (struct my_data *)ri->data;
 	data->entry_stamp = ktime_get();
@@ -67,7 +70,8 @@ static int ret_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
 	return 0;
 }
 
-static struct kretprobe my_kretprobe = {
+static struct kretprobe my_kretprobe =
+{
 	.handler		= ret_handler,
 	.entry_handler		= entry_handler,
 	.data_size		= sizeof(struct my_data),
@@ -81,10 +85,13 @@ static int __init kretprobe_init(void)
 
 	my_kretprobe.kp.symbol_name = func_name;
 	ret = register_kretprobe(&my_kretprobe);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("register_kretprobe failed, returned %d\n", ret);
 		return -1;
 	}
+
 	pr_info("Planted return probe at %s: %p\n",
 			my_kretprobe.kp.symbol_name, my_kretprobe.kp.addr);
 	return 0;
@@ -97,7 +104,7 @@ static void __exit kretprobe_exit(void)
 
 	/* nmissed > 0 suggests that maxactive was set too low. */
 	pr_info("Missed probing %d instances of %s\n",
-		my_kretprobe.nmissed, my_kretprobe.kp.symbol_name);
+			my_kretprobe.nmissed, my_kretprobe.kp.symbol_name);
 }
 
 module_init(kretprobe_init)

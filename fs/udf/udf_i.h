@@ -1,13 +1,15 @@
 #ifndef _UDF_I_H
 #define _UDF_I_H
 
-struct extent_position {
+struct extent_position
+{
 	struct buffer_head *bh;
 	uint32_t offset;
 	struct kernel_lb_addr block;
 };
 
-struct udf_ext_cache {
+struct udf_ext_cache
+{
 	/* Extent position */
 	struct extent_position epos;
 	/* Start logical offset in bytes */
@@ -26,7 +28,8 @@ struct udf_ext_cache {
  * For directories i_mutex is used for all the necessary protection.
  */
 
-struct udf_inode_info {
+struct udf_inode_info
+{
 	struct timespec		i_crtime;
 	/* Physical address of inode */
 	struct kernel_lb_addr		i_location;
@@ -42,7 +45,8 @@ struct udf_inode_info {
 	unsigned		i_use : 1;	/* unallocSpaceEntry */
 	unsigned		i_strat4096 : 1;
 	unsigned		reserved : 26;
-	union {
+	union
+	{
 		struct short_ad	*i_sad;
 		struct long_ad		*i_lad;
 		__u8		*i_data;

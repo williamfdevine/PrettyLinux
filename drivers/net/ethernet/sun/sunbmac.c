@@ -55,21 +55,21 @@ MODULE_LICENSE("GPL");
 #undef DEBUG_IRQ
 
 #ifdef DEBUG_PROBE
-#define DP(x)  printk x
+	#define DP(x)  printk x
 #else
-#define DP(x)
+	#define DP(x)
 #endif
 
 #ifdef DEBUG_TX
-#define DTX(x)  printk x
+	#define DTX(x)  printk x
 #else
-#define DTX(x)
+	#define DTX(x)
 #endif
 
 #ifdef DEBUG_IRQ
-#define DIRQ(x)  printk x
+	#define DIRQ(x)  printk x
 #else
-#define DIRQ(x)
+	#define DIRQ(x)
 #endif
 
 #define DEFAULT_JAMSIZE    4 /* Toe jam */
@@ -81,15 +81,23 @@ static int qec_global_reset(void __iomem *gregs)
 	int tries = QEC_RESET_TRIES;
 
 	sbus_writel(GLOB_CTRL_RESET, gregs + GLOB_CTRL);
-	while (--tries) {
-		if (sbus_readl(gregs + GLOB_CTRL) & GLOB_CTRL_RESET) {
+
+	while (--tries)
+	{
+		if (sbus_readl(gregs + GLOB_CTRL) & GLOB_CTRL_RESET)
+		{
 			udelay(20);
 			continue;
 		}
+
 		break;
 	}
+
 	if (tries)
+	{
 		return 0;
+	}
+
 	printk(KERN_ERR "BigMAC: Cannot reset the QEC.\n");
 	return -1;
 }
@@ -105,21 +113,26 @@ static void qec_init(struct bigmac *bp)
 	 * not even try to enable them.  -DaveM
 	 */
 	if (bsizes & DMA_BURST32)
+	{
 		regval = GLOB_CTRL_B32;
+	}
 	else
+	{
 		regval = GLOB_CTRL_B16;
+	}
+
 	sbus_writel(regval | GLOB_CTRL_BMODE, gregs + GLOB_CTRL);
 	sbus_writel(GLOB_PSIZE_2048, gregs + GLOB_PSIZE);
 
 	/* All of memsize is given to bigmac. */
 	sbus_writel(resource_size(&qec_op->resource[1]),
-		    gregs + GLOB_MSIZE);
+				gregs + GLOB_MSIZE);
 
 	/* Half to the transmitter, half to the receiver. */
 	sbus_writel(resource_size(&qec_op->resource[1]) >> 1,
-		    gregs + GLOB_TSIZE);
+				gregs + GLOB_TSIZE);
 	sbus_writel(resource_size(&qec_op->resource[1]) >> 1,
-		    gregs + GLOB_RSIZE);
+				gregs + GLOB_RSIZE);
 }
 
 #define TX_RESET_TRIES     32
@@ -135,13 +148,16 @@ static void bigmac_tx_reset(void __iomem *bregs)
 	 * not clear.  -DaveM
 	 */
 	while ((sbus_readl(bregs + BMAC_TXCFG) & ~(BIGMAC_TXCFG_FIFO)) != 0 &&
-	       --tries != 0)
+		   --tries != 0)
+	{
 		udelay(20);
+	}
 
-	if (!tries) {
+	if (!tries)
+	{
 		printk(KERN_ERR "BIGMAC: Transmitter will not reset.\n");
 		printk(KERN_ERR "BIGMAC: tx_cfg is %08x\n",
-		       sbus_readl(bregs + BMAC_TXCFG));
+			   sbus_readl(bregs + BMAC_TXCFG));
 	}
 }
 
@@ -150,13 +166,17 @@ static void bigmac_rx_reset(void __iomem *bregs)
 	int tries = RX_RESET_TRIES;
 
 	sbus_writel(0, bregs + BMAC_RXCFG);
-	while (sbus_readl(bregs + BMAC_RXCFG) && --tries)
-		udelay(20);
 
-	if (!tries) {
+	while (sbus_readl(bregs + BMAC_RXCFG) && --tries)
+	{
+		udelay(20);
+	}
+
+	if (!tries)
+	{
 		printk(KERN_ERR "BIGMAC: Receiver will not reset.\n");
 		printk(KERN_ERR "BIGMAC: rx_cfg is %08x\n",
-		       sbus_readl(bregs + BMAC_RXCFG));
+			   sbus_readl(bregs + BMAC_RXCFG));
 	}
 }
 
@@ -193,15 +213,19 @@ static void bigmac_clean_rings(struct bigmac *bp)
 {
 	int i;
 
-	for (i = 0; i < RX_RING_SIZE; i++) {
-		if (bp->rx_skbs[i] != NULL) {
+	for (i = 0; i < RX_RING_SIZE; i++)
+	{
+		if (bp->rx_skbs[i] != NULL)
+		{
 			dev_kfree_skb_any(bp->rx_skbs[i]);
 			bp->rx_skbs[i] = NULL;
 		}
 	}
 
-	for (i = 0; i < TX_RING_SIZE; i++) {
-		if (bp->tx_skbs[i] != NULL) {
+	for (i = 0; i < TX_RING_SIZE; i++)
+	{
+		if (bp->tx_skbs[i] != NULL)
+		{
 			dev_kfree_skb_any(bp->tx_skbs[i]);
 			bp->tx_skbs[i] = NULL;
 		}
@@ -215,7 +239,9 @@ static void bigmac_init_rings(struct bigmac *bp, int from_irq)
 	gfp_t gfp_flags = GFP_KERNEL;
 
 	if (from_irq || in_interrupt())
+	{
 		gfp_flags = GFP_ATOMIC;
+	}
 
 	bp->rx_new = bp->rx_old = bp->tx_new = bp->tx_old = 0;
 
@@ -223,12 +249,16 @@ static void bigmac_init_rings(struct bigmac *bp, int from_irq)
 	bigmac_clean_rings(bp);
 
 	/* Now get new skbufs for the receive ring. */
-	for (i = 0; i < RX_RING_SIZE; i++) {
+	for (i = 0; i < RX_RING_SIZE; i++)
+	{
 		struct sk_buff *skb;
 
 		skb = big_mac_alloc_skb(RX_BUF_ALLOC_SIZE, gfp_flags);
+
 		if (!skb)
+		{
 			continue;
+		}
 
 		bp->rx_skbs[i] = skb;
 
@@ -238,15 +268,17 @@ static void bigmac_init_rings(struct bigmac *bp, int from_irq)
 
 		bb->be_rxd[i].rx_addr =
 			dma_map_single(&bp->bigmac_op->dev,
-				       skb->data,
-				       RX_BUF_ALLOC_SIZE - 34,
-				       DMA_FROM_DEVICE);
+						   skb->data,
+						   RX_BUF_ALLOC_SIZE - 34,
+						   DMA_FROM_DEVICE);
 		bb->be_rxd[i].rx_flags =
 			(RXD_OWN | ((RX_BUF_ALLOC_SIZE - 34) & RXD_LENGTH));
 	}
 
 	for (i = 0; i < TX_RING_SIZE; i++)
+	{
 		bb->be_txd[i].tx_flags = bb->be_txd[i].tx_addr = 0;
+	}
 }
 
 #define MGMT_CLKON  (MGMT_PAL_INT_MDIO|MGMT_PAL_EXT_MDIO|MGMT_PAL_OENAB|MGMT_PAL_DCLOCK)
@@ -256,7 +288,8 @@ static void idle_transceiver(void __iomem *tregs)
 {
 	int i = 20;
 
-	while (i--) {
+	while (i--)
+	{
 		sbus_writel(MGMT_CLKOFF, tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
 		sbus_writel(MGMT_CLKON, tregs + TCVR_MPAL);
@@ -266,23 +299,28 @@ static void idle_transceiver(void __iomem *tregs)
 
 static void write_tcvr_bit(struct bigmac *bp, void __iomem *tregs, int bit)
 {
-	if (bp->tcvr_type == internal) {
+	if (bp->tcvr_type == internal)
+	{
 		bit = (bit & 1) << 3;
 		sbus_writel(bit | (MGMT_PAL_OENAB | MGMT_PAL_EXT_MDIO),
-			    tregs + TCVR_MPAL);
+					tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
 		sbus_writel(bit | MGMT_PAL_OENAB | MGMT_PAL_EXT_MDIO | MGMT_PAL_DCLOCK,
-			    tregs + TCVR_MPAL);
+					tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
-	} else if (bp->tcvr_type == external) {
+	}
+	else if (bp->tcvr_type == external)
+	{
 		bit = (bit & 1) << 2;
 		sbus_writel(bit | MGMT_PAL_INT_MDIO | MGMT_PAL_OENAB,
-			    tregs + TCVR_MPAL);
+					tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
 		sbus_writel(bit | MGMT_PAL_INT_MDIO | MGMT_PAL_OENAB | MGMT_PAL_DCLOCK,
-			    tregs + TCVR_MPAL);
+					tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "write_tcvr_bit: No transceiver type known!\n");
 	}
 }
@@ -291,22 +329,28 @@ static int read_tcvr_bit(struct bigmac *bp, void __iomem *tregs)
 {
 	int retval = 0;
 
-	if (bp->tcvr_type == internal) {
+	if (bp->tcvr_type == internal)
+	{
 		sbus_writel(MGMT_PAL_EXT_MDIO, tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
 		sbus_writel(MGMT_PAL_EXT_MDIO | MGMT_PAL_DCLOCK,
-			    tregs + TCVR_MPAL);
+					tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
 		retval = (sbus_readl(tregs + TCVR_MPAL) & MGMT_PAL_INT_MDIO) >> 3;
-	} else if (bp->tcvr_type == external) {
+	}
+	else if (bp->tcvr_type == external)
+	{
 		sbus_writel(MGMT_PAL_INT_MDIO, tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
 		sbus_writel(MGMT_PAL_INT_MDIO | MGMT_PAL_DCLOCK, tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
 		retval = (sbus_readl(tregs + TCVR_MPAL) & MGMT_PAL_EXT_MDIO) >> 2;
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "read_tcvr_bit: No transceiver type known!\n");
 	}
+
 	return retval;
 }
 
@@ -314,51 +358,61 @@ static int read_tcvr_bit2(struct bigmac *bp, void __iomem *tregs)
 {
 	int retval = 0;
 
-	if (bp->tcvr_type == internal) {
+	if (bp->tcvr_type == internal)
+	{
 		sbus_writel(MGMT_PAL_EXT_MDIO, tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
 		retval = (sbus_readl(tregs + TCVR_MPAL) & MGMT_PAL_INT_MDIO) >> 3;
 		sbus_writel(MGMT_PAL_EXT_MDIO | MGMT_PAL_DCLOCK, tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
-	} else if (bp->tcvr_type == external) {
+	}
+	else if (bp->tcvr_type == external)
+	{
 		sbus_writel(MGMT_PAL_INT_MDIO, tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
 		retval = (sbus_readl(tregs + TCVR_MPAL) & MGMT_PAL_EXT_MDIO) >> 2;
 		sbus_writel(MGMT_PAL_INT_MDIO | MGMT_PAL_DCLOCK, tregs + TCVR_MPAL);
 		sbus_readl(tregs + TCVR_MPAL);
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "read_tcvr_bit2: No transceiver type known!\n");
 	}
+
 	return retval;
 }
 
 static void put_tcvr_byte(struct bigmac *bp,
-			  void __iomem *tregs,
-			  unsigned int byte)
+						  void __iomem *tregs,
+						  unsigned int byte)
 {
 	int shift = 4;
 
-	do {
+	do
+	{
 		write_tcvr_bit(bp, tregs, ((byte >> shift) & 1));
 		shift -= 1;
-	} while (shift >= 0);
+	}
+	while (shift >= 0);
 }
 
 static void bigmac_tcvr_write(struct bigmac *bp, void __iomem *tregs,
-			      int reg, unsigned short val)
+							  int reg, unsigned short val)
 {
 	int shift;
 
 	reg &= 0xff;
 	val &= 0xffff;
-	switch(bp->tcvr_type) {
-	case internal:
-	case external:
-		break;
 
-	default:
-		printk(KERN_ERR "bigmac_tcvr_read: Whoops, no known transceiver type.\n");
-		return;
+	switch (bp->tcvr_type)
+	{
+		case internal:
+		case external:
+			break;
+
+		default:
+			printk(KERN_ERR "bigmac_tcvr_read: Whoops, no known transceiver type.\n");
+			return;
 	}
 
 	idle_transceiver(tregs);
@@ -368,8 +422,8 @@ static void bigmac_tcvr_write(struct bigmac *bp, void __iomem *tregs,
 	write_tcvr_bit(bp, tregs, 1);
 
 	put_tcvr_byte(bp, tregs,
-		      ((bp->tcvr_type == internal) ?
-		       BIGMAC_PHY_INTERNAL : BIGMAC_PHY_EXTERNAL));
+				  ((bp->tcvr_type == internal) ?
+				   BIGMAC_PHY_INTERNAL : BIGMAC_PHY_EXTERNAL));
 
 	put_tcvr_byte(bp, tregs, reg);
 
@@ -377,27 +431,32 @@ static void bigmac_tcvr_write(struct bigmac *bp, void __iomem *tregs,
 	write_tcvr_bit(bp, tregs, 0);
 
 	shift = 15;
-	do {
+
+	do
+	{
 		write_tcvr_bit(bp, tregs, (val >> shift) & 1);
 		shift -= 1;
-	} while (shift >= 0);
+	}
+	while (shift >= 0);
 }
 
 static unsigned short bigmac_tcvr_read(struct bigmac *bp,
-				       void __iomem *tregs,
-				       int reg)
+									   void __iomem *tregs,
+									   int reg)
 {
 	unsigned short retval = 0;
 
 	reg &= 0xff;
-	switch(bp->tcvr_type) {
-	case internal:
-	case external:
-		break;
 
-	default:
-		printk(KERN_ERR "bigmac_tcvr_read: Whoops, no known transceiver type.\n");
-		return 0xffff;
+	switch (bp->tcvr_type)
+	{
+		case internal:
+		case external:
+			break;
+
+		default:
+			printk(KERN_ERR "bigmac_tcvr_read: Whoops, no known transceiver type.\n");
+			return 0xffff;
 	}
 
 	idle_transceiver(tregs);
@@ -407,46 +466,54 @@ static unsigned short bigmac_tcvr_read(struct bigmac *bp,
 	write_tcvr_bit(bp, tregs, 0);
 
 	put_tcvr_byte(bp, tregs,
-		      ((bp->tcvr_type == internal) ?
-		       BIGMAC_PHY_INTERNAL : BIGMAC_PHY_EXTERNAL));
+				  ((bp->tcvr_type == internal) ?
+				   BIGMAC_PHY_INTERNAL : BIGMAC_PHY_EXTERNAL));
 
 	put_tcvr_byte(bp, tregs, reg);
 
-	if (bp->tcvr_type == external) {
+	if (bp->tcvr_type == external)
+	{
 		int shift = 15;
 
 		(void) read_tcvr_bit2(bp, tregs);
 		(void) read_tcvr_bit2(bp, tregs);
 
-		do {
+		do
+		{
 			int tmp;
 
 			tmp = read_tcvr_bit2(bp, tregs);
 			retval |= ((tmp & 1) << shift);
 			shift -= 1;
-		} while (shift >= 0);
+		}
+		while (shift >= 0);
 
 		(void) read_tcvr_bit2(bp, tregs);
 		(void) read_tcvr_bit2(bp, tregs);
 		(void) read_tcvr_bit2(bp, tregs);
-	} else {
+	}
+	else
+	{
 		int shift = 15;
 
 		(void) read_tcvr_bit(bp, tregs);
 		(void) read_tcvr_bit(bp, tregs);
 
-		do {
+		do
+		{
 			int tmp;
 
 			tmp = read_tcvr_bit(bp, tregs);
 			retval |= ((tmp & 1) << shift);
 			shift -= 1;
-		} while (shift >= 0);
+		}
+		while (shift >= 0);
 
 		(void) read_tcvr_bit(bp, tregs);
 		(void) read_tcvr_bit(bp, tregs);
 		(void) read_tcvr_bit(bp, tregs);
 	}
+
 	return retval;
 }
 
@@ -457,7 +524,7 @@ static void bigmac_tcvr_init(struct bigmac *bp)
 
 	idle_transceiver(tregs);
 	sbus_writel(MGMT_PAL_INT_MDIO | MGMT_PAL_EXT_MDIO | MGMT_PAL_DCLOCK,
-		    tregs + TCVR_MPAL);
+				tregs + TCVR_MPAL);
 	sbus_readl(tregs + TCVR_MPAL);
 
 	/* Only the bit for the present transceiver (internal or
@@ -468,23 +535,29 @@ static void bigmac_tcvr_init(struct bigmac *bp)
 	udelay(20);
 
 	mpal = sbus_readl(tregs + TCVR_MPAL);
-	if (mpal & MGMT_PAL_EXT_MDIO) {
+
+	if (mpal & MGMT_PAL_EXT_MDIO)
+	{
 		bp->tcvr_type = external;
 		sbus_writel(~(TCVR_PAL_EXTLBACK | TCVR_PAL_MSENSE | TCVR_PAL_LTENABLE),
-			    tregs + TCVR_TPAL);
+					tregs + TCVR_TPAL);
 		sbus_readl(tregs + TCVR_TPAL);
-	} else if (mpal & MGMT_PAL_INT_MDIO) {
+	}
+	else if (mpal & MGMT_PAL_INT_MDIO)
+	{
 		bp->tcvr_type = internal;
 		sbus_writel(~(TCVR_PAL_SERIAL | TCVR_PAL_EXTLBACK |
-			      TCVR_PAL_MSENSE | TCVR_PAL_LTENABLE),
-			    tregs + TCVR_TPAL);
+					  TCVR_PAL_MSENSE | TCVR_PAL_LTENABLE),
+					tregs + TCVR_TPAL);
 		sbus_readl(tregs + TCVR_TPAL);
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "BIGMAC: AIEEE, neither internal nor "
-		       "external MDIO available!\n");
+			   "external MDIO available!\n");
 		printk(KERN_ERR "BIGMAC: mgmt_pal[%08x] tcvr_pal[%08x]\n",
-		       sbus_readl(tregs + TCVR_MPAL),
-		       sbus_readl(tregs + TCVR_TPAL));
+			   sbus_readl(tregs + TCVR_MPAL),
+			   sbus_readl(tregs + TCVR_TPAL));
 	}
 }
 
@@ -492,7 +565,8 @@ static int bigmac_init_hw(struct bigmac *, int);
 
 static int try_next_permutation(struct bigmac *bp, void __iomem *tregs)
 {
-	if (bp->sw_bmcr & BMCR_SPEED100) {
+	if (bp->sw_bmcr & BMCR_SPEED100)
+	{
 		int timeout;
 
 		/* Reset the PHY. */
@@ -502,14 +576,23 @@ static int try_next_permutation(struct bigmac *bp, void __iomem *tregs)
 		bigmac_tcvr_write(bp, tregs, MII_BMCR, bp->sw_bmcr);
 
 		timeout = 64;
-		while (--timeout) {
+
+		while (--timeout)
+		{
 			bp->sw_bmcr = bigmac_tcvr_read(bp, tregs, MII_BMCR);
+
 			if ((bp->sw_bmcr & BMCR_RESET) == 0)
+			{
 				break;
+			}
+
 			udelay(20);
 		}
+
 		if (timeout == 0)
+		{
 			printk(KERN_ERR "%s: PHY reset failed.\n", bp->dev->name);
+		}
 
 		bp->sw_bmcr = bigmac_tcvr_read(bp, tregs, MII_BMCR);
 
@@ -530,48 +613,66 @@ static void bigmac_timer(unsigned long data)
 	int restart_timer = 0;
 
 	bp->timer_ticks++;
-	if (bp->timer_state == ltrywait) {
+
+	if (bp->timer_state == ltrywait)
+	{
 		bp->sw_bmsr = bigmac_tcvr_read(bp, tregs, MII_BMSR);
 		bp->sw_bmcr = bigmac_tcvr_read(bp, tregs, MII_BMCR);
-		if (bp->sw_bmsr & BMSR_LSTATUS) {
+
+		if (bp->sw_bmsr & BMSR_LSTATUS)
+		{
 			printk(KERN_INFO "%s: Link is now up at %s.\n",
-			       bp->dev->name,
-			       (bp->sw_bmcr & BMCR_SPEED100) ?
-			       "100baseT" : "10baseT");
+				   bp->dev->name,
+				   (bp->sw_bmcr & BMCR_SPEED100) ?
+				   "100baseT" : "10baseT");
 			bp->timer_state = asleep;
 			restart_timer = 0;
-		} else {
-			if (bp->timer_ticks >= 4) {
+		}
+		else
+		{
+			if (bp->timer_ticks >= 4)
+			{
 				int ret;
 
 				ret = try_next_permutation(bp, tregs);
-				if (ret == -1) {
+
+				if (ret == -1)
+				{
 					printk(KERN_ERR "%s: Link down, cable problem?\n",
-					       bp->dev->name);
+						   bp->dev->name);
 					ret = bigmac_init_hw(bp, 0);
-					if (ret) {
+
+					if (ret)
+					{
 						printk(KERN_ERR "%s: Error, cannot re-init the "
-						       "BigMAC.\n", bp->dev->name);
+							   "BigMAC.\n", bp->dev->name);
 					}
+
 					return;
 				}
+
 				bp->timer_ticks = 0;
 				restart_timer = 1;
-			} else {
+			}
+			else
+			{
 				restart_timer = 1;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		/* Can't happens.... */
 		printk(KERN_ERR "%s: Aieee, link timer is asleep but we got one anyways!\n",
-		       bp->dev->name);
+			   bp->dev->name);
 		restart_timer = 0;
 		bp->timer_ticks = 0;
 		bp->timer_state = asleep; /* foo on you */
 	}
 
-	if (restart_timer != 0) {
-		bp->bigmac_timer.expires = jiffies + ((12 * HZ)/10); /* 1.2 sec. */
+	if (restart_timer != 0)
+	{
+		bp->bigmac_timer.expires = jiffies + ((12 * HZ) / 10); /* 1.2 sec. */
 		add_timer(&bp->bigmac_timer);
 	}
 }
@@ -595,14 +696,23 @@ static void bigmac_begin_auto_negotiation(struct bigmac *bp)
 	bigmac_tcvr_write(bp, tregs, MII_BMCR, bp->sw_bmcr);
 
 	timeout = 64;
-	while (--timeout) {
+
+	while (--timeout)
+	{
 		bp->sw_bmcr = bigmac_tcvr_read(bp, tregs, MII_BMCR);
+
 		if ((bp->sw_bmcr & BMCR_RESET) == 0)
+		{
 			break;
+		}
+
 		udelay(20);
 	}
+
 	if (timeout == 0)
+	{
 		printk(KERN_ERR "%s: PHY reset failed.\n", bp->dev->name);
+	}
 
 	bp->sw_bmcr = bigmac_tcvr_read(bp, tregs, MII_BMCR);
 
@@ -656,7 +766,7 @@ static int bigmac_init_hw(struct bigmac *bp, int from_irq)
 
 	/* Enable Big Mac hash table filter. */
 	sbus_writel(BIGMAC_RXCFG_HENABLE | BIGMAC_RXCFG_FIFO,
-		    bregs + BMAC_RXCFG);
+				bregs + BMAC_RXCFG);
 	udelay(20);
 
 	/* Ok, configure the Big Mac transmitter. */
@@ -664,29 +774,29 @@ static int bigmac_init_hw(struct bigmac *bp, int from_irq)
 
 	/* The HME docs recommend to use the 10LSB of our MAC here. */
 	sbus_writel(((e[5] | e[4] << 8) & 0x3ff),
-		    bregs + BMAC_RSEED);
+				bregs + BMAC_RSEED);
 
 	/* Enable the output drivers no matter what. */
 	sbus_writel(BIGMAC_XCFG_ODENABLE | BIGMAC_XCFG_RESV,
-		    bregs + BMAC_XIFCFG);
+				bregs + BMAC_XIFCFG);
 
 	/* Tell the QEC where the ring descriptors are. */
 	sbus_writel(bp->bblock_dvma + bib_offset(be_rxd, 0),
-		    cregs + CREG_RXDS);
+				cregs + CREG_RXDS);
 	sbus_writel(bp->bblock_dvma + bib_offset(be_txd, 0),
-		    cregs + CREG_TXDS);
+				cregs + CREG_TXDS);
 
 	/* Setup the FIFO pointers into QEC local memory. */
 	sbus_writel(0, cregs + CREG_RXRBUFPTR);
 	sbus_writel(0, cregs + CREG_RXWBUFPTR);
 	sbus_writel(sbus_readl(gregs + GLOB_RSIZE),
-		    cregs + CREG_TXRBUFPTR);
+				cregs + CREG_TXRBUFPTR);
 	sbus_writel(sbus_readl(gregs + GLOB_RSIZE),
-		    cregs + CREG_TXWBUFPTR);
+				cregs + CREG_TXWBUFPTR);
 
 	/* Tell bigmac what interrupts we don't want to hear about. */
 	sbus_writel(BIGMAC_IMASK_GOTFRAME | BIGMAC_IMASK_SENTFRAME,
-		    bregs + BMAC_IMASK);
+				bregs + BMAC_IMASK);
 
 	/* Enable the various other irq's. */
 	sbus_writel(0, cregs + CREG_RIMASK);
@@ -702,9 +812,9 @@ static int bigmac_init_hw(struct bigmac *bp, int from_irq)
 
 	/* Enable transmitter and receiver. */
 	sbus_writel(sbus_readl(bregs + BMAC_TXCFG) | BIGMAC_TXCFG_ENABLE,
-		    bregs + BMAC_TXCFG);
+				bregs + BMAC_TXCFG);
 	sbus_writel(sbus_readl(bregs + BMAC_RXCFG) | BIGMAC_RXCFG_ENABLE,
-		    bregs + BMAC_RXCFG);
+				bregs + BMAC_RXCFG);
 
 	/* Ok, start detecting link speed/duplex. */
 	bigmac_begin_auto_negotiation(bp);
@@ -717,35 +827,71 @@ static int bigmac_init_hw(struct bigmac *bp, int from_irq)
 static void bigmac_is_medium_rare(struct bigmac *bp, u32 qec_status, u32 bmac_status)
 {
 	printk(KERN_ERR "bigmac_is_medium_rare: ");
-	if (qec_status & (GLOB_STAT_ER | GLOB_STAT_BM)) {
+
+	if (qec_status & (GLOB_STAT_ER | GLOB_STAT_BM))
+	{
 		if (qec_status & GLOB_STAT_ER)
+		{
 			printk("QEC_ERROR, ");
+		}
+
 		if (qec_status & GLOB_STAT_BM)
+		{
 			printk("QEC_BMAC_ERROR, ");
+		}
 	}
-	if (bmac_status & CREG_STAT_ERRORS) {
+
+	if (bmac_status & CREG_STAT_ERRORS)
+	{
 		if (bmac_status & CREG_STAT_BERROR)
+		{
 			printk("BMAC_ERROR, ");
+		}
+
 		if (bmac_status & CREG_STAT_TXDERROR)
+		{
 			printk("TXD_ERROR, ");
+		}
+
 		if (bmac_status & CREG_STAT_TXLERR)
+		{
 			printk("TX_LATE_ERROR, ");
+		}
+
 		if (bmac_status & CREG_STAT_TXPERR)
+		{
 			printk("TX_PARITY_ERROR, ");
+		}
+
 		if (bmac_status & CREG_STAT_TXSERR)
+		{
 			printk("TX_SBUS_ERROR, ");
+		}
 
 		if (bmac_status & CREG_STAT_RXDROP)
+		{
 			printk("RX_DROP_ERROR, ");
+		}
 
 		if (bmac_status & CREG_STAT_RXSMALL)
+		{
 			printk("RX_SMALL_ERROR, ");
+		}
+
 		if (bmac_status & CREG_STAT_RXLERR)
+		{
 			printk("RX_LATE_ERROR, ");
+		}
+
 		if (bmac_status & CREG_STAT_RXPERR)
+		{
 			printk("RX_PARITY_ERROR, ");
+		}
+
 		if (bmac_status & CREG_STAT_RXSERR)
+		{
 			printk("RX_SBUS_ERROR, ");
+		}
 	}
 
 	printk(" RESET\n");
@@ -763,21 +909,26 @@ static void bigmac_tx(struct bigmac *bp)
 
 	elem = bp->tx_old;
 	DTX(("bigmac_tx: tx_old[%d] ", elem));
-	while (elem != bp->tx_new) {
+
+	while (elem != bp->tx_new)
+	{
 		struct sk_buff *skb;
 		struct be_txd *this = &txbase[elem];
 
 		DTX(("this(%p) [flags(%08x)addr(%08x)]",
-		     this, this->tx_flags, this->tx_addr));
+			 this, this->tx_flags, this->tx_addr));
 
 		if (this->tx_flags & TXD_OWN)
+		{
 			break;
+		}
+
 		skb = bp->tx_skbs[elem];
 		bp->enet_stats.tx_packets++;
 		bp->enet_stats.tx_bytes += skb->len;
 		dma_unmap_single(&bp->bigmac_op->dev,
-				 this->tx_addr, skb->len,
-				 DMA_TO_DEVICE);
+						 this->tx_addr, skb->len,
+						 DMA_TO_DEVICE);
 
 		DTX(("skb(%p) ", skb));
 		bp->tx_skbs[elem] = NULL;
@@ -785,12 +936,15 @@ static void bigmac_tx(struct bigmac *bp)
 
 		elem = NEXT_TX(elem);
 	}
+
 	DTX((" DONE, tx_old=%d\n", elem));
 	bp->tx_old = elem;
 
 	if (netif_queue_stopped(dev) &&
-	    TX_BUFFS_AVAIL(bp) > 0)
+		TX_BUFFS_AVAIL(bp) > 0)
+	{
 		netif_wake_queue(bp->dev);
+	}
 
 	spin_unlock(&bp->lock);
 }
@@ -804,65 +958,78 @@ static void bigmac_rx(struct bigmac *bp)
 	u32 flags;
 
 	this = &rxbase[elem];
-	while (!((flags = this->rx_flags) & RXD_OWN)) {
+
+	while (!((flags = this->rx_flags) & RXD_OWN))
+	{
 		struct sk_buff *skb;
 		int len = (flags & RXD_LENGTH); /* FCS not included */
 
 		/* Check for errors. */
-		if (len < ETH_ZLEN) {
+		if (len < ETH_ZLEN)
+		{
 			bp->enet_stats.rx_errors++;
 			bp->enet_stats.rx_length_errors++;
 
-	drop_it:
+drop_it:
 			/* Return it to the BigMAC. */
 			bp->enet_stats.rx_dropped++;
 			this->rx_flags =
 				(RXD_OWN | ((RX_BUF_ALLOC_SIZE - 34) & RXD_LENGTH));
 			goto next;
 		}
+
 		skb = bp->rx_skbs[elem];
-		if (len > RX_COPY_THRESHOLD) {
+
+		if (len > RX_COPY_THRESHOLD)
+		{
 			struct sk_buff *new_skb;
 
 			/* Now refill the entry, if we can. */
 			new_skb = big_mac_alloc_skb(RX_BUF_ALLOC_SIZE, GFP_ATOMIC);
-			if (new_skb == NULL) {
+
+			if (new_skb == NULL)
+			{
 				drops++;
 				goto drop_it;
 			}
+
 			dma_unmap_single(&bp->bigmac_op->dev,
-					 this->rx_addr,
-					 RX_BUF_ALLOC_SIZE - 34,
-					 DMA_FROM_DEVICE);
+							 this->rx_addr,
+							 RX_BUF_ALLOC_SIZE - 34,
+							 DMA_FROM_DEVICE);
 			bp->rx_skbs[elem] = new_skb;
 			skb_put(new_skb, ETH_FRAME_LEN);
 			skb_reserve(new_skb, 34);
 			this->rx_addr =
 				dma_map_single(&bp->bigmac_op->dev,
-					       new_skb->data,
-					       RX_BUF_ALLOC_SIZE - 34,
-					       DMA_FROM_DEVICE);
+							   new_skb->data,
+							   RX_BUF_ALLOC_SIZE - 34,
+							   DMA_FROM_DEVICE);
 			this->rx_flags =
 				(RXD_OWN | ((RX_BUF_ALLOC_SIZE - 34) & RXD_LENGTH));
 
 			/* Trim the original skb for the netif. */
 			skb_trim(skb, len);
-		} else {
+		}
+		else
+		{
 			struct sk_buff *copy_skb = netdev_alloc_skb(bp->dev, len + 2);
 
-			if (copy_skb == NULL) {
+			if (copy_skb == NULL)
+			{
 				drops++;
 				goto drop_it;
 			}
+
 			skb_reserve(copy_skb, 2);
 			skb_put(copy_skb, len);
 			dma_sync_single_for_cpu(&bp->bigmac_op->dev,
-						this->rx_addr, len,
-						DMA_FROM_DEVICE);
+									this->rx_addr, len,
+									DMA_FROM_DEVICE);
 			skb_copy_to_linear_data(copy_skb, (unsigned char *)skb->data, len);
 			dma_sync_single_for_device(&bp->bigmac_op->dev,
-						   this->rx_addr, len,
-						   DMA_FROM_DEVICE);
+									   this->rx_addr, len,
+									   DMA_FROM_DEVICE);
 
 			/* Reuse original ring buffer. */
 			this->rx_flags =
@@ -876,13 +1043,17 @@ static void bigmac_rx(struct bigmac *bp)
 		netif_rx(skb);
 		bp->enet_stats.rx_packets++;
 		bp->enet_stats.rx_bytes += len;
-	next:
+next:
 		elem = NEXT_RX(elem);
 		this = &rxbase[elem];
 	}
+
 	bp->rx_new = elem;
+
 	if (drops)
+	{
 		printk(KERN_NOTICE "%s: Memory squeeze, deferring packet.\n", bp->dev->name);
+	}
 }
 
 static irqreturn_t bigmac_interrupt(int irq, void *dev_id)
@@ -897,15 +1068,22 @@ static irqreturn_t bigmac_interrupt(int irq, void *dev_id)
 	qec_status = sbus_readl(bp->gregs + GLOB_STAT);
 
 	DIRQ(("qec_status=%08x bmac_status=%08x\n", qec_status, bmac_status));
+
 	if ((qec_status & (GLOB_STAT_ER | GLOB_STAT_BM)) ||
-	   (bmac_status & CREG_STAT_ERRORS))
+		(bmac_status & CREG_STAT_ERRORS))
+	{
 		bigmac_is_medium_rare(bp, qec_status, bmac_status);
+	}
 
 	if (bmac_status & CREG_STAT_TXIRQ)
+	{
 		bigmac_tx(bp);
+	}
 
 	if (bmac_status & CREG_STAT_RXIRQ)
+	{
 		bigmac_rx(bp);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -916,14 +1094,21 @@ static int bigmac_open(struct net_device *dev)
 	int ret;
 
 	ret = request_irq(dev->irq, bigmac_interrupt, IRQF_SHARED, dev->name, bp);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "BIGMAC: Can't order irq %d to go.\n", dev->irq);
 		return ret;
 	}
+
 	init_timer(&bp->bigmac_timer);
 	ret = bigmac_init_hw(bp, 0);
+
 	if (ret)
+	{
 		free_irq(dev->irq, bp);
+	}
+
 	return ret;
 }
 
@@ -958,7 +1143,7 @@ static int bigmac_start_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	len = skb->len;
 	mapping = dma_map_single(&bp->bigmac_op->dev, skb->data,
-				 len, DMA_TO_DEVICE);
+							 len, DMA_TO_DEVICE);
 
 	/* Avoid a race... */
 	spin_lock_irq(&bp->lock);
@@ -970,8 +1155,12 @@ static int bigmac_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	bp->bmac_block->be_txd[entry].tx_flags =
 		(TXD_OWN | TXD_SOP | TXD_EOP | (len & TXD_LENGTH));
 	bp->tx_new = NEXT_TX(entry);
+
 	if (TX_BUFFS_AVAIL(bp) <= 0)
+	{
 		netif_stop_queue(dev);
+	}
+
 	spin_unlock_irq(&bp->lock);
 
 	/* Get it going. */
@@ -1002,22 +1191,31 @@ static void bigmac_set_multicast(struct net_device *dev)
 	tmp = sbus_readl(bregs + BMAC_RXCFG);
 	tmp &= ~(BIGMAC_RXCFG_ENABLE);
 	sbus_writel(tmp, bregs + BMAC_RXCFG);
-	while ((sbus_readl(bregs + BMAC_RXCFG) & BIGMAC_RXCFG_ENABLE) != 0)
-		udelay(20);
 
-	if ((dev->flags & IFF_ALLMULTI) || (netdev_mc_count(dev) > 64)) {
+	while ((sbus_readl(bregs + BMAC_RXCFG) & BIGMAC_RXCFG_ENABLE) != 0)
+	{
+		udelay(20);
+	}
+
+	if ((dev->flags & IFF_ALLMULTI) || (netdev_mc_count(dev) > 64))
+	{
 		sbus_writel(0xffff, bregs + BMAC_HTABLE0);
 		sbus_writel(0xffff, bregs + BMAC_HTABLE1);
 		sbus_writel(0xffff, bregs + BMAC_HTABLE2);
 		sbus_writel(0xffff, bregs + BMAC_HTABLE3);
-	} else if (dev->flags & IFF_PROMISC) {
+	}
+	else if (dev->flags & IFF_PROMISC)
+	{
 		tmp = sbus_readl(bregs + BMAC_RXCFG);
 		tmp |= BIGMAC_RXCFG_PMISC;
 		sbus_writel(tmp, bregs + BMAC_RXCFG);
-	} else {
+	}
+	else
+	{
 		u16 hash_table[4] = { 0 };
 
-		netdev_for_each_mc_addr(ha, dev) {
+		netdev_for_each_mc_addr(ha, dev)
+		{
 			crc = ether_crc_le(6, ha->addr);
 			crc >>= 26;
 			hash_table[crc >> 4] |= 1 << (crc & 0xf);
@@ -1052,12 +1250,14 @@ static u32 bigmac_get_link(struct net_device *dev)
 	return (bp->sw_bmsr & BMSR_LSTATUS);
 }
 
-static const struct ethtool_ops bigmac_ethtool_ops = {
+static const struct ethtool_ops bigmac_ethtool_ops =
+{
 	.get_drvinfo		= bigmac_get_drvinfo,
 	.get_link		= bigmac_get_link,
 };
 
-static const struct net_device_ops bigmac_ops = {
+static const struct net_device_ops bigmac_ops =
+{
 	.ndo_open		= bigmac_open,
 	.ndo_stop		= bigmac_close,
 	.ndo_start_xmit		= bigmac_start_xmit,
@@ -1070,7 +1270,7 @@ static const struct net_device_ops bigmac_ops = {
 };
 
 static int bigmac_ether_init(struct platform_device *op,
-			     struct platform_device *qec_op)
+							 struct platform_device *qec_op)
 {
 	static int version_printed;
 	struct net_device *dev;
@@ -1080,14 +1280,21 @@ static int bigmac_ether_init(struct platform_device *op,
 
 	/* Get a new device struct for this interface. */
 	dev = alloc_etherdev(sizeof(struct bigmac));
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	if (version_printed++ == 0)
+	{
 		printk(KERN_INFO "%s", version);
+	}
 
 	for (i = 0; i < 6; i++)
+	{
 		dev->dev_addr[i] = idprom->id_ethaddr[i];
+	}
 
 	/* Setup softc, with backpointers to QEC and BigMAC SBUS device structs. */
 	bp = netdev_priv(dev);
@@ -1100,32 +1307,44 @@ static int bigmac_ether_init(struct platform_device *op,
 
 	/* Map in QEC global control registers. */
 	bp->gregs = of_ioremap(&qec_op->resource[0], 0,
-			       GLOB_REG_SIZE, "BigMAC QEC GLobal Regs");
-	if (!bp->gregs) {
+						   GLOB_REG_SIZE, "BigMAC QEC GLobal Regs");
+
+	if (!bp->gregs)
+	{
 		printk(KERN_ERR "BIGMAC: Cannot map QEC global registers.\n");
 		goto fail_and_cleanup;
 	}
 
 	/* Make sure QEC is in BigMAC mode. */
-	if ((sbus_readl(bp->gregs + GLOB_CTRL) & 0xf0000000) != GLOB_CTRL_BMODE) {
+	if ((sbus_readl(bp->gregs + GLOB_CTRL) & 0xf0000000) != GLOB_CTRL_BMODE)
+	{
 		printk(KERN_ERR "BigMAC: AIEEE, QEC is not in BigMAC mode!\n");
 		goto fail_and_cleanup;
 	}
 
 	/* Reset the QEC. */
 	if (qec_global_reset(bp->gregs))
+	{
 		goto fail_and_cleanup;
+	}
 
 	/* Get supported SBUS burst sizes. */
 	bsizes = of_getintprop_default(qec_op->dev.of_node, "burst-sizes", 0xff);
 	bsizes_more = of_getintprop_default(qec_op->dev.of_node, "burst-sizes", 0xff);
 
 	bsizes &= 0xff;
+
 	if (bsizes_more != 0xff)
+	{
 		bsizes &= bsizes_more;
+	}
+
 	if (bsizes == 0xff || (bsizes & DMA_BURST16) == 0 ||
-	    (bsizes & DMA_BURST32) == 0)
+		(bsizes & DMA_BURST32) == 0)
+	{
 		bsizes = (DMA_BURST32 - 1);
+	}
+
 	bp->bigmac_bursts = bsizes;
 
 	/* Perform QEC initialization. */
@@ -1133,16 +1352,20 @@ static int bigmac_ether_init(struct platform_device *op,
 
 	/* Map in the BigMAC channel registers. */
 	bp->creg = of_ioremap(&op->resource[0], 0,
-			      CREG_REG_SIZE, "BigMAC QEC Channel Regs");
-	if (!bp->creg) {
+						  CREG_REG_SIZE, "BigMAC QEC Channel Regs");
+
+	if (!bp->creg)
+	{
 		printk(KERN_ERR "BIGMAC: Cannot map QEC channel registers.\n");
 		goto fail_and_cleanup;
 	}
 
 	/* Map in the BigMAC control registers. */
 	bp->bregs = of_ioremap(&op->resource[1], 0,
-			       BMAC_REG_SIZE, "BigMAC Primary Regs");
-	if (!bp->bregs) {
+						   BMAC_REG_SIZE, "BigMAC Primary Regs");
+
+	if (!bp->bregs)
+	{
 		printk(KERN_ERR "BIGMAC: Cannot map BigMAC primary registers.\n");
 		goto fail_and_cleanup;
 	}
@@ -1151,8 +1374,10 @@ static int bigmac_ether_init(struct platform_device *op,
 	 * the BigMAC's PHY.
 	 */
 	bp->tregs = of_ioremap(&op->resource[2], 0,
-			       TCVR_REG_SIZE, "BigMAC Transceiver Regs");
-	if (!bp->tregs) {
+						   TCVR_REG_SIZE, "BigMAC Transceiver Regs");
+
+	if (!bp->tregs)
+	{
 		printk(KERN_ERR "BIGMAC: Cannot map BigMAC transceiver registers.\n");
 		goto fail_and_cleanup;
 	}
@@ -1162,14 +1387,17 @@ static int bigmac_ether_init(struct platform_device *op,
 
 	/* Allocate transmit/receive descriptor DVMA block. */
 	bp->bmac_block = dma_alloc_coherent(&bp->bigmac_op->dev,
-					    PAGE_SIZE,
-					    &bp->bblock_dvma, GFP_ATOMIC);
+										PAGE_SIZE,
+										&bp->bblock_dvma, GFP_ATOMIC);
+
 	if (bp->bmac_block == NULL || bp->bblock_dvma == 0)
+	{
 		goto fail_and_cleanup;
+	}
 
 	/* Get the board revision of this BigMAC. */
 	bp->board_rev = of_getintprop_default(bp->bigmac_op->dev.of_node,
-					      "board-version", 1);
+										  "board-version", 1);
 
 	/* Init auto-negotiation timer state. */
 	init_timer(&bp->bigmac_timer);
@@ -1182,13 +1410,14 @@ static int bigmac_ether_init(struct platform_device *op,
 	/* Set links to our BigMAC open and close routines. */
 	dev->ethtool_ops = &bigmac_ethtool_ops;
 	dev->netdev_ops = &bigmac_ops;
-	dev->watchdog_timeo = 5*HZ;
+	dev->watchdog_timeo = 5 * HZ;
 
 	/* Finish net device registration. */
 	dev->irq = bp->bigmac_op->archdata.irqs[0];
 	dev->dma = 0;
 
-	if (register_netdev(dev)) {
+	if (register_netdev(dev))
+	{
 		printk(KERN_ERR "BIGMAC: Cannot register device.\n");
 		goto fail_and_cleanup;
 	}
@@ -1196,27 +1425,39 @@ static int bigmac_ether_init(struct platform_device *op,
 	dev_set_drvdata(&bp->bigmac_op->dev, bp);
 
 	printk(KERN_INFO "%s: BigMAC 100baseT Ethernet %pM\n",
-	       dev->name, dev->dev_addr);
+		   dev->name, dev->dev_addr);
 
 	return 0;
 
 fail_and_cleanup:
+
 	/* Something went wrong, undo whatever we did so far. */
 	/* Free register mappings if any. */
 	if (bp->gregs)
+	{
 		of_iounmap(&qec_op->resource[0], bp->gregs, GLOB_REG_SIZE);
+	}
+
 	if (bp->creg)
+	{
 		of_iounmap(&op->resource[0], bp->creg, CREG_REG_SIZE);
+	}
+
 	if (bp->bregs)
+	{
 		of_iounmap(&op->resource[1], bp->bregs, BMAC_REG_SIZE);
+	}
+
 	if (bp->tregs)
+	{
 		of_iounmap(&op->resource[2], bp->tregs, TCVR_REG_SIZE);
+	}
 
 	if (bp->bmac_block)
 		dma_free_coherent(&bp->bigmac_op->dev,
-				  PAGE_SIZE,
-				  bp->bmac_block,
-				  bp->bblock_dvma);
+						  PAGE_SIZE,
+						  bp->bmac_block,
+						  bp->bblock_dvma);
 
 	/* This also frees the co-located private data */
 	free_netdev(dev);
@@ -1252,16 +1493,17 @@ static int bigmac_sbus_remove(struct platform_device *op)
 	of_iounmap(&op->resource[1], bp->bregs, BMAC_REG_SIZE);
 	of_iounmap(&op->resource[2], bp->tregs, TCVR_REG_SIZE);
 	dma_free_coherent(&op->dev,
-			  PAGE_SIZE,
-			  bp->bmac_block,
-			  bp->bblock_dvma);
+					  PAGE_SIZE,
+					  bp->bmac_block,
+					  bp->bblock_dvma);
 
 	free_netdev(net_dev);
 
 	return 0;
 }
 
-static const struct of_device_id bigmac_sbus_match[] = {
+static const struct of_device_id bigmac_sbus_match[] =
+{
 	{
 		.name = "be",
 	},
@@ -1270,7 +1512,8 @@ static const struct of_device_id bigmac_sbus_match[] = {
 
 MODULE_DEVICE_TABLE(of, bigmac_sbus_match);
 
-static struct platform_driver bigmac_sbus_driver = {
+static struct platform_driver bigmac_sbus_driver =
+{
 	.driver = {
 		.name = "sunbmac",
 		.of_match_table = bigmac_sbus_match,

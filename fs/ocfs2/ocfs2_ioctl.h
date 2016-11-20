@@ -35,7 +35,8 @@
  * ALLOCSP* and FREESP* are not and will never be supported, but are
  * included here for completeness.
  */
-struct ocfs2_space_resv {
+struct ocfs2_space_resv
+{
 	__s16		l_type;
 	__s16		l_whence;
 	__s64		l_start;
@@ -55,7 +56,8 @@ struct ocfs2_space_resv {
 #define OCFS2_IOC_UNRESVSP64	_IOW ('X', 43, struct ocfs2_space_resv)
 
 /* Used to pass group descriptor data when online resize is done */
-struct ocfs2_new_group_input {
+struct ocfs2_new_group_input
+{
 	__u64 group;		/* Group descriptor's blkno. */
 	__u32 clusters;		/* Total number of clusters in this group */
 	__u32 frees;		/* Total free clusters in this group */
@@ -69,7 +71,8 @@ struct ocfs2_new_group_input {
 #define OCFS2_IOC_GROUP_ADD64	_IOW('o', 3,struct ocfs2_new_group_input)
 
 /* Used to pass 2 file names to reflink. */
-struct reflink_arguments {
+struct reflink_arguments
+{
 	__u64 old_path;
 	__u64 new_path;
 	__u64 preserve;
@@ -87,49 +90,57 @@ struct reflink_arguments {
  * Always try to separate info request into small pieces to
  * guarantee the backward&forward compatibility.
  */
-struct ocfs2_info {
+struct ocfs2_info
+{
 	__u64 oi_requests;	/* Array of __u64 pointers to requests */
 	__u32 oi_count;		/* Number of requests in info_requests */
 	__u32 oi_pad;
 };
 
-struct ocfs2_info_request {
-/*00*/	__u32 ir_magic;	/* Magic number */
+struct ocfs2_info_request
+{
+	/*00*/	__u32 ir_magic;	/* Magic number */
 	__u32 ir_code;	/* Info request code */
 	__u32 ir_size;	/* Size of request */
 	__u32 ir_flags;	/* Request flags */
-/*10*/			/* Request specific fields */
+	/*10*/			/* Request specific fields */
 };
 
-struct ocfs2_info_clustersize {
+struct ocfs2_info_clustersize
+{
 	struct ocfs2_info_request ic_req;
 	__u32 ic_clustersize;
 	__u32 ic_pad;
 };
 
-struct ocfs2_info_blocksize {
+struct ocfs2_info_blocksize
+{
 	struct ocfs2_info_request ib_req;
 	__u32 ib_blocksize;
 	__u32 ib_pad;
 };
 
-struct ocfs2_info_maxslots {
+struct ocfs2_info_maxslots
+{
 	struct ocfs2_info_request im_req;
 	__u32 im_max_slots;
 	__u32 im_pad;
 };
 
-struct ocfs2_info_label {
+struct ocfs2_info_label
+{
 	struct ocfs2_info_request il_req;
 	__u8	il_label[OCFS2_MAX_VOL_LABEL_LEN];
 } __attribute__ ((packed));
 
-struct ocfs2_info_uuid {
+struct ocfs2_info_uuid
+{
 	struct ocfs2_info_request iu_req;
 	__u8	iu_uuid_str[OCFS2_TEXT_UUID_LEN + 1];
 } __attribute__ ((packed));
 
-struct ocfs2_info_fs_features {
+struct ocfs2_info_fs_features
+{
 	struct ocfs2_info_request if_req;
 	__u32 if_compat_features;
 	__u32 if_incompat_features;
@@ -137,14 +148,17 @@ struct ocfs2_info_fs_features {
 	__u32 if_pad;
 };
 
-struct ocfs2_info_journal_size {
+struct ocfs2_info_journal_size
+{
 	struct ocfs2_info_request ij_req;
 	__u64 ij_journal_size;
 };
 
-struct ocfs2_info_freeinode {
+struct ocfs2_info_freeinode
+{
 	struct ocfs2_info_request ifi_req;
-	struct ocfs2_info_local_freeinode {
+	struct ocfs2_info_local_freeinode
+	{
 		__u64 lfi_total;
 		__u64 lfi_free;
 	} ifi_stat[OCFS2_MAX_SLOTS];
@@ -154,10 +168,13 @@ struct ocfs2_info_freeinode {
 
 #define OCFS2_INFO_MAX_HIST     (32)
 
-struct ocfs2_info_freefrag {
+struct ocfs2_info_freefrag
+{
 	struct ocfs2_info_request iff_req;
-	struct ocfs2_info_freefrag_stats { /* (out) */
-		struct ocfs2_info_free_chunk_list {
+	struct ocfs2_info_freefrag_stats   /* (out) */
+	{
+		struct ocfs2_info_free_chunk_list
+		{
 			__u32 fc_chunks[OCFS2_INFO_MAX_HIST];
 			__u32 fc_clusters[OCFS2_INFO_MAX_HIST];
 		} ffs_fc_hist;
@@ -175,7 +192,8 @@ struct ocfs2_info_freefrag {
 };
 
 /* Codes for ocfs2_info_request */
-enum ocfs2_info_type {
+enum ocfs2_info_type
+{
 	OCFS2_INFO_CLUSTERSIZE = 1,
 	OCFS2_INFO_BLOCKSIZE,
 	OCFS2_INFO_MAXSLOTS,
@@ -205,8 +223,9 @@ enum ocfs2_info_type {
 
 #define OCFS2_IOC_INFO		_IOR('o', 5, struct ocfs2_info)
 
-struct ocfs2_move_extents {
-/* All values are in bytes */
+struct ocfs2_move_extents
+{
+	/* All values are in bytes */
 	/* in */
 	__u64 me_start;		/* Virtual start in the file to move */
 	__u64 me_len;		/* Length of the extents to be moved */

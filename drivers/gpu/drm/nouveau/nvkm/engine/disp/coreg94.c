@@ -27,7 +27,8 @@
 #include <nvif/class.h>
 
 const struct nv50_disp_mthd_list
-g94_disp_core_mthd_sor = {
+	g94_disp_core_mthd_sor =
+{
 	.mthd = 0x0040,
 	.addr = 0x000008,
 	.data = {
@@ -37,7 +38,8 @@ g94_disp_core_mthd_sor = {
 };
 
 const struct nv50_disp_chan_mthd
-g94_disp_core_chan_mthd = {
+	g94_disp_core_chan_mthd =
+{
 	.name = "Core",
 	.addr = 0x000000,
 	.prev = 0x000004,
@@ -52,7 +54,8 @@ g94_disp_core_chan_mthd = {
 };
 
 const struct nv50_disp_dmac_oclass
-g94_disp_core_oclass = {
+	g94_disp_core_oclass =
+{
 	.base.oclass = GT206_DISP_CORE_CHANNEL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

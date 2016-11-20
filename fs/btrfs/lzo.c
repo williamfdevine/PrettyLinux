@@ -29,7 +29,8 @@
 
 #define LZO_LEN	4
 
-struct workspace {
+struct workspace
+{
 	void *mem;
 	void *buf;	/* where decompressed data goes */
 	void *cbuf;	/* where compressed data goes */
@@ -51,14 +52,20 @@ static struct list_head *lzo_alloc_workspace(void)
 	struct workspace *workspace;
 
 	workspace = kzalloc(sizeof(*workspace), GFP_NOFS);
+
 	if (!workspace)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	workspace->mem = vmalloc(LZO1X_MEM_COMPRESS);
 	workspace->buf = vmalloc(lzo1x_worst_compress(PAGE_SIZE));
 	workspace->cbuf = vmalloc(lzo1x_worst_compress(PAGE_SIZE));
+
 	if (!workspace->mem || !workspace->buf || !workspace->cbuf)
+	{
 		goto fail;
+	}
 
 	INIT_LIST_HEAD(&workspace->list);
 
@@ -85,14 +92,14 @@ static inline size_t read_compress_length(char *buf)
 }
 
 static int lzo_compress_pages(struct list_head *ws,
-			      struct address_space *mapping,
-			      u64 start, unsigned long len,
-			      struct page **pages,
-			      unsigned long nr_dest_pages,
-			      unsigned long *out_pages,
-			      unsigned long *total_in,
-			      unsigned long *total_out,
-			      unsigned long max_out)
+							  struct address_space *mapping,
+							  u64 start, unsigned long len,
+							  struct page **pages,
+							  unsigned long nr_dest_pages,
+							  unsigned long *out_pages,
+							  unsigned long *total_in,
+							  unsigned long *total_out,
+							  unsigned long max_out)
 {
 	struct workspace *workspace = list_entry(ws, struct workspace, list);
 	int ret = 0;
@@ -124,10 +131,13 @@ static int lzo_compress_pages(struct list_head *ws,
 	 * the first 4 bytes
 	 */
 	out_page = alloc_page(GFP_NOFS | __GFP_HIGHMEM);
-	if (out_page == NULL) {
+
+	if (out_page == NULL)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
+
 	cpage_out = kmap(out_page);
 	out_offset = LZO_LEN;
 	tot_out = LZO_LEN;
@@ -137,12 +147,16 @@ static int lzo_compress_pages(struct list_head *ws,
 
 	/* compress at most one page of data each time */
 	in_len = min(len, PAGE_SIZE);
-	while (tot_in < len) {
+
+	while (tot_in < len)
+	{
 		ret = lzo1x_1_compress(data_in, in_len, workspace->cbuf,
-				       &out_len, workspace->mem);
-		if (ret != LZO_E_OK) {
+							   &out_len, workspace->mem);
+
+		if (ret != LZO_E_OK)
+		{
 			pr_debug("BTRFS: deflate in loop returned %d\n",
-			       ret);
+					 ret);
 			ret = -EIO;
 			goto out;
 		}
@@ -158,7 +172,9 @@ static int lzo_compress_pages(struct list_head *ws,
 
 		/* copy bytes from the working buffer into the pages */
 		buf = workspace->cbuf;
-		while (out_len) {
+
+		while (out_len)
+		{
 			bytes = min_t(unsigned long, pg_bytes_left, out_len);
 
 			memcpy(cpage_out + out_offset, buf, bytes);
@@ -175,29 +191,38 @@ static int lzo_compress_pages(struct list_head *ws,
 			 * skip to a new page.
 			 */
 			if ((out_len == 0 && pg_bytes_left < LZO_LEN) ||
-			    pg_bytes_left == 0) {
-				if (pg_bytes_left) {
+				pg_bytes_left == 0)
+			{
+				if (pg_bytes_left)
+				{
 					memset(cpage_out + out_offset, 0,
-					       pg_bytes_left);
+						   pg_bytes_left);
 					tot_out += pg_bytes_left;
 				}
 
 				/* we're done, don't allocate new page */
 				if (out_len == 0 && tot_in >= len)
+				{
 					break;
+				}
 
 				kunmap(out_page);
-				if (nr_pages == nr_dest_pages) {
+
+				if (nr_pages == nr_dest_pages)
+				{
 					out_page = NULL;
 					ret = -E2BIG;
 					goto out;
 				}
 
 				out_page = alloc_page(GFP_NOFS | __GFP_HIGHMEM);
-				if (out_page == NULL) {
+
+				if (out_page == NULL)
+				{
 					ret = -ENOMEM;
 					goto out;
 				}
+
 				cpage_out = kmap(out_page);
 				pages[nr_pages++] = out_page;
 
@@ -207,17 +232,22 @@ static int lzo_compress_pages(struct list_head *ws,
 		}
 
 		/* we're making it bigger, give up */
-		if (tot_in > 8192 && tot_in < tot_out) {
+		if (tot_in > 8192 && tot_in < tot_out)
+		{
 			ret = -E2BIG;
 			goto out;
 		}
 
 		/* we're all done */
 		if (tot_in >= len)
+		{
 			break;
+		}
 
 		if (tot_out > max_out)
+		{
 			break;
+		}
 
 		bytes_left = len - tot_in;
 		kunmap(in_page);
@@ -230,7 +260,9 @@ static int lzo_compress_pages(struct list_head *ws,
 	}
 
 	if (tot_out > tot_in)
+	{
 		goto out;
+	}
 
 	/* store the size of all chunks of compressed data */
 	cpage_out = kmap(pages[0]);
@@ -243,10 +275,14 @@ static int lzo_compress_pages(struct list_head *ws,
 	*total_in = tot_in;
 out:
 	*out_pages = nr_pages;
-	if (out_page)
-		kunmap(out_page);
 
-	if (in_page) {
+	if (out_page)
+	{
+		kunmap(out_page);
+	}
+
+	if (in_page)
+	{
 		kunmap(in_page);
 		put_page(in_page);
 	}
@@ -255,11 +291,11 @@ out:
 }
 
 static int lzo_decompress_biovec(struct list_head *ws,
-				 struct page **pages_in,
-				 u64 disk_start,
-				 struct bio_vec *bvec,
-				 int vcnt,
-				 size_t srclen)
+								 struct page **pages_in,
+								 u64 disk_start,
+								 struct bio_vec *bvec,
+								 int vcnt,
+								 size_t srclen)
 {
 	struct workspace *workspace = list_entry(ws, struct workspace, list);
 	int ret = 0, ret2;
@@ -294,7 +330,8 @@ static int lzo_decompress_biovec(struct list_head *ws,
 	tot_out = 0;
 	pg_offset = 0;
 
-	while (tot_in < tot_len) {
+	while (tot_in < tot_len)
+	{
 		in_len = read_compress_length(data_in + in_offset);
 		in_page_bytes_left -= LZO_LEN;
 		in_offset += LZO_LEN;
@@ -305,7 +342,8 @@ static int lzo_decompress_biovec(struct list_head *ws,
 		may_late_unmap = need_unmap = false;
 
 		/* fast path: avoid using the working buffer */
-		if (in_page_bytes_left >= in_len) {
+		if (in_page_bytes_left >= in_len)
+		{
 			buf = data_in + in_offset;
 			bytes = in_len;
 			may_late_unmap = true;
@@ -315,7 +353,9 @@ static int lzo_decompress_biovec(struct list_head *ws,
 		/* copy bytes from the pages into the working buffer */
 		buf = workspace->cbuf;
 		buf_offset = 0;
-		while (working_bytes) {
+
+		while (working_bytes)
+		{
 			bytes = min(working_bytes, in_page_bytes_left);
 
 			memcpy(buf + buf_offset, data_in + in_offset, bytes);
@@ -327,21 +367,29 @@ cont:
 
 			/* check if we need to pick another page */
 			if ((working_bytes == 0 && in_page_bytes_left < LZO_LEN)
-			    || in_page_bytes_left == 0) {
+				|| in_page_bytes_left == 0)
+			{
 				tot_in += in_page_bytes_left;
 
 				if (working_bytes == 0 && tot_in >= tot_len)
+				{
 					break;
+				}
 
-				if (page_in_index + 1 >= total_pages_in) {
+				if (page_in_index + 1 >= total_pages_in)
+				{
 					ret = -EIO;
 					goto done;
 				}
 
 				if (may_late_unmap)
+				{
 					need_unmap = true;
+				}
 				else
+				{
 					kunmap(pages_in[page_in_index]);
+				}
 
 				data_in = kmap(pages_in[++page_in_index]);
 
@@ -352,10 +400,15 @@ cont:
 
 		out_len = lzo1x_worst_compress(PAGE_SIZE);
 		ret = lzo1x_decompress_safe(buf, in_len, workspace->buf,
-					    &out_len);
+									&out_len);
+
 		if (need_unmap)
+		{
 			kunmap(pages_in[page_in_index - 1]);
-		if (ret != LZO_E_OK) {
+		}
+
+		if (ret != LZO_E_OK)
+		{
 			pr_warn("BTRFS: decompress failed\n");
 			ret = -EIO;
 			break;
@@ -365,23 +418,31 @@ cont:
 		tot_out += out_len;
 
 		ret2 = btrfs_decompress_buf2page(workspace->buf, buf_start,
-						 tot_out, disk_start,
-						 bvec, vcnt,
-						 &page_out_index, &pg_offset);
+										 tot_out, disk_start,
+										 bvec, vcnt,
+										 &page_out_index, &pg_offset);
+
 		if (ret2 == 0)
+		{
 			break;
+		}
 	}
+
 done:
 	kunmap(pages_in[page_in_index]);
+
 	if (!ret)
+	{
 		btrfs_clear_biovec_end(bvec, vcnt, page_out_index, pg_offset);
+	}
+
 	return ret;
 }
 
 static int lzo_decompress(struct list_head *ws, unsigned char *data_in,
-			  struct page *dest_page,
-			  unsigned long start_byte,
-			  size_t srclen, size_t destlen)
+						  struct page *dest_page,
+						  unsigned long start_byte,
+						  size_t srclen, size_t destlen)
 {
 	struct workspace *workspace = list_entry(ws, struct workspace, list);
 	size_t in_len;
@@ -401,13 +462,16 @@ static int lzo_decompress(struct list_head *ws, unsigned char *data_in,
 
 	out_len = PAGE_SIZE;
 	ret = lzo1x_decompress_safe(data_in, in_len, workspace->buf, &out_len);
-	if (ret != LZO_E_OK) {
+
+	if (ret != LZO_E_OK)
+	{
 		pr_warn("BTRFS: decompress failed!\n");
 		ret = -EIO;
 		goto out;
 	}
 
-	if (out_len < start_byte) {
+	if (out_len < start_byte)
+	{
 		ret = -EIO;
 		goto out;
 	}
@@ -428,13 +492,17 @@ static int lzo_decompress(struct list_head *ws, unsigned char *data_in,
 	 * data.
 	 */
 	if (bytes < destlen)
-		memset(kaddr+bytes, 0, destlen-bytes);
+	{
+		memset(kaddr + bytes, 0, destlen - bytes);
+	}
+
 	kunmap_atomic(kaddr);
 out:
 	return ret;
 }
 
-const struct btrfs_compress_op btrfs_lzo_compress = {
+const struct btrfs_compress_op btrfs_lzo_compress =
+{
 	.alloc_workspace	= lzo_alloc_workspace,
 	.free_workspace		= lzo_free_workspace,
 	.compress_pages		= lzo_compress_pages,

@@ -15,7 +15,8 @@
 #define	BUNDLE_ID_NONE	U8_MAX
 
 /* Greybus "public" definitions" */
-struct gb_bundle {
+struct gb_bundle
+{
 	struct device		dev;
 	struct gb_interface	*intf;
 
@@ -36,7 +37,7 @@ struct gb_bundle {
 
 /* Greybus "private" definitions" */
 struct gb_bundle *gb_bundle_create(struct gb_interface *intf, u8 bundle_id,
-				   u8 class);
+								   u8 class);
 int gb_bundle_add(struct gb_bundle *bundle);
 void gb_bundle_destroy(struct gb_bundle *bundle);
 
@@ -47,9 +48,11 @@ static inline int gb_pm_runtime_get_sync(struct gb_bundle *bundle)
 	int retval;
 
 	retval = pm_runtime_get_sync(&bundle->dev);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		dev_err(&bundle->dev,
-			"pm_runtime_get_sync failed: %d\n", retval);
+				"pm_runtime_get_sync failed: %d\n", retval);
 		pm_runtime_put_noidle(&bundle->dev);
 		return retval;
 	}

@@ -1,7 +1,8 @@
 #ifndef _RAID1_H
 #define _RAID1_H
 
-struct raid1_info {
+struct raid1_info
+{
 	struct md_rdev	*rdev;
 	sector_t	head_position;
 
@@ -23,12 +24,14 @@ struct raid1_info {
  * second half of the array.
  */
 
-struct pool_info {
+struct pool_info
+{
 	struct mddev *mddev;
 	int	raid_disks;
 };
 
-struct r1conf {
+struct r1conf
+{
 	struct mddev		*mddev;
 	struct raid1_info	*mirrors;	/* twice 'raid_disks' to
 						 * allow for replacements.
@@ -127,7 +130,8 @@ struct r1conf {
  * for this RAID1 operation, and about their status:
  */
 
-struct r1bio {
+struct r1bio
+{
 	atomic_t		remaining; /* 'have we finished' count,
 					    * used from IRQ handlers
 					    */

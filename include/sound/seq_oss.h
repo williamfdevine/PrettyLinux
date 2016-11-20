@@ -27,7 +27,8 @@
 /*
  * argument structure for synthesizer operations
  */
-struct snd_seq_oss_arg {
+struct snd_seq_oss_arg
+{
 	/* given by OSS sequencer */
 	int app_index;	/* application unique index */
 	int file_mode;	/* file mode - see below */
@@ -47,7 +48,8 @@ struct snd_seq_oss_arg {
 /*
  * synthesizer operation callbacks
  */
-struct snd_seq_oss_callback {
+struct snd_seq_oss_callback
+{
 	struct module *owner;
 	int (*open)(struct snd_seq_oss_arg *p, void *closure);
 	int (*close)(struct snd_seq_oss_arg *p);
@@ -82,7 +84,8 @@ struct snd_seq_oss_callback {
 /*
  * data pointer to snd_seq_register_device
  */
-struct snd_seq_oss_reg {
+struct snd_seq_oss_reg
+{
 	int type;
 	int subtype;
 	int nvoices;

@@ -52,7 +52,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- */      
+ */
 
 #include <linux/delay.h>
 #include <linux/interrupt.h>
@@ -66,7 +66,8 @@
 #include "stac946x.h"
 #include <sound/tlv.h>
 
-struct prodigy192_spec {
+struct prodigy192_spec
+{
 	struct ak4114 *ak4114;
 	/* rate change needs atomic mute/unmute of all dacs*/
 	struct mutex mute_mutex;
@@ -90,16 +91,20 @@ static inline unsigned char stac9460_get(struct snd_ice1712 *ice, int reg)
  * idx = STAC9460 volume register number, mute: 0 = mute, 1 = unmute
  */
 static int stac9460_dac_mute(struct snd_ice1712 *ice, int idx,
-		unsigned char mute)
+							 unsigned char mute)
 {
 	unsigned char new, old;
 	int change;
 	old = stac9460_get(ice, idx);
 	new = (~mute << 7 & 0x80) | (old & ~0x80);
 	change = (new != old);
+
 	if (change)
 		/* dev_dbg(ice->card->dev, "Volume register 0x%02x: 0x%02x\n", idx, new);*/
+	{
 		stac9460_put(ice, idx, new);
+	}
+
 	return change;
 }
 
@@ -112,9 +117,14 @@ static int stac9460_dac_mute_get(struct snd_kcontrol *kcontrol, struct snd_ctl_e
 	int idx;
 
 	if (kcontrol->private_value)
+	{
 		idx = STAC946X_MASTER_VOLUME;
+	}
 	else
+	{
 		idx  = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id) + STAC946X_LF_VOLUME;
+	}
+
 	val = stac9460_get(ice, idx);
 	ucontrol->value.integer.value[0] = (~val >> 7) & 0x1;
 	return 0;
@@ -127,9 +137,14 @@ static int stac9460_dac_mute_put(struct snd_kcontrol *kcontrol, struct snd_ctl_e
 	int idx, change;
 
 	if (kcontrol->private_value)
+	{
 		idx = STAC946X_MASTER_VOLUME;
+	}
 	else
+	{
 		idx  = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id) + STAC946X_LF_VOLUME;
+	}
+
 	/* due to possible conflicts with stac9460_set_rate_val, mutexing */
 	mutex_lock(&spec->mute_mutex);
 	/*
@@ -160,9 +175,14 @@ static int stac9460_dac_vol_get(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 	unsigned char vol;
 
 	if (kcontrol->private_value)
+	{
 		idx = STAC946X_MASTER_VOLUME;
+	}
 	else
+	{
 		idx  = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id) + STAC946X_LF_VOLUME;
+	}
+
 	vol = stac9460_get(ice, idx) & 0x7f;
 	ucontrol->value.integer.value[0] = 0x7f - vol;
 
@@ -177,14 +197,21 @@ static int stac9460_dac_vol_put(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 	int change;
 
 	if (kcontrol->private_value)
+	{
 		idx = STAC946X_MASTER_VOLUME;
+	}
 	else
+	{
 		idx  = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id) + STAC946X_LF_VOLUME;
+	}
+
 	nvol = ucontrol->value.integer.value[0];
 	tmp = stac9460_get(ice, idx);
 	ovol = 0x7f - (tmp & 0x7f);
 	change = (ovol != nvol);
-	if (change) {
+
+	if (change)
+	{
 		ovol =  (0x7f - nvol) | (tmp & 0x80);
 		/*
 		dev_dbg(ice->card->dev, "DAC Volume: reg 0x%02x: 0x%02x\n",
@@ -192,6 +219,7 @@ static int stac9460_dac_vol_put(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 		*/
 		stac9460_put(ice, idx, (0x7f - nvol) | (tmp & 0x80));
 	}
+
 	return change;
 }
 
@@ -206,9 +234,10 @@ static int stac9460_adc_mute_get(struct snd_kcontrol *kcontrol, struct snd_ctl_e
 	unsigned char val;
 	int i;
 
-	for (i = 0; i < 2; ++i) {
+	for (i = 0; i < 2; ++i)
+	{
 		val = stac9460_get(ice, STAC946X_MIC_L_VOLUME + i);
-		ucontrol->value.integer.value[i] = ~val>>7 & 0x1;
+		ucontrol->value.integer.value[i] = ~val >> 7 & 0x1;
 	}
 
 	return 0;
@@ -221,13 +250,17 @@ static int stac9460_adc_mute_put(struct snd_kcontrol *kcontrol, struct snd_ctl_e
 	int i, reg;
 	int change;
 
-	for (i = 0; i < 2; ++i) {
+	for (i = 0; i < 2; ++i)
+	{
 		reg = STAC946X_MIC_L_VOLUME + i;
 		old = stac9460_get(ice, reg);
-		new = (~ucontrol->value.integer.value[i]<<7&0x80) | (old&~0x80);
+		new = (~ucontrol->value.integer.value[i] << 7 & 0x80) | (old & ~0x80);
 		change = (new != old);
+
 		if (change)
+		{
 			stac9460_put(ice, reg, new);
+		}
 	}
 
 	return change;
@@ -251,7 +284,8 @@ static int stac9460_adc_vol_get(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 	int i, reg;
 	unsigned char vol;
 
-	for (i = 0; i < 2; ++i) {
+	for (i = 0; i < 2; ++i)
+	{
 		reg = STAC946X_MIC_L_VOLUME + i;
 		vol = stac9460_get(ice, reg) & 0x0f;
 		ucontrol->value.integer.value[i] = 0x0f - vol;
@@ -267,40 +301,44 @@ static int stac9460_adc_vol_put(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 	unsigned char ovol, nvol;
 	int change;
 
-	for (i = 0; i < 2; ++i) {
+	for (i = 0; i < 2; ++i)
+	{
 		reg = STAC946X_MIC_L_VOLUME + i;
 		nvol = ucontrol->value.integer.value[i] & 0x0f;
 		ovol = 0x0f - stac9460_get(ice, reg);
 		change = ((ovol & 0x0f)  != nvol);
+
 		if (change)
+		{
 			stac9460_put(ice, reg, (0x0f - nvol) | (ovol & ~0x0f));
+		}
 	}
 
 	return change;
 }
 
 static int stac9460_mic_sw_info(struct snd_kcontrol *kcontrol,
-	       			struct snd_ctl_elem_info *uinfo)
+								struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[2] = { "Line In", "Mic" };
+	static const char *const texts[2] = { "Line In", "Mic" };
 
 	return snd_ctl_enum_info(uinfo, 1, 2, texts);
 }
 
 
 static int stac9460_mic_sw_get(struct snd_kcontrol *kcontrol,
-	       		struct snd_ctl_elem_value *ucontrol)
+							   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned char val;
-		
+
 	val = stac9460_get(ice, STAC946X_GENERAL_PURPOSE);
 	ucontrol->value.enumerated.item[0] = (val >> 7) & 0x1;
 	return 0;
 }
 
 static int stac9460_mic_sw_put(struct snd_kcontrol *kcontrol,
-	       		struct snd_ctl_elem_value *ucontrol)
+							   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned char new, old;
@@ -308,8 +346,12 @@ static int stac9460_mic_sw_put(struct snd_kcontrol *kcontrol,
 	old = stac9460_get(ice, STAC946X_GENERAL_PURPOSE);
 	new = (ucontrol->value.enumerated.item[0] << 7 & 0x80) | (old & ~0x80);
 	change = (new != old);
+
 	if (change)
+	{
 		stac9460_put(ice, STAC946X_GENERAL_PURPOSE, new);
+	}
+
 	return change;
 }
 /*
@@ -323,32 +365,52 @@ static void stac9460_set_rate_val(struct snd_ice1712 *ice, unsigned int rate)
 	struct prodigy192_spec *spec = ice->spec;
 
 	if (rate == 0)  /* no hint - S/PDIF input is master, simply return */
+	{
 		return;
+	}
 	else if (rate <= 48000)
-		new = 0x08;	/* 256x, base rate mode */
+	{
+		new = 0x08;    /* 256x, base rate mode */
+	}
 	else if (rate <= 96000)
-		new = 0x11;	/* 256x, mid rate mode */
+	{
+		new = 0x11;    /* 256x, mid rate mode */
+	}
 	else
-		new = 0x12;	/* 128x, high rate mode */
+	{
+		new = 0x12;    /* 128x, high rate mode */
+	}
+
 	old = stac9460_get(ice, STAC946X_MASTER_CLOCKING);
+
 	if (old == new)
+	{
 		return;
+	}
+
 	/* change detected, setting master clock, muting first */
 	/* due to possible conflicts with mute controls - mutexing */
 	mutex_lock(&spec->mute_mutex);
+
 	/* we have to remember current mute status for each DAC */
 	for (idx = 0; idx < 7 ; ++idx)
 		changed[idx] = stac9460_dac_mute(ice,
-				STAC946X_MASTER_VOLUME + idx, 0);
+										 STAC946X_MASTER_VOLUME + idx, 0);
+
 	/*dev_dbg(ice->card->dev, "Rate change: %d, new MC: 0x%02x\n", rate, new);*/
 	stac9460_put(ice, STAC946X_MASTER_CLOCKING, new);
 	udelay(10);
+
 	/* unmuting - only originally unmuted dacs -
 	 * i.e. those changed when muting */
-	for (idx = 0; idx < 7 ; ++idx) {
+	for (idx = 0; idx < 7 ; ++idx)
+	{
 		if (changed[idx])
+		{
 			stac9460_dac_mute(ice, STAC946X_MASTER_VOLUME + idx, 1);
+		}
 	}
+
 	mutex_unlock(&spec->mute_mutex);
 }
 
@@ -360,7 +422,8 @@ static const DECLARE_TLV_DB_SCALE(db_scale_adc, 0, 150, 0);
  * mixers
  */
 
-static struct snd_kcontrol_new stac_controls[] = {
+static struct snd_kcontrol_new stac_controls[] =
+{
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.name = "Master Playback Switch",
@@ -373,7 +436,7 @@ static struct snd_kcontrol_new stac_controls[] = {
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = (SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			   SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 		.name = "Master Playback Volume",
 		.info = stac9460_dac_vol_info,
 		.get = stac9460_dac_vol_get,
@@ -392,7 +455,7 @@ static struct snd_kcontrol_new stac_controls[] = {
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = (SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			   SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 		.name = "DAC Volume",
 		.count = 6,
 		.info = stac9460_dac_vol_info,
@@ -412,7 +475,7 @@ static struct snd_kcontrol_new stac_controls[] = {
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = (SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			   SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 		.name = "ADC Capture Volume",
 		.count = 1,
 		.info = stac9460_adc_vol_info,
@@ -444,18 +507,25 @@ static struct snd_kcontrol_new stac_controls[] = {
  * 4wire ak4114 protocol - writing data
  */
 static void write_data(struct snd_ice1712 *ice, unsigned int gpio,
-		       unsigned int data, int idx)
+					   unsigned int data, int idx)
 {
-	for (; idx >= 0; idx--) {
+	for (; idx >= 0; idx--)
+	{
 		/* drop clock */
 		gpio &= ~VT1724_PRODIGY192_CCLK;
 		snd_ice1712_gpio_write(ice, gpio);
 		udelay(1);
+
 		/* set data */
 		if (data & (1 << idx))
+		{
 			gpio |= VT1724_PRODIGY192_CDOUT;
+		}
 		else
+		{
 			gpio &= ~VT1724_PRODIGY192_CDOUT;
+		}
+
 		snd_ice1712_gpio_write(ice, gpio);
 		udelay(1);
 		/* raise clock */
@@ -469,24 +539,30 @@ static void write_data(struct snd_ice1712 *ice, unsigned int gpio,
  * 4wire ak4114 protocol - reading data
  */
 static unsigned char read_data(struct snd_ice1712 *ice, unsigned int gpio,
-			       int idx)
+							   int idx)
 {
 	unsigned char data = 0;
 
-	for (; idx >= 0; idx--) {
+	for (; idx >= 0; idx--)
+	{
 		/* drop clock */
 		gpio &= ~VT1724_PRODIGY192_CCLK;
 		snd_ice1712_gpio_write(ice, gpio);
 		udelay(1);
+
 		/* read data */
 		if (snd_ice1712_gpio_read(ice) & VT1724_PRODIGY192_CDIN)
+		{
 			data |= (1 << idx);
+		}
+
 		udelay(1);
 		/* raise clock */
 		gpio |= VT1724_PRODIGY192_CCLK;
 		snd_ice1712_gpio_write(ice, gpio);
 		udelay(1);
 	}
+
 	return data;
 }
 /*
@@ -521,7 +597,7 @@ static void prodigy192_4wire_finish(struct snd_ice1712 *ice, unsigned int tmp)
  * Write data to addr register of ak4114
  */
 static void prodigy192_ak4114_write(void *private_data, unsigned char addr,
-			       unsigned char data)
+									unsigned char data)
 {
 	struct snd_ice1712 *ice = private_data;
 	unsigned int tmp, addrdata;
@@ -536,7 +612,7 @@ static void prodigy192_ak4114_write(void *private_data, unsigned char addr,
  * Read data from addr register of ak4114
  */
 static unsigned char prodigy192_ak4114_read(void *private_data,
-					    unsigned char addr)
+		unsigned char addr)
 {
 	struct snd_ice1712 *ice = private_data;
 	unsigned int tmp;
@@ -551,20 +627,20 @@ static unsigned char prodigy192_ak4114_read(void *private_data,
 
 
 static int ak4114_input_sw_info(struct snd_kcontrol *kcontrol,
-	       			struct snd_ctl_elem_info *uinfo)
+								struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[2] = { "Toslink", "Coax" };
+	static const char *const texts[2] = { "Toslink", "Coax" };
 
 	return snd_ctl_enum_info(uinfo, 1, 2, texts);
 }
 
 
 static int ak4114_input_sw_get(struct snd_kcontrol *kcontrol,
-	       		struct snd_ctl_elem_value *ucontrol)
+							   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned char val;
-		
+
 	val = prodigy192_ak4114_read(ice, AK4114_REG_IO1);
 	/* AK4114_IPS0 bit = 0 -> RX0 = Toslink
 	 * AK4114_IPS0 bit = 1 -> RX1 = Coax
@@ -574,7 +650,7 @@ static int ak4114_input_sw_get(struct snd_kcontrol *kcontrol,
 }
 
 static int ak4114_input_sw_put(struct snd_kcontrol *kcontrol,
-	       		struct snd_ctl_elem_value *ucontrol)
+							   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned char new, old, itemvalue;
@@ -586,13 +662,18 @@ static int ak4114_input_sw_put(struct snd_kcontrol *kcontrol,
 
 	new = (itemvalue & AK4114_IPS0) | (old & ~AK4114_IPS0);
 	change = (new != old);
+
 	if (change)
+	{
 		prodigy192_ak4114_write(ice, AK4114_REG_IO1, new);
+	}
+
 	return change;
 }
 
 
-static struct snd_kcontrol_new ak4114_controls[] = {
+static struct snd_kcontrol_new ak4114_controls[] =
+{
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.name = "MIODIO IEC958 Capture Input",
@@ -606,7 +687,8 @@ static struct snd_kcontrol_new ak4114_controls[] = {
 
 static int prodigy192_ak4114_init(struct snd_ice1712 *ice)
 {
-	static const unsigned char ak4114_init_vals[] = {
+	static const unsigned char ak4114_init_vals[] =
+	{
 		AK4114_RST | AK4114_PWN | AK4114_OCKS0 | AK4114_OCKS1,
 		/* ice1724 expects I2S and provides clock,
 		 * DEM0 disables the deemphasis filter
@@ -617,19 +699,24 @@ static int prodigy192_ak4114_init(struct snd_ice1712 *ice)
 		0,
 		0
 	};
-	static const unsigned char ak4114_init_txcsb[] = {
+	static const unsigned char ak4114_init_txcsb[] =
+	{
 		0x41, 0x02, 0x2c, 0x00, 0x00
 	};
 	struct prodigy192_spec *spec = ice->spec;
 	int err;
 
 	err = snd_ak4114_create(ice->card,
-				 prodigy192_ak4114_read,
-				 prodigy192_ak4114_write,
-				 ak4114_init_vals, ak4114_init_txcsb,
-				 ice, &spec->ak4114);
+							prodigy192_ak4114_read,
+							prodigy192_ak4114_write,
+							ak4114_init_vals, ak4114_init_txcsb,
+							ice, &spec->ak4114);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	/* AK4114 in Prodigy192 cannot detect external rate correctly.
 	 * No reason to stop capture stream due to incorrect checks */
 	spec->ak4114->check_flags = AK4114_CHECK_NO_RATE;
@@ -637,12 +724,14 @@ static int prodigy192_ak4114_init(struct snd_ice1712 *ice)
 }
 
 static void stac9460_proc_regs_read(struct snd_info_entry *entry,
-		struct snd_info_buffer *buffer)
+									struct snd_info_buffer *buffer)
 {
 	struct snd_ice1712 *ice = entry->private_data;
 	int reg, val;
+
 	/* registers 0x0 - 0x14 */
-	for (reg = 0; reg <= 0x15; reg++) {
+	for (reg = 0; reg <= 0x15; reg++)
+	{
 		val = stac9460_get(ice, reg);
 		snd_iprintf(buffer, "0x%02x = 0x%02x\n", reg, val);
 	}
@@ -652,8 +741,11 @@ static void stac9460_proc_regs_read(struct snd_info_entry *entry,
 static void stac9460_proc_init(struct snd_ice1712 *ice)
 {
 	struct snd_info_entry *entry;
+
 	if (!snd_card_proc_new(ice->card, "stac9460_codec", &entry))
+	{
 		snd_info_set_text_ops(entry, ice, stac9460_proc_regs_read);
+	}
 }
 
 
@@ -663,27 +755,42 @@ static int prodigy192_add_controls(struct snd_ice1712 *ice)
 	unsigned int i;
 	int err;
 
-	for (i = 0; i < ARRAY_SIZE(stac_controls); i++) {
+	for (i = 0; i < ARRAY_SIZE(stac_controls); i++)
+	{
 		err = snd_ctl_add(ice->card,
-				  snd_ctl_new1(&stac_controls[i], ice));
+						  snd_ctl_new1(&stac_controls[i], ice));
+
 		if (err < 0)
+		{
 			return err;
-	}
-	if (spec->ak4114) {
-		/* ak4114 is connected */
-		for (i = 0; i < ARRAY_SIZE(ak4114_controls); i++) {
-			err = snd_ctl_add(ice->card,
-					  snd_ctl_new1(&ak4114_controls[i],
-						       ice));
-			if (err < 0)
-				return err;
 		}
-		err = snd_ak4114_build(spec->ak4114,
-				NULL, /* ak4114 in MIO/DI/O handles no IEC958 output */
-				ice->pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream);
-		if (err < 0)
-			return err;
 	}
+
+	if (spec->ak4114)
+	{
+		/* ak4114 is connected */
+		for (i = 0; i < ARRAY_SIZE(ak4114_controls); i++)
+		{
+			err = snd_ctl_add(ice->card,
+							  snd_ctl_new1(&ak4114_controls[i],
+										   ice));
+
+			if (err < 0)
+			{
+				return err;
+			}
+		}
+
+		err = snd_ak4114_build(spec->ak4114,
+							   NULL, /* ak4114 in MIO/DI/O handles no IEC958 output */
+							   ice->pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream);
+
+		if (err < 0)
+		{
+			return err;
+		}
+	}
+
 	stac9460_proc_init(ice);
 	return 0;
 }
@@ -701,12 +808,15 @@ static int prodigy192_miodio_exists(struct snd_ice1712 *ice)
 
 	orig_value = prodigy192_ak4114_read(ice, addr);
 	prodigy192_ak4114_write(ice, addr, test_data);
-	if (prodigy192_ak4114_read(ice, addr) == test_data) {
+
+	if (prodigy192_ak4114_read(ice, addr) == test_data)
+	{
 		/* ak4114 seems to communicate, apparently exists */
 		/* writing back original value */
 		prodigy192_ak4114_write(ice, addr, orig_value);
 		exists = 1;
 	}
+
 	return exists;
 }
 
@@ -715,17 +825,18 @@ static int prodigy192_miodio_exists(struct snd_ice1712 *ice)
  */
 static int prodigy192_init(struct snd_ice1712 *ice)
 {
-	static const unsigned short stac_inits_prodigy[] = {
+	static const unsigned short stac_inits_prodigy[] =
+	{
 		STAC946X_RESET, 0,
 		STAC946X_MASTER_CLOCKING, 0x11,
-/*		STAC946X_MASTER_VOLUME, 0,
-		STAC946X_LF_VOLUME, 0,
-		STAC946X_RF_VOLUME, 0,
-		STAC946X_LR_VOLUME, 0,
-		STAC946X_RR_VOLUME, 0,
-		STAC946X_CENTER_VOLUME, 0,
-		STAC946X_LFE_VOLUME, 0,*/
-		(unsigned short)-1
+		/*		STAC946X_MASTER_VOLUME, 0,
+				STAC946X_LF_VOLUME, 0,
+				STAC946X_RF_VOLUME, 0,
+				STAC946X_LR_VOLUME, 0,
+				STAC946X_RR_VOLUME, 0,
+				STAC946X_CENTER_VOLUME, 0,
+				STAC946X_LFE_VOLUME, 0,*/
+		(unsigned short) - 1
 	};
 	const unsigned short *p;
 	int err = 0;
@@ -735,29 +846,41 @@ static int prodigy192_init(struct snd_ice1712 *ice)
 	ice->num_total_dacs = 6;
 	ice->num_total_adcs = 2;
 	ice->vt1720 = 0;  /* ice1724, e.g. 23 GPIOs */
-	
+
 	spec = kzalloc(sizeof(*spec), GFP_KERNEL);
+
 	if (!spec)
+	{
 		return -ENOMEM;
+	}
+
 	ice->spec = spec;
 	mutex_init(&spec->mute_mutex);
 
 	/* initialize codec */
 	p = stac_inits_prodigy;
-	for (; *p != (unsigned short)-1; p += 2)
+
+	for (; *p != (unsigned short) - 1; p += 2)
+	{
 		stac9460_put(ice, p[0], p[1]);
+	}
+
 	ice->gpio.set_pro_rate = stac9460_set_rate_val;
 
 	/* MI/ODI/O add on card with AK4114 */
-	if (prodigy192_miodio_exists(ice)) {
+	if (prodigy192_miodio_exists(ice))
+	{
 		err = prodigy192_ak4114_init(ice);
 		/* from this moment if err = 0 then
 		 * spec->ak4114 should not be null
 		 */
 		dev_dbg(ice->card->dev,
-			"AK4114 initialized with status %d\n", err);
-	} else
+				"AK4114 initialized with status %d\n", err);
+	}
+	else
+	{
 		dev_dbg(ice->card->dev, "AK4114 not found\n");
+	}
 
 	return err;
 }
@@ -768,7 +891,8 @@ static int prodigy192_init(struct snd_ice1712 *ice)
  * hence the driver needs to sets up it properly.
  */
 
-static unsigned char prodigy71_eeprom[] = {
+static unsigned char prodigy71_eeprom[] =
+{
 	[ICE_EEP2_SYSCONF]     = 0x6a,	/* 49MHz crystal, mpu401,
 					 * spdif-in+ 1 stereo ADC,
 					 * 3 stereo DACs
@@ -792,7 +916,8 @@ static unsigned char prodigy71_eeprom[] = {
 
 
 /* entry point */
-struct snd_ice1712_card_info snd_vt1724_prodigy192_cards[] = {
+struct snd_ice1712_card_info snd_vt1724_prodigy192_cards[] =
+{
 	{
 		.subvendor = VT1724_SUBDEVICE_PRODIGY192VE,
 		.name = "Audiotrak Prodigy 192",

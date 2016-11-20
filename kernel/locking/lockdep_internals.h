@@ -9,7 +9,8 @@
 /*
  * Lock-class usage-state bits:
  */
-enum lock_usage_bit {
+enum lock_usage_bit
+{
 #define LOCKDEP_STATE(__STATE)		\
 	LOCK_USED_IN_##__STATE,		\
 	LOCK_USED_IN_##__STATE##_READ,	\
@@ -26,7 +27,8 @@ enum lock_usage_bit {
  */
 #define __LOCKF(__STATE)	LOCKF_##__STATE = (1 << LOCK_##__STATE),
 
-enum {
+enum
+{
 #define LOCKDEP_STATE(__STATE)						\
 	__LOCKF(USED_IN_##__STATE)					\
 	__LOCKF(USED_IN_##__STATE##_READ)				\
@@ -41,9 +43,9 @@ enum {
 #define LOCKF_USED_IN_IRQ (LOCKF_USED_IN_HARDIRQ | LOCKF_USED_IN_SOFTIRQ)
 
 #define LOCKF_ENABLED_IRQ_READ \
-		(LOCKF_ENABLED_HARDIRQ_READ | LOCKF_ENABLED_SOFTIRQ_READ)
+	(LOCKF_ENABLED_HARDIRQ_READ | LOCKF_ENABLED_SOFTIRQ_READ)
 #define LOCKF_USED_IN_IRQ_READ \
-		(LOCKF_USED_IN_HARDIRQ_READ | LOCKF_USED_IN_SOFTIRQ_READ)
+	(LOCKF_USED_IN_HARDIRQ_READ | LOCKF_USED_IN_SOFTIRQ_READ)
 
 /*
  * MAX_LOCKDEP_ENTRIES is the maximum number of lock dependencies
@@ -73,9 +75,9 @@ extern struct lock_chain lock_chains[];
 #define LOCK_USAGE_CHARS (1+LOCK_USAGE_STATES/2)
 
 extern void get_usage_chars(struct lock_class *class,
-			    char usage[LOCK_USAGE_CHARS]);
+							char usage[LOCK_USAGE_CHARS]);
 
-extern const char * __get_key_name(struct lockdep_subclass_key *key, char *str);
+extern const char *__get_key_name(struct lockdep_subclass_key *key, char *str);
 
 struct lock_class *lock_chain_get_class(struct lock_chain *chain, int i);
 
@@ -117,7 +119,8 @@ lockdep_count_backward_deps(struct lock_class *class)
  * We want them per cpu as they are often accessed in fast path
  * and we want to avoid too much cache bouncing.
  */
-struct lockdep_stats {
+struct lockdep_stats
+{
 	int	chain_lookup_hits;
 	int	chain_lookup_misses;
 	int	hardirqs_on_events;
@@ -143,25 +146,25 @@ DECLARE_PER_CPU(struct lockdep_stats, lockdep_stats);
 	this_cpu_inc(lockdep_stats.ptr);
 
 #define debug_atomic_inc(ptr)			{		\
-	WARN_ON_ONCE(!irqs_disabled());				\
-	__this_cpu_inc(lockdep_stats.ptr);			\
-}
+		WARN_ON_ONCE(!irqs_disabled());				\
+		__this_cpu_inc(lockdep_stats.ptr);			\
+	}
 
 #define debug_atomic_dec(ptr)			{		\
-	WARN_ON_ONCE(!irqs_disabled());				\
-	__this_cpu_dec(lockdep_stats.ptr);			\
-}
+		WARN_ON_ONCE(!irqs_disabled());				\
+		__this_cpu_dec(lockdep_stats.ptr);			\
+	}
 
 #define debug_atomic_read(ptr)		({				\
-	struct lockdep_stats *__cpu_lockdep_stats;			\
-	unsigned long long __total = 0;					\
-	int __cpu;							\
-	for_each_possible_cpu(__cpu) {					\
-		__cpu_lockdep_stats = &per_cpu(lockdep_stats, __cpu);	\
-		__total += __cpu_lockdep_stats->ptr;			\
-	}								\
-	__total;							\
-})
+		struct lockdep_stats *__cpu_lockdep_stats;			\
+		unsigned long long __total = 0;					\
+		int __cpu;							\
+		for_each_possible_cpu(__cpu) {					\
+			__cpu_lockdep_stats = &per_cpu(lockdep_stats, __cpu);	\
+			__total += __cpu_lockdep_stats->ptr;			\
+		}								\
+		__total;							\
+	})
 #else
 # define __debug_atomic_inc(ptr)	do { } while (0)
 # define debug_atomic_inc(ptr)		do { } while (0)

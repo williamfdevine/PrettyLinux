@@ -36,14 +36,14 @@
 #define ST21NFCA_HCI_LLC_CRC    4
 
 #define ST21NFCA_HCI_LLC_LEN_CRC        (ST21NFCA_SOF_EOF_LEN + \
-						ST21NFCA_HCI_LLC_LEN + \
-						ST21NFCA_HCI_LLC_CRC)
+		ST21NFCA_HCI_LLC_LEN + \
+		ST21NFCA_HCI_LLC_CRC)
 #define ST21NFCA_HCI_LLC_MIN_SIZE       (1 + ST21NFCA_HCI_LLC_LEN_CRC)
 
 /* Worst case when adding byte stuffing between each byte */
 #define ST21NFCA_HCI_LLC_MAX_PAYLOAD    29
 #define ST21NFCA_HCI_LLC_MAX_SIZE       (ST21NFCA_HCI_LLC_LEN_CRC + 1 + \
-					ST21NFCA_HCI_LLC_MAX_PAYLOAD)
+		ST21NFCA_HCI_LLC_MAX_PAYLOAD)
 
 /* Reader RF commands */
 #define ST21NFCA_WR_XCHG_DATA           0x10
@@ -69,12 +69,14 @@
 #define ST21NFCA_VENDOR_OUI		0x0080E1 /* STMicroelectronics */
 #define ST21NFCA_FACTORY_MODE		2
 
-struct st21nfca_se_status {
+struct st21nfca_se_status
+{
 	bool is_ese_present;
 	bool is_uicc_present;
 };
 
-enum st21nfca_state {
+enum st21nfca_state
+{
 	ST21NFCA_ST_COLD,
 	ST21NFCA_ST_READY,
 };
@@ -104,7 +106,8 @@ enum st21nfca_state {
  * @HCI_LOOPBACK: Allow to echo a command and test the Dh to CLF
  *	connectivity.
  */
-enum nfc_vendor_cmds {
+enum nfc_vendor_cmds
+{
 	FACTORY_MODE,
 	HCI_CLEAR_ALL_PIPES,
 	HCI_DM_PUT_DATA,
@@ -118,12 +121,14 @@ enum nfc_vendor_cmds {
 	HCI_LOOPBACK,
 };
 
-struct st21nfca_vendor_info {
+struct st21nfca_vendor_info
+{
 	struct completion req_completion;
 	struct sk_buff *rx_skb;
 };
 
-struct st21nfca_dep_info {
+struct st21nfca_dep_info
+{
 	struct sk_buff *tx_pending;
 	struct work_struct tx_work;
 	u8 curr_nfc_dep_pni;
@@ -135,7 +140,8 @@ struct st21nfca_dep_info {
 	u8 lri;
 } __packed;
 
-struct st21nfca_se_info {
+struct st21nfca_se_info
+{
 	u8 atr[ST21NFCA_ESE_MAX_LENGTH];
 	struct completion req_completion;
 
@@ -154,7 +160,8 @@ struct st21nfca_se_info {
 	void *cb_context;
 };
 
-struct st21nfca_hci_info {
+struct st21nfca_hci_info
+{
 	struct nfc_phy_ops *phy_ops;
 	void *phy_id;
 
@@ -175,13 +182,13 @@ struct st21nfca_hci_info {
 };
 
 int st21nfca_hci_probe(void *phy_id, struct nfc_phy_ops *phy_ops,
-		       char *llc_name, int phy_headroom, int phy_tailroom,
-		       int phy_payload, struct nfc_hci_dev **hdev,
-		       struct st21nfca_se_status *se_status);
+					   char *llc_name, int phy_headroom, int phy_tailroom,
+					   int phy_payload, struct nfc_hci_dev **hdev,
+					   struct st21nfca_se_status *se_status);
 void st21nfca_hci_remove(struct nfc_hci_dev *hdev);
 
 int st21nfca_dep_event_received(struct nfc_hci_dev *hdev,
-				u8 event, struct sk_buff *skb);
+								u8 event, struct sk_buff *skb);
 int st21nfca_tm_send_dep_res(struct nfc_hci_dev *hdev, struct sk_buff *skb);
 
 int st21nfca_im_send_atr_req(struct nfc_hci_dev *hdev, u8 *gb, size_t gb_len);
@@ -190,22 +197,22 @@ void st21nfca_dep_init(struct nfc_hci_dev *hdev);
 void st21nfca_dep_deinit(struct nfc_hci_dev *hdev);
 
 int st21nfca_connectivity_event_received(struct nfc_hci_dev *hdev, u8 host,
-					u8 event, struct sk_buff *skb);
+		u8 event, struct sk_buff *skb);
 int st21nfca_apdu_reader_event_received(struct nfc_hci_dev *hdev,
-					u8 event, struct sk_buff *skb);
+										u8 event, struct sk_buff *skb);
 
 int st21nfca_hci_discover_se(struct nfc_hci_dev *hdev);
 int st21nfca_hci_enable_se(struct nfc_hci_dev *hdev, u32 se_idx);
 int st21nfca_hci_disable_se(struct nfc_hci_dev *hdev, u32 se_idx);
 int st21nfca_hci_se_io(struct nfc_hci_dev *hdev, u32 se_idx,
-		u8 *apdu, size_t apdu_length,
-		se_io_cb_t cb, void *cb_context);
+					   u8 *apdu, size_t apdu_length,
+					   se_io_cb_t cb, void *cb_context);
 
 void st21nfca_se_init(struct nfc_hci_dev *hdev);
 void st21nfca_se_deinit(struct nfc_hci_dev *hdev);
 
 int st21nfca_hci_loopback_event_received(struct nfc_hci_dev *ndev, u8 event,
-					 struct sk_buff *skb);
+		struct sk_buff *skb);
 int st21nfca_vendor_cmds_init(struct nfc_hci_dev *ndev);
 
 #endif /* __LOCAL_ST21NFCA_H_ */

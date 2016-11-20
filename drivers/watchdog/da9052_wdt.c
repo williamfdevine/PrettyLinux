@@ -28,16 +28,19 @@
 #define DA9052_DEF_TIMEOUT	4
 #define DA9052_TWDMIN		256
 
-struct da9052_wdt_data {
+struct da9052_wdt_data
+{
 	struct watchdog_device wdt;
 	struct da9052 *da9052;
 	unsigned long jpast;
 };
 
-static const struct {
+static const struct
+{
 	u8 reg_val;
 	int time;  /* Seconds */
-} da9052_wdt_maps[] = {
+} da9052_wdt_maps[] =
+{
 	{ 1, 2 },
 	{ 2, 4 },
 	{ 3, 8 },
@@ -51,7 +54,7 @@ static const struct {
 
 
 static int da9052_wdt_set_timeout(struct watchdog_device *wdt_dev,
-				  unsigned int timeout)
+								  unsigned int timeout)
 {
 	struct da9052_wdt_data *driver_data = watchdog_get_drvdata(wdt_dev);
 	struct da9052 *da9052 = driver_data->da9052;
@@ -62,13 +65,17 @@ static int da9052_wdt_set_timeout(struct watchdog_device *wdt_dev,
 	 * new time out.
 	 */
 	ret = da9052_reg_update(da9052, DA9052_CONTROL_D_REG,
-				DA9052_CONTROLD_TWDSCALE, 0);
-	if (ret < 0) {
+							DA9052_CONTROLD_TWDSCALE, 0);
+
+	if (ret < 0)
+	{
 		dev_err(da9052->dev, "Failed to disable watchdog bit, %d\n",
-			ret);
+				ret);
 		return ret;
 	}
-	if (timeout) {
+
+	if (timeout)
+	{
 		/*
 		 * To change the timeout, da9052 needs to
 		 * be disabled for at least 150 us.
@@ -78,17 +85,23 @@ static int da9052_wdt_set_timeout(struct watchdog_device *wdt_dev,
 		/* Set the desired timeout */
 		for (i = 0; i < ARRAY_SIZE(da9052_wdt_maps); i++)
 			if (da9052_wdt_maps[i].time == timeout)
+			{
 				break;
+			}
 
 		if (i == ARRAY_SIZE(da9052_wdt_maps))
+		{
 			ret = -EINVAL;
+		}
 		else
 			ret = da9052_reg_update(da9052, DA9052_CONTROL_D_REG,
-						DA9052_CONTROLD_TWDSCALE,
-						da9052_wdt_maps[i].reg_val);
-		if (ret < 0) {
+									DA9052_CONTROLD_TWDSCALE,
+									da9052_wdt_maps[i].reg_val);
+
+		if (ret < 0)
+		{
 			dev_err(da9052->dev,
-				"Failed to update timescale bit, %d\n", ret);
+					"Failed to update timescale bit, %d\n", ret);
 			return ret;
 		}
 
@@ -120,32 +133,40 @@ static int da9052_wdt_ping(struct watchdog_device *wdt_dev)
 	 * We have a minimum time for watchdog window called TWDMIN. A write
 	 * to the watchdog before this elapsed time should cause an error.
 	 */
-	msec = (jnow - driver_data->jpast) * 1000/HZ;
+	msec = (jnow - driver_data->jpast) * 1000 / HZ;
+
 	if (msec < DA9052_TWDMIN)
+	{
 		mdelay(msec);
+	}
 
 	/* Reset the watchdog timer */
 	ret = da9052_reg_update(da9052, DA9052_CONTROL_D_REG,
-				DA9052_CONTROLD_WATCHDOG, 1 << 7);
+							DA9052_CONTROLD_WATCHDOG, 1 << 7);
+
 	if (ret < 0)
+	{
 		goto err_strobe;
+	}
 
 	/*
 	 * FIXME: Reset the watchdog core, in general PMIC
 	 * is supposed to do this
 	 */
 	ret = da9052_reg_update(da9052, DA9052_CONTROL_D_REG,
-				DA9052_CONTROLD_WATCHDOG, 0 << 7);
+							DA9052_CONTROLD_WATCHDOG, 0 << 7);
 err_strobe:
 	return ret;
 }
 
-static struct watchdog_info da9052_wdt_info = {
+static struct watchdog_info da9052_wdt_info =
+{
 	.options	= WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
 	.identity	= "DA9052 Watchdog",
 };
 
-static const struct watchdog_ops da9052_wdt_ops = {
+static const struct watchdog_ops da9052_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = da9052_wdt_start,
 	.stop = da9052_wdt_stop,
@@ -162,11 +183,14 @@ static int da9052_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	driver_data = devm_kzalloc(&pdev->dev, sizeof(*driver_data),
-				   GFP_KERNEL);
-	if (!driver_data) {
+							   GFP_KERNEL);
+
+	if (!driver_data)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
+
 	driver_data->da9052 = da9052;
 
 	da9052_wdt = &driver_data->wdt;
@@ -178,17 +202,21 @@ static int da9052_wdt_probe(struct platform_device *pdev)
 	watchdog_set_drvdata(da9052_wdt, driver_data);
 
 	ret = da9052_reg_update(da9052, DA9052_CONTROL_D_REG,
-				DA9052_CONTROLD_TWDSCALE, 0);
-	if (ret < 0) {
+							DA9052_CONTROLD_TWDSCALE, 0);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to disable watchdog bits, %d\n",
-			ret);
+				ret);
 		goto err;
 	}
 
 	ret = watchdog_register_device(&driver_data->wdt);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(da9052->dev, "watchdog_register_device() failed: %d\n",
-			ret);
+				ret);
 		goto err;
 	}
 
@@ -206,7 +234,8 @@ static int da9052_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver da9052_wdt_driver = {
+static struct platform_driver da9052_wdt_driver =
+{
 	.probe = da9052_wdt_probe,
 	.remove = da9052_wdt_remove,
 	.driver = {

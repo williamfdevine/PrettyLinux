@@ -30,11 +30,12 @@ struct fb_info;
 #define EP93XXFB_USE_SDCSN3		(3 << 21)
 
 #define EP93XXFB_ENABLE			(EP93XXFB_STATE_MACHINE_ENABLE	| \
-					 EP93XXFB_PIXEL_CLOCK_ENABLE	| \
-					 EP93XXFB_VSYNC_ENABLE		| \
-					 EP93XXFB_PIXEL_DATA_ENABLE)
+								 EP93XXFB_PIXEL_CLOCK_ENABLE	| \
+								 EP93XXFB_VSYNC_ENABLE		| \
+								 EP93XXFB_PIXEL_DATA_ENABLE)
 
-struct ep93xxfb_mach_info {
+struct ep93xxfb_mach_info
+{
 	unsigned int			flags;
 	int	(*setup)(struct platform_device *pdev);
 	void	(*teardown)(struct platform_device *pdev);

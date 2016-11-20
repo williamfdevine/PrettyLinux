@@ -14,7 +14,8 @@
 
 #define NFSDDBG_FACILITY                NFSDDBG_PNFS
 
-struct nfs4_layout {
+struct nfs4_layout
+{
 	struct list_head		lo_perstate;
 	struct nfs4_layout_stateid	*lo_state;
 	struct nfsd4_layout_seg		lo_seg;
@@ -26,7 +27,8 @@ static struct kmem_cache *nfs4_layout_stateid_cache;
 static const struct nfsd4_callback_ops nfsd4_cb_layout_ops;
 static const struct lock_manager_operations nfsd4_layouts_lm_ops;
 
-const struct nfsd4_layout_ops *nfsd4_layout_ops[LAYOUT_TYPE_MAX] =  {
+const struct nfsd4_layout_ops *nfsd4_layout_ops[LAYOUT_TYPE_MAX] =
+{
 #ifdef CONFIG_NFSD_FLEXFILELAYOUT
 	[LAYOUT_FLEX_FILES]	= &ff_layout_ops,
 #endif
@@ -60,23 +62,36 @@ nfsd4_alloc_devid_map(const struct svc_fh *fhp)
 	int i;
 
 	map = kzalloc(sizeof(*map) + fsid_len, GFP_KERNEL);
+
 	if (!map)
+	{
 		return;
+	}
 
 	map->fsid_type = fh->fh_fsid_type;
 	memcpy(&map->fsid, fh->fh_fsid, fsid_len);
 
 	spin_lock(&nfsd_devid_lock);
-	if (fhp->fh_export->ex_devid_map)
-		goto out_unlock;
 
-	for (i = 0; i < DEVID_HASH_SIZE; i++) {
-		list_for_each_entry(old, &nfsd_devid_hash[i], hash) {
+	if (fhp->fh_export->ex_devid_map)
+	{
+		goto out_unlock;
+	}
+
+	for (i = 0; i < DEVID_HASH_SIZE; i++)
+	{
+		list_for_each_entry(old, &nfsd_devid_hash[i], hash)
+		{
 			if (old->fsid_type != fh->fh_fsid_type)
+			{
 				continue;
+			}
+
 			if (memcmp(old->fsid, fh->fh_fsid,
-					key_len(old->fsid_type)))
+					   key_len(old->fsid_type)))
+			{
 				continue;
+			}
 
 			fhp->fh_export->ex_devid_map = old;
 			goto out_unlock;
@@ -100,8 +115,12 @@ nfsd4_find_devid_map(int idx)
 
 	rcu_read_lock();
 	list_for_each_entry_rcu(map, &nfsd_devid_hash[devid_hashfn(idx)], hash)
-		if (map->idx == idx)
-			ret = map;
+
+	if (map->idx == idx)
+	{
+		ret = map;
+	}
+
 	rcu_read_unlock();
 
 	return ret;
@@ -109,12 +128,16 @@ nfsd4_find_devid_map(int idx)
 
 int
 nfsd4_set_deviceid(struct nfsd4_deviceid *id, const struct svc_fh *fhp,
-		u32 device_generation)
+				   u32 device_generation)
 {
-	if (!fhp->fh_export->ex_devid_map) {
+	if (!fhp->fh_export->ex_devid_map)
+	{
 		nfsd4_alloc_devid_map(fhp);
+
 		if (!fhp->fh_export->ex_devid_map)
+		{
 			return -ENOMEM;
+		}
 	}
 
 	id->fsid_idx = fhp->fh_export->ex_devid_map->idx;
@@ -130,7 +153,9 @@ void nfsd4_setup_layout_type(struct svc_export *exp)
 #endif
 
 	if (!(exp->ex_flags & NFSEXP_PNFS))
+	{
 		return;
+	}
 
 	/*
 	 * If flex file is configured, use it by default. Otherwise
@@ -142,18 +167,26 @@ void nfsd4_setup_layout_type(struct svc_export *exp)
 	exp->ex_layout_types |= 1 << LAYOUT_FLEX_FILES;
 #endif
 #ifdef CONFIG_NFSD_BLOCKLAYOUT
+
 	/* overwrite flex file layout selection if needed */
 	if (sb->s_export_op->get_uuid &&
-	    sb->s_export_op->map_blocks &&
-	    sb->s_export_op->commit_blocks)
+		sb->s_export_op->map_blocks &&
+		sb->s_export_op->commit_blocks)
+	{
 		exp->ex_layout_types |= 1 << LAYOUT_BLOCK_VOLUME;
+	}
+
 #endif
 #ifdef CONFIG_NFSD_SCSILAYOUT
+
 	/* overwrite block layout selection if needed */
 	if (sb->s_export_op->map_blocks &&
-	    sb->s_export_op->commit_blocks &&
-	    sb->s_bdev && sb->s_bdev->bd_disk->fops->pr_ops)
+		sb->s_export_op->commit_blocks &&
+		sb->s_bdev && sb->s_bdev->bd_disk->fops->pr_ops)
+	{
 		exp->ex_layout_types |= 1 << LAYOUT_SCSI;
+	}
+
 #endif
 }
 
@@ -175,11 +208,16 @@ nfsd4_free_layout_stateid(struct nfs4_stid *stid)
 	spin_unlock(&fp->fi_lock);
 
 	if (!nfsd4_layout_ops[ls->ls_layout_type]->disable_recalls)
+	{
 		vfs_setlease(ls->ls_file, F_UNLCK, NULL, (void **)&ls);
+	}
+
 	fput(ls->ls_file);
 
 	if (ls->ls_recalled)
+	{
 		atomic_dec(&ls->ls_stid.sc_file->fi_lo_recalls);
+	}
 
 	kmem_cache_free(nfs4_layout_stateid_cache, ls);
 }
@@ -191,11 +229,17 @@ nfsd4_layout_setlease(struct nfs4_layout_stateid *ls)
 	int status;
 
 	if (nfsd4_layout_ops[ls->ls_layout_type]->disable_recalls)
+	{
 		return 0;
+	}
 
 	fl = locks_alloc_lock();
+
 	if (!fl)
+	{
 		return -ENOMEM;
+	}
+
 	locks_init_lock(fl);
 	fl->fl_lmops = &nfsd4_layouts_lm_ops;
 	fl->fl_flags = FL_LAYOUT;
@@ -206,17 +250,20 @@ nfsd4_layout_setlease(struct nfs4_layout_stateid *ls)
 	fl->fl_file = ls->ls_file;
 
 	status = vfs_setlease(fl->fl_file, fl->fl_type, &fl, NULL);
-	if (status) {
+
+	if (status)
+	{
 		locks_free_lock(fl);
 		return status;
 	}
+
 	BUG_ON(fl != NULL);
 	return 0;
 }
 
 static struct nfs4_layout_stateid *
 nfsd4_alloc_layout_stateid(struct nfsd4_compound_state *cstate,
-		struct nfs4_stid *parent, u32 layout_type)
+						   struct nfs4_stid *parent, u32 layout_type)
 {
 	struct nfs4_client *clp = cstate->clp;
 	struct nfs4_file *fp = parent->sc_file;
@@ -224,8 +271,12 @@ nfsd4_alloc_layout_stateid(struct nfsd4_compound_state *cstate,
 	struct nfs4_stid *stp;
 
 	stp = nfs4_alloc_stid(cstate->clp, nfs4_layout_stateid_cache);
+
 	if (!stp)
+	{
 		return NULL;
+	}
+
 	stp->sc_free = nfsd4_free_layout_stateid;
 	get_nfs4_file(fp);
 	stp->sc_file = fp;
@@ -238,15 +289,21 @@ nfsd4_alloc_layout_stateid(struct nfsd4_compound_state *cstate,
 	mutex_init(&ls->ls_mutex);
 	ls->ls_layout_type = layout_type;
 	nfsd4_init_cb(&ls->ls_recall, clp, &nfsd4_cb_layout_ops,
-			NFSPROC4_CLNT_CB_LAYOUT);
+				  NFSPROC4_CLNT_CB_LAYOUT);
 
 	if (parent->sc_type == NFS4_DELEG_STID)
+	{
 		ls->ls_file = get_file(fp->fi_deleg_file);
+	}
 	else
+	{
 		ls->ls_file = find_any_file(fp);
+	}
+
 	BUG_ON(!ls->ls_file);
 
-	if (nfsd4_layout_setlease(ls)) {
+	if (nfsd4_layout_setlease(ls))
+	{
 		fput(ls->ls_file);
 		put_nfs4_file(fp);
 		kmem_cache_free(nfs4_layout_stateid_cache, ls);
@@ -268,8 +325,8 @@ nfsd4_alloc_layout_stateid(struct nfsd4_compound_state *cstate,
 
 __be32
 nfsd4_preprocess_layout_stateid(struct svc_rqst *rqstp,
-		struct nfsd4_compound_state *cstate, stateid_t *stateid,
-		bool create, u32 layout_type, struct nfs4_layout_stateid **lsp)
+								struct nfsd4_compound_state *cstate, stateid_t *stateid,
+								bool create, u32 layout_type, struct nfs4_layout_stateid **lsp)
 {
 	struct nfs4_layout_stateid *ls;
 	struct nfs4_stid *stid;
@@ -277,36 +334,55 @@ nfsd4_preprocess_layout_stateid(struct svc_rqst *rqstp,
 	__be32 status;
 
 	if (create)
+	{
 		typemask |= (NFS4_OPEN_STID | NFS4_LOCK_STID | NFS4_DELEG_STID);
+	}
 
 	status = nfsd4_lookup_stateid(cstate, stateid, typemask, &stid,
-			net_generic(SVC_NET(rqstp), nfsd_net_id));
+								  net_generic(SVC_NET(rqstp), nfsd_net_id));
+
 	if (status)
+	{
 		goto out;
+	}
 
 	if (!fh_match(&cstate->current_fh.fh_handle,
-		      &stid->sc_file->fi_fhandle)) {
+				  &stid->sc_file->fi_fhandle))
+	{
 		status = nfserr_bad_stateid;
 		goto out_put_stid;
 	}
 
-	if (stid->sc_type != NFS4_LAYOUT_STID) {
+	if (stid->sc_type != NFS4_LAYOUT_STID)
+	{
 		ls = nfsd4_alloc_layout_stateid(cstate, stid, layout_type);
 		nfs4_put_stid(stid);
 
 		status = nfserr_jukebox;
+
 		if (!ls)
+		{
 			goto out;
+		}
+
 		mutex_lock(&ls->ls_mutex);
-	} else {
+	}
+	else
+	{
 		ls = container_of(stid, struct nfs4_layout_stateid, ls_stid);
 
 		status = nfserr_bad_stateid;
 		mutex_lock(&ls->ls_mutex);
+
 		if (nfsd4_stateid_generation_after(stateid, &stid->sc_stateid))
+		{
 			goto out_unlock_stid;
+		}
+
 		if (layout_type != ls->ls_layout_type)
+		{
 			goto out_unlock_stid;
+		}
 	}
 
 	*lsp = ls;
@@ -324,13 +400,19 @@ static void
 nfsd4_recall_file_layout(struct nfs4_layout_stateid *ls)
 {
 	spin_lock(&ls->ls_lock);
+
 	if (ls->ls_recalled)
+	{
 		goto out_unlock;
+	}
 
 	ls->ls_recalled = true;
 	atomic_inc(&ls->ls_stid.sc_file->fi_lo_recalls);
+
 	if (list_empty(&ls->ls_layouts))
+	{
 		goto out_unlock;
+	}
 
 	trace_layout_recall(&ls->ls_stid.sc_stateid);
 
@@ -352,20 +434,33 @@ static void
 layout_update_len(struct nfsd4_layout_seg *lo, u64 end)
 {
 	if (end == NFS4_MAX_UINT64)
+	{
 		lo->length = NFS4_MAX_UINT64;
+	}
 	else
+	{
 		lo->length = end - lo->offset;
+	}
 }
 
 static bool
 layouts_overlapping(struct nfs4_layout *lo, struct nfsd4_layout_seg *s)
 {
 	if (s->iomode != IOMODE_ANY && s->iomode != lo->lo_seg.iomode)
+	{
 		return false;
+	}
+
 	if (layout_end(&lo->lo_seg) <= s->offset)
+	{
 		return false;
+	}
+
 	if (layout_end(s) <= lo->lo_seg.offset)
+	{
 		return false;
+	}
+
 	return true;
 }
 
@@ -373,11 +468,19 @@ static bool
 layouts_try_merge(struct nfsd4_layout_seg *lo, struct nfsd4_layout_seg *new)
 {
 	if (lo->iomode != new->iomode)
+	{
 		return false;
+	}
+
 	if (layout_end(new) < lo->offset)
+	{
 		return false;
+	}
+
 	if (layout_end(lo) < new->offset)
+	{
 		return false;
+	}
 
 	lo->offset = min(lo->offset, new->offset);
 	layout_update_len(lo, max(layout_end(lo), layout_end(new)));
@@ -393,8 +496,10 @@ nfsd4_recall_conflict(struct nfs4_layout_stateid *ls)
 
 	assert_spin_locked(&fp->fi_lock);
 
-	list_for_each_entry_safe(l, n, &fp->fi_lo_states, ls_perfile) {
-		if (l != ls) {
+	list_for_each_entry_safe(l, n, &fp->fi_lo_states, ls_perfile)
+	{
+		if (l != ls)
+		{
 			nfsd4_recall_file_layout(l);
 			nfserr = nfserr_recallconflict;
 		}
@@ -413,30 +518,48 @@ nfsd4_insert_layout(struct nfsd4_layoutget *lgp, struct nfs4_layout_stateid *ls)
 
 	spin_lock(&fp->fi_lock);
 	nfserr = nfsd4_recall_conflict(ls);
+
 	if (nfserr)
+	{
 		goto out;
+	}
+
 	spin_lock(&ls->ls_lock);
-	list_for_each_entry(lp, &ls->ls_layouts, lo_perstate) {
+	list_for_each_entry(lp, &ls->ls_layouts, lo_perstate)
+	{
 		if (layouts_try_merge(&lp->lo_seg, seg))
+		{
 			goto done;
+		}
 	}
 	spin_unlock(&ls->ls_lock);
 	spin_unlock(&fp->fi_lock);
 
 	new = kmem_cache_alloc(nfs4_layout_cache, GFP_KERNEL);
+
 	if (!new)
+	{
 		return nfserr_jukebox;
+	}
+
 	memcpy(&new->lo_seg, seg, sizeof(lp->lo_seg));
 	new->lo_state = ls;
 
 	spin_lock(&fp->fi_lock);
 	nfserr = nfsd4_recall_conflict(ls);
+
 	if (nfserr)
+	{
 		goto out;
+	}
+
 	spin_lock(&ls->ls_lock);
-	list_for_each_entry(lp, &ls->ls_layouts, lo_perstate) {
+	list_for_each_entry(lp, &ls->ls_layouts, lo_perstate)
+	{
 		if (layouts_try_merge(&lp->lo_seg, seg))
+		{
 			goto done;
+		}
 	}
 
 	atomic_inc(&ls->ls_stid.sc_count);
@@ -447,17 +570,22 @@ done:
 	spin_unlock(&ls->ls_lock);
 out:
 	spin_unlock(&fp->fi_lock);
+
 	if (new)
+	{
 		kmem_cache_free(nfs4_layout_cache, new);
+	}
+
 	return nfserr;
 }
 
 static void
 nfsd4_free_layouts(struct list_head *reaplist)
 {
-	while (!list_empty(reaplist)) {
+	while (!list_empty(reaplist))
+	{
 		struct nfs4_layout *lp = list_first_entry(reaplist,
-				struct nfs4_layout, lo_perstate);
+								 struct nfs4_layout, lo_perstate);
 
 		list_del(&lp->lo_perstate);
 		nfs4_put_stid(&lp->lo_state->ls_stid);
@@ -467,23 +595,30 @@ nfsd4_free_layouts(struct list_head *reaplist)
 
 static void
 nfsd4_return_file_layout(struct nfs4_layout *lp, struct nfsd4_layout_seg *seg,
-		struct list_head *reaplist)
+						 struct list_head *reaplist)
 {
 	struct nfsd4_layout_seg *lo = &lp->lo_seg;
 	u64 end = layout_end(lo);
 
-	if (seg->offset <= lo->offset) {
-		if (layout_end(seg) >= end) {
+	if (seg->offset <= lo->offset)
+	{
+		if (layout_end(seg) >= end)
+		{
 			list_move_tail(&lp->lo_perstate, reaplist);
 			return;
 		}
+
 		lo->offset = layout_end(seg);
-	} else {
+	}
+	else
+	{
 		/* retain the whole layout segment on a split. */
-		if (layout_end(seg) < end) {
+		if (layout_end(seg) < end)
+		{
 			dprintk("%s: split not supported\n", __func__);
 			return;
 		}
+
 		end = seg->offset;
 	}
 
@@ -492,8 +627,8 @@ nfsd4_return_file_layout(struct nfs4_layout *lp, struct nfsd4_layout_seg *seg,
 
 __be32
 nfsd4_return_file_layouts(struct svc_rqst *rqstp,
-		struct nfsd4_compound_state *cstate,
-		struct nfsd4_layoutreturn *lrp)
+						  struct nfsd4_compound_state *cstate,
+						  struct nfsd4_layoutreturn *lrp)
 {
 	struct nfs4_layout_stateid *ls;
 	struct nfs4_layout *lp, *n;
@@ -502,29 +637,41 @@ nfsd4_return_file_layouts(struct svc_rqst *rqstp,
 	int found = 0;
 
 	nfserr = nfsd4_preprocess_layout_stateid(rqstp, cstate, &lrp->lr_sid,
-						false, lrp->lr_layout_type,
-						&ls);
-	if (nfserr) {
+			 false, lrp->lr_layout_type,
+			 &ls);
+
+	if (nfserr)
+	{
 		trace_layout_return_lookup_fail(&lrp->lr_sid);
 		return nfserr;
 	}
 
 	spin_lock(&ls->ls_lock);
-	list_for_each_entry_safe(lp, n, &ls->ls_layouts, lo_perstate) {
-		if (layouts_overlapping(lp, &lrp->lr_seg)) {
+	list_for_each_entry_safe(lp, n, &ls->ls_layouts, lo_perstate)
+	{
+		if (layouts_overlapping(lp, &lrp->lr_seg))
+		{
 			nfsd4_return_file_layout(lp, &lrp->lr_seg, &reaplist);
 			found++;
 		}
 	}
-	if (!list_empty(&ls->ls_layouts)) {
+
+	if (!list_empty(&ls->ls_layouts))
+	{
 		if (found)
+		{
 			nfs4_inc_and_copy_stateid(&lrp->lr_sid, &ls->ls_stid);
+		}
+
 		lrp->lrs_present = 1;
-	} else {
+	}
+	else
+	{
 		trace_layoutstate_unhash(&ls->ls_stid.sc_stateid);
 		nfs4_unhash_stid(&ls->ls_stid);
 		lrp->lrs_present = 0;
 	}
+
 	spin_unlock(&ls->ls_lock);
 
 	mutex_unlock(&ls->ls_mutex);
@@ -535,8 +682,8 @@ nfsd4_return_file_layouts(struct svc_rqst *rqstp,
 
 __be32
 nfsd4_return_client_layouts(struct svc_rqst *rqstp,
-		struct nfsd4_compound_state *cstate,
-		struct nfsd4_layoutreturn *lrp)
+							struct nfsd4_compound_state *cstate,
+							struct nfsd4_layoutreturn *lrp)
 {
 	struct nfs4_layout_stateid *ls, *n;
 	struct nfs4_client *clp = cstate->clp;
@@ -546,20 +693,28 @@ nfsd4_return_client_layouts(struct svc_rqst *rqstp,
 	lrp->lrs_present = 0;
 
 	spin_lock(&clp->cl_lock);
-	list_for_each_entry_safe(ls, n, &clp->cl_lo_states, ls_perclnt) {
+	list_for_each_entry_safe(ls, n, &clp->cl_lo_states, ls_perclnt)
+	{
 		if (ls->ls_layout_type != lrp->lr_layout_type)
+		{
 			continue;
+		}
 
 		if (lrp->lr_return_type == RETURN_FSID &&
-		    !fh_fsid_match(&ls->ls_stid.sc_file->fi_fhandle,
-				   &cstate->current_fh.fh_handle))
+			!fh_fsid_match(&ls->ls_stid.sc_file->fi_fhandle,
+						   &cstate->current_fh.fh_handle))
+		{
 			continue;
+		}
 
 		spin_lock(&ls->ls_lock);
-		list_for_each_entry_safe(lp, t, &ls->ls_layouts, lo_perstate) {
+		list_for_each_entry_safe(lp, t, &ls->ls_layouts, lo_perstate)
+		{
 			if (lrp->lr_seg.iomode == IOMODE_ANY ||
-			    lrp->lr_seg.iomode == lp->lo_seg.iomode)
+				lrp->lr_seg.iomode == lp->lo_seg.iomode)
+			{
 				list_move_tail(&lp->lo_perstate, &reaplist);
+			}
 		}
 		spin_unlock(&ls->ls_lock);
 	}
@@ -571,7 +726,7 @@ nfsd4_return_client_layouts(struct svc_rqst *rqstp,
 
 static void
 nfsd4_return_all_layouts(struct nfs4_layout_stateid *ls,
-		struct list_head *reaplist)
+						 struct list_head *reaplist)
 {
 	spin_lock(&ls->ls_lock);
 	list_splice_init(&ls->ls_layouts, reaplist);
@@ -586,7 +741,7 @@ nfsd4_return_all_client_layouts(struct nfs4_client *clp)
 
 	spin_lock(&clp->cl_lock);
 	list_for_each_entry_safe(ls, n, &clp->cl_lo_states, ls_perclnt)
-		nfsd4_return_all_layouts(ls, &reaplist);
+	nfsd4_return_all_layouts(ls, &reaplist);
 	spin_unlock(&clp->cl_lock);
 
 	nfsd4_free_layouts(&reaplist);
@@ -599,9 +754,12 @@ nfsd4_return_all_file_layouts(struct nfs4_client *clp, struct nfs4_file *fp)
 	LIST_HEAD(reaplist);
 
 	spin_lock(&fp->fi_lock);
-	list_for_each_entry_safe(ls, n, &fp->fi_lo_states, ls_perfile) {
+	list_for_each_entry_safe(ls, n, &fp->fi_lo_states, ls_perfile)
+	{
 		if (ls->ls_stid.sc_client == clp)
+		{
 			nfsd4_return_all_layouts(ls, &reaplist);
+		}
 	}
 	spin_unlock(&fp->fi_lock);
 
@@ -613,7 +771,8 @@ nfsd4_cb_layout_fail(struct nfs4_layout_stateid *ls)
 {
 	struct nfs4_client *clp = ls->ls_stid.sc_client;
 	char addr_str[INET6_ADDRSTRLEN];
-	static char *envp[] = {
+	static char *envp[] =
+	{
 		"HOME=/",
 		"TERM=linux",
 		"PATH=/sbin:/usr/sbin:/bin:/usr/bin",
@@ -625,8 +784,8 @@ nfsd4_cb_layout_fail(struct nfs4_layout_stateid *ls)
 	rpc_ntop((struct sockaddr *)&clp->cl_addr, addr_str, sizeof(addr_str));
 
 	printk(KERN_WARNING
-		"nfsd: client %s failed to respond to layout recall. "
-		"  Fencing..\n", addr_str);
+		   "nfsd: client %s failed to respond to layout recall. "
+		   "  Fencing..\n", addr_str);
 
 	argv[0] = "/sbin/nfsd-recall-failed";
 	argv[1] = addr_str;
@@ -634,9 +793,11 @@ nfsd4_cb_layout_fail(struct nfs4_layout_stateid *ls)
 	argv[3] = NULL;
 
 	error = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_PROC);
-	if (error) {
+
+	if (error)
+	{
 		printk(KERN_ERR "nfsd: fence failed for client %s: %d!\n",
-			addr_str, error);
+			   addr_str, error);
 	}
 }
 
@@ -662,46 +823,59 @@ nfsd4_cb_layout_done(struct nfsd4_callback *cb, struct rpc_task *task)
 	LIST_HEAD(reaplist);
 
 
-	switch (task->tk_status) {
-	case 0:
-	case -NFS4ERR_DELAY:
-		/*
-		 * Anything left? If not, then call it done. Note that we don't
-		 * take the spinlock since this is an optimization and nothing
-		 * should get added until the cb counter goes to zero.
-		 */
-		if (list_empty(&ls->ls_layouts))
+	switch (task->tk_status)
+	{
+		case 0:
+		case -NFS4ERR_DELAY:
+
+			/*
+			 * Anything left? If not, then call it done. Note that we don't
+			 * take the spinlock since this is an optimization and nothing
+			 * should get added until the cb counter goes to zero.
+			 */
+			if (list_empty(&ls->ls_layouts))
+			{
+				return 1;
+			}
+
+			/* Poll the client until it's done with the layout */
+			now = ktime_get();
+			nn = net_generic(ls->ls_stid.sc_client->net, nfsd_net_id);
+
+			/* Client gets 2 lease periods to return it */
+			cutoff = ktime_add_ns(task->tk_start,
+								  nn->nfsd4_lease * NSEC_PER_SEC * 2);
+
+			if (ktime_before(now, cutoff))
+			{
+				rpc_delay(task, HZ / 100); /* 10 mili-seconds */
+				return 0;
+			}
+
+		/* Fallthrough */
+		case -NFS4ERR_NOMATCHING_LAYOUT:
+			trace_layout_recall_done(&ls->ls_stid.sc_stateid);
+			task->tk_status = 0;
 			return 1;
 
-		/* Poll the client until it's done with the layout */
-		now = ktime_get();
-		nn = net_generic(ls->ls_stid.sc_client->net, nfsd_net_id);
+		default:
+			/*
+			 * Unknown error or non-responding client, we'll need to fence.
+			 */
+			trace_layout_recall_fail(&ls->ls_stid.sc_stateid);
 
-		/* Client gets 2 lease periods to return it */
-		cutoff = ktime_add_ns(task->tk_start,
-					 nn->nfsd4_lease * NSEC_PER_SEC * 2);
+			ops = nfsd4_layout_ops[ls->ls_layout_type];
 
-		if (ktime_before(now, cutoff)) {
-			rpc_delay(task, HZ/100); /* 10 mili-seconds */
-			return 0;
-		}
-		/* Fallthrough */
-	case -NFS4ERR_NOMATCHING_LAYOUT:
-		trace_layout_recall_done(&ls->ls_stid.sc_stateid);
-		task->tk_status = 0;
-		return 1;
-	default:
-		/*
-		 * Unknown error or non-responding client, we'll need to fence.
-		 */
-		trace_layout_recall_fail(&ls->ls_stid.sc_stateid);
+			if (ops->fence_client)
+			{
+				ops->fence_client(ls);
+			}
+			else
+			{
+				nfsd4_cb_layout_fail(ls);
+			}
 
-		ops = nfsd4_layout_ops[ls->ls_layout_type];
-		if (ops->fence_client)
-			ops->fence_client(ls);
-		else
-			nfsd4_cb_layout_fail(ls);
-		return -1;
+			return -1;
 	}
 }
 
@@ -719,7 +893,8 @@ nfsd4_cb_layout_release(struct nfsd4_callback *cb)
 	nfs4_put_stid(&ls->ls_stid);
 }
 
-static const struct nfsd4_callback_ops nfsd4_cb_layout_ops = {
+static const struct nfsd4_callback_ops nfsd4_cb_layout_ops =
+{
 	.prepare	= nfsd4_cb_layout_prepare,
 	.done		= nfsd4_cb_layout_done,
 	.release	= nfsd4_cb_layout_release,
@@ -740,13 +915,14 @@ nfsd4_layout_lm_break(struct file_lock *fl)
 
 static int
 nfsd4_layout_lm_change(struct file_lock *onlist, int arg,
-		struct list_head *dispose)
+					   struct list_head *dispose)
 {
 	BUG_ON(!(arg & F_UNLCK));
 	return lease_modify(onlist, arg, dispose);
 }
 
-static const struct lock_manager_operations nfsd4_layouts_lm_ops = {
+static const struct lock_manager_operations nfsd4_layouts_lm_ops =
+{
 	.lm_break	= nfsd4_layout_lm_break,
 	.lm_change	= nfsd4_layout_lm_change,
 };
@@ -757,19 +933,27 @@ nfsd4_init_pnfs(void)
 	int i;
 
 	for (i = 0; i < DEVID_HASH_SIZE; i++)
+	{
 		INIT_LIST_HEAD(&nfsd_devid_hash[i]);
+	}
 
 	nfs4_layout_cache = kmem_cache_create("nfs4_layout",
-			sizeof(struct nfs4_layout), 0, 0, NULL);
+										  sizeof(struct nfs4_layout), 0, 0, NULL);
+
 	if (!nfs4_layout_cache)
+	{
 		return -ENOMEM;
+	}
 
 	nfs4_layout_stateid_cache = kmem_cache_create("nfs4_layout_stateid",
-			sizeof(struct nfs4_layout_stateid), 0, 0, NULL);
-	if (!nfs4_layout_stateid_cache) {
+								sizeof(struct nfs4_layout_stateid), 0, 0, NULL);
+
+	if (!nfs4_layout_stateid_cache)
+	{
 		kmem_cache_destroy(nfs4_layout_cache);
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 
@@ -781,10 +965,11 @@ nfsd4_exit_pnfs(void)
 	kmem_cache_destroy(nfs4_layout_cache);
 	kmem_cache_destroy(nfs4_layout_stateid_cache);
 
-	for (i = 0; i < DEVID_HASH_SIZE; i++) {
+	for (i = 0; i < DEVID_HASH_SIZE; i++)
+	{
 		struct nfsd4_deviceid_map *map, *n;
 
 		list_for_each_entry_safe(map, n, &nfsd_devid_hash[i], hash)
-			kfree(map);
+		kfree(map);
 	}
 }

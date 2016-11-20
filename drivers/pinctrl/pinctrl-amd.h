@@ -73,19 +73,22 @@
 
 #define CLR_INTR_STAT	0x1UL
 
-struct amd_pingroup {
+struct amd_pingroup
+{
 	const char *name;
 	const unsigned *pins;
 	unsigned npins;
 };
 
-struct amd_function {
+struct amd_function
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	unsigned ngroups;
 };
 
-struct amd_gpio {
+struct amd_gpio
+{
 	spinlock_t              lock;
 	void __iomem            *base;
 
@@ -98,7 +101,8 @@ struct amd_gpio {
 };
 
 /*  KERNCZ configuration*/
-static const struct pinctrl_pin_desc kerncz_pins[] = {
+static const struct pinctrl_pin_desc kerncz_pins[] =
+{
 	PINCTRL_PIN(0, "GPIO_0"),
 	PINCTRL_PIN(1, "GPIO_1"),
 	PINCTRL_PIN(2, "GPIO_2"),
@@ -225,7 +229,8 @@ static const unsigned i2c3_pins[] = {19, 20};
 static const unsigned uart0_pins[] = {135, 136, 137, 138, 139};
 static const unsigned uart1_pins[] = {140, 141, 142, 143, 144};
 
-static const struct amd_pingroup kerncz_groups[] = {
+static const struct amd_pingroup kerncz_groups[] =
+{
 	{
 		.name = "i2c0",
 		.pins = i2c0_pins,

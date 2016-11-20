@@ -22,7 +22,8 @@
 #define BCM590XX_MAX_REGISTER_PRI	0xe7
 #define BCM590XX_MAX_REGISTER_SEC	0xf0
 
-struct bcm590xx {
+struct bcm590xx
+{
 	struct device *dev;
 	struct i2c_client *i2c_pri;
 	struct i2c_client *i2c_sec;

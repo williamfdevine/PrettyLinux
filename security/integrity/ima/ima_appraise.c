@@ -21,11 +21,18 @@
 static int __init default_appraise_setup(char *str)
 {
 	if (strncmp(str, "off", 3) == 0)
+	{
 		ima_appraise = 0;
+	}
 	else if (strncmp(str, "log", 3) == 0)
+	{
 		ima_appraise = IMA_APPRAISE_LOG;
+	}
 	else if (strncmp(str, "fix", 3) == 0)
+	{
 		ima_appraise = IMA_APPRAISE_FIX;
+	}
+
 	return 1;
 }
 
@@ -39,123 +46,161 @@ __setup("ima_appraise=", default_appraise_setup);
 int ima_must_appraise(struct inode *inode, int mask, enum ima_hooks func)
 {
 	if (!ima_appraise)
+	{
 		return 0;
+	}
 
 	return ima_match_policy(inode, func, mask, IMA_APPRAISE, NULL);
 }
 
 static int ima_fix_xattr(struct dentry *dentry,
-			 struct integrity_iint_cache *iint)
+						 struct integrity_iint_cache *iint)
 {
 	int rc, offset;
 	u8 algo = iint->ima_hash->algo;
 
-	if (algo <= HASH_ALGO_SHA1) {
+	if (algo <= HASH_ALGO_SHA1)
+	{
 		offset = 1;
 		iint->ima_hash->xattr.sha1.type = IMA_XATTR_DIGEST;
-	} else {
+	}
+	else
+	{
 		offset = 0;
 		iint->ima_hash->xattr.ng.type = IMA_XATTR_DIGEST_NG;
 		iint->ima_hash->xattr.ng.algo = algo;
 	}
+
 	rc = __vfs_setxattr_noperm(dentry, XATTR_NAME_IMA,
-				   &iint->ima_hash->xattr.data[offset],
-				   (sizeof(iint->ima_hash->xattr) - offset) +
-				   iint->ima_hash->length, 0);
+							   &iint->ima_hash->xattr.data[offset],
+							   (sizeof(iint->ima_hash->xattr) - offset) +
+							   iint->ima_hash->length, 0);
 	return rc;
 }
 
 /* Return specific func appraised cached result */
 enum integrity_status ima_get_cache_status(struct integrity_iint_cache *iint,
-					   enum ima_hooks func)
+		enum ima_hooks func)
 {
-	switch (func) {
-	case MMAP_CHECK:
-		return iint->ima_mmap_status;
-	case BPRM_CHECK:
-		return iint->ima_bprm_status;
-	case FILE_CHECK:
-	case POST_SETATTR:
-		return iint->ima_file_status;
-	case MODULE_CHECK ... MAX_CHECK - 1:
-	default:
-		return iint->ima_read_status;
-	}
-}
+	switch (func)
+	{
+		case MMAP_CHECK:
+					return iint->ima_mmap_status;
 
-static void ima_set_cache_status(struct integrity_iint_cache *iint,
-				 enum ima_hooks func,
-				 enum integrity_status status)
+			case BPRM_CHECK:
+				return iint->ima_bprm_status;
+
+			case FILE_CHECK:
+			case POST_SETATTR:
+				return iint->ima_file_status;
+
+			case MODULE_CHECK ... MAX_CHECK - 1:
+			default:
+				return iint->ima_read_status;
+		}
+	}
+
+	static void ima_set_cache_status(struct integrity_iint_cache *iint,
+									 enum ima_hooks func,
+									 enum integrity_status status)
 {
-	switch (func) {
-	case MMAP_CHECK:
-		iint->ima_mmap_status = status;
-		break;
-	case BPRM_CHECK:
-		iint->ima_bprm_status = status;
-		break;
-	case FILE_CHECK:
-	case POST_SETATTR:
-		iint->ima_file_status = status;
-		break;
-	case MODULE_CHECK ... MAX_CHECK - 1:
-	default:
-		iint->ima_read_status = status;
-		break;
+	switch (func)
+	{
+		case MMAP_CHECK:
+			iint->ima_mmap_status = status;
+			break;
+
+		case BPRM_CHECK:
+			iint->ima_bprm_status = status;
+			break;
+
+		case FILE_CHECK:
+		case POST_SETATTR:
+			iint->ima_file_status = status;
+			break;
+
+		case MODULE_CHECK ... MAX_CHECK - 1:
+		default:
+			iint->ima_read_status = status;
+			break;
 	}
 }
 
 static void ima_cache_flags(struct integrity_iint_cache *iint,
-			     enum ima_hooks func)
+							enum ima_hooks func)
 {
-	switch (func) {
-	case MMAP_CHECK:
-		iint->flags |= (IMA_MMAP_APPRAISED | IMA_APPRAISED);
-		break;
-	case BPRM_CHECK:
-		iint->flags |= (IMA_BPRM_APPRAISED | IMA_APPRAISED);
-		break;
-	case FILE_CHECK:
-	case POST_SETATTR:
-		iint->flags |= (IMA_FILE_APPRAISED | IMA_APPRAISED);
-		break;
-	case MODULE_CHECK ... MAX_CHECK - 1:
-	default:
-		iint->flags |= (IMA_READ_APPRAISED | IMA_APPRAISED);
-		break;
+	switch (func)
+	{
+		case MMAP_CHECK:
+			iint->flags |= (IMA_MMAP_APPRAISED | IMA_APPRAISED);
+			break;
+
+		case BPRM_CHECK:
+			iint->flags |= (IMA_BPRM_APPRAISED | IMA_APPRAISED);
+			break;
+
+		case FILE_CHECK:
+		case POST_SETATTR:
+			iint->flags |= (IMA_FILE_APPRAISED | IMA_APPRAISED);
+			break;
+
+		case MODULE_CHECK ... MAX_CHECK - 1:
+		default:
+			iint->flags |= (IMA_READ_APPRAISED | IMA_APPRAISED);
+			break;
 	}
 }
 
 enum hash_algo ima_get_hash_algo(struct evm_ima_xattr_data *xattr_value,
-				 int xattr_len)
+								 int xattr_len)
 {
 	struct signature_v2_hdr *sig;
 
 	if (!xattr_value || xattr_len < 2)
 		/* return default hash algo */
+	{
 		return ima_hash_algo;
+	}
 
-	switch (xattr_value->type) {
-	case EVM_IMA_XATTR_DIGSIG:
-		sig = (typeof(sig))xattr_value;
-		if (sig->version != 2 || xattr_len <= sizeof(*sig))
-			return ima_hash_algo;
-		return sig->hash_algo;
-		break;
-	case IMA_XATTR_DIGEST_NG:
-		return xattr_value->digest[0];
-		break;
-	case IMA_XATTR_DIGEST:
-		/* this is for backward compatibility */
-		if (xattr_len == 21) {
-			unsigned int zero = 0;
-			if (!memcmp(&xattr_value->digest[16], &zero, 4))
+	switch (xattr_value->type)
+	{
+		case EVM_IMA_XATTR_DIGSIG:
+			sig = (typeof(sig))xattr_value;
+
+			if (sig->version != 2 || xattr_len <= sizeof(*sig))
+			{
+				return ima_hash_algo;
+			}
+
+			return sig->hash_algo;
+			break;
+
+		case IMA_XATTR_DIGEST_NG:
+			return xattr_value->digest[0];
+			break;
+
+		case IMA_XATTR_DIGEST:
+
+			/* this is for backward compatibility */
+			if (xattr_len == 21)
+			{
+				unsigned int zero = 0;
+
+				if (!memcmp(&xattr_value->digest[16], &zero, 4))
+				{
+					return HASH_ALGO_MD5;
+				}
+				else
+				{
+					return HASH_ALGO_SHA1;
+				}
+			}
+			else if (xattr_len == 17)
+			{
 				return HASH_ALGO_MD5;
-			else
-				return HASH_ALGO_SHA1;
-		} else if (xattr_len == 17)
-			return HASH_ALGO_MD5;
-		break;
+			}
+
+			break;
 	}
 
 	/* return default hash algo */
@@ -163,14 +208,18 @@ enum hash_algo ima_get_hash_algo(struct evm_ima_xattr_data *xattr_value,
 }
 
 int ima_read_xattr(struct dentry *dentry,
-		   struct evm_ima_xattr_data **xattr_value)
+				   struct evm_ima_xattr_data **xattr_value)
 {
 	ssize_t ret;
 
 	ret = vfs_getxattr_alloc(dentry, XATTR_NAME_IMA, (char **)xattr_value,
-				 0, GFP_NOFS);
+							 0, GFP_NOFS);
+
 	if (ret == -EOPNOTSUPP)
+	{
 		ret = 0;
+	}
+
 	return ret;
 }
 
@@ -183,10 +232,10 @@ int ima_read_xattr(struct dentry *dentry,
  * Return 0 on success, error code otherwise
  */
 int ima_appraise_measurement(enum ima_hooks func,
-			     struct integrity_iint_cache *iint,
-			     struct file *file, const unsigned char *filename,
-			     struct evm_ima_xattr_data *xattr_value,
-			     int xattr_len, int opened)
+							 struct integrity_iint_cache *iint,
+							 struct file *file, const unsigned char *filename,
+							 struct evm_ima_xattr_data *xattr_value,
+							 int xattr_len, int opened)
 {
 	static const char op[] = "appraise_data";
 	char *cause = "unknown";
@@ -196,96 +245,141 @@ int ima_appraise_measurement(enum ima_hooks func,
 	int rc = xattr_len, hash_start = 0;
 
 	if (!(inode->i_opflags & IOP_XATTR))
+	{
 		return INTEGRITY_UNKNOWN;
+	}
 
-	if (rc <= 0) {
+	if (rc <= 0)
+	{
 		if (rc && rc != -ENODATA)
+		{
 			goto out;
+		}
 
 		cause = "missing-hash";
 		status = INTEGRITY_NOLABEL;
-		if (opened & FILE_CREATED) {
+
+		if (opened & FILE_CREATED)
+		{
 			iint->flags |= IMA_NEW_FILE;
 			status = INTEGRITY_PASS;
 		}
+
 		goto out;
 	}
 
 	status = evm_verifyxattr(dentry, XATTR_NAME_IMA, xattr_value, rc, iint);
-	if ((status != INTEGRITY_PASS) && (status != INTEGRITY_UNKNOWN)) {
+
+	if ((status != INTEGRITY_PASS) && (status != INTEGRITY_UNKNOWN))
+	{
 		if ((status == INTEGRITY_NOLABEL)
-		    || (status == INTEGRITY_NOXATTRS))
+			|| (status == INTEGRITY_NOXATTRS))
+		{
 			cause = "missing-HMAC";
+		}
 		else if (status == INTEGRITY_FAIL)
+		{
 			cause = "invalid-HMAC";
+		}
+
 		goto out;
 	}
-	switch (xattr_value->type) {
-	case IMA_XATTR_DIGEST_NG:
-		/* first byte contains algorithm id */
-		hash_start = 1;
-	case IMA_XATTR_DIGEST:
-		if (iint->flags & IMA_DIGSIG_REQUIRED) {
-			cause = "IMA-signature-required";
-			status = INTEGRITY_FAIL;
-			break;
-		}
-		if (xattr_len - sizeof(xattr_value->type) - hash_start >=
+
+	switch (xattr_value->type)
+	{
+		case IMA_XATTR_DIGEST_NG:
+			/* first byte contains algorithm id */
+			hash_start = 1;
+
+		case IMA_XATTR_DIGEST:
+			if (iint->flags & IMA_DIGSIG_REQUIRED)
+			{
+				cause = "IMA-signature-required";
+				status = INTEGRITY_FAIL;
+				break;
+			}
+
+			if (xattr_len - sizeof(xattr_value->type) - hash_start >=
 				iint->ima_hash->length)
-			/* xattr length may be longer. md5 hash in previous
-			   version occupied 20 bytes in xattr, instead of 16
-			 */
-			rc = memcmp(&xattr_value->digest[hash_start],
-				    iint->ima_hash->digest,
-				    iint->ima_hash->length);
-		else
-			rc = -EINVAL;
-		if (rc) {
-			cause = "invalid-hash";
-			status = INTEGRITY_FAIL;
-			break;
-		}
-		status = INTEGRITY_PASS;
-		break;
-	case EVM_IMA_XATTR_DIGSIG:
-		iint->flags |= IMA_DIGSIG;
-		rc = integrity_digsig_verify(INTEGRITY_KEYRING_IMA,
-					     (const char *)xattr_value, rc,
-					     iint->ima_hash->digest,
-					     iint->ima_hash->length);
-		if (rc == -EOPNOTSUPP) {
-			status = INTEGRITY_UNKNOWN;
-		} else if (rc) {
-			cause = "invalid-signature";
-			status = INTEGRITY_FAIL;
-		} else {
+				/* xattr length may be longer. md5 hash in previous
+				   version occupied 20 bytes in xattr, instead of 16
+				 */
+				rc = memcmp(&xattr_value->digest[hash_start],
+							iint->ima_hash->digest,
+							iint->ima_hash->length);
+			else
+			{
+				rc = -EINVAL;
+			}
+
+			if (rc)
+			{
+				cause = "invalid-hash";
+				status = INTEGRITY_FAIL;
+				break;
+			}
+
 			status = INTEGRITY_PASS;
-		}
-		break;
-	default:
-		status = INTEGRITY_UNKNOWN;
-		cause = "unknown-ima-data";
-		break;
+			break;
+
+		case EVM_IMA_XATTR_DIGSIG:
+			iint->flags |= IMA_DIGSIG;
+			rc = integrity_digsig_verify(INTEGRITY_KEYRING_IMA,
+										 (const char *)xattr_value, rc,
+										 iint->ima_hash->digest,
+										 iint->ima_hash->length);
+
+			if (rc == -EOPNOTSUPP)
+			{
+				status = INTEGRITY_UNKNOWN;
+			}
+			else if (rc)
+			{
+				cause = "invalid-signature";
+				status = INTEGRITY_FAIL;
+			}
+			else
+			{
+				status = INTEGRITY_PASS;
+			}
+
+			break;
+
+		default:
+			status = INTEGRITY_UNKNOWN;
+			cause = "unknown-ima-data";
+			break;
 	}
 
 out:
-	if (status != INTEGRITY_PASS) {
+
+	if (status != INTEGRITY_PASS)
+	{
 		if ((ima_appraise & IMA_APPRAISE_FIX) &&
-		    (!xattr_value ||
-		     xattr_value->type != EVM_IMA_XATTR_DIGSIG)) {
+			(!xattr_value ||
+			 xattr_value->type != EVM_IMA_XATTR_DIGSIG))
+		{
 			if (!ima_fix_xattr(dentry, iint))
+			{
 				status = INTEGRITY_PASS;
-		} else if ((inode->i_size == 0) &&
-			   (iint->flags & IMA_NEW_FILE) &&
-			   (xattr_value &&
-			    xattr_value->type == EVM_IMA_XATTR_DIGSIG)) {
+			}
+		}
+		else if ((inode->i_size == 0) &&
+				 (iint->flags & IMA_NEW_FILE) &&
+				 (xattr_value &&
+				  xattr_value->type == EVM_IMA_XATTR_DIGSIG))
+		{
 			status = INTEGRITY_PASS;
 		}
+
 		integrity_audit_msg(AUDIT_INTEGRITY_DATA, inode, filename,
-				    op, cause, rc, 0);
-	} else {
+							op, cause, rc, 0);
+	}
+	else
+	{
 		ima_cache_flags(iint, func);
 	}
+
 	ima_set_cache_status(iint, func, status);
 	return status;
 }
@@ -300,11 +394,16 @@ void ima_update_xattr(struct integrity_iint_cache *iint, struct file *file)
 
 	/* do not collect and update hash for digital signatures */
 	if (iint->flags & IMA_DIGSIG)
+	{
 		return;
+	}
 
 	rc = ima_collect_measurement(iint, file, NULL, 0, ima_hash_algo);
+
 	if (rc < 0)
+	{
 		return;
+	}
 
 	ima_fix_xattr(dentry, iint);
 }
@@ -325,20 +424,30 @@ void ima_inode_post_setattr(struct dentry *dentry)
 	int must_appraise;
 
 	if (!(ima_policy_flag & IMA_APPRAISE) || !S_ISREG(inode->i_mode)
-	    || !(inode->i_opflags & IOP_XATTR))
+		|| !(inode->i_opflags & IOP_XATTR))
+	{
 		return;
+	}
 
 	must_appraise = ima_must_appraise(inode, MAY_ACCESS, POST_SETATTR);
 	iint = integrity_iint_find(inode);
-	if (iint) {
+
+	if (iint)
+	{
 		iint->flags &= ~(IMA_APPRAISE | IMA_APPRAISED |
-				 IMA_APPRAISE_SUBMASK | IMA_APPRAISED_SUBMASK |
-				 IMA_ACTION_RULE_FLAGS);
+						 IMA_APPRAISE_SUBMASK | IMA_APPRAISED_SUBMASK |
+						 IMA_ACTION_RULE_FLAGS);
+
 		if (must_appraise)
+		{
 			iint->flags |= IMA_APPRAISE;
+		}
 	}
+
 	if (!must_appraise)
+	{
 		__vfs_removexattr(dentry, XATTR_NAME_IMA);
+	}
 }
 
 /*
@@ -347,13 +456,18 @@ void ima_inode_post_setattr(struct dentry *dentry)
  * Ensure that not just anyone can modify or remove 'security.ima'.
  */
 static int ima_protect_xattr(struct dentry *dentry, const char *xattr_name,
-			     const void *xattr_value, size_t xattr_value_len)
+							 const void *xattr_value, size_t xattr_value_len)
 {
-	if (strcmp(xattr_name, XATTR_NAME_IMA) == 0) {
+	if (strcmp(xattr_name, XATTR_NAME_IMA) == 0)
+	{
 		if (!capable(CAP_SYS_ADMIN))
+		{
 			return -EPERM;
+		}
+
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -362,38 +476,57 @@ static void ima_reset_appraise_flags(struct inode *inode, int digsig)
 	struct integrity_iint_cache *iint;
 
 	if (!(ima_policy_flag & IMA_APPRAISE) || !S_ISREG(inode->i_mode))
+	{
 		return;
+	}
 
 	iint = integrity_iint_find(inode);
+
 	if (!iint)
+	{
 		return;
+	}
 
 	iint->flags &= ~IMA_DONE_MASK;
 	iint->measured_pcrs = 0;
+
 	if (digsig)
+	{
 		iint->flags |= IMA_DIGSIG;
+	}
+
 	return;
 }
 
 int ima_inode_setxattr(struct dentry *dentry, const char *xattr_name,
-		       const void *xattr_value, size_t xattr_value_len)
+					   const void *xattr_value, size_t xattr_value_len)
 {
 	const struct evm_ima_xattr_data *xvalue = xattr_value;
 	int result;
 
 	result = ima_protect_xattr(dentry, xattr_name, xattr_value,
-				   xattr_value_len);
-	if (result == 1) {
+							   xattr_value_len);
+
+	if (result == 1)
+	{
 		bool digsig;
 
 		if (!xattr_value_len || (xvalue->type >= IMA_XATTR_LAST))
+		{
 			return -EINVAL;
+		}
+
 		digsig = (xvalue->type == EVM_IMA_XATTR_DIGSIG);
+
 		if (!digsig && (ima_appraise & IMA_APPRAISE_ENFORCE))
+		{
 			return -EPERM;
+		}
+
 		ima_reset_appraise_flags(d_backing_inode(dentry), digsig);
 		result = 0;
 	}
+
 	return result;
 }
 
@@ -402,9 +535,12 @@ int ima_inode_removexattr(struct dentry *dentry, const char *xattr_name)
 	int result;
 
 	result = ima_protect_xattr(dentry, xattr_name, NULL, 0);
-	if (result == 1) {
+
+	if (result == 1)
+	{
 		ima_reset_appraise_flags(d_backing_inode(dentry), 0);
 		result = 0;
 	}
+
 	return result;
 }

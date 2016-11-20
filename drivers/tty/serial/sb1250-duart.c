@@ -20,7 +20,7 @@
  */
 
 #if defined(CONFIG_SERIAL_SB1250_DUART_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
-#define SUPPORT_SYSRQ
+	#define SUPPORT_SYSRQ
 #endif
 
 #include <linux/compiler.h>
@@ -51,29 +51,29 @@
 
 
 #if defined(CONFIG_SIBYTE_BCM1x55) || defined(CONFIG_SIBYTE_BCM1x80)
-#include <asm/sibyte/bcm1480_regs.h>
-#include <asm/sibyte/bcm1480_int.h>
+	#include <asm/sibyte/bcm1480_regs.h>
+	#include <asm/sibyte/bcm1480_int.h>
 
-#define SBD_CHANREGS(line)	A_BCM1480_DUART_CHANREG((line), 0)
-#define SBD_CTRLREGS(line)	A_BCM1480_DUART_CTRLREG((line), 0)
-#define SBD_INT(line)		(K_BCM1480_INT_UART_0 + (line))
+	#define SBD_CHANREGS(line)	A_BCM1480_DUART_CHANREG((line), 0)
+	#define SBD_CTRLREGS(line)	A_BCM1480_DUART_CTRLREG((line), 0)
+	#define SBD_INT(line)		(K_BCM1480_INT_UART_0 + (line))
 
-#define DUART_CHANREG_SPACING	BCM1480_DUART_CHANREG_SPACING
+	#define DUART_CHANREG_SPACING	BCM1480_DUART_CHANREG_SPACING
 
-#define R_DUART_IMRREG(line)	R_BCM1480_DUART_IMRREG(line)
-#define R_DUART_INCHREG(line)	R_BCM1480_DUART_INCHREG(line)
-#define R_DUART_ISRREG(line)	R_BCM1480_DUART_ISRREG(line)
+	#define R_DUART_IMRREG(line)	R_BCM1480_DUART_IMRREG(line)
+	#define R_DUART_INCHREG(line)	R_BCM1480_DUART_INCHREG(line)
+	#define R_DUART_ISRREG(line)	R_BCM1480_DUART_ISRREG(line)
 
 #elif defined(CONFIG_SIBYTE_SB1250) || defined(CONFIG_SIBYTE_BCM112X)
-#include <asm/sibyte/sb1250_regs.h>
-#include <asm/sibyte/sb1250_int.h>
+	#include <asm/sibyte/sb1250_regs.h>
+	#include <asm/sibyte/sb1250_int.h>
 
-#define SBD_CHANREGS(line)	A_DUART_CHANREG((line), 0)
-#define SBD_CTRLREGS(line)	A_DUART_CTRLREG(0)
-#define SBD_INT(line)		(K_INT_UART_0 + (line))
+	#define SBD_CHANREGS(line)	A_DUART_CHANREG((line), 0)
+	#define SBD_CTRLREGS(line)	A_DUART_CTRLREG(0)
+	#define SBD_INT(line)		(K_INT_UART_0 + (line))
 
 #else
-#error invalid SB1250 UART configuration
+	#error invalid SB1250 UART configuration
 
 #endif
 
@@ -89,7 +89,8 @@ MODULE_LICENSE("GPL");
 /*
  * Per-port state.
  */
-struct sbd_port {
+struct sbd_port
+{
 	struct sbd_duart	*duart;
 	struct uart_port	port;
 	unsigned char __iomem	*memctrl;
@@ -100,7 +101,8 @@ struct sbd_port {
 /*
  * Per-DUART state for the shared register space.
  */
-struct sbd_duart {
+struct sbd_duart
+{
 	struct sbd_port		sport[2];
 	unsigned long		mapctrl;
 	atomic_t		map_guard;
@@ -165,8 +167,12 @@ static unsigned char read_sbdchn(struct sbd_port *sport, int reg)
 	unsigned char retval;
 
 	retval = __read_sbdchn(sport, reg);
+
 	if (SIBYTE_1956_WAR)
+	{
 		__war_sbd1956(sport);
+	}
+
 	return retval;
 }
 
@@ -175,23 +181,33 @@ static unsigned char read_sbdshr(struct sbd_port *sport, int reg)
 	unsigned char retval;
 
 	retval = __read_sbdshr(sport, reg);
+
 	if (SIBYTE_1956_WAR)
+	{
 		__war_sbd1956(sport);
+	}
+
 	return retval;
 }
 
 static void write_sbdchn(struct sbd_port *sport, int reg, unsigned int value)
 {
 	__write_sbdchn(sport, reg, value);
+
 	if (SIBYTE_1956_WAR)
+	{
 		__war_sbd1956(sport);
+	}
 }
 
 static void write_sbdshr(struct sbd_port *sport, int reg, unsigned int value)
 {
 	__write_sbdshr(sport, reg, value);
+
 	if (SIBYTE_1956_WAR)
+	{
 		__war_sbd1956(sport);
+	}
 }
 
 
@@ -205,7 +221,10 @@ static int sbd_receive_drain(struct sbd_port *sport)
 	int loops = 10000;
 
 	while (sbd_receive_ready(sport) && --loops)
+	{
 		read_sbdchn(sport, R_DUART_RX_HOLD);
+	}
+
 	return loops;
 }
 
@@ -219,7 +238,10 @@ static int __maybe_unused sbd_transmit_drain(struct sbd_port *sport)
 	int loops = 10000;
 
 	while (!sbd_transmit_ready(sport) && --loops)
+	{
 		udelay(2);
+	}
+
 	return loops;
 }
 
@@ -233,7 +255,10 @@ static int sbd_line_drain(struct sbd_port *sport)
 	int loops = 10000;
 
 	while (!sbd_transmit_empty(sport) && --loops)
+	{
 		udelay(2);
+	}
+
 	return loops;
 }
 
@@ -253,9 +278,9 @@ static unsigned int sbd_get_mctrl(struct uart_port *uport)
 	status = read_sbdshr(sport, R_DUART_IN_PORT);
 	status >>= (uport->line) % 2;
 	mctrl = (!(status & M_DUART_IN_PIN0_VAL) ? TIOCM_CTS : 0) |
-		(!(status & M_DUART_IN_PIN4_VAL) ? TIOCM_CAR : 0) |
-		(!(status & M_DUART_RIN0_PIN) ? TIOCM_RNG : 0) |
-		(!(status & M_DUART_IN_PIN2_VAL) ? TIOCM_DSR : 0);
+			(!(status & M_DUART_IN_PIN4_VAL) ? TIOCM_CAR : 0) |
+			(!(status & M_DUART_RIN0_PIN) ? TIOCM_RNG : 0) |
+			(!(status & M_DUART_IN_PIN2_VAL) ? TIOCM_DSR : 0);
 	return mctrl;
 }
 
@@ -265,22 +290,37 @@ static void sbd_set_mctrl(struct uart_port *uport, unsigned int mctrl)
 	unsigned int clr = 0, set = 0, mode2;
 
 	if (mctrl & TIOCM_DTR)
+	{
 		set |= M_DUART_SET_OPR2;
+	}
 	else
+	{
 		clr |= M_DUART_CLR_OPR2;
+	}
+
 	if (mctrl & TIOCM_RTS)
+	{
 		set |= M_DUART_SET_OPR0;
+	}
 	else
+	{
 		clr |= M_DUART_CLR_OPR0;
+	}
+
 	clr <<= (uport->line) % 2;
 	set <<= (uport->line) % 2;
 
 	mode2 = read_sbdchn(sport, R_DUART_MODE_REG_2);
 	mode2 &= ~M_DUART_CHAN_MODE;
+
 	if (mctrl & TIOCM_LOOP)
+	{
 		mode2 |= V_DUART_CHAN_MODE_LCL_LOOP;
+	}
 	else
+	{
 		mode2 |= V_DUART_CHAN_MODE_NORMAL;
+	}
 
 	write_sbdshr(sport, R_DUART_CLEAR_OPR, clr);
 	write_sbdshr(sport, R_DUART_SET_OPR, set);
@@ -322,7 +362,7 @@ static void sbd_enable_ms(struct uart_port *uport)
 	struct sbd_port *sport = to_sport(uport);
 
 	write_sbdchn(sport, R_DUART_AUXCTL_X,
-		     M_DUART_CIN_CHNG_ENA | M_DUART_CTS_CHNG_ENA);
+				 M_DUART_CIN_CHNG_ENA | M_DUART_CTS_CHNG_ENA);
 }
 
 static void sbd_break_ctl(struct uart_port *uport, int break_state)
@@ -330,9 +370,13 @@ static void sbd_break_ctl(struct uart_port *uport, int break_state)
 	struct sbd_port *sport = to_sport(uport);
 
 	if (break_state == -1)
+	{
 		write_sbdchn(sport, R_DUART_CMD, V_DUART_MISC_CMD_START_BREAK);
+	}
 	else
+	{
 		write_sbdchn(sport, R_DUART_CMD, V_DUART_MISC_CMD_STOP_BREAK);
+	}
 }
 
 
@@ -343,10 +387,14 @@ static void sbd_receive_chars(struct sbd_port *sport)
 	unsigned int status, ch, flag;
 	int count;
 
-	for (count = 16; count; count--) {
+	for (count = 16; count; count--)
+	{
 		status = read_sbdchn(sport, R_DUART_STATUS);
+
 		if (!(status & M_DUART_RX_RDY))
+		{
 			break;
+		}
 
 		ch = read_sbdchn(sport, R_DUART_RX_HOLD);
 
@@ -356,30 +404,52 @@ static void sbd_receive_chars(struct sbd_port *sport)
 		icount->rx++;
 
 		if (unlikely(status &
-			     (M_DUART_RCVD_BRK | M_DUART_FRM_ERR |
-			      M_DUART_PARITY_ERR | M_DUART_OVRUN_ERR))) {
-			if (status & M_DUART_RCVD_BRK) {
+					 (M_DUART_RCVD_BRK | M_DUART_FRM_ERR |
+					  M_DUART_PARITY_ERR | M_DUART_OVRUN_ERR)))
+		{
+			if (status & M_DUART_RCVD_BRK)
+			{
 				icount->brk++;
+
 				if (uart_handle_break(uport))
+				{
 					continue;
-			} else if (status & M_DUART_FRM_ERR)
+				}
+			}
+			else if (status & M_DUART_FRM_ERR)
+			{
 				icount->frame++;
+			}
 			else if (status & M_DUART_PARITY_ERR)
+			{
 				icount->parity++;
+			}
+
 			if (status & M_DUART_OVRUN_ERR)
+			{
 				icount->overrun++;
+			}
 
 			status &= uport->read_status_mask;
+
 			if (status & M_DUART_RCVD_BRK)
+			{
 				flag = TTY_BREAK;
+			}
 			else if (status & M_DUART_FRM_ERR)
+			{
 				flag = TTY_FRAME;
+			}
 			else if (status & M_DUART_PARITY_ERR)
+			{
 				flag = TTY_PARITY;
+			}
 		}
 
 		if (uart_handle_sysrq_char(uport, ch))
+		{
 			continue;
+		}
 
 		uart_insert_char(uport, status, M_DUART_OVRUN_ERR, ch, flag);
 	}
@@ -395,7 +465,8 @@ static void sbd_transmit_chars(struct sbd_port *sport)
 	int stop_tx;
 
 	/* XON/XOFF chars.  */
-	if (sport->port.x_char) {
+	if (sport->port.x_char)
+	{
 		write_sbdchn(sport, R_DUART_TX_HOLD, sport->port.x_char);
 		sport->port.icount.tx++;
 		sport->port.x_char = 0;
@@ -406,17 +477,21 @@ static void sbd_transmit_chars(struct sbd_port *sport)
 	stop_tx = (uart_circ_empty(xmit) || uart_tx_stopped(&sport->port));
 
 	/* Send char.  */
-	if (!stop_tx) {
+	if (!stop_tx)
+	{
 		write_sbdchn(sport, R_DUART_TX_HOLD, xmit->buf[xmit->tail]);
 		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
 		sport->port.icount.tx++;
 
 		if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
+		{
 			uart_write_wakeup(&sport->port);
+		}
 	}
 
 	/* Are we are done?  */
-	if (stop_tx || uart_circ_empty(xmit)) {
+	if (stop_tx || uart_circ_empty(xmit))
+	{
 		/* Disable tx interrupts.  */
 		mask = read_sbdshr(sport, R_DUART_IMRREG((uport->line) % 2));
 		mask &= ~M_DUART_IMR_TX;
@@ -433,14 +508,20 @@ static void sbd_status_handle(struct sbd_port *sport)
 	delta >>= (uport->line) % 2;
 
 	if (delta & (M_DUART_IN_PIN0_VAL << S_DUART_IN_PIN_CHNG))
+	{
 		uart_handle_cts_change(uport, !(delta & M_DUART_IN_PIN0_VAL));
+	}
 
 	if (delta & (M_DUART_IN_PIN2_VAL << S_DUART_IN_PIN_CHNG))
+	{
 		uport->icount.dsr++;
+	}
 
 	if (delta & ((M_DUART_IN_PIN2_VAL | M_DUART_IN_PIN0_VAL) <<
-		     S_DUART_IN_PIN_CHNG))
+				 S_DUART_IN_PIN_CHNG))
+	{
 		wake_up_interruptible(&uport->state->port.delta_msr_wait);
+	}
 }
 
 static irqreturn_t sbd_interrupt(int irq, void *dev_id)
@@ -451,21 +532,33 @@ static irqreturn_t sbd_interrupt(int irq, void *dev_id)
 	unsigned int intstat;
 	int count;
 
-	for (count = 16; count; count--) {
+	for (count = 16; count; count--)
+	{
 		intstat = read_sbdshr(sport,
-				      R_DUART_ISRREG((uport->line) % 2));
+							  R_DUART_ISRREG((uport->line) % 2));
 		intstat &= read_sbdshr(sport,
-				       R_DUART_IMRREG((uport->line) % 2));
+							   R_DUART_IMRREG((uport->line) % 2));
 		intstat &= M_DUART_ISR_ALL;
+
 		if (!intstat)
+		{
 			break;
+		}
 
 		if (intstat & M_DUART_ISR_RX)
+		{
 			sbd_receive_chars(sport);
+		}
+
 		if (intstat & M_DUART_ISR_IN)
+		{
 			sbd_status_handle(sport);
+		}
+
 		if (intstat & M_DUART_ISR_TX)
+		{
 			sbd_transmit_chars(sport);
+		}
 
 		status = IRQ_HANDLED;
 	}
@@ -481,9 +574,12 @@ static int sbd_startup(struct uart_port *uport)
 	int ret;
 
 	ret = request_irq(sport->port.irq, sbd_interrupt,
-			  IRQF_SHARED, "sb1250-duart", sport);
+					  IRQF_SHARED, "sb1250-duart", sport);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Clear the receive FIFO.  */
 	sbd_receive_drain(sport);
@@ -503,7 +599,7 @@ static int sbd_startup(struct uart_port *uport)
 
 	/* Enable interrupts.  */
 	write_sbdshr(sport, R_DUART_IMRREG((uport->line) % 2),
-		     M_DUART_IMR_IN | M_DUART_IMR_RX);
+				 M_DUART_IMR_IN | M_DUART_IMR_RX);
 
 	return 0;
 }
@@ -523,7 +619,9 @@ static void sbd_init_port(struct sbd_port *sport)
 	struct uart_port *uport = &sport->port;
 
 	if (sport->initialised)
+	{
 		return;
+	}
 
 	/* There is no DUART reset feature, so just set some sane defaults.  */
 	write_sbdchn(sport, R_DUART_CMD, V_DUART_MISC_CMD_RESET_TX);
@@ -531,7 +629,7 @@ static void sbd_init_port(struct sbd_port *sport)
 	write_sbdchn(sport, R_DUART_MODE_REG_1, V_DUART_BITS_PER_CHAR_8);
 	write_sbdchn(sport, R_DUART_MODE_REG_2, 0);
 	write_sbdchn(sport, R_DUART_FULL_CTL,
-		     V_DUART_INT_TIME(0) | V_DUART_SIG_FULL(15));
+				 V_DUART_INT_TIME(0) | V_DUART_SIG_FULL(15));
 	write_sbdchn(sport, R_DUART_OPCR_X, 0);
 	write_sbdchn(sport, R_DUART_AUXCTL_X, 0);
 	write_sbdshr(sport, R_DUART_IMRREG((uport->line) % 2), 0);
@@ -540,7 +638,7 @@ static void sbd_init_port(struct sbd_port *sport)
 }
 
 static void sbd_set_termios(struct uart_port *uport, struct ktermios *termios,
-			    struct ktermios *old_termios)
+							struct ktermios *old_termios)
 {
 	struct sbd_port *sport = to_sport(uport);
 	unsigned int mode1 = 0, mode2 = 0, aux = 0;
@@ -550,88 +648,133 @@ static void sbd_set_termios(struct uart_port *uport, struct ktermios *termios,
 	unsigned int command;
 
 	mode1mask |= ~(M_DUART_PARITY_MODE | M_DUART_PARITY_TYPE_ODD |
-		       M_DUART_BITS_PER_CHAR);
+				   M_DUART_BITS_PER_CHAR);
 	mode2mask |= ~M_DUART_STOP_BIT_LEN_2;
 	auxmask |= ~M_DUART_CTS_CHNG_ENA;
 
 	/* Byte size.  */
-	switch (termios->c_cflag & CSIZE) {
-	case CS5:
-	case CS6:
-		/* Unsupported, leave unchanged.  */
-		mode1mask |= M_DUART_PARITY_MODE;
-		break;
-	case CS7:
-		mode1 |= V_DUART_BITS_PER_CHAR_7;
-		break;
-	case CS8:
-	default:
-		mode1 |= V_DUART_BITS_PER_CHAR_8;
-		break;
+	switch (termios->c_cflag & CSIZE)
+	{
+		case CS5:
+		case CS6:
+			/* Unsupported, leave unchanged.  */
+			mode1mask |= M_DUART_PARITY_MODE;
+			break;
+
+		case CS7:
+			mode1 |= V_DUART_BITS_PER_CHAR_7;
+			break;
+
+		case CS8:
+		default:
+			mode1 |= V_DUART_BITS_PER_CHAR_8;
+			break;
 	}
 
 	/* Parity and stop bits.  */
 	if (termios->c_cflag & CSTOPB)
+	{
 		mode2 |= M_DUART_STOP_BIT_LEN_2;
+	}
 	else
+	{
 		mode2 |= M_DUART_STOP_BIT_LEN_1;
+	}
+
 	if (termios->c_cflag & PARENB)
+	{
 		mode1 |= V_DUART_PARITY_MODE_ADD;
+	}
 	else
+	{
 		mode1 |= V_DUART_PARITY_MODE_NONE;
+	}
+
 	if (termios->c_cflag & PARODD)
+	{
 		mode1 |= M_DUART_PARITY_TYPE_ODD;
+	}
 	else
+	{
 		mode1 |= M_DUART_PARITY_TYPE_EVEN;
+	}
 
 	baud = uart_get_baud_rate(uport, termios, old_termios, 1200, 5000000);
 	brg = V_DUART_BAUD_RATE(baud);
+
 	/* The actual lower bound is 1221bps, so compensate.  */
 	if (brg > M_DUART_CLK_COUNTER)
+	{
 		brg = M_DUART_CLK_COUNTER;
+	}
 
 	uart_update_timeout(uport, termios->c_cflag, baud);
 
 	uport->read_status_mask = M_DUART_OVRUN_ERR;
+
 	if (termios->c_iflag & INPCK)
 		uport->read_status_mask |= M_DUART_FRM_ERR |
-					   M_DUART_PARITY_ERR;
+								   M_DUART_PARITY_ERR;
+
 	if (termios->c_iflag & (IGNBRK | BRKINT | PARMRK))
+	{
 		uport->read_status_mask |= M_DUART_RCVD_BRK;
+	}
 
 	uport->ignore_status_mask = 0;
+
 	if (termios->c_iflag & IGNPAR)
 		uport->ignore_status_mask |= M_DUART_FRM_ERR |
-					     M_DUART_PARITY_ERR;
-	if (termios->c_iflag & IGNBRK) {
+									 M_DUART_PARITY_ERR;
+
+	if (termios->c_iflag & IGNBRK)
+	{
 		uport->ignore_status_mask |= M_DUART_RCVD_BRK;
+
 		if (termios->c_iflag & IGNPAR)
+		{
 			uport->ignore_status_mask |= M_DUART_OVRUN_ERR;
+		}
 	}
 
 	if (termios->c_cflag & CREAD)
+	{
 		command = M_DUART_RX_EN;
+	}
 	else
+	{
 		command = M_DUART_RX_DIS;
+	}
 
 	if (termios->c_cflag & CRTSCTS)
+	{
 		aux |= M_DUART_CTS_CHNG_ENA;
+	}
 	else
+	{
 		aux &= ~M_DUART_CTS_CHNG_ENA;
+	}
 
 	spin_lock(&uport->lock);
 
 	if (sport->tx_stopped)
+	{
 		command |= M_DUART_TX_DIS;
+	}
 	else
+	{
 		command |= M_DUART_TX_EN;
+	}
 
 	oldmode1 = read_sbdchn(sport, R_DUART_MODE_REG_1) & mode1mask;
 	oldmode2 = read_sbdchn(sport, R_DUART_MODE_REG_2) & mode2mask;
 	oldaux = read_sbdchn(sport, R_DUART_AUXCTL_X) & auxmask;
 
 	if (!sport->tx_stopped)
+	{
 		sbd_line_drain(sport);
+	}
+
 	write_sbdchn(sport, R_DUART_CMD, M_DUART_TX_DIS | M_DUART_RX_DIS);
 
 	write_sbdchn(sport, R_DUART_MODE_REG_1, mode1 | oldmode1);
@@ -662,8 +805,12 @@ static void sbd_release_port(struct uart_port *uport)
 	uport->membase = NULL;
 
 	map_guard = atomic_add_return(-1, &duart->map_guard);
+
 	if (!map_guard)
+	{
 		release_mem_region(duart->mapctrl, DUART_CHANREG_SPACING);
+	}
+
 	release_mem_region(uport->mapbase, DUART_CHANREG_SPACING);
 }
 
@@ -675,16 +822,20 @@ static int sbd_map_port(struct uart_port *uport)
 
 	if (!uport->membase)
 		uport->membase = ioremap_nocache(uport->mapbase,
-						 DUART_CHANREG_SPACING);
-	if (!uport->membase) {
+										 DUART_CHANREG_SPACING);
+
+	if (!uport->membase)
+	{
 		printk(err);
 		return -ENOMEM;
 	}
 
 	if (!sport->memctrl)
 		sport->memctrl = ioremap_nocache(duart->mapctrl,
-						 DUART_CHANREG_SPACING);
-	if (!sport->memctrl) {
+										 DUART_CHANREG_SPACING);
+
+	if (!sport->memctrl)
+	{
 		printk(err);
 		iounmap(uport->membase);
 		uport->membase = NULL;
@@ -702,32 +853,45 @@ static int sbd_request_port(struct uart_port *uport)
 	int ret = 0;
 
 	if (!request_mem_region(uport->mapbase, DUART_CHANREG_SPACING,
-				"sb1250-duart")) {
+							"sb1250-duart"))
+	{
 		printk(err);
 		return -EBUSY;
 	}
+
 	map_guard = atomic_add_return(1, &duart->map_guard);
-	if (map_guard == 1) {
+
+	if (map_guard == 1)
+	{
 		if (!request_mem_region(duart->mapctrl, DUART_CHANREG_SPACING,
-					"sb1250-duart")) {
+								"sb1250-duart"))
+		{
 			atomic_add(-1, &duart->map_guard);
 			printk(err);
 			ret = -EBUSY;
 		}
 	}
-	if (!ret) {
+
+	if (!ret)
+	{
 		ret = sbd_map_port(uport);
-		if (ret) {
+
+		if (ret)
+		{
 			map_guard = atomic_add_return(-1, &duart->map_guard);
+
 			if (!map_guard)
 				release_mem_region(duart->mapctrl,
-						   DUART_CHANREG_SPACING);
+								   DUART_CHANREG_SPACING);
 		}
 	}
-	if (ret) {
+
+	if (ret)
+	{
 		release_mem_region(uport->mapbase, DUART_CHANREG_SPACING);
 		return ret;
 	}
+
 	return 0;
 }
 
@@ -735,9 +899,12 @@ static void sbd_config_port(struct uart_port *uport, int flags)
 {
 	struct sbd_port *sport = to_sport(uport);
 
-	if (flags & UART_CONFIG_TYPE) {
+	if (flags & UART_CONFIG_TYPE)
+	{
 		if (sbd_request_port(uport))
+		{
 			return;
+		}
 
 		uport->type = PORT_SB1250_DUART;
 
@@ -750,16 +917,26 @@ static int sbd_verify_port(struct uart_port *uport, struct serial_struct *ser)
 	int ret = 0;
 
 	if (ser->type != PORT_UNKNOWN && ser->type != PORT_SB1250_DUART)
+	{
 		ret = -EINVAL;
+	}
+
 	if (ser->irq != uport->irq)
+	{
 		ret = -EINVAL;
+	}
+
 	if (ser->baud_base != uport->uartclk / 16)
+	{
 		ret = -EINVAL;
+	}
+
 	return ret;
 }
 
 
-static const struct uart_ops sbd_ops = {
+static const struct uart_ops sbd_ops =
+{
 	.tx_empty	= sbd_tx_empty,
 	.set_mctrl	= sbd_set_mctrl,
 	.get_mctrl	= sbd_get_mctrl,
@@ -786,28 +963,34 @@ static void __init sbd_probe_duarts(void)
 	int max_lines, line;
 
 	if (probed)
+	{
 		return;
+	}
 
 	/* Set the number of available units based on the SOC type.  */
-	switch (soc_type) {
-	case K_SYS_SOC_TYPE_BCM1x55:
-	case K_SYS_SOC_TYPE_BCM1x80:
-		max_lines = 4;
-		break;
-	default:
-		/* Assume at least two serial ports at the normal address.  */
-		max_lines = 2;
-		break;
+	switch (soc_type)
+	{
+		case K_SYS_SOC_TYPE_BCM1x55:
+		case K_SYS_SOC_TYPE_BCM1x80:
+			max_lines = 4;
+			break;
+
+		default:
+			/* Assume at least two serial ports at the normal address.  */
+			max_lines = 2;
+			break;
 	}
 
 	probed = 1;
 
 	for (chip = 0, line = 0; chip < DUART_MAX_CHIP && line < max_lines;
-	     chip++) {
+		 chip++)
+	{
 		sbd_duarts[chip].mapctrl = SBD_CTRLREGS(line);
 
 		for (side = 0; side < DUART_MAX_SIDE && line < max_lines;
-		     side++, line++) {
+			 side++, line++)
+		{
 			struct sbd_port *sport = &sbd_duarts[chip].sport[side];
 			struct uart_port *uport = &sport->port;
 
@@ -841,7 +1024,7 @@ static void sbd_console_putchar(struct uart_port *uport, int ch)
 }
 
 static void sbd_console_write(struct console *co, const char *s,
-			      unsigned int count)
+							  unsigned int count)
 {
 	int chip = co->index / DUART_MAX_SIDE;
 	int side = co->index % DUART_MAX_SIDE;
@@ -854,7 +1037,7 @@ static void sbd_console_write(struct console *co, const char *s,
 	spin_lock_irqsave(&uport->lock, flags);
 	mask = read_sbdshr(sport, R_DUART_IMRREG((uport->line) % 2));
 	write_sbdshr(sport, R_DUART_IMRREG((uport->line) % 2),
-		     mask & ~M_DUART_IMR_TX);
+				 mask & ~M_DUART_IMR_TX);
 	write_sbdchn(sport, R_DUART_CMD, M_DUART_TX_EN);
 	spin_unlock_irqrestore(&uport->lock, flags);
 
@@ -863,8 +1046,12 @@ static void sbd_console_write(struct console *co, const char *s,
 	/* Restore transmit interrupts and the transmitter enable. */
 	spin_lock_irqsave(&uport->lock, flags);
 	sbd_line_drain(sport);
+
 	if (sport->tx_stopped)
+	{
 		write_sbdchn(sport, R_DUART_CMD, M_DUART_TX_DIS);
+	}
+
 	write_sbdshr(sport, R_DUART_IMRREG((uport->line) % 2), mask);
 	spin_unlock_irqrestore(&uport->lock, flags);
 }
@@ -882,21 +1069,30 @@ static int __init sbd_console_setup(struct console *co, char *options)
 	int ret;
 
 	if (!sport->duart)
+	{
 		return -ENXIO;
+	}
 
 	ret = sbd_map_port(uport);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	sbd_init_port(sport);
 
 	if (options)
+	{
 		uart_parse_options(options, &baud, &parity, &bits, &flow);
+	}
+
 	return uart_set_options(uport, co, baud, parity, bits, flow);
 }
 
 static struct uart_driver sbd_reg;
-static struct console sbd_console = {
+static struct console sbd_console =
+{
 	.name	= "duart",
 	.write	= sbd_console_write,
 	.device	= uart_console_device,
@@ -922,7 +1118,8 @@ console_initcall(sbd_serial_console_init);
 #endif /* CONFIG_SERIAL_SB1250_DUART_CONSOLE */
 
 
-static struct uart_driver sbd_reg = {
+static struct uart_driver sbd_reg =
+{
 	.owner		= THIS_MODULE,
 	.driver_name	= "sb1250_duart",
 	.dev_name	= "duart",
@@ -940,16 +1137,22 @@ static int __init sbd_init(void)
 	sbd_probe_duarts();
 
 	ret = uart_register_driver(&sbd_reg);
-	if (ret)
-		return ret;
 
-	for (i = 0; i < DUART_MAX_CHIP * DUART_MAX_SIDE; i++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 0; i < DUART_MAX_CHIP * DUART_MAX_SIDE; i++)
+	{
 		struct sbd_duart *duart = &sbd_duarts[i / DUART_MAX_SIDE];
 		struct sbd_port *sport = &duart->sport[i % DUART_MAX_SIDE];
 		struct uart_port *uport = &sport->port;
 
 		if (sport->duart)
+		{
 			uart_add_one_port(&sbd_reg, uport);
+		}
 	}
 
 	return 0;
@@ -960,13 +1163,16 @@ static void __exit sbd_exit(void)
 {
 	int i;
 
-	for (i = DUART_MAX_CHIP * DUART_MAX_SIDE - 1; i >= 0; i--) {
+	for (i = DUART_MAX_CHIP * DUART_MAX_SIDE - 1; i >= 0; i--)
+	{
 		struct sbd_duart *duart = &sbd_duarts[i / DUART_MAX_SIDE];
 		struct sbd_port *sport = &duart->sport[i % DUART_MAX_SIDE];
 		struct uart_port *uport = &sport->port;
 
 		if (sport->duart)
+		{
 			uart_remove_one_port(&sbd_reg, uport);
+		}
 	}
 
 	uart_unregister_driver(&sbd_reg);

@@ -28,7 +28,7 @@
  * returns:	0 on success, error on failure
  */
 int lbs_cmd_copyback(struct lbs_private *priv, unsigned long extra,
-		     struct cmd_header *resp)
+					 struct cmd_header *resp)
 {
 	struct cmd_header *buf = (void *)extra;
 	uint16_t copy_len;
@@ -51,7 +51,7 @@ EXPORT_SYMBOL_GPL(lbs_cmd_copyback);
  *  returns:	0 for success
  */
 static int lbs_cmd_async_callback(struct lbs_private *priv, unsigned long extra,
-		     struct cmd_header *resp)
+								  struct cmd_header *resp)
 {
 	return 0;
 }
@@ -66,14 +66,18 @@ static int lbs_cmd_async_callback(struct lbs_private *priv, unsigned long extra,
  */
 static u8 is_command_allowed_in_ps(u16 cmd)
 {
-	switch (cmd) {
-	case CMD_802_11_RSSI:
-		return 1;
-	case CMD_802_11_HOST_SLEEP_CFG:
-		return 1;
-	default:
-		break;
+	switch (cmd)
+	{
+		case CMD_802_11_RSSI:
+			return 1;
+
+		case CMD_802_11_HOST_SLEEP_CFG:
+			return 1;
+
+		default:
+			break;
 	}
+
 	return 0;
 }
 
@@ -97,8 +101,11 @@ int lbs_update_hw_spec(struct lbs_private *priv)
 	cmd.hdr.size = cpu_to_le16(sizeof(cmd));
 	memcpy(cmd.permanentaddr, priv->current_addr, ETH_ALEN);
 	ret = lbs_cmd_with_response(priv, CMD_GET_HW_SPEC, &cmd);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	priv->fwcapinfo = le32_to_cpu(cmd.fwcapinfo);
 
@@ -106,21 +113,21 @@ int lbs_update_hw_spec(struct lbs_private *priv)
 	 * level is in the most significant nibble ... so fix that: */
 	priv->fwrelease = le32_to_cpu(cmd.fwrelease);
 	priv->fwrelease = (priv->fwrelease << 8) |
-		(priv->fwrelease >> 24 & 0xff);
+					  (priv->fwrelease >> 24 & 0xff);
 
 	/* Some firmware capabilities:
 	 * CF card    firmware 5.0.16p0:   cap 0x00000303
 	 * USB dongle firmware 5.110.17p2: cap 0x00000303
 	 */
 	netdev_info(priv->dev, "%pM, fw %u.%u.%up%u, cap 0x%08x\n",
-		cmd.permanentaddr,
-		priv->fwrelease >> 24 & 0xff,
-		priv->fwrelease >> 16 & 0xff,
-		priv->fwrelease >>  8 & 0xff,
-		priv->fwrelease       & 0xff,
-		priv->fwcapinfo);
+				cmd.permanentaddr,
+				priv->fwrelease >> 24 & 0xff,
+				priv->fwrelease >> 16 & 0xff,
+				priv->fwrelease >>  8 & 0xff,
+				priv->fwrelease       & 0xff,
+				priv->fwcapinfo);
 	lbs_deb_cmd("GET_HW_SPEC: hardware interface 0x%x, hardware spec 0x%04x\n",
-		    cmd.hwifversion, cmd.version);
+				cmd.hwifversion, cmd.version);
 
 	/* Clamp region code to 8-bit since FW spec indicates that it should
 	 * only ever be 8-bit, even though the field size is 16-bit.  Some firmware
@@ -130,31 +137,44 @@ int lbs_update_hw_spec(struct lbs_private *priv)
 	 * need to check for this problem and handle it properly.
 	 */
 	if (MRVL_FW_MAJOR_REV(priv->fwrelease) == MRVL_FW_V4)
+	{
 		priv->regioncode = (le16_to_cpu(cmd.regioncode) >> 8) & 0xFF;
+	}
 	else
+	{
 		priv->regioncode = le16_to_cpu(cmd.regioncode) & 0xFF;
+	}
 
-	for (i = 0; i < MRVDRV_MAX_REGION_CODE; i++) {
+	for (i = 0; i < MRVDRV_MAX_REGION_CODE; i++)
+	{
 		/* use the region code to search for the index */
 		if (priv->regioncode == lbs_region_code_to_index[i])
+		{
 			break;
+		}
 	}
 
 	/* if it's unidentified region code, use the default (USA) */
-	if (i >= MRVDRV_MAX_REGION_CODE) {
+	if (i >= MRVDRV_MAX_REGION_CODE)
+	{
 		priv->regioncode = 0x10;
 		netdev_info(priv->dev,
-			    "unidentified region code; using the default (USA)\n");
+					"unidentified region code; using the default (USA)\n");
 	}
 
 	if (priv->current_addr[0] == 0xff)
+	{
 		memmove(priv->current_addr, cmd.permanentaddr, ETH_ALEN);
+	}
 
-	if (!priv->copied_hwaddr) {
+	if (!priv->copied_hwaddr)
+	{
 		memcpy(priv->dev->dev_addr, priv->current_addr, ETH_ALEN);
+
 		if (priv->mesh_dev)
 			memcpy(priv->mesh_dev->dev_addr,
-				priv->current_addr, ETH_ALEN);
+				   priv->current_addr, ETH_ALEN);
+
 		priv->copied_hwaddr = 1;
 	}
 
@@ -164,24 +184,31 @@ out:
 }
 
 static int lbs_ret_host_sleep_cfg(struct lbs_private *priv, unsigned long dummy,
-			struct cmd_header *resp)
+								  struct cmd_header *resp)
 {
 	lbs_deb_enter(LBS_DEB_CMD);
-	if (priv->is_host_sleep_activated) {
+
+	if (priv->is_host_sleep_activated)
+	{
 		priv->is_host_sleep_configured = 0;
-		if (priv->psstate == PS_STATE_FULL_POWER) {
+
+		if (priv->psstate == PS_STATE_FULL_POWER)
+		{
 			priv->is_host_sleep_activated = 0;
 			wake_up_interruptible(&priv->host_sleep_q);
 		}
-	} else {
+	}
+	else
+	{
 		priv->is_host_sleep_configured = 1;
 	}
+
 	lbs_deb_leave(LBS_DEB_CMD);
 	return 0;
 }
 
 int lbs_host_sleep_cfg(struct lbs_private *priv, uint32_t criteria,
-		struct wol_config *p_wol_config)
+					   struct wol_config *p_wol_config)
 {
 	struct cmd_ds_host_sleep cmd_config;
 	int ret;
@@ -192,7 +219,9 @@ int lbs_host_sleep_cfg(struct lbs_private *priv, uint32_t criteria,
 	 * able to reset the mask, in those cases we set a 0 mask instead.
 	 */
 	if (criteria == EHS_REMOVE_WAKEUP && !priv->ehs_remove_supported)
+	{
 		criteria = 0;
+	}
 
 	cmd_config.hdr.size = cpu_to_le16(sizeof(cmd_config));
 	cmd_config.criteria = cpu_to_le32(criteria);
@@ -201,19 +230,25 @@ int lbs_host_sleep_cfg(struct lbs_private *priv, uint32_t criteria,
 
 	if (p_wol_config != NULL)
 		memcpy((uint8_t *)&cmd_config.wol_conf, (uint8_t *)p_wol_config,
-				sizeof(struct wol_config));
+			   sizeof(struct wol_config));
 	else
+	{
 		cmd_config.wol_conf.action = CMD_ACT_ACTION_NONE;
+	}
 
 	ret = __lbs_cmd(priv, CMD_802_11_HOST_SLEEP_CFG, &cmd_config.hdr,
-			le16_to_cpu(cmd_config.hdr.size),
-			lbs_ret_host_sleep_cfg, 0);
-	if (!ret) {
+					le16_to_cpu(cmd_config.hdr.size),
+					lbs_ret_host_sleep_cfg, 0);
+
+	if (!ret)
+	{
 		if (p_wol_config)
 			memcpy((uint8_t *) p_wol_config,
-					(uint8_t *)&cmd_config.wol_conf,
-					sizeof(struct wol_config));
-	} else {
+				   (uint8_t *)&cmd_config.wol_conf,
+				   sizeof(struct wol_config));
+	}
+	else
+	{
 		netdev_info(priv->dev, "HOST_SLEEP_CFG failed %d\n", ret);
 	}
 
@@ -242,12 +277,17 @@ int lbs_set_ps_mode(struct lbs_private *priv, u16 cmd_action, bool block)
 	cmd.hdr.size = cpu_to_le16(sizeof(cmd));
 	cmd.action = cpu_to_le16(cmd_action);
 
-	if (cmd_action == PS_MODE_ACTION_ENTER_PS) {
+	if (cmd_action == PS_MODE_ACTION_ENTER_PS)
+	{
 		lbs_deb_cmd("PS_MODE: action ENTER_PS\n");
 		cmd.multipledtim = cpu_to_le16(1);  /* Default DTIM multiple */
-	} else if (cmd_action == PS_MODE_ACTION_EXIT_PS) {
+	}
+	else if (cmd_action == PS_MODE_ACTION_EXIT_PS)
+	{
 		lbs_deb_cmd("PS_MODE: action EXIT_PS\n");
-	} else {
+	}
+	else
+	{
 		/* We don't handle CONFIRM_SLEEP here because it needs to
 		 * be fastpathed to the firmware.
 		 */
@@ -257,9 +297,13 @@ int lbs_set_ps_mode(struct lbs_private *priv, u16 cmd_action, bool block)
 	}
 
 	if (block)
+	{
 		ret = lbs_cmd_with_response(priv, CMD_802_11_PS_MODE, &cmd);
+	}
 	else
+	{
 		lbs_cmd_async(priv, CMD_802_11_PS_MODE, &cmd.hdr, sizeof (cmd));
+	}
 
 out:
 	lbs_deb_leave_args(LBS_DEB_CMD, "ret %d", ret);
@@ -267,16 +311,19 @@ out:
 }
 
 int lbs_cmd_802_11_sleep_params(struct lbs_private *priv, uint16_t cmd_action,
-				struct sleep_params *sp)
+								struct sleep_params *sp)
 {
 	struct cmd_ds_802_11_sleep_params cmd;
 	int ret;
 
 	lbs_deb_enter(LBS_DEB_CMD);
 
-	if (cmd_action == CMD_ACT_GET) {
+	if (cmd_action == CMD_ACT_GET)
+	{
 		memset(&cmd, 0, sizeof(cmd));
-	} else {
+	}
+	else
+	{
 		cmd.error = cpu_to_le16(sp->sp_error);
 		cmd.offset = cpu_to_le16(sp->sp_offset);
 		cmd.stabletime = cpu_to_le16(sp->sp_stabletime);
@@ -284,17 +331,19 @@ int lbs_cmd_802_11_sleep_params(struct lbs_private *priv, uint16_t cmd_action,
 		cmd.externalsleepclk = sp->sp_extsleepclk;
 		cmd.reserved = cpu_to_le16(sp->sp_reserved);
 	}
+
 	cmd.hdr.size = cpu_to_le16(sizeof(cmd));
 	cmd.action = cpu_to_le16(cmd_action);
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_SLEEP_PARAMS, &cmd);
 
-	if (!ret) {
+	if (!ret)
+	{
 		lbs_deb_cmd("error 0x%x, offset 0x%x, stabletime 0x%x, "
-			    "calcontrol 0x%x extsleepclk 0x%x\n",
-			    le16_to_cpu(cmd.error), le16_to_cpu(cmd.offset),
-			    le16_to_cpu(cmd.stabletime), cmd.calcontrol,
-			    cmd.externalsleepclk);
+					"calcontrol 0x%x extsleepclk 0x%x\n",
+					le16_to_cpu(cmd.error), le16_to_cpu(cmd.offset),
+					le16_to_cpu(cmd.stabletime), cmd.calcontrol,
+					cmd.externalsleepclk);
 
 		sp->sp_error = le16_to_cpu(cmd.error);
 		sp->sp_offset = le16_to_cpu(cmd.offset);
@@ -314,9 +363,11 @@ static int lbs_wait_for_ds_awake(struct lbs_private *priv)
 
 	lbs_deb_enter(LBS_DEB_CMD);
 
-	if (priv->is_deep_sleep) {
+	if (priv->is_deep_sleep)
+	{
 		if (!wait_event_interruptible_timeout(priv->ds_awake_q,
-					!priv->is_deep_sleep, (10 * HZ))) {
+											  !priv->is_deep_sleep, (10 * HZ)))
+		{
 			netdev_err(priv->dev, "ds_awake_q: timer expired\n");
 			ret = -1;
 		}
@@ -332,28 +383,40 @@ int lbs_set_deep_sleep(struct lbs_private *priv, int deep_sleep)
 
 	lbs_deb_enter(LBS_DEB_CMD);
 
-	if (deep_sleep) {
-		if (priv->is_deep_sleep != 1) {
+	if (deep_sleep)
+	{
+		if (priv->is_deep_sleep != 1)
+		{
 			lbs_deb_cmd("deep sleep: sleep\n");
 			BUG_ON(!priv->enter_deep_sleep);
 			ret = priv->enter_deep_sleep(priv);
-			if (!ret) {
+
+			if (!ret)
+			{
 				netif_stop_queue(priv->dev);
 				netif_carrier_off(priv->dev);
 			}
-		} else {
+		}
+		else
+		{
 			netdev_err(priv->dev, "deep sleep: already enabled\n");
 		}
-	} else {
-		if (priv->is_deep_sleep) {
+	}
+	else
+	{
+		if (priv->is_deep_sleep)
+		{
 			lbs_deb_cmd("deep sleep: wakeup\n");
 			BUG_ON(!priv->exit_deep_sleep);
 			ret = priv->exit_deep_sleep(priv);
-			if (!ret) {
+
+			if (!ret)
+			{
 				ret = lbs_wait_for_ds_awake(priv);
+
 				if (ret)
 					netdev_err(priv->dev,
-						   "deep sleep: wakeup failed\n");
+							   "deep sleep: wakeup failed\n");
 			}
 		}
 	}
@@ -363,8 +426,8 @@ int lbs_set_deep_sleep(struct lbs_private *priv, int deep_sleep)
 }
 
 static int lbs_ret_host_sleep_activate(struct lbs_private *priv,
-		unsigned long dummy,
-		struct cmd_header *cmd)
+									   unsigned long dummy,
+									   struct cmd_header *cmd)
 {
 	lbs_deb_enter(LBS_DEB_FW);
 	priv->is_host_sleep_activated = 1;
@@ -381,44 +444,56 @@ int lbs_set_host_sleep(struct lbs_private *priv, int host_sleep)
 
 	lbs_deb_enter(LBS_DEB_CMD);
 
-	if (host_sleep) {
-		if (priv->is_host_sleep_activated != 1) {
+	if (host_sleep)
+	{
+		if (priv->is_host_sleep_activated != 1)
+		{
 			memset(&cmd, 0, sizeof(cmd));
 			ret = lbs_host_sleep_cfg(priv, priv->wol_criteria,
-					(struct wol_config *)NULL);
-			if (ret) {
+									 (struct wol_config *)NULL);
+
+			if (ret)
+			{
 				netdev_info(priv->dev,
-					    "Host sleep configuration failed: %d\n",
-					    ret);
+							"Host sleep configuration failed: %d\n",
+							ret);
 				return ret;
 			}
-			if (priv->psstate == PS_STATE_FULL_POWER) {
+
+			if (priv->psstate == PS_STATE_FULL_POWER)
+			{
 				ret = __lbs_cmd(priv,
-						CMD_802_11_HOST_SLEEP_ACTIVATE,
-						&cmd,
-						sizeof(cmd),
-						lbs_ret_host_sleep_activate, 0);
+								CMD_802_11_HOST_SLEEP_ACTIVATE,
+								&cmd,
+								sizeof(cmd),
+								lbs_ret_host_sleep_activate, 0);
+
 				if (ret)
 					netdev_info(priv->dev,
-						    "HOST_SLEEP_ACTIVATE failed: %d\n",
-						    ret);
+								"HOST_SLEEP_ACTIVATE failed: %d\n",
+								ret);
 			}
 
 			if (!wait_event_interruptible_timeout(
-						priv->host_sleep_q,
-						priv->is_host_sleep_activated,
-						(10 * HZ))) {
+					priv->host_sleep_q,
+					priv->is_host_sleep_activated,
+					(10 * HZ)))
+			{
 				netdev_err(priv->dev,
-					   "host_sleep_q: timer expired\n");
+						   "host_sleep_q: timer expired\n");
 				ret = -1;
 			}
-		} else {
+		}
+		else
+		{
 			netdev_err(priv->dev, "host sleep: already enabled\n");
 		}
-	} else {
+	}
+	else
+	{
 		if (priv->is_host_sleep_activated)
 			ret = lbs_host_sleep_cfg(priv, criteria,
-					(struct wol_config *)NULL);
+									 (struct wol_config *)NULL);
 	}
 
 	return ret;
@@ -445,27 +520,30 @@ int lbs_set_snmp_mib(struct lbs_private *priv, u32 oid, u16 val)
 	cmd.action = cpu_to_le16(CMD_ACT_SET);
 	cmd.oid = cpu_to_le16((u16) oid);
 
-	switch (oid) {
-	case SNMP_MIB_OID_BSS_TYPE:
-		cmd.bufsize = cpu_to_le16(sizeof(u8));
-		cmd.value[0] = val;
-		break;
-	case SNMP_MIB_OID_11D_ENABLE:
-	case SNMP_MIB_OID_FRAG_THRESHOLD:
-	case SNMP_MIB_OID_RTS_THRESHOLD:
-	case SNMP_MIB_OID_SHORT_RETRY_LIMIT:
-	case SNMP_MIB_OID_LONG_RETRY_LIMIT:
-		cmd.bufsize = cpu_to_le16(sizeof(u16));
-		*((__le16 *)(&cmd.value)) = cpu_to_le16(val);
-		break;
-	default:
-		lbs_deb_cmd("SNMP_CMD: (set) unhandled OID 0x%x\n", oid);
-		ret = -EINVAL;
-		goto out;
+	switch (oid)
+	{
+		case SNMP_MIB_OID_BSS_TYPE:
+			cmd.bufsize = cpu_to_le16(sizeof(u8));
+			cmd.value[0] = val;
+			break;
+
+		case SNMP_MIB_OID_11D_ENABLE:
+		case SNMP_MIB_OID_FRAG_THRESHOLD:
+		case SNMP_MIB_OID_RTS_THRESHOLD:
+		case SNMP_MIB_OID_SHORT_RETRY_LIMIT:
+		case SNMP_MIB_OID_LONG_RETRY_LIMIT:
+			cmd.bufsize = cpu_to_le16(sizeof(u16));
+			*((__le16 *)(&cmd.value)) = cpu_to_le16(val);
+			break;
+
+		default:
+			lbs_deb_cmd("SNMP_CMD: (set) unhandled OID 0x%x\n", oid);
+			ret = -EINVAL;
+			goto out;
 	}
 
 	lbs_deb_cmd("SNMP_CMD: (set) oid 0x%x, oid size 0x%x, value 0x%x\n",
-		    le16_to_cpu(cmd.oid), le16_to_cpu(cmd.bufsize), val);
+				le16_to_cpu(cmd.oid), le16_to_cpu(cmd.bufsize), val);
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_SNMP_MIB, &cmd);
 
@@ -496,20 +574,26 @@ int lbs_get_snmp_mib(struct lbs_private *priv, u32 oid, u16 *out_val)
 	cmd.oid = cpu_to_le16(oid);
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_SNMP_MIB, &cmd);
-	if (ret)
-		goto out;
 
-	switch (le16_to_cpu(cmd.bufsize)) {
-	case sizeof(u8):
-		*out_val = cmd.value[0];
-		break;
-	case sizeof(u16):
-		*out_val = le16_to_cpu(*((__le16 *)(&cmd.value)));
-		break;
-	default:
-		lbs_deb_cmd("SNMP_CMD: (get) unhandled OID 0x%x size %d\n",
-		            oid, le16_to_cpu(cmd.bufsize));
-		break;
+	if (ret)
+	{
+		goto out;
+	}
+
+	switch (le16_to_cpu(cmd.bufsize))
+	{
+		case sizeof(u8):
+			*out_val = cmd.value[0];
+			break;
+
+		case sizeof(u16):
+			*out_val = le16_to_cpu(*((__le16 *)(&cmd.value)));
+			break;
+
+		default:
+			lbs_deb_cmd("SNMP_CMD: (get) unhandled OID 0x%x size %d\n",
+						oid, le16_to_cpu(cmd.bufsize));
+			break;
 	}
 
 out:
@@ -528,7 +612,7 @@ out:
  *  returns:	0 on success, error on failure
  */
 int lbs_get_tx_power(struct lbs_private *priv, s16 *curlevel, s16 *minlevel,
-		     s16 *maxlevel)
+					 s16 *maxlevel)
 {
 	struct cmd_ds_802_11_rf_tx_power cmd;
 	int ret;
@@ -540,12 +624,20 @@ int lbs_get_tx_power(struct lbs_private *priv, s16 *curlevel, s16 *minlevel,
 	cmd.action = cpu_to_le16(CMD_ACT_GET);
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_RF_TX_POWER, &cmd);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		*curlevel = le16_to_cpu(cmd.curlevel);
+
 		if (minlevel)
+		{
 			*minlevel = cmd.minlevel;
+		}
+
 		if (maxlevel)
+		{
 			*maxlevel = cmd.maxlevel;
+		}
 	}
 
 	lbs_deb_leave(LBS_DEB_CMD);
@@ -597,15 +689,20 @@ int lbs_set_monitor_mode(struct lbs_private *priv, int enable)
 	memset(&cmd, 0, sizeof(cmd));
 	cmd.hdr.size = cpu_to_le16(sizeof(cmd));
 	cmd.action = cpu_to_le16(CMD_ACT_SET);
+
 	if (enable)
+	{
 		cmd.mode = cpu_to_le16(0x1);
+	}
 
 	lbs_deb_cmd("SET_MONITOR_MODE: %d\n", enable);
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_MONITOR_MODE, &cmd);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		priv->dev->type = enable ? ARPHRD_IEEE80211_RADIOTAP :
-						ARPHRD_ETHER;
+						  ARPHRD_ETHER;
 	}
 
 	lbs_deb_leave(LBS_DEB_CMD);
@@ -631,8 +728,11 @@ static int lbs_get_channel(struct lbs_private *priv)
 	cmd.action = cpu_to_le16(CMD_OPT_802_11_RF_CHANNEL_GET);
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_RF_CHANNEL, &cmd);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = le16_to_cpu(cmd.channel);
 	lbs_deb_cmd("current radio channel is %d\n", ret);
@@ -650,10 +750,13 @@ int lbs_update_channel(struct lbs_private *priv)
 	lbs_deb_enter(LBS_DEB_ASSOC);
 
 	ret = lbs_get_channel(priv);
-	if (ret > 0) {
+
+	if (ret > 0)
+	{
 		priv->channel = ret;
 		ret = 0;
 	}
+
 	lbs_deb_leave_args(LBS_DEB_ASSOC, "ret %d", ret);
 	return ret;
 }
@@ -682,12 +785,15 @@ int lbs_set_channel(struct lbs_private *priv, u8 channel)
 	cmd.channel = cpu_to_le16(channel);
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_RF_CHANNEL, &cmd);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	priv->channel = (uint8_t) le16_to_cpu(cmd.channel);
 	lbs_deb_cmd("channel switch from %d to %d\n", old_channel,
-		priv->channel);
+				priv->channel);
 
 out:
 	lbs_deb_leave_args(LBS_DEB_CMD, "ret %d", ret);
@@ -719,7 +825,9 @@ int lbs_get_rssi(struct lbs_private *priv, s8 *rssi, s8 *nf)
 	cmd.n_or_snr = cpu_to_le16(8);
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_RSSI, &cmd);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		*nf = CAL_NF(le16_to_cpu(cmd.nf));
 		*rssi = CAL_RSSI(le16_to_cpu(cmd.n_or_snr), le16_to_cpu(cmd.nf));
 	}
@@ -753,14 +861,17 @@ int lbs_set_11d_domain_info(struct lbs_private *priv)
 	int ret = 0;
 
 	lbs_deb_enter(LBS_DEB_11D);
+
 	if (!priv->country_code[0])
+	{
 		goto out;
+	}
 
 	memset(&cmd, 0, sizeof(cmd));
 	cmd.action = cpu_to_le16(CMD_ACT_SET);
 
 	lbs_deb_11d("Setting country code '%c%c'\n",
-		    priv->country_code[0], priv->country_code[1]);
+				priv->country_code[0], priv->country_code[1]);
 
 	domain->header.type = cpu_to_le16(TLV_TYPE_DOMAIN);
 
@@ -777,20 +888,28 @@ int lbs_set_11d_domain_info(struct lbs_private *priv)
 	 * etc.
 	 */
 	for (band = 0;
-	     (band < NUM_NL80211_BANDS) && (num_triplet < MAX_11D_TRIPLETS);
-	     band++) {
+		 (band < NUM_NL80211_BANDS) && (num_triplet < MAX_11D_TRIPLETS);
+		 band++)
+	{
 
 		if (!bands[band])
+		{
 			continue;
+		}
 
 		for (i = 0;
-		     (i < bands[band]->n_channels) && (num_triplet < MAX_11D_TRIPLETS);
-		     i++) {
+			 (i < bands[band]->n_channels) && (num_triplet < MAX_11D_TRIPLETS);
+			 i++)
+		{
 			ch = &bands[band]->channels[i];
-			if (ch->flags & IEEE80211_CHAN_DISABLED)
-				continue;
 
-			if (!flag) {
+			if (ch->flags & IEEE80211_CHAN_DISABLED)
+			{
+				continue;
+			}
+
+			if (!flag)
+			{
 				flag = 1;
 				next_chan = first_channel = (u32) ch->hw_value;
 				max_pwr = ch->max_power;
@@ -799,15 +918,18 @@ int lbs_set_11d_domain_info(struct lbs_private *priv)
 			}
 
 			if ((ch->hw_value == next_chan + 1) &&
-					(ch->max_power == max_pwr)) {
+				(ch->max_power == max_pwr))
+			{
 				/* Consolidate adjacent channels */
 				next_chan++;
 				num_parsed_chan++;
-			} else {
+			}
+			else
+			{
 				/* Add this triplet */
 				lbs_deb_11d("11D triplet (%d, %d, %d)\n",
-					first_channel, num_parsed_chan,
-					max_pwr);
+							first_channel, num_parsed_chan,
+							max_pwr);
 				t = &domain->triplet[num_triplet];
 				t->chans.first_channel = first_channel;
 				t->chans.num_channels = num_parsed_chan;
@@ -817,10 +939,11 @@ int lbs_set_11d_domain_info(struct lbs_private *priv)
 			}
 		}
 
-		if (flag) {
+		if (flag)
+		{
 			/* Add last triplet */
 			lbs_deb_11d("11D triplet (%d, %d, %d)\n", first_channel,
-				num_parsed_chan, max_pwr);
+						num_parsed_chan, max_pwr);
 			t = &domain->triplet[num_triplet];
 			t->chans.first_channel = first_channel;
 			t->chans.num_channels = num_parsed_chan;
@@ -834,17 +957,17 @@ int lbs_set_11d_domain_info(struct lbs_private *priv)
 	/* Set command header sizes */
 	triplet_size = num_triplet * sizeof(struct ieee80211_country_ie_triplet);
 	domain->header.len = cpu_to_le16(sizeof(domain->country_code) +
-					triplet_size);
+									 triplet_size);
 
 	lbs_deb_hex(LBS_DEB_11D, "802.11D domain param set",
-			(u8 *) &cmd.domain.country_code,
-			le16_to_cpu(domain->header.len));
+				(u8 *) &cmd.domain.country_code,
+				le16_to_cpu(domain->header.len));
 
 	cmd.hdr.size = cpu_to_le16(sizeof(cmd.hdr) +
-				   sizeof(cmd.action) +
-				   sizeof(cmd.domain.header) +
-				   sizeof(cmd.domain.country_code) +
-				   triplet_size);
+							   sizeof(cmd.action) +
+							   sizeof(cmd.domain.header) +
+							   sizeof(cmd.domain.country_code) +
+							   triplet_size);
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11D_DOMAIN_INFO, &cmd);
 
@@ -879,18 +1002,25 @@ int lbs_get_reg(struct lbs_private *priv, u16 reg, u16 offset, u32 *value)
 	cmd.offset = cpu_to_le16(offset);
 
 	if (reg != CMD_MAC_REG_ACCESS &&
-	    reg != CMD_BBP_REG_ACCESS &&
-	    reg != CMD_RF_REG_ACCESS) {
+		reg != CMD_BBP_REG_ACCESS &&
+		reg != CMD_RF_REG_ACCESS)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
 	ret = lbs_cmd_with_response(priv, reg, &cmd);
-	if (!ret) {
+
+	if (!ret)
+	{
 		if (reg == CMD_BBP_REG_ACCESS || reg == CMD_RF_REG_ACCESS)
+		{
 			*value = cmd.value.bbp_rf;
+		}
 		else if (reg == CMD_MAC_REG_ACCESS)
+		{
 			*value = le32_to_cpu(cmd.value.mac);
+		}
 	}
 
 out:
@@ -922,10 +1052,15 @@ int lbs_set_reg(struct lbs_private *priv, u16 reg, u16 offset, u32 value)
 	cmd.offset = cpu_to_le16(offset);
 
 	if (reg == CMD_BBP_REG_ACCESS || reg == CMD_RF_REG_ACCESS)
+	{
 		cmd.value.bbp_rf = (u8) (value & 0xFF);
+	}
 	else if (reg == CMD_MAC_REG_ACCESS)
+	{
 		cmd.value.mac = cpu_to_le32(value);
-	else {
+	}
+	else
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -938,54 +1073,68 @@ out:
 }
 
 static void lbs_queue_cmd(struct lbs_private *priv,
-			  struct cmd_ctrl_node *cmdnode)
+						  struct cmd_ctrl_node *cmdnode)
 {
 	unsigned long flags;
 	int addtail = 1;
 
 	lbs_deb_enter(LBS_DEB_HOST);
 
-	if (!cmdnode) {
+	if (!cmdnode)
+	{
 		lbs_deb_host("QUEUE_CMD: cmdnode is NULL\n");
 		goto done;
 	}
-	if (!cmdnode->cmdbuf->size) {
+
+	if (!cmdnode->cmdbuf->size)
+	{
 		lbs_deb_host("DNLD_CMD: cmd size is zero\n");
 		goto done;
 	}
+
 	cmdnode->result = 0;
 
 	/* Exit_PS command needs to be queued in the header always. */
-	if (le16_to_cpu(cmdnode->cmdbuf->command) == CMD_802_11_PS_MODE) {
+	if (le16_to_cpu(cmdnode->cmdbuf->command) == CMD_802_11_PS_MODE)
+	{
 		struct cmd_ds_802_11_ps_mode *psm = (void *)cmdnode->cmdbuf;
 
-		if (psm->action == cpu_to_le16(PS_MODE_ACTION_EXIT_PS)) {
+		if (psm->action == cpu_to_le16(PS_MODE_ACTION_EXIT_PS))
+		{
 			if (priv->psstate != PS_STATE_FULL_POWER)
+			{
 				addtail = 0;
+			}
 		}
 	}
 
 	if (le16_to_cpu(cmdnode->cmdbuf->command) == CMD_802_11_WAKEUP_CONFIRM)
+	{
 		addtail = 0;
+	}
 
 	spin_lock_irqsave(&priv->driver_lock, flags);
 
 	if (addtail)
+	{
 		list_add_tail(&cmdnode->list, &priv->cmdpendingq);
+	}
 	else
+	{
 		list_add(&cmdnode->list, &priv->cmdpendingq);
+	}
 
 	spin_unlock_irqrestore(&priv->driver_lock, flags);
 
 	lbs_deb_host("QUEUE_CMD: inserted command 0x%04x into cmdpendingq\n",
-		     le16_to_cpu(cmdnode->cmdbuf->command));
+				 le16_to_cpu(cmdnode->cmdbuf->command));
 
 done:
 	lbs_deb_leave(LBS_DEB_HOST);
 }
 
 static void lbs_submit_command(struct lbs_private *priv,
-			       struct cmd_ctrl_node *cmdnode)
+							   struct cmd_ctrl_node *cmdnode)
 {
 	unsigned long flags;
 	struct cmd_header *cmd;
@@ -1009,30 +1158,38 @@ static void lbs_submit_command(struct lbs_private *priv,
 
 	/* These commands take longer */
 	if (command == CMD_802_11_SCAN || command == CMD_802_11_ASSOCIATE)
+	{
 		timeo = 5 * HZ;
+	}
 
 	lbs_deb_cmd("DNLD_CMD: command 0x%04x, seq %d, size %d\n",
-		     command, le16_to_cpu(cmd->seqnum), cmdsize);
+				command, le16_to_cpu(cmd->seqnum), cmdsize);
 	lbs_deb_hex(LBS_DEB_CMD, "DNLD_CMD", (void *) cmdnode->cmdbuf, cmdsize);
 
 	ret = priv->hw_host_to_card(priv, MVMS_CMD, (u8 *) cmd, cmdsize);
 
-	if (ret) {
+	if (ret)
+	{
 		netdev_info(priv->dev, "DNLD_CMD: hw_host_to_card failed: %d\n",
-			    ret);
+					ret);
 		/* Reset dnld state machine, report failure */
 		priv->dnld_sent = DNLD_RES_RECEIVED;
 		lbs_complete_command(priv, cmdnode, ret);
 	}
 
-	if (command == CMD_802_11_DEEP_SLEEP) {
-		if (priv->is_auto_deep_sleep_enabled) {
+	if (command == CMD_802_11_DEEP_SLEEP)
+	{
+		if (priv->is_auto_deep_sleep_enabled)
+		{
 			priv->wakeup_dev_required = 1;
 			priv->dnld_sent = 0;
 		}
+
 		priv->is_deep_sleep = 1;
 		lbs_complete_command(priv, cmdnode, 0);
-	} else {
+	}
+	else
+	{
 		/* Setup the timer after transmit command */
 		mod_timer(&priv->command_timer, jiffies + timeo);
 	}
@@ -1045,12 +1202,14 @@ static void lbs_submit_command(struct lbs_private *priv,
  *  after cleans it. Requires priv->driver_lock held.
  */
 static void __lbs_cleanup_and_insert_cmd(struct lbs_private *priv,
-					 struct cmd_ctrl_node *cmdnode)
+		struct cmd_ctrl_node *cmdnode)
 {
 	lbs_deb_enter(LBS_DEB_HOST);
 
 	if (!cmdnode)
+	{
 		goto out;
+	}
 
 	cmdnode->callback = NULL;
 	cmdnode->callback_arg = 0;
@@ -1058,12 +1217,12 @@ static void __lbs_cleanup_and_insert_cmd(struct lbs_private *priv,
 	memset(cmdnode->cmdbuf, 0, LBS_CMD_BUFFER_SIZE);
 
 	list_add_tail(&cmdnode->list, &priv->cmdfreeq);
- out:
+out:
 	lbs_deb_leave(LBS_DEB_HOST);
 }
 
 static void lbs_cleanup_and_insert_cmd(struct lbs_private *priv,
-	struct cmd_ctrl_node *ptempcmd)
+									   struct cmd_ctrl_node *ptempcmd)
 {
 	unsigned long flags;
 
@@ -1073,7 +1232,7 @@ static void lbs_cleanup_and_insert_cmd(struct lbs_private *priv,
 }
 
 void __lbs_complete_command(struct lbs_private *priv, struct cmd_ctrl_node *cmd,
-			    int result)
+							int result)
 {
 	/*
 	 * Normally, commands are removed from cmdpendingq before being
@@ -1088,13 +1247,16 @@ void __lbs_complete_command(struct lbs_private *priv, struct cmd_ctrl_node *cmd,
 	wake_up(&cmd->cmdwait_q);
 
 	if (!cmd->callback || cmd->callback == lbs_cmd_async_callback)
+	{
 		__lbs_cleanup_and_insert_cmd(priv, cmd);
+	}
+
 	priv->cur_cmd = NULL;
 	wake_up(&priv->waitq);
 }
 
 void lbs_complete_command(struct lbs_private *priv, struct cmd_ctrl_node *cmd,
-			  int result)
+						  int result)
 {
 	unsigned long flags;
 	spin_lock_irqsave(&priv->driver_lock, flags);
@@ -1114,27 +1276,33 @@ int lbs_set_radio(struct lbs_private *priv, u8 preamble, u8 radio_on)
 	cmd.control = 0;
 
 	/* Only v8 and below support setting the preamble */
-	if (priv->fwrelease < 0x09000000) {
-		switch (preamble) {
-		case RADIO_PREAMBLE_SHORT:
-		case RADIO_PREAMBLE_AUTO:
-		case RADIO_PREAMBLE_LONG:
-			cmd.control = cpu_to_le16(preamble);
-			break;
-		default:
-			goto out;
+	if (priv->fwrelease < 0x09000000)
+	{
+		switch (preamble)
+		{
+			case RADIO_PREAMBLE_SHORT:
+			case RADIO_PREAMBLE_AUTO:
+			case RADIO_PREAMBLE_LONG:
+				cmd.control = cpu_to_le16(preamble);
+				break;
+
+			default:
+				goto out;
 		}
 	}
 
 	if (radio_on)
+	{
 		cmd.control |= cpu_to_le16(0x1);
-	else {
+	}
+	else
+	{
 		cmd.control &= cpu_to_le16(~0x1);
 		priv->txpower_cur = 0;
 	}
 
 	lbs_deb_cmd("RADIO_CONTROL: radio %s, preamble %d\n",
-		    radio_on ? "ON" : "OFF", preamble);
+				radio_on ? "ON" : "OFF", preamble);
 
 	priv->radio_on = radio_on;
 
@@ -1195,27 +1363,35 @@ int lbs_allocate_cmd_buffer(struct lbs_private *priv)
 
 	/* Allocate and initialize the command array */
 	bufsize = sizeof(struct cmd_ctrl_node) * LBS_NUM_CMD_BUFFERS;
-	if (!(cmdarray = kzalloc(bufsize, GFP_KERNEL))) {
+
+	if (!(cmdarray = kzalloc(bufsize, GFP_KERNEL)))
+	{
 		lbs_deb_host("ALLOC_CMD_BUF: tempcmd_array is NULL\n");
 		ret = -1;
 		goto done;
 	}
+
 	priv->cmd_array = cmdarray;
 
 	/* Allocate and initialize each command buffer in the command array */
-	for (i = 0; i < LBS_NUM_CMD_BUFFERS; i++) {
+	for (i = 0; i < LBS_NUM_CMD_BUFFERS; i++)
+	{
 		cmdarray[i].cmdbuf = kzalloc(LBS_CMD_BUFFER_SIZE, GFP_KERNEL);
-		if (!cmdarray[i].cmdbuf) {
+
+		if (!cmdarray[i].cmdbuf)
+		{
 			lbs_deb_host("ALLOC_CMD_BUF: ptempvirtualaddr is NULL\n");
 			ret = -1;
 			goto done;
 		}
 	}
 
-	for (i = 0; i < LBS_NUM_CMD_BUFFERS; i++) {
+	for (i = 0; i < LBS_NUM_CMD_BUFFERS; i++)
+	{
 		init_waitqueue_head(&cmdarray[i].cmdwait_q);
 		lbs_cleanup_and_insert_cmd(priv, &cmdarray[i]);
 	}
+
 	ret = 0;
 
 done:
@@ -1238,7 +1414,8 @@ int lbs_free_cmd_buffer(struct lbs_private *priv)
 	lbs_deb_enter(LBS_DEB_HOST);
 
 	/* need to check if cmd array is allocated or not */
-	if (priv->cmd_array == NULL) {
+	if (priv->cmd_array == NULL)
+	{
 		lbs_deb_host("FREE_CMD_BUF: cmd_array is NULL\n");
 		goto done;
 	}
@@ -1246,15 +1423,18 @@ int lbs_free_cmd_buffer(struct lbs_private *priv)
 	cmdarray = priv->cmd_array;
 
 	/* Release shared memory buffers */
-	for (i = 0; i < LBS_NUM_CMD_BUFFERS; i++) {
-		if (cmdarray[i].cmdbuf) {
+	for (i = 0; i < LBS_NUM_CMD_BUFFERS; i++)
+	{
+		if (cmdarray[i].cmdbuf)
+		{
 			kfree(cmdarray[i].cmdbuf);
 			cmdarray[i].cmdbuf = NULL;
 		}
 	}
 
 	/* Release cmd_ctrl_node */
-	if (priv->cmd_array) {
+	if (priv->cmd_array)
+	{
 		kfree(priv->cmd_array);
 		priv->cmd_array = NULL;
 	}
@@ -1281,15 +1461,20 @@ static struct cmd_ctrl_node *lbs_get_free_cmd_node(struct lbs_private *priv)
 	lbs_deb_enter(LBS_DEB_HOST);
 
 	if (!priv)
+	{
 		return NULL;
+	}
 
 	spin_lock_irqsave(&priv->driver_lock, flags);
 
-	if (!list_empty(&priv->cmdfreeq)) {
+	if (!list_empty(&priv->cmdfreeq))
+	{
 		tempnode = list_first_entry(&priv->cmdfreeq,
-					    struct cmd_ctrl_node, list);
+									struct cmd_ctrl_node, list);
 		list_del_init(&tempnode->list);
-	} else {
+	}
+	else
+	{
 		lbs_deb_host("GET_CMD_NODE: cmd_ctrl_node is not available\n");
 		tempnode = NULL;
 	}
@@ -1322,38 +1507,46 @@ int lbs_execute_next_command(struct lbs_private *priv)
 
 	spin_lock_irqsave(&priv->driver_lock, flags);
 
-	if (priv->cur_cmd) {
+	if (priv->cur_cmd)
+	{
 		netdev_alert(priv->dev,
-			     "EXEC_NEXT_CMD: already processing command!\n");
+					 "EXEC_NEXT_CMD: already processing command!\n");
 		spin_unlock_irqrestore(&priv->driver_lock, flags);
 		ret = -1;
 		goto done;
 	}
 
-	if (!list_empty(&priv->cmdpendingq)) {
+	if (!list_empty(&priv->cmdpendingq))
+	{
 		cmdnode = list_first_entry(&priv->cmdpendingq,
-					   struct cmd_ctrl_node, list);
+								   struct cmd_ctrl_node, list);
 	}
 
 	spin_unlock_irqrestore(&priv->driver_lock, flags);
 
-	if (cmdnode) {
+	if (cmdnode)
+	{
 		cmd = cmdnode->cmdbuf;
 
-		if (is_command_allowed_in_ps(le16_to_cpu(cmd->command))) {
+		if (is_command_allowed_in_ps(le16_to_cpu(cmd->command)))
+		{
 			if ((priv->psstate == PS_STATE_SLEEP) ||
-			    (priv->psstate == PS_STATE_PRE_SLEEP)) {
+				(priv->psstate == PS_STATE_PRE_SLEEP))
+			{
 				lbs_deb_host(
-				       "EXEC_NEXT_CMD: cannot send cmd 0x%04x in psstate %d\n",
-				       le16_to_cpu(cmd->command),
-				       priv->psstate);
+					"EXEC_NEXT_CMD: cannot send cmd 0x%04x in psstate %d\n",
+					le16_to_cpu(cmd->command),
+					priv->psstate);
 				ret = -1;
 				goto done;
 			}
+
 			lbs_deb_host("EXEC_NEXT_CMD: OK to send command "
-				     "0x%04x in psstate %d\n",
-				     le16_to_cpu(cmd->command), priv->psstate);
-		} else if (priv->psstate != PS_STATE_FULL_POWER) {
+						 "0x%04x in psstate %d\n",
+						 le16_to_cpu(cmd->command), priv->psstate);
+		}
+		else if (priv->psstate != PS_STATE_FULL_POWER)
+		{
 			/*
 			 * 1. Non-PS command:
 			 * Queue it. set needtowakeup to TRUE if current state
@@ -1365,24 +1558,30 @@ int lbs_execute_next_command(struct lbs_private *priv)
 			 * otherwise send this command down to firmware
 			 * immediately.
 			 */
-			if (cmd->command != cpu_to_le16(CMD_802_11_PS_MODE)) {
+			if (cmd->command != cpu_to_le16(CMD_802_11_PS_MODE))
+			{
 				/*  Prepare to send Exit PS,
 				 *  this non PS command will be sent later */
 				if ((priv->psstate == PS_STATE_SLEEP)
-				    || (priv->psstate == PS_STATE_PRE_SLEEP)
-				    ) {
+					|| (priv->psstate == PS_STATE_PRE_SLEEP)
+				   )
+				{
 					/* w/ new scheme, it will not reach here.
 					   since it is blocked in main_thread. */
 					priv->needtowakeup = 1;
-				} else {
+				}
+				else
+				{
 					lbs_set_ps_mode(priv,
-							PS_MODE_ACTION_EXIT_PS,
-							false);
+									PS_MODE_ACTION_EXIT_PS,
+									false);
 				}
 
 				ret = 0;
 				goto done;
-			} else {
+			}
+			else
+			{
 				/*
 				 * PS command. Ignore it if it is not Exit_PS.
 				 * otherwise send it down immediately.
@@ -1390,12 +1589,14 @@ int lbs_execute_next_command(struct lbs_private *priv)
 				struct cmd_ds_802_11_ps_mode *psm = (void *)cmd;
 
 				lbs_deb_host(
-				       "EXEC_NEXT_CMD: PS cmd, action 0x%02x\n",
-				       psm->action);
+					"EXEC_NEXT_CMD: PS cmd, action 0x%02x\n",
+					psm->action);
+
 				if (psm->action !=
-				    cpu_to_le16(PS_MODE_ACTION_EXIT_PS)) {
+					cpu_to_le16(PS_MODE_ACTION_EXIT_PS))
+				{
 					lbs_deb_host(
-					       "EXEC_NEXT_CMD: ignore ENTER_PS cmd\n");
+						"EXEC_NEXT_CMD: ignore ENTER_PS cmd\n");
 					lbs_complete_command(priv, cmdnode, 0);
 
 					ret = 0;
@@ -1403,9 +1604,10 @@ int lbs_execute_next_command(struct lbs_private *priv)
 				}
 
 				if ((priv->psstate == PS_STATE_SLEEP) ||
-				    (priv->psstate == PS_STATE_PRE_SLEEP)) {
+					(priv->psstate == PS_STATE_PRE_SLEEP))
+				{
 					lbs_deb_host(
-					       "EXEC_NEXT_CMD: ignore EXIT_PS cmd in sleep\n");
+						"EXEC_NEXT_CMD: ignore EXIT_PS cmd in sleep\n");
 					lbs_complete_command(priv, cmdnode, 0);
 					priv->needtowakeup = 1;
 
@@ -1414,27 +1616,31 @@ int lbs_execute_next_command(struct lbs_private *priv)
 				}
 
 				lbs_deb_host(
-				       "EXEC_NEXT_CMD: sending EXIT_PS\n");
+					"EXEC_NEXT_CMD: sending EXIT_PS\n");
 			}
 		}
+
 		spin_lock_irqsave(&priv->driver_lock, flags);
 		list_del_init(&cmdnode->list);
 		spin_unlock_irqrestore(&priv->driver_lock, flags);
 		lbs_deb_host("EXEC_NEXT_CMD: sending command 0x%04x\n",
-			    le16_to_cpu(cmd->command));
+					 le16_to_cpu(cmd->command));
 		lbs_submit_command(priv, cmdnode);
-	} else {
+	}
+	else
+	{
 		/*
 		 * check if in power save mode, if yes, put the device back
 		 * to PS mode
 		 */
 		if ((priv->psmode != LBS802_11POWERMODECAM) &&
-		    (priv->psstate == PS_STATE_FULL_POWER) &&
-		    (priv->connect_status == LBS_CONNECTED)) {
+			(priv->psstate == PS_STATE_FULL_POWER) &&
+			(priv->connect_status == LBS_CONNECTED))
+		{
 			lbs_deb_host(
 				"EXEC_NEXT_CMD: cmdpendingq empty, go back to PS_SLEEP");
 			lbs_set_ps_mode(priv, PS_MODE_ACTION_ENTER_PS,
-					false);
+							false);
 		}
 	}
 
@@ -1451,11 +1657,13 @@ static void lbs_send_confirmsleep(struct lbs_private *priv)
 
 	lbs_deb_enter(LBS_DEB_HOST);
 	lbs_deb_hex(LBS_DEB_HOST, "sleep confirm", (u8 *) &confirm_sleep,
-		sizeof(confirm_sleep));
+				sizeof(confirm_sleep));
 
 	ret = priv->hw_host_to_card(priv, MVMS_CMD, (u8 *) &confirm_sleep,
-		sizeof(confirm_sleep));
-	if (ret) {
+								sizeof(confirm_sleep));
+
+	if (ret)
+	{
 		netdev_alert(priv->dev, "confirm_sleep failed\n");
 		goto out;
 	}
@@ -1465,14 +1673,17 @@ static void lbs_send_confirmsleep(struct lbs_private *priv)
 	/* We don't get a response on the sleep-confirmation */
 	priv->dnld_sent = DNLD_RES_RECEIVED;
 
-	if (priv->is_host_sleep_configured) {
+	if (priv->is_host_sleep_configured)
+	{
 		priv->is_host_sleep_activated = 1;
 		wake_up_interruptible(&priv->host_sleep_q);
 	}
 
 	/* If nothing to do, go back to sleep (?) */
 	if (!kfifo_len(&priv->event_fifo) && !priv->resp_len[priv->resp_idx])
+	{
 		priv->psstate = PS_STATE_SLEEP;
+	}
 
 	spin_unlock_irqrestore(&priv->driver_lock, flags);
 
@@ -1490,34 +1701,42 @@ out:
  */
 void lbs_ps_confirm_sleep(struct lbs_private *priv)
 {
-	unsigned long flags =0;
+	unsigned long flags = 0;
 	int allowed = 1;
 
 	lbs_deb_enter(LBS_DEB_HOST);
 
 	spin_lock_irqsave(&priv->driver_lock, flags);
-	if (priv->dnld_sent) {
+
+	if (priv->dnld_sent)
+	{
 		allowed = 0;
 		lbs_deb_host("dnld_sent was set\n");
 	}
 
 	/* In-progress command? */
-	if (priv->cur_cmd) {
+	if (priv->cur_cmd)
+	{
 		allowed = 0;
 		lbs_deb_host("cur_cmd was set\n");
 	}
 
 	/* Pending events or command responses? */
-	if (kfifo_len(&priv->event_fifo) || priv->resp_len[priv->resp_idx]) {
+	if (kfifo_len(&priv->event_fifo) || priv->resp_len[priv->resp_idx])
+	{
 		allowed = 0;
 		lbs_deb_host("pending events or command responses\n");
 	}
+
 	spin_unlock_irqrestore(&priv->driver_lock, flags);
 
-	if (allowed) {
+	if (allowed)
+	{
 		lbs_deb_host("sending lbs_ps_confirm_sleep\n");
 		lbs_send_confirmsleep(priv);
-	} else {
+	}
+	else
+	{
 		lbs_deb_host("sleep confirm has been delayed\n");
 	}
 
@@ -1538,7 +1757,7 @@ void lbs_ps_confirm_sleep(struct lbs_private *priv)
  * returns:	0 on success
  */
 int lbs_set_tpc_cfg(struct lbs_private *priv, int enable, int8_t p0, int8_t p1,
-		int8_t p2, int usesnr)
+					int8_t p2, int usesnr)
 {
 	struct cmd_ds_802_11_tpc_cfg cmd;
 	int ret;
@@ -1570,7 +1789,7 @@ int lbs_set_tpc_cfg(struct lbs_private *priv, int enable, int8_t p0, int8_t p1,
  */
 
 int lbs_set_power_adapt_cfg(struct lbs_private *priv, int enable, int8_t p0,
-		int8_t p1, int8_t p2)
+							int8_t p1, int8_t p2)
 {
 	struct cmd_ds_802_11_pa_cfg cmd;
 	int ret;
@@ -1590,15 +1809,16 @@ int lbs_set_power_adapt_cfg(struct lbs_private *priv, int enable, int8_t p0,
 
 
 struct cmd_ctrl_node *__lbs_cmd_async(struct lbs_private *priv,
-	uint16_t command, struct cmd_header *in_cmd, int in_cmd_size,
-	int (*callback)(struct lbs_private *, unsigned long, struct cmd_header *),
-	unsigned long callback_arg)
+									  uint16_t command, struct cmd_header *in_cmd, int in_cmd_size,
+									  int (*callback)(struct lbs_private *, unsigned long, struct cmd_header *),
+									  unsigned long callback_arg)
 {
 	struct cmd_ctrl_node *cmdnode;
 
 	lbs_deb_enter(LBS_DEB_HOST);
 
-	if (priv->surpriseremoved) {
+	if (priv->surpriseremoved)
+	{
 		lbs_deb_host("PREP_CMD: card removed\n");
 		cmdnode = ERR_PTR(-ENOENT);
 		goto done;
@@ -1607,8 +1827,10 @@ struct cmd_ctrl_node *__lbs_cmd_async(struct lbs_private *priv,
 	/* No commands are allowed in Deep Sleep until we toggle the GPIO
 	 * to wake up the card and it has signaled that it's ready.
 	 */
-	if (!priv->is_auto_deep_sleep_enabled) {
-		if (priv->is_deep_sleep) {
+	if (!priv->is_auto_deep_sleep_enabled)
+	{
+		if (priv->is_deep_sleep)
+		{
 			lbs_deb_cmd("command not allowed in deep sleep\n");
 			cmdnode = ERR_PTR(-EBUSY);
 			goto done;
@@ -1616,7 +1838,9 @@ struct cmd_ctrl_node *__lbs_cmd_async(struct lbs_private *priv,
 	}
 
 	cmdnode = lbs_get_free_cmd_node(priv);
-	if (cmdnode == NULL) {
+
+	if (cmdnode == NULL)
+	{
 		lbs_deb_host("PREP_CMD: cmdnode is NULL\n");
 
 		/* Wake up main thread to execute next command */
@@ -1642,24 +1866,24 @@ struct cmd_ctrl_node *__lbs_cmd_async(struct lbs_private *priv,
 	lbs_queue_cmd(priv, cmdnode);
 	wake_up(&priv->waitq);
 
- done:
+done:
 	lbs_deb_leave_args(LBS_DEB_HOST, "ret %p", cmdnode);
 	return cmdnode;
 }
 
 void lbs_cmd_async(struct lbs_private *priv, uint16_t command,
-	struct cmd_header *in_cmd, int in_cmd_size)
+				   struct cmd_header *in_cmd, int in_cmd_size)
 {
 	lbs_deb_enter(LBS_DEB_CMD);
 	__lbs_cmd_async(priv, command, in_cmd, in_cmd_size,
-		lbs_cmd_async_callback, 0);
+					lbs_cmd_async_callback, 0);
 	lbs_deb_leave(LBS_DEB_CMD);
 }
 
 int __lbs_cmd(struct lbs_private *priv, uint16_t command,
-	      struct cmd_header *in_cmd, int in_cmd_size,
-	      int (*callback)(struct lbs_private *, unsigned long, struct cmd_header *),
-	      unsigned long callback_arg)
+			  struct cmd_header *in_cmd, int in_cmd_size,
+			  int (*callback)(struct lbs_private *, unsigned long, struct cmd_header *),
+			  unsigned long callback_arg)
 {
 	struct cmd_ctrl_node *cmdnode;
 	unsigned long flags;
@@ -1668,8 +1892,10 @@ int __lbs_cmd(struct lbs_private *priv, uint16_t command,
 	lbs_deb_enter(LBS_DEB_HOST);
 
 	cmdnode = __lbs_cmd_async(priv, command, in_cmd, in_cmd_size,
-				  callback, callback_arg);
-	if (IS_ERR(cmdnode)) {
+							  callback, callback_arg);
+
+	if (IS_ERR(cmdnode))
+	{
 		ret = PTR_ERR(cmdnode);
 		goto done;
 	}
@@ -1685,9 +1911,10 @@ int __lbs_cmd(struct lbs_private *priv, uint16_t command,
 
 	spin_lock_irqsave(&priv->driver_lock, flags);
 	ret = cmdnode->result;
+
 	if (ret)
 		netdev_info(priv->dev, "PREP_CMD: command 0x%04x failed: %d\n",
-			    command, ret);
+					command, ret);
 
 	__lbs_cleanup_and_insert_cmd(priv, cmdnode);
 	spin_unlock_irqrestore(&priv->driver_lock, flags);

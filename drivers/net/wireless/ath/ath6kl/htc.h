@@ -152,7 +152,8 @@
  * required to take advantage of 4-byte lookaheads in some hardware
  * implementations.
  */
-struct htc_frame_hdr {
+struct htc_frame_hdr
+{
 	u8 eid;
 	u8 flags;
 
@@ -165,7 +166,8 @@ struct htc_frame_hdr {
 } __packed;
 
 /* HTC ready message */
-struct htc_ready_msg {
+struct htc_ready_msg
+{
 	__le16 msg_id;
 	__le16 cred_cnt;
 	__le16 cred_sz;
@@ -174,14 +176,16 @@ struct htc_ready_msg {
 } __packed;
 
 /* extended HTC ready message */
-struct htc_ready_ext_msg {
+struct htc_ready_ext_msg
+{
 	struct htc_ready_msg ver2_0_info;
 	u8 htc_ver;
 	u8 msg_per_htc_bndl;
 } __packed;
 
 /* connect service */
-struct htc_conn_service_msg {
+struct htc_conn_service_msg
+{
 	__le16 msg_id;
 	__le16 svc_id;
 	__le16 conn_flags;
@@ -190,7 +194,8 @@ struct htc_conn_service_msg {
 } __packed;
 
 /* connect response */
-struct htc_conn_service_resp {
+struct htc_conn_service_resp
+{
 	__le16 msg_id;
 	__le16 svc_id;
 	u8 status;
@@ -200,24 +205,28 @@ struct htc_conn_service_resp {
 	u8 pad;
 } __packed;
 
-struct htc_setup_comp_msg {
+struct htc_setup_comp_msg
+{
 	__le16 msg_id;
 } __packed;
 
 /* extended setup completion message */
-struct htc_setup_comp_ext_msg {
+struct htc_setup_comp_ext_msg
+{
 	__le16 msg_id;
 	__le32 flags;
 	u8 msg_per_rxbndl;
 	u8 Rsvd[3];
 } __packed;
 
-struct htc_record_hdr {
+struct htc_record_hdr
+{
 	u8 rec_id;
 	u8 len;
 } __packed;
 
-struct htc_credit_report {
+struct htc_credit_report
+{
 	u8 eid;
 	u8 credits;
 } __packed;
@@ -227,19 +236,22 @@ struct htc_credit_report {
  * and Post Valid guard bytes. The pre_valid bytes must
  * equal the inverse of the post_valid byte.
  */
-struct htc_lookahead_report {
+struct htc_lookahead_report
+{
 	u8 pre_valid;
 	u8 lk_ahd[4];
 	u8 post_valid;
 } __packed;
 
-struct htc_bundle_lkahd_rpt {
+struct htc_bundle_lkahd_rpt
+{
 	u8 lk_ahd[4];
 } __packed;
 
 /* Current service IDs */
 
-enum htc_service_grp_ids {
+enum htc_service_grp_ids
+{
 	RSVD_SERVICE_GROUP = 0,
 	WMI_SERVICE_GROUP = 1,
 
@@ -249,7 +261,8 @@ enum htc_service_grp_ids {
 
 /* ------ endpoint IDS ------ */
 
-enum htc_endpoint_id {
+enum htc_endpoint_id
+{
 	ENDPOINT_UNUSED = -1,
 	ENDPOINT_0 = 0,
 	ENDPOINT_1 = 1,
@@ -263,14 +276,16 @@ enum htc_endpoint_id {
 	ENDPOINT_MAX,
 };
 
-struct htc_tx_packet_info {
+struct htc_tx_packet_info
+{
 	u16 tag;
 	int cred_used;
 	u8 flags;
 	int seqno;
 };
 
-struct htc_rx_packet_info {
+struct htc_rx_packet_info
+{
 	u32 exp_hdr;
 	u32 rx_flags;
 	u32 indicat_flags;
@@ -279,7 +294,8 @@ struct htc_rx_packet_info {
 struct htc_target;
 
 /* wrapper around endpoint-specific packets */
-struct htc_packet {
+struct htc_packet
+{
 	struct list_head list;
 
 	/* caller's per packet specific context */
@@ -313,7 +329,8 @@ struct htc_packet {
 	/* completion status */
 
 	int status;
-	union {
+	union
+	{
 		struct htc_tx_packet_info tx;
 		struct htc_rx_packet_info rx;
 	} info;
@@ -330,26 +347,29 @@ struct htc_packet {
 	struct sk_buff *skb;
 };
 
-enum htc_send_full_action {
+enum htc_send_full_action
+{
 	HTC_SEND_FULL_KEEP = 0,
 	HTC_SEND_FULL_DROP = 1,
 };
 
-struct htc_ep_callbacks {
+struct htc_ep_callbacks
+{
 	void (*tx_complete) (struct htc_target *, struct htc_packet *);
 	void (*rx) (struct htc_target *, struct htc_packet *);
 	void (*rx_refill) (struct htc_target *, enum htc_endpoint_id endpoint);
 	enum htc_send_full_action (*tx_full) (struct htc_target *,
-					      struct htc_packet *);
+										  struct htc_packet *);
 	struct htc_packet *(*rx_allocthresh) (struct htc_target *,
-					      enum htc_endpoint_id, int);
+										  enum htc_endpoint_id, int);
 	void (*tx_comp_multi) (struct htc_target *, struct list_head *);
 	int rx_alloc_thresh;
 	int rx_refill_thresh;
 };
 
 /* service connection information */
-struct htc_service_connect_req {
+struct htc_service_connect_req
+{
 	u16 svc_id;
 	u16 conn_flags;
 	struct htc_ep_callbacks ep_cb;
@@ -359,7 +379,8 @@ struct htc_service_connect_req {
 };
 
 /* service connection response information */
-struct htc_service_connect_resp {
+struct htc_service_connect_resp
+{
 	u8 buf_len;
 	u8 act_len;
 	enum htc_endpoint_id endpoint;
@@ -368,7 +389,8 @@ struct htc_service_connect_resp {
 };
 
 /* endpoint distributionstructure */
-struct htc_endpoint_credit_dist {
+struct htc_endpoint_credit_dist
+{
 	struct list_head list;
 
 	/* Service ID (set by HTC) */
@@ -430,13 +452,15 @@ struct htc_endpoint_credit_dist {
  * credit distribution code that is passed into the distribution function,
  * there are mandatory and optional codes that must be handled
  */
-enum htc_credit_dist_reason {
+enum htc_credit_dist_reason
+{
 	HTC_CREDIT_DIST_SEND_COMPLETE = 0,
 	HTC_CREDIT_DIST_ACTIVITY_CHANGE = 1,
 	HTC_CREDIT_DIST_SEEK_CREDITS,
 };
 
-struct ath6kl_htc_credit_info {
+struct ath6kl_htc_credit_info
+{
 	int total_avail_credits;
 	int cur_free_credits;
 
@@ -445,7 +469,8 @@ struct ath6kl_htc_credit_info {
 };
 
 /* endpoint statistics */
-struct htc_endpoint_stats {
+struct htc_endpoint_stats
+{
 	/*
 	 * number of times the host set the credit-low flag in a send
 	 * message on this endpoint
@@ -505,7 +530,8 @@ struct htc_endpoint_stats {
 	u32 rxalloc_thresh_byte;
 };
 
-struct htc_endpoint {
+struct htc_endpoint
+{
 	enum htc_endpoint_id eid;
 	u16 svc_id;
 	struct list_head txq;
@@ -522,7 +548,8 @@ struct htc_endpoint {
 	struct htc_endpoint_stats ep_st;
 	u16 tx_drop_packet_threshold;
 
-	struct {
+	struct
+	{
 		u8 pipeid_ul;
 		u8 pipeid_dl;
 		struct list_head tx_lookup_queue;
@@ -530,43 +557,47 @@ struct htc_endpoint {
 	} pipe;
 };
 
-struct htc_control_buffer {
+struct htc_control_buffer
+{
 	struct htc_packet packet;
 	u8 *buf;
 };
 
-struct htc_pipe_txcredit_alloc {
+struct htc_pipe_txcredit_alloc
+{
 	u16 service_id;
 	u8 credit_alloc;
 };
 
-enum htc_send_queue_result {
+enum htc_send_queue_result
+{
 	HTC_SEND_QUEUE_OK = 0,	/* packet was queued */
 	HTC_SEND_QUEUE_DROP = 1,	/* this packet should be dropped */
 };
 
-struct ath6kl_htc_ops {
-	void* (*create)(struct ath6kl *ar);
+struct ath6kl_htc_ops
+{
+	void *(*create)(struct ath6kl *ar);
 	int (*wait_target)(struct htc_target *target);
 	int (*start)(struct htc_target *target);
 	int (*conn_service)(struct htc_target *target,
-			    struct htc_service_connect_req *req,
-			    struct htc_service_connect_resp *resp);
+						struct htc_service_connect_req *req,
+						struct htc_service_connect_resp *resp);
 	int  (*tx)(struct htc_target *target, struct htc_packet *packet);
 	void (*stop)(struct htc_target *target);
 	void (*cleanup)(struct htc_target *target);
 	void (*flush_txep)(struct htc_target *target,
-			   enum htc_endpoint_id endpoint, u16 tag);
+					   enum htc_endpoint_id endpoint, u16 tag);
 	void (*flush_rx_buf)(struct htc_target *target);
 	void (*activity_changed)(struct htc_target *target,
-				 enum htc_endpoint_id endpoint,
-				 bool active);
+							 enum htc_endpoint_id endpoint,
+							 bool active);
 	int (*get_rxbuf_num)(struct htc_target *target,
-			     enum htc_endpoint_id endpoint);
+						 enum htc_endpoint_id endpoint);
 	int (*add_rxbuf_multiple)(struct htc_target *target,
-				  struct list_head *pktq);
+							  struct list_head *pktq);
 	int (*credit_setup)(struct htc_target *target,
-			    struct ath6kl_htc_credit_info *cred_info);
+						struct ath6kl_htc_credit_info *cred_info);
 	int (*tx_complete)(struct ath6kl *ar, struct sk_buff *skb);
 	int (*rx_complete)(struct ath6kl *ar, struct sk_buff *skb, u8 pipe);
 };
@@ -574,7 +605,8 @@ struct ath6kl_htc_ops {
 struct ath6kl_device;
 
 /* our HTC target state */
-struct htc_target {
+struct htc_target
+{
 	struct htc_endpoint endpoint[ENDPOINT_MAX];
 
 	/* contains struct htc_endpoint_credit_dist */
@@ -620,7 +652,8 @@ struct htc_target {
 	/* counts the number of Tx without bundling continously per AC */
 	u32 ac_tx_count[WMM_NUM_AC];
 
-	struct {
+	struct
+	{
 		struct htc_packet *htc_packet_pool;
 		u8 ctrl_response_buf[HTC_MAX_CTRL_MSG_LEN];
 		int ctrl_response_len;
@@ -630,11 +663,11 @@ struct htc_target {
 };
 
 int ath6kl_htc_rxmsg_pending_handler(struct htc_target *target,
-				     u32 msg_look_ahead, int *n_pkts);
+									 u32 msg_look_ahead, int *n_pkts);
 
 static inline void set_htc_pkt_info(struct htc_packet *packet, void *context,
-				    u8 *buf, unsigned int len,
-				    enum htc_endpoint_id eid, u16 tag)
+									u8 *buf, unsigned int len,
+									enum htc_endpoint_id eid, u16 tag)
 {
 	packet->pkt_cntxt = context;
 	packet->buf = buf;
@@ -650,8 +683,8 @@ static inline void htc_rxpkt_reset(struct htc_packet *packet)
 }
 
 static inline void set_htc_rxpkt_info(struct htc_packet *packet, void *context,
-				      u8 *buf, unsigned long len,
-				      enum htc_endpoint_id eid)
+									  u8 *buf, unsigned long len,
+									  enum htc_endpoint_id eid)
 {
 	packet->pkt_cntxt = context;
 	packet->buf = buf;
@@ -666,7 +699,7 @@ static inline int get_queue_depth(struct list_head *queue)
 	int depth = 0;
 
 	list_for_each(tmp_list, queue)
-	    depth++;
+	depth++;
 
 	return depth;
 }

@@ -29,16 +29,19 @@
 #define GFS2_OLD_FH_SIZE 10
 
 static int gfs2_encode_fh(struct inode *inode, __u32 *p, int *len,
-			  struct inode *parent)
+						  struct inode *parent)
 {
 	__be32 *fh = (__force __be32 *)p;
 	struct super_block *sb = inode->i_sb;
 	struct gfs2_inode *ip = GFS2_I(inode);
 
-	if (parent && (*len < GFS2_LARGE_FH_SIZE)) {
+	if (parent && (*len < GFS2_LARGE_FH_SIZE))
+	{
 		*len = GFS2_LARGE_FH_SIZE;
 		return FILEID_INVALID;
-	} else if (*len < GFS2_SMALL_FH_SIZE) {
+	}
+	else if (*len < GFS2_SMALL_FH_SIZE)
+	{
 		*len = GFS2_SMALL_FH_SIZE;
 		return FILEID_INVALID;
 	}
@@ -50,7 +53,9 @@ static int gfs2_encode_fh(struct inode *inode, __u32 *p, int *len,
 	*len = GFS2_SMALL_FH_SIZE;
 
 	if (!parent || inode == d_inode(sb->s_root))
+	{
 		return *len;
+	}
 
 	ip = GFS2_I(parent);
 
@@ -63,21 +68,24 @@ static int gfs2_encode_fh(struct inode *inode, __u32 *p, int *len,
 	return *len;
 }
 
-struct get_name_filldir {
+struct get_name_filldir
+{
 	struct dir_context ctx;
 	struct gfs2_inum_host inum;
 	char *name;
 };
 
 static int get_name_filldir(struct dir_context *ctx, const char *name,
-			    int length, loff_t offset, u64 inum,
-			    unsigned int type)
+							int length, loff_t offset, u64 inum,
+							unsigned int type)
 {
 	struct get_name_filldir *gnfd =
 		container_of(ctx, struct get_name_filldir, ctx);
 
 	if (inum != gnfd->inum.no_addr)
+	{
 		return 0;
+	}
 
 	memcpy(gnfd->name, name, length);
 	gnfd->name[length] = 0;
@@ -86,12 +94,13 @@ static int get_name_filldir(struct dir_context *ctx, const char *name,
 }
 
 static int gfs2_get_name(struct dentry *parent, char *name,
-			 struct dentry *child)
+						 struct dentry *child)
 {
 	struct inode *dir = d_inode(parent);
 	struct inode *inode = d_inode(child);
 	struct gfs2_inode *dip, *ip;
-	struct get_name_filldir gnfd = {
+	struct get_name_filldir gnfd =
+	{
 		.ctx.actor = get_name_filldir,
 		.name = name
 	};
@@ -100,10 +109,14 @@ static int gfs2_get_name(struct dentry *parent, char *name,
 	struct file_ra_state f_ra = { .start = 0 };
 
 	if (!dir)
+	{
 		return -EINVAL;
+	}
 
 	if (!S_ISDIR(dir->i_mode) || !inode)
+	{
 		return -EINVAL;
+	}
 
 	dip = GFS2_I(dir);
 	ip = GFS2_I(inode);
@@ -113,15 +126,20 @@ static int gfs2_get_name(struct dentry *parent, char *name,
 	gnfd.inum.no_formal_ino = ip->i_no_formal_ino;
 
 	error = gfs2_glock_nq_init(dip->i_gl, LM_ST_SHARED, 0, &gh);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = gfs2_dir_read(dir, &gnfd.ctx, &f_ra);
 
 	gfs2_glock_dq_uninit(&gh);
 
 	if (!error && !*name)
+	{
 		error = -ENOENT;
+	}
 
 	return error;
 }
@@ -132,62 +150,77 @@ static struct dentry *gfs2_get_parent(struct dentry *child)
 }
 
 static struct dentry *gfs2_get_dentry(struct super_block *sb,
-				      struct gfs2_inum_host *inum)
+									  struct gfs2_inum_host *inum)
 {
 	struct gfs2_sbd *sdp = sb->s_fs_info;
 	struct inode *inode;
 
 	inode = gfs2_lookup_by_inum(sdp, inum->no_addr, &inum->no_formal_ino,
-				    GFS2_BLKST_DINODE);
+								GFS2_BLKST_DINODE);
+
 	if (IS_ERR(inode))
+	{
 		return ERR_CAST(inode);
+	}
+
 	return d_obtain_alias(inode);
 }
 
 static struct dentry *gfs2_fh_to_dentry(struct super_block *sb, struct fid *fid,
-		int fh_len, int fh_type)
+										int fh_len, int fh_type)
 {
 	struct gfs2_inum_host this;
 	__be32 *fh = (__force __be32 *)fid->raw;
 
-	switch (fh_type) {
-	case GFS2_SMALL_FH_SIZE:
-	case GFS2_LARGE_FH_SIZE:
-	case GFS2_OLD_FH_SIZE:
-		if (fh_len < GFS2_SMALL_FH_SIZE)
+	switch (fh_type)
+	{
+		case GFS2_SMALL_FH_SIZE:
+		case GFS2_LARGE_FH_SIZE:
+		case GFS2_OLD_FH_SIZE:
+			if (fh_len < GFS2_SMALL_FH_SIZE)
+			{
+				return NULL;
+			}
+
+			this.no_formal_ino = ((u64)be32_to_cpu(fh[0])) << 32;
+			this.no_formal_ino |= be32_to_cpu(fh[1]);
+			this.no_addr = ((u64)be32_to_cpu(fh[2])) << 32;
+			this.no_addr |= be32_to_cpu(fh[3]);
+			return gfs2_get_dentry(sb, &this);
+
+		default:
 			return NULL;
-		this.no_formal_ino = ((u64)be32_to_cpu(fh[0])) << 32;
-		this.no_formal_ino |= be32_to_cpu(fh[1]);
-		this.no_addr = ((u64)be32_to_cpu(fh[2])) << 32;
-		this.no_addr |= be32_to_cpu(fh[3]);
-		return gfs2_get_dentry(sb, &this);
-	default:
-		return NULL;
 	}
 }
 
 static struct dentry *gfs2_fh_to_parent(struct super_block *sb, struct fid *fid,
-		int fh_len, int fh_type)
+										int fh_len, int fh_type)
 {
 	struct gfs2_inum_host parent;
 	__be32 *fh = (__force __be32 *)fid->raw;
 
-	switch (fh_type) {
-	case GFS2_LARGE_FH_SIZE:
-	case GFS2_OLD_FH_SIZE:
-		if (fh_len < GFS2_LARGE_FH_SIZE)
+	switch (fh_type)
+	{
+		case GFS2_LARGE_FH_SIZE:
+		case GFS2_OLD_FH_SIZE:
+			if (fh_len < GFS2_LARGE_FH_SIZE)
+			{
+				return NULL;
+			}
+
+			parent.no_formal_ino = ((u64)be32_to_cpu(fh[4])) << 32;
+			parent.no_formal_ino |= be32_to_cpu(fh[5]);
+			parent.no_addr = ((u64)be32_to_cpu(fh[6])) << 32;
+			parent.no_addr |= be32_to_cpu(fh[7]);
+			return gfs2_get_dentry(sb, &parent);
+
+		default:
 			return NULL;
-		parent.no_formal_ino = ((u64)be32_to_cpu(fh[4])) << 32;
-		parent.no_formal_ino |= be32_to_cpu(fh[5]);
-		parent.no_addr = ((u64)be32_to_cpu(fh[6])) << 32;
-		parent.no_addr |= be32_to_cpu(fh[7]);
-		return gfs2_get_dentry(sb, &parent);
-	default:
-		return NULL;
 	}
 }
 
-const struct export_operations gfs2_export_ops = {
+const struct export_operations gfs2_export_ops =
+{
 	.encode_fh = gfs2_encode_fh,
 	.fh_to_dentry = gfs2_fh_to_dentry,
 	.fh_to_parent = gfs2_fh_to_parent,

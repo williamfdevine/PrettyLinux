@@ -53,14 +53,15 @@ static int bf5xx_ssm2602_dai_init(struct snd_soc_pcm_runtime *rtd)
 	 * where to do it.
 	 */
 	return snd_soc_dai_set_sysclk(rtd->codec_dai, SSM2602_SYSCLK, 12000000,
-		SND_SOC_CLOCK_IN);
+								  SND_SOC_CLOCK_IN);
 }
 
 /* CODEC is master for BCLK and LRC in this configuration. */
 #define BF5XX_SSM2602_DAIFMT (SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF | \
-				SND_SOC_DAIFMT_CBM_CFM)
+							  SND_SOC_DAIFMT_CBM_CFM)
 
-static struct snd_soc_dai_link bf5xx_ssm2602_dai[] = {
+static struct snd_soc_dai_link bf5xx_ssm2602_dai[] =
+{
 	{
 		.name = "ssm2602",
 		.stream_name = "SSM2602",
@@ -83,7 +84,8 @@ static struct snd_soc_dai_link bf5xx_ssm2602_dai[] = {
 	},
 };
 
-static struct snd_soc_card bf5xx_ssm2602 = {
+static struct snd_soc_card bf5xx_ssm2602 =
+{
 	.name = "bfin-ssm2602",
 	.owner = THIS_MODULE,
 	.dai_link = &bf5xx_ssm2602_dai[CONFIG_SND_BF5XX_SPORT_NUM],
@@ -98,14 +100,19 @@ static int __init bf5xx_ssm2602_init(void)
 
 	pr_debug("%s enter\n", __func__);
 	bf5xx_ssm2602_snd_device = platform_device_alloc("soc-audio", -1);
+
 	if (!bf5xx_ssm2602_snd_device)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(bf5xx_ssm2602_snd_device, &bf5xx_ssm2602);
 	ret = platform_device_add(bf5xx_ssm2602_snd_device);
 
 	if (ret)
+	{
 		platform_device_put(bf5xx_ssm2602_snd_device);
+	}
 
 	return ret;
 }

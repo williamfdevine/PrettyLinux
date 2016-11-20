@@ -34,7 +34,8 @@
  * to handle multiple struct cn_msg, struct w1_netlink_msg, and
  * struct w1_netlink_cmd in one packet.
  */
-enum w1_cn_msg_flags {
+enum w1_cn_msg_flags
+{
 	W1_CN_BUNDLE = 1,
 };
 
@@ -50,7 +51,8 @@ enum w1_cn_msg_flags {
  * operation
  * @W1_LIST_MASTERS: used to determine the bus master identifiers
  */
-enum w1_netlink_message_types {
+enum w1_netlink_message_types
+{
 	W1_SLAVE_ADD = 0,
 	W1_SLAVE_REMOVE,
 	W1_MASTER_ADD,
@@ -78,9 +80,11 @@ struct w1_netlink_msg
 	__u8				type;
 	__u8				status;
 	__u16				len;
-	union {
+	union
+	{
 		__u8			id[8];
-		struct w1_mst {
+		struct w1_mst
+		{
 			__u32		id;
 			__u32		res;
 		} mst;
@@ -105,7 +109,8 @@ struct w1_netlink_msg
  * @W1_CMD_LIST_SLAVES: list of slaves registered on this master
  * @W1_CMD_MAX: number of available commands
  */
-enum w1_commands {
+enum w1_commands
+{
 	W1_CMD_READ = 0,
 	W1_CMD_WRITE,
 	W1_CMD_SEARCH,
@@ -139,9 +144,9 @@ struct w1_netlink_cmd
 
 #ifdef __KERNEL__
 
-void w1_netlink_send(struct w1_master *, struct w1_netlink_msg *);
-int w1_init_netlink(void);
-void w1_fini_netlink(void);
+	void w1_netlink_send(struct w1_master *, struct w1_netlink_msg *);
+	int w1_init_netlink(void);
+	void w1_fini_netlink(void);
 
 #endif /* __KERNEL__ */
 #endif /* __W1_NETLINK_H */

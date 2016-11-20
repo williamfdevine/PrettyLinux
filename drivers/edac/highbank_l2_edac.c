@@ -27,7 +27,8 @@
 #define SR_CLR_SB_ECC_INTR	0x0
 #define SR_CLR_DB_ECC_INTR	0x4
 
-struct hb_l2_drvdata {
+struct hb_l2_drvdata
+{
 	void __iomem *base;
 	int sb_irq;
 	int db_irq;
@@ -38,11 +39,14 @@ static irqreturn_t highbank_l2_err_handler(int irq, void *dev_id)
 	struct edac_device_ctl_info *dci = dev_id;
 	struct hb_l2_drvdata *drvdata = dci->pvt_info;
 
-	if (irq == drvdata->sb_irq) {
+	if (irq == drvdata->sb_irq)
+	{
 		writel(1, drvdata->base + SR_CLR_SB_ECC_INTR);
 		edac_device_handle_ce(dci, 0, 0, dci->ctl_name);
 	}
-	if (irq == drvdata->db_irq) {
+
+	if (irq == drvdata->db_irq)
+	{
 		writel(1, drvdata->base + SR_CLR_DB_ECC_INTR);
 		edac_device_handle_ue(dci, 0, 0, dci->ctl_name);
 	}
@@ -50,7 +54,8 @@ static irqreturn_t highbank_l2_err_handler(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static const struct of_device_id hb_l2_err_of_match[] = {
+static const struct of_device_id hb_l2_err_of_match[] =
+{
 	{ .compatible = "calxeda,hb-sregs-l2-ecc", },
 	{},
 };
@@ -65,33 +70,43 @@ static int highbank_l2_err_probe(struct platform_device *pdev)
 	int res = 0;
 
 	dci = edac_device_alloc_ctl_info(sizeof(*drvdata), "cpu",
-		1, "L", 1, 2, NULL, 0, 0);
+									 1, "L", 1, 2, NULL, 0, 0);
+
 	if (!dci)
+	{
 		return -ENOMEM;
+	}
 
 	drvdata = dci->pvt_info;
 	dci->dev = &pdev->dev;
 	platform_set_drvdata(pdev, dci);
 
 	if (!devres_open_group(&pdev->dev, NULL, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!r) {
+
+	if (!r)
+	{
 		dev_err(&pdev->dev, "Unable to get mem resource\n");
 		res = -ENODEV;
 		goto err;
 	}
 
 	if (!devm_request_mem_region(&pdev->dev, r->start,
-				     resource_size(r), dev_name(&pdev->dev))) {
+								 resource_size(r), dev_name(&pdev->dev)))
+	{
 		dev_err(&pdev->dev, "Error while requesting mem region\n");
 		res = -EBUSY;
 		goto err;
 	}
 
 	drvdata->base = devm_ioremap(&pdev->dev, r->start, resource_size(r));
-	if (!drvdata->base) {
+
+	if (!drvdata->base)
+	{
 		dev_err(&pdev->dev, "Unable to map regs\n");
 		res = -ENOMEM;
 		goto err;
@@ -103,21 +118,29 @@ static int highbank_l2_err_probe(struct platform_device *pdev)
 	dci->dev_name = dev_name(&pdev->dev);
 
 	if (edac_device_add_device(dci))
+	{
 		goto err;
+	}
 
 	drvdata->db_irq = platform_get_irq(pdev, 0);
 	res = devm_request_irq(&pdev->dev, drvdata->db_irq,
-			       highbank_l2_err_handler,
-			       0, dev_name(&pdev->dev), dci);
+						   highbank_l2_err_handler,
+						   0, dev_name(&pdev->dev), dci);
+
 	if (res < 0)
+	{
 		goto err2;
+	}
 
 	drvdata->sb_irq = platform_get_irq(pdev, 1);
 	res = devm_request_irq(&pdev->dev, drvdata->sb_irq,
-			       highbank_l2_err_handler,
-			       0, dev_name(&pdev->dev), dci);
+						   highbank_l2_err_handler,
+						   0, dev_name(&pdev->dev), dci);
+
 	if (res < 0)
+	{
 		goto err2;
+	}
 
 	devres_close_group(&pdev->dev, NULL);
 	return 0;
@@ -138,7 +161,8 @@ static int highbank_l2_err_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver highbank_l2_edac_driver = {
+static struct platform_driver highbank_l2_edac_driver =
+{
 	.probe = highbank_l2_err_probe,
 	.remove = highbank_l2_err_remove,
 	.driver = {

@@ -111,13 +111,15 @@
 #define ASL_RDESC_FIXED_DMA_SIZE                0x05
 #define ASL_RDESC_END_TAG_SIZE                  0x01
 
-struct asl_resource_node {
+struct asl_resource_node
+{
 	u32 buffer_length;
 	void *buffer;
 	struct asl_resource_node *next;
 };
 
-struct asl_resource_info {
+struct asl_resource_info
+{
 	union acpi_parse_object *descriptor_type_op;	/* Resource descriptor parse node */
 	union acpi_parse_object *mapping_op;	/* Used for mapfile support */
 	u32 current_byte_offset;	/* Offset in resource template */
@@ -142,34 +144,45 @@ struct asl_resource_info {
 #define AML_RESOURCE_SMALL_HEADER_COMMON \
 	u8                              descriptor_type;
 
-struct aml_resource_small_header {
-AML_RESOURCE_SMALL_HEADER_COMMON};
+struct aml_resource_small_header
+{
+	AML_RESOURCE_SMALL_HEADER_COMMON
+};
 
-struct aml_resource_irq {
+struct aml_resource_irq
+{
 	AML_RESOURCE_SMALL_HEADER_COMMON u16 irq_mask;
 	u8 flags;
 };
 
-struct aml_resource_irq_noflags {
+struct aml_resource_irq_noflags
+{
 	AML_RESOURCE_SMALL_HEADER_COMMON u16 irq_mask;
 };
 
-struct aml_resource_dma {
+struct aml_resource_dma
+{
 	AML_RESOURCE_SMALL_HEADER_COMMON u8 dma_channel_mask;
 	u8 flags;
 };
 
-struct aml_resource_start_dependent {
+struct aml_resource_start_dependent
+{
 	AML_RESOURCE_SMALL_HEADER_COMMON u8 flags;
 };
 
-struct aml_resource_start_dependent_noprio {
-AML_RESOURCE_SMALL_HEADER_COMMON};
+struct aml_resource_start_dependent_noprio
+{
+	AML_RESOURCE_SMALL_HEADER_COMMON
+};
 
-struct aml_resource_end_dependent {
-AML_RESOURCE_SMALL_HEADER_COMMON};
+struct aml_resource_end_dependent
+{
+	AML_RESOURCE_SMALL_HEADER_COMMON
+};
 
-struct aml_resource_io {
+struct aml_resource_io
+{
 	AML_RESOURCE_SMALL_HEADER_COMMON u8 flags;
 	u16 minimum;
 	u16 maximum;
@@ -177,19 +190,24 @@ struct aml_resource_io {
 	u8 address_length;
 };
 
-struct aml_resource_fixed_io {
+struct aml_resource_fixed_io
+{
 	AML_RESOURCE_SMALL_HEADER_COMMON u16 address;
 	u8 address_length;
 };
 
-struct aml_resource_vendor_small {
-AML_RESOURCE_SMALL_HEADER_COMMON};
+struct aml_resource_vendor_small
+{
+	AML_RESOURCE_SMALL_HEADER_COMMON
+};
 
-struct aml_resource_end_tag {
+struct aml_resource_end_tag
+{
 	AML_RESOURCE_SMALL_HEADER_COMMON u8 checksum;
 };
 
-struct aml_resource_fixed_dma {
+struct aml_resource_fixed_dma
+{
 	AML_RESOURCE_SMALL_HEADER_COMMON u16 request_lines;
 	u16 channels;
 	u8 width;
@@ -202,8 +220,10 @@ struct aml_resource_fixed_dma {
 	u8                              descriptor_type;\
 	u16                             resource_length;
 
-struct aml_resource_large_header {
-AML_RESOURCE_LARGE_HEADER_COMMON};
+struct aml_resource_large_header
+{
+	AML_RESOURCE_LARGE_HEADER_COMMON
+};
 
 /* General Flags for address space resource descriptors */
 
@@ -211,7 +231,8 @@ AML_RESOURCE_LARGE_HEADER_COMMON};
 #define ACPI_RESOURCE_FLAG_MIF      4
 #define ACPI_RESOURCE_FLAG_MAF      8
 
-struct aml_resource_memory24 {
+struct aml_resource_memory24
+{
 	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
 	u16 minimum;
 	u16 maximum;
@@ -219,10 +240,13 @@ struct aml_resource_memory24 {
 	u16 address_length;
 };
 
-struct aml_resource_vendor_large {
-AML_RESOURCE_LARGE_HEADER_COMMON};
+struct aml_resource_vendor_large
+{
+	AML_RESOURCE_LARGE_HEADER_COMMON
+};
 
-struct aml_resource_memory32 {
+struct aml_resource_memory32
+{
 	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
 	u32 minimum;
 	u32 maximum;
@@ -230,7 +254,8 @@ struct aml_resource_memory32 {
 	u32 address_length;
 };
 
-struct aml_resource_fixed_memory32 {
+struct aml_resource_fixed_memory32
+{
 	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
 	u32 address;
 	u32 address_length;
@@ -241,12 +266,15 @@ struct aml_resource_fixed_memory32 {
 	u8                              flags; \
 	u8                              specific_flags;
 
-struct aml_resource_address {
-AML_RESOURCE_LARGE_HEADER_COMMON AML_RESOURCE_ADDRESS_COMMON};
+struct aml_resource_address
+{
+	AML_RESOURCE_LARGE_HEADER_COMMON AML_RESOURCE_ADDRESS_COMMON
+};
 
-struct aml_resource_extended_address64 {
+struct aml_resource_extended_address64
+{
 	AML_RESOURCE_LARGE_HEADER_COMMON
-	    AML_RESOURCE_ADDRESS_COMMON u8 revision_ID;
+	AML_RESOURCE_ADDRESS_COMMON u8 revision_ID;
 	u8 reserved;
 	u64 granularity;
 	u64 minimum;
@@ -258,41 +286,46 @@ struct aml_resource_extended_address64 {
 
 #define AML_RESOURCE_EXTENDED_ADDRESS_REVISION          1	/* ACPI 3.0 */
 
-struct aml_resource_address64 {
+struct aml_resource_address64
+{
 	AML_RESOURCE_LARGE_HEADER_COMMON
-	    AML_RESOURCE_ADDRESS_COMMON u64 granularity;
+	AML_RESOURCE_ADDRESS_COMMON u64 granularity;
 	u64 minimum;
 	u64 maximum;
 	u64 translation_offset;
 	u64 address_length;
 };
 
-struct aml_resource_address32 {
+struct aml_resource_address32
+{
 	AML_RESOURCE_LARGE_HEADER_COMMON
-	    AML_RESOURCE_ADDRESS_COMMON u32 granularity;
+	AML_RESOURCE_ADDRESS_COMMON u32 granularity;
 	u32 minimum;
 	u32 maximum;
 	u32 translation_offset;
 	u32 address_length;
 };
 
-struct aml_resource_address16 {
+struct aml_resource_address16
+{
 	AML_RESOURCE_LARGE_HEADER_COMMON
-	    AML_RESOURCE_ADDRESS_COMMON u16 granularity;
+	AML_RESOURCE_ADDRESS_COMMON u16 granularity;
 	u16 minimum;
 	u16 maximum;
 	u16 translation_offset;
 	u16 address_length;
 };
 
-struct aml_resource_extended_irq {
+struct aml_resource_extended_irq
+{
 	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
 	u8 interrupt_count;
 	u32 interrupts[1];
 	/* res_source_index, res_source optional fields follow */
 };
 
-struct aml_resource_generic_register {
+struct aml_resource_generic_register
+{
 	AML_RESOURCE_LARGE_HEADER_COMMON u8 address_space_id;
 	u8 bit_width;
 	u8 bit_offset;
@@ -302,7 +335,8 @@ struct aml_resource_generic_register {
 
 /* Common descriptor for gpio_int and gpio_io (ACPI 5.0) */
 
-struct aml_resource_gpio {
+struct aml_resource_gpio
+{
 	AML_RESOURCE_LARGE_HEADER_COMMON u8 revision_id;
 	u8 connection_type;
 	u16 flags;
@@ -342,7 +376,7 @@ struct aml_resource_gpio {
 	u8                              type_revision_id; \
 	u16                             type_data_length; \
 
-/* Values for the type field above */
+	/* Values for the type field above */
 
 #define AML_RESOURCE_I2C_SERIALBUSTYPE          1
 #define AML_RESOURCE_SPI_SERIALBUSTYPE          2
@@ -350,137 +384,143 @@ struct aml_resource_gpio {
 #define AML_RESOURCE_MAX_SERIALBUSTYPE          3
 #define AML_RESOURCE_VENDOR_SERIALBUSTYPE       192	/* Vendor defined is 0xC0-0xFF (NOT SUPPORTED) */
 
-struct aml_resource_common_serialbus {
-AML_RESOURCE_LARGE_HEADER_COMMON AML_RESOURCE_SERIAL_COMMON};
+	struct aml_resource_common_serialbus
+	{
+		AML_RESOURCE_LARGE_HEADER_COMMON AML_RESOURCE_SERIAL_COMMON
+	};
 
-struct aml_resource_i2c_serialbus {
-	AML_RESOURCE_LARGE_HEADER_COMMON
-	    AML_RESOURCE_SERIAL_COMMON u32 connection_speed;
-	u16 slave_address;
-	/*
-	 * Optional fields follow immediately:
-	 * 1) Vendor Data bytes
-	 * 2) Resource Source String
-	 */
-};
+	struct aml_resource_i2c_serialbus
+	{
+		AML_RESOURCE_LARGE_HEADER_COMMON
+		AML_RESOURCE_SERIAL_COMMON u32 connection_speed;
+		u16 slave_address;
+		/*
+		 * Optional fields follow immediately:
+		 * 1) Vendor Data bytes
+		 * 2) Resource Source String
+		 */
+	};
 
 #define AML_RESOURCE_I2C_REVISION               1	/* ACPI 5.0 */
 #define AML_RESOURCE_I2C_TYPE_REVISION          1	/* ACPI 5.0 */
 #define AML_RESOURCE_I2C_MIN_DATA_LEN           6
 
-struct aml_resource_spi_serialbus {
-	AML_RESOURCE_LARGE_HEADER_COMMON
-	    AML_RESOURCE_SERIAL_COMMON u32 connection_speed;
-	u8 data_bit_length;
-	u8 clock_phase;
-	u8 clock_polarity;
-	u16 device_selection;
-	/*
-	 * Optional fields follow immediately:
-	 * 1) Vendor Data bytes
-	 * 2) Resource Source String
-	 */
-};
+	struct aml_resource_spi_serialbus
+	{
+		AML_RESOURCE_LARGE_HEADER_COMMON
+		AML_RESOURCE_SERIAL_COMMON u32 connection_speed;
+		u8 data_bit_length;
+		u8 clock_phase;
+		u8 clock_polarity;
+		u16 device_selection;
+		/*
+		 * Optional fields follow immediately:
+		 * 1) Vendor Data bytes
+		 * 2) Resource Source String
+		 */
+	};
 
 #define AML_RESOURCE_SPI_REVISION               1	/* ACPI 5.0 */
 #define AML_RESOURCE_SPI_TYPE_REVISION          1	/* ACPI 5.0 */
 #define AML_RESOURCE_SPI_MIN_DATA_LEN           9
 
-struct aml_resource_uart_serialbus {
-	AML_RESOURCE_LARGE_HEADER_COMMON
-	    AML_RESOURCE_SERIAL_COMMON u32 default_baud_rate;
-	u16 rx_fifo_size;
-	u16 tx_fifo_size;
-	u8 parity;
-	u8 lines_enabled;
-	/*
-	 * Optional fields follow immediately:
-	 * 1) Vendor Data bytes
-	 * 2) Resource Source String
-	 */
-};
+	struct aml_resource_uart_serialbus
+	{
+		AML_RESOURCE_LARGE_HEADER_COMMON
+		AML_RESOURCE_SERIAL_COMMON u32 default_baud_rate;
+		u16 rx_fifo_size;
+		u16 tx_fifo_size;
+		u8 parity;
+		u8 lines_enabled;
+		/*
+		 * Optional fields follow immediately:
+		 * 1) Vendor Data bytes
+		 * 2) Resource Source String
+		 */
+	};
 
 #define AML_RESOURCE_UART_REVISION              1	/* ACPI 5.0 */
 #define AML_RESOURCE_UART_TYPE_REVISION         1	/* ACPI 5.0 */
 #define AML_RESOURCE_UART_MIN_DATA_LEN          10
 
-/* restore default alignment */
+	/* restore default alignment */
 
 #pragma pack()
 
-/* Union of all resource descriptors, so we can allocate the worst case */
+	/* Union of all resource descriptors, so we can allocate the worst case */
 
-union aml_resource {
-	/* Descriptor headers */
+	union aml_resource
+	{
+		/* Descriptor headers */
 
-	u8 descriptor_type;
-	struct aml_resource_small_header small_header;
-	struct aml_resource_large_header large_header;
+		u8 descriptor_type;
+		struct aml_resource_small_header small_header;
+		struct aml_resource_large_header large_header;
 
-	/* Small resource descriptors */
+		/* Small resource descriptors */
 
-	struct aml_resource_irq irq;
-	struct aml_resource_dma dma;
-	struct aml_resource_start_dependent start_dpf;
-	struct aml_resource_end_dependent end_dpf;
-	struct aml_resource_io io;
-	struct aml_resource_fixed_io fixed_io;
-	struct aml_resource_fixed_dma fixed_dma;
-	struct aml_resource_vendor_small vendor_small;
-	struct aml_resource_end_tag end_tag;
+		struct aml_resource_irq irq;
+		struct aml_resource_dma dma;
+		struct aml_resource_start_dependent start_dpf;
+		struct aml_resource_end_dependent end_dpf;
+		struct aml_resource_io io;
+		struct aml_resource_fixed_io fixed_io;
+		struct aml_resource_fixed_dma fixed_dma;
+		struct aml_resource_vendor_small vendor_small;
+		struct aml_resource_end_tag end_tag;
 
-	/* Large resource descriptors */
+		/* Large resource descriptors */
 
-	struct aml_resource_memory24 memory24;
-	struct aml_resource_generic_register generic_reg;
-	struct aml_resource_vendor_large vendor_large;
-	struct aml_resource_memory32 memory32;
-	struct aml_resource_fixed_memory32 fixed_memory32;
-	struct aml_resource_address16 address16;
-	struct aml_resource_address32 address32;
-	struct aml_resource_address64 address64;
-	struct aml_resource_extended_address64 ext_address64;
-	struct aml_resource_extended_irq extended_irq;
-	struct aml_resource_gpio gpio;
-	struct aml_resource_i2c_serialbus i2c_serial_bus;
-	struct aml_resource_spi_serialbus spi_serial_bus;
-	struct aml_resource_uart_serialbus uart_serial_bus;
-	struct aml_resource_common_serialbus common_serial_bus;
+		struct aml_resource_memory24 memory24;
+		struct aml_resource_generic_register generic_reg;
+		struct aml_resource_vendor_large vendor_large;
+		struct aml_resource_memory32 memory32;
+		struct aml_resource_fixed_memory32 fixed_memory32;
+		struct aml_resource_address16 address16;
+		struct aml_resource_address32 address32;
+		struct aml_resource_address64 address64;
+		struct aml_resource_extended_address64 ext_address64;
+		struct aml_resource_extended_irq extended_irq;
+		struct aml_resource_gpio gpio;
+		struct aml_resource_i2c_serialbus i2c_serial_bus;
+		struct aml_resource_spi_serialbus spi_serial_bus;
+		struct aml_resource_uart_serialbus uart_serial_bus;
+		struct aml_resource_common_serialbus common_serial_bus;
 
-	/* Utility overlays */
+		/* Utility overlays */
 
-	struct aml_resource_address address;
-	u32 dword_item;
-	u16 word_item;
-	u8 byte_item;
-};
+		struct aml_resource_address address;
+		u32 dword_item;
+		u16 word_item;
+		u8 byte_item;
+	};
 
-/* Interfaces used by both the disassembler and compiler */
+	/* Interfaces used by both the disassembler and compiler */
 
-void
-mp_save_gpio_info(union acpi_parse_object *op,
-		  union aml_resource *resource,
-		  u32 pin_count, u16 *pin_list, char *device_name);
+	void
+	mp_save_gpio_info(union acpi_parse_object *op,
+					  union aml_resource *resource,
+					  u32 pin_count, u16 *pin_list, char *device_name);
 
-void
-mp_save_serial_info(union acpi_parse_object *op,
-		    union aml_resource *resource, char *device_name);
+	void
+	mp_save_serial_info(union acpi_parse_object *op,
+						union aml_resource *resource, char *device_name);
 
-char *mp_get_hid_from_parse_tree(struct acpi_namespace_node *hid_node);
+	char *mp_get_hid_from_parse_tree(struct acpi_namespace_node *hid_node);
 
-char *mp_get_hid_via_namestring(char *device_name);
+	char *mp_get_hid_via_namestring(char *device_name);
 
-char *mp_get_connection_info(union acpi_parse_object *op,
-			     u32 pin_index,
-			     struct acpi_namespace_node **target_node,
-			     char **target_name);
+	char *mp_get_connection_info(union acpi_parse_object *op,
+								 u32 pin_index,
+								 struct acpi_namespace_node **target_node,
+								 char **target_name);
 
-char *mp_get_parent_device_hid(union acpi_parse_object *op,
-			       struct acpi_namespace_node **target_node,
-			       char **parent_device_name);
+	char *mp_get_parent_device_hid(union acpi_parse_object *op,
+								   struct acpi_namespace_node **target_node,
+								   char **parent_device_name);
 
-char *mp_get_ddn_value(char *device_name);
+	char *mp_get_ddn_value(char *device_name);
 
-char *mp_get_hid_value(struct acpi_namespace_node *device_node);
+	char *mp_get_hid_value(struct acpi_namespace_node *device_node);
 
 #endif

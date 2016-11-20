@@ -1,5 +1,5 @@
 #ifdef pr_fmt
-#undef pr_fmt
+	#undef pr_fmt
 #endif
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -32,7 +32,8 @@
 
 #define AFFSNAMEMAX 30U
 
-struct affs_ext_key {
+struct affs_ext_key
+{
 	u32	ext;				/* idx of the extended block */
 	u32	key;				/* block number */
 };
@@ -40,7 +41,8 @@ struct affs_ext_key {
 /*
  * affs fs inode data in memory
  */
-struct affs_inode_info {
+struct affs_inode_info
+{
 	atomic_t i_opencnt;
 	struct semaphore i_link_lock;		/* Protects internal inode access. */
 	struct semaphore i_ext_lock;		/* Protects internal inode access. */
@@ -74,12 +76,14 @@ static inline struct affs_inode_info *AFFS_I(struct inode *inode)
  *
  */
 
-struct affs_bm_info {
+struct affs_bm_info
+{
 	u32 bm_key;			/* Disk block number */
 	u32 bm_free;			/* Free blocks in here */
 };
 
-struct affs_sb_info {
+struct affs_sb_info
+{
 	int s_partition_size;		/* Partition size in blocks. */
 	int s_reserved;			/* Number of reserved blocks. */
 	//u32 s_blksize;			/* Initial device blksize */
@@ -143,13 +147,13 @@ extern umode_t	prot_to_mode(u32 prot);
 extern void	mode_to_prot(struct inode *inode);
 __printf(3, 4)
 extern void	affs_error(struct super_block *sb, const char *function,
-			   const char *fmt, ...);
+					   const char *fmt, ...);
 __printf(3, 4)
 extern void	affs_warning(struct super_block *sb, const char *function,
-			     const char *fmt, ...);
+						 const char *fmt, ...);
 extern bool	affs_nofilenametruncate(const struct dentry *dentry);
 extern int	affs_check_name(const unsigned char *name, int len,
-				bool notruncate);
+							bool notruncate);
 extern int	affs_copy_name(unsigned char *bstr, struct dentry *dentry);
 
 /* bitmap. c */
@@ -169,12 +173,12 @@ extern int	affs_create(struct inode *dir, struct dentry *dentry, umode_t mode, b
 extern int	affs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode);
 extern int	affs_rmdir(struct inode *dir, struct dentry *dentry);
 extern int	affs_link(struct dentry *olddentry, struct inode *dir,
-			  struct dentry *dentry);
+					  struct dentry *dentry);
 extern int	affs_symlink(struct inode *dir, struct dentry *dentry,
-			     const char *symname);
+						 const char *symname);
 extern int	affs_rename(struct inode *old_dir, struct dentry *old_dentry,
-			    struct inode *new_dir, struct dentry *new_dentry,
-			    unsigned int flags);
+						struct inode *new_dir, struct dentry *new_dentry,
+						unsigned int flags);
 
 /* inode.c */
 
@@ -183,9 +187,9 @@ extern struct inode		*affs_new_inode(struct inode *dir);
 extern int			 affs_notify_change(struct dentry *dentry, struct iattr *attr);
 extern void			 affs_evict_inode(struct inode *inode);
 extern struct inode		*affs_iget(struct super_block *sb,
-					unsigned long ino);
+								   unsigned long ino);
 extern int			 affs_write_inode(struct inode *inode,
-					struct writeback_control *wbc);
+									  struct writeback_control *wbc);
 extern int			 affs_add_entry(struct inode *dir, struct inode *inode, struct dentry *dentry, s32 type);
 
 /* file.c */
@@ -222,16 +226,24 @@ static inline struct buffer_head *
 affs_bread(struct super_block *sb, int block)
 {
 	pr_debug("%s: %d\n", __func__, block);
+
 	if (block >= AFFS_SB(sb)->s_reserved && block < AFFS_SB(sb)->s_partition_size)
+	{
 		return sb_bread(sb, block);
+	}
+
 	return NULL;
 }
 static inline struct buffer_head *
 affs_getblk(struct super_block *sb, int block)
 {
 	pr_debug("%s: %d\n", __func__, block);
+
 	if (block >= AFFS_SB(sb)->s_reserved && block < AFFS_SB(sb)->s_partition_size)
+	{
 		return sb_getblk(sb, block);
+	}
+
 	return NULL;
 }
 static inline struct buffer_head *
@@ -239,7 +251,9 @@ affs_getzeroblk(struct super_block *sb, int block)
 {
 	struct buffer_head *bh;
 	pr_debug("%s: %d\n", __func__, block);
-	if (block >= AFFS_SB(sb)->s_reserved && block < AFFS_SB(sb)->s_partition_size) {
+
+	if (block >= AFFS_SB(sb)->s_reserved && block < AFFS_SB(sb)->s_partition_size)
+	{
 		bh = sb_getblk(sb, block);
 		lock_buffer(bh);
 		memset(bh->b_data, 0 , sb->s_blocksize);
@@ -247,6 +261,7 @@ affs_getzeroblk(struct super_block *sb, int block)
 		unlock_buffer(bh);
 		return bh;
 	}
+
 	return NULL;
 }
 static inline struct buffer_head *
@@ -254,19 +269,25 @@ affs_getemptyblk(struct super_block *sb, int block)
 {
 	struct buffer_head *bh;
 	pr_debug("%s: %d\n", __func__, block);
-	if (block >= AFFS_SB(sb)->s_reserved && block < AFFS_SB(sb)->s_partition_size) {
+
+	if (block >= AFFS_SB(sb)->s_reserved && block < AFFS_SB(sb)->s_partition_size)
+	{
 		bh = sb_getblk(sb, block);
 		wait_on_buffer(bh);
 		set_buffer_uptodate(bh);
 		return bh;
 	}
+
 	return NULL;
 }
 static inline void
 affs_brelse(struct buffer_head *bh)
 {
 	if (bh)
+	{
 		pr_debug("%s: %lld\n", __func__, (long long) bh->b_blocknr);
+	}
+
 	brelse(bh);
 }
 

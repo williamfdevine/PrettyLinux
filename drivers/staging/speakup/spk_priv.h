@@ -24,7 +24,7 @@
 #include "spk_priv_keyinfo.h"
 
 #ifndef pr_warn
-#define pr_warn(fmt, arg...) printk(KERN_WARNING fmt, ##arg)
+	#define pr_warn(fmt, arg...) printk(KERN_WARNING fmt, ##arg)
 #endif
 
 #define V_LAST_VAR { MAXVARS }
@@ -33,9 +33,9 @@
 /* synth flags, for odd synths */
 #define SF_DEC 1 /* to fiddle puncs in alpha strings so it doesn't spell */
 #ifdef MODULE
-#define SYNTH_START 1
+	#define SYNTH_START 1
 #else
-#define SYNTH_START 0
+	#define SYNTH_START 0
 #endif
 
 #define KT_SPKUP 15
@@ -53,9 +53,9 @@ char synth_buffer_peek(void);
 int synth_buffer_empty(void);
 struct var_t *spk_get_var(enum var_id_t var_id);
 ssize_t spk_var_show(struct kobject *kobj, struct kobj_attribute *attr,
-		     char *buf);
+					 char *buf);
 ssize_t spk_var_store(struct kobject *kobj, struct kobj_attribute *attr,
-		      const char *buf, size_t count);
+					  const char *buf, size_t count);
 
 int spk_serial_synth_probe(struct spk_synth *synth);
 const char *spk_synth_immediate(struct spk_synth *synth, const char *buff);

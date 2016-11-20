@@ -101,69 +101,69 @@
 /* Minimum ring bufer size for memory allocation */
 #define ADF_RING_SIZE_BYTES_MIN(SIZE) \
 	((SIZE < ADF_SIZE_TO_RING_SIZE_IN_BYTES(ADF_RING_SIZE_4K)) ? \
-		ADF_SIZE_TO_RING_SIZE_IN_BYTES(ADF_RING_SIZE_4K) : SIZE)
+	 ADF_SIZE_TO_RING_SIZE_IN_BYTES(ADF_RING_SIZE_4K) : SIZE)
 #define ADF_RING_SIZE_MODULO(SIZE) (SIZE + 0x6)
 #define ADF_SIZE_TO_POW(SIZE) ((((SIZE & 0x4) >> 1) | ((SIZE & 0x4) >> 2) | \
-				SIZE) & ~0x4)
+								SIZE) & ~0x4)
 /* Max outstanding requests */
 #define ADF_MAX_INFLIGHTS(RING_SIZE, MSG_SIZE) \
 	((((1 << (RING_SIZE - 1)) << 3) >> ADF_SIZE_TO_POW(MSG_SIZE)) - 1)
 #define BUILD_RING_CONFIG(size)	\
 	((ADF_RING_NEAR_WATERMARK_0 << ADF_RING_CONFIG_NEAR_FULL_WM) \
-	| (ADF_RING_NEAR_WATERMARK_0 << ADF_RING_CONFIG_NEAR_EMPTY_WM) \
-	| size)
+	 | (ADF_RING_NEAR_WATERMARK_0 << ADF_RING_CONFIG_NEAR_EMPTY_WM) \
+	 | size)
 #define BUILD_RESP_RING_CONFIG(size, watermark_nf, watermark_ne) \
 	((watermark_nf << ADF_RING_CONFIG_NEAR_FULL_WM)	\
-	| (watermark_ne << ADF_RING_CONFIG_NEAR_EMPTY_WM) \
-	| size)
+	 | (watermark_ne << ADF_RING_CONFIG_NEAR_EMPTY_WM) \
+	 | size)
 #define BUILD_RING_BASE_ADDR(addr, size) \
 	((addr >> 6) & (0xFFFFFFFFFFFFFFFFULL << size))
 #define READ_CSR_RING_HEAD(csr_base_addr, bank, ring) \
 	ADF_CSR_RD(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-			ADF_RING_CSR_RING_HEAD + (ring << 2))
+			   ADF_RING_CSR_RING_HEAD + (ring << 2))
 #define READ_CSR_RING_TAIL(csr_base_addr, bank, ring) \
 	ADF_CSR_RD(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-			ADF_RING_CSR_RING_TAIL + (ring << 2))
+			   ADF_RING_CSR_RING_TAIL + (ring << 2))
 #define READ_CSR_E_STAT(csr_base_addr, bank) \
 	ADF_CSR_RD(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-			ADF_RING_CSR_E_STAT)
+			   ADF_RING_CSR_E_STAT)
 #define WRITE_CSR_RING_CONFIG(csr_base_addr, bank, ring, value) \
 	ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-		ADF_RING_CSR_RING_CONFIG + (ring << 2), value)
+			   ADF_RING_CSR_RING_CONFIG + (ring << 2), value)
 #define WRITE_CSR_RING_BASE(csr_base_addr, bank, ring, value) \
-do { \
-	uint32_t l_base = 0, u_base = 0; \
-	l_base = (uint32_t)(value & 0xFFFFFFFF); \
-	u_base = (uint32_t)((value & 0xFFFFFFFF00000000ULL) >> 32); \
-	ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-		ADF_RING_CSR_RING_LBASE + (ring << 2), l_base);	\
-	ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-		ADF_RING_CSR_RING_UBASE + (ring << 2), u_base);	\
-} while (0)
+	do { \
+		uint32_t l_base = 0, u_base = 0; \
+		l_base = (uint32_t)(value & 0xFFFFFFFF); \
+		u_base = (uint32_t)((value & 0xFFFFFFFF00000000ULL) >> 32); \
+		ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
+				   ADF_RING_CSR_RING_LBASE + (ring << 2), l_base);	\
+		ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
+				   ADF_RING_CSR_RING_UBASE + (ring << 2), u_base);	\
+	} while (0)
 #define WRITE_CSR_RING_HEAD(csr_base_addr, bank, ring, value) \
 	ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-		ADF_RING_CSR_RING_HEAD + (ring << 2), value)
+			   ADF_RING_CSR_RING_HEAD + (ring << 2), value)
 #define WRITE_CSR_RING_TAIL(csr_base_addr, bank, ring, value) \
 	ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-		ADF_RING_CSR_RING_TAIL + (ring << 2), value)
+			   ADF_RING_CSR_RING_TAIL + (ring << 2), value)
 #define WRITE_CSR_INT_FLAG(csr_base_addr, bank, value) \
 	ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * (bank)) + \
-			ADF_RING_CSR_INT_FLAG, value)
+			   ADF_RING_CSR_INT_FLAG, value)
 #define WRITE_CSR_INT_SRCSEL(csr_base_addr, bank) \
-do { \
-	ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-	ADF_RING_CSR_INT_SRCSEL, ADF_BANK_INT_SRC_SEL_MASK_0);	\
-	ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-	ADF_RING_CSR_INT_SRCSEL_2, ADF_BANK_INT_SRC_SEL_MASK_X); \
-} while (0)
+	do { \
+		ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
+				   ADF_RING_CSR_INT_SRCSEL, ADF_BANK_INT_SRC_SEL_MASK_0);	\
+		ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
+				   ADF_RING_CSR_INT_SRCSEL_2, ADF_BANK_INT_SRC_SEL_MASK_X); \
+	} while (0)
 #define WRITE_CSR_INT_COL_EN(csr_base_addr, bank, value) \
 	ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-			ADF_RING_CSR_INT_COL_EN, value)
+			   ADF_RING_CSR_INT_COL_EN, value)
 #define WRITE_CSR_INT_COL_CTL(csr_base_addr, bank, value) \
 	ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-			ADF_RING_CSR_INT_COL_CTL, \
-			ADF_RING_CSR_INT_COL_CTL_ENABLE | value)
+			   ADF_RING_CSR_INT_COL_CTL, \
+			   ADF_RING_CSR_INT_COL_CTL_ENABLE | value)
 #define WRITE_CSR_INT_FLAG_AND_COL(csr_base_addr, bank, value) \
 	ADF_CSR_WR(csr_base_addr, (ADF_RING_BUNDLE_SIZE * bank) + \
-			ADF_RING_CSR_INT_FLAG_AND_COL, value)
+			   ADF_RING_CSR_INT_FLAG_AND_COL, value)
 #endif

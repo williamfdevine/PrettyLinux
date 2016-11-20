@@ -47,20 +47,21 @@
 #define GFAR_MAX_COAL_USECS 0xffff
 #define GFAR_MAX_COAL_FRAMES 0xff
 static void gfar_fill_stats(struct net_device *dev, struct ethtool_stats *dummy,
-			    u64 *buf);
-static void gfar_gstrings(struct net_device *dev, u32 stringset, u8 * buf);
+							u64 *buf);
+static void gfar_gstrings(struct net_device *dev, u32 stringset, u8 *buf);
 static int gfar_gcoalesce(struct net_device *dev,
-			  struct ethtool_coalesce *cvals);
+						  struct ethtool_coalesce *cvals);
 static int gfar_scoalesce(struct net_device *dev,
-			  struct ethtool_coalesce *cvals);
+						  struct ethtool_coalesce *cvals);
 static void gfar_gringparam(struct net_device *dev,
-			    struct ethtool_ringparam *rvals);
+							struct ethtool_ringparam *rvals);
 static int gfar_sringparam(struct net_device *dev,
-			   struct ethtool_ringparam *rvals);
+						   struct ethtool_ringparam *rvals);
 static void gfar_gdrvinfo(struct net_device *dev,
-			  struct ethtool_drvinfo *drvinfo);
+						  struct ethtool_drvinfo *drvinfo);
 
-static const char stat_gstrings[][ETH_GSTRING_LEN] = {
+static const char stat_gstrings[][ETH_GSTRING_LEN] =
+{
 	/* extra stats */
 	"rx-allocation-errors",
 	"rx-large-frame-errors",
@@ -124,15 +125,17 @@ static const char stat_gstrings[][ETH_GSTRING_LEN] = {
 
 /* Fill in a buffer with the strings which correspond to the
  * stats */
-static void gfar_gstrings(struct net_device *dev, u32 stringset, u8 * buf)
+static void gfar_gstrings(struct net_device *dev, u32 stringset, u8 *buf)
 {
 	struct gfar_private *priv = netdev_priv(dev);
 
 	if (priv->device_flags & FSL_GIANFAR_DEV_HAS_RMON)
+	{
 		memcpy(buf, stat_gstrings, GFAR_STATS_LEN * ETH_GSTRING_LEN);
+	}
 	else
 		memcpy(buf, stat_gstrings,
-		       GFAR_EXTRA_STATS_LEN * ETH_GSTRING_LEN);
+			   GFAR_EXTRA_STATS_LEN * ETH_GSTRING_LEN);
 }
 
 /* Fill in an array of 64-bit statistics from various sources.
@@ -140,7 +143,7 @@ static void gfar_gstrings(struct net_device *dev, u32 stringset, u8 * buf)
  * structure, and returned to user space
  */
 static void gfar_fill_stats(struct net_device *dev, struct ethtool_stats *dummy,
-			    u64 *buf)
+							u64 *buf)
 {
 	int i;
 	struct gfar_private *priv = netdev_priv(dev);
@@ -148,13 +151,18 @@ static void gfar_fill_stats(struct net_device *dev, struct ethtool_stats *dummy,
 	atomic64_t *extra = (atomic64_t *)&priv->extra_stats;
 
 	for (i = 0; i < GFAR_EXTRA_STATS_LEN; i++)
+	{
 		buf[i] = atomic64_read(&extra[i]);
+	}
 
-	if (priv->device_flags & FSL_GIANFAR_DEV_HAS_RMON) {
+	if (priv->device_flags & FSL_GIANFAR_DEV_HAS_RMON)
+	{
 		u32 __iomem *rmon = (u32 __iomem *) &regs->rmon;
 
 		for (; i < GFAR_STATS_LEN; i++, rmon++)
+		{
 			buf[i] = (u64) gfar_read(rmon);
+		}
 	}
 }
 
@@ -162,24 +170,30 @@ static int gfar_sset_count(struct net_device *dev, int sset)
 {
 	struct gfar_private *priv = netdev_priv(dev);
 
-	switch (sset) {
-	case ETH_SS_STATS:
-		if (priv->device_flags & FSL_GIANFAR_DEV_HAS_RMON)
-			return GFAR_STATS_LEN;
-		else
-			return GFAR_EXTRA_STATS_LEN;
-	default:
-		return -EOPNOTSUPP;
+	switch (sset)
+	{
+		case ETH_SS_STATS:
+			if (priv->device_flags & FSL_GIANFAR_DEV_HAS_RMON)
+			{
+				return GFAR_STATS_LEN;
+			}
+			else
+			{
+				return GFAR_EXTRA_STATS_LEN;
+			}
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
 /* Fills in the drvinfo structure with some basic info */
 static void gfar_gdrvinfo(struct net_device *dev,
-			  struct ethtool_drvinfo *drvinfo)
+						  struct ethtool_drvinfo *drvinfo)
 {
 	strlcpy(drvinfo->driver, DRV_NAME, sizeof(drvinfo->driver));
 	strlcpy(drvinfo->version, gfar_driver_version,
-		sizeof(drvinfo->version));
+			sizeof(drvinfo->version));
 	strlcpy(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
 	strlcpy(drvinfo->bus_info, "N/A", sizeof(drvinfo->bus_info));
 }
@@ -192,7 +206,7 @@ static int gfar_reglen(struct net_device *dev)
 
 /* Return a dump of the GFAR register space */
 static void gfar_get_regs(struct net_device *dev, struct ethtool_regs *regs,
-			  void *regbuf)
+						  void *regbuf)
 {
 	int i;
 	struct gfar_private *priv = netdev_priv(dev);
@@ -200,30 +214,35 @@ static void gfar_get_regs(struct net_device *dev, struct ethtool_regs *regs,
 	u32 *buf = (u32 *) regbuf;
 
 	for (i = 0; i < sizeof (struct gfar) / sizeof (u32); i++)
+	{
 		buf[i] = gfar_read(&theregs[i]);
+	}
 }
 
 /* Convert microseconds to ethernet clock ticks, which changes
  * depending on what speed the controller is running at */
 static unsigned int gfar_usecs2ticks(struct gfar_private *priv,
-				     unsigned int usecs)
+									 unsigned int usecs)
 {
 	struct net_device *ndev = priv->ndev;
 	struct phy_device *phydev = ndev->phydev;
 	unsigned int count;
 
 	/* The timer is different, depending on the interface speed */
-	switch (phydev->speed) {
-	case SPEED_1000:
-		count = GFAR_GBIT_TIME;
-		break;
-	case SPEED_100:
-		count = GFAR_100_TIME;
-		break;
-	case SPEED_10:
-	default:
-		count = GFAR_10_TIME;
-		break;
+	switch (phydev->speed)
+	{
+		case SPEED_1000:
+			count = GFAR_GBIT_TIME;
+			break;
+
+		case SPEED_100:
+			count = GFAR_100_TIME;
+			break;
+
+		case SPEED_10:
+		default:
+			count = GFAR_10_TIME;
+			break;
 	}
 
 	/* Make sure we return a number greater than 0
@@ -233,24 +252,27 @@ static unsigned int gfar_usecs2ticks(struct gfar_private *priv,
 
 /* Convert ethernet clock ticks to microseconds */
 static unsigned int gfar_ticks2usecs(struct gfar_private *priv,
-				     unsigned int ticks)
+									 unsigned int ticks)
 {
 	struct net_device *ndev = priv->ndev;
 	struct phy_device *phydev = ndev->phydev;
 	unsigned int count;
 
 	/* The timer is different, depending on the interface speed */
-	switch (phydev->speed) {
-	case SPEED_1000:
-		count = GFAR_GBIT_TIME;
-		break;
-	case SPEED_100:
-		count = GFAR_100_TIME;
-		break;
-	case SPEED_10:
-	default:
-		count = GFAR_10_TIME;
-		break;
+	switch (phydev->speed)
+	{
+		case SPEED_1000:
+			count = GFAR_GBIT_TIME;
+			break;
+
+		case SPEED_100:
+			count = GFAR_100_TIME;
+			break;
+
+		case SPEED_10:
+		default:
+			count = GFAR_10_TIME;
+			break;
 	}
 
 	/* Make sure we return a number greater than 0 */
@@ -261,7 +283,7 @@ static unsigned int gfar_ticks2usecs(struct gfar_private *priv,
 /* Get the coalescing parameters, and put them in the cvals
  * structure.  */
 static int gfar_gcoalesce(struct net_device *dev,
-			  struct ethtool_coalesce *cvals)
+						  struct ethtool_coalesce *cvals)
 {
 	struct gfar_private *priv = netdev_priv(dev);
 	struct gfar_priv_rx_q *rx_queue = NULL;
@@ -272,10 +294,14 @@ static int gfar_gcoalesce(struct net_device *dev,
 	unsigned long txcount;
 
 	if (!(priv->device_flags & FSL_GIANFAR_DEV_HAS_COALESCE))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (!dev->phydev)
+	{
 		return -ENODEV;
+	}
 
 	rx_queue = priv->rx_queue[0];
 	tx_queue = priv->tx_queue[0];
@@ -327,82 +353,111 @@ static int gfar_gcoalesce(struct net_device *dev,
  * in order for coalescing to be active
  */
 static int gfar_scoalesce(struct net_device *dev,
-			  struct ethtool_coalesce *cvals)
+						  struct ethtool_coalesce *cvals)
 {
 	struct gfar_private *priv = netdev_priv(dev);
 	int i, err = 0;
 
 	if (!(priv->device_flags & FSL_GIANFAR_DEV_HAS_COALESCE))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (!dev->phydev)
+	{
 		return -ENODEV;
-
-	/* Check the bounds of the values */
-	if (cvals->rx_coalesce_usecs > GFAR_MAX_COAL_USECS) {
-		netdev_info(dev, "Coalescing is limited to %d microseconds\n",
-			    GFAR_MAX_COAL_USECS);
-		return -EINVAL;
-	}
-
-	if (cvals->rx_max_coalesced_frames > GFAR_MAX_COAL_FRAMES) {
-		netdev_info(dev, "Coalescing is limited to %d frames\n",
-			    GFAR_MAX_COAL_FRAMES);
-		return -EINVAL;
 	}
 
 	/* Check the bounds of the values */
-	if (cvals->tx_coalesce_usecs > GFAR_MAX_COAL_USECS) {
+	if (cvals->rx_coalesce_usecs > GFAR_MAX_COAL_USECS)
+	{
 		netdev_info(dev, "Coalescing is limited to %d microseconds\n",
-			    GFAR_MAX_COAL_USECS);
+					GFAR_MAX_COAL_USECS);
 		return -EINVAL;
 	}
 
-	if (cvals->tx_max_coalesced_frames > GFAR_MAX_COAL_FRAMES) {
+	if (cvals->rx_max_coalesced_frames > GFAR_MAX_COAL_FRAMES)
+	{
 		netdev_info(dev, "Coalescing is limited to %d frames\n",
-			    GFAR_MAX_COAL_FRAMES);
+					GFAR_MAX_COAL_FRAMES);
+		return -EINVAL;
+	}
+
+	/* Check the bounds of the values */
+	if (cvals->tx_coalesce_usecs > GFAR_MAX_COAL_USECS)
+	{
+		netdev_info(dev, "Coalescing is limited to %d microseconds\n",
+					GFAR_MAX_COAL_USECS);
+		return -EINVAL;
+	}
+
+	if (cvals->tx_max_coalesced_frames > GFAR_MAX_COAL_FRAMES)
+	{
+		netdev_info(dev, "Coalescing is limited to %d frames\n",
+					GFAR_MAX_COAL_FRAMES);
 		return -EINVAL;
 	}
 
 	while (test_and_set_bit_lock(GFAR_RESETTING, &priv->state))
+	{
 		cpu_relax();
+	}
 
 	/* Set up rx coalescing */
 	if ((cvals->rx_coalesce_usecs == 0) ||
-	    (cvals->rx_max_coalesced_frames == 0)) {
+		(cvals->rx_max_coalesced_frames == 0))
+	{
 		for (i = 0; i < priv->num_rx_queues; i++)
+		{
 			priv->rx_queue[i]->rxcoalescing = 0;
-	} else {
+		}
+	}
+	else
+	{
 		for (i = 0; i < priv->num_rx_queues; i++)
+		{
 			priv->rx_queue[i]->rxcoalescing = 1;
+		}
 	}
 
-	for (i = 0; i < priv->num_rx_queues; i++) {
+	for (i = 0; i < priv->num_rx_queues; i++)
+	{
 		priv->rx_queue[i]->rxic = mk_ic_value(
-			cvals->rx_max_coalesced_frames,
-			gfar_usecs2ticks(priv, cvals->rx_coalesce_usecs));
+									  cvals->rx_max_coalesced_frames,
+									  gfar_usecs2ticks(priv, cvals->rx_coalesce_usecs));
 	}
 
 	/* Set up tx coalescing */
 	if ((cvals->tx_coalesce_usecs == 0) ||
-	    (cvals->tx_max_coalesced_frames == 0)) {
+		(cvals->tx_max_coalesced_frames == 0))
+	{
 		for (i = 0; i < priv->num_tx_queues; i++)
+		{
 			priv->tx_queue[i]->txcoalescing = 0;
-	} else {
+		}
+	}
+	else
+	{
 		for (i = 0; i < priv->num_tx_queues; i++)
+		{
 			priv->tx_queue[i]->txcoalescing = 1;
+		}
 	}
 
-	for (i = 0; i < priv->num_tx_queues; i++) {
+	for (i = 0; i < priv->num_tx_queues; i++)
+	{
 		priv->tx_queue[i]->txic = mk_ic_value(
-			cvals->tx_max_coalesced_frames,
-			gfar_usecs2ticks(priv, cvals->tx_coalesce_usecs));
+									  cvals->tx_max_coalesced_frames,
+									  gfar_usecs2ticks(priv, cvals->tx_coalesce_usecs));
 	}
 
-	if (dev->flags & IFF_UP) {
+	if (dev->flags & IFF_UP)
+	{
 		stop_gfar(dev);
 		err = startup_gfar(dev);
-	} else {
+	}
+	else
+	{
 		gfar_mac_reset(priv);
 	}
 
@@ -415,7 +470,7 @@ static int gfar_scoalesce(struct net_device *dev,
  * rx, rx_mini, and rx_jumbo rings are the same size, as mini and
  * jumbo are ignored by the driver */
 static void gfar_gringparam(struct net_device *dev,
-			    struct ethtool_ringparam *rvals)
+							struct ethtool_ringparam *rvals)
 {
 	struct gfar_private *priv = netdev_priv(dev);
 	struct gfar_priv_tx_q *tx_queue = NULL;
@@ -442,43 +497,59 @@ static void gfar_gringparam(struct net_device *dev,
  * necessary so that we don't mess things up while we're in motion.
  */
 static int gfar_sringparam(struct net_device *dev,
-			   struct ethtool_ringparam *rvals)
+						   struct ethtool_ringparam *rvals)
 {
 	struct gfar_private *priv = netdev_priv(dev);
 	int err = 0, i;
 
 	if (rvals->rx_pending > GFAR_RX_MAX_RING_SIZE)
+	{
 		return -EINVAL;
+	}
 
-	if (!is_power_of_2(rvals->rx_pending)) {
+	if (!is_power_of_2(rvals->rx_pending))
+	{
 		netdev_err(dev, "Ring sizes must be a power of 2\n");
 		return -EINVAL;
 	}
 
 	if (rvals->tx_pending > GFAR_TX_MAX_RING_SIZE)
+	{
 		return -EINVAL;
+	}
 
-	if (!is_power_of_2(rvals->tx_pending)) {
+	if (!is_power_of_2(rvals->tx_pending))
+	{
 		netdev_err(dev, "Ring sizes must be a power of 2\n");
 		return -EINVAL;
 	}
 
 	while (test_and_set_bit_lock(GFAR_RESETTING, &priv->state))
+	{
 		cpu_relax();
+	}
 
 	if (dev->flags & IFF_UP)
+	{
 		stop_gfar(dev);
+	}
 
 	/* Change the sizes */
 	for (i = 0; i < priv->num_rx_queues; i++)
+	{
 		priv->rx_queue[i]->rx_ring_size = rvals->rx_pending;
+	}
 
 	for (i = 0; i < priv->num_tx_queues; i++)
+	{
 		priv->tx_queue[i]->tx_ring_size = rvals->tx_pending;
+	}
 
 	/* Rebuild the rings with the new size */
 	if (dev->flags & IFF_UP)
+	{
 		err = startup_gfar(dev);
+	}
 
 	clear_bit_unlock(GFAR_RESETTING, &priv->state);
 
@@ -486,7 +557,7 @@ static int gfar_sringparam(struct net_device *dev,
 }
 
 static void gfar_gpauseparam(struct net_device *dev,
-			     struct ethtool_pauseparam *epause)
+							 struct ethtool_pauseparam *epause)
 {
 	struct gfar_private *priv = netdev_priv(dev);
 
@@ -496,7 +567,7 @@ static void gfar_gpauseparam(struct net_device *dev,
 }
 
 static int gfar_spauseparam(struct net_device *dev,
-			    struct ethtool_pauseparam *epause)
+							struct ethtool_pauseparam *epause)
 {
 	struct gfar_private *priv = netdev_priv(dev);
 	struct phy_device *phydev = dev->phydev;
@@ -504,60 +575,90 @@ static int gfar_spauseparam(struct net_device *dev,
 	u32 oldadv, newadv;
 
 	if (!phydev)
+	{
 		return -ENODEV;
+	}
 
 	if (!(phydev->supported & SUPPORTED_Pause) ||
-	    (!(phydev->supported & SUPPORTED_Asym_Pause) &&
-	     (epause->rx_pause != epause->tx_pause)))
+		(!(phydev->supported & SUPPORTED_Asym_Pause) &&
+		 (epause->rx_pause != epause->tx_pause)))
+	{
 		return -EINVAL;
+	}
 
 	priv->rx_pause_en = priv->tx_pause_en = 0;
-	if (epause->rx_pause) {
+
+	if (epause->rx_pause)
+	{
 		priv->rx_pause_en = 1;
 
-		if (epause->tx_pause) {
+		if (epause->tx_pause)
+		{
 			priv->tx_pause_en = 1;
 			/* FLOW_CTRL_RX & TX */
 			newadv = ADVERTISED_Pause;
-		} else  /* FLOW_CTLR_RX */
+		}
+		else    /* FLOW_CTLR_RX */
+		{
 			newadv = ADVERTISED_Pause | ADVERTISED_Asym_Pause;
-	} else if (epause->tx_pause) {
+		}
+	}
+	else if (epause->tx_pause)
+	{
 		priv->tx_pause_en = 1;
 		/* FLOW_CTLR_TX */
 		newadv = ADVERTISED_Asym_Pause;
-	} else
+	}
+	else
+	{
 		newadv = 0;
+	}
 
 	if (epause->autoneg)
+	{
 		priv->pause_aneg_en = 1;
+	}
 	else
+	{
 		priv->pause_aneg_en = 0;
+	}
 
 	oldadv = phydev->advertising &
-		(ADVERTISED_Pause | ADVERTISED_Asym_Pause);
-	if (oldadv != newadv) {
+			 (ADVERTISED_Pause | ADVERTISED_Asym_Pause);
+
+	if (oldadv != newadv)
+	{
 		phydev->advertising &=
 			~(ADVERTISED_Pause | ADVERTISED_Asym_Pause);
 		phydev->advertising |= newadv;
+
 		if (phydev->autoneg)
 			/* inform link partner of our
 			 * new flow ctrl settings
 			 */
+		{
 			return phy_start_aneg(phydev);
+		}
 
-		if (!epause->autoneg) {
+		if (!epause->autoneg)
+		{
 			u32 tempval;
 			tempval = gfar_read(&regs->maccfg1);
 			tempval &= ~(MACCFG1_TX_FLOW | MACCFG1_RX_FLOW);
 
 			priv->tx_actual_en = 0;
-			if (priv->tx_pause_en) {
+
+			if (priv->tx_pause_en)
+			{
 				priv->tx_actual_en = 1;
 				tempval |= MACCFG1_TX_FLOW;
 			}
 
 			if (priv->rx_pause_en)
+			{
 				tempval |= MACCFG1_RX_FLOW;
+			}
+
 			gfar_write(&regs->maccfg1, tempval);
 		}
 	}
@@ -572,19 +673,26 @@ int gfar_set_features(struct net_device *dev, netdev_features_t features)
 	int err = 0;
 
 	if (!(changed & (NETIF_F_HW_VLAN_CTAG_TX | NETIF_F_HW_VLAN_CTAG_RX |
-			 NETIF_F_RXCSUM)))
+					 NETIF_F_RXCSUM)))
+	{
 		return 0;
+	}
 
 	while (test_and_set_bit_lock(GFAR_RESETTING, &priv->state))
+	{
 		cpu_relax();
+	}
 
 	dev->features = features;
 
-	if (dev->flags & IFF_UP) {
+	if (dev->flags & IFF_UP)
+	{
 		/* Now we take down the rings to rebuild them */
 		stop_gfar(dev);
 		err = startup_gfar(dev);
-	} else {
+	}
+	else
+	{
 		gfar_mac_reset(priv);
 	}
 
@@ -616,16 +724,24 @@ static void gfar_get_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
 	wol->wolopts = 0;
 
 	if (priv->wol_supported & GFAR_WOL_MAGIC)
+	{
 		wol->supported |= WAKE_MAGIC;
+	}
 
 	if (priv->wol_supported & GFAR_WOL_FILER_UCAST)
+	{
 		wol->supported |= WAKE_UCAST;
+	}
 
 	if (priv->wol_opts & GFAR_WOL_MAGIC)
+	{
 		wol->wolopts |= WAKE_MAGIC;
+	}
 
 	if (priv->wol_opts & GFAR_WOL_FILER_UCAST)
+	{
 		wol->wolopts |= WAKE_UCAST;
+	}
 }
 
 static int gfar_set_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
@@ -635,24 +751,36 @@ static int gfar_set_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
 	int err;
 
 	if (!priv->wol_supported && wol->wolopts)
+	{
 		return -EINVAL;
+	}
 
 	if (wol->wolopts & ~(WAKE_MAGIC | WAKE_UCAST))
+	{
 		return -EINVAL;
+	}
 
-	if (wol->wolopts & WAKE_MAGIC) {
+	if (wol->wolopts & WAKE_MAGIC)
+	{
 		wol_opts |= GFAR_WOL_MAGIC;
-	} else {
+	}
+	else
+	{
 		if (wol->wolopts & WAKE_UCAST)
+		{
 			wol_opts |= GFAR_WOL_FILER_UCAST;
+		}
 	}
 
 	wol_opts &= priv->wol_supported;
 	priv->wol_opts = 0;
 
 	err = device_set_wakeup_enable(priv->dev, wol_opts);
+
 	if (err)
+	{
 		return err;
+	}
 
 	priv->wol_opts = wol_opts;
 
@@ -664,70 +792,77 @@ static void ethflow_to_filer_rules (struct gfar_private *priv, u64 ethflow)
 {
 	u32 fcr = 0x0, fpr = FPR_FILER_MASK;
 
-	if (ethflow & RXH_L2DA) {
+	if (ethflow & RXH_L2DA)
+	{
 		fcr = RQFCR_PID_DAH | RQFCR_CMP_NOMATCH |
-		      RQFCR_HASH | RQFCR_AND | RQFCR_HASHTBL_0;
+			  RQFCR_HASH | RQFCR_AND | RQFCR_HASHTBL_0;
 		priv->ftp_rqfpr[priv->cur_filer_idx] = fpr;
 		priv->ftp_rqfcr[priv->cur_filer_idx] = fcr;
 		gfar_write_filer(priv, priv->cur_filer_idx, fcr, fpr);
 		priv->cur_filer_idx = priv->cur_filer_idx - 1;
 
 		fcr = RQFCR_PID_DAL | RQFCR_CMP_NOMATCH |
-		      RQFCR_HASH | RQFCR_AND | RQFCR_HASHTBL_0;
+			  RQFCR_HASH | RQFCR_AND | RQFCR_HASHTBL_0;
 		priv->ftp_rqfpr[priv->cur_filer_idx] = fpr;
 		priv->ftp_rqfcr[priv->cur_filer_idx] = fcr;
 		gfar_write_filer(priv, priv->cur_filer_idx, fcr, fpr);
 		priv->cur_filer_idx = priv->cur_filer_idx - 1;
 	}
 
-	if (ethflow & RXH_VLAN) {
+	if (ethflow & RXH_VLAN)
+	{
 		fcr = RQFCR_PID_VID | RQFCR_CMP_NOMATCH | RQFCR_HASH |
-		      RQFCR_AND | RQFCR_HASHTBL_0;
+			  RQFCR_AND | RQFCR_HASHTBL_0;
 		gfar_write_filer(priv, priv->cur_filer_idx, fcr, fpr);
 		priv->ftp_rqfpr[priv->cur_filer_idx] = fpr;
 		priv->ftp_rqfcr[priv->cur_filer_idx] = fcr;
 		priv->cur_filer_idx = priv->cur_filer_idx - 1;
 	}
 
-	if (ethflow & RXH_IP_SRC) {
+	if (ethflow & RXH_IP_SRC)
+	{
 		fcr = RQFCR_PID_SIA | RQFCR_CMP_NOMATCH | RQFCR_HASH |
-		      RQFCR_AND | RQFCR_HASHTBL_0;
+			  RQFCR_AND | RQFCR_HASHTBL_0;
 		priv->ftp_rqfpr[priv->cur_filer_idx] = fpr;
 		priv->ftp_rqfcr[priv->cur_filer_idx] = fcr;
 		gfar_write_filer(priv, priv->cur_filer_idx, fcr, fpr);
 		priv->cur_filer_idx = priv->cur_filer_idx - 1;
 	}
 
-	if (ethflow & (RXH_IP_DST)) {
+	if (ethflow & (RXH_IP_DST))
+	{
 		fcr = RQFCR_PID_DIA | RQFCR_CMP_NOMATCH | RQFCR_HASH |
-		      RQFCR_AND | RQFCR_HASHTBL_0;
+			  RQFCR_AND | RQFCR_HASHTBL_0;
 		priv->ftp_rqfpr[priv->cur_filer_idx] = fpr;
 		priv->ftp_rqfcr[priv->cur_filer_idx] = fcr;
 		gfar_write_filer(priv, priv->cur_filer_idx, fcr, fpr);
 		priv->cur_filer_idx = priv->cur_filer_idx - 1;
 	}
 
-	if (ethflow & RXH_L3_PROTO) {
+	if (ethflow & RXH_L3_PROTO)
+	{
 		fcr = RQFCR_PID_L4P | RQFCR_CMP_NOMATCH | RQFCR_HASH |
-		      RQFCR_AND | RQFCR_HASHTBL_0;
+			  RQFCR_AND | RQFCR_HASHTBL_0;
 		priv->ftp_rqfpr[priv->cur_filer_idx] = fpr;
 		priv->ftp_rqfcr[priv->cur_filer_idx] = fcr;
 		gfar_write_filer(priv, priv->cur_filer_idx, fcr, fpr);
 		priv->cur_filer_idx = priv->cur_filer_idx - 1;
 	}
 
-	if (ethflow & RXH_L4_B_0_1) {
+	if (ethflow & RXH_L4_B_0_1)
+	{
 		fcr = RQFCR_PID_SPT | RQFCR_CMP_NOMATCH | RQFCR_HASH |
-		      RQFCR_AND | RQFCR_HASHTBL_0;
+			  RQFCR_AND | RQFCR_HASHTBL_0;
 		priv->ftp_rqfpr[priv->cur_filer_idx] = fpr;
 		priv->ftp_rqfcr[priv->cur_filer_idx] = fcr;
 		gfar_write_filer(priv, priv->cur_filer_idx, fcr, fpr);
 		priv->cur_filer_idx = priv->cur_filer_idx - 1;
 	}
 
-	if (ethflow & RXH_L4_B_2_3) {
+	if (ethflow & RXH_L4_B_2_3)
+	{
 		fcr = RQFCR_PID_DPT | RQFCR_CMP_NOMATCH | RQFCR_HASH |
-		      RQFCR_AND | RQFCR_HASHTBL_0;
+			  RQFCR_AND | RQFCR_HASHTBL_0;
 		priv->ftp_rqfpr[priv->cur_filer_idx] = fpr;
 		priv->ftp_rqfcr[priv->cur_filer_idx] = fcr;
 		gfar_write_filer(priv, priv->cur_filer_idx, fcr, fpr);
@@ -736,7 +871,7 @@ static void ethflow_to_filer_rules (struct gfar_private *priv, u64 ethflow)
 }
 
 static int gfar_ethflow_to_filer_table(struct gfar_private *priv, u64 ethflow,
-				       u64 class)
+									   u64 class)
 {
 	unsigned int last_rule_idx = priv->cur_filer_idx;
 	unsigned int cmp_rqfpr;
@@ -747,47 +882,59 @@ static int gfar_ethflow_to_filer_table(struct gfar_private *priv, u64 ethflow,
 	int ret = 1;
 
 	local_rqfpr = kmalloc_array(MAX_FILER_IDX + 1, sizeof(unsigned int),
-				    GFP_KERNEL);
+								GFP_KERNEL);
 	local_rqfcr = kmalloc_array(MAX_FILER_IDX + 1, sizeof(unsigned int),
-				    GFP_KERNEL);
-	if (!local_rqfpr || !local_rqfcr) {
+								GFP_KERNEL);
+
+	if (!local_rqfpr || !local_rqfcr)
+	{
 		ret = 0;
 		goto err;
 	}
 
-	switch (class) {
-	case TCP_V4_FLOW:
-		cmp_rqfpr = RQFPR_IPV4 |RQFPR_TCP;
-		break;
-	case UDP_V4_FLOW:
-		cmp_rqfpr = RQFPR_IPV4 |RQFPR_UDP;
-		break;
-	case TCP_V6_FLOW:
-		cmp_rqfpr = RQFPR_IPV6 |RQFPR_TCP;
-		break;
-	case UDP_V6_FLOW:
-		cmp_rqfpr = RQFPR_IPV6 |RQFPR_UDP;
-		break;
-	default:
-		netdev_err(priv->ndev,
-			   "Right now this class is not supported\n");
-		ret = 0;
-		goto err;
+	switch (class)
+	{
+		case TCP_V4_FLOW:
+			cmp_rqfpr = RQFPR_IPV4 | RQFPR_TCP;
+			break;
+
+		case UDP_V4_FLOW:
+			cmp_rqfpr = RQFPR_IPV4 | RQFPR_UDP;
+			break;
+
+		case TCP_V6_FLOW:
+			cmp_rqfpr = RQFPR_IPV6 | RQFPR_TCP;
+			break;
+
+		case UDP_V6_FLOW:
+			cmp_rqfpr = RQFPR_IPV6 | RQFPR_UDP;
+			break;
+
+		default:
+			netdev_err(priv->ndev,
+					   "Right now this class is not supported\n");
+			ret = 0;
+			goto err;
 	}
 
-	for (i = 0; i < MAX_FILER_IDX + 1; i++) {
+	for (i = 0; i < MAX_FILER_IDX + 1; i++)
+	{
 		local_rqfpr[j] = priv->ftp_rqfpr[i];
 		local_rqfcr[j] = priv->ftp_rqfcr[i];
 		j--;
+
 		if ((priv->ftp_rqfcr[i] ==
-		     (RQFCR_PID_PARSE | RQFCR_CLE | RQFCR_AND)) &&
-		    (priv->ftp_rqfpr[i] == cmp_rqfpr))
+			 (RQFCR_PID_PARSE | RQFCR_CLE | RQFCR_AND)) &&
+			(priv->ftp_rqfpr[i] == cmp_rqfpr))
+		{
 			break;
+		}
 	}
 
-	if (i == MAX_FILER_IDX + 1) {
+	if (i == MAX_FILER_IDX + 1)
+	{
 		netdev_err(priv->ndev,
-			   "No parse rule found, can't create hash rules\n");
+				   "No parse rule found, can't create hash rules\n");
 		ret = 0;
 		goto err;
 	}
@@ -795,21 +942,26 @@ static int gfar_ethflow_to_filer_table(struct gfar_private *priv, u64 ethflow,
 	/* If a match was found, then it begins the starting of a cluster rule
 	 * if it was already programmed, we need to overwrite these rules
 	 */
-	for (l = i+1; l < MAX_FILER_IDX; l++) {
+	for (l = i + 1; l < MAX_FILER_IDX; l++)
+	{
 		if ((priv->ftp_rqfcr[l] & RQFCR_CLE) &&
-		    !(priv->ftp_rqfcr[l] & RQFCR_AND)) {
+			!(priv->ftp_rqfcr[l] & RQFCR_AND))
+		{
 			priv->ftp_rqfcr[l] = RQFCR_CLE | RQFCR_CMP_EXACT |
-					     RQFCR_HASHTBL_0 | RQFCR_PID_MASK;
+								 RQFCR_HASHTBL_0 | RQFCR_PID_MASK;
 			priv->ftp_rqfpr[l] = FPR_FILER_MASK;
 			gfar_write_filer(priv, l, priv->ftp_rqfcr[l],
-					 priv->ftp_rqfpr[l]);
+							 priv->ftp_rqfpr[l]);
 			break;
 		}
 
 		if (!(priv->ftp_rqfcr[l] & RQFCR_CLE) &&
 			(priv->ftp_rqfcr[l] & RQFCR_AND))
+		{
 			continue;
-		else {
+		}
+		else
+		{
 			local_rqfpr[j] = priv->ftp_rqfpr[l];
 			local_rqfcr[j] = priv->ftp_rqfcr[l];
 			j--;
@@ -823,13 +975,18 @@ static int gfar_ethflow_to_filer_table(struct gfar_private *priv, u64 ethflow,
 	ethflow_to_filer_rules(priv, ethflow);
 
 	/* Write back the popped out rules again */
-	for (k = j+1; k < MAX_FILER_IDX; k++) {
+	for (k = j + 1; k < MAX_FILER_IDX; k++)
+	{
 		priv->ftp_rqfpr[priv->cur_filer_idx] = local_rqfpr[k];
 		priv->ftp_rqfcr[priv->cur_filer_idx] = local_rqfcr[k];
 		gfar_write_filer(priv, priv->cur_filer_idx,
-				 local_rqfcr[k], local_rqfpr[k]);
+						 local_rqfcr[k], local_rqfpr[k]);
+
 		if (!priv->cur_filer_idx)
+		{
 			break;
+		}
+
 		priv->cur_filer_idx = priv->cur_filer_idx - 1;
 	}
 
@@ -840,11 +997,13 @@ err:
 }
 
 static int gfar_set_hash_opts(struct gfar_private *priv,
-			      struct ethtool_rxnfc *cmd)
+							  struct ethtool_rxnfc *cmd)
 {
 	/* write the filer rules here */
 	if (!gfar_ethflow_to_filer_table(priv, cmd->data, cmd->flow_type))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -857,29 +1016,40 @@ static int gfar_check_filer_hardware(struct gfar_private *priv)
 	/* Check if we are in FIFO mode */
 	i = gfar_read(&regs->ecntrl);
 	i &= ECNTRL_FIFM;
-	if (i == ECNTRL_FIFM) {
+
+	if (i == ECNTRL_FIFM)
+	{
 		netdev_notice(priv->ndev, "Interface in FIFO mode\n");
 		i = gfar_read(&regs->rctrl);
 		i &= RCTRL_PRSDEP_MASK | RCTRL_PRSFM;
-		if (i == (RCTRL_PRSDEP_MASK | RCTRL_PRSFM)) {
+
+		if (i == (RCTRL_PRSDEP_MASK | RCTRL_PRSFM))
+		{
 			netdev_info(priv->ndev,
-				    "Receive Queue Filtering enabled\n");
-		} else {
+						"Receive Queue Filtering enabled\n");
+		}
+		else
+		{
 			netdev_warn(priv->ndev,
-				    "Receive Queue Filtering disabled\n");
+						"Receive Queue Filtering disabled\n");
 			return -EOPNOTSUPP;
 		}
 	}
 	/* Or in standard mode */
-	else {
+	else
+	{
 		i = gfar_read(&regs->rctrl);
 		i &= RCTRL_PRSDEP_MASK;
-		if (i == RCTRL_PRSDEP_MASK) {
+
+		if (i == RCTRL_PRSDEP_MASK)
+		{
 			netdev_info(priv->ndev,
-				    "Receive Queue Filtering enabled\n");
-		} else {
+						"Receive Queue Filtering enabled\n");
+		}
+		else
+		{
 			netdev_warn(priv->ndev,
-				    "Receive Queue Filtering disabled\n");
+						"Receive Queue Filtering disabled\n");
 			return -EOPNOTSUPP;
 		}
 	}
@@ -904,13 +1074,13 @@ static void gfar_set_parse_bits(u32 value, u32 mask, struct filer_table *tab)
 {
 	gfar_set_mask(mask, tab);
 	tab->fe[tab->index].ctrl = RQFCR_CMP_EXACT | RQFCR_PID_PARSE |
-				   RQFCR_AND;
+							   RQFCR_AND;
 	tab->fe[tab->index].prop = value;
 	tab->index++;
 }
 
 static void gfar_set_general_attribute(u32 value, u32 mask, u32 flag,
-				       struct filer_table *tab)
+									   struct filer_table *tab)
 {
 	gfar_set_mask(mask, tab);
 	tab->fe[tab->index].ctrl = RQFCR_CMP_EXACT | RQFCR_AND | flag;
@@ -933,167 +1103,218 @@ static void gfar_set_general_attribute(u32 value, u32 mask, u32 flag,
  * Further the all masks are one-padded for better hardware efficiency.
  */
 static void gfar_set_attribute(u32 value, u32 mask, u32 flag,
-			       struct filer_table *tab)
+							   struct filer_table *tab)
 {
-	switch (flag) {
+	switch (flag)
+	{
 		/* 3bit */
-	case RQFCR_PID_PRI:
-		if (!(value | mask))
-			return;
-		mask |= RQFCR_PID_PRI_MASK;
-		break;
+		case RQFCR_PID_PRI:
+			if (!(value | mask))
+			{
+				return;
+			}
+
+			mask |= RQFCR_PID_PRI_MASK;
+			break;
+
 		/* 8bit */
-	case RQFCR_PID_L4P:
-	case RQFCR_PID_TOS:
-		if (!~(mask | RQFCR_PID_L4P_MASK))
-			return;
-		if (!mask)
-			mask = ~0;
-		else
-			mask |= RQFCR_PID_L4P_MASK;
-		break;
+		case RQFCR_PID_L4P:
+		case RQFCR_PID_TOS:
+			if (!~(mask | RQFCR_PID_L4P_MASK))
+			{
+				return;
+			}
+
+			if (!mask)
+			{
+				mask = ~0;
+			}
+			else
+			{
+				mask |= RQFCR_PID_L4P_MASK;
+			}
+
+			break;
+
 		/* 12bit */
-	case RQFCR_PID_VID:
-		if (!(value | mask))
-			return;
-		mask |= RQFCR_PID_VID_MASK;
-		break;
+		case RQFCR_PID_VID:
+			if (!(value | mask))
+			{
+				return;
+			}
+
+			mask |= RQFCR_PID_VID_MASK;
+			break;
+
 		/* 16bit */
-	case RQFCR_PID_DPT:
-	case RQFCR_PID_SPT:
-	case RQFCR_PID_ETY:
-		if (!~(mask | RQFCR_PID_PORT_MASK))
-			return;
-		if (!mask)
-			mask = ~0;
-		else
-			mask |= RQFCR_PID_PORT_MASK;
-		break;
+		case RQFCR_PID_DPT:
+		case RQFCR_PID_SPT:
+		case RQFCR_PID_ETY:
+			if (!~(mask | RQFCR_PID_PORT_MASK))
+			{
+				return;
+			}
+
+			if (!mask)
+			{
+				mask = ~0;
+			}
+			else
+			{
+				mask |= RQFCR_PID_PORT_MASK;
+			}
+
+			break;
+
 		/* 24bit */
-	case RQFCR_PID_DAH:
-	case RQFCR_PID_DAL:
-	case RQFCR_PID_SAH:
-	case RQFCR_PID_SAL:
-		if (!(value | mask))
-			return;
-		mask |= RQFCR_PID_MAC_MASK;
-		break;
+		case RQFCR_PID_DAH:
+		case RQFCR_PID_DAL:
+		case RQFCR_PID_SAH:
+		case RQFCR_PID_SAL:
+			if (!(value | mask))
+			{
+				return;
+			}
+
+			mask |= RQFCR_PID_MAC_MASK;
+			break;
+
 		/* for all real 32bit masks */
-	default:
-		if (!~mask)
-			return;
-		if (!mask)
-			mask = ~0;
-		break;
+		default:
+			if (!~mask)
+			{
+				return;
+			}
+
+			if (!mask)
+			{
+				mask = ~0;
+			}
+
+			break;
 	}
+
 	gfar_set_general_attribute(value, mask, flag, tab);
 }
 
 /* Translates value and mask for UDP, TCP or SCTP */
 static void gfar_set_basic_ip(struct ethtool_tcpip4_spec *value,
-			      struct ethtool_tcpip4_spec *mask,
-			      struct filer_table *tab)
+							  struct ethtool_tcpip4_spec *mask,
+							  struct filer_table *tab)
 {
 	gfar_set_attribute(be32_to_cpu(value->ip4src),
-			   be32_to_cpu(mask->ip4src),
-			   RQFCR_PID_SIA, tab);
+					   be32_to_cpu(mask->ip4src),
+					   RQFCR_PID_SIA, tab);
 	gfar_set_attribute(be32_to_cpu(value->ip4dst),
-			   be32_to_cpu(mask->ip4dst),
-			   RQFCR_PID_DIA, tab);
+					   be32_to_cpu(mask->ip4dst),
+					   RQFCR_PID_DIA, tab);
 	gfar_set_attribute(be16_to_cpu(value->pdst),
-			   be16_to_cpu(mask->pdst),
-			   RQFCR_PID_DPT, tab);
+					   be16_to_cpu(mask->pdst),
+					   RQFCR_PID_DPT, tab);
 	gfar_set_attribute(be16_to_cpu(value->psrc),
-			   be16_to_cpu(mask->psrc),
-			   RQFCR_PID_SPT, tab);
+					   be16_to_cpu(mask->psrc),
+					   RQFCR_PID_SPT, tab);
 	gfar_set_attribute(value->tos, mask->tos, RQFCR_PID_TOS, tab);
 }
 
 /* Translates value and mask for RAW-IP4 */
 static void gfar_set_user_ip(struct ethtool_usrip4_spec *value,
-			     struct ethtool_usrip4_spec *mask,
-			     struct filer_table *tab)
+							 struct ethtool_usrip4_spec *mask,
+							 struct filer_table *tab)
 {
 	gfar_set_attribute(be32_to_cpu(value->ip4src),
-			   be32_to_cpu(mask->ip4src),
-			   RQFCR_PID_SIA, tab);
+					   be32_to_cpu(mask->ip4src),
+					   RQFCR_PID_SIA, tab);
 	gfar_set_attribute(be32_to_cpu(value->ip4dst),
-			   be32_to_cpu(mask->ip4dst),
-			   RQFCR_PID_DIA, tab);
+					   be32_to_cpu(mask->ip4dst),
+					   RQFCR_PID_DIA, tab);
 	gfar_set_attribute(value->tos, mask->tos, RQFCR_PID_TOS, tab);
 	gfar_set_attribute(value->proto, mask->proto, RQFCR_PID_L4P, tab);
 	gfar_set_attribute(be32_to_cpu(value->l4_4_bytes),
-			   be32_to_cpu(mask->l4_4_bytes),
-			   RQFCR_PID_ARB, tab);
+					   be32_to_cpu(mask->l4_4_bytes),
+					   RQFCR_PID_ARB, tab);
 
 }
 
 /* Translates value and mask for ETHER spec */
 static void gfar_set_ether(struct ethhdr *value, struct ethhdr *mask,
-			   struct filer_table *tab)
+						   struct filer_table *tab)
 {
 	u32 upper_temp_mask = 0;
 	u32 lower_temp_mask = 0;
 
 	/* Source address */
-	if (!is_broadcast_ether_addr(mask->h_source)) {
-		if (is_zero_ether_addr(mask->h_source)) {
+	if (!is_broadcast_ether_addr(mask->h_source))
+	{
+		if (is_zero_ether_addr(mask->h_source))
+		{
 			upper_temp_mask = 0xFFFFFFFF;
 			lower_temp_mask = 0xFFFFFFFF;
-		} else {
-			upper_temp_mask = mask->h_source[0] << 16 |
-					  mask->h_source[1] << 8  |
-					  mask->h_source[2];
-			lower_temp_mask = mask->h_source[3] << 16 |
-					  mask->h_source[4] << 8  |
-					  mask->h_source[5];
 		}
+		else
+		{
+			upper_temp_mask = mask->h_source[0] << 16 |
+							  mask->h_source[1] << 8  |
+							  mask->h_source[2];
+			lower_temp_mask = mask->h_source[3] << 16 |
+							  mask->h_source[4] << 8  |
+							  mask->h_source[5];
+		}
+
 		/* Upper 24bit */
 		gfar_set_attribute(value->h_source[0] << 16 |
-				   value->h_source[1] << 8  |
-				   value->h_source[2],
-				   upper_temp_mask, RQFCR_PID_SAH, tab);
+						   value->h_source[1] << 8  |
+						   value->h_source[2],
+						   upper_temp_mask, RQFCR_PID_SAH, tab);
 		/* And the same for the lower part */
 		gfar_set_attribute(value->h_source[3] << 16 |
-				   value->h_source[4] << 8  |
-				   value->h_source[5],
-				   lower_temp_mask, RQFCR_PID_SAL, tab);
+						   value->h_source[4] << 8  |
+						   value->h_source[5],
+						   lower_temp_mask, RQFCR_PID_SAL, tab);
 	}
+
 	/* Destination address */
-	if (!is_broadcast_ether_addr(mask->h_dest)) {
+	if (!is_broadcast_ether_addr(mask->h_dest))
+	{
 		/* Special for destination is limited broadcast */
 		if ((is_broadcast_ether_addr(value->h_dest) &&
-		    is_zero_ether_addr(mask->h_dest))) {
+			 is_zero_ether_addr(mask->h_dest)))
+		{
 			gfar_set_parse_bits(RQFPR_EBC, RQFPR_EBC, tab);
-		} else {
-			if (is_zero_ether_addr(mask->h_dest)) {
+		}
+		else
+		{
+			if (is_zero_ether_addr(mask->h_dest))
+			{
 				upper_temp_mask = 0xFFFFFFFF;
 				lower_temp_mask = 0xFFFFFFFF;
-			} else {
+			}
+			else
+			{
 				upper_temp_mask = mask->h_dest[0] << 16 |
-						  mask->h_dest[1] << 8  |
-						  mask->h_dest[2];
+								  mask->h_dest[1] << 8  |
+								  mask->h_dest[2];
 				lower_temp_mask = mask->h_dest[3] << 16 |
-						  mask->h_dest[4] << 8  |
-						  mask->h_dest[5];
+								  mask->h_dest[4] << 8  |
+								  mask->h_dest[5];
 			}
 
 			/* Upper 24bit */
 			gfar_set_attribute(value->h_dest[0] << 16 |
-					   value->h_dest[1] << 8  |
-					   value->h_dest[2],
-					   upper_temp_mask, RQFCR_PID_DAH, tab);
+							   value->h_dest[1] << 8  |
+							   value->h_dest[2],
+							   upper_temp_mask, RQFCR_PID_DAH, tab);
 			/* And the same for the lower part */
 			gfar_set_attribute(value->h_dest[3] << 16 |
-					   value->h_dest[4] << 8  |
-					   value->h_dest[5],
-					   lower_temp_mask, RQFCR_PID_DAL, tab);
+							   value->h_dest[4] << 8  |
+							   value->h_dest[5],
+							   lower_temp_mask, RQFCR_PID_DAL, tab);
 		}
 	}
 
 	gfar_set_attribute(be16_to_cpu(value->h_proto),
-			   be16_to_cpu(mask->h_proto),
-			   RQFCR_PID_ETY, tab);
+					   be16_to_cpu(mask->h_proto),
+					   RQFCR_PID_ETY, tab);
 }
 
 static inline u32 vlan_tci_vid(struct ethtool_rx_flow_spec *rule)
@@ -1119,18 +1340,18 @@ static inline u32 vlan_tci_cfim(struct ethtool_rx_flow_spec *rule)
 static inline u32 vlan_tci_prio(struct ethtool_rx_flow_spec *rule)
 {
 	return (be16_to_cpu(rule->h_ext.vlan_tci) & VLAN_PRIO_MASK) >>
-		VLAN_PRIO_SHIFT;
+		   VLAN_PRIO_SHIFT;
 }
 
 static inline u32 vlan_tci_priom(struct ethtool_rx_flow_spec *rule)
 {
 	return (be16_to_cpu(rule->m_ext.vlan_tci) & VLAN_PRIO_MASK) >>
-		VLAN_PRIO_SHIFT;
+		   VLAN_PRIO_SHIFT;
 }
 
 /* Convert a rule to binary filter format of gianfar */
 static int gfar_convert_to_filer(struct ethtool_rx_flow_spec *rule,
-				 struct filer_table *tab)
+								 struct filer_table *tab)
 {
 	u32 vlan = 0, vlan_mask = 0;
 	u32 id = 0, id_mask = 0;
@@ -1140,9 +1361,12 @@ static int gfar_convert_to_filer(struct ethtool_rx_flow_spec *rule,
 
 	/* Check if vlan is wanted */
 	if ((rule->flow_type & FLOW_EXT) &&
-	    (rule->m_ext.vlan_tci != cpu_to_be16(0xFFFF))) {
+		(rule->m_ext.vlan_tci != cpu_to_be16(0xFFFF)))
+	{
 		if (!rule->m_ext.vlan_tci)
+		{
 			rule->m_ext.vlan_tci = cpu_to_be16(0xFFFF);
+		}
 
 		vlan = RQFPR_VLN;
 		vlan_mask = RQFPR_VLN;
@@ -1155,61 +1379,75 @@ static int gfar_convert_to_filer(struct ethtool_rx_flow_spec *rule,
 		prio = vlan_tci_prio(rule);
 		prio_mask = vlan_tci_priom(rule);
 
-		if (cfi == VLAN_TAG_PRESENT && cfi_mask == VLAN_TAG_PRESENT) {
+		if (cfi == VLAN_TAG_PRESENT && cfi_mask == VLAN_TAG_PRESENT)
+		{
 			vlan |= RQFPR_CFI;
 			vlan_mask |= RQFPR_CFI;
-		} else if (cfi != VLAN_TAG_PRESENT &&
-			   cfi_mask == VLAN_TAG_PRESENT) {
+		}
+		else if (cfi != VLAN_TAG_PRESENT &&
+				 cfi_mask == VLAN_TAG_PRESENT)
+		{
 			vlan_mask |= RQFPR_CFI;
 		}
 	}
 
-	switch (rule->flow_type & ~FLOW_EXT) {
-	case TCP_V4_FLOW:
-		gfar_set_parse_bits(RQFPR_IPV4 | RQFPR_TCP | vlan,
-				    RQFPR_IPV4 | RQFPR_TCP | vlan_mask, tab);
-		gfar_set_basic_ip(&rule->h_u.tcp_ip4_spec,
-				  &rule->m_u.tcp_ip4_spec, tab);
-		break;
-	case UDP_V4_FLOW:
-		gfar_set_parse_bits(RQFPR_IPV4 | RQFPR_UDP | vlan,
-				    RQFPR_IPV4 | RQFPR_UDP | vlan_mask, tab);
-		gfar_set_basic_ip(&rule->h_u.udp_ip4_spec,
-				  &rule->m_u.udp_ip4_spec, tab);
-		break;
-	case SCTP_V4_FLOW:
-		gfar_set_parse_bits(RQFPR_IPV4 | vlan, RQFPR_IPV4 | vlan_mask,
-				    tab);
-		gfar_set_attribute(132, 0, RQFCR_PID_L4P, tab);
-		gfar_set_basic_ip((struct ethtool_tcpip4_spec *)&rule->h_u,
-				  (struct ethtool_tcpip4_spec *)&rule->m_u,
-				  tab);
-		break;
-	case IP_USER_FLOW:
-		gfar_set_parse_bits(RQFPR_IPV4 | vlan, RQFPR_IPV4 | vlan_mask,
-				    tab);
-		gfar_set_user_ip((struct ethtool_usrip4_spec *) &rule->h_u,
-				 (struct ethtool_usrip4_spec *) &rule->m_u,
-				 tab);
-		break;
-	case ETHER_FLOW:
-		if (vlan)
-			gfar_set_parse_bits(vlan, vlan_mask, tab);
-		gfar_set_ether((struct ethhdr *) &rule->h_u,
-			       (struct ethhdr *) &rule->m_u, tab);
-		break;
-	default:
-		return -1;
+	switch (rule->flow_type & ~FLOW_EXT)
+	{
+		case TCP_V4_FLOW:
+			gfar_set_parse_bits(RQFPR_IPV4 | RQFPR_TCP | vlan,
+								RQFPR_IPV4 | RQFPR_TCP | vlan_mask, tab);
+			gfar_set_basic_ip(&rule->h_u.tcp_ip4_spec,
+							  &rule->m_u.tcp_ip4_spec, tab);
+			break;
+
+		case UDP_V4_FLOW:
+			gfar_set_parse_bits(RQFPR_IPV4 | RQFPR_UDP | vlan,
+								RQFPR_IPV4 | RQFPR_UDP | vlan_mask, tab);
+			gfar_set_basic_ip(&rule->h_u.udp_ip4_spec,
+							  &rule->m_u.udp_ip4_spec, tab);
+			break;
+
+		case SCTP_V4_FLOW:
+			gfar_set_parse_bits(RQFPR_IPV4 | vlan, RQFPR_IPV4 | vlan_mask,
+								tab);
+			gfar_set_attribute(132, 0, RQFCR_PID_L4P, tab);
+			gfar_set_basic_ip((struct ethtool_tcpip4_spec *)&rule->h_u,
+							  (struct ethtool_tcpip4_spec *)&rule->m_u,
+							  tab);
+			break;
+
+		case IP_USER_FLOW:
+			gfar_set_parse_bits(RQFPR_IPV4 | vlan, RQFPR_IPV4 | vlan_mask,
+								tab);
+			gfar_set_user_ip((struct ethtool_usrip4_spec *) &rule->h_u,
+							 (struct ethtool_usrip4_spec *) &rule->m_u,
+							 tab);
+			break;
+
+		case ETHER_FLOW:
+			if (vlan)
+			{
+				gfar_set_parse_bits(vlan, vlan_mask, tab);
+			}
+
+			gfar_set_ether((struct ethhdr *) &rule->h_u,
+						   (struct ethhdr *) &rule->m_u, tab);
+			break;
+
+		default:
+			return -1;
 	}
 
 	/* Set the vlan attributes in the end */
-	if (vlan) {
+	if (vlan)
+	{
 		gfar_set_attribute(id, id_mask, RQFCR_PID_VID, tab);
 		gfar_set_attribute(prio, prio_mask, RQFCR_PID_PRI, tab);
 	}
 
 	/* If there has been nothing written till now, it must be a default */
-	if (tab->index == old_index) {
+	if (tab->index == old_index)
+	{
 		gfar_set_mask(0xFFFFFFFF, tab);
 		tab->fe[tab->index].ctrl = 0x20;
 		tab->fe[tab->index].prop = 0x0;
@@ -1221,12 +1459,17 @@ static int gfar_convert_to_filer(struct ethtool_rx_flow_spec *rule,
 
 	/* Specify which queue to use or to drop */
 	if (rule->ring_cookie == RX_CLS_FLOW_DISC)
+	{
 		tab->fe[tab->index - 1].ctrl |= RQFCR_RJE;
+	}
 	else
+	{
 		tab->fe[tab->index - 1].ctrl |= (rule->ring_cookie << 10);
+	}
 
 	/* Only big enough entries can be clustered */
-	if (tab->index > (old_index + 2)) {
+	if (tab->index > (old_index + 2))
+	{
 		tab->fe[old_index + 1].ctrl |= RQFCR_CLE;
 		tab->fe[tab->index - 1].ctrl |= RQFCR_CLE;
 	}
@@ -1235,25 +1478,36 @@ static int gfar_convert_to_filer(struct ethtool_rx_flow_spec *rule,
 	 * free space in hw
 	 */
 	if (tab->index > MAX_FILER_CACHE_IDX - 1)
+	{
 		return -EBUSY;
+	}
 
 	return 0;
 }
 
 /* Write the bit-pattern from software's buffer to hardware registers */
 static int gfar_write_filer_table(struct gfar_private *priv,
-				  struct filer_table *tab)
+								  struct filer_table *tab)
 {
 	u32 i = 0;
+
 	if (tab->index > MAX_FILER_IDX - 1)
+	{
 		return -EBUSY;
+	}
 
 	/* Fill regular entries */
 	for (; i < MAX_FILER_IDX && (tab->fe[i].ctrl | tab->fe[i].prop); i++)
+	{
 		gfar_write_filer(priv, i, tab->fe[i].ctrl, tab->fe[i].prop);
+	}
+
 	/* Fill the rest with fall-troughs */
 	for (; i < MAX_FILER_IDX; i++)
+	{
 		gfar_write_filer(priv, i, 0x60, 0xFFFFFFFF);
+	}
+
 	/* Last entry must be default accept
 	 * because that's what people expect
 	 */
@@ -1263,21 +1517,24 @@ static int gfar_write_filer_table(struct gfar_private *priv,
 }
 
 static int gfar_check_capability(struct ethtool_rx_flow_spec *flow,
-				 struct gfar_private *priv)
+								 struct gfar_private *priv)
 {
 
-	if (flow->flow_type & FLOW_EXT)	{
+	if (flow->flow_type & FLOW_EXT)
+	{
 		if (~flow->m_ext.data[0] || ~flow->m_ext.data[1])
 			netdev_warn(priv->ndev,
-				    "User-specific data not supported!\n");
+						"User-specific data not supported!\n");
+
 		if (~flow->m_ext.vlan_etype)
 			netdev_warn(priv->ndev,
-				    "VLAN-etype not supported!\n");
+						"VLAN-etype not supported!\n");
 	}
+
 	if (flow->flow_type == IP_USER_FLOW)
 		if (flow->h_u.usr_ip4_spec.ip_ver != ETH_RX_NFC_IP4)
 			netdev_warn(priv->ndev,
-				    "IP-Version differing from IPv4 not supported!\n");
+						"IP-Version differing from IPv4 not supported!\n");
 
 	return 0;
 }
@@ -1290,29 +1547,39 @@ static int gfar_process_filer_changes(struct gfar_private *priv)
 
 	/* So index is set to zero, too! */
 	tab = kzalloc(sizeof(*tab), GFP_KERNEL);
+
 	if (tab == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* Now convert the existing filer data from flow_spec into
 	 * filer tables binary format
 	 */
-	list_for_each_entry(j, &priv->rx_list.list, list) {
+	list_for_each_entry(j, &priv->rx_list.list, list)
+	{
 		ret = gfar_convert_to_filer(&j->fs, tab);
-		if (ret == -EBUSY) {
+
+		if (ret == -EBUSY)
+		{
 			netdev_err(priv->ndev,
-				   "Rule not added: No free space!\n");
+					   "Rule not added: No free space!\n");
 			goto end;
 		}
-		if (ret == -1) {
+
+		if (ret == -1)
+		{
 			netdev_err(priv->ndev,
-				   "Rule not added: Unsupported Flow-type!\n");
+					   "Rule not added: Unsupported Flow-type!\n");
 			goto end;
 		}
 	}
 
 	/* Write everything to hardware */
 	ret = gfar_write_filer_table(priv, tab);
-	if (ret == -EBUSY) {
+
+	if (ret == -EBUSY)
+	{
 		netdev_err(priv->ndev, "Rule not added: No free space!\n");
 		goto end;
 	}
@@ -1327,7 +1594,9 @@ static void gfar_invert_masks(struct ethtool_rx_flow_spec *flow)
 	u32 i = 0;
 
 	for (i = 0; i < sizeof(flow->m_u); i++)
+	{
 		flow->m_u.hdata[i] ^= 0xFF;
+	}
 
 	flow->m_ext.vlan_etype ^= cpu_to_be16(0xFFFF);
 	flow->m_ext.vlan_tci ^= cpu_to_be16(0xFFFF);
@@ -1336,37 +1605,56 @@ static void gfar_invert_masks(struct ethtool_rx_flow_spec *flow)
 }
 
 static int gfar_add_cls(struct gfar_private *priv,
-			struct ethtool_rx_flow_spec *flow)
+						struct ethtool_rx_flow_spec *flow)
 {
 	struct ethtool_flow_spec_container *temp, *comp;
 	int ret = 0;
 
 	temp = kmalloc(sizeof(*temp), GFP_KERNEL);
+
 	if (temp == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	memcpy(&temp->fs, flow, sizeof(temp->fs));
 
 	gfar_invert_masks(&temp->fs);
 	ret = gfar_check_capability(&temp->fs, priv);
+
 	if (ret)
+	{
 		goto clean_mem;
+	}
+
 	/* Link in the new element at the right @location */
-	if (list_empty(&priv->rx_list.list)) {
+	if (list_empty(&priv->rx_list.list))
+	{
 		ret = gfar_check_filer_hardware(priv);
+
 		if (ret != 0)
+		{
 			goto clean_mem;
+		}
+
 		list_add(&temp->list, &priv->rx_list.list);
 		goto process;
-	} else {
-		list_for_each_entry(comp, &priv->rx_list.list, list) {
-			if (comp->fs.location > flow->location) {
+	}
+	else
+	{
+		list_for_each_entry(comp, &priv->rx_list.list, list)
+		{
+			if (comp->fs.location > flow->location)
+			{
 				list_add_tail(&temp->list, &comp->list);
 				goto process;
 			}
-			if (comp->fs.location == flow->location) {
+
+			if (comp->fs.location == flow->location)
+			{
 				netdev_err(priv->ndev,
-					   "Rule not added: ID %d not free!\n",
-					   flow->location);
+						   "Rule not added: ID %d not free!\n",
+						   flow->location);
 				ret = -EBUSY;
 				goto clean_mem;
 			}
@@ -1377,8 +1665,12 @@ static int gfar_add_cls(struct gfar_private *priv,
 process:
 	priv->rx_list.count++;
 	ret = gfar_process_filer_changes(priv);
+
 	if (ret)
+	{
 		goto clean_list;
+	}
+
 	return ret;
 
 clean_list:
@@ -1395,10 +1687,14 @@ static int gfar_del_cls(struct gfar_private *priv, u32 loc)
 	u32 ret = -EINVAL;
 
 	if (list_empty(&priv->rx_list.list))
+	{
 		return ret;
+	}
 
-	list_for_each_entry(comp, &priv->rx_list.list, list) {
-		if (comp->fs.location == loc) {
+	list_for_each_entry(comp, &priv->rx_list.list, list)
+	{
+		if (comp->fs.location == loc)
+		{
 			list_del(&comp->list);
 			kfree(comp);
 			priv->rx_list.count--;
@@ -1416,8 +1712,10 @@ static int gfar_get_cls(struct gfar_private *priv, struct ethtool_rxnfc *cmd)
 	struct ethtool_flow_spec_container *comp;
 	u32 ret = -EINVAL;
 
-	list_for_each_entry(comp, &priv->rx_list.list, list) {
-		if (comp->fs.location == cmd->fs.location) {
+	list_for_each_entry(comp, &priv->rx_list.list, list)
+	{
+		if (comp->fs.location == cmd->fs.location)
+		{
 			memcpy(&cmd->fs, &comp->fs, sizeof(cmd->fs));
 			gfar_invert_masks(&cmd->fs);
 			ret = 0;
@@ -1429,14 +1727,18 @@ static int gfar_get_cls(struct gfar_private *priv, struct ethtool_rxnfc *cmd)
 }
 
 static int gfar_get_cls_all(struct gfar_private *priv,
-			    struct ethtool_rxnfc *cmd, u32 *rule_locs)
+							struct ethtool_rxnfc *cmd, u32 *rule_locs)
 {
 	struct ethtool_flow_spec_container *comp;
 	u32 i = 0;
 
-	list_for_each_entry(comp, &priv->rx_list.list, list) {
+	list_for_each_entry(comp, &priv->rx_list.list, list)
+	{
 		if (i == cmd->rule_cnt)
+		{
 			return -EMSGSIZE;
+		}
+
 		rule_locs[i] = comp->fs.location;
 		i++;
 	}
@@ -1453,28 +1755,36 @@ static int gfar_set_nfc(struct net_device *dev, struct ethtool_rxnfc *cmd)
 	int ret = 0;
 
 	if (test_bit(GFAR_RESETTING, &priv->state))
+	{
 		return -EBUSY;
+	}
 
 	mutex_lock(&priv->rx_queue_access);
 
-	switch (cmd->cmd) {
-	case ETHTOOL_SRXFH:
-		ret = gfar_set_hash_opts(priv, cmd);
-		break;
-	case ETHTOOL_SRXCLSRLINS:
-		if ((cmd->fs.ring_cookie != RX_CLS_FLOW_DISC &&
-		     cmd->fs.ring_cookie >= priv->num_rx_queues) ||
-		    cmd->fs.location >= MAX_FILER_IDX) {
-			ret = -EINVAL;
+	switch (cmd->cmd)
+	{
+		case ETHTOOL_SRXFH:
+			ret = gfar_set_hash_opts(priv, cmd);
 			break;
-		}
-		ret = gfar_add_cls(priv, &cmd->fs);
-		break;
-	case ETHTOOL_SRXCLSRLDEL:
-		ret = gfar_del_cls(priv, cmd->fs.location);
-		break;
-	default:
-		ret = -EINVAL;
+
+		case ETHTOOL_SRXCLSRLINS:
+			if ((cmd->fs.ring_cookie != RX_CLS_FLOW_DISC &&
+				 cmd->fs.ring_cookie >= priv->num_rx_queues) ||
+				cmd->fs.location >= MAX_FILER_IDX)
+			{
+				ret = -EINVAL;
+				break;
+			}
+
+			ret = gfar_add_cls(priv, &cmd->fs);
+			break;
+
+		case ETHTOOL_SRXCLSRLDEL:
+			ret = gfar_del_cls(priv, cmd->fs.location);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	mutex_unlock(&priv->rx_queue_access);
@@ -1483,27 +1793,32 @@ static int gfar_set_nfc(struct net_device *dev, struct ethtool_rxnfc *cmd)
 }
 
 static int gfar_get_nfc(struct net_device *dev, struct ethtool_rxnfc *cmd,
-			u32 *rule_locs)
+						u32 *rule_locs)
 {
 	struct gfar_private *priv = netdev_priv(dev);
 	int ret = 0;
 
-	switch (cmd->cmd) {
-	case ETHTOOL_GRXRINGS:
-		cmd->data = priv->num_rx_queues;
-		break;
-	case ETHTOOL_GRXCLSRLCNT:
-		cmd->rule_cnt = priv->rx_list.count;
-		break;
-	case ETHTOOL_GRXCLSRULE:
-		ret = gfar_get_cls(priv, cmd);
-		break;
-	case ETHTOOL_GRXCLSRLALL:
-		ret = gfar_get_cls_all(priv, cmd, rule_locs);
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+	switch (cmd->cmd)
+	{
+		case ETHTOOL_GRXRINGS:
+			cmd->data = priv->num_rx_queues;
+			break;
+
+		case ETHTOOL_GRXCLSRLCNT:
+			cmd->rule_cnt = priv->rx_list.count;
+			break;
+
+		case ETHTOOL_GRXCLSRULE:
+			ret = gfar_get_cls(priv, cmd);
+			break;
+
+		case ETHTOOL_GRXCLSRLALL:
+			ret = gfar_get_cls_all(priv, cmd, rule_locs);
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	return ret;
@@ -1513,28 +1828,31 @@ int gfar_phc_index = -1;
 EXPORT_SYMBOL(gfar_phc_index);
 
 static int gfar_get_ts_info(struct net_device *dev,
-			    struct ethtool_ts_info *info)
+							struct ethtool_ts_info *info)
 {
 	struct gfar_private *priv = netdev_priv(dev);
 
-	if (!(priv->device_flags & FSL_GIANFAR_DEV_HAS_TIMER)) {
+	if (!(priv->device_flags & FSL_GIANFAR_DEV_HAS_TIMER))
+	{
 		info->so_timestamping = SOF_TIMESTAMPING_RX_SOFTWARE |
-					SOF_TIMESTAMPING_SOFTWARE;
+								SOF_TIMESTAMPING_SOFTWARE;
 		info->phc_index = -1;
 		return 0;
 	}
+
 	info->so_timestamping = SOF_TIMESTAMPING_TX_HARDWARE |
-				SOF_TIMESTAMPING_RX_HARDWARE |
-				SOF_TIMESTAMPING_RAW_HARDWARE;
+							SOF_TIMESTAMPING_RX_HARDWARE |
+							SOF_TIMESTAMPING_RAW_HARDWARE;
 	info->phc_index = gfar_phc_index;
 	info->tx_types = (1 << HWTSTAMP_TX_OFF) |
-			 (1 << HWTSTAMP_TX_ON);
+					 (1 << HWTSTAMP_TX_ON);
 	info->rx_filters = (1 << HWTSTAMP_FILTER_NONE) |
-			   (1 << HWTSTAMP_FILTER_ALL);
+					   (1 << HWTSTAMP_FILTER_ALL);
 	return 0;
 }
 
-const struct ethtool_ops gfar_ethtool_ops = {
+const struct ethtool_ops gfar_ethtool_ops =
+{
 	.get_drvinfo = gfar_gdrvinfo,
 	.get_regs_len = gfar_reglen,
 	.get_regs = gfar_get_regs,

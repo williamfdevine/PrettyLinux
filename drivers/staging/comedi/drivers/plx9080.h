@@ -43,7 +43,8 @@
  * descriptor (local or PCI), an "end of chain" marker, an "interrupt on
  * terminal count" bit, and a data transfer direction.
  */
-struct plx_dma_desc {
+struct plx_dma_desc
+{
 	__le32 pci_start_addr;
 	__le32 local_start_addr;
 	__le32 transfer_size;
@@ -248,9 +249,9 @@ struct plx_dma_desc {
 #define PLX_DMPBAM_RMIRDY	BIT(4)
 /* Programmable Almost Full Level (bits 10, 8:5) */
 #define PLX_DMPBAM_PAFL(x)	((BIT(10) * !!((x) & 0x10)) | \
-				 (BIT(5) * ((x) & 0xf)))
+							 (BIT(5) * ((x) & 0xf)))
 #define PLX_DMPBAM_TO_PAFL(v)	((((BIT(10) & (v)) >> 1) | \
-				  (GENMASK(8, 5) & (v))) >> 5)
+								  (GENMASK(8, 5) & (v))) >> 5)
 #define PLX_DMPBAM_PAFL_MASK	(BIT(10) | GENMASK(8, 5))
 /* Write And Invalidate Mode */
 #define PLX_DMPBAM_WIM		BIT(9)
@@ -377,7 +378,7 @@ struct plx_dma_desc {
 #define PLX_INTCSR_ABNOTDMA1	BIT(26)
 /* DMA Channel N Not Bus Master During Master Or Target Abort (read-only) */
 #define PLX_INTCSR_ABNOTDMA(n)	((n) ? PLX_INTCSR_ABNOTDMA1 \
-				     : PLX_INTCSR_ABNOTDMA0)
+								 : PLX_INTCSR_ABNOTDMA0)
 /* Target Abort Not Generated After 256 Master Retries (read-only) */
 #define PLX_INTCSR_ABNOTRETRY	BIT(27)
 /* PCI Wrote Mailbox 0 (enabled if bit 3 set) (read-only) */
@@ -632,27 +633,39 @@ static inline int plx9080_abort_dma(void __iomem *iobase, unsigned int channel)
 
 	/* abort dma transfer if necessary */
 	dma_status = readb(dma_cs_addr);
+
 	if ((dma_status & PLX_DMACSR_ENABLE) == 0)
+	{
 		return 0;
+	}
 
 	/* wait to make sure done bit is zero */
-	for (i = 0; (dma_status & PLX_DMACSR_DONE) && i < timeout; i++) {
+	for (i = 0; (dma_status & PLX_DMACSR_DONE) && i < timeout; i++)
+	{
 		udelay(1);
 		dma_status = readb(dma_cs_addr);
 	}
+
 	if (i == timeout)
+	{
 		return -ETIMEDOUT;
+	}
 
 	/* disable and abort channel */
 	writeb(PLX_DMACSR_ABORT, dma_cs_addr);
 	/* wait for dma done bit */
 	dma_status = readb(dma_cs_addr);
-	for (i = 0; (dma_status & PLX_DMACSR_DONE) == 0 && i < timeout; i++) {
+
+	for (i = 0; (dma_status & PLX_DMACSR_DONE) == 0 && i < timeout; i++)
+	{
 		udelay(1);
 		dma_status = readb(dma_cs_addr);
 	}
+
 	if (i == timeout)
+	{
 		return -ETIMEDOUT;
+	}
 
 	return 0;
 }

@@ -50,12 +50,19 @@ static int pcm_set_speed(int arg)
 	unsigned long flags;
 
 	if (arg == 0)
+	{
 		return pcm_speed;
+	}
 
 	if (arg > 44100)
+	{
 		arg = 44100;
+	}
+
 	if (arg < 5000)
+	{
 		arg = 5000;
+	}
 
 	if (pcm_channels & 2)
 	{
@@ -86,18 +93,32 @@ static int pcm_set_speed(int arg)
 	 */
 #if !defined NO_AUTO_FILTER_SET
 	tmp &= 0xe0;
+
 	if (pcm_speed >= 2 * 17897)
+	{
 		tmp |= 0x01;
+	}
 	else if (pcm_speed >= 2 * 15909)
+	{
 		tmp |= 0x02;
+	}
 	else if (pcm_speed >= 2 * 11931)
+	{
 		tmp |= 0x09;
+	}
 	else if (pcm_speed >= 2 * 8948)
+	{
 		tmp |= 0x11;
+	}
 	else if (pcm_speed >= 2 * 5965)
+	{
 		tmp |= 0x19;
+	}
 	else if (pcm_speed >= 2 * 2982)
+	{
 		tmp |= 0x04;
+	}
+
 	pcm_filter = tmp;
 #endif
 
@@ -118,7 +139,9 @@ static int pcm_set_channels(int arg)
 {
 
 	if ((arg != 1) && (arg != 2))
+	{
 		return pcm_channels;
+	}
 
 	if (arg != pcm_channels)
 	{
@@ -127,16 +150,21 @@ static int pcm_set_channels(int arg)
 		pcm_channels = arg;
 		pcm_set_speed(pcm_speed);	/* The speed must be reinitialized */
 	}
+
 	return pcm_channels;
 }
 
 static int pcm_set_bits(int arg)
 {
 	if (arg == 0)
+	{
 		return pcm_bits;
+	}
 
 	if ((arg & pcm_bitsok) != arg)
+	{
 		return pcm_bits;
+	}
 
 	if (arg != pcm_bits)
 	{
@@ -144,6 +172,7 @@ static int pcm_set_bits(int arg)
 
 		pcm_bits = arg;
 	}
+
 	return pcm_bits;
 }
 
@@ -152,47 +181,60 @@ static int pas_audio_ioctl(int dev, unsigned int cmd, void __user *arg)
 	int val, ret;
 	int __user *p = arg;
 
-	switch (cmd) 
+	switch (cmd)
 	{
-	case SOUND_PCM_WRITE_RATE:
-		if (get_user(val, p)) 
-			return -EFAULT;
-		ret = pcm_set_speed(val);
-		break;
+		case SOUND_PCM_WRITE_RATE:
+			if (get_user(val, p))
+			{
+				return -EFAULT;
+			}
 
-	case SOUND_PCM_READ_RATE:
-		ret = pcm_speed;
-		break;
-		
-	case SNDCTL_DSP_STEREO:
-		if (get_user(val, p)) 
-			return -EFAULT;
-		ret = pcm_set_channels(val + 1) - 1;
-		break;
+			ret = pcm_set_speed(val);
+			break;
 
-	case SOUND_PCM_WRITE_CHANNELS:
-		if (get_user(val, p)) 
-			return -EFAULT;
-		ret = pcm_set_channels(val);
-		break;
+		case SOUND_PCM_READ_RATE:
+			ret = pcm_speed;
+			break;
 
-	case SOUND_PCM_READ_CHANNELS:
-		ret = pcm_channels;
-		break;
+		case SNDCTL_DSP_STEREO:
+			if (get_user(val, p))
+			{
+				return -EFAULT;
+			}
 
-	case SNDCTL_DSP_SETFMT:
-		if (get_user(val, p))
-			return -EFAULT;
-		ret = pcm_set_bits(val);
-		break;
-		
-	case SOUND_PCM_READ_BITS:
-		ret = pcm_bits;
-		break;
-  
-	default:
-		return -EINVAL;
+			ret = pcm_set_channels(val + 1) - 1;
+			break;
+
+		case SOUND_PCM_WRITE_CHANNELS:
+			if (get_user(val, p))
+			{
+				return -EFAULT;
+			}
+
+			ret = pcm_set_channels(val);
+			break;
+
+		case SOUND_PCM_READ_CHANNELS:
+			ret = pcm_channels;
+			break;
+
+		case SNDCTL_DSP_SETFMT:
+			if (get_user(val, p))
+			{
+				return -EFAULT;
+			}
+
+			ret = pcm_set_bits(val);
+			break;
+
+		case SOUND_PCM_READ_BITS:
+			ret = pcm_bits;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	return put_user(ret, p);
 }
 
@@ -207,16 +249,20 @@ static int pas_audio_open(int dev, int mode)
 	unsigned long   flags;
 
 	spin_lock_irqsave(&pas_lock, flags);
+
 	if (pcm_busy)
 	{
 		spin_unlock_irqrestore(&pas_lock, flags);
 		return -EBUSY;
 	}
+
 	pcm_busy = 1;
 	spin_unlock_irqrestore(&pas_lock, flags);
 
 	if ((err = pas_set_intr(PAS_PCM_INTRBITS)) < 0)
+	{
 		return err;
+	}
 
 
 	pcm_count = 0;
@@ -240,28 +286,35 @@ static void pas_audio_close(int dev)
 }
 
 static void pas_audio_output_block(int dev, unsigned long buf, int count,
-		       int intrflag)
+								   int intrflag)
 {
 	unsigned long   flags, cnt;
 
 	cnt = count;
+
 	if (audio_devs[dev]->dmap_out->dma > 3)
+	{
 		cnt >>= 1;
+	}
 
 	if (audio_devs[dev]->flags & DMA_AUTOMODE &&
-	    intrflag &&
-	    cnt == pcm_count)
+		intrflag &&
+		cnt == pcm_count)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&pas_lock, flags);
 
 	pas_write(pas_read(0xF8A) & ~0x40,
-		  0xF8A);
+			  0xF8A);
 
 	/* DMAbuf_start_dma (dev, buf, count, DMA_MODE_WRITE); */
 
 	if (audio_devs[dev]->dmap_out->dma > 3)
+	{
 		count >>= 1;
+	}
 
 	if (count != pcm_count)
 	{
@@ -273,6 +326,7 @@ static void pas_audio_output_block(int dev, unsigned long buf, int count,
 
 		pcm_count = count;
 	}
+
 	pas_write(pas_read(0x0B8A) | 0x80 | 0x40, 0x0B8A);
 #ifdef NO_TRIGGER
 	pas_write(pas_read(0xF8A) | 0x40 | 0x10, 0xF8A);
@@ -284,26 +338,33 @@ static void pas_audio_output_block(int dev, unsigned long buf, int count,
 }
 
 static void pas_audio_start_input(int dev, unsigned long buf, int count,
-		      int intrflag)
+								  int intrflag)
 {
 	unsigned long   flags;
 	int             cnt;
 
 	cnt = count;
+
 	if (audio_devs[dev]->dmap_out->dma > 3)
+	{
 		cnt >>= 1;
+	}
 
 	if (audio_devs[pas_audiodev]->flags & DMA_AUTOMODE &&
-	    intrflag &&
-	    cnt == pcm_count)
+		intrflag &&
+		cnt == pcm_count)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&pas_lock, flags);
 
 	/* DMAbuf_start_dma (dev, buf, count, DMA_MODE_READ); */
 
 	if (audio_devs[dev]->dmap_out->dma > 3)
+	{
 		count >>= 1;
+	}
 
 	if (count != pcm_count)
 	{
@@ -315,6 +376,7 @@ static void pas_audio_start_input(int dev, unsigned long buf, int count,
 
 		pcm_count = count;
 	}
+
 	pas_write(pas_read(0x0B8A) | 0x80 | 0x40, 0x0B8A);
 #ifdef NO_TRIGGER
 	pas_write((pas_read(0xF8A) | 0x40) & ~0x10, 0xF8A);
@@ -334,11 +396,17 @@ static void pas_audio_trigger(int dev, int state)
 	state &= open_mode;
 
 	if (state & PCM_ENABLE_OUTPUT)
+	{
 		pas_write(pas_read(0xF8A) | 0x40 | 0x10, 0xF8A);
+	}
 	else if (state & PCM_ENABLE_INPUT)
+	{
 		pas_write((pas_read(0xF8A) | 0x40) & ~0x10, 0xF8A);
+	}
 	else
+	{
 		pas_write(pas_read(0xF8A) & ~0x40, 0xF8A);
+	}
 
 	spin_unlock_irqrestore(&pas_lock, flags);
 }
@@ -373,21 +441,26 @@ static struct audio_driver pas_audio_driver =
 void __init pas_pcm_init(struct address_info *hw_config)
 {
 	pcm_bitsok = 8;
+
 	if (pas_read(0xEF8B) & 0x08)
+	{
 		pcm_bitsok |= 16;
+	}
 
 	pcm_set_speed(DSP_DEFAULT_SPEED);
 
 	if ((pas_audiodev = sound_install_audiodrv(AUDIO_DRIVER_VERSION,
-					"Pro Audio Spectrum",
-					&pas_audio_driver,
-					sizeof(struct audio_driver),
-					DMA_AUTOMODE,
-					AFMT_U8 | AFMT_S16_LE,
-					NULL,
-					hw_config->dma,
-					hw_config->dma)) < 0)
+						"Pro Audio Spectrum",
+						&pas_audio_driver,
+						sizeof(struct audio_driver),
+						DMA_AUTOMODE,
+						AFMT_U8 | AFMT_S16_LE,
+						NULL,
+						hw_config->dma,
+						hw_config->dma)) < 0)
+	{
 		printk(KERN_WARNING "PAS16: Too many PCM devices available\n");
+	}
 }
 
 void pas_pcm_interrupt(unsigned char status, int cause)
@@ -400,7 +473,9 @@ void pas_pcm_interrupt(unsigned char status, int cause)
 		 */
 
 		if (!(audio_devs[pas_audiodev]->flags & DMA_AUTOMODE))
+		{
 			pas_write(pas_read(0xF8A) & ~0x40, 0xF8A);
+		}
 
 		switch (pcm_mode)
 		{

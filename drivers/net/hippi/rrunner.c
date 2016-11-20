@@ -63,7 +63,8 @@ MODULE_LICENSE("GPL");
 static char version[] = "rrunner.c: v0.50 11/11/2002  Jes Sorensen (jes@wildopensource.com)\n";
 
 
-static const struct net_device_ops rr_netdev_ops = {
+static const struct net_device_ops rr_netdev_ops =
+{
 	.ndo_open 		= rr_open,
 	.ndo_stop		= rr_close,
 	.ndo_do_ioctl		= rr_ioctl,
@@ -98,11 +99,16 @@ static int rr_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	int ret = -ENOMEM;
 
 	dev = alloc_hippi_dev(sizeof(struct rr_private));
+
 	if (!dev)
+	{
 		goto out3;
+	}
 
 	ret = pci_enable_device(pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		ret = -ENODEV;
 		goto out2;
 	}
@@ -112,8 +118,11 @@ static int rr_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	SET_NETDEV_DEV(dev, &pdev->dev);
 
 	ret = pci_request_regions(pdev, "rrunner");
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	pci_set_drvdata(pdev, dev);
 
@@ -124,7 +133,8 @@ static int rr_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	dev->netdev_ops = &rr_netdev_ops;
 
 	/* display version info if adapter is found */
-	if (!version_disp) {
+	if (!version_disp)
+	{
 		/* set display flag to TRUE so that */
 		/* we only display this string ONCE */
 		version_disp = 1;
@@ -132,7 +142,9 @@ static int rr_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	}
 
 	pci_read_config_byte(pdev, PCI_LATENCY_TIMER, &pci_latency);
-	if (pci_latency <= 0x58){
+
+	if (pci_latency <= 0x58)
+	{
 		pci_latency = 0x58;
 		pci_write_config_byte(pdev, PCI_LATENCY_TIMER, pci_latency);
 	}
@@ -140,17 +152,19 @@ static int rr_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pci_set_master(pdev);
 
 	printk(KERN_INFO "%s: Essential RoadRunner serial HIPPI "
-	       "at 0x%llx, irq %i, PCI latency %i\n", dev->name,
-	       (unsigned long long)pci_resource_start(pdev, 0),
-	       pdev->irq, pci_latency);
+		   "at 0x%llx, irq %i, PCI latency %i\n", dev->name,
+		   (unsigned long long)pci_resource_start(pdev, 0),
+		   pdev->irq, pci_latency);
 
 	/*
 	 * Remap the MMIO regs into kernel space.
 	 */
 	rrpriv->regs = pci_iomap(pdev, 0, 0x1000);
-	if (!rrpriv->regs) {
+
+	if (!rrpriv->regs)
+	{
 		printk(KERN_ERR "%s:  Unable to map I/O register, "
-			"RoadRunner will be disabled.\n", dev->name);
+			   "RoadRunner will be disabled.\n", dev->name);
 		ret = -EIO;
 		goto out;
 	}
@@ -159,7 +173,8 @@ static int rr_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	rrpriv->tx_ring = tmpptr;
 	rrpriv->tx_ring_dma = ring_dma;
 
-	if (!tmpptr) {
+	if (!tmpptr)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -168,7 +183,8 @@ static int rr_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	rrpriv->rx_ring = tmpptr;
 	rrpriv->rx_ring_dma = ring_dma;
 
-	if (!tmpptr) {
+	if (!tmpptr)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -177,7 +193,8 @@ static int rr_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	rrpriv->evt_ring = tmpptr;
 	rrpriv->evt_ring_dma = ring_dma;
 
-	if (!tmpptr) {
+	if (!tmpptr)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -187,7 +204,7 @@ static int rr_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 */
 #ifdef __BIG_ENDIAN
 	writel(readl(&rrpriv->regs->HostCtrl) | NO_SWAP,
-		&rrpriv->regs->HostCtrl);
+		   &rrpriv->regs->HostCtrl);
 #endif
 	/*
 	 * Need to add a case for little-endian 64-bit hosts here.
@@ -196,27 +213,41 @@ static int rr_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	rr_init(dev);
 
 	ret = register_netdev(dev);
+
 	if (ret)
+	{
 		goto out;
+	}
+
 	return 0;
 
- out:
+out:
+
 	if (rrpriv->evt_ring)
 		pci_free_consistent(pdev, EVT_RING_SIZE, rrpriv->evt_ring,
-				    rrpriv->evt_ring_dma);
+							rrpriv->evt_ring_dma);
+
 	if (rrpriv->rx_ring)
 		pci_free_consistent(pdev, RX_TOTAL_SIZE, rrpriv->rx_ring,
-				    rrpriv->rx_ring_dma);
+							rrpriv->rx_ring_dma);
+
 	if (rrpriv->tx_ring)
 		pci_free_consistent(pdev, TX_TOTAL_SIZE, rrpriv->tx_ring,
-				    rrpriv->tx_ring_dma);
+							rrpriv->tx_ring_dma);
+
 	if (rrpriv->regs)
+	{
 		pci_iounmap(pdev, rrpriv->regs);
+	}
+
 	if (pdev)
+	{
 		pci_release_regions(pdev);
- out2:
+	}
+
+out2:
 	free_netdev(dev);
- out3:
+out3:
 	return ret;
 }
 
@@ -225,19 +256,20 @@ static void rr_remove_one(struct pci_dev *pdev)
 	struct net_device *dev = pci_get_drvdata(pdev);
 	struct rr_private *rr = netdev_priv(dev);
 
-	if (!(readl(&rr->regs->HostCtrl) & NIC_HALTED)) {
+	if (!(readl(&rr->regs->HostCtrl) & NIC_HALTED))
+	{
 		printk(KERN_ERR "%s: trying to unload running NIC\n",
-		       dev->name);
+			   dev->name);
 		writel(HALT_NIC, &rr->regs->HostCtrl);
 	}
 
 	unregister_netdev(dev);
 	pci_free_consistent(pdev, EVT_RING_SIZE, rr->evt_ring,
-			    rr->evt_ring_dma);
+						rr->evt_ring_dma);
 	pci_free_consistent(pdev, RX_TOTAL_SIZE, rr->rx_ring,
-			    rr->rx_ring_dma);
+						rr->rx_ring_dma);
 	pci_free_consistent(pdev, TX_TOTAL_SIZE, rr->tx_ring,
-			    rr->tx_ring_dma);
+						rr->tx_ring_dma);
 	pci_iounmap(pdev, rr->regs);
 	pci_release_regions(pdev);
 	pci_disable_device(pdev);
@@ -255,21 +287,24 @@ static void rr_issue_cmd(struct rr_private *rrpriv, struct cmd *cmd)
 	u32 idx;
 
 	regs = rrpriv->regs;
+
 	/*
 	 * This is temporary - it will go away in the final version.
 	 * We probably also want to make this function inline.
 	 */
-	if (readl(&regs->HostCtrl) & NIC_HALTED){
+	if (readl(&regs->HostCtrl) & NIC_HALTED)
+	{
 		printk("issuing command for halted NIC, code 0x%x, "
-		       "HostCtrl %08x\n", cmd->code, readl(&regs->HostCtrl));
+			   "HostCtrl %08x\n", cmd->code, readl(&regs->HostCtrl));
+
 		if (readl(&regs->Mode) & FATAL_ERR)
 			printk("error codes Fail1 %02x, Fail2 %02x\n",
-			       readl(&regs->Fail1), readl(&regs->Fail2));
+				   readl(&regs->Fail1), readl(&regs->Fail2));
 	}
 
 	idx = rrpriv->info->cmd_ctrl.pi;
 
-	writel(*(u32*)(cmd), &regs->CmdRing[idx]);
+	writel(*(u32 *)(cmd), &regs->CmdRing[idx]);
 	wmb();
 
 	idx = (idx - 1) % CMD_RING_ENTRIES;
@@ -277,7 +312,9 @@ static void rr_issue_cmd(struct rr_private *rrpriv, struct cmd *cmd)
 	wmb();
 
 	if (readl(&regs->Mode) & FATAL_ERR)
+	{
 		printk("error code %02x\n", readl(&regs->Fail1));
+	}
 }
 
 
@@ -367,20 +404,22 @@ static int rr_reset(struct net_device *dev)
 	rrpriv->info->evt_ctrl.pi = 0;
 
 	for (i = 0; i < CMD_RING_ENTRIES; i++)
+	{
 		writel(0, &regs->CmdRing[i]);
+	}
 
-/*
- * Why 32 ? is this not cache line size dependent?
- */
-	writel(RBURST_64|WBURST_64, &regs->PciState);
+	/*
+	 * Why 32 ? is this not cache line size dependent?
+	 */
+	writel(RBURST_64 | WBURST_64, &regs->PciState);
 	wmb();
 
 	start_pc = rr_read_eeprom_word(rrpriv,
-			offsetof(struct eeprom, rncd_info.FwStart));
+								   offsetof(struct eeprom, rncd_info.FwStart));
 
 #if (DEBUG > 1)
 	printk("%s: Executing firmware at address 0x%06x\n",
-	       dev->name, start_pc);
+		   dev->name, start_pc);
 #endif
 
 	writel(start_pc + 0x800, &regs->Pc);
@@ -398,9 +437,9 @@ static int rr_reset(struct net_device *dev)
  * Read a string from the EEPROM.
  */
 static unsigned int rr_read_eeprom(struct rr_private *rrpriv,
-				unsigned long offset,
-				unsigned char *buf,
-				unsigned long length)
+								   unsigned long offset,
+								   unsigned char *buf,
+								   unsigned long length)
 {
 	struct rr_regs __iomem *regs = rrpriv->regs;
 	u32 misc, io, host, i;
@@ -413,8 +452,9 @@ static unsigned int rr_read_eeprom(struct rr_private *rrpriv,
 	writel(host | HALT_NIC, &regs->HostCtrl);
 	mb();
 
-	for (i = 0; i < length; i++){
-		writel((EEPROM_BASE + ((offset+i) << 3)), &regs->WinBase);
+	for (i = 0; i < length; i++)
+	{
+		writel((EEPROM_BASE + ((offset + i) << 3)), &regs->WinBase);
 		mb();
 		buf[i] = (readl(&regs->WinData) >> 24) & 0xff;
 		mb();
@@ -433,13 +473,16 @@ static unsigned int rr_read_eeprom(struct rr_private *rrpriv,
  * it to our CPU byte-order.
  */
 static u32 rr_read_eeprom_word(struct rr_private *rrpriv,
-			    size_t offset)
+							   size_t offset)
 {
 	__be32 word;
 
 	if ((rr_read_eeprom(rrpriv, offset,
-			    (unsigned char *)&word, 4) == 4))
+						(unsigned char *)&word, 4) == 4))
+	{
 		return be32_to_cpu(word);
+	}
+
 	return 0;
 }
 
@@ -450,9 +493,9 @@ static u32 rr_read_eeprom_word(struct rr_private *rrpriv,
  * This is only called when the firmware is not running.
  */
 static unsigned int write_eeprom(struct rr_private *rrpriv,
-				 unsigned long offset,
-				 unsigned char *buf,
-				 unsigned long length)
+								 unsigned long offset,
+								 unsigned char *buf,
+								 unsigned long length)
 {
 	struct rr_regs __iomem *regs = rrpriv->regs;
 	u32 misc, io, data, i, j, ready, error = 0;
@@ -463,29 +506,40 @@ static unsigned int write_eeprom(struct rr_private *rrpriv,
 	writel(ENABLE_EEPROM_WRITE, &regs->LocalCtrl);
 	mb();
 
-	for (i = 0; i < length; i++){
-		writel((EEPROM_BASE + ((offset+i) << 3)), &regs->WinBase);
+	for (i = 0; i < length; i++)
+	{
+		writel((EEPROM_BASE + ((offset + i) << 3)), &regs->WinBase);
 		mb();
 		data = buf[i] << 24;
+
 		/*
 		 * Only try to write the data if it is not the same
 		 * value already.
 		 */
-		if ((readl(&regs->WinData) & 0xff000000) != data){
+		if ((readl(&regs->WinData) & 0xff000000) != data)
+		{
 			writel(data, &regs->WinData);
 			ready = 0;
 			j = 0;
 			mb();
-			while(!ready){
+
+			while (!ready)
+			{
 				udelay(20);
+
 				if ((readl(&regs->WinData) & 0xff000000) ==
-				    data)
+					data)
+				{
 					ready = 1;
+				}
+
 				mb();
-				if (j++ > 5000){
+
+				if (j++ > 5000)
+				{
 					printk("data mismatch: %08x, "
-					       "WinData %08x\n", data,
-					       readl(&regs->WinData));
+						   "WinData %08x\n", data,
+						   readl(&regs->WinData));
 					ready = 1;
 					error = 1;
 				}
@@ -512,17 +566,21 @@ static int rr_init(struct net_device *dev)
 
 	rev = readl(&regs->FwRev);
 	rrpriv->fw_rev = rev;
+
 	if (rev > 0x00020024)
 		printk("  Firmware revision: %i.%i.%i\n", (rev >> 16),
-		       ((rev >> 8) & 0xff), (rev & 0xff));
-	else if (rev >= 0x00020000) {
+			   ((rev >> 8) & 0xff), (rev & 0xff));
+	else if (rev >= 0x00020000)
+	{
 		printk("  Firmware revision: %i.%i.%i (2.0.37 or "
-		       "later is recommended)\n", (rev >> 16),
-		       ((rev >> 8) & 0xff), (rev & 0xff));
-	}else{
+			   "later is recommended)\n", (rev >> 16),
+			   ((rev >> 8) & 0xff), (rev & 0xff));
+	}
+	else
+	{
 		printk("  Firmware revision too old: %i.%i.%i, please "
-		       "upgrade to 2.0.37 or later.\n",
-		       (rev >> 16), ((rev >> 8) & 0xff), (rev & 0xff));
+			   "upgrade to 2.0.37 or later.\n",
+			   (rev >> 16), ((rev >> 8) & 0xff), (rev & 0xff));
 	}
 
 #if (DEBUG > 2)
@@ -539,9 +597,9 @@ static int rr_init(struct net_device *dev)
 	 */
 
 	*(__be16 *)(dev->dev_addr) =
-	  htons(rr_read_eeprom_word(rrpriv, offsetof(struct eeprom, manf.BoardULA)));
-	*(__be32 *)(dev->dev_addr+2) =
-	  htonl(rr_read_eeprom_word(rrpriv, offsetof(struct eeprom, manf.BoardULA[4])));
+		htons(rr_read_eeprom_word(rrpriv, offsetof(struct eeprom, manf.BoardULA)));
+	*(__be32 *)(dev->dev_addr + 2) =
+		htonl(rr_read_eeprom_word(rrpriv, offsetof(struct eeprom, manf.BoardULA[4])));
 
 	printk("  MAC: %pM\n", dev->dev_addr);
 
@@ -571,9 +629,10 @@ static int rr_init1(struct net_device *dev)
 	writel(hostctrl | HALT_NIC | RR_CLEAR_INT, &regs->HostCtrl);
 	wmb();
 
-	if (hostctrl & PARITY_ERR){
+	if (hostctrl & PARITY_ERR)
+	{
 		printk("%s: Parity error halting NIC - this is serious!\n",
-		       dev->name);
+			   dev->name);
 		spin_unlock_irqrestore(&rrpriv->lock, flags);
 		ecode = -EFAULT;
 		goto error;
@@ -593,15 +652,18 @@ static int rr_init1(struct net_device *dev)
 	rrpriv->info->cmd_ctrl.mode = 0;
 	rrpriv->info->cmd_ctrl.pi = 15;
 
-	for (i = 0; i < CMD_RING_ENTRIES; i++) {
+	for (i = 0; i < CMD_RING_ENTRIES; i++)
+	{
 		writel(0, &regs->CmdRing[i]);
 	}
 
-	for (i = 0; i < TX_RING_ENTRIES; i++) {
+	for (i = 0; i < TX_RING_ENTRIES; i++)
+	{
 		rrpriv->tx_ring[i].size = 0;
 		set_rraddr(&rrpriv->tx_ring[i].addr, 0);
 		rrpriv->tx_skbuff[i] = NULL;
 	}
+
 	rrpriv->info->tx_ctrl.entry_size = sizeof(struct tx_desc);
 	rrpriv->info->tx_ctrl.entries = TX_RING_ENTRIES;
 	rrpriv->info->tx_ctrl.mode = 0;
@@ -624,11 +686,11 @@ static int rr_init1(struct net_device *dev)
 	writel(0x5000, &regs->ConRetry);
 	writel(0x100, &regs->ConRetryTmr);
 	writel(0x500000, &regs->ConTmout);
- 	writel(0x60, &regs->IntrTmr);
+	writel(0x60, &regs->IntrTmr);
 	writel(0x500000, &regs->TxDataMvTimeout);
 	writel(0x200000, &regs->RxDataMvTimeout);
- 	writel(0x80, &regs->WriteDmaThresh);
- 	writel(0x80, &regs->ReadDmaThresh);
+	writel(0x80, &regs->WriteDmaThresh);
+	writel(0x80, &regs->ReadDmaThresh);
 
 	rrpriv->fw_running = 0;
 	wmb();
@@ -639,27 +701,34 @@ static int rr_init1(struct net_device *dev)
 
 	spin_unlock_irqrestore(&rrpriv->lock, flags);
 
-	for (i = 0; i < RX_RING_ENTRIES; i++) {
+	for (i = 0; i < RX_RING_ENTRIES; i++)
+	{
 		struct sk_buff *skb;
 		dma_addr_t addr;
 
 		rrpriv->rx_ring[i].mode = 0;
 		skb = alloc_skb(dev->mtu + HIPPI_HLEN, GFP_ATOMIC);
-		if (!skb) {
+
+		if (!skb)
+		{
 			printk(KERN_WARNING "%s: Unable to allocate memory "
-			       "for receive ring - halting NIC\n", dev->name);
+				   "for receive ring - halting NIC\n", dev->name);
 			ecode = -ENOMEM;
 			goto error;
 		}
+
 		rrpriv->rx_skbuff[i] = skb;
-	        addr = pci_map_single(rrpriv->pci_dev, skb->data,
-			dev->mtu + HIPPI_HLEN, PCI_DMA_FROMDEVICE);
+		addr = pci_map_single(rrpriv->pci_dev, skb->data,
+							  dev->mtu + HIPPI_HLEN, PCI_DMA_FROMDEVICE);
+
 		/*
 		 * Sanity test to see if we conflict with the DMA
 		 * limitations of the Roadrunner.
 		 */
 		if ((((unsigned long)skb->data) & 0xfff) > ~65320)
+		{
 			printk("skb alloc error\n");
+		}
 
 		set_rraddr(&rrpriv->rx_ring[i].addr, addr);
 		rrpriv->rx_ring[i].size = dev->mtu + HIPPI_HLEN;
@@ -687,32 +756,39 @@ static int rr_init1(struct net_device *dev)
 	 * Give the FirmWare time to chew on the `get running' command.
 	 */
 	myjif = jiffies + 5 * HZ;
+
 	while (time_before(jiffies, myjif) && !rrpriv->fw_running)
+	{
 		cpu_relax();
+	}
 
 	netif_start_queue(dev);
 
 	return ecode;
 
- error:
+error:
+
 	/*
 	 * We might have gotten here because we are out of memory,
 	 * make sure we release everything we allocated before failing
 	 */
-	for (i = 0; i < RX_RING_ENTRIES; i++) {
+	for (i = 0; i < RX_RING_ENTRIES; i++)
+	{
 		struct sk_buff *skb = rrpriv->rx_skbuff[i];
 
-		if (skb) {
-	        	pci_unmap_single(rrpriv->pci_dev,
-					 rrpriv->rx_ring[i].addr.addrlo,
-					 dev->mtu + HIPPI_HLEN,
-					 PCI_DMA_FROMDEVICE);
+		if (skb)
+		{
+			pci_unmap_single(rrpriv->pci_dev,
+							 rrpriv->rx_ring[i].addr.addrlo,
+							 dev->mtu + HIPPI_HLEN,
+							 PCI_DMA_FROMDEVICE);
 			rrpriv->rx_ring[i].size = 0;
 			set_rraddr(&rrpriv->rx_ring[i].addr, 0);
 			dev_kfree_skb(skb);
 			rrpriv->rx_skbuff[i] = NULL;
 		}
 	}
+
 	return ecode;
 }
 
@@ -731,191 +807,223 @@ static u32 rr_handle_event(struct net_device *dev, u32 prodidx, u32 eidx)
 	rrpriv = netdev_priv(dev);
 	regs = rrpriv->regs;
 
-	while (prodidx != eidx){
-		switch (rrpriv->evt_ring[eidx].code){
-		case E_NIC_UP:
-			tmp = readl(&regs->FwRev);
-			printk(KERN_INFO "%s: Firmware revision %i.%i.%i "
-			       "up and running\n", dev->name,
-			       (tmp >> 16), ((tmp >> 8) & 0xff), (tmp & 0xff));
-			rrpriv->fw_running = 1;
-			writel(RX_RING_ENTRIES - 1, &regs->IpRxPi);
-			wmb();
-			break;
-		case E_LINK_ON:
-			printk(KERN_INFO "%s: Optical link ON\n", dev->name);
-			break;
-		case E_LINK_OFF:
-			printk(KERN_INFO "%s: Optical link OFF\n", dev->name);
-			break;
-		case E_RX_IDLE:
-			printk(KERN_WARNING "%s: RX data not moving\n",
-			       dev->name);
-			goto drop;
-		case E_WATCHDOG:
-			printk(KERN_INFO "%s: The watchdog is here to see "
-			       "us\n", dev->name);
-			break;
-		case E_INTERN_ERR:
-			printk(KERN_ERR "%s: HIPPI Internal NIC error\n",
-			       dev->name);
-			writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT,
-			       &regs->HostCtrl);
-			wmb();
-			break;
-		case E_HOST_ERR:
-			printk(KERN_ERR "%s: Host software error\n",
-			       dev->name);
-			writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT,
-			       &regs->HostCtrl);
-			wmb();
-			break;
-		/*
-		 * TX events.
-		 */
-		case E_CON_REJ:
-			printk(KERN_WARNING "%s: Connection rejected\n",
-			       dev->name);
-			dev->stats.tx_aborted_errors++;
-			break;
-		case E_CON_TMOUT:
-			printk(KERN_WARNING "%s: Connection timeout\n",
-			       dev->name);
-			break;
-		case E_DISC_ERR:
-			printk(KERN_WARNING "%s: HIPPI disconnect error\n",
-			       dev->name);
-			dev->stats.tx_aborted_errors++;
-			break;
-		case E_INT_PRTY:
-			printk(KERN_ERR "%s: HIPPI Internal Parity error\n",
-			       dev->name);
-			writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT,
-			       &regs->HostCtrl);
-			wmb();
-			break;
-		case E_TX_IDLE:
-			printk(KERN_WARNING "%s: Transmitter idle\n",
-			       dev->name);
-			break;
-		case E_TX_LINK_DROP:
-			printk(KERN_WARNING "%s: Link lost during transmit\n",
-			       dev->name);
-			dev->stats.tx_aborted_errors++;
-			writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT,
-			       &regs->HostCtrl);
-			wmb();
-			break;
-		case E_TX_INV_RNG:
-			printk(KERN_ERR "%s: Invalid send ring block\n",
-			       dev->name);
-			writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT,
-			       &regs->HostCtrl);
-			wmb();
-			break;
-		case E_TX_INV_BUF:
-			printk(KERN_ERR "%s: Invalid send buffer address\n",
-			       dev->name);
-			writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT,
-			       &regs->HostCtrl);
-			wmb();
-			break;
-		case E_TX_INV_DSC:
-			printk(KERN_ERR "%s: Invalid descriptor address\n",
-			       dev->name);
-			writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT,
-			       &regs->HostCtrl);
-			wmb();
-			break;
-		/*
-		 * RX events.
-		 */
-		case E_RX_RNG_OUT:
-			printk(KERN_INFO "%s: Receive ring full\n", dev->name);
-			break;
+	while (prodidx != eidx)
+	{
+		switch (rrpriv->evt_ring[eidx].code)
+		{
+			case E_NIC_UP:
+				tmp = readl(&regs->FwRev);
+				printk(KERN_INFO "%s: Firmware revision %i.%i.%i "
+					   "up and running\n", dev->name,
+					   (tmp >> 16), ((tmp >> 8) & 0xff), (tmp & 0xff));
+				rrpriv->fw_running = 1;
+				writel(RX_RING_ENTRIES - 1, &regs->IpRxPi);
+				wmb();
+				break;
 
-		case E_RX_PAR_ERR:
-			printk(KERN_WARNING "%s: Receive parity error\n",
-			       dev->name);
-			goto drop;
-		case E_RX_LLRC_ERR:
-			printk(KERN_WARNING "%s: Receive LLRC error\n",
-			       dev->name);
-			goto drop;
-		case E_PKT_LN_ERR:
-			printk(KERN_WARNING "%s: Receive packet length "
-			       "error\n", dev->name);
-			goto drop;
-		case E_DTA_CKSM_ERR:
-			printk(KERN_WARNING "%s: Data checksum error\n",
-			       dev->name);
-			goto drop;
-		case E_SHT_BST:
-			printk(KERN_WARNING "%s: Unexpected short burst "
-			       "error\n", dev->name);
-			goto drop;
-		case E_STATE_ERR:
-			printk(KERN_WARNING "%s: Recv. state transition"
-			       " error\n", dev->name);
-			goto drop;
-		case E_UNEXP_DATA:
-			printk(KERN_WARNING "%s: Unexpected data error\n",
-			       dev->name);
-			goto drop;
-		case E_LST_LNK_ERR:
-			printk(KERN_WARNING "%s: Link lost error\n",
-			       dev->name);
-			goto drop;
-		case E_FRM_ERR:
-			printk(KERN_WARNING "%s: Framming Error\n",
-			       dev->name);
-			goto drop;
-		case E_FLG_SYN_ERR:
-			printk(KERN_WARNING "%s: Flag sync. lost during "
-			       "packet\n", dev->name);
-			goto drop;
-		case E_RX_INV_BUF:
-			printk(KERN_ERR "%s: Invalid receive buffer "
-			       "address\n", dev->name);
-			writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT,
-			       &regs->HostCtrl);
-			wmb();
-			break;
-		case E_RX_INV_DSC:
-			printk(KERN_ERR "%s: Invalid receive descriptor "
-			       "address\n", dev->name);
-			writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT,
-			       &regs->HostCtrl);
-			wmb();
-			break;
-		case E_RNG_BLK:
-			printk(KERN_ERR "%s: Invalid ring block\n",
-			       dev->name);
-			writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT,
-			       &regs->HostCtrl);
-			wmb();
-			break;
-		drop:
-			/* Label packet to be dropped.
-			 * Actual dropping occurs in rx
-			 * handling.
-			 *
-			 * The index of packet we get to drop is
-			 * the index of the packet following
-			 * the bad packet. -kbf
+			case E_LINK_ON:
+				printk(KERN_INFO "%s: Optical link ON\n", dev->name);
+				break;
+
+			case E_LINK_OFF:
+				printk(KERN_INFO "%s: Optical link OFF\n", dev->name);
+				break;
+
+			case E_RX_IDLE:
+				printk(KERN_WARNING "%s: RX data not moving\n",
+					   dev->name);
+				goto drop;
+
+			case E_WATCHDOG:
+				printk(KERN_INFO "%s: The watchdog is here to see "
+					   "us\n", dev->name);
+				break;
+
+			case E_INTERN_ERR:
+				printk(KERN_ERR "%s: HIPPI Internal NIC error\n",
+					   dev->name);
+				writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT,
+					   &regs->HostCtrl);
+				wmb();
+				break;
+
+			case E_HOST_ERR:
+				printk(KERN_ERR "%s: Host software error\n",
+					   dev->name);
+				writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT,
+					   &regs->HostCtrl);
+				wmb();
+				break;
+
+			/*
+			 * TX events.
 			 */
-			{
-				u16 index = rrpriv->evt_ring[eidx].index;
-				index = (index + (RX_RING_ENTRIES - 1)) %
-					RX_RING_ENTRIES;
-				rrpriv->rx_ring[index].mode |=
-					(PACKET_BAD | PACKET_END);
-			}
-			break;
-		default:
-			printk(KERN_WARNING "%s: Unhandled event 0x%02x\n",
-			       dev->name, rrpriv->evt_ring[eidx].code);
+			case E_CON_REJ:
+				printk(KERN_WARNING "%s: Connection rejected\n",
+					   dev->name);
+				dev->stats.tx_aborted_errors++;
+				break;
+
+			case E_CON_TMOUT:
+				printk(KERN_WARNING "%s: Connection timeout\n",
+					   dev->name);
+				break;
+
+			case E_DISC_ERR:
+				printk(KERN_WARNING "%s: HIPPI disconnect error\n",
+					   dev->name);
+				dev->stats.tx_aborted_errors++;
+				break;
+
+			case E_INT_PRTY:
+				printk(KERN_ERR "%s: HIPPI Internal Parity error\n",
+					   dev->name);
+				writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT,
+					   &regs->HostCtrl);
+				wmb();
+				break;
+
+			case E_TX_IDLE:
+				printk(KERN_WARNING "%s: Transmitter idle\n",
+					   dev->name);
+				break;
+
+			case E_TX_LINK_DROP:
+				printk(KERN_WARNING "%s: Link lost during transmit\n",
+					   dev->name);
+				dev->stats.tx_aborted_errors++;
+				writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT,
+					   &regs->HostCtrl);
+				wmb();
+				break;
+
+			case E_TX_INV_RNG:
+				printk(KERN_ERR "%s: Invalid send ring block\n",
+					   dev->name);
+				writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT,
+					   &regs->HostCtrl);
+				wmb();
+				break;
+
+			case E_TX_INV_BUF:
+				printk(KERN_ERR "%s: Invalid send buffer address\n",
+					   dev->name);
+				writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT,
+					   &regs->HostCtrl);
+				wmb();
+				break;
+
+			case E_TX_INV_DSC:
+				printk(KERN_ERR "%s: Invalid descriptor address\n",
+					   dev->name);
+				writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT,
+					   &regs->HostCtrl);
+				wmb();
+				break;
+
+			/*
+			 * RX events.
+			 */
+			case E_RX_RNG_OUT:
+				printk(KERN_INFO "%s: Receive ring full\n", dev->name);
+				break;
+
+			case E_RX_PAR_ERR:
+				printk(KERN_WARNING "%s: Receive parity error\n",
+					   dev->name);
+				goto drop;
+
+			case E_RX_LLRC_ERR:
+				printk(KERN_WARNING "%s: Receive LLRC error\n",
+					   dev->name);
+				goto drop;
+
+			case E_PKT_LN_ERR:
+				printk(KERN_WARNING "%s: Receive packet length "
+					   "error\n", dev->name);
+				goto drop;
+
+			case E_DTA_CKSM_ERR:
+				printk(KERN_WARNING "%s: Data checksum error\n",
+					   dev->name);
+				goto drop;
+
+			case E_SHT_BST:
+				printk(KERN_WARNING "%s: Unexpected short burst "
+					   "error\n", dev->name);
+				goto drop;
+
+			case E_STATE_ERR:
+				printk(KERN_WARNING "%s: Recv. state transition"
+					   " error\n", dev->name);
+				goto drop;
+
+			case E_UNEXP_DATA:
+				printk(KERN_WARNING "%s: Unexpected data error\n",
+					   dev->name);
+				goto drop;
+
+			case E_LST_LNK_ERR:
+				printk(KERN_WARNING "%s: Link lost error\n",
+					   dev->name);
+				goto drop;
+
+			case E_FRM_ERR:
+				printk(KERN_WARNING "%s: Framming Error\n",
+					   dev->name);
+				goto drop;
+
+			case E_FLG_SYN_ERR:
+				printk(KERN_WARNING "%s: Flag sync. lost during "
+					   "packet\n", dev->name);
+				goto drop;
+
+			case E_RX_INV_BUF:
+				printk(KERN_ERR "%s: Invalid receive buffer "
+					   "address\n", dev->name);
+				writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT,
+					   &regs->HostCtrl);
+				wmb();
+				break;
+
+			case E_RX_INV_DSC:
+				printk(KERN_ERR "%s: Invalid receive descriptor "
+					   "address\n", dev->name);
+				writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT,
+					   &regs->HostCtrl);
+				wmb();
+				break;
+
+			case E_RNG_BLK:
+				printk(KERN_ERR "%s: Invalid ring block\n",
+					   dev->name);
+				writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT,
+					   &regs->HostCtrl);
+				wmb();
+				break;
+drop:
+				/* Label packet to be dropped.
+				 * Actual dropping occurs in rx
+				 * handling.
+				 *
+				 * The index of packet we get to drop is
+				 * the index of the packet following
+				 * the bad packet. -kbf
+				 */
+				{
+					u16 index = rrpriv->evt_ring[eidx].index;
+					index = (index + (RX_RING_ENTRIES - 1)) %
+							RX_RING_ENTRIES;
+					rrpriv->rx_ring[index].mode |=
+						(PACKET_BAD | PACKET_END);
+				}
+				break;
+
+			default:
+				printk(KERN_WARNING "%s: Unhandled event 0x%02x\n",
+					   dev->name, rrpriv->evt_ring[eidx].code);
 		}
+
 		eidx = (eidx + 1) % EVT_RING_ENTRIES;
 	}
 
@@ -930,7 +1038,8 @@ static void rx_int(struct net_device *dev, u32 rxlimit, u32 index)
 	struct rr_private *rrpriv = netdev_priv(dev);
 	struct rr_regs __iomem *regs = rrpriv->regs;
 
-	do {
+	do
+	{
 		struct rx_desc *desc;
 		u32 pkt_len;
 
@@ -940,62 +1049,77 @@ static void rx_int(struct net_device *dev, u32 rxlimit, u32 index)
 		printk("index %i, rxlimit %i\n", index, rxlimit);
 		printk("len %x, mode %x\n", pkt_len, desc->mode);
 #endif
-		if ( (rrpriv->rx_ring[index].mode & PACKET_BAD) == PACKET_BAD){
+
+		if ( (rrpriv->rx_ring[index].mode & PACKET_BAD) == PACKET_BAD)
+		{
 			dev->stats.rx_dropped++;
 			goto defer;
 		}
 
-		if (pkt_len > 0){
+		if (pkt_len > 0)
+		{
 			struct sk_buff *skb, *rx_skb;
 
 			rx_skb = rrpriv->rx_skbuff[index];
 
-			if (pkt_len < PKT_COPY_THRESHOLD) {
+			if (pkt_len < PKT_COPY_THRESHOLD)
+			{
 				skb = alloc_skb(pkt_len, GFP_ATOMIC);
-				if (skb == NULL){
+
+				if (skb == NULL)
+				{
 					printk(KERN_WARNING "%s: Unable to allocate skb (%i bytes), deferring packet\n", dev->name, pkt_len);
 					dev->stats.rx_dropped++;
 					goto defer;
-				} else {
+				}
+				else
+				{
 					pci_dma_sync_single_for_cpu(rrpriv->pci_dev,
-								    desc->addr.addrlo,
-								    pkt_len,
-								    PCI_DMA_FROMDEVICE);
+												desc->addr.addrlo,
+												pkt_len,
+												PCI_DMA_FROMDEVICE);
 
 					memcpy(skb_put(skb, pkt_len),
-					       rx_skb->data, pkt_len);
+						   rx_skb->data, pkt_len);
 
 					pci_dma_sync_single_for_device(rrpriv->pci_dev,
-								       desc->addr.addrlo,
-								       pkt_len,
-								       PCI_DMA_FROMDEVICE);
+												   desc->addr.addrlo,
+												   pkt_len,
+												   PCI_DMA_FROMDEVICE);
 				}
-			}else{
+			}
+			else
+			{
 				struct sk_buff *newskb;
 
 				newskb = alloc_skb(dev->mtu + HIPPI_HLEN,
-					GFP_ATOMIC);
-				if (newskb){
+								   GFP_ATOMIC);
+
+				if (newskb)
+				{
 					dma_addr_t addr;
 
-	        			pci_unmap_single(rrpriv->pci_dev,
-						desc->addr.addrlo, dev->mtu +
-						HIPPI_HLEN, PCI_DMA_FROMDEVICE);
+					pci_unmap_single(rrpriv->pci_dev,
+									 desc->addr.addrlo, dev->mtu +
+									 HIPPI_HLEN, PCI_DMA_FROMDEVICE);
 					skb = rx_skb;
 					skb_put(skb, pkt_len);
 					rrpriv->rx_skbuff[index] = newskb;
-	        			addr = pci_map_single(rrpriv->pci_dev,
-						newskb->data,
-						dev->mtu + HIPPI_HLEN,
-						PCI_DMA_FROMDEVICE);
+					addr = pci_map_single(rrpriv->pci_dev,
+										  newskb->data,
+										  dev->mtu + HIPPI_HLEN,
+										  PCI_DMA_FROMDEVICE);
 					set_rraddr(&desc->addr, addr);
-				} else {
+				}
+				else
+				{
 					printk("%s: Out of memory, deferring "
-					       "packet\n", dev->name);
+						   "packet\n", dev->name);
 					dev->stats.rx_dropped++;
 					goto defer;
 				}
 			}
+
 			skb->protocol = hippi_type_trans(skb, dev);
 
 			netif_rx(skb);		/* send it up */
@@ -1003,15 +1127,19 @@ static void rx_int(struct net_device *dev, u32 rxlimit, u32 index)
 			dev->stats.rx_packets++;
 			dev->stats.rx_bytes += pkt_len;
 		}
-	defer:
+
+defer:
 		desc->mode = 0;
 		desc->size = dev->mtu + HIPPI_HLEN;
 
 		if ((index & 7) == 7)
+		{
 			writel(index, &regs->IpRxPi);
+		}
 
 		index = (index + 1) % RX_RING_ENTRIES;
-	} while(index != rxlimit);
+	}
+	while (index != rxlimit);
 
 	rrpriv->cur_rx = index;
 	wmb();
@@ -1029,7 +1157,9 @@ static irqreturn_t rr_interrupt(int irq, void *dev_id)
 	regs = rrpriv->regs;
 
 	if (!(readl(&regs->HostCtrl) & RR_INT))
+	{
 		return IRQ_NONE;
+	}
 
 	spin_lock(&rrpriv->lock);
 
@@ -1040,7 +1170,7 @@ static irqreturn_t rr_interrupt(int irq, void *dev_id)
 
 #if (DEBUG > 2)
 	printk("%s: interrupt, prodidx = %i, eidx = %i\n", dev->name,
-	       prodidx, rrpriv->info->evt_ctrl.pi);
+		   prodidx, rrpriv->info->evt_ctrl.pi);
 #endif
 	/*
 	 * Order here is important.  We must handle events
@@ -1049,20 +1179,30 @@ static irqreturn_t rr_interrupt(int irq, void *dev_id)
 	 */
 
 	eidx = rrpriv->info->evt_ctrl.pi;
+
 	if (prodidx != eidx)
+	{
 		eidx = rr_handle_event(dev, prodidx, eidx);
+	}
 
 	rxindex = rrpriv->cur_rx;
+
 	if (rxindex != rxlimit)
+	{
 		rx_int(dev, rxlimit, rxindex);
+	}
 
 	txcon = rrpriv->dirty_tx;
-	if (txcsmr != txcon) {
-		do {
+
+	if (txcsmr != txcon)
+	{
+		do
+		{
 			/* Due to occational firmware TX producer/consumer out
 			 * of sync. error need to check entry in ring -kbf
 			 */
-			if(rrpriv->tx_skbuff[txcon]){
+			if (rrpriv->tx_skbuff[txcon])
+			{
 				struct tx_desc *desc;
 				struct sk_buff *skb;
 
@@ -1073,8 +1213,8 @@ static irqreturn_t rr_interrupt(int irq, void *dev_id)
 				dev->stats.tx_bytes += skb->len;
 
 				pci_unmap_single(rrpriv->pci_dev,
-						 desc->addr.addrlo, skb->len,
-						 PCI_DMA_TODEVICE);
+								 desc->addr.addrlo, skb->len,
+								 PCI_DMA_TODEVICE);
 				dev_kfree_skb_irq(skb);
 
 				rrpriv->tx_skbuff[txcon] = NULL;
@@ -1082,14 +1222,19 @@ static irqreturn_t rr_interrupt(int irq, void *dev_id)
 				set_rraddr(&rrpriv->tx_ring[txcon].addr, 0);
 				desc->mode = 0;
 			}
+
 			txcon = (txcon + 1) % TX_RING_ENTRIES;
-		} while (txcsmr != txcon);
+		}
+		while (txcsmr != txcon);
+
 		wmb();
 
 		rrpriv->dirty_tx = txcon;
+
 		if (rrpriv->tx_full && rr_if_busy(dev) &&
-		    (((rrpriv->info->tx_ctrl.pi + 1) % TX_RING_ENTRIES)
-		     != rrpriv->dirty_tx)){
+			(((rrpriv->info->tx_ctrl.pi + 1) % TX_RING_ENTRIES)
+			 != rrpriv->dirty_tx))
+		{
 			rrpriv->tx_full = 0;
 			netif_wake_queue(dev);
 		}
@@ -1104,18 +1249,20 @@ static irqreturn_t rr_interrupt(int irq, void *dev_id)
 }
 
 static inline void rr_raz_tx(struct rr_private *rrpriv,
-			     struct net_device *dev)
+							 struct net_device *dev)
 {
 	int i;
 
-	for (i = 0; i < TX_RING_ENTRIES; i++) {
+	for (i = 0; i < TX_RING_ENTRIES; i++)
+	{
 		struct sk_buff *skb = rrpriv->tx_skbuff[i];
 
-		if (skb) {
+		if (skb)
+		{
 			struct tx_desc *desc = &(rrpriv->tx_ring[i]);
 
-	        	pci_unmap_single(rrpriv->pci_dev, desc->addr.addrlo,
-				skb->len, PCI_DMA_TODEVICE);
+			pci_unmap_single(rrpriv->pci_dev, desc->addr.addrlo,
+							 skb->len, PCI_DMA_TODEVICE);
 			desc->size = 0;
 			set_rraddr(&desc->addr, 0);
 			dev_kfree_skb(skb);
@@ -1126,18 +1273,20 @@ static inline void rr_raz_tx(struct rr_private *rrpriv,
 
 
 static inline void rr_raz_rx(struct rr_private *rrpriv,
-			     struct net_device *dev)
+							 struct net_device *dev)
 {
 	int i;
 
-	for (i = 0; i < RX_RING_ENTRIES; i++) {
+	for (i = 0; i < RX_RING_ENTRIES; i++)
+	{
 		struct sk_buff *skb = rrpriv->rx_skbuff[i];
 
-		if (skb) {
+		if (skb)
+		{
 			struct rx_desc *desc = &(rrpriv->rx_ring[i]);
 
-	        	pci_unmap_single(rrpriv->pci_dev, desc->addr.addrlo,
-				dev->mtu + HIPPI_HLEN, PCI_DMA_FROMDEVICE);
+			pci_unmap_single(rrpriv->pci_dev, desc->addr.addrlo,
+							 dev->mtu + HIPPI_HLEN, PCI_DMA_FROMDEVICE);
 			desc->size = 0;
 			set_rraddr(&desc->addr, 0);
 			dev_kfree_skb(skb);
@@ -1153,7 +1302,8 @@ static void rr_timer(unsigned long data)
 	struct rr_regs __iomem *regs = rrpriv->regs;
 	unsigned long flags;
 
-	if (readl(&regs->HostCtrl) & NIC_HALTED){
+	if (readl(&regs->HostCtrl) & NIC_HALTED)
+	{
 		printk("%s: Restarting nic\n", dev->name);
 		memset(rrpriv->rx_ctrl, 0, 256 * sizeof(struct ring_ctrl));
 		memset(rrpriv->info, 0, sizeof(struct rr_info));
@@ -1162,14 +1312,16 @@ static void rr_timer(unsigned long data)
 		rr_raz_tx(rrpriv, dev);
 		rr_raz_rx(rrpriv, dev);
 
-		if (rr_init1(dev)) {
+		if (rr_init1(dev))
+		{
 			spin_lock_irqsave(&rrpriv->lock, flags);
-			writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT,
-			       &regs->HostCtrl);
+			writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT,
+				   &regs->HostCtrl);
 			spin_unlock_irqrestore(&rrpriv->lock, flags);
 		}
 	}
-	rrpriv->timer.expires = RUN_AT(5*HZ);
+
+	rrpriv->timer.expires = RUN_AT(5 * HZ);
 	add_timer(&rrpriv->timer);
 }
 
@@ -1185,52 +1337,62 @@ static int rr_open(struct net_device *dev)
 
 	regs = rrpriv->regs;
 
-	if (rrpriv->fw_rev < 0x00020000) {
+	if (rrpriv->fw_rev < 0x00020000)
+	{
 		printk(KERN_WARNING "%s: trying to configure device with "
-		       "obsolete firmware\n", dev->name);
+			   "obsolete firmware\n", dev->name);
 		ecode = -EBUSY;
 		goto error;
 	}
 
 	rrpriv->rx_ctrl = pci_alloc_consistent(pdev,
-					       256 * sizeof(struct ring_ctrl),
-					       &dma_addr);
-	if (!rrpriv->rx_ctrl) {
+										   256 * sizeof(struct ring_ctrl),
+										   &dma_addr);
+
+	if (!rrpriv->rx_ctrl)
+	{
 		ecode = -ENOMEM;
 		goto error;
 	}
+
 	rrpriv->rx_ctrl_dma = dma_addr;
-	memset(rrpriv->rx_ctrl, 0, 256*sizeof(struct ring_ctrl));
+	memset(rrpriv->rx_ctrl, 0, 256 * sizeof(struct ring_ctrl));
 
 	rrpriv->info = pci_alloc_consistent(pdev, sizeof(struct rr_info),
-					    &dma_addr);
-	if (!rrpriv->info) {
+										&dma_addr);
+
+	if (!rrpriv->info)
+	{
 		ecode = -ENOMEM;
 		goto error;
 	}
+
 	rrpriv->info_dma = dma_addr;
 	memset(rrpriv->info, 0, sizeof(struct rr_info));
 	wmb();
 
 	spin_lock_irqsave(&rrpriv->lock, flags);
-	writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT, &regs->HostCtrl);
+	writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT, &regs->HostCtrl);
 	readl(&regs->HostCtrl);
 	spin_unlock_irqrestore(&rrpriv->lock, flags);
 
-	if (request_irq(pdev->irq, rr_interrupt, IRQF_SHARED, dev->name, dev)) {
+	if (request_irq(pdev->irq, rr_interrupt, IRQF_SHARED, dev->name, dev))
+	{
 		printk(KERN_WARNING "%s: Requested IRQ %d is busy\n",
-		       dev->name, pdev->irq);
+			   dev->name, pdev->irq);
 		ecode = -EAGAIN;
 		goto error;
 	}
 
 	if ((ecode = rr_init1(dev)))
+	{
 		goto error;
+	}
 
 	/* Set the timer to switch to check for link beat and perhaps switch
 	   to an alternate media type. */
 	init_timer(&rrpriv->timer);
-	rrpriv->timer.expires = RUN_AT(5*HZ);           /* 5 sec. watchdog */
+	rrpriv->timer.expires = RUN_AT(5 * HZ);         /* 5 sec. watchdog */
 	rrpriv->timer.data = (unsigned long)dev;
 	rrpriv->timer.function = rr_timer;               /* timer handler */
 	add_timer(&rrpriv->timer);
@@ -1239,19 +1401,22 @@ static int rr_open(struct net_device *dev)
 
 	return ecode;
 
- error:
+error:
 	spin_lock_irqsave(&rrpriv->lock, flags);
-	writel(readl(&regs->HostCtrl)|HALT_NIC|RR_CLEAR_INT, &regs->HostCtrl);
+	writel(readl(&regs->HostCtrl) | HALT_NIC | RR_CLEAR_INT, &regs->HostCtrl);
 	spin_unlock_irqrestore(&rrpriv->lock, flags);
 
-	if (rrpriv->info) {
+	if (rrpriv->info)
+	{
 		pci_free_consistent(pdev, sizeof(struct rr_info), rrpriv->info,
-				    rrpriv->info_dma);
+							rrpriv->info_dma);
 		rrpriv->info = NULL;
 	}
-	if (rrpriv->rx_ctrl) {
+
+	if (rrpriv->rx_ctrl)
+	{
 		pci_free_consistent(pdev, sizeof(struct ring_ctrl),
-				    rrpriv->rx_ctrl, rrpriv->rx_ctrl_dma);
+							rrpriv->rx_ctrl, rrpriv->rx_ctrl_dma);
 		rrpriv->rx_ctrl = NULL;
 	}
 
@@ -1275,51 +1440,68 @@ static void rr_dump(struct net_device *dev)
 	printk("%s: dumping NIC TX rings\n", dev->name);
 
 	printk("RxPrd %08x, TxPrd %02x, EvtPrd %08x, TxPi %02x, TxCtrlPi %02x\n",
-	       readl(&regs->RxPrd), readl(&regs->TxPrd),
-	       readl(&regs->EvtPrd), readl(&regs->TxPi),
-	       rrpriv->info->tx_ctrl.pi);
+		   readl(&regs->RxPrd), readl(&regs->TxPrd),
+		   readl(&regs->EvtPrd), readl(&regs->TxPi),
+		   rrpriv->info->tx_ctrl.pi);
 
 	printk("Error code 0x%x\n", readl(&regs->Fail1));
 
 	index = (((readl(&regs->EvtPrd) >> 8) & 0xff) - 1) % TX_RING_ENTRIES;
 	cons = rrpriv->dirty_tx;
 	printk("TX ring index %i, TX consumer %i\n",
-	       index, cons);
+		   index, cons);
 
-	if (rrpriv->tx_skbuff[index]){
+	if (rrpriv->tx_skbuff[index])
+	{
 		len = min_t(int, 0x80, rrpriv->tx_skbuff[index]->len);
-		printk("skbuff for index %i is valid - dumping data (0x%x bytes - DMA len 0x%x)\n", index, len, rrpriv->tx_ring[index].size);
-		for (i = 0; i < len; i++){
+		printk("skbuff for index %i is valid - dumping data (0x%x bytes - DMA len 0x%x)\n", index, len,
+			   rrpriv->tx_ring[index].size);
+
+		for (i = 0; i < len; i++)
+		{
 			if (!(i & 7))
+			{
 				printk("\n");
+			}
+
 			printk("%02x ", (unsigned char) rrpriv->tx_skbuff[index]->data[i]);
 		}
+
 		printk("\n");
 	}
 
-	if (rrpriv->tx_skbuff[cons]){
+	if (rrpriv->tx_skbuff[cons])
+	{
 		len = min_t(int, 0x80, rrpriv->tx_skbuff[cons]->len);
-		printk("skbuff for cons %i is valid - dumping data (0x%x bytes - skbuff len 0x%x)\n", cons, len, rrpriv->tx_skbuff[cons]->len);
+		printk("skbuff for cons %i is valid - dumping data (0x%x bytes - skbuff len 0x%x)\n", cons, len,
+			   rrpriv->tx_skbuff[cons]->len);
 		printk("mode 0x%x, size 0x%x,\n phys %08Lx, skbuff-addr %08lx, truesize 0x%x\n",
-		       rrpriv->tx_ring[cons].mode,
-		       rrpriv->tx_ring[cons].size,
-		       (unsigned long long) rrpriv->tx_ring[cons].addr.addrlo,
-		       (unsigned long)rrpriv->tx_skbuff[cons]->data,
-		       (unsigned int)rrpriv->tx_skbuff[cons]->truesize);
-		for (i = 0; i < len; i++){
+			   rrpriv->tx_ring[cons].mode,
+			   rrpriv->tx_ring[cons].size,
+			   (unsigned long long) rrpriv->tx_ring[cons].addr.addrlo,
+			   (unsigned long)rrpriv->tx_skbuff[cons]->data,
+			   (unsigned int)rrpriv->tx_skbuff[cons]->truesize);
+
+		for (i = 0; i < len; i++)
+		{
 			if (!(i & 7))
+			{
 				printk("\n");
+			}
+
 			printk("%02x ", (unsigned char)rrpriv->tx_ring[cons].size);
 		}
+
 		printk("\n");
 	}
 
 	printk("dumping TX ring info:\n");
+
 	for (i = 0; i < TX_RING_ENTRIES; i++)
 		printk("mode 0x%x, size 0x%x, phys-addr %08Lx\n",
-		       rrpriv->tx_ring[i].mode,
-		       rrpriv->tx_ring[i].size,
-		       (unsigned long long) rrpriv->tx_ring[i].addr.addrlo);
+			   rrpriv->tx_ring[i].mode,
+			   rrpriv->tx_ring[i].size,
+			   (unsigned long long) rrpriv->tx_ring[i].addr.addrlo);
 
 }
 
@@ -1343,10 +1525,14 @@ static int rr_close(struct net_device *dev)
 	spin_lock_irqsave(&rrpriv->lock, flags);
 
 	tmp = readl(&regs->HostCtrl);
-	if (tmp & NIC_HALTED){
+
+	if (tmp & NIC_HALTED)
+	{
 		printk("%s: NIC already halted\n", dev->name);
 		rr_dump(dev);
-	}else{
+	}
+	else
+	{
 		tmp |= HALT_NIC | RR_CLEAR_INT;
 		writel(tmp, &regs->HostCtrl);
 		readl(&regs->HostCtrl);
@@ -1363,7 +1549,9 @@ static int rr_close(struct net_device *dev)
 	writel(0, &regs->EvtPrd);
 
 	for (i = 0; i < CMD_RING_ENTRIES; i++)
+	{
 		writel(0, &regs->CmdRing[i]);
+	}
 
 	rrpriv->info->tx_ctrl.entries = 0;
 	rrpriv->info->cmd_ctrl.pi = 0;
@@ -1374,11 +1562,11 @@ static int rr_close(struct net_device *dev)
 	rr_raz_rx(rrpriv, dev);
 
 	pci_free_consistent(pdev, 256 * sizeof(struct ring_ctrl),
-			    rrpriv->rx_ctrl, rrpriv->rx_ctrl_dma);
+						rrpriv->rx_ctrl, rrpriv->rx_ctrl_dma);
 	rrpriv->rx_ctrl = NULL;
 
 	pci_free_consistent(pdev, sizeof(struct rr_info), rrpriv->info,
-			    rrpriv->info_dma);
+						rrpriv->info_dma);
 	rrpriv->info = NULL;
 
 	free_irq(pdev->irq, dev);
@@ -1389,7 +1577,7 @@ static int rr_close(struct net_device *dev)
 
 
 static netdev_tx_t rr_start_xmit(struct sk_buff *skb,
-				 struct net_device *dev)
+								 struct net_device *dev)
 {
 	struct rr_private *rrpriv = netdev_priv(dev);
 	struct rr_regs __iomem *regs = rrpriv->regs;
@@ -1402,19 +1590,23 @@ static netdev_tx_t rr_start_xmit(struct sk_buff *skb,
 
 	if (readl(&regs->Mode) & FATAL_ERR)
 		printk("error codes Fail1 %02x, Fail2 %02x\n",
-		       readl(&regs->Fail1), readl(&regs->Fail2));
+			   readl(&regs->Fail1), readl(&regs->Fail2));
 
 	/*
 	 * We probably need to deal with tbusy here to prevent overruns.
 	 */
 
-	if (skb_headroom(skb) < 8){
+	if (skb_headroom(skb) < 8)
+	{
 		printk("incoming skb too small - reallocating\n");
-		if (!(new_skb = dev_alloc_skb(len + 8))) {
+
+		if (!(new_skb = dev_alloc_skb(len + 8)))
+		{
 			dev_kfree_skb(skb);
 			netif_wake_queue(dev);
 			return NETDEV_TX_OK;
 		}
+
 		skb_reserve(new_skb, 8);
 		skb_put(new_skb, len);
 		skb_copy_from_linear_data(skb, new_skb->data, len);
@@ -1439,14 +1631,15 @@ static netdev_tx_t rr_start_xmit(struct sk_buff *skb,
 
 	rrpriv->tx_skbuff[index] = skb;
 	set_rraddr(&rrpriv->tx_ring[index].addr, pci_map_single(
-		rrpriv->pci_dev, skb->data, len + 8, PCI_DMA_TODEVICE));
+				   rrpriv->pci_dev, skb->data, len + 8, PCI_DMA_TODEVICE));
 	rrpriv->tx_ring[index].size = len + 8; /* include IFIELD */
 	rrpriv->tx_ring[index].mode = PACKET_START | PACKET_END;
 	txctrl->pi = (index + 1) % TX_RING_ENTRIES;
 	wmb();
 	writel(txctrl->pi, &regs->TxPi);
 
-	if (txctrl->pi == rrpriv->dirty_tx){
+	if (txctrl->pi == rrpriv->dirty_tx)
+	{
 		rrpriv->tx_full = 1;
 		netif_stop_queue(dev);
 	}
@@ -1477,11 +1670,14 @@ static int rr_load_firmware(struct net_device *dev)
 	regs = rrpriv->regs;
 
 	if (dev->flags & IFF_UP)
+	{
 		return -EBUSY;
+	}
 
-	if (!(readl(&regs->HostCtrl) & NIC_HALTED)){
+	if (!(readl(&regs->HostCtrl) & NIC_HALTED))
+	{
 		printk("%s: Trying to load firmware to a running NIC.\n",
-		       dev->name);
+			   dev->name);
 		return -EBUSY;
 	}
 
@@ -1501,45 +1697,50 @@ static int rr_load_firmware(struct net_device *dev)
 	writel(0, &regs->ExtIo);
 	sram_size = rr_read_eeprom_word(rrpriv, 8);
 
-	for (i = 200; i < sram_size / 4; i++){
+	for (i = 200; i < sram_size / 4; i++)
+	{
 		writel(i * 4, &regs->WinBase);
 		mb();
 		writel(0, &regs->WinData);
 		mb();
 	}
+
 	writel(io, &regs->ExtIo);
 	mb();
 
 	eptr = rr_read_eeprom_word(rrpriv,
-		       offsetof(struct eeprom, rncd_info.AddrRunCodeSegs));
+							   offsetof(struct eeprom, rncd_info.AddrRunCodeSegs));
 	eptr = ((eptr & 0x1fffff) >> 3);
 
-	p2len = rr_read_eeprom_word(rrpriv, 0x83*4);
+	p2len = rr_read_eeprom_word(rrpriv, 0x83 * 4);
 	p2len = (p2len << 2);
-	p2size = rr_read_eeprom_word(rrpriv, 0x84*4);
+	p2size = rr_read_eeprom_word(rrpriv, 0x84 * 4);
 	p2size = ((p2size & 0x1fffff) >> 3);
 
-	if ((eptr < p2size) || (eptr > (p2size + p2len))){
+	if ((eptr < p2size) || (eptr > (p2size + p2len)))
+	{
 		printk("%s: eptr is invalid\n", dev->name);
 		goto out;
 	}
 
 	revision = rr_read_eeprom_word(rrpriv,
-			offsetof(struct eeprom, manf.HeaderFmt));
+								   offsetof(struct eeprom, manf.HeaderFmt));
 
-	if (revision != 1){
+	if (revision != 1)
+	{
 		printk("%s: invalid firmware format (%i)\n",
-		       dev->name, revision);
+			   dev->name, revision);
 		goto out;
 	}
 
 	nr_seg = rr_read_eeprom_word(rrpriv, eptr);
-	eptr +=4;
+	eptr += 4;
 #if (DEBUG > 1)
 	printk("%s: nr_seg %i\n", dev->name, nr_seg);
 #endif
 
-	for (i = 0; i < nr_seg; i++){
+	for (i = 0; i < nr_seg; i++)
+	{
 		sptr = rr_read_eeprom_word(rrpriv, eptr);
 		eptr += 4;
 		len = rr_read_eeprom_word(rrpriv, eptr);
@@ -1549,9 +1750,11 @@ static int rr_load_firmware(struct net_device *dev)
 		eptr += 4;
 #if (DEBUG > 1)
 		printk("%s: segment %i, sram address %06x, length %04x, segptr %06x\n",
-		       dev->name, i, sptr, len, segptr);
+			   dev->name, i, sptr, len, segptr);
 #endif
-		for (j = 0; j < len; j++){
+
+		for (j = 0; j < len; j++)
+		{
 			tmp = rr_read_eeprom_word(rrpriv, segptr);
 			writel(sptr, &regs->WinBase);
 			mb();
@@ -1579,103 +1782,131 @@ static int rr_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 
 	rrpriv = netdev_priv(dev);
 
-	switch(cmd){
-	case SIOCRRGFW:
-		if (!capable(CAP_SYS_RAWIO)){
-			return -EPERM;
-		}
+	switch (cmd)
+	{
+		case SIOCRRGFW:
+			if (!capable(CAP_SYS_RAWIO))
+			{
+				return -EPERM;
+			}
 
-		image = kmalloc(EEPROM_WORDS * sizeof(u32), GFP_KERNEL);
-		if (!image)
-			return -ENOMEM;
+			image = kmalloc(EEPROM_WORDS * sizeof(u32), GFP_KERNEL);
 
-		if (rrpriv->fw_running){
-			printk("%s: Firmware already running\n", dev->name);
-			error = -EPERM;
-			goto gf_out;
-		}
+			if (!image)
+			{
+				return -ENOMEM;
+			}
 
-		spin_lock_irqsave(&rrpriv->lock, flags);
-		i = rr_read_eeprom(rrpriv, 0, image, EEPROM_BYTES);
-		spin_unlock_irqrestore(&rrpriv->lock, flags);
-		if (i != EEPROM_BYTES){
-			printk(KERN_ERR "%s: Error reading EEPROM\n",
-			       dev->name);
-			error = -EFAULT;
-			goto gf_out;
-		}
-		error = copy_to_user(rq->ifr_data, image, EEPROM_BYTES);
-		if (error)
-			error = -EFAULT;
-	gf_out:
-		kfree(image);
-		return error;
+			if (rrpriv->fw_running)
+			{
+				printk("%s: Firmware already running\n", dev->name);
+				error = -EPERM;
+				goto gf_out;
+			}
 
-	case SIOCRRPFW:
-		if (!capable(CAP_SYS_RAWIO)){
-			return -EPERM;
-		}
+			spin_lock_irqsave(&rrpriv->lock, flags);
+			i = rr_read_eeprom(rrpriv, 0, image, EEPROM_BYTES);
+			spin_unlock_irqrestore(&rrpriv->lock, flags);
 
-		image = kmalloc(EEPROM_WORDS * sizeof(u32), GFP_KERNEL);
-		oldimage = kmalloc(EEPROM_WORDS * sizeof(u32), GFP_KERNEL);
-		if (!image || !oldimage) {
-			error = -ENOMEM;
-			goto wf_out;
-		}
+			if (i != EEPROM_BYTES)
+			{
+				printk(KERN_ERR "%s: Error reading EEPROM\n",
+					   dev->name);
+				error = -EFAULT;
+				goto gf_out;
+			}
 
-		error = copy_from_user(image, rq->ifr_data, EEPROM_BYTES);
-		if (error) {
-			error = -EFAULT;
-			goto wf_out;
-		}
+			error = copy_to_user(rq->ifr_data, image, EEPROM_BYTES);
 
-		if (rrpriv->fw_running){
-			printk("%s: Firmware already running\n", dev->name);
-			error = -EPERM;
-			goto wf_out;
-		}
+			if (error)
+			{
+				error = -EFAULT;
+			}
 
-		printk("%s: Updating EEPROM firmware\n", dev->name);
+gf_out:
+			kfree(image);
+			return error;
 
-		spin_lock_irqsave(&rrpriv->lock, flags);
-		error = write_eeprom(rrpriv, 0, image, EEPROM_BYTES);
-		if (error)
-			printk(KERN_ERR "%s: Error writing EEPROM\n",
-			       dev->name);
+		case SIOCRRPFW:
+			if (!capable(CAP_SYS_RAWIO))
+			{
+				return -EPERM;
+			}
 
-		i = rr_read_eeprom(rrpriv, 0, oldimage, EEPROM_BYTES);
-		spin_unlock_irqrestore(&rrpriv->lock, flags);
+			image = kmalloc(EEPROM_WORDS * sizeof(u32), GFP_KERNEL);
+			oldimage = kmalloc(EEPROM_WORDS * sizeof(u32), GFP_KERNEL);
 
-		if (i != EEPROM_BYTES)
-			printk(KERN_ERR "%s: Error reading back EEPROM "
-			       "image\n", dev->name);
+			if (!image || !oldimage)
+			{
+				error = -ENOMEM;
+				goto wf_out;
+			}
 
-		error = memcmp(image, oldimage, EEPROM_BYTES);
-		if (error){
-			printk(KERN_ERR "%s: Error verifying EEPROM image\n",
-			       dev->name);
-			error = -EFAULT;
-		}
-	wf_out:
-		kfree(oldimage);
-		kfree(image);
-		return error;
+			error = copy_from_user(image, rq->ifr_data, EEPROM_BYTES);
 
-	case SIOCRRID:
-		return put_user(0x52523032, (int __user *)rq->ifr_data);
-	default:
-		return error;
+			if (error)
+			{
+				error = -EFAULT;
+				goto wf_out;
+			}
+
+			if (rrpriv->fw_running)
+			{
+				printk("%s: Firmware already running\n", dev->name);
+				error = -EPERM;
+				goto wf_out;
+			}
+
+			printk("%s: Updating EEPROM firmware\n", dev->name);
+
+			spin_lock_irqsave(&rrpriv->lock, flags);
+			error = write_eeprom(rrpriv, 0, image, EEPROM_BYTES);
+
+			if (error)
+				printk(KERN_ERR "%s: Error writing EEPROM\n",
+					   dev->name);
+
+			i = rr_read_eeprom(rrpriv, 0, oldimage, EEPROM_BYTES);
+			spin_unlock_irqrestore(&rrpriv->lock, flags);
+
+			if (i != EEPROM_BYTES)
+				printk(KERN_ERR "%s: Error reading back EEPROM "
+					   "image\n", dev->name);
+
+			error = memcmp(image, oldimage, EEPROM_BYTES);
+
+			if (error)
+			{
+				printk(KERN_ERR "%s: Error verifying EEPROM image\n",
+					   dev->name);
+				error = -EFAULT;
+			}
+
+wf_out:
+			kfree(oldimage);
+			kfree(image);
+			return error;
+
+		case SIOCRRID:
+			return put_user(0x52523032, (int __user *)rq->ifr_data);
+
+		default:
+			return error;
 	}
 }
 
-static const struct pci_device_id rr_pci_tbl[] = {
-	{ PCI_VENDOR_ID_ESSENTIAL, PCI_DEVICE_ID_ESSENTIAL_ROADRUNNER,
-		PCI_ANY_ID, PCI_ANY_ID, },
+static const struct pci_device_id rr_pci_tbl[] =
+{
+	{
+		PCI_VENDOR_ID_ESSENTIAL, PCI_DEVICE_ID_ESSENTIAL_ROADRUNNER,
+		PCI_ANY_ID, PCI_ANY_ID,
+	},
 	{ 0,}
 };
 MODULE_DEVICE_TABLE(pci, rr_pci_tbl);
 
-static struct pci_driver rr_driver = {
+static struct pci_driver rr_driver =
+{
 	.name		= "rrunner",
 	.id_table	= rr_pci_tbl,
 	.probe		= rr_init_one,

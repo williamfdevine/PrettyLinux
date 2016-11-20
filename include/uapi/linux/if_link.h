@@ -5,7 +5,8 @@
 #include <linux/netlink.h>
 
 /* This struct should be in sync with struct rtnl_link_stats64 */
-struct rtnl_link_stats {
+struct rtnl_link_stats
+{
 	__u32	rx_packets;		/* total packets received	*/
 	__u32	tx_packets;		/* total packets transmitted	*/
 	__u32	rx_bytes;		/* total bytes received 	*/
@@ -40,7 +41,8 @@ struct rtnl_link_stats {
 };
 
 /* The main device statistics structure */
-struct rtnl_link_stats64 {
+struct rtnl_link_stats64
+{
 	__u64	rx_packets;		/* total packets received	*/
 	__u64	tx_packets;		/* total packets transmitted	*/
 	__u64	rx_bytes;		/* total bytes received 	*/
@@ -75,7 +77,8 @@ struct rtnl_link_stats64 {
 };
 
 /* The struct should be in sync with struct ifmap */
-struct rtnl_link_ifmap {
+struct rtnl_link_ifmap
+{
 	__u64	mem_start;
 	__u64	mem_end;
 	__u64	base_addr;
@@ -102,7 +105,8 @@ struct rtnl_link_ifmap {
  *   }
  */
 
-enum {
+enum
+{
 	IFLA_UNSPEC,
 	IFLA_ADDRESS,
 	IFLA_BROADCAST,
@@ -165,11 +169,12 @@ enum {
 
 /* backwards compatibility for userspace */
 #ifndef __KERNEL__
-#define IFLA_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct ifinfomsg))))
-#define IFLA_PAYLOAD(n) NLMSG_PAYLOAD(n,sizeof(struct ifinfomsg))
+	#define IFLA_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct ifinfomsg))))
+	#define IFLA_PAYLOAD(n) NLMSG_PAYLOAD(n,sizeof(struct ifinfomsg))
 #endif
 
-enum {
+enum
+{
 	IFLA_INET_UNSPEC,
 	IFLA_INET_CONF,
 	__IFLA_INET_MAX,
@@ -207,7 +212,8 @@ enum {
  */
 
 /* Subtype attributes for IFLA_PROTINFO */
-enum {
+enum
+{
 	IFLA_INET6_UNSPEC,
 	IFLA_INET6_FLAGS,	/* link flags			*/
 	IFLA_INET6_CONF,	/* sysctl parameters		*/
@@ -222,7 +228,8 @@ enum {
 
 #define IFLA_INET6_MAX	(__IFLA_INET6_MAX - 1)
 
-enum in6_addr_gen_mode {
+enum in6_addr_gen_mode
+{
 	IN6_ADDR_GEN_MODE_EUI64,
 	IN6_ADDR_GEN_MODE_NONE,
 	IN6_ADDR_GEN_MODE_STABLE_PRIVACY,
@@ -231,7 +238,8 @@ enum in6_addr_gen_mode {
 
 /* Bridge section */
 
-enum {
+enum
+{
 	IFLA_BR_UNSPEC,
 	IFLA_BR_FORWARD_DELAY,
 	IFLA_BR_HELLO_TIME,
@@ -280,17 +288,20 @@ enum {
 
 #define IFLA_BR_MAX	(__IFLA_BR_MAX - 1)
 
-struct ifla_bridge_id {
+struct ifla_bridge_id
+{
 	__u8	prio[2];
 	__u8	addr[6]; /* ETH_ALEN */
 };
 
-enum {
+enum
+{
 	BRIDGE_MODE_UNSPEC,
 	BRIDGE_MODE_HAIRPIN,
 };
 
-enum {
+enum
+{
 	IFLA_BRPORT_UNSPEC,
 	IFLA_BRPORT_STATE,	/* Spanning tree state     */
 	IFLA_BRPORT_PRIORITY,	/* "             priority  */
@@ -323,14 +334,16 @@ enum {
 };
 #define IFLA_BRPORT_MAX (__IFLA_BRPORT_MAX - 1)
 
-struct ifla_cacheinfo {
+struct ifla_cacheinfo
+{
 	__u32	max_reasm_len;
 	__u32	tstamp;		/* ipv6InterfaceTable updated timestamp */
 	__u32	reachable_time;
 	__u32	retrans_time;
 };
 
-enum {
+enum
+{
 	IFLA_INFO_UNSPEC,
 	IFLA_INFO_KIND,
 	IFLA_INFO_DATA,
@@ -344,7 +357,8 @@ enum {
 
 /* VLAN section */
 
-enum {
+enum
+{
 	IFLA_VLAN_UNSPEC,
 	IFLA_VLAN_ID,
 	IFLA_VLAN_FLAGS,
@@ -356,12 +370,14 @@ enum {
 
 #define IFLA_VLAN_MAX	(__IFLA_VLAN_MAX - 1)
 
-struct ifla_vlan_flags {
+struct ifla_vlan_flags
+{
 	__u32	flags;
 	__u32	mask;
 };
 
-enum {
+enum
+{
 	IFLA_VLAN_QOS_UNSPEC,
 	IFLA_VLAN_QOS_MAPPING,
 	__IFLA_VLAN_QOS_MAX
@@ -369,13 +385,15 @@ enum {
 
 #define IFLA_VLAN_QOS_MAX	(__IFLA_VLAN_QOS_MAX - 1)
 
-struct ifla_vlan_qos_mapping {
+struct ifla_vlan_qos_mapping
+{
 	__u32 from;
 	__u32 to;
 };
 
 /* MACVLAN section */
-enum {
+enum
+{
 	IFLA_MACVLAN_UNSPEC,
 	IFLA_MACVLAN_MODE,
 	IFLA_MACVLAN_FLAGS,
@@ -388,7 +406,8 @@ enum {
 
 #define IFLA_MACVLAN_MAX (__IFLA_MACVLAN_MAX - 1)
 
-enum macvlan_mode {
+enum macvlan_mode
+{
 	MACVLAN_MODE_PRIVATE = 1, /* don't talk to other macvlans */
 	MACVLAN_MODE_VEPA    = 2, /* talk to other ports through ext bridge */
 	MACVLAN_MODE_BRIDGE  = 4, /* talk to bridge ports directly */
@@ -396,7 +415,8 @@ enum macvlan_mode {
 	MACVLAN_MODE_SOURCE  = 16,/* use source MAC address list to assign */
 };
 
-enum macvlan_macaddr_mode {
+enum macvlan_macaddr_mode
+{
 	MACVLAN_MACADDR_ADD,
 	MACVLAN_MACADDR_DEL,
 	MACVLAN_MACADDR_FLUSH,
@@ -406,7 +426,8 @@ enum macvlan_macaddr_mode {
 #define MACVLAN_FLAG_NOPROMISC	1
 
 /* VRF section */
-enum {
+enum
+{
 	IFLA_VRF_UNSPEC,
 	IFLA_VRF_TABLE,
 	__IFLA_VRF_MAX
@@ -414,7 +435,8 @@ enum {
 
 #define IFLA_VRF_MAX (__IFLA_VRF_MAX - 1)
 
-enum {
+enum
+{
 	IFLA_VRF_PORT_UNSPEC,
 	IFLA_VRF_PORT_TABLE,
 	__IFLA_VRF_PORT_MAX
@@ -423,7 +445,8 @@ enum {
 #define IFLA_VRF_PORT_MAX (__IFLA_VRF_PORT_MAX - 1)
 
 /* MACSEC section */
-enum {
+enum
+{
 	IFLA_MACSEC_UNSPEC,
 	IFLA_MACSEC_SCI,
 	IFLA_MACSEC_PORT,
@@ -444,7 +467,8 @@ enum {
 
 #define IFLA_MACSEC_MAX (__IFLA_MACSEC_MAX - 1)
 
-enum macsec_validation_type {
+enum macsec_validation_type
+{
 	MACSEC_VALIDATE_DISABLED = 0,
 	MACSEC_VALIDATE_CHECK = 1,
 	MACSEC_VALIDATE_STRICT = 2,
@@ -453,7 +477,8 @@ enum macsec_validation_type {
 };
 
 /* IPVLAN section */
-enum {
+enum
+{
 	IFLA_IPVLAN_UNSPEC,
 	IFLA_IPVLAN_MODE,
 	__IFLA_IPVLAN_MAX
@@ -461,7 +486,8 @@ enum {
 
 #define IFLA_IPVLAN_MAX (__IFLA_IPVLAN_MAX - 1)
 
-enum ipvlan_mode {
+enum ipvlan_mode
+{
 	IPVLAN_MODE_L2 = 0,
 	IPVLAN_MODE_L3,
 	IPVLAN_MODE_L3S,
@@ -469,7 +495,8 @@ enum ipvlan_mode {
 };
 
 /* VXLAN section */
-enum {
+enum
+{
 	IFLA_VXLAN_UNSPEC,
 	IFLA_VXLAN_ID,
 	IFLA_VXLAN_GROUP,	/* group or remote address */
@@ -502,13 +529,15 @@ enum {
 };
 #define IFLA_VXLAN_MAX	(__IFLA_VXLAN_MAX - 1)
 
-struct ifla_vxlan_port_range {
+struct ifla_vxlan_port_range
+{
 	__be16	low;
 	__be16	high;
 };
 
 /* GENEVE section */
-enum {
+enum
+{
 	IFLA_GENEVE_UNSPEC,
 	IFLA_GENEVE_ID,
 	IFLA_GENEVE_REMOTE,
@@ -526,7 +555,8 @@ enum {
 #define IFLA_GENEVE_MAX	(__IFLA_GENEVE_MAX - 1)
 
 /* PPP section */
-enum {
+enum
+{
 	IFLA_PPP_UNSPEC,
 	IFLA_PPP_DEV_FD,
 	__IFLA_PPP_MAX
@@ -534,7 +564,8 @@ enum {
 #define IFLA_PPP_MAX (__IFLA_PPP_MAX - 1)
 
 /* GTP section */
-enum {
+enum
+{
 	IFLA_GTP_UNSPEC,
 	IFLA_GTP_FD0,
 	IFLA_GTP_FD1,
@@ -545,7 +576,8 @@ enum {
 
 /* Bonding section */
 
-enum {
+enum
+{
 	IFLA_BOND_UNSPEC,
 	IFLA_BOND_MODE,
 	IFLA_BOND_ACTIVE_SLAVE,
@@ -579,7 +611,8 @@ enum {
 
 #define IFLA_BOND_MAX	(__IFLA_BOND_MAX - 1)
 
-enum {
+enum
+{
 	IFLA_BOND_AD_INFO_UNSPEC,
 	IFLA_BOND_AD_INFO_AGGREGATOR,
 	IFLA_BOND_AD_INFO_NUM_PORTS,
@@ -591,7 +624,8 @@ enum {
 
 #define IFLA_BOND_AD_INFO_MAX	(__IFLA_BOND_AD_INFO_MAX - 1)
 
-enum {
+enum
+{
 	IFLA_BOND_SLAVE_UNSPEC,
 	IFLA_BOND_SLAVE_STATE,
 	IFLA_BOND_SLAVE_MII_STATUS,
@@ -608,7 +642,8 @@ enum {
 
 /* SR-IOV virtual function management section */
 
-enum {
+enum
+{
 	IFLA_VF_INFO_UNSPEC,
 	IFLA_VF_INFO,
 	__IFLA_VF_INFO_MAX,
@@ -616,7 +651,8 @@ enum {
 
 #define IFLA_VF_INFO_MAX (__IFLA_VF_INFO_MAX - 1)
 
-enum {
+enum
+{
 	IFLA_VF_UNSPEC,
 	IFLA_VF_MAC,		/* Hardware queue specific attributes */
 	IFLA_VF_VLAN,		/* VLAN ID and QoS */
@@ -637,18 +673,21 @@ enum {
 
 #define IFLA_VF_MAX (__IFLA_VF_MAX - 1)
 
-struct ifla_vf_mac {
+struct ifla_vf_mac
+{
 	__u32 vf;
 	__u8 mac[32]; /* MAX_ADDR_LEN */
 };
 
-struct ifla_vf_vlan {
+struct ifla_vf_vlan
+{
 	__u32 vf;
 	__u32 vlan; /* 0 - 4095, 0 disables VLAN filter */
 	__u32 qos;
 };
 
-enum {
+enum
+{
 	IFLA_VF_VLAN_INFO_UNSPEC,
 	IFLA_VF_VLAN_INFO,	/* VLAN ID, QoS and VLAN protocol */
 	__IFLA_VF_VLAN_INFO_MAX,
@@ -657,52 +696,61 @@ enum {
 #define IFLA_VF_VLAN_INFO_MAX (__IFLA_VF_VLAN_INFO_MAX - 1)
 #define MAX_VLAN_LIST_LEN 1
 
-struct ifla_vf_vlan_info {
+struct ifla_vf_vlan_info
+{
 	__u32 vf;
 	__u32 vlan; /* 0 - 4095, 0 disables VLAN filter */
 	__u32 qos;
 	__be16 vlan_proto; /* VLAN protocol either 802.1Q or 802.1ad */
 };
 
-struct ifla_vf_tx_rate {
+struct ifla_vf_tx_rate
+{
 	__u32 vf;
 	__u32 rate; /* Max TX bandwidth in Mbps, 0 disables throttling */
 };
 
-struct ifla_vf_rate {
+struct ifla_vf_rate
+{
 	__u32 vf;
 	__u32 min_tx_rate; /* Min Bandwidth in Mbps */
 	__u32 max_tx_rate; /* Max Bandwidth in Mbps */
 };
 
-struct ifla_vf_spoofchk {
+struct ifla_vf_spoofchk
+{
 	__u32 vf;
 	__u32 setting;
 };
 
-struct ifla_vf_guid {
+struct ifla_vf_guid
+{
 	__u32 vf;
 	__u64 guid;
 };
 
-enum {
+enum
+{
 	IFLA_VF_LINK_STATE_AUTO,	/* link state of the uplink */
 	IFLA_VF_LINK_STATE_ENABLE,	/* link always up */
 	IFLA_VF_LINK_STATE_DISABLE,	/* link always down */
 	__IFLA_VF_LINK_STATE_MAX,
 };
 
-struct ifla_vf_link_state {
+struct ifla_vf_link_state
+{
 	__u32 vf;
 	__u32 link_state;
 };
 
-struct ifla_vf_rss_query_en {
+struct ifla_vf_rss_query_en
+{
 	__u32 vf;
 	__u32 setting;
 };
 
-enum {
+enum
+{
 	IFLA_VF_STATS_RX_PACKETS,
 	IFLA_VF_STATS_TX_PACKETS,
 	IFLA_VF_STATS_RX_BYTES,
@@ -715,7 +763,8 @@ enum {
 
 #define IFLA_VF_STATS_MAX (__IFLA_VF_STATS_MAX - 1)
 
-struct ifla_vf_trust {
+struct ifla_vf_trust
+{
 	__u32 vf;
 	__u32 setting;
 };
@@ -735,7 +784,8 @@ struct ifla_vf_trust {
  *			[IFLA_PORT_*], ...
  */
 
-enum {
+enum
+{
 	IFLA_VF_PORT_UNSPEC,
 	IFLA_VF_PORT,			/* nest */
 	__IFLA_VF_PORT_MAX,
@@ -743,7 +793,8 @@ enum {
 
 #define IFLA_VF_PORT_MAX (__IFLA_VF_PORT_MAX - 1)
 
-enum {
+enum
+{
 	IFLA_PORT_UNSPEC,
 	IFLA_PORT_VF,			/* __u32 */
 	IFLA_PORT_PROFILE,		/* string */
@@ -761,14 +812,16 @@ enum {
 #define PORT_UUID_MAX		16
 #define PORT_SELF_VF		-1
 
-enum {
+enum
+{
 	PORT_REQUEST_PREASSOCIATE = 0,
 	PORT_REQUEST_PREASSOCIATE_RR,
 	PORT_REQUEST_ASSOCIATE,
 	PORT_REQUEST_DISASSOCIATE,
 };
 
-enum {
+enum
+{
 	PORT_VDP_RESPONSE_SUCCESS = 0,
 	PORT_VDP_RESPONSE_INVALID_FORMAT,
 	PORT_VDP_RESPONSE_INSUFFICIENT_RESOURCES,
@@ -785,7 +838,8 @@ enum {
 	PORT_PROFILE_RESPONSE_ERROR,
 };
 
-struct ifla_port_vsi {
+struct ifla_port_vsi
+{
 	__u8 vsi_mgr_id;
 	__u8 vsi_type_id[3];
 	__u8 vsi_type_version;
@@ -795,7 +849,8 @@ struct ifla_port_vsi {
 
 /* IPoIB section */
 
-enum {
+enum
+{
 	IFLA_IPOIB_UNSPEC,
 	IFLA_IPOIB_PKEY,
 	IFLA_IPOIB_MODE,
@@ -803,7 +858,8 @@ enum {
 	__IFLA_IPOIB_MAX
 };
 
-enum {
+enum
+{
 	IPOIB_MODE_DATAGRAM  = 0, /* using unreliable datagram QPs */
 	IPOIB_MODE_CONNECTED = 1, /* using connected QPs */
 };
@@ -813,7 +869,8 @@ enum {
 
 /* HSR section */
 
-enum {
+enum
+{
 	IFLA_HSR_UNSPEC,
 	IFLA_HSR_SLAVE1,
 	IFLA_HSR_SLAVE2,
@@ -828,7 +885,8 @@ enum {
 
 /* STATS section */
 
-struct if_stats_msg {
+struct if_stats_msg
+{
 	__u8  family;
 	__u8  pad1;
 	__u16 pad2;
@@ -839,7 +897,8 @@ struct if_stats_msg {
 /* A stats attribute can be netdev specific or a global stat.
  * For netdev stats, lets use the prefix IFLA_STATS_LINK_*
  */
-enum {
+enum
+{
 	IFLA_STATS_UNSPEC, /* also used as 64bit pad attribute */
 	IFLA_STATS_LINK_64,
 	IFLA_STATS_LINK_XSTATS,
@@ -857,7 +916,8 @@ enum {
  * -> [LINK_XSTATS_TYPE_xxx]
  *    -> [rtnl link type specific attributes]
  */
-enum {
+enum
+{
 	LINK_XSTATS_TYPE_UNSPEC,
 	LINK_XSTATS_TYPE_BRIDGE,
 	__LINK_XSTATS_TYPE_MAX
@@ -865,7 +925,8 @@ enum {
 #define LINK_XSTATS_TYPE_MAX (__LINK_XSTATS_TYPE_MAX - 1)
 
 /* These are stats embedded into IFLA_STATS_LINK_OFFLOAD_XSTATS */
-enum {
+enum
+{
 	IFLA_OFFLOAD_XSTATS_UNSPEC,
 	IFLA_OFFLOAD_XSTATS_CPU_HIT, /* struct rtnl_link_stats64 */
 	__IFLA_OFFLOAD_XSTATS_MAX
@@ -874,7 +935,8 @@ enum {
 
 /* XDP section */
 
-enum {
+enum
+{
 	IFLA_XDP_UNSPEC,
 	IFLA_XDP_FD,
 	IFLA_XDP_ATTACHED,

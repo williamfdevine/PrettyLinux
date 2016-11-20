@@ -91,7 +91,8 @@ static inline void _write64(u64 val, void __iomem *mmio)
 #endif
 #endif
 
-enum {
+enum
+{
 	/* AMD NTB Capability */
 	AMD_MW_CNT		= 3,
 	AMD_DB_CNT		= 16,
@@ -149,8 +150,8 @@ enum {
 	AMD_PEER_PMETO_EVENT	= BIT(3),
 	AMD_PEER_D0_EVENT	= BIT(4),
 	AMD_EVENT_INTMASK	= (AMD_PEER_FLUSH_EVENT |
-				AMD_PEER_RESET_EVENT | AMD_PEER_D3_EVENT |
-				AMD_PEER_PMETO_EVENT | AMD_PEER_D0_EVENT),
+						   AMD_PEER_RESET_EVENT | AMD_PEER_D3_EVENT |
+						   AMD_PEER_PMETO_EVENT | AMD_PEER_D0_EVENT),
 
 	AMD_PMESTAT_OFFSET	= 0x480,
 	AMD_PMSGTRIG_OFFSET	= 0x490,
@@ -169,12 +170,14 @@ enum {
 
 struct amd_ntb_dev;
 
-struct amd_ntb_vec {
+struct amd_ntb_vec
+{
 	struct amd_ntb_dev	*ndev;
 	int			num;
 };
 
-struct amd_ntb_dev {
+struct amd_ntb_dev
+{
 	struct ntb_dev ntb;
 
 	u32 ntb_side;

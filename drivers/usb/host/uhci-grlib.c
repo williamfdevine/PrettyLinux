@@ -35,7 +35,8 @@ static int uhci_grlib_init(struct usb_hcd *hcd)
 	 * byte-swapped; hence the register interface and presumably
 	 * also the descriptors are big-endian.
 	 */
-	if (!(uhci_readw(uhci, USBPORTSC1) & 0x80)) {
+	if (!(uhci_readw(uhci, USBPORTSC1) & 0x80))
+	{
 		uhci->big_endian_mmio = 1;
 		uhci->big_endian_desc = 1;
 	}
@@ -55,7 +56,8 @@ static int uhci_grlib_init(struct usb_hcd *hcd)
 	return 0;
 }
 
-static const struct hc_driver uhci_grlib_hc_driver = {
+static const struct hc_driver uhci_grlib_hc_driver =
+{
 	.description =		hcd_name,
 	.product_desc =		"GRLIB GRUSBHC UHCI Host Controller",
 	.hcd_priv_size =	sizeof(struct uhci_hcd),
@@ -96,33 +98,45 @@ static int uhci_hcd_grlib_probe(struct platform_device *op)
 	int rv;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	dev_dbg(&op->dev, "initializing GRUSBHC UHCI USB Controller\n");
 
 	rv = of_address_to_resource(dn, 0, &res);
+
 	if (rv)
+	{
 		return rv;
+	}
 
 	/* usb_create_hcd requires dma_mask != NULL */
 	op->dev.dma_mask = &op->dev.coherent_dma_mask;
 	hcd = usb_create_hcd(&uhci_grlib_hc_driver, &op->dev,
-			"GRUSBHC UHCI USB");
+						 "GRUSBHC UHCI USB");
+
 	if (!hcd)
+	{
 		return -ENOMEM;
+	}
 
 	hcd->rsrc_start = res.start;
 	hcd->rsrc_len = resource_size(&res);
 
 	irq = irq_of_parse_and_map(dn, 0);
-	if (irq == NO_IRQ) {
+
+	if (irq == NO_IRQ)
+	{
 		printk(KERN_ERR "%s: irq_of_parse_and_map failed\n", __FILE__);
 		rv = -EBUSY;
 		goto err_usb;
 	}
 
 	hcd->regs = devm_ioremap_resource(&op->dev, &res);
-	if (IS_ERR(hcd->regs)) {
+
+	if (IS_ERR(hcd->regs))
+	{
 		rv = PTR_ERR(hcd->regs);
 		goto err_irq;
 	}
@@ -132,8 +146,11 @@ static int uhci_hcd_grlib_probe(struct platform_device *op)
 	uhci->regs = hcd->regs;
 
 	rv = usb_add_hcd(hcd, irq, 0);
+
 	if (rv)
+	{
 		goto err_irq;
+	}
 
 	device_wakeup_enable(hcd->self.controller);
 	return 0;
@@ -174,7 +191,8 @@ static void uhci_hcd_grlib_shutdown(struct platform_device *op)
 	uhci_hc_died(hcd_to_uhci(hcd));
 }
 
-static const struct of_device_id uhci_hcd_grlib_of_match[] = {
+static const struct of_device_id uhci_hcd_grlib_of_match[] =
+{
 	{ .name = "GAISLER_UHCI", },
 	{ .name = "01_027", },
 	{},
@@ -182,7 +200,8 @@ static const struct of_device_id uhci_hcd_grlib_of_match[] = {
 MODULE_DEVICE_TABLE(of, uhci_hcd_grlib_of_match);
 
 
-static struct platform_driver uhci_grlib_driver = {
+static struct platform_driver uhci_grlib_driver =
+{
 	.probe		= uhci_hcd_grlib_probe,
 	.remove		= uhci_hcd_grlib_remove,
 	.shutdown	= uhci_hcd_grlib_shutdown,

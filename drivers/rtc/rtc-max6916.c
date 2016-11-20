@@ -33,7 +33,7 @@
 #define MAX6916_CLOCK_BURST	0x3F
 
 static int max6916_read_reg(struct device *dev, unsigned char address,
-			    unsigned char *data)
+							unsigned char *data)
 {
 	struct spi_device *spi = to_spi_device(dev);
 
@@ -43,7 +43,7 @@ static int max6916_read_reg(struct device *dev, unsigned char address,
 }
 
 static int max6916_write_reg(struct device *dev, unsigned char address,
-			     unsigned char data)
+							 unsigned char data)
 {
 	struct spi_device *spi = to_spi_device(dev);
 	unsigned char buf[2];
@@ -65,7 +65,9 @@ static int max6916_read_time(struct device *dev, struct rtc_time *dt)
 	err = spi_write_then_read(spi, buf, 1, buf, 8);
 
 	if (err)
+	{
 		return err;
+	}
 
 	dt->tm_sec = bcd2bin(buf[0]);
 	dt->tm_min = bcd2bin(buf[1]);
@@ -83,10 +85,11 @@ static int max6916_set_time(struct device *dev, struct rtc_time *dt)
 	struct spi_device *spi = to_spi_device(dev);
 	unsigned char buf[9];
 
-	if (dt->tm_year < 100 || dt->tm_year > 199) {
+	if (dt->tm_year < 100 || dt->tm_year > 199)
+	{
 		dev_err(&spi->dev, "Year must be between 2000 and 2099. It's %d.\n",
-			dt->tm_year + 1900);
-	return -EINVAL;
+				dt->tm_year + 1900);
+		return -EINVAL;
 	}
 
 	buf[0] = MAX6916_CLOCK_BURST & 0x7F;
@@ -103,7 +106,8 @@ static int max6916_set_time(struct device *dev, struct rtc_time *dt)
 	return spi_write_then_read(spi, buf, 9, NULL, 0);
 }
 
-static const struct rtc_class_ops max6916_rtc_ops = {
+static const struct rtc_class_ops max6916_rtc_ops =
+{
 	.read_time = max6916_read_time,
 	.set_time = max6916_set_time,
 };
@@ -121,8 +125,11 @@ static int max6916_probe(struct spi_device *spi)
 
 	/* RTC Settings */
 	res = max6916_read_reg(&spi->dev, MAX6916_SECONDS_REG, &data);
+
 	if (res)
+	{
 		return res;
+	}
 
 	/* Disable the write protect of rtc */
 	max6916_read_reg(&spi->dev, MAX6916_CONTROL_REG, &data);
@@ -142,16 +149,20 @@ static int max6916_probe(struct spi_device *spi)
 	dev_info(&spi->dev, "MAX6916 RTC Status Reg = 0x%02x\n", data);
 
 	rtc = devm_rtc_device_register(&spi->dev, "max6916",
-				       &max6916_rtc_ops, THIS_MODULE);
+								   &max6916_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	spi_set_drvdata(spi, rtc);
 
 	return 0;
 }
 
-static struct spi_driver max6916_driver = {
+static struct spi_driver max6916_driver =
+{
 	.driver = {
 		.name = "max6916",
 	},

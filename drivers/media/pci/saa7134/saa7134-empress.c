@@ -37,7 +37,7 @@ MODULE_LICENSE("GPL");
 static unsigned int empress_nr[] = {[0 ... (SAA7134_MAXBOARDS - 1)] = UNSET };
 
 module_param_array(empress_nr, int, NULL, 0444);
-MODULE_PARM_DESC(empress_nr,"ts device number");
+MODULE_PARM_DESC(empress_nr, "ts device number");
 
 /* ------------------------------------------------------------------ */
 
@@ -49,22 +49,27 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
 	int err;
 
 	err = saa7134_ts_start_streaming(vq, count);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* If more cards start to need this, then this
 	   should probably be added to the card definitions. */
-	switch (dev->board) {
-	case SAA7134_BOARD_BEHOLD_M6:
-	case SAA7134_BOARD_BEHOLD_M63:
-	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
-		leading_null_bytes = 1;
-		break;
+	switch (dev->board)
+	{
+		case SAA7134_BOARD_BEHOLD_M6:
+		case SAA7134_BOARD_BEHOLD_M63:
+		case SAA7134_BOARD_BEHOLD_M6_EXTRA:
+			leading_null_bytes = 1;
+			break;
 	}
+
 	saa_call_all(dev, core, init, leading_null_bytes);
 	/* Unmute audio */
 	saa_writeb(SAA7134_AUDIO_MUTE_CTRL,
-			saa_readb(SAA7134_AUDIO_MUTE_CTRL) & ~(1 << 6));
+			   saa_readb(SAA7134_AUDIO_MUTE_CTRL) & ~(1 << 6));
 	dev->empress_started = 1;
 	return 0;
 }
@@ -81,11 +86,12 @@ static void stop_streaming(struct vb2_queue *vq)
 	msleep(100);
 	/* Mute audio */
 	saa_writeb(SAA7134_AUDIO_MUTE_CTRL,
-			saa_readb(SAA7134_AUDIO_MUTE_CTRL) | (1 << 6));
+			   saa_readb(SAA7134_AUDIO_MUTE_CTRL) | (1 << 6));
 	dev->empress_started = 0;
 }
 
-static const struct vb2_ops saa7134_empress_qops = {
+static const struct vb2_ops saa7134_empress_qops =
+{
 	.queue_setup	= saa7134_ts_queue_setup,
 	.buf_init	= saa7134_ts_buffer_init,
 	.buf_prepare	= saa7134_ts_buffer_prepare,
@@ -99,10 +105,12 @@ static const struct vb2_ops saa7134_empress_qops = {
 /* ------------------------------------------------------------------ */
 
 static int empress_enum_fmt_vid_cap(struct file *file, void  *priv,
-					struct v4l2_fmtdesc *f)
+									struct v4l2_fmtdesc *f)
 {
 	if (f->index != 0)
+	{
 		return -EINVAL;
+	}
 
 	strlcpy(f->description, "MPEG TS", sizeof(f->description));
 	f->pixelformat = V4L2_PIX_FMT_MPEG;
@@ -111,10 +119,11 @@ static int empress_enum_fmt_vid_cap(struct file *file, void  *priv,
 }
 
 static int empress_g_fmt_vid_cap(struct file *file, void *priv,
-				struct v4l2_format *f)
+								 struct v4l2_format *f)
 {
 	struct saa7134_dev *dev = video_drvdata(file);
-	struct v4l2_subdev_format fmt = {
+	struct v4l2_subdev_format fmt =
+	{
 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
 	};
 	struct v4l2_mbus_framefmt *mbus_fmt = &fmt.format;
@@ -130,10 +139,11 @@ static int empress_g_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int empress_s_fmt_vid_cap(struct file *file, void *priv,
-				struct v4l2_format *f)
+								 struct v4l2_format *f)
 {
 	struct saa7134_dev *dev = video_drvdata(file);
-	struct v4l2_subdev_format format = {
+	struct v4l2_subdev_format format =
+	{
 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
 	};
 
@@ -149,11 +159,12 @@ static int empress_s_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int empress_try_fmt_vid_cap(struct file *file, void *priv,
-				struct v4l2_format *f)
+								   struct v4l2_format *f)
 {
 	struct saa7134_dev *dev = video_drvdata(file);
 	struct v4l2_subdev_pad_config pad_cfg;
-	struct v4l2_subdev_format format = {
+	struct v4l2_subdev_format format =
+	{
 		.which = V4L2_SUBDEV_FORMAT_TRY,
 	};
 
@@ -179,7 +190,8 @@ static const struct v4l2_file_operations ts_fops =
 	.unlocked_ioctl = video_ioctl2,
 };
 
-static const struct v4l2_ioctl_ops ts_ioctl_ops = {
+static const struct v4l2_ioctl_ops ts_ioctl_ops =
+{
 	.vidioc_querycap		= saa7134_querycap,
 	.vidioc_enum_fmt_vid_cap	= empress_enum_fmt_vid_cap,
 	.vidioc_try_fmt_vid_cap		= empress_try_fmt_vid_cap,
@@ -209,7 +221,8 @@ static const struct v4l2_ioctl_ops ts_ioctl_ops = {
 
 /* ----------------------------------------------------------- */
 
-static struct video_device saa7134_empress_template = {
+static struct video_device saa7134_empress_template =
+{
 	.name          = "saa7134-empress",
 	.fops          = &ts_fops,
 	.ioctl_ops     = &ts_ioctl_ops,
@@ -219,12 +232,15 @@ static struct video_device saa7134_empress_template = {
 
 static void empress_signal_update(struct work_struct *work)
 {
-	struct saa7134_dev* dev =
+	struct saa7134_dev *dev =
 		container_of(work, struct saa7134_dev, empress_workqueue);
 
-	if (dev->nosignal) {
+	if (dev->nosignal)
+	{
 		pr_debug("no video signal\n");
-	} else {
+	}
+	else
+	{
 		pr_debug("video signal acquired\n");
 	}
 }
@@ -236,18 +252,20 @@ static void empress_signal_change(struct saa7134_dev *dev)
 
 static bool empress_ctrl_filter(const struct v4l2_ctrl *ctrl)
 {
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-	case V4L2_CID_HUE:
-	case V4L2_CID_CONTRAST:
-	case V4L2_CID_SATURATION:
-	case V4L2_CID_AUDIO_MUTE:
-	case V4L2_CID_AUDIO_VOLUME:
-	case V4L2_CID_PRIVATE_INVERT:
-	case V4L2_CID_PRIVATE_AUTOMUTE:
-		return true;
-	default:
-		return false;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+		case V4L2_CID_HUE:
+		case V4L2_CID_CONTRAST:
+		case V4L2_CID_SATURATION:
+		case V4L2_CID_AUDIO_MUTE:
+		case V4L2_CID_AUDIO_VOLUME:
+		case V4L2_CID_PRIVATE_INVERT:
+		case V4L2_CID_PRIVATE_AUTOMUTE:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
@@ -259,23 +277,33 @@ static int empress_init(struct saa7134_dev *dev)
 
 	pr_debug("%s: %s\n", dev->name, __func__);
 	dev->empress_dev = video_device_alloc();
+
 	if (NULL == dev->empress_dev)
+	{
 		return -ENOMEM;
+	}
+
 	*(dev->empress_dev) = saa7134_empress_template;
 	dev->empress_dev->v4l2_dev  = &dev->v4l2_dev;
 	dev->empress_dev->release = video_device_release;
 	dev->empress_dev->lock = &dev->lock;
 	snprintf(dev->empress_dev->name, sizeof(dev->empress_dev->name),
-		 "%s empress (%s)", dev->name,
-		 saa7134_boards[dev->board].name);
+			 "%s empress (%s)", dev->name,
+			 saa7134_boards[dev->board].name);
 	v4l2_ctrl_handler_init(hdl, 21);
 	v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler, empress_ctrl_filter);
+
 	if (dev->empress_sd)
+	{
 		v4l2_ctrl_add_handler(hdl, dev->empress_sd->ctrl_handler, NULL);
-	if (hdl->error) {
+	}
+
+	if (hdl->error)
+	{
 		video_device_release(dev->empress_dev);
 		return hdl->error;
 	}
+
 	dev->empress_dev->ctrl_handler = hdl;
 
 	INIT_WORK(&dev->empress_workqueue, empress_signal_update);
@@ -297,22 +325,29 @@ static int empress_init(struct saa7134_dev *dev)
 	q->lock = &dev->lock;
 	q->dev = &dev->pci->dev;
 	err = vb2_queue_init(q);
+
 	if (err)
+	{
 		return err;
+	}
+
 	dev->empress_dev->queue = q;
 
 	video_set_drvdata(dev->empress_dev, dev);
-	err = video_register_device(dev->empress_dev,VFL_TYPE_GRABBER,
-				    empress_nr[dev->nr]);
-	if (err < 0) {
+	err = video_register_device(dev->empress_dev, VFL_TYPE_GRABBER,
+								empress_nr[dev->nr]);
+
+	if (err < 0)
+	{
 		pr_info("%s: can't register video device\n",
-		       dev->name);
+				dev->name);
 		video_device_release(dev->empress_dev);
 		dev->empress_dev = NULL;
 		return err;
 	}
+
 	pr_info("%s: registered device %s [mpeg]\n",
-	       dev->name, video_device_node_name(dev->empress_dev));
+			dev->name, video_device_node_name(dev->empress_dev));
 
 	empress_signal_update(&dev->empress_workqueue);
 	return 0;
@@ -323,7 +358,10 @@ static int empress_fini(struct saa7134_dev *dev)
 	pr_debug("%s: %s\n", dev->name, __func__);
 
 	if (NULL == dev->empress_dev)
+	{
 		return 0;
+	}
+
 	flush_work(&dev->empress_workqueue);
 	video_unregister_device(dev->empress_dev);
 	vb2_queue_release(&dev->empress_vbq);
@@ -332,7 +370,8 @@ static int empress_fini(struct saa7134_dev *dev)
 	return 0;
 }
 
-static struct saa7134_mpeg_ops empress_ops = {
+static struct saa7134_mpeg_ops empress_ops =
+{
 	.type          = SAA7134_MPEG_EMPRESS,
 	.init          = empress_init,
 	.fini          = empress_fini,

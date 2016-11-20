@@ -27,19 +27,22 @@
 #define TCA6416_INVERT         2
 #define TCA6416_DIRECTION      3
 
-static const struct i2c_device_id tca6416_id[] = {
+static const struct i2c_device_id tca6416_id[] =
+{
 	{ "tca6416-keys", 16, },
 	{ "tca6408-keys", 8, },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, tca6416_id);
 
-struct tca6416_drv_data {
+struct tca6416_drv_data
+{
 	struct input_dev *input;
 	struct tca6416_button data[0];
 };
 
-struct tca6416_keypad_chip {
+struct tca6416_keypad_chip
+{
 	uint16_t reg_output;
 	uint16_t reg_direction;
 	uint16_t reg_input;
@@ -59,12 +62,14 @@ static int tca6416_write_reg(struct tca6416_keypad_chip *chip, int reg, u16 val)
 	int error;
 
 	error = chip->io_size > 8 ?
-		i2c_smbus_write_word_data(chip->client, reg << 1, val) :
-		i2c_smbus_write_byte_data(chip->client, reg, val);
-	if (error < 0) {
+			i2c_smbus_write_word_data(chip->client, reg << 1, val) :
+			i2c_smbus_write_byte_data(chip->client, reg, val);
+
+	if (error < 0)
+	{
 		dev_err(&chip->client->dev,
-			"%s failed, reg: %d, val: %d, error: %d\n",
-			__func__, reg, val, error);
+				"%s failed, reg: %d, val: %d, error: %d\n",
+				__func__, reg, val, error);
 		return error;
 	}
 
@@ -76,11 +81,13 @@ static int tca6416_read_reg(struct tca6416_keypad_chip *chip, int reg, u16 *val)
 	int retval;
 
 	retval = chip->io_size > 8 ?
-		 i2c_smbus_read_word_data(chip->client, reg << 1) :
-		 i2c_smbus_read_byte_data(chip->client, reg);
-	if (retval < 0) {
+			 i2c_smbus_read_word_data(chip->client, reg << 1) :
+			 i2c_smbus_read_byte_data(chip->client, reg);
+
+	if (retval < 0)
+	{
 		dev_err(&chip->client->dev, "%s failed, reg: %d, error: %d\n",
-			__func__, reg, retval);
+				__func__, reg, retval);
 		return retval;
 	}
 
@@ -95,8 +102,11 @@ static void tca6416_keys_scan(struct tca6416_keypad_chip *chip)
 	int error, i, pin_index;
 
 	error = tca6416_read_reg(chip, TCA6416_INPUT, &reg_val);
+
 	if (error)
+	{
 		return;
+	}
 
 	reg_val &= chip->pinmask;
 
@@ -104,10 +114,12 @@ static void tca6416_keys_scan(struct tca6416_keypad_chip *chip)
 	val = reg_val ^ chip->reg_input;
 	chip->reg_input = reg_val;
 
-	for (i = 0, pin_index = 0; i < 16; i++) {
-		if (val & (1 << i)) {
+	for (i = 0, pin_index = 0; i < 16; i++)
+	{
+		if (val & (1 << i))
+		{
 			struct tca6416_button *button = &chip->buttons[pin_index];
-			unsigned int type = button->type ?: EV_KEY;
+			unsigned int type = button->type ? : EV_KEY;
 			int state = ((reg_val & (1 << i)) ? 1 : 0)
 						^ button->active_low;
 
@@ -116,7 +128,9 @@ static void tca6416_keys_scan(struct tca6416_keypad_chip *chip)
 		}
 
 		if (chip->pinmask & (1 << i))
+		{
 			pin_index++;
+		}
 	}
 }
 
@@ -149,9 +163,13 @@ static int tca6416_keys_open(struct input_dev *dev)
 	tca6416_keys_scan(chip);
 
 	if (chip->use_polling)
+	{
 		schedule_delayed_work(&chip->dwork, msecs_to_jiffies(100));
+	}
 	else
+	{
 		enable_irq(chip->irqnum);
+	}
 
 	return 0;
 }
@@ -161,9 +179,13 @@ static void tca6416_keys_close(struct input_dev *dev)
 	struct tca6416_keypad_chip *chip = input_get_drvdata(dev);
 
 	if (chip->use_polling)
+	{
 		cancel_delayed_work_sync(&chip->dwork);
+	}
 	else
+	{
 		disable_irq(chip->irqnum);
+	}
 }
 
 static int tca6416_setup_registers(struct tca6416_keypad_chip *chip)
@@ -171,26 +193,41 @@ static int tca6416_setup_registers(struct tca6416_keypad_chip *chip)
 	int error;
 
 	error = tca6416_read_reg(chip, TCA6416_OUTPUT, &chip->reg_output);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = tca6416_read_reg(chip, TCA6416_DIRECTION, &chip->reg_direction);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* ensure that keypad pins are set to input */
 	error = tca6416_write_reg(chip, TCA6416_DIRECTION,
-				  chip->reg_direction | chip->pinmask);
+							  chip->reg_direction | chip->pinmask);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = tca6416_read_reg(chip, TCA6416_DIRECTION, &chip->reg_direction);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = tca6416_read_reg(chip, TCA6416_INPUT, &chip->reg_input);
+
 	if (error)
+	{
 		return error;
+	}
 
 	chip->reg_input &= chip->pinmask;
 
@@ -198,7 +235,7 @@ static int tca6416_setup_registers(struct tca6416_keypad_chip *chip)
 }
 
 static int tca6416_keypad_probe(struct i2c_client *client,
-				   const struct i2c_device_id *id)
+								const struct i2c_device_id *id)
 {
 	struct tca6416_keys_platform_data *pdata;
 	struct tca6416_keypad_chip *chip;
@@ -207,23 +244,28 @@ static int tca6416_keypad_probe(struct i2c_client *client,
 	int i;
 
 	/* Check functionality */
-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE)) {
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE))
+	{
 		dev_err(&client->dev, "%s adapter not supported\n",
-			dev_driver_string(&client->adapter->dev));
+				dev_driver_string(&client->adapter->dev));
 		return -ENODEV;
 	}
 
 	pdata = dev_get_platdata(&client->dev);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_dbg(&client->dev, "no platform data\n");
 		return -EINVAL;
 	}
 
 	chip = kzalloc(sizeof(struct tca6416_keypad_chip) +
-		       pdata->nbuttons * sizeof(struct tca6416_button),
-		       GFP_KERNEL);
+				   pdata->nbuttons * sizeof(struct tca6416_button),
+				   GFP_KERNEL);
 	input = input_allocate_device();
-	if (!chip || !input) {
+
+	if (!chip || !input)
+	{
 		error = -ENOMEM;
 		goto fail1;
 	}
@@ -250,13 +292,16 @@ static int tca6416_keypad_probe(struct i2c_client *client,
 
 	/* Enable auto repeat feature of Linux input subsystem */
 	if (pdata->rep)
+	{
 		__set_bit(EV_REP, input->evbit);
+	}
 
-	for (i = 0; i < pdata->nbuttons; i++) {
+	for (i = 0; i < pdata->nbuttons; i++)
+	{
 		unsigned int type;
 
 		chip->buttons[i] = pdata->buttons[i];
-		type = (pdata->buttons[i].type) ?: EV_KEY;
+		type = (pdata->buttons[i].type) ? : EV_KEY;
 		input_set_capability(input, type, pdata->buttons[i].code);
 	}
 
@@ -267,33 +312,46 @@ static int tca6416_keypad_probe(struct i2c_client *client,
 	 * we can't share this chip with another i2c master.
 	 */
 	error = tca6416_setup_registers(chip);
-	if (error)
-		goto fail1;
 
-	if (!chip->use_polling) {
+	if (error)
+	{
+		goto fail1;
+	}
+
+	if (!chip->use_polling)
+	{
 		if (pdata->irq_is_gpio)
+		{
 			chip->irqnum = gpio_to_irq(client->irq);
+		}
 		else
+		{
 			chip->irqnum = client->irq;
+		}
 
 		error = request_threaded_irq(chip->irqnum, NULL,
-					     tca6416_keys_isr,
-					     IRQF_TRIGGER_FALLING |
-						IRQF_ONESHOT,
-					     "tca6416-keypad", chip);
-		if (error) {
+									 tca6416_keys_isr,
+									 IRQF_TRIGGER_FALLING |
+									 IRQF_ONESHOT,
+									 "tca6416-keypad", chip);
+
+		if (error)
+		{
 			dev_dbg(&client->dev,
-				"Unable to claim irq %d; error %d\n",
-				chip->irqnum, error);
+					"Unable to claim irq %d; error %d\n",
+					chip->irqnum, error);
 			goto fail1;
 		}
+
 		disable_irq(chip->irqnum);
 	}
 
 	error = input_register_device(input);
-	if (error) {
+
+	if (error)
+	{
 		dev_dbg(&client->dev,
-			"Unable to register input device, error: %d\n", error);
+				"Unable to register input device, error: %d\n", error);
 		goto fail2;
 	}
 
@@ -303,10 +361,13 @@ static int tca6416_keypad_probe(struct i2c_client *client,
 	return 0;
 
 fail2:
-	if (!chip->use_polling) {
+
+	if (!chip->use_polling)
+	{
 		free_irq(chip->irqnum, chip);
 		enable_irq(chip->irqnum);
 	}
+
 fail1:
 	input_free_device(input);
 	kfree(chip);
@@ -317,7 +378,8 @@ static int tca6416_keypad_remove(struct i2c_client *client)
 {
 	struct tca6416_keypad_chip *chip = i2c_get_clientdata(client);
 
-	if (!chip->use_polling) {
+	if (!chip->use_polling)
+	{
 		free_irq(chip->irqnum, chip);
 		enable_irq(chip->irqnum);
 	}
@@ -335,7 +397,9 @@ static int tca6416_keypad_suspend(struct device *dev)
 	struct tca6416_keypad_chip *chip = i2c_get_clientdata(client);
 
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(chip->irqnum);
+	}
 
 	return 0;
 }
@@ -346,16 +410,19 @@ static int tca6416_keypad_resume(struct device *dev)
 	struct tca6416_keypad_chip *chip = i2c_get_clientdata(client);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(chip->irqnum);
+	}
 
 	return 0;
 }
 #endif
 
 static SIMPLE_DEV_PM_OPS(tca6416_keypad_dev_pm_ops,
-			 tca6416_keypad_suspend, tca6416_keypad_resume);
+						 tca6416_keypad_suspend, tca6416_keypad_resume);
 
-static struct i2c_driver tca6416_keypad_driver = {
+static struct i2c_driver tca6416_keypad_driver =
+{
 	.driver = {
 		.name	= "tca6416-keypad",
 		.pm	= &tca6416_keypad_dev_pm_ops,

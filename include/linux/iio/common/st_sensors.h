@@ -43,63 +43,69 @@
 #define ST_SENSORS_MAX_4WAI			7
 
 #define ST_SENSORS_LSM_CHANNELS(device_type, mask, index, mod, \
-					ch2, s, endian, rbits, sbits, addr) \
+								ch2, s, endian, rbits, sbits, addr) \
 { \
 	.type = device_type, \
-	.modified = mod, \
-	.info_mask_separate = mask, \
-	.info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
-	.scan_index = index, \
-	.channel2 = ch2, \
-	.address = addr, \
-	.scan_type = { \
-		.sign = s, \
-		.realbits = rbits, \
-		.shift = sbits - rbits, \
-		.storagebits = sbits, \
-		.endianness = endian, \
-	}, \
+			.modified = mod, \
+						.info_mask_separate = mask, \
+								.info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ), \
+										.scan_index = index, \
+												.channel2 = ch2, \
+														.address = addr, \
+																.scan_type = { \
+																			   .sign = s, \
+																			   .realbits = rbits, \
+																			   .shift = sbits - rbits, \
+																			   .storagebits = sbits, \
+																			   .endianness = endian, \
+																			 }, \
 }
 
 #define ST_SENSORS_DEV_ATTR_SAMP_FREQ_AVAIL() \
-		IIO_DEV_ATTR_SAMP_FREQ_AVAIL( \
-			st_sensors_sysfs_sampling_frequency_avail)
+	IIO_DEV_ATTR_SAMP_FREQ_AVAIL( \
+								  st_sensors_sysfs_sampling_frequency_avail)
 
 #define ST_SENSORS_DEV_ATTR_SCALE_AVAIL(name) \
-		IIO_DEVICE_ATTR(name, S_IRUGO, \
-			st_sensors_sysfs_scale_avail, NULL , 0);
+	IIO_DEVICE_ATTR(name, S_IRUGO, \
+					st_sensors_sysfs_scale_avail, NULL , 0);
 
-struct st_sensor_odr_avl {
+struct st_sensor_odr_avl
+{
 	unsigned int hz;
 	u8 value;
 };
 
-struct st_sensor_odr {
+struct st_sensor_odr
+{
 	u8 addr;
 	u8 mask;
 	struct st_sensor_odr_avl odr_avl[ST_SENSORS_ODR_LIST_MAX];
 };
 
-struct st_sensor_power {
+struct st_sensor_power
+{
 	u8 addr;
 	u8 mask;
 	u8 value_off;
 	u8 value_on;
 };
 
-struct st_sensor_axis {
+struct st_sensor_axis
+{
 	u8 addr;
 	u8 mask;
 };
 
-struct st_sensor_fullscale_avl {
+struct st_sensor_fullscale_avl
+{
 	unsigned int num;
 	u8 value;
 	unsigned int gain;
 	unsigned int gain2;
 };
 
-struct st_sensor_fullscale {
+struct st_sensor_fullscale
+{
 	u8 addr;
 	u8 mask;
 	struct st_sensor_fullscale_avl fs_avl[ST_SENSORS_FULLSCALE_AVL_MAX];
@@ -110,7 +116,8 @@ struct st_sensor_fullscale {
  * @addr: address of the register.
  * @mask: mask to write the block data update flag.
  */
-struct st_sensor_bdu {
+struct st_sensor_bdu
+{
 	u8 addr;
 	u8 mask;
 };
@@ -129,7 +136,8 @@ struct st_sensor_bdu {
  * @en_addr: address of the enable ig1 register.
  * @en_mask: mask to write the on/off value for enable.
  */
-struct st_sensor_data_ready_irq {
+struct st_sensor_data_ready_irq
+{
 	u8 addr;
 	u8 mask_int1;
 	u8 mask_int2;
@@ -138,7 +146,8 @@ struct st_sensor_data_ready_irq {
 	u8 addr_od;
 	u8 mask_od;
 	u8 addr_stat_drdy;
-	struct {
+	struct
+	{
 		u8 en_addr;
 		u8 en_mask;
 	} ig1;
@@ -152,7 +161,8 @@ struct st_sensor_data_ready_irq {
  * @rx_buf: Buffer used by SPI transfer to receive data from sensors.
  *	This buffer is used to avoid DMA not-aligned issue.
  */
-struct st_sensor_transfer_buffer {
+struct st_sensor_transfer_buffer
+{
 	struct mutex buf_lock;
 	u8 rx_buf[ST_SENSORS_RX_MAX_LENGTH];
 	u8 tx_buf[ST_SENSORS_TX_MAX_LENGTH] ____cacheline_aligned;
@@ -164,14 +174,15 @@ struct st_sensor_transfer_buffer {
  * @write_byte: Function used to write one byte.
  * @read_multiple_byte: Function used to read multiple byte.
  */
-struct st_sensor_transfer_function {
+struct st_sensor_transfer_function
+{
 	int (*read_byte) (struct st_sensor_transfer_buffer *tb,
-				struct device *dev, u8 reg_addr, u8 *res_byte);
+					  struct device *dev, u8 reg_addr, u8 *res_byte);
 	int (*write_byte) (struct st_sensor_transfer_buffer *tb,
-				struct device *dev, u8 reg_addr, u8 data);
+					   struct device *dev, u8 reg_addr, u8 data);
 	int (*read_multiple_byte) (struct st_sensor_transfer_buffer *tb,
-		struct device *dev, u8 reg_addr, int len, u8 *data,
-							bool multiread_bit);
+							   struct device *dev, u8 reg_addr, int len, u8 *data,
+							   bool multiread_bit);
 };
 
 /**
@@ -189,7 +200,8 @@ struct st_sensor_transfer_function {
  * @multi_read_bit: Use or not particular bit for [I2C/SPI] multi-read.
  * @bootime: samples to discard when sensor passing from power-down to power-up.
  */
-struct st_sensor_settings {
+struct st_sensor_settings
+{
 	u8 wai;
 	u8 wai_addr;
 	char sensors_supported[ST_SENSORS_MAX_4WAI][ST_SENSORS_MAX_NAME];
@@ -227,7 +239,8 @@ struct st_sensor_settings {
  * @hw_irq_trigger: if we're using the hardware interrupt on the sensor.
  * @hw_timestamp: Latest timestamp from the interrupt handler, when in use.
  */
-struct st_sensor_data {
+struct st_sensor_data
+{
 	struct device *dev;
 	struct iio_trigger *trig;
 	struct st_sensor_settings *sensor_settings;
@@ -257,19 +270,19 @@ struct st_sensor_data {
 };
 
 #ifdef CONFIG_IIO_BUFFER
-irqreturn_t st_sensors_trigger_handler(int irq, void *p);
+	irqreturn_t st_sensors_trigger_handler(int irq, void *p);
 #endif
 
 #ifdef CONFIG_IIO_TRIGGER
 int st_sensors_allocate_trigger(struct iio_dev *indio_dev,
-				const struct iio_trigger_ops *trigger_ops);
+								const struct iio_trigger_ops *trigger_ops);
 
 void st_sensors_deallocate_trigger(struct iio_dev *indio_dev);
 int st_sensors_validate_device(struct iio_trigger *trig,
-			       struct iio_dev *indio_dev);
+							   struct iio_dev *indio_dev);
 #else
 static inline int st_sensors_allocate_trigger(struct iio_dev *indio_dev,
-				const struct iio_trigger_ops *trigger_ops)
+		const struct iio_trigger_ops *trigger_ops)
 {
 	return 0;
 }
@@ -281,7 +294,7 @@ static inline void st_sensors_deallocate_trigger(struct iio_dev *indio_dev)
 #endif
 
 int st_sensors_init_sensor(struct iio_dev *indio_dev,
-					struct st_sensors_platform_data *pdata);
+						   struct st_sensors_platform_data *pdata);
 
 int st_sensors_set_enable(struct iio_dev *indio_dev, bool enable);
 
@@ -292,8 +305,8 @@ int st_sensors_power_enable(struct iio_dev *indio_dev);
 void st_sensors_power_disable(struct iio_dev *indio_dev);
 
 int st_sensors_debugfs_reg_access(struct iio_dev *indio_dev,
-				  unsigned reg, unsigned writeval,
-				  unsigned *readval);
+								  unsigned reg, unsigned writeval,
+								  unsigned *readval);
 
 int st_sensors_set_odr(struct iio_dev *indio_dev, unsigned int odr);
 
@@ -302,15 +315,15 @@ int st_sensors_set_dataready_irq(struct iio_dev *indio_dev, bool enable);
 int st_sensors_set_fullscale_by_gain(struct iio_dev *indio_dev, int scale);
 
 int st_sensors_read_info_raw(struct iio_dev *indio_dev,
-				struct iio_chan_spec const *ch, int *val);
+							 struct iio_chan_spec const *ch, int *val);
 
 int st_sensors_check_device_support(struct iio_dev *indio_dev,
-	int num_sensors_list, const struct st_sensor_settings *sensor_settings);
+									int num_sensors_list, const struct st_sensor_settings *sensor_settings);
 
 ssize_t st_sensors_sysfs_sampling_frequency_avail(struct device *dev,
-				struct device_attribute *attr, char *buf);
+		struct device_attribute *attr, char *buf);
 
 ssize_t st_sensors_sysfs_scale_avail(struct device *dev,
-				struct device_attribute *attr, char *buf);
+									 struct device_attribute *attr, char *buf);
 
 #endif /* ST_SENSORS_H */

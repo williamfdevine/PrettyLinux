@@ -22,11 +22,16 @@ static int dw_pci_probe(struct pci_dev *pdev, const struct pci_device_id *pid)
 	int ret;
 
 	ret = pcim_enable_device(pdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pcim_iomap_regions(pdev, 1 << 0, pci_name(pdev));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "I/O memory remapping failed\n");
 		return ret;
 	}
@@ -35,16 +40,25 @@ static int dw_pci_probe(struct pci_dev *pdev, const struct pci_device_id *pid)
 	pci_try_set_mwi(pdev);
 
 	ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	chip = devm_kzalloc(&pdev->dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	chip->dev = &pdev->dev;
 	chip->regs = pcim_iomap_table(pdev)[0];
@@ -52,8 +66,11 @@ static int dw_pci_probe(struct pci_dev *pdev, const struct pci_device_id *pid)
 	chip->pdata = pdata;
 
 	ret = dw_dma_probe(chip);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pci_set_drvdata(pdev, chip);
 
@@ -66,8 +83,11 @@ static void dw_pci_remove(struct pci_dev *pdev)
 	int ret;
 
 	ret = dw_dma_remove(chip);
+
 	if (ret)
+	{
 		dev_warn(&pdev->dev, "can't remove device properly: %d\n", ret);
+	}
 }
 
 #ifdef CONFIG_PM_SLEEP
@@ -90,11 +110,13 @@ static int dw_pci_resume_early(struct device *dev)
 
 #endif /* CONFIG_PM_SLEEP */
 
-static const struct dev_pm_ops dw_pci_dev_pm_ops = {
+static const struct dev_pm_ops dw_pci_dev_pm_ops =
+{
 	SET_LATE_SYSTEM_SLEEP_PM_OPS(dw_pci_suspend_late, dw_pci_resume_early)
 };
 
-static const struct pci_device_id dw_pci_id_table[] = {
+static const struct pci_device_id dw_pci_id_table[] =
+{
 	/* Medfield */
 	{ PCI_VDEVICE(INTEL, 0x0827) },
 	{ PCI_VDEVICE(INTEL, 0x0830) },
@@ -117,7 +139,8 @@ static const struct pci_device_id dw_pci_id_table[] = {
 };
 MODULE_DEVICE_TABLE(pci, dw_pci_id_table);
 
-static struct pci_driver dw_pci_driver = {
+static struct pci_driver dw_pci_driver =
+{
 	.name		= "dw_dmac_pci",
 	.id_table	= dw_pci_id_table,
 	.probe		= dw_pci_probe,

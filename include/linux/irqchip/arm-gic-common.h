@@ -13,12 +13,14 @@
 #include <linux/types.h>
 #include <linux/ioport.h>
 
-enum gic_type {
+enum gic_type
+{
 	GIC_V2,
 	GIC_V3,
 };
 
-struct gic_kvm_info {
+struct gic_kvm_info
+{
 	/* GIC type */
 	enum gic_type	type;
 	/* Virtual CPU interface */

@@ -26,7 +26,8 @@
 #include "mdp5_ctl.h"
 #include "mdp5_smp.h"
 
-struct mdp5_kms {
+struct mdp5_kms
+{
 	struct mdp_kms base;
 
 	struct drm_device *dev;
@@ -65,7 +66,8 @@ struct mdp5_kms {
 };
 #define to_mdp5_kms(x) container_of(x, struct mdp5_kms, base)
 
-struct mdp5_plane_state {
+struct mdp5_plane_state
+{
 	struct drm_plane_state base;
 
 	/* aligned with property */
@@ -84,9 +86,10 @@ struct mdp5_plane_state {
 	bool pending : 1;
 };
 #define to_mdp5_plane_state(x) \
-		container_of(x, struct mdp5_plane_state, base)
+	container_of(x, struct mdp5_plane_state, base)
 
-enum mdp5_intf_mode {
+enum mdp5_intf_mode
+{
 	MDP5_INTF_MODE_NONE = 0,
 
 	/* Modes used for DSI interface (INTF_DSI type): */
@@ -98,7 +101,8 @@ enum mdp5_intf_mode {
 	MDP5_INTF_WB_MODE_LINE,
 };
 
-struct mdp5_interface {
+struct mdp5_interface
+{
 	int num; /* display interface number */
 	enum mdp5_intf_type type;
 	enum mdp5_intf_mode mode;
@@ -116,7 +120,8 @@ static inline u32 mdp5_read(struct mdp5_kms *mdp5_kms, u32 reg)
 
 static inline const char *pipe2name(enum mdp5_pipe pipe)
 {
-	static const char *names[] = {
+	static const char *names[] =
+	{
 #define NAME(n) [SSPP_ ## n] = #n
 		NAME(VIG0), NAME(VIG1), NAME(VIG2),
 		NAME(RGB0), NAME(RGB1), NAME(RGB2),
@@ -129,25 +134,32 @@ static inline const char *pipe2name(enum mdp5_pipe pipe)
 
 static inline int pipe2nclients(enum mdp5_pipe pipe)
 {
-	switch (pipe) {
-	case SSPP_RGB0:
-	case SSPP_RGB1:
-	case SSPP_RGB2:
-	case SSPP_RGB3:
-		return 1;
-	default:
-		return 3;
+	switch (pipe)
+	{
+		case SSPP_RGB0:
+		case SSPP_RGB1:
+		case SSPP_RGB2:
+		case SSPP_RGB3:
+			return 1;
+
+		default:
+			return 3;
 	}
 }
 
 static inline uint32_t intf2err(int intf_num)
 {
-	switch (intf_num) {
-	case 0:  return MDP5_IRQ_INTF0_UNDER_RUN;
-	case 1:  return MDP5_IRQ_INTF1_UNDER_RUN;
-	case 2:  return MDP5_IRQ_INTF2_UNDER_RUN;
-	case 3:  return MDP5_IRQ_INTF3_UNDER_RUN;
-	default: return 0;
+	switch (intf_num)
+	{
+		case 0:  return MDP5_IRQ_INTF0_UNDER_RUN;
+
+		case 1:  return MDP5_IRQ_INTF1_UNDER_RUN;
+
+		case 2:  return MDP5_IRQ_INTF2_UNDER_RUN;
+
+		case 3:  return MDP5_IRQ_INTF3_UNDER_RUN;
+
+		default: return 0;
 	}
 }
 
@@ -161,18 +173,27 @@ static inline uint32_t intf2vblank(int lm, struct mdp5_interface *intf)
 	 */
 
 	if ((intf->type == INTF_DSI) &&
-			(intf->mode == MDP5_INTF_DSI_MODE_COMMAND))
+		(intf->mode == MDP5_INTF_DSI_MODE_COMMAND))
+	{
 		return MDP5_IRQ_PING_PONG_0_RD_PTR << GET_PING_PONG_ID(lm);
+	}
 
 	if (intf->type == INTF_WB)
+	{
 		return MDP5_IRQ_WB_2_DONE;
+	}
 
-	switch (intf->num) {
-	case 0:  return MDP5_IRQ_INTF0_VSYNC;
-	case 1:  return MDP5_IRQ_INTF1_VSYNC;
-	case 2:  return MDP5_IRQ_INTF2_VSYNC;
-	case 3:  return MDP5_IRQ_INTF3_VSYNC;
-	default: return 0;
+	switch (intf->num)
+	{
+		case 0:  return MDP5_IRQ_INTF0_VSYNC;
+
+		case 1:  return MDP5_IRQ_INTF1_VSYNC;
+
+		case 2:  return MDP5_IRQ_INTF2_VSYNC;
+
+		case 3:  return MDP5_IRQ_INTF3_VSYNC;
+
+		default: return 0;
 	}
 }
 
@@ -185,7 +206,7 @@ int mdp5_disable(struct mdp5_kms *mdp5_kms);
 int mdp5_enable(struct mdp5_kms *mdp5_kms);
 
 void mdp5_set_irqmask(struct mdp_kms *mdp_kms, uint32_t irqmask,
-		uint32_t old_irqmask);
+					  uint32_t old_irqmask);
 void mdp5_irq_preinstall(struct msm_kms *kms);
 int mdp5_irq_postinstall(struct msm_kms *kms);
 void mdp5_irq_uninstall(struct msm_kms *kms);
@@ -198,25 +219,25 @@ void mdp5_irq_domain_fini(struct mdp5_kms *mdp5_kms);
 uint32_t mdp5_plane_get_flush(struct drm_plane *plane);
 void mdp5_plane_complete_flip(struct drm_plane *plane);
 void mdp5_plane_complete_commit(struct drm_plane *plane,
-	struct drm_plane_state *state);
+								struct drm_plane_state *state);
 enum mdp5_pipe mdp5_plane_pipe(struct drm_plane *plane);
 struct drm_plane *mdp5_plane_init(struct drm_device *dev,
-		enum mdp5_pipe pipe, bool private_plane,
-		uint32_t reg_offset, uint32_t caps);
+								  enum mdp5_pipe pipe, bool private_plane,
+								  uint32_t reg_offset, uint32_t caps);
 
 uint32_t mdp5_crtc_vblank(struct drm_crtc *crtc);
 
 int mdp5_crtc_get_lm(struct drm_crtc *crtc);
 void mdp5_crtc_set_pipeline(struct drm_crtc *crtc,
-		struct mdp5_interface *intf, struct mdp5_ctl *ctl);
+							struct mdp5_interface *intf, struct mdp5_ctl *ctl);
 void mdp5_crtc_wait_for_commit_done(struct drm_crtc *crtc);
 struct drm_crtc *mdp5_crtc_init(struct drm_device *dev,
-		struct drm_plane *plane, int id);
+								struct drm_plane *plane, int id);
 
 struct drm_encoder *mdp5_encoder_init(struct drm_device *dev,
-		struct mdp5_interface *intf, struct mdp5_ctl *ctl);
+									  struct mdp5_interface *intf, struct mdp5_ctl *ctl);
 int mdp5_encoder_set_split_display(struct drm_encoder *encoder,
-					struct drm_encoder *slave_encoder);
+								   struct drm_encoder *slave_encoder);
 int mdp5_encoder_get_linecount(struct drm_encoder *encoder);
 u32 mdp5_encoder_get_framecount(struct drm_encoder *encoder);
 
@@ -224,7 +245,7 @@ u32 mdp5_encoder_get_framecount(struct drm_encoder *encoder);
 struct drm_encoder *mdp5_cmd_encoder_init(struct drm_device *dev,
 		struct mdp5_interface *intf, struct mdp5_ctl *ctl);
 int mdp5_cmd_encoder_set_split_display(struct drm_encoder *encoder,
-					struct drm_encoder *slave_encoder);
+									   struct drm_encoder *slave_encoder);
 #else
 static inline struct drm_encoder *mdp5_cmd_encoder_init(struct drm_device *dev,
 		struct mdp5_interface *intf, struct mdp5_ctl *ctl)

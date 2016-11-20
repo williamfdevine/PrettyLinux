@@ -9,7 +9,7 @@
 #define BOOT_BL_DOWNLOAD	(REBOOT_FLAG + 1)
 /* enter recovery */
 #define BOOT_RECOVERY		(REBOOT_FLAG + 3)
- /* enter fastboot mode */
+/* enter fastboot mode */
 #define BOOT_FASTBOOT		(REBOOT_FLAG + 9)
 
 #endif

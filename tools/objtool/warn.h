@@ -27,10 +27,14 @@ static inline char *offstr(struct section *sec, unsigned long offset)
 	unsigned long name_off;
 
 	func = find_containing_func(sec, offset);
-	if (func) {
+
+	if (func)
+	{
 		name = func->name;
 		name_off = offset - func->offset;
-	} else {
+	}
+	else
+	{
 		name = sec->name;
 		name_off = offset;
 	}
@@ -38,23 +42,27 @@ static inline char *offstr(struct section *sec, unsigned long offset)
 	str = malloc(strlen(name) + 20);
 
 	if (func)
+	{
 		sprintf(str, "%s()+0x%lx", name, name_off);
+	}
 	else
+	{
 		sprintf(str, "%s+0x%lx", name, name_off);
+	}
 
 	return str;
 }
 
 #define WARN(format, ...)				\
 	fprintf(stderr,					\
-		"%s: warning: objtool: " format "\n",	\
-		objname, ##__VA_ARGS__)
+			"%s: warning: objtool: " format "\n",	\
+			objname, ##__VA_ARGS__)
 
 #define WARN_FUNC(format, sec, offset, ...)		\
-({							\
-	char *_str = offstr(sec, offset);		\
-	WARN("%s: " format, _str, ##__VA_ARGS__);	\
-	free(_str);					\
-})
+	({							\
+		char *_str = offstr(sec, offset);		\
+		WARN("%s: " format, _str, ##__VA_ARGS__);	\
+		free(_str);					\
+	})
 
 #endif /* _WARN_H */

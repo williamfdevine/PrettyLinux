@@ -81,16 +81,22 @@ static u8 rt5677_spi_select_cmd(bool read, u32 align, u32 remain, u32 *len)
 {
 	u8 cmd;
 
-	if (align == 2 || align == 6 || remain == 2) {
+	if (align == 2 || align == 6 || remain == 2)
+	{
 		cmd = RT5677_SPI_READ_16;
 		*len = 2;
-	} else if (align == 4 || remain <= 6) {
+	}
+	else if (align == 4 || remain <= 6)
+	{
 		cmd = RT5677_SPI_READ_32;
 		*len = 4;
-	} else {
+	}
+	else
+	{
 		cmd = RT5677_SPI_READ_BURST;
 		*len = min_t(u32, remain & ~7, RT5677_SPI_BURST_LEN);
 	}
+
 	return read ? cmd : cmd + 1;
 }
 
@@ -102,8 +108,10 @@ static void rt5677_spi_reverse(u8 *dst, u32 dstlen, const u8 *src, u32 srclen)
 	u32 w, i, si;
 	u32 word_size = min_t(u32, dstlen, 8);
 
-	for (w = 0; w < dstlen; w += word_size) {
-		for (i = 0; i < word_size; i++) {
+	for (w = 0; w < dstlen; w += word_size)
+	{
+		for (i = 0; i < word_size; i++)
+		{
 			si = w + word_size - i - 1;
 			dst[w + i] = si < srclen ? src[si] : 0;
 		}
@@ -124,9 +132,12 @@ int rt5677_spi_read(u32 addr, void *rxbuf, size_t len)
 	u8 *cb = rxbuf;
 
 	if (!g_spi)
+	{
 		return -ENODEV;
+	}
 
-	if ((addr & 1) || (len & 1)) {
+	if ((addr & 1) || (len & 1))
+	{
 		dev_err(&g_spi->dev, "Bad read align 0x%x(%zu)\n", addr, len);
 		return -EACCES;
 	}
@@ -139,9 +150,10 @@ int rt5677_spi_read(u32 addr, void *rxbuf, size_t len)
 	t[1].speed_hz = RT5677_SPI_FREQ;
 	spi_message_init_with_transfers(&m, t, ARRAY_SIZE(t));
 
-	for (offset = 0; offset < len; offset += t[1].len) {
+	for (offset = 0; offset < len; offset += t[1].len)
+	{
 		spi_cmd = rt5677_spi_select_cmd(true, (addr + offset) & 7,
-				len - offset, &t[1].len);
+										len - offset, &t[1].len);
 
 		/* Construct SPI message header */
 		header[0] = spi_cmd;
@@ -157,6 +169,7 @@ int rt5677_spi_read(u32 addr, void *rxbuf, size_t len)
 		/* Copy data back to caller buffer */
 		rt5677_spi_reverse(cb + offset, t[1].len, body, t[1].len);
 	}
+
 	return status;
 }
 EXPORT_SYMBOL_GPL(rt5677_spi_read);
@@ -178,24 +191,30 @@ int rt5677_spi_write(u32 addr, const void *txbuf, size_t len)
 	const u8 *cb = txbuf;
 
 	if (!g_spi)
+	{
 		return -ENODEV;
+	}
 
-	if (addr & 1) {
+	if (addr & 1)
+	{
 		dev_err(&g_spi->dev, "Bad write align 0x%x(%zu)\n", addr, len);
 		return -EACCES;
 	}
 
 	if (len & 1)
+	{
 		len_with_pad = len + 1;
+	}
 
 	memset(&t, 0, sizeof(t));
 	t.tx_buf = buf;
 	t.speed_hz = RT5677_SPI_FREQ;
 	spi_message_init_with_transfers(&m, &t, 1);
 
-	for (offset = 0; offset < len_with_pad;) {
+	for (offset = 0; offset < len_with_pad;)
+	{
 		spi_cmd = rt5677_spi_select_cmd(false, (addr + offset) & 7,
-				len_with_pad - offset, &t.len);
+										len_with_pad - offset, &t.len);
 
 		/* Construct SPI message header */
 		buf[0] = spi_cmd;
@@ -213,6 +232,7 @@ int rt5677_spi_write(u32 addr, const void *txbuf, size_t len)
 		status |= spi_sync(g_spi, &m);
 		mutex_unlock(&spi_mutex);
 	}
+
 	return status;
 }
 EXPORT_SYMBOL_GPL(rt5677_spi_write);
@@ -229,7 +249,8 @@ static int rt5677_spi_probe(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver rt5677_spi_driver = {
+static struct spi_driver rt5677_spi_driver =
+{
 	.driver = {
 		.name = "rt5677",
 	},

@@ -29,7 +29,8 @@
 
 extern int m5mols_debug;
 
-enum m5mols_restype {
+enum m5mols_restype
+{
 	M5MOLS_RESTYPE_MONITOR,
 	M5MOLS_RESTYPE_CAPTURE,
 	M5MOLS_RESTYPE_MAX,
@@ -42,7 +43,8 @@ enum m5mols_restype {
  * @height: height of the resolution
  * @reg: resolution preset register value
  */
-struct m5mols_resolution {
+struct m5mols_resolution
+{
 	u8 reg;
 	enum m5mols_restype type;
 	u16 width;
@@ -60,7 +62,8 @@ struct m5mols_resolution {
  * @sdr: status register value of the Subject Distance Range
  * @qval: not written exact meaning in document
  */
-struct m5mols_exif {
+struct m5mols_exif
+{
 	u32 exposure_time;
 	u32 shutter_speed;
 	u32 aperture;
@@ -80,7 +83,8 @@ struct m5mols_exif {
  * @thumb: size in bytes of the thumb image, if it was accompanied
  * @total: total size in bytes of the produced image
  */
-struct m5mols_capture {
+struct m5mols_capture
+{
 	struct m5mols_exif exif;
 	unsigned int buf_size;
 	u32 main;
@@ -110,7 +114,8 @@ struct m5mols_capture {
  *
  * The each value according to each scenemode is recommended in the documents.
  */
-struct m5mols_scenemode {
+struct m5mols_scenemode
+{
 	u8 metering;
 	u8 ev_bias;
 	u8 wb_mode;
@@ -149,7 +154,8 @@ struct m5mols_scenemode {
  * significant 2 bytes of the string indicate packaging manufacturer.
  */
 #define VERSION_STRING_SIZE	22
-struct m5mols_version {
+struct m5mols_version
+{
 	u8	customer;
 	u8	project;
 	u16	fw;
@@ -194,7 +200,8 @@ struct m5mols_version {
  * @resolution:	register value for current resolution
  * @mode: register value for current operation mode
  */
-struct m5mols_info {
+struct m5mols_info
+{
 	const struct m5mols_platform_data *pdata;
 	struct v4l2_subdev sd;
 	struct media_pad pad;
@@ -203,14 +210,16 @@ struct m5mols_info {
 	atomic_t irq_done;
 
 	struct v4l2_ctrl_handler handle;
-	struct {
+	struct
+	{
 		/* exposure/exposure bias/auto exposure cluster */
 		struct v4l2_ctrl *auto_exposure;
 		struct v4l2_ctrl *exposure_bias;
 		struct v4l2_ctrl *exposure;
 		struct v4l2_ctrl *metering;
 	};
-	struct {
+	struct
+	{
 		/* iso/auto iso cluster */
 		struct v4l2_ctrl *auto_iso;
 		struct v4l2_ctrl *iso;
@@ -235,9 +244,9 @@ struct m5mols_info {
 	struct m5mols_version ver;
 	struct m5mols_capture cap;
 
-	unsigned int isp_ready:1;
-	unsigned int power:1;
-	unsigned int ctrl_sync:1;
+	unsigned int isp_ready: 1;
+	unsigned int power: 1;
+	unsigned int ctrl_sync: 1;
 
 	u8 resolution;
 	u8 mode;
@@ -246,8 +255,8 @@ struct m5mols_info {
 #define is_available_af(__info)	(__info->ver.af)
 #define is_code(__code, __type) (__code == m5mols_default_ffmt[__type].code)
 #define is_manufacturer(__info, __manufacturer)	\
-				(__info->ver.str[0] == __manufacturer[0] && \
-				 __info->ver.str[1] == __manufacturer[1])
+	(__info->ver.str[0] == __manufacturer[0] && \
+	 __info->ver.str[1] == __manufacturer[1])
 /*
  * I2C operation of the M-5MOLS
  *
@@ -279,7 +288,7 @@ int m5mols_read_u32(struct v4l2_subdev *sd, u32 reg_comb, u32 *val);
 int m5mols_write(struct v4l2_subdev *sd, u32 reg_comb, u32 val);
 
 int m5mols_busy_wait(struct v4l2_subdev *sd, u32 reg, u32 value, u32 mask,
-		     int timeout);
+					 int timeout);
 
 /* Mask value for busy waiting until M-5MOLS I2C interface is initialized */
 #define M5MOLS_I2C_RDY_WAIT_FL		(1 << 16)
@@ -320,7 +329,7 @@ int m5mols_init_controls(struct v4l2_subdev *sd);
 
 /* The firmware function */
 int m5mols_update_fw(struct v4l2_subdev *sd,
-		     int (*set_power)(struct m5mols_info *, bool));
+					 int (*set_power)(struct m5mols_info *, bool));
 
 static inline struct m5mols_info *to_m5mols(struct v4l2_subdev *subdev)
 {
@@ -330,12 +339,12 @@ static inline struct m5mols_info *to_m5mols(struct v4l2_subdev *subdev)
 static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
 {
 	struct m5mols_info *info = container_of(ctrl->handler,
-						struct m5mols_info, handle);
+											struct m5mols_info, handle);
 	return &info->sd;
 }
 
 static inline void m5mols_set_ctrl_mode(struct v4l2_ctrl *ctrl,
-					unsigned int mode)
+										unsigned int mode)
 {
 	ctrl->priv = (void *)(uintptr_t)mode;
 }

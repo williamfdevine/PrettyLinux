@@ -23,7 +23,8 @@
  * PAXC is the wrapper used in root complex dedicated for internal emulated
  * endpoint devices.
  */
-enum iproc_pcie_type {
+enum iproc_pcie_type
+{
 	IPROC_PCIE_PAXB = 0,
 	IPROC_PCIE_PAXC,
 };
@@ -35,7 +36,8 @@ enum iproc_pcie_type {
  * the iProc PCIe core
  * @window_size: outbound window size
  */
-struct iproc_pcie_ob {
+struct iproc_pcie_ob
+{
 	bool set_oarr_size;
 	resource_size_t axi_offset;
 	resource_size_t window_size;
@@ -59,7 +61,8 @@ struct iproc_msi;
  * @ob: outbound mapping parameters
  * @msi: MSI data
  */
-struct iproc_pcie {
+struct iproc_pcie
+{
 	struct device *dev;
 	enum iproc_pcie_type type;
 	const u16 *reg_offsets;
@@ -84,7 +87,7 @@ int iproc_msi_init(struct iproc_pcie *pcie, struct device_node *node);
 void iproc_msi_exit(struct iproc_pcie *pcie);
 #else
 static inline int iproc_msi_init(struct iproc_pcie *pcie,
-				 struct device_node *node)
+								 struct device_node *node)
 {
 	return -ENODEV;
 }

@@ -23,7 +23,8 @@
 
 #include <linux/mfd/tps65912.h>
 
-static const struct of_device_id tps65912_spi_of_match_table[] = {
+static const struct of_device_id tps65912_spi_of_match_table[] =
+{
 	{ .compatible = "ti,tps65912", },
 	{ /* sentinel */ }
 };
@@ -33,15 +34,20 @@ static int tps65912_spi_probe(struct spi_device *spi)
 	struct tps65912 *tps;
 
 	tps = devm_kzalloc(&spi->dev, sizeof(*tps), GFP_KERNEL);
+
 	if (!tps)
+	{
 		return -ENOMEM;
+	}
 
 	spi_set_drvdata(spi, tps);
 	tps->dev = &spi->dev;
 	tps->irq = spi->irq;
 
 	tps->regmap = devm_regmap_init_spi(spi, &tps65912_regmap_config);
-	if (IS_ERR(tps->regmap)) {
+
+	if (IS_ERR(tps->regmap))
+	{
 		dev_err(tps->dev, "Failed to initialize register map\n");
 		return PTR_ERR(tps->regmap);
 	}
@@ -56,13 +62,15 @@ static int tps65912_spi_remove(struct spi_device *client)
 	return tps65912_device_exit(tps);
 }
 
-static const struct spi_device_id tps65912_spi_id_table[] = {
+static const struct spi_device_id tps65912_spi_id_table[] =
+{
 	{ "tps65912", 0 },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(spi, tps65912_spi_id_table);
 
-static struct spi_driver tps65912_spi_driver = {
+static struct spi_driver tps65912_spi_driver =
+{
 	.driver		= {
 		.name	= "tps65912",
 		.of_match_table = tps65912_spi_of_match_table,

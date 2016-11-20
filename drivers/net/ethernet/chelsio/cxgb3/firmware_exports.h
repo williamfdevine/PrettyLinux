@@ -90,9 +90,9 @@
 #define FW_N3_WR_NUM			7
 
 #ifndef N3
-# define FW_WR_NUM			FW_T3_WR_NUM
+	#define FW_WR_NUM			FW_T3_WR_NUM
 #else
-# define FW_WR_NUM			FW_N3_WR_NUM
+	#define FW_WR_NUM			FW_N3_WR_NUM
 #endif
 
 /* FW_TUNNEL_NUM corresponds to the number of supported TUNNEL Queues. These
@@ -145,7 +145,7 @@
  * by the firmware.
  */
 #define FW_WRC_NUM			\
-    (65536 + FW_TUNNEL_NUM + FW_CTRL_NUM + FW_RI_NUM + FW_RX_PKT_NUM)
+	(65536 + FW_TUNNEL_NUM + FW_CTRL_NUM + FW_RI_NUM + FW_RX_PKT_NUM)
 
 /*
  * FW type and version.
@@ -154,24 +154,24 @@
 #define M_FW_VERSION_TYPE		0xF
 #define V_FW_VERSION_TYPE(x)		((x) << S_FW_VERSION_TYPE)
 #define G_FW_VERSION_TYPE(x)		\
-    (((x) >> S_FW_VERSION_TYPE) & M_FW_VERSION_TYPE)
+	(((x) >> S_FW_VERSION_TYPE) & M_FW_VERSION_TYPE)
 
 #define S_FW_VERSION_MAJOR		16
 #define M_FW_VERSION_MAJOR		0xFFF
 #define V_FW_VERSION_MAJOR(x)		((x) << S_FW_VERSION_MAJOR)
 #define G_FW_VERSION_MAJOR(x)		\
-    (((x) >> S_FW_VERSION_MAJOR) & M_FW_VERSION_MAJOR)
+	(((x) >> S_FW_VERSION_MAJOR) & M_FW_VERSION_MAJOR)
 
 #define S_FW_VERSION_MINOR		8
 #define M_FW_VERSION_MINOR		0xFF
 #define V_FW_VERSION_MINOR(x)		((x) << S_FW_VERSION_MINOR)
 #define G_FW_VERSION_MINOR(x)		\
-    (((x) >> S_FW_VERSION_MINOR) & M_FW_VERSION_MINOR)
+	(((x) >> S_FW_VERSION_MINOR) & M_FW_VERSION_MINOR)
 
 #define S_FW_VERSION_MICRO		0
 #define M_FW_VERSION_MICRO		0xFF
 #define V_FW_VERSION_MICRO(x)		((x) << S_FW_VERSION_MICRO)
 #define G_FW_VERSION_MICRO(x)		\
-    (((x) >> S_FW_VERSION_MICRO) & M_FW_VERSION_MICRO)
+	(((x) >> S_FW_VERSION_MICRO) & M_FW_VERSION_MICRO)
 
 #endif				/* _FIRMWARE_EXPORTS_H_ */

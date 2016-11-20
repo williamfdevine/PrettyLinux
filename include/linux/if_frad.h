@@ -31,16 +31,16 @@
 /* these are the fields of an RFC 1490 header */
 struct frhdr
 {
-   unsigned char  control;
+	unsigned char  control;
 
-   /* for IP packets, this can be the NLPID */
-   unsigned char  pad;
+	/* for IP packets, this can be the NLPID */
+	unsigned char  pad;
 
-   unsigned char  NLPID;
-   unsigned char  OUI[3];
-   __be16 PID;
+	unsigned char  NLPID;
+	unsigned char  OUI[3];
+	__be16 PID;
 
-#define IP_NLPID pad 
+#define IP_NLPID pad
 } __packed;
 
 /* see RFC 1490 for the definition of the following */
@@ -54,40 +54,40 @@ struct frhdr
 
 struct dlci_local
 {
-   struct net_device      *master;
-   struct net_device      *slave;
-   struct dlci_conf       config;
-   int                    configured;
-   struct list_head	  list;
+	struct net_device      *master;
+	struct net_device      *slave;
+	struct dlci_conf       config;
+	int                    configured;
+	struct list_head	  list;
 
-   /* callback function */
-   void              (*receive)(struct sk_buff *skb, struct net_device *);
+	/* callback function */
+	void              (*receive)(struct sk_buff *skb, struct net_device *);
 };
 
 struct frad_local
 {
-   struct net_device_stats stats;
+	struct net_device_stats stats;
 
-   /* devices which this FRAD is slaved to */
-   struct net_device     *master[CONFIG_DLCI_MAX];
-   short             dlci[CONFIG_DLCI_MAX];
+	/* devices which this FRAD is slaved to */
+	struct net_device     *master[CONFIG_DLCI_MAX];
+	short             dlci[CONFIG_DLCI_MAX];
 
-   struct frad_conf  config;
-   int               configured;	/* has this device been configured */
-   int               initialized;	/* mem_start, port, irq set ? */
+	struct frad_conf  config;
+	int               configured;	/* has this device been configured */
+	int               initialized;	/* mem_start, port, irq set ? */
 
-   /* callback functions */
-   int               (*activate)(struct net_device *, struct net_device *);
-   int               (*deactivate)(struct net_device *, struct net_device *);
-   int               (*assoc)(struct net_device *, struct net_device *);
-   int               (*deassoc)(struct net_device *, struct net_device *);
-   int               (*dlci_conf)(struct net_device *, struct net_device *, int get);
+	/* callback functions */
+	int               (*activate)(struct net_device *, struct net_device *);
+	int               (*deactivate)(struct net_device *, struct net_device *);
+	int               (*assoc)(struct net_device *, struct net_device *);
+	int               (*deassoc)(struct net_device *, struct net_device *);
+	int               (*dlci_conf)(struct net_device *, struct net_device *, int get);
 
-   /* fields that are used by the Sangoma SDLA cards */
-   struct timer_list timer;
-   int               type;		/* adapter type */
-   int               state;		/* state of the S502/8 control latch */
-   int               buffer;		/* current buffer for S508 firmware */
+	/* fields that are used by the Sangoma SDLA cards */
+	struct timer_list timer;
+	int               type;		/* adapter type */
+	int               state;		/* state of the S502/8 control latch */
+	int               buffer;		/* current buffer for S508 firmware */
 };
 
 #endif /* CONFIG_DLCI || CONFIG_DLCI_MODULE */

@@ -66,7 +66,8 @@ static int elsa_cs_config(struct pcmcia_device *link);
 static void elsa_cs_release(struct pcmcia_device *link);
 static void elsa_cs_detach(struct pcmcia_device *p_dev);
 
-typedef struct local_info_t {
+typedef struct local_info_t
+{
 	struct pcmcia_device	*p_dev;
 	int                 busy;
 	int			cardnr;
@@ -80,7 +81,8 @@ static int elsa_cs_probe(struct pcmcia_device *link)
 
 	/* Allocate space for private device-specific data */
 	local = kzalloc(sizeof(local_info_t), GFP_KERNEL);
-	if (!local) return -ENOMEM;
+
+	if (!local) { return -ENOMEM; }
 
 	local->p_dev = link;
 	link->priv = local;
@@ -111,18 +113,30 @@ static int elsa_cs_configcheck(struct pcmcia_device *p_dev, void *priv_data)
 	p_dev->resource[0]->flags &= IO_DATA_PATH_WIDTH;
 	p_dev->resource[0]->flags |= IO_DATA_PATH_WIDTH_AUTO;
 
-	if ((p_dev->resource[0]->end) && p_dev->resource[0]->start) {
+	if ((p_dev->resource[0]->end) && p_dev->resource[0]->start)
+	{
 		printk(KERN_INFO "(elsa_cs: looks like the 96 model)\n");
+
 		if (!pcmcia_request_io(p_dev))
+		{
 			return 0;
-	} else {
-		printk(KERN_INFO "(elsa_cs: looks like the 97 model)\n");
-		for (j = 0x2f0; j > 0x100; j -= 0x10) {
-			p_dev->resource[0]->start = j;
-			if (!pcmcia_request_io(p_dev))
-				return 0;
 		}
 	}
+	else
+	{
+		printk(KERN_INFO "(elsa_cs: looks like the 97 model)\n");
+
+		for (j = 0x2f0; j > 0x100; j -= 0x10)
+		{
+			p_dev->resource[0]->start = j;
+
+			if (!pcmcia_request_io(p_dev))
+			{
+				return 0;
+			}
+		}
+	}
+
 	return -ENODEV;
 }
 
@@ -136,15 +150,23 @@ static int elsa_cs_config(struct pcmcia_device *link)
 	link->config_flags |= CONF_ENABLE_IRQ | CONF_AUTO_SET_IO;
 
 	i = pcmcia_loop_config(link, elsa_cs_configcheck, NULL);
+
 	if (i != 0)
+	{
 		goto failed;
+	}
 
 	if (!link->irq)
+	{
 		goto failed;
+	}
 
 	i = pcmcia_enable_device(link);
+
 	if (i != 0)
+	{
 		goto failed;
+	}
 
 	icard.para[0] = link->irq;
 	icard.para[1] = link->resource[0]->start;
@@ -152,12 +174,17 @@ static int elsa_cs_config(struct pcmcia_device *link)
 	icard.typ = ISDN_CTYPE_ELSA_PCMCIA;
 
 	i = hisax_init_pcmcia(link, &(((local_info_t *)link->priv)->busy), &icard);
-	if (i < 0) {
+
+	if (i < 0)
+	{
 		printk(KERN_ERR "elsa_cs: failed to initialize Elsa "
-		       "PCMCIA %d with %pR\n", i, link->resource[0]);
+			   "PCMCIA %d with %pR\n", i, link->resource[0]);
 		elsa_cs_release(link);
-	} else
+	}
+	else
+	{
 		((local_info_t *)link->priv)->cardnr = i;
+	}
 
 	return 0;
 failed:
@@ -171,8 +198,10 @@ static void elsa_cs_release(struct pcmcia_device *link)
 
 	dev_dbg(&link->dev, "elsa_cs_release(0x%p)\n", link);
 
-	if (local) {
-		if (local->cardnr >= 0) {
+	if (local)
+	{
+		if (local->cardnr >= 0)
+		{
 			/* no unregister function with hisax */
 			HiSax_closecard(local->cardnr);
 		}
@@ -199,14 +228,16 @@ static int elsa_resume(struct pcmcia_device *link)
 	return 0;
 }
 
-static const struct pcmcia_device_id elsa_ids[] = {
+static const struct pcmcia_device_id elsa_ids[] =
+{
 	PCMCIA_DEVICE_PROD_ID12("ELSA AG (Aachen, Germany)", "MicroLink ISDN/MC ", 0x983de2c4, 0x333ba257),
 	PCMCIA_DEVICE_PROD_ID12("ELSA GmbH, Aachen", "MicroLink ISDN/MC ", 0x639e5718, 0x333ba257),
 	PCMCIA_DEVICE_NULL
 };
 MODULE_DEVICE_TABLE(pcmcia, elsa_ids);
 
-static struct pcmcia_driver elsa_cs_driver = {
+static struct pcmcia_driver elsa_cs_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "elsa_cs",
 	.probe		= elsa_cs_probe,

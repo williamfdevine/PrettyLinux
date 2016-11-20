@@ -41,7 +41,9 @@ struct rxrpc_connection *rxrpc_alloc_connection(gfp_t gfp)
 	_enter("");
 
 	conn = kzalloc(sizeof(struct rxrpc_connection), gfp);
-	if (conn) {
+
+	if (conn)
+	{
 		INIT_LIST_HEAD(&conn->cache_link);
 		spin_lock_init(&conn->channel_lock);
 		INIT_LIST_HEAD(&conn->waiting_calls);
@@ -69,7 +71,7 @@ struct rxrpc_connection *rxrpc_alloc_connection(gfp_t gfp)
  * The caller must be holding the RCU read lock.
  */
 struct rxrpc_connection *rxrpc_find_connection_rcu(struct rxrpc_local *local,
-						   struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	struct rxrpc_connection *conn;
 	struct rxrpc_conn_proto k;
@@ -80,71 +82,99 @@ struct rxrpc_connection *rxrpc_find_connection_rcu(struct rxrpc_local *local,
 	_enter(",%x", sp->hdr.cid & RXRPC_CIDMASK);
 
 	if (rxrpc_extract_addr_from_skb(&srx, skb) < 0)
-		goto not_found;
-
-	k.epoch	= sp->hdr.epoch;
-	k.cid	= sp->hdr.cid & RXRPC_CIDMASK;
-
-	/* We may have to handle mixing IPv4 and IPv6 */
-	if (srx.transport.family != local->srx.transport.family) {
-		pr_warn_ratelimited("AF_RXRPC: Protocol mismatch %u not %u\n",
-				    srx.transport.family,
-				    local->srx.transport.family);
+	{
 		goto not_found;
 	}
 
 	k.epoch	= sp->hdr.epoch;
 	k.cid	= sp->hdr.cid & RXRPC_CIDMASK;
 
-	if (sp->hdr.flags & RXRPC_CLIENT_INITIATED) {
+	/* We may have to handle mixing IPv4 and IPv6 */
+	if (srx.transport.family != local->srx.transport.family)
+	{
+		pr_warn_ratelimited("AF_RXRPC: Protocol mismatch %u not %u\n",
+							srx.transport.family,
+							local->srx.transport.family);
+		goto not_found;
+	}
+
+	k.epoch	= sp->hdr.epoch;
+	k.cid	= sp->hdr.cid & RXRPC_CIDMASK;
+
+	if (sp->hdr.flags & RXRPC_CLIENT_INITIATED)
+	{
 		/* We need to look up service connections by the full protocol
 		 * parameter set.  We look up the peer first as an intermediate
 		 * step and then the connection from the peer's tree.
 		 */
 		peer = rxrpc_lookup_peer_rcu(local, &srx);
+
 		if (!peer)
+		{
 			goto not_found;
+		}
+
 		conn = rxrpc_find_service_conn_rcu(peer, skb);
+
 		if (!conn || atomic_read(&conn->usage) == 0)
+		{
 			goto not_found;
+		}
+
 		_leave(" = %p", conn);
 		return conn;
-	} else {
+	}
+	else
+	{
 		/* Look up client connections by connection ID alone as their
 		 * IDs are unique for this machine.
 		 */
 		conn = idr_find(&rxrpc_client_conn_ids,
-				sp->hdr.cid >> RXRPC_CIDSHIFT);
-		if (!conn || atomic_read(&conn->usage) == 0) {
+						sp->hdr.cid >> RXRPC_CIDSHIFT);
+
+		if (!conn || atomic_read(&conn->usage) == 0)
+		{
 			_debug("no conn");
 			goto not_found;
 		}
 
 		if (conn->proto.epoch != k.epoch ||
-		    conn->params.local != local)
+			conn->params.local != local)
+		{
 			goto not_found;
+		}
 
 		peer = conn->params.peer;
-		switch (srx.transport.family) {
-		case AF_INET:
-			if (peer->srx.transport.sin.sin_port !=
-			    srx.transport.sin.sin_port ||
-			    peer->srx.transport.sin.sin_addr.s_addr !=
-			    srx.transport.sin.sin_addr.s_addr)
-				goto not_found;
-			break;
+
+		switch (srx.transport.family)
+		{
+			case AF_INET:
+				if (peer->srx.transport.sin.sin_port !=
+					srx.transport.sin.sin_port ||
+					peer->srx.transport.sin.sin_addr.s_addr !=
+					srx.transport.sin.sin_addr.s_addr)
+				{
+					goto not_found;
+				}
+
+				break;
 #ifdef CONFIG_AF_RXRPC_IPV6
-		case AF_INET6:
-			if (peer->srx.transport.sin6.sin6_port !=
-			    srx.transport.sin6.sin6_port ||
-			    memcmp(&peer->srx.transport.sin6.sin6_addr,
-				   &srx.transport.sin6.sin6_addr,
-				   sizeof(struct in6_addr)) != 0)
-				goto not_found;
-			break;
+
+			case AF_INET6:
+				if (peer->srx.transport.sin6.sin6_port !=
+					srx.transport.sin6.sin6_port ||
+					memcmp(&peer->srx.transport.sin6.sin6_addr,
+						   &srx.transport.sin6.sin6_addr,
+						   sizeof(struct in6_addr)) != 0)
+				{
+					goto not_found;
+				}
+
+				break;
 #endif
-		default:
-			BUG();
+
+			default:
+				BUG();
 		}
 
 		_leave(" = %p", conn);
@@ -162,25 +192,31 @@ not_found:
  * call's ref on the connection.
  */
 void __rxrpc_disconnect_call(struct rxrpc_connection *conn,
-			     struct rxrpc_call *call)
+							 struct rxrpc_call *call)
 {
 	struct rxrpc_channel *chan =
-		&conn->channels[call->cid & RXRPC_CHANNELMASK];
+			&conn->channels[call->cid & RXRPC_CHANNELMASK];
 
 	_enter("%d,%x", conn->debug_id, call->cid);
 
-	if (rcu_access_pointer(chan->call) == call) {
+	if (rcu_access_pointer(chan->call) == call)
+	{
 		/* Save the result of the call so that we can repeat it if necessary
 		 * through the channel, whilst disposing of the actual call record.
 		 */
 		chan->last_service_id = call->service_id;
-		if (call->abort_code) {
+
+		if (call->abort_code)
+		{
 			chan->last_abort = call->abort_code;
 			chan->last_type = RXRPC_PACKET_TYPE_ABORT;
-		} else {
+		}
+		else
+		{
 			chan->last_seq = call->rx_hard_ack;
 			chan->last_type = RXRPC_PACKET_TYPE_ACK;
 		}
+
 		/* Sync with rxrpc_conn_retransmit(). */
 		smp_wmb();
 		chan->last_call = chan->call_id;
@@ -205,7 +241,9 @@ void rxrpc_disconnect_call(struct rxrpc_call *call)
 	spin_unlock_bh(&conn->params.peer->lock);
 
 	if (rxrpc_is_client_call(call))
+	{
 		return rxrpc_disconnect_client_call(call);
+	}
 
 	spin_lock(&conn->channel_lock);
 	__rxrpc_disconnect_call(conn, call);
@@ -222,9 +260,9 @@ void rxrpc_disconnect_call(struct rxrpc_call *call)
 void rxrpc_kill_connection(struct rxrpc_connection *conn)
 {
 	ASSERT(!rcu_access_pointer(conn->channels[0].call) &&
-	       !rcu_access_pointer(conn->channels[1].call) &&
-	       !rcu_access_pointer(conn->channels[2].call) &&
-	       !rcu_access_pointer(conn->channels[3].call));
+		   !rcu_access_pointer(conn->channels[1].call) &&
+		   !rcu_access_pointer(conn->channels[2].call) &&
+		   !rcu_access_pointer(conn->channels[3].call));
 	ASSERT(list_empty(&conn->cache_link));
 
 	write_lock(&rxrpc_connection_lock);
@@ -252,12 +290,21 @@ bool rxrpc_queue_conn(struct rxrpc_connection *conn)
 {
 	const void *here = __builtin_return_address(0);
 	int n = __atomic_add_unless(&conn->usage, 1, 0);
+
 	if (n == 0)
+	{
 		return false;
+	}
+
 	if (rxrpc_queue_work(&conn->processor))
+	{
 		trace_rxrpc_conn(conn, rxrpc_conn_queued, n + 1, here);
+	}
 	else
+	{
 		rxrpc_put_connection(conn);
+	}
+
 	return true;
 }
 
@@ -267,7 +314,9 @@ bool rxrpc_queue_conn(struct rxrpc_connection *conn)
 void rxrpc_see_connection(struct rxrpc_connection *conn)
 {
 	const void *here = __builtin_return_address(0);
-	if (conn) {
+
+	if (conn)
+	{
 		int n = atomic_read(&conn->usage);
 
 		trace_rxrpc_conn(conn, rxrpc_conn_seen, n, here);
@@ -293,13 +342,20 @@ rxrpc_get_connection_maybe(struct rxrpc_connection *conn)
 {
 	const void *here = __builtin_return_address(0);
 
-	if (conn) {
+	if (conn)
+	{
 		int n = __atomic_add_unless(&conn->usage, 1, 0);
+
 		if (n > 0)
+		{
 			trace_rxrpc_conn(conn, rxrpc_conn_got, n + 1, here);
+		}
 		else
+		{
 			conn = NULL;
+		}
 	}
+
 	return conn;
 }
 
@@ -314,8 +370,11 @@ void rxrpc_put_service_conn(struct rxrpc_connection *conn)
 	n = atomic_dec_return(&conn->usage);
 	trace_rxrpc_conn(conn, rxrpc_conn_put_service, n, here);
 	ASSERTCMP(n, >=, 0);
+
 	if (n == 0)
+	{
 		rxrpc_queue_delayed_work(&rxrpc_connection_reap, 0);
+	}
 }
 
 /*
@@ -361,21 +420,32 @@ static void rxrpc_connection_reaper(struct work_struct *work)
 	earliest = ULONG_MAX;
 
 	write_lock(&rxrpc_connection_lock);
-	list_for_each_entry_safe(conn, _p, &rxrpc_connections, link) {
+	list_for_each_entry_safe(conn, _p, &rxrpc_connections, link)
+	{
 		ASSERTCMP(atomic_read(&conn->usage), >, 0);
+
 		if (likely(atomic_read(&conn->usage) > 1))
+		{
 			continue;
+		}
+
 		if (conn->state == RXRPC_CONN_SERVICE_PREALLOC)
+		{
 			continue;
+		}
 
 		idle_timestamp = READ_ONCE(conn->idle_timestamp);
 		_debug("reap CONN %d { u=%d,t=%ld }",
-		       conn->debug_id, atomic_read(&conn->usage),
-		       (long)reap_older_than - (long)idle_timestamp);
+			   conn->debug_id, atomic_read(&conn->usage),
+			   (long)reap_older_than - (long)idle_timestamp);
 
-		if (time_after(idle_timestamp, reap_older_than)) {
+		if (time_after(idle_timestamp, reap_older_than))
+		{
 			if (time_before(idle_timestamp, earliest))
+			{
 				earliest = idle_timestamp;
+			}
+
 			continue;
 		}
 
@@ -383,27 +453,35 @@ static void rxrpc_connection_reaper(struct work_struct *work)
 		 * list; we reduce that to 0 to make the object unavailable.
 		 */
 		if (atomic_cmpxchg(&conn->usage, 1, 0) != 1)
+		{
 			continue;
+		}
 
 		if (rxrpc_conn_is_client(conn))
+		{
 			BUG();
+		}
 		else
+		{
 			rxrpc_unpublish_service_conn(conn);
+		}
 
 		list_move_tail(&conn->link, &graveyard);
 	}
 	write_unlock(&rxrpc_connection_lock);
 
-	if (earliest != ULONG_MAX) {
+	if (earliest != ULONG_MAX)
+	{
 		_debug("reschedule reaper %ld", (long) earliest - now);
 		ASSERT(time_after(earliest, now));
 		rxrpc_queue_delayed_work(&rxrpc_connection_reap,
-					 earliest - now);
+								 earliest - now);
 	}
 
-	while (!list_empty(&graveyard)) {
+	while (!list_empty(&graveyard))
+	{
 		conn = list_entry(graveyard.next, struct rxrpc_connection,
-				  link);
+						  link);
 		list_del_init(&conn->link);
 
 		ASSERTCMP(atomic_read(&conn->usage), ==, 0);
@@ -432,9 +510,10 @@ void __exit rxrpc_destroy_all_connections(void)
 	flush_workqueue(rxrpc_workqueue);
 
 	write_lock(&rxrpc_connection_lock);
-	list_for_each_entry_safe(conn, _p, &rxrpc_connections, link) {
+	list_for_each_entry_safe(conn, _p, &rxrpc_connections, link)
+	{
 		pr_err("AF_RXRPC: Leaked conn %p {%d}\n",
-		       conn, atomic_read(&conn->usage));
+			   conn, atomic_read(&conn->usage));
 		leak = true;
 	}
 	write_unlock(&rxrpc_connection_lock);

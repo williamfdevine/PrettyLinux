@@ -80,7 +80,8 @@
  * @tx:			transmit buffer
  * @rx:			receive buffer
  **/
-struct ade7754_state {
+struct ade7754_state
+{
 	struct spi_device	*us;
 	struct mutex		buf_lock;
 	u8			tx[ADE7754_MAX_TX] ____cacheline_aligned;

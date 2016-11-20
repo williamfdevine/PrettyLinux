@@ -22,8 +22,10 @@
  * trigger is waiting for the event.
  */
 
-struct trigger {
-	volatile enum {
+struct trigger
+{
+	volatile enum
+	{
 		TRIGGER_ERROR		= -2,
 		TRIGGER_OFF		= -1,
 		TRIGGER_READY		= 0,
@@ -34,7 +36,7 @@ struct trigger {
 
 #define TRIGGER_WARN_ONCE(t, exp) \
 	WARN_ONCE(t->state != exp, "trigger '%s' state transist error: %d in %s()\n", \
-		  t->name, t->state, __func__)
+			  t->name, t->state, __func__)
 
 static inline bool trigger_is_available(struct trigger *t)
 {
@@ -55,14 +57,20 @@ static inline void trigger_on(struct trigger *t)
 static inline void trigger_ready(struct trigger *t)
 {
 	if (!trigger_is_available(t))
+	{
 		return;
+	}
+
 	t->state = TRIGGER_READY;
 }
 
 static inline void trigger_hit(struct trigger *t)
 {
 	if (!trigger_is_available(t))
+	{
 		return;
+	}
+
 	TRIGGER_WARN_ONCE(t, TRIGGER_READY);
 	t->state = TRIGGER_HIT;
 }
@@ -70,7 +78,10 @@ static inline void trigger_hit(struct trigger *t)
 static inline void trigger_off(struct trigger *t)
 {
 	if (!trigger_is_available(t))
+	{
 		return;
+	}
+
 	t->state = TRIGGER_OFF;
 }
 
@@ -90,5 +101,5 @@ static inline bool trigger_is_hit(struct trigger *t)
 }
 
 #define DEFINE_TRIGGER(n) \
-struct trigger n = {.state = TRIGGER_OFF, .name = #n}
+	struct trigger n = {.state = TRIGGER_OFF, .name = #n}
 #endif

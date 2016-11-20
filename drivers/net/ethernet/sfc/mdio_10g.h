@@ -47,12 +47,14 @@ static inline bool efx_mdio_phyxgxs_lane_sync(struct efx_nic *efx)
 
 	for (i = 0; i < 2; ++i)
 		lane_status = efx_mdio_read(efx, MDIO_MMD_PHYXS,
-					    MDIO_PHYXS_LNSTAT);
+									MDIO_PHYXS_LNSTAT);
 
 	sync = !!(lane_status & MDIO_PHYXS_LNSTAT_ALIGN);
+
 	if (!sync)
 		netif_dbg(efx, hw, efx->net_dev, "XGXS lane status: %x\n",
-			  lane_status);
+				  lane_status);
+
 	return sync;
 }
 
@@ -80,7 +82,7 @@ void efx_mdio_phy_reconfigure(struct efx_nic *efx);
 
 /* Set the power state of the specified MMDs */
 void efx_mdio_set_mmds_lpower(struct efx_nic *efx, int low_power,
-			      unsigned int mmd_mask);
+							  unsigned int mmd_mask);
 
 /* Set (some of) the PHY settings over MDIO */
 int efx_mdio_set_settings(struct efx_nic *efx, struct ethtool_cmd *ecmd);
@@ -99,7 +101,7 @@ int efx_mdio_wait_reset_mmds(struct efx_nic *efx, unsigned int mmd_mask);
 /* Set or clear flag, debouncing */
 static inline void
 efx_mdio_set_flag(struct efx_nic *efx, int devad, int addr,
-		  int mask, bool state)
+				  int mask, bool state)
 {
 	mdio_set_flag(&efx->mdio, efx->mdio.prtad, devad, addr, mask, state);
 }

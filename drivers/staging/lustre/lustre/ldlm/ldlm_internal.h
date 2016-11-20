@@ -42,35 +42,43 @@ extern struct list_head ldlm_cli_active_namespace_list;
 static inline int ldlm_namespace_nr_read(ldlm_side_t client)
 {
 	return client == LDLM_NAMESPACE_SERVER ?
-		ldlm_srv_namespace_nr : ldlm_cli_namespace_nr;
+		   ldlm_srv_namespace_nr : ldlm_cli_namespace_nr;
 }
 
 static inline void ldlm_namespace_nr_inc(ldlm_side_t client)
 {
 	if (client == LDLM_NAMESPACE_SERVER)
+	{
 		ldlm_srv_namespace_nr++;
+	}
 	else
+	{
 		ldlm_cli_namespace_nr++;
+	}
 }
 
 static inline void ldlm_namespace_nr_dec(ldlm_side_t client)
 {
 	if (client == LDLM_NAMESPACE_SERVER)
+	{
 		ldlm_srv_namespace_nr--;
+	}
 	else
+	{
 		ldlm_cli_namespace_nr--;
+	}
 }
 
 static inline struct list_head *ldlm_namespace_list(ldlm_side_t client)
 {
 	return client == LDLM_NAMESPACE_SERVER ?
-		&ldlm_srv_namespace_list : &ldlm_cli_active_namespace_list;
+		   &ldlm_srv_namespace_list : &ldlm_cli_active_namespace_list;
 }
 
 static inline struct mutex *ldlm_namespace_lock(ldlm_side_t client)
 {
 	return client == LDLM_NAMESPACE_SERVER ?
-		&ldlm_srv_namespace_lock : &ldlm_cli_namespace_lock;
+		   &ldlm_srv_namespace_lock : &ldlm_cli_namespace_lock;
 }
 
 /* ns_bref is the number of resources in this namespace */
@@ -81,12 +89,13 @@ static inline int ldlm_ns_empty(struct ldlm_namespace *ns)
 
 void ldlm_namespace_move_to_active_locked(struct ldlm_namespace *, ldlm_side_t);
 void ldlm_namespace_move_to_inactive_locked(struct ldlm_namespace *,
-					    ldlm_side_t);
+		ldlm_side_t);
 struct ldlm_namespace *ldlm_namespace_first_locked(ldlm_side_t);
 
 /* ldlm_request.c */
 /* Cancel lru flag, it indicates we cancel aged locks. */
-enum {
+enum
+{
 	LDLM_CANCEL_AGED   = 1 << 0, /* Cancel aged locks (non lru resize). */
 	LDLM_CANCEL_PASSED = 1 << 1, /* Cancel passed number of locks. */
 	LDLM_CANCEL_SHRINK = 1 << 2, /* Cancel locks from shrinker. */
@@ -98,21 +107,22 @@ enum {
 };
 
 int ldlm_cancel_lru(struct ldlm_namespace *ns, int nr,
-		    enum ldlm_cancel_flags sync, int flags);
+					enum ldlm_cancel_flags sync, int flags);
 int ldlm_cancel_lru_local(struct ldlm_namespace *ns,
-			  struct list_head *cancels, int count, int max,
-			  enum ldlm_cancel_flags cancel_flags, int flags);
+						  struct list_head *cancels, int count, int max,
+						  enum ldlm_cancel_flags cancel_flags, int flags);
 extern unsigned int ldlm_enqueue_min;
 extern unsigned int ldlm_cancel_unused_locks_before_replay;
 
 /* ldlm_resource.c */
 int ldlm_resource_putref_locked(struct ldlm_resource *res);
 void ldlm_namespace_free_prior(struct ldlm_namespace *ns,
-			       struct obd_import *imp, int force);
+							   struct obd_import *imp, int force);
 void ldlm_namespace_free_post(struct ldlm_namespace *ns);
 /* ldlm_lock.c */
 
-struct ldlm_cb_set_arg {
+struct ldlm_cb_set_arg
+{
 	struct ptlrpc_request_set	*set;
 	int				 type; /* LDLM_{CP,BL,GL}_CALLBACK */
 	atomic_t			 restart;
@@ -120,7 +130,8 @@ struct ldlm_cb_set_arg {
 	union ldlm_gl_desc		*gl_desc; /* glimpse AST descriptor */
 };
 
-enum ldlm_desc_ast_t {
+enum ldlm_desc_ast_t
+{
 	LDLM_WORK_BL_AST,
 	LDLM_WORK_CP_AST,
 	LDLM_WORK_REVOKE_AST,
@@ -129,20 +140,20 @@ enum ldlm_desc_ast_t {
 
 void ldlm_grant_lock(struct ldlm_lock *lock, struct list_head *work_list);
 int ldlm_fill_lvb(struct ldlm_lock *lock, struct req_capsule *pill,
-		  enum req_location loc, void *data, int size);
+				  enum req_location loc, void *data, int size);
 struct ldlm_lock *
 ldlm_lock_create(struct ldlm_namespace *ns, const struct ldlm_res_id *,
-		 enum ldlm_type type, enum ldlm_mode mode,
-		 const struct ldlm_callback_suite *cbs,
-		 void *data, __u32 lvb_len, enum lvb_type lvb_type);
+				 enum ldlm_type type, enum ldlm_mode mode,
+				 const struct ldlm_callback_suite *cbs,
+				 void *data, __u32 lvb_len, enum lvb_type lvb_type);
 enum ldlm_error ldlm_lock_enqueue(struct ldlm_namespace *, struct ldlm_lock **,
-				  void *cookie, __u64 *flags);
+								  void *cookie, __u64 *flags);
 void ldlm_lock_addref_internal(struct ldlm_lock *, __u32 mode);
 void ldlm_lock_addref_internal_nolock(struct ldlm_lock *, __u32 mode);
 void ldlm_lock_decref_internal(struct ldlm_lock *, __u32 mode);
 void ldlm_lock_decref_internal_nolock(struct ldlm_lock *, __u32 mode);
 int ldlm_run_ast_work(struct ldlm_namespace *ns, struct list_head *rpc_list,
-		      enum ldlm_desc_ast_t ast_type);
+					  enum ldlm_desc_ast_t ast_type);
 int ldlm_lock_remove_from_lru_check(struct ldlm_lock *lock, time_t last_use);
 #define ldlm_lock_remove_from_lru(lock) ldlm_lock_remove_from_lru_check(lock, 0)
 int ldlm_lock_remove_from_lru_nolock(struct ldlm_lock *lock);
@@ -150,14 +161,14 @@ void ldlm_lock_destroy_nolock(struct ldlm_lock *lock);
 
 /* ldlm_lockd.c */
 int ldlm_bl_to_thread_lock(struct ldlm_namespace *ns, struct ldlm_lock_desc *ld,
-			   struct ldlm_lock *lock);
+						   struct ldlm_lock *lock);
 int ldlm_bl_to_thread_list(struct ldlm_namespace *ns,
-			   struct ldlm_lock_desc *ld,
-			   struct list_head *cancels, int count,
-			   enum ldlm_cancel_flags cancel_flags);
+						   struct ldlm_lock_desc *ld,
+						   struct list_head *cancels, int count,
+						   enum ldlm_cancel_flags cancel_flags);
 
 void ldlm_handle_bl_callback(struct ldlm_namespace *ns,
-			     struct ldlm_lock_desc *ld, struct ldlm_lock *lock);
+							 struct ldlm_lock_desc *ld, struct ldlm_lock *lock);
 
 extern struct kmem_cache *ldlm_resource_slab;
 extern struct kset *ldlm_ns_kset;
@@ -175,7 +186,8 @@ void l_check_no_ns_lock(struct ldlm_namespace *ns);
 
 extern struct dentry *ldlm_svc_debugfs_dir;
 
-struct ldlm_state {
+struct ldlm_state
+{
 	struct ptlrpc_service *ldlm_cb_service;
 	struct ptlrpc_service *ldlm_cancel_service;
 	struct ptlrpc_client *ldlm_client;
@@ -208,7 +220,8 @@ ldlm_interval_extent(struct ldlm_interval *node)
 int ldlm_init(void);
 void ldlm_exit(void);
 
-enum ldlm_policy_res {
+enum ldlm_policy_res
+{
 	LDLM_POLICY_CANCEL_LOCK,
 	LDLM_POLICY_KEEP_LOCK,
 	LDLM_POLICY_SKIP_LOCK
@@ -223,75 +236,75 @@ enum ldlm_policy_res {
 
 #define LDLM_POOL_SYSFS_READER_SHOW(var, type)				    \
 	static ssize_t var##_show(struct kobject *kobj,			    \
-				  struct attribute *attr,		    \
-				  char *buf)				    \
+							  struct attribute *attr,		    \
+							  char *buf)				    \
 	{								    \
 		struct ldlm_pool *pl = container_of(kobj, struct ldlm_pool, \
-						    pl_kobj);		    \
+											pl_kobj);		    \
 		type tmp;						    \
-									    \
+		\
 		spin_lock(&pl->pl_lock);				    \
 		tmp = pl->pl_##var;					    \
 		spin_unlock(&pl->pl_lock);				    \
-									    \
+		\
 		return LDLM_POOL_SYSFS_PRINT_##type(tmp);		    \
 	}								    \
 	struct __##var##__dummy_read {; } /* semicolon catcher */
 
 #define LDLM_POOL_SYSFS_WRITER_STORE(var, type)				    \
 	static ssize_t var##_store(struct kobject *kobj,		    \
-				     struct attribute *attr,		    \
-				     const char *buffer,		    \
-				     size_t count)			    \
+							   struct attribute *attr,		    \
+							   const char *buffer,		    \
+							   size_t count)			    \
 	{								    \
 		struct ldlm_pool *pl = container_of(kobj, struct ldlm_pool, \
-						    pl_kobj);		    \
+											pl_kobj);		    \
 		unsigned long tmp;					    \
 		int rc;							    \
-									    \
+		\
 		rc = kstrtoul(buffer, 10, &tmp);			    \
 		if (rc < 0) {						    \
 			return rc;					    \
 		}							    \
-									    \
+		\
 		spin_lock(&pl->pl_lock);				    \
 		LDLM_POOL_SYSFS_SET_##type(pl->pl_##var, tmp);		    \
 		spin_unlock(&pl->pl_lock);				    \
-									    \
+		\
 		return count;						    \
 	}								    \
 	struct __##var##__dummy_write {; } /* semicolon catcher */
 
 #define LDLM_POOL_SYSFS_READER_NOLOCK_SHOW(var, type)			    \
 	static ssize_t var##_show(struct kobject *kobj,		    \
-				    struct attribute *attr,		    \
-				    char *buf)				    \
+							  struct attribute *attr,		    \
+							  char *buf)				    \
 	{								    \
 		struct ldlm_pool *pl = container_of(kobj, struct ldlm_pool, \
-						    pl_kobj);		    \
-									    \
+											pl_kobj);		    \
+		\
 		return LDLM_POOL_SYSFS_PRINT_##type(pl->pl_##var);	    \
 	}								    \
 	struct __##var##__dummy_read {; } /* semicolon catcher */
 
 #define LDLM_POOL_SYSFS_WRITER_NOLOCK_STORE(var, type)			    \
 	static ssize_t var##_store(struct kobject *kobj,		    \
-				     struct attribute *attr,		    \
-				     const char *buffer,		    \
-				     size_t count)			    \
+							   struct attribute *attr,		    \
+							   const char *buffer,		    \
+							   size_t count)			    \
 	{								    \
 		struct ldlm_pool *pl = container_of(kobj, struct ldlm_pool, \
-						    pl_kobj);		    \
+											pl_kobj);		    \
 		unsigned long tmp;					    \
 		int rc;							    \
-									    \
+		\
 		rc = kstrtoul(buffer, 10, &tmp);			    \
 		if (rc < 0) {						    \
 			return rc;					    \
 		}							    \
-									    \
+		\
 		LDLM_POOL_SYSFS_SET_##type(pl->pl_##var, tmp);		    \
-									    \
+		\
 		return count;						    \
 	}								    \
 	struct __##var##__dummy_write {; } /* semicolon catcher */
@@ -301,38 +314,44 @@ static inline int is_granted_or_cancelled(struct ldlm_lock *lock)
 	int ret = 0;
 
 	lock_res_and_lock(lock);
+
 	if ((lock->l_req_mode == lock->l_granted_mode) &&
-	    !ldlm_is_cp_reqd(lock))
+		!ldlm_is_cp_reqd(lock))
+	{
 		ret = 1;
+	}
 	else if (ldlm_is_failed(lock) || ldlm_is_cancel(lock))
+	{
 		ret = 1;
+	}
+
 	unlock_res_and_lock(lock);
 
 	return ret;
 }
 
 typedef void (*ldlm_policy_wire_to_local_t)(const ldlm_wire_policy_data_t *,
-					    ldlm_policy_data_t *);
+		ldlm_policy_data_t *);
 
 typedef void (*ldlm_policy_local_to_wire_t)(const ldlm_policy_data_t *,
-					    ldlm_wire_policy_data_t *);
+		ldlm_wire_policy_data_t *);
 
 void ldlm_plain_policy_wire_to_local(const ldlm_wire_policy_data_t *wpolicy,
-				     ldlm_policy_data_t *lpolicy);
+									 ldlm_policy_data_t *lpolicy);
 void ldlm_plain_policy_local_to_wire(const ldlm_policy_data_t *lpolicy,
-				     ldlm_wire_policy_data_t *wpolicy);
+									 ldlm_wire_policy_data_t *wpolicy);
 void ldlm_ibits_policy_wire_to_local(const ldlm_wire_policy_data_t *wpolicy,
-				     ldlm_policy_data_t *lpolicy);
+									 ldlm_policy_data_t *lpolicy);
 void ldlm_ibits_policy_local_to_wire(const ldlm_policy_data_t *lpolicy,
-				     ldlm_wire_policy_data_t *wpolicy);
+									 ldlm_wire_policy_data_t *wpolicy);
 void ldlm_extent_policy_wire_to_local(const ldlm_wire_policy_data_t *wpolicy,
-				      ldlm_policy_data_t *lpolicy);
+									  ldlm_policy_data_t *lpolicy);
 void ldlm_extent_policy_local_to_wire(const ldlm_policy_data_t *lpolicy,
-				      ldlm_wire_policy_data_t *wpolicy);
+									  ldlm_wire_policy_data_t *wpolicy);
 void ldlm_flock_policy_wire18_to_local(const ldlm_wire_policy_data_t *wpolicy,
-				       ldlm_policy_data_t *lpolicy);
+									   ldlm_policy_data_t *lpolicy);
 void ldlm_flock_policy_wire21_to_local(const ldlm_wire_policy_data_t *wpolicy,
-				       ldlm_policy_data_t *lpolicy);
+									   ldlm_policy_data_t *lpolicy);
 
 void ldlm_flock_policy_local_to_wire(const ldlm_policy_data_t *lpolicy,
-				     ldlm_wire_policy_data_t *wpolicy);
+									 ldlm_wire_policy_data_t *wpolicy);

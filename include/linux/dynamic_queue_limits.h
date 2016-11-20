@@ -37,7 +37,8 @@
 
 #ifdef __KERNEL__
 
-struct dql {
+struct dql
+{
 	/* Fields accessed in enqueue path (dql_queued) */
 	unsigned int	num_queued;		/* Total ever queued */
 	unsigned int	adj_limit;		/* limit + num_completed */

@@ -49,9 +49,11 @@ MODULE_LICENSE("GPL");
 #define A3D_MODE_PXL		4	/* Panther XL */
 
 static char *a3d_names[] = { NULL, "FP-Gaming Assassin 3D", "MadCatz Panther", "OEM Panther",
-			"MadCatz Panther XL", "MadCatz Panther XL w/ rudder" };
+							 "MadCatz Panther XL", "MadCatz Panther XL w/ rudder"
+						   };
 
-struct a3d {
+struct a3d
+{
 	struct gameport *gameport;
 	struct gameport *adc;
 	struct input_dev *dev;
@@ -83,10 +85,13 @@ static int a3d_read_packet(struct gameport *gameport, int length, char *data)
 	gameport_trigger(gameport);
 	v = gameport_read(gameport);
 
-	while (t > 0 && i < length) {
+	while (t > 0 && i < length)
+	{
 		t--;
 		u = v; v = gameport_read(gameport);
-		if (~v & u & 0x10) {
+
+		if (~v & u & 0x10)
+		{
 			data[i++] = v >> 5;
 			t = s;
 		}
@@ -106,7 +111,10 @@ static int a3d_csum(char *data, int count)
 	int i, csum = 0;
 
 	for (i = 0; i < count - 2; i++)
+	{
 		csum += data[i];
+	}
+
 	return (csum & 0x3f) != ((data[count - 2] << 3) | data[count - 1]);
 }
 
@@ -114,7 +122,8 @@ static void a3d_read(struct a3d *a3d, unsigned char *data)
 {
 	struct input_dev *dev = a3d->dev;
 
-	switch (a3d->mode) {
+	switch (a3d->mode)
+	{
 
 		case A3D_MODE_A3D:
 		case A3D_MODE_OEM:
@@ -181,11 +190,16 @@ static void a3d_poll(struct gameport *gameport)
 	unsigned char data[A3D_MAX_LENGTH];
 
 	a3d->reads++;
+
 	if (a3d_read_packet(a3d->gameport, a3d->length, data) != a3d->length ||
-	    data[0] != a3d->mode || a3d_csum(data, a3d->length))
+		data[0] != a3d->mode || a3d_csum(data, a3d->length))
+	{
 		a3d->bads++;
+	}
 	else
+	{
 		a3d_read(a3d, data);
+	}
 }
 
 /*
@@ -200,7 +214,10 @@ static int a3d_adc_cooked_read(struct gameport *gameport, int *axes, int *button
 	int i;
 
 	for (i = 0; i < 4; i++)
+	{
 		axes[i] = (a3d->axes[i] < 254) ? a3d->axes[i] : -1;
+	}
+
 	*buttons = a3d->buttons;
 	return 0;
 }
@@ -215,7 +232,9 @@ static int a3d_adc_open(struct gameport *gameport, int mode)
 	struct a3d *a3d = gameport->port_data;
 
 	if (mode != GAMEPORT_MODE_COOKED)
+	{
 		return -1;
+	}
 
 	gameport_start_polling(a3d->gameport);
 	return 0;
@@ -270,7 +289,9 @@ static int a3d_connect(struct gameport *gameport, struct gameport_driver *drv)
 
 	a3d = kzalloc(sizeof(struct a3d), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!a3d || !input_dev) {
+
+	if (!a3d || !input_dev)
+	{
 		err = -ENOMEM;
 		goto fail1;
 	}
@@ -281,21 +302,26 @@ static int a3d_connect(struct gameport *gameport, struct gameport_driver *drv)
 	gameport_set_drvdata(gameport, a3d);
 
 	err = gameport_open(gameport, drv, GAMEPORT_MODE_RAW);
+
 	if (err)
+	{
 		goto fail1;
+	}
 
 	i = a3d_read_packet(gameport, A3D_MAX_LENGTH, data);
 
-	if (!i || a3d_csum(data, i)) {
+	if (!i || a3d_csum(data, i))
+	{
 		err = -ENODEV;
 		goto fail2;
 	}
 
 	a3d->mode = data[0];
 
-	if (!a3d->mode || a3d->mode > 5) {
+	if (!a3d->mode || a3d->mode > 5)
+	{
 		printk(KERN_WARNING "a3d.c: Unknown A3D device detected "
-			"(%s, id=%d), contact <vojtech@ucw.cz>\n", gameport->phys, a3d->mode);
+			   "(%s, id=%d), contact <vojtech@ucw.cz>\n", gameport->phys, a3d->mode);
 		err = -ENODEV;
 		goto fail2;
 	}
@@ -317,50 +343,60 @@ static int a3d_connect(struct gameport *gameport, struct gameport_driver *drv)
 
 	input_set_drvdata(input_dev, a3d);
 
-	if (a3d->mode == A3D_MODE_PXL) {
+	if (a3d->mode == A3D_MODE_PXL)
+	{
 
 		int axes[] = { ABS_X, ABS_Y, ABS_THROTTLE, ABS_RUDDER };
 
 		a3d->length = 33;
 
 		input_dev->evbit[0] |= BIT_MASK(EV_ABS) | BIT_MASK(EV_KEY) |
-			BIT_MASK(EV_REL);
+							   BIT_MASK(EV_REL);
 		input_dev->relbit[0] |= BIT_MASK(REL_X) | BIT_MASK(REL_Y);
 		input_dev->absbit[0] |= BIT_MASK(ABS_X) | BIT_MASK(ABS_Y) |
-			BIT_MASK(ABS_THROTTLE) | BIT_MASK(ABS_RUDDER) |
-			BIT_MASK(ABS_HAT0X) | BIT_MASK(ABS_HAT0Y) |
-			BIT_MASK(ABS_HAT1X) | BIT_MASK(ABS_HAT1Y);
+								BIT_MASK(ABS_THROTTLE) | BIT_MASK(ABS_RUDDER) |
+								BIT_MASK(ABS_HAT0X) | BIT_MASK(ABS_HAT0Y) |
+								BIT_MASK(ABS_HAT1X) | BIT_MASK(ABS_HAT1Y);
 		input_dev->keybit[BIT_WORD(BTN_MOUSE)] |= BIT_MASK(BTN_RIGHT) |
-			BIT_MASK(BTN_LEFT) | BIT_MASK(BTN_MIDDLE) |
-			BIT_MASK(BTN_SIDE) | BIT_MASK(BTN_EXTRA);
+				BIT_MASK(BTN_LEFT) | BIT_MASK(BTN_MIDDLE) |
+				BIT_MASK(BTN_SIDE) | BIT_MASK(BTN_EXTRA);
 		input_dev->keybit[BIT_WORD(BTN_JOYSTICK)] |=
 			BIT_MASK(BTN_TRIGGER) | BIT_MASK(BTN_THUMB) |
 			BIT_MASK(BTN_TOP) | BIT_MASK(BTN_PINKIE);
 
 		a3d_read(a3d, data);
 
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 4; i++)
+		{
 			if (i < 2)
 				input_set_abs_params(input_dev, axes[i],
-					48, input_abs_get_val(input_dev, axes[i]) * 2 - 48, 0, 8);
+									 48, input_abs_get_val(input_dev, axes[i]) * 2 - 48, 0, 8);
 			else
+			{
 				input_set_abs_params(input_dev, axes[i], 2, 253, 0, 0);
+			}
+
 			input_set_abs_params(input_dev, ABS_HAT0X + i, -1, 1, 0, 0);
 		}
 
-	} else {
+	}
+	else
+	{
 		a3d->length = 29;
 
 		input_dev->evbit[0] |= BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
 		input_dev->relbit[0] |= BIT_MASK(REL_X) | BIT_MASK(REL_Y);
 		input_dev->keybit[BIT_WORD(BTN_MOUSE)] |= BIT_MASK(BTN_RIGHT) |
-			BIT_MASK(BTN_LEFT) | BIT_MASK(BTN_MIDDLE);
+				BIT_MASK(BTN_LEFT) | BIT_MASK(BTN_MIDDLE);
 
 		a3d_read(a3d, data);
 
 		if (!(a3d->adc = adc = gameport_allocate_port()))
+		{
 			printk(KERN_ERR "a3d: Not enough memory for ADC port\n");
-		else {
+		}
+		else
+		{
 			adc->port_data = a3d;
 			adc->open = a3d_adc_open;
 			adc->close = a3d_adc_close;
@@ -376,15 +412,23 @@ static int a3d_connect(struct gameport *gameport, struct gameport_driver *drv)
 	}
 
 	err = input_register_device(a3d->dev);
+
 	if (err)
+	{
 		goto fail3;
+	}
 
 	return 0;
 
- fail3:	if (a3d->adc)
+fail3:
+
+	if (a3d->adc)
+	{
 		gameport_unregister_port(a3d->adc);
- fail2:	gameport_close(gameport);
- fail1:	gameport_set_drvdata(gameport, NULL);
+	}
+
+fail2:	gameport_close(gameport);
+fail1:	gameport_set_drvdata(gameport, NULL);
 	input_free_device(input_dev);
 	kfree(a3d);
 	return err;
@@ -395,14 +439,19 @@ static void a3d_disconnect(struct gameport *gameport)
 	struct a3d *a3d = gameport_get_drvdata(gameport);
 
 	input_unregister_device(a3d->dev);
+
 	if (a3d->adc)
+	{
 		gameport_unregister_port(a3d->adc);
+	}
+
 	gameport_close(gameport);
 	gameport_set_drvdata(gameport, NULL);
 	kfree(a3d);
 }
 
-static struct gameport_driver a3d_drv = {
+static struct gameport_driver a3d_drv =
+{
 	.driver		= {
 		.name	= "adc",
 		.owner	= THIS_MODULE,

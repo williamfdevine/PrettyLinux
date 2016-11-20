@@ -54,7 +54,9 @@ static inline struct autogroup *autogroup_task_get(struct task_struct *p)
 	unsigned long flags;
 
 	if (!lock_task_sighand(p, &flags))
+	{
 		return autogroup_kref_get(&autogroup_default);
+	}
 
 	ag = autogroup_kref_get(p->signal->autogroup);
 	unlock_task_sighand(p, &flags);
@@ -68,12 +70,16 @@ static inline struct autogroup *autogroup_create(void)
 	struct task_group *tg;
 
 	if (!ag)
+	{
 		goto out_fail;
+	}
 
 	tg = sched_create_group(&root_task_group);
 
 	if (IS_ERR(tg))
+	{
 		goto out_free;
+	}
 
 	kref_init(&ag->kref);
 	init_rwsem(&ag->lock);
@@ -99,9 +105,11 @@ static inline struct autogroup *autogroup_create(void)
 out_free:
 	kfree(ag);
 out_fail:
-	if (printk_ratelimit()) {
+
+	if (printk_ratelimit())
+	{
 		printk(KERN_WARNING "autogroup_create: %s failure.\n",
-			ag ? "sched_create_group()" : "kmalloc()");
+			   ag ? "sched_create_group()" : "kmalloc()");
 	}
 
 	return autogroup_kref_get(&autogroup_default);
@@ -110,14 +118,18 @@ out_fail:
 bool task_wants_autogroup(struct task_struct *p, struct task_group *tg)
 {
 	if (tg != &root_task_group)
+	{
 		return false;
+	}
 
 	/*
 	 * We can only assume the task group can't go away on us if
 	 * autogroup_move_group() can see us on ->thread_group list.
 	 */
 	if (p->flags & PF_EXITING)
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -132,7 +144,9 @@ autogroup_move_group(struct task_struct *p, struct autogroup *ag)
 	BUG_ON(!lock_task_sighand(p, &flags));
 
 	prev = p->signal->autogroup;
-	if (prev == ag) {
+
+	if (prev == ag)
+	{
 		unlock_task_sighand(p, &flags);
 		return;
 	}
@@ -140,10 +154,12 @@ autogroup_move_group(struct task_struct *p, struct autogroup *ag)
 	p->signal->autogroup = autogroup_kref_get(ag);
 
 	if (!READ_ONCE(sysctl_sched_autogroup_enabled))
+	{
 		goto out;
+	}
 
 	for_each_thread(p, t)
-		sched_move_task(t);
+	sched_move_task(t);
 out:
 	unlock_task_sighand(p, &flags);
 	autogroup_kref_put(prev);
@@ -195,26 +211,39 @@ int proc_sched_autogroup_set_nice(struct task_struct *p, int nice)
 	int err;
 
 	if (nice < MIN_NICE || nice > MAX_NICE)
+	{
 		return -EINVAL;
+	}
 
 	err = security_task_setnice(current, nice);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (nice < 0 && !can_nice(current, nice))
+	{
 		return -EPERM;
+	}
 
 	/* this is a heavy operation taking global locks.. */
 	if (!capable(CAP_SYS_ADMIN) && time_before(jiffies, next))
+	{
 		return -EAGAIN;
+	}
 
 	next = HZ / 10 + jiffies;
 	ag = autogroup_task_get(p);
 
 	down_write(&ag->lock);
 	err = sched_group_set_shares(ag->tg, sched_prio_to_weight[nice + 20]);
+
 	if (!err)
+	{
 		ag->nice = nice;
+	}
+
 	up_write(&ag->lock);
 
 	autogroup_kref_put(ag);
@@ -227,7 +256,9 @@ void proc_sched_autogroup_show_task(struct task_struct *p, struct seq_file *m)
 	struct autogroup *ag = autogroup_task_get(p);
 
 	if (!task_group_is_autogroup(ag->tg))
+	{
 		goto out;
+	}
 
 	down_read(&ag->lock);
 	seq_printf(m, "/autogroup-%ld nice %d\n", ag->id, ag->nice);
@@ -242,7 +273,9 @@ out:
 int autogroup_path(struct task_group *tg, char *buf, int buflen)
 {
 	if (!task_group_is_autogroup(tg))
+	{
 		return 0;
+	}
 
 	return snprintf(buf, buflen, "%s-%ld", "/autogroup", tg->autogroup->id);
 }

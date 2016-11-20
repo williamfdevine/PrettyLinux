@@ -31,7 +31,7 @@ void iommu_put_dma_cookie(struct iommu_domain *domain);
 
 /* Setup call for arch DMA mapping code */
 int iommu_dma_init_domain(struct iommu_domain *domain, dma_addr_t base,
-		u64 size, struct device *dev);
+						  u64 size, struct device *dev);
 
 /* General helpers for DMA-API <-> IOMMU-API interaction */
 int dma_direction_to_prot(enum dma_data_direction dir, bool coherent);
@@ -41,26 +41,26 @@ int dma_direction_to_prot(enum dma_data_direction dir, bool coherent);
  * the arch code to take care of attributes and cache maintenance
  */
 struct page **iommu_dma_alloc(struct device *dev, size_t size, gfp_t gfp,
-		unsigned long attrs, int prot, dma_addr_t *handle,
-		void (*flush_page)(struct device *, const void *, phys_addr_t));
+							  unsigned long attrs, int prot, dma_addr_t *handle,
+							  void (*flush_page)(struct device *, const void *, phys_addr_t));
 void iommu_dma_free(struct device *dev, struct page **pages, size_t size,
-		dma_addr_t *handle);
+					dma_addr_t *handle);
 
 int iommu_dma_mmap(struct page **pages, size_t size, struct vm_area_struct *vma);
 
 dma_addr_t iommu_dma_map_page(struct device *dev, struct page *page,
-		unsigned long offset, size_t size, int prot);
+							  unsigned long offset, size_t size, int prot);
 int iommu_dma_map_sg(struct device *dev, struct scatterlist *sg,
-		int nents, int prot);
+					 int nents, int prot);
 
 /*
  * Arch code with no special attribute handling may use these
  * directly as DMA mapping callbacks for simplicity
  */
 void iommu_dma_unmap_page(struct device *dev, dma_addr_t handle, size_t size,
-		enum dma_data_direction dir, unsigned long attrs);
+						  enum dma_data_direction dir, unsigned long attrs);
 void iommu_dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
-		enum dma_data_direction dir, unsigned long attrs);
+						enum dma_data_direction dir, unsigned long attrs);
 int iommu_dma_supported(struct device *dev, u64 mask);
 int iommu_dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
 

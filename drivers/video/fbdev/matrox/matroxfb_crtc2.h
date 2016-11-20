@@ -4,14 +4,16 @@
 #include <linux/ioctl.h>
 #include "matroxfb_base.h"
 
-struct matroxfb_dh_fb_info {
+struct matroxfb_dh_fb_info
+{
 	struct fb_info		fbcon;
 	int			fbcon_registered;
 	int                     initialized;
 
-	struct matrox_fb_info*	primary_dev;
+	struct matrox_fb_info	*primary_dev;
 
-	struct {
+	struct
+	{
 		unsigned long	base;	/* physical */
 		vaddr_t		vbase;	/* virtual */
 		unsigned int	len;
@@ -19,14 +21,15 @@ struct matroxfb_dh_fb_info {
 		unsigned int	len_maximum;
 		unsigned int 	offbase;
 		unsigned int	borrowed;
-			      } video;
-	struct {
+	} video;
+	struct
+	{
 		unsigned long	base;
 		vaddr_t		vbase;
 		unsigned int	len;
-			      } mmio;
+	} mmio;
 
-	unsigned int		interlaced:1;
+	unsigned int		interlaced: 1;
 
 	u_int32_t cmap[16];
 };

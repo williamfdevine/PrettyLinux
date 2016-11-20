@@ -40,7 +40,8 @@ struct vce_v1_0_fw_signature
 	int32_t off;
 	uint32_t len;
 	int32_t num;
-	struct {
+	struct
+	{
 		uint32_t chip_id;
 		uint32_t keyselect;
 		uint32_t nonce[4];
@@ -57,12 +58,16 @@ struct vce_v1_0_fw_signature
  * Returns the current hardware read pointer
  */
 uint32_t vce_v1_0_get_rptr(struct radeon_device *rdev,
-			   struct radeon_ring *ring)
+						   struct radeon_ring *ring)
 {
 	if (ring->idx == TN_RING_TYPE_VCE1_INDEX)
+	{
 		return RREG32(VCE_RB_RPTR);
+	}
 	else
+	{
 		return RREG32(VCE_RB_RPTR2);
+	}
 }
 
 /**
@@ -74,12 +79,16 @@ uint32_t vce_v1_0_get_rptr(struct radeon_device *rdev,
  * Returns the current hardware write pointer
  */
 uint32_t vce_v1_0_get_wptr(struct radeon_device *rdev,
-			   struct radeon_ring *ring)
+						   struct radeon_ring *ring)
 {
 	if (ring->idx == TN_RING_TYPE_VCE1_INDEX)
+	{
 		return RREG32(VCE_RB_WPTR);
+	}
 	else
+	{
 		return RREG32(VCE_RB_WPTR2);
+	}
 }
 
 /**
@@ -91,19 +100,24 @@ uint32_t vce_v1_0_get_wptr(struct radeon_device *rdev,
  * Commits the write pointer to the hardware
  */
 void vce_v1_0_set_wptr(struct radeon_device *rdev,
-		       struct radeon_ring *ring)
+					   struct radeon_ring *ring)
 {
 	if (ring->idx == TN_RING_TYPE_VCE1_INDEX)
+	{
 		WREG32(VCE_RB_WPTR, ring->wptr);
+	}
 	else
+	{
 		WREG32(VCE_RB_WPTR2, ring->wptr);
+	}
 }
 
 void vce_v1_0_enable_mgcg(struct radeon_device *rdev, bool enable)
 {
 	u32 tmp;
 
-	if (enable && (rdev->cg_flags & RADEON_CG_SUPPORT_VCE_MGCG)) {
+	if (enable && (rdev->cg_flags & RADEON_CG_SUPPORT_VCE_MGCG))
+	{
 		tmp = RREG32(VCE_CLOCK_GATING_A);
 		tmp |= CGC_DYN_CLOCK_MODE;
 		WREG32(VCE_CLOCK_GATING_A, tmp);
@@ -116,7 +130,9 @@ void vce_v1_0_enable_mgcg(struct radeon_device *rdev, bool enable)
 		tmp = RREG32(VCE_UENC_REG_CLOCK_GATING);
 		tmp &= ~0x3ff;
 		WREG32(VCE_UENC_REG_CLOCK_GATING, tmp);
-	} else {
+	}
+	else
+	{
 		tmp = RREG32(VCE_CLOCK_GATING_A);
 		tmp &= ~CGC_DYN_CLOCK_MODE;
 		WREG32(VCE_CLOCK_GATING_A, tmp);
@@ -156,35 +172,45 @@ static void vce_v1_0_init_cg(struct radeon_device *rdev)
 
 int vce_v1_0_load_fw(struct radeon_device *rdev, uint32_t *data)
 {
-	struct vce_v1_0_fw_signature *sign = (void*)rdev->vce_fw->data;
+	struct vce_v1_0_fw_signature *sign = (void *)rdev->vce_fw->data;
 	uint32_t chip_id;
 	int i;
 
-	switch (rdev->family) {
-	case CHIP_TAHITI:
-		chip_id = 0x01000014;
-		break;
-	case CHIP_VERDE:
-		chip_id = 0x01000015;
-		break;
-	case CHIP_PITCAIRN:
-	case CHIP_OLAND:
-		chip_id = 0x01000016;
-		break;
-	case CHIP_ARUBA:
-		chip_id = 0x01000017;
-		break;
-	default:
-		return -EINVAL;
+	switch (rdev->family)
+	{
+		case CHIP_TAHITI:
+			chip_id = 0x01000014;
+			break;
+
+		case CHIP_VERDE:
+			chip_id = 0x01000015;
+			break;
+
+		case CHIP_PITCAIRN:
+		case CHIP_OLAND:
+			chip_id = 0x01000016;
+			break;
+
+		case CHIP_ARUBA:
+			chip_id = 0x01000017;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	for (i = 0; i < le32_to_cpu(sign->num); ++i) {
+	for (i = 0; i < le32_to_cpu(sign->num); ++i)
+	{
 		if (le32_to_cpu(sign->val[i].chip_id) == chip_id)
+		{
 			break;
+		}
 	}
 
 	if (i == le32_to_cpu(sign->num))
+	{
 		return -EINVAL;
+	}
 
 	data += (256 - 64) / 4;
 	data[0] = sign->val[i].nonce[0];
@@ -253,26 +279,40 @@ int vce_v1_0_resume(struct radeon_device *rdev)
 
 	WREG32(VCE_LMI_FW_START_KEYSEL, rdev->vce.keyselect);
 
-	for (i = 0; i < 10; ++i) {
+	for (i = 0; i < 10; ++i)
+	{
 		mdelay(10);
+
 		if (RREG32(VCE_FW_REG_STATUS) & VCE_FW_REG_STATUS_DONE)
+		{
 			break;
+		}
 	}
 
 	if (i == 10)
+	{
 		return -ETIMEDOUT;
+	}
 
 	if (!(RREG32(VCE_FW_REG_STATUS) & VCE_FW_REG_STATUS_PASS))
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < 10; ++i) {
+	for (i = 0; i < 10; ++i)
+	{
 		mdelay(10);
+
 		if (!(RREG32(VCE_FW_REG_STATUS) & VCE_FW_REG_STATUS_BUSY))
+		{
 			break;
+		}
 	}
 
 	if (i == 10)
+	{
 		return -ETIMEDOUT;
+	}
 
 	vce_v1_0_init_cg(rdev);
 
@@ -311,28 +351,39 @@ int vce_v1_0_start(struct radeon_device *rdev)
 	WREG32_P(VCE_VCPU_CNTL, VCE_CLK_EN, ~VCE_CLK_EN);
 
 	WREG32_P(VCE_SOFT_RESET,
-		 VCE_ECPU_SOFT_RESET |
-		 VCE_FME_SOFT_RESET, ~(
-		 VCE_ECPU_SOFT_RESET |
-		 VCE_FME_SOFT_RESET));
+			 VCE_ECPU_SOFT_RESET |
+			 VCE_FME_SOFT_RESET, ~(
+				 VCE_ECPU_SOFT_RESET |
+				 VCE_FME_SOFT_RESET));
 
 	mdelay(100);
 
 	WREG32_P(VCE_SOFT_RESET, 0, ~(
-		 VCE_ECPU_SOFT_RESET |
-		 VCE_FME_SOFT_RESET));
+				 VCE_ECPU_SOFT_RESET |
+				 VCE_FME_SOFT_RESET));
 
-	for (i = 0; i < 10; ++i) {
+	for (i = 0; i < 10; ++i)
+	{
 		uint32_t status;
-		for (j = 0; j < 100; ++j) {
+
+		for (j = 0; j < 100; ++j)
+		{
 			status = RREG32(VCE_STATUS);
+
 			if (status & 2)
+			{
 				break;
+			}
+
 			mdelay(10);
 		}
+
 		r = 0;
+
 		if (status & 2)
+		{
 			break;
+		}
 
 		DRM_ERROR("VCE not responding, trying to reset the ECPU!!!\n");
 		WREG32_P(VCE_SOFT_RESET, VCE_ECPU_SOFT_RESET, ~VCE_ECPU_SOFT_RESET);
@@ -345,7 +396,8 @@ int vce_v1_0_start(struct radeon_device *rdev)
 	/* clear BUSY flag */
 	WREG32_P(VCE_STATUS, 0, ~1);
 
-	if (r) {
+	if (r)
+	{
 		DRM_ERROR("VCE not responding, giving up!!!\n");
 		return r;
 	}
@@ -359,13 +411,18 @@ int vce_v1_0_init(struct radeon_device *rdev)
 	int r;
 
 	r = vce_v1_0_start(rdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	ring = &rdev->ring[TN_RING_TYPE_VCE1_INDEX];
 	ring->ready = true;
 	r = radeon_ring_test(rdev, TN_RING_TYPE_VCE1_INDEX, ring);
-	if (r) {
+
+	if (r)
+	{
 		ring->ready = false;
 		return r;
 	}
@@ -373,7 +430,9 @@ int vce_v1_0_init(struct radeon_device *rdev)
 	ring = &rdev->ring[TN_RING_TYPE_VCE2_INDEX];
 	ring->ready = true;
 	r = radeon_ring_test(rdev, TN_RING_TYPE_VCE2_INDEX, ring);
-	if (r) {
+
+	if (r)
+	{
 		ring->ready = false;
 		return r;
 	}

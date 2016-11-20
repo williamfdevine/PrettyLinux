@@ -19,16 +19,19 @@
 #include "clk-uniphier.h"
 
 struct clk_hw *uniphier_clk_register_fixed_factor(struct device *dev,
-						  const char *name,
-			const struct uniphier_clk_fixed_factor_data *data)
+		const char *name,
+		const struct uniphier_clk_fixed_factor_data *data)
 {
 	struct clk_fixed_factor *fix;
 	struct clk_init_data init;
 	int ret;
 
 	fix = devm_kzalloc(dev, sizeof(*fix), GFP_KERNEL);
+
 	if (!fix)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &clk_fixed_factor_ops;
@@ -41,8 +44,11 @@ struct clk_hw *uniphier_clk_register_fixed_factor(struct device *dev,
 	fix->hw.init = &init;
 
 	ret = devm_clk_hw_register(dev, &fix->hw);
+
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
 
 	return &fix->hw;
 }

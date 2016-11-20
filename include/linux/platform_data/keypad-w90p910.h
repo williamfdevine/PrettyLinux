@@ -5,7 +5,8 @@
 
 extern void mfp_set_groupi(struct device *dev);
 
-struct w90p910_keypad_platform_data {
+struct w90p910_keypad_platform_data
+{
 	const struct matrix_keymap_data *keymap_data;
 
 	unsigned int	prescale;

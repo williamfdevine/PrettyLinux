@@ -19,7 +19,7 @@
 #include <linux/errno.h>
 #include <linux/printk.h>
 #include <linux/atomic.h>
- 
+
 /* Each escaped entry is prefixed by ESCAPE_CODE
  * then one of the following codes, then the
  * relevant data.
@@ -45,12 +45,13 @@
 struct dentry;
 struct file_operations;
 struct pt_regs;
- 
+
 /* Operations structure to be filled in */
-struct oprofile_operations {
+struct oprofile_operations
+{
 	/* create any necessary configuration files in the oprofile fs.
 	 * Optional. */
-	int (*create_files)(struct dentry * root);
+	int (*create_files)(struct dentry *root);
 	/* Do any necessary interrupt setup. Optional. */
 	int (*setup)(void);
 	/* Do any necessary interrupt shutdown. Optional. */
@@ -68,12 +69,12 @@ struct oprofile_operations {
 	int (*sync_stop)(void);
 
 	/* Initiate a stack backtrace. Optional. */
-	void (*backtrace)(struct pt_regs * const regs, unsigned int depth);
+	void (*backtrace)(struct pt_regs *const regs, unsigned int depth);
 
 	/* Multiplex between different events. Optional. */
 	int (*switch_events)(void);
 	/* CPU identification string. */
-	char * cpu_type;
+	char *cpu_type;
 };
 
 /**
@@ -83,8 +84,8 @@ struct oprofile_operations {
  *
  * If an error occurs, the fields should be left untouched.
  */
-int oprofile_arch_init(struct oprofile_operations * ops);
- 
+int oprofile_arch_init(struct oprofile_operations *ops);
+
 /**
  * One-time exit/cleanup for the arch.
  */
@@ -93,7 +94,7 @@ void oprofile_arch_exit(void);
 /**
  * Add a sample. This may be called from any context.
  */
-void oprofile_add_sample(struct pt_regs * const regs, unsigned long event);
+void oprofile_add_sample(struct pt_regs *const regs, unsigned long event);
 
 /**
  * Add an extended sample.  Use this when the PC is not from the regs, and
@@ -102,15 +103,15 @@ void oprofile_add_sample(struct pt_regs * const regs, unsigned long event);
  * This function does perform a backtrace.
  *
  */
-void oprofile_add_ext_sample(unsigned long pc, struct pt_regs * const regs,
-				unsigned long event, int is_kernel);
+void oprofile_add_ext_sample(unsigned long pc, struct pt_regs *const regs,
+							 unsigned long event, int is_kernel);
 
 /**
  * Add an hardware sample.
  */
-void oprofile_add_ext_hw_sample(unsigned long pc, struct pt_regs * const regs,
-	unsigned long event, int is_kernel,
-	struct task_struct *task);
+void oprofile_add_ext_hw_sample(unsigned long pc, struct pt_regs *const regs,
+								unsigned long event, int is_kernel,
+								struct task_struct *task);
 
 /* Use this instead when the PC value is not from the regs. Doesn't
  * backtrace. */
@@ -124,24 +125,24 @@ void oprofile_add_trace(unsigned long eip);
  * Create a file of the given name as a child of the given root, with
  * the specified file operations.
  */
-int oprofilefs_create_file(struct dentry * root,
-	char const * name, const struct file_operations * fops);
+int oprofilefs_create_file(struct dentry *root,
+						   char const *name, const struct file_operations *fops);
 
-int oprofilefs_create_file_perm(struct dentry * root,
-	char const * name, const struct file_operations * fops, int perm);
- 
+int oprofilefs_create_file_perm(struct dentry *root,
+								char const *name, const struct file_operations *fops, int perm);
+
 /** Create a file for read/write access to an unsigned long. */
-int oprofilefs_create_ulong(struct dentry * root,
-	char const * name, ulong * val);
- 
+int oprofilefs_create_ulong(struct dentry *root,
+							char const *name, ulong *val);
+
 /** Create a file for read-only access to an unsigned long. */
-int oprofilefs_create_ro_ulong(struct dentry * root,
-	char const * name, ulong * val);
- 
+int oprofilefs_create_ro_ulong(struct dentry *root,
+							   char const *name, ulong *val);
+
 /** Create a file for read-only access to an atomic_t. */
-int oprofilefs_create_ro_atomic(struct dentry * root,
-	char const * name, atomic_t * val);
- 
+int oprofilefs_create_ro_atomic(struct dentry *root,
+								char const *name, atomic_t *val);
+
 /** create a directory */
 struct dentry *oprofilefs_mkdir(struct dentry *parent, char const *name);
 
@@ -149,19 +150,19 @@ struct dentry *oprofilefs_mkdir(struct dentry *parent, char const *name);
  * Write the given asciz string to the given user buffer @buf, updating *offset
  * appropriately. Returns bytes written or -EFAULT.
  */
-ssize_t oprofilefs_str_to_user(char const * str, char __user * buf, size_t count, loff_t * offset);
+ssize_t oprofilefs_str_to_user(char const *str, char __user *buf, size_t count, loff_t *offset);
 
 /**
  * Convert an unsigned long value into ASCII and copy it to the user buffer @buf,
  * updating *offset appropriately. Returns bytes written or -EFAULT.
  */
-ssize_t oprofilefs_ulong_to_user(unsigned long val, char __user * buf, size_t count, loff_t * offset);
+ssize_t oprofilefs_ulong_to_user(unsigned long val, char __user *buf, size_t count, loff_t *offset);
 
 /**
  * Read an ASCII string for a number from a userspace buffer and fill *val on success.
  * Returns 0 on success, < 0 on error.
  */
-int oprofilefs_ulong_from_user(unsigned long * val, char const __user * buf, size_t count);
+int oprofilefs_ulong_from_user(unsigned long *val, char const __user *buf, size_t count);
 
 /** lock for read/write safety */
 extern raw_spinlock_t oprofilefs_lock;
@@ -170,16 +171,17 @@ extern raw_spinlock_t oprofilefs_lock;
  * Add the contents of a circular buffer to the event buffer.
  */
 void oprofile_put_buff(unsigned long *buf, unsigned int start,
-			unsigned int stop, unsigned int max);
+					   unsigned int stop, unsigned int max);
 
 unsigned long oprofile_get_cpu_buffer_size(void);
 void oprofile_cpu_buffer_inc_smpl_lost(void);
- 
+
 /* cpu buffer functions */
 
 struct op_sample;
 
-struct op_entry {
+struct op_entry
+{
 	struct ring_buffer_event *event;
 	struct op_sample *sample;
 	unsigned long size;
@@ -187,8 +189,8 @@ struct op_entry {
 };
 
 void oprofile_write_reserve(struct op_entry *entry,
-			    struct pt_regs * const regs,
-			    unsigned long pc, int code, int size);
+							struct pt_regs *const regs,
+							unsigned long pc, int code, int size);
 int oprofile_add_data(struct op_entry *entry, unsigned long val);
 int oprofile_add_data64(struct op_entry *entry, u64 val);
 int oprofile_write_commit(struct op_entry *entry);

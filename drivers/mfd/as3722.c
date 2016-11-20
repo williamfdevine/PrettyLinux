@@ -36,7 +36,8 @@
 
 #define AS3722_DEVICE_ID	0x0C
 
-static const struct resource as3722_rtc_resource[] = {
+static const struct resource as3722_rtc_resource[] =
+{
 	{
 		.name = "as3722-rtc-alarm",
 		.start = AS3722_IRQ_RTC_ALARM,
@@ -45,7 +46,8 @@ static const struct resource as3722_rtc_resource[] = {
 	},
 };
 
-static const struct resource as3722_adc_resource[] = {
+static const struct resource as3722_adc_resource[] =
+{
 	{
 		.name = "as3722-adc",
 		.start = AS3722_IRQ_ADC,
@@ -54,7 +56,8 @@ static const struct resource as3722_adc_resource[] = {
 	},
 };
 
-static const struct mfd_cell as3722_devs[] = {
+static const struct mfd_cell as3722_devs[] =
+{
 	{
 		.name = "as3722-pinctrl",
 	},
@@ -79,7 +82,8 @@ static const struct mfd_cell as3722_devs[] = {
 	},
 };
 
-static const struct regmap_irq as3722_irqs[] = {
+static const struct regmap_irq as3722_irqs[] =
+{
 	/* INT1 IRQs */
 	[AS3722_IRQ_LID] = {
 		.mask = AS3722_INTERRUPT_MASK1_LID,
@@ -209,7 +213,8 @@ static const struct regmap_irq as3722_irqs[] = {
 	},
 };
 
-static const struct regmap_irq_chip as3722_irq_chip = {
+static const struct regmap_irq_chip as3722_irq_chip =
+{
 	.name = "as3722",
 	.irqs = as3722_irqs,
 	.num_irqs = ARRAY_SIZE(as3722_irqs),
@@ -225,18 +230,23 @@ static int as3722_check_device_id(struct as3722 *as3722)
 
 	/* Check that this is actually a AS3722 */
 	ret = as3722_read(as3722, AS3722_ASIC_ID1_REG, &val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(as3722->dev, "ASIC_ID1 read failed: %d\n", ret);
 		return ret;
 	}
 
-	if (val != AS3722_DEVICE_ID) {
+	if (val != AS3722_DEVICE_ID)
+	{
 		dev_err(as3722->dev, "Device is not AS3722, ID is 0x%x\n", val);
 		return -ENODEV;
 	}
 
 	ret = as3722_read(as3722, AS3722_ASIC_ID2_REG, &val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(as3722->dev, "ASIC_ID2 read failed: %d\n", ret);
 		return ret;
 	}
@@ -251,25 +261,35 @@ static int as3722_configure_pullups(struct as3722 *as3722)
 	u32 val = 0;
 
 	if (as3722->en_intern_int_pullup)
+	{
 		val |= AS3722_INT_PULL_UP;
+	}
+
 	if (as3722->en_intern_i2c_pullup)
+	{
 		val |= AS3722_I2C_PULL_UP;
+	}
 
 	ret = as3722_update_bits(as3722, AS3722_IOVOLTAGE_REG,
-			AS3722_INT_PULL_UP | AS3722_I2C_PULL_UP, val);
+							 AS3722_INT_PULL_UP | AS3722_I2C_PULL_UP, val);
+
 	if (ret < 0)
+	{
 		dev_err(as3722->dev, "IOVOLTAGE_REG update failed: %d\n", ret);
+	}
+
 	return ret;
 }
 
-static const struct regmap_range as3722_readable_ranges[] = {
+static const struct regmap_range as3722_readable_ranges[] =
+{
 	regmap_reg_range(AS3722_SD0_VOLTAGE_REG, AS3722_SD6_VOLTAGE_REG),
 	regmap_reg_range(AS3722_GPIO0_CONTROL_REG, AS3722_LDO7_VOLTAGE_REG),
 	regmap_reg_range(AS3722_LDO9_VOLTAGE_REG, AS3722_REG_SEQU_MOD3_REG),
 	regmap_reg_range(AS3722_SD_PHSW_CTRL_REG, AS3722_PWM_CONTROL_H_REG),
 	regmap_reg_range(AS3722_WATCHDOG_TIMER_REG, AS3722_WATCHDOG_TIMER_REG),
 	regmap_reg_range(AS3722_WATCHDOG_SOFTWARE_SIGNAL_REG,
-					AS3722_BATTERY_VOLTAGE_MONITOR2_REG),
+	AS3722_BATTERY_VOLTAGE_MONITOR2_REG),
 	regmap_reg_range(AS3722_SD_CONTROL_REG, AS3722_PWM_VCONTROL4_REG),
 	regmap_reg_range(AS3722_BB_CHARGER_REG, AS3722_SRAM_REG),
 	regmap_reg_range(AS3722_RTC_ACCESS_REG, AS3722_RTC_ACCESS_REG),
@@ -280,12 +300,14 @@ static const struct regmap_range as3722_readable_ranges[] = {
 	regmap_reg_range(AS3722_FUSE7_REG, AS3722_FUSE7_REG),
 };
 
-static const struct regmap_access_table as3722_readable_table = {
+static const struct regmap_access_table as3722_readable_table =
+{
 	.yes_ranges = as3722_readable_ranges,
 	.n_yes_ranges = ARRAY_SIZE(as3722_readable_ranges),
 };
 
-static const struct regmap_range as3722_writable_ranges[] = {
+static const struct regmap_range as3722_writable_ranges[] =
+{
 	regmap_reg_range(AS3722_SD0_VOLTAGE_REG, AS3722_SD6_VOLTAGE_REG),
 	regmap_reg_range(AS3722_GPIO0_CONTROL_REG, AS3722_LDO7_VOLTAGE_REG),
 	regmap_reg_range(AS3722_LDO9_VOLTAGE_REG, AS3722_GPIO_SIGNAL_OUT_REG),
@@ -293,32 +315,36 @@ static const struct regmap_range as3722_writable_ranges[] = {
 	regmap_reg_range(AS3722_SD_PHSW_CTRL_REG, AS3722_PWM_CONTROL_H_REG),
 	regmap_reg_range(AS3722_WATCHDOG_TIMER_REG, AS3722_WATCHDOG_TIMER_REG),
 	regmap_reg_range(AS3722_WATCHDOG_SOFTWARE_SIGNAL_REG,
-					AS3722_BATTERY_VOLTAGE_MONITOR2_REG),
+	AS3722_BATTERY_VOLTAGE_MONITOR2_REG),
 	regmap_reg_range(AS3722_SD_CONTROL_REG, AS3722_PWM_VCONTROL4_REG),
 	regmap_reg_range(AS3722_BB_CHARGER_REG, AS3722_SRAM_REG),
 	regmap_reg_range(AS3722_INTERRUPT_MASK1_REG, AS3722_TEMP_STATUS_REG),
 	regmap_reg_range(AS3722_ADC0_CONTROL_REG, AS3722_ADC1_CONTROL_REG),
 	regmap_reg_range(AS3722_ADC1_THRESHOLD_HI_MSB_REG,
-					AS3722_ADC_CONFIGURATION_REG),
+	AS3722_ADC_CONFIGURATION_REG),
 	regmap_reg_range(AS3722_LOCK_REG, AS3722_LOCK_REG),
 };
 
-static const struct regmap_access_table as3722_writable_table = {
+static const struct regmap_access_table as3722_writable_table =
+{
 	.yes_ranges = as3722_writable_ranges,
 	.n_yes_ranges = ARRAY_SIZE(as3722_writable_ranges),
 };
 
-static const struct regmap_range as3722_cacheable_ranges[] = {
+static const struct regmap_range as3722_cacheable_ranges[] =
+{
 	regmap_reg_range(AS3722_SD0_VOLTAGE_REG, AS3722_LDO11_VOLTAGE_REG),
 	regmap_reg_range(AS3722_SD_CONTROL_REG, AS3722_LDOCONTROL1_REG),
 };
 
-static const struct regmap_access_table as3722_volatile_table = {
+static const struct regmap_access_table as3722_volatile_table =
+{
 	.no_ranges = as3722_cacheable_ranges,
 	.n_no_ranges = ARRAY_SIZE(as3722_cacheable_ranges),
 };
 
-static const struct regmap_config as3722_regmap_config = {
+static const struct regmap_config as3722_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.max_register = AS3722_MAX_REGISTER,
@@ -329,79 +355,100 @@ static const struct regmap_config as3722_regmap_config = {
 };
 
 static int as3722_i2c_of_probe(struct i2c_client *i2c,
-			struct as3722 *as3722)
+							   struct as3722 *as3722)
 {
 	struct device_node *np = i2c->dev.of_node;
 	struct irq_data *irq_data;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&i2c->dev, "Device Tree not found\n");
 		return -EINVAL;
 	}
 
 	irq_data = irq_get_irq_data(i2c->irq);
-	if (!irq_data) {
+
+	if (!irq_data)
+	{
 		dev_err(&i2c->dev, "Invalid IRQ: %d\n", i2c->irq);
 		return -EINVAL;
 	}
 
 	as3722->en_intern_int_pullup = of_property_read_bool(np,
-					"ams,enable-internal-int-pullup");
+								   "ams,enable-internal-int-pullup");
 	as3722->en_intern_i2c_pullup = of_property_read_bool(np,
-					"ams,enable-internal-i2c-pullup");
+								   "ams,enable-internal-i2c-pullup");
 	as3722->irq_flags = irqd_get_trigger_type(irq_data);
 	dev_dbg(&i2c->dev, "IRQ flags are 0x%08lx\n", as3722->irq_flags);
 	return 0;
 }
 
 static int as3722_i2c_probe(struct i2c_client *i2c,
-			const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct as3722 *as3722;
 	unsigned long irq_flags;
 	int ret;
 
 	as3722 = devm_kzalloc(&i2c->dev, sizeof(struct as3722), GFP_KERNEL);
+
 	if (!as3722)
+	{
 		return -ENOMEM;
+	}
 
 	as3722->dev = &i2c->dev;
 	as3722->chip_irq = i2c->irq;
 	i2c_set_clientdata(i2c, as3722);
 
 	ret = as3722_i2c_of_probe(i2c, as3722);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	as3722->regmap = devm_regmap_init_i2c(i2c, &as3722_regmap_config);
-	if (IS_ERR(as3722->regmap)) {
+
+	if (IS_ERR(as3722->regmap))
+	{
 		ret = PTR_ERR(as3722->regmap);
 		dev_err(&i2c->dev, "regmap init failed: %d\n", ret);
 		return ret;
 	}
 
 	ret = as3722_check_device_id(as3722);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	irq_flags = as3722->irq_flags | IRQF_ONESHOT;
 	ret = devm_regmap_add_irq_chip(as3722->dev, as3722->regmap,
-				       as3722->chip_irq,
-				       irq_flags, -1, &as3722_irq_chip,
-				       &as3722->irq_data);
-	if (ret < 0) {
+								   as3722->chip_irq,
+								   irq_flags, -1, &as3722_irq_chip,
+								   &as3722->irq_data);
+
+	if (ret < 0)
+	{
 		dev_err(as3722->dev, "Failed to add regmap irq: %d\n", ret);
 		return ret;
 	}
 
 	ret = as3722_configure_pullups(as3722);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = devm_mfd_add_devices(&i2c->dev, -1, as3722_devs,
-				   ARRAY_SIZE(as3722_devs), NULL, 0,
-				   regmap_irq_get_domain(as3722->irq_data));
-	if (ret) {
+							   ARRAY_SIZE(as3722_devs), NULL, 0,
+							   regmap_irq_get_domain(as3722->irq_data));
+
+	if (ret)
+	{
 		dev_err(as3722->dev, "Failed to add MFD devices: %d\n", ret);
 		return ret;
 	}
@@ -417,7 +464,10 @@ static int __maybe_unused as3722_i2c_suspend(struct device *dev)
 	struct as3722 *as3722 = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(as3722->chip_irq);
+	}
+
 	disable_irq(as3722->chip_irq);
 
 	return 0;
@@ -430,28 +480,34 @@ static int __maybe_unused as3722_i2c_resume(struct device *dev)
 	enable_irq(as3722->chip_irq);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(as3722->chip_irq);
+	}
 
 	return 0;
 }
 
-static const struct of_device_id as3722_of_match[] = {
+static const struct of_device_id as3722_of_match[] =
+{
 	{ .compatible = "ams,as3722", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, as3722_of_match);
 
-static const struct i2c_device_id as3722_i2c_id[] = {
+static const struct i2c_device_id as3722_i2c_id[] =
+{
 	{ "as3722", 0 },
 	{},
 };
 MODULE_DEVICE_TABLE(i2c, as3722_i2c_id);
 
-static const struct dev_pm_ops as3722_pm_ops = {
+static const struct dev_pm_ops as3722_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(as3722_i2c_suspend, as3722_i2c_resume)
 };
 
-static struct i2c_driver as3722_i2c_driver = {
+static struct i2c_driver as3722_i2c_driver =
+{
 	.driver = {
 		.name = "as3722",
 		.of_match_table = as3722_of_match,

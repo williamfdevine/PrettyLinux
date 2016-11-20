@@ -82,7 +82,7 @@
  * always be guaranteed to be referenced.
  */
 void drm_vma_offset_manager_init(struct drm_vma_offset_manager *mgr,
-				 unsigned long page_offset, unsigned long size)
+								 unsigned long page_offset, unsigned long size)
 {
 	rwlock_init(&mgr->vm_lock);
 	drm_mm_init(&mgr->vm_addr_space_mm, page_offset, size);
@@ -140,8 +140,8 @@ EXPORT_SYMBOL(drm_vma_offset_manager_destroy);
  * get destroyed before the caller can access it.
  */
 struct drm_vma_offset_node *drm_vma_offset_lookup_locked(struct drm_vma_offset_manager *mgr,
-							 unsigned long start,
-							 unsigned long pages)
+		unsigned long start,
+		unsigned long pages)
 {
 	struct drm_mm_node *node, *best;
 	struct rb_node *iter;
@@ -150,28 +150,42 @@ struct drm_vma_offset_node *drm_vma_offset_lookup_locked(struct drm_vma_offset_m
 	iter = mgr->vm_addr_space_mm.interval_tree.rb_node;
 	best = NULL;
 
-	while (likely(iter)) {
+	while (likely(iter))
+	{
 		node = rb_entry(iter, struct drm_mm_node, rb);
 		offset = node->start;
-		if (start >= offset) {
+
+		if (start >= offset)
+		{
 			iter = iter->rb_right;
 			best = node;
+
 			if (start == offset)
+			{
 				break;
-		} else {
+			}
+		}
+		else
+		{
 			iter = iter->rb_left;
 		}
 	}
 
 	/* verify that the node spans the requested area */
-	if (best) {
+	if (best)
+	{
 		offset = best->start + best->size;
+
 		if (offset < start + pages)
+		{
 			best = NULL;
+		}
 	}
 
 	if (!best)
+	{
 		return NULL;
+	}
 
 	return container_of(best, struct drm_vma_offset_node, vm_node);
 }
@@ -201,21 +215,25 @@ EXPORT_SYMBOL(drm_vma_offset_lookup_locked);
  * 0 on success, negative error code on failure.
  */
 int drm_vma_offset_add(struct drm_vma_offset_manager *mgr,
-		       struct drm_vma_offset_node *node, unsigned long pages)
+					   struct drm_vma_offset_node *node, unsigned long pages)
 {
 	int ret;
 
 	write_lock(&mgr->vm_lock);
 
-	if (drm_mm_node_allocated(&node->vm_node)) {
+	if (drm_mm_node_allocated(&node->vm_node))
+	{
 		ret = 0;
 		goto out_unlock;
 	}
 
 	ret = drm_mm_insert_node(&mgr->vm_addr_space_mm, &node->vm_node,
-				 pages, 0, DRM_MM_SEARCH_DEFAULT);
+							 pages, 0, DRM_MM_SEARCH_DEFAULT);
+
 	if (ret)
+	{
 		goto out_unlock;
+	}
 
 out_unlock:
 	write_unlock(&mgr->vm_lock);
@@ -235,11 +253,12 @@ EXPORT_SYMBOL(drm_vma_offset_add);
  * offset is allocated.
  */
 void drm_vma_offset_remove(struct drm_vma_offset_manager *mgr,
-			   struct drm_vma_offset_node *node)
+						   struct drm_vma_offset_node *node)
 {
 	write_lock(&mgr->vm_lock);
 
-	if (drm_mm_node_allocated(&node->vm_node)) {
+	if (drm_mm_node_allocated(&node->vm_node))
+	{
 		drm_mm_remove_node(&node->vm_node);
 		memset(&node->vm_node, 0, sizeof(node->vm_node));
 	}
@@ -285,21 +304,28 @@ int drm_vma_node_allow(struct drm_vma_offset_node *node, struct drm_file *tag)
 
 	iter = &node->vm_files.rb_node;
 
-	while (likely(*iter)) {
+	while (likely(*iter))
+	{
 		parent = *iter;
 		entry = rb_entry(*iter, struct drm_vma_offset_file, vm_rb);
 
-		if (tag == entry->vm_tag) {
+		if (tag == entry->vm_tag)
+		{
 			entry->vm_count++;
 			goto unlock;
-		} else if (tag > entry->vm_tag) {
+		}
+		else if (tag > entry->vm_tag)
+		{
 			iter = &(*iter)->rb_right;
-		} else {
+		}
+		else
+		{
 			iter = &(*iter)->rb_left;
 		}
 	}
 
-	if (!new) {
+	if (!new)
+	{
 		ret = -ENOMEM;
 		goto unlock;
 	}
@@ -331,7 +357,7 @@ EXPORT_SYMBOL(drm_vma_node_allow);
  * If @tag is not on the list, nothing is done.
  */
 void drm_vma_node_revoke(struct drm_vma_offset_node *node,
-			 struct drm_file *tag)
+						 struct drm_file *tag)
 {
 	struct drm_vma_offset_file *entry;
 	struct rb_node *iter;
@@ -339,17 +365,27 @@ void drm_vma_node_revoke(struct drm_vma_offset_node *node,
 	write_lock(&node->vm_lock);
 
 	iter = node->vm_files.rb_node;
-	while (likely(iter)) {
+
+	while (likely(iter))
+	{
 		entry = rb_entry(iter, struct drm_vma_offset_file, vm_rb);
-		if (tag == entry->vm_tag) {
-			if (!--entry->vm_count) {
+
+		if (tag == entry->vm_tag)
+		{
+			if (!--entry->vm_count)
+			{
 				rb_erase(&entry->vm_rb, &node->vm_files);
 				kfree(entry);
 			}
+
 			break;
-		} else if (tag > entry->vm_tag) {
+		}
+		else if (tag > entry->vm_tag)
+		{
 			iter = iter->rb_right;
-		} else {
+		}
+		else
+		{
 			iter = iter->rb_left;
 		}
 	}
@@ -372,7 +408,7 @@ EXPORT_SYMBOL(drm_vma_node_revoke);
  * true iff @filp is on the list
  */
 bool drm_vma_node_is_allowed(struct drm_vma_offset_node *node,
-			     struct drm_file *tag)
+							 struct drm_file *tag)
 {
 	struct drm_vma_offset_file *entry;
 	struct rb_node *iter;
@@ -380,14 +416,23 @@ bool drm_vma_node_is_allowed(struct drm_vma_offset_node *node,
 	read_lock(&node->vm_lock);
 
 	iter = node->vm_files.rb_node;
-	while (likely(iter)) {
+
+	while (likely(iter))
+	{
 		entry = rb_entry(iter, struct drm_vma_offset_file, vm_rb);
+
 		if (tag == entry->vm_tag)
+		{
 			break;
+		}
 		else if (tag > entry->vm_tag)
+		{
 			iter = iter->rb_right;
+		}
 		else
+		{
 			iter = iter->rb_left;
+		}
 	}
 
 	read_unlock(&node->vm_lock);

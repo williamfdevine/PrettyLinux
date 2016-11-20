@@ -170,6 +170,6 @@ struct wm8350;
  * AUX ADC Readback
  */
 int wm8350_read_auxadc(struct wm8350 *wm8350, int channel, int scale,
-		       int vref);
+					   int vref);
 
 #endif

@@ -26,7 +26,8 @@
 #define LPASS_MAX_DMA_CHANNELS			(8)
 
 /* Both the CPU DAI and platform drivers will access this data */
-struct lpass_data {
+struct lpass_data
+{
 
 	/* AHB-I/X bus clocks inside the low-power audio subsystem (LPASS) */
 	struct clk *ahbix_clk;
@@ -62,7 +63,8 @@ struct lpass_data {
 };
 
 /* Vairant data per each SOC */
-struct lpass_variant {
+struct lpass_variant
+{
 	u32	i2sctrl_reg_base;
 	u32	i2sctrl_reg_stride;
 	u32	i2s_ports;

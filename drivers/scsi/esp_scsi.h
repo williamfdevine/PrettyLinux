@@ -6,7 +6,7 @@
 #ifndef _ESP_SCSI_H
 #define _ESP_SCSI_H
 
-					/* Access    Description      Offset */
+/* Access    Description      Offset */
 #define ESP_TCLOW	0x00UL		/* rw  Low bits transfer count 0x00  */
 #define ESP_TCMED	0x01UL		/* rw  Mid bits transfer count 0x04  */
 #define ESP_FDATA	0x02UL		/* rw  FIFO data bits          0x08  */
@@ -236,7 +236,7 @@
 #define ESP_BUS_TIMEOUT        250     /* In milli-seconds */
 #define ESP_TIMEO_CONST       8192
 #define ESP_NEG_DEFP(mhz, cfact) \
-        ((ESP_BUS_TIMEOUT * ((mhz) / 1000)) / (8192 * (cfact)))
+	((ESP_BUS_TIMEOUT * ((mhz) / 1000)) / (8192 * (cfact)))
 #define ESP_HZ_TO_CYCLE(hertz)  ((1000000000) / ((hertz) / 1000))
 #define ESP_TICK(ccf, cycle)  ((7682 * (ccf) * (cycle) / 1000))
 
@@ -247,8 +247,10 @@
 #define SYNC_DEFP_SLOW            0x32   /* 5mb/s  */
 #define SYNC_DEFP_FAST            0x19   /* 10mb/s */
 
-struct esp_cmd_priv {
-	union {
+struct esp_cmd_priv
+{
+	union
+	{
 		dma_addr_t	dma_addr;
 		int		num_sg;
 	} u;
@@ -259,7 +261,8 @@ struct esp_cmd_priv {
 };
 #define ESP_CMD_PRIV(CMD)	((struct esp_cmd_priv *)(&(CMD)->SCp))
 
-enum esp_rev {
+enum esp_rev
+{
 	ESP100     = 0x00,  /* NCR53C90 - very broken */
 	ESP100A    = 0x01,  /* NCR53C90A */
 	ESP236     = 0x02,
@@ -270,7 +273,8 @@ enum esp_rev {
 	PCSCSI     = 0x07,  /* AM53c974 */
 };
 
-struct esp_cmd_entry {
+struct esp_cmd_entry
+{
 	struct list_head	list;
 
 	struct scsi_cmnd	*cmd;
@@ -304,14 +308,16 @@ struct esp_cmd_entry {
 #define ESP_MAX_LUN		8
 #define ESP_MAX_TAG		256
 
-struct esp_lun_data {
+struct esp_lun_data
+{
 	struct esp_cmd_entry	*non_tagged_cmd;
 	int			num_tagged;
 	int			hold;
 	struct esp_cmd_entry	*tagged_cmds[ESP_MAX_TAG];
 };
 
-struct esp_target_data {
+struct esp_target_data
+{
 	/* These are the ESP_STP, ESP_SOFF, and ESP_CFG3 register values which
 	 * match the currently negotiated settings for this target.  The SCSI
 	 * protocol values are maintained in spi_{offset,period,wide}(starget).
@@ -339,7 +345,8 @@ struct esp_target_data {
 	struct scsi_target	*starget;
 };
 
-struct esp_event_ent {
+struct esp_event_ent
+{
 	u8			type;
 #define ESP_EVENT_TYPE_EVENT	0x01
 #define ESP_EVENT_TYPE_CMD	0x02
@@ -355,7 +362,8 @@ struct esp_event_ent {
 };
 
 struct esp;
-struct esp_driver_ops {
+struct esp_driver_ops
+{
 	/* Read and write the ESP 8-bit registers.  On some
 	 * applications of the ESP chip the registers are at 4-byte
 	 * instead of 1-byte intervals.
@@ -368,13 +376,13 @@ struct esp_driver_ops {
 	 * cope with that.  At such time we can remove this.
 	 */
 	dma_addr_t (*map_single)(struct esp *esp, void *buf,
-				 size_t sz, int dir);
+							 size_t sz, int dir);
 	int (*map_sg)(struct esp *esp, struct scatterlist *sg,
-		      int num_sg, int dir);
+				  int num_sg, int dir);
 	void (*unmap_single)(struct esp *esp, dma_addr_t addr,
-			     size_t sz, int dir);
+						 size_t sz, int dir);
 	void (*unmap_sg)(struct esp *esp, struct scatterlist *sg,
-			 int num_sg, int dir);
+					 int num_sg, int dir);
 
 	/* Return non-zero if there is an IRQ pending.  Usually this
 	 * status bit lives in the DMA controller sitting in front of
@@ -387,7 +395,7 @@ struct esp_driver_ops {
 	 * given buffer.
 	 */
 	u32 (*dma_length_limit)(struct esp *esp, u32 dma_addr,
-				u32 dma_len);
+							u32 dma_len);
 
 	/* Reset the DMA engine entirely.  On return, ESP interrupts
 	 * should be enabled.  Often the interrupt enabling is
@@ -414,7 +422,7 @@ struct esp_driver_ops {
 	 * the DMA hardware.
 	 */
 	void (*send_dma_cmd)(struct esp *esp, u32 dma_addr, u32 esp_count,
-			     u32 dma_count, int write, u8 cmd);
+						 u32 dma_count, int write, u8 cmd);
 
 	/* Return non-zero if the DMA engine is reporting an error
 	 * currently.
@@ -428,7 +436,8 @@ struct esp_driver_ops {
 #define ESP_QUICKIRQ_LIMIT	100
 #define ESP_RESELECT_TAG_LIMIT	2500
 
-struct esp {
+struct esp
+{
 	void __iomem		*regs;
 	void __iomem		*dma_regs;
 

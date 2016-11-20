@@ -39,7 +39,8 @@
  * When lcn == -1 this means that the count vcns starting at vcn are not
  * physically allocated (i.e. this is a hole / data is sparse).
  */
-typedef struct {	/* In memory vcn to lcn mapping structure element. */
+typedef struct  	/* In memory vcn to lcn mapping structure element. */
+{
 	VCN vcn;	/* vcn = Starting virtual cluster number. */
 	LCN lcn;	/* lcn = Starting logical cluster number. */
 	s64 length;	/* Run length in clusters. */
@@ -51,7 +52,8 @@ typedef struct {	/* In memory vcn to lcn mapping structure element. */
  * @lock:	read/write spinlock for serializing access to @rl
  *
  */
-typedef struct {
+typedef struct
+{
 	runlist_element *rl;
 	struct rw_semaphore lock;
 } runlist;
@@ -62,7 +64,8 @@ static inline void ntfs_init_runlist(runlist *rl)
 	init_rwsem(&rl->lock);
 }
 
-typedef enum {
+typedef enum
+{
 	LCN_HOLE		= -1,	/* Keep this as highest value or die! */
 	LCN_RL_NOT_MAPPED	= -2,
 	LCN_ENOENT		= -3,
@@ -88,14 +91,14 @@ extern int ntfs_get_size_for_mapping_pairs(const ntfs_volume *vol,
 		const VCN last_vcn);
 
 extern int ntfs_mapping_pairs_build(const ntfs_volume *vol, s8 *dst,
-		const int dst_len, const runlist_element *rl,
-		const VCN first_vcn, const VCN last_vcn, VCN *const stop_vcn);
+									const int dst_len, const runlist_element *rl,
+									const VCN first_vcn, const VCN last_vcn, VCN *const stop_vcn);
 
 extern int ntfs_rl_truncate_nolock(const ntfs_volume *vol,
-		runlist *const runlist, const s64 new_length);
+								   runlist *const runlist, const s64 new_length);
 
 int ntfs_rl_punch_nolock(const ntfs_volume *vol, runlist *const runlist,
-		const VCN start, const s64 length);
+						 const VCN start, const s64 length);
 
 #endif /* NTFS_RW */
 

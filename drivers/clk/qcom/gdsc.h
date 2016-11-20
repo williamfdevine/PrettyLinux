@@ -33,7 +33,8 @@ struct reset_controller_dev;
  * @reset_count: number of @resets
  * @rcdev: reset controller
  */
-struct gdsc {
+struct gdsc
+{
 	struct generic_pm_domain	pd;
 	struct generic_pm_domain	*parent;
 	struct regmap			*regmap;
@@ -42,7 +43,7 @@ struct gdsc {
 	unsigned int			*cxcs;
 	unsigned int			cxc_count;
 	const u8			pwrsts;
-/* Powerdomain allowable state bitfields */
+	/* Powerdomain allowable state bitfields */
 #define PWRSTS_OFF		BIT(0)
 #define PWRSTS_RET		BIT(1)
 #define PWRSTS_ON		BIT(2)
@@ -55,7 +56,8 @@ struct gdsc {
 	unsigned int			reset_count;
 };
 
-struct gdsc_desc {
+struct gdsc_desc
+{
 	struct device *dev;
 	struct gdsc **scs;
 	size_t num;
@@ -63,12 +65,12 @@ struct gdsc_desc {
 
 #ifdef CONFIG_QCOM_GDSC
 int gdsc_register(struct gdsc_desc *desc, struct reset_controller_dev *,
-		  struct regmap *);
+				  struct regmap *);
 void gdsc_unregister(struct gdsc_desc *desc);
 #else
 static inline int gdsc_register(struct gdsc_desc *desc,
-				struct reset_controller_dev *rcdev,
-				struct regmap *r)
+								struct reset_controller_dev *rcdev,
+								struct regmap *r)
 {
 	return -ENOSYS;
 }

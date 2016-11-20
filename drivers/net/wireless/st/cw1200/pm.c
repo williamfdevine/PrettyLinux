@@ -19,19 +19,22 @@
 
 #define CW1200_BEACON_SKIPPING_MULTIPLIER 3
 
-struct cw1200_udp_port_filter {
+struct cw1200_udp_port_filter
+{
 	struct wsm_udp_port_filter_hdr hdr;
 	/* Up to 4 filters are allowed. */
 	struct wsm_udp_port_filter filters[WSM_MAX_FILTER_ELEMENTS];
 } __packed;
 
-struct cw1200_ether_type_filter {
+struct cw1200_ether_type_filter
+{
 	struct wsm_ether_type_filter_hdr hdr;
 	/* Up to 4 filters are allowed. */
 	struct wsm_ether_type_filter filters[WSM_MAX_FILTER_ELEMENTS];
 } __packed;
 
-static struct cw1200_udp_port_filter cw1200_udp_port_filter_on = {
+static struct cw1200_udp_port_filter cw1200_udp_port_filter_on =
+{
 	.hdr.num = 2,
 	.filters = {
 		[0] = {
@@ -47,15 +50,17 @@ static struct cw1200_udp_port_filter cw1200_udp_port_filter_on = {
 	}
 };
 
-static struct wsm_udp_port_filter_hdr cw1200_udp_port_filter_off = {
+static struct wsm_udp_port_filter_hdr cw1200_udp_port_filter_off =
+{
 	.num = 0,
 };
 
 #ifndef ETH_P_WAPI
-#define ETH_P_WAPI     0x88B4
+	#define ETH_P_WAPI     0x88B4
 #endif
 
-static struct cw1200_ether_type_filter cw1200_ether_type_filter_on = {
+static struct cw1200_ether_type_filter cw1200_ether_type_filter_on =
+{
 	.hdr.num = 4,
 	.filters = {
 		[0] = {
@@ -77,12 +82,14 @@ static struct cw1200_ether_type_filter cw1200_ether_type_filter_on = {
 	},
 };
 
-static struct wsm_ether_type_filter_hdr cw1200_ether_type_filter_off = {
+static struct wsm_ether_type_filter_hdr cw1200_ether_type_filter_off =
+{
 	.num = 0,
 };
 
 /* private */
-struct cw1200_suspend_state {
+struct cw1200_suspend_state
+{
 	unsigned long bss_loss_tmo;
 	unsigned long join_tmo;
 	unsigned long direct_probe;
@@ -97,12 +104,12 @@ static void cw1200_pm_stay_awake_tmo(unsigned long arg)
 }
 
 int cw1200_pm_init(struct cw1200_pm_state *pm,
-		   struct cw1200_common *priv)
+				   struct cw1200_common *priv)
 {
 	spin_lock_init(&pm->lock);
 
 	setup_timer(&pm->stay_awake, cw1200_pm_stay_awake_tmo,
-		    (unsigned long)pm);
+				(unsigned long)pm);
 
 	return 0;
 }
@@ -113,13 +120,17 @@ void cw1200_pm_deinit(struct cw1200_pm_state *pm)
 }
 
 void cw1200_pm_stay_awake(struct cw1200_pm_state *pm,
-			  unsigned long tmo)
+						  unsigned long tmo)
 {
 	long cur_tmo;
 	spin_lock_bh(&pm->lock);
 	cur_tmo = pm->stay_awake.expires - jiffies;
+
 	if (!timer_pending(&pm->stay_awake) || cur_tmo < (long)tmo)
+	{
 		mod_timer(&pm->stay_awake, jiffies + tmo);
+	}
+
 	spin_unlock_bh(&pm->lock);
 }
 
@@ -127,33 +138,45 @@ static long cw1200_suspend_work(struct delayed_work *work)
 {
 	int ret = cancel_delayed_work(work);
 	long tmo;
-	if (ret > 0) {
+
+	if (ret > 0)
+	{
 		/* Timer is pending */
 		tmo = work->timer.expires - jiffies;
+
 		if (tmo < 0)
+		{
 			tmo = 0;
-	} else {
+		}
+	}
+	else
+	{
 		tmo = -1;
 	}
+
 	return tmo;
 }
 
 static int cw1200_resume_work(struct cw1200_common *priv,
-			       struct delayed_work *work,
-			       unsigned long tmo)
+							  struct delayed_work *work,
+							  unsigned long tmo)
 {
 	if ((long)tmo < 0)
+	{
 		return 1;
+	}
 
 	return queue_delayed_work(priv->workqueue, work, tmo);
 }
 
 int cw1200_can_suspend(struct cw1200_common *priv)
 {
-	if (atomic_read(&priv->bh_rx)) {
+	if (atomic_read(&priv->bh_rx))
+	{
 		wiphy_dbg(priv->hw->wiphy, "Suspend interrupted.\n");
 		return 0;
 	}
+
 	return 1;
 }
 EXPORT_SYMBOL_GPL(cw1200_can_suspend);
@@ -168,31 +191,44 @@ int cw1200_wow_suspend(struct ieee80211_hw *hw, struct cfg80211_wowlan *wowlan)
 	spin_lock_bh(&pm_state->lock);
 	ret = timer_pending(&pm_state->stay_awake);
 	spin_unlock_bh(&pm_state->lock);
+
 	if (ret)
+	{
 		return -EAGAIN;
+	}
 
 	/* Do not suspend when datapath is not idle */
 	if (priv->tx_queue_stats.num_queued)
+	{
 		return -EBUSY;
+	}
 
 	/* Make sure there is no configuration requests in progress. */
 	if (!mutex_trylock(&priv->conf_mutex))
+	{
 		return -EBUSY;
+	}
 
 	/* Ensure pending operations are done.
 	 * Note also that wow_suspend must return in ~2.5sec, before
 	 * watchdog is triggered.
 	 */
 	if (priv->channel_switch_in_progress)
+	{
 		goto revert1;
+	}
 
 	/* Do not suspend when join is pending */
 	if (priv->join_pending)
+	{
 		goto revert1;
+	}
 
 	/* Do not suspend when scanning */
 	if (down_trylock(&priv->scan.lock))
+	{
 		goto revert1;
+	}
 
 	/* Lock TX. */
 	wsm_lock_tx_async(priv);
@@ -201,8 +237,10 @@ int cw1200_wow_suspend(struct ieee80211_hw *hw, struct cfg80211_wowlan *wowlan)
 	 * But do not wait too long...
 	 */
 	if (wait_event_timeout(priv->bh_evt_wq,
-			       !priv->hw_bufs_used, HZ / 10) <= 0)
+						   !priv->hw_bufs_used, HZ / 10) <= 0)
+	{
 		goto revert2;
+	}
 
 	/* Set UDP filter */
 	wsm_set_udp_port_filter(priv, &cw1200_udp_port_filter_on.hdr);
@@ -212,18 +250,24 @@ int cw1200_wow_suspend(struct ieee80211_hw *hw, struct cfg80211_wowlan *wowlan)
 
 	/* Allocate state */
 	state = kzalloc(sizeof(struct cw1200_suspend_state), GFP_KERNEL);
+
 	if (!state)
+	{
 		goto revert3;
+	}
 
 	/* Change to legacy PS while going to suspend */
 	if (!priv->vif->p2p &&
-	    priv->join_status == CW1200_JOIN_STATUS_STA &&
-	    priv->powersave_mode.mode != WSM_PSM_PS) {
+		priv->join_status == CW1200_JOIN_STATUS_STA &&
+		priv->powersave_mode.mode != WSM_PSM_PS)
+	{
 		state->prev_ps_mode = priv->powersave_mode.mode;
 		priv->powersave_mode.mode = WSM_PSM_PS;
 		cw1200_set_pm(priv, &priv->powersave_mode);
+
 		if (wait_event_interruptible_timeout(priv->ps_mode_switch_done,
-						     !priv->ps_mode_switch_in_progress, 1*HZ) <= 0) {
+											 !priv->ps_mode_switch_in_progress, 1 * HZ) <= 0)
+		{
 			goto revert4;
 		}
 	}
@@ -243,36 +287,45 @@ int cw1200_wow_suspend(struct ieee80211_hw *hw, struct cfg80211_wowlan *wowlan)
 
 	/* Enable beacon skipping */
 	if (priv->join_status == CW1200_JOIN_STATUS_STA &&
-	    priv->join_dtim_period &&
-	    !priv->has_multicast_subscription) {
+		priv->join_dtim_period &&
+		!priv->has_multicast_subscription)
+	{
 		state->beacon_skipping = true;
 		wsm_set_beacon_wakeup_period(priv,
-					     priv->join_dtim_period,
-					     CW1200_BEACON_SKIPPING_MULTIPLIER * priv->join_dtim_period);
+									 priv->join_dtim_period,
+									 CW1200_BEACON_SKIPPING_MULTIPLIER * priv->join_dtim_period);
 	}
 
 	/* Stop serving thread */
 	if (cw1200_bh_suspend(priv))
+	{
 		goto revert5;
+	}
 
 	ret = timer_pending(&priv->mcast_timeout);
+
 	if (ret)
+	{
 		goto revert6;
+	}
 
 	/* Store suspend state */
 	pm_state->suspend_state = state;
 
 	/* Enable IRQ wake */
 	ret = priv->hwbus_ops->power_mgmt(priv->hwbus_priv, true);
-	if (ret) {
+
+	if (ret)
+	{
 		wiphy_err(priv->hw->wiphy,
-			  "PM request failed: %d. WoW is disabled.\n", ret);
+				  "PM request failed: %d. WoW is disabled.\n", ret);
 		cw1200_wow_resume(hw);
 		return -EBUSY;
 	}
 
 	/* Force resume if event is coming from the device. */
-	if (atomic_read(&priv->bh_rx)) {
+	if (atomic_read(&priv->bh_rx))
+	{
 		cw1200_wow_resume(hw);
 		return -EAGAIN;
 	}
@@ -283,13 +336,13 @@ revert6:
 	WARN_ON(cw1200_bh_resume(priv));
 revert5:
 	cw1200_resume_work(priv, &priv->bss_loss_work,
-			   state->bss_loss_tmo);
+					   state->bss_loss_tmo);
 	cw1200_resume_work(priv, &priv->join_timeout,
-			   state->join_tmo);
+					   state->join_tmo);
 	cw1200_resume_work(priv, &priv->scan.probe_work,
-			   state->direct_probe);
+					   state->direct_probe);
 	cw1200_resume_work(priv, &priv->link_id_gc_work,
-			   state->link_id_gc);
+					   state->link_id_gc);
 revert4:
 	kfree(state);
 revert3:
@@ -325,28 +378,30 @@ int cw1200_wow_resume(struct ieee80211_hw *hw)
 	WARN_ON(cw1200_bh_resume(priv));
 
 	/* Restores previous PS mode */
-	if (!priv->vif->p2p && priv->join_status == CW1200_JOIN_STATUS_STA) {
+	if (!priv->vif->p2p && priv->join_status == CW1200_JOIN_STATUS_STA)
+	{
 		priv->powersave_mode.mode = state->prev_ps_mode;
 		cw1200_set_pm(priv, &priv->powersave_mode);
 	}
 
-	if (state->beacon_skipping) {
+	if (state->beacon_skipping)
+	{
 		wsm_set_beacon_wakeup_period(priv, priv->beacon_int *
-					     priv->join_dtim_period >
-					     MAX_BEACON_SKIP_TIME_MS ? 1 :
-					     priv->join_dtim_period, 0);
+									 priv->join_dtim_period >
+									 MAX_BEACON_SKIP_TIME_MS ? 1 :
+									 priv->join_dtim_period, 0);
 		state->beacon_skipping = false;
 	}
 
 	/* Resume delayed work */
 	cw1200_resume_work(priv, &priv->bss_loss_work,
-			   state->bss_loss_tmo);
+					   state->bss_loss_tmo);
 	cw1200_resume_work(priv, &priv->join_timeout,
-			   state->join_tmo);
+					   state->join_tmo);
 	cw1200_resume_work(priv, &priv->scan.probe_work,
-			   state->direct_probe);
+					   state->direct_probe);
 	cw1200_resume_work(priv, &priv->link_id_gc_work,
-			   state->link_id_gc);
+					   state->link_id_gc);
 
 	/* Remove UDP port filter */
 	wsm_set_udp_port_filter(priv, &cw1200_udp_port_filter_off);

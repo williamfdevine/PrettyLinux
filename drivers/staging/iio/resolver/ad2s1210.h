@@ -11,7 +11,8 @@
 #ifndef _AD2S1210_H
 #define _AD2S1210_H
 
-struct ad2s1210_platform_data {
+struct ad2s1210_platform_data
+{
 	unsigned int		sample;
 	unsigned int		a[2];
 	unsigned int		res[2];

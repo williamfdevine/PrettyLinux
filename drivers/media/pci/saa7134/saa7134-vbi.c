@@ -32,15 +32,15 @@
 
 static unsigned int vbi_debug;
 module_param(vbi_debug, int, 0644);
-MODULE_PARM_DESC(vbi_debug,"enable debug messages [vbi]");
+MODULE_PARM_DESC(vbi_debug, "enable debug messages [vbi]");
 
 static unsigned int vbibufs = 4;
 module_param(vbibufs, int, 0444);
-MODULE_PARM_DESC(vbibufs,"number of vbi buffers, range 2-32");
+MODULE_PARM_DESC(vbibufs, "number of vbi buffers, range 2-32");
 
 #define vbi_dbg(fmt, arg...) do { \
-	if (vbi_debug) \
-		printk(KERN_DEBUG pr_fmt("vbi: " fmt), ## arg); \
+		if (vbi_debug) \
+			printk(KERN_DEBUG pr_fmt("vbi: " fmt), ## arg); \
 	} while (0)
 
 /* ------------------------------------------------------------------ */
@@ -50,7 +50,7 @@ MODULE_PARM_DESC(vbibufs,"number of vbi buffers, range 2-32");
 #define VBI_SCALE       0x200
 
 static void task_init(struct saa7134_dev *dev, struct saa7134_buf *buf,
-		      int task)
+					  int task)
 {
 	struct saa7134_tvnorm *norm = dev->tvnorm;
 
@@ -80,8 +80,8 @@ static void task_init(struct saa7134_dev *dev, struct saa7134_buf *buf,
 /* ------------------------------------------------------------------ */
 
 static int buffer_activate(struct saa7134_dev *dev,
-			   struct saa7134_buf *buf,
-			   struct saa7134_buf *next)
+						   struct saa7134_buf *buf,
+						   struct saa7134_buf *next)
 {
 	struct saa7134_dmaqueue *dmaq = buf->vb2.vb2_buf.vb2_queue->drv_priv;
 	unsigned long control, base;
@@ -97,8 +97,8 @@ static int buffer_activate(struct saa7134_dev *dev,
 	/* DMA: setup channel 2+3 (= VBI Task A+B) */
 	base    = saa7134_buffer_base(buf);
 	control = SAA7134_RS_CONTROL_BURST_16 |
-		SAA7134_RS_CONTROL_ME |
-		(dmaq->pt.dma >> 12);
+			  SAA7134_RS_CONTROL_ME |
+			  (dmaq->pt.dma >> 12);
 	saa_writel(SAA7134_RS_BA1(2), base);
 	saa_writel(SAA7134_RS_BA2(2), base + dev->vbi_hlen * dev->vbi_vlen);
 	saa_writel(SAA7134_RS_PITCH(2), dev->vbi_hlen);
@@ -124,31 +124,40 @@ static int buffer_prepare(struct vb2_buffer *vb2)
 	struct sg_table *dma = vb2_dma_sg_plane_desc(vb2, 0);
 	unsigned int size;
 
-	if (dma->sgl->offset) {
+	if (dma->sgl->offset)
+	{
 		pr_err("The buffer is not page-aligned\n");
 		return -EINVAL;
 	}
+
 	size = dev->vbi_hlen * dev->vbi_vlen * 2;
+
 	if (vb2_plane_size(vb2, 0) < size)
+	{
 		return -EINVAL;
+	}
 
 	vb2_set_plane_payload(vb2, 0, size);
 
 	return saa7134_pgtable_build(dev->pci, &dmaq->pt, dma->sgl, dma->nents,
-				    saa7134_buffer_startpage(buf));
+								 saa7134_buffer_startpage(buf));
 }
 
 static int queue_setup(struct vb2_queue *q,
-			   unsigned int *nbuffers, unsigned int *nplanes,
-			   unsigned int sizes[], struct device *alloc_devs[])
+					   unsigned int *nbuffers, unsigned int *nplanes,
+					   unsigned int sizes[], struct device *alloc_devs[])
 {
 	struct saa7134_dmaqueue *dmaq = q->drv_priv;
 	struct saa7134_dev *dev = dmaq->dev;
 	unsigned int size;
 
 	dev->vbi_vlen = dev->tvnorm->vbi_v_stop_0 - dev->tvnorm->vbi_v_start_0 + 1;
+
 	if (dev->vbi_vlen > VBI_LINE_COUNT)
+	{
 		dev->vbi_vlen = VBI_LINE_COUNT;
+	}
+
 	dev->vbi_hlen = VBI_LINE_LENGTH;
 	size = dev->vbi_hlen * dev->vbi_vlen * 2;
 
@@ -169,7 +178,8 @@ static int buffer_init(struct vb2_buffer *vb2)
 	return 0;
 }
 
-struct vb2_ops saa7134_vbi_qops = {
+struct vb2_ops saa7134_vbi_qops =
+{
 	.queue_setup	= queue_setup,
 	.buf_init	= buffer_init,
 	.buf_prepare	= buffer_prepare,
@@ -191,9 +201,15 @@ int saa7134_vbi_init1(struct saa7134_dev *dev)
 	dev->vbi_q.dev              = dev;
 
 	if (vbibufs < 2)
+	{
 		vbibufs = 2;
+	}
+
 	if (vbibufs > VIDEO_MAX_FRAME)
+	{
 		vbibufs = VIDEO_MAX_FRAME;
+	}
+
 	return 0;
 }
 
@@ -206,19 +222,26 @@ int saa7134_vbi_fini(struct saa7134_dev *dev)
 void saa7134_irq_vbi_done(struct saa7134_dev *dev, unsigned long status)
 {
 	spin_lock(&dev->slock);
-	if (dev->vbi_q.curr) {
+
+	if (dev->vbi_q.curr)
+	{
 		/* make sure we have seen both fields */
-		if ((status & 0x10) == 0x00) {
+		if ((status & 0x10) == 0x00)
+		{
 			dev->vbi_q.curr->top_seen = 1;
 			goto done;
 		}
+
 		if (!dev->vbi_q.curr->top_seen)
+		{
 			goto done;
+		}
 
 		saa7134_buffer_finish(dev, &dev->vbi_q, VB2_BUF_STATE_DONE);
 	}
+
 	saa7134_buffer_next(dev, &dev->vbi_q);
 
- done:
+done:
 	spin_unlock(&dev->slock);
 }

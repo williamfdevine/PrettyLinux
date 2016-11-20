@@ -25,7 +25,8 @@
 /*
  * VF states
  */
-enum bfa_vf_state {
+enum bfa_vf_state
+{
 	BFA_VF_UNINIT    = 0,	/*  fabric is not yet initialized */
 	BFA_VF_LINK_DOWN = 1,	/*  link is down */
 	BFA_VF_FLOGI     = 2,	/*  flogi is in progress */
@@ -39,7 +40,8 @@ enum bfa_vf_state {
 /*
  * VF statistics
  */
-struct bfa_vf_stats_s {
+struct bfa_vf_stats_s
+{
 	u32	flogi_sent;	/*  Num FLOGIs sent */
 	u32	flogi_rsp_err;	/*  FLOGI response errors */
 	u32	flogi_acc_err;	/*  FLOGI accept errors */
@@ -59,7 +61,8 @@ struct bfa_vf_stats_s {
 /*
  * VF attributes returned in queries
  */
-struct bfa_vf_attr_s {
+struct bfa_vf_attr_s
+{
 	enum bfa_vf_state  state;		/*  VF state */
 	u32        rsvd;
 	wwn_t           fabric_name;	/*  fabric name */
@@ -72,7 +75,8 @@ struct bfa_vf_attr_s {
  * symbolic names for base port/virtual port
  */
 #define BFA_SYMNAME_MAXLEN	128	/* 128 bytes */
-struct bfa_lport_symname_s {
+struct bfa_lport_symname_s
+{
 	char	    symname[BFA_SYMNAME_MAXLEN];
 };
 
@@ -82,7 +86,8 @@ struct bfa_lport_symname_s {
  *     - Create multiple ports if both IM and TM functions required.
  *     - Atleast one role must be specified.
  */
-enum bfa_lport_role {
+enum bfa_lport_role
+{
 	BFA_LPORT_ROLE_FCP_IM	= 0x01,	/*  FCP initiator role */
 	BFA_LPORT_ROLE_FCP_MAX	= BFA_LPORT_ROLE_FCP_IM,
 };
@@ -90,7 +95,8 @@ enum bfa_lport_role {
 /*
  * FCS port configuration.
  */
-struct bfa_lport_cfg_s {
+struct bfa_lport_cfg_s
+{
 	wwn_t	       pwwn;       /*  port wwn */
 	wwn_t	       nwwn;       /*  node wwn */
 	struct bfa_lport_symname_s  sym_name;   /*  vm port symbolic name */
@@ -105,7 +111,8 @@ struct bfa_lport_cfg_s {
 /*
  * FCS port states
  */
-enum bfa_lport_state {
+enum bfa_lport_state
+{
 	BFA_LPORT_UNINIT  = 0,	/*  PORT is not yet initialized */
 	BFA_LPORT_FDISC   = 1,	/*  FDISC is in progress */
 	BFA_LPORT_ONLINE  = 2,	/*  login to fabric is complete */
@@ -115,7 +122,8 @@ enum bfa_lport_state {
 /*
  * FCS port type.
  */
-enum bfa_lport_type {
+enum bfa_lport_type
+{
 	BFA_LPORT_TYPE_PHYSICAL = 0,
 	BFA_LPORT_TYPE_VIRTUAL,
 };
@@ -123,7 +131,8 @@ enum bfa_lport_type {
 /*
  * FCS port offline reason.
  */
-enum bfa_lport_offline_reason {
+enum bfa_lport_offline_reason
+{
 	BFA_LPORT_OFFLINE_UNKNOWN = 0,
 	BFA_LPORT_OFFLINE_LINKDOWN,
 	BFA_LPORT_OFFLINE_FAB_UNSUPPORTED,	/*  NPIV not supported by the
@@ -135,7 +144,8 @@ enum bfa_lport_offline_reason {
 /*
  * FCS lport info.
  */
-struct bfa_lport_info_s {
+struct bfa_lport_info_s
+{
 	u8	 port_type;	/* bfa_lport_type_t : physical or
 	 * virtual */
 	u8	 port_state;	/* one of bfa_lport_state values */
@@ -157,7 +167,8 @@ struct bfa_lport_info_s {
 /*
  * FCS port statistics
  */
-struct bfa_lport_stats_s {
+struct bfa_lport_stats_s
+{
 	u32	ns_plogi_sent;
 	u32	ns_plogi_rsp_err;
 	u32	ns_plogi_acc_err;
@@ -241,7 +252,8 @@ struct bfa_lport_stats_s {
 /*
  * BFA port attribute returned in queries
  */
-struct bfa_lport_attr_s {
+struct bfa_lport_attr_s
+{
 	enum bfa_lport_state state;	/*  port state */
 	u32	 pid;	/*  port ID */
 	struct bfa_lport_cfg_s   port_cfg;	/*  port configuration */
@@ -258,7 +270,8 @@ struct bfa_lport_attr_s {
 /*
  * VPORT states
  */
-enum bfa_vport_state {
+enum bfa_vport_state
+{
 	BFA_FCS_VPORT_UNINIT		= 0,
 	BFA_FCS_VPORT_CREATED		= 1,
 	BFA_FCS_VPORT_OFFLINE		= 1,
@@ -278,7 +291,8 @@ enum bfa_vport_state {
 /*
  * vport statistics
  */
-struct bfa_vport_stats_s {
+struct bfa_vport_stats_s
+{
 	struct bfa_lport_stats_s port_stats;	/*  base class (port) stats */
 	/*
 	 * TODO - remove
@@ -303,7 +317,7 @@ struct bfa_vport_stats_s {
 	u32        logo_rejects;	/*  logo rejects */
 	u32        logo_rsp_err;	/*  logo rsp errors */
 	u32        logo_unknown_rsp;
-			/*  logo rsp unknown errors */
+	/*  logo rsp unknown errors */
 
 	u32        fab_no_npiv;	/*  fabric does not support npiv */
 
@@ -316,7 +330,8 @@ struct bfa_vport_stats_s {
 /*
  * BFA vport attribute returned in queries
  */
-struct bfa_vport_attr_s {
+struct bfa_vport_attr_s
+{
 	struct bfa_lport_attr_s   port_attr; /*  base class (port) attributes */
 	enum bfa_vport_state vport_state; /*  vport state */
 	u32          rsvd;
@@ -325,7 +340,8 @@ struct bfa_vport_attr_s {
 /*
  * FCS remote port states
  */
-enum bfa_rport_state {
+enum bfa_rport_state
+{
 	BFA_RPORT_UNINIT	= 0,	/*  PORT is not yet initialized */
 	BFA_RPORT_OFFLINE	= 1,	/*  rport is offline */
 	BFA_RPORT_PLOGI		= 2,	/*  PLOGI to rport is in progress */
@@ -341,7 +357,8 @@ enum bfa_rport_state {
 /*
  *  Rport Scsi Function : Initiator/Target.
  */
-enum bfa_rport_function {
+enum bfa_rport_function
+{
 	BFA_RPORT_INITIATOR	= 0x01,	/*  SCSI Initiator	*/
 	BFA_RPORT_TARGET	= 0x02,	/*  SCSI Target	*/
 };
@@ -350,14 +367,16 @@ enum bfa_rport_function {
  * port/node symbolic names for rport
  */
 #define BFA_RPORT_SYMNAME_MAXLEN	255
-struct bfa_rport_symname_s {
+struct bfa_rport_symname_s
+{
 	char            symname[BFA_RPORT_SYMNAME_MAXLEN];
 };
 
 /*
  * FCS remote port statistics
  */
-struct bfa_rport_stats_s {
+struct bfa_rport_stats_s
+{
 	u32        offlines;           /*  remote port offline count  */
 	u32        onlines;            /*  remote port online count   */
 	u32        rscns;              /*  RSCN affecting rport       */
@@ -394,7 +413,8 @@ struct bfa_rport_stats_s {
 /*
  * FCS remote port attributes returned in queries
  */
-struct bfa_rport_attr_s {
+struct bfa_rport_attr_s
+{
 	wwn_t		nwwn;	/*  node wwn */
 	wwn_t		pwwn;	/*  port wwn */
 	enum fc_cos cos_supported;	/*  supported class of services */
@@ -415,7 +435,8 @@ struct bfa_rport_attr_s {
 						 * supported by the rport */
 };
 
-struct bfa_rport_remote_link_stats_s {
+struct bfa_rport_remote_link_stats_s
+{
 	u32 lfc; /*  Link Failure Count */
 	u32 lsyc; /*  Loss of Synchronization Count */
 	u32 lsic; /*  Loss of Signal Count */
@@ -424,7 +445,8 @@ struct bfa_rport_remote_link_stats_s {
 	u32 icc; /*  Invalid CRC Count */
 };
 
-struct bfa_rport_qualifier_s {
+struct bfa_rport_qualifier_s
+{
 	wwn_t	pwwn;	/* Port WWN */
 	u32	pid;	/* port ID */
 	u32	rsvd;
@@ -436,7 +458,8 @@ struct bfa_rport_qualifier_s {
 /*
  * FCS itnim states
  */
-enum bfa_itnim_state {
+enum bfa_itnim_state
+{
 	BFA_ITNIM_OFFLINE	= 0,	/*  offline */
 	BFA_ITNIM_PRLI_SEND	= 1,	/*  prli send */
 	BFA_ITNIM_PRLI_SENT	= 2,	/*  prli sent */
@@ -450,7 +473,8 @@ enum bfa_itnim_state {
 /*
  * FCS remote port statistics
  */
-struct bfa_itnim_stats_s {
+struct bfa_itnim_stats_s
+{
 	u32        onlines;	/*  num rport online */
 	u32        offlines;	/*  num rport offline */
 	u32        prli_sent;	/*  num prli sent out */
@@ -468,7 +492,8 @@ struct bfa_itnim_stats_s {
 /*
  * FCS itnim attributes returned in queries
  */
-struct bfa_itnim_attr_s {
+struct bfa_itnim_attr_s
+{
 	enum bfa_itnim_state state; /*  FCS itnim state        */
 	u8 retry;		/*  data retransmision support */
 	u8	task_retry_id;  /*  task retry ident support   */

@@ -39,17 +39,20 @@ static int debug;
 			printk(KERN_DEBUG args); \
 	} while (0)
 
-enum zl10039_model_id {
+enum zl10039_model_id
+{
 	ID_ZL10039 = 1
 };
 
-struct zl10039_state {
+struct zl10039_state
+{
 	struct i2c_adapter *i2c;
 	u8 i2c_addr;
 	u8 id;
 };
 
-enum zl10039_reg_addr {
+enum zl10039_reg_addr
+{
 	PLL0 = 0,
 	PLL1,
 	PLL2,
@@ -69,11 +72,12 @@ enum zl10039_reg_addr {
 };
 
 static int zl10039_read(const struct zl10039_state *state,
-			const enum zl10039_reg_addr reg, u8 *buf,
-			const size_t count)
+						const enum zl10039_reg_addr reg, u8 *buf,
+						const size_t count)
 {
 	u8 regbuf[] = { reg };
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{/* Write register address */
 			.addr = state->i2c_addr,
 			.flags = 0,
@@ -89,7 +93,8 @@ static int zl10039_read(const struct zl10039_state *state,
 
 	dprintk("%s\n", __func__);
 
-	if (i2c_transfer(state->i2c, msg, 2) != 2) {
+	if (i2c_transfer(state->i2c, msg, 2) != 2)
+	{
 		dprintk("%s: i2c read error\n", __func__);
 		return -EREMOTEIO;
 	}
@@ -98,21 +103,23 @@ static int zl10039_read(const struct zl10039_state *state,
 }
 
 static int zl10039_write(struct zl10039_state *state,
-			const enum zl10039_reg_addr reg, const u8 *src,
-			const size_t count)
+						 const enum zl10039_reg_addr reg, const u8 *src,
+						 const size_t count)
 {
 	u8 buf[MAX_XFER_SIZE];
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = state->i2c_addr,
 		.flags = 0,
 		.buf = buf,
 		.len = count + 1,
 	};
 
-	if (1 + count > sizeof(buf)) {
+	if (1 + count > sizeof(buf))
+	{
 		printk(KERN_WARNING
-		       "%s: i2c wr reg=%04x: len=%zu is too big!\n",
-		       KBUILD_MODNAME, reg, count);
+			   "%s: i2c wr reg=%04x: len=%zu is too big!\n",
+			   KBUILD_MODNAME, reg, count);
 		return -EINVAL;
 	}
 
@@ -120,7 +127,9 @@ static int zl10039_write(struct zl10039_state *state,
 	/* Write register address and data in one go */
 	buf[0] = reg;
 	memcpy(&buf[1], src, count);
-	if (i2c_transfer(state->i2c, &msg, 1) != 1) {
+
+	if (i2c_transfer(state->i2c, &msg, 1) != 1)
+	{
 		dprintk("%s: i2c write error\n", __func__);
 		return -EREMOTEIO;
 	}
@@ -129,14 +138,14 @@ static int zl10039_write(struct zl10039_state *state,
 }
 
 static inline int zl10039_readreg(struct zl10039_state *state,
-				const enum zl10039_reg_addr reg, u8 *val)
+								  const enum zl10039_reg_addr reg, u8 *val)
 {
 	return zl10039_read(state, reg, val, 1);
 }
 
 static inline int zl10039_writereg(struct zl10039_state *state,
-				const enum zl10039_reg_addr reg,
-				const u8 val)
+								   const enum zl10039_reg_addr reg,
+								   const u8 val)
 {
 	return zl10039_write(state, reg, &val, 1);
 }
@@ -147,22 +156,34 @@ static int zl10039_init(struct dvb_frontend *fe)
 	int ret;
 
 	dprintk("%s\n", __func__);
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	/* Reset logic */
 	ret = zl10039_writereg(state, GENERAL, 0x40);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dprintk("Note: i2c write error normal when resetting the "
-			"tuner\n");
+				"tuner\n");
 	}
+
 	/* Wake up */
 	ret = zl10039_writereg(state, GENERAL, 0x01);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dprintk("Tuner power up failed\n");
 		return ret;
 	}
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	return 0;
 }
@@ -173,15 +194,24 @@ static int zl10039_sleep(struct dvb_frontend *fe)
 	int ret;
 
 	dprintk("%s\n", __func__);
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	ret = zl10039_writereg(state, GENERAL, 0x80);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dprintk("Tuner sleep failed\n");
 		return ret;
 	}
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	return 0;
 }
@@ -222,23 +252,40 @@ static int zl10039_set_params(struct dvb_frontend *fe)
 
 	/* Open i2c gate */
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	/* BR = 10, Enable filter adjustment */
 	ret = zl10039_writereg(state, BASE1, 0x0A);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
+
 	/* Write new config values */
 	ret = zl10039_write(state, PLL0, buf, sizeof(buf));
+
 	if (ret < 0)
+	{
 		goto error;
+	}
+
 	/* BR = 10, Disable filter adjustment */
 	ret = zl10039_writereg(state, BASE1, 0x6A);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	/* Close i2c gate */
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
+
 	return 0;
 error:
 	dprintk("Error setting tuner\n");
@@ -255,7 +302,8 @@ static int zl10039_release(struct dvb_frontend *fe)
 	return 0;
 }
 
-static const struct dvb_tuner_ops zl10039_ops = {
+static const struct dvb_tuner_ops zl10039_ops =
+{
 	.release = zl10039_release,
 	.init = zl10039_init,
 	.sleep = zl10039_sleep,
@@ -263,41 +311,57 @@ static const struct dvb_tuner_ops zl10039_ops = {
 };
 
 struct dvb_frontend *zl10039_attach(struct dvb_frontend *fe,
-		u8 i2c_addr, struct i2c_adapter *i2c)
+									u8 i2c_addr, struct i2c_adapter *i2c)
 {
 	struct zl10039_state *state = NULL;
 
 	dprintk("%s\n", __func__);
 	state = kmalloc(sizeof(struct zl10039_state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		goto error;
+	}
 
 	state->i2c = i2c;
 	state->i2c_addr = i2c_addr;
 
 	/* Open i2c gate */
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	/* check if this is a valid tuner */
-	if (zl10039_readreg(state, GENERAL, &state->id) < 0) {
+	if (zl10039_readreg(state, GENERAL, &state->id) < 0)
+	{
 		/* Close i2c gate */
 		if (fe->ops.i2c_gate_ctrl)
+		{
 			fe->ops.i2c_gate_ctrl(fe, 0);
+		}
+
 		goto error;
 	}
+
 	/* Close i2c gate */
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	state->id = state->id & 0x0f;
-	switch (state->id) {
-	case ID_ZL10039:
-		strcpy(fe->ops.tuner_ops.info.name,
-			"Zarlink ZL10039 DVB-S tuner");
-		break;
-	default:
-		dprintk("Chip ID=%x does not match a known type\n", state->id);
-		goto error;
+
+	switch (state->id)
+	{
+		case ID_ZL10039:
+			strcpy(fe->ops.tuner_ops.info.name,
+				   "Zarlink ZL10039 DVB-S tuner");
+			break;
+
+		default:
+			dprintk("Chip ID=%x does not match a known type\n", state->id);
+			goto error;
 	}
 
 	memcpy(&fe->ops.tuner_ops, &zl10039_ops, sizeof(struct dvb_tuner_ops));

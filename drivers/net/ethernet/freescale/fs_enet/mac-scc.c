@@ -38,30 +38,30 @@
 #include <asm/uaccess.h>
 
 #ifdef CONFIG_8xx
-#include <asm/8xx_immap.h>
-#include <asm/pgtable.h>
-#include <asm/cpm1.h>
+	#include <asm/8xx_immap.h>
+	#include <asm/pgtable.h>
+	#include <asm/cpm1.h>
 #endif
 
 #include "fs_enet.h"
 
 /*************************************************/
 #if defined(CONFIG_CPM1)
-/* for a 8xx __raw_xxx's are sufficient */
-#define __fs_out32(addr, x)	__raw_writel(x, addr)
-#define __fs_out16(addr, x)	__raw_writew(x, addr)
-#define __fs_out8(addr, x)	__raw_writeb(x, addr)
-#define __fs_in32(addr)	__raw_readl(addr)
-#define __fs_in16(addr)	__raw_readw(addr)
-#define __fs_in8(addr)	__raw_readb(addr)
+	/* for a 8xx __raw_xxx's are sufficient */
+	#define __fs_out32(addr, x)	__raw_writel(x, addr)
+	#define __fs_out16(addr, x)	__raw_writew(x, addr)
+	#define __fs_out8(addr, x)	__raw_writeb(x, addr)
+	#define __fs_in32(addr)	__raw_readl(addr)
+	#define __fs_in16(addr)	__raw_readw(addr)
+	#define __fs_in8(addr)	__raw_readb(addr)
 #else
-/* for others play it safe */
-#define __fs_out32(addr, x)	out_be32(addr, x)
-#define __fs_out16(addr, x)	out_be16(addr, x)
-#define __fs_in32(addr)	in_be32(addr)
-#define __fs_in16(addr)	in_be16(addr)
-#define __fs_out8(addr, x)	out_8(addr, x)
-#define __fs_in8(addr)	in_8(addr)
+	/* for others play it safe */
+	#define __fs_out32(addr, x)	out_be32(addr, x)
+	#define __fs_out16(addr, x)	out_be16(addr, x)
+	#define __fs_in32(addr)	in_be32(addr)
+	#define __fs_in16(addr)	in_be16(addr)
+	#define __fs_out8(addr, x)	out_8(addr, x)
+	#define __fs_in8(addr)	in_8(addr)
 #endif
 
 /* write, read, set bits, clear bits */
@@ -99,15 +99,23 @@ static int do_pd_setup(struct fs_enet_private *fep)
 	struct platform_device *ofdev = to_platform_device(fep->dev);
 
 	fep->interrupt = irq_of_parse_and_map(ofdev->dev.of_node, 0);
+
 	if (!fep->interrupt)
+	{
 		return -EINVAL;
+	}
 
 	fep->scc.sccp = of_iomap(ofdev->dev.of_node, 0);
+
 	if (!fep->scc.sccp)
+	{
 		return -EINVAL;
+	}
 
 	fep->scc.ep = of_iomap(ofdev->dev.of_node, 1);
-	if (!fep->scc.ep) {
+
+	if (!fep->scc.ep)
+	{
 		iounmap(fep->scc.sccp);
 		return -EINVAL;
 	}
@@ -141,12 +149,15 @@ static int allocate_bd(struct net_device *dev)
 	const struct fs_platform_info *fpi = fep->fpi;
 
 	fep->ring_mem_addr = cpm_dpalloc((fpi->tx_ring + fpi->rx_ring) *
-					 sizeof(cbd_t), 8);
-	if (IS_ERR_VALUE(fep->ring_mem_addr))
-		return -ENOMEM;
+									 sizeof(cbd_t), 8);
 
-	fep->ring_base = (void __iomem __force*)
-		cpm_dpram_addr(fep->ring_mem_addr);
+	if (IS_ERR_VALUE(fep->ring_mem_addr))
+	{
+		return -ENOMEM;
+	}
+
+	fep->ring_base = (void __iomem __force *)
+					 cpm_dpram_addr(fep->ring_mem_addr);
 
 	return 0;
 }
@@ -156,7 +167,9 @@ static void free_bd(struct net_device *dev)
 	struct fs_enet_private *fep = netdev_priv(dev);
 
 	if (fep->ring_base)
+	{
 		cpm_dpfree(fep->ring_mem_addr);
+	}
 }
 
 static void cleanup_data(struct net_device *dev)
@@ -183,7 +196,7 @@ static void set_multicast_start(struct net_device *dev)
 	W16(ep, sen_gaddr4, 0);
 }
 
-static void set_multicast_one(struct net_device *dev, const u8 * mac)
+static void set_multicast_one(struct net_device *dev, const u8 *mac)
 {
 	struct fs_enet_private *fep = netdev_priv(dev);
 	scc_enet_t __iomem *ep = fep->scc.ep;
@@ -210,7 +223,8 @@ static void set_multicast_finish(struct net_device *dev)
 
 	/* if all multi or too many multicasts; just enable all */
 	if ((dev->flags & IFF_ALLMULTI) != 0 ||
-	    netdev_mc_count(dev) > SCC_MAX_MULTICAST_ADDRS) {
+		netdev_mc_count(dev) > SCC_MAX_MULTICAST_ADDRS)
+	{
 
 		W16(ep, sen_gaddr1, 0xffff);
 		W16(ep, sen_gaddr2, 0xffff);
@@ -223,13 +237,17 @@ static void set_multicast_list(struct net_device *dev)
 {
 	struct netdev_hw_addr *ha;
 
-	if ((dev->flags & IFF_PROMISC) == 0) {
+	if ((dev->flags & IFF_PROMISC) == 0)
+	{
 		set_multicast_start(dev);
 		netdev_for_each_mc_addr(ha, dev)
-			set_multicast_one(dev, ha->addr);
+		set_multicast_one(dev, ha->addr);
 		set_multicast_finish(dev);
-	} else
+	}
+	else
+	{
 		set_promiscuous_mode(dev);
+	}
 }
 
 /*
@@ -251,12 +269,14 @@ static void restart(struct net_device *dev)
 
 	/* clear everything (slow & steady does it) */
 	for (i = 0; i < sizeof(*ep); i++)
+	{
 		__fs_out8((u8 __iomem *)ep + i, 0);
+	}
 
 	/* point to bds */
 	W16(ep, sen_genscc.scc_rbase, fep->ring_mem_addr);
 	W16(ep, sen_genscc.scc_tbase,
-	    fep->ring_mem_addr + sizeof(cbd_t) * fpi->rx_ring);
+		fep->ring_mem_addr + sizeof(cbd_t) * fpi->rx_ring);
 
 	/* Initialize function code registers for big-endian.
 	 */
@@ -335,8 +355,8 @@ static void restart(struct net_device *dev)
 	 */
 	W32(sccp, scc_gsmrh, 0);
 	W32(sccp, scc_gsmrl,
-	    SCC_GSMRL_TCI | SCC_GSMRL_TPL_48 | SCC_GSMRL_TPP_10 |
-	    SCC_GSMRL_MODE_ENET);
+		SCC_GSMRL_TCI | SCC_GSMRL_TPL_48 | SCC_GSMRL_TPP_10 |
+		SCC_GSMRL_MODE_ENET);
 
 	/* Set sync/delimiters.
 	 */
@@ -349,7 +369,9 @@ static void restart(struct net_device *dev)
 
 	/* Set full duplex mode if needed */
 	if (dev->phydev->duplex)
+	{
 		S16(sccp, scc_psmr, SCC_PSMR_LPB | SCC_PSMR_FDE);
+	}
 
 	/* Restore multicast and promiscuous settings */
 	set_multicast_list(dev);
@@ -364,10 +386,14 @@ static void stop(struct net_device *dev)
 	int i;
 
 	for (i = 0; (R16(sccp, scc_sccm) == 0) && i < SCC_RESET_DELAY; i++)
+	{
 		udelay(1);
+	}
 
 	if (i == SCC_RESET_DELAY)
+	{
 		dev_warn(fep->dev, "SCC timeout on graceful transmit stop\n");
+	}
 
 	W16(sccp, scc_sccm, 0);
 	C32(sccp, scc_gsmrl, SCC_GSMRL_ENR | SCC_GSMRL_ENT);
@@ -437,7 +463,9 @@ static int get_regs(struct net_device *dev, void *p, int *sizep)
 	struct fs_enet_private *fep = netdev_priv(dev);
 
 	if (*sizep < sizeof(scc_t) + sizeof(scc_enet_t __iomem *))
+	{
 		return -EINVAL;
+	}
 
 	memcpy_fromio(p, fep->scc.sccp, sizeof(scc_t));
 	p = (char *)p + sizeof(scc_t);
@@ -463,7 +491,8 @@ static void tx_restart(struct net_device *dev)
 
 /*************************************************************************/
 
-const struct fs_ops fs_scc_ops = {
+const struct fs_ops fs_scc_ops =
+{
 	.setup_data		= setup_data,
 	.cleanup_data		= cleanup_data,
 	.set_multicast_list	= set_multicast_list,

@@ -44,7 +44,8 @@ HPI Operating System Specific macros for Linux Kernel driver
 /** Details of a memory area allocated with  pci_alloc_consistent
 Need all info for parameters to pci_free_consistent
 */
-struct consistent_dma_area {
+struct consistent_dma_area
+{
 	struct device *pdev;
 	/* looks like dma-mapping dma_devres ?! */
 	size_t size;
@@ -53,26 +54,27 @@ struct consistent_dma_area {
 };
 
 static inline u16 hpios_locked_mem_get_phys_addr(struct consistent_dma_area
-	*locked_mem_handle, u32 *p_physical_addr)
+		*locked_mem_handle, u32 *p_physical_addr)
 {
 	*p_physical_addr = locked_mem_handle->dma_handle;
 	return 0;
 }
 
 static inline u16 hpios_locked_mem_get_virt_addr(struct consistent_dma_area
-	*locked_mem_handle, void **pp_virtual_addr)
+		*locked_mem_handle, void **pp_virtual_addr)
 {
 	*pp_virtual_addr = locked_mem_handle->vaddr;
 	return 0;
 }
 
 static inline u16 hpios_locked_mem_valid(struct consistent_dma_area
-	*locked_mem_handle)
+		*locked_mem_handle)
 {
 	return locked_mem_handle->size != 0;
 }
 
-struct hpi_ioctl_linux {
+struct hpi_ioctl_linux
+{
 	void __user *phm;
 	void __user *phr;
 };
@@ -93,7 +95,8 @@ struct hpi_ioctl_linux {
 
 #define HPI_LOCKING
 
-struct hpios_spinlock {
+struct hpios_spinlock
+{
 	spinlock_t lock;	/* SEE hpios_spinlock */
 	int lock_context;
 };
@@ -107,13 +110,16 @@ struct hpios_spinlock {
 #define IN_LOCK_IRQ 0
 static inline void cond_lock(struct hpios_spinlock *l)
 {
-	if (irqs_disabled()) {
+	if (irqs_disabled())
+	{
 		/* NO bh or isr can execute on this processor,
 		   so ordinary lock will do
 		 */
 		spin_lock(&((l)->lock));
 		l->lock_context = IN_LOCK_IRQ;
-	} else {
+	}
+	else
+	{
 		spin_lock_bh(&((l)->lock));
 		l->lock_context = IN_LOCK_BH;
 	}
@@ -122,9 +128,13 @@ static inline void cond_lock(struct hpios_spinlock *l)
 static inline void cond_unlock(struct hpios_spinlock *l)
 {
 	if (l->lock_context == IN_LOCK_BH)
+	{
 		spin_unlock_bh(&((l)->lock));
+	}
 	else
+	{
 		spin_unlock(&((l)->lock));
+	}
 }
 
 #define hpios_msgxlock_init(obj)      spin_lock_init(&(obj)->lock)
@@ -136,7 +146,7 @@ static inline void cond_unlock(struct hpios_spinlock *l)
 #define hpios_dsplock_unlock(obj)  cond_unlock(&(obj)->dsp_lock)
 
 #ifdef CONFIG_SND_DEBUG
-#define HPI_BUILD_DEBUG
+	#define HPI_BUILD_DEBUG
 #endif
 
 #define HPI_ALIST_LOCKING
@@ -147,7 +157,8 @@ static inline void cond_unlock(struct hpios_spinlock *l)
 struct snd_card;
 
 /** pci drvdata points to an instance of this struct */
-struct hpi_adapter {
+struct hpi_adapter
+{
 	struct hpi_adapter_obj *adapter;
 	struct snd_card *snd_card;
 

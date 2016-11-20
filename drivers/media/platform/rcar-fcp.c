@@ -21,7 +21,8 @@
 
 #include <media/rcar-fcp.h>
 
-struct rcar_fcp_device {
+struct rcar_fcp_device
+{
 	struct list_head list;
 	struct device *dev;
 };
@@ -49,9 +50,12 @@ struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
 
 	mutex_lock(&fcp_lock);
 
-	list_for_each_entry(fcp, &fcp_devices, list) {
+	list_for_each_entry(fcp, &fcp_devices, list)
+	{
 		if (fcp->dev->of_node != np)
+		{
 			continue;
+		}
 
 		/*
 		 * Make sure the module won't be unloaded behind our back. This
@@ -59,7 +63,9 @@ struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
 		 * unloaded while FCP users can be active.
 		 */
 		if (!try_module_get(fcp->dev->driver->owner))
+		{
 			fcp = NULL;
+		}
 
 		goto done;
 	}
@@ -81,7 +87,9 @@ EXPORT_SYMBOL_GPL(rcar_fcp_get);
 void rcar_fcp_put(struct rcar_fcp_device *fcp)
 {
 	if (fcp)
+	{
 		module_put(fcp->dev->driver->owner);
+	}
 }
 EXPORT_SYMBOL_GPL(rcar_fcp_put);
 
@@ -102,11 +110,16 @@ int rcar_fcp_enable(struct rcar_fcp_device *fcp)
 	int ret;
 
 	if (!fcp)
+	{
 		return 0;
+	}
 
 	ret = pm_runtime_get_sync(fcp->dev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -122,7 +135,9 @@ EXPORT_SYMBOL_GPL(rcar_fcp_enable);
 void rcar_fcp_disable(struct rcar_fcp_device *fcp)
 {
 	if (fcp)
+	{
 		pm_runtime_put(fcp->dev);
+	}
 }
 EXPORT_SYMBOL_GPL(rcar_fcp_disable);
 
@@ -135,8 +150,11 @@ static int rcar_fcp_probe(struct platform_device *pdev)
 	struct rcar_fcp_device *fcp;
 
 	fcp = devm_kzalloc(&pdev->dev, sizeof(*fcp), GFP_KERNEL);
+
 	if (fcp == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	fcp->dev = &pdev->dev;
 
@@ -164,13 +182,15 @@ static int rcar_fcp_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id rcar_fcp_of_match[] = {
+static const struct of_device_id rcar_fcp_of_match[] =
+{
 	{ .compatible = "renesas,fcpf" },
 	{ .compatible = "renesas,fcpv" },
 	{ },
 };
 
-static struct platform_driver rcar_fcp_platform_driver = {
+static struct platform_driver rcar_fcp_platform_driver =
+{
 	.probe		= rcar_fcp_probe,
 	.remove		= rcar_fcp_remove,
 	.driver		= {

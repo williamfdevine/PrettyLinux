@@ -19,7 +19,8 @@ typedef u64 befs_blocknr_t;
  * BeFS in memory structures
  */
 
-struct befs_mount_options {
+struct befs_mount_options
+{
 	kgid_t gid;
 	kuid_t uid;
 	int use_gid;
@@ -28,7 +29,8 @@ struct befs_mount_options {
 	char *iocharset;
 };
 
-struct befs_sb_info {
+struct befs_sb_info
+{
 	u32 magic1;
 	u32 block_size;
 	u32 block_shift;
@@ -59,7 +61,8 @@ struct befs_sb_info {
 	struct nls_table *nls;
 };
 
-struct befs_inode_info {
+struct befs_inode_info
+{
 	u32 i_flags;
 	u32 i_type;
 
@@ -67,7 +70,8 @@ struct befs_inode_info {
 	befs_inode_addr i_parent;
 	befs_inode_addr i_attribute;
 
-	union {
+	union
+	{
 		befs_data_stream ds;
 		char symlink[BEFS_SYMLINK_LEN];
 	} i_data;
@@ -75,7 +79,8 @@ struct befs_inode_info {
 	struct inode vfs_inode;
 };
 
-enum befs_err {
+enum befs_err
+{
 	BEFS_OK,
 	BEFS_ERR,
 	BEFS_BAD_INODE,
@@ -122,7 +127,7 @@ static inline befs_blocknr_t
 iaddr2blockno(struct super_block *sb, const befs_inode_addr *iaddr)
 {
 	return ((iaddr->allocation_group << BEFS_SB(sb)->ag_shift) +
-		iaddr->start);
+			iaddr->start);
 }
 
 static inline befs_inode_addr
@@ -131,7 +136,7 @@ blockno2iaddr(struct super_block *sb, befs_blocknr_t blockno)
 	befs_inode_addr iaddr;
 	iaddr.allocation_group = blockno >> BEFS_SB(sb)->ag_shift;
 	iaddr.start =
-	    blockno - (iaddr.allocation_group << BEFS_SB(sb)->ag_shift);
+		blockno - (iaddr.allocation_group << BEFS_SB(sb)->ag_shift);
 	iaddr.len = 1;
 
 	return iaddr;

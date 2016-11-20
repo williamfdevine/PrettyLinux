@@ -88,7 +88,8 @@
 #define VENC_OUTPUT_TEST			0xC8
 #define VENC_DAC_B__DAC_C			0xC8
 
-struct venc_config {
+struct venc_config
+{
 	u32 f_control;
 	u32 vidout_ctrl;
 	u32 sync_ctrl;
@@ -131,7 +132,8 @@ struct venc_config {
 };
 
 /* from TRM */
-static const struct venc_config venc_config_pal_trm = {
+static const struct venc_config venc_config_pal_trm =
+{
 	.f_control				= 0,
 	.vidout_ctrl				= 1,
 	.sync_ctrl				= 0x40,
@@ -176,7 +178,8 @@ static const struct venc_config venc_config_pal_trm = {
 };
 
 /* from TRM */
-static const struct venc_config venc_config_ntsc_trm = {
+static const struct venc_config venc_config_ntsc_trm =
+{
 	.f_control				= 0,
 	.vidout_ctrl				= 1,
 	.sync_ctrl				= 0x8040,
@@ -220,7 +223,8 @@ static const struct venc_config venc_config_ntsc_trm = {
 	.gen_ctrl				= 0x00F90000,
 };
 
-static const struct venc_config venc_config_pal_bdghi = {
+static const struct venc_config venc_config_pal_bdghi =
+{
 	.f_control				= 0,
 	.vidout_ctrl				= 0,
 	.sync_ctrl				= 0,
@@ -233,8 +237,8 @@ static const struct venc_config venc_config_pal_bdghi = {
 	.tvdetgp_int_start_stop_y		= 0x00010001,
 	.gen_ctrl				= 0x00FB0000,
 
-	.llen					= 864-1,
-	.flens					= 625-1,
+	.llen					= 864 - 1,
+	.flens					= 625 - 1,
 	.cc_carr_wss_carr			= 0x2F7625ED,
 	.c_phase				= 0xDF,
 	.gain_u					= 0x111,
@@ -242,16 +246,16 @@ static const struct venc_config venc_config_pal_bdghi = {
 	.gain_y					= 0x140,
 	.black_level				= 0x3e,
 	.blank_level				= 0x3e,
-	.m_control				= 0<<2 | 1<<1,
+	.m_control				= 0 << 2 | 1 << 1,
 	.bstamp_wss_data			= 0x42,
 	.s_carr					= 0x2a098acb,
-	.l21__wc_ctl				= 0<<13 | 0x16<<8 | 0<<0,
+	.l21__wc_ctl				= 0 << 13 | 0x16 << 8 | 0 << 0,
 	.savid__eavid				= 0x06A70108,
-	.flen__fal				= 23<<16 | 624<<0,
-	.lal__phase_reset			= 2<<17 | 310<<0,
+	.flen__fal				= 23 << 16 | 624 << 0,
+	.lal__phase_reset			= 2 << 17 | 310 << 0,
 	.hs_int_start_stop_x			= 0x00920358,
 	.hs_ext_start_stop_x			= 0x000F035F,
-	.vs_int_start_x				= 0x1a7<<16,
+	.vs_int_start_x				= 0x1a7 << 16,
 	.vs_int_stop_x__vs_int_start_y		= 0x000601A7,
 	.vs_int_stop_y__vs_ext_start_x		= 0x01AF0036,
 	.vs_ext_stop_x__vs_ext_start_y		= 0x27101af,
@@ -263,7 +267,8 @@ static const struct venc_config venc_config_pal_bdghi = {
 	.fid_ext_start_y__fid_ext_offset_y	= 0x01380005,
 };
 
-const struct omap_video_timings omap_dss_pal_timings = {
+const struct omap_video_timings omap_dss_pal_timings =
+{
 	.x_res		= 720,
 	.y_res		= 574,
 	.pixelclock	= 13500000,
@@ -278,7 +283,8 @@ const struct omap_video_timings omap_dss_pal_timings = {
 };
 EXPORT_SYMBOL(omap_dss_pal_timings);
 
-const struct omap_video_timings omap_dss_ntsc_timings = {
+const struct omap_video_timings omap_dss_ntsc_timings =
+{
 	.x_res		= 720,
 	.y_res		= 482,
 	.pixelclock	= 13500000,
@@ -293,7 +299,8 @@ const struct omap_video_timings omap_dss_ntsc_timings = {
 };
 EXPORT_SYMBOL(omap_dss_ntsc_timings);
 
-static struct {
+static struct
+{
 	struct platform_device *pdev;
 	void __iomem *base;
 	struct mutex venc_lock;
@@ -335,7 +342,7 @@ static void venc_write_config(const struct venc_config *config)
 	venc_write_reg(VENC_BLANK_LEVEL, config->blank_level);
 	venc_write_reg(VENC_M_CONTROL, config->m_control);
 	venc_write_reg(VENC_BSTAMP_WSS_DATA, config->bstamp_wss_data |
-			venc.wss_data);
+				   venc.wss_data);
 	venc_write_reg(VENC_S_CARR, config->s_carr);
 	venc_write_reg(VENC_L21__WC_CTL, config->l21__wc_ctl);
 	venc_write_reg(VENC_SAVID__EAVID, config->savid__eavid);
@@ -345,20 +352,20 @@ static void venc_write_config(const struct venc_config *config)
 	venc_write_reg(VENC_HS_EXT_START_STOP_X, config->hs_ext_start_stop_x);
 	venc_write_reg(VENC_VS_INT_START_X, config->vs_int_start_x);
 	venc_write_reg(VENC_VS_INT_STOP_X__VS_INT_START_Y,
-		       config->vs_int_stop_x__vs_int_start_y);
+				   config->vs_int_stop_x__vs_int_start_y);
 	venc_write_reg(VENC_VS_INT_STOP_Y__VS_EXT_START_X,
-		       config->vs_int_stop_y__vs_ext_start_x);
+				   config->vs_int_stop_y__vs_ext_start_x);
 	venc_write_reg(VENC_VS_EXT_STOP_X__VS_EXT_START_Y,
-		       config->vs_ext_stop_x__vs_ext_start_y);
+				   config->vs_ext_stop_x__vs_ext_start_y);
 	venc_write_reg(VENC_VS_EXT_STOP_Y, config->vs_ext_stop_y);
 	venc_write_reg(VENC_AVID_START_STOP_X, config->avid_start_stop_x);
 	venc_write_reg(VENC_AVID_START_STOP_Y, config->avid_start_stop_y);
 	venc_write_reg(VENC_FID_INT_START_X__FID_INT_START_Y,
-		       config->fid_int_start_x__fid_int_start_y);
+				   config->fid_int_start_x__fid_int_start_y);
 	venc_write_reg(VENC_FID_INT_OFFSET_Y__FID_EXT_START_X,
-		       config->fid_int_offset_y__fid_ext_start_x);
+				   config->fid_int_offset_y__fid_ext_start_x);
 	venc_write_reg(VENC_FID_EXT_START_Y__FID_EXT_OFFSET_Y,
-		       config->fid_ext_start_y__fid_ext_offset_y);
+				   config->fid_ext_start_y__fid_ext_offset_y);
 
 	venc_write_reg(VENC_DAC_B__DAC_C,  venc_read_reg(VENC_DAC_B__DAC_C));
 	venc_write_reg(VENC_VIDOUT_CTRL, config->vidout_ctrl);
@@ -368,9 +375,9 @@ static void venc_write_config(const struct venc_config *config)
 	venc_write_reg(VENC_LN_SEL, config->ln_sel);
 	venc_write_reg(VENC_HTRIGGER_VTRIGGER, config->htrigger_vtrigger);
 	venc_write_reg(VENC_TVDETGP_INT_START_STOP_X,
-		       config->tvdetgp_int_start_stop_x);
+				   config->tvdetgp_int_start_stop_x);
 	venc_write_reg(VENC_TVDETGP_INT_START_STOP_Y,
-		       config->tvdetgp_int_start_stop_y);
+				   config->tvdetgp_int_start_stop_y);
 	venc_write_reg(VENC_GEN_CTRL, config->gen_ctrl);
 	venc_write_reg(VENC_F_CONTROL, config->f_control);
 	venc_write_reg(VENC_SYNC_CTRL, config->sync_ctrl);
@@ -380,9 +387,12 @@ static void venc_reset(void)
 {
 	int t = 1000;
 
-	venc_write_reg(VENC_F_CONTROL, 1<<8);
-	while (venc_read_reg(VENC_F_CONTROL) & (1<<8)) {
-		if (--t == 0) {
+	venc_write_reg(VENC_F_CONTROL, 1 << 8);
+
+	while (venc_read_reg(VENC_F_CONTROL) & (1 << 8))
+	{
+		if (--t == 0)
+		{
 			DSSERR("Failed to reset venc\n");
 			return;
 		}
@@ -417,13 +427,17 @@ static void venc_runtime_put(void)
 }
 
 static const struct venc_config *venc_timings_to_config(
-		struct omap_video_timings *timings)
+	struct omap_video_timings *timings)
 {
 	if (memcmp(&omap_dss_pal_timings, timings, sizeof(*timings)) == 0)
+	{
 		return &venc_config_pal_trm;
+	}
 
 	if (memcmp(&omap_dss_ntsc_timings, timings, sizeof(*timings)) == 0)
+	{
 		return &venc_config_ntsc_trm;
+	}
 
 	BUG();
 	return NULL;
@@ -436,8 +450,11 @@ static int venc_power_on(struct omap_dss_device *dssdev)
 	int r;
 
 	r = venc_runtime_get();
+
 	if (r)
+	{
 		goto err0;
+	}
 
 	venc_reset();
 	venc_write_config(venc_timings_to_config(&venc.timings));
@@ -448,24 +465,36 @@ static int venc_power_on(struct omap_dss_device *dssdev)
 	l = 0;
 
 	if (venc.type == OMAP_DSS_VENC_TYPE_COMPOSITE)
+	{
 		l |= 1 << 1;
+	}
 	else /* S-Video */
+	{
 		l |= (1 << 0) | (1 << 2);
+	}
 
 	if (venc.invert_polarity == false)
+	{
 		l |= 1 << 3;
+	}
 
 	venc_write_reg(VENC_OUTPUT_CONTROL, l);
 
 	dss_mgr_set_timings(mgr, &venc.timings);
 
 	r = regulator_enable(venc.vdda_dac_reg);
+
 	if (r)
+	{
 		goto err1;
+	}
 
 	r = dss_mgr_enable(mgr);
+
 	if (r)
+	{
 		goto err2;
+	}
 
 	return 0;
 
@@ -503,15 +532,19 @@ static int venc_display_enable(struct omap_dss_device *dssdev)
 
 	mutex_lock(&venc.venc_lock);
 
-	if (out->manager == NULL) {
+	if (out->manager == NULL)
+	{
 		DSSERR("Failed to enable display: no output/manager\n");
 		r = -ENODEV;
 		goto err0;
 	}
 
 	r = venc_power_on(dssdev);
+
 	if (r)
+	{
 		goto err0;
+	}
 
 	venc.wss_data = 0;
 
@@ -535,7 +568,7 @@ static void venc_display_disable(struct omap_dss_device *dssdev)
 }
 
 static void venc_set_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+							 struct omap_video_timings *timings)
 {
 	DSSDBG("venc_set_timings\n");
 
@@ -543,7 +576,9 @@ static void venc_set_timings(struct omap_dss_device *dssdev,
 
 	/* Reset WSS data when the TV standard changes. */
 	if (memcmp(&venc.timings, timings, sizeof(*timings)))
+	{
 		venc.wss_data = 0;
+	}
 
 	venc.timings = *timings;
 
@@ -553,21 +588,25 @@ static void venc_set_timings(struct omap_dss_device *dssdev,
 }
 
 static int venc_check_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+							  struct omap_video_timings *timings)
 {
 	DSSDBG("venc_check_timings\n");
 
 	if (memcmp(&omap_dss_pal_timings, timings, sizeof(*timings)) == 0)
+	{
 		return 0;
+	}
 
 	if (memcmp(&omap_dss_ntsc_timings, timings, sizeof(*timings)) == 0)
+	{
 		return 0;
+	}
 
 	return -EINVAL;
 }
 
 static void venc_get_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+							 struct omap_video_timings *timings)
 {
 	mutex_lock(&venc.venc_lock);
 
@@ -597,11 +636,14 @@ static int venc_set_wss(struct omap_dss_device *dssdev, u32 wss)
 	venc.wss_data = (wss ^ 0xfffff) << 8;
 
 	r = venc_runtime_get();
+
 	if (r)
+	{
 		goto err;
+	}
 
 	venc_write_reg(VENC_BSTAMP_WSS_DATA, config->bstamp_wss_data |
-			venc.wss_data);
+				   venc.wss_data);
 
 	venc_runtime_put();
 
@@ -612,7 +654,7 @@ err:
 }
 
 static void venc_set_type(struct omap_dss_device *dssdev,
-		enum omap_dss_venc_type type)
+						  enum omap_dss_venc_type type)
 {
 	mutex_lock(&venc.venc_lock);
 
@@ -636,16 +678,26 @@ static int venc_init_regulator(void)
 	struct regulator *vdda_dac;
 
 	if (venc.vdda_dac_reg != NULL)
+	{
 		return 0;
+	}
 
 	if (venc.pdev->dev.of_node)
+	{
 		vdda_dac = devm_regulator_get(&venc.pdev->dev, "vdda");
+	}
 	else
+	{
 		vdda_dac = devm_regulator_get(&venc.pdev->dev, "vdda_dac");
+	}
 
-	if (IS_ERR(vdda_dac)) {
+	if (IS_ERR(vdda_dac))
+	{
 		if (PTR_ERR(vdda_dac) != -EPROBE_DEFER)
+		{
 			DSSERR("can't get VDDA_DAC regulator\n");
+		}
+
 		return PTR_ERR(vdda_dac);
 	}
 
@@ -659,7 +711,9 @@ static void venc_dump_regs(struct seq_file *s)
 #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, venc_read_reg(r))
 
 	if (venc_runtime_get())
+	{
 		return;
+	}
 
 	DUMPREG(VENC_F_CONTROL);
 	DUMPREG(VENC_VIDOUT_CTRL);
@@ -712,13 +766,18 @@ static int venc_get_clocks(struct platform_device *pdev)
 {
 	struct clk *clk;
 
-	if (dss_has_feature(FEAT_VENC_REQUIRES_TV_DAC_CLK)) {
+	if (dss_has_feature(FEAT_VENC_REQUIRES_TV_DAC_CLK))
+	{
 		clk = devm_clk_get(&pdev->dev, "tv_dac_clk");
-		if (IS_ERR(clk)) {
+
+		if (IS_ERR(clk))
+		{
 			DSSERR("can't get tv_dac_clk\n");
 			return PTR_ERR(clk);
 		}
-	} else {
+	}
+	else
+	{
 		clk = NULL;
 	}
 
@@ -728,27 +787,38 @@ static int venc_get_clocks(struct platform_device *pdev)
 }
 
 static int venc_connect(struct omap_dss_device *dssdev,
-		struct omap_dss_device *dst)
+						struct omap_dss_device *dst)
 {
 	struct omap_overlay_manager *mgr;
 	int r;
 
 	r = venc_init_regulator();
+
 	if (r)
+	{
 		return r;
+	}
 
 	mgr = omap_dss_get_overlay_manager(dssdev->dispc_channel);
+
 	if (!mgr)
+	{
 		return -ENODEV;
+	}
 
 	r = dss_mgr_connect(mgr, dssdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = omapdss_output_set_device(dssdev, dst);
-	if (r) {
+
+	if (r)
+	{
 		DSSERR("failed to connect output to new device: %s\n",
-				dst->name);
+			   dst->name);
 		dss_mgr_disconnect(mgr, dssdev);
 		return r;
 	}
@@ -757,20 +827,25 @@ static int venc_connect(struct omap_dss_device *dssdev,
 }
 
 static void venc_disconnect(struct omap_dss_device *dssdev,
-		struct omap_dss_device *dst)
+							struct omap_dss_device *dst)
 {
 	WARN_ON(dst != dssdev->dst);
 
 	if (dst != dssdev->dst)
+	{
 		return;
+	}
 
 	omapdss_output_unset_device(dssdev);
 
 	if (dssdev->manager)
+	{
 		dss_mgr_disconnect(dssdev->manager, dssdev);
+	}
 }
 
-static const struct omapdss_atv_ops venc_ops = {
+static const struct omapdss_atv_ops venc_ops =
+{
 	.connect = venc_connect,
 	.disconnect = venc_disconnect,
 
@@ -818,29 +893,37 @@ static int venc_probe_of(struct platform_device *pdev)
 	int r;
 
 	ep = omapdss_of_get_first_endpoint(node);
+
 	if (!ep)
+	{
 		return 0;
+	}
 
 	venc.invert_polarity = of_property_read_bool(ep, "ti,invert-polarity");
 
 	r = of_property_read_u32(ep, "ti,channels", &channels);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&pdev->dev,
-			"failed to read property 'ti,channels': %d\n", r);
+				"failed to read property 'ti,channels': %d\n", r);
 		goto err;
 	}
 
-	switch (channels) {
-	case 1:
-		venc.type = OMAP_DSS_VENC_TYPE_COMPOSITE;
-		break;
-	case 2:
-		venc.type = OMAP_DSS_VENC_TYPE_SVIDEO;
-		break;
-	default:
-		dev_err(&pdev->dev, "bad channel propert '%d'\n", channels);
-		r = -EINVAL;
-		goto err;
+	switch (channels)
+	{
+		case 1:
+			venc.type = OMAP_DSS_VENC_TYPE_COMPOSITE;
+			break;
+
+		case 2:
+			venc.type = OMAP_DSS_VENC_TYPE_SVIDEO;
+			break;
+
+		default:
+			dev_err(&pdev->dev, "bad channel propert '%d'\n", channels);
+			r = -EINVAL;
+			goto err;
 	}
 
 	of_node_put(ep);
@@ -867,36 +950,49 @@ static int venc_bind(struct device *dev, struct device *master, void *data)
 	venc.wss_data = 0;
 
 	venc_mem = platform_get_resource(venc.pdev, IORESOURCE_MEM, 0);
-	if (!venc_mem) {
+
+	if (!venc_mem)
+	{
 		DSSERR("can't get IORESOURCE_MEM VENC\n");
 		return -EINVAL;
 	}
 
 	venc.base = devm_ioremap(&pdev->dev, venc_mem->start,
-				 resource_size(venc_mem));
-	if (!venc.base) {
+							 resource_size(venc_mem));
+
+	if (!venc.base)
+	{
 		DSSERR("can't ioremap VENC\n");
 		return -ENOMEM;
 	}
 
 	r = venc_get_clocks(pdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	pm_runtime_enable(&pdev->dev);
 
 	r = venc_runtime_get();
+
 	if (r)
+	{
 		goto err_runtime_get;
+	}
 
 	rev_id = (u8)(venc_read_reg(VENC_REV_ID) & 0xff);
 	dev_dbg(&pdev->dev, "OMAP VENC rev %d\n", rev_id);
 
 	venc_runtime_put();
 
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		r = venc_probe_of(pdev);
-		if (r) {
+
+		if (r)
+		{
 			DSSERR("Invalid DT data\n");
 			goto err_probe_of;
 		}
@@ -923,7 +1019,8 @@ static void venc_unbind(struct device *dev, struct device *master, void *data)
 	pm_runtime_disable(&pdev->dev);
 }
 
-static const struct component_ops venc_component_ops = {
+static const struct component_ops venc_component_ops =
+{
 	.bind	= venc_bind,
 	.unbind	= venc_unbind,
 };
@@ -942,7 +1039,9 @@ static int venc_remove(struct platform_device *pdev)
 static int venc_runtime_suspend(struct device *dev)
 {
 	if (venc.tv_dac_clk)
+	{
 		clk_disable_unprepare(venc.tv_dac_clk);
+	}
 
 	dispc_runtime_put();
 
@@ -954,28 +1053,36 @@ static int venc_runtime_resume(struct device *dev)
 	int r;
 
 	r = dispc_runtime_get();
+
 	if (r < 0)
+	{
 		return r;
+	}
 
 	if (venc.tv_dac_clk)
+	{
 		clk_prepare_enable(venc.tv_dac_clk);
+	}
 
 	return 0;
 }
 
-static const struct dev_pm_ops venc_pm_ops = {
+static const struct dev_pm_ops venc_pm_ops =
+{
 	.runtime_suspend = venc_runtime_suspend,
 	.runtime_resume = venc_runtime_resume,
 };
 
-static const struct of_device_id venc_of_match[] = {
+static const struct of_device_id venc_of_match[] =
+{
 	{ .compatible = "ti,omap2-venc", },
 	{ .compatible = "ti,omap3-venc", },
 	{ .compatible = "ti,omap4-venc", },
 	{},
 };
 
-static struct platform_driver omap_venchw_driver = {
+static struct platform_driver omap_venchw_driver =
+{
 	.probe		= venc_probe,
 	.remove		= venc_remove,
 	.driver         = {

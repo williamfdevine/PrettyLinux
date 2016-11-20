@@ -19,7 +19,8 @@
 
 
 /* LCD Controller Hardware Desc */
-struct nuc900fb_hw {
+struct nuc900fb_hw
+{
 	unsigned int lcd_dccs;
 	unsigned int lcd_device_ctrl;
 	unsigned int lcd_mpulcd_cmd;
@@ -39,7 +40,8 @@ struct nuc900fb_hw {
 };
 
 /* LCD Display Description */
-struct nuc900fb_display {
+struct nuc900fb_display
+{
 	/* LCD Image type */
 	unsigned type;
 
@@ -67,7 +69,8 @@ struct nuc900fb_display {
 	unsigned int scale;
 };
 
-struct nuc900fb_mach_info {
+struct nuc900fb_mach_info
+{
 	struct nuc900fb_display *displays;
 	unsigned num_displays;
 	unsigned default_display;

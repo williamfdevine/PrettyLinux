@@ -5,7 +5,8 @@
 /*
  * Public API for use by IOMMU drivers
  */
-enum io_pgtable_fmt {
+enum io_pgtable_fmt
+{
 	ARM_32_LPAE_S1,
 	ARM_32_LPAE_S2,
 	ARM_64_LPAE_S1,
@@ -26,10 +27,11 @@ enum io_pgtable_fmt {
  * Note that these can all be called in atomic context and must therefore
  * not block.
  */
-struct iommu_gather_ops {
+struct iommu_gather_ops
+{
 	void (*tlb_flush_all)(void *cookie);
 	void (*tlb_add_flush)(unsigned long iova, size_t size, size_t granule,
-			      bool leaf, void *cookie);
+						  bool leaf, void *cookie);
 	void (*tlb_sync)(void *cookie);
 };
 
@@ -46,7 +48,8 @@ struct iommu_gather_ops {
  * @iommu_dev:     The device representing the DMA configuration for the
  *                 page table walker.
  */
-struct io_pgtable_cfg {
+struct io_pgtable_cfg
+{
 	/*
 	 * IO_PGTABLE_QUIRK_ARM_NS: (ARM formats) Set NS and NSTABLE bits in
 	 *	stage 1 PTEs, for hardware which insists on validating them
@@ -66,10 +69,10 @@ struct io_pgtable_cfg {
 	 *	when the SoC is in "4GB mode" and they can only access the high
 	 *	remap of DRAM (0x1_00000000 to 0x1_ffffffff).
 	 */
-	#define IO_PGTABLE_QUIRK_ARM_NS		BIT(0)
-	#define IO_PGTABLE_QUIRK_NO_PERMS	BIT(1)
-	#define IO_PGTABLE_QUIRK_TLBI_ON_MAP	BIT(2)
-	#define IO_PGTABLE_QUIRK_ARM_MTK_4GB	BIT(3)
+#define IO_PGTABLE_QUIRK_ARM_NS		BIT(0)
+#define IO_PGTABLE_QUIRK_NO_PERMS	BIT(1)
+#define IO_PGTABLE_QUIRK_TLBI_ON_MAP	BIT(2)
+#define IO_PGTABLE_QUIRK_ARM_MTK_4GB	BIT(3)
 	unsigned long			quirks;
 	unsigned long			pgsize_bitmap;
 	unsigned int			ias;
@@ -78,19 +81,23 @@ struct io_pgtable_cfg {
 	struct device			*iommu_dev;
 
 	/* Low-level data specific to the table format */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u64	ttbr[2];
 			u64	tcr;
 			u64	mair[2];
 		} arm_lpae_s1_cfg;
 
-		struct {
+		struct
+		{
 			u64	vttbr;
 			u64	vtcr;
 		} arm_lpae_s2_cfg;
 
-		struct {
+		struct
+		{
 			u32	ttbr[2];
 			u32	tcr;
 			u32	nmrr;
@@ -109,13 +116,14 @@ struct io_pgtable_cfg {
  * These functions map directly onto the iommu_ops member functions with
  * the same names.
  */
-struct io_pgtable_ops {
+struct io_pgtable_ops
+{
 	int (*map)(struct io_pgtable_ops *ops, unsigned long iova,
-		   phys_addr_t paddr, size_t size, int prot);
+			   phys_addr_t paddr, size_t size, int prot);
 	int (*unmap)(struct io_pgtable_ops *ops, unsigned long iova,
-		     size_t size);
+				 size_t size);
 	phys_addr_t (*iova_to_phys)(struct io_pgtable_ops *ops,
-				    unsigned long iova);
+								unsigned long iova);
 };
 
 /**
@@ -129,8 +137,8 @@ struct io_pgtable_ops {
  *          the callback routines in cfg->tlb.
  */
 struct io_pgtable_ops *alloc_io_pgtable_ops(enum io_pgtable_fmt fmt,
-					    struct io_pgtable_cfg *cfg,
-					    void *cookie);
+		struct io_pgtable_cfg *cfg,
+		void *cookie);
 
 /**
  * free_io_pgtable_ops() - Free an io_pgtable_ops structure. The caller
@@ -156,7 +164,8 @@ void free_io_pgtable_ops(struct io_pgtable_ops *ops);
  * @cfg:    A copy of the page table configuration.
  * @ops:    The page table operations in use for this set of page tables.
  */
-struct io_pgtable {
+struct io_pgtable
+{
 	enum io_pgtable_fmt	fmt;
 	void			*cookie;
 	bool			tlb_sync_pending;
@@ -181,7 +190,8 @@ static inline void io_pgtable_tlb_add_flush(struct io_pgtable *iop,
 
 static inline void io_pgtable_tlb_sync(struct io_pgtable *iop)
 {
-	if (iop->tlb_sync_pending) {
+	if (iop->tlb_sync_pending)
+	{
 		iop->cfg.tlb->tlb_sync(iop->cookie);
 		iop->tlb_sync_pending = false;
 	}
@@ -194,7 +204,8 @@ static inline void io_pgtable_tlb_sync(struct io_pgtable *iop)
  * @alloc: Allocate a set of page tables described by cfg.
  * @free:  Free the page tables associated with iop.
  */
-struct io_pgtable_init_fns {
+struct io_pgtable_init_fns
+{
 	struct io_pgtable *(*alloc)(struct io_pgtable_cfg *cfg, void *cookie);
 	void (*free)(struct io_pgtable *iop);
 };

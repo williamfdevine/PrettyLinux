@@ -10,7 +10,7 @@
 #include <linux/uwb/umc.h>
 
 int __umc_driver_register(struct umc_driver *umc_drv, struct module *module,
-			  const char *mod_name)
+						  const char *mod_name)
 {
 	umc_drv->driver.name     = umc_drv->name;
 	umc_drv->driver.owner    = module;

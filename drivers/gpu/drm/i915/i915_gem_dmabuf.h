@@ -33,11 +33,17 @@ i915_gem_object_get_dmabuf_resv(struct drm_i915_gem_object *obj)
 	struct dma_buf *dma_buf;
 
 	if (obj->base.dma_buf)
+	{
 		dma_buf = obj->base.dma_buf;
+	}
 	else if (obj->base.import_attach)
+	{
 		dma_buf = obj->base.import_attach->dmabuf;
+	}
 	else
+	{
 		return NULL;
+	}
 
 	return dma_buf->resv;
 }

@@ -103,7 +103,9 @@ static uint8_t hash(unsigned offset)
 static int write_page(int log)
 {
 	if (log)
+	{
 		pr_info("write_page\n");
+	}
 
 	return mtdtest_write(mtd, offset, mtd->writesize, wbuffer);
 }
@@ -115,7 +117,9 @@ static int rewrite_page(int log)
 	struct mtd_oob_ops ops;
 
 	if (log)
+	{
 		pr_info("rewrite page\n");
+	}
 
 	ops.mode      = MTD_OPS_RAW; /* No ECC */
 	ops.len       = mtd->writesize;
@@ -127,10 +131,15 @@ static int rewrite_page(int log)
 	ops.oobbuf    = NULL;
 
 	err = mtd_write_oob(mtd, offset, &ops);
-	if (err || ops.retlen != mtd->writesize) {
+
+	if (err || ops.retlen != mtd->writesize)
+	{
 		pr_err("error: write_oob failed (%d)\n", err);
+
 		if (!err)
+		{
 			err = -EIO;
+		}
 	}
 
 	return err;
@@ -145,19 +154,28 @@ static int read_page(int log)
 	struct mtd_ecc_stats oldstats;
 
 	if (log)
+	{
 		pr_info("read_page\n");
+	}
 
 	/* Saving last mtd stats */
 	memcpy(&oldstats, &mtd->ecc_stats, sizeof(oldstats));
 
 	err = mtd_read(mtd, offset, mtd->writesize, &read, rbuffer);
-	if (err == -EUCLEAN)
-		err = mtd->ecc_stats.corrected - oldstats.corrected;
 
-	if (err < 0 || read != mtd->writesize) {
+	if (err == -EUCLEAN)
+	{
+		err = mtd->ecc_stats.corrected - oldstats.corrected;
+	}
+
+	if (err < 0 || read != mtd->writesize)
+	{
 		pr_err("error: read failed at %#llx\n", (long long)offset);
+
 		if (err >= 0)
+		{
 			err = -EIO;
+		}
 	}
 
 	return err;
@@ -169,20 +187,28 @@ static int verify_page(int log)
 	unsigned i, errs = 0;
 
 	if (log)
+	{
 		pr_info("verify_page\n");
+	}
 
-	for (i = 0; i < mtd->writesize; i++) {
-		if (rbuffer[i] != hash(i+seed)) {
+	for (i = 0; i < mtd->writesize; i++)
+	{
+		if (rbuffer[i] != hash(i + seed))
+		{
 			pr_err("Error: page offset %u, expected %02x, got %02x\n",
-				i, hash(i+seed), rbuffer[i]);
+				   i, hash(i + seed), rbuffer[i]);
 			errs++;
 		}
 	}
 
 	if (errs)
+	{
 		return -EIO;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 #define CBIT(v, n) ((v) & (1 << (n)))
@@ -194,16 +220,21 @@ static int insert_biterror(unsigned byte)
 {
 	int bit;
 
-	while (byte < mtd->writesize) {
-		for (bit = 7; bit >= 0; bit--) {
-			if (CBIT(wbuffer[byte], bit)) {
+	while (byte < mtd->writesize)
+	{
+		for (bit = 7; bit >= 0; bit--)
+		{
+			if (CBIT(wbuffer[byte], bit))
+			{
 				BCLR(wbuffer[byte], bit);
 				pr_info("Inserted biterror @ %u/%u\n", byte, bit);
 				return 0;
 			}
 		}
+
 		byte++;
 	}
+
 	pr_err("biterror: Failed to find a '1' bit\n");
 	return -EIO;
 }
@@ -219,42 +250,63 @@ static int incremental_errors_test(void)
 	pr_info("incremental biterrors test\n");
 
 	for (i = 0; i < mtd->writesize; i++)
-		wbuffer[i] = hash(i+seed);
+	{
+		wbuffer[i] = hash(i + seed);
+	}
 
 	err = write_page(1);
-	if (err)
-		goto exit;
 
-	while (1) {
+	if (err)
+	{
+		goto exit;
+	}
+
+	while (1)
+	{
 
 		err = rewrite_page(1);
+
 		if (err)
+		{
 			goto exit;
+		}
 
 		err = read_page(1);
+
 		if (err > 0)
+		{
 			pr_info("Read reported %d corrected bit errors\n", err);
-		if (err < 0) {
+		}
+
+		if (err < 0)
+		{
 			pr_err("After %d biterrors per subpage, read reported error %d\n",
-				errs_per_subpage, err);
+				   errs_per_subpage, err);
 			err = 0;
 			goto exit;
 		}
 
 		err = verify_page(1);
-		if (err) {
+
+		if (err)
+		{
 			pr_err("ECC failure, read data is incorrect despite read success\n");
 			goto exit;
 		}
 
 		pr_info("Successfully corrected %d bit errors per subpage\n",
-			errs_per_subpage);
+				errs_per_subpage);
 
-		for (i = 0; i < subcount; i++) {
+		for (i = 0; i < subcount; i++)
+		{
 			err = insert_biterror(i * subsize);
+
 			if (err < 0)
+			{
 				goto exit;
+			}
 		}
+
 		errs_per_subpage++;
 	}
 
@@ -274,7 +326,7 @@ static int overwrite_test(void)
 	unsigned opno = 0;
 	/* We don't expect more than this many correctable bit errors per
 	 * page. */
-	#define MAXBITS 512
+#define MAXBITS 512
 	static unsigned bitstats[MAXBITS]; /* bit error histogram. */
 
 	memset(bitstats, 0, sizeof(bitstats));
@@ -282,47 +334,69 @@ static int overwrite_test(void)
 	pr_info("overwrite biterrors test\n");
 
 	for (i = 0; i < mtd->writesize; i++)
-		wbuffer[i] = hash(i+seed);
+	{
+		wbuffer[i] = hash(i + seed);
+	}
 
 	err = write_page(1);
-	if (err)
-		goto exit;
 
-	while (opno < max_overwrite) {
+	if (err)
+	{
+		goto exit;
+	}
+
+	while (opno < max_overwrite)
+	{
 
 		err = write_page(0);
+
 		if (err)
+		{
 			break;
+		}
 
 		err = read_page(0);
-		if (err >= 0) {
-			if (err >= MAXBITS) {
+
+		if (err >= 0)
+		{
+			if (err >= MAXBITS)
+			{
 				pr_info("Implausible number of bit errors corrected\n");
 				err = -EIO;
 				break;
 			}
+
 			bitstats[err]++;
-			if (err > max_corrected) {
+
+			if (err > max_corrected)
+			{
 				max_corrected = err;
 				pr_info("Read reported %d corrected bit errors\n",
-					err);
+						err);
 			}
-		} else { /* err < 0 */
+		}
+		else     /* err < 0 */
+		{
 			pr_info("Read reported error %d\n", err);
 			err = 0;
 			break;
 		}
 
 		err = verify_page(0);
-		if (err) {
+
+		if (err)
+		{
 			bitstats[max_corrected] = opno;
 			pr_info("ECC failure, read data is incorrect despite read success\n");
 			break;
 		}
 
 		err = mtdtest_relax();
+
 		if (err)
+		{
 			break;
+		}
 
 		opno++;
 	}
@@ -330,9 +404,10 @@ static int overwrite_test(void)
 	/* At this point bitstats[0] contains the number of ops with no bit
 	 * errors, bitstats[1] the number of ops with 1 bit error, etc. */
 	pr_info("Bit error histogram (%d operations total):\n", opno);
+
 	for (i = 0; i < max_corrected; i++)
 		pr_info("Page reads with %3d corrected bit errors: %d\n",
-			i, bitstats[i]);
+				i, bitstats[i]);
 
 exit:
 	return err;
@@ -347,21 +422,24 @@ static int __init mtd_nandbiterrs_init(void)
 	pr_info("MTD device: %d\n", dev);
 
 	mtd = get_mtd_device(NULL, dev);
-	if (IS_ERR(mtd)) {
+
+	if (IS_ERR(mtd))
+	{
 		err = PTR_ERR(mtd);
 		pr_err("error: cannot get MTD device\n");
 		goto exit_mtddev;
 	}
 
-	if (!mtd_type_is_nand(mtd)) {
+	if (!mtd_type_is_nand(mtd))
+	{
 		pr_info("this test requires NAND flash\n");
 		err = -ENODEV;
 		goto exit_nand;
 	}
 
 	pr_info("MTD device size %llu, eraseblock=%u, page=%u, oob=%u\n",
-		(unsigned long long)mtd->size, mtd->erasesize,
-		mtd->writesize, mtd->oobsize);
+			(unsigned long long)mtd->size, mtd->erasesize,
+			mtd->writesize, mtd->oobsize);
 
 	subsize  = mtd->writesize >> mtd->subpage_sft;
 	subcount = mtd->writesize / subsize;
@@ -372,36 +450,52 @@ static int __init mtd_nandbiterrs_init(void)
 	eraseblock = mtd_div_by_eb(offset, mtd);
 
 	pr_info("Using page=%u, offset=%llu, eraseblock=%u\n",
-		page_offset, offset, eraseblock);
+			page_offset, offset, eraseblock);
 
 	wbuffer = kmalloc(mtd->writesize, GFP_KERNEL);
-	if (!wbuffer) {
+
+	if (!wbuffer)
+	{
 		err = -ENOMEM;
 		goto exit_wbuffer;
 	}
 
 	rbuffer = kmalloc(mtd->writesize, GFP_KERNEL);
-	if (!rbuffer) {
+
+	if (!rbuffer)
+	{
 		err = -ENOMEM;
 		goto exit_rbuffer;
 	}
 
 	err = mtdtest_erase_eraseblock(mtd, eraseblock);
+
 	if (err)
+	{
 		goto exit_error;
+	}
 
 	if (mode == 0)
+	{
 		err = incremental_errors_test();
+	}
 	else
+	{
 		err = overwrite_test();
+	}
 
 	if (err)
+	{
 		goto exit_error;
+	}
 
 	/* We leave the block un-erased in case of test failure. */
 	err = mtdtest_erase_eraseblock(mtd, eraseblock);
+
 	if (err)
+	{
 		goto exit_error;
+	}
 
 	err = -EIO;
 	pr_info("finished successfully.\n");

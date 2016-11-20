@@ -6,7 +6,8 @@
 #ifndef __LINUX_PLATFORM_DATA_AD5755_H__
 #define __LINUX_PLATFORM_DATA_AD5755_H__
 
-enum ad5755_mode {
+enum ad5755_mode
+{
 	AD5755_MODE_VOLTAGE_0V_5V		= 0,
 	AD5755_MODE_VOLTAGE_0V_10V		= 1,
 	AD5755_MODE_VOLTAGE_PLUSMINUS_5V	= 2,
@@ -16,27 +17,31 @@ enum ad5755_mode {
 	AD5755_MODE_CURRENT_0mA_24mA		= 6,
 };
 
-enum ad5755_dc_dc_phase {
+enum ad5755_dc_dc_phase
+{
 	AD5755_DC_DC_PHASE_ALL_SAME_EDGE		= 0,
 	AD5755_DC_DC_PHASE_A_B_SAME_EDGE_C_D_OPP_EDGE	= 1,
 	AD5755_DC_DC_PHASE_A_C_SAME_EDGE_B_D_OPP_EDGE	= 2,
 	AD5755_DC_DC_PHASE_90_DEGREE			= 3,
 };
 
-enum ad5755_dc_dc_freq {
+enum ad5755_dc_dc_freq
+{
 	AD5755_DC_DC_FREQ_250kHZ = 0,
 	AD5755_DC_DC_FREQ_410kHZ = 1,
 	AD5755_DC_DC_FREQ_650kHZ = 2,
 };
 
-enum ad5755_dc_dc_maxv {
+enum ad5755_dc_dc_maxv
+{
 	AD5755_DC_DC_MAXV_23V	= 0,
 	AD5755_DC_DC_MAXV_24V5	= 1,
 	AD5755_DC_DC_MAXV_27V	= 2,
 	AD5755_DC_DC_MAXV_29V5	= 3,
 };
 
-enum ad5755_slew_rate {
+enum ad5755_slew_rate
+{
 	AD5755_SLEW_RATE_64k	= 0,
 	AD5755_SLEW_RATE_32k	= 1,
 	AD5755_SLEW_RATE_16k	= 2,
@@ -55,7 +60,8 @@ enum ad5755_slew_rate {
 	AD5755_SLEW_RATE_0_5	= 15,
 };
 
-enum ad5755_slew_step_size {
+enum ad5755_slew_step_size
+{
 	AD5755_SLEW_STEP_SIZE_1 = 0,
 	AD5755_SLEW_STEP_SIZE_2 = 1,
 	AD5755_SLEW_STEP_SIZE_4 = 2,
@@ -82,17 +88,20 @@ enum ad5755_slew_step_size {
  * @dac.slew.rate: Slew rate of the digital slew.
  * @dac.slew.step_size: Slew step size of the digital slew.
  **/
-struct ad5755_platform_data {
+struct ad5755_platform_data
+{
 	bool ext_dc_dc_compenstation_resistor;
 	enum ad5755_dc_dc_phase dc_dc_phase;
 	enum ad5755_dc_dc_freq dc_dc_freq;
 	enum ad5755_dc_dc_maxv dc_dc_maxv;
 
-	struct {
+	struct
+	{
 		enum ad5755_mode mode;
 		bool ext_current_sense_resistor;
 		bool enable_voltage_overrange;
-		struct {
+		struct
+		{
 			bool enable;
 			enum ad5755_slew_rate rate;
 			enum ad5755_slew_step_size step_size;

@@ -24,8 +24,8 @@
 
 unsigned int
 nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
-		       const struct nf_nat_range *range,
-		       const struct net_device *out)
+					   const struct nf_nat_range *range,
+					   const struct net_device *out)
 {
 	struct nf_conn *ct;
 	struct nf_conn_nat *nat;
@@ -40,18 +40,22 @@ nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
 	nat = nfct_nat(ct);
 
 	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
-			    ctinfo == IP_CT_RELATED_REPLY));
+						ctinfo == IP_CT_RELATED_REPLY));
 
 	/* Source address is 0.0.0.0 - locally generated packet that is
 	 * probably not supposed to be masqueraded.
 	 */
 	if (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.ip == 0)
+	{
 		return NF_ACCEPT;
+	}
 
 	rt = skb_rtable(skb);
 	nh = rt_nexthop(rt, ip_hdr(skb)->daddr);
 	newsrc = inet_select_addr(out, nh, RT_SCOPE_UNIVERSE);
-	if (!newsrc) {
+
+	if (!newsrc)
+	{
 		pr_info("%s ate my IP address\n", out->name);
 		return NF_DROP;
 	}
@@ -77,20 +81,27 @@ static int device_cmp(struct nf_conn *i, void *ifindex)
 	const struct nf_conn_nat *nat = nfct_nat(i);
 
 	if (!nat)
+	{
 		return 0;
+	}
+
 	if (nf_ct_l3num(i) != NFPROTO_IPV4)
+	{
 		return 0;
+	}
+
 	return nat->masq_index == (int)(long)ifindex;
 }
 
 static int masq_device_event(struct notifier_block *this,
-			     unsigned long event,
-			     void *ptr)
+							 unsigned long event,
+							 void *ptr)
 {
 	const struct net_device *dev = netdev_notifier_info_to_dev(ptr);
 	struct net *net = dev_net(dev);
 
-	if (event == NETDEV_DOWN) {
+	if (event == NETDEV_DOWN)
+	{
 		/* Device was downed.  Search entire table for
 		 * conntracks which were associated with that device,
 		 * and forget them.
@@ -98,15 +109,15 @@ static int masq_device_event(struct notifier_block *this,
 		NF_CT_ASSERT(dev->ifindex != 0);
 
 		nf_ct_iterate_cleanup(net, device_cmp,
-				      (void *)(long)dev->ifindex, 0, 0);
+							  (void *)(long)dev->ifindex, 0, 0);
 	}
 
 	return NOTIFY_DONE;
 }
 
 static int masq_inet_event(struct notifier_block *this,
-			   unsigned long event,
-			   void *ptr)
+						   unsigned long event,
+						   void *ptr)
 {
 	struct in_device *idev = ((struct in_ifaddr *)ptr)->ifa_dev;
 	struct netdev_notifier_info info;
@@ -117,17 +128,21 @@ static int masq_inet_event(struct notifier_block *this,
 	 * and we have to perform the flush.
 	 */
 	if (idev->dead)
+	{
 		return NOTIFY_DONE;
+	}
 
 	netdev_notifier_info_init(&info, idev->dev);
 	return masq_device_event(this, event, &info);
 }
 
-static struct notifier_block masq_dev_notifier = {
+static struct notifier_block masq_dev_notifier =
+{
 	.notifier_call	= masq_device_event,
 };
 
-static struct notifier_block masq_inet_notifier = {
+static struct notifier_block masq_inet_notifier =
+{
 	.notifier_call	= masq_inet_event,
 };
 
@@ -137,7 +152,9 @@ void nf_nat_masquerade_ipv4_register_notifier(void)
 {
 	/* check if the notifier was already set */
 	if (atomic_inc_return(&masquerade_notifier_refcount) > 1)
+	{
 		return;
+	}
 
 	/* Register for device down reports */
 	register_netdevice_notifier(&masq_dev_notifier);
@@ -150,7 +167,9 @@ void nf_nat_masquerade_ipv4_unregister_notifier(void)
 {
 	/* check if the notifier still has clients */
 	if (atomic_dec_return(&masquerade_notifier_refcount) > 0)
+	{
 		return;
+	}
 
 	unregister_netdevice_notifier(&masq_dev_notifier);
 	unregister_inetaddr_notifier(&masq_inet_notifier);

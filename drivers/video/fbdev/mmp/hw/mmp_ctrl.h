@@ -28,33 +28,34 @@
 #include <video/mmp_disp.h>
 
 /* ------------< LCD register >------------ */
-struct lcd_regs {
-/* TV patch register for MMP2 */
-/* 32 bit		TV Video Frame0 Y Starting Address */
+struct lcd_regs
+{
+	/* TV patch register for MMP2 */
+	/* 32 bit		TV Video Frame0 Y Starting Address */
 #define LCD_TVD_START_ADDR_Y0			(0x0000)
-/* 32 bit		TV Video Frame0 U Starting Address */
+	/* 32 bit		TV Video Frame0 U Starting Address */
 #define LCD_TVD_START_ADDR_U0			(0x0004)
-/* 32 bit		TV Video Frame0 V Starting Address */
+	/* 32 bit		TV Video Frame0 V Starting Address */
 #define LCD_TVD_START_ADDR_V0			(0x0008)
-/* 32 bit		TV Video Frame0 Command Starting Address */
+	/* 32 bit		TV Video Frame0 Command Starting Address */
 #define LCD_TVD_START_ADDR_C0			(0x000C)
-/* 32 bit		TV Video Frame1 Y Starting Address Register*/
+	/* 32 bit		TV Video Frame1 Y Starting Address Register*/
 #define LCD_TVD_START_ADDR_Y1			(0x0010)
-/* 32 bit		TV Video Frame1 U Starting Address Register*/
+	/* 32 bit		TV Video Frame1 U Starting Address Register*/
 #define LCD_TVD_START_ADDR_U1			(0x0014)
-/* 32 bit		TV Video Frame1 V Starting Address Register*/
+	/* 32 bit		TV Video Frame1 V Starting Address Register*/
 #define LCD_TVD_START_ADDR_V1			(0x0018)
-/* 32 bit		TV Video Frame1 Command Starting Address Register*/
+	/* 32 bit		TV Video Frame1 Command Starting Address Register*/
 #define LCD_TVD_START_ADDR_C1			(0x001C)
-/* 32 bit		TV Video Y andC Line Length(Pitch)Register*/
+	/* 32 bit		TV Video Y andC Line Length(Pitch)Register*/
 #define LCD_TVD_PITCH_YC			(0x0020)
-/* 32 bit		TV Video U andV Line Length(Pitch)Register*/
+	/* 32 bit		TV Video U andV Line Length(Pitch)Register*/
 #define LCD_TVD_PITCH_UV			(0x0024)
-/* 32 bit	  TV Video Starting Point on Screen Register*/
+	/* 32 bit	  TV Video Starting Point on Screen Register*/
 #define LCD_TVD_OVSA_HPXL_VLN			(0x0028)
-/* 32 bit		TV Video Source Size Register*/
+	/* 32 bit		TV Video Source Size Register*/
 #define LCD_TVD_HPXL_VLN			(0x002C)
-/* 32 bit	  TV Video Destination Size (After Zooming)Register*/
+	/* 32 bit	  TV Video Destination Size (After Zooming)Register*/
 #define LCD_TVDZM_HPXL_VLN			(0x0030)
 	u32 v_y0;
 	u32 v_u0;
@@ -70,17 +71,17 @@ struct lcd_regs {
 	u32 v_size;			/* Video Source Size */
 	u32 v_size_z;		/* Video Destination Size (After Zooming) */
 
-/* 32 bit	   TV Graphic Frame 0 Starting Address Register*/
+	/* 32 bit	   TV Graphic Frame 0 Starting Address Register*/
 #define LCD_TVG_START_ADDR0				(0x0034)
-/* 32 bit	  TV Graphic Frame 1 Starting Address Register*/
+	/* 32 bit	  TV Graphic Frame 1 Starting Address Register*/
 #define LCD_TVG_START_ADDR1				(0x0038)
-/* 32 bit		TV Graphic Line Length(Pitch)Register*/
+	/* 32 bit		TV Graphic Line Length(Pitch)Register*/
 #define LCD_TVG_PITCH					(0x003C)
-/* 32 bit		TV Graphic Starting Point on Screen Register*/
+	/* 32 bit		TV Graphic Starting Point on Screen Register*/
 #define LCD_TVG_OVSA_HPXL_VLN				(0x0040)
-/* 32 bit		TV Graphic Source Size Register*/
+	/* 32 bit		TV Graphic Source Size Register*/
 #define LCD_TVG_HPXL_VLN				(0x0044)
-/* 32 bit		TV Graphic Destination size (after Zooming)Register*/
+	/* 32 bit		TV Graphic Destination size (after Zooming)Register*/
 #define LCD_TVGZM_HPXL_VLN				(0x0048)
 	u32 g_0;			/* Graphic Frame 0/1 Starting Address */
 	u32 g_1;
@@ -89,57 +90,57 @@ struct lcd_regs {
 	u32 g_size;			/* Graphic Source Size */
 	u32 g_size_z;		/* Graphic Destination Size (After Zooming) */
 
-/* 32 bit	  TV Hardware Cursor Starting Point on screen Register*/
+	/* 32 bit	  TV Hardware Cursor Starting Point on screen Register*/
 #define LCD_TVC_OVSA_HPXL_VLN				(0x004C)
-/* 32 bit		TV Hardware Cursor Size Register */
+	/* 32 bit		TV Hardware Cursor Size Register */
 #define LCD_TVC_HPXL_VLN				(0x0050)
 	u32 hc_start;			/* Hardware Cursor */
 	u32 hc_size;			/* Hardware Cursor */
 
-/* 32 bit		TV Total Screen Size Register*/
+	/* 32 bit		TV Total Screen Size Register*/
 #define LCD_TV_V_H_TOTAL				(0x0054)
-/* 32 bit		TV Screen Active Size Register*/
+	/* 32 bit		TV Screen Active Size Register*/
 #define LCD_TV_V_H_ACTIVE				(0x0058)
-/* 32 bit		TV Screen Horizontal Porch Register*/
+	/* 32 bit		TV Screen Horizontal Porch Register*/
 #define LCD_TV_H_PORCH					(0x005C)
-/* 32 bit		TV Screen Vertical Porch Register*/
+	/* 32 bit		TV Screen Vertical Porch Register*/
 #define LCD_TV_V_PORCH					(0x0060)
 	u32 screen_size;		/* Screen Total Size */
 	u32 screen_active;		/* Screen Active Size */
 	u32 screen_h_porch;		/* Screen Horizontal Porch */
 	u32 screen_v_porch;		/* Screen Vertical Porch */
 
-/* 32 bit		TV Screen Blank Color Register*/
+	/* 32 bit		TV Screen Blank Color Register*/
 #define LCD_TV_BLANKCOLOR				(0x0064)
-/* 32 bit		TV Hardware Cursor Color1 Register*/
+	/* 32 bit		TV Hardware Cursor Color1 Register*/
 #define LCD_TV_ALPHA_COLOR1				(0x0068)
-/* 32 bit		TV Hardware Cursor Color2 Register*/
+	/* 32 bit		TV Hardware Cursor Color2 Register*/
 #define LCD_TV_ALPHA_COLOR2				(0x006C)
 	u32 blank_color;		/* Screen Blank Color */
 	u32 hc_Alpha_color1;	/* Hardware Cursor Color1 */
 	u32 hc_Alpha_color2;	/* Hardware Cursor Color2 */
 
-/* 32 bit		TV Video Y Color Key Control*/
+	/* 32 bit		TV Video Y Color Key Control*/
 #define LCD_TV_COLORKEY_Y				(0x0070)
-/* 32 bit		TV Video U Color Key Control*/
+	/* 32 bit		TV Video U Color Key Control*/
 #define LCD_TV_COLORKEY_U				(0x0074)
-/* 32 bit		TV Video V Color Key Control*/
+	/* 32 bit		TV Video V Color Key Control*/
 #define LCD_TV_COLORKEY_V				(0x0078)
 	u32 v_colorkey_y;		/* Video Y Color Key Control */
 	u32 v_colorkey_u;		/* Video U Color Key Control */
 	u32 v_colorkey_v;		/* Video V Color Key Control */
 
-/* 32 bit		TV VSYNC PulsePixel Edge Control Register*/
+	/* 32 bit		TV VSYNC PulsePixel Edge Control Register*/
 #define LCD_TV_SEPXLCNT					(0x007C)
 	u32 vsync_ctrl;			/* VSYNC PulsePixel Edge Control */
 };
 
 #define intf_ctrl(id)		((id) ? (((id) & 1) ? LCD_TVIF_CTRL : \
-				LCD_DUMB2_CTRL) : LCD_SPU_DUMB_CTRL)
+									 LCD_DUMB2_CTRL) : LCD_SPU_DUMB_CTRL)
 #define dma_ctrl0(id)	   ((id) ? (((id) & 1) ? LCD_TV_CTRL0 : \
-				LCD_PN2_CTRL0) : LCD_SPU_DMA_CTRL0)
+									LCD_PN2_CTRL0) : LCD_SPU_DMA_CTRL0)
 #define dma_ctrl1(id)	   ((id) ? (((id) & 1) ? LCD_TV_CTRL1 : \
-				LCD_PN2_CTRL1) : LCD_SPU_DMA_CTRL1)
+									LCD_PN2_CTRL1) : LCD_SPU_DMA_CTRL1)
 #define dma_ctrl(ctrl1, id)	 (ctrl1 ? dma_ctrl1(id) : dma_ctrl0(id))
 
 /* 32 bit		TV Path DMA Control 0*/
@@ -162,9 +163,9 @@ struct lcd_regs {
 #define LCD_TCLK_DIV					(0x009C)
 
 #define LCD_SCLK(path) ((PATH_PN == path->id) ? LCD_CFG_SCLK_DIV :\
-	((PATH_TV == path->id) ? LCD_TCLK_DIV : LCD_PN2_SCLK_DIV))
+						((PATH_TV == path->id) ? LCD_TCLK_DIV : LCD_PN2_SCLK_DIV))
 #define intf_rbswap_ctrl(id)	((id) ? (((id) & 1) ? LCD_TVIF_CTRL : \
-				PN2_IOPAD_CONTROL) : LCD_TOP_CTRL)
+								 PN2_IOPAD_CONTROL) : LCD_TOP_CTRL)
 
 /* dither configure */
 #define LCD_DITHER_CTRL				(0x00A0)
@@ -468,8 +469,8 @@ struct lcd_regs {
 #define	 CFG_GRA_ENA(gra)			((gra)<<8)
 #define	 CFG_GRA_ENA_MASK			0x00000100
 #define dma0_gfx_masks	(CFG_GRAFORMAT_MASK | CFG_GRA_FTOGGLE_MASK | \
-	CFG_GRA_HSMOOTH_MASK | CFG_GRA_TSTMODE_MASK | CFG_GRA_SWAP_MASK | \
-	CFG_YUV2RGB_GRA_MASK | CFG_GRA_ENA_MASK)
+						 CFG_GRA_HSMOOTH_MASK | CFG_GRA_TSTMODE_MASK | CFG_GRA_SWAP_MASK | \
+						 CFG_YUV2RGB_GRA_MASK | CFG_GRA_ENA_MASK)
 /* for video part */
 #define	 CFG_DMA_FTOGGLE(toggle)		((toggle)<<7)
 #define	 CFG_DMA_FTOGGLE_MASK			0x00000080
@@ -489,8 +490,8 @@ struct lcd_regs {
 #define	 CFG_DMA_ENA(video)			(video)
 #define	 CFG_DMA_ENA_MASK			0x00000001
 #define dma0_vid_masks	(CFG_DMAFORMAT_MASK | CFG_DMA_FTOGGLE_MASK | \
-	CFG_DMA_HSMOOTH_MASK | CFG_DMA_TSTMODE_MASK | CFG_DMA_SWAP_MASK | \
-	CFG_YUV2RGB_DMA_MASK | CFG_DMA_ENA_MASK)
+						 CFG_DMA_HSMOOTH_MASK | CFG_DMA_TSTMODE_MASK | CFG_DMA_SWAP_MASK | \
+						 CFG_YUV2RGB_DMA_MASK | CFG_DMA_ENA_MASK)
 #define dma_palette(val)		((val ? 1 : 0) << 28)
 #define dma_fmt(vid, val)		((val & 0xf) << ((vid) ? 20 : 16))
 #define dma_swaprb(vid, val)		((val ? 1 : 0) << ((vid) ? 4 : 12))
@@ -499,7 +500,7 @@ struct lcd_regs {
 #define dma_csc(vid, val)		((val ? 1 : 0) << ((vid) ? 1 : 9))
 #define dma_hsmooth(vid, val)		((val ? 1 : 0) << ((vid) ? 6 : 14))
 #define dma_mask(vid)	(dma_palette(1) | dma_fmt(vid, 0xf) | dma_csc(vid, 1) \
-	| dma_swaprb(vid, 1) | dma_swapuv(vid, 1) | dma_swapyuv(vid, 1))
+						 | dma_swaprb(vid, 1) | dma_swapuv(vid, 1) | dma_swapyuv(vid, 1))
 
 /* DMA Control 1 Register */
 #define LCD_SPU_DMA_CTRL1			0x0194
@@ -713,46 +714,46 @@ struct lcd_regs {
 #define	 PN2_SYNC_IRQ_ENA_MASK			0x00000001
 
 #define gf0_imask(id)	((id) ? (((id) & 1) ? TV_FRAME_IRQ0_ENA_MASK \
-		: PN2_GRA_FRAME_IRQ0_ENA_MASK) : GRA_FRAME_IRQ0_ENA_MASK)
+								 : PN2_GRA_FRAME_IRQ0_ENA_MASK) : GRA_FRAME_IRQ0_ENA_MASK)
 #define gf1_imask(id)	((id) ? (((id) & 1) ? TV_FRAME_IRQ1_ENA_MASK \
-		: PN2_GRA_FRAME_IRQ1_ENA_MASK) : GRA_FRAME_IRQ1_ENA_MASK)
+								 : PN2_GRA_FRAME_IRQ1_ENA_MASK) : GRA_FRAME_IRQ1_ENA_MASK)
 #define vsync_imask(id)	((id) ? (((id) & 1) ? TVSYNC_IRQ_ENA_MASK \
-		: PN2_SYNC_IRQ_ENA_MASK) : VSYNC_IRQ_ENA_MASK)
+								 : PN2_SYNC_IRQ_ENA_MASK) : VSYNC_IRQ_ENA_MASK)
 #define vsync_imasks	(vsync_imask(0) | vsync_imask(1))
 
 #define display_done_imask(id)	((id) ? (((id) & 1) ? TV_FRAMEDONE_ENA_MASK\
-	: (PN2_DMA_FRAME_IRQ0_ENA_MASK | PN2_DMA_FRAME_IRQ1_ENA_MASK))\
-	: DUMB_FRAMEDONE_ENA_MASK)
+								 : (PN2_DMA_FRAME_IRQ0_ENA_MASK | PN2_DMA_FRAME_IRQ1_ENA_MASK))\
+								 : DUMB_FRAMEDONE_ENA_MASK)
 
 #define display_done_imasks	(display_done_imask(0) | display_done_imask(1))
 
 #define vf0_imask(id)	((id) ? (((id) & 1) ? TV_DMA_FRAME_IRQ0_ENA_MASK \
-		: PN2_DMA_FRAME_IRQ0_ENA_MASK) : DMA_FRAME_IRQ0_ENA_MASK)
+								 : PN2_DMA_FRAME_IRQ0_ENA_MASK) : DMA_FRAME_IRQ0_ENA_MASK)
 #define vf1_imask(id)	((id) ? (((id) & 1) ? TV_DMA_FRAME_IRQ1_ENA_MASK \
-		: PN2_DMA_FRAME_IRQ1_ENA_MASK) : DMA_FRAME_IRQ1_ENA_MASK)
+								 : PN2_DMA_FRAME_IRQ1_ENA_MASK) : DMA_FRAME_IRQ1_ENA_MASK)
 
 #define gfx_imasks	(gf0_imask(0) | gf1_imask(0) | gf0_imask(1) | \
-		gf1_imask(1))
+					 gf1_imask(1))
 #define vid_imasks	(vf0_imask(0) | vf1_imask(0) | vf0_imask(1) | \
-		vf1_imask(1))
+					 vf1_imask(1))
 #define vid_imask(id)	(display_done_imask(id))
 
 #define pn1_imasks	(gf0_imask(0) | gf1_imask(0) | vsync_imask(0) | \
-		display_done_imask(0) | vf0_imask(0) | vf1_imask(0))
+					 display_done_imask(0) | vf0_imask(0) | vf1_imask(0))
 #define tv_imasks	(gf0_imask(1) | gf1_imask(1) | vsync_imask(1) | \
-		display_done_imask(1) | vf0_imask(1) | vf1_imask(1))
+					 display_done_imask(1) | vf0_imask(1) | vf1_imask(1))
 #define path_imasks(id)	((id) ? (tv_imasks) : (pn1_imasks))
 
 /* error indications */
 #define vid_udflow_imask(id)	((id) ? (((id) & 1) ? \
-	(TV_DMA_FF_UNDERFLOW_ENA_MASK) : (PN2_DMA_FF_UNDERFLOW_ENA_MASK)) : \
-	(DMA_FF_UNDERFLOW_ENA_MASK))
+								 (TV_DMA_FF_UNDERFLOW_ENA_MASK) : (PN2_DMA_FF_UNDERFLOW_ENA_MASK)) : \
+								 (DMA_FF_UNDERFLOW_ENA_MASK))
 #define gfx_udflow_imask(id)	((id) ? (((id) & 1) ? \
-	(TV_GRA_FF_UNDERFLOW_ENA_MASK) : (PN2_GRA_FF_UNDERFLOW_ENA_MASK)) : \
-	(GRA_FF_UNDERFLOW_ENA_MASK))
+								 (TV_GRA_FF_UNDERFLOW_ENA_MASK) : (PN2_GRA_FF_UNDERFLOW_ENA_MASK)) : \
+								 (GRA_FF_UNDERFLOW_ENA_MASK))
 
 #define err_imask(id) (vid_udflow_imask(id) | gfx_udflow_imask(id) | \
-	AXI_BUS_ERROR_IRQ_ENA_MASK | AXI_LATENCY_TOO_LONG_IRQ_ENA_MASK)
+					   AXI_BUS_ERROR_IRQ_ENA_MASK | AXI_LATENCY_TOO_LONG_IRQ_ENA_MASK)
 #define err_imasks (err_imask(0) | err_imask(1) | err_imask(2))
 /* LCD Interrupt Status Register */
 #define SPU_IRQ_ISR			0x01C4
@@ -855,7 +856,7 @@ struct lcd_regs {
 /* 32 bit LCD SQU Line Buffer Control Register 2*/
 #define LCD_SQULN2_CTRL				(0x01E4)
 #define squln_ctrl(id)	((id) ? (((id) & 1) ? LCD_SQULN2_CTRL : \
-			LCD_PN2_SQULN1_CTRL) : LCD_SQULN1_CTRL)
+								 LCD_PN2_SQULN1_CTRL) : LCD_SQULN1_CTRL)
 
 /* 32 bit LCD Mixed Overlay Control Register */
 #define LCD_AFA_ALL2ONE				(0x01E8)
@@ -926,7 +927,7 @@ struct lcd_regs {
 #define DSI_START_SEL_SHIFT(id)		(((id) << 1) + 8)
 #define timing_master_config(path, dsi_id, lcd_id) \
 	(MASTER_ENH(path) | MASTER_ENV(path) | \
-	(((lcd_id) + ((dsi_id) << 1)) << DSI_START_SEL_SHIFT(path)))
+	 (((lcd_id) + ((dsi_id) << 1)) << DSI_START_SEL_SHIFT(path)))
 
 #define LCD_2ND_BLD_CTL				(0x02Fc)
 #define LVDS_SRC_MASK				(3 << 30)
@@ -939,9 +940,9 @@ struct lcd_regs {
 #define CLK_LVDS_WR	(1 << 2)
 
 #define gra_partdisp_ctrl_hor(id)	((id) ? (((id) & 1) ? \
-	LCD_TVG_CUTHPXL : PN2_LCD_GRA_CUTHPXL) : LCD_GRA_CUTHPXL)
+									 LCD_TVG_CUTHPXL : PN2_LCD_GRA_CUTHPXL) : LCD_GRA_CUTHPXL)
 #define gra_partdisp_ctrl_ver(id)	((id) ? (((id) & 1) ? \
-	LCD_TVG_CUTVLN : PN2_LCD_GRA_CUTVLN) : LCD_GRA_CUTVLN)
+									 LCD_TVG_CUTVLN : PN2_LCD_GRA_CUTVLN) : LCD_GRA_CUTVLN)
 
 /*
  * defined for Configure Dumb Mode
@@ -1033,7 +1034,8 @@ struct lcd_regs {
 #define DSI2_REGS_PHYSICAL_BASE		0xD420BA00
 
 /*	   DSI Controller Registers	   */
-struct dsi_lcd_regs {
+struct dsi_lcd_regs
+{
 #define DSI_LCD1_CTRL_0  0x100   /* DSI Active Panel 1 Control register 0 */
 #define DSI_LCD1_CTRL_1  0x104   /* DSI Active Panel 1 Control register 1 */
 	u32 ctrl0;
@@ -1065,7 +1067,8 @@ struct dsi_lcd_regs {
 	u32 status_4;
 };
 
-struct dsi_regs {
+struct dsi_regs
+{
 #define DSI_CTRL_0	  0x000   /* DSI control register 0 */
 #define DSI_CTRL_1	  0x004   /* DSI control register 1 */
 	u32 ctrl0;
@@ -1098,7 +1101,7 @@ struct dsi_regs {
 
 	u32 rx0_status;
 
-/* Rx Packet Header - data from slave device */
+	/* Rx Packet Header - data from slave device */
 #define DSI_RX_PKT_HDR_0 0x064
 	u32 rx0_header;
 	u32 rx1_status;
@@ -1382,7 +1385,8 @@ struct dsi_regs {
 #define LVDS_FREQ_OFFSET_MODE_CK_DIV4_OUT	(0x1 << 1)
 #define LVDS_FREQ_OFFSET_MODE_EN		(0x1 << 0)
 
-enum {
+enum
+{
 	PATH_PN = 0,
 	PATH_TV,
 	PATH_P2,
@@ -1393,7 +1397,8 @@ enum {
  * which is hiden in display driver and not exported to buffer driver
  */
 struct mmphw_ctrl;
-struct mmphw_path_plat {
+struct mmphw_path_plat
+{
 	int id;
 	struct mmphw_ctrl *ctrl;
 	struct mmp_path *path;
@@ -1403,7 +1408,8 @@ struct mmphw_path_plat {
 };
 
 /* mmp ctrl describes mmp controller related info */
-struct mmphw_ctrl {
+struct mmphw_ctrl
+{
 	/* platform related, get from config */
 	const char *name;
 	int irq;
@@ -1452,12 +1458,19 @@ static inline void *ctrl_regs(struct mmp_path *path)
 static inline struct lcd_regs *path_regs(struct mmp_path *path)
 {
 	if (path->id == PATH_PN)
+	{
 		return (struct lcd_regs *)(ctrl_regs(path) + 0xc0);
+	}
 	else if (path->id == PATH_TV)
+	{
 		return (struct lcd_regs *)ctrl_regs(path);
+	}
 	else if (path->id == PATH_P2)
+	{
 		return (struct lcd_regs *)(ctrl_regs(path) + 0x200);
-	else {
+	}
+	else
+	{
 		dev_err(path->dev, "path id %d invalid\n", path->id);
 		BUG_ON(1);
 		return NULL;
@@ -1465,6 +1478,6 @@ static inline struct lcd_regs *path_regs(struct mmp_path *path)
 }
 
 #ifdef CONFIG_MMP_DISP_SPI
-extern int lcd_spi_register(struct mmphw_ctrl *ctrl);
+	extern int lcd_spi_register(struct mmphw_ctrl *ctrl);
 #endif
 #endif	/* _MMP_CTRL_H_ */

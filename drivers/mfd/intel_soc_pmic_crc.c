@@ -35,7 +35,8 @@
 #define CRYSTAL_COVE_IRQ_GPIO		5
 #define CRYSTAL_COVE_IRQ_VHDMIOCP	6
 
-static struct resource gpio_resources[] = {
+static struct resource gpio_resources[] =
+{
 	{
 		.name	= "GPIO",
 		.start	= CRYSTAL_COVE_IRQ_GPIO,
@@ -44,7 +45,8 @@ static struct resource gpio_resources[] = {
 	},
 };
 
-static struct resource pwrsrc_resources[] = {
+static struct resource pwrsrc_resources[] =
+{
 	{
 		.name  = "PWRSRC",
 		.start = CRYSTAL_COVE_IRQ_PWRSRC,
@@ -53,7 +55,8 @@ static struct resource pwrsrc_resources[] = {
 	},
 };
 
-static struct resource adc_resources[] = {
+static struct resource adc_resources[] =
+{
 	{
 		.name  = "ADC",
 		.start = CRYSTAL_COVE_IRQ_ADC,
@@ -62,7 +65,8 @@ static struct resource adc_resources[] = {
 	},
 };
 
-static struct resource thermal_resources[] = {
+static struct resource thermal_resources[] =
+{
 	{
 		.name  = "THERMAL",
 		.start = CRYSTAL_COVE_IRQ_THRM,
@@ -71,7 +75,8 @@ static struct resource thermal_resources[] = {
 	},
 };
 
-static struct resource bcu_resources[] = {
+static struct resource bcu_resources[] =
+{
 	{
 		.name  = "BCU",
 		.start = CRYSTAL_COVE_IRQ_BCU,
@@ -80,7 +85,8 @@ static struct resource bcu_resources[] = {
 	},
 };
 
-static struct mfd_cell crystal_cove_dev[] = {
+static struct mfd_cell crystal_cove_dev[] =
+{
 	{
 		.name = "crystal_cove_pwrsrc",
 		.num_resources = ARRAY_SIZE(pwrsrc_resources),
@@ -114,7 +120,8 @@ static struct mfd_cell crystal_cove_dev[] = {
 	},
 };
 
-static const struct regmap_config crystal_cove_regmap_config = {
+static const struct regmap_config crystal_cove_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 
@@ -122,7 +129,8 @@ static const struct regmap_config crystal_cove_regmap_config = {
 	.cache_type = REGCACHE_NONE,
 };
 
-static const struct regmap_irq crystal_cove_irqs[] = {
+static const struct regmap_irq crystal_cove_irqs[] =
+{
 	[CRYSTAL_COVE_IRQ_PWRSRC] = {
 		.mask = BIT(CRYSTAL_COVE_IRQ_PWRSRC),
 	},
@@ -146,7 +154,8 @@ static const struct regmap_irq crystal_cove_irqs[] = {
 	},
 };
 
-static const struct regmap_irq_chip crystal_cove_irq_chip = {
+static const struct regmap_irq_chip crystal_cove_irq_chip =
+{
 	.name = "Crystal Cove",
 	.irqs = crystal_cove_irqs,
 	.num_irqs = ARRAY_SIZE(crystal_cove_irqs),
@@ -155,7 +164,8 @@ static const struct regmap_irq_chip crystal_cove_irq_chip = {
 	.mask_base = CRYSTAL_COVE_REG_MIRQLVL1,
 };
 
-struct intel_soc_pmic_config intel_soc_pmic_config_crc = {
+struct intel_soc_pmic_config intel_soc_pmic_config_crc =
+{
 	.irq_flags = IRQF_TRIGGER_RISING,
 	.cell_dev = crystal_cove_dev,
 	.n_cell_devs = ARRAY_SIZE(crystal_cove_dev),

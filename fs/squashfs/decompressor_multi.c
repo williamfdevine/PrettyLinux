@@ -37,7 +37,8 @@ int squashfs_max_decompressors(void)
 }
 
 
-struct squashfs_stream {
+struct squashfs_stream
+{
 	void			*comp_opts;
 	struct list_head	strm_list;
 	struct mutex		mutex;
@@ -46,14 +47,15 @@ struct squashfs_stream {
 };
 
 
-struct decomp_stream {
+struct decomp_stream
+{
 	void *stream;
 	struct list_head list;
 };
 
 
 static void put_decomp_stream(struct decomp_stream *decomp_strm,
-				struct squashfs_stream *stream)
+							  struct squashfs_stream *stream)
 {
 	mutex_lock(&stream->mutex);
 	list_add(&decomp_strm->list, &stream->strm_list);
@@ -62,15 +64,18 @@ static void put_decomp_stream(struct decomp_stream *decomp_strm,
 }
 
 void *squashfs_decompressor_create(struct squashfs_sb_info *msblk,
-				void *comp_opts)
+								   void *comp_opts)
 {
 	struct squashfs_stream *stream;
 	struct decomp_stream *decomp_strm = NULL;
 	int err = -ENOMEM;
 
 	stream = kzalloc(sizeof(*stream), GFP_KERNEL);
+
 	if (!stream)
+	{
 		goto out;
+	}
 
 	stream->comp_opts = comp_opts;
 	mutex_init(&stream->mutex);
@@ -84,12 +89,17 @@ void *squashfs_decompressor_create(struct squashfs_sb_info *msblk,
 	 * file system works.
 	 */
 	decomp_strm = kmalloc(sizeof(*decomp_strm), GFP_KERNEL);
+
 	if (!decomp_strm)
+	{
 		goto out;
+	}
 
 	decomp_strm->stream = msblk->decompressor->init(msblk,
-						stream->comp_opts);
-	if (IS_ERR(decomp_strm->stream)) {
+						  stream->comp_opts);
+
+	if (IS_ERR(decomp_strm->stream))
+	{
 		err = PTR_ERR(decomp_strm->stream);
 		goto out;
 	}
@@ -108,17 +118,21 @@ out:
 void squashfs_decompressor_destroy(struct squashfs_sb_info *msblk)
 {
 	struct squashfs_stream *stream = msblk->stream;
-	if (stream) {
+
+	if (stream)
+	{
 		struct decomp_stream *decomp_strm;
 
-		while (!list_empty(&stream->strm_list)) {
+		while (!list_empty(&stream->strm_list))
+		{
 			decomp_strm = list_entry(stream->strm_list.prev,
-						struct decomp_stream, list);
+									 struct decomp_stream, list);
 			list_del(&decomp_strm->list);
 			msblk->decompressor->free(decomp_strm->stream);
 			kfree(decomp_strm);
 			stream->avail_decomp--;
 		}
+
 		WARN_ON(stream->avail_decomp);
 		kfree(stream->comp_opts);
 		kfree(stream);
@@ -127,17 +141,19 @@ void squashfs_decompressor_destroy(struct squashfs_sb_info *msblk)
 
 
 static struct decomp_stream *get_decomp_stream(struct squashfs_sb_info *msblk,
-					struct squashfs_stream *stream)
+		struct squashfs_stream *stream)
 {
 	struct decomp_stream *decomp_strm;
 
-	while (1) {
+	while (1)
+	{
 		mutex_lock(&stream->mutex);
 
 		/* There is available decomp_stream */
-		if (!list_empty(&stream->strm_list)) {
+		if (!list_empty(&stream->strm_list))
+		{
 			decomp_strm = list_entry(stream->strm_list.prev,
-				struct decomp_stream, list);
+									 struct decomp_stream, list);
 			list_del(&decomp_strm->list);
 			mutex_unlock(&stream->mutex);
 			break;
@@ -148,16 +164,23 @@ static struct decomp_stream *get_decomp_stream(struct squashfs_sb_info *msblk,
 		 * let's wait for releasing decomp from other users.
 		 */
 		if (stream->avail_decomp >= MAX_DECOMPRESSOR)
+		{
 			goto wait;
+		}
 
 		/* Let's allocate new decomp */
 		decomp_strm = kmalloc(sizeof(*decomp_strm), GFP_KERNEL);
+
 		if (!decomp_strm)
+		{
 			goto wait;
+		}
 
 		decomp_strm->stream = msblk->decompressor->init(msblk,
-						stream->comp_opts);
-		if (IS_ERR(decomp_strm->stream)) {
+							  stream->comp_opts);
+
+		if (IS_ERR(decomp_strm->stream))
+		{
 			kfree(decomp_strm);
 			goto wait;
 		}
@@ -175,7 +198,7 @@ wait:
 		 */
 		mutex_unlock(&stream->mutex);
 		wait_event(stream->wait,
-			!list_empty(&stream->strm_list));
+				   !list_empty(&stream->strm_list));
 	}
 
 	return decomp_strm;
@@ -183,16 +206,18 @@ wait:
 
 
 int squashfs_decompress(struct squashfs_sb_info *msblk, struct buffer_head **bh,
-	int b, int offset, int length, struct squashfs_page_actor *output)
+						int b, int offset, int length, struct squashfs_page_actor *output)
 {
 	int res;
 	struct squashfs_stream *stream = msblk->stream;
 	struct decomp_stream *decomp_stream = get_decomp_stream(msblk, stream);
 	res = msblk->decompressor->decompress(msblk, decomp_stream->stream,
-		bh, b, offset, length, output);
+										  bh, b, offset, length, output);
 	put_decomp_stream(decomp_stream, stream);
+
 	if (res < 0)
 		ERROR("%s decompression failed, data probably corrupt\n",
-			msblk->decompressor->name);
+			  msblk->decompressor->name);
+
 	return res;
 }

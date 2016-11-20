@@ -33,7 +33,8 @@ struct backing_dev_info;
 /*
  * fs/fs-writeback.c
  */
-enum writeback_sync_modes {
+enum writeback_sync_modes
+{
 	WB_SYNC_NONE,	/* Don't wait on anything */
 	WB_SYNC_ALL,	/* Wait on every mapping */
 };
@@ -41,7 +42,8 @@ enum writeback_sync_modes {
 /*
  * why some writeback work was initiated
  */
-enum wb_reason {
+enum wb_reason
+{
 	WB_REASON_BACKGROUND,
 	WB_REASON_TRY_TO_FREE_PAGES,
 	WB_REASON_SYNC,
@@ -65,7 +67,8 @@ enum wb_reason {
  * always on the stack, and hence need no locking.  They are always initialised
  * in a manner such that unspecified fields are set to zero.
  */
-struct writeback_control {
+struct writeback_control
+{
 	long nr_to_write;		/* Write this many pages, and decrement
 					   this for each page written */
 	long pages_skipped;		/* Pages which were not written */
@@ -80,12 +83,12 @@ struct writeback_control {
 
 	enum writeback_sync_modes sync_mode;
 
-	unsigned for_kupdate:1;		/* A kupdate writeback */
-	unsigned for_background:1;	/* A background writeback */
-	unsigned tagged_writepages:1;	/* tag-and-write to avoid livelock */
-	unsigned for_reclaim:1;		/* Invoked from the page allocator */
-	unsigned range_cyclic:1;	/* range_start is cyclic */
-	unsigned for_sync:1;		/* sync(2) WB_SYNC_ALL writeback */
+	unsigned for_kupdate: 1;		/* A kupdate writeback */
+	unsigned for_background: 1;	/* A background writeback */
+	unsigned tagged_writepages: 1;	/* tag-and-write to avoid livelock */
+	unsigned for_reclaim: 1;		/* Invoked from the page allocator */
+	unsigned range_cyclic: 1;	/* range_start is cyclic */
+	unsigned for_sync: 1;		/* sync(2) WB_SYNC_ALL writeback */
 #ifdef CONFIG_CGROUP_WRITEBACK
 	struct bdi_writeback *wb;	/* wb this writeback is issued under */
 	struct inode *inode;		/* inode being written out */
@@ -107,7 +110,8 @@ struct writeback_control {
  * This allows measuring the relative bandwidth of each wb to distribute
  * dirtyable memory accordingly.
  */
-struct wb_domain {
+struct wb_domain
+{
 	spinlock_t lock;
 
 	/*
@@ -167,14 +171,14 @@ static inline void wb_domain_size_changed(struct wb_domain *dom)
 
 /*
  * fs/fs-writeback.c
- */	
+ */
 struct bdi_writeback;
 void writeback_inodes_sb(struct super_block *, enum wb_reason reason);
 void writeback_inodes_sb_nr(struct super_block *, unsigned long nr,
 							enum wb_reason reason);
 bool try_to_writeback_inodes_sb(struct super_block *, enum wb_reason reason);
 bool try_to_writeback_inodes_sb_nr(struct super_block *, unsigned long nr,
-				   enum wb_reason reason);
+								   enum wb_reason reason);
 void sync_inodes_sb(struct super_block *);
 void wakeup_flusher_threads(long nr_pages, enum wb_reason reason);
 void inode_wait_for_writeback(struct inode *inode);
@@ -193,11 +197,11 @@ static inline void wait_on_inode(struct inode *inode)
 
 void __inode_attach_wb(struct inode *inode, struct page *page);
 void wbc_attach_and_unlock_inode(struct writeback_control *wbc,
-				 struct inode *inode)
-	__releases(&inode->i_lock);
+								 struct inode *inode)
+__releases(&inode->i_lock);
 void wbc_detach_inode(struct writeback_control *wbc);
 void wbc_account_io(struct writeback_control *wbc, struct page *page,
-		    size_t bytes);
+					size_t bytes);
 void cgroup_writeback_umount(void);
 
 /**
@@ -212,7 +216,9 @@ void cgroup_writeback_umount(void);
 static inline void inode_attach_wb(struct inode *inode, struct page *page)
 {
 	if (!inode->i_wb)
+	{
 		__inode_attach_wb(inode, page);
+	}
 }
 
 /**
@@ -223,7 +229,8 @@ static inline void inode_attach_wb(struct inode *inode, struct page *page)
  */
 static inline void inode_detach_wb(struct inode *inode)
 {
-	if (inode->i_wb) {
+	if (inode->i_wb)
+	{
 		wb_put(inode->i_wb);
 		inode->i_wb = NULL;
 	}
@@ -239,7 +246,7 @@ static inline void inode_detach_wb(struct inode *inode)
  * associated with a bdi_writeback and attaches it to @wbc.
  */
 static inline void wbc_attach_fdatawrite_inode(struct writeback_control *wbc,
-					       struct inode *inode)
+		struct inode *inode)
 {
 	spin_lock(&inode->i_lock);
 	inode_attach_wb(inode, NULL);
@@ -264,7 +271,9 @@ static inline void wbc_init_bio(struct writeback_control *wbc, struct bio *bio)
 	 * regular writeback instead of writing things out itself.
 	 */
 	if (wbc->wb)
+	{
 		bio_associate_blkcg(bio, wbc->wb->blkcg_css);
+	}
 }
 
 #else	/* CONFIG_CGROUP_WRITEBACK */
@@ -278,14 +287,14 @@ static inline void inode_detach_wb(struct inode *inode)
 }
 
 static inline void wbc_attach_and_unlock_inode(struct writeback_control *wbc,
-					       struct inode *inode)
-	__releases(&inode->i_lock)
+		struct inode *inode)
+__releases(&inode->i_lock)
 {
 	spin_unlock(&inode->i_lock);
 }
 
 static inline void wbc_attach_fdatawrite_inode(struct writeback_control *wbc,
-					       struct inode *inode)
+		struct inode *inode)
 {
 }
 
@@ -298,7 +307,7 @@ static inline void wbc_init_bio(struct writeback_control *wbc, struct bio *bio)
 }
 
 static inline void wbc_account_io(struct writeback_control *wbc,
-				  struct page *page, size_t bytes)
+								  struct page *page, size_t bytes)
 {
 }
 
@@ -322,7 +331,7 @@ static inline void laptop_sync_completion(void) { }
 bool node_dirty_ok(struct pglist_data *pgdat);
 int wb_domain_init(struct wb_domain *dom, gfp_t gfp);
 #ifdef CONFIG_CGROUP_WRITEBACK
-void wb_domain_exit(struct wb_domain *dom);
+	void wb_domain_exit(struct wb_domain *dom);
 #endif
 
 extern struct wb_domain global_wb_domain;
@@ -346,17 +355,17 @@ extern int dirty_background_bytes_handler(struct ctl_table *table, int write,
 		void __user *buffer, size_t *lenp,
 		loff_t *ppos);
 extern int dirty_ratio_handler(struct ctl_table *table, int write,
-		void __user *buffer, size_t *lenp,
-		loff_t *ppos);
+							   void __user *buffer, size_t *lenp,
+							   loff_t *ppos);
 extern int dirty_bytes_handler(struct ctl_table *table, int write,
-		void __user *buffer, size_t *lenp,
-		loff_t *ppos);
+							   void __user *buffer, size_t *lenp,
+							   loff_t *ppos);
 int dirtytime_interval_handler(struct ctl_table *table, int write,
-			       void __user *buffer, size_t *lenp, loff_t *ppos);
+							   void __user *buffer, size_t *lenp, loff_t *ppos);
 
 struct ctl_table;
 int dirty_writeback_centisecs_handler(struct ctl_table *, int,
-				      void __user *, size_t *, loff_t *);
+									  void __user *, size_t *, loff_t *);
 
 void global_dirty_limits(unsigned long *pbackground, unsigned long *pdirty);
 unsigned long wb_calc_thresh(struct bdi_writeback *wb, unsigned long thresh);
@@ -367,19 +376,19 @@ void balance_dirty_pages_ratelimited(struct address_space *mapping);
 bool wb_over_bg_thresh(struct bdi_writeback *wb);
 
 typedef int (*writepage_t)(struct page *page, struct writeback_control *wbc,
-				void *data);
+						   void *data);
 
 int generic_writepages(struct address_space *mapping,
-		       struct writeback_control *wbc);
+					   struct writeback_control *wbc);
 void tag_pages_for_writeback(struct address_space *mapping,
-			     pgoff_t start, pgoff_t end);
+							 pgoff_t start, pgoff_t end);
 int write_cache_pages(struct address_space *mapping,
-		      struct writeback_control *wbc, writepage_t writepage,
-		      void *data);
+					  struct writeback_control *wbc, writepage_t writepage,
+					  void *data);
 int do_writepages(struct address_space *mapping, struct writeback_control *wbc);
 void writeback_set_ratelimit(void);
 void tag_pages_for_writeback(struct address_space *mapping,
-			     pgoff_t start, pgoff_t end);
+							 pgoff_t start, pgoff_t end);
 
 void account_page_redirty(struct page *page);
 

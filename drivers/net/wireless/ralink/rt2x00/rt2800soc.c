@@ -57,40 +57,41 @@ static void rt2800soc_disable_radio(struct rt2x00_dev *rt2x00dev)
 }
 
 static int rt2800soc_set_device_state(struct rt2x00_dev *rt2x00dev,
-				      enum dev_state state)
+									  enum dev_state state)
 {
 	int retval = 0;
 
-	switch (state) {
-	case STATE_RADIO_ON:
-		retval = rt2800mmio_enable_radio(rt2x00dev);
-		break;
+	switch (state)
+	{
+		case STATE_RADIO_ON:
+			retval = rt2800mmio_enable_radio(rt2x00dev);
+			break;
 
-	case STATE_RADIO_OFF:
-		rt2800soc_disable_radio(rt2x00dev);
-		break;
+		case STATE_RADIO_OFF:
+			rt2800soc_disable_radio(rt2x00dev);
+			break;
 
-	case STATE_RADIO_IRQ_ON:
-	case STATE_RADIO_IRQ_OFF:
-		rt2800mmio_toggle_irq(rt2x00dev, state);
-		break;
+		case STATE_RADIO_IRQ_ON:
+		case STATE_RADIO_IRQ_OFF:
+			rt2800mmio_toggle_irq(rt2x00dev, state);
+			break;
 
-	case STATE_DEEP_SLEEP:
-	case STATE_SLEEP:
-	case STATE_STANDBY:
-	case STATE_AWAKE:
-		/* These states are not supported, but don't report an error */
-		retval = 0;
-		break;
+		case STATE_DEEP_SLEEP:
+		case STATE_SLEEP:
+		case STATE_STANDBY:
+		case STATE_AWAKE:
+			/* These states are not supported, but don't report an error */
+			retval = 0;
+			break;
 
-	default:
-		retval = -ENOTSUPP;
-		break;
+		default:
+			retval = -ENOTSUPP;
+			break;
 	}
 
 	if (unlikely(retval))
 		rt2x00_err(rt2x00dev, "Device failed to enter state %d (%d)\n",
-			   state, retval);
+				   state, retval);
 
 	return retval;
 }
@@ -100,7 +101,9 @@ static int rt2800soc_read_eeprom(struct rt2x00_dev *rt2x00dev)
 	void __iomem *base_addr = ioremap(0x1F040000, EEPROM_SIZE);
 
 	if (!base_addr)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy_fromio(rt2x00dev->eeprom, base_addr, EEPROM_SIZE);
 
@@ -116,27 +119,28 @@ static char *rt2800soc_get_firmware_name(struct rt2x00_dev *rt2x00dev)
 }
 
 static int rt2800soc_load_firmware(struct rt2x00_dev *rt2x00dev,
-				   const u8 *data, const size_t len)
+								   const u8 *data, const size_t len)
 {
 	WARN_ON_ONCE(1);
 	return 0;
 }
 
 static int rt2800soc_check_firmware(struct rt2x00_dev *rt2x00dev,
-				    const u8 *data, const size_t len)
+									const u8 *data, const size_t len)
 {
 	WARN_ON_ONCE(1);
 	return 0;
 }
 
 static int rt2800soc_write_firmware(struct rt2x00_dev *rt2x00dev,
-				    const u8 *data, const size_t len)
+									const u8 *data, const size_t len)
 {
 	WARN_ON_ONCE(1);
 	return 0;
 }
 
-static const struct ieee80211_ops rt2800soc_mac80211_ops = {
+static const struct ieee80211_ops rt2800soc_mac80211_ops =
+{
 	.tx			= rt2x00mac_tx,
 	.start			= rt2x00mac_start,
 	.stop			= rt2x00mac_stop,
@@ -163,7 +167,8 @@ static const struct ieee80211_ops rt2800soc_mac80211_ops = {
 	.tx_frames_pending	= rt2x00mac_tx_frames_pending,
 };
 
-static const struct rt2800_ops rt2800soc_rt2800_ops = {
+static const struct rt2800_ops rt2800soc_rt2800_ops =
+{
 	.register_read		= rt2x00mmio_register_read,
 	.register_read_lock	= rt2x00mmio_register_read, /* same for SoCs */
 	.register_write		= rt2x00mmio_register_write,
@@ -178,7 +183,8 @@ static const struct rt2800_ops rt2800soc_rt2800_ops = {
 	.drv_get_txwi		= rt2800mmio_get_txwi,
 };
 
-static const struct rt2x00lib_ops rt2800soc_rt2x00_ops = {
+static const struct rt2x00lib_ops rt2800soc_rt2x00_ops =
+{
 	.irq_handler		= rt2800mmio_interrupt,
 	.txstatus_tasklet	= rt2800mmio_txstatus_tasklet,
 	.pretbtt_tasklet	= rt2800mmio_pretbtt_tasklet,
@@ -220,7 +226,8 @@ static const struct rt2x00lib_ops rt2800soc_rt2x00_ops = {
 	.sta_remove		= rt2800_sta_remove,
 };
 
-static const struct rt2x00_ops rt2800soc_ops = {
+static const struct rt2x00_ops rt2800soc_ops =
+{
 	.name			= KBUILD_MODNAME,
 	.drv_data_size		= sizeof(struct rt2800_drv_data),
 	.max_ap_intf		= 8,
@@ -241,7 +248,8 @@ static int rt2800soc_probe(struct platform_device *pdev)
 	return rt2x00soc_probe(pdev, &rt2800soc_ops);
 }
 
-static struct platform_driver rt2800soc_driver = {
+static struct platform_driver rt2800soc_driver =
+{
 	.driver		= {
 		.name		= "rt2800_wmac",
 		.mod_name	= KBUILD_MODNAME,

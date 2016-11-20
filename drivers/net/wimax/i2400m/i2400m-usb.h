@@ -77,18 +77,21 @@
  * retryable error, call edc_inc() and check if the error top
  * watermark has been reached.
  */
-enum {
+enum
+{
 	EDC_MAX_ERRORS = 10,
 	EDC_ERROR_TIMEFRAME = HZ,
 };
 
 /* error density counter */
-struct edc {
+struct edc
+{
 	unsigned long timestart;
 	u16 errorcount;
 };
 
-struct i2400m_endpoint_cfg {
+struct i2400m_endpoint_cfg
+{
 	unsigned char bulk_out;
 	unsigned char notification;
 	unsigned char reset_cold;
@@ -131,19 +134,25 @@ static inline int edc_inc(struct edc *edc, u16 max_err, u16 timeframe)
 	unsigned long now;
 
 	now = jiffies;
-	if (now - edc->timestart > timeframe) {
+
+	if (now - edc->timestart > timeframe)
+	{
 		edc->errorcount = 1;
 		edc->timestart = now;
-	} else if (++edc->errorcount > max_err) {
+	}
+	else if (++edc->errorcount > max_err)
+	{
 		edc->errorcount = 0;
 		edc->timestart = now;
 		return 1;
 	}
+
 	return 0;
 }
 
 /* Host-Device interface for USB */
-enum {
+enum
+{
 	I2400M_USB_BOOT_RETRIES = 3,
 	I2400MU_MAX_NOTIFICATION_LEN = 256,
 	I2400MU_BLK_SIZE = 16,
@@ -219,7 +228,8 @@ enum {
  *     (wimax_dev->debugfs_dentry) so they can be removed when the
  *     module unloads, as we don't keep each dentry.
  */
-struct i2400mu {
+struct i2400mu
+{
 	struct i2400m i2400m;		/* FIRST! See doc */
 
 	struct usb_device *usb_dev;
@@ -239,7 +249,7 @@ struct i2400mu {
 	u8 rx_size_auto_shrink;
 
 	struct dentry *debugfs_dentry;
-	unsigned i6050:1;	/* 1 if this is a 6050 based SKU */
+	unsigned i6050: 1;	/* 1 if this is a 6050 based SKU */
 };
 
 
@@ -268,8 +278,8 @@ void i2400mu_tx_release(struct i2400mu *);
 void i2400mu_bus_tx_kick(struct i2400m *);
 
 ssize_t i2400mu_bus_bm_cmd_send(struct i2400m *,
-				const struct i2400m_bootrom_header *, size_t,
-				int);
+								const struct i2400m_bootrom_header *, size_t,
+								int);
 ssize_t i2400mu_bus_bm_wait_for_ack(struct i2400m *,
-				    struct i2400m_bootrom_header *, size_t);
+									struct i2400m_bootrom_header *, size_t);
 #endif /* #ifndef __I2400M_USB_H__ */

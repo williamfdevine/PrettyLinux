@@ -8,7 +8,8 @@
 struct audit_tree;
 struct audit_chunk;
 
-struct audit_tree {
+struct audit_tree
+{
 	atomic_t count;
 	int goner;
 	struct audit_chunk *root;
@@ -20,7 +21,8 @@ struct audit_tree {
 	char pathname[];
 };
 
-struct audit_chunk {
+struct audit_chunk
+{
 	struct list_head hash;
 	struct fsnotify_mark mark;
 	struct list_head trees;		/* with root here */
@@ -28,7 +30,8 @@ struct audit_chunk {
 	int count;
 	atomic_long_t refs;
 	struct rcu_head head;
-	struct node {
+	struct node
+	{
 		struct list_head list;
 		struct audit_tree *owner;
 		unsigned index;		/* index; upper bit indicates 'will prune' */
@@ -76,7 +79,9 @@ static struct audit_tree *alloc_tree(const char *s)
 	struct audit_tree *tree;
 
 	tree = kmalloc(sizeof(struct audit_tree) + strlen(s) + 1, GFP_KERNEL);
-	if (tree) {
+
+	if (tree)
+	{
 		atomic_set(&tree->count, 1);
 		tree->goner = 0;
 		INIT_LIST_HEAD(&tree->chunks);
@@ -86,6 +91,7 @@ static struct audit_tree *alloc_tree(const char *s)
 		tree->root = NULL;
 		strcpy(tree->pathname, s);
 	}
+
 	return tree;
 }
 
@@ -97,7 +103,9 @@ static inline void get_tree(struct audit_tree *tree)
 static inline void put_tree(struct audit_tree *tree)
 {
 	if (atomic_dec_and_test(&tree->count))
+	{
 		kfree_rcu(tree, head);
+	}
 }
 
 /* to avoid bringing the entire thing in audit.h */
@@ -110,17 +118,23 @@ static void free_chunk(struct audit_chunk *chunk)
 {
 	int i;
 
-	for (i = 0; i < chunk->count; i++) {
+	for (i = 0; i < chunk->count; i++)
+	{
 		if (chunk->owners[i].owner)
+		{
 			put_tree(chunk->owners[i].owner);
+		}
 	}
+
 	kfree(chunk);
 }
 
 void audit_put_chunk(struct audit_chunk *chunk)
 {
 	if (atomic_long_dec_and_test(&chunk->refs))
+	{
 		free_chunk(chunk);
+	}
 }
 
 static void __put_chunk(struct rcu_head *rcu)
@@ -143,17 +157,23 @@ static struct audit_chunk *alloc_chunk(int count)
 
 	size = offsetof(struct audit_chunk, owners) + count * sizeof(struct node);
 	chunk = kzalloc(size, GFP_KERNEL);
+
 	if (!chunk)
+	{
 		return NULL;
+	}
 
 	INIT_LIST_HEAD(&chunk->hash);
 	INIT_LIST_HEAD(&chunk->trees);
 	chunk->count = count;
 	atomic_long_set(&chunk->refs, 1);
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		INIT_LIST_HEAD(&chunk->owners[i].list);
 		chunk->owners[i].index = i;
 	}
+
 	fsnotify_init_mark(&chunk->mark, audit_tree_destroy_watch);
 	chunk->mark.mask = FS_IN_IGNORED;
 	return chunk;
@@ -176,7 +196,10 @@ static void insert_hash(struct audit_chunk *chunk)
 	struct list_head *list;
 
 	if (!entry->inode)
+	{
 		return;
+	}
+
 	list = chunk_hash(entry->inode);
 	list_add_rcu(&chunk->hash, list);
 }
@@ -187,9 +210,11 @@ struct audit_chunk *audit_tree_lookup(const struct inode *inode)
 	struct list_head *list = chunk_hash(inode);
 	struct audit_chunk *p;
 
-	list_for_each_entry_rcu(p, list, hash) {
+	list_for_each_entry_rcu(p, list, hash)
+	{
 		/* mark.inode may have gone NULL, but who cares? */
-		if (p->mark.inode == inode) {
+		if (p->mark.inode == inode)
+		{
 			atomic_long_inc(&p->refs);
 			return p;
 		}
@@ -200,9 +225,13 @@ struct audit_chunk *audit_tree_lookup(const struct inode *inode)
 bool audit_tree_match(struct audit_chunk *chunk, struct audit_tree *tree)
 {
 	int n;
+
 	for (n = 0; n < chunk->count; n++)
 		if (chunk->owners[n].owner == tree)
+		{
 			return true;
+		}
+
 	return false;
 }
 
@@ -210,7 +239,7 @@ bool audit_tree_match(struct audit_chunk *chunk, struct audit_tree *tree)
 
 static struct audit_chunk *find_chunk(struct node *p)
 {
-	int index = p->index & ~(1U<<31);
+	int index = p->index & ~(1U << 31);
 	p -= index;
 	return container_of(p, struct audit_chunk, owners[0]);
 }
@@ -229,24 +258,37 @@ static void untag_chunk(struct node *p)
 	spin_unlock(&hash_lock);
 
 	if (size)
+	{
 		new = alloc_chunk(size);
+	}
 
 	spin_lock(&entry->lock);
-	if (chunk->dead || !entry->inode) {
+
+	if (chunk->dead || !entry->inode)
+	{
 		spin_unlock(&entry->lock);
+
 		if (new)
+		{
 			free_chunk(new);
+		}
+
 		goto out;
 	}
 
 	owner = p->owner;
 
-	if (!size) {
+	if (!size)
+	{
 		chunk->dead = 1;
 		spin_lock(&hash_lock);
 		list_del_init(&chunk->trees);
+
 		if (owner->root == chunk)
+		{
 			owner->root = NULL;
+		}
+
 		list_del_init(&p->list);
 		list_del_rcu(&chunk->hash);
 		spin_unlock(&hash_lock);
@@ -256,10 +298,14 @@ static void untag_chunk(struct node *p)
 	}
 
 	if (!new)
+	{
 		goto Fallback;
+	}
 
 	fsnotify_duplicate_mark(&new->mark, entry);
-	if (fsnotify_add_mark(&new->mark, new->mark.group, new->mark.inode, NULL, 1)) {
+
+	if (fsnotify_add_mark(&new->mark, new->mark.group, new->mark.inode, NULL, 1))
+	{
 		fsnotify_put_mark(&new->mark);
 		goto Fallback;
 	}
@@ -267,30 +313,40 @@ static void untag_chunk(struct node *p)
 	chunk->dead = 1;
 	spin_lock(&hash_lock);
 	list_replace_init(&chunk->trees, &new->trees);
-	if (owner->root == chunk) {
+
+	if (owner->root == chunk)
+	{
 		list_del_init(&owner->same_root);
 		owner->root = NULL;
 	}
 
-	for (i = j = 0; j <= size; i++, j++) {
+	for (i = j = 0; j <= size; i++, j++)
+	{
 		struct audit_tree *s;
-		if (&chunk->owners[j] == p) {
+
+		if (&chunk->owners[j] == p)
+		{
 			list_del_init(&p->list);
 			i--;
 			continue;
 		}
+
 		s = chunk->owners[j].owner;
 		new->owners[i].owner = s;
 		new->owners[i].index = chunk->owners[j].index - j + i;
+
 		if (!s) /* result of earlier fallback */
+		{
 			continue;
+		}
+
 		get_tree(s);
 		list_replace_init(&chunk->owners[j].list, &new->owners[i].list);
 	}
 
 	list_replace_rcu(&chunk->hash, &new->hash);
 	list_for_each_entry(owner, &new->trees, same_root)
-		owner->root = new;
+	owner->root = new;
 	spin_unlock(&hash_lock);
 	spin_unlock(&entry->lock);
 	fsnotify_destroy_mark(entry, audit_tree_group);
@@ -300,10 +356,13 @@ static void untag_chunk(struct node *p)
 Fallback:
 	// do the best we can
 	spin_lock(&hash_lock);
-	if (owner->root == chunk) {
+
+	if (owner->root == chunk)
+	{
 		list_del_init(&owner->same_root);
 		owner->root = NULL;
 	}
+
 	list_del_init(&p->list);
 	p->owner = NULL;
 	put_tree(owner);
@@ -318,18 +377,25 @@ static int create_chunk(struct inode *inode, struct audit_tree *tree)
 {
 	struct fsnotify_mark *entry;
 	struct audit_chunk *chunk = alloc_chunk(1);
+
 	if (!chunk)
+	{
 		return -ENOMEM;
+	}
 
 	entry = &chunk->mark;
-	if (fsnotify_add_mark(entry, audit_tree_group, inode, NULL, 0)) {
+
+	if (fsnotify_add_mark(entry, audit_tree_group, inode, NULL, 0))
+	{
 		fsnotify_put_mark(entry);
 		return -ENOSPC;
 	}
 
 	spin_lock(&entry->lock);
 	spin_lock(&hash_lock);
-	if (tree->goner) {
+
+	if (tree->goner)
+	{
 		spin_unlock(&hash_lock);
 		chunk->dead = 1;
 		spin_unlock(&entry->lock);
@@ -337,14 +403,18 @@ static int create_chunk(struct inode *inode, struct audit_tree *tree)
 		fsnotify_put_mark(entry);
 		return 0;
 	}
+
 	chunk->owners[0].index = (1U << 31);
 	chunk->owners[0].owner = tree;
 	get_tree(tree);
 	list_add(&chunk->owners[0].list, &tree->chunks);
-	if (!tree->root) {
+
+	if (!tree->root)
+	{
 		tree->root = chunk;
 		list_add(&tree->same_root, &chunk->trees);
 	}
+
 	insert_hash(chunk);
 	spin_unlock(&hash_lock);
 	spin_unlock(&entry->lock);
@@ -362,24 +432,33 @@ static int tag_chunk(struct inode *inode, struct audit_tree *tree)
 	int n;
 
 	old_entry = fsnotify_find_inode_mark(audit_tree_group, inode);
+
 	if (!old_entry)
+	{
 		return create_chunk(inode, tree);
+	}
 
 	old = container_of(old_entry, struct audit_chunk, mark);
 
 	/* are we already there? */
 	spin_lock(&hash_lock);
-	for (n = 0; n < old->count; n++) {
-		if (old->owners[n].owner == tree) {
+
+	for (n = 0; n < old->count; n++)
+	{
+		if (old->owners[n].owner == tree)
+		{
 			spin_unlock(&hash_lock);
 			fsnotify_put_mark(old_entry);
 			return 0;
 		}
 	}
+
 	spin_unlock(&hash_lock);
 
 	chunk = alloc_chunk(old->count + 1);
-	if (!chunk) {
+
+	if (!chunk)
+	{
 		fsnotify_put_mark(old_entry);
 		return -ENOMEM;
 	}
@@ -387,7 +466,9 @@ static int tag_chunk(struct inode *inode, struct audit_tree *tree)
 	chunk_entry = &chunk->mark;
 
 	spin_lock(&old_entry->lock);
-	if (!old_entry->inode) {
+
+	if (!old_entry->inode)
+	{
 		/* old_entry is being shot, lets just lie */
 		spin_unlock(&old_entry->lock);
 		fsnotify_put_mark(old_entry);
@@ -396,7 +477,9 @@ static int tag_chunk(struct inode *inode, struct audit_tree *tree)
 	}
 
 	fsnotify_duplicate_mark(chunk_entry, old_entry);
-	if (fsnotify_add_mark(chunk_entry, chunk_entry->group, chunk_entry->inode, NULL, 1)) {
+
+	if (fsnotify_add_mark(chunk_entry, chunk_entry->group, chunk_entry->inode, NULL, 1))
+	{
 		spin_unlock(&old_entry->lock);
 		fsnotify_put_mark(chunk_entry);
 		fsnotify_put_mark(old_entry);
@@ -408,7 +491,8 @@ static int tag_chunk(struct inode *inode, struct audit_tree *tree)
 	spin_lock(&hash_lock);
 
 	/* we now hold old_entry->lock, chunk_entry->lock, and hash_lock */
-	if (tree->goner) {
+	if (tree->goner)
+	{
 		spin_unlock(&hash_lock);
 		chunk->dead = 1;
 		spin_unlock(&chunk_entry->lock);
@@ -420,28 +504,39 @@ static int tag_chunk(struct inode *inode, struct audit_tree *tree)
 		fsnotify_put_mark(old_entry);
 		return 0;
 	}
+
 	list_replace_init(&old->trees, &chunk->trees);
-	for (n = 0, p = chunk->owners; n < old->count; n++, p++) {
+
+	for (n = 0, p = chunk->owners; n < old->count; n++, p++)
+	{
 		struct audit_tree *s = old->owners[n].owner;
 		p->owner = s;
 		p->index = old->owners[n].index;
+
 		if (!s) /* result of fallback in untag */
+		{
 			continue;
+		}
+
 		get_tree(s);
 		list_replace_init(&old->owners[n].list, &p->list);
 	}
-	p->index = (chunk->count - 1) | (1U<<31);
+
+	p->index = (chunk->count - 1) | (1U << 31);
 	p->owner = tree;
 	get_tree(tree);
 	list_add(&p->list, &tree->chunks);
 	list_replace_rcu(&old->hash, &chunk->hash);
 	list_for_each_entry(owner, &chunk->trees, same_root)
-		owner->root = chunk;
+	owner->root = chunk;
 	old->dead = 1;
-	if (!tree->root) {
+
+	if (!tree->root)
+	{
 		tree->root = chunk;
 		list_add(&tree->same_root, &chunk->trees);
 	}
+
 	spin_unlock(&hash_lock);
 	spin_unlock(&chunk_entry->lock);
 	spin_unlock(&old_entry->lock);
@@ -456,8 +551,12 @@ static void audit_tree_log_remove_rule(struct audit_krule *rule)
 	struct audit_buffer *ab;
 
 	ab = audit_log_start(NULL, GFP_KERNEL, AUDIT_CONFIG_CHANGE);
+
 	if (unlikely(!ab))
+	{
 		return;
+	}
+
 	audit_log_format(ab, "op=");
 	audit_log_string(ab, "remove_rule");
 	audit_log_format(ab, " dir=");
@@ -472,15 +571,22 @@ static void kill_rules(struct audit_tree *tree)
 	struct audit_krule *rule, *next;
 	struct audit_entry *entry;
 
-	list_for_each_entry_safe(rule, next, &tree->rules, rlist) {
+	list_for_each_entry_safe(rule, next, &tree->rules, rlist)
+	{
 		entry = container_of(rule, struct audit_entry, rule);
 
 		list_del_init(&rule->rlist);
-		if (rule->tree) {
+
+		if (rule->tree)
+		{
 			/* not a half-baked one */
 			audit_tree_log_remove_rule(rule);
+
 			if (entry->rule.exe)
+			{
 				audit_remove_mark(entry->rule.exe);
+			}
+
 			rule->tree = NULL;
 			list_del_rcu(&entry->list);
 			list_del(&entry->rule.list);
@@ -495,13 +601,16 @@ static void kill_rules(struct audit_tree *tree)
 static void prune_one(struct audit_tree *victim)
 {
 	spin_lock(&hash_lock);
-	while (!list_empty(&victim->chunks)) {
+
+	while (!list_empty(&victim->chunks))
+	{
 		struct node *p;
 
 		p = list_entry(victim->chunks.next, struct node, list);
 
 		untag_chunk(p);
 	}
+
 	spin_unlock(&hash_lock);
 	put_tree(victim);
 }
@@ -512,32 +621,43 @@ static void trim_marked(struct audit_tree *tree)
 {
 	struct list_head *p, *q;
 	spin_lock(&hash_lock);
-	if (tree->goner) {
+
+	if (tree->goner)
+	{
 		spin_unlock(&hash_lock);
 		return;
 	}
+
 	/* reorder */
-	for (p = tree->chunks.next; p != &tree->chunks; p = q) {
+	for (p = tree->chunks.next; p != &tree->chunks; p = q)
+	{
 		struct node *node = list_entry(p, struct node, list);
 		q = p->next;
-		if (node->index & (1U<<31)) {
+
+		if (node->index & (1U << 31))
+		{
 			list_del_init(p);
 			list_add(p, &tree->chunks);
 		}
 	}
 
-	while (!list_empty(&tree->chunks)) {
+	while (!list_empty(&tree->chunks))
+	{
 		struct node *node;
 
 		node = list_entry(tree->chunks.next, struct node, list);
 
 		/* have we run out of marked? */
-		if (!(node->index & (1U<<31)))
+		if (!(node->index & (1U << 31)))
+		{
 			break;
+		}
 
 		untag_chunk(node);
 	}
-	if (!tree->root && !tree->goner) {
+
+	if (!tree->root && !tree->goner)
+	{
 		tree->goner = 1;
 		spin_unlock(&hash_lock);
 		mutex_lock(&audit_filter_mutex);
@@ -545,7 +665,9 @@ static void trim_marked(struct audit_tree *tree)
 		list_del_init(&tree->list);
 		mutex_unlock(&audit_filter_mutex);
 		prune_one(tree);
-	} else {
+	}
+	else
+	{
 		spin_unlock(&hash_lock);
 	}
 }
@@ -557,10 +679,14 @@ int audit_remove_tree_rule(struct audit_krule *rule)
 {
 	struct audit_tree *tree;
 	tree = rule->tree;
-	if (tree) {
+
+	if (tree)
+	{
 		spin_lock(&hash_lock);
 		list_del_init(&rule->rlist);
-		if (list_empty(&tree->rules) && !tree->goner) {
+
+		if (list_empty(&tree->rules) && !tree->goner)
+		{
 			tree->root = NULL;
 			list_del_init(&tree->same_root);
 			tree->goner = 1;
@@ -570,10 +696,12 @@ int audit_remove_tree_rule(struct audit_krule *rule)
 			audit_schedule_prune();
 			return 1;
 		}
+
 		rule->tree = NULL;
 		spin_unlock(&hash_lock);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -588,7 +716,9 @@ void audit_trim_trees(void)
 
 	mutex_lock(&audit_filter_mutex);
 	list_add(&cursor, &tree_list);
-	while (cursor.next != &tree_list) {
+
+	while (cursor.next != &tree_list)
+	{
 		struct audit_tree *tree;
 		struct path path;
 		struct vfsmount *root_mnt;
@@ -602,22 +732,32 @@ void audit_trim_trees(void)
 		mutex_unlock(&audit_filter_mutex);
 
 		err = kern_path(tree->pathname, 0, &path);
+
 		if (err)
+		{
 			goto skip_it;
+		}
 
 		root_mnt = collect_mounts(&path);
 		path_put(&path);
+
 		if (IS_ERR(root_mnt))
+		{
 			goto skip_it;
+		}
 
 		spin_lock(&hash_lock);
-		list_for_each_entry(node, &tree->chunks, list) {
+		list_for_each_entry(node, &tree->chunks, list)
+		{
 			struct audit_chunk *chunk = find_chunk(node);
 			/* this could be NULL if the watch is dying else where... */
 			struct inode *inode = chunk->mark.inode;
-			node->index |= 1U<<31;
+			node->index |= 1U << 31;
+
 			if (iterate_mounts(compare_root, inode, root_mnt))
-				node->index &= ~(1U<<31);
+			{
+				node->index &= ~(1U << 31);
+			}
 		}
 		spin_unlock(&hash_lock);
 		trim_marked(tree);
@@ -626,6 +766,7 @@ skip_it:
 		put_tree(tree);
 		mutex_lock(&audit_filter_mutex);
 	}
+
 	list_del(&cursor);
 	mutex_unlock(&audit_filter_mutex);
 }
@@ -634,13 +775,20 @@ int audit_make_tree(struct audit_krule *rule, char *pathname, u32 op)
 {
 
 	if (pathname[0] != '/' ||
-	    rule->listnr != AUDIT_FILTER_EXIT ||
-	    op != Audit_equal ||
-	    rule->inode_f || rule->watch || rule->tree)
+		rule->listnr != AUDIT_FILTER_EXIT ||
+		op != Audit_equal ||
+		rule->inode_f || rule->watch || rule->tree)
+	{
 		return -EINVAL;
+	}
+
 	rule->tree = alloc_tree(pathname);
+
 	if (!rule->tree)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -660,8 +808,10 @@ static int tag_mount(struct vfsmount *mnt, void *arg)
  */
 static int prune_tree_thread(void *unused)
 {
-	for (;;) {
-		if (list_empty(&prune_list)) {
+	for (;;)
+	{
+		if (list_empty(&prune_list))
+		{
 			set_current_state(TASK_INTERRUPTIBLE);
 			schedule();
 		}
@@ -669,11 +819,12 @@ static int prune_tree_thread(void *unused)
 		mutex_lock(&audit_cmd_mutex);
 		mutex_lock(&audit_filter_mutex);
 
-		while (!list_empty(&prune_list)) {
+		while (!list_empty(&prune_list))
+		{
 			struct audit_tree *victim;
 
 			victim = list_entry(prune_list.next,
-					struct audit_tree, list);
+								struct audit_tree, list);
 			list_del_init(&victim->list);
 
 			mutex_unlock(&audit_filter_mutex);
@@ -686,20 +837,27 @@ static int prune_tree_thread(void *unused)
 		mutex_unlock(&audit_filter_mutex);
 		mutex_unlock(&audit_cmd_mutex);
 	}
+
 	return 0;
 }
 
 static int audit_launch_prune(void)
 {
 	if (prune_thread)
+	{
 		return 0;
+	}
+
 	prune_thread = kthread_run(prune_tree_thread, NULL,
-				"audit_prune_tree");
-	if (IS_ERR(prune_thread)) {
+							   "audit_prune_tree");
+
+	if (IS_ERR(prune_thread))
+	{
 		pr_err("cannot start thread audit_prune_tree");
 		prune_thread = NULL;
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 
@@ -712,8 +870,10 @@ int audit_add_tree_rule(struct audit_krule *rule)
 	int err;
 
 	rule->tree = NULL;
-	list_for_each_entry(tree, &tree_list, list) {
-		if (!strcmp(seed->pathname, tree->pathname)) {
+	list_for_each_entry(tree, &tree_list, list)
+	{
+		if (!strcmp(seed->pathname, tree->pathname))
+		{
 			put_tree(seed);
 			rule->tree = tree;
 			list_add(&rule->rlist, &tree->rules);
@@ -726,18 +886,28 @@ int audit_add_tree_rule(struct audit_krule *rule)
 	/* do not set rule->tree yet */
 	mutex_unlock(&audit_filter_mutex);
 
-	if (unlikely(!prune_thread)) {
+	if (unlikely(!prune_thread))
+	{
 		err = audit_launch_prune();
+
 		if (err)
+		{
 			goto Err;
+		}
 	}
 
 	err = kern_path(tree->pathname, 0, &path);
+
 	if (err)
+	{
 		goto Err;
+	}
+
 	mnt = collect_mounts(&path);
 	path_put(&path);
-	if (IS_ERR(mnt)) {
+
+	if (IS_ERR(mnt))
+	{
 		err = PTR_ERR(mnt);
 		goto Err;
 	}
@@ -746,22 +916,28 @@ int audit_add_tree_rule(struct audit_krule *rule)
 	err = iterate_mounts(tag_mount, tree, mnt);
 	drop_collected_mounts(mnt);
 
-	if (!err) {
+	if (!err)
+	{
 		struct node *node;
 		spin_lock(&hash_lock);
 		list_for_each_entry(node, &tree->chunks, list)
-			node->index &= ~(1U<<31);
+		node->index &= ~(1U << 31);
 		spin_unlock(&hash_lock);
-	} else {
+	}
+	else
+	{
 		trim_marked(tree);
 		goto Err;
 	}
 
 	mutex_lock(&audit_filter_mutex);
-	if (list_empty(&rule->rlist)) {
+
+	if (list_empty(&rule->rlist))
+	{
 		put_tree(tree);
 		return -ENOENT;
 	}
+
 	rule->tree = tree;
 	put_tree(tree);
 
@@ -783,15 +959,24 @@ int audit_tag_tree(char *old, char *new)
 	int err;
 
 	err = kern_path(new, 0, &path2);
+
 	if (err)
+	{
 		return err;
+	}
+
 	tagged = collect_mounts(&path2);
 	path_put(&path2);
+
 	if (IS_ERR(tagged))
+	{
 		return PTR_ERR(tagged);
+	}
 
 	err = kern_path(old, 0, &path1);
-	if (err) {
+
+	if (err)
+	{
 		drop_collected_mounts(tagged);
 		return err;
 	}
@@ -800,7 +985,8 @@ int audit_tag_tree(char *old, char *new)
 	list_add(&barrier, &tree_list);
 	list_add(&cursor, &barrier);
 
-	while (cursor.next != &tree_list) {
+	while (cursor.next != &tree_list)
+	{
 		struct audit_tree *tree;
 		int good_one = 0;
 
@@ -811,19 +997,24 @@ int audit_tag_tree(char *old, char *new)
 		mutex_unlock(&audit_filter_mutex);
 
 		err = kern_path(tree->pathname, 0, &path2);
-		if (!err) {
+
+		if (!err)
+		{
 			good_one = path_is_under(&path1, &path2);
 			path_put(&path2);
 		}
 
-		if (!good_one) {
+		if (!good_one)
+		{
 			put_tree(tree);
 			mutex_lock(&audit_filter_mutex);
 			continue;
 		}
 
 		failed = iterate_mounts(tag_mount, tree, tagged);
-		if (failed) {
+
+		if (failed)
+		{
 			put_tree(tree);
 			mutex_lock(&audit_filter_mutex);
 			break;
@@ -831,15 +1022,19 @@ int audit_tag_tree(char *old, char *new)
 
 		mutex_lock(&audit_filter_mutex);
 		spin_lock(&hash_lock);
-		if (!tree->goner) {
+
+		if (!tree->goner)
+		{
 			list_del(&tree->list);
 			list_add(&tree->list, &tree_list);
 		}
+
 		spin_unlock(&hash_lock);
 		put_tree(tree);
 	}
 
-	while (barrier.prev != &tree_list) {
+	while (barrier.prev != &tree_list)
+	{
 		struct audit_tree *tree;
 
 		tree = container_of(barrier.prev, struct audit_tree, list);
@@ -848,19 +1043,23 @@ int audit_tag_tree(char *old, char *new)
 		list_add(&tree->list, &barrier);
 		mutex_unlock(&audit_filter_mutex);
 
-		if (!failed) {
+		if (!failed)
+		{
 			struct node *node;
 			spin_lock(&hash_lock);
 			list_for_each_entry(node, &tree->chunks, list)
-				node->index &= ~(1U<<31);
+			node->index &= ~(1U << 31);
 			spin_unlock(&hash_lock);
-		} else {
+		}
+		else
+		{
 			trim_marked(tree);
 		}
 
 		put_tree(tree);
 		mutex_lock(&audit_filter_mutex);
 	}
+
 	list_del(&barrier);
 	list_del(&cursor);
 	mutex_unlock(&audit_filter_mutex);
@@ -884,7 +1083,8 @@ void audit_kill_trees(struct list_head *list)
 	mutex_lock(&audit_cmd_mutex);
 	mutex_lock(&audit_filter_mutex);
 
-	while (!list_empty(list)) {
+	while (!list_empty(list))
+	{
 		struct audit_tree *victim;
 
 		victim = list_entry(list->next, struct audit_tree, list);
@@ -914,42 +1114,59 @@ static void evict_chunk(struct audit_chunk *chunk)
 	int n;
 
 	if (chunk->dead)
+	{
 		return;
+	}
 
 	chunk->dead = 1;
 	mutex_lock(&audit_filter_mutex);
 	spin_lock(&hash_lock);
-	while (!list_empty(&chunk->trees)) {
+
+	while (!list_empty(&chunk->trees))
+	{
 		owner = list_entry(chunk->trees.next,
-				   struct audit_tree, same_root);
+						   struct audit_tree, same_root);
 		owner->goner = 1;
 		owner->root = NULL;
 		list_del_init(&owner->same_root);
 		spin_unlock(&hash_lock);
-		if (!postponed) {
+
+		if (!postponed)
+		{
 			kill_rules(owner);
 			list_move(&owner->list, &prune_list);
 			need_prune = 1;
-		} else {
+		}
+		else
+		{
 			list_move(&owner->list, postponed);
 		}
+
 		spin_lock(&hash_lock);
 	}
+
 	list_del_rcu(&chunk->hash);
+
 	for (n = 0; n < chunk->count; n++)
+	{
 		list_del_init(&chunk->owners[n].list);
+	}
+
 	spin_unlock(&hash_lock);
 	mutex_unlock(&audit_filter_mutex);
+
 	if (need_prune)
+	{
 		audit_schedule_prune();
+	}
 }
 
 static int audit_tree_handle_event(struct fsnotify_group *group,
-				   struct inode *to_tell,
-				   struct fsnotify_mark *inode_mark,
-				   struct fsnotify_mark *vfsmount_mark,
-				   u32 mask, void *data, int data_type,
-				   const unsigned char *file_name, u32 cookie)
+								   struct inode *to_tell,
+								   struct fsnotify_mark *inode_mark,
+								   struct fsnotify_mark *vfsmount_mark,
+								   u32 mask, void *data, int data_type,
+								   const unsigned char *file_name, u32 cookie)
 {
 	return 0;
 }
@@ -967,7 +1184,8 @@ static void audit_tree_freeing_mark(struct fsnotify_mark *entry, struct fsnotify
 	BUG_ON(atomic_read(&entry->refcnt) < 1);
 }
 
-static const struct fsnotify_ops audit_tree_ops = {
+static const struct fsnotify_ops audit_tree_ops =
+{
 	.handle_event = audit_tree_handle_event,
 	.freeing_mark = audit_tree_freeing_mark,
 };
@@ -977,11 +1195,16 @@ static int __init audit_tree_init(void)
 	int i;
 
 	audit_tree_group = fsnotify_alloc_group(&audit_tree_ops);
+
 	if (IS_ERR(audit_tree_group))
+	{
 		audit_panic("cannot initialize fsnotify group for rectree watches");
+	}
 
 	for (i = 0; i < HASH_SIZE; i++)
+	{
 		INIT_LIST_HEAD(&chunk_hash_heads[i]);
+	}
 
 	return 0;
 }

@@ -16,7 +16,8 @@
 
 #include <linux/mutex.h>
 
-struct ww_class {
+struct ww_class
+{
 	atomic_long_t stamp;
 	struct lock_class_key acquire_key;
 	struct lock_class_key mutex_key;
@@ -24,7 +25,8 @@ struct ww_class {
 	const char *mutex_name;
 };
 
-struct ww_acquire_ctx {
+struct ww_acquire_ctx
+{
 	struct task_struct *task;
 	unsigned long stamp;
 	unsigned acquired;
@@ -42,7 +44,8 @@ struct ww_acquire_ctx {
 #endif
 };
 
-struct ww_mutex {
+struct ww_mutex
+{
 	struct mutex base;
 	struct ww_acquire_ctx *ctx;
 #ifdef CONFIG_DEBUG_MUTEXES
@@ -52,19 +55,19 @@ struct ww_mutex {
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 # define __WW_CLASS_MUTEX_INITIALIZER(lockname, ww_class) \
-		, .ww_class = &ww_class
+	, .ww_class = &ww_class
 #else
 # define __WW_CLASS_MUTEX_INITIALIZER(lockname, ww_class)
 #endif
 
 #define __WW_CLASS_INITIALIZER(ww_class) \
-		{ .stamp = ATOMIC_LONG_INIT(0) \
-		, .acquire_name = #ww_class "_acquire" \
-		, .mutex_name = #ww_class "_mutex" }
+	{ .stamp = ATOMIC_LONG_INIT(0) \
+			   , .acquire_name = #ww_class "_acquire" \
+								 , .mutex_name = #ww_class "_mutex" }
 
 #define __WW_MUTEX_INITIALIZER(lockname, class) \
-		{ .base = { \__MUTEX_INITIALIZER(lockname) } \
-		__WW_CLASS_MUTEX_INITIALIZER(lockname, class) }
+	{ .base = { \__MUTEX_INITIALIZER(lockname) } \
+			  __WW_CLASS_MUTEX_INITIALIZER(lockname, class) }
 
 #define DEFINE_WW_CLASS(classname) \
 	struct ww_class classname = __WW_CLASS_INITIALIZER(classname)
@@ -83,7 +86,7 @@ struct ww_mutex {
  * It is not allowed to initialize an already locked mutex.
  */
 static inline void ww_mutex_init(struct ww_mutex *lock,
-				 struct ww_class *ww_class)
+								 struct ww_class *ww_class)
 {
 	__mutex_init(&lock->base, ww_class->mutex_name, &ww_class->mutex_key);
 	lock->ctx = NULL;
@@ -117,7 +120,7 @@ static inline void ww_mutex_init(struct ww_mutex *lock,
  * on the stack.
  */
 static inline void ww_acquire_init(struct ww_acquire_ctx *ctx,
-				   struct ww_class *ww_class)
+								   struct ww_class *ww_class)
 {
 	ctx->task = current;
 	ctx->stamp = atomic_long_inc_return(&ww_class->stamp);
@@ -130,7 +133,7 @@ static inline void ww_acquire_init(struct ww_acquire_ctx *ctx,
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 	debug_check_no_locks_freed((void *)ctx, sizeof(*ctx));
 	lockdep_init_map(&ctx->dep_map, ww_class->acquire_name,
-			 &ww_class->acquire_key, 0);
+					 &ww_class->acquire_key, 0);
 	mutex_acquire(&ctx->dep_map, 0, 0, _RET_IP_);
 #endif
 #ifdef CONFIG_DEBUG_WW_MUTEX_SLOWPATH
@@ -173,23 +176,29 @@ static inline void ww_acquire_fini(struct ww_acquire_ctx *ctx)
 	mutex_release(&ctx->dep_map, 0, _THIS_IP_);
 
 	DEBUG_LOCKS_WARN_ON(ctx->acquired);
+
 	if (!IS_ENABLED(CONFIG_PROVE_LOCKING))
 		/*
 		 * lockdep will normally handle this,
 		 * but fail without anyway
 		 */
+	{
 		ctx->done_acquire = 1;
+	}
 
 	if (!IS_ENABLED(CONFIG_DEBUG_LOCK_ALLOC))
 		/* ensure ww_acquire_fini will still fail if called twice */
+	{
 		ctx->acquired = ~0U;
+	}
+
 #endif
 }
 
 extern int __must_check __ww_mutex_lock(struct ww_mutex *lock,
-					struct ww_acquire_ctx *ctx);
+										struct ww_acquire_ctx *ctx);
 extern int __must_check __ww_mutex_lock_interruptible(struct ww_mutex *lock,
-						      struct ww_acquire_ctx *ctx);
+		struct ww_acquire_ctx *ctx);
 
 /**
  * ww_mutex_lock - acquire the w/w mutex
@@ -223,7 +232,9 @@ extern int __must_check __ww_mutex_lock_interruptible(struct ww_mutex *lock,
 static inline int ww_mutex_lock(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
 {
 	if (ctx)
+	{
 		return __ww_mutex_lock(lock, ctx);
+	}
 
 	mutex_lock(&lock->base);
 	return 0;
@@ -260,12 +271,16 @@ static inline int ww_mutex_lock(struct ww_mutex *lock, struct ww_acquire_ctx *ct
  * A mutex acquired with this function must be released with ww_mutex_unlock.
  */
 static inline int __must_check ww_mutex_lock_interruptible(struct ww_mutex *lock,
-							   struct ww_acquire_ctx *ctx)
+		struct ww_acquire_ctx *ctx)
 {
 	if (ctx)
+	{
 		return __ww_mutex_lock_interruptible(lock, ctx);
+	}
 	else
+	{
 		return mutex_lock_interruptible(&lock->base);
+	}
 }
 
 /**
@@ -329,7 +344,7 @@ ww_mutex_lock_slow(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
  */
 static inline int __must_check
 ww_mutex_lock_slow_interruptible(struct ww_mutex *lock,
-				 struct ww_acquire_ctx *ctx)
+								 struct ww_acquire_ctx *ctx)
 {
 #ifdef CONFIG_DEBUG_MUTEXES
 	DEBUG_LOCKS_WARN_ON(!ctx->contending_lock);

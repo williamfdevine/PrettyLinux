@@ -32,9 +32,12 @@
 #define __FSL_BMAN_H
 
 /* wrapper for 48-bit buffers */
-struct bm_buffer {
-	union {
-		struct {
+struct bm_buffer
+{
+	union
+	{
+		struct
+		{
 			__be16 bpid; /* hi 8-bits reserved */
 			__be16 hi; /* High 16-bits of 48-bit address */
 			__be32 lo; /* Low 32-bits of 48-bit address */

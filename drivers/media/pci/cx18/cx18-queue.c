@@ -33,16 +33,22 @@ void cx18_buf_swap(struct cx18_buffer *buf)
 	int i;
 
 	for (i = 0; i < buf->bytesused; i += 4)
+	{
 		swab32s((u32 *)(buf->buf + i));
+	}
 }
 
 void _cx18_mdl_swap(struct cx18_mdl *mdl)
 {
 	struct cx18_buffer *buf;
 
-	list_for_each_entry(buf, &mdl->buf_list, list) {
+	list_for_each_entry(buf, &mdl->buf_list, list)
+	{
 		if (buf->bytesused == 0)
+		{
 			break;
+		}
+
 		cx18_buf_swap(buf);
 	}
 }
@@ -55,10 +61,11 @@ void cx18_queue_init(struct cx18_queue *q)
 }
 
 struct cx18_queue *_cx18_enqueue(struct cx18_stream *s, struct cx18_mdl *mdl,
-				 struct cx18_queue *q, int to_front)
+								 struct cx18_queue *q, int to_front)
 {
 	/* clear the mdl if it is not to be enqueued to the full queue */
-	if (q != &s->q_full) {
+	if (q != &s->q_full)
+	{
 		mdl->bytesused = 0;
 		mdl->readpos = 0;
 		mdl->m_flags = 0;
@@ -68,15 +75,22 @@ struct cx18_queue *_cx18_enqueue(struct cx18_stream *s, struct cx18_mdl *mdl,
 
 	/* q_busy is restricted to a max buffer count imposed by firmware */
 	if (q == &s->q_busy &&
-	    atomic_read(&q->depth) >= CX18_MAX_FW_MDLS_PER_STREAM)
+		atomic_read(&q->depth) >= CX18_MAX_FW_MDLS_PER_STREAM)
+	{
 		q = &s->q_free;
+	}
 
 	spin_lock(&q->lock);
 
 	if (to_front)
-		list_add(&mdl->list, &q->list); /* LIFO */
+	{
+		list_add(&mdl->list, &q->list);    /* LIFO */
+	}
 	else
-		list_add_tail(&mdl->list, &q->list); /* FIFO */
+	{
+		list_add_tail(&mdl->list, &q->list);    /* FIFO */
+	}
+
 	q->bytesused += mdl->bytesused - mdl->readpos;
 	atomic_inc(&q->depth);
 
@@ -89,55 +103,67 @@ struct cx18_mdl *cx18_dequeue(struct cx18_stream *s, struct cx18_queue *q)
 	struct cx18_mdl *mdl = NULL;
 
 	spin_lock(&q->lock);
-	if (!list_empty(&q->list)) {
+
+	if (!list_empty(&q->list))
+	{
 		mdl = list_first_entry(&q->list, struct cx18_mdl, list);
 		list_del_init(&mdl->list);
 		q->bytesused -= mdl->bytesused - mdl->readpos;
 		mdl->skipped = 0;
 		atomic_dec(&q->depth);
 	}
+
 	spin_unlock(&q->lock);
 	return mdl;
 }
 
 static void _cx18_mdl_update_bufs_for_cpu(struct cx18_stream *s,
-					  struct cx18_mdl *mdl)
+		struct cx18_mdl *mdl)
 {
 	struct cx18_buffer *buf;
 	u32 buf_size = s->buf_size;
 	u32 bytesused = mdl->bytesused;
 
-	list_for_each_entry(buf, &mdl->buf_list, list) {
+	list_for_each_entry(buf, &mdl->buf_list, list)
+	{
 		buf->readpos = 0;
-		if (bytesused >= buf_size) {
+
+		if (bytesused >= buf_size)
+		{
 			buf->bytesused = buf_size;
 			bytesused -= buf_size;
-		} else {
+		}
+		else
+		{
 			buf->bytesused = bytesused;
 			bytesused = 0;
 		}
+
 		cx18_buf_sync_for_cpu(s, buf);
 	}
 }
 
 static inline void cx18_mdl_update_bufs_for_cpu(struct cx18_stream *s,
-						struct cx18_mdl *mdl)
+		struct cx18_mdl *mdl)
 {
 	struct cx18_buffer *buf;
 
-	if (list_is_singular(&mdl->buf_list)) {
+	if (list_is_singular(&mdl->buf_list))
+	{
 		buf = list_first_entry(&mdl->buf_list, struct cx18_buffer,
-				       list);
+							   list);
 		buf->bytesused = mdl->bytesused;
 		buf->readpos = 0;
 		cx18_buf_sync_for_cpu(s, buf);
-	} else {
+	}
+	else
+	{
 		_cx18_mdl_update_bufs_for_cpu(s, mdl);
 	}
 }
 
 struct cx18_mdl *cx18_queue_get_mdl(struct cx18_stream *s, u32 id,
-	u32 bytesused)
+									u32 bytesused)
 {
 	struct cx18 *cx = s->cx;
 	struct cx18_mdl *mdl;
@@ -152,7 +178,8 @@ struct cx18_mdl *cx18_queue_get_mdl(struct cx18_stream *s, u32 id,
 	 * they are moved from q_busy to q_full or to the dvb ring buffer.
 	 */
 	spin_lock(&s->q_busy.lock);
-	list_for_each_entry_safe(mdl, tmp, &s->q_busy.list, list) {
+	list_for_each_entry_safe(mdl, tmp, &s->q_busy.list, list)
+	{
 		/*
 		 * We should find what the firmware told us is done,
 		 * right at the front of the queue.  If we don't, we likely have
@@ -160,20 +187,25 @@ struct cx18_mdl *cx18_queue_get_mdl(struct cx18_stream *s, u32 id,
 		 * Once we skip an mdl repeatedly, relative to the size of
 		 * q_busy, we have high confidence we've missed it.
 		 */
-		if (mdl->id != id) {
+		if (mdl->id != id)
+		{
 			mdl->skipped++;
-			if (mdl->skipped >= atomic_read(&s->q_busy.depth)-1) {
+
+			if (mdl->skipped >= atomic_read(&s->q_busy.depth) - 1)
+			{
 				/* mdl must have fallen out of rotation */
 				CX18_WARN("Skipped %s, MDL %d, %d "
-					  "times - it must have dropped out of "
-					  "rotation\n", s->name, mdl->id,
-					  mdl->skipped);
+						  "times - it must have dropped out of "
+						  "rotation\n", s->name, mdl->id,
+						  mdl->skipped);
 				/* Sweep it up to put it back into rotation */
 				list_move_tail(&mdl->list, &sweep_up);
 				atomic_dec(&s->q_busy.depth);
 			}
+
 			continue;
 		}
+
 		/*
 		 * We pull the desired mdl off of the queue here.  Something
 		 * will have to put it back on a queue later.
@@ -189,17 +221,22 @@ struct cx18_mdl *cx18_queue_get_mdl(struct cx18_stream *s, u32 id,
 	 * We found the mdl for which we were looking.  Get it ready for
 	 * the caller to put on q_full or in the dvb ring buffer.
 	 */
-	if (ret != NULL) {
+	if (ret != NULL)
+	{
 		ret->bytesused = bytesused;
 		ret->skipped = 0;
 		/* 0'ed readpos, m_flags & curr_buf when mdl went on q_busy */
 		cx18_mdl_update_bufs_for_cpu(s, ret);
+
 		if (s->type != CX18_ENC_STREAM_TYPE_TS)
+		{
 			set_bit(CX18_F_M_NEED_SWAP, &ret->m_flags);
+		}
 	}
 
 	/* Put any mdls the firmware is ignoring back into normal rotation */
-	list_for_each_entry_safe(mdl, tmp, &sweep_up, list) {
+	list_for_each_entry_safe(mdl, tmp, &sweep_up, list)
+	{
 		list_del_init(&mdl->list);
 		cx18_enqueue(s, mdl, &s->q_free);
 	}
@@ -208,17 +245,21 @@ struct cx18_mdl *cx18_queue_get_mdl(struct cx18_stream *s, u32 id,
 
 /* Move all mdls of a queue, while flushing the mdl */
 static void cx18_queue_flush(struct cx18_stream *s,
-			     struct cx18_queue *q_src, struct cx18_queue *q_dst)
+							 struct cx18_queue *q_src, struct cx18_queue *q_dst)
 {
 	struct cx18_mdl *mdl;
 
 	/* It only makes sense to flush to q_free or q_idle */
 	if (q_src == q_dst || q_dst == &s->q_full || q_dst == &s->q_busy)
+	{
 		return;
+	}
 
 	spin_lock(&q_src->lock);
 	spin_lock(&q_dst->lock);
-	while (!list_empty(&q_src->list)) {
+
+	while (!list_empty(&q_src->list))
+	{
 		mdl = list_first_entry(&q_src->list, struct cx18_mdl, list);
 		list_move_tail(&mdl->list, &q_dst->list);
 		mdl->bytesused = 0;
@@ -228,6 +269,7 @@ static void cx18_queue_flush(struct cx18_stream *s,
 		mdl->curr_buf = NULL;
 		atomic_inc(&q_dst->depth);
 	}
+
 	cx18_queue_init(q_src);
 	spin_unlock(&q_src->lock);
 	spin_unlock(&q_dst->lock);
@@ -256,14 +298,17 @@ void cx18_unload_queues(struct cx18_stream *s)
 
 	/* Reset MDL id's and move all buffers back to the stream's buf_pool */
 	spin_lock(&q_idle->lock);
-	list_for_each_entry(mdl, &q_idle->list, list) {
-		while (!list_empty(&mdl->buf_list)) {
+	list_for_each_entry(mdl, &q_idle->list, list)
+	{
+		while (!list_empty(&mdl->buf_list))
+		{
 			buf = list_first_entry(&mdl->buf_list,
-					       struct cx18_buffer, list);
+								   struct cx18_buffer, list);
 			list_move_tail(&buf->list, &s->buf_pool);
 			buf->bytesused = 0;
 			buf->readpos = 0;
 		}
+
 		mdl->id = s->mdl_base_idx; /* reset id to a "safe" value */
 		/* all other mdl fields were cleared by cx18_queue_flush() */
 	}
@@ -289,28 +334,34 @@ void cx18_load_queues(struct cx18_stream *s)
 	 * Excess buffers are left in buf_pool and/or on an MDL in q_idle
 	 */
 	mdl_id = s->mdl_base_idx;
+
 	for (mdl = cx18_dequeue(s, &s->q_idle), i = s->bufs_per_mdl;
-	     mdl != NULL && i == s->bufs_per_mdl;
-	     mdl = cx18_dequeue(s, &s->q_idle)) {
+		 mdl != NULL && i == s->bufs_per_mdl;
+		 mdl = cx18_dequeue(s, &s->q_idle))
+	{
 
 		mdl->id = mdl_id;
 
-		for (i = 0; i < s->bufs_per_mdl; i++) {
+		for (i = 0; i < s->bufs_per_mdl; i++)
+		{
 			if (list_empty(&s->buf_pool))
+			{
 				break;
+			}
 
 			buf = list_first_entry(&s->buf_pool, struct cx18_buffer,
-					       list);
+								   list);
 			list_move_tail(&buf->list, &mdl->buf_list);
 
 			/* update the firmware's MDL array with this buffer */
 			cx18_writel(cx, buf->dma_handle,
-				    &cx->scb->cpu_mdl[mdl_id + i].paddr);
+						&cx->scb->cpu_mdl[mdl_id + i].paddr);
 			cx18_writel(cx, s->buf_size,
-				    &cx->scb->cpu_mdl[mdl_id + i].length);
+						&cx->scb->cpu_mdl[mdl_id + i].length);
 		}
 
-		if (i == s->bufs_per_mdl) {
+		if (i == s->bufs_per_mdl)
+		{
 			/*
 			 * The encoder doesn't honor s->mdl_size.  So in the
 			 * case of a non-integral number of buffers to meet
@@ -319,15 +370,21 @@ void cx18_load_queues(struct cx18_stream *s)
 			 * us mdl_size bytes per MDL transfer.
 			 */
 			partial_buf_size = s->mdl_size % s->buf_size;
-			if (partial_buf_size) {
+
+			if (partial_buf_size)
+			{
 				cx18_writel(cx, partial_buf_size,
-				      &cx->scb->cpu_mdl[mdl_id + i - 1].length);
+							&cx->scb->cpu_mdl[mdl_id + i - 1].length);
 			}
+
 			cx18_enqueue(s, mdl, &s->q_free);
-		} else {
+		}
+		else
+		{
 			/* Not enough buffers for this MDL; we won't use it */
 			cx18_push(s, mdl, &s->q_idle);
 		}
+
 		mdl_id += i;
 	}
 }
@@ -340,8 +397,8 @@ void _cx18_mdl_sync_for_device(struct cx18_stream *s, struct cx18_mdl *mdl)
 	struct cx18_buffer *buf;
 
 	list_for_each_entry(buf, &mdl->buf_list, list)
-		pci_dma_sync_single_for_device(pci_dev, buf->dma_handle,
-					       buf_size, dma);
+	pci_dma_sync_single_for_device(pci_dev, buf->dma_handle,
+								   buf_size, dma);
 }
 
 int cx18_stream_alloc(struct cx18_stream *s)
@@ -350,46 +407,57 @@ int cx18_stream_alloc(struct cx18_stream *s)
 	int i;
 
 	if (s->buffers == 0)
+	{
 		return 0;
+	}
 
 	CX18_DEBUG_INFO("Allocate %s stream: %d x %d buffers "
-			"(%d.%02d kB total)\n",
-		s->name, s->buffers, s->buf_size,
-		s->buffers * s->buf_size / 1024,
-		(s->buffers * s->buf_size * 100 / 1024) % 100);
+					"(%d.%02d kB total)\n",
+					s->name, s->buffers, s->buf_size,
+					s->buffers * s->buf_size / 1024,
+					(s->buffers * s->buf_size * 100 / 1024) % 100);
 
 	if (((char __iomem *)&cx->scb->cpu_mdl[cx->free_mdl_idx + s->buffers] -
-				(char __iomem *)cx->scb) > SCB_RESERVED_SIZE) {
+		 (char __iomem *)cx->scb) > SCB_RESERVED_SIZE)
+	{
 		unsigned bufsz = (((char __iomem *)cx->scb) + SCB_RESERVED_SIZE -
-					((char __iomem *)cx->scb->cpu_mdl));
+						  ((char __iomem *)cx->scb->cpu_mdl));
 
 		CX18_ERR("Too many buffers, cannot fit in SCB area\n");
 		CX18_ERR("Max buffers = %zu\n",
-			bufsz / sizeof(struct cx18_mdl_ent));
+				 bufsz / sizeof(struct cx18_mdl_ent));
 		return -ENOMEM;
 	}
 
 	s->mdl_base_idx = cx->free_mdl_idx;
 
 	/* allocate stream buffers and MDLs */
-	for (i = 0; i < s->buffers; i++) {
+	for (i = 0; i < s->buffers; i++)
+	{
 		struct cx18_mdl *mdl;
 		struct cx18_buffer *buf;
 
 		/* 1 MDL per buffer to handle the worst & also default case */
-		mdl = kzalloc(sizeof(struct cx18_mdl), GFP_KERNEL|__GFP_NOWARN);
+		mdl = kzalloc(sizeof(struct cx18_mdl), GFP_KERNEL | __GFP_NOWARN);
+
 		if (mdl == NULL)
+		{
 			break;
+		}
 
 		buf = kzalloc(sizeof(struct cx18_buffer),
-				GFP_KERNEL|__GFP_NOWARN);
-		if (buf == NULL) {
+					  GFP_KERNEL | __GFP_NOWARN);
+
+		if (buf == NULL)
+		{
 			kfree(mdl);
 			break;
 		}
 
-		buf->buf = kmalloc(s->buf_size, GFP_KERNEL|__GFP_NOWARN);
-		if (buf->buf == NULL) {
+		buf->buf = kmalloc(s->buf_size, GFP_KERNEL | __GFP_NOWARN);
+
+		if (buf->buf == NULL)
+		{
 			kfree(mdl);
 			kfree(buf);
 			break;
@@ -402,14 +470,17 @@ int cx18_stream_alloc(struct cx18_stream *s)
 
 		INIT_LIST_HEAD(&buf->list);
 		buf->dma_handle = pci_map_single(s->cx->pci_dev,
-				buf->buf, s->buf_size, s->dma);
+										 buf->buf, s->buf_size, s->dma);
 		cx18_buf_sync_for_cpu(s, buf);
 		list_add_tail(&buf->list, &s->buf_pool);
 	}
-	if (i == s->buffers) {
+
+	if (i == s->buffers)
+	{
 		cx->free_mdl_idx += s->buffers;
 		return 0;
 	}
+
 	CX18_ERR("Couldn't allocate buffers for %s stream\n", s->name);
 	cx18_stream_free(s);
 	return -ENOMEM;
@@ -428,15 +499,18 @@ void cx18_stream_free(struct cx18_stream *s)
 
 	/* empty q_idle */
 	while ((mdl = cx18_dequeue(s, &s->q_idle)))
+	{
 		kfree(mdl);
+	}
 
 	/* empty buf_pool */
-	while (!list_empty(&s->buf_pool)) {
+	while (!list_empty(&s->buf_pool))
+	{
 		buf = list_first_entry(&s->buf_pool, struct cx18_buffer, list);
 		list_del_init(&buf->list);
 
 		pci_unmap_single(s->cx->pci_dev, buf->dma_handle,
-				s->buf_size, s->dma);
+						 s->buf_size, s->dma);
 		kfree(buf->buf);
 		kfree(buf);
 	}

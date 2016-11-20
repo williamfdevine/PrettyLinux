@@ -2,7 +2,8 @@
 #define _VME_H_
 
 /* Resource Type */
-enum vme_resource_type {
+enum vme_resource_type
+{
 	VME_MASTER,
 	VME_SLAVE,
 	VME_DMA,
@@ -69,12 +70,14 @@ enum vme_resource_type {
 #define VME_DMA_PATTERN_TO_VME		(1<<4)
 #define VME_DMA_PATTERN_TO_MEM		(1<<5)
 
-struct vme_dma_attr {
-	u32 type;
-	void *private;
+struct vme_dma_attr
+{
+		u32 type;
+		void *private;
 };
 
-struct vme_resource {
+struct vme_resource
+{
 	enum vme_resource_type type;
 	struct list_head *entry;
 };
@@ -99,7 +102,8 @@ extern struct bus_type vme_bus_type;
  * @drv_list: List of devices (per driver)
  * @bridge_list: List of devices (per bridge)
  */
-struct vme_dev {
+struct vme_dev
+{
 	int num;
 	struct vme_bridge *bridge;
 	struct device dev;
@@ -107,7 +111,8 @@ struct vme_dev {
 	struct list_head bridge_list;
 };
 
-struct vme_driver {
+struct vme_driver
+{
 	struct list_head node;
 	const char *name;
 	int (*match)(struct vme_dev *);
@@ -120,28 +125,28 @@ struct vme_driver {
 
 void *vme_alloc_consistent(struct vme_resource *, size_t, dma_addr_t *);
 void vme_free_consistent(struct vme_resource *, size_t,  void *,
-	dma_addr_t);
+						 dma_addr_t);
 
 size_t vme_get_size(struct vme_resource *);
 int vme_check_window(u32 aspace, unsigned long long vme_base,
-		     unsigned long long size);
+					 unsigned long long size);
 
 struct vme_resource *vme_slave_request(struct vme_dev *, u32, u32);
 int vme_slave_set(struct vme_resource *, int, unsigned long long,
-	unsigned long long, dma_addr_t, u32, u32);
+				  unsigned long long, dma_addr_t, u32, u32);
 int vme_slave_get(struct vme_resource *, int *, unsigned long long *,
-	unsigned long long *, dma_addr_t *, u32 *, u32 *);
+				  unsigned long long *, dma_addr_t *, u32 *, u32 *);
 void vme_slave_free(struct vme_resource *);
 
 struct vme_resource *vme_master_request(struct vme_dev *, u32, u32, u32);
 int vme_master_set(struct vme_resource *, int, unsigned long long,
-	unsigned long long, u32, u32, u32);
+				   unsigned long long, u32, u32, u32);
 int vme_master_get(struct vme_resource *, int *, unsigned long long *,
-	unsigned long long *, u32 *, u32 *, u32 *);
+				   unsigned long long *, u32 *, u32 *, u32 *);
 ssize_t vme_master_read(struct vme_resource *, void *, size_t, loff_t);
 ssize_t vme_master_write(struct vme_resource *, void *, size_t, loff_t);
 unsigned int vme_master_rmw(struct vme_resource *, unsigned int, unsigned int,
-	unsigned int, loff_t);
+							unsigned int, loff_t);
 int vme_master_mmap(struct vme_resource *resource, struct vm_area_struct *vma);
 void vme_master_free(struct vme_resource *);
 
@@ -152,13 +157,13 @@ struct vme_dma_attr *vme_dma_pci_attribute(dma_addr_t);
 struct vme_dma_attr *vme_dma_vme_attribute(unsigned long long, u32, u32, u32);
 void vme_dma_free_attribute(struct vme_dma_attr *);
 int vme_dma_list_add(struct vme_dma_list *, struct vme_dma_attr *,
-	struct vme_dma_attr *, size_t);
+					 struct vme_dma_attr *, size_t);
 int vme_dma_list_exec(struct vme_dma_list *);
 int vme_dma_list_free(struct vme_dma_list *);
 int vme_dma_free(struct vme_resource *);
 
 int vme_irq_request(struct vme_dev *, int, int,
-	void (*callback)(int, int, void *), void *);
+					void (*callback)(int, int, void *), void *);
 void vme_irq_free(struct vme_dev *, int, int);
 int vme_irq_generate(struct vme_dev *, int, int);
 

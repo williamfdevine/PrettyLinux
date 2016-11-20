@@ -29,21 +29,26 @@ pwm_info(struct nvkm_therm *therm, int *line, int *ctrl, int *indx)
 {
 	struct nvkm_subdev *subdev = &therm->subdev;
 
-	if (*line == 0x04) {
+	if (*line == 0x04)
+	{
 		*ctrl = 0x00e100;
 		*line = 4;
 		*indx = 0;
-	} else
-	if (*line == 0x09) {
+	}
+	else if (*line == 0x09)
+	{
 		*ctrl = 0x00e100;
 		*line = 9;
 		*indx = 1;
-	} else
-	if (*line == 0x10) {
+	}
+	else if (*line == 0x10)
+	{
 		*ctrl = 0x00e28c;
 		*line = 0;
 		*indx = 0;
-	} else {
+	}
+	else
+	{
 		nvkm_error(subdev, "unknown pwm ctrl for gpio %d\n", *line);
 		return -ENODEV;
 	}
@@ -57,8 +62,12 @@ nv50_fan_pwm_ctrl(struct nvkm_therm *therm, int line, bool enable)
 	struct nvkm_device *device = therm->subdev.device;
 	u32 data = enable ? 0x00000001 : 0x00000000;
 	int ctrl, id, ret = pwm_info(therm, &line, &ctrl, &id);
+
 	if (ret == 0)
+	{
 		nvkm_mask(device, ctrl, 0x00010001 << line, data << line);
+	}
+
 	return ret;
 }
 
@@ -67,10 +76,14 @@ nv50_fan_pwm_get(struct nvkm_therm *therm, int line, u32 *divs, u32 *duty)
 {
 	struct nvkm_device *device = therm->subdev.device;
 	int ctrl, id, ret = pwm_info(therm, &line, &ctrl, &id);
-	if (ret)
-		return ret;
 
-	if (nvkm_rd32(device, ctrl) & (1 << line)) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (nvkm_rd32(device, ctrl) & (1 << line))
+	{
 		*divs = nvkm_rd32(device, 0x00e114 + (id * 8));
 		*duty = nvkm_rd32(device, 0x00e118 + (id * 8));
 		return 0;
@@ -84,8 +97,11 @@ nv50_fan_pwm_set(struct nvkm_therm *therm, int line, u32 divs, u32 duty)
 {
 	struct nvkm_device *device = therm->subdev.device;
 	int ctrl, id, ret = pwm_info(therm, &line, &ctrl, &id);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nvkm_wr32(device, 0x00e114 + (id * 8), divs);
 	nvkm_wr32(device, 0x00e118 + (id * 8), duty | 0x80000000);
@@ -99,18 +115,25 @@ nv50_fan_pwm_clock(struct nvkm_therm *therm, int line)
 	int pwm_clock;
 
 	/* determine the PWM source clock */
-	if (device->chipset > 0x50 && device->chipset < 0x94) {
+	if (device->chipset > 0x50 && device->chipset < 0x94)
+	{
 		u8 pwm_div = nvkm_rd32(device, 0x410c);
-		if (nvkm_rd32(device, 0xc040) & 0x800000) {
+
+		if (nvkm_rd32(device, 0xc040) & 0x800000)
+		{
 			/* Use the HOST clock (100 MHz)
 			* Where does this constant(2.4) comes from? */
 			pwm_clock = (100000000 >> pwm_div) * 10 / 24;
-		} else {
+		}
+		else
+		{
 			/* Where does this constant(20) comes from? */
 			pwm_clock = (device->crystal * 1000) >> pwm_div;
 			pwm_clock /= 20;
 		}
-	} else {
+	}
+	else
+	{
 		pwm_clock = (device->crystal * 1000) / 20;
 	}
 
@@ -136,8 +159,10 @@ nv50_temp_get(struct nvkm_therm *therm)
 
 	/* if the slope or the offset is unset, do no use the sensor */
 	if (!sensor->slope_div || !sensor->slope_mult ||
-	    !sensor->offset_num || !sensor->offset_den)
-	    return -ENODEV;
+		!sensor->offset_num || !sensor->offset_den)
+	{
+		return -ENODEV;
+	}
 
 	core_temp = core_temp * sensor->slope_mult / sensor->slope_div;
 	core_temp = core_temp + sensor->offset_num / sensor->offset_den;
@@ -145,7 +170,9 @@ nv50_temp_get(struct nvkm_therm *therm)
 
 	/* reserve negative temperatures for errors */
 	if (core_temp < 0)
+	{
 		core_temp = 0;
+	}
 
 	return core_temp;
 }
@@ -157,7 +184,8 @@ nv50_therm_init(struct nvkm_therm *therm)
 }
 
 static const struct nvkm_therm_func
-nv50_therm = {
+	nv50_therm =
+{
 	.init = nv50_therm_init,
 	.intr = nv40_therm_intr,
 	.pwm_ctrl = nv50_fan_pwm_ctrl,
@@ -170,7 +198,7 @@ nv50_therm = {
 
 int
 nv50_therm_new(struct nvkm_device *device, int index,
-	       struct nvkm_therm **ptherm)
+			   struct nvkm_therm **ptherm)
 {
 	return nvkm_therm_new_(&nv50_therm, device, index, ptherm);
 }

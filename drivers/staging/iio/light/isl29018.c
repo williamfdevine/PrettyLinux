@@ -66,36 +66,42 @@
 #define ISL29023_INT_TIME_AVAIL		"0.090000 0.005600 0.000352 0.000022"
 #define ISL29035_INT_TIME_AVAIL		"0.105000 0.006500 0.000410 0.000025"
 
-static const char * const int_time_avail[] = {
+static const char *const int_time_avail[] =
+{
 	ISL29018_INT_TIME_AVAIL,
 	ISL29023_INT_TIME_AVAIL,
 	ISL29035_INT_TIME_AVAIL,
 };
 
-enum isl29018_int_time {
+enum isl29018_int_time
+{
 	ISL29018_INT_TIME_16,
 	ISL29018_INT_TIME_12,
 	ISL29018_INT_TIME_8,
 	ISL29018_INT_TIME_4,
 };
 
-static const unsigned int isl29018_int_utimes[3][4] = {
+static const unsigned int isl29018_int_utimes[3][4] =
+{
 	{90000, 5630, 351, 21},
 	{90000, 5600, 352, 22},
 	{105000, 6500, 410, 25},
 };
 
-static const struct isl29018_scale {
+static const struct isl29018_scale
+{
 	unsigned int scale;
 	unsigned int uscale;
-} isl29018_scales[4][4] = {
+} isl29018_scales[4][4] =
+{
 	{ {0, 15258}, {0, 61035}, {0, 244140}, {0, 976562} },
 	{ {0, 244140}, {0, 976562}, {3, 906250}, {15, 625000} },
 	{ {3, 906250}, {15, 625000}, {62, 500000}, {250, 0} },
 	{ {62, 500000}, {250, 0}, {1000, 0}, {4000, 0} }
 };
 
-struct isl29018_chip {
+struct isl29018_chip
+{
 	struct regmap		*regmap;
 	struct mutex		lock;
 	int			type;
@@ -108,36 +114,47 @@ struct isl29018_chip {
 };
 
 static int isl29018_set_integration_time(struct isl29018_chip *chip,
-					 unsigned int utime)
+		unsigned int utime)
 {
 	int i, ret;
 	unsigned int int_time, new_int_time;
 
-	for (i = 0; i < ARRAY_SIZE(isl29018_int_utimes[chip->type]); ++i) {
-		if (utime == isl29018_int_utimes[chip->type][i]) {
+	for (i = 0; i < ARRAY_SIZE(isl29018_int_utimes[chip->type]); ++i)
+	{
+		if (utime == isl29018_int_utimes[chip->type][i])
+		{
 			new_int_time = i;
 			break;
 		}
 	}
 
 	if (i >= ARRAY_SIZE(isl29018_int_utimes[chip->type]))
+	{
 		return -EINVAL;
+	}
 
 	ret = regmap_update_bits(chip->regmap, ISL29018_REG_ADD_COMMAND2,
-				 ISL29018_CMD2_RESOLUTION_MASK,
-				 i << ISL29018_CMD2_RESOLUTION_SHIFT);
+							 ISL29018_CMD2_RESOLUTION_MASK,
+							 i << ISL29018_CMD2_RESOLUTION_SHIFT);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Keep the same range when integration time changes */
 	int_time = chip->int_time;
-	for (i = 0; i < ARRAY_SIZE(isl29018_scales[int_time]); ++i) {
+
+	for (i = 0; i < ARRAY_SIZE(isl29018_scales[int_time]); ++i)
+	{
 		if (chip->scale.scale == isl29018_scales[int_time][i].scale &&
-		    chip->scale.uscale == isl29018_scales[int_time][i].uscale) {
+			chip->scale.uscale == isl29018_scales[int_time][i].uscale)
+		{
 			chip->scale = isl29018_scales[new_int_time][i];
 			break;
 		}
 	}
+
 	chip->int_time = new_int_time;
 
 	return 0;
@@ -148,22 +165,29 @@ static int isl29018_set_scale(struct isl29018_chip *chip, int scale, int uscale)
 	int i, ret;
 	struct isl29018_scale new_scale;
 
-	for (i = 0; i < ARRAY_SIZE(isl29018_scales[chip->int_time]); ++i) {
+	for (i = 0; i < ARRAY_SIZE(isl29018_scales[chip->int_time]); ++i)
+	{
 		if (scale == isl29018_scales[chip->int_time][i].scale &&
-		    uscale == isl29018_scales[chip->int_time][i].uscale) {
+			uscale == isl29018_scales[chip->int_time][i].uscale)
+		{
 			new_scale = isl29018_scales[chip->int_time][i];
 			break;
 		}
 	}
 
 	if (i >= ARRAY_SIZE(isl29018_scales[chip->int_time]))
+	{
 		return -EINVAL;
+	}
 
 	ret = regmap_update_bits(chip->regmap, ISL29018_REG_ADD_COMMAND2,
-				 ISL29018_CMD2_RANGE_MASK,
-				 i << ISL29018_CMD2_RANGE_SHIFT);
+							 ISL29018_CMD2_RANGE_MASK,
+							 i << ISL29018_CMD2_RANGE_SHIFT);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	chip->scale = new_scale;
 
@@ -179,26 +203,34 @@ static int isl29018_read_sensor_input(struct isl29018_chip *chip, int mode)
 
 	/* Set mode */
 	status = regmap_write(chip->regmap, ISL29018_REG_ADD_COMMAND1,
-			      mode << ISL29018_CMD1_OPMODE_SHIFT);
-	if (status) {
+						  mode << ISL29018_CMD1_OPMODE_SHIFT);
+
+	if (status)
+	{
 		dev_err(dev,
-			"Error in setting operating mode err %d\n", status);
+				"Error in setting operating mode err %d\n", status);
 		return status;
 	}
+
 	msleep(ISL29018_CONV_TIME_MS);
 	status = regmap_read(chip->regmap, ISL29018_REG_ADD_DATA_LSB, &lsb);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		dev_err(dev,
-			"Error in reading LSB DATA with err %d\n", status);
+				"Error in reading LSB DATA with err %d\n", status);
 		return status;
 	}
 
 	status = regmap_read(chip->regmap, ISL29018_REG_ADD_DATA_MSB, &msb);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		dev_err(dev,
-			"Error in reading MSB DATA with error %d\n", status);
+				"Error in reading MSB DATA with error %d\n", status);
 		return status;
 	}
+
 	dev_vdbg(dev, "MSB 0x%x and LSB 0x%x\n", msb, lsb);
 
 	return (msb << 8) | lsb;
@@ -210,14 +242,17 @@ static int isl29018_read_lux(struct isl29018_chip *chip, int *lux)
 	unsigned int data_x_range;
 
 	lux_data = isl29018_read_sensor_input(chip,
-					      ISL29018_CMD1_OPMODE_ALS_ONCE);
+										  ISL29018_CMD1_OPMODE_ALS_ONCE);
+
 	if (lux_data < 0)
+	{
 		return lux_data;
+	}
 
 	data_x_range = lux_data * chip->scale.scale +
-		       lux_data * chip->scale.uscale / 1000000;
+				   lux_data * chip->scale.uscale / 1000000;
 	*lux = data_x_range * chip->calibscale +
-	       data_x_range * chip->ucalibscale / 1000000;
+		   data_x_range * chip->ucalibscale / 1000000;
 
 	return 0;
 }
@@ -227,9 +262,12 @@ static int isl29018_read_ir(struct isl29018_chip *chip, int *ir)
 	int ir_data;
 
 	ir_data = isl29018_read_sensor_input(chip,
-					     ISL29018_CMD1_OPMODE_IR_ONCE);
+										 ISL29018_CMD1_OPMODE_IR_ONCE);
+
 	if (ir_data < 0)
+	{
 		return ir_data;
+	}
 
 	*ir = ir_data;
 
@@ -237,7 +275,7 @@ static int isl29018_read_ir(struct isl29018_chip *chip, int *ir)
 }
 
 static int isl29018_read_proximity_ir(struct isl29018_chip *chip, int scheme,
-				      int *near_ir)
+									  int *near_ir)
 {
 	int status;
 	int prox_data = -1;
@@ -246,38 +284,51 @@ static int isl29018_read_proximity_ir(struct isl29018_chip *chip, int scheme,
 
 	/* Do proximity sensing with required scheme */
 	status = regmap_update_bits(chip->regmap, ISL29018_REG_ADD_COMMAND2,
-				    ISL29018_CMD2_SCHEME_MASK,
-				    scheme << ISL29018_CMD2_SCHEME_SHIFT);
-	if (status) {
+								ISL29018_CMD2_SCHEME_MASK,
+								scheme << ISL29018_CMD2_SCHEME_SHIFT);
+
+	if (status)
+	{
 		dev_err(dev, "Error in setting operating mode\n");
 		return status;
 	}
 
 	prox_data = isl29018_read_sensor_input(chip,
-					       ISL29018_CMD1_OPMODE_PROX_ONCE);
-	if (prox_data < 0)
-		return prox_data;
+										   ISL29018_CMD1_OPMODE_PROX_ONCE);
 
-	if (scheme == 1) {
+	if (prox_data < 0)
+	{
+		return prox_data;
+	}
+
+	if (scheme == 1)
+	{
 		*near_ir = prox_data;
 		return 0;
 	}
 
 	ir_data = isl29018_read_sensor_input(chip,
-					     ISL29018_CMD1_OPMODE_IR_ONCE);
+										 ISL29018_CMD1_OPMODE_IR_ONCE);
+
 	if (ir_data < 0)
+	{
 		return ir_data;
+	}
 
 	if (prox_data >= ir_data)
+	{
 		*near_ir = prox_data - ir_data;
+	}
 	else
+	{
 		*near_ir = 0;
+	}
 
 	return 0;
 }
 
 static ssize_t isl29018_show_scale_available(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct isl29018_chip *chip = iio_priv(indio_dev);
@@ -285,8 +336,8 @@ static ssize_t isl29018_show_scale_available(struct device *dev,
 
 	for (i = 0; i < ARRAY_SIZE(isl29018_scales[chip->int_time]); ++i)
 		len += sprintf(buf + len, "%d.%06d ",
-			       isl29018_scales[chip->int_time][i].scale,
-			       isl29018_scales[chip->int_time][i].uscale);
+					   isl29018_scales[chip->int_time][i].scale,
+					   isl29018_scales[chip->int_time][i].uscale);
 
 	buf[len - 1] = '\n';
 
@@ -294,7 +345,7 @@ static ssize_t isl29018_show_scale_available(struct device *dev,
 }
 
 static ssize_t isl29018_show_int_time_available(struct device *dev,
-				       struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct isl29018_chip *chip = iio_priv(indio_dev);
@@ -302,7 +353,7 @@ static ssize_t isl29018_show_int_time_available(struct device *dev,
 
 	for (i = 0; i < ARRAY_SIZE(isl29018_int_utimes[chip->type]); ++i)
 		len += sprintf(buf + len, "0.%06d ",
-			       isl29018_int_utimes[chip->type][i]);
+					   isl29018_int_utimes[chip->type][i]);
 
 	buf[len - 1] = '\n';
 
@@ -310,8 +361,8 @@ static ssize_t isl29018_show_int_time_available(struct device *dev,
 }
 
 static ssize_t isl29018_show_prox_infrared_suppression(struct device *dev,
-					      struct device_attribute *attr,
-					      char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct isl29018_chip *chip = iio_priv(indio_dev);
@@ -324,17 +375,22 @@ static ssize_t isl29018_show_prox_infrared_suppression(struct device *dev,
 }
 
 static ssize_t isl29018_store_prox_infrared_suppression(struct device *dev,
-					       struct device_attribute *attr,
-					       const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct isl29018_chip *chip = iio_priv(indio_dev);
 	int val;
 
 	if (kstrtoint(buf, 10, &val))
+	{
 		return -EINVAL;
+	}
+
 	if (!(val == 0 || val == 1))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Get the "proximity scheme" i.e. if the chip does on chip
@@ -348,169 +404,213 @@ static ssize_t isl29018_store_prox_infrared_suppression(struct device *dev,
 }
 
 static int isl29018_write_raw(struct iio_dev *indio_dev,
-			      struct iio_chan_spec const *chan,
-			      int val,
-			      int val2,
-			      long mask)
+							  struct iio_chan_spec const *chan,
+							  int val,
+							  int val2,
+							  long mask)
 {
 	struct isl29018_chip *chip = iio_priv(indio_dev);
 	int ret = -EINVAL;
 
 	mutex_lock(&chip->lock);
-	switch (mask) {
-	case IIO_CHAN_INFO_CALIBSCALE:
-		if (chan->type == IIO_LIGHT) {
-			chip->calibscale = val;
-			chip->ucalibscale = val2;
-			ret = 0;
-		}
-		break;
-	case IIO_CHAN_INFO_INT_TIME:
-		if (chan->type == IIO_LIGHT) {
-			if (val) {
-				mutex_unlock(&chip->lock);
-				return -EINVAL;
+
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_CALIBSCALE:
+			if (chan->type == IIO_LIGHT)
+			{
+				chip->calibscale = val;
+				chip->ucalibscale = val2;
+				ret = 0;
 			}
-			ret = isl29018_set_integration_time(chip, val2);
-		}
-		break;
-	case IIO_CHAN_INFO_SCALE:
-		if (chan->type == IIO_LIGHT)
-			ret = isl29018_set_scale(chip, val, val2);
-		break;
-	default:
-		break;
+
+			break;
+
+		case IIO_CHAN_INFO_INT_TIME:
+			if (chan->type == IIO_LIGHT)
+			{
+				if (val)
+				{
+					mutex_unlock(&chip->lock);
+					return -EINVAL;
+				}
+
+				ret = isl29018_set_integration_time(chip, val2);
+			}
+
+			break;
+
+		case IIO_CHAN_INFO_SCALE:
+			if (chan->type == IIO_LIGHT)
+			{
+				ret = isl29018_set_scale(chip, val, val2);
+			}
+
+			break;
+
+		default:
+			break;
 	}
+
 	mutex_unlock(&chip->lock);
 
 	return ret;
 }
 
 static int isl29018_read_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int *val,
-			     int *val2,
-			     long mask)
+							 struct iio_chan_spec const *chan,
+							 int *val,
+							 int *val2,
+							 long mask)
 {
 	int ret = -EINVAL;
 	struct isl29018_chip *chip = iio_priv(indio_dev);
 
 	mutex_lock(&chip->lock);
-	if (chip->suspended) {
+
+	if (chip->suspended)
+	{
 		mutex_unlock(&chip->lock);
 		return -EBUSY;
 	}
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-	case IIO_CHAN_INFO_PROCESSED:
-		switch (chan->type) {
-		case IIO_LIGHT:
-			ret = isl29018_read_lux(chip, val);
+
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+		case IIO_CHAN_INFO_PROCESSED:
+			switch (chan->type)
+			{
+				case IIO_LIGHT:
+					ret = isl29018_read_lux(chip, val);
+					break;
+
+				case IIO_INTENSITY:
+					ret = isl29018_read_ir(chip, val);
+					break;
+
+				case IIO_PROXIMITY:
+					ret = isl29018_read_proximity_ir(chip,
+													 chip->prox_scheme,
+													 val);
+					break;
+
+				default:
+					break;
+			}
+
+			if (!ret)
+			{
+				ret = IIO_VAL_INT;
+			}
+
 			break;
-		case IIO_INTENSITY:
-			ret = isl29018_read_ir(chip, val);
+
+		case IIO_CHAN_INFO_INT_TIME:
+			if (chan->type == IIO_LIGHT)
+			{
+				*val = 0;
+				*val2 = isl29018_int_utimes[chip->type][chip->int_time];
+				ret = IIO_VAL_INT_PLUS_MICRO;
+			}
+
 			break;
-		case IIO_PROXIMITY:
-			ret = isl29018_read_proximity_ir(chip,
-							 chip->prox_scheme,
-							 val);
+
+		case IIO_CHAN_INFO_SCALE:
+			if (chan->type == IIO_LIGHT)
+			{
+				*val = chip->scale.scale;
+				*val2 = chip->scale.uscale;
+				ret = IIO_VAL_INT_PLUS_MICRO;
+			}
+
 			break;
+
+		case IIO_CHAN_INFO_CALIBSCALE:
+			if (chan->type == IIO_LIGHT)
+			{
+				*val = chip->calibscale;
+				*val2 = chip->ucalibscale;
+				ret = IIO_VAL_INT_PLUS_MICRO;
+			}
+
+			break;
+
 		default:
 			break;
-		}
-		if (!ret)
-			ret = IIO_VAL_INT;
-		break;
-	case IIO_CHAN_INFO_INT_TIME:
-		if (chan->type == IIO_LIGHT) {
-			*val = 0;
-			*val2 = isl29018_int_utimes[chip->type][chip->int_time];
-			ret = IIO_VAL_INT_PLUS_MICRO;
-		}
-		break;
-	case IIO_CHAN_INFO_SCALE:
-		if (chan->type == IIO_LIGHT) {
-			*val = chip->scale.scale;
-			*val2 = chip->scale.uscale;
-			ret = IIO_VAL_INT_PLUS_MICRO;
-		}
-		break;
-	case IIO_CHAN_INFO_CALIBSCALE:
-		if (chan->type == IIO_LIGHT) {
-			*val = chip->calibscale;
-			*val2 = chip->ucalibscale;
-			ret = IIO_VAL_INT_PLUS_MICRO;
-		}
-		break;
-	default:
-		break;
 	}
+
 	mutex_unlock(&chip->lock);
 	return ret;
 }
 
 #define ISL29018_LIGHT_CHANNEL {					\
-	.type = IIO_LIGHT,						\
-	.indexed = 1,							\
-	.channel = 0,							\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_PROCESSED) |		\
-	BIT(IIO_CHAN_INFO_CALIBSCALE) |					\
-	BIT(IIO_CHAN_INFO_SCALE) |					\
-	BIT(IIO_CHAN_INFO_INT_TIME),					\
-}
+		.type = IIO_LIGHT,						\
+				.indexed = 1,							\
+						   .channel = 0,							\
+									  .info_mask_separate = BIT(IIO_CHAN_INFO_PROCESSED) |		\
+											  BIT(IIO_CHAN_INFO_CALIBSCALE) |					\
+											  BIT(IIO_CHAN_INFO_SCALE) |					\
+											  BIT(IIO_CHAN_INFO_INT_TIME),					\
+	}
 
 #define ISL29018_IR_CHANNEL {						\
-	.type = IIO_INTENSITY,						\
-	.modified = 1,							\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),			\
-	.channel2 = IIO_MOD_LIGHT_IR,					\
-}
+		.type = IIO_INTENSITY,						\
+				.modified = 1,							\
+							.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),			\
+									.channel2 = IIO_MOD_LIGHT_IR,					\
+	}
 
 #define ISL29018_PROXIMITY_CHANNEL {					\
-	.type = IIO_PROXIMITY,						\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),			\
-}
+		.type = IIO_PROXIMITY,						\
+				.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),			\
+	}
 
-static const struct iio_chan_spec isl29018_channels[] = {
+static const struct iio_chan_spec isl29018_channels[] =
+{
 	ISL29018_LIGHT_CHANNEL,
 	ISL29018_IR_CHANNEL,
 	ISL29018_PROXIMITY_CHANNEL,
 };
 
-static const struct iio_chan_spec isl29023_channels[] = {
+static const struct iio_chan_spec isl29023_channels[] =
+{
 	ISL29018_LIGHT_CHANNEL,
 	ISL29018_IR_CHANNEL,
 };
 
 static IIO_DEVICE_ATTR(in_illuminance_integration_time_available, S_IRUGO,
-		       isl29018_show_int_time_available, NULL, 0);
+					   isl29018_show_int_time_available, NULL, 0);
 static IIO_DEVICE_ATTR(in_illuminance_scale_available, S_IRUGO,
-		      isl29018_show_scale_available, NULL, 0);
+					   isl29018_show_scale_available, NULL, 0);
 static IIO_DEVICE_ATTR(proximity_on_chip_ambient_infrared_suppression,
-					S_IRUGO | S_IWUSR,
-					isl29018_show_prox_infrared_suppression,
-					isl29018_store_prox_infrared_suppression, 0);
+					   S_IRUGO | S_IWUSR,
+					   isl29018_show_prox_infrared_suppression,
+					   isl29018_store_prox_infrared_suppression, 0);
 
 #define ISL29018_DEV_ATTR(name) (&iio_dev_attr_##name.dev_attr.attr)
 
-static struct attribute *isl29018_attributes[] = {
+static struct attribute *isl29018_attributes[] =
+{
 	ISL29018_DEV_ATTR(in_illuminance_scale_available),
 	ISL29018_DEV_ATTR(in_illuminance_integration_time_available),
 	ISL29018_DEV_ATTR(proximity_on_chip_ambient_infrared_suppression),
 	NULL
 };
 
-static struct attribute *isl29023_attributes[] = {
+static struct attribute *isl29023_attributes[] =
+{
 	ISL29018_DEV_ATTR(in_illuminance_scale_available),
 	ISL29018_DEV_ATTR(in_illuminance_integration_time_available),
 	NULL
 };
 
-static const struct attribute_group isl29018_group = {
+static const struct attribute_group isl29018_group =
+{
 	.attrs = isl29018_attributes,
 };
 
-static const struct attribute_group isl29023_group = {
+static const struct attribute_group isl29023_group =
+{
 	.attrs = isl29023_attributes,
 };
 
@@ -521,24 +621,29 @@ static int isl29035_detect(struct isl29018_chip *chip)
 	struct device *dev = regmap_get_device(chip->regmap);
 
 	status = regmap_read(chip->regmap, ISL29035_REG_DEVICE_ID, &id);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		dev_err(dev,
-			"Error reading ID register with error %d\n",
-			status);
+				"Error reading ID register with error %d\n",
+				status);
 		return status;
 	}
 
 	id = (id & ISL29035_DEVICE_ID_MASK) >> ISL29035_DEVICE_ID_SHIFT;
 
 	if (id != ISL29035_DEVICE_ID)
+	{
 		return -ENODEV;
+	}
 
 	/* Clear brownout bit */
 	return regmap_update_bits(chip->regmap, ISL29035_REG_DEVICE_ID,
-				  ISL29035_BOUT_MASK, 0);
+							  ISL29035_BOUT_MASK, 0);
 }
 
-enum {
+enum
+{
 	isl29018,
 	isl29023,
 	isl29035,
@@ -549,10 +654,14 @@ static int isl29018_chip_init(struct isl29018_chip *chip)
 	int status;
 	struct device *dev = regmap_get_device(chip->regmap);
 
-	if (chip->type == isl29035) {
+	if (chip->type == isl29035)
+	{
 		status = isl29035_detect(chip);
+
 		if (status < 0)
+		{
 			return status;
+		}
 	}
 
 	/* Code added per Intersil Application Note 1534:
@@ -576,9 +685,11 @@ static int isl29018_chip_init(struct isl29018_chip *chip)
 	 * writing the CMD1 register.
 	 */
 	status = regmap_write(chip->regmap, ISL29018_REG_TEST, 0x0);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		dev_err(dev, "Failed to clear isl29018 TEST reg.(%d)\n",
-			status);
+				status);
 		return status;
 	}
 
@@ -587,9 +698,11 @@ static int isl29018_chip_init(struct isl29018_chip *chip)
 	 * data is read from the device.
 	 */
 	status = regmap_write(chip->regmap, ISL29018_REG_ADD_COMMAND1, 0);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		dev_err(dev, "Failed to clear isl29018 CMD1 reg.(%d)\n",
-			status);
+				status);
 		return status;
 	}
 
@@ -597,15 +710,19 @@ static int isl29018_chip_init(struct isl29018_chip *chip)
 
 	/* Set defaults */
 	status = isl29018_set_scale(chip, chip->scale.scale,
-				    chip->scale.uscale);
-	if (status < 0) {
+								chip->scale.uscale);
+
+	if (status < 0)
+	{
 		dev_err(dev, "Init of isl29018 fails\n");
 		return status;
 	}
 
 	status = isl29018_set_integration_time(chip,
-			isl29018_int_utimes[chip->type][chip->int_time]);
-	if (status < 0) {
+										   isl29018_int_utimes[chip->type][chip->int_time]);
+
+	if (status < 0)
+	{
 		dev_err(dev, "Init of isl29018 fails\n");
 		return status;
 	}
@@ -613,14 +730,16 @@ static int isl29018_chip_init(struct isl29018_chip *chip)
 	return 0;
 }
 
-static const struct iio_info isl29018_info = {
+static const struct iio_info isl29018_info =
+{
 	.attrs = &isl29018_group,
 	.driver_module = THIS_MODULE,
 	.read_raw = isl29018_read_raw,
 	.write_raw = isl29018_write_raw,
 };
 
-static const struct iio_info isl29023_info = {
+static const struct iio_info isl29023_info =
+{
 	.attrs = &isl29023_group,
 	.driver_module = THIS_MODULE,
 	.read_raw = isl29018_read_raw,
@@ -629,19 +748,22 @@ static const struct iio_info isl29023_info = {
 
 static bool isl29018_is_volatile_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case ISL29018_REG_ADD_DATA_LSB:
-	case ISL29018_REG_ADD_DATA_MSB:
-	case ISL29018_REG_ADD_COMMAND1:
-	case ISL29018_REG_TEST:
-	case ISL29035_REG_DEVICE_ID:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case ISL29018_REG_ADD_DATA_LSB:
+		case ISL29018_REG_ADD_DATA_MSB:
+		case ISL29018_REG_ADD_COMMAND1:
+		case ISL29018_REG_TEST:
+		case ISL29035_REG_DEVICE_ID:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
-static const struct regmap_config isl29018_regmap_config = {
+static const struct regmap_config isl29018_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.volatile_reg = isl29018_is_volatile_reg,
@@ -650,7 +772,8 @@ static const struct regmap_config isl29018_regmap_config = {
 	.cache_type = REGCACHE_RBTREE,
 };
 
-static const struct regmap_config isl29035_regmap_config = {
+static const struct regmap_config isl29035_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.volatile_reg = isl29018_is_volatile_reg,
@@ -659,14 +782,16 @@ static const struct regmap_config isl29035_regmap_config = {
 	.cache_type = REGCACHE_RBTREE,
 };
 
-struct isl29018_chip_info {
+struct isl29018_chip_info
+{
 	const struct iio_chan_spec *channels;
 	int num_channels;
 	const struct iio_info *indio_info;
 	const struct regmap_config *regmap_cfg;
 };
 
-static const struct isl29018_chip_info isl29018_chip_info_tbl[] = {
+static const struct isl29018_chip_info isl29018_chip_info_tbl[] =
+{
 	[isl29018] = {
 		.channels = isl29018_channels,
 		.num_channels = ARRAY_SIZE(isl29018_channels),
@@ -694,7 +819,9 @@ static const char *isl29018_match_acpi_device(struct device *dev, int *data)
 	id = acpi_match_device(dev->driver->acpi_match_table, dev);
 
 	if (!id)
+	{
 		return NULL;
+	}
 
 	*data = (int)id->driver_data;
 
@@ -702,7 +829,7 @@ static const char *isl29018_match_acpi_device(struct device *dev, int *data)
 }
 
 static int isl29018_probe(struct i2c_client *client,
-			  const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct isl29018_chip *chip;
 	struct iio_dev *indio_dev;
@@ -711,19 +838,26 @@ static int isl29018_probe(struct i2c_client *client,
 	int dev_id = 0;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*chip));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
+
 	chip = iio_priv(indio_dev);
 
 	i2c_set_clientdata(client, indio_dev);
 
-	if (id) {
+	if (id)
+	{
 		name = id->name;
 		dev_id = id->driver_data;
 	}
 
 	if (ACPI_HANDLE(&client->dev))
+	{
 		name = isl29018_match_acpi_device(&client->dev, &dev_id);
+	}
 
 	mutex_init(&chip->lock);
 
@@ -735,16 +869,21 @@ static int isl29018_probe(struct i2c_client *client,
 	chip->suspended = false;
 
 	chip->regmap = devm_regmap_init_i2c(client,
-				isl29018_chip_info_tbl[dev_id].regmap_cfg);
-	if (IS_ERR(chip->regmap)) {
+										isl29018_chip_info_tbl[dev_id].regmap_cfg);
+
+	if (IS_ERR(chip->regmap))
+	{
 		err = PTR_ERR(chip->regmap);
 		dev_err(&client->dev, "regmap initialization fails: %d\n", err);
 		return err;
 	}
 
 	err = isl29018_chip_init(chip);
+
 	if (err)
+	{
 		return err;
+	}
 
 	indio_dev->info = isl29018_chip_info_tbl[dev_id].indio_info;
 	indio_dev->channels = isl29018_chip_info_tbl[dev_id].channels;
@@ -780,8 +919,11 @@ static int isl29018_resume(struct device *dev)
 	mutex_lock(&chip->lock);
 
 	err = isl29018_chip_init(chip);
+
 	if (!err)
+	{
 		chip->suspended = false;
+	}
 
 	mutex_unlock(&chip->lock);
 	return err;
@@ -793,7 +935,8 @@ static SIMPLE_DEV_PM_OPS(isl29018_pm_ops, isl29018_suspend, isl29018_resume);
 #define ISL29018_PM_OPS NULL
 #endif
 
-static const struct acpi_device_id isl29018_acpi_match[] = {
+static const struct acpi_device_id isl29018_acpi_match[] =
+{
 	{"ISL29018", isl29018},
 	{"ISL29023", isl29023},
 	{"ISL29035", isl29035},
@@ -801,7 +944,8 @@ static const struct acpi_device_id isl29018_acpi_match[] = {
 };
 MODULE_DEVICE_TABLE(acpi, isl29018_acpi_match);
 
-static const struct i2c_device_id isl29018_id[] = {
+static const struct i2c_device_id isl29018_id[] =
+{
 	{"isl29018", isl29018},
 	{"isl29023", isl29023},
 	{"isl29035", isl29035},
@@ -810,7 +954,8 @@ static const struct i2c_device_id isl29018_id[] = {
 
 MODULE_DEVICE_TABLE(i2c, isl29018_id);
 
-static const struct of_device_id isl29018_of_match[] = {
+static const struct of_device_id isl29018_of_match[] =
+{
 	{ .compatible = "isil,isl29018", },
 	{ .compatible = "isil,isl29023", },
 	{ .compatible = "isil,isl29035", },
@@ -818,13 +963,14 @@ static const struct of_device_id isl29018_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, isl29018_of_match);
 
-static struct i2c_driver isl29018_driver = {
+static struct i2c_driver isl29018_driver =
+{
 	.driver	 = {
-			.name = "isl29018",
-			.acpi_match_table = ACPI_PTR(isl29018_acpi_match),
-			.pm = ISL29018_PM_OPS,
-			.of_match_table = isl29018_of_match,
-		    },
+		.name = "isl29018",
+		.acpi_match_table = ACPI_PTR(isl29018_acpi_match),
+		.pm = ISL29018_PM_OPS,
+		.of_match_table = isl29018_of_match,
+	},
 	.probe	 = isl29018_probe,
 	.id_table = isl29018_id,
 };

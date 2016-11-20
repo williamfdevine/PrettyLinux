@@ -46,26 +46,39 @@ static int pn_ioctl(struct sock *sk, int cmd, unsigned long arg)
 	struct sk_buff *skb;
 	int answ;
 
-	switch (cmd) {
-	case SIOCINQ:
-		lock_sock(sk);
-		skb = skb_peek(&sk->sk_receive_queue);
-		answ = skb ? skb->len : 0;
-		release_sock(sk);
-		return put_user(answ, (int __user *)arg);
+	switch (cmd)
+	{
+		case SIOCINQ:
+			lock_sock(sk);
+			skb = skb_peek(&sk->sk_receive_queue);
+			answ = skb ? skb->len : 0;
+			release_sock(sk);
+			return put_user(answ, (int __user *)arg);
 
-	case SIOCPNADDRESOURCE:
-	case SIOCPNDELRESOURCE: {
-			u32 res;
-			if (get_user(res, (u32 __user *)arg))
-				return -EFAULT;
-			if (res >= 256)
-				return -EINVAL;
-			if (cmd == SIOCPNADDRESOURCE)
-				return pn_sock_bind_res(sk, res);
-			else
-				return pn_sock_unbind_res(sk, res);
-		}
+		case SIOCPNADDRESOURCE:
+		case SIOCPNDELRESOURCE:
+			{
+				u32 res;
+
+				if (get_user(res, (u32 __user *)arg))
+				{
+					return -EFAULT;
+				}
+
+				if (res >= 256)
+				{
+					return -EINVAL;
+				}
+
+				if (cmd == SIOCPNADDRESOURCE)
+				{
+					return pn_sock_bind_res(sk, res);
+				}
+				else
+				{
+					return pn_sock_unbind_res(sk, res);
+				}
+			}
 	}
 
 	return -ENOIOCTLCMD;
@@ -89,27 +102,41 @@ static int pn_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
 	struct sk_buff *skb;
 	int err;
 
-	if (msg->msg_flags & ~(MSG_DONTWAIT|MSG_EOR|MSG_NOSIGNAL|
-				MSG_CMSG_COMPAT))
+	if (msg->msg_flags & ~(MSG_DONTWAIT | MSG_EOR | MSG_NOSIGNAL |
+						   MSG_CMSG_COMPAT))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (target == NULL)
+	{
 		return -EDESTADDRREQ;
+	}
 
 	if (msg->msg_namelen < sizeof(struct sockaddr_pn))
+	{
 		return -EINVAL;
+	}
 
 	if (target->spn_family != AF_PHONET)
+	{
 		return -EAFNOSUPPORT;
+	}
 
 	skb = sock_alloc_send_skb(sk, MAX_PHONET_HEADER + len,
-					msg->msg_flags & MSG_DONTWAIT, &err);
+							  msg->msg_flags & MSG_DONTWAIT, &err);
+
 	if (skb == NULL)
+	{
 		return err;
+	}
+
 	skb_reserve(skb, MAX_PHONET_HEADER);
 
 	err = memcpy_from_msg((void *)skb_put(skb, len), msg, len);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		kfree_skb(skb);
 		return err;
 	}
@@ -125,38 +152,48 @@ static int pn_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
 }
 
 static int pn_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
-		      int noblock, int flags, int *addr_len)
+					  int noblock, int flags, int *addr_len)
 {
 	struct sk_buff *skb = NULL;
 	struct sockaddr_pn sa;
 	int rval = -EOPNOTSUPP;
 	int copylen;
 
-	if (flags & ~(MSG_PEEK|MSG_TRUNC|MSG_DONTWAIT|MSG_NOSIGNAL|
-			MSG_CMSG_COMPAT))
+	if (flags & ~(MSG_PEEK | MSG_TRUNC | MSG_DONTWAIT | MSG_NOSIGNAL |
+				  MSG_CMSG_COMPAT))
+	{
 		goto out_nofree;
+	}
 
 	skb = skb_recv_datagram(sk, flags, noblock, &rval);
+
 	if (skb == NULL)
+	{
 		goto out_nofree;
+	}
 
 	pn_skb_get_src_sockaddr(skb, &sa);
 
 	copylen = skb->len;
-	if (len < copylen) {
+
+	if (len < copylen)
+	{
 		msg->msg_flags |= MSG_TRUNC;
 		copylen = len;
 	}
 
 	rval = skb_copy_datagram_msg(skb, 0, msg, copylen);
-	if (rval) {
+
+	if (rval)
+	{
 		rval = -EFAULT;
 		goto out;
 	}
 
 	rval = (flags & MSG_TRUNC) ? skb->len : copylen;
 
-	if (msg->msg_name != NULL) {
+	if (msg->msg_name != NULL)
+	{
 		__sockaddr_check_size(sizeof(sa));
 		memcpy(msg->msg_name, &sa, sizeof(sa));
 		*addr_len = sizeof(sa);
@@ -175,12 +212,16 @@ static int pn_backlog_rcv(struct sock *sk, struct sk_buff *skb)
 	int err = sock_queue_rcv_skb(sk, skb);
 
 	if (err < 0)
+	{
 		kfree_skb(skb);
+	}
+
 	return err ? NET_RX_DROP : NET_RX_SUCCESS;
 }
 
 /* Module registration */
-static struct proto pn_proto = {
+static struct proto pn_proto =
+{
 	.close		= pn_sock_close,
 	.ioctl		= pn_ioctl,
 	.init		= pn_init,
@@ -195,7 +236,8 @@ static struct proto pn_proto = {
 	.name		= "PHONET",
 };
 
-static struct phonet_protocol pn_dgram_proto = {
+static struct phonet_protocol pn_dgram_proto =
+{
 	.ops		= &phonet_dgram_ops,
 	.prot		= &pn_proto,
 	.sock_type	= SOCK_DGRAM,

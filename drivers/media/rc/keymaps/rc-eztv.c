@@ -16,12 +16,13 @@
 /* Alfons Geser <a.geser@cox.net>
  * updates from Job D. R. Borges <jobdrb@ig.com.br> */
 
-static struct rc_map_table eztv[] = {
+static struct rc_map_table eztv[] =
+{
 	{ 0x12, KEY_POWER },
 	{ 0x01, KEY_TV },	/* DVR */
 	{ 0x15, KEY_DVD },	/* DVD */
 	{ 0x17, KEY_AUDIO },	/* music */
-				/* DVR mode / DVD mode / music mode */
+	/* DVR mode / DVD mode / music mode */
 
 	{ 0x1b, KEY_MUTE },	/* mute */
 	{ 0x02, KEY_LANGUAGE },	/* MTS/SAP / audio / autoseek */
@@ -71,7 +72,8 @@ static struct rc_map_table eztv[] = {
 	{ 0x21, KEY_DOT },	/* . (decimal dot) */
 };
 
-static struct rc_map_list eztv_map = {
+static struct rc_map_list eztv_map =
+{
 	.map = {
 		.scan    = eztv,
 		.size    = ARRAY_SIZE(eztv),

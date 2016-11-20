@@ -15,7 +15,7 @@
 #define BR2684_MEDIA_FDDI	(3)
 #define BR2684_MEDIA_802_6	(4)	/* 802.6 */
 
-					/* used only at device creation:  */
+/* used only at device creation:  */
 #define BR2684_FLAG_ROUTED	(1<<16)	/* payload is routed, not bridged */
 
 /*
@@ -51,7 +51,8 @@
  * the first element of the structure is the backend number and the rest
  * is per-backend specific
  */
-struct atm_newif_br2684 {
+struct atm_newif_br2684
+{
 	atm_backend_t backend_num;	/* ATM_BACKEND_BR2684 */
 	int media;		/* BR2684_MEDIA_*, flags in upper bits */
 	char ifname[IFNAMSIZ];
@@ -65,9 +66,11 @@ struct atm_newif_br2684 {
 #define BR2684_FIND_BYNOTHING	(0)
 #define BR2684_FIND_BYNUM	(1)
 #define BR2684_FIND_BYIFNAME	(2)
-struct br2684_if_spec {
+struct br2684_if_spec
+{
 	int method;		/* BR2684_FIND_* */
-	union {
+	union
+	{
 		char ifname[IFNAMSIZ];
 		int devnum;
 	} spec;
@@ -78,7 +81,8 @@ struct br2684_if_spec {
  * the first element of the structure is the backend number and the rest
  * is per-backend specific
  */
-struct atm_backend_br2684 {
+struct atm_backend_br2684
+{
 	atm_backend_t backend_num;	/* ATM_BACKEND_BR2684 */
 	struct br2684_if_spec ifspec;
 	int fcs_in;		/* BR2684_FCSIN_* */
@@ -96,22 +100,25 @@ struct atm_backend_br2684 {
  * terminating a large number of IP-only vcc's.  When netfilter allows
  * efficient per-if in/out filters, this support will be removed
  */
-struct br2684_filter {
+struct br2684_filter
+{
 	__be32 prefix;		/* network byte order */
 	__be32 netmask;		/* 0 = disable filter */
 };
 
-struct br2684_filter_set {
+struct br2684_filter_set
+{
 	struct br2684_if_spec ifspec;
 	struct br2684_filter filter;
 };
 
-enum br2684_payload {
+enum br2684_payload
+{
 	p_routed = BR2684_PAYLOAD_ROUTED,
 	p_bridged = BR2684_PAYLOAD_BRIDGED,
 };
 
 #define BR2684_SETFILT	_IOW( 'a', ATMIOC_BACKEND + 0, \
-				struct br2684_filter_set)
+							  struct br2684_filter_set)
 
 #endif /* _LINUX_ATMBR2684_H */

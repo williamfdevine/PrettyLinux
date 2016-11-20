@@ -6,7 +6,8 @@
 
 struct regs_dump;
 
-struct sample_reg {
+struct sample_reg
+{
 	const char *name;
 	uint64_t mask;
 };
@@ -30,8 +31,8 @@ static inline const char *perf_reg_name(int id __maybe_unused)
 }
 
 static inline int perf_reg_value(u64 *valp __maybe_unused,
-				 struct regs_dump *regs __maybe_unused,
-				 int id __maybe_unused)
+								 struct regs_dump *regs __maybe_unused,
+								 int id __maybe_unused)
 {
 	return 0;
 }

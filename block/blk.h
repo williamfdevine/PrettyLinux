@@ -14,10 +14,11 @@
 /* Max future timer expiry for timeouts */
 #define BLK_MAX_TIMEOUT		(5 * HZ)
 
-struct blk_flush_queue {
-	unsigned int		flush_queue_delayed:1;
-	unsigned int		flush_pending_idx:1;
-	unsigned int		flush_running_idx:1;
+struct blk_flush_queue
+{
+	unsigned int		flush_queue_delayed: 1;
+	unsigned int		flush_pending_idx: 1;
+	unsigned int		flush_running_idx: 1;
 	unsigned long		flush_pending_since;
 	struct list_head	flush_queue[2];
 	struct list_head	flush_data_in_flight;
@@ -37,10 +38,13 @@ extern struct kobj_type blk_queue_ktype;
 extern struct ida blk_queue_ida;
 
 static inline struct blk_flush_queue *blk_get_flush_queue(
-		struct request_queue *q, struct blk_mq_ctx *ctx)
+	struct request_queue *q, struct blk_mq_ctx *ctx)
 {
 	if (q->mq_ops)
+	{
 		return blk_mq_map_queue(q, ctx->cpu)->fq;
+	}
+
 	return q->fq;
 }
 
@@ -54,17 +58,17 @@ struct blk_flush_queue *blk_alloc_flush_queue(struct request_queue *q,
 void blk_free_flush_queue(struct blk_flush_queue *q);
 
 int blk_init_rl(struct request_list *rl, struct request_queue *q,
-		gfp_t gfp_mask);
+				gfp_t gfp_mask);
 void blk_exit_rl(struct request_list *rl);
 void init_request_from_bio(struct request *req, struct bio *bio);
 void blk_rq_bio_prep(struct request_queue *q, struct request *rq,
-			struct bio *bio);
+					 struct bio *bio);
 void blk_queue_bypass_start(struct request_queue *q);
 void blk_queue_bypass_end(struct request_queue *q);
 void blk_dequeue_request(struct request *rq);
 void __blk_queue_free_tags(struct request_queue *q);
 bool __blk_end_bidi_request(struct request *rq, int error,
-			    unsigned int nr_bytes, unsigned int bidi_bytes);
+							unsigned int nr_bytes, unsigned int bidi_bytes);
 void blk_freeze_queue(struct request_queue *q);
 
 static inline void blk_queue_enter_live(struct request_queue *q)
@@ -93,12 +97,12 @@ void blk_delete_timer(struct request *);
 
 
 bool bio_attempt_front_merge(struct request_queue *q, struct request *req,
-			     struct bio *bio);
+							 struct bio *bio);
 bool bio_attempt_back_merge(struct request_queue *q, struct request *req,
-			    struct bio *bio);
+							struct bio *bio);
 bool blk_attempt_plug_merge(struct request_queue *q, struct bio *bio,
-			    unsigned int *request_count,
-			    struct request **same_queue_rq);
+							unsigned int *request_count,
+							struct request **same_queue_rq);
 unsigned int blk_plug_queued_count(struct request_queue *q);
 
 void blk_account_io_start(struct request *req, bool new_io);
@@ -108,7 +112,8 @@ void blk_account_io_done(struct request *req);
 /*
  * Internal atomic flags for request handling
  */
-enum rq_atomic_flags {
+enum rq_atomic_flags
+{
 	REQ_ATOM_COMPLETE = 0,
 	REQ_ATOM_STARTED,
 };
@@ -139,8 +144,10 @@ static inline struct request *__elv_next_request(struct request_queue *q)
 	struct request *rq;
 	struct blk_flush_queue *fq = blk_get_flush_queue(q, NULL);
 
-	while (1) {
-		if (!list_empty(&q->queue_head)) {
+	while (1)
+	{
+		if (!list_empty(&q->queue_head))
+		{
 			rq = list_entry_rq(q->queue_head.next);
 			return rq;
 		}
@@ -161,13 +168,17 @@ static inline struct request *__elv_next_request(struct request_queue *q)
 		 * details.
 		 */
 		if (fq->flush_pending_idx != fq->flush_running_idx &&
-				!queue_flush_queueable(q)) {
+			!queue_flush_queueable(q))
+		{
 			fq->flush_queue_delayed = 1;
 			return NULL;
 		}
+
 		if (unlikely(blk_queue_bypass(q)) ||
-		    !q->elevator->type->ops.elevator_dispatch_fn(q, 0))
+			!q->elevator->type->ops.elevator_dispatch_fn(q, 0))
+		{
 			return NULL;
+		}
 	}
 }
 
@@ -176,7 +187,9 @@ static inline void elv_activate_rq(struct request_queue *q, struct request *rq)
 	struct elevator_queue *e = q->elevator;
 
 	if (e->type->ops.elevator_activate_req_fn)
+	{
 		e->type->ops.elevator_activate_req_fn(q, rq);
+	}
 }
 
 static inline void elv_deactivate_rq(struct request_queue *q, struct request *rq)
@@ -184,14 +197,16 @@ static inline void elv_deactivate_rq(struct request_queue *q, struct request *rq
 	struct elevator_queue *e = q->elevator;
 
 	if (e->type->ops.elevator_deactivate_req_fn)
+	{
 		e->type->ops.elevator_deactivate_req_fn(q, rq);
+	}
 }
 
 #ifdef CONFIG_FAIL_IO_TIMEOUT
 int blk_should_fake_timeout(struct request_queue *);
 ssize_t part_timeout_show(struct device *, struct device_attribute *, char *);
 ssize_t part_timeout_store(struct device *, struct device_attribute *,
-				const char *, size_t);
+						   const char *, size_t);
 #else
 static inline int blk_should_fake_timeout(struct request_queue *q)
 {
@@ -200,13 +215,13 @@ static inline int blk_should_fake_timeout(struct request_queue *q)
 #endif
 
 int ll_back_merge_fn(struct request_queue *q, struct request *req,
-		     struct bio *bio);
-int ll_front_merge_fn(struct request_queue *q, struct request *req, 
-		      struct bio *bio);
+					 struct bio *bio);
+int ll_front_merge_fn(struct request_queue *q, struct request *req,
+					  struct bio *bio);
 int attempt_back_merge(struct request_queue *q, struct request *rq);
 int attempt_front_merge(struct request_queue *q, struct request *rq);
 int blk_attempt_req_merge(struct request_queue *q, struct request *rq,
-				struct request *next);
+						  struct request *next);
 void blk_recalc_rq_segments(struct request *rq);
 void blk_rq_set_mixed_merge(struct request *rq);
 bool blk_rq_merge_ok(struct request *rq, struct bio *bio);
@@ -247,8 +262,8 @@ extern int blk_update_nr_requests(struct request_queue *, unsigned int);
 static inline int blk_do_io_stat(struct request *rq)
 {
 	return rq->rq_disk &&
-	       (rq->cmd_flags & REQ_IO_STAT) &&
-		(rq->cmd_type == REQ_TYPE_FS);
+		   (rq->cmd_flags & REQ_IO_STAT) &&
+		   (rq->cmd_type == REQ_TYPE_FS);
 }
 
 /*
@@ -257,7 +272,7 @@ static inline int blk_do_io_stat(struct request *rq)
 void get_io_context(struct io_context *ioc);
 struct io_cq *ioc_lookup_icq(struct io_context *ioc, struct request_queue *q);
 struct io_cq *ioc_create_icq(struct io_context *ioc, struct request_queue *q,
-			     gfp_t gfp_mask);
+							 gfp_t gfp_mask);
 void ioc_clear_queue(struct request_queue *q);
 
 int create_task_io_context(struct task_struct *task, gfp_t gfp_mask, int node);
@@ -277,8 +292,12 @@ int create_task_io_context(struct task_struct *task, gfp_t gfp_mask, int node);
 static inline struct io_context *create_io_context(gfp_t gfp_mask, int node)
 {
 	WARN_ON_ONCE(irqs_disabled());
+
 	if (unlikely(!current->io_context))
+	{
 		create_task_io_context(current, gfp_mask, node);
+	}
+
 	return current->io_context;
 }
 

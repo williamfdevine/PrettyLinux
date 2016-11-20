@@ -1084,38 +1084,43 @@
 
 
 /* System Clock Source */
-enum {
+enum
+{
 	RT5663_SCLK_S_MCLK,
 	RT5663_SCLK_S_PLL1,
 	RT5663_SCLK_S_RCCLK,
 };
 
 /* PLL1 Source */
-enum {
+enum
+{
 	RT5663_PLL1_S_MCLK,
 	RT5663_PLL1_S_BCLK1,
 };
 
-enum {
+enum
+{
 	RT5663_AIF,
 	RT5663_AIFS,
 };
 
 /* asrc clock source */
-enum {
+enum
+{
 	RT5663_CLK_SEL_SYS = 0x0,
 	RT5663_CLK_SEL_I2S1_ASRC = 0x1,
 };
 
 /* filter mask */
-enum {
+enum
+{
 	RT5663_DA_STEREO_FILTER = 0x1,
 	RT5663_AD_STEREO_FILTER = 0x2,
 };
 
 int rt5663_set_jack_detect(struct snd_soc_codec *codec,
-	struct snd_soc_jack *hs_jack);
+						   struct snd_soc_jack *hs_jack);
 int rt5663_sel_asrc_clk_src(struct snd_soc_codec *codec,
-	unsigned int filter_mask, unsigned int clk_src);
+							unsigned int filter_mask, unsigned int clk_src);
 
 #endif /* __RT5663_H__ */

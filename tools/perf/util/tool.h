@@ -15,54 +15,55 @@ struct machine;
 struct ordered_events;
 
 typedef int (*event_sample)(struct perf_tool *tool, union perf_event *event,
-			    struct perf_sample *sample,
-			    struct perf_evsel *evsel, struct machine *machine);
+							struct perf_sample *sample,
+							struct perf_evsel *evsel, struct machine *machine);
 
 typedef int (*event_op)(struct perf_tool *tool, union perf_event *event,
-			struct perf_sample *sample, struct machine *machine);
+						struct perf_sample *sample, struct machine *machine);
 
 typedef int (*event_attr_op)(struct perf_tool *tool,
-			     union perf_event *event,
-			     struct perf_evlist **pevlist);
+							 union perf_event *event,
+							 struct perf_evlist **pevlist);
 
 typedef int (*event_op2)(struct perf_tool *tool, union perf_event *event,
-			 struct perf_session *session);
+						 struct perf_session *session);
 
 typedef int (*event_oe)(struct perf_tool *tool, union perf_event *event,
-			struct ordered_events *oe);
+						struct ordered_events *oe);
 
 typedef s64 (*event_op3)(struct perf_tool *tool, union perf_event *event,
-			 struct perf_session *session);
+						 struct perf_session *session);
 
-struct perf_tool {
+struct perf_tool
+{
 	event_sample	sample,
-			read;
+					read;
 	event_op	mmap,
-			mmap2,
-			comm,
-			fork,
-			exit,
-			lost,
-			lost_samples,
-			aux,
-			itrace_start,
-			context_switch,
-			throttle,
-			unthrottle;
+				mmap2,
+				comm,
+				fork,
+				exit,
+				lost,
+				lost_samples,
+				aux,
+				itrace_start,
+				context_switch,
+				throttle,
+				unthrottle;
 	event_attr_op	attr;
 	event_attr_op	event_update;
 	event_op2	tracing_data;
 	event_oe	finished_round;
 	event_op2	build_id,
-			id_index,
-			auxtrace_info,
-			auxtrace_error,
-			time_conv,
-			thread_map,
-			cpu_map,
-			stat_config,
-			stat,
-			stat_round;
+				id_index,
+				auxtrace_info,
+				auxtrace_error,
+				time_conv,
+				thread_map,
+				cpu_map,
+				stat_config,
+				stat,
+				stat_round;
 	event_op3	auxtrace;
 	bool		ordered_events;
 	bool		ordering_requires_timestamps;

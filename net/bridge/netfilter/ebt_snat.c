@@ -22,22 +22,36 @@ ebt_snat_tg(struct sk_buff *skb, const struct xt_action_param *par)
 	const struct ebt_nat_info *info = par->targinfo;
 
 	if (!skb_make_writable(skb, 0))
+	{
 		return EBT_DROP;
+	}
 
 	ether_addr_copy(eth_hdr(skb)->h_source, info->mac);
+
 	if (!(info->target & NAT_ARP_BIT) &&
-	    eth_hdr(skb)->h_proto == htons(ETH_P_ARP)) {
+		eth_hdr(skb)->h_proto == htons(ETH_P_ARP))
+	{
 		const struct arphdr *ap;
 		struct arphdr _ah;
 
 		ap = skb_header_pointer(skb, 0, sizeof(_ah), &_ah);
+
 		if (ap == NULL)
+		{
 			return EBT_DROP;
+		}
+
 		if (ap->ar_hln != ETH_ALEN)
+		{
 			goto out;
+		}
+
 		if (skb_store_bits(skb, sizeof(_ah), info->mac, ETH_ALEN))
+		{
 			return EBT_DROP;
+		}
 	}
+
 out:
 	return info->target | ~EBT_VERDICT_BITS;
 }
@@ -48,18 +62,29 @@ static int ebt_snat_tg_check(const struct xt_tgchk_param *par)
 	int tmp;
 
 	tmp = info->target | ~EBT_VERDICT_BITS;
+
 	if (BASE_CHAIN && tmp == EBT_RETURN)
+	{
 		return -EINVAL;
+	}
 
 	if (tmp < -NUM_STANDARD_TARGETS || tmp >= 0)
+	{
 		return -EINVAL;
+	}
+
 	tmp = info->target | EBT_VERDICT_BITS;
+
 	if ((tmp & ~NAT_ARP_BIT) != ~NAT_ARP_BIT)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
-static struct xt_target ebt_snat_tg_reg __read_mostly = {
+static struct xt_target ebt_snat_tg_reg __read_mostly =
+{
 	.name		= "snat",
 	.revision	= 0,
 	.family		= NFPROTO_BRIDGE,

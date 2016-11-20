@@ -34,14 +34,16 @@
 
 #define CIK_PIPE_PER_MEC	(4)
 
-static const uint32_t watchRegs[MAX_WATCH_ADDRESSES * ADDRESS_WATCH_REG_MAX] = {
+static const uint32_t watchRegs[MAX_WATCH_ADDRESSES * ADDRESS_WATCH_REG_MAX] =
+{
 	TCP_WATCH0_ADDR_H, TCP_WATCH0_ADDR_L, TCP_WATCH0_CNTL,
 	TCP_WATCH1_ADDR_H, TCP_WATCH1_ADDR_L, TCP_WATCH1_CNTL,
 	TCP_WATCH2_ADDR_H, TCP_WATCH2_ADDR_L, TCP_WATCH2_CNTL,
 	TCP_WATCH3_ADDR_H, TCP_WATCH3_ADDR_L, TCP_WATCH3_CNTL
 };
 
-struct kgd_mem {
+struct kgd_mem
+{
 	struct radeon_bo *bo;
 	uint64_t gpu_addr;
 	void *cpu_ptr;
@@ -49,8 +51,8 @@ struct kgd_mem {
 
 
 static int alloc_gtt_mem(struct kgd_dev *kgd, size_t size,
-			void **mem_obj, uint64_t *gpu_addr,
-			void **cpu_ptr);
+						 void **mem_obj, uint64_t *gpu_addr,
+						 void **cpu_ptr);
 
 static void free_gtt_mem(struct kgd_dev *kgd, void *mem_obj);
 
@@ -65,46 +67,47 @@ static uint16_t get_fw_version(struct kgd_dev *kgd, enum kgd_engine_type type);
  */
 
 static void kgd_program_sh_mem_settings(struct kgd_dev *kgd, uint32_t vmid,
-		uint32_t sh_mem_config,	uint32_t sh_mem_ape1_base,
-		uint32_t sh_mem_ape1_limit, uint32_t sh_mem_bases);
+										uint32_t sh_mem_config,	uint32_t sh_mem_ape1_base,
+										uint32_t sh_mem_ape1_limit, uint32_t sh_mem_bases);
 
 static int kgd_set_pasid_vmid_mapping(struct kgd_dev *kgd, unsigned int pasid,
-					unsigned int vmid);
+									  unsigned int vmid);
 
 static int kgd_init_pipeline(struct kgd_dev *kgd, uint32_t pipe_id,
-				uint32_t hpd_size, uint64_t hpd_gpu_addr);
+							 uint32_t hpd_size, uint64_t hpd_gpu_addr);
 static int kgd_init_interrupts(struct kgd_dev *kgd, uint32_t pipe_id);
 static int kgd_hqd_load(struct kgd_dev *kgd, void *mqd, uint32_t pipe_id,
-			uint32_t queue_id, uint32_t __user *wptr);
+						uint32_t queue_id, uint32_t __user *wptr);
 static int kgd_hqd_sdma_load(struct kgd_dev *kgd, void *mqd);
 static bool kgd_hqd_is_occupied(struct kgd_dev *kgd, uint64_t queue_address,
-				uint32_t pipe_id, uint32_t queue_id);
+								uint32_t pipe_id, uint32_t queue_id);
 
 static int kgd_hqd_destroy(struct kgd_dev *kgd, uint32_t reset_type,
-				unsigned int timeout, uint32_t pipe_id,
-				uint32_t queue_id);
+						   unsigned int timeout, uint32_t pipe_id,
+						   uint32_t queue_id);
 static bool kgd_hqd_sdma_is_occupied(struct kgd_dev *kgd, void *mqd);
 static int kgd_hqd_sdma_destroy(struct kgd_dev *kgd, void *mqd,
-				unsigned int timeout);
+								unsigned int timeout);
 static int kgd_address_watch_disable(struct kgd_dev *kgd);
 static int kgd_address_watch_execute(struct kgd_dev *kgd,
-					unsigned int watch_point_id,
-					uint32_t cntl_val,
-					uint32_t addr_hi,
-					uint32_t addr_lo);
+									 unsigned int watch_point_id,
+									 uint32_t cntl_val,
+									 uint32_t addr_hi,
+									 uint32_t addr_lo);
 static int kgd_wave_control_execute(struct kgd_dev *kgd,
-					uint32_t gfx_index_val,
-					uint32_t sq_cmd);
+									uint32_t gfx_index_val,
+									uint32_t sq_cmd);
 static uint32_t kgd_address_watch_get_offset(struct kgd_dev *kgd,
-					unsigned int watch_point_id,
-					unsigned int reg_offset);
+		unsigned int watch_point_id,
+		unsigned int reg_offset);
 
 static bool get_atc_vmid_pasid_mapping_valid(struct kgd_dev *kgd, uint8_t vmid);
 static uint16_t get_atc_vmid_pasid_mapping_pasid(struct kgd_dev *kgd,
-							uint8_t vmid);
+		uint8_t vmid);
 static void write_vmid_invalidate_request(struct kgd_dev *kgd, uint8_t vmid);
 
-static const struct kfd2kgd_calls kfd2kgd = {
+static const struct kfd2kgd_calls kfd2kgd =
+{
 	.init_gtt_mem_allocation = alloc_gtt_mem,
 	.free_gtt_mem = free_gtt_mem,
 	.get_vmem_size = get_vmem_size,
@@ -137,23 +140,30 @@ int radeon_kfd_init(void)
 	int ret;
 
 #if defined(CONFIG_HSA_AMD_MODULE)
-	int (*kgd2kfd_init_p)(unsigned, const struct kgd2kfd_calls**);
+	int (*kgd2kfd_init_p)(unsigned, const struct kgd2kfd_calls **);
 
 	kgd2kfd_init_p = symbol_request(kgd2kfd_init);
 
 	if (kgd2kfd_init_p == NULL)
+	{
 		return -ENOENT;
+	}
 
 	ret = kgd2kfd_init_p(KFD_INTERFACE_VERSION, &kgd2kfd);
-	if (ret) {
+
+	if (ret)
+	{
 		symbol_put(kgd2kfd_init);
 		kgd2kfd = NULL;
 	}
 
 #elif defined(CONFIG_HSA_AMD)
 	ret = kgd2kfd_init(KFD_INTERFACE_VERSION, &kgd2kfd);
+
 	if (ret)
+	{
 		kgd2kfd = NULL;
+	}
 
 #else
 	ret = -ENOENT;
@@ -164,7 +174,8 @@ int radeon_kfd_init(void)
 
 void radeon_kfd_fini(void)
 {
-	if (kgd2kfd) {
+	if (kgd2kfd)
+	{
 		kgd2kfd->exit();
 		symbol_put(kgd2kfd_init);
 	}
@@ -174,13 +185,15 @@ void radeon_kfd_device_probe(struct radeon_device *rdev)
 {
 	if (kgd2kfd)
 		rdev->kfd = kgd2kfd->probe((struct kgd_dev *)rdev,
-			rdev->pdev, &kfd2kgd);
+								   rdev->pdev, &kfd2kgd);
 }
 
 void radeon_kfd_device_init(struct radeon_device *rdev)
 {
-	if (rdev->kfd) {
-		struct kgd2kfd_shared_resources gpu_resources = {
+	if (rdev->kfd)
+	{
+		struct kgd2kfd_shared_resources gpu_resources =
+		{
 			.compute_vmid_bitmap = 0xFF00,
 
 			.first_compute_pipe = 1,
@@ -188,9 +201,9 @@ void radeon_kfd_device_init(struct radeon_device *rdev)
 		};
 
 		radeon_doorbell_get_kfd_info(rdev,
-				&gpu_resources.doorbell_physical_address,
-				&gpu_resources.doorbell_aperture_size,
-				&gpu_resources.doorbell_start_offset);
+									 &gpu_resources.doorbell_physical_address,
+									 &gpu_resources.doorbell_aperture_size,
+									 &gpu_resources.doorbell_start_offset);
 
 		kgd2kfd->device_init(rdev->kfd, &gpu_resources);
 	}
@@ -198,7 +211,8 @@ void radeon_kfd_device_init(struct radeon_device *rdev)
 
 void radeon_kfd_device_fini(struct radeon_device *rdev)
 {
-	if (rdev->kfd) {
+	if (rdev->kfd)
+	{
 		kgd2kfd->device_exit(rdev->kfd);
 		rdev->kfd = NULL;
 	}
@@ -207,13 +221,17 @@ void radeon_kfd_device_fini(struct radeon_device *rdev)
 void radeon_kfd_interrupt(struct radeon_device *rdev, const void *ih_ring_entry)
 {
 	if (rdev->kfd)
+	{
 		kgd2kfd->interrupt(rdev->kfd, ih_ring_entry);
+	}
 }
 
 void radeon_kfd_suspend(struct radeon_device *rdev)
 {
 	if (rdev->kfd)
+	{
 		kgd2kfd->suspend(rdev->kfd);
+	}
 }
 
 int radeon_kfd_resume(struct radeon_device *rdev)
@@ -221,14 +239,16 @@ int radeon_kfd_resume(struct radeon_device *rdev)
 	int r = 0;
 
 	if (rdev->kfd)
+	{
 		r = kgd2kfd->resume(rdev->kfd);
+	}
 
 	return r;
 }
 
 static int alloc_gtt_mem(struct kgd_dev *kgd, size_t size,
-			void **mem_obj, uint64_t *gpu_addr,
-			void **cpu_ptr)
+						 void **mem_obj, uint64_t *gpu_addr,
+						 void **cpu_ptr)
 {
 	struct radeon_device *rdev = (struct radeon_device *)kgd;
 	struct kgd_mem **mem = (struct kgd_mem **) mem_obj;
@@ -239,38 +259,51 @@ static int alloc_gtt_mem(struct kgd_dev *kgd, size_t size,
 	BUG_ON(cpu_ptr == NULL);
 
 	*mem = kmalloc(sizeof(struct kgd_mem), GFP_KERNEL);
+
 	if ((*mem) == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	r = radeon_bo_create(rdev, size, PAGE_SIZE, true, RADEON_GEM_DOMAIN_GTT,
-				RADEON_GEM_GTT_WC, NULL, NULL, &(*mem)->bo);
-	if (r) {
+						 RADEON_GEM_GTT_WC, NULL, NULL, &(*mem)->bo);
+
+	if (r)
+	{
 		dev_err(rdev->dev,
-			"failed to allocate BO for amdkfd (%d)\n", r);
+				"failed to allocate BO for amdkfd (%d)\n", r);
 		return r;
 	}
 
 	/* map the buffer */
 	r = radeon_bo_reserve((*mem)->bo, true);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(rdev->dev, "(%d) failed to reserve bo for amdkfd\n", r);
 		goto allocate_mem_reserve_bo_failed;
 	}
 
 	r = radeon_bo_pin((*mem)->bo, RADEON_GEM_DOMAIN_GTT,
-				&(*mem)->gpu_addr);
-	if (r) {
+					  &(*mem)->gpu_addr);
+
+	if (r)
+	{
 		dev_err(rdev->dev, "(%d) failed to pin bo for amdkfd\n", r);
 		goto allocate_mem_pin_bo_failed;
 	}
+
 	*gpu_addr = (*mem)->gpu_addr;
 
 	r = radeon_bo_kmap((*mem)->bo, &(*mem)->cpu_ptr);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(rdev->dev,
-			"(%d) failed to map bo to kernel for amdkfd\n", r);
+				"(%d) failed to map bo to kernel for amdkfd\n", r);
 		goto allocate_mem_kmap_bo_failed;
 	}
+
 	*cpu_ptr = (*mem)->cpu_ptr;
 
 	radeon_bo_unreserve((*mem)->bo);
@@ -345,7 +378,7 @@ static uint32_t read_register(struct kgd_dev *kgd, uint32_t offset)
 }
 
 static void lock_srbm(struct kgd_dev *kgd, uint32_t mec, uint32_t pipe,
-			uint32_t queue, uint32_t vmid)
+					  uint32_t queue, uint32_t vmid)
 {
 	struct radeon_device *rdev = get_radeon_device(kgd);
 	uint32_t value = PIPEID(pipe) | MEID(mec) | VMID(vmid) | QUEUEID(queue);
@@ -363,7 +396,7 @@ static void unlock_srbm(struct kgd_dev *kgd)
 }
 
 static void acquire_queue(struct kgd_dev *kgd, uint32_t pipe_id,
-				uint32_t queue_id)
+						  uint32_t queue_id)
 {
 	uint32_t mec = (++pipe_id / CIK_PIPE_PER_MEC) + 1;
 	uint32_t pipe = (pipe_id % CIK_PIPE_PER_MEC);
@@ -377,10 +410,10 @@ static void release_queue(struct kgd_dev *kgd)
 }
 
 static void kgd_program_sh_mem_settings(struct kgd_dev *kgd, uint32_t vmid,
-					uint32_t sh_mem_config,
-					uint32_t sh_mem_ape1_base,
-					uint32_t sh_mem_ape1_limit,
-					uint32_t sh_mem_bases)
+										uint32_t sh_mem_config,
+										uint32_t sh_mem_ape1_base,
+										uint32_t sh_mem_ape1_limit,
+										uint32_t sh_mem_bases)
 {
 	lock_srbm(kgd, 0, 0, 0, vmid);
 
@@ -393,7 +426,7 @@ static void kgd_program_sh_mem_settings(struct kgd_dev *kgd, uint32_t vmid,
 }
 
 static int kgd_set_pasid_vmid_mapping(struct kgd_dev *kgd, unsigned int pasid,
-					unsigned int vmid)
+									  unsigned int vmid)
 {
 	/*
 	 * We have to assume that there is no outstanding mapping.
@@ -403,34 +436,37 @@ static int kgd_set_pasid_vmid_mapping(struct kgd_dev *kgd, unsigned int pasid,
 	 * So the protocol is to always wait & clear.
 	 */
 	uint32_t pasid_mapping = (pasid == 0) ? 0 : (uint32_t)pasid |
-					ATC_VMID_PASID_MAPPING_VALID_MASK;
+							 ATC_VMID_PASID_MAPPING_VALID_MASK;
 
-	write_register(kgd, ATC_VMID0_PASID_MAPPING + vmid*sizeof(uint32_t),
-			pasid_mapping);
+	write_register(kgd, ATC_VMID0_PASID_MAPPING + vmid * sizeof(uint32_t),
+				   pasid_mapping);
 
 	while (!(read_register(kgd, ATC_VMID_PASID_MAPPING_UPDATE_STATUS) &
-								(1U << vmid)))
+			 (1U << vmid)))
+	{
 		cpu_relax();
+	}
+
 	write_register(kgd, ATC_VMID_PASID_MAPPING_UPDATE_STATUS, 1U << vmid);
 
 	/* Mapping vmid to pasid also for IH block */
 	write_register(kgd, IH_VMID_0_LUT + vmid * sizeof(uint32_t),
-			pasid_mapping);
+				   pasid_mapping);
 
 	return 0;
 }
 
 static int kgd_init_pipeline(struct kgd_dev *kgd, uint32_t pipe_id,
-				uint32_t hpd_size, uint64_t hpd_gpu_addr)
+							 uint32_t hpd_size, uint64_t hpd_gpu_addr)
 {
 	uint32_t mec = (pipe_id / CIK_PIPE_PER_MEC) + 1;
 	uint32_t pipe = (pipe_id % CIK_PIPE_PER_MEC);
 
 	lock_srbm(kgd, mec, pipe, 0, 0);
 	write_register(kgd, CP_HPD_EOP_BASE_ADDR,
-			lower_32_bits(hpd_gpu_addr >> 8));
+				   lower_32_bits(hpd_gpu_addr >> 8));
 	write_register(kgd, CP_HPD_EOP_BASE_ADDR_HI,
-			upper_32_bits(hpd_gpu_addr >> 8));
+				   upper_32_bits(hpd_gpu_addr >> 8));
 	write_register(kgd, CP_HPD_EOP_VMID, 0);
 	write_register(kgd, CP_HPD_EOP_CONTROL, hpd_size);
 	unlock_srbm(kgd);
@@ -449,7 +485,7 @@ static int kgd_init_interrupts(struct kgd_dev *kgd, uint32_t pipe_id)
 	lock_srbm(kgd, mec, pipe, 0, 0);
 
 	write_register(kgd, CPC_INT_CNTL,
-			TIME_STAMP_INT_ENABLE | OPCODE_ERROR_INT_ENABLE);
+				   TIME_STAMP_INT_ENABLE | OPCODE_ERROR_INT_ENABLE);
 
 	unlock_srbm(kgd);
 
@@ -461,7 +497,7 @@ static inline uint32_t get_sdma_base_addr(struct cik_sdma_rlc_registers *m)
 	uint32_t retval;
 
 	retval = m->sdma_engine_id * SDMA1_REGISTER_OFFSET +
-			m->sdma_queue_id * KFD_CIK_SDMA_QUEUE_OFFSET;
+			 m->sdma_queue_id * KFD_CIK_SDMA_QUEUE_OFFSET;
 
 	pr_debug("kfd: sdma base address: 0x%x\n", retval);
 
@@ -479,7 +515,7 @@ static inline struct cik_sdma_rlc_registers *get_sdma_mqd(void *mqd)
 }
 
 static int kgd_hqd_load(struct kgd_dev *kgd, void *mqd, uint32_t pipe_id,
-			uint32_t queue_id, uint32_t __user *wptr)
+						uint32_t queue_id, uint32_t __user *wptr)
 {
 	uint32_t wptr_shadow, is_wptr_shadow_valid;
 	struct cik_mqd *m;
@@ -504,38 +540,38 @@ static int kgd_hqd_load(struct kgd_dev *kgd, void *mqd, uint32_t pipe_id,
 	write_register(kgd, CP_HQD_IB_RPTR, m->cp_hqd_ib_rptr);
 
 	write_register(kgd, CP_HQD_PERSISTENT_STATE,
-			m->cp_hqd_persistent_state);
+				   m->cp_hqd_persistent_state);
 	write_register(kgd, CP_HQD_SEMA_CMD, m->cp_hqd_sema_cmd);
 	write_register(kgd, CP_HQD_MSG_TYPE, m->cp_hqd_msg_type);
 
 	write_register(kgd, CP_HQD_ATOMIC0_PREOP_LO,
-			m->cp_hqd_atomic0_preop_lo);
+				   m->cp_hqd_atomic0_preop_lo);
 
 	write_register(kgd, CP_HQD_ATOMIC0_PREOP_HI,
-			m->cp_hqd_atomic0_preop_hi);
+				   m->cp_hqd_atomic0_preop_hi);
 
 	write_register(kgd, CP_HQD_ATOMIC1_PREOP_LO,
-			m->cp_hqd_atomic1_preop_lo);
+				   m->cp_hqd_atomic1_preop_lo);
 
 	write_register(kgd, CP_HQD_ATOMIC1_PREOP_HI,
-			m->cp_hqd_atomic1_preop_hi);
+				   m->cp_hqd_atomic1_preop_hi);
 
 	write_register(kgd, CP_HQD_PQ_RPTR_REPORT_ADDR,
-			m->cp_hqd_pq_rptr_report_addr_lo);
+				   m->cp_hqd_pq_rptr_report_addr_lo);
 
 	write_register(kgd, CP_HQD_PQ_RPTR_REPORT_ADDR_HI,
-			m->cp_hqd_pq_rptr_report_addr_hi);
+				   m->cp_hqd_pq_rptr_report_addr_hi);
 
 	write_register(kgd, CP_HQD_PQ_RPTR, m->cp_hqd_pq_rptr);
 
 	write_register(kgd, CP_HQD_PQ_WPTR_POLL_ADDR,
-			m->cp_hqd_pq_wptr_poll_addr_lo);
+				   m->cp_hqd_pq_wptr_poll_addr_lo);
 
 	write_register(kgd, CP_HQD_PQ_WPTR_POLL_ADDR_HI,
-			m->cp_hqd_pq_wptr_poll_addr_hi);
+				   m->cp_hqd_pq_wptr_poll_addr_hi);
 
 	write_register(kgd, CP_HQD_PQ_DOORBELL_CONTROL,
-			m->cp_hqd_pq_doorbell_control);
+				   m->cp_hqd_pq_doorbell_control);
 
 	write_register(kgd, CP_HQD_VMID, m->cp_hqd_vmid);
 
@@ -547,7 +583,9 @@ static int kgd_hqd_load(struct kgd_dev *kgd, void *mqd, uint32_t pipe_id,
 	write_register(kgd, CP_HQD_IQ_RPTR, m->cp_hqd_iq_rptr);
 
 	if (is_wptr_shadow_valid)
+	{
 		write_register(kgd, CP_HQD_PQ_WPTR, wptr_shadow);
+	}
 
 	write_register(kgd, CP_HQD_ACTIVE, m->cp_hqd_active);
 	release_queue(kgd);
@@ -564,38 +602,38 @@ static int kgd_hqd_sdma_load(struct kgd_dev *kgd, void *mqd)
 	sdma_base_addr = get_sdma_base_addr(m);
 
 	write_register(kgd,
-			sdma_base_addr + SDMA0_RLC0_VIRTUAL_ADDR,
-			m->sdma_rlc_virtual_addr);
+				   sdma_base_addr + SDMA0_RLC0_VIRTUAL_ADDR,
+				   m->sdma_rlc_virtual_addr);
 
 	write_register(kgd,
-			sdma_base_addr + SDMA0_RLC0_RB_BASE,
-			m->sdma_rlc_rb_base);
+				   sdma_base_addr + SDMA0_RLC0_RB_BASE,
+				   m->sdma_rlc_rb_base);
 
 	write_register(kgd,
-			sdma_base_addr + SDMA0_RLC0_RB_BASE_HI,
-			m->sdma_rlc_rb_base_hi);
+				   sdma_base_addr + SDMA0_RLC0_RB_BASE_HI,
+				   m->sdma_rlc_rb_base_hi);
 
 	write_register(kgd,
-			sdma_base_addr + SDMA0_RLC0_RB_RPTR_ADDR_LO,
-			m->sdma_rlc_rb_rptr_addr_lo);
+				   sdma_base_addr + SDMA0_RLC0_RB_RPTR_ADDR_LO,
+				   m->sdma_rlc_rb_rptr_addr_lo);
 
 	write_register(kgd,
-			sdma_base_addr + SDMA0_RLC0_RB_RPTR_ADDR_HI,
-			m->sdma_rlc_rb_rptr_addr_hi);
+				   sdma_base_addr + SDMA0_RLC0_RB_RPTR_ADDR_HI,
+				   m->sdma_rlc_rb_rptr_addr_hi);
 
 	write_register(kgd,
-			sdma_base_addr + SDMA0_RLC0_DOORBELL,
-			m->sdma_rlc_doorbell);
+				   sdma_base_addr + SDMA0_RLC0_DOORBELL,
+				   m->sdma_rlc_doorbell);
 
 	write_register(kgd,
-			sdma_base_addr + SDMA0_RLC0_RB_CNTL,
-			m->sdma_rlc_rb_cntl);
+				   sdma_base_addr + SDMA0_RLC0_RB_CNTL,
+				   m->sdma_rlc_rb_cntl);
 
 	return 0;
 }
 
 static bool kgd_hqd_is_occupied(struct kgd_dev *kgd, uint64_t queue_address,
-				uint32_t pipe_id, uint32_t queue_id)
+								uint32_t pipe_id, uint32_t queue_id)
 {
 	uint32_t act;
 	bool retval = false;
@@ -603,14 +641,19 @@ static bool kgd_hqd_is_occupied(struct kgd_dev *kgd, uint64_t queue_address,
 
 	acquire_queue(kgd, pipe_id, queue_id);
 	act = read_register(kgd, CP_HQD_ACTIVE);
-	if (act) {
+
+	if (act)
+	{
 		low = lower_32_bits(queue_address >> 8);
 		high = upper_32_bits(queue_address >> 8);
 
 		if (low == read_register(kgd, CP_HQD_PQ_BASE) &&
-				high == read_register(kgd, CP_HQD_PQ_BASE_HI))
+			high == read_register(kgd, CP_HQD_PQ_BASE_HI))
+		{
 			retval = true;
+		}
 	}
+
 	release_queue(kgd);
 	return retval;
 }
@@ -625,17 +668,19 @@ static bool kgd_hqd_sdma_is_occupied(struct kgd_dev *kgd, void *mqd)
 	sdma_base_addr = get_sdma_base_addr(m);
 
 	sdma_rlc_rb_cntl = read_register(kgd,
-					sdma_base_addr + SDMA0_RLC0_RB_CNTL);
+									 sdma_base_addr + SDMA0_RLC0_RB_CNTL);
 
 	if (sdma_rlc_rb_cntl & SDMA_RB_ENABLE)
+	{
 		return true;
+	}
 
 	return false;
 }
 
 static int kgd_hqd_destroy(struct kgd_dev *kgd, uint32_t reset_type,
-				unsigned int timeout, uint32_t pipe_id,
-				uint32_t queue_id)
+						   unsigned int timeout, uint32_t pipe_id,
+						   uint32_t queue_id)
 {
 	uint32_t temp;
 
@@ -644,16 +689,23 @@ static int kgd_hqd_destroy(struct kgd_dev *kgd, uint32_t reset_type,
 
 	write_register(kgd, CP_HQD_DEQUEUE_REQUEST, reset_type);
 
-	while (true) {
+	while (true)
+	{
 		temp = read_register(kgd, CP_HQD_ACTIVE);
+
 		if (temp & 0x1)
+		{
 			break;
-		if (timeout == 0) {
+		}
+
+		if (timeout == 0)
+		{
 			pr_err("kfd: cp queue preemption time out (%dms)\n",
-				temp);
+				   temp);
 			release_queue(kgd);
 			return -ETIME;
 		}
+
 		msleep(20);
 		timeout -= 20;
 	}
@@ -663,7 +715,7 @@ static int kgd_hqd_destroy(struct kgd_dev *kgd, uint32_t reset_type,
 }
 
 static int kgd_hqd_sdma_destroy(struct kgd_dev *kgd, void *mqd,
-				unsigned int timeout)
+								unsigned int timeout)
 {
 	struct cik_sdma_rlc_registers *m;
 	uint32_t sdma_base_addr;
@@ -676,13 +728,21 @@ static int kgd_hqd_sdma_destroy(struct kgd_dev *kgd, void *mqd,
 	temp = temp & ~SDMA_RB_ENABLE;
 	write_register(kgd, sdma_base_addr + SDMA0_RLC0_RB_CNTL, temp);
 
-	while (true) {
+	while (true)
+	{
 		temp = read_register(kgd, sdma_base_addr +
-						SDMA0_RLC0_CONTEXT_STATUS);
+							 SDMA0_RLC0_CONTEXT_STATUS);
+
 		if (temp & SDMA_RLC_IDLE)
+		{
 			break;
+		}
+
 		if (timeout == 0)
+		{
 			return -ETIME;
+		}
+
 		msleep(20);
 		timeout -= 20;
 	}
@@ -709,18 +769,18 @@ static int kgd_address_watch_disable(struct kgd_dev *kgd)
 	/* Turning off this address until we set all the registers */
 	for (i = 0; i < MAX_WATCH_ADDRESSES; i++)
 		write_register(kgd,
-				watchRegs[i * ADDRESS_WATCH_REG_MAX +
-					ADDRESS_WATCH_REG_CNTL],
-				cntl.u32All);
+					   watchRegs[i * ADDRESS_WATCH_REG_MAX +
+								 ADDRESS_WATCH_REG_CNTL],
+					   cntl.u32All);
 
 	return 0;
 }
 
 static int kgd_address_watch_execute(struct kgd_dev *kgd,
-					unsigned int watch_point_id,
-					uint32_t cntl_val,
-					uint32_t addr_hi,
-					uint32_t addr_lo)
+									 unsigned int watch_point_id,
+									 uint32_t cntl_val,
+									 uint32_t addr_hi,
+									 uint32_t addr_lo)
 {
 	union TCP_WATCH_CNTL_BITS cntl;
 
@@ -729,34 +789,34 @@ static int kgd_address_watch_execute(struct kgd_dev *kgd,
 	/* Turning off this watch point until we set all the registers */
 	cntl.bitfields.valid = 0;
 	write_register(kgd,
-			watchRegs[watch_point_id * ADDRESS_WATCH_REG_MAX +
-				ADDRESS_WATCH_REG_CNTL],
-			cntl.u32All);
+				   watchRegs[watch_point_id * ADDRESS_WATCH_REG_MAX +
+							 ADDRESS_WATCH_REG_CNTL],
+				   cntl.u32All);
 
 	write_register(kgd,
-			watchRegs[watch_point_id * ADDRESS_WATCH_REG_MAX +
-				ADDRESS_WATCH_REG_ADDR_HI],
-			addr_hi);
+				   watchRegs[watch_point_id * ADDRESS_WATCH_REG_MAX +
+							 ADDRESS_WATCH_REG_ADDR_HI],
+				   addr_hi);
 
 	write_register(kgd,
-			watchRegs[watch_point_id * ADDRESS_WATCH_REG_MAX +
-				ADDRESS_WATCH_REG_ADDR_LO],
-			addr_lo);
+				   watchRegs[watch_point_id * ADDRESS_WATCH_REG_MAX +
+							 ADDRESS_WATCH_REG_ADDR_LO],
+				   addr_lo);
 
 	/* Enable the watch point */
 	cntl.bitfields.valid = 1;
 
 	write_register(kgd,
-			watchRegs[watch_point_id * ADDRESS_WATCH_REG_MAX +
-				ADDRESS_WATCH_REG_CNTL],
-			cntl.u32All);
+				   watchRegs[watch_point_id * ADDRESS_WATCH_REG_MAX +
+							 ADDRESS_WATCH_REG_CNTL],
+				   cntl.u32All);
 
 	return 0;
 }
 
 static int kgd_wave_control_execute(struct kgd_dev *kgd,
-					uint32_t gfx_index_val,
-					uint32_t sq_cmd)
+									uint32_t gfx_index_val,
+									uint32_t sq_cmd)
 {
 	struct radeon_device *rdev = get_radeon_device(kgd);
 	uint32_t data;
@@ -769,7 +829,7 @@ static int kgd_wave_control_execute(struct kgd_dev *kgd,
 	/*  Restore the GRBM_GFX_INDEX register  */
 
 	data = INSTANCE_BROADCAST_WRITES | SH_BROADCAST_WRITES |
-		SE_BROADCAST_WRITES;
+		   SE_BROADCAST_WRITES;
 
 	write_register(kgd, GRBM_GFX_INDEX, data);
 
@@ -779,8 +839,8 @@ static int kgd_wave_control_execute(struct kgd_dev *kgd,
 }
 
 static uint32_t kgd_address_watch_get_offset(struct kgd_dev *kgd,
-					unsigned int watch_point_id,
-					unsigned int reg_offset)
+		unsigned int watch_point_id,
+		unsigned int reg_offset)
 {
 	return watchRegs[watch_point_id * ADDRESS_WATCH_REG_MAX + reg_offset];
 }
@@ -790,17 +850,17 @@ static bool get_atc_vmid_pasid_mapping_valid(struct kgd_dev *kgd, uint8_t vmid)
 	uint32_t reg;
 	struct radeon_device *rdev = (struct radeon_device *) kgd;
 
-	reg = RREG32(ATC_VMID0_PASID_MAPPING + vmid*4);
+	reg = RREG32(ATC_VMID0_PASID_MAPPING + vmid * 4);
 	return reg & ATC_VMID_PASID_MAPPING_VALID_MASK;
 }
 
 static uint16_t get_atc_vmid_pasid_mapping_pasid(struct kgd_dev *kgd,
-							uint8_t vmid)
+		uint8_t vmid)
 {
 	uint32_t reg;
 	struct radeon_device *rdev = (struct radeon_device *) kgd;
 
-	reg = RREG32(ATC_VMID0_PASID_MAPPING + vmid*4);
+	reg = RREG32(ATC_VMID0_PASID_MAPPING + vmid * 4);
 	return reg & ATC_VMID_PASID_MAPPING_PASID_MASK;
 }
 
@@ -818,44 +878,47 @@ static uint16_t get_fw_version(struct kgd_dev *kgd, enum kgd_engine_type type)
 
 	BUG_ON(kgd == NULL || rdev->mec_fw == NULL);
 
-	switch (type) {
-	case KGD_ENGINE_PFP:
-		hdr = (const union radeon_firmware_header *) rdev->pfp_fw->data;
-		break;
+	switch (type)
+	{
+		case KGD_ENGINE_PFP:
+			hdr = (const union radeon_firmware_header *) rdev->pfp_fw->data;
+			break;
 
-	case KGD_ENGINE_ME:
-		hdr = (const union radeon_firmware_header *) rdev->me_fw->data;
-		break;
+		case KGD_ENGINE_ME:
+			hdr = (const union radeon_firmware_header *) rdev->me_fw->data;
+			break;
 
-	case KGD_ENGINE_CE:
-		hdr = (const union radeon_firmware_header *) rdev->ce_fw->data;
-		break;
+		case KGD_ENGINE_CE:
+			hdr = (const union radeon_firmware_header *) rdev->ce_fw->data;
+			break;
 
-	case KGD_ENGINE_MEC1:
-		hdr = (const union radeon_firmware_header *) rdev->mec_fw->data;
-		break;
+		case KGD_ENGINE_MEC1:
+			hdr = (const union radeon_firmware_header *) rdev->mec_fw->data;
+			break;
 
-	case KGD_ENGINE_MEC2:
-		hdr = (const union radeon_firmware_header *)
-							rdev->mec2_fw->data;
-		break;
+		case KGD_ENGINE_MEC2:
+			hdr = (const union radeon_firmware_header *)
+				  rdev->mec2_fw->data;
+			break;
 
-	case KGD_ENGINE_RLC:
-		hdr = (const union radeon_firmware_header *) rdev->rlc_fw->data;
-		break;
+		case KGD_ENGINE_RLC:
+			hdr = (const union radeon_firmware_header *) rdev->rlc_fw->data;
+			break;
 
-	case KGD_ENGINE_SDMA1:
-	case KGD_ENGINE_SDMA2:
-		hdr = (const union radeon_firmware_header *)
-							rdev->sdma_fw->data;
-		break;
+		case KGD_ENGINE_SDMA1:
+		case KGD_ENGINE_SDMA2:
+			hdr = (const union radeon_firmware_header *)
+				  rdev->sdma_fw->data;
+			break;
 
-	default:
-		return 0;
+		default:
+			return 0;
 	}
 
 	if (hdr == NULL)
+	{
 		return 0;
+	}
 
 	/* Only 12 bit in use*/
 	return hdr->common.ucode_version;

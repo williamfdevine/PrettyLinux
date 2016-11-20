@@ -46,7 +46,7 @@
 #define AD_REFm         0x00000200 /* constant, always write this value! */
 #define AD_REFp		0x00000080 /* constant, always write this value! */
 #define AD_IN		0x00000010 /* multiple of this is the */
-				   /* channel number: 0, 1, 2 */
+/* channel number: 0, 1, 2 */
 #define AD_INTERNAL	0x00000004 /* constant, always write this value! */
 
 /* Bit definitions for LPC32XX_ADC_CTRL: */
@@ -58,7 +58,8 @@
 
 #define MOD_NAME "lpc32xx-adc"
 
-struct lpc32xx_adc_info {
+struct lpc32xx_adc_info
+{
 	void __iomem *adc_base;
 	struct clk *clk;
 	struct completion completion;
@@ -67,22 +68,23 @@ struct lpc32xx_adc_info {
 };
 
 static int lpc32xx_read_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int *val,
-			    int *val2,
-			    long mask)
+							struct iio_chan_spec const *chan,
+							int *val,
+							int *val2,
+							long mask)
 {
 	struct lpc32xx_adc_info *info = iio_priv(indio_dev);
 
-	if (mask == IIO_CHAN_INFO_RAW) {
+	if (mask == IIO_CHAN_INFO_RAW)
+	{
 		mutex_lock(&indio_dev->mlock);
 		clk_prepare_enable(info->clk);
 		/* Measurement setup */
 		__raw_writel(AD_INTERNAL | (chan->address) | AD_REFp | AD_REFm,
-			     LPC32XX_ADC_SELECT(info->adc_base));
+					 LPC32XX_ADC_SELECT(info->adc_base));
 		/* Trigger conversion */
 		__raw_writel(AD_PDN_CTRL | AD_STROBE,
-			     LPC32XX_ADC_CTRL(info->adc_base));
+					 LPC32XX_ADC_CTRL(info->adc_base));
 		wait_for_completion(&info->completion); /* set by ISR */
 		clk_disable_unprepare(info->clk);
 		*val = info->value;
@@ -94,21 +96,23 @@ static int lpc32xx_read_raw(struct iio_dev *indio_dev,
 	return -EINVAL;
 }
 
-static const struct iio_info lpc32xx_adc_iio_info = {
+static const struct iio_info lpc32xx_adc_iio_info =
+{
 	.read_raw = &lpc32xx_read_raw,
 	.driver_module = THIS_MODULE,
 };
 
 #define LPC32XX_ADC_CHANNEL(_index) {			\
-	.type = IIO_VOLTAGE,				\
-	.indexed = 1,					\
-	.channel = _index,				\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
-	.address = AD_IN * _index,			\
-	.scan_index = _index,				\
-}
+		.type = IIO_VOLTAGE,				\
+				.indexed = 1,					\
+						   .channel = _index,				\
+									  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
+											  .address = AD_IN * _index,			\
+													  .scan_index = _index,				\
+	}
 
-static const struct iio_chan_spec lpc32xx_adc_iio_channels[] = {
+static const struct iio_chan_spec lpc32xx_adc_iio_channels[] =
+{
 	LPC32XX_ADC_CHANNEL(0),
 	LPC32XX_ADC_CHANNEL(1),
 	LPC32XX_ADC_CHANNEL(2),
@@ -120,7 +124,7 @@ static irqreturn_t lpc32xx_adc_isr(int irq, void *dev_id)
 
 	/* Read value and clear irq */
 	info->value = __raw_readl(LPC32XX_ADC_VALUE(info->adc_base)) &
-				ADC_VALUE_MASK;
+				  ADC_VALUE_MASK;
 	complete(&info->completion);
 
 	return IRQ_HANDLED;
@@ -135,39 +139,52 @@ static int lpc32xx_adc_probe(struct platform_device *pdev)
 	int irq;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "failed to get platform I/O memory\n");
 		return -ENXIO;
 	}
 
 	iodev = devm_iio_device_alloc(&pdev->dev, sizeof(*info));
+
 	if (!iodev)
+	{
 		return -ENOMEM;
+	}
 
 	info = iio_priv(iodev);
 
 	info->adc_base = devm_ioremap(&pdev->dev, res->start,
-						resource_size(res));
-	if (!info->adc_base) {
+								  resource_size(res));
+
+	if (!info->adc_base)
+	{
 		dev_err(&pdev->dev, "failed mapping memory\n");
 		return -EBUSY;
 	}
 
 	info->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(info->clk)) {
+
+	if (IS_ERR(info->clk))
+	{
 		dev_err(&pdev->dev, "failed getting clock\n");
 		return PTR_ERR(info->clk);
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		dev_err(&pdev->dev, "failed getting interrupt resource\n");
 		return -ENXIO;
 	}
 
 	retval = devm_request_irq(&pdev->dev, irq, lpc32xx_adc_isr, 0,
-				  MOD_NAME, info);
-	if (retval < 0) {
+							  MOD_NAME, info);
+
+	if (retval < 0)
+	{
 		dev_err(&pdev->dev, "failed requesting interrupt\n");
 		return retval;
 	}
@@ -184,8 +201,11 @@ static int lpc32xx_adc_probe(struct platform_device *pdev)
 	iodev->num_channels = ARRAY_SIZE(lpc32xx_adc_iio_channels);
 
 	retval = devm_iio_device_register(&pdev->dev, iodev);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	dev_info(&pdev->dev, "LPC32XX ADC driver loaded, IRQ %d\n", irq);
 
@@ -193,14 +213,16 @@ static int lpc32xx_adc_probe(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id lpc32xx_adc_match[] = {
+static const struct of_device_id lpc32xx_adc_match[] =
+{
 	{ .compatible = "nxp,lpc3220-adc" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, lpc32xx_adc_match);
 #endif
 
-static struct platform_driver lpc32xx_adc_driver = {
+static struct platform_driver lpc32xx_adc_driver =
+{
 	.probe		= lpc32xx_adc_probe,
 	.driver		= {
 		.name	= MOD_NAME,

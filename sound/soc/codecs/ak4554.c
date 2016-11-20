@@ -29,15 +29,17 @@
  * CPU-DAI2 (capture only fmt = LEFT_J) ---+
  */
 
-static const struct snd_soc_dapm_widget ak4554_dapm_widgets[] = {
-SND_SOC_DAPM_INPUT("AINL"),
-SND_SOC_DAPM_INPUT("AINR"),
+static const struct snd_soc_dapm_widget ak4554_dapm_widgets[] =
+{
+	SND_SOC_DAPM_INPUT("AINL"),
+	SND_SOC_DAPM_INPUT("AINR"),
 
-SND_SOC_DAPM_OUTPUT("AOUTL"),
-SND_SOC_DAPM_OUTPUT("AOUTR"),
+	SND_SOC_DAPM_OUTPUT("AOUTL"),
+	SND_SOC_DAPM_OUTPUT("AOUTR"),
 };
 
-static const struct snd_soc_dapm_route ak4554_dapm_routes[] = {
+static const struct snd_soc_dapm_route ak4554_dapm_routes[] =
+{
 	{ "Capture", NULL, "AINL" },
 	{ "Capture", NULL, "AINR" },
 
@@ -45,7 +47,8 @@ static const struct snd_soc_dapm_route ak4554_dapm_routes[] = {
 	{ "AOUTR", NULL, "Playback" },
 };
 
-static struct snd_soc_dai_driver ak4554_dai = {
+static struct snd_soc_dai_driver ak4554_dai =
+{
 	.name = "ak4554-hifi",
 	.playback = {
 		.stream_name = "Playback",
@@ -64,7 +67,8 @@ static struct snd_soc_dai_driver ak4554_dai = {
 	.symmetric_rates = 1,
 };
 
-static struct snd_soc_codec_driver soc_codec_dev_ak4554 = {
+static struct snd_soc_codec_driver soc_codec_dev_ak4554 =
+{
 	.component_driver = {
 		.dapm_widgets		= ak4554_dapm_widgets,
 		.num_dapm_widgets	= ARRAY_SIZE(ak4554_dapm_widgets),
@@ -76,8 +80,8 @@ static struct snd_soc_codec_driver soc_codec_dev_ak4554 = {
 static int ak4554_soc_probe(struct platform_device *pdev)
 {
 	return snd_soc_register_codec(&pdev->dev,
-				      &soc_codec_dev_ak4554,
-				      &ak4554_dai, 1);
+								  &soc_codec_dev_ak4554,
+								  &ak4554_dai, 1);
 }
 
 static int ak4554_soc_remove(struct platform_device *pdev)
@@ -86,13 +90,15 @@ static int ak4554_soc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id ak4554_of_match[] = {
+static const struct of_device_id ak4554_of_match[] =
+{
 	{ .compatible = "asahi-kasei,ak4554" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ak4554_of_match);
 
-static struct platform_driver ak4554_driver = {
+static struct platform_driver ak4554_driver =
+{
 	.driver = {
 		.name = "ak4554-adc-dac",
 		.of_match_table = ak4554_of_match,

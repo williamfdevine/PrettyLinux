@@ -63,7 +63,8 @@
 #define RTC_NUM_YEARS		128
 #define RTC_MIN_YEAR_OFFSET	(RTC_MIN_YEAR - RTC_BASE_YEAR)
 
-struct mt6397_rtc {
+struct mt6397_rtc
+{
 	struct device		*dev;
 	struct rtc_device	*rtc_dev;
 	struct mutex		lock;
@@ -79,20 +80,33 @@ static int mtk_rtc_write_trigger(struct mt6397_rtc *rtc)
 	u32 data;
 
 	ret = regmap_write(rtc->regmap, rtc->addr_base + RTC_WRTGR, 1);
-	if (ret < 0)
-		return ret;
 
-	while (1) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	while (1)
+	{
 		ret = regmap_read(rtc->regmap, rtc->addr_base + RTC_BBPU,
-				  &data);
+						  &data);
+
 		if (ret < 0)
+		{
 			break;
+		}
+
 		if (!(data & RTC_BBPU_CBUSY))
+		{
 			break;
-		if (time_after(jiffies, timeout)) {
+		}
+
+		if (time_after(jiffies, timeout))
+		{
 			ret = -ETIMEDOUT;
 			break;
 		}
+
 		cpu_relax();
 	}
 
@@ -106,13 +120,19 @@ static irqreturn_t mtk_rtc_irq_handler_thread(int irq, void *data)
 	int ret;
 
 	ret = regmap_read(rtc->regmap, rtc->addr_base + RTC_IRQ_STA, &irqsta);
-	if ((ret >= 0) && (irqsta & RTC_IRQ_STA_AL)) {
+
+	if ((ret >= 0) && (irqsta & RTC_IRQ_STA_AL))
+	{
 		rtc_update_irq(rtc->rtc_dev, 1, RTC_IRQF | RTC_AF);
 		irqen = irqsta & ~RTC_IRQ_EN_AL;
 		mutex_lock(&rtc->lock);
+
 		if (regmap_write(rtc->regmap, rtc->addr_base + RTC_IRQ_EN,
-				 irqen) < 0)
+						 irqen) < 0)
+		{
 			mtk_rtc_write_trigger(rtc);
+		}
+
 		mutex_unlock(&rtc->lock);
 
 		return IRQ_HANDLED;
@@ -122,16 +142,19 @@ static irqreturn_t mtk_rtc_irq_handler_thread(int irq, void *data)
 }
 
 static int __mtk_rtc_read_time(struct mt6397_rtc *rtc,
-			       struct rtc_time *tm, int *sec)
+							   struct rtc_time *tm, int *sec)
 {
 	int ret;
 	u16 data[RTC_OFFSET_COUNT];
 
 	mutex_lock(&rtc->lock);
 	ret = regmap_bulk_read(rtc->regmap, rtc->addr_base + RTC_TC_SEC,
-			       data, RTC_OFFSET_COUNT);
+						   data, RTC_OFFSET_COUNT);
+
 	if (ret < 0)
+	{
 		goto exit;
+	}
 
 	tm->tm_sec = data[RTC_OFFSET_SEC];
 	tm->tm_min = data[RTC_OFFSET_MIN];
@@ -152,11 +175,16 @@ static int mtk_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	struct mt6397_rtc *rtc = dev_get_drvdata(dev);
 	int days, sec, ret;
 
-	do {
+	do
+	{
 		ret = __mtk_rtc_read_time(rtc, tm, &sec);
+
 		if (ret < 0)
+		{
 			goto exit;
-	} while (sec < tm->tm_sec);
+		}
+	}
+	while (sec < tm->tm_sec);
 
 	/* HW register use 7 bits to store year data, minus
 	 * RTC_MIN_YEAR_OFFSET before write year data to register, and plus
@@ -196,9 +224,12 @@ static int mtk_rtc_set_time(struct device *dev, struct rtc_time *tm)
 
 	mutex_lock(&rtc->lock);
 	ret = regmap_bulk_write(rtc->regmap, rtc->addr_base + RTC_TC_SEC,
-				data, RTC_OFFSET_COUNT);
+							data, RTC_OFFSET_COUNT);
+
 	if (ret < 0)
+	{
 		goto exit;
+	}
 
 	/* Time register write to hardware after call trigger function */
 	ret = mtk_rtc_write_trigger(rtc);
@@ -218,16 +249,26 @@ static int mtk_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
 
 	mutex_lock(&rtc->lock);
 	ret = regmap_read(rtc->regmap, rtc->addr_base + RTC_IRQ_EN, &irqen);
+
 	if (ret < 0)
+	{
 		goto err_exit;
+	}
+
 	ret = regmap_read(rtc->regmap, rtc->addr_base + RTC_PDN2, &pdn2);
+
 	if (ret < 0)
+	{
 		goto err_exit;
+	}
 
 	ret = regmap_bulk_read(rtc->regmap, rtc->addr_base + RTC_AL_SEC,
-			       data, RTC_OFFSET_COUNT);
+						   data, RTC_OFFSET_COUNT);
+
 	if (ret < 0)
+	{
 		goto err_exit;
+	}
 
 	alm->enabled = !!(irqen & RTC_IRQ_EN_AL);
 	alm->pending = !!(pdn2 & RTC_PDN2_PWRON_ALARM);
@@ -267,28 +308,46 @@ static int mtk_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
 	data[RTC_OFFSET_YEAR] = tm->tm_year;
 
 	mutex_lock(&rtc->lock);
-	if (alm->enabled) {
+
+	if (alm->enabled)
+	{
 		ret = regmap_bulk_write(rtc->regmap,
-					rtc->addr_base + RTC_AL_SEC,
-					data, RTC_OFFSET_COUNT);
+								rtc->addr_base + RTC_AL_SEC,
+								data, RTC_OFFSET_COUNT);
+
 		if (ret < 0)
+		{
 			goto exit;
+		}
+
 		ret = regmap_write(rtc->regmap, rtc->addr_base + RTC_AL_MASK,
-				   RTC_AL_MASK_DOW);
+						   RTC_AL_MASK_DOW);
+
 		if (ret < 0)
+		{
 			goto exit;
+		}
+
 		ret = regmap_update_bits(rtc->regmap,
-					 rtc->addr_base + RTC_IRQ_EN,
-					 RTC_IRQ_EN_ONESHOT_AL,
-					 RTC_IRQ_EN_ONESHOT_AL);
+								 rtc->addr_base + RTC_IRQ_EN,
+								 RTC_IRQ_EN_ONESHOT_AL,
+								 RTC_IRQ_EN_ONESHOT_AL);
+
 		if (ret < 0)
+		{
 			goto exit;
-	} else {
+		}
+	}
+	else
+	{
 		ret = regmap_update_bits(rtc->regmap,
-					 rtc->addr_base + RTC_IRQ_EN,
-					 RTC_IRQ_EN_ONESHOT_AL, 0);
+								 rtc->addr_base + RTC_IRQ_EN,
+								 RTC_IRQ_EN_ONESHOT_AL, 0);
+
 		if (ret < 0)
+		{
 			goto exit;
+		}
 	}
 
 	/* All alarm time register write to hardware after calling
@@ -301,7 +360,8 @@ exit:
 	return ret;
 }
 
-static const struct rtc_class_ops mtk_rtc_ops = {
+static const struct rtc_class_ops mtk_rtc_ops =
+{
 	.read_time  = mtk_rtc_read_time,
 	.set_time   = mtk_rtc_set_time,
 	.read_alarm = mtk_rtc_read_alarm,
@@ -316,16 +376,22 @@ static int mtk_rtc_probe(struct platform_device *pdev)
 	int ret;
 
 	rtc = devm_kzalloc(&pdev->dev, sizeof(struct mt6397_rtc), GFP_KERNEL);
+
 	if (!rtc)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rtc->addr_base = res->start;
 
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 	rtc->irq = irq_create_mapping(mt6397_chip->irq_domain, res->start);
+
 	if (rtc->irq <= 0)
+	{
 		return -EINVAL;
+	}
 
 	rtc->regmap = mt6397_chip->regmap;
 	rtc->dev = &pdev->dev;
@@ -334,20 +400,24 @@ static int mtk_rtc_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, rtc);
 
 	ret = request_threaded_irq(rtc->irq, NULL,
-				   mtk_rtc_irq_handler_thread,
-				   IRQF_ONESHOT | IRQF_TRIGGER_HIGH,
-				   "mt6397-rtc", rtc);
-	if (ret) {
+							   mtk_rtc_irq_handler_thread,
+							   IRQF_ONESHOT | IRQF_TRIGGER_HIGH,
+							   "mt6397-rtc", rtc);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to request alarm IRQ: %d: %d\n",
-			rtc->irq, ret);
+				rtc->irq, ret);
 		goto out_dispose_irq;
 	}
 
 	device_init_wakeup(&pdev->dev, 1);
 
 	rtc->rtc_dev = rtc_device_register("mt6397-rtc", &pdev->dev,
-					   &mtk_rtc_ops, THIS_MODULE);
-	if (IS_ERR(rtc->rtc_dev)) {
+									   &mtk_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(rtc->rtc_dev))
+	{
 		dev_err(&pdev->dev, "register rtc device failed\n");
 		ret = PTR_ERR(rtc->rtc_dev);
 		goto out_free_irq;
@@ -379,7 +449,9 @@ static int mt6397_rtc_suspend(struct device *dev)
 	struct mt6397_rtc *rtc = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(rtc->irq);
+	}
 
 	return 0;
 }
@@ -389,22 +461,26 @@ static int mt6397_rtc_resume(struct device *dev)
 	struct mt6397_rtc *rtc = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(rtc->irq);
+	}
 
 	return 0;
 }
 #endif
 
 static SIMPLE_DEV_PM_OPS(mt6397_pm_ops, mt6397_rtc_suspend,
-			mt6397_rtc_resume);
+						 mt6397_rtc_resume);
 
-static const struct of_device_id mt6397_rtc_of_match[] = {
+static const struct of_device_id mt6397_rtc_of_match[] =
+{
 	{ .compatible = "mediatek,mt6397-rtc", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, mt6397_rtc_of_match);
 
-static struct platform_driver mtk_rtc_driver = {
+static struct platform_driver mtk_rtc_driver =
+{
 	.driver = {
 		.name = "mt6397-rtc",
 		.of_match_table = mt6397_rtc_of_match,

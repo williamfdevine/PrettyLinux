@@ -43,21 +43,24 @@ static inline bool radeon_atpx_dgpu_req_power_for_displays(void) { return false;
 
 extern void radeon_pm_acpi_event_handler(struct radeon_device *rdev);
 
-struct atif_verify_interface {
+struct atif_verify_interface
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u16 version;		/* version */
 	u32 notification_mask;	/* supported notifications mask */
 	u32 function_bits;	/* supported functions bit vector */
 } __packed;
 
-struct atif_system_params {
+struct atif_system_params
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u32 valid_mask;		/* valid flags mask */
 	u32 flags;		/* flags */
 	u8 command_code;	/* notify command code */
 } __packed;
 
-struct atif_sbios_requests {
+struct atif_sbios_requests
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u32 pending;		/* pending sbios requests */
 	u8 panel_exp_mode;	/* panel expansion mode */
@@ -74,7 +77,8 @@ struct atif_sbios_requests {
 #define ATIF_NOTIFY_81		1
 #define ATIF_NOTIFY_N		2
 
-struct atcs_verify_interface {
+struct atcs_verify_interface
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u16 version;		/* version */
 	u32 function_bits;	/* supported functions bit vector */
@@ -82,7 +86,8 @@ struct atcs_verify_interface {
 
 #define ATCS_VALID_FLAGS_MASK	0x3
 
-struct atcs_pref_req_input {
+struct atcs_pref_req_input
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u16 client_id;		/* client id (bit 2-0: func num, 7-3: dev num, 15-8: bus num) */
 	u16 valid_flags_mask;	/* valid flags mask */
@@ -91,7 +96,8 @@ struct atcs_pref_req_input {
 	u8 perf_req;		/* performance request */
 } __packed;
 
-struct atcs_pref_req_output {
+struct atcs_pref_req_output
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u8 ret_val;		/* return value */
 } __packed;
@@ -109,7 +115,7 @@ struct atcs_pref_req_output {
  * Returns a pointer to the acpi output buffer.
  */
 static union acpi_object *radeon_atif_call(acpi_handle handle, int function,
-		struct acpi_buffer *params)
+			struct acpi_buffer *params)
 {
 	acpi_status status;
 	union acpi_object atif_arg_elements[2];
@@ -122,11 +128,14 @@ static union acpi_object *radeon_atif_call(acpi_handle handle, int function,
 	atif_arg_elements[0].type = ACPI_TYPE_INTEGER;
 	atif_arg_elements[0].integer.value = function;
 
-	if (params) {
+	if (params)
+	{
 		atif_arg_elements[1].type = ACPI_TYPE_BUFFER;
 		atif_arg_elements[1].buffer.length = params->length;
 		atif_arg_elements[1].buffer.pointer = params->pointer;
-	} else {
+	}
+	else
+	{
 		/* We need a second fake parameter */
 		atif_arg_elements[1].type = ACPI_TYPE_INTEGER;
 		atif_arg_elements[1].integer.value = 0;
@@ -135,9 +144,10 @@ static union acpi_object *radeon_atif_call(acpi_handle handle, int function,
 	status = acpi_evaluate_object(handle, "ATIF", &atif_arg, &buffer);
 
 	/* Fail only if calling the method fails and ATIF is supported */
-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+	{
 		DRM_DEBUG_DRIVER("failed to evaluate ATIF got %s\n",
-				 acpi_format_exception(status));
+						 acpi_format_exception(status));
 		kfree(buffer.pointer);
 		return NULL;
 	}
@@ -204,7 +214,7 @@ static void radeon_atif_parse_functions(struct radeon_atif_functions *f, u32 mas
  * returns 0 on success, error on failure.
  */
 static int radeon_atif_verify_interface(acpi_handle handle,
-		struct radeon_atif *atif)
+										struct radeon_atif *atif)
 {
 	union acpi_object *info;
 	struct atif_verify_interface output;
@@ -212,17 +222,23 @@ static int radeon_atif_verify_interface(acpi_handle handle,
 	int err = 0;
 
 	info = radeon_atif_call(handle, ATIF_FUNCTION_VERIFY_INTERFACE, NULL);
+
 	if (!info)
+	{
 		return -EIO;
+	}
 
 	memset(&output, 0, sizeof(output));
 
 	size = *(u16 *) info->buffer.pointer;
-	if (size < 12) {
+
+	if (size < 12)
+	{
 		DRM_INFO("ATIF buffer is too small: %zu\n", size);
 		err = -EINVAL;
 		goto out;
 	}
+
 	size = min(sizeof(output), size);
 
 	memcpy(&output, info->buffer.pointer, size);
@@ -259,13 +275,17 @@ static int radeon_atif_get_notification_params(acpi_handle handle,
 	int err = 0;
 
 	info = radeon_atif_call(handle, ATIF_FUNCTION_GET_SYSTEM_PARAMETERS, NULL);
-	if (!info) {
+
+	if (!info)
+	{
 		err = -EIO;
 		goto out;
 	}
 
 	size = *(u16 *) info->buffer.pointer;
-	if (size < 10) {
+
+	if (size < 10)
+	{
 		err = -EINVAL;
 		goto out;
 	}
@@ -275,28 +295,35 @@ static int radeon_atif_get_notification_params(acpi_handle handle,
 	memcpy(&params, info->buffer.pointer, size);
 
 	DRM_DEBUG_DRIVER("SYSTEM_PARAMS: mask = %#x, flags = %#x\n",
-			params.flags, params.valid_mask);
+					 params.flags, params.valid_mask);
 	params.flags = params.flags & params.valid_mask;
 
-	if ((params.flags & ATIF_NOTIFY_MASK) == ATIF_NOTIFY_NONE) {
+	if ((params.flags & ATIF_NOTIFY_MASK) == ATIF_NOTIFY_NONE)
+	{
 		n->enabled = false;
 		n->command_code = 0;
-	} else if ((params.flags & ATIF_NOTIFY_MASK) == ATIF_NOTIFY_81) {
+	}
+	else if ((params.flags & ATIF_NOTIFY_MASK) == ATIF_NOTIFY_81)
+	{
 		n->enabled = true;
 		n->command_code = 0x81;
-	} else {
-		if (size < 11) {
+	}
+	else
+	{
+		if (size < 11)
+		{
 			err = -EINVAL;
 			goto out;
 		}
+
 		n->enabled = true;
 		n->command_code = params.command_code;
 	}
 
 out:
 	DRM_DEBUG_DRIVER("Notification %s, command code = %#x\n",
-			(n->enabled ? "enabled" : "disabled"),
-			n->command_code);
+					 (n->enabled ? "enabled" : "disabled"),
+					 n->command_code);
 	kfree(info);
 	return err;
 }
@@ -320,14 +347,20 @@ static int radeon_atif_get_sbios_requests(acpi_handle handle,
 	int count = 0;
 
 	info = radeon_atif_call(handle, ATIF_FUNCTION_GET_SYSTEM_BIOS_REQUESTS, NULL);
+
 	if (!info)
+	{
 		return -EIO;
+	}
 
 	size = *(u16 *)info->buffer.pointer;
-	if (size < 0xd) {
+
+	if (size < 0xd)
+	{
 		count = -EINVAL;
 		goto out;
 	}
+
 	memset(req, 0, sizeof(*req));
 
 	size = min(sizeof(*req), size);
@@ -352,7 +385,7 @@ out:
  * Returns NOTIFY code
  */
 int radeon_atif_handler(struct radeon_device *rdev,
-		struct acpi_bus_event *event)
+						struct acpi_bus_event *event)
 {
 	struct radeon_atif *atif = &rdev->atif;
 	struct atif_sbios_requests req;
@@ -360,50 +393,66 @@ int radeon_atif_handler(struct radeon_device *rdev,
 	int count;
 
 	DRM_DEBUG_DRIVER("event, device_class = %s, type = %#x\n",
-			event->device_class, event->type);
+					 event->device_class, event->type);
 
 	if (strcmp(event->device_class, ACPI_VIDEO_CLASS) != 0)
+	{
 		return NOTIFY_DONE;
+	}
 
 	if (!atif->notification_cfg.enabled ||
-			event->type != atif->notification_cfg.command_code)
+		event->type != atif->notification_cfg.command_code)
 		/* Not our event */
+	{
 		return NOTIFY_DONE;
+	}
 
 	/* Check pending SBIOS requests */
 	handle = ACPI_HANDLE(&rdev->pdev->dev);
 	count = radeon_atif_get_sbios_requests(handle, &req);
 
 	if (count <= 0)
+	{
 		return NOTIFY_DONE;
+	}
 
 	DRM_DEBUG_DRIVER("ATIF: %d pending SBIOS requests\n", count);
 
-	if (req.pending & ATIF_PANEL_BRIGHTNESS_CHANGE_REQUEST) {
+	if (req.pending & ATIF_PANEL_BRIGHTNESS_CHANGE_REQUEST)
+	{
 		struct radeon_encoder *enc = atif->encoder_for_bl;
 
-		if (enc) {
+		if (enc)
+		{
 			DRM_DEBUG_DRIVER("Changing brightness to %d\n",
-					req.backlight_level);
+							 req.backlight_level);
 
 			radeon_set_backlight_level(rdev, enc, req.backlight_level);
 
 #if defined(CONFIG_BACKLIGHT_CLASS_DEVICE) || defined(CONFIG_BACKLIGHT_CLASS_DEVICE_MODULE)
-			if (rdev->is_atom_bios) {
+
+			if (rdev->is_atom_bios)
+			{
 				struct radeon_encoder_atom_dig *dig = enc->enc_priv;
 				backlight_force_update(dig->bl_dev,
-						       BACKLIGHT_UPDATE_HOTKEY);
-			} else {
+									   BACKLIGHT_UPDATE_HOTKEY);
+			}
+			else
+			{
 				struct radeon_encoder_lvds *dig = enc->enc_priv;
 				backlight_force_update(dig->bl_dev,
-						       BACKLIGHT_UPDATE_HOTKEY);
+									   BACKLIGHT_UPDATE_HOTKEY);
 			}
+
 #endif
 		}
 	}
-	if (req.pending & ATIF_DGPU_DISPLAY_EVENT) {
+
+	if (req.pending & ATIF_DGPU_DISPLAY_EVENT)
+	{
 		if ((rdev->flags & RADEON_IS_PX) &&
-		    radeon_atpx_dgpu_req_power_for_displays()) {
+			radeon_atpx_dgpu_req_power_for_displays())
+		{
 			pm_runtime_get_sync(rdev->ddev->dev);
 			/* Just fire off a uevent and let userspace tell us what to do */
 			drm_helper_hpd_irq_event(rdev->ddev);
@@ -411,6 +460,7 @@ int radeon_atif_handler(struct radeon_device *rdev,
 			pm_runtime_put_autosuspend(rdev->ddev->dev);
 		}
 	}
+
 	/* TODO: check other events */
 
 	/* We've handled the event, stop the notifier chain. The ACPI interface
@@ -434,7 +484,7 @@ int radeon_atif_handler(struct radeon_device *rdev,
  * Returns a pointer to the acpi output buffer.
  */
 static union acpi_object *radeon_atcs_call(acpi_handle handle, int function,
-					   struct acpi_buffer *params)
+			struct acpi_buffer *params)
 {
 	acpi_status status;
 	union acpi_object atcs_arg_elements[2];
@@ -447,11 +497,14 @@ static union acpi_object *radeon_atcs_call(acpi_handle handle, int function,
 	atcs_arg_elements[0].type = ACPI_TYPE_INTEGER;
 	atcs_arg_elements[0].integer.value = function;
 
-	if (params) {
+	if (params)
+	{
 		atcs_arg_elements[1].type = ACPI_TYPE_BUFFER;
 		atcs_arg_elements[1].buffer.length = params->length;
 		atcs_arg_elements[1].buffer.pointer = params->pointer;
-	} else {
+	}
+	else
+	{
 		/* We need a second fake parameter */
 		atcs_arg_elements[1].type = ACPI_TYPE_INTEGER;
 		atcs_arg_elements[1].integer.value = 0;
@@ -460,9 +513,10 @@ static union acpi_object *radeon_atcs_call(acpi_handle handle, int function,
 	status = acpi_evaluate_object(handle, "ATCS", &atcs_arg, &buffer);
 
 	/* Fail only if calling the method fails and ATIF is supported */
-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+	{
 		DRM_DEBUG_DRIVER("failed to evaluate ATCS got %s\n",
-				 acpi_format_exception(status));
+						 acpi_format_exception(status));
 		kfree(buffer.pointer);
 		return NULL;
 	}
@@ -500,7 +554,7 @@ static void radeon_atcs_parse_functions(struct radeon_atcs_functions *f, u32 mas
  * returns 0 on success, error on failure.
  */
 static int radeon_atcs_verify_interface(acpi_handle handle,
-					struct radeon_atcs *atcs)
+										struct radeon_atcs *atcs)
 {
 	union acpi_object *info;
 	struct atcs_verify_interface output;
@@ -508,17 +562,23 @@ static int radeon_atcs_verify_interface(acpi_handle handle,
 	int err = 0;
 
 	info = radeon_atcs_call(handle, ATCS_FUNCTION_VERIFY_INTERFACE, NULL);
+
 	if (!info)
+	{
 		return -EIO;
+	}
 
 	memset(&output, 0, sizeof(output));
 
 	size = *(u16 *) info->buffer.pointer;
-	if (size < 8) {
+
+	if (size < 8)
+	{
 		DRM_INFO("ATCS buffer is too small: %zu\n", size);
 		err = -EINVAL;
 		goto out;
 	}
+
 	size = min(sizeof(output), size);
 
 	memcpy(&output, info->buffer.pointer, size);
@@ -547,7 +607,9 @@ bool radeon_acpi_is_pcie_performance_request_supported(struct radeon_device *rde
 	struct radeon_atcs *atcs = &rdev->atcs;
 
 	if (atcs->functions.pcie_perf_req && atcs->functions.pcie_dev_rdy)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -569,15 +631,23 @@ int radeon_acpi_pcie_notify_device_ready(struct radeon_device *rdev)
 
 	/* Get the device handle */
 	handle = ACPI_HANDLE(&rdev->pdev->dev);
+
 	if (!handle)
+	{
 		return -EINVAL;
+	}
 
 	if (!atcs->functions.pcie_dev_rdy)
+	{
 		return -EINVAL;
+	}
 
 	info = radeon_atcs_call(handle, ATCS_FUNCTION_PCIE_DEVICE_READY_NOTIFICATION, NULL);
+
 	if (!info)
+	{
 		return -EIO;
+	}
 
 	kfree(info);
 
@@ -596,7 +666,7 @@ int radeon_acpi_pcie_notify_device_ready(struct radeon_device *rdev)
  * returns 0 on success, error on failure.
  */
 int radeon_acpi_pcie_performance_request(struct radeon_device *rdev,
-					 u8 perf_req, bool advertise)
+		u8 perf_req, bool advertise)
 {
 	acpi_handle handle;
 	union acpi_object *info;
@@ -609,53 +679,72 @@ int radeon_acpi_pcie_performance_request(struct radeon_device *rdev,
 
 	/* Get the device handle */
 	handle = ACPI_HANDLE(&rdev->pdev->dev);
+
 	if (!handle)
+	{
 		return -EINVAL;
+	}
 
 	if (!atcs->functions.pcie_perf_req)
+	{
 		return -EINVAL;
+	}
 
 	atcs_input.size = sizeof(struct atcs_pref_req_input);
 	/* client id (bit 2-0: func num, 7-3: dev num, 15-8: bus num) */
 	atcs_input.client_id = rdev->pdev->devfn | (rdev->pdev->bus->number << 8);
 	atcs_input.valid_flags_mask = ATCS_VALID_FLAGS_MASK;
 	atcs_input.flags = ATCS_WAIT_FOR_COMPLETION;
+
 	if (advertise)
+	{
 		atcs_input.flags |= ATCS_ADVERTISE_CAPS;
+	}
+
 	atcs_input.req_type = ATCS_PCIE_LINK_SPEED;
 	atcs_input.perf_req = perf_req;
 
 	params.length = sizeof(struct atcs_pref_req_input);
 	params.pointer = &atcs_input;
 
-	while (retry--) {
+	while (retry--)
+	{
 		info = radeon_atcs_call(handle, ATCS_FUNCTION_PCIE_PERFORMANCE_REQUEST, &params);
+
 		if (!info)
+		{
 			return -EIO;
+		}
 
 		memset(&atcs_output, 0, sizeof(atcs_output));
 
 		size = *(u16 *) info->buffer.pointer;
-		if (size < 3) {
+
+		if (size < 3)
+		{
 			DRM_INFO("ATCS buffer is too small: %zu\n", size);
 			kfree(info);
 			return -EINVAL;
 		}
+
 		size = min(sizeof(atcs_output), size);
 
 		memcpy(&atcs_output, info->buffer.pointer, size);
 
 		kfree(info);
 
-		switch (atcs_output.ret_val) {
-		case ATCS_REQUEST_REFUSED:
-		default:
-			return -EINVAL;
-		case ATCS_REQUEST_COMPLETE:
-			return 0;
-		case ATCS_REQUEST_IN_PROGRESS:
-			udelay(10);
-			break;
+		switch (atcs_output.ret_val)
+		{
+			case ATCS_REQUEST_REFUSED:
+			default:
+				return -EINVAL;
+
+			case ATCS_REQUEST_COMPLETE:
+				return 0;
+
+			case ATCS_REQUEST_IN_PROGRESS:
+				udelay(10);
+				break;
 		}
 	}
 
@@ -674,17 +763,22 @@ int radeon_acpi_pcie_performance_request(struct radeon_device *rdev,
  * Returns NOTIFY code
  */
 static int radeon_acpi_event(struct notifier_block *nb,
-			     unsigned long val,
-			     void *data)
+							 unsigned long val,
+							 void *data)
 {
 	struct radeon_device *rdev = container_of(nb, struct radeon_device, acpi_nb);
 	struct acpi_bus_event *entry = (struct acpi_bus_event *)data;
 
-	if (strcmp(entry->device_class, ACPI_AC_CLASS) == 0) {
+	if (strcmp(entry->device_class, ACPI_AC_CLASS) == 0)
+	{
 		if (power_supply_is_system_supplied() > 0)
+		{
 			DRM_DEBUG_DRIVER("pm: AC\n");
+		}
 		else
+		{
 			DRM_DEBUG_DRIVER("pm: DC\n");
+		}
 
 		radeon_pm_acpi_event_handler(rdev);
 	}
@@ -715,41 +809,57 @@ int radeon_acpi_init(struct radeon_device *rdev)
 
 	/* No need to proceed if we're sure that ATIF is not supported */
 	if (!ASIC_IS_AVIVO(rdev) || !rdev->bios || !handle)
+	{
 		return 0;
+	}
 
 	/* Call the ATCS method */
 	ret = radeon_atcs_verify_interface(handle, atcs);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_DEBUG_DRIVER("Call to ATCS verify_interface failed: %d\n", ret);
 	}
 
 	/* Call the ATIF method */
 	ret = radeon_atif_verify_interface(handle, atif);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_DEBUG_DRIVER("Call to ATIF verify_interface failed: %d\n", ret);
 		goto out;
 	}
 
-	if (atif->notifications.brightness_change) {
+	if (atif->notifications.brightness_change)
+	{
 		struct drm_encoder *tmp;
 		struct radeon_encoder *target = NULL;
 
 		/* Find the encoder controlling the brightness */
 		list_for_each_entry(tmp, &rdev->ddev->mode_config.encoder_list,
-				head) {
+							head)
+		{
 			struct radeon_encoder *enc = to_radeon_encoder(tmp);
 
 			if ((enc->devices & (ATOM_DEVICE_LCD_SUPPORT)) &&
-			    enc->enc_priv) {
-				if (rdev->is_atom_bios) {
+				enc->enc_priv)
+			{
+				if (rdev->is_atom_bios)
+				{
 					struct radeon_encoder_atom_dig *dig = enc->enc_priv;
-					if (dig->bl_dev) {
+
+					if (dig->bl_dev)
+					{
 						target = enc;
 						break;
 					}
-				} else {
+				}
+				else
+				{
 					struct radeon_encoder_lvds *dig = enc->enc_priv;
-					if (dig->bl_dev) {
+
+					if (dig->bl_dev)
+					{
 						target = enc;
 						break;
 					}
@@ -760,7 +870,8 @@ int radeon_acpi_init(struct radeon_device *rdev)
 		atif->encoder_for_bl = target;
 	}
 
-	if (atif->functions.sbios_requests && !atif->functions.system_params) {
+	if (atif->functions.sbios_requests && !atif->functions.system_params)
+	{
 		/* XXX check this workraround, if sbios request function is
 		 * present we have to see how it's configured in the system
 		 * params
@@ -768,12 +879,15 @@ int radeon_acpi_init(struct radeon_device *rdev)
 		atif->functions.system_params = true;
 	}
 
-	if (atif->functions.system_params) {
+	if (atif->functions.system_params)
+	{
 		ret = radeon_atif_get_notification_params(handle,
 				&atif->notification_cfg);
-		if (ret) {
+
+		if (ret)
+		{
 			DRM_DEBUG_DRIVER("Call to GET_SYSTEM_PARAMS failed: %d\n",
-					ret);
+							 ret);
 			/* Disable notification */
 			atif->notification_cfg.enabled = false;
 		}

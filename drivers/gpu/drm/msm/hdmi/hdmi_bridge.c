@@ -17,7 +17,8 @@
 
 #include "hdmi.h"
 
-struct hdmi_bridge {
+struct hdmi_bridge
+{
 	struct drm_bridge base;
 	struct hdmi *hdmi;
 };
@@ -35,26 +36,35 @@ static void msm_hdmi_power_on(struct drm_bridge *bridge)
 	const struct hdmi_platform_config *config = hdmi->config;
 	int i, ret;
 
-	for (i = 0; i < config->pwr_reg_cnt; i++) {
+	for (i = 0; i < config->pwr_reg_cnt; i++)
+	{
 		ret = regulator_enable(hdmi->pwr_regs[i]);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev->dev, "failed to enable pwr regulator: %s (%d)\n",
 					config->pwr_reg_names[i], ret);
 		}
 	}
 
-	if (config->pwr_clk_cnt > 0) {
+	if (config->pwr_clk_cnt > 0)
+	{
 		DBG("pixclock: %lu", hdmi->pixclock);
 		ret = clk_set_rate(hdmi->pwr_clks[0], hdmi->pixclock);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev->dev, "failed to set pixel clk: %s (%d)\n",
 					config->pwr_clk_names[0], ret);
 		}
 	}
 
-	for (i = 0; i < config->pwr_clk_cnt; i++) {
+	for (i = 0; i < config->pwr_clk_cnt; i++)
+	{
 		ret = clk_prepare_enable(hdmi->pwr_clks[i]);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev->dev, "failed to enable pwr clk: %s (%d)\n",
 					config->pwr_clk_names[i], ret);
 		}
@@ -75,11 +85,16 @@ static void power_off(struct drm_bridge *bridge)
 	mdelay(16 + 4);
 
 	for (i = 0; i < config->pwr_clk_cnt; i++)
+	{
 		clk_disable_unprepare(hdmi->pwr_clks[i]);
+	}
 
-	for (i = 0; i < config->pwr_reg_cnt; i++) {
+	for (i = 0; i < config->pwr_reg_cnt; i++)
+	{
 		ret = regulator_disable(hdmi->pwr_regs[i]);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev->dev, "failed to disable pwr regulator: %s (%d)\n",
 					config->pwr_reg_names[i], ret);
 		}
@@ -94,7 +109,8 @@ static void msm_hdmi_bridge_pre_enable(struct drm_bridge *bridge)
 
 	DBG("power up");
 
-	if (!hdmi->power_on) {
+	if (!hdmi->power_on)
+	{
 		msm_hdmi_phy_resource_enable(phy);
 		msm_hdmi_power_on(bridge);
 		hdmi->power_on = true;
@@ -106,7 +122,9 @@ static void msm_hdmi_bridge_pre_enable(struct drm_bridge *bridge)
 	msm_hdmi_set_mode(hdmi, true);
 
 	if (hdmi->hdcp_ctrl)
+	{
 		msm_hdmi_hdcp_on(hdmi->hdcp_ctrl);
+	}
 }
 
 static void msm_hdmi_bridge_enable(struct drm_bridge *bridge)
@@ -124,14 +142,17 @@ static void msm_hdmi_bridge_post_disable(struct drm_bridge *bridge)
 	struct hdmi_phy *phy = hdmi->phy;
 
 	if (hdmi->hdcp_ctrl)
+	{
 		msm_hdmi_hdcp_off(hdmi->hdcp_ctrl);
+	}
 
 	DBG("power down");
 	msm_hdmi_set_mode(hdmi, false);
 
 	msm_hdmi_phy_powerdown(phy);
 
-	if (hdmi->power_on) {
+	if (hdmi->power_on)
+	{
 		power_off(bridge);
 		hdmi->power_on = false;
 		msm_hdmi_audio_update(hdmi);
@@ -140,8 +161,8 @@ static void msm_hdmi_bridge_post_disable(struct drm_bridge *bridge)
 }
 
 static void msm_hdmi_bridge_mode_set(struct drm_bridge *bridge,
-		 struct drm_display_mode *mode,
-		 struct drm_display_mode *adjusted_mode)
+									 struct drm_display_mode *mode,
+									 struct drm_display_mode *adjusted_mode)
 {
 	struct hdmi_bridge *hdmi_bridge = to_hdmi_bridge(bridge);
 	struct hdmi *hdmi = hdmi_bridge->hdmi;
@@ -159,52 +180,66 @@ static void msm_hdmi_bridge_mode_set(struct drm_bridge *bridge,
 	vend   = mode->vtotal - mode->vsync_start + mode->vdisplay - 1;
 
 	DBG("htotal=%d, vtotal=%d, hstart=%d, hend=%d, vstart=%d, vend=%d",
-			mode->htotal, mode->vtotal, hstart, hend, vstart, vend);
+		mode->htotal, mode->vtotal, hstart, hend, vstart, vend);
 
 	hdmi_write(hdmi, REG_HDMI_TOTAL,
-			HDMI_TOTAL_H_TOTAL(mode->htotal - 1) |
-			HDMI_TOTAL_V_TOTAL(mode->vtotal - 1));
+			   HDMI_TOTAL_H_TOTAL(mode->htotal - 1) |
+			   HDMI_TOTAL_V_TOTAL(mode->vtotal - 1));
 
 	hdmi_write(hdmi, REG_HDMI_ACTIVE_HSYNC,
-			HDMI_ACTIVE_HSYNC_START(hstart) |
-			HDMI_ACTIVE_HSYNC_END(hend));
+			   HDMI_ACTIVE_HSYNC_START(hstart) |
+			   HDMI_ACTIVE_HSYNC_END(hend));
 	hdmi_write(hdmi, REG_HDMI_ACTIVE_VSYNC,
-			HDMI_ACTIVE_VSYNC_START(vstart) |
-			HDMI_ACTIVE_VSYNC_END(vend));
+			   HDMI_ACTIVE_VSYNC_START(vstart) |
+			   HDMI_ACTIVE_VSYNC_END(vend));
 
-	if (mode->flags & DRM_MODE_FLAG_INTERLACE) {
+	if (mode->flags & DRM_MODE_FLAG_INTERLACE)
+	{
 		hdmi_write(hdmi, REG_HDMI_VSYNC_TOTAL_F2,
-				HDMI_VSYNC_TOTAL_F2_V_TOTAL(mode->vtotal));
+				   HDMI_VSYNC_TOTAL_F2_V_TOTAL(mode->vtotal));
 		hdmi_write(hdmi, REG_HDMI_VSYNC_ACTIVE_F2,
-				HDMI_VSYNC_ACTIVE_F2_START(vstart + 1) |
-				HDMI_VSYNC_ACTIVE_F2_END(vend + 1));
-	} else {
+				   HDMI_VSYNC_ACTIVE_F2_START(vstart + 1) |
+				   HDMI_VSYNC_ACTIVE_F2_END(vend + 1));
+	}
+	else
+	{
 		hdmi_write(hdmi, REG_HDMI_VSYNC_TOTAL_F2,
-				HDMI_VSYNC_TOTAL_F2_V_TOTAL(0));
+				   HDMI_VSYNC_TOTAL_F2_V_TOTAL(0));
 		hdmi_write(hdmi, REG_HDMI_VSYNC_ACTIVE_F2,
-				HDMI_VSYNC_ACTIVE_F2_START(0) |
-				HDMI_VSYNC_ACTIVE_F2_END(0));
+				   HDMI_VSYNC_ACTIVE_F2_START(0) |
+				   HDMI_VSYNC_ACTIVE_F2_END(0));
 	}
 
 	frame_ctrl = 0;
+
 	if (mode->flags & DRM_MODE_FLAG_NHSYNC)
+	{
 		frame_ctrl |= HDMI_FRAME_CTRL_HSYNC_LOW;
+	}
+
 	if (mode->flags & DRM_MODE_FLAG_NVSYNC)
+	{
 		frame_ctrl |= HDMI_FRAME_CTRL_VSYNC_LOW;
+	}
+
 	if (mode->flags & DRM_MODE_FLAG_INTERLACE)
+	{
 		frame_ctrl |= HDMI_FRAME_CTRL_INTERLACED_EN;
+	}
+
 	DBG("frame_ctrl=%08x", frame_ctrl);
 	hdmi_write(hdmi, REG_HDMI_FRAME_CTRL, frame_ctrl);
 
 	msm_hdmi_audio_update(hdmi);
 }
 
-static const struct drm_bridge_funcs msm_hdmi_bridge_funcs = {
-		.pre_enable = msm_hdmi_bridge_pre_enable,
-		.enable = msm_hdmi_bridge_enable,
-		.disable = msm_hdmi_bridge_disable,
-		.post_disable = msm_hdmi_bridge_post_disable,
-		.mode_set = msm_hdmi_bridge_mode_set,
+static const struct drm_bridge_funcs msm_hdmi_bridge_funcs =
+{
+	.pre_enable = msm_hdmi_bridge_pre_enable,
+	.enable = msm_hdmi_bridge_enable,
+	.disable = msm_hdmi_bridge_disable,
+	.post_disable = msm_hdmi_bridge_post_disable,
+	.mode_set = msm_hdmi_bridge_mode_set,
 };
 
 
@@ -216,8 +251,10 @@ struct drm_bridge *msm_hdmi_bridge_init(struct hdmi *hdmi)
 	int ret;
 
 	hdmi_bridge = devm_kzalloc(hdmi->dev->dev,
-			sizeof(*hdmi_bridge), GFP_KERNEL);
-	if (!hdmi_bridge) {
+							   sizeof(*hdmi_bridge), GFP_KERNEL);
+
+	if (!hdmi_bridge)
+	{
 		ret = -ENOMEM;
 		goto fail;
 	}
@@ -228,14 +265,20 @@ struct drm_bridge *msm_hdmi_bridge_init(struct hdmi *hdmi)
 	bridge->funcs = &msm_hdmi_bridge_funcs;
 
 	ret = drm_bridge_attach(hdmi->dev, bridge);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	return bridge;
 
 fail:
+
 	if (bridge)
+	{
 		msm_hdmi_bridge_destroy(bridge);
+	}
 
 	return ERR_PTR(ret);
 }

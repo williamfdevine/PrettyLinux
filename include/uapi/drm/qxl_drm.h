@@ -50,12 +50,14 @@ extern "C" {
 
 #define DRM_QXL_ALLOC_SURF  0x06
 
-struct drm_qxl_alloc {
+struct drm_qxl_alloc
+{
 	__u32 size;
 	__u32 handle; /* 0 is an invalid handle */
 };
 
-struct drm_qxl_map {
+struct drm_qxl_map
+{
 	__u64 offset; /* use for mmap system call */
 	__u32 handle;
 	__u32 pad;
@@ -70,7 +72,8 @@ struct drm_qxl_map {
 #define QXL_RELOC_TYPE_BO 1
 #define QXL_RELOC_TYPE_SURF 2
 
-struct drm_qxl_reloc {
+struct drm_qxl_reloc
+{
 	__u64 src_offset; /* offset into src_handle or src buffer */
 	__u64 dst_offset; /* offset in dest handle */
 	__u32 src_handle; /* dest handle to compute address from */
@@ -79,7 +82,8 @@ struct drm_qxl_reloc {
 	__u32 pad;
 };
 
-struct drm_qxl_command {
+struct drm_qxl_command
+{
 	__u64	 __user command; /* void* */
 	__u64	 __user relocs; /* struct drm_qxl_reloc* */
 	__u32		type;
@@ -88,13 +92,15 @@ struct drm_qxl_command {
 	__u32                pad;
 };
 
-struct drm_qxl_execbuffer {
+struct drm_qxl_execbuffer
+{
 	__u32		flags;		/* for future use */
 	__u32		commands_num;
 	__u64	 __user commands;	/* struct drm_qxl_command* */
 };
 
-struct drm_qxl_update_area {
+struct drm_qxl_update_area
+{
 	__u32 handle;
 	__u32 top;
 	__u32 left;
@@ -105,18 +111,21 @@ struct drm_qxl_update_area {
 
 #define QXL_PARAM_NUM_SURFACES 1 /* rom->n_surfaces */
 #define QXL_PARAM_MAX_RELOCS 2
-struct drm_qxl_getparam {
+struct drm_qxl_getparam
+{
 	__u64 param;
 	__u64 value;
 };
 
 /* these are one bit values */
-struct drm_qxl_clientcap {
+struct drm_qxl_clientcap
+{
 	__u32 index;
 	__u32 pad;
 };
 
-struct drm_qxl_alloc_surf {
+struct drm_qxl_alloc_surf
+{
 	__u32 format;
 	__u32 width;
 	__u32 height;
@@ -133,23 +142,23 @@ struct drm_qxl_alloc_surf {
 
 #define DRM_IOCTL_QXL_EXECBUFFER \
 	DRM_IOW(DRM_COMMAND_BASE + DRM_QXL_EXECBUFFER,\
-		struct drm_qxl_execbuffer)
+			struct drm_qxl_execbuffer)
 
 #define DRM_IOCTL_QXL_UPDATE_AREA \
 	DRM_IOW(DRM_COMMAND_BASE + DRM_QXL_UPDATE_AREA,\
-		struct drm_qxl_update_area)
+			struct drm_qxl_update_area)
 
 #define DRM_IOCTL_QXL_GETPARAM \
 	DRM_IOWR(DRM_COMMAND_BASE + DRM_QXL_GETPARAM,\
-		struct drm_qxl_getparam)
+			 struct drm_qxl_getparam)
 
 #define DRM_IOCTL_QXL_CLIENTCAP \
 	DRM_IOW(DRM_COMMAND_BASE + DRM_QXL_CLIENTCAP,\
-		struct drm_qxl_clientcap)
+			struct drm_qxl_clientcap)
 
 #define DRM_IOCTL_QXL_ALLOC_SURF \
 	DRM_IOWR(DRM_COMMAND_BASE + DRM_QXL_ALLOC_SURF,\
-		struct drm_qxl_alloc_surf)
+			 struct drm_qxl_alloc_surf)
 
 #if defined(__cplusplus)
 }

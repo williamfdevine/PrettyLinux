@@ -1,7 +1,8 @@
 #ifndef _IIO_DUMMY_EVGEN_H_
 #define _IIO_DUMMY_EVGEN_H_
 
-struct iio_dummy_regs {
+struct iio_dummy_regs
+{
 	u32 reg_id;
 	u32 reg_data;
 };

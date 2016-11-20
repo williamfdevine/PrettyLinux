@@ -19,7 +19,8 @@
 
 #define C8SECTPFE_MAX_TSIN_CHAN 8
 
-struct channel_info {
+struct channel_info
+{
 
 	int tsin_id;
 	bool invert_ts_clk;
@@ -59,7 +60,8 @@ struct channel_info {
 
 };
 
-struct c8sectpfe_hw {
+struct c8sectpfe_hw
+{
 	int num_ib;
 	int num_mib;
 	int num_swts;
@@ -69,7 +71,8 @@ struct c8sectpfe_hw {
 	int num_tp;
 };
 
-struct c8sectpfei {
+struct c8sectpfei
+{
 
 	struct device *dev;
 	struct pinctrl *pinctrl;

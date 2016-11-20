@@ -44,7 +44,8 @@
  * @wait_aliveness_resp: aliveness wait queue
  * @intr_cause:          translated interrupt cause
  */
-struct mei_txe_hw {
+struct mei_txe_hw
+{
 	void __iomem *mem_addr[NUM_OF_MEM_BARS];
 	u32 aliveness;
 	u32 readiness;

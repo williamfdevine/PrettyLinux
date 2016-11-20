@@ -61,7 +61,8 @@ typedef sle64 leLSN;
 typedef s64 USN;
 typedef sle64 leUSN;
 
-typedef enum {
+typedef enum
+{
 	CASE_SENSITIVE = 0,
 	IGNORE_CASE = 1,
 } IGNORE_CASE_BOOL;

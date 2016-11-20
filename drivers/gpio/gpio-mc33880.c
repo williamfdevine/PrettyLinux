@@ -45,7 +45,8 @@
  * Some registers must be read back to modify.
  * To save time we cache them here in memory
  */
-struct mc33880 {
+struct mc33880
+{
 	struct mutex	lock;	/* protect from simultaneous accesses */
 	u8		port_config;
 	struct gpio_chip chip;
@@ -61,9 +62,13 @@ static int mc33880_write_config(struct mc33880 *mc)
 static int __mc33880_set(struct mc33880 *mc, unsigned offset, int value)
 {
 	if (value)
+	{
 		mc->port_config |= 1 << offset;
+	}
 	else
+	{
 		mc->port_config &= ~(1 << offset);
+	}
 
 	return mc33880_write_config(mc);
 }
@@ -87,7 +92,9 @@ static int mc33880_probe(struct spi_device *spi)
 	int ret;
 
 	pdata = dev_get_platdata(&spi->dev);
-	if (!pdata || !pdata->base) {
+
+	if (!pdata || !pdata->base)
+	{
 		dev_dbg(&spi->dev, "incorrect or missing platform data\n");
 		return -EINVAL;
 	}
@@ -98,12 +105,18 @@ static int mc33880_probe(struct spi_device *spi)
 	spi->bits_per_word = 8;
 
 	ret = spi_setup(spi);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	mc = devm_kzalloc(&spi->dev, sizeof(struct mc33880), GFP_KERNEL);
+
 	if (!mc)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&mc->lock);
 
@@ -112,7 +125,7 @@ static int mc33880_probe(struct spi_device *spi)
 	mc->spi = spi;
 
 	mc->chip.label = DRIVER_NAME,
-	mc->chip.set = mc33880_set;
+			 mc->chip.set = mc33880_set;
 	mc->chip.base = pdata->base;
 	mc->chip.ngpio = PIN_NUMBER;
 	mc->chip.can_sleep = true;
@@ -126,18 +139,25 @@ static int mc33880_probe(struct spi_device *spi)
 	 */
 	ret = mc33880_write_config(mc);
 	mc->port_config = 0x00;
-	if (!ret)
-		ret = mc33880_write_config(mc);
 
-	if (ret) {
+	if (!ret)
+	{
+		ret = mc33880_write_config(mc);
+	}
+
+	if (ret)
+	{
 		dev_err(&spi->dev, "Failed writing to " DRIVER_NAME ": %d\n",
-			ret);
+				ret);
 		goto exit_destroy;
 	}
 
 	ret = gpiochip_add_data(&mc->chip, mc);
+
 	if (ret)
+	{
 		goto exit_destroy;
+	}
 
 	return ret;
 
@@ -151,8 +171,11 @@ static int mc33880_remove(struct spi_device *spi)
 	struct mc33880 *mc;
 
 	mc = spi_get_drvdata(spi);
+
 	if (!mc)
+	{
 		return -ENODEV;
+	}
 
 	gpiochip_remove(&mc->chip);
 	mutex_destroy(&mc->lock);
@@ -160,7 +183,8 @@ static int mc33880_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver mc33880_driver = {
+static struct spi_driver mc33880_driver =
+{
 	.driver = {
 		.name		= DRIVER_NAME,
 	},

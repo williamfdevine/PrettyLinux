@@ -44,11 +44,11 @@
 #define EFX_DRIVER_VERSION	"4.0"
 
 #ifdef DEBUG
-#define EFX_BUG_ON_PARANOID(x) BUG_ON(x)
-#define EFX_WARN_ON_PARANOID(x) WARN_ON(x)
+	#define EFX_BUG_ON_PARANOID(x) BUG_ON(x)
+	#define EFX_WARN_ON_PARANOID(x) WARN_ON(x)
 #else
-#define EFX_BUG_ON_PARANOID(x) do {} while (0)
-#define EFX_WARN_ON_PARANOID(x) do {} while (0)
+	#define EFX_BUG_ON_PARANOID(x) do {} while (0)
+	#define EFX_WARN_ON_PARANOID(x) do {} while (0)
 #endif
 
 /**************************************************************************
@@ -89,9 +89,9 @@
  * alignment of the network header.
  */
 #if NET_IP_ALIGN == 0
-#define EFX_RX_BUF_ALIGNMENT	L1_CACHE_BYTES
+	#define EFX_RX_BUF_ALIGNMENT	L1_CACHE_BYTES
 #else
-#define EFX_RX_BUF_ALIGNMENT	4
+	#define EFX_RX_BUF_ALIGNMENT	4
 #endif
 
 /* Forward declare Precision Time Protocol (PTP) support structure. */
@@ -109,7 +109,8 @@ struct efx_self_tests;
  * The NIC uses these buffers for its interrupt status registers and
  * MAC stats dumps.
  */
-struct efx_buffer {
+struct efx_buffer
+{
 	void *addr;
 	dma_addr_t dma_addr;
 	unsigned int len;
@@ -129,7 +130,8 @@ struct efx_buffer {
  * ourselves.  On later hardware this is managed by the firmware and
  * @index and @entries are left as 0.
  */
-struct efx_special_buffer {
+struct efx_special_buffer
+{
 	struct efx_buffer buf;
 	unsigned int index;
 	unsigned int entries;
@@ -150,12 +152,15 @@ struct efx_special_buffer {
  * @dma_offset: Offset of @dma_addr from the address of the backing DMA mapping.
  * Only valid if @unmap_len != 0.
  */
-struct efx_tx_buffer {
-	union {
+struct efx_tx_buffer
+{
+	union
+	{
 		const struct sk_buff *skb;
 		void *heap_buf;
 	};
-	union {
+	union
+	{
 		efx_qword_t option;
 		dma_addr_t dma_addr;
 	};
@@ -228,7 +233,8 @@ struct efx_tx_buffer {
  *	and the transmission path has not yet checked this, the value of
  *	@read_count bitwise-added to %EFX_EMPTY_COUNT_VALID; otherwise 0.
  */
-struct efx_tx_queue {
+struct efx_tx_queue
+{
 	/* Members which don't change on the fast path */
 	struct efx_nic *efx ____cacheline_aligned_in_smp;
 	unsigned queue;
@@ -281,7 +287,8 @@ struct efx_tx_queue {
  * @flags: Flags for buffer and packet state.  These are only set on the
  *	first buffer of a scattered packet.
  */
-struct efx_rx_buffer {
+struct efx_rx_buffer
+{
 	dma_addr_t dma_addr;
 	struct page *page;
 	u16 page_offset;
@@ -303,7 +310,8 @@ struct efx_rx_buffer {
  *
  * @dma_addr: The dma address of this page.
  */
-struct efx_rx_page_state {
+struct efx_rx_page_state
+{
 	dma_addr_t dma_addr;
 
 	unsigned int __pad[0] ____cacheline_aligned;
@@ -343,7 +351,8 @@ struct efx_rx_page_state {
  * @recycle_count: RX buffer recycle counter.
  * @slow_fill: Timer used to defer efx_nic_generate_fill_event().
  */
-struct efx_rx_queue {
+struct efx_rx_queue
+{
 	struct efx_nic *efx;
 	int core_index;
 	struct efx_rx_buffer *buffer;
@@ -375,7 +384,8 @@ struct efx_rx_queue {
 	unsigned long rx_packets;
 };
 
-enum efx_sync_events_state {
+enum efx_sync_events_state
+{
 	SYNC_EVENTS_DISABLED = 0,
 	SYNC_EVENTS_QUIESCENT,
 	SYNC_EVENTS_REQUESTED,
@@ -429,7 +439,8 @@ enum efx_sync_events_state {
  * @sync_timestamp_major: Major part of the last ptp sync event
  * @sync_timestamp_minor: Minor part of the last ptp sync event
  */
-struct efx_channel {
+struct efx_channel
+{
 	struct efx_nic *efx;
 	int channel;
 	const struct efx_channel_type *type;
@@ -478,7 +489,8 @@ struct efx_channel {
 };
 
 #ifdef CONFIG_NET_RX_BUSY_POLL
-enum efx_channel_busy_poll_state {
+enum efx_channel_busy_poll_state
+{
 	EFX_CHANNEL_STATE_IDLE = 0,
 	EFX_CHANNEL_STATE_NAPI = BIT(0),
 	EFX_CHANNEL_STATE_NAPI_REQ_BIT = 1,
@@ -498,27 +510,35 @@ static inline bool efx_channel_lock_napi(struct efx_channel *channel)
 {
 	unsigned long prev, old = READ_ONCE(channel->busy_poll_state);
 
-	while (1) {
-		switch (old) {
-		case EFX_CHANNEL_STATE_POLL:
-			/* Ensure efx_channel_try_lock_poll() wont starve us */
-			set_bit(EFX_CHANNEL_STATE_NAPI_REQ_BIT,
-				&channel->busy_poll_state);
+	while (1)
+	{
+		switch (old)
+		{
+			case EFX_CHANNEL_STATE_POLL:
+				/* Ensure efx_channel_try_lock_poll() wont starve us */
+				set_bit(EFX_CHANNEL_STATE_NAPI_REQ_BIT,
+						&channel->busy_poll_state);
+
 			/* fallthrough */
-		case EFX_CHANNEL_STATE_POLL | EFX_CHANNEL_STATE_NAPI_REQ:
-			return false;
-		default:
-			break;
+			case EFX_CHANNEL_STATE_POLL | EFX_CHANNEL_STATE_NAPI_REQ:
+				return false;
+
+			default:
+				break;
 		}
+
 		prev = cmpxchg(&channel->busy_poll_state, old,
-			       EFX_CHANNEL_STATE_NAPI);
-		if (unlikely(prev != old)) {
+					   EFX_CHANNEL_STATE_NAPI);
+
+		if (unlikely(prev != old))
+		{
 			/* This is likely to mean we've just entered polling
 			 * state. Go back round to set the REQ bit.
 			 */
 			old = prev;
 			continue;
 		}
+
 		return true;
 	}
 }
@@ -534,7 +554,7 @@ static inline void efx_channel_unlock_napi(struct efx_channel *channel)
 static inline bool efx_channel_try_lock_poll(struct efx_channel *channel)
 {
 	return cmpxchg(&channel->busy_poll_state, EFX_CHANNEL_STATE_IDLE,
-			EFX_CHANNEL_STATE_POLL) == EFX_CHANNEL_STATE_IDLE;
+				   EFX_CHANNEL_STATE_POLL) == EFX_CHANNEL_STATE_IDLE;
 }
 
 static inline void efx_channel_unlock_poll(struct efx_channel *channel)
@@ -550,7 +570,7 @@ static inline bool efx_channel_busy_polling(struct efx_channel *channel)
 static inline void efx_channel_enable(struct efx_channel *channel)
 {
 	clear_bit_unlock(EFX_CHANNEL_STATE_DISABLE_BIT,
-			 &channel->busy_poll_state);
+					 &channel->busy_poll_state);
 }
 
 /* Stop further polling or napi access.
@@ -611,7 +631,8 @@ static inline bool efx_channel_disable(struct efx_channel *channel)
  * Unlike &struct efx_channel, this is never reallocated and is always
  * safe for the IRQ handler to access.
  */
-struct efx_msi_context {
+struct efx_msi_context
+{
 	struct efx_nic *efx;
 	unsigned int index;
 	char name[IFNAMSIZ + 6];
@@ -630,7 +651,8 @@ struct efx_msi_context {
  * @keep_eventq: Flag for whether event queue should be kept initialised
  *	while the device is stopped
  */
-struct efx_channel_type {
+struct efx_channel_type
+{
 	void (*handle_no_channel)(struct efx_nic *);
 	int (*pre_probe)(struct efx_channel *);
 	void (*post_remove)(struct efx_channel *);
@@ -640,7 +662,8 @@ struct efx_channel_type {
 	bool keep_eventq;
 };
 
-enum efx_led_mode {
+enum efx_led_mode
+{
 	EFX_LED_OFF	= 0,
 	EFX_LED_ON	= 1,
 	EFX_LED_DEFAULT	= 2
@@ -659,7 +682,8 @@ extern const unsigned int efx_reset_type_max;
 #define RESET_TYPE(type) \
 	STRING_TABLE_LOOKUP(type, efx_reset_type)
 
-enum efx_int_mode {
+enum efx_int_mode
+{
 	/* Be careful if altering to correct macro below */
 	EFX_INT_MODE_MSIX = 0,
 	EFX_INT_MODE_MSI = 1,
@@ -668,7 +692,8 @@ enum efx_int_mode {
 };
 #define EFX_INT_MODE_USE_MSI(x) (((x)->interrupt_mode) <= EFX_INT_MODE_MSI)
 
-enum nic_state {
+enum nic_state
+{
 	STATE_UNINIT = 0,	/* device being probed/removed or is frozen */
 	STATE_READY = 1,	/* hardware ready and netdev registered */
 	STATE_DISABLED = 2,	/* device disabled due to hardware errors */
@@ -690,7 +715,8 @@ struct efx_nic;
  * @fc: Actual flow control flags
  * @speed: Link speed (Mbps)
  */
-struct efx_link_state {
+struct efx_link_state
+{
 	bool up;
 	bool fd;
 	u8 fc;
@@ -698,10 +724,10 @@ struct efx_link_state {
 };
 
 static inline bool efx_link_state_equal(const struct efx_link_state *left,
-					const struct efx_link_state *right)
+										const struct efx_link_state *right)
 {
 	return left->up == right->up && left->fd == right->fd &&
-		left->fc == right->fc && left->speed == right->speed;
+		   left->fc == right->fc && left->speed == right->speed;
 }
 
 /**
@@ -722,7 +748,8 @@ static inline bool efx_link_state_equal(const struct efx_link_state *left,
  * @run_tests: Run tests and record results as appropriate (offline).
  *	Flags are the ethtool tests flags.
  */
-struct efx_phy_operations {
+struct efx_phy_operations
+{
 	int (*probe) (struct efx_nic *efx);
 	int (*init) (struct efx_nic *efx);
 	void (*fini) (struct efx_nic *efx);
@@ -730,18 +757,18 @@ struct efx_phy_operations {
 	int (*reconfigure) (struct efx_nic *efx);
 	bool (*poll) (struct efx_nic *efx);
 	void (*get_settings) (struct efx_nic *efx,
-			      struct ethtool_cmd *ecmd);
+						  struct ethtool_cmd *ecmd);
 	int (*set_settings) (struct efx_nic *efx,
-			     struct ethtool_cmd *ecmd);
+						 struct ethtool_cmd *ecmd);
 	void (*set_npage_adv) (struct efx_nic *efx, u32);
 	int (*test_alive) (struct efx_nic *efx);
 	const char *(*test_name) (struct efx_nic *efx, unsigned int index);
 	int (*run_tests) (struct efx_nic *efx, int *results, unsigned flags);
 	int (*get_module_eeprom) (struct efx_nic *efx,
-			       struct ethtool_eeprom *ee,
-			       u8 *data);
+							  struct ethtool_eeprom *ee,
+							  u8 *data);
 	int (*get_module_info) (struct efx_nic *efx,
-				struct ethtool_modinfo *modinfo);
+							struct ethtool_modinfo *modinfo);
 };
 
 /**
@@ -752,7 +779,8 @@ struct efx_phy_operations {
  * @PHY_MODE_OFF: switched off through external control
  * @PHY_MODE_SPECIAL: on but will not pass traffic
  */
-enum efx_phy_mode {
+enum efx_phy_mode
+{
 	PHY_MODE_NORMAL		= 0,
 	PHY_MODE_TX_DISABLED	= 1,
 	PHY_MODE_LOW_POWER	= 2,
@@ -772,7 +800,8 @@ static inline bool efx_phy_mode_disabled(enum efx_phy_mode mode)
  * @dma_width: Width in bits (0 for non-DMA statistics)
  * @offset: Offset within stats (ignored for non-DMA statistics)
  */
-struct efx_hw_stat_desc {
+struct efx_hw_stat_desc
+{
 	const char *name;
 	u16 dma_width;
 	u16 offset;
@@ -785,7 +814,8 @@ struct efx_hw_stat_desc {
 #define EFX_MCAST_HASH_ENTRIES (1 << EFX_MCAST_HASH_BITS)
 
 /* An Efx multicast filter hash */
-union efx_multicast_hash {
+union efx_multicast_hash
+{
 	u8 byte[EFX_MCAST_HASH_ENTRIES / 8];
 	efx_oword_t oword[EFX_MCAST_HASH_ENTRIES / sizeof(efx_oword_t) / 8];
 };
@@ -925,7 +955,8 @@ struct vfdi_status;
  *
  * This is stored in the private area of the &struct net_device.
  */
-struct efx_nic {
+struct efx_nic
+{
 	/* The following fields should be written very rarely */
 
 	char name[IFNAMSIZ];
@@ -957,7 +988,7 @@ struct efx_nic {
 	struct efx_channel *channel[EFX_MAX_CHANNELS];
 	struct efx_msi_context msi_context[EFX_MAX_CHANNELS];
 	const struct efx_channel_type *
-	extra_channel_type[EFX_MAX_EXTRA_CHANNELS];
+		extra_channel_type[EFX_MAX_EXTRA_CHANNELS];
 
 	unsigned rxq_entries;
 	unsigned txq_entries;
@@ -1086,7 +1117,8 @@ static inline unsigned int efx_port_num(struct efx_nic *efx)
 	return efx->port_num;
 }
 
-struct efx_mtd_partition {
+struct efx_mtd_partition
+{
 	struct list_head node;
 	struct mtd_info mtd;
 	const char *dev_type_name;
@@ -1231,7 +1263,8 @@ struct efx_mtd_partition {
  * @mcdi_max_ver: Maximum MCDI version supported
  * @hwtstamp_filters: Mask of hardware timestamp filter types supported
  */
-struct efx_nic_type {
+struct efx_nic_type
+{
 	bool is_vf;
 	unsigned int mem_bar;
 	unsigned int (*mem_map_size)(struct efx_nic *efx);
@@ -1254,7 +1287,7 @@ struct efx_nic_type {
 	void (*finish_flr)(struct efx_nic *efx);
 	size_t (*describe_stats)(struct efx_nic *efx, u8 *names);
 	size_t (*update_stats)(struct efx_nic *efx, u64 *full_stats,
-			       struct rtnl_link_stats64 *core_stats);
+						   struct rtnl_link_stats64 *core_stats);
 	void (*start_stats)(struct efx_nic *efx);
 	void (*pull_stats)(struct efx_nic *efx);
 	void (*stop_stats)(struct efx_nic *efx);
@@ -1270,11 +1303,11 @@ struct efx_nic_type {
 	int (*test_chip)(struct efx_nic *efx, struct efx_self_tests *tests);
 	int (*test_nvram)(struct efx_nic *efx);
 	void (*mcdi_request)(struct efx_nic *efx,
-			     const efx_dword_t *hdr, size_t hdr_len,
-			     const efx_dword_t *sdu, size_t sdu_len);
+						 const efx_dword_t *hdr, size_t hdr_len,
+						 const efx_dword_t *sdu, size_t sdu_len);
 	bool (*mcdi_poll_response)(struct efx_nic *efx);
 	void (*mcdi_read_response)(struct efx_nic *efx, efx_dword_t *pdu,
-				   size_t pdu_offset, size_t pdu_len);
+							   size_t pdu_offset, size_t pdu_len);
 	int (*mcdi_poll_reboot)(struct efx_nic *efx);
 	void (*mcdi_reboot_detected)(struct efx_nic *efx);
 	void (*irq_enable_master)(struct efx_nic *efx);
@@ -1287,7 +1320,7 @@ struct efx_nic_type {
 	void (*tx_remove)(struct efx_tx_queue *tx_queue);
 	void (*tx_write)(struct efx_tx_queue *tx_queue);
 	int (*rx_push_rss_config)(struct efx_nic *efx, bool user,
-				  const u32 *rx_indir_table);
+							  const u32 *rx_indir_table);
 	int (*rx_probe)(struct efx_rx_queue *rx_queue);
 	void (*rx_init)(struct efx_rx_queue *rx_queue);
 	void (*rx_remove)(struct efx_rx_queue *rx_queue);
@@ -1305,41 +1338,41 @@ struct efx_nic_type {
 	void (*filter_table_remove)(struct efx_nic *efx);
 	void (*filter_update_rx_scatter)(struct efx_nic *efx);
 	s32 (*filter_insert)(struct efx_nic *efx,
-			     struct efx_filter_spec *spec, bool replace);
+						 struct efx_filter_spec *spec, bool replace);
 	int (*filter_remove_safe)(struct efx_nic *efx,
-				  enum efx_filter_priority priority,
-				  u32 filter_id);
+							  enum efx_filter_priority priority,
+							  u32 filter_id);
 	int (*filter_get_safe)(struct efx_nic *efx,
-			       enum efx_filter_priority priority,
-			       u32 filter_id, struct efx_filter_spec *);
+						   enum efx_filter_priority priority,
+						   u32 filter_id, struct efx_filter_spec *);
 	int (*filter_clear_rx)(struct efx_nic *efx,
-			       enum efx_filter_priority priority);
+						   enum efx_filter_priority priority);
 	u32 (*filter_count_rx_used)(struct efx_nic *efx,
-				    enum efx_filter_priority priority);
+								enum efx_filter_priority priority);
 	u32 (*filter_get_rx_id_limit)(struct efx_nic *efx);
 	s32 (*filter_get_rx_ids)(struct efx_nic *efx,
-				 enum efx_filter_priority priority,
-				 u32 *buf, u32 size);
+							 enum efx_filter_priority priority,
+							 u32 *buf, u32 size);
 #ifdef CONFIG_RFS_ACCEL
 	s32 (*filter_rfs_insert)(struct efx_nic *efx,
-				 struct efx_filter_spec *spec);
+							 struct efx_filter_spec *spec);
 	bool (*filter_rfs_expire_one)(struct efx_nic *efx, u32 flow_id,
-				      unsigned int index);
+								  unsigned int index);
 #endif
 #ifdef CONFIG_SFC_MTD
 	int (*mtd_probe)(struct efx_nic *efx);
 	void (*mtd_rename)(struct efx_mtd_partition *part);
 	int (*mtd_read)(struct mtd_info *mtd, loff_t start, size_t len,
-			size_t *retlen, u8 *buffer);
+					size_t *retlen, u8 *buffer);
 	int (*mtd_erase)(struct mtd_info *mtd, loff_t start, size_t len);
 	int (*mtd_write)(struct mtd_info *mtd, loff_t start, size_t len,
-			 size_t *retlen, const u8 *buffer);
+					 size_t *retlen, const u8 *buffer);
 	int (*mtd_sync)(struct mtd_info *mtd);
 #endif
 	void (*ptp_write_host_time)(struct efx_nic *efx, u32 host_time);
 	int (*ptp_set_ts_sync_events)(struct efx_nic *efx, bool en, bool temp);
 	int (*ptp_set_ts_config)(struct efx_nic *efx,
-				 struct hwtstamp_config *init);
+							 struct hwtstamp_config *init);
 	int (*sriov_configure)(struct efx_nic *efx, int num_vfs);
 	int (*vlan_rx_add_vid)(struct efx_nic *efx, __be16 proto, u16 vid);
 	int (*vlan_rx_kill_vid)(struct efx_nic *efx, __be16 proto, u16 vid);
@@ -1350,15 +1383,15 @@ struct efx_nic_type {
 	void (*sriov_flr)(struct efx_nic *efx, unsigned vf_i);
 	int (*sriov_set_vf_mac)(struct efx_nic *efx, int vf_i, u8 *mac);
 	int (*sriov_set_vf_vlan)(struct efx_nic *efx, int vf_i, u16 vlan,
-				 u8 qos);
+							 u8 qos);
 	int (*sriov_set_vf_spoofchk)(struct efx_nic *efx, int vf_i,
-				     bool spoofchk);
+								 bool spoofchk);
 	int (*sriov_get_vf_config)(struct efx_nic *efx, int vf_i,
-				   struct ifla_vf_info *ivi);
+							   struct ifla_vf_info *ivi);
 	int (*sriov_set_vf_link_state)(struct efx_nic *efx, int vf_i,
-				       int link_state);
+								   int link_state);
 	int (*sriov_get_phys_port_id)(struct efx_nic *efx,
-				      struct netdev_phys_item_id *ppid);
+								  struct netdev_phys_item_id *ppid);
 	int (*vswitching_probe)(struct efx_nic *efx);
 	int (*vswitching_restore)(struct efx_nic *efx);
 	void (*vswitching_remove)(struct efx_nic *efx);
@@ -1402,43 +1435,43 @@ efx_get_channel(struct efx_nic *efx, unsigned index)
 /* Iterate over all used channels */
 #define efx_for_each_channel(_channel, _efx)				\
 	for (_channel = (_efx)->channel[0];				\
-	     _channel;							\
-	     _channel = (_channel->channel + 1 < (_efx)->n_channels) ?	\
-		     (_efx)->channel[_channel->channel + 1] : NULL)
+		 _channel;							\
+		 _channel = (_channel->channel + 1 < (_efx)->n_channels) ?	\
+					(_efx)->channel[_channel->channel + 1] : NULL)
 
 /* Iterate over all used channels in reverse */
 #define efx_for_each_channel_rev(_channel, _efx)			\
 	for (_channel = (_efx)->channel[(_efx)->n_channels - 1];	\
-	     _channel;							\
-	     _channel = _channel->channel ?				\
-		     (_efx)->channel[_channel->channel - 1] : NULL)
+		 _channel;							\
+		 _channel = _channel->channel ?				\
+					(_efx)->channel[_channel->channel - 1] : NULL)
 
 static inline struct efx_tx_queue *
 efx_get_tx_queue(struct efx_nic *efx, unsigned index, unsigned type)
 {
 	EFX_BUG_ON_PARANOID(index >= efx->n_tx_channels ||
-			    type >= EFX_TXQ_TYPES);
+						type >= EFX_TXQ_TYPES);
 	return &efx->channel[efx->tx_channel_offset + index]->tx_queue[type];
 }
 
 static inline bool efx_channel_has_tx_queues(struct efx_channel *channel)
 {
 	return channel->channel - channel->efx->tx_channel_offset <
-		channel->efx->n_tx_channels;
+		   channel->efx->n_tx_channels;
 }
 
 static inline struct efx_tx_queue *
 efx_channel_get_tx_queue(struct efx_channel *channel, unsigned type)
 {
 	EFX_BUG_ON_PARANOID(!efx_channel_has_tx_queues(channel) ||
-			    type >= EFX_TXQ_TYPES);
+						type >= EFX_TXQ_TYPES);
 	return &channel->tx_queue[type];
 }
 
 static inline bool efx_tx_queue_used(struct efx_tx_queue *tx_queue)
 {
 	return !(tx_queue->efx->net_dev->num_tc < 2 &&
-		 tx_queue->queue & EFX_TXQ_TYPE_HIGHPRI);
+			 tx_queue->queue & EFX_TXQ_TYPE_HIGHPRI);
 }
 
 /* Iterate over all TX queues belonging to a channel */
@@ -1447,9 +1480,9 @@ static inline bool efx_tx_queue_used(struct efx_tx_queue *tx_queue)
 		;							\
 	else								\
 		for (_tx_queue = (_channel)->tx_queue;			\
-		     _tx_queue < (_channel)->tx_queue + EFX_TXQ_TYPES && \
-			     efx_tx_queue_used(_tx_queue);		\
-		     _tx_queue++)
+			 _tx_queue < (_channel)->tx_queue + EFX_TXQ_TYPES && \
+			 efx_tx_queue_used(_tx_queue);		\
+			 _tx_queue++)
 
 /* Iterate over all possible TX queues belonging to a channel */
 #define efx_for_each_possible_channel_tx_queue(_tx_queue, _channel)	\
@@ -1457,8 +1490,8 @@ static inline bool efx_tx_queue_used(struct efx_tx_queue *tx_queue)
 		;							\
 	else								\
 		for (_tx_queue = (_channel)->tx_queue;			\
-		     _tx_queue < (_channel)->tx_queue + EFX_TXQ_TYPES;	\
-		     _tx_queue++)
+			 _tx_queue < (_channel)->tx_queue + EFX_TXQ_TYPES;	\
+			 _tx_queue++)
 
 static inline bool efx_channel_has_rx_queue(struct efx_channel *channel)
 {
@@ -1478,8 +1511,8 @@ efx_channel_get_rx_queue(struct efx_channel *channel)
 		;							\
 	else								\
 		for (_rx_queue = &(_channel)->rx_queue;			\
-		     _rx_queue;						\
-		     _rx_queue = NULL)
+			 _rx_queue;						\
+			 _rx_queue = NULL)
 
 static inline struct efx_channel *
 efx_rx_queue_channel(struct efx_rx_queue *rx_queue)
@@ -1496,7 +1529,7 @@ static inline int efx_rx_queue_index(struct efx_rx_queue *rx_queue)
  * descriptor queue.
  */
 static inline struct efx_rx_buffer *efx_rx_buffer(struct efx_rx_queue *rx_queue,
-						  unsigned int index)
+		unsigned int index)
 {
 	return &rx_queue->buffer[index];
 }

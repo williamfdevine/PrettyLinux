@@ -16,18 +16,22 @@ static char __percpu *perf_trace_buf[PERF_NR_CONTEXTS];
  * suprises
  */
 typedef typeof(unsigned long [PERF_MAX_TRACE_SIZE / sizeof(unsigned long)])
-	perf_trace_t;
+perf_trace_t;
 
 /* Count the events in use (per event id, not per instance) */
 static int	total_ref_count;
 
 static int perf_trace_event_perm(struct trace_event_call *tp_event,
-				 struct perf_event *p_event)
+								 struct perf_event *p_event)
 {
-	if (tp_event->perf_perm) {
+	if (tp_event->perf_perm)
+	{
 		int ret = tp_event->perf_perm(tp_event, p_event);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/*
@@ -35,7 +39,9 @@ static int perf_trace_event_perm(struct trace_event_call *tp_event,
 	 * allow children without checking.
 	 */
 	if (p_event->parent)
+	{
 		return 0;
+	}
 
 	/*
 	 * It's ok to check current process (owner) permissions in here,
@@ -43,12 +49,17 @@ static int perf_trace_event_perm(struct trace_event_call *tp_event,
 	 */
 
 	/* The ftrace function trace is allowed only for root. */
-	if (ftrace_event_is_function(tp_event)) {
+	if (ftrace_event_is_function(tp_event))
+	{
 		if (perf_paranoid_tracepoint_raw() && !capable(CAP_SYS_ADMIN))
+		{
 			return -EPERM;
+		}
 
 		if (!is_sampling_event(p_event))
+		{
 			return 0;
+		}
 
 		/*
 		 * We don't allow user space callchains for  function trace
@@ -56,24 +67,33 @@ static int perf_trace_event_perm(struct trace_event_call *tp_event,
 		 * fault handler and its overall trickiness nature.
 		 */
 		if (!p_event->attr.exclude_callchain_user)
+		{
 			return -EINVAL;
+		}
 
 		/*
 		 * Same reason to disable user stack dump as for user space
 		 * callchains above.
 		 */
 		if (p_event->attr.sample_type & PERF_SAMPLE_STACK_USER)
+		{
 			return -EINVAL;
+		}
 	}
 
 	/* No tracing, just counting, so no obvious leak */
 	if (!(p_event->attr.sample_type & PERF_SAMPLE_RAW))
+	{
 		return 0;
+	}
 
 	/* Some events are ok to be traced by non-root users... */
-	if (p_event->attach_state == PERF_ATTACH_TASK) {
+	if (p_event->attach_state == PERF_ATTACH_TASK)
+	{
 		if (tp_event->flags & TRACE_EVENT_FL_CAP_ANY)
+		{
 			return 0;
+		}
 	}
 
 	/*
@@ -81,62 +101,82 @@ static int perf_trace_event_perm(struct trace_event_call *tp_event,
 	 * only allow root to have these.
 	 */
 	if (perf_paranoid_tracepoint_raw() && !capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	return 0;
 }
 
 static int perf_trace_event_reg(struct trace_event_call *tp_event,
-				struct perf_event *p_event)
+								struct perf_event *p_event)
 {
 	struct hlist_head __percpu *list;
 	int ret = -ENOMEM;
 	int cpu;
 
 	p_event->tp_event = tp_event;
+
 	if (tp_event->perf_refcount++ > 0)
+	{
 		return 0;
+	}
 
 	list = alloc_percpu(struct hlist_head);
+
 	if (!list)
+	{
 		goto fail;
+	}
 
 	for_each_possible_cpu(cpu)
-		INIT_HLIST_HEAD(per_cpu_ptr(list, cpu));
+	INIT_HLIST_HEAD(per_cpu_ptr(list, cpu));
 
 	tp_event->perf_events = list;
 
-	if (!total_ref_count) {
+	if (!total_ref_count)
+	{
 		char __percpu *buf;
 		int i;
 
-		for (i = 0; i < PERF_NR_CONTEXTS; i++) {
+		for (i = 0; i < PERF_NR_CONTEXTS; i++)
+		{
 			buf = (char __percpu *)alloc_percpu(perf_trace_t);
+
 			if (!buf)
+			{
 				goto fail;
+			}
 
 			perf_trace_buf[i] = buf;
 		}
 	}
 
 	ret = tp_event->class->reg(tp_event, TRACE_REG_PERF_REGISTER, NULL);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	total_ref_count++;
 	return 0;
 
 fail:
-	if (!total_ref_count) {
+
+	if (!total_ref_count)
+	{
 		int i;
 
-		for (i = 0; i < PERF_NR_CONTEXTS; i++) {
+		for (i = 0; i < PERF_NR_CONTEXTS; i++)
+		{
 			free_percpu(perf_trace_buf[i]);
 			perf_trace_buf[i] = NULL;
 		}
 	}
 
-	if (!--tp_event->perf_refcount) {
+	if (!--tp_event->perf_refcount)
+	{
 		free_percpu(tp_event->perf_events);
 		tp_event->perf_events = NULL;
 	}
@@ -150,7 +190,9 @@ static void perf_trace_event_unreg(struct perf_event *p_event)
 	int i;
 
 	if (--tp_event->perf_refcount > 0)
+	{
 		goto out;
+	}
 
 	tp_event->class->reg(tp_event, TRACE_REG_PERF_UNREGISTER, NULL);
 
@@ -163,12 +205,15 @@ static void perf_trace_event_unreg(struct perf_event *p_event)
 	free_percpu(tp_event->perf_events);
 	tp_event->perf_events = NULL;
 
-	if (!--total_ref_count) {
-		for (i = 0; i < PERF_NR_CONTEXTS; i++) {
+	if (!--total_ref_count)
+	{
+		for (i = 0; i < PERF_NR_CONTEXTS; i++)
+		{
 			free_percpu(perf_trace_buf[i]);
 			perf_trace_buf[i] = NULL;
 		}
 	}
+
 out:
 	module_put(tp_event->mod);
 }
@@ -186,20 +231,28 @@ static void perf_trace_event_close(struct perf_event *p_event)
 }
 
 static int perf_trace_event_init(struct trace_event_call *tp_event,
-				 struct perf_event *p_event)
+								 struct perf_event *p_event)
 {
 	int ret;
 
 	ret = perf_trace_event_perm(tp_event, p_event);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = perf_trace_event_reg(tp_event, p_event);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = perf_trace_event_open(p_event);
-	if (ret) {
+
+	if (ret)
+	{
 		perf_trace_event_unreg(p_event);
 		return ret;
 	}
@@ -214,13 +267,19 @@ int perf_trace_init(struct perf_event *p_event)
 	int ret = -EINVAL;
 
 	mutex_lock(&event_mutex);
-	list_for_each_entry(tp_event, &ftrace_events, list) {
+	list_for_each_entry(tp_event, &ftrace_events, list)
+	{
 		if (tp_event->event.type == event_id &&
-		    tp_event->class && tp_event->class->reg &&
-		    try_module_get(tp_event->mod)) {
+			tp_event->class && tp_event->class->reg &&
+			try_module_get(tp_event->mod))
+		{
 			ret = perf_trace_event_init(tp_event, p_event);
+
 			if (ret)
+			{
 				module_put(tp_event->mod);
+			}
+
 			break;
 		}
 	}
@@ -244,11 +303,16 @@ int perf_trace_add(struct perf_event *p_event, int flags)
 	struct hlist_head *list;
 
 	pcpu_list = tp_event->perf_events;
+
 	if (WARN_ON_ONCE(!pcpu_list))
+	{
 		return -EINVAL;
+	}
 
 	if (!(flags & PERF_EF_START))
+	{
 		p_event->hw.state = PERF_HES_STOPPED;
+	}
 
 	list = this_cpu_ptr(pcpu_list);
 	hlist_add_head_rcu(&p_event->hlist_entry, list);
@@ -271,15 +335,23 @@ void *perf_trace_buf_alloc(int size, struct pt_regs **regs, int *rctxp)
 	BUILD_BUG_ON(PERF_MAX_TRACE_SIZE % sizeof(unsigned long));
 
 	if (WARN_ONCE(size > PERF_MAX_TRACE_SIZE,
-		      "perf buffer not large enough"))
+				  "perf buffer not large enough"))
+	{
 		return NULL;
+	}
 
 	*rctxp = rctx = perf_swevent_get_recursion_context();
+
 	if (rctx < 0)
+	{
 		return NULL;
+	}
 
 	if (regs)
+	{
 		*regs = this_cpu_ptr(&__perf_regs[rctx]);
+	}
+
 	raw_data = this_cpu_ptr(perf_trace_buf[rctx]);
 
 	/* zero the dead bytes from align to not leak stack to user */
@@ -304,7 +376,7 @@ NOKPROBE_SYMBOL(perf_trace_buf_update);
 #ifdef CONFIG_FUNCTION_TRACER
 static void
 perf_ftrace_function_call(unsigned long ip, unsigned long parent_ip,
-			  struct ftrace_ops *ops, struct pt_regs *pt_regs)
+						  struct ftrace_ops *ops, struct pt_regs *pt_regs)
 {
 	struct ftrace_entry *entry;
 	struct hlist_head *head;
@@ -312,11 +384,14 @@ perf_ftrace_function_call(unsigned long ip, unsigned long parent_ip,
 	int rctx;
 
 	head = this_cpu_ptr(event_function.perf_events);
+
 	if (hlist_empty(head))
+	{
 		return;
+	}
 
 #define ENTRY_SIZE (ALIGN(sizeof(struct ftrace_entry) + sizeof(u32), \
-		    sizeof(u64)) - sizeof(u32))
+						  sizeof(u64)) - sizeof(u32))
 
 	BUILD_BUG_ON(ENTRY_SIZE > PERF_MAX_TRACE_SIZE);
 
@@ -324,13 +399,16 @@ perf_ftrace_function_call(unsigned long ip, unsigned long parent_ip,
 	perf_fetch_caller_regs(&regs);
 
 	entry = perf_trace_buf_alloc(ENTRY_SIZE, NULL, &rctx);
+
 	if (!entry)
+	{
 		return;
+	}
 
 	entry->ip = ip;
 	entry->parent_ip = parent_ip;
 	perf_trace_buf_submit(entry, ENTRY_SIZE, rctx, TRACE_FN,
-			      1, &regs, head, NULL);
+						  1, &regs, head, NULL);
 
 #undef ENTRY_SIZE
 }
@@ -363,25 +441,31 @@ static void perf_ftrace_function_disable(struct perf_event *event)
 }
 
 int perf_ftrace_event_register(struct trace_event_call *call,
-			       enum trace_reg type, void *data)
+							   enum trace_reg type, void *data)
 {
-	switch (type) {
-	case TRACE_REG_REGISTER:
-	case TRACE_REG_UNREGISTER:
-		break;
-	case TRACE_REG_PERF_REGISTER:
-	case TRACE_REG_PERF_UNREGISTER:
-		return 0;
-	case TRACE_REG_PERF_OPEN:
-		return perf_ftrace_function_register(data);
-	case TRACE_REG_PERF_CLOSE:
-		return perf_ftrace_function_unregister(data);
-	case TRACE_REG_PERF_ADD:
-		perf_ftrace_function_enable(data);
-		return 0;
-	case TRACE_REG_PERF_DEL:
-		perf_ftrace_function_disable(data);
-		return 0;
+	switch (type)
+	{
+		case TRACE_REG_REGISTER:
+		case TRACE_REG_UNREGISTER:
+			break;
+
+		case TRACE_REG_PERF_REGISTER:
+		case TRACE_REG_PERF_UNREGISTER:
+			return 0;
+
+		case TRACE_REG_PERF_OPEN:
+			return perf_ftrace_function_register(data);
+
+		case TRACE_REG_PERF_CLOSE:
+			return perf_ftrace_function_unregister(data);
+
+		case TRACE_REG_PERF_ADD:
+			perf_ftrace_function_enable(data);
+			return 0;
+
+		case TRACE_REG_PERF_DEL:
+			perf_ftrace_function_disable(data);
+			return 0;
 	}
 
 	return -EINVAL;

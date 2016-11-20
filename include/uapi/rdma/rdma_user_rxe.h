@@ -35,15 +35,18 @@
 
 #include <linux/types.h>
 
-union rxe_gid {
+union rxe_gid
+{
 	__u8	raw[16];
-	struct {
+	struct
+	{
 		__be64	subnet_prefix;
 		__be64	interface_id;
 	} global;
 };
 
-struct rxe_global_route {
+struct rxe_global_route
+{
 	union rxe_gid	dgid;
 	__u32		flow_label;
 	__u8		sgid_index;
@@ -51,43 +54,52 @@ struct rxe_global_route {
 	__u8		traffic_class;
 };
 
-struct rxe_av {
+struct rxe_av
+{
 	__u8			port_num;
 	__u8			network_type;
 	struct rxe_global_route	grh;
-	union {
+	union
+	{
 		struct sockaddr		_sockaddr;
 		struct sockaddr_in	_sockaddr_in;
 		struct sockaddr_in6	_sockaddr_in6;
 	} sgid_addr, dgid_addr;
 };
 
-struct rxe_send_wr {
+struct rxe_send_wr
+{
 	__u64			wr_id;
 	__u32			num_sge;
 	__u32			opcode;
 	__u32			send_flags;
-	union {
+	union
+	{
 		__be32		imm_data;
 		__u32		invalidate_rkey;
 	} ex;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u64	remote_addr;
 			__u32	rkey;
 		} rdma;
-		struct {
+		struct
+		{
 			__u64	remote_addr;
 			__u64	compare_add;
 			__u64	swap;
 			__u32	rkey;
 		} atomic;
-		struct {
+		struct
+		{
 			__u32	remote_qpn;
 			__u32	remote_qkey;
 			__u16	pkey_index;
 		} ud;
-		struct {
+		struct
+		{
 			struct ib_mr *mr;
 			__u32        key;
 			int          access;
@@ -95,31 +107,36 @@ struct rxe_send_wr {
 	} wr;
 };
 
-struct rxe_sge {
+struct rxe_sge
+{
 	__u64	addr;
 	__u32	length;
 	__u32	lkey;
 };
 
-struct mminfo {
+struct mminfo
+{
 	__u64			offset;
 	__u32			size;
 	__u32			pad;
 };
 
-struct rxe_dma_info {
+struct rxe_dma_info
+{
 	__u32			length;
 	__u32			resid;
 	__u32			cur_sge;
 	__u32			num_sge;
 	__u32			sge_offset;
-	union {
+	union
+	{
 		__u8		inline_data[0];
 		struct rxe_sge	sge[0];
 	};
 };
 
-struct rxe_send_wqe {
+struct rxe_send_wqe
+{
 	struct rxe_send_wr	wr;
 	struct rxe_av		av;
 	__u32			status;
@@ -134,7 +151,8 @@ struct rxe_send_wqe {
 	struct rxe_dma_info	dma;
 };
 
-struct rxe_recv_wqe {
+struct rxe_recv_wqe
+{
 	__u64			wr_id;
 	__u32			num_sge;
 	__u32			padding;

@@ -29,8 +29,11 @@ static int da9052_spi_probe(struct spi_device *spi)
 	struct da9052 *da9052;
 
 	da9052 = devm_kzalloc(&spi->dev, sizeof(struct da9052), GFP_KERNEL);
+
 	if (!da9052)
+	{
 		return -ENOMEM;
+	}
 
 	spi->mode = SPI_MODE_0;
 	spi->bits_per_word = 8;
@@ -49,10 +52,12 @@ static int da9052_spi_probe(struct spi_device *spi)
 	config.use_single_rw = 1;
 
 	da9052->regmap = devm_regmap_init_spi(spi, &config);
-	if (IS_ERR(da9052->regmap)) {
+
+	if (IS_ERR(da9052->regmap))
+	{
 		ret = PTR_ERR(da9052->regmap);
 		dev_err(&spi->dev, "Failed to allocate register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -67,7 +72,8 @@ static int da9052_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_device_id da9052_spi_id[] = {
+static struct spi_device_id da9052_spi_id[] =
+{
 	{"da9052", DA9052},
 	{"da9053-aa", DA9053_AA},
 	{"da9053-ba", DA9053_BA},
@@ -76,7 +82,8 @@ static struct spi_device_id da9052_spi_id[] = {
 	{}
 };
 
-static struct spi_driver da9052_spi_driver = {
+static struct spi_driver da9052_spi_driver =
+{
 	.probe = da9052_spi_probe,
 	.remove = da9052_spi_remove,
 	.id_table = da9052_spi_id,
@@ -90,7 +97,9 @@ static int __init da9052_spi_init(void)
 	int ret;
 
 	ret = spi_register_driver(&da9052_spi_driver);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		pr_err("Failed to register DA9052 SPI driver, %d\n", ret);
 		return ret;
 	}

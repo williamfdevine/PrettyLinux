@@ -62,7 +62,8 @@
 #define UCC_FAST_RECEIVE_VIRTUAL_FIFO_SIZE_FUDGE_FACTOR	8
 
 /* ucc_fast_channel_protocol_mode - UCC FAST mode */
-enum ucc_fast_channel_protocol_mode {
+enum ucc_fast_channel_protocol_mode
+{
 	UCC_FAST_PROTOCOL_MODE_HDLC = 0x00000000,
 	UCC_FAST_PROTOCOL_MODE_RESERVED01 = 0x00000001,
 	UCC_FAST_PROTOCOL_MODE_RESERVED_QMC = 0x00000002,
@@ -82,13 +83,15 @@ enum ucc_fast_channel_protocol_mode {
 };
 
 /* ucc_fast_transparent_txrx - UCC Fast Transparent TX & RX */
-enum ucc_fast_transparent_txrx {
+enum ucc_fast_transparent_txrx
+{
 	UCC_FAST_GUMR_TRANSPARENT_TTX_TRX_NORMAL = 0x00000000,
 	UCC_FAST_GUMR_TRANSPARENT_TTX_TRX_TRANSPARENT = 0x18000000
 };
 
 /* UCC fast diagnostic mode */
-enum ucc_fast_diag_mode {
+enum ucc_fast_diag_mode
+{
 	UCC_FAST_DIAGNOSTIC_NORMAL = 0x0,
 	UCC_FAST_DIAGNOSTIC_LOCAL_LOOP_BACK = 0x40000000,
 	UCC_FAST_DIAGNOSTIC_AUTO_ECHO = 0x80000000,
@@ -96,7 +99,8 @@ enum ucc_fast_diag_mode {
 };
 
 /* UCC fast Sync length (transparent mode only) */
-enum ucc_fast_sync_len {
+enum ucc_fast_sync_len
+{
 	UCC_FAST_SYNC_LEN_NOT_USED = 0x0,
 	UCC_FAST_SYNC_LEN_AUTOMATIC = 0x00004000,
 	UCC_FAST_SYNC_LEN_8_BIT = 0x00008000,
@@ -104,13 +108,15 @@ enum ucc_fast_sync_len {
 };
 
 /* UCC fast RTS mode */
-enum ucc_fast_ready_to_send {
+enum ucc_fast_ready_to_send
+{
 	UCC_FAST_SEND_IDLES_BETWEEN_FRAMES = 0x00000000,
 	UCC_FAST_SEND_FLAGS_BETWEEN_FRAMES = 0x00002000
 };
 
 /* UCC fast receiver decoding mode */
-enum ucc_fast_rx_decoding_method {
+enum ucc_fast_rx_decoding_method
+{
 	UCC_FAST_RX_ENCODING_NRZ = 0x00000000,
 	UCC_FAST_RX_ENCODING_NRZI = 0x00000800,
 	UCC_FAST_RX_ENCODING_RESERVED0 = 0x00001000,
@@ -118,7 +124,8 @@ enum ucc_fast_rx_decoding_method {
 };
 
 /* UCC fast transmitter encoding mode */
-enum ucc_fast_tx_encoding_method {
+enum ucc_fast_tx_encoding_method
+{
 	UCC_FAST_TX_ENCODING_NRZ = 0x00000000,
 	UCC_FAST_TX_ENCODING_NRZI = 0x00000100,
 	UCC_FAST_TX_ENCODING_RESERVED0 = 0x00000200,
@@ -126,7 +133,8 @@ enum ucc_fast_tx_encoding_method {
 };
 
 /* UCC fast CRC length */
-enum ucc_fast_transparent_tcrc {
+enum ucc_fast_transparent_tcrc
+{
 	UCC_FAST_16_BIT_CRC = 0x00000000,
 	UCC_FAST_CRC_RESERVED0 = 0x00000040,
 	UCC_FAST_32_BIT_CRC = 0x00000080,
@@ -134,7 +142,8 @@ enum ucc_fast_transparent_tcrc {
 };
 
 /* Fast UCC initialization structure */
-struct ucc_fast_info {
+struct ucc_fast_info
+{
 	int ucc_num;
 	int tdm_num;
 	enum qe_clock rx_clock;
@@ -173,7 +182,8 @@ struct ucc_fast_info {
 	enum ucc_fast_sync_len synl;
 };
 
-struct ucc_fast_private {
+struct ucc_fast_private
+{
 	struct ucc_fast_info *uf_info;
 	struct ucc_fast __iomem *uf_regs; /* a pointer to the UCC regs. */
 	u32 __iomem *p_ucce;	/* a pointer to the event register in memory. */
@@ -210,14 +220,14 @@ struct ucc_fast_private {
  * uf_info  - (In) pointer to the fast UCC info structure.
  * uccf_ret - (Out) pointer to the fast UCC structure.
  */
-int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** uccf_ret);
+int ucc_fast_init(struct ucc_fast_info *uf_info, struct ucc_fast_private **uccf_ret);
 
 /* ucc_fast_free
  * Frees all resources for fast UCC.
  *
  * uccf - (In) pointer to the fast UCC structure.
  */
-void ucc_fast_free(struct ucc_fast_private * uccf);
+void ucc_fast_free(struct ucc_fast_private *uccf);
 
 /* ucc_fast_enable
  * Enables a fast UCC port.
@@ -226,7 +236,7 @@ void ucc_fast_free(struct ucc_fast_private * uccf);
  * uccf - (In) pointer to the fast UCC structure.
  * mode - (In) TX, RX, or both.
  */
-void ucc_fast_enable(struct ucc_fast_private * uccf, enum comm_dir mode);
+void ucc_fast_enable(struct ucc_fast_private *uccf, enum comm_dir mode);
 
 /* ucc_fast_disable
  * Disables a fast UCC port.
@@ -235,7 +245,7 @@ void ucc_fast_enable(struct ucc_fast_private * uccf, enum comm_dir mode);
  * uccf - (In) pointer to the fast UCC structure.
  * mode - (In) TX, RX, or both.
  */
-void ucc_fast_disable(struct ucc_fast_private * uccf, enum comm_dir mode);
+void ucc_fast_disable(struct ucc_fast_private *uccf, enum comm_dir mode);
 
 /* ucc_fast_irq
  * Handles interrupts on fast UCC.
@@ -243,7 +253,7 @@ void ucc_fast_disable(struct ucc_fast_private * uccf, enum comm_dir mode);
  *
  * uccf - (In) pointer to the fast UCC structure.
  */
-void ucc_fast_irq(struct ucc_fast_private * uccf);
+void ucc_fast_irq(struct ucc_fast_private *uccf);
 
 /* ucc_fast_transmit_on_demand
  * Immediately forces a poll of the transmitter for data to be sent.
@@ -256,10 +266,10 @@ void ucc_fast_irq(struct ucc_fast_private * uccf);
  *
  * uccf - (In) pointer to the fast UCC structure.
  */
-void ucc_fast_transmit_on_demand(struct ucc_fast_private * uccf);
+void ucc_fast_transmit_on_demand(struct ucc_fast_private *uccf);
 
 u32 ucc_fast_get_qe_cr_subblock(int uccf_num);
 
-void ucc_fast_dump_regs(struct ucc_fast_private * uccf);
+void ucc_fast_dump_regs(struct ucc_fast_private *uccf);
 
 #endif				/* __UCC_FAST_H__ */

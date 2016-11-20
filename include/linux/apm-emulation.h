@@ -17,7 +17,8 @@
  * This structure gets filled in by the machine specific 'get_power_status'
  * implementation.  Any fields which are not set default to a safe value.
  */
-struct apm_power_info {
+struct apm_power_info
+{
 	unsigned char	ac_line_status;
 #define APM_AC_OFFLINE			0
 #define APM_AC_ONLINE			1

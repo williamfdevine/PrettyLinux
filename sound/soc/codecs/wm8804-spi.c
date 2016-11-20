@@ -21,8 +21,11 @@ static int wm8804_spi_probe(struct spi_device *spi)
 	struct regmap *regmap;
 
 	regmap = devm_regmap_init_spi(spi, &wm8804_regmap_config);
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
 
 	return wm8804_probe(&spi->dev, regmap);
 }
@@ -33,13 +36,15 @@ static int wm8804_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct of_device_id wm8804_of_match[] = {
+static const struct of_device_id wm8804_of_match[] =
+{
 	{ .compatible = "wlf,wm8804", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, wm8804_of_match);
 
-static struct spi_driver wm8804_spi_driver = {
+static struct spi_driver wm8804_spi_driver =
+{
 	.driver = {
 		.name = "wm8804",
 		.pm = &wm8804_pm,

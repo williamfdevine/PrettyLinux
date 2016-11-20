@@ -36,9 +36,9 @@
 #define DMA_PAGE_INVALID 0UL
 
 static int vmw_gmr2_bind(struct vmw_private *dev_priv,
-			 struct vmw_piter *iter,
-			 unsigned long num_pages,
-			 int gmr_id)
+						 struct vmw_piter *iter,
+						 unsigned long num_pages,
+						 int gmr_id)
 {
 	SVGAFifoCmdDefineGMR2 define_cmd;
 	SVGAFifoCmdRemapGMR2 remap_cmd;
@@ -52,8 +52,11 @@ static int vmw_gmr2_bind(struct vmw_private *dev_priv,
 	uint32_t i;
 
 	cmd_orig = cmd = vmw_fifo_reserve(dev_priv, cmd_size);
+
 	if (unlikely(cmd == NULL))
+	{
 		return -ENOMEM;
+	}
 
 	define_cmd.gmrId = gmr_id;
 	define_cmd.numPages = num_pages;
@@ -69,9 +72,10 @@ static int vmw_gmr2_bind(struct vmw_private *dev_priv,
 
 	remap_cmd.gmrId = gmr_id;
 	remap_cmd.flags = (VMW_PPN_SIZE > sizeof(*cmd)) ?
-		SVGA_REMAP_GMR2_PPN64 : SVGA_REMAP_GMR2_PPN32;
+					  SVGA_REMAP_GMR2_PPN64 : SVGA_REMAP_GMR2_PPN32;
 
-	while (num_pages > 0) {
+	while (num_pages > 0)
+	{
 		unsigned long nr = min(num_pages, (unsigned long)VMW_PPN_PER_REMAP);
 
 		remap_cmd.offsetPages = remap_pos;
@@ -81,12 +85,15 @@ static int vmw_gmr2_bind(struct vmw_private *dev_priv,
 		memcpy(cmd, &remap_cmd, sizeof(remap_cmd));
 		cmd += sizeof(remap_cmd) / sizeof(*cmd);
 
-		for (i = 0; i < nr; ++i) {
+		for (i = 0; i < nr; ++i)
+		{
 			if (VMW_PPN_SIZE <= 4)
+			{
 				*cmd = vmw_piter_dma_addr(iter) >> PAGE_SHIFT;
+			}
 			else
 				*((uint64_t *)cmd) = vmw_piter_dma_addr(iter) >>
-					PAGE_SHIFT;
+									 PAGE_SHIFT;
 
 			cmd += VMW_PPN_SIZE / sizeof(*cmd);
 			vmw_piter_next(iter);
@@ -104,17 +111,20 @@ static int vmw_gmr2_bind(struct vmw_private *dev_priv,
 }
 
 static void vmw_gmr2_unbind(struct vmw_private *dev_priv,
-			    int gmr_id)
+							int gmr_id)
 {
 	SVGAFifoCmdDefineGMR2 define_cmd;
 	uint32_t define_size = sizeof(define_cmd) + 4;
 	uint32_t *cmd;
 
 	cmd = vmw_fifo_reserve(dev_priv, define_size);
-	if (unlikely(cmd == NULL)) {
+
+	if (unlikely(cmd == NULL))
+	{
 		DRM_ERROR("GMR2 unbind failed.\n");
 		return;
 	}
+
 	define_cmd.gmrId = gmr_id;
 	define_cmd.numPages = 0;
 
@@ -126,19 +136,23 @@ static void vmw_gmr2_unbind(struct vmw_private *dev_priv,
 
 
 int vmw_gmr_bind(struct vmw_private *dev_priv,
-		 const struct vmw_sg_table *vsgt,
-		 unsigned long num_pages,
-		 int gmr_id)
+				 const struct vmw_sg_table *vsgt,
+				 unsigned long num_pages,
+				 int gmr_id)
 {
 	struct vmw_piter data_iter;
 
 	vmw_piter_start(&data_iter, vsgt, 0);
 
 	if (unlikely(!vmw_piter_next(&data_iter)))
+	{
 		return 0;
+	}
 
 	if (unlikely(!(dev_priv->capabilities & SVGA_CAP_GMR2)))
+	{
 		return -EINVAL;
+	}
 
 	return vmw_gmr2_bind(dev_priv, &data_iter, num_pages, gmr_id);
 }
@@ -147,5 +161,7 @@ int vmw_gmr_bind(struct vmw_private *dev_priv,
 void vmw_gmr_unbind(struct vmw_private *dev_priv, int gmr_id)
 {
 	if (likely(dev_priv->capabilities & SVGA_CAP_GMR2))
+	{
 		vmw_gmr2_unbind(dev_priv, gmr_id);
+	}
 }

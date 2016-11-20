@@ -19,7 +19,8 @@
 #include <linux/rcupdate.h>
 
 #if IS_ENABLED(CONFIG_CGROUP_NET_PRIO)
-struct netprio_map {
+struct netprio_map
+{
 	struct rcu_head rcu;
 	u32 priomap_len;
 	u32 priomap[];
@@ -40,7 +41,9 @@ static inline u32 task_netprioidx(struct task_struct *p)
 static inline void sock_update_netprioidx(struct sock_cgroup_data *skcd)
 {
 	if (in_interrupt())
+	{
 		return;
+	}
 
 	sock_cgroup_set_prioidx(skcd, task_netprioidx(current));
 }

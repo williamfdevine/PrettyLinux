@@ -31,7 +31,8 @@ struct mei_cl;
  * @MEI_HBM_STARTED : enumeration was completed
  * @MEI_HBM_STOPPED : stopping exchange
  */
-enum mei_hbm_state {
+enum mei_hbm_state
+{
 	MEI_HBM_IDLE = 0,
 	MEI_HBM_STARTING,
 	MEI_HBM_ENUM_CLIENTS,
@@ -56,7 +57,7 @@ bool mei_hbm_version_is_supported(struct mei_device *dev);
 int mei_hbm_pg(struct mei_device *dev, u8 pg_cmd);
 void mei_hbm_pg_resume(struct mei_device *dev);
 int mei_hbm_cl_notify_req(struct mei_device *dev,
-			  struct mei_cl *cl, u8 request);
+						  struct mei_cl *cl, u8 request);
 
 #endif /* _MEI_HBM_H_ */
 

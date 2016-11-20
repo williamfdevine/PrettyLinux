@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table pinnacle_color[] = {
+static struct rc_map_table pinnacle_color[] =
+{
 	{ 0x59, KEY_MUTE },
 	{ 0x4a, KEY_POWER },
 
@@ -69,7 +70,8 @@ static struct rc_map_table pinnacle_color[] = {
 	{ 0x0a, KEY_BACKSPACE },
 };
 
-static struct rc_map_list pinnacle_color_map = {
+static struct rc_map_list pinnacle_color_map =
+{
 	.map = {
 		.scan    = pinnacle_color,
 		.size    = ARRAY_SIZE(pinnacle_color),

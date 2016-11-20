@@ -32,45 +32,68 @@ static int arizona_spi_probe(struct spi_device *spi)
 	int ret;
 
 	if (spi->dev.of_node)
+	{
 		type = arizona_of_get_type(&spi->dev);
+	}
 	else
+	{
 		type = id->driver_data;
-
-	switch (type) {
-	case WM5102:
-		if (IS_ENABLED(CONFIG_MFD_WM5102))
-			regmap_config = &wm5102_spi_regmap;
-		break;
-	case WM5110:
-	case WM8280:
-		if (IS_ENABLED(CONFIG_MFD_WM5110))
-			regmap_config = &wm5110_spi_regmap;
-		break;
-	case WM1831:
-	case CS47L24:
-		if (IS_ENABLED(CONFIG_MFD_CS47L24))
-			regmap_config = &cs47l24_spi_regmap;
-		break;
-	default:
-		dev_err(&spi->dev, "Unknown device type %ld\n", type);
-		return -EINVAL;
 	}
 
-	if (!regmap_config) {
+	switch (type)
+	{
+		case WM5102:
+			if (IS_ENABLED(CONFIG_MFD_WM5102))
+			{
+				regmap_config = &wm5102_spi_regmap;
+			}
+
+			break;
+
+		case WM5110:
+		case WM8280:
+			if (IS_ENABLED(CONFIG_MFD_WM5110))
+			{
+				regmap_config = &wm5110_spi_regmap;
+			}
+
+			break;
+
+		case WM1831:
+		case CS47L24:
+			if (IS_ENABLED(CONFIG_MFD_CS47L24))
+			{
+				regmap_config = &cs47l24_spi_regmap;
+			}
+
+			break;
+
+		default:
+			dev_err(&spi->dev, "Unknown device type %ld\n", type);
+			return -EINVAL;
+	}
+
+	if (!regmap_config)
+	{
 		dev_err(&spi->dev,
-			"No kernel support for device type %ld\n", type);
+				"No kernel support for device type %ld\n", type);
 		return -EINVAL;
 	}
 
 	arizona = devm_kzalloc(&spi->dev, sizeof(*arizona), GFP_KERNEL);
+
 	if (arizona == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	arizona->regmap = devm_regmap_init_spi(spi, regmap_config);
-	if (IS_ERR(arizona->regmap)) {
+
+	if (IS_ERR(arizona->regmap))
+	{
 		ret = PTR_ERR(arizona->regmap);
 		dev_err(&spi->dev, "Failed to allocate register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -90,7 +113,8 @@ static int arizona_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id arizona_spi_ids[] = {
+static const struct spi_device_id arizona_spi_ids[] =
+{
 	{ "wm5102", WM5102 },
 	{ "wm5110", WM5110 },
 	{ "wm8280", WM8280 },
@@ -100,7 +124,8 @@ static const struct spi_device_id arizona_spi_ids[] = {
 };
 MODULE_DEVICE_TABLE(spi, arizona_spi_ids);
 
-static struct spi_driver arizona_spi_driver = {
+static struct spi_driver arizona_spi_driver =
+{
 	.driver = {
 		.name	= "arizona",
 		.pm	= &arizona_pm_ops,

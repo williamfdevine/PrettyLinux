@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table tevii_nec[] = {
+static struct rc_map_table tevii_nec[] =
+{
 	{ 0x0a, KEY_POWER2},
 	{ 0x0c, KEY_MUTE},
 	{ 0x11, KEY_1},
@@ -63,7 +64,8 @@ static struct rc_map_table tevii_nec[] = {
 	{ 0x58, KEY_SWITCHVIDEOMODE},
 };
 
-static struct rc_map_list tevii_nec_map = {
+static struct rc_map_list tevii_nec_map =
+{
 	.map = {
 		.scan    = tevii_nec,
 		.size    = ARRAY_SIZE(tevii_nec),

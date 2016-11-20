@@ -63,13 +63,15 @@
 #define LPSS_PRIV_CAPS_TYPE_MASK	(0xf << LPSS_PRIV_CAPS_TYPE_SHIFT)
 
 /* This matches the type field in CAPS register */
-enum intel_lpss_dev_type {
+enum intel_lpss_dev_type
+{
 	LPSS_DEV_I2C = 0,
 	LPSS_DEV_UART,
 	LPSS_DEV_SPI,
 };
 
-struct intel_lpss {
+struct intel_lpss
+{
 	const struct intel_lpss_platform_info *info;
 	enum intel_lpss_dev_type type;
 	struct clk *clk;
@@ -85,13 +87,15 @@ struct intel_lpss {
 	struct dentry *debugfs;
 };
 
-static const struct resource intel_lpss_dev_resources[] = {
+static const struct resource intel_lpss_dev_resources[] =
+{
 	DEFINE_RES_MEM_NAMED(LPSS_DEV_OFFSET, LPSS_DEV_SIZE, "lpss_dev"),
 	DEFINE_RES_MEM_NAMED(LPSS_PRIV_OFFSET, LPSS_PRIV_SIZE, "lpss_priv"),
 	DEFINE_RES_IRQ(0),
 };
 
-static const struct resource intel_lpss_idma64_resources[] = {
+static const struct resource intel_lpss_idma64_resources[] =
+{
 	DEFINE_RES_MEM(LPSS_IDMA64_OFFSET, LPSS_IDMA64_SIZE),
 	DEFINE_RES_IRQ(0),
 };
@@ -103,25 +107,29 @@ static const struct resource intel_lpss_idma64_resources[] = {
  * because we need to be sure the DMA is available when the host controller
  * driver is probed.
  */
-static const struct mfd_cell intel_lpss_idma64_cell = {
+static const struct mfd_cell intel_lpss_idma64_cell =
+{
 	.name = LPSS_IDMA64_DRIVER_NAME,
 	.num_resources = ARRAY_SIZE(intel_lpss_idma64_resources),
 	.resources = intel_lpss_idma64_resources,
 };
 
-static const struct mfd_cell intel_lpss_i2c_cell = {
+static const struct mfd_cell intel_lpss_i2c_cell =
+{
 	.name = "i2c_designware",
 	.num_resources = ARRAY_SIZE(intel_lpss_dev_resources),
 	.resources = intel_lpss_dev_resources,
 };
 
-static const struct mfd_cell intel_lpss_uart_cell = {
+static const struct mfd_cell intel_lpss_uart_cell =
+{
 	.name = "dw-apb-uart",
 	.num_resources = ARRAY_SIZE(intel_lpss_dev_resources),
 	.resources = intel_lpss_dev_resources,
 };
 
-static const struct mfd_cell intel_lpss_spi_cell = {
+static const struct mfd_cell intel_lpss_spi_cell =
+{
 	.name = "pxa2xx-spi",
 	.num_resources = ARRAY_SIZE(intel_lpss_dev_resources),
 	.resources = intel_lpss_dev_resources,
@@ -135,7 +143,9 @@ static int intel_lpss_request_dma_module(const char *name)
 	static bool intel_lpss_dma_requested;
 
 	if (intel_lpss_dma_requested)
+	{
 		return 0;
+	}
 
 	intel_lpss_dma_requested = true;
 	return request_module("%s", name);
@@ -152,8 +162,11 @@ static int intel_lpss_debugfs_add(struct intel_lpss *lpss)
 	struct dentry *dir;
 
 	dir = debugfs_create_dir(dev_name(lpss->dev), intel_lpss_debugfs);
+
 	if (IS_ERR(dir))
+	{
 		return PTR_ERR(dir);
+	}
 
 	/* Cache the values into lpss structure */
 	intel_lpss_cache_ltr(lpss);
@@ -183,21 +196,30 @@ static void intel_lpss_ltr_set(struct device *dev, s32 val)
 	 */
 	ltr = readl(lpss->priv + LPSS_PRIV_ACTIVELTR);
 
-	if (val == PM_QOS_LATENCY_ANY || val < 0) {
+	if (val == PM_QOS_LATENCY_ANY || val < 0)
+	{
 		ltr &= ~LPSS_PRIV_LTR_REQ;
-	} else {
+	}
+	else
+	{
 		ltr |= LPSS_PRIV_LTR_REQ;
 		ltr &= ~LPSS_PRIV_LTR_SCALE_MASK;
 		ltr &= ~LPSS_PRIV_LTR_VALUE_MASK;
 
 		if (val > LPSS_PRIV_LTR_VALUE_MASK)
+		{
 			ltr |= LPSS_PRIV_LTR_SCALE_32US | val >> 5;
+		}
 		else
+		{
 			ltr |= LPSS_PRIV_LTR_SCALE_1US | val;
+		}
 	}
 
 	if (ltr == lpss->active_ltr)
+	{
 		return;
+	}
 
 	writel(ltr, lpss->priv + LPSS_PRIV_ACTIVELTR);
 	writel(ltr, lpss->priv + LPSS_PRIV_IDLELTR);
@@ -226,23 +248,30 @@ static int intel_lpss_assign_devs(struct intel_lpss *lpss)
 	type = lpss->caps & LPSS_PRIV_CAPS_TYPE_MASK;
 	type >>= LPSS_PRIV_CAPS_TYPE_SHIFT;
 
-	switch (type) {
-	case LPSS_DEV_I2C:
-		cell = &intel_lpss_i2c_cell;
-		break;
-	case LPSS_DEV_UART:
-		cell = &intel_lpss_uart_cell;
-		break;
-	case LPSS_DEV_SPI:
-		cell = &intel_lpss_spi_cell;
-		break;
-	default:
-		return -ENODEV;
+	switch (type)
+	{
+		case LPSS_DEV_I2C:
+			cell = &intel_lpss_i2c_cell;
+			break;
+
+		case LPSS_DEV_UART:
+			cell = &intel_lpss_uart_cell;
+			break;
+
+		case LPSS_DEV_SPI:
+			cell = &intel_lpss_spi_cell;
+			break;
+
+		default:
+			return -ENODEV;
 	}
 
 	lpss->cell = devm_kmemdup(lpss->dev, cell, sizeof(*cell), GFP_KERNEL);
+
 	if (!lpss->cell)
+	{
 		return -ENOMEM;
+	}
 
 	lpss->type = type;
 
@@ -276,20 +305,25 @@ static void intel_lpss_init_dev(const struct intel_lpss *lpss)
 	intel_lpss_deassert_reset(lpss);
 
 	if (!intel_lpss_has_idma(lpss))
+	{
 		return;
+	}
 
 	intel_lpss_set_remap_addr(lpss);
 
 	/* Make sure that SPI multiblock DMA transfers are re-enabled */
 	if (lpss->type == LPSS_DEV_SPI)
+	{
 		writel(value, lpss->priv + LPSS_PRIV_SSP_REG);
+	}
 }
 
 static void intel_lpss_unregister_clock_tree(struct clk *clk)
 {
 	struct clk *parent;
 
-	while (clk) {
+	while (clk)
+	{
 		parent = clk_get_parent(clk);
 		clk_unregister(clk);
 		clk = parent;
@@ -297,31 +331,42 @@ static void intel_lpss_unregister_clock_tree(struct clk *clk)
 }
 
 static int intel_lpss_register_clock_divider(struct intel_lpss *lpss,
-					     const char *devname,
-					     struct clk **clk)
+		const char *devname,
+		struct clk **clk)
 {
 	char name[32];
 	struct clk *tmp = *clk;
 
 	snprintf(name, sizeof(name), "%s-enable", devname);
 	tmp = clk_register_gate(NULL, name, __clk_get_name(tmp), 0,
-				lpss->priv, 0, 0, NULL);
+							lpss->priv, 0, 0, NULL);
+
 	if (IS_ERR(tmp))
+	{
 		return PTR_ERR(tmp);
+	}
 
 	snprintf(name, sizeof(name), "%s-div", devname);
 	tmp = clk_register_fractional_divider(NULL, name, __clk_get_name(tmp),
-					      0, lpss->priv, 1, 15, 16, 15, 0,
-					      NULL);
+										  0, lpss->priv, 1, 15, 16, 15, 0,
+										  NULL);
+
 	if (IS_ERR(tmp))
+	{
 		return PTR_ERR(tmp);
+	}
+
 	*clk = tmp;
 
 	snprintf(name, sizeof(name), "%s-update", devname);
 	tmp = clk_register_gate(NULL, name, __clk_get_name(tmp),
-				CLK_SET_RATE_PARENT, lpss->priv, 31, 0, NULL);
+							CLK_SET_RATE_PARENT, lpss->priv, 31, 0, NULL);
+
 	if (IS_ERR(tmp))
+	{
 		return PTR_ERR(tmp);
+	}
+
 	*clk = tmp;
 
 	return 0;
@@ -335,13 +380,18 @@ static int intel_lpss_register_clock(struct intel_lpss *lpss)
 	int ret;
 
 	if (!lpss->info->clk_rate)
+	{
 		return 0;
+	}
 
 	/* Root clock */
 	clk = clk_register_fixed_rate(NULL, dev_name(lpss->dev), NULL, 0,
-				      lpss->info->clk_rate);
+								  lpss->info->clk_rate);
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
 
 	snprintf(devname, sizeof(devname), "%s.%d", cell->name, lpss->devid);
 
@@ -349,18 +399,25 @@ static int intel_lpss_register_clock(struct intel_lpss *lpss)
 	 * Support for clock divider only if it has some preset value.
 	 * Otherwise we assume that the divider is not used.
 	 */
-	if (lpss->type != LPSS_DEV_I2C) {
+	if (lpss->type != LPSS_DEV_I2C)
+	{
 		ret = intel_lpss_register_clock_divider(lpss, devname, &clk);
+
 		if (ret)
+		{
 			goto err_clk_register;
+		}
 	}
 
 	ret = -ENOMEM;
 
 	/* Clock for the host controller */
 	lpss->clock = clkdev_create(clk, lpss->info->clk_con_id, "%s", devname);
+
 	if (!lpss->clock)
+	{
 		goto err_clk_register;
+	}
 
 	lpss->clk = clk;
 
@@ -375,29 +432,39 @@ err_clk_register:
 static void intel_lpss_unregister_clock(struct intel_lpss *lpss)
 {
 	if (IS_ERR_OR_NULL(lpss->clk))
+	{
 		return;
+	}
 
 	clkdev_drop(lpss->clock);
 	intel_lpss_unregister_clock_tree(lpss->clk);
 }
 
 int intel_lpss_probe(struct device *dev,
-		     const struct intel_lpss_platform_info *info)
+					 const struct intel_lpss_platform_info *info)
 {
 	struct intel_lpss *lpss;
 	int ret;
 
 	if (!info || !info->mem || info->irq <= 0)
+	{
 		return -EINVAL;
+	}
 
 	lpss = devm_kzalloc(dev, sizeof(*lpss), GFP_KERNEL);
+
 	if (!lpss)
+	{
 		return -ENOMEM;
+	}
 
 	lpss->priv = devm_ioremap(dev, info->mem->start + LPSS_PRIV_OFFSET,
-				  LPSS_PRIV_SIZE);
+							  LPSS_PRIV_SIZE);
+
 	if (!lpss->priv)
+	{
 		return -ENOMEM;
+	}
 
 	lpss->info = info;
 	lpss->dev = dev;
@@ -406,28 +473,41 @@ int intel_lpss_probe(struct device *dev,
 	dev_set_drvdata(dev, lpss);
 
 	ret = intel_lpss_assign_devs(lpss);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	lpss->cell->properties = info->properties;
 
 	intel_lpss_init_dev(lpss);
 
 	lpss->devid = ida_simple_get(&intel_lpss_devid_ida, 0, 0, GFP_KERNEL);
+
 	if (lpss->devid < 0)
+	{
 		return lpss->devid;
+	}
 
 	ret = intel_lpss_register_clock(lpss);
+
 	if (ret)
+	{
 		goto err_clk_register;
+	}
 
 	intel_lpss_ltr_expose(lpss);
 
 	ret = intel_lpss_debugfs_add(lpss);
-	if (ret)
-		dev_warn(dev, "Failed to create debugfs entries\n");
 
-	if (intel_lpss_has_idma(lpss)) {
+	if (ret)
+	{
+		dev_warn(dev, "Failed to create debugfs entries\n");
+	}
+
+	if (intel_lpss_has_idma(lpss))
+	{
 		/*
 		 * Ensure the DMA driver is loaded before the host
 		 * controller device appears, so that the host controller
@@ -439,16 +519,20 @@ int intel_lpss_probe(struct device *dev,
 		intel_lpss_request_dma_module(LPSS_IDMA64_DRIVER_NAME);
 
 		ret = mfd_add_devices(dev, lpss->devid, &intel_lpss_idma64_cell,
-				      1, info->mem, info->irq, NULL);
+							  1, info->mem, info->irq, NULL);
+
 		if (ret)
 			dev_warn(dev, "Failed to add %s, fallback to PIO\n",
-				 LPSS_IDMA64_DRIVER_NAME);
+					 LPSS_IDMA64_DRIVER_NAME);
 	}
 
 	ret = mfd_add_devices(dev, lpss->devid, lpss->cell,
-			      1, info->mem, info->irq, NULL);
+						  1, info->mem, info->irq, NULL);
+
 	if (ret)
+	{
 		goto err_remove_ltr;
+	}
 
 	return 0;
 
@@ -500,7 +584,9 @@ int intel_lpss_suspend(struct device *dev)
 
 	/* Save device context */
 	for (i = 0; i < LPSS_PRIV_REG_COUNT; i++)
+	{
 		lpss->priv_ctx[i] = readl(lpss->priv + i * 4);
+	}
 
 	return 0;
 }
@@ -515,7 +601,9 @@ int intel_lpss_resume(struct device *dev)
 
 	/* Restore device context */
 	for (i = 0; i < LPSS_PRIV_REG_COUNT; i++)
+	{
 		writel(lpss->priv_ctx[i], lpss->priv + i * 4);
+	}
 
 	return 0;
 }

@@ -50,9 +50,9 @@
  * -ENODEV is returned when no matching driver is found.
  */
 int drm_i2c_encoder_init(struct drm_device *dev,
-			 struct drm_encoder_slave *encoder,
-			 struct i2c_adapter *adap,
-			 const struct i2c_board_info *info)
+						 struct drm_encoder_slave *encoder,
+						 struct i2c_adapter *adap,
+						 const struct i2c_board_info *info)
 {
 	struct module *module = NULL;
 	struct i2c_client *client;
@@ -62,18 +62,23 @@ int drm_i2c_encoder_init(struct drm_device *dev,
 	request_module("%s%s", I2C_MODULE_PREFIX, info->type);
 
 	client = i2c_new_device(adap, info);
-	if (!client) {
+
+	if (!client)
+	{
 		err = -ENOMEM;
 		goto fail;
 	}
 
-	if (!client->dev.driver) {
+	if (!client->dev.driver)
+	{
 		err = -ENODEV;
 		goto fail_unregister;
 	}
 
 	module = client->dev.driver->owner;
-	if (!try_module_get(module)) {
+
+	if (!try_module_get(module))
+	{
 		err = -ENODEV;
 		goto fail_unregister;
 	}
@@ -83,12 +88,15 @@ int drm_i2c_encoder_init(struct drm_device *dev,
 	encoder_drv = to_drm_i2c_encoder_driver(to_i2c_driver(client->dev.driver));
 
 	err = encoder_drv->encoder_init(client, dev, encoder);
+
 	if (err)
+	{
 		goto fail_unregister;
+	}
 
 	if (info->platform_data)
 		encoder->slave_funcs->set_config(&encoder->base,
-						 info->platform_data);
+										 info->platform_data);
 
 	return 0;
 
@@ -137,11 +145,13 @@ void drm_i2c_encoder_dpms(struct drm_encoder *encoder, int mode)
 EXPORT_SYMBOL(drm_i2c_encoder_dpms);
 
 bool drm_i2c_encoder_mode_fixup(struct drm_encoder *encoder,
-		const struct drm_display_mode *mode,
-		struct drm_display_mode *adjusted_mode)
+								const struct drm_display_mode *mode,
+								struct drm_display_mode *adjusted_mode)
 {
 	if (!get_slave_funcs(encoder)->mode_fixup)
+	{
 		return true;
+	}
 
 	return get_slave_funcs(encoder)->mode_fixup(encoder, mode, adjusted_mode);
 }
@@ -160,15 +170,15 @@ void drm_i2c_encoder_commit(struct drm_encoder *encoder)
 EXPORT_SYMBOL(drm_i2c_encoder_commit);
 
 void drm_i2c_encoder_mode_set(struct drm_encoder *encoder,
-		struct drm_display_mode *mode,
-		struct drm_display_mode *adjusted_mode)
+							  struct drm_display_mode *mode,
+							  struct drm_display_mode *adjusted_mode)
 {
 	get_slave_funcs(encoder)->mode_set(encoder, mode, adjusted_mode);
 }
 EXPORT_SYMBOL(drm_i2c_encoder_mode_set);
 
 enum drm_connector_status drm_i2c_encoder_detect(struct drm_encoder *encoder,
-	    struct drm_connector *connector)
+		struct drm_connector *connector)
 {
 	return get_slave_funcs(encoder)->detect(encoder, connector);
 }

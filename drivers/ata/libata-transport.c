@@ -44,7 +44,8 @@
 struct scsi_transport_template;
 struct scsi_transport_template *ata_scsi_transport_template;
 
-struct ata_internal {
+struct ata_internal
+{
 	struct scsi_transport_template t;
 
 	struct device_attribute private_port_attrs[ATA_PORT_ATTRS];
@@ -91,49 +92,51 @@ static void ata_tdev_delete(struct ata_device *dev);
  */
 #define ATA_DEVICE_ATTR(_prefix,_name,_mode,_show,_store) \
 	struct device_attribute device_attr_##_prefix##_##_name = \
-	__ATTR(_name,_mode,_show,_store)
+			__ATTR(_name,_mode,_show,_store)
 
 #define ata_bitfield_name_match(title, table)			\
-static ssize_t							\
-get_ata_##title##_names(u32 table_key, char *buf)		\
-{								\
-	char *prefix = "";					\
-	ssize_t len = 0;					\
-	int i;							\
-								\
-	for (i = 0; i < ARRAY_SIZE(table); i++) {		\
-		if (table[i].value & table_key) {		\
-			len += sprintf(buf + len, "%s%s",	\
-				prefix, table[i].name);		\
-			prefix = ", ";				\
-		}						\
-	}							\
-	len += sprintf(buf + len, "\n");			\
-	return len;						\
-}
+	static ssize_t							\
+	get_ata_##title##_names(u32 table_key, char *buf)		\
+	{								\
+		char *prefix = "";					\
+		ssize_t len = 0;					\
+		int i;							\
+		\
+		for (i = 0; i < ARRAY_SIZE(table); i++) {		\
+			if (table[i].value & table_key) {		\
+				len += sprintf(buf + len, "%s%s",	\
+							   prefix, table[i].name);		\
+				prefix = ", ";				\
+			}						\
+		}							\
+		len += sprintf(buf + len, "\n");			\
+		return len;						\
+	}
 
 #define ata_bitfield_name_search(title, table)			\
-static ssize_t							\
-get_ata_##title##_names(u32 table_key, char *buf)		\
-{								\
-	ssize_t len = 0;					\
-	int i;							\
-								\
-	for (i = 0; i < ARRAY_SIZE(table); i++) {		\
-		if (table[i].value == table_key) {		\
-			len += sprintf(buf + len, "%s",		\
-				table[i].name);			\
-			break;					\
-		}						\
-	}							\
-	len += sprintf(buf + len, "\n");			\
-	return len;						\
-}
+	static ssize_t							\
+	get_ata_##title##_names(u32 table_key, char *buf)		\
+	{								\
+		ssize_t len = 0;					\
+		int i;							\
+		\
+		for (i = 0; i < ARRAY_SIZE(table); i++) {		\
+			if (table[i].value == table_key) {		\
+				len += sprintf(buf + len, "%s",		\
+							   table[i].name);			\
+				break;					\
+			}						\
+		}							\
+		len += sprintf(buf + len, "\n");			\
+		return len;						\
+	}
 
-static struct {
+static struct
+{
 	u32		value;
 	char		*name;
-} ata_class_names[] = {
+} ata_class_names[] =
+{
 	{ ATA_DEV_UNKNOWN,		"unknown" },
 	{ ATA_DEV_ATA,			"ata" },
 	{ ATA_DEV_ATA_UNSUP,		"ata" },
@@ -149,10 +152,12 @@ static struct {
 ata_bitfield_name_search(class, ata_class_names)
 
 
-static struct {
+static struct
+{
 	u32		value;
 	char		*name;
-} ata_err_names[] = {
+} ata_err_names[] =
+{
 	{ AC_ERR_DEV,			"DeviceError" },
 	{ AC_ERR_HSM,			"HostStateMachineError" },
 	{ AC_ERR_TIMEOUT,		"Timeout" },
@@ -167,10 +172,12 @@ static struct {
 };
 ata_bitfield_name_match(err, ata_err_names)
 
-static struct {
+static struct
+{
 	u32		value;
 	char		*name;
-} ata_xfer_names[] = {
+} ata_xfer_names[] =
+{
 	{ XFER_UDMA_7,			"XFER_UDMA_7" },
 	{ XFER_UDMA_6,			"XFER_UDMA_6" },
 	{ XFER_UDMA_5,			"XFER_UDMA_5" },
@@ -196,31 +203,31 @@ static struct {
 	{ XFER_PIO_0,			"XFER_PIO_0" },
 	{ XFER_PIO_SLOW,		"XFER_PIO_SLOW" }
 };
-ata_bitfield_name_match(xfer,ata_xfer_names)
+ata_bitfield_name_match(xfer, ata_xfer_names)
 
 /*
  * ATA Port attributes
  */
 #define ata_port_show_simple(field, name, format_string, cast)		\
-static ssize_t								\
-show_ata_port_##name(struct device *dev,				\
-		     struct device_attribute *attr, char *buf)		\
-{									\
-	struct ata_port *ap = transport_class_to_port(dev);		\
-									\
-	return snprintf(buf, 20, format_string, cast ap->field);	\
-}
+	static ssize_t								\
+	show_ata_port_##name(struct device *dev,				\
+						 struct device_attribute *attr, char *buf)		\
+	{									\
+		struct ata_port *ap = transport_class_to_port(dev);		\
+		\
+		return snprintf(buf, 20, format_string, cast ap->field);	\
+	}
 
 #define ata_port_simple_attr(field, name, format_string, type)		\
 	ata_port_show_simple(field, name, format_string, (type))	\
-static DEVICE_ATTR(name, S_IRUGO, show_ata_port_##name, NULL)
+	static DEVICE_ATTR(name, S_IRUGO, show_ata_port_##name, NULL)
 
 ata_port_simple_attr(nr_pmp_links, nr_pmp_links, "%d\n", int);
 ata_port_simple_attr(stats.idle_irq, idle_irq, "%ld\n", unsigned long);
 ata_port_simple_attr(local_port_no, port_no, "%u\n", unsigned int);
 
 static DECLARE_TRANSPORT_CLASS(ata_port_class,
-			       "ata_port", NULL, NULL, NULL);
+							   "ata_port", NULL, NULL, NULL);
 
 static void ata_tport_release(struct device *dev)
 {
@@ -240,10 +247,13 @@ static int ata_is_port(const struct device *dev)
 }
 
 static int ata_tport_match(struct attribute_container *cont,
-			   struct device *dev)
+						   struct device *dev)
 {
 	if (!ata_is_port(dev))
+	{
 		return 0;
+	}
+
 	return &ata_scsi_transport_template->host_attrs.ac == cont;
 }
 
@@ -276,7 +286,7 @@ void ata_tport_delete(struct ata_port *ap)
  * Returns %0 on success
  */
 int ata_tport_add(struct device *parent,
-		  struct ata_port *ap)
+				  struct ata_port *ap)
 {
 	int error;
 	struct device *dev = &ap->tdev;
@@ -290,7 +300,9 @@ int ata_tport_add(struct device *parent,
 	transport_setup_device(dev);
 	ata_acpi_bind_port(ap);
 	error = device_add(dev);
-	if (error) {
+
+	if (error)
+	{
 		goto tport_err;
 	}
 
@@ -303,16 +315,19 @@ int ata_tport_add(struct device *parent,
 	transport_configure_device(dev);
 
 	error = ata_tlink_add(&ap->link);
-	if (error) {
+
+	if (error)
+	{
 		goto tport_link_err;
 	}
+
 	return 0;
 
- tport_link_err:
+tport_link_err:
 	transport_remove_device(dev);
 	device_del(dev);
 
- tport_err:
+tport_err:
 	transport_destroy_device(dev);
 	put_device(dev);
 	return error;
@@ -325,18 +340,18 @@ int ata_tport_add(struct device *parent,
 static int noop(int x) { return x; }
 
 #define ata_link_show_linkspeed(field, format)			        \
-static ssize_t								\
-show_ata_link_##field(struct device *dev,				\
-		      struct device_attribute *attr, char *buf)		\
-{									\
-	struct ata_link *link = transport_class_to_link(dev);		\
-									\
-	return sprintf(buf, "%s\n", sata_spd_string(format(link->field))); \
-}
+	static ssize_t								\
+	show_ata_link_##field(struct device *dev,				\
+						  struct device_attribute *attr, char *buf)		\
+	{									\
+		struct ata_link *link = transport_class_to_link(dev);		\
+		\
+		return sprintf(buf, "%s\n", sata_spd_string(format(link->field))); \
+	}
 
 #define ata_link_linkspeed_attr(field, format)				\
 	ata_link_show_linkspeed(field, format)				\
-static DEVICE_ATTR(field, S_IRUGO, show_ata_link_##field, NULL)
+	static DEVICE_ATTR(field, S_IRUGO, show_ata_link_##field, NULL)
 
 ata_link_linkspeed_attr(hw_sata_spd_limit, fls);
 ata_link_linkspeed_attr(sata_spd_limit, fls);
@@ -344,7 +359,7 @@ ata_link_linkspeed_attr(sata_spd, noop);
 
 
 static DECLARE_TRANSPORT_CLASS(ata_link_class,
-		"ata_link", NULL, NULL, NULL);
+							   "ata_link", NULL, NULL, NULL);
 
 static void ata_tlink_release(struct device *dev)
 {
@@ -364,11 +379,15 @@ static int ata_is_link(const struct device *dev)
 }
 
 static int ata_tlink_match(struct attribute_container *cont,
-			   struct device *dev)
+						   struct device *dev)
 {
-	struct ata_internal* i = to_ata_internal(ata_scsi_transport_template);
+	struct ata_internal *i = to_ata_internal(ata_scsi_transport_template);
+
 	if (!ata_is_link(dev))
+	{
 		return 0;
+	}
+
 	return &i->link_attr_cont.ac == cont;
 }
 
@@ -383,7 +402,8 @@ void ata_tlink_delete(struct ata_link *link)
 	struct device *dev = &link->tdev;
 	struct ata_device *ata_dev;
 
-	ata_for_each_dev(ata_dev, link, ALL) {
+	ata_for_each_dev(ata_dev, link, ALL)
+	{
 		ata_tdev_delete(ata_dev);
 	}
 
@@ -412,35 +432,48 @@ int ata_tlink_add(struct ata_link *link)
 	device_initialize(dev);
 	dev->parent = get_device(&ap->tdev);
 	dev->release = ata_tlink_release;
+
 	if (ata_is_host_link(link))
+	{
 		dev_set_name(dev, "link%d", ap->print_id);
-        else
+	}
+	else
+	{
 		dev_set_name(dev, "link%d.%d", ap->print_id, link->pmp);
+	}
 
 	transport_setup_device(dev);
 
 	error = device_add(dev);
-	if (error) {
+
+	if (error)
+	{
 		goto tlink_err;
 	}
 
 	transport_add_device(dev);
 	transport_configure_device(dev);
 
-	ata_for_each_dev(ata_dev, link, ALL) {
+	ata_for_each_dev(ata_dev, link, ALL)
+	{
 		error = ata_tdev_add(ata_dev);
-		if (error) {
+
+		if (error)
+		{
 			goto tlink_dev_err;
 		}
 	}
 	return 0;
-  tlink_dev_err:
-	while (--ata_dev >= link->device) {
+tlink_dev_err:
+
+	while (--ata_dev >= link->device)
+	{
 		ata_tdev_delete(ata_dev);
 	}
+
 	transport_remove_device(dev);
 	device_del(dev);
-  tlink_err:
+tlink_err:
 	transport_destroy_device(dev);
 	put_device(dev);
 	return error;
@@ -451,18 +484,18 @@ int ata_tlink_add(struct ata_link *link)
  */
 
 #define ata_dev_show_class(title, field)				\
-static ssize_t								\
-show_ata_dev_##field(struct device *dev,				\
-		     struct device_attribute *attr, char *buf)		\
-{									\
-	struct ata_device *ata_dev = transport_class_to_dev(dev);	\
-									\
-	return get_ata_##title##_names(ata_dev->field, buf);		\
-}
+	static ssize_t								\
+	show_ata_dev_##field(struct device *dev,				\
+						 struct device_attribute *attr, char *buf)		\
+	{									\
+		struct ata_device *ata_dev = transport_class_to_dev(dev);	\
+		\
+		return get_ata_##title##_names(ata_dev->field, buf);		\
+	}
 
 #define ata_dev_attr(title, field)					\
 	ata_dev_show_class(title, field)				\
-static DEVICE_ATTR(field, S_IRUGO, show_ata_dev_##field, NULL)
+	static DEVICE_ATTR(field, S_IRUGO, show_ata_dev_##field, NULL)
 
 ata_dev_attr(class, class);
 ata_dev_attr(xfer, pio_mode);
@@ -471,45 +504,46 @@ ata_dev_attr(xfer, xfer_mode);
 
 
 #define ata_dev_show_simple(field, format_string, cast)		\
-static ssize_t								\
-show_ata_dev_##field(struct device *dev,				\
-		     struct device_attribute *attr, char *buf)		\
-{									\
-	struct ata_device *ata_dev = transport_class_to_dev(dev);	\
-									\
-	return snprintf(buf, 20, format_string, cast ata_dev->field);	\
-}
+	static ssize_t								\
+	show_ata_dev_##field(struct device *dev,				\
+						 struct device_attribute *attr, char *buf)		\
+	{									\
+		struct ata_device *ata_dev = transport_class_to_dev(dev);	\
+		\
+		return snprintf(buf, 20, format_string, cast ata_dev->field);	\
+	}
 
 #define ata_dev_simple_attr(field, format_string, type)	\
 	ata_dev_show_simple(field, format_string, (type))	\
-static DEVICE_ATTR(field, S_IRUGO, 			\
-		   show_ata_dev_##field, NULL)
+	static DEVICE_ATTR(field, S_IRUGO, 			\
+					   show_ata_dev_##field, NULL)
 
 ata_dev_simple_attr(spdn_cnt, "%d\n", int);
 
-struct ata_show_ering_arg {
-	char* buf;
+struct ata_show_ering_arg
+{
+	char *buf;
 	int written;
 };
 
 static int ata_show_ering(struct ata_ering_entry *ent, void *void_arg)
 {
-	struct ata_show_ering_arg* arg = void_arg;
+	struct ata_show_ering_arg *arg = void_arg;
 	u64 seconds;
 	u32 rem;
 
 	seconds = div_u64_rem(ent->timestamp, HZ, &rem);
 	arg->written += sprintf(arg->buf + arg->written,
-			        "[%5llu.%09lu]", seconds,
-				rem * NSEC_PER_SEC / HZ);
+							"[%5llu.%09lu]", seconds,
+							rem * NSEC_PER_SEC / HZ);
 	arg->written += get_ata_err_names(ent->err_mask,
-					  arg->buf + arg->written);
+									  arg->buf + arg->written);
 	return 0;
 }
 
 static ssize_t
 show_ata_dev_ering(struct device *dev,
-		   struct device_attribute *attr, char *buf)
+				   struct device_attribute *attr, char *buf)
 {
 	struct ata_device *ata_dev = transport_class_to_dev(dev);
 	struct ata_show_ering_arg arg = { buf, 0 };
@@ -523,18 +557,23 @@ static DEVICE_ATTR(ering, S_IRUGO, show_ata_dev_ering, NULL);
 
 static ssize_t
 show_ata_dev_id(struct device *dev,
-		struct device_attribute *attr, char *buf)
+				struct device_attribute *attr, char *buf)
 {
 	struct ata_device *ata_dev = transport_class_to_dev(dev);
 	int written = 0, i = 0;
 
 	if (ata_dev->class == ATA_DEV_PMP)
+	{
 		return 0;
-	for(i=0;i<ATA_ID_WORDS;i++)  {
-		written += snprintf(buf+written, 20, "%04x%c",
-				    ata_dev->id[i],
-				    ((i+1) & 7) ? ' ' : '\n');
 	}
+
+	for (i = 0; i < ATA_ID_WORDS; i++)
+	{
+		written += snprintf(buf + written, 20, "%04x%c",
+							ata_dev->id[i],
+							((i + 1) & 7) ? ' ' : '\n');
+	}
+
 	return written;
 }
 
@@ -542,20 +581,28 @@ static DEVICE_ATTR(id, S_IRUGO, show_ata_dev_id, NULL);
 
 static ssize_t
 show_ata_dev_gscr(struct device *dev,
-		  struct device_attribute *attr, char *buf)
+				  struct device_attribute *attr, char *buf)
 {
 	struct ata_device *ata_dev = transport_class_to_dev(dev);
 	int written = 0, i = 0;
 
 	if (ata_dev->class != ATA_DEV_PMP)
+	{
 		return 0;
-	for(i=0;i<SATA_PMP_GSCR_DWORDS;i++)  {
-		written += snprintf(buf+written, 20, "%08x%c",
-				    ata_dev->gscr[i],
-				    ((i+1) & 3) ? ' ' : '\n');
 	}
+
+	for (i = 0; i < SATA_PMP_GSCR_DWORDS; i++)
+	{
+		written += snprintf(buf + written, 20, "%08x%c",
+							ata_dev->gscr[i],
+							((i + 1) & 3) ? ' ' : '\n');
+	}
+
 	if (SATA_PMP_GSCR_DWORDS & 3)
-		buf[written-1] = '\n';
+	{
+		buf[written - 1] = '\n';
+	}
+
 	return written;
 }
 
@@ -563,21 +610,31 @@ static DEVICE_ATTR(gscr, S_IRUGO, show_ata_dev_gscr, NULL);
 
 static ssize_t
 show_ata_dev_trim(struct device *dev,
-		  struct device_attribute *attr, char *buf)
+				  struct device_attribute *attr, char *buf)
 {
 	struct ata_device *ata_dev = transport_class_to_dev(dev);
 	unsigned char *mode;
 
 	if (!ata_id_has_trim(ata_dev->id))
+	{
 		mode = "unsupported";
+	}
 	else if (ata_dev->horkage & ATA_HORKAGE_NOTRIM)
+	{
 		mode = "forced_unsupported";
+	}
 	else if (ata_dev->horkage & ATA_HORKAGE_NO_NCQ_TRIM)
-			mode = "forced_unqueued";
+	{
+		mode = "forced_unqueued";
+	}
 	else if (ata_fpdma_dsm_supported(ata_dev))
+	{
 		mode = "queued";
+	}
 	else
+	{
 		mode = "unqueued";
+	}
 
 	return snprintf(buf, 20, "%s\n", mode);
 }
@@ -585,7 +642,7 @@ show_ata_dev_trim(struct device *dev,
 static DEVICE_ATTR(trim, S_IRUGO, show_ata_dev_trim, NULL);
 
 static DECLARE_TRANSPORT_CLASS(ata_dev_class,
-			       "ata_device", NULL, NULL, NULL);
+							   "ata_device", NULL, NULL, NULL);
 
 static void ata_tdev_release(struct device *dev)
 {
@@ -605,11 +662,15 @@ static int ata_is_ata_dev(const struct device *dev)
 }
 
 static int ata_tdev_match(struct attribute_container *cont,
-			  struct device *dev)
+						  struct device *dev)
 {
-	struct ata_internal* i = to_ata_internal(ata_scsi_transport_template);
+	struct ata_internal *i = to_ata_internal(ata_scsi_transport_template);
+
 	if (!ata_is_ata_dev(dev))
+	{
 		return 0;
+	}
+
 	return &i->dev_attr_cont.ac == cont;
 }
 
@@ -664,15 +725,22 @@ static int ata_tdev_add(struct ata_device *ata_dev)
 	device_initialize(dev);
 	dev->parent = get_device(&link->tdev);
 	dev->release = ata_tdev_release;
+
 	if (ata_is_host_link(link))
-		dev_set_name(dev, "dev%d.%d", ap->print_id,ata_dev->devno);
-        else
+	{
+		dev_set_name(dev, "dev%d.%d", ap->print_id, ata_dev->devno);
+	}
+	else
+	{
 		dev_set_name(dev, "dev%d.%d.0", ap->print_id, link->pmp);
+	}
 
 	transport_setup_device(dev);
 	ata_acpi_bind_dev(ata_dev);
 	error = device_add(dev);
-	if (error) {
+
+	if (error)
+	{
 		ata_tdev_free(ata_dev);
 		return error;
 	}
@@ -712,8 +780,11 @@ struct scsi_transport_template *ata_attach_transport(void)
 	int count;
 
 	i = kzalloc(sizeof(struct ata_internal), GFP_KERNEL);
+
 	if (!i)
+	{
 		return NULL;
+	}
 
 	i->t.eh_strategy_handler	= ata_scsi_error;
 	i->t.eh_timed_out		= ata_scsi_timed_out;
@@ -784,21 +855,33 @@ __init int libata_transport_init(void)
 	int error;
 
 	error = transport_class_register(&ata_link_class);
+
 	if (error)
+	{
 		goto out_unregister_transport;
+	}
+
 	error = transport_class_register(&ata_port_class);
+
 	if (error)
+	{
 		goto out_unregister_link;
+	}
+
 	error = transport_class_register(&ata_dev_class);
+
 	if (error)
+	{
 		goto out_unregister_port;
+	}
+
 	return 0;
 
- out_unregister_port:
+out_unregister_port:
 	transport_class_unregister(&ata_port_class);
- out_unregister_link:
+out_unregister_link:
 	transport_class_unregister(&ata_link_class);
- out_unregister_transport:
+out_unregister_transport:
 	return error;
 
 }

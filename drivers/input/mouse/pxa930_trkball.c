@@ -39,7 +39,8 @@
 
 #define TBSBC_TBSBC	(0x1)
 
-struct pxa930_trkball {
+struct pxa930_trkball
+{
 	struct pxa930_trkball_platform_data *pdata;
 
 	/* Memory Mapped Register */
@@ -60,7 +61,8 @@ static irqreturn_t pxa930_trkball_interrupt(int irq, void *dev_id)
 	 */
 	tbcntr = __raw_readl(trkball->mmio_base + TBCNTR);
 
-	if (tbcntr == __raw_readl(trkball->mmio_base + TBCNTR)) {
+	if (tbcntr == __raw_readl(trkball->mmio_base + TBCNTR))
+	{
 		x = (TBCNTR_XP(tbcntr) - TBCNTR_XM(tbcntr)) / 2;
 		y = (TBCNTR_YP(tbcntr) - TBCNTR_YM(tbcntr)) / 2;
 
@@ -82,13 +84,18 @@ static int write_tbcr(struct pxa930_trkball *trkball, int v)
 
 	__raw_writel(v, trkball->mmio_base + TBCR);
 
-	while (--i) {
+	while (--i)
+	{
 		if (__raw_readl(trkball->mmio_base + TBCR) == v)
+		{
 			break;
+		}
+
 		msleep(1);
 	}
 
-	if (i == 0) {
+	if (i == 0)
+	{
 		pr_err("%s: timed out writing TBCR(%x)!\n", __func__, v);
 		return -ETIMEDOUT;
 	}
@@ -104,7 +111,7 @@ static void pxa930_trkball_config(struct pxa930_trkball *trkball)
 	tbcr = __raw_readl(trkball->mmio_base + TBCR);
 	write_tbcr(trkball, tbcr | TBCR_X_FLT(0xf) | TBCR_Y_FLT(0xf));
 	write_tbcr(trkball, TBCR_X_FLT(trkball->pdata->x_filter) |
-			    TBCR_Y_FLT(trkball->pdata->y_filter));
+			   TBCR_Y_FLT(trkball->pdata->y_filter));
 
 	/* According to spec, set TBCR_TBRST first, before clearing it! */
 	tbcr = __raw_readl(trkball->mmio_base + TBCR);
@@ -115,7 +122,7 @@ static void pxa930_trkball_config(struct pxa930_trkball *trkball)
 	__raw_writel(0, trkball->mmio_base + TBSBC);
 
 	pr_debug("%s: final TBCR=%x!\n", __func__,
-		 __raw_readl(trkball->mmio_base + TBCR));
+			 __raw_readl(trkball->mmio_base + TBCR));
 }
 
 static int pxa930_trkball_open(struct input_dev *dev)
@@ -150,30 +157,41 @@ static int pxa930_trkball_probe(struct platform_device *pdev)
 	int irq, error;
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "failed to get trkball irq\n");
 		return -ENXIO;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "failed to get register memory\n");
 		return -ENXIO;
 	}
 
 	trkball = kzalloc(sizeof(struct pxa930_trkball), GFP_KERNEL);
+
 	if (!trkball)
+	{
 		return -ENOMEM;
+	}
 
 	trkball->pdata = dev_get_platdata(&pdev->dev);
-	if (!trkball->pdata) {
+
+	if (!trkball->pdata)
+	{
 		dev_err(&pdev->dev, "no platform data defined\n");
 		error = -EINVAL;
 		goto failed;
 	}
 
 	trkball->mmio_base = ioremap_nocache(res->start, resource_size(res));
-	if (!trkball->mmio_base) {
+
+	if (!trkball->mmio_base)
+	{
 		dev_err(&pdev->dev, "failed to ioremap registers\n");
 		error = -ENXIO;
 		goto failed;
@@ -183,8 +201,10 @@ static int pxa930_trkball_probe(struct platform_device *pdev)
 	pxa930_trkball_disable(trkball);
 
 	error = request_irq(irq, pxa930_trkball_interrupt, 0,
-			    pdev->name, trkball);
-	if (error) {
+						pdev->name, trkball);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to request irq: %d\n", error);
 		goto failed_free_io;
 	}
@@ -192,7 +212,9 @@ static int pxa930_trkball_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, trkball);
 
 	input = input_allocate_device();
-	if (!input) {
+
+	if (!input)
+	{
 		dev_err(&pdev->dev, "failed to allocate input device\n");
 		error = -ENOMEM;
 		goto failed_free_irq;
@@ -211,7 +233,9 @@ static int pxa930_trkball_probe(struct platform_device *pdev)
 	input_set_capability(input, EV_REL, REL_Y);
 
 	error = input_register_device(input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "unable to register input device\n");
 		goto failed_free_input;
 	}
@@ -242,7 +266,8 @@ static int pxa930_trkball_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pxa930_trkball_driver = {
+static struct platform_driver pxa930_trkball_driver =
+{
 	.driver		= {
 		.name	= "pxa930-trkball",
 	},

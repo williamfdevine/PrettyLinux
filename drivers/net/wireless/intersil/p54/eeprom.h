@@ -24,13 +24,15 @@
 
 /* PDA defines are Copyright (C) 2005 Nokia Corporation (taken from islsm_pda.h) */
 
-struct pda_entry {
+struct pda_entry
+{
 	__le16 len;	/* includes both code and data */
 	__le16 code;
 	u8 data[0];
 } __packed;
 
-struct eeprom_pda_wrap {
+struct eeprom_pda_wrap
+{
 	__le32 magic;
 	__le16 pad;
 	__le16 len;
@@ -38,16 +40,19 @@ struct eeprom_pda_wrap {
 	u8 data[0];
 } __packed;
 
-struct p54_iq_autocal_entry {
+struct p54_iq_autocal_entry
+{
 	__le16 iq_param[4];
 } __packed;
 
-struct pda_iq_autocal_entry {
+struct pda_iq_autocal_entry
+{
 	__le16 freq;
 	struct p54_iq_autocal_entry params;
 } __packed;
 
-struct pda_channel_output_limit {
+struct pda_channel_output_limit
+{
 	__le16 freq;
 	u8 val_bpsk;
 	u8 val_qpsk;
@@ -57,25 +62,29 @@ struct pda_channel_output_limit {
 	u8 rate_set_size;
 } __packed;
 
-struct pda_channel_output_limit_point_longbow {
+struct pda_channel_output_limit_point_longbow
+{
 	__le16 val_bpsk;
 	__le16 val_qpsk;
 	__le16 val_16qam;
 	__le16 val_64qam;
 } __packed;
 
-struct pda_channel_output_limit_longbow {
+struct pda_channel_output_limit_longbow
+{
 	__le16 freq;
 	struct pda_channel_output_limit_point_longbow point[3];
 } __packed;
 
-struct pda_pa_curve_data_sample_rev0 {
+struct pda_pa_curve_data_sample_rev0
+{
 	u8 rf_power;
 	u8 pa_detector;
 	u8 pcv;
 } __packed;
 
-struct pda_pa_curve_data_sample_rev1 {
+struct pda_pa_curve_data_sample_rev1
+{
 	u8 rf_power;
 	u8 pa_detector;
 	u8 data_barker;
@@ -85,7 +94,8 @@ struct pda_pa_curve_data_sample_rev1 {
 	u8 data_64qam;
 } __packed;
 
-struct pda_pa_curve_data {
+struct pda_pa_curve_data
+{
 	u8 cal_method_rev;
 	u8 channels;
 	u8 points_per_channel;
@@ -93,31 +103,37 @@ struct pda_pa_curve_data {
 	u8 data[0];
 } __packed;
 
-struct pda_rssi_cal_ext_entry {
+struct pda_rssi_cal_ext_entry
+{
 	__le16 freq;
 	__le16 mul;
 	__le16 add;
 } __packed;
 
-struct pda_rssi_cal_entry {
+struct pda_rssi_cal_entry
+{
 	__le16 mul;
 	__le16 add;
 } __packed;
 
-struct pda_country {
+struct pda_country
+{
 	u8 regdomain;
 	u8 alpha2[2];
 	u8 flags;
 } __packed;
 
-struct pda_antenna_gain {
-	struct {
+struct pda_antenna_gain
+{
+	struct
+	{
 		u8 gain_5GHz;	/* 0.25 dBi units */
 		u8 gain_2GHz;	/* 0.25 dBi units */
 	} __packed antenna[0];
 } __packed;
 
-struct pda_custom_wrapper {
+struct pda_custom_wrapper
+{
 	__le16 entries;
 	__le16 entry_size;
 	__le16 offset;

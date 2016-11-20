@@ -139,21 +139,23 @@
 
 #define SHARED_KEY_ENTRY(__idx) \
 	(SHARED_KEY_TABLE_BASE + \
-		((__idx) * sizeof(struct hw_key_entry)))
+	 ((__idx) * sizeof(struct hw_key_entry)))
 #define PAIRWISE_KEY_ENTRY(__idx) \
 	(PAIRWISE_KEY_TABLE_BASE + \
-		((__idx) * sizeof(struct hw_key_entry)))
+	 ((__idx) * sizeof(struct hw_key_entry)))
 #define PAIRWISE_TA_ENTRY(__idx) \
 	(PAIRWISE_TA_TABLE_BASE + \
-		((__idx) * sizeof(struct hw_pairwise_ta_entry)))
+	 ((__idx) * sizeof(struct hw_pairwise_ta_entry)))
 
-struct hw_key_entry {
+struct hw_key_entry
+{
 	u8 key[16];
 	u8 tx_mic[8];
 	u8 rx_mic[8];
 } __packed;
 
-struct hw_pairwise_ta_entry {
+struct hw_pairwise_ta_entry
+{
 	u8 address[6];
 	u8 cipher;
 	u8 reserved;

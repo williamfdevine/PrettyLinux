@@ -43,7 +43,8 @@
 /* EEPROM requires 3 ms of erase/program time between each writing */
 #define LPC18XX_EEPROM_PROGRAM_TIME		3
 
-struct lpc18xx_eeprom_dev {
+struct lpc18xx_eeprom_dev
+{
 	struct clk *clk;
 	void __iomem *reg_base;
 	void __iomem *mem_base;
@@ -54,13 +55,13 @@ struct lpc18xx_eeprom_dev {
 };
 
 static inline void lpc18xx_eeprom_writel(struct lpc18xx_eeprom_dev *eeprom,
-					 u32 reg, u32 val)
+		u32 reg, u32 val)
 {
 	writel(val, eeprom->reg_base + reg);
 }
 
 static inline u32 lpc18xx_eeprom_readl(struct lpc18xx_eeprom_dev *eeprom,
-				       u32 reg)
+									   u32 reg)
 {
 	return readl(eeprom->reg_base + reg);
 }
@@ -73,24 +74,26 @@ static int lpc18xx_eeprom_busywait_until_prog(struct lpc18xx_eeprom_dev *eeprom)
 	/* Wait until EEPROM program operation has finished */
 	end = jiffies + msecs_to_jiffies(LPC18XX_EEPROM_PROGRAM_TIME * 10);
 
-	while (time_is_after_jiffies(end)) {
+	while (time_is_after_jiffies(end))
+	{
 		val = lpc18xx_eeprom_readl(eeprom, LPC18XX_EEPROM_INTSTAT);
 
-		if (val & LPC18XX_EEPROM_INTSTAT_END_OF_PROG) {
+		if (val & LPC18XX_EEPROM_INTSTAT_END_OF_PROG)
+		{
 			lpc18xx_eeprom_writel(eeprom, LPC18XX_EEPROM_INTSTATCLR,
-					LPC18XX_EEPROM_INTSTATCLR_PROG_CLR_ST);
+								  LPC18XX_EEPROM_INTSTATCLR_PROG_CLR_ST);
 			return 0;
 		}
 
 		usleep_range(LPC18XX_EEPROM_PROGRAM_TIME * USEC_PER_MSEC,
-			     (LPC18XX_EEPROM_PROGRAM_TIME + 1) * USEC_PER_MSEC);
+					 (LPC18XX_EEPROM_PROGRAM_TIME + 1) * USEC_PER_MSEC);
 	}
 
 	return -ETIMEDOUT;
 }
 
 static int lpc18xx_eeprom_gather_write(void *context, unsigned int reg,
-				       void *val, size_t bytes)
+									   void *val, size_t bytes)
 {
 	struct lpc18xx_eeprom_dev *eeprom = context;
 	unsigned int offset = reg;
@@ -101,21 +104,27 @@ static int lpc18xx_eeprom_gather_write(void *context, unsigned int reg,
 	 * writable.
 	 */
 	if ((reg > eeprom->size - LPC18XX_EEPROM_PAGE_SIZE) ||
-			(reg + bytes > eeprom->size - LPC18XX_EEPROM_PAGE_SIZE))
+		(reg + bytes > eeprom->size - LPC18XX_EEPROM_PAGE_SIZE))
+	{
 		return -EINVAL;
+	}
 
 
 	lpc18xx_eeprom_writel(eeprom, LPC18XX_EEPROM_PWRDWN,
-			      LPC18XX_EEPROM_PWRDWN_NO);
+						  LPC18XX_EEPROM_PWRDWN_NO);
 
 	/* Wait 100 us while the EEPROM wakes up */
 	usleep_range(100, 200);
 
-	while (bytes) {
+	while (bytes)
+	{
 		writel(*(u32 *)val, eeprom->mem_base + offset);
 		ret = lpc18xx_eeprom_busywait_until_prog(eeprom);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		bytes -= eeprom->val_bytes;
 		val += eeprom->val_bytes;
@@ -123,23 +132,24 @@ static int lpc18xx_eeprom_gather_write(void *context, unsigned int reg,
 	}
 
 	lpc18xx_eeprom_writel(eeprom, LPC18XX_EEPROM_PWRDWN,
-			      LPC18XX_EEPROM_PWRDWN_YES);
+						  LPC18XX_EEPROM_PWRDWN_YES);
 
 	return 0;
 }
 
 static int lpc18xx_eeprom_read(void *context, unsigned int offset,
-			       void *val, size_t bytes)
+							   void *val, size_t bytes)
 {
 	struct lpc18xx_eeprom_dev *eeprom = context;
 
 	lpc18xx_eeprom_writel(eeprom, LPC18XX_EEPROM_PWRDWN,
-			      LPC18XX_EEPROM_PWRDWN_NO);
+						  LPC18XX_EEPROM_PWRDWN_NO);
 
 	/* Wait 100 us while the EEPROM wakes up */
 	usleep_range(100, 200);
 
-	while (bytes) {
+	while (bytes)
+	{
 		*(u32 *)val = readl(eeprom->mem_base + offset);
 		bytes -= eeprom->val_bytes;
 		val += eeprom->val_bytes;
@@ -147,13 +157,14 @@ static int lpc18xx_eeprom_read(void *context, unsigned int offset,
 	}
 
 	lpc18xx_eeprom_writel(eeprom, LPC18XX_EEPROM_PWRDWN,
-			      LPC18XX_EEPROM_PWRDWN_YES);
+						  LPC18XX_EEPROM_PWRDWN_YES);
 
 	return 0;
 }
 
 
-static struct nvmem_config lpc18xx_nvmem_config = {
+static struct nvmem_config lpc18xx_nvmem_config =
+{
 	.name = "lpc18xx-eeprom",
 	.stride = 4,
 	.word_size = 4,
@@ -172,40 +183,57 @@ static int lpc18xx_eeprom_probe(struct platform_device *pdev)
 	int ret;
 
 	eeprom = devm_kzalloc(dev, sizeof(*eeprom), GFP_KERNEL);
+
 	if (!eeprom)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "reg");
 	eeprom->reg_base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(eeprom->reg_base))
+	{
 		return PTR_ERR(eeprom->reg_base);
+	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mem");
 	eeprom->mem_base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(eeprom->mem_base))
+	{
 		return PTR_ERR(eeprom->mem_base);
+	}
 
 	eeprom->clk = devm_clk_get(&pdev->dev, "eeprom");
-	if (IS_ERR(eeprom->clk)) {
+
+	if (IS_ERR(eeprom->clk))
+	{
 		dev_err(&pdev->dev, "failed to get eeprom clock\n");
 		return PTR_ERR(eeprom->clk);
 	}
 
 	ret = clk_prepare_enable(eeprom->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to prepare/enable eeprom clk: %d\n", ret);
 		return ret;
 	}
 
 	rst = devm_reset_control_get(dev, NULL);
-	if (IS_ERR(rst)) {
+
+	if (IS_ERR(rst))
+	{
 		dev_err(dev, "failed to get reset: %ld\n", PTR_ERR(rst));
 		ret = PTR_ERR(rst);
 		goto err_clk;
 	}
 
 	ret = reset_control_assert(rst);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to assert reset: %d\n", ret);
 		goto err_clk;
 	}
@@ -226,10 +254,10 @@ static int lpc18xx_eeprom_probe(struct platform_device *pdev)
 	 * automatically
 	 */
 	lpc18xx_eeprom_writel(eeprom, LPC18XX_EEPROM_AUTOPROG,
-			      LPC18XX_EEPROM_AUTOPROG_WORD);
+						  LPC18XX_EEPROM_AUTOPROG_WORD);
 
 	lpc18xx_eeprom_writel(eeprom, LPC18XX_EEPROM_PWRDWN,
-			      LPC18XX_EEPROM_PWRDWN_YES);
+						  LPC18XX_EEPROM_PWRDWN_YES);
 
 	eeprom->size = resource_size(res);
 	lpc18xx_nvmem_config.size = resource_size(res);
@@ -237,7 +265,9 @@ static int lpc18xx_eeprom_probe(struct platform_device *pdev)
 	lpc18xx_nvmem_config.priv = eeprom;
 
 	eeprom->nvmem = nvmem_register(&lpc18xx_nvmem_config);
-	if (IS_ERR(eeprom->nvmem)) {
+
+	if (IS_ERR(eeprom->nvmem))
+	{
 		ret = PTR_ERR(eeprom->nvmem);
 		goto err_clk;
 	}
@@ -258,21 +288,26 @@ static int lpc18xx_eeprom_remove(struct platform_device *pdev)
 	int ret;
 
 	ret = nvmem_unregister(eeprom->nvmem);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	clk_disable_unprepare(eeprom->clk);
 
 	return 0;
 }
 
-static const struct of_device_id lpc18xx_eeprom_of_match[] = {
+static const struct of_device_id lpc18xx_eeprom_of_match[] =
+{
 	{ .compatible = "nxp,lpc1857-eeprom" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, lpc18xx_eeprom_of_match);
 
-static struct platform_driver lpc18xx_eeprom_driver = {
+static struct platform_driver lpc18xx_eeprom_driver =
+{
 	.probe = lpc18xx_eeprom_probe,
 	.remove = lpc18xx_eeprom_remove,
 	.driver = {

@@ -62,19 +62,21 @@
 
 #define ZX_DMA_BUSWIDTHS \
 	(BIT(DMA_SLAVE_BUSWIDTH_UNDEFINED) | \
-	BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) | \
-	BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) | \
-	BIT(DMA_SLAVE_BUSWIDTH_4_BYTES) | \
-	BIT(DMA_SLAVE_BUSWIDTH_8_BYTES))
+	 BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) | \
+	 BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) | \
+	 BIT(DMA_SLAVE_BUSWIDTH_4_BYTES) | \
+	 BIT(DMA_SLAVE_BUSWIDTH_8_BYTES))
 
-enum zx_dma_burst_width {
+enum zx_dma_burst_width
+{
 	ZX_DMA_WIDTH_8BIT	= 0,
 	ZX_DMA_WIDTH_16BIT	= 1,
 	ZX_DMA_WIDTH_32BIT	= 2,
 	ZX_DMA_WIDTH_64BIT	= 3,
 };
 
-struct zx_desc_hw {
+struct zx_desc_hw
+{
 	u32 saddr;
 	u32 daddr;
 	u32 src_x;
@@ -87,7 +89,8 @@ struct zx_desc_hw {
 	u32 reserved[7]; /* pack as hardware registers region size */
 } __aligned(32);
 
-struct zx_dma_desc_sw {
+struct zx_dma_desc_sw
+{
 	struct virt_dma_desc	vd;
 	dma_addr_t		desc_hw_lli;
 	size_t			desc_num;
@@ -97,7 +100,8 @@ struct zx_dma_desc_sw {
 
 struct zx_dma_phy;
 
-struct zx_dma_chan {
+struct zx_dma_chan
+{
 	struct dma_slave_config slave_cfg;
 	int			id; /* Request phy chan id */
 	u32			ccfg;
@@ -109,7 +113,8 @@ struct zx_dma_chan {
 	enum dma_status		status;
 };
 
-struct zx_dma_phy {
+struct zx_dma_phy
+{
 	u32			idx;
 	void __iomem		*base;
 	struct zx_dma_chan	*vchan;
@@ -117,7 +122,8 @@ struct zx_dma_phy {
 	struct zx_dma_desc_sw	*ds_done;
 };
 
-struct zx_dma_dev {
+struct zx_dma_dev
+{
 	struct dma_device	slave;
 	void __iomem		*base;
 	spinlock_t		lock; /* lock for ch and phy */
@@ -193,12 +199,17 @@ static int zx_dma_start_txd(struct zx_dma_chan *c)
 	struct virt_dma_desc *vd = vchan_next_desc(&c->vc);
 
 	if (!c->phy)
+	{
 		return -EAGAIN;
+	}
 
 	if (BIT(c->phy->idx) & zx_dma_get_chan_stat(d))
+	{
 		return -EAGAIN;
+	}
 
-	if (vd) {
+	if (vd)
+	{
 		struct zx_dma_desc_sw *ds =
 			container_of(vd, struct zx_dma_desc_sw, vd);
 		/*
@@ -212,6 +223,7 @@ static int zx_dma_start_txd(struct zx_dma_chan *c)
 		zx_dma_set_desc(c->phy, ds->desc_hw);
 		return 0;
 	}
+
 	c->phy->ds_done = NULL;
 	c->phy->ds_run = NULL;
 	return -EAGAIN;
@@ -226,43 +238,58 @@ static void zx_dma_task(struct zx_dma_dev *d)
 
 	/* check new dma request of running channel in vc->desc_issued */
 	list_for_each_entry_safe(c, cn, &d->slave.channels,
-				 vc.chan.device_node) {
+							 vc.chan.device_node)
+	{
 		spin_lock_irqsave(&c->vc.lock, flags);
 		p = c->phy;
-		if (p && p->ds_done && zx_dma_start_txd(c)) {
+
+		if (p && p->ds_done && zx_dma_start_txd(c))
+		{
 			/* No current txd associated with this channel */
 			dev_dbg(d->slave.dev, "pchan %u: free\n", p->idx);
 			/* Mark this channel free */
 			c->phy = NULL;
 			p->vchan = NULL;
 		}
+
 		spin_unlock_irqrestore(&c->vc.lock, flags);
 	}
 
 	/* check new channel request in d->chan_pending */
 	spin_lock_irqsave(&d->lock, flags);
-	while (!list_empty(&d->chan_pending)) {
+
+	while (!list_empty(&d->chan_pending))
+	{
 		c = list_first_entry(&d->chan_pending,
-				     struct zx_dma_chan, node);
+							 struct zx_dma_chan, node);
 		p = &d->phy[c->id];
-		if (!p->vchan) {
+
+		if (!p->vchan)
+		{
 			/* remove from d->chan_pending */
 			list_del_init(&c->node);
 			pch_alloc |= 1 << c->id;
 			/* Mark this channel allocated */
 			p->vchan = c;
 			c->phy = p;
-		} else {
+		}
+		else
+		{
 			dev_dbg(d->slave.dev, "pchan %u: busy!\n", c->id);
 		}
 	}
+
 	spin_unlock_irqrestore(&d->lock, flags);
 
-	for (pch = 0; pch < d->dma_channels; pch++) {
-		if (pch_alloc & (1 << pch)) {
+	for (pch = 0; pch < d->dma_channels; pch++)
+	{
+		if (pch_alloc & (1 << pch))
+		{
 			p = &d->phy[pch];
 			c = p->vchan;
-			if (c) {
+
+			if (c)
+			{
 				spin_lock_irqsave(&c->vc.lock, flags);
 				zx_dma_start_txd(c);
 				spin_unlock_irqrestore(&c->vc.lock, flags);
@@ -282,22 +309,30 @@ static irqreturn_t zx_dma_int_handler(int irq, void *dev_id)
 	u32 cfg = readl_relaxed(d->base + REG_ZX_CFG_ERR_IRQ);
 	u32 i, irq_chan = 0, task = 0;
 
-	while (tc) {
+	while (tc)
+	{
 		i = __ffs(tc);
 		tc &= ~BIT(i);
 		p = &d->phy[i];
 		c = p->vchan;
-		if (c) {
+
+		if (c)
+		{
 			unsigned long flags;
 
 			spin_lock_irqsave(&c->vc.lock, flags);
-			if (c->cyclic) {
+
+			if (c->cyclic)
+			{
 				vchan_cyclic_callback(&p->ds_run->vd);
-			} else {
+			}
+			else
+			{
 				vchan_cookie_complete(&p->ds_run->vd);
 				p->ds_done = p->ds_run;
 				task = 1;
 			}
+
 			spin_unlock_irqrestore(&c->vc.lock, flags);
 			irq_chan |= BIT(i);
 		}
@@ -305,7 +340,7 @@ static irqreturn_t zx_dma_int_handler(int irq, void *dev_id)
 
 	if (serr || derr || cfg)
 		dev_warn(d->slave.dev, "DMA ERR src 0x%x, dst 0x%x, cfg 0x%x\n",
-			 serr, derr, cfg);
+				 serr, derr, cfg);
 
 	writel_relaxed(irq_chan, d->base + REG_ZX_TC_IRQ_RAW);
 	writel_relaxed(serr, d->base + REG_ZX_SRC_ERR_IRQ_RAW);
@@ -313,7 +348,10 @@ static irqreturn_t zx_dma_int_handler(int irq, void *dev_id)
 	writel_relaxed(cfg, d->base + REG_ZX_CFG_ERR_IRQ_RAW);
 
 	if (task)
+	{
 		zx_dma_task(d);
+	}
+
 	return IRQ_HANDLED;
 }
 
@@ -332,8 +370,8 @@ static void zx_dma_free_chan_resources(struct dma_chan *chan)
 }
 
 static enum dma_status zx_dma_tx_status(struct dma_chan *chan,
-					dma_cookie_t cookie,
-					struct dma_tx_state *state)
+										dma_cookie_t cookie,
+										struct dma_tx_state *state)
 {
 	struct zx_dma_chan *c = to_zx_chan(chan);
 	struct zx_dma_phy *p;
@@ -343,8 +381,11 @@ static enum dma_status zx_dma_tx_status(struct dma_chan *chan,
 	size_t bytes = 0;
 
 	ret = dma_cookie_status(&c->vc.chan, cookie, state);
+
 	if (ret == DMA_COMPLETE || !state)
+	{
 		return ret;
+	}
 
 	spin_lock_irqsave(&c->vc.lock, flags);
 	p = c->phy;
@@ -355,24 +396,36 @@ static enum dma_status zx_dma_tx_status(struct dma_chan *chan,
 	 * its total size.
 	 */
 	vd = vchan_find_desc(&c->vc, cookie);
-	if (vd) {
+
+	if (vd)
+	{
 		bytes = container_of(vd, struct zx_dma_desc_sw, vd)->size;
-	} else if ((!p) || (!p->ds_run)) {
+	}
+	else if ((!p) || (!p->ds_run))
+	{
 		bytes = 0;
-	} else {
+	}
+	else
+	{
 		struct zx_dma_desc_sw *ds = p->ds_run;
 		u32 clli = 0, index = 0;
 
 		bytes = 0;
 		clli = zx_dma_get_curr_lli(p);
 		index = (clli - ds->desc_hw_lli) / sizeof(struct zx_desc_hw);
-		for (; index < ds->desc_num; index++) {
+
+		for (; index < ds->desc_num; index++)
+		{
 			bytes += ds->desc_hw[index].src_x;
+
 			/* end of lli */
 			if (!ds->desc_hw[index].lli)
+			{
 				break;
+			}
 		}
 	}
+
 	spin_unlock_irqrestore(&c->vc.lock, flags);
 	dma_set_residue(state, bytes);
 	return ret;
@@ -386,31 +439,42 @@ static void zx_dma_issue_pending(struct dma_chan *chan)
 	int issue = 0;
 
 	spin_lock_irqsave(&c->vc.lock, flags);
+
 	/* add request to vc->desc_issued */
-	if (vchan_issue_pending(&c->vc)) {
+	if (vchan_issue_pending(&c->vc))
+	{
 		spin_lock(&d->lock);
-		if (!c->phy && list_empty(&c->node)) {
+
+		if (!c->phy && list_empty(&c->node))
+		{
 			/* if new channel, add chan_pending */
 			list_add_tail(&c->node, &d->chan_pending);
 			issue = 1;
 			dev_dbg(d->slave.dev, "vchan %p: issued\n", &c->vc);
 		}
+
 		spin_unlock(&d->lock);
-	} else {
+	}
+	else
+	{
 		dev_dbg(d->slave.dev, "vchan %p: nothing to issue\n", &c->vc);
 	}
+
 	spin_unlock_irqrestore(&c->vc.lock, flags);
 
 	if (issue)
+	{
 		zx_dma_task(d);
+	}
 }
 
 static void zx_dma_fill_desc(struct zx_dma_desc_sw *ds, dma_addr_t dst,
-			     dma_addr_t src, size_t len, u32 num, u32 ccfg)
+							 dma_addr_t src, size_t len, u32 num, u32 ccfg)
 {
 	if ((num + 1) < ds->desc_num)
 		ds->desc_hw[num].lli = ds->desc_hw_lli + (num + 1) *
-			sizeof(struct zx_desc_hw);
+							   sizeof(struct zx_desc_hw);
+
 	ds->desc_hw[num].saddr = src;
 	ds->desc_hw[num].daddr = dst;
 	ds->desc_hw[num].src_x = len;
@@ -418,29 +482,36 @@ static void zx_dma_fill_desc(struct zx_dma_desc_sw *ds, dma_addr_t dst,
 }
 
 static struct zx_dma_desc_sw *zx_alloc_desc_resource(int num,
-						     struct dma_chan *chan)
+		struct dma_chan *chan)
 {
 	struct zx_dma_chan *c = to_zx_chan(chan);
 	struct zx_dma_desc_sw *ds;
 	struct zx_dma_dev *d = to_zx_dma(chan->device);
 	int lli_limit = LLI_BLOCK_SIZE / sizeof(struct zx_desc_hw);
 
-	if (num > lli_limit) {
+	if (num > lli_limit)
+	{
 		dev_dbg(chan->device->dev, "vch %p: sg num %d exceed max %d\n",
-			&c->vc, num, lli_limit);
+				&c->vc, num, lli_limit);
 		return NULL;
 	}
 
 	ds = kzalloc(sizeof(*ds), GFP_ATOMIC);
+
 	if (!ds)
+	{
 		return NULL;
+	}
 
 	ds->desc_hw = dma_pool_alloc(d->pool, GFP_NOWAIT, &ds->desc_hw_lli);
-	if (!ds->desc_hw) {
+
+	if (!ds->desc_hw)
+	{
 		dev_dbg(chan->device->dev, "vch %p: dma alloc fail\n", &c->vc);
 		kfree(ds);
 		return NULL;
 	}
+
 	memset(ds->desc_hw, 0, sizeof(struct zx_desc_hw) * num);
 	ds->desc_num = num;
 	return ds;
@@ -448,61 +519,68 @@ static struct zx_dma_desc_sw *zx_alloc_desc_resource(int num,
 
 static enum zx_dma_burst_width zx_dma_burst_width(enum dma_slave_buswidth width)
 {
-	switch (width) {
-	case DMA_SLAVE_BUSWIDTH_1_BYTE:
-	case DMA_SLAVE_BUSWIDTH_2_BYTES:
-	case DMA_SLAVE_BUSWIDTH_4_BYTES:
-	case DMA_SLAVE_BUSWIDTH_8_BYTES:
-		return ffs(width) - 1;
-	default:
-		return ZX_DMA_WIDTH_32BIT;
-	}
-}
+	switch (width)
+	{
+		case DMA_SLAVE_BUSWIDTH_1_BYTE:
+				case DMA_SLAVE_BUSWIDTH_2_BYTES:
+					case DMA_SLAVE_BUSWIDTH_4_BYTES:
+						case DMA_SLAVE_BUSWIDTH_8_BYTES:
+								return ffs(width) - 1;
 
-static int zx_pre_config(struct zx_dma_chan *c, enum dma_transfer_direction dir)
+			default:
+				return ZX_DMA_WIDTH_32BIT;
+		}
+	}
+
+	static int zx_pre_config(struct zx_dma_chan *c, enum dma_transfer_direction dir)
 {
 	struct dma_slave_config *cfg = &c->slave_cfg;
 	enum zx_dma_burst_width src_width;
 	enum zx_dma_burst_width dst_width;
 	u32 maxburst = 0;
 
-	switch (dir) {
-	case DMA_MEM_TO_MEM:
-		c->ccfg = ZX_CH_ENABLE | ZX_SOFT_REQ
-			| ZX_SRC_BURST_LEN(ZX_MAX_BURST_LEN - 1)
-			| ZX_SRC_BURST_WIDTH(ZX_DMA_WIDTH_32BIT)
-			| ZX_DST_BURST_WIDTH(ZX_DMA_WIDTH_32BIT);
-		break;
-	case DMA_MEM_TO_DEV:
-		c->dev_addr = cfg->dst_addr;
-		/* dst len is calculated from src width, len and dst width.
-		 * We need make sure dst len not exceed MAX LEN.
-		 * Trailing single transaction that does not fill a full
-		 * burst also require identical src/dst data width.
-		 */
-		dst_width = zx_dma_burst_width(cfg->dst_addr_width);
-		maxburst = cfg->dst_maxburst;
-		maxburst = maxburst < ZX_MAX_BURST_LEN ?
-				maxburst : ZX_MAX_BURST_LEN;
-		c->ccfg = ZX_DST_FIFO_MODE | ZX_CH_ENABLE
-			| ZX_SRC_BURST_LEN(maxburst - 1)
-			| ZX_SRC_BURST_WIDTH(dst_width)
-			| ZX_DST_BURST_WIDTH(dst_width);
-		break;
-	case DMA_DEV_TO_MEM:
-		c->dev_addr = cfg->src_addr;
-		src_width = zx_dma_burst_width(cfg->src_addr_width);
-		maxburst = cfg->src_maxburst;
-		maxburst = maxburst < ZX_MAX_BURST_LEN ?
-				maxburst : ZX_MAX_BURST_LEN;
-		c->ccfg = ZX_SRC_FIFO_MODE | ZX_CH_ENABLE
-			| ZX_SRC_BURST_LEN(maxburst - 1)
-			| ZX_SRC_BURST_WIDTH(src_width)
-			| ZX_DST_BURST_WIDTH(src_width);
-		break;
-	default:
-		return -EINVAL;
+	switch (dir)
+	{
+		case DMA_MEM_TO_MEM:
+			c->ccfg = ZX_CH_ENABLE | ZX_SOFT_REQ
+					  | ZX_SRC_BURST_LEN(ZX_MAX_BURST_LEN - 1)
+					  | ZX_SRC_BURST_WIDTH(ZX_DMA_WIDTH_32BIT)
+					  | ZX_DST_BURST_WIDTH(ZX_DMA_WIDTH_32BIT);
+			break;
+
+		case DMA_MEM_TO_DEV:
+			c->dev_addr = cfg->dst_addr;
+			/* dst len is calculated from src width, len and dst width.
+			 * We need make sure dst len not exceed MAX LEN.
+			 * Trailing single transaction that does not fill a full
+			 * burst also require identical src/dst data width.
+			 */
+			dst_width = zx_dma_burst_width(cfg->dst_addr_width);
+			maxburst = cfg->dst_maxburst;
+			maxburst = maxburst < ZX_MAX_BURST_LEN ?
+					   maxburst : ZX_MAX_BURST_LEN;
+			c->ccfg = ZX_DST_FIFO_MODE | ZX_CH_ENABLE
+					  | ZX_SRC_BURST_LEN(maxburst - 1)
+					  | ZX_SRC_BURST_WIDTH(dst_width)
+					  | ZX_DST_BURST_WIDTH(dst_width);
+			break;
+
+		case DMA_DEV_TO_MEM:
+			c->dev_addr = cfg->src_addr;
+			src_width = zx_dma_burst_width(cfg->src_addr_width);
+			maxburst = cfg->src_maxburst;
+			maxburst = maxburst < ZX_MAX_BURST_LEN ?
+					   maxburst : ZX_MAX_BURST_LEN;
+			c->ccfg = ZX_SRC_FIFO_MODE | ZX_CH_ENABLE
+					  | ZX_SRC_BURST_LEN(maxburst - 1)
+					  | ZX_SRC_BURST_WIDTH(src_width)
+					  | ZX_DST_BURST_WIDTH(src_width);
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -516,28 +594,37 @@ static struct dma_async_tx_descriptor *zx_dma_prep_memcpy(
 	int num = 0;
 
 	if (!len)
+	{
 		return NULL;
+	}
 
 	if (zx_pre_config(c, DMA_MEM_TO_MEM))
+	{
 		return NULL;
+	}
 
 	num = DIV_ROUND_UP(len, DMA_MAX_SIZE);
 
 	ds = zx_alloc_desc_resource(num, chan);
+
 	if (!ds)
+	{
 		return NULL;
+	}
 
 	ds->size = len;
 	num = 0;
 
-	do {
+	do
+	{
 		copy = min_t(size_t, len, DMA_MAX_SIZE);
 		zx_dma_fill_desc(ds, dst, src, copy, num++, c->ccfg);
 
 		src += copy;
 		dst += copy;
 		len -= copy;
-	} while (len);
+	}
+	while (len);
 
 	c->cyclic = 0;
 	ds->desc_hw[num - 1].lli = 0;	/* end of link */
@@ -557,35 +644,51 @@ static struct dma_async_tx_descriptor *zx_dma_prep_slave_sg(
 	int num = sglen, i;
 
 	if (!sgl)
+	{
 		return NULL;
+	}
 
 	if (zx_pre_config(c, dir))
+	{
 		return NULL;
+	}
 
-	for_each_sg(sgl, sg, sglen, i) {
+	for_each_sg(sgl, sg, sglen, i)
+	{
 		avail = sg_dma_len(sg);
+
 		if (avail > DMA_MAX_SIZE)
+		{
 			num += DIV_ROUND_UP(avail, DMA_MAX_SIZE) - 1;
+		}
 	}
 
 	ds = zx_alloc_desc_resource(num, chan);
+
 	if (!ds)
+	{
 		return NULL;
+	}
 
 	c->cyclic = 0;
 	num = 0;
-	for_each_sg(sgl, sg, sglen, i) {
+	for_each_sg(sgl, sg, sglen, i)
+	{
 		addr = sg_dma_address(sg);
 		avail = sg_dma_len(sg);
 		total += avail;
 
-		do {
+		do
+		{
 			len = min_t(size_t, avail, DMA_MAX_SIZE);
 
-			if (dir == DMA_MEM_TO_DEV) {
+			if (dir == DMA_MEM_TO_DEV)
+			{
 				src = addr;
 				dst = c->dev_addr;
-			} else if (dir == DMA_DEV_TO_MEM) {
+			}
+			else if (dir == DMA_DEV_TO_MEM)
+			{
 				src = c->dev_addr;
 				dst = addr;
 			}
@@ -594,7 +697,8 @@ static struct dma_async_tx_descriptor *zx_dma_prep_slave_sg(
 
 			addr += len;
 			avail -= len;
-		} while (avail);
+		}
+		while (avail);
 	}
 
 	ds->desc_hw[num - 1].lli = 0;	/* end of link */
@@ -604,9 +708,9 @@ static struct dma_async_tx_descriptor *zx_dma_prep_slave_sg(
 }
 
 static struct dma_async_tx_descriptor *zx_dma_prep_dma_cyclic(
-		struct dma_chan *chan, dma_addr_t dma_addr, size_t buf_len,
-		size_t period_len, enum dma_transfer_direction dir,
-		unsigned long flags)
+	struct dma_chan *chan, dma_addr_t dma_addr, size_t buf_len,
+	size_t period_len, enum dma_transfer_direction dir,
+	unsigned long flags)
 {
 	struct zx_dma_chan *c = to_zx_chan(chan);
 	struct zx_dma_desc_sw *ds;
@@ -614,29 +718,41 @@ static struct dma_async_tx_descriptor *zx_dma_prep_dma_cyclic(
 	int num_periods = buf_len / period_len;
 	int buf = 0, num = 0;
 
-	if (period_len > DMA_MAX_SIZE) {
+	if (period_len > DMA_MAX_SIZE)
+	{
 		dev_err(chan->device->dev, "maximum period size exceeded\n");
 		return NULL;
 	}
 
 	if (zx_pre_config(c, dir))
+	{
 		return NULL;
+	}
 
 	ds = zx_alloc_desc_resource(num_periods, chan);
+
 	if (!ds)
+	{
 		return NULL;
+	}
+
 	c->cyclic = 1;
 
-	while (buf < buf_len) {
-		if (dir == DMA_MEM_TO_DEV) {
+	while (buf < buf_len)
+	{
+		if (dir == DMA_MEM_TO_DEV)
+		{
 			src = dma_addr;
 			dst = c->dev_addr;
-		} else if (dir == DMA_DEV_TO_MEM) {
+		}
+		else if (dir == DMA_DEV_TO_MEM)
+		{
 			src = c->dev_addr;
 			dst = dma_addr;
 		}
+
 		zx_dma_fill_desc(ds, dst, src, period_len, num++,
-				 c->ccfg | ZX_IRQ_ENABLE_ALL);
+						 c->ccfg | ZX_IRQ_ENABLE_ALL);
 		dma_addr += period_len;
 		buf += period_len;
 	}
@@ -647,12 +763,14 @@ static struct dma_async_tx_descriptor *zx_dma_prep_dma_cyclic(
 }
 
 static int zx_dma_config(struct dma_chan *chan,
-			 struct dma_slave_config *cfg)
+						 struct dma_slave_config *cfg)
 {
 	struct zx_dma_chan *c = to_zx_chan(chan);
 
 	if (!cfg)
+	{
 		return -EINVAL;
+	}
 
 	memcpy(&c->slave_cfg, cfg, sizeof(*cfg));
 
@@ -677,7 +795,9 @@ static int zx_dma_terminate_all(struct dma_chan *chan)
 	/* Clear the tx descriptor lists */
 	spin_lock_irqsave(&c->vc.lock, flags);
 	vchan_get_all_descriptors(&c->vc, &head);
-	if (p) {
+
+	if (p)
+	{
 		/* vchan is assigned to a pchan - stop the channel */
 		zx_dma_terminate_chan(p, d);
 		c->phy = NULL;
@@ -685,6 +805,7 @@ static int zx_dma_terminate_all(struct dma_chan *chan)
 		p->ds_run = NULL;
 		p->ds_done = NULL;
 	}
+
 	spin_unlock_irqrestore(&c->vc.lock, flags);
 	vchan_dma_desc_free_list(&c->vc, &head);
 
@@ -725,14 +846,15 @@ static void zx_dma_free_desc(struct virt_dma_desc *vd)
 	kfree(ds);
 }
 
-static const struct of_device_id zx6702_dma_dt_ids[] = {
+static const struct of_device_id zx6702_dma_dt_ids[] =
+{
 	{ .compatible = "zte,zx296702-dma", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, zx6702_dma_dt_ids);
 
 static struct dma_chan *zx_of_dma_simple_xlate(struct of_phandle_args *dma_spec,
-					       struct of_dma *ofdma)
+		struct of_dma *ofdma)
 {
 	struct zx_dma_dev *d = ofdma->of_dma_data;
 	unsigned int request = dma_spec->args[0];
@@ -740,17 +862,22 @@ static struct dma_chan *zx_of_dma_simple_xlate(struct of_phandle_args *dma_spec,
 	struct zx_dma_chan *c;
 
 	if (request >= d->dma_requests)
+	{
 		return NULL;
+	}
 
 	chan = dma_get_any_slave_channel(&d->slave);
-	if (!chan) {
+
+	if (!chan)
+	{
 		dev_err(d->slave.dev, "get channel fail in %s.\n", __func__);
 		return NULL;
 	}
+
 	c = to_zx_chan(chan);
 	c->id = request;
 	dev_info(d->slave.dev, "zx_dma: pchan %u: alloc vchan %p\n",
-		 c->id, &c->vc);
+			 c->id, &c->vc);
 	return chan;
 }
 
@@ -761,49 +888,73 @@ static int zx_dma_probe(struct platform_device *op)
 	int i, ret = 0;
 
 	iores = platform_get_resource(op, IORESOURCE_MEM, 0);
+
 	if (!iores)
+	{
 		return -EINVAL;
+	}
 
 	d = devm_kzalloc(&op->dev, sizeof(*d), GFP_KERNEL);
+
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	d->base = devm_ioremap_resource(&op->dev, iores);
+
 	if (IS_ERR(d->base))
+	{
 		return PTR_ERR(d->base);
+	}
 
 	of_property_read_u32((&op->dev)->of_node,
-			     "dma-channels", &d->dma_channels);
+						 "dma-channels", &d->dma_channels);
 	of_property_read_u32((&op->dev)->of_node,
-			     "dma-requests", &d->dma_requests);
+						 "dma-requests", &d->dma_requests);
+
 	if (!d->dma_requests || !d->dma_channels)
+	{
 		return -EINVAL;
+	}
 
 	d->clk = devm_clk_get(&op->dev, NULL);
-	if (IS_ERR(d->clk)) {
+
+	if (IS_ERR(d->clk))
+	{
 		dev_err(&op->dev, "no dma clk\n");
 		return PTR_ERR(d->clk);
 	}
 
 	d->irq = platform_get_irq(op, 0);
 	ret = devm_request_irq(&op->dev, d->irq, zx_dma_int_handler,
-			       0, DRIVER_NAME, d);
+						   0, DRIVER_NAME, d);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* A DMA memory pool for LLIs, align on 32-byte boundary */
 	d->pool = dmam_pool_create(DRIVER_NAME, &op->dev,
-			LLI_BLOCK_SIZE, 32, 0);
+							   LLI_BLOCK_SIZE, 32, 0);
+
 	if (!d->pool)
+	{
 		return -ENOMEM;
+	}
 
 	/* init phy channel */
 	d->phy = devm_kzalloc(&op->dev,
-		d->dma_channels * sizeof(struct zx_dma_phy), GFP_KERNEL);
-	if (!d->phy)
-		return -ENOMEM;
+						  d->dma_channels * sizeof(struct zx_dma_phy), GFP_KERNEL);
 
-	for (i = 0; i < d->dma_channels; i++) {
+	if (!d->phy)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < d->dma_channels; i++)
+	{
 		struct zx_dma_phy *p = &d->phy[i];
 
 		p->idx = i;
@@ -829,16 +980,20 @@ static int zx_dma_probe(struct platform_device *op)
 	d->slave.src_addr_widths = ZX_DMA_BUSWIDTHS;
 	d->slave.dst_addr_widths = ZX_DMA_BUSWIDTHS;
 	d->slave.directions = BIT(DMA_MEM_TO_MEM) | BIT(DMA_MEM_TO_DEV)
-			| BIT(DMA_DEV_TO_MEM);
+						  | BIT(DMA_DEV_TO_MEM);
 	d->slave.residue_granularity = DMA_RESIDUE_GRANULARITY_SEGMENT;
 
 	/* init virtual channel */
 	d->chans = devm_kzalloc(&op->dev,
-		d->dma_requests * sizeof(struct zx_dma_chan), GFP_KERNEL);
-	if (!d->chans)
-		return -ENOMEM;
+							d->dma_requests * sizeof(struct zx_dma_chan), GFP_KERNEL);
 
-	for (i = 0; i < d->dma_requests; i++) {
+	if (!d->chans)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < d->dma_requests; i++)
+	{
 		struct zx_dma_chan *c = &d->chans[i];
 
 		c->status = DMA_IN_PROGRESS;
@@ -849,7 +1004,9 @@ static int zx_dma_probe(struct platform_device *op)
 
 	/* Enable clock before accessing registers */
 	ret = clk_prepare_enable(d->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&op->dev, "clk_prepare_enable failed: %d\n", ret);
 		goto zx_dma_out;
 	}
@@ -861,13 +1018,19 @@ static int zx_dma_probe(struct platform_device *op)
 	platform_set_drvdata(op, d);
 
 	ret = dma_async_device_register(&d->slave);
+
 	if (ret)
+	{
 		goto clk_dis;
+	}
 
 	ret = of_dma_controller_register((&op->dev)->of_node,
-					 zx_of_dma_simple_xlate, d);
+									 zx_of_dma_simple_xlate, d);
+
 	if (ret)
+	{
 		goto of_dma_register_fail;
+	}
 
 	dev_info(&op->dev, "initialized\n");
 	return 0;
@@ -892,7 +1055,8 @@ static int zx_dma_remove(struct platform_device *op)
 	of_dma_controller_free((&op->dev)->of_node);
 
 	list_for_each_entry_safe(c, cn, &d->slave.channels,
-				 vc.chan.device_node) {
+							 vc.chan.device_node)
+	{
 		list_del(&c->vc.chan.device_node);
 	}
 	clk_disable_unprepare(d->clk);
@@ -908,11 +1072,14 @@ static int zx_dma_suspend_dev(struct device *dev)
 	u32 stat = 0;
 
 	stat = zx_dma_get_chan_stat(d);
-	if (stat) {
+
+	if (stat)
+	{
 		dev_warn(d->slave.dev,
-			 "chan %d is running fail to suspend\n", stat);
+				 "chan %d is running fail to suspend\n", stat);
 		return -1;
 	}
+
 	clk_disable_unprepare(d->clk);
 	return 0;
 }
@@ -923,10 +1090,13 @@ static int zx_dma_resume_dev(struct device *dev)
 	int ret = 0;
 
 	ret = clk_prepare_enable(d->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(d->slave.dev, "clk_prepare_enable failed: %d\n", ret);
 		return ret;
 	}
+
 	zx_dma_init_state(d);
 	return 0;
 }
@@ -934,7 +1104,8 @@ static int zx_dma_resume_dev(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(zx_dma_pmops, zx_dma_suspend_dev, zx_dma_resume_dev);
 
-static struct platform_driver zx_pdma_driver = {
+static struct platform_driver zx_pdma_driver =
+{
 	.driver		= {
 		.name	= DRIVER_NAME,
 		.pm	= &zx_dma_pmops,

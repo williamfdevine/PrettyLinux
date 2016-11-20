@@ -5,7 +5,7 @@
 #include <linux/time.h>
 #include "isofs.h"
 
-/* 
+/*
  * We have to convert from a MM/DD/YY format to the Unix ctime format.
  * We have to take into account leap years and all of that good stuff.
  * Unfortunately, the kernel does not have the information on hand to
@@ -15,7 +15,7 @@
  * to GMT.  Thus  we should always be correct.
  */
 
-int iso_date(char * p, int flag)
+int iso_date(char *p, int flag)
 {
 	int year, month, day, hour, minute, second, tz;
 	int crtime;
@@ -26,19 +26,25 @@ int iso_date(char * p, int flag)
 	hour = p[3];
 	minute = p[4];
 	second = p[5];
-	if (flag == 0) tz = p[6]; /* High sierra has no time zone */
-	else tz = 0;
-	
-	if (year < 0) {
+
+	if (flag == 0) { tz = p[6]; } /* High sierra has no time zone */
+	else { tz = 0; }
+
+	if (year < 0)
+	{
 		crtime = 0;
-	} else {
-		crtime = mktime64(year+1900, month, day, hour, minute, second);
+	}
+	else
+	{
+		crtime = mktime64(year + 1900, month, day, hour, minute, second);
 
 		/* sign extend */
 		if (tz & 0x80)
+		{
 			tz |= (-1 << 8);
-		
-		/* 
+		}
+
+		/*
 		 * The timezone offset is unreliable on some disks,
 		 * so we make a sanity check.  In no case is it ever
 		 * more than 13 hours from GMT, which is 52*15min.
@@ -64,7 +70,10 @@ int iso_date(char * p, int flag)
 		 * for pointing out the sign error.
 		 */
 		if (-52 <= tz && tz <= 52)
+		{
 			crtime -= tz * 15 * 60;
+		}
 	}
+
 	return crtime;
-}		
+}

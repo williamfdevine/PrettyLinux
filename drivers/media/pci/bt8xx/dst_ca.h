@@ -49,7 +49,8 @@
 #define CA_LIST_MORE		0x9f880d
 
 
-struct dst_ca_private {
+struct dst_ca_private
+{
 	struct dst_state *dst;
 	struct dvb_device *dvbdev;
 };

@@ -31,7 +31,8 @@ static int victim_child(union pipe read_pipe, union pipe write_pipe)
 
 	FAIL_IF(notify_parent(write_pipe));
 
-	while (ebb_state.stats.ebb_count < 20) {
+	while (ebb_state.stats.ebb_count < 20)
+	{
 		FAIL_IF(core_busy_loop());
 	}
 
@@ -60,7 +61,9 @@ int ebb_on_willing_child(void)
 	FAIL_IF(pipe(write_pipe.fds) == -1);
 
 	pid = fork();
-	if (pid == 0) {
+
+	if (pid == 0)
+	{
 		/* NB order of pipes looks reversed */
 		exit(victim_child(write_pipe, read_pipe));
 	}

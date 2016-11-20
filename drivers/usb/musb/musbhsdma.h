@@ -40,25 +40,25 @@
 #define MUSB_HSDMA_COUNT		0xc
 
 #define MUSB_HSDMA_CHANNEL_OFFSET(_bchannel, _offset)		\
-		(MUSB_HSDMA_BASE + (_bchannel << 4) + _offset)
+	(MUSB_HSDMA_BASE + (_bchannel << 4) + _offset)
 
 #define musb_read_hsdma_addr(mbase, bchannel)	\
 	musb_readl(mbase,	\
-		   MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_ADDRESS))
+			   MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_ADDRESS))
 
 #define musb_write_hsdma_addr(mbase, bchannel, addr) \
 	musb_writel(mbase, \
-		    MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_ADDRESS), \
-		    addr)
+				MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_ADDRESS), \
+				addr)
 
 #define musb_read_hsdma_count(mbase, bchannel)	\
 	musb_readl(mbase,	\
-		   MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_COUNT))
+			   MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_COUNT))
 
 #define musb_write_hsdma_count(mbase, bchannel, len) \
 	musb_writel(mbase, \
-		    MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_COUNT), \
-		    len)
+				MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_COUNT), \
+				len)
 #else
 
 #define MUSB_HSDMA_BASE		0x400
@@ -70,53 +70,53 @@
 #define MUSB_HSDMA_COUNT_HIGH		0x14
 
 #define MUSB_HSDMA_CHANNEL_OFFSET(_bchannel, _offset)		\
-		(MUSB_HSDMA_BASE + (_bchannel * 0x20) + _offset)
+	(MUSB_HSDMA_BASE + (_bchannel * 0x20) + _offset)
 
 static inline u32 musb_read_hsdma_addr(void __iomem *mbase, u8 bchannel)
 {
 	u32 addr = musb_readw(mbase,
-		MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_ADDR_HIGH));
+						  MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_ADDR_HIGH));
 
 	addr = addr << 16;
 
 	addr |= musb_readw(mbase,
-		MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_ADDR_LOW));
+					   MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_ADDR_LOW));
 
 	return addr;
 }
 
 static inline void musb_write_hsdma_addr(void __iomem *mbase,
-				u8 bchannel, dma_addr_t dma_addr)
+		u8 bchannel, dma_addr_t dma_addr)
 {
 	musb_writew(mbase,
-		MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_ADDR_LOW),
-		dma_addr);
+				MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_ADDR_LOW),
+				dma_addr);
 	musb_writew(mbase,
-		MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_ADDR_HIGH),
-		(dma_addr >> 16));
+				MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_ADDR_HIGH),
+				(dma_addr >> 16));
 }
 
 static inline u32 musb_read_hsdma_count(void __iomem *mbase, u8 bchannel)
 {
 	u32 count = musb_readw(mbase,
-		MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_COUNT_HIGH));
+						   MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_COUNT_HIGH));
 
 	count = count << 16;
 
 	count |= musb_readw(mbase,
-		MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_COUNT_LOW));
+						MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_COUNT_LOW));
 
 	return count;
 }
 
 static inline void musb_write_hsdma_count(void __iomem *mbase,
-				u8 bchannel, u32 len)
+		u8 bchannel, u32 len)
 {
 	musb_writew(mbase,
-		MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_COUNT_LOW),len);
+				MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_COUNT_LOW), len);
 	musb_writew(mbase,
-		MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_COUNT_HIGH),
-		(len >> 16));
+				MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_COUNT_HIGH),
+				(len >> 16));
 }
 
 #endif /* CONFIG_BLACKFIN */
@@ -139,7 +139,8 @@ static inline void musb_write_hsdma_count(void __iomem *mbase,
 
 struct musb_dma_controller;
 
-struct musb_dma_channel {
+struct musb_dma_channel
+{
 	struct dma_channel		channel;
 	struct musb_dma_controller	*controller;
 	u32				start_addr;
@@ -150,7 +151,8 @@ struct musb_dma_channel {
 	u8				transmit;
 };
 
-struct musb_dma_controller {
+struct musb_dma_controller
+{
 	struct dma_controller		controller;
 	struct musb_dma_channel		channel[MUSB_HSDMA_CHANNELS];
 	void				*private_data;

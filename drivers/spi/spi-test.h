@@ -79,15 +79,16 @@
  *                    (used in some of the @fill_options)
  */
 
-struct spi_test {
+struct spi_test
+{
 	char description[64];
 	struct spi_message msg;
 	struct spi_transfer transfers[SPI_TEST_MAX_TRANSFERS];
 	unsigned int transfer_count;
 	int (*run_test)(struct spi_device *spi, struct spi_test *test,
-			void *tx, void *rx);
+					void *tx, void *rx);
 	int (*execute_msg)(struct spi_device *spi, struct spi_test *test,
-			   void *tx, void *rx);
+					   void *tx, void *rx);
 	int expected_return;
 	/* iterate over all the non-zero values */
 	int iterate_len[SPI_TEST_MAX_ITERATE];
@@ -114,21 +115,21 @@ struct spi_test {
 
 /* default implementation for @spi_test.run_test */
 int spi_test_run_test(struct spi_device *spi,
-		      const struct spi_test *test,
-		      void *tx, void *rx);
+					  const struct spi_test *test,
+					  void *tx, void *rx);
 
 /* default implementation for @spi_test.execute_msg */
 int spi_test_execute_msg(struct spi_device *spi,
-			 struct spi_test *test,
-			 void *tx, void *rx);
+						 struct spi_test *test,
+						 void *tx, void *rx);
 
 /* function to execute a set of tests */
 int spi_test_run_tests(struct spi_device *spi,
-		       struct spi_test *tests);
+					   struct spi_test *tests);
 
 /* some of the default @spi_transfer.len to test */
 #define ITERATE_LEN 2, 3, 7, 11, 16, 31, 32, 64, 97, 128, 251, 256, \
-		1021, 1024, 1031, 4093, PAGE_SIZE, 4099, 65536, 65537
+	1021, 1024, 1031, 4093, PAGE_SIZE, 4099, 65536, 65537
 
 #define ITERATE_MAX_LEN ITERATE_LEN, SPI_TEST_MAX_SIZE - 1, SPI_TEST_MAX_SIZE
 

@@ -24,7 +24,8 @@
  * @i: real part of coordinate (in phase).
  * @q: imaginary part of coordinate (quadrature).
  */
-struct cordic_iq {
+struct cordic_iq
+{
 	s32 i;
 	s32 q;
 };

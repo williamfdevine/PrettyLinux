@@ -74,7 +74,8 @@
 #define CY_MAX_FINGER			4
 #define CY_MAX_ID			16
 
-static const u8 bl_command[] = {
+static const u8 bl_command[] =
+{
 	0x00,			/* file offset */
 	0xFF,			/* command */
 	0xA5,			/* exit bootloader command */
@@ -82,16 +83,20 @@ static const u8 bl_command[] = {
 };
 
 static int ttsp_read_block_data(struct cyttsp *ts, u8 command,
-				u8 length, void *buf)
+								u8 length, void *buf)
 {
 	int error;
 	int tries;
 
-	for (tries = 0; tries < CY_NUM_RETRY; tries++) {
+	for (tries = 0; tries < CY_NUM_RETRY; tries++)
+	{
 		error = ts->bus_ops->read(ts->dev, ts->xfer_buf, command,
-				length, buf);
+								  length, buf);
+
 		if (!error)
+		{
 			return 0;
+		}
 
 		msleep(CY_DELAY_DFLT);
 	}
@@ -100,16 +105,20 @@ static int ttsp_read_block_data(struct cyttsp *ts, u8 command,
 }
 
 static int ttsp_write_block_data(struct cyttsp *ts, u8 command,
-				 u8 length, void *buf)
+								 u8 length, void *buf)
 {
 	int error;
 	int tries;
 
-	for (tries = 0; tries < CY_NUM_RETRY; tries++) {
+	for (tries = 0; tries < CY_NUM_RETRY; tries++)
+	{
 		error = ts->bus_ops->write(ts->dev, ts->xfer_buf, command,
-				length, buf);
+								   length, buf);
+
 		if (!error)
+		{
 			return 0;
+		}
 
 		msleep(CY_DELAY_DFLT);
 	}
@@ -126,7 +135,7 @@ static int cyttsp_handshake(struct cyttsp *ts)
 {
 	if (ts->use_hndshk)
 		return ttsp_send_command(ts,
-				ts->xy_data.hst_mode ^ CY_HNDSHK_BIT);
+								 ts->xy_data.hst_mode ^ CY_HNDSHK_BIT);
 
 	return 0;
 }
@@ -137,7 +146,7 @@ static int cyttsp_load_bl_regs(struct cyttsp *ts)
 	ts->bl_data.bl_status = 0x10;
 
 	return ttsp_read_block_data(ts, CY_REG_BASE,
-				    sizeof(ts->bl_data), &ts->bl_data);
+								sizeof(ts->bl_data), &ts->bl_data);
 }
 
 static int cyttsp_exit_bl_mode(struct cyttsp *ts)
@@ -146,24 +155,33 @@ static int cyttsp_exit_bl_mode(struct cyttsp *ts)
 	u8 bl_cmd[sizeof(bl_command)];
 
 	memcpy(bl_cmd, bl_command, sizeof(bl_command));
+
 	if (ts->bl_keys)
 		memcpy(&bl_cmd[sizeof(bl_command) - CY_NUM_BL_KEYS],
-			ts->bl_keys, CY_NUM_BL_KEYS);
+			   ts->bl_keys, CY_NUM_BL_KEYS);
 
 	error = ttsp_write_block_data(ts, CY_REG_BASE,
-				      sizeof(bl_cmd), bl_cmd);
+								  sizeof(bl_cmd), bl_cmd);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* wait for TTSP Device to complete the operation */
 	msleep(CY_DELAY_DFLT);
 
 	error = cyttsp_load_bl_regs(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	if (GET_BOOTLOADERMODE(ts->bl_data.bl_status))
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -173,18 +191,27 @@ static int cyttsp_set_operational_mode(struct cyttsp *ts)
 	int error;
 
 	error = ttsp_send_command(ts, CY_OPERATE_MODE);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* wait for TTSP Device to complete switch to Operational mode */
 	error = ttsp_read_block_data(ts, CY_REG_BASE,
-				     sizeof(ts->xy_data), &ts->xy_data);
+								 sizeof(ts->xy_data), &ts->xy_data);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = cyttsp_handshake(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	return ts->xy_data.act_dist == CY_ACT_DIST_DFLT ? -EIO : 0;
 }
@@ -197,22 +224,33 @@ static int cyttsp_set_sysinfo_mode(struct cyttsp *ts)
 
 	/* switch to sysinfo mode */
 	error = ttsp_send_command(ts, CY_SYSINFO_MODE);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* read sysinfo registers */
 	msleep(CY_DELAY_DFLT);
 	error = ttsp_read_block_data(ts, CY_REG_BASE, sizeof(ts->sysinfo_data),
-				      &ts->sysinfo_data);
+								 &ts->sysinfo_data);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = cyttsp_handshake(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	if (!ts->sysinfo_data.tts_verh && !ts->sysinfo_data.tts_verl)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -222,10 +260,12 @@ static int cyttsp_set_sysinfo_regs(struct cyttsp *ts)
 	int retval = 0;
 
 	if (ts->act_intrvl != CY_ACT_INTRVL_DFLT ||
-	    ts->tch_tmout != CY_TCH_TMOUT_DFLT ||
-	    ts->lp_intrvl != CY_LP_INTRVL_DFLT) {
+		ts->tch_tmout != CY_TCH_TMOUT_DFLT ||
+		ts->lp_intrvl != CY_LP_INTRVL_DFLT)
+	{
 
-		u8 intrvl_ray[] = {
+		u8 intrvl_ray[] =
+		{
 			ts->act_intrvl,
 			ts->tch_tmout,
 			ts->lp_intrvl
@@ -233,7 +273,7 @@ static int cyttsp_set_sysinfo_regs(struct cyttsp *ts)
 
 		/* set intrvl registers */
 		retval = ttsp_write_block_data(ts, CY_REG_ACT_INTRVL,
-					sizeof(intrvl_ray), intrvl_ray);
+									   sizeof(intrvl_ray), intrvl_ray);
 		msleep(CY_DELAY_DFLT);
 	}
 
@@ -242,7 +282,8 @@ static int cyttsp_set_sysinfo_regs(struct cyttsp *ts)
 
 static void cyttsp_hard_reset(struct cyttsp *ts)
 {
-	if (ts->reset_gpio) {
+	if (ts->reset_gpio)
+	{
 		gpiod_set_value_cansleep(ts->reset_gpio, 1);
 		msleep(CY_DELAY_DFLT);
 		gpiod_set_value_cansleep(ts->reset_gpio, 0);
@@ -262,11 +303,14 @@ static int cyttsp_soft_reset(struct cyttsp *ts)
 	enable_irq(ts->irq);
 
 	retval = ttsp_send_command(ts, CY_SOFT_RESET_MODE);
+
 	if (retval)
+	{
 		goto out;
+	}
 
 	timeout = wait_for_completion_timeout(&ts->bl_ready,
-			msecs_to_jiffies(CY_DELAY_DFLT * CY_DELAY_MAX));
+										  msecs_to_jiffies(CY_DELAY_DFLT * CY_DELAY_MAX));
 	retval = timeout ? 0 : -EIO;
 
 out:
@@ -281,7 +325,7 @@ static int cyttsp_act_dist_setup(struct cyttsp *ts)
 
 	/* Init gesture; active distance setup */
 	return ttsp_write_block_data(ts, CY_REG_ACT_DIST,
-				sizeof(act_dist_setup), &act_dist_setup);
+								 sizeof(act_dist_setup), &act_dist_setup);
 }
 
 static void cyttsp_extract_track_ids(struct cyttsp_xydata *xy_data, int *ids)
@@ -293,19 +337,24 @@ static void cyttsp_extract_track_ids(struct cyttsp_xydata *xy_data, int *ids)
 }
 
 static const struct cyttsp_tch *cyttsp_get_tch(struct cyttsp_xydata *xy_data,
-					       int idx)
+		int idx)
 {
-	switch (idx) {
-	case 0:
-		return &xy_data->tch1;
-	case 1:
-		return &xy_data->tch2;
-	case 2:
-		return &xy_data->tch3;
-	case 3:
-		return &xy_data->tch4;
-	default:
-		return NULL;
+	switch (idx)
+	{
+		case 0:
+			return &xy_data->tch1;
+
+		case 1:
+			return &xy_data->tch2;
+
+		case 2:
+			return &xy_data->tch3;
+
+		case 3:
+			return &xy_data->tch4;
+
+		default:
+			return NULL;
 	}
 }
 
@@ -319,15 +368,20 @@ static void cyttsp_report_tchdata(struct cyttsp *ts)
 	int i;
 	DECLARE_BITMAP(used, CY_MAX_ID);
 
-	if (IS_LARGE_AREA(xy_data->tt_stat) == 1) {
+	if (IS_LARGE_AREA(xy_data->tt_stat) == 1)
+	{
 		/* terminate all active tracks */
 		num_tch = 0;
 		dev_dbg(ts->dev, "%s: Large area detected\n", __func__);
-	} else if (num_tch > CY_MAX_FINGER) {
+	}
+	else if (num_tch > CY_MAX_FINGER)
+	{
 		/* terminate all active tracks */
 		num_tch = 0;
 		dev_dbg(ts->dev, "%s: Num touch error detected\n", __func__);
-	} else if (IS_BAD_PKT(xy_data->tt_mode)) {
+	}
+	else if (IS_BAD_PKT(xy_data->tt_mode))
+	{
 		/* terminate all active tracks */
 		num_tch = 0;
 		dev_dbg(ts->dev, "%s: Invalid buffer detected\n", __func__);
@@ -337,7 +391,8 @@ static void cyttsp_report_tchdata(struct cyttsp *ts)
 
 	bitmap_zero(used, CY_MAX_ID);
 
-	for (i = 0; i < num_tch; i++) {
+	for (i = 0; i < num_tch; i++)
+	{
 		tch = cyttsp_get_tch(xy_data, i);
 
 		input_mt_slot(input, ids[i]);
@@ -349,9 +404,12 @@ static void cyttsp_report_tchdata(struct cyttsp *ts)
 		__set_bit(ids[i], used);
 	}
 
-	for (i = 0; i < CY_MAX_ID; i++) {
+	for (i = 0; i < CY_MAX_ID; i++)
+	{
 		if (test_bit(i, used))
+		{
 			continue;
+		}
 
 		input_mt_slot(input, i);
 		input_mt_report_slot_state(input, MT_TOOL_FINGER, false);
@@ -365,38 +423,52 @@ static irqreturn_t cyttsp_irq(int irq, void *handle)
 	struct cyttsp *ts = handle;
 	int error;
 
-	if (unlikely(ts->state == CY_BL_STATE)) {
+	if (unlikely(ts->state == CY_BL_STATE))
+	{
 		complete(&ts->bl_ready);
 		goto out;
 	}
 
 	/* Get touch data from CYTTSP device */
 	error = ttsp_read_block_data(ts, CY_REG_BASE,
-				 sizeof(struct cyttsp_xydata), &ts->xy_data);
+								 sizeof(struct cyttsp_xydata), &ts->xy_data);
+
 	if (error)
+	{
 		goto out;
+	}
 
 	/* provide flow control handshake */
 	error = cyttsp_handshake(ts);
+
 	if (error)
+	{
 		goto out;
+	}
 
 	if (unlikely(ts->state == CY_IDLE_STATE))
+	{
 		goto out;
+	}
 
-	if (GET_BOOTLOADERMODE(ts->xy_data.tt_mode)) {
+	if (GET_BOOTLOADERMODE(ts->xy_data.tt_mode))
+	{
 		/*
 		 * TTSP device has reset back to bootloader mode.
 		 * Restore to operational mode.
 		 */
 		error = cyttsp_exit_bl_mode(ts);
-		if (error) {
+
+		if (error)
+		{
 			dev_err(ts->dev,
-				"Could not return to operational mode, err: %d\n",
-				error);
+					"Could not return to operational mode, err: %d\n",
+					error);
 			ts->state = CY_IDLE_STATE;
 		}
-	} else {
+	}
+	else
+	{
 		cyttsp_report_tchdata(ts);
 	}
 
@@ -409,41 +481,64 @@ static int cyttsp_power_on(struct cyttsp *ts)
 	int error;
 
 	error = cyttsp_soft_reset(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = cyttsp_load_bl_regs(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	if (GET_BOOTLOADERMODE(ts->bl_data.bl_status) &&
-	    IS_VALID_APP(ts->bl_data.bl_status)) {
+		IS_VALID_APP(ts->bl_data.bl_status))
+	{
 		error = cyttsp_exit_bl_mode(ts);
+
 		if (error)
+		{
 			return error;
+		}
 	}
 
 	if (GET_HSTMODE(ts->bl_data.bl_file) != CY_OPERATE_MODE ||
-	    IS_OPERATIONAL_ERR(ts->bl_data.bl_status)) {
+		IS_OPERATIONAL_ERR(ts->bl_data.bl_status))
+	{
 		return -ENODEV;
 	}
 
 	error = cyttsp_set_sysinfo_mode(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = cyttsp_set_sysinfo_regs(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = cyttsp_set_operational_mode(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* init active distance */
 	error = cyttsp_act_dist_setup(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	ts->state = CY_ACTIVE_STATE;
 
@@ -461,12 +556,17 @@ static int cyttsp_enable(struct cyttsp *ts)
 	 * will wake it up making the second read attempt successful.
 	 */
 	error = ttsp_read_block_data(ts, CY_REG_BASE,
-				     sizeof(ts->xy_data), &ts->xy_data);
+								 sizeof(ts->xy_data), &ts->xy_data);
+
 	if (error)
+	{
 		return error;
+	}
 
 	if (GET_HSTMODE(ts->xy_data.hst_mode))
+	{
 		return -EIO;
+	}
 
 	enable_irq(ts->irq);
 
@@ -478,8 +578,11 @@ static int cyttsp_disable(struct cyttsp *ts)
 	int error;
 
 	error = ttsp_send_command(ts, CY_LOW_POWER_MODE);
+
 	if (error)
+	{
 		return error;
+	}
 
 	disable_irq(ts->irq);
 
@@ -493,10 +596,14 @@ static int __maybe_unused cyttsp_suspend(struct device *dev)
 
 	mutex_lock(&ts->input->mutex);
 
-	if (ts->input->users) {
+	if (ts->input->users)
+	{
 		retval = cyttsp_disable(ts);
+
 		if (retval == 0)
+		{
 			ts->suspended = true;
+		}
 	}
 
 	mutex_unlock(&ts->input->mutex);
@@ -511,7 +618,9 @@ static int __maybe_unused cyttsp_resume(struct device *dev)
 	mutex_lock(&ts->input->mutex);
 
 	if (ts->input->users)
+	{
 		cyttsp_enable(ts);
+	}
 
 	ts->suspended = false;
 
@@ -529,7 +638,9 @@ static int cyttsp_open(struct input_dev *dev)
 	int retval = 0;
 
 	if (!ts->suspended)
+	{
 		retval = cyttsp_enable(ts);
+	}
 
 	return retval;
 }
@@ -539,7 +650,9 @@ static void cyttsp_close(struct input_dev *dev)
 	struct cyttsp *ts = input_get_drvdata(dev);
 
 	if (!ts->suspended)
+	{
 		cyttsp_disable(ts);
+	}
 }
 
 static int cyttsp_parse_properties(struct cyttsp *ts)
@@ -549,8 +662,11 @@ static int cyttsp_parse_properties(struct cyttsp *ts)
 	int ret;
 
 	ts->bl_keys = devm_kzalloc(dev, CY_NUM_BL_KEYS, GFP_KERNEL);
+
 	if (!ts->bl_keys)
+	{
 		return -ENOMEM;
+	}
 
 	/* Set some default values */
 	ts->use_hndshk = false;
@@ -560,50 +676,64 @@ static int cyttsp_parse_properties(struct cyttsp *ts)
 	ts->lp_intrvl = CY_LP_INTRVL_DFLT;
 
 	ret = device_property_read_u8_array(dev, "bootloader-key",
-					    ts->bl_keys, CY_NUM_BL_KEYS);
-	if (ret) {
+										ts->bl_keys, CY_NUM_BL_KEYS);
+
+	if (ret)
+	{
 		dev_err(dev,
-			"bootloader-key property could not be retrieved\n");
+				"bootloader-key property could not be retrieved\n");
 		return ret;
 	}
 
 	ts->use_hndshk = device_property_present(dev, "use-handshake");
 
-	if (!device_property_read_u32(dev, "active-distance", &dt_value)) {
-		if (dt_value > 15) {
+	if (!device_property_read_u32(dev, "active-distance", &dt_value))
+	{
+		if (dt_value > 15)
+		{
 			dev_err(dev, "active-distance (%u) must be [0-15]\n",
-				dt_value);
+					dt_value);
 			return -EINVAL;
 		}
+
 		ts->act_dist &= ~CY_ACT_DIST_MASK;
 		ts->act_dist |= dt_value;
 	}
 
-	if (!device_property_read_u32(dev, "active-interval-ms", &dt_value)) {
-		if (dt_value > 255) {
+	if (!device_property_read_u32(dev, "active-interval-ms", &dt_value))
+	{
+		if (dt_value > 255)
+		{
 			dev_err(dev, "active-interval-ms (%u) must be [0-255]\n",
-				dt_value);
+					dt_value);
 			return -EINVAL;
 		}
+
 		ts->act_intrvl = dt_value;
 	}
 
-	if (!device_property_read_u32(dev, "lowpower-interval-ms", &dt_value)) {
-		if (dt_value > 2550) {
+	if (!device_property_read_u32(dev, "lowpower-interval-ms", &dt_value))
+	{
+		if (dt_value > 2550)
+		{
 			dev_err(dev, "lowpower-interval-ms (%u) must be [0-2550]\n",
-				dt_value);
+					dt_value);
 			return -EINVAL;
 		}
+
 		/* Register value is expressed in 0.01s / bit */
 		ts->lp_intrvl = dt_value / 10;
 	}
 
-	if (!device_property_read_u32(dev, "touch-timeout-ms", &dt_value)) {
-		if (dt_value > 2550) {
+	if (!device_property_read_u32(dev, "touch-timeout-ms", &dt_value))
+	{
+		if (dt_value > 2550)
+		{
 			dev_err(dev, "touch-timeout-ms (%u) must be [0-2550]\n",
-				dt_value);
+					dt_value);
 			return -EINVAL;
 		}
+
 		/* Register value is expressed in 0.01s / bit */
 		ts->tch_tmout = dt_value / 10;
 	}
@@ -612,19 +742,25 @@ static int cyttsp_parse_properties(struct cyttsp *ts)
 }
 
 struct cyttsp *cyttsp_probe(const struct cyttsp_bus_ops *bus_ops,
-			    struct device *dev, int irq, size_t xfer_buf_size)
+							struct device *dev, int irq, size_t xfer_buf_size)
 {
 	struct cyttsp *ts;
 	struct input_dev *input_dev;
 	int error;
 
 	ts = devm_kzalloc(dev, sizeof(*ts) + xfer_buf_size, GFP_KERNEL);
+
 	if (!ts)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	input_dev = devm_input_allocate_device(dev);
+
 	if (!input_dev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	ts->dev = dev;
 	ts->input = input_dev;
@@ -632,15 +768,20 @@ struct cyttsp *cyttsp_probe(const struct cyttsp_bus_ops *bus_ops,
 	ts->irq = irq;
 
 	ts->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
-	if (IS_ERR(ts->reset_gpio)) {
+
+	if (IS_ERR(ts->reset_gpio))
+	{
 		error = PTR_ERR(ts->reset_gpio);
 		dev_err(dev, "Failed to request reset gpio, error %d\n", error);
 		return ERR_PTR(error);
 	}
 
 	error = cyttsp_parse_properties(ts);
+
 	if (error)
+	{
 		return ERR_PTR(error);
+	}
 
 	init_completion(&ts->bl_ready);
 	snprintf(ts->phys, sizeof(ts->phys), "%s/input0", dev_name(dev));
@@ -660,17 +801,21 @@ struct cyttsp *cyttsp_probe(const struct cyttsp_bus_ops *bus_ops,
 	touchscreen_parse_properties(input_dev, true, NULL);
 
 	error = input_mt_init_slots(input_dev, CY_MAX_ID, 0);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "Unable to init MT slots.\n");
 		return ERR_PTR(error);
 	}
 
 	error = devm_request_threaded_irq(dev, ts->irq, NULL, cyttsp_irq,
-					  IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-					  "cyttsp", ts);
-	if (error) {
+									  IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+									  "cyttsp", ts);
+
+	if (error)
+	{
 		dev_err(ts->dev, "failed to request IRQ %d, err: %d\n",
-			ts->irq, error);
+				ts->irq, error);
 		return ERR_PTR(error);
 	}
 
@@ -679,13 +824,18 @@ struct cyttsp *cyttsp_probe(const struct cyttsp_bus_ops *bus_ops,
 	cyttsp_hard_reset(ts);
 
 	error = cyttsp_power_on(ts);
+
 	if (error)
+	{
 		return ERR_PTR(error);
+	}
 
 	error = input_register_device(input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(ts->dev, "failed to register input device: %d\n",
-			error);
+				error);
 		return ERR_PTR(error);
 	}
 

@@ -33,10 +33,10 @@ typedef uint8_t UCHAR;
 
 
 #ifndef ATOM_BIG_ENDIAN
-#if defined(__BIG_ENDIAN)
-#define ATOM_BIG_ENDIAN 1
-#else
-#define ATOM_BIG_ENDIAN 0
-#endif
+	#if defined(__BIG_ENDIAN)
+		#define ATOM_BIG_ENDIAN 1
+	#else
+		#define ATOM_BIG_ENDIAN 0
+	#endif
 #endif
 #endif

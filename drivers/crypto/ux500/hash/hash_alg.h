@@ -103,34 +103,35 @@
 
 #define HASH_PUT_BITS(reg, val, shift, mask)	\
 	writel_relaxed(((readl(reg) & ~(mask)) |	\
-		(((u32)val << shift) & (mask))), reg)
+					(((u32)val << shift) & (mask))), reg)
 
 #define HASH_SET_DIN(val, len)	writesl(&device_data->base->din, (val), (len))
 
 #define HASH_INITIALIZE			\
 	HASH_PUT_BITS(			\
-		&device_data->base->cr,	\
-		0x01, HASH_CR_INIT_POS,	\
-		HASH_CR_INIT_MASK)
+							&device_data->base->cr,	\
+							0x01, HASH_CR_INIT_POS,	\
+							HASH_CR_INIT_MASK)
 
 #define HASH_SET_DATA_FORMAT(data_format)				\
-		HASH_PUT_BITS(						\
-			&device_data->base->cr,				\
-			(u32) (data_format), HASH_CR_DATAFORM_POS,	\
-			HASH_CR_DATAFORM_MASK)
+	HASH_PUT_BITS(						\
+										&device_data->base->cr,				\
+										(u32) (data_format), HASH_CR_DATAFORM_POS,	\
+										HASH_CR_DATAFORM_MASK)
 #define HASH_SET_NBLW(val)					\
-		HASH_PUT_BITS(					\
-			&device_data->base->str,		\
-			(u32) (val), HASH_STR_NBLW_POS,		\
-			HASH_STR_NBLW_MASK)
+	HASH_PUT_BITS(					\
+									&device_data->base->str,		\
+									(u32) (val), HASH_STR_NBLW_POS,		\
+									HASH_STR_NBLW_MASK)
 #define HASH_SET_DCAL					\
-		HASH_PUT_BITS(				\
-			&device_data->base->str,	\
-			0x01, HASH_STR_DCAL_POS,	\
-			HASH_STR_DCAL_MASK)
+	HASH_PUT_BITS(				\
+								&device_data->base->str,	\
+								0x01, HASH_STR_DCAL_POS,	\
+								HASH_STR_DCAL_MASK)
 
 /* Hardware access method */
-enum hash_mode {
+enum hash_mode
+{
 	HASH_MODE_CPU,
 	HASH_MODE_DMA
 };
@@ -142,7 +143,8 @@ enum hash_mode {
  *
  * Used to handle 64 bits integers.
  */
-struct uint64 {
+struct uint64
+{
 	u32 high_word;
 	u32 low_word;
 };
@@ -175,7 +177,8 @@ struct uint64 {
  * accessible via the 32-bit width AMBA rev. 2.0 AHB Bus. Below is a structure
  * with the registers used.
  */
-struct hash_register {
+struct hash_register
+{
 	u32 cr;
 	u32 din;
 	u32 str;
@@ -227,7 +230,8 @@ struct hash_register {
  * is aligned on a 4-bytes boundary. This is highly implementation dependent
  * and MUST be checked whenever this code is ported on new platforms.
  */
-struct hash_state {
+struct hash_state
+{
 	u32		temp_cr;
 	u32		str_reg;
 	u32		din_reg;
@@ -245,7 +249,8 @@ struct hash_state {
  * @HASH_DEVICE_ID_0: Hash hardware with ID 0
  * @HASH_DEVICE_ID_1: Hash hardware with ID 1
  */
-enum hash_device_id {
+enum hash_device_id
+{
 	HASH_DEVICE_ID_0 = 0,
 	HASH_DEVICE_ID_1 = 1
 };
@@ -257,7 +262,8 @@ enum hash_device_id {
  * @HASH_DATA_8_BITS:	8 bits data format.
  * @HASH_DATA_1_BITS:	1 bit data format.
  */
-enum hash_data_format {
+enum hash_data_format
+{
 	HASH_DATA_32_BITS	= 0x0,
 	HASH_DATA_16_BITS	= 0x1,
 	HASH_DATA_8_BITS	= 0x2,
@@ -269,7 +275,8 @@ enum hash_data_format {
  * @HASH_ALGO_SHA1: Indicates that SHA1 is used.
  * @HASH_ALGO_SHA2: Indicates that SHA2 (SHA256) is used.
  */
-enum hash_algo {
+enum hash_algo
+{
 	HASH_ALGO_SHA1		= 0x0,
 	HASH_ALGO_SHA256	= 0x1
 };
@@ -279,7 +286,8 @@ enum hash_algo {
  * @HASH_OPER_MODE_HASH: Indicates usage of normal HASH mode.
  * @HASH_OPER_MODE_HMAC: Indicates usage of HMAC.
  */
-enum hash_op {
+enum hash_op
+{
 	HASH_OPER_MODE_HASH = 0x0,
 	HASH_OPER_MODE_HMAC = 0x1
 };
@@ -290,7 +298,8 @@ enum hash_op {
  * @algorithm:		Algorithm selection bit.
  * @oper_mode:		Operating mode selection bit.
  */
-struct hash_config {
+struct hash_config
+{
 	int data_format;
 	int algorithm;
 	int oper_mode;
@@ -306,7 +315,8 @@ struct hash_config {
  * @sg:			Scatterlist.
  * @nents:		Number of sg entries.
  */
-struct hash_dma {
+struct hash_dma
+{
 	dma_cap_mask_t		mask;
 	struct completion	complete;
 	struct dma_chan		*chan_mem2hash;
@@ -325,7 +335,8 @@ struct hash_dma {
  * @digestsize:	The size of current digest.
  * @device:	Pointer to the device structure.
  */
-struct hash_ctx {
+struct hash_ctx
+{
 	u8			*key;
 	u32			keylen;
 	struct hash_config	config;
@@ -340,7 +351,8 @@ struct hash_ctx {
  *		cpu mode, if not supported/working in dma mode.
  * @updated:	Indicates if hardware is initialized for new operations.
  */
-struct hash_req_ctx {
+struct hash_req_ctx
+{
 	struct hash_state	state;
 	bool			dma_mode;
 	u8			updated;
@@ -361,7 +373,8 @@ struct hash_req_ctx {
  * @restore_dev_state:	TRUE = saved state, FALSE = no saved state.
  * @dma:		Structure used for dma.
  */
-struct hash_device_data {
+struct hash_device_data
+{
 	struct hash_register __iomem	*base;
 	phys_addr_t             phybase;
 	struct klist_node	list_node;
@@ -380,19 +393,19 @@ struct hash_device_data {
 int hash_check_hw(struct hash_device_data *device_data);
 
 int hash_setconfiguration(struct hash_device_data *device_data,
-		struct hash_config *config);
+						  struct hash_config *config);
 
 void hash_begin(struct hash_device_data *device_data, struct hash_ctx *ctx);
 
 void hash_get_digest(struct hash_device_data *device_data,
-		u8 *digest, int algorithm);
+					 u8 *digest, int algorithm);
 
 int hash_hw_update(struct ahash_request *req);
 
 int hash_save_state(struct hash_device_data *device_data,
-		struct hash_state *state);
+					struct hash_state *state);
 
 int hash_resume_state(struct hash_device_data *device_data,
-		const struct hash_state *state);
+					  const struct hash_state *state);
 
 #endif

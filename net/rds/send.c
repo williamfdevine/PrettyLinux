@@ -67,7 +67,8 @@ void rds_send_path_reset(struct rds_conn_path *cp)
 	struct rds_message *rm, *tmp;
 	unsigned long flags;
 
-	if (cp->cp_xmit_rm) {
+	if (cp->cp_xmit_rm)
+	{
 		rm = cp->cp_xmit_rm;
 		cp->cp_xmit_rm = NULL;
 		/* Tell the user the RDMA op is no longer mapped by the
@@ -92,7 +93,8 @@ void rds_send_path_reset(struct rds_conn_path *cp)
 
 	/* Mark messages as retransmissions, and move them to the send q */
 	spin_lock_irqsave(&cp->cp_lock, flags);
-	list_for_each_entry_safe(rm, tmp, &cp->cp_retrans, m_conn_item) {
+	list_for_each_entry_safe(rm, tmp, &cp->cp_retrans, m_conn_item)
+	{
 		set_bit(RDS_MSG_ACK_REQUIRED, &rm->m_flags);
 		set_bit(RDS_MSG_RETRANSMITTED, &rm->m_flags);
 	}
@@ -110,6 +112,7 @@ static void release_in_xmit(struct rds_conn_path *cp)
 {
 	clear_bit(RDS_IN_XMIT, &cp->cp_flags);
 	smp_mb__after_atomic();
+
 	/*
 	 * We don't use wait_on_bit()/wake_up_bit() because our waking is in a
 	 * hot path and finding waiters is very rare.  We don't want to walk
@@ -117,7 +120,9 @@ static void release_in_xmit(struct rds_conn_path *cp)
 	 * almost never find waiters.
 	 */
 	if (waitqueue_active(&cp->cp_waitq))
+	{
 		wake_up_all(&cp->cp_waitq);
+	}
 }
 
 /*
@@ -156,7 +161,8 @@ restart:
 	 * avoids blocking the caller and trading per-connection data between
 	 * caches per message.
 	 */
-	if (!acquire_in_xmit(cp)) {
+	if (!acquire_in_xmit(cp))
+	{
 		rds_stats_inc(s_send_lock_contention);
 		ret = -ENOMEM;
 		goto out;
@@ -177,20 +183,24 @@ restart:
 	 * rds_conn_shutdown() sets the conn state and then tests RDS_IN_XMIT,
 	 * we do the opposite to avoid races.
 	 */
-	if (!rds_conn_path_up(cp)) {
+	if (!rds_conn_path_up(cp))
+	{
 		release_in_xmit(cp);
 		ret = 0;
 		goto out;
 	}
 
 	if (conn->c_trans->xmit_path_prepare)
+	{
 		conn->c_trans->xmit_path_prepare(cp);
+	}
 
 	/*
 	 * spin trying to push headers and data down the connection until
 	 * the connection doesn't make forward progress.
 	 */
-	while (1) {
+	while (1)
+	{
 
 		rm = cp->cp_xmit_rm;
 
@@ -198,12 +208,16 @@ restart:
 		 * If between sending messages, we can send a pending congestion
 		 * map update.
 		 */
-		if (!rm && test_and_clear_bit(0, &conn->c_map_queued)) {
+		if (!rm && test_and_clear_bit(0, &conn->c_map_queued))
+		{
 			rm = rds_cong_update_alloc(conn);
-			if (IS_ERR(rm)) {
+
+			if (IS_ERR(rm))
+			{
 				ret = PTR_ERR(rm);
 				break;
 			}
+
 			rm->data.op_active = 1;
 			rm->m_inc.i_conn_path = cp;
 			rm->m_inc.i_conn = cp->cp_conn;
@@ -218,7 +232,8 @@ restart:
 		 * the connction.  We can use this ref while holding the
 		 * send_sem.. rds_send_reset() is serialized with it.
 		 */
-		if (!rm) {
+		if (!rm)
+		{
 			unsigned int len;
 
 			batch_count++;
@@ -229,14 +244,17 @@ restart:
 			 * if anyone else jumps in
 			 */
 			if (batch_count >= send_batch_count)
+			{
 				goto over_batch;
+			}
 
 			spin_lock_irqsave(&cp->cp_lock, flags);
 
-			if (!list_empty(&cp->cp_send_queue)) {
+			if (!list_empty(&cp->cp_send_queue))
+			{
 				rm = list_entry(cp->cp_send_queue.next,
-						struct rds_message,
-						m_conn_item);
+								struct rds_message,
+								m_conn_item);
 				rds_message_addref(rm);
 
 				/*
@@ -244,13 +262,15 @@ restart:
 				 * list right away.
 				 */
 				list_move_tail(&rm->m_conn_item,
-					       &cp->cp_retrans);
+							   &cp->cp_retrans);
 			}
 
 			spin_unlock_irqrestore(&cp->cp_lock, flags);
 
 			if (!rm)
+			{
 				break;
+			}
 
 			/* Unfortunately, the way Infiniband deals with
 			 * RDMA to a bad MR key is by moving the entire
@@ -260,18 +280,25 @@ restart:
 			 * Therefore, we never retransmit messages with RDMA ops.
 			 */
 			if (rm->rdma.op_active &&
-			    test_bit(RDS_MSG_RETRANSMITTED, &rm->m_flags)) {
+				test_bit(RDS_MSG_RETRANSMITTED, &rm->m_flags))
+			{
 				spin_lock_irqsave(&cp->cp_lock, flags);
+
 				if (test_and_clear_bit(RDS_MSG_ON_CONN, &rm->m_flags))
+				{
 					list_move(&rm->m_conn_item, &to_be_dropped);
+				}
+
 				spin_unlock_irqrestore(&cp->cp_lock, flags);
 				continue;
 			}
 
 			/* Require an ACK every once in a while */
 			len = ntohl(rm->m_inc.i_hdr.h_len);
+
 			if (cp->cp_unacked_packets == 0 ||
-			    cp->cp_unacked_bytes < len) {
+				cp->cp_unacked_bytes < len)
+			{
 				__set_bit(RDS_MSG_ACK_REQUIRED, &rm->m_flags);
 
 				cp->cp_unacked_packets =
@@ -279,7 +306,9 @@ restart:
 				cp->cp_unacked_bytes =
 					rds_sysctl_max_unacked_bytes;
 				rds_stats_inc(s_send_ack_required);
-			} else {
+			}
+			else
+			{
 				cp->cp_unacked_bytes -= len;
 				cp->cp_unacked_packets--;
 			}
@@ -288,34 +317,42 @@ restart:
 		}
 
 		/* The transport either sends the whole rdma or none of it */
-		if (rm->rdma.op_active && !cp->cp_xmit_rdma_sent) {
+		if (rm->rdma.op_active && !cp->cp_xmit_rdma_sent)
+		{
 			rm->m_final_op = &rm->rdma;
 			/* The transport owns the mapped memory for now.
 			 * You can't unmap it while it's on the send queue
 			 */
 			set_bit(RDS_MSG_MAPPED, &rm->m_flags);
 			ret = conn->c_trans->xmit_rdma(conn, &rm->rdma);
-			if (ret) {
+
+			if (ret)
+			{
 				clear_bit(RDS_MSG_MAPPED, &rm->m_flags);
 				wake_up_interruptible(&rm->m_flush_wait);
 				break;
 			}
+
 			cp->cp_xmit_rdma_sent = 1;
 
 		}
 
-		if (rm->atomic.op_active && !cp->cp_xmit_atomic_sent) {
+		if (rm->atomic.op_active && !cp->cp_xmit_atomic_sent)
+		{
 			rm->m_final_op = &rm->atomic;
 			/* The transport owns the mapped memory for now.
 			 * You can't unmap it while it's on the send queue
 			 */
 			set_bit(RDS_MSG_MAPPED, &rm->m_flags);
 			ret = conn->c_trans->xmit_atomic(conn, &rm->atomic);
-			if (ret) {
+
+			if (ret)
+			{
 				clear_bit(RDS_MSG_MAPPED, &rm->m_flags);
 				wake_up_interruptible(&rm->m_flush_wait);
 				break;
 			}
+
 			cp->cp_xmit_atomic_sent = 1;
 
 		}
@@ -327,57 +364,77 @@ restart:
 		 * However, if there are exclusively attached silent ops,
 		 * we skip the hdr/data send, to enable silent operation.
 		 */
-		if (rm->data.op_nents == 0) {
+		if (rm->data.op_nents == 0)
+		{
 			int ops_present;
 			int all_ops_are_silent = 1;
 
 			ops_present = (rm->atomic.op_active || rm->rdma.op_active);
+
 			if (rm->atomic.op_active && !rm->atomic.op_silent)
+			{
 				all_ops_are_silent = 0;
+			}
+
 			if (rm->rdma.op_active && !rm->rdma.op_silent)
+			{
 				all_ops_are_silent = 0;
+			}
 
 			if (ops_present && all_ops_are_silent
-			    && !rm->m_rdma_cookie)
+				&& !rm->m_rdma_cookie)
+			{
 				rm->data.op_active = 0;
+			}
 		}
 
-		if (rm->data.op_active && !cp->cp_xmit_data_sent) {
+		if (rm->data.op_active && !cp->cp_xmit_data_sent)
+		{
 			rm->m_final_op = &rm->data;
 
 			ret = conn->c_trans->xmit(conn, rm,
-						  cp->cp_xmit_hdr_off,
-						  cp->cp_xmit_sg,
-						  cp->cp_xmit_data_off);
-			if (ret <= 0)
-				break;
+									  cp->cp_xmit_hdr_off,
+									  cp->cp_xmit_sg,
+									  cp->cp_xmit_data_off);
 
-			if (cp->cp_xmit_hdr_off < sizeof(struct rds_header)) {
+			if (ret <= 0)
+			{
+				break;
+			}
+
+			if (cp->cp_xmit_hdr_off < sizeof(struct rds_header))
+			{
 				tmp = min_t(int, ret,
-					    sizeof(struct rds_header) -
-					    cp->cp_xmit_hdr_off);
+							sizeof(struct rds_header) -
+							cp->cp_xmit_hdr_off);
 				cp->cp_xmit_hdr_off += tmp;
 				ret -= tmp;
 			}
 
 			sg = &rm->data.op_sg[cp->cp_xmit_sg];
-			while (ret) {
+
+			while (ret)
+			{
 				tmp = min_t(int, ret, sg->length -
-						      cp->cp_xmit_data_off);
+							cp->cp_xmit_data_off);
 				cp->cp_xmit_data_off += tmp;
 				ret -= tmp;
-				if (cp->cp_xmit_data_off == sg->length) {
+
+				if (cp->cp_xmit_data_off == sg->length)
+				{
 					cp->cp_xmit_data_off = 0;
 					sg++;
 					cp->cp_xmit_sg++;
 					BUG_ON(ret != 0 && cp->cp_xmit_sg ==
-					       rm->data.op_nents);
+						   rm->data.op_nents);
 				}
 			}
 
 			if (cp->cp_xmit_hdr_off == sizeof(struct rds_header) &&
-			    (cp->cp_xmit_sg == rm->data.op_nents))
+				(cp->cp_xmit_sg == rm->data.op_nents))
+			{
 				cp->cp_xmit_data_sent = 1;
+			}
 		}
 
 		/*
@@ -385,7 +442,8 @@ restart:
 		 * if there is a data op. Thus, if the data is sent (or there was
 		 * none), then we're done with the rm.
 		 */
-		if (!rm->data.op_active || cp->cp_xmit_data_sent) {
+		if (!rm->data.op_active || cp->cp_xmit_data_sent)
+		{
 			cp->cp_xmit_rm = NULL;
 			cp->cp_xmit_sg = 0;
 			cp->cp_xmit_hdr_off = 0;
@@ -399,15 +457,20 @@ restart:
 	}
 
 over_batch:
+
 	if (conn->c_trans->xmit_path_complete)
+	{
 		conn->c_trans->xmit_path_complete(cp);
+	}
+
 	release_in_xmit(cp);
 
 	/* Nuke any messages we decided not to retransmit. */
-	if (!list_empty(&to_be_dropped)) {
+	if (!list_empty(&to_be_dropped))
+	{
 		/* irqs on here, so we can put(), unlike above */
 		list_for_each_entry(rm, &to_be_dropped, m_conn_item)
-			rds_message_put(rm);
+		rds_message_put(rm);
 		rds_send_remove_from_sock(&to_be_dropped, RDS_RDMA_DROPPED);
 	}
 
@@ -426,17 +489,25 @@ over_batch:
 	 * to jump in after our release_in_xmit, we'll see that they have done
 	 * some work and we will skip our goto
 	 */
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		smp_mb();
+
 		if ((test_bit(0, &conn->c_map_queued) ||
-		     !list_empty(&cp->cp_send_queue)) &&
-		    send_gen == cp->cp_send_gen) {
+			 !list_empty(&cp->cp_send_queue)) &&
+			send_gen == cp->cp_send_gen)
+		{
 			rds_stats_inc(s_send_lock_queue_raced);
+
 			if (batch_count < send_batch_count)
+			{
 				goto restart;
+			}
+
 			queue_delayed_work(rds_wq, &cp->cp_send_w, 1);
 		}
 	}
+
 out:
 	return ret;
 }
@@ -452,14 +523,19 @@ static void rds_send_sndbuf_remove(struct rds_sock *rs, struct rds_message *rm)
 	rs->rs_snd_bytes -= len;
 
 	if (rs->rs_snd_bytes == 0)
+	{
 		rds_stats_inc(s_send_queue_empty);
+	}
 }
 
 static inline int rds_send_is_acked(struct rds_message *rm, u64 ack,
-				    is_acked_func is_acked)
+									is_acked_func is_acked)
 {
 	if (is_acked)
+	{
 		return is_acked(rm, ack);
+	}
+
 	return be64_to_cpu(rm->m_inc.i_hdr.h_sequence) <= ack;
 }
 
@@ -479,8 +555,10 @@ void rds_rdma_send_complete(struct rds_message *rm, int status)
 	spin_lock_irqsave(&rm->m_rs_lock, flags);
 
 	ro = &rm->rdma;
+
 	if (test_bit(RDS_MSG_ON_SOCK, &rm->m_flags) &&
-	    ro->op_active && ro->op_notify && ro->op_notifier) {
+		ro->op_active && ro->op_notify && ro->op_notifier)
+	{
 		notifier = ro->op_notifier;
 		rs = rm->m_rs;
 		sock_hold(rds_rs_to_sk(rs));
@@ -495,7 +573,8 @@ void rds_rdma_send_complete(struct rds_message *rm, int status)
 
 	spin_unlock_irqrestore(&rm->m_rs_lock, flags);
 
-	if (rs) {
+	if (rs)
+	{
 		rds_wake_sk_sleep(rs);
 		sock_put(rds_rs_to_sk(rs));
 	}
@@ -515,8 +594,10 @@ void rds_atomic_send_complete(struct rds_message *rm, int status)
 	spin_lock_irqsave(&rm->m_rs_lock, flags);
 
 	ao = &rm->atomic;
+
 	if (test_bit(RDS_MSG_ON_SOCK, &rm->m_flags)
-	    && ao->op_active && ao->op_notify && ao->op_notifier) {
+		&& ao->op_active && ao->op_notify && ao->op_notifier)
+	{
 		notifier = ao->op_notifier;
 		rs = rm->m_rs;
 		sock_hold(rds_rs_to_sk(rs));
@@ -531,7 +612,8 @@ void rds_atomic_send_complete(struct rds_message *rm, int status)
 
 	spin_unlock_irqrestore(&rm->m_rs_lock, flags);
 
-	if (rs) {
+	if (rs)
+	{
 		rds_wake_sk_sleep(rs);
 		sock_put(rds_rs_to_sk(rs));
 	}
@@ -550,14 +632,18 @@ __rds_send_complete(struct rds_sock *rs, struct rds_message *rm, int status)
 	struct rm_atomic_op *ao;
 
 	ro = &rm->rdma;
-	if (ro->op_active && ro->op_notify && ro->op_notifier) {
+
+	if (ro->op_active && ro->op_notify && ro->op_notifier)
+	{
 		ro->op_notifier->n_status = status;
 		list_add_tail(&ro->op_notifier->n_list, &rs->rs_notify_queue);
 		ro->op_notifier = NULL;
 	}
 
 	ao = &rm->atomic;
-	if (ao->op_active && ao->op_notify && ao->op_notifier) {
+
+	if (ao->op_active && ao->op_notify && ao->op_notifier)
+	{
 		ao->op_notifier->n_status = status;
 		list_add_tail(&ao->op_notifier->n_list, &rs->rs_notify_queue);
 		ao->op_notifier = NULL;
@@ -580,11 +666,12 @@ static void rds_send_remove_from_sock(struct list_head *messages, int status)
 	struct rds_sock *rs = NULL;
 	struct rds_message *rm;
 
-	while (!list_empty(messages)) {
+	while (!list_empty(messages))
+	{
 		int was_on_sock = 0;
 
 		rm = list_entry(messages->next, struct rds_message,
-				m_conn_item);
+						m_conn_item);
 		list_del_init(&rm->m_conn_item);
 
 		/*
@@ -598,23 +685,37 @@ static void rds_send_remove_from_sock(struct list_head *messages, int status)
 		 * message from being removed from the socket, though.
 		 */
 		spin_lock_irqsave(&rm->m_rs_lock, flags);
-		if (!test_bit(RDS_MSG_ON_SOCK, &rm->m_flags))
-			goto unlock_and_drop;
 
-		if (rs != rm->m_rs) {
-			if (rs) {
+		if (!test_bit(RDS_MSG_ON_SOCK, &rm->m_flags))
+		{
+			goto unlock_and_drop;
+		}
+
+		if (rs != rm->m_rs)
+		{
+			if (rs)
+			{
 				rds_wake_sk_sleep(rs);
 				sock_put(rds_rs_to_sk(rs));
 			}
+
 			rs = rm->m_rs;
+
 			if (rs)
+			{
 				sock_hold(rds_rs_to_sk(rs));
+			}
 		}
+
 		if (!rs)
+		{
 			goto unlock_and_drop;
+		}
+
 		spin_lock(&rs->rs_lock);
 
-		if (test_and_clear_bit(RDS_MSG_ON_SOCK, &rm->m_flags)) {
+		if (test_and_clear_bit(RDS_MSG_ON_SOCK, &rm->m_flags))
+		{
 			struct rm_rdma_op *ro = &rm->rdma;
 			struct rds_notifier *notifier;
 
@@ -622,27 +723,38 @@ static void rds_send_remove_from_sock(struct list_head *messages, int status)
 			rds_send_sndbuf_remove(rs, rm);
 
 			if (ro->op_active && ro->op_notifier &&
-			       (ro->op_notify || (ro->op_recverr && status))) {
+				(ro->op_notify || (ro->op_recverr && status)))
+			{
 				notifier = ro->op_notifier;
 				list_add_tail(&notifier->n_list,
-						&rs->rs_notify_queue);
+							  &rs->rs_notify_queue);
+
 				if (!notifier->n_status)
+				{
 					notifier->n_status = status;
+				}
+
 				rm->rdma.op_notifier = NULL;
 			}
+
 			was_on_sock = 1;
 			rm->m_rs = NULL;
 		}
+
 		spin_unlock(&rs->rs_lock);
 
 unlock_and_drop:
 		spin_unlock_irqrestore(&rm->m_rs_lock, flags);
 		rds_message_put(rm);
+
 		if (was_on_sock)
+		{
 			rds_message_put(rm);
+		}
 	}
 
-	if (rs) {
+	if (rs)
+	{
 		rds_wake_sk_sleep(rs);
 		sock_put(rds_rs_to_sk(rs));
 	}
@@ -657,7 +769,7 @@ unlock_and_drop:
  * checks the RDS_MSG_HAS_ACK_SEQ bit.
  */
 void rds_send_path_drop_acked(struct rds_conn_path *cp, u64 ack,
-			      is_acked_func is_acked)
+							  is_acked_func is_acked)
 {
 	struct rds_message *rm, *tmp;
 	unsigned long flags;
@@ -665,9 +777,12 @@ void rds_send_path_drop_acked(struct rds_conn_path *cp, u64 ack,
 
 	spin_lock_irqsave(&cp->cp_lock, flags);
 
-	list_for_each_entry_safe(rm, tmp, &cp->cp_retrans, m_conn_item) {
+	list_for_each_entry_safe(rm, tmp, &cp->cp_retrans, m_conn_item)
+	{
 		if (!rds_send_is_acked(rm, ack, is_acked))
+		{
 			break;
+		}
 
 		list_move(&rm->m_conn_item, &list);
 		clear_bit(RDS_MSG_ON_CONN, &rm->m_flags);
@@ -675,7 +790,9 @@ void rds_send_path_drop_acked(struct rds_conn_path *cp, u64 ack,
 
 	/* order flag updates with spin locks */
 	if (!list_empty(&list))
+	{
 		smp_mb__after_atomic();
+	}
 
 	spin_unlock_irqrestore(&cp->cp_lock, flags);
 
@@ -685,7 +802,7 @@ void rds_send_path_drop_acked(struct rds_conn_path *cp, u64 ack,
 EXPORT_SYMBOL_GPL(rds_send_path_drop_acked);
 
 void rds_send_drop_acked(struct rds_connection *conn, u64 ack,
-			 is_acked_func is_acked)
+						 is_acked_func is_acked)
 {
 	WARN_ON(conn->c_trans->t_mp_capable);
 	rds_send_path_drop_acked(&conn->c_path[0], ack, is_acked);
@@ -703,10 +820,13 @@ void rds_send_drop_to(struct rds_sock *rs, struct sockaddr_in *dest)
 	/* get all the messages we're dropping under the rs lock */
 	spin_lock_irqsave(&rs->rs_lock, flags);
 
-	list_for_each_entry_safe(rm, tmp, &rs->rs_send_queue, m_sock_item) {
+	list_for_each_entry_safe(rm, tmp, &rs->rs_send_queue, m_sock_item)
+	{
 		if (dest && (dest->sin_addr.s_addr != rm->m_daddr ||
-			     dest->sin_port != rm->m_inc.i_hdr.h_dport))
+					 dest->sin_port != rm->m_inc.i_hdr.h_dport))
+		{
 			continue;
+		}
 
 		list_move(&rm->m_sock_item, &list);
 		rds_send_sndbuf_remove(rs, rm);
@@ -719,30 +839,41 @@ void rds_send_drop_to(struct rds_sock *rs, struct sockaddr_in *dest)
 	spin_unlock_irqrestore(&rs->rs_lock, flags);
 
 	if (list_empty(&list))
+	{
 		return;
+	}
 
 	/* Remove the messages from the conn */
-	list_for_each_entry(rm, &list, m_sock_item) {
+	list_for_each_entry(rm, &list, m_sock_item)
+	{
 
 		conn = rm->m_inc.i_conn;
+
 		if (conn->c_trans->t_mp_capable)
+		{
 			cp = rm->m_inc.i_conn_path;
+		}
 		else
+		{
 			cp = &conn->c_path[0];
+		}
 
 		spin_lock_irqsave(&cp->cp_lock, flags);
+
 		/*
 		 * Maybe someone else beat us to removing rm from the conn.
 		 * If we race with their flag update we'll get the lock and
 		 * then really see that the flag has been cleared.
 		 */
-		if (!test_and_clear_bit(RDS_MSG_ON_CONN, &rm->m_flags)) {
+		if (!test_and_clear_bit(RDS_MSG_ON_CONN, &rm->m_flags))
+		{
 			spin_unlock_irqrestore(&cp->cp_lock, flags);
 			spin_lock_irqsave(&rm->m_rs_lock, flags);
 			rm->m_rs = NULL;
 			spin_unlock_irqrestore(&rm->m_rs_lock, flags);
 			continue;
 		}
+
 		list_del_init(&rm->m_conn_item);
 		spin_unlock_irqrestore(&cp->cp_lock, flags);
 
@@ -764,7 +895,8 @@ void rds_send_drop_to(struct rds_sock *rs, struct sockaddr_in *dest)
 
 	rds_wake_sk_sleep(rs);
 
-	while (!list_empty(&list)) {
+	while (!list_empty(&list))
+	{
 		rm = list_entry(list.next, struct rds_message, m_sock_item);
 		list_del_init(&rm->m_sock_item);
 		rds_message_wait(rm);
@@ -793,15 +925,17 @@ void rds_send_drop_to(struct rds_sock *rs, struct sockaddr_in *dest)
  * message from the flow with RDS_CANCEL_SENT_TO.
  */
 static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
-			     struct rds_conn_path *cp,
-			     struct rds_message *rm, __be16 sport,
-			     __be16 dport, int *queued)
+							 struct rds_conn_path *cp,
+							 struct rds_message *rm, __be16 sport,
+							 __be16 dport, int *queued)
 {
 	unsigned long flags;
 	u32 len;
 
 	if (*queued)
+	{
 		goto out;
+	}
 
 	len = be32_to_cpu(rm->m_inc.i_hdr.h_len);
 
@@ -817,7 +951,8 @@ static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
 	 * rs_snd_bytes here to allow the last msg to exceed the buffer,
 	 * and poll() now knows no more data can be sent.
 	 */
-	if (rs->rs_snd_bytes < rds_sk_sndbuf(rs)) {
+	if (rs->rs_snd_bytes < rds_sk_sndbuf(rs))
+	{
 		rs->rs_snd_bytes += len;
 
 		/* let recv side know we are close to send space exhaustion.
@@ -826,7 +961,9 @@ static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
 		 * throughput hits a certain threshold.
 		 */
 		if (rs->rs_snd_bytes >= rds_sk_sndbuf(rs) / 2)
+		{
 			__set_bit(RDS_MSG_ACK_REQUIRED, &rm->m_flags);
+		}
 
 		list_add_tail(&rm->m_sock_item, &rs->rs_send_queue);
 		set_bit(RDS_MSG_ON_SOCK, &rm->m_flags);
@@ -847,8 +984,8 @@ static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
 		spin_unlock(&cp->cp_lock);
 
 		rdsdebug("queued msg %p len %d, rs %p bytes %d seq %llu\n",
-			 rm, len, rs, rs->rs_snd_bytes,
-			 (unsigned long long)be64_to_cpu(rm->m_inc.i_hdr.h_sequence));
+				 rm, len, rs, rs->rs_snd_bytes,
+				 (unsigned long long)be64_to_cpu(rm->m_inc.i_hdr.h_sequence));
 
 		*queued = 1;
 	}
@@ -869,39 +1006,49 @@ static int rds_rm_size(struct msghdr *msg, int data_len)
 	int cmsg_groups = 0;
 	int retval;
 
-	for_each_cmsghdr(cmsg, msg) {
+	for_each_cmsghdr(cmsg, msg)
+	{
 		if (!CMSG_OK(msg, cmsg))
+		{
 			return -EINVAL;
+		}
 
 		if (cmsg->cmsg_level != SOL_RDS)
+		{
 			continue;
+		}
 
-		switch (cmsg->cmsg_type) {
-		case RDS_CMSG_RDMA_ARGS:
-			cmsg_groups |= 1;
-			retval = rds_rdma_extra_size(CMSG_DATA(cmsg));
-			if (retval < 0)
-				return retval;
-			size += retval;
+		switch (cmsg->cmsg_type)
+		{
+			case RDS_CMSG_RDMA_ARGS:
+				cmsg_groups |= 1;
+				retval = rds_rdma_extra_size(CMSG_DATA(cmsg));
 
-			break;
+				if (retval < 0)
+				{
+					return retval;
+				}
 
-		case RDS_CMSG_RDMA_DEST:
-		case RDS_CMSG_RDMA_MAP:
-			cmsg_groups |= 2;
-			/* these are valid but do no add any size */
-			break;
+				size += retval;
 
-		case RDS_CMSG_ATOMIC_CSWP:
-		case RDS_CMSG_ATOMIC_FADD:
-		case RDS_CMSG_MASKED_ATOMIC_CSWP:
-		case RDS_CMSG_MASKED_ATOMIC_FADD:
-			cmsg_groups |= 1;
-			size += sizeof(struct scatterlist);
-			break;
+				break;
 
-		default:
-			return -EINVAL;
+			case RDS_CMSG_RDMA_DEST:
+			case RDS_CMSG_RDMA_MAP:
+				cmsg_groups |= 2;
+				/* these are valid but do no add any size */
+				break;
+
+			case RDS_CMSG_ATOMIC_CSWP:
+			case RDS_CMSG_ATOMIC_FADD:
+			case RDS_CMSG_MASKED_ATOMIC_CSWP:
+			case RDS_CMSG_MASKED_ATOMIC_FADD:
+				cmsg_groups |= 1;
+				size += sizeof(struct scatterlist);
+				break;
+
+			default:
+				return -EINVAL;
 		}
 
 	}
@@ -910,54 +1057,69 @@ static int rds_rm_size(struct msghdr *msg, int data_len)
 
 	/* Ensure (DEST, MAP) are never used with (ARGS, ATOMIC) */
 	if (cmsg_groups == 3)
+	{
 		return -EINVAL;
+	}
 
 	return size;
 }
 
 static int rds_cmsg_send(struct rds_sock *rs, struct rds_message *rm,
-			 struct msghdr *msg, int *allocated_mr)
+						 struct msghdr *msg, int *allocated_mr)
 {
 	struct cmsghdr *cmsg;
 	int ret = 0;
 
-	for_each_cmsghdr(cmsg, msg) {
+	for_each_cmsghdr(cmsg, msg)
+	{
 		if (!CMSG_OK(msg, cmsg))
+		{
 			return -EINVAL;
+		}
 
 		if (cmsg->cmsg_level != SOL_RDS)
+		{
 			continue;
+		}
 
 		/* As a side effect, RDMA_DEST and RDMA_MAP will set
 		 * rm->rdma.m_rdma_cookie and rm->rdma.m_rdma_mr.
 		 */
-		switch (cmsg->cmsg_type) {
-		case RDS_CMSG_RDMA_ARGS:
-			ret = rds_cmsg_rdma_args(rs, rm, cmsg);
-			break;
+		switch (cmsg->cmsg_type)
+		{
+			case RDS_CMSG_RDMA_ARGS:
+				ret = rds_cmsg_rdma_args(rs, rm, cmsg);
+				break;
 
-		case RDS_CMSG_RDMA_DEST:
-			ret = rds_cmsg_rdma_dest(rs, rm, cmsg);
-			break;
+			case RDS_CMSG_RDMA_DEST:
+				ret = rds_cmsg_rdma_dest(rs, rm, cmsg);
+				break;
 
-		case RDS_CMSG_RDMA_MAP:
-			ret = rds_cmsg_rdma_map(rs, rm, cmsg);
-			if (!ret)
-				*allocated_mr = 1;
-			break;
-		case RDS_CMSG_ATOMIC_CSWP:
-		case RDS_CMSG_ATOMIC_FADD:
-		case RDS_CMSG_MASKED_ATOMIC_CSWP:
-		case RDS_CMSG_MASKED_ATOMIC_FADD:
-			ret = rds_cmsg_atomic(rs, rm, cmsg);
-			break;
+			case RDS_CMSG_RDMA_MAP:
+				ret = rds_cmsg_rdma_map(rs, rm, cmsg);
 
-		default:
-			return -EINVAL;
+				if (!ret)
+				{
+					*allocated_mr = 1;
+				}
+
+				break;
+
+			case RDS_CMSG_ATOMIC_CSWP:
+			case RDS_CMSG_ATOMIC_FADD:
+			case RDS_CMSG_MASKED_ATOMIC_CSWP:
+			case RDS_CMSG_MASKED_ATOMIC_FADD:
+				ret = rds_cmsg_atomic(rs, rm, cmsg);
+				break;
+
+			default:
+				return -EINVAL;
 		}
 
 		if (ret)
+		{
 			break;
+		}
 	}
 
 	return ret;
@@ -970,19 +1132,30 @@ static int rds_send_mprds_hash(struct rds_sock *rs, struct rds_connection *conn)
 	int hash;
 
 	if (conn->c_npaths == 0)
+	{
 		hash = RDS_MPATH_HASH(rs, RDS_MPATH_WORKERS);
+	}
 	else
+	{
 		hash = RDS_MPATH_HASH(rs, conn->c_npaths);
-	if (conn->c_npaths == 0 && hash != 0) {
+	}
+
+	if (conn->c_npaths == 0 && hash != 0)
+	{
 		rds_send_ping(conn);
 
-		if (conn->c_npaths == 0) {
+		if (conn->c_npaths == 0)
+		{
 			wait_event_interruptible(conn->c_hs_waitq,
-						 (conn->c_npaths != 0));
+									 (conn->c_npaths != 0));
 		}
+
 		if (conn->c_npaths == 1)
+		{
 			hash = 0;
+		}
 	}
+
 	return hash;
 }
 
@@ -1003,20 +1176,26 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
 
 	/* Mirror Linux UDP mirror of BSD error message compatibility */
 	/* XXX: Perhaps MSG_MORE someday */
-	if (msg->msg_flags & ~(MSG_DONTWAIT | MSG_CMSG_COMPAT)) {
+	if (msg->msg_flags & ~(MSG_DONTWAIT | MSG_CMSG_COMPAT))
+	{
 		ret = -EOPNOTSUPP;
 		goto out;
 	}
 
-	if (msg->msg_namelen) {
+	if (msg->msg_namelen)
+	{
 		/* XXX fail non-unicast destination IPs? */
-		if (msg->msg_namelen < sizeof(*usin) || usin->sin_family != AF_INET) {
+		if (msg->msg_namelen < sizeof(*usin) || usin->sin_family != AF_INET)
+		{
 			ret = -EINVAL;
 			goto out;
 		}
+
 		daddr = usin->sin_addr.s_addr;
 		dport = usin->sin_port;
-	} else {
+	}
+	else
+	{
 		/* We only care about consistency with ->connect() */
 		lock_sock(sk);
 		daddr = rs->rs_conn_addr;
@@ -1025,40 +1204,57 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
 	}
 
 	lock_sock(sk);
-	if (daddr == 0 || rs->rs_bound_addr == 0) {
+
+	if (daddr == 0 || rs->rs_bound_addr == 0)
+	{
 		release_sock(sk);
 		ret = -ENOTCONN; /* XXX not a great errno */
 		goto out;
 	}
+
 	release_sock(sk);
 
-	if (payload_len > rds_sk_sndbuf(rs)) {
+	if (payload_len > rds_sk_sndbuf(rs))
+	{
 		ret = -EMSGSIZE;
 		goto out;
 	}
 
 	/* size of rm including all sgs */
 	ret = rds_rm_size(msg, payload_len);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	rm = rds_message_alloc(ret, GFP_KERNEL);
-	if (!rm) {
+
+	if (!rm)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	/* Attach data to the rm */
-	if (payload_len) {
+	if (payload_len)
+	{
 		rm->data.op_sg = rds_message_alloc_sgs(rm, ceil(payload_len, PAGE_SIZE));
-		if (!rm->data.op_sg) {
+
+		if (!rm->data.op_sg)
+		{
 			ret = -ENOMEM;
 			goto out;
 		}
+
 		ret = rds_message_copy_from_user(rm, &msg->msg_iter);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
+
 	rm->data.op_active = 1;
 
 	rm->m_daddr = daddr;
@@ -1066,72 +1262,99 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
 	/* rds_conn_create has a spinlock that runs with IRQ off.
 	 * Caching the conn in the socket helps a lot. */
 	if (rs->rs_conn && rs->rs_conn->c_faddr == daddr)
+	{
 		conn = rs->rs_conn;
-	else {
+	}
+	else
+	{
 		conn = rds_conn_create_outgoing(sock_net(sock->sk),
-						rs->rs_bound_addr, daddr,
-					rs->rs_transport,
-					sock->sk->sk_allocation);
-		if (IS_ERR(conn)) {
+										rs->rs_bound_addr, daddr,
+										rs->rs_transport,
+										sock->sk->sk_allocation);
+
+		if (IS_ERR(conn))
+		{
 			ret = PTR_ERR(conn);
 			goto out;
 		}
+
 		rs->rs_conn = conn;
 	}
 
 	/* Parse any control messages the user may have included. */
 	ret = rds_cmsg_send(rs, rm, msg, &allocated_mr);
-	if (ret)
-		goto out;
 
-	if (rm->rdma.op_active && !conn->c_trans->xmit_rdma) {
+	if (ret)
+	{
+		goto out;
+	}
+
+	if (rm->rdma.op_active && !conn->c_trans->xmit_rdma)
+	{
 		printk_ratelimited(KERN_NOTICE "rdma_op %p conn xmit_rdma %p\n",
-			       &rm->rdma, conn->c_trans->xmit_rdma);
+						   &rm->rdma, conn->c_trans->xmit_rdma);
 		ret = -EOPNOTSUPP;
 		goto out;
 	}
 
-	if (rm->atomic.op_active && !conn->c_trans->xmit_atomic) {
+	if (rm->atomic.op_active && !conn->c_trans->xmit_atomic)
+	{
 		printk_ratelimited(KERN_NOTICE "atomic_op %p conn xmit_atomic %p\n",
-			       &rm->atomic, conn->c_trans->xmit_atomic);
+						   &rm->atomic, conn->c_trans->xmit_atomic);
 		ret = -EOPNOTSUPP;
 		goto out;
 	}
 
 	if (conn->c_trans->t_mp_capable)
+	{
 		cpath = &conn->c_path[rds_send_mprds_hash(rs, conn)];
+	}
 	else
+	{
 		cpath = &conn->c_path[0];
+	}
 
 	rds_conn_path_connect_if_down(cpath);
 
 	ret = rds_cong_wait(conn->c_fcong, dport, nonblock, rs);
-	if (ret) {
+
+	if (ret)
+	{
 		rs->rs_seen_congestion = 1;
 		goto out;
 	}
+
 	while (!rds_send_queue_rm(rs, conn, cpath, rm, rs->rs_bound_port,
-				  dport, &queued)) {
+							  dport, &queued))
+	{
 		rds_stats_inc(s_send_queue_full);
 
-		if (nonblock) {
+		if (nonblock)
+		{
 			ret = -EAGAIN;
 			goto out;
 		}
 
 		timeo = wait_event_interruptible_timeout(*sk_sleep(sk),
-					rds_send_queue_rm(rs, conn, cpath, rm,
-							  rs->rs_bound_port,
-							  dport,
-							  &queued),
-					timeo);
+				rds_send_queue_rm(rs, conn, cpath, rm,
+								  rs->rs_bound_port,
+								  dport,
+								  &queued),
+				timeo);
 		rdsdebug("sendmsg woke queued %d timeo %ld\n", queued, timeo);
+
 		if (timeo > 0 || timeo == MAX_SCHEDULE_TIMEOUT)
+		{
 			continue;
+		}
 
 		ret = timeo;
+
 		if (ret == 0)
+		{
 			ret = -ETIMEDOUT;
+		}
+
 		goto out;
 	}
 
@@ -1142,21 +1365,30 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
 	rds_stats_inc(s_send_queued);
 
 	ret = rds_send_xmit(cpath);
+
 	if (ret == -ENOMEM || ret == -EAGAIN)
+	{
 		queue_delayed_work(rds_wq, &cpath->cp_send_w, 1);
+	}
 
 	rds_message_put(rm);
 	return payload_len;
 
 out:
+
 	/* If the user included a RDMA_MAP cmsg, we allocated a MR on the fly.
 	 * If the sendmsg goes through, we keep the MR. If it fails with EAGAIN
 	 * or in any other way, we need to destroy the MR again */
 	if (allocated_mr)
+	{
 		rds_rdma_unuse(rs, rds_rdma_cookie_key(rm->m_rdma_cookie), 1);
+	}
 
 	if (rm)
+	{
 		rds_message_put(rm);
+	}
+
 	return ret;
 }
 
@@ -1170,14 +1402,16 @@ out:
  */
 int
 rds_send_probe(struct rds_conn_path *cp, __be16 sport,
-	       __be16 dport, u8 h_flags)
+			   __be16 dport, u8 h_flags)
 {
 	struct rds_message *rm;
 	unsigned long flags;
 	int ret = 0;
 
 	rm = rds_message_alloc(0, GFP_ATOMIC);
-	if (!rm) {
+
+	if (!rm)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -1188,8 +1422,11 @@ rds_send_probe(struct rds_conn_path *cp, __be16 sport,
 	rds_conn_path_connect_if_down(cp);
 
 	ret = rds_cong_wait(cp->cp_conn->c_fcong, dport, 1, NULL);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	spin_lock_irqsave(&cp->cp_lock, flags);
 	list_add_tail(&rm->m_conn_item, &cp->cp_send_queue);
@@ -1199,17 +1436,19 @@ rds_send_probe(struct rds_conn_path *cp, __be16 sport,
 	rm->m_inc.i_conn_path = cp;
 
 	rds_message_populate_header(&rm->m_inc.i_hdr, sport, dport,
-				    cp->cp_next_tx_seq);
+								cp->cp_next_tx_seq);
 	rm->m_inc.i_hdr.h_flags |= h_flags;
 	cp->cp_next_tx_seq++;
 
-	if (RDS_HS_PROBE(sport, dport) && cp->cp_conn->c_trans->t_mp_capable) {
+	if (RDS_HS_PROBE(sport, dport) && cp->cp_conn->c_trans->t_mp_capable)
+	{
 		u16 npaths = RDS_MPATH_WORKERS;
 
 		rds_message_add_extension(&rm->m_inc.i_hdr,
-					  RDS_EXTHDR_NPATHS, &npaths,
-					  sizeof(npaths));
+								  RDS_EXTHDR_NPATHS, &npaths,
+								  sizeof(npaths));
 	}
+
 	spin_unlock_irqrestore(&cp->cp_lock, flags);
 
 	rds_stats_inc(s_send_queued);
@@ -1222,8 +1461,12 @@ rds_send_probe(struct rds_conn_path *cp, __be16 sport,
 	return 0;
 
 out:
+
 	if (rm)
+	{
 		rds_message_put(rm);
+	}
+
 	return ret;
 }
 
@@ -1240,10 +1483,13 @@ rds_send_ping(struct rds_connection *conn)
 	struct rds_conn_path *cp = &conn->c_path[0];
 
 	spin_lock_irqsave(&cp->cp_lock, flags);
-	if (conn->c_ping_triggered) {
+
+	if (conn->c_ping_triggered)
+	{
 		spin_unlock_irqrestore(&cp->cp_lock, flags);
 		return;
 	}
+
 	conn->c_ping_triggered = 1;
 	spin_unlock_irqrestore(&cp->cp_lock, flags);
 	rds_send_probe(&conn->c_path[0], RDS_FLAG_PROBE_PORT, 0, 0);

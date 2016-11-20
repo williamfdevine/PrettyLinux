@@ -29,20 +29,23 @@
 
 /* ARPHRD_IEEE80211_PRISM uses a bloated version of Prism2 RX frame header
  * (from linux-wlan-ng) */
-struct linux_wlan_ng_val {
+struct linux_wlan_ng_val
+{
 	u32 did;
 	u16 status, len;
 	u32 data;
 } __packed;
 
-struct linux_wlan_ng_prism_hdr {
+struct linux_wlan_ng_prism_hdr
+{
 	u32 msgcode, msglen;
 	char devname[16];
 	struct linux_wlan_ng_val hosttime, mactime, channel, rssi, sq, signal,
-		noise, rate, istx, frmlen;
+			   noise, rate, istx, frmlen;
 } __packed;
 
-struct linux_wlan_ng_cap_hdr {
+struct linux_wlan_ng_cap_hdr
+{
 	__be32 version;
 	__be32 length;
 	__be64 mactime;
@@ -59,7 +62,8 @@ struct linux_wlan_ng_cap_hdr {
 	__be32 encoding;
 } __packed;
 
-struct hostap_radiotap_rx {
+struct hostap_radiotap_rx
+{
 	struct ieee80211_radiotap_header hdr;
 	__le64 tsft;
 	u8 rate;
@@ -73,7 +77,8 @@ struct hostap_radiotap_rx {
 #define LWNG_CAP_DID_BASE   (4 | (1 << 6)) /* section 4, group 1 */
 #define LWNG_CAPHDR_VERSION 0x80211001
 
-struct hfa384x_rx_frame {
+struct hfa384x_rx_frame
+{
 	/* HFA384X RX frame descriptor */
 	__le16 status; /* HFA384X_RX_STATUS_ flags */
 	__le32 time; /* timestamp, 1 microsecond resolution */
@@ -102,7 +107,8 @@ struct hfa384x_rx_frame {
 } __packed;
 
 
-struct hfa384x_tx_frame {
+struct hfa384x_tx_frame
+{
 	/* HFA384X TX frame descriptor */
 	__le16 status; /* HFA384X_TX_STATUS_ flags */
 	__le16 reserved1;
@@ -144,29 +150,34 @@ struct hfa384x_rid_hdr
 
 #define HFA384X_LEVEL_TO_dBm_sign(v) (v) * 100 / 255 - 100
 
-struct hfa384x_scan_request {
+struct hfa384x_scan_request
+{
 	__le16 channel_list;
 	__le16 txrate; /* HFA384X_RATES_* */
 } __packed;
 
-struct hfa384x_hostscan_request {
+struct hfa384x_hostscan_request
+{
 	__le16 channel_list;
 	__le16 txrate;
 	__le16 target_ssid_len;
 	u8 target_ssid[32];
 } __packed;
 
-struct hfa384x_join_request {
+struct hfa384x_join_request
+{
 	u8 bssid[ETH_ALEN];
 	__le16 channel;
 } __packed;
 
-struct hfa384x_info_frame {
+struct hfa384x_info_frame
+{
 	__le16 len;
 	__le16 type;
 } __packed;
 
-struct hfa384x_comm_tallies {
+struct hfa384x_comm_tallies
+{
 	__le16 tx_unicast_frames;
 	__le16 tx_multicast_frames;
 	__le16 tx_fragments;
@@ -190,7 +201,8 @@ struct hfa384x_comm_tallies {
 	__le16 rx_message_in_bad_msg_fragments;
 } __packed;
 
-struct hfa384x_comm_tallies32 {
+struct hfa384x_comm_tallies32
+{
 	__le32 tx_unicast_frames;
 	__le32 tx_multicast_frames;
 	__le32 tx_fragments;
@@ -214,7 +226,8 @@ struct hfa384x_comm_tallies32 {
 	__le32 rx_message_in_bad_msg_fragments;
 } __packed;
 
-struct hfa384x_scan_result_hdr {
+struct hfa384x_scan_result_hdr
+{
 	__le16 reserved;
 	__le16 scan_reason;
 #define HFA384X_SCAN_IN_PROGRESS 0 /* no results available yet */
@@ -225,7 +238,8 @@ struct hfa384x_scan_result_hdr {
 
 #define HFA384X_SCAN_MAX_RESULTS 32
 
-struct hfa384x_scan_result {
+struct hfa384x_scan_result
+{
 	__le16 chid;
 	__le16 anl;
 	__le16 sl;
@@ -238,7 +252,8 @@ struct hfa384x_scan_result {
 	__le16 rate;
 } __packed;
 
-struct hfa384x_hostscan_result {
+struct hfa384x_hostscan_result
+{
 	__le16 chid;
 	__le16 anl;
 	__le16 sl;
@@ -252,7 +267,8 @@ struct hfa384x_hostscan_result {
 	__le16 atim;
 } __packed;
 
-struct comm_tallies_sums {
+struct comm_tallies_sums
+{
 	unsigned int tx_unicast_frames;
 	unsigned int tx_multicast_frames;
 	unsigned int tx_fragments;
@@ -277,7 +293,8 @@ struct comm_tallies_sums {
 };
 
 
-struct hfa384x_regs {
+struct hfa384x_regs
+{
 	u16 cmd;
 	u16 evstat;
 	u16 offset0;
@@ -287,83 +304,83 @@ struct hfa384x_regs {
 
 
 #if defined(PRISM2_PCCARD) || defined(PRISM2_PLX)
-/* I/O ports for HFA384X Controller access */
-#define HFA384X_CMD_OFF 0x00
-#define HFA384X_PARAM0_OFF 0x02
-#define HFA384X_PARAM1_OFF 0x04
-#define HFA384X_PARAM2_OFF 0x06
-#define HFA384X_STATUS_OFF 0x08
-#define HFA384X_RESP0_OFF 0x0A
-#define HFA384X_RESP1_OFF 0x0C
-#define HFA384X_RESP2_OFF 0x0E
-#define HFA384X_INFOFID_OFF 0x10
-#define HFA384X_CONTROL_OFF 0x14
-#define HFA384X_SELECT0_OFF 0x18
-#define HFA384X_SELECT1_OFF 0x1A
-#define HFA384X_OFFSET0_OFF 0x1C
-#define HFA384X_OFFSET1_OFF 0x1E
-#define HFA384X_RXFID_OFF 0x20
-#define HFA384X_ALLOCFID_OFF 0x22
-#define HFA384X_TXCOMPLFID_OFF 0x24
-#define HFA384X_SWSUPPORT0_OFF 0x28
-#define HFA384X_SWSUPPORT1_OFF 0x2A
-#define HFA384X_SWSUPPORT2_OFF 0x2C
-#define HFA384X_EVSTAT_OFF 0x30
-#define HFA384X_INTEN_OFF 0x32
-#define HFA384X_EVACK_OFF 0x34
-#define HFA384X_DATA0_OFF 0x36
-#define HFA384X_DATA1_OFF 0x38
-#define HFA384X_AUXPAGE_OFF 0x3A
-#define HFA384X_AUXOFFSET_OFF 0x3C
-#define HFA384X_AUXDATA_OFF 0x3E
+	/* I/O ports for HFA384X Controller access */
+	#define HFA384X_CMD_OFF 0x00
+	#define HFA384X_PARAM0_OFF 0x02
+	#define HFA384X_PARAM1_OFF 0x04
+	#define HFA384X_PARAM2_OFF 0x06
+	#define HFA384X_STATUS_OFF 0x08
+	#define HFA384X_RESP0_OFF 0x0A
+	#define HFA384X_RESP1_OFF 0x0C
+	#define HFA384X_RESP2_OFF 0x0E
+	#define HFA384X_INFOFID_OFF 0x10
+	#define HFA384X_CONTROL_OFF 0x14
+	#define HFA384X_SELECT0_OFF 0x18
+	#define HFA384X_SELECT1_OFF 0x1A
+	#define HFA384X_OFFSET0_OFF 0x1C
+	#define HFA384X_OFFSET1_OFF 0x1E
+	#define HFA384X_RXFID_OFF 0x20
+	#define HFA384X_ALLOCFID_OFF 0x22
+	#define HFA384X_TXCOMPLFID_OFF 0x24
+	#define HFA384X_SWSUPPORT0_OFF 0x28
+	#define HFA384X_SWSUPPORT1_OFF 0x2A
+	#define HFA384X_SWSUPPORT2_OFF 0x2C
+	#define HFA384X_EVSTAT_OFF 0x30
+	#define HFA384X_INTEN_OFF 0x32
+	#define HFA384X_EVACK_OFF 0x34
+	#define HFA384X_DATA0_OFF 0x36
+	#define HFA384X_DATA1_OFF 0x38
+	#define HFA384X_AUXPAGE_OFF 0x3A
+	#define HFA384X_AUXOFFSET_OFF 0x3C
+	#define HFA384X_AUXDATA_OFF 0x3E
 #endif /* PRISM2_PCCARD || PRISM2_PLX */
 
 #ifdef PRISM2_PCI
-/* Memory addresses for ISL3874 controller access */
-#define HFA384X_CMD_OFF 0x00
-#define HFA384X_PARAM0_OFF 0x04
-#define HFA384X_PARAM1_OFF 0x08
-#define HFA384X_PARAM2_OFF 0x0C
-#define HFA384X_STATUS_OFF 0x10
-#define HFA384X_RESP0_OFF 0x14
-#define HFA384X_RESP1_OFF 0x18
-#define HFA384X_RESP2_OFF 0x1C
-#define HFA384X_INFOFID_OFF 0x20
-#define HFA384X_CONTROL_OFF 0x28
-#define HFA384X_SELECT0_OFF 0x30
-#define HFA384X_SELECT1_OFF 0x34
-#define HFA384X_OFFSET0_OFF 0x38
-#define HFA384X_OFFSET1_OFF 0x3C
-#define HFA384X_RXFID_OFF 0x40
-#define HFA384X_ALLOCFID_OFF 0x44
-#define HFA384X_TXCOMPLFID_OFF 0x48
-#define HFA384X_PCICOR_OFF 0x4C
-#define HFA384X_SWSUPPORT0_OFF 0x50
-#define HFA384X_SWSUPPORT1_OFF 0x54
-#define HFA384X_SWSUPPORT2_OFF 0x58
-#define HFA384X_PCIHCR_OFF 0x5C
-#define HFA384X_EVSTAT_OFF 0x60
-#define HFA384X_INTEN_OFF 0x64
-#define HFA384X_EVACK_OFF 0x68
-#define HFA384X_DATA0_OFF 0x6C
-#define HFA384X_DATA1_OFF 0x70
-#define HFA384X_AUXPAGE_OFF 0x74
-#define HFA384X_AUXOFFSET_OFF 0x78
-#define HFA384X_AUXDATA_OFF 0x7C
-#define HFA384X_PCI_M0_ADDRH_OFF 0x80
-#define HFA384X_PCI_M0_ADDRL_OFF 0x84
-#define HFA384X_PCI_M0_LEN_OFF 0x88
-#define HFA384X_PCI_M0_CTL_OFF 0x8C
-#define HFA384X_PCI_STATUS_OFF 0x98
-#define HFA384X_PCI_M1_ADDRH_OFF 0xA0
-#define HFA384X_PCI_M1_ADDRL_OFF 0xA4
-#define HFA384X_PCI_M1_LEN_OFF 0xA8
-#define HFA384X_PCI_M1_CTL_OFF 0xAC
+	/* Memory addresses for ISL3874 controller access */
+	#define HFA384X_CMD_OFF 0x00
+	#define HFA384X_PARAM0_OFF 0x04
+	#define HFA384X_PARAM1_OFF 0x08
+	#define HFA384X_PARAM2_OFF 0x0C
+	#define HFA384X_STATUS_OFF 0x10
+	#define HFA384X_RESP0_OFF 0x14
+	#define HFA384X_RESP1_OFF 0x18
+	#define HFA384X_RESP2_OFF 0x1C
+	#define HFA384X_INFOFID_OFF 0x20
+	#define HFA384X_CONTROL_OFF 0x28
+	#define HFA384X_SELECT0_OFF 0x30
+	#define HFA384X_SELECT1_OFF 0x34
+	#define HFA384X_OFFSET0_OFF 0x38
+	#define HFA384X_OFFSET1_OFF 0x3C
+	#define HFA384X_RXFID_OFF 0x40
+	#define HFA384X_ALLOCFID_OFF 0x44
+	#define HFA384X_TXCOMPLFID_OFF 0x48
+	#define HFA384X_PCICOR_OFF 0x4C
+	#define HFA384X_SWSUPPORT0_OFF 0x50
+	#define HFA384X_SWSUPPORT1_OFF 0x54
+	#define HFA384X_SWSUPPORT2_OFF 0x58
+	#define HFA384X_PCIHCR_OFF 0x5C
+	#define HFA384X_EVSTAT_OFF 0x60
+	#define HFA384X_INTEN_OFF 0x64
+	#define HFA384X_EVACK_OFF 0x68
+	#define HFA384X_DATA0_OFF 0x6C
+	#define HFA384X_DATA1_OFF 0x70
+	#define HFA384X_AUXPAGE_OFF 0x74
+	#define HFA384X_AUXOFFSET_OFF 0x78
+	#define HFA384X_AUXDATA_OFF 0x7C
+	#define HFA384X_PCI_M0_ADDRH_OFF 0x80
+	#define HFA384X_PCI_M0_ADDRL_OFF 0x84
+	#define HFA384X_PCI_M0_LEN_OFF 0x88
+	#define HFA384X_PCI_M0_CTL_OFF 0x8C
+	#define HFA384X_PCI_STATUS_OFF 0x98
+	#define HFA384X_PCI_M1_ADDRH_OFF 0xA0
+	#define HFA384X_PCI_M1_ADDRL_OFF 0xA4
+	#define HFA384X_PCI_M1_LEN_OFF 0xA8
+	#define HFA384X_PCI_M1_CTL_OFF 0xAC
 
-/* PCI bus master control bits (these are undocumented; based on guessing and
- * experimenting..) */
-#define HFA384X_PCI_CTL_FROM_BAP (BIT(5) | BIT(1) | BIT(0))
-#define HFA384X_PCI_CTL_TO_BAP (BIT(5) | BIT(0))
+	/* PCI bus master control bits (these are undocumented; based on guessing and
+	* experimenting..) */
+	#define HFA384X_PCI_CTL_FROM_BAP (BIT(5) | BIT(1) | BIT(0))
+	#define HFA384X_PCI_CTL_TO_BAP (BIT(5) | BIT(0))
 
 #endif /* PRISM2_PCI */
 
@@ -423,8 +440,8 @@ struct hfa384x_regs {
 #define HFA384X_EV_WTERR BIT(14)
 #define HFA384X_EV_INFDROP BIT(13)
 #ifdef PRISM2_PCI
-#define HFA384X_EV_PCI_M1 BIT(9)
-#define HFA384X_EV_PCI_M0 BIT(8)
+	#define HFA384X_EV_PCI_M1 BIT(9)
+	#define HFA384X_EV_PCI_M0 BIT(8)
 #endif /* PRISM2_PCI */
 #define HFA384X_EV_INFO BIT(7)
 #define HFA384X_EV_DTIM BIT(5)
@@ -449,15 +466,17 @@ struct hfa384x_regs {
 #define HFA384X_INFO_KEYIDCHANGED 0xF204 /* ? */
 
 enum { HFA384X_LINKSTATUS_CONNECTED = 1,
-       HFA384X_LINKSTATUS_DISCONNECTED = 2,
-       HFA384X_LINKSTATUS_AP_CHANGE = 3,
-       HFA384X_LINKSTATUS_AP_OUT_OF_RANGE = 4,
-       HFA384X_LINKSTATUS_AP_IN_RANGE = 5,
-       HFA384X_LINKSTATUS_ASSOC_FAILED = 6 };
+	   HFA384X_LINKSTATUS_DISCONNECTED = 2,
+	   HFA384X_LINKSTATUS_AP_CHANGE = 3,
+	   HFA384X_LINKSTATUS_AP_OUT_OF_RANGE = 4,
+	   HFA384X_LINKSTATUS_AP_IN_RANGE = 5,
+	   HFA384X_LINKSTATUS_ASSOC_FAILED = 6
+	 };
 
 enum { HFA384X_PORTTYPE_BSS = 1, HFA384X_PORTTYPE_WDS = 2,
-       HFA384X_PORTTYPE_PSEUDO_IBSS = 3, HFA384X_PORTTYPE_IBSS = 0,
-       HFA384X_PORTTYPE_HOSTAP = 6 };
+	   HFA384X_PORTTYPE_PSEUDO_IBSS = 3, HFA384X_PORTTYPE_IBSS = 0,
+	   HFA384X_PORTTYPE_HOSTAP = 6
+	 };
 
 #define HFA384X_RATES_1MBPS BIT(0)
 #define HFA384X_RATES_2MBPS BIT(1)
@@ -480,12 +499,13 @@ enum { HFA384X_PORTTYPE_BSS = 1, HFA384X_PORTTYPE_WDS = 2,
 #define HFA384X_RX_STATUS_FCSERR BIT(0)
 
 #define HFA384X_RX_STATUS_GET_MSGTYPE(s) \
-(((s) & HFA384X_RX_STATUS_MSGTYPE) >> 13)
+	(((s) & HFA384X_RX_STATUS_MSGTYPE) >> 13)
 #define HFA384X_RX_STATUS_GET_MACPORT(s) \
-(((s) & HFA384X_RX_STATUS_MACPORT) >> 8)
+	(((s) & HFA384X_RX_STATUS_MACPORT) >> 8)
 
 enum { HFA384X_RX_MSGTYPE_NORMAL = 0, HFA384X_RX_MSGTYPE_RFC1042 = 1,
-       HFA384X_RX_MSGTYPE_BRIDGETUNNEL = 2, HFA384X_RX_MSGTYPE_MGMT = 4 };
+	   HFA384X_RX_MSGTYPE_BRIDGETUNNEL = 2, HFA384X_RX_MSGTYPE_MGMT = 4
+	 };
 
 
 #define HFA384X_TX_CTRL_ALT_RTRY BIT(5)
@@ -522,7 +542,8 @@ enum { HFA384X_RX_MSGTYPE_NORMAL = 0, HFA384X_RX_MSGTYPE_RFC1042 = 1,
 #define PRISM2_DUMP_TX_HDR BIT(1)
 #define PRISM2_DUMP_TXEXC_HDR BIT(2)
 
-struct hostap_tx_callback_info {
+struct hostap_tx_callback_info
+{
 	u16 idx;
 	void (*func)(struct sk_buff *, int ok, void *);
 	void *data;
@@ -536,7 +557,8 @@ struct hostap_tx_callback_info {
  * 2 kB of RAM and increasing cache size will slow down frame reassembly. */
 #define PRISM2_FRAG_CACHE_LEN 4
 
-struct prism2_frag_entry {
+struct prism2_frag_entry
+{
 	unsigned long first_frag_time;
 	unsigned int seq;
 	unsigned int last_frag;
@@ -546,12 +568,13 @@ struct prism2_frag_entry {
 };
 
 
-struct hostap_cmd_queue {
+struct hostap_cmd_queue
+{
 	struct list_head list;
 	wait_queue_head_t compl;
 	volatile enum { CMD_SLEEP, CMD_CALLBACK, CMD_COMPLETED } type;
 	void (*callback)(struct net_device *dev, long context, u16 resp0,
-			 u16 res);
+					 u16 res);
 	long context;
 	u16 cmd, param0, param1;
 	u16 resp0, res;
@@ -567,7 +590,8 @@ struct hostap_cmd_queue {
 
 typedef struct local_info local_info_t;
 
-struct prism2_helper_functions {
+struct prism2_helper_functions
+{
 	/* these functions are defined in hardware model specific files
 	 * (hostap_{cs,plx,pci}.c */
 	int (*card_present)(local_info_t *local);
@@ -582,10 +606,10 @@ struct prism2_helper_functions {
 	 * with write_mif/read_mif/testcmd/inquire); at least get_rid and
 	 * set_rid might move to hostap_{cs,plx,pci}.c */
 	int (*cmd)(struct net_device *dev, u16 cmd, u16 param0, u16 *param1,
-		   u16 *resp0);
+			   u16 *resp0);
 	void (*read_regs)(struct net_device *dev, struct hfa384x_regs *regs);
 	int (*get_rid)(struct net_device *dev, u16 rid, void *buf, int len,
-		       int exact_len);
+				   int exact_len);
 	int (*set_rid)(struct net_device *dev, u16 rid, void *buf, int len);
 	int (*hw_enable)(struct net_device *dev, int initial);
 	int (*hw_config)(struct net_device *dev, int initial);
@@ -594,7 +618,7 @@ struct prism2_helper_functions {
 	int (*reset_port)(struct net_device *dev);
 	void (*schedule_reset)(local_info_t *local);
 	int (*download)(local_info_t *local,
-			struct prism2_download_param *param);
+					struct prism2_download_param *param);
 	int (*tx)(struct sk_buff *skb, struct net_device *dev);
 	int (*set_tim)(struct net_device *dev, int aid, int set);
 	const struct file_operations *read_aux_fops;
@@ -605,11 +629,13 @@ struct prism2_helper_functions {
 };
 
 
-struct prism2_download_data {
+struct prism2_download_data
+{
 	u32 dl_cmd;
 	u32 start_addr;
 	u32 num_areas;
-	struct prism2_download_data_area {
+	struct prism2_download_data_area
+	{
 		u32 addr; /* wlan card address */
 		u32 len;
 		u8 *data; /* allocated data */
@@ -620,7 +646,8 @@ struct prism2_download_data {
 #define HOSTAP_MAX_BSS_COUNT 64
 #define MAX_WPA_IE_LEN 64
 
-struct hostap_bss_info {
+struct hostap_bss_info
+{
 	struct list_head list;
 	unsigned long last_update;
 	unsigned int count;
@@ -641,7 +668,8 @@ struct hostap_bss_info {
  * by each radio (wlan#, wlan#ap, wlan#sta, WDS).
  * ((struct hostap_interface *) netdev_priv(dev))->local points to this
  * structure. */
-struct local_info {
+struct local_info
+{
 	struct module *hw_module;
 	int card_idx;
 	int dev_enabled;
@@ -707,7 +735,8 @@ struct local_info {
 	int no_pri; /* no PRI f/w present */
 	int sram_type; /* 8 = x8 SRAM, 16 = x16 SRAM, -1 = unknown */
 
-	enum {
+	enum
+	{
 		PRISM2_TXPOWER_AUTO = 0, PRISM2_TXPOWER_OFF,
 		PRISM2_TXPOWER_FIXED, PRISM2_TXPOWER_UNKNOWN
 	} txpower_type;
@@ -745,7 +774,8 @@ struct local_info {
 
 	struct iw_statistics wstats;
 	unsigned long scan_timestamp; /* Time started to scan */
-	enum {
+	enum
+	{
 		PRISM2_MONITOR_80211 = 0, PRISM2_MONITOR_PRISM = 1,
 		PRISM2_MONITOR_CAPHDR = 2, PRISM2_MONITOR_RADIOTAP = 3
 	} monitor_type;
@@ -794,7 +824,7 @@ struct local_info {
 	u8 *pda;
 	int fw_ap;
 #define PRISM2_FW_VER(major, minor, variant) \
-(((major) << 16) | ((minor) << 8) | variant)
+	(((major) << 16) | ((minor) << 8) | variant)
 	u32 sta_fw_ver;
 
 	/* Tasklets for handling hardware IRQ related operations outside hw IRQ
@@ -888,7 +918,8 @@ struct local_info {
 /* Per interface private Host AP data
  * Allocated for each net device that Host AP uses (wlan#, wlan#ap, wlan#sta,
  * WDS) and netdev_priv(dev) points to this structure. */
-struct hostap_interface {
+struct hostap_interface
+{
 	struct list_head list; /* list entry in Host AP interface list */
 	struct net_device *dev; /* pointer to this device */
 	struct local_info *local; /* pointer to shared private data */
@@ -896,7 +927,8 @@ struct hostap_interface {
 	struct iw_spy_data spy_data; /* iwspy support */
 	struct iw_public_data wireless_data;
 
-	enum {
+	enum
+	{
 		HOSTAP_INTERFACE_MASTER,
 		HOSTAP_INTERFACE_MAIN,
 		HOSTAP_INTERFACE_AP,
@@ -904,8 +936,10 @@ struct hostap_interface {
 		HOSTAP_INTERFACE_WDS,
 	} type;
 
-	union {
-		struct hostap_interface_wds {
+	union
+	{
+		struct hostap_interface_wds
+		{
 			u8 remote_addr[ETH_ALEN];
 		} wds;
 	} u;
@@ -920,7 +954,8 @@ struct hostap_interface {
  * THE PADDING THIS STARTS WITH IS A HORRIBLE HACK THAT SHOULD NOT LIVE
  * TO SEE THE DAY.
  */
-struct hostap_skb_tx_data {
+struct hostap_skb_tx_data
+{
 	unsigned int __padding_for_default_qdiscs;
 	u32 magic; /* HOSTAP_SKB_TX_DATA_MAGIC */
 	u8 rate; /* transmit rate */
@@ -947,9 +982,9 @@ struct hostap_skb_tx_data {
 #define DEBUG_PS2 BIT(7)
 #define DEBUG_MASK (DEBUG_PS | DEBUG_AP | DEBUG_HW | DEBUG_EXTRA)
 #define PDEBUG(n, args...) \
-do { if ((n) & DEBUG_MASK) printk(KERN_DEBUG args); } while (0)
+	do { if ((n) & DEBUG_MASK) printk(KERN_DEBUG args); } while (0)
 #define PDEBUG2(n, args...) \
-do { if ((n) & DEBUG_MASK) printk(args); } while (0)
+	do { if ((n) & DEBUG_MASK) printk(args); } while (0)
 
 #else /* PRISM2_NO_DEBUG */
 
@@ -972,24 +1007,33 @@ enum { BAP0 = 0, BAP1 = 1 };
 #ifdef PRISM2_IO_DEBUG
 
 #define PRISM2_IO_DEBUG_ENTRY(cmd, reg, value) \
-(((cmd) << 24) | ((reg) << 16) | value)
+	(((cmd) << 24) | ((reg) << 16) | value)
 
 static inline void prism2_io_debug_add(struct net_device *dev, int cmd,
-				       int reg, int value)
+									   int reg, int value)
 {
 	struct hostap_interface *iface = netdev_priv(dev);
 	local_info_t *local = iface->local;
 
 	if (!local->io_debug_enabled)
+	{
 		return;
+	}
 
 	local->io_debug[local->io_debug_head] =	jiffies & 0xffffffff;
+
 	if (++local->io_debug_head >= PRISM2_IO_DEBUG_SIZE)
+	{
 		local->io_debug_head = 0;
+	}
+
 	local->io_debug[local->io_debug_head] =
 		PRISM2_IO_DEBUG_ENTRY(cmd, reg, value);
+
 	if (++local->io_debug_head >= PRISM2_IO_DEBUG_SIZE)
+	{
 		local->io_debug_head = 0;
+	}
 }
 
 
@@ -1000,21 +1044,26 @@ static inline void prism2_io_debug_error(struct net_device *dev, int err)
 	unsigned long flags;
 
 	if (!local->io_debug_enabled)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&local->lock, flags);
 	prism2_io_debug_add(dev, PRISM2_IO_DEBUG_CMD_ERROR, 0, err);
-	if (local->io_debug_enabled == 1) {
+
+	if (local->io_debug_enabled == 1)
+	{
 		local->io_debug_enabled = 0;
 		printk(KERN_DEBUG "%s: I/O debug stopped\n", dev->name);
 	}
+
 	spin_unlock_irqrestore(&local->lock, flags);
 }
 
 #else /* PRISM2_IO_DEBUG */
 
 static inline void prism2_io_debug_add(struct net_device *dev, int cmd,
-				       int reg, int value)
+									   int reg, int value)
 {
 }
 
@@ -1026,7 +1075,8 @@ static inline void prism2_io_debug_error(struct net_device *dev, int err)
 
 
 #ifdef PRISM2_CALLBACK
-enum {
+enum
+{
 	/* Called when card is enabled */
 	PRISM2_CALLBACK_ENABLE,
 

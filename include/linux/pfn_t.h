@@ -46,7 +46,10 @@ static inline unsigned long pfn_t_to_pfn(pfn_t pfn)
 static inline struct page *pfn_t_to_page(pfn_t pfn)
 {
 	if (pfn_t_has_page(pfn))
+	{
 		return pfn_to_page(pfn_t_to_pfn(pfn));
+	}
+
 	return NULL;
 }
 
@@ -58,7 +61,10 @@ static inline phys_addr_t pfn_t_to_phys(pfn_t pfn)
 static inline void *pfn_t_to_virt(pfn_t pfn)
 {
 	if (pfn_t_has_page(pfn))
+	{
 		return __va(pfn_t_to_phys(pfn));
+	}
+
 	return NULL;
 }
 
@@ -89,7 +95,7 @@ static inline pmd_t pfn_t_pmd(pfn_t pfn, pgprot_t pgprot)
 #ifdef __HAVE_ARCH_PTE_DEVMAP
 static inline bool pfn_t_devmap(pfn_t pfn)
 {
-	const u64 flags = PFN_DEV|PFN_MAP;
+	const u64 flags = PFN_DEV | PFN_MAP;
 
 	return (pfn.val & flags) == flags;
 }

@@ -22,7 +22,8 @@
 
 #define JITHEADER_VERSION 1
 
-enum jitdump_flags_bits {
+enum jitdump_flags_bits
+{
 	JITDUMP_FLAGS_ARCH_TIMESTAMP_BIT,
 	JITDUMP_FLAGS_MAX_BIT,
 };
@@ -30,9 +31,10 @@ enum jitdump_flags_bits {
 #define JITDUMP_FLAGS_ARCH_TIMESTAMP	(1ULL << JITDUMP_FLAGS_ARCH_TIMESTAMP_BIT)
 
 #define JITDUMP_FLAGS_RESERVED (JITDUMP_FLAGS_MAX_BIT < 64 ? \
-				(~((1ULL << JITDUMP_FLAGS_MAX_BIT) - 1)) : 0)
+								(~((1ULL << JITDUMP_FLAGS_MAX_BIT) - 1)) : 0)
 
-struct jitheader {
+struct jitheader
+{
 	uint32_t magic;		/* characters "jItD" */
 	uint32_t version;	/* header version */
 	uint32_t total_size;	/* total size of header */
@@ -43,9 +45,10 @@ struct jitheader {
 	uint64_t flags;		/* flags */
 };
 
-enum jit_record_type {
+enum jit_record_type
+{
 	JIT_CODE_LOAD		= 0,
-        JIT_CODE_MOVE           = 1,
+	JIT_CODE_MOVE           = 1,
 	JIT_CODE_DEBUG_INFO	= 2,
 	JIT_CODE_CLOSE		= 3,
 
@@ -53,13 +56,15 @@ enum jit_record_type {
 };
 
 /* record prefix (mandatory in each record) */
-struct jr_prefix {
+struct jr_prefix
+{
 	uint32_t id;
 	uint32_t total_size;
 	uint64_t timestamp;
 };
 
-struct jr_code_load {
+struct jr_code_load
+{
 	struct jr_prefix p;
 
 	uint32_t pid;
@@ -70,11 +75,13 @@ struct jr_code_load {
 	uint64_t code_index;
 };
 
-struct jr_code_close {
+struct jr_code_close
+{
 	struct jr_prefix p;
 };
 
-struct jr_code_move {
+struct jr_code_move
+{
 	struct jr_prefix p;
 
 	uint32_t pid;
@@ -86,14 +93,16 @@ struct jr_code_move {
 	uint64_t code_index;
 };
 
-struct debug_entry {
+struct debug_entry
+{
 	uint64_t addr;
 	int lineno;	    /* source line number starting at 1 */
 	int discrim;	    /* column discriminator, 0 is default */
 	const char name[0]; /* null terminated filename, \xff\0 if same as previous entry */
 };
 
-struct jr_code_debug_info {
+struct jr_code_debug_info
+{
 	struct jr_prefix p;
 
 	uint64_t code_addr;
@@ -101,12 +110,13 @@ struct jr_code_debug_info {
 	struct debug_entry entries[0];
 };
 
-union jr_entry {
-        struct jr_code_debug_info info;
-        struct jr_code_close close;
-        struct jr_code_load load;
-        struct jr_code_move move;
-        struct jr_prefix prefix;
+union jr_entry
+{
+	struct jr_code_debug_info info;
+	struct jr_code_close close;
+	struct jr_code_load load;
+	struct jr_code_move move;
+	struct jr_prefix prefix;
 };
 
 static inline struct debug_entry *

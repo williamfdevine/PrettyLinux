@@ -21,10 +21,10 @@
 
 struct pppcallinfo
 {
-  int calltype;
-  unsigned char local_num[64];
-  unsigned char remote_num[64];
-  int charge_units;
+	int calltype;
+	unsigned char local_num[64];
+	unsigned char remote_num[64];
+	int charge_units;
 };
 
 #define PPPIOCGCALLINFO _IOWR('t',128,struct pppcallinfo)
@@ -57,11 +57,12 @@ struct pppcallinfo
 #define IPPP_COMP_FLAG_XMIT 0x1
 #define IPPP_COMP_FLAG_LINK 0x2
 
-struct isdn_ppp_comp_data {
-  int num;
-  unsigned char options[ISDN_PPP_COMP_MAX_OPTIONS];
-  int optlen;
-  int flags;
+struct isdn_ppp_comp_data
+{
+	int num;
+	unsigned char options[ISDN_PPP_COMP_MAX_OPTIONS];
+	int optlen;
+	int flags;
 };
 
 #endif /* _UAPI_LINUX_ISDN_PPP_H */

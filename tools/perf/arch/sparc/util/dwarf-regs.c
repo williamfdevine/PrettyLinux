@@ -14,7 +14,8 @@
 
 #define SPARC_MAX_REGS	96
 
-const char *sparc_regs_table[SPARC_MAX_REGS] = {
+const char *sparc_regs_table[SPARC_MAX_REGS] =
+{
 	"%g0", "%g1", "%g2", "%g3", "%g4", "%g5", "%g6", "%g7",
 	"%o0", "%o1", "%o2", "%o3", "%o4", "%o5", "%sp", "%o7",
 	"%l0", "%l1", "%l2", "%l3", "%l4", "%l5", "%l6", "%l7",

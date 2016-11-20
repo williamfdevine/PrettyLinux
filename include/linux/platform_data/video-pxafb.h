@@ -65,17 +65,18 @@
  * It is set in linux/arch/arm/mach-pxa/machine_name.c and used in the probe routine
  * of linux/drivers/video/pxafb.c
  */
-struct pxafb_mode_info {
+struct pxafb_mode_info
+{
 	u_long		pixclock;
 
 	u_short		xres;
 	u_short		yres;
 
 	u_char		bpp;
-	u_int		cmap_greyscale:1,
-			depth:8,
-			transparency:1,
-			unused:22;
+	u_int		cmap_greyscale: 1,
+				depth: 8,
+				transparency: 1,
+				unused: 22;
 
 	/* Parallel Mode Timing */
 	u_char		hsync_len;
@@ -107,18 +108,19 @@ struct pxafb_mode_info {
 	unsigned	op_hold_time;	/* Output Hold time from L_FCLK_RD negation */
 };
 
-struct pxafb_mach_info {
+struct pxafb_mach_info
+{
 	struct pxafb_mode_info *modes;
 	unsigned int num_modes;
 
 	unsigned int	lcd_conn;
 	unsigned long	video_mem_size;
 
-	u_int		fixed_modes:1,
-			cmap_inverse:1,
-			cmap_static:1,
-			acceleration_enabled:1,
-			unused:28;
+	u_int		fixed_modes: 1,
+				cmap_inverse: 1,
+				cmap_static: 1,
+				acceleration_enabled: 1,
+				unused: 28;
 
 	/* The following should be defined in LCCR0
 	 *      LCCR0_Act or LCCR0_Pas          Active or Passive
@@ -161,7 +163,7 @@ extern int pxafb_smart_queue(struct fb_info *info, uint16_t *cmds, int);
 extern int pxafb_smart_flush(struct fb_info *info);
 #else
 static inline int pxafb_smart_queue(struct fb_info *info,
-				    uint16_t *cmds, int n)
+									uint16_t *cmds, int n)
 {
 	return 0;
 }

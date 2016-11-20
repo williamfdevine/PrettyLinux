@@ -78,14 +78,16 @@
  * @clk:	input clock of the built-in baud rate generator
  * @device:	the device structure
  */
-struct meson_spifc {
+struct meson_spifc
+{
 	struct spi_master *master;
 	struct regmap *regmap;
 	struct clk *clk;
 	struct device *dev;
 };
 
-static const struct regmap_config spifc_regmap_config = {
+static const struct regmap_config spifc_regmap_config =
+{
 	.reg_bits = 32,
 	.val_bits = 32,
 	.reg_stride = 4,
@@ -102,12 +104,18 @@ static int meson_spifc_wait_ready(struct meson_spifc *spifc)
 	unsigned long deadline = jiffies + msecs_to_jiffies(5);
 	u32 data;
 
-	do {
+	do
+	{
 		regmap_read(spifc->regmap, REG_SLAVE, &data);
+
 		if (data & SLAVE_TRST_DONE)
+		{
 			return 0;
+		}
+
 		cond_resched();
-	} while (!time_after(jiffies, deadline));
+	}
+	while (!time_after(jiffies, deadline));
 
 	return -ETIMEDOUT;
 }
@@ -119,21 +127,26 @@ static int meson_spifc_wait_ready(struct meson_spifc *spifc)
  * @len:	number of bytes to copy
  */
 static void meson_spifc_drain_buffer(struct meson_spifc *spifc, u8 *buf,
-				     int len)
+									 int len)
 {
 	u32 data;
 	int i = 0;
 
-	while (i < len) {
+	while (i < len)
+	{
 		regmap_read(spifc->regmap, REG_C0 + i, &data);
 
-		if (len - i >= 4) {
+		if (len - i >= 4)
+		{
 			*((u32 *)buf) = data;
 			buf += 4;
-		} else {
+		}
+		else
+		{
 			memcpy(buf, &data, len - i);
 			break;
 		}
+
 		i += 4;
 	}
 }
@@ -145,16 +158,21 @@ static void meson_spifc_drain_buffer(struct meson_spifc *spifc, u8 *buf,
  * @len:	number of bytes to copy
  */
 static void meson_spifc_fill_buffer(struct meson_spifc *spifc, const u8 *buf,
-				    int len)
+									int len)
 {
 	u32 data;
 	int i = 0;
 
-	while (i < len) {
+	while (i < len)
+	{
 		if (len - i >= 4)
+		{
 			data = *(u32 *)buf;
+		}
 		else
+		{
 			memcpy(&data, buf, len - i);
+		}
 
 		regmap_write(spifc->regmap, REG_C0 + i, data);
 
@@ -177,12 +195,12 @@ static void meson_spifc_setup_speed(struct meson_spifc *spifc, u32 speed)
 	n = max_t(int, parent / speed - 1, 1);
 
 	dev_dbg(spifc->dev, "parent %lu, speed %u, n %d\n", parent,
-		speed, n);
+			speed, n);
 
 	value = (n << CLOCK_DIV_SHIFT) & CLOCK_DIV_MASK;
 	value |= (n << CLOCK_CNT_LOW_SHIFT) & CLOCK_CNT_LOW_MASK;
 	value |= (((n + 1) / 2 - 1) << CLOCK_CNT_HIGH_SHIFT) &
-		CLOCK_CNT_HIGH_MASK;
+			 CLOCK_CNT_HIGH_MASK;
 
 	regmap_write(spifc->regmap, REG_CLOCK, value);
 }
@@ -198,35 +216,42 @@ static void meson_spifc_setup_speed(struct meson_spifc *spifc, u32 speed)
  * Return:	0 on success, a negative value on error
  */
 static int meson_spifc_txrx(struct meson_spifc *spifc,
-			    struct spi_transfer *xfer,
-			    int offset, int len, bool last_xfer,
-			    bool last_chunk)
+							struct spi_transfer *xfer,
+							int offset, int len, bool last_xfer,
+							bool last_chunk)
 {
 	bool keep_cs = true;
 	int ret;
 
 	if (xfer->tx_buf)
+	{
 		meson_spifc_fill_buffer(spifc, xfer->tx_buf + offset, len);
+	}
 
 	/* enable DOUT stage */
 	regmap_update_bits(spifc->regmap, REG_USER, USER_UC_MASK,
-			   USER_UC_DOUT_SEL);
+					   USER_UC_DOUT_SEL);
 	regmap_write(spifc->regmap, REG_USER1,
-		     (8 * len - 1) << USER1_BN_UC_DOUT_SHIFT);
+				 (8 * len - 1) << USER1_BN_UC_DOUT_SHIFT);
 
 	/* enable data input during DOUT */
 	regmap_update_bits(spifc->regmap, REG_USER, USER_DIN_EN_MS,
-			   USER_DIN_EN_MS);
+					   USER_DIN_EN_MS);
 
-	if (last_chunk) {
+	if (last_chunk)
+	{
 		if (last_xfer)
+		{
 			keep_cs = xfer->cs_change;
+		}
 		else
+		{
 			keep_cs = !xfer->cs_change;
+		}
 	}
 
 	regmap_update_bits(spifc->regmap, REG_USER4, USER4_CS_ACT,
-			   keep_cs ? USER4_CS_ACT : 0);
+					   keep_cs ? USER4_CS_ACT : 0);
 
 	/* clear transition done bit */
 	regmap_update_bits(spifc->regmap, REG_SLAVE, SLAVE_TRST_DONE, 0);
@@ -236,7 +261,9 @@ static int meson_spifc_txrx(struct meson_spifc *spifc,
 	ret = meson_spifc_wait_ready(spifc);
 
 	if (!ret && xfer->rx_buf)
+	{
 		meson_spifc_drain_buffer(spifc, xfer->rx_buf + offset, len);
+	}
 
 	return ret;
 }
@@ -249,8 +276,8 @@ static int meson_spifc_txrx(struct meson_spifc *spifc,
  * Return:	0 on success, a negative value on error
  */
 static int meson_spifc_transfer_one(struct spi_master *master,
-				    struct spi_device *spi,
-				    struct spi_transfer *xfer)
+									struct spi_device *spi,
+									struct spi_transfer *xfer)
 {
 	struct meson_spifc *spifc = spi_master_get_devdata(master);
 	int len, done = 0, ret = 0;
@@ -259,16 +286,17 @@ static int meson_spifc_transfer_one(struct spi_master *master,
 
 	regmap_update_bits(spifc->regmap, REG_CTRL, CTRL_ENABLE_AHB, 0);
 
-	while (done < xfer->len && !ret) {
+	while (done < xfer->len && !ret)
+	{
 		len = min_t(int, xfer->len - done, SPIFC_BUFFER_SIZE);
 		ret = meson_spifc_txrx(spifc, xfer, done, len,
-				       spi_transfer_is_last(master, xfer),
-				       done + len >= xfer->len);
+							   spi_transfer_is_last(master, xfer),
+							   done + len >= xfer->len);
 		done += len;
 	}
 
 	regmap_update_bits(spifc->regmap, REG_CTRL, CTRL_ENABLE_AHB,
-			   CTRL_ENABLE_AHB);
+					   CTRL_ENABLE_AHB);
 
 	return ret;
 }
@@ -281,7 +309,7 @@ static void meson_spifc_hw_init(struct meson_spifc *spifc)
 {
 	/* reset device */
 	regmap_update_bits(spifc->regmap, REG_SLAVE, SLAVE_SW_RST,
-			   SLAVE_SW_RST);
+					   SLAVE_SW_RST);
 	/* disable compatible mode */
 	regmap_update_bits(spifc->regmap, REG_USER, USER_CMP_MODE, 0);
 	/* set master mode */
@@ -298,8 +326,11 @@ static int meson_spifc_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(struct meson_spifc));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, master);
 
@@ -308,27 +339,35 @@ static int meson_spifc_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(spifc->dev, res);
-	if (IS_ERR(base)) {
+
+	if (IS_ERR(base))
+	{
 		ret = PTR_ERR(base);
 		goto out_err;
 	}
 
 	spifc->regmap = devm_regmap_init_mmio(spifc->dev, base,
-					      &spifc_regmap_config);
-	if (IS_ERR(spifc->regmap)) {
+										  &spifc_regmap_config);
+
+	if (IS_ERR(spifc->regmap))
+	{
 		ret = PTR_ERR(spifc->regmap);
 		goto out_err;
 	}
 
 	spifc->clk = devm_clk_get(spifc->dev, NULL);
-	if (IS_ERR(spifc->clk)) {
+
+	if (IS_ERR(spifc->clk))
+	{
 		dev_err(spifc->dev, "missing clock\n");
 		ret = PTR_ERR(spifc->clk);
 		goto out_err;
 	}
 
 	ret = clk_prepare_enable(spifc->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(spifc->dev, "can't prepare clock\n");
 		goto out_err;
 	}
@@ -349,7 +388,9 @@ static int meson_spifc_probe(struct platform_device *pdev)
 	pm_runtime_enable(spifc->dev);
 
 	ret = devm_spi_register_master(spifc->dev, master);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(spifc->dev, "failed to register spi master\n");
 		goto out_clk;
 	}
@@ -382,11 +423,16 @@ static int meson_spifc_suspend(struct device *dev)
 	int ret;
 
 	ret = spi_master_suspend(master);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (!pm_runtime_suspended(dev))
+	{
 		clk_disable_unprepare(spifc->clk);
+	}
 
 	return 0;
 }
@@ -397,17 +443,24 @@ static int meson_spifc_resume(struct device *dev)
 	struct meson_spifc *spifc = spi_master_get_devdata(master);
 	int ret;
 
-	if (!pm_runtime_suspended(dev)) {
+	if (!pm_runtime_suspended(dev))
+	{
 		ret = clk_prepare_enable(spifc->clk);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	meson_spifc_hw_init(spifc);
 
 	ret = spi_master_resume(master);
+
 	if (ret)
+	{
 		clk_disable_unprepare(spifc->clk);
+	}
 
 	return ret;
 }
@@ -433,21 +486,24 @@ static int meson_spifc_runtime_resume(struct device *dev)
 }
 #endif /* CONFIG_PM */
 
-static const struct dev_pm_ops meson_spifc_pm_ops = {
+static const struct dev_pm_ops meson_spifc_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(meson_spifc_suspend, meson_spifc_resume)
 	SET_RUNTIME_PM_OPS(meson_spifc_runtime_suspend,
-			   meson_spifc_runtime_resume,
-			   NULL)
+	meson_spifc_runtime_resume,
+	NULL)
 };
 
-static const struct of_device_id meson_spifc_dt_match[] = {
+static const struct of_device_id meson_spifc_dt_match[] =
+{
 	{ .compatible = "amlogic,meson6-spifc", },
 	{ .compatible = "amlogic,meson-gxbb-spifc", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, meson_spifc_dt_match);
 
-static struct platform_driver meson_spifc_driver = {
+static struct platform_driver meson_spifc_driver =
+{
 	.probe	= meson_spifc_probe,
 	.remove	= meson_spifc_remove,
 	.driver	= {

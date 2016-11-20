@@ -38,7 +38,8 @@
  * @ack_status:	status of the outstanding request
  * @probe_work: worker for uploading nv binary
  */
-struct wcnss_ctrl {
+struct wcnss_ctrl
+{
 	struct device *dev;
 	struct qcom_smd_channel *channel;
 
@@ -50,7 +51,8 @@ struct wcnss_ctrl {
 };
 
 /* message types */
-enum {
+enum
+{
 	WCNSS_VERSION_REQ = 0x01000000,
 	WCNSS_VERSION_RESP,
 	WCNSS_DOWNLOAD_NV_REQ,
@@ -71,7 +73,8 @@ enum {
  * @type:	packet message type
  * @len:	total length of the packet, including this header
  */
-struct wcnss_msg_hdr {
+struct wcnss_msg_hdr
+{
 	u32 type;
 	u32 len;
 } __packed;
@@ -80,7 +83,8 @@ struct wcnss_msg_hdr {
  * struct wcnss_version_resp - version request response
  * @hdr:	common packet wcnss_msg_hdr header
  */
-struct wcnss_version_resp {
+struct wcnss_version_resp
+{
 	struct wcnss_msg_hdr hdr;
 	u8 major;
 	u8 minor;
@@ -96,7 +100,8 @@ struct wcnss_version_resp {
  * @frag_size:	length of this fragment
  * @fragment:	fragment data
  */
-struct wcnss_download_nv_req {
+struct wcnss_download_nv_req
+{
 	struct wcnss_msg_hdr hdr;
 	u16 seq;
 	u16 last;
@@ -109,7 +114,8 @@ struct wcnss_download_nv_req {
  * @hdr:	common packet wcnss_msg_hdr header
  * @status:	boolean to indicate success of the download
  */
-struct wcnss_download_nv_resp {
+struct wcnss_download_nv_resp
+{
 	struct wcnss_msg_hdr hdr;
 	u8 status;
 } __packed;
@@ -123,47 +129,53 @@ struct wcnss_download_nv_resp {
  * Handles any incoming packets from the remote WCNSS_CTRL service.
  */
 static int wcnss_ctrl_smd_callback(struct qcom_smd_channel *channel,
-				   const void *data,
-				   size_t count)
+								   const void *data,
+								   size_t count)
 {
 	struct wcnss_ctrl *wcnss = qcom_smd_get_drvdata(channel);
 	const struct wcnss_download_nv_resp *nvresp;
 	const struct wcnss_version_resp *version;
 	const struct wcnss_msg_hdr *hdr = data;
 
-	switch (hdr->type) {
-	case WCNSS_VERSION_RESP:
-		if (count != sizeof(*version)) {
-			dev_err(wcnss->dev,
-				"invalid size of version response\n");
+	switch (hdr->type)
+	{
+		case WCNSS_VERSION_RESP:
+			if (count != sizeof(*version))
+			{
+				dev_err(wcnss->dev,
+						"invalid size of version response\n");
+				break;
+			}
+
+			version = data;
+			dev_info(wcnss->dev, "WCNSS Version %d.%d %d.%d\n",
+					 version->major, version->minor,
+					 version->version, version->revision);
+
+			complete(&wcnss->ack);
 			break;
-		}
 
-		version = data;
-		dev_info(wcnss->dev, "WCNSS Version %d.%d %d.%d\n",
-			 version->major, version->minor,
-			 version->version, version->revision);
+		case WCNSS_DOWNLOAD_NV_RESP:
+			if (count != sizeof(*nvresp))
+			{
+				dev_err(wcnss->dev,
+						"invalid size of download response\n");
+				break;
+			}
 
-		complete(&wcnss->ack);
-		break;
-	case WCNSS_DOWNLOAD_NV_RESP:
-		if (count != sizeof(*nvresp)) {
-			dev_err(wcnss->dev,
-				"invalid size of download response\n");
+			nvresp = data;
+			wcnss->ack_status = nvresp->status;
+			complete(&wcnss->ack);
 			break;
-		}
 
-		nvresp = data;
-		wcnss->ack_status = nvresp->status;
-		complete(&wcnss->ack);
-		break;
-	case WCNSS_CBC_COMPLETE_IND:
-		dev_dbg(wcnss->dev, "cold boot complete\n");
-		complete(&wcnss->cbc);
-		break;
-	default:
-		dev_info(wcnss->dev, "unknown message type %d\n", hdr->type);
-		break;
+		case WCNSS_CBC_COMPLETE_IND:
+			dev_dbg(wcnss->dev, "cold boot complete\n");
+			complete(&wcnss->cbc);
+			break;
+
+		default:
+			dev_info(wcnss->dev, "unknown message type %d\n", hdr->type);
+			break;
 	}
 
 	return 0;
@@ -181,11 +193,16 @@ static int wcnss_request_version(struct wcnss_ctrl *wcnss)
 	msg.type = WCNSS_VERSION_REQ;
 	msg.len = sizeof(msg);
 	ret = qcom_smd_send(wcnss->channel, &msg, sizeof(msg));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = wait_for_completion_timeout(&wcnss->ack, WCNSS_CBC_TIMEOUT);
-	if (!ret) {
+
+	if (!ret)
+	{
 		dev_err(wcnss->dev, "timeout waiting for version response\n");
 		return -ETIMEDOUT;
 	}
@@ -209,13 +226,18 @@ static int wcnss_download_nv(struct wcnss_ctrl *wcnss, bool *expect_cbc)
 	int ret;
 
 	req = kzalloc(sizeof(*req) + NV_FRAGMENT_SIZE, GFP_KERNEL);
+
 	if (!req)
+	{
 		return -ENOMEM;
+	}
 
 	ret = request_firmware(&fw, NVBIN_FILE, wcnss->dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(wcnss->dev, "Failed to load nv file %s: %d\n",
-			NVBIN_FILE, ret);
+				NVBIN_FILE, ret);
 		goto free_req;
 	}
 
@@ -229,8 +251,11 @@ static int wcnss_download_nv(struct wcnss_ctrl *wcnss, bool *expect_cbc)
 	req->frag_size = NV_FRAGMENT_SIZE;
 
 	req->seq = 0;
-	do {
-		if (left <= NV_FRAGMENT_SIZE) {
+
+	do
+	{
+		if (left <= NV_FRAGMENT_SIZE)
+		{
 			req->last = 1;
 			req->frag_size = left;
 			req->hdr.len = sizeof(*req) + left;
@@ -239,7 +264,9 @@ static int wcnss_download_nv(struct wcnss_ctrl *wcnss, bool *expect_cbc)
 		memcpy(req->fragment, data, req->frag_size);
 
 		ret = qcom_smd_send(wcnss->channel, req, req->hdr.len);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(wcnss->dev, "failed to send smd packet\n");
 			goto release_fw;
 		}
@@ -249,13 +276,18 @@ static int wcnss_download_nv(struct wcnss_ctrl *wcnss, bool *expect_cbc)
 
 		data += req->hdr.len;
 		left -= NV_FRAGMENT_SIZE;
-	} while (left > 0);
+	}
+	while (left > 0);
 
 	ret = wait_for_completion_timeout(&wcnss->ack, WCNSS_REQUEST_TIMEOUT);
-	if (!ret) {
+
+	if (!ret)
+	{
 		dev_err(wcnss->dev, "timeout waiting for nv upload ack\n");
 		ret = -ETIMEDOUT;
-	} else {
+	}
+	else
+	{
 		*expect_cbc = wcnss->ack_status == WCNSS_ACK_COLD_BOOTING;
 		ret = 0;
 	}
@@ -289,18 +321,28 @@ static void wcnss_async_probe(struct work_struct *work)
 	int ret;
 
 	ret = wcnss_request_version(wcnss);
+
 	if (ret < 0)
+	{
 		return;
+	}
 
 	ret = wcnss_download_nv(wcnss, &expect_cbc);
+
 	if (ret < 0)
+	{
 		return;
+	}
 
 	/* Wait for pending cold boot completion if indicated by the nv downloader */
-	if (expect_cbc) {
+	if (expect_cbc)
+	{
 		ret = wait_for_completion_timeout(&wcnss->cbc, WCNSS_REQUEST_TIMEOUT);
+
 		if (!ret)
+		{
 			dev_err(wcnss->dev, "expected cold boot completion\n");
+		}
 	}
 
 	of_platform_populate(wcnss->dev->of_node, NULL, NULL, wcnss->dev);
@@ -311,8 +353,11 @@ static int wcnss_ctrl_probe(struct qcom_smd_device *sdev)
 	struct wcnss_ctrl *wcnss;
 
 	wcnss = devm_kzalloc(&sdev->dev, sizeof(*wcnss), GFP_KERNEL);
+
 	if (!wcnss)
+	{
 		return -ENOMEM;
+	}
 
 	wcnss->dev = &sdev->dev;
 	wcnss->channel = sdev->channel;
@@ -337,12 +382,14 @@ static void wcnss_ctrl_remove(struct qcom_smd_device *sdev)
 	of_platform_depopulate(&sdev->dev);
 }
 
-static const struct of_device_id wcnss_ctrl_of_match[] = {
+static const struct of_device_id wcnss_ctrl_of_match[] =
+{
 	{ .compatible = "qcom,wcnss", },
 	{}
 };
 
-static struct qcom_smd_driver wcnss_ctrl_driver = {
+static struct qcom_smd_driver wcnss_ctrl_driver =
+{
 	.probe = wcnss_ctrl_probe,
 	.remove = wcnss_ctrl_remove,
 	.callback = wcnss_ctrl_smd_callback,

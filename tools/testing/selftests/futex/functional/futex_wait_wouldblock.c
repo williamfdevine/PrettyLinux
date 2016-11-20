@@ -36,7 +36,7 @@ void usage(char *prog)
 	printf("  -c	Use color\n");
 	printf("  -h	Display this help message\n");
 	printf("  -v L	Verbosity level: %d=QUIET %d=CRITICAL %d=INFO\n",
-	       VQUIET, VCRITICAL, VINFO);
+		   VQUIET, VCRITICAL, VINFO);
 }
 
 int main(int argc, char *argv[])
@@ -46,31 +46,38 @@ int main(int argc, char *argv[])
 	int res, ret = RET_PASS;
 	int c;
 
-	while ((c = getopt(argc, argv, "cht:v:")) != -1) {
-		switch (c) {
-		case 'c':
-			log_color(1);
-			break;
-		case 'h':
-			usage(basename(argv[0]));
-			exit(0);
-		case 'v':
-			log_verbosity(atoi(optarg));
-			break;
-		default:
-			usage(basename(argv[0]));
-			exit(1);
+	while ((c = getopt(argc, argv, "cht:v:")) != -1)
+	{
+		switch (c)
+		{
+			case 'c':
+				log_color(1);
+				break;
+
+			case 'h':
+				usage(basename(argv[0]));
+				exit(0);
+
+			case 'v':
+				log_verbosity(atoi(optarg));
+				break;
+
+			default:
+				usage(basename(argv[0]));
+				exit(1);
 		}
 	}
 
 	printf("%s: Test the unexpected futex value in FUTEX_WAIT\n",
-	       basename(argv[0]));
+		   basename(argv[0]));
 
-	info("Calling futex_wait on f1: %u @ %p with val=%u\n", f1, &f1, f1+1);
-	res = futex_wait(&f1, f1+1, &to, FUTEX_PRIVATE_FLAG);
-	if (!res || errno != EWOULDBLOCK) {
+	info("Calling futex_wait on f1: %u @ %p with val=%u\n", f1, &f1, f1 + 1);
+	res = futex_wait(&f1, f1 + 1, &to, FUTEX_PRIVATE_FLAG);
+
+	if (!res || errno != EWOULDBLOCK)
+	{
 		fail("futex_wait returned: %d %s\n",
-		     res ? errno : res, res ? strerror(errno) : "");
+			 res ? errno : res, res ? strerror(errno) : "");
 		ret = RET_FAIL;
 	}
 

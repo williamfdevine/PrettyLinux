@@ -10,7 +10,8 @@
  ******************************************************************************/
 
 static const struct nvkm_object_func
-nv25_gr_chan = {
+	nv25_gr_chan =
+{
 	.dtor = nv20_gr_chan_dtor,
 	.init = nv20_gr_chan_init,
 	.fini = nv20_gr_chan_fini,
@@ -18,24 +19,30 @@ nv25_gr_chan = {
 
 static int
 nv25_gr_chan_new(struct nvkm_gr *base, struct nvkm_fifo_chan *fifoch,
-		 const struct nvkm_oclass *oclass, struct nvkm_object **pobject)
+				 const struct nvkm_oclass *oclass, struct nvkm_object **pobject)
 {
 	struct nv20_gr *gr = nv20_gr(base);
 	struct nv20_gr_chan *chan;
 	int ret, i;
 
 	if (!(chan = kzalloc(sizeof(*chan), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_object_ctor(&nv25_gr_chan, oclass, &chan->object);
 	chan->gr = gr;
 	chan->chid = fifoch->chid;
 	*pobject = &chan->object;
 
 	ret = nvkm_memory_new(gr->base.engine.subdev.device,
-			      NVKM_MEM_TARGET_INST, 0x3724, 16, true,
-			      &chan->inst);
+						  NVKM_MEM_TARGET_INST, 0x3724, 16, true,
+						  &chan->inst);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nvkm_kmap(chan->inst);
 	nvkm_wo32(chan->inst, 0x0028, 0x00000001 | (chan->chid << 24));
@@ -49,18 +56,37 @@ nv25_gr_chan_new(struct nvkm_gr *base, struct nvkm_fifo_chan *fifoch,
 	nvkm_wo32(chan->inst, 0x04d0, 0x00000001);
 	nvkm_wo32(chan->inst, 0x04e4, 0x44400000);
 	nvkm_wo32(chan->inst, 0x04fc, 0x4b800000);
+
 	for (i = 0x0510; i <= 0x051c; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x00030303);
+	}
+
 	for (i = 0x0530; i <= 0x053c; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x00080000);
+	}
+
 	for (i = 0x0548; i <= 0x0554; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x01012000);
+	}
+
 	for (i = 0x0558; i <= 0x0564; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x000105b8);
+	}
+
 	for (i = 0x0568; i <= 0x0574; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x00080008);
+	}
+
 	for (i = 0x0598; i <= 0x05d4; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x07ff0000);
+	}
+
 	nvkm_wo32(chan->inst, 0x05e0, 0x4b7fffff);
 	nvkm_wo32(chan->inst, 0x0620, 0x00000080);
 	nvkm_wo32(chan->inst, 0x0624, 0x30201000);
@@ -72,11 +98,14 @@ nv25_gr_chan_new(struct nvkm_gr *base, struct nvkm_fifo_chan *fifoch,
 	nvkm_wo32(chan->inst, 0x0678, 0x00000001);
 	nvkm_wo32(chan->inst, 0x0680, 0x00040000);
 	nvkm_wo32(chan->inst, 0x0684, 0x00010000);
-	for (i = 0x1b04; i <= 0x2374; i += 16) {
+
+	for (i = 0x1b04; i <= 0x2374; i += 16)
+	{
 		nvkm_wo32(chan->inst, (i + 0), 0x10700ff9);
 		nvkm_wo32(chan->inst, (i + 4), 0x0436086c);
 		nvkm_wo32(chan->inst, (i + 8), 0x000c001b);
 	}
+
 	nvkm_wo32(chan->inst, 0x2704, 0x3f800000);
 	nvkm_wo32(chan->inst, 0x2718, 0x3f800000);
 	nvkm_wo32(chan->inst, 0x2744, 0x40000000);
@@ -89,8 +118,12 @@ nv25_gr_chan_new(struct nvkm_gr *base, struct nvkm_fifo_chan *fifoch,
 	nvkm_wo32(chan->inst, 0x308c, 0x000fe000);
 	nvkm_wo32(chan->inst, 0x3108, 0x000003f8);
 	nvkm_wo32(chan->inst, 0x3468, 0x002fe000);
+
 	for (i = 0x3484; i <= 0x34a0; i += 4)
+	{
 		nvkm_wo32(chan->inst, i, 0x001c527c);
+	}
+
 	nvkm_done(chan->inst);
 	return 0;
 }
@@ -100,7 +133,8 @@ nv25_gr_chan_new(struct nvkm_gr *base, struct nvkm_fifo_chan *fifoch,
  ******************************************************************************/
 
 static const struct nvkm_gr_func
-nv25_gr = {
+	nv25_gr =
+{
 	.dtor = nv20_gr_dtor,
 	.oneinit = nv20_gr_oneinit,
 	.init = nv20_gr_init,

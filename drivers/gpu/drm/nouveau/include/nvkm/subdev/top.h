@@ -2,7 +2,8 @@
 #define __NVKM_TOP_H__
 #include <core/subdev.h>
 
-struct nvkm_top {
+struct nvkm_top
+{
 	const struct nvkm_top_func *func;
 	struct nvkm_subdev subdev;
 	struct list_head device;

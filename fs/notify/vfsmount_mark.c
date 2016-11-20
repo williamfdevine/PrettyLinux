@@ -69,7 +69,7 @@ void fsnotify_destroy_vfsmount_mark(struct fsnotify_mark *mark)
  * if found take a reference to that mark and return it, else return NULL
  */
 struct fsnotify_mark *fsnotify_find_vfsmount_mark(struct fsnotify_group *group,
-						  struct vfsmount *mnt)
+		struct vfsmount *mnt)
 {
 	struct mount *m = real_mount(mnt);
 	struct fsnotify_mark *mark;
@@ -87,8 +87,8 @@ struct fsnotify_mark *fsnotify_find_vfsmount_mark(struct fsnotify_group *group,
  * event types should be delivered to which groups.
  */
 int fsnotify_add_vfsmount_mark(struct fsnotify_mark *mark,
-			       struct fsnotify_group *group, struct vfsmount *mnt,
-			       int allow_dups)
+							   struct fsnotify_group *group, struct vfsmount *mnt,
+							   int allow_dups)
 {
 	struct mount *m = real_mount(mnt);
 	int ret;

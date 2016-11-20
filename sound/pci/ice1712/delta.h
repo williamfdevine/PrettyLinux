@@ -23,19 +23,19 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- */      
+ */
 
 #define DELTA_DEVICE_DESC \
-		"{MidiMan M Audio,Delta 1010},"\
-		"{MidiMan M Audio,Delta 1010LT},"\
-		"{MidiMan M Audio,Delta DiO 2496},"\
-		"{MidiMan M Audio,Delta 66},"\
-		"{MidiMan M Audio,Delta 44},"\
-		"{MidiMan M Audio,Delta 410},"\
-		"{MidiMan M Audio,Audiophile 24/96},"\
-		"{Digigram,VX442},"\
-		"{Lionstracs,Mediastation},"\
-		"{Edirol,DA2496},"
+	"{MidiMan M Audio,Delta 1010},"\
+	"{MidiMan M Audio,Delta 1010LT},"\
+	"{MidiMan M Audio,Delta DiO 2496},"\
+	"{MidiMan M Audio,Delta 66},"\
+	"{MidiMan M Audio,Delta 44},"\
+	"{MidiMan M Audio,Delta 410},"\
+	"{MidiMan M Audio,Audiophile 24/96},"\
+	"{Digigram,VX442},"\
+	"{Lionstracs,Mediastation},"\
+	"{Edirol,DA2496},"
 
 #define ICE1712_SUBDEVICE_DELTA1010	0x121430d6
 #define ICE1712_SUBDEVICE_DELTA1010E	0xff1430d6
@@ -60,29 +60,29 @@ extern struct snd_ice1712_card_info snd_ice1712_delta_cards[];
 
 /* MidiMan M-Audio Delta shared pins */
 #define ICE1712_DELTA_DFS 0x01		/* fast/slow sample rate mode */
-					/* (>48kHz must be 1) */
+/* (>48kHz must be 1) */
 #define ICE1712_DELTA_SPDIF_IN_STAT 0x02
-					/* S/PDIF input status */
-					/* 0 = valid signal is present */
-					/* all except Delta44 */
-					/* look to CS8414 datasheet */
+/* S/PDIF input status */
+/* 0 = valid signal is present */
+/* all except Delta44 */
+/* look to CS8414 datasheet */
 #define ICE1712_DELTA_SPDIF_OUT_STAT_CLOCK 0x04
-					/* S/PDIF output status clock */
-					/* (writing on rising edge - 0->1) */
-					/* all except Delta44 */
-					/* look to CS8404A datasheet */
+/* S/PDIF output status clock */
+/* (writing on rising edge - 0->1) */
+/* all except Delta44 */
+/* look to CS8404A datasheet */
 #define ICE1712_DELTA_SPDIF_OUT_STAT_DATA 0x08
-					/* S/PDIF output status data */
-					/* all except Delta44 */
-					/* look to CS8404A datasheet */
+/* S/PDIF output status data */
+/* all except Delta44 */
+/* look to CS8404A datasheet */
 /* MidiMan M-Audio DeltaDiO */
 /* 0x01 = DFS */
 /* 0x02 = SPDIF_IN_STAT */
 /* 0x04 = SPDIF_OUT_STAT_CLOCK */
 /* 0x08 = SPDIF_OUT_STAT_DATA */
 #define ICE1712_DELTA_SPDIF_INPUT_SELECT 0x10
-					/* coaxial (0), optical (1) */
-					/* S/PDIF input select*/
+/* coaxial (0), optical (1) */
+/* S/PDIF input select*/
 
 /* MidiMan M-Audio Delta1010 */
 /* 0x01 = DFS */
@@ -90,11 +90,11 @@ extern struct snd_ice1712_card_info snd_ice1712_delta_cards[];
 /* 0x04 = SPDIF_OUT_STAT_CLOCK */
 /* 0x08 = SPDIF_OUT_STAT_DATA */
 #define ICE1712_DELTA_WORD_CLOCK_SELECT 0x10
-					/* 1 - clock are taken from S/PDIF input */
-					/* 0 - clock are taken from Word Clock input */
-					/* affected SPMCLKIN pin of Envy24 */
+/* 1 - clock are taken from S/PDIF input */
+/* 0 - clock are taken from Word Clock input */
+/* affected SPMCLKIN pin of Envy24 */
 #define ICE1712_DELTA_WORD_CLOCK_STATUS	0x20
-					/* 0 = valid word clock signal is present */
+/* 0 = valid word clock signal is present */
 
 /* MidiMan M-Audio Delta66 */
 /* 0x01 = DFS */
@@ -102,13 +102,13 @@ extern struct snd_ice1712_card_info snd_ice1712_delta_cards[];
 /* 0x04 = SPDIF_OUT_STAT_CLOCK */
 /* 0x08 = SPDIF_OUT_STAT_DATA */
 #define ICE1712_DELTA_CODEC_SERIAL_DATA 0x10
-					/* AKM4524 serial data */
+/* AKM4524 serial data */
 #define ICE1712_DELTA_CODEC_SERIAL_CLOCK 0x20
-					/* AKM4524 serial clock */
-					/* (writing on rising edge - 0->1 */
+/* AKM4524 serial clock */
+/* (writing on rising edge - 0->1 */
 #define ICE1712_DELTA_CODEC_CHIP_A	0x40
 #define ICE1712_DELTA_CODEC_CHIP_B	0x80
-					/* 1 - select chip A or B */
+/* 1 - select chip A or B */
 
 /* MidiMan M-Audio Delta44 */
 /* 0x01 = DFS */
@@ -121,13 +121,13 @@ extern struct snd_ice1712_card_info snd_ice1712_delta_cards[];
 /* thanks to Kristof Pelckmans <Kristof.Pelckmans@antwerpen.be> for Delta410 info */
 /* 0x01 = DFS */
 #define ICE1712_DELTA_AP_CCLK	0x02	/* SPI clock */
-					/* (clocking on rising edge - 0->1) */
+/* (clocking on rising edge - 0->1) */
 #define ICE1712_DELTA_AP_DIN	0x04	/* data input */
 #define ICE1712_DELTA_AP_DOUT	0x08	/* data output */
 #define ICE1712_DELTA_AP_CS_DIGITAL 0x10 /* CS8427 chip select */
-					/* low signal = select */
+/* low signal = select */
 #define ICE1712_DELTA_AP_CS_CODEC 0x20	/* AK4528 (audiophile), AK4529 (Delta410) chip select */
-					/* low signal = select */
+/* low signal = select */
 
 /* MidiMan M-Audio Delta1010LT definitions */
 /* thanks to Anders Johansson <ajh@watri.uwa.edu.au> */

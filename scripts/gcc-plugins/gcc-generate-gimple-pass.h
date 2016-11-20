@@ -35,48 +35,51 @@
 #define _MAKE_PASS_NAME_PASS		__MAKE_PASS_NAME_PASS(PASS_NAME)
 
 #ifdef NO_GATE
-#define _GATE NULL
-#define _HAS_GATE false
+	#define _GATE NULL
+	#define _HAS_GATE false
 #else
-#define __GATE(n)			_GCC_PLUGIN_CONCAT2(n, _gate)
-#define _GATE				__GATE(PASS_NAME)
-#define _HAS_GATE true
+	#define __GATE(n)			_GCC_PLUGIN_CONCAT2(n, _gate)
+	#define _GATE				__GATE(PASS_NAME)
+	#define _HAS_GATE true
 #endif
 
 #ifdef NO_EXECUTE
-#define _EXECUTE NULL
-#define _HAS_EXECUTE false
+	#define _EXECUTE NULL
+	#define _HAS_EXECUTE false
 #else
-#define __EXECUTE(n)			_GCC_PLUGIN_CONCAT2(n, _execute)
-#define _EXECUTE			__EXECUTE(PASS_NAME)
-#define _HAS_EXECUTE true
+	#define __EXECUTE(n)			_GCC_PLUGIN_CONCAT2(n, _execute)
+	#define _EXECUTE			__EXECUTE(PASS_NAME)
+	#define _HAS_EXECUTE true
 #endif
 
 #ifndef PROPERTIES_REQUIRED
-#define PROPERTIES_REQUIRED 0
+	#define PROPERTIES_REQUIRED 0
 #endif
 
 #ifndef PROPERTIES_PROVIDED
-#define PROPERTIES_PROVIDED 0
+	#define PROPERTIES_PROVIDED 0
 #endif
 
 #ifndef PROPERTIES_DESTROYED
-#define PROPERTIES_DESTROYED 0
+	#define PROPERTIES_DESTROYED 0
 #endif
 
 #ifndef TODO_FLAGS_START
-#define TODO_FLAGS_START 0
+	#define TODO_FLAGS_START 0
 #endif
 
 #ifndef TODO_FLAGS_FINISH
-#define TODO_FLAGS_FINISH 0
+	#define TODO_FLAGS_FINISH 0
 #endif
 
 #if BUILDING_GCC_VERSION >= 4009
-namespace {
-static const pass_data _PASS_NAME_PASS_DATA = {
+namespace
+{
+	static const pass_data _PASS_NAME_PASS_DATA =
+	{
 #else
-static struct gimple_opt_pass _PASS_NAME_PASS = {
+static struct gimple_opt_pass _PASS_NAME_PASS =
+{
 	.pass = {
 #endif
 		.type			= GIMPLE_PASS,
@@ -107,25 +110,26 @@ static struct gimple_opt_pass _PASS_NAME_PASS = {
 };
 
 #if BUILDING_GCC_VERSION >= 4009
-class _PASS_NAME_PASS : public gimple_opt_pass {
-public:
-	_PASS_NAME_PASS() : gimple_opt_pass(_PASS_NAME_PASS_DATA, g) {}
+class _PASS_NAME_PASS : public gimple_opt_pass
+{
+	public:
+		_PASS_NAME_PASS() : gimple_opt_pass(_PASS_NAME_PASS_DATA, g) {}
 
 #ifndef NO_GATE
 #if BUILDING_GCC_VERSION >= 5000
-	virtual bool gate(function *) { return _GATE(); }
+		virtual bool gate(function *) { return _GATE(); }
 #else
-	virtual bool gate(void) { return _GATE(); }
+		virtual bool gate(void) { return _GATE(); }
 #endif
 #endif
 
-	virtual opt_pass * clone () { return new _PASS_NAME_PASS(); }
+		virtual opt_pass *clone () { return new _PASS_NAME_PASS(); }
 
 #ifndef NO_EXECUTE
 #if BUILDING_GCC_VERSION >= 5000
-	virtual unsigned int execute(function *) { return _EXECUTE(); }
+		virtual unsigned int execute(function *) { return _EXECUTE(); }
 #else
-	virtual unsigned int execute(void) { return _EXECUTE(); }
+		virtual unsigned int execute(void) { return _EXECUTE(); }
 #endif
 #endif
 };

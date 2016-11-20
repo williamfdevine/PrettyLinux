@@ -33,7 +33,7 @@
  * considered as "real data".
  */
 int ubi_calc_data_len(const struct ubi_device *ubi, const void *buf,
-		      int length)
+					  int length)
 {
 	int i;
 
@@ -41,7 +41,9 @@ int ubi_calc_data_len(const struct ubi_device *ubi, const void *buf,
 
 	for (i = length - 1; i >= 0; i--)
 		if (((const uint8_t *)buf)[i] != 0xFF)
+		{
 			break;
+		}
 
 	/* The resulting length must be aligned to the minimum flash I/O size */
 	length = ALIGN(i + 1, ubi->min_io_size);
@@ -65,26 +67,41 @@ int ubi_check_volume(struct ubi_device *ubi, int vol_id)
 	struct ubi_volume *vol = ubi->volumes[vol_id];
 
 	if (vol->vol_type != UBI_STATIC_VOLUME)
+	{
 		return 0;
+	}
 
 	buf = vmalloc(vol->usable_leb_size);
-	if (!buf)
-		return -ENOMEM;
 
-	for (i = 0; i < vol->used_ebs; i++) {
+	if (!buf)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < vol->used_ebs; i++)
+	{
 		int size;
 
 		cond_resched();
 
 		if (i == vol->used_ebs - 1)
+		{
 			size = vol->last_eb_bytes;
+		}
 		else
+		{
 			size = vol->usable_leb_size;
+		}
 
 		err = ubi_eba_read_leb(ubi, vol, i, buf, 0, size, 1);
-		if (err) {
+
+		if (err)
+		{
 			if (mtd_is_eccerr(err))
+			{
 				err = 1;
+			}
+
 			break;
 		}
 	}
@@ -107,7 +124,9 @@ void ubi_update_reserved(struct ubi_device *ubi)
 	int need = ubi->beb_rsvd_level - ubi->beb_rsvd_pebs;
 
 	if (need <= 0 || ubi->avail_pebs == 0)
+	{
 		return;
+	}
 
 	need = min_t(int, need, ubi->avail_pebs);
 	ubi->avail_pebs -= need;
@@ -128,10 +147,13 @@ void ubi_calculate_reserved(struct ubi_device *ubi)
 	 * for future bad eraseblock handling.
 	 */
 	ubi->beb_rsvd_level = ubi->bad_peb_limit - ubi->bad_peb_count;
-	if (ubi->beb_rsvd_level < 0) {
+
+	if (ubi->beb_rsvd_level < 0)
+	{
 		ubi->beb_rsvd_level = 0;
-		ubi_warn(ubi, "number of bad PEBs (%d) is above the expected limit (%d), not reserving any PEBs for bad PEB handling, will use available PEBs (if any)",
-			 ubi->bad_peb_count, ubi->bad_peb_limit);
+		ubi_warn(ubi,
+				 "number of bad PEBs (%d) is above the expected limit (%d), not reserving any PEBs for bad PEB handling, will use available PEBs (if any)",
+				 ubi->bad_peb_count, ubi->bad_peb_limit);
 	}
 }
 
@@ -150,7 +172,10 @@ int ubi_check_pattern(const void *buf, uint8_t patt, int size)
 
 	for (i = 0; i < size; i++)
 		if (((const uint8_t *)buf)[i] != patt)
+		{
 			return 0;
+		}
+
 	return 1;
 }
 
@@ -182,7 +207,7 @@ void ubi_warn(const struct ubi_device *ubi, const char *fmt, ...)
 	vaf.va = &args;
 
 	pr_warn(UBI_NAME_STR "%d warning: %ps: %pV\n",
-		ubi->ubi_num, __builtin_return_address(0), &vaf);
+			ubi->ubi_num, __builtin_return_address(0), &vaf);
 
 	va_end(args);
 }
@@ -199,6 +224,6 @@ void ubi_err(const struct ubi_device *ubi, const char *fmt, ...)
 	vaf.va = &args;
 
 	pr_err(UBI_NAME_STR "%d error: %ps: %pV\n",
-	       ubi->ubi_num, __builtin_return_address(0), &vaf);
+		   ubi->ubi_num, __builtin_return_address(0), &vaf);
 	va_end(args);
 }

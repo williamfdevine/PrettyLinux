@@ -35,19 +35,24 @@ int crypto_ecdh_key_len(const struct ecdh *params)
 EXPORT_SYMBOL_GPL(crypto_ecdh_key_len);
 
 int crypto_ecdh_encode_key(char *buf, unsigned int len,
-			   const struct ecdh *params)
+						   const struct ecdh *params)
 {
 	u8 *ptr = buf;
-	struct kpp_secret secret = {
+	struct kpp_secret secret =
+	{
 		.type = CRYPTO_KPP_SECRET_TYPE_ECDH,
 		.len = len
 	};
 
 	if (unlikely(!buf))
+	{
 		return -EINVAL;
+	}
 
 	if (len != crypto_ecdh_key_len(params))
+	{
 		return -EINVAL;
+	}
 
 	ptr = ecdh_pack_data(ptr, &secret, sizeof(secret));
 	ptr = ecdh_pack_data(ptr, &params->curve_id, sizeof(params->curve_id));
@@ -59,22 +64,30 @@ int crypto_ecdh_encode_key(char *buf, unsigned int len,
 EXPORT_SYMBOL_GPL(crypto_ecdh_encode_key);
 
 int crypto_ecdh_decode_key(const char *buf, unsigned int len,
-			   struct ecdh *params)
+						   struct ecdh *params)
 {
 	const u8 *ptr = buf;
 	struct kpp_secret secret;
 
 	if (unlikely(!buf || len < ECDH_KPP_SECRET_MIN_SIZE))
+	{
 		return -EINVAL;
+	}
 
 	ptr = ecdh_unpack_data(&secret, ptr, sizeof(secret));
+
 	if (secret.type != CRYPTO_KPP_SECRET_TYPE_ECDH)
+	{
 		return -EINVAL;
+	}
 
 	ptr = ecdh_unpack_data(&params->curve_id, ptr, sizeof(params->curve_id));
 	ptr = ecdh_unpack_data(&params->key_size, ptr, sizeof(params->key_size));
+
 	if (secret.len != crypto_ecdh_key_len(params))
+	{
 		return -EINVAL;
+	}
 
 	/* Don't allocate memory. Set pointer to data
 	 * within the given buffer

@@ -16,7 +16,7 @@
 #include <asm/unaligned.h>
 
 typedef void (sha256_block_fn)(struct sha256_state *sst, u8 const *src,
-			       int blocks);
+							   int blocks);
 
 static inline int sha224_base_init(struct shash_desc *desc)
 {
@@ -53,19 +53,21 @@ static inline int sha256_base_init(struct shash_desc *desc)
 }
 
 static inline int sha256_base_do_update(struct shash_desc *desc,
-					const u8 *data,
-					unsigned int len,
-					sha256_block_fn *block_fn)
+										const u8 *data,
+										unsigned int len,
+										sha256_block_fn *block_fn)
 {
 	struct sha256_state *sctx = shash_desc_ctx(desc);
 	unsigned int partial = sctx->count % SHA256_BLOCK_SIZE;
 
 	sctx->count += len;
 
-	if (unlikely((partial + len) >= SHA256_BLOCK_SIZE)) {
+	if (unlikely((partial + len) >= SHA256_BLOCK_SIZE))
+	{
 		int blocks;
 
-		if (partial) {
+		if (partial)
+		{
 			int p = SHA256_BLOCK_SIZE - partial;
 
 			memcpy(sctx->buf + partial, data, p);
@@ -78,20 +80,25 @@ static inline int sha256_base_do_update(struct shash_desc *desc,
 		blocks = len / SHA256_BLOCK_SIZE;
 		len %= SHA256_BLOCK_SIZE;
 
-		if (blocks) {
+		if (blocks)
+		{
 			block_fn(sctx, data, blocks);
 			data += blocks * SHA256_BLOCK_SIZE;
 		}
+
 		partial = 0;
 	}
+
 	if (len)
+	{
 		memcpy(sctx->buf + partial, data, len);
+	}
 
 	return 0;
 }
 
 static inline int sha256_base_do_finalize(struct shash_desc *desc,
-					  sha256_block_fn *block_fn)
+		sha256_block_fn *block_fn)
 {
 	const int bit_offset = SHA256_BLOCK_SIZE - sizeof(__be64);
 	struct sha256_state *sctx = shash_desc_ctx(desc);
@@ -99,7 +106,9 @@ static inline int sha256_base_do_finalize(struct shash_desc *desc,
 	unsigned int partial = sctx->count % SHA256_BLOCK_SIZE;
 
 	sctx->buf[partial++] = 0x80;
-	if (partial > bit_offset) {
+
+	if (partial > bit_offset)
+	{
 		memset(sctx->buf + partial, 0x0, SHA256_BLOCK_SIZE - partial);
 		partial = 0;
 
@@ -121,8 +130,10 @@ static inline int sha256_base_finish(struct shash_desc *desc, u8 *out)
 	int i;
 
 	for (i = 0; digest_size > 0; i++, digest_size -= sizeof(__be32))
+	{
 		put_unaligned_be32(sctx->state[i], digest++);
+	}
 
-	*sctx = (struct sha256_state){};
+	*sctx = (struct sha256_state) {};
 	return 0;
 }

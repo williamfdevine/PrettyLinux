@@ -42,10 +42,10 @@ struct path;
 #define AA_MAY_CHANGEHAT		0x80000000	/* ctrl auditing only */
 
 #define AA_AUDIT_FILE_MASK	(MAY_READ | MAY_WRITE | MAY_EXEC | MAY_APPEND |\
-				 AA_MAY_CREATE | AA_MAY_DELETE |	\
-				 AA_MAY_META_READ | AA_MAY_META_WRITE | \
-				 AA_MAY_CHMOD | AA_MAY_CHOWN | AA_MAY_LOCK | \
-				 AA_EXEC_MMAP | AA_MAY_LINK)
+							 AA_MAY_CREATE | AA_MAY_DELETE |	\
+							 AA_MAY_META_READ | AA_MAY_META_WRITE | \
+							 AA_MAY_CHMOD | AA_MAY_CHOWN | AA_MAY_LOCK | \
+							 AA_EXEC_MMAP | AA_MAY_LINK)
 
 /*
  * The xindex is broken into 3 parts
@@ -70,7 +70,8 @@ struct path;
 #define AA_SECURE_X_NEEDED	0x8000
 
 /* need to make conditional which ones are being set */
-struct path_cond {
+struct path_cond
+{
 	kuid_t uid;
 	umode_t mode;
 };
@@ -84,7 +85,8 @@ struct path_cond {
  *
  * The @audit and @queit mask should be mutually exclusive.
  */
-struct file_perms {
+struct file_perms
+{
 	u32 allow;
 	u32 audit;
 	u32 quiet;
@@ -105,19 +107,34 @@ static inline u16 dfa_map_xindex(u16 mask)
 	u16 index = 0;
 
 	if (mask & 0x100)
+	{
 		index |= AA_X_UNSAFE;
-	if (mask & 0x200)
-		index |= AA_X_INHERIT;
-	if (mask & 0x80)
-		index |= AA_X_UNCONFINED;
+	}
 
-	if (old_index == 1) {
+	if (mask & 0x200)
+	{
+		index |= AA_X_INHERIT;
+	}
+
+	if (mask & 0x80)
+	{
 		index |= AA_X_UNCONFINED;
-	} else if (old_index == 2) {
+	}
+
+	if (old_index == 1)
+	{
+		index |= AA_X_UNCONFINED;
+	}
+	else if (old_index == 2)
+	{
 		index |= AA_X_NAME;
-	} else if (old_index == 3) {
+	}
+	else if (old_index == 3)
+	{
 		index |= AA_X_NAME | AA_X_CHILD;
-	} else if (old_index) {
+	}
+	else if (old_index)
+	{
 		index |= AA_X_TABLE;
 		index |= old_index - 4;
 	}
@@ -129,15 +146,15 @@ static inline u16 dfa_map_xindex(u16 mask)
  * map old dfa inline permissions to new format
  */
 #define dfa_user_allow(dfa, state) (((ACCEPT_TABLE(dfa)[state]) & 0x7f) | \
-				    ((ACCEPT_TABLE(dfa)[state]) & 0x80000000))
+									((ACCEPT_TABLE(dfa)[state]) & 0x80000000))
 #define dfa_user_audit(dfa, state) ((ACCEPT_TABLE2(dfa)[state]) & 0x7f)
 #define dfa_user_quiet(dfa, state) (((ACCEPT_TABLE2(dfa)[state]) >> 7) & 0x7f)
 #define dfa_user_xindex(dfa, state) \
 	(dfa_map_xindex(ACCEPT_TABLE(dfa)[state] & 0x3fff))
 
 #define dfa_other_allow(dfa, state) ((((ACCEPT_TABLE(dfa)[state]) >> 14) & \
-				      0x7f) |				\
-				     ((ACCEPT_TABLE(dfa)[state]) & 0x80000000))
+									  0x7f) |				\
+									 ((ACCEPT_TABLE(dfa)[state]) & 0x80000000))
 #define dfa_other_audit(dfa, state) (((ACCEPT_TABLE2(dfa)[state]) >> 14) & 0x7f)
 #define dfa_other_quiet(dfa, state) \
 	((((ACCEPT_TABLE2(dfa)[state]) >> 7) >> 14) & 0x7f)
@@ -145,8 +162,8 @@ static inline u16 dfa_map_xindex(u16 mask)
 	dfa_map_xindex((ACCEPT_TABLE(dfa)[state] >> 14) & 0x3fff)
 
 int aa_audit_file(struct aa_profile *profile, struct file_perms *perms,
-		  gfp_t gfp, int op, u32 request, const char *name,
-		  const char *target, kuid_t ouid, const char *info, int error);
+				  gfp_t gfp, int op, u32 request, const char *name,
+				  const char *target, kuid_t ouid, const char *info, int error);
 
 /**
  * struct aa_file_rules - components used for file rule permissions
@@ -159,7 +176,8 @@ int aa_audit_file(struct aa_profile *profile, struct file_perms *perms,
  * an index into @perms.  If a named exec transition is required it is
  * looked up in the transition table.
  */
-struct aa_file_rules {
+struct aa_file_rules
+{
 	unsigned int start;
 	struct aa_dfa *dfa;
 	/* struct perms perms; */
@@ -168,17 +186,17 @@ struct aa_file_rules {
 };
 
 unsigned int aa_str_perms(struct aa_dfa *dfa, unsigned int start,
-			  const char *name, struct path_cond *cond,
-			  struct file_perms *perms);
+						  const char *name, struct path_cond *cond,
+						  struct file_perms *perms);
 
 int aa_path_perm(int op, struct aa_profile *profile, const struct path *path,
-		 int flags, u32 request, struct path_cond *cond);
+				 int flags, u32 request, struct path_cond *cond);
 
 int aa_path_link(struct aa_profile *profile, struct dentry *old_dentry,
-		 const struct path *new_dir, struct dentry *new_dentry);
+				 const struct path *new_dir, struct dentry *new_dentry);
 
 int aa_file_perm(int op, struct aa_profile *profile, struct file *file,
-		 u32 request);
+				 u32 request);
 
 static inline void aa_free_file_rules(struct aa_file_rules *rules)
 {
@@ -198,17 +216,30 @@ static inline u32 aa_map_file_to_perms(struct file *file)
 	u32 perms = 0;
 
 	if (file->f_mode & FMODE_WRITE)
+	{
 		perms |= MAY_WRITE;
+	}
+
 	if (file->f_mode & FMODE_READ)
+	{
 		perms |= MAY_READ;
+	}
 
 	if ((flags & O_APPEND) && (perms & MAY_WRITE))
+	{
 		perms = (perms & ~MAY_WRITE) | MAY_APPEND;
+	}
+
 	/* trunc implies write permission */
 	if (flags & O_TRUNC)
+	{
 		perms |= MAY_WRITE;
+	}
+
 	if (flags & O_CREAT)
+	{
 		perms |= AA_MAY_CREATE;
+	}
 
 	return perms;
 }

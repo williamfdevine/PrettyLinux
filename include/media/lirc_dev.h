@@ -21,7 +21,8 @@
 #include <linux/kfifo.h>
 #include <media/lirc.h>
 
-struct lirc_buffer {
+struct lirc_buffer
+{
 	wait_queue_head_t wait_poll;
 	spinlock_t fifo_lock;
 	unsigned int chunk_size;
@@ -35,18 +36,20 @@ static inline void lirc_buffer_clear(struct lirc_buffer *buf)
 {
 	unsigned long flags;
 
-	if (kfifo_initialized(&buf->fifo)) {
+	if (kfifo_initialized(&buf->fifo))
+	{
 		spin_lock_irqsave(&buf->fifo_lock, flags);
 		kfifo_reset(&buf->fifo);
 		spin_unlock_irqrestore(&buf->fifo_lock, flags);
-	} else
+	}
+	else
 		WARN(1, "calling %s on an uninitialized lirc_buffer\n",
-		     __func__);
+			 __func__);
 }
 
 static inline int lirc_buffer_init(struct lirc_buffer *buf,
-				    unsigned int chunk_size,
-				    unsigned int size)
+								   unsigned int chunk_size,
+								   unsigned int size)
 {
 	int ret;
 
@@ -61,11 +64,13 @@ static inline int lirc_buffer_init(struct lirc_buffer *buf,
 
 static inline void lirc_buffer_free(struct lirc_buffer *buf)
 {
-	if (kfifo_initialized(&buf->fifo)) {
+	if (kfifo_initialized(&buf->fifo))
+	{
 		kfifo_free(&buf->fifo);
-	} else
+	}
+	else
 		WARN(1, "calling %s on an uninitialized lirc_buffer\n",
-		     __func__);
+			 __func__);
 }
 
 static inline int lirc_buffer_len(struct lirc_buffer *buf)
@@ -96,24 +101,25 @@ static inline int lirc_buffer_available(struct lirc_buffer *buf)
 }
 
 static inline unsigned int lirc_buffer_read(struct lirc_buffer *buf,
-					    unsigned char *dest)
+		unsigned char *dest)
 {
 	unsigned int ret = 0;
 
 	if (lirc_buffer_len(buf) >= buf->chunk_size)
 		ret = kfifo_out_locked(&buf->fifo, dest, buf->chunk_size,
-				       &buf->fifo_lock);
+							   &buf->fifo_lock);
+
 	return ret;
 
 }
 
 static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
-					     unsigned char *orig)
+		unsigned char *orig)
 {
 	unsigned int ret;
 
 	ret = kfifo_in_locked(&buf->fifo, orig, buf->chunk_size,
-			      &buf->fifo_lock);
+						  &buf->fifo_lock);
 
 	return ret;
 }
@@ -183,7 +189,8 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
  *
  * @owner:		the module owning this struct
  */
-struct lirc_driver {
+struct lirc_driver
+{
 	char name[40];
 	int minor;
 	__u32 code_length;
@@ -231,8 +238,8 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file);
 unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait);
 long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 ssize_t lirc_dev_fop_read(struct file *file, char __user *buffer, size_t length,
-			  loff_t *ppos);
+						  loff_t *ppos);
 ssize_t lirc_dev_fop_write(struct file *file, const char __user *buffer,
-			   size_t length, loff_t *ppos);
+						   size_t length, loff_t *ppos);
 
 #endif

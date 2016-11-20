@@ -80,31 +80,35 @@
 
 /* Port-change mask: */
 #define PORT_C_MASK	((USB_PORT_STAT_C_CONNECTION |	\
-			  USB_PORT_STAT_C_ENABLE |	\
-			  USB_PORT_STAT_C_SUSPEND |	\
-			  USB_PORT_STAT_C_OVERCURRENT | \
-			  USB_PORT_STAT_C_RESET) << 16)
+					  USB_PORT_STAT_C_ENABLE |	\
+					  USB_PORT_STAT_C_SUSPEND |	\
+					  USB_PORT_STAT_C_OVERCURRENT | \
+					  USB_PORT_STAT_C_RESET) << 16)
 
-enum max3421_rh_state {
+enum max3421_rh_state
+{
 	MAX3421_RH_RESET,
 	MAX3421_RH_SUSPENDED,
 	MAX3421_RH_RUNNING
 };
 
-enum pkt_state {
+enum pkt_state
+{
 	PKT_STATE_SETUP,	/* waiting to send setup packet to ctrl pipe */
 	PKT_STATE_TRANSFER,	/* waiting to xfer transfer_buffer */
 	PKT_STATE_TERMINATE	/* waiting to terminate control transfer */
 };
 
-enum scheduling_pass {
+enum scheduling_pass
+{
 	SCHED_PASS_PERIODIC,
 	SCHED_PASS_NON_PERIODIC,
 	SCHED_PASS_DONE
 };
 
 /* Bit numbers for max3421_hcd->todo: */
-enum {
+enum
+{
 	ENABLE_IRQ = 0,
 	RESET_HCD,
 	RESET_PORT,
@@ -112,11 +116,13 @@ enum {
 	IOPIN_UPDATE
 };
 
-struct max3421_dma_buf {
+struct max3421_dma_buf
+{
 	u8 data[2];
 };
 
-struct max3421_hcd {
+struct max3421_hcd
+{
 	spinlock_t lock;
 
 	struct task_struct *spi_thread;
@@ -127,7 +133,7 @@ struct max3421_hcd {
 	/* lower 16 bits contain port status, upper 16 bits the change mask: */
 	u32 port_status;
 
-	unsigned active:1;
+	unsigned active: 1;
 
 	struct list_head ep_list;	/* list of EP's with work */
 
@@ -162,7 +168,8 @@ struct max3421_hcd {
 #endif
 };
 
-struct max3421_ep {
+struct max3421_ep
+{
 	struct usb_host_endpoint *ep;
 	struct list_head ep_list;
 	u32 naks;
@@ -207,24 +214,28 @@ static struct max3421_hcd *max3421_hcd_list;
 #define MAX3421_REG_HXFR	30
 #define MAX3421_REG_HRSL	31
 
-enum {
+enum
+{
 	MAX3421_USBIRQ_OSCOKIRQ_BIT = 0,
 	MAX3421_USBIRQ_NOVBUSIRQ_BIT = 5,
 	MAX3421_USBIRQ_VBUSIRQ_BIT
 };
 
-enum {
+enum
+{
 	MAX3421_CPUCTL_IE_BIT = 0,
 	MAX3421_CPUCTL_PULSEWID0_BIT = 6,
 	MAX3421_CPUCTL_PULSEWID1_BIT
 };
 
-enum {
+enum
+{
 	MAX3421_USBCTL_PWRDOWN_BIT = 4,
 	MAX3421_USBCTL_CHIPRES_BIT
 };
 
-enum {
+enum
+{
 	MAX3421_PINCTL_GPXA_BIT	= 0,
 	MAX3421_PINCTL_GPXB_BIT,
 	MAX3421_PINCTL_POSINT_BIT,
@@ -235,7 +246,8 @@ enum {
 	MAX3421_PINCTL_EP3INAK_BIT,
 };
 
-enum {
+enum
+{
 	MAX3421_HI_BUSEVENT_BIT = 0,	/* bus-reset/-resume */
 	MAX3421_HI_RWU_BIT,		/* remote wakeup */
 	MAX3421_HI_RCVDAV_BIT,		/* receive FIFO data available */
@@ -246,7 +258,8 @@ enum {
 	MAX3421_HI_HXFRDN_BIT,		/* host transfer done */
 };
 
-enum {
+enum
+{
 	MAX3421_HCTL_BUSRST_BIT = 0,
 	MAX3421_HCTL_FRMRST_BIT,
 	MAX3421_HCTL_SAMPLEBUS_BIT,
@@ -257,7 +270,8 @@ enum {
 	MAX3421_HCTL_SNDTOG1_BIT
 };
 
-enum {
+enum
+{
 	MAX3421_MODE_HOST_BIT = 0,
 	MAX3421_MODE_LOWSPEED_BIT,
 	MAX3421_MODE_HUBPRE_BIT,
@@ -268,7 +282,8 @@ enum {
 	MAX3421_MODE_DPPULLDN_BIT
 };
 
-enum {
+enum
+{
 	MAX3421_HRSL_OK = 0,
 	MAX3421_HRSL_BUSY,
 	MAX3421_HRSL_BADREQ,
@@ -293,7 +308,8 @@ enum {
 };
 
 /* Return same error-codes as ohci.h:cc_to_error: */
-static const int hrsl_to_error[] = {
+static const int hrsl_to_error[] =
+{
 	[MAX3421_HRSL_OK] =		0,
 	[MAX3421_HRSL_BUSY] =		-EINVAL,
 	[MAX3421_HRSL_BADREQ] =		-EINVAL,
@@ -469,15 +485,23 @@ max3421_set_speed(struct usb_hcd *hcd, struct usb_device *dev)
 
 	mode_lowspeed = BIT(MAX3421_MODE_LOWSPEED_BIT);
 	mode_hubpre   = BIT(MAX3421_MODE_HUBPRE_BIT);
-	if (max3421_hcd->port_status & USB_PORT_STAT_LOW_SPEED) {
+
+	if (max3421_hcd->port_status & USB_PORT_STAT_LOW_SPEED)
+	{
 		mode |=  mode_lowspeed;
 		mode &= ~mode_hubpre;
-	} else if (dev->speed == USB_SPEED_LOW) {
+	}
+	else if (dev->speed == USB_SPEED_LOW)
+	{
 		mode |= mode_lowspeed | mode_hubpre;
-	} else {
+	}
+	else
+	{
 		mode &= ~(mode_lowspeed | mode_hubpre);
 	}
-	if (mode != max3421_hcd->mode) {
+
+	if (mode != max3421_hcd->mode)
+	{
 		max3421_hcd->mode = mode;
 		spi_wr8(hcd, MAX3421_REG_MODE, max3421_hcd->mode);
 	}
@@ -489,7 +513,7 @@ max3421_set_speed(struct usb_hcd *hcd, struct usb_device *dev)
  */
 static void
 max3421_set_address(struct usb_hcd *hcd, struct usb_device *dev, int epnum,
-		    int force_toggles)
+					int force_toggles)
 {
 	struct max3421_hcd *max3421_hcd = hcd_to_max3421(hcd);
 	int old_epnum, same_ep, rcvtog, sndtog;
@@ -500,10 +524,14 @@ max3421_set_address(struct usb_hcd *hcd, struct usb_device *dev, int epnum,
 	old_epnum = max3421_hcd->loaded_epnum;
 
 	same_ep = (dev == old_dev && epnum == old_epnum);
-	if (same_ep && !force_toggles)
-		return;
 
-	if (old_dev && !same_ep) {
+	if (same_ep && !force_toggles)
+	{
+		return;
+	}
+
+	if (old_dev && !same_ep)
+	{
 		/* save the old end-points toggles: */
 		u8 hrsl = spi_rd8(hcd, MAX3421_REG_HRSL);
 
@@ -514,11 +542,12 @@ max3421_set_address(struct usb_hcd *hcd, struct usb_device *dev, int epnum,
 		usb_settoggle(old_dev, old_epnum, 0, rcvtog);
 		usb_settoggle(old_dev, old_epnum, 1, sndtog);
 	}
+
 	/* setup new endpoint's toggle bits: */
 	rcvtog = usb_gettoggle(dev, epnum, 0);
 	sndtog = usb_gettoggle(dev, epnum, 1);
 	hctl = (BIT(rcvtog + MAX3421_HCTL_RCVTOG0_BIT) |
-		BIT(sndtog + MAX3421_HCTL_SNDTOG0_BIT));
+			BIT(sndtog + MAX3421_HCTL_SNDTOG0_BIT));
 
 	max3421_hcd->loaded_epnum = epnum;
 	spi_wr8(hcd, MAX3421_REG_HCTL, hctl);
@@ -561,31 +590,36 @@ max3421_transfer_out(struct usb_hcd *hcd, struct urb *urb, int fast_retransmit)
 
 	src = urb->transfer_buffer + urb->actual_length;
 
-	if (fast_retransmit) {
-		if (max3421_hcd->rev == 0x12) {
+	if (fast_retransmit)
+	{
+		if (max3421_hcd->rev == 0x12)
+		{
 			/* work around rev 0x12 bug: */
 			spi_wr8(hcd, MAX3421_REG_SNDBC, 0);
 			spi_wr8(hcd, MAX3421_REG_SNDFIFO, ((u8 *) src)[0]);
 			spi_wr8(hcd, MAX3421_REG_SNDBC, max3421_hcd->curr_len);
 		}
+
 		return MAX3421_HXFR_BULK_OUT(epnum);
 	}
 
 	max_packet = usb_maxpacket(urb->dev, urb->pipe, 1);
 
-	if (max_packet > MAX3421_FIFO_SIZE) {
+	if (max_packet > MAX3421_FIFO_SIZE)
+	{
 		/*
 		 * We do not support isochronous transfers at this
 		 * time.
 		 */
 		dev_err(&spi->dev,
-			"%s: packet-size of %u too big (limit is %u bytes)",
-			__func__, max_packet, MAX3421_FIFO_SIZE);
+				"%s: packet-size of %u too big (limit is %u bytes)",
+				__func__, max_packet, MAX3421_FIFO_SIZE);
 		max3421_hcd->urb_done = -EMSGSIZE;
 		return -EMSGSIZE;
 	}
+
 	max3421_hcd->curr_len = min((urb->transfer_buffer_length -
-				     urb->actual_length), max_packet);
+								 urb->actual_length), max_packet);
 
 	spi_wr_buf(hcd, MAX3421_REG_SNDFIFO, src, max3421_hcd->curr_len);
 	spi_wr8(hcd, MAX3421_REG_SNDBC, max3421_hcd->curr_len);
@@ -605,36 +639,52 @@ max3421_next_transfer(struct usb_hcd *hcd, int fast_retransmit)
 	int cmd = -EINVAL;
 
 	if (!urb)
-		return;	/* nothing to do */
+	{
+		return;    /* nothing to do */
+	}
 
 	max3421_ep = urb->ep->hcpriv;
 
-	switch (max3421_ep->pkt_state) {
-	case PKT_STATE_SETUP:
-		cmd = max3421_ctrl_setup(hcd, urb);
-		break;
+	switch (max3421_ep->pkt_state)
+	{
+		case PKT_STATE_SETUP:
+			cmd = max3421_ctrl_setup(hcd, urb);
+			break;
 
-	case PKT_STATE_TRANSFER:
-		if (usb_urb_dir_in(urb))
-			cmd = max3421_transfer_in(hcd, urb);
-		else
-			cmd = max3421_transfer_out(hcd, urb, fast_retransmit);
-		break;
+		case PKT_STATE_TRANSFER:
+			if (usb_urb_dir_in(urb))
+			{
+				cmd = max3421_transfer_in(hcd, urb);
+			}
+			else
+			{
+				cmd = max3421_transfer_out(hcd, urb, fast_retransmit);
+			}
 
-	case PKT_STATE_TERMINATE:
-		/*
-		 * IN transfers are terminated with HS_OUT token,
-		 * OUT transfers with HS_IN:
-		 */
-		if (usb_urb_dir_in(urb))
-			cmd = MAX3421_HXFR_HS_OUT;
-		else
-			cmd = MAX3421_HXFR_HS_IN;
-		break;
+			break;
+
+		case PKT_STATE_TERMINATE:
+
+			/*
+			 * IN transfers are terminated with HS_OUT token,
+			 * OUT transfers with HS_IN:
+			 */
+			if (usb_urb_dir_in(urb))
+			{
+				cmd = MAX3421_HXFR_HS_OUT;
+			}
+			else
+			{
+				cmd = MAX3421_HXFR_HS_IN;
+			}
+
+			break;
 	}
 
 	if (cmd < 0)
+	{
 		return;
+	}
 
 	/* issue the command and wait for host-xfer-done interrupt: */
 
@@ -671,101 +721,133 @@ max3421_select_and_start_urb(struct usb_hcd *hcd)
 	spin_lock_irqsave(&max3421_hcd->lock, flags);
 
 	for (;
-	     max3421_hcd->sched_pass < SCHED_PASS_DONE;
-	     ++max3421_hcd->sched_pass)
-		list_for_each(pos, &max3421_hcd->ep_list) {
-			urb = NULL;
-			max3421_ep = container_of(pos, struct max3421_ep,
-						  ep_list);
-			ep = max3421_ep->ep;
+		 max3421_hcd->sched_pass < SCHED_PASS_DONE;
+		 ++max3421_hcd->sched_pass)
+		list_for_each(pos, &max3421_hcd->ep_list)
+	{
+		urb = NULL;
+		max3421_ep = container_of(pos, struct max3421_ep,
+								  ep_list);
+		ep = max3421_ep->ep;
 
-			switch (usb_endpoint_type(&ep->desc)) {
+		switch (usb_endpoint_type(&ep->desc))
+		{
 			case USB_ENDPOINT_XFER_ISOC:
 			case USB_ENDPOINT_XFER_INT:
 				if (max3421_hcd->sched_pass !=
-				    SCHED_PASS_PERIODIC)
+					SCHED_PASS_PERIODIC)
+				{
 					continue;
+				}
+
 				break;
 
 			case USB_ENDPOINT_XFER_CONTROL:
 			case USB_ENDPOINT_XFER_BULK:
 				if (max3421_hcd->sched_pass !=
-				    SCHED_PASS_NON_PERIODIC)
+					SCHED_PASS_NON_PERIODIC)
+				{
 					continue;
+				}
+
 				break;
-			}
+		}
 
-			if (list_empty(&ep->urb_list))
-				continue;	/* nothing to do */
-			urb = list_first_entry(&ep->urb_list, struct urb,
-					       urb_list);
-			if (urb->unlinked) {
-				dev_dbg(&spi->dev, "%s: URB %p unlinked=%d",
+		if (list_empty(&ep->urb_list))
+		{
+			continue;    /* nothing to do */
+		}
+
+		urb = list_first_entry(&ep->urb_list, struct urb,
+							   urb_list);
+
+		if (urb->unlinked)
+		{
+			dev_dbg(&spi->dev, "%s: URB %p unlinked=%d",
 					__func__, urb, urb->unlinked);
-				max3421_hcd->curr_urb = urb;
-				max3421_hcd->urb_done = 1;
-				spin_unlock_irqrestore(&max3421_hcd->lock,
-						       flags);
-				return 1;
-			}
+			max3421_hcd->curr_urb = urb;
+			max3421_hcd->urb_done = 1;
+			spin_unlock_irqrestore(&max3421_hcd->lock,
+								   flags);
+			return 1;
+		}
 
-			switch (usb_endpoint_type(&ep->desc)) {
+		switch (usb_endpoint_type(&ep->desc))
+		{
 			case USB_ENDPOINT_XFER_CONTROL:
+
 				/*
 				 * Allow one control transaction per
 				 * frame per endpoint:
 				 */
 				if (frame_diff(max3421_ep->last_active,
-					       max3421_hcd->frame_number) == 0)
+							   max3421_hcd->frame_number) == 0)
+				{
 					continue;
+				}
+
 				break;
 
 			case USB_ENDPOINT_XFER_BULK:
 				if (max3421_ep->retransmit
-				    && (frame_diff(max3421_ep->last_active,
-						   max3421_hcd->frame_number)
-					== 0))
+					&& (frame_diff(max3421_ep->last_active,
+								   max3421_hcd->frame_number)
+						== 0))
 					/*
 					 * We already tried this EP
 					 * during this frame and got a
 					 * NAK or error; wait for next frame
 					 */
+				{
 					continue;
+				}
+
 				break;
 
 			case USB_ENDPOINT_XFER_ISOC:
 			case USB_ENDPOINT_XFER_INT:
 				if (frame_diff(max3421_hcd->frame_number,
-					       max3421_ep->last_active)
-				    < urb->interval)
+							   max3421_ep->last_active)
+					< urb->interval)
 					/*
 					 * We already processed this
 					 * end-point in the current
 					 * frame
 					 */
+				{
 					continue;
-				break;
-			}
+				}
 
-			/* move current ep to tail: */
-			list_move_tail(pos, &max3421_hcd->ep_list);
-			curr_urb = urb;
-			goto done;
+				break;
 		}
+
+		/* move current ep to tail: */
+		list_move_tail(pos, &max3421_hcd->ep_list);
+		curr_urb = urb;
+		goto done;
+	}
+
 done:
-	if (!curr_urb) {
+
+	if (!curr_urb)
+	{
 		spin_unlock_irqrestore(&max3421_hcd->lock, flags);
 		return 0;
 	}
 
 	urb = max3421_hcd->curr_urb = curr_urb;
 	epnum = usb_endpoint_num(&urb->ep->desc);
+
 	if (max3421_ep->retransmit)
 		/* restart (part of) a USB transaction: */
+	{
 		max3421_ep->retransmit = 0;
-	else {
+	}
+	else
+	{
 		/* start USB transaction: */
-		if (usb_endpoint_xfer_control(&ep->desc)) {
+		if (usb_endpoint_xfer_control(&ep->desc))
+		{
 			/*
 			 * See USB 2.0 spec section 8.6.1
 			 * Initialization via SETUP Token:
@@ -774,8 +856,11 @@ done:
 			usb_settoggle(urb->dev, epnum, 1, 1);
 			max3421_ep->pkt_state = PKT_STATE_SETUP;
 			force_toggles = 1;
-		} else
+		}
+		else
+		{
 			max3421_ep->pkt_state = PKT_STATE_TRANSFER;
+		}
 	}
 
 	spin_unlock_irqrestore(&max3421_hcd->lock, flags);
@@ -804,16 +889,19 @@ max3421_check_unlink(struct usb_hcd *hcd)
 	int retval = 0;
 
 	spin_lock_irqsave(&max3421_hcd->lock, flags);
-	list_for_each_entry(max3421_ep, &max3421_hcd->ep_list, ep_list) {
+	list_for_each_entry(max3421_ep, &max3421_hcd->ep_list, ep_list)
+	{
 		ep = max3421_ep->ep;
-		list_for_each_entry_safe(urb, next, &ep->urb_list, urb_list) {
-			if (urb->unlinked) {
+		list_for_each_entry_safe(urb, next, &ep->urb_list, urb_list)
+		{
+			if (urb->unlinked)
+			{
 				retval = 1;
 				dev_dbg(&spi->dev, "%s: URB %p unlinked=%d",
-					__func__, urb, urb->unlinked);
+						__func__, urb, urb->unlinked);
 				usb_hcd_unlink_urb_from_ep(hcd, urb);
 				spin_unlock_irqrestore(&max3421_hcd->lock,
-						       flags);
+									   flags);
 				usb_hcd_giveback_urb(hcd, urb, 0);
 				spin_lock_irqsave(&max3421_hcd->lock, flags);
 			}
@@ -852,15 +940,28 @@ max3421_recv_data_available(struct usb_hcd *hcd)
 	rcvbc = spi_rd8(hcd, MAX3421_REG_RCVBC);
 
 	if (rcvbc > MAX3421_FIFO_SIZE)
+	{
 		rcvbc = MAX3421_FIFO_SIZE;
+	}
+
 	if (urb->actual_length >= urb->transfer_buffer_length)
+	{
 		remaining = 0;
+	}
 	else
+	{
 		remaining = urb->transfer_buffer_length - urb->actual_length;
+	}
+
 	transfer_size = rcvbc;
+
 	if (transfer_size > remaining)
+	{
 		transfer_size = remaining;
-	if (transfer_size > 0) {
+	}
+
+	if (transfer_size > 0)
+	{
 		void *dst = urb->transfer_buffer + urb->actual_length;
 
 		spi_rd_buf(hcd, MAX3421_REG_RCVFIFO, dst, transfer_size);
@@ -889,76 +990,92 @@ max3421_handle_error(struct usb_hcd *hcd, u8 hrsl)
 	 * get out of sync with the SNDFIFO double buffer.
 	 */
 	switch_sndfifo = (max3421_ep->pkt_state == PKT_STATE_TRANSFER &&
-			  usb_urb_dir_out(urb));
+					  usb_urb_dir_out(urb));
 
-	switch (result_code) {
-	case MAX3421_HRSL_OK:
-		return;			/* this shouldn't happen */
+	switch (result_code)
+	{
+		case MAX3421_HRSL_OK:
+			return;			/* this shouldn't happen */
 
-	case MAX3421_HRSL_WRONGPID:	/* received wrong PID */
-	case MAX3421_HRSL_BUSY:		/* SIE busy */
-	case MAX3421_HRSL_BADREQ:	/* bad val in HXFR */
-	case MAX3421_HRSL_UNDEF:	/* reserved */
-	case MAX3421_HRSL_KERR:		/* K-state instead of response */
-	case MAX3421_HRSL_JERR:		/* J-state instead of response */
-		/*
-		 * packet experienced an error that we cannot recover
-		 * from; report error
-		 */
-		max3421_hcd->urb_done = hrsl_to_error[result_code];
-		dev_dbg(&spi->dev, "%s: unexpected error HRSL=0x%02x",
-			__func__, hrsl);
-		break;
-
-	case MAX3421_HRSL_TOGERR:
-		if (usb_urb_dir_in(urb))
-			; /* don't do anything (device will switch toggle) */
-		else {
-			/* flip the send toggle bit: */
-			int sndtog = (hrsl >> MAX3421_HRSL_SNDTOGRD_BIT) & 1;
-
-			sndtog ^= 1;
-			spi_wr8(hcd, MAX3421_REG_HCTL,
-				BIT(sndtog + MAX3421_HCTL_SNDTOG0_BIT));
-		}
-		/* FALL THROUGH */
-	case MAX3421_HRSL_BADBC:	/* bad byte count */
-	case MAX3421_HRSL_PIDERR:	/* received PID is corrupted */
-	case MAX3421_HRSL_PKTERR:	/* packet error (stuff, EOP) */
-	case MAX3421_HRSL_CRCERR:	/* CRC error */
-	case MAX3421_HRSL_BABBLE:	/* device talked too long */
-	case MAX3421_HRSL_TIMEOUT:
-		if (max3421_ep->retries++ < USB_MAX_RETRIES)
-			/* retry the packet again in the next frame */
-			max3421_slow_retransmit(hcd);
-		else {
-			/* Based on ohci.h cc_to_err[]: */
+		case MAX3421_HRSL_WRONGPID:	/* received wrong PID */
+		case MAX3421_HRSL_BUSY:		/* SIE busy */
+		case MAX3421_HRSL_BADREQ:	/* bad val in HXFR */
+		case MAX3421_HRSL_UNDEF:	/* reserved */
+		case MAX3421_HRSL_KERR:		/* K-state instead of response */
+		case MAX3421_HRSL_JERR:		/* J-state instead of response */
+			/*
+			 * packet experienced an error that we cannot recover
+			 * from; report error
+			 */
 			max3421_hcd->urb_done = hrsl_to_error[result_code];
 			dev_dbg(&spi->dev, "%s: unexpected error HRSL=0x%02x",
-				__func__, hrsl);
-		}
-		break;
+					__func__, hrsl);
+			break;
 
-	case MAX3421_HRSL_STALL:
-		dev_dbg(&spi->dev, "%s: unexpected error HRSL=0x%02x",
-			__func__, hrsl);
-		max3421_hcd->urb_done = hrsl_to_error[result_code];
-		break;
+		case MAX3421_HRSL_TOGERR:
+			if (usb_urb_dir_in(urb))
+				; /* don't do anything (device will switch toggle) */
+			else
+			{
+				/* flip the send toggle bit: */
+				int sndtog = (hrsl >> MAX3421_HRSL_SNDTOGRD_BIT) & 1;
 
-	case MAX3421_HRSL_NAK:
-		/*
-		 * Device wasn't ready for data or has no data
-		 * available: retry the packet again.
-		 */
-		if (max3421_ep->naks++ < NAK_MAX_FAST_RETRANSMITS) {
-			max3421_next_transfer(hcd, 1);
-			switch_sndfifo = 0;
-		} else
-			max3421_slow_retransmit(hcd);
-		break;
+				sndtog ^= 1;
+				spi_wr8(hcd, MAX3421_REG_HCTL,
+						BIT(sndtog + MAX3421_HCTL_SNDTOG0_BIT));
+			}
+
+		/* FALL THROUGH */
+		case MAX3421_HRSL_BADBC:	/* bad byte count */
+		case MAX3421_HRSL_PIDERR:	/* received PID is corrupted */
+		case MAX3421_HRSL_PKTERR:	/* packet error (stuff, EOP) */
+		case MAX3421_HRSL_CRCERR:	/* CRC error */
+		case MAX3421_HRSL_BABBLE:	/* device talked too long */
+		case MAX3421_HRSL_TIMEOUT:
+			if (max3421_ep->retries++ < USB_MAX_RETRIES)
+				/* retry the packet again in the next frame */
+			{
+				max3421_slow_retransmit(hcd);
+			}
+			else
+			{
+				/* Based on ohci.h cc_to_err[]: */
+				max3421_hcd->urb_done = hrsl_to_error[result_code];
+				dev_dbg(&spi->dev, "%s: unexpected error HRSL=0x%02x",
+						__func__, hrsl);
+			}
+
+			break;
+
+		case MAX3421_HRSL_STALL:
+			dev_dbg(&spi->dev, "%s: unexpected error HRSL=0x%02x",
+					__func__, hrsl);
+			max3421_hcd->urb_done = hrsl_to_error[result_code];
+			break;
+
+		case MAX3421_HRSL_NAK:
+
+			/*
+			 * Device wasn't ready for data or has no data
+			 * available: retry the packet again.
+			 */
+			if (max3421_ep->naks++ < NAK_MAX_FAST_RETRANSMITS)
+			{
+				max3421_next_transfer(hcd, 1);
+				switch_sndfifo = 0;
+			}
+			else
+			{
+				max3421_slow_retransmit(hcd);
+			}
+
+			break;
 	}
+
 	if (switch_sndfifo)
+	{
 		spi_wr8(hcd, MAX3421_REG_SNDBC, 0);
+	}
 }
 
 /*
@@ -972,36 +1089,46 @@ max3421_transfer_in_done(struct usb_hcd *hcd, struct urb *urb)
 	u32 max_packet;
 
 	if (urb->actual_length >= urb->transfer_buffer_length)
-		return 1;	/* read is complete, so we're done */
+	{
+		return 1;    /* read is complete, so we're done */
+	}
 
 	/*
 	 * USB 2.0 Section 5.3.2 Pipes: packets must be full size
 	 * except for last one.
 	 */
 	max_packet = usb_maxpacket(urb->dev, urb->pipe, 0);
-	if (max_packet > MAX3421_FIFO_SIZE) {
+
+	if (max_packet > MAX3421_FIFO_SIZE)
+	{
 		/*
 		 * We do not support isochronous transfers at this
 		 * time...
 		 */
 		dev_err(&spi->dev,
-			"%s: packet-size of %u too big (limit is %u bytes)",
-			__func__, max_packet, MAX3421_FIFO_SIZE);
+				"%s: packet-size of %u too big (limit is %u bytes)",
+				__func__, max_packet, MAX3421_FIFO_SIZE);
 		return -EINVAL;
 	}
 
-	if (max3421_hcd->curr_len < max_packet) {
-		if (urb->transfer_flags & URB_SHORT_NOT_OK) {
+	if (max3421_hcd->curr_len < max_packet)
+	{
+		if (urb->transfer_flags & URB_SHORT_NOT_OK)
+		{
 			/*
 			 * remaining > 0 and received an
 			 * unexpected partial packet ->
 			 * error
 			 */
 			return -EREMOTEIO;
-		} else
+		}
+		else
 			/* short read, but it's OK */
+		{
 			return 1;
+		}
 	}
+
 	return 0;	/* not done */
 }
 
@@ -1014,9 +1141,14 @@ max3421_transfer_out_done(struct usb_hcd *hcd, struct urb *urb)
 	struct max3421_hcd *max3421_hcd = hcd_to_max3421(hcd);
 
 	urb->actual_length += max3421_hcd->curr_len;
+
 	if (urb->actual_length < urb->transfer_buffer_length)
+	{
 		return 0;
-	if (urb->transfer_flags & URB_ZERO_PACKET) {
+	}
+
+	if (urb->transfer_flags & URB_ZERO_PACKET)
+	{
 		/*
 		 * Some hardware needs a zero-size packet at the end
 		 * of a bulk-out transfer if the last transfer was a
@@ -1027,8 +1159,11 @@ max3421_transfer_out_done(struct usb_hcd *hcd, struct urb *urb)
 		u32 max_packet = usb_maxpacket(urb->dev, urb->pipe, 1);
 
 		if (max3421_hcd->curr_len == max_packet)
+		{
 			return 0;
+		}
 	}
+
 	return 1;
 }
 
@@ -1045,7 +1180,7 @@ max3421_host_transfer_done(struct usb_hcd *hcd)
 	int urb_done = 0;
 
 	max3421_hcd->hien &= ~(BIT(MAX3421_HI_HXFRDN_BIT) |
-			       BIT(MAX3421_HI_RCVDAV_BIT));
+						   BIT(MAX3421_HI_RCVDAV_BIT));
 
 	hrsl = spi_rd8(hcd, MAX3421_REG_HRSL);
 	result_code = hrsl & MAX3421_HRSL_RESULT_MASK;
@@ -1056,46 +1191,65 @@ max3421_host_transfer_done(struct usb_hcd *hcd)
 
 	max3421_ep = urb->ep->hcpriv;
 
-	if (unlikely(result_code != MAX3421_HRSL_OK)) {
+	if (unlikely(result_code != MAX3421_HRSL_OK))
+	{
 		max3421_handle_error(hcd, hrsl);
 		return;
 	}
 
 	max3421_ep->naks = 0;
 	max3421_ep->retries = 0;
-	switch (max3421_ep->pkt_state) {
 
-	case PKT_STATE_SETUP:
-		if (urb->transfer_buffer_length > 0)
-			max3421_ep->pkt_state = PKT_STATE_TRANSFER;
-		else
-			max3421_ep->pkt_state = PKT_STATE_TERMINATE;
-		break;
+	switch (max3421_ep->pkt_state)
+	{
 
-	case PKT_STATE_TRANSFER:
-		if (usb_urb_dir_in(urb))
-			urb_done = max3421_transfer_in_done(hcd, urb);
-		else
-			urb_done = max3421_transfer_out_done(hcd, urb);
-		if (urb_done > 0 && usb_pipetype(urb->pipe) == PIPE_CONTROL) {
-			/*
-			 * We aren't really done - we still need to
-			 * terminate the control transfer:
-			 */
-			max3421_hcd->urb_done = urb_done = 0;
-			max3421_ep->pkt_state = PKT_STATE_TERMINATE;
-		}
-		break;
+		case PKT_STATE_SETUP:
+			if (urb->transfer_buffer_length > 0)
+			{
+				max3421_ep->pkt_state = PKT_STATE_TRANSFER;
+			}
+			else
+			{
+				max3421_ep->pkt_state = PKT_STATE_TERMINATE;
+			}
 
-	case PKT_STATE_TERMINATE:
-		urb_done = 1;
-		break;
+			break;
+
+		case PKT_STATE_TRANSFER:
+			if (usb_urb_dir_in(urb))
+			{
+				urb_done = max3421_transfer_in_done(hcd, urb);
+			}
+			else
+			{
+				urb_done = max3421_transfer_out_done(hcd, urb);
+			}
+
+			if (urb_done > 0 && usb_pipetype(urb->pipe) == PIPE_CONTROL)
+			{
+				/*
+				 * We aren't really done - we still need to
+				 * terminate the control transfer:
+				 */
+				max3421_hcd->urb_done = urb_done = 0;
+				max3421_ep->pkt_state = PKT_STATE_TERMINATE;
+			}
+
+			break;
+
+		case PKT_STATE_TERMINATE:
+			urb_done = 1;
+			break;
 	}
 
 	if (urb_done)
+	{
 		max3421_hcd->urb_done = urb_done;
+	}
 	else
+	{
 		max3421_next_transfer(hcd, 0);
+	}
 }
 
 /*
@@ -1113,31 +1267,35 @@ max3421_detect_conn(struct usb_hcd *hcd)
 	hrsl = spi_rd8(hcd, MAX3421_REG_HRSL);
 
 	jk = ((((hrsl >> MAX3421_HRSL_JSTATUS_BIT) & 1) << 0) |
-	      (((hrsl >> MAX3421_HRSL_KSTATUS_BIT) & 1) << 1));
+		  (((hrsl >> MAX3421_HRSL_KSTATUS_BIT) & 1) << 1));
 
 	mode = max3421_hcd->mode;
 
-	switch (jk) {
-	case 0x0: /* SE0: disconnect */
-		/*
-		 * Turn off SOFKAENAB bit to avoid getting interrupt
-		 * every milli-second:
-		 */
-		mode &= ~BIT(MAX3421_MODE_SOFKAENAB_BIT);
-		break;
+	switch (jk)
+	{
+		case 0x0: /* SE0: disconnect */
+			/*
+			 * Turn off SOFKAENAB bit to avoid getting interrupt
+			 * every milli-second:
+			 */
+			mode &= ~BIT(MAX3421_MODE_SOFKAENAB_BIT);
+			break;
 
-	case 0x1: /* J=0,K=1: low-speed (in full-speed or vice versa) */
-	case 0x2: /* J=1,K=0: full-speed (in full-speed or vice versa) */
-		if (jk == 0x2)
-			/* need to switch to the other speed: */
-			mode ^= BIT(MAX3421_MODE_LOWSPEED_BIT);
-		/* turn on SOFKAENAB bit: */
-		mode |= BIT(MAX3421_MODE_SOFKAENAB_BIT);
-		have_conn = 1;
-		break;
+		case 0x1: /* J=0,K=1: low-speed (in full-speed or vice versa) */
+		case 0x2: /* J=1,K=0: full-speed (in full-speed or vice versa) */
+			if (jk == 0x2)
+				/* need to switch to the other speed: */
+			{
+				mode ^= BIT(MAX3421_MODE_LOWSPEED_BIT);
+			}
 
-	case 0x3: /* illegal */
-		break;
+			/* turn on SOFKAENAB bit: */
+			mode |= BIT(MAX3421_MODE_SOFKAENAB_BIT);
+			have_conn = 1;
+			break;
+
+		case 0x3: /* illegal */
+			break;
 	}
 
 	max3421_hcd->mode = mode;
@@ -1145,14 +1303,25 @@ max3421_detect_conn(struct usb_hcd *hcd)
 
 	spin_lock_irqsave(&max3421_hcd->lock, flags);
 	old_port_status = max3421_hcd->port_status;
+
 	if (have_conn)
+	{
 		max3421_hcd->port_status |=  USB_PORT_STAT_CONNECTION;
+	}
 	else
+	{
 		max3421_hcd->port_status &= ~USB_PORT_STAT_CONNECTION;
+	}
+
 	if (mode & BIT(MAX3421_MODE_LOWSPEED_BIT))
+	{
 		max3421_hcd->port_status |=  USB_PORT_STAT_LOW_SPEED;
+	}
 	else
+	{
 		max3421_hcd->port_status &= ~USB_PORT_STAT_LOW_SPEED;
+	}
+
 	chg = (old_port_status ^ max3421_hcd->port_status);
 	max3421_hcd->port_status |= chg << 16;
 	spin_unlock_irqrestore(&max3421_hcd->lock, flags);
@@ -1166,10 +1335,16 @@ max3421_irq_handler(int irq, void *dev_id)
 	struct max3421_hcd *max3421_hcd = hcd_to_max3421(hcd);
 
 	if (max3421_hcd->spi_thread &&
-	    max3421_hcd->spi_thread->state != TASK_RUNNING)
+		max3421_hcd->spi_thread->state != TASK_RUNNING)
+	{
 		wake_up_process(max3421_hcd->spi_thread);
+	}
+
 	if (!test_and_set_bit(ENABLE_IRQ, &max3421_hcd->todo))
+	{
 		disable_irq_nosync(spi->irq);
+	}
+
 	return IRQ_HANDLED;
 }
 
@@ -1187,28 +1362,34 @@ dump_eps(struct usb_hcd *hcd)
 	int epnum, ret;
 
 	spin_lock_irqsave(&max3421_hcd->lock, flags);
-	list_for_each_entry(max3421_ep, &max3421_hcd->ep_list, ep_list) {
+	list_for_each_entry(max3421_ep, &max3421_hcd->ep_list, ep_list)
+	{
 		ep = max3421_ep->ep;
 
 		dp = ubuf;
 		end = dp + sizeof(ubuf);
 		*dp = '\0';
-		list_for_each_entry(urb, &ep->urb_list, urb_list) {
+		list_for_each_entry(urb, &ep->urb_list, urb_list)
+		{
 			ret = snprintf(dp, end - dp, " %p(%d.%s %d/%d)", urb,
-				       usb_pipetype(urb->pipe),
-				       usb_urb_dir_in(urb) ? "IN" : "OUT",
-				       urb->actual_length,
-				       urb->transfer_buffer_length);
+						   usb_pipetype(urb->pipe),
+						   usb_urb_dir_in(urb) ? "IN" : "OUT",
+						   urb->actual_length,
+						   urb->transfer_buffer_length);
+
 			if (ret < 0 || ret >= end - dp)
-				break;	/* error or buffer full */
+			{
+				break;    /* error or buffer full */
+			}
+
 			dp += ret;
 		}
 
 		epnum = usb_endpoint_num(&ep->desc);
 		pr_info("EP%0u %u lst %04u rtr %u nak %6u rxmt %u: %s\n",
-			epnum, max3421_ep->pkt_state, max3421_ep->last_active,
-			max3421_ep->retries, max3421_ep->naks,
-			max3421_ep->retransmit, ubuf);
+				epnum, max3421_ep->pkt_state, max3421_ep->last_active,
+				max3421_ep->retries, max3421_ep->naks,
+				max3421_ep->retransmit, ubuf);
 	}
 	spin_unlock_irqrestore(&max3421_hcd->lock, flags);
 }
@@ -1231,27 +1412,37 @@ max3421_handle_irqs(struct usb_hcd *hcd)
 	 */
 	hirq = spi_rd8(hcd, MAX3421_REG_HIRQ);
 	hirq &= max3421_hcd->hien;
+
 	if (!hirq)
+	{
 		return 0;
+	}
 
 	spi_wr8(hcd, MAX3421_REG_HIRQ,
-		hirq & ~(BIT(MAX3421_HI_SNDBAV_BIT) |
-			 BIT(MAX3421_HI_RCVDAV_BIT)));
+			hirq & ~(BIT(MAX3421_HI_SNDBAV_BIT) |
+					 BIT(MAX3421_HI_RCVDAV_BIT)));
 
-	if (hirq & BIT(MAX3421_HI_FRAME_BIT)) {
+	if (hirq & BIT(MAX3421_HI_FRAME_BIT))
+	{
 		max3421_hcd->frame_number = ((max3421_hcd->frame_number + 1)
-					     & USB_MAX_FRAME_NUMBER);
+									 & USB_MAX_FRAME_NUMBER);
 		max3421_hcd->sched_pass = SCHED_PASS_PERIODIC;
 	}
 
 	if (hirq & BIT(MAX3421_HI_RCVDAV_BIT))
+	{
 		max3421_recv_data_available(hcd);
+	}
 
 	if (hirq & BIT(MAX3421_HI_HXFRDN_BIT))
+	{
 		max3421_host_transfer_done(hcd);
+	}
 
 	if (hirq & BIT(MAX3421_HI_CONDET_BIT))
+	{
 		max3421_detect_conn(hcd);
+	}
 
 	/*
 	 * Now process interrupts that may affect HCD state
@@ -1260,20 +1451,31 @@ max3421_handle_irqs(struct usb_hcd *hcd)
 	spin_lock_irqsave(&max3421_hcd->lock, flags);
 
 	old_port_status = max3421_hcd->port_status;
-	if (hirq & BIT(MAX3421_HI_BUSEVENT_BIT)) {
-		if (max3421_hcd->port_status & USB_PORT_STAT_RESET) {
+
+	if (hirq & BIT(MAX3421_HI_BUSEVENT_BIT))
+	{
+		if (max3421_hcd->port_status & USB_PORT_STAT_RESET)
+		{
 			/* BUSEVENT due to completion of Bus Reset */
 			max3421_hcd->port_status &= ~USB_PORT_STAT_RESET;
 			max3421_hcd->port_status |=  USB_PORT_STAT_ENABLE;
-		} else {
+		}
+		else
+		{
 			/* BUSEVENT due to completion of Bus Resume */
 			pr_info("%s: BUSEVENT Bus Resume Done\n", __func__);
 		}
 	}
+
 	if (hirq & BIT(MAX3421_HI_RWU_BIT))
+	{
 		pr_info("%s: RWU\n", __func__);
+	}
+
 	if (hirq & BIT(MAX3421_HI_SUSDN_BIT))
+	{
 		pr_info("%s: SUSDN\n", __func__);
+	}
 
 	chg = (old_port_status ^ max3421_hcd->port_status);
 	max3421_hcd->port_status |= chg << 16;
@@ -1286,20 +1488,28 @@ max3421_handle_irqs(struct usb_hcd *hcd)
 		char sbuf[16 * 16], *dp, *end;
 		int i;
 
-		if (time_after(jiffies, last_time + 5*HZ)) {
+		if (time_after(jiffies, last_time + 5 * HZ))
+		{
 			dp = sbuf;
 			end = sbuf + sizeof(sbuf);
 			*dp = '\0';
-			for (i = 0; i < 16; ++i) {
+
+			for (i = 0; i < 16; ++i)
+			{
 				int ret = snprintf(dp, end - dp, " %lu",
-						   max3421_hcd->err_stat[i]);
+								   max3421_hcd->err_stat[i]);
+
 				if (ret < 0 || ret >= end - dp)
-					break;	/* error or buffer full */
+				{
+					break;    /* error or buffer full */
+				}
+
 				dp += ret;
 			}
+
 			pr_info("%s: hrsl_stats %s\n", __func__, sbuf);
 			memset(max3421_hcd->err_stat, 0,
-			       sizeof(max3421_hcd->err_stat));
+				   sizeof(max3421_hcd->err_stat));
 			last_time = jiffies;
 
 			dump_eps(hcd);
@@ -1321,15 +1531,22 @@ max3421_reset_hcd(struct usb_hcd *hcd)
 	/* clear reset: */
 	spi_wr8(hcd, MAX3421_REG_USBCTL, 0);
 	timeout = 1000;
-	while (1) {
+
+	while (1)
+	{
 		if (spi_rd8(hcd, MAX3421_REG_USBIRQ)
-		    & BIT(MAX3421_USBIRQ_OSCOKIRQ_BIT))
+			& BIT(MAX3421_USBIRQ_OSCOKIRQ_BIT))
+		{
 			break;
-		if (--timeout < 0) {
+		}
+
+		if (--timeout < 0)
+		{
 			dev_err(&spi->dev,
-				"timed out waiting for oscillator OK signal");
+					"timed out waiting for oscillator OK signal");
 			return 1;
 		}
+
 		cond_resched();
 	}
 
@@ -1338,9 +1555,9 @@ max3421_reset_hcd(struct usb_hcd *hcd)
 	 * enable pull-down registers on DM/DP:
 	 */
 	max3421_hcd->mode = (BIT(MAX3421_MODE_HOST_BIT) |
-			     BIT(MAX3421_MODE_SOFKAENAB_BIT) |
-			     BIT(MAX3421_MODE_DMPULLDN_BIT) |
-			     BIT(MAX3421_MODE_DPPULLDN_BIT));
+						 BIT(MAX3421_MODE_SOFKAENAB_BIT) |
+						 BIT(MAX3421_MODE_DMPULLDN_BIT) |
+						 BIT(MAX3421_MODE_DPPULLDN_BIT));
 	spi_wr8(hcd, MAX3421_REG_MODE, max3421_hcd->mode);
 
 	/* reset frame-number: */
@@ -1353,8 +1570,8 @@ max3421_reset_hcd(struct usb_hcd *hcd)
 
 	/* enable frame, connection-detected, and bus-event interrupts: */
 	max3421_hcd->hien = (BIT(MAX3421_HI_FRAME_BIT) |
-			     BIT(MAX3421_HI_CONDET_BIT) |
-			     BIT(MAX3421_HI_BUSEVENT_BIT));
+						 BIT(MAX3421_HI_CONDET_BIT) |
+						 BIT(MAX3421_HI_BUSEVENT_BIT));
 	spi_wr8(hcd, MAX3421_REG_HIEN, max3421_hcd->hien);
 
 	/* enable interrupts: */
@@ -1372,10 +1589,16 @@ max3421_urb_done(struct usb_hcd *hcd)
 
 	status = max3421_hcd->urb_done;
 	max3421_hcd->urb_done = 0;
+
 	if (status > 0)
+	{
 		status = 0;
+	}
+
 	urb = max3421_hcd->curr_urb;
-	if (urb) {
+
+	if (urb)
+	{
 		max3421_hcd->curr_urb = NULL;
 		spin_lock_irqsave(&max3421_hcd->lock, flags);
 		usb_hcd_unlink_urb_from_ep(hcd, urb);
@@ -1384,6 +1607,7 @@ max3421_urb_done(struct usb_hcd *hcd)
 		/* must be called without the HCD spinlock: */
 		usb_hcd_giveback_urb(hcd, urb, status);
 	}
+
 	return 1;
 }
 
@@ -1397,22 +1621,30 @@ max3421_spi_thread(void *dev_id)
 
 	/* set full-duplex SPI mode, low-active interrupt pin: */
 	spi_wr8(hcd, MAX3421_REG_PINCTL,
-		(BIT(MAX3421_PINCTL_FDUPSPI_BIT) |	/* full-duplex */
-		 BIT(MAX3421_PINCTL_INTLEVEL_BIT)));	/* low-active irq */
+			(BIT(MAX3421_PINCTL_FDUPSPI_BIT) |	/* full-duplex */
+			 BIT(MAX3421_PINCTL_INTLEVEL_BIT)));	/* low-active irq */
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		max3421_hcd->rev = spi_rd8(hcd, MAX3421_REG_REVISION);
+
 		if (max3421_hcd->rev == 0x12 || max3421_hcd->rev == 0x13)
+		{
 			break;
+		}
+
 		dev_err(&spi->dev, "bad rev 0x%02x", max3421_hcd->rev);
 		msleep(10000);
 	}
-	dev_info(&spi->dev, "rev 0x%x, SPI clk %dHz, bpw %u, irq %d\n",
-		 max3421_hcd->rev, spi->max_speed_hz, spi->bits_per_word,
-		 spi->irq);
 
-	while (!kthread_should_stop()) {
-		if (!i_worked) {
+	dev_info(&spi->dev, "rev 0x%x, SPI clk %dHz, bpw %u, irq %d\n",
+			 max3421_hcd->rev, spi->max_speed_hz, spi->bits_per_word,
+			 spi->irq);
+
+	while (!kthread_should_stop())
+	{
+		if (!i_worked)
+		{
 			/*
 			 * We'll be waiting for wakeups from the hard
 			 * interrupt handler, so now is a good time to
@@ -1421,8 +1653,12 @@ max3421_spi_thread(void *dev_id)
 			spi_wr8(hcd, MAX3421_REG_HIEN, max3421_hcd->hien);
 
 			set_current_state(TASK_INTERRUPTIBLE);
+
 			if (test_and_clear_bit(ENABLE_IRQ, &max3421_hcd->todo))
+			{
 				enable_irq(spi->irq);
+			}
+
 			schedule();
 			__set_current_state(TASK_RUNNING);
 		}
@@ -1430,39 +1666,57 @@ max3421_spi_thread(void *dev_id)
 		i_worked = 0;
 
 		if (max3421_hcd->urb_done)
+		{
 			i_worked |= max3421_urb_done(hcd);
+		}
 		else if (max3421_handle_irqs(hcd))
+		{
 			i_worked = 1;
+		}
 		else if (!max3421_hcd->curr_urb)
+		{
 			i_worked |= max3421_select_and_start_urb(hcd);
+		}
 
 		if (test_and_clear_bit(RESET_HCD, &max3421_hcd->todo))
 			/* reset the HCD: */
+		{
 			i_worked |= max3421_reset_hcd(hcd);
-		if (test_and_clear_bit(RESET_PORT, &max3421_hcd->todo)) {
+		}
+
+		if (test_and_clear_bit(RESET_PORT, &max3421_hcd->todo))
+		{
 			/* perform a USB bus reset: */
 			spi_wr8(hcd, MAX3421_REG_HCTL,
-				BIT(MAX3421_HCTL_BUSRST_BIT));
+					BIT(MAX3421_HCTL_BUSRST_BIT));
 			i_worked = 1;
 		}
+
 		if (test_and_clear_bit(CHECK_UNLINK, &max3421_hcd->todo))
+		{
 			i_worked |= max3421_check_unlink(hcd);
-		if (test_and_clear_bit(IOPIN_UPDATE, &max3421_hcd->todo)) {
+		}
+
+		if (test_and_clear_bit(IOPIN_UPDATE, &max3421_hcd->todo))
+		{
 			/*
 			 * IOPINS1/IOPINS2 do not auto-increment, so we can't
 			 * use spi_wr_buf().
 			 */
-			for (i = 0; i < ARRAY_SIZE(max3421_hcd->iopins); ++i) {
+			for (i = 0; i < ARRAY_SIZE(max3421_hcd->iopins); ++i)
+			{
 				u8 val = spi_rd8(hcd, MAX3421_REG_IOPINS1);
 
 				val = ((val & 0xf0) |
-				       (max3421_hcd->iopins[i] & 0x0f));
+					   (max3421_hcd->iopins[i] & 0x0f));
 				spi_wr8(hcd, MAX3421_REG_IOPINS1 + i, val);
 				max3421_hcd->iopins[i] = val;
 			}
+
 			i_worked = 1;
 		}
 	}
+
 	set_current_state(TASK_RUNNING);
 	dev_info(&spi->dev, "SPI thread exiting");
 	return 0;
@@ -1474,7 +1728,7 @@ max3421_reset_port(struct usb_hcd *hcd)
 	struct max3421_hcd *max3421_hcd = hcd_to_max3421(hcd);
 
 	max3421_hcd->port_status &= ~(USB_PORT_STAT_ENABLE |
-				      USB_PORT_STAT_LOW_SPEED);
+								  USB_PORT_STAT_LOW_SPEED);
 	max3421_hcd->port_status |= USB_PORT_STAT_RESET;
 	set_bit(RESET_PORT, &max3421_hcd->todo);
 	wake_up_process(max3421_hcd->spi_thread);
@@ -1524,29 +1778,37 @@ max3421_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags)
 	unsigned long flags;
 	int retval;
 
-	switch (usb_pipetype(urb->pipe)) {
-	case PIPE_INTERRUPT:
-	case PIPE_ISOCHRONOUS:
-		if (urb->interval < 0) {
-			dev_err(&spi->dev,
-			  "%s: interval=%d for intr-/iso-pipe; expected > 0\n",
-				__func__, urb->interval);
-			return -EINVAL;
-		}
-	default:
-		break;
+	switch (usb_pipetype(urb->pipe))
+	{
+		case PIPE_INTERRUPT:
+		case PIPE_ISOCHRONOUS:
+			if (urb->interval < 0)
+			{
+				dev_err(&spi->dev,
+						"%s: interval=%d for intr-/iso-pipe; expected > 0\n",
+						__func__, urb->interval);
+				return -EINVAL;
+			}
+
+		default:
+			break;
 	}
 
 	spin_lock_irqsave(&max3421_hcd->lock, flags);
 
 	max3421_ep = urb->ep->hcpriv;
-	if (!max3421_ep) {
+
+	if (!max3421_ep)
+	{
 		/* gets freed in max3421_endpoint_disable: */
 		max3421_ep = kzalloc(sizeof(struct max3421_ep), GFP_ATOMIC);
-		if (!max3421_ep) {
+
+		if (!max3421_ep)
+		{
 			retval = -ENOMEM;
 			goto out;
 		}
+
 		max3421_ep->ep = urb->ep;
 		max3421_ep->last_active = max3421_hcd->frame_number;
 		urb->ep->hcpriv = max3421_ep;
@@ -1555,7 +1817,9 @@ max3421_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags)
 	}
 
 	retval = usb_hcd_link_urb_to_ep(hcd, urb);
-	if (retval == 0) {
+
+	if (retval == 0)
+	{
 		/* Since we added to the queue, restart scheduling: */
 		max3421_hcd->sched_pass = SCHED_PASS_PERIODIC;
 		wake_up_process(max3421_hcd->spi_thread);
@@ -1580,10 +1844,13 @@ max3421_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 	 * to be dropped at the next opportunity.
 	 */
 	retval = usb_hcd_check_unlink_urb(hcd, urb, status);
-	if (retval == 0) {
+
+	if (retval == 0)
+	{
 		set_bit(CHECK_UNLINK, &max3421_hcd->todo);
 		wake_up_process(max3421_hcd->spi_thread);
 	}
+
 	spin_unlock_irqrestore(&max3421_hcd->lock, flags);
 	return retval;
 }
@@ -1596,12 +1863,16 @@ max3421_endpoint_disable(struct usb_hcd *hcd, struct usb_host_endpoint *ep)
 
 	spin_lock_irqsave(&max3421_hcd->lock, flags);
 
-	if (ep->hcpriv) {
+	if (ep->hcpriv)
+	{
 		struct max3421_ep *max3421_ep = ep->hcpriv;
 
 		/* remove myself from the ep_list: */
 		if (!list_empty(&max3421_ep->ep_list))
+		{
 			list_del(&max3421_ep->ep_list);
+		}
+
 		kfree(max3421_ep);
 		ep->hcpriv = NULL;
 	}
@@ -1628,19 +1899,28 @@ max3421_hub_status_data(struct usb_hcd *hcd, char *buf)
 	int retval = 0;
 
 	spin_lock_irqsave(&max3421_hcd->lock, flags);
+
 	if (!HCD_HW_ACCESSIBLE(hcd))
+	{
 		goto done;
+	}
 
 	*buf = 0;
-	if ((max3421_hcd->port_status & PORT_C_MASK) != 0) {
+
+	if ((max3421_hcd->port_status & PORT_C_MASK) != 0)
+	{
 		*buf = (1 << 1); /* a hub over-current condition exists */
 		dev_dbg(hcd->self.controller,
-			"port status 0x%08x has changes\n",
-			max3421_hcd->port_status);
+				"port status 0x%08x has changes\n",
+				max3421_hcd->port_status);
 		retval = 1;
+
 		if (max3421_hcd->rh_state == MAX3421_RH_SUSPENDED)
+		{
 			usb_hcd_resume_root_hub(hcd);
+		}
 	}
+
 done:
 	spin_unlock_irqrestore(&max3421_hcd->lock, flags);
 	return retval;
@@ -1656,7 +1936,7 @@ hub_descriptor(struct usb_hub_descriptor *desc)
 	desc->bDescriptorType = USB_DT_HUB; /* hub descriptor */
 	desc->bDescLength = 9;
 	desc->wHubCharacteristics = cpu_to_le16(HUB_CHAR_INDV_PORT_LPSM |
-						HUB_CHAR_COMMON_OCPM);
+											HUB_CHAR_COMMON_OCPM);
 	desc->bNbrPorts = 1;
 }
 
@@ -1672,23 +1952,31 @@ max3421_gpout_set_value(struct usb_hcd *hcd, u8 pin_number, u8 value)
 	u8 mask, idx;
 
 	--pin_number;
+
 	if (pin_number > 7)
+	{
 		return;
+	}
 
 	mask = 1u << (pin_number % 4);
 	idx = pin_number / 4;
 
 	if (value)
+	{
 		max3421_hcd->iopins[idx] |=  mask;
+	}
 	else
+	{
 		max3421_hcd->iopins[idx] &= ~mask;
+	}
+
 	set_bit(IOPIN_UPDATE, &max3421_hcd->todo);
 	wake_up_process(max3421_hcd->spi_thread);
 }
 
 static int
 max3421_hub_control(struct usb_hcd *hcd, u16 type_req, u16 value, u16 index,
-		    char *buf, u16 length)
+					char *buf, u16 length)
 {
 	struct spi_device *spi = to_spi_device(hcd->self.controller);
 	struct max3421_hcd *max3421_hcd = hcd_to_max3421(hcd);
@@ -1700,84 +1988,102 @@ max3421_hub_control(struct usb_hcd *hcd, u16 type_req, u16 value, u16 index,
 
 	pdata = spi->dev.platform_data;
 
-	switch (type_req) {
-	case ClearHubFeature:
-		break;
-	case ClearPortFeature:
-		switch (value) {
-		case USB_PORT_FEAT_SUSPEND:
+	switch (type_req)
+	{
+		case ClearHubFeature:
 			break;
-		case USB_PORT_FEAT_POWER:
-			dev_dbg(hcd->self.controller, "power-off\n");
-			max3421_gpout_set_value(hcd, pdata->vbus_gpout,
-						!pdata->vbus_active_level);
-			/* FALLS THROUGH */
-		default:
-			max3421_hcd->port_status &= ~(1 << value);
-		}
-		break;
-	case GetHubDescriptor:
-		hub_descriptor((struct usb_hub_descriptor *) buf);
-		break;
 
-	case DeviceRequest | USB_REQ_GET_DESCRIPTOR:
-	case GetPortErrorCount:
-	case SetHubDepth:
-		/* USB3 only */
-		goto error;
+		case ClearPortFeature:
+			switch (value)
+			{
+				case USB_PORT_FEAT_SUSPEND:
+					break;
 
-	case GetHubStatus:
-		*(__le32 *) buf = cpu_to_le32(0);
-		break;
+				case USB_PORT_FEAT_POWER:
+					dev_dbg(hcd->self.controller, "power-off\n");
+					max3421_gpout_set_value(hcd, pdata->vbus_gpout,
+											!pdata->vbus_active_level);
 
-	case GetPortStatus:
-		if (index != 1) {
+				/* FALLS THROUGH */
+				default:
+					max3421_hcd->port_status &= ~(1 << value);
+			}
+
+			break;
+
+		case GetHubDescriptor:
+			hub_descriptor((struct usb_hub_descriptor *) buf);
+			break;
+
+		case DeviceRequest | USB_REQ_GET_DESCRIPTOR:
+		case GetPortErrorCount:
+		case SetHubDepth:
+			/* USB3 only */
+			goto error;
+
+		case GetHubStatus:
+			*(__le32 *) buf = cpu_to_le32(0);
+			break;
+
+		case GetPortStatus:
+			if (index != 1)
+			{
+				retval = -EPIPE;
+				goto error;
+			}
+
+			((__le16 *) buf)[0] = cpu_to_le16(max3421_hcd->port_status);
+			((__le16 *) buf)[1] =
+				cpu_to_le16(max3421_hcd->port_status >> 16);
+			break;
+
+		case SetHubFeature:
 			retval = -EPIPE;
-			goto error;
-		}
-		((__le16 *) buf)[0] = cpu_to_le16(max3421_hcd->port_status);
-		((__le16 *) buf)[1] =
-			cpu_to_le16(max3421_hcd->port_status >> 16);
-		break;
-
-	case SetHubFeature:
-		retval = -EPIPE;
-		break;
-
-	case SetPortFeature:
-		switch (value) {
-		case USB_PORT_FEAT_LINK_STATE:
-		case USB_PORT_FEAT_U1_TIMEOUT:
-		case USB_PORT_FEAT_U2_TIMEOUT:
-		case USB_PORT_FEAT_BH_PORT_RESET:
-			goto error;
-		case USB_PORT_FEAT_SUSPEND:
-			if (max3421_hcd->active)
-				max3421_hcd->port_status |=
-					USB_PORT_STAT_SUSPEND;
 			break;
-		case USB_PORT_FEAT_POWER:
-			dev_dbg(hcd->self.controller, "power-on\n");
-			max3421_hcd->port_status |= USB_PORT_STAT_POWER;
-			max3421_gpout_set_value(hcd, pdata->vbus_gpout,
-						pdata->vbus_active_level);
+
+		case SetPortFeature:
+			switch (value)
+			{
+				case USB_PORT_FEAT_LINK_STATE:
+				case USB_PORT_FEAT_U1_TIMEOUT:
+				case USB_PORT_FEAT_U2_TIMEOUT:
+				case USB_PORT_FEAT_BH_PORT_RESET:
+					goto error;
+
+				case USB_PORT_FEAT_SUSPEND:
+					if (max3421_hcd->active)
+						max3421_hcd->port_status |=
+							USB_PORT_STAT_SUSPEND;
+
+					break;
+
+				case USB_PORT_FEAT_POWER:
+					dev_dbg(hcd->self.controller, "power-on\n");
+					max3421_hcd->port_status |= USB_PORT_STAT_POWER;
+					max3421_gpout_set_value(hcd, pdata->vbus_gpout,
+											pdata->vbus_active_level);
+					break;
+
+				case USB_PORT_FEAT_RESET:
+					max3421_reset_port(hcd);
+
+				/* FALLS THROUGH */
+				default:
+					if ((max3421_hcd->port_status & USB_PORT_STAT_POWER)
+						!= 0)
+					{
+						max3421_hcd->port_status |= (1 << value);
+					}
+			}
+
 			break;
-		case USB_PORT_FEAT_RESET:
-			max3421_reset_port(hcd);
-			/* FALLS THROUGH */
+
 		default:
-			if ((max3421_hcd->port_status & USB_PORT_STAT_POWER)
-			    != 0)
-				max3421_hcd->port_status |= (1 << value);
-		}
-		break;
-
-	default:
-		dev_dbg(hcd->self.controller,
-			"hub control req%04x v%04x i%04x l%d\n",
-			type_req, value, index, length);
+			dev_dbg(hcd->self.controller,
+					"hub control req%04x v%04x i%04x l%d\n",
+					type_req, value, index, length);
 error:		/* "protocol stall" on error */
-		retval = -EPIPE;
+			retval = -EPIPE;
 	}
 
 	spin_unlock_irqrestore(&max3421_hcd->lock, flags);
@@ -1811,7 +2117,8 @@ max3421_unmap_urb_for_dma(struct usb_hcd *hcd, struct urb *urb)
 {
 }
 
-static struct hc_driver max3421_hcd_desc = {
+static struct hc_driver max3421_hcd_desc =
+{
 	.description =		"max3421",
 	.product_desc =		DRIVER_DESC,
 	.hcd_priv_size =	sizeof(struct max3421_hcd),
@@ -1838,17 +2145,21 @@ max3421_probe(struct spi_device *spi)
 	struct usb_hcd *hcd = NULL;
 	int retval = -ENOMEM;
 
-	if (spi_setup(spi) < 0) {
+	if (spi_setup(spi) < 0)
+	{
 		dev_err(&spi->dev, "Unable to setup SPI bus");
 		return -EFAULT;
 	}
 
 	hcd = usb_create_hcd(&max3421_hcd_desc, &spi->dev,
-			     dev_name(&spi->dev));
-	if (!hcd) {
+						 dev_name(&spi->dev));
+
+	if (!hcd)
+	{
 		dev_err(&spi->dev, "failed to create HCD structure\n");
 		goto error;
 	}
+
 	set_bit(HCD_FLAG_POLL_RH, &hcd->flags);
 	max3421_hcd = hcd_to_max3421(hcd);
 	max3421_hcd->next = max3421_hcd_list;
@@ -1856,42 +2167,63 @@ max3421_probe(struct spi_device *spi)
 	INIT_LIST_HEAD(&max3421_hcd->ep_list);
 
 	max3421_hcd->tx = kmalloc(sizeof(*max3421_hcd->tx), GFP_KERNEL);
+
 	if (!max3421_hcd->tx)
+	{
 		goto error;
+	}
+
 	max3421_hcd->rx = kmalloc(sizeof(*max3421_hcd->rx), GFP_KERNEL);
+
 	if (!max3421_hcd->rx)
+	{
 		goto error;
+	}
 
 	max3421_hcd->spi_thread = kthread_run(max3421_spi_thread, hcd,
-					      "max3421_spi_thread");
-	if (max3421_hcd->spi_thread == ERR_PTR(-ENOMEM)) {
+										  "max3421_spi_thread");
+
+	if (max3421_hcd->spi_thread == ERR_PTR(-ENOMEM))
+	{
 		dev_err(&spi->dev,
-			"failed to create SPI thread (out of memory)\n");
+				"failed to create SPI thread (out of memory)\n");
 		goto error;
 	}
 
 	retval = usb_add_hcd(hcd, 0, 0);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&spi->dev, "failed to add HCD\n");
 		goto error;
 	}
 
 	retval = request_irq(spi->irq, max3421_irq_handler,
-			     IRQF_TRIGGER_LOW, "max3421", hcd);
-	if (retval < 0) {
+						 IRQF_TRIGGER_LOW, "max3421", hcd);
+
+	if (retval < 0)
+	{
 		dev_err(&spi->dev, "failed to request irq %d\n", spi->irq);
 		goto error;
 	}
+
 	return 0;
 
 error:
-	if (hcd) {
+
+	if (hcd)
+	{
 		kfree(max3421_hcd->tx);
 		kfree(max3421_hcd->rx);
+
 		if (max3421_hcd->spi_thread)
+		{
 			kthread_stop(max3421_hcd->spi_thread);
+		}
+
 		usb_put_hcd(hcd);
 	}
+
 	return retval;
 }
 
@@ -1902,15 +2234,21 @@ max3421_remove(struct spi_device *spi)
 	struct usb_hcd *hcd = NULL;
 	unsigned long flags;
 
-	for (prev = &max3421_hcd_list; *prev; prev = &(*prev)->next) {
+	for (prev = &max3421_hcd_list; *prev; prev = &(*prev)->next)
+	{
 		max3421_hcd = *prev;
 		hcd = max3421_to_hcd(max3421_hcd);
+
 		if (hcd->self.controller == &spi->dev)
+		{
 			break;
+		}
 	}
-	if (!max3421_hcd) {
+
+	if (!max3421_hcd)
+	{
 		dev_err(&spi->dev, "no MAX3421 HCD found for SPI device %p\n",
-			spi);
+				spi);
 		return -ENODEV;
 	}
 
@@ -1929,7 +2267,8 @@ max3421_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver max3421_driver = {
+static struct spi_driver max3421_driver =
+{
 	.probe		= max3421_probe,
 	.remove		= max3421_remove,
 	.driver		= {

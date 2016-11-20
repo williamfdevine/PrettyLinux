@@ -19,19 +19,20 @@
 
 static
 int ufs_qcom_phy_qmp_14nm_phy_calibrate(struct ufs_qcom_phy *ufs_qcom_phy,
-					bool is_rate_B)
+										bool is_rate_B)
 {
 	int tbl_size_A = ARRAY_SIZE(phy_cal_table_rate_A);
 	int tbl_size_B = ARRAY_SIZE(phy_cal_table_rate_B);
 	int err;
 
 	err = ufs_qcom_phy_calibrate(ufs_qcom_phy, phy_cal_table_rate_A,
-		tbl_size_A, phy_cal_table_rate_B, tbl_size_B, is_rate_B);
+								 tbl_size_A, phy_cal_table_rate_B, tbl_size_B, is_rate_B);
 
 	if (err)
 		dev_err(ufs_qcom_phy->dev,
-			"%s: ufs_qcom_phy_calibrate() failed %d\n",
-			__func__, err);
+				"%s: ufs_qcom_phy_calibrate() failed %d\n",
+				__func__, err);
+
 	return err;
 }
 
@@ -49,18 +50,23 @@ static int ufs_qcom_phy_qmp_14nm_init(struct phy *generic_phy)
 	int err;
 
 	err = ufs_qcom_phy_init_clks(generic_phy, phy_common);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(phy_common->dev, "%s: ufs_qcom_phy_init_clks() failed %d\n",
-			__func__, err);
+				__func__, err);
 		goto out;
 	}
 
 	err = ufs_qcom_phy_init_vregulators(generic_phy, phy_common);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(phy_common->dev, "%s: ufs_qcom_phy_init_vregulators() failed %d\n",
-			__func__, err);
+				__func__, err);
 		goto out;
 	}
+
 	phy_common->vdda_phy.max_uV = UFS_PHY_VDDA_PHY_UV;
 	phy_common->vdda_phy.min_uV = UFS_PHY_VDDA_PHY_UV;
 
@@ -108,14 +114,17 @@ static int ufs_qcom_phy_qmp_14nm_is_pcs_ready(struct ufs_qcom_phy *phy_common)
 	u32 val;
 
 	err = readl_poll_timeout(phy_common->mmio + UFS_PHY_PCS_READY_STATUS,
-		val, (val & MASK_PCS_READY), 10, 1000000);
+							 val, (val & MASK_PCS_READY), 10, 1000000);
+
 	if (err)
 		dev_err(phy_common->dev, "%s: poll for pcs failed err = %d\n",
-			__func__, err);
+				__func__, err);
+
 	return err;
 }
 
-static const struct phy_ops ufs_qcom_phy_qmp_14nm_phy_ops = {
+static const struct phy_ops ufs_qcom_phy_qmp_14nm_phy_ops =
+{
 	.init		= ufs_qcom_phy_qmp_14nm_init,
 	.exit		= ufs_qcom_phy_exit,
 	.power_on	= ufs_qcom_phy_power_on,
@@ -123,7 +132,8 @@ static const struct phy_ops ufs_qcom_phy_qmp_14nm_phy_ops = {
 	.owner		= THIS_MODULE,
 };
 
-static struct ufs_qcom_phy_specific_ops phy_14nm_ops = {
+static struct ufs_qcom_phy_specific_ops phy_14nm_ops =
+{
 	.calibrate_phy		= ufs_qcom_phy_qmp_14nm_phy_calibrate,
 	.start_serdes		= ufs_qcom_phy_qmp_14nm_start_serdes,
 	.is_physical_coding_sublayer_ready = ufs_qcom_phy_qmp_14nm_is_pcs_ready,
@@ -139,17 +149,20 @@ static int ufs_qcom_phy_qmp_14nm_probe(struct platform_device *pdev)
 	int err = 0;
 
 	phy = devm_kzalloc(dev, sizeof(*phy), GFP_KERNEL);
-	if (!phy) {
+
+	if (!phy)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
 
 	generic_phy = ufs_qcom_phy_generic_probe(pdev, &phy->common_cfg,
-				&ufs_qcom_phy_qmp_14nm_phy_ops, &phy_14nm_ops);
+				  &ufs_qcom_phy_qmp_14nm_phy_ops, &phy_14nm_ops);
 
-	if (!generic_phy) {
+	if (!generic_phy)
+	{
 		dev_err(dev, "%s: ufs_qcom_phy_generic_probe() failed\n",
-			__func__);
+				__func__);
 		err = -EIO;
 		goto out;
 	}
@@ -157,7 +170,7 @@ static int ufs_qcom_phy_qmp_14nm_probe(struct platform_device *pdev)
 	phy_set_drvdata(generic_phy, phy);
 
 	strlcpy(phy->common_cfg.name, UFS_PHY_NAME,
-		sizeof(phy->common_cfg.name));
+			sizeof(phy->common_cfg.name));
 
 out:
 	return err;
@@ -171,20 +184,23 @@ static int ufs_qcom_phy_qmp_14nm_remove(struct platform_device *pdev)
 	int err = 0;
 
 	err = ufs_qcom_phy_remove(generic_phy, ufs_qcom_phy);
+
 	if (err)
 		dev_err(dev, "%s: ufs_qcom_phy_remove failed = %d\n",
-			__func__, err);
+				__func__, err);
 
 	return err;
 }
 
-static const struct of_device_id ufs_qcom_phy_qmp_14nm_of_match[] = {
+static const struct of_device_id ufs_qcom_phy_qmp_14nm_of_match[] =
+{
 	{.compatible = "qcom,ufs-phy-qmp-14nm"},
 	{},
 };
 MODULE_DEVICE_TABLE(of, ufs_qcom_phy_qmp_14nm_of_match);
 
-static struct platform_driver ufs_qcom_phy_qmp_14nm_driver = {
+static struct platform_driver ufs_qcom_phy_qmp_14nm_driver =
+{
 	.probe = ufs_qcom_phy_qmp_14nm_probe,
 	.remove = ufs_qcom_phy_qmp_14nm_remove,
 	.driver = {

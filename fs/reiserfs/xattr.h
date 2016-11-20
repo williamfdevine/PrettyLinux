@@ -24,19 +24,19 @@ ssize_t reiserfs_listxattr(struct dentry *dentry, char *buffer, size_t size);
 int reiserfs_xattr_get(struct inode *, const char *, void *, size_t);
 int reiserfs_xattr_set(struct inode *, const char *, const void *, size_t, int);
 int reiserfs_xattr_set_handle(struct reiserfs_transaction_handle *,
-			      struct inode *, const char *, const void *,
-			      size_t, int);
+							  struct inode *, const char *, const void *,
+							  size_t, int);
 
 extern const struct xattr_handler reiserfs_xattr_user_handler;
 extern const struct xattr_handler reiserfs_xattr_trusted_handler;
 extern const struct xattr_handler reiserfs_xattr_security_handler;
 #ifdef CONFIG_REISERFS_FS_SECURITY
 int reiserfs_security_init(struct inode *dir, struct inode *inode,
-			   const struct qstr *qstr,
-			   struct reiserfs_security_handle *sec);
+						   const struct qstr *qstr,
+						   struct reiserfs_security_handle *sec);
 int reiserfs_security_write(struct reiserfs_transaction_handle *th,
-			    struct inode *inode,
-			    struct reiserfs_security_handle *sec);
+							struct inode *inode,
+							struct reiserfs_security_handle *sec);
 void reiserfs_security_free(struct reiserfs_security_handle *sec);
 #endif
 
@@ -49,10 +49,13 @@ static inline int reiserfs_xattrs_initialized(struct super_block *sb)
 static inline loff_t reiserfs_xattr_nblocks(struct inode *inode, loff_t size)
 {
 	loff_t ret = 0;
-	if (reiserfs_file_data_log(inode)) {
+
+	if (reiserfs_file_data_log(inode))
+	{
 		ret = _ROUND_UP(xattr_size(size), inode->i_sb->s_blocksize);
 		ret >>= inode->i_sb->s_blocksize_bits;
 	}
+
 	return ret;
 }
 
@@ -72,10 +75,14 @@ static inline size_t reiserfs_xattr_jcreate_nblocks(struct inode *inode)
 {
 	size_t nblocks = JOURNAL_BLOCKS_PER_OBJECT(inode->i_sb);
 
-	if ((REISERFS_I(inode)->i_flags & i_has_xattr_dir) == 0) {
+	if ((REISERFS_I(inode)->i_flags & i_has_xattr_dir) == 0)
+	{
 		nblocks += JOURNAL_BLOCKS_PER_OBJECT(inode->i_sb);
+
 		if (d_really_is_negative(REISERFS_SB(inode->i_sb)->xattr_root))
+		{
 			nblocks += JOURNAL_BLOCKS_PER_OBJECT(inode->i_sb);
+		}
 	}
 
 	return nblocks;
@@ -97,16 +104,16 @@ static inline void reiserfs_init_xattr_rwsem(struct inode *inode)
 
 #ifndef CONFIG_REISERFS_FS_SECURITY
 static inline int reiserfs_security_init(struct inode *dir,
-					 struct inode *inode,
-					 const struct qstr *qstr,
-					 struct reiserfs_security_handle *sec)
+		struct inode *inode,
+		const struct qstr *qstr,
+		struct reiserfs_security_handle *sec)
 {
 	return 0;
 }
 static inline int
 reiserfs_security_write(struct reiserfs_transaction_handle *th,
-			struct inode *inode,
-			struct reiserfs_security_handle *sec)
+						struct inode *inode,
+						struct reiserfs_security_handle *sec)
 {
 	return 0;
 }

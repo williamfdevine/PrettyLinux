@@ -30,7 +30,8 @@
  */
 #define TOFFSET_MAXIMUM_ADJUSTMENT 800		/* 0.8 ms */
 
-struct sync_method {
+struct sync_method
+{
 	u8 method;
 	struct ieee80211_mesh_sync_ops ops;
 };
@@ -56,34 +57,45 @@ void mesh_sync_adjust_tbtt(struct ieee80211_sub_if_data *sdata)
 	u64 tsfdelta;
 
 	spin_lock_bh(&ifmsh->sync_offset_lock);
-	if (ifmsh->sync_offset_clockdrift_max < beacon_int_fraction) {
+
+	if (ifmsh->sync_offset_clockdrift_max < beacon_int_fraction)
+	{
 		msync_dbg(sdata, "TBTT : max clockdrift=%lld; adjusting\n",
-			  (long long) ifmsh->sync_offset_clockdrift_max);
+				  (long long) ifmsh->sync_offset_clockdrift_max);
 		tsfdelta = -ifmsh->sync_offset_clockdrift_max;
 		ifmsh->sync_offset_clockdrift_max = 0;
-	} else {
+	}
+	else
+	{
 		msync_dbg(sdata, "TBTT : max clockdrift=%lld; adjusting by %llu\n",
-			  (long long) ifmsh->sync_offset_clockdrift_max,
-			  (unsigned long long) beacon_int_fraction);
+				  (long long) ifmsh->sync_offset_clockdrift_max,
+				  (unsigned long long) beacon_int_fraction);
 		tsfdelta = -beacon_int_fraction;
 		ifmsh->sync_offset_clockdrift_max -= beacon_int_fraction;
 	}
+
 	spin_unlock_bh(&ifmsh->sync_offset_lock);
 
-	if (local->ops->offset_tsf) {
+	if (local->ops->offset_tsf)
+	{
 		drv_offset_tsf(local, sdata, tsfdelta);
-	} else {
+	}
+	else
+	{
 		tsf = drv_get_tsf(local, sdata);
+
 		if (tsf != -1ULL)
+		{
 			drv_set_tsf(local, sdata, tsf + tsfdelta);
+		}
 	}
 }
 
 static void mesh_sync_offset_rx_bcn_presp(struct ieee80211_sub_if_data *sdata,
-				   u16 stype,
-				   struct ieee80211_mgmt *mgmt,
-				   struct ieee802_11_elems *elems,
-				   struct ieee80211_rx_status *rx_status)
+		u16 stype,
+		struct ieee80211_mgmt *mgmt,
+		struct ieee802_11_elems *elems,
+		struct ieee80211_rx_status *rx_status)
 {
 	struct ieee80211_if_mesh *ifmsh = &sdata->u.mesh;
 	struct ieee80211_local *local = sdata->local;
@@ -94,7 +106,9 @@ static void mesh_sync_offset_rx_bcn_presp(struct ieee80211_sub_if_data *sdata,
 
 	/* standard mentions only beacons */
 	if (stype != IEEE80211_STYPE_BEACON)
+	{
 		return;
+	}
 
 	/*
 	 * Get time when timestamp field was received.  If we don't
@@ -104,17 +118,22 @@ static void mesh_sync_offset_rx_bcn_presp(struct ieee80211_sub_if_data *sdata,
 	 */
 	if (ieee80211_have_rx_timestamp(rx_status))
 		t_r = ieee80211_calculate_rx_timestamp(local, rx_status,
-						       24 + 12 +
-						       elems->total_len +
-						       FCS_LEN,
-						       24);
+											   24 + 12 +
+											   elems->total_len +
+											   FCS_LEN,
+											   24);
 	else
+	{
 		t_r = drv_get_tsf(local, sdata);
+	}
 
 	rcu_read_lock();
 	sta = sta_info_get(sdata, mgmt->sa);
+
 	if (!sta)
+	{
 		goto no_sync;
+	}
 
 	/* check offset sync conditions (13.13.2.2.1)
 	 *
@@ -122,10 +141,11 @@ static void mesh_sync_offset_rx_bcn_presp(struct ieee80211_sub_if_data *sdata,
 	 * dot11MeshNbrOffsetMaxNeighbor non-peer non-MBSS neighbors
 	 */
 
-	if (elems->mesh_config && mesh_peer_tbtt_adjusting(elems)) {
+	if (elems->mesh_config && mesh_peer_tbtt_adjusting(elems))
+	{
 		clear_sta_flag(sta, WLAN_STA_TOFFSET_KNOWN);
 		msync_dbg(sdata, "STA %pM : is adjusting TBTT\n",
-			  sta->sta.addr);
+				  sta->sta.addr);
 		goto no_sync;
 	}
 
@@ -133,35 +153,43 @@ static void mesh_sync_offset_rx_bcn_presp(struct ieee80211_sub_if_data *sdata,
 	t_t = le64_to_cpu(mgmt->u.beacon.timestamp);
 	sta->mesh->t_offset = t_t - t_r;
 
-	if (test_sta_flag(sta, WLAN_STA_TOFFSET_KNOWN)) {
+	if (test_sta_flag(sta, WLAN_STA_TOFFSET_KNOWN))
+	{
 		s64 t_clockdrift = sta->mesh->t_offset_setpoint - sta->mesh->t_offset;
 		msync_dbg(sdata,
-			  "STA %pM : t_offset=%lld, t_offset_setpoint=%lld, t_clockdrift=%lld\n",
-			  sta->sta.addr, (long long) sta->mesh->t_offset,
-			  (long long) sta->mesh->t_offset_setpoint,
-			  (long long) t_clockdrift);
+				  "STA %pM : t_offset=%lld, t_offset_setpoint=%lld, t_clockdrift=%lld\n",
+				  sta->sta.addr, (long long) sta->mesh->t_offset,
+				  (long long) sta->mesh->t_offset_setpoint,
+				  (long long) t_clockdrift);
 
 		if (t_clockdrift > TOFFSET_MAXIMUM_ADJUSTMENT ||
-		    t_clockdrift < -TOFFSET_MAXIMUM_ADJUSTMENT) {
+			t_clockdrift < -TOFFSET_MAXIMUM_ADJUSTMENT)
+		{
 			msync_dbg(sdata,
-				  "STA %pM : t_clockdrift=%lld too large, setpoint reset\n",
-				  sta->sta.addr,
-				  (long long) t_clockdrift);
+					  "STA %pM : t_clockdrift=%lld too large, setpoint reset\n",
+					  sta->sta.addr,
+					  (long long) t_clockdrift);
 			clear_sta_flag(sta, WLAN_STA_TOFFSET_KNOWN);
 			goto no_sync;
 		}
 
 		spin_lock_bh(&ifmsh->sync_offset_lock);
+
 		if (t_clockdrift > ifmsh->sync_offset_clockdrift_max)
+		{
 			ifmsh->sync_offset_clockdrift_max = t_clockdrift;
+		}
+
 		spin_unlock_bh(&ifmsh->sync_offset_lock);
-	} else {
+	}
+	else
+	{
 		sta->mesh->t_offset_setpoint = sta->mesh->t_offset - TOFFSET_SET_MARGIN;
 		set_sta_flag(sta, WLAN_STA_TOFFSET_KNOWN);
 		msync_dbg(sdata,
-			  "STA %pM : offset was invalid, t_offset=%lld\n",
-			  sta->sta.addr,
-			  (long long) sta->mesh->t_offset);
+				  "STA %pM : offset was invalid, t_offset=%lld\n",
+				  sta->sta.addr,
+				  (long long) sta->mesh->t_offset);
 	}
 
 no_sync:
@@ -169,7 +197,7 @@ no_sync:
 }
 
 static void mesh_sync_offset_adjust_tbtt(struct ieee80211_sub_if_data *sdata,
-					 struct beacon_data *beacon)
+		struct beacon_data *beacon)
 {
 	struct ieee80211_if_mesh *ifmsh = &sdata->u.mesh;
 	u8 cap;
@@ -180,34 +208,39 @@ static void mesh_sync_offset_adjust_tbtt(struct ieee80211_sub_if_data *sdata,
 
 	spin_lock_bh(&ifmsh->sync_offset_lock);
 
-	if (ifmsh->sync_offset_clockdrift_max > TOFFSET_MINIMUM_ADJUSTMENT) {
+	if (ifmsh->sync_offset_clockdrift_max > TOFFSET_MINIMUM_ADJUSTMENT)
+	{
 		/* Since ajusting the tsf here would
 		 * require a possibly blocking call
 		 * to the driver tsf setter, we punt
 		 * the tsf adjustment to the mesh tasklet
 		 */
 		msync_dbg(sdata,
-			  "TBTT : kicking off TBTT adjustment with clockdrift_max=%lld\n",
-			  ifmsh->sync_offset_clockdrift_max);
+				  "TBTT : kicking off TBTT adjustment with clockdrift_max=%lld\n",
+				  ifmsh->sync_offset_clockdrift_max);
 		set_bit(MESH_WORK_DRIFT_ADJUST, &ifmsh->wrkq_flags);
 
 		ifmsh->adjusting_tbtt = true;
-	} else {
+	}
+	else
+	{
 		msync_dbg(sdata,
-			  "TBTT : max clockdrift=%lld; too small to adjust\n",
-			  (long long)ifmsh->sync_offset_clockdrift_max);
+				  "TBTT : max clockdrift=%lld; too small to adjust\n",
+				  (long long)ifmsh->sync_offset_clockdrift_max);
 		ifmsh->sync_offset_clockdrift_max = 0;
 
 		ifmsh->adjusting_tbtt = false;
 	}
+
 	spin_unlock_bh(&ifmsh->sync_offset_lock);
 
 	beacon->meshconf->meshconf_cap = ifmsh->adjusting_tbtt ?
-			IEEE80211_MESHCONF_CAPAB_TBTT_ADJUSTING | cap :
-			~IEEE80211_MESHCONF_CAPAB_TBTT_ADJUSTING & cap;
+									 IEEE80211_MESHCONF_CAPAB_TBTT_ADJUSTING | cap :
+									 ~IEEE80211_MESHCONF_CAPAB_TBTT_ADJUSTING & cap;
 }
 
-static const struct sync_method sync_methods[] = {
+static const struct sync_method sync_methods[] =
+{
 	{
 		.method = IEEE80211_SYNC_METHOD_NEIGHBOR_OFFSET,
 		.ops = {
@@ -221,9 +254,13 @@ const struct ieee80211_mesh_sync_ops *ieee80211_mesh_sync_ops_get(u8 method)
 {
 	int i;
 
-	for (i = 0 ; i < ARRAY_SIZE(sync_methods); ++i) {
+	for (i = 0 ; i < ARRAY_SIZE(sync_methods); ++i)
+	{
 		if (sync_methods[i].method == method)
+		{
 			return &sync_methods[i].ops;
+		}
 	}
+
 	return NULL;
 }

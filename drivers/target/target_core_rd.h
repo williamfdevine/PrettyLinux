@@ -14,7 +14,8 @@
 int __init rd_module_init(void);
 void rd_module_exit(void);
 
-struct rd_dev_sg_table {
+struct rd_dev_sg_table
+{
 	u32		page_start_offset;
 	u32		page_end_offset;
 	u32		rd_sg_count;
@@ -24,7 +25,8 @@ struct rd_dev_sg_table {
 #define RDF_HAS_PAGE_COUNT	0x01
 #define RDF_NULLIO		0x02
 
-struct rd_dev {
+struct rd_dev
+{
 	struct se_device dev;
 	u32		rd_flags;
 	/* Unique Ramdisk Device ID in Ramdisk HBA */
@@ -43,7 +45,8 @@ struct rd_dev {
 	struct rd_host *rd_host;
 } ____cacheline_aligned;
 
-struct rd_host {
+struct rd_host
+{
 	u32		rd_host_dev_id_count;
 	u32		rd_host_id;		/* Unique Ramdisk Host ID */
 } ____cacheline_aligned;

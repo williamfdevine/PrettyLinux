@@ -24,7 +24,8 @@
 #include "priv.h"
 
 const struct nvkm_mc_map
-nv17_mc_reset[] = {
+	nv17_mc_reset[] =
+{
 	{ 0x00001000, NVKM_ENGINE_GR },
 	{ 0x00000100, NVKM_ENGINE_FIFO },
 	{ 0x00000002, NVKM_ENGINE_MPEG },
@@ -32,7 +33,8 @@ nv17_mc_reset[] = {
 };
 
 const struct nvkm_mc_map
-nv17_mc_intr[] = {
+	nv17_mc_intr[] =
+{
 	{ 0x03010000, NVKM_ENGINE_DISP },
 	{ 0x00001000, NVKM_ENGINE_GR },
 	{ 0x00000100, NVKM_ENGINE_FIFO },
@@ -43,7 +45,8 @@ nv17_mc_intr[] = {
 };
 
 static const struct nvkm_mc_func
-nv17_mc = {
+	nv17_mc =
+{
 	.init = nv04_mc_init,
 	.intr = nv17_mc_intr,
 	.intr_unarm = nv04_mc_intr_unarm,

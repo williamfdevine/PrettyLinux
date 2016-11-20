@@ -15,13 +15,14 @@
 #include <linux/sunrpc/sched.h>
 
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-# define RPCDBG_FACILITY	RPCDBG_AUTH
+	#define RPCDBG_FACILITY	RPCDBG_AUTH
 #endif
 
 #define RPC_MACHINE_CRED_USERID		GLOBAL_ROOT_UID
 #define RPC_MACHINE_CRED_GROUPID	GLOBAL_ROOT_GID
 
-struct generic_cred {
+struct generic_cred
+{
 	struct rpc_cred gc_base;
 	struct auth_cred acred;
 };
@@ -56,7 +57,8 @@ EXPORT_SYMBOL_GPL(rpc_lookup_cred_nonblock);
  */
 struct rpc_cred *rpc_lookup_machine_cred(const char *service_name)
 {
-	struct auth_cred acred = {
+	struct auth_cred acred =
+	{
 		.uid = RPC_MACHINE_CRED_USERID,
 		.gid = RPC_MACHINE_CRED_GROUPID,
 		.principal = service_name,
@@ -82,8 +84,8 @@ static int
 generic_hash_cred(struct auth_cred *acred, unsigned int hashbits)
 {
 	return hash_64(from_kgid(&init_user_ns, acred->gid) |
-		((u64)from_kuid(&init_user_ns, acred->uid) <<
-			(sizeof(gid_t) * 8)), hashbits);
+				   ((u64)from_kuid(&init_user_ns, acred->uid) <<
+					(sizeof(gid_t) * 8)), hashbits);
 }
 
 /*
@@ -101,8 +103,11 @@ generic_create_cred(struct rpc_auth *auth, struct auth_cred *acred, int flags, g
 	struct generic_cred *gcred;
 
 	gcred = kmalloc(sizeof(*gcred), gfp);
+
 	if (gcred == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	rpcauth_init_cred(&gcred->gc_base, acred, &generic_auth, &generic_credops);
 	gcred->gc_base.cr_flags = 1UL << RPCAUTH_CRED_UPTODATE;
@@ -111,8 +116,12 @@ generic_create_cred(struct rpc_auth *auth, struct auth_cred *acred, int flags, g
 	gcred->acred.gid = acred->gid;
 	gcred->acred.group_info = acred->group_info;
 	gcred->acred.ac_flags = 0;
+
 	if (gcred->acred.group_info != NULL)
+	{
 		get_group_info(gcred->acred.group_info);
+	}
+
 	gcred->acred.machine_cred = acred->machine_cred;
 	gcred->acred.principal = acred->principal;
 
@@ -130,8 +139,12 @@ generic_free_cred(struct rpc_cred *cred)
 	struct generic_cred *gcred = container_of(cred, struct generic_cred, gc_base);
 
 	dprintk("RPC:       generic_free_cred %p\n", gcred);
+
 	if (gcred->acred.group_info != NULL)
+	{
 		put_group_info(gcred->acred.group_info);
+	}
+
 	kfree(gcred);
 }
 
@@ -152,10 +165,13 @@ static int
 machine_cred_match(struct auth_cred *acred, struct generic_cred *gcred, int flags)
 {
 	if (!gcred->acred.machine_cred ||
-	    gcred->acred.principal != acred->principal ||
-	    !uid_eq(gcred->acred.uid, acred->uid) ||
-	    !gid_eq(gcred->acred.gid, acred->gid))
+		gcred->acred.principal != acred->principal ||
+		!uid_eq(gcred->acred.uid, acred->uid) ||
+		!gid_eq(gcred->acred.gid, acred->gid))
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -169,25 +185,38 @@ generic_match(struct auth_cred *acred, struct rpc_cred *cred, int flags)
 	int i;
 
 	if (acred->machine_cred)
+	{
 		return machine_cred_match(acred, gcred, flags);
+	}
 
 	if (!uid_eq(gcred->acred.uid, acred->uid) ||
-	    !gid_eq(gcred->acred.gid, acred->gid) ||
-	    gcred->acred.machine_cred != 0)
+		!gid_eq(gcred->acred.gid, acred->gid) ||
+		gcred->acred.machine_cred != 0)
+	{
 		goto out_nomatch;
+	}
 
 	/* Optimisation in the case where pointers are identical... */
 	if (gcred->acred.group_info == acred->group_info)
+	{
 		goto out_match;
+	}
 
 	/* Slow path... */
 	if (gcred->acred.group_info->ngroups != acred->group_info->ngroups)
+	{
 		goto out_nomatch;
-	for (i = 0; i < gcred->acred.group_info->ngroups; i++) {
-		if (!gid_eq(gcred->acred.group_info->gid[i],
-				acred->group_info->gid[i]))
-			goto out_nomatch;
 	}
+
+	for (i = 0; i < gcred->acred.group_info->ngroups; i++)
+	{
+		if (!gid_eq(gcred->acred.group_info->gid[i],
+					acred->group_info->gid[i]))
+		{
+			goto out_nomatch;
+		}
+	}
+
 out_match:
 	return 1;
 out_nomatch:
@@ -226,35 +255,47 @@ static int
 generic_key_timeout(struct rpc_auth *auth, struct rpc_cred *cred)
 {
 	struct auth_cred *acred = &container_of(cred, struct generic_cred,
-						gc_base)->acred;
+											gc_base)->acred;
 	struct rpc_cred *tcred;
 	int ret = 0;
 
 
 	/* Fast track for non crkey_timeout (no key) underlying credentials */
 	if (auth->au_flags & RPCAUTH_AUTH_NO_CRKEY_TIMEOUT)
+	{
 		return 0;
+	}
 
 	/* Fast track for the normal case */
 	if (test_bit(RPC_CRED_NOTIFY_TIMEOUT, &acred->ac_flags))
+	{
 		return 0;
+	}
 
 	/* lookup_cred either returns a valid referenced rpc_cred, or PTR_ERR */
 	tcred = auth->au_ops->lookup_cred(auth, acred, 0);
+
 	if (IS_ERR(tcred))
+	{
 		return -EACCES;
+	}
 
 	/* Test for the almost error case */
 	ret = tcred->cr_ops->crkey_timeout(tcred);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		set_bit(RPC_CRED_KEY_EXPIRE_SOON, &acred->ac_flags);
 		ret = 0;
-	} else {
+	}
+	else
+	{
 		/* In case underlying cred key has been reset */
 		if (test_and_clear_bit(RPC_CRED_KEY_EXPIRE_SOON,
-					&acred->ac_flags))
+							   &acred->ac_flags))
 			dprintk("RPC:        UID %d Credential key reset\n",
-				from_kuid(&init_user_ns, tcred->cr_uid));
+					from_kuid(&init_user_ns, tcred->cr_uid));
+
 		/* set up fasttrack for the normal case */
 		set_bit(RPC_CRED_NOTIFY_TIMEOUT, &acred->ac_flags);
 	}
@@ -263,7 +304,8 @@ generic_key_timeout(struct rpc_auth *auth, struct rpc_cred *cred)
 	return ret;
 }
 
-static const struct rpc_authops generic_auth_ops = {
+static const struct rpc_authops generic_auth_ops =
+{
 	.owner = THIS_MODULE,
 	.au_name = "Generic",
 	.hash_cred = generic_hash_cred,
@@ -272,7 +314,8 @@ static const struct rpc_authops generic_auth_ops = {
 	.key_timeout = generic_key_timeout,
 };
 
-static struct rpc_auth generic_auth = {
+static struct rpc_auth generic_auth =
+{
 	.au_ops = &generic_auth_ops,
 	.au_count = ATOMIC_INIT(0),
 };
@@ -280,7 +323,7 @@ static struct rpc_auth generic_auth = {
 static bool generic_key_to_expire(struct rpc_cred *cred)
 {
 	struct auth_cred *acred = &container_of(cred, struct generic_cred,
-						gc_base)->acred;
+											gc_base)->acred;
 	bool ret;
 
 	get_rpccred(cred);
@@ -290,7 +333,8 @@ static bool generic_key_to_expire(struct rpc_cred *cred)
 	return ret;
 }
 
-static const struct rpc_credops generic_credops = {
+static const struct rpc_credops generic_credops =
+{
 	.cr_name = "Generic cred",
 	.crdestroy = generic_destroy_cred,
 	.crbind = generic_bind_cred,

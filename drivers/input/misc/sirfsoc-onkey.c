@@ -16,7 +16,8 @@
 #include <linux/of.h>
 #include <linux/workqueue.h>
 
-struct sirfsoc_pwrc_drvdata {
+struct sirfsoc_pwrc_drvdata
+{
 	u32			pwrc_base;
 	struct input_dev	*input;
 	struct delayed_work	work;
@@ -32,7 +33,7 @@ struct sirfsoc_pwrc_drvdata {
 static int sirfsoc_pwrc_is_on_key_down(struct sirfsoc_pwrc_drvdata *pwrcdrv)
 {
 	u32 state = sirfsoc_rtc_iobrg_readl(pwrcdrv->pwrc_base +
-							PWRC_PIN_STATUS);
+										PWRC_PIN_STATUS);
 	return !(state & PWRC_ON_KEY_BIT); /* ON_KEY is active low */
 }
 
@@ -41,10 +42,13 @@ static void sirfsoc_pwrc_report_event(struct work_struct *work)
 	struct sirfsoc_pwrc_drvdata *pwrcdrv =
 		container_of(work, struct sirfsoc_pwrc_drvdata, work.work);
 
-	if (sirfsoc_pwrc_is_on_key_down(pwrcdrv)) {
+	if (sirfsoc_pwrc_is_on_key_down(pwrcdrv))
+	{
 		schedule_delayed_work(&pwrcdrv->work,
-			msecs_to_jiffies(PWRC_KEY_DETECT_UP_TIME));
-	} else {
+							  msecs_to_jiffies(PWRC_KEY_DETECT_UP_TIME));
+	}
+	else
+	{
 		input_event(pwrcdrv->input, EV_KEY, KEY_POWER, 0);
 		input_sync(pwrcdrv->input);
 	}
@@ -56,28 +60,34 @@ static irqreturn_t sirfsoc_pwrc_isr(int irq, void *dev_id)
 	u32 int_status;
 
 	int_status = sirfsoc_rtc_iobrg_readl(pwrcdrv->pwrc_base +
-							PWRC_INT_STATUS);
+										 PWRC_INT_STATUS);
 	sirfsoc_rtc_iobrg_writel(int_status & ~PWRC_ON_KEY_BIT,
-				 pwrcdrv->pwrc_base + PWRC_INT_STATUS);
+							 pwrcdrv->pwrc_base + PWRC_INT_STATUS);
 
 	input_event(pwrcdrv->input, EV_KEY, KEY_POWER, 1);
 	input_sync(pwrcdrv->input);
 	schedule_delayed_work(&pwrcdrv->work,
-			      msecs_to_jiffies(PWRC_KEY_DETECT_UP_TIME));
+						  msecs_to_jiffies(PWRC_KEY_DETECT_UP_TIME));
 
 	return IRQ_HANDLED;
 }
 
 static void sirfsoc_pwrc_toggle_interrupts(struct sirfsoc_pwrc_drvdata *pwrcdrv,
-					   bool enable)
+		bool enable)
 {
 	u32 int_mask;
 
 	int_mask = sirfsoc_rtc_iobrg_readl(pwrcdrv->pwrc_base + PWRC_INT_MASK);
+
 	if (enable)
+	{
 		int_mask |= PWRC_ON_KEY_BIT;
+	}
 	else
+	{
 		int_mask &= ~PWRC_ON_KEY_BIT;
+	}
+
 	sirfsoc_rtc_iobrg_writel(int_mask, pwrcdrv->pwrc_base + PWRC_INT_MASK);
 }
 
@@ -98,7 +108,8 @@ static void sirfsoc_pwrc_close(struct input_dev *input)
 	cancel_delayed_work_sync(&pwrcdrv->work);
 }
 
-static const struct of_device_id sirfsoc_pwrc_of_match[] = {
+static const struct of_device_id sirfsoc_pwrc_of_match[] =
+{
 	{ .compatible = "sirf,prima2-pwrc" },
 	{},
 };
@@ -112,8 +123,10 @@ static int sirfsoc_pwrc_probe(struct platform_device *pdev)
 	int error;
 
 	pwrcdrv = devm_kzalloc(&pdev->dev, sizeof(struct sirfsoc_pwrc_drvdata),
-			       GFP_KERNEL);
-	if (!pwrcdrv) {
+						   GFP_KERNEL);
+
+	if (!pwrcdrv)
+	{
 		dev_info(&pdev->dev, "Not enough memory for the device data\n");
 		return -ENOMEM;
 	}
@@ -123,15 +136,20 @@ static int sirfsoc_pwrc_probe(struct platform_device *pdev)
 	 * the so-called base address is only offset in rtciobrg
 	 */
 	error = of_property_read_u32(np, "reg", &pwrcdrv->pwrc_base);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev,
-			"unable to find base address of pwrc node in dtb\n");
+				"unable to find base address of pwrc node in dtb\n");
 		return error;
 	}
 
 	pwrcdrv->input = devm_input_allocate_device(&pdev->dev);
+
 	if (!pwrcdrv->input)
+	{
 		return -ENOMEM;
+	}
 
 	pwrcdrv->input->name = "sirfsoc pwrckey";
 	pwrcdrv->input->phys = "pwrc/input0";
@@ -150,19 +168,23 @@ static int sirfsoc_pwrc_probe(struct platform_device *pdev)
 
 	irq = platform_get_irq(pdev, 0);
 	error = devm_request_irq(&pdev->dev, irq,
-				 sirfsoc_pwrc_isr, 0,
-				 "sirfsoc_pwrc_int", pwrcdrv);
-	if (error) {
+							 sirfsoc_pwrc_isr, 0,
+							 "sirfsoc_pwrc_int", pwrcdrv);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "unable to claim irq %d, error: %d\n",
-			irq, error);
+				irq, error);
 		return error;
 	}
 
 	error = input_register_device(pwrcdrv->input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev,
-			"unable to register input device, error: %d\n",
-			error);
+				"unable to register input device, error: %d\n",
+				error);
 		return error;
 	}
 
@@ -189,8 +211,12 @@ static int __maybe_unused sirfsoc_pwrc_resume(struct device *dev)
 	 * if users touch X_ONKEY_B, see arch/arm/mach-prima2/pm.c
 	 */
 	mutex_lock(&input->mutex);
+
 	if (input->users)
+	{
 		sirfsoc_pwrc_toggle_interrupts(pwrcdrv, true);
+	}
+
 	mutex_unlock(&input->mutex);
 
 	return 0;
@@ -198,7 +224,8 @@ static int __maybe_unused sirfsoc_pwrc_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(sirfsoc_pwrc_pm_ops, NULL, sirfsoc_pwrc_resume);
 
-static struct platform_driver sirfsoc_pwrc_driver = {
+static struct platform_driver sirfsoc_pwrc_driver =
+{
 	.probe		= sirfsoc_pwrc_probe,
 	.remove		= sirfsoc_pwrc_remove,
 	.driver		= {

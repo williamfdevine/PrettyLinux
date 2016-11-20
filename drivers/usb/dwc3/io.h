@@ -41,7 +41,7 @@ static inline u32 dwc3_readl(void __iomem *base, u32 offset)
 	 * same way they are described on SNPS documentation
 	 */
 	dwc3_trace(trace_dwc3_readl, "addr %p value %08x",
-			base - DWC3_GLOBALS_REGS_START + offset, value);
+			   base - DWC3_GLOBALS_REGS_START + offset, value);
 
 	return value;
 }
@@ -61,7 +61,7 @@ static inline void dwc3_writel(void __iomem *base, u32 offset, u32 value)
 	 * same way they are described on SNPS documentation
 	 */
 	dwc3_trace(trace_dwc3_writel, "addr %p value %08x",
-			base - DWC3_GLOBALS_REGS_START + offset, value);
+			   base - DWC3_GLOBALS_REGS_START + offset, value);
 }
 
 #endif /* __DRIVERS_USB_DWC3_IO_H */

@@ -16,7 +16,8 @@ MODULE_AUTHOR("David S. Miller <davem@davemloft.net>");
 MODULE_DESCRIPTION("TI BQ4802 RTC driver");
 MODULE_LICENSE("GPL");
 
-struct bq4802 {
+struct bq4802
+{
 	void __iomem		*regs;
 	unsigned long		ioport;
 	struct rtc_device	*rtc;
@@ -135,7 +136,8 @@ static int bq4802_set_time(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 
-static const struct rtc_class_ops bq4802_ops = {
+static const struct rtc_class_ops bq4802_ops =
+{
 	.read_time	= bq4802_read_time,
 	.set_time	= bq4802_set_time,
 };
@@ -146,27 +148,40 @@ static int bq4802_probe(struct platform_device *pdev)
 	int err = -ENOMEM;
 
 	if (!p)
+	{
 		goto out;
+	}
 
 	spin_lock_init(&p->lock);
 
 	p->r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!p->r) {
+
+	if (!p->r)
+	{
 		p->r = platform_get_resource(pdev, IORESOURCE_IO, 0);
 		err = -EINVAL;
+
 		if (!p->r)
+		{
 			goto out;
+		}
 	}
-	if (p->r->flags & IORESOURCE_IO) {
+
+	if (p->r->flags & IORESOURCE_IO)
+	{
 		p->ioport = p->r->start;
 		p->read = bq4802_read_io;
 		p->write = bq4802_write_io;
-	} else if (p->r->flags & IORESOURCE_MEM) {
+	}
+	else if (p->r->flags & IORESOURCE_MEM)
+	{
 		p->regs = devm_ioremap(&pdev->dev, p->r->start,
-					resource_size(p->r));
+							   resource_size(p->r));
 		p->read = bq4802_read_mem;
 		p->write = bq4802_write_mem;
-	} else {
+	}
+	else
+	{
 		err = -EINVAL;
 		goto out;
 	}
@@ -174,8 +189,10 @@ static int bq4802_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, p);
 
 	p->rtc = devm_rtc_device_register(&pdev->dev, "bq4802",
-					&bq4802_ops, THIS_MODULE);
-	if (IS_ERR(p->rtc)) {
+									  &bq4802_ops, THIS_MODULE);
+
+	if (IS_ERR(p->rtc))
+	{
 		err = PTR_ERR(p->rtc);
 		goto out;
 	}
@@ -189,7 +206,8 @@ out:
 /* work with hotplug and coldplug */
 MODULE_ALIAS("platform:rtc-bq4802");
 
-static struct platform_driver bq4802_driver = {
+static struct platform_driver bq4802_driver =
+{
 	.driver		= {
 		.name	= "rtc-bq4802",
 	},

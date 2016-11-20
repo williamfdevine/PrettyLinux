@@ -50,23 +50,24 @@
 
 #define ROUNDS 16
 
-struct fcrypt_ctx {
+struct fcrypt_ctx
+{
 	__be32 sched[ROUNDS];
 };
 
 /* Rotate right two 32 bit numbers as a 56 bit number */
 #define ror56(hi, lo, n)					\
-do {								\
-	u32 t = lo & ((1 << n) - 1);				\
-	lo = (lo >> n) | ((hi & ((1 << n) - 1)) << (32 - n));	\
-	hi = (hi >> n) | (t << (24-n));				\
-} while (0)
+	do {								\
+		u32 t = lo & ((1 << n) - 1);				\
+		lo = (lo >> n) | ((hi & ((1 << n) - 1)) << (32 - n));	\
+		hi = (hi >> n) | (t << (24-n));				\
+	} while (0)
 
 /* Rotate right one 64 bit number as a 56 bit number */
 #define ror56_64(k, n)						\
-do {								\
-	k = (k >> n) | ((k & ((1 << n) - 1)) << (56 - n));	\
-} while (0)
+	do {								\
+		k = (k >> n) | ((k & ((1 << n) - 1)) << (56 - n));	\
+	} while (0)
 
 /*
  * Sboxes for Feistel network derived from
@@ -74,7 +75,8 @@ do {								\
  */
 #undef Z
 #define Z(x) cpu_to_be32(x << 3)
-static const __be32 sbox0[256] = {
+static const __be32 sbox0[256] =
+{
 	Z(0xea), Z(0x7f), Z(0xb2), Z(0x64), Z(0x9d), Z(0xb0), Z(0xd9), Z(0x11),
 	Z(0xcd), Z(0x86), Z(0x86), Z(0x91), Z(0x0a), Z(0xb2), Z(0x93), Z(0x06),
 	Z(0x0e), Z(0x06), Z(0xd2), Z(0x65), Z(0x73), Z(0xc5), Z(0x28), Z(0x60),
@@ -111,7 +113,8 @@ static const __be32 sbox0[256] = {
 
 #undef Z
 #define Z(x) cpu_to_be32(((x & 0x1f) << 27) | (x >> 5))
-static const __be32 sbox1[256] = {
+static const __be32 sbox1[256] =
+{
 	Z(0x77), Z(0x14), Z(0xa6), Z(0xfe), Z(0xb2), Z(0x5e), Z(0x8c), Z(0x3e),
 	Z(0x67), Z(0x6c), Z(0xa1), Z(0x0d), Z(0xc2), Z(0xa2), Z(0xc1), Z(0x85),
 	Z(0x6c), Z(0x7b), Z(0x67), Z(0xc6), Z(0x23), Z(0xe3), Z(0xf2), Z(0x89),
@@ -148,7 +151,8 @@ static const __be32 sbox1[256] = {
 
 #undef Z
 #define Z(x) cpu_to_be32(x << 11)
-static const __be32 sbox2[256] = {
+static const __be32 sbox2[256] =
+{
 	Z(0xf0), Z(0x37), Z(0x24), Z(0x53), Z(0x2a), Z(0x03), Z(0x83), Z(0x86),
 	Z(0xd1), Z(0xec), Z(0x50), Z(0xf0), Z(0x42), Z(0x78), Z(0x2f), Z(0x6d),
 	Z(0xbf), Z(0x80), Z(0x87), Z(0x27), Z(0x95), Z(0xe2), Z(0xc5), Z(0x5d),
@@ -185,7 +189,8 @@ static const __be32 sbox2[256] = {
 
 #undef Z
 #define Z(x) cpu_to_be32(x << 19)
-static const __be32 sbox3[256] = {
+static const __be32 sbox3[256] =
+{
 	Z(0xa9), Z(0x2a), Z(0x48), Z(0x51), Z(0x84), Z(0x7e), Z(0x49), Z(0xe2),
 	Z(0xb5), Z(0xb7), Z(0x42), Z(0x33), Z(0x7d), Z(0x5d), Z(0xa6), Z(0x12),
 	Z(0x44), Z(0x48), Z(0x6d), Z(0x28), Z(0xaa), Z(0x20), Z(0x6d), Z(0x57),
@@ -224,11 +229,11 @@ static const __be32 sbox3[256] = {
  * This is a 16 round Feistel network with permutation F_ENCRYPT
  */
 #define F_ENCRYPT(R, L, sched)						\
-do {									\
-	union lc4 { __be32 l; u8 c[4]; } u;				\
-	u.l = sched ^ R;						\
-	L ^= sbox0[u.c[0]] ^ sbox1[u.c[1]] ^ sbox2[u.c[2]] ^ sbox3[u.c[3]]; \
-} while (0)
+	do {									\
+		union lc4 { __be32 l; u8 c[4]; } u;				\
+		u.l = sched ^ R;						\
+		L ^= sbox0[u.c[0]] ^ sbox1[u.c[1]] ^ sbox2[u.c[2]] ^ sbox3[u.c[3]]; \
+	} while (0)
 
 /*
  * encryptor
@@ -236,7 +241,8 @@ do {									\
 static void fcrypt_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 {
 	const struct fcrypt_ctx *ctx = crypto_tfm_ctx(tfm);
-	struct {
+	struct
+	{
 		__be32 l, r;
 	} X;
 
@@ -268,7 +274,8 @@ static void fcrypt_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 static void fcrypt_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 {
 	const struct fcrypt_ctx *ctx = crypto_tfm_ctx(tfm);
-	struct {
+	struct
+	{
 		__be32 l, r;
 	} X;
 
@@ -389,19 +396,23 @@ static int fcrypt_setkey(struct crypto_tfm *tfm, const u8 *key, unsigned int key
 #endif
 }
 
-static struct crypto_alg fcrypt_alg = {
+static struct crypto_alg fcrypt_alg =
+{
 	.cra_name		=	"fcrypt",
 	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
 	.cra_blocksize		=	8,
 	.cra_ctxsize		=	sizeof(struct fcrypt_ctx),
 	.cra_module		=	THIS_MODULE,
 	.cra_alignmask		=	3,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	8,
-	.cia_max_keysize	=	8,
-	.cia_setkey		=	fcrypt_setkey,
-	.cia_encrypt		=	fcrypt_encrypt,
-	.cia_decrypt		=	fcrypt_decrypt } }
+	.cra_u			=	{
+		.cipher = {
+			.cia_min_keysize	=	8,
+			.cia_max_keysize	=	8,
+			.cia_setkey		=	fcrypt_setkey,
+			.cia_encrypt		=	fcrypt_encrypt,
+			.cia_decrypt		=	fcrypt_decrypt
+		}
+	}
 };
 
 static int __init fcrypt_mod_init(void)

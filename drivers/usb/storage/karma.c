@@ -46,7 +46,8 @@ MODULE_LICENSE("GPL");
 #define RIO_LEAVE_STORAGE 0x2
 #define RIO_RESET 0xC
 
-struct karma_data {
+struct karma_data
+{
 	int in_storage;
 	char *recv;
 };
@@ -58,12 +59,13 @@ static int rio_karma_init(struct us_data *us);
  * The table of devices
  */
 #define UNUSUAL_DEV(id_vendor, id_product, bcdDeviceMin, bcdDeviceMax, \
-		    vendorName, productName, useProtocol, useTransport, \
-		    initFunction, flags) \
+					vendorName, productName, useProtocol, useTransport, \
+					initFunction, flags) \
 { USB_DEVICE_VER(id_vendor, id_product, bcdDeviceMin, bcdDeviceMax), \
-  .driver_info = (flags) }
+	.driver_info = (flags) }
 
-static struct usb_device_id karma_usb_ids[] = {
+static struct usb_device_id karma_usb_ids[] =
+{
 #	include "unusual_karma.h"
 	{ }		/* Terminating entry */
 };
@@ -75,17 +77,18 @@ MODULE_DEVICE_TABLE(usb, karma_usb_ids);
  * The flags table
  */
 #define UNUSUAL_DEV(idVendor, idProduct, bcdDeviceMin, bcdDeviceMax, \
-		    vendor_name, product_name, use_protocol, use_transport, \
-		    init_function, Flags) \
+					vendor_name, product_name, use_protocol, use_transport, \
+					init_function, Flags) \
 { \
 	.vendorName = vendor_name,	\
-	.productName = product_name,	\
-	.useProtocol = use_protocol,	\
-	.useTransport = use_transport,	\
-	.initFunction = init_function,	\
+				  .productName = product_name,	\
+								 .useProtocol = use_protocol,	\
+										 .useTransport = use_transport,	\
+												 .initFunction = init_function,	\
 }
 
-static struct us_unusual_dev karma_unusual_dev_list[] = {
+static struct us_unusual_dev karma_unusual_dev_list[] =
+{
 #	include "unusual_karma.h"
 	{ }		/* Terminating entry */
 };
@@ -117,22 +120,34 @@ static int rio_karma_send_command(char cmd, struct us_data *us)
 	us->iobuf[6] = seq;
 
 	timeout = jiffies + msecs_to_jiffies(6000);
-	for (;;) {
+
+	for (;;)
+	{
 		result = usb_stor_bulk_transfer_buf(us, us->send_bulk_pipe,
-			us->iobuf, RIO_SEND_LEN, &partial);
+											us->iobuf, RIO_SEND_LEN, &partial);
+
 		if (result != USB_STOR_XFER_GOOD)
+		{
 			goto err;
+		}
 
 		result = usb_stor_bulk_transfer_buf(us, us->recv_bulk_pipe,
-			data->recv, RIO_RECV_LEN, &partial);
+											data->recv, RIO_RECV_LEN, &partial);
+
 		if (result != USB_STOR_XFER_GOOD)
+		{
 			goto err;
+		}
 
 		if (data->recv[5] == seq)
+		{
 			break;
+		}
 
 		if (time_after(jiffies, timeout))
+		{
 			goto err;
+		}
 
 		us->iobuf[4] = 0x80;
 		us->iobuf[5] = 0;
@@ -140,8 +155,11 @@ static int rio_karma_send_command(char cmd, struct us_data *us)
 	}
 
 	seq++;
+
 	if (seq == 0)
+	{
 		seq = 1;
+	}
 
 	usb_stor_dbg(us, "sent command %04x\n", cmd);
 	return 0;
@@ -159,21 +177,31 @@ static int rio_karma_transport(struct scsi_cmnd *srb, struct us_data *us)
 	int ret;
 	struct karma_data *data = (struct karma_data *) us->extra;
 
-	if (srb->cmnd[0] == READ_10 && !data->in_storage) {
+	if (srb->cmnd[0] == READ_10 && !data->in_storage)
+	{
 		ret = rio_karma_send_command(RIO_ENTER_STORAGE, us);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		data->in_storage = 1;
 		return usb_stor_Bulk_transport(srb, us);
-	} else if (srb->cmnd[0] == START_STOP) {
+	}
+	else if (srb->cmnd[0] == START_STOP)
+	{
 		ret = rio_karma_send_command(RIO_LEAVE_STORAGE, us);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		data->in_storage = 0;
 		return rio_karma_send_command(RIO_RESET, us);
 	}
+
 	return usb_stor_Bulk_transport(srb, us);
 }
 
@@ -187,11 +215,16 @@ static int rio_karma_init(struct us_data *us)
 {
 	int ret = 0;
 	struct karma_data *data = kzalloc(sizeof(struct karma_data), GFP_NOIO);
+
 	if (!data)
+	{
 		goto out;
+	}
 
 	data->recv = kmalloc(RIO_RECV_LEN, GFP_NOIO);
-	if (!data->recv) {
+
+	if (!data->recv)
+	{
 		kfree(data);
 		goto out;
 	}
@@ -207,16 +240,19 @@ out:
 static struct scsi_host_template karma_host_template;
 
 static int karma_probe(struct usb_interface *intf,
-			 const struct usb_device_id *id)
+					   const struct usb_device_id *id)
 {
 	struct us_data *us;
 	int result;
 
 	result = usb_stor_probe1(&us, intf, id,
-			(id - karma_usb_ids) + karma_unusual_dev_list,
-			&karma_host_template);
+							 (id - karma_usb_ids) + karma_unusual_dev_list,
+							 &karma_host_template);
+
 	if (result)
+	{
 		return result;
+	}
 
 	us->transport_name = "Rio Karma/Bulk";
 	us->transport = rio_karma_transport;
@@ -226,7 +262,8 @@ static int karma_probe(struct usb_interface *intf,
 	return result;
 }
 
-static struct usb_driver karma_driver = {
+static struct usb_driver karma_driver =
+{
 	.name =		DRV_NAME,
 	.probe =	karma_probe,
 	.disconnect =	usb_stor_disconnect,

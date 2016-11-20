@@ -45,7 +45,8 @@
 /* Packet type handler.
  * Tell the kernel how IrDA packets should be handled.
  */
-static struct packet_type irda_packet_type __read_mostly = {
+static struct packet_type irda_packet_type __read_mostly =
+{
 	.type	= cpu_to_be16(ETH_P_IRDA),
 	.func	= irlap_driver_rcv,	/* Packet type handler irlap_frame.c */
 };
@@ -91,8 +92,11 @@ static int __init irda_init(void)
 	iriap_init();
 	irttp_init();
 	ret = irsock_init();
+
 	if (ret < 0)
+	{
 		goto out_err_1;
+	}
 
 	/* Add IrDA packet type (Start receiving packets) */
 	dev_add_pack(&irda_packet_type);
@@ -103,20 +107,27 @@ static int __init irda_init(void)
 #endif
 #ifdef CONFIG_SYSCTL
 	ret = irda_sysctl_register();
+
 	if (ret < 0)
+	{
 		goto out_err_2;
+	}
+
 #endif
 
 	ret = irda_nl_register();
+
 	if (ret < 0)
+	{
 		goto out_err_3;
+	}
 
 	return 0;
 
- out_err_3:
+out_err_3:
 #ifdef CONFIG_SYSCTL
 	irda_sysctl_unregister();
- out_err_2:
+out_err_2:
 #endif
 #ifdef CONFIG_PROC_FS
 	irda_proc_unregister();
@@ -127,7 +138,7 @@ static int __init irda_init(void)
 
 	/* Remove higher layers */
 	irsock_cleanup();
- out_err_1:
+out_err_1:
 	irttp_cleanup();
 	iriap_cleanup();
 

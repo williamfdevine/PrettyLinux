@@ -45,10 +45,14 @@ static inline void
 truncate_complete_page(struct address_space *mapping, struct page *page)
 {
 	if (page->mapping != mapping)
+	{
 		return;
+	}
 
 	if (PagePrivate(page))
+	{
 		page->mapping->a_ops->invalidatepage(page, 0, PAGE_SIZE);
+	}
 
 	cancel_dirty_page(page);
 	ClearPageMappedToDisk(page);
@@ -56,11 +60,11 @@ truncate_complete_page(struct address_space *mapping, struct page *page)
 }
 
 #ifndef ATTR_CTIME_SET
-/*
- * set ATTR_CTIME_SET to a high value to avoid any risk of collision with other
- * ATTR_* attributes (see bug 13828)
- */
-#define ATTR_CTIME_SET (1 << 28)
+	/*
+	* set ATTR_CTIME_SET to a high value to avoid any risk of collision with other
+	* ATTR_* attributes (see bug 13828)
+	*/
+	#define ATTR_CTIME_SET (1 << 28)
 #endif
 
 #endif /* LUSTRE_PATCHLESS_COMPAT_H */

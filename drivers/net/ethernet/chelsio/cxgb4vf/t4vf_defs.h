@@ -66,7 +66,7 @@
  * match.  However, it's a useful convention ...
  */
 #if T4VF_MBDATA_BASE_ADDR != CIM_PF_MAILBOX_DATA_A
-#error T4VF_MBDATA_BASE_ADDR must match CIM_PF_MAILBOX_DATA_A!
+	#error T4VF_MBDATA_BASE_ADDR must match CIM_PF_MAILBOX_DATA_A!
 #endif
 
 /*
@@ -84,13 +84,13 @@
  */
 #define T4VF_MOD_MAP(module, index, first, last) \
 	T4VF_MOD_MAP_##module##_INDEX  = (index), \
-	T4VF_MOD_MAP_##module##_FIRST  = (first), \
-	T4VF_MOD_MAP_##module##_LAST   = (last), \
-	T4VF_MOD_MAP_##module##_OFFSET = ((first)/4), \
-	T4VF_MOD_MAP_##module##_BASE = \
-		(T4VF_##module##_BASE_ADDR/4 + (first)/4), \
-	T4VF_MOD_MAP_##module##_LIMIT = \
-		(T4VF_##module##_BASE_ADDR/4 + (last)/4),
+									 T4VF_MOD_MAP_##module##_FIRST  = (first), \
+											 T4VF_MOD_MAP_##module##_LAST   = (last), \
+													 T4VF_MOD_MAP_##module##_OFFSET = ((first)/4), \
+															 T4VF_MOD_MAP_##module##_BASE = \
+																	 (T4VF_##module##_BASE_ADDR/4 + (first)/4), \
+																	 T4VF_MOD_MAP_##module##_LIMIT = \
+																			 (T4VF_##module##_BASE_ADDR/4 + (last)/4),
 
 #define SGE_VF_KDOORBELL 0x0
 #define SGE_VF_GTS 0x4
@@ -100,11 +100,12 @@
 #define CIM_VF_EXT_MAILBOX_CTRL 0x0
 #define CIM_VF_EXT_MAILBOX_STATUS 0x4
 
-enum {
-    T4VF_MOD_MAP(SGE, 2, SGE_VF_KDOORBELL, SGE_VF_GTS)
-    T4VF_MOD_MAP(MPS, 0, MPS_VF_CTL, MPS_VF_STAT_RX_VF_ERR_FRAMES_H)
-    T4VF_MOD_MAP(PL,  3, PL_VF_WHOAMI, PL_VF_WHOAMI)
-    T4VF_MOD_MAP(CIM, 1, CIM_VF_EXT_MAILBOX_CTRL, CIM_VF_EXT_MAILBOX_STATUS)
+enum
+{
+	T4VF_MOD_MAP(SGE, 2, SGE_VF_KDOORBELL, SGE_VF_GTS)
+	T4VF_MOD_MAP(MPS, 0, MPS_VF_CTL, MPS_VF_STAT_RX_VF_ERR_FRAMES_H)
+	T4VF_MOD_MAP(PL,  3, PL_VF_WHOAMI, PL_VF_WHOAMI)
+	T4VF_MOD_MAP(CIM, 1, CIM_VF_EXT_MAILBOX_CTRL, CIM_VF_EXT_MAILBOX_STATUS)
 };
 
 /*

@@ -16,8 +16,8 @@ struct cred;
 	BUILD_BUG_ON(((size) > sizeof(struct __kernel_sockaddr_storage)))
 
 #ifdef CONFIG_PROC_FS
-struct seq_file;
-extern void socket_seq_show(struct seq_file *seq);
+	struct seq_file;
+	extern void socket_seq_show(struct seq_file *seq);
 #endif
 
 typedef __kernel_sa_family_t	sa_family_t;
@@ -25,13 +25,15 @@ typedef __kernel_sa_family_t	sa_family_t;
 /*
  *	1003.1g requires sa_family_t and that sa_data is char.
  */
- 
-struct sockaddr {
+
+struct sockaddr
+{
 	sa_family_t	sa_family;	/* address family, AF_xxx	*/
 	char		sa_data[14];	/* 14 bytes of protocol address	*/
 };
 
-struct linger {
+struct linger
+{
 	int		l_onoff;	/* Linger active		*/
 	int		l_linger;	/* How long to linger for	*/
 };
@@ -43,8 +45,9 @@ struct linger {
  *	system, not 4.3. Thus msg_accrights(len) are now missing. They
  *	belong in an obscure libc emulation or the bin.
  */
- 
-struct msghdr {
+
+struct msghdr
+{
 	void		*msg_name;	/* ptr to socket address structure */
 	int		msg_namelen;	/* size of socket address structure */
 	struct iov_iter	msg_iter;	/* data */
@@ -53,8 +56,9 @@ struct msghdr {
 	unsigned int	msg_flags;	/* flags on received message */
 	struct kiocb	*msg_iocb;	/* ptr to iocb for async requests */
 };
- 
-struct user_msghdr {
+
+struct user_msghdr
+{
 	void		__user *msg_name;	/* ptr to socket address structure */
 	int		msg_namelen;		/* size of socket address structure */
 	struct iovec	__user *msg_iov;	/* scatter/gather array */
@@ -65,7 +69,8 @@ struct user_msghdr {
 };
 
 /* For recvmmsg/sendmmsg */
-struct mmsghdr {
+struct mmsghdr
+{
 	struct user_msghdr  msg_hdr;
 	unsigned int        msg_len;
 };
@@ -76,10 +81,11 @@ struct mmsghdr {
  *	(cmsghdr, cmsg_data[])
  */
 
-struct cmsghdr {
+struct cmsghdr
+{
 	__kernel_size_t	cmsg_len;	/* data byte count, including hdr */
-        int		cmsg_level;	/* originating protocol */
-        int		cmsg_type;	/* protocol-specific type */
+	int		cmsg_level;	/* originating protocol */
+	int		cmsg_type;	/* protocol-specific type */
 };
 
 /*
@@ -97,17 +103,17 @@ struct cmsghdr {
 #define CMSG_LEN(len) (CMSG_ALIGN(sizeof(struct cmsghdr)) + (len))
 
 #define __CMSG_FIRSTHDR(ctl,len) ((len) >= sizeof(struct cmsghdr) ? \
-				  (struct cmsghdr *)(ctl) : \
-				  (struct cmsghdr *)NULL)
+								  (struct cmsghdr *)(ctl) : \
+								  (struct cmsghdr *)NULL)
 #define CMSG_FIRSTHDR(msg)	__CMSG_FIRSTHDR((msg)->msg_control, (msg)->msg_controllen)
 #define CMSG_OK(mhdr, cmsg) ((cmsg)->cmsg_len >= sizeof(struct cmsghdr) && \
-			     (cmsg)->cmsg_len <= (unsigned long) \
-			     ((mhdr)->msg_controllen - \
-			      ((char *)(cmsg) - (char *)(mhdr)->msg_control)))
+							 (cmsg)->cmsg_len <= (unsigned long) \
+							 ((mhdr)->msg_controllen - \
+							  ((char *)(cmsg) - (char *)(mhdr)->msg_control)))
 #define for_each_cmsghdr(cmsg, msg) \
 	for (cmsg = CMSG_FIRSTHDR(msg); \
-	     cmsg; \
-	     cmsg = CMSG_NXTHDR(msg, cmsg))
+		 cmsg; \
+		 cmsg = CMSG_NXTHDR(msg, cmsg))
 
 /*
  *	Get the next cmsg header
@@ -121,20 +127,23 @@ struct cmsghdr {
  *	inside range, given by msg->msg_controllen before using
  *	ancillary object DATA.				--ANK (980731)
  */
- 
-static inline struct cmsghdr * __cmsg_nxthdr(void *__ctl, __kernel_size_t __size,
-					       struct cmsghdr *__cmsg)
-{
-	struct cmsghdr * __ptr;
 
-	__ptr = (struct cmsghdr*)(((unsigned char *) __cmsg) +  CMSG_ALIGN(__cmsg->cmsg_len));
-	if ((unsigned long)((char*)(__ptr+1) - (char *) __ctl) > __size)
+static inline struct cmsghdr *__cmsg_nxthdr(void *__ctl, __kernel_size_t __size,
+		struct cmsghdr *__cmsg)
+{
+	struct cmsghdr *__ptr;
+
+	__ptr = (struct cmsghdr *)(((unsigned char *) __cmsg) +  CMSG_ALIGN(__cmsg->cmsg_len));
+
+	if ((unsigned long)((char *)(__ptr + 1) - (char *) __ctl) > __size)
+	{
 		return (struct cmsghdr *)0;
+	}
 
 	return __ptr;
 }
 
-static inline struct cmsghdr * cmsg_nxthdr (struct msghdr *__msg, struct cmsghdr *__cmsg)
+static inline struct cmsghdr *cmsg_nxthdr (struct msghdr *__msg, struct cmsghdr *__cmsg)
 {
 	return __cmsg_nxthdr(__msg->msg_control, __msg->msg_controllen, __cmsg);
 }
@@ -150,7 +159,8 @@ static inline size_t msg_data_left(struct msghdr *msg)
 #define SCM_CREDENTIALS 0x02		/* rw: struct ucred		*/
 #define SCM_SECURITY	0x03		/* rw: security label		*/
 
-struct ucred {
+struct ucred
+{
 	__u32	pid;
 	__u32	uid;
 	__u32	gid;
@@ -256,10 +266,10 @@ struct ucred {
 /* Maximum queue length specifiable by listen.  */
 #define SOMAXCONN	128
 
-/* Flags we can use with send/ and recv. 
+/* Flags we can use with send/ and recv.
    Added those for 1003.1g not all are supported yet
  */
- 
+
 #define MSG_OOB		1
 #define MSG_PEEK	2
 #define MSG_DONTROUTE	4
@@ -287,9 +297,9 @@ struct ucred {
 					   descriptor received through
 					   SCM_RIGHTS */
 #if defined(CONFIG_COMPAT)
-#define MSG_CMSG_COMPAT	0x80000000	/* This message needs 32 bit fixups */
+	#define MSG_CMSG_COMPAT	0x80000000	/* This message needs 32 bit fixups */
 #else
-#define MSG_CMSG_COMPAT	0		/* We never have 32 bit fixups */
+	#define MSG_CMSG_COMPAT	0		/* We never have 32 bit fixups */
 #endif
 
 
@@ -334,7 +344,7 @@ struct ucred {
 #define IPX_TYPE	1
 
 extern int move_addr_to_kernel(void __user *uaddr, int ulen, struct sockaddr_storage *kaddr);
-extern int put_cmsg(struct msghdr*, int level, int type, int len, void *data);
+extern int put_cmsg(struct msghdr *, int level, int type, int len, void *data);
 
 struct timespec;
 
@@ -342,7 +352,7 @@ struct timespec;
 extern long __sys_recvmsg(int fd, struct user_msghdr __user *msg, unsigned flags);
 extern long __sys_sendmsg(int fd, struct user_msghdr __user *msg, unsigned flags);
 extern int __sys_recvmmsg(int fd, struct mmsghdr __user *mmsg, unsigned int vlen,
-			  unsigned int flags, struct timespec *timeout);
+						  unsigned int flags, struct timespec *timeout);
 extern int __sys_sendmmsg(int fd, struct mmsghdr __user *mmsg,
-			  unsigned int vlen, unsigned int flags);
+						  unsigned int vlen, unsigned int flags);
 #endif /* _LINUX_SOCKET_H */

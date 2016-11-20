@@ -29,11 +29,11 @@ void efx_init_tx_queue(struct efx_tx_queue *tx_queue);
 void efx_init_tx_queue_core_txq(struct efx_tx_queue *tx_queue);
 void efx_fini_tx_queue(struct efx_tx_queue *tx_queue);
 netdev_tx_t efx_hard_start_xmit(struct sk_buff *skb,
-				struct net_device *net_dev);
+								struct net_device *net_dev);
 netdev_tx_t efx_enqueue_skb(struct efx_tx_queue *tx_queue, struct sk_buff *skb);
 void efx_xmit_done(struct efx_tx_queue *tx_queue, unsigned int index);
 int efx_setup_tc(struct net_device *net_dev, u32 handle, __be16 proto,
-		 struct tc_to_netdev *tc);
+				 struct tc_to_netdev *tc);
 unsigned int efx_tx_max_skb_descs(struct efx_nic *efx);
 extern unsigned int efx_piobuf_size;
 extern bool efx_separate_tx_channels;
@@ -49,11 +49,13 @@ void efx_fast_push_rx_descriptors(struct efx_rx_queue *rx_queue, bool atomic);
 void efx_rx_slow_fill(unsigned long context);
 void __efx_rx_packet(struct efx_channel *channel);
 void efx_rx_packet(struct efx_rx_queue *rx_queue, unsigned int index,
-		   unsigned int n_frags, unsigned int len, u16 flags);
+				   unsigned int n_frags, unsigned int len, u16 flags);
 static inline void efx_rx_flush_packet(struct efx_channel *channel)
 {
 	if (channel->rx_pkt_n_frags)
+	{
 		__efx_rx_packet(channel);
+	}
 }
 void efx_schedule_slow_fill(struct efx_rx_queue *rx_queue);
 
@@ -75,7 +77,7 @@ void efx_schedule_slow_fill(struct efx_rx_queue *rx_queue);
 #define EFX_TXQ_MIN_ENT(efx)	(2 * efx_tx_max_skb_descs(efx))
 
 #define EFX_TXQ_MAX_ENT(efx)	(EFX_WORKAROUND_35388(efx) ? \
-				 EFX_MAX_DMAQ_SIZE / 2 : EFX_MAX_DMAQ_SIZE)
+								 EFX_MAX_DMAQ_SIZE / 2 : EFX_MAX_DMAQ_SIZE)
 
 static inline bool efx_rss_enabled(struct efx_nic *efx)
 {
@@ -112,8 +114,8 @@ void efx_mac_reconfigure(struct efx_nic *efx);
  * all be inserted with the same priority and @replace_equal = %false.
  */
 static inline s32 efx_filter_insert_filter(struct efx_nic *efx,
-					   struct efx_filter_spec *spec,
-					   bool replace_equal)
+		struct efx_filter_spec *spec,
+		bool replace_equal)
 {
 	return efx->type->filter_insert(efx, spec, replace_equal);
 }
@@ -128,8 +130,8 @@ static inline s32 efx_filter_insert_filter(struct efx_nic *efx,
  * with a value passed from userland.
  */
 static inline int efx_filter_remove_id_safe(struct efx_nic *efx,
-					    enum efx_filter_priority priority,
-					    u32 filter_id)
+		enum efx_filter_priority priority,
+		u32 filter_id)
 {
 	return efx->type->filter_remove_safe(efx, priority, filter_id);
 }
@@ -146,14 +148,14 @@ static inline int efx_filter_remove_id_safe(struct efx_nic *efx,
  */
 static inline int
 efx_filter_get_filter_safe(struct efx_nic *efx,
-			   enum efx_filter_priority priority,
-			   u32 filter_id, struct efx_filter_spec *spec)
+						   enum efx_filter_priority priority,
+						   u32 filter_id, struct efx_filter_spec *spec)
 {
 	return efx->type->filter_get_safe(efx, priority, filter_id, spec);
 }
 
 static inline u32 efx_filter_count_rx_used(struct efx_nic *efx,
-					   enum efx_filter_priority priority)
+		enum efx_filter_priority priority)
 {
 	return efx->type->filter_count_rx_used(efx, priority);
 }
@@ -162,20 +164,22 @@ static inline u32 efx_filter_get_rx_id_limit(struct efx_nic *efx)
 	return efx->type->filter_get_rx_id_limit(efx);
 }
 static inline s32 efx_filter_get_rx_ids(struct efx_nic *efx,
-					enum efx_filter_priority priority,
-					u32 *buf, u32 size)
+										enum efx_filter_priority priority,
+										u32 *buf, u32 size)
 {
 	return efx->type->filter_get_rx_ids(efx, priority, buf, size);
 }
 #ifdef CONFIG_RFS_ACCEL
 int efx_filter_rfs(struct net_device *net_dev, const struct sk_buff *skb,
-		   u16 rxq_index, u32 flow_id);
+				   u16 rxq_index, u32 flow_id);
 bool __efx_filter_rfs_expire(struct efx_nic *efx, unsigned quota);
 static inline void efx_filter_rfs_expire(struct efx_channel *channel)
 {
 	if (channel->rfs_filters_added >= 60 &&
-	    __efx_filter_rfs_expire(channel->efx, 100))
+		__efx_filter_rfs_expire(channel->efx, 100))
+	{
 		channel->rfs_filters_added -= 60;
+	}
 }
 #define efx_filter_rfs_enabled() 1
 #else
@@ -207,10 +211,10 @@ void efx_schedule_reset(struct efx_nic *efx, enum reset_type type);
 unsigned int efx_usecs_to_ticks(struct efx_nic *efx, unsigned int usecs);
 unsigned int efx_ticks_to_usecs(struct efx_nic *efx, unsigned int ticks);
 int efx_init_irq_moderation(struct efx_nic *efx, unsigned int tx_usecs,
-			    unsigned int rx_usecs, bool rx_adaptive,
-			    bool rx_may_override_tx);
+							unsigned int rx_usecs, bool rx_adaptive,
+							bool rx_may_override_tx);
 void efx_get_irq_moderation(struct efx_nic *efx, unsigned int *tx_usecs,
-			    unsigned int *rx_usecs, bool *rx_adaptive);
+							unsigned int *rx_usecs, bool *rx_adaptive);
 void efx_stop_eventq(struct efx_channel *channel);
 void efx_start_eventq(struct efx_channel *channel);
 
@@ -224,7 +228,7 @@ void efx_update_sw_stats(struct efx_nic *efx, u64 *stats);
 /* MTD */
 #ifdef CONFIG_SFC_MTD
 int efx_mtd_add(struct efx_nic *efx, struct efx_mtd_partition *parts,
-		size_t n_parts, size_t sizeof_part);
+				size_t n_parts, size_t sizeof_part);
 static inline int efx_mtd_probe(struct efx_nic *efx)
 {
 	return efx->type->mtd_probe(efx);
@@ -247,8 +251,8 @@ static inline unsigned int efx_vf_size(struct efx_nic *efx)
 static inline void efx_schedule_channel(struct efx_channel *channel)
 {
 	netif_vdbg(channel->efx, intr, channel->efx->net_dev,
-		   "channel %d scheduling NAPI poll on CPU%d\n",
-		   channel->channel, raw_smp_processor_id());
+			   "channel %d scheduling NAPI poll on CPU%d\n",
+			   channel->channel, raw_smp_processor_id());
 
 	napi_schedule(&channel->napi_str);
 }
@@ -278,10 +282,12 @@ static inline void efx_device_detach_sync(struct efx_nic *efx)
 
 static inline bool efx_rwsem_assert_write_locked(struct rw_semaphore *sem)
 {
-	if (WARN_ON(down_read_trylock(sem))) {
+	if (WARN_ON(down_read_trylock(sem)))
+	{
 		up_read(sem);
 		return false;
 	}
+
 	return true;
 }
 

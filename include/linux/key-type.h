@@ -21,7 +21,8 @@
  * key under-construction record
  * - passed to the request_key actor if supplied
  */
-struct key_construction {
+struct key_construction
+{
 	struct key	*key;	/* key being constructed */
 	struct key	*authkey;/* authorisation for key being constructed */
 };
@@ -38,7 +39,8 @@ struct key_construction {
  * If the preparse() op is given, the free_preparse() op will be called to
  * clear the contents.
  */
-struct key_preparsed_payload {
+struct key_preparsed_payload
+{
 	char		*description;	/* Proposed key description (or NULL) */
 	union key_payload payload;	/* Proposed payload */
 	const void	*data;		/* Raw data */
@@ -48,18 +50,19 @@ struct key_preparsed_payload {
 };
 
 typedef int (*request_key_actor_t)(struct key_construction *key,
-				   const char *op, void *aux);
+								   const char *op, void *aux);
 
 /*
  * Preparsed matching criterion.
  */
-struct key_match_data {
+struct key_match_data
+{
 	/* Comparison function, defaults to exact description match, but can be
 	 * overridden by type->match_preparse().  Should return true if a match
 	 * is found and false if not.
 	 */
 	bool (*cmp)(const struct key *key,
-		    const struct key_match_data *match_data);
+				const struct key_match_data *match_data);
 
 	const void	*raw_data;	/* Raw match data */
 	void		*preparsed;	/* For ->match_preparse() to stash stuff */
@@ -71,7 +74,8 @@ struct key_match_data {
 /*
  * kernel managed key type definition
  */
-struct key_type {
+struct key_type
+{
 	/* name of the type */
 	const char *name;
 
@@ -159,21 +163,21 @@ extern void unregister_key_type(struct key_type *ktype);
 
 extern int key_payload_reserve(struct key *key, size_t datalen);
 extern int key_instantiate_and_link(struct key *key,
-				    const void *data,
-				    size_t datalen,
-				    struct key *keyring,
-				    struct key *instkey);
+									const void *data,
+									size_t datalen,
+									struct key *keyring,
+									struct key *instkey);
 extern int key_reject_and_link(struct key *key,
-			       unsigned timeout,
-			       unsigned error,
-			       struct key *keyring,
-			       struct key *instkey);
+							   unsigned timeout,
+							   unsigned error,
+							   struct key *keyring,
+							   struct key *instkey);
 extern void complete_request_key(struct key_construction *cons, int error);
 
 static inline int key_negate_and_link(struct key *key,
-				      unsigned timeout,
-				      struct key *keyring,
-				      struct key *instkey)
+									  unsigned timeout,
+									  struct key *keyring,
+									  struct key *instkey)
 {
 	return key_reject_and_link(key, timeout, ENOKEY, keyring, instkey);
 }

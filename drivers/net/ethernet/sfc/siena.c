@@ -37,64 +37,99 @@ static void siena_push_irq_moderation(struct efx_channel *channel)
 	struct efx_nic *efx = channel->efx;
 	efx_dword_t timer_cmd;
 
-	if (channel->irq_moderation_us) {
+	if (channel->irq_moderation_us)
+	{
 		unsigned int ticks;
 
 		ticks = efx_usecs_to_ticks(efx, channel->irq_moderation_us);
 		EFX_POPULATE_DWORD_2(timer_cmd,
-				     FRF_CZ_TC_TIMER_MODE,
-				     FFE_CZ_TIMER_MODE_INT_HLDOFF,
-				     FRF_CZ_TC_TIMER_VAL,
-				     ticks - 1);
-	} else {
-		EFX_POPULATE_DWORD_2(timer_cmd,
-				     FRF_CZ_TC_TIMER_MODE,
-				     FFE_CZ_TIMER_MODE_DIS,
-				     FRF_CZ_TC_TIMER_VAL, 0);
+							 FRF_CZ_TC_TIMER_MODE,
+							 FFE_CZ_TIMER_MODE_INT_HLDOFF,
+							 FRF_CZ_TC_TIMER_VAL,
+							 ticks - 1);
 	}
+	else
+	{
+		EFX_POPULATE_DWORD_2(timer_cmd,
+							 FRF_CZ_TC_TIMER_MODE,
+							 FFE_CZ_TIMER_MODE_DIS,
+							 FRF_CZ_TC_TIMER_VAL, 0);
+	}
+
 	efx_writed_page_locked(channel->efx, &timer_cmd, FR_BZ_TIMER_COMMAND_P0,
-			       channel->channel);
+						   channel->channel);
 }
 
 void siena_prepare_flush(struct efx_nic *efx)
 {
 	if (efx->fc_disable++ == 0)
+	{
 		efx_mcdi_set_mac(efx);
+	}
 }
 
 void siena_finish_flush(struct efx_nic *efx)
 {
 	if (--efx->fc_disable == 0)
+	{
 		efx_mcdi_set_mac(efx);
+	}
 }
 
-static const struct efx_farch_register_test siena_register_tests[] = {
-	{ FR_AZ_ADR_REGION,
-	  EFX_OWORD32(0x0003FFFF, 0x0003FFFF, 0x0003FFFF, 0x0003FFFF) },
-	{ FR_CZ_USR_EV_CFG,
-	  EFX_OWORD32(0x000103FF, 0x00000000, 0x00000000, 0x00000000) },
-	{ FR_AZ_RX_CFG,
-	  EFX_OWORD32(0xFFFFFFFE, 0xFFFFFFFF, 0x0003FFFF, 0x00000000) },
-	{ FR_AZ_TX_CFG,
-	  EFX_OWORD32(0x7FFF0037, 0xFFFF8000, 0xFFFFFFFF, 0x03FFFFFF) },
-	{ FR_AZ_TX_RESERVED,
-	  EFX_OWORD32(0xFFFEFE80, 0x1FFFFFFF, 0x020000FE, 0x007FFFFF) },
-	{ FR_AZ_SRM_TX_DC_CFG,
-	  EFX_OWORD32(0x001FFFFF, 0x00000000, 0x00000000, 0x00000000) },
-	{ FR_AZ_RX_DC_CFG,
-	  EFX_OWORD32(0x00000003, 0x00000000, 0x00000000, 0x00000000) },
-	{ FR_AZ_RX_DC_PF_WM,
-	  EFX_OWORD32(0x000003FF, 0x00000000, 0x00000000, 0x00000000) },
-	{ FR_BZ_DP_CTRL,
-	  EFX_OWORD32(0x00000FFF, 0x00000000, 0x00000000, 0x00000000) },
-	{ FR_BZ_RX_RSS_TKEY,
-	  EFX_OWORD32(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF) },
-	{ FR_CZ_RX_RSS_IPV6_REG1,
-	  EFX_OWORD32(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF) },
-	{ FR_CZ_RX_RSS_IPV6_REG2,
-	  EFX_OWORD32(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF) },
-	{ FR_CZ_RX_RSS_IPV6_REG3,
-	  EFX_OWORD32(0xFFFFFFFF, 0xFFFFFFFF, 0x00000007, 0x00000000) },
+static const struct efx_farch_register_test siena_register_tests[] =
+{
+	{
+		FR_AZ_ADR_REGION,
+		EFX_OWORD32(0x0003FFFF, 0x0003FFFF, 0x0003FFFF, 0x0003FFFF)
+	},
+	{
+		FR_CZ_USR_EV_CFG,
+		EFX_OWORD32(0x000103FF, 0x00000000, 0x00000000, 0x00000000)
+	},
+	{
+		FR_AZ_RX_CFG,
+		EFX_OWORD32(0xFFFFFFFE, 0xFFFFFFFF, 0x0003FFFF, 0x00000000)
+	},
+	{
+		FR_AZ_TX_CFG,
+		EFX_OWORD32(0x7FFF0037, 0xFFFF8000, 0xFFFFFFFF, 0x03FFFFFF)
+	},
+	{
+		FR_AZ_TX_RESERVED,
+		EFX_OWORD32(0xFFFEFE80, 0x1FFFFFFF, 0x020000FE, 0x007FFFFF)
+	},
+	{
+		FR_AZ_SRM_TX_DC_CFG,
+		EFX_OWORD32(0x001FFFFF, 0x00000000, 0x00000000, 0x00000000)
+	},
+	{
+		FR_AZ_RX_DC_CFG,
+		EFX_OWORD32(0x00000003, 0x00000000, 0x00000000, 0x00000000)
+	},
+	{
+		FR_AZ_RX_DC_PF_WM,
+		EFX_OWORD32(0x000003FF, 0x00000000, 0x00000000, 0x00000000)
+	},
+	{
+		FR_BZ_DP_CTRL,
+		EFX_OWORD32(0x00000FFF, 0x00000000, 0x00000000, 0x00000000)
+	},
+	{
+		FR_BZ_RX_RSS_TKEY,
+		EFX_OWORD32(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF)
+	},
+	{
+		FR_CZ_RX_RSS_IPV6_REG1,
+		EFX_OWORD32(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF)
+	},
+	{
+		FR_CZ_RX_RSS_IPV6_REG2,
+		EFX_OWORD32(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF)
+	},
+	{
+		FR_CZ_RX_RSS_IPV6_REG3,
+		EFX_OWORD32(0xFFFFFFFF, 0xFFFFFFFF, 0x00000007, 0x00000000)
+	},
 };
 
 static int siena_test_chip(struct efx_nic *efx, struct efx_self_tests *tests)
@@ -108,12 +143,15 @@ static int siena_test_chip(struct efx_nic *efx, struct efx_self_tests *tests)
 	 * quiescent regardless of what any VF driver does.
 	 */
 	rc = efx_mcdi_reset(efx, reset_method);
+
 	if (rc)
+	{
 		goto out;
+	}
 
 	tests->registers =
 		efx_farch_test_registers(efx, siena_register_tests,
-					 ARRAY_SIZE(siena_register_tests))
+								 ARRAY_SIZE(siena_register_tests))
 		? -1 : 1;
 
 	rc = efx_mcdi_reset(efx, reset_method);
@@ -132,41 +170,49 @@ out:
 static void siena_ptp_write_host_time(struct efx_nic *efx, u32 host_time)
 {
 	_efx_writed(efx, cpu_to_le32(host_time),
-		    FR_CZ_MC_TREG_SMEM + MC_SMEM_P0_PTP_TIME_OFST);
+				FR_CZ_MC_TREG_SMEM + MC_SMEM_P0_PTP_TIME_OFST);
 }
 
 static int siena_ptp_set_ts_config(struct efx_nic *efx,
-				   struct hwtstamp_config *init)
+								   struct hwtstamp_config *init)
 {
 	int rc;
 
-	switch (init->rx_filter) {
-	case HWTSTAMP_FILTER_NONE:
-		/* if TX timestamping is still requested then leave PTP on */
-		return efx_ptp_change_mode(efx,
-					   init->tx_type != HWTSTAMP_TX_OFF,
-					   efx_ptp_get_mode(efx));
-	case HWTSTAMP_FILTER_PTP_V1_L4_EVENT:
-	case HWTSTAMP_FILTER_PTP_V1_L4_SYNC:
-	case HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ:
-		init->rx_filter = HWTSTAMP_FILTER_PTP_V1_L4_EVENT;
-		return efx_ptp_change_mode(efx, true, MC_CMD_PTP_MODE_V1);
-	case HWTSTAMP_FILTER_PTP_V2_L4_EVENT:
-	case HWTSTAMP_FILTER_PTP_V2_L4_SYNC:
-	case HWTSTAMP_FILTER_PTP_V2_L4_DELAY_REQ:
-		init->rx_filter = HWTSTAMP_FILTER_PTP_V2_L4_EVENT;
-		rc = efx_ptp_change_mode(efx, true,
-					 MC_CMD_PTP_MODE_V2_ENHANCED);
-		/* bug 33070 - old versions of the firmware do not support the
-		 * improved UUID filtering option. Similarly old versions of the
-		 * application do not expect it to be enabled. If the firmware
-		 * does not accept the enhanced mode, fall back to the standard
-		 * PTP v2 UUID filtering. */
-		if (rc != 0)
-			rc = efx_ptp_change_mode(efx, true, MC_CMD_PTP_MODE_V2);
-		return rc;
-	default:
-		return -ERANGE;
+	switch (init->rx_filter)
+	{
+		case HWTSTAMP_FILTER_NONE:
+			/* if TX timestamping is still requested then leave PTP on */
+			return efx_ptp_change_mode(efx,
+									   init->tx_type != HWTSTAMP_TX_OFF,
+									   efx_ptp_get_mode(efx));
+
+		case HWTSTAMP_FILTER_PTP_V1_L4_EVENT:
+		case HWTSTAMP_FILTER_PTP_V1_L4_SYNC:
+		case HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ:
+			init->rx_filter = HWTSTAMP_FILTER_PTP_V1_L4_EVENT;
+			return efx_ptp_change_mode(efx, true, MC_CMD_PTP_MODE_V1);
+
+		case HWTSTAMP_FILTER_PTP_V2_L4_EVENT:
+		case HWTSTAMP_FILTER_PTP_V2_L4_SYNC:
+		case HWTSTAMP_FILTER_PTP_V2_L4_DELAY_REQ:
+			init->rx_filter = HWTSTAMP_FILTER_PTP_V2_L4_EVENT;
+			rc = efx_ptp_change_mode(efx, true,
+									 MC_CMD_PTP_MODE_V2_ENHANCED);
+
+			/* bug 33070 - old versions of the firmware do not support the
+			 * improved UUID filtering option. Similarly old versions of the
+			 * application do not expect it to be enabled. If the firmware
+			 * does not accept the enhanced mode, fall back to the standard
+			 * PTP v2 UUID filtering. */
+			if (rc != 0)
+			{
+				rc = efx_ptp_change_mode(efx, true, MC_CMD_PTP_MODE_V2);
+			}
+
+			return rc;
+
+		default:
+			return -ERANGE;
 	}
 }
 
@@ -179,20 +225,23 @@ static int siena_ptp_set_ts_config(struct efx_nic *efx,
 
 static int siena_map_reset_flags(u32 *flags)
 {
-	enum {
+	enum
+	{
 		SIENA_RESET_PORT = (ETH_RESET_DMA | ETH_RESET_FILTER |
-				    ETH_RESET_OFFLOAD | ETH_RESET_MAC |
-				    ETH_RESET_PHY),
+							ETH_RESET_OFFLOAD | ETH_RESET_MAC |
+							ETH_RESET_PHY),
 		SIENA_RESET_MC = (SIENA_RESET_PORT |
-				  ETH_RESET_MGMT << ETH_RESET_SHARED_SHIFT),
+						  ETH_RESET_MGMT << ETH_RESET_SHARED_SHIFT),
 	};
 
-	if ((*flags & SIENA_RESET_MC) == SIENA_RESET_MC) {
+	if ((*flags & SIENA_RESET_MC) == SIENA_RESET_MC)
+	{
 		*flags &= ~SIENA_RESET_MC;
 		return RESET_TYPE_WORLD;
 	}
 
-	if ((*flags & SIENA_RESET_PORT) == SIENA_RESET_PORT) {
+	if ((*flags & SIENA_RESET_PORT) == SIENA_RESET_PORT)
+	{
 		*flags &= ~SIENA_RESET_PORT;
 		return RESET_TYPE_ALL;
 	}
@@ -228,7 +277,7 @@ static int siena_probe_nvconfig(struct efx_nic *efx)
 		(caps & (1 << MC_CMD_CAPABILITIES_TURBO_ACTIVE_LBN)) ?
 		3072 : 6144; /* 768 cycles */
 	efx->timer_max_ns = efx->type->timer_period_max *
-			    efx->timer_quantum_ns;
+						efx->timer_quantum_ns;
 
 	return rc;
 }
@@ -246,7 +295,7 @@ static int siena_dimension_resources(struct efx_nic *efx)
 static unsigned int siena_mem_map_size(struct efx_nic *efx)
 {
 	return FR_CZ_MC_TREG_SMEM +
-		FR_CZ_MC_TREG_SMEM_STEP * FR_CZ_MC_TREG_SMEM_ROWS;
+		   FR_CZ_MC_TREG_SMEM_STEP * FR_CZ_MC_TREG_SMEM_ROWS;
 }
 
 static int siena_probe_nic(struct efx_nic *efx)
@@ -257,14 +306,19 @@ static int siena_probe_nic(struct efx_nic *efx)
 
 	/* Allocate storage for hardware specific data */
 	nic_data = kzalloc(sizeof(struct siena_nic_data), GFP_KERNEL);
+
 	if (!nic_data)
+	{
 		return -ENOMEM;
+	}
+
 	nic_data->efx = efx;
 	efx->nic_data = nic_data;
 
-	if (efx_farch_fpga_ver(efx) != 0) {
+	if (efx_farch_fpga_ver(efx) != 0)
+	{
 		netif_err(efx, probe, efx->net_dev,
-			  "Siena FPGA not supported\n");
+				  "Siena FPGA not supported\n");
 		rc = -ENODEV;
 		goto fail1;
 	}
@@ -276,12 +330,17 @@ static int siena_probe_nic(struct efx_nic *efx)
 	efx->port_num = EFX_OWORD_FIELD(reg, FRF_CZ_CS_PORT_NUM) - 1;
 
 	rc = efx_mcdi_init(efx);
+
 	if (rc)
+	{
 		goto fail1;
+	}
 
 	/* Now we can reset the NIC */
 	rc = efx_mcdi_reset(efx, RESET_TYPE_ALL);
-	if (rc) {
+
+	if (rc)
+	{
 		netif_err(efx, probe, efx->net_dev, "failed to reset NIC\n");
 		goto fail3;
 	}
@@ -290,31 +349,42 @@ static int siena_probe_nic(struct efx_nic *efx)
 
 	/* Allocate memory for INT_KER */
 	rc = efx_nic_alloc_buffer(efx, &efx->irq_status, sizeof(efx_oword_t),
-				  GFP_KERNEL);
+							  GFP_KERNEL);
+
 	if (rc)
+	{
 		goto fail4;
+	}
+
 	BUG_ON(efx->irq_status.dma_addr & 0x0f);
 
 	netif_dbg(efx, probe, efx->net_dev,
-		  "INT_KER at %llx (virt %p phys %llx)\n",
-		  (unsigned long long)efx->irq_status.dma_addr,
-		  efx->irq_status.addr,
-		  (unsigned long long)virt_to_phys(efx->irq_status.addr));
+			  "INT_KER at %llx (virt %p phys %llx)\n",
+			  (unsigned long long)efx->irq_status.dma_addr,
+			  efx->irq_status.addr,
+			  (unsigned long long)virt_to_phys(efx->irq_status.addr));
 
 	/* Read in the non-volatile configuration */
 	rc = siena_probe_nvconfig(efx);
-	if (rc == -EINVAL) {
+
+	if (rc == -EINVAL)
+	{
 		netif_err(efx, probe, efx->net_dev,
-			  "NVRAM is invalid therefore using defaults\n");
+				  "NVRAM is invalid therefore using defaults\n");
 		efx->phy_type = PHY_TYPE_NONE;
 		efx->mdio.prtad = MDIO_PRTAD_NONE;
-	} else if (rc) {
+	}
+	else if (rc)
+	{
 		goto fail5;
 	}
 
 	rc = efx_mcdi_mon_probe(efx);
+
 	if (rc)
+	{
 		goto fail5;
+	}
 
 #ifdef CONFIG_SFC_SRIOV
 	efx_siena_sriov_probe(efx);
@@ -334,7 +404,7 @@ fail1:
 }
 
 static int siena_rx_push_rss_config(struct efx_nic *efx, bool user,
-				    const u32 *rx_indir_table)
+									const u32 *rx_indir_table)
 {
 	efx_oword_t temp;
 
@@ -344,20 +414,20 @@ static int siena_rx_push_rss_config(struct efx_nic *efx, bool user,
 
 	/* Enable IPv6 RSS */
 	BUILD_BUG_ON(sizeof(efx->rx_hash_key) <
-		     2 * sizeof(temp) + FRF_CZ_RX_RSS_IPV6_TKEY_HI_WIDTH / 8 ||
-		     FRF_CZ_RX_RSS_IPV6_TKEY_HI_LBN != 0);
+				 2 * sizeof(temp) + FRF_CZ_RX_RSS_IPV6_TKEY_HI_WIDTH / 8 ||
+				 FRF_CZ_RX_RSS_IPV6_TKEY_HI_LBN != 0);
 	memcpy(&temp, efx->rx_hash_key, sizeof(temp));
 	efx_writeo(efx, &temp, FR_CZ_RX_RSS_IPV6_REG1);
 	memcpy(&temp, efx->rx_hash_key + sizeof(temp), sizeof(temp));
 	efx_writeo(efx, &temp, FR_CZ_RX_RSS_IPV6_REG2);
 	EFX_POPULATE_OWORD_2(temp, FRF_CZ_RX_RSS_IPV6_THASH_ENABLE, 1,
-			     FRF_CZ_RX_RSS_IPV6_IP_THASH_ENABLE, 1);
+						 FRF_CZ_RX_RSS_IPV6_IP_THASH_ENABLE, 1);
 	memcpy(&temp, efx->rx_hash_key + 2 * sizeof(temp),
-	       FRF_CZ_RX_RSS_IPV6_TKEY_HI_WIDTH / 8);
+		   FRF_CZ_RX_RSS_IPV6_TKEY_HI_WIDTH / 8);
 	efx_writeo(efx, &temp, FR_CZ_RX_RSS_IPV6_REG3);
 
 	memcpy(efx->rx_indir_table, rx_indir_table,
-	       sizeof(efx->rx_indir_table));
+		   sizeof(efx->rx_indir_table));
 	efx_farch_rx_push_indir_table(efx);
 
 	return 0;
@@ -374,8 +444,11 @@ static int siena_init_nic(struct efx_nic *efx)
 
 	/* Recover from a failed assertion post-reset */
 	rc = efx_mcdi_handle_assertion(efx);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Squash TX of packets of 16 bytes or less */
 	efx_reado(efx, &temp, FR_AZ_TX_RESERVED);
@@ -400,15 +473,18 @@ static int siena_init_nic(struct efx_nic *efx)
 	EFX_SET_OWORD_FIELD(temp, FRF_BZ_RX_HASH_ALG, 1);
 	EFX_SET_OWORD_FIELD(temp, FRF_BZ_RX_IP_HASH, 1);
 	EFX_SET_OWORD_FIELD(temp, FRF_BZ_RX_USR_BUF_SIZE,
-			    EFX_RX_USR_BUF_SIZE >> 5);
+						EFX_RX_USR_BUF_SIZE >> 5);
 	efx_writeo(efx, &temp, FR_AZ_RX_CFG);
 
 	siena_rx_push_rss_config(efx, false, efx->rx_indir_table);
 
 	/* Enable event logging */
 	rc = efx_mcdi_log_ctrl(efx, true, false, 0);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Set destination of both TX and RX Flush events */
 	EFX_POPULATE_OWORD_1(temp, FRF_BZ_FLS_EVQ_ID, 0);
@@ -438,13 +514,14 @@ static void siena_remove_nic(struct efx_nic *efx)
 
 #define SIENA_DMA_STAT(ext_name, mcdi_name)			\
 	[SIENA_STAT_ ## ext_name] =				\
-	{ #ext_name, 64, 8 * MC_CMD_MAC_ ## mcdi_name }
+											{ #ext_name, 64, 8 * MC_CMD_MAC_ ## mcdi_name }
 #define SIENA_OTHER_STAT(ext_name)				\
 	[SIENA_STAT_ ## ext_name] = { #ext_name, 0, 0 }
 #define GENERIC_SW_STAT(ext_name)				\
 	[GENERIC_STAT_ ## ext_name] = { #ext_name, 0, 0 }
 
-static const struct efx_hw_stat_desc siena_stat_desc[SIENA_STAT_COUNT] = {
+static const struct efx_hw_stat_desc siena_stat_desc[SIENA_STAT_COUNT] =
+{
 	SIENA_DMA_STAT(tx_bytes, TX_BYTES),
 	SIENA_OTHER_STAT(tx_good_bytes),
 	SIENA_DMA_STAT(tx_bad_bytes, TX_BAD_BYTES),
@@ -505,14 +582,15 @@ static const struct efx_hw_stat_desc siena_stat_desc[SIENA_STAT_COUNT] = {
 	GENERIC_SW_STAT(rx_nodesc_trunc),
 	GENERIC_SW_STAT(rx_noskb_drops),
 };
-static const unsigned long siena_stat_mask[] = {
+static const unsigned long siena_stat_mask[] =
+{
 	[0 ... BITS_TO_LONGS(SIENA_STAT_COUNT) - 1] = ~0UL,
 };
 
 static size_t siena_describe_nic_stats(struct efx_nic *efx, u8 *names)
 {
 	return efx_nic_describe_stats(siena_stat_desc, SIENA_STAT_COUNT,
-				      siena_stat_mask, names);
+								  siena_stat_mask, names);
 }
 
 static int siena_try_update_nic_stats(struct efx_nic *efx)
@@ -525,36 +603,43 @@ static int siena_try_update_nic_stats(struct efx_nic *efx)
 	dma_stats = efx->stats_buffer.addr;
 
 	generation_end = dma_stats[MC_CMD_MAC_GENERATION_END];
+
 	if (generation_end == EFX_MC_STATS_GENERATION_INVALID)
+	{
 		return 0;
+	}
+
 	rmb();
 	efx_nic_update_stats(siena_stat_desc, SIENA_STAT_COUNT, siena_stat_mask,
-			     stats, efx->stats_buffer.addr, false);
+						 stats, efx->stats_buffer.addr, false);
 	rmb();
 	generation_start = dma_stats[MC_CMD_MAC_GENERATION_START];
+
 	if (generation_end != generation_start)
+	{
 		return -EAGAIN;
+	}
 
 	/* Update derived statistics */
 	efx_nic_fix_nodesc_drop_stat(efx,
-				     &stats[SIENA_STAT_rx_nodesc_drop_cnt]);
+								 &stats[SIENA_STAT_rx_nodesc_drop_cnt]);
 	efx_update_diff_stat(&stats[SIENA_STAT_tx_good_bytes],
-			     stats[SIENA_STAT_tx_bytes] -
-			     stats[SIENA_STAT_tx_bad_bytes]);
+						 stats[SIENA_STAT_tx_bytes] -
+						 stats[SIENA_STAT_tx_bad_bytes]);
 	stats[SIENA_STAT_tx_collision] =
 		stats[SIENA_STAT_tx_single_collision] +
 		stats[SIENA_STAT_tx_multiple_collision] +
 		stats[SIENA_STAT_tx_excessive_collision] +
 		stats[SIENA_STAT_tx_late_collision];
 	efx_update_diff_stat(&stats[SIENA_STAT_rx_good_bytes],
-			     stats[SIENA_STAT_rx_bytes] -
-			     stats[SIENA_STAT_rx_bad_bytes]);
+						 stats[SIENA_STAT_rx_bytes] -
+						 stats[SIENA_STAT_rx_bad_bytes]);
 	efx_update_sw_stats(efx, stats);
 	return 0;
 }
 
 static size_t siena_update_nic_stats(struct efx_nic *efx, u64 *full_stats,
-				     struct rtnl_link_stats64 *core_stats)
+									 struct rtnl_link_stats64 *core_stats)
 {
 	struct siena_nic_data *nic_data = efx->nic_data;
 	u64 *stats = nic_data->stats;
@@ -562,23 +647,30 @@ static size_t siena_update_nic_stats(struct efx_nic *efx, u64 *full_stats,
 
 	/* If we're unlucky enough to read statistics wduring the DMA, wait
 	 * up to 10ms for it to finish (typically takes <500us) */
-	for (retry = 0; retry < 100; ++retry) {
+	for (retry = 0; retry < 100; ++retry)
+	{
 		if (siena_try_update_nic_stats(efx) == 0)
+		{
 			break;
+		}
+
 		udelay(100);
 	}
 
 	if (full_stats)
+	{
 		memcpy(full_stats, stats, sizeof(u64) * SIENA_STAT_COUNT);
+	}
 
-	if (core_stats) {
+	if (core_stats)
+	{
 		core_stats->rx_packets = stats[SIENA_STAT_rx_packets];
 		core_stats->tx_packets = stats[SIENA_STAT_tx_packets];
 		core_stats->rx_bytes = stats[SIENA_STAT_rx_bytes];
 		core_stats->tx_bytes = stats[SIENA_STAT_tx_bytes];
 		core_stats->rx_dropped = stats[SIENA_STAT_rx_nodesc_drop_cnt] +
-					 stats[GENERIC_STAT_rx_nodesc_trunc] +
-					 stats[GENERIC_STAT_rx_noskb_drops];
+								 stats[GENERIC_STAT_rx_nodesc_trunc] +
+								 stats[GENERIC_STAT_rx_noskb_drops];
 		core_stats->multicast = stats[SIENA_STAT_rx_multicast];
 		core_stats->collisions = stats[SIENA_STAT_tx_collision];
 		core_stats->rx_length_errors =
@@ -591,11 +683,11 @@ static size_t siena_update_nic_stats(struct efx_nic *efx, u64 *full_stats,
 			stats[SIENA_STAT_tx_late_collision];
 
 		core_stats->rx_errors = (core_stats->rx_length_errors +
-					 core_stats->rx_crc_errors +
-					 core_stats->rx_frame_errors +
-					 stats[SIENA_STAT_rx_symbol_error]);
+								 core_stats->rx_crc_errors +
+								 core_stats->rx_frame_errors +
+								 stats[SIENA_STAT_rx_symbol_error]);
 		core_stats->tx_errors = (core_stats->tx_window_errors +
-					 stats[SIENA_STAT_tx_bad]);
+								 stats[SIENA_STAT_tx_bad]);
 	}
 
 	return SIENA_STAT_COUNT;
@@ -607,21 +699,24 @@ static int siena_mac_reconfigure(struct efx_nic *efx)
 	int rc;
 
 	BUILD_BUG_ON(MC_CMD_SET_MCAST_HASH_IN_LEN !=
-		     MC_CMD_SET_MCAST_HASH_IN_HASH0_OFST +
-		     sizeof(efx->multicast_hash));
+				 MC_CMD_SET_MCAST_HASH_IN_HASH0_OFST +
+				 sizeof(efx->multicast_hash));
 
 	efx_farch_filter_sync_rx_mode(efx);
 
 	WARN_ON(!mutex_is_locked(&efx->mac_lock));
 
 	rc = efx_mcdi_set_mac(efx);
+
 	if (rc != 0)
+	{
 		return rc;
+	}
 
 	memcpy(MCDI_PTR(inbuf, SET_MCAST_HASH_IN_HASH0),
-	       efx->multicast_hash.byte, sizeof(efx->multicast_hash));
+		   efx->multicast_hash.byte, sizeof(efx->multicast_hash));
 	return efx_mcdi_rpc(efx, MC_CMD_SET_MCAST_HASH,
-			    inbuf, sizeof(inbuf), NULL, 0, NULL);
+						inbuf, sizeof(inbuf), NULL, 0, NULL);
 }
 
 /**************************************************************************
@@ -636,10 +731,16 @@ static void siena_get_wol(struct efx_nic *efx, struct ethtool_wolinfo *wol)
 	struct siena_nic_data *nic_data = efx->nic_data;
 
 	wol->supported = WAKE_MAGIC;
+
 	if (nic_data->wol_filter_id != -1)
+	{
 		wol->wolopts = WAKE_MAGIC;
+	}
 	else
+	{
 		wol->wolopts = 0;
+	}
+
 	memset(&wol->sopass, 0, sizeof(wol->sopass));
 }
 
@@ -650,30 +751,42 @@ static int siena_set_wol(struct efx_nic *efx, u32 type)
 	int rc;
 
 	if (type & ~WAKE_MAGIC)
+	{
 		return -EINVAL;
+	}
 
-	if (type & WAKE_MAGIC) {
+	if (type & WAKE_MAGIC)
+	{
 		if (nic_data->wol_filter_id != -1)
 			efx_mcdi_wol_filter_remove(efx,
-						   nic_data->wol_filter_id);
+									   nic_data->wol_filter_id);
+
 		rc = efx_mcdi_wol_filter_set_magic(efx, efx->net_dev->dev_addr,
-						   &nic_data->wol_filter_id);
+										   &nic_data->wol_filter_id);
+
 		if (rc)
+		{
 			goto fail;
+		}
 
 		pci_wake_from_d3(efx->pci_dev, true);
-	} else {
+	}
+	else
+	{
 		rc = efx_mcdi_wol_filter_reset(efx);
 		nic_data->wol_filter_id = -1;
 		pci_wake_from_d3(efx->pci_dev, false);
+
 		if (rc)
+		{
 			goto fail;
+		}
 	}
 
 	return 0;
- fail:
+fail:
 	netif_err(efx, hw, efx->net_dev, "%s failed: type=%d rc=%d\n",
-		  __func__, type, rc);
+			  __func__, type, rc);
 	return rc;
 }
 
@@ -685,12 +798,15 @@ static void siena_init_wol(struct efx_nic *efx)
 
 	rc = efx_mcdi_wol_filter_get_magic(efx, &nic_data->wol_filter_id);
 
-	if (rc != 0) {
+	if (rc != 0)
+	{
 		/* If it failed, attempt to get into a synchronised
 		 * state with MC by resetting any set WoL filters */
 		efx_mcdi_wol_filter_reset(efx);
 		nic_data->wol_filter_id = -1;
-	} else if (nic_data->wol_filter_id != -1) {
+	}
+	else if (nic_data->wol_filter_id != -1)
+	{
 		pci_wake_from_d3(efx->pci_dev, true);
 	}
 }
@@ -710,8 +826,8 @@ static void siena_init_wol(struct efx_nic *efx)
 	(efx_port_num(efx) ? MC_SMEM_P1_STATUS_OFST : MC_SMEM_P0_STATUS_OFST)
 
 static void siena_mcdi_request(struct efx_nic *efx,
-			       const efx_dword_t *hdr, size_t hdr_len,
-			       const efx_dword_t *sdu, size_t sdu_len)
+							   const efx_dword_t *hdr, size_t hdr_len,
+							   const efx_dword_t *sdu, size_t sdu_len)
 {
 	unsigned pdu = FR_CZ_MC_TREG_SMEM + MCDI_PDU(efx);
 	unsigned doorbell = FR_CZ_MC_TREG_SMEM + MCDI_DOORBELL(efx);
@@ -723,7 +839,9 @@ static void siena_mcdi_request(struct efx_nic *efx,
 	efx_writed(efx, hdr, pdu);
 
 	for (i = 0; i < inlen_dw; i++)
+	{
 		efx_writed(efx, &sdu[i], pdu + hdr_len + 4 * i);
+	}
 
 	/* Ensure the request is written out before the doorbell */
 	wmb();
@@ -744,18 +862,20 @@ static bool siena_mcdi_poll_response(struct efx_nic *efx)
 	 * completing the command
 	 */
 	return EFX_DWORD_FIELD(hdr, EFX_DWORD_0) != 0xffffffff &&
-		EFX_DWORD_FIELD(hdr, MCDI_HEADER_RESPONSE);
+		   EFX_DWORD_FIELD(hdr, MCDI_HEADER_RESPONSE);
 }
 
 static void siena_mcdi_read_response(struct efx_nic *efx, efx_dword_t *outbuf,
-				     size_t offset, size_t outlen)
+									 size_t offset, size_t outlen)
 {
 	unsigned int pdu = FR_CZ_MC_TREG_SMEM + MCDI_PDU(efx);
 	unsigned int outlen_dw = DIV_ROUND_UP(outlen, 4);
 	int i;
 
 	for (i = 0; i < outlen_dw; i++)
+	{
 		efx_readd(efx, &outbuf[i], pdu + offset + 4 * i);
+	}
 }
 
 static int siena_mcdi_poll_reboot(struct efx_nic *efx)
@@ -769,7 +889,9 @@ static int siena_mcdi_poll_reboot(struct efx_nic *efx)
 	value = EFX_DWORD_FIELD(reg, EFX_DWORD_0);
 
 	if (value == 0)
+	{
 		return 0;
+	}
 
 	EFX_ZERO_DWORD(reg);
 	efx_writed(efx, &reg, addr);
@@ -781,9 +903,13 @@ static int siena_mcdi_poll_reboot(struct efx_nic *efx)
 	nic_data->stats[SIENA_STAT_rx_good_bytes] = 0;
 
 	if (value == MC_STATUS_DWORD_ASSERT)
+	{
 		return -EINTR;
+	}
 	else
+	{
 		return -EIO;
+	}
 }
 
 /**************************************************************************
@@ -795,12 +921,14 @@ static int siena_mcdi_poll_reboot(struct efx_nic *efx)
 
 #ifdef CONFIG_SFC_MTD
 
-struct siena_nvram_type_info {
+struct siena_nvram_type_info
+{
 	int port;
 	const char *name;
 };
 
-static const struct siena_nvram_type_info siena_nvram_types[] = {
+static const struct siena_nvram_type_info siena_nvram_types[] =
+{
 	[MC_CMD_NVRAM_TYPE_DISABLED_CALLISTO]	= { 0, "sfc_dummy_phy" },
 	[MC_CMD_NVRAM_TYPE_MC_FW]		= { 0, "sfc_mcfw" },
 	[MC_CMD_NVRAM_TYPE_MC_FW_BACKUP]	= { 0, "sfc_mcfw_backup" },
@@ -817,8 +945,8 @@ static const struct siena_nvram_type_info siena_nvram_types[] = {
 };
 
 static int siena_mtd_probe_partition(struct efx_nic *efx,
-				     struct efx_mcdi_mtd_partition *part,
-				     unsigned int type)
+									 struct efx_mcdi_mtd_partition *part,
+									 unsigned int type)
 {
 	const struct siena_nvram_type_info *info;
 	size_t size, erase_size;
@@ -826,19 +954,29 @@ static int siena_mtd_probe_partition(struct efx_nic *efx,
 	int rc;
 
 	if (type >= ARRAY_SIZE(siena_nvram_types) ||
-	    siena_nvram_types[type].name == NULL)
+		siena_nvram_types[type].name == NULL)
+	{
 		return -ENODEV;
+	}
 
 	info = &siena_nvram_types[type];
 
 	if (info->port != efx_port_num(efx))
+	{
 		return -ENODEV;
+	}
 
 	rc = efx_mcdi_nvram_info(efx, type, &size, &erase_size, &protected);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	if (protected)
-		return -ENODEV; /* hide it */
+	{
+		return -ENODEV;    /* hide it */
+	}
 
 	part->nvram_type = type;
 	part->common.dev_type_name = "Siena NVRAM manager";
@@ -853,8 +991,8 @@ static int siena_mtd_probe_partition(struct efx_nic *efx,
 }
 
 static int siena_mtd_get_fw_subtypes(struct efx_nic *efx,
-				     struct efx_mcdi_mtd_partition *parts,
-				     size_t n_parts)
+									 struct efx_mcdi_mtd_partition *parts,
+									 size_t n_parts)
 {
 	uint16_t fw_subtype_list[
 		MC_CMD_GET_BOARD_CFG_OUT_FW_SUBTYPE_LIST_MAXNUM];
@@ -862,11 +1000,16 @@ static int siena_mtd_get_fw_subtypes(struct efx_nic *efx,
 	int rc;
 
 	rc = efx_mcdi_get_board_cfg(efx, NULL, fw_subtype_list, NULL);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	for (i = 0; i < n_parts; i++)
+	{
 		parts[i].fw_subtype = fw_subtype_list[parts[i].nvram_type];
+	}
 
 	return 0;
 }
@@ -882,37 +1025,58 @@ static int siena_mtd_probe(struct efx_nic *efx)
 	ASSERT_RTNL();
 
 	rc = efx_mcdi_nvram_types(efx, &nvram_types);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	parts = kcalloc(hweight32(nvram_types), sizeof(*parts), GFP_KERNEL);
+
 	if (!parts)
+	{
 		return -ENOMEM;
+	}
 
 	type = 0;
 	n_parts = 0;
 
-	while (nvram_types != 0) {
-		if (nvram_types & 1) {
+	while (nvram_types != 0)
+	{
+		if (nvram_types & 1)
+		{
 			rc = siena_mtd_probe_partition(efx, &parts[n_parts],
-						       type);
+										   type);
+
 			if (rc == 0)
+			{
 				n_parts++;
+			}
 			else if (rc != -ENODEV)
+			{
 				goto fail;
+			}
 		}
+
 		type++;
 		nvram_types >>= 1;
 	}
 
 	rc = siena_mtd_get_fw_subtypes(efx, parts, n_parts);
+
 	if (rc)
+	{
 		goto fail;
+	}
 
 	rc = efx_mtd_add(efx, &parts[0].common, n_parts, sizeof(*parts));
 fail:
+
 	if (rc)
+	{
 		kfree(parts);
+	}
+
 	return rc;
 }
 
@@ -925,7 +1089,8 @@ fail:
  **************************************************************************
  */
 
-const struct efx_nic_type siena_a0_nic_type = {
+const struct efx_nic_type siena_a0_nic_type =
+{
 	.is_vf = false,
 	.mem_bar = EFX_MEM_BAR,
 	.mem_map_size = siena_mem_map_size,
@@ -1046,10 +1211,10 @@ const struct efx_nic_type siena_a0_nic_type = {
 	.max_interrupt_mode = EFX_INT_MODE_MSIX,
 	.timer_period_max = 1 << FRF_CZ_TC_TIMER_VAL_WIDTH,
 	.offload_features = (NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM |
-			     NETIF_F_RXHASH | NETIF_F_NTUPLE),
+	NETIF_F_RXHASH | NETIF_F_NTUPLE),
 	.mcdi_max_ver = 1,
 	.max_rx_ip_filters = FR_BZ_RX_FILTER_TBL0_ROWS,
 	.hwtstamp_filters = (1 << HWTSTAMP_FILTER_NONE |
-			     1 << HWTSTAMP_FILTER_PTP_V1_L4_EVENT |
-			     1 << HWTSTAMP_FILTER_PTP_V2_L4_EVENT),
+	1 << HWTSTAMP_FILTER_PTP_V1_L4_EVENT |
+	1 << HWTSTAMP_FILTER_PTP_V2_L4_EVENT),
 };

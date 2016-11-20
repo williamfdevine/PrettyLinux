@@ -38,7 +38,8 @@ struct gpio_desc;
 #define ISP1760_FLAG_INTR_POL_HIGH	0x00000080 /* Interrupt polarity active high */
 #define ISP1760_FLAG_INTR_EDGE_TRIG	0x00000100 /* Interrupt edge triggered */
 
-struct isp1760_device {
+struct isp1760_device
+{
 	struct device *dev;
 
 	void __iomem *regs;
@@ -50,7 +51,7 @@ struct isp1760_device {
 };
 
 int isp1760_register(struct resource *mem, int irq, unsigned long irqflags,
-		     struct device *dev, unsigned int devflags);
+					 struct device *dev, unsigned int devflags);
 void isp1760_unregister(struct device *dev);
 
 void isp1760_set_pullup(struct isp1760_device *isp, bool enable);

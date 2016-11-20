@@ -11,30 +11,30 @@
  ****************************************************************************/
 
 #ifdef __KERNEL__
-#include <linux/kernel.h>
+	#include <linux/kernel.h>
 #else
-#include <stdio.h>
+	#include <stdio.h>
 #endif
 #include <linux/netfilter/nf_conntrack_h323_asn1.h>
 
 /* Trace Flag */
 #ifndef H323_TRACE
-#define H323_TRACE 0
+	#define H323_TRACE 0
 #endif
 
 #if H323_TRACE
-#define TAB_SIZE 4
-#define IFTHEN(cond, act) if(cond){act;}
-#ifdef __KERNEL__
-#define PRINT printk
+	#define TAB_SIZE 4
+	#define IFTHEN(cond, act) if(cond){act;}
+	#ifdef __KERNEL__
+		#define PRINT printk
+	#else
+		#define PRINT printf
+	#endif
+	#define FNAME(name) name,
 #else
-#define PRINT printf
-#endif
-#define FNAME(name) name,
-#else
-#define IFTHEN(cond, act)
-#define PRINT(fmt, args...)
-#define FNAME(name)
+	#define IFTHEN(cond, act)
+	#define PRINT(fmt, args...)
+	#define FNAME(name)
 #endif
 
 /* ASN.1 Types */
@@ -77,7 +77,8 @@
 
 
 /* ASN.1 Field Structure */
-typedef struct field_t {
+typedef struct field_t
+{
 #if H323_TRACE
 	char *name;
 #endif
@@ -91,7 +92,8 @@ typedef struct field_t {
 } field_t;
 
 /* Bit Stream */
-typedef struct {
+typedef struct
+{
 	unsigned char *buf;
 	unsigned char *beg;
 	unsigned char *end;
@@ -126,7 +128,8 @@ static int decode_choice(bitstr_t *bs, const struct field_t *f, char *base, int 
 
 /* Decoder Functions Vector */
 typedef int (*decoder_t)(bitstr_t *, const struct field_t *, char *, int);
-static const decoder_t Decoders[] = {
+static const decoder_t Decoders[] =
+{
 	decode_nul,
 	decode_bool,
 	decode_oid,
@@ -156,7 +159,8 @@ static unsigned int get_len(bitstr_t *bs)
 
 	v = *bs->cur++;
 
-	if (v & 0x80) {
+	if (v & 0x80)
+	{
 		v &= 0x3f;
 		v <<= 8;
 		v += *bs->cur++;
@@ -184,13 +188,18 @@ static unsigned int get_bits(bitstr_t *bs, unsigned int b)
 	v = (*bs->cur) & (0xffU >> bs->bit);
 	l = b + bs->bit;
 
-	if (l < 8) {
+	if (l < 8)
+	{
 		v >>= 8 - l;
 		bs->bit = l;
-	} else if (l == 8) {
+	}
+	else if (l == 8)
+	{
 		bs->cur++;
 		bs->bit = 0;
-	} else {		/* l > 8 */
+	}
+	else  		/* l > 8 */
+	{
 
 		v <<= 8;
 		v += *(++bs->cur);
@@ -208,25 +217,37 @@ static unsigned int get_bitmap(bitstr_t *bs, unsigned int b)
 	unsigned int v, l, shift, bytes;
 
 	if (!b)
+	{
 		return 0;
+	}
 
 	l = bs->bit + b;
 
-	if (l < 8) {
+	if (l < 8)
+	{
 		v = (unsigned int)(*bs->cur) << (bs->bit + 24);
 		bs->bit = l;
-	} else if (l == 8) {
+	}
+	else if (l == 8)
+	{
 		v = (unsigned int)(*bs->cur++) << (bs->bit + 24);
 		bs->bit = 0;
-	} else {
+	}
+	else
+	{
 		for (bytes = l >> 3, shift = 24, v = 0; bytes;
-		     bytes--, shift -= 8)
+			 bytes--, shift -= 8)
+		{
 			v |= (unsigned int)(*bs->cur++) << shift;
+		}
 
-		if (l < 32) {
+		if (l < 32)
+		{
 			v |= (unsigned int)(*bs->cur) << shift;
 			v <<= bs->bit;
-		} else if (l > 32) {
+		}
+		else if (l > 32)
+		{
 			v <<= bs->bit;
 			v |= (*bs->cur) >> (8 - bs->bit);
 		}
@@ -246,26 +267,31 @@ static unsigned int get_uint(bitstr_t *bs, int b)
 {
 	unsigned int v = 0;
 
-	switch (b) {
-	case 4:
-		v |= *bs->cur++;
-		v <<= 8;
-	case 3:
-		v |= *bs->cur++;
-		v <<= 8;
-	case 2:
-		v |= *bs->cur++;
-		v <<= 8;
-	case 1:
-		v |= *bs->cur++;
-		break;
+	switch (b)
+	{
+		case 4:
+			v |= *bs->cur++;
+			v <<= 8;
+
+		case 3:
+			v |= *bs->cur++;
+			v <<= 8;
+
+		case 2:
+			v |= *bs->cur++;
+			v <<= 8;
+
+		case 1:
+			v |= *bs->cur++;
+			break;
 	}
+
 	return v;
 }
 
 /****************************************************************************/
 static int decode_nul(bitstr_t *bs, const struct field_t *f,
-                      char *base, int level)
+					  char *base, int level)
 {
 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
 
@@ -274,7 +300,7 @@ static int decode_nul(bitstr_t *bs, const struct field_t *f,
 
 /****************************************************************************/
 static int decode_bool(bitstr_t *bs, const struct field_t *f,
-                       char *base, int level)
+					   char *base, int level)
 {
 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
 
@@ -286,7 +312,7 @@ static int decode_bool(bitstr_t *bs, const struct field_t *f,
 
 /****************************************************************************/
 static int decode_oid(bitstr_t *bs, const struct field_t *f,
-                      char *base, int level)
+					  char *base, int level)
 {
 	int len;
 
@@ -303,40 +329,48 @@ static int decode_oid(bitstr_t *bs, const struct field_t *f,
 
 /****************************************************************************/
 static int decode_int(bitstr_t *bs, const struct field_t *f,
-                      char *base, int level)
+					  char *base, int level)
 {
 	unsigned int len;
 
 	PRINT("%*.s%s", level * TAB_SIZE, " ", f->name);
 
-	switch (f->sz) {
-	case BYTE:		/* Range == 256 */
-		BYTE_ALIGN(bs);
-		bs->cur++;
-		break;
-	case WORD:		/* 257 <= Range <= 64K */
-		BYTE_ALIGN(bs);
-		bs->cur += 2;
-		break;
-	case CONS:		/* 64K < Range < 4G */
-		len = get_bits(bs, 2) + 1;
-		BYTE_ALIGN(bs);
-		if (base && (f->attr & DECODE)) {	/* timeToLive */
-			unsigned int v = get_uint(bs, len) + f->lb;
-			PRINT(" = %u", v);
-			*((unsigned int *)(base + f->offset)) = v;
-		}
-		bs->cur += len;
-		break;
-	case UNCO:
-		BYTE_ALIGN(bs);
-		CHECK_BOUND(bs, 2);
-		len = get_len(bs);
-		bs->cur += len;
-		break;
-	default:		/* 2 <= Range <= 255 */
-		INC_BITS(bs, f->sz);
-		break;
+	switch (f->sz)
+	{
+		case BYTE:		/* Range == 256 */
+			BYTE_ALIGN(bs);
+			bs->cur++;
+			break;
+
+		case WORD:		/* 257 <= Range <= 64K */
+			BYTE_ALIGN(bs);
+			bs->cur += 2;
+			break;
+
+		case CONS:		/* 64K < Range < 4G */
+			len = get_bits(bs, 2) + 1;
+			BYTE_ALIGN(bs);
+
+			if (base && (f->attr & DECODE))  	/* timeToLive */
+			{
+				unsigned int v = get_uint(bs, len) + f->lb;
+				PRINT(" = %u", v);
+				*((unsigned int *)(base + f->offset)) = v;
+			}
+
+			bs->cur += len;
+			break;
+
+		case UNCO:
+			BYTE_ALIGN(bs);
+			CHECK_BOUND(bs, 2);
+			len = get_len(bs);
+			bs->cur += len;
+			break;
+
+		default:		/* 2 <= Range <= 255 */
+			INC_BITS(bs, f->sz);
+			break;
 	}
 
 	PRINT("\n");
@@ -347,13 +381,16 @@ static int decode_int(bitstr_t *bs, const struct field_t *f,
 
 /****************************************************************************/
 static int decode_enum(bitstr_t *bs, const struct field_t *f,
-                       char *base, int level)
+					   char *base, int level)
 {
 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
 
-	if ((f->attr & EXT) && get_bit(bs)) {
+	if ((f->attr & EXT) && get_bit(bs))
+	{
 		INC_BITS(bs, 7);
-	} else {
+	}
+	else
+	{
 		INC_BITS(bs, f->sz);
 	}
 
@@ -363,29 +400,34 @@ static int decode_enum(bitstr_t *bs, const struct field_t *f,
 
 /****************************************************************************/
 static int decode_bitstr(bitstr_t *bs, const struct field_t *f,
-                         char *base, int level)
+						 char *base, int level)
 {
 	unsigned int len;
 
 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
 
 	BYTE_ALIGN(bs);
-	switch (f->sz) {
-	case FIXD:		/* fixed length > 16 */
-		len = f->lb;
-		break;
-	case WORD:		/* 2-byte length */
-		CHECK_BOUND(bs, 2);
-		len = (*bs->cur++) << 8;
-		len += (*bs->cur++) + f->lb;
-		break;
-	case SEMI:
-		CHECK_BOUND(bs, 2);
-		len = get_len(bs);
-		break;
-	default:
-		len = 0;
-		break;
+
+	switch (f->sz)
+	{
+		case FIXD:		/* fixed length > 16 */
+			len = f->lb;
+			break;
+
+		case WORD:		/* 2-byte length */
+			CHECK_BOUND(bs, 2);
+			len = (*bs->cur++) << 8;
+			len += (*bs->cur++) + f->lb;
+			break;
+
+		case SEMI:
+			CHECK_BOUND(bs, 2);
+			len = get_len(bs);
+			break;
+
+		default:
+			len = 0;
+			break;
 	}
 
 	bs->cur += len >> 3;
@@ -397,7 +439,7 @@ static int decode_bitstr(bitstr_t *bs, const struct field_t *f,
 
 /****************************************************************************/
 static int decode_numstr(bitstr_t *bs, const struct field_t *f,
-                         char *base, int level)
+						 char *base, int level)
 {
 	unsigned int len;
 
@@ -415,43 +457,51 @@ static int decode_numstr(bitstr_t *bs, const struct field_t *f,
 
 /****************************************************************************/
 static int decode_octstr(bitstr_t *bs, const struct field_t *f,
-                         char *base, int level)
+						 char *base, int level)
 {
 	unsigned int len;
 
 	PRINT("%*.s%s", level * TAB_SIZE, " ", f->name);
 
-	switch (f->sz) {
-	case FIXD:		/* Range == 1 */
-		if (f->lb > 2) {
-			BYTE_ALIGN(bs);
-			if (base && (f->attr & DECODE)) {
-				/* The IP Address */
-				IFTHEN(f->lb == 4,
-				       PRINT(" = %d.%d.%d.%d:%d",
-					     bs->cur[0], bs->cur[1],
-					     bs->cur[2], bs->cur[3],
-					     bs->cur[4] * 256 + bs->cur[5]));
-				*((unsigned int *)(base + f->offset)) =
-				    bs->cur - bs->buf;
+	switch (f->sz)
+	{
+		case FIXD:		/* Range == 1 */
+			if (f->lb > 2)
+			{
+				BYTE_ALIGN(bs);
+
+				if (base && (f->attr & DECODE))
+				{
+					/* The IP Address */
+					IFTHEN(f->lb == 4,
+						   PRINT(" = %d.%d.%d.%d:%d",
+								 bs->cur[0], bs->cur[1],
+								 bs->cur[2], bs->cur[3],
+								 bs->cur[4] * 256 + bs->cur[5]));
+					*((unsigned int *)(base + f->offset)) =
+						bs->cur - bs->buf;
+				}
 			}
-		}
-		len = f->lb;
-		break;
-	case BYTE:		/* Range == 256 */
-		BYTE_ALIGN(bs);
-		CHECK_BOUND(bs, 1);
-		len = (*bs->cur++) + f->lb;
-		break;
-	case SEMI:
-		BYTE_ALIGN(bs);
-		CHECK_BOUND(bs, 2);
-		len = get_len(bs) + f->lb;
-		break;
-	default:		/* 2 <= Range <= 255 */
-		len = get_bits(bs, f->sz) + f->lb;
-		BYTE_ALIGN(bs);
-		break;
+
+			len = f->lb;
+			break;
+
+		case BYTE:		/* Range == 256 */
+			BYTE_ALIGN(bs);
+			CHECK_BOUND(bs, 1);
+			len = (*bs->cur++) + f->lb;
+			break;
+
+		case SEMI:
+			BYTE_ALIGN(bs);
+			CHECK_BOUND(bs, 2);
+			len = get_len(bs) + f->lb;
+			break;
+
+		default:		/* 2 <= Range <= 255 */
+			len = get_bits(bs, f->sz) + f->lb;
+			BYTE_ALIGN(bs);
+			break;
 	}
 
 	bs->cur += len;
@@ -464,22 +514,24 @@ static int decode_octstr(bitstr_t *bs, const struct field_t *f,
 
 /****************************************************************************/
 static int decode_bmpstr(bitstr_t *bs, const struct field_t *f,
-                         char *base, int level)
+						 char *base, int level)
 {
 	unsigned int len;
 
 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
 
-	switch (f->sz) {
-	case BYTE:		/* Range == 256 */
-		BYTE_ALIGN(bs);
-		CHECK_BOUND(bs, 1);
-		len = (*bs->cur++) + f->lb;
-		break;
-	default:		/* 2 <= Range <= 255 */
-		len = get_bits(bs, f->sz) + f->lb;
-		BYTE_ALIGN(bs);
-		break;
+	switch (f->sz)
+	{
+		case BYTE:		/* Range == 256 */
+			BYTE_ALIGN(bs);
+			CHECK_BOUND(bs, 1);
+			len = (*bs->cur++) + f->lb;
+			break;
+
+		default:		/* 2 <= Range <= 255 */
+			len = get_bits(bs, f->sz) + f->lb;
+			BYTE_ALIGN(bs);
+			break;
 	}
 
 	bs->cur += len << 1;
@@ -490,7 +542,7 @@ static int decode_bmpstr(bitstr_t *bs, const struct field_t *f,
 
 /****************************************************************************/
 static int decode_seq(bitstr_t *bs, const struct field_t *f,
-                      char *base, int level)
+					  char *base, int level)
 {
 	unsigned int ext, bmp, i, opt, len = 0, bmp2, bmp2_len;
 	int err;
@@ -507,66 +559,91 @@ static int decode_seq(bitstr_t *bs, const struct field_t *f,
 
 	/* Get fields bitmap */
 	bmp = get_bitmap(bs, f->sz);
+
 	if (base)
+	{
 		*(unsigned int *)base = bmp;
+	}
 
 	/* Decode the root components */
-	for (i = opt = 0, son = f->fields; i < f->lb; i++, son++) {
-		if (son->attr & STOP) {
+	for (i = opt = 0, son = f->fields; i < f->lb; i++, son++)
+	{
+		if (son->attr & STOP)
+		{
 			PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ",
-			      son->name);
+				  son->name);
 			return H323_ERROR_STOP;
 		}
 
-		if (son->attr & OPT) {	/* Optional component */
+		if (son->attr & OPT)  	/* Optional component */
+		{
 			if (!((0x80000000U >> (opt++)) & bmp))	/* Not exist */
+			{
 				continue;
+			}
 		}
 
 		/* Decode */
-		if (son->attr & OPEN) {	/* Open field */
+		if (son->attr & OPEN)  	/* Open field */
+		{
 			CHECK_BOUND(bs, 2);
 			len = get_len(bs);
 			CHECK_BOUND(bs, len);
-			if (!base || !(son->attr & DECODE)) {
+
+			if (!base || !(son->attr & DECODE))
+			{
 				PRINT("%*.s%s\n", (level + 1) * TAB_SIZE,
-				      " ", son->name);
+					  " ", son->name);
 				bs->cur += len;
 				continue;
 			}
+
 			beg = bs->cur;
 
 			/* Decode */
 			if ((err = (Decoders[son->type]) (bs, son, base,
-							  level + 1)) <
-			    H323_ERROR_NONE)
+											  level + 1)) <
+				H323_ERROR_NONE)
+			{
 				return err;
+			}
 
 			bs->cur = beg + len;
 			bs->bit = 0;
-		} else if ((err = (Decoders[son->type]) (bs, son, base,
-							 level + 1)) <
-			   H323_ERROR_NONE)
+		}
+		else if ((err = (Decoders[son->type]) (bs, son, base,
+											   level + 1)) <
+				 H323_ERROR_NONE)
+		{
 			return err;
+		}
 	}
 
 	/* No extension? */
 	if (!ext)
+	{
 		return H323_ERROR_NONE;
+	}
 
 	/* Get the extension bitmap */
 	bmp2_len = get_bits(bs, 7) + 1;
 	CHECK_BOUND(bs, (bmp2_len + 7) >> 3);
 	bmp2 = get_bitmap(bs, bmp2_len);
 	bmp |= bmp2 >> f->sz;
+
 	if (base)
+	{
 		*(unsigned int *)base = bmp;
+	}
+
 	BYTE_ALIGN(bs);
 
 	/* Decode the extension components */
-	for (opt = 0; opt < bmp2_len; opt++, i++, son++) {
+	for (opt = 0; opt < bmp2_len; opt++, i++, son++)
+	{
 		/* Check Range */
-		if (i >= f->ub) {	/* Newer Version? */
+		if (i >= f->ub)  	/* Newer Version? */
+		{
 			CHECK_BOUND(bs, 2);
 			len = get_len(bs);
 			CHECK_BOUND(bs, len);
@@ -574,40 +651,49 @@ static int decode_seq(bitstr_t *bs, const struct field_t *f,
 			continue;
 		}
 
-		if (son->attr & STOP) {
+		if (son->attr & STOP)
+		{
 			PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ",
-			      son->name);
+				  son->name);
 			return H323_ERROR_STOP;
 		}
 
 		if (!((0x80000000 >> opt) & bmp2))	/* Not present */
+		{
 			continue;
+		}
 
 		CHECK_BOUND(bs, 2);
 		len = get_len(bs);
 		CHECK_BOUND(bs, len);
-		if (!base || !(son->attr & DECODE)) {
+
+		if (!base || !(son->attr & DECODE))
+		{
 			PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ",
-			      son->name);
+				  son->name);
 			bs->cur += len;
 			continue;
 		}
+
 		beg = bs->cur;
 
 		if ((err = (Decoders[son->type]) (bs, son, base,
-						  level + 1)) <
-		    H323_ERROR_NONE)
+										  level + 1)) <
+			H323_ERROR_NONE)
+		{
 			return err;
+		}
 
 		bs->cur = beg + len;
 		bs->bit = 0;
 	}
+
 	return H323_ERROR_NONE;
 }
 
 /****************************************************************************/
 static int decode_seqof(bitstr_t *bs, const struct field_t *f,
-                        char *base, int level)
+						char *base, int level)
 {
 	unsigned int count, effective_count = 0, i, len = 0;
 	int err;
@@ -620,32 +706,38 @@ static int decode_seqof(bitstr_t *bs, const struct field_t *f,
 	base = (base && (f->attr & DECODE)) ? base + f->offset : NULL;
 
 	/* Decode item count */
-	switch (f->sz) {
-	case BYTE:
-		BYTE_ALIGN(bs);
-		CHECK_BOUND(bs, 1);
-		count = *bs->cur++;
-		break;
-	case WORD:
-		BYTE_ALIGN(bs);
-		CHECK_BOUND(bs, 2);
-		count = *bs->cur++;
-		count <<= 8;
-		count += *bs->cur++;
-		break;
-	case SEMI:
-		BYTE_ALIGN(bs);
-		CHECK_BOUND(bs, 2);
-		count = get_len(bs);
-		break;
-	default:
-		count = get_bits(bs, f->sz);
-		break;
+	switch (f->sz)
+	{
+		case BYTE:
+			BYTE_ALIGN(bs);
+			CHECK_BOUND(bs, 1);
+			count = *bs->cur++;
+			break;
+
+		case WORD:
+			BYTE_ALIGN(bs);
+			CHECK_BOUND(bs, 2);
+			count = *bs->cur++;
+			count <<= 8;
+			count += *bs->cur++;
+			break;
+
+		case SEMI:
+			BYTE_ALIGN(bs);
+			CHECK_BOUND(bs, 2);
+			count = get_len(bs);
+			break;
+
+		default:
+			count = get_bits(bs, f->sz);
+			break;
 	}
+
 	count += f->lb;
 
 	/* Write Count */
-	if (base) {
+	if (base)
+	{
 		effective_count = count > f->ub ? f->ub : count;
 		*(unsigned int *)base = effective_count;
 		base += sizeof(unsigned int);
@@ -653,42 +745,57 @@ static int decode_seqof(bitstr_t *bs, const struct field_t *f,
 
 	/* Decode nested field */
 	son = f->fields;
+
 	if (base)
+	{
 		base -= son->offset;
-	for (i = 0; i < count; i++) {
-		if (son->attr & OPEN) {
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		if (son->attr & OPEN)
+		{
 			BYTE_ALIGN(bs);
 			len = get_len(bs);
 			CHECK_BOUND(bs, len);
-			if (!base || !(son->attr & DECODE)) {
+
+			if (!base || !(son->attr & DECODE))
+			{
 				PRINT("%*.s%s\n", (level + 1) * TAB_SIZE,
-				      " ", son->name);
+					  " ", son->name);
 				bs->cur += len;
 				continue;
 			}
+
 			beg = bs->cur;
 
 			if ((err = (Decoders[son->type]) (bs, son,
-							  i <
-							  effective_count ?
-							  base : NULL,
-							  level + 1)) <
-			    H323_ERROR_NONE)
+											  i <
+											  effective_count ?
+											  base : NULL,
+											  level + 1)) <
+				H323_ERROR_NONE)
+			{
 				return err;
+			}
 
 			bs->cur = beg + len;
 			bs->bit = 0;
-		} else
-			if ((err = (Decoders[son->type]) (bs, son,
-							  i <
-							  effective_count ?
-							  base : NULL,
-							  level + 1)) <
-			    H323_ERROR_NONE)
-				return err;
+		}
+		else if ((err = (Decoders[son->type]) (bs, son,
+											   i <
+											   effective_count ?
+											   base : NULL,
+											   level + 1)) <
+				 H323_ERROR_NONE)
+		{
+			return err;
+		}
 
 		if (base)
+		{
 			base += son->offset;
+		}
 	}
 
 	return H323_ERROR_NONE;
@@ -697,7 +804,7 @@ static int decode_seqof(bitstr_t *bs, const struct field_t *f,
 
 /****************************************************************************/
 static int decode_choice(bitstr_t *bs, const struct field_t *f,
-                         char *base, int level)
+						 char *base, int level)
 {
 	unsigned int type, ext, len = 0;
 	int err;
@@ -710,22 +817,31 @@ static int decode_choice(bitstr_t *bs, const struct field_t *f,
 	base = (base && (f->attr & DECODE)) ? base + f->offset : NULL;
 
 	/* Decode the choice index number */
-	if ((f->attr & EXT) && get_bit(bs)) {
+	if ((f->attr & EXT) && get_bit(bs))
+	{
 		ext = 1;
 		type = get_bits(bs, 7) + f->lb;
-	} else {
+	}
+	else
+	{
 		ext = 0;
 		type = get_bits(bs, f->sz);
+
 		if (type >= f->lb)
+		{
 			return H323_ERROR_RANGE;
+		}
 	}
 
 	/* Write Type */
 	if (base)
+	{
 		*(unsigned int *)base = type;
+	}
 
 	/* Check Range */
-	if (type >= f->ub) {	/* Newer version? */
+	if (type >= f->ub)  	/* Newer version? */
+	{
 		BYTE_ALIGN(bs);
 		len = get_len(bs);
 		CHECK_BOUND(bs, len);
@@ -735,32 +851,43 @@ static int decode_choice(bitstr_t *bs, const struct field_t *f,
 
 	/* Transfer to son level */
 	son = &f->fields[type];
-	if (son->attr & STOP) {
+
+	if (son->attr & STOP)
+	{
 		PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ", son->name);
 		return H323_ERROR_STOP;
 	}
 
-	if (ext || (son->attr & OPEN)) {
+	if (ext || (son->attr & OPEN))
+	{
 		BYTE_ALIGN(bs);
 		len = get_len(bs);
 		CHECK_BOUND(bs, len);
-		if (!base || !(son->attr & DECODE)) {
+
+		if (!base || !(son->attr & DECODE))
+		{
 			PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ",
-			      son->name);
+				  son->name);
 			bs->cur += len;
 			return H323_ERROR_NONE;
 		}
+
 		beg = bs->cur;
 
 		if ((err = (Decoders[son->type]) (bs, son, base, level + 1)) <
-		    H323_ERROR_NONE)
+			H323_ERROR_NONE)
+		{
 			return err;
+		}
 
 		bs->cur = beg + len;
 		bs->bit = 0;
-	} else if ((err = (Decoders[son->type]) (bs, son, base, level + 1)) <
-		   H323_ERROR_NONE)
+	}
+	else if ((err = (Decoders[son->type]) (bs, son, base, level + 1)) <
+			 H323_ERROR_NONE)
+	{
 		return err;
+	}
 
 	return H323_ERROR_NONE;
 }
@@ -768,7 +895,8 @@ static int decode_choice(bitstr_t *bs, const struct field_t *f,
 /****************************************************************************/
 int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage *ras)
 {
-	static const struct field_t ras_message = {
+	static const struct field_t ras_message =
+	{
 		FNAME("RasMessage") CHOICE, 5, 24, 32, DECODE | EXT,
 		0, _RasMessage
 	};
@@ -783,9 +911,10 @@ int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage *ras)
 
 /****************************************************************************/
 static int DecodeH323_UserInformation(unsigned char *buf, unsigned char *beg,
-				      size_t sz, H323_UserInformation *uuie)
+									  size_t sz, H323_UserInformation *uuie)
 {
-	static const struct field_t h323_userinformation = {
+	static const struct field_t h323_userinformation =
+	{
 		FNAME("H323-UserInformation") SEQ, 1, 2, 2, DECODE | EXT,
 		0, _H323_UserInformation
 	};
@@ -801,10 +930,11 @@ static int DecodeH323_UserInformation(unsigned char *buf, unsigned char *beg,
 
 /****************************************************************************/
 int DecodeMultimediaSystemControlMessage(unsigned char *buf, size_t sz,
-					 MultimediaSystemControlMessage *
-					 mscm)
+		MultimediaSystemControlMessage *
+		mscm)
 {
-	static const struct field_t multimediasystemcontrolmessage = {
+	static const struct field_t multimediasystemcontrolmessage =
+	{
 		FNAME("MultimediaSystemControlMessage") CHOICE, 2, 4, 4,
 		DECODE | EXT, 0, _MultimediaSystemControlMessage
 	};
@@ -815,7 +945,7 @@ int DecodeMultimediaSystemControlMessage(unsigned char *buf, size_t sz,
 	bs.bit = 0;
 
 	return decode_choice(&bs, &multimediasystemcontrolmessage,
-			     (char *) mscm, 0);
+						 (char *) mscm, 0);
 }
 
 /****************************************************************************/
@@ -825,60 +955,94 @@ int DecodeQ931(unsigned char *buf, size_t sz, Q931 *q931)
 	int len;
 
 	if (!p || sz < 1)
+	{
 		return H323_ERROR_BOUND;
+	}
 
 	/* Protocol Discriminator */
-	if (*p != 0x08) {
+	if (*p != 0x08)
+	{
 		PRINT("Unknown Protocol Discriminator\n");
 		return H323_ERROR_RANGE;
 	}
+
 	p++;
 	sz--;
 
 	/* CallReferenceValue */
 	if (sz < 1)
+	{
 		return H323_ERROR_BOUND;
+	}
+
 	len = *p++;
 	sz--;
+
 	if (sz < len)
+	{
 		return H323_ERROR_BOUND;
+	}
+
 	p += len;
 	sz -= len;
 
 	/* Message Type */
 	if (sz < 2)
+	{
 		return H323_ERROR_BOUND;
+	}
+
 	q931->MessageType = *p++;
 	sz--;
 	PRINT("MessageType = %02X\n", q931->MessageType);
-	if (*p & 0x80) {
+
+	if (*p & 0x80)
+	{
 		p++;
 		sz--;
 	}
 
 	/* Decode Information Elements */
-	while (sz > 0) {
-		if (*p == 0x7e) {	/* UserUserIE */
+	while (sz > 0)
+	{
+		if (*p == 0x7e)  	/* UserUserIE */
+		{
 			if (sz < 3)
+			{
 				break;
+			}
+
 			p++;
 			len = *p++ << 8;
 			len |= *p++;
 			sz -= 3;
+
 			if (sz < len)
+			{
 				break;
+			}
+
 			p++;
 			len--;
 			return DecodeH323_UserInformation(buf, p, len,
-							  &q931->UUIE);
+											  &q931->UUIE);
 		}
+
 		p++;
 		sz--;
+
 		if (sz < 1)
+		{
 			break;
+		}
+
 		len = *p++;
+
 		if (sz < len)
+		{
 			break;
+		}
+
 		p += len;
 		sz -= len;
 	}

@@ -47,14 +47,14 @@ int __get_order(unsigned long size)
  * evaluations of constants.
  */
 #define get_order(n)						\
-(								\
-	__builtin_constant_p(n) ? (				\
-		((n) == 0UL) ? BITS_PER_LONG - PAGE_SHIFT :	\
-		(((n) < (1UL << PAGE_SHIFT)) ? 0 :		\
-		 ilog2((n) - 1) - PAGE_SHIFT + 1)		\
-	) :							\
-	__get_order(n)						\
-)
+	(								\
+									__builtin_constant_p(n) ? (				\
+											((n) == 0UL) ? BITS_PER_LONG - PAGE_SHIFT :	\
+											(((n) < (1UL << PAGE_SHIFT)) ? 0 :		\
+													ilog2((n) - 1) - PAGE_SHIFT + 1)		\
+															  ) :							\
+									__get_order(n)						\
+	)
 
 #endif	/* __ASSEMBLY__ */
 

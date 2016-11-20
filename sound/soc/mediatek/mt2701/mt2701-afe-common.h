@@ -28,7 +28,8 @@
 #define MT2701_AUD_AUD_MUX1_DIV_RATE (MT2701_PLL_DOMAIN_0_RATE / 2)
 #define MT2701_AUD_AUD_MUX2_DIV_RATE (MT2701_PLL_DOMAIN_1_RATE / 2)
 
-enum {
+enum
+{
 	MT2701_I2S_1,
 	MT2701_I2S_2,
 	MT2701_I2S_3,
@@ -36,7 +37,8 @@ enum {
 	MT2701_I2S_NUM,
 };
 
-enum {
+enum
+{
 	MT2701_MEMIF_DL1,
 	MT2701_MEMIF_DL2,
 	MT2701_MEMIF_DL3,
@@ -61,7 +63,8 @@ enum {
 	MT2701_IO_MRG,
 };
 
-enum {
+enum
+{
 	MT2701_IRQ_ASYS_START,
 	MT2701_IRQ_ASYS_IRQ1 = MT2701_IRQ_ASYS_START,
 	MT2701_IRQ_ASYS_IRQ2,
@@ -70,7 +73,8 @@ enum {
 };
 
 /* 2701 clock def */
-enum audio_system_clock_type {
+enum audio_system_clock_type
+{
 	MT2701_AUD_INFRA_SYS_AUDIO,
 	MT2701_AUD_AUD_MUX1_SEL,
 	MT2701_AUD_AUD_MUX2_SEL,
@@ -118,7 +122,8 @@ enum audio_system_clock_type {
 	MT2701_CLOCK_NUM
 };
 
-static const unsigned int mt2701_afe_backup_list[] = {
+static const unsigned int mt2701_afe_backup_list[] =
+{
 	AUDIO_TOP_CON0,
 	AUDIO_TOP_CON4,
 	AUDIO_TOP_CON5,
@@ -142,20 +147,23 @@ static const unsigned int mt2701_afe_backup_list[] = {
 struct snd_pcm_substream;
 struct mtk_base_irq_data;
 
-struct mt2701_i2s_data {
+struct mt2701_i2s_data
+{
 	int i2s_ctrl_reg;
 	int i2s_pwn_shift;
 	int i2s_asrc_fs_shift;
 	int i2s_asrc_fs_mask;
 };
 
-enum mt2701_i2s_dir {
+enum mt2701_i2s_dir
+{
 	I2S_OUT,
 	I2S_IN,
 	I2S_DIR_NUM,
 };
 
-struct mt2701_i2s_path {
+struct mt2701_i2s_path
+{
 	int dai_id;
 	int mclk_rate;
 	int on[I2S_DIR_NUM];
@@ -163,7 +171,8 @@ struct mt2701_i2s_path {
 	const struct mt2701_i2s_data *i2s_data[2];
 };
 
-struct mt2701_afe_private {
+struct mt2701_afe_private
+{
 	struct clk *clocks[MT2701_CLOCK_NUM];
 	struct mt2701_i2s_path i2s_path[MT2701_I2S_NUM];
 	bool mrg_enable[MT2701_STREAM_DIR_NUM];

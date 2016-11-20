@@ -45,7 +45,8 @@
 
 #define to_ad5820_device(sd)	container_of(sd, struct ad5820_device, subdev)
 
-struct ad5820_device {
+struct ad5820_device
+{
 	struct v4l2_subdev subdev;
 	struct ad5820_platform_data *platform_data;
 	struct regulator *vana;
@@ -68,7 +69,9 @@ static int ad5820_write(struct ad5820_device *coil, u16 data)
 	int r;
 
 	if (!client->adapter)
+	{
 		return -ENODEV;
+	}
 
 	data = cpu_to_be16(data);
 	msg.addr  = client->addr;
@@ -77,7 +80,9 @@ static int ad5820_write(struct ad5820_device *coil, u16 data)
 	msg.buf   = (u8 *)&data;
 
 	r = i2c_transfer(client->adapter, &msg, 1);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		dev_err(&client->dev, "write failed, error %d\n", r);
 		return r;
 	}
@@ -96,11 +101,13 @@ static int ad5820_update_hw(struct ad5820_device *coil)
 
 	status = RAMP_US_TO_CODE(coil->focus_ramp_time);
 	status |= coil->focus_ramp_mode
-		? AD5820_RAMP_MODE_64_16 : AD5820_RAMP_MODE_LINEAR;
+			  ? AD5820_RAMP_MODE_64_16 : AD5820_RAMP_MODE_LINEAR;
 	status |= coil->focus_absolute << AD5820_DAC_SHIFT;
 
 	if (coil->standby)
+	{
 		status |= AD5820_POWER_DOWN;
+	}
 
 	return ad5820_write(coil, status);
 }
@@ -116,14 +123,19 @@ static int ad5820_power_off(struct ad5820_device *coil, bool standby)
 	 * Go to standby first as real power off my be denied by the hardware
 	 * (single power line control for both coil and sensor).
 	 */
-	if (standby) {
+	if (standby)
+	{
 		coil->standby = true;
 		ret = ad5820_update_hw(coil);
 	}
 
 	ret2 = regulator_disable(coil->vana);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	return ret2;
 }
 
@@ -132,16 +144,24 @@ static int ad5820_power_on(struct ad5820_device *coil, bool restore)
 	int ret;
 
 	ret = regulator_enable(coil->vana);
-	if (ret < 0)
-		return ret;
 
-	if (restore) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (restore)
+	{
 		/* Restore the hardware settings. */
 		coil->standby = false;
 		ret = ad5820_update_hw(coil);
+
 		if (ret)
+		{
 			goto fail;
+		}
 	}
+
 	return 0;
 
 fail:
@@ -159,16 +179,18 @@ static int ad5820_set_ctrl(struct v4l2_ctrl *ctrl)
 	struct ad5820_device *coil =
 		container_of(ctrl->handler, struct ad5820_device, ctrls);
 
-	switch (ctrl->id) {
-	case V4L2_CID_FOCUS_ABSOLUTE:
-		coil->focus_absolute = ctrl->val;
-		return ad5820_update_hw(coil);
+	switch (ctrl->id)
+	{
+		case V4L2_CID_FOCUS_ABSOLUTE:
+			coil->focus_absolute = ctrl->val;
+			return ad5820_update_hw(coil);
 	}
 
 	return 0;
 }
 
-static const struct v4l2_ctrl_ops ad5820_ctrl_ops = {
+static const struct v4l2_ctrl_ops ad5820_ctrl_ops =
+{
 	.s_ctrl = ad5820_set_ctrl,
 };
 
@@ -190,10 +212,12 @@ static int ad5820_init_controls(struct ad5820_device *coil)
 	 * infinity, and also least current consumption.
 	 */
 	v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
-			  V4L2_CID_FOCUS_ABSOLUTE, 0, 1023, 1, 0);
+					  V4L2_CID_FOCUS_ABSOLUTE, 0, 1023, 1, 0);
 
 	if (coil->ctrls.error)
+	{
 		return coil->ctrls.error;
+	}
 
 	coil->focus_absolute = 0;
 	coil->focus_ramp_time = 0;
@@ -226,11 +250,15 @@ ad5820_set_power(struct v4l2_subdev *subdev, int on)
 	 * If the power count is modified from 0 to != 0 or from != 0 to 0,
 	 * update the power state.
 	 */
-	if (coil->power_count == !on) {
+	if (coil->power_count == !on)
+	{
 		ret = on ? ad5820_power_on(coil, true) :
-			ad5820_power_off(coil, true);
+			  ad5820_power_off(coil, true);
+
 		if (ret < 0)
+		{
 			goto done;
+		}
 	}
 
 	/* Update the power count. */
@@ -252,15 +280,18 @@ static int ad5820_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
 	return ad5820_set_power(sd, 0);
 }
 
-static const struct v4l2_subdev_core_ops ad5820_core_ops = {
+static const struct v4l2_subdev_core_ops ad5820_core_ops =
+{
 	.s_power = ad5820_set_power,
 };
 
-static const struct v4l2_subdev_ops ad5820_ops = {
+static const struct v4l2_subdev_ops ad5820_ops =
+{
 	.core = &ad5820_core_ops,
 };
 
-static const struct v4l2_subdev_internal_ops ad5820_internal_ops = {
+static const struct v4l2_subdev_internal_ops ad5820_internal_ops =
+{
 	.registered = ad5820_registered,
 	.open = ad5820_open,
 	.close = ad5820_close,
@@ -276,7 +307,9 @@ static int __maybe_unused ad5820_suspend(struct device *dev)
 	struct ad5820_device *coil = to_ad5820_device(subdev);
 
 	if (!coil->power_count)
+	{
 		return 0;
+	}
 
 	return ad5820_power_off(coil, false);
 }
@@ -288,26 +321,37 @@ static int __maybe_unused ad5820_resume(struct device *dev)
 	struct ad5820_device *coil = to_ad5820_device(subdev);
 
 	if (!coil->power_count)
+	{
 		return 0;
+	}
 
 	return ad5820_power_on(coil, true);
 }
 
 static int ad5820_probe(struct i2c_client *client,
-			const struct i2c_device_id *devid)
+						const struct i2c_device_id *devid)
 {
 	struct ad5820_device *coil;
 	int ret;
 
 	coil = devm_kzalloc(&client->dev, sizeof(*coil), GFP_KERNEL);
+
 	if (!coil)
+	{
 		return -ENOMEM;
+	}
 
 	coil->vana = devm_regulator_get(&client->dev, "VANA");
-	if (IS_ERR(coil->vana)) {
+
+	if (IS_ERR(coil->vana))
+	{
 		ret = PTR_ERR(coil->vana);
+
 		if (ret != -EPROBE_DEFER)
+		{
 			dev_err(&client->dev, "could not get regulator for vana\n");
+		}
+
 		return ret;
 	}
 
@@ -319,12 +363,18 @@ static int ad5820_probe(struct i2c_client *client,
 	strcpy(coil->subdev.name, "ad5820 focus");
 
 	ret = media_entity_pads_init(&coil->subdev.entity, 0, NULL);
+
 	if (ret < 0)
+	{
 		goto cleanup2;
+	}
 
 	ret = v4l2_async_register_subdev(&coil->subdev);
+
 	if (ret < 0)
+	{
 		goto cleanup;
+	}
 
 	return ret;
 
@@ -347,7 +397,8 @@ static int __exit ad5820_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id ad5820_id_table[] = {
+static const struct i2c_device_id ad5820_id_table[] =
+{
 	{ AD5820_NAME, 0 },
 	{ }
 };
@@ -355,7 +406,8 @@ MODULE_DEVICE_TABLE(i2c, ad5820_id_table);
 
 static SIMPLE_DEV_PM_OPS(ad5820_pm, ad5820_suspend, ad5820_resume);
 
-static struct i2c_driver ad5820_i2c_driver = {
+static struct i2c_driver ad5820_i2c_driver =
+{
 	.driver		= {
 		.name	= AD5820_NAME,
 		.pm	= &ad5820_pm,

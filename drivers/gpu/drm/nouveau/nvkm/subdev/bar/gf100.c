@@ -42,7 +42,7 @@ gf100_bar_umap(struct nvkm_bar *base, u64 size, int type, struct nvkm_vma *vma)
 
 static int
 gf100_bar_ctor_vm(struct gf100_bar *bar, struct gf100_bar_vm *bar_vm,
-		  struct lock_class_key *key, int bar_nr)
+				  struct lock_class_key *key, int bar_nr)
 {
 	struct nvkm_device *device = bar->base.subdev.device;
 	struct nvkm_vm *vm;
@@ -50,28 +50,40 @@ gf100_bar_ctor_vm(struct gf100_bar *bar, struct gf100_bar_vm *bar_vm,
 	int ret;
 
 	ret = nvkm_memory_new(device, NVKM_MEM_TARGET_INST, 0x1000, 0, false,
-			      &bar_vm->mem);
+						  &bar_vm->mem);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = nvkm_gpuobj_new(device, 0x8000, 0, false, NULL, &bar_vm->pgd);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	bar_len = device->func->resource_size(device, bar_nr);
 
 	ret = nvkm_vm_new(device, 0, bar_len, 0, key, &vm);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	atomic_inc(&vm->engref[NVKM_SUBDEV_BAR]);
 
 	/*
 	 * Bootstrap page table lookup.
 	 */
-	if (bar_nr == 3) {
+	if (bar_nr == 3)
+	{
 		ret = nvkm_vm_boot(vm, bar_len);
-		if (ret) {
+
+		if (ret)
+		{
 			nvkm_vm_ref(NULL, &vm, NULL);
 			return ret;
 		}
@@ -79,8 +91,11 @@ gf100_bar_ctor_vm(struct gf100_bar *bar, struct gf100_bar_vm *bar_vm,
 
 	ret = nvkm_vm_ref(vm, &bar_vm->vm, bar_vm->pgd);
 	nvkm_vm_ref(NULL, &vm, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nvkm_kmap(bar_vm->mem);
 	nvkm_wo32(bar_vm->mem, 0x0200, lower_32_bits(bar_vm->pgd->addr));
@@ -100,16 +115,23 @@ gf100_bar_oneinit(struct nvkm_bar *base)
 	int ret;
 
 	/* BAR3 */
-	if (bar->base.func->kmap) {
+	if (bar->base.func->kmap)
+	{
 		ret = gf100_bar_ctor_vm(bar, &bar->bar[0], &bar3_lock, 3);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/* BAR1 */
 	ret = gf100_bar_ctor_vm(bar, &bar->bar[1], &bar1_lock, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -127,7 +149,8 @@ gf100_bar_init(struct nvkm_bar *base)
 	addr = nvkm_memory_addr(bar->bar[1].mem) >> 12;
 	nvkm_wr32(device, 0x001704, 0x80000000 | addr);
 
-	if (bar->bar[0].mem) {
+	if (bar->bar[0].mem)
+	{
 		addr = nvkm_memory_addr(bar->bar[0].mem) >> 12;
 		nvkm_wr32(device, 0x001714, 0xc0000000 | addr);
 	}
@@ -144,10 +167,12 @@ gf100_bar_dtor(struct nvkm_bar *base)
 	nvkm_gpuobj_del(&bar->bar[1].pgd);
 	nvkm_memory_del(&bar->bar[1].mem);
 
-	if (bar->bar[0].vm) {
+	if (bar->bar[0].vm)
+	{
 		nvkm_memory_del(&bar->bar[0].vm->pgt[0].mem[0]);
 		nvkm_vm_ref(NULL, &bar->bar[0].vm, bar->bar[0].pgd);
 	}
+
 	nvkm_gpuobj_del(&bar->bar[0].pgd);
 	nvkm_memory_del(&bar->bar[0].mem);
 	return bar;
@@ -155,18 +180,23 @@ gf100_bar_dtor(struct nvkm_bar *base)
 
 int
 gf100_bar_new_(const struct nvkm_bar_func *func, struct nvkm_device *device,
-	       int index, struct nvkm_bar **pbar)
+			   int index, struct nvkm_bar **pbar)
 {
 	struct gf100_bar *bar;
+
 	if (!(bar = kzalloc(sizeof(*bar), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_bar_ctor(func, device, index, &bar->base);
 	*pbar = &bar->base;
 	return 0;
 }
 
 static const struct nvkm_bar_func
-gf100_bar_func = {
+	gf100_bar_func =
+{
 	.dtor = gf100_bar_dtor,
 	.oneinit = gf100_bar_oneinit,
 	.init = gf100_bar_init,

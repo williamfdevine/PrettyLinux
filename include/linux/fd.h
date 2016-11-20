@@ -6,7 +6,8 @@
 #ifdef CONFIG_COMPAT
 #include <linux/compat.h>
 
-struct compat_floppy_struct {
+struct compat_floppy_struct
+{
 	compat_uint_t	size;
 	compat_uint_t	sect;
 	compat_uint_t	head;

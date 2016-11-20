@@ -6,7 +6,8 @@
 
 struct ebt_table;
 
-struct netns_xt {
+struct netns_xt
+{
 	struct list_head tables[NFPROTO_NUMPROTO];
 	bool notrack_deprecated_warning;
 	bool clusterip_deprecated_warning;

@@ -19,12 +19,14 @@
 #define SKBMOD_F_ETYPE	0x4
 #define SKBMOD_F_SWAPMAC 0x8
 
-struct tc_skbmod {
+struct tc_skbmod
+{
 	tc_gen;
 	__u64 flags;
 };
 
-enum {
+enum
+{
 	TCA_SKBMOD_UNSPEC,
 	TCA_SKBMOD_TM,
 	TCA_SKBMOD_PARMS,

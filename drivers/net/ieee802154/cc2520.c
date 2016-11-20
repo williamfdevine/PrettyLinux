@@ -204,7 +204,8 @@
 #define FRMCTRL1_IGNORE_TX_UNDERF	BIT(1)
 
 /* Driver private information */
-struct cc2520_private {
+struct cc2520_private
+{
 	struct spi_device *spi;		/* SPI device structure */
 	struct ieee802154_hw *hw;	/* IEEE-802.15.4 device */
 	u8 *buf;			/* SPI TX/Rx data buffer */
@@ -225,7 +226,8 @@ cc2520_cmd_strobe(struct cc2520_private *priv, u8 cmd)
 	int ret;
 	u8 status = 0xff;
 	struct spi_message msg;
-	struct spi_transfer xfer = {
+	struct spi_transfer xfer =
+	{
 		.len = 0,
 		.tx_buf = priv->buf,
 		.rx_buf = priv->buf,
@@ -237,14 +239,18 @@ cc2520_cmd_strobe(struct cc2520_private *priv, u8 cmd)
 	mutex_lock(&priv->buffer_mutex);
 	priv->buf[xfer.len++] = cmd;
 	dev_vdbg(&priv->spi->dev,
-		 "command strobe buf[0] = %02x\n",
-		 priv->buf[0]);
+			 "command strobe buf[0] = %02x\n",
+			 priv->buf[0]);
 
 	ret = spi_sync(priv->spi, &msg);
+
 	if (!ret)
+	{
 		status = priv->buf[0];
+	}
+
 	dev_vdbg(&priv->spi->dev,
-		 "buf[0] = %02x\n", priv->buf[0]);
+			 "buf[0] = %02x\n", priv->buf[0]);
 	mutex_unlock(&priv->buffer_mutex);
 
 	return ret;
@@ -255,7 +261,8 @@ cc2520_get_status(struct cc2520_private *priv, u8 *status)
 {
 	int ret;
 	struct spi_message msg;
-	struct spi_transfer xfer = {
+	struct spi_transfer xfer =
+	{
 		.len = 0,
 		.tx_buf = priv->buf,
 		.rx_buf = priv->buf,
@@ -267,13 +274,17 @@ cc2520_get_status(struct cc2520_private *priv, u8 *status)
 	mutex_lock(&priv->buffer_mutex);
 	priv->buf[xfer.len++] = CC2520_CMD_SNOP;
 	dev_vdbg(&priv->spi->dev,
-		 "get status command buf[0] = %02x\n", priv->buf[0]);
+			 "get status command buf[0] = %02x\n", priv->buf[0]);
 
 	ret = spi_sync(priv->spi, &msg);
+
 	if (!ret)
+	{
 		*status = priv->buf[0];
+	}
+
 	dev_vdbg(&priv->spi->dev,
-		 "buf[0] = %02x\n", priv->buf[0]);
+			 "buf[0] = %02x\n", priv->buf[0]);
 	mutex_unlock(&priv->buffer_mutex);
 
 	return ret;
@@ -284,7 +295,8 @@ cc2520_write_register(struct cc2520_private *priv, u8 reg, u8 value)
 {
 	int status;
 	struct spi_message msg;
-	struct spi_transfer xfer = {
+	struct spi_transfer xfer =
+	{
 		.len = 0,
 		.tx_buf = priv->buf,
 		.rx_buf = priv->buf,
@@ -295,17 +307,24 @@ cc2520_write_register(struct cc2520_private *priv, u8 reg, u8 value)
 
 	mutex_lock(&priv->buffer_mutex);
 
-	if (reg <= CC2520_FREG_MASK) {
+	if (reg <= CC2520_FREG_MASK)
+	{
 		priv->buf[xfer.len++] = CC2520_CMD_REGISTER_WRITE | reg;
 		priv->buf[xfer.len++] = value;
-	} else {
+	}
+	else
+	{
 		priv->buf[xfer.len++] = CC2520_CMD_MEMORY_WRITE;
 		priv->buf[xfer.len++] = reg;
 		priv->buf[xfer.len++] = value;
 	}
+
 	status = spi_sync(priv->spi, &msg);
+
 	if (msg.status)
+	{
 		status = msg.status;
+	}
 
 	mutex_unlock(&priv->buffer_mutex);
 
@@ -317,20 +336,22 @@ cc2520_write_ram(struct cc2520_private *priv, u16 reg, u8 len, u8 *data)
 {
 	int status;
 	struct spi_message msg;
-	struct spi_transfer xfer_head = {
+	struct spi_transfer xfer_head =
+	{
 		.len        = 0,
 		.tx_buf        = priv->buf,
 		.rx_buf        = priv->buf,
 	};
 
-	struct spi_transfer xfer_buf = {
+	struct spi_transfer xfer_buf =
+	{
 		.len = len,
 		.tx_buf = data,
 	};
 
 	mutex_lock(&priv->buffer_mutex);
 	priv->buf[xfer_head.len++] = (CC2520_CMD_MEMORY_WRITE |
-						((reg >> 8) & 0xff));
+								  ((reg >> 8) & 0xff));
 	priv->buf[xfer_head.len++] = reg & 0xff;
 
 	spi_message_init(&msg);
@@ -339,8 +360,11 @@ cc2520_write_ram(struct cc2520_private *priv, u16 reg, u8 len, u8 *data)
 
 	status = spi_sync(priv->spi, &msg);
 	dev_dbg(&priv->spi->dev, "spi status = %d\n", status);
+
 	if (msg.status)
+	{
 		status = msg.status;
+	}
 
 	mutex_unlock(&priv->buffer_mutex);
 	return status;
@@ -351,13 +375,15 @@ cc2520_read_register(struct cc2520_private *priv, u8 reg, u8 *data)
 {
 	int status;
 	struct spi_message msg;
-	struct spi_transfer xfer1 = {
+	struct spi_transfer xfer1 =
+	{
 		.len = 0,
 		.tx_buf = priv->buf,
 		.rx_buf = priv->buf,
 	};
 
-	struct spi_transfer xfer2 = {
+	struct spi_transfer xfer2 =
+	{
 		.len = 1,
 		.rx_buf = data,
 	};
@@ -372,9 +398,12 @@ cc2520_read_register(struct cc2520_private *priv, u8 reg, u8 *data)
 
 	status = spi_sync(priv->spi, &msg);
 	dev_dbg(&priv->spi->dev,
-		"spi status = %d\n", status);
+			"spi status = %d\n", status);
+
 	if (msg.status)
+	{
 		status = msg.status;
+	}
 
 	mutex_unlock(&priv->buffer_mutex);
 
@@ -393,16 +422,19 @@ cc2520_write_txfifo(struct cc2520_private *priv, u8 pkt_len, u8 *data, u8 len)
 
 	struct spi_message msg;
 
-	struct spi_transfer xfer_head = {
+	struct spi_transfer xfer_head =
+	{
 		.len = 0,
 		.tx_buf = priv->buf,
 		.rx_buf = priv->buf,
 	};
-	struct spi_transfer xfer_len = {
+	struct spi_transfer xfer_len =
+	{
 		.len = 1,
 		.tx_buf = &len_byte,
 	};
-	struct spi_transfer xfer_buf = {
+	struct spi_transfer xfer_buf =
+	{
 		.len = len,
 		.tx_buf = data,
 	};
@@ -415,12 +447,16 @@ cc2520_write_txfifo(struct cc2520_private *priv, u8 pkt_len, u8 *data, u8 len)
 	mutex_lock(&priv->buffer_mutex);
 	priv->buf[xfer_head.len++] = CC2520_CMD_TXBUF;
 	dev_vdbg(&priv->spi->dev,
-		 "TX_FIFO cmd buf[0] = %02x\n", priv->buf[0]);
+			 "TX_FIFO cmd buf[0] = %02x\n", priv->buf[0]);
 
 	status = spi_sync(priv->spi, &msg);
 	dev_vdbg(&priv->spi->dev, "status = %d\n", status);
+
 	if (msg.status)
+	{
 		status = msg.status;
+	}
+
 	dev_vdbg(&priv->spi->dev, "status = %d\n", status);
 	dev_vdbg(&priv->spi->dev, "buf[0] = %02x\n", priv->buf[0]);
 	mutex_unlock(&priv->buffer_mutex);
@@ -434,12 +470,14 @@ cc2520_read_rxfifo(struct cc2520_private *priv, u8 *data, u8 len)
 	int status;
 	struct spi_message msg;
 
-	struct spi_transfer xfer_head = {
+	struct spi_transfer xfer_head =
+	{
 		.len = 0,
 		.tx_buf = priv->buf,
 		.rx_buf = priv->buf,
 	};
-	struct spi_transfer xfer_buf = {
+	struct spi_transfer xfer_buf =
+	{
 		.len = len,
 		.rx_buf = data,
 	};
@@ -456,11 +494,15 @@ cc2520_read_rxfifo(struct cc2520_private *priv, u8 *data, u8 len)
 
 	status = spi_sync(priv->spi, &msg);
 	dev_vdbg(&priv->spi->dev, "status = %d\n", status);
+
 	if (msg.status)
+	{
 		status = msg.status;
+	}
+
 	dev_vdbg(&priv->spi->dev, "status = %d\n", status);
 	dev_vdbg(&priv->spi->dev,
-		 "return status buf[0] = %02x\n", priv->buf[0]);
+			 "return status buf[0] = %02x\n", priv->buf[0]);
 	dev_vdbg(&priv->spi->dev, "length buf[1] = %02x\n", priv->buf[1]);
 
 	mutex_unlock(&priv->buffer_mutex);
@@ -490,28 +532,41 @@ cc2520_tx(struct ieee802154_hw *hw, struct sk_buff *skb)
 	/* In promiscuous mode we disable AUTOCRC so we can get the raw CRC
 	 * values on RX. This means we need to manually add the CRC on TX.
 	 */
-	if (priv->promiscuous) {
+	if (priv->promiscuous)
+	{
 		u16 crc = crc_ccitt(0, skb->data, skb->len);
 
 		put_unaligned_le16(crc, skb_put(skb, 2));
 		pkt_len = skb->len;
-	} else {
+	}
+	else
+	{
 		pkt_len = skb->len + 2;
 	}
 
 	rc = cc2520_cmd_strobe(priv, CC2520_CMD_SFLUSHTX);
+
 	if (rc)
+	{
 		goto err_tx;
+	}
 
 	rc = cc2520_write_txfifo(priv, pkt_len, skb->data, skb->len);
+
 	if (rc)
+	{
 		goto err_tx;
+	}
 
 	rc = cc2520_get_status(priv, &status);
-	if (rc)
-		goto err_tx;
 
-	if (status & CC2520_STATUS_TX_UNDERFLOW) {
+	if (rc)
+	{
+		goto err_tx;
+	}
+
+	if (status & CC2520_STATUS_TX_UNDERFLOW)
+	{
 		dev_err(&priv->spi->dev, "cc2520 tx underflow exception\n");
 		goto err_tx;
 	}
@@ -522,12 +577,18 @@ cc2520_tx(struct ieee802154_hw *hw, struct sk_buff *skb)
 	spin_unlock_irqrestore(&priv->lock, flags);
 
 	rc = cc2520_cmd_strobe(priv, CC2520_CMD_STXONCCA);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	rc = wait_for_completion_interruptible(&priv->tx_complete);
+
 	if (rc < 0)
+	{
 		goto err;
+	}
 
 	cc2520_cmd_strobe(priv, CC2520_CMD_SFLUSHTX);
 	cc2520_cmd_strobe(priv, CC2520_CMD_SRXON);
@@ -549,7 +610,8 @@ static int cc2520_rx(struct cc2520_private *priv)
 	/* Read single length byte from the radio. */
 	cc2520_read_rxfifo(priv, &len, bytes);
 
-	if (!ieee802154_is_valid_psdu_len(len)) {
+	if (!ieee802154_is_valid_psdu_len(len))
+	{
 		/* Corrupted frame received, clear frame buffer by
 		 * reading entire buffer.
 		 */
@@ -558,10 +620,14 @@ static int cc2520_rx(struct cc2520_private *priv)
 	}
 
 	skb = dev_alloc_skb(len);
-	if (!skb)
-		return -ENOMEM;
 
-	if (cc2520_read_rxfifo(priv, skb_put(skb, len), len)) {
+	if (!skb)
+	{
+		return -ENOMEM;
+	}
+
+	if (cc2520_read_rxfifo(priv, skb_put(skb, len), len))
+	{
 		dev_dbg(&priv->spi->dev, "frame reception failed\n");
 		kfree_skb(skb);
 		return -EINVAL;
@@ -572,7 +638,8 @@ static int cc2520_rx(struct cc2520_private *priv)
 	 * in promiscuous mode, we check the CRC here, but leave the
 	 * RSSI/LQI/CRC_OK bytes as they will get removed in the mac layer.
 	 */
-	if (!priv->promiscuous) {
+	if (!priv->promiscuous)
+	{
 		bool crc_ok;
 
 		/* Check if the CRC is valid. With AUTOCRC set, the most
@@ -582,7 +649,8 @@ static int cc2520_rx(struct cc2520_private *priv)
 		crc_ok = skb->data[len - 1] & BIT(7);
 
 		/* If we failed CRC drop the packet in the driver layer. */
-		if (!crc_ok) {
+		if (!crc_ok)
+		{
 			dev_dbg(&priv->spi->dev, "CRC check failed\n");
 			kfree_skb(skb);
 			return -EINVAL;
@@ -596,10 +664,16 @@ static int cc2520_rx(struct cc2520_private *priv)
 		 * to get close enough while avoiding floating point.
 		 */
 		lqi = skb->data[len - 1] & 0x7f;
+
 		if (lqi < 50)
+		{
 			lqi = 50;
+		}
 		else if (lqi > 113)
+		{
 			lqi = 113;
+		}
+
 		lqi = (lqi - 50) * 4;
 	}
 
@@ -619,15 +693,23 @@ cc2520_ed(struct ieee802154_hw *hw, u8 *level)
 	int ret;
 
 	ret = cc2520_read_register(priv, CC2520_RSSISTAT, &status);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (status != RSSI_VALID)
+	{
 		return -EINVAL;
+	}
 
 	ret = cc2520_read_register(priv, CC2520_RSSI, &rssi);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* level = RSSI(rssi) - OFFSET [dBm] : offset is 76dBm */
 	*level = rssi - RSSI_OFFSET;
@@ -648,56 +730,64 @@ cc2520_set_channel(struct ieee802154_hw *hw, u8 page, u8 channel)
 	BUG_ON(channel > CC2520_MAXCHANNEL);
 
 	ret = cc2520_write_register(priv, CC2520_FREQCTRL,
-				    11 + 5*(channel - 11));
+								11 + 5 * (channel - 11));
 
 	return ret;
 }
 
 static int
 cc2520_filter(struct ieee802154_hw *hw,
-	      struct ieee802154_hw_addr_filt *filt, unsigned long changed)
+			  struct ieee802154_hw_addr_filt *filt, unsigned long changed)
 {
 	struct cc2520_private *priv = hw->priv;
 	int ret = 0;
 
-	if (changed & IEEE802154_AFILT_PANID_CHANGED) {
+	if (changed & IEEE802154_AFILT_PANID_CHANGED)
+	{
 		u16 panid = le16_to_cpu(filt->pan_id);
 
 		dev_vdbg(&priv->spi->dev,
-			 "cc2520_filter called for pan id\n");
+				 "cc2520_filter called for pan id\n");
 		ret = cc2520_write_ram(priv, CC2520RAM_PANID,
-				       sizeof(panid), (u8 *)&panid);
+							   sizeof(panid), (u8 *)&panid);
 	}
 
-	if (changed & IEEE802154_AFILT_IEEEADDR_CHANGED) {
+	if (changed & IEEE802154_AFILT_IEEEADDR_CHANGED)
+	{
 		dev_vdbg(&priv->spi->dev,
-			 "cc2520_filter called for IEEE addr\n");
+				 "cc2520_filter called for IEEE addr\n");
 		ret = cc2520_write_ram(priv, CC2520RAM_IEEEADDR,
-				       sizeof(filt->ieee_addr),
-				       (u8 *)&filt->ieee_addr);
+							   sizeof(filt->ieee_addr),
+							   (u8 *)&filt->ieee_addr);
 	}
 
-	if (changed & IEEE802154_AFILT_SADDR_CHANGED) {
+	if (changed & IEEE802154_AFILT_SADDR_CHANGED)
+	{
 		u16 addr = le16_to_cpu(filt->short_addr);
 
 		dev_vdbg(&priv->spi->dev,
-			 "cc2520_filter called for saddr\n");
+				 "cc2520_filter called for saddr\n");
 		ret = cc2520_write_ram(priv, CC2520RAM_SHORTADDR,
-				       sizeof(addr), (u8 *)&addr);
+							   sizeof(addr), (u8 *)&addr);
 	}
 
-	if (changed & IEEE802154_AFILT_PANC_CHANGED) {
+	if (changed & IEEE802154_AFILT_PANC_CHANGED)
+	{
 		u8 frmfilt0;
 
 		dev_vdbg(&priv->spi->dev,
-			 "cc2520_filter called for panc change\n");
+				 "cc2520_filter called for panc change\n");
 
 		cc2520_read_register(priv, CC2520_FRMFILT0, &frmfilt0);
 
 		if (filt->pan_coord)
+		{
 			frmfilt0 |= FRMFILT0_PAN_COORDINATOR;
+		}
 		else
+		{
 			frmfilt0 &= ~FRMFILT0_PAN_COORDINATOR;
+		}
 
 		ret = cc2520_write_register(priv, CC2520_FRMFILT0, frmfilt0);
 	}
@@ -709,79 +799,98 @@ static inline int cc2520_set_tx_power(struct cc2520_private *priv, s32 mbm)
 {
 	u8 power;
 
-	switch (mbm) {
-	case 500:
-		power = 0xF7;
-		break;
-	case 300:
-		power = 0xF2;
-		break;
-	case 200:
-		power = 0xAB;
-		break;
-	case 100:
-		power = 0x13;
-		break;
-	case 0:
-		power = 0x32;
-		break;
-	case -200:
-		power = 0x81;
-		break;
-	case -400:
-		power = 0x88;
-		break;
-	case -700:
-		power = 0x2C;
-		break;
-	case -1800:
-		power = 0x03;
-		break;
-	default:
-		return -EINVAL;
+	switch (mbm)
+	{
+		case 500:
+			power = 0xF7;
+			break;
+
+		case 300:
+			power = 0xF2;
+			break;
+
+		case 200:
+			power = 0xAB;
+			break;
+
+		case 100:
+			power = 0x13;
+			break;
+
+		case 0:
+			power = 0x32;
+			break;
+
+		case -200:
+			power = 0x81;
+			break;
+
+		case -400:
+			power = 0x88;
+			break;
+
+		case -700:
+			power = 0x2C;
+			break;
+
+		case -1800:
+			power = 0x03;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return cc2520_write_register(priv, CC2520_TXPOWER, power);
 }
 
 static inline int cc2520_cc2591_set_tx_power(struct cc2520_private *priv,
-					     s32 mbm)
+		s32 mbm)
 {
 	u8 power;
 
-	switch (mbm) {
-	case 1700:
-		power = 0xF9;
-		break;
-	case 1600:
-		power = 0xF0;
-		break;
-	case 1400:
-		power = 0xA0;
-		break;
-	case 1100:
-		power = 0x2C;
-		break;
-	case -100:
-		power = 0x03;
-		break;
-	case -800:
-		power = 0x01;
-		break;
-	default:
-		return -EINVAL;
+	switch (mbm)
+	{
+		case 1700:
+			power = 0xF9;
+			break;
+
+		case 1600:
+			power = 0xF0;
+			break;
+
+		case 1400:
+			power = 0xA0;
+			break;
+
+		case 1100:
+			power = 0x2C;
+			break;
+
+		case -100:
+			power = 0x03;
+			break;
+
+		case -800:
+			power = 0x01;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return cc2520_write_register(priv, CC2520_TXPOWER, power);
 }
 
 #define CC2520_MAX_TX_POWERS 0x8
-static const s32 cc2520_powers[CC2520_MAX_TX_POWERS + 1] = {
+static const s32 cc2520_powers[CC2520_MAX_TX_POWERS + 1] =
+{
 	500, 300, 200, 100, 0, -200, -400, -700, -1800,
 };
 
 #define CC2520_CC2591_MAX_TX_POWERS 0x5
-static const s32 cc2520_cc2591_powers[CC2520_CC2591_MAX_TX_POWERS + 1] = {
+static const s32 cc2520_cc2591_powers[CC2520_CC2591_MAX_TX_POWERS + 1] =
+{
 	1700, 1600, 1400, 1100, -100, -800,
 };
 
@@ -791,7 +900,9 @@ cc2520_set_txpower(struct ieee802154_hw *hw, s32 mbm)
 	struct cc2520_private *priv = hw->priv;
 
 	if (!priv->amplified)
+	{
 		return cc2520_set_tx_power(priv, mbm);
+	}
 
 	return cc2520_cc2591_set_tx_power(priv, mbm);
 }
@@ -808,19 +919,24 @@ cc2520_set_promiscuous_mode(struct ieee802154_hw *hw, bool on)
 
 	cc2520_read_register(priv, CC2520_FRMFILT0, &frmfilt0);
 
-	if (on) {
+	if (on)
+	{
 		/* Disable automatic ACK, automatic CRC, and frame filtering. */
 		cc2520_write_register(priv, CC2520_FRMCTRL0, 0);
 		frmfilt0 &= ~FRMFILT0_FRAME_FILTER_EN;
-	} else {
+	}
+	else
+	{
 		cc2520_write_register(priv, CC2520_FRMCTRL0, FRMCTRL0_AUTOACK |
-							     FRMCTRL0_AUTOCRC);
+							  FRMCTRL0_AUTOCRC);
 		frmfilt0 |= FRMFILT0_FRAME_FILTER_EN;
 	}
+
 	return cc2520_write_register(priv, CC2520_FRMFILT0, frmfilt0);
 }
 
-static const struct ieee802154_ops cc2520_ops = {
+static const struct ieee802154_ops cc2520_ops =
+{
 	.owner = THIS_MODULE,
 	.start = cc2520_start,
 	.stop = cc2520_stop,
@@ -837,8 +953,11 @@ static int cc2520_register(struct cc2520_private *priv)
 	int ret = -ENOMEM;
 
 	priv->hw = ieee802154_alloc_hw(sizeof(*priv), &cc2520_ops);
+
 	if (!priv->hw)
+	{
 		goto err_ret;
+	}
 
 	priv->hw->priv = priv;
 	priv->hw->parent = &priv->spi->dev;
@@ -848,15 +967,18 @@ static int cc2520_register(struct cc2520_private *priv)
 	/* We do support only 2.4 Ghz */
 	priv->hw->phy->supported.channels[0] = 0x7FFF800;
 	priv->hw->flags = IEEE802154_HW_TX_OMIT_CKSUM | IEEE802154_HW_AFILT |
-			  IEEE802154_HW_PROMISCUOUS;
+					  IEEE802154_HW_PROMISCUOUS;
 
 	priv->hw->phy->flags = WPAN_PHY_FLAG_TXPOWER;
 
-	if (!priv->amplified) {
+	if (!priv->amplified)
+	{
 		priv->hw->phy->supported.tx_powers = cc2520_powers;
 		priv->hw->phy->supported.tx_powers_size = ARRAY_SIZE(cc2520_powers);
 		priv->hw->phy->transmit_power = priv->hw->phy->supported.tx_powers[4];
-	} else {
+	}
+	else
+	{
 		priv->hw->phy->supported.tx_powers = cc2520_cc2591_powers;
 		priv->hw->phy->supported.tx_powers_size = ARRAY_SIZE(cc2520_cc2591_powers);
 		priv->hw->phy->transmit_power = priv->hw->phy->supported.tx_powers[0];
@@ -866,8 +988,11 @@ static int cc2520_register(struct cc2520_private *priv)
 
 	dev_vdbg(&priv->spi->dev, "registered cc2520\n");
 	ret = ieee802154_register_hw(priv->hw);
+
 	if (ret)
+	{
 		goto err_free_device;
+	}
 
 	return 0;
 
@@ -885,9 +1010,13 @@ static void cc2520_fifop_irqwork(struct work_struct *work)
 	dev_dbg(&priv->spi->dev, "fifop interrupt received\n");
 
 	if (gpio_get_value(priv->fifo_pin))
+	{
 		cc2520_rx(priv);
+	}
 	else
+	{
 		dev_dbg(&priv->spi->dev, "rxfifo overflow\n");
+	}
 
 	cc2520_cmd_strobe(priv, CC2520_CMD_SFLUSHRX);
 	cc2520_cmd_strobe(priv, CC2520_CMD_SFLUSHRX);
@@ -908,12 +1037,16 @@ static irqreturn_t cc2520_sfd_isr(int irq, void *data)
 	unsigned long flags;
 
 	spin_lock_irqsave(&priv->lock, flags);
-	if (priv->is_tx) {
+
+	if (priv->is_tx)
+	{
 		priv->is_tx = 0;
 		spin_unlock_irqrestore(&priv->lock, flags);
 		dev_dbg(&priv->spi->dev, "SFD for TX\n");
 		complete(&priv->tx_complete);
-	} else {
+	}
+	else
+	{
 		spin_unlock_irqrestore(&priv->lock, flags);
 		dev_dbg(&priv->spi->dev, "SFD for RX\n");
 	}
@@ -922,15 +1055,20 @@ static irqreturn_t cc2520_sfd_isr(int irq, void *data)
 }
 
 static int cc2520_get_platform_data(struct spi_device *spi,
-				    struct cc2520_platform_data *pdata)
+									struct cc2520_platform_data *pdata)
 {
 	struct device_node *np = spi->dev.of_node;
 	struct cc2520_private *priv = spi_get_drvdata(spi);
 
-	if (!np) {
+	if (!np)
+	{
 		struct cc2520_platform_data *spi_pdata = spi->dev.platform_data;
+
 		if (!spi_pdata)
+		{
 			return -ENOENT;
+		}
+
 		*pdata = *spi_pdata;
 		priv->fifo_pin = pdata->fifo;
 		return 0;
@@ -948,7 +1086,9 @@ static int cc2520_get_platform_data(struct spi_device *spi,
 
 	/* CC2591 front end for CC2520 */
 	if (of_property_read_bool(np, "amplified"))
+	{
 		priv->amplified = true;
+	}
 
 	return 0;
 }
@@ -961,27 +1101,42 @@ static int cc2520_hw_init(struct cc2520_private *priv)
 	struct cc2520_platform_data pdata;
 
 	ret = cc2520_get_platform_data(priv->spi, &pdata);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	ret = cc2520_read_register(priv, CC2520_FSMSTAT1, &state);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	if (state != STATE_IDLE)
+	{
 		return -EINVAL;
+	}
 
-	do {
+	do
+	{
 		ret = cc2520_get_status(priv, &status);
-		if (ret)
-			goto err_ret;
 
-		if (timeout-- <= 0) {
+		if (ret)
+		{
+			goto err_ret;
+		}
+
+		if (timeout-- <= 0)
+		{
 			dev_err(&priv->spi->dev, "oscillator start failed!\n");
 			return ret;
 		}
+
 		udelay(1);
-	} while (!(status & CC2520_STATUS_XOSC32M_STABLE));
+	}
+	while (!(status & CC2520_STATUS_XOSC32M_STABLE));
 
 	dev_vdbg(&priv->spi->dev, "oscillator brought up\n");
 
@@ -991,30 +1146,51 @@ static int cc2520_hw_init(struct cc2520_private *priv)
 	 * amplifier. See section 8 page 17 of TI application note AN065.
 	 * http://www.ti.com/lit/an/swra229a/swra229a.pdf
 	 */
-	if (priv->amplified) {
+	if (priv->amplified)
+	{
 		ret = cc2520_write_register(priv, CC2520_AGCCTRL1, 0x16);
+
 		if (ret)
+		{
 			goto err_ret;
+		}
 
 		ret = cc2520_write_register(priv, CC2520_GPIOCTRL0, 0x46);
+
 		if (ret)
+		{
 			goto err_ret;
+		}
 
 		ret = cc2520_write_register(priv, CC2520_GPIOCTRL5, 0x47);
+
 		if (ret)
+		{
 			goto err_ret;
+		}
 
 		ret = cc2520_write_register(priv, CC2520_GPIOPOLARITY, 0x1e);
+
 		if (ret)
+		{
 			goto err_ret;
+		}
 
 		ret = cc2520_write_register(priv, CC2520_TXCTRL, 0xc1);
+
 		if (ret)
+		{
 			goto err_ret;
-	} else {
+		}
+	}
+	else
+	{
 		ret = cc2520_write_register(priv, CC2520_AGCCTRL1, 0x11);
+
 		if (ret)
+		{
 			goto err_ret;
+		}
 	}
 
 	/* Registers default value: section 28.1 in Datasheet */
@@ -1024,51 +1200,84 @@ static int cc2520_hw_init(struct cc2520_private *priv)
 	 * threshold suggested in the datasheet.
 	 */
 	ret = cc2520_write_register(priv, CC2520_CCACTRL0, 0x1A);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	ret = cc2520_write_register(priv, CC2520_MDMCTRL0, 0x85);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	ret = cc2520_write_register(priv, CC2520_MDMCTRL1, 0x14);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	ret = cc2520_write_register(priv, CC2520_RXCTRL, 0x3f);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	ret = cc2520_write_register(priv, CC2520_FSCTRL, 0x5a);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	ret = cc2520_write_register(priv, CC2520_FSCAL1, 0x2b);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	ret = cc2520_write_register(priv, CC2520_ADCTEST0, 0x10);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	ret = cc2520_write_register(priv, CC2520_ADCTEST1, 0x0e);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	ret = cc2520_write_register(priv, CC2520_ADCTEST2, 0x03);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	/* Configure registers correctly for this driver. */
 	ret = cc2520_write_register(priv, CC2520_FRMCTRL1,
-				    FRMCTRL1_SET_RXENMASK_ON_TX |
-				    FRMCTRL1_IGNORE_TX_UNDERF);
+								FRMCTRL1_SET_RXENMASK_ON_TX |
+								FRMCTRL1_IGNORE_TX_UNDERF);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	ret = cc2520_write_register(priv, CC2520_FIFOPCTRL, 127);
+
 	if (ret)
+	{
 		goto err_ret;
+	}
 
 	return 0;
 
@@ -1083,13 +1292,18 @@ static int cc2520_probe(struct spi_device *spi)
 	int ret;
 
 	priv = devm_kzalloc(&spi->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	spi_set_drvdata(spi, priv);
 
 	ret = cc2520_get_platform_data(spi, &pdata);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&spi->dev, "no platform data\n");
 		return -EINVAL;
 	}
@@ -1097,9 +1311,12 @@ static int cc2520_probe(struct spi_device *spi)
 	priv->spi = spi;
 
 	priv->buf = devm_kzalloc(&spi->dev,
-				 SPI_COMMAND_BUFFER, GFP_KERNEL);
+							 SPI_COMMAND_BUFFER, GFP_KERNEL);
+
 	if (!priv->buf)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&priv->buffer_mutex);
 	INIT_WORK(&priv->fifop_irqwork, cc2520_fifop_irqwork);
@@ -1110,71 +1327,95 @@ static int cc2520_probe(struct spi_device *spi)
 	priv->amplified = false;
 
 	/* Request all the gpio's */
-	if (!gpio_is_valid(pdata.fifo)) {
+	if (!gpio_is_valid(pdata.fifo))
+	{
 		dev_err(&spi->dev, "fifo gpio is not valid\n");
 		ret = -EINVAL;
 		goto err_hw_init;
 	}
 
 	ret = devm_gpio_request_one(&spi->dev, pdata.fifo,
-				    GPIOF_IN, "fifo");
-	if (ret)
-		goto err_hw_init;
+								GPIOF_IN, "fifo");
 
-	if (!gpio_is_valid(pdata.cca)) {
+	if (ret)
+	{
+		goto err_hw_init;
+	}
+
+	if (!gpio_is_valid(pdata.cca))
+	{
 		dev_err(&spi->dev, "cca gpio is not valid\n");
 		ret = -EINVAL;
 		goto err_hw_init;
 	}
 
 	ret = devm_gpio_request_one(&spi->dev, pdata.cca,
-				    GPIOF_IN, "cca");
-	if (ret)
-		goto err_hw_init;
+								GPIOF_IN, "cca");
 
-	if (!gpio_is_valid(pdata.fifop)) {
+	if (ret)
+	{
+		goto err_hw_init;
+	}
+
+	if (!gpio_is_valid(pdata.fifop))
+	{
 		dev_err(&spi->dev, "fifop gpio is not valid\n");
 		ret = -EINVAL;
 		goto err_hw_init;
 	}
 
 	ret = devm_gpio_request_one(&spi->dev, pdata.fifop,
-				    GPIOF_IN, "fifop");
-	if (ret)
-		goto err_hw_init;
+								GPIOF_IN, "fifop");
 
-	if (!gpio_is_valid(pdata.sfd)) {
+	if (ret)
+	{
+		goto err_hw_init;
+	}
+
+	if (!gpio_is_valid(pdata.sfd))
+	{
 		dev_err(&spi->dev, "sfd gpio is not valid\n");
 		ret = -EINVAL;
 		goto err_hw_init;
 	}
 
 	ret = devm_gpio_request_one(&spi->dev, pdata.sfd,
-				    GPIOF_IN, "sfd");
-	if (ret)
-		goto err_hw_init;
+								GPIOF_IN, "sfd");
 
-	if (!gpio_is_valid(pdata.reset)) {
+	if (ret)
+	{
+		goto err_hw_init;
+	}
+
+	if (!gpio_is_valid(pdata.reset))
+	{
 		dev_err(&spi->dev, "reset gpio is not valid\n");
 		ret = -EINVAL;
 		goto err_hw_init;
 	}
 
 	ret = devm_gpio_request_one(&spi->dev, pdata.reset,
-				    GPIOF_OUT_INIT_LOW, "reset");
-	if (ret)
-		goto err_hw_init;
+								GPIOF_OUT_INIT_LOW, "reset");
 
-	if (!gpio_is_valid(pdata.vreg)) {
+	if (ret)
+	{
+		goto err_hw_init;
+	}
+
+	if (!gpio_is_valid(pdata.vreg))
+	{
 		dev_err(&spi->dev, "vreg gpio is not valid\n");
 		ret = -EINVAL;
 		goto err_hw_init;
 	}
 
 	ret = devm_gpio_request_one(&spi->dev, pdata.vreg,
-				    GPIOF_OUT_INIT_LOW, "vreg");
+								GPIOF_OUT_INIT_LOW, "vreg");
+
 	if (ret)
+	{
 		goto err_hw_init;
+	}
 
 	gpio_set_value(pdata.vreg, HIGH);
 	usleep_range(100, 150);
@@ -1183,36 +1424,46 @@ static int cc2520_probe(struct spi_device *spi)
 	usleep_range(200, 250);
 
 	ret = cc2520_hw_init(priv);
+
 	if (ret)
+	{
 		goto err_hw_init;
+	}
 
 	/* Set up fifop interrupt */
 	ret = devm_request_irq(&spi->dev,
-			       gpio_to_irq(pdata.fifop),
-			       cc2520_fifop_isr,
-			       IRQF_TRIGGER_RISING,
-			       dev_name(&spi->dev),
-			       priv);
-	if (ret) {
+						   gpio_to_irq(pdata.fifop),
+						   cc2520_fifop_isr,
+						   IRQF_TRIGGER_RISING,
+						   dev_name(&spi->dev),
+						   priv);
+
+	if (ret)
+	{
 		dev_err(&spi->dev, "could not get fifop irq\n");
 		goto err_hw_init;
 	}
 
 	/* Set up sfd interrupt */
 	ret = devm_request_irq(&spi->dev,
-			       gpio_to_irq(pdata.sfd),
-			       cc2520_sfd_isr,
-			       IRQF_TRIGGER_FALLING,
-			       dev_name(&spi->dev),
-			       priv);
-	if (ret) {
+						   gpio_to_irq(pdata.sfd),
+						   cc2520_sfd_isr,
+						   IRQF_TRIGGER_FALLING,
+						   dev_name(&spi->dev),
+						   priv);
+
+	if (ret)
+	{
 		dev_err(&spi->dev, "could not get sfd irq\n");
 		goto err_hw_init;
 	}
 
 	ret = cc2520_register(priv);
+
 	if (ret)
+	{
 		goto err_hw_init;
+	}
 
 	return 0;
 
@@ -1235,20 +1486,23 @@ static int cc2520_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id cc2520_ids[] = {
+static const struct spi_device_id cc2520_ids[] =
+{
 	{"cc2520", },
 	{},
 };
 MODULE_DEVICE_TABLE(spi, cc2520_ids);
 
-static const struct of_device_id cc2520_of_ids[] = {
+static const struct of_device_id cc2520_of_ids[] =
+{
 	{.compatible = "ti,cc2520", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, cc2520_of_ids);
 
 /* SPI driver structure */
-static struct spi_driver cc2520_driver = {
+static struct spi_driver cc2520_driver =
+{
 	.driver = {
 		.name = "cc2520",
 		.of_match_table = of_match_ptr(cc2520_of_ids),

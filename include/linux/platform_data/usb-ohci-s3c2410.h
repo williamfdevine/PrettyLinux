@@ -15,14 +15,16 @@
 
 #define S3C_HCDFLG_USED	(1)
 
-struct s3c2410_hcd_port {
+struct s3c2410_hcd_port
+{
 	unsigned char	flags;
 	unsigned char	power;
 	unsigned char	oc_status;
 	unsigned char	oc_changed;
 };
 
-struct s3c2410_hcd_info {
+struct s3c2410_hcd_info
+{
 	struct usb_hcd		*hcd;
 	struct s3c2410_hcd_port	port[2];
 
@@ -33,7 +35,8 @@ struct s3c2410_hcd_info {
 
 static void inline s3c2410_usb_report_oc(struct s3c2410_hcd_info *info, int ports)
 {
-	if (info->report_oc != NULL) {
+	if (info->report_oc != NULL)
+	{
 		(info->report_oc)(info, ports);
 	}
 }

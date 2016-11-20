@@ -44,7 +44,8 @@ struct sas_task *sas_alloc_task(gfp_t flags)
 {
 	struct sas_task *task = kmem_cache_zalloc(sas_task_cache, flags);
 
-	if (task) {
+	if (task)
+	{
 		spin_lock_init(&task->task_state_lock);
 		task->task_state_flags = SAS_TASK_STATE_PENDING;
 	}
@@ -58,9 +59,13 @@ struct sas_task *sas_alloc_slow_task(gfp_t flags)
 	struct sas_task *task = sas_alloc_task(flags);
 	struct sas_task_slow *slow = kmalloc(sizeof(*slow), flags);
 
-	if (!task || !slow) {
+	if (!task || !slow)
+	{
 		if (task)
+		{
 			kmem_cache_free(sas_task_cache, task);
+		}
+
 		kfree(slow);
 		return NULL;
 	}
@@ -75,7 +80,8 @@ EXPORT_SYMBOL_GPL(sas_alloc_slow_task);
 
 void sas_free_task(struct sas_task *task)
 {
-	if (task) {
+	if (task)
+	{
 		kfree(task->slow_task);
 		kmem_cache_free(sas_task_cache, task);
 	}
@@ -85,25 +91,35 @@ EXPORT_SYMBOL_GPL(sas_free_task);
 /*------------ SAS addr hash -----------*/
 void sas_hash_addr(u8 *hashed, const u8 *sas_addr)
 {
-        const u32 poly = 0x00DB2777;
-        u32     r = 0;
-        int     i;
+	const u32 poly = 0x00DB2777;
+	u32     r = 0;
+	int     i;
 
-        for (i = 0; i < 8; i++) {
-                int b;
-                for (b = 7; b >= 0; b--) {
-                        r <<= 1;
-                        if ((1 << b) & sas_addr[i]) {
-                                if (!(r & 0x01000000))
-                                        r ^= poly;
-                        } else if (r & 0x01000000)
-                                r ^= poly;
-                }
-        }
+	for (i = 0; i < 8; i++)
+	{
+		int b;
 
-        hashed[0] = (r >> 16) & 0xFF;
-        hashed[1] = (r >> 8) & 0xFF ;
-        hashed[2] = r & 0xFF;
+		for (b = 7; b >= 0; b--)
+		{
+			r <<= 1;
+
+			if ((1 << b) & sas_addr[i])
+			{
+				if (!(r & 0x01000000))
+				{
+					r ^= poly;
+				}
+			}
+			else if (r & 0x01000000)
+			{
+				r ^= poly;
+			}
+		}
+	}
+
+	hashed[0] = (r >> 16) & 0xFF;
+	hashed[1] = (r >> 8) & 0xFF ;
+	hashed[2] = r & 0xFF;
 }
 
 
@@ -133,19 +149,25 @@ int sas_register_ha(struct sas_ha_struct *sas_ha)
 	INIT_LIST_HEAD(&sas_ha->eh_dev_q);
 
 	error = sas_register_phys(sas_ha);
-	if (error) {
+
+	if (error)
+	{
 		printk(KERN_NOTICE "couldn't register sas phys:%d\n", error);
 		return error;
 	}
 
 	error = sas_register_ports(sas_ha);
-	if (error) {
+
+	if (error)
+	{
 		printk(KERN_NOTICE "couldn't register sas ports:%d\n", error);
 		goto Undo_phys;
 	}
 
 	error = sas_init_events(sas_ha);
-	if (error) {
+
+	if (error)
+	{
 		printk(KERN_NOTICE "couldn't start event thread:%d\n", error);
 		goto Undo_ports;
 	}
@@ -190,7 +212,8 @@ int sas_unregister_ha(struct sas_ha_struct *sas_ha)
 
 static int sas_get_linkerrors(struct sas_phy *phy)
 {
-	if (scsi_is_sas_phy_local(phy)) {
+	if (scsi_is_sas_phy_local(phy))
+	{
 		struct Scsi_Host *shost = dev_to_shost(phy->dev.parent);
 		struct sas_ha_struct *sas_ha = SHOST_TO_SAS_HA(shost);
 		struct asd_sas_phy *asd_phy = sas_ha->sas_phy[phy->number];
@@ -209,13 +232,18 @@ int sas_try_ata_reset(struct asd_sas_phy *asd_phy)
 
 	/* try to route user requested link resets through libata */
 	if (asd_phy->port)
+	{
 		dev = asd_phy->port->port_dev;
+	}
 
 	/* validate that dev has been probed */
 	if (dev)
+	{
 		dev = sas_find_dev_by_rphy(dev->rphy);
+	}
 
-	if (dev && dev_is_sata(dev)) {
+	if (dev && dev_is_sata(dev))
+	{
 		sas_ata_schedule_reset(dev);
 		sas_ata_wait_eh(dev);
 		return 0;
@@ -235,11 +263,16 @@ static int transport_sas_phy_reset(struct sas_phy *phy, int hard_reset)
 	enum phy_func reset_type;
 
 	if (hard_reset)
+	{
 		reset_type = PHY_FUNC_HARD_RESET;
+	}
 	else
+	{
 		reset_type = PHY_FUNC_LINK_RESET;
+	}
 
-	if (scsi_is_sas_phy_local(phy)) {
+	if (scsi_is_sas_phy_local(phy))
+	{
 		struct Scsi_Host *shost = dev_to_shost(phy->dev.parent);
 		struct sas_ha_struct *sas_ha = SHOST_TO_SAS_HA(shost);
 		struct asd_sas_phy *asd_phy = sas_ha->sas_phy[phy->number];
@@ -247,19 +280,28 @@ static int transport_sas_phy_reset(struct sas_phy *phy, int hard_reset)
 			to_sas_internal(sas_ha->core.shost->transportt);
 
 		if (!hard_reset && sas_try_ata_reset(asd_phy) == 0)
+		{
 			return 0;
+		}
+
 		return i->dft->lldd_control_phy(asd_phy, reset_type, NULL);
-	} else {
+	}
+	else
+	{
 		struct sas_rphy *rphy = dev_to_rphy(phy->dev.parent);
 		struct domain_device *ddev = sas_find_dev_by_rphy(rphy);
 		struct domain_device *ata_dev = sas_ex_to_ata(ddev, phy->number);
 
-		if (ata_dev && !hard_reset) {
+		if (ata_dev && !hard_reset)
+		{
 			sas_ata_schedule_reset(ata_dev);
 			sas_ata_wait_eh(ata_dev);
 			return 0;
-		} else
+		}
+		else
+		{
 			return sas_smp_phy_control(ddev, phy->number, reset_type, NULL);
+		}
 	}
 }
 
@@ -269,11 +311,16 @@ static int sas_phy_enable(struct sas_phy *phy, int enable)
 	enum phy_func cmd;
 
 	if (enable)
+	{
 		cmd = PHY_FUNC_LINK_RESET;
+	}
 	else
+	{
 		cmd = PHY_FUNC_DISABLE;
+	}
 
-	if (scsi_is_sas_phy_local(phy)) {
+	if (scsi_is_sas_phy_local(phy))
+	{
 		struct Scsi_Host *shost = dev_to_shost(phy->dev.parent);
 		struct sas_ha_struct *sas_ha = SHOST_TO_SAS_HA(shost);
 		struct asd_sas_phy *asd_phy = sas_ha->sas_phy[phy->number];
@@ -281,18 +328,29 @@ static int sas_phy_enable(struct sas_phy *phy, int enable)
 			to_sas_internal(sas_ha->core.shost->transportt);
 
 		if (enable)
+		{
 			ret = transport_sas_phy_reset(phy, 0);
+		}
 		else
+		{
 			ret = i->dft->lldd_control_phy(asd_phy, cmd, NULL);
-	} else {
+		}
+	}
+	else
+	{
 		struct sas_rphy *rphy = dev_to_rphy(phy->dev.parent);
 		struct domain_device *ddev = sas_find_dev_by_rphy(rphy);
 
 		if (enable)
+		{
 			ret = transport_sas_phy_reset(phy, 0);
+		}
 		else
+		{
 			ret = sas_smp_phy_control(ddev, phy->number, cmd, NULL);
+		}
 	}
+
 	return ret;
 }
 
@@ -302,14 +360,21 @@ int sas_phy_reset(struct sas_phy *phy, int hard_reset)
 	enum phy_func reset_type;
 
 	if (!phy->enabled)
+	{
 		return -ENODEV;
+	}
 
 	if (hard_reset)
+	{
 		reset_type = PHY_FUNC_HARD_RESET;
+	}
 	else
+	{
 		reset_type = PHY_FUNC_LINK_RESET;
+	}
 
-	if (scsi_is_sas_phy_local(phy)) {
+	if (scsi_is_sas_phy_local(phy))
+	{
 		struct Scsi_Host *shost = dev_to_shost(phy->dev.parent);
 		struct sas_ha_struct *sas_ha = SHOST_TO_SAS_HA(shost);
 		struct asd_sas_phy *asd_phy = sas_ha->sas_phy[phy->number];
@@ -317,34 +382,44 @@ int sas_phy_reset(struct sas_phy *phy, int hard_reset)
 			to_sas_internal(sas_ha->core.shost->transportt);
 
 		ret = i->dft->lldd_control_phy(asd_phy, reset_type, NULL);
-	} else {
+	}
+	else
+	{
 		struct sas_rphy *rphy = dev_to_rphy(phy->dev.parent);
 		struct domain_device *ddev = sas_find_dev_by_rphy(rphy);
 		ret = sas_smp_phy_control(ddev, phy->number, reset_type, NULL);
 	}
+
 	return ret;
 }
 
 int sas_set_phy_speed(struct sas_phy *phy,
-		      struct sas_phy_linkrates *rates)
+					  struct sas_phy_linkrates *rates)
 {
 	int ret;
 
 	if ((rates->minimum_linkrate &&
-	     rates->minimum_linkrate > phy->maximum_linkrate) ||
-	    (rates->maximum_linkrate &&
-	     rates->maximum_linkrate < phy->minimum_linkrate))
+		 rates->minimum_linkrate > phy->maximum_linkrate) ||
+		(rates->maximum_linkrate &&
+		 rates->maximum_linkrate < phy->minimum_linkrate))
+	{
 		return -EINVAL;
+	}
 
 	if (rates->minimum_linkrate &&
-	    rates->minimum_linkrate < phy->minimum_linkrate_hw)
+		rates->minimum_linkrate < phy->minimum_linkrate_hw)
+	{
 		rates->minimum_linkrate = phy->minimum_linkrate_hw;
+	}
 
 	if (rates->maximum_linkrate &&
-	    rates->maximum_linkrate > phy->maximum_linkrate_hw)
+		rates->maximum_linkrate > phy->maximum_linkrate_hw)
+	{
 		rates->maximum_linkrate = phy->maximum_linkrate_hw;
+	}
 
-	if (scsi_is_sas_phy_local(phy)) {
+	if (scsi_is_sas_phy_local(phy))
+	{
 		struct Scsi_Host *shost = dev_to_shost(phy->dev.parent);
 		struct sas_ha_struct *sas_ha = SHOST_TO_SAS_HA(shost);
 		struct asd_sas_phy *asd_phy = sas_ha->sas_phy[phy->number];
@@ -352,12 +427,14 @@ int sas_set_phy_speed(struct sas_phy *phy,
 			to_sas_internal(sas_ha->core.shost->transportt);
 
 		ret = i->dft->lldd_control_phy(asd_phy, PHY_FUNC_SET_LINK_RATE,
-					       rates);
-	} else {
+									   rates);
+	}
+	else
+	{
 		struct sas_rphy *rphy = dev_to_rphy(phy->dev.parent);
 		struct domain_device *ddev = sas_find_dev_by_rphy(rphy);
 		ret = sas_smp_phy_control(ddev, phy->number,
-					  PHY_FUNC_LINK_RESET, rates);
+								  PHY_FUNC_LINK_RESET, rates);
 
 	}
 
@@ -371,7 +448,8 @@ void sas_prep_resume_ha(struct sas_ha_struct *ha)
 	set_bit(SAS_HA_REGISTERED, &ha->state);
 
 	/* clear out any stale link events/data from the suspension path */
-	for (i = 0; i < ha->num_phys; i++) {
+	for (i = 0; i < ha->num_phys; i++)
+	{
 		struct asd_sas_phy *phy = ha->sas_phy[i];
 
 		memset(phy->attached_sas_addr, 0, SAS_ADDR_SIZE);
@@ -386,11 +464,14 @@ static int phys_suspended(struct sas_ha_struct *ha)
 {
 	int i, rc = 0;
 
-	for (i = 0; i < ha->num_phys; i++) {
+	for (i = 0; i < ha->num_phys; i++)
+	{
 		struct asd_sas_phy *phy = ha->sas_phy[i];
 
 		if (phy->suspended)
+		{
 			rc++;
+		}
 	}
 
 	return rc;
@@ -408,14 +489,19 @@ void sas_resume_ha(struct sas_ha_struct *ha)
 	 * tearing it down.
 	 */
 	i = phys_suspended(ha);
+
 	if (i)
 		dev_info(ha->dev, "waiting up to 25 seconds for %d phy%s to resume\n",
-			 i, i > 1 ? "s" : "");
+				 i, i > 1 ? "s" : "");
+
 	wait_event_timeout(ha->eh_wait_q, phys_suspended(ha) == 0, tmo);
-	for (i = 0; i < ha->num_phys; i++) {
+
+	for (i = 0; i < ha->num_phys; i++)
+	{
 		struct asd_sas_phy *phy = ha->sas_phy[i];
 
-		if (phy->suspended) {
+		if (phy->suspended)
+		{
 			dev_warn(&phy->phy->dev, "resume timeout\n");
 			sas_notify_phy_event(phy, PHYE_RESUME_TIMEOUT);
 		}
@@ -435,7 +521,9 @@ void sas_suspend_ha(struct sas_ha_struct *ha)
 
 	sas_disable_events(ha);
 	scsi_block_requests(ha->core.shost);
-	for (i = 0; i < ha->num_phys; i++) {
+
+	for (i = 0; i < ha->num_phys; i++)
+	{
 		struct asd_sas_port *port = ha->sas_port[i];
 
 		sas_discover_event(port, DISCE_SUSPEND);
@@ -473,7 +561,9 @@ static int sas_phy_setup(struct sas_phy *phy)
 	struct sas_phy_data *d = kzalloc(sizeof(*d), GFP_KERNEL);
 
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&d->event_lock);
 	INIT_SAS_WORK(&d->reset_work, phy_reset_work);
@@ -492,7 +582,9 @@ static int queue_phy_reset(struct sas_phy *phy, int hard_reset)
 	int rc;
 
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	/* libsas workqueue coordinates ata-eh reset with discovery */
 	mutex_lock(&d->event_lock);
@@ -504,8 +596,12 @@ static int queue_phy_reset(struct sas_phy *phy, int hard_reset)
 	spin_unlock_irq(&ha->lock);
 
 	rc = sas_drain_work(ha);
+
 	if (rc == 0)
+	{
 		rc = d->reset_result;
+	}
+
 	mutex_unlock(&d->event_lock);
 
 	return rc;
@@ -519,7 +615,9 @@ static int queue_phy_enable(struct sas_phy *phy, int enable)
 	int rc;
 
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	/* libsas workqueue coordinates ata-eh reset with discovery */
 	mutex_lock(&d->event_lock);
@@ -531,14 +629,19 @@ static int queue_phy_enable(struct sas_phy *phy, int enable)
 	spin_unlock_irq(&ha->lock);
 
 	rc = sas_drain_work(ha);
+
 	if (rc == 0)
+	{
 		rc = d->enable_result;
+	}
+
 	mutex_unlock(&d->event_lock);
 
 	return rc;
 }
 
-static struct sas_function_template sft = {
+static struct sas_function_template sft =
+{
 	.phy_enable = queue_phy_enable,
 	.phy_reset = queue_phy_reset,
 	.phy_setup = sas_phy_setup,
@@ -555,7 +658,9 @@ sas_domain_attach_transport(struct sas_domain_function_template *dft)
 	struct sas_internal *i;
 
 	if (!stt)
+	{
 		return stt;
+	}
 
 	i = to_sas_internal(stt);
 	i->dft = dft;
@@ -579,8 +684,11 @@ EXPORT_SYMBOL_GPL(sas_domain_release_transport);
 static int __init sas_class_init(void)
 {
 	sas_task_cache = KMEM_CACHE(sas_task, SLAB_HWCACHE_ALIGN);
+
 	if (!sas_task_cache)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }

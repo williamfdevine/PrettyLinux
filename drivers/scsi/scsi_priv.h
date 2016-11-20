@@ -36,29 +36,30 @@ extern void scsi_destroy_command_freelist(struct Scsi_Host *shost);
 void scsi_log_send(struct scsi_cmnd *cmd);
 void scsi_log_completion(struct scsi_cmnd *cmd, int disposition);
 #else
-static inline void scsi_log_send(struct scsi_cmnd *cmd) 
-	{ };
+static inline void scsi_log_send(struct scsi_cmnd *cmd)
+{ };
 static inline void scsi_log_completion(struct scsi_cmnd *cmd, int disposition)
-	{ };
+{ };
 #endif
 
 /* scsi_devinfo.c */
 
 /* list of keys for the lists */
-enum {
+enum
+{
 	SCSI_DEVINFO_GLOBAL = 0,
 	SCSI_DEVINFO_SPI,
 };
 
 extern int scsi_get_device_flags(struct scsi_device *sdev,
-				 const unsigned char *vendor,
-				 const unsigned char *model);
+								 const unsigned char *vendor,
+								 const unsigned char *model);
 extern int scsi_get_device_flags_keyed(struct scsi_device *sdev,
-				       const unsigned char *vendor,
-				       const unsigned char *model, int key);
+									   const unsigned char *vendor,
+									   const unsigned char *model, int key);
 extern int scsi_dev_info_list_add_keyed(int compatible, char *vendor,
-					char *model, char *strflags,
-					int flags, int key);
+										char *model, char *strflags,
+										int flags, int key);
 extern int scsi_dev_info_list_del_keyed(char *vendor, char *model, int key);
 extern int scsi_dev_info_add_list(int key, const char *name);
 extern int scsi_dev_info_remove_list(int key);
@@ -74,10 +75,10 @@ extern int scsi_decide_disposition(struct scsi_cmnd *cmd);
 extern void scsi_eh_wakeup(struct Scsi_Host *shost);
 extern int scsi_eh_scmd_add(struct scsi_cmnd *, int);
 void scsi_eh_ready_devs(struct Scsi_Host *shost,
-			struct list_head *work_q,
-			struct list_head *done_q);
+						struct list_head *work_q,
+						struct list_head *done_q);
 int scsi_eh_get_sense(struct list_head *work_q,
-		      struct list_head *done_q);
+					  struct list_head *done_q);
 int scsi_noretry_cmd(struct scsi_cmnd *scmd);
 
 /* scsi_lib.c */
@@ -100,36 +101,36 @@ extern struct kmem_cache *scsi_sdb_cache;
 
 /* scsi_proc.c */
 #ifdef CONFIG_SCSI_PROC_FS
-extern void scsi_proc_hostdir_add(struct scsi_host_template *);
-extern void scsi_proc_hostdir_rm(struct scsi_host_template *);
-extern void scsi_proc_host_add(struct Scsi_Host *);
-extern void scsi_proc_host_rm(struct Scsi_Host *);
-extern int scsi_init_procfs(void);
-extern void scsi_exit_procfs(void);
+	extern void scsi_proc_hostdir_add(struct scsi_host_template *);
+	extern void scsi_proc_hostdir_rm(struct scsi_host_template *);
+	extern void scsi_proc_host_add(struct Scsi_Host *);
+	extern void scsi_proc_host_rm(struct Scsi_Host *);
+	extern int scsi_init_procfs(void);
+	extern void scsi_exit_procfs(void);
 #else
-# define scsi_proc_hostdir_add(sht)	do { } while (0)
-# define scsi_proc_hostdir_rm(sht)	do { } while (0)
-# define scsi_proc_host_add(shost)	do { } while (0)
-# define scsi_proc_host_rm(shost)	do { } while (0)
-# define scsi_init_procfs()		(0)
-# define scsi_exit_procfs()		do { } while (0)
+	#define scsi_proc_hostdir_add(sht)	do { } while (0)
+	#define scsi_proc_hostdir_rm(sht)	do { } while (0)
+	#define scsi_proc_host_add(shost)	do { } while (0)
+	#define scsi_proc_host_rm(shost)	do { } while (0)
+	#define scsi_init_procfs()		(0)
+	#define scsi_exit_procfs()		do { } while (0)
 #endif /* CONFIG_PROC_FS */
 
 /* scsi_scan.c */
 extern char scsi_scan_type[];
 extern int scsi_complete_async_scans(void);
 extern int scsi_scan_host_selected(struct Scsi_Host *, unsigned int,
-				   unsigned int, u64, enum scsi_scan_mode);
+								   unsigned int, u64, enum scsi_scan_mode);
 extern void scsi_forget_host(struct Scsi_Host *);
 extern void scsi_rescan_device(struct device *);
 
 /* scsi_sysctl.c */
 #ifdef CONFIG_SYSCTL
-extern int scsi_init_sysctl(void);
-extern void scsi_exit_sysctl(void);
+	extern int scsi_init_sysctl(void);
+	extern void scsi_exit_sysctl(void);
 #else
-# define scsi_init_sysctl()		(0)
-# define scsi_exit_sysctl()		do { } while (0)
+	#define scsi_init_sysctl()		(0)
+	#define scsi_exit_sysctl()		do { } while (0)
 #endif /* CONFIG_SYSCTL */
 
 /* scsi_sysfs.c */
@@ -183,7 +184,7 @@ static inline void scsi_dh_release_device(struct scsi_device *sdev) { }
 #endif
 static inline void scsi_dh_remove_device(struct scsi_device *sdev) { }
 
-/* 
+/*
  * internal scsi timeout functions: for use by mid-layer and transport
  * classes.
  */
@@ -191,6 +192,6 @@ static inline void scsi_dh_remove_device(struct scsi_device *sdev) { }
 #define SCSI_DEVICE_BLOCK_MAX_TIMEOUT	600	/* units in seconds */
 extern int scsi_internal_device_block(struct scsi_device *sdev);
 extern int scsi_internal_device_unblock(struct scsi_device *sdev,
-					enum scsi_device_state new_state);
+										enum scsi_device_state new_state);
 
 #endif /* _SCSI_PRIV_H */

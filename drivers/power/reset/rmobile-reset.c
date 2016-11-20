@@ -25,7 +25,7 @@
 static void __iomem *sysc_base2;
 
 static int rmobile_reset_handler(struct notifier_block *this,
-				 unsigned long mode, void *cmd)
+								 unsigned long mode, void *cmd)
 {
 	pr_debug("%s %lu\n", __func__, mode);
 
@@ -35,7 +35,8 @@ static int rmobile_reset_handler(struct notifier_block *this,
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block rmobile_reset_nb = {
+static struct notifier_block rmobile_reset_nb =
+{
 	.notifier_call = rmobile_reset_handler,
 	.priority = 192,
 };
@@ -45,13 +46,18 @@ static int rmobile_reset_probe(struct platform_device *pdev)
 	int error;
 
 	sysc_base2 = of_iomap(pdev->dev.of_node, 1);
+
 	if (!sysc_base2)
+	{
 		return -ENODEV;
+	}
 
 	error = register_restart_handler(&rmobile_reset_nb);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev,
-			"cannot register restart handler (err=%d)\n", error);
+				"cannot register restart handler (err=%d)\n", error);
 		goto fail_unmap;
 	}
 
@@ -69,13 +75,15 @@ static int rmobile_reset_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id rmobile_reset_of_match[] = {
+static const struct of_device_id rmobile_reset_of_match[] =
+{
 	{ .compatible = "renesas,sysc-rmobile", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, rmobile_reset_of_match);
 
-static struct platform_driver rmobile_reset_driver = {
+static struct platform_driver rmobile_reset_driver =
+{
 	.probe = rmobile_reset_probe,
 	.remove = rmobile_reset_remove,
 	.driver = {

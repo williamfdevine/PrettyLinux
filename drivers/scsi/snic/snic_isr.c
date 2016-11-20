@@ -42,9 +42,9 @@ snic_isr_msix_wq(int irq, void *data)
 
 	wq_work_done = snic_wq_cmpl_handler(snic, -1);
 	svnic_intr_return_credits(&snic->intr[SNIC_MSIX_WQ],
-				  wq_work_done,
-				  1 /* unmask intr */,
-				  1 /* reset intr timer */);
+							  wq_work_done,
+							  1 /* unmask intr */,
+							  1 /* reset intr timer */);
 
 	return IRQ_HANDLED;
 } /* end of snic_isr_msix_wq */
@@ -60,9 +60,9 @@ snic_isr_msix_io_cmpl(int irq, void *data)
 
 	iocmpl_work_done = snic_fwcq_cmpl_handler(snic, -1);
 	svnic_intr_return_credits(&snic->intr[SNIC_MSIX_IO_CMPL],
-				  iocmpl_work_done,
-				  1 /* unmask intr */,
-				  1 /* reset intr timer */);
+							  iocmpl_work_done,
+							  1 /* unmask intr */,
+							  1 /* reset intr timer */);
 
 	return IRQ_HANDLED;
 } /* end of snic_isr_msix_io_cmpl */
@@ -91,10 +91,12 @@ snic_free_intr(struct snic *snic)
 	int i;
 
 	/* ONLY interrupt mode MSIX is supported */
-	for (i = 0; i < ARRAY_SIZE(snic->msix); i++) {
-		if (snic->msix[i].requested) {
+	for (i = 0; i < ARRAY_SIZE(snic->msix); i++)
+	{
+		if (snic->msix[i].requested)
+		{
 			free_irq(snic->msix_entry[i].vector,
-				 snic->msix[i].devid);
+					 snic->msix[i].devid);
 		}
 	}
 } /* end of snic_free_intr */
@@ -116,37 +118,41 @@ snic_request_intr(struct snic *snic)
 	 * Except for err_notify, which is always one.
 	 */
 	sprintf(snic->msix[SNIC_MSIX_WQ].devname,
-		"%.11s-scsi-wq",
-		snic->name);
+			"%.11s-scsi-wq",
+			snic->name);
 	snic->msix[SNIC_MSIX_WQ].isr = snic_isr_msix_wq;
 	snic->msix[SNIC_MSIX_WQ].devid = snic;
 
 	sprintf(snic->msix[SNIC_MSIX_IO_CMPL].devname,
-		"%.11s-io-cmpl",
-		snic->name);
+			"%.11s-io-cmpl",
+			snic->name);
 	snic->msix[SNIC_MSIX_IO_CMPL].isr = snic_isr_msix_io_cmpl;
 	snic->msix[SNIC_MSIX_IO_CMPL].devid = snic;
 
 	sprintf(snic->msix[SNIC_MSIX_ERR_NOTIFY].devname,
-		"%.11s-err-notify",
-		snic->name);
+			"%.11s-err-notify",
+			snic->name);
 	snic->msix[SNIC_MSIX_ERR_NOTIFY].isr = snic_isr_msix_err_notify;
 	snic->msix[SNIC_MSIX_ERR_NOTIFY].devid = snic;
 
-	for (i = 0; i < ARRAY_SIZE(snic->msix); i++) {
+	for (i = 0; i < ARRAY_SIZE(snic->msix); i++)
+	{
 		ret = request_irq(snic->msix_entry[i].vector,
-				  snic->msix[i].isr,
-				  0,
-				  snic->msix[i].devname,
-				  snic->msix[i].devid);
-		if (ret) {
+						  snic->msix[i].isr,
+						  0,
+						  snic->msix[i].devname,
+						  snic->msix[i].devid);
+
+		if (ret)
+		{
 			SNIC_HOST_ERR(snic->shost,
-				      "MSI-X: requrest_irq(%d) failed %d\n",
-				      i,
-				      ret);
+						  "MSI-X: requrest_irq(%d) failed %d\n",
+						  i,
+						  ret);
 			snic_free_intr(snic);
 			break;
 		}
+
 		snic->msix[i].requested = 1;
 	}
 
@@ -166,25 +172,29 @@ snic_set_intr_mode(struct snic *snic)
 	 */
 
 	BUILD_BUG_ON((ARRAY_SIZE(snic->wq) + SNIC_CQ_IO_CMPL_MAX) >
-			ARRAY_SIZE(snic->intr));
+				 ARRAY_SIZE(snic->intr));
 	SNIC_BUG_ON(ARRAY_SIZE(snic->msix_entry) < (n + m + 1));
 
 	for (i = 0; i < (n + m + 1); i++)
+	{
 		snic->msix_entry[i].entry = i;
+	}
 
-	if (snic->wq_count >= n && snic->cq_count >= (n + m)) {
+	if (snic->wq_count >= n && snic->cq_count >= (n + m))
+	{
 		if (!pci_enable_msix(snic->pdev,
-				     snic->msix_entry,
-				     (n + m + 1))) {
+							 snic->msix_entry,
+							 (n + m + 1)))
+		{
 			snic->wq_count = n;
 			snic->cq_count = n + m;
 			snic->intr_count = n + m + 1;
 			snic->err_intr_offset = SNIC_MSIX_ERR_NOTIFY;
 
 			SNIC_ISR_DBG(snic->shost,
-				     "Using MSI-X Interrupts\n");
+						 "Using MSI-X Interrupts\n");
 			svnic_dev_set_intr_mode(snic->vdev,
-						VNIC_DEV_INTR_MODE_MSIX);
+									VNIC_DEV_INTR_MODE_MSIX);
 
 			return 0;
 		}

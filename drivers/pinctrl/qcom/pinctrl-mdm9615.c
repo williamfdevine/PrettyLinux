@@ -21,7 +21,8 @@
 
 #include "pinctrl-msm.h"
 
-static const struct pinctrl_pin_desc mdm9615_pins[] = {
+static const struct pinctrl_pin_desc mdm9615_pins[] =
+{
 	PINCTRL_PIN(0, "GPIO_0"),
 	PINCTRL_PIN(1, "GPIO_1"),
 	PINCTRL_PIN(2, "GPIO_2"),
@@ -205,16 +206,16 @@ DECLARE_MSM_GPIO_PINS(87);
 
 #define FUNCTION(fname)					\
 	[MSM_MUX_##fname] = {				\
-		.name = #fname,				\
-		.groups = fname##_groups,		\
-		.ngroups = ARRAY_SIZE(fname##_groups),	\
-	}
+										.name = #fname,				\
+										.groups = fname##_groups,		\
+										.ngroups = ARRAY_SIZE(fname##_groups),	\
+						}
 
 #define PINGROUP(id, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11) \
 	{						\
 		.name = "gpio" #id,			\
-		.pins = gpio##id##_pins,		\
-		.npins = ARRAY_SIZE(gpio##id##_pins),	\
+				.pins = gpio##id##_pins,		\
+						.npins = ARRAY_SIZE(gpio##id##_pins),	\
 		.funcs = (int[]){			\
 			MSM_MUX_gpio,			\
 			MSM_MUX_##f1,			\
@@ -230,29 +231,30 @@ DECLARE_MSM_GPIO_PINS(87);
 			MSM_MUX_##f11			\
 		},					\
 		.nfuncs = 12,				\
-		.ctl_reg = 0x1000 + 0x10 * id,		\
-		.io_reg = 0x1004 + 0x10 * id,		\
-		.intr_cfg_reg = 0x1008 + 0x10 * id,	\
-		.intr_status_reg = 0x100c + 0x10 * id,	\
-		.intr_target_reg = 0x400 + 0x4 * id,	\
-		.mux_bit = 2,				\
-		.pull_bit = 0,				\
-		.drv_bit = 6,				\
-		.oe_bit = 9,				\
-		.in_bit = 0,				\
-		.out_bit = 1,				\
-		.intr_enable_bit = 0,			\
-		.intr_status_bit = 0,			\
-		.intr_ack_high = 1,			\
-		.intr_target_bit = 0,			\
-		.intr_target_kpss_val = 4,		\
-		.intr_raw_status_bit = 3,		\
-		.intr_polarity_bit = 1,			\
-		.intr_detection_bit = 2,		\
-		.intr_detection_width = 1,		\
+				  .ctl_reg = 0x1000 + 0x10 * id,		\
+							 .io_reg = 0x1004 + 0x10 * id,		\
+									   .intr_cfg_reg = 0x1008 + 0x10 * id,	\
+											   .intr_status_reg = 0x100c + 0x10 * id,	\
+													   .intr_target_reg = 0x400 + 0x4 * id,	\
+															   .mux_bit = 2,				\
+																	   .pull_bit = 0,				\
+																			   .drv_bit = 6,				\
+																					   .oe_bit = 9,				\
+																							   .in_bit = 0,				\
+																									   .out_bit = 1,				\
+																											   .intr_enable_bit = 0,			\
+																													   .intr_status_bit = 0,			\
+																															   .intr_ack_high = 1,			\
+																																	   .intr_target_bit = 0,			\
+																																			   .intr_target_kpss_val = 4,		\
+																																					   .intr_raw_status_bit = 3,		\
+																																							   .intr_polarity_bit = 1,			\
+																																									   .intr_detection_bit = 2,		\
+																																											   .intr_detection_width = 1,		\
 	}
 
-enum mdm9615_functions {
+enum mdm9615_functions
+{
 	MSM_MUX_gpio,
 	MSM_MUX_gsbi2_i2c,
 	MSM_MUX_gsbi3,
@@ -268,7 +270,8 @@ enum mdm9615_functions {
 	MSM_MUX_NA,
 };
 
-static const char * const gpio_groups[] = {
+static const char *const gpio_groups[] =
+{
 	"gpio0", "gpio1", "gpio2", "gpio3", "gpio4", "gpio5", "gpio6", "gpio7",
 	"gpio8", "gpio9", "gpio10", "gpio11", "gpio12", "gpio13", "gpio14",
 	"gpio15", "gpio16", "gpio17", "gpio18", "gpio19", "gpio20", "gpio21",
@@ -284,51 +287,63 @@ static const char * const gpio_groups[] = {
 	"gpio85", "gpio86", "gpio87"
 };
 
-static const char * const gsbi2_i2c_groups[] = {
+static const char *const gsbi2_i2c_groups[] =
+{
 	"gpio4", "gpio5"
 };
 
-static const char * const gsbi3_groups[] = {
+static const char *const gsbi3_groups[] =
+{
 	"gpio8", "gpio9", "gpio10", "gpio11"
 };
 
-static const char * const gsbi4_groups[] = {
+static const char *const gsbi4_groups[] =
+{
 	"gpio12", "gpio13", "gpio14", "gpio15"
 };
 
-static const char * const gsbi5_i2c_groups[] = {
+static const char *const gsbi5_i2c_groups[] =
+{
 	"gpio16", "gpio17"
 };
 
-static const char * const gsbi5_uart_groups[] = {
+static const char *const gsbi5_uart_groups[] =
+{
 	"gpio18", "gpio19"
 };
 
-static const char * const sdc2_groups[] = {
+static const char *const sdc2_groups[] =
+{
 	"gpio25", "gpio26", "gpio27", "gpio28", "gpio29", "gpio30",
 };
 
-static const char * const ebi2_lcdc_groups[] = {
+static const char *const ebi2_lcdc_groups[] =
+{
 	"gpio21", "gpio22", "gpio24",
 };
 
-static const char * const ps_hold_groups[] = {
+static const char *const ps_hold_groups[] =
+{
 	"gpio83",
 };
 
-static const char * const prim_audio_groups[] = {
+static const char *const prim_audio_groups[] =
+{
 	"gpio20", "gpio21", "gpio22", "gpio23",
 };
 
-static const char * const sec_audio_groups[] = {
+static const char *const sec_audio_groups[] =
+{
 	"gpio25", "gpio26", "gpio27", "gpio28",
 };
 
-static const char * const cdc_mclk_groups[] = {
+static const char *const cdc_mclk_groups[] =
+{
 	"gpio24",
 };
 
-static const struct msm_function mdm9615_functions[] = {
+static const struct msm_function mdm9615_functions[] =
+{
 	FUNCTION(gpio),
 	FUNCTION(gsbi2_i2c),
 	FUNCTION(gsbi3),
@@ -343,7 +358,8 @@ static const struct msm_function mdm9615_functions[] = {
 	FUNCTION(cdc_mclk),
 };
 
-static const struct msm_pingroup mdm9615_groups[] = {
+static const struct msm_pingroup mdm9615_groups[] =
+{
 	PINGROUP(0, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(1, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(2, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
@@ -436,7 +452,8 @@ static const struct msm_pingroup mdm9615_groups[] = {
 
 #define NUM_GPIO_PINGROUPS 88
 
-static const struct msm_pinctrl_soc_data mdm9615_pinctrl = {
+static const struct msm_pinctrl_soc_data mdm9615_pinctrl =
+{
 	.pins = mdm9615_pins,
 	.npins = ARRAY_SIZE(mdm9615_pins),
 	.functions = mdm9615_functions,
@@ -451,12 +468,14 @@ static int mdm9615_pinctrl_probe(struct platform_device *pdev)
 	return msm_pinctrl_probe(pdev, &mdm9615_pinctrl);
 }
 
-static const struct of_device_id mdm9615_pinctrl_of_match[] = {
+static const struct of_device_id mdm9615_pinctrl_of_match[] =
+{
 	{ .compatible = "qcom,mdm9615-pinctrl", },
 	{ },
 };
 
-static struct platform_driver mdm9615_pinctrl_driver = {
+static struct platform_driver mdm9615_pinctrl_driver =
+{
 	.driver = {
 		.name = "mdm9615-pinctrl",
 		.of_match_table = mdm9615_pinctrl_of_match,

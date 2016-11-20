@@ -25,7 +25,8 @@
 #include <stdbool.h>
 #include <linux/err.h>
 
-enum libbpf_errno {
+enum libbpf_errno
+{
 	__LIBBPF_ERRNO__START = 4000,
 
 	/* Something wrong in libelf */
@@ -51,19 +52,19 @@ int libbpf_strerror(int err, char *buf, size_t size);
  * So instead of __printf, here we use gcc attribute directly.
  */
 typedef int (*libbpf_print_fn_t)(const char *, ...)
-	__attribute__((format(printf, 1, 2)));
+__attribute__((format(printf, 1, 2)));
 
 void libbpf_set_print(libbpf_print_fn_t warn,
-		      libbpf_print_fn_t info,
-		      libbpf_print_fn_t debug);
+					  libbpf_print_fn_t info,
+					  libbpf_print_fn_t debug);
 
 /* Hide internal to user */
 struct bpf_object;
 
 struct bpf_object *bpf_object__open(const char *path);
 struct bpf_object *bpf_object__open_buffer(void *obj_buf,
-					   size_t obj_buf_sz,
-					   const char *name);
+		size_t obj_buf_sz,
+		const char *name);
 void bpf_object__close(struct bpf_object *object);
 
 /* Load/unload object into/from kernel */
@@ -75,25 +76,25 @@ unsigned int bpf_object__kversion(struct bpf_object *obj);
 struct bpf_object *bpf_object__next(struct bpf_object *prev);
 #define bpf_object__for_each_safe(pos, tmp)			\
 	for ((pos) = bpf_object__next(NULL),		\
-		(tmp) = bpf_object__next(pos);		\
-	     (pos) != NULL;				\
-	     (pos) = (tmp), (tmp) = bpf_object__next(tmp))
+		 (tmp) = bpf_object__next(pos);		\
+		 (pos) != NULL;				\
+		 (pos) = (tmp), (tmp) = bpf_object__next(tmp))
 
 /* Accessors of bpf_program. */
 struct bpf_program;
 struct bpf_program *bpf_program__next(struct bpf_program *prog,
-				      struct bpf_object *obj);
+									  struct bpf_object *obj);
 
 #define bpf_object__for_each_program(pos, obj)		\
 	for ((pos) = bpf_program__next(NULL, (obj));	\
-	     (pos) != NULL;				\
-	     (pos) = bpf_program__next((pos), (obj)))
+		 (pos) != NULL;				\
+		 (pos) = bpf_program__next((pos), (obj)))
 
 typedef void (*bpf_program_clear_priv_t)(struct bpf_program *,
-					 void *);
+		void *);
 
 int bpf_program__set_priv(struct bpf_program *prog, void *priv,
-			  bpf_program_clear_priv_t clear_priv);
+						  bpf_program_clear_priv_t clear_priv);
 
 void *bpf_program__priv(struct bpf_program *prog);
 
@@ -132,7 +133,8 @@ struct bpf_insn;
  * bpf_program__nth_fd(prog, 0).
  */
 
-struct bpf_prog_prep_result {
+struct bpf_prog_prep_result
+{
 	/*
 	 * If not NULL, load new instruction array.
 	 * If set to NULL, don't load this instance.
@@ -157,11 +159,11 @@ struct bpf_prog_prep_result {
  *  - Non-zero: pre-processing, stop loading.
  */
 typedef int (*bpf_program_prep_t)(struct bpf_program *prog, int n,
-				  struct bpf_insn *insns, int insns_cnt,
-				  struct bpf_prog_prep_result *res);
+								  struct bpf_insn *insns, int insns_cnt,
+								  struct bpf_prog_prep_result *res);
 
 int bpf_program__set_prep(struct bpf_program *prog, int nr_instance,
-			  bpf_program_prep_t prep);
+						  bpf_program_prep_t prep);
 
 int bpf_program__nth_fd(struct bpf_program *prog, int n);
 
@@ -180,7 +182,8 @@ bool bpf_program__is_kprobe(struct bpf_program *prog);
  * In addition, using it will trigger -Wpacked warning message,
  * and will be treated as an error due to -Werror.
  */
-struct bpf_map_def {
+struct bpf_map_def
+{
 	unsigned int type;
 	unsigned int key_size;
 	unsigned int value_size;
@@ -199,8 +202,8 @@ struct bpf_map *
 bpf_map__next(struct bpf_map *map, struct bpf_object *obj);
 #define bpf_map__for_each(pos, obj)		\
 	for ((pos) = bpf_map__next(NULL, (obj));	\
-	     (pos) != NULL;				\
-	     (pos) = bpf_map__next((pos), (obj)))
+		 (pos) != NULL;				\
+		 (pos) = bpf_map__next((pos), (obj)))
 
 int bpf_map__fd(struct bpf_map *map);
 const struct bpf_map_def *bpf_map__def(struct bpf_map *map);
@@ -208,7 +211,7 @@ const char *bpf_map__name(struct bpf_map *map);
 
 typedef void (*bpf_map_clear_priv_t)(struct bpf_map *, void *);
 int bpf_map__set_priv(struct bpf_map *map, void *priv,
-		      bpf_map_clear_priv_t clear_priv);
+					  bpf_map_clear_priv_t clear_priv);
 void *bpf_map__priv(struct bpf_map *map);
 
 #endif

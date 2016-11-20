@@ -30,9 +30,10 @@ unsigned int aa_hash_size(void)
 }
 
 int aa_calc_profile_hash(struct aa_profile *profile, u32 version, void *start,
-			 size_t len)
+						 size_t len)
 {
-	struct {
+	struct
+	{
 		struct shash_desc shash;
 		char ctx[crypto_shash_descsize(apparmor_tfm)];
 	} desc;
@@ -40,30 +41,52 @@ int aa_calc_profile_hash(struct aa_profile *profile, u32 version, void *start,
 	u32 le32_version = cpu_to_le32(version);
 
 	if (!aa_g_hash_policy)
+	{
 		return 0;
+	}
 
 	if (!apparmor_tfm)
+	{
 		return 0;
+	}
 
 	profile->hash = kzalloc(apparmor_hash_size, GFP_KERNEL);
+
 	if (!profile->hash)
+	{
 		goto fail;
+	}
 
 	desc.shash.tfm = apparmor_tfm;
 	desc.shash.flags = 0;
 
 	error = crypto_shash_init(&desc.shash);
+
 	if (error)
+	{
 		goto fail;
+	}
+
 	error = crypto_shash_update(&desc.shash, (u8 *) &le32_version, 4);
+
 	if (error)
+	{
 		goto fail;
+	}
+
 	error = crypto_shash_update(&desc.shash, (u8 *) start, len);
+
 	if (error)
+	{
 		goto fail;
+	}
+
 	error = crypto_shash_final(&desc.shash, profile->hash);
+
 	if (error)
+	{
 		goto fail;
+	}
 
 	return 0;
 
@@ -79,14 +102,19 @@ static int __init init_profile_hash(void)
 	struct crypto_shash *tfm;
 
 	if (!apparmor_initialized)
+	{
 		return 0;
+	}
 
 	tfm = crypto_alloc_shash("sha1", 0, CRYPTO_ALG_ASYNC);
-	if (IS_ERR(tfm)) {
+
+	if (IS_ERR(tfm))
+	{
 		int error = PTR_ERR(tfm);
 		AA_ERROR("failed to setup profile sha1 hashing: %d\n", error);
 		return error;
 	}
+
 	apparmor_tfm = tfm;
 	apparmor_hash_size = crypto_shash_digestsize(apparmor_tfm);
 

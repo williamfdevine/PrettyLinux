@@ -228,11 +228,11 @@
 #else
 #  ifndef CONFIG_MSNDPIN_INIT_FILE
 #    define CONFIG_MSNDPIN_INIT_FILE				\
-				"/etc/sound/pndspini.bin"
+	"/etc/sound/pndspini.bin"
 #  endif
 #  ifndef CONFIG_MSNDPIN_PERM_FILE
 #    define CONFIG_MSNDPIN_PERM_FILE				\
-				"/etc/sound/pndsperm.bin"
+	"/etc/sound/pndsperm.bin"
 #  endif
 #  define PERMCODEFILE		CONFIG_MSNDPIN_PERM_FILE
 #  define INITCODEFILE		CONFIG_MSNDPIN_INIT_FILE

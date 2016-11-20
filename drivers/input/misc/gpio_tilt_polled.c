@@ -26,7 +26,8 @@
 
 #define DRV_NAME	"gpio-tilt-polled"
 
-struct gpio_tilt_polled_dev {
+struct gpio_tilt_polled_dev
+{
 	struct input_polled_dev *poll_dev;
 	struct device *dev;
 	const struct gpio_tilt_platform_data *pdata;
@@ -45,23 +46,33 @@ static void gpio_tilt_polled_poll(struct input_polled_dev *dev)
 	struct gpio_tilt_state *tilt_state = NULL;
 	int state, i;
 
-	if (tdev->count < tdev->threshold) {
+	if (tdev->count < tdev->threshold)
+	{
 		tdev->count++;
-	} else {
+	}
+	else
+	{
 		state = 0;
-		for (i = 0; i < pdata->nr_gpios; i++)
-			state |= (!!gpio_get_value(pdata->gpios[i].gpio) << i);
 
-		if (state != tdev->last_state) {
+		for (i = 0; i < pdata->nr_gpios; i++)
+		{
+			state |= (!!gpio_get_value(pdata->gpios[i].gpio) << i);
+		}
+
+		if (state != tdev->last_state)
+		{
 			for (i = 0; i < pdata->nr_states; i++)
 				if (pdata->states[i].gpios == state)
+				{
 					tilt_state = &pdata->states[i];
+				}
 
-			if (tilt_state) {
+			if (tilt_state)
+			{
 				for (i = 0; i < pdata->nr_axes; i++)
 					input_report_abs(input,
-							 pdata->axes[i].axis,
-							 tilt_state->axes[i]);
+									 pdata->axes[i].axis,
+									 tilt_state->axes[i]);
 
 				input_sync(input);
 			}
@@ -78,7 +89,9 @@ static void gpio_tilt_polled_open(struct input_polled_dev *dev)
 	const struct gpio_tilt_platform_data *pdata = tdev->pdata;
 
 	if (pdata->enable)
+	{
 		pdata->enable(tdev->dev);
+	}
 
 	/* report initial state of the axes */
 	tdev->last_state = -1;
@@ -92,13 +105,15 @@ static void gpio_tilt_polled_close(struct input_polled_dev *dev)
 	const struct gpio_tilt_platform_data *pdata = tdev->pdata;
 
 	if (pdata->disable)
+	{
 		pdata->disable(tdev->dev);
+	}
 }
 
 static int gpio_tilt_polled_probe(struct platform_device *pdev)
 {
 	const struct gpio_tilt_platform_data *pdata =
-			dev_get_platdata(&pdev->dev);
+		dev_get_platdata(&pdev->dev);
 	struct device *dev = &pdev->dev;
 	struct gpio_tilt_polled_dev *tdev;
 	struct input_polled_dev *poll_dev;
@@ -106,23 +121,31 @@ static int gpio_tilt_polled_probe(struct platform_device *pdev)
 	int error, i;
 
 	if (!pdata || !pdata->poll_interval)
+	{
 		return -EINVAL;
+	}
 
 	tdev = kzalloc(sizeof(struct gpio_tilt_polled_dev), GFP_KERNEL);
-	if (!tdev) {
+
+	if (!tdev)
+	{
 		dev_err(dev, "no memory for private data\n");
 		return -ENOMEM;
 	}
 
 	error = gpio_request_array(pdata->gpios, pdata->nr_gpios);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev,
-			"Could not request tilt GPIOs: %d\n", error);
+				"Could not request tilt GPIOs: %d\n", error);
 		goto err_free_tdev;
 	}
 
 	poll_dev = input_allocate_polled_device();
-	if (!poll_dev) {
+
+	if (!poll_dev)
+	{
 		dev_err(dev, "no memory for polled device\n");
 		error = -ENOMEM;
 		goto err_free_gpios;
@@ -146,22 +169,25 @@ static int gpio_tilt_polled_probe(struct platform_device *pdev)
 	input->id.version = 0x0100;
 
 	__set_bit(EV_ABS, input->evbit);
+
 	for (i = 0; i < pdata->nr_axes; i++)
 		input_set_abs_params(input, pdata->axes[i].axis,
-				     pdata->axes[i].min, pdata->axes[i].max,
-				     pdata->axes[i].fuzz, pdata->axes[i].flat);
+							 pdata->axes[i].min, pdata->axes[i].max,
+							 pdata->axes[i].fuzz, pdata->axes[i].flat);
 
 	tdev->threshold = DIV_ROUND_UP(pdata->debounce_interval,
-				       pdata->poll_interval);
+								   pdata->poll_interval);
 
 	tdev->poll_dev = poll_dev;
 	tdev->dev = dev;
 	tdev->pdata = pdata;
 
 	error = input_register_polled_device(poll_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "unable to register polled device, err=%d\n",
-			error);
+				error);
 		goto err_free_polldev;
 	}
 
@@ -194,7 +220,8 @@ static int gpio_tilt_polled_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver gpio_tilt_polled_driver = {
+static struct platform_driver gpio_tilt_polled_driver =
+{
 	.probe	= gpio_tilt_polled_probe,
 	.remove	= gpio_tilt_polled_remove,
 	.driver	= {

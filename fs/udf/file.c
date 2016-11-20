@@ -62,7 +62,7 @@ static int udf_adinicb_readpage(struct file *file, struct page *page)
 }
 
 static int udf_adinicb_writepage(struct page *page,
-				 struct writeback_control *wbc)
+								 struct writeback_control *wbc)
 {
 	struct inode *inode = page->mapping->host;
 	char *kaddr;
@@ -81,21 +81,31 @@ static int udf_adinicb_writepage(struct page *page,
 }
 
 static int udf_adinicb_write_begin(struct file *file,
-			struct address_space *mapping, loff_t pos,
-			unsigned len, unsigned flags, struct page **pagep,
-			void **fsdata)
+								   struct address_space *mapping, loff_t pos,
+								   unsigned len, unsigned flags, struct page **pagep,
+								   void **fsdata)
 {
 	struct page *page;
 
 	if (WARN_ON_ONCE(pos >= PAGE_SIZE))
+	{
 		return -EIO;
+	}
+
 	page = grab_cache_page_write_begin(mapping, 0, flags);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
+
 	*pagep = page;
 
 	if (!PageUptodate(page))
+	{
 		__udf_adinicb_readpage(page);
+	}
+
 	return 0;
 }
 
@@ -106,20 +116,25 @@ static ssize_t udf_adinicb_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
 }
 
 static int udf_adinicb_write_end(struct file *file, struct address_space *mapping,
-				 loff_t pos, unsigned len, unsigned copied,
-				 struct page *page, void *fsdata)
+								 loff_t pos, unsigned len, unsigned copied,
+								 struct page *page, void *fsdata)
 {
 	struct inode *inode = page->mapping->host;
 	loff_t last_pos = pos + copied;
+
 	if (last_pos > inode->i_size)
+	{
 		i_size_write(inode, last_pos);
+	}
+
 	set_page_dirty(page);
 	unlock_page(page);
 	put_page(page);
 	return copied;
 }
 
-const struct address_space_operations udf_adinicb_aops = {
+const struct address_space_operations udf_adinicb_aops =
+{
 	.readpage	= udf_adinicb_readpage,
 	.writepage	= udf_adinicb_writepage,
 	.write_begin	= udf_adinicb_write_begin,
@@ -138,33 +153,47 @@ static ssize_t udf_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
 	inode_lock(inode);
 
 	retval = generic_write_checks(iocb, from);
+
 	if (retval <= 0)
+	{
 		goto out;
+	}
 
 	down_write(&iinfo->i_data_sem);
-	if (iinfo->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB) {
+
+	if (iinfo->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+	{
 		loff_t end = iocb->ki_pos + iov_iter_count(from);
 
 		if (inode->i_sb->s_blocksize <
-				(udf_file_entry_alloc_offset(inode) + end)) {
+			(udf_file_entry_alloc_offset(inode) + end))
+		{
 			err = udf_expand_file_adinicb(inode);
-			if (err) {
+
+			if (err)
+			{
 				inode_unlock(inode);
 				udf_debug("udf_expand_adinicb: err=%d\n", err);
 				return err;
 			}
-		} else {
+		}
+		else
+		{
 			iinfo->i_lenAlloc = max(end, inode->i_size);
 			up_write(&iinfo->i_data_sem);
 		}
-	} else
+	}
+	else
+	{
 		up_write(&iinfo->i_data_sem);
+	}
 
 	retval = __generic_file_write_iter(iocb, from);
 out:
 	inode_unlock(inode);
 
-	if (retval > 0) {
+	if (retval > 0)
+	{
 		mark_inode_dirty(inode);
 		retval = generic_write_sync(iocb, retval);
 	}
@@ -178,48 +207,67 @@ long udf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	long old_block, new_block;
 	int result = -EINVAL;
 
-	if (inode_permission(inode, MAY_READ) != 0) {
+	if (inode_permission(inode, MAY_READ) != 0)
+	{
 		udf_debug("no permission to access inode %lu\n", inode->i_ino);
 		result = -EPERM;
 		goto out;
 	}
 
-	if (!arg) {
+	if (!arg)
+	{
 		udf_debug("invalid argument to udf_ioctl\n");
 		result = -EINVAL;
 		goto out;
 	}
 
-	switch (cmd) {
-	case UDF_GETVOLIDENT:
-		if (copy_to_user((char __user *)arg,
-				 UDF_SB(inode->i_sb)->s_volume_ident, 32))
-			result = -EFAULT;
-		else
-			result = 0;
-		goto out;
-	case UDF_RELOCATE_BLOCKS:
-		if (!capable(CAP_SYS_ADMIN)) {
-			result = -EPERM;
+	switch (cmd)
+	{
+		case UDF_GETVOLIDENT:
+			if (copy_to_user((char __user *)arg,
+							 UDF_SB(inode->i_sb)->s_volume_ident, 32))
+			{
+				result = -EFAULT;
+			}
+			else
+			{
+				result = 0;
+			}
+
 			goto out;
-		}
-		if (get_user(old_block, (long __user *)arg)) {
-			result = -EFAULT;
+
+		case UDF_RELOCATE_BLOCKS:
+			if (!capable(CAP_SYS_ADMIN))
+			{
+				result = -EPERM;
+				goto out;
+			}
+
+			if (get_user(old_block, (long __user *)arg))
+			{
+				result = -EFAULT;
+				goto out;
+			}
+
+			result = udf_relocate_blocks(inode->i_sb,
+										 old_block, &new_block);
+
+			if (result == 0)
+			{
+				result = put_user(new_block, (long __user *)arg);
+			}
+
 			goto out;
-		}
-		result = udf_relocate_blocks(inode->i_sb,
-						old_block, &new_block);
-		if (result == 0)
-			result = put_user(new_block, (long __user *)arg);
-		goto out;
-	case UDF_GETEASIZE:
-		result = put_user(UDF_I(inode)->i_lenEAttr, (int __user *)arg);
-		goto out;
-	case UDF_GETEABLOCK:
-		result = copy_to_user((char __user *)arg,
-				      UDF_I(inode)->i_ext.i_data,
-				      UDF_I(inode)->i_lenEAttr) ? -EFAULT : 0;
-		goto out;
+
+		case UDF_GETEASIZE:
+			result = put_user(UDF_I(inode)->i_lenEAttr, (int __user *)arg);
+			goto out;
+
+		case UDF_GETEABLOCK:
+			result = copy_to_user((char __user *)arg,
+								  UDF_I(inode)->i_ext.i_data,
+								  UDF_I(inode)->i_lenEAttr) ? -EFAULT : 0;
+			goto out;
 	}
 
 out:
@@ -229,7 +277,8 @@ out:
 static int udf_release_file(struct inode *inode, struct file *filp)
 {
 	if (filp->f_mode & FMODE_WRITE &&
-	    atomic_read(&inode->i_writecount) == 1) {
+		atomic_read(&inode->i_writecount) == 1)
+	{
 		/*
 		 * Grab i_mutex to avoid races with writes changing i_size
 		 * while we are running.
@@ -241,10 +290,12 @@ static int udf_release_file(struct inode *inode, struct file *filp)
 		up_write(&UDF_I(inode)->i_data_sem);
 		inode_unlock(inode);
 	}
+
 	return 0;
 }
 
-const struct file_operations udf_file_operations = {
+const struct file_operations udf_file_operations =
+{
 	.read_iter		= generic_file_read_iter,
 	.unlocked_ioctl		= udf_ioctl,
 	.open			= generic_file_open,
@@ -262,14 +313,21 @@ static int udf_setattr(struct dentry *dentry, struct iattr *attr)
 	int error;
 
 	error = setattr_prepare(dentry, attr);
+
 	if (error)
+	{
 		return error;
+	}
 
 	if ((attr->ia_valid & ATTR_SIZE) &&
-	    attr->ia_size != i_size_read(inode)) {
+		attr->ia_size != i_size_read(inode))
+	{
 		error = udf_setsize(inode, attr->ia_size);
+
 		if (error)
+		{
 			return error;
+		}
 	}
 
 	setattr_copy(inode, attr);
@@ -277,6 +335,7 @@ static int udf_setattr(struct dentry *dentry, struct iattr *attr)
 	return 0;
 }
 
-const struct inode_operations udf_file_inode_operations = {
+const struct inode_operations udf_file_inode_operations =
+{
 	.setattr		= udf_setattr,
 };

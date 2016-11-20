@@ -32,7 +32,8 @@ MODULE_ALIAS("acpi*:HPQ6001:*");
 
 static struct input_dev *hpwl_input_dev;
 
-static const struct acpi_device_id hpwl_ids[] = {
+static const struct acpi_device_id hpwl_ids[] =
+{
 	{"HPQ6001", 0},
 	{"", 0},
 };
@@ -42,8 +43,11 @@ static int hp_wireless_input_setup(void)
 	int err;
 
 	hpwl_input_dev = input_allocate_device();
+
 	if (!hpwl_input_dev)
+	{
 		return -ENOMEM;
+	}
 
 	hpwl_input_dev->name = "HP Wireless hotkeys";
 	hpwl_input_dev->phys = "hpq6001/input0";
@@ -52,8 +56,11 @@ static int hp_wireless_input_setup(void)
 	set_bit(KEY_RFKILL, hpwl_input_dev->keybit);
 
 	err = input_register_device(hpwl_input_dev);
+
 	if (err)
+	{
 		goto err_free_dev;
+	}
 
 	return 0;
 
@@ -69,7 +76,8 @@ static void hp_wireless_input_destroy(void)
 
 static void hpwl_notify(struct acpi_device *acpi_dev, u32 event)
 {
-	if (event != 0x80) {
+	if (event != 0x80)
+	{
 		pr_info("Received unknown event (0x%x)\n", event);
 		return;
 	}
@@ -85,8 +93,11 @@ static int hpwl_add(struct acpi_device *device)
 	int err;
 
 	err = hp_wireless_input_setup();
+
 	if (err)
+	{
 		pr_err("Failed to setup hp wireless hotkeys\n");
+	}
 
 	return err;
 }
@@ -97,7 +108,8 @@ static int hpwl_remove(struct acpi_device *device)
 	return 0;
 }
 
-static struct acpi_driver hpwl_driver = {
+static struct acpi_driver hpwl_driver =
+{
 	.name	= "hp-wireless",
 	.owner	= THIS_MODULE,
 	.ids	= hpwl_ids,
@@ -114,8 +126,11 @@ static int __init hpwl_init(void)
 
 	pr_info("Initializing HPQ6001 module\n");
 	err = acpi_bus_register_driver(&hpwl_driver);
+
 	if (err)
+	{
 		pr_err("Unable to register HP wireless control driver.\n");
+	}
 
 	return err;
 }

@@ -45,13 +45,17 @@ struct uwb_ie_hdr *uwb_ie_next(void **ptr, size_t *len)
 	size_t ie_len;
 
 	if (*len < sizeof(struct uwb_ie_hdr))
+	{
 		return NULL;
+	}
 
 	hdr = *ptr;
 	ie_len = sizeof(struct uwb_ie_hdr) + hdr->length;
 
 	if (*len < ie_len)
+	{
 		return NULL;
+	}
 
 	*ptr += ie_len;
 	*len -= ie_len;
@@ -70,7 +74,7 @@ EXPORT_SYMBOL_GPL(uwb_ie_next);
  * Returns the number of characters written.
  */
 int uwb_ie_dump_hex(const struct uwb_ie_hdr *ies, size_t len,
-		    char *buf, size_t size)
+					char *buf, size_t size)
 {
 	void *ptr;
 	const struct uwb_ie_hdr *ie;
@@ -78,19 +82,30 @@ int uwb_ie_dump_hex(const struct uwb_ie_hdr *ies, size_t len,
 	u8 *d;
 
 	ptr = (void *)ies;
-	for (;;) {
+
+	for (;;)
+	{
 		ie = uwb_ie_next(&ptr, &len);
+
 		if (!ie)
+		{
 			break;
+		}
 
 		r += scnprintf(buf + r, size - r, "%02x %02x",
-			       (unsigned)ie->element_id,
-			       (unsigned)ie->length);
+					   (unsigned)ie->element_id,
+					   (unsigned)ie->length);
 		d = (uint8_t *)ie + sizeof(struct uwb_ie_hdr);
+
 		while (d != ptr && r < size)
-			r += scnprintf(buf + r, size - r, " %02x", (unsigned)*d++);
+		{
+			r += scnprintf(buf + r, size - r, " %02x", (unsigned) * d++);
+		}
+
 		if (r < size)
+		{
 			buf[r++] = '\n';
+		}
 	};
 
 	return r;
@@ -116,28 +131,38 @@ ssize_t uwb_rc_get_ie(struct uwb_rc *uwb_rc, struct uwb_rc_evt_get_ie **pget_ie)
 	struct uwb_rc_evt_get_ie *get_ie;
 
 	cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
+
 	if (cmd == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	cmd->bCommandType = UWB_RC_CET_GENERAL;
 	cmd->wCommand = cpu_to_le16(UWB_RC_CMD_GET_IE);
 	result = uwb_rc_vcmd(uwb_rc, "GET_IE", cmd, sizeof(*cmd),
-			     UWB_RC_CET_GENERAL, UWB_RC_CMD_GET_IE,
-			     &reply);
+						 UWB_RC_CET_GENERAL, UWB_RC_CMD_GET_IE,
+						 &reply);
 	kfree(cmd);
+
 	if (result < 0)
+	{
 		return result;
+	}
 
 	get_ie = container_of(reply, struct uwb_rc_evt_get_ie, rceb);
-	if (result < sizeof(*get_ie)) {
+
+	if (result < sizeof(*get_ie))
+	{
 		dev_err(dev, "not enough data returned for decoding GET IE "
-			"(%zu bytes received vs %zu needed)\n",
-			result, sizeof(*get_ie));
+				"(%zu bytes received vs %zu needed)\n",
+				result, sizeof(*get_ie));
 		return -EINVAL;
-	} else if (result < sizeof(*get_ie) + le16_to_cpu(get_ie->wIELength)) {
+	}
+	else if (result < sizeof(*get_ie) + le16_to_cpu(get_ie->wIELength))
+	{
 		dev_err(dev, "not enough data returned for decoding GET IE "
-			"payload (%zu bytes received vs %zu needed)\n", result,
-			sizeof(*get_ie) + le16_to_cpu(get_ie->wIELength));
+				"payload (%zu bytes received vs %zu needed)\n", result,
+				sizeof(*get_ie) + le16_to_cpu(get_ie->wIELength));
 		return -EINVAL;
 	}
 
@@ -161,21 +186,31 @@ int uwb_rc_set_ie(struct uwb_rc *rc, struct uwb_rc_cmd_set_ie *cmd)
 	reply.rceb.bEventType = UWB_RC_CET_GENERAL;
 	reply.rceb.wEvent = UWB_RC_CMD_SET_IE;
 	result = uwb_rc_cmd(rc, "SET-IE", &cmd->rccb,
-			    sizeof(*cmd) + le16_to_cpu(cmd->wIELength),
-			    &reply.rceb, sizeof(reply));
+						sizeof(*cmd) + le16_to_cpu(cmd->wIELength),
+						&reply.rceb, sizeof(reply));
+
 	if (result < 0)
+	{
 		goto error_cmd;
-	else if (result != sizeof(reply)) {
+	}
+	else if (result != sizeof(reply))
+	{
 		dev_err(dev, "SET-IE: not enough data to decode reply "
-			"(%d bytes received vs %zu needed)\n",
-			result, sizeof(reply));
+				"(%d bytes received vs %zu needed)\n",
+				result, sizeof(reply));
 		result = -EIO;
-	} else if (reply.bResultCode != UWB_RC_RES_SUCCESS) {
+	}
+	else if (reply.bResultCode != UWB_RC_RES_SUCCESS)
+	{
 		dev_err(dev, "SET-IE: command execution failed: %s (%d)\n",
-			uwb_rc_strerror(reply.bResultCode), reply.bResultCode);
+				uwb_rc_strerror(reply.bResultCode), reply.bResultCode);
 		result = -EIO;
-	} else
+	}
+	else
+	{
 		result = 0;
+	}
+
 error_cmd:
 	return result;
 }
@@ -203,8 +238,11 @@ int uwb_rc_ie_setup(struct uwb_rc *uwb_rc)
 	int capacity;
 
 	capacity = uwb_rc_get_ie(uwb_rc, &ie_info);
+
 	if (capacity < 0)
+	{
 		return capacity;
+	}
 
 	mutex_lock(&uwb_rc->ies_mutex);
 
@@ -239,21 +277,31 @@ static int uwb_rc_ie_add_one(struct uwb_rc *rc, const struct uwb_ie_hdr *new_ie)
 	new_ie_len = sizeof(struct uwb_ie_hdr) + new_ie->length;
 	new_capacity = sizeof(struct uwb_rc_cmd_set_ie) + length + new_ie_len;
 
-	if (new_capacity > rc->ies_capacity) {
+	if (new_capacity > rc->ies_capacity)
+	{
 		new_ies = krealloc(rc->ies, new_capacity, GFP_KERNEL);
+
 		if (!new_ies)
+		{
 			return -ENOMEM;
+		}
+
 		rc->ies = new_ies;
 	}
 
 	ptr = rc->ies->IEData;
 	size = length;
-	for (;;) {
+
+	for (;;)
+	{
 		prev_ie = ptr;
 		prev_size = size;
 		ie = uwb_ie_next(&ptr, &size);
+
 		if (!ie || ie->element_id > new_ie->element_id)
+		{
 			break;
+		}
 	}
 
 	memmove(prev_ie + new_ie_len, prev_ie, prev_size);
@@ -283,7 +331,7 @@ static int uwb_rc_ie_add_one(struct uwb_rc *rc, const struct uwb_ie_hdr *new_ie)
  * Returns 0 on success; or -ENOMEM.
  */
 int uwb_rc_ie_add(struct uwb_rc *uwb_rc,
-		  const struct uwb_ie_hdr *ies, size_t size)
+				  const struct uwb_ie_hdr *ies, size_t size)
 {
 	int result = 0;
 	void *ptr;
@@ -292,21 +340,37 @@ int uwb_rc_ie_add(struct uwb_rc *uwb_rc,
 	mutex_lock(&uwb_rc->ies_mutex);
 
 	ptr = (void *)ies;
-	for (;;) {
+
+	for (;;)
+	{
 		ie = uwb_ie_next(&ptr, &size);
+
 		if (!ie)
+		{
 			break;
+		}
 
 		result = uwb_rc_ie_add_one(uwb_rc, ie);
+
 		if (result < 0)
+		{
 			break;
+		}
 	}
-	if (result >= 0) {
-		if (size == 0) {
+
+	if (result >= 0)
+	{
+		if (size == 0)
+		{
 			if (uwb_rc->beaconing != -1)
+			{
 				result = uwb_rc_set_ie(uwb_rc, uwb_rc->ies);
-		} else
+			}
+		}
+		else
+		{
 			result = -EINVAL;
+		}
 	}
 
 	mutex_unlock(&uwb_rc->ies_mutex);
@@ -338,16 +402,24 @@ void uwb_rc_ie_cache_rm(struct uwb_rc *uwb_rc, enum uwb_ie to_remove)
 
 	ptr = uwb_rc->ies->IEData;
 	size = len;
-	for (;;) {
+
+	for (;;)
+	{
 		ie = uwb_ie_next(&ptr, &size);
+
 		if (!ie)
+		{
 			break;
-		if (ie->element_id == to_remove) {
+		}
+
+		if (ie->element_id == to_remove)
+		{
 			len -= sizeof(struct uwb_ie_hdr) + ie->length;
 			memmove(ie, ptr, size);
 			ptr = ie;
 		}
 	}
+
 	uwb_rc->ies->wIELength = cpu_to_le16(len);
 }
 
@@ -371,7 +443,9 @@ int uwb_rc_ie_rm(struct uwb_rc *uwb_rc, enum uwb_ie element_id)
 	uwb_rc_ie_cache_rm(uwb_rc, element_id);
 
 	if (uwb_rc->beaconing != -1)
+	{
 		result = uwb_rc_set_ie(uwb_rc, uwb_rc->ies);
+	}
 
 	mutex_unlock(&uwb_rc->ies_mutex);
 

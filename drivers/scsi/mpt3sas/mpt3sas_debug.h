@@ -69,10 +69,10 @@
 
 
 #define MPT_CHECK_LOGGING(IOC, CMD, BITS)			\
-{								\
-	if (IOC->logging_level & BITS)				\
-		CMD;						\
-}
+	{								\
+		if (IOC->logging_level & BITS)				\
+			CMD;						\
+	}
 
 /*
  * debug macros
@@ -157,11 +157,17 @@ _debug_dump_mf(void *mpi_request, int sz)
 	__le32 *mfp = (__le32 *)mpi_request;
 
 	pr_info("mf:\n\t");
-	for (i = 0; i < sz; i++) {
+
+	for (i = 0; i < sz; i++)
+	{
 		if (i && ((i % 8) == 0))
+		{
 			pr_info("\n\t");
+		}
+
 		pr_info("%08x ", le32_to_cpu(mfp[i]));
 	}
+
 	pr_info("\n");
 }
 /**
@@ -176,11 +182,17 @@ _debug_dump_reply(void *mpi_request, int sz)
 	__le32 *mfp = (__le32 *)mpi_request;
 
 	pr_info("reply:\n\t");
-	for (i = 0; i < sz; i++) {
+
+	for (i = 0; i < sz; i++)
+	{
 		if (i && ((i % 8) == 0))
+		{
 			pr_info("\n\t");
+		}
+
 		pr_info("%08x ", le32_to_cpu(mfp[i]));
 	}
+
 	pr_info("\n");
 }
 /**
@@ -195,11 +207,17 @@ _debug_dump_config(void *mpi_request, int sz)
 	__le32 *mfp = (__le32 *)mpi_request;
 
 	pr_info("config:\n\t");
-	for (i = 0; i < sz; i++) {
+
+	for (i = 0; i < sz; i++)
+	{
 		if (i && ((i % 8) == 0))
+		{
 			pr_info("\n\t");
+		}
+
 		pr_info("%08x ", le32_to_cpu(mfp[i]));
 	}
+
 	pr_info("\n");
 }
 

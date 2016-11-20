@@ -61,7 +61,8 @@
 /*
  * expand feature list to enumeration.
  */
-enum brcmf_feat_id {
+enum brcmf_feat_id
+{
 	BRCMF_FEAT_LIST
 	BRCMF_FEAT_LAST
 };
@@ -72,7 +73,8 @@ enum brcmf_feat_id {
 /*
  * expand quirk list to enumeration.
  */
-enum brcmf_feat_quirk {
+enum brcmf_feat_quirk
+{
 	BRCMF_QUIRK_LIST
 	BRCMF_FEAT_QUIRK_LAST
 };
@@ -104,6 +106,6 @@ bool brcmf_feat_is_enabled(struct brcmf_if *ifp, enum brcmf_feat_id id);
  * Return: true is quirk is enabled; otherwise false.
  */
 bool brcmf_feat_is_quirk_enabled(struct brcmf_if *ifp,
-				 enum brcmf_feat_quirk quirk);
+								 enum brcmf_feat_quirk quirk);
 
 #endif /* _BRCMF_FEATURE_H */

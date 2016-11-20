@@ -32,7 +32,7 @@
 
 int
 nv17_fence_sync(struct nouveau_fence *fence,
-		struct nouveau_channel *prev, struct nouveau_channel *chan)
+				struct nouveau_channel *prev, struct nouveau_channel *chan)
 {
 	struct nouveau_cli *cli = (void *)prev->user.client;
 	struct nv10_fence_priv *priv = chan->drm->fence;
@@ -41,7 +41,9 @@ nv17_fence_sync(struct nouveau_fence *fence,
 	int ret;
 
 	if (!mutex_trylock(&cli->mutex))
+	{
 		return -EBUSY;
+	}
 
 	spin_lock(&priv->lock);
 	value = priv->sequence;
@@ -49,7 +51,9 @@ nv17_fence_sync(struct nouveau_fence *fence,
 	spin_unlock(&priv->lock);
 
 	ret = RING_SPACE(prev, 5);
-	if (!ret) {
+
+	if (!ret)
+	{
 		BEGIN_NV04(prev, 0, NV11_SUBCHAN_DMA_SEMAPHORE, 4);
 		OUT_RING  (prev, fctx->sema.handle);
 		OUT_RING  (prev, 0);
@@ -58,7 +62,8 @@ nv17_fence_sync(struct nouveau_fence *fence,
 		FIRE_RING (prev);
 	}
 
-	if (!ret && !(ret = RING_SPACE(chan, 5))) {
+	if (!ret && !(ret = RING_SPACE(chan, 5)))
+	{
 		BEGIN_NV04(chan, 0, NV11_SUBCHAN_DMA_SEMAPHORE, 4);
 		OUT_RING  (chan, fctx->sema.handle);
 		OUT_RING  (chan, 0);
@@ -82,8 +87,11 @@ nv17_fence_context_new(struct nouveau_channel *chan)
 	int ret = 0;
 
 	fctx = chan->fence = kzalloc(sizeof(*fctx), GFP_KERNEL);
+
 	if (!fctx)
+	{
 		return -ENOMEM;
+	}
 
 	nouveau_fence_context_new(chan, &fctx->base);
 	fctx->base.emit = nv10_fence_emit;
@@ -91,15 +99,20 @@ nv17_fence_context_new(struct nouveau_channel *chan)
 	fctx->base.sync = nv17_fence_sync;
 
 	ret = nvif_object_init(&chan->user, NvSema, NV_DMA_FROM_MEMORY,
-			       &(struct nv_dma_v0) {
-					.target = NV_DMA_V0_TARGET_VRAM,
-					.access = NV_DMA_V0_ACCESS_RDWR,
-					.start = start,
-					.limit = limit,
-			       }, sizeof(struct nv_dma_v0),
-			       &fctx->sema);
+						   &(struct nv_dma_v0)
+	{
+		.target = NV_DMA_V0_TARGET_VRAM,
+		 .access = NV_DMA_V0_ACCESS_RDWR,
+		  .start = start,
+		   .limit = limit,
+	}, sizeof(struct nv_dma_v0),
+	&fctx->sema);
+
 	if (ret)
+	{
 		nv10_fence_context_del(chan);
+	}
+
 	return ret;
 }
 
@@ -118,8 +131,11 @@ nv17_fence_create(struct nouveau_drm *drm)
 	int ret = 0;
 
 	priv = drm->fence = kzalloc(sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->base.dtor = nv10_fence_destroy;
 	priv->base.resume = nv17_fence_resume;
@@ -130,19 +146,30 @@ nv17_fence_create(struct nouveau_drm *drm)
 	spin_lock_init(&priv->lock);
 
 	ret = nouveau_bo_new(drm->dev, 4096, 0x1000, TTM_PL_FLAG_VRAM,
-			     0, 0x0000, NULL, NULL, &priv->bo);
-	if (!ret) {
+						 0, 0x0000, NULL, NULL, &priv->bo);
+
+	if (!ret)
+	{
 		ret = nouveau_bo_pin(priv->bo, TTM_PL_FLAG_VRAM, false);
-		if (!ret) {
+
+		if (!ret)
+		{
 			ret = nouveau_bo_map(priv->bo);
+
 			if (ret)
+			{
 				nouveau_bo_unpin(priv->bo);
+			}
 		}
+
 		if (ret)
+		{
 			nouveau_bo_ref(NULL, &priv->bo);
+		}
 	}
 
-	if (ret) {
+	if (ret)
+	{
 		nv10_fence_destroy(drm);
 		return ret;
 	}

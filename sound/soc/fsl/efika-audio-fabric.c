@@ -31,26 +31,28 @@
 
 #define DRV_NAME "efika-audio-fabric"
 
-static struct snd_soc_dai_link efika_fabric_dai[] = {
+static struct snd_soc_dai_link efika_fabric_dai[] =
 {
-	.name = "AC97",
-	.stream_name = "AC97 Analog",
-	.codec_dai_name = "stac9766-hifi-analog",
-	.cpu_dai_name = "mpc5200-psc-ac97.0",
-	.platform_name = "mpc5200-pcm-audio",
-	.codec_name = "stac9766-codec",
-},
-{
-	.name = "AC97",
-	.stream_name = "AC97 IEC958",
-	.codec_dai_name = "stac9766-hifi-IEC958",
-	.cpu_dai_name = "mpc5200-psc-ac97.1",
-	.platform_name = "mpc5200-pcm-audio",
-	.codec_name = "stac9766-codec",
-},
+	{
+		.name = "AC97",
+		.stream_name = "AC97 Analog",
+		.codec_dai_name = "stac9766-hifi-analog",
+		.cpu_dai_name = "mpc5200-psc-ac97.0",
+		.platform_name = "mpc5200-pcm-audio",
+		.codec_name = "stac9766-codec",
+	},
+	{
+		.name = "AC97",
+		.stream_name = "AC97 IEC958",
+		.codec_dai_name = "stac9766-hifi-IEC958",
+		.cpu_dai_name = "mpc5200-psc-ac97.1",
+		.platform_name = "mpc5200-pcm-audio",
+		.codec_name = "stac9766-codec",
+	},
 };
 
-static struct snd_soc_card card = {
+static struct snd_soc_card card =
+{
 	.name = "Efika",
 	.owner = THIS_MODULE,
 	.dai_link = efika_fabric_dai,
@@ -63,10 +65,14 @@ static __init int efika_fabric_init(void)
 	int rc;
 
 	if (!of_machine_is_compatible("bplan,efika"))
+	{
 		return -ENODEV;
+	}
 
 	pdev = platform_device_alloc("soc-audio", 1);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		pr_err("efika_fabric_init: platform_device_alloc() failed\n");
 		return -ENODEV;
 	}
@@ -74,11 +80,14 @@ static __init int efika_fabric_init(void)
 	platform_set_drvdata(pdev, &card);
 
 	rc = platform_device_add(pdev);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_err("efika_fabric_init: platform_device_add() failed\n");
 		platform_device_put(pdev);
 		return -ENODEV;
 	}
+
 	return 0;
 }
 

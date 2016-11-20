@@ -43,7 +43,8 @@
  * P.S. this object would be transferred to user as kms_bo.handle so
  *	user can access the buffer through kms_bo.handle.
  */
-struct exynos_drm_gem {
+struct exynos_drm_gem
+{
 	struct drm_gem_object	base;
 	unsigned int		flags;
 	unsigned long		size;
@@ -60,8 +61,8 @@ void exynos_drm_gem_destroy(struct exynos_drm_gem *exynos_gem);
 
 /* create a new buffer with gem object */
 struct exynos_drm_gem *exynos_drm_gem_create(struct drm_device *dev,
-					     unsigned int flags,
-					     unsigned long size);
+		unsigned int flags,
+		unsigned long size);
 
 /*
  * request gem object creation and buffer allocation as the size
@@ -69,11 +70,11 @@ struct exynos_drm_gem *exynos_drm_gem_create(struct drm_device *dev,
  * height and bpp.
  */
 int exynos_drm_gem_create_ioctl(struct drm_device *dev, void *data,
-				struct drm_file *file_priv);
+								struct drm_file *file_priv);
 
 /* get fake-offset of gem object that can be used with mmap. */
 int exynos_drm_gem_map_ioctl(struct drm_device *dev, void *data,
-			     struct drm_file *file_priv);
+							 struct drm_file *file_priv);
 
 /*
  * get dma address from gem handle and this function could be used for
@@ -81,8 +82,8 @@ int exynos_drm_gem_map_ioctl(struct drm_device *dev, void *data,
  * with this function call, gem object reference count would be increased.
  */
 dma_addr_t *exynos_drm_gem_get_dma_addr(struct drm_device *dev,
-					unsigned int gem_handle,
-					struct drm_file *filp);
+										unsigned int gem_handle,
+										struct drm_file *filp);
 
 /*
  * put dma address from gem handle and this function could be used for
@@ -90,30 +91,30 @@ dma_addr_t *exynos_drm_gem_get_dma_addr(struct drm_device *dev,
  * with this function call, gem object reference count would be decreased.
  */
 void exynos_drm_gem_put_dma_addr(struct drm_device *dev,
-					unsigned int gem_handle,
-					struct drm_file *filp);
+								 unsigned int gem_handle,
+								 struct drm_file *filp);
 
 /* get buffer information to memory region allocated by gem. */
 int exynos_drm_gem_get_ioctl(struct drm_device *dev, void *data,
-				      struct drm_file *file_priv);
+							 struct drm_file *file_priv);
 
 /* get buffer size to gem handle. */
 unsigned long exynos_drm_gem_get_size(struct drm_device *dev,
-						unsigned int gem_handle,
-						struct drm_file *file_priv);
+									  unsigned int gem_handle,
+									  struct drm_file *file_priv);
 
 /* free gem object. */
 void exynos_drm_gem_free_object(struct drm_gem_object *obj);
 
 /* create memory region for drm framebuffer. */
 int exynos_drm_gem_dumb_create(struct drm_file *file_priv,
-			       struct drm_device *dev,
-			       struct drm_mode_create_dumb *args);
+							   struct drm_device *dev,
+							   struct drm_mode_create_dumb *args);
 
 /* map memory region for drm framebuffer to user space. */
 int exynos_drm_gem_dumb_map_offset(struct drm_file *file_priv,
-				   struct drm_device *dev, uint32_t handle,
-				   uint64_t *offset);
+								   struct drm_device *dev, uint32_t handle,
+								   uint64_t *offset);
 
 /* page fault handler and mmap fault address(virtual) to physical memory. */
 int exynos_drm_gem_fault(struct vm_area_struct *vma, struct vm_fault *vmf);
@@ -125,11 +126,11 @@ int exynos_drm_gem_mmap(struct file *filp, struct vm_area_struct *vma);
 struct sg_table *exynos_drm_gem_prime_get_sg_table(struct drm_gem_object *obj);
 struct drm_gem_object *
 exynos_drm_gem_prime_import_sg_table(struct drm_device *dev,
-				     struct dma_buf_attachment *attach,
-				     struct sg_table *sgt);
+									 struct dma_buf_attachment *attach,
+									 struct sg_table *sgt);
 void *exynos_drm_gem_prime_vmap(struct drm_gem_object *obj);
 void exynos_drm_gem_prime_vunmap(struct drm_gem_object *obj, void *vaddr);
 int exynos_drm_gem_prime_mmap(struct drm_gem_object *obj,
-			      struct vm_area_struct *vma);
+							  struct vm_area_struct *vma);
 
 #endif

@@ -6,7 +6,8 @@
 #include <linux/bitops.h>
 #include <linux/jump_label.h>
 
-struct frontswap_ops {
+struct frontswap_ops
+{
 	void (*init)(unsigned); /* this swap type was just swapon'ed */
 	int (*store)(unsigned, pgoff_t, struct page *); /* store a page */
 	int (*load)(unsigned, pgoff_t, struct page *); /* load a page */
@@ -43,7 +44,7 @@ static inline bool frontswap_test(struct swap_info_struct *sis, pgoff_t offset)
 }
 
 static inline void frontswap_map_set(struct swap_info_struct *p,
-				     unsigned long *map)
+									 unsigned long *map)
 {
 	p->frontswap_map = map;
 }
@@ -66,7 +67,7 @@ static inline bool frontswap_test(struct swap_info_struct *sis, pgoff_t offset)
 }
 
 static inline void frontswap_map_set(struct swap_info_struct *p,
-				     unsigned long *map)
+									 unsigned long *map)
 {
 }
 
@@ -79,7 +80,9 @@ static inline unsigned long *frontswap_map_get(struct swap_info_struct *p)
 static inline int frontswap_store(struct page *page)
 {
 	if (frontswap_enabled())
+	{
 		return __frontswap_store(page);
+	}
 
 	return -1;
 }
@@ -87,7 +90,9 @@ static inline int frontswap_store(struct page *page)
 static inline int frontswap_load(struct page *page)
 {
 	if (frontswap_enabled())
+	{
 		return __frontswap_load(page);
+	}
 
 	return -1;
 }
@@ -95,13 +100,17 @@ static inline int frontswap_load(struct page *page)
 static inline void frontswap_invalidate_page(unsigned type, pgoff_t offset)
 {
 	if (frontswap_enabled())
+	{
 		__frontswap_invalidate_page(type, offset);
+	}
 }
 
 static inline void frontswap_invalidate_area(unsigned type)
 {
 	if (frontswap_enabled())
+	{
 		__frontswap_invalidate_area(type);
+	}
 }
 
 static inline void frontswap_init(unsigned type, unsigned long *map)

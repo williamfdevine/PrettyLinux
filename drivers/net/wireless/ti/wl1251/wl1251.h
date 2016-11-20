@@ -31,7 +31,8 @@
 #define DRIVER_NAME "wl1251"
 #define DRIVER_PREFIX DRIVER_NAME ": "
 
-enum {
+enum
+{
 	DEBUG_NONE	= 0,
 	DEBUG_IRQ	= BIT(0),
 	DEBUG_SPI	= BIT(1),
@@ -76,37 +77,38 @@ enum {
 	do { \
 		if (level & DEBUG_LEVEL) \
 			print_hex_dump(KERN_DEBUG, DRIVER_PREFIX prefix, \
-				       DUMP_PREFIX_OFFSET, 16, 1,	\
-				       buf,				\
-				       min_t(size_t, len, DEBUG_DUMP_LIMIT), \
-				       0);				\
+						   DUMP_PREFIX_OFFSET, 16, 1,	\
+						   buf,				\
+						   min_t(size_t, len, DEBUG_DUMP_LIMIT), \
+						   0);				\
 	} while (0)
 
 #define wl1251_dump_ascii(level, prefix, buf, len)	\
 	do { \
 		if (level & DEBUG_LEVEL) \
 			print_hex_dump(KERN_DEBUG, DRIVER_PREFIX prefix, \
-				       DUMP_PREFIX_OFFSET, 16, 1,	\
-				       buf,				\
-				       min_t(size_t, len, DEBUG_DUMP_LIMIT), \
-				       true);				\
+						   DUMP_PREFIX_OFFSET, 16, 1,	\
+						   buf,				\
+						   min_t(size_t, len, DEBUG_DUMP_LIMIT), \
+						   true);				\
 	} while (0)
 
 #define WL1251_DEFAULT_RX_CONFIG (CFG_UNI_FILTER_EN |	\
-				  CFG_MC_FILTER_EN |	\
-				  CFG_BSSID_FILTER_EN)
+								  CFG_MC_FILTER_EN |	\
+								  CFG_BSSID_FILTER_EN)
 
 #define WL1251_DEFAULT_RX_FILTER (CFG_RX_PRSP_EN |  \
-				  CFG_RX_MGMT_EN |  \
-				  CFG_RX_DATA_EN |  \
-				  CFG_RX_CTL_EN |   \
-				  CFG_RX_BCN_EN |   \
-				  CFG_RX_AUTH_EN |  \
-				  CFG_RX_ASSOC_EN)
+								  CFG_RX_MGMT_EN |  \
+								  CFG_RX_DATA_EN |  \
+								  CFG_RX_CTL_EN |   \
+								  CFG_RX_BCN_EN |   \
+								  CFG_RX_AUTH_EN |  \
+								  CFG_RX_ASSOC_EN)
 
 #define WL1251_BUSY_WORD_LEN 8
 
-struct boot_attr {
+struct boot_attr
+{
 	u32 radio_type;
 	u8 mac_clock;
 	u8 arm_clock;
@@ -116,13 +118,15 @@ struct boot_attr {
 	u32 bugfix;
 };
 
-enum wl1251_state {
+enum wl1251_state
+{
 	WL1251_STATE_OFF,
 	WL1251_STATE_ON,
 	WL1251_STATE_PLT,
 };
 
-enum wl1251_partition_type {
+enum wl1251_partition_type
+{
 	PART_DOWN,
 	PART_WORK,
 	PART_DRPW,
@@ -130,25 +134,29 @@ enum wl1251_partition_type {
 	PART_TABLE_LEN
 };
 
-enum wl1251_station_mode {
+enum wl1251_station_mode
+{
 	STATION_ACTIVE_MODE,
 	STATION_POWER_SAVE_MODE,
 	STATION_IDLE,
 };
 
-struct wl1251_partition {
+struct wl1251_partition
+{
 	u32 size;
 	u32 start;
 };
 
-struct wl1251_partition_set {
+struct wl1251_partition_set
+{
 	struct wl1251_partition mem;
 	struct wl1251_partition reg;
 };
 
 struct wl1251;
 
-struct wl1251_stats {
+struct wl1251_stats
+{
 	struct acx_statistics *fw_stats;
 	unsigned long fw_stats_update;
 
@@ -156,7 +164,8 @@ struct wl1251_stats {
 	unsigned int excessive_retries;
 };
 
-struct wl1251_debugfs {
+struct wl1251_debugfs
+{
 	struct dentry *rootdir;
 	struct dentry *fw_statistics;
 
@@ -258,7 +267,8 @@ struct wl1251_debugfs {
 	struct dentry *excessive_retries;
 };
 
-struct wl1251_if_operations {
+struct wl1251_if_operations
+{
 	void (*read)(struct wl1251 *wl, int addr, void *buf, size_t len);
 	void (*write)(struct wl1251 *wl, int addr, void *buf, size_t len);
 	void (*read_elp)(struct wl1251 *wl, int addr, u32 *val);
@@ -269,7 +279,8 @@ struct wl1251_if_operations {
 	void (*disable_irq)(struct wl1251 *wl);
 };
 
-struct wl1251 {
+struct wl1251
+{
 	struct ieee80211_hw *hw;
 	bool mac80211_registered;
 

@@ -16,7 +16,8 @@
  * @use_rbuf_gain2:	ext. amplifier connected in gain of two configuration
  */
 
-struct ad5791_platform_data {
+struct ad5791_platform_data
+{
 	u16				vref_pos_mv;
 	u16				vref_neg_mv;
 	bool				use_rbuf_gain2;

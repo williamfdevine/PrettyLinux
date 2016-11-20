@@ -23,7 +23,8 @@
 #include <linux/device.h>
 #include <linux/types.h>
 
-struct cpufreq_arm_bL_ops {
+struct cpufreq_arm_bL_ops
+{
 	char name[CPUFREQ_NAME_LEN];
 
 	/*

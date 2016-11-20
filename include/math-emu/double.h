@@ -26,13 +26,13 @@
 #define    __MATH_EMU_DOUBLE_H__
 
 #if _FP_W_TYPE_SIZE < 32
-#error "Here's a nickel kid.  Go buy yourself a real computer."
+	#error "Here's a nickel kid.  Go buy yourself a real computer."
 #endif
 
 #if _FP_W_TYPE_SIZE < 64
-#define _FP_FRACTBITS_D		(2 * _FP_W_TYPE_SIZE)
+	#define _FP_FRACTBITS_D		(2 * _FP_W_TYPE_SIZE)
 #else
-#define _FP_FRACTBITS_D		_FP_W_TYPE_SIZE
+	#define _FP_FRACTBITS_D		_FP_W_TYPE_SIZE
 #endif
 
 #define _FP_FRACBITS_D		53
@@ -54,20 +54,21 @@
 
 union _FP_UNION_D
 {
-  double flt;
-  struct {
+	double flt;
+	struct
+	{
 #if __BYTE_ORDER == __BIG_ENDIAN
-    unsigned sign  : 1;
-    unsigned exp   : _FP_EXPBITS_D;
-    unsigned frac1 : _FP_FRACBITS_D - (_FP_IMPLBIT_D != 0) - _FP_W_TYPE_SIZE;
-    unsigned frac0 : _FP_W_TYPE_SIZE;
+		unsigned sign  : 1;
+unsigned exp   : _FP_EXPBITS_D;
+unsigned frac1 : _FP_FRACBITS_D - (_FP_IMPLBIT_D != 0) - _FP_W_TYPE_SIZE;
+unsigned frac0 : _FP_W_TYPE_SIZE;
 #else
-    unsigned frac0 : _FP_W_TYPE_SIZE;
-    unsigned frac1 : _FP_FRACBITS_D - (_FP_IMPLBIT_D != 0) - _FP_W_TYPE_SIZE;
-    unsigned exp   : _FP_EXPBITS_D;
-    unsigned sign  : 1;
+unsigned frac0 : _FP_W_TYPE_SIZE;
+unsigned frac1 : _FP_FRACBITS_D - (_FP_IMPLBIT_D != 0) - _FP_W_TYPE_SIZE;
+unsigned exp   : _FP_EXPBITS_D;
+		unsigned sign  : 1;
 #endif
-  } bits __attribute__((packed));
+	} bits __attribute__((packed));
 };
 
 #define FP_DECL_D(X)		_FP_DECL(2,X)
@@ -75,35 +76,35 @@ union _FP_UNION_D
 #define FP_UNPACK_RAW_DP(X,val)	_FP_UNPACK_RAW_2_P(D,X,val)
 #define FP_PACK_RAW_D(val,X)	_FP_PACK_RAW_2(D,val,X)
 #define FP_PACK_RAW_DP(val,X)		\
-  do {					\
-    if (!FP_INHIBIT_RESULTS)		\
-      _FP_PACK_RAW_2_P(D,val,X);	\
-  } while (0)
+	do {					\
+		if (!FP_INHIBIT_RESULTS)		\
+			_FP_PACK_RAW_2_P(D,val,X);	\
+	} while (0)
 
 #define FP_UNPACK_D(X,val)		\
-  do {					\
-    _FP_UNPACK_RAW_2(D,X,val);		\
-    _FP_UNPACK_CANONICAL(D,2,X);	\
-  } while (0)
+	do {					\
+		_FP_UNPACK_RAW_2(D,X,val);		\
+		_FP_UNPACK_CANONICAL(D,2,X);	\
+	} while (0)
 
 #define FP_UNPACK_DP(X,val)		\
-  do {					\
-    _FP_UNPACK_RAW_2_P(D,X,val);	\
-    _FP_UNPACK_CANONICAL(D,2,X);	\
-  } while (0)
+	do {					\
+		_FP_UNPACK_RAW_2_P(D,X,val);	\
+		_FP_UNPACK_CANONICAL(D,2,X);	\
+	} while (0)
 
 #define FP_PACK_D(val,X)		\
-  do {					\
-    _FP_PACK_CANONICAL(D,2,X);		\
-    _FP_PACK_RAW_2(D,val,X);		\
-  } while (0)
+	do {					\
+		_FP_PACK_CANONICAL(D,2,X);		\
+		_FP_PACK_RAW_2(D,val,X);		\
+	} while (0)
 
 #define FP_PACK_DP(val,X)		\
-  do {					\
-    _FP_PACK_CANONICAL(D,2,X);		\
-    if (!FP_INHIBIT_RESULTS)		\
-      _FP_PACK_RAW_2_P(D,val,X);	\
-  } while (0)
+	do {					\
+		_FP_PACK_CANONICAL(D,2,X);		\
+		if (!FP_INHIBIT_RESULTS)		\
+			_FP_PACK_RAW_2_P(D,val,X);	\
+	} while (0)
 
 #define FP_ISSIGNAN_D(X)		_FP_ISSIGNAN(D,2,X)
 #define FP_NEG_D(R,X)			_FP_NEG(D,2,R,X)
@@ -128,18 +129,19 @@ union _FP_UNION_D
 
 union _FP_UNION_D
 {
-  double flt;
-  struct {
+	double flt;
+	struct
+	{
 #if __BYTE_ORDER == __BIG_ENDIAN
-    unsigned sign : 1;
-    unsigned exp  : _FP_EXPBITS_D;
-    unsigned long frac : _FP_FRACBITS_D - (_FP_IMPLBIT_D != 0);
+		unsigned sign : 1;
+unsigned exp  : _FP_EXPBITS_D;
+unsigned long frac : _FP_FRACBITS_D - (_FP_IMPLBIT_D != 0);
 #else
-    unsigned long frac : _FP_FRACBITS_D - (_FP_IMPLBIT_D != 0);
-    unsigned exp  : _FP_EXPBITS_D;
-    unsigned sign : 1;
+unsigned long frac : _FP_FRACBITS_D - (_FP_IMPLBIT_D != 0);
+unsigned exp  : _FP_EXPBITS_D;
+		unsigned sign : 1;
 #endif
-  } bits __attribute__((packed));
+	} bits __attribute__((packed));
 };
 
 #define FP_DECL_D(X)		_FP_DECL(1,X)
@@ -147,35 +149,35 @@ union _FP_UNION_D
 #define FP_UNPACK_RAW_DP(X,val)	_FP_UNPACK_RAW_1_P(D,X,val)
 #define FP_PACK_RAW_D(val,X)	_FP_PACK_RAW_1(D,val,X)
 #define FP_PACK_RAW_DP(val,X)		\
-  do {					\
-    if (!FP_INHIBIT_RESULTS)		\
-      _FP_PACK_RAW_1_P(D,val,X);	\
-  } while (0)
+	do {					\
+		if (!FP_INHIBIT_RESULTS)		\
+			_FP_PACK_RAW_1_P(D,val,X);	\
+	} while (0)
 
 #define FP_UNPACK_D(X,val)		\
-  do {					\
-    _FP_UNPACK_RAW_1(D,X,val);		\
-    _FP_UNPACK_CANONICAL(D,1,X);	\
-  } while (0)
+	do {					\
+		_FP_UNPACK_RAW_1(D,X,val);		\
+		_FP_UNPACK_CANONICAL(D,1,X);	\
+	} while (0)
 
 #define FP_UNPACK_DP(X,val)		\
-  do {					\
-    _FP_UNPACK_RAW_1_P(D,X,val);	\
-    _FP_UNPACK_CANONICAL(D,1,X);	\
-  } while (0)
+	do {					\
+		_FP_UNPACK_RAW_1_P(D,X,val);	\
+		_FP_UNPACK_CANONICAL(D,1,X);	\
+	} while (0)
 
 #define FP_PACK_D(val,X)		\
-  do {					\
-    _FP_PACK_CANONICAL(D,1,X);		\
-    _FP_PACK_RAW_1(D,val,X);		\
-  } while (0)
+	do {					\
+		_FP_PACK_CANONICAL(D,1,X);		\
+		_FP_PACK_RAW_1(D,val,X);		\
+	} while (0)
 
 #define FP_PACK_DP(val,X)		\
-  do {					\
-    _FP_PACK_CANONICAL(D,1,X);		\
-    if (!FP_INHIBIT_RESULTS)		\
-      _FP_PACK_RAW_1_P(D,val,X);	\
-  } while (0)
+	do {					\
+		_FP_PACK_CANONICAL(D,1,X);		\
+		if (!FP_INHIBIT_RESULTS)		\
+			_FP_PACK_RAW_1_P(D,val,X);	\
+	} while (0)
 
 #define FP_ISSIGNAN_D(X)		_FP_ISSIGNAN(D,1,X)
 #define FP_NEG_D(R,X)			_FP_NEG(D,1,R,X)

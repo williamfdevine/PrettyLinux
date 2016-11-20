@@ -17,7 +17,7 @@
 #include "fbcon.h"
 
 static void tile_bmove(struct vc_data *vc, struct fb_info *info, int sy,
-		       int sx, int dy, int dx, int height, int width)
+					   int sx, int dy, int dx, int height, int width)
 {
 	struct fb_tilearea area;
 
@@ -32,14 +32,14 @@ static void tile_bmove(struct vc_data *vc, struct fb_info *info, int sy,
 }
 
 static void tile_clear(struct vc_data *vc, struct fb_info *info, int sy,
-		       int sx, int height, int width)
+					   int sx, int height, int width)
 {
 	struct fb_tilerect rect;
 	int bgshift = (vc->vc_hi_font_mask) ? 13 : 12;
 	int fgshift = (vc->vc_hi_font_mask) ? 9 : 8;
 
 	rect.index = vc->vc_video_erase_char &
-		((vc->vc_hi_font_mask) ? 0x1ff : 0xff);
+				 ((vc->vc_hi_font_mask) ? 0x1ff : 0xff);
 	rect.fg = attr_fgcol_ec(fgshift, vc, info);
 	rect.bg = attr_bgcol_ec(bgshift, vc, info);
 	rect.sx = sx;
@@ -52,8 +52,8 @@ static void tile_clear(struct vc_data *vc, struct fb_info *info, int sy,
 }
 
 static void tile_putcs(struct vc_data *vc, struct fb_info *info,
-		       const unsigned short *s, int count, int yy, int xx,
-		       int fg, int bg)
+					   const unsigned short *s, int count, int yy, int xx,
+					   int fg, int bg)
 {
 	struct fb_tileblit blit;
 	unsigned short charmask = vc->vc_hi_font_mask ? 0x1ff : 0xff;
@@ -67,20 +67,23 @@ static void tile_putcs(struct vc_data *vc, struct fb_info *info,
 	blit.bg = bg;
 	blit.length = count;
 	blit.indices = (u32 *) fb_get_buffer_offset(info, &info->pixmap, size);
+
 	for (i = 0; i < count; i++)
+	{
 		blit.indices[i] = (u32)(scr_readw(s++) & charmask);
+	}
 
 	info->tileops->fb_tileblit(info, &blit);
 }
 
 static void tile_clear_margins(struct vc_data *vc, struct fb_info *info,
-			       int bottom_only)
+							   int bottom_only)
 {
 	return;
 }
 
 static void tile_cursor(struct vc_data *vc, struct fb_info *info, int mode,
-			int softback_lines, int fg, int bg)
+						int softback_lines, int fg, int bg)
 {
 	struct fb_tilecursor cursor;
 	int use_sw = (vc->vc_cursor_type & 0x10);
@@ -91,26 +94,32 @@ static void tile_cursor(struct vc_data *vc, struct fb_info *info, int mode,
 	cursor.fg = fg;
 	cursor.bg = bg;
 
-	switch (vc->vc_cursor_type & 0x0f) {
-	case CUR_NONE:
-		cursor.shape = FB_TILE_CURSOR_NONE;
-		break;
-	case CUR_UNDERLINE:
-		cursor.shape = FB_TILE_CURSOR_UNDERLINE;
-		break;
-	case CUR_LOWER_THIRD:
-		cursor.shape = FB_TILE_CURSOR_LOWER_THIRD;
-		break;
-	case CUR_LOWER_HALF:
-		cursor.shape = FB_TILE_CURSOR_LOWER_HALF;
-		break;
-	case CUR_TWO_THIRDS:
-		cursor.shape = FB_TILE_CURSOR_TWO_THIRDS;
-		break;
-	case CUR_BLOCK:
-	default:
-		cursor.shape = FB_TILE_CURSOR_BLOCK;
-		break;
+	switch (vc->vc_cursor_type & 0x0f)
+	{
+		case CUR_NONE:
+			cursor.shape = FB_TILE_CURSOR_NONE;
+			break;
+
+		case CUR_UNDERLINE:
+			cursor.shape = FB_TILE_CURSOR_UNDERLINE;
+			break;
+
+		case CUR_LOWER_THIRD:
+			cursor.shape = FB_TILE_CURSOR_LOWER_THIRD;
+			break;
+
+		case CUR_LOWER_HALF:
+			cursor.shape = FB_TILE_CURSOR_LOWER_HALF;
+			break;
+
+		case CUR_TWO_THIRDS:
+			cursor.shape = FB_TILE_CURSOR_TWO_THIRDS;
+			break;
+
+		case CUR_BLOCK:
+		default:
+			cursor.shape = FB_TILE_CURSOR_BLOCK;
+			break;
 	}
 
 	info->tileops->fb_tilecursor(info, &cursor);
@@ -140,12 +149,13 @@ void fbcon_set_tileops(struct vc_data *vc, struct fb_info *info)
 	ops->cursor = tile_cursor;
 	ops->update_start = tile_update_start;
 
-	if (ops->p) {
+	if (ops->p)
+	{
 		map.width = vc->vc_font.width;
 		map.height = vc->vc_font.height;
 		map.depth = 1;
 		map.length = (ops->p->userfont) ?
-			FNTCHARCNT(ops->p->fontdata) : 256;
+					 FNTCHARCNT(ops->p->fontdata) : 256;
 		map.data = ops->p->fontdata;
 		info->tileops->fb_settile(info, &map);
 	}

@@ -37,14 +37,14 @@ struct comedi_device;
 struct comedi_subdevice;
 
 int subdev_8255_init(struct comedi_device *dev, struct comedi_subdevice *s,
-		     int (*io)(struct comedi_device *dev, int dir, int port,
-			       int data, unsigned long regbase),
-		     unsigned long regbase);
+					 int (*io)(struct comedi_device *dev, int dir, int port,
+							   int data, unsigned long regbase),
+					 unsigned long regbase);
 
 int subdev_8255_mm_init(struct comedi_device *dev, struct comedi_subdevice *s,
-			int (*io)(struct comedi_device *dev, int dir, int port,
-				  int data, unsigned long regbase),
-			unsigned long regbase);
+						int (*io)(struct comedi_device *dev, int dir, int port,
+								  int data, unsigned long regbase),
+						unsigned long regbase);
 
 unsigned long subdev_8255_regbase(struct comedi_subdevice *s);
 

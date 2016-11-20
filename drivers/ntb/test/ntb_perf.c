@@ -100,7 +100,8 @@ static bool use_dma; /* default to 0 */
 module_param(use_dma, bool, 0644);
 MODULE_PARM_DESC(use_dma, "Using DMA engine to measure performance");
 
-struct perf_mw {
+struct perf_mw
+{
 	phys_addr_t	phys_addr;
 	resource_size_t	phys_size;
 	resource_size_t	xlat_align;
@@ -114,7 +115,8 @@ struct perf_mw {
 
 struct perf_ctx;
 
-struct pthr_ctx {
+struct pthr_ctx
+{
 	struct task_struct	*thread;
 	struct perf_ctx		*perf;
 	atomic_t		dma_sync;
@@ -128,7 +130,8 @@ struct pthr_ctx {
 	u64			diff_us;
 };
 
-struct perf_ctx {
+struct perf_ctx
+{
 	struct ntb_dev		*ntb;
 	spinlock_t		db_lock;
 	struct perf_mw		mw;
@@ -146,7 +149,8 @@ struct perf_ctx {
 	atomic_t                tdone;
 };
 
-enum {
+enum
+{
 	VERSION = 0,
 	MW_SZ_HIGH,
 	MW_SZ_LOW,
@@ -157,13 +161,18 @@ static void perf_link_event(void *ctx)
 {
 	struct perf_ctx *perf = ctx;
 
-	if (ntb_link_is_up(perf->ntb, NULL, NULL) == 1) {
-		schedule_delayed_work(&perf->link_work, 2*HZ);
-	} else {
+	if (ntb_link_is_up(perf->ntb, NULL, NULL) == 1)
+	{
+		schedule_delayed_work(&perf->link_work, 2 * HZ);
+	}
+	else
+	{
 		dev_dbg(&perf->ntb->pdev->dev, "link down\n");
 
 		if (!perf->link_is_up)
+		{
 			cancel_delayed_work_sync(&perf->link_work);
+		}
 
 		perf->link_is_up = false;
 	}
@@ -178,10 +187,11 @@ static void perf_db_event(void *ctx, int vec)
 	db_bits = ntb_db_read(perf->ntb);
 
 	dev_dbg(&perf->ntb->dev, "doorbell vec %d mask %#llx bits %#llx\n",
-		vec, db_mask, db_bits);
+			vec, db_mask, db_bits);
 }
 
-static const struct ntb_ctx_ops perf_ops = {
+static const struct ntb_ctx_ops perf_ops =
+{
 	.link_event = perf_link_event,
 	.db_event = perf_db_event,
 };
@@ -194,7 +204,7 @@ static void perf_copy_callback(void *data)
 }
 
 static ssize_t perf_copy(struct pthr_ctx *pctx, char __iomem *dst,
-			 char *src, size_t size)
+						 char *src, size_t size)
 {
 	struct perf_ctx *perf = pctx->perf;
 	struct dma_async_tx_descriptor *txd;
@@ -209,12 +219,14 @@ static ssize_t perf_copy(struct pthr_ctx *pctx, char __iomem *dst,
 	dma_addr_t dst_phys;
 	int retries = 0;
 
-	if (!use_dma) {
+	if (!use_dma)
+	{
 		memcpy_toio(dst, src, size);
 		return size;
 	}
 
-	if (!chan) {
+	if (!chan)
+	{
 		dev_err(&perf->ntb->dev, "DMA engine does not exist\n");
 		return -EINVAL;
 	}
@@ -224,35 +236,48 @@ static ssize_t perf_copy(struct pthr_ctx *pctx, char __iomem *dst,
 	dst_off = (uintptr_t __force)dst & ~PAGE_MASK;
 
 	if (!is_dma_copy_aligned(device, src_off, dst_off, size))
+	{
 		return -ENODEV;
+	}
 
 	vbase = mw->vbase;
 	dst_vaddr = dst;
 	dst_phys = mw->phys_addr + (dst_vaddr - vbase);
 
 	unmap = dmaengine_get_unmap_data(device->dev, 1, GFP_NOWAIT);
+
 	if (!unmap)
+	{
 		return -ENOMEM;
+	}
 
 	unmap->len = size;
 	unmap->addr[0] = dma_map_page(device->dev, virt_to_page(src),
-				      src_off, size, DMA_TO_DEVICE);
+								  src_off, size, DMA_TO_DEVICE);
+
 	if (dma_mapping_error(device->dev, unmap->addr[0]))
+	{
 		goto err_get_unmap;
+	}
 
 	unmap->to_cnt = 1;
 
-	do {
+	do
+	{
 		txd = device->device_prep_dma_memcpy(chan, dst_phys,
-						     unmap->addr[0],
-						     size, DMA_PREP_INTERRUPT);
-		if (!txd) {
+											 unmap->addr[0],
+											 size, DMA_PREP_INTERRUPT);
+
+		if (!txd)
+		{
 			set_current_state(TASK_INTERRUPTIBLE);
 			schedule_timeout(DMA_OUT_RESOURCE_TO);
 		}
-	} while (!txd && (++retries < DMA_RETRIES));
+	}
+	while (!txd && (++retries < DMA_RETRIES));
 
-	if (!txd) {
+	if (!txd)
+	{
 		pctx->dma_prep_err++;
 		goto err_get_unmap;
 	}
@@ -262,8 +287,11 @@ static ssize_t perf_copy(struct pthr_ctx *pctx, char __iomem *dst,
 	dma_set_unmap(txd, unmap);
 
 	cookie = dmaengine_submit(txd);
+
 	if (dma_submit_error(cookie))
+	{
 		goto err_set_unmap;
+	}
 
 	atomic_inc(&pctx->dma_sync);
 	dma_async_issue_pending(chan);
@@ -278,7 +306,7 @@ err_get_unmap:
 }
 
 static int perf_move_data(struct pthr_ctx *pctx, char __iomem *dst, char *src,
-			  u64 buf_size, u64 win_size, u64 total)
+						  u64 buf_size, u64 win_size, u64 total)
 {
 	int chunks, total_chunks, i;
 	int copied_chunks = 0;
@@ -292,32 +320,47 @@ static int perf_move_data(struct pthr_ctx *pctx, char __iomem *dst, char *src,
 	total_chunks = div64_u64(total, buf_size);
 	kstart = ktime_get();
 
-	for (i = 0; i < total_chunks; i++) {
+	for (i = 0; i < total_chunks; i++)
+	{
 		result = perf_copy(pctx, tmp, src, buf_size);
 		copied += result;
 		copied_chunks++;
-		if (copied_chunks == chunks) {
+
+		if (copied_chunks == chunks)
+		{
 			tmp = dst;
 			copied_chunks = 0;
-		} else
+		}
+		else
+		{
 			tmp += buf_size;
+		}
 
 		/* Probably should schedule every 5s to prevent soft hang. */
-		if (unlikely((jiffies - last_sleep) > 5 * HZ)) {
+		if (unlikely((jiffies - last_sleep) > 5 * HZ))
+		{
 			last_sleep = jiffies;
 			set_current_state(TASK_INTERRUPTIBLE);
 			schedule_timeout(1);
 		}
 
 		if (unlikely(kthread_should_stop()))
+		{
 			break;
+		}
 	}
 
-	if (use_dma) {
+	if (use_dma)
+	{
 		pr_debug("%s: All DMA descriptors submitted\n", current->comm);
-		while (atomic_read(&pctx->dma_sync) != 0) {
+
+		while (atomic_read(&pctx->dma_sync) != 0)
+		{
 			if (kthread_should_stop())
+			{
 				break;
+			}
+
 			msleep(20);
 		}
 	}
@@ -361,24 +404,31 @@ static int ntb_perf_thread(void *data)
 
 	node = dev_to_node(&pdev->dev);
 
-	if (use_dma && !pctx->dma_chan) {
+	if (use_dma && !pctx->dma_chan)
+	{
 		dma_cap_mask_t dma_mask;
 
 		dma_cap_zero(dma_mask);
 		dma_cap_set(DMA_MEMCPY, dma_mask);
 		dma_chan = dma_request_channel(dma_mask, perf_dma_filter_fn,
-					       (void *)(unsigned long)node);
-		if (!dma_chan) {
+									   (void *)(unsigned long)node);
+
+		if (!dma_chan)
+		{
 			pr_warn("%s: cannot acquire DMA channel, quitting\n",
-				current->comm);
+					current->comm);
 			return -ENODEV;
 		}
+
 		pctx->dma_chan = dma_chan;
 	}
 
-	for (i = 0; i < MAX_SRCS; i++) {
+	for (i = 0; i < MAX_SRCS; i++)
+	{
 		pctx->srcs[i] = kmalloc_node(MAX_TEST_SIZE, GFP_KERNEL, node);
-		if (!pctx->srcs[i]) {
+
+		if (!pctx->srcs[i])
+		{
 			rc = -ENOMEM;
 			goto err;
 		}
@@ -389,13 +439,18 @@ static int ntb_perf_thread(void *data)
 	total = 1ULL << run_order;
 
 	if (buf_size > MAX_TEST_SIZE)
+	{
 		buf_size = MAX_TEST_SIZE;
+	}
 
 	dst = (char __iomem *)mw->vbase;
 
 	atomic_inc(&perf->tsync);
+
 	while (atomic_read(&perf->tsync) != perf->perf_threads)
+	{
 		schedule();
+	}
 
 	src = pctx->srcs[pctx->src_idx];
 	pctx->src_idx = (pctx->src_idx + 1) & (MAX_SRCS - 1);
@@ -404,13 +459,15 @@ static int ntb_perf_thread(void *data)
 
 	atomic_dec(&perf->tsync);
 
-	if (rc < 0) {
+	if (rc < 0)
+	{
 		pr_err("%s: failed\n", current->comm);
 		rc = -ENXIO;
 		goto err;
 	}
 
-	for (i = 0; i < MAX_SRCS; i++) {
+	for (i = 0; i < MAX_SRCS; i++)
+	{
 		kfree(pctx->srcs[i]);
 		pctx->srcs[i] = NULL;
 	}
@@ -421,24 +478,34 @@ static int ntb_perf_thread(void *data)
 	goto done;
 
 err:
-	for (i = 0; i < MAX_SRCS; i++) {
+
+	for (i = 0; i < MAX_SRCS; i++)
+	{
 		kfree(pctx->srcs[i]);
 		pctx->srcs[i] = NULL;
 	}
 
-	if (dma_chan) {
+	if (dma_chan)
+	{
 		dma_release_channel(dma_chan);
 		pctx->dma_chan = NULL;
 	}
 
 done:
+
 	/* Wait until we are told to stop */
-	for (;;) {
+	for (;;)
+	{
 		set_current_state(TASK_INTERRUPTIBLE);
+
 		if (kthread_should_stop())
+		{
 			break;
+		}
+
 		schedule();
 	}
+
 	__set_current_state(TASK_RUNNING);
 
 	return rc;
@@ -450,11 +517,13 @@ static void perf_free_mw(struct perf_ctx *perf)
 	struct pci_dev *pdev = perf->ntb->pdev;
 
 	if (!mw->virt_addr)
+	{
 		return;
+	}
 
 	ntb_mw_clear_trans(perf->ntb, 0);
 	dma_free_coherent(&pdev->dev, mw->buf_size,
-			  mw->virt_addr, mw->dma_addr);
+					  mw->virt_addr, mw->dma_addr);
 	mw->xlat_size = 0;
 	mw->buf_size = 0;
 	mw->virt_addr = NULL;
@@ -467,29 +536,39 @@ static int perf_set_mw(struct perf_ctx *perf, resource_size_t size)
 	int rc;
 
 	if (!size)
+	{
 		return -EINVAL;
+	}
 
 	xlat_size = round_up(size, mw->xlat_align_size);
 	buf_size = round_up(size, mw->xlat_align);
 
 	if (mw->xlat_size == xlat_size)
+	{
 		return 0;
+	}
 
 	if (mw->buf_size)
+	{
 		perf_free_mw(perf);
+	}
 
 	mw->xlat_size = xlat_size;
 	mw->buf_size = buf_size;
 
 	mw->virt_addr = dma_alloc_coherent(&perf->ntb->pdev->dev, buf_size,
-					   &mw->dma_addr, GFP_KERNEL);
-	if (!mw->virt_addr) {
+									   &mw->dma_addr, GFP_KERNEL);
+
+	if (!mw->virt_addr)
+	{
 		mw->xlat_size = 0;
 		mw->buf_size = 0;
 	}
 
 	rc = ntb_mw_set_trans(perf->ntb, 0, mw->dma_addr, mw->xlat_size);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&perf->ntb->dev, "Unable to set mw0 translation\n");
 		perf_free_mw(perf);
 		return -EIO;
@@ -513,7 +592,9 @@ static void perf_link_work(struct work_struct *work)
 	size = perf->mw.phys_size;
 
 	if (max_mw_size && size > max_mw_size)
+	{
 		size = max_mw_size;
+	}
 
 	ntb_peer_spad_write(ndev, MW_SZ_HIGH, upper_32_bits(size));
 	ntb_peer_spad_write(ndev, MW_SZ_LOW, lower_32_bits(size));
@@ -521,7 +602,9 @@ static void perf_link_work(struct work_struct *work)
 
 	/* now read what peer wrote */
 	val = ntb_spad_read(ndev, VERSION);
-	if (val != PERF_VERSION) {
+
+	if (val != PERF_VERSION)
+	{
 		dev_dbg(&pdev->dev, "Remote version = %#x\n", val);
 		goto out;
 	}
@@ -535,8 +618,11 @@ static void perf_link_work(struct work_struct *work)
 	dev_dbg(&pdev->dev, "Remote MW size = %#llx\n", size);
 
 	rc = perf_set_mw(perf, size);
+
 	if (rc)
+	{
 		goto out1;
+	}
 
 	perf->link_is_up = true;
 	wake_up(&perf->link_wq);
@@ -547,9 +633,10 @@ out1:
 	perf_free_mw(perf);
 
 out:
+
 	if (ntb_link_is_up(ndev, NULL, NULL) == 1)
 		schedule_delayed_work(&perf->link_work,
-				      msecs_to_jiffies(PERF_LINK_DOWN_TIMEOUT));
+							  msecs_to_jiffies(PERF_LINK_DOWN_TIMEOUT));
 }
 
 static int perf_setup_mw(struct ntb_dev *ntb, struct perf_ctx *perf)
@@ -560,19 +647,25 @@ static int perf_setup_mw(struct ntb_dev *ntb, struct perf_ctx *perf)
 	mw = &perf->mw;
 
 	rc = ntb_mw_get_range(ntb, 0, &mw->phys_addr, &mw->phys_size,
-			      &mw->xlat_align, &mw->xlat_align_size);
+						  &mw->xlat_align, &mw->xlat_align_size);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	perf->mw.vbase = ioremap_wc(mw->phys_addr, mw->phys_size);
+
 	if (!mw->vbase)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
 
 static ssize_t debugfs_run_read(struct file *filp, char __user *ubuf,
-				size_t count, loff_t *offp)
+								size_t count, loff_t *offp)
 {
 	struct perf_ctx *perf = filp->private_data;
 	char *buf;
@@ -582,34 +675,44 @@ static ssize_t debugfs_run_read(struct file *filp, char __user *ubuf,
 	u64 rate;
 
 	if (!perf)
+	{
 		return 0;
+	}
 
 	buf = kmalloc(1024, GFP_KERNEL);
-	if (!buf)
-		return -ENOMEM;
 
-	if (mutex_is_locked(&perf->run_mutex)) {
+	if (!buf)
+	{
+		return -ENOMEM;
+	}
+
+	if (mutex_is_locked(&perf->run_mutex))
+	{
 		out_off = scnprintf(buf, 64, "running\n");
 		goto read_from_buf;
 	}
 
-	for (i = 0; i < MAX_THREADS; i++) {
+	for (i = 0; i < MAX_THREADS; i++)
+	{
 		pctx = &perf->pthr_ctx[i];
 
 		if (pctx->status == -ENODATA)
+		{
 			break;
+		}
 
-		if (pctx->status) {
+		if (pctx->status)
+		{
 			out_off += scnprintf(buf + out_off, 1024 - out_off,
-					    "%d: error %d\n", i,
-					    pctx->status);
+								 "%d: error %d\n", i,
+								 pctx->status);
 			continue;
 		}
 
 		rate = div64_u64(pctx->copied, pctx->diff_us);
 		out_off += scnprintf(buf + out_off, 1024 - out_off,
-			"%d: copied %llu bytes in %llu usecs, %llu MBytes/s\n",
-			i, pctx->copied, pctx->diff_us, rate);
+							 "%d: copied %llu bytes in %llu usecs, %llu MBytes/s\n",
+							 i, pctx->copied, pctx->diff_us, rate);
 	}
 
 read_from_buf:
@@ -624,9 +727,12 @@ static void threads_cleanup(struct perf_ctx *perf)
 	struct pthr_ctx *pctx;
 	int i;
 
-	for (i = 0; i < MAX_THREADS; i++) {
+	for (i = 0; i < MAX_THREADS; i++)
+	{
 		pctx = &perf->pthr_ctx[i];
-		if (pctx->thread) {
+
+		if (pctx->thread)
+		{
 			pctx->status = kthread_stop(pctx->thread);
 			pctx->thread = NULL;
 		}
@@ -638,39 +744,50 @@ static void perf_clear_thread_status(struct perf_ctx *perf)
 	int i;
 
 	for (i = 0; i < MAX_THREADS; i++)
+	{
 		perf->pthr_ctx[i].status = -ENODATA;
+	}
 }
 
 static ssize_t debugfs_run_write(struct file *filp, const char __user *ubuf,
-				 size_t count, loff_t *offp)
+								 size_t count, loff_t *offp)
 {
 	struct perf_ctx *perf = filp->private_data;
 	int node, i;
 	DECLARE_WAIT_QUEUE_HEAD(wq);
 
 	if (wait_event_interruptible(perf->link_wq, perf->link_is_up))
+	{
 		return -ENOLINK;
+	}
 
 	if (perf->perf_threads == 0)
+	{
 		return -EINVAL;
+	}
 
 	if (!mutex_trylock(&perf->run_mutex))
+	{
 		return -EBUSY;
+	}
 
 	perf_clear_thread_status(perf);
 
-	if (perf->perf_threads > MAX_THREADS) {
+	if (perf->perf_threads > MAX_THREADS)
+	{
 		perf->perf_threads = MAX_THREADS;
 		pr_info("Reset total threads to: %u\n", MAX_THREADS);
 	}
 
 	/* no greater than 1M */
-	if (seg_order > MAX_SEG_ORDER) {
+	if (seg_order > MAX_SEG_ORDER)
+	{
 		seg_order = MAX_SEG_ORDER;
 		pr_info("Fix seg_order to %u\n", seg_order);
 	}
 
-	if (run_order < seg_order) {
+	if (run_order < seg_order)
+	{
 		run_order = seg_order;
 		pr_info("Fix run_order to %u\n", run_order);
 	}
@@ -679,7 +796,8 @@ static ssize_t debugfs_run_write(struct file *filp, const char __user *ubuf,
 	atomic_set(&perf->tdone, 0);
 
 	/* launch kernel thread */
-	for (i = 0; i < perf->perf_threads; i++) {
+	for (i = 0; i < perf->perf_threads; i++)
+	{
 		struct pthr_ctx *pctx;
 
 		pctx = &perf->pthr_ctx[i];
@@ -688,18 +806,22 @@ static ssize_t debugfs_run_write(struct file *filp, const char __user *ubuf,
 		pctx->wq = &wq;
 		pctx->thread =
 			kthread_create_on_node(ntb_perf_thread,
-					       (void *)pctx,
-					       node, "ntb_perf %d", i);
-		if (IS_ERR(pctx->thread)) {
+								   (void *)pctx,
+								   node, "ntb_perf %d", i);
+
+		if (IS_ERR(pctx->thread))
+		{
 			pctx->thread = NULL;
 			goto err;
-		} else {
+		}
+		else
+		{
 			wake_up_process(pctx->thread);
 		}
 	}
 
 	wait_event_interruptible(wq,
-		atomic_read(&perf->tdone) == perf->perf_threads);
+							 atomic_read(&perf->tdone) == perf->perf_threads);
 
 	threads_cleanup(perf);
 	mutex_unlock(&perf->run_mutex);
@@ -711,7 +833,8 @@ err:
 	return -ENXIO;
 }
 
-static const struct file_operations ntb_perf_debugfs_run = {
+static const struct file_operations ntb_perf_debugfs_run =
+{
 	.owner = THIS_MODULE,
 	.open = simple_open,
 	.read = debugfs_run_read,
@@ -723,30 +846,45 @@ static int perf_debugfs_setup(struct perf_ctx *perf)
 	struct pci_dev *pdev = perf->ntb->pdev;
 
 	if (!debugfs_initialized())
+	{
 		return -ENODEV;
+	}
 
-	if (!perf_debugfs_dir) {
+	if (!perf_debugfs_dir)
+	{
 		perf_debugfs_dir = debugfs_create_dir(KBUILD_MODNAME, NULL);
+
 		if (!perf_debugfs_dir)
+		{
 			return -ENODEV;
+		}
 	}
 
 	perf->debugfs_node_dir = debugfs_create_dir(pci_name(pdev),
-						    perf_debugfs_dir);
+							 perf_debugfs_dir);
+
 	if (!perf->debugfs_node_dir)
+	{
 		return -ENODEV;
+	}
 
 	perf->debugfs_run = debugfs_create_file("run", S_IRUSR | S_IWUSR,
-						perf->debugfs_node_dir, perf,
-						&ntb_perf_debugfs_run);
+											perf->debugfs_node_dir, perf,
+											&ntb_perf_debugfs_run);
+
 	if (!perf->debugfs_run)
+	{
 		return -ENODEV;
+	}
 
 	perf->debugfs_threads = debugfs_create_u8("threads", S_IRUSR | S_IWUSR,
-						  perf->debugfs_node_dir,
-						  &perf->perf_threads);
+							perf->debugfs_node_dir,
+							&perf->perf_threads);
+
 	if (!perf->debugfs_threads)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -758,16 +896,19 @@ static int perf_probe(struct ntb_client *client, struct ntb_dev *ntb)
 	int node;
 	int rc = 0;
 
-	if (ntb_spad_count(ntb) < MAX_SPAD) {
+	if (ntb_spad_count(ntb) < MAX_SPAD)
+	{
 		dev_err(&ntb->dev, "Not enough scratch pad registers for %s",
-			DRIVER_NAME);
+				DRIVER_NAME);
 		return -EIO;
 	}
 
 	node = dev_to_node(&pdev->dev);
 
 	perf = kzalloc_node(sizeof(*perf), GFP_KERNEL, node);
-	if (!perf) {
+
+	if (!perf)
+	{
 		rc = -ENOMEM;
 		goto err_perf;
 	}
@@ -782,16 +923,22 @@ static int perf_probe(struct ntb_client *client, struct ntb_dev *ntb)
 	INIT_DELAYED_WORK(&perf->link_work, perf_link_work);
 
 	rc = ntb_set_ctx(ntb, perf, &perf_ops);
+
 	if (rc)
+	{
 		goto err_ctx;
+	}
 
 	perf->link_is_up = false;
 	ntb_link_enable(ntb, NTB_SPEED_AUTO, NTB_WIDTH_AUTO);
 	ntb_link_event(ntb);
 
 	rc = perf_debugfs_setup(perf);
+
 	if (rc)
+	{
 		goto err_ctx;
+	}
 
 	perf_clear_thread_status(perf);
 
@@ -821,19 +968,24 @@ static void perf_remove(struct ntb_client *client, struct ntb_dev *ntb)
 	debugfs_remove_recursive(perf_debugfs_dir);
 	perf_debugfs_dir = NULL;
 
-	if (use_dma) {
-		for (i = 0; i < MAX_THREADS; i++) {
+	if (use_dma)
+	{
+		for (i = 0; i < MAX_THREADS; i++)
+		{
 			struct pthr_ctx *pctx = &perf->pthr_ctx[i];
 
 			if (pctx->dma_chan)
+			{
 				dma_release_channel(pctx->dma_chan);
+			}
 		}
 	}
 
 	kfree(perf);
 }
 
-static struct ntb_client perf_client = {
+static struct ntb_client perf_client =
+{
 	.ops = {
 		.probe = perf_probe,
 		.remove = perf_remove,

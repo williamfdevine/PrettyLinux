@@ -59,92 +59,117 @@ static void check_invalid_segment(uint16_t index, int ldt)
 	uint32_t selector = (index << 3) | (ldt << 2) | 3;
 
 	asm ("lsl %[selector], %[limit]\n\t"
-	     "jnz 1f\n\t"
-	     "movl $1, %[has_limit]\n\t"
-	     "1:"
-	     : [limit] "=r" (limit), [has_limit] "+rm" (has_limit)
-	     : [selector] "r" (selector));
+		 "jnz 1f\n\t"
+		 "movl $1, %[has_limit]\n\t"
+		 "1:"
+		 : [limit] "=r" (limit), [has_limit] "+rm" (has_limit)
+		 : [selector] "r" (selector));
 	asm ("larl %[selector], %[ar]\n\t"
-	     "jnz 1f\n\t"
-	     "movl $1, %[has_ar]\n\t"
-	     "1:"
-	     : [ar] "=r" (ar), [has_ar] "+rm" (has_ar)
-	     : [selector] "r" (selector));
+		 "jnz 1f\n\t"
+		 "movl $1, %[has_ar]\n\t"
+		 "1:"
+		 : [ar] "=r" (ar), [has_ar] "+rm" (has_ar)
+		 : [selector] "r" (selector));
 
-	if (has_limit || has_ar) {
+	if (has_limit || has_ar)
+	{
 		printf("[FAIL]\t%s entry %hu is valid but should be invalid\n",
-		       (ldt ? "LDT" : "GDT"), index);
+			   (ldt ? "LDT" : "GDT"), index);
 		nerrs++;
-	} else {
+	}
+	else
+	{
 		printf("[OK]\t%s entry %hu is invalid\n",
-		       (ldt ? "LDT" : "GDT"), index);
+			   (ldt ? "LDT" : "GDT"), index);
 	}
 }
 
 static void check_valid_segment(uint16_t index, int ldt,
-				uint32_t expected_ar, uint32_t expected_limit,
-				bool verbose)
+								uint32_t expected_ar, uint32_t expected_limit,
+								bool verbose)
 {
 	uint32_t has_limit = 0, has_ar = 0, limit, ar;
 	uint32_t selector = (index << 3) | (ldt << 2) | 3;
 
 	asm ("lsl %[selector], %[limit]\n\t"
-	     "jnz 1f\n\t"
-	     "movl $1, %[has_limit]\n\t"
-	     "1:"
-	     : [limit] "=r" (limit), [has_limit] "+rm" (has_limit)
-	     : [selector] "r" (selector));
+		 "jnz 1f\n\t"
+		 "movl $1, %[has_limit]\n\t"
+		 "1:"
+		 : [limit] "=r" (limit), [has_limit] "+rm" (has_limit)
+		 : [selector] "r" (selector));
 	asm ("larl %[selector], %[ar]\n\t"
-	     "jnz 1f\n\t"
-	     "movl $1, %[has_ar]\n\t"
-	     "1:"
-	     : [ar] "=r" (ar), [has_ar] "+rm" (has_ar)
-	     : [selector] "r" (selector));
+		 "jnz 1f\n\t"
+		 "movl $1, %[has_ar]\n\t"
+		 "1:"
+		 : [ar] "=r" (ar), [has_ar] "+rm" (has_ar)
+		 : [selector] "r" (selector));
 
-	if (!has_limit || !has_ar) {
+	if (!has_limit || !has_ar)
+	{
 		printf("[FAIL]\t%s entry %hu is invalid but should be valid\n",
-		       (ldt ? "LDT" : "GDT"), index);
+			   (ldt ? "LDT" : "GDT"), index);
 		nerrs++;
 		return;
 	}
 
-	if (ar != expected_ar) {
+	if (ar != expected_ar)
+	{
 		printf("[FAIL]\t%s entry %hu has AR 0x%08X but expected 0x%08X\n",
-		       (ldt ? "LDT" : "GDT"), index, ar, expected_ar);
+			   (ldt ? "LDT" : "GDT"), index, ar, expected_ar);
 		nerrs++;
-	} else if (limit != expected_limit) {
+	}
+	else if (limit != expected_limit)
+	{
 		printf("[FAIL]\t%s entry %hu has limit 0x%08X but expected 0x%08X\n",
-		       (ldt ? "LDT" : "GDT"), index, limit, expected_limit);
+			   (ldt ? "LDT" : "GDT"), index, limit, expected_limit);
 		nerrs++;
-	} else if (verbose) {
+	}
+	else if (verbose)
+	{
 		printf("[OK]\t%s entry %hu has AR 0x%08X and limit 0x%08X\n",
-		       (ldt ? "LDT" : "GDT"), index, ar, limit);
+			   (ldt ? "LDT" : "GDT"), index, ar, limit);
 	}
 }
 
 static bool install_valid_mode(const struct user_desc *desc, uint32_t ar,
-			       bool oldmode)
+							   bool oldmode)
 {
 	int ret = syscall(SYS_modify_ldt, oldmode ? 1 : 0x11,
-			  desc, sizeof(*desc));
+					  desc, sizeof(*desc));
+
 	if (ret < -1)
+	{
 		errno = -ret;
-	if (ret == 0) {
+	}
+
+	if (ret == 0)
+	{
 		uint32_t limit = desc->limit;
+
 		if (desc->limit_in_pages)
+		{
 			limit = (limit << 12) + 4095;
+		}
+
 		check_valid_segment(desc->entry_number, 1, ar, limit, true);
 		return true;
-	} else if (errno == ENOSYS) {
+	}
+	else if (errno == ENOSYS)
+	{
 		printf("[OK]\tmodify_ldt returned -ENOSYS\n");
 		return false;
-	} else {
-		if (desc->seg_32bit) {
+	}
+	else
+	{
+		if (desc->seg_32bit)
+		{
 			printf("[FAIL]\tUnexpected modify_ldt failure %d\n",
-			       errno);
+				   errno);
 			nerrs++;
 			return false;
-		} else {
+		}
+		else
+		{
 			printf("[OK]\tmodify_ldt rejected 16 bit segment\n");
 			return false;
 		}
@@ -159,48 +184,70 @@ static bool install_valid(const struct user_desc *desc, uint32_t ar)
 static void install_invalid(const struct user_desc *desc, bool oldmode)
 {
 	int ret = syscall(SYS_modify_ldt, oldmode ? 1 : 0x11,
-			  desc, sizeof(*desc));
+					  desc, sizeof(*desc));
+
 	if (ret < -1)
+	{
 		errno = -ret;
-	if (ret == 0) {
+	}
+
+	if (ret == 0)
+	{
 		check_invalid_segment(desc->entry_number, 1);
-	} else if (errno == ENOSYS) {
+	}
+	else if (errno == ENOSYS)
+	{
 		printf("[OK]\tmodify_ldt returned -ENOSYS\n");
-	} else {
-		if (desc->seg_32bit) {
+	}
+	else
+	{
+		if (desc->seg_32bit)
+		{
 			printf("[FAIL]\tUnexpected modify_ldt failure %d\n",
-			       errno);
+				   errno);
 			nerrs++;
-		} else {
+		}
+		else
+		{
 			printf("[OK]\tmodify_ldt rejected 16 bit segment\n");
 		}
 	}
 }
 
 static int safe_modify_ldt(int func, struct user_desc *ptr,
-			   unsigned long bytecount)
+						   unsigned long bytecount)
 {
 	int ret = syscall(SYS_modify_ldt, 0x11, ptr, bytecount);
+
 	if (ret < -1)
+	{
 		errno = -ret;
+	}
+
 	return ret;
 }
 
 static void fail_install(struct user_desc *desc)
 {
-	if (safe_modify_ldt(0x11, desc, sizeof(*desc)) == 0) {
+	if (safe_modify_ldt(0x11, desc, sizeof(*desc)) == 0)
+	{
 		printf("[FAIL]\tmodify_ldt accepted a bad descriptor\n");
 		nerrs++;
-	} else if (errno == ENOSYS) {
+	}
+	else if (errno == ENOSYS)
+	{
 		printf("[OK]\tmodify_ldt returned -ENOSYS\n");
-	} else {
+	}
+	else
+	{
 		printf("[OK]\tmodify_ldt failure %d\n", errno);
 	}
 }
 
 static void do_simple_tests(void)
 {
-	struct user_desc desc = {
+	struct user_desc desc =
+	{
 		.entry_number    = 0,
 		.base_addr       = 0,
 		.limit           = 10,
@@ -215,117 +262,137 @@ static void do_simple_tests(void)
 
 	desc.limit_in_pages = 1;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_XRCODE |
-		      AR_S | AR_P | AR_DB | AR_G);
+				  AR_S | AR_P | AR_DB | AR_G);
 
 	check_invalid_segment(1, 1);
 
 	desc.entry_number = 2;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_XRCODE |
-		      AR_S | AR_P | AR_DB | AR_G);
+				  AR_S | AR_P | AR_DB | AR_G);
 
 	check_invalid_segment(1, 1);
 
 	desc.base_addr = 0xf0000000;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_XRCODE |
-		      AR_S | AR_P | AR_DB | AR_G);
+				  AR_S | AR_P | AR_DB | AR_G);
 
 	desc.useable = 1;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_XRCODE |
-		      AR_S | AR_P | AR_DB | AR_G | AR_AVL);
+				  AR_S | AR_P | AR_DB | AR_G | AR_AVL);
 
 	desc.seg_not_present = 1;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_XRCODE |
-		      AR_S | AR_DB | AR_G | AR_AVL);
+				  AR_S | AR_DB | AR_G | AR_AVL);
 
 	desc.seg_32bit = 0;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_XRCODE |
-		      AR_S | AR_G | AR_AVL);
+				  AR_S | AR_G | AR_AVL);
 
 	desc.seg_32bit = 1;
 	desc.contents = 0;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_RWDATA |
-		      AR_S | AR_DB | AR_G | AR_AVL);
+				  AR_S | AR_DB | AR_G | AR_AVL);
 
 	desc.read_exec_only = 1;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_RODATA |
-		      AR_S | AR_DB | AR_G | AR_AVL);
+				  AR_S | AR_DB | AR_G | AR_AVL);
 
 	desc.contents = 1;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_RODATA_EXPDOWN |
-		      AR_S | AR_DB | AR_G | AR_AVL);
+				  AR_S | AR_DB | AR_G | AR_AVL);
 
 	desc.read_exec_only = 0;
 	desc.limit_in_pages = 0;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_RWDATA_EXPDOWN |
-		      AR_S | AR_DB | AR_AVL);
+				  AR_S | AR_DB | AR_AVL);
 
 	desc.contents = 3;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_XRCODE_CONF |
-		      AR_S | AR_DB | AR_AVL);
+				  AR_S | AR_DB | AR_AVL);
 
 	desc.read_exec_only = 1;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_XOCODE_CONF |
-		      AR_S | AR_DB | AR_AVL);
+				  AR_S | AR_DB | AR_AVL);
 
 	desc.read_exec_only = 0;
 	desc.contents = 2;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_XRCODE |
-		      AR_S | AR_DB | AR_AVL);
+				  AR_S | AR_DB | AR_AVL);
 
 	desc.read_exec_only = 1;
 
 #ifdef __x86_64__
 	desc.lm = 1;
 	install_valid(&desc, AR_DPL3 | AR_TYPE_XOCODE |
-		      AR_S | AR_DB | AR_AVL);
+				  AR_S | AR_DB | AR_AVL);
 	desc.lm = 0;
 #endif
 
 	bool entry1_okay = install_valid(&desc, AR_DPL3 | AR_TYPE_XOCODE |
-					 AR_S | AR_DB | AR_AVL);
+									 AR_S | AR_DB | AR_AVL);
 
-	if (entry1_okay) {
+	if (entry1_okay)
+	{
 		printf("[RUN]\tTest fork\n");
 		pid_t child = fork();
-		if (child == 0) {
+
+		if (child == 0)
+		{
 			nerrs = 0;
 			check_valid_segment(desc.entry_number, 1,
-					    AR_DPL3 | AR_TYPE_XOCODE |
-					    AR_S | AR_DB | AR_AVL, desc.limit,
-					    true);
+								AR_DPL3 | AR_TYPE_XOCODE |
+								AR_S | AR_DB | AR_AVL, desc.limit,
+								true);
 			check_invalid_segment(1, 1);
 			exit(nerrs ? 1 : 0);
-		} else {
+		}
+		else
+		{
 			int status;
+
 			if (waitpid(child, &status, 0) != child ||
-			    !WIFEXITED(status)) {
+				!WIFEXITED(status))
+			{
 				printf("[FAIL]\tChild died\n");
 				nerrs++;
-			} else if (WEXITSTATUS(status) != 0) {
+			}
+			else if (WEXITSTATUS(status) != 0)
+			{
 				printf("[FAIL]\tChild failed\n");
 				nerrs++;
-			} else {
+			}
+			else
+			{
 				printf("[OK]\tChild succeeded\n");
 			}
 		}
 
 		printf("[RUN]\tTest size\n");
 		int i;
-		for (i = 0; i < 8192; i++) {
+
+		for (i = 0; i < 8192; i++)
+		{
 			desc.entry_number = i;
 			desc.limit = i;
-			if (safe_modify_ldt(0x11, &desc, sizeof(desc)) != 0) {
+
+			if (safe_modify_ldt(0x11, &desc, sizeof(desc)) != 0)
+			{
 				printf("[FAIL]\tFailed to install entry %d\n", i);
 				nerrs++;
 				break;
 			}
 		}
-		for (int j = 0; j < i; j++) {
+
+		for (int j = 0; j < i; j++)
+		{
 			check_valid_segment(j, 1, AR_DPL3 | AR_TYPE_XOCODE |
-					    AR_S | AR_DB | AR_AVL, j, false);
+								AR_S | AR_DB | AR_AVL, j, false);
 		}
+
 		printf("[DONE]\tSize test\n");
-	} else {
+	}
+	else
+	{
 		printf("[SKIP]\tSkipping fork and size tests because we have no LDT\n");
 	}
 
@@ -379,40 +446,57 @@ static void *threadproc(void *ctx)
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
 	CPU_SET(1, &cpuset);
-	if (sched_setaffinity(0, sizeof(cpuset), &cpuset) != 0)
-		err(1, "sched_setaffinity to CPU 1");	/* should never fail */
 
-	while (1) {
+	if (sched_setaffinity(0, sizeof(cpuset), &cpuset) != 0)
+	{
+		err(1, "sched_setaffinity to CPU 1");    /* should never fail */
+	}
+
+	while (1)
+	{
 		syscall(SYS_futex, &ftx, FUTEX_WAIT, 0, NULL, NULL, 0);
-		while (ftx != 2) {
+
+		while (ftx != 2)
+		{
 			if (ftx >= 3)
+			{
 				return NULL;
+			}
 		}
 
 		/* clear LDT entry 0 */
 		const struct user_desc desc = {};
+
 		if (syscall(SYS_modify_ldt, 1, &desc, sizeof(desc)) != 0)
+		{
 			err(1, "modify_ldt");
+		}
 
 		/* If ftx == 2, set it to zero.  If ftx == 100, quit. */
 		unsigned int x = -2;
 		asm volatile ("lock xaddl %[x], %[ftx]" :
-			      [x] "+r" (x), [ftx] "+m" (ftx));
+					  [x] "+r" (x), [ftx] "+m" (ftx));
+
 		if (x != 2)
+		{
 			return NULL;
+		}
 	}
 }
 
 static void sethandler(int sig, void (*handler)(int, siginfo_t *, void *),
-		       int flags)
+					   int flags)
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_sigaction = handler;
 	sa.sa_flags = SA_SIGINFO | flags;
 	sigemptyset(&sa.sa_mask);
+
 	if (sigaction(sig, &sa, 0))
+	{
 		err(1, "sigaction");
+	}
 
 }
 
@@ -432,14 +516,18 @@ static void do_multicpu_tests(void)
 
 	CPU_ZERO(&cpuset);
 	CPU_SET(1, &cpuset);
-	if (sched_setaffinity(0, sizeof(cpuset), &cpuset) != 0) {
+
+	if (sched_setaffinity(0, sizeof(cpuset), &cpuset) != 0)
+	{
 		printf("[SKIP]\tCannot set affinity to CPU 1\n");
 		return;
 	}
 
 	CPU_ZERO(&cpuset);
 	CPU_SET(0, &cpuset);
-	if (sched_setaffinity(0, sizeof(cpuset), &cpuset) != 0) {
+
+	if (sched_setaffinity(0, sizeof(cpuset), &cpuset) != 0)
+	{
 		printf("[SKIP]\tCannot set affinity to CPU 0\n");
 		return;
 	}
@@ -453,19 +541,25 @@ static void do_multicpu_tests(void)
 	printf("[RUN]\tCross-CPU LDT invalidation\n");
 
 	if (pthread_create(&thread, 0, threadproc, 0) != 0)
+	{
 		err(1, "pthread_create");
+	}
 
 	asm volatile ("mov %%ss, %0" : "=rm" (orig_ss));
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		if (sigsetjmp(jmpbuf, 1) != 0)
+		{
 			continue;
+		}
 
 		/* Make sure the thread is ready after the last test. */
 		while (ftx != 0)
 			;
 
-		struct user_desc desc = {
+		struct user_desc desc =
+		{
 			.entry_number    = 0,
 			.base_addr       = 0,
 			.limit           = 0xfffff,
@@ -477,9 +571,13 @@ static void do_multicpu_tests(void)
 			.useable         = 0
 		};
 
-		if (safe_modify_ldt(0x11, &desc, sizeof(desc)) != 0) {
+		if (safe_modify_ldt(0x11, &desc, sizeof(desc)) != 0)
+		{
 			if (errno != ENOSYS)
+			{
 				err(1, "modify_ldt");
+			}
+
 			printf("[SKIP]\tmodify_ldt unavailable\n");
 			break;
 		}
@@ -509,12 +607,17 @@ static void do_multicpu_tests(void)
 	syscall(SYS_futex, &ftx, FUTEX_WAKE, 0, NULL, NULL, 0);
 
 	if (pthread_join(thread, NULL) != 0)
+	{
 		err(1, "pthread_join");
+	}
 
-	if (failures) {
+	if (failures)
+	{
 		printf("[FAIL]\t%d of %d iterations failed\n", failures, iters);
 		nerrs++;
-	} else {
+	}
+	else
+	{
 		printf("[OK]\tAll %d iterations succeeded\n", iters);
 	}
 }
@@ -527,8 +630,8 @@ static int finish_exec_test(void)
 	 * We can probably change this safely, but for now we test it.
 	 */
 	check_valid_segment(0, 1,
-			    AR_DPL3 | AR_TYPE_XRCODE | AR_S | AR_P | AR_DB,
-			    42, true);
+						AR_DPL3 | AR_TYPE_XRCODE | AR_S | AR_P | AR_DB,
+						42, true);
 
 	return nerrs ? 1 : 0;
 }
@@ -537,7 +640,8 @@ static void do_exec_test(void)
 {
 	printf("[RUN]\tTest exec\n");
 
-	struct user_desc desc = {
+	struct user_desc desc =
+	{
 		.entry_number    = 0,
 		.base_addr       = 0,
 		.limit           = 42,
@@ -551,20 +655,30 @@ static void do_exec_test(void)
 	install_valid(&desc, AR_DPL3 | AR_TYPE_XRCODE | AR_S | AR_P | AR_DB);
 
 	pid_t child = fork();
-	if (child == 0) {
+
+	if (child == 0)
+	{
 		execl("/proc/self/exe", "ldt_gdt_test_exec", NULL);
 		printf("[FAIL]\tCould not exec self\n");
 		exit(1);	/* exec failed */
-	} else {
+	}
+	else
+	{
 		int status;
+
 		if (waitpid(child, &status, 0) != child ||
-		    !WIFEXITED(status)) {
+			!WIFEXITED(status))
+		{
 			printf("[FAIL]\tChild died\n");
 			nerrs++;
-		} else if (WEXITSTATUS(status) != 0) {
+		}
+		else if (WEXITSTATUS(status) != 0)
+		{
 			printf("[FAIL]\tChild failed\n");
 			nerrs++;
-		} else {
+		}
+		else
+		{
 			printf("[OK]\tChild succeeded\n");
 		}
 	}
@@ -573,12 +687,18 @@ static void do_exec_test(void)
 static void setup_counter_page(void)
 {
 	unsigned int *page = mmap(NULL, 4096, PROT_READ | PROT_WRITE,
-			 MAP_ANONYMOUS | MAP_PRIVATE | MAP_32BIT, -1, 0);
+							  MAP_ANONYMOUS | MAP_PRIVATE | MAP_32BIT, -1, 0);
+
 	if (page == MAP_FAILED)
+	{
 		err(1, "mmap");
+	}
 
 	for (int i = 0; i < 1024; i++)
+	{
 		page[i] = i;
+	}
+
 	counter_page = page;
 }
 
@@ -586,19 +706,22 @@ static int invoke_set_thread_area(void)
 {
 	int ret;
 	asm volatile ("int $0x80"
-		      : "=a" (ret), "+m" (low_user_desc) :
-			"a" (243), "b" (low_user_desc)
-		      : "flags");
+				  : "=a" (ret), "+m" (low_user_desc) :
+				  "a" (243), "b" (low_user_desc)
+				  : "flags");
 	return ret;
 }
 
 static void setup_low_user_desc(void)
 {
 	low_user_desc = mmap(NULL, 2 * sizeof(struct user_desc),
-			     PROT_READ | PROT_WRITE,
-			     MAP_ANONYMOUS | MAP_PRIVATE | MAP_32BIT, -1, 0);
+						 PROT_READ | PROT_WRITE,
+						 MAP_ANONYMOUS | MAP_PRIVATE | MAP_32BIT, -1, 0);
+
 	if (low_user_desc == MAP_FAILED)
+	{
 		err(1, "mmap");
+	}
 
 	low_user_desc->entry_number	= -1;
 	low_user_desc->base_addr	= (unsigned long)&counter_page[1];
@@ -610,10 +733,13 @@ static void setup_low_user_desc(void)
 	low_user_desc->seg_not_present	= 0;
 	low_user_desc->useable		= 0;
 
-	if (invoke_set_thread_area() == 0) {
+	if (invoke_set_thread_area() == 0)
+	{
 		gdt_entry_num = low_user_desc->entry_number;
 		printf("[NOTE]\tset_thread_area is available; will use GDT index %d\n", gdt_entry_num);
-	} else {
+	}
+	else
+	{
 		printf("[NOTE]\tset_thread_area is unavailable\n");
 	}
 
@@ -626,7 +752,9 @@ static void setup_low_user_desc(void)
 static void test_gdt_invalidation(void)
 {
 	if (!gdt_entry_num)
-		return;	/* 64-bit only system -- we can't use set_thread_area */
+	{
+		return;    /* 64-bit only system -- we can't use set_thread_area */
+	}
 
 	unsigned short prev_sel;
 	unsigned short sel;
@@ -642,62 +770,70 @@ static void test_gdt_invalidation(void)
 	eax = 243;
 	sel = (gdt_entry_num << 3) | 3;
 	asm volatile ("movw %%ds, %[prev_sel]\n\t"
-		      "movw %[sel], %%ds\n\t"
+				  "movw %[sel], %%ds\n\t"
 #ifdef __i386__
-		      "pushl %%ebx\n\t"
+				  "pushl %%ebx\n\t"
 #endif
-		      "movl %[arg1], %%ebx\n\t"
-		      "int $0x80\n\t"	/* Should invalidate ds */
+				  "movl %[arg1], %%ebx\n\t"
+				  "int $0x80\n\t"	/* Should invalidate ds */
 #ifdef __i386__
-		      "popl %%ebx\n\t"
+				  "popl %%ebx\n\t"
 #endif
-		      "movw %%ds, %[sel]\n\t"
-		      "movw %[prev_sel], %%ds"
-		      : [prev_sel] "=&r" (prev_sel), [sel] "+r" (sel),
-			"+a" (eax)
-		      : "m" (low_user_desc_clear),
-			[arg1] "r" ((unsigned int)(unsigned long)low_user_desc_clear)
-		      : "flags");
+				  "movw %%ds, %[sel]\n\t"
+				  "movw %[prev_sel], %%ds"
+				  : [prev_sel] "=&r" (prev_sel), [sel] "+r" (sel),
+				  "+a" (eax)
+				  : "m" (low_user_desc_clear),
+				  [arg1] "r" ((unsigned int)(unsigned long)low_user_desc_clear)
+				  : "flags");
 
-	if (sel != 0) {
+	if (sel != 0)
+	{
 		result = "FAIL";
 		nerrs++;
-	} else {
+	}
+	else
+	{
 		result = "OK";
 	}
+
 	printf("[%s]\tInvalidate DS with set_thread_area: new DS = 0x%hx\n",
-	       result, sel);
+		   result, sel);
 
 	/* Test ES */
 	invoke_set_thread_area();
 	eax = 243;
 	sel = (gdt_entry_num << 3) | 3;
 	asm volatile ("movw %%es, %[prev_sel]\n\t"
-		      "movw %[sel], %%es\n\t"
+				  "movw %[sel], %%es\n\t"
 #ifdef __i386__
-		      "pushl %%ebx\n\t"
+				  "pushl %%ebx\n\t"
 #endif
-		      "movl %[arg1], %%ebx\n\t"
-		      "int $0x80\n\t"	/* Should invalidate es */
+				  "movl %[arg1], %%ebx\n\t"
+				  "int $0x80\n\t"	/* Should invalidate es */
 #ifdef __i386__
-		      "popl %%ebx\n\t"
+				  "popl %%ebx\n\t"
 #endif
-		      "movw %%es, %[sel]\n\t"
-		      "movw %[prev_sel], %%es"
-		      : [prev_sel] "=&r" (prev_sel), [sel] "+r" (sel),
-			"+a" (eax)
-		      : "m" (low_user_desc_clear),
-			[arg1] "r" ((unsigned int)(unsigned long)low_user_desc_clear)
-		      : "flags");
+				  "movw %%es, %[sel]\n\t"
+				  "movw %[prev_sel], %%es"
+				  : [prev_sel] "=&r" (prev_sel), [sel] "+r" (sel),
+				  "+a" (eax)
+				  : "m" (low_user_desc_clear),
+				  [arg1] "r" ((unsigned int)(unsigned long)low_user_desc_clear)
+				  : "flags");
 
-	if (sel != 0) {
+	if (sel != 0)
+	{
 		result = "FAIL";
 		nerrs++;
-	} else {
+	}
+	else
+	{
 		result = "OK";
 	}
+
 	printf("[%s]\tInvalidate ES with set_thread_area: new ES = 0x%hx\n",
-	       result, sel);
+		   result, sel);
 
 	/* Test FS */
 	invoke_set_thread_area();
@@ -707,21 +843,21 @@ static void test_gdt_invalidation(void)
 	syscall(SYS_arch_prctl, ARCH_GET_FS, &saved_base);
 #endif
 	asm volatile ("movw %%fs, %[prev_sel]\n\t"
-		      "movw %[sel], %%fs\n\t"
+				  "movw %[sel], %%fs\n\t"
 #ifdef __i386__
-		      "pushl %%ebx\n\t"
+				  "pushl %%ebx\n\t"
 #endif
-		      "movl %[arg1], %%ebx\n\t"
-		      "int $0x80\n\t"	/* Should invalidate fs */
+				  "movl %[arg1], %%ebx\n\t"
+				  "int $0x80\n\t"	/* Should invalidate fs */
 #ifdef __i386__
-		      "popl %%ebx\n\t"
+				  "popl %%ebx\n\t"
 #endif
-		      "movw %%fs, %[sel]\n\t"
-		      : [prev_sel] "=&r" (prev_sel), [sel] "+r" (sel),
-			"+a" (eax)
-		      : "m" (low_user_desc_clear),
-			[arg1] "r" ((unsigned int)(unsigned long)low_user_desc_clear)
-		      : "flags");
+				  "movw %%fs, %[sel]\n\t"
+				  : [prev_sel] "=&r" (prev_sel), [sel] "+r" (sel),
+				  "+a" (eax)
+				  : "m" (low_user_desc_clear),
+				  [arg1] "r" ((unsigned int)(unsigned long)low_user_desc_clear)
+				  : "flags");
 
 #ifdef __x86_64__
 	syscall(SYS_arch_prctl, ARCH_GET_FS, &new_base);
@@ -730,26 +866,39 @@ static void test_gdt_invalidation(void)
 	/* Restore FS/BASE for glibc */
 	asm volatile ("movw %[prev_sel], %%fs" : : [prev_sel] "rm" (prev_sel));
 #ifdef __x86_64__
+
 	if (saved_base)
+	{
 		syscall(SYS_arch_prctl, ARCH_SET_FS, saved_base);
+	}
+
 #endif
 
-	if (sel != 0) {
+	if (sel != 0)
+	{
 		result = "FAIL";
 		nerrs++;
-	} else {
+	}
+	else
+	{
 		result = "OK";
 	}
+
 	printf("[%s]\tInvalidate FS with set_thread_area: new FS = 0x%hx\n",
-	       result, sel);
+		   result, sel);
 
 #ifdef __x86_64__
-	if (sel == 0 && new_base != 0) {
+
+	if (sel == 0 && new_base != 0)
+	{
 		nerrs++;
 		printf("[FAIL]\tNew FSBASE was 0x%lx\n", new_base);
-	} else {
+	}
+	else
+	{
 		printf("[OK]\tNew FSBASE was zero\n");
 	}
+
 #endif
 
 	/* Test GS */
@@ -760,21 +909,21 @@ static void test_gdt_invalidation(void)
 	syscall(SYS_arch_prctl, ARCH_GET_GS, &saved_base);
 #endif
 	asm volatile ("movw %%gs, %[prev_sel]\n\t"
-		      "movw %[sel], %%gs\n\t"
+				  "movw %[sel], %%gs\n\t"
 #ifdef __i386__
-		      "pushl %%ebx\n\t"
+				  "pushl %%ebx\n\t"
 #endif
-		      "movl %[arg1], %%ebx\n\t"
-		      "int $0x80\n\t"	/* Should invalidate gs */
+				  "movl %[arg1], %%ebx\n\t"
+				  "int $0x80\n\t"	/* Should invalidate gs */
 #ifdef __i386__
-		      "popl %%ebx\n\t"
+				  "popl %%ebx\n\t"
 #endif
-		      "movw %%gs, %[sel]\n\t"
-		      : [prev_sel] "=&r" (prev_sel), [sel] "+r" (sel),
-			"+a" (eax)
-		      : "m" (low_user_desc_clear),
-			[arg1] "r" ((unsigned int)(unsigned long)low_user_desc_clear)
-		      : "flags");
+				  "movw %%gs, %[sel]\n\t"
+				  : [prev_sel] "=&r" (prev_sel), [sel] "+r" (sel),
+				  "+a" (eax)
+				  : "m" (low_user_desc_clear),
+				  [arg1] "r" ((unsigned int)(unsigned long)low_user_desc_clear)
+				  : "flags");
 
 #ifdef __x86_64__
 	syscall(SYS_arch_prctl, ARCH_GET_GS, &new_base);
@@ -783,33 +932,48 @@ static void test_gdt_invalidation(void)
 	/* Restore GS/BASE for glibc */
 	asm volatile ("movw %[prev_sel], %%gs" : : [prev_sel] "rm" (prev_sel));
 #ifdef __x86_64__
+
 	if (saved_base)
+	{
 		syscall(SYS_arch_prctl, ARCH_SET_GS, saved_base);
+	}
+
 #endif
 
-	if (sel != 0) {
+	if (sel != 0)
+	{
 		result = "FAIL";
 		nerrs++;
-	} else {
+	}
+	else
+	{
 		result = "OK";
 	}
+
 	printf("[%s]\tInvalidate GS with set_thread_area: new GS = 0x%hx\n",
-	       result, sel);
+		   result, sel);
 
 #ifdef __x86_64__
-	if (sel == 0 && new_base != 0) {
+
+	if (sel == 0 && new_base != 0)
+	{
 		nerrs++;
 		printf("[FAIL]\tNew GSBASE was 0x%lx\n", new_base);
-	} else {
+	}
+	else
+	{
 		printf("[OK]\tNew GSBASE was zero\n");
 	}
+
 #endif
 }
 
 int main(int argc, char **argv)
 {
 	if (argc == 1 && !strcmp(argv[0], "ldt_gdt_test_exec"))
+	{
 		return finish_exec_test();
+	}
 
 	setup_counter_page();
 	setup_low_user_desc();

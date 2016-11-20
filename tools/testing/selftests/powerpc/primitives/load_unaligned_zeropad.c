@@ -44,7 +44,8 @@ static char *mem_region;
 
 static int protect_region(void)
 {
-	if (mprotect(mem_region + page_size, page_size, PROT_NONE)) {
+	if (mprotect(mem_region + page_size, page_size, PROT_NONE))
+	{
 		perror("mprotect");
 		return 1;
 	}
@@ -54,7 +55,8 @@ static int protect_region(void)
 
 static int unprotect_region(void)
 {
-	if (mprotect(mem_region + page_size, page_size, PROT_READ|PROT_WRITE)) {
+	if (mprotect(mem_region + page_size, page_size, PROT_READ | PROT_WRITE))
+	{
 		perror("mprotect");
 		return 1;
 	}
@@ -66,11 +68,11 @@ extern char __start___ex_table[];
 extern char __stop___ex_table[];
 
 #if defined(__powerpc64__)
-#define UCONTEXT_NIA(UC)	(UC)->uc_mcontext.gp_regs[PT_NIP]
+	#define UCONTEXT_NIA(UC)	(UC)->uc_mcontext.gp_regs[PT_NIP]
 #elif defined(__powerpc__)
-#define UCONTEXT_NIA(UC)	(UC)->uc_mcontext.uc_regs->gregs[PT_NIP]
+	#define UCONTEXT_NIA(UC)	(UC)->uc_mcontext.uc_regs->gregs[PT_NIP]
 #else
-#error implement UCONTEXT_NIA
+	#error implement UCONTEXT_NIA
 #endif
 
 static int segv_error;
@@ -82,13 +84,15 @@ static void segv_handler(int signr, siginfo_t *info, void *ptr)
 	unsigned long *ip = &UCONTEXT_NIA(uc);
 	unsigned long *ex_p = (unsigned long *)__start___ex_table;
 
-	while (ex_p < (unsigned long *)__stop___ex_table) {
+	while (ex_p < (unsigned long *)__stop___ex_table)
+	{
 		unsigned long insn, fixup;
 
 		insn = *ex_p++;
 		fixup = *ex_p++;
 
-		if (insn == *ip) {
+		if (insn == *ip)
+		{
 			*ip = fixup;
 			return;
 		}
@@ -120,7 +124,9 @@ static int do_one_test(char *p, int page_offset)
 	got = load_unaligned_zeropad(p);
 
 	if (should != got)
+	{
 		printf("offset %u load_unaligned_zeropad returned 0x%lx, should be 0x%lx\n", page_offset, got, should);
+	}
 
 	return 0;
 }
@@ -130,20 +136,24 @@ static int test_body(void)
 	unsigned long i;
 
 	page_size = getpagesize();
-	mem_region = mmap(NULL, page_size * 2, PROT_READ|PROT_WRITE,
-		MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+	mem_region = mmap(NULL, page_size * 2, PROT_READ | PROT_WRITE,
+					  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
 	FAIL_IF(mem_region == MAP_FAILED);
 
 	for (i = 0; i < page_size; i++)
+	{
 		mem_region[i] = i;
+	}
 
-	memset(mem_region+page_size, 0, page_size);
+	memset(mem_region + page_size, 0, page_size);
 
 	setup_segv_handler();
 
 	for (i = 0; i < page_size; i++)
-		FAIL_IF(do_one_test(mem_region+i, i));
+	{
+		FAIL_IF(do_one_test(mem_region + i, i));
+	}
 
 	FAIL_IF(segv_error);
 

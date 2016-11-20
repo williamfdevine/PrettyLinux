@@ -42,7 +42,8 @@
 #define REG_STATUS 0x11
 #define REG_AUTOTUNE 0x12
 
-struct max2165_priv {
+struct max2165_priv
+{
 	struct max2165_config *config;
 	struct i2c_adapter *i2c;
 

@@ -48,9 +48,10 @@ static int au8522_analog_debug;
 module_param_named(analog_debug, au8522_analog_debug, int, 0644);
 
 MODULE_PARM_DESC(analog_debug,
-		 "Analog debugging messages [0=Off (default) 1=On]");
+				 "Analog debugging messages [0=Off (default) 1=On]");
 
-struct au8522_register_config {
+struct au8522_register_config
+{
 	u16 reg_name;
 	u8 reg_val[8];
 };
@@ -60,7 +61,8 @@ struct au8522_register_config {
    The values are as follows from left to right
    0="ATV RF" 1="ATV RF13" 2="CVBS" 3="S-Video" 4="PAL" 5=CVBS13" 6="SVideo13"
 */
-static const struct au8522_register_config filter_coef[] = {
+static const struct au8522_register_config filter_coef[] =
+{
 	{AU8522_FILTER_COEF_R410, {0x25, 0x00, 0x25, 0x25, 0x00, 0x00, 0x00} },
 	{AU8522_FILTER_COEF_R411, {0x20, 0x00, 0x20, 0x20, 0x00, 0x00, 0x00} },
 	{AU8522_FILTER_COEF_R412, {0x03, 0x00, 0x03, 0x03, 0x00, 0x00, 0x00} },
@@ -94,7 +96,7 @@ static const struct au8522_register_config filter_coef[] = {
 
 };
 #define NUM_FILTER_COEF (sizeof(filter_coef)\
-			 / sizeof(struct au8522_register_config))
+						 / sizeof(struct au8522_register_config))
 
 
 /* Registers 0x060b through 0x0652 are the LP Filter coefficients
@@ -102,7 +104,8 @@ static const struct au8522_register_config filter_coef[] = {
    0="SIF" 1="ATVRF/ATVRF13"
    Note: the "ATVRF/ATVRF13" mode has never been tested
 */
-static const struct au8522_register_config lpfilter_coef[] = {
+static const struct au8522_register_config lpfilter_coef[] =
+{
 	{0x060b, {0x21, 0x0b} },
 	{0x060c, {0xad, 0xad} },
 	{0x060d, {0x70, 0xf0} },
@@ -177,7 +180,7 @@ static const struct au8522_register_config lpfilter_coef[] = {
 	{0x0652, {0x01, 0x01} },
 };
 #define NUM_LPFILTER_COEF (sizeof(lpfilter_coef)\
-			   / sizeof(struct au8522_register_config))
+						   / sizeof(struct au8522_register_config))
 
 static inline struct au8522_state *to_state(struct v4l2_subdev *sd)
 {
@@ -199,15 +202,17 @@ static void setup_vbi(struct au8522_state *state, int aud_input)
 	au8522_writereg(state, AU8522_TVDEC_VBI_USER_FRAME_PAT1_REG01FH, 0x00);
 	au8522_writereg(state, AU8522_TVDEC_VBI_USER_FRAME_PAT0_REG020H, 0x00);
 	au8522_writereg(state, AU8522_TVDEC_VBI_USER_FRAME_MASK2_REG021H,
-			0x00);
+					0x00);
 	au8522_writereg(state, AU8522_TVDEC_VBI_USER_FRAME_MASK1_REG022H,
-			0x00);
+					0x00);
 	au8522_writereg(state, AU8522_TVDEC_VBI_USER_FRAME_MASK0_REG023H,
-			0x00);
+					0x00);
 
 	/* Setup the VBI registers */
 	for (i = 0x30; i < 0x60; i++)
+	{
 		au8522_writereg(state, i, 0x40);
+	}
 
 	/* For some reason, every register is 0x40 except register 0x44
 	   (confirmed via the HVR-950q USB capture) */
@@ -216,7 +221,7 @@ static void setup_vbi(struct au8522_state *state, int aud_input)
 	/* Enable VBI (we always do this regardless of whether the user is
 	   viewing closed caption info) */
 	au8522_writereg(state, AU8522_TVDEC_VBI_CTRL_H_REG017H,
-			AU8522_TVDEC_VBI_CTRL_H_REG017H_CCON);
+					AU8522_TVDEC_VBI_CTRL_H_REG017H_CCON);
 
 }
 
@@ -238,105 +243,122 @@ static void setup_decoder_defaults(struct au8522_state *state, bool is_svideo)
 	au8522_writereg(state, AU8522_TVDEC_INT_MASK_REG010H, 0x00);
 
 	if (is_svideo)
+	{
 		au8522_writereg(state, AU8522_VIDEO_MODE_REG011H, 0x04);
+	}
 	else
+	{
 		au8522_writereg(state, AU8522_VIDEO_MODE_REG011H, 0x00);
+	}
 
 	au8522_writereg(state, AU8522_TVDEC_PGA_REG012H,
-			AU8522_TVDEC_PGA_REG012H_CVBS);
+					AU8522_TVDEC_PGA_REG012H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_COMB_MODE_REG015H,
-			AU8522_TVDEC_COMB_MODE_REG015H_CVBS);
+					AU8522_TVDEC_COMB_MODE_REG015H_CVBS);
 	au8522_writereg(state, AU8522_TVDED_DBG_MODE_REG060H,
-			AU8522_TVDED_DBG_MODE_REG060H_CVBS);
+					AU8522_TVDED_DBG_MODE_REG060H_CVBS);
 
-	if (state->std == V4L2_STD_PAL_M) {
+	if (state->std == V4L2_STD_PAL_M)
+	{
 		au8522_writereg(state, AU8522_TVDEC_FORMAT_CTRL1_REG061H,
-				AU8522_TVDEC_FORMAT_CTRL1_REG061H_FIELD_LEN_525 |
-				AU8522_TVDEC_FORMAT_CTRL1_REG061H_LINE_LEN_63_492 |
-				AU8522_TVDEC_FORMAT_CTRL1_REG061H_SUBCARRIER_NTSC_AUTO);
+						AU8522_TVDEC_FORMAT_CTRL1_REG061H_FIELD_LEN_525 |
+						AU8522_TVDEC_FORMAT_CTRL1_REG061H_LINE_LEN_63_492 |
+						AU8522_TVDEC_FORMAT_CTRL1_REG061H_SUBCARRIER_NTSC_AUTO);
 		au8522_writereg(state, AU8522_TVDEC_FORMAT_CTRL2_REG062H,
-				AU8522_TVDEC_FORMAT_CTRL2_REG062H_STD_PAL_M);
-	} else {
+						AU8522_TVDEC_FORMAT_CTRL2_REG062H_STD_PAL_M);
+	}
+	else
+	{
 		/* NTSC */
 		au8522_writereg(state, AU8522_TVDEC_FORMAT_CTRL1_REG061H,
-				AU8522_TVDEC_FORMAT_CTRL1_REG061H_FIELD_LEN_525 |
-				AU8522_TVDEC_FORMAT_CTRL1_REG061H_LINE_LEN_63_492 |
-				AU8522_TVDEC_FORMAT_CTRL1_REG061H_SUBCARRIER_NTSC_MN);
+						AU8522_TVDEC_FORMAT_CTRL1_REG061H_FIELD_LEN_525 |
+						AU8522_TVDEC_FORMAT_CTRL1_REG061H_LINE_LEN_63_492 |
+						AU8522_TVDEC_FORMAT_CTRL1_REG061H_SUBCARRIER_NTSC_MN);
 		au8522_writereg(state, AU8522_TVDEC_FORMAT_CTRL2_REG062H,
-				AU8522_TVDEC_FORMAT_CTRL2_REG062H_STD_NTSC);
+						AU8522_TVDEC_FORMAT_CTRL2_REG062H_STD_NTSC);
 	}
+
 	au8522_writereg(state, AU8522_TVDEC_VCR_DET_LLIM_REG063H,
-			AU8522_TVDEC_VCR_DET_LLIM_REG063H_CVBS);
+					AU8522_TVDEC_VCR_DET_LLIM_REG063H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_VCR_DET_HLIM_REG064H,
-			AU8522_TVDEC_VCR_DET_HLIM_REG064H_CVBS);
+					AU8522_TVDEC_VCR_DET_HLIM_REG064H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_COMB_VDIF_THR1_REG065H,
-			AU8522_TVDEC_COMB_VDIF_THR1_REG065H_CVBS);
+					AU8522_TVDEC_COMB_VDIF_THR1_REG065H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_COMB_VDIF_THR2_REG066H,
-			AU8522_TVDEC_COMB_VDIF_THR2_REG066H_CVBS);
+					AU8522_TVDEC_COMB_VDIF_THR2_REG066H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_COMB_VDIF_THR3_REG067H,
-			AU8522_TVDEC_COMB_VDIF_THR3_REG067H_CVBS);
+					AU8522_TVDEC_COMB_VDIF_THR3_REG067H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_COMB_NOTCH_THR_REG068H,
-			AU8522_TVDEC_COMB_NOTCH_THR_REG068H_CVBS);
+					AU8522_TVDEC_COMB_NOTCH_THR_REG068H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_COMB_HDIF_THR1_REG069H,
-			AU8522_TVDEC_COMB_HDIF_THR1_REG069H_CVBS);
+					AU8522_TVDEC_COMB_HDIF_THR1_REG069H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_COMB_HDIF_THR2_REG06AH,
-			AU8522_TVDEC_COMB_HDIF_THR2_REG06AH_CVBS);
+					AU8522_TVDEC_COMB_HDIF_THR2_REG06AH_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_COMB_HDIF_THR3_REG06BH,
-			AU8522_TVDEC_COMB_HDIF_THR3_REG06BH_CVBS);
-	if (is_svideo) {
+					AU8522_TVDEC_COMB_HDIF_THR3_REG06BH_CVBS);
+
+	if (is_svideo)
+	{
 		au8522_writereg(state, AU8522_TVDEC_COMB_DCDIF_THR1_REG06CH,
-				AU8522_TVDEC_COMB_DCDIF_THR1_REG06CH_SVIDEO);
+						AU8522_TVDEC_COMB_DCDIF_THR1_REG06CH_SVIDEO);
 		au8522_writereg(state, AU8522_TVDEC_COMB_DCDIF_THR2_REG06DH,
-				AU8522_TVDEC_COMB_DCDIF_THR2_REG06DH_SVIDEO);
-	} else {
-		au8522_writereg(state, AU8522_TVDEC_COMB_DCDIF_THR1_REG06CH,
-				AU8522_TVDEC_COMB_DCDIF_THR1_REG06CH_CVBS);
-		au8522_writereg(state, AU8522_TVDEC_COMB_DCDIF_THR2_REG06DH,
-				AU8522_TVDEC_COMB_DCDIF_THR2_REG06DH_CVBS);
+						AU8522_TVDEC_COMB_DCDIF_THR2_REG06DH_SVIDEO);
 	}
+	else
+	{
+		au8522_writereg(state, AU8522_TVDEC_COMB_DCDIF_THR1_REG06CH,
+						AU8522_TVDEC_COMB_DCDIF_THR1_REG06CH_CVBS);
+		au8522_writereg(state, AU8522_TVDEC_COMB_DCDIF_THR2_REG06DH,
+						AU8522_TVDEC_COMB_DCDIF_THR2_REG06DH_CVBS);
+	}
+
 	au8522_writereg(state, AU8522_TVDEC_COMB_DCDIF_THR3_REG06EH,
-			AU8522_TVDEC_COMB_DCDIF_THR3_REG06EH_CVBS);
+					AU8522_TVDEC_COMB_DCDIF_THR3_REG06EH_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_UV_SEP_THR_REG06FH,
-			AU8522_TVDEC_UV_SEP_THR_REG06FH_CVBS);
+					AU8522_TVDEC_UV_SEP_THR_REG06FH_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_COMB_DC_THR1_NTSC_REG070H,
-			AU8522_TVDEC_COMB_DC_THR1_NTSC_REG070H_CVBS);
+					AU8522_TVDEC_COMB_DC_THR1_NTSC_REG070H_CVBS);
 	au8522_writereg(state, AU8522_REG071H, AU8522_REG071H_CVBS);
 	au8522_writereg(state, AU8522_REG072H, AU8522_REG072H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_COMB_DC_THR2_NTSC_REG073H,
-			AU8522_TVDEC_COMB_DC_THR2_NTSC_REG073H_CVBS);
+					AU8522_TVDEC_COMB_DC_THR2_NTSC_REG073H_CVBS);
 	au8522_writereg(state, AU8522_REG074H, AU8522_REG074H_CVBS);
 	au8522_writereg(state, AU8522_REG075H, AU8522_REG075H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_DCAGC_CTRL_REG077H,
-			AU8522_TVDEC_DCAGC_CTRL_REG077H_CVBS);
+					AU8522_TVDEC_DCAGC_CTRL_REG077H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_PIC_START_ADJ_REG078H,
-			AU8522_TVDEC_PIC_START_ADJ_REG078H_CVBS);
+					AU8522_TVDEC_PIC_START_ADJ_REG078H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_AGC_HIGH_LIMIT_REG079H,
-			AU8522_TVDEC_AGC_HIGH_LIMIT_REG079H_CVBS);
+					AU8522_TVDEC_AGC_HIGH_LIMIT_REG079H_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_MACROVISION_SYNC_THR_REG07AH,
-			AU8522_TVDEC_MACROVISION_SYNC_THR_REG07AH_CVBS);
+					AU8522_TVDEC_MACROVISION_SYNC_THR_REG07AH_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_INTRP_CTRL_REG07BH,
-			AU8522_TVDEC_INTRP_CTRL_REG07BH_CVBS);
+					AU8522_TVDEC_INTRP_CTRL_REG07BH_CVBS);
 	au8522_writereg(state, AU8522_TVDEC_AGC_LOW_LIMIT_REG0E4H,
-			AU8522_TVDEC_AGC_LOW_LIMIT_REG0E4H_CVBS);
+					AU8522_TVDEC_AGC_LOW_LIMIT_REG0E4H_CVBS);
 	au8522_writereg(state, AU8522_TOREGAAGC_REG0E5H,
-			AU8522_TOREGAAGC_REG0E5H_CVBS);
+					AU8522_TOREGAAGC_REG0E5H_CVBS);
 	au8522_writereg(state, AU8522_REG016H, AU8522_REG016H_CVBS);
 
 	setup_vbi(state, 0);
 
-	if (is_svideo) {
+	if (is_svideo)
+	{
 		/* Despite what the table says, for the HVR-950q we still need
 		   to be in CVBS mode for the S-Video input (reason unknown). */
 		/* filter_coef_type = 3; */
 		filter_coef_type = 5;
-	} else {
+	}
+	else
+	{
 		filter_coef_type = 5;
 	}
 
 	/* Load the Video Decoder Filter Coefficients */
-	for (i = 0; i < NUM_FILTER_COEF; i++) {
+	for (i = 0; i < NUM_FILTER_COEF; i++)
+	{
 		au8522_writereg(state, filter_coef[i].reg_name,
-				filter_coef[i].reg_val[filter_coef_type]);
+						filter_coef[i].reg_val[filter_coef_type]);
 	}
 
 	/* It's not clear what these registers are for, but they are always
@@ -356,7 +378,7 @@ static void au8522_setup_cvbs_mode(struct au8522_state *state, u8 input_mode)
 {
 	/* here we're going to try the pre-programmed route */
 	au8522_writereg(state, AU8522_MODULE_CLOCK_CONTROL_REG0A3H,
-			AU8522_MODULE_CLOCK_CONTROL_REG0A3H_CVBS);
+					AU8522_MODULE_CLOCK_CONTROL_REG0A3H_CVBS);
 
 	/* PGA in automatic mode */
 	au8522_writereg(state, AU8522_PGA_CONTROL_REG082H, 0x00);
@@ -369,15 +391,15 @@ static void au8522_setup_cvbs_mode(struct au8522_state *state, u8 input_mode)
 	setup_decoder_defaults(state, false);
 
 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
-			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
+					AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
 }
 
 static void au8522_setup_cvbs_tuner_mode(struct au8522_state *state,
-					 u8 input_mode)
+		u8 input_mode)
 {
 	/* here we're going to try the pre-programmed route */
 	au8522_writereg(state, AU8522_MODULE_CLOCK_CONTROL_REG0A3H,
-			AU8522_MODULE_CLOCK_CONTROL_REG0A3H_CVBS);
+					AU8522_MODULE_CLOCK_CONTROL_REG0A3H_CVBS);
 
 	/* It's not clear why we have to have the PGA in automatic mode while
 	   enabling clamp control, but it's what Windows does */
@@ -395,14 +417,14 @@ static void au8522_setup_cvbs_tuner_mode(struct au8522_state *state,
 	setup_decoder_defaults(state, false);
 
 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
-			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
+					AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
 }
 
 static void au8522_setup_svideo_mode(struct au8522_state *state,
-				     u8 input_mode)
+									 u8 input_mode)
 {
 	au8522_writereg(state, AU8522_MODULE_CLOCK_CONTROL_REG0A3H,
-			AU8522_MODULE_CLOCK_CONTROL_REG0A3H_SVIDEO);
+					AU8522_MODULE_CLOCK_CONTROL_REG0A3H_SVIDEO);
 
 	/* Set input to Y on Channe1, C on Channel 3 */
 	au8522_writereg(state, AU8522_INPUT_CONTROL_REG081H, input_mode);
@@ -416,7 +438,7 @@ static void au8522_setup_svideo_mode(struct au8522_state *state,
 	setup_decoder_defaults(state, true);
 
 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
-			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
+					AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
 }
 
 /* ----------------------------------------------------------------------- */
@@ -431,7 +453,7 @@ static void disable_audio_input(struct au8522_state *state)
 	au8522_writereg(state, AU8522_I2S_CTRL_2_REG112H, 0x02);
 
 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
-			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_SVIDEO);
+					AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_SVIDEO);
 }
 
 /* 0=disable, 1=SIF */
@@ -443,22 +465,25 @@ static void set_audio_input(struct au8522_state *state)
 	/* Note that this function needs to be used in conjunction with setting
 	   the input routing via register 0x81 */
 
-	if (aud_input == AU8522_AUDIO_NONE) {
+	if (aud_input == AU8522_AUDIO_NONE)
+	{
 		disable_audio_input(state);
 		return;
 	}
 
-	if (aud_input != AU8522_AUDIO_SIF) {
+	if (aud_input != AU8522_AUDIO_SIF)
+	{
 		/* The caller asked for a mode we don't currently support */
 		printk(KERN_ERR "Unsupported audio mode requested! mode=%d\n",
-		       aud_input);
+			   aud_input);
 		return;
 	}
 
 	/* Load the Audio Decoder Filter Coefficients */
-	for (i = 0; i < NUM_LPFILTER_COEF; i++) {
+	for (i = 0; i < NUM_LPFILTER_COEF; i++)
+	{
 		au8522_writereg(state, lpfilter_coef[i].reg_name,
-				lpfilter_coef[i].reg_val[0]);
+						lpfilter_coef[i].reg_val[0]);
 	}
 
 	/* Setup audio */
@@ -471,7 +496,7 @@ static void set_audio_input(struct au8522_state *state)
 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H, 0x00);
 	msleep(10);
 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
-			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
+					AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
 	msleep(50);
 	au8522_writereg(state, AU8522_AUDIO_VOLUME_L_REG0F2H, 0x7F);
 	au8522_writereg(state, AU8522_AUDIO_VOLUME_R_REG0F3H, 0x7F);
@@ -494,29 +519,34 @@ static int au8522_s_ctrl(struct v4l2_ctrl *ctrl)
 	struct au8522_state *state =
 		container_of(ctrl->handler, struct au8522_state, hdl);
 
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		au8522_writereg(state, AU8522_TVDEC_BRIGHTNESS_REG00AH,
-				ctrl->val - 128);
-		break;
-	case V4L2_CID_CONTRAST:
-		au8522_writereg(state, AU8522_TVDEC_CONTRAST_REG00BH,
-				ctrl->val);
-		break;
-	case V4L2_CID_SATURATION:
-		au8522_writereg(state, AU8522_TVDEC_SATURATION_CB_REG00CH,
-				ctrl->val);
-		au8522_writereg(state, AU8522_TVDEC_SATURATION_CR_REG00DH,
-				ctrl->val);
-		break;
-	case V4L2_CID_HUE:
-		au8522_writereg(state, AU8522_TVDEC_HUE_H_REG00EH,
-				ctrl->val >> 8);
-		au8522_writereg(state, AU8522_TVDEC_HUE_L_REG00FH,
-				ctrl->val & 0xFF);
-		break;
-	default:
-		return -EINVAL;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			au8522_writereg(state, AU8522_TVDEC_BRIGHTNESS_REG00AH,
+							ctrl->val - 128);
+			break;
+
+		case V4L2_CID_CONTRAST:
+			au8522_writereg(state, AU8522_TVDEC_CONTRAST_REG00BH,
+							ctrl->val);
+			break;
+
+		case V4L2_CID_SATURATION:
+			au8522_writereg(state, AU8522_TVDEC_SATURATION_CB_REG00CH,
+							ctrl->val);
+			au8522_writereg(state, AU8522_TVDEC_SATURATION_CR_REG00DH,
+							ctrl->val);
+			break;
+
+		case V4L2_CID_HUE:
+			au8522_writereg(state, AU8522_TVDEC_HUE_H_REG00EH,
+							ctrl->val >> 8);
+			au8522_writereg(state, AU8522_TVDEC_HUE_L_REG00FH,
+							ctrl->val & 0xFF);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -526,7 +556,7 @@ static int au8522_s_ctrl(struct v4l2_ctrl *ctrl)
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 static int au8522_g_register(struct v4l2_subdev *sd,
-			     struct v4l2_dbg_register *reg)
+							 struct v4l2_dbg_register *reg)
 {
 	struct au8522_state *state = to_state(sd);
 
@@ -535,7 +565,7 @@ static int au8522_g_register(struct v4l2_subdev *sd,
 }
 
 static int au8522_s_register(struct v4l2_subdev *sd,
-			     const struct v4l2_dbg_register *reg)
+							 const struct v4l2_dbg_register *reg)
 {
 	struct au8522_state *state = to_state(sd);
 
@@ -550,36 +580,43 @@ static void au8522_video_set(struct au8522_state *state)
 
 	au8522_writereg(state, 0xa4, 1 << 5);
 
-	switch (state->vid_input) {
-	case AU8522_COMPOSITE_CH1:
-		input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH1;
-		au8522_setup_cvbs_mode(state, input_mode);
-		break;
-	case AU8522_COMPOSITE_CH2:
-		input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH2;
-		au8522_setup_cvbs_mode(state, input_mode);
-		break;
-	case AU8522_COMPOSITE_CH3:
-		input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH3;
-		au8522_setup_cvbs_mode(state, input_mode);
-		break;
-	case AU8522_COMPOSITE_CH4:
-		input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH4;
-		au8522_setup_cvbs_mode(state, input_mode);
-		break;
-	case AU8522_SVIDEO_CH13:
-		input_mode = AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH13;
-		au8522_setup_svideo_mode(state, input_mode);
-		break;
-	case AU8522_SVIDEO_CH24:
-		input_mode = AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH24;
-		au8522_setup_svideo_mode(state, input_mode);
-		break;
-	default:
-	case AU8522_COMPOSITE_CH4_SIF:
-		input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH4_SIF;
-		au8522_setup_cvbs_tuner_mode(state, input_mode);
-		break;
+	switch (state->vid_input)
+	{
+		case AU8522_COMPOSITE_CH1:
+			input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH1;
+			au8522_setup_cvbs_mode(state, input_mode);
+			break;
+
+		case AU8522_COMPOSITE_CH2:
+			input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH2;
+			au8522_setup_cvbs_mode(state, input_mode);
+			break;
+
+		case AU8522_COMPOSITE_CH3:
+			input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH3;
+			au8522_setup_cvbs_mode(state, input_mode);
+			break;
+
+		case AU8522_COMPOSITE_CH4:
+			input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH4;
+			au8522_setup_cvbs_mode(state, input_mode);
+			break;
+
+		case AU8522_SVIDEO_CH13:
+			input_mode = AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH13;
+			au8522_setup_svideo_mode(state, input_mode);
+			break;
+
+		case AU8522_SVIDEO_CH24:
+			input_mode = AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH24;
+			au8522_setup_svideo_mode(state, input_mode);
+			break;
+
+		default:
+		case AU8522_COMPOSITE_CH4_SIF:
+			input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH4_SIF;
+			au8522_setup_cvbs_tuner_mode(state, input_mode);
+			break;
 	}
 }
 
@@ -587,7 +624,8 @@ static int au8522_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct au8522_state *state = to_state(sd);
 
-	if (enable) {
+	if (enable)
+	{
 		/*
 		 * Clear out any state associated with the digital side of the
 		 * chip, so that when it gets powered back up it won't think
@@ -596,41 +634,48 @@ static int au8522_s_stream(struct v4l2_subdev *sd, int enable)
 		state->current_frequency = 0;
 
 		au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
-				0x01);
+						0x01);
 		msleep(10);
 
 		au8522_video_set(state);
 		set_audio_input(state);
 
 		state->operational_mode = AU8522_ANALOG_MODE;
-	} else {
+	}
+	else
+	{
 		/* This does not completely power down the device
 		   (it only reduces it from around 140ma to 80ma) */
 		au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
-				1 << 5);
+						1 << 5);
 		state->operational_mode = AU8522_SUSPEND_MODE;
 	}
+
 	return 0;
 }
 
 static int au8522_s_video_routing(struct v4l2_subdev *sd,
-					u32 input, u32 output, u32 config)
+								  u32 input, u32 output, u32 config)
 {
 	struct au8522_state *state = to_state(sd);
 
-	switch(input) {
-	case AU8522_COMPOSITE_CH1:
-	case AU8522_SVIDEO_CH13:
-	case AU8522_COMPOSITE_CH4_SIF:
-		state->vid_input = input;
-		break;
-	default:
-		printk(KERN_ERR "au8522 mode not currently supported\n");
-		return -EINVAL;
+	switch (input)
+	{
+		case AU8522_COMPOSITE_CH1:
+		case AU8522_SVIDEO_CH13:
+		case AU8522_COMPOSITE_CH4_SIF:
+			state->vid_input = input;
+			break;
+
+		default:
+			printk(KERN_ERR "au8522 mode not currently supported\n");
+			return -EINVAL;
 	}
 
 	if (state->operational_mode == AU8522_ANALOG_MODE)
+	{
 		au8522_video_set(state);
+	}
 
 	return 0;
 }
@@ -640,25 +685,31 @@ static int au8522_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
 	struct au8522_state *state = to_state(sd);
 
 	if ((std & (V4L2_STD_PAL_M | V4L2_STD_NTSC_M)) == 0)
+	{
 		return -EINVAL;
+	}
 
 	state->std = std;
 
 	if (state->operational_mode == AU8522_ANALOG_MODE)
+	{
 		au8522_video_set(state);
+	}
 
 	return 0;
 }
 
 static int au8522_s_audio_routing(struct v4l2_subdev *sd,
-					u32 input, u32 output, u32 config)
+								  u32 input, u32 output, u32 config)
 {
 	struct au8522_state *state = to_state(sd);
 
 	state->aud_input = input;
 
 	if (state->operational_mode == AU8522_ANALOG_MODE)
+	{
 		set_audio_input(state);
+	}
 
 	return 0;
 }
@@ -671,10 +722,15 @@ static int au8522_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
 
 	/* Interrogate the decoder to see if we are getting a real signal */
 	lock_status = au8522_readreg(state, 0x00);
+
 	if (lock_status == 0xa2)
+	{
 		vt->signal = 0xffff;
+	}
 	else
+	{
 		vt->signal = 0x00;
+	}
 
 	vt->capability |=
 		V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_LANG1 |
@@ -688,7 +744,8 @@ static int au8522_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
 
 /* ----------------------------------------------------------------------- */
 
-static const struct v4l2_subdev_core_ops au8522_core_ops = {
+static const struct v4l2_subdev_core_ops au8522_core_ops =
+{
 	.log_status = v4l2_ctrl_subdev_log_status,
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register = au8522_g_register,
@@ -696,35 +753,40 @@ static const struct v4l2_subdev_core_ops au8522_core_ops = {
 #endif
 };
 
-static const struct v4l2_subdev_tuner_ops au8522_tuner_ops = {
+static const struct v4l2_subdev_tuner_ops au8522_tuner_ops =
+{
 	.g_tuner = au8522_g_tuner,
 };
 
-static const struct v4l2_subdev_audio_ops au8522_audio_ops = {
+static const struct v4l2_subdev_audio_ops au8522_audio_ops =
+{
 	.s_routing = au8522_s_audio_routing,
 };
 
-static const struct v4l2_subdev_video_ops au8522_video_ops = {
+static const struct v4l2_subdev_video_ops au8522_video_ops =
+{
 	.s_routing = au8522_s_video_routing,
 	.s_stream = au8522_s_stream,
 	.s_std = au8522_s_std,
 };
 
-static const struct v4l2_subdev_ops au8522_ops = {
+static const struct v4l2_subdev_ops au8522_ops =
+{
 	.core = &au8522_core_ops,
 	.tuner = &au8522_tuner_ops,
 	.audio = &au8522_audio_ops,
 	.video = &au8522_video_ops,
 };
 
-static const struct v4l2_ctrl_ops au8522_ctrl_ops = {
+static const struct v4l2_ctrl_ops au8522_ctrl_ops =
+{
 	.s_ctrl = au8522_s_ctrl,
 };
 
 /* ----------------------------------------------------------------------- */
 
 static int au8522_probe(struct i2c_client *client,
-			const struct i2c_device_id *did)
+						const struct i2c_device_id *did)
 {
 	struct au8522_state *state;
 	struct v4l2_ctrl_handler *hdl;
@@ -736,24 +798,29 @@ static int au8522_probe(struct i2c_client *client,
 
 	/* Check if the adapter supports the needed features */
 	if (!i2c_check_functionality(client->adapter,
-				     I2C_FUNC_SMBUS_BYTE_DATA)) {
+								 I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -EIO;
 	}
 
 	/* allocate memory for the internal state */
 	instance = au8522_get_state(&state, client->adapter, client->addr);
-	switch (instance) {
-	case 0:
-		printk(KERN_ERR "au8522_decoder allocation failed\n");
-		return -EIO;
-	case 1:
-		/* new demod instance */
-		printk(KERN_INFO "au8522_decoder creating new instance...\n");
-		break;
-	default:
-		/* existing demod instance */
-		printk(KERN_INFO "au8522_decoder attach existing instance.\n");
-		break;
+
+	switch (instance)
+	{
+		case 0:
+			printk(KERN_ERR "au8522_decoder allocation failed\n");
+			return -EIO;
+
+		case 1:
+			/* new demod instance */
+			printk(KERN_INFO "au8522_decoder creating new instance...\n");
+			break;
+
+		default:
+			/* existing demod instance */
+			printk(KERN_INFO "au8522_decoder attach existing instance.\n");
+			break;
 	}
 
 	state->config.demod_address = 0x8e >> 1;
@@ -770,26 +837,31 @@ static int au8522_probe(struct i2c_client *client,
 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
 
 	ret = media_entity_pads_init(&sd->entity, ARRAY_SIZE(state->pads),
-				state->pads);
-	if (ret < 0) {
+								 state->pads);
+
+	if (ret < 0)
+	{
 		v4l_info(client, "failed to initialize media entity!\n");
 		return ret;
 	}
+
 #endif
 
 	hdl = &state->hdl;
 	v4l2_ctrl_handler_init(hdl, 4);
 	v4l2_ctrl_new_std(hdl, &au8522_ctrl_ops,
-			V4L2_CID_BRIGHTNESS, 0, 255, 1, 109);
+					  V4L2_CID_BRIGHTNESS, 0, 255, 1, 109);
 	v4l2_ctrl_new_std(hdl, &au8522_ctrl_ops,
-			V4L2_CID_CONTRAST, 0, 255, 1,
-			AU8522_TVDEC_CONTRAST_REG00BH_CVBS);
+					  V4L2_CID_CONTRAST, 0, 255, 1,
+					  AU8522_TVDEC_CONTRAST_REG00BH_CVBS);
 	v4l2_ctrl_new_std(hdl, &au8522_ctrl_ops,
-			V4L2_CID_SATURATION, 0, 255, 1, 128);
+					  V4L2_CID_SATURATION, 0, 255, 1, 128);
 	v4l2_ctrl_new_std(hdl, &au8522_ctrl_ops,
-			V4L2_CID_HUE, -32768, 32767, 1, 0);
+					  V4L2_CID_HUE, -32768, 32767, 1, 0);
 	sd->ctrl_handler = hdl;
-	if (hdl->error) {
+
+	if (hdl->error)
+	{
 		int err = hdl->error;
 
 		v4l2_ctrl_handler_free(hdl);
@@ -819,14 +891,16 @@ static int au8522_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id au8522_id[] = {
+static const struct i2c_device_id au8522_id[] =
+{
 	{"au8522", 0},
 	{}
 };
 
 MODULE_DEVICE_TABLE(i2c, au8522_id);
 
-static struct i2c_driver au8522_driver = {
+static struct i2c_driver au8522_driver =
+{
 	.driver = {
 		.name	= "au8522",
 	},

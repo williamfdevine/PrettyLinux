@@ -28,13 +28,15 @@
 
 #define MAX_WRITE_REGSIZE      5
 
-enum horus3a_state {
+enum horus3a_state
+{
 	STATE_UNKNOWN,
 	STATE_SLEEP,
 	STATE_ACTIVE
 };
 
-struct horus3a_priv {
+struct horus3a_priv
+{
 	u32			frequency;
 	u8			i2c_address;
 	struct i2c_adapter	*i2c;
@@ -44,20 +46,21 @@ struct horus3a_priv {
 };
 
 static void horus3a_i2c_debug(struct horus3a_priv *priv,
-			      u8 reg, u8 write, const u8 *data, u32 len)
+							  u8 reg, u8 write, const u8 *data, u32 len)
 {
 	dev_dbg(&priv->i2c->dev, "horus3a: I2C %s reg 0x%02x size %d\n",
-		(write == 0 ? "read" : "write"), reg, len);
+			(write == 0 ? "read" : "write"), reg, len);
 	print_hex_dump_bytes("horus3a: I2C data: ",
-		DUMP_PREFIX_OFFSET, data, len);
+						 DUMP_PREFIX_OFFSET, data, len);
 }
 
 static int horus3a_write_regs(struct horus3a_priv *priv,
-			      u8 reg, const u8 *data, u32 len)
+							  u8 reg, const u8 *data, u32 len)
 {
 	int ret;
 	u8 buf[MAX_WRITE_REGSIZE + 1];
-	struct i2c_msg msg[1] = {
+	struct i2c_msg msg[1] =
+	{
 		{
 			.addr = priv->i2c_address,
 			.flags = 0,
@@ -66,9 +69,10 @@ static int horus3a_write_regs(struct horus3a_priv *priv,
 		}
 	};
 
-	if (len + 1 > sizeof(buf)) {
-		dev_warn(&priv->i2c->dev,"wr reg=%04x: len=%d is too big!\n",
-			 reg, len + 1);
+	if (len + 1 > sizeof(buf))
+	{
+		dev_warn(&priv->i2c->dev, "wr reg=%04x: len=%d is too big!\n",
+				 reg, len + 1);
 		return -E2BIG;
 	}
 
@@ -76,14 +80,20 @@ static int horus3a_write_regs(struct horus3a_priv *priv,
 	buf[0] = reg;
 	memcpy(&buf[1], data, len);
 	ret = i2c_transfer(priv->i2c, msg, 1);
+
 	if (ret >= 0 && ret != 1)
+	{
 		ret = -EREMOTEIO;
-	if (ret < 0) {
+	}
+
+	if (ret < 0)
+	{
 		dev_warn(&priv->i2c->dev,
-			"%s: i2c wr failed=%d reg=%02x len=%d\n",
-			KBUILD_MODNAME, ret, reg, len);
+				 "%s: i2c wr failed=%d reg=%02x len=%d\n",
+				 KBUILD_MODNAME, ret, reg, len);
 		return ret;
 	}
+
 	return 0;
 }
 
@@ -97,8 +107,12 @@ static int horus3a_enter_power_save(struct horus3a_priv *priv)
 	u8 data[2];
 
 	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
+
 	if (priv->state == STATE_SLEEP)
+	{
 		return 0;
+	}
+
 	/* IQ Generator disable */
 	horus3a_write_reg(priv, 0x2a, 0x79);
 	/* MDIV_EN = 0 */
@@ -124,8 +138,12 @@ static int horus3a_leave_power_save(struct horus3a_priv *priv)
 	u8 data[2];
 
 	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
+
 	if (priv->state == STATE_ACTIVE)
+	{
 		return 0;
+	}
+
 	/* Leave power save */
 	data[0] = 0x00;
 	/* LNA is Disabled */
@@ -175,7 +193,7 @@ static int horus3a_set_params(struct dvb_frontend *fe)
 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
 	struct horus3a_priv *priv = fe->tuner_priv;
 	u32 frequency = p->frequency;
-	u32 symbol_rate = p->symbol_rate/1000;
+	u32 symbol_rate = p->symbol_rate / 1000;
 	u8 mixdiv = 0;
 	u8 mdiv = 0;
 	u32 ms = 0;
@@ -185,71 +203,106 @@ static int horus3a_set_params(struct dvb_frontend *fe)
 	u8 data[5];
 
 	dev_dbg(&priv->i2c->dev, "%s(): frequency %dkHz symbol_rate %dksps\n",
-		__func__, frequency, symbol_rate);
+			__func__, frequency, symbol_rate);
+
 	if (priv->set_tuner)
+	{
 		priv->set_tuner(priv->set_tuner_data, 0);
+	}
+
 	if (priv->state == STATE_SLEEP)
+	{
 		horus3a_leave_power_save(priv);
+	}
 
 	/* frequency should be X MHz (X : integer) */
 	frequency = DIV_ROUND_CLOSEST(frequency, 1000) * 1000;
-	if (frequency <= 1155000) {
+
+	if (frequency <= 1155000)
+	{
 		mixdiv = 4;
 		mdiv = 1;
-	} else {
+	}
+	else
+	{
 		mixdiv = 2;
 		mdiv = 0;
 	}
+
 	/* Assumed that fREF == 1MHz (1000kHz) */
 	ms = DIV_ROUND_CLOSEST((frequency * mixdiv) / 2, 1000);
-	if (ms > 0x7FFF) { /* 15 bit */
+
+	if (ms > 0x7FFF)   /* 15 bit */
+	{
 		dev_err(&priv->i2c->dev, "horus3a: invalid frequency %d\n",
-			frequency);
+				frequency);
 		return -EINVAL;
 	}
-	if (frequency < 975000) {
+
+	if (frequency < 975000)
+	{
 		/* F_CTL=11100 G_CTL=001 */
 		f_ctl = 0x1C;
 		g_ctl = 0x01;
-	} else if (frequency < 1050000) {
+	}
+	else if (frequency < 1050000)
+	{
 		/* F_CTL=11000 G_CTL=010 */
 		f_ctl = 0x18;
 		g_ctl = 0x02;
-	} else if (frequency < 1150000) {
+	}
+	else if (frequency < 1150000)
+	{
 		/* F_CTL=10100 G_CTL=010 */
 		f_ctl = 0x14;
 		g_ctl = 0x02;
-	} else if (frequency < 1250000) {
+	}
+	else if (frequency < 1250000)
+	{
 		/* F_CTL=10000 G_CTL=011 */
 		f_ctl = 0x10;
 		g_ctl = 0x03;
-	} else if (frequency < 1350000) {
+	}
+	else if (frequency < 1350000)
+	{
 		/* F_CTL=01100 G_CTL=100 */
 		f_ctl = 0x0C;
 		g_ctl = 0x04;
-	} else if (frequency < 1450000) {
+	}
+	else if (frequency < 1450000)
+	{
 		/* F_CTL=01010 G_CTL=100 */
 		f_ctl = 0x0A;
 		g_ctl = 0x04;
-	} else if (frequency < 1600000) {
+	}
+	else if (frequency < 1600000)
+	{
 		/* F_CTL=00111 G_CTL=101 */
 		f_ctl = 0x07;
 		g_ctl = 0x05;
-	} else if (frequency < 1800000) {
+	}
+	else if (frequency < 1800000)
+	{
 		/* F_CTL=00100 G_CTL=010 */
 		f_ctl = 0x04;
 		g_ctl = 0x02;
-	} else if (frequency < 2000000) {
+	}
+	else if (frequency < 2000000)
+	{
 		/* F_CTL=00010 G_CTL=001 */
 		f_ctl = 0x02;
 		g_ctl = 0x01;
-	} else {
+	}
+	else
+	{
 		/* F_CTL=00000 G_CTL=000 */
 		f_ctl = 0x00;
 		g_ctl = 0x00;
 	}
+
 	/* LPF cutoff frequency setting */
-	if (p->delivery_system == SYS_DVBS) {
+	if (p->delivery_system == SYS_DVBS)
+	{
 		/*
 		 * rolloff = 0.35
 		 * SR <= 4.3
@@ -263,15 +316,26 @@ static int horus3a_set_params(struct dvb_frontend *fe)
 		 * NOTE: The result should be round up.
 		 */
 		if (symbol_rate <= 4300)
+		{
 			fc_lpf = 5;
+		}
 		else if (symbol_rate <= 10000)
+		{
 			fc_lpf = (u8)DIV_ROUND_UP(symbol_rate * 47, 40000);
+		}
 		else
+		{
 			fc_lpf = (u8)DIV_ROUND_UP(symbol_rate * 27, 40000) + 5;
+		}
+
 		/* 5 <= fc_lpf <= 36 */
 		if (fc_lpf > 36)
+		{
 			fc_lpf = 36;
-	} else if (p->delivery_system == SYS_DVBS2) {
+		}
+	}
+	else if (p->delivery_system == SYS_DVBS2)
+	{
 		/*
 		 * SR <= 4.5:
 		 * fc_lpf = 5
@@ -282,20 +346,32 @@ static int horus3a_set_params(struct dvb_frontend *fe)
 		 * NOTE: The result should be round up.
 		 */
 		if (symbol_rate <= 4500)
+		{
 			fc_lpf = 5;
+		}
 		else if (symbol_rate <= 10000)
-			fc_lpf = (u8)((symbol_rate * 11 + (10000-1)) / 10000);
+		{
+			fc_lpf = (u8)((symbol_rate * 11 + (10000 - 1)) / 10000);
+		}
 		else
-			fc_lpf = (u8)((symbol_rate * 3 + (5000-1)) / 5000 + 5);
+		{
+			fc_lpf = (u8)((symbol_rate * 3 + (5000 - 1)) / 5000 + 5);
+		}
+
 		/* 5 <= fc_lpf <= 36 is valid */
 		if (fc_lpf > 36)
+		{
 			fc_lpf = 36;
-	} else {
+		}
+	}
+	else
+	{
 		dev_err(&priv->i2c->dev,
-			"horus3a: invalid delivery system %d\n",
-			p->delivery_system);
+				"horus3a: invalid delivery system %d\n",
+				p->delivery_system);
 		return -EINVAL;
 	}
+
 	/* 0x00 - 0x04 */
 	data[0] = (u8)((ms >> 7) & 0xFF);
 	data[1] = (u8)((ms << 1) & 0xFF);
@@ -326,7 +402,8 @@ static int horus3a_get_frequency(struct dvb_frontend *fe, u32 *frequency)
 	return 0;
 }
 
-static const struct dvb_tuner_ops horus3a_tuner_ops = {
+static const struct dvb_tuner_ops horus3a_tuner_ops =
+{
 	.info = {
 		.name = "Sony Horus3a",
 		.frequency_min = 950000,
@@ -341,22 +418,28 @@ static const struct dvb_tuner_ops horus3a_tuner_ops = {
 };
 
 struct dvb_frontend *horus3a_attach(struct dvb_frontend *fe,
-				    const struct horus3a_config *config,
-				    struct i2c_adapter *i2c)
+									const struct horus3a_config *config,
+									struct i2c_adapter *i2c)
 {
 	u8 buf[3], val;
 	struct horus3a_priv *priv = NULL;
 
 	priv = kzalloc(sizeof(struct horus3a_priv), GFP_KERNEL);
+
 	if (priv == NULL)
+	{
 		return NULL;
+	}
+
 	priv->i2c_address = (config->i2c_address >> 1);
 	priv->i2c = i2c;
 	priv->set_tuner_data = config->set_tuner_priv;
 	priv->set_tuner = config->set_tuner_callback;
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
 	/* wait 4ms after power on */
 	usleep_range(4000, 6000);
@@ -370,37 +453,45 @@ struct dvb_frontend *horus3a_attach(struct dvb_frontend *fe,
 	horus3a_write_regs(priv, 0x6, buf, 3);
 	/* IQ Out = Single Ended */
 	horus3a_write_reg(priv, 0x0a, 0x40);
-	switch (config->xtal_freq_mhz) {
-	case 27:
-		val = 0x1f;
-		break;
-	case 24:
-		val = 0x10;
-		break;
-	case 16:
-		val = 0xc;
-		break;
-	default:
-		val = 0;
-		dev_warn(&priv->i2c->dev,
-			"horus3a: invalid xtal frequency %dMHz\n",
-			config->xtal_freq_mhz);
-		break;
+
+	switch (config->xtal_freq_mhz)
+	{
+		case 27:
+			val = 0x1f;
+			break;
+
+		case 24:
+			val = 0x10;
+			break;
+
+		case 16:
+			val = 0xc;
+			break;
+
+		default:
+			val = 0;
+			dev_warn(&priv->i2c->dev,
+					 "horus3a: invalid xtal frequency %dMHz\n",
+					 config->xtal_freq_mhz);
+			break;
 	}
+
 	val <<= 2;
 	horus3a_write_reg(priv, 0x0e, val);
 	horus3a_enter_power_save(priv);
 	usleep_range(3000, 5000);
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	memcpy(&fe->ops.tuner_ops, &horus3a_tuner_ops,
-				sizeof(struct dvb_tuner_ops));
+		   sizeof(struct dvb_tuner_ops));
 	fe->tuner_priv = priv;
 	dev_info(&priv->i2c->dev,
-		"Sony HORUS3A attached on addr=%x at I2C adapter %p\n",
-		priv->i2c_address, priv->i2c);
+			 "Sony HORUS3A attached on addr=%x at I2C adapter %p\n",
+			 priv->i2c_address, priv->i2c);
 	return fe;
 }
 EXPORT_SYMBOL(horus3a_attach);

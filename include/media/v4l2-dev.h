@@ -58,7 +58,8 @@ struct v4l2_ctrl_handler;
  *    The size of @prios array matches the number of priority types defined
  *    by enum &v4l2_priority.
  */
-struct v4l2_prio_state {
+struct v4l2_prio_state
+{
 	atomic_t prios[4];
 };
 
@@ -80,7 +81,7 @@ void v4l2_prio_init(struct v4l2_prio_state *global);
  *	This function should be used only by the V4L2 core.
  */
 int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
-		     enum v4l2_priority new);
+					 enum v4l2_priority new);
 
 /**
  * v4l2_prio_open - Implements the priority logic for a file handler open
@@ -147,7 +148,8 @@ int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local);
  *	at the V4L2 drivers. The V4L2 core overrides the fs ops with some
  *	extra logic needed by the subsystem.
  */
-struct v4l2_file_operations {
+struct v4l2_file_operations
+{
 	struct module *owner;
 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
 	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
@@ -157,7 +159,7 @@ struct v4l2_file_operations {
 	long (*compat_ioctl32) (struct file *, unsigned int, unsigned long);
 #endif
 	unsigned long (*get_unmapped_area) (struct file *, unsigned long,
-				unsigned long, unsigned long, unsigned long);
+										unsigned long, unsigned long, unsigned long);
 	int (*mmap) (struct file *, struct vm_area_struct *);
 	int (*open) (struct file *);
 	int (*release) (struct file *);
@@ -350,7 +352,7 @@ static inline int __must_check video_register_device(struct video_device *vdev,
  *	you video_device_release() should be called on failure.
  */
 static inline int __must_check video_register_device_no_warn(
-		struct video_device *vdev, int type, int nr)
+	struct video_device *vdev, int type, int nr)
 {
 	return __video_register_device(vdev, type, nr, 0, vdev->fops->owner);
 }
@@ -369,7 +371,7 @@ void video_unregister_device(struct video_device *vdev);
  *
  * Returns NULL if %-ENOMEM or a &struct video_device on success.
  */
-struct video_device * __must_check video_device_alloc(void);
+struct video_device *__must_check video_device_alloc(void);
 
 /**
  * video_device_release - helper function to release &struct video_device
@@ -411,10 +413,12 @@ bool v4l2_is_known_ioctl(unsigned int cmd);
  * @cmd: ioctl command
  */
 static inline void v4l2_disable_ioctl_locking(struct video_device *vdev,
-					      unsigned int cmd)
+		unsigned int cmd)
 {
 	if (_IOC_NR(cmd) < BASE_VIDIOC_PRIVATE)
+	{
 		set_bit(_IOC_NR(cmd), vdev->disable_locking);
+	}
 }
 
 /**
@@ -433,10 +437,12 @@ static inline void v4l2_disable_ioctl_locking(struct video_device *vdev,
  *    See also the comments for determine_valid_ioctls().
  */
 static inline void v4l2_disable_ioctl(struct video_device *vdev,
-				      unsigned int cmd)
+									  unsigned int cmd)
 {
 	if (_IOC_NR(cmd) < BASE_VIDIOC_PRIVATE)
+	{
 		set_bit(_IOC_NR(cmd), vdev->valid_ioctls);
+	}
 }
 
 /**

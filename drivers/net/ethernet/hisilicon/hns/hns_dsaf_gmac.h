@@ -12,7 +12,8 @@
 
 #include "hns_dsaf_mac.h"
 
-enum hns_port_mode {
+enum hns_port_mode
+{
 	GMAC_10M_MII = 0,
 	GMAC_100M_MII,
 	GMAC_1000M_GMII,
@@ -25,12 +26,14 @@ enum hns_port_mode {
 	GMAC_10000M_SGMII	/* 10GE */
 };
 
-enum hns_gmac_duplex_mdoe {
+enum hns_gmac_duplex_mdoe
+{
 	GMAC_HALF_DUPLEX_MODE = 0,
 	GMAC_FULL_DUPLEX_MODE
 };
 
-struct hns_gmac_port_mode_cfg {
+struct hns_gmac_port_mode_cfg
+{
 	enum hns_port_mode port_mode;
 	u32 max_frm_size;
 	u32 short_runts_thr;

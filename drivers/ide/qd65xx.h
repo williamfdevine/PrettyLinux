@@ -50,12 +50,14 @@ static inline u8 QD_TIMREG(ide_drive_t *drive)
 
 /* Drive specific timing taken from DOS driver v3.7 */
 
-static struct qd65xx_timing_s {
+static struct qd65xx_timing_s
+{
 	s8	offset;   /* ofset from the beginning of Model Number" */
 	char	model[4];    /* 4 chars from Model number, no conversion */
 	s16	active;   /* active time */
 	s16	recovery; /* recovery time */
-} qd65xx_timing [] = {
+} qd65xx_timing [] =
+{
 	{ 30, "2040", 110, 225 },  /* Conner CP30204			*/
 	{ 30, "2045", 135, 225 },  /* Conner CP30254			*/
 	{ 30, "1040", 155, 325 },  /* Conner CP30104			*/

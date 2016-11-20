@@ -47,7 +47,8 @@
  * - detects multi-task circular deadlocks and prints out all affected
  *   locks and tasks (and only those tasks)
  */
-struct mutex {
+struct mutex
+{
 	/* 1: unlocked, 0: locked, negative: locked, possible waiters */
 	atomic_t		count;
 	spinlock_t		wait_lock;
@@ -70,7 +71,8 @@ struct mutex {
  * This is the control structure for tasks blocked on mutex,
  * which resides on the blocked task's kernel stack:
  */
-struct mutex_waiter {
+struct mutex_waiter
+{
 	struct list_head	list;
 	struct task_struct	*task;
 #ifdef CONFIG_DEBUG_MUTEXES
@@ -91,33 +93,33 @@ struct mutex_waiter {
  * It is not allowed to initialize an already locked mutex.
  */
 # define mutex_init(mutex) \
-do {							\
-	static struct lock_class_key __key;		\
-							\
-	__mutex_init((mutex), #mutex, &__key);		\
-} while (0)
+	do {							\
+		static struct lock_class_key __key;		\
+		\
+		__mutex_init((mutex), #mutex, &__key);		\
+	} while (0)
 static inline void mutex_destroy(struct mutex *lock) {}
 #endif
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 # define __DEP_MAP_MUTEX_INITIALIZER(lockname) \
-		, .dep_map = { .name = #lockname }
+	, .dep_map = { .name = #lockname }
 #else
 # define __DEP_MAP_MUTEX_INITIALIZER(lockname)
 #endif
 
 #define __MUTEX_INITIALIZER(lockname) \
-		{ .count = ATOMIC_INIT(1) \
-		, .wait_lock = __SPIN_LOCK_UNLOCKED(lockname.wait_lock) \
-		, .wait_list = LIST_HEAD_INIT(lockname.wait_list) \
-		__DEBUG_MUTEX_INITIALIZER(lockname) \
-		__DEP_MAP_MUTEX_INITIALIZER(lockname) }
+	{ .count = ATOMIC_INIT(1) \
+			   , .wait_lock = __SPIN_LOCK_UNLOCKED(lockname.wait_lock) \
+							  , .wait_list = LIST_HEAD_INIT(lockname.wait_list) \
+											 __DEBUG_MUTEX_INITIALIZER(lockname) \
+											 __DEP_MAP_MUTEX_INITIALIZER(lockname) }
 
 #define DEFINE_MUTEX(mutexname) \
 	struct mutex mutexname = __MUTEX_INITIALIZER(mutexname)
 
 extern void __mutex_init(struct mutex *lock, const char *name,
-			 struct lock_class_key *key);
+						 struct lock_class_key *key);
 
 /**
  * mutex_is_locked - is the mutex locked
@@ -139,19 +141,19 @@ extern void mutex_lock_nested(struct mutex *lock, unsigned int subclass);
 extern void _mutex_lock_nest_lock(struct mutex *lock, struct lockdep_map *nest_lock);
 
 extern int __must_check mutex_lock_interruptible_nested(struct mutex *lock,
-					unsigned int subclass);
+		unsigned int subclass);
 extern int __must_check mutex_lock_killable_nested(struct mutex *lock,
-					unsigned int subclass);
+		unsigned int subclass);
 
 #define mutex_lock(lock) mutex_lock_nested(lock, 0)
 #define mutex_lock_interruptible(lock) mutex_lock_interruptible_nested(lock, 0)
 #define mutex_lock_killable(lock) mutex_lock_killable_nested(lock, 0)
 
 #define mutex_lock_nest_lock(lock, nest_lock)				\
-do {									\
-	typecheck(struct lockdep_map *, &(nest_lock)->dep_map);	\
-	_mutex_lock_nest_lock(lock, &(nest_lock)->dep_map);		\
-} while (0)
+	do {									\
+		typecheck(struct lockdep_map *, &(nest_lock)->dep_map);	\
+		_mutex_lock_nest_lock(lock, &(nest_lock)->dep_map);		\
+	} while (0)
 
 #else
 extern void mutex_lock(struct mutex *lock);

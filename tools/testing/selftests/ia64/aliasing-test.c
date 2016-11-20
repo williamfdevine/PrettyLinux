@@ -31,29 +31,44 @@ static int map_mem(char *path, off_t offset, size_t length, int touch)
 	int *c;
 
 	fd = open(path, O_RDWR);
-	if (fd == -1) {
+
+	if (fd == -1)
+	{
 		perror(path);
 		return -1;
 	}
 
-	if (fnmatch("/proc/bus/pci/*", path, 0) == 0) {
+	if (fnmatch("/proc/bus/pci/*", path, 0) == 0)
+	{
 		rc = ioctl(fd, PCIIOC_MMAP_IS_MEM);
+
 		if (rc == -1)
+		{
 			perror("PCIIOC_MMAP_IS_MEM ioctl");
+		}
 	}
 
-	addr = mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, offset);
-	if (addr == MAP_FAILED)
-		return 1;
+	addr = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
 
-	if (touch) {
+	if (addr == MAP_FAILED)
+	{
+		return 1;
+	}
+
+	if (touch)
+	{
 		c = (int *) addr;
+
 		while (c < (int *) (addr + length))
+		{
 			sum += *c++;
+		}
 	}
 
 	rc = munmap(addr, length);
-	if (rc == -1) {
+
+	if (rc == -1)
+	{
 		perror("munmap");
 		return -1;
 	}
@@ -70,40 +85,62 @@ static int scan_tree(char *path, char *file, off_t offset, size_t length, int to
 	struct stat buf;
 
 	n = scandir(path, &namelist, 0, alphasort);
-	if (n < 0) {
+
+	if (n < 0)
+	{
 		perror("scandir");
 		return -1;
 	}
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		name = namelist[i]->d_name;
 
 		if (fnmatch(".", name, 0) == 0)
+		{
 			goto skip;
+		}
+
 		if (fnmatch("..", name, 0) == 0)
+		{
 			goto skip;
+		}
 
 		path2 = malloc(strlen(path) + strlen(name) + 3);
 		strcpy(path2, path);
 		strcat(path2, "/");
 		strcat(path2, name);
 
-		if (fnmatch(file, name, 0) == 0) {
+		if (fnmatch(file, name, 0) == 0)
+		{
 			rc = map_mem(path2, offset, length, touch);
+
 			if (rc == 0)
+			{
 				fprintf(stderr, "PASS: %s 0x%lx-0x%lx is %s\n", path2, offset, offset + length, touch ? "readable" : "mappable");
+			}
 			else if (rc > 0)
+			{
 				fprintf(stderr, "PASS: %s 0x%lx-0x%lx not mappable\n", path2, offset, offset + length);
-			else {
+			}
+			else
+			{
 				fprintf(stderr, "FAIL: %s 0x%lx-0x%lx not accessible\n", path2, offset, offset + length);
 				return rc;
 			}
-		} else {
+		}
+		else
+		{
 			r = lstat(path2, &buf);
-			if (r == 0 && S_ISDIR(buf.st_mode)) {
+
+			if (r == 0 && S_ISDIR(buf.st_mode))
+			{
 				rc = scan_tree(path2, file, offset, length, touch);
+
 				if (rc < 0)
+				{
 					return rc;
+				}
 			}
 		}
 
@@ -113,6 +150,7 @@ static int scan_tree(char *path, char *file, off_t offset, size_t length, int to
 skip:
 		free(namelist[i]);
 	}
+
 	free(namelist);
 	return result;
 }
@@ -125,23 +163,32 @@ static int read_rom(char *path)
 	size_t size = 0;
 
 	fd = open(path, O_RDWR);
-	if (fd == -1) {
+
+	if (fd == -1)
+	{
 		perror(path);
 		return -1;
 	}
 
 	rc = write(fd, "1", 2);
-	if (rc <= 0) {
+
+	if (rc <= 0)
+	{
 		close(fd);
 		perror("write");
 		return -1;
 	}
 
-	do {
+	do
+	{
 		rc = read(fd, buf, sizeof(buf));
+
 		if (rc > 0)
+		{
 			size += rc;
-	} while (rc > 0);
+		}
+	}
+	while (rc > 0);
 
 	close(fd);
 	return size;
@@ -155,25 +202,34 @@ static int scan_rom(char *path, char *file)
 	struct stat buf;
 
 	n = scandir(path, &namelist, 0, alphasort);
-	if (n < 0) {
+
+	if (n < 0)
+	{
 		perror("scandir");
 		return -1;
 	}
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		name = namelist[i]->d_name;
 
 		if (fnmatch(".", name, 0) == 0)
+		{
 			goto skip;
+		}
+
 		if (fnmatch("..", name, 0) == 0)
+		{
 			goto skip;
+		}
 
 		path2 = malloc(strlen(path) + strlen(name) + 3);
 		strcpy(path2, path);
 		strcat(path2, "/");
 		strcat(path2, name);
 
-		if (fnmatch(file, name, 0) == 0) {
+		if (fnmatch(file, name, 0) == 0)
+		{
 			rc = read_rom(path2);
 
 			/*
@@ -182,17 +238,27 @@ static int scan_rom(char *path, char *file)
 			 * important thing is that no MCA happened.
 			 */
 			if (rc > 0)
+			{
 				fprintf(stderr, "PASS: %s read %d bytes\n", path2, rc);
-			else {
+			}
+			else
+			{
 				fprintf(stderr, "PASS: %s not readable\n", path2);
 				return rc;
 			}
-		} else {
+		}
+		else
+		{
 			r = lstat(path2, &buf);
-			if (r == 0 && S_ISDIR(buf.st_mode)) {
+
+			if (r == 0 && S_ISDIR(buf.st_mode))
+			{
 				rc = scan_rom(path2, file);
+
 				if (rc < 0)
+				{
 					return rc;
+				}
 			}
 		}
 
@@ -202,6 +268,7 @@ static int scan_rom(char *path, char *file)
 skip:
 		free(namelist[i]);
 	}
+
 	free(namelist);
 	return result;
 }
@@ -211,9 +278,13 @@ int main(void)
 	int rc;
 
 	if (map_mem("/dev/mem", 0, 0xA0000, 1) == 0)
+	{
 		fprintf(stderr, "PASS: /dev/mem 0x0-0xa0000 is readable\n");
+	}
 	else
+	{
 		fprintf(stderr, "FAIL: /dev/mem 0x0-0xa0000 not accessible\n");
+	}
 
 	/*
 	 * It's not safe to blindly read the VGA frame buffer.  If you know
@@ -223,14 +294,22 @@ int main(void)
 	 * report the failure as a machine check.
 	 */
 	if (map_mem("/dev/mem", 0xA0000, 0x20000, 0) == 0)
+	{
 		fprintf(stderr, "PASS: /dev/mem 0xa0000-0xc0000 is mappable\n");
+	}
 	else
+	{
 		fprintf(stderr, "FAIL: /dev/mem 0xa0000-0xc0000 not accessible\n");
+	}
 
 	if (map_mem("/dev/mem", 0xC0000, 0x40000, 1) == 0)
+	{
 		fprintf(stderr, "PASS: /dev/mem 0xc0000-0x100000 is readable\n");
+	}
 	else
+	{
 		fprintf(stderr, "FAIL: /dev/mem 0xc0000-0x100000 not accessible\n");
+	}
 
 	/*
 	 * Often you can map all the individual pieces above (0-0xA0000,
@@ -239,25 +318,32 @@ int main(void)
 	 * attributes, and there's no single attribute supported over the
 	 * whole region.
 	 */
-	rc = map_mem("/dev/mem", 0, 1024*1024, 0);
+	rc = map_mem("/dev/mem", 0, 1024 * 1024, 0);
+
 	if (rc == 0)
+	{
 		fprintf(stderr, "PASS: /dev/mem 0x0-0x100000 is mappable\n");
+	}
 	else if (rc > 0)
+	{
 		fprintf(stderr, "PASS: /dev/mem 0x0-0x100000 not mappable\n");
+	}
 	else
+	{
 		fprintf(stderr, "FAIL: /dev/mem 0x0-0x100000 not accessible\n");
+	}
 
 	scan_tree("/sys/class/pci_bus", "legacy_mem", 0, 0xA0000, 1);
 	scan_tree("/sys/class/pci_bus", "legacy_mem", 0xA0000, 0x20000, 0);
 	scan_tree("/sys/class/pci_bus", "legacy_mem", 0xC0000, 0x40000, 1);
-	scan_tree("/sys/class/pci_bus", "legacy_mem", 0, 1024*1024, 0);
+	scan_tree("/sys/class/pci_bus", "legacy_mem", 0, 1024 * 1024, 0);
 
 	scan_rom("/sys/devices", "rom");
 
 	scan_tree("/proc/bus/pci", "??.?", 0, 0xA0000, 1);
 	scan_tree("/proc/bus/pci", "??.?", 0xA0000, 0x20000, 0);
 	scan_tree("/proc/bus/pci", "??.?", 0xC0000, 0x40000, 1);
-	scan_tree("/proc/bus/pci", "??.?", 0, 1024*1024, 0);
+	scan_tree("/proc/bus/pci", "??.?", 0, 1024 * 1024, 0);
 
 	return rc;
 }

@@ -6,7 +6,8 @@
  * but...
  */
 
-struct delayed_call {
+struct delayed_call
+{
 	void (*fn)(void *);
 	void *arg;
 };
@@ -15,7 +16,7 @@ struct delayed_call {
 
 /* I really wish we had closures with sane typechecking... */
 static inline void set_delayed_call(struct delayed_call *call,
-		void (*fn)(void *), void *arg)
+									void (*fn)(void *), void *arg)
 {
 	call->fn = fn;
 	call->arg = arg;
@@ -24,7 +25,9 @@ static inline void set_delayed_call(struct delayed_call *call,
 static inline void do_delayed_call(struct delayed_call *call)
 {
 	if (call->fn)
+	{
 		call->fn(call->arg);
+	}
 }
 
 static inline void clear_delayed_call(struct delayed_call *call)

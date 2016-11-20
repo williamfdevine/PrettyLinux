@@ -37,38 +37,57 @@ tcpmss_mt(const struct sk_buff *skb, struct xt_action_param *par)
 
 	/* If we don't have the whole header, drop packet. */
 	th = skb_header_pointer(skb, par->thoff, sizeof(_tcph), &_tcph);
+
 	if (th == NULL)
+	{
 		goto dropit;
+	}
 
 	/* Malformed. */
-	if (th->doff*4 < sizeof(*th))
+	if (th->doff * 4 < sizeof(*th))
+	{
 		goto dropit;
+	}
 
-	optlen = th->doff*4 - sizeof(*th);
+	optlen = th->doff * 4 - sizeof(*th);
+
 	if (!optlen)
+	{
 		goto out;
+	}
 
 	/* Truncated options. */
 	op = skb_header_pointer(skb, par->thoff + sizeof(*th), optlen, _opt);
-	if (op == NULL)
-		goto dropit;
 
-	for (i = 0; i < optlen; ) {
+	if (op == NULL)
+	{
+		goto dropit;
+	}
+
+	for (i = 0; i < optlen; )
+	{
 		if (op[i] == TCPOPT_MSS
-		    && (optlen - i) >= TCPOLEN_MSS
-		    && op[i+1] == TCPOLEN_MSS) {
+			&& (optlen - i) >= TCPOLEN_MSS
+			&& op[i + 1] == TCPOLEN_MSS)
+		{
 			u_int16_t mssval;
 
-			mssval = (op[i+2] << 8) | op[i+3];
+			mssval = (op[i + 2] << 8) | op[i + 3];
 
 			return (mssval >= info->mss_min &&
-				mssval <= info->mss_max) ^ info->invert;
+					mssval <= info->mss_max) ^ info->invert;
 		}
+
 		if (op[i] < 2)
+		{
 			i++;
+		}
 		else
-			i += op[i+1] ? : 1;
+		{
+			i += op[i + 1] ? : 1;
+		}
 	}
+
 out:
 	return info->invert;
 
@@ -77,7 +96,8 @@ dropit:
 	return false;
 }
 
-static struct xt_match tcpmss_mt_reg[] __read_mostly = {
+static struct xt_match tcpmss_mt_reg[] __read_mostly =
+{
 	{
 		.name		= "tcpmss",
 		.family		= NFPROTO_IPV4,

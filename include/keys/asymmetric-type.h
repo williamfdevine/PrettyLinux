@@ -23,7 +23,8 @@ extern struct key_type key_type_asymmetric;
  * The key payload is four words.  The asymmetric-type key uses them as
  * follows:
  */
-enum asymmetric_payload_bits {
+enum asymmetric_payload_bits
+{
 	asym_crypto,		/* The data representing the key */
 	asym_subtype,		/* Pointer to an asymmetric_key_subtype struct */
 	asym_key_ids,		/* Pointer to an asymmetric_key_ids struct */
@@ -51,25 +52,27 @@ enum asymmetric_payload_bits {
  * What we actually do is provide a place where binary identifiers can be
  * stashed and then compare against them when checking for an id match.
  */
-struct asymmetric_key_id {
+struct asymmetric_key_id
+{
 	unsigned short	len;
 	unsigned char	data[];
 };
 
-struct asymmetric_key_ids {
+struct asymmetric_key_ids
+{
 	void		*id[2];
 };
 
 extern bool asymmetric_key_id_same(const struct asymmetric_key_id *kid1,
-				   const struct asymmetric_key_id *kid2);
+								   const struct asymmetric_key_id *kid2);
 
 extern bool asymmetric_key_id_partial(const struct asymmetric_key_id *kid1,
-				      const struct asymmetric_key_id *kid2);
+									  const struct asymmetric_key_id *kid2);
 
 extern struct asymmetric_key_id *asymmetric_key_generate_id(const void *val_1,
-							    size_t len_1,
-							    const void *val_2,
-							    size_t len_2);
+		size_t len_1,
+		const void *val_2,
+		size_t len_2);
 static inline
 const struct asymmetric_key_ids *asymmetric_key_ids(const struct key *key)
 {
@@ -77,9 +80,9 @@ const struct asymmetric_key_ids *asymmetric_key_ids(const struct key *key)
 }
 
 extern struct key *find_asymmetric_key(struct key *keyring,
-				       const struct asymmetric_key_id *id_0,
-				       const struct asymmetric_key_id *id_1,
-				       bool partial);
+									   const struct asymmetric_key_id *id_0,
+									   const struct asymmetric_key_id *id_1,
+									   bool partial);
 
 /*
  * The payload is at the discretion of the subtype.

@@ -63,9 +63,9 @@
 #ifdef CONFIG_LIBIPW_DEBUG
 extern u32 libipw_debug_level;
 #define LIBIPW_DEBUG(level, fmt, args...) \
-do { if (libipw_debug_level & (level)) \
-  printk(KERN_DEBUG "libipw: %c %s " fmt, \
-         in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
+	do { if (libipw_debug_level & (level)) \
+			printk(KERN_DEBUG "libipw: %c %s " fmt, \
+				   in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
 #else
 #define LIBIPW_DEBUG(level, fmt, args...) do {} while (0)
 #endif				/* CONFIG_LIBIPW_DEBUG */
@@ -125,21 +125,22 @@ do { if (libipw_debug_level & (level)) \
 #include <linux/if_arp.h>	/* ARPHRD_ETHER */
 
 #ifndef WIRELESS_SPY
-#define WIRELESS_SPY		/* enable iwspy support */
+	#define WIRELESS_SPY		/* enable iwspy support */
 #endif
 #include <net/iw_handler.h>	/* new driver API */
 
 #define ETH_P_PREAUTH 0x88C7	/* IEEE 802.11i pre-authentication */
 
 #ifndef ETH_P_80211_RAW
-#define ETH_P_80211_RAW (ETH_P_ECONET + 1)
+	#define ETH_P_80211_RAW (ETH_P_ECONET + 1)
 #endif
 
 /* IEEE 802.11 defines */
 
 #define P80211_OUI_LEN 3
 
-struct libipw_snap_hdr {
+struct libipw_snap_hdr
+{
 
 	u8 dsap;		/* always 0xAA */
 	u8 ssap;		/* always 0xAA */
@@ -198,23 +199,23 @@ struct libipw_snap_hdr {
 
 #define LIBIPW_CCK_RATES_MASK	        0x0000000F
 #define LIBIPW_CCK_BASIC_RATES_MASK	(LIBIPW_CCK_RATE_1MB_MASK | \
-	LIBIPW_CCK_RATE_2MB_MASK)
+									 LIBIPW_CCK_RATE_2MB_MASK)
 #define LIBIPW_CCK_DEFAULT_RATES_MASK	(LIBIPW_CCK_BASIC_RATES_MASK | \
-        LIBIPW_CCK_RATE_5MB_MASK | \
-        LIBIPW_CCK_RATE_11MB_MASK)
+		LIBIPW_CCK_RATE_5MB_MASK | \
+		LIBIPW_CCK_RATE_11MB_MASK)
 
 #define LIBIPW_OFDM_RATES_MASK		0x00000FF0
 #define LIBIPW_OFDM_BASIC_RATES_MASK	(LIBIPW_OFDM_RATE_6MB_MASK | \
-	LIBIPW_OFDM_RATE_12MB_MASK | \
-	LIBIPW_OFDM_RATE_24MB_MASK)
+		LIBIPW_OFDM_RATE_12MB_MASK | \
+		LIBIPW_OFDM_RATE_24MB_MASK)
 #define LIBIPW_OFDM_DEFAULT_RATES_MASK	(LIBIPW_OFDM_BASIC_RATES_MASK | \
-	LIBIPW_OFDM_RATE_9MB_MASK  | \
-	LIBIPW_OFDM_RATE_18MB_MASK | \
-	LIBIPW_OFDM_RATE_36MB_MASK | \
-	LIBIPW_OFDM_RATE_48MB_MASK | \
-	LIBIPW_OFDM_RATE_54MB_MASK)
+		LIBIPW_OFDM_RATE_9MB_MASK  | \
+		LIBIPW_OFDM_RATE_18MB_MASK | \
+		LIBIPW_OFDM_RATE_36MB_MASK | \
+		LIBIPW_OFDM_RATE_48MB_MASK | \
+		LIBIPW_OFDM_RATE_54MB_MASK)
 #define LIBIPW_DEFAULT_RATES_MASK (LIBIPW_OFDM_DEFAULT_RATES_MASK | \
-                                LIBIPW_CCK_DEFAULT_RATES_MASK)
+								   LIBIPW_CCK_DEFAULT_RATES_MASK)
 
 #define LIBIPW_NUM_OFDM_RATES	    8
 #define LIBIPW_NUM_CCK_RATES	            4
@@ -224,7 +225,8 @@ struct libipw_snap_hdr {
  *       information for frames received.
  *       For libipw_rx_mgt, you need to set at least the 'len' parameter.
  */
-struct libipw_rx_stats {
+struct libipw_rx_stats
+{
 	u32 mac_time;
 	s8 rssi;
 	u8 signal;
@@ -245,7 +247,8 @@ struct libipw_rx_stats {
  * 2 kB of RAM and increasing cache size will slow down frame reassembly. */
 #define LIBIPW_FRAG_CACHE_LEN 4
 
-struct libipw_frag_entry {
+struct libipw_frag_entry
+{
 	unsigned long first_frag_time;
 	unsigned int seq;
 	unsigned int last_frag;
@@ -254,7 +257,8 @@ struct libipw_frag_entry {
 	u8 dst_addr[ETH_ALEN];
 };
 
-struct libipw_stats {
+struct libipw_stats
+{
 	unsigned int tx_unicast_frames;
 	unsigned int tx_multicast_frames;
 	unsigned int tx_fragments;
@@ -307,8 +311,9 @@ struct libipw_device;
 #define SCM_KEY_LEN		32
 #define SCM_TEMPORAL_KEY_LENGTH	16
 
-struct libipw_security {
-	u16 active_key:2, enabled:1, unicast_uses_group:1, encrypt:1;
+struct libipw_security
+{
+	u16 active_key: 2, enabled: 1, unicast_uses_group: 1, encrypt: 1;
 	u8 auth_mode;
 	u8 encode_alg[WEP_KEYS];
 	u8 key_sizes[WEP_KEYS];
@@ -334,14 +339,16 @@ Total: 28-2340 bytes
 
 #define BEACON_PROBE_SSID_ID_POSITION 12
 
-struct libipw_hdr_1addr {
+struct libipw_hdr_1addr
+{
 	__le16 frame_ctl;
 	__le16 duration_id;
 	u8 addr1[ETH_ALEN];
 	u8 payload[0];
 } __packed;
 
-struct libipw_hdr_2addr {
+struct libipw_hdr_2addr
+{
 	__le16 frame_ctl;
 	__le16 duration_id;
 	u8 addr1[ETH_ALEN];
@@ -349,7 +356,8 @@ struct libipw_hdr_2addr {
 	u8 payload[0];
 } __packed;
 
-struct libipw_hdr_3addr {
+struct libipw_hdr_3addr
+{
 	__le16 frame_ctl;
 	__le16 duration_id;
 	u8 addr1[ETH_ALEN];
@@ -359,7 +367,8 @@ struct libipw_hdr_3addr {
 	u8 payload[0];
 } __packed;
 
-struct libipw_hdr_4addr {
+struct libipw_hdr_4addr
+{
 	__le16 frame_ctl;
 	__le16 duration_id;
 	u8 addr1[ETH_ALEN];
@@ -370,7 +379,8 @@ struct libipw_hdr_4addr {
 	u8 payload[0];
 } __packed;
 
-struct libipw_hdr_3addrqos {
+struct libipw_hdr_3addrqos
+{
 	__le16 frame_ctl;
 	__le16 duration_id;
 	u8 addr1[ETH_ALEN];
@@ -381,7 +391,8 @@ struct libipw_hdr_3addrqos {
 	__le16 qos_ctl;
 } __packed;
 
-struct libipw_info_element {
+struct libipw_info_element
+{
 	u8 id;
 	u8 len;
 	u8 data[0];
@@ -404,7 +415,8 @@ struct libipw_info_element {
 	u16 status;
 */
 
-struct libipw_auth {
+struct libipw_auth
+{
 	struct libipw_hdr_3addr header;
 	__le16 algorithm;
 	__le16 transaction;
@@ -413,7 +425,8 @@ struct libipw_auth {
 	struct libipw_info_element info_element[0];
 } __packed;
 
-struct libipw_channel_switch {
+struct libipw_channel_switch
+{
 	u8 id;
 	u8 len;
 	u8 mode;
@@ -421,12 +434,15 @@ struct libipw_channel_switch {
 	u8 count;
 } __packed;
 
-struct libipw_action {
+struct libipw_action
+{
 	struct libipw_hdr_3addr header;
 	u8 category;
 	u8 action;
-	union {
-		struct libipw_action_exchange {
+	union
+	{
+		struct libipw_action_exchange
+		{
 			u8 token;
 			struct libipw_info_element info_element[0];
 		} exchange;
@@ -435,7 +451,8 @@ struct libipw_action {
 	} format;
 } __packed;
 
-struct libipw_disassoc {
+struct libipw_disassoc
+{
 	struct libipw_hdr_3addr header;
 	__le16 reason;
 } __packed;
@@ -443,13 +460,15 @@ struct libipw_disassoc {
 /* Alias deauth for disassoc */
 #define libipw_deauth libipw_disassoc
 
-struct libipw_probe_request {
+struct libipw_probe_request
+{
 	struct libipw_hdr_3addr header;
 	/* SSID, supported rates */
 	struct libipw_info_element info_element[0];
 } __packed;
 
-struct libipw_probe_response {
+struct libipw_probe_response
+{
 	struct libipw_hdr_3addr header;
 	__le32 time_stamp[2];
 	__le16 beacon_interval;
@@ -462,7 +481,8 @@ struct libipw_probe_response {
 /* Alias beacon for probe_response */
 #define libipw_beacon libipw_probe_response
 
-struct libipw_assoc_request {
+struct libipw_assoc_request
+{
 	struct libipw_hdr_3addr header;
 	__le16 capability;
 	__le16 listen_interval;
@@ -470,7 +490,8 @@ struct libipw_assoc_request {
 	struct libipw_info_element info_element[0];
 } __packed;
 
-struct libipw_reassoc_request {
+struct libipw_reassoc_request
+{
 	struct libipw_hdr_3addr header;
 	__le16 capability;
 	__le16 listen_interval;
@@ -478,7 +499,8 @@ struct libipw_reassoc_request {
 	struct libipw_info_element info_element[0];
 } __packed;
 
-struct libipw_assoc_response {
+struct libipw_assoc_response
+{
 	struct libipw_hdr_3addr header;
 	__le16 capability;
 	__le16 status;
@@ -487,7 +509,8 @@ struct libipw_assoc_response {
 	struct libipw_info_element info_element[0];
 } __packed;
 
-struct libipw_txb {
+struct libipw_txb
+{
 	u8 nr_frags;
 	u8 encrypted;
 	u8 rts_included;
@@ -519,7 +542,7 @@ struct libipw_txb {
 #define NETWORK_HAS_QOS_PARAMETERS      (1<<3)
 #define NETWORK_HAS_QOS_INFORMATION     (1<<4)
 #define NETWORK_HAS_QOS_MASK            (NETWORK_HAS_QOS_PARAMETERS | \
-					 NETWORK_HAS_QOS_INFORMATION)
+		NETWORK_HAS_QOS_INFORMATION)
 
 /* 802.11h */
 #define NETWORK_HAS_POWER_CONSTRAINT    (1<<5)
@@ -539,7 +562,8 @@ struct libipw_txb {
 #define QOS_VERSION_1                   1
 #define QOS_AIFSN_MIN_VALUE             2
 
-struct libipw_qos_information_element {
+struct libipw_qos_information_element
+{
 	u8 elementID;
 	u8 length;
 	u8 qui[QOS_OUI_LEN];
@@ -549,19 +573,22 @@ struct libipw_qos_information_element {
 	u8 ac_info;
 } __packed;
 
-struct libipw_qos_ac_parameter {
+struct libipw_qos_ac_parameter
+{
 	u8 aci_aifsn;
 	u8 ecw_min_max;
 	__le16 tx_op_limit;
 } __packed;
 
-struct libipw_qos_parameter_info {
+struct libipw_qos_parameter_info
+{
 	struct libipw_qos_information_element info_element;
 	u8 reserved;
 	struct libipw_qos_ac_parameter ac_params_record[QOS_QUEUE_NUM];
 } __packed;
 
-struct libipw_qos_parameters {
+struct libipw_qos_parameters
+{
 	__le16 cw_min[QOS_QUEUE_NUM];
 	__le16 cw_max[QOS_QUEUE_NUM];
 	u8 aifs[QOS_QUEUE_NUM];
@@ -569,7 +596,8 @@ struct libipw_qos_parameters {
 	__le16 tx_op_limit[QOS_QUEUE_NUM];
 } __packed;
 
-struct libipw_qos_data {
+struct libipw_qos_data
+{
 	struct libipw_qos_parameters parameters;
 	int active;
 	int supported;
@@ -577,44 +605,51 @@ struct libipw_qos_data {
 	u8 old_param_count;
 };
 
-struct libipw_tim_parameters {
+struct libipw_tim_parameters
+{
 	u8 tim_count;
 	u8 tim_period;
 } __packed;
 
 /*******************************************************/
 
-struct libipw_tpc_report {
+struct libipw_tpc_report
+{
 	u8 transmit_power;
 	u8 link_margin;
 } __packed;
 
-struct libipw_channel_map {
+struct libipw_channel_map
+{
 	u8 channel;
 	u8 map;
 } __packed;
 
-struct libipw_ibss_dfs {
+struct libipw_ibss_dfs
+{
 	struct libipw_info_element ie;
 	u8 owner[ETH_ALEN];
 	u8 recovery_interval;
 	struct libipw_channel_map channel_map[0];
 };
 
-struct libipw_csa {
+struct libipw_csa
+{
 	u8 mode;
 	u8 channel;
 	u8 count;
 } __packed;
 
-struct libipw_quiet {
+struct libipw_quiet
+{
 	u8 count;
 	u8 period;
 	u8 duration;
 	u8 offset;
 } __packed;
 
-struct libipw_network {
+struct libipw_network
+{
 	/* These entries are used to identify a unique network */
 	u8 bssid[ETH_ALEN];
 	u8 channel;
@@ -663,7 +698,8 @@ struct libipw_network {
 	struct list_head list;
 };
 
-enum libipw_state {
+enum libipw_state
+{
 	LIBIPW_UNINITIALIZED = 0,
 	LIBIPW_INITIALIZED,
 	LIBIPW_ASSOCIATING,
@@ -683,14 +719,15 @@ enum libipw_state {
 #define LIBIPW_24GHZ_MIN_CHANNEL 1
 #define LIBIPW_24GHZ_MAX_CHANNEL 14
 #define LIBIPW_24GHZ_CHANNELS (LIBIPW_24GHZ_MAX_CHANNEL - \
-				  LIBIPW_24GHZ_MIN_CHANNEL + 1)
+							   LIBIPW_24GHZ_MIN_CHANNEL + 1)
 
 #define LIBIPW_52GHZ_MIN_CHANNEL 34
 #define LIBIPW_52GHZ_MAX_CHANNEL 165
 #define LIBIPW_52GHZ_CHANNELS (LIBIPW_52GHZ_MAX_CHANNEL - \
-				  LIBIPW_52GHZ_MIN_CHANNEL + 1)
+							   LIBIPW_52GHZ_MIN_CHANNEL + 1)
 
-enum {
+enum
+{
 	LIBIPW_CH_PASSIVE_ONLY = (1 << 0),
 	LIBIPW_CH_80211H_RULES = (1 << 1),
 	LIBIPW_CH_B_ONLY = (1 << 2),
@@ -700,14 +737,16 @@ enum {
 	LIBIPW_CH_INVALID = (1 << 6),
 };
 
-struct libipw_channel {
+struct libipw_channel
+{
 	u32 freq;	/* in MHz */
 	u8 channel;
 	u8 flags;
 	u8 max_power;	/* in dBm */
 };
 
-struct libipw_geo {
+struct libipw_geo
+{
 	u8 name[4];
 	u8 bg_channels;
 	u8 a_channels;
@@ -715,7 +754,8 @@ struct libipw_geo {
 	struct libipw_channel a[LIBIPW_52GHZ_CHANNELS];
 };
 
-struct libipw_device {
+struct libipw_device
+{
 	struct net_device *dev;
 	struct wireless_dev wdev;
 	struct libipw_security sec;
@@ -794,43 +834,43 @@ struct libipw_device {
 	u16 prev_seq_ctl;	/* used to drop duplicate frames */
 
 	/* Callback functions */
-	void (*set_security) (struct net_device * dev,
-			      struct libipw_security * sec);
-	netdev_tx_t (*hard_start_xmit) (struct libipw_txb * txb,
-					struct net_device * dev, int pri);
-	int (*is_queue_full) (struct net_device * dev, int pri);
+	void (*set_security) (struct net_device *dev,
+						  struct libipw_security *sec);
+	netdev_tx_t (*hard_start_xmit) (struct libipw_txb *txb,
+									struct net_device *dev, int pri);
+	int (*is_queue_full) (struct net_device *dev, int pri);
 
-	int (*handle_management) (struct net_device * dev,
-				  struct libipw_network * network, u16 type);
+	int (*handle_management) (struct net_device *dev,
+							  struct libipw_network *network, u16 type);
 	int (*is_qos_active) (struct net_device *dev, struct sk_buff *skb);
 
 	/* Typical STA methods */
-	int (*handle_auth) (struct net_device * dev,
-			    struct libipw_auth * auth);
-	int (*handle_deauth) (struct net_device * dev,
-			      struct libipw_deauth * auth);
-	int (*handle_action) (struct net_device * dev,
-			      struct libipw_action * action,
-			      struct libipw_rx_stats * stats);
-	int (*handle_disassoc) (struct net_device * dev,
-				struct libipw_disassoc * assoc);
-	int (*handle_beacon) (struct net_device * dev,
-			      struct libipw_beacon * beacon,
-			      struct libipw_network * network);
-	int (*handle_probe_response) (struct net_device * dev,
-				      struct libipw_probe_response * resp,
-				      struct libipw_network * network);
-	int (*handle_probe_request) (struct net_device * dev,
-				     struct libipw_probe_request * req,
-				     struct libipw_rx_stats * stats);
-	int (*handle_assoc_response) (struct net_device * dev,
-				      struct libipw_assoc_response * resp,
-				      struct libipw_network * network);
+	int (*handle_auth) (struct net_device *dev,
+						struct libipw_auth *auth);
+	int (*handle_deauth) (struct net_device *dev,
+						  struct libipw_deauth *auth);
+	int (*handle_action) (struct net_device *dev,
+						  struct libipw_action *action,
+						  struct libipw_rx_stats *stats);
+	int (*handle_disassoc) (struct net_device *dev,
+							struct libipw_disassoc *assoc);
+	int (*handle_beacon) (struct net_device *dev,
+						  struct libipw_beacon *beacon,
+						  struct libipw_network *network);
+	int (*handle_probe_response) (struct net_device *dev,
+								  struct libipw_probe_response *resp,
+								  struct libipw_network *network);
+	int (*handle_probe_request) (struct net_device *dev,
+								 struct libipw_probe_request *req,
+								 struct libipw_rx_stats *stats);
+	int (*handle_assoc_response) (struct net_device *dev,
+								  struct libipw_assoc_response *resp,
+								  struct libipw_network *network);
 
 	/* Typical AP methods */
-	int (*handle_assoc_request) (struct net_device * dev);
-	int (*handle_reassoc_request) (struct net_device * dev,
-				       struct libipw_reassoc_request * req);
+	int (*handle_assoc_request) (struct net_device *dev);
+	int (*handle_reassoc_request) (struct net_device *dev,
+								   struct libipw_reassoc_request *req);
 
 	/* This must be the last item so that it points to the data
 	 * allocated beyond this structure by alloc_libipw */
@@ -848,7 +888,7 @@ static inline void *libipw_priv(struct net_device *dev)
 }
 
 static inline int libipw_is_valid_mode(struct libipw_device *ieee,
-					  int mode)
+									   int mode)
 {
 	/*
 	 * It is possible for both access points and our device to support
@@ -857,19 +897,25 @@ static inline int libipw_is_valid_mode(struct libipw_device *ieee,
 	 *
 	 */
 	if ((mode & IEEE_A) &&
-	    (ieee->modulation & LIBIPW_OFDM_MODULATION) &&
-	    (ieee->freq_band & LIBIPW_52GHZ_BAND))
+		(ieee->modulation & LIBIPW_OFDM_MODULATION) &&
+		(ieee->freq_band & LIBIPW_52GHZ_BAND))
+	{
 		return 1;
+	}
 
 	if ((mode & IEEE_G) &&
-	    (ieee->modulation & LIBIPW_OFDM_MODULATION) &&
-	    (ieee->freq_band & LIBIPW_24GHZ_BAND))
+		(ieee->modulation & LIBIPW_OFDM_MODULATION) &&
+		(ieee->freq_band & LIBIPW_24GHZ_BAND))
+	{
 		return 1;
+	}
 
 	if ((mode & IEEE_B) &&
-	    (ieee->modulation & LIBIPW_CCK_MODULATION) &&
-	    (ieee->freq_band & LIBIPW_24GHZ_BAND))
+		(ieee->modulation & LIBIPW_CCK_MODULATION) &&
+		(ieee->freq_band & LIBIPW_24GHZ_BAND))
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -879,24 +925,35 @@ static inline int libipw_get_hdrlen(u16 fc)
 	int hdrlen = LIBIPW_3ADDR_LEN;
 	u16 stype = WLAN_FC_GET_STYPE(fc);
 
-	switch (WLAN_FC_GET_TYPE(fc)) {
-	case IEEE80211_FTYPE_DATA:
-		if ((fc & IEEE80211_FCTL_FROMDS) && (fc & IEEE80211_FCTL_TODS))
-			hdrlen = LIBIPW_4ADDR_LEN;
-		if (stype & IEEE80211_STYPE_QOS_DATA)
-			hdrlen += 2;
-		break;
-	case IEEE80211_FTYPE_CTL:
-		switch (WLAN_FC_GET_STYPE(fc)) {
-		case IEEE80211_STYPE_CTS:
-		case IEEE80211_STYPE_ACK:
-			hdrlen = LIBIPW_1ADDR_LEN;
+	switch (WLAN_FC_GET_TYPE(fc))
+	{
+		case IEEE80211_FTYPE_DATA:
+			if ((fc & IEEE80211_FCTL_FROMDS) && (fc & IEEE80211_FCTL_TODS))
+			{
+				hdrlen = LIBIPW_4ADDR_LEN;
+			}
+
+			if (stype & IEEE80211_STYPE_QOS_DATA)
+			{
+				hdrlen += 2;
+			}
+
 			break;
-		default:
-			hdrlen = LIBIPW_2ADDR_LEN;
+
+		case IEEE80211_FTYPE_CTL:
+			switch (WLAN_FC_GET_STYPE(fc))
+			{
+				case IEEE80211_STYPE_CTS:
+				case IEEE80211_STYPE_ACK:
+					hdrlen = LIBIPW_1ADDR_LEN;
+					break;
+
+				default:
+					hdrlen = LIBIPW_2ADDR_LEN;
+					break;
+			}
+
 			break;
-		}
-		break;
 	}
 
 	return hdrlen;
@@ -904,44 +961,53 @@ static inline int libipw_get_hdrlen(u16 fc)
 
 static inline u8 *libipw_get_payload(struct ieee80211_hdr *hdr)
 {
-	switch (libipw_get_hdrlen(le16_to_cpu(hdr->frame_control))) {
-	case LIBIPW_1ADDR_LEN:
-		return ((struct libipw_hdr_1addr *)hdr)->payload;
-	case LIBIPW_2ADDR_LEN:
-		return ((struct libipw_hdr_2addr *)hdr)->payload;
-	case LIBIPW_3ADDR_LEN:
-		return ((struct libipw_hdr_3addr *)hdr)->payload;
-	case LIBIPW_4ADDR_LEN:
-		return ((struct libipw_hdr_4addr *)hdr)->payload;
+	switch (libipw_get_hdrlen(le16_to_cpu(hdr->frame_control)))
+	{
+		case LIBIPW_1ADDR_LEN:
+			return ((struct libipw_hdr_1addr *)hdr)->payload;
+
+		case LIBIPW_2ADDR_LEN:
+			return ((struct libipw_hdr_2addr *)hdr)->payload;
+
+		case LIBIPW_3ADDR_LEN:
+			return ((struct libipw_hdr_3addr *)hdr)->payload;
+
+		case LIBIPW_4ADDR_LEN:
+			return ((struct libipw_hdr_4addr *)hdr)->payload;
 	}
+
 	return NULL;
 }
 
 static inline int libipw_is_ofdm_rate(u8 rate)
 {
-	switch (rate & ~LIBIPW_BASIC_RATE_MASK) {
-	case LIBIPW_OFDM_RATE_6MB:
-	case LIBIPW_OFDM_RATE_9MB:
-	case LIBIPW_OFDM_RATE_12MB:
-	case LIBIPW_OFDM_RATE_18MB:
-	case LIBIPW_OFDM_RATE_24MB:
-	case LIBIPW_OFDM_RATE_36MB:
-	case LIBIPW_OFDM_RATE_48MB:
-	case LIBIPW_OFDM_RATE_54MB:
-		return 1;
+	switch (rate & ~LIBIPW_BASIC_RATE_MASK)
+	{
+		case LIBIPW_OFDM_RATE_6MB:
+		case LIBIPW_OFDM_RATE_9MB:
+		case LIBIPW_OFDM_RATE_12MB:
+		case LIBIPW_OFDM_RATE_18MB:
+		case LIBIPW_OFDM_RATE_24MB:
+		case LIBIPW_OFDM_RATE_36MB:
+		case LIBIPW_OFDM_RATE_48MB:
+		case LIBIPW_OFDM_RATE_54MB:
+			return 1;
 	}
+
 	return 0;
 }
 
 static inline int libipw_is_cck_rate(u8 rate)
 {
-	switch (rate & ~LIBIPW_BASIC_RATE_MASK) {
-	case LIBIPW_CCK_RATE_1MB:
-	case LIBIPW_CCK_RATE_2MB:
-	case LIBIPW_CCK_RATE_5MB:
-	case LIBIPW_CCK_RATE_11MB:
-		return 1;
+	switch (rate & ~LIBIPW_BASIC_RATE_MASK)
+	{
+		case LIBIPW_CCK_RATE_1MB:
+		case LIBIPW_CCK_RATE_2MB:
+		case LIBIPW_CCK_RATE_5MB:
+		case LIBIPW_CCK_RATE_11MB:
+			return 1;
 	}
+
 	return 0;
 }
 
@@ -960,12 +1026,12 @@ void libipw_txb_free(struct libipw_txb *);
 
 /* libipw_rx.c */
 void libipw_rx_any(struct libipw_device *ieee, struct sk_buff *skb,
-		   struct libipw_rx_stats *stats);
+				   struct libipw_rx_stats *stats);
 int libipw_rx(struct libipw_device *ieee, struct sk_buff *skb,
-	      struct libipw_rx_stats *rx_stats);
+			  struct libipw_rx_stats *rx_stats);
 /* make sure to set stats->len */
 void libipw_rx_mgt(struct libipw_device *ieee, struct libipw_hdr_4addr *header,
-		   struct libipw_rx_stats *stats);
+				   struct libipw_rx_stats *stats);
 
 /* libipw_geo.c */
 const struct libipw_geo *libipw_get_geo(struct libipw_device *ieee);
@@ -976,24 +1042,24 @@ int libipw_channel_to_index(struct libipw_device *ieee, u8 channel);
 u8 libipw_freq_to_channel(struct libipw_device *ieee, u32 freq);
 u8 libipw_get_channel_flags(struct libipw_device *ieee, u8 channel);
 const struct libipw_channel *libipw_get_channel(struct libipw_device *ieee,
-						u8 channel);
+		u8 channel);
 u32 libipw_channel_to_freq(struct libipw_device *ieee, u8 channel);
 
 /* libipw_wx.c */
 int libipw_wx_get_scan(struct libipw_device *ieee, struct iw_request_info *info,
-		       union iwreq_data *wrqu, char *key);
+					   union iwreq_data *wrqu, char *key);
 int libipw_wx_set_encode(struct libipw_device *ieee,
-			 struct iw_request_info *info, union iwreq_data *wrqu,
-			 char *key);
+						 struct iw_request_info *info, union iwreq_data *wrqu,
+						 char *key);
 int libipw_wx_get_encode(struct libipw_device *ieee,
-			 struct iw_request_info *info, union iwreq_data *wrqu,
-			 char *key);
+						 struct iw_request_info *info, union iwreq_data *wrqu,
+						 char *key);
 int libipw_wx_set_encodeext(struct libipw_device *ieee,
-			    struct iw_request_info *info,
-			    union iwreq_data *wrqu, char *extra);
+							struct iw_request_info *info,
+							union iwreq_data *wrqu, char *extra);
 int libipw_wx_get_encodeext(struct libipw_device *ieee,
-			    struct iw_request_info *info,
-			    union iwreq_data *wrqu, char *extra);
+							struct iw_request_info *info,
+							union iwreq_data *wrqu, char *extra);
 
 static inline void libipw_increment_scans(struct libipw_device *ieee)
 {

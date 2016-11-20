@@ -28,7 +28,8 @@
 #define LTC2941_MAX_PRESCALER_EXP	7
 #define LTC2943_MAX_PRESCALER_EXP	6
 
-enum ltc294x_reg {
+enum ltc294x_reg
+{
 	LTC294X_REG_STATUS		= 0x00,
 	LTC294X_REG_CONTROL		= 0x01,
 	LTC294X_REG_ACC_CHARGE_MSB	= 0x02,
@@ -56,7 +57,8 @@ enum ltc294x_reg {
 #define LTC2941_NUM_REGS	0x08
 #define LTC2943_NUM_REGS	0x18
 
-struct ltc294x_info {
+struct ltc294x_info
+{
 	struct i2c_client *client;	/* I2C Client pointer */
 	struct power_supply *supply;	/* Supply pointer */
 	struct power_supply_desc supply_desc;	/* Supply description */
@@ -78,12 +80,12 @@ static inline int convert_uAh_to_bin(
 {
 	int Q;
 
-	Q = (uAh * 100) / (info->Qlsb/10);
+	Q = (uAh * 100) / (info->Qlsb / 10);
 	return (Q < LTC294X_MAX_VALUE) ? Q : LTC294X_MAX_VALUE;
 }
 
 static int ltc294x_read_regs(struct i2c_client *client,
-	enum ltc294x_reg reg, u8 *buf, int num_regs)
+							 enum ltc294x_reg reg, u8 *buf, int num_regs)
 {
 	int ret;
 	struct i2c_msg msgs[2] = { };
@@ -99,31 +101,35 @@ static int ltc294x_read_regs(struct i2c_client *client,
 	msgs[1].flags	= I2C_M_RD;
 
 	ret = i2c_transfer(client->adapter, &msgs[0], 2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "ltc2941 read_reg failed!\n");
 		return ret;
 	}
 
 	dev_dbg(&client->dev, "%s (%#x, %d) -> %#x\n",
-		__func__, reg, num_regs, *buf);
+			__func__, reg, num_regs, *buf);
 
 	return 0;
 }
 
 static int ltc294x_write_regs(struct i2c_client *client,
-	enum ltc294x_reg reg, const u8 *buf, int num_regs)
+							  enum ltc294x_reg reg, const u8 *buf, int num_regs)
 {
 	int ret;
 	u8 reg_start = reg;
 
 	ret = i2c_smbus_write_i2c_block_data(client, reg_start, num_regs, buf);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "ltc2941 write_reg failed!\n");
 		return ret;
 	}
 
 	dev_dbg(&client->dev, "%s (%#x, %d) -> %#x\n",
-		__func__, reg, num_regs, *buf);
+			__func__, reg, num_regs, *buf);
 
 	return 0;
 }
@@ -136,24 +142,32 @@ static int ltc294x_reset(const struct ltc294x_info *info, int prescaler_exp)
 
 	/* Read status and control registers */
 	ret = ltc294x_read_regs(info->client, LTC294X_REG_CONTROL, &value, 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&info->client->dev,
-			"Could not read registers from device\n");
+				"Could not read registers from device\n");
 		goto error_exit;
 	}
 
 	control = LTC294X_REG_CONTROL_PRESCALER_SET(prescaler_exp) |
-				LTC294X_REG_CONTROL_ALCC_CONFIG_DISABLED;
+			  LTC294X_REG_CONTROL_ALCC_CONFIG_DISABLED;
+
 	/* Put the 2943 into "monitor" mode, so it measures every 10 sec */
 	if (info->num_regs == LTC2943_NUM_REGS)
+	{
 		control |= LTC2943_REG_CONTROL_MODE_SCAN;
+	}
 
-	if (value != control) {
+	if (value != control)
+	{
 		ret = ltc294x_write_regs(info->client,
-			LTC294X_REG_CONTROL, &control, 1);
-		if (ret < 0) {
+								 LTC294X_REG_CONTROL, &control, 1);
+
+		if (ret < 0)
+		{
 			dev_err(&info->client->dev,
-				"Could not write register\n");
+					"Could not write register\n");
 			goto error_exit;
 		}
 	}
@@ -170,9 +184,13 @@ static int ltc294x_read_charge_register(const struct ltc294x_info *info)
 	u8 datar[2];
 
 	ret = ltc294x_read_regs(info->client,
-		LTC294X_REG_ACC_CHARGE_MSB, &datar[0], 2);
+							LTC294X_REG_ACC_CHARGE_MSB, &datar[0], 2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return (datar[0] << 8) + datar[1];
 }
 
@@ -181,10 +199,16 @@ static int ltc294x_get_charge_now(const struct ltc294x_info *info, int *val)
 	int value = ltc294x_read_charge_register(info);
 
 	if (value < 0)
+	{
 		return value;
+	}
+
 	/* When r_sense < 0, this counts up when the battery discharges */
 	if (info->Qlsb < 0)
+	{
 		value -= 0xFFFF;
+	}
+
 	*val = convert_bin_to_uAh(info, value);
 	return 0;
 }
@@ -197,35 +221,53 @@ static int ltc294x_set_charge_now(const struct ltc294x_info *info, int val)
 	s32 value;
 
 	value = convert_uAh_to_bin(info, val);
+
 	/* Direction depends on how sense+/- were connected */
 	if (info->Qlsb < 0)
+	{
 		value += 0xFFFF;
+	}
+
 	if ((value < 0) || (value > 0xFFFF)) /* input validation */
+	{
 		return -EINVAL;
+	}
 
 	/* Read control register */
 	ret = ltc294x_read_regs(info->client,
-		LTC294X_REG_CONTROL, &ctrl_reg, 1);
+							LTC294X_REG_CONTROL, &ctrl_reg, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	/* Disable analog section */
 	ctrl_reg |= LTC294X_REG_CONTROL_SHUTDOWN_MASK;
 	ret = ltc294x_write_regs(info->client,
-		LTC294X_REG_CONTROL, &ctrl_reg, 1);
+							 LTC294X_REG_CONTROL, &ctrl_reg, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	/* Set new charge value */
 	dataw[0] = I16_MSB(value);
 	dataw[1] = I16_LSB(value);
 	ret = ltc294x_write_regs(info->client,
-		LTC294X_REG_ACC_CHARGE_MSB, &dataw[0], 2);
+							 LTC294X_REG_ACC_CHARGE_MSB, &dataw[0], 2);
+
 	if (ret < 0)
+	{
 		goto error_exit;
+	}
+
 	/* Enable analog section */
 error_exit:
 	ctrl_reg &= ~LTC294X_REG_CONTROL_SHUTDOWN_MASK;
 	ret = ltc294x_write_regs(info->client,
-		LTC294X_REG_CONTROL, &ctrl_reg, 1);
+							 LTC294X_REG_CONTROL, &ctrl_reg, 1);
 
 	return ret < 0 ? ret : 0;
 }
@@ -236,7 +278,10 @@ static int ltc294x_get_charge_counter(
 	int value = ltc294x_read_charge_register(info);
 
 	if (value < 0)
+	{
 		return value;
+	}
+
 	value -= LTC294X_MID_SUPPLY;
 	*val = convert_bin_to_uAh(info, value);
 	return 0;
@@ -249,7 +294,7 @@ static int ltc294x_get_voltage(const struct ltc294x_info *info, int *val)
 	u32 value;
 
 	ret = ltc294x_read_regs(info->client,
-		LTC294X_REG_VOLTAGE_MSB, &datar[0], 2);
+							LTC294X_REG_VOLTAGE_MSB, &datar[0], 2);
 	value = (datar[0] << 8) | datar[1];
 	*val = ((value * 23600) / 0xFFFF) * 1000; /* in uV */
 	return ret;
@@ -262,7 +307,7 @@ static int ltc294x_get_current(const struct ltc294x_info *info, int *val)
 	s32 value;
 
 	ret = ltc294x_read_regs(info->client,
-		LTC294X_REG_CURRENT_MSB, &datar[0], 2);
+							LTC294X_REG_CURRENT_MSB, &datar[0], 2);
 	value = (datar[0] << 8) | datar[1];
 	value -= 0x7FFF;
 	/* Value is in range -32k..+32k, r_sense is usually 10..50 mOhm,
@@ -279,7 +324,7 @@ static int ltc294x_get_temperature(const struct ltc294x_info *info, int *val)
 	u32 value;
 
 	ret = ltc294x_read_regs(info->client,
-		LTC294X_REG_TEMPERATURE_MSB, &datar[0], 2);
+							LTC294X_REG_TEMPERATURE_MSB, &datar[0], 2);
 	value = (datar[0] << 8) | datar[1];
 	/* Full-scale is 510 Kelvin, convert to centidegrees  */
 	*val = (((51000 * value) / 0xFFFF) - 27215);
@@ -287,49 +332,59 @@ static int ltc294x_get_temperature(const struct ltc294x_info *info, int *val)
 }
 
 static int ltc294x_get_property(struct power_supply *psy,
-				enum power_supply_property prop,
-				union power_supply_propval *val)
+								enum power_supply_property prop,
+								union power_supply_propval *val)
 {
 	struct ltc294x_info *info = power_supply_get_drvdata(psy);
 
-	switch (prop) {
-	case POWER_SUPPLY_PROP_CHARGE_NOW:
-		return ltc294x_get_charge_now(info, &val->intval);
-	case POWER_SUPPLY_PROP_CHARGE_COUNTER:
-		return ltc294x_get_charge_counter(info, &val->intval);
-	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-		return ltc294x_get_voltage(info, &val->intval);
-	case POWER_SUPPLY_PROP_CURRENT_NOW:
-		return ltc294x_get_current(info, &val->intval);
-	case POWER_SUPPLY_PROP_TEMP:
-		return ltc294x_get_temperature(info, &val->intval);
-	default:
-		return -EINVAL;
+	switch (prop)
+	{
+		case POWER_SUPPLY_PROP_CHARGE_NOW:
+			return ltc294x_get_charge_now(info, &val->intval);
+
+		case POWER_SUPPLY_PROP_CHARGE_COUNTER:
+			return ltc294x_get_charge_counter(info, &val->intval);
+
+		case POWER_SUPPLY_PROP_VOLTAGE_NOW:
+			return ltc294x_get_voltage(info, &val->intval);
+
+		case POWER_SUPPLY_PROP_CURRENT_NOW:
+			return ltc294x_get_current(info, &val->intval);
+
+		case POWER_SUPPLY_PROP_TEMP:
+			return ltc294x_get_temperature(info, &val->intval);
+
+		default:
+			return -EINVAL;
 	}
 }
 
 static int ltc294x_set_property(struct power_supply *psy,
-	enum power_supply_property psp,
-	const union power_supply_propval *val)
+								enum power_supply_property psp,
+								const union power_supply_propval *val)
 {
 	struct ltc294x_info *info = power_supply_get_drvdata(psy);
 
-	switch (psp) {
-	case POWER_SUPPLY_PROP_CHARGE_NOW:
-		return ltc294x_set_charge_now(info, val->intval);
-	default:
-		return -EPERM;
+	switch (psp)
+	{
+		case POWER_SUPPLY_PROP_CHARGE_NOW:
+			return ltc294x_set_charge_now(info, val->intval);
+
+		default:
+			return -EPERM;
 	}
 }
 
 static int ltc294x_property_is_writeable(
 	struct power_supply *psy, enum power_supply_property psp)
 {
-	switch (psp) {
-	case POWER_SUPPLY_PROP_CHARGE_NOW:
-		return 1;
-	default:
-		return 0;
+	switch (psp)
+	{
+		case POWER_SUPPLY_PROP_CHARGE_NOW:
+			return 1;
+
+		default:
+			return 0;
 	}
 }
 
@@ -337,7 +392,8 @@ static void ltc294x_update(struct ltc294x_info *info)
 {
 	int charge = ltc294x_read_charge_register(info);
 
-	if (charge != info->charge) {
+	if (charge != info->charge)
+	{
 		info->charge = charge;
 		power_supply_changed(info->supply);
 	}
@@ -352,7 +408,8 @@ static void ltc294x_work(struct work_struct *work)
 	schedule_delayed_work(&info->work, LTC294X_WORK_DELAY * HZ);
 }
 
-static enum power_supply_property ltc294x_properties[] = {
+static enum power_supply_property ltc294x_properties[] =
+{
 	POWER_SUPPLY_PROP_CHARGE_COUNTER,
 	POWER_SUPPLY_PROP_CHARGE_NOW,
 	POWER_SUPPLY_PROP_VOLTAGE_NOW,
@@ -370,7 +427,7 @@ static int ltc294x_i2c_remove(struct i2c_client *client)
 }
 
 static int ltc294x_i2c_probe(struct i2c_client *client,
-	const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct power_supply_config psy_cfg = {};
 	struct ltc294x_info *info;
@@ -380,8 +437,11 @@ static int ltc294x_i2c_probe(struct i2c_client *client,
 	struct device_node *np;
 
 	info = devm_kzalloc(&client->dev, sizeof(*info), GFP_KERNEL);
+
 	if (info == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, info);
 
@@ -393,36 +453,51 @@ static int ltc294x_i2c_probe(struct i2c_client *client,
 	/* r_sense can be negative, when sense+ is connected to the battery
 	 * instead of the sense-. This results in reversed measurements. */
 	ret = of_property_read_u32(np, "lltc,resistor-sense", &r_sense);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev,
-			"Could not find lltc,resistor-sense in devicetree\n");
+				"Could not find lltc,resistor-sense in devicetree\n");
 		return ret;
 	}
+
 	info->r_sense = r_sense;
 
 	ret = of_property_read_u32(np, "lltc,prescaler-exponent",
-		&prescaler_exp);
-	if (ret < 0) {
+							   &prescaler_exp);
+
+	if (ret < 0)
+	{
 		dev_warn(&client->dev,
-			"lltc,prescaler-exponent not in devicetree\n");
+				 "lltc,prescaler-exponent not in devicetree\n");
 		prescaler_exp = LTC2941_MAX_PRESCALER_EXP;
 	}
 
-	if (info->num_regs == LTC2943_NUM_REGS) {
+	if (info->num_regs == LTC2943_NUM_REGS)
+	{
 		if (prescaler_exp > LTC2943_MAX_PRESCALER_EXP)
+		{
 			prescaler_exp = LTC2943_MAX_PRESCALER_EXP;
+		}
+
 		info->Qlsb = ((340 * 50000) / r_sense) /
-				(4096 / (1 << (2*prescaler_exp)));
-	} else {
+					 (4096 / (1 << (2 * prescaler_exp)));
+	}
+	else
+	{
 		if (prescaler_exp > LTC2941_MAX_PRESCALER_EXP)
+		{
 			prescaler_exp = LTC2941_MAX_PRESCALER_EXP;
+		}
+
 		info->Qlsb = ((85 * 50000) / r_sense) /
-				(128 / (1 << prescaler_exp));
+					 (128 / (1 << prescaler_exp));
 	}
 
 	info->client = client;
 	info->supply_desc.type = POWER_SUPPLY_TYPE_BATTERY;
 	info->supply_desc.properties = ltc294x_properties;
+
 	if (info->num_regs >= LTC294X_REG_TEMPERATURE_LSB)
 		info->supply_desc.num_properties =
 			ARRAY_SIZE(ltc294x_properties);
@@ -435,6 +510,7 @@ static int ltc294x_i2c_probe(struct i2c_client *client,
 	else
 		info->supply_desc.num_properties =
 			ARRAY_SIZE(ltc294x_properties) - 3;
+
 	info->supply_desc.get_property = ltc294x_get_property;
 	info->supply_desc.set_property = ltc294x_set_property;
 	info->supply_desc.property_is_writeable = ltc294x_property_is_writeable;
@@ -445,17 +521,23 @@ static int ltc294x_i2c_probe(struct i2c_client *client,
 	INIT_DELAYED_WORK(&info->work, ltc294x_work);
 
 	ret = ltc294x_reset(info, prescaler_exp);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "Communication with chip failed\n");
 		return ret;
 	}
 
 	info->supply = power_supply_register(&client->dev, &info->supply_desc,
-					     &psy_cfg);
-	if (IS_ERR(info->supply)) {
+										 &psy_cfg);
+
+	if (IS_ERR(info->supply))
+	{
 		dev_err(&client->dev, "failed to register ltc2941\n");
 		return PTR_ERR(info->supply);
-	} else {
+	}
+	else
+	{
 		schedule_delayed_work(&info->work, LTC294X_WORK_DELAY * HZ);
 	}
 
@@ -490,14 +572,16 @@ static SIMPLE_DEV_PM_OPS(ltc294x_pm_ops, ltc294x_suspend, ltc294x_resume);
 #endif /* CONFIG_PM_SLEEP */
 
 
-static const struct i2c_device_id ltc294x_i2c_id[] = {
+static const struct i2c_device_id ltc294x_i2c_id[] =
+{
 	{"ltc2941", LTC2941_NUM_REGS},
 	{"ltc2943", LTC2943_NUM_REGS},
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, ltc294x_i2c_id);
 
-static struct i2c_driver ltc294x_driver = {
+static struct i2c_driver ltc294x_driver =
+{
 	.driver = {
 		.name	= "LTC2941",
 		.pm	= LTC294X_PM_OPS,

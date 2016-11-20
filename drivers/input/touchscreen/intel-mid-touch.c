@@ -94,7 +94,8 @@
 #define MRSTOUCH_MAX_CHANNELS	32 /* Maximum ADC channels */
 
 /* Touch screen device structure */
-struct mrstouch_dev {
+struct mrstouch_dev
+{
 	struct device *dev; /* device associated with touch screen */
 	struct input_dev *input;
 	char phys[32];
@@ -124,8 +125,11 @@ static int mrstouch_nec_adc_read_finish(struct mrstouch_dev *tsdev)
 	int err;
 
 	err = intel_scu_ipc_update_register(PMIC_REG_MADCINT, 0x20, 0x20);
+
 	if (!err)
+	{
 		err = intel_scu_ipc_update_register(PMIC_REG_ADCCNTL1, 0, 0x05);
+	}
 
 	return err;
 }
@@ -144,11 +148,16 @@ static int mrstouch_ts_chan_read(u16 offset, u16 chan, u16 *vp, u16 *vm)
 	result = PMIC_REG_ADCSNS0H + offset;
 
 	if (chan == MRST_TS_CHAN12)
+	{
 		result += 4;
+	}
 
 	err = intel_scu_ipc_ioread32(result, &res);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Mash the bits up */
 
@@ -179,7 +188,8 @@ static int mrstouch_ts_bias_set(uint offset, uint bias)
 	chan = PMICADDR0 + offset;
 	start = MRST_TS_CHAN10;
 
-	for (count = 0; count <= 3; count++) {
+	for (count = 0; count <= 3; count++)
+	{
 		reg[count] = chan++;
 		data[count] = bias | (start + count);
 	}
@@ -189,46 +199,64 @@ static int mrstouch_ts_bias_set(uint offset, uint bias)
 
 /* To read touch screen channel values */
 static int mrstouch_nec_adc_read(struct mrstouch_dev *tsdev,
-				 u16 *x, u16 *y, u16 *z)
+								 u16 *x, u16 *y, u16 *z)
 {
 	int err;
 	u16 xm, ym, zm;
 
 	/* configure Y bias for X channels */
 	err = mrstouch_ts_bias_set(tsdev->asr, MRST_YBIAS);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	msleep(WAIT_ADC_COMPLETION);
 
 	/* read x+ and x- channels */
 	err = mrstouch_ts_chan_read(tsdev->asr, MRST_TS_CHAN10, x, &xm);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	/* configure x bias for y channels */
 	err = mrstouch_ts_bias_set(tsdev->asr, MRST_XBIAS);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	msleep(WAIT_ADC_COMPLETION);
 
 	/* read y+ and y- channels */
 	err = mrstouch_ts_chan_read(tsdev->asr, MRST_TS_CHAN12, y, &ym);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	/* configure z bias for x and y channels */
 	err = mrstouch_ts_bias_set(tsdev->asr, MRST_ZBIAS);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	msleep(WAIT_ADC_COMPLETION);
 
 	/* read z+ and z- channels */
 	err = mrstouch_ts_chan_read(tsdev->asr, MRST_TS_CHAN10, z, &zm);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	return 0;
 
@@ -249,43 +277,59 @@ static int mrstouch_fs_adc_read_prepare(struct mrstouch_dev *tsdev)
 
 	/* Stop the ADC */
 	err = intel_scu_ipc_update_register(PMIC_REG_MADCINT, 0x00, 0x02);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	chan = PMICADDR0 + tsdev->asr;
 
 	/* Set X BIAS */
-	for (count = 0; count <= 3; count++) {
+	for (count = 0; count <= 3; count++)
+	{
 		reg[count] = chan++;
 		data[count] = 0x2A;
 	}
+
 	reg[count] =  chan++; /* Dummy */
 	data[count] = 0;
 
 	err = intel_scu_ipc_writev(reg, data, 5);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	msleep(WAIT_ADC_COMPLETION);
 
 	/* Set Y BIAS */
-	for (count = 0; count <= 3; count++) {
+	for (count = 0; count <= 3; count++)
+	{
 		reg[count] = chan++;
 		data[count] = 0x4A;
 	}
+
 	reg[count] = chan++; /* Dummy */
 	data[count] = 0;
 
 	err = intel_scu_ipc_writev(reg, data, 5);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	msleep(WAIT_ADC_COMPLETION);
 
 	/* Set Z BIAS */
 	err = intel_scu_ipc_iowrite32(chan + 2, 0x8A8A8A8A);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	msleep(WAIT_ADC_COMPLETION);
 
@@ -297,7 +341,7 @@ ipc_error:
 }
 
 static int mrstouch_fs_adc_read(struct mrstouch_dev *tsdev,
-				u16 *x, u16 *y, u16 *z)
+								u16 *x, u16 *y, u16 *z)
 {
 	int err;
 	u16 result;
@@ -312,8 +356,11 @@ static int mrstouch_fs_adc_read(struct mrstouch_dev *tsdev,
 	reg[3] = result + 17;
 
 	err = intel_scu_ipc_readv(reg, data, 4);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	*x = data[0] << 3; /* Higher 7 bits */
 	*x |= data[1] & 0x7; /* Lower 3 bits */
@@ -328,8 +375,11 @@ static int mrstouch_fs_adc_read(struct mrstouch_dev *tsdev,
 	reg[1] = result + 29;
 
 	err = intel_scu_ipc_readv(reg, data, 4);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	*z = data[0] << 3; /* Higher 7 bits */
 	*z |= data[1] & 0x7; /* Lower 3 bits */
@@ -351,30 +401,47 @@ static int mrstouch_fs_adc_read_finish(struct mrstouch_dev *tsdev)
 
 	/* Clear all TS channels */
 	chan = PMICADDR0 + tsdev->asr;
-	for (count = 0; count <= 4; count++) {
-		reg[count] = chan++;
-		data[count] = 0;
-	}
-	err = intel_scu_ipc_writev(reg, data, 5);
-	if (err)
-		goto ipc_error;
 
-	for (count = 0; count <= 4; count++) {
+	for (count = 0; count <= 4; count++)
+	{
 		reg[count] = chan++;
 		data[count] = 0;
 	}
+
 	err = intel_scu_ipc_writev(reg, data, 5);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
+
+	for (count = 0; count <= 4; count++)
+	{
+		reg[count] = chan++;
+		data[count] = 0;
+	}
+
+	err = intel_scu_ipc_writev(reg, data, 5);
+
+	if (err)
+	{
+		goto ipc_error;
+	}
 
 	err = intel_scu_ipc_iowrite32(chan + 2, 0x00000000);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	/* Start ADC */
 	err = intel_scu_ipc_update_register(PMIC_REG_MADCINT, 0x02, 0x02);
+
 	if (err)
+	{
 		goto ipc_error;
+	}
 
 	return 0;
 
@@ -384,14 +451,17 @@ ipc_error:
 }
 
 static void mrstouch_report_event(struct input_dev *input,
-			unsigned int x, unsigned int y, unsigned int z)
+								  unsigned int x, unsigned int y, unsigned int z)
 {
-	if (z > MRST_PRESSURE_NOMINAL) {
+	if (z > MRST_PRESSURE_NOMINAL)
+	{
 		/* Pen touched, report button touch and coordinates */
 		input_report_key(input, BTN_TOUCH, 1);
 		input_report_abs(input, ABS_X, x);
 		input_report_abs(input, ABS_Y, y);
-	} else {
+	}
+	else
+	{
 		input_report_key(input, BTN_TOUCH, 0);
 	}
 
@@ -411,14 +481,20 @@ static irqreturn_t mrstouch_pendet_irq(int irq, void *dev_id)
 	 */
 
 	if (tsdev->read_prepare(tsdev))
+	{
 		goto out;
+	}
 
-	do {
+	do
+	{
 		if (tsdev->read(tsdev, &x, &y, &z))
+		{
 			break;
+		}
 
 		mrstouch_report_event(tsdev->input, x, y, z);
-	} while (z > MRST_PRESSURE_NOMINAL);
+	}
+	while (z > MRST_PRESSURE_NOMINAL);
 
 	tsdev->read_finish(tsdev);
 
@@ -433,8 +509,11 @@ static int mrstouch_read_pmic_id(uint *vendor, uint *rev)
 	u8 r;
 
 	err = intel_scu_ipc_ioread8(PMIC_REG_ID1, &r);
+
 	if (err)
+	{
 		return err;
+	}
 
 	*vendor = r & 0x7;
 	*rev = (r >> 3) & 0x7;
@@ -452,23 +531,35 @@ static int mrstouch_chan_parse(struct mrstouch_dev *tsdev)
 	int err, i;
 	u8 r8;
 
-	for (i = 0; i < MRSTOUCH_MAX_CHANNELS; i++) {
+	for (i = 0; i < MRSTOUCH_MAX_CHANNELS; i++)
+	{
 		err = intel_scu_ipc_ioread8(PMICADDR0 + i, &r8);
-		if (err)
-			return err;
 
-		if (r8 == END_OF_CHANNEL) {
+		if (err)
+		{
+			return err;
+		}
+
+		if (r8 == END_OF_CHANNEL)
+		{
 			found = i;
 			break;
 		}
 	}
 
-	if (tsdev->vendor == PMIC_VENDOR_FS) {
+	if (tsdev->vendor == PMIC_VENDOR_FS)
+	{
 		if (found > MRSTOUCH_MAX_CHANNELS - 18)
+		{
 			return -ENOSPC;
-	} else {
+		}
+	}
+	else
+	{
 		if (found > MRSTOUCH_MAX_CHANNELS - 4)
+		{
 			return -ENOSPC;
+		}
 	}
 
 	return found;
@@ -485,11 +576,17 @@ static int mrstouch_ts_chan_set(uint offset)
 	int ret, count;
 
 	chan = PMICADDR0 + offset;
-	for (count = 0; count <= 3; count++) {
+
+	for (count = 0; count <= 3; count++)
+	{
 		ret = intel_scu_ipc_iowrite8(chan++, MRST_TS_CHAN10 + count);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
+
 	return intel_scu_ipc_iowrite8(chan++, END_OF_CHANNEL);
 }
 
@@ -500,33 +597,38 @@ static int mrstouch_adc_init(struct mrstouch_dev *tsdev)
 	u8 ra, rm;
 
 	err = mrstouch_read_pmic_id(&tsdev->vendor, &tsdev->rev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(tsdev->dev, "Unable to read PMIC id\n");
 		return err;
 	}
 
-	switch (tsdev->vendor) {
-	case PMIC_VENDOR_NEC:
-	case PMIC_VENDOR_MAXIM:
-		tsdev->read_prepare = mrstouch_nec_adc_read_prepare;
-		tsdev->read = mrstouch_nec_adc_read;
-		tsdev->read_finish = mrstouch_nec_adc_read_finish;
-		break;
+	switch (tsdev->vendor)
+	{
+		case PMIC_VENDOR_NEC:
+		case PMIC_VENDOR_MAXIM:
+			tsdev->read_prepare = mrstouch_nec_adc_read_prepare;
+			tsdev->read = mrstouch_nec_adc_read;
+			tsdev->read_finish = mrstouch_nec_adc_read_finish;
+			break;
 
-	case PMIC_VENDOR_FS:
-		tsdev->read_prepare = mrstouch_fs_adc_read_prepare;
-		tsdev->read = mrstouch_fs_adc_read;
-		tsdev->read_finish = mrstouch_fs_adc_read_finish;
-		break;
+		case PMIC_VENDOR_FS:
+			tsdev->read_prepare = mrstouch_fs_adc_read_prepare;
+			tsdev->read = mrstouch_fs_adc_read;
+			tsdev->read_finish = mrstouch_fs_adc_read_finish;
+			break;
 
-	default:
-		dev_err(tsdev->dev,
-			"Unsupported touchscreen: %d\n", tsdev->vendor);
-		return -ENXIO;
+		default:
+			dev_err(tsdev->dev,
+					"Unsupported touchscreen: %d\n", tsdev->vendor);
+			return -ENXIO;
 	}
 
 	start = mrstouch_chan_parse(tsdev);
-	if (start < 0) {
+
+	if (start < 0)
+	{
 		dev_err(tsdev->dev, "Unable to parse channels\n");
 		return start;
 	}
@@ -541,27 +643,39 @@ static int mrstouch_adc_init(struct mrstouch_dev *tsdev)
 	 * interrupt generation sometimes.
 	 */
 
-	if (tsdev->vendor == PMIC_VENDOR_FS) {
+	if (tsdev->vendor == PMIC_VENDOR_FS)
+	{
 		ra = 0xE0 | ADC_LOOP_DELAY0;
 		rm = 0x5;
-	} else {
+	}
+	else
+	{
 		/* NEC and MAXIm not consistent with loop delay 0 */
 		ra = 0xE0 | ADC_LOOP_DELAY1;
 		rm = 0x0;
 
 		/* configure touch screen channels */
 		err = mrstouch_ts_chan_set(tsdev->asr);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	err = intel_scu_ipc_update_register(PMIC_REG_ADCCNTL1, ra, 0xE7);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = intel_scu_ipc_update_register(PMIC_REG_MADCINT, rm, 0x03);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -576,20 +690,26 @@ static int mrstouch_probe(struct platform_device *pdev)
 	int irq;
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "no interrupt assigned\n");
 		return -EINVAL;
 	}
 
 	tsdev = devm_kzalloc(&pdev->dev, sizeof(struct mrstouch_dev),
-			     GFP_KERNEL);
-	if (!tsdev) {
+						 GFP_KERNEL);
+
+	if (!tsdev)
+	{
 		dev_err(&pdev->dev, "unable to allocate memory\n");
 		return -ENOMEM;
 	}
 
 	input = devm_input_allocate_device(&pdev->dev);
-	if (!input) {
+
+	if (!input)
+	{
 		dev_err(&pdev->dev, "unable to allocate input device\n");
 		return -ENOMEM;
 	}
@@ -599,10 +719,12 @@ static int mrstouch_probe(struct platform_device *pdev)
 	tsdev->irq = irq;
 
 	snprintf(tsdev->phys, sizeof(tsdev->phys),
-		 "%s/input0", dev_name(tsdev->dev));
+			 "%s/input0", dev_name(tsdev->dev));
 
 	err = mrstouch_adc_init(tsdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "ADC initialization failed\n");
 		return err;
 	}
@@ -618,22 +740,26 @@ static int mrstouch_probe(struct platform_device *pdev)
 	input->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
 
 	input_set_abs_params(tsdev->input, ABS_X,
-			     MRST_X_MIN, MRST_X_MAX, MRST_X_FUZZ, 0);
+						 MRST_X_MIN, MRST_X_MAX, MRST_X_FUZZ, 0);
 	input_set_abs_params(tsdev->input, ABS_Y,
-			     MRST_Y_MIN, MRST_Y_MAX, MRST_Y_FUZZ, 0);
+						 MRST_Y_MIN, MRST_Y_MAX, MRST_Y_FUZZ, 0);
 	input_set_abs_params(tsdev->input, ABS_PRESSURE,
-			     MRST_PRESSURE_MIN, MRST_PRESSURE_MAX, 0, 0);
+						 MRST_PRESSURE_MIN, MRST_PRESSURE_MAX, 0, 0);
 
 	err = devm_request_threaded_irq(&pdev->dev, tsdev->irq, NULL,
-					mrstouch_pendet_irq, IRQF_ONESHOT,
-					"mrstouch", tsdev);
-	if (err) {
+									mrstouch_pendet_irq, IRQF_ONESHOT,
+									"mrstouch", tsdev);
+
+	if (err)
+	{
 		dev_err(tsdev->dev, "unable to allocate irq\n");
 		return err;
 	}
 
 	err = input_register_device(tsdev->input);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(tsdev->dev, "unable to register input device\n");
 		return err;
 	}
@@ -641,7 +767,8 @@ static int mrstouch_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver mrstouch_driver = {
+static struct platform_driver mrstouch_driver =
+{
 	.driver = {
 		.name	= "pmic_touch",
 	},

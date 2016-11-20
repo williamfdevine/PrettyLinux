@@ -6,7 +6,7 @@
 #include <sys/resource.h>
 
 #ifndef MCL_ONFAULT
-#define MCL_ONFAULT (MCL_FUTURE << 1)
+	#define MCL_ONFAULT (MCL_FUTURE << 1)
 #endif
 
 static int test_limit(void)
@@ -15,21 +15,27 @@ static int test_limit(void)
 	struct rlimit lims;
 	void *map;
 
-	if (getrlimit(RLIMIT_MEMLOCK, &lims)) {
+	if (getrlimit(RLIMIT_MEMLOCK, &lims))
+	{
 		perror("getrlimit");
 		return ret;
 	}
 
-	if (mlockall(MCL_ONFAULT | MCL_FUTURE)) {
+	if (mlockall(MCL_ONFAULT | MCL_FUTURE))
+	{
 		perror("mlockall");
 		return ret;
 	}
 
 	map = mmap(NULL, 2 * lims.rlim_max, PROT_READ | PROT_WRITE,
-		   MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE, 0, 0);
+			   MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE, 0, 0);
+
 	if (map != MAP_FAILED)
+	{
 		printf("mmap should have failed, but didn't\n");
-	else {
+	}
+	else
+	{
 		ret = 0;
 		munmap(map, 2 * lims.rlim_max);
 	}

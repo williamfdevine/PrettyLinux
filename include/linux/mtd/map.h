@@ -33,45 +33,45 @@
 #include <asm/barrier.h>
 
 #ifdef CONFIG_MTD_MAP_BANK_WIDTH_1
-#define map_bankwidth(map) 1
-#define map_bankwidth_is_1(map) (map_bankwidth(map) == 1)
-#define map_bankwidth_is_large(map) (0)
-#define map_words(map) (1)
-#define MAX_MAP_BANKWIDTH 1
+	#define map_bankwidth(map) 1
+	#define map_bankwidth_is_1(map) (map_bankwidth(map) == 1)
+	#define map_bankwidth_is_large(map) (0)
+	#define map_words(map) (1)
+	#define MAX_MAP_BANKWIDTH 1
 #else
-#define map_bankwidth_is_1(map) (0)
+	#define map_bankwidth_is_1(map) (0)
 #endif
 
 #ifdef CONFIG_MTD_MAP_BANK_WIDTH_2
-# ifdef map_bankwidth
-#  undef map_bankwidth
-#  define map_bankwidth(map) ((map)->bankwidth)
-# else
-#  define map_bankwidth(map) 2
-#  define map_bankwidth_is_large(map) (0)
-#  define map_words(map) (1)
-# endif
-#define map_bankwidth_is_2(map) (map_bankwidth(map) == 2)
-#undef MAX_MAP_BANKWIDTH
-#define MAX_MAP_BANKWIDTH 2
+	#ifdef map_bankwidth
+		#undef map_bankwidth
+		#define map_bankwidth(map) ((map)->bankwidth)
+	#else
+		#define map_bankwidth(map) 2
+		#define map_bankwidth_is_large(map) (0)
+		#define map_words(map) (1)
+	#endif
+	#define map_bankwidth_is_2(map) (map_bankwidth(map) == 2)
+	#undef MAX_MAP_BANKWIDTH
+	#define MAX_MAP_BANKWIDTH 2
 #else
-#define map_bankwidth_is_2(map) (0)
+	#define map_bankwidth_is_2(map) (0)
 #endif
 
 #ifdef CONFIG_MTD_MAP_BANK_WIDTH_4
-# ifdef map_bankwidth
-#  undef map_bankwidth
-#  define map_bankwidth(map) ((map)->bankwidth)
-# else
-#  define map_bankwidth(map) 4
-#  define map_bankwidth_is_large(map) (0)
-#  define map_words(map) (1)
-# endif
-#define map_bankwidth_is_4(map) (map_bankwidth(map) == 4)
-#undef MAX_MAP_BANKWIDTH
-#define MAX_MAP_BANKWIDTH 4
+	#ifdef map_bankwidth
+		#undef map_bankwidth
+		#define map_bankwidth(map) ((map)->bankwidth)
+	#else
+		#define map_bankwidth(map) 4
+		#define map_bankwidth_is_large(map) (0)
+		#define map_words(map) (1)
+	#endif
+	#define map_bankwidth_is_4(map) (map_bankwidth(map) == 4)
+	#undef MAX_MAP_BANKWIDTH
+	#define MAX_MAP_BANKWIDTH 4
 #else
-#define map_bankwidth_is_4(map) (0)
+	#define map_bankwidth_is_4(map) (0)
 #endif
 
 /* ensure we never evaluate anything shorted than an unsigned long
@@ -80,65 +80,65 @@
 #define map_calc_words(map) ((map_bankwidth(map) + (sizeof(unsigned long)-1)) / sizeof(unsigned long))
 
 #ifdef CONFIG_MTD_MAP_BANK_WIDTH_8
-# ifdef map_bankwidth
-#  undef map_bankwidth
-#  define map_bankwidth(map) ((map)->bankwidth)
-#  if BITS_PER_LONG < 64
-#   undef map_bankwidth_is_large
-#   define map_bankwidth_is_large(map) (map_bankwidth(map) > BITS_PER_LONG/8)
-#   undef map_words
-#   define map_words(map) map_calc_words(map)
-#  endif
-# else
-#  define map_bankwidth(map) 8
-#  define map_bankwidth_is_large(map) (BITS_PER_LONG < 64)
-#  define map_words(map) map_calc_words(map)
-# endif
-#define map_bankwidth_is_8(map) (map_bankwidth(map) == 8)
-#undef MAX_MAP_BANKWIDTH
-#define MAX_MAP_BANKWIDTH 8
+	#ifdef map_bankwidth
+		#undef map_bankwidth
+		#define map_bankwidth(map) ((map)->bankwidth)
+		#if BITS_PER_LONG < 64
+			#undef map_bankwidth_is_large
+			#define map_bankwidth_is_large(map) (map_bankwidth(map) > BITS_PER_LONG/8)
+			#undef map_words
+			#define map_words(map) map_calc_words(map)
+		#endif
+	#else
+		#define map_bankwidth(map) 8
+		#define map_bankwidth_is_large(map) (BITS_PER_LONG < 64)
+		#define map_words(map) map_calc_words(map)
+	#endif
+	#define map_bankwidth_is_8(map) (map_bankwidth(map) == 8)
+	#undef MAX_MAP_BANKWIDTH
+	#define MAX_MAP_BANKWIDTH 8
 #else
-#define map_bankwidth_is_8(map) (0)
+	#define map_bankwidth_is_8(map) (0)
 #endif
 
 #ifdef CONFIG_MTD_MAP_BANK_WIDTH_16
-# ifdef map_bankwidth
-#  undef map_bankwidth
-#  define map_bankwidth(map) ((map)->bankwidth)
-#  undef map_bankwidth_is_large
-#  define map_bankwidth_is_large(map) (map_bankwidth(map) > BITS_PER_LONG/8)
-#  undef map_words
-#  define map_words(map) map_calc_words(map)
-# else
-#  define map_bankwidth(map) 16
-#  define map_bankwidth_is_large(map) (1)
-#  define map_words(map) map_calc_words(map)
-# endif
-#define map_bankwidth_is_16(map) (map_bankwidth(map) == 16)
-#undef MAX_MAP_BANKWIDTH
-#define MAX_MAP_BANKWIDTH 16
+	#ifdef map_bankwidth
+		#undef map_bankwidth
+		#define map_bankwidth(map) ((map)->bankwidth)
+		#undef map_bankwidth_is_large
+		#define map_bankwidth_is_large(map) (map_bankwidth(map) > BITS_PER_LONG/8)
+		#undef map_words
+		#define map_words(map) map_calc_words(map)
+	#else
+		#define map_bankwidth(map) 16
+		#define map_bankwidth_is_large(map) (1)
+		#define map_words(map) map_calc_words(map)
+	#endif
+	#define map_bankwidth_is_16(map) (map_bankwidth(map) == 16)
+	#undef MAX_MAP_BANKWIDTH
+	#define MAX_MAP_BANKWIDTH 16
 #else
-#define map_bankwidth_is_16(map) (0)
+	#define map_bankwidth_is_16(map) (0)
 #endif
 
 #ifdef CONFIG_MTD_MAP_BANK_WIDTH_32
-/* always use indirect access for 256-bit to preserve kernel stack */
-# undef map_bankwidth
-# define map_bankwidth(map) ((map)->bankwidth)
-# undef map_bankwidth_is_large
-# define map_bankwidth_is_large(map) (map_bankwidth(map) > BITS_PER_LONG/8)
-# undef map_words
-# define map_words(map) map_calc_words(map)
-#define map_bankwidth_is_32(map) (map_bankwidth(map) == 32)
-#undef MAX_MAP_BANKWIDTH
-#define MAX_MAP_BANKWIDTH 32
+	/* always use indirect access for 256-bit to preserve kernel stack */
+	#undef map_bankwidth
+	#define map_bankwidth(map) ((map)->bankwidth)
+	#undef map_bankwidth_is_large
+	#define map_bankwidth_is_large(map) (map_bankwidth(map) > BITS_PER_LONG/8)
+	#undef map_words
+	#define map_words(map) map_calc_words(map)
+	#define map_bankwidth_is_32(map) (map_bankwidth(map) == 32)
+	#undef MAX_MAP_BANKWIDTH
+	#define MAX_MAP_BANKWIDTH 32
 #else
-#define map_bankwidth_is_32(map) (0)
+	#define map_bankwidth_is_32(map) (0)
 #endif
 
 #ifndef map_bankwidth
 #ifdef CONFIG_MTD
-#warning "No CONFIG_MTD_MAP_BANK_WIDTH_xx selected. No NOR chip support can work"
+	#warning "No CONFIG_MTD_MAP_BANK_WIDTH_xx selected. No NOR chip support can work"
 #endif
 static inline int map_bankwidth(void *map)
 {
@@ -152,35 +152,38 @@ static inline int map_bankwidth(void *map)
 
 static inline int map_bankwidth_supported(int w)
 {
-	switch (w) {
+	switch (w)
+	{
 #ifdef CONFIG_MTD_MAP_BANK_WIDTH_1
-	case 1:
+
+		case 1:
 #endif
 #ifdef CONFIG_MTD_MAP_BANK_WIDTH_2
-	case 2:
+		case 2:
 #endif
 #ifdef CONFIG_MTD_MAP_BANK_WIDTH_4
-	case 4:
+		case 4:
 #endif
 #ifdef CONFIG_MTD_MAP_BANK_WIDTH_8
-	case 8:
+		case 8:
 #endif
 #ifdef CONFIG_MTD_MAP_BANK_WIDTH_16
-	case 16:
+		case 16:
 #endif
 #ifdef CONFIG_MTD_MAP_BANK_WIDTH_32
-	case 32:
+		case 32:
 #endif
-		return 1;
+			return 1;
 
-	default:
-		return 0;
+		default:
+			return 0;
 	}
 }
 
 #define MAX_MAP_LONGS (((MAX_MAP_BANKWIDTH * 8) + BITS_PER_LONG - 1) / BITS_PER_LONG)
 
-typedef union {
+typedef union
+{
 	unsigned long x[MAX_MAP_LONGS];
 } map_word;
 
@@ -202,7 +205,8 @@ typedef union {
    of living.
 */
 
-struct map_info {
+struct map_info
+{
 	const char *name;
 	unsigned long size;
 	resource_size_t phys;
@@ -250,7 +254,8 @@ struct map_info {
 	struct mtd_chip_driver *fldrv;
 };
 
-struct mtd_chip_driver {
+struct mtd_chip_driver
+{
 	struct mtd_info *(*probe)(struct map_info *map);
 	void (*destroy)(struct mtd_info *);
 	struct module *module;
@@ -275,9 +280,12 @@ static inline int map_word_equal(struct map_info *map, map_word val1, map_word v
 {
 	int i;
 
-	for (i = 0; i < map_words(map); i++) {
+	for (i = 0; i < map_words(map); i++)
+	{
 		if (val1.x[i] != val2.x[i])
+		{
 			return 0;
+		}
 	}
 
 	return 1;
@@ -289,7 +297,9 @@ static inline map_word map_word_and(struct map_info *map, map_word val1, map_wor
 	int i;
 
 	for (i = 0; i < map_words(map); i++)
+	{
 		r.x[i] = val1.x[i] & val2.x[i];
+	}
 
 	return r;
 }
@@ -300,7 +310,9 @@ static inline map_word map_word_clr(struct map_info *map, map_word val1, map_wor
 	int i;
 
 	for (i = 0; i < map_words(map); i++)
+	{
 		r.x[i] = val1.x[i] & ~val2.x[i];
+	}
 
 	return r;
 }
@@ -311,7 +323,9 @@ static inline map_word map_word_or(struct map_info *map, map_word val1, map_word
 	int i;
 
 	for (i = 0; i < map_words(map); i++)
+	{
 		r.x[i] = val1.x[i] | val2.x[i];
+	}
 
 	return r;
 }
@@ -320,9 +334,12 @@ static inline int map_word_andequal(struct map_info *map, map_word val1, map_wor
 {
 	int i;
 
-	for (i = 0; i < map_words(map); i++) {
+	for (i = 0; i < map_words(map); i++)
+	{
 		if ((val1.x[i] & val2.x[i]) != val3.x[i])
+		{
 			return 0;
+		}
 	}
 
 	return 1;
@@ -332,9 +349,12 @@ static inline int map_word_bitsset(struct map_info *map, map_word val1, map_word
 {
 	int i;
 
-	for (i = 0; i < map_words(map); i++) {
+	for (i = 0; i < map_words(map); i++)
+	{
 		if (val1.x[i] & val2.x[i])
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -345,33 +365,52 @@ static inline map_word map_word_load(struct map_info *map, const void *ptr)
 	map_word r;
 
 	if (map_bankwidth_is_1(map))
+	{
 		r.x[0] = *(unsigned char *)ptr;
+	}
 	else if (map_bankwidth_is_2(map))
+	{
 		r.x[0] = get_unaligned((uint16_t *)ptr);
+	}
 	else if (map_bankwidth_is_4(map))
+	{
 		r.x[0] = get_unaligned((uint32_t *)ptr);
+	}
+
 #if BITS_PER_LONG >= 64
 	else if (map_bankwidth_is_8(map))
+	{
 		r.x[0] = get_unaligned((uint64_t *)ptr);
+	}
+
 #endif
 	else if (map_bankwidth_is_large(map))
+	{
 		memcpy(r.x, ptr, map->bankwidth);
+	}
 	else
+	{
 		BUG();
+	}
 
 	return r;
 }
 
-static inline map_word map_word_load_partial(struct map_info *map, map_word orig, const unsigned char *buf, int start, int len)
+static inline map_word map_word_load_partial(struct map_info *map, map_word orig, const unsigned char *buf, int start,
+		int len)
 {
 	int i;
 
-	if (map_bankwidth_is_large(map)) {
+	if (map_bankwidth_is_large(map))
+	{
 		char *dest = (char *)&orig;
 
-		memcpy(dest+start, buf, len);
-	} else {
-		for (i = start; i < start+len; i++) {
+		memcpy(dest + start, buf, len);
+	}
+	else
+	{
+		for (i = start; i < start + len; i++)
+		{
 			int bitpos;
 
 #ifdef __LITTLE_ENDIAN
@@ -380,16 +419,17 @@ static inline map_word map_word_load_partial(struct map_info *map, map_word orig
 			bitpos = (map_bankwidth(map) - 1 - i) * 8;
 #endif
 			orig.x[0] &= ~(0xff << bitpos);
-			orig.x[0] |= (unsigned long)buf[i-start] << bitpos;
+			orig.x[0] |= (unsigned long)buf[i - start] << bitpos;
 		}
 	}
+
 	return orig;
 }
 
 #if BITS_PER_LONG < 64
-#define MAP_FF_LIMIT 4
+	#define MAP_FF_LIMIT 4
 #else
-#define MAP_FF_LIMIT 8
+	#define MAP_FF_LIMIT 8
 #endif
 
 static inline map_word map_word_ff(struct map_info *map)
@@ -397,14 +437,20 @@ static inline map_word map_word_ff(struct map_info *map)
 	map_word r;
 	int i;
 
-	if (map_bankwidth(map) < MAP_FF_LIMIT) {
+	if (map_bankwidth(map) < MAP_FF_LIMIT)
+	{
 		int bw = 8 * map_bankwidth(map);
 
 		r.x[0] = (1UL << bw) - 1;
-	} else {
-		for (i = 0; i < map_words(map); i++)
-			r.x[i] = ~0UL;
 	}
+	else
+	{
+		for (i = 0; i < map_words(map); i++)
+		{
+			r.x[i] = ~0UL;
+		}
+	}
+
 	return r;
 }
 
@@ -413,19 +459,33 @@ static inline map_word inline_map_read(struct map_info *map, unsigned long ofs)
 	map_word r;
 
 	if (map_bankwidth_is_1(map))
+	{
 		r.x[0] = __raw_readb(map->virt + ofs);
+	}
 	else if (map_bankwidth_is_2(map))
+	{
 		r.x[0] = __raw_readw(map->virt + ofs);
+	}
 	else if (map_bankwidth_is_4(map))
+	{
 		r.x[0] = __raw_readl(map->virt + ofs);
+	}
+
 #if BITS_PER_LONG >= 64
 	else if (map_bankwidth_is_8(map))
+	{
 		r.x[0] = __raw_readq(map->virt + ofs);
+	}
+
 #endif
 	else if (map_bankwidth_is_large(map))
+	{
 		memcpy_fromio(r.x, map->virt + ofs, map->bankwidth);
+	}
 	else
+	{
 		BUG();
+	}
 
 	return r;
 }
@@ -433,28 +493,47 @@ static inline map_word inline_map_read(struct map_info *map, unsigned long ofs)
 static inline void inline_map_write(struct map_info *map, const map_word datum, unsigned long ofs)
 {
 	if (map_bankwidth_is_1(map))
+	{
 		__raw_writeb(datum.x[0], map->virt + ofs);
+	}
 	else if (map_bankwidth_is_2(map))
+	{
 		__raw_writew(datum.x[0], map->virt + ofs);
+	}
 	else if (map_bankwidth_is_4(map))
+	{
 		__raw_writel(datum.x[0], map->virt + ofs);
+	}
+
 #if BITS_PER_LONG >= 64
 	else if (map_bankwidth_is_8(map))
+	{
 		__raw_writeq(datum.x[0], map->virt + ofs);
+	}
+
 #endif
 	else if (map_bankwidth_is_large(map))
-		memcpy_toio(map->virt+ofs, datum.x, map->bankwidth);
+	{
+		memcpy_toio(map->virt + ofs, datum.x, map->bankwidth);
+	}
 	else
+	{
 		BUG();
+	}
+
 	mb();
 }
 
 static inline void inline_map_copy_from(struct map_info *map, void *to, unsigned long from, ssize_t len)
 {
 	if (map->cached)
+	{
 		memcpy(to, (char *)map->cached + from, len);
+	}
 	else
+	{
 		memcpy_fromio(to, map->virt + from, len);
+	}
 }
 
 static inline void inline_map_copy_to(struct map_info *map, unsigned long to, const void *from, ssize_t len)
@@ -463,23 +542,23 @@ static inline void inline_map_copy_to(struct map_info *map, unsigned long to, co
 }
 
 #ifdef CONFIG_MTD_COMPLEX_MAPPINGS
-#define map_read(map, ofs) (map)->read(map, ofs)
-#define map_copy_from(map, to, from, len) (map)->copy_from(map, to, from, len)
-#define map_write(map, datum, ofs) (map)->write(map, datum, ofs)
-#define map_copy_to(map, to, from, len) (map)->copy_to(map, to, from, len)
+	#define map_read(map, ofs) (map)->read(map, ofs)
+	#define map_copy_from(map, to, from, len) (map)->copy_from(map, to, from, len)
+	#define map_write(map, datum, ofs) (map)->write(map, datum, ofs)
+	#define map_copy_to(map, to, from, len) (map)->copy_to(map, to, from, len)
 
-extern void simple_map_init(struct map_info *);
-#define map_is_linear(map) (map->phys != NO_XIP)
+	extern void simple_map_init(struct map_info *);
+	#define map_is_linear(map) (map->phys != NO_XIP)
 
 #else
-#define map_read(map, ofs) inline_map_read(map, ofs)
-#define map_copy_from(map, to, from, len) inline_map_copy_from(map, to, from, len)
-#define map_write(map, datum, ofs) inline_map_write(map, datum, ofs)
-#define map_copy_to(map, to, from, len) inline_map_copy_to(map, to, from, len)
+	#define map_read(map, ofs) inline_map_read(map, ofs)
+	#define map_copy_from(map, to, from, len) inline_map_copy_from(map, to, from, len)
+	#define map_write(map, datum, ofs) inline_map_write(map, datum, ofs)
+	#define map_copy_to(map, to, from, len) inline_map_copy_to(map, to, from, len)
 
 
-#define simple_map_init(map) BUG_ON(!map_bankwidth_supported((map)->bankwidth))
-#define map_is_linear(map) ({ (void)(map); 1; })
+	#define simple_map_init(map) BUG_ON(!map_bankwidth_supported((map)->bankwidth))
+	#define map_is_linear(map) ({ (void)(map); 1; })
 
 #endif /* !CONFIG_MTD_COMPLEX_MAPPINGS */
 

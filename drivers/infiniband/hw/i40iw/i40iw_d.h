@@ -103,22 +103,22 @@
 
 #define I40IW_GET_CURRENT_CQ_ELEMENT(_cq) \
 	( \
-		&((_cq)->cq_base[I40IW_RING_GETCURRENT_HEAD((_cq)->cq_ring)])  \
+	  &((_cq)->cq_base[I40IW_RING_GETCURRENT_HEAD((_cq)->cq_ring)])  \
 	)
 #define I40IW_GET_CURRENT_EXTENDED_CQ_ELEMENT(_cq) \
 	( \
-		&(((struct i40iw_extended_cqe *)        \
-		   ((_cq)->cq_base))[I40IW_RING_GETCURRENT_HEAD((_cq)->cq_ring)]) \
+	  &(((struct i40iw_extended_cqe *)        \
+		 ((_cq)->cq_base))[I40IW_RING_GETCURRENT_HEAD((_cq)->cq_ring)]) \
 	)
 
 #define I40IW_GET_CURRENT_AEQ_ELEMENT(_aeq) \
 	( \
-		&_aeq->aeqe_base[I40IW_RING_GETCURRENT_TAIL(_aeq->aeq_ring)]   \
+	  &_aeq->aeqe_base[I40IW_RING_GETCURRENT_TAIL(_aeq->aeq_ring)]   \
 	)
 
 #define I40IW_GET_CURRENT_CEQ_ELEMENT(_ceq) \
 	( \
-		&_ceq->ceqe_base[I40IW_RING_GETCURRENT_TAIL(_ceq->ceq_ring)]   \
+	  &_ceq->ceqe_base[I40IW_RING_GETCURRENT_TAIL(_ceq->ceq_ring)]   \
 	)
 
 #define I40IW_AE_SOURCE_RQ              0x1
@@ -818,7 +818,7 @@
 
 #define I40IW_CQPSQ_MPP_QS_HANDLE_SHIFT 0
 #define I40IW_CQPSQ_MPP_QS_HANDLE_MASK (0xffffUL << \
-					I40IW_CQPSQ_MPP_QS_HANDLE_SHIFT)
+										I40IW_CQPSQ_MPP_QS_HANDLE_SHIFT)
 
 #define I40IW_CQPSQ_MPP_PPIDX_SHIFT 0
 #define I40IW_CQPSQ_MPP_PPIDX_MASK (0x3ffUL << I40IW_CQPSQ_MPP_PPIDX_SHIFT)
@@ -925,7 +925,7 @@
 
 #define I40IW_CQPSQ_FWQE_GENERATE_AE_SHIFT 59
 #define I40IW_CQPSQ_FWQE_GENERATE_AE_MASK (1ULL <<      \
-					   I40IW_CQPSQ_FWQE_GENERATE_AE_SHIFT)
+		I40IW_CQPSQ_FWQE_GENERATE_AE_SHIFT)
 
 #define I40IW_CQPSQ_FWQE_USERFLCODE_SHIFT 60
 #define I40IW_CQPSQ_FWQE_USERFLCODE_MASK        \
@@ -1270,7 +1270,7 @@
 
 #define I40IWQPC_EXCEPTION_LAN_QUEUE_SHIFT 32
 #define I40IWQPC_EXCEPTION_LAN_QUEUE_MASK (0xfffULL <<  \
-					   I40IWQPC_EXCEPTION_LAN_QUEUE_SHIFT)
+		I40IWQPC_EXCEPTION_LAN_QUEUE_SHIFT)
 
 #define I40IWQPC_LOCAL_IPADDR3_SHIFT 0
 #define I40IWQPC_LOCAL_IPADDR3_MASK \
@@ -1492,7 +1492,8 @@
 #define I40IW_DONE_COUNT	1000
 #define I40IW_SLEEP_COUNT	10
 
-enum {
+enum
+{
 	I40IW_QUEUES_ALIGNMENT_MASK =		(128 - 1),
 	I40IW_AEQ_ALIGNMENT_MASK =		(256 - 1),
 	I40IW_Q2_ALIGNMENT_MASK =		(256 - 1),
@@ -1504,7 +1505,8 @@ enum {
 	I40IW_FPM_COMMIT_BUF_ALIGNMENT_MASK =	0
 };
 
-enum i40iw_alignment {
+enum i40iw_alignment
+{
 	I40IW_CQP_ALIGNMENT =		0x200,
 	I40IW_AEQ_ALIGNMENT =		0x100,
 	I40IW_CEQ_ALIGNMENT =		0x100,
@@ -1568,32 +1570,32 @@ enum i40iw_alignment {
 
 #define I40IW_RING_FULL_ERR(_ring) \
 	( \
-		(I40IW_RING_WORK_AVAILABLE(_ring) == ((_ring).size - 1))  \
+	  (I40IW_RING_WORK_AVAILABLE(_ring) == ((_ring).size - 1))  \
 	)
 
 #define I40IW_ERR_RING_FULL2(_ring) \
 	( \
-		(I40IW_RING_WORK_AVAILABLE(_ring) == ((_ring).size - 2))  \
+	  (I40IW_RING_WORK_AVAILABLE(_ring) == ((_ring).size - 2))  \
 	)
 
 #define I40IW_ERR_RING_FULL3(_ring) \
 	( \
-		(I40IW_RING_WORK_AVAILABLE(_ring) == ((_ring).size - 3))  \
+	  (I40IW_RING_WORK_AVAILABLE(_ring) == ((_ring).size - 3))  \
 	)
 
 #define I40IW_RING_MORE_WORK(_ring) \
 	( \
-		(I40IW_RING_WORK_AVAILABLE(_ring) != 0) \
+	  (I40IW_RING_WORK_AVAILABLE(_ring) != 0) \
 	)
 
 #define I40IW_RING_WORK_AVAILABLE(_ring) \
 	( \
-		(((_ring).head + (_ring).size - (_ring).tail) % (_ring).size) \
+	  (((_ring).head + (_ring).size - (_ring).tail) % (_ring).size) \
 	)
 
 #define I40IW_RING_GET_WQES_AVAILABLE(_ring) \
 	( \
-		((_ring).size - I40IW_RING_WORK_AVAILABLE(_ring) - 1) \
+	  ((_ring).size - I40IW_RING_WORK_AVAILABLE(_ring) - 1) \
 	)
 
 #define I40IW_ATOMIC_RING_MOVE_HEAD(_ring, index, _retcode) \

@@ -27,12 +27,18 @@ int nfc_llc_init(void)
 	int r;
 
 	r = nfc_llc_nop_register();
+
 	if (r)
+	{
 		goto exit;
+	}
 
 	r = nfc_llc_shdlc_register();
+
 	if (r)
+	{
 		goto exit;
+	}
 
 	return 0;
 
@@ -45,7 +51,8 @@ void nfc_llc_exit(void)
 {
 	struct nfc_llc_engine *llc_engine, *n;
 
-	list_for_each_entry_safe(llc_engine, n, &llc_engines, entry) {
+	list_for_each_entry_safe(llc_engine, n, &llc_engines, entry)
+	{
 		list_del(&llc_engine->entry);
 		kfree(llc_engine->name);
 		kfree(llc_engine);
@@ -57,14 +64,20 @@ int nfc_llc_register(const char *name, struct nfc_llc_ops *ops)
 	struct nfc_llc_engine *llc_engine;
 
 	llc_engine = kzalloc(sizeof(struct nfc_llc_engine), GFP_KERNEL);
+
 	if (llc_engine == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	llc_engine->name = kstrdup(name, GFP_KERNEL);
-	if (llc_engine->name == NULL) {
+
+	if (llc_engine->name == NULL)
+	{
 		kfree(llc_engine);
 		return -ENOMEM;
 	}
+
 	llc_engine->ops = ops;
 
 	INIT_LIST_HEAD(&llc_engine->entry);
@@ -77,9 +90,12 @@ static struct nfc_llc_engine *nfc_llc_name_to_engine(const char *name)
 {
 	struct nfc_llc_engine *llc_engine;
 
-	list_for_each_entry(llc_engine, &llc_engines, entry) {
+	list_for_each_entry(llc_engine, &llc_engines, entry)
+	{
 		if (strcmp(llc_engine->name, name) == 0)
+		{
 			return llc_engine;
+		}
 	}
 
 	return NULL;
@@ -90,8 +106,11 @@ void nfc_llc_unregister(const char *name)
 	struct nfc_llc_engine *llc_engine;
 
 	llc_engine = nfc_llc_name_to_engine(name);
+
 	if (llc_engine == NULL)
+	{
 		return;
+	}
 
 	list_del(&llc_engine->entry);
 	kfree(llc_engine->name);
@@ -99,29 +118,38 @@ void nfc_llc_unregister(const char *name)
 }
 
 struct nfc_llc *nfc_llc_allocate(const char *name, struct nfc_hci_dev *hdev,
-				 xmit_to_drv_t xmit_to_drv,
-				 rcv_to_hci_t rcv_to_hci, int tx_headroom,
-				 int tx_tailroom, llc_failure_t llc_failure)
+								 xmit_to_drv_t xmit_to_drv,
+								 rcv_to_hci_t rcv_to_hci, int tx_headroom,
+								 int tx_tailroom, llc_failure_t llc_failure)
 {
 	struct nfc_llc_engine *llc_engine;
 	struct nfc_llc *llc;
 
 	llc_engine = nfc_llc_name_to_engine(name);
+
 	if (llc_engine == NULL)
+	{
 		return NULL;
+	}
 
 	llc = kzalloc(sizeof(struct nfc_llc), GFP_KERNEL);
+
 	if (llc == NULL)
+	{
 		return NULL;
+	}
 
 	llc->data = llc_engine->ops->init(hdev, xmit_to_drv, rcv_to_hci,
-					  tx_headroom, tx_tailroom,
-					  &llc->rx_headroom, &llc->rx_tailroom,
-					  llc_failure);
-	if (llc->data == NULL) {
+									  tx_headroom, tx_tailroom,
+									  &llc->rx_headroom, &llc->rx_tailroom,
+									  llc_failure);
+
+	if (llc->data == NULL)
+	{
 		kfree(llc);
 		return NULL;
 	}
+
 	llc->ops = llc_engine->ops;
 
 	return llc;

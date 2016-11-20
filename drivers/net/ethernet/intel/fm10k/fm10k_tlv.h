@@ -62,7 +62,8 @@ struct fm10k_msg_data;
 
 #define FM10K_TLV_RESULTS_MAX		32
 
-enum fm10k_tlv_type {
+enum fm10k_tlv_type
+{
 	FM10K_TLV_NULL_STRING,
 	FM10K_TLV_MAC_ADDR,
 	FM10K_TLV_BOOL,
@@ -75,7 +76,8 @@ enum fm10k_tlv_type {
 
 #define FM10K_TLV_ERROR (~0u)
 
-struct fm10k_tlv_attr {
+struct fm10k_tlv_attr
+{
 	unsigned int		id;
 	enum fm10k_tlv_type	type;
 	u16			len;
@@ -96,11 +98,12 @@ struct fm10k_tlv_attr {
 #define FM10K_TLV_ATTR_NESTED(id)	    { id, FM10K_TLV_NESTED }
 #define FM10K_TLV_ATTR_LAST		    { FM10K_TLV_ERROR }
 
-struct fm10k_msg_data {
+struct fm10k_msg_data
+{
 	unsigned int		    id;
 	const struct fm10k_tlv_attr *attr;
 	s32			    (*func)(struct fm10k_hw *, u32 **,
-					    struct fm10k_mbx_info *);
+							struct fm10k_mbx_info *);
 };
 
 #define FM10K_MSG_HANDLER(id, attr, func) { id, attr, func }
@@ -111,48 +114,49 @@ s32 fm10k_tlv_attr_get_mac_vlan(u32 *, u8 *, u16 *);
 s32 fm10k_tlv_attr_put_bool(u32 *, u16);
 s32 fm10k_tlv_attr_put_value(u32 *, u16, s64, u32);
 #define fm10k_tlv_attr_put_u8(msg, attr_id, val) \
-		fm10k_tlv_attr_put_value(msg, attr_id, val, 1)
+	fm10k_tlv_attr_put_value(msg, attr_id, val, 1)
 #define fm10k_tlv_attr_put_u16(msg, attr_id, val) \
-		fm10k_tlv_attr_put_value(msg, attr_id, val, 2)
+	fm10k_tlv_attr_put_value(msg, attr_id, val, 2)
 #define fm10k_tlv_attr_put_u32(msg, attr_id, val) \
-		fm10k_tlv_attr_put_value(msg, attr_id, val, 4)
+	fm10k_tlv_attr_put_value(msg, attr_id, val, 4)
 #define fm10k_tlv_attr_put_u64(msg, attr_id, val) \
-		fm10k_tlv_attr_put_value(msg, attr_id, val, 8)
+	fm10k_tlv_attr_put_value(msg, attr_id, val, 8)
 #define fm10k_tlv_attr_put_s8(msg, attr_id, val) \
-		fm10k_tlv_attr_put_value(msg, attr_id, val, 1)
+	fm10k_tlv_attr_put_value(msg, attr_id, val, 1)
 #define fm10k_tlv_attr_put_s16(msg, attr_id, val) \
-		fm10k_tlv_attr_put_value(msg, attr_id, val, 2)
+	fm10k_tlv_attr_put_value(msg, attr_id, val, 2)
 #define fm10k_tlv_attr_put_s32(msg, attr_id, val) \
-		fm10k_tlv_attr_put_value(msg, attr_id, val, 4)
+	fm10k_tlv_attr_put_value(msg, attr_id, val, 4)
 #define fm10k_tlv_attr_put_s64(msg, attr_id, val) \
-		fm10k_tlv_attr_put_value(msg, attr_id, val, 8)
+	fm10k_tlv_attr_put_value(msg, attr_id, val, 8)
 s32 fm10k_tlv_attr_get_value(u32 *, void *, u32);
 #define fm10k_tlv_attr_get_u8(attr, ptr) \
-		fm10k_tlv_attr_get_value(attr, ptr, sizeof(u8))
+	fm10k_tlv_attr_get_value(attr, ptr, sizeof(u8))
 #define fm10k_tlv_attr_get_u16(attr, ptr) \
-		fm10k_tlv_attr_get_value(attr, ptr, sizeof(u16))
+	fm10k_tlv_attr_get_value(attr, ptr, sizeof(u16))
 #define fm10k_tlv_attr_get_u32(attr, ptr) \
-		fm10k_tlv_attr_get_value(attr, ptr, sizeof(u32))
+	fm10k_tlv_attr_get_value(attr, ptr, sizeof(u32))
 #define fm10k_tlv_attr_get_u64(attr, ptr) \
-		fm10k_tlv_attr_get_value(attr, ptr, sizeof(u64))
+	fm10k_tlv_attr_get_value(attr, ptr, sizeof(u64))
 #define fm10k_tlv_attr_get_s8(attr, ptr) \
-		fm10k_tlv_attr_get_value(attr, ptr, sizeof(s8))
+	fm10k_tlv_attr_get_value(attr, ptr, sizeof(s8))
 #define fm10k_tlv_attr_get_s16(attr, ptr) \
-		fm10k_tlv_attr_get_value(attr, ptr, sizeof(s16))
+	fm10k_tlv_attr_get_value(attr, ptr, sizeof(s16))
 #define fm10k_tlv_attr_get_s32(attr, ptr) \
-		fm10k_tlv_attr_get_value(attr, ptr, sizeof(s32))
+	fm10k_tlv_attr_get_value(attr, ptr, sizeof(s32))
 #define fm10k_tlv_attr_get_s64(attr, ptr) \
-		fm10k_tlv_attr_get_value(attr, ptr, sizeof(s64))
+	fm10k_tlv_attr_get_value(attr, ptr, sizeof(s64))
 s32 fm10k_tlv_attr_put_le_struct(u32 *, u16, const void *, u32);
 s32 fm10k_tlv_attr_get_le_struct(u32 *, void *, u32);
 s32 fm10k_tlv_msg_parse(struct fm10k_hw *, u32 *, struct fm10k_mbx_info *,
-			const struct fm10k_msg_data *);
+						const struct fm10k_msg_data *);
 s32 fm10k_tlv_msg_error(struct fm10k_hw *hw, u32 **results,
-			struct fm10k_mbx_info *);
+						struct fm10k_mbx_info *);
 
 #define FM10K_TLV_MSG_ID_TEST	0
 
-enum fm10k_tlv_test_attr_id {
+enum fm10k_tlv_test_attr_id
+{
 	FM10K_TEST_MSG_UNSET,
 	FM10K_TEST_MSG_STRING,
 	FM10K_TEST_MSG_MAC_ADDR,

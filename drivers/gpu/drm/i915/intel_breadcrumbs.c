@@ -32,9 +32,12 @@ static void intel_breadcrumbs_hangcheck(unsigned long data)
 	struct intel_breadcrumbs *b = &engine->breadcrumbs;
 
 	if (!b->irq_enabled)
+	{
 		return;
+	}
 
-	if (time_before(jiffies, b->timeout)) {
+	if (time_before(jiffies, b->timeout))
+	{
 		mod_timer(&b->hangcheck, b->timeout);
 		return;
 	}
@@ -72,7 +75,9 @@ static void intel_breadcrumbs_fake_irq(unsigned long data)
 	 * coherent seqno check.
 	 */
 	if (intel_engine_wakeup(engine))
+	{
 		mod_timer(&engine->breadcrumbs.fake_irq, jiffies + 1);
+	}
 }
 
 static void irq_enable(struct intel_engine_cs *engine)
@@ -104,8 +109,11 @@ static void __intel_breadcrumbs_enable_irq(struct intel_breadcrumbs *b)
 	struct drm_i915_private *i915 = engine->i915;
 
 	assert_spin_locked(&b->lock);
+
 	if (b->rpm_wakelock)
+	{
 		return;
+	}
 
 	/* Since we are waiting on a request, the GPU should be busy
 	 * and should have its own rpm reference. For completeness,
@@ -116,16 +124,23 @@ static void __intel_breadcrumbs_enable_irq(struct intel_breadcrumbs *b)
 	b->rpm_wakelock = true;
 
 	/* No interrupts? Kick the waiter every jiffie! */
-	if (intel_irqs_enabled(i915)) {
+	if (intel_irqs_enabled(i915))
+	{
 		if (!test_bit(engine->id, &i915->gpu_error.test_irq_rings))
+		{
 			irq_enable(engine);
+		}
+
 		b->irq_enabled = true;
 	}
 
 	if (!b->irq_enabled ||
-	    test_bit(engine->id, &i915->gpu_error.missed_irq_rings)) {
+		test_bit(engine->id, &i915->gpu_error.missed_irq_rings))
+	{
 		mod_timer(&b->fake_irq, jiffies + 1);
-	} else {
+	}
+	else
+	{
 		/* Ensure we never sleep indefinitely */
 		GEM_BUG_ON(!time_after(b->timeout, jiffies));
 		mod_timer(&b->hangcheck, b->timeout);
@@ -138,10 +153,14 @@ static void __intel_breadcrumbs_disable_irq(struct intel_breadcrumbs *b)
 		container_of(b, struct intel_engine_cs, breadcrumbs);
 
 	assert_spin_locked(&b->lock);
-	if (!b->rpm_wakelock)
-		return;
 
-	if (b->irq_enabled) {
+	if (!b->rpm_wakelock)
+	{
+		return;
+	}
+
+	if (b->irq_enabled)
+	{
 		irq_disable(engine);
 		b->irq_enabled = false;
 	}
@@ -156,7 +175,7 @@ static inline struct intel_wait *to_wait(struct rb_node *node)
 }
 
 static inline void __intel_breadcrumbs_finish(struct intel_breadcrumbs *b,
-					      struct intel_wait *wait)
+		struct intel_wait *wait)
 {
 	assert_spin_locked(&b->lock);
 
@@ -170,7 +189,7 @@ static inline void __intel_breadcrumbs_finish(struct intel_breadcrumbs *b,
 }
 
 static bool __intel_engine_add_wait(struct intel_engine_cs *engine,
-				    struct intel_wait *wait)
+									struct intel_wait *wait)
 {
 	struct intel_breadcrumbs *b = &engine->breadcrumbs;
 	struct rb_node **p, *parent, *completed;
@@ -194,51 +213,72 @@ static bool __intel_engine_add_wait(struct intel_engine_cs *engine,
 	completed = NULL;
 	seqno = intel_engine_get_seqno(engine);
 
-	 /* If the request completed before we managed to grab the spinlock,
-	  * return now before adding ourselves to the rbtree. We let the
-	  * current bottom-half handle any pending wakeups and instead
-	  * try and get out of the way quickly.
-	  */
-	if (i915_seqno_passed(seqno, wait->seqno)) {
+	/* If the request completed before we managed to grab the spinlock,
+	 * return now before adding ourselves to the rbtree. We let the
+	 * current bottom-half handle any pending wakeups and instead
+	 * try and get out of the way quickly.
+	 */
+	if (i915_seqno_passed(seqno, wait->seqno))
+	{
 		RB_CLEAR_NODE(&wait->node);
 		return first;
 	}
 
 	p = &b->waiters.rb_node;
-	while (*p) {
+
+	while (*p)
+	{
 		parent = *p;
-		if (wait->seqno == to_wait(parent)->seqno) {
+
+		if (wait->seqno == to_wait(parent)->seqno)
+		{
 			/* We have multiple waiters on the same seqno, select
 			 * the highest priority task (that with the smallest
 			 * task->prio) to serve as the bottom-half for this
 			 * group.
 			 */
-			if (wait->tsk->prio > to_wait(parent)->tsk->prio) {
+			if (wait->tsk->prio > to_wait(parent)->tsk->prio)
+			{
 				p = &parent->rb_right;
 				first = false;
-			} else {
+			}
+			else
+			{
 				p = &parent->rb_left;
 			}
-		} else if (i915_seqno_passed(wait->seqno,
-					     to_wait(parent)->seqno)) {
+		}
+		else if (i915_seqno_passed(wait->seqno,
+								   to_wait(parent)->seqno))
+		{
 			p = &parent->rb_right;
+
 			if (i915_seqno_passed(seqno, to_wait(parent)->seqno))
+			{
 				completed = parent;
+			}
 			else
+			{
 				first = false;
-		} else {
+			}
+		}
+		else
+		{
 			p = &parent->rb_left;
 		}
 	}
+
 	rb_link_node(&wait->node, parent, p);
 	rb_insert_color(&wait->node, &b->waiters);
 	GEM_BUG_ON(!first && !rcu_access_pointer(b->irq_seqno_bh));
 
-	if (completed) {
+	if (completed)
+	{
 		struct rb_node *next = rb_next(completed);
 
 		GEM_BUG_ON(!next && !first);
-		if (next && next != &wait->node) {
+
+		if (next && next != &wait->node)
+		{
 			GEM_BUG_ON(first);
 			b->timeout = wait_timeout();
 			b->first_wait = to_wait(next);
@@ -254,18 +294,24 @@ static bool __intel_engine_add_wait(struct intel_engine_cs *engine,
 			 * in case the seqno passed.
 			 */
 			__intel_breadcrumbs_enable_irq(b);
+
 			if (READ_ONCE(b->irq_posted))
+			{
 				wake_up_process(to_wait(next)->tsk);
+			}
 		}
 
-		do {
+		do
+		{
 			struct intel_wait *crumb = to_wait(completed);
 			completed = rb_prev(completed);
 			__intel_breadcrumbs_finish(b, crumb);
-		} while (completed);
+		}
+		while (completed);
 	}
 
-	if (first) {
+	if (first)
+	{
 		GEM_BUG_ON(rb_first(&b->waiters) != &wait->node);
 		b->timeout = wait_timeout();
 		b->first_wait = wait;
@@ -280,6 +326,7 @@ static bool __intel_engine_add_wait(struct intel_engine_cs *engine,
 		 */
 		__intel_breadcrumbs_enable_irq(b);
 	}
+
 	GEM_BUG_ON(!rcu_access_pointer(b->irq_seqno_bh));
 	GEM_BUG_ON(!b->first_wait);
 	GEM_BUG_ON(rb_first(&b->waiters) != &b->first_wait->node);
@@ -288,7 +335,7 @@ static bool __intel_engine_add_wait(struct intel_engine_cs *engine,
 }
 
 bool intel_engine_add_wait(struct intel_engine_cs *engine,
-			   struct intel_wait *wait)
+						   struct intel_wait *wait)
 {
 	struct intel_breadcrumbs *b = &engine->breadcrumbs;
 	bool first;
@@ -306,16 +353,20 @@ static inline bool chain_wakeup(struct rb_node *rb, int priority)
 }
 
 static inline int wakeup_priority(struct intel_breadcrumbs *b,
-				  struct task_struct *tsk)
+								  struct task_struct *tsk)
 {
 	if (tsk == b->signaler)
+	{
 		return INT_MIN;
+	}
 	else
+	{
 		return tsk->prio;
+	}
 }
 
 void intel_engine_remove_wait(struct intel_engine_cs *engine,
-			      struct intel_wait *wait)
+							  struct intel_wait *wait)
 {
 	struct intel_breadcrumbs *b = &engine->breadcrumbs;
 
@@ -324,14 +375,19 @@ void intel_engine_remove_wait(struct intel_engine_cs *engine,
 	 * by the herd.
 	 */
 	if (RB_EMPTY_NODE(&wait->node))
+	{
 		return;
+	}
 
 	spin_lock(&b->lock);
 
 	if (RB_EMPTY_NODE(&wait->node))
+	{
 		goto out_unlock;
+	}
 
-	if (b->first_wait == wait) {
+	if (b->first_wait == wait)
+	{
 		const int priority = wakeup_priority(b, wait->tsk);
 		struct rb_node *next;
 
@@ -345,7 +401,9 @@ void intel_engine_remove_wait(struct intel_engine_cs *engine,
 		 * completion check.
 		 */
 		next = rb_next(&wait->node);
-		if (chain_wakeup(next, priority)) {
+
+		if (chain_wakeup(next, priority))
+		{
 			/* If the next waiter is already complete,
 			 * wake it up and continue onto the next waiter. So
 			 * if have a small herd, they will wake up in parallel
@@ -359,17 +417,22 @@ void intel_engine_remove_wait(struct intel_engine_cs *engine,
 			 */
 			u32 seqno = intel_engine_get_seqno(engine);
 
-			while (i915_seqno_passed(seqno, to_wait(next)->seqno)) {
+			while (i915_seqno_passed(seqno, to_wait(next)->seqno))
+			{
 				struct rb_node *n = rb_next(next);
 
 				__intel_breadcrumbs_finish(b, to_wait(next));
 				next = n;
+
 				if (!chain_wakeup(next, priority))
+				{
 					break;
+				}
 			}
 		}
 
-		if (next) {
+		if (next)
+		{
 			/* In our haste, we may have completed the first waiter
 			 * before we enabled the interrupt. Do so now as we
 			 * have a second waiter for a future seqno. Afterwards,
@@ -380,15 +443,23 @@ void intel_engine_remove_wait(struct intel_engine_cs *engine,
 			b->timeout = wait_timeout();
 			b->first_wait = to_wait(next);
 			rcu_assign_pointer(b->irq_seqno_bh, b->first_wait->tsk);
+
 			if (b->first_wait->seqno != wait->seqno)
+			{
 				__intel_breadcrumbs_enable_irq(b);
+			}
+
 			wake_up_process(b->first_wait->tsk);
-		} else {
+		}
+		else
+		{
 			b->first_wait = NULL;
 			rcu_assign_pointer(b->irq_seqno_bh, NULL);
 			__intel_breadcrumbs_disable_irq(b);
 		}
-	} else {
+	}
+	else
+	{
 		GEM_BUG_ON(rb_first(&b->waiters) == &wait->node);
 	}
 
@@ -398,7 +469,7 @@ void intel_engine_remove_wait(struct intel_engine_cs *engine,
 out_unlock:
 	GEM_BUG_ON(b->first_wait == wait);
 	GEM_BUG_ON(rb_first(&b->waiters) !=
-		   (b->first_wait ? &b->first_wait->node : NULL));
+			   (b->first_wait ? &b->first_wait->node : NULL));
 	GEM_BUG_ON(!rcu_access_pointer(b->irq_seqno_bh) ^ RB_EMPTY_ROOT(&b->waiters));
 	spin_unlock(&b->lock);
 }
@@ -406,19 +477,25 @@ out_unlock:
 static bool signal_complete(struct drm_i915_gem_request *request)
 {
 	if (!request)
+	{
 		return false;
+	}
 
 	/* If another process served as the bottom-half it may have already
 	 * signalled that this wait is already completed.
 	 */
 	if (intel_wait_complete(&request->signaling.wait))
+	{
 		return true;
+	}
 
 	/* Carefully check if the request is complete, giving time for the
 	 * seqno to be visible or if the GPU hung.
 	 */
 	if (__i915_request_irq_complete(request))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -430,9 +507,9 @@ static struct drm_i915_gem_request *to_signaler(struct rb_node *rb)
 
 static void signaler_set_rtpriority(void)
 {
-	 struct sched_param param = { .sched_priority = 1 };
+	struct sched_param param = { .sched_priority = 1 };
 
-	 sched_setscheduler_nocheck(current, SCHED_FIFO, &param);
+	sched_setscheduler_nocheck(current, SCHED_FIFO, &param);
 }
 
 static int intel_breadcrumbs_signaler(void *arg)
@@ -444,7 +521,8 @@ static int intel_breadcrumbs_signaler(void *arg)
 	/* Install ourselves with high priority to reduce signalling latency */
 	signaler_set_rtpriority();
 
-	do {
+	do
+	{
 		set_current_state(TASK_INTERRUPTIBLE);
 
 		/* We are either woken up by the interrupt bottom-half,
@@ -456,12 +534,14 @@ static int intel_breadcrumbs_signaler(void *arg)
 		 * a new client.
 		 */
 		request = READ_ONCE(b->first_signal);
-		if (signal_complete(request)) {
+
+		if (signal_complete(request))
+		{
 			/* Wake up all other completed waiters and select the
 			 * next bottom-half for the next user interrupt.
 			 */
 			intel_engine_remove_wait(engine,
-						 &request->signaling.wait);
+									 &request->signaling.wait);
 
 			local_bh_disable();
 			fence_signal(&request->fence);
@@ -474,22 +554,31 @@ static int intel_breadcrumbs_signaler(void *arg)
 			 * the oldest before picking the next one.
 			 */
 			spin_lock(&b->lock);
-			if (request == b->first_signal) {
+
+			if (request == b->first_signal)
+			{
 				struct rb_node *rb =
 					rb_next(&request->signaling.node);
 				b->first_signal = rb ? to_signaler(rb) : NULL;
 			}
+
 			rb_erase(&request->signaling.node, &b->signals);
 			spin_unlock(&b->lock);
 
 			i915_gem_request_put(request);
-		} else {
+		}
+		else
+		{
 			if (kthread_should_stop())
+			{
 				break;
+			}
 
 			schedule();
 		}
-	} while (1);
+	}
+	while (1);
+
 	__set_current_state(TASK_RUNNING);
 
 	return 0;
@@ -528,25 +617,37 @@ void intel_engine_enable_signaling(struct drm_i915_gem_request *request)
 	parent = NULL;
 	first = true;
 	p = &b->signals.rb_node;
-	while (*p) {
+
+	while (*p)
+	{
 		parent = *p;
+
 		if (i915_seqno_passed(request->fence.seqno,
-				      to_signaler(parent)->fence.seqno)) {
+							  to_signaler(parent)->fence.seqno))
+		{
 			p = &parent->rb_right;
 			first = false;
-		} else {
+		}
+		else
+		{
 			p = &parent->rb_left;
 		}
 	}
+
 	rb_link_node(&request->signaling.node, parent, p);
 	rb_insert_color(&request->signaling.node, &b->signals);
+
 	if (first)
+	{
 		smp_store_mb(b->first_signal, request);
+	}
 
 	spin_unlock(&b->lock);
 
 	if (wakeup)
+	{
 		wake_up_process(b->signaler);
+	}
 }
 
 int intel_engine_init_breadcrumbs(struct intel_engine_cs *engine)
@@ -556,11 +657,11 @@ int intel_engine_init_breadcrumbs(struct intel_engine_cs *engine)
 
 	spin_lock_init(&b->lock);
 	setup_timer(&b->fake_irq,
-		    intel_breadcrumbs_fake_irq,
-		    (unsigned long)engine);
+				intel_breadcrumbs_fake_irq,
+				(unsigned long)engine);
 	setup_timer(&b->hangcheck,
-		    intel_breadcrumbs_hangcheck,
-		    (unsigned long)engine);
+				intel_breadcrumbs_hangcheck,
+				(unsigned long)engine);
 
 	/* Spawn a thread to provide a common bottom-half for all signals.
 	 * As this is an asynchronous interface we cannot steal the current
@@ -569,9 +670,12 @@ int intel_engine_init_breadcrumbs(struct intel_engine_cs *engine)
 	 * interrupt and then signal the waitqueue (via the dma-buf/fence).
 	 */
 	tsk = kthread_run(intel_breadcrumbs_signaler, engine,
-			  "i915/signal:%d", engine->id);
+					  "i915/signal:%d", engine->id);
+
 	if (IS_ERR(tsk))
+	{
 		return PTR_ERR(tsk);
+	}
 
 	b->signaler = tsk;
 
@@ -595,12 +699,19 @@ void intel_engine_reset_breadcrumbs(struct intel_engine_cs *engine)
 	spin_lock(&b->lock);
 
 	__intel_breadcrumbs_disable_irq(b);
-	if (intel_engine_has_waiter(engine)) {
+
+	if (intel_engine_has_waiter(engine))
+	{
 		b->timeout = wait_timeout();
 		__intel_breadcrumbs_enable_irq(b);
+
 		if (READ_ONCE(b->irq_posted))
+		{
 			wake_up_process(b->first_wait->tsk);
-	} else {
+		}
+	}
+	else
+	{
 		/* sanitize the IMR and unmask any auxiliary interrupts */
 		irq_disable(engine);
 	}
@@ -613,7 +724,9 @@ void intel_engine_fini_breadcrumbs(struct intel_engine_cs *engine)
 	struct intel_breadcrumbs *b = &engine->breadcrumbs;
 
 	if (!IS_ERR_OR_NULL(b->signaler))
+	{
 		kthread_stop(b->signaler);
+	}
 
 	cancel_fake_irq(engine);
 }
@@ -629,8 +742,11 @@ unsigned int intel_kick_waiters(struct drm_i915_private *i915)
 	 * rcu_read_lock().
 	 */
 	for_each_engine(engine, i915)
-		if (unlikely(intel_engine_wakeup(engine)))
-			mask |= intel_engine_flag(engine);
+
+	if (unlikely(intel_engine_wakeup(engine)))
+	{
+		mask |= intel_engine_flag(engine);
+	}
 
 	return mask;
 }
@@ -640,8 +756,10 @@ unsigned int intel_kick_signalers(struct drm_i915_private *i915)
 	struct intel_engine_cs *engine;
 	unsigned int mask = 0;
 
-	for_each_engine(engine, i915) {
-		if (unlikely(READ_ONCE(engine->breadcrumbs.first_signal))) {
+	for_each_engine(engine, i915)
+	{
+		if (unlikely(READ_ONCE(engine->breadcrumbs.first_signal)))
+		{
 			wake_up_process(engine->breadcrumbs.signaler);
 			mask |= intel_engine_flag(engine);
 		}

@@ -27,7 +27,8 @@ static DEFINE_MUTEX(bat_lock); /* protects gpio pins */
 static struct work_struct bat_work;
 static struct ucb1x00 *ucb;
 
-struct collie_bat {
+struct collie_bat
+{
 	int status;
 	struct power_supply *psy;
 	int full_chrg;
@@ -58,7 +59,10 @@ static unsigned long collie_read_bat(struct collie_bat *bat)
 	unsigned long value = 0;
 
 	if (bat->gpio_bat < 0 || bat->adc_bat < 0)
+	{
 		return 0;
+	}
+
 	mutex_lock(&bat_lock);
 	gpio_set_value(bat->gpio_bat, 1);
 	msleep(5);
@@ -75,8 +79,11 @@ static unsigned long collie_read_bat(struct collie_bat *bat)
 static unsigned long collie_read_temp(struct collie_bat *bat)
 {
 	unsigned long value = 0;
+
 	if (bat->gpio_temp < 0 || bat->adc_temp < 0)
+	{
 		return 0;
+	}
 
 	mutex_lock(&bat_lock);
 	gpio_set_value(bat->gpio_temp, 1);
@@ -93,49 +100,65 @@ static unsigned long collie_read_temp(struct collie_bat *bat)
 }
 
 static int collie_bat_get_property(struct power_supply *psy,
-			    enum power_supply_property psp,
-			    union power_supply_propval *val)
+								   enum power_supply_property psp,
+								   union power_supply_propval *val)
 {
 	int ret = 0;
 	struct collie_bat *bat = power_supply_get_drvdata(psy);
 
 	if (bat->is_present && !bat->is_present(bat)
-			&& psp != POWER_SUPPLY_PROP_PRESENT) {
+		&& psp != POWER_SUPPLY_PROP_PRESENT)
+	{
 		return -ENODEV;
 	}
 
-	switch (psp) {
-	case POWER_SUPPLY_PROP_STATUS:
-		val->intval = bat->status;
-		break;
-	case POWER_SUPPLY_PROP_TECHNOLOGY:
-		val->intval = bat->technology;
-		break;
-	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-		val->intval = collie_read_bat(bat);
-		break;
-	case POWER_SUPPLY_PROP_VOLTAGE_MAX:
-		if (bat->full_chrg == -1)
+	switch (psp)
+	{
+		case POWER_SUPPLY_PROP_STATUS:
+			val->intval = bat->status;
+			break;
+
+		case POWER_SUPPLY_PROP_TECHNOLOGY:
+			val->intval = bat->technology;
+			break;
+
+		case POWER_SUPPLY_PROP_VOLTAGE_NOW:
+			val->intval = collie_read_bat(bat);
+			break;
+
+		case POWER_SUPPLY_PROP_VOLTAGE_MAX:
+			if (bat->full_chrg == -1)
+			{
+				val->intval = bat->bat_max;
+			}
+			else
+			{
+				val->intval = bat->full_chrg;
+			}
+
+			break;
+
+		case POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN:
 			val->intval = bat->bat_max;
-		else
-			val->intval = bat->full_chrg;
-		break;
-	case POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN:
-		val->intval = bat->bat_max;
-		break;
-	case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
-		val->intval = bat->bat_min;
-		break;
-	case POWER_SUPPLY_PROP_TEMP:
-		val->intval = collie_read_temp(bat);
-		break;
-	case POWER_SUPPLY_PROP_PRESENT:
-		val->intval = bat->is_present ? bat->is_present(bat) : 1;
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+			break;
+
+		case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
+			val->intval = bat->bat_min;
+			break;
+
+		case POWER_SUPPLY_PROP_TEMP:
+			val->intval = collie_read_temp(bat);
+			break;
+
+		case POWER_SUPPLY_PROP_PRESENT:
+			val->intval = bat->is_present ? bat->is_present(bat) : 1;
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
+
 	return ret;
 }
 
@@ -160,34 +183,47 @@ static void collie_bat_update(struct collie_bat *bat)
 
 	old = bat->status;
 
-	if (bat->is_present && !bat->is_present(bat)) {
+	if (bat->is_present && !bat->is_present(bat))
+	{
 		printk(KERN_NOTICE "%s not present\n", psy->desc->name);
 		bat->status = POWER_SUPPLY_STATUS_UNKNOWN;
 		bat->full_chrg = -1;
-	} else if (power_supply_am_i_supplied(psy)) {
-		if (bat->status == POWER_SUPPLY_STATUS_DISCHARGING) {
+	}
+	else if (power_supply_am_i_supplied(psy))
+	{
+		if (bat->status == POWER_SUPPLY_STATUS_DISCHARGING)
+		{
 			gpio_set_value(bat->gpio_charge_on, 1);
 			mdelay(15);
 		}
 
-		if (gpio_get_value(bat->gpio_full)) {
+		if (gpio_get_value(bat->gpio_full))
+		{
 			if (old == POWER_SUPPLY_STATUS_CHARGING ||
-					bat->full_chrg == -1)
+				bat->full_chrg == -1)
+			{
 				bat->full_chrg = collie_read_bat(bat);
+			}
 
 			gpio_set_value(bat->gpio_charge_on, 0);
 			bat->status = POWER_SUPPLY_STATUS_FULL;
-		} else {
+		}
+		else
+		{
 			gpio_set_value(bat->gpio_charge_on, 1);
 			bat->status = POWER_SUPPLY_STATUS_CHARGING;
 		}
-	} else {
+	}
+	else
+	{
 		gpio_set_value(bat->gpio_charge_on, 0);
 		bat->status = POWER_SUPPLY_STATUS_DISCHARGING;
 	}
 
 	if (old != bat->status)
+	{
 		power_supply_changed(psy);
+	}
 
 	mutex_unlock(&bat->work_lock);
 }
@@ -198,7 +234,8 @@ static void collie_bat_work(struct work_struct *work)
 }
 
 
-static enum power_supply_property collie_bat_main_props[] = {
+static enum power_supply_property collie_bat_main_props[] =
+{
 	POWER_SUPPLY_PROP_STATUS,
 	POWER_SUPPLY_PROP_TECHNOLOGY,
 	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
@@ -209,7 +246,8 @@ static enum power_supply_property collie_bat_main_props[] = {
 	POWER_SUPPLY_PROP_TEMP,
 };
 
-static enum power_supply_property collie_bat_bu_props[] = {
+static enum power_supply_property collie_bat_bu_props[] =
+{
 	POWER_SUPPLY_PROP_STATUS,
 	POWER_SUPPLY_PROP_TECHNOLOGY,
 	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
@@ -219,7 +257,8 @@ static enum power_supply_property collie_bat_bu_props[] = {
 	POWER_SUPPLY_PROP_PRESENT,
 };
 
-static const struct power_supply_desc collie_bat_main_desc = {
+static const struct power_supply_desc collie_bat_main_desc =
+{
 	.name		= "main-battery",
 	.type		= POWER_SUPPLY_TYPE_BATTERY,
 	.properties	= collie_bat_main_props,
@@ -229,7 +268,8 @@ static const struct power_supply_desc collie_bat_main_desc = {
 	.use_for_apm	= 1,
 };
 
-static struct collie_bat collie_bat_main = {
+static struct collie_bat collie_bat_main =
+{
 	.status = POWER_SUPPLY_STATUS_DISCHARGING,
 	.full_chrg = -1,
 	.psy = NULL,
@@ -250,7 +290,8 @@ static struct collie_bat collie_bat_main = {
 	.adc_temp_divider = 10000,
 };
 
-static const struct power_supply_desc collie_bat_bu_desc = {
+static const struct power_supply_desc collie_bat_bu_desc =
+{
 	.name		= "backup-battery",
 	.type		= POWER_SUPPLY_TYPE_BATTERY,
 	.properties	= collie_bat_bu_props,
@@ -259,7 +300,8 @@ static const struct power_supply_desc collie_bat_bu_desc = {
 	.external_power_changed = collie_bat_external_power_changed,
 };
 
-static struct collie_bat collie_bat_bu = {
+static struct collie_bat collie_bat_bu =
+{
 	.status = POWER_SUPPLY_STATUS_UNKNOWN,
 	.full_chrg = -1,
 	.psy = NULL,
@@ -280,7 +322,8 @@ static struct collie_bat collie_bat_bu = {
 	.adc_temp_divider = -1,
 };
 
-static struct gpio collie_batt_gpios[] = {
+static struct gpio collie_batt_gpios[] =
+{
 	{ COLLIE_GPIO_CO,	    GPIOF_IN,		"main battery full" },
 	{ COLLIE_GPIO_MAIN_BAT_LOW, GPIOF_IN,		"main battery low" },
 	{ COLLIE_GPIO_CHARGE_ON,    GPIOF_OUT_INIT_LOW,	"main charge on" },
@@ -298,10 +341,14 @@ static int collie_bat_suspend(struct ucb1x00_dev *dev)
 	flush_work(&bat_work);
 
 	if (device_may_wakeup(&dev->ucb->dev) &&
-	    collie_bat_main.status == POWER_SUPPLY_STATUS_CHARGING)
+		collie_bat_main.status == POWER_SUPPLY_STATUS_CHARGING)
+	{
 		wakeup_enabled = !enable_irq_wake(gpio_to_irq(COLLIE_GPIO_CO));
+	}
 	else
+	{
 		wakeup_enabled = 0;
+	}
 
 	return 0;
 }
@@ -309,7 +356,9 @@ static int collie_bat_suspend(struct ucb1x00_dev *dev)
 static int collie_bat_resume(struct ucb1x00_dev *dev)
 {
 	if (wakeup_enabled)
+	{
 		disable_irq_wake(gpio_to_irq(COLLIE_GPIO_CO));
+	}
 
 	/* things may have changed while we were away */
 	schedule_work(&bat_work);
@@ -326,14 +375,19 @@ static int collie_bat_probe(struct ucb1x00_dev *dev)
 	struct power_supply_config psy_main_cfg = {}, psy_bu_cfg = {};
 
 	if (!machine_is_collie())
+	{
 		return -ENODEV;
+	}
 
 	ucb = dev->ucb;
 
 	ret = gpio_request_array(collie_batt_gpios,
-				 ARRAY_SIZE(collie_batt_gpios));
+							 ARRAY_SIZE(collie_batt_gpios));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_init(&collie_bat_main.work_lock);
 
@@ -341,28 +395,35 @@ static int collie_bat_probe(struct ucb1x00_dev *dev)
 
 	psy_main_cfg.drv_data = &collie_bat_main;
 	collie_bat_main.psy = power_supply_register(&dev->ucb->dev,
-						    &collie_bat_main_desc,
-						    &psy_main_cfg);
-	if (IS_ERR(collie_bat_main.psy)) {
+						  &collie_bat_main_desc,
+						  &psy_main_cfg);
+
+	if (IS_ERR(collie_bat_main.psy))
+	{
 		ret = PTR_ERR(collie_bat_main.psy);
 		goto err_psy_reg_main;
 	}
 
 	psy_bu_cfg.drv_data = &collie_bat_bu;
 	collie_bat_bu.psy = power_supply_register(&dev->ucb->dev,
-						  &collie_bat_bu_desc,
-						  &psy_bu_cfg);
-	if (IS_ERR(collie_bat_bu.psy)) {
+						&collie_bat_bu_desc,
+						&psy_bu_cfg);
+
+	if (IS_ERR(collie_bat_bu.psy))
+	{
 		ret = PTR_ERR(collie_bat_bu.psy);
 		goto err_psy_reg_bu;
 	}
 
 	ret = request_irq(gpio_to_irq(COLLIE_GPIO_CO),
-				collie_bat_gpio_isr,
-				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-				"main full", &collie_bat_main);
+					  collie_bat_gpio_isr,
+					  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+					  "main full", &collie_bat_main);
+
 	if (ret)
+	{
 		goto err_irq;
+	}
 
 	device_init_wakeup(&ucb->dev, 1);
 	schedule_work(&bat_work);
@@ -397,7 +458,8 @@ static void collie_bat_remove(struct ucb1x00_dev *dev)
 	gpio_free_array(collie_batt_gpios, ARRAY_SIZE(collie_batt_gpios));
 }
 
-static struct ucb1x00_driver collie_bat_driver = {
+static struct ucb1x00_driver collie_bat_driver =
+{
 	.add		= collie_bat_probe,
 	.remove		= collie_bat_remove,
 	.suspend	= collie_bat_suspend,

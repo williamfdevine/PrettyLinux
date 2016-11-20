@@ -21,7 +21,8 @@
 
 #include <linux/mfd/wm8994/pdata.h>
 
-enum wm8994_type {
+enum wm8994_type
+{
 	WM8994 = 0,
 	WM8958 = 1,
 	WM1811 = 2,
@@ -55,7 +56,8 @@ struct irq_domain;
 /* GPIOs in the chip are numbered from 1-11 */
 #define WM8994_IRQ_GPIO(x) (x + WM8994_IRQ_TEMP_WARN)
 
-struct wm8994 {
+struct wm8994
+{
 	struct wm8994_pdata pdata;
 
 	enum wm8994_type type;
@@ -92,50 +94,60 @@ static inline int wm8994_reg_read(struct wm8994 *wm8994, unsigned short reg)
 	ret = regmap_read(wm8994->regmap, reg, &val);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 	else
+	{
 		return val;
+	}
 }
 
 static inline int wm8994_reg_write(struct wm8994 *wm8994, unsigned short reg,
-				   unsigned short val)
+								   unsigned short val)
 {
 	return regmap_write(wm8994->regmap, reg, val);
 }
 
 static inline int wm8994_bulk_read(struct wm8994 *wm8994, unsigned short reg,
-				   int count, u16 *buf)
+								   int count, u16 *buf)
 {
 	return regmap_bulk_read(wm8994->regmap, reg, buf, count);
 }
 
 static inline int wm8994_bulk_write(struct wm8994 *wm8994, unsigned short reg,
-				    int count, const u16 *buf)
+									int count, const u16 *buf)
 {
 	return regmap_raw_write(wm8994->regmap, reg, buf, count * sizeof(u16));
 }
 
 static inline int wm8994_set_bits(struct wm8994 *wm8994, unsigned short reg,
-		    unsigned short mask, unsigned short val)
+								  unsigned short mask, unsigned short val)
 {
 	return regmap_update_bits(wm8994->regmap, reg, mask, val);
 }
 
 /* Helper to save on boilerplate */
 static inline int wm8994_request_irq(struct wm8994 *wm8994, int irq,
-				     irq_handler_t handler, const char *name,
-				     void *data)
+									 irq_handler_t handler, const char *name,
+									 void *data)
 {
 	if (!wm8994->irq_data)
+	{
 		return -EINVAL;
+	}
+
 	return request_threaded_irq(regmap_irq_get_virq(wm8994->irq_data, irq),
-				    NULL, handler, IRQF_TRIGGER_RISING, name,
-				    data);
+								NULL, handler, IRQF_TRIGGER_RISING, name,
+								data);
 }
 static inline void wm8994_free_irq(struct wm8994 *wm8994, int irq, void *data)
 {
 	if (!wm8994->irq_data)
+	{
 		return;
+	}
+
 	free_irq(regmap_irq_get_virq(wm8994->irq_data, irq), data);
 }
 

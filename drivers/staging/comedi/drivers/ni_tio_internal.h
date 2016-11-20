@@ -171,9 +171,9 @@ ni_tio_counting_mode_registers_present(const struct ni_gpct_device *counter_dev)
 }
 
 void ni_tio_set_bits(struct ni_gpct *, enum ni_gpct_register reg,
-		     unsigned int mask, unsigned int value);
+					 unsigned int mask, unsigned int value);
 unsigned int ni_tio_get_soft_copy(const struct ni_gpct *,
-				  enum ni_gpct_register reg);
+								  enum ni_gpct_register reg);
 
 int ni_tio_arm(struct ni_gpct *, bool arm, unsigned int start_trigger);
 int ni_tio_set_gate_src(struct ni_gpct *, unsigned int gate, unsigned int src);

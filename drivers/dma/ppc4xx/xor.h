@@ -64,7 +64,8 @@
 /*
  * XOR Accelerator engine Command Block Type
  */
-struct xor_cb {
+struct xor_cb
+{
 	/*
 	 * Basic 64-bit format XOR CB (Table 19-1, p.463, 440spe_um_1_22.pdf)
 	 */
@@ -76,7 +77,8 @@ struct xor_cb {
 	u32	cbtal;		/* target address low */
 	u32	cblah;		/* link address high */
 	u32	cblal;		/* link address low */
-	struct {
+	struct
+	{
 		u32 h;
 		u32 l;
 	} __attribute__ ((packed)) ops[16];
@@ -85,7 +87,8 @@ struct xor_cb {
 /*
  * XOR hardware registers Table 19-3, UM 1.22
  */
-struct xor_regs {
+struct xor_regs
+{
 	u32	op_ar[16][2];	/* operand address[0]-high,[1]-low registers */
 	u8	pad0[352];	/* reserved */
 	u32	cbcr;		/* CB control register */

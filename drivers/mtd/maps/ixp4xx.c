@@ -53,7 +53,7 @@
  */
 #ifndef __ARMEB__
 #ifndef CONFIG_MTD_CFI_BE_BYTE_SWAP
-#  error CONFIG_MTD_CFI_BE_BYTE_SWAP required
+	#  error CONFIG_MTD_CFI_BE_BYTE_SWAP required
 #endif
 
 static inline u16 flash_read16(void __iomem *addr)
@@ -98,21 +98,25 @@ static map_word ixp4xx_read16(struct map_info *map, unsigned long ofs)
  * so we can't just memcpy_fromio().
  */
 static void ixp4xx_copy_from(struct map_info *map, void *to,
-			     unsigned long from, ssize_t len)
+							 unsigned long from, ssize_t len)
 {
 	u8 *dest = (u8 *) to;
 	void __iomem *src = map->virt + from;
 
 	if (len <= 0)
+	{
 		return;
+	}
 
-	if (from & 1) {
-		*dest++ = BYTE1(flash_read16(src-1));
+	if (from & 1)
+	{
+		*dest++ = BYTE1(flash_read16(src - 1));
 		src++;
 		--len;
 	}
 
-	while (len >= 2) {
+	while (len >= 2)
+	{
 		u16 data = flash_read16(src);
 		*dest++ = BYTE0(data);
 		*dest++ = BYTE1(data);
@@ -121,7 +125,9 @@ static void ixp4xx_copy_from(struct map_info *map, void *to,
 	}
 
 	if (len > 0)
+	{
 		*dest++ = BYTE0(flash_read16(src));
+	}
 }
 
 /*
@@ -131,7 +137,9 @@ static void ixp4xx_copy_from(struct map_info *map, void *to,
 static void ixp4xx_probe_write16(struct map_info *map, map_word d, unsigned long adr)
 {
 	if (!(adr & 1))
+	{
 		flash_write16(d.x[0], map->virt + adr);
+	}
 }
 
 /*
@@ -142,29 +150,35 @@ static void ixp4xx_write16(struct map_info *map, map_word d, unsigned long adr)
 	flash_write16(d.x[0], map->virt + adr);
 }
 
-struct ixp4xx_flash_info {
+struct ixp4xx_flash_info
+{
 	struct mtd_info *mtd;
 	struct map_info map;
 	struct resource *res;
 };
 
-static const char * const probes[] = { "RedBoot", "cmdlinepart", NULL };
+static const char *const probes[] = { "RedBoot", "cmdlinepart", NULL };
 
 static int ixp4xx_flash_remove(struct platform_device *dev)
 {
 	struct flash_platform_data *plat = dev_get_platdata(&dev->dev);
 	struct ixp4xx_flash_info *info = platform_get_drvdata(dev);
 
-	if(!info)
+	if (!info)
+	{
 		return 0;
+	}
 
-	if (info->mtd) {
+	if (info->mtd)
+	{
 		mtd_device_unregister(info->mtd);
 		map_destroy(info->mtd);
 	}
 
 	if (plat->exit)
+	{
 		plat->exit();
+	}
 
 	return 0;
 }
@@ -173,23 +187,32 @@ static int ixp4xx_flash_probe(struct platform_device *dev)
 {
 	struct flash_platform_data *plat = dev_get_platdata(&dev->dev);
 	struct ixp4xx_flash_info *info;
-	struct mtd_part_parser_data ppdata = {
+	struct mtd_part_parser_data ppdata =
+	{
 		.origin = dev->resource->start,
 	};
 	int err = -1;
 
 	if (!plat)
+	{
 		return -ENODEV;
+	}
 
-	if (plat->init) {
+	if (plat->init)
+	{
 		err = plat->init();
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	info = devm_kzalloc(&dev->dev, sizeof(struct ixp4xx_flash_info),
-			    GFP_KERNEL);
-	if(!info) {
+						GFP_KERNEL);
+
+	if (!info)
+	{
 		err = -ENOMEM;
 		goto Error;
 	}
@@ -215,25 +238,32 @@ static int ixp4xx_flash_probe(struct platform_device *dev)
 	info->map.copy_from = ixp4xx_copy_from;
 
 	info->map.virt = devm_ioremap_resource(&dev->dev, dev->resource);
-	if (IS_ERR(info->map.virt)) {
+
+	if (IS_ERR(info->map.virt))
+	{
 		err = PTR_ERR(info->map.virt);
 		goto Error;
 	}
 
 	info->mtd = do_map_probe(plat->map_name, &info->map);
-	if (!info->mtd) {
+
+	if (!info->mtd)
+	{
 		printk(KERN_ERR "IXP4XXFlash: map_probe failed\n");
 		err = -ENXIO;
 		goto Error;
 	}
+
 	info->mtd->dev.parent = &dev->dev;
 
 	/* Use the fast version */
 	info->map.write = ixp4xx_write16;
 
 	err = mtd_device_parse_register(info->mtd, probes, &ppdata,
-			plat->parts, plat->nr_parts);
-	if (err) {
+									plat->parts, plat->nr_parts);
+
+	if (err)
+	{
 		printk(KERN_ERR "Could not parse partitions\n");
 		goto Error;
 	}
@@ -245,7 +275,8 @@ Error:
 	return err;
 }
 
-static struct platform_driver ixp4xx_flash_driver = {
+static struct platform_driver ixp4xx_flash_driver =
+{
 	.probe		= ixp4xx_flash_probe,
 	.remove		= ixp4xx_flash_remove,
 	.driver		= {

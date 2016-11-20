@@ -60,7 +60,8 @@
 #define PLATFORM_CONFIG_HEADER_TABLE_TYPE_SHIFT			28
 #define PLATFORM_CONFIG_HEADER_TABLE_TYPE_LEN_BITS		4
 
-enum platform_config_table_type_encoding {
+enum platform_config_table_type_encoding
+{
 	PLATFORM_CONFIG_TABLE_RESERVED,
 	PLATFORM_CONFIG_SYSTEM_TABLE,
 	PLATFORM_CONFIG_PORT_TABLE,
@@ -71,7 +72,8 @@ enum platform_config_table_type_encoding {
 	PLATFORM_CONFIG_TABLE_MAX
 };
 
-enum platform_config_system_table_fields {
+enum platform_config_system_table_fields
+{
 	SYSTEM_TABLE_RESERVED,
 	SYSTEM_TABLE_NODE_STRING,
 	SYSTEM_TABLE_SYSTEM_IMAGE_GUID,
@@ -88,7 +90,8 @@ enum platform_config_system_table_fields {
 	SYSTEM_TABLE_MAX
 };
 
-enum platform_config_port_table_fields {
+enum platform_config_port_table_fields
+{
 	PORT_TABLE_RESERVED,
 	PORT_TABLE_PORT_TYPE,
 	PORT_TABLE_LOCAL_ATTEN_12G,
@@ -110,7 +113,8 @@ enum platform_config_port_table_fields {
 	PORT_TABLE_MAX
 };
 
-enum platform_config_rx_preset_table_fields {
+enum platform_config_rx_preset_table_fields
+{
 	RX_PRESET_TABLE_RESERVED,
 	RX_PRESET_TABLE_QSFP_RX_CDR_APPLY,
 	RX_PRESET_TABLE_QSFP_RX_EMP_APPLY,
@@ -121,7 +125,8 @@ enum platform_config_rx_preset_table_fields {
 	RX_PRESET_TABLE_MAX
 };
 
-enum platform_config_tx_preset_table_fields {
+enum platform_config_tx_preset_table_fields
+{
 	TX_PRESET_TABLE_RESERVED,
 	TX_PRESET_TABLE_PRECUR,
 	TX_PRESET_TABLE_ATTN,
@@ -133,26 +138,30 @@ enum platform_config_tx_preset_table_fields {
 	TX_PRESET_TABLE_MAX
 };
 
-enum platform_config_qsfp_attn_table_fields {
+enum platform_config_qsfp_attn_table_fields
+{
 	QSFP_ATTEN_TABLE_RESERVED,
 	QSFP_ATTEN_TABLE_TX_PRESET_IDX,
 	QSFP_ATTEN_TABLE_RX_PRESET_IDX,
 	QSFP_ATTEN_TABLE_MAX
 };
 
-enum platform_config_variable_settings_table_fields {
+enum platform_config_variable_settings_table_fields
+{
 	VARIABLE_SETTINGS_TABLE_RESERVED,
 	VARIABLE_SETTINGS_TABLE_TX_PRESET_IDX,
 	VARIABLE_SETTINGS_TABLE_RX_PRESET_IDX,
 	VARIABLE_SETTINGS_TABLE_MAX
 };
 
-struct platform_config {
+struct platform_config
+{
 	size_t size;
 	const u8 *data;
 };
 
-struct platform_config_data {
+struct platform_config_data
+{
 	u32 *table;
 	u32 *table_metadata;
 	u32 num_table;
@@ -163,12 +172,14 @@ struct platform_config_data {
  * and is populated by parse_platform_config(...) depending on the specific
  * META_VERSION
  */
-struct platform_config_cache {
+struct platform_config_cache
+{
 	u8  cache_valid;
 	struct platform_config_data config_tables[PLATFORM_CONFIG_TABLE_MAX];
 };
 
-static const u32 platform_config_table_limits[PLATFORM_CONFIG_TABLE_MAX] = {
+static const u32 platform_config_table_limits[PLATFORM_CONFIG_TABLE_MAX] =
+{
 	0,
 	SYSTEM_TABLE_MAX,
 	PORT_TABLE_MAX,
@@ -194,7 +205,8 @@ static const u32 platform_config_table_limits[PLATFORM_CONFIG_TABLE_MAX] = {
  * These power classes are the same as defined in SFF 8636 spec rev 2.4
  * describing byte 129 in table 6-16, except enumerated in a different order
  */
-enum platform_config_qsfp_power_class_encoding {
+enum platform_config_qsfp_power_class_encoding
+{
 	QSFP_POWER_CLASS_1 = 1,
 	QSFP_POWER_CLASS_2,
 	QSFP_POWER_CLASS_3,
@@ -209,7 +221,8 @@ enum platform_config_qsfp_power_class_encoding {
  *  Port table encodings
  * ====================================================
  */
-enum platform_config_port_type_encoding {
+enum platform_config_port_type_encoding
+{
 	PORT_TYPE_UNKNOWN,
 	PORT_TYPE_DISCONNECTED,
 	PORT_TYPE_FIXED,
@@ -218,7 +231,8 @@ enum platform_config_port_type_encoding {
 	PORT_TYPE_MAX
 };
 
-enum platform_config_link_speed_supported_encoding {
+enum platform_config_link_speed_supported_encoding
+{
 	LINK_SPEED_SUPP_12G = 1,
 	LINK_SPEED_SUPP_25G,
 	LINK_SPEED_SUPP_12G_25G,
@@ -231,7 +245,8 @@ enum platform_config_link_speed_supported_encoding {
  * to be supplied to the driver by another entity such as
  * the fabric manager
  */
-enum platform_config_link_width_supported_encoding {
+enum platform_config_link_width_supported_encoding
+{
 	LINK_WIDTH_SUPP_1X = 1,
 	LINK_WIDTH_SUPP_2X,
 	LINK_WIDTH_SUPP_2X_1X,
@@ -250,7 +265,8 @@ enum platform_config_link_width_supported_encoding {
 	LINK_WIDTH_SUPP_MAX
 };
 
-enum platform_config_virtual_lane_capability_encoding {
+enum platform_config_virtual_lane_capability_encoding
+{
 	VL_CAP_VL0 = 1,
 	VL_CAP_VL0_1,
 	VL_CAP_VL0_2,
@@ -270,7 +286,8 @@ enum platform_config_virtual_lane_capability_encoding {
 };
 
 /* Max MTU */
-enum platform_config_mtu_capability_encoding {
+enum platform_config_mtu_capability_encoding
+{
 	MTU_CAP_256   = 1,
 	MTU_CAP_512   = 2,
 	MTU_CAP_1024  = 3,
@@ -280,7 +297,8 @@ enum platform_config_mtu_capability_encoding {
 	MTU_CAP_10240 = 7
 };
 
-enum platform_config_local_max_timeout_encoding {
+enum platform_config_local_max_timeout_encoding
+{
 	LOCAL_MAX_TIMEOUT_10_MS = 1,
 	LOCAL_MAX_TIMEOUT_100_MS,
 	LOCAL_MAX_TIMEOUT_1_S,
@@ -289,7 +307,8 @@ enum platform_config_local_max_timeout_encoding {
 	LOCAL_MAX_TIMEOUT_1000_S
 };
 
-enum link_tuning_encoding {
+enum link_tuning_encoding
+{
 	OPA_PASSIVE_TUNING,
 	OPA_ACTIVE_TUNING,
 	OPA_UNKNOWN_TUNING

@@ -52,14 +52,20 @@ static void xonar_ext_power_gpio_changed(struct oxygen *chip)
 	u8 has_power;
 
 	has_power = !!(oxygen_read8(chip, data->ext_power_reg)
-		       & data->ext_power_bit);
-	if (has_power != data->has_power) {
+				   & data->ext_power_bit);
+
+	if (has_power != data->has_power)
+	{
 		data->has_power = has_power;
-		if (has_power) {
+
+		if (has_power)
+		{
 			dev_notice(chip->card->dev, "power restored\n");
-		} else {
+		}
+		else
+		{
 			dev_crit(chip->card->dev,
-				   "Hey! Don't unplug the power cable!\n");
+					 "Hey! Don't unplug the power cable!\n");
 			/* TODO: stop PCMs */
 		}
 	}
@@ -70,37 +76,44 @@ void xonar_init_ext_power(struct oxygen *chip)
 	struct xonar_generic *data = chip->model_data;
 
 	oxygen_set_bits8(chip, data->ext_power_int_reg,
-			 data->ext_power_bit);
+					 data->ext_power_bit);
 	chip->interrupt_mask |= OXYGEN_INT_GPIO;
 	chip->model.gpio_changed = xonar_ext_power_gpio_changed;
 	data->has_power = !!(oxygen_read8(chip, data->ext_power_reg)
-			     & data->ext_power_bit);
+						 & data->ext_power_bit);
 }
 
 void xonar_init_cs53x1(struct oxygen *chip)
 {
 	oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_CS53x1_M_MASK);
 	oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
-			      GPIO_CS53x1_M_SINGLE, GPIO_CS53x1_M_MASK);
+						  GPIO_CS53x1_M_SINGLE, GPIO_CS53x1_M_MASK);
 }
 
 void xonar_set_cs53x1_params(struct oxygen *chip,
-			     struct snd_pcm_hw_params *params)
+							 struct snd_pcm_hw_params *params)
 {
 	unsigned int value;
 
 	if (params_rate(params) <= 54000)
+	{
 		value = GPIO_CS53x1_M_SINGLE;
+	}
 	else if (params_rate(params) <= 108000)
+	{
 		value = GPIO_CS53x1_M_DOUBLE;
+	}
 	else
+	{
 		value = GPIO_CS53x1_M_QUAD;
+	}
+
 	oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
-			      value, GPIO_CS53x1_M_MASK);
+						  value, GPIO_CS53x1_M_MASK);
 }
 
 int xonar_gpio_bit_switch_get(struct snd_kcontrol *ctl,
-			      struct snd_ctl_elem_value *value)
+							  struct snd_ctl_elem_value *value)
 {
 	struct oxygen *chip = ctl->private_data;
 	u16 bit = ctl->private_value;
@@ -112,7 +125,7 @@ int xonar_gpio_bit_switch_get(struct snd_kcontrol *ctl,
 }
 
 int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
-			      struct snd_ctl_elem_value *value)
+							  struct snd_ctl_elem_value *value)
 {
 	struct oxygen *chip = ctl->private_data;
 	u16 bit = ctl->private_value;
@@ -122,13 +135,23 @@ int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
 
 	spin_lock_irq(&chip->reg_lock);
 	old_bits = oxygen_read16(chip, OXYGEN_GPIO_DATA);
+
 	if (!!value->value.integer.value[0] ^ invert)
+	{
 		new_bits = old_bits | bit;
+	}
 	else
+	{
 		new_bits = old_bits & ~bit;
+	}
+
 	changed = new_bits != old_bits;
+
 	if (changed)
+	{
 		oxygen_write16(chip, OXYGEN_GPIO_DATA, new_bits);
+	}
+
 	spin_unlock_irq(&chip->reg_lock);
 	return changed;
 }

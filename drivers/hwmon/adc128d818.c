@@ -34,8 +34,10 @@
  * since they are also used by some EEPROMs, which may result in false
  * positives.
  */
-static const unsigned short normal_i2c[] = {
-	0x1d, 0x1e, 0x1f, 0x2d, 0x2e, 0x2f, I2C_CLIENT_END };
+static const unsigned short normal_i2c[] =
+{
+	0x1d, 0x1e, 0x1f, 0x2d, 0x2e, 0x2f, I2C_CLIENT_END
+};
 
 /* registers */
 #define ADC128_REG_IN_MAX(nr)		(0x2a + (nr) * 2)
@@ -58,7 +60,8 @@ static const unsigned short normal_i2c[] = {
 #define ADC128_REG_MAN_ID		0x3e
 #define ADC128_REG_DEV_ID		0x3f
 
-struct adc128_data {
+struct adc128_data
+{
 	struct i2c_client *client;
 	struct regulator *regulator;
 	int vref;		/* Reference voltage in mV */
@@ -86,50 +89,81 @@ static struct adc128_data *adc128_update_device(struct device *dev)
 
 	mutex_lock(&data->update_lock);
 
-	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
-		for (i = 0; i < 7; i++) {
+	if (time_after(jiffies, data->last_updated + HZ) || !data->valid)
+	{
+		for (i = 0; i < 7; i++)
+		{
 			rv = i2c_smbus_read_word_swapped(client,
-							 ADC128_REG_IN(i));
+											 ADC128_REG_IN(i));
+
 			if (rv < 0)
+			{
 				goto abort;
+			}
+
 			data->in[0][i] = rv >> 4;
 
 			rv = i2c_smbus_read_byte_data(client,
-						      ADC128_REG_IN_MIN(i));
+										  ADC128_REG_IN_MIN(i));
+
 			if (rv < 0)
+			{
 				goto abort;
+			}
+
 			data->in[1][i] = rv << 4;
 
 			rv = i2c_smbus_read_byte_data(client,
-						      ADC128_REG_IN_MAX(i));
+										  ADC128_REG_IN_MAX(i));
+
 			if (rv < 0)
+			{
 				goto abort;
+			}
+
 			data->in[2][i] = rv << 4;
 		}
 
 		rv = i2c_smbus_read_word_swapped(client, ADC128_REG_TEMP);
+
 		if (rv < 0)
+		{
 			goto abort;
+		}
+
 		data->temp[0] = rv >> 7;
 
 		rv = i2c_smbus_read_byte_data(client, ADC128_REG_TEMP_MAX);
+
 		if (rv < 0)
+		{
 			goto abort;
+		}
+
 		data->temp[1] = rv << 1;
 
 		rv = i2c_smbus_read_byte_data(client, ADC128_REG_TEMP_HYST);
+
 		if (rv < 0)
+		{
 			goto abort;
+		}
+
 		data->temp[2] = rv << 1;
 
 		rv = i2c_smbus_read_byte_data(client, ADC128_REG_ALARM);
+
 		if (rv < 0)
+		{
 			goto abort;
+		}
+
 		data->alarms |= rv;
 
 		data->last_updated = jiffies;
 		data->valid = true;
 	}
+
 	goto done;
 
 abort:
@@ -141,7 +175,7 @@ done:
 }
 
 static ssize_t adc128_show_in(struct device *dev, struct device_attribute *attr,
-			      char *buf)
+							  char *buf)
 {
 	struct adc128_data *data = adc128_update_device(dev);
 	int index = to_sensor_dev_attr_2(attr)->index;
@@ -149,14 +183,16 @@ static ssize_t adc128_show_in(struct device *dev, struct device_attribute *attr,
 	int val;
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	val = DIV_ROUND_CLOSEST(data->in[index][nr] * data->vref, 4095);
 	return sprintf(buf, "%d\n", val);
 }
 
 static ssize_t adc128_set_in(struct device *dev, struct device_attribute *attr,
-			     const char *buf, size_t count)
+							 const char *buf, size_t count)
 {
 	struct adc128_data *data = dev_get_drvdata(dev);
 	int index = to_sensor_dev_attr_2(attr)->index;
@@ -166,8 +202,11 @@ static ssize_t adc128_set_in(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	/* 10 mV LSB on limit registers */
@@ -181,22 +220,24 @@ static ssize_t adc128_set_in(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t adc128_show_temp(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	struct adc128_data *data = adc128_update_device(dev);
 	int index = to_sensor_dev_attr(attr)->index;
 	int temp;
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	temp = sign_extend32(data->temp[index], 8);
 	return sprintf(buf, "%d\n", temp * 500);/* 0.5 degrees C resolution */
 }
 
 static ssize_t adc128_set_temp(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf, size_t count)
+							   struct device_attribute *attr,
+							   const char *buf, size_t count)
 {
 	struct adc128_data *data = dev_get_drvdata(dev);
 	int index = to_sensor_dev_attr(attr)->index;
@@ -205,30 +246,35 @@ static ssize_t adc128_set_temp(struct device *dev,
 	s8 regval;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	regval = clamp_val(DIV_ROUND_CLOSEST(val, 1000), -128, 127);
 	data->temp[index] = regval << 1;
 	i2c_smbus_write_byte_data(data->client,
-				  index == 1 ? ADC128_REG_TEMP_MAX
-					     : ADC128_REG_TEMP_HYST,
-				  regval);
+							  index == 1 ? ADC128_REG_TEMP_MAX
+							  : ADC128_REG_TEMP_HYST,
+							  regval);
 	mutex_unlock(&data->update_lock);
 
 	return count;
 }
 
 static ssize_t adc128_show_alarm(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	struct adc128_data *data = adc128_update_device(dev);
 	int mask = 1 << to_sensor_dev_attr(attr)->index;
 	u8 alarms;
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	/*
 	 * Clear an alarm after reporting it to user space. If it is still
@@ -241,59 +287,59 @@ static ssize_t adc128_show_alarm(struct device *dev,
 }
 
 static SENSOR_DEVICE_ATTR_2(in0_input, S_IRUGO,
-			    adc128_show_in, NULL, 0, 0);
+							adc128_show_in, NULL, 0, 0);
 static SENSOR_DEVICE_ATTR_2(in0_min, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 0, 1);
+							adc128_show_in, adc128_set_in, 0, 1);
 static SENSOR_DEVICE_ATTR_2(in0_max, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 0, 2);
+							adc128_show_in, adc128_set_in, 0, 2);
 
 static SENSOR_DEVICE_ATTR_2(in1_input, S_IRUGO,
-			    adc128_show_in, NULL, 1, 0);
+							adc128_show_in, NULL, 1, 0);
 static SENSOR_DEVICE_ATTR_2(in1_min, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 1, 1);
+							adc128_show_in, adc128_set_in, 1, 1);
 static SENSOR_DEVICE_ATTR_2(in1_max, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 1, 2);
+							adc128_show_in, adc128_set_in, 1, 2);
 
 static SENSOR_DEVICE_ATTR_2(in2_input, S_IRUGO,
-			    adc128_show_in, NULL, 2, 0);
+							adc128_show_in, NULL, 2, 0);
 static SENSOR_DEVICE_ATTR_2(in2_min, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 2, 1);
+							adc128_show_in, adc128_set_in, 2, 1);
 static SENSOR_DEVICE_ATTR_2(in2_max, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 2, 2);
+							adc128_show_in, adc128_set_in, 2, 2);
 
 static SENSOR_DEVICE_ATTR_2(in3_input, S_IRUGO,
-			    adc128_show_in, NULL, 3, 0);
+							adc128_show_in, NULL, 3, 0);
 static SENSOR_DEVICE_ATTR_2(in3_min, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 3, 1);
+							adc128_show_in, adc128_set_in, 3, 1);
 static SENSOR_DEVICE_ATTR_2(in3_max, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 3, 2);
+							adc128_show_in, adc128_set_in, 3, 2);
 
 static SENSOR_DEVICE_ATTR_2(in4_input, S_IRUGO,
-			    adc128_show_in, NULL, 4, 0);
+							adc128_show_in, NULL, 4, 0);
 static SENSOR_DEVICE_ATTR_2(in4_min, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 4, 1);
+							adc128_show_in, adc128_set_in, 4, 1);
 static SENSOR_DEVICE_ATTR_2(in4_max, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 4, 2);
+							adc128_show_in, adc128_set_in, 4, 2);
 
 static SENSOR_DEVICE_ATTR_2(in5_input, S_IRUGO,
-			    adc128_show_in, NULL, 5, 0);
+							adc128_show_in, NULL, 5, 0);
 static SENSOR_DEVICE_ATTR_2(in5_min, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 5, 1);
+							adc128_show_in, adc128_set_in, 5, 1);
 static SENSOR_DEVICE_ATTR_2(in5_max, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 5, 2);
+							adc128_show_in, adc128_set_in, 5, 2);
 
 static SENSOR_DEVICE_ATTR_2(in6_input, S_IRUGO,
-			    adc128_show_in, NULL, 6, 0);
+							adc128_show_in, NULL, 6, 0);
 static SENSOR_DEVICE_ATTR_2(in6_min, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 6, 1);
+							adc128_show_in, adc128_set_in, 6, 1);
 static SENSOR_DEVICE_ATTR_2(in6_max, S_IWUSR | S_IRUGO,
-			    adc128_show_in, adc128_set_in, 6, 2);
+							adc128_show_in, adc128_set_in, 6, 2);
 
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, adc128_show_temp, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
-			  adc128_show_temp, adc128_set_temp, 1);
+						  adc128_show_temp, adc128_set_temp, 1);
 static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
-			  adc128_show_temp, adc128_set_temp, 2);
+						  adc128_show_temp, adc128_set_temp, 2);
 
 static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, adc128_show_alarm, NULL, 0);
 static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, adc128_show_alarm, NULL, 1);
@@ -304,7 +350,8 @@ static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, adc128_show_alarm, NULL, 5);
 static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, adc128_show_alarm, NULL, 6);
 static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, adc128_show_alarm, NULL, 7);
 
-static struct attribute *adc128_attrs[] = {
+static struct attribute *adc128_attrs[] =
+{
 	&sensor_dev_attr_in0_min.dev_attr.attr,
 	&sensor_dev_attr_in1_min.dev_attr.attr,
 	&sensor_dev_attr_in2_min.dev_attr.attr,
@@ -346,28 +393,50 @@ static int adc128_detect(struct i2c_client *client, struct i2c_board_info *info)
 	int man_id, dev_id;
 
 	if (!i2c_check_functionality(client->adapter,
-				     I2C_FUNC_SMBUS_BYTE_DATA |
-				     I2C_FUNC_SMBUS_WORD_DATA))
+								 I2C_FUNC_SMBUS_BYTE_DATA |
+								 I2C_FUNC_SMBUS_WORD_DATA))
+	{
 		return -ENODEV;
+	}
 
 	man_id = i2c_smbus_read_byte_data(client, ADC128_REG_MAN_ID);
 	dev_id = i2c_smbus_read_byte_data(client, ADC128_REG_DEV_ID);
+
 	if (man_id != 0x01 || dev_id != 0x09)
+	{
 		return -ENODEV;
+	}
 
 	/* Check unused bits for confirmation */
 	if (i2c_smbus_read_byte_data(client, ADC128_REG_CONFIG) & 0xf4)
+	{
 		return -ENODEV;
+	}
+
 	if (i2c_smbus_read_byte_data(client, ADC128_REG_CONV_RATE) & 0xfe)
+	{
 		return -ENODEV;
+	}
+
 	if (i2c_smbus_read_byte_data(client, ADC128_REG_ONESHOT) & 0xfe)
+	{
 		return -ENODEV;
+	}
+
 	if (i2c_smbus_read_byte_data(client, ADC128_REG_SHUTDOWN) & 0xfe)
+	{
 		return -ENODEV;
+	}
+
 	if (i2c_smbus_read_byte_data(client, ADC128_REG_CONFIG_ADV) & 0xf8)
+	{
 		return -ENODEV;
+	}
+
 	if (i2c_smbus_read_byte_data(client, ADC128_REG_BUSY_STATUS) & 0xfc)
+	{
 		return -ENODEV;
+	}
 
 	strlcpy(info->type, "adc128d818", I2C_NAME_SIZE);
 
@@ -384,27 +453,37 @@ static int adc128_init_client(struct adc128_data *data)
 	 * This makes most other initializations unnecessary.
 	 */
 	err = i2c_smbus_write_byte_data(client, ADC128_REG_CONFIG, 0x80);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Start monitoring */
 	err = i2c_smbus_write_byte_data(client, ADC128_REG_CONFIG, 0x01);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* If external vref is selected, configure the chip to use it */
-	if (data->regulator) {
+	if (data->regulator)
+	{
 		err = i2c_smbus_write_byte_data(client,
-						ADC128_REG_CONFIG_ADV, 0x01);
+										ADC128_REG_CONFIG_ADV, 0x01);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;
 }
 
 static int adc128_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct regulator *regulator;
@@ -413,23 +492,37 @@ static int adc128_probe(struct i2c_client *client,
 	int err, vref;
 
 	data = devm_kzalloc(dev, sizeof(struct adc128_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	/* vref is optional. If specified, is used as chip reference voltage */
 	regulator = devm_regulator_get_optional(dev, "vref");
-	if (!IS_ERR(regulator)) {
+
+	if (!IS_ERR(regulator))
+	{
 		data->regulator = regulator;
 		err = regulator_enable(regulator);
+
 		if (err < 0)
+		{
 			return err;
+		}
+
 		vref = regulator_get_voltage(regulator);
-		if (vref < 0) {
+
+		if (vref < 0)
+		{
 			err = vref;
 			goto error;
 		}
+
 		data->vref = DIV_ROUND_CLOSEST(vref, 1000);
-	} else {
+	}
+	else
+	{
 		data->vref = 2560;	/* 2.56V, in mV */
 	}
 
@@ -439,12 +532,17 @@ static int adc128_probe(struct i2c_client *client,
 
 	/* Initialize the chip */
 	err = adc128_init_client(data);
+
 	if (err < 0)
+	{
 		goto error;
+	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   data, adc128_groups);
-	if (IS_ERR(hwmon_dev)) {
+				data, adc128_groups);
+
+	if (IS_ERR(hwmon_dev))
+	{
 		err = PTR_ERR(hwmon_dev);
 		goto error;
 	}
@@ -452,8 +550,12 @@ static int adc128_probe(struct i2c_client *client,
 	return 0;
 
 error:
+
 	if (data->regulator)
+	{
 		regulator_disable(data->regulator);
+	}
+
 	return err;
 }
 
@@ -462,18 +564,22 @@ static int adc128_remove(struct i2c_client *client)
 	struct adc128_data *data = i2c_get_clientdata(client);
 
 	if (data->regulator)
+	{
 		regulator_disable(data->regulator);
+	}
 
 	return 0;
 }
 
-static const struct i2c_device_id adc128_id[] = {
+static const struct i2c_device_id adc128_id[] =
+{
 	{ "adc128d818", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, adc128_id);
 
-static struct i2c_driver adc128_driver = {
+static struct i2c_driver adc128_driver =
+{
 	.class		= I2C_CLASS_HWMON,
 	.driver = {
 		.name	= "adc128d818",

@@ -71,25 +71,27 @@ extern __printf(2, 3) void rsi_dbg(u32 zone, const char *fmt, ...);
 #define MAX_DEBUGFS_ENTRIES             4
 
 #define TID_TO_WME_AC(_tid) (      \
-	((_tid) == 0 || (_tid) == 3) ? BE_Q : \
-	((_tid) < 3) ? BK_Q : \
-	((_tid) < 6) ? VI_Q : \
-	VO_Q)
+								   ((_tid) == 0 || (_tid) == 3) ? BE_Q : \
+								   ((_tid) < 3) ? BK_Q : \
+								   ((_tid) < 6) ? VI_Q : \
+								   VO_Q)
 
 #define WME_AC(_q) (    \
-	((_q) == BK_Q) ? IEEE80211_AC_BK : \
-	((_q) == BE_Q) ? IEEE80211_AC_BE : \
-	((_q) == VI_Q) ? IEEE80211_AC_VI : \
-	IEEE80211_AC_VO)
+						((_q) == BK_Q) ? IEEE80211_AC_BK : \
+						((_q) == BE_Q) ? IEEE80211_AC_BE : \
+						((_q) == VI_Q) ? IEEE80211_AC_VI : \
+						IEEE80211_AC_VO)
 
-struct version_info {
+struct version_info
+{
 	u16 major;
 	u16 minor;
 	u16 release_num;
 	u16 patch_num;
 } __packed;
 
-struct skb_info {
+struct skb_info
+{
 	s8 rssi;
 	u32 flags;
 	u16 channel;
@@ -97,7 +99,8 @@ struct skb_info {
 	s8 sta_id;
 };
 
-enum edca_queue {
+enum edca_queue
+{
 	BK_Q,
 	BE_Q,
 	VI_Q,
@@ -105,36 +108,42 @@ enum edca_queue {
 	MGMT_SOFT_Q
 };
 
-struct security_info {
+struct security_info
+{
 	bool security_enable;
 	u32 ptk_cipher;
 	u32 gtk_cipher;
 };
 
-struct wmm_qinfo {
+struct wmm_qinfo
+{
 	s32 weight;
 	s32 wme_params;
 	s32 pkt_contended;
 	s32 txop;
 };
 
-struct transmit_q_stats {
+struct transmit_q_stats
+{
 	u32 total_tx_pkt_send[NUM_EDCA_QUEUES + 1];
 	u32 total_tx_pkt_freed[NUM_EDCA_QUEUES + 1];
 };
 
-struct vif_priv {
+struct vif_priv
+{
 	bool is_ht;
 	bool sgi;
 	u16 seq_start;
 };
 
-struct rsi_event {
+struct rsi_event
+{
 	atomic_t event_condition;
 	wait_queue_head_t event_queue;
 };
 
-struct rsi_thread {
+struct rsi_thread
+{
 	void (*thread_function)(void *);
 	struct completion completion;
 	struct task_struct *task;
@@ -142,7 +151,8 @@ struct rsi_thread {
 	atomic_t thread_done;
 };
 
-struct cqm_info {
+struct cqm_info
+{
 	s8 last_cqm_event_rssi;
 	int rssi_thold;
 	u32 rssi_hyst;
@@ -150,7 +160,8 @@ struct cqm_info {
 
 struct rsi_hw;
 
-struct rsi_common {
+struct rsi_common
+{
 	struct rsi_hw *priv;
 	struct vif_priv vif_info[RSI_MAX_VIFS];
 
@@ -206,7 +217,8 @@ struct rsi_common {
 	bool hw_data_qs_blocked;
 };
 
-struct rsi_hw {
+struct rsi_hw
+{
 	struct rsi_common *priv;
 	struct ieee80211_hw *hw;
 	struct ieee80211_vif *vifs[RSI_MAX_VIFS];

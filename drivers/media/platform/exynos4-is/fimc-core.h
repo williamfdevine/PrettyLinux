@@ -52,12 +52,14 @@
 #define FIMC_DEFAULT_HEIGHT	480
 
 /* indices to the clocks array */
-enum {
+enum
+{
 	CLK_BUS,
 	CLK_GATE,
 };
 
-enum fimc_dev_flags {
+enum fimc_dev_flags
+{
 	ST_LPM,
 	/* m2m node */
 	ST_M2M_RUN,
@@ -83,7 +85,8 @@ enum fimc_dev_flags {
 #define fimc_capture_pending(dev) test_bit(ST_CAPT_PEND, &(dev)->state)
 #define fimc_capture_busy(dev) test_bit(ST_CAPT_BUSY, &(dev)->state)
 
-enum fimc_datapath {
+enum fimc_datapath
+{
 	FIMC_IO_NONE,
 	FIMC_IO_CAMERA,
 	FIMC_IO_DMA,
@@ -92,7 +95,8 @@ enum fimc_datapath {
 	FIMC_IO_ISP,
 };
 
-enum fimc_color_fmt {
+enum fimc_color_fmt
+{
 	FIMC_FMT_RGB444	= 0x10,
 	FIMC_FMT_RGB555,
 	FIMC_FMT_RGB565,
@@ -116,7 +120,7 @@ enum fimc_color_fmt {
 #define fimc_fmt_is_rgb(x) (!!((x) & 0x10))
 
 #define IS_M2M(__strt) ((__strt) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE || \
-			__strt == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+						__strt == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
 
 /* The hardware context state. */
 #define	FIMC_PARAMS		(1 << 0)
@@ -148,7 +152,8 @@ enum fimc_color_fmt {
  * @cr_h:	cr value horizontal offset
  * @cr_v:	cr value vertical offset
  */
-struct fimc_dma_offset {
+struct fimc_dma_offset
+{
 	int	y_h;
 	int	y_v;
 	int	cb_h;
@@ -163,7 +168,8 @@ struct fimc_dma_offset {
  * @pat_cb:	cr value when type is "arbitrary"
  * @pat_cr:	cr value when type is "arbitrary"
  */
-struct fimc_effect {
+struct fimc_effect
+{
 	u32	type;
 	u8	pat_cb;
 	u8	pat_cr;
@@ -187,11 +193,12 @@ struct fimc_effect {
  * @real_width:		source pixel (width - offset)
  * @real_height:	source pixel (height - offset)
  */
-struct fimc_scaler {
-	unsigned int scaleup_h:1;
-	unsigned int scaleup_v:1;
-	unsigned int copy_mode:1;
-	unsigned int enabled:1;
+struct fimc_scaler
+{
+	unsigned int scaleup_h: 1;
+	unsigned int scaleup_v: 1;
+	unsigned int copy_mode: 1;
+	unsigned int enabled: 1;
 	u32	hfactor;
 	u32	vfactor;
 	u32	pre_hratio;
@@ -210,7 +217,8 @@ struct fimc_scaler {
  * @cb:	 Cb plane physical address
  * @cr:	 Cr plane physical address
  */
-struct fimc_addr {
+struct fimc_addr
+{
 	u32	y;
 	u32	cb;
 	u32	cr;
@@ -223,7 +231,8 @@ struct fimc_addr {
  * @paddr: precalculated physical address set
  * @index: buffer index for the output DMA engine
  */
-struct fimc_vid_buffer {
+struct fimc_vid_buffer
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head	list;
 	struct fimc_addr	paddr;
@@ -246,7 +255,8 @@ struct fimc_vid_buffer {
  * @dma_offset:	DMA offset in bytes
  * @fmt:	fimc color format pointer
  */
-struct fimc_frame {
+struct fimc_frame
+{
 	u32	f_width;
 	u32	f_height;
 	u32	o_width;
@@ -270,7 +280,8 @@ struct fimc_frame {
  * @ctx: hardware context data
  * @refcnt: the reference counter
  */
-struct fimc_m2m_device {
+struct fimc_m2m_device
+{
 	struct video_device	vfd;
 	struct v4l2_m2m_dev	*m2m_dev;
 	struct fimc_ctx		*ctx;
@@ -305,7 +316,8 @@ struct fimc_m2m_device {
  * @inh_sensor_ctrls: a flag indicating v4l2 controls are inherited from
  * 		      an image sensor subdev
  */
-struct fimc_vid_cap {
+struct fimc_vid_cap
+{
 	struct fimc_ctx			*ctx;
 	struct v4l2_subdev		subdev;
 	struct exynos_video_entity	ve;
@@ -338,7 +350,8 @@ struct fimc_vid_cap {
  *  @out_rot_en_w: max output width with the output rotator on
  *  @out_rot_dis_w: max output width with the output rotator off
  */
-struct fimc_pix_limit {
+struct fimc_pix_limit
+{
 	u16 scaler_en_w;
 	u16 scaler_dis_w;
 	u16 in_rot_en_h;
@@ -361,12 +374,13 @@ struct fimc_pix_limit {
  * @hor_offs_align: horizontal pixel offset aligment
  * @min_vsize_align: minimum vertical pixel size alignment
  */
-struct fimc_variant {
-	unsigned int	has_inp_rot:1;
-	unsigned int	has_out_rot:1;
-	unsigned int	has_mainscaler_ext:1;
-	unsigned int	has_cam_if:1;
-	unsigned int	has_isp_wb:1;
+struct fimc_variant
+{
+	unsigned int	has_inp_rot: 1;
+	unsigned int	has_out_rot: 1;
+	unsigned int	has_mainscaler_ext: 1;
+	unsigned int	has_cam_if: 1;
+	unsigned int	has_isp_wb: 1;
 	const struct fimc_pix_limit *pix_limit;
 	u16		min_inp_pixsize;
 	u16		min_out_pixsize;
@@ -384,7 +398,8 @@ struct fimc_variant {
  * @alpha_color: 1 if alpha color component is supported
  * @out_buf_count: maximum number of output DMA buffers supported
  */
-struct fimc_drvdata {
+struct fimc_drvdata
+{
 	const struct fimc_variant *variant[FIMC_MAX_DEVS];
 	int num_entities;
 	unsigned long lclk_frequency;
@@ -418,7 +433,8 @@ struct fimc_ctx;
  * @state:	flags used to synchronize m2m and capture mode operation
  * @pipeline:	fimc video capture pipeline data structure
  */
-struct fimc_dev {
+struct fimc_dev
+{
 	spinlock_t			slock;
 	struct mutex			lock;
 	struct platform_device		*pdev;
@@ -447,9 +463,11 @@ struct fimc_dev {
  * @alpha: RGB alpha control
  * @ready: true if @handler is initialized
  */
-struct fimc_ctrls {
+struct fimc_ctrls
+{
 	struct v4l2_ctrl_handler handler;
-	struct {
+	struct
+	{
 		struct v4l2_ctrl *colorfx;
 		struct v4l2_ctrl *colorfx_cbcr;
 	};
@@ -481,7 +499,8 @@ struct fimc_ctrls {
  * @fh:			v4l2 file handle
  * @ctrls:		v4l2 controls structure
  */
-struct fimc_ctx {
+struct fimc_ctx
+{
 	struct fimc_frame	s_frame;
 	struct fimc_frame	d_frame;
 	u32			out_order_1p;
@@ -493,8 +512,8 @@ struct fimc_ctx {
 	struct fimc_scaler	scaler;
 	struct fimc_effect	effect;
 	int			rotation;
-	unsigned int		hflip:1;
-	unsigned int		vflip:1;
+	unsigned int		hflip: 1;
+	unsigned int		vflip: 1;
 	u32			flags;
 	u32			state;
 	struct fimc_dev		*fimc_dev;
@@ -513,7 +532,7 @@ static inline void set_frame_bounds(struct fimc_frame *f, u32 width, u32 height)
 }
 
 static inline void set_frame_crop(struct fimc_frame *f,
-				  u32 left, u32 top, u32 width, u32 height)
+								  u32 left, u32 top, u32 width, u32 height)
 {
 	f->offs_h = left;
 	f->offs_v = top;
@@ -527,7 +546,10 @@ static inline u32 fimc_get_format_depth(struct fimc_fmt *ff)
 
 	if (ff != NULL)
 		for (i = 0; i < ff->colplanes; i++)
+		{
 			depth += ff->depth[i];
+		}
+
 	return depth;
 }
 
@@ -538,7 +560,7 @@ static inline bool fimc_capture_active(struct fimc_dev *fimc)
 
 	spin_lock_irqsave(&fimc->slock, flags);
 	ret = !!(fimc->state & (1 << ST_CAPT_RUN) ||
-		 fimc->state & (1 << ST_CAPT_PEND));
+			 fimc->state & (1 << ST_CAPT_PEND));
 	spin_unlock_irqrestore(&fimc->slock, flags);
 	return ret;
 }
@@ -571,41 +593,54 @@ static inline int tiled_fmt(struct fimc_fmt *fmt)
 static inline bool fimc_jpeg_fourcc(u32 pixelformat)
 {
 	return (pixelformat == V4L2_PIX_FMT_JPEG ||
-		pixelformat == V4L2_PIX_FMT_S5C_UYVY_JPG);
+			pixelformat == V4L2_PIX_FMT_S5C_UYVY_JPG);
 }
 
 static inline bool fimc_user_defined_mbus_fmt(u32 code)
 {
 	return (code == MEDIA_BUS_FMT_JPEG_1X8 ||
-		code == MEDIA_BUS_FMT_S5C_UYVY_JPEG_1X8);
+			code == MEDIA_BUS_FMT_S5C_UYVY_JPEG_1X8);
 }
 
 /* Return the alpha component bit mask */
 static inline int fimc_get_alpha_mask(struct fimc_fmt *fmt)
 {
-	switch (fmt->color) {
-	case FIMC_FMT_RGB444:	return 0x0f;
-	case FIMC_FMT_RGB555:	return 0x01;
-	case FIMC_FMT_RGB888:	return 0xff;
-	default:		return 0;
+	switch (fmt->color)
+	{
+		case FIMC_FMT_RGB444:	return 0x0f;
+
+		case FIMC_FMT_RGB555:	return 0x01;
+
+		case FIMC_FMT_RGB888:	return 0xff;
+
+		default:		return 0;
 	};
 }
 
 static inline struct fimc_frame *ctx_get_frame(struct fimc_ctx *ctx,
-					       enum v4l2_buf_type type)
+		enum v4l2_buf_type type)
 {
 	struct fimc_frame *frame;
 
-	if (V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE == type) {
+	if (V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE == type)
+	{
 		if (fimc_ctx_state_is_set(FIMC_CTX_M2M, ctx))
+		{
 			frame = &ctx->s_frame;
+		}
 		else
+		{
 			return ERR_PTR(-EINVAL);
-	} else if (V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE == type) {
+		}
+	}
+	else if (V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE == type)
+	{
 		frame = &ctx->d_frame;
-	} else {
+	}
+	else
+	{
 		v4l2_err(ctx->fimc_dev->v4l2_dev,
-			"Wrong buffer/video queue type (%d)\n", type);
+				 "Wrong buffer/video queue type (%d)\n", type);
 		return ERR_PTR(-EINVAL);
 	}
 
@@ -615,36 +650,36 @@ static inline struct fimc_frame *ctx_get_frame(struct fimc_ctx *ctx,
 /* -----------------------------------------------------*/
 /* fimc-core.c */
 int fimc_vidioc_enum_fmt_mplane(struct file *file, void *priv,
-				struct v4l2_fmtdesc *f);
+								struct v4l2_fmtdesc *f);
 int fimc_ctrls_create(struct fimc_ctx *ctx);
 void fimc_ctrls_delete(struct fimc_ctx *ctx);
 void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active);
 void fimc_alpha_ctrl_update(struct fimc_ctx *ctx);
 void __fimc_get_format(struct fimc_frame *frame, struct v4l2_format *f);
 void fimc_adjust_mplane_format(struct fimc_fmt *fmt, u32 width, u32 height,
-			       struct v4l2_pix_format_mplane *pix);
+							   struct v4l2_pix_format_mplane *pix);
 struct fimc_fmt *fimc_find_format(const u32 *pixelformat, const u32 *mbus_code,
-				  unsigned int mask, int index);
+								  unsigned int mask, int index);
 struct fimc_fmt *fimc_get_format(unsigned int index);
 
 int fimc_check_scaler_ratio(struct fimc_ctx *ctx, int sw, int sh,
-			    int dw, int dh, int rotation);
+							int dw, int dh, int rotation);
 int fimc_set_scaler_info(struct fimc_ctx *ctx);
 int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags);
 int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
-		      struct fimc_frame *frame, struct fimc_addr *paddr);
+					  struct fimc_frame *frame, struct fimc_addr *paddr);
 void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f);
 void fimc_set_yuv_order(struct fimc_ctx *ctx);
 void fimc_capture_irq_handler(struct fimc_dev *fimc, int deq_buf);
 
 int fimc_register_m2m_device(struct fimc_dev *fimc,
-			     struct v4l2_device *v4l2_dev);
+							 struct v4l2_device *v4l2_dev);
 void fimc_unregister_m2m_device(struct fimc_dev *fimc);
 int fimc_register_driver(void);
 void fimc_unregister_driver(void);
 
 #ifdef CONFIG_MFD_SYSCON
-static inline struct regmap * fimc_get_sysreg_regmap(struct device_node *node)
+static inline struct regmap *fimc_get_sysreg_regmap(struct device_node *node)
 {
 	return syscon_regmap_lookup_by_phandle(node, "samsung,sysreg");
 }
@@ -662,7 +697,7 @@ int fimc_initialize_capture_subdev(struct fimc_dev *fimc);
 void fimc_unregister_capture_subdev(struct fimc_dev *fimc);
 int fimc_capture_ctrls_create(struct fimc_dev *fimc);
 void fimc_sensor_notify(struct v4l2_subdev *sd, unsigned int notification,
-			void *arg);
+						void *arg);
 int fimc_capture_suspend(struct fimc_dev *fimc);
 int fimc_capture_resume(struct fimc_dev *fimc);
 
@@ -675,7 +710,7 @@ int fimc_capture_resume(struct fimc_dev *fimc);
  * @buf: buffer to add to the active buffers list
  */
 static inline void fimc_active_queue_add(struct fimc_vid_cap *vid_cap,
-					 struct fimc_vid_buffer *buf)
+		struct fimc_vid_buffer *buf)
 {
 	list_add_tail(&buf->list, &vid_cap->active_buf_q);
 	vid_cap->active_buf_cnt++;
@@ -687,11 +722,11 @@ static inline void fimc_active_queue_add(struct fimc_vid_cap *vid_cap,
  * The caller must assure the active_buf_q list is not empty.
  */
 static inline struct fimc_vid_buffer *fimc_active_queue_pop(
-				    struct fimc_vid_cap *vid_cap)
+	struct fimc_vid_cap *vid_cap)
 {
 	struct fimc_vid_buffer *buf;
 	buf = list_entry(vid_cap->active_buf_q.next,
-			 struct fimc_vid_buffer, list);
+					 struct fimc_vid_buffer, list);
 	list_del(&buf->list);
 	vid_cap->active_buf_cnt--;
 	return buf;
@@ -702,7 +737,7 @@ static inline struct fimc_vid_buffer *fimc_active_queue_pop(
  * @buf: buffer to add to the pending buffers list
  */
 static inline void fimc_pending_queue_add(struct fimc_vid_cap *vid_cap,
-					  struct fimc_vid_buffer *buf)
+		struct fimc_vid_buffer *buf)
 {
 	list_add_tail(&buf->list, &vid_cap->pending_buf_q);
 }
@@ -713,11 +748,11 @@ static inline void fimc_pending_queue_add(struct fimc_vid_cap *vid_cap,
  * The caller must assure the pending_buf_q list is not empty.
  */
 static inline struct fimc_vid_buffer *fimc_pending_queue_pop(
-				     struct fimc_vid_cap *vid_cap)
+	struct fimc_vid_cap *vid_cap)
 {
 	struct fimc_vid_buffer *buf;
 	buf = list_entry(vid_cap->pending_buf_q.next,
-			struct fimc_vid_buffer, list);
+					 struct fimc_vid_buffer, list);
 	list_del(&buf->list);
 	return buf;
 }

@@ -20,7 +20,8 @@
 /* Identifies mouse and keyboard activity which is specified by the firmware to
  *  the host using the cmsimpleinput protocol.  @ingroup coretypes
  */
-enum ultra_inputaction {
+enum ultra_inputaction
+{
 	inputaction_none = 0,
 	inputaction_xy_motion = 1,	/* only motion; arg1=x, arg2=y */
 	inputaction_mouse_button_down = 2, /* arg1: 1=left,2=center,3=right */
@@ -49,29 +50,31 @@ enum ultra_inputaction {
 					 * inputaction_keyDown)
 					 */
 	inputaction_set_locking_key_state = 66,
-					/* arg1: scancode (in same format
-					 *	 as inputaction_keyDown);
-					 *	 MUST refer to one of the
-					 *	 locking keys, like capslock,
-					 *	 numlock, or scrolllock
-					 * arg2: 1 iff locking key should be
-					 *	 in the LOCKED position
-					 *	 (e.g., light is ON)
-					 */
+	/* arg1: scancode (in same format
+	 *	 as inputaction_keyDown);
+	 *	 MUST refer to one of the
+	 *	 locking keys, like capslock,
+	 *	 numlock, or scrolllock
+	 * arg2: 1 iff locking key should be
+	 *	 in the LOCKED position
+	 *	 (e.g., light is ON)
+	 */
 	inputaction_key_down_up = 67,	/* arg1: scancode (in same format
 					 *	 as inputaction_keyDown)
 					 */
 	inputaction_last
 };
 
-struct ultra_inputactivity {
+struct ultra_inputactivity
+{
 	u16 action;
 	u16 arg1;
 	u16 arg2;
 	u16 arg3;
 } __packed;
 
-struct ultra_inputreport {
+struct ultra_inputreport
+{
 	u64 seq_no;
 	struct ultra_inputactivity activity;
 } __packed;

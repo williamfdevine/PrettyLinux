@@ -16,13 +16,13 @@
 #define QED_VF_ARRAY_LENGTH (3)
 
 #ifdef CONFIG_QED_SRIOV
-#define IS_VF(cdev)             ((cdev)->b_is_vf)
-#define IS_PF(cdev)             (!((cdev)->b_is_vf))
-#define IS_PF_SRIOV(p_hwfn)     (!!((p_hwfn)->cdev->p_iov_info))
+	#define IS_VF(cdev)             ((cdev)->b_is_vf)
+	#define IS_PF(cdev)             (!((cdev)->b_is_vf))
+	#define IS_PF_SRIOV(p_hwfn)     (!!((p_hwfn)->cdev->p_iov_info))
 #else
-#define IS_VF(cdev)             (0)
-#define IS_PF(cdev)             (1)
-#define IS_PF_SRIOV(p_hwfn)     (0)
+	#define IS_VF(cdev)             (0)
+	#define IS_PF(cdev)             (1)
+	#define IS_PF_SRIOV(p_hwfn)     (0)
 #endif
 #define IS_PF_SRIOV_ALLOC(p_hwfn)       (!!((p_hwfn)->pf_iov_info))
 
@@ -31,7 +31,8 @@
 #define QED_ETH_MAX_VF_NUM_VLAN_FILTERS	\
 	(MAX_NUM_VFS * QED_ETH_VF_NUM_VLAN_FILTERS)
 
-enum qed_iov_vport_update_flag {
+enum qed_iov_vport_update_flag
+{
 	QED_IOV_VP_UPDATE_ACTIVATE,
 	QED_IOV_VP_UPDATE_VLAN_STRIP,
 	QED_IOV_VP_UPDATE_TX_SWITCH,
@@ -43,7 +44,8 @@ enum qed_iov_vport_update_flag {
 	QED_IOV_VP_UPDATE_MAX,
 };
 
-struct qed_public_vf_info {
+struct qed_public_vf_info
+{
 	/* These copies will later be reflected in the bulletin board,
 	 * but this copy should be newer.
 	 */
@@ -61,7 +63,8 @@ struct qed_public_vf_info {
 /* This struct is part of qed_dev and contains data relevant to all hwfns;
  * Initialized only if SR-IOV cpabability is exposed in PCIe config space.
  */
-struct qed_hw_sriov_info {
+struct qed_hw_sriov_info
+{
 	int pos;		/* capability position */
 	int nres;		/* number of resources */
 	u32 cap;		/* SR-IOV Capabilities */
@@ -82,7 +85,8 @@ struct qed_hw_sriov_info {
 /* This mailbox is maintained per VF in its PF contains all information
  * required for sending / receiving a message.
  */
-struct qed_iov_vf_mbx {
+struct qed_iov_vf_mbx
+{
 	union vfpf_tlvs *req_virt;
 	dma_addr_t req_phys;
 	union pfvf_tlvs *reply_virt;
@@ -97,7 +101,8 @@ struct qed_iov_vf_mbx {
 	struct vfpf_first_tlv first_tlv;
 };
 
-struct qed_vf_q_info {
+struct qed_vf_q_info
+{
 	u16 fw_rx_qid;
 	u16 fw_tx_qid;
 	u8 fw_cid;
@@ -105,7 +110,8 @@ struct qed_vf_q_info {
 	u8 txq_active;
 };
 
-enum vf_state {
+enum vf_state
+{
 	VF_FREE = 0,		/* VF ready to be acquired holds no resc */
 	VF_ACQUIRED,		/* VF, acquired, but not initalized */
 	VF_ENABLED,		/* VF, Enabled */
@@ -113,12 +119,14 @@ enum vf_state {
 	VF_STOPPED		/* VF, Stopped */
 };
 
-struct qed_vf_vlan_shadow {
+struct qed_vf_vlan_shadow
+{
 	bool used;
 	u16 vid;
 };
 
-struct qed_vf_shadow_config {
+struct qed_vf_shadow_config
+{
 	/* Shadow copy of all guest vlans */
 	struct qed_vf_vlan_shadow vlans[QED_ETH_VF_NUM_VLAN_FILTERS + 1];
 
@@ -128,7 +136,8 @@ struct qed_vf_shadow_config {
 };
 
 /* PFs maintain an array of this structure, per VF */
-struct qed_vf_info {
+struct qed_vf_info
+{
 	struct qed_iov_vf_mbx vf_mbx;
 	enum vf_state state;
 	bool b_init;
@@ -148,8 +157,8 @@ struct qed_vf_info {
 	u8 relative_vf_id;
 	u8 abs_vf_id;
 #define QED_VF_ABS_ID(p_hwfn, p_vf)	(QED_PATH_ID(p_hwfn) ?		      \
-					 (p_vf)->abs_vf_id + MAX_NUM_VFS_BB : \
-					 (p_vf)->abs_vf_id)
+									 (p_vf)->abs_vf_id + MAX_NUM_VFS_BB : \
+									 (p_vf)->abs_vf_id)
 
 	u8 vport_instance;
 	u8 num_rxqs;
@@ -174,13 +183,14 @@ struct qed_vf_info {
 	 */
 	u64 configured_features;
 #define QED_IOV_CONFIGURED_FEATURES_MASK        ((1 << MAC_ADDR_FORCED) | \
-						 (1 << VLAN_ADDR_FORCED))
+		(1 << VLAN_ADDR_FORCED))
 };
 
 /* This structure is part of qed_hwfn and used only for PFs that have sriov
  * capability enabled.
  */
-struct qed_pf_iov {
+struct qed_pf_iov
+{
 	struct qed_vf_info vfs_array[MAX_NUM_VFS];
 	u64 pending_events[QED_VF_ARRAY_LENGTH];
 	u64 pending_flr[QED_VF_ARRAY_LENGTH];
@@ -197,7 +207,8 @@ struct qed_pf_iov {
 	u32 bulletins_size;
 };
 
-enum qed_iov_wq_flag {
+enum qed_iov_wq_flag
+{
 	QED_IOV_WQ_MSG_FLAG,
 	QED_IOV_WQ_SET_UNICAST_FILTER_FLAG,
 	QED_IOV_WQ_BULLETIN_UPDATE_FLAG,
@@ -286,7 +297,7 @@ void qed_iov_free_hw_info(struct qed_dev *cdev);
  * @param data
  */
 int qed_sriov_eqe_event(struct qed_hwfn *p_hwfn,
-			u8 opcode, __le16 echo, union event_ring_data *data);
+						u8 opcode, __le16 echo, union event_ring_data *data);
 
 /**
  * @brief Mark structs of vfs that have been FLR-ed.
@@ -308,7 +319,7 @@ int qed_iov_mark_vf_flr(struct qed_hwfn *p_hwfn, u32 *disabled_vfs);
  * @return pointer to tlv type if found, otherwise returns NULL.
  */
 void *qed_iov_search_list_tlvs(struct qed_hwfn *p_hwfn,
-			       void *p_tlvs_list, u16 req_type);
+							   void *p_tlvs_list, u16 req_type);
 
 void qed_iov_wq_stop(struct qed_dev *cdev, bool schedule_first);
 int qed_iov_wq_start(struct qed_dev *cdev);
@@ -319,7 +330,7 @@ int qed_sriov_disable(struct qed_dev *cdev, bool pci_enabled);
 void qed_inform_vf_link_state(struct qed_hwfn *hwfn);
 #else
 static inline u16 qed_iov_get_next_active_vf(struct qed_hwfn *p_hwfn,
-					     u16 rel_vf_id)
+		u16 rel_vf_id)
 {
 	return MAX_NUM_VFS;
 }
@@ -347,14 +358,14 @@ static inline void qed_iov_free_hw_info(struct qed_dev *cdev)
 }
 
 static inline int qed_sriov_eqe_event(struct qed_hwfn *p_hwfn,
-				      u8 opcode,
-				      __le16 echo, union event_ring_data *data)
+									  u8 opcode,
+									  __le16 echo, union event_ring_data *data)
 {
 	return -EINVAL;
 }
 
 static inline int qed_iov_mark_vf_flr(struct qed_hwfn *p_hwfn,
-				      u32 *disabled_vfs)
+									  u32 *disabled_vfs)
 {
 	return 0;
 }
@@ -369,7 +380,7 @@ static inline int qed_iov_wq_start(struct qed_dev *cdev)
 }
 
 static inline void qed_schedule_iov(struct qed_hwfn *hwfn,
-				    enum qed_iov_wq_flag flag)
+									enum qed_iov_wq_flag flag)
 {
 }
 
@@ -389,7 +400,7 @@ static inline void qed_inform_vf_link_state(struct qed_hwfn *hwfn)
 
 #define qed_for_each_vf(_p_hwfn, _i)			  \
 	for (_i = qed_iov_get_next_active_vf(_p_hwfn, 0); \
-	     _i < MAX_NUM_VFS;				  \
-	     _i = qed_iov_get_next_active_vf(_p_hwfn, _i + 1))
+		 _i < MAX_NUM_VFS;				  \
+		 _i = qed_iov_get_next_active_vf(_p_hwfn, _i + 1))
 
 #endif

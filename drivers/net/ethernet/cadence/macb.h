@@ -425,7 +425,7 @@
 	 & ((1 << MACB_##name##_SIZE) - 1))
 #define MACB_BFINS(name,value,old)			\
 	(((old) & ~(((1 << MACB_##name##_SIZE) - 1)	\
-		    << MACB_##name##_OFFSET))		\
+				<< MACB_##name##_OFFSET))		\
 	 | MACB_BF(name,value))
 
 #define GEM_BIT(name)					\
@@ -438,7 +438,7 @@
 	 & ((1 << GEM_##name##_SIZE) - 1))
 #define GEM_BFINS(name, value, old)			\
 	(((old) & ~(((1 << GEM_##name##_SIZE) - 1)	\
-		    << GEM_##name##_OFFSET))		\
+				<< GEM_##name##_OFFSET))		\
 	 | GEM_BF(name, value))
 
 /* Register access macros */
@@ -476,7 +476,8 @@
  * @addr: DMA address of data buffer
  * @ctrl: Control and status bits
  */
-struct macb_dma_desc {
+struct macb_dma_desc
+{
 	u32	addr;
 	u32	ctrl;
 #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
@@ -576,7 +577,8 @@ struct macb_dma_desc {
  * @mapped_as_page: true when buffer was mapped with skb_frag_dma_map(),
  *                  false when buffer was mapped with dma_map_single()
  */
-struct macb_tx_skb {
+struct macb_tx_skb
+{
 	struct sk_buff		*skb;
 	dma_addr_t		mapping;
 	size_t			size;
@@ -586,7 +588,8 @@ struct macb_tx_skb {
 /* Hardware-collected statistics. Used when updating the network
  * device stats by a periodic timer.
  */
-struct macb_stats {
+struct macb_stats
+{
 	u32	rx_pause_frames;
 	u32	tx_ok;
 	u32	tx_single_cols;
@@ -610,7 +613,8 @@ struct macb_stats {
 	u32	tx_pause_frames;
 };
 
-struct gem_stats {
+struct gem_stats
+{
 	u32	tx_octets_31_0;
 	u32	tx_octets_47_32;
 	u32	tx_frames;
@@ -662,7 +666,8 @@ struct gem_stats {
  * returned by `ethtool -S`. Also describes which net_device_stats statistics
  * this register should contribute to.
  */
-struct gem_statistic {
+struct gem_statistic
+{
 	char stat_string[ETH_GSTRING_LEN];
 	int offset;
 	u32 stat_bits;
@@ -683,15 +688,16 @@ struct gem_statistic {
 
 #define GEM_STAT_TITLE(name, title) GEM_STAT_TITLE_BITS(name, title, 0)
 #define GEM_STAT_TITLE_BITS(name, title, bits) {	\
-	.stat_string = title,				\
-	.offset = GEM_##name,				\
-	.stat_bits = bits				\
-}
+		.stat_string = title,				\
+					   .offset = GEM_##name,				\
+								 .stat_bits = bits				\
+	}
 
 /* list of gem statistic registers. The names MUST match the
  * corresponding GEM_* definitions.
  */
-static const struct gem_statistic gem_statistics[] = {
+static const struct gem_statistic gem_statistics[] =
+{
 	GEM_STAT_TITLE(OCTTXL, "tx_octets"), /* OCTTXH combined with OCTTXL */
 	GEM_STAT_TITLE(TXCNT, "tx_frames"),
 	GEM_STAT_TITLE(TXBCCNT, "tx_broadcast_frames"),
@@ -705,20 +711,20 @@ static const struct gem_statistic gem_statistics[] = {
 	GEM_STAT_TITLE(TX1024CNT, "tx_1024_1518_byte_frames"),
 	GEM_STAT_TITLE(TX1519CNT, "tx_greater_than_1518_byte_frames"),
 	GEM_STAT_TITLE_BITS(TXURUNCNT, "tx_underrun",
-			    GEM_BIT(NDS_TXERR)|GEM_BIT(NDS_TXFIFOERR)),
+	GEM_BIT(NDS_TXERR) | GEM_BIT(NDS_TXFIFOERR)),
 	GEM_STAT_TITLE_BITS(SNGLCOLLCNT, "tx_single_collision_frames",
-			    GEM_BIT(NDS_TXERR)|GEM_BIT(NDS_COLLISIONS)),
+	GEM_BIT(NDS_TXERR) | GEM_BIT(NDS_COLLISIONS)),
 	GEM_STAT_TITLE_BITS(MULTICOLLCNT, "tx_multiple_collision_frames",
-			    GEM_BIT(NDS_TXERR)|GEM_BIT(NDS_COLLISIONS)),
+	GEM_BIT(NDS_TXERR) | GEM_BIT(NDS_COLLISIONS)),
 	GEM_STAT_TITLE_BITS(EXCESSCOLLCNT, "tx_excessive_collisions",
-			    GEM_BIT(NDS_TXERR)|
-			    GEM_BIT(NDS_TXABORTEDERR)|
-			    GEM_BIT(NDS_COLLISIONS)),
+	GEM_BIT(NDS_TXERR) |
+	GEM_BIT(NDS_TXABORTEDERR) |
+	GEM_BIT(NDS_COLLISIONS)),
 	GEM_STAT_TITLE_BITS(LATECOLLCNT, "tx_late_collisions",
-			    GEM_BIT(NDS_TXERR)|GEM_BIT(NDS_COLLISIONS)),
+	GEM_BIT(NDS_TXERR) | GEM_BIT(NDS_COLLISIONS)),
 	GEM_STAT_TITLE(TXDEFERCNT, "tx_deferred_frames"),
 	GEM_STAT_TITLE_BITS(TXCSENSECNT, "tx_carrier_sense_errors",
-			    GEM_BIT(NDS_TXERR)|GEM_BIT(NDS_COLLISIONS)),
+	GEM_BIT(NDS_TXERR) | GEM_BIT(NDS_COLLISIONS)),
 	GEM_STAT_TITLE(OCTRXL, "rx_octets"), /* OCTRXH combined with OCTRXL */
 	GEM_STAT_TITLE(RXCNT, "rx_frames"),
 	GEM_STAT_TITLE(RXBROADCNT, "rx_broadcast_frames"),
@@ -732,53 +738,56 @@ static const struct gem_statistic gem_statistics[] = {
 	GEM_STAT_TITLE(RX1024CNT, "rx_1024_1518_byte_frames"),
 	GEM_STAT_TITLE(RX1519CNT, "rx_greater_than_1518_byte_frames"),
 	GEM_STAT_TITLE_BITS(RXUNDRCNT, "rx_undersized_frames",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXLENERR)),
+	GEM_BIT(NDS_RXERR) | GEM_BIT(NDS_RXLENERR)),
 	GEM_STAT_TITLE_BITS(RXOVRCNT, "rx_oversize_frames",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXLENERR)),
+	GEM_BIT(NDS_RXERR) | GEM_BIT(NDS_RXLENERR)),
 	GEM_STAT_TITLE_BITS(RXJABCNT, "rx_jabbers",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXLENERR)),
+	GEM_BIT(NDS_RXERR) | GEM_BIT(NDS_RXLENERR)),
 	GEM_STAT_TITLE_BITS(RXFCSCNT, "rx_frame_check_sequence_errors",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXCRCERR)),
+	GEM_BIT(NDS_RXERR) | GEM_BIT(NDS_RXCRCERR)),
 	GEM_STAT_TITLE_BITS(RXLENGTHCNT, "rx_length_field_frame_errors",
-			    GEM_BIT(NDS_RXERR)),
+	GEM_BIT(NDS_RXERR)),
 	GEM_STAT_TITLE_BITS(RXSYMBCNT, "rx_symbol_errors",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXFRAMEERR)),
+	GEM_BIT(NDS_RXERR) | GEM_BIT(NDS_RXFRAMEERR)),
 	GEM_STAT_TITLE_BITS(RXALIGNCNT, "rx_alignment_errors",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXOVERERR)),
+	GEM_BIT(NDS_RXERR) | GEM_BIT(NDS_RXOVERERR)),
 	GEM_STAT_TITLE_BITS(RXRESERRCNT, "rx_resource_errors",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXOVERERR)),
+	GEM_BIT(NDS_RXERR) | GEM_BIT(NDS_RXOVERERR)),
 	GEM_STAT_TITLE_BITS(RXORCNT, "rx_overruns",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXFIFOERR)),
+	GEM_BIT(NDS_RXERR) | GEM_BIT(NDS_RXFIFOERR)),
 	GEM_STAT_TITLE_BITS(RXIPCCNT, "rx_ip_header_checksum_errors",
-			    GEM_BIT(NDS_RXERR)),
+	GEM_BIT(NDS_RXERR)),
 	GEM_STAT_TITLE_BITS(RXTCPCCNT, "rx_tcp_checksum_errors",
-			    GEM_BIT(NDS_RXERR)),
+	GEM_BIT(NDS_RXERR)),
 	GEM_STAT_TITLE_BITS(RXUDPCCNT, "rx_udp_checksum_errors",
-			    GEM_BIT(NDS_RXERR)),
+	GEM_BIT(NDS_RXERR)),
 };
 
 #define GEM_STATS_LEN ARRAY_SIZE(gem_statistics)
 
 struct macb;
 
-struct macb_or_gem_ops {
+struct macb_or_gem_ops
+{
 	int	(*mog_alloc_rx_buffers)(struct macb *bp);
 	void	(*mog_free_rx_buffers)(struct macb *bp);
 	void	(*mog_init_rings)(struct macb *bp);
 	int	(*mog_rx)(struct macb *bp, int budget);
 };
 
-struct macb_config {
+struct macb_config
+{
 	u32			caps;
 	unsigned int		dma_burst_length;
 	int	(*clk_init)(struct platform_device *pdev, struct clk **pclk,
-			    struct clk **hclk, struct clk **tx_clk,
-			    struct clk **rx_clk);
+					struct clk **hclk, struct clk **tx_clk,
+					struct clk **rx_clk);
 	int	(*init)(struct platform_device *pdev);
 	int	jumbo_max_len;
 };
 
-struct macb_queue {
+struct macb_queue
+{
 	struct macb		*bp;
 	int			irq;
 
@@ -796,7 +805,8 @@ struct macb_queue {
 	struct work_struct	tx_error_task;
 };
 
-struct macb {
+struct macb
+{
 	void __iomem		*regs;
 	bool			native_io;
 
@@ -824,7 +834,8 @@ struct macb {
 	struct net_device	*dev;
 	struct napi_struct	napi;
 	struct net_device_stats	stats;
-	union {
+	union
+	{
 		struct macb_stats	macb;
 		struct gem_stats	gem;
 	}			hw_stats;

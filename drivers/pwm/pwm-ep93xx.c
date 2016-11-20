@@ -42,7 +42,8 @@
 #define EP93XX_PWMx_ENABLE	0x08
 #define EP93XX_PWMx_INVERT	0x0c
 
-struct ep93xx_pwm {
+struct ep93xx_pwm
+{
 	void __iomem *base;
 	struct clk *clk;
 	struct pwm_chip chip;
@@ -68,7 +69,7 @@ static void ep93xx_pwm_free(struct pwm_chip *chip, struct pwm_device *pwm)
 }
 
 static int ep93xx_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			     int duty_ns, int period_ns)
+							 int duty_ns, int period_ns)
 {
 	struct ep93xx_pwm *ep93xx_pwm = to_ep93xx_pwm(chip);
 	void __iomem *base = ep93xx_pwm->base;
@@ -82,10 +83,14 @@ static int ep93xx_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * The clock needs to be enabled to access the PWM registers.
 	 * Configuration can be changed at any time.
 	 */
-	if (!pwm_is_enabled(pwm)) {
+	if (!pwm_is_enabled(pwm))
+	{
 		ret = clk_enable(ep93xx_pwm->clk);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	c = clk_get_rate(ep93xx_pwm->clk);
@@ -98,29 +103,37 @@ static int ep93xx_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	do_div(c, period_ns);
 	duty_cycles = c;
 
-	if (period_cycles < 0x10000 && duty_cycles < 0x10000) {
+	if (period_cycles < 0x10000 && duty_cycles < 0x10000)
+	{
 		term = readw(base + EP93XX_PWMx_TERM_COUNT);
 
 		/* Order is important if PWM is running */
-		if (period_cycles > term) {
+		if (period_cycles > term)
+		{
 			writew(period_cycles, base + EP93XX_PWMx_TERM_COUNT);
 			writew(duty_cycles, base + EP93XX_PWMx_DUTY_CYCLE);
-		} else {
+		}
+		else
+		{
 			writew(duty_cycles, base + EP93XX_PWMx_DUTY_CYCLE);
 			writew(period_cycles, base + EP93XX_PWMx_TERM_COUNT);
 		}
-	} else {
+	}
+	else
+	{
 		ret = -EINVAL;
 	}
 
 	if (!pwm_is_enabled(pwm))
+	{
 		clk_disable(ep93xx_pwm->clk);
+	}
 
 	return ret;
 }
 
 static int ep93xx_pwm_polarity(struct pwm_chip *chip, struct pwm_device *pwm,
-			       enum pwm_polarity polarity)
+							   enum pwm_polarity polarity)
 {
 	struct ep93xx_pwm *ep93xx_pwm = to_ep93xx_pwm(chip);
 	int ret;
@@ -130,13 +143,20 @@ static int ep93xx_pwm_polarity(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * Polarity can only be changed when the PWM is disabled.
 	 */
 	ret = clk_enable(ep93xx_pwm->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (polarity == PWM_POLARITY_INVERSED)
+	{
 		writew(0x1, ep93xx_pwm->base + EP93XX_PWMx_INVERT);
+	}
 	else
+	{
 		writew(0x0, ep93xx_pwm->base + EP93XX_PWMx_INVERT);
+	}
 
 	clk_disable(ep93xx_pwm->clk);
 
@@ -149,8 +169,11 @@ static int ep93xx_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	int ret;
 
 	ret = clk_enable(ep93xx_pwm->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	writew(0x1, ep93xx_pwm->base + EP93XX_PWMx_ENABLE);
 
@@ -165,7 +188,8 @@ static void ep93xx_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	clk_disable(ep93xx_pwm->clk);
 }
 
-static const struct pwm_ops ep93xx_pwm_ops = {
+static const struct pwm_ops ep93xx_pwm_ops =
+{
 	.request = ep93xx_pwm_request,
 	.free = ep93xx_pwm_free,
 	.config = ep93xx_pwm_config,
@@ -182,17 +206,26 @@ static int ep93xx_pwm_probe(struct platform_device *pdev)
 	int ret;
 
 	ep93xx_pwm = devm_kzalloc(&pdev->dev, sizeof(*ep93xx_pwm), GFP_KERNEL);
+
 	if (!ep93xx_pwm)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ep93xx_pwm->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(ep93xx_pwm->base))
+	{
 		return PTR_ERR(ep93xx_pwm->base);
+	}
 
 	ep93xx_pwm->clk = devm_clk_get(&pdev->dev, "pwm_clk");
+
 	if (IS_ERR(ep93xx_pwm->clk))
+	{
 		return PTR_ERR(ep93xx_pwm->clk);
+	}
 
 	ep93xx_pwm->chip.dev = &pdev->dev;
 	ep93xx_pwm->chip.ops = &ep93xx_pwm_ops;
@@ -200,8 +233,11 @@ static int ep93xx_pwm_probe(struct platform_device *pdev)
 	ep93xx_pwm->chip.npwm = 1;
 
 	ret = pwmchip_add(&ep93xx_pwm->chip);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	platform_set_drvdata(pdev, ep93xx_pwm);
 	return 0;
@@ -214,7 +250,8 @@ static int ep93xx_pwm_remove(struct platform_device *pdev)
 	return pwmchip_remove(&ep93xx_pwm->chip);
 }
 
-static struct platform_driver ep93xx_pwm_driver = {
+static struct platform_driver ep93xx_pwm_driver =
+{
 	.driver = {
 		.name = "ep93xx-pwm",
 	},

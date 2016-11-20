@@ -42,7 +42,8 @@
  * @namelen: length of string
  * @list: hash-table list for string lookup
  */
-struct errormap {
+struct errormap
+{
 	char *name;
 	int val;
 
@@ -54,7 +55,8 @@ struct errormap {
 static struct hlist_head hash_errmap[ERRHASHSZ];
 
 /* FixMe - reduce to a reasonable size */
-static struct errormap errmap[] = {
+static struct errormap errmap[] =
+{
 	{"Operation not permitted", EPERM},
 	{"wstat prohibited", EPERM},
 	{"No such file or directory", ENOENT},
@@ -132,7 +134,7 @@ static struct errormap errmap[] = {
 	{"Is a named type file", EISNAM},
 	{"Remote I/O error", EREMOTEIO},
 	{"Disk quota exceeded", EDQUOT},
-/* errors from fossil, vacfs, and u9fs */
+	/* errors from fossil, vacfs, and u9fs */
 	{"fid unknown or out of range", EBADF},
 	{"permission denied", EACCES},
 	{"file does not exist", ENOENT},
@@ -197,10 +199,13 @@ int p9_error_init(void)
 
 	/* initialize hash table */
 	for (bucket = 0; bucket < ERRHASHSZ; bucket++)
+	{
 		INIT_HLIST_HEAD(&hash_errmap[bucket]);
+	}
 
 	/* load initial error map into hash table */
-	for (c = errmap; c->name != NULL; c++) {
+	for (c = errmap; c->name != NULL; c++)
+	{
 		c->namelen = strlen(c->name);
 		bucket = jhash(c->name, c->namelen, 0) % ERRHASHSZ;
 		INIT_HLIST_NODE(&c->list);
@@ -227,18 +232,21 @@ int p9_errstr2errno(char *errstr, int len)
 	errno = 0;
 	c = NULL;
 	bucket = jhash(errstr, len, 0) % ERRHASHSZ;
-	hlist_for_each_entry(c, &hash_errmap[bucket], list) {
-		if (c->namelen == len && !memcmp(c->name, errstr, len)) {
+	hlist_for_each_entry(c, &hash_errmap[bucket], list)
+	{
+		if (c->namelen == len && !memcmp(c->name, errstr, len))
+		{
 			errno = c->val;
 			break;
 		}
 	}
 
-	if (errno == 0) {
+	if (errno == 0)
+	{
 		/* TODO: if error isn't found, add it dynamically */
 		errstr[len] = 0;
 		pr_err("%s: server reported unknown error %s\n",
-		       __func__, errstr);
+			   __func__, errstr);
 		errno = ESERVERFAULT;
 	}
 

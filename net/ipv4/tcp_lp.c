@@ -49,7 +49,8 @@
  * TCP-LP's state flags.
  * We create this set of state flag mainly for debugging.
  */
-enum tcp_lp_state {
+enum tcp_lp_state
+{
 	LP_VALID_RHZ = (1 << 0),
 	LP_VALID_OWD = (1 << 1),
 	LP_WITHIN_THR = (1 << 3),
@@ -73,7 +74,8 @@ enum tcp_lp_state {
  * We get the idea from original TCP-LP implementation where only left those we
  * found are really useful.
  */
-struct lp {
+struct lp
+{
 	u32 flag;
 	u32 sowd;
 	u32 owd_min;
@@ -120,7 +122,9 @@ static void tcp_lp_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 	struct lp *lp = inet_csk_ca(sk);
 
 	if (!(lp->flag & LP_WITHIN_INF))
+	{
 		tcp_reno_cong_avoid(sk, ack, acked);
+	}
 }
 
 /**
@@ -140,31 +144,47 @@ static u32 tcp_lp_remote_hz_estimator(struct sock *sk)
 	/* not yet record reference time
 	 * go away!! record it before come back!! */
 	if (lp->remote_ref_time == 0 || lp->local_ref_time == 0)
+	{
 		goto out;
+	}
 
 	/* we can't calc remote HZ with no different!! */
 	if (tp->rx_opt.rcv_tsval == lp->remote_ref_time ||
-	    tp->rx_opt.rcv_tsecr == lp->local_ref_time)
+		tp->rx_opt.rcv_tsecr == lp->local_ref_time)
+	{
 		goto out;
+	}
 
 	m = HZ * (tp->rx_opt.rcv_tsval -
-		  lp->remote_ref_time) / (tp->rx_opt.rcv_tsecr -
-					  lp->local_ref_time);
-	if (m < 0)
-		m = -m;
+			  lp->remote_ref_time) / (tp->rx_opt.rcv_tsecr -
+									  lp->local_ref_time);
 
-	if (rhz > 0) {
+	if (m < 0)
+	{
+		m = -m;
+	}
+
+	if (rhz > 0)
+	{
 		m -= rhz >> 6;	/* m is now error in remote HZ est */
 		rhz += m;	/* 63/64 old + 1/64 new */
-	} else
+	}
+	else
+	{
 		rhz = m << 6;
+	}
 
- out:
+out:
+
 	/* record time for successful remote HZ calc */
 	if ((rhz >> 6) > 0)
+	{
 		lp->flag |= LP_VALID_RHZ;
+	}
 	else
+	{
 		lp->flag &= ~LP_VALID_RHZ;
+	}
 
 	/* record reference time stamp */
 	lp->remote_ref_time = tp->rx_opt.rcv_tsval;
@@ -191,18 +211,26 @@ static u32 tcp_lp_owd_calculator(struct sock *sk)
 
 	lp->remote_hz = tcp_lp_remote_hz_estimator(sk);
 
-	if (lp->flag & LP_VALID_RHZ) {
+	if (lp->flag & LP_VALID_RHZ)
+	{
 		owd =
-		    tp->rx_opt.rcv_tsval * (LP_RESOL / lp->remote_hz) -
-		    tp->rx_opt.rcv_tsecr * (LP_RESOL / HZ);
+			tp->rx_opt.rcv_tsval * (LP_RESOL / lp->remote_hz) -
+			tp->rx_opt.rcv_tsecr * (LP_RESOL / HZ);
+
 		if (owd < 0)
+		{
 			owd = -owd;
+		}
 	}
 
 	if (owd > 0)
+	{
 		lp->flag |= LP_VALID_OWD;
+	}
 	else
+	{
 		lp->flag &= ~LP_VALID_OWD;
+	}
 
 	return owd;
 }
@@ -224,31 +252,49 @@ static void tcp_lp_rtt_sample(struct sock *sk, u32 rtt)
 
 	/* sorry that we don't have valid data */
 	if (!(lp->flag & LP_VALID_RHZ) || !(lp->flag & LP_VALID_OWD))
+	{
 		return;
+	}
 
 	/* record the next min owd */
 	if (mowd < lp->owd_min)
+	{
 		lp->owd_min = mowd;
+	}
 
 	/* always forget the max of the max
 	 * we just set owd_max as one below it */
-	if (mowd > lp->owd_max) {
-		if (mowd > lp->owd_max_rsv) {
+	if (mowd > lp->owd_max)
+	{
+		if (mowd > lp->owd_max_rsv)
+		{
 			if (lp->owd_max_rsv == 0)
+			{
 				lp->owd_max = mowd;
+			}
 			else
+			{
 				lp->owd_max = lp->owd_max_rsv;
+			}
+
 			lp->owd_max_rsv = mowd;
-		} else
+		}
+		else
+		{
 			lp->owd_max = mowd;
+		}
 	}
 
 	/* calc for smoothed owd */
-	if (lp->sowd != 0) {
+	if (lp->sowd != 0)
+	{
 		mowd -= lp->sowd >> 3;	/* m is now error in owd est */
 		lp->sowd += mowd;	/* owd = 7/8 owd + 1/8 new */
-	} else
-		lp->sowd = mowd << 3;	/* take the measured time be owd */
+	}
+	else
+	{
+		lp->sowd = mowd << 3;    /* take the measured time be owd */
+	}
 }
 
 /**
@@ -266,31 +312,45 @@ static void tcp_lp_pkts_acked(struct sock *sk, const struct ack_sample *sample)
 	struct lp *lp = inet_csk_ca(sk);
 
 	if (sample->rtt_us > 0)
+	{
 		tcp_lp_rtt_sample(sk, sample->rtt_us);
+	}
 
 	/* calc inference */
 	if (tcp_time_stamp > tp->rx_opt.rcv_tsecr)
+	{
 		lp->inference = 3 * (tcp_time_stamp - tp->rx_opt.rcv_tsecr);
+	}
 
 	/* test if within inference */
 	if (lp->last_drop && (tcp_time_stamp - lp->last_drop < lp->inference))
+	{
 		lp->flag |= LP_WITHIN_INF;
+	}
 	else
+	{
 		lp->flag &= ~LP_WITHIN_INF;
+	}
 
 	/* test if within threshold */
 	if (lp->sowd >> 3 <
-	    lp->owd_min + 15 * (lp->owd_max - lp->owd_min) / 100)
+		lp->owd_min + 15 * (lp->owd_max - lp->owd_min) / 100)
+	{
 		lp->flag |= LP_WITHIN_THR;
+	}
 	else
+	{
 		lp->flag &= ~LP_WITHIN_THR;
+	}
 
 	pr_debug("TCP-LP: %05o|%5u|%5u|%15u|%15u|%15u\n", lp->flag,
-		 tp->snd_cwnd, lp->remote_hz, lp->owd_min, lp->owd_max,
-		 lp->sowd >> 3);
+			 tp->snd_cwnd, lp->remote_hz, lp->owd_min, lp->owd_max,
+			 lp->sowd >> 3);
 
 	if (lp->flag & LP_WITHIN_THR)
+	{
 		return;
+	}
 
 	/* FIXME: try to reset owd_min and owd_max here
 	 * so decrease the chance the min/max is no longer suitable
@@ -302,18 +362,23 @@ static void tcp_lp_pkts_acked(struct sock *sk, const struct ack_sample *sample)
 	/* happened within inference
 	 * drop snd_cwnd into 1 */
 	if (lp->flag & LP_WITHIN_INF)
+	{
 		tp->snd_cwnd = 1U;
+	}
 
 	/* happened after inference
 	 * cut snd_cwnd into half */
 	else
+	{
 		tp->snd_cwnd = max(tp->snd_cwnd >> 1U, 1U);
+	}
 
 	/* record this drop time */
 	lp->last_drop = tcp_time_stamp;
 }
 
-static struct tcp_congestion_ops tcp_lp __read_mostly = {
+static struct tcp_congestion_ops tcp_lp __read_mostly =
+{
 	.init = tcp_lp_init,
 	.ssthresh = tcp_reno_ssthresh,
 	.cong_avoid = tcp_lp_cong_avoid,

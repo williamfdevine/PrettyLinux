@@ -60,7 +60,7 @@ static int mouse_threshold[2] = {2, 2};
 module_param_array(mouse_threshold, int, NULL, 0);
 
 #ifdef FIXED_ATARI_JOYSTICK
-extern int atari_mouse_buttons;
+	extern int atari_mouse_buttons;
 #endif
 
 static struct input_dev *atamouse_dev;
@@ -115,15 +115,23 @@ static int __init atamouse_init(void)
 	int error;
 
 	if (!MACH_IS_ATARI || !ATARIHW_PRESENT(ST_MFP))
+	{
 		return -ENODEV;
+	}
 
 	error = atari_keyb_init();
+
 	if (error)
+	{
 		return error;
+	}
 
 	atamouse_dev = input_allocate_device();
+
 	if (!atamouse_dev)
+	{
 		return -ENOMEM;
+	}
 
 	atamouse_dev->name = "Atari mouse";
 	atamouse_dev->phys = "atamouse/input0";
@@ -135,13 +143,15 @@ static int __init atamouse_init(void)
 	atamouse_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
 	atamouse_dev->relbit[0] = BIT_MASK(REL_X) | BIT_MASK(REL_Y);
 	atamouse_dev->keybit[BIT_WORD(BTN_LEFT)] = BIT_MASK(BTN_LEFT) |
-		BIT_MASK(BTN_MIDDLE) | BIT_MASK(BTN_RIGHT);
+			BIT_MASK(BTN_MIDDLE) | BIT_MASK(BTN_RIGHT);
 
 	atamouse_dev->open = atamouse_open;
 	atamouse_dev->close = atamouse_close;
 
 	error = input_register_device(atamouse_dev);
-	if (error) {
+
+	if (error)
+	{
 		input_free_device(atamouse_dev);
 		return error;
 	}

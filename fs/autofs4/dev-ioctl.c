@@ -41,12 +41,15 @@
 #define AUTOFS_DEV_IOCTL_SIZE	sizeof(struct autofs_dev_ioctl)
 
 typedef int (*ioctl_fn)(struct file *, struct autofs_sb_info *,
-			struct autofs_dev_ioctl *);
+						struct autofs_dev_ioctl *);
 
 static int check_name(const char *name)
 {
 	if (!strchr(name, '/'))
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -57,7 +60,10 @@ static int check_name(const char *name)
 static int invalid_str(char *str, size_t size)
 {
 	if (memchr(str, 0, size))
+	{
 		return 0;
+	}
+
 	return -EINVAL;
 }
 
@@ -73,12 +79,13 @@ static int check_dev_ioctl_version(int cmd, struct autofs_dev_ioctl *param)
 	int err = 0;
 
 	if ((param->ver_major != AUTOFS_DEV_IOCTL_VERSION_MAJOR) ||
-	    (param->ver_minor > AUTOFS_DEV_IOCTL_VERSION_MINOR)) {
+		(param->ver_minor > AUTOFS_DEV_IOCTL_VERSION_MINOR))
+	{
 		pr_warn("ioctl control interface version mismatch: "
-			"kernel(%u.%u), user(%u.%u), cmd(0x%08x)\n",
-			AUTOFS_DEV_IOCTL_VERSION_MAJOR,
-			AUTOFS_DEV_IOCTL_VERSION_MINOR,
-			param->ver_major, param->ver_minor, cmd);
+				"kernel(%u.%u), user(%u.%u), cmd(0x%08x)\n",
+				AUTOFS_DEV_IOCTL_VERSION_MAJOR,
+				AUTOFS_DEV_IOCTL_VERSION_MINOR,
+				param->ver_major, param->ver_minor, cmd);
 		err = -EINVAL;
 	}
 
@@ -94,22 +101,31 @@ static int check_dev_ioctl_version(int cmd, struct autofs_dev_ioctl *param)
  * at the end of the struct.
  */
 static struct autofs_dev_ioctl *
-		copy_dev_ioctl(struct autofs_dev_ioctl __user *in)
+copy_dev_ioctl(struct autofs_dev_ioctl __user *in)
 {
 	struct autofs_dev_ioctl tmp, *res;
 
 	if (copy_from_user(&tmp, in, sizeof(tmp)))
+	{
 		return ERR_PTR(-EFAULT);
+	}
 
 	if (tmp.size < sizeof(tmp))
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (tmp.size > (PATH_MAX + sizeof(tmp)))
+	{
 		return ERR_PTR(-ENAMETOOLONG);
+	}
 
 	res = memdup_user(in, tmp.size);
+
 	if (!IS_ERR(res))
+	{
 		res->size = tmp.size;
+	}
 
 	return res;
 }
@@ -128,25 +144,32 @@ static int validate_dev_ioctl(int cmd, struct autofs_dev_ioctl *param)
 	int err;
 
 	err = check_dev_ioctl_version(cmd, param);
-	if (err) {
+
+	if (err)
+	{
 		pr_warn("invalid device control module version "
-			"supplied for cmd(0x%08x)\n", cmd);
+				"supplied for cmd(0x%08x)\n", cmd);
 		goto out;
 	}
 
-	if (param->size > sizeof(*param)) {
+	if (param->size > sizeof(*param))
+	{
 		err = invalid_str(param->path, param->size - sizeof(*param));
-		if (err) {
+
+		if (err)
+		{
 			pr_warn(
-			  "path string terminator missing for cmd(0x%08x)\n",
-			  cmd);
+				"path string terminator missing for cmd(0x%08x)\n",
+				cmd);
 			goto out;
 		}
 
 		err = check_name(param->path);
-		if (err) {
+
+		if (err)
+		{
 			pr_warn("invalid path supplied for cmd(0x%08x)\n",
-				cmd);
+					cmd);
 			goto out;
 		}
 	}
@@ -165,17 +188,19 @@ static struct autofs_sb_info *autofs_dev_ioctl_sbi(struct file *f)
 	struct autofs_sb_info *sbi = NULL;
 	struct inode *inode;
 
-	if (f) {
+	if (f)
+	{
 		inode = file_inode(f);
 		sbi = autofs4_sbi(inode->i_sb);
 	}
+
 	return sbi;
 }
 
 /* Return autofs dev ioctl version */
 static int autofs_dev_ioctl_version(struct file *fp,
-				    struct autofs_sb_info *sbi,
-				    struct autofs_dev_ioctl *param)
+									struct autofs_sb_info *sbi,
+									struct autofs_dev_ioctl *param)
 {
 	/* This should have already been set. */
 	param->ver_major = AUTOFS_DEV_IOCTL_VERSION_MAJOR;
@@ -185,8 +210,8 @@ static int autofs_dev_ioctl_version(struct file *fp,
 
 /* Return autofs module protocol version */
 static int autofs_dev_ioctl_protover(struct file *fp,
-				     struct autofs_sb_info *sbi,
-				     struct autofs_dev_ioctl *param)
+									 struct autofs_sb_info *sbi,
+									 struct autofs_dev_ioctl *param)
 {
 	param->protover.version = sbi->version;
 	return 0;
@@ -194,8 +219,8 @@ static int autofs_dev_ioctl_protover(struct file *fp,
 
 /* Return autofs module protocol sub version */
 static int autofs_dev_ioctl_protosubver(struct file *fp,
-					struct autofs_sb_info *sbi,
-					struct autofs_dev_ioctl *param)
+										struct autofs_sb_info *sbi,
+										struct autofs_dev_ioctl *param)
 {
 	param->protosubver.sub_version = sbi->sub_version;
 	return 0;
@@ -203,29 +228,41 @@ static int autofs_dev_ioctl_protosubver(struct file *fp,
 
 /* Find the topmost mount satisfying test() */
 static int find_autofs_mount(const char *pathname,
-			     struct path *res,
-			     int test(struct path *path, void *data),
-			     void *data)
+							 struct path *res,
+							 int test(struct path *path, void *data),
+							 void *data)
 {
 	struct path path;
 	int err;
 
 	err = kern_path_mountpoint(AT_FDCWD, pathname, &path, 0);
+
 	if (err)
+	{
 		return err;
+	}
+
 	err = -ENOENT;
-	while (path.dentry == path.mnt->mnt_root) {
-		if (path.dentry->d_sb->s_magic == AUTOFS_SUPER_MAGIC) {
-			if (test(&path, data)) {
+
+	while (path.dentry == path.mnt->mnt_root)
+	{
+		if (path.dentry->d_sb->s_magic == AUTOFS_SUPER_MAGIC)
+		{
+			if (test(&path, data))
+			{
 				path_get(&path);
 				*res = path;
 				err = 0;
 				break;
 			}
 		}
+
 		if (!follow_up(&path))
+		{
 			break;
+		}
 	}
+
 	path_put(&path);
 	return err;
 }
@@ -251,13 +288,18 @@ static int autofs_dev_ioctl_open_mountpoint(const char *name, dev_t devid)
 	int err, fd;
 
 	fd = get_unused_fd_flags(O_CLOEXEC);
-	if (likely(fd >= 0)) {
+
+	if (likely(fd >= 0))
+	{
 		struct file *filp;
 		struct path path;
 
 		err = find_autofs_mount(name, &path, test_by_dev, &devid);
+
 		if (err)
+		{
 			goto out;
+		}
 
 		/*
 		 * Find autofs super block that has the device number
@@ -266,7 +308,9 @@ static int autofs_dev_ioctl_open_mountpoint(const char *name, dev_t devid)
 
 		filp = dentry_open(&path, O_RDONLY, current_cred());
 		path_put(&path);
-		if (IS_ERR(filp)) {
+
+		if (IS_ERR(filp))
+		{
 			err = PTR_ERR(filp);
 			goto out;
 		}
@@ -283,8 +327,8 @@ out:
 
 /* Open a file descriptor on an autofs mount point */
 static int autofs_dev_ioctl_openmount(struct file *fp,
-				      struct autofs_sb_info *sbi,
-				      struct autofs_dev_ioctl *param)
+									  struct autofs_sb_info *sbi,
+									  struct autofs_dev_ioctl *param)
 {
 	const char *path;
 	dev_t devid;
@@ -292,7 +336,9 @@ static int autofs_dev_ioctl_openmount(struct file *fp,
 
 	/* param->path has already been checked */
 	if (!param->openmount.devid)
+	{
 		return -EINVAL;
+	}
 
 	param->ioctlfd = -1;
 
@@ -301,7 +347,9 @@ static int autofs_dev_ioctl_openmount(struct file *fp,
 
 	err = 0;
 	fd = autofs_dev_ioctl_open_mountpoint(path, devid);
-	if (unlikely(fd < 0)) {
+
+	if (unlikely(fd < 0))
+	{
 		err = fd;
 		goto out;
 	}
@@ -313,8 +361,8 @@ out:
 
 /* Close file descriptor allocated above (user can also use close(2)). */
 static int autofs_dev_ioctl_closemount(struct file *fp,
-				       struct autofs_sb_info *sbi,
-				       struct autofs_dev_ioctl *param)
+									   struct autofs_sb_info *sbi,
+									   struct autofs_dev_ioctl *param)
 {
 	return sys_close(param->ioctlfd);
 }
@@ -324,8 +372,8 @@ static int autofs_dev_ioctl_closemount(struct file *fp,
  * request).
  */
 static int autofs_dev_ioctl_ready(struct file *fp,
-				  struct autofs_sb_info *sbi,
-				  struct autofs_dev_ioctl *param)
+								  struct autofs_sb_info *sbi,
+								  struct autofs_dev_ioctl *param)
 {
 	autofs_wqt_t token;
 
@@ -338,8 +386,8 @@ static int autofs_dev_ioctl_ready(struct file *fp,
  * request).
  */
 static int autofs_dev_ioctl_fail(struct file *fp,
-				 struct autofs_sb_info *sbi,
-				 struct autofs_dev_ioctl *param)
+								 struct autofs_sb_info *sbi,
+								 struct autofs_dev_ioctl *param)
 {
 	autofs_wqt_t token;
 	int status;
@@ -362,48 +410,61 @@ static int autofs_dev_ioctl_fail(struct file *fp,
  * controlling process (eg. the owning automount(8) daemon).
  */
 static int autofs_dev_ioctl_setpipefd(struct file *fp,
-				      struct autofs_sb_info *sbi,
-				      struct autofs_dev_ioctl *param)
+									  struct autofs_sb_info *sbi,
+									  struct autofs_dev_ioctl *param)
 {
 	int pipefd;
 	int err = 0;
 	struct pid *new_pid = NULL;
 
 	if (param->setpipefd.pipefd == -1)
+	{
 		return -EINVAL;
+	}
 
 	pipefd = param->setpipefd.pipefd;
 
 	mutex_lock(&sbi->wq_mutex);
-	if (!sbi->catatonic) {
+
+	if (!sbi->catatonic)
+	{
 		mutex_unlock(&sbi->wq_mutex);
 		return -EBUSY;
-	} else {
+	}
+	else
+	{
 		struct file *pipe;
 
 		new_pid = get_task_pid(current, PIDTYPE_PGID);
 
-		if (ns_of_pid(new_pid) != ns_of_pid(sbi->oz_pgrp)) {
+		if (ns_of_pid(new_pid) != ns_of_pid(sbi->oz_pgrp))
+		{
 			pr_warn("not allowed to change PID namespace\n");
 			err = -EINVAL;
 			goto out;
 		}
 
 		pipe = fget(pipefd);
-		if (!pipe) {
+
+		if (!pipe)
+		{
 			err = -EBADF;
 			goto out;
 		}
-		if (autofs_prepare_pipe(pipe) < 0) {
+
+		if (autofs_prepare_pipe(pipe) < 0)
+		{
 			err = -EPIPE;
 			fput(pipe);
 			goto out;
 		}
+
 		swap(sbi->oz_pgrp, new_pid);
 		sbi->pipefd = pipefd;
 		sbi->pipe = pipe;
 		sbi->catatonic = 0;
 	}
+
 out:
 	put_pid(new_pid);
 	mutex_unlock(&sbi->wq_mutex);
@@ -415,8 +476,8 @@ out:
  * mount requests. Also closes the kernel pipe file descriptor.
  */
 static int autofs_dev_ioctl_catatonic(struct file *fp,
-				      struct autofs_sb_info *sbi,
-				      struct autofs_dev_ioctl *param)
+									  struct autofs_sb_info *sbi,
+									  struct autofs_dev_ioctl *param)
 {
 	autofs4_catatonic_mode(sbi);
 	return 0;
@@ -424,8 +485,8 @@ static int autofs_dev_ioctl_catatonic(struct file *fp,
 
 /* Set the autofs mount timeout */
 static int autofs_dev_ioctl_timeout(struct file *fp,
-				    struct autofs_sb_info *sbi,
-				    struct autofs_dev_ioctl *param)
+									struct autofs_sb_info *sbi,
+									struct autofs_dev_ioctl *param)
 {
 	unsigned long timeout;
 
@@ -444,15 +505,16 @@ static int autofs_dev_ioctl_timeout(struct file *fp,
  * lookups within the map entry.
  */
 static int autofs_dev_ioctl_requester(struct file *fp,
-				      struct autofs_sb_info *sbi,
-				      struct autofs_dev_ioctl *param)
+									  struct autofs_sb_info *sbi,
+									  struct autofs_dev_ioctl *param)
 {
 	struct autofs_info *ino;
 	struct path path;
 	dev_t devid;
 	int err = -ENOENT;
 
-	if (param->size <= sizeof(*param)) {
+	if (param->size <= sizeof(*param))
+	{
 		err = -EINVAL;
 		goto out;
 	}
@@ -462,11 +524,16 @@ static int autofs_dev_ioctl_requester(struct file *fp,
 	param->requester.uid = param->requester.gid = -1;
 
 	err = find_autofs_mount(param->path, &path, test_by_dev, &devid);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	ino = autofs4_dentry_ino(path.dentry);
-	if (ino) {
+
+	if (ino)
+	{
 		err = 0;
 		autofs4_expire_wait(path.dentry, 0);
 		spin_lock(&sbi->fs_lock);
@@ -476,6 +543,7 @@ static int autofs_dev_ioctl_requester(struct file *fp,
 			from_kgid_munged(current_user_ns(), ino->gid);
 		spin_unlock(&sbi->fs_lock);
 	}
+
 	path_put(&path);
 out:
 	return err;
@@ -486,8 +554,8 @@ out:
  * more that can be done.
  */
 static int autofs_dev_ioctl_expire(struct file *fp,
-				   struct autofs_sb_info *sbi,
-				   struct autofs_dev_ioctl *param)
+								   struct autofs_sb_info *sbi,
+								   struct autofs_dev_ioctl *param)
 {
 	struct vfsmount *mnt;
 	int how;
@@ -500,12 +568,16 @@ static int autofs_dev_ioctl_expire(struct file *fp,
 
 /* Check if autofs mount point is in use */
 static int autofs_dev_ioctl_askumount(struct file *fp,
-				      struct autofs_sb_info *sbi,
-				      struct autofs_dev_ioctl *param)
+									  struct autofs_sb_info *sbi,
+									  struct autofs_dev_ioctl *param)
 {
 	param->askumount.may_umount = 0;
+
 	if (may_umount(fp->f_path.mnt))
+	{
 		param->askumount.may_umount = 1;
+	}
+
 	return 0;
 }
 
@@ -531,8 +603,8 @@ static int autofs_dev_ioctl_askumount(struct file *fp,
  * new_encode_dev()) is also returned.
  */
 static int autofs_dev_ioctl_ismountpoint(struct file *fp,
-					 struct autofs_sb_info *sbi,
-					 struct autofs_dev_ioctl *param)
+		struct autofs_sb_info *sbi,
+		struct autofs_dev_ioctl *param)
 {
 	struct path path;
 	const char *name;
@@ -540,7 +612,8 @@ static int autofs_dev_ioctl_ismountpoint(struct file *fp,
 	unsigned int devid, magic;
 	int err = -ENOENT;
 
-	if (param->size <= sizeof(*param)) {
+	if (param->size <= sizeof(*param))
+	{
 		err = -EINVAL;
 		goto out;
 	}
@@ -551,34 +624,48 @@ static int autofs_dev_ioctl_ismountpoint(struct file *fp,
 	param->ismountpoint.out.devid = devid = 0;
 	param->ismountpoint.out.magic = magic = 0;
 
-	if (!fp || param->ioctlfd == -1) {
+	if (!fp || param->ioctlfd == -1)
+	{
 		if (autofs_type_any(type))
 			err = kern_path_mountpoint(AT_FDCWD,
-						   name, &path, LOOKUP_FOLLOW);
+									   name, &path, LOOKUP_FOLLOW);
 		else
 			err = find_autofs_mount(name, &path,
-						test_by_type, &type);
+									test_by_type, &type);
+
 		if (err)
+		{
 			goto out;
+		}
+
 		devid = new_encode_dev(path.dentry->d_sb->s_dev);
 		err = 0;
-		if (path.mnt->mnt_root == path.dentry) {
+
+		if (path.mnt->mnt_root == path.dentry)
+		{
 			err = 1;
 			magic = path.dentry->d_sb->s_magic;
 		}
-	} else {
+	}
+	else
+	{
 		dev_t dev = sbi->sb->s_dev;
 
 		err = find_autofs_mount(name, &path, test_by_dev, &dev);
+
 		if (err)
+		{
 			goto out;
+		}
 
 		devid = new_encode_dev(dev);
 
 		err = have_submounts(path.dentry);
 
 		if (follow_down_one(&path))
+		{
 			magic = path.dentry->d_sb->s_magic;
+		}
 	}
 
 	param->ismountpoint.out.devid = devid;
@@ -597,7 +684,8 @@ out:
 
 static ioctl_fn lookup_dev_ioctl(unsigned int cmd)
 {
-	static ioctl_fn _ioctls[] = {
+	static ioctl_fn _ioctls[] =
+	{
 		autofs_dev_ioctl_version,
 		autofs_dev_ioctl_protover,
 		autofs_dev_ioctl_protosubver,
@@ -620,7 +708,7 @@ static ioctl_fn lookup_dev_ioctl(unsigned int cmd)
 
 /* ioctl dispatcher */
 static int _autofs_dev_ioctl(unsigned int command,
-			     struct autofs_dev_ioctl __user *user)
+							 struct autofs_dev_ioctl __user *user)
 {
 	struct autofs_dev_ioctl *param;
 	struct file *fp;
@@ -631,27 +719,38 @@ static int _autofs_dev_ioctl(unsigned int command,
 
 	/* only root can play with this */
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	cmd_first = _IOC_NR(AUTOFS_DEV_IOCTL_IOC_FIRST);
 	cmd = _IOC_NR(command);
 
 	if (_IOC_TYPE(command) != _IOC_TYPE(AUTOFS_DEV_IOCTL_IOC_FIRST) ||
-	    cmd - cmd_first > AUTOFS_DEV_IOCTL_IOC_COUNT) {
+		cmd - cmd_first > AUTOFS_DEV_IOCTL_IOC_COUNT)
+	{
 		return -ENOTTY;
 	}
 
 	/* Copy the parameters into kernel space. */
 	param = copy_dev_ioctl(user);
+
 	if (IS_ERR(param))
+	{
 		return PTR_ERR(param);
+	}
 
 	err = validate_dev_ioctl(command, param);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	fn = lookup_dev_ioctl(cmd);
-	if (!fn) {
+
+	if (!fn)
+	{
 		pr_warn("unknown command 0x%08x\n", command);
 		err = -ENOTTY;
 		goto out;
@@ -667,18 +766,26 @@ static int _autofs_dev_ioctl(unsigned int command,
 	 * and the same for retrieving ioctl version.
 	 */
 	if (cmd != AUTOFS_DEV_IOCTL_VERSION_CMD &&
-	    cmd != AUTOFS_DEV_IOCTL_OPENMOUNT_CMD &&
-	    cmd != AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD) {
+		cmd != AUTOFS_DEV_IOCTL_OPENMOUNT_CMD &&
+		cmd != AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD)
+	{
 		fp = fget(param->ioctlfd);
-		if (!fp) {
+
+		if (!fp)
+		{
 			if (cmd == AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD)
+			{
 				goto cont;
+			}
+
 			err = -EBADF;
 			goto out;
 		}
 
 		sbi = autofs_dev_ioctl_sbi(fp);
-		if (!sbi || sbi->magic != AUTOFS_SBI_MAGIC) {
+
+		if (!sbi || sbi->magic != AUTOFS_SBI_MAGIC)
+		{
 			err = -EINVAL;
 			fput(fp);
 			goto out;
@@ -689,19 +796,27 @@ static int _autofs_dev_ioctl(unsigned int command,
 		 * order to be able to perform the re-open.
 		 */
 		if (!autofs4_oz_mode(sbi) &&
-		    cmd != AUTOFS_DEV_IOCTL_CATATONIC_CMD) {
+			cmd != AUTOFS_DEV_IOCTL_CATATONIC_CMD)
+		{
 			err = -EACCES;
 			fput(fp);
 			goto out;
 		}
 	}
+
 cont:
 	err = fn(fp, sbi, param);
 
 	if (fp)
+	{
 		fput(fp);
+	}
+
 	if (err >= 0 && copy_to_user(user, param, AUTOFS_DEV_IOCTL_SIZE))
+	{
 		err = -EFAULT;
+	}
+
 out:
 	free_dev_ioctl(param);
 	return err;
@@ -724,14 +839,16 @@ static long autofs_dev_ioctl_compat(struct file *file, uint command, ulong u)
 #define autofs_dev_ioctl_compat NULL
 #endif
 
-static const struct file_operations _dev_ioctl_fops = {
+static const struct file_operations _dev_ioctl_fops =
+{
 	.unlocked_ioctl	 = autofs_dev_ioctl,
 	.compat_ioctl = autofs_dev_ioctl_compat,
 	.owner	 = THIS_MODULE,
 	.llseek = noop_llseek,
 };
 
-static struct miscdevice _autofs_dev_ioctl_misc = {
+static struct miscdevice _autofs_dev_ioctl_misc =
+{
 	.minor		= AUTOFS_MINOR,
 	.name		= AUTOFS_DEVICE_NAME,
 	.fops		= &_dev_ioctl_fops
@@ -746,7 +863,9 @@ int __init autofs_dev_ioctl_init(void)
 	int r;
 
 	r = misc_register(&_autofs_dev_ioctl_misc);
-	if (r) {
+
+	if (r)
+	{
 		pr_err("misc_register failed for control device\n");
 		return r;
 	}

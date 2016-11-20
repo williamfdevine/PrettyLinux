@@ -16,8 +16,8 @@
 
 
 #define PP_ChipID 0x0000	/* offset   0h -> Corp -ID              */
-				/* offset   2h -> Model/Product Number  */
-				/* offset   3h -> Chip Revision Number  */
+/* offset   2h -> Model/Product Number  */
+/* offset   3h -> Chip Revision Number  */
 
 #define PP_ISAIOB 0x0020	/*  IO base address */
 #define PP_CS8900_ISAINT 0x0022	/*  ISA interrupt select */
@@ -80,21 +80,21 @@
 
 /* On Macs, we only need use the ISA I/O stuff until we do MEMORY_ON */
 #ifdef CONFIG_MAC
-#define LCSLOTBASE 0xfee00000
-#define MMIOBASE 0x40000
+	#define LCSLOTBASE 0xfee00000
+	#define MMIOBASE 0x40000
 #endif
 
 #define CHIP_EISA_ID_SIG 0x630E   /*  Product ID Code for Crystal Chip (CS8900 spec 4.3) */
 #define CHIP_EISA_ID_SIG_STR "0x630E"
 
 #ifdef IBMEIPKT
-#define EISA_ID_SIG 0x4D24	/*  IBM */
-#define PART_NO_SIG 0x1010	/*  IBM */
-#define MONGOOSE_BIT 0x0000	/*  IBM */
+	#define EISA_ID_SIG 0x4D24	/*  IBM */
+	#define PART_NO_SIG 0x1010	/*  IBM */
+	#define MONGOOSE_BIT 0x0000	/*  IBM */
 #else
-#define EISA_ID_SIG 0x630E	/*  PnP Vendor ID (same as chip id for Crystal board) */
-#define PART_NO_SIG 0x4000	/*  ID code CS8920 board (PnP Vendor Product code) */
-#define MONGOOSE_BIT 0x2000	/*  PART_NO_SIG + MONGOOSE_BUT => ID of mongoose */
+	#define EISA_ID_SIG 0x630E	/*  PnP Vendor ID (same as chip id for Crystal board) */
+	#define PART_NO_SIG 0x4000	/*  ID code CS8920 board (PnP Vendor Product code) */
+	#define MONGOOSE_BIT 0x2000	/*  PART_NO_SIG + MONGOOSE_BUT => ID of mongoose */
 #endif
 
 #define PRODUCT_ID_ADD 0x0002   /*  Address of product ID */
@@ -354,12 +354,12 @@
 /*  for bios scan */
 /*  */
 #ifdef CSDEBUG
-/*  use these values for debugging bios scan */
-#define BIOS_START_SEG 0x00000
-#define BIOS_OFFSET_INC 0x0010
+	/*  use these values for debugging bios scan */
+	#define BIOS_START_SEG 0x00000
+	#define BIOS_OFFSET_INC 0x0010
 #else
-#define BIOS_START_SEG 0x0c000
-#define BIOS_OFFSET_INC 0x0200
+	#define BIOS_START_SEG 0x0c000
+	#define BIOS_OFFSET_INC 0x0200
 #endif
 
 #define BIOS_LAST_OFFSET 0x0fc00
@@ -369,10 +369,10 @@
 #define TX_CTL_OFFSET (ISA_CNF_OFFSET + 8)			/*  8900 eeprom */
 #define AUTO_NEG_CNF_OFFSET (ISA_CNF_OFFSET + 8)		/*  8920 eeprom */
 
-  /*  the assumption here is that the bits in the eeprom are generally  */
-  /*  in the same position as those in the autonegctl register. */
-  /*  Of course the IMM bit is not in that register so it must be  */
-  /*  masked out */
+/*  the assumption here is that the bits in the eeprom are generally  */
+/*  in the same position as those in the autonegctl register. */
+/*  Of course the IMM bit is not in that register so it must be  */
+/*  masked out */
 #define EE_FORCE_FDX  0x8000
 #define EE_NLP_ENABLE 0x0200
 #define EE_AUTO_NEG_ENABLE 0x0100

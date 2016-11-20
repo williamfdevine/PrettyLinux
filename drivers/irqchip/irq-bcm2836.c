@@ -76,7 +76,8 @@
 #define LOCAL_IRQ_PMU_FAST	9
 #define LAST_IRQ		LOCAL_IRQ_PMU_FAST
 
-struct bcm2836_arm_irqchip_intc {
+struct bcm2836_arm_irqchip_intc
+{
 	struct irq_domain *domain;
 	void __iomem *base;
 };
@@ -84,8 +85,8 @@ struct bcm2836_arm_irqchip_intc {
 static struct bcm2836_arm_irqchip_intc intc  __read_mostly;
 
 static void bcm2836_arm_irqchip_mask_per_cpu_irq(unsigned int reg_offset,
-						 unsigned int bit,
-						 int cpu)
+		unsigned int bit,
+		int cpu)
 {
 	void __iomem *reg = intc.base + reg_offset + 4 * cpu;
 
@@ -93,8 +94,8 @@ static void bcm2836_arm_irqchip_mask_per_cpu_irq(unsigned int reg_offset,
 }
 
 static void bcm2836_arm_irqchip_unmask_per_cpu_irq(unsigned int reg_offset,
-						   unsigned int bit,
-						 int cpu)
+		unsigned int bit,
+		int cpu)
 {
 	void __iomem *reg = intc.base + reg_offset + 4 * cpu;
 
@@ -104,18 +105,19 @@ static void bcm2836_arm_irqchip_unmask_per_cpu_irq(unsigned int reg_offset,
 static void bcm2836_arm_irqchip_mask_timer_irq(struct irq_data *d)
 {
 	bcm2836_arm_irqchip_mask_per_cpu_irq(LOCAL_TIMER_INT_CONTROL0,
-					     d->hwirq - LOCAL_IRQ_CNTPSIRQ,
-					     smp_processor_id());
+										 d->hwirq - LOCAL_IRQ_CNTPSIRQ,
+										 smp_processor_id());
 }
 
 static void bcm2836_arm_irqchip_unmask_timer_irq(struct irq_data *d)
 {
 	bcm2836_arm_irqchip_unmask_per_cpu_irq(LOCAL_TIMER_INT_CONTROL0,
-					       d->hwirq - LOCAL_IRQ_CNTPSIRQ,
-					       smp_processor_id());
+										   d->hwirq - LOCAL_IRQ_CNTPSIRQ,
+										   smp_processor_id());
 }
 
-static struct irq_chip bcm2836_arm_irqchip_timer = {
+static struct irq_chip bcm2836_arm_irqchip_timer =
+{
 	.name		= "bcm2836-timer",
 	.irq_mask	= bcm2836_arm_irqchip_mask_timer_irq,
 	.irq_unmask	= bcm2836_arm_irqchip_unmask_timer_irq,
@@ -131,7 +133,8 @@ static void bcm2836_arm_irqchip_unmask_pmu_irq(struct irq_data *d)
 	writel(1 << smp_processor_id(), intc.base + LOCAL_PM_ROUTING_SET);
 }
 
-static struct irq_chip bcm2836_arm_irqchip_pmu = {
+static struct irq_chip bcm2836_arm_irqchip_pmu =
+{
 	.name		= "bcm2836-pmu",
 	.irq_mask	= bcm2836_arm_irqchip_mask_pmu_irq,
 	.irq_unmask	= bcm2836_arm_irqchip_unmask_pmu_irq,
@@ -145,7 +148,8 @@ static void bcm2836_arm_irqchip_unmask_gpu_irq(struct irq_data *d)
 {
 }
 
-static struct irq_chip bcm2836_arm_irqchip_gpu = {
+static struct irq_chip bcm2836_arm_irqchip_gpu =
+{
 	.name		= "bcm2836-gpu",
 	.irq_mask	= bcm2836_arm_irqchip_mask_gpu_irq,
 	.irq_unmask	= bcm2836_arm_irqchip_unmask_gpu_irq,
@@ -167,17 +171,21 @@ __exception_irq_entry bcm2836_arm_irqchip_handle_irq(struct pt_regs *regs)
 	u32 stat;
 
 	stat = readl_relaxed(intc.base + LOCAL_IRQ_PENDING0 + 4 * cpu);
-	if (stat & BIT(LOCAL_IRQ_MAILBOX0)) {
+
+	if (stat & BIT(LOCAL_IRQ_MAILBOX0))
+	{
 #ifdef CONFIG_SMP
 		void __iomem *mailbox0 = (intc.base +
-					  LOCAL_MAILBOX0_CLR0 + 16 * cpu);
+								  LOCAL_MAILBOX0_CLR0 + 16 * cpu);
 		u32 mbox_val = readl(mailbox0);
 		u32 ipi = ffs(mbox_val) - 1;
 
 		writel(1 << ipi, mailbox0);
 		handle_IPI(ipi, regs);
 #endif
-	} else if (stat) {
+	}
+	else if (stat)
+	{
 		u32 hwirq = ffs(stat) - 1;
 
 		handle_domain_irq(intc.domain, hwirq, regs);
@@ -186,7 +194,7 @@ __exception_irq_entry bcm2836_arm_irqchip_handle_irq(struct pt_regs *regs)
 
 #ifdef CONFIG_SMP
 static void bcm2836_arm_irqchip_send_ipi(const struct cpumask *mask,
-					 unsigned int ipi)
+		unsigned int ipi)
 {
 	int cpu;
 	void __iomem *mailbox0_base = intc.base + LOCAL_MAILBOX0_SET0;
@@ -197,7 +205,8 @@ static void bcm2836_arm_irqchip_send_ipi(const struct cpumask *mask,
 	 */
 	smp_wmb();
 
-	for_each_cpu(cpu, mask)	{
+	for_each_cpu(cpu, mask)
+	{
 		writel(1 << ipi, mailbox0_base + 16 * cpu);
 	}
 }
@@ -205,37 +214,39 @@ static void bcm2836_arm_irqchip_send_ipi(const struct cpumask *mask,
 static int bcm2836_cpu_starting(unsigned int cpu)
 {
 	bcm2836_arm_irqchip_unmask_per_cpu_irq(LOCAL_MAILBOX_INT_CONTROL0, 0,
-					       cpu);
+										   cpu);
 	return 0;
 }
 
 static int bcm2836_cpu_dying(unsigned int cpu)
 {
 	bcm2836_arm_irqchip_mask_per_cpu_irq(LOCAL_MAILBOX_INT_CONTROL0, 0,
-					     cpu);
+										 cpu);
 	return 0;
 }
 
 #ifdef CONFIG_ARM
 static int __init bcm2836_smp_boot_secondary(unsigned int cpu,
-					     struct task_struct *idle)
+		struct task_struct *idle)
 {
 	unsigned long secondary_startup_phys =
 		(unsigned long)virt_to_phys((void *)secondary_startup);
 
 	writel(secondary_startup_phys,
-	       intc.base + LOCAL_MAILBOX3_SET0 + 16 * cpu);
+		   intc.base + LOCAL_MAILBOX3_SET0 + 16 * cpu);
 
 	return 0;
 }
 
-static const struct smp_operations bcm2836_smp_ops __initconst = {
+static const struct smp_operations bcm2836_smp_ops __initconst =
+{
 	.smp_boot_secondary	= bcm2836_smp_boot_secondary,
 };
 #endif
 #endif
 
-static const struct irq_domain_ops bcm2836_arm_irqchip_intc_ops = {
+static const struct irq_domain_ops bcm2836_arm_irqchip_intc_ops =
+{
 	.xlate = irq_domain_xlate_onecell
 };
 
@@ -245,8 +256,8 @@ bcm2836_arm_irqchip_smp_init(void)
 #ifdef CONFIG_SMP
 	/* Unmask IPIs to the boot CPU. */
 	cpuhp_setup_state(CPUHP_AP_IRQ_BCM2836_STARTING,
-			  "AP_IRQ_BCM2836_STARTING", bcm2836_cpu_starting,
-			  bcm2836_cpu_dying);
+					  "AP_IRQ_BCM2836_STARTING", bcm2836_cpu_starting,
+					  bcm2836_cpu_dying);
 
 	set_smp_cross_call(bcm2836_arm_irqchip_send_ipi);
 
@@ -278,34 +289,39 @@ static void bcm2835_init_local_timer_frequency(void)
 }
 
 static int __init bcm2836_arm_irqchip_l1_intc_of_init(struct device_node *node,
-						      struct device_node *parent)
+		struct device_node *parent)
 {
 	intc.base = of_iomap(node, 0);
-	if (!intc.base) {
+
+	if (!intc.base)
+	{
 		panic("%s: unable to map local interrupt registers\n",
-			node->full_name);
+			  node->full_name);
 	}
 
 	bcm2835_init_local_timer_frequency();
 
 	intc.domain = irq_domain_add_linear(node, LAST_IRQ + 1,
-					    &bcm2836_arm_irqchip_intc_ops,
-					    NULL);
+										&bcm2836_arm_irqchip_intc_ops,
+										NULL);
+
 	if (!intc.domain)
+	{
 		panic("%s: unable to create IRQ domain\n", node->full_name);
+	}
 
 	bcm2836_arm_irqchip_register_irq(LOCAL_IRQ_CNTPSIRQ,
-					 &bcm2836_arm_irqchip_timer);
+									 &bcm2836_arm_irqchip_timer);
 	bcm2836_arm_irqchip_register_irq(LOCAL_IRQ_CNTPNSIRQ,
-					 &bcm2836_arm_irqchip_timer);
+									 &bcm2836_arm_irqchip_timer);
 	bcm2836_arm_irqchip_register_irq(LOCAL_IRQ_CNTHPIRQ,
-					 &bcm2836_arm_irqchip_timer);
+									 &bcm2836_arm_irqchip_timer);
 	bcm2836_arm_irqchip_register_irq(LOCAL_IRQ_CNTVIRQ,
-					 &bcm2836_arm_irqchip_timer);
+									 &bcm2836_arm_irqchip_timer);
 	bcm2836_arm_irqchip_register_irq(LOCAL_IRQ_GPU_FAST,
-					 &bcm2836_arm_irqchip_gpu);
+									 &bcm2836_arm_irqchip_gpu);
 	bcm2836_arm_irqchip_register_irq(LOCAL_IRQ_PMU_FAST,
-					 &bcm2836_arm_irqchip_pmu);
+									 &bcm2836_arm_irqchip_pmu);
 
 	bcm2836_arm_irqchip_smp_init();
 
@@ -314,4 +330,4 @@ static int __init bcm2836_arm_irqchip_l1_intc_of_init(struct device_node *node,
 }
 
 IRQCHIP_DECLARE(bcm2836_arm_irqchip_l1_intc, "brcm,bcm2836-l1-intc",
-		bcm2836_arm_irqchip_l1_intc_of_init);
+				bcm2836_arm_irqchip_l1_intc_of_init);

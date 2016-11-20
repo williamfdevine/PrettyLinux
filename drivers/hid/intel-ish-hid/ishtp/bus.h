@@ -41,7 +41,8 @@ struct ishtp_msg_hdr;
  * Drivers for ISHTP devices will get an ishtp_cl_device pointer
  * when being probed and shall use it for doing bus I/O.
  */
-struct ishtp_cl_device {
+struct ishtp_cl_device
+{
 	struct device		dev;
 	struct ishtp_device	*ishtp_dev;
 	struct ishtp_fw_client	*fw_client;
@@ -61,7 +62,8 @@ struct ishtp_cl_device {
  *
  * Client drivers defines to get probed/removed for ISHTP client device.
  */
-struct ishtp_cl_driver {
+struct ishtp_cl_driver
+{
 	struct device_driver driver;
 	const char *name;
 	int (*probe)(struct ishtp_cl_device *dev);
@@ -78,21 +80,21 @@ void	ishtp_cl_bus_rx_event(struct ishtp_cl_device *device);
 
 /* Write a multi-fragment message */
 int	ishtp_send_msg(struct ishtp_device *dev,
-		       struct ishtp_msg_hdr *hdr, void *msg,
-		       void (*ipc_send_compl)(void *),
-		       void *ipc_send_compl_prm);
+				   struct ishtp_msg_hdr *hdr, void *msg,
+				   void (*ipc_send_compl)(void *),
+				   void *ipc_send_compl_prm);
 
 /* Write a single-fragment message */
 int	ishtp_write_message(struct ishtp_device *dev,
-			    struct ishtp_msg_hdr *hdr,
-			    unsigned char *buf);
+						struct ishtp_msg_hdr *hdr,
+						unsigned char *buf);
 
 /* Use DMA to send/receive messages */
 int ishtp_use_dma_transfer(void);
 
 /* Exported functions */
 void	ishtp_bus_remove_all_clients(struct ishtp_device *ishtp_dev,
-				     bool warm_reset);
+									 bool warm_reset);
 
 void	ishtp_recv(struct ishtp_device *dev);
 void	ishtp_reset_handler(struct ishtp_device *dev);
@@ -102,13 +104,13 @@ void	ishtp_put_device(struct ishtp_cl_device *);
 void	ishtp_get_device(struct ishtp_cl_device *);
 
 int	__ishtp_cl_driver_register(struct ishtp_cl_driver *driver,
-				   struct module *owner);
+							   struct module *owner);
 #define ishtp_cl_driver_register(driver)		\
 	__ishtp_cl_driver_register(driver, THIS_MODULE)
 void	ishtp_cl_driver_unregister(struct ishtp_cl_driver *driver);
 
 int	ishtp_register_event_cb(struct ishtp_cl_device *device,
-				void (*read_cb)(struct ishtp_cl_device *));
+							void (*read_cb)(struct ishtp_cl_device *));
 int	ishtp_fw_cl_by_uuid(struct ishtp_device *dev, const uuid_le *cuuid);
 
 #endif /* _LINUX_ISHTP_CL_BUS_H */

@@ -64,14 +64,17 @@ MODULE_ALIAS("arusb_lnx");
  * http://wireless.kernel.org/en/users/Drivers/ar9170/devices ),
  * whenever you add a new device.
  */
-static struct usb_device_id carl9170_usb_ids[] = {
+static struct usb_device_id carl9170_usb_ids[] =
+{
 	/* Atheros 9170 */
 	{ USB_DEVICE(0x0cf3, 0x9170) },
 	/* Atheros TG121N */
 	{ USB_DEVICE(0x0cf3, 0x1001) },
 	/* TP-Link TL-WN821N v2 */
-	{ USB_DEVICE(0x0cf3, 0x1002), .driver_info = CARL9170_WPS_BUTTON |
-		 CARL9170_ONE_LED },
+	{
+		USB_DEVICE(0x0cf3, 0x1002), .driver_info = CARL9170_WPS_BUTTON |
+		CARL9170_ONE_LED
+	},
 	/* 3Com Dual Band 802.11n USB Adapter */
 	{ USB_DEVICE(0x0cf3, 0x1010) },
 	/* H3C Dual Band 802.11n USB Adapter */
@@ -134,19 +137,27 @@ static void carl9170_usb_submit_data_urb(struct ar9170 *ar)
 	int err;
 
 	if (atomic_inc_return(&ar->tx_anch_urbs) > AR9170_NUM_TX_URBS)
+	{
 		goto err_acc;
+	}
 
 	urb = usb_get_from_anchor(&ar->tx_wait);
+
 	if (!urb)
+	{
 		goto err_acc;
+	}
 
 	usb_anchor_urb(urb, &ar->tx_anch);
 
 	err = usb_submit_urb(urb, GFP_ATOMIC);
-	if (unlikely(err)) {
-		if (net_ratelimit()) {
+
+	if (unlikely(err))
+	{
+		if (net_ratelimit())
+		{
 			dev_err(&ar->udev->dev, "tx submit failed (%d)\n",
-				urb->status);
+					urb->status);
 		}
 
 		usb_unanchor_urb(urb);
@@ -156,7 +167,9 @@ static void carl9170_usb_submit_data_urb(struct ar9170 *ar)
 	usb_free_urb(urb);
 
 	if (likely(err == 0))
+	{
 		return;
+	}
 
 err_acc:
 	atomic_dec(&ar->tx_anch_urbs);
@@ -166,45 +179,50 @@ static void carl9170_usb_tx_data_complete(struct urb *urb)
 {
 	struct ar9170 *ar = usb_get_intfdata(usb_ifnum_to_if(urb->dev, 0));
 
-	if (WARN_ON_ONCE(!ar)) {
+	if (WARN_ON_ONCE(!ar))
+	{
 		dev_kfree_skb_irq(urb->context);
 		return;
 	}
 
 	atomic_dec(&ar->tx_anch_urbs);
 
-	switch (urb->status) {
-	/* everything is fine */
-	case 0:
-		carl9170_tx_callback(ar, (void *)urb->context);
-		break;
+	switch (urb->status)
+	{
+		/* everything is fine */
+		case 0:
+			carl9170_tx_callback(ar, (void *)urb->context);
+			break;
 
-	/* disconnect */
-	case -ENOENT:
-	case -ECONNRESET:
-	case -ENODEV:
-	case -ESHUTDOWN:
-		/*
-		 * Defer the frame clean-up to the tasklet worker.
-		 * This is necessary, because carl9170_tx_drop
-		 * does not work in an irqsave context.
-		 */
-		usb_anchor_urb(urb, &ar->tx_err);
-		return;
+		/* disconnect */
+		case -ENOENT:
+		case -ECONNRESET:
+		case -ENODEV:
+		case -ESHUTDOWN:
+			/*
+			 * Defer the frame clean-up to the tasklet worker.
+			 * This is necessary, because carl9170_tx_drop
+			 * does not work in an irqsave context.
+			 */
+			usb_anchor_urb(urb, &ar->tx_err);
+			return;
 
-	/* a random transmission error has occurred? */
-	default:
-		if (net_ratelimit()) {
-			dev_err(&ar->udev->dev, "tx failed (%d)\n",
-				urb->status);
-		}
+		/* a random transmission error has occurred? */
+		default:
+			if (net_ratelimit())
+			{
+				dev_err(&ar->udev->dev, "tx failed (%d)\n",
+						urb->status);
+			}
 
-		usb_anchor_urb(urb, &ar->tx_err);
-		break;
+			usb_anchor_urb(urb, &ar->tx_err);
+			break;
 	}
 
 	if (likely(IS_STARTED(ar)))
+	{
 		carl9170_usb_submit_data_urb(ar);
+	}
 }
 
 static int carl9170_usb_submit_cmd_urb(struct ar9170 *ar)
@@ -212,23 +230,29 @@ static int carl9170_usb_submit_cmd_urb(struct ar9170 *ar)
 	struct urb *urb;
 	int err;
 
-	if (atomic_inc_return(&ar->tx_cmd_urbs) != 1) {
+	if (atomic_inc_return(&ar->tx_cmd_urbs) != 1)
+	{
 		atomic_dec(&ar->tx_cmd_urbs);
 		return 0;
 	}
 
 	urb = usb_get_from_anchor(&ar->tx_cmd);
-	if (!urb) {
+
+	if (!urb)
+	{
 		atomic_dec(&ar->tx_cmd_urbs);
 		return 0;
 	}
 
 	usb_anchor_urb(urb, &ar->tx_anch);
 	err = usb_submit_urb(urb, GFP_ATOMIC);
-	if (unlikely(err)) {
+
+	if (unlikely(err))
+	{
 		usb_unanchor_urb(urb);
 		atomic_dec(&ar->tx_cmd_urbs);
 	}
+
 	usb_free_urb(urb);
 
 	return err;
@@ -240,36 +264,46 @@ static void carl9170_usb_cmd_complete(struct urb *urb)
 	int err = 0;
 
 	if (WARN_ON_ONCE(!ar))
+	{
 		return;
+	}
 
 	atomic_dec(&ar->tx_cmd_urbs);
 
-	switch (urb->status) {
-	/* everything is fine */
-	case 0:
-		break;
+	switch (urb->status)
+	{
+		/* everything is fine */
+		case 0:
+			break;
 
-	/* disconnect */
-	case -ENOENT:
-	case -ECONNRESET:
-	case -ENODEV:
-	case -ESHUTDOWN:
-		return;
+		/* disconnect */
+		case -ENOENT:
+		case -ECONNRESET:
+		case -ENODEV:
+		case -ESHUTDOWN:
+			return;
 
-	default:
-		err = urb->status;
-		break;
+		default:
+			err = urb->status;
+			break;
 	}
 
 	if (!IS_INITIALIZED(ar))
+	{
 		return;
+	}
 
 	if (err)
+	{
 		dev_err(&ar->udev->dev, "submit cmd cb failed (%d).\n", err);
+	}
 
 	err = carl9170_usb_submit_cmd_urb(ar);
+
 	if (err)
+	{
 		dev_err(&ar->udev->dev, "submit cmd failed (%d).\n", err);
+	}
 }
 
 static void carl9170_usb_rx_irq_complete(struct urb *urb)
@@ -277,22 +311,25 @@ static void carl9170_usb_rx_irq_complete(struct urb *urb)
 	struct ar9170 *ar = urb->context;
 
 	if (WARN_ON_ONCE(!ar))
+	{
 		return;
+	}
 
-	switch (urb->status) {
-	/* everything is fine */
-	case 0:
-		break;
+	switch (urb->status)
+	{
+		/* everything is fine */
+		case 0:
+			break;
 
-	/* disconnect */
-	case -ENOENT:
-	case -ECONNRESET:
-	case -ENODEV:
-	case -ESHUTDOWN:
-		return;
+		/* disconnect */
+		case -ENOENT:
+		case -ECONNRESET:
+		case -ENODEV:
+		case -ESHUTDOWN:
+			return;
 
-	default:
-		goto resubmit;
+		default:
+			goto resubmit;
 	}
 
 	/*
@@ -303,12 +340,15 @@ static void carl9170_usb_rx_irq_complete(struct urb *urb)
 	 * the loader took over again.
 	 */
 	carl9170_handle_command_response(ar, urb->transfer_buffer,
-					 urb->actual_length);
+									 urb->actual_length);
 
 resubmit:
 	usb_anchor_urb(urb, &ar->rx_anch);
+
 	if (unlikely(usb_submit_urb(urb, GFP_ATOMIC)))
+	{
 		usb_unanchor_urb(urb);
+	}
 }
 
 static int carl9170_usb_submit_rx_urb(struct ar9170 *ar, gfp_t gfp)
@@ -317,19 +357,27 @@ static int carl9170_usb_submit_rx_urb(struct ar9170 *ar, gfp_t gfp)
 	int err = 0, runs = 0;
 
 	while ((atomic_read(&ar->rx_anch_urbs) < AR9170_NUM_RX_URBS) &&
-		(runs++ < AR9170_NUM_RX_URBS)) {
+		   (runs++ < AR9170_NUM_RX_URBS))
+	{
 		err = -ENOSPC;
 		urb = usb_get_from_anchor(&ar->rx_pool);
-		if (urb) {
+
+		if (urb)
+		{
 			usb_anchor_urb(urb, &ar->rx_anch);
 			err = usb_submit_urb(urb, gfp);
-			if (unlikely(err)) {
+
+			if (unlikely(err))
+			{
 				usb_unanchor_urb(urb);
 				usb_anchor_urb(urb, &ar->rx_pool);
-			} else {
+			}
+			else
+			{
 				atomic_dec(&ar->rx_pool_urbs);
 				atomic_inc(&ar->rx_anch_urbs);
 			}
+
 			usb_free_urb(urb);
 		}
 	}
@@ -342,15 +390,21 @@ static void carl9170_usb_rx_work(struct ar9170 *ar)
 	struct urb *urb;
 	int i;
 
-	for (i = 0; i < AR9170_NUM_RX_URBS_POOL; i++) {
+	for (i = 0; i < AR9170_NUM_RX_URBS_POOL; i++)
+	{
 		urb = usb_get_from_anchor(&ar->rx_work);
+
 		if (!urb)
+		{
 			break;
+		}
 
 		atomic_dec(&ar->rx_work_urbs);
-		if (IS_INITIALIZED(ar)) {
+
+		if (IS_INITIALIZED(ar))
+		{
 			carl9170_rx(ar, urb->transfer_buffer,
-				    urb->actual_length);
+						urb->actual_length);
 		}
 
 		usb_anchor_urb(urb, &ar->rx_pool);
@@ -366,7 +420,8 @@ void carl9170_usb_handle_tx_err(struct ar9170 *ar)
 {
 	struct urb *urb;
 
-	while ((urb = usb_get_from_anchor(&ar->tx_err))) {
+	while ((urb = usb_get_from_anchor(&ar->tx_err)))
+	{
 		struct sk_buff *skb = (void *)urb->context;
 
 		carl9170_tx_drop(ar, skb);
@@ -380,7 +435,9 @@ static void carl9170_usb_tasklet(unsigned long data)
 	struct ar9170 *ar = (struct ar9170 *) data;
 
 	if (!IS_INITIALIZED(ar))
+	{
 		return;
+	}
 
 	carl9170_usb_rx_work(ar);
 
@@ -390,7 +447,9 @@ static void carl9170_usb_tasklet(unsigned long data)
 	 * this is the _perfect_ place to generate the next transmissions.
 	 */
 	if (IS_STARTED(ar))
+	{
 		carl9170_tx_scheduler(ar);
+	}
 }
 
 static void carl9170_usb_rx_complete(struct urb *urb)
@@ -399,33 +458,38 @@ static void carl9170_usb_rx_complete(struct urb *urb)
 	int err;
 
 	if (WARN_ON_ONCE(!ar))
+	{
 		return;
+	}
 
 	atomic_dec(&ar->rx_anch_urbs);
 
-	switch (urb->status) {
-	case 0:
-		/* rx path */
-		usb_anchor_urb(urb, &ar->rx_work);
-		atomic_inc(&ar->rx_work_urbs);
-		break;
+	switch (urb->status)
+	{
+		case 0:
+			/* rx path */
+			usb_anchor_urb(urb, &ar->rx_work);
+			atomic_inc(&ar->rx_work_urbs);
+			break;
 
-	case -ENOENT:
-	case -ECONNRESET:
-	case -ENODEV:
-	case -ESHUTDOWN:
-		/* handle disconnect events*/
-		return;
+		case -ENOENT:
+		case -ECONNRESET:
+		case -ENODEV:
+		case -ESHUTDOWN:
+			/* handle disconnect events*/
+			return;
 
-	default:
-		/* handle all other errors */
-		usb_anchor_urb(urb, &ar->rx_pool);
-		atomic_inc(&ar->rx_pool_urbs);
-		break;
+		default:
+			/* handle all other errors */
+			usb_anchor_urb(urb, &ar->rx_pool);
+			atomic_inc(&ar->rx_pool_urbs);
+			break;
 	}
 
 	err = carl9170_usb_submit_rx_urb(ar, GFP_ATOMIC);
-	if (unlikely(err)) {
+
+	if (unlikely(err))
+	{
 		/*
 		 * usb_submit_rx_urb reported a problem.
 		 * In case this is due to a rx buffer shortage,
@@ -434,7 +498,8 @@ static void carl9170_usb_rx_complete(struct urb *urb)
 		 */
 		tasklet_hi_schedule(&ar->usb_tasklet);
 
-		if (atomic_read(&ar->rx_anch_urbs) == 0) {
+		if (atomic_read(&ar->rx_anch_urbs) == 0)
+		{
 			/*
 			 * The system is too slow to cope with
 			 * the enormous workload. We have simply
@@ -445,7 +510,9 @@ static void carl9170_usb_rx_complete(struct urb *urb)
 
 			ieee80211_queue_work(ar->hw, &ar->ping_work);
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * Using anything less than _high_ priority absolutely
 		 * kills the rx performance my UP-System...
@@ -460,18 +527,23 @@ static struct urb *carl9170_usb_alloc_rx_urb(struct ar9170 *ar, gfp_t gfp)
 	void *buf;
 
 	buf = kmalloc(ar->fw.rx_size, gfp);
+
 	if (!buf)
+	{
 		return NULL;
+	}
 
 	urb = usb_alloc_urb(0, gfp);
-	if (!urb) {
+
+	if (!urb)
+	{
 		kfree(buf);
 		return NULL;
 	}
 
 	usb_fill_bulk_urb(urb, ar->udev, usb_rcvbulkpipe(ar->udev,
-			  AR9170_USB_EP_RX), buf, ar->fw.rx_size,
-			  carl9170_usb_rx_complete, ar);
+					  AR9170_USB_EP_RX), buf, ar->fw.rx_size,
+					  carl9170_usb_rx_complete, ar);
 
 	urb->transfer_flags |= URB_FREE_BUFFER;
 
@@ -485,23 +557,32 @@ static int carl9170_usb_send_rx_irq_urb(struct ar9170 *ar)
 	int err = -ENOMEM;
 
 	urb = usb_alloc_urb(0, GFP_KERNEL);
+
 	if (!urb)
+	{
 		goto out;
+	}
 
 	ibuf = kmalloc(AR9170_USB_EP_CTRL_MAX, GFP_KERNEL);
+
 	if (!ibuf)
+	{
 		goto out;
+	}
 
 	usb_fill_int_urb(urb, ar->udev, usb_rcvintpipe(ar->udev,
-			 AR9170_USB_EP_IRQ), ibuf, AR9170_USB_EP_CTRL_MAX,
-			 carl9170_usb_rx_irq_complete, ar, 1);
+					 AR9170_USB_EP_IRQ), ibuf, AR9170_USB_EP_CTRL_MAX,
+					 carl9170_usb_rx_irq_complete, ar, 1);
 
 	urb->transfer_flags |= URB_FREE_BUFFER;
 
 	usb_anchor_urb(urb, &ar->rx_anch);
 	err = usb_submit_urb(urb, GFP_KERNEL);
+
 	if (err)
+	{
 		usb_unanchor_urb(urb);
+	}
 
 out:
 	usb_free_urb(urb);
@@ -523,9 +604,12 @@ static int carl9170_usb_init_rx_bulk_urbs(struct ar9170 *ar)
 	 * processing rx data (streams) inside the urb
 	 * completion (hardirq context).
 	 */
-	for (i = 0; i < AR9170_NUM_RX_URBS_POOL; i++) {
+	for (i = 0; i < AR9170_NUM_RX_URBS_POOL; i++)
+	{
 		urb = carl9170_usb_alloc_rx_urb(ar, GFP_KERNEL);
-		if (!urb) {
+
+		if (!urb)
+		{
 			err = -ENOMEM;
 			goto err_out;
 		}
@@ -536,8 +620,11 @@ static int carl9170_usb_init_rx_bulk_urbs(struct ar9170 *ar)
 	}
 
 	err = carl9170_usb_submit_rx_urb(ar, GFP_KERNEL);
+
 	if (err)
+	{
 		goto err_out;
+	}
 
 	/* the device now waiting for the firmware. */
 	carl9170_set_state_when(ar, CARL9170_STOPPED, CARL9170_IDLE);
@@ -556,7 +643,8 @@ static int carl9170_usb_flush(struct ar9170 *ar)
 	struct urb *urb;
 	int ret, err = 0;
 
-	while ((urb = usb_get_from_anchor(&ar->tx_wait))) {
+	while ((urb = usb_get_from_anchor(&ar->tx_wait)))
+	{
 		struct sk_buff *skb = (void *)urb->context;
 		carl9170_tx_drop(ar, skb);
 		carl9170_tx_callback(ar, skb);
@@ -564,13 +652,19 @@ static int carl9170_usb_flush(struct ar9170 *ar)
 	}
 
 	ret = usb_wait_anchor_empty_timeout(&ar->tx_cmd, 1000);
+
 	if (ret == 0)
+	{
 		err = -ETIMEDOUT;
+	}
 
 	/* lets wait a while until the tx - queues are dried out */
 	ret = usb_wait_anchor_empty_timeout(&ar->tx_anch, 1000);
+
 	if (ret == 0)
+	{
 		err = -ETIMEDOUT;
+	}
 
 	usb_kill_anchored_urbs(&ar->tx_anch);
 	carl9170_usb_handle_tx_err(ar);
@@ -585,8 +679,11 @@ static void carl9170_usb_cancel_urbs(struct ar9170 *ar)
 	carl9170_set_state(ar, CARL9170_UNKNOWN_STATE);
 
 	err = carl9170_usb_flush(ar);
+
 	if (err)
+	{
 		dev_err(&ar->udev->dev, "stuck tx urbs!\n");
+	}
 
 	usb_poison_anchored_urbs(&ar->tx_anch);
 	carl9170_usb_handle_tx_err(ar);
@@ -600,40 +697,46 @@ static void carl9170_usb_cancel_urbs(struct ar9170 *ar)
 }
 
 int __carl9170_exec_cmd(struct ar9170 *ar, struct carl9170_cmd *cmd,
-			const bool free_buf)
+						const bool free_buf)
 {
 	struct urb *urb;
 	int err = 0;
 
-	if (!IS_INITIALIZED(ar)) {
+	if (!IS_INITIALIZED(ar))
+	{
 		err = -EPERM;
 		goto err_free;
 	}
 
-	if (WARN_ON(cmd->hdr.len > CARL9170_MAX_CMD_LEN - 4)) {
+	if (WARN_ON(cmd->hdr.len > CARL9170_MAX_CMD_LEN - 4))
+	{
 		err = -EINVAL;
 		goto err_free;
 	}
 
 	urb = usb_alloc_urb(0, GFP_ATOMIC);
-	if (!urb) {
+
+	if (!urb)
+	{
 		err = -ENOMEM;
 		goto err_free;
 	}
 
 	if (ar->usb_ep_cmd_is_bulk)
 		usb_fill_bulk_urb(urb, ar->udev,
-				  usb_sndbulkpipe(ar->udev, AR9170_USB_EP_CMD),
-				  cmd, cmd->hdr.len + 4,
-				  carl9170_usb_cmd_complete, ar);
+						  usb_sndbulkpipe(ar->udev, AR9170_USB_EP_CMD),
+						  cmd, cmd->hdr.len + 4,
+						  carl9170_usb_cmd_complete, ar);
 	else
 		usb_fill_int_urb(urb, ar->udev,
-				 usb_sndintpipe(ar->udev, AR9170_USB_EP_CMD),
-				 cmd, cmd->hdr.len + 4,
-				 carl9170_usb_cmd_complete, ar, 1);
+						 usb_sndintpipe(ar->udev, AR9170_USB_EP_CMD),
+						 cmd, cmd->hdr.len + 4,
+						 carl9170_usb_cmd_complete, ar, 1);
 
 	if (free_buf)
+	{
 		urb->transfer_flags |= URB_FREE_BUFFER;
+	}
 
 	usb_anchor_urb(urb, &ar->tx_cmd);
 	usb_free_urb(urb);
@@ -641,29 +744,39 @@ int __carl9170_exec_cmd(struct ar9170 *ar, struct carl9170_cmd *cmd,
 	return carl9170_usb_submit_cmd_urb(ar);
 
 err_free:
+
 	if (free_buf)
+	{
 		kfree(cmd);
+	}
 
 	return err;
 }
 
 int carl9170_exec_cmd(struct ar9170 *ar, const enum carl9170_cmd_oids cmd,
-	unsigned int plen, void *payload, unsigned int outlen, void *out)
+					  unsigned int plen, void *payload, unsigned int outlen, void *out)
 {
 	int err = -ENOMEM;
 	unsigned long time_left;
 
 	if (!IS_ACCEPTING_CMD(ar))
+	{
 		return -EIO;
+	}
 
 	if (!(cmd & CARL9170_CMD_ASYNC_FLAG))
+	{
 		might_sleep();
+	}
 
 	ar->cmd.hdr.len = plen;
 	ar->cmd.hdr.cmd = cmd;
+
 	/* writing multiple regs fills this buffer already */
 	if (plen && payload != (u8 *)(ar->cmd.data))
+	{
 		memcpy(ar->cmd.data, payload, plen);
+	}
 
 	spin_lock_bh(&ar->cmd_lock);
 	ar->readbuf = (u8 *)out;
@@ -673,14 +786,18 @@ int carl9170_exec_cmd(struct ar9170 *ar, const enum carl9170_cmd_oids cmd,
 	reinit_completion(&ar->cmd_wait);
 	err = __carl9170_exec_cmd(ar, &ar->cmd, false);
 
-	if (!(cmd & CARL9170_CMD_ASYNC_FLAG)) {
+	if (!(cmd & CARL9170_CMD_ASYNC_FLAG))
+	{
 		time_left = wait_for_completion_timeout(&ar->cmd_wait, HZ);
-		if (time_left == 0) {
+
+		if (time_left == 0)
+		{
 			err = -ETIMEDOUT;
 			goto err_unbuf;
 		}
 
-		if (ar->readlen != outlen) {
+		if (ar->readlen != outlen)
+		{
 			err = -EMSGSIZE;
 			goto err_unbuf;
 		}
@@ -689,14 +806,16 @@ int carl9170_exec_cmd(struct ar9170 *ar, const enum carl9170_cmd_oids cmd,
 	return 0;
 
 err_unbuf:
+
 	/* Maybe the device was removed in the moment we were waiting? */
-	if (IS_STARTED(ar)) {
+	if (IS_STARTED(ar))
+	{
 		dev_err(&ar->udev->dev, "no command feedback "
-			"received (%d).\n", err);
+				"received (%d).\n", err);
 
 		/* provide some maybe useful debug information */
 		print_hex_dump_bytes("carl9170 cmd: ", DUMP_PREFIX_NONE,
-				     &ar->cmd, plen + 4);
+							 &ar->cmd, plen + 4);
 
 		carl9170_restart(ar, CARL9170_RR_COMMAND_TIMEOUT);
 	}
@@ -718,27 +837,35 @@ void carl9170_usb_tx(struct ar9170 *ar, struct sk_buff *skb)
 	unsigned int len;
 
 	if (!IS_STARTED(ar))
+	{
 		goto err_drop;
+	}
 
 	urb = usb_alloc_urb(0, GFP_ATOMIC);
-	if (!urb)
-		goto err_drop;
 
-	if (ar->fw.tx_stream) {
+	if (!urb)
+	{
+		goto err_drop;
+	}
+
+	if (ar->fw.tx_stream)
+	{
 		tx_stream = (void *) (skb->data - sizeof(*tx_stream));
 
 		len = skb->len + sizeof(*tx_stream);
 		tx_stream->length = cpu_to_le16(len);
 		tx_stream->tag = cpu_to_le16(AR9170_TX_STREAM_TAG);
 		data = tx_stream;
-	} else {
+	}
+	else
+	{
 		data = skb->data;
 		len = skb->len;
 	}
 
 	usb_fill_bulk_urb(urb, ar->udev, usb_sndbulkpipe(ar->udev,
-		AR9170_USB_EP_TX), data, len,
-		carl9170_usb_tx_data_complete, skb);
+					  AR9170_USB_EP_TX), data, len,
+					  carl9170_usb_tx_data_complete, skb);
 
 	urb->transfer_flags |= URB_ZERO_PACKET;
 
@@ -756,7 +883,8 @@ err_drop:
 
 static void carl9170_release_firmware(struct ar9170 *ar)
 {
-	if (ar->fw.fw) {
+	if (ar->fw.fw)
+	{
 		release_firmware(ar->fw.fw);
 		memset(&ar->fw, 0, sizeof(ar->fw));
 	}
@@ -769,8 +897,11 @@ void carl9170_usb_stop(struct ar9170 *ar)
 	carl9170_set_state_when(ar, CARL9170_IDLE, CARL9170_STOPPED);
 
 	ret = carl9170_usb_flush(ar);
+
 	if (ret)
+	{
 		dev_err(&ar->udev->dev, "kill pending tx urbs.\n");
+	}
 
 	usb_poison_anchored_urbs(&ar->tx_anch);
 	carl9170_usb_handle_tx_err(ar);
@@ -806,7 +937,9 @@ static int carl9170_usb_load_firmware(struct ar9170 *ar)
 	int err = 0;
 
 	buf = kmalloc(4096, GFP_KERNEL);
-	if (!buf) {
+
+	if (!buf)
+	{
 		err = -ENOMEM;
 		goto err_out;
 	}
@@ -819,15 +952,17 @@ static int carl9170_usb_load_firmware(struct ar9170 *ar)
 	data += ar->fw.offset;
 	len -= ar->fw.offset;
 
-	while (len) {
+	while (len)
+	{
 		transfer = min_t(unsigned int, len, 4096u);
 		memcpy(buf, data, transfer);
 
 		err = usb_control_msg(ar->udev, usb_sndctrlpipe(ar->udev, 0),
-				      0x30 /* FW DL */, 0x40 | USB_DIR_OUT,
-				      addr >> 8, 0, buf, transfer, 100);
+							  0x30 /* FW DL */, 0x40 | USB_DIR_OUT,
+							  addr >> 8, 0, buf, transfer, 100);
 
-		if (err < 0) {
+		if (err < 0)
+		{
 			kfree(buf);
 			goto err_out;
 		}
@@ -836,20 +971,25 @@ static int carl9170_usb_load_firmware(struct ar9170 *ar)
 		data += transfer;
 		addr += transfer;
 	}
+
 	kfree(buf);
 
 	err = usb_control_msg(ar->udev, usb_sndctrlpipe(ar->udev, 0),
-			      0x31 /* FW DL COMPLETE */,
-			      0x40 | USB_DIR_OUT, 0, 0, NULL, 0, 200);
+						  0x31 /* FW DL COMPLETE */,
+						  0x40 | USB_DIR_OUT, 0, 0, NULL, 0, 200);
 
-	if (wait_for_completion_timeout(&ar->fw_boot_wait, HZ) == 0) {
+	if (wait_for_completion_timeout(&ar->fw_boot_wait, HZ) == 0)
+	{
 		err = -ETIMEDOUT;
 		goto err_out;
 	}
 
 	err = carl9170_echo_test(ar, 0x4a110123);
+
 	if (err)
+	{
 		goto err_out;
+	}
 
 	/* now, start the command response counter */
 	ar->cmd_seq = -1;
@@ -866,7 +1006,9 @@ int carl9170_usb_restart(struct ar9170 *ar)
 	int err = 0;
 
 	if (ar->intf->condition != USB_INTERFACE_BOUND)
+	{
 		return 0;
+	}
 
 	/*
 	 * Disable the command response sequence counter check.
@@ -881,7 +1023,9 @@ int carl9170_usb_restart(struct ar9170 *ar)
 	carl9170_usb_stop(ar);
 
 	if (err)
+	{
 		goto err_out;
+	}
 
 	tasklet_schedule(&ar->usb_tasklet);
 
@@ -889,12 +1033,18 @@ int carl9170_usb_restart(struct ar9170 *ar)
 	msleep(1100);
 
 	err = carl9170_usb_open(ar);
+
 	if (err)
+	{
 		goto err_out;
+	}
 
 	err = carl9170_usb_load_firmware(ar);
+
 	if (err)
+	{
 		goto err_out;
+	}
 
 	return 0;
 
@@ -935,22 +1085,34 @@ static int carl9170_usb_init_device(struct ar9170 *ar)
 	ar->cmd_seq = -2;
 
 	err = carl9170_usb_send_rx_irq_urb(ar);
+
 	if (err)
+	{
 		goto err_out;
+	}
 
 	err = carl9170_usb_init_rx_bulk_urbs(ar);
+
 	if (err)
+	{
 		goto err_unrx;
+	}
 
 	err = carl9170_usb_open(ar);
+
 	if (err)
+	{
 		goto err_unrx;
+	}
 
 	mutex_lock(&ar->mutex);
 	err = carl9170_usb_load_firmware(ar);
 	mutex_unlock(&ar->mutex);
+
 	if (err)
+	{
 		goto err_stop;
+	}
 
 	return 0;
 
@@ -981,11 +1143,16 @@ static void carl9170_usb_firmware_failed(struct ar9170 *ar)
 
 	/* unbind anything failed */
 	if (parent)
+	{
 		device_lock(parent);
+	}
 
 	device_release_driver(&udev->dev);
+
 	if (parent)
+	{
 		device_unlock(parent);
+	}
 
 	usb_put_dev(udev);
 }
@@ -995,18 +1162,27 @@ static void carl9170_usb_firmware_finish(struct ar9170 *ar)
 	int err;
 
 	err = carl9170_parse_firmware(ar);
+
 	if (err)
+	{
 		goto err_freefw;
+	}
 
 	err = carl9170_usb_init_device(ar);
+
 	if (err)
+	{
 		goto err_freefw;
+	}
 
 	err = carl9170_register(ar);
 
 	carl9170_usb_stop(ar);
+
 	if (err)
+	{
 		goto err_unrx;
+	}
 
 	complete(&ar->fw_load_wait);
 	usb_put_dev(ar->udev);
@@ -1021,11 +1197,12 @@ err_freefw:
 }
 
 static void carl9170_usb_firmware_step2(const struct firmware *fw,
-					void *context)
+										void *context)
 {
 	struct ar9170 *ar = context;
 
-	if (fw) {
+	if (fw)
+	{
 		ar->fw.fw = fw;
 		carl9170_usb_firmware_finish(ar);
 		return;
@@ -1036,7 +1213,7 @@ static void carl9170_usb_firmware_step2(const struct firmware *fw,
 }
 
 static int carl9170_usb_probe(struct usb_interface *intf,
-			      const struct usb_device_id *id)
+							  const struct usb_device_id *id)
 {
 	struct usb_endpoint_descriptor *ep;
 	struct ar9170 *ar;
@@ -1044,12 +1221,18 @@ static int carl9170_usb_probe(struct usb_interface *intf,
 	int i, err;
 
 	err = usb_reset_device(interface_to_usbdev(intf));
+
 	if (err)
+	{
 		return err;
+	}
 
 	ar = carl9170_alloc(sizeof(*ar));
+
 	if (IS_ERR(ar))
+	{
 		return PTR_ERR(ar);
+	}
 
 	udev = interface_to_usbdev(intf);
 	usb_get_dev(udev);
@@ -1063,13 +1246,16 @@ static int carl9170_usb_probe(struct usb_interface *intf,
 	 * configuration as bulk endpoint. This information is required
 	 * later when sending urbs to that endpoint.
 	 */
-	for (i = 0; i < intf->cur_altsetting->desc.bNumEndpoints; ++i) {
+	for (i = 0; i < intf->cur_altsetting->desc.bNumEndpoints; ++i)
+	{
 		ep = &intf->cur_altsetting->endpoint[i].desc;
 
 		if (usb_endpoint_num(ep) == AR9170_USB_EP_CMD &&
-		    usb_endpoint_dir_out(ep) &&
-		    usb_endpoint_type(ep) == USB_ENDPOINT_XFER_BULK)
+			usb_endpoint_dir_out(ep) &&
+			usb_endpoint_type(ep) == USB_ENDPOINT_XFER_BULK)
+		{
 			ar->usb_ep_cmd_is_bulk = true;
+		}
 	}
 
 	usb_set_intfdata(intf, ar);
@@ -1086,7 +1272,7 @@ static int carl9170_usb_probe(struct usb_interface *intf,
 	init_completion(&ar->fw_boot_wait);
 	init_completion(&ar->fw_load_wait);
 	tasklet_init(&ar->usb_tasklet, carl9170_usb_tasklet,
-		     (unsigned long)ar);
+				 (unsigned long)ar);
 
 	atomic_set(&ar->tx_cmd_urbs, 0);
 	atomic_set(&ar->tx_anch_urbs, 0);
@@ -1099,12 +1285,15 @@ static int carl9170_usb_probe(struct usb_interface *intf,
 	carl9170_set_state(ar, CARL9170_STOPPED);
 
 	err = request_firmware_nowait(THIS_MODULE, 1, CARL9170FW_NAME,
-		&ar->udev->dev, GFP_KERNEL, ar, carl9170_usb_firmware_step2);
-	if (err) {
+								  &ar->udev->dev, GFP_KERNEL, ar, carl9170_usb_firmware_step2);
+
+	if (err)
+	{
 		usb_put_dev(udev);
 		usb_put_dev(udev);
 		carl9170_free(ar);
 	}
+
 	return err;
 }
 
@@ -1114,12 +1303,15 @@ static void carl9170_usb_disconnect(struct usb_interface *intf)
 	struct usb_device *udev;
 
 	if (WARN_ON(!ar))
+	{
 		return;
+	}
 
 	udev = ar->udev;
 	wait_for_completion(&ar->fw_load_wait);
 
-	if (IS_INITIALIZED(ar)) {
+	if (IS_INITIALIZED(ar))
+	{
 		carl9170_reboot(ar);
 		carl9170_usb_stop(ar);
 	}
@@ -1136,12 +1328,14 @@ static void carl9170_usb_disconnect(struct usb_interface *intf)
 
 #ifdef CONFIG_PM
 static int carl9170_usb_suspend(struct usb_interface *intf,
-				pm_message_t message)
+								pm_message_t message)
 {
 	struct ar9170 *ar = usb_get_intfdata(intf);
 
 	if (!ar)
+	{
 		return -ENODEV;
+	}
 
 	carl9170_usb_cancel_urbs(ar);
 
@@ -1154,7 +1348,9 @@ static int carl9170_usb_resume(struct usb_interface *intf)
 	int err;
 
 	if (!ar)
+	{
 		return -ENODEV;
+	}
 
 	usb_unpoison_anchored_urbs(&ar->rx_anch);
 	carl9170_set_state(ar, CARL9170_STOPPED);
@@ -1171,8 +1367,11 @@ static int carl9170_usb_resume(struct usb_interface *intf)
 	msleep(1100);
 
 	err = carl9170_usb_init_device(ar);
+
 	if (err)
+	{
 		goto err_unrx;
+	}
 
 	return 0;
 
@@ -1183,7 +1382,8 @@ err_unrx:
 }
 #endif /* CONFIG_PM */
 
-static struct usb_driver carl9170_driver = {
+static struct usb_driver carl9170_driver =
+{
 	.name = KBUILD_MODNAME,
 	.probe = carl9170_usb_probe,
 	.disconnect = carl9170_usb_disconnect,

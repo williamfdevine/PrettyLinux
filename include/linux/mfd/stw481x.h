@@ -44,7 +44,8 @@
  * @i2c_client: corresponding I2C client
  * @map: regmap handle to access device registers
  */
-struct stw481x {
+struct stw481x
+{
 	struct i2c_client	*client;
 	struct regmap		*map;
 };

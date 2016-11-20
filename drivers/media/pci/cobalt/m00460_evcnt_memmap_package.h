@@ -23,7 +23,8 @@
  * Register Block
  * M00460_EVCNT_MEMMAP_PACKAGE_VHD_REGMAP
  *******************************************************************/
-struct m00460_evcnt_regmap {
+struct m00460_evcnt_regmap
+{
 	uint32_t control; /* Reg 0x0000, Default=0x0 */
 	uint32_t count;   /* Reg 0x0004 */
 };

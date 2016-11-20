@@ -116,12 +116,14 @@
 #define JSA1212_DRIVER_NAME	"jsa1212"
 #define JSA1212_REGMAP_NAME	"jsa1212_regmap"
 
-enum jsa1212_op_mode {
+enum jsa1212_op_mode
+{
 	JSA1212_OPMODE_ALS_EN,
 	JSA1212_OPMODE_PXS_EN,
 };
 
-struct jsa1212_data {
+struct jsa1212_data
+{
 	struct i2c_client *client;
 	struct mutex lock;
 	u8 als_rng_idx;
@@ -132,7 +134,8 @@ struct jsa1212_data {
 
 /* ALS range idx to val mapping */
 static const int jsa1212_als_range_val[] = {2048, 1024, 512, 256, 128,
-						128, 128, 128};
+											128, 128, 128
+										   };
 
 /* Enables or disables ALS function based on status */
 static int jsa1212_als_enable(struct jsa1212_data *data, u8 status)
@@ -140,10 +143,13 @@ static int jsa1212_als_enable(struct jsa1212_data *data, u8 status)
 	int ret;
 
 	ret = regmap_update_bits(data->regmap, JSA1212_CONF_REG,
-				JSA1212_CONF_ALS_MASK,
-				status);
+							 JSA1212_CONF_ALS_MASK,
+							 status);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	data->als_en = !!status;
 
@@ -156,10 +162,13 @@ static int jsa1212_pxs_enable(struct jsa1212_data *data, u8 status)
 	int ret;
 
 	ret = regmap_update_bits(data->regmap, JSA1212_CONF_REG,
-				JSA1212_CONF_PXS_MASK,
-				status);
+							 JSA1212_CONF_PXS_MASK,
+							 status);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	data->pxs_en = !!status;
 
@@ -167,21 +176,26 @@ static int jsa1212_pxs_enable(struct jsa1212_data *data, u8 status)
 }
 
 static int jsa1212_read_als_data(struct jsa1212_data *data,
-				unsigned int *val)
+								 unsigned int *val)
 {
 	int ret;
 	__le16 als_data;
 
 	ret = jsa1212_als_enable(data, JSA1212_CONF_ALS_ENABLE);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Delay for data output */
 	msleep(JSA1212_ALS_DELAY_MS);
 
 	/* Read 12 bit data */
 	ret = regmap_bulk_read(data->regmap, JSA1212_ALS_DT1_REG, &als_data, 2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&data->client->dev, "als data read err\n");
 		goto als_data_read_err;
 	}
@@ -193,21 +207,26 @@ als_data_read_err:
 }
 
 static int jsa1212_read_pxs_data(struct jsa1212_data *data,
-				unsigned int *val)
+								 unsigned int *val)
 {
 	int ret;
 	unsigned int pxs_data;
 
 	ret = jsa1212_pxs_enable(data, JSA1212_CONF_PXS_ENABLE);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Delay for data output */
 	msleep(JSA1212_PXS_DELAY_MS);
 
 	/* Read out all data */
 	ret = regmap_read(data->regmap, JSA1212_PXS_DATA_REG, &pxs_data);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&data->client->dev, "pxs data read err\n");
 		goto pxs_data_read_err;
 	}
@@ -219,50 +238,62 @@ pxs_data_read_err:
 }
 
 static int jsa1212_read_raw(struct iio_dev *indio_dev,
-				struct iio_chan_spec const *chan,
-				int *val, int *val2, long mask)
+							struct iio_chan_spec const *chan,
+							int *val, int *val2, long mask)
 {
 	int ret;
 	struct jsa1212_data *data = iio_priv(indio_dev);
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		mutex_lock(&data->lock);
-		switch (chan->type) {
-		case IIO_LIGHT:
-			ret = jsa1212_read_als_data(data, val);
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			mutex_lock(&data->lock);
+
+			switch (chan->type)
+			{
+				case IIO_LIGHT:
+					ret = jsa1212_read_als_data(data, val);
+					break;
+
+				case IIO_PROXIMITY:
+					ret = jsa1212_read_pxs_data(data, val);
+					break;
+
+				default:
+					ret = -EINVAL;
+					break;
+			}
+
+			mutex_unlock(&data->lock);
+			return ret < 0 ? ret : IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->type)
+			{
+				case IIO_LIGHT:
+					*val = jsa1212_als_range_val[data->als_rng_idx];
+					*val2 = BIT(12); /* Max 12 bit value */
+					return IIO_VAL_FRACTIONAL;
+
+				default:
+					break;
+			}
+
 			break;
-		case IIO_PROXIMITY:
-			ret = jsa1212_read_pxs_data(data, val);
-			break;
+
 		default:
-			ret = -EINVAL;
 			break;
-		}
-		mutex_unlock(&data->lock);
-		return ret < 0 ? ret : IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->type) {
-		case IIO_LIGHT:
-			*val = jsa1212_als_range_val[data->als_rng_idx];
-			*val2 = BIT(12); /* Max 12 bit value */
-			return IIO_VAL_FRACTIONAL;
-		default:
-			break;
-		}
-		break;
-	default:
-		break;
 	}
 
 	return -EINVAL;
 }
 
-static const struct iio_chan_spec jsa1212_channels[] = {
+static const struct iio_chan_spec jsa1212_channels[] =
+{
 	{
 		.type = IIO_LIGHT,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-			BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_SCALE),
 	},
 	{
 		.type = IIO_PROXIMITY,
@@ -270,7 +301,8 @@ static const struct iio_chan_spec jsa1212_channels[] = {
 	}
 };
 
-static const struct iio_info jsa1212_info = {
+static const struct iio_info jsa1212_info =
+{
 	.driver_module		= THIS_MODULE,
 	.read_raw		= &jsa1212_read_raw,
 };
@@ -280,15 +312,21 @@ static int jsa1212_chip_init(struct jsa1212_data *data)
 	int ret;
 
 	ret = regmap_write(data->regmap, JSA1212_CONF_REG,
-				(JSA1212_CONF_PXS_SLP_50MS |
-				JSA1212_CONF_IRDR_200MA));
+					   (JSA1212_CONF_PXS_SLP_50MS |
+						JSA1212_CONF_IRDR_200MA));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = regmap_write(data->regmap, JSA1212_INT_REG,
-				JSA1212_INT_ALS_PRST_4CONV);
+					   JSA1212_INT_ALS_PRST_4CONV);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	data->als_rng_idx = JSA1212_ALS_RNG_0_2048;
 
@@ -297,18 +335,21 @@ static int jsa1212_chip_init(struct jsa1212_data *data)
 
 static bool jsa1212_is_volatile_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case JSA1212_PXS_DATA_REG:
-	case JSA1212_ALS_DT1_REG:
-	case JSA1212_ALS_DT2_REG:
-	case JSA1212_INT_REG:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case JSA1212_PXS_DATA_REG:
+		case JSA1212_ALS_DT1_REG:
+		case JSA1212_ALS_DT2_REG:
+		case JSA1212_INT_REG:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
-static const struct regmap_config jsa1212_regmap_config = {
+static const struct regmap_config jsa1212_regmap_config =
+{
 	.name =  JSA1212_REGMAP_NAME,
 	.reg_bits = 8,
 	.val_bits = 8,
@@ -318,7 +359,7 @@ static const struct regmap_config jsa1212_regmap_config = {
 };
 
 static int jsa1212_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct jsa1212_data *data;
 	struct iio_dev *indio_dev;
@@ -326,11 +367,16 @@ static int jsa1212_probe(struct i2c_client *client,
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	regmap = devm_regmap_init_i2c(client, &jsa1212_regmap_config);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(&client->dev, "Regmap initialization failed.\n");
 		return PTR_ERR(regmap);
 	}
@@ -344,8 +390,11 @@ static int jsa1212_probe(struct i2c_client *client,
 	mutex_init(&data->lock);
 
 	ret = jsa1212_chip_init(data);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	indio_dev->dev.parent = &client->dev;
 	indio_dev->channels = jsa1212_channels;
@@ -356,13 +405,16 @@ static int jsa1212_probe(struct i2c_client *client,
 	indio_dev->info = &jsa1212_info;
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret < 0)
+	{
 		dev_err(&client->dev, "%s: register device failed\n", __func__);
+	}
 
 	return ret;
 }
 
- /* power off the device */
+/* power off the device */
 static int jsa1212_power_off(struct jsa1212_data *data)
 {
 	int ret;
@@ -370,13 +422,15 @@ static int jsa1212_power_off(struct jsa1212_data *data)
 	mutex_lock(&data->lock);
 
 	ret = regmap_update_bits(data->regmap, JSA1212_CONF_REG,
-				JSA1212_CONF_ALS_MASK |
-				JSA1212_CONF_PXS_MASK,
-				JSA1212_CONF_ALS_DISABLE |
-				JSA1212_CONF_PXS_DISABLE);
+							 JSA1212_CONF_ALS_MASK |
+							 JSA1212_CONF_PXS_MASK,
+							 JSA1212_CONF_ALS_DISABLE |
+							 JSA1212_CONF_PXS_DISABLE);
 
 	if (ret < 0)
+	{
 		dev_err(&data->client->dev, "power off cmd failed\n");
+	}
 
 	mutex_unlock(&data->lock);
 
@@ -412,18 +466,25 @@ static int jsa1212_resume(struct device *dev)
 
 	mutex_lock(&data->lock);
 
-	if (data->als_en) {
+	if (data->als_en)
+	{
 		ret = jsa1212_als_enable(data, JSA1212_CONF_ALS_ENABLE);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(dev, "als resume failed\n");
 			goto unlock_and_ret;
 		}
 	}
 
-	if (data->pxs_en) {
+	if (data->pxs_en)
+	{
 		ret = jsa1212_pxs_enable(data, JSA1212_CONF_PXS_ENABLE);
+
 		if (ret < 0)
+		{
 			dev_err(dev, "pxs resume failed\n");
+		}
 	}
 
 unlock_and_ret:
@@ -438,19 +499,22 @@ static SIMPLE_DEV_PM_OPS(jsa1212_pm_ops, jsa1212_suspend, jsa1212_resume);
 #define JSA1212_PM_OPS NULL
 #endif
 
-static const struct acpi_device_id jsa1212_acpi_match[] = {
+static const struct acpi_device_id jsa1212_acpi_match[] =
+{
 	{"JSA1212", 0},
 	{ },
 };
 MODULE_DEVICE_TABLE(acpi, jsa1212_acpi_match);
 
-static const struct i2c_device_id jsa1212_id[] = {
+static const struct i2c_device_id jsa1212_id[] =
+{
 	{ JSA1212_DRIVER_NAME, 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, jsa1212_id);
 
-static struct i2c_driver jsa1212_driver = {
+static struct i2c_driver jsa1212_driver =
+{
 	.driver = {
 		.name	= JSA1212_DRIVER_NAME,
 		.pm	= JSA1212_PM_OPS,

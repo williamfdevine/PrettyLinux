@@ -52,7 +52,8 @@
 
 #define CHELSIO_T5		0x5
 
-enum chip_type {
+enum chip_type
+{
 	T5_A0 = CHELSIO_CHIP_CODE(CHELSIO_T5, 0),
 	T5_A1 = CHELSIO_CHIP_CODE(CHELSIO_T5, 1),
 	T5_FIRST_REV	= T5_A0,
@@ -72,13 +73,14 @@ static inline int csio_is_t5(uint16_t chip)
 #include "t4fw_version.h"
 
 #define FW_VERSION(chip) ( \
-		FW_HDR_FW_VER_MAJOR_G(chip##FW_VERSION_MAJOR) | \
-		FW_HDR_FW_VER_MINOR_G(chip##FW_VERSION_MINOR) | \
-		FW_HDR_FW_VER_MICRO_G(chip##FW_VERSION_MICRO) | \
-		FW_HDR_FW_VER_BUILD_G(chip##FW_VERSION_BUILD))
+						   FW_HDR_FW_VER_MAJOR_G(chip##FW_VERSION_MAJOR) | \
+						   FW_HDR_FW_VER_MINOR_G(chip##FW_VERSION_MINOR) | \
+						   FW_HDR_FW_VER_MICRO_G(chip##FW_VERSION_MICRO) | \
+						   FW_HDR_FW_VER_BUILD_G(chip##FW_VERSION_BUILD))
 #define FW_INTFVER(chip, intf) (FW_HDR_INTFVER_##intf)
 
-struct fw_info {
+struct fw_info
+{
 	u8 chip;
 	char *fs_name;
 	char *fw_mod_name;
@@ -88,13 +90,15 @@ struct fw_info {
 /* Declare ENUMS */
 enum { MEM_EDC0, MEM_EDC1, MEM_MC, MEM_MC0 = MEM_MC, MEM_MC1 };
 
-enum {
+enum
+{
 	MEMWIN_APERTURE = 2048,
 	MEMWIN_BASE     = 0x1b800,
 };
 
 /* Slow path handlers */
-struct intr_info {
+struct intr_info
+{
 	unsigned int mask;       /* bits to check in interrupt status */
 	const char *msg;         /* message to print or NULL */
 	short stat_idx;          /* stat counter to increment or -1 */
@@ -103,16 +107,17 @@ struct intr_info {
 
 /* T4/T5 Chip specific ops */
 struct csio_hw;
-struct csio_hw_chip_ops {
+struct csio_hw_chip_ops
+{
 	int (*chip_set_mem_win)(struct csio_hw *, uint32_t);
 	void (*chip_pcie_intr_handler)(struct csio_hw *);
 	uint32_t (*chip_flash_cfg_addr)(struct csio_hw *);
 	int (*chip_mc_read)(struct csio_hw *, int, uint32_t,
-					__be32 *, uint64_t *);
+						__be32 *, uint64_t *);
 	int (*chip_edc_read)(struct csio_hw *, int, uint32_t,
-					__be32 *, uint64_t *);
+						 __be32 *, uint64_t *);
 	int (*chip_memory_rw)(struct csio_hw *, u32, int, u32,
-					u32, uint32_t *, int);
+						  u32, uint32_t *, int);
 	void (*chip_dfs_create_ext_mem)(struct csio_hw *);
 };
 

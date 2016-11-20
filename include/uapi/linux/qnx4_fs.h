@@ -40,7 +40,8 @@
 /*
  * This is the original qnx4 inode layout on disk.
  */
-struct qnx4_inode_entry {
+struct qnx4_inode_entry
+{
 	char		di_fname[QNX4_SHORT_NAME_MAX];
 	qnx4_off_t	di_size;
 	qnx4_xtnt_t	di_first_xtnt;
@@ -59,7 +60,8 @@ struct qnx4_inode_entry {
 	__u8		di_status;
 };
 
-struct qnx4_link_info {
+struct qnx4_link_info
+{
 	char		dl_fname[QNX4_NAME_MAX];
 	__le32		dl_inode_blk;
 	__u8		dl_inode_ndx;
@@ -67,7 +69,8 @@ struct qnx4_link_info {
 	__u8		dl_status;
 };
 
-struct qnx4_xblk {
+struct qnx4_xblk
+{
 	__le32		xblk_next_xblk;
 	__le32		xblk_prev_xblk;
 	__u8		xblk_num_xtnts;
@@ -78,7 +81,8 @@ struct qnx4_xblk {
 	qnx4_xtnt_t	xblk_first_xtnt;
 };
 
-struct qnx4_super_block {
+struct qnx4_super_block
+{
 	struct qnx4_inode_entry RootDir;
 	struct qnx4_inode_entry Inode;
 	struct qnx4_inode_entry Boot;

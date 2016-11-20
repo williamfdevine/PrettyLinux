@@ -99,7 +99,8 @@
 #define BRCMU_CHAN_BAND_2G		0
 #define BRCMU_CHAN_BAND_5G		1
 
-enum brcmu_chan_bw {
+enum brcmu_chan_bw
+{
 	BRCMU_CHAN_BW_20,
 	BRCMU_CHAN_BW_40,
 	BRCMU_CHAN_BW_80,
@@ -107,7 +108,8 @@ enum brcmu_chan_bw {
 	BRCMU_CHAN_BW_160,
 };
 
-enum brcmu_chan_sb {
+enum brcmu_chan_sb
+{
 	BRCMU_CHAN_SB_NONE = -1,
 	BRCMU_CHAN_SB_LLL,
 	BRCMU_CHAN_SB_LLU,
@@ -138,7 +140,8 @@ enum brcmu_chan_sb {
  * @bw: channel width
  * @sb: control sideband (location of control channel against the center one)
  */
-struct brcmu_chan {
+struct brcmu_chan
+{
 	u16 chspec;
 	u8 chnum;
 	u8 control_ch_num;
@@ -155,7 +158,8 @@ struct brcmu_chan {
  *	number, ignores control one
  * @decchspec: decodes chanspec into generic info
  */
-struct brcmu_d11inf {
+struct brcmu_d11inf
+{
 	u8 io_type;
 
 	void (*encchspec)(struct brcmu_chan *ch);

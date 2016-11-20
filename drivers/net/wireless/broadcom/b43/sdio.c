@@ -28,11 +28,13 @@
 #define B43_SDIO_BLOCK_SIZE	64	/* rx fifo max size in bytes */
 
 
-static const struct b43_sdio_quirk {
+static const struct b43_sdio_quirk
+{
 	u16 vendor;
 	u16 device;
 	unsigned int quirks;
-} b43_sdio_quirks[] = {
+} b43_sdio_quirks[] =
+{
 	{ 0x14E4, 0x4318, SSB_QUIRK_SDIO_READ_AFTER_WRITE32, },
 	{ },
 };
@@ -42,9 +44,12 @@ static unsigned int b43_sdio_get_quirks(u16 vendor, u16 device)
 {
 	const struct b43_sdio_quirk *q;
 
-	for (q = b43_sdio_quirks; q->quirks; q++) {
+	for (q = b43_sdio_quirks; q->quirks; q++)
+	{
 		if (vendor == q->vendor && device == q->device)
+		{
 			return q->quirks;
+		}
 	}
 
 	return 0;
@@ -56,7 +61,9 @@ static void b43_sdio_interrupt_dispatcher(struct sdio_func *func)
 	struct b43_wldev *dev = sdio->irq_handler_opaque;
 
 	if (unlikely(b43_status(dev) < B43_STAT_STARTED))
+	{
 		return;
+	}
 
 	sdio_release_host(func);
 	sdio->irq_handler(dev);
@@ -64,7 +71,7 @@ static void b43_sdio_interrupt_dispatcher(struct sdio_func *func)
 }
 
 int b43_sdio_request_irq(struct b43_wldev *dev,
-			 void (*handler)(struct b43_wldev *dev))
+						 void (*handler)(struct b43_wldev *dev))
 {
 	struct ssb_bus *bus = dev->dev->sdev->bus;
 	struct sdio_func *func = bus->host_sdio;
@@ -94,7 +101,7 @@ void b43_sdio_free_irq(struct b43_wldev *dev)
 }
 
 static int b43_sdio_probe(struct sdio_func *func,
-				    const struct sdio_device_id *id)
+						  const struct sdio_device_id *id)
 {
 	struct b43_sdio *sdio;
 	struct sdio_func_tuple *tuple;
@@ -103,59 +110,84 @@ static int b43_sdio_probe(struct sdio_func *func,
 
 	/* Look for the card chip identifier. */
 	tuple = func->tuples;
-	while (tuple) {
-		switch (tuple->code) {
-		case 0x80:
-			switch (tuple->data[0]) {
-			case HNBU_CHIPID:
-				if (tuple->size != 5)
-					break;
-				vendor = tuple->data[1] | (tuple->data[2]<<8);
-				device = tuple->data[3] | (tuple->data[4]<<8);
-				dev_info(&func->dev, "Chip ID %04x:%04x\n",
-					 vendor, device);
+
+	while (tuple)
+	{
+		switch (tuple->code)
+		{
+			case 0x80:
+				switch (tuple->data[0])
+				{
+					case HNBU_CHIPID:
+						if (tuple->size != 5)
+						{
+							break;
+						}
+
+						vendor = tuple->data[1] | (tuple->data[2] << 8);
+						device = tuple->data[3] | (tuple->data[4] << 8);
+						dev_info(&func->dev, "Chip ID %04x:%04x\n",
+								 vendor, device);
+						break;
+
+					default:
+						break;
+				}
+
 				break;
+
 			default:
 				break;
-			}
-			break;
-		default:
-			break;
 		}
+
 		tuple = tuple->next;
 	}
-	if (!vendor || !device) {
+
+	if (!vendor || !device)
+	{
 		error = -ENODEV;
 		goto out;
 	}
 
 	sdio_claim_host(func);
 	error = sdio_set_block_size(func, B43_SDIO_BLOCK_SIZE);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&func->dev, "failed to set block size to %u bytes,"
-			" error %d\n", B43_SDIO_BLOCK_SIZE, error);
+				" error %d\n", B43_SDIO_BLOCK_SIZE, error);
 		goto err_release_host;
 	}
+
 	error = sdio_enable_func(func);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&func->dev, "failed to enable func, error %d\n", error);
 		goto err_release_host;
 	}
+
 	sdio_release_host(func);
 
 	sdio = kzalloc(sizeof(*sdio), GFP_KERNEL);
-	if (!sdio) {
+
+	if (!sdio)
+	{
 		error = -ENOMEM;
 		dev_err(&func->dev, "failed to allocate ssb bus\n");
 		goto err_disable_func;
 	}
+
 	error = ssb_bus_sdiobus_register(&sdio->ssb, func,
-					 b43_sdio_get_quirks(vendor, device));
-	if (error) {
+									 b43_sdio_get_quirks(vendor, device));
+
+	if (error)
+	{
 		dev_err(&func->dev, "failed to register ssb sdio bus,"
-			" error %d\n", error);
+				" error %d\n", error);
 		goto err_free_ssb;
 	}
+
 	sdio_set_drvdata(func, sdio);
 
 	return 0;
@@ -183,13 +215,15 @@ static void b43_sdio_remove(struct sdio_func *func)
 	sdio_set_drvdata(func, NULL);
 }
 
-static const struct sdio_device_id b43_sdio_ids[] = {
+static const struct sdio_device_id b43_sdio_ids[] =
+{
 	{ SDIO_DEVICE(0x02d0, 0x044b) }, /* Nintendo Wii WLAN daughter card */
 	{ SDIO_DEVICE(0x0092, 0x0004) }, /* C-guys, Inc. EW-CG1102GC */
 	{ },
 };
 
-static struct sdio_driver b43_sdio_driver = {
+static struct sdio_driver b43_sdio_driver =
+{
 	.name		= "b43-sdio",
 	.id_table	= b43_sdio_ids,
 	.probe		= b43_sdio_probe,

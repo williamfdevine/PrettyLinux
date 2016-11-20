@@ -81,7 +81,8 @@
  * @IWL_UCODE_WOWLAN: Wake on Wireless enabled ucode
  * @IWL_UCODE_REGULAR_USNIFFER: Normal runtime ucode when using usniffer image
  */
-enum iwl_ucode_type {
+enum iwl_ucode_type
+{
 	IWL_UCODE_REGULAR,
 	IWL_UCODE_INIT,
 	IWL_UCODE_WOWLAN,
@@ -96,12 +97,14 @@ enum iwl_ucode_type {
  * first one packaged into the firmware file is the DATA section and
  * some debugging code accesses that.
  */
-enum iwl_ucode_sec {
+enum iwl_ucode_sec
+{
 	IWL_UCODE_SECTION_DATA,
 	IWL_UCODE_SECTION_INST,
 };
 
-struct iwl_ucode_capabilities {
+struct iwl_ucode_capabilities
+{
 	u32 max_probe_length;
 	u32 n_scan_channels;
 	u32 standard_phy_calibration_size;
@@ -112,32 +115,35 @@ struct iwl_ucode_capabilities {
 
 static inline bool
 fw_has_api(const struct iwl_ucode_capabilities *capabilities,
-	   iwl_ucode_tlv_api_t api)
+		   iwl_ucode_tlv_api_t api)
 {
 	return test_bit((__force long)api, capabilities->_api);
 }
 
 static inline bool
 fw_has_capa(const struct iwl_ucode_capabilities *capabilities,
-	    iwl_ucode_tlv_capa_t capa)
+			iwl_ucode_tlv_capa_t capa)
 {
 	return test_bit((__force long)capa, capabilities->_capa);
 }
 
 /* one for each uCode image (inst/data, init/runtime/wowlan) */
-struct fw_desc {
+struct fw_desc
+{
 	const void *data;	/* vmalloc'ed data */
 	u32 len;		/* size in bytes */
 	u32 offset;		/* offset in the device */
 };
 
-struct fw_img {
+struct fw_img
+{
 	struct fw_desc sec[IWL_UCODE_SECTION_MAX];
 	bool is_dual_cpus;
 	u32 paging_mem_size;
 };
 
-struct iwl_sf_region {
+struct iwl_sf_region
+{
 	u32 addr;
 	u32 size;
 };
@@ -178,7 +184,8 @@ struct iwl_sf_region {
  * @fw_paging_block: pointer to the allocated block
  * @fw_paging_size: page size
  */
-struct iwl_fw_paging {
+struct iwl_fw_paging
+{
 	dma_addr_t fw_paging_phys;
 	struct page *fw_paging_block;
 	u32 fw_paging_size;
@@ -189,7 +196,8 @@ struct iwl_fw_paging {
  * @size: a number of entries
  * @cs: cipher scheme entries
  */
-struct iwl_fw_cscheme_list {
+struct iwl_fw_cscheme_list
+{
 	u8 size;
 	struct iwl_fw_cipher_scheme cs[];
 } __packed;
@@ -213,7 +221,8 @@ struct iwl_fw_cscheme_list {
  * @max_number_of_white_listed_ssid: max number of white listed SSIDs.
  * @max_number_of_black_listed_ssid: max number of black listed SSIDs.
  */
-struct iwl_gscan_capabilities {
+struct iwl_gscan_capabilities
+{
 	u32 max_scan_cache_size;
 	u32 max_scan_buckets;
 	u32 max_ap_cache_per_scan;
@@ -234,7 +243,8 @@ struct iwl_gscan_capabilities {
  * @IWL_FW_DVM: DVM firmware
  * @IWL_FW_MVM: MVM firmware
  */
-enum iwl_fw_type {
+enum iwl_fw_type
+{
 	IWL_FW_DVM,
 	IWL_FW_MVM,
 };
@@ -265,7 +275,8 @@ enum iwl_fw_type {
  * @dbg_trigger_tlv_len: lengths of the @dbg_trigger_tlv entries
  * @dbg_dest_reg_num: num of reg_ops in %dbg_dest_tlv
  */
-struct iwl_fw {
+struct iwl_fw
+{
 	u32 ucode_ver;
 
 	char fw_version[ETHTOOL_FWVERS_LEN];
@@ -304,17 +315,22 @@ struct iwl_fw {
 
 static inline const char *get_fw_dbg_mode_string(int mode)
 {
-	switch (mode) {
-	case SMEM_MODE:
-		return "SMEM";
-	case EXTERNAL_MODE:
-		return "EXTERNAL_DRAM";
-	case MARBH_MODE:
-		return "MARBH";
-	case MIPI_MODE:
-		return "MIPI";
-	default:
-		return "UNKNOWN";
+	switch (mode)
+	{
+		case SMEM_MODE:
+			return "SMEM";
+
+		case EXTERNAL_MODE:
+			return "EXTERNAL_DRAM";
+
+		case MARBH_MODE:
+			return "MARBH";
+
+		case MIPI_MODE:
+			return "MIPI";
+
+		default:
+			return "UNKNOWN";
 	}
 }
 
@@ -324,7 +340,9 @@ iwl_fw_dbg_conf_usniffer(const struct iwl_fw *fw, u8 id)
 	const struct iwl_fw_dbg_conf_tlv *conf_tlv = fw->dbg_conf_tlv[id];
 
 	if (!conf_tlv)
+	{
 		return false;
+	}
 
 	return conf_tlv->usniffer;
 }
@@ -333,7 +351,9 @@ static inline const struct fw_img *
 iwl_get_ucode_image(const struct iwl_fw *fw, enum iwl_ucode_type ucode_type)
 {
 	if (ucode_type >= IWL_UCODE_TYPE_MAX)
+	{
 		return NULL;
+	}
 
 	return &fw->img[ucode_type];
 }

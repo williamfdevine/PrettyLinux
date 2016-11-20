@@ -20,14 +20,15 @@
 #ifndef _VIVID_VBI_GEN_H_
 #define _VIVID_VBI_GEN_H_
 
-struct vivid_vbi_gen_data {
+struct vivid_vbi_gen_data
+{
 	struct v4l2_sliced_vbi_data data[25];
 	u8 time_of_day_packet[16];
 };
 
 void vivid_vbi_gen_sliced(struct vivid_vbi_gen_data *vbi,
-		bool is_60hz, unsigned seqnr);
+						  bool is_60hz, unsigned seqnr);
 void vivid_vbi_gen_raw(const struct vivid_vbi_gen_data *vbi,
-		const struct v4l2_vbi_format *vbi_fmt, u8 *buf);
+					   const struct v4l2_vbi_format *vbi_fmt, u8 *buf);
 
 #endif

@@ -136,7 +136,8 @@
 #define DMM32AT_CLKCT2 0xb6	/*  mode3 counter 2 - write high and low byte */
 
 /* board AI ranges in comedi structure */
-static const struct comedi_lrange dmm32at_airanges = {
+static const struct comedi_lrange dmm32at_airanges =
+{
 	4, {
 		UNI_RANGE(10),
 		UNI_RANGE(5),
@@ -146,7 +147,8 @@ static const struct comedi_lrange dmm32at_airanges = {
 };
 
 /* register values for above ranges */
-static const unsigned char dmm32at_rangebits[] = {
+static const unsigned char dmm32at_rangebits[] =
+{
 	DMM32AT_RANGE_U10,
 	DMM32AT_RANGE_U5,
 	DMM32AT_RANGE_B10,
@@ -156,7 +158,8 @@ static const unsigned char dmm32at_rangebits[] = {
 /* only one of these ranges is valid, as set by a jumper on the
  * board. The application should only use the range set by the jumper
  */
-static const struct comedi_lrange dmm32at_aoranges = {
+static const struct comedi_lrange dmm32at_aoranges =
+{
 	4, {
 		UNI_RANGE(10),
 		UNI_RANGE(5),
@@ -166,8 +169,8 @@ static const struct comedi_lrange dmm32at_aoranges = {
 };
 
 static void dmm32at_ai_set_chanspec(struct comedi_device *dev,
-				    struct comedi_subdevice *s,
-				    unsigned int chanspec, int nchan)
+									struct comedi_subdevice *s,
+									unsigned int chanspec, int nchan)
 {
 	unsigned int chan = CR_CHAN(chanspec);
 	unsigned int range = CR_RANGE(chanspec);
@@ -177,7 +180,7 @@ static void dmm32at_ai_set_chanspec(struct comedi_device *dev,
 
 	if (nchan > 1)
 		outb(DMM32AT_FIFO_CTRL_SCANEN,
-		     dev->iobase + DMM32AT_FIFO_CTRL_REG);
+			 dev->iobase + DMM32AT_FIFO_CTRL_REG);
 
 	outb(chan, dev->iobase + DMM32AT_AI_LO_CHAN_REG);
 	outb(last_chan, dev->iobase + DMM32AT_AI_HI_CHAN_REG);
@@ -185,7 +188,7 @@ static void dmm32at_ai_set_chanspec(struct comedi_device *dev,
 }
 
 static unsigned int dmm32at_ai_get_sample(struct comedi_device *dev,
-					  struct comedi_subdevice *s)
+		struct comedi_subdevice *s)
 {
 	unsigned int val;
 
@@ -197,22 +200,26 @@ static unsigned int dmm32at_ai_get_sample(struct comedi_device *dev,
 }
 
 static int dmm32at_ai_status(struct comedi_device *dev,
-			     struct comedi_subdevice *s,
-			     struct comedi_insn *insn,
-			     unsigned long context)
+							 struct comedi_subdevice *s,
+							 struct comedi_insn *insn,
+							 unsigned long context)
 {
 	unsigned char status;
 
 	status = inb(dev->iobase + context);
+
 	if ((status & DMM32AT_AI_STATUS_STS) == 0)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int dmm32at_ai_insn_read(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	int ret;
 	int i;
@@ -221,17 +228,24 @@ static int dmm32at_ai_insn_read(struct comedi_device *dev,
 
 	/* wait for circuit to settle */
 	ret = comedi_timeout(dev, s, insn, dmm32at_ai_status,
-			     DMM32AT_AI_READBACK_REG);
-	if (ret)
-		return ret;
+						 DMM32AT_AI_READBACK_REG);
 
-	for (i = 0; i < insn->n; i++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 0; i < insn->n; i++)
+	{
 		outb(0xff, dev->iobase + DMM32AT_AI_START_CONV_REG);
 
 		ret = comedi_timeout(dev, s, insn, dmm32at_ai_status,
-				     DMM32AT_AI_STATUS_REG);
+							 DMM32AT_AI_STATUS_REG);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		data[i] = dmm32at_ai_get_sample(dev, s);
 	}
@@ -240,25 +254,29 @@ static int dmm32at_ai_insn_read(struct comedi_device *dev,
 }
 
 static int dmm32at_ai_check_chanlist(struct comedi_device *dev,
-				     struct comedi_subdevice *s,
-				     struct comedi_cmd *cmd)
+									 struct comedi_subdevice *s,
+									 struct comedi_cmd *cmd)
 {
 	unsigned int chan0 = CR_CHAN(cmd->chanlist[0]);
 	unsigned int range0 = CR_RANGE(cmd->chanlist[0]);
 	int i;
 
-	for (i = 1; i < cmd->chanlist_len; i++) {
+	for (i = 1; i < cmd->chanlist_len; i++)
+	{
 		unsigned int chan = CR_CHAN(cmd->chanlist[i]);
 		unsigned int range = CR_RANGE(cmd->chanlist[i]);
 
-		if (chan != (chan0 + i) % s->n_chan) {
+		if (chan != (chan0 + i) % s->n_chan)
+		{
 			dev_dbg(dev->class_dev,
-				"entries in chanlist must be consecutive channels, counting upwards\n");
+					"entries in chanlist must be consecutive channels, counting upwards\n");
 			return -EINVAL;
 		}
-		if (range != range0) {
+
+		if (range != range0)
+		{
 			dev_dbg(dev->class_dev,
-				"entries in chanlist must all have the same gain\n");
+					"entries in chanlist must all have the same gain\n");
 			return -EINVAL;
 		}
 	}
@@ -267,8 +285,8 @@ static int dmm32at_ai_check_chanlist(struct comedi_device *dev,
 }
 
 static int dmm32at_ai_cmdtest(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_cmd *cmd)
+							  struct comedi_subdevice *s,
+							  struct comedi_cmd *cmd)
 {
 	int err = 0;
 	unsigned int arg;
@@ -282,7 +300,9 @@ static int dmm32at_ai_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_src(&cmd->stop_src, TRIG_COUNT | TRIG_NONE);
 
 	if (err)
+	{
 		return 1;
+	}
 
 	/* Step 2a : make sure trigger sources are unique */
 
@@ -291,7 +311,9 @@ static int dmm32at_ai_cmdtest(struct comedi_device *dev,
 	/* Step 2b : and mutually compatible */
 
 	if (err)
+	{
 		return 2;
+	}
 
 	/* Step 3: check if arguments are trivially valid */
 
@@ -301,24 +323,38 @@ static int dmm32at_ai_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_arg_max(&cmd->scan_begin_arg, 1000000000);
 
 	if (cmd->convert_arg >= 17500)
+	{
 		cmd->convert_arg = 20000;
+	}
 	else if (cmd->convert_arg >= 12500)
+	{
 		cmd->convert_arg = 15000;
+	}
 	else if (cmd->convert_arg >= 7500)
+	{
 		cmd->convert_arg = 10000;
+	}
 	else
+	{
 		cmd->convert_arg = 5000;
+	}
 
 	err |= comedi_check_trigger_arg_is(&cmd->scan_end_arg,
-					   cmd->chanlist_len);
+									   cmd->chanlist_len);
 
 	if (cmd->stop_src == TRIG_COUNT)
+	{
 		err |= comedi_check_trigger_arg_min(&cmd->stop_arg, 1);
+	}
 	else /* TRIG_NONE */
+	{
 		err |= comedi_check_trigger_arg_is(&cmd->stop_arg, 0);
+	}
 
 	if (err)
+	{
 		return 3;
+	}
 
 	/* Step 4: fix up any arguments */
 
@@ -326,14 +362,20 @@ static int dmm32at_ai_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_arg_min(&cmd->scan_begin_arg, arg);
 
 	if (err)
+	{
 		return 4;
+	}
 
 	/* Step 5: check channel list if it exists */
 	if (cmd->chanlist && cmd->chanlist_len > 0)
+	{
 		err |= dmm32at_ai_check_chanlist(dev, s, cmd);
+	}
 
 	if (err)
+	{
 		return 5;
+	}
 
 	return 0;
 }
@@ -366,8 +408,8 @@ static void dmm32at_setaitimer(struct comedi_device *dev, unsigned int nansec)
 
 	/* enable the ai conversion interrupt and the clock to start scans */
 	outb(DMM32AT_INTCLK_ADINT |
-	     DMM32AT_INTCLK_CLKEN | DMM32AT_INTCLK_CLKSEL,
-	     dev->iobase + DMM32AT_INTCLK_REG);
+		 DMM32AT_INTCLK_CLKEN | DMM32AT_INTCLK_CLKSEL,
+		 dev->iobase + DMM32AT_INTCLK_REG);
 }
 
 static int dmm32at_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
@@ -385,14 +427,20 @@ static int dmm32at_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 	 * we don't have the 'insn' here but it's not needed
 	 */
 	ret = comedi_timeout(dev, s, NULL, dmm32at_ai_status,
-			     DMM32AT_AI_READBACK_REG);
-	if (ret)
-		return ret;
+						 DMM32AT_AI_READBACK_REG);
 
-	if (cmd->stop_src == TRIG_NONE || cmd->stop_arg > 1) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (cmd->stop_src == TRIG_NONE || cmd->stop_arg > 1)
+	{
 		/* start the clock and enable the interrupts */
 		dmm32at_setaitimer(dev, cmd->scan_begin_arg);
-	} else {
+	}
+	else
+	{
 		/* start the interrupts and initiate a single scan */
 		outb(DMM32AT_INTCLK_ADINT, dev->iobase + DMM32AT_INTCLK_REG);
 		outb(0xff, dev->iobase + DMM32AT_AI_START_CONV_REG);
@@ -402,7 +450,7 @@ static int dmm32at_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 }
 
 static int dmm32at_ai_cancel(struct comedi_device *dev,
-			     struct comedi_subdevice *s)
+							 struct comedi_subdevice *s)
 {
 	/* disable further interrupts and clocks */
 	outb(0x0, dev->iobase + DMM32AT_INTCLK_REG);
@@ -416,25 +464,30 @@ static irqreturn_t dmm32at_isr(int irq, void *d)
 	unsigned int val;
 	int i;
 
-	if (!dev->attached) {
+	if (!dev->attached)
+	{
 		dev_err(dev->class_dev, "spurious interrupt\n");
 		return IRQ_HANDLED;
 	}
 
 	intstat = inb(dev->iobase + DMM32AT_INTCLK_REG);
 
-	if (intstat & DMM32AT_INTCLK_ADINT) {
+	if (intstat & DMM32AT_INTCLK_ADINT)
+	{
 		struct comedi_subdevice *s = dev->read_subdev;
 		struct comedi_cmd *cmd = &s->async->cmd;
 
-		for (i = 0; i < cmd->chanlist_len; i++) {
+		for (i = 0; i < cmd->chanlist_len; i++)
+		{
 			val = dmm32at_ai_get_sample(dev, s);
 			comedi_buf_write_samples(s, &val, 1);
 		}
 
 		if (cmd->stop_src == TRIG_COUNT &&
-		    s->async->scans_done >= cmd->stop_arg)
+			s->async->scans_done >= cmd->stop_arg)
+		{
 			s->async->events |= COMEDI_CB_EOA;
+		}
 
 		comedi_handle_events(dev, s);
 	}
@@ -445,39 +498,47 @@ static irqreturn_t dmm32at_isr(int irq, void *d)
 }
 
 static int dmm32at_ao_eoc(struct comedi_device *dev,
-			  struct comedi_subdevice *s,
-			  struct comedi_insn *insn,
-			  unsigned long context)
+						  struct comedi_subdevice *s,
+						  struct comedi_insn *insn,
+						  unsigned long context)
 {
 	unsigned char status;
 
 	status = inb(dev->iobase + DMM32AT_AUX_DI_REG);
+
 	if ((status & DMM32AT_AUX_DI_DACBUSY) == 0)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int dmm32at_ao_insn_write(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		unsigned int val = data[i];
 		int ret;
 
 		/* write LSB then MSB + chan to load DAC */
 		outb(val & 0xff, dev->iobase + DMM32AT_AO_LSB_REG);
 		outb((val >> 8) | DMM32AT_AO_MSB_DACH(chan),
-		     dev->iobase + DMM32AT_AO_MSB_REG);
+			 dev->iobase + DMM32AT_AO_MSB_REG);
 
 		/* wait for circuit to settle */
 		ret = comedi_timeout(dev, s, insn, dmm32at_ao_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		/* dummy read to update DAC */
 		inb(dev->iobase + DMM32AT_AO_MSB_REG);
@@ -489,15 +550,17 @@ static int dmm32at_ao_insn_write(struct comedi_device *dev,
 }
 
 static int dmm32at_8255_io(struct comedi_device *dev,
-			   int dir, int port, int data, unsigned long regbase)
+						   int dir, int port, int data, unsigned long regbase)
 {
 	/* get access to the DIO regs */
 	outb(DMM32AT_CTRL_PAGE_8255, dev->iobase + DMM32AT_CTRL_REG);
 
-	if (dir) {
+	if (dir)
+	{
 		outb(data, dev->iobase + regbase + port);
 		return 0;
 	}
+
 	return inb(dev->iobase + regbase + port);
 }
 
@@ -542,40 +605,54 @@ static int dmm32at_reset(struct comedi_device *dev)
 	 * with all A/D channels set for single-ended operation.
 	 */
 	if (ailo != 0x00 || aihi != 0x1f ||
-	    fifostat != DMM32AT_FIFO_STATUS_EF ||
-	    aistat != (DMM32AT_AI_STATUS_SD1 | DMM32AT_AI_STATUS_SD0) ||
-	    intstat != 0x00 || airback != 0x0c)
+		fifostat != DMM32AT_FIFO_STATUS_EF ||
+		aistat != (DMM32AT_AI_STATUS_SD1 | DMM32AT_AI_STATUS_SD0) ||
+		intstat != 0x00 || airback != 0x0c)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
 
 static int dmm32at_attach(struct comedi_device *dev,
-			  struct comedi_devconfig *it)
+						  struct comedi_devconfig *it)
 {
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_request_region(dev, it->options[0], 0x10);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = dmm32at_reset(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev->class_dev, "board detection failed\n");
 		return ret;
 	}
 
-	if (it->options[1]) {
+	if (it->options[1])
+	{
 		ret = request_irq(it->options[1], dmm32at_isr, 0,
-				  dev->board_name, dev);
+						  dev->board_name, dev);
+
 		if (ret == 0)
+		{
 			dev->irq = it->options[1];
+		}
 	}
 
 	ret = comedi_alloc_subdevices(dev, 3);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Analog Input subdevice */
 	s = &dev->subdevices[0];
@@ -585,7 +662,9 @@ static int dmm32at_attach(struct comedi_device *dev,
 	s->maxdata	= 0xffff;
 	s->range_table	= &dmm32at_airanges;
 	s->insn_read	= dmm32at_ai_insn_read;
-	if (dev->irq) {
+
+	if (dev->irq)
+	{
 		dev->read_subdev = s;
 		s->subdev_flags	|= SDF_CMD_READ;
 		s->len_chanlist	= s->n_chan;
@@ -604,15 +683,19 @@ static int dmm32at_attach(struct comedi_device *dev,
 	s->insn_write	= dmm32at_ao_insn_write;
 
 	ret = comedi_alloc_subdev_readback(s);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Digital I/O subdevice */
 	s = &dev->subdevices[2];
 	return subdev_8255_init(dev, s, dmm32at_8255_io, DMM32AT_8255_IOBASE);
 }
 
-static struct comedi_driver dmm32at_driver = {
+static struct comedi_driver dmm32at_driver =
+{
 	.driver_name	= "dmm32at",
 	.module		= THIS_MODULE,
 	.attach		= dmm32at_attach,

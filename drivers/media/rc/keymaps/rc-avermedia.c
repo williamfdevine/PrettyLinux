@@ -15,7 +15,8 @@
 
 /* Alex Hermann <gaaf@gmx.net> */
 
-static struct rc_map_table avermedia[] = {
+static struct rc_map_table avermedia[] =
+{
 	{ 0x28, KEY_1 },
 	{ 0x18, KEY_2 },
 	{ 0x38, KEY_3 },
@@ -61,7 +62,8 @@ static struct rc_map_table avermedia[] = {
 	{ 0x31, KEY_CHANNELUP }		/* CHANNEL/PAGE+ */
 };
 
-static struct rc_map_list avermedia_map = {
+static struct rc_map_list avermedia_map =
+{
 	.map = {
 		.scan    = avermedia,
 		.size    = ARRAY_SIZE(avermedia),

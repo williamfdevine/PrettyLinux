@@ -19,17 +19,19 @@
 
 struct mc13xxx;
 
-struct mc13xxx_variant {
+struct mc13xxx_variant
+{
 	const char *name;
 	void (*print_revision)(struct mc13xxx *mc13xxx, u32 revision);
 };
 
 extern struct mc13xxx_variant
-		mc13xxx_variant_mc13783,
-		mc13xxx_variant_mc13892,
-		mc13xxx_variant_mc34708;
+	mc13xxx_variant_mc13783,
+	mc13xxx_variant_mc13892,
+	mc13xxx_variant_mc34708;
 
-struct mc13xxx {
+struct mc13xxx
+{
 	struct regmap *regmap;
 
 	struct device *dev;

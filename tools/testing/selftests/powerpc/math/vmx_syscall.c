@@ -19,10 +19,11 @@
 #include <sys/wait.h>
 #include "utils.h"
 
-vector int varray[] = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10,11,12},
-	{13,14,15,16},{17,18,19,20},{21,22,23,24},
-	{25,26,27,28},{29,30,31,32},{33,34,35,36},
-	{37,38,39,40},{41,42,43,44},{45,46,47,48}};
+vector int varray[] = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12},
+	{13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24},
+	{25, 26, 27, 28}, {29, 30, 31, 32}, {33, 34, 35, 36},
+	{37, 38, 39, 40}, {41, 42, 43, 44}, {45, 46, 47, 48}
+};
 
 extern int test_vmx(vector int *varray, pid_t *pid);
 
@@ -32,16 +33,28 @@ int vmx_syscall(void)
 	int i;
 	int ret;
 	int child_ret;
-	for (i = 0; i < 1000; i++) {
+
+	for (i = 0; i < 1000; i++)
+	{
 		/* test_vmx will fork() */
 		ret = test_vmx(varray, &fork_pid);
+
 		if (fork_pid == -1)
+		{
 			return -1;
+		}
+
 		if (fork_pid == 0)
+		{
 			exit(ret);
+		}
+
 		waitpid(fork_pid, &child_ret, 0);
+
 		if (ret || child_ret)
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -60,25 +73,37 @@ int test_vmx_syscall(void)
 
 	pid2 = fork();
 	ret = vmx_syscall();
+
 	/* Can't FAIL_IF(pid2 == -1); because we've already forked */
-	if (pid2 == -1) {
+	if (pid2 == -1)
+	{
 		/*
 		 * Couldn't fork, ensure child_ret is set and is a fail
 		 */
 		ret = child_ret = 1;
-	} else {
+	}
+	else
+	{
 		if (pid2)
+		{
 			waitpid(pid2, &child_ret, 0);
+		}
 		else
+		{
 			exit(ret);
+		}
 	}
 
 	ret |= child_ret;
 
 	if (pid)
+	{
 		waitpid(pid, &child_ret, 0);
+	}
 	else
+	{
 		exit(ret);
+	}
 
 	FAIL_IF(ret || child_ret);
 	return 0;

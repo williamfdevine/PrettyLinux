@@ -30,7 +30,7 @@
 #define MAX6902_REG_CENTURY		0x13
 
 static int max6902_set_reg(struct device *dev, unsigned char address,
-				unsigned char data)
+						   unsigned char data)
 {
 	struct spi_device *spi = to_spi_device(dev);
 	unsigned char buf[2];
@@ -43,7 +43,7 @@ static int max6902_set_reg(struct device *dev, unsigned char address,
 }
 
 static int max6902_get_reg(struct device *dev, unsigned char address,
-				unsigned char *data)
+						   unsigned char *data)
 {
 	struct spi_device *spi = to_spi_device(dev);
 
@@ -62,8 +62,11 @@ static int max6902_read_time(struct device *dev, struct rtc_time *dt)
 	buf[0] = 0xbf;	/* Burst read */
 
 	err = spi_write_then_read(spi, buf, 1, buf, 8);
+
 	if (err != 0)
+	{
 		return err;
+	}
 
 	/* The chip sends data in this order:
 	 * Seconds, Minutes, Hours, Date, Month, Day, Year */
@@ -77,8 +80,11 @@ static int max6902_read_time(struct device *dev, struct rtc_time *dt)
 
 	/* Read century */
 	err = max6902_get_reg(dev, MAX6902_REG_CENTURY, &buf[0]);
+
 	if (err != 0)
+	{
 		return err;
+	}
 
 	century = bcd2bin(buf[0]) * 100;
 
@@ -115,7 +121,8 @@ static int max6902_set_time(struct device *dev, struct rtc_time *dt)
 	return 0;
 }
 
-static const struct rtc_class_ops max6902_rtc_ops = {
+static const struct rtc_class_ops max6902_rtc_ops =
+{
 	.read_time	= max6902_read_time,
 	.set_time	= max6902_set_time,
 };
@@ -131,19 +138,26 @@ static int max6902_probe(struct spi_device *spi)
 	spi_setup(spi);
 
 	res = max6902_get_reg(&spi->dev, MAX6902_REG_SECONDS, &tmp);
+
 	if (res != 0)
+	{
 		return res;
+	}
 
 	rtc = devm_rtc_device_register(&spi->dev, "max6902",
-				&max6902_rtc_ops, THIS_MODULE);
+								   &max6902_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	spi_set_drvdata(spi, rtc);
 	return 0;
 }
 
-static struct spi_driver max6902_driver = {
+static struct spi_driver max6902_driver =
+{
 	.driver = {
 		.name	= "rtc-max6902",
 	},

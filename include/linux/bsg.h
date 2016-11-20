@@ -5,7 +5,8 @@
 
 
 #if defined(CONFIG_BLK_DEV_BSG)
-struct bsg_class_device {
+struct bsg_class_device
+{
 	struct device *class_dev;
 	struct device *parent;
 	int minor;
@@ -15,13 +16,13 @@ struct bsg_class_device {
 };
 
 extern int bsg_register_queue(struct request_queue *q,
-			      struct device *parent, const char *name,
-			      void (*release)(struct device *));
+							  struct device *parent, const char *name,
+							  void (*release)(struct device *));
 extern void bsg_unregister_queue(struct request_queue *);
 #else
 static inline int bsg_register_queue(struct request_queue *q,
-				     struct device *parent, const char *name,
-				     void (*release)(struct device *))
+									 struct device *parent, const char *name,
+									 void (*release)(struct device *))
 {
 	return 0;
 }

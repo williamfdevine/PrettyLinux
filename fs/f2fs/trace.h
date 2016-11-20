@@ -14,7 +14,8 @@
 #ifdef CONFIG_F2FS_IO_TRACE
 #include <trace/events/f2fs.h>
 
-enum file_type {
+enum file_type
+{
 	__NORMAL_FILE,
 	__DIR_FILE,
 	__NODE_FILE,
@@ -24,7 +25,8 @@ enum file_type {
 	__MISC_FILE,
 };
 
-struct last_io_info {
+struct last_io_info
+{
 	int major, minor;
 	pid_t pid;
 	enum file_type type;

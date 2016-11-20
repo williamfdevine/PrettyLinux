@@ -13,13 +13,15 @@
 
 struct da9055;
 
-enum gpio_select {
+enum gpio_select
+{
 	NO_GPIO = 0,
 	GPIO_1,
 	GPIO_2
 };
 
-struct da9055_pdata {
+struct da9055_pdata
+{
 	int (*init) (struct da9055 *da9055);
 	int irq_base;
 	int gpio_base;

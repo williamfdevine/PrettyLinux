@@ -20,7 +20,8 @@
  * This is a "middle of the road" approach, differences are noted
  */
 
-static struct rc_map_table budget_ci_old[] = {
+static struct rc_map_table budget_ci_old[] =
+{
 	{ 0x00, KEY_0 },
 	{ 0x01, KEY_1 },
 	{ 0x02, KEY_2 },
@@ -68,7 +69,8 @@ static struct rc_map_table budget_ci_old[] = {
 	{ 0x3e, KEY_TUNER },
 };
 
-static struct rc_map_list budget_ci_old_map = {
+static struct rc_map_list budget_ci_old_map =
+{
 	.map = {
 		.scan    = budget_ci_old,
 		.size    = ARRAY_SIZE(budget_ci_old),

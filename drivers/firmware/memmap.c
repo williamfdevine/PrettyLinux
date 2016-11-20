@@ -32,7 +32,8 @@
  * hierarchical, it's ok to organise them in a linked list. No parent
  * information is necessary as for the resource tree.
  */
-struct firmware_map_entry {
+struct firmware_map_entry
+{
 	/*
 	 * start and end must be u64 rather than resource_size_t, because e820
 	 * resources can lie at addresses above 4G.
@@ -48,19 +49,20 @@ struct firmware_map_entry {
  * Forward declarations --------------------------------------------------------
  */
 static ssize_t memmap_attr_show(struct kobject *kobj,
-				struct attribute *attr, char *buf);
+								struct attribute *attr, char *buf);
 static ssize_t start_show(struct firmware_map_entry *entry, char *buf);
 static ssize_t end_show(struct firmware_map_entry *entry, char *buf);
 static ssize_t type_show(struct firmware_map_entry *entry, char *buf);
 
-static struct firmware_map_entry * __meminit
+static struct firmware_map_entry *__meminit
 firmware_map_find_entry(u64 start, u64 end, const char *type);
 
 /*
  * Static data -----------------------------------------------------------------
  */
 
-struct memmap_attribute {
+struct memmap_attribute
+{
 	struct attribute attr;
 	ssize_t (*show)(struct firmware_map_entry *entry, char *buf);
 };
@@ -72,14 +74,16 @@ static struct memmap_attribute memmap_type_attr  = __ATTR_RO(type);
 /*
  * These are default attributes that are added for every memmap entry.
  */
-static struct attribute *def_attrs[] = {
+static struct attribute *def_attrs[] =
+{
 	&memmap_start_attr.attr,
 	&memmap_end_attr.attr,
 	&memmap_type_attr.attr,
 	NULL
 };
 
-static const struct sysfs_ops memmap_attr_ops = {
+static const struct sysfs_ops memmap_attr_ops =
+{
 	.show = memmap_attr_show,
 };
 
@@ -107,7 +111,8 @@ static void __meminit release_firmware_map_entry(struct kobject *kobj)
 {
 	struct firmware_map_entry *entry = to_memmap_entry(kobj);
 
-	if (PageReserved(virt_to_page(entry))) {
+	if (PageReserved(virt_to_page(entry)))
+	{
 		/*
 		 * Remember the storage allocated by bootmem, and reuse it when
 		 * the memory is hot-added again. The entry will be added to
@@ -124,7 +129,8 @@ static void __meminit release_firmware_map_entry(struct kobject *kobj)
 	kfree(entry);
 }
 
-static struct kobj_type __refdata memmap_ktype = {
+static struct kobj_type __refdata memmap_ktype =
+{
 	.release	= release_firmware_map_entry,
 	.sysfs_ops	= &memmap_attr_ops,
 	.default_attrs	= def_attrs,
@@ -148,8 +154,8 @@ static struct kobj_type __refdata memmap_ktype = {
  * Return: 0 always
  */
 static int firmware_map_add_entry(u64 start, u64 end,
-				  const char *type,
-				  struct firmware_map_entry *entry)
+								  const char *type,
+								  struct firmware_map_entry *entry)
 {
 	BUG_ON(start > end);
 
@@ -187,17 +193,26 @@ static int add_sysfs_fw_map_entry(struct firmware_map_entry *entry)
 	static struct kset *mmap_kset;
 
 	if (entry->kobj.state_in_sysfs)
+	{
 		return -EEXIST;
+	}
 
-	if (!mmap_kset) {
+	if (!mmap_kset)
+	{
 		mmap_kset = kset_create_and_add("memmap", NULL, firmware_kobj);
+
 		if (!mmap_kset)
+		{
 			return -ENOMEM;
+		}
 	}
 
 	entry->kobj.kset = mmap_kset;
+
 	if (kobject_add(&entry->kobj, NULL, "%d", map_entries_nr++))
+	{
 		kobject_put(&entry->kobj);
+	}
 
 	return 0;
 }
@@ -223,17 +238,19 @@ static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
  *
  * Return: Pointer to the entry to be found on success, or NULL on failure.
  */
-static struct firmware_map_entry * __meminit
+static struct firmware_map_entry *__meminit
 firmware_map_find_entry_in_list(u64 start, u64 end, const char *type,
-				struct list_head *list)
+								struct list_head *list)
 {
 	struct firmware_map_entry *entry;
 
 	list_for_each_entry(entry, list, list)
-		if ((entry->start == start) && (entry->end == end) &&
-		    (!strcmp(entry->type, type))) {
-			return entry;
-		}
+
+	if ((entry->start == start) && (entry->end == end) &&
+		(!strcmp(entry->type, type)))
+	{
+		return entry;
+	}
 
 	return NULL;
 }
@@ -250,7 +267,7 @@ firmware_map_find_entry_in_list(u64 start, u64 end, const char *type,
  *
  * Return: Pointer to the entry to be found on success, or NULL on failure.
  */
-static struct firmware_map_entry * __meminit
+static struct firmware_map_entry *__meminit
 firmware_map_find_entry(u64 start, u64 end, const char *type)
 {
 	return firmware_map_find_entry_in_list(start, end, type, &map_entries);
@@ -267,11 +284,11 @@ firmware_map_find_entry(u64 start, u64 end, const char *type)
  *
  * Return: Pointer to the entry to be found on success, or NULL on failure.
  */
-static struct firmware_map_entry * __meminit
+static struct firmware_map_entry *__meminit
 firmware_map_find_entry_bootmem(u64 start, u64 end, const char *type)
 {
 	return firmware_map_find_entry_in_list(start, end, type,
-					       &map_entries_bootmem);
+										   &map_entries_bootmem);
 }
 
 /**
@@ -292,15 +309,25 @@ int __meminit firmware_map_add_hotplug(u64 start, u64 end, const char *type)
 	struct firmware_map_entry *entry;
 
 	entry = firmware_map_find_entry(start, end - 1, type);
+
 	if (entry)
+	{
 		return 0;
+	}
 
 	entry = firmware_map_find_entry_bootmem(start, end - 1, type);
-	if (!entry) {
+
+	if (!entry)
+	{
 		entry = kzalloc(sizeof(struct firmware_map_entry), GFP_ATOMIC);
+
 		if (!entry)
+		{
 			return -ENOMEM;
-	} else {
+		}
+	}
+	else
+	{
 		/* Reuse storage allocated by bootmem. */
 		spin_lock(&map_entries_bootmem_lock);
 		list_del(&entry->list);
@@ -334,8 +361,11 @@ int __init firmware_map_add_early(u64 start, u64 end, const char *type)
 	struct firmware_map_entry *entry;
 
 	entry = memblock_virt_alloc(sizeof(struct firmware_map_entry), 0);
+
 	if (WARN_ON(!entry))
+	{
 		return -ENOMEM;
+	}
 
 	return firmware_map_add_entry(start, end, type, entry);
 }
@@ -356,7 +386,9 @@ int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
 
 	spin_lock(&map_entries_lock);
 	entry = firmware_map_find_entry(start, end - 1, type);
-	if (!entry) {
+
+	if (!entry)
+	{
 		spin_unlock(&map_entries_lock);
 		return -EINVAL;
 	}
@@ -377,13 +409,13 @@ int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
 static ssize_t start_show(struct firmware_map_entry *entry, char *buf)
 {
 	return snprintf(buf, PAGE_SIZE, "0x%llx\n",
-		(unsigned long long)entry->start);
+					(unsigned long long)entry->start);
 }
 
 static ssize_t end_show(struct firmware_map_entry *entry, char *buf)
 {
 	return snprintf(buf, PAGE_SIZE, "0x%llx\n",
-		(unsigned long long)entry->end);
+					(unsigned long long)entry->end);
 }
 
 static ssize_t type_show(struct firmware_map_entry *entry, char *buf)
@@ -397,7 +429,7 @@ static inline struct memmap_attribute *to_memmap_attr(struct attribute *attr)
 }
 
 static ssize_t memmap_attr_show(struct kobject *kobj,
-				struct attribute *attr, char *buf)
+								struct attribute *attr, char *buf)
 {
 	struct firmware_map_entry *entry = to_memmap_entry(kobj);
 	struct memmap_attribute *memmap_attr = to_memmap_attr(attr);
@@ -418,7 +450,7 @@ static int __init firmware_memmap_init(void)
 	struct firmware_map_entry *entry;
 
 	list_for_each_entry(entry, &map_entries, list)
-		add_sysfs_fw_map_entry(entry);
+	add_sysfs_fw_map_entry(entry);
 
 	return 0;
 }

@@ -103,14 +103,21 @@ static int rose_send_frame(struct sk_buff *skb, struct rose_neigh *neigh)
 	ax25_cb *ax25s;
 
 	if (ax25cmp(&rose_callsign, &null_ax25_address) == 0)
+	{
 		rose_call = (ax25_address *)neigh->dev->dev_addr;
+	}
 	else
+	{
 		rose_call = &rose_callsign;
+	}
 
 	ax25s = neigh->ax25;
 	neigh->ax25 = ax25_send_frame(skb, 260, rose_call, &neigh->callsign, neigh->digipeat, neigh->dev);
+
 	if (ax25s)
+	{
 		ax25_cb_put(ax25s);
+	}
 
 	return neigh->ax25 != NULL;
 }
@@ -126,14 +133,21 @@ static int rose_link_up(struct rose_neigh *neigh)
 	ax25_cb *ax25s;
 
 	if (ax25cmp(&rose_callsign, &null_ax25_address) == 0)
+	{
 		rose_call = (ax25_address *)neigh->dev->dev_addr;
+	}
 	else
+	{
 		rose_call = &rose_callsign;
+	}
 
 	ax25s = neigh->ax25;
 	neigh->ax25 = ax25_find_cb(rose_call, &neigh->callsign, neigh->digipeat, neigh->dev);
+
 	if (ax25s)
+	{
 		ax25_cb_put(ax25s);
+	}
 
 	return neigh->ax25 != NULL;
 }
@@ -145,33 +159,37 @@ void rose_link_rx_restart(struct sk_buff *skb, struct rose_neigh *neigh, unsigne
 {
 	struct sk_buff *skbn;
 
-	switch (frametype) {
-	case ROSE_RESTART_REQUEST:
-		rose_stop_t0timer(neigh);
-		neigh->restarted = 1;
-		neigh->dce_mode  = (skb->data[3] == ROSE_DTE_ORIGINATED);
-		rose_transmit_restart_confirmation(neigh);
-		break;
+	switch (frametype)
+	{
+		case ROSE_RESTART_REQUEST:
+			rose_stop_t0timer(neigh);
+			neigh->restarted = 1;
+			neigh->dce_mode  = (skb->data[3] == ROSE_DTE_ORIGINATED);
+			rose_transmit_restart_confirmation(neigh);
+			break;
 
-	case ROSE_RESTART_CONFIRMATION:
-		rose_stop_t0timer(neigh);
-		neigh->restarted = 1;
-		break;
+		case ROSE_RESTART_CONFIRMATION:
+			rose_stop_t0timer(neigh);
+			neigh->restarted = 1;
+			break;
 
-	case ROSE_DIAGNOSTIC:
-		pr_warn("ROSE: received diagnostic #%d - %3ph\n", skb->data[3],
-			skb->data + 4);
-		break;
+		case ROSE_DIAGNOSTIC:
+			pr_warn("ROSE: received diagnostic #%d - %3ph\n", skb->data[3],
+					skb->data + 4);
+			break;
 
-	default:
-		printk(KERN_WARNING "ROSE: received unknown %02X with LCI 000\n", frametype);
-		break;
+		default:
+			printk(KERN_WARNING "ROSE: received unknown %02X with LCI 000\n", frametype);
+			break;
 	}
 
-	if (neigh->restarted) {
+	if (neigh->restarted)
+	{
 		while ((skbn = skb_dequeue(&neigh->queue)) != NULL)
 			if (!rose_send_frame(skbn, neigh))
+			{
 				kfree_skb(skbn);
+			}
 	}
 }
 
@@ -187,7 +205,9 @@ static void rose_transmit_restart_request(struct rose_neigh *neigh)
 	len = AX25_BPQ_HEADER_LEN + AX25_MAX_HEADER_LEN + ROSE_MIN_LEN + 3;
 
 	if ((skb = alloc_skb(len, GFP_ATOMIC)) == NULL)
+	{
 		return;
+	}
 
 	skb_reserve(skb, AX25_BPQ_HEADER_LEN + AX25_MAX_HEADER_LEN);
 
@@ -201,7 +221,9 @@ static void rose_transmit_restart_request(struct rose_neigh *neigh)
 	*dptr++ = 0;
 
 	if (!rose_send_frame(skb, neigh))
+	{
 		kfree_skb(skb);
+	}
 }
 
 /*
@@ -216,7 +238,9 @@ static void rose_transmit_restart_confirmation(struct rose_neigh *neigh)
 	len = AX25_BPQ_HEADER_LEN + AX25_MAX_HEADER_LEN + ROSE_MIN_LEN + 1;
 
 	if ((skb = alloc_skb(len, GFP_ATOMIC)) == NULL)
+	{
 		return;
+	}
 
 	skb_reserve(skb, AX25_BPQ_HEADER_LEN + AX25_MAX_HEADER_LEN);
 
@@ -228,14 +252,17 @@ static void rose_transmit_restart_confirmation(struct rose_neigh *neigh)
 	*dptr++ = ROSE_RESTART_CONFIRMATION;
 
 	if (!rose_send_frame(skb, neigh))
+	{
 		kfree_skb(skb);
+	}
 }
 
 /*
  * This routine is called when a Clear Request is needed outside of the context
  * of a connected socket.
  */
-void rose_transmit_clear_request(struct rose_neigh *neigh, unsigned int lci, unsigned char cause, unsigned char diagnostic)
+void rose_transmit_clear_request(struct rose_neigh *neigh, unsigned int lci, unsigned char cause,
+								 unsigned char diagnostic)
 {
 	struct sk_buff *skb;
 	unsigned char *dptr;
@@ -244,7 +271,9 @@ void rose_transmit_clear_request(struct rose_neigh *neigh, unsigned int lci, uns
 	len = AX25_BPQ_HEADER_LEN + AX25_MAX_HEADER_LEN + ROSE_MIN_LEN + 3;
 
 	if ((skb = alloc_skb(len, GFP_ATOMIC)) == NULL)
+	{
 		return;
+	}
 
 	skb_reserve(skb, AX25_BPQ_HEADER_LEN + AX25_MAX_HEADER_LEN);
 
@@ -258,31 +287,42 @@ void rose_transmit_clear_request(struct rose_neigh *neigh, unsigned int lci, uns
 	*dptr++ = diagnostic;
 
 	if (!rose_send_frame(skb, neigh))
+	{
 		kfree_skb(skb);
+	}
 }
 
 void rose_transmit_link(struct sk_buff *skb, struct rose_neigh *neigh)
 {
 	unsigned char *dptr;
 
-	if (neigh->loopback) {
+	if (neigh->loopback)
+	{
 		rose_loopback_queue(skb, neigh);
 		return;
 	}
 
 	if (!rose_link_up(neigh))
+	{
 		neigh->restarted = 0;
+	}
 
 	dptr = skb_push(skb, 1);
 	*dptr++ = AX25_P_ROSE;
 
-	if (neigh->restarted) {
+	if (neigh->restarted)
+	{
 		if (!rose_send_frame(skb, neigh))
+		{
 			kfree_skb(skb);
-	} else {
+		}
+	}
+	else
+	{
 		skb_queue_tail(&neigh->queue, skb);
 
-		if (!rose_t0timer_running(neigh)) {
+		if (!rose_t0timer_running(neigh))
+		{
 			rose_transmit_restart_request(neigh);
 			neigh->dce_mode = 0;
 			rose_start_t0timer(neigh);

@@ -79,29 +79,31 @@ static unsigned int jsf_inl(unsigned long addr)
 	unsigned long retval;
 
 	__asm__ __volatile__("lda [%1] %2, %0\n\t" :
-				"=r" (retval) :
-				"r" (addr), "i" (ASI_M_BYPASS));
-        return retval;
+						 "=r" (retval) :
+						 "r" (addr), "i" (ASI_M_BYPASS));
+	return retval;
 }
 
 static void jsf_outl(unsigned long addr, __u32 data)
 {
 
 	__asm__ __volatile__("sta %0, [%1] %2\n\t" : :
-				"r" (data), "r" (addr), "i" (ASI_M_BYPASS) :
-				"memory");
+						 "r" (data), "r" (addr), "i" (ASI_M_BYPASS) :
+						 "memory");
 }
 
 /*
  * soft carrier
  */
 
-struct jsfd_part {
+struct jsfd_part
+{
 	unsigned long dbase;
 	unsigned long dsize;
 };
 
-struct jsflash {
+struct jsflash
+{
 	unsigned long base;
 	unsigned long size;
 	unsigned long busy;		/* In use? */
@@ -135,13 +137,16 @@ static struct jsflash jsf0;
  *
  * XXX Do we need any timeout here? So far it never hanged, beware broken hw.
  */
-static void jsf_wait(unsigned long p) {
+static void jsf_wait(unsigned long p)
+{
 	unsigned int x1, x2;
 
-	for (;;) {
+	for (;;)
+	{
 		x1 = jsf_inl(p);
 		x2 = jsf_inl(p);
-		if ((x1 & 0x40404040) == (x2 & 0x40404040)) return;
+
+		if ((x1 & 0x40404040) == (x2 & 0x40404040)) { return; }
 	}
 }
 
@@ -156,7 +161,8 @@ static void jsf_wait(unsigned long p) {
  * was finished. This is done so that application would read
  * consistent data after the write is done.
  */
-static void jsf_write4(unsigned long fa, u32 data) {
+static void jsf_write4(unsigned long fa, u32 data)
+{
 
 	jsf_outl(fa, 0xAAAAAAAA);		/* Unlock 1 Write 1 */
 	jsf_outl(fa, 0x55555555);		/* Unlock 1 Write 2 */
@@ -168,13 +174,16 @@ static void jsf_write4(unsigned long fa, u32 data) {
 
 /*
  */
-static void jsfd_read(char *buf, unsigned long p, size_t togo) {
-	union byte4 {
+static void jsfd_read(char *buf, unsigned long p, size_t togo)
+{
+	union byte4
+	{
 		char s[4];
 		unsigned int n;
 	} b;
 
-	while (togo >= 4) {
+	while (togo >= 4)
+	{
 		togo -= 4;
 		b.n = jsf_inl(p);
 		memcpy(buf, b.s, 4);
@@ -188,30 +197,39 @@ static void jsfd_do_request(struct request_queue *q)
 	struct request *req;
 
 	req = blk_fetch_request(q);
-	while (req) {
+
+	while (req)
+	{
 		struct jsfd_part *jdp = req->rq_disk->private_data;
 		unsigned long offset = blk_rq_pos(req) << 9;
 		size_t len = blk_rq_cur_bytes(req);
 		int err = -EIO;
 
 		if ((offset + len) > jdp->dsize)
+		{
 			goto end;
+		}
 
-		if (rq_data_dir(req) != READ) {
+		if (rq_data_dir(req) != READ)
+		{
 			printk(KERN_ERR "jsfd: write\n");
 			goto end;
 		}
 
-		if ((jdp->dbase & 0xff000000) != 0x20000000) {
+		if ((jdp->dbase & 0xff000000) != 0x20000000)
+		{
 			printk(KERN_ERR "jsfd: bad base %x\n", (int)jdp->dbase);
 			goto end;
 		}
 
 		jsfd_read(bio_data(req->bio), jdp->dbase + offset, len);
 		err = 0;
-	end:
+end:
+
 		if (!__blk_end_request_cur(req, err))
+		{
 			req = blk_fetch_request(q);
+		}
 	}
 }
 
@@ -223,23 +241,28 @@ static void jsfd_do_request(struct request_queue *q)
  * also note that seeking relative to the "end of file" isn't supported:
  * it has no meaning, so it returns -EINVAL.
  */
-static loff_t jsf_lseek(struct file * file, loff_t offset, int orig)
+static loff_t jsf_lseek(struct file *file, loff_t offset, int orig)
 {
 	loff_t ret;
 
 	mutex_lock(&jsf_mutex);
-	switch (orig) {
+
+	switch (orig)
+	{
 		case 0:
 			file->f_pos = offset;
 			ret = file->f_pos;
 			break;
+
 		case 1:
 			file->f_pos += offset;
 			ret = file->f_pos;
 			break;
+
 		default:
 			ret = -EINVAL;
 	}
+
 	mutex_unlock(&jsf_mutex);
 	return ret;
 }
@@ -247,30 +270,36 @@ static loff_t jsf_lseek(struct file * file, loff_t offset, int orig)
 /*
  * OS SIMM Cannot be read in other size but a 32bits word.
  */
-static ssize_t jsf_read(struct file * file, char __user * buf, 
-    size_t togo, loff_t *ppos)
+static ssize_t jsf_read(struct file *file, char __user *buf,
+						size_t togo, loff_t *ppos)
 {
 	unsigned long p = *ppos;
 	char __user *tmp = buf;
 
-	union byte4 {
+	union byte4
+	{
 		char s[4];
 		unsigned int n;
 	} b;
 
-	if (p < JSF_BASE_ALL || p >= JSF_BASE_TOP) {
+	if (p < JSF_BASE_ALL || p >= JSF_BASE_TOP)
+	{
 		return 0;
 	}
 
 	if ((p + togo) < p	/* wrap */
-	   || (p + togo) >= JSF_BASE_TOP) {
+		|| (p + togo) >= JSF_BASE_TOP)
+	{
 		togo = JSF_BASE_TOP - p;
 	}
 
-	if (p < JSF_BASE_ALL && togo != 0) {
+	if (p < JSF_BASE_ALL && togo != 0)
+	{
 #if 0 /* __bzero XXX */
 		size_t x = JSF_BASE_ALL - p;
-		if (x > togo) x = togo;
+
+		if (x > togo) { x = togo; }
+
 		clear_user(tmp, x);
 		tmp += x;
 		p += x;
@@ -285,11 +314,16 @@ static ssize_t jsf_read(struct file * file, char __user * buf,
 #endif
 	}
 
-	while (togo >= 4) {
+	while (togo >= 4)
+	{
 		togo -= 4;
 		b.n = jsf_inl(p);
+
 		if (copy_to_user(tmp, b.s, 4))
+		{
 			return -EFAULT;
+		}
+
 		tmp += 4;
 		p += 4;
 	}
@@ -300,11 +334,11 @@ static ssize_t jsf_read(struct file * file, char __user * buf,
 	 */
 
 	*ppos = p;
-	return tmp-buf;
+	return tmp - buf;
 }
 
-static ssize_t jsf_write(struct file * file, const char __user * buf,
-    size_t count, loff_t *ppos)
+static ssize_t jsf_write(struct file *file, const char __user *buf,
+						 size_t count, loff_t *ppos)
 {
 	return -ENOSPC;
 }
@@ -333,13 +367,20 @@ static int jsf_ioctl_erase(unsigned long arg)
 	{
 		int i;
 		__u32 x;
-		for (i = 0; i < 1000000; i++) {
+
+		for (i = 0; i < 1000000; i++)
+		{
 			x = jsf_inl(p);
-			if ((x & 0x80808080) == 0x80808080) break;
+
+			if ((x & 0x80808080) == 0x80808080) { break; }
 		}
-		if ((x & 0x80808080) != 0x80808080) {
+
+		if ((x & 0x80808080) != 0x80808080)
+		{
 			printk("jsf0: erase timeout with 0x%08x\n", x);
-		} else {
+		}
+		else
+		{
 			printk("jsf0: erase done with 0x%08x\n", x);
 		}
 	}
@@ -360,22 +401,33 @@ static int jsf_ioctl_program(void __user *arg)
 	char __user *uptr;
 	unsigned long p;
 	unsigned int togo;
-	union {
+	union
+	{
 		unsigned int n;
 		char s[4];
 	} b;
 
 	if (copy_from_user(&abuf, arg, JSFPRGSZ))
-		return -EFAULT; 
+	{
+		return -EFAULT;
+	}
+
 	p = abuf.off;
 	togo = abuf.size;
-	if ((togo & 3) || (p & 3)) return -EINVAL;
+
+	if ((togo & 3) || (p & 3)) { return -EINVAL; }
 
 	uptr = (char __user *) (unsigned long) abuf.data;
-	while (togo != 0) {
+
+	while (togo != 0)
+	{
 		togo -= 4;
+
 		if (copy_from_user(&b.s[0], uptr, 4))
+		{
 			return -EFAULT;
+		}
+
 		jsf_write4(p, b.n);
 		p += 4;
 		uptr += 4;
@@ -390,42 +442,53 @@ static long jsf_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 	int error = -ENOTTY;
 	void __user *argp = (void __user *)arg;
 
-	if (!capable(CAP_SYS_ADMIN)) {
+	if (!capable(CAP_SYS_ADMIN))
+	{
 		mutex_unlock(&jsf_mutex);
 		return -EPERM;
 	}
-	switch (cmd) {
-	case JSFLASH_IDENT:
-		if (copy_to_user(argp, &jsf0.id, JSFIDSZ)) {
-			mutex_unlock(&jsf_mutex);
-			return -EFAULT;
-		}
-		break;
-	case JSFLASH_ERASE:
-		error = jsf_ioctl_erase(arg);
-		break;
-	case JSFLASH_PROGRAM:
-		error = jsf_ioctl_program(argp);
-		break;
+
+	switch (cmd)
+	{
+		case JSFLASH_IDENT:
+			if (copy_to_user(argp, &jsf0.id, JSFIDSZ))
+			{
+				mutex_unlock(&jsf_mutex);
+				return -EFAULT;
+			}
+
+			break;
+
+		case JSFLASH_ERASE:
+			error = jsf_ioctl_erase(arg);
+			break;
+
+		case JSFLASH_PROGRAM:
+			error = jsf_ioctl_program(argp);
+			break;
 	}
 
 	mutex_unlock(&jsf_mutex);
 	return error;
 }
 
-static int jsf_mmap(struct file * file, struct vm_area_struct * vma)
+static int jsf_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	return -ENXIO;
 }
 
-static int jsf_open(struct inode * inode, struct file * filp)
+static int jsf_open(struct inode *inode, struct file *filp)
 {
 	mutex_lock(&jsf_mutex);
-	if (jsf0.base == 0) {
+
+	if (jsf0.base == 0)
+	{
 		mutex_unlock(&jsf_mutex);
 		return -ENXIO;
 	}
-	if (test_and_set_bit(0, (void *)&jsf0.busy) != 0) {
+
+	if (test_and_set_bit(0, (void *)&jsf0.busy) != 0)
+	{
 		mutex_unlock(&jsf_mutex);
 		return -EBUSY;
 	}
@@ -440,7 +503,8 @@ static int jsf_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static const struct file_operations jsf_fops = {
+static const struct file_operations jsf_fops =
+{
 	.owner =	THIS_MODULE,
 	.llseek =	jsf_lseek,
 	.read =		jsf_read,
@@ -453,7 +517,8 @@ static const struct file_operations jsf_fops = {
 
 static struct miscdevice jsf_dev = { JSF_MINOR, "jsflash", &jsf_fops };
 
-static const struct block_device_operations jsfd_fops = {
+static const struct block_device_operations jsfd_fops =
+{
 	.owner =	THIS_MODULE,
 };
 
@@ -467,52 +532,70 @@ static int jsflash_init(void)
 
 	node = prom_getchild(prom_root_node);
 	node = prom_searchsiblings(node, "flash-memory");
-	if (node != 0 && (s32)node != -1) {
+
+	if (node != 0 && (s32)node != -1)
+	{
 		if (prom_getproperty(node, "reg",
-		    (char *)&reg0, sizeof(reg0)) == -1) {
+							 (char *)&reg0, sizeof(reg0)) == -1)
+		{
 			printk("jsflash: no \"reg\" property\n");
 			return -ENXIO;
 		}
-		if (reg0.which_io != 0) {
+
+		if (reg0.which_io != 0)
+		{
 			printk("jsflash: bus number nonzero: 0x%x:%x\n",
-			    reg0.which_io, reg0.phys_addr);
+				   reg0.which_io, reg0.phys_addr);
 			return -ENXIO;
 		}
+
 		/*
 		 * Flash may be somewhere else, for instance on Ebus.
 		 * So, don't do the following check for IIep flash space.
 		 */
 #if 0
-		if ((reg0.phys_addr >> 24) != 0x20) {
+
+		if ((reg0.phys_addr >> 24) != 0x20)
+		{
 			printk("jsflash: suspicious address: 0x%x:%x\n",
-			    reg0.which_io, reg0.phys_addr);
+				   reg0.which_io, reg0.phys_addr);
 			return -ENXIO;
 		}
+
 #endif
-		if ((int)reg0.reg_size <= 0) {
+
+		if ((int)reg0.reg_size <= 0)
+		{
 			printk("jsflash: bad size 0x%x\n", (int)reg0.reg_size);
 			return -ENXIO;
 		}
-	} else {
+	}
+	else
+	{
 		/* XXX Remove this code once PROLL ID12 got widespread */
 		printk("jsflash: no /flash-memory node, use PROLL >= 12\n");
 		prom_getproperty(prom_root_node, "banner-name", banner, 128);
+
 		if (strcmp (banner, "JavaStation-NC") != 0 &&
-		    strcmp (banner, "JavaStation-E") != 0) {
+			strcmp (banner, "JavaStation-E") != 0)
+		{
 			return -ENXIO;
 		}
+
 		reg0.which_io = 0;
 		reg0.phys_addr = 0x20400000;
 		reg0.reg_size  = 0x00800000;
 	}
 
 	/* Let us be really paranoid for modifications to probing code. */
-	if (sparc_cpu_model != sun4m) {
+	if (sparc_cpu_model != sun4m)
+	{
 		/* We must be on sun4m because we use MMU Bypass ASI. */
 		return -ENXIO;
 	}
 
-	if (jsf0.base == 0) {
+	if (jsf0.base == 0)
+	{
 		jsf = &jsf0;
 
 		jsf->base = reg0.phys_addr;
@@ -531,12 +614,13 @@ static int jsflash_init(void)
 		jsf->dv[2].dsize = 0x01000000;
 
 		printk("Espresso Flash @0x%lx [%d MB]\n", jsf->base,
-		    (int) (jsf->size / (1024*1024)));
+			   (int) (jsf->size / (1024 * 1024)));
 	}
 
-	if ((rc = misc_register(&jsf_dev)) != 0) {
+	if ((rc = misc_register(&jsf_dev)) != 0)
+	{
 		printk(KERN_ERR "jsf: unable to get misc minor %d\n",
-		    JSF_MINOR);
+			   JSF_MINOR);
 		jsf0.base = 0;
 		return rc;
 	}
@@ -555,33 +639,47 @@ static int jsfd_init(void)
 	int i;
 
 	if (jsf0.base == 0)
+	{
 		return -ENXIO;
+	}
 
 	err = -ENOMEM;
-	for (i = 0; i < JSF_MAX; i++) {
+
+	for (i = 0; i < JSF_MAX; i++)
+	{
 		struct gendisk *disk = alloc_disk(1);
+
 		if (!disk)
+		{
 			goto out;
+		}
+
 		jsfd_disk[i] = disk;
 	}
 
-	if (register_blkdev(JSFD_MAJOR, "jsfd")) {
+	if (register_blkdev(JSFD_MAJOR, "jsfd"))
+	{
 		err = -EIO;
 		goto out;
 	}
 
 	jsf_queue = blk_init_queue(jsfd_do_request, &lock);
-	if (!jsf_queue) {
+
+	if (!jsf_queue)
+	{
 		err = -ENOMEM;
 		unregister_blkdev(JSFD_MAJOR, "jsfd");
 		goto out;
 	}
 
-	for (i = 0; i < JSF_MAX; i++) {
+	for (i = 0; i < JSF_MAX; i++)
+	{
 		struct gendisk *disk = jsfd_disk[i];
-		if ((i & JSF_PART_MASK) >= JSF_NPART) continue;
+
+		if ((i & JSF_PART_MASK) >= JSF_NPART) { continue; }
+
 		jsf = &jsf0;	/* actually, &jsfv[i >> JSF_PART_BITS] */
-		jdp = &jsf->dv[i&JSF_PART_MASK];
+		jdp = &jsf->dv[i & JSF_PART_MASK];
 
 		disk->major = JSFD_MAJOR;
 		disk->first_minor = i;
@@ -593,22 +691,30 @@ static int jsfd_init(void)
 		add_disk(disk);
 		set_disk_ro(disk, 1);
 	}
+
 	return 0;
 out:
+
 	while (i--)
+	{
 		put_disk(jsfd_disk[i]);
+	}
+
 	return err;
 }
 
 MODULE_LICENSE("GPL");
 
-static int __init jsflash_init_module(void) {
+static int __init jsflash_init_module(void)
+{
 	int rc;
 
-	if ((rc = jsflash_init()) == 0) {
+	if ((rc = jsflash_init()) == 0)
+	{
 		jsfd_init();
 		return 0;
 	}
+
 	return rc;
 }
 
@@ -616,13 +722,19 @@ static void __exit jsflash_cleanup_module(void)
 {
 	int i;
 
-	for (i = 0; i < JSF_MAX; i++) {
-		if ((i & JSF_PART_MASK) >= JSF_NPART) continue;
+	for (i = 0; i < JSF_MAX; i++)
+	{
+		if ((i & JSF_PART_MASK) >= JSF_NPART) { continue; }
+
 		del_gendisk(jsfd_disk[i]);
 		put_disk(jsfd_disk[i]);
 	}
+
 	if (jsf0.busy)
+	{
 		printk("jsf0: cleaning busy unit\n");
+	}
+
 	jsf0.base = 0;
 	jsf0.busy = 0;
 

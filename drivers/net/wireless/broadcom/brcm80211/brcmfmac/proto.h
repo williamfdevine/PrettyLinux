@@ -17,30 +17,33 @@
 #define BRCMFMAC_PROTO_H
 
 
-enum proto_addr_mode {
+enum proto_addr_mode
+{
 	ADDR_INDIRECT	= 0,
 	ADDR_DIRECT
 };
 
-struct brcmf_skb_reorder_data {
+struct brcmf_skb_reorder_data
+{
 	u8 *reorder;
 };
 
-struct brcmf_proto {
+struct brcmf_proto
+{
 	int (*hdrpull)(struct brcmf_pub *drvr, bool do_fws,
-		       struct sk_buff *skb, struct brcmf_if **ifp);
+				   struct sk_buff *skb, struct brcmf_if **ifp);
 	int (*query_dcmd)(struct brcmf_pub *drvr, int ifidx, uint cmd,
-			  void *buf, uint len);
+					  void *buf, uint len);
 	int (*set_dcmd)(struct brcmf_pub *drvr, int ifidx, uint cmd, void *buf,
-			uint len);
+					uint len);
 	int (*txdata)(struct brcmf_pub *drvr, int ifidx, u8 offset,
-		      struct sk_buff *skb);
+				  struct sk_buff *skb);
 	void (*configure_addr_mode)(struct brcmf_pub *drvr, int ifidx,
-				    enum proto_addr_mode addr_mode);
+								enum proto_addr_mode addr_mode);
 	void (*delete_peer)(struct brcmf_pub *drvr, int ifidx,
-			    u8 peer[ETH_ALEN]);
+						u8 peer[ETH_ALEN]);
 	void (*add_tdls_peer)(struct brcmf_pub *drvr, int ifidx,
-			      u8 peer[ETH_ALEN]);
+						  u8 peer[ETH_ALEN]);
 	void (*rxreorder)(struct brcmf_if *ifp, struct sk_buff *skb);
 	void *pd;
 };
@@ -50,8 +53,8 @@ int brcmf_proto_attach(struct brcmf_pub *drvr);
 void brcmf_proto_detach(struct brcmf_pub *drvr);
 
 static inline int brcmf_proto_hdrpull(struct brcmf_pub *drvr, bool do_fws,
-				      struct sk_buff *skb,
-				      struct brcmf_if **ifp)
+									  struct sk_buff *skb,
+									  struct brcmf_if **ifp)
 {
 	struct brcmf_if *tmp = NULL;
 
@@ -59,29 +62,34 @@ static inline int brcmf_proto_hdrpull(struct brcmf_pub *drvr, bool do_fws,
 	 * non-null initialized pointer.
 	 */
 	if (ifp)
+	{
 		*ifp = NULL;
+	}
 	else
+	{
 		ifp = &tmp;
+	}
+
 	return drvr->proto->hdrpull(drvr, do_fws, skb, ifp);
 }
 static inline int brcmf_proto_query_dcmd(struct brcmf_pub *drvr, int ifidx,
-					 uint cmd, void *buf, uint len)
+		uint cmd, void *buf, uint len)
 {
 	return drvr->proto->query_dcmd(drvr, ifidx, cmd, buf, len);
 }
 static inline int brcmf_proto_set_dcmd(struct brcmf_pub *drvr, int ifidx,
-				       uint cmd, void *buf, uint len)
+									   uint cmd, void *buf, uint len)
 {
 	return drvr->proto->set_dcmd(drvr, ifidx, cmd, buf, len);
 }
 static inline int brcmf_proto_txdata(struct brcmf_pub *drvr, int ifidx,
-				     u8 offset, struct sk_buff *skb)
+									 u8 offset, struct sk_buff *skb)
 {
 	return drvr->proto->txdata(drvr, ifidx, offset, skb);
 }
 static inline void
 brcmf_proto_configure_addr_mode(struct brcmf_pub *drvr, int ifidx,
-				enum proto_addr_mode addr_mode)
+								enum proto_addr_mode addr_mode)
 {
 	drvr->proto->configure_addr_mode(drvr, ifidx, addr_mode);
 }

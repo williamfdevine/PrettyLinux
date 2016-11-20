@@ -12,7 +12,8 @@
 #ifndef __LINUX_SOC_EXYNOS_PMU_H
 #define __LINUX_SOC_EXYNOS_PMU_H
 
-enum sys_powerdown {
+enum sys_powerdown
+{
 	SYS_AFTR,
 	SYS_LPA,
 	SYS_SLEEP,

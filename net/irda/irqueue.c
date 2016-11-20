@@ -210,17 +210,23 @@
  *    This function hash the input string 'name' using the ELF hash
  *    function for strings.
  */
-static __u32 hash( const char* name)
+static __u32 hash( const char *name)
 {
 	__u32 h = 0;
 	__u32 g;
 
-	while(*name) {
-		h = (h<<4) + *name++;
+	while (*name)
+	{
+		h = (h << 4) + *name++;
+
 		if ((g = (h & 0xf0000000)))
-			h ^=g>>24;
-		h &=~g;
+		{
+			h ^= g >> 24;
+		}
+
+		h &= ~g;
 	}
+
 	return h;
 }
 
@@ -230,19 +236,22 @@ static __u32 hash( const char* name)
  *    Insert item first in queue.
  *
  */
-static void enqueue_first(irda_queue_t **queue, irda_queue_t* element)
+static void enqueue_first(irda_queue_t **queue, irda_queue_t *element)
 {
 
 	/*
 	 * Check if queue is empty.
 	 */
-	if ( *queue == NULL ) {
+	if ( *queue == NULL )
+	{
 		/*
 		 * Queue is empty.  Insert one element into the queue.
 		 */
 		element->q_next = element->q_prev = *queue = element;
 
-	} else {
+	}
+	else
+	{
 		/*
 		 * Queue is not empty.  Insert element into front of queue.
 		 */
@@ -272,17 +281,22 @@ static irda_queue_t *dequeue_first(irda_queue_t **queue)
 	 */
 	ret =  *queue;
 
-	if ( *queue == NULL ) {
+	if ( *queue == NULL )
+	{
 		/*
 		 * Queue was empty.
 		 */
-	} else if ( (*queue)->q_next == *queue ) {
+	}
+	else if ( (*queue)->q_next == *queue )
+	{
 		/*
 		 *  Queue only contained a single element. It will now be
 		 *  empty.
 		 */
 		*queue = NULL;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Queue contained several element.  Remove the first one.
 		 */
@@ -302,7 +316,7 @@ static irda_queue_t *dequeue_first(irda_queue_t **queue)
  *
  *
  */
-static irda_queue_t *dequeue_general(irda_queue_t **queue, irda_queue_t* element)
+static irda_queue_t *dequeue_general(irda_queue_t **queue, irda_queue_t *element)
 {
 	irda_queue_t *ret;
 
@@ -313,25 +327,33 @@ static irda_queue_t *dequeue_general(irda_queue_t **queue, irda_queue_t* element
 	 */
 	ret =  *queue;
 
-	if ( *queue == NULL ) {
+	if ( *queue == NULL )
+	{
 		/*
 		 * Queue was empty.
 		 */
-	} else if ( (*queue)->q_next == *queue ) {
+	}
+	else if ( (*queue)->q_next == *queue )
+	{
 		/*
 		 *  Queue only contained a single element. It will now be
 		 *  empty.
 		 */
 		*queue = NULL;
 
-	} else {
+	}
+	else
+	{
 		/*
 		 *  Remove specific element.
 		 */
 		element->q_prev->q_next = element->q_next;
 		element->q_next->q_prev = element->q_prev;
+
 		if ( (*queue) == element)
+		{
 			(*queue) = element->q_next;
+		}
 	}
 
 	/*
@@ -350,14 +372,17 @@ static irda_queue_t *dequeue_general(irda_queue_t **queue, irda_queue_t* element
  */
 hashbin_t *hashbin_new(int type)
 {
-	hashbin_t* hashbin;
+	hashbin_t *hashbin;
 
 	/*
 	 * Allocate new hashbin
 	 */
 	hashbin = kzalloc(sizeof(*hashbin), GFP_ATOMIC);
+
 	if (!hashbin)
+	{
 		return NULL;
+	}
 
 	/*
 	 * Initialize structure
@@ -367,7 +392,8 @@ hashbin_t *hashbin_new(int type)
 	//hashbin->hb_current = NULL;
 
 	/* Make sure all spinlock's are unlocked */
-	if ( hashbin->hb_type & HB_LOCK ) {
+	if ( hashbin->hb_type & HB_LOCK )
+	{
 		spin_lock_init(&hashbin->hb_spinlock);
 	}
 
@@ -384,11 +410,11 @@ EXPORT_SYMBOL(hashbin_new);
  *    just supply kfree, which should take care of the job.
  */
 #ifdef CONFIG_LOCKDEP
-static int hashbin_lock_depth = 0;
+	static int hashbin_lock_depth = 0;
 #endif
-int hashbin_delete( hashbin_t* hashbin, FREE_FUNC free_func)
+int hashbin_delete( hashbin_t *hashbin, FREE_FUNC free_func)
 {
-	irda_queue_t* queue;
+	irda_queue_t *queue;
 	unsigned long flags = 0;
 	int i;
 
@@ -396,22 +422,29 @@ int hashbin_delete( hashbin_t* hashbin, FREE_FUNC free_func)
 	IRDA_ASSERT(hashbin->magic == HB_MAGIC, return -1;);
 
 	/* Synchronize */
-	if ( hashbin->hb_type & HB_LOCK ) {
+	if ( hashbin->hb_type & HB_LOCK )
+	{
 		spin_lock_irqsave_nested(&hashbin->hb_spinlock, flags,
-					 hashbin_lock_depth++);
+								 hashbin_lock_depth++);
 	}
 
 	/*
 	 *  Free the entries in the hashbin, TODO: use hashbin_clear when
 	 *  it has been shown to work
 	 */
-	for (i = 0; i < HASHBIN_SIZE; i ++ ) {
-		queue = dequeue_first((irda_queue_t**) &hashbin->hb_queue[i]);
-		while (queue ) {
+	for (i = 0; i < HASHBIN_SIZE; i ++ )
+	{
+		queue = dequeue_first((irda_queue_t **) &hashbin->hb_queue[i]);
+
+		while (queue )
+		{
 			if (free_func)
+			{
 				(*free_func)(queue);
+			}
+
 			queue = dequeue_first(
-				(irda_queue_t**) &hashbin->hb_queue[i]);
+						(irda_queue_t **) &hashbin->hb_queue[i]);
 		}
 	}
 
@@ -420,7 +453,8 @@ int hashbin_delete( hashbin_t* hashbin, FREE_FUNC free_func)
 	hashbin->magic = ~HB_MAGIC;
 
 	/* Release lock */
-	if ( hashbin->hb_type & HB_LOCK) {
+	if ( hashbin->hb_type & HB_LOCK)
+	{
 		spin_unlock_irqrestore(&hashbin->hb_spinlock, flags);
 #ifdef CONFIG_LOCKDEP
 		hashbin_lock_depth--;
@@ -444,8 +478,8 @@ EXPORT_SYMBOL(hashbin_delete);
  *    Insert an entry into the hashbin
  *
  */
-void hashbin_insert(hashbin_t* hashbin, irda_queue_t* entry, long hashv,
-		    const char* name)
+void hashbin_insert(hashbin_t *hashbin, irda_queue_t *entry, long hashv,
+					const char *name)
 {
 	unsigned long flags = 0;
 	int bin;
@@ -457,11 +491,15 @@ void hashbin_insert(hashbin_t* hashbin, irda_queue_t* entry, long hashv,
 	 * Locate hashbin
 	 */
 	if ( name )
+	{
 		hashv = hash( name );
+	}
+
 	bin = GET_HASHBIN( hashv );
 
 	/* Synchronize */
-	if ( hashbin->hb_type & HB_LOCK ) {
+	if ( hashbin->hb_type & HB_LOCK )
+	{
 		spin_lock_irqsave(&hashbin->hb_spinlock, flags);
 	} /* Default is no-lock  */
 
@@ -469,18 +507,22 @@ void hashbin_insert(hashbin_t* hashbin, irda_queue_t* entry, long hashv,
 	 * Store name and key
 	 */
 	entry->q_hash = hashv;
+
 	if ( name )
+	{
 		strlcpy( entry->q_name, name, sizeof(entry->q_name));
+	}
 
 	/*
 	 * Insert new entry first
 	 */
-	enqueue_first( (irda_queue_t**) &hashbin->hb_queue[ bin ],
-		       entry);
+	enqueue_first( (irda_queue_t **) &hashbin->hb_queue[ bin ],
+				   entry);
 	hashbin->hb_size++;
 
 	/* Release lock */
-	if ( hashbin->hb_type & HB_LOCK ) {
+	if ( hashbin->hb_type & HB_LOCK )
+	{
 		spin_unlock_irqrestore(&hashbin->hb_spinlock, flags);
 	} /* Default is no-lock  */
 }
@@ -501,12 +543,15 @@ void *hashbin_remove_first( hashbin_t *hashbin)
 	irda_queue_t *entry = NULL;
 
 	/* Synchronize */
-	if ( hashbin->hb_type & HB_LOCK ) {
+	if ( hashbin->hb_type & HB_LOCK )
+	{
 		spin_lock_irqsave(&hashbin->hb_spinlock, flags);
 	} /* Default is no-lock  */
 
 	entry = hashbin_get_first( hashbin);
-	if ( entry != NULL) {
+
+	if ( entry != NULL)
+	{
 		int	bin;
 		long	hashv;
 		/*
@@ -518,8 +563,8 @@ void *hashbin_remove_first( hashbin_t *hashbin)
 		/*
 		 * Dequeue the entry...
 		 */
-		dequeue_general( (irda_queue_t**) &hashbin->hb_queue[ bin ],
-				 entry);
+		dequeue_general( (irda_queue_t **) &hashbin->hb_queue[ bin ],
+						 entry);
 		hashbin->hb_size--;
 		entry->q_next = NULL;
 		entry->q_prev = NULL;
@@ -529,11 +574,14 @@ void *hashbin_remove_first( hashbin_t *hashbin)
 		 *  that case we must reset hb_current
 		 */
 		if ( entry == hashbin->hb_current)
+		{
 			hashbin->hb_current = NULL;
+		}
 	}
 
 	/* Release lock */
-	if ( hashbin->hb_type & HB_LOCK ) {
+	if ( hashbin->hb_type & HB_LOCK )
+	{
 		spin_unlock_irqrestore(&hashbin->hb_spinlock, flags);
 	} /* Default is no-lock  */
 
@@ -555,11 +603,11 @@ void *hashbin_remove_first( hashbin_t *hashbin)
  *  In other case, you must think hard to guarantee unicity of the index.
  *  Jean II
  */
-void* hashbin_remove( hashbin_t* hashbin, long hashv, const char* name)
+void *hashbin_remove( hashbin_t *hashbin, long hashv, const char *name)
 {
 	int bin, found = FALSE;
 	unsigned long flags = 0;
-	irda_queue_t* entry;
+	irda_queue_t *entry;
 
 	IRDA_ASSERT( hashbin != NULL, return NULL;);
 	IRDA_ASSERT( hashbin->magic == HB_MAGIC, return NULL;);
@@ -568,11 +616,15 @@ void* hashbin_remove( hashbin_t* hashbin, long hashv, const char* name)
 	 * Locate hashbin
 	 */
 	if ( name )
+	{
 		hashv = hash( name );
+	}
+
 	bin = GET_HASHBIN( hashv );
 
 	/* Synchronize */
-	if ( hashbin->hb_type & HB_LOCK ) {
+	if ( hashbin->hb_type & HB_LOCK )
+	{
 		spin_lock_irqsave(&hashbin->hb_spinlock, flags);
 	} /* Default is no-lock  */
 
@@ -580,36 +632,46 @@ void* hashbin_remove( hashbin_t* hashbin, long hashv, const char* name)
 	 * Search for entry
 	 */
 	entry = hashbin->hb_queue[ bin ];
-	if ( entry ) {
-		do {
+
+	if ( entry )
+	{
+		do
+		{
 			/*
 			 * Check for key
 			 */
-			if ( entry->q_hash == hashv ) {
+			if ( entry->q_hash == hashv )
+			{
 				/*
 				 * Name compare too?
 				 */
-				if ( name ) {
+				if ( name )
+				{
 					if ( strcmp( entry->q_name, name) == 0)
 					{
 						found = TRUE;
 						break;
 					}
-				} else {
+				}
+				else
+				{
 					found = TRUE;
 					break;
 				}
 			}
+
 			entry = entry->q_next;
-		} while ( entry != hashbin->hb_queue[ bin ] );
+		}
+		while ( entry != hashbin->hb_queue[ bin ] );
 	}
 
 	/*
 	 * If entry was found, dequeue it
 	 */
-	if ( found ) {
-		dequeue_general( (irda_queue_t**) &hashbin->hb_queue[ bin ],
-				 entry);
+	if ( found )
+	{
+		dequeue_general( (irda_queue_t **) &hashbin->hb_queue[ bin ],
+						 entry);
 		hashbin->hb_size--;
 
 		/*
@@ -617,20 +679,27 @@ void* hashbin_remove( hashbin_t* hashbin, long hashv, const char* name)
 		 *  that case we must reset hb_current
 		 */
 		if ( entry == hashbin->hb_current)
+		{
 			hashbin->hb_current = NULL;
+		}
 	}
 
 	/* Release lock */
-	if ( hashbin->hb_type & HB_LOCK ) {
+	if ( hashbin->hb_type & HB_LOCK )
+	{
 		spin_unlock_irqrestore(&hashbin->hb_spinlock, flags);
 	} /* Default is no-lock  */
 
 
 	/* Return */
 	if ( found )
+	{
 		return entry;
+	}
 	else
+	{
 		return NULL;
+	}
 
 }
 EXPORT_SYMBOL(hashbin_remove);
@@ -646,7 +715,7 @@ EXPORT_SYMBOL(hashbin_remove);
  * so we use this one instead...
  * And by the way, it's also faster, because we skip the search phase ;-)
  */
-void* hashbin_remove_this( hashbin_t* hashbin, irda_queue_t* entry)
+void *hashbin_remove_this( hashbin_t *hashbin, irda_queue_t *entry)
 {
 	unsigned long flags = 0;
 	int	bin;
@@ -657,12 +726,14 @@ void* hashbin_remove_this( hashbin_t* hashbin, irda_queue_t* entry)
 	IRDA_ASSERT( entry != NULL, return NULL;);
 
 	/* Synchronize */
-	if ( hashbin->hb_type & HB_LOCK ) {
+	if ( hashbin->hb_type & HB_LOCK )
+	{
 		spin_lock_irqsave(&hashbin->hb_spinlock, flags);
 	} /* Default is no-lock  */
 
 	/* Check if valid and not already removed... */
-	if((entry->q_next == NULL) || (entry->q_prev == NULL)) {
+	if ((entry->q_next == NULL) || (entry->q_prev == NULL))
+	{
 		entry = NULL;
 		goto out;
 	}
@@ -676,8 +747,8 @@ void* hashbin_remove_this( hashbin_t* hashbin, irda_queue_t* entry)
 	/*
 	 * Dequeue the entry...
 	 */
-	dequeue_general( (irda_queue_t**) &hashbin->hb_queue[ bin ],
-			 entry);
+	dequeue_general( (irda_queue_t **) &hashbin->hb_queue[ bin ],
+					 entry);
 	hashbin->hb_size--;
 	entry->q_next = NULL;
 	entry->q_prev = NULL;
@@ -687,10 +758,15 @@ void* hashbin_remove_this( hashbin_t* hashbin, irda_queue_t* entry)
 	 *  that case we must reset hb_current
 	 */
 	if ( entry == hashbin->hb_current)
+	{
 		hashbin->hb_current = NULL;
+	}
+
 out:
+
 	/* Release lock */
-	if ( hashbin->hb_type & HB_LOCK ) {
+	if ( hashbin->hb_type & HB_LOCK )
+	{
 		spin_unlock_irqrestore(&hashbin->hb_spinlock, flags);
 	} /* Default is no-lock  */
 
@@ -706,10 +782,10 @@ EXPORT_SYMBOL(hashbin_remove_this);
  *    Find item with the given hashv or name
  *
  */
-void* hashbin_find( hashbin_t* hashbin, long hashv, const char* name )
+void *hashbin_find( hashbin_t *hashbin, long hashv, const char *name )
 {
 	int bin;
-	irda_queue_t* entry;
+	irda_queue_t *entry;
 
 	pr_debug("hashbin_find()\n");
 
@@ -720,32 +796,45 @@ void* hashbin_find( hashbin_t* hashbin, long hashv, const char* name )
 	 * Locate hashbin
 	 */
 	if ( name )
+	{
 		hashv = hash( name );
+	}
+
 	bin = GET_HASHBIN( hashv );
 
 	/*
 	 * Search for entry
 	 */
 	entry = hashbin->hb_queue[ bin];
-	if ( entry ) {
-		do {
+
+	if ( entry )
+	{
+		do
+		{
 			/*
 			 * Check for key
 			 */
-			if ( entry->q_hash == hashv ) {
+			if ( entry->q_hash == hashv )
+			{
 				/*
 				 * Name compare too?
 				 */
-				if ( name ) {
-					if ( strcmp( entry->q_name, name ) == 0 ) {
+				if ( name )
+				{
+					if ( strcmp( entry->q_name, name ) == 0 )
+					{
 						return entry;
 					}
-				} else {
+				}
+				else
+				{
 					return entry;
 				}
 			}
+
 			entry = entry->q_next;
-		} while ( entry != hashbin->hb_queue[ bin ] );
+		}
+		while ( entry != hashbin->hb_queue[ bin ] );
 	}
 
 	return NULL;
@@ -761,10 +850,10 @@ EXPORT_SYMBOL(hashbin_find);
  * I call it safe, but it's only safe with respect to the hashbin, not its
  * content. - Jean II
  */
-void* hashbin_lock_find( hashbin_t* hashbin, long hashv, const char* name )
+void *hashbin_lock_find( hashbin_t *hashbin, long hashv, const char *name )
 {
 	unsigned long flags = 0;
-	irda_queue_t* entry;
+	irda_queue_t *entry;
 
 	/* Synchronize */
 	spin_lock_irqsave(&hashbin->hb_spinlock, flags);
@@ -791,11 +880,11 @@ EXPORT_SYMBOL(hashbin_lock_find);
  * context of the search. On the other hand, it might fail and return
  * NULL if the entry is removed. - Jean II
  */
-void* hashbin_find_next( hashbin_t* hashbin, long hashv, const char* name,
-			 void ** pnext)
+void *hashbin_find_next( hashbin_t *hashbin, long hashv, const char *name,
+						 void **pnext)
 {
 	unsigned long flags = 0;
-	irda_queue_t* entry;
+	irda_queue_t *entry;
 
 	/* Synchronize */
 	spin_lock_irqsave(&hashbin->hb_spinlock, flags);
@@ -810,11 +899,15 @@ void* hashbin_find_next( hashbin_t* hashbin, long hashv, const char* name,
 	/*
 	 * Trick hashbin_get_next() to return what we want
 	 */
-	if(entry) {
+	if (entry)
+	{
 		hashbin->hb_current = entry;
 		*pnext = hashbin_get_next( hashbin );
-	} else
+	}
+	else
+	{
 		*pnext = NULL;
+	}
 
 	/* Release lock */
 	spin_unlock_irqrestore(&hashbin->hb_spinlock, flags);
@@ -829,7 +922,7 @@ void* hashbin_find_next( hashbin_t* hashbin, long hashv, const char* name,
  *    called before any calls to hashbin_get_next()!
  *
  */
-irda_queue_t *hashbin_get_first( hashbin_t* hashbin)
+irda_queue_t *hashbin_get_first( hashbin_t *hashbin)
 {
 	irda_queue_t *entry;
 	int i;
@@ -838,15 +931,21 @@ irda_queue_t *hashbin_get_first( hashbin_t* hashbin)
 	IRDA_ASSERT( hashbin->magic == HB_MAGIC, return NULL;);
 
 	if ( hashbin == NULL)
+	{
 		return NULL;
+	}
 
-	for ( i = 0; i < HASHBIN_SIZE; i ++ ) {
+	for ( i = 0; i < HASHBIN_SIZE; i ++ )
+	{
 		entry = hashbin->hb_queue[ i];
-		if ( entry) {
+
+		if ( entry)
+		{
 			hashbin->hb_current = entry;
 			return entry;
 		}
 	}
+
 	/*
 	 *  Did not find any item in hashbin
 	 */
@@ -866,17 +965,19 @@ EXPORT_SYMBOL(hashbin_get_first);
  */
 irda_queue_t *hashbin_get_next( hashbin_t *hashbin)
 {
-	irda_queue_t* entry;
+	irda_queue_t *entry;
 	int bin;
 	int i;
 
 	IRDA_ASSERT( hashbin != NULL, return NULL;);
 	IRDA_ASSERT( hashbin->magic == HB_MAGIC, return NULL;);
 
-	if ( hashbin->hb_current == NULL) {
+	if ( hashbin->hb_current == NULL)
+	{
 		IRDA_ASSERT( hashbin->hb_current != NULL, return NULL;);
 		return NULL;
 	}
+
 	entry = hashbin->hb_current->q_next;
 	bin = GET_HASHBIN( entry->q_hash);
 
@@ -884,7 +985,8 @@ irda_queue_t *hashbin_get_next( hashbin_t *hashbin)
 	 *  Make sure that we are not back at the beginning of the queue
 	 *  again
 	 */
-	if ( entry != hashbin->hb_queue[ bin ]) {
+	if ( entry != hashbin->hb_queue[ bin ])
+	{
 		hashbin->hb_current = entry;
 
 		return entry;
@@ -894,20 +996,27 @@ irda_queue_t *hashbin_get_next( hashbin_t *hashbin)
 	 *  Check that this is not the last queue in hashbin
 	 */
 	if ( bin >= HASHBIN_SIZE)
+	{
 		return NULL;
+	}
 
 	/*
 	 *  Move to next queue in hashbin
 	 */
 	bin++;
-	for ( i = bin; i < HASHBIN_SIZE; i++ ) {
+
+	for ( i = bin; i < HASHBIN_SIZE; i++ )
+	{
 		entry = hashbin->hb_queue[ i];
-		if ( entry) {
+
+		if ( entry)
+		{
 			hashbin->hb_current = entry;
 
 			return entry;
 		}
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(hashbin_get_next);

@@ -23,7 +23,8 @@
 #define QE_IMMAP_SIZE	(1024 * 1024)	/* 1MB from 1MB+IMMR */
 
 /* QE I-RAM */
-struct qe_iram {
+struct qe_iram
+{
 	__be32	iadd;		/* I-RAM Address Register */
 	__be32	idata;		/* I-RAM Data Register */
 	u8	res0[0x04];
@@ -32,7 +33,8 @@ struct qe_iram {
 } __attribute__ ((packed));
 
 /* QE Interrupt Controller */
-struct qe_ic_regs {
+struct qe_ic_regs
+{
 	__be32	qicr;
 	__be32	qivec;
 	__be32	qripnr;
@@ -55,7 +57,8 @@ struct qe_ic_regs {
 } __attribute__ ((packed));
 
 /* Communications Processor */
-struct cp_qe {
+struct cp_qe
+{
 	__be32	cecr;		/* QE command register */
 	__be32	ceccr;		/* QE controller configuration register */
 	__be32	cecdr;		/* QE command data register */
@@ -93,7 +96,8 @@ struct cp_qe {
 } __attribute__ ((packed));
 
 /* QE Multiplexer */
-struct qe_mux {
+struct qe_mux
+{
 	__be32	cmxgcr;		/* CMX general clock route register */
 	__be32	cmxsi1cr_l;	/* CMX SI1 clock route low register */
 	__be32	cmxsi1cr_h;	/* CMX SI1 clock route high register */
@@ -104,7 +108,8 @@ struct qe_mux {
 } __attribute__ ((packed));
 
 /* QE Timers */
-struct qe_timers {
+struct qe_timers
+{
 	u8	gtcfr1;		/* Timer 1 and Timer 2 global config register*/
 	u8	res0[0x3];
 	u8	gtcfr2;		/* Timer 3 and timer 4 global config register*/
@@ -134,13 +139,15 @@ struct qe_timers {
 } __attribute__ ((packed));
 
 /* BRG */
-struct qe_brg {
+struct qe_brg
+{
 	__be32	brgc[16];	/* BRG configuration registers */
 	u8	res0[0x40];
 } __attribute__ ((packed));
 
 /* SPI */
-struct spi {
+struct spi
+{
 	u8	res0[0x20];
 	__be32	spmode;		/* SPI mode register */
 	u8	res1[0x2];
@@ -158,7 +165,8 @@ struct spi {
 } __attribute__ ((packed));
 
 /* SI */
-struct si1 {
+struct si1
+{
 	__be16	sixmr1[4];	/* SI1 TDMx (x = A B C D) mode register */
 	u8	siglmr1_h;	/* SI1 global mode register high */
 	u8	res0[0x1];
@@ -202,14 +210,16 @@ struct si1 {
 } __attribute__ ((packed));
 
 /* SI Routing Tables */
-struct sir {
+struct sir
+{
 	u8 	tx[0x400];
 	u8	rx[0x400];
 	u8	res0[0x800];
 } __attribute__ ((packed));
 
 /* USB Controller */
-struct qe_usb_ctlr {
+struct qe_usb_ctlr
+{
 	u8	usb_usmod;
 	u8	usb_usadr;
 	u8	usb_uscom;
@@ -228,7 +238,8 @@ struct qe_usb_ctlr {
 } __attribute__ ((packed));
 
 /* MCC */
-struct qe_mcc {
+struct qe_mcc
+{
 	__be32	mcce;		/* MCC event register */
 	__be32	mccm;		/* MCC mask register */
 	__be32	mccf;		/* MCC configuration register */
@@ -237,7 +248,8 @@ struct qe_mcc {
 } __attribute__ ((packed));
 
 /* QE UCC Slow */
-struct ucc_slow {
+struct ucc_slow
+{
 	__be32	gumr_l;		/* UCCx general mode register (low) */
 	__be32	gumr_h;		/* UCCx general mode register (high) */
 	__be16	upsmr;		/* UCCx protocol-specific mode register */
@@ -256,7 +268,8 @@ struct ucc_slow {
 } __attribute__ ((packed));
 
 /* QE UCC Fast */
-struct ucc_fast {
+struct ucc_fast
+{
 	__be32	gumr;		/* UCCx general mode register */
 	__be32	upsmr;		/* UCCx protocol-specific mode register */
 	__be16	utodr;		/* UCCx transmit on demand register */
@@ -287,8 +300,10 @@ struct ucc_fast {
 	u8	guemr;		/* UCC general extended mode register */
 } __attribute__ ((packed));
 
-struct ucc {
-	union {
+struct ucc
+{
+	union
+	{
 		struct	ucc_slow slow;
 		struct	ucc_fast fast;
 		u8	res[0x200];	/* UCC blocks are 512 bytes each */
@@ -296,7 +311,8 @@ struct ucc {
 } __attribute__ ((packed));
 
 /* MultiPHY UTOPIA POS Controllers (UPC) */
-struct upc {
+struct upc
+{
 	__be32	upgcr;		/* UTOPIA/POS general configuration register */
 	__be32	uplpa;		/* UTOPIA/POS last PHY address */
 	__be32	uphec;		/* ATM HEC register */
@@ -352,7 +368,8 @@ struct upc {
 } __attribute__ ((packed));
 
 /* SDMA */
-struct sdma {
+struct sdma
+{
 	__be32	sdsr;		/* Serial DMA status register */
 	__be32	sdmr;		/* Serial DMA mode register */
 	__be32	sdtr1;		/* SDMA system bus threshold register */
@@ -372,7 +389,8 @@ struct sdma {
 } __attribute__ ((packed));
 
 /* Debug Space */
-struct dbg {
+struct dbg
+{
 	__be32	bpdcr;		/* Breakpoint debug command register */
 	__be32	bpdsr;		/* Breakpoint debug status register */
 	__be32	bpdmr;		/* Breakpoint debug mask register */
@@ -392,7 +410,8 @@ struct dbg {
  * RISC Special Registers (Trap and Breakpoint).  These are described in
  * the QE Developer's Handbook.
  */
-struct rsp {
+struct rsp
+{
 	__be32 tibcr[16];	/* Trap/instruction breakpoint control regs */
 	u8 res0[64];
 	__be32 ibcr0;
@@ -420,10 +439,11 @@ struct rsp {
 	__be32 iatr[4];
 	__be32 eccr;		/* Exception control configuration register */
 	__be32 eicr;
-	u8 res4[0x100-0xf8];
+	u8 res4[0x100 - 0xf8];
 } __attribute__ ((packed));
 
-struct qe_immap {
+struct qe_immap
+{
 	struct qe_iram		iram;		/* I-RAM */
 	struct qe_ic_regs	ic;		/* Interrupt Controller */
 	struct cp_qe		cp;		/* Communications Processor */
@@ -478,7 +498,9 @@ static inline phys_addr_t immrbar_virt_to_phys(void *address)
 
 	/* Is it a MURAM address? */
 	if ((address >= q) && (address < (q + QE_IMMAP_SIZE)))
+	{
 		return get_qe_base() + (address - q);
+	}
 
 	/* It's an address returned by kmalloc */
 	return virt_to_phys(address);

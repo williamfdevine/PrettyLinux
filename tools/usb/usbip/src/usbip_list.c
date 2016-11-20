@@ -64,27 +64,35 @@ static int get_exported_devices(char *host, int sockfd)
 	int rc, j;
 
 	rc = usbip_net_send_op_common(sockfd, OP_REQ_DEVLIST, 0);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dbg("usbip_net_send_op_common failed");
 		return -1;
 	}
 
 	rc = usbip_net_recv_op_common(sockfd, &code);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dbg("usbip_net_recv_op_common failed");
 		return -1;
 	}
 
 	memset(&reply, 0, sizeof(reply));
 	rc = usbip_net_recv(sockfd, &reply, sizeof(reply));
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dbg("usbip_net_recv_op_devlist failed");
 		return -1;
 	}
+
 	PACK_OP_DEVLIST_REPLY(0, &reply);
 	dbg("exportable devices: %d\n", reply.ndev);
 
-	if (reply.ndev == 0) {
+	if (reply.ndev == 0)
+	{
 		info("no exportable devices found on %s", host);
 		return 0;
 	}
@@ -93,38 +101,46 @@ static int get_exported_devices(char *host, int sockfd)
 	printf("======================\n");
 	printf(" - %s\n", host);
 
-	for (i = 0; i < reply.ndev; i++) {
+	for (i = 0; i < reply.ndev; i++)
+	{
 		memset(&udev, 0, sizeof(udev));
 		rc = usbip_net_recv(sockfd, &udev, sizeof(udev));
-		if (rc < 0) {
+
+		if (rc < 0)
+		{
 			dbg("usbip_net_recv failed: usbip_usb_device[%d]", i);
 			return -1;
 		}
+
 		usbip_net_pack_usb_device(0, &udev);
 
 		usbip_names_get_product(product_name, sizeof(product_name),
-					udev.idVendor, udev.idProduct);
+								udev.idVendor, udev.idProduct);
 		usbip_names_get_class(class_name, sizeof(class_name),
-				      udev.bDeviceClass, udev.bDeviceSubClass,
-				      udev.bDeviceProtocol);
+							  udev.bDeviceClass, udev.bDeviceSubClass,
+							  udev.bDeviceProtocol);
 		printf("%11s: %s\n", udev.busid, product_name);
 		printf("%11s: %s\n", "", udev.path);
 		printf("%11s: %s\n", "", class_name);
 
-		for (j = 0; j < udev.bNumInterfaces; j++) {
+		for (j = 0; j < udev.bNumInterfaces; j++)
+		{
 			rc = usbip_net_recv(sockfd, &uintf, sizeof(uintf));
-			if (rc < 0) {
+
+			if (rc < 0)
+			{
 				err("usbip_net_recv failed: usbip_usb_intf[%d]",
-						j);
+					j);
 
 				return -1;
 			}
+
 			usbip_net_pack_usb_interface(0, &uintf);
 
 			usbip_names_get_class(class_name, sizeof(class_name),
-					uintf.bInterfaceClass,
-					uintf.bInterfaceSubClass,
-					uintf.bInterfaceProtocol);
+								  uintf.bInterfaceClass,
+								  uintf.bInterfaceSubClass,
+								  uintf.bInterfaceProtocol);
 			printf("%11s: %2d - %s\n", "", j, class_name);
 		}
 
@@ -140,15 +156,20 @@ static int list_exported_devices(char *host)
 	int sockfd;
 
 	sockfd = usbip_net_tcp_connect(host, usbip_port_string);
-	if (sockfd < 0) {
+
+	if (sockfd < 0)
+	{
 		err("could not connect to %s:%s: %s", host,
-		    usbip_port_string, gai_strerror(sockfd));
+			usbip_port_string, gai_strerror(sockfd));
 		return -1;
 	}
+
 	dbg("connected to %s:%s", host, usbip_port_string);
 
 	rc = get_exported_devices(host, sockfd);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		err("failed to get device list from %s", host);
 		return -1;
 	}
@@ -159,18 +180,24 @@ static int list_exported_devices(char *host)
 }
 
 static void print_device(const char *busid, const char *vendor,
-			 const char *product, bool parsable)
+						 const char *product, bool parsable)
 {
 	if (parsable)
+	{
 		printf("busid=%s#usbid=%.4s:%.4s#", busid, vendor, product);
+	}
 	else
+	{
 		printf(" - busid %s (%.4s:%.4s)\n", busid, vendor, product);
+	}
 }
 
 static void print_product_name(char *product_name, bool parsable)
 {
 	if (!parsable)
+	{
 		printf("   %s\n", product_name);
+	}
 }
 
 static int list_devices(bool parsable)
@@ -205,7 +232,8 @@ static int list_devices(bool parsable)
 	devices = udev_enumerate_get_list_entry(enumerate);
 
 	/* Show information about each device. */
-	udev_list_entry_foreach(dev_list_entry, devices) {
+	udev_list_entry_foreach(dev_list_entry, devices)
+	{
 		path = udev_list_entry_get_name(dev_list_entry);
 		dev = udev_device_new_from_syspath(udev, path);
 
@@ -213,20 +241,22 @@ static int list_devices(bool parsable)
 		idVendor = udev_device_get_sysattr_value(dev, "idVendor");
 		idProduct = udev_device_get_sysattr_value(dev, "idProduct");
 		bConfValue = udev_device_get_sysattr_value(dev,
-				"bConfigurationValue");
+					 "bConfigurationValue");
 		bNumIntfs = udev_device_get_sysattr_value(dev,
-				"bNumInterfaces");
+					"bNumInterfaces");
 		busid = udev_device_get_sysname(dev);
-		if (!idVendor || !idProduct || !bConfValue || !bNumIntfs) {
+
+		if (!idVendor || !idProduct || !bConfValue || !bNumIntfs)
+		{
 			err("problem getting device attributes: %s",
-			    strerror(errno));
+				strerror(errno));
 			goto err_out;
 		}
 
 		/* Get product name. */
 		usbip_names_get_product(product_name, sizeof(product_name),
-					strtol(idVendor, NULL, 16),
-					strtol(idProduct, NULL, 16));
+								strtol(idVendor, NULL, 16),
+								strtol(idProduct, NULL, 16));
 
 		/* Print information. */
 		print_device(busid, idVendor, idProduct, parsable);
@@ -274,22 +304,27 @@ static int list_gadget_devices(bool parsable)
 	udev_enumerate_scan_devices(enumerate);
 	devices = udev_enumerate_get_list_entry(enumerate);
 
-	udev_list_entry_foreach(dev_list_entry, devices) {
+	udev_list_entry_foreach(dev_list_entry, devices)
+	{
 		path = udev_list_entry_get_name(dev_list_entry);
 		dev = udev_device_new_from_syspath(udev, path);
 
 		driver = udev_device_get_driver(dev);
+
 		/* We only have mechanism to enumerate gadgets bound to vudc */
 		if (driver == NULL || strcmp(driver, USBIP_DEVICE_DRV_NAME))
+		{
 			continue;
+		}
 
 		/* Get device information. */
 		descriptors = udev_device_get_sysattr_value(dev,
-				VUDC_DEVICE_DESCR_FILE);
+					  VUDC_DEVICE_DESCR_FILE);
 
-		if (!descriptors) {
+		if (!descriptors)
+		{
 			err("problem getting device attributes: %s",
-			    strerror(errno));
+				strerror(errno));
 			goto err_out;
 		}
 
@@ -303,8 +338,8 @@ static int list_gadget_devices(bool parsable)
 
 		/* Get product name. */
 		usbip_names_get_product(product_name, sizeof(product_name),
-					le16toh(idVendor),
-					le16toh(idProduct));
+								le16toh(idVendor),
+								le16toh(idProduct));
 
 		/* Print information. */
 		print_device(busid, idVendor_buf, idProduct_buf, parsable);
@@ -325,7 +360,8 @@ err_out:
 
 int usbip_list(int argc, char *argv[])
 {
-	static const struct option opts[] = {
+	static const struct option opts[] =
+	{
 		{ "parsable", no_argument,       NULL, 'p' },
 		{ "remote",   required_argument, NULL, 'r' },
 		{ "local",    no_argument,       NULL, 'l' },
@@ -338,29 +374,39 @@ int usbip_list(int argc, char *argv[])
 	int ret = -1;
 
 	if (usbip_names_init(USBIDS_FILE))
+	{
 		err("failed to open %s", USBIDS_FILE);
+	}
 
-	for (;;) {
+	for (;;)
+	{
 		opt = getopt_long(argc, argv, "pr:ld", opts, NULL);
 
 		if (opt == -1)
+		{
 			break;
+		}
 
-		switch (opt) {
-		case 'p':
-			parsable = true;
-			break;
-		case 'r':
-			ret = list_exported_devices(optarg);
-			goto out;
-		case 'l':
-			ret = list_devices(parsable);
-			goto out;
-		case 'd':
-			ret = list_gadget_devices(parsable);
-			goto out;
-		default:
-			goto err_out;
+		switch (opt)
+		{
+			case 'p':
+				parsable = true;
+				break;
+
+			case 'r':
+				ret = list_exported_devices(optarg);
+				goto out;
+
+			case 'l':
+				ret = list_devices(parsable);
+				goto out;
+
+			case 'd':
+				ret = list_gadget_devices(parsable);
+				goto out;
+
+			default:
+				goto err_out;
 		}
 	}
 

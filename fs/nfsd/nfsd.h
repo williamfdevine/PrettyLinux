@@ -25,9 +25,9 @@
 
 #undef ifdebug
 #ifdef CONFIG_SUNRPC_DEBUG
-# define ifdebug(flag)		if (nfsd_debug & NFSDDBG_##flag)
+	#define ifdebug(flag)		if (nfsd_debug & NFSDDBG_##flag)
 #else
-# define ifdebug(flag)		if (0)
+	#define ifdebug(flag)		if (0)
 #endif
 
 /*
@@ -54,14 +54,15 @@
  */
 #define NFSD_BUFSIZE            ((RPC_MAX_HEADER_WITH_AUTH+26)*XDR_UNIT + NFSSVC_MAXBLKSIZE)
 
-struct readdir_cd {
+struct readdir_cd
+{
 	__be32			err;	/* 0, nfserr, or nfserr_eof */
 };
 
 
 extern struct svc_program	nfsd_program;
 extern struct svc_version	nfsd_version2, nfsd_version3,
-				nfsd_version4;
+			 nfsd_version4;
 extern struct mutex		nfsd_mutex;
 extern spinlock_t		nfsd_drc_lock;
 extern unsigned long		nfsd_drc_max_mem;
@@ -85,16 +86,16 @@ int		nfsd_pool_stats_release(struct inode *, struct file *);
 void		nfsd_destroy(struct net *net);
 
 #if defined(CONFIG_NFSD_V2_ACL) || defined(CONFIG_NFSD_V3_ACL)
-#ifdef CONFIG_NFSD_V2_ACL
-extern struct svc_version nfsd_acl_version2;
-#else
-#define nfsd_acl_version2 NULL
-#endif
-#ifdef CONFIG_NFSD_V3_ACL
-extern struct svc_version nfsd_acl_version3;
-#else
-#define nfsd_acl_version3 NULL
-#endif
+	#ifdef CONFIG_NFSD_V2_ACL
+		extern struct svc_version nfsd_acl_version2;
+	#else
+		#define nfsd_acl_version2 NULL
+	#endif
+	#ifdef CONFIG_NFSD_V3_ACL
+		extern struct svc_version nfsd_acl_version3;
+	#else
+		#define nfsd_acl_version3 NULL
+	#endif
 #endif
 
 enum vers_op {NFSD_SET, NFSD_CLEAR, NFSD_TEST, NFSD_AVAIL };
@@ -110,7 +111,7 @@ static inline int nfsd_v4client(struct svc_rqst *rq)
 	return rq->rq_prog == NFS_PROGRAM && rq->rq_vers == 4;
 }
 
-/* 
+/*
  * NFSv4 State
  */
 #ifdef CONFIG_NFSD_V4
@@ -123,7 +124,7 @@ void nfs4_state_shutdown(void);
 void nfs4_state_shutdown_net(struct net *net);
 void nfs4_reset_lease(time_t leasetime);
 int nfs4_reset_recoverydir(char *recdir);
-char * nfs4_recoverydir(void);
+char *nfs4_recoverydir(void);
 bool nfsd4_spo_must_allow(struct svc_rqst *rqstp);
 #else
 static inline int nfsd4_init_slabs(void) { return 0; }
@@ -134,7 +135,7 @@ static inline void nfs4_state_shutdown(void) { }
 static inline void nfs4_state_shutdown_net(struct net *net) { }
 static inline void nfs4_reset_lease(time_t leasetime) { }
 static inline int nfs4_reset_recoverydir(char *recdir) { return 0; }
-static inline char * nfs4_recoverydir(void) {return NULL; }
+static inline char *nfs4_recoverydir(void) {return NULL; }
 static inline bool nfsd4_spo_must_allow(struct svc_rqst *rqstp)
 {
 	return false;
@@ -309,24 +310,24 @@ void		nfsd_lockd_shutdown(void);
  *    TIME_CREATE   (unlikely to be supported any time soon)
  */
 #define NFSD4_SUPPORTED_ATTRS_WORD0                                                         \
-(FATTR4_WORD0_SUPPORTED_ATTRS   | FATTR4_WORD0_TYPE         | FATTR4_WORD0_FH_EXPIRE_TYPE   \
- | FATTR4_WORD0_CHANGE          | FATTR4_WORD0_SIZE         | FATTR4_WORD0_LINK_SUPPORT     \
- | FATTR4_WORD0_SYMLINK_SUPPORT | FATTR4_WORD0_NAMED_ATTR   | FATTR4_WORD0_FSID             \
- | FATTR4_WORD0_UNIQUE_HANDLES  | FATTR4_WORD0_LEASE_TIME   | FATTR4_WORD0_RDATTR_ERROR     \
- | FATTR4_WORD0_ACLSUPPORT      | FATTR4_WORD0_CANSETTIME   | FATTR4_WORD0_CASE_INSENSITIVE \
- | FATTR4_WORD0_CASE_PRESERVING | FATTR4_WORD0_CHOWN_RESTRICTED                             \
- | FATTR4_WORD0_FILEHANDLE      | FATTR4_WORD0_FILEID       | FATTR4_WORD0_FILES_AVAIL      \
- | FATTR4_WORD0_FILES_FREE      | FATTR4_WORD0_FILES_TOTAL  | FATTR4_WORD0_FS_LOCATIONS | FATTR4_WORD0_HOMOGENEOUS      \
- | FATTR4_WORD0_MAXFILESIZE     | FATTR4_WORD0_MAXLINK      | FATTR4_WORD0_MAXNAME          \
- | FATTR4_WORD0_MAXREAD         | FATTR4_WORD0_MAXWRITE     | FATTR4_WORD0_ACL)
+	(FATTR4_WORD0_SUPPORTED_ATTRS   | FATTR4_WORD0_TYPE         | FATTR4_WORD0_FH_EXPIRE_TYPE   \
+	 | FATTR4_WORD0_CHANGE          | FATTR4_WORD0_SIZE         | FATTR4_WORD0_LINK_SUPPORT     \
+	 | FATTR4_WORD0_SYMLINK_SUPPORT | FATTR4_WORD0_NAMED_ATTR   | FATTR4_WORD0_FSID             \
+	 | FATTR4_WORD0_UNIQUE_HANDLES  | FATTR4_WORD0_LEASE_TIME   | FATTR4_WORD0_RDATTR_ERROR     \
+	 | FATTR4_WORD0_ACLSUPPORT      | FATTR4_WORD0_CANSETTIME   | FATTR4_WORD0_CASE_INSENSITIVE \
+	 | FATTR4_WORD0_CASE_PRESERVING | FATTR4_WORD0_CHOWN_RESTRICTED                             \
+	 | FATTR4_WORD0_FILEHANDLE      | FATTR4_WORD0_FILEID       | FATTR4_WORD0_FILES_AVAIL      \
+	 | FATTR4_WORD0_FILES_FREE      | FATTR4_WORD0_FILES_TOTAL  | FATTR4_WORD0_FS_LOCATIONS | FATTR4_WORD0_HOMOGENEOUS      \
+	 | FATTR4_WORD0_MAXFILESIZE     | FATTR4_WORD0_MAXLINK      | FATTR4_WORD0_MAXNAME          \
+	 | FATTR4_WORD0_MAXREAD         | FATTR4_WORD0_MAXWRITE     | FATTR4_WORD0_ACL)
 
 #define NFSD4_SUPPORTED_ATTRS_WORD1                                                         \
-(FATTR4_WORD1_MODE              | FATTR4_WORD1_NO_TRUNC     | FATTR4_WORD1_NUMLINKS         \
- | FATTR4_WORD1_OWNER	        | FATTR4_WORD1_OWNER_GROUP  | FATTR4_WORD1_RAWDEV           \
- | FATTR4_WORD1_SPACE_AVAIL     | FATTR4_WORD1_SPACE_FREE   | FATTR4_WORD1_SPACE_TOTAL      \
- | FATTR4_WORD1_SPACE_USED      | FATTR4_WORD1_TIME_ACCESS  | FATTR4_WORD1_TIME_ACCESS_SET  \
- | FATTR4_WORD1_TIME_DELTA   | FATTR4_WORD1_TIME_METADATA    \
- | FATTR4_WORD1_TIME_MODIFY     | FATTR4_WORD1_TIME_MODIFY_SET | FATTR4_WORD1_MOUNTED_ON_FILEID)
+	(FATTR4_WORD1_MODE              | FATTR4_WORD1_NO_TRUNC     | FATTR4_WORD1_NUMLINKS         \
+	 | FATTR4_WORD1_OWNER	        | FATTR4_WORD1_OWNER_GROUP  | FATTR4_WORD1_RAWDEV           \
+	 | FATTR4_WORD1_SPACE_AVAIL     | FATTR4_WORD1_SPACE_FREE   | FATTR4_WORD1_SPACE_TOTAL      \
+	 | FATTR4_WORD1_SPACE_USED      | FATTR4_WORD1_TIME_ACCESS  | FATTR4_WORD1_TIME_ACCESS_SET  \
+	 | FATTR4_WORD1_TIME_DELTA   | FATTR4_WORD1_TIME_METADATA    \
+	 | FATTR4_WORD1_TIME_MODIFY     | FATTR4_WORD1_TIME_MODIFY_SET | FATTR4_WORD1_MOUNTED_ON_FILEID)
 
 #define NFSD4_SUPPORTED_ATTRS_WORD2 0
 
@@ -334,7 +335,7 @@ void		nfsd_lockd_shutdown(void);
 #ifdef CONFIG_NFSD_PNFS
 #define PNFSD_SUPPORTED_ATTRS_WORD1	FATTR4_WORD1_FS_LAYOUT_TYPES
 #define PNFSD_SUPPORTED_ATTRS_WORD2 \
-(FATTR4_WORD2_LAYOUT_BLKSIZE	| FATTR4_WORD2_LAYOUT_TYPES)
+	(FATTR4_WORD2_LAYOUT_BLKSIZE	| FATTR4_WORD2_LAYOUT_TYPES)
 #else
 #define PNFSD_SUPPORTED_ATTRS_WORD1	0
 #define PNFSD_SUPPORTED_ATTRS_WORD2	0
@@ -352,33 +353,36 @@ void		nfsd_lockd_shutdown(void);
 
 /* 4.2 */
 #ifdef CONFIG_NFSD_V4_SECURITY_LABEL
-#define NFSD4_2_SECURITY_ATTRS		FATTR4_WORD2_SECURITY_LABEL
+	#define NFSD4_2_SECURITY_ATTRS		FATTR4_WORD2_SECURITY_LABEL
 #else
-#define NFSD4_2_SECURITY_ATTRS		0
+	#define NFSD4_2_SECURITY_ATTRS		0
 #endif
 
 #define NFSD4_2_SUPPORTED_ATTRS_WORD2 \
 	(NFSD4_1_SUPPORTED_ATTRS_WORD2 | \
-	NFSD4_2_SECURITY_ATTRS)
+	 NFSD4_2_SECURITY_ATTRS)
 
 static inline u32 nfsd_suppattrs0(u32 minorversion)
 {
 	return minorversion ? NFSD4_1_SUPPORTED_ATTRS_WORD0
-			    : NFSD4_SUPPORTED_ATTRS_WORD0;
+		   : NFSD4_SUPPORTED_ATTRS_WORD0;
 }
 
 static inline u32 nfsd_suppattrs1(u32 minorversion)
 {
 	return minorversion ? NFSD4_1_SUPPORTED_ATTRS_WORD1
-			    : NFSD4_SUPPORTED_ATTRS_WORD1;
+		   : NFSD4_SUPPORTED_ATTRS_WORD1;
 }
 
 static inline u32 nfsd_suppattrs2(u32 minorversion)
 {
-	switch (minorversion) {
-	default: return NFSD4_2_SUPPORTED_ATTRS_WORD2;
-	case 1:  return NFSD4_1_SUPPORTED_ATTRS_WORD2;
-	case 0:  return NFSD4_SUPPORTED_ATTRS_WORD2;
+	switch (minorversion)
+	{
+		default: return NFSD4_2_SUPPORTED_ATTRS_WORD2;
+
+		case 1:  return NFSD4_1_SUPPORTED_ATTRS_WORD2;
+
+		case 0:  return NFSD4_SUPPORTED_ATTRS_WORD2;
 	}
 }
 
@@ -391,11 +395,11 @@ static inline u32 nfsd_suppattrs2(u32 minorversion)
 	(FATTR4_WORD0_SIZE | FATTR4_WORD0_ACL)
 #define NFSD_WRITEABLE_ATTRS_WORD1 \
 	(FATTR4_WORD1_MODE | FATTR4_WORD1_OWNER | FATTR4_WORD1_OWNER_GROUP \
-	| FATTR4_WORD1_TIME_ACCESS_SET | FATTR4_WORD1_TIME_MODIFY_SET)
+	 | FATTR4_WORD1_TIME_ACCESS_SET | FATTR4_WORD1_TIME_MODIFY_SET)
 #ifdef CONFIG_NFSD_V4_SECURITY_LABEL
-#define NFSD_WRITEABLE_ATTRS_WORD2 FATTR4_WORD2_SECURITY_LABEL
+	#define NFSD_WRITEABLE_ATTRS_WORD2 FATTR4_WORD2_SECURITY_LABEL
 #else
-#define NFSD_WRITEABLE_ATTRS_WORD2 0
+	#define NFSD_WRITEABLE_ATTRS_WORD2 0
 #endif
 
 #define NFSD_SUPPATTR_EXCLCREAT_WORD0 \

@@ -18,7 +18,7 @@
 #include "hdmi.h"
 
 static void hdmi_phy_8x74_powerup(struct hdmi_phy *phy,
-		unsigned long int pixclock)
+								  unsigned long int pixclock)
 {
 	hdmi_phy_write(phy, REG_HDMI_8x74_ANA_CFG0,   0x1b);
 	hdmi_phy_write(phy, REG_HDMI_8x74_ANA_CFG1,   0xf2);
@@ -35,17 +35,20 @@ static void hdmi_phy_8x74_powerdown(struct hdmi_phy *phy)
 	hdmi_phy_write(phy, REG_HDMI_8x74_PD_CTRL0, 0x7f);
 }
 
-static const char * const hdmi_phy_8x74_reg_names[] = {
+static const char *const hdmi_phy_8x74_reg_names[] =
+{
 	"core-vdda",
 	"vddio",
 };
 
-static const char * const hdmi_phy_8x74_clk_names[] = {
+static const char *const hdmi_phy_8x74_clk_names[] =
+{
 	"iface_clk",
 	"alt_iface_clk"
 };
 
-const struct hdmi_phy_cfg msm_hdmi_phy_8x74_cfg = {
+const struct hdmi_phy_cfg msm_hdmi_phy_8x74_cfg =
+{
 	.type = MSM_HDMI_PHY_8x74,
 	.powerup = hdmi_phy_8x74_powerup,
 	.powerdown = hdmi_phy_8x74_powerdown,

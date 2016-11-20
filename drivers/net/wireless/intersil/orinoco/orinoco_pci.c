@@ -96,13 +96,16 @@ static int orinoco_pci_cor_reset(struct orinoco_private *priv)
 	/* The card is ready when it's no longer busy */
 	timeout = jiffies + msecs_to_jiffies(HERMES_PCI_COR_BUSYT);
 	reg = hermes_read_regn(hw, CMD);
-	while (time_before(jiffies, timeout) && (reg & HERMES_CMD_BUSY)) {
+
+	while (time_before(jiffies, timeout) && (reg & HERMES_CMD_BUSY))
+	{
 		mdelay(1);
 		reg = hermes_read_regn(hw, CMD);
 	}
 
 	/* Still busy? */
-	if (reg & HERMES_CMD_BUSY) {
+	if (reg & HERMES_CMD_BUSY)
+	{
 		printk(KERN_ERR PFX "Busy timeout\n");
 		return -ETIMEDOUT;
 	}
@@ -111,7 +114,7 @@ static int orinoco_pci_cor_reset(struct orinoco_private *priv)
 }
 
 static int orinoco_pci_init_one(struct pci_dev *pdev,
-				const struct pci_device_id *ent)
+								const struct pci_device_id *ent)
 {
 	int err;
 	struct orinoco_private *priv;
@@ -119,19 +122,25 @@ static int orinoco_pci_init_one(struct pci_dev *pdev,
 	void __iomem *hermes_io;
 
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Cannot enable PCI device\n");
 		return err;
 	}
 
 	err = pci_request_regions(pdev, DRIVER_NAME);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Cannot obtain PCI resources\n");
 		goto fail_resources;
 	}
 
 	hermes_io = pci_iomap(pdev, 0, 0);
-	if (!hermes_io) {
+
+	if (!hermes_io)
+	{
 		printk(KERN_ERR PFX "Cannot remap chipset registers\n");
 		err = -EIO;
 		goto fail_map_hermes;
@@ -139,8 +148,10 @@ static int orinoco_pci_init_one(struct pci_dev *pdev,
 
 	/* Allocate network device */
 	priv = alloc_orinocodev(sizeof(*card), &pdev->dev,
-				orinoco_pci_cor_reset, NULL);
-	if (!priv) {
+							orinoco_pci_cor_reset, NULL);
+
+	if (!priv)
+	{
 		printk(KERN_ERR PFX "Cannot allocate network device\n");
 		err = -ENOMEM;
 		goto fail_alloc;
@@ -151,27 +162,35 @@ static int orinoco_pci_init_one(struct pci_dev *pdev,
 	hermes_struct_init(&priv->hw, hermes_io, HERMES_32BIT_REGSPACING);
 
 	err = request_irq(pdev->irq, orinoco_interrupt, IRQF_SHARED,
-			  DRIVER_NAME, priv);
-	if (err) {
+					  DRIVER_NAME, priv);
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Cannot allocate IRQ %d\n", pdev->irq);
 		err = -EBUSY;
 		goto fail_irq;
 	}
 
 	err = orinoco_pci_cor_reset(priv);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Initial reset failed\n");
 		goto fail;
 	}
 
 	err = orinoco_init(priv);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "orinoco_init() failed\n");
 		goto fail;
 	}
 
 	err = orinoco_if_add(priv, 0, 0, NULL);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "orinoco_if_add() failed\n");
 		goto fail_wiphy;
 	}
@@ -180,21 +199,21 @@ static int orinoco_pci_init_one(struct pci_dev *pdev,
 
 	return 0;
 
- fail_wiphy:
+fail_wiphy:
 	wiphy_unregister(priv_to_wiphy(priv));
- fail:
+fail:
 	free_irq(pdev->irq, priv);
 
- fail_irq:
+fail_irq:
 	free_orinocodev(priv);
 
- fail_alloc:
+fail_alloc:
 	pci_iounmap(pdev, hermes_io);
 
- fail_map_hermes:
+fail_map_hermes:
 	pci_release_regions(pdev);
 
- fail_resources:
+fail_resources:
 	pci_disable_device(pdev);
 
 	return err;
@@ -213,7 +232,8 @@ static void orinoco_pci_remove_one(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 }
 
-static const struct pci_device_id orinoco_pci_id_table[] = {
+static const struct pci_device_id orinoco_pci_id_table[] =
+{
 	/* Intersil Prism 3 */
 	{0x1260, 0x3872, PCI_ANY_ID, PCI_ANY_ID,},
 	/* Intersil Prism 2.5 */
@@ -225,7 +245,8 @@ static const struct pci_device_id orinoco_pci_id_table[] = {
 
 MODULE_DEVICE_TABLE(pci, orinoco_pci_id_table);
 
-static struct pci_driver orinoco_pci_driver = {
+static struct pci_driver orinoco_pci_driver =
+{
 	.name		= DRIVER_NAME,
 	.id_table	= orinoco_pci_id_table,
 	.probe		= orinoco_pci_init_one,
@@ -235,11 +256,11 @@ static struct pci_driver orinoco_pci_driver = {
 };
 
 static char version[] __initdata = DRIVER_NAME " " DRIVER_VERSION
-	" (Pavel Roskin <proski@gnu.org>,"
-	" David Gibson <hermes@gibson.dropbear.id.au> &"
-	" Jean Tourrilhes <jt@hpl.hp.com>)";
+								   " (Pavel Roskin <proski@gnu.org>,"
+								   " David Gibson <hermes@gibson.dropbear.id.au> &"
+								   " Jean Tourrilhes <jt@hpl.hp.com>)";
 MODULE_AUTHOR("Pavel Roskin <proski@gnu.org> &"
-	      " David Gibson <hermes@gibson.dropbear.id.au>");
+			  " David Gibson <hermes@gibson.dropbear.id.au>");
 MODULE_DESCRIPTION("Driver for wireless LAN cards using direct PCI interface");
 MODULE_LICENSE("Dual MPL/GPL");
 

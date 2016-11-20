@@ -25,7 +25,8 @@
  * Note: Don't dereference a bcom_bd pointer as an array.  The size of the
  *       bcom_bd is variable.  Use bcom_get_bd() instead.
  */
-struct bcom_bd {
+struct bcom_bd
+{
 	u32	status;
 	u32	data[0];	/* variable payload size */
 };
@@ -44,7 +45,8 @@ struct bcom_bd {
  * Most likely you don't need to poke around inside this structure. The
  * fields are exposed in the header just for the sake of inline functions
  */
-struct bcom_task {
+struct bcom_task
+{
 	unsigned int	tasknum;
 	unsigned int	flags;
 	int		irq;
@@ -57,7 +59,7 @@ struct bcom_task {
 	unsigned int	num_bd;
 	unsigned int	bd_size;
 
-	void*		priv;
+	void		*priv;
 };
 
 #define BCOM_FLAGS_NONE         0x00000000ul
@@ -87,7 +89,8 @@ extern void bcom_disable(struct bcom_task *tsk);
  * @tsk: The BestComm task structure
  */
 static inline int
-bcom_get_task_irq(struct bcom_task *tsk) {
+bcom_get_task_irq(struct bcom_task *tsk)
+{
 	return tsk->irq;
 }
 
@@ -153,15 +156,18 @@ static inline struct bcom_bd
 }
 
 /**
- * bcom_buffer_done - Checks if a BestComm 
+ * bcom_buffer_done - Checks if a BestComm
  * @tsk: The BestComm task structure
  */
 static inline int
 bcom_buffer_done(struct bcom_task *tsk)
 {
 	struct bcom_bd *bd;
+
 	if (bcom_queue_empty(tsk))
+	{
 		return 0;
+	}
 
 	bd = bcom_get_bd(tsk, tsk->outdex);
 	return !(bd->status & BCOM_BD_READY);
@@ -192,8 +198,11 @@ bcom_submit_next_buffer(struct bcom_task *tsk, void *cookie)
 	mb();	/* ensure the bd is really up-to-date */
 	bd->status |= BCOM_BD_READY;
 	tsk->index = _bcom_next_index(tsk);
+
 	if (tsk->flags & BCOM_FLAGS_ENABLE_TASK)
+	{
 		bcom_enable(tsk);
+	}
 }
 
 static inline void *
@@ -203,9 +212,15 @@ bcom_retrieve_buffer(struct bcom_task *tsk, u32 *p_status, struct bcom_bd **p_bd
 	struct bcom_bd *bd = bcom_get_bd(tsk, tsk->outdex);
 
 	if (p_status)
+	{
 		*p_status = bd->status;
+	}
+
 	if (p_bd)
+	{
 		*p_bd = bd;
+	}
+
 	tsk->outdex = _bcom_next_outdex(tsk);
 	return cookie;
 }

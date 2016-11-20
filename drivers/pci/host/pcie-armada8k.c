@@ -28,7 +28,8 @@
 
 #include "pcie-designware.h"
 
-struct armada8k_pcie {
+struct armada8k_pcie
+{
 	struct pcie_port pp;		/* pp.dbi_base is DT ctrl */
 	struct clk *clk;
 };
@@ -77,7 +78,9 @@ static int armada8k_pcie_link_up(struct pcie_port *pp)
 	reg = dw_pcie_readl_rc(pp, PCIE_GLOBAL_STATUS_REG);
 
 	if ((reg & mask) == mask)
+	{
 		return 1;
+	}
 
 	dev_dbg(pp->dev, "No link detected (Global-Status: 0x%08x).\n", reg);
 	return 0;
@@ -88,7 +91,8 @@ static void armada8k_pcie_establish_link(struct armada8k_pcie *pcie)
 	struct pcie_port *pp = &pcie->pp;
 	u32 reg;
 
-	if (!dw_pcie_link_up(pp)) {
+	if (!dw_pcie_link_up(pp))
+	{
 		/* Disable LTSSM state machine to enable configuration */
 		reg = dw_pcie_readl_rc(pp, PCIE_GLOBAL_CONTROL_REG);
 		reg &= ~(PCIE_APP_LTSSM_EN);
@@ -119,10 +123,11 @@ static void armada8k_pcie_establish_link(struct armada8k_pcie *pcie)
 	/* Enable INT A-D interrupts */
 	reg = dw_pcie_readl_rc(pp, PCIE_GLOBAL_INT_MASK1_REG);
 	reg |= PCIE_INT_A_ASSERT_MASK | PCIE_INT_B_ASSERT_MASK |
-	       PCIE_INT_C_ASSERT_MASK | PCIE_INT_D_ASSERT_MASK;
+		   PCIE_INT_C_ASSERT_MASK | PCIE_INT_D_ASSERT_MASK;
 	dw_pcie_writel_rc(pp, PCIE_GLOBAL_INT_MASK1_REG, reg);
 
-	if (!dw_pcie_link_up(pp)) {
+	if (!dw_pcie_link_up(pp))
+	{
 		/* Configuration done. Start LTSSM */
 		reg = dw_pcie_readl_rc(pp, PCIE_GLOBAL_CONTROL_REG);
 		reg |= PCIE_APP_LTSSM_EN;
@@ -131,7 +136,9 @@ static void armada8k_pcie_establish_link(struct armada8k_pcie *pcie)
 
 	/* Wait until the link becomes active again */
 	if (dw_pcie_wait_for_link(pp))
+	{
 		dev_err(pp->dev, "Link not up after reconfiguration\n");
+	}
 }
 
 static void armada8k_pcie_host_init(struct pcie_port *pp)
@@ -159,13 +166,14 @@ static irqreturn_t armada8k_pcie_irq_handler(int irq, void *arg)
 	return IRQ_HANDLED;
 }
 
-static struct pcie_host_ops armada8k_pcie_host_ops = {
+static struct pcie_host_ops armada8k_pcie_host_ops =
+{
 	.link_up = armada8k_pcie_link_up,
 	.host_init = armada8k_pcie_host_init,
 };
 
 static int armada8k_add_pcie_port(struct armada8k_pcie *pcie,
-				  struct platform_device *pdev)
+								  struct platform_device *pdev)
 {
 	struct pcie_port *pp = &pcie->pp;
 	struct device *dev = &pdev->dev;
@@ -175,20 +183,26 @@ static int armada8k_add_pcie_port(struct armada8k_pcie *pcie,
 	pp->ops = &armada8k_pcie_host_ops;
 
 	pp->irq = platform_get_irq(pdev, 0);
-	if (!pp->irq) {
+
+	if (!pp->irq)
+	{
 		dev_err(dev, "failed to get irq for port\n");
 		return -ENODEV;
 	}
 
 	ret = devm_request_irq(dev, pp->irq, armada8k_pcie_irq_handler,
-			       IRQF_SHARED, "armada8k-pcie", pcie);
-	if (ret) {
+						   IRQF_SHARED, "armada8k-pcie", pcie);
+
+	if (ret)
+	{
 		dev_err(dev, "failed to request irq %d\n", pp->irq);
 		return ret;
 	}
 
 	ret = dw_pcie_host_init(pp);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to initialize host: %d\n", ret);
 		return ret;
 	}
@@ -205,12 +219,18 @@ static int armada8k_pcie_probe(struct platform_device *pdev)
 	int ret;
 
 	pcie = devm_kzalloc(dev, sizeof(*pcie), GFP_KERNEL);
+
 	if (!pcie)
+	{
 		return -ENOMEM;
+	}
 
 	pcie->clk = devm_clk_get(dev, NULL);
+
 	if (IS_ERR(pcie->clk))
+	{
 		return PTR_ERR(pcie->clk);
+	}
 
 	clk_prepare_enable(pcie->clk);
 
@@ -220,31 +240,41 @@ static int armada8k_pcie_probe(struct platform_device *pdev)
 	/* Get the dw-pcie unit configuration/control registers base. */
 	base = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ctrl");
 	pp->dbi_base = devm_ioremap_resource(dev, base);
-	if (IS_ERR(pp->dbi_base)) {
+
+	if (IS_ERR(pp->dbi_base))
+	{
 		dev_err(dev, "couldn't remap regs base %p\n", base);
 		ret = PTR_ERR(pp->dbi_base);
 		goto fail;
 	}
 
 	ret = armada8k_add_pcie_port(pcie, pdev);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	return 0;
 
 fail:
+
 	if (!IS_ERR(pcie->clk))
+	{
 		clk_disable_unprepare(pcie->clk);
+	}
 
 	return ret;
 }
 
-static const struct of_device_id armada8k_pcie_of_match[] = {
+static const struct of_device_id armada8k_pcie_of_match[] =
+{
 	{ .compatible = "marvell,armada8k-pcie", },
 	{},
 };
 
-static struct platform_driver armada8k_pcie_driver = {
+static struct platform_driver armada8k_pcie_driver =
+{
 	.probe		= armada8k_pcie_probe,
 	.driver = {
 		.name	= "armada8k-pcie",

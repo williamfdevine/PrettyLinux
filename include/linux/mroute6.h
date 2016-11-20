@@ -32,14 +32,14 @@ extern void ip6_mr_cleanup(void);
 #else
 static inline
 int ip6_mroute_setsockopt(struct sock *sock,
-			  int optname, char __user *optval, unsigned int optlen)
+						  int optname, char __user *optval, unsigned int optlen)
 {
 	return -ENOPROTOOPT;
 }
 
 static inline
 int ip6_mroute_getsockopt(struct sock *sock,
-			  int optname, char __user *optval, int __user *optlen)
+						  int optname, char __user *optval, int __user *optlen)
 {
 	return -ENOPROTOOPT;
 }
@@ -61,10 +61,11 @@ static inline void ip6_mr_cleanup(void)
 }
 #endif
 
-struct mif_device {
+struct mif_device
+{
 	struct net_device 	*dev;			/* Device we are using */
-	unsigned long	bytes_in,bytes_out;
-	unsigned long	pkt_in,pkt_out;		/* Statistics 			*/
+	unsigned long	bytes_in, bytes_out;
+	unsigned long	pkt_in, pkt_out;		/* Statistics 			*/
 	unsigned long	rate_limit;		/* Traffic shaping (NI) 	*/
 	unsigned char	threshold;		/* TTL threshold 		*/
 	unsigned short	flags;			/* Control flags 		*/
@@ -73,19 +74,23 @@ struct mif_device {
 
 #define VIFF_STATIC 0x8000
 
-struct mfc6_cache {
+struct mfc6_cache
+{
 	struct list_head list;
 	struct in6_addr mf6c_mcastgrp;			/* Group the entry belongs to 	*/
 	struct in6_addr mf6c_origin;			/* Source of packet 		*/
 	mifi_t mf6c_parent;			/* Source interface		*/
 	int mfc_flags;				/* Flags on line		*/
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			unsigned long expires;
 			struct sk_buff_head unresolved;	/* Unresolved buffers		*/
 		} unres;
-		struct {
+		struct
+		{
 			unsigned long last_assert;
 			int minvif;
 			int maxvif;
@@ -104,19 +109,19 @@ struct mfc6_cache {
 #define MFC6_LINES		64
 
 #define MFC6_HASH(a, g) (((__force u32)(a)->s6_addr32[0] ^ \
-			  (__force u32)(a)->s6_addr32[1] ^ \
-			  (__force u32)(a)->s6_addr32[2] ^ \
-			  (__force u32)(a)->s6_addr32[3] ^ \
-			  (__force u32)(g)->s6_addr32[0] ^ \
-			  (__force u32)(g)->s6_addr32[1] ^ \
-			  (__force u32)(g)->s6_addr32[2] ^ \
-			  (__force u32)(g)->s6_addr32[3]) % MFC6_LINES)
+						  (__force u32)(a)->s6_addr32[1] ^ \
+						  (__force u32)(a)->s6_addr32[2] ^ \
+						  (__force u32)(a)->s6_addr32[3] ^ \
+						  (__force u32)(g)->s6_addr32[0] ^ \
+						  (__force u32)(g)->s6_addr32[1] ^ \
+						  (__force u32)(g)->s6_addr32[2] ^ \
+						  (__force u32)(g)->s6_addr32[3]) % MFC6_LINES)
 
 #define MFC_ASSERT_THRESH (3*HZ)		/* Maximal freq. of asserts */
 
 struct rtmsg;
 extern int ip6mr_get_route(struct net *net, struct sk_buff *skb,
-			   struct rtmsg *rtm, int nowait, u32 portid);
+						   struct rtmsg *rtm, int nowait, u32 portid);
 
 #ifdef CONFIG_IPV6_MROUTE
 extern struct sock *mroute6_socket(struct net *net, struct sk_buff *skb);

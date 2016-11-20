@@ -24,22 +24,30 @@ static char *test_file(int size)
 #undef TEMPL
 
 	fd = mkstemp(templ);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		perror("mkstemp failed");
 		return NULL;
 	}
 
 	buf = malloc(size);
-	if (!buf) {
+
+	if (!buf)
+	{
 		close(fd);
 		return NULL;
 	}
 
 	for (i = 0; i < size; i++)
+	{
 		buf[i] = (unsigned char) ((int) i % 10);
+	}
 
 	if (size != write(fd, buf, size))
+	{
 		templ = NULL;
+	}
 
 	free(buf);
 	close(fd);
@@ -48,13 +56,15 @@ static char *test_file(int size)
 
 #define TEST_FILE_SIZE (DSO__DATA_CACHE_SIZE * 20)
 
-struct test_data_offset {
+struct test_data_offset
+{
 	off_t offset;
 	u8 data[10];
 	int size;
 };
 
-struct test_data_offset offsets[] = {
+struct test_data_offset offsets[] =
+{
 	/* Fill first cache page. */
 	{
 		.offset = 10,
@@ -105,7 +115,9 @@ static int dso__data_fd(struct dso *dso, struct machine *machine)
 	int fd = dso__data_get_fd(dso, machine);
 
 	if (fd >= 0)
+	{
 		dso__data_put_fd(dso);
+	}
 
 	return fd;
 }
@@ -124,17 +136,18 @@ int test__dso_data(int subtest __maybe_unused)
 	dso = dso__new((const char *)file);
 
 	TEST_ASSERT_VAL("Failed to access to dso",
-			dso__data_fd(dso, &machine) >= 0);
+					dso__data_fd(dso, &machine) >= 0);
 
 	/* Basic 10 bytes tests. */
-	for (i = 0; i < ARRAY_SIZE(offsets); i++) {
+	for (i = 0; i < ARRAY_SIZE(offsets); i++)
+	{
 		struct test_data_offset *data = &offsets[i];
 		ssize_t size;
 		u8 buf[10];
 
 		memset(buf, 0, 10);
 		size = dso__data_read_offset(dso, &machine, data->offset,
-				     buf, 10);
+									 buf, 10);
 
 		TEST_ASSERT_VAL("Wrong size", size == data->size);
 		TEST_ASSERT_VAL("Wrong data", !memcmp(buf, data->data, 10));
@@ -150,17 +163,18 @@ int test__dso_data(int subtest __maybe_unused)
 		TEST_ASSERT_VAL("ENOMEM\n", buf);
 
 		/* First iteration to fill caches, second one to read them. */
-		for (c = 0; c < 2; c++) {
+		for (c = 0; c < 2; c++)
+		{
 			memset(buf, 0, TEST_FILE_SIZE);
 			size = dso__data_read_offset(dso, &machine, 10,
-						     buf, TEST_FILE_SIZE);
+										 buf, TEST_FILE_SIZE);
 
 			TEST_ASSERT_VAL("Wrong size",
-				size == (TEST_FILE_SIZE - 10));
+							size == (TEST_FILE_SIZE - 10));
 
 			for (i = 0; i < (size_t)size; i++)
 				TEST_ASSERT_VAL("Wrong data",
-					buf[i] == (i % 10));
+								buf[i] == (i % 10));
 		}
 
 		free(buf);
@@ -184,10 +198,13 @@ static long open_files_cnt(void)
 	dir = opendir(path);
 	TEST_ASSERT_VAL("failed to open fd directory", dir);
 
-	while ((dent = readdir(dir)) != NULL) {
+	while ((dent = readdir(dir)) != NULL)
+	{
 		if (!strcmp(dent->d_name, ".") ||
-		    !strcmp(dent->d_name, ".."))
+			!strcmp(dent->d_name, ".."))
+		{
 			continue;
+		}
 
 		nr++;
 	}
@@ -205,7 +222,8 @@ static int dsos__create(int cnt, int size)
 	dsos = malloc(sizeof(*dsos) * cnt);
 	TEST_ASSERT_VAL("failed to alloc dsos array", dsos);
 
-	for (i = 0; i < cnt; i++) {
+	for (i = 0; i < cnt; i++)
+	{
 		char *file;
 
 		file = test_file(size);
@@ -222,7 +240,8 @@ static void dsos__delete(int cnt)
 {
 	int i;
 
-	for (i = 0; i < cnt; i++) {
+	for (i = 0; i < cnt; i++)
+	{
 		struct dso *dso = dsos[i];
 
 		unlink(dso->name);
@@ -237,7 +256,9 @@ static int set_fd_limit(int n)
 	struct rlimit rlim;
 
 	if (getrlimit(RLIMIT_NOFILE, &rlim))
+	{
 		return -1;
+	}
 
 	pr_debug("file limit %ld, new %d\n", (long) rlim.rlim_cur, n);
 
@@ -263,9 +284,10 @@ int test__dso_data_cache(int subtest __maybe_unused)
 	/* and this is now our dso open FDs limit */
 	dso_cnt = limit / 2;
 	TEST_ASSERT_VAL("failed to create dsos\n",
-		!dsos__create(dso_cnt, TEST_FILE_SIZE));
+					!dsos__create(dso_cnt, TEST_FILE_SIZE));
 
-	for (i = 0; i < (dso_cnt - 1); i++) {
+	for (i = 0; i < (dso_cnt - 1); i++)
+	{
 		struct dso *dso = dsos[i];
 
 		/*
@@ -275,8 +297,9 @@ int test__dso_data_cache(int subtest __maybe_unused)
 		fd = dso__data_fd(dso, &machine);
 		TEST_ASSERT_VAL("failed to get fd", fd > 0);
 
-		if (i % 2) {
-			#define BUFSIZE 10
+		if (i % 2)
+		{
+#define BUFSIZE 10
 			u8 buf[BUFSIZE];
 			ssize_t n;
 
@@ -331,7 +354,7 @@ int test__dso_data_reopen(int subtest __maybe_unused)
 
 	/* Make sure we are able to open 3 fds anyway */
 	TEST_ASSERT_VAL("failed to set file limit",
-			!set_fd_limit((nr + 3)));
+					!set_fd_limit((nr + 3)));
 
 	TEST_ASSERT_VAL("failed to create dsos\n", !dsos__create(3, TEST_FILE_SIZE));
 

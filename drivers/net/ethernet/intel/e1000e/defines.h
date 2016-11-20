@@ -91,19 +91,19 @@
 
 /* mask to determine if packets should be dropped due to frame errors */
 #define E1000_RXD_ERR_FRAME_ERR_MASK ( \
-	E1000_RXD_ERR_CE  |		\
-	E1000_RXD_ERR_SE  |		\
-	E1000_RXD_ERR_SEQ |		\
-	E1000_RXD_ERR_CXE |		\
-	E1000_RXD_ERR_RXE)
+									   E1000_RXD_ERR_CE  |		\
+									   E1000_RXD_ERR_SE  |		\
+									   E1000_RXD_ERR_SEQ |		\
+									   E1000_RXD_ERR_CXE |		\
+									   E1000_RXD_ERR_RXE)
 
 /* Same mask, but for extended and packet split descriptors */
 #define E1000_RXDEXT_ERR_FRAME_ERR_MASK ( \
-	E1000_RXDEXT_STATERR_CE  |	\
-	E1000_RXDEXT_STATERR_SE  |	\
-	E1000_RXDEXT_STATERR_SEQ |	\
-	E1000_RXDEXT_STATERR_CXE |	\
-	E1000_RXDEXT_STATERR_RXE)
+		E1000_RXDEXT_STATERR_CE  |	\
+		E1000_RXDEXT_STATERR_SE  |	\
+		E1000_RXDEXT_STATERR_SEQ |	\
+		E1000_RXDEXT_STATERR_CXE |	\
+		E1000_RXDEXT_STATERR_RXE)
 
 #define E1000_MRQC_RSS_FIELD_MASK              0xFFFF0000
 #define E1000_MRQC_RSS_FIELD_IPV4_TCP          0x00010000
@@ -252,11 +252,11 @@
 
 /* 1000/H is not supported, nor spec-compliant. */
 #define E1000_ALL_SPEED_DUPLEX	( \
-	ADVERTISE_10_HALF | ADVERTISE_10_FULL | ADVERTISE_100_HALF | \
-	ADVERTISE_100_FULL | ADVERTISE_1000_FULL)
+								  ADVERTISE_10_HALF | ADVERTISE_10_FULL | ADVERTISE_100_HALF | \
+								  ADVERTISE_100_FULL | ADVERTISE_1000_FULL)
 #define E1000_ALL_NOT_GIG	( \
-	ADVERTISE_10_HALF | ADVERTISE_10_FULL | ADVERTISE_100_HALF | \
-	ADVERTISE_100_FULL)
+							  ADVERTISE_10_HALF | ADVERTISE_10_FULL | ADVERTISE_100_HALF | \
+							  ADVERTISE_100_FULL)
 #define E1000_ALL_100_SPEED	(ADVERTISE_100_HALF | ADVERTISE_100_FULL)
 #define E1000_ALL_10_SPEED	(ADVERTISE_10_HALF | ADVERTISE_10_FULL)
 #define E1000_ALL_HALF_DUPLEX	(ADVERTISE_10_HALF | ADVERTISE_100_HALF)
@@ -424,11 +424,11 @@
  *   o LSC    = Link Status Change
  */
 #define IMS_ENABLE_MASK ( \
-	E1000_IMS_RXT0   |    \
-	E1000_IMS_TXDW   |    \
-	E1000_IMS_RXDMT0 |    \
-	E1000_IMS_RXSEQ  |    \
-	E1000_IMS_LSC)
+						  E1000_IMS_RXT0   |    \
+						  E1000_IMS_TXDW   |    \
+						  E1000_IMS_RXDMT0 |    \
+						  E1000_IMS_RXSEQ  |    \
+						  E1000_IMS_LSC)
 
 /* Interrupt Mask Set */
 #define E1000_IMS_TXDW      E1000_ICR_TXDW      /* Transmit desc written back */
@@ -564,11 +564,11 @@
 #define E1000_GCR_TXDSCR_NO_SNOOP       0x00000020
 
 #define PCIE_NO_SNOOP_ALL (E1000_GCR_RXD_NO_SNOOP         | \
-			   E1000_GCR_RXDSCW_NO_SNOOP      | \
-			   E1000_GCR_RXDSCR_NO_SNOOP      | \
-			   E1000_GCR_TXD_NO_SNOOP         | \
-			   E1000_GCR_TXDSCW_NO_SNOOP      | \
-			   E1000_GCR_TXDSCR_NO_SNOOP)
+						   E1000_GCR_RXDSCW_NO_SNOOP      | \
+						   E1000_GCR_RXDSCR_NO_SNOOP      | \
+						   E1000_GCR_TXD_NO_SNOOP         | \
+						   E1000_GCR_TXDSCW_NO_SNOOP      | \
+						   E1000_GCR_TXDSCR_NO_SNOOP)
 
 /* NVM Control */
 #define E1000_EECD_SK        0x00000001 /* NVM Clock */
@@ -654,9 +654,9 @@
 #define ID_LED_RESERVED_0000 0x0000
 #define ID_LED_RESERVED_FFFF 0xFFFF
 #define ID_LED_DEFAULT       ((ID_LED_OFF1_ON2  << 12) | \
-			      (ID_LED_OFF1_OFF2 <<  8) | \
-			      (ID_LED_DEF1_DEF2 <<  4) | \
-			      (ID_LED_DEF1_DEF2))
+							  (ID_LED_OFF1_OFF2 <<  8) | \
+							  (ID_LED_DEF1_DEF2 <<  4) | \
+							  (ID_LED_DEF1_DEF2))
 #define ID_LED_DEF1_DEF2     0x1
 #define ID_LED_DEF1_ON2      0x2
 #define ID_LED_DEF1_OFF2     0x3
@@ -715,7 +715,7 @@
 /* M88E1000 PHY Specific Control Register */
 #define M88E1000_PSCR_POLARITY_REVERSAL 0x0002 /* 1=Polarity Reversal enabled */
 #define M88E1000_PSCR_MDI_MANUAL_MODE  0x0000  /* MDI Crossover Mode bits 6:5 */
-					       /* Manual MDI configuration */
+/* Manual MDI configuration */
 #define M88E1000_PSCR_MDIX_MANUAL_MODE 0x0020  /* Manual MDIX configuration */
 /* 1000BASE-T: Auto crossover, 100BASE-TX/10BASE-T: MDI Mode */
 #define M88E1000_PSCR_AUTO_X_1000T     0x0040

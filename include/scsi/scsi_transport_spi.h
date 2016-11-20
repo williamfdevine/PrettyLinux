@@ -1,4 +1,4 @@
-/* 
+/*
  *  Parallel SCSI (SPI) transport specific attributes exported to sysfs.
  *
  *  Copyright (c) 2003 Silicon Graphics, Inc.  All rights reserved.
@@ -28,46 +28,49 @@ struct scsi_target;
 struct scsi_device;
 struct Scsi_Host;
 
-struct spi_transport_attrs {
+struct spi_transport_attrs
+{
 	int period;		/* value in the PPR/SDTR command */
 	int min_period;
 	int offset;
 	int max_offset;
-	unsigned int width:1;	/* 0 - narrow, 1 - wide */
-	unsigned int max_width:1;
-	unsigned int iu:1;	/* Information Units enabled */
-	unsigned int max_iu:1;
-	unsigned int dt:1;	/* DT clocking enabled */
-	unsigned int qas:1;	/* Quick Arbitration and Selection enabled */
-	unsigned int max_qas:1;
-	unsigned int wr_flow:1;	/* Write Flow control enabled */
-	unsigned int rd_strm:1;	/* Read streaming enabled */
-	unsigned int rti:1;	/* Retain Training Information */
-	unsigned int pcomp_en:1;/* Precompensation enabled */
-	unsigned int hold_mcs:1;/* Hold Margin Control Settings */
-	unsigned int initial_dv:1; /* DV done to this target yet  */
+	unsigned int width: 1;	/* 0 - narrow, 1 - wide */
+	unsigned int max_width: 1;
+	unsigned int iu: 1;	/* Information Units enabled */
+	unsigned int max_iu: 1;
+	unsigned int dt: 1;	/* DT clocking enabled */
+	unsigned int qas: 1;	/* Quick Arbitration and Selection enabled */
+	unsigned int max_qas: 1;
+	unsigned int wr_flow: 1;	/* Write Flow control enabled */
+	unsigned int rd_strm: 1;	/* Read streaming enabled */
+	unsigned int rti: 1;	/* Retain Training Information */
+	unsigned int pcomp_en: 1; /* Precompensation enabled */
+	unsigned int hold_mcs: 1; /* Hold Margin Control Settings */
+	unsigned int initial_dv: 1; /* DV done to this target yet  */
 	unsigned long flags;	/* flags field for drivers to use */
 	/* Device Properties fields */
-	unsigned int support_sync:1; /* synchronous support */
-	unsigned int support_wide:1; /* wide support */
-	unsigned int support_dt:1; /* allows DT phases */
+	unsigned int support_sync: 1; /* synchronous support */
+	unsigned int support_wide: 1; /* wide support */
+	unsigned int support_dt: 1; /* allows DT phases */
 	unsigned int support_dt_only; /* disallows ST phases */
 	unsigned int support_ius; /* support Information Units */
 	unsigned int support_qas; /* supports quick arbitration and selection */
 	/* Private Fields */
-	unsigned int dv_pending:1; /* Internal flag: DV Requested */
-	unsigned int dv_in_progress:1;	/* Internal: DV started */
+	unsigned int dv_pending: 1; /* Internal flag: DV Requested */
+	unsigned int dv_in_progress: 1;	/* Internal: DV started */
 	struct mutex dv_mutex; /* semaphore to serialise dv */
 };
 
-enum spi_signal_type {
+enum spi_signal_type
+{
 	SPI_SIGNAL_UNKNOWN = 1,
 	SPI_SIGNAL_SE,
 	SPI_SIGNAL_LVD,
 	SPI_SIGNAL_HVD,
 };
 
-struct spi_host_attrs {
+struct spi_host_attrs
+{
 	enum spi_signal_type signalling;
 };
 
@@ -104,7 +107,8 @@ struct spi_host_attrs {
 
 
 /* The functions by which the transport class and the driver communicate */
-struct spi_function_template {
+struct spi_function_template
+{
 	void	(*get_period)(struct scsi_target *);
 	void	(*set_period)(struct scsi_target *, int);
 	void	(*get_offset)(struct scsi_target *);
@@ -134,17 +138,17 @@ struct spi_function_template {
 	 * wants the attributes displayed in sysfs.  If the show_ flag
 	 * is not set, the attribute will be private to the transport
 	 * class */
-	unsigned long	show_period:1;
-	unsigned long	show_offset:1;
-	unsigned long	show_width:1;
-	unsigned long	show_iu:1;
-	unsigned long	show_dt:1;
-	unsigned long	show_qas:1;
-	unsigned long	show_wr_flow:1;
-	unsigned long	show_rd_strm:1;
-	unsigned long	show_rti:1;
-	unsigned long	show_pcomp_en:1;
-	unsigned long	show_hold_mcs:1;
+	unsigned long	show_period: 1;
+	unsigned long	show_offset: 1;
+	unsigned long	show_width: 1;
+	unsigned long	show_iu: 1;
+	unsigned long	show_dt: 1;
+	unsigned long	show_qas: 1;
+	unsigned long	show_wr_flow: 1;
+	unsigned long	show_rd_strm: 1;
+	unsigned long	show_rti: 1;
+	unsigned long	show_pcomp_en: 1;
+	unsigned long	show_hold_mcs: 1;
 };
 
 struct scsi_transport_template *spi_attach_transport(struct spi_function_template *);
@@ -156,7 +160,7 @@ int spi_print_msg(const unsigned char *);
 int spi_populate_width_msg(unsigned char *msg, int width);
 int spi_populate_sync_msg(unsigned char *msg, int period, int offset);
 int spi_populate_ppr_msg(unsigned char *msg, int period, int offset, int width,
-		int options);
+						 int options);
 int spi_populate_tag_msg(unsigned char *msg, struct scsi_cmnd *cmd);
 
 #endif /* SCSI_TRANSPORT_SPI_H */

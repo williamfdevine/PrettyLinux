@@ -78,23 +78,27 @@
 #define BUSY_MASK			BIT(0)
 #define READ_CYCLE_MASK			BIT(0)
 
-enum xgene_enet_cmd {
+enum xgene_enet_cmd
+{
 	XGENE_ENET_WR_CMD = BIT(31),
 	XGENE_ENET_RD_CMD = BIT(30)
 };
 
-enum {
+enum
+{
 	MIIM_CMD_IDLE,
 	MIIM_CMD_LEGACY_WRITE,
 	MIIM_CMD_LEGACY_READ,
 };
 
-enum xgene_mdio_id {
+enum xgene_mdio_id
+{
 	XGENE_MDIO_RGMII = 1,
 	XGENE_MDIO_XFI
 };
 
-struct xgene_mdio_pdata {
+struct xgene_mdio_pdata
+{
 	struct clk *clk;
 	struct device *dev;
 	void __iomem *mac_csr_addr;
@@ -113,10 +117,10 @@ static inline u64 xgene_enet_set_field_value(int pos, int len, u64 val)
 }
 
 #define SET_VAL(field, val) \
-		xgene_enet_set_field_value(field ## _POS, field ## _LEN, val)
+	xgene_enet_set_field_value(field ## _POS, field ## _LEN, val)
 
 #define SET_BIT(field) \
-		xgene_enet_set_field_value(field ## _POS, 1, 1)
+	xgene_enet_set_field_value(field ## _POS, 1, 1)
 
 /* Get the value from a bit-field defined by its starting position
  * and length within the specified u64.
@@ -127,14 +131,14 @@ static inline u64 xgene_enet_get_field_value(int pos, int len, u64 src)
 }
 
 #define GET_VAL(field, src) \
-		xgene_enet_get_field_value(field ## _POS, field ## _LEN, src)
+	xgene_enet_get_field_value(field ## _POS, field ## _LEN, src)
 
 #define GET_BIT(field, src) \
-		xgene_enet_get_field_value(field ## _POS, 1, src)
+	xgene_enet_get_field_value(field ## _POS, 1, src)
 
 static const struct of_device_id xgene_mdio_of_match[];
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id xgene_mdio_acpi_match[];
+	static const struct acpi_device_id xgene_mdio_acpi_match[];
 #endif
 int xgene_mdio_rgmii_read(struct mii_bus *bus, int phy_id, int reg);
 int xgene_mdio_rgmii_write(struct mii_bus *bus, int phy_id, int reg, u16 data);

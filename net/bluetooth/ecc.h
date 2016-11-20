@@ -51,4 +51,4 @@ bool ecc_make_key(u8 public_key[64], u8 private_key[32]);
  * LSB first.
  */
 bool ecdh_shared_secret(const u8 public_key[64], const u8 private_key[32],
-		        u8 secret[32]);
+						u8 secret[32]);

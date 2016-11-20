@@ -82,7 +82,8 @@ module_param(console_poll, bool, S_IRUGO);
 
 #define RX_BUF_SIZE 1024
 
-enum {
+enum
+{
 	INCHR = 1,
 	OUTCHR,
 	RDBUF,
@@ -105,7 +106,8 @@ enum {
  * @xmit_tail:		Tail of xmit buffer where data is read
  * @xmit_empty:		Completion for xmit buffer being empty
  */
-struct dashtty_port {
+struct dashtty_port
+{
 	struct tty_port		 port;
 	spinlock_t		 rx_lock;
 	void			*rx_buf;
@@ -125,8 +127,8 @@ static wait_queue_head_t dashtty_waitqueue;
  * Low-level DA channel access routines
  */
 static int chancall(int in_bios_function, int in_channel,
-		    int in_arg2, void *in_arg3,
-		    void *in_arg4)
+					int in_arg2, void *in_arg3,
+					void *in_arg4)
 {
 	register int   bios_function asm("D1Ar1") = in_bios_function;
 	register int   channel       asm("D0Ar2") = in_channel;
@@ -144,11 +146,11 @@ static int chancall(int in_bios_function, int in_channel,
 		"SUB	A0StP, A0StP, #(4*6)+8\n\t"
 		: "=d" (result)   /* outs */
 		: "d" (bios_function),
-		  "d" (channel),
-		  "d" (arg2),
-		  "d" (arg3),
-		  "d" (arg4),
-		  "d" (bios_call) /* ins */
+		"d" (channel),
+		"d" (arg2),
+		"d" (arg3),
+		"d" (arg4),
+		"d" (bios_call) /* ins */
 		: "memory");
 
 	return result;
@@ -163,25 +165,34 @@ static int fetch_data(unsigned int channel)
 	int received = 0;
 
 	spin_lock_bh(&dport->rx_lock);
+
 	/* check the port isn't being shut down */
 	if (!dport->rx_buf)
+	{
 		goto unlock;
+	}
+
 	if (chancall(RDBUF, channel, RX_BUF_SIZE,
-		     (void *)dport->rx_buf, &received) == CONAOK) {
-		if (received) {
+				 (void *)dport->rx_buf, &received) == CONAOK)
+	{
+		if (received)
+		{
 			int space;
 			unsigned char *cbuf;
 
 			space = tty_prepare_flip_string(&dport->port, &cbuf,
-							received);
+											received);
 
 			if (space <= 0)
+			{
 				goto unlock;
+			}
 
 			memcpy(cbuf, dport->rx_buf, space);
 			tty_flip_buffer_push(&dport->port);
 		}
 	}
+
 unlock:
 	spin_unlock_bh(&dport->rx_lock);
 
@@ -200,19 +211,27 @@ static int find_channel_to_poll(void)
 	int chan;
 	struct dashtty_port *dport;
 
-	for (chan = last + 1; ; ++chan) {
+	for (chan = last + 1; ; ++chan)
+	{
 		if (chan >= NUM_TTY_CHANNELS)
+		{
 			chan = 0;
+		}
 
 		dport = &dashtty_ports[chan];
-		if (dport->rx_buf) {
+
+		if (dport->rx_buf)
+		{
 			last_polled_channel = chan;
 			return chan;
 		}
 
 		if (chan == last)
+		{
 			break;
+		}
 	}
+
 	return -1;
 }
 
@@ -235,31 +254,45 @@ static int put_channel_data(unsigned int chan)
 
 	dport = &dashtty_ports[chan];
 	mutex_lock(&dport->xmit_lock);
-	if (dport->xmit_cnt) {
+
+	if (dport->xmit_cnt)
+	{
 		count = min((unsigned int)(SERIAL_XMIT_SIZE - dport->xmit_tail),
-			    dport->xmit_cnt);
+					dport->xmit_cnt);
 		chancall(WRBUF, chan, count,
-			 dport->port.xmit_buf + dport->xmit_tail,
-			 &number_written);
+				 dport->port.xmit_buf + dport->xmit_tail,
+				 &number_written);
 		dport->xmit_cnt -= number_written;
-		if (!dport->xmit_cnt) {
+
+		if (!dport->xmit_cnt)
+		{
 			/* reset pointers to avoid wraps */
 			dport->xmit_head = 0;
 			dport->xmit_tail = 0;
 			complete(&dport->xmit_empty);
-		} else {
-			dport->xmit_tail += number_written;
-			if (dport->xmit_tail >= SERIAL_XMIT_SIZE)
-				dport->xmit_tail -= SERIAL_XMIT_SIZE;
 		}
+		else
+		{
+			dport->xmit_tail += number_written;
+
+			if (dport->xmit_tail >= SERIAL_XMIT_SIZE)
+			{
+				dport->xmit_tail -= SERIAL_XMIT_SIZE;
+			}
+		}
+
 		atomic_sub(number_written, &dashtty_xmit_cnt);
 	}
+
 	mutex_unlock(&dport->xmit_lock);
 
 	/* if we've made more data available, wake up tty */
-	if (count && number_written) {
+	if (count && number_written)
+	{
 		tty = tty_port_tty_get(&dport->port);
-		if (tty) {
+
+		if (tty)
+		{
 			tty_wakeup(tty);
 			tty_kref_put(tty);
 		}
@@ -283,24 +316,31 @@ static int put_data(void *arg)
 	unsigned int chan, stall;
 
 	__set_current_state(TASK_RUNNING);
-	while (!kthread_should_stop()) {
+
+	while (!kthread_should_stop())
+	{
 		/*
 		 * For each channel see if there's anything to transmit in the
 		 * port's xmit_buf.
 		 */
 		stall = 0;
+
 		for (chan = 0; chan < NUM_TTY_CHANNELS; ++chan)
+		{
 			stall += put_channel_data(chan);
+		}
 
 		/*
 		 * If some of the buffers are full, hold off for a short while
 		 * to allow them to empty.
 		 */
 		if (stall)
+		{
 			msleep(25);
+		}
 
 		wait_event_interruptible(dashtty_waitqueue,
-					 atomic_read(&dashtty_xmit_cnt));
+								 atomic_read(&dashtty_xmit_cnt));
 	}
 
 	return 0;
@@ -315,13 +355,17 @@ static void dashtty_timer(unsigned long ignored)
 
 	/* If there are no ports open do nothing and don't poll again. */
 	if (!atomic_read(&num_channels_need_poll))
+	{
 		return;
+	}
 
 	channel = find_channel_to_poll();
 
 	/* Did we find a channel to poll? */
 	if (channel >= 0)
+	{
 		fetch_data(channel);
+	}
 
 	mod_timer(&poll_timer, jiffies + DA_TTY_POLL);
 }
@@ -341,17 +385,22 @@ static void add_poll_timer(struct timer_list *poll_timer)
 static int dashtty_port_activate(struct tty_port *port, struct tty_struct *tty)
 {
 	struct dashtty_port *dport = container_of(port, struct dashtty_port,
-						  port);
+								 port);
 	void *rx_buf;
 
 	/* Allocate the buffer we use for writing data */
 	if (tty_port_alloc_xmit_buf(port) < 0)
+	{
 		goto err;
+	}
 
 	/* Allocate the buffer we use for reading data */
 	rx_buf = kzalloc(RX_BUF_SIZE, GFP_KERNEL);
+
 	if (!rx_buf)
+	{
 		goto err_free_xmit;
+	}
 
 	spin_lock_bh(&dport->rx_lock);
 	dport->rx_buf = rx_buf;
@@ -365,7 +414,9 @@ static int dashtty_port_activate(struct tty_port *port, struct tty_struct *tty)
 	 */
 	if (console_poll || dport != &dashtty_ports[CONSOLE_CHANNEL])
 		if (atomic_inc_return(&num_channels_need_poll) == 1)
+		{
 			add_poll_timer(&poll_timer);
+		}
 
 	return 0;
 err_free_xmit:
@@ -377,19 +428,23 @@ err:
 static void dashtty_port_shutdown(struct tty_port *port)
 {
 	struct dashtty_port *dport = container_of(port, struct dashtty_port,
-						  port);
+								 port);
 	void *rx_buf;
 	unsigned int count;
 
 	/* stop reading */
 	if (console_poll || dport != &dashtty_ports[CONSOLE_CHANNEL])
 		if (atomic_dec_and_test(&num_channels_need_poll))
+		{
 			del_timer_sync(&poll_timer);
+		}
 
 	mutex_lock(&dport->xmit_lock);
 	count = dport->xmit_cnt;
 	mutex_unlock(&dport->xmit_lock);
-	if (count) {
+
+	if (count)
+	{
 		/*
 		 * There's still data to write out, so wake and wait for the
 		 * writer thread to drain the buffer.
@@ -411,7 +466,8 @@ static void dashtty_port_shutdown(struct tty_port *port)
 	tty_port_free_xmit_buf(port);
 }
 
-static const struct tty_port_operations dashtty_port_ops = {
+static const struct tty_port_operations dashtty_port_ops =
+{
 	.activate	= dashtty_port_activate,
 	.shutdown	= dashtty_port_shutdown,
 };
@@ -441,13 +497,16 @@ static void dashtty_hangup(struct tty_struct *tty)
 
 	/* drop any data in the xmit buffer */
 	mutex_lock(&dport->xmit_lock);
-	if (dport->xmit_cnt) {
+
+	if (dport->xmit_cnt)
+	{
 		atomic_sub(dport->xmit_cnt, &dashtty_xmit_cnt);
 		dport->xmit_cnt = 0;
 		dport->xmit_head = 0;
 		dport->xmit_tail = 0;
 		complete(&dport->xmit_empty);
 	}
+
 	mutex_unlock(&dport->xmit_lock);
 
 	tty_port_hangup(tty->port);
@@ -464,11 +523,13 @@ static void dashtty_hangup(struct tty_struct *tty)
 static void dashtty_put_timer(unsigned long ignored)
 {
 	if (atomic_read(&dashtty_xmit_cnt))
+	{
 		wake_up_interruptible(&dashtty_waitqueue);
+	}
 }
 
 static int dashtty_write(struct tty_struct *tty, const unsigned char *buf,
-			 int total)
+						 int total)
 {
 	int channel, count, block;
 	struct dashtty_port *dport;
@@ -493,34 +554,50 @@ static int dashtty_write(struct tty_struct *tty, const unsigned char *buf,
 	total = min(total, (int)(SERIAL_XMIT_SIZE - dport->xmit_cnt));
 	atomic_add(total, &dashtty_xmit_cnt);
 	dport->xmit_cnt += total;
+
 	/* write the actual bytes (may need splitting if it wraps) */
-	for (count = total; count; count -= block) {
+	for (count = total; count; count -= block)
+	{
 		block = min(count, (int)(SERIAL_XMIT_SIZE - dport->xmit_head));
 		memcpy(dport->port.xmit_buf + dport->xmit_head, buf, block);
 		dport->xmit_head += block;
+
 		if (dport->xmit_head >= SERIAL_XMIT_SIZE)
+		{
 			dport->xmit_head -= SERIAL_XMIT_SIZE;
+		}
+
 		buf += block;
 	}
+
 	count = dport->xmit_cnt;
+
 	/* xmit buffer no longer empty? */
 	if (count)
+	{
 		reinit_completion(&dport->xmit_empty);
+	}
+
 	mutex_unlock(&dport->xmit_lock);
 
-	if (total) {
+	if (total)
+	{
 		/*
 		 * If the buffer is full, wake up the kthread, otherwise allow
 		 * some more time for the buffer to fill up a bit before waking
 		 * it.
 		 */
-		if (count == SERIAL_XMIT_SIZE) {
+		if (count == SERIAL_XMIT_SIZE)
+		{
 			del_timer(&put_timer);
 			wake_up_interruptible(&dashtty_waitqueue);
-		} else {
+		}
+		else
+		{
 			mod_timer(&put_timer, jiffies + DA_TTY_PUT_DELAY);
 		}
 	}
+
 	return total;
 }
 
@@ -558,7 +635,8 @@ static int dashtty_chars_in_buffer(struct tty_struct *tty)
 	return chars;
 }
 
-static const struct tty_operations dashtty_ops = {
+static const struct tty_operations dashtty_ops =
+{
 	.install		= dashtty_install,
 	.open			= dashtty_open,
 	.close			= dashtty_close,
@@ -575,12 +653,17 @@ static int __init dashtty_init(void)
 	struct dashtty_port *dport;
 
 	if (!metag_da_enabled())
+	{
 		return -ENODEV;
+	}
 
 	channel_driver = tty_alloc_driver(NUM_TTY_CHANNELS,
-					  TTY_DRIVER_REAL_RAW);
+									  TTY_DRIVER_REAL_RAW);
+
 	if (IS_ERR(channel_driver))
+	{
 		return PTR_ERR(channel_driver);
+	}
 
 	channel_driver->driver_name = "metag_da";
 	channel_driver->name = "ttyDA";
@@ -592,7 +675,9 @@ static int __init dashtty_init(void)
 	channel_driver->init_termios.c_cflag |= CLOCAL;
 
 	tty_set_operations(channel_driver, &dashtty_ops);
-	for (nport = 0; nport < NUM_TTY_CHANNELS; nport++) {
+
+	for (nport = 0; nport < NUM_TTY_CHANNELS; nport++)
+	{
 		dport = &dashtty_ports[nport];
 		tty_port_init(&dport->port);
 		dport->port.ops = &dashtty_port_ops;
@@ -607,11 +692,14 @@ static int __init dashtty_init(void)
 
 	init_waitqueue_head(&dashtty_waitqueue);
 	dashtty_thread = kthread_create(put_data, NULL, "ttyDA");
-	if (IS_ERR(dashtty_thread)) {
+
+	if (IS_ERR(dashtty_thread))
+	{
 		pr_err("Couldn't create dashtty thread\n");
 		ret = PTR_ERR(dashtty_thread);
 		goto err_destroy_ports;
 	}
+
 	/*
 	 * Bind the writer thread to the boot CPU so it can't migrate.
 	 * DA channels are per-CPU and we want all channel I/O to be on a single
@@ -622,9 +710,10 @@ static int __init dashtty_init(void)
 
 	ret = tty_register_driver(channel_driver);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		pr_err("Couldn't install dashtty driver: err %d\n",
-		       ret);
+			   ret);
 		goto err_stop_kthread;
 	}
 
@@ -633,10 +722,13 @@ static int __init dashtty_init(void)
 err_stop_kthread:
 	kthread_stop(dashtty_thread);
 err_destroy_ports:
-	for (nport = 0; nport < NUM_TTY_CHANNELS; nport++) {
+
+	for (nport = 0; nport < NUM_TTY_CHANNELS; nport++)
+	{
 		dport = &dashtty_ports[nport];
 		tty_port_destroy(&dport->port);
 	}
+
 	put_tty_driver(channel_driver);
 	return ret;
 }
@@ -645,7 +737,7 @@ device_initcall(dashtty_init);
 #ifdef CONFIG_DA_CONSOLE
 
 static void dash_console_write(struct console *co, const char *s,
-			       unsigned int count)
+							   unsigned int count)
 {
 	int actually_written;
 
@@ -658,7 +750,8 @@ static struct tty_driver *dash_console_device(struct console *c, int *index)
 	return channel_driver;
 }
 
-struct console dash_console = {
+struct console dash_console =
+{
 	.name = "ttyDA",
 	.write = dash_console_write,
 	.device = dash_console_device,

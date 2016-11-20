@@ -67,31 +67,32 @@
  * first DWORD are UF attributes defined by the silicon architecture. The data
  * depicts actual header information received on the link.
  */
-struct scu_unsolicited_frame_header {
+struct scu_unsolicited_frame_header
+{
 	/**
 	 * This field indicates if there is an Initiator Index Table entry with
 	 * which this header is associated.
 	 */
-	u32 iit_exists:1;
+	u32 iit_exists: 1;
 
 	/**
 	 * This field simply indicates the protocol type (i.e. SSP, STP, SMP).
 	 */
-	u32 protocol_type:3;
+	u32 protocol_type: 3;
 
 	/**
 	 * This field indicates if the frame is an address frame (IAF or OAF)
 	 * or if it is a information unit frame.
 	 */
-	u32 is_address_frame:1;
+	u32 is_address_frame: 1;
 
 	/**
 	 * This field simply indicates the connection rate at which the frame
 	 * was received.
 	 */
-	u32 connection_rate:4;
+	u32 connection_rate: 4;
 
-	u32 reserved:23;
+	u32 reserved: 23;
 
 	/**
 	 * This field represents the actual header data received on the link.
@@ -109,7 +110,8 @@ struct scu_unsolicited_frame_header {
  * controller object can not updtate the hardware unsolicited frame put pointer
  * unless it has already processed the priror unsolicited frames.
  */
-enum unsolicited_frame_state {
+enum unsolicited_frame_state
+{
 	/**
 	 * This state is when the frame is empty and not in use.  It is
 	 * different from the released state in that the hardware could DMA
@@ -140,7 +142,8 @@ enum unsolicited_frame_state {
  * This is the unsolicited frame data structure it acts as the container for
  * the current frame state, frame header and frame buffer.
  */
-struct sci_unsolicited_frame {
+struct sci_unsolicited_frame
+{
 	/**
 	 * This field contains the current frame state
 	 */
@@ -163,7 +166,8 @@ struct sci_unsolicited_frame {
  *
  * This structure contains all of the unsolicited frame header information.
  */
-struct sci_uf_header_array {
+struct sci_uf_header_array
+{
 	/**
 	 * This field is represents a virtual pointer to the start
 	 * address of the UF address table.  The table contains
@@ -185,7 +189,8 @@ struct sci_uf_header_array {
  * This structure contains all of the unsolicited frame buffer (actual payload)
  * information.
  */
-struct sci_uf_buffer_array {
+struct sci_uf_buffer_array
+{
 	/**
 	 * This field is the unsolicited frame data its used to manage
 	 * the data for the unsolicited frame requests.  It also represents
@@ -208,7 +213,8 @@ struct sci_uf_buffer_array {
  * data.  The address table is a collection of 64-bit pointers that point to
  * 1KB buffers into which the silicon will DMA unsolicited frames.
  */
-struct sci_uf_address_table_array {
+struct sci_uf_address_table_array
+{
 	/**
 	 * This field represents a virtual pointer that refers to the
 	 * starting address of the UF address table.
@@ -229,7 +235,8 @@ struct sci_uf_address_table_array {
  *
  * This object contains all of the data necessary to handle unsolicited frames.
  */
-struct sci_unsolicited_frame_control {
+struct sci_unsolicited_frame_control
+{
 	/**
 	 * This field is the software copy of the unsolicited frame queue
 	 * get pointer.  The controller object writes this value to the

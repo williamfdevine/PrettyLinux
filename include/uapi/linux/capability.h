@@ -35,15 +35,17 @@
 #define _LINUX_CAPABILITY_VERSION_3  0x20080522
 #define _LINUX_CAPABILITY_U32S_3     2
 
-typedef struct __user_cap_header_struct {
+typedef struct __user_cap_header_struct
+{
 	__u32 version;
 	int pid;
 } __user *cap_user_header_t;
 
-typedef struct __user_cap_data_struct {
-        __u32 effective;
-        __u32 permitted;
-        __u32 inheritable;
+typedef struct __user_cap_data_struct
+{
+	__u32 effective;
+	__u32 permitted;
+	__u32 inheritable;
 } __user *cap_user_data_t;
 
 
@@ -64,9 +66,11 @@ typedef struct __user_cap_data_struct {
 #define VFS_CAP_U32             VFS_CAP_U32_2
 #define VFS_CAP_REVISION	VFS_CAP_REVISION_2
 
-struct vfs_cap_data {
+struct vfs_cap_data
+{
 	__le32 magic_etc;            /* Little endian */
-	struct {
+	struct
+	{
 		__le32 permitted;    /* Little endian */
 		__le32 inheritable;  /* Little endian */
 	} data[VFS_CAP_U32];
@@ -74,13 +78,13 @@ struct vfs_cap_data {
 
 #ifndef __KERNEL__
 
-/*
- * Backwardly compatible definition for source code - trapped in a
- * 32-bit world. If you find you need this, please consider using
- * libcap to untrap yourself...
- */
-#define _LINUX_CAPABILITY_VERSION  _LINUX_CAPABILITY_VERSION_1
-#define _LINUX_CAPABILITY_U32S     _LINUX_CAPABILITY_U32S_1
+	/*
+	* Backwardly compatible definition for source code - trapped in a
+	* 32-bit world. If you find you need this, please consider using
+	* libcap to untrap yourself...
+	*/
+	#define _LINUX_CAPABILITY_VERSION  _LINUX_CAPABILITY_VERSION_1
+	#define _LINUX_CAPABILITY_U32S     _LINUX_CAPABILITY_U32S_1
 
 #endif
 

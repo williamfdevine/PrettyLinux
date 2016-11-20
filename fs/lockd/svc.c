@@ -80,23 +80,27 @@ static const unsigned long	nlm_timeout_max = 20;
 static const int		nlm_port_min = 0, nlm_port_max = 65535;
 
 #ifdef CONFIG_SYSCTL
-static struct ctl_table_header * nlm_sysctl_table;
+	static struct ctl_table_header *nlm_sysctl_table;
 #endif
 
 static unsigned long get_lockd_grace_period(void)
 {
 	/* Note: nlm_timeout should always be nonzero */
 	if (nlm_grace_period)
+	{
 		return roundup(nlm_grace_period, nlm_timeout) * HZ;
+	}
 	else
+	{
 		return nlm_timeout * 5 * HZ;
+	}
 }
 
 static void grace_ender(struct work_struct *grace)
 {
 	struct delayed_work *dwork = to_delayed_work(grace);
 	struct lockd_net *ln = container_of(dwork, struct lockd_net,
-					    grace_period_end);
+										grace_period_end);
 
 	locks_end_grace(&ln->lockd_manager);
 }
@@ -113,7 +117,8 @@ static void set_grace_period(struct net *net)
 
 static void restart_grace(void)
 {
-	if (nlmsvc_ops) {
+	if (nlmsvc_ops)
+	{
 		struct net *net = &init_net;
 		struct lockd_net *ln = net_generic(net, lockd_net_id);
 
@@ -145,14 +150,16 @@ lockd(void *vrqstp)
 	 * The main request loop. We don't terminate until the last
 	 * NFS mount or NFS daemon has gone away.
 	 */
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		long timeout = MAX_SCHEDULE_TIMEOUT;
 		RPC_IFDEBUG(char buf[RPC_MAX_ADDRBUFLEN]);
 
 		/* update sv_maxconn if it has changed */
 		rqstp->rq_server->sv_maxconn = nlm_max_connections;
 
-		if (signalled()) {
+		if (signalled())
+		{
 			flush_signals(current);
 			restart_grace();
 			continue;
@@ -165,42 +172,56 @@ lockd(void *vrqstp)
 		 * recvfrom routine.
 		 */
 		err = svc_recv(rqstp, timeout);
+
 		if (err == -EAGAIN || err == -EINTR)
+		{
 			continue;
+		}
+
 		dprintk("lockd: request from %s\n",
 				svc_print_addr(rqstp, buf, sizeof(buf)));
 
 		svc_process(rqstp);
 	}
+
 	flush_signals(current);
+
 	if (nlmsvc_ops)
+	{
 		nlmsvc_invalidate_all();
+	}
+
 	nlm_shutdown_hosts();
 	return 0;
 }
 
 static int create_lockd_listener(struct svc_serv *serv, const char *name,
-				 struct net *net, const int family,
-				 const unsigned short port)
+								 struct net *net, const int family,
+								 const unsigned short port)
 {
 	struct svc_xprt *xprt;
 
 	xprt = svc_find_xprt(serv, name, net, family, 0);
+
 	if (xprt == NULL)
 		return svc_create_xprt(serv, name, net, family, port,
-						SVC_SOCK_DEFAULTS);
+							   SVC_SOCK_DEFAULTS);
+
 	svc_xprt_put(xprt);
 	return 0;
 }
 
 static int create_lockd_family(struct svc_serv *serv, struct net *net,
-			       const int family)
+							   const int family)
 {
 	int err;
 
 	err = create_lockd_listener(serv, "udp", net, family, nlm_udpport);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return create_lockd_listener(serv, "tcp", net, family, nlm_tcpport);
 }
@@ -221,20 +242,28 @@ static int make_socks(struct svc_serv *serv, struct net *net)
 	int err;
 
 	err = create_lockd_family(serv, net, PF_INET);
+
 	if (err < 0)
+	{
 		goto out_err;
+	}
 
 	err = create_lockd_family(serv, net, PF_INET6);
+
 	if (err < 0 && err != -EAFNOSUPPORT)
+	{
 		goto out_err;
+	}
 
 	warned = 0;
 	return 0;
 
 out_err:
+
 	if (warned++ == 0)
 		printk(KERN_WARNING
-			"lockd_up: makesock failed, error=%d\n", err);
+			   "lockd_up: makesock failed, error=%d\n", err);
+
 	svc_shutdown_net(serv, net);
 	return err;
 }
@@ -245,15 +274,24 @@ static int lockd_up_net(struct svc_serv *serv, struct net *net)
 	int error;
 
 	if (ln->nlmsvc_users++)
+	{
 		return 0;
+	}
 
 	error = svc_bind(serv, net);
+
 	if (error)
+	{
 		goto err_bind;
+	}
 
 	error = make_socks(serv, net);
+
 	if (error < 0)
+	{
 		goto err_bind;
+	}
+
 	set_grace_period(net);
 	dprintk("lockd_up_net: per-net data created; net=%p\n", net);
 	return 0;
@@ -267,70 +305,82 @@ static void lockd_down_net(struct svc_serv *serv, struct net *net)
 {
 	struct lockd_net *ln = net_generic(net, lockd_net_id);
 
-	if (ln->nlmsvc_users) {
-		if (--ln->nlmsvc_users == 0) {
+	if (ln->nlmsvc_users)
+	{
+		if (--ln->nlmsvc_users == 0)
+		{
 			nlm_shutdown_hosts_net(net);
 			cancel_delayed_work_sync(&ln->grace_period_end);
 			locks_end_grace(&ln->lockd_manager);
 			svc_shutdown_net(serv, net);
 			dprintk("lockd_down_net: per-net data destroyed; net=%p\n", net);
 		}
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "lockd_down_net: no users! task=%p, net=%p\n",
-				nlmsvc_task, net);
+			   nlmsvc_task, net);
 		BUG();
 	}
 }
 
 static int lockd_inetaddr_event(struct notifier_block *this,
-	unsigned long event, void *ptr)
+								unsigned long event, void *ptr)
 {
 	struct in_ifaddr *ifa = (struct in_ifaddr *)ptr;
 	struct sockaddr_in sin;
 
 	if (event != NETDEV_DOWN)
+	{
 		goto out;
+	}
 
-	if (nlmsvc_rqst) {
+	if (nlmsvc_rqst)
+	{
 		dprintk("lockd_inetaddr_event: removed %pI4\n",
-			&ifa->ifa_local);
+				&ifa->ifa_local);
 		sin.sin_family = AF_INET;
 		sin.sin_addr.s_addr = ifa->ifa_local;
 		svc_age_temp_xprts_now(nlmsvc_rqst->rq_server,
-			(struct sockaddr *)&sin);
+							   (struct sockaddr *)&sin);
 	}
 
 out:
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block lockd_inetaddr_notifier = {
+static struct notifier_block lockd_inetaddr_notifier =
+{
 	.notifier_call = lockd_inetaddr_event,
 };
 
 #if IS_ENABLED(CONFIG_IPV6)
 static int lockd_inet6addr_event(struct notifier_block *this,
-	unsigned long event, void *ptr)
+								 unsigned long event, void *ptr)
 {
 	struct inet6_ifaddr *ifa = (struct inet6_ifaddr *)ptr;
 	struct sockaddr_in6 sin6;
 
 	if (event != NETDEV_DOWN)
+	{
 		goto out;
+	}
 
-	if (nlmsvc_rqst) {
+	if (nlmsvc_rqst)
+	{
 		dprintk("lockd_inet6addr_event: removed %pI6\n", &ifa->addr);
 		sin6.sin6_family = AF_INET6;
 		sin6.sin6_addr = ifa->addr;
 		svc_age_temp_xprts_now(nlmsvc_rqst->rq_server,
-			(struct sockaddr *)&sin6);
+							   (struct sockaddr *)&sin6);
 	}
 
 out:
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block lockd_inet6addr_notifier = {
+static struct notifier_block lockd_inet6addr_notifier =
+{
 	.notifier_call = lockd_inet6addr_event,
 };
 #endif
@@ -354,17 +404,21 @@ static int lockd_start_svc(struct svc_serv *serv)
 	int error;
 
 	if (nlmsvc_rqst)
+	{
 		return 0;
+	}
 
 	/*
 	 * Create the kernel thread and wait for it to start.
 	 */
 	nlmsvc_rqst = svc_prepare_thread(serv, &serv->sv_pools[0], NUMA_NO_NODE);
-	if (IS_ERR(nlmsvc_rqst)) {
+
+	if (IS_ERR(nlmsvc_rqst))
+	{
 		error = PTR_ERR(nlmsvc_rqst);
 		printk(KERN_WARNING
-			"lockd_up: svc_rqst allocation failed, error=%d\n",
-			error);
+			   "lockd_up: svc_rqst allocation failed, error=%d\n",
+			   error);
 		goto out_rqst;
 	}
 
@@ -372,12 +426,15 @@ static int lockd_start_svc(struct svc_serv *serv)
 	serv->sv_maxconn = nlm_max_connections;
 
 	nlmsvc_task = kthread_create(lockd, nlmsvc_rqst, "%s", serv->sv_name);
-	if (IS_ERR(nlmsvc_task)) {
+
+	if (IS_ERR(nlmsvc_task))
+	{
 		error = PTR_ERR(nlmsvc_task);
 		printk(KERN_WARNING
-			"lockd_up: kthread_run failed, error=%d\n", error);
+			   "lockd_up: kthread_run failed, error=%d\n", error);
 		goto out_task;
 	}
+
 	nlmsvc_rqst->rq_task = nlmsvc_task;
 	wake_up_process(nlmsvc_task);
 
@@ -392,7 +449,8 @@ out_rqst:
 	return error;
 }
 
-static struct svc_serv_ops lockd_sv_ops = {
+static struct svc_serv_ops lockd_sv_ops =
+{
 	.svo_shutdown		= svc_rpcb_cleanup,
 	.svo_enqueue_xprt	= svc_xprt_do_enqueue,
 };
@@ -404,7 +462,8 @@ static struct svc_serv *lockd_create_svc(void)
 	/*
 	 * Check whether we're already up and running.
 	 */
-	if (nlmsvc_rqst) {
+	if (nlmsvc_rqst)
+	{
 		/*
 		 * Note: increase service usage, because later in case of error
 		 * svc_destroy() will be called.
@@ -419,17 +478,23 @@ static struct svc_serv *lockd_create_svc(void)
 	 */
 	if (nlmsvc_users)
 		printk(KERN_WARNING
-			"lockd_up: no pid, %d users??\n", nlmsvc_users);
+			   "lockd_up: no pid, %d users??\n", nlmsvc_users);
 
 	if (!nlm_timeout)
+	{
 		nlm_timeout = LOCKD_DFLT_TIMEO;
+	}
+
 	nlmsvc_timeout = nlm_timeout * HZ;
 
 	serv = svc_create(&nlmsvc_program, LOCKD_BUFSIZE, &lockd_sv_ops);
-	if (!serv) {
+
+	if (!serv)
+	{
 		printk(KERN_WARNING "lockd_up: create service failed\n");
 		return ERR_PTR(-ENOMEM);
 	}
+
 	register_inetaddr_notifier(&lockd_inetaddr_notifier);
 #if IS_ENABLED(CONFIG_IPV6)
 	register_inet6addr_notifier(&lockd_inet6addr_notifier);
@@ -449,18 +514,26 @@ int lockd_up(struct net *net)
 	mutex_lock(&nlmsvc_mutex);
 
 	serv = lockd_create_svc();
-	if (IS_ERR(serv)) {
+
+	if (IS_ERR(serv))
+	{
 		error = PTR_ERR(serv);
 		goto err_create;
 	}
 
 	error = lockd_up_net(serv, net);
+
 	if (error < 0)
+	{
 		goto err_net;
+	}
 
 	error = lockd_start_svc(serv);
+
 	if (error < 0)
+	{
 		goto err_start;
+	}
 
 	nlmsvc_users++;
 	/*
@@ -489,19 +562,27 @@ lockd_down(struct net *net)
 {
 	mutex_lock(&nlmsvc_mutex);
 	lockd_down_net(nlmsvc_rqst->rq_server, net);
-	if (nlmsvc_users) {
+
+	if (nlmsvc_users)
+	{
 		if (--nlmsvc_users)
+		{
 			goto out;
-	} else {
+		}
+	}
+	else
+	{
 		printk(KERN_ERR "lockd_down: no users! task=%p\n",
-			nlmsvc_task);
+			   nlmsvc_task);
 		BUG();
 	}
 
-	if (!nlmsvc_task) {
+	if (!nlmsvc_task)
+	{
 		printk(KERN_ERR "lockd_down: no lockd running.\n");
 		BUG();
 	}
+
 	kthread_stop(nlmsvc_task);
 	dprintk("lockd_down: service stopped\n");
 	lockd_svc_exit_thread();
@@ -519,7 +600,8 @@ EXPORT_SYMBOL_GPL(lockd_down);
  * Sysctl parameters (same as module parameters, different interface).
  */
 
-static struct ctl_table nlm_sysctls[] = {
+static struct ctl_table nlm_sysctls[] =
+{
 	{
 		.procname	= "nlm_grace_period",
 		.data		= &nlm_grace_period,
@@ -573,7 +655,8 @@ static struct ctl_table nlm_sysctls[] = {
 	{ }
 };
 
-static struct ctl_table nlm_sysctl_dir[] = {
+static struct ctl_table nlm_sysctl_dir[] =
+{
 	{
 		.procname	= "nfs",
 		.mode		= 0555,
@@ -582,7 +665,8 @@ static struct ctl_table nlm_sysctl_dir[] = {
 	{ }
 };
 
-static struct ctl_table nlm_sysctl_root[] = {
+static struct ctl_table nlm_sysctl_root[] =
+{
 	{
 		.procname	= "fs",
 		.mode		= 0555,
@@ -598,66 +682,74 @@ static struct ctl_table nlm_sysctl_root[] = {
  */
 
 #define param_set_min_max(name, type, which_strtol, min, max)		\
-static int param_set_##name(const char *val, struct kernel_param *kp)	\
-{									\
-	char *endp;							\
-	__typeof__(type) num = which_strtol(val, &endp, 0);		\
-	if (endp == val || *endp || num < (min) || num > (max))		\
-		return -EINVAL;						\
-	*((type *) kp->arg) = num;					\
-	return 0;							\
-}
+	static int param_set_##name(const char *val, struct kernel_param *kp)	\
+	{									\
+		char *endp;							\
+		__typeof__(type) num = which_strtol(val, &endp, 0);		\
+		if (endp == val || *endp || num < (min) || num > (max))		\
+			return -EINVAL;						\
+		*((type *) kp->arg) = num;					\
+		return 0;							\
+	}
 
 static inline int is_callback(u32 proc)
 {
 	return proc == NLMPROC_GRANTED
-		|| proc == NLMPROC_GRANTED_MSG
-		|| proc == NLMPROC_TEST_RES
-		|| proc == NLMPROC_LOCK_RES
-		|| proc == NLMPROC_CANCEL_RES
-		|| proc == NLMPROC_UNLOCK_RES
-		|| proc == NLMPROC_NSM_NOTIFY;
+		   || proc == NLMPROC_GRANTED_MSG
+		   || proc == NLMPROC_TEST_RES
+		   || proc == NLMPROC_LOCK_RES
+		   || proc == NLMPROC_CANCEL_RES
+		   || proc == NLMPROC_UNLOCK_RES
+		   || proc == NLMPROC_NSM_NOTIFY;
 }
 
 
 static int lockd_authenticate(struct svc_rqst *rqstp)
 {
 	rqstp->rq_client = NULL;
-	switch (rqstp->rq_authop->flavour) {
+
+	switch (rqstp->rq_authop->flavour)
+	{
 		case RPC_AUTH_NULL:
 		case RPC_AUTH_UNIX:
 			if (rqstp->rq_proc == 0)
+			{
 				return SVC_OK;
-			if (is_callback(rqstp->rq_proc)) {
+			}
+
+			if (is_callback(rqstp->rq_proc))
+			{
 				/* Leave it to individual procedures to
 				 * call nlmsvc_lookup_host(rqstp)
 				 */
 				return SVC_OK;
 			}
+
 			return svc_set_client(rqstp);
 	}
+
 	return SVC_DENIED;
 }
 
 
 param_set_min_max(port, int, simple_strtol, 0, 65535)
 param_set_min_max(grace_period, unsigned long, simple_strtoul,
-		  nlm_grace_period_min, nlm_grace_period_max)
+				  nlm_grace_period_min, nlm_grace_period_max)
 param_set_min_max(timeout, unsigned long, simple_strtoul,
-		  nlm_timeout_min, nlm_timeout_max)
+				  nlm_timeout_min, nlm_timeout_max)
 
 MODULE_AUTHOR("Olaf Kirch <okir@monad.swb.de>");
 MODULE_DESCRIPTION("NFS file locking service version " LOCKD_VERSION ".");
 MODULE_LICENSE("GPL");
 
 module_param_call(nlm_grace_period, param_set_grace_period, param_get_ulong,
-		  &nlm_grace_period, 0644);
+				  &nlm_grace_period, 0644);
 module_param_call(nlm_timeout, param_set_timeout, param_get_ulong,
-		  &nlm_timeout, 0644);
+				  &nlm_timeout, 0644);
 module_param_call(nlm_udpport, param_set_port, param_get_int,
-		  &nlm_udpport, 0644);
+				  &nlm_udpport, 0644);
 module_param_call(nlm_tcpport, param_set_port, param_get_int,
-		  &nlm_tcpport, 0644);
+				  &nlm_tcpport, 0644);
 module_param(nsm_use_hostnames, bool, 0644);
 module_param(nlm_max_connections, uint, 0644);
 
@@ -676,7 +768,8 @@ static void lockd_exit_net(struct net *net)
 {
 }
 
-static struct pernet_operations lockd_net_ops = {
+static struct pernet_operations lockd_net_ops =
+{
 	.init = lockd_init_net,
 	.exit = lockd_exit_net,
 	.id = &lockd_net_id,
@@ -695,16 +788,26 @@ static int __init init_nlm(void)
 #ifdef CONFIG_SYSCTL
 	err = -ENOMEM;
 	nlm_sysctl_table = register_sysctl_table(nlm_sysctl_root);
+
 	if (nlm_sysctl_table == NULL)
+	{
 		goto err_sysctl;
+	}
+
 #endif
 	err = register_pernet_subsys(&lockd_net_ops);
+
 	if (err)
+	{
 		goto err_pernet;
+	}
 
 	err = lockd_create_procfs();
+
 	if (err)
+	{
 		goto err_procfs;
+	}
 
 	return 0;
 
@@ -735,27 +838,31 @@ module_exit(exit_nlm);
 /*
  * Define NLM program and procedures
  */
-static struct svc_version	nlmsvc_version1 = {
-		.vs_vers	= 1,
-		.vs_nproc	= 17,
-		.vs_proc	= nlmsvc_procedures,
-		.vs_xdrsize	= NLMSVC_XDRSIZE,
+static struct svc_version	nlmsvc_version1 =
+{
+	.vs_vers	= 1,
+	.vs_nproc	= 17,
+	.vs_proc	= nlmsvc_procedures,
+	.vs_xdrsize	= NLMSVC_XDRSIZE,
 };
-static struct svc_version	nlmsvc_version3 = {
-		.vs_vers	= 3,
-		.vs_nproc	= 24,
-		.vs_proc	= nlmsvc_procedures,
-		.vs_xdrsize	= NLMSVC_XDRSIZE,
+static struct svc_version	nlmsvc_version3 =
+{
+	.vs_vers	= 3,
+	.vs_nproc	= 24,
+	.vs_proc	= nlmsvc_procedures,
+	.vs_xdrsize	= NLMSVC_XDRSIZE,
 };
 #ifdef CONFIG_LOCKD_V4
-static struct svc_version	nlmsvc_version4 = {
-		.vs_vers	= 4,
-		.vs_nproc	= 24,
-		.vs_proc	= nlmsvc_procedures4,
-		.vs_xdrsize	= NLMSVC_XDRSIZE,
+static struct svc_version	nlmsvc_version4 =
+{
+	.vs_vers	= 4,
+	.vs_nproc	= 24,
+	.vs_proc	= nlmsvc_procedures4,
+	.vs_xdrsize	= NLMSVC_XDRSIZE,
 };
 #endif
-static struct svc_version *	nlmsvc_version[] = {
+static struct svc_version 	*nlmsvc_version[] =
+{
 	[1] = &nlmsvc_version1,
 	[3] = &nlmsvc_version3,
 #ifdef CONFIG_LOCKD_V4
@@ -766,7 +873,8 @@ static struct svc_version *	nlmsvc_version[] = {
 static struct svc_stat		nlmsvc_stats;
 
 #define NLM_NRVERS	ARRAY_SIZE(nlmsvc_version)
-static struct svc_program	nlmsvc_program = {
+static struct svc_program	nlmsvc_program =
+{
 	.pg_prog		= NLM_PROGRAM,		/* program number */
 	.pg_nvers		= NLM_NRVERS,		/* number of entries in nlmsvc_version */
 	.pg_vers		= nlmsvc_version,	/* version table */

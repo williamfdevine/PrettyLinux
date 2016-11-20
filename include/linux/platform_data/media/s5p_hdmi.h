@@ -25,7 +25,8 @@ struct i2c_board_info;
  * NULL pointer for *_info fields indicates that
  * the corresponding chip is not present
  */
-struct s5p_hdmi_platform_data {
+struct s5p_hdmi_platform_data
+{
 	int hdmiphy_bus;
 	struct i2c_board_info *hdmiphy_info;
 	int mhl_bus;

@@ -27,7 +27,7 @@
 #include <asm/octeon/cvmx-smix-defs.h>
 
 static void cvm_oct_get_drvinfo(struct net_device *dev,
-				struct ethtool_drvinfo *info)
+								struct ethtool_drvinfo *info)
 {
 	strlcpy(info->driver, KBUILD_MODNAME, sizeof(info->driver));
 	strlcpy(info->version, UTS_RELEASE, sizeof(info->version));
@@ -37,15 +37,20 @@ static void cvm_oct_get_drvinfo(struct net_device *dev,
 static int cvm_oct_nway_reset(struct net_device *dev)
 {
 	if (!capable(CAP_NET_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	if (dev->phydev)
+	{
 		return phy_start_aneg(dev->phydev);
+	}
 
 	return -EINVAL;
 }
 
-const struct ethtool_ops cvm_oct_ethtool_ops = {
+const struct ethtool_ops cvm_oct_ethtool_ops =
+{
 	.get_drvinfo = cvm_oct_get_drvinfo,
 	.nway_reset = cvm_oct_nway_reset,
 	.get_link = ethtool_op_get_link,
@@ -64,25 +69,32 @@ const struct ethtool_ops cvm_oct_ethtool_ops = {
 int cvm_oct_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 {
 	if (!netif_running(dev))
+	{
 		return -EINVAL;
+	}
 
 	if (!dev->phydev)
+	{
 		return -EINVAL;
+	}
 
 	return phy_mii_ioctl(dev->phydev, rq, cmd);
 }
 
 void cvm_oct_note_carrier(struct octeon_ethernet *priv,
-			  cvmx_helper_link_info_t li)
+						  cvmx_helper_link_info_t li)
 {
-	if (li.s.link_up) {
+	if (li.s.link_up)
+	{
 		pr_notice_ratelimited("%s: %u Mbps %s duplex, port %d, queue %d\n",
-				      netdev_name(priv->netdev), li.s.speed,
-				      (li.s.full_duplex) ? "Full" : "Half",
-				      priv->port, priv->queue);
-	} else {
+							  netdev_name(priv->netdev), li.s.speed,
+							  (li.s.full_duplex) ? "Full" : "Half",
+							  priv->port, priv->queue);
+	}
+	else
+	{
 		pr_notice_ratelimited("%s: Link down\n",
-				      netdev_name(priv->netdev));
+							  netdev_name(priv->netdev));
 	}
 }
 
@@ -101,9 +113,12 @@ void cvm_oct_adjust_link(struct net_device *dev)
 	 * The polling task need to know about link status changes.
 	 */
 	if (priv->poll)
+	{
 		priv->poll(dev);
+	}
 
-	if (priv->last_link != dev->phydev->link) {
+	if (priv->last_link != dev->phydev->link)
+	{
 		priv->last_link = dev->phydev->link;
 		cvmx_helper_link_set(priv->port, link_info);
 		cvm_oct_note_carrier(priv, link_info);
@@ -125,15 +140,19 @@ int cvm_oct_common_stop(struct net_device *dev)
 	priv->poll = NULL;
 
 	if (dev->phydev)
+	{
 		phy_disconnect(dev->phydev);
+	}
 
-	if (priv->last_link) {
+	if (priv->last_link)
+	{
 		link_info.u64 = 0;
 		priv->last_link = 0;
 
 		cvmx_helper_link_set(priv->port, link_info);
 		cvm_oct_note_carrier(priv, link_info);
 	}
+
 	return 0;
 }
 
@@ -151,27 +170,39 @@ int cvm_oct_phy_setup_device(struct net_device *dev)
 	struct phy_device *phydev = NULL;
 
 	if (!priv->of_node)
+	{
 		goto no_phy;
+	}
 
 	phy_node = of_parse_phandle(priv->of_node, "phy-handle", 0);
-	if (!phy_node && of_phy_is_fixed_link(priv->of_node)) {
+
+	if (!phy_node && of_phy_is_fixed_link(priv->of_node))
+	{
 		int rc;
 
 		rc = of_phy_register_fixed_link(priv->of_node);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		phy_node = of_node_get(priv->of_node);
 	}
+
 	if (!phy_node)
+	{
 		goto no_phy;
+	}
 
 	phydev = of_phy_connect(dev, phy_node, cvm_oct_adjust_link, 0,
-				PHY_INTERFACE_MODE_GMII);
+							PHY_INTERFACE_MODE_GMII);
 	of_node_put(phy_node);
 
 	if (!phydev)
+	{
 		return -ENODEV;
+	}
 
 	priv->last_link = 0;
 	phy_start_aneg(phydev);

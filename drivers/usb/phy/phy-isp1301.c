@@ -18,7 +18,8 @@
 
 #define DRV_NAME		"isp1301"
 
-struct isp1301 {
+struct isp1301
+{
 	struct usb_phy		phy;
 	struct mutex		mutex;
 
@@ -27,7 +28,8 @@ struct isp1301 {
 
 #define phy_to_isp(p)		(container_of((p), struct isp1301, phy))
 
-static const struct i2c_device_id isp1301_id[] = {
+static const struct i2c_device_id isp1301_id[] =
+{
 	{ "isp1301", 0 },
 	{ }
 };
@@ -60,14 +62,14 @@ static int isp1301_phy_init(struct usb_phy *phy)
 	isp1301_write(isp, ISP1301_I2C_MODE_CONTROL_1, MC1_SPEED_REG);
 	isp1301_clear(isp, ISP1301_I2C_MODE_CONTROL_2, ~0);
 	isp1301_write(isp, ISP1301_I2C_MODE_CONTROL_2, (MC2_BI_DI | MC2_PSW_EN
-				| MC2_SPD_SUSP_CTRL));
+				  | MC2_SPD_SUSP_CTRL));
 
 	isp1301_clear(isp, ISP1301_I2C_OTG_CONTROL_1, ~0);
 	isp1301_write(isp, ISP1301_I2C_MODE_CONTROL_1, MC1_DAT_SE0);
 	isp1301_write(isp, ISP1301_I2C_OTG_CONTROL_1, (OTG1_DM_PULLDOWN
-				| OTG1_DP_PULLDOWN));
+				  | OTG1_DP_PULLDOWN));
 	isp1301_clear(isp, ISP1301_I2C_OTG_CONTROL_1, (OTG1_DM_PULLUP
-				| OTG1_DP_PULLUP));
+				  | OTG1_DP_PULLUP));
 
 	/* mask all interrupts */
 	isp1301_clear(isp, ISP1301_I2C_INTERRUPT_LATCH, ~0);
@@ -82,22 +84,29 @@ static int isp1301_phy_set_vbus(struct usb_phy *phy, int on)
 	struct isp1301 *isp = phy_to_isp(phy);
 
 	if (on)
+	{
 		isp1301_write(isp, ISP1301_I2C_OTG_CONTROL_1, OTG1_VBUS_DRV);
+	}
 	else
+	{
 		isp1301_clear(isp, ISP1301_I2C_OTG_CONTROL_1, OTG1_VBUS_DRV);
+	}
 
 	return 0;
 }
 
 static int isp1301_probe(struct i2c_client *client,
-			 const struct i2c_device_id *i2c_id)
+						 const struct i2c_device_id *i2c_id)
 {
 	struct isp1301 *isp;
 	struct usb_phy *phy;
 
 	isp = devm_kzalloc(&client->dev, sizeof(*isp), GFP_KERNEL);
+
 	if (!isp)
+	{
 		return -ENOMEM;
+	}
 
 	isp->client = client;
 	mutex_init(&isp->mutex);
@@ -127,7 +136,8 @@ static int isp1301_remove(struct i2c_client *client)
 	return 0;
 }
 
-static struct i2c_driver isp1301_driver = {
+static struct i2c_driver isp1301_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 	},
@@ -142,18 +152,25 @@ static int match(struct device *dev, void *data)
 {
 	struct device_node *node = (struct device_node *)data;
 	return (dev->of_node == node) &&
-		(dev->driver == &isp1301_driver.driver);
+		   (dev->driver == &isp1301_driver.driver);
 }
 
 struct i2c_client *isp1301_get_client(struct device_node *node)
 {
-	if (node) { /* reference of ISP1301 I2C node via DT */
+	if (node)   /* reference of ISP1301 I2C node via DT */
+	{
 		struct device *dev = bus_find_device(&i2c_bus_type, NULL,
-						     node, match);
+											 node, match);
+
 		if (!dev)
+		{
 			return NULL;
+		}
+
 		return to_i2c_client(dev);
-	} else { /* non-DT: only one ISP1301 chip supported */
+	}
+	else     /* non-DT: only one ISP1301 chip supported */
+	{
 		return isp1301_i2c_client;
 	}
 }

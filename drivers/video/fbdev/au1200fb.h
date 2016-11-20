@@ -35,7 +35,8 @@
 #define uint8 unsigned char
 #define uint32 unsigned int
 
-struct au1200_lcd {
+struct au1200_lcd
+{
 	volatile uint32	reserved0;
 	volatile uint32	screen;
 	volatile uint32	backcolor;
@@ -61,7 +62,7 @@ struct au1200_lcd {
 	volatile uint32	intenable;
 	volatile uint32	outmask;
 	volatile uint32	fifoctrl;
-	uint32	reserved2[(0x0100-0x0058)/4];
+	uint32	reserved2[(0x0100 - 0x0058) / 4];
 	struct
 	{
 		volatile uint32	winctrl0;
@@ -74,9 +75,9 @@ struct au1200_lcd {
 		uint32	winreserved1;
 	} window[4];
 
-	uint32	reserved3[(0x0400-0x0180)/4];
+	uint32	reserved3[(0x0400 - 0x0180) / 4];
 
-	volatile uint32	palette[(0x0800-0x0400)/4];
+	volatile uint32	palette[(0x0800 - 0x0400) / 4];
 
 	volatile uint8	cursorpattern[256];
 };
@@ -321,7 +322,8 @@ struct au1200_lcd {
 #define uint8 unsigned char
 #define uint32 unsigned int
 
-struct au1200_lcd {
+struct au1200_lcd
+{
 	volatile uint32	reserved0;
 	volatile uint32	screen;
 	volatile uint32	backcolor;
@@ -347,7 +349,7 @@ struct au1200_lcd {
 	volatile uint32	intenable;
 	volatile uint32	outmask;
 	volatile uint32	fifoctrl;
-	uint32	reserved2[(0x0100-0x0058)/4];
+	uint32	reserved2[(0x0100 - 0x0058) / 4];
 	struct
 	{
 		volatile uint32	winctrl0;
@@ -360,9 +362,9 @@ struct au1200_lcd {
 		uint32	winreserved1;
 	} window[4];
 
-	uint32	reserved3[(0x0400-0x0180)/4];
+	uint32	reserved3[(0x0400 - 0x0180) / 4];
 
-	volatile uint32	palette[(0x0800-0x0400)/4];
+	volatile uint32	palette[(0x0800 - 0x0400) / 4];
 
 	volatile uint8	cursorpattern[256];
 };

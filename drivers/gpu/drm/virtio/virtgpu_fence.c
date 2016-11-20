@@ -46,7 +46,10 @@ static bool virtio_signaled(struct fence *f)
 	struct virtio_gpu_fence *fence = to_virtio_fence(f);
 
 	if (atomic64_read(&fence->drv->last_seq) >= fence->seq)
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -64,7 +67,8 @@ static void virtio_timeline_value_str(struct fence *f, char *str, int size)
 	snprintf(str, size, "%llu", (u64)atomic64_read(&fence->drv->last_seq));
 }
 
-static const struct fence_ops virtio_fence_ops = {
+static const struct fence_ops virtio_fence_ops =
+{
 	.get_driver_name     = virtio_get_driver_name,
 	.get_timeline_name   = virtio_get_timeline_name,
 	.enable_signaling    = virtio_enable_signaling,
@@ -75,21 +79,24 @@ static const struct fence_ops virtio_fence_ops = {
 };
 
 int virtio_gpu_fence_emit(struct virtio_gpu_device *vgdev,
-			  struct virtio_gpu_ctrl_hdr *cmd_hdr,
-			  struct virtio_gpu_fence **fence)
+						  struct virtio_gpu_ctrl_hdr *cmd_hdr,
+						  struct virtio_gpu_fence **fence)
 {
 	struct virtio_gpu_fence_driver *drv = &vgdev->fence_drv;
 	unsigned long irq_flags;
 
 	*fence = kmalloc(sizeof(struct virtio_gpu_fence), GFP_ATOMIC);
+
 	if ((*fence) == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_irqsave(&drv->lock, irq_flags);
 	(*fence)->drv = drv;
 	(*fence)->seq = ++drv->sync_seq;
 	fence_init(&(*fence)->f, &virtio_fence_ops, &drv->lock,
-		   drv->context, (*fence)->seq);
+			   drv->context, (*fence)->seq);
 	fence_get(&(*fence)->f);
 	list_add_tail(&(*fence)->node, &drv->fences);
 	spin_unlock_irqrestore(&drv->lock, irq_flags);
@@ -100,7 +107,7 @@ int virtio_gpu_fence_emit(struct virtio_gpu_device *vgdev,
 }
 
 void virtio_gpu_fence_event_process(struct virtio_gpu_device *vgdev,
-				    u64 last_seq)
+									u64 last_seq)
 {
 	struct virtio_gpu_fence_driver *drv = &vgdev->fence_drv;
 	struct virtio_gpu_fence *fence, *tmp;
@@ -108,9 +115,13 @@ void virtio_gpu_fence_event_process(struct virtio_gpu_device *vgdev,
 
 	spin_lock_irqsave(&drv->lock, irq_flags);
 	atomic64_set(&vgdev->fence_drv.last_seq, last_seq);
-	list_for_each_entry_safe(fence, tmp, &drv->fences, node) {
+	list_for_each_entry_safe(fence, tmp, &drv->fences, node)
+	{
 		if (last_seq < fence->seq)
+		{
 			continue;
+		}
+
 		fence_signal_locked(&fence->f);
 		list_del(&fence->node);
 		fence_put(&fence->f);

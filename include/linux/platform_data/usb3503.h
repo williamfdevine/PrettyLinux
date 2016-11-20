@@ -7,13 +7,15 @@
 #define USB3503_OFF_PORT2	(1 << 2)
 #define USB3503_OFF_PORT3	(1 << 3)
 
-enum usb3503_mode {
+enum usb3503_mode
+{
 	USB3503_MODE_UNKNOWN,
 	USB3503_MODE_HUB,
 	USB3503_MODE_STANDBY,
 };
 
-struct usb3503_platform_data {
+struct usb3503_platform_data
+{
 	enum usb3503_mode	initial_mode;
 	u8	port_off_mask;
 	int	gpio_intn;

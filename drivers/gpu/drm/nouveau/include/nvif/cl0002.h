@@ -1,7 +1,8 @@
 #ifndef __NVIF_CL0002_H__
 #define __NVIF_CL0002_H__
 
-struct nv_dma_v0 {
+struct nv_dma_v0
+{
 	__u8  version;
 #define NV_DMA_V0_TARGET_VM                                                0x00
 #define NV_DMA_V0_TARGET_VRAM                                              0x01
@@ -20,7 +21,8 @@ struct nv_dma_v0 {
 	/* ... chipset-specific class data */
 };
 
-struct nv50_dma_v0 {
+struct nv50_dma_v0
+{
 	__u8  version;
 #define NV50_DMA_V0_PRIV_VM                                                0x00
 #define NV50_DMA_V0_PRIV_US                                                0x01
@@ -41,7 +43,8 @@ struct nv50_dma_v0 {
 	__u8  pad05[3];
 };
 
-struct gf100_dma_v0 {
+struct gf100_dma_v0
+{
 	__u8  version;
 #define GF100_DMA_V0_PRIV_VM                                               0x00
 #define GF100_DMA_V0_PRIV_US                                               0x01
@@ -53,7 +56,8 @@ struct gf100_dma_v0 {
 	__u8  pad03[5];
 };
 
-struct gf119_dma_v0 {
+struct gf119_dma_v0
+{
 	__u8  version;
 #define GF119_DMA_V0_PAGE_LP                                               0x00
 #define GF119_DMA_V0_PAGE_SP                                               0x01

@@ -95,39 +95,55 @@ static int snd_pdacf_probe(struct pcmcia_device *link)
 	int i, err;
 	struct snd_pdacf *pdacf;
 	struct snd_card *card;
-	static struct snd_device_ops ops = {
+	static struct snd_device_ops ops =
+	{
 		.dev_free =	snd_pdacf_dev_free,
 	};
 
 	snd_printdd(KERN_DEBUG "pdacf_attach called\n");
+
 	/* find an empty slot from the card list */
-	for (i = 0; i < SNDRV_CARDS; i++) {
+	for (i = 0; i < SNDRV_CARDS; i++)
+	{
 		if (! card_list[i])
+		{
 			break;
+		}
 	}
-	if (i >= SNDRV_CARDS) {
+
+	if (i >= SNDRV_CARDS)
+	{
 		snd_printk(KERN_ERR "pdacf: too many cards found\n");
 		return -EINVAL;
 	}
+
 	if (! enable[i])
-		return -ENODEV; /* disabled explicitly */
+	{
+		return -ENODEV;    /* disabled explicitly */
+	}
 
 	/* ok, create a card instance */
 	err = snd_card_new(&link->dev, index[i], id[i], THIS_MODULE,
-			   0, &card);
-	if (err < 0) {
+					   0, &card);
+
+	if (err < 0)
+	{
 		snd_printk(KERN_ERR "pdacf: cannot create a card instance\n");
 		return err;
 	}
 
 	pdacf = snd_pdacf_create(card);
-	if (!pdacf) {
+
+	if (!pdacf)
+	{
 		snd_card_free(card);
 		return -ENOMEM;
 	}
 
 	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, pdacf, &ops);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		kfree(pdacf);
 		snd_card_free(card);
 		return err;
@@ -171,20 +187,28 @@ static int snd_pdacf_assign_resources(struct snd_pdacf *pdacf, int port, int irq
 	pdacf->chip_status |= PDAUDIOCF_STAT_IS_CONFIGURED;
 
 	err = snd_pdacf_ak4117_create(pdacf);
+
 	if (err < 0)
-		return err;	
+	{
+		return err;
+	}
 
 	strcpy(card->driver, "PDAudio-CF");
 	sprintf(card->shortname, "Core Sound %s", card->driver);
 	sprintf(card->longname, "%s at 0x%x, irq %i",
-		card->shortname, port, irq);
+			card->shortname, port, irq);
 
 	err = snd_pdacf_pcm_new(pdacf);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if ((err = snd_card_register(card)) < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -200,7 +224,10 @@ static void snd_pdacf_detach(struct pcmcia_device *link)
 	snd_printdd(KERN_DEBUG "pdacf_detach called\n");
 
 	if (chip->chip_status & PDAUDIOCF_STAT_IS_CONFIGURED)
+	{
 		snd_pdacf_powerdown(chip);
+	}
+
 	chip->chip_status |= PDAUDIOCF_STAT_IS_STALE; /* to be sure */
 	snd_card_disconnect(chip->card);
 	snd_card_free_when_closed(chip->card);
@@ -220,26 +247,37 @@ static int pdacf_config(struct pcmcia_device *link)
 	link->config_flags |= CONF_ENABLE_IRQ | CONF_ENABLE_PULSE_IRQ;
 
 	ret = pcmcia_request_io(link);
+
 	if (ret)
+	{
 		goto failed_preirq;
+	}
 
 	ret = request_threaded_irq(link->irq, pdacf_interrupt,
-				   pdacf_threaded_irq,
-				   IRQF_SHARED, link->devname, link->priv);
+							   pdacf_threaded_irq,
+							   IRQF_SHARED, link->devname, link->priv);
+
 	if (ret)
+	{
 		goto failed_preirq;
+	}
 
 	ret = pcmcia_enable_device(link);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	if (snd_pdacf_assign_resources(pdacf, link->resource[0]->start,
-					link->irq) < 0)
+								   link->irq) < 0)
+	{
 		goto failed;
+	}
 
 	return 0;
 
- failed:
+failed:
 	free_irq(link->irq, link->priv);
 failed_preirq:
 	pcmcia_disable_device(link);
@@ -253,7 +291,9 @@ static int pdacf_suspend(struct pcmcia_device *link)
 	struct snd_pdacf *chip = link->priv;
 
 	snd_printdd(KERN_DEBUG "SUSPEND\n");
-	if (chip) {
+
+	if (chip)
+	{
 		snd_printdd(KERN_DEBUG "snd_pdacf_suspend calling\n");
 		snd_pdacf_suspend(chip);
 	}
@@ -266,12 +306,16 @@ static int pdacf_resume(struct pcmcia_device *link)
 	struct snd_pdacf *chip = link->priv;
 
 	snd_printdd(KERN_DEBUG "RESUME\n");
-	if (pcmcia_dev_present(link)) {
-		if (chip) {
+
+	if (pcmcia_dev_present(link))
+	{
+		if (chip)
+		{
 			snd_printdd(KERN_DEBUG "calling snd_pdacf_resume\n");
 			snd_pdacf_resume(chip);
 		}
 	}
+
 	snd_printdd(KERN_DEBUG "resume done!\n");
 
 	return 0;
@@ -282,14 +326,16 @@ static int pdacf_resume(struct pcmcia_device *link)
 /*
  * Module entry points
  */
-static const struct pcmcia_device_id snd_pdacf_ids[] = {
+static const struct pcmcia_device_id snd_pdacf_ids[] =
+{
 	/* this is too general PCMCIA_DEVICE_MANF_CARD(0x015d, 0x4c45), */
-	PCMCIA_DEVICE_PROD_ID12("Core Sound","PDAudio-CF",0x396d19d2,0x71717b49),
+	PCMCIA_DEVICE_PROD_ID12("Core Sound", "PDAudio-CF", 0x396d19d2, 0x71717b49),
 	PCMCIA_DEVICE_NULL
 };
 MODULE_DEVICE_TABLE(pcmcia, snd_pdacf_ids);
 
-static struct pcmcia_driver pdacf_cs_driver = {
+static struct pcmcia_driver pdacf_cs_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "snd-pdaudiocf",
 	.probe		= snd_pdacf_probe,

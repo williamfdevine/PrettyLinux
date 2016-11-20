@@ -60,7 +60,8 @@
  * @max_idx: maximum amount of packets per AMPDU.
  * @pend_pkts: number of packets currently in @pktslots.
  */
-struct brcmf_ampdu_rx_reorder {
+struct brcmf_ampdu_rx_reorder
+{
 	struct sk_buff **pktslots;
 	u8 flow_id;
 	u8 cur_idx;
@@ -82,7 +83,8 @@ struct brcmf_mp_device;	/* module paramateres, device specific */
  * other fields see struct brcmf_rev_info_le in
  * fwil_types.h
  */
-struct brcmf_rev_info {
+struct brcmf_rev_info
+{
 	int result;
 	u32 vendorid;
 	u32 deviceid;
@@ -104,7 +106,8 @@ struct brcmf_rev_info {
 };
 
 /* Common structure for module and instance linkage */
-struct brcmf_pub {
+struct brcmf_pub
+{
 	/* Linkage ponters */
 	struct brcmf_bus *bus_if;
 	struct brcmf_proto *proto;
@@ -159,7 +162,8 @@ struct brcmf_fws_mac_descriptor;
  * @BRCMF_NETIF_STOP_REASON_DISCONNECTED:
  *	netif stopped due to not being connected (STA mode).
  */
-enum brcmf_netif_stop_reason {
+enum brcmf_netif_stop_reason
+{
 	BRCMF_NETIF_STOP_REASON_FWS_FC = BIT(0),
 	BRCMF_NETIF_STOP_REASON_FLOW = BIT(1),
 	BRCMF_NETIF_STOP_REASON_DISCONNECTED = BIT(2)
@@ -183,7 +187,8 @@ enum brcmf_netif_stop_reason {
  * @pend_8021x_cnt: tracks outstanding number of 802.1x frames.
  * @pend_8021x_wait: used for signalling change in count.
  */
-struct brcmf_if {
+struct brcmf_if
+{
 	struct brcmf_pub *drvr;
 	struct brcmf_cfg80211_vif *vif;
 	struct net_device *ndev;
@@ -209,10 +214,10 @@ char *brcmf_ifname(struct brcmf_if *ifp);
 struct brcmf_if *brcmf_get_ifp(struct brcmf_pub *drvr, int ifidx);
 int brcmf_net_attach(struct brcmf_if *ifp, bool rtnl_locked);
 struct brcmf_if *brcmf_add_if(struct brcmf_pub *drvr, s32 bsscfgidx, s32 ifidx,
-			      bool is_p2pdev, const char *name, u8 *mac_addr);
+							  bool is_p2pdev, const char *name, u8 *mac_addr);
 void brcmf_remove_interface(struct brcmf_if *ifp, bool rtnl_locked);
 void brcmf_txflowblock_if(struct brcmf_if *ifp,
-			  enum brcmf_netif_stop_reason reason, bool state);
+						  enum brcmf_netif_stop_reason reason, bool state);
 void brcmf_txfinalize(struct brcmf_if *ifp, struct sk_buff *txp, bool success);
 void brcmf_netif_rx(struct brcmf_if *ifp, struct sk_buff *skb);
 void brcmf_net_setcarrier(struct brcmf_if *ifp, bool on);

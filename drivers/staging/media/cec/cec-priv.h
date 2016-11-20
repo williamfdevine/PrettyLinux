@@ -44,11 +44,11 @@ int cec_adap_status(struct seq_file *file, void *priv);
 int cec_thread_func(void *_adap);
 void __cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block);
 int __cec_s_log_addrs(struct cec_adapter *adap,
-		      struct cec_log_addrs *log_addrs, bool block);
+					  struct cec_log_addrs *log_addrs, bool block);
 int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
-			struct cec_fh *fh, bool block);
+						struct cec_fh *fh, bool block);
 void cec_queue_event_fh(struct cec_fh *fh,
-			const struct cec_event *new_ev, u64 ts);
+						const struct cec_event *new_ev, u64 ts);
 
 /* cec-api.c */
 extern const struct file_operations cec_devnode_fops;

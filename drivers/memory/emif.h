@@ -561,7 +561,8 @@
  * The calculation function fills in this structure to be later used for
  * initialisation and DVFS
  */
-struct emif_regs {
+struct emif_regs
+{
 	u32 freq;
 	u32 ref_ctrl_shdw;
 	u32 ref_ctrl_shdw_derated;
@@ -571,11 +572,13 @@ struct emif_regs {
 	u32 sdram_tim3_shdw;
 	u32 sdram_tim3_shdw_derated;
 	u32 pwr_mgmt_ctrl_shdw;
-	union {
+	union
+	{
 		u32 read_idle_ctrl_shdw_normal;
 		u32 dll_calib_ctrl_shdw_normal;
 	};
-	union {
+	union
+	{
 		u32 read_idle_ctrl_shdw_volt_ramp;
 		u32 dll_calib_ctrl_shdw_volt_ramp;
 	};

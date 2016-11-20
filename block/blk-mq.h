@@ -3,8 +3,10 @@
 
 struct blk_mq_tag_set;
 
-struct blk_mq_ctx {
-	struct {
+struct blk_mq_ctx
+{
+	struct
+	{
 		spinlock_t		lock;
 		struct list_head	rq_list;
 	}  ____cacheline_aligned_in_smp;
@@ -59,7 +61,7 @@ extern void blk_mq_rq_timed_out(struct request *req, bool reserved);
 void blk_mq_release(struct request_queue *q);
 
 static inline struct blk_mq_ctx *__blk_mq_get_ctx(struct request_queue *q,
-					   unsigned int cpu)
+		unsigned int cpu)
 {
 	return per_cpu_ptr(q->queue_ctx, cpu);
 }
@@ -80,7 +82,8 @@ static inline void blk_mq_put_ctx(struct blk_mq_ctx *ctx)
 	put_cpu();
 }
 
-struct blk_mq_alloc_data {
+struct blk_mq_alloc_data
+{
 	/* input parameter */
 	struct request_queue *q;
 	unsigned int flags;

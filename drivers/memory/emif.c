@@ -55,7 +55,8 @@
  * @debugfs_root:		dentry to the root folder for EMIF in debugfs
  * @np_ddr:			Pointer to ddr device tree node
  */
-struct emif_data {
+struct emif_data
+{
 	u8				duplicate;
 	u8				temperature_level;
 	u8				lpmode;
@@ -79,38 +80,42 @@ static LIST_HEAD(device_list);
 
 #ifdef CONFIG_DEBUG_FS
 static void do_emif_regdump_show(struct seq_file *s, struct emif_data *emif,
-	struct emif_regs *regs)
+								 struct emif_regs *regs)
 {
 	u32 type = emif->plat_data->device_info->type;
 	u32 ip_rev = emif->plat_data->ip_rev;
 
 	seq_printf(s, "EMIF register cache dump for %dMHz\n",
-		regs->freq/1000000);
+			   regs->freq / 1000000);
 
 	seq_printf(s, "ref_ctrl_shdw\t: 0x%08x\n", regs->ref_ctrl_shdw);
 	seq_printf(s, "sdram_tim1_shdw\t: 0x%08x\n", regs->sdram_tim1_shdw);
 	seq_printf(s, "sdram_tim2_shdw\t: 0x%08x\n", regs->sdram_tim2_shdw);
 	seq_printf(s, "sdram_tim3_shdw\t: 0x%08x\n", regs->sdram_tim3_shdw);
 
-	if (ip_rev == EMIF_4D) {
+	if (ip_rev == EMIF_4D)
+	{
 		seq_printf(s, "read_idle_ctrl_shdw_normal\t: 0x%08x\n",
-			regs->read_idle_ctrl_shdw_normal);
+				   regs->read_idle_ctrl_shdw_normal);
 		seq_printf(s, "read_idle_ctrl_shdw_volt_ramp\t: 0x%08x\n",
-			regs->read_idle_ctrl_shdw_volt_ramp);
-	} else if (ip_rev == EMIF_4D5) {
+				   regs->read_idle_ctrl_shdw_volt_ramp);
+	}
+	else if (ip_rev == EMIF_4D5)
+	{
 		seq_printf(s, "dll_calib_ctrl_shdw_normal\t: 0x%08x\n",
-			regs->dll_calib_ctrl_shdw_normal);
+				   regs->dll_calib_ctrl_shdw_normal);
 		seq_printf(s, "dll_calib_ctrl_shdw_volt_ramp\t: 0x%08x\n",
-			regs->dll_calib_ctrl_shdw_volt_ramp);
+				   regs->dll_calib_ctrl_shdw_volt_ramp);
 	}
 
-	if (type == DDR_TYPE_LPDDR2_S2 || type == DDR_TYPE_LPDDR2_S4) {
+	if (type == DDR_TYPE_LPDDR2_S2 || type == DDR_TYPE_LPDDR2_S4)
+	{
 		seq_printf(s, "ref_ctrl_shdw_derated\t: 0x%08x\n",
-			regs->ref_ctrl_shdw_derated);
+				   regs->ref_ctrl_shdw_derated);
 		seq_printf(s, "sdram_tim1_shdw_derated\t: 0x%08x\n",
-			regs->sdram_tim1_shdw_derated);
+				   regs->sdram_tim1_shdw_derated);
 		seq_printf(s, "sdram_tim3_shdw_derated\t: 0x%08x\n",
-			regs->sdram_tim3_shdw_derated);
+				   regs->sdram_tim3_shdw_derated);
 	}
 }
 
@@ -121,11 +126,16 @@ static int emif_regdump_show(struct seq_file *s, void *unused)
 	int			i;
 
 	if (emif->duplicate)
+	{
 		regs_cache = emif1->regs_cache;
+	}
 	else
+	{
 		regs_cache = emif->regs_cache;
+	}
 
-	for (i = 0; i < EMIF_MAX_NUM_FREQUENCIES && regs_cache[i]; i++) {
+	for (i = 0; i < EMIF_MAX_NUM_FREQUENCIES && regs_cache[i]; i++)
+	{
 		do_emif_regdump_show(s, emif, regs_cache[i]);
 		seq_printf(s, "\n");
 	}
@@ -138,7 +148,8 @@ static int emif_regdump_open(struct inode *inode, struct file *file)
 	return single_open(file, emif_regdump_show, inode->i_private);
 }
 
-static const struct file_operations emif_regdump_fops = {
+static const struct file_operations emif_regdump_fops =
+{
 	.open			= emif_regdump_open,
 	.read			= seq_read,
 	.release		= single_release,
@@ -157,7 +168,8 @@ static int emif_mr4_open(struct inode *inode, struct file *file)
 	return single_open(file, emif_mr4_show, inode->i_private);
 }
 
-static const struct file_operations emif_mr4_fops = {
+static const struct file_operations emif_mr4_fops =
+{
 	.open			= emif_mr4_open,
 	.read			= seq_read,
 	.release		= single_release,
@@ -169,22 +181,29 @@ static int __init_or_module emif_debugfs_init(struct emif_data *emif)
 	int		ret;
 
 	dentry = debugfs_create_dir(dev_name(emif->dev), NULL);
-	if (!dentry) {
+
+	if (!dentry)
+	{
 		ret = -ENOMEM;
 		goto err0;
 	}
+
 	emif->debugfs_root = dentry;
 
 	dentry = debugfs_create_file("regcache_dump", S_IRUGO,
-			emif->debugfs_root, emif, &emif_regdump_fops);
-	if (!dentry) {
+								 emif->debugfs_root, emif, &emif_regdump_fops);
+
+	if (!dentry)
+	{
 		ret = -ENOMEM;
 		goto err1;
 	}
 
 	dentry = debugfs_create_file("mr4", S_IRUGO,
-			emif->debugfs_root, emif, &emif_mr4_fops);
-	if (!dentry) {
+								 emif->debugfs_root, emif, &emif_mr4_fops);
+
+	if (!dentry)
+	{
 		ret = -ENOMEM;
 		goto err1;
 	}
@@ -284,10 +303,11 @@ static void set_lpmode(struct emif_data *emif, u8 lpmode)
 	 * the EMIF_PWR_MGMT_CTRL[10:8] REG_LP_MODE bit field to 0x4.
 	 */
 	if ((emif->plat_data->ip_rev == EMIF_4D) &&
-	    (EMIF_LP_MODE_PWR_DN == lpmode)) {
+		(EMIF_LP_MODE_PWR_DN == lpmode))
+	{
 		WARN_ONCE(1,
-			  "REG_LP_MODE = LP_MODE_PWR_DN(4) is prohibited by"
-			  "erratum i743 switch to LP_MODE_SELF_REFRESH(2)\n");
+				  "REG_LP_MODE = LP_MODE_PWR_DN(4) is prohibited by"
+				  "erratum i743 switch to LP_MODE_SELF_REFRESH(2)\n");
 		/* rollback LP_MODE to Self-refresh mode */
 		lpmode = EMIF_LP_MODE_SELF_REFRESH;
 	}
@@ -325,9 +345,12 @@ static void do_freq_update(void)
 	 * frequency change has been done, the software can reprogram
 	 * EMIF_PWR_MGMT_CTRL[10:8] REG_LP_MODE to 0x2
 	 */
-	list_for_each_entry(emif, &device_list, node) {
+	list_for_each_entry(emif, &device_list, node)
+	{
 		if (emif->lpmode == EMIF_LP_MODE_SELF_REFRESH)
+		{
 			set_lpmode(emif, EMIF_LP_MODE_DISABLE);
+		}
 	}
 
 	/*
@@ -336,9 +359,12 @@ static void do_freq_update(void)
 	 * clock framework
 	 */
 
-	list_for_each_entry(emif, &device_list, node) {
+	list_for_each_entry(emif, &device_list, node)
+	{
 		if (emif->lpmode == EMIF_LP_MODE_SELF_REFRESH)
+		{
 			set_lpmode(emif, EMIF_LP_MODE_SELF_REFRESH);
+		}
 	}
 }
 
@@ -351,22 +377,28 @@ static const struct lpddr2_addressing *get_addressing_table(
 	type = device_info->type;
 	density = device_info->density;
 
-	switch (type) {
-	case DDR_TYPE_LPDDR2_S4:
-		index = density - 1;
-		break;
-	case DDR_TYPE_LPDDR2_S2:
-		switch (density) {
-		case DDR_DENSITY_1Gb:
-		case DDR_DENSITY_2Gb:
-			index = density + 3;
-			break;
-		default:
+	switch (type)
+	{
+		case DDR_TYPE_LPDDR2_S4:
 			index = density - 1;
-		}
-		break;
-	default:
-		return NULL;
+			break;
+
+		case DDR_TYPE_LPDDR2_S2:
+			switch (density)
+			{
+				case DDR_DENSITY_1Gb:
+				case DDR_DENSITY_2Gb:
+					index = density + 3;
+					break;
+
+				default:
+					index = density - 1;
+			}
+
+			break;
+
+		default:
+			return NULL;
 	}
 
 	return &lpddr2_jedec_addressing_table[index];
@@ -392,10 +424,13 @@ static const struct lpddr2_timings *get_timings_table(struct emif_data *emif,
 	 *  1. the frequency range covers the required frequency(safe) AND
 	 *  2. the max_freq is closest to the required frequency(optimal)
 	 */
-	for (i = 0; i < emif->plat_data->timings_arr_size; i++) {
+	for (i = 0; i < emif->plat_data->timings_arr_size; i++)
+	{
 		max = timings_arr[i].max_freq;
 		min = timings_arr[i].min_freq;
-		if ((freq >= min) && (freq <= max) && (max < freq_nearest)) {
+
+		if ((freq >= min) && (freq <= max) && (max < freq_nearest))
+		{
 			freq_nearest = max;
 			timings = &timings_arr[i];
 		}
@@ -403,16 +438,16 @@ static const struct lpddr2_timings *get_timings_table(struct emif_data *emif,
 
 	if (!timings)
 		dev_err(dev, "%s: couldn't find timings for - %dHz\n",
-			__func__, freq);
+				__func__, freq);
 
 	dev_dbg(dev, "%s: timings table: freq %d, speed bin freq %d\n",
-		__func__, freq, freq_nearest);
+			__func__, freq, freq_nearest);
 
 	return timings;
 }
 
 static u32 get_sdram_ref_ctrl_shdw(u32 freq,
-		const struct lpddr2_addressing *addressing)
+								   const struct lpddr2_addressing *addressing)
 {
 	u32 ref_ctrl_shdw = 0, val = 0, freq_khz, t_refi;
 
@@ -431,8 +466,8 @@ static u32 get_sdram_ref_ctrl_shdw(u32 freq,
 }
 
 static u32 get_sdram_tim_1_shdw(const struct lpddr2_timings *timings,
-		const struct lpddr2_min_tck *min_tck,
-		const struct lpddr2_addressing *addressing)
+								const struct lpddr2_min_tck *min_tck,
+								const struct lpddr2_addressing *addressing)
 {
 	u32 tim1 = 0, val = 0;
 
@@ -440,9 +475,14 @@ static u32 get_sdram_tim_1_shdw(const struct lpddr2_timings *timings,
 	tim1 |= val << T_WTR_SHIFT;
 
 	if (addressing->num_banks == B8)
-		val = DIV_ROUND_UP(timings->tFAW, t_ck*4);
+	{
+		val = DIV_ROUND_UP(timings->tFAW, t_ck * 4);
+	}
 	else
+	{
 		val = max(min_tck->tRRD, DIV_ROUND_UP(timings->tRRD, t_ck));
+	}
+
 	tim1 |= (val - 1) << T_RRD_SHIFT;
 
 	val = DIV_ROUND_UP(timings->tRAS_min + timings->tRPab, t_ck) - 1;
@@ -464,8 +504,8 @@ static u32 get_sdram_tim_1_shdw(const struct lpddr2_timings *timings,
 }
 
 static u32 get_sdram_tim_1_shdw_derated(const struct lpddr2_timings *timings,
-		const struct lpddr2_min_tck *min_tck,
-		const struct lpddr2_addressing *addressing)
+										const struct lpddr2_min_tck *min_tck,
+										const struct lpddr2_addressing *addressing)
 {
 	u32 tim1 = 0, val = 0;
 
@@ -476,12 +516,16 @@ static u32 get_sdram_tim_1_shdw_derated(const struct lpddr2_timings *timings,
 	 * tFAW is approximately 4 times tRRD. So add 1875*4 = 7500ps
 	 * to tFAW for de-rating
 	 */
-	if (addressing->num_banks == B8) {
+	if (addressing->num_banks == B8)
+	{
 		val = DIV_ROUND_UP(timings->tFAW + 7500, 4 * t_ck) - 1;
-	} else {
+	}
+	else
+	{
 		val = DIV_ROUND_UP(timings->tRRD + 1875, t_ck);
 		val = max(min_tck->tRRD, val) - 1;
 	}
+
 	tim1 |= val << T_RRD_SHIFT;
 
 	val = DIV_ROUND_UP(timings->tRAS_min + timings->tRPab + 1875, t_ck);
@@ -504,9 +548,9 @@ static u32 get_sdram_tim_1_shdw_derated(const struct lpddr2_timings *timings,
 }
 
 static u32 get_sdram_tim_2_shdw(const struct lpddr2_timings *timings,
-		const struct lpddr2_min_tck *min_tck,
-		const struct lpddr2_addressing *addressing,
-		u32 type)
+								const struct lpddr2_min_tck *min_tck,
+								const struct lpddr2_addressing *addressing,
+								u32 type)
 {
 	u32 tim2 = 0, val = 0;
 
@@ -530,9 +574,9 @@ static u32 get_sdram_tim_2_shdw(const struct lpddr2_timings *timings,
 }
 
 static u32 get_sdram_tim_3_shdw(const struct lpddr2_timings *timings,
-		const struct lpddr2_min_tck *min_tck,
-		const struct lpddr2_addressing *addressing,
-		u32 type, u32 ip_rev, u32 derated)
+								const struct lpddr2_min_tck *min_tck,
+								const struct lpddr2_addressing *addressing,
+								u32 type, u32 ip_rev, u32 derated)
 {
 	u32 tim3 = 0, val = 0, t_dqsck;
 
@@ -544,11 +588,16 @@ static u32 get_sdram_tim_3_shdw(const struct lpddr2_timings *timings,
 	tim3 |= val << T_RFC_SHIFT;
 
 	t_dqsck = (derated == EMIF_DERATED_TIMINGS) ?
-		timings->tDQSCK_max_derated : timings->tDQSCK_max;
+			  timings->tDQSCK_max_derated : timings->tDQSCK_max;
+
 	if (ip_rev == EMIF_4D5)
+	{
 		val = DIV_ROUND_UP(t_dqsck + 1000, t_ck) - 1;
+	}
 	else
+	{
 		val = DIV_ROUND_UP(t_dqsck, t_ck) - 1;
+	}
 
 	tim3 |= val << T_TDQSCKMAX_SHIFT;
 
@@ -559,7 +608,8 @@ static u32 get_sdram_tim_3_shdw(const struct lpddr2_timings *timings,
 	val = max(min_tck->tCKESR, val) - 1;
 	tim3 |= val << T_CKESR_SHIFT;
 
-	if (ip_rev == EMIF_4D5) {
+	if (ip_rev == EMIF_4D5)
+	{
 		tim3 |= (EMIF_T_CSTA - 1) << T_CSTA_SHIFT;
 
 		val = DIV_ROUND_UP(EMIF_T_PDLL_UL, 128) - 1;
@@ -570,7 +620,7 @@ static u32 get_sdram_tim_3_shdw(const struct lpddr2_timings *timings,
 }
 
 static u32 get_zq_config_reg(const struct lpddr2_addressing *addressing,
-		bool cs1_used, bool cal_resistors_per_cs)
+							 bool cs1_used, bool cal_resistors_per_cs)
 {
 	u32 zq = 0, val = 0;
 
@@ -586,9 +636,13 @@ static u32 get_zq_config_reg(const struct lpddr2_addressing *addressing,
 	zq |= ZQ_SFEXITEN_ENABLE << ZQ_SFEXITEN_SHIFT;
 
 	if (cal_resistors_per_cs)
+	{
 		zq |= ZQ_DUALCALEN_ENABLE << ZQ_DUALCALEN_SHIFT;
+	}
 	else
+	{
 		zq |= ZQ_DUALCALEN_DISABLE << ZQ_DUALCALEN_SHIFT;
+	}
 
 	zq |= ZQ_CS0EN_MASK; /* CS0 is used for sure */
 
@@ -599,16 +653,20 @@ static u32 get_zq_config_reg(const struct lpddr2_addressing *addressing,
 }
 
 static u32 get_temp_alert_config(const struct lpddr2_addressing *addressing,
-		const struct emif_custom_configs *custom_configs, bool cs1_used,
-		u32 sdram_io_width, u32 emif_bus_width)
+								 const struct emif_custom_configs *custom_configs, bool cs1_used,
+								 u32 sdram_io_width, u32 emif_bus_width)
 {
 	u32 alert = 0, interval, devcnt;
 
 	if (custom_configs && (custom_configs->mask &
-				EMIF_CUSTOM_CONFIG_TEMP_ALERT_POLL_INTERVAL))
+						   EMIF_CUSTOM_CONFIG_TEMP_ALERT_POLL_INTERVAL))
+	{
 		interval = custom_configs->temp_alert_poll_interval_ms;
+	}
 	else
+	{
 		interval = TEMP_ALERT_POLL_INTERVAL_DEFAULT_MS;
+	}
 
 	interval *= 1000000;			/* Convert to ns */
 	interval /= addressing->tREFI_ns;	/* Convert to refresh cycles */
@@ -642,9 +700,13 @@ static u32 get_read_idle_ctrl_shdw(u8 volt_ramp)
 	 * when voltage is ramping
 	 */
 	if (volt_ramp)
+	{
 		val = READ_IDLE_INTERVAL_DVFS / t_ck / 64 - 1;
+	}
 	else
+	{
 		val = 0x1FF;
+	}
 
 	/*
 	 * READ_IDLE_CTRL register in EMIF4D has same offset and fields
@@ -661,9 +723,13 @@ static u32 get_dll_calib_ctrl_shdw(u8 volt_ramp)
 	u32 calib = 0, val = 0;
 
 	if (volt_ramp == DDR_VOLTAGE_RAMPING)
+	{
 		val = DLL_CALIB_INTERVAL_DVFS / t_ck / 16 - 1;
+	}
 	else
-		val = 0; /* Disabled when voltage is stable */
+	{
+		val = 0;    /* Disabled when voltage is stable */
+	}
 
 	calib |= val << DLL_CALIB_INTERVAL_SHIFT;
 	calib |= DLL_CALIB_ACK_WAIT_VAL << ACK_WAIT_SHIFT;
@@ -672,7 +738,7 @@ static u32 get_dll_calib_ctrl_shdw(u8 volt_ramp)
 }
 
 static u32 get_ddr_phy_ctrl_1_attilaphy_4d(const struct lpddr2_timings *timings,
-	u32 freq, u8 RL)
+		u32 freq, u8 RL)
 {
 	u32 phy = EMIF_DDR_PHY_CTRL_1_BASE_VAL_ATTILAPHY, val = 0;
 
@@ -680,11 +746,17 @@ static u32 get_ddr_phy_ctrl_1_attilaphy_4d(const struct lpddr2_timings *timings,
 	phy |= val << READ_LATENCY_SHIFT_4D;
 
 	if (freq <= 100000000)
+	{
 		val = EMIF_DLL_SLAVE_DLY_CTRL_100_MHZ_AND_LESS_ATTILAPHY;
+	}
 	else if (freq <= 200000000)
+	{
 		val = EMIF_DLL_SLAVE_DLY_CTRL_200_MHZ_ATTILAPHY;
+	}
 	else
+	{
 		val = EMIF_DLL_SLAVE_DLY_CTRL_400_MHZ_ATTILAPHY;
+	}
 
 	phy |= val << DLL_SLAVE_DLY_CTRL_SHIFT_4D;
 
@@ -700,13 +772,17 @@ static u32 get_phy_ctrl_1_intelliphy_4d5(u32 freq, u8 cl)
 	 * half-delay is not needed else set half-delay
 	 */
 	if (freq >= 265000000 && freq < 267000000)
+	{
 		half_delay = 0;
+	}
 	else
+	{
 		half_delay = 1;
+	}
 
 	phy |= half_delay << DLL_HALF_DELAY_SHIFT_4D5;
 	phy |= ((cl + DIV_ROUND_UP(EMIF_PHY_TOTAL_READ_LATENCY_INTELLIPHY_PS,
-			t_ck) - 1) << READ_LATENCY_SHIFT_4D5);
+							   t_ck) - 1) << READ_LATENCY_SHIFT_4D5);
 
 	return phy;
 }
@@ -716,10 +792,10 @@ static u32 get_ext_phy_ctrl_2_intelliphy_4d5(void)
 	u32 fifo_we_slave_ratio;
 
 	fifo_we_slave_ratio =  DIV_ROUND_CLOSEST(
-		EMIF_INTELLI_PHY_DQS_GATE_OPENING_DELAY_PS * 256 , t_ck);
+							   EMIF_INTELLI_PHY_DQS_GATE_OPENING_DELAY_PS * 256 , t_ck);
 
 	return fifo_we_slave_ratio | fifo_we_slave_ratio << 11 |
-		fifo_we_slave_ratio << 22;
+		   fifo_we_slave_ratio << 22;
 }
 
 static u32 get_ext_phy_ctrl_3_intelliphy_4d5(void)
@@ -727,10 +803,10 @@ static u32 get_ext_phy_ctrl_3_intelliphy_4d5(void)
 	u32 fifo_we_slave_ratio;
 
 	fifo_we_slave_ratio =  DIV_ROUND_CLOSEST(
-		EMIF_INTELLI_PHY_DQS_GATE_OPENING_DELAY_PS * 256 , t_ck);
+							   EMIF_INTELLI_PHY_DQS_GATE_OPENING_DELAY_PS * 256 , t_ck);
 
 	return fifo_we_slave_ratio >> 10 | fifo_we_slave_ratio << 1 |
-		fifo_we_slave_ratio << 12 | fifo_we_slave_ratio << 23;
+		   fifo_we_slave_ratio << 12 | fifo_we_slave_ratio << 23;
 }
 
 static u32 get_ext_phy_ctrl_4_intelliphy_4d5(void)
@@ -738,10 +814,10 @@ static u32 get_ext_phy_ctrl_4_intelliphy_4d5(void)
 	u32 fifo_we_slave_ratio;
 
 	fifo_we_slave_ratio =  DIV_ROUND_CLOSEST(
-		EMIF_INTELLI_PHY_DQS_GATE_OPENING_DELAY_PS * 256 , t_ck);
+							   EMIF_INTELLI_PHY_DQS_GATE_OPENING_DELAY_PS * 256 , t_ck);
 
 	return fifo_we_slave_ratio >> 9 | fifo_we_slave_ratio << 2 |
-		fifo_we_slave_ratio << 13;
+		   fifo_we_slave_ratio << 13;
 }
 
 static u32 get_pwr_mgmt_ctrl(u32 freq, struct emif_data *emif, u32 ip_rev)
@@ -756,7 +832,8 @@ static u32 get_pwr_mgmt_ctrl(u32 freq, struct emif_data *emif, u32 ip_rev)
 
 	struct emif_custom_configs *cust_cfgs = emif->plat_data->custom_configs;
 
-	if (cust_cfgs && (cust_cfgs->mask & EMIF_CUSTOM_CONFIG_LPMODE)) {
+	if (cust_cfgs && (cust_cfgs->mask & EMIF_CUSTOM_CONFIG_LPMODE))
+	{
 		lpmode		= cust_cfgs->lpmode;
 		timeout_perf	= cust_cfgs->lpmode_timeout_performance;
 		timeout_pwr	= cust_cfgs->lpmode_timeout_power;
@@ -771,46 +848,61 @@ static u32 get_pwr_mgmt_ctrl(u32 freq, struct emif_data *emif, u32 ip_rev)
 	 * if timeout < 16 load 0 in register
 	 * if timeout is not a power of 2, round to next highest power of 2
 	 */
-	if (timeout < 16) {
+	if (timeout < 16)
+	{
 		timeout = 0;
-	} else {
+	}
+	else
+	{
 		if (timeout & (timeout - 1))
+		{
 			timeout <<= 1;
+		}
+
 		timeout = __fls(timeout) - 3;
 	}
 
-	switch (lpmode) {
-	case EMIF_LP_MODE_CLOCK_STOP:
-		shift = CS_TIM_SHIFT;
-		mask = CS_TIM_MASK;
-		break;
-	case EMIF_LP_MODE_SELF_REFRESH:
-		/* Workaround for errata i735 */
-		if (timeout < 6)
-			timeout = 6;
+	switch (lpmode)
+	{
+		case EMIF_LP_MODE_CLOCK_STOP:
+			shift = CS_TIM_SHIFT;
+			mask = CS_TIM_MASK;
+			break;
 
-		shift = SR_TIM_SHIFT;
-		mask = SR_TIM_MASK;
-		break;
-	case EMIF_LP_MODE_PWR_DN:
-		shift = PD_TIM_SHIFT;
-		mask = PD_TIM_MASK;
-		break;
-	case EMIF_LP_MODE_DISABLE:
-	default:
-		mask = 0;
-		shift = 0;
-		break;
+		case EMIF_LP_MODE_SELF_REFRESH:
+
+			/* Workaround for errata i735 */
+			if (timeout < 6)
+			{
+				timeout = 6;
+			}
+
+			shift = SR_TIM_SHIFT;
+			mask = SR_TIM_MASK;
+			break;
+
+		case EMIF_LP_MODE_PWR_DN:
+			shift = PD_TIM_SHIFT;
+			mask = PD_TIM_MASK;
+			break;
+
+		case EMIF_LP_MODE_DISABLE:
+		default:
+			mask = 0;
+			shift = 0;
+			break;
 	}
+
 	/* Round to maximum in case of overflow, BUT warn! */
-	if (lpmode != EMIF_LP_MODE_DISABLE && timeout > mask >> shift) {
+	if (lpmode != EMIF_LP_MODE_DISABLE && timeout > mask >> shift)
+	{
 		pr_err("TIMEOUT Overflow - lpmode=%d perf=%d pwr=%d freq=%d\n",
-		       lpmode,
-		       timeout_perf,
-		       timeout_pwr,
-		       freq_threshold);
+			   lpmode,
+			   timeout_perf,
+			   timeout_pwr,
+			   freq_threshold);
 		WARN(1, "timeout=0x%02x greater than 0x%02x. Using max\n",
-		     timeout, mask >> shift);
+			 timeout, mask >> shift);
 		timeout = mask >> shift;
 	}
 
@@ -818,11 +910,13 @@ static u32 get_pwr_mgmt_ctrl(u32 freq, struct emif_data *emif, u32 ip_rev)
 	pwr_mgmt_ctrl = (timeout << shift) & mask;
 	/* setup a default mask for rest of the modes */
 	pwr_mgmt_ctrl |= (SR_TIM_MASK | CS_TIM_MASK | PD_TIM_MASK) &
-			  ~mask;
+					 ~mask;
 
 	/* No CS_TIM in EMIF_4D5 */
 	if (ip_rev == EMIF_4D5)
+	{
 		pwr_mgmt_ctrl &= ~CS_TIM_MASK;
+	}
 
 	pwr_mgmt_ctrl |= lpmode << LP_MODE_SHIFT;
 
@@ -846,23 +940,28 @@ static void get_temperature_level(struct emif_data *emif)
 	writel(DDR_MR4, base + EMIF_LPDDR2_MODE_REG_CONFIG);
 	temperature_level = readl(base + EMIF_LPDDR2_MODE_REG_DATA);
 	temperature_level = (temperature_level & MR4_SDRAM_REF_RATE_MASK) >>
-				MR4_SDRAM_REF_RATE_SHIFT;
+						MR4_SDRAM_REF_RATE_SHIFT;
 
-	if (emif->plat_data->device_info->cs1_used) {
+	if (emif->plat_data->device_info->cs1_used)
+	{
 		writel(DDR_MR4 | CS_MASK, base + EMIF_LPDDR2_MODE_REG_CONFIG);
 		temp = readl(base + EMIF_LPDDR2_MODE_REG_DATA);
 		temp = (temp & MR4_SDRAM_REF_RATE_MASK)
-				>> MR4_SDRAM_REF_RATE_SHIFT;
+			   >> MR4_SDRAM_REF_RATE_SHIFT;
 		temperature_level = max(temp, temperature_level);
 	}
 
 	/* treat everything less than nominal(3) in MR4 as nominal */
 	if (unlikely(temperature_level < SDRAM_TEMP_NOMINAL))
+	{
 		temperature_level = SDRAM_TEMP_NOMINAL;
+	}
 
 	/* if we get reserved value in MR4 persist with the existing value */
 	if (likely(temperature_level != SDRAM_TEMP_RESERVED_4))
+	{
 		emif->temperature_level = temperature_level;
+	}
 }
 
 /*
@@ -876,11 +975,14 @@ static void setup_registers(struct emif_data *emif, struct emif_regs *regs)
 	writel(regs->sdram_tim2_shdw, base + EMIF_SDRAM_TIMING_2_SHDW);
 	writel(regs->phy_ctrl_1_shdw, base + EMIF_DDR_PHY_CTRL_1_SHDW);
 	writel(regs->pwr_mgmt_ctrl_shdw,
-	       base + EMIF_POWER_MANAGEMENT_CTRL_SHDW);
+		   base + EMIF_POWER_MANAGEMENT_CTRL_SHDW);
 
 	/* Settings specific for EMIF4D5 */
 	if (emif->plat_data->ip_rev != EMIF_4D5)
+	{
 		return;
+	}
+
 	writel(regs->ext_phy_ctrl_2_shdw, base + EMIF_EXT_PHY_CTRL_2_SHDW);
 	writel(regs->ext_phy_ctrl_3_shdw, base + EMIF_EXT_PHY_CTRL_3_SHDW);
 	writel(regs->ext_phy_ctrl_4_shdw, base + EMIF_EXT_PHY_CTRL_4_SHDW);
@@ -891,7 +993,7 @@ static void setup_registers(struct emif_data *emif, struct emif_regs *regs)
  * happen more often
  */
 static void setup_volt_sensitive_regs(struct emif_data *emif,
-		struct emif_regs *regs, u32 volt_state)
+									  struct emif_regs *regs, u32 volt_state)
 {
 	u32		calib_ctrl;
 	void __iomem	*base = emif->base;
@@ -903,9 +1005,13 @@ static void setup_volt_sensitive_regs(struct emif_data *emif,
 	 * a union). So, the below code takes care of both cases
 	 */
 	if (volt_state == DDR_VOLTAGE_RAMPING)
+	{
 		calib_ctrl = regs->dll_calib_ctrl_shdw_volt_ramp;
+	}
 	else
+	{
 		calib_ctrl = regs->dll_calib_ctrl_shdw_normal;
+	}
 
 	writel(calib_ctrl, base + EMIF_DLL_CALIB_CTRL_SHDW);
 }
@@ -933,12 +1039,18 @@ static void setup_temperature_sensitive_regs(struct emif_data *emif,
 
 	/* No de-rating for non-lpddr2 devices */
 	if (type != DDR_TYPE_LPDDR2_S2 && type != DDR_TYPE_LPDDR2_S4)
+	{
 		goto out;
+	}
 
 	temperature = emif->temperature_level;
-	if (temperature == SDRAM_TEMP_HIGH_DERATE_REFRESH) {
+
+	if (temperature == SDRAM_TEMP_HIGH_DERATE_REFRESH)
+	{
 		ref_ctrl = regs->ref_ctrl_shdw_derated;
-	} else if (temperature == SDRAM_TEMP_HIGH_DERATE_REFRESH_AND_TIMINGS) {
+	}
+	else if (temperature == SDRAM_TEMP_HIGH_DERATE_REFRESH_AND_TIMINGS)
+	{
 		tim1 = regs->sdram_tim1_shdw_derated;
 		tim3 = regs->sdram_tim3_shdw_derated;
 		ref_ctrl = regs->ref_ctrl_shdw_derated;
@@ -960,9 +1072,12 @@ static irqreturn_t handle_temp_alert(void __iomem *base, struct emif_data *emif)
 	old_temp_level = emif->temperature_level;
 	get_temperature_level(emif);
 
-	if (unlikely(emif->temperature_level == old_temp_level)) {
+	if (unlikely(emif->temperature_level == old_temp_level))
+	{
 		goto out;
-	} else if (!emif->curr_regs) {
+	}
+	else if (!emif->curr_regs)
+	{
 		dev_err(emif->dev, "temperature alert before registers are calculated, not de-rating timings\n");
 		goto out;
 	}
@@ -974,12 +1089,14 @@ static irqreturn_t handle_temp_alert(void __iomem *base, struct emif_data *emif)
 	 * on an unsupported DDR part, shutdown system
 	 */
 	if (custom_configs && !(custom_configs->mask &
-				EMIF_CUSTOM_CONFIG_EXTENDED_TEMP_PART)) {
-		if (emif->temperature_level >= SDRAM_TEMP_HIGH_DERATE_REFRESH) {
+							EMIF_CUSTOM_CONFIG_EXTENDED_TEMP_PART))
+	{
+		if (emif->temperature_level >= SDRAM_TEMP_HIGH_DERATE_REFRESH)
+		{
 			dev_err(emif->dev,
-				"%s:NOT Extended temperature capable memory."
-				"Converting MR4=0x%02x as shutdown event\n",
-				__func__, emif->temperature_level);
+					"%s:NOT Extended temperature capable memory."
+					"Converting MR4=0x%02x as shutdown event\n",
+					__func__, emif->temperature_level);
 			/*
 			 * Temperature far too high - do kernel_power_off()
 			 * from thread context
@@ -991,14 +1108,17 @@ static irqreturn_t handle_temp_alert(void __iomem *base, struct emif_data *emif)
 	}
 
 	if (emif->temperature_level < old_temp_level ||
-		emif->temperature_level == SDRAM_TEMP_VERY_HIGH_SHUTDOWN) {
+		emif->temperature_level == SDRAM_TEMP_VERY_HIGH_SHUTDOWN)
+	{
 		/*
 		 * Temperature coming down - defer handling to thread OR
 		 * Temperature far too high - do kernel_power_off() from
 		 * thread context
 		 */
 		ret = IRQ_WAKE_THREAD;
-	} else {
+	}
+	else
+	{
 		/* Temperature is going up - handle immediately */
 		setup_temperature_sensitive_regs(emif, emif->curr_regs);
 		do_freq_update();
@@ -1027,19 +1147,24 @@ static irqreturn_t emif_interrupt_handler(int irq, void *dev_id)
 	 * So, it's enough to process it only for one of the ports
 	 */
 	if (interrupts & TA_SYS_MASK)
+	{
 		ret = handle_temp_alert(base, emif);
+	}
 
 	if (interrupts & ERR_SYS_MASK)
+	{
 		dev_err(dev, "Access error from SYS port - %x\n", interrupts);
+	}
 
-	if (emif->plat_data->hw_caps & EMIF_HW_CAPS_LL_INTERFACE) {
+	if (emif->plat_data->hw_caps & EMIF_HW_CAPS_LL_INTERFACE)
+	{
 		/* Save the status and clear it */
 		interrupts = readl(base + EMIF_LL_OCP_INTERRUPT_STATUS);
 		writel(interrupts, base + EMIF_LL_OCP_INTERRUPT_STATUS);
 
 		if (interrupts & ERR_LL_MASK)
 			dev_err(dev, "Access error from LL port - %x\n",
-				interrupts);
+					interrupts);
 	}
 
 	return ret;
@@ -1049,25 +1174,33 @@ static irqreturn_t emif_threaded_isr(int irq, void *dev_id)
 {
 	struct emif_data	*emif = dev_id;
 
-	if (emif->temperature_level == SDRAM_TEMP_VERY_HIGH_SHUTDOWN) {
+	if (emif->temperature_level == SDRAM_TEMP_VERY_HIGH_SHUTDOWN)
+	{
 		dev_emerg(emif->dev, "SDRAM temperature exceeds operating limit.. Needs shut down!!!\n");
 
 		/* If we have Power OFF ability, use it, else try restarting */
-		if (pm_power_off) {
+		if (pm_power_off)
+		{
 			kernel_power_off();
-		} else {
+		}
+		else
+		{
 			WARN(1, "FIXME: NO pm_power_off!!! trying restart\n");
 			kernel_restart("SDRAM Over-temp Emergency restart");
 		}
+
 		return IRQ_HANDLED;
 	}
 
 	spin_lock_irqsave(&emif_lock, irq_state);
 
-	if (emif->curr_regs) {
+	if (emif->curr_regs)
+	{
 		setup_temperature_sensitive_regs(emif, emif->curr_regs);
 		do_freq_update();
-	} else {
+	}
+	else
+	{
 		dev_err(emif->dev, "temperature alert before registers are calculated, not de-rating timings\n");
 	}
 
@@ -1081,10 +1214,11 @@ static void clear_all_interrupts(struct emif_data *emif)
 	void __iomem	*base = emif->base;
 
 	writel(readl(base + EMIF_SYSTEM_OCP_INTERRUPT_STATUS),
-		base + EMIF_SYSTEM_OCP_INTERRUPT_STATUS);
+		   base + EMIF_SYSTEM_OCP_INTERRUPT_STATUS);
+
 	if (emif->plat_data->hw_caps & EMIF_HW_CAPS_LL_INTERFACE)
 		writel(readl(base + EMIF_LL_OCP_INTERRUPT_STATUS),
-			base + EMIF_LL_OCP_INTERRUPT_STATUS);
+			   base + EMIF_LL_OCP_INTERRUPT_STATUS);
 }
 
 static void disable_and_clear_all_interrupts(struct emif_data *emif)
@@ -1093,10 +1227,11 @@ static void disable_and_clear_all_interrupts(struct emif_data *emif)
 
 	/* Disable all interrupts */
 	writel(readl(base + EMIF_SYSTEM_OCP_INTERRUPT_ENABLE_SET),
-		base + EMIF_SYSTEM_OCP_INTERRUPT_ENABLE_CLEAR);
+		   base + EMIF_SYSTEM_OCP_INTERRUPT_ENABLE_CLEAR);
+
 	if (emif->plat_data->hw_caps & EMIF_HW_CAPS_LL_INTERFACE)
 		writel(readl(base + EMIF_LL_OCP_INTERRUPT_ENABLE_SET),
-			base + EMIF_LL_OCP_INTERRUPT_ENABLE_CLEAR);
+			   base + EMIF_LL_OCP_INTERRUPT_ENABLE_CLEAR);
 
 	/* Clear all interrupts */
 	clear_all_interrupts(emif);
@@ -1113,12 +1248,17 @@ static int __init_or_module setup_interrupts(struct emif_data *emif, u32 irq)
 
 	/* Enable interrupts for SYS interface */
 	interrupts = EN_ERR_SYS_MASK;
+
 	if (type == DDR_TYPE_LPDDR2_S2 || type == DDR_TYPE_LPDDR2_S4)
+	{
 		interrupts |= EN_TA_SYS_MASK;
+	}
+
 	writel(interrupts, base + EMIF_SYSTEM_OCP_INTERRUPT_ENABLE_SET);
 
 	/* Enable interrupts for LL interface */
-	if (emif->plat_data->hw_caps & EMIF_HW_CAPS_LL_INTERFACE) {
+	if (emif->plat_data->hw_caps & EMIF_HW_CAPS_LL_INTERFACE)
+	{
 		/* TA need not be enabled for LL */
 		interrupts = EN_ERR_LL_MASK;
 		writel(interrupts, base + EMIF_LL_OCP_INTERRUPT_ENABLE_SET);
@@ -1126,10 +1266,10 @@ static int __init_or_module setup_interrupts(struct emif_data *emif, u32 irq)
 
 	/* setup IRQ handlers */
 	return devm_request_threaded_irq(emif->dev, irq,
-				    emif_interrupt_handler,
-				    emif_threaded_isr,
-				    0, dev_name(emif->dev),
-				    emif);
+									 emif_interrupt_handler,
+									 emif_threaded_isr,
+									 0, dev_name(emif->dev),
+									 emif);
 
 }
 
@@ -1149,24 +1289,27 @@ static void __init_or_module emif_onetime_settings(struct emif_data *emif)
 	 * value for a conservative timeout setting
 	 */
 	pwr_mgmt_ctrl = get_pwr_mgmt_ctrl(1000000000, emif,
-			emif->plat_data->ip_rev);
+									  emif->plat_data->ip_rev);
 	emif->lpmode = (pwr_mgmt_ctrl & LP_MODE_MASK) >> LP_MODE_SHIFT;
 	writel(pwr_mgmt_ctrl, base + EMIF_POWER_MANAGEMENT_CONTROL);
 
 	/* Init ZQ calibration settings */
 	zq = get_zq_config_reg(addressing, device_info->cs1_used,
-		device_info->cal_resistors_per_cs);
+						   device_info->cal_resistors_per_cs);
 	writel(zq, base + EMIF_SDRAM_OUTPUT_IMPEDANCE_CALIBRATION_CONFIG);
 
 	/* Check temperature level temperature level*/
 	get_temperature_level(emif);
+
 	if (emif->temperature_level == SDRAM_TEMP_VERY_HIGH_SHUTDOWN)
+	{
 		dev_emerg(emif->dev, "SDRAM temperature exceeds operating limit.. Needs shut down!!!\n");
+	}
 
 	/* Init temperature polling */
 	temp_alert_cfg = get_temp_alert_config(addressing,
-		emif->plat_data->custom_configs, device_info->cs1_used,
-		device_info->io_width, get_emif_bus_width(emif));
+										   emif->plat_data->custom_configs, device_info->cs1_used,
+										   device_info->io_width, get_emif_bus_width(emif));
 	writel(temp_alert_cfg, base + EMIF_TEMPERATURE_ALERT_CONFIG);
 
 	/*
@@ -1174,7 +1317,10 @@ static void __init_or_module emif_onetime_settings(struct emif_data *emif)
 	 * dependent
 	 */
 	if (emif->plat_data->phy_type != EMIF_PHY_TYPE_INTELLIPHY)
+	{
 		return;
+	}
+
 	writel(EMIF_EXT_PHY_CTRL_1_VAL, base + EMIF_EXT_PHY_CTRL_1_SHDW);
 	writel(EMIF_EXT_PHY_CTRL_5_VAL, base + EMIF_EXT_PHY_CTRL_5_SHDW);
 	writel(EMIF_EXT_PHY_CTRL_6_VAL, base + EMIF_EXT_PHY_CTRL_6_SHDW);
@@ -1209,50 +1355,60 @@ static void get_default_timings(struct emif_data *emif)
 }
 
 static int is_dev_data_valid(u32 type, u32 density, u32 io_width, u32 phy_type,
-		u32 ip_rev, struct device *dev)
+							 u32 ip_rev, struct device *dev)
 {
 	int valid;
 
 	valid = (type == DDR_TYPE_LPDDR2_S4 ||
-			type == DDR_TYPE_LPDDR2_S2)
-		&& (density >= DDR_DENSITY_64Mb
-			&& density <= DDR_DENSITY_8Gb)
-		&& (io_width >= DDR_IO_WIDTH_8
-			&& io_width <= DDR_IO_WIDTH_32);
+			 type == DDR_TYPE_LPDDR2_S2)
+			&& (density >= DDR_DENSITY_64Mb
+				&& density <= DDR_DENSITY_8Gb)
+			&& (io_width >= DDR_IO_WIDTH_8
+				&& io_width <= DDR_IO_WIDTH_32);
 
 	/* Combinations of EMIF and PHY revisions that we support today */
-	switch (ip_rev) {
-	case EMIF_4D:
-		valid = valid && (phy_type == EMIF_PHY_TYPE_ATTILAPHY);
-		break;
-	case EMIF_4D5:
-		valid = valid && (phy_type == EMIF_PHY_TYPE_INTELLIPHY);
-		break;
-	default:
-		valid = 0;
+	switch (ip_rev)
+	{
+		case EMIF_4D:
+			valid = valid && (phy_type == EMIF_PHY_TYPE_ATTILAPHY);
+			break;
+
+		case EMIF_4D5:
+			valid = valid && (phy_type == EMIF_PHY_TYPE_INTELLIPHY);
+			break;
+
+		default:
+			valid = 0;
 	}
 
 	if (!valid)
+	{
 		dev_err(dev, "%s: invalid DDR details\n", __func__);
+	}
+
 	return valid;
 }
 
 static int is_custom_config_valid(struct emif_custom_configs *cust_cfgs,
-		struct device *dev)
+								  struct device *dev)
 {
 	int valid = 1;
 
 	if ((cust_cfgs->mask & EMIF_CUSTOM_CONFIG_LPMODE) &&
 		(cust_cfgs->lpmode != EMIF_LP_MODE_DISABLE))
 		valid = cust_cfgs->lpmode_freq_threshold &&
-			cust_cfgs->lpmode_timeout_performance &&
-			cust_cfgs->lpmode_timeout_power;
+				cust_cfgs->lpmode_timeout_performance &&
+				cust_cfgs->lpmode_timeout_power;
 
 	if (cust_cfgs->mask & EMIF_CUSTOM_CONFIG_TEMP_ALERT_POLL_INTERVAL)
+	{
 		valid = valid && cust_cfgs->temp_alert_poll_interval_ms;
+	}
 
 	if (!valid)
+	{
 		dev_warn(dev, "%s: invalid custom configs\n", __func__);
+	}
 
 	return valid;
 }
@@ -1270,36 +1426,43 @@ static void __init_or_module of_get_custom_configs(struct device_node *np_emif,
 
 	if (lpmode || poll_intvl)
 		cust_cfgs = devm_kzalloc(emif->dev, sizeof(*cust_cfgs),
-			GFP_KERNEL);
+								 GFP_KERNEL);
 
 	if (!cust_cfgs)
+	{
 		return;
+	}
 
-	if (lpmode) {
+	if (lpmode)
+	{
 		cust_cfgs->mask |= EMIF_CUSTOM_CONFIG_LPMODE;
 		cust_cfgs->lpmode = be32_to_cpup(lpmode);
 		of_property_read_u32(np_emif,
-				"low-power-mode-timeout-performance",
-				&cust_cfgs->lpmode_timeout_performance);
+							 "low-power-mode-timeout-performance",
+							 &cust_cfgs->lpmode_timeout_performance);
 		of_property_read_u32(np_emif,
-				"low-power-mode-timeout-power",
-				&cust_cfgs->lpmode_timeout_power);
+							 "low-power-mode-timeout-power",
+							 &cust_cfgs->lpmode_timeout_power);
 		of_property_read_u32(np_emif,
-				"low-power-mode-freq-threshold",
-				&cust_cfgs->lpmode_freq_threshold);
+							 "low-power-mode-freq-threshold",
+							 &cust_cfgs->lpmode_freq_threshold);
 	}
 
-	if (poll_intvl) {
+	if (poll_intvl)
+	{
 		cust_cfgs->mask |=
-				EMIF_CUSTOM_CONFIG_TEMP_ALERT_POLL_INTERVAL;
+			EMIF_CUSTOM_CONFIG_TEMP_ALERT_POLL_INTERVAL;
 		cust_cfgs->temp_alert_poll_interval_ms =
-						be32_to_cpup(poll_intvl);
+			be32_to_cpup(poll_intvl);
 	}
 
 	if (of_find_property(np_emif, "extended-temp-part", &len))
+	{
 		cust_cfgs->mask |= EMIF_CUSTOM_CONFIG_EXTENDED_TEMP_PART;
+	}
 
-	if (!is_custom_config_valid(cust_cfgs, emif->dev)) {
+	if (!is_custom_config_valid(cust_cfgs, emif->dev))
+	{
 		devm_kfree(emif->dev, cust_cfgs);
 		return;
 	}
@@ -1315,34 +1478,50 @@ static void __init_or_module of_get_ddr_info(struct device_node *np_emif,
 	int len;
 
 	if (of_find_property(np_emif, "cs1-used", &len))
+	{
 		dev_info->cs1_used = true;
+	}
 
 	if (of_find_property(np_emif, "cal-resistor-per-cs", &len))
+	{
 		dev_info->cal_resistors_per_cs = true;
+	}
 
 	if (of_device_is_compatible(np_ddr , "jedec,lpddr2-s4"))
+	{
 		dev_info->type = DDR_TYPE_LPDDR2_S4;
+	}
 	else if (of_device_is_compatible(np_ddr , "jedec,lpddr2-s2"))
+	{
 		dev_info->type = DDR_TYPE_LPDDR2_S2;
+	}
 
 	of_property_read_u32(np_ddr, "density", &density);
 	of_property_read_u32(np_ddr, "io-width", &io_width);
 
 	/* Convert from density in Mb to the density encoding in jedc_ddr.h */
 	if (density & (density - 1))
+	{
 		dev_info->density = 0;
+	}
 	else
+	{
 		dev_info->density = __fls(density) - 5;
+	}
 
 	/* Convert from io_width in bits to io_width encoding in jedc_ddr.h */
 	if (io_width & (io_width - 1))
+	{
 		dev_info->io_width = 0;
+	}
 	else
+	{
 		dev_info->io_width = __fls(io_width) - 1;
+	}
 }
 
-static struct emif_data * __init_or_module of_get_memory_device_details(
-		struct device_node *np_emif, struct device *dev)
+static struct emif_data *__init_or_module of_get_memory_device_details(
+	struct device_node *np_emif, struct device *dev)
 {
 	struct emif_data		*emif = NULL;
 	struct ddr_device_info		*dev_info = NULL;
@@ -1351,15 +1530,20 @@ static struct emif_data * __init_or_module of_get_memory_device_details(
 	int				len;
 
 	np_ddr = of_parse_phandle(np_emif, "device-handle", 0);
+
 	if (!np_ddr)
+	{
 		goto error;
+	}
+
 	emif	= devm_kzalloc(dev, sizeof(struct emif_data), GFP_KERNEL);
 	pd	= devm_kzalloc(dev, sizeof(*pd), GFP_KERNEL);
 	dev_info = devm_kzalloc(dev, sizeof(*dev_info), GFP_KERNEL);
 
-	if (!emif || !pd || !dev_info) {
+	if (!emif || !pd || !dev_info)
+	{
 		dev_err(dev, "%s: Out of memory!!\n",
-			__func__);
+				__func__);
 		goto error;
 	}
 
@@ -1370,40 +1554,52 @@ static struct emif_data * __init_or_module of_get_memory_device_details(
 	emif->temperature_level	= SDRAM_TEMP_NOMINAL;
 
 	if (of_device_is_compatible(np_emif, "ti,emif-4d"))
+	{
 		emif->plat_data->ip_rev = EMIF_4D;
+	}
 	else if (of_device_is_compatible(np_emif, "ti,emif-4d5"))
+	{
 		emif->plat_data->ip_rev = EMIF_4D5;
+	}
 
 	of_property_read_u32(np_emif, "phy-type", &pd->phy_type);
 
 	if (of_find_property(np_emif, "hw-caps-ll-interface", &len))
+	{
 		pd->hw_caps |= EMIF_HW_CAPS_LL_INTERFACE;
+	}
 
 	of_get_ddr_info(np_emif, np_ddr, dev_info);
+
 	if (!is_dev_data_valid(pd->device_info->type, pd->device_info->density,
-			pd->device_info->io_width, pd->phy_type, pd->ip_rev,
-			emif->dev)) {
+						   pd->device_info->io_width, pd->phy_type, pd->ip_rev,
+						   emif->dev))
+	{
 		dev_err(dev, "%s: invalid device data!!\n", __func__);
 		goto error;
 	}
+
 	/*
 	 * For EMIF instances other than EMIF1 see if the devices connected
 	 * are exactly same as on EMIF1(which is typically the case). If so,
 	 * mark it as a duplicate of EMIF1. This will save some memory and
 	 * computation.
 	 */
-	if (emif1 && emif1->np_ddr == np_ddr) {
+	if (emif1 && emif1->np_ddr == np_ddr)
+	{
 		emif->duplicate = true;
 		goto out;
-	} else if (emif1) {
+	}
+	else if (emif1)
+	{
 		dev_warn(emif->dev, "%s: Non-symmetric DDR geometry\n",
-			__func__);
+				 __func__);
 	}
 
 	of_get_custom_configs(np_emif, emif);
 	emif->plat_data->timings = of_get_ddr_timings(np_ddr, emif->dev,
-					emif->plat_data->device_info->type,
-					&emif->plat_data->timings_arr_size);
+							   emif->plat_data->device_info->type,
+							   &emif->plat_data->timings_arr_size);
 
 	emif->plat_data->min_tck = of_get_min_tck(np_ddr, emif->dev);
 	goto out;
@@ -1416,15 +1612,15 @@ out:
 
 #else
 
-static struct emif_data * __init_or_module of_get_memory_device_details(
-		struct device_node *np_emif, struct device *dev)
+static struct emif_data *__init_or_module of_get_memory_device_details(
+	struct device_node *np_emif, struct device *dev)
 {
 	return NULL;
 }
 #endif
 
 static struct emif_data *__init_or_module get_device_details(
-		struct platform_device *pdev)
+	struct platform_device *pdev)
 {
 	u32				size;
 	struct emif_data		*emif = NULL;
@@ -1439,7 +1635,8 @@ static struct emif_data *__init_or_module get_device_details(
 
 	if (!(pd && pd->device_info && is_dev_data_valid(pd->device_info->type,
 			pd->device_info->density, pd->device_info->io_width,
-			pd->phy_type, pd->ip_rev, dev))) {
+			pd->phy_type, pd->ip_rev, dev)))
+	{
 		dev_err(dev, "%s: invalid device data\n", __func__);
 		goto error;
 	}
@@ -1448,7 +1645,8 @@ static struct emif_data *__init_or_module get_device_details(
 	temp	= devm_kzalloc(dev, sizeof(*pd), GFP_KERNEL);
 	dev_info = devm_kzalloc(dev, sizeof(*dev_info), GFP_KERNEL);
 
-	if (!emif || !pd || !dev_info) {
+	if (!emif || !pd || !dev_info)
+	{
 		dev_err(dev, "%s:%d: allocation error\n", __func__, __LINE__);
 		goto error;
 	}
@@ -1469,16 +1667,19 @@ static struct emif_data *__init_or_module get_device_details(
 	 * This will save some memory and some computation later.
 	 */
 	emif->duplicate = emif1 && (memcmp(dev_info,
-		emif1->plat_data->device_info,
-		sizeof(struct ddr_device_info)) == 0);
+									   emif1->plat_data->device_info,
+									   sizeof(struct ddr_device_info)) == 0);
 
-	if (emif->duplicate) {
+	if (emif->duplicate)
+	{
 		pd->timings = NULL;
 		pd->min_tck = NULL;
 		goto out;
-	} else if (emif1) {
+	}
+	else if (emif1)
+	{
 		dev_warn(emif->dev, "%s: Non-symmetric DDR geometry\n",
-			__func__);
+				 __func__);
 	}
 
 	/*
@@ -1486,13 +1687,19 @@ static struct emif_data *__init_or_module get_device_details(
 	 * custom_configs is not very critical
 	 */
 	cust_cfgs = pd->custom_configs;
-	if (cust_cfgs && is_custom_config_valid(cust_cfgs, dev)) {
+
+	if (cust_cfgs && is_custom_config_valid(cust_cfgs, dev))
+	{
 		temp = devm_kzalloc(dev, sizeof(*cust_cfgs), GFP_KERNEL);
+
 		if (temp)
+		{
 			memcpy(temp, cust_cfgs, sizeof(*cust_cfgs));
+		}
 		else
 			dev_warn(dev, "%s:%d: allocation error\n", __func__,
-				__LINE__);
+					 __LINE__);
+
 		pd->custom_configs = temp;
 	}
 
@@ -1501,31 +1708,46 @@ static struct emif_data *__init_or_module get_device_details(
 	 * available or if memory allocation fails, use JEDEC defaults
 	 */
 	size = sizeof(struct lpddr2_timings) * pd->timings_arr_size;
-	if (pd->timings) {
+
+	if (pd->timings)
+	{
 		temp = devm_kzalloc(dev, size, GFP_KERNEL);
-		if (temp) {
+
+		if (temp)
+		{
 			memcpy(temp, pd->timings, size);
 			pd->timings = temp;
-		} else {
+		}
+		else
+		{
 			dev_warn(dev, "%s:%d: allocation error\n", __func__,
-				__LINE__);
+					 __LINE__);
 			get_default_timings(emif);
 		}
-	} else {
+	}
+	else
+	{
 		get_default_timings(emif);
 	}
 
-	if (pd->min_tck) {
+	if (pd->min_tck)
+	{
 		temp = devm_kzalloc(dev, sizeof(*pd->min_tck), GFP_KERNEL);
-		if (temp) {
+
+		if (temp)
+		{
 			memcpy(temp, pd->min_tck, sizeof(*pd->min_tck));
 			pd->min_tck = temp;
-		} else {
+		}
+		else
+		{
 			dev_warn(dev, "%s:%d: allocation error\n", __func__,
-				__LINE__);
+					 __LINE__);
 			pd->min_tck = &lpddr2_jedec_min_tck;
 		}
-	} else {
+	}
+	else
+	{
 		pd->min_tck = &lpddr2_jedec_min_tck;
 	}
 
@@ -1543,11 +1765,16 @@ static int __init_or_module emif_probe(struct platform_device *pdev)
 	int			irq;
 
 	if (pdev->dev.of_node)
+	{
 		emif = of_get_memory_device_details(pdev->dev.of_node, &pdev->dev);
+	}
 	else
+	{
 		emif = get_device_details(pdev);
+	}
 
-	if (!emif) {
+	if (!emif)
+	{
 		pr_err("%s: error getting device data\n", __func__);
 		goto error;
 	}
@@ -1561,13 +1788,18 @@ static int __init_or_module emif_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	emif->base = devm_ioremap_resource(emif->dev, res);
+
 	if (IS_ERR(emif->base))
+	{
 		goto error;
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(emif->dev, "%s: error getting IRQ resource - %d\n",
-			__func__, irq);
+				__func__, irq);
 		goto error;
 	}
 
@@ -1577,7 +1809,8 @@ static int __init_or_module emif_probe(struct platform_device *pdev)
 	setup_interrupts(emif, irq);
 
 	/* One-time actions taken on probing the first device */
-	if (!emif1) {
+	if (!emif1)
+	{
 		emif1 = emif;
 		spin_lock_init(&emif_lock);
 
@@ -1589,7 +1822,7 @@ static int __init_or_module emif_probe(struct platform_device *pdev)
 	}
 
 	dev_info(&pdev->dev, "%s: device configured with addr = %p and IRQ%d\n",
-		__func__, emif->base, irq);
+			 __func__, emif->base, irq);
 
 	return 0;
 error:
@@ -1613,7 +1846,7 @@ static void emif_shutdown(struct platform_device *pdev)
 }
 
 static int get_emif_reg_values(struct emif_data *emif, u32 freq,
-		struct emif_regs *regs)
+							   struct emif_regs *regs)
 {
 	u32				cs1_used, ip_rev, phy_type;
 	u32				cl, type;
@@ -1633,9 +1866,11 @@ static int get_emif_reg_values(struct emif_data *emif, u32 freq,
 	emif_for_calc	= emif->duplicate ? emif1 : emif;
 	timings		= get_timings_table(emif_for_calc, freq);
 	addressing	= emif_for_calc->addressing;
-	if (!timings || !addressing) {
+
+	if (!timings || !addressing)
+	{
 		dev_err(dev, "%s: not enough data available for %dHz",
-			__func__, freq);
+				__func__, freq);
 		return -1;
 	}
 
@@ -1652,23 +1887,28 @@ static int get_emif_reg_values(struct emif_data *emif, u32 freq,
 
 	regs->ref_ctrl_shdw = get_sdram_ref_ctrl_shdw(freq, addressing);
 	regs->sdram_tim1_shdw = get_sdram_tim_1_shdw(timings, min_tck,
-			addressing);
+							addressing);
 	regs->sdram_tim2_shdw = get_sdram_tim_2_shdw(timings, min_tck,
-			addressing, type);
+							addressing, type);
 	regs->sdram_tim3_shdw = get_sdram_tim_3_shdw(timings, min_tck,
-		addressing, type, ip_rev, EMIF_NORMAL_TIMINGS);
+							addressing, type, ip_rev, EMIF_NORMAL_TIMINGS);
 
 	cl = get_cl(emif);
 
-	if (phy_type == EMIF_PHY_TYPE_ATTILAPHY && ip_rev == EMIF_4D) {
+	if (phy_type == EMIF_PHY_TYPE_ATTILAPHY && ip_rev == EMIF_4D)
+	{
 		regs->phy_ctrl_1_shdw = get_ddr_phy_ctrl_1_attilaphy_4d(
-			timings, freq, cl);
-	} else if (phy_type == EMIF_PHY_TYPE_INTELLIPHY && ip_rev == EMIF_4D5) {
+									timings, freq, cl);
+	}
+	else if (phy_type == EMIF_PHY_TYPE_INTELLIPHY && ip_rev == EMIF_4D5)
+	{
 		regs->phy_ctrl_1_shdw = get_phy_ctrl_1_intelliphy_4d5(freq, cl);
 		regs->ext_phy_ctrl_2_shdw = get_ext_phy_ctrl_2_intelliphy_4d5();
 		regs->ext_phy_ctrl_3_shdw = get_ext_phy_ctrl_3_intelliphy_4d5();
 		regs->ext_phy_ctrl_4_shdw = get_ext_phy_ctrl_4_intelliphy_4d5();
-	} else {
+	}
+	else
+	{
 		return -1;
 	}
 
@@ -1677,13 +1917,16 @@ static int get_emif_reg_values(struct emif_data *emif, u32 freq,
 		get_pwr_mgmt_ctrl(freq, emif_for_calc, ip_rev) &
 		(CS_TIM_MASK | SR_TIM_MASK | PD_TIM_MASK);
 
-	if (ip_rev & EMIF_4D) {
+	if (ip_rev & EMIF_4D)
+	{
 		regs->read_idle_ctrl_shdw_normal =
 			get_read_idle_ctrl_shdw(DDR_VOLTAGE_STABLE);
 
 		regs->read_idle_ctrl_shdw_volt_ramp =
 			get_read_idle_ctrl_shdw(DDR_VOLTAGE_RAMPING);
-	} else if (ip_rev & EMIF_4D5) {
+	}
+	else if (ip_rev & EMIF_4D5)
+	{
 		regs->dll_calib_ctrl_shdw_normal =
 			get_dll_calib_ctrl_shdw(DDR_VOLTAGE_STABLE);
 
@@ -1691,17 +1934,18 @@ static int get_emif_reg_values(struct emif_data *emif, u32 freq,
 			get_dll_calib_ctrl_shdw(DDR_VOLTAGE_RAMPING);
 	}
 
-	if (type == DDR_TYPE_LPDDR2_S2 || type == DDR_TYPE_LPDDR2_S4) {
+	if (type == DDR_TYPE_LPDDR2_S2 || type == DDR_TYPE_LPDDR2_S4)
+	{
 		regs->ref_ctrl_shdw_derated = get_sdram_ref_ctrl_shdw(freq / 4,
-			addressing);
+									  addressing);
 
 		regs->sdram_tim1_shdw_derated =
 			get_sdram_tim_1_shdw_derated(timings, min_tck,
-				addressing);
+										 addressing);
 
 		regs->sdram_tim3_shdw_derated = get_sdram_tim_3_shdw(timings,
-			min_tck, addressing, type, ip_rev,
-			EMIF_DERATED_TIMINGS);
+										min_tck, addressing, type, ip_rev,
+										EMIF_DERATED_TIMINGS);
 	}
 
 	regs->freq = freq;
@@ -1731,22 +1975,30 @@ static struct emif_regs *get_regs(struct emif_data *emif, u32 freq)
 	struct device		*dev;
 
 	dev = emif->dev;
-	if (emif->curr_regs && emif->curr_regs->freq == freq) {
+
+	if (emif->curr_regs && emif->curr_regs->freq == freq)
+	{
 		dev_dbg(dev, "%s: using curr_regs - %u Hz", __func__, freq);
 		return emif->curr_regs;
 	}
 
 	if (emif->duplicate)
+	{
 		regs_cache = emif1->regs_cache;
+	}
 	else
+	{
 		regs_cache = emif->regs_cache;
+	}
 
-	for (i = 0; i < EMIF_MAX_NUM_FREQUENCIES && regs_cache[i]; i++) {
-		if (regs_cache[i]->freq == freq) {
+	for (i = 0; i < EMIF_MAX_NUM_FREQUENCIES && regs_cache[i]; i++)
+	{
+		if (regs_cache[i]->freq == freq)
+		{
 			regs = regs_cache[i];
 			dev_dbg(dev,
-				"%s: reg dump found in reg cache for %u Hz\n",
-				__func__, freq);
+					"%s: reg dump found in reg cache for %u Hz\n",
+					__func__, freq);
 			break;
 		}
 	}
@@ -1755,12 +2007,17 @@ static struct emif_regs *get_regs(struct emif_data *emif, u32 freq)
 	 * If we don't have an entry for this frequency in the cache create one
 	 * and calculate the values
 	 */
-	if (!regs) {
+	if (!regs)
+	{
 		regs = devm_kzalloc(emif->dev, sizeof(*regs), GFP_ATOMIC);
-		if (!regs)
-			return NULL;
 
-		if (get_emif_reg_values(emif, freq, regs)) {
+		if (!regs)
+		{
+			return NULL;
+		}
+
+		if (get_emif_reg_values(emif, freq, regs))
+		{
 			devm_kfree(emif->dev, regs);
 			return NULL;
 		}
@@ -1773,12 +2030,14 @@ static struct emif_regs *get_regs(struct emif_data *emif, u32 freq)
 		for (i = 0; i < EMIF_MAX_NUM_FREQUENCIES && regs_cache[i]; i++)
 			;
 
-		if (i >= EMIF_MAX_NUM_FREQUENCIES) {
+		if (i >= EMIF_MAX_NUM_FREQUENCIES)
+		{
 			dev_warn(dev, "%s: regs_cache full - reusing a slot!!\n",
-				__func__);
+					 __func__);
 			i = EMIF_MAX_NUM_FREQUENCIES - 1;
 			devm_kfree(emif->dev, regs_cache[i]);
 		}
+
 		regs_cache[i] = regs;
 	}
 
@@ -1788,12 +2047,13 @@ static struct emif_regs *get_regs(struct emif_data *emif, u32 freq)
 static void do_volt_notify_handling(struct emif_data *emif, u32 volt_state)
 {
 	dev_dbg(emif->dev, "%s: voltage notification : %d", __func__,
-		volt_state);
+			volt_state);
 
-	if (!emif->curr_regs) {
+	if (!emif->curr_regs)
+	{
 		dev_err(emif->dev,
-			"%s: volt-notify before registers are ready: %d\n",
-			__func__, volt_state);
+				"%s: volt-notify before registers are ready: %d\n",
+				__func__, volt_state);
 		return;
 	}
 
@@ -1813,7 +2073,7 @@ static void __attribute__((unused)) volt_notify_handling(u32 volt_state)
 	spin_lock_irqsave(&emif_lock, irq_state);
 
 	list_for_each_entry(emif, &device_list, node)
-		do_volt_notify_handling(emif, volt_state);
+	do_volt_notify_handling(emif, volt_state);
 	do_freq_update();
 
 	spin_unlock_irqrestore(&emif_lock, irq_state);
@@ -1824,8 +2084,11 @@ static void do_freq_pre_notify_handling(struct emif_data *emif, u32 new_freq)
 	struct emif_regs *regs;
 
 	regs = get_regs(emif, new_freq);
+
 	if (!regs)
+	{
 		return;
+	}
 
 	emif->curr_regs = regs;
 
@@ -1836,7 +2099,7 @@ static void do_freq_pre_notify_handling(struct emif_data *emif, u32 new_freq)
 	 * is a freq change
 	 */
 	dev_dbg(emif->dev, "%s: setting up shadow registers for %uHz",
-		__func__, new_freq);
+			__func__, new_freq);
 	setup_registers(emif, regs);
 	setup_temperature_sensitive_regs(emif, regs);
 	setup_volt_sensitive_regs(emif, regs, DDR_VOLTAGE_STABLE);
@@ -1846,7 +2109,9 @@ static void do_freq_pre_notify_handling(struct emif_data *emif, u32 new_freq)
 	 * for more details
 	 */
 	if (emif->lpmode == EMIF_LP_MODE_SELF_REFRESH)
+	{
 		set_lpmode(emif, EMIF_LP_MODE_DISABLE);
+	}
 }
 
 /*
@@ -1881,7 +2146,7 @@ static void __attribute__((unused)) freq_pre_notify_handling(u32 new_freq)
 	spin_lock_irqsave(&emif_lock, irq_state);
 
 	list_for_each_entry(emif, &device_list, node)
-		do_freq_pre_notify_handling(emif, new_freq);
+	do_freq_pre_notify_handling(emif, new_freq);
 }
 
 static void do_freq_post_notify_handling(struct emif_data *emif)
@@ -1891,7 +2156,9 @@ static void do_freq_post_notify_handling(struct emif_data *emif)
 	 * for more details
 	 */
 	if (emif->lpmode == EMIF_LP_MODE_SELF_REFRESH)
+	{
 		set_lpmode(emif, EMIF_LP_MODE_SELF_REFRESH);
+	}
 }
 
 /*
@@ -1905,7 +2172,7 @@ static void __attribute__((unused)) freq_post_notify_handling(void)
 	struct emif_data *emif;
 
 	list_for_each_entry(emif, &device_list, node)
-		do_freq_post_notify_handling(emif);
+	do_freq_post_notify_handling(emif);
 
 	/*
 	 * Lock is done in pre-notify handler. See freq_pre_notify_handling()
@@ -1915,15 +2182,17 @@ static void __attribute__((unused)) freq_post_notify_handling(void)
 }
 
 #if defined(CONFIG_OF)
-static const struct of_device_id emif_of_match[] = {
-		{ .compatible = "ti,emif-4d" },
-		{ .compatible = "ti,emif-4d5" },
-		{},
+static const struct of_device_id emif_of_match[] =
+{
+	{ .compatible = "ti,emif-4d" },
+	{ .compatible = "ti,emif-4d5" },
+	{},
 };
 MODULE_DEVICE_TABLE(of, emif_of_match);
 #endif
 
-static struct platform_driver emif_driver = {
+static struct platform_driver emif_driver =
+{
 	.remove		= __exit_p(emif_remove),
 	.shutdown	= emif_shutdown,
 	.driver = {

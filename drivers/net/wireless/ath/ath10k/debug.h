@@ -21,7 +21,8 @@
 #include <linux/types.h>
 #include "trace.h"
 
-enum ath10k_debug_mask {
+enum ath10k_debug_mask
+{
 	ATH10K_DBG_PCI		= 0x00000001,
 	ATH10K_DBG_WMI		= 0x00000002,
 	ATH10K_DBG_HTC		= 0x00000004,
@@ -41,7 +42,8 @@ enum ath10k_debug_mask {
 	ATH10K_DBG_ANY		= 0xffffffff,
 };
 
-enum ath10k_pktlog_filter {
+enum ath10k_pktlog_filter
+{
 	ATH10K_PKTLOG_RX         = 0x000000001,
 	ATH10K_PKTLOG_TX         = 0x000000002,
 	ATH10K_PKTLOG_RCFIND     = 0x000000004,
@@ -50,7 +52,8 @@ enum ath10k_pktlog_filter {
 	ATH10K_PKTLOG_ANY        = 0x00000001f,
 };
 
-enum ath10k_dbg_aggr_mode {
+enum ath10k_dbg_aggr_mode
+{
 	ATH10K_DBG_AGGR_MODE_AUTO,
 	ATH10K_DBG_AGGR_MODE_MANUAL,
 	ATH10K_DBG_AGGR_MODE_MAX,
@@ -79,7 +82,7 @@ int ath10k_debug_register(struct ath10k *ar);
 void ath10k_debug_unregister(struct ath10k *ar);
 void ath10k_debug_fw_stats_process(struct ath10k *ar, struct sk_buff *skb);
 void ath10k_debug_tpc_stats_process(struct ath10k *ar,
-				    struct ath10k_tpc_stats *tpc_stats);
+									struct ath10k_tpc_stats *tpc_stats);
 struct ath10k_fw_crash_data *
 ath10k_debug_get_new_fw_crash_data(struct ath10k *ar);
 
@@ -87,13 +90,13 @@ void ath10k_debug_dbglog_add(struct ath10k *ar, u8 *buffer, int len);
 #define ATH10K_DFS_STAT_INC(ar, c) (ar->debug.dfs_stats.c++)
 
 void ath10k_debug_get_et_strings(struct ieee80211_hw *hw,
-				 struct ieee80211_vif *vif,
-				 u32 sset, u8 *data);
+								 struct ieee80211_vif *vif,
+								 u32 sset, u8 *data);
 int ath10k_debug_get_et_sset_count(struct ieee80211_hw *hw,
-				   struct ieee80211_vif *vif, int sset);
+								   struct ieee80211_vif *vif, int sset);
 void ath10k_debug_get_et_stats(struct ieee80211_hw *hw,
-			       struct ieee80211_vif *vif,
-			       struct ethtool_stats *stats, u64 *data);
+							   struct ieee80211_vif *vif,
+							   struct ethtool_stats *stats, u64 *data);
 #else
 static inline int ath10k_debug_start(struct ath10k *ar)
 {
@@ -123,18 +126,18 @@ static inline void ath10k_debug_unregister(struct ath10k *ar)
 }
 
 static inline void ath10k_debug_fw_stats_process(struct ath10k *ar,
-						 struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 }
 
 static inline void ath10k_debug_tpc_stats_process(struct ath10k *ar,
-						  struct ath10k_tpc_stats *tpc_stats)
+		struct ath10k_tpc_stats *tpc_stats)
 {
 	kfree(tpc_stats);
 }
 
 static inline void ath10k_debug_dbglog_add(struct ath10k *ar, u8 *buffer,
-					   int len)
+		int len)
 {
 }
 
@@ -153,41 +156,41 @@ ath10k_debug_get_new_fw_crash_data(struct ath10k *ar)
 #endif /* CONFIG_ATH10K_DEBUGFS */
 #ifdef CONFIG_MAC80211_DEBUGFS
 void ath10k_sta_add_debugfs(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-			    struct ieee80211_sta *sta, struct dentry *dir);
+							struct ieee80211_sta *sta, struct dentry *dir);
 void ath10k_sta_update_rx_duration(struct ath10k *ar,
-				   struct ath10k_fw_stats *stats);
+								   struct ath10k_fw_stats *stats);
 void ath10k_sta_statistics(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-			   struct ieee80211_sta *sta,
-			   struct station_info *sinfo);
+						   struct ieee80211_sta *sta,
+						   struct station_info *sinfo);
 #else
 static inline
 void ath10k_sta_update_rx_duration(struct ath10k *ar,
-				   struct ath10k_fw_stats *stats)
+								   struct ath10k_fw_stats *stats)
 {
 }
 #endif /* CONFIG_MAC80211_DEBUGFS */
 
 #ifdef CONFIG_ATH10K_DEBUG
 __printf(3, 4) void ath10k_dbg(struct ath10k *ar,
-			       enum ath10k_debug_mask mask,
-			       const char *fmt, ...);
+							   enum ath10k_debug_mask mask,
+							   const char *fmt, ...);
 void ath10k_dbg_dump(struct ath10k *ar,
-		     enum ath10k_debug_mask mask,
-		     const char *msg, const char *prefix,
-		     const void *buf, size_t len);
+					 enum ath10k_debug_mask mask,
+					 const char *msg, const char *prefix,
+					 const void *buf, size_t len);
 #else /* CONFIG_ATH10K_DEBUG */
 
 static inline int ath10k_dbg(struct ath10k *ar,
-			     enum ath10k_debug_mask dbg_mask,
-			     const char *fmt, ...)
+							 enum ath10k_debug_mask dbg_mask,
+							 const char *fmt, ...)
 {
 	return 0;
 }
 
 static inline void ath10k_dbg_dump(struct ath10k *ar,
-				   enum ath10k_debug_mask mask,
-				   const char *msg, const char *prefix,
-				   const void *buf, size_t len)
+								   enum ath10k_debug_mask mask,
+								   const char *msg, const char *prefix,
+								   const void *buf, size_t len)
 {
 }
 #endif /* CONFIG_ATH10K_DEBUG */

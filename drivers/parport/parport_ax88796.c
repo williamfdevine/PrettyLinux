@@ -32,7 +32,8 @@
 #define AX_CPR_ATFD		(1<<1)
 #define AX_CPR_STRB		(1<<0)
 
-struct ax_drvdata {
+struct ax_drvdata
+{
 	struct parport		*parport;
 	struct parport_state	 suspend;
 
@@ -76,16 +77,24 @@ parport_ax88796_read_control(struct parport *p)
 	unsigned int ret = 0;
 
 	if (!(cpr & AX_CPR_STRB))
+	{
 		ret |= PARPORT_CONTROL_STROBE;
+	}
 
 	if (!(cpr & AX_CPR_ATFD))
+	{
 		ret |= PARPORT_CONTROL_AUTOFD;
+	}
 
 	if (cpr & AX_CPR_nINIT)
+	{
 		ret |= PARPORT_CONTROL_INIT;
+	}
 
 	if (!(cpr & AX_CPR_SLCTIN))
+	{
 		ret |= PARPORT_CONTROL_SELECT;
+	}
 
 	return ret;
 }
@@ -99,23 +108,32 @@ parport_ax88796_write_control(struct parport *p, unsigned char control)
 	cpr &= AX_CPR_nDOE;
 
 	if (!(control & PARPORT_CONTROL_STROBE))
+	{
 		cpr |= AX_CPR_STRB;
+	}
 
 	if (!(control & PARPORT_CONTROL_AUTOFD))
+	{
 		cpr |= AX_CPR_ATFD;
+	}
 
 	if (control & PARPORT_CONTROL_INIT)
+	{
 		cpr |= AX_CPR_nINIT;
+	}
 
 	if (!(control & PARPORT_CONTROL_SELECT))
+	{
 		cpr |= AX_CPR_SLCTIN;
+	}
 
 	dev_dbg(dd->dev, "write_control: ctrl=%02x, cpr=%02x\n", control, cpr);
 	writeb(cpr, dd->spp_cpr);
 
-	if (parport_ax88796_read_control(p) != control) {
+	if (parport_ax88796_read_control(p) != control)
+	{
 		dev_err(dd->dev, "write_control: read != set (%02x, %02x)\n",
-			parport_ax88796_read_control(p), control);
+				parport_ax88796_read_control(p), control);
 	}
 }
 
@@ -127,32 +145,42 @@ parport_ax88796_read_status(struct parport *p)
 	unsigned int ret = 0;
 
 	if (status & AX_SPR_BUSY)
+	{
 		ret |= PARPORT_STATUS_BUSY;
+	}
 
 	if (status & AX_SPR_ACK)
+	{
 		ret |= PARPORT_STATUS_ACK;
+	}
 
 	if (status & AX_SPR_ERR)
+	{
 		ret |= PARPORT_STATUS_ERROR;
+	}
 
 	if (status & AX_SPR_SLCT)
+	{
 		ret |= PARPORT_STATUS_SELECT;
+	}
 
 	if (status & AX_SPR_PE)
+	{
 		ret |= PARPORT_STATUS_PAPEROUT;
+	}
 
 	return ret;
 }
 
 static unsigned char
 parport_ax88796_frob_control(struct parport *p, unsigned char mask,
-			     unsigned char val)
+							 unsigned char val)
 {
 	struct ax_drvdata *dd = pp_to_drv(p);
 	unsigned char old = parport_ax88796_read_control(p);
 
 	dev_dbg(dd->dev, "frob: mask=%02x, val=%02x, old=%02x\n",
-		mask, val, old);
+			mask, val, old);
 
 	parport_ax88796_write_control(p, (old & ~mask) | val);
 	return old;
@@ -165,10 +193,13 @@ parport_ax88796_enable_irq(struct parport *p)
 	unsigned long flags;
 
 	local_irq_save(flags);
-	if (!dd->irq_enabled) {
+
+	if (!dd->irq_enabled)
+	{
 		enable_irq(p->irq);
 		dd->irq_enabled = 1;
 	}
+
 	local_irq_restore(flags);
 }
 
@@ -179,10 +210,13 @@ parport_ax88796_disable_irq(struct parport *p)
 	unsigned long flags;
 
 	local_irq_save(flags);
-	if (dd->irq_enabled) {
+
+	if (dd->irq_enabled)
+	{
 		disable_irq(p->irq);
 		dd->irq_enabled = 0;
 	}
+
 	local_irq_restore(flags);
 }
 
@@ -233,7 +267,8 @@ parport_ax88796_restore_state(struct parport *p, struct parport_state *s)
 	writeb(s->u.ax88796.cpr, dd->spp_cpr);
 }
 
-static struct parport_operations parport_ax88796_ops = {
+static struct parport_operations parport_ax88796_ops =
+{
 	.write_data	= parport_ax88796_write_data,
 	.read_data	= parport_ax88796_read_data,
 
@@ -281,13 +316,17 @@ static int parport_ax88796_probe(struct platform_device *pdev)
 	int ret;
 
 	dd = kzalloc(sizeof(struct ax_drvdata), GFP_KERNEL);
-	if (dd == NULL) {
+
+	if (dd == NULL)
+	{
 		dev_err(_dev, "no memory for private data\n");
 		return -ENOMEM;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(_dev, "no MEM specified\n");
 		ret = -ENXIO;
 		goto exit_mem;
@@ -297,28 +336,36 @@ static int parport_ax88796_probe(struct platform_device *pdev)
 	spacing = size / 3;
 
 	dd->io = request_mem_region(res->start, size, pdev->name);
-	if (dd->io == NULL) {
+
+	if (dd->io == NULL)
+	{
 		dev_err(_dev, "cannot reserve memory\n");
 		ret = -ENXIO;
 		goto exit_mem;
 	}
 
 	dd->base = ioremap(res->start, size);
-	if (dd->base == NULL) {
+
+	if (dd->base == NULL)
+	{
 		dev_err(_dev, "cannot ioremap region\n");
 		ret = -ENXIO;
 		goto exit_res;
 	}
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq <= 0)
+	{
 		irq = PARPORT_IRQ_NONE;
+	}
 
 	pp = parport_register_port((unsigned long)dd->base, irq,
-				   PARPORT_DMA_NONE,
-				   &parport_ax88796_ops);
+							   PARPORT_DMA_NONE,
+							   &parport_ax88796_ops);
 
-	if (pp == NULL) {
+	if (pp == NULL)
+	{
 		dev_err(_dev, "failed to register parallel port\n");
 		ret = -ENOMEM;
 		goto exit_unmap;
@@ -335,13 +382,16 @@ static int parport_ax88796_probe(struct platform_device *pdev)
 	/* initialise the port controls */
 	writeb(AX_CPR_STRB, dd->spp_cpr);
 
-	if (irq >= 0) {
+	if (irq >= 0)
+	{
 		/* request irq */
 		ret = request_irq(irq, parport_irq_handler,
-				  IRQF_TRIGGER_FALLING, pdev->name, pp);
+						  IRQF_TRIGGER_FALLING, pdev->name, pp);
 
 		if (ret < 0)
+		{
 			goto exit_port;
+		}
 
 		dd->irq_enabled = 1;
 	}
@@ -353,14 +403,14 @@ static int parport_ax88796_probe(struct platform_device *pdev)
 
 	return 0;
 
- exit_port:
+exit_port:
 	parport_remove_port(pp);
- exit_unmap:
+exit_unmap:
 	iounmap(dd->base);
- exit_res:
+exit_res:
 	release_resource(dd->io);
 	kfree(dd->io);
- exit_mem:
+exit_mem:
 	kfree(dd);
 	return ret;
 }
@@ -383,7 +433,7 @@ static int parport_ax88796_remove(struct platform_device *pdev)
 #ifdef CONFIG_PM
 
 static int parport_ax88796_suspend(struct platform_device *dev,
-				   pm_message_t state)
+								   pm_message_t state)
 {
 	struct parport *p = platform_get_drvdata(dev);
 	struct ax_drvdata *dd = pp_to_drv(p);
@@ -409,7 +459,8 @@ static int parport_ax88796_resume(struct platform_device *dev)
 
 MODULE_ALIAS("platform:ax88796-pp");
 
-static struct platform_driver axdrv = {
+static struct platform_driver axdrv =
+{
 	.driver		= {
 		.name	= "ax88796-pp",
 	},

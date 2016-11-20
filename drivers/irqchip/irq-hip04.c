@@ -52,7 +52,8 @@
 
 #define HIP04_MAX_IRQS		510
 
-struct hip04_irq_data {
+struct hip04_irq_data
+{
 	void __iomem *dist_base;
 	void __iomem *cpu_base;
 	struct irq_domain *domain;
@@ -97,7 +98,7 @@ static void hip04_mask_irq(struct irq_data *d)
 
 	raw_spin_lock(&irq_controller_lock);
 	writel_relaxed(mask, hip04_dist_base(d) + GIC_DIST_ENABLE_CLEAR +
-		       (hip04_irq(d) / 32) * 4);
+				   (hip04_irq(d) / 32) * 4);
 	raw_spin_unlock(&irq_controller_lock);
 }
 
@@ -107,7 +108,7 @@ static void hip04_unmask_irq(struct irq_data *d)
 
 	raw_spin_lock(&irq_controller_lock);
 	writel_relaxed(mask, hip04_dist_base(d) + GIC_DIST_ENABLE_SET +
-		       (hip04_irq(d) / 32) * 4);
+				   (hip04_irq(d) / 32) * 4);
 	raw_spin_unlock(&irq_controller_lock);
 }
 
@@ -124,12 +125,16 @@ static int hip04_irq_set_type(struct irq_data *d, unsigned int type)
 
 	/* Interrupt configuration for SGIs can't be changed */
 	if (irq < 16)
+	{
 		return -EINVAL;
+	}
 
 	/* SPIs have restrictions on the supported types */
 	if (irq >= 32 && type != IRQ_TYPE_LEVEL_HIGH &&
-			 type != IRQ_TYPE_EDGE_RISING)
+		type != IRQ_TYPE_EDGE_RISING)
+	{
 		return -EINVAL;
+	}
 
 	raw_spin_lock(&irq_controller_lock);
 
@@ -142,20 +147,26 @@ static int hip04_irq_set_type(struct irq_data *d, unsigned int type)
 
 #ifdef CONFIG_SMP
 static int hip04_irq_set_affinity(struct irq_data *d,
-				  const struct cpumask *mask_val,
-				  bool force)
+								  const struct cpumask *mask_val,
+								  bool force)
 {
 	void __iomem *reg;
 	unsigned int cpu, shift = (hip04_irq(d) % 2) * 16;
 	u32 val, mask, bit;
 
 	if (!force)
+	{
 		cpu = cpumask_any_and(mask_val, cpu_online_mask);
+	}
 	else
+	{
 		cpu = cpumask_first(mask_val);
+	}
 
 	if (cpu >= NR_HIP04_CPU_IF || cpu >= nr_cpu_ids)
+	{
 		return -EINVAL;
+	}
 
 	raw_spin_lock(&irq_controller_lock);
 	reg = hip04_dist_base(d) + GIC_DIST_TARGET + ((hip04_irq(d) * 2) & ~3);
@@ -174,26 +185,33 @@ static void __exception_irq_entry hip04_handle_irq(struct pt_regs *regs)
 	u32 irqstat, irqnr;
 	void __iomem *cpu_base = hip04_data.cpu_base;
 
-	do {
+	do
+	{
 		irqstat = readl_relaxed(cpu_base + GIC_CPU_INTACK);
 		irqnr = irqstat & GICC_IAR_INT_ID_MASK;
 
-		if (likely(irqnr > 15 && irqnr <= HIP04_MAX_IRQS)) {
+		if (likely(irqnr > 15 && irqnr <= HIP04_MAX_IRQS))
+		{
 			handle_domain_irq(hip04_data.domain, irqnr, regs);
 			continue;
 		}
-		if (irqnr < 16) {
+
+		if (irqnr < 16)
+		{
 			writel_relaxed(irqstat, cpu_base + GIC_CPU_EOI);
 #ifdef CONFIG_SMP
 			handle_IPI(irqnr, regs);
 #endif
 			continue;
 		}
+
 		break;
-	} while (1);
+	}
+	while (1);
 }
 
-static struct irq_chip hip04_irq_chip = {
+static struct irq_chip hip04_irq_chip =
+{
 	.name			= "HIP04 INTC",
 	.irq_mask		= hip04_mask_irq,
 	.irq_unmask		= hip04_unmask_irq,
@@ -203,8 +221,8 @@ static struct irq_chip hip04_irq_chip = {
 	.irq_set_affinity	= hip04_irq_set_affinity,
 #endif
 	.flags			= IRQCHIP_SET_TYPE_MASKED |
-				  IRQCHIP_SKIP_SET_WAKE |
-				  IRQCHIP_MASK_ON_SUSPEND,
+	IRQCHIP_SKIP_SET_WAKE |
+	IRQCHIP_MASK_ON_SUSPEND,
 };
 
 static u16 hip04_get_cpumask(struct hip04_irq_data *intc)
@@ -212,15 +230,21 @@ static u16 hip04_get_cpumask(struct hip04_irq_data *intc)
 	void __iomem *base = intc->dist_base;
 	u32 mask, i;
 
-	for (i = mask = 0; i < 32; i += 2) {
+	for (i = mask = 0; i < 32; i += 2)
+	{
 		mask = readl_relaxed(base + GIC_DIST_TARGET + i * 2);
 		mask |= mask >> 16;
+
 		if (mask)
+		{
 			break;
+		}
 	}
 
 	if (!mask)
+	{
 		pr_crit("GIC CPU mask not found - kernel will fail to boot.\n");
+	}
 
 	return mask;
 }
@@ -239,8 +263,11 @@ static void __init hip04_irq_dist_init(struct hip04_irq_data *intc)
 	 */
 	cpumask = hip04_get_cpumask(intc);
 	cpumask |= cpumask << 16;
+
 	for (i = 32; i < nr_irqs; i += 2)
+	{
 		writel_relaxed(cpumask, base + GIC_DIST_TARGET + ((i * 2) & ~3));
+	}
 
 	gic_dist_config(base, nr_irqs, NULL);
 
@@ -267,7 +294,9 @@ static void hip04_irq_cpu_init(struct hip04_irq_data *intc)
 	 */
 	for (i = 0; i < NR_HIP04_CPU_IF; i++)
 		if (i != cpu)
+		{
 			hip04_cpu_map[i] &= ~cpu_mask;
+		}
 
 	gic_cpu_config(dist_base, NULL);
 
@@ -285,7 +314,7 @@ static void hip04_raise_softirq(const struct cpumask *mask, unsigned int irq)
 
 	/* Convert our logical CPU mask into a physical one. */
 	for_each_cpu(cpu, mask)
-		map |= hip04_cpu_map[cpu];
+	map |= hip04_cpu_map[cpu];
 
 	/*
 	 * Ensure that stores to Normal memory are visible to the
@@ -301,41 +330,52 @@ static void hip04_raise_softirq(const struct cpumask *mask, unsigned int irq)
 #endif
 
 static int hip04_irq_domain_map(struct irq_domain *d, unsigned int irq,
-				irq_hw_number_t hw)
+								irq_hw_number_t hw)
 {
-	if (hw < 32) {
+	if (hw < 32)
+	{
 		irq_set_percpu_devid(irq);
 		irq_set_chip_and_handler(irq, &hip04_irq_chip,
-					 handle_percpu_devid_irq);
+								 handle_percpu_devid_irq);
 		irq_set_status_flags(irq, IRQ_NOAUTOEN);
-	} else {
+	}
+	else
+	{
 		irq_set_chip_and_handler(irq, &hip04_irq_chip,
-					 handle_fasteoi_irq);
+								 handle_fasteoi_irq);
 		irq_set_probe(irq);
 	}
+
 	irq_set_chip_data(irq, d->host_data);
 	return 0;
 }
 
 static int hip04_irq_domain_xlate(struct irq_domain *d,
-				  struct device_node *controller,
-				  const u32 *intspec, unsigned int intsize,
-				  unsigned long *out_hwirq,
-				  unsigned int *out_type)
+								  struct device_node *controller,
+								  const u32 *intspec, unsigned int intsize,
+								  unsigned long *out_hwirq,
+								  unsigned int *out_type)
 {
 	unsigned long ret = 0;
 
 	if (irq_domain_get_of_node(d) != controller)
+	{
 		return -EINVAL;
+	}
+
 	if (intsize < 3)
+	{
 		return -EINVAL;
+	}
 
 	/* Get the interrupt number and add 16 to skip over SGIs */
 	*out_hwirq = intspec[1] + 16;
 
 	/* For SPIs, we need to add 16 more to get the irq ID number */
 	if (!intspec[0])
+	{
 		*out_hwirq += 16;
+	}
 
 	*out_type = intspec[2] & IRQ_TYPE_SENSE_MASK;
 
@@ -348,7 +388,8 @@ static int hip04_irq_starting_cpu(unsigned int cpu)
 	return 0;
 }
 
-static const struct irq_domain_ops hip04_irq_domain_ops = {
+static const struct irq_domain_ops hip04_irq_domain_ops =
+{
 	.map	= hip04_irq_domain_map,
 	.xlate	= hip04_irq_domain_xlate,
 };
@@ -360,7 +401,9 @@ hip04_of_init(struct device_node *node, struct device_node *parent)
 	int nr_irqs, irq_base, i;
 
 	if (WARN_ON(!node))
+	{
 		return -ENODEV;
+	}
 
 	hip04_data.dist_base = of_iomap(node, 0);
 	WARN(!hip04_data.dist_base, "fail to map hip04 intc dist registers\n");
@@ -373,7 +416,9 @@ hip04_of_init(struct device_node *node, struct device_node *parent)
 	 * It will be refined as each CPU probes its ID.
 	 */
 	for (i = 0; i < NR_HIP04_CPU_IF; i++)
+	{
 		hip04_cpu_map[i] = 0xffff;
+	}
 
 	/*
 	 * Find out how many interrupts are supported.
@@ -381,25 +426,33 @@ hip04_of_init(struct device_node *node, struct device_node *parent)
 	 */
 	nr_irqs = readl_relaxed(hip04_data.dist_base + GIC_DIST_CTR) & 0x1f;
 	nr_irqs = (nr_irqs + 1) * 32;
+
 	if (nr_irqs > HIP04_MAX_IRQS)
+	{
 		nr_irqs = HIP04_MAX_IRQS;
+	}
+
 	hip04_data.nr_irqs = nr_irqs;
 
 	nr_irqs -= hwirq_base; /* calculate # of irqs to allocate */
 
 	irq_base = irq_alloc_descs(-1, hwirq_base, nr_irqs, numa_node_id());
-	if (irq_base < 0) {
+
+	if (irq_base < 0)
+	{
 		pr_err("failed to allocate IRQ numbers\n");
 		return -EINVAL;
 	}
 
 	hip04_data.domain = irq_domain_add_legacy(node, nr_irqs, irq_base,
-						  hwirq_base,
-						  &hip04_irq_domain_ops,
-						  &hip04_data);
+						hwirq_base,
+						&hip04_irq_domain_ops,
+						&hip04_data);
 
 	if (WARN_ON(!hip04_data.domain))
+	{
 		return -EINVAL;
+	}
 
 #ifdef CONFIG_SMP
 	set_smp_cross_call(hip04_raise_softirq);
@@ -408,7 +461,7 @@ hip04_of_init(struct device_node *node, struct device_node *parent)
 
 	hip04_irq_dist_init(&hip04_data);
 	cpuhp_setup_state(CPUHP_AP_IRQ_HIP04_STARTING, "AP_IRQ_HIP04_STARTING",
-			  hip04_irq_starting_cpu, NULL);
+					  hip04_irq_starting_cpu, NULL);
 	return 0;
 }
 IRQCHIP_DECLARE(hip04_intc, "hisilicon,hip04-intc", hip04_of_init);

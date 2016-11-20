@@ -45,33 +45,37 @@
 /* userfaultfd ioctl ids */
 #define UFFDIO 0xAA
 #define UFFDIO_API		_IOWR(UFFDIO, _UFFDIO_API,	\
-				      struct uffdio_api)
+							  struct uffdio_api)
 #define UFFDIO_REGISTER		_IOWR(UFFDIO, _UFFDIO_REGISTER, \
-				      struct uffdio_register)
+								  struct uffdio_register)
 #define UFFDIO_UNREGISTER	_IOR(UFFDIO, _UFFDIO_UNREGISTER,	\
-				     struct uffdio_range)
+								 struct uffdio_range)
 #define UFFDIO_WAKE		_IOR(UFFDIO, _UFFDIO_WAKE,	\
-				     struct uffdio_range)
+							 struct uffdio_range)
 #define UFFDIO_COPY		_IOWR(UFFDIO, _UFFDIO_COPY,	\
-				      struct uffdio_copy)
+							  struct uffdio_copy)
 #define UFFDIO_ZEROPAGE		_IOWR(UFFDIO, _UFFDIO_ZEROPAGE,	\
-				      struct uffdio_zeropage)
+								  struct uffdio_zeropage)
 
 /* read() structure */
-struct uffd_msg {
+struct uffd_msg
+{
 	__u8	event;
 
 	__u8	reserved1;
 	__u16	reserved2;
 	__u32	reserved3;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u64	flags;
 			__u64	address;
 		} pagefault;
 
-		struct {
+		struct
+		{
 			/* unused reserved fields */
 			__u64	reserved1;
 			__u64	reserved2;
@@ -85,14 +89,15 @@ struct uffd_msg {
  */
 #define UFFD_EVENT_PAGEFAULT	0x12
 #if 0 /* not available yet */
-#define UFFD_EVENT_FORK		0x13
+	#define UFFD_EVENT_FORK		0x13
 #endif
 
 /* flags for UFFD_EVENT_PAGEFAULT */
 #define UFFD_PAGEFAULT_FLAG_WRITE	(1<<0)	/* If this was a write fault */
 #define UFFD_PAGEFAULT_FLAG_WP		(1<<1)	/* If reason is VM_UFFD_WP */
 
-struct uffdio_api {
+struct uffdio_api
+{
 	/* userland asks for an API number and the features to enable */
 	__u64 api;
 	/*
@@ -114,12 +119,14 @@ struct uffdio_api {
 	__u64 ioctls;
 };
 
-struct uffdio_range {
+struct uffdio_range
+{
 	__u64 start;
 	__u64 len;
 };
 
-struct uffdio_register {
+struct uffdio_register
+{
 	struct uffdio_range range;
 #define UFFDIO_REGISTER_MODE_MISSING	((__u64)1<<0)
 #define UFFDIO_REGISTER_MODE_WP		((__u64)1<<1)
@@ -132,7 +139,8 @@ struct uffdio_register {
 	__u64 ioctls;
 };
 
-struct uffdio_copy {
+struct uffdio_copy
+{
 	__u64 dst;
 	__u64 src;
 	__u64 len;
@@ -152,7 +160,8 @@ struct uffdio_copy {
 	__s64 copy;
 };
 
-struct uffdio_zeropage {
+struct uffdio_zeropage
+{
 	struct uffdio_range range;
 #define UFFDIO_ZEROPAGE_MODE_DONTWAKE		((__u64)1<<0)
 	__u64 mode;

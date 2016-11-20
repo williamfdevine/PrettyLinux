@@ -80,10 +80,11 @@
 #define ERRLOG_CMD_STOP_SIZE    11              /* with final 0 byte ! */
 
 #define ERRLOG_ENTRY_SIZE       64      /* sizeof(tErrLogEntry) */
-					/* remaining text size = 55 */
+/* remaining text size = 55 */
 #define ERRLOG_TEXT_SIZE    (ERRLOG_ENTRY_SIZE - 2 * 4 - 1)
 
-typedef struct ErrLogEntry_tag {
+typedef struct ErrLogEntry_tag
+{
 
 	/*00 */ unsigned long ulErrType;
 
@@ -94,14 +95,14 @@ typedef struct ErrLogEntry_tag {
 	/*09 */ unsigned char ucText[ERRLOG_TEXT_SIZE];
 	/* ASCIIZ of len ucTextSize-1 */
 
-/*40 */
+	/*40 */
 } tErrLogEntry;
 
 
 #if defined(__TURBOC__)
-#if sizeof(tErrLogEntry) != ERRLOG_ENTRY_SIZE
-#error size of tErrLogEntry != ERRLOG_ENTRY_SIZE
-#endif				/*  */
+	#if sizeof(tErrLogEntry) != ERRLOG_ENTRY_SIZE
+		#error size of tErrLogEntry != ERRLOG_ENTRY_SIZE
+	#endif				/*  */
 #endif				/*  */
 
 /*--------------------------------------DPRAM boot spooler------------------*/
@@ -109,7 +110,8 @@ typedef struct ErrLogEntry_tag {
  *  hyperstone to exchange boot data
  */
 #define DPRAM_SPOOLER_DATA_SIZE 0x20
-typedef struct DpramBootSpooler_tag {
+typedef struct DpramBootSpooler_tag
+{
 
 	/*00 */ unsigned char Len;
 
@@ -119,7 +121,7 @@ typedef struct DpramBootSpooler_tag {
 
 	/*03 */ unsigned char Data[DPRAM_SPOOLER_DATA_SIZE];
 
-/*23 */
+	/*23 */
 } tDpramBootSpooler;
 
 

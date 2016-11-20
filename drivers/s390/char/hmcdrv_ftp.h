@@ -26,7 +26,8 @@
  * @HMCDRV_FTP_DELETE: delete a file
  * @HMCDRV_FTP_CANCEL: cancel operation (SCLP/LPAR only)
  */
-enum hmcdrv_ftp_cmdid {
+enum hmcdrv_ftp_cmdid
+{
 	HMCDRV_FTP_NOOP = 0,
 	HMCDRV_FTP_GET = 1,
 	HMCDRV_FTP_PUT = 2,
@@ -45,7 +46,8 @@ enum hmcdrv_ftp_cmdid {
  * @buf: kernel-space transfer data buffer, 4k aligned
  * @len: (max) number of bytes to transfer from/to @buf
  */
-struct hmcdrv_ftp_cmdspec {
+struct hmcdrv_ftp_cmdspec
+{
 	enum hmcdrv_ftp_cmdid id;
 	loff_t ofs;
 	const char *fname;
@@ -58,6 +60,6 @@ void hmcdrv_ftp_shutdown(void);
 int hmcdrv_ftp_probe(void);
 ssize_t hmcdrv_ftp_do(const struct hmcdrv_ftp_cmdspec *ftp);
 ssize_t hmcdrv_ftp_cmd(char __kernel *cmd, loff_t offset,
-		       char __user *buf, size_t len);
+					   char __user *buf, size_t len);
 
 #endif	 /* __HMCDRV_FTP_H__ */

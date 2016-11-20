@@ -65,17 +65,17 @@
 #include <asm/timex.h>
 
 #ifndef random_get_entropy
-/*
- * The random_get_entropy() function is used by the /dev/random driver
- * in order to extract entropy via the relative unpredictability of
- * when an interrupt takes places versus a high speed, fine-grained
- * timing source or cycle counter.  Since it will be occurred on every
- * single interrupt, it must have a very low cost/overhead.
- *
- * By default we use get_cycles() for this purpose, but individual
- * architectures may override this in their asm/timex.h header file.
- */
-#define random_get_entropy()	get_cycles()
+	/*
+	* The random_get_entropy() function is used by the /dev/random driver
+	* in order to extract entropy via the relative unpredictability of
+	* when an interrupt takes places versus a high speed, fine-grained
+	* timing source or cycle counter.  Since it will be occurred on every
+	* single interrupt, it must have a very low cost/overhead.
+	*
+	* By default we use get_cycles() for this purpose, but individual
+	* architectures may override this in their asm/timex.h header file.
+	*/
+	#define random_get_entropy()	get_cycles()
 #endif
 
 /*
@@ -122,7 +122,7 @@
 #define PPM_SCALE ((s64)NSEC_PER_USEC << (NTP_SCALE_SHIFT - SHIFT_USEC))
 #define PPM_SCALE_INV_SHIFT 19
 #define PPM_SCALE_INV ((1LL << (PPM_SCALE_INV_SHIFT + NTP_SCALE_SHIFT)) / \
-		       PPM_SCALE + 1)
+					   PPM_SCALE + 1)
 
 #define MAXPHASE 500000000L	/* max phase error (ns) */
 #define MAXFREQ 500000		/* max frequency error (ns/s) */
@@ -141,10 +141,10 @@ extern unsigned long tick_nsec;		/* SHIFTED_HZ period (nsec) */
 
 /* Required to safely shift negative values */
 #define shift_right(x, s) ({	\
-	__typeof__(x) __x = (x);	\
-	__typeof__(s) __s = (s);	\
-	__x < 0 ? -(-__x >> __s) : __x >> __s;	\
-})
+		__typeof__(x) __x = (x);	\
+		__typeof__(s) __s = (s);	\
+		__x < 0 ? -(-__x >> __s) : __x >> __s;	\
+	})
 
 #define NTP_SCALE_SHIFT		32
 

@@ -74,11 +74,11 @@ int cs4245_write_spi(struct oxygen *chip, u8 reg)
 	packet |= data->cs4245_shadow[reg];
 
 	return oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
-				OXYGEN_SPI_DATA_LENGTH_3 |
-				OXYGEN_SPI_CLOCK_1280 |
-				(0 << OXYGEN_SPI_CODEC_SHIFT) |
-				OXYGEN_SPI_CEN_LATCH_CLOCK_HI,
-				packet);
+							OXYGEN_SPI_DATA_LENGTH_3 |
+							OXYGEN_SPI_CLOCK_1280 |
+							(0 << OXYGEN_SPI_CODEC_SHIFT) |
+							OXYGEN_SPI_CEN_LATCH_CLOCK_HI,
+							packet);
 }
 
 int cs4245_read_spi(struct oxygen *chip, u8 addr)
@@ -87,20 +87,26 @@ int cs4245_read_spi(struct oxygen *chip, u8 addr)
 	int ret;
 
 	ret = oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
-		OXYGEN_SPI_DATA_LENGTH_2 |
-		OXYGEN_SPI_CEN_LATCH_CLOCK_HI |
-		OXYGEN_SPI_CLOCK_1280 | (0 << OXYGEN_SPI_CODEC_SHIFT),
-		((CS4245_SPI_ADDRESS | CS4245_SPI_WRITE) << 8) | addr);
+						   OXYGEN_SPI_DATA_LENGTH_2 |
+						   OXYGEN_SPI_CEN_LATCH_CLOCK_HI |
+						   OXYGEN_SPI_CLOCK_1280 | (0 << OXYGEN_SPI_CODEC_SHIFT),
+						   ((CS4245_SPI_ADDRESS | CS4245_SPI_WRITE) << 8) | addr);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
-		OXYGEN_SPI_DATA_LENGTH_2 |
-		OXYGEN_SPI_CEN_LATCH_CLOCK_HI |
-		OXYGEN_SPI_CLOCK_1280 | (0 << OXYGEN_SPI_CODEC_SHIFT),
-		(CS4245_SPI_ADDRESS | CS4245_SPI_READ) << 8);
+						   OXYGEN_SPI_DATA_LENGTH_2 |
+						   OXYGEN_SPI_CEN_LATCH_CLOCK_HI |
+						   OXYGEN_SPI_CLOCK_1280 | (0 << OXYGEN_SPI_CODEC_SHIFT),
+						   (CS4245_SPI_ADDRESS | CS4245_SPI_READ) << 8);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	data->cs4245_shadow[addr] = oxygen_read8(chip, OXYGEN_SPI_DATA1);
 
@@ -113,13 +119,18 @@ int cs4245_shadow_control(struct oxygen *chip, enum cs4245_shadow_operation op)
 	unsigned char addr;
 	int ret;
 
-	for (addr = 1; addr < ARRAY_SIZE(data->cs4245_shadow); addr++) {
+	for (addr = 1; addr < ARRAY_SIZE(data->cs4245_shadow); addr++)
+	{
 		ret = (op == CS4245_SAVE_TO_SHADOW ?
-			cs4245_read_spi(chip, addr) :
-			cs4245_write_spi(chip, addr));
+			   cs4245_read_spi(chip, addr) :
+			   cs4245_write_spi(chip, addr));
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
+
 	return 0;
 }
 
@@ -164,11 +175,11 @@ void dg_init(struct oxygen *chip)
 
 	cs4245_init(chip);
 	oxygen_write16(chip, OXYGEN_GPIO_CONTROL,
-		       GPIO_OUTPUT_ENABLE | GPIO_HP_REAR | GPIO_INPUT_ROUTE);
+				   GPIO_OUTPUT_ENABLE | GPIO_HP_REAR | GPIO_INPUT_ROUTE);
 	/* anti-pop delay, wait some time before enabling the output */
 	msleep(2500);
 	oxygen_write16(chip, OXYGEN_GPIO_DATA,
-		       GPIO_OUTPUT_ENABLE | GPIO_INPUT_ROUTE);
+				   GPIO_OUTPUT_ENABLE | GPIO_INPUT_ROUTE);
 }
 
 void dg_cleanup(struct oxygen *chip)
@@ -189,7 +200,7 @@ void dg_resume(struct oxygen *chip)
 }
 
 void set_cs4245_dac_params(struct oxygen *chip,
-				  struct snd_pcm_hw_params *params)
+						   struct snd_pcm_hw_params *params)
 {
 	struct dg *data = chip->model_data;
 	unsigned char dac_ctrl;
@@ -197,16 +208,23 @@ void set_cs4245_dac_params(struct oxygen *chip,
 
 	dac_ctrl = data->cs4245_shadow[CS4245_DAC_CTRL_1] & ~CS4245_DAC_FM_MASK;
 	mclk_freq = data->cs4245_shadow[CS4245_MCLK_FREQ] & ~CS4245_MCLK1_MASK;
-	if (params_rate(params) <= 50000) {
+
+	if (params_rate(params) <= 50000)
+	{
 		dac_ctrl |= CS4245_DAC_FM_SINGLE;
 		mclk_freq |= CS4245_MCLK_1 << CS4245_MCLK1_SHIFT;
-	} else if (params_rate(params) <= 100000) {
+	}
+	else if (params_rate(params) <= 100000)
+	{
 		dac_ctrl |= CS4245_DAC_FM_DOUBLE;
 		mclk_freq |= CS4245_MCLK_1 << CS4245_MCLK1_SHIFT;
-	} else {
+	}
+	else
+	{
 		dac_ctrl |= CS4245_DAC_FM_QUAD;
 		mclk_freq |= CS4245_MCLK_2 << CS4245_MCLK1_SHIFT;
 	}
+
 	data->cs4245_shadow[CS4245_DAC_CTRL_1] = dac_ctrl;
 	data->cs4245_shadow[CS4245_MCLK_FREQ] = mclk_freq;
 	cs4245_write_spi(chip, CS4245_DAC_CTRL_1);
@@ -214,7 +232,7 @@ void set_cs4245_dac_params(struct oxygen *chip,
 }
 
 void set_cs4245_adc_params(struct oxygen *chip,
-				  struct snd_pcm_hw_params *params)
+						   struct snd_pcm_hw_params *params)
 {
 	struct dg *data = chip->model_data;
 	unsigned char adc_ctrl;
@@ -222,16 +240,23 @@ void set_cs4245_adc_params(struct oxygen *chip,
 
 	adc_ctrl = data->cs4245_shadow[CS4245_ADC_CTRL] & ~CS4245_ADC_FM_MASK;
 	mclk_freq = data->cs4245_shadow[CS4245_MCLK_FREQ] & ~CS4245_MCLK2_MASK;
-	if (params_rate(params) <= 50000) {
+
+	if (params_rate(params) <= 50000)
+	{
 		adc_ctrl |= CS4245_ADC_FM_SINGLE;
 		mclk_freq |= CS4245_MCLK_1 << CS4245_MCLK2_SHIFT;
-	} else if (params_rate(params) <= 100000) {
+	}
+	else if (params_rate(params) <= 100000)
+	{
 		adc_ctrl |= CS4245_ADC_FM_DOUBLE;
 		mclk_freq |= CS4245_MCLK_1 << CS4245_MCLK2_SHIFT;
-	} else {
+	}
+	else
+	{
 		adc_ctrl |= CS4245_ADC_FM_QUAD;
 		mclk_freq |= CS4245_MCLK_2 << CS4245_MCLK2_SHIFT;
 	}
+
 	data->cs4245_shadow[CS4245_ADC_CTRL] = adc_ctrl;
 	data->cs4245_shadow[CS4245_MCLK_FREQ] = mclk_freq;
 	cs4245_write_spi(chip, CS4245_ADC_CTRL);
@@ -239,57 +264,68 @@ void set_cs4245_adc_params(struct oxygen *chip,
 }
 
 static inline unsigned int shift_bits(unsigned int value,
-				      unsigned int shift_from,
-				      unsigned int shift_to,
-				      unsigned int mask)
+									  unsigned int shift_from,
+									  unsigned int shift_to,
+									  unsigned int mask)
 {
 	if (shift_from < shift_to)
+	{
 		return (value << (shift_to - shift_from)) & mask;
+	}
 	else
+	{
 		return (value >> (shift_from - shift_to)) & mask;
+	}
 }
 
 unsigned int adjust_dg_dac_routing(struct oxygen *chip,
-					  unsigned int play_routing)
+								   unsigned int play_routing)
 {
 	struct dg *data = chip->model_data;
 
-	switch (data->output_sel) {
-	case PLAYBACK_DST_HP:
-	case PLAYBACK_DST_HP_FP:
-		oxygen_write8_masked(chip, OXYGEN_PLAY_ROUTING,
-			OXYGEN_PLAY_MUTE23 | OXYGEN_PLAY_MUTE45 |
-			OXYGEN_PLAY_MUTE67, OXYGEN_PLAY_MUTE_MASK);
-		break;
-	case PLAYBACK_DST_MULTICH:
-		oxygen_write8_masked(chip, OXYGEN_PLAY_ROUTING,
-			OXYGEN_PLAY_MUTE01, OXYGEN_PLAY_MUTE_MASK);
-		break;
+	switch (data->output_sel)
+	{
+		case PLAYBACK_DST_HP:
+		case PLAYBACK_DST_HP_FP:
+			oxygen_write8_masked(chip, OXYGEN_PLAY_ROUTING,
+								 OXYGEN_PLAY_MUTE23 | OXYGEN_PLAY_MUTE45 |
+								 OXYGEN_PLAY_MUTE67, OXYGEN_PLAY_MUTE_MASK);
+			break;
+
+		case PLAYBACK_DST_MULTICH:
+			oxygen_write8_masked(chip, OXYGEN_PLAY_ROUTING,
+								 OXYGEN_PLAY_MUTE01, OXYGEN_PLAY_MUTE_MASK);
+			break;
 	}
+
 	return (play_routing & OXYGEN_PLAY_DAC0_SOURCE_MASK) |
-	       shift_bits(play_routing,
-			  OXYGEN_PLAY_DAC2_SOURCE_SHIFT,
-			  OXYGEN_PLAY_DAC1_SOURCE_SHIFT,
-			  OXYGEN_PLAY_DAC1_SOURCE_MASK) |
-	       shift_bits(play_routing,
-			  OXYGEN_PLAY_DAC1_SOURCE_SHIFT,
-			  OXYGEN_PLAY_DAC2_SOURCE_SHIFT,
-			  OXYGEN_PLAY_DAC2_SOURCE_MASK) |
-	       shift_bits(play_routing,
-			  OXYGEN_PLAY_DAC0_SOURCE_SHIFT,
-			  OXYGEN_PLAY_DAC3_SOURCE_SHIFT,
-			  OXYGEN_PLAY_DAC3_SOURCE_MASK);
+		   shift_bits(play_routing,
+					  OXYGEN_PLAY_DAC2_SOURCE_SHIFT,
+					  OXYGEN_PLAY_DAC1_SOURCE_SHIFT,
+					  OXYGEN_PLAY_DAC1_SOURCE_MASK) |
+		   shift_bits(play_routing,
+					  OXYGEN_PLAY_DAC1_SOURCE_SHIFT,
+					  OXYGEN_PLAY_DAC2_SOURCE_SHIFT,
+					  OXYGEN_PLAY_DAC2_SOURCE_MASK) |
+		   shift_bits(play_routing,
+					  OXYGEN_PLAY_DAC0_SOURCE_SHIFT,
+					  OXYGEN_PLAY_DAC3_SOURCE_SHIFT,
+					  OXYGEN_PLAY_DAC3_SOURCE_MASK);
 }
 
 void dump_cs4245_registers(struct oxygen *chip,
-				  struct snd_info_buffer *buffer)
+						   struct snd_info_buffer *buffer)
 {
 	struct dg *data = chip->model_data;
 	unsigned int addr;
 
 	snd_iprintf(buffer, "\nCS4245:");
 	cs4245_read_spi(chip, CS4245_INT_STATUS);
+
 	for (addr = 1; addr < ARRAY_SIZE(data->cs4245_shadow); addr++)
+	{
 		snd_iprintf(buffer, " %02x", data->cs4245_shadow[addr]);
+	}
+
 	snd_iprintf(buffer, "\n");
 }

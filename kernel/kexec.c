@@ -21,8 +21,8 @@
 #include "kexec_internal.h"
 
 static int copy_user_segment_list(struct kimage *image,
-				  unsigned long nr_segments,
-				  struct kexec_segment __user *segments)
+								  unsigned long nr_segments,
+								  struct kexec_segment __user *segments)
 {
 	int ret;
 	size_t segment_bytes;
@@ -31,48 +31,64 @@ static int copy_user_segment_list(struct kimage *image,
 	image->nr_segments = nr_segments;
 	segment_bytes = nr_segments * sizeof(*segments);
 	ret = copy_from_user(image->segment, segments, segment_bytes);
+
 	if (ret)
+	{
 		ret = -EFAULT;
+	}
 
 	return ret;
 }
 
 static int kimage_alloc_init(struct kimage **rimage, unsigned long entry,
-			     unsigned long nr_segments,
-			     struct kexec_segment __user *segments,
-			     unsigned long flags)
+							 unsigned long nr_segments,
+							 struct kexec_segment __user *segments,
+							 unsigned long flags)
 {
 	int ret;
 	struct kimage *image;
 	bool kexec_on_panic = flags & KEXEC_ON_CRASH;
 
-	if (kexec_on_panic) {
+	if (kexec_on_panic)
+	{
 		/* Verify we have a valid entry point */
 		if ((entry < phys_to_boot_phys(crashk_res.start)) ||
-		    (entry > phys_to_boot_phys(crashk_res.end)))
+			(entry > phys_to_boot_phys(crashk_res.end)))
+		{
 			return -EADDRNOTAVAIL;
+		}
 	}
 
 	/* Allocate and initialize a controlling structure */
 	image = do_kimage_alloc_init();
+
 	if (!image)
+	{
 		return -ENOMEM;
+	}
 
 	image->start = entry;
 
 	ret = copy_user_segment_list(image, nr_segments, segments);
-	if (ret)
-		goto out_free_image;
 
-	if (kexec_on_panic) {
+	if (ret)
+	{
+		goto out_free_image;
+	}
+
+	if (kexec_on_panic)
+	{
 		/* Enable special crash kernel control page alloc policy. */
 		image->control_page = crashk_res.start;
 		image->type = KEXEC_TYPE_CRASH;
 	}
 
 	ret = sanity_check_segment_list(image);
+
 	if (ret)
+	{
 		goto out_free_image;
+	}
 
 	/*
 	 * Find a location for the control code buffer, and add it
@@ -81,15 +97,20 @@ static int kimage_alloc_init(struct kimage **rimage, unsigned long entry,
 	 */
 	ret = -ENOMEM;
 	image->control_code_page = kimage_alloc_control_pages(image,
-					   get_order(KEXEC_CONTROL_PAGE_SIZE));
-	if (!image->control_code_page) {
+							   get_order(KEXEC_CONTROL_PAGE_SIZE));
+
+	if (!image->control_code_page)
+	{
 		pr_err("Could not allocate control_code_buffer\n");
 		goto out_free_image;
 	}
 
-	if (!kexec_on_panic) {
+	if (!kexec_on_panic)
+	{
 		image->swap_page = kimage_alloc_control_pages(image, 0);
-		if (!image->swap_page) {
+
+		if (!image->swap_page)
+		{
 			pr_err("Could not allocate swap buffer\n");
 			goto out_free_control_pages;
 		}
@@ -105,26 +126,35 @@ out_free_image:
 }
 
 static int do_kexec_load(unsigned long entry, unsigned long nr_segments,
-		struct kexec_segment __user *segments, unsigned long flags)
+						 struct kexec_segment __user *segments, unsigned long flags)
 {
 	struct kimage **dest_image, *image;
 	unsigned long i;
 	int ret;
 
-	if (flags & KEXEC_ON_CRASH) {
+	if (flags & KEXEC_ON_CRASH)
+	{
 		dest_image = &kexec_crash_image;
+
 		if (kexec_crash_image)
+		{
 			arch_kexec_unprotect_crashkres();
-	} else {
+		}
+	}
+	else
+	{
 		dest_image = &kexec_image;
 	}
 
-	if (nr_segments == 0) {
+	if (nr_segments == 0)
+	{
 		/* Uninstall image */
 		kimage_free(xchg(dest_image, NULL));
 		return 0;
 	}
-	if (flags & KEXEC_ON_CRASH) {
+
+	if (flags & KEXEC_ON_CRASH)
+	{
 		/*
 		 * Loading another kernel to switch to if this one
 		 * crashes.  Free any current crash dump kernel before
@@ -134,20 +164,32 @@ static int do_kexec_load(unsigned long entry, unsigned long nr_segments,
 	}
 
 	ret = kimage_alloc_init(&image, entry, nr_segments, segments, flags);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (flags & KEXEC_PRESERVE_CONTEXT)
+	{
 		image->preserve_context = 1;
+	}
 
 	ret = machine_kexec_prepare(image);
-	if (ret)
-		goto out;
 
-	for (i = 0; i < nr_segments; i++) {
+	if (ret)
+	{
+		goto out;
+	}
+
+	for (i = 0; i < nr_segments; i++)
+	{
 		ret = kimage_load_segment(image, &image->segment[i]);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
 	kimage_terminate(image);
@@ -156,8 +198,11 @@ static int do_kexec_load(unsigned long entry, unsigned long nr_segments,
 	image = xchg(dest_image, image);
 
 out:
+
 	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
+	{
 		arch_kexec_protect_crashkres();
+	}
 
 	kimage_free(image);
 	return ret;
@@ -185,31 +230,39 @@ out:
  */
 
 SYSCALL_DEFINE4(kexec_load, unsigned long, entry, unsigned long, nr_segments,
-		struct kexec_segment __user *, segments, unsigned long, flags)
+				struct kexec_segment __user *, segments, unsigned long, flags)
 {
 	int result;
 
 	/* We only trust the superuser with rebooting the system. */
 	if (!capable(CAP_SYS_BOOT) || kexec_load_disabled)
+	{
 		return -EPERM;
+	}
 
 	/*
 	 * Verify we have a legal set of flags
 	 * This leaves us room for future extensions.
 	 */
 	if ((flags & KEXEC_FLAGS) != (flags & ~KEXEC_ARCH_MASK))
+	{
 		return -EINVAL;
+	}
 
 	/* Verify we are on the appropriate architecture */
 	if (((flags & KEXEC_ARCH_MASK) != KEXEC_ARCH) &&
 		((flags & KEXEC_ARCH_MASK) != KEXEC_ARCH_DEFAULT))
+	{
 		return -EINVAL;
+	}
 
 	/* Put an artificial cap on the number
 	 * of segments passed to kexec_load.
 	 */
 	if (nr_segments > KEXEC_SEGMENT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	/* Because we write directly to the reserved memory
 	 * region when loading crash kernels we need a mutex here to
@@ -220,7 +273,9 @@ SYSCALL_DEFINE4(kexec_load, unsigned long, entry, unsigned long, nr_segments,
 	 * KISS: always take the mutex.
 	 */
 	if (!mutex_trylock(&kexec_mutex))
+	{
 		return -EBUSY;
+	}
 
 	result = do_kexec_load(entry, nr_segments, segments, flags);
 
@@ -231,9 +286,9 @@ SYSCALL_DEFINE4(kexec_load, unsigned long, entry, unsigned long, nr_segments,
 
 #ifdef CONFIG_COMPAT
 COMPAT_SYSCALL_DEFINE4(kexec_load, compat_ulong_t, entry,
-		       compat_ulong_t, nr_segments,
-		       struct compat_kexec_segment __user *, segments,
-		       compat_ulong_t, flags)
+					   compat_ulong_t, nr_segments,
+					   struct compat_kexec_segment __user *, segments,
+					   compat_ulong_t, flags)
 {
 	struct compat_kexec_segment in;
 	struct kexec_segment out, __user *ksegments;
@@ -243,16 +298,25 @@ COMPAT_SYSCALL_DEFINE4(kexec_load, compat_ulong_t, entry,
 	 * architecture to do anything.
 	 */
 	if ((flags & KEXEC_ARCH_MASK) == KEXEC_ARCH_DEFAULT)
+	{
 		return -EINVAL;
+	}
 
 	if (nr_segments > KEXEC_SEGMENT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	ksegments = compat_alloc_user_space(nr_segments * sizeof(out));
-	for (i = 0; i < nr_segments; i++) {
+
+	for (i = 0; i < nr_segments; i++)
+	{
 		result = copy_from_user(&in, &segments[i], sizeof(in));
+
 		if (result)
+		{
 			return -EFAULT;
+		}
 
 		out.buf   = compat_ptr(in.buf);
 		out.bufsz = in.bufsz;
@@ -260,8 +324,11 @@ COMPAT_SYSCALL_DEFINE4(kexec_load, compat_ulong_t, entry,
 		out.memsz = in.memsz;
 
 		result = copy_to_user(&ksegments[i], &out, sizeof(out));
+
 		if (result)
+		{
 			return -EFAULT;
+		}
 	}
 
 	return sys_kexec_load(entry, nr_segments, ksegments, flags);

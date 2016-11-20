@@ -27,7 +27,8 @@
 
 #define DEBUG
 
-typedef struct queue_entry {
+typedef struct queue_entry
+{
 	struct list_head   list;
 	struct scsi_cmnd   *SCpnt;
 #ifdef DEBUG
@@ -36,14 +37,14 @@ typedef struct queue_entry {
 } QE_t;
 
 #ifdef DEBUG
-#define QUEUE_MAGIC_FREE	0xf7e1c9a3
-#define QUEUE_MAGIC_USED	0xf7e1cc33
+	#define QUEUE_MAGIC_FREE	0xf7e1c9a3
+	#define QUEUE_MAGIC_USED	0xf7e1cc33
 
-#define SET_MAGIC(q,m)	((q)->magic = (m))
-#define BAD_MAGIC(q,m)	((q)->magic != (m))
+	#define SET_MAGIC(q,m)	((q)->magic = (m))
+	#define BAD_MAGIC(q,m)	((q)->magic != (m))
 #else
-#define SET_MAGIC(q,m)	do { } while (0)
-#define BAD_MAGIC(q,m)	(0)
+	#define SET_MAGIC(q,m)	do { } while (0)
+	#define BAD_MAGIC(q,m)	(0)
 #endif
 
 #include "queue.h"
@@ -71,8 +72,11 @@ int queue_initialise (Queue_t *queue)
 	 * memory.
 	 */
 	queue->alloc = q = kmalloc(sizeof(QE_t) * nqueues, GFP_KERNEL);
-	if (q) {
-		for (; nqueues; q++, nqueues--) {
+
+	if (q)
+	{
+		for (; nqueues; q++, nqueues--)
+		{
 			SET_MAGIC(q, QUEUE_MAGIC_FREE);
 			q->SCpnt = NULL;
 			list_add(&q->list, &queue->free);
@@ -90,10 +94,13 @@ int queue_initialise (Queue_t *queue)
 void queue_free (Queue_t *queue)
 {
 	if (!list_empty(&queue->head))
+	{
 		printk(KERN_WARNING "freeing non-empty queue %p\n", queue);
+	}
+
 	kfree(queue->alloc);
 }
-     
+
 
 /*
  * Function: int __queue_add(Queue_t *queue, struct scsi_cmnd *SCpnt, int head)
@@ -111,8 +118,11 @@ int __queue_add(Queue_t *queue, struct scsi_cmnd *SCpnt, int head)
 	int ret = 0;
 
 	spin_lock_irqsave(&queue->queue_lock, flags);
+
 	if (list_empty(&queue->free))
+	{
 		goto empty;
+	}
 
 	l = queue->free.next;
 	list_del(l);
@@ -124,9 +134,13 @@ int __queue_add(Queue_t *queue, struct scsi_cmnd *SCpnt, int head)
 	q->SCpnt = SCpnt;
 
 	if (head)
+	{
 		list_add(l, &queue->head);
+	}
 	else
+	{
 		list_add_tail(l, &queue->head);
+	}
 
 	ret = 1;
 empty:
@@ -165,10 +179,13 @@ struct scsi_cmnd *queue_remove_exclude(Queue_t *queue, unsigned long *exclude)
 	struct scsi_cmnd *SCpnt = NULL;
 
 	spin_lock_irqsave(&queue->queue_lock, flags);
-	list_for_each(l, &queue->head) {
+	list_for_each(l, &queue->head)
+	{
 		QE_t *q = list_entry(l, QE_t, list);
+
 		if (!test_bit(q->SCpnt->device->id * 8 +
-			      (u8)(q->SCpnt->device->lun & 0x7), exclude)) {
+					  (u8)(q->SCpnt->device->lun & 0x7), exclude))
+		{
 			SCpnt = __queue_remove(queue, l);
 			break;
 		}
@@ -190,8 +207,12 @@ struct scsi_cmnd *queue_remove(Queue_t *queue)
 	struct scsi_cmnd *SCpnt = NULL;
 
 	spin_lock_irqsave(&queue->queue_lock, flags);
+
 	if (!list_empty(&queue->head))
+	{
 		SCpnt = __queue_remove(queue, queue->head.next);
+	}
+
 	spin_unlock_irqrestore(&queue->queue_lock, flags);
 
 	return SCpnt;
@@ -207,17 +228,20 @@ struct scsi_cmnd *queue_remove(Queue_t *queue)
  * Returns : struct scsi_cmnd if successful, or NULL if no command satisfies requirements
  */
 struct scsi_cmnd *queue_remove_tgtluntag(Queue_t *queue, int target, int lun,
-					 int tag)
+		int tag)
 {
 	unsigned long flags;
 	struct list_head *l;
 	struct scsi_cmnd *SCpnt = NULL;
 
 	spin_lock_irqsave(&queue->queue_lock, flags);
-	list_for_each(l, &queue->head) {
+	list_for_each(l, &queue->head)
+	{
 		QE_t *q = list_entry(l, QE_t, list);
+
 		if (q->SCpnt->device->id == target && q->SCpnt->device->lun == lun &&
-		    q->SCpnt->tag == tag) {
+			q->SCpnt->tag == tag)
+		{
 			SCpnt = __queue_remove(queue, l);
 			break;
 		}
@@ -240,10 +264,14 @@ void queue_remove_all_target(Queue_t *queue, int target)
 	struct list_head *l;
 
 	spin_lock_irqsave(&queue->queue_lock, flags);
-	list_for_each(l, &queue->head) {
+	list_for_each(l, &queue->head)
+	{
 		QE_t *q = list_entry(l, QE_t, list);
+
 		if (q->SCpnt->device->id == target)
+		{
 			__queue_remove(queue, l);
+		}
 	}
 	spin_unlock_irqrestore(&queue->queue_lock, flags);
 }
@@ -264,9 +292,12 @@ int queue_probetgtlun (Queue_t *queue, int target, int lun)
 	int found = 0;
 
 	spin_lock_irqsave(&queue->queue_lock, flags);
-	list_for_each(l, &queue->head) {
+	list_for_each(l, &queue->head)
+	{
 		QE_t *q = list_entry(l, QE_t, list);
-		if (q->SCpnt->device->id == target && q->SCpnt->device->lun == lun) {
+
+		if (q->SCpnt->device->id == target && q->SCpnt->device->lun == lun)
+		{
 			found = 1;
 			break;
 		}
@@ -290,9 +321,12 @@ int queue_remove_cmd(Queue_t *queue, struct scsi_cmnd *SCpnt)
 	int found = 0;
 
 	spin_lock_irqsave(&queue->queue_lock, flags);
-	list_for_each(l, &queue->head) {
+	list_for_each(l, &queue->head)
+	{
 		QE_t *q = list_entry(l, QE_t, list);
-		if (q->SCpnt == SCpnt) {
+
+		if (q->SCpnt == SCpnt)
+		{
 			__queue_remove(queue, l);
 			found = 1;
 			break;

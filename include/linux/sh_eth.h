@@ -6,7 +6,8 @@
 
 enum {EDMAC_LITTLE_ENDIAN};
 
-struct sh_eth_plat_data {
+struct sh_eth_plat_data
+{
 	int phy;
 	int phy_irq;
 	int edmac_endian;
@@ -14,9 +15,9 @@ struct sh_eth_plat_data {
 	void (*set_mdio_gate)(void *addr);
 
 	unsigned char mac_addr[ETH_ALEN];
-	unsigned no_ether_link:1;
-	unsigned ether_link_active_low:1;
-	unsigned needs_init:1;
+	unsigned no_ether_link: 1;
+	unsigned ether_link_active_low: 1;
+	unsigned needs_init: 1;
 };
 
 #endif

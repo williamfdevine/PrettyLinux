@@ -13,12 +13,14 @@
 
 #include <linux/phy.h>
 
-struct bfin_phydev_platform_data {
+struct bfin_phydev_platform_data
+{
 	unsigned short addr;
 	int irq;
 };
 
-struct bfin_mii_bus_platform_data {
+struct bfin_mii_bus_platform_data
+{
 	int phydev_number;
 	struct bfin_phydev_platform_data *phydev_data;
 	const unsigned short *mac_peripherals;

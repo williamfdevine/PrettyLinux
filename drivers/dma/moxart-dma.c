@@ -115,12 +115,14 @@
 #define MOXART_DMA_DATA_TYPE_S16		0x01
 #define MOXART_DMA_DATA_TYPE_S32		0x02
 
-struct moxart_sg {
+struct moxart_sg
+{
 	dma_addr_t addr;
 	uint32_t len;
 };
 
-struct moxart_desc {
+struct moxart_desc
+{
 	enum dma_transfer_direction	dma_dir;
 	dma_addr_t			dev_addr;
 	unsigned int			sglen;
@@ -130,7 +132,8 @@ struct moxart_desc {
 	struct moxart_sg		sg[0];
 };
 
-struct moxart_chan {
+struct moxart_chan
+{
 	struct virt_dma_chan		vc;
 
 	void __iomem			*base;
@@ -145,18 +148,21 @@ struct moxart_chan {
 	unsigned int			sgidx;
 };
 
-struct moxart_dmadev {
+struct moxart_dmadev
+{
 	struct dma_device		dma_slave;
 	struct moxart_chan		slave_chans[APB_DMA_MAX_CHANNEL];
 	unsigned int			irq;
 };
 
-struct moxart_filter_data {
+struct moxart_filter_data
+{
 	struct moxart_dmadev		*mdc;
 	struct of_phandle_args		*dma_spec;
 };
 
-static const unsigned int es_bytes[] = {
+static const unsigned int es_bytes[] =
+{
 	[MOXART_DMA_DATA_TYPE_S8] = 1,
 	[MOXART_DMA_DATA_TYPE_S16] = 2,
 	[MOXART_DMA_DATA_TYPE_S32] = 4,
@@ -194,7 +200,8 @@ static int moxart_terminate_all(struct dma_chan *chan)
 
 	spin_lock_irqsave(&ch->vc.lock, flags);
 
-	if (ch->desc) {
+	if (ch->desc)
+	{
 		moxart_dma_desc_free(&ch->desc->vd);
 		ch->desc = NULL;
 	}
@@ -211,7 +218,7 @@ static int moxart_terminate_all(struct dma_chan *chan)
 }
 
 static int moxart_slave_config(struct dma_chan *chan,
-			       struct dma_slave_config *cfg)
+							   struct dma_slave_config *cfg)
 {
 	struct moxart_chan *ch = to_moxart_dma_chan(chan);
 	u32 ctrl;
@@ -223,42 +230,67 @@ static int moxart_slave_config(struct dma_chan *chan,
 	ctrl &= ~(APB_DMA_DEST_MASK | APB_DMA_SOURCE_MASK);
 	ctrl &= ~(APB_DMA_DEST_REQ_NO_MASK | APB_DMA_SOURCE_REQ_NO_MASK);
 
-	switch (ch->cfg.src_addr_width) {
-	case DMA_SLAVE_BUSWIDTH_1_BYTE:
-		ctrl |= APB_DMA_DATA_WIDTH_1;
-		if (ch->cfg.direction != DMA_MEM_TO_DEV)
-			ctrl |= APB_DMA_DEST_INC_1_4;
-		else
-			ctrl |= APB_DMA_SOURCE_INC_1_4;
-		break;
-	case DMA_SLAVE_BUSWIDTH_2_BYTES:
-		ctrl |= APB_DMA_DATA_WIDTH_2;
-		if (ch->cfg.direction != DMA_MEM_TO_DEV)
-			ctrl |= APB_DMA_DEST_INC_2_8;
-		else
-			ctrl |= APB_DMA_SOURCE_INC_2_8;
-		break;
-	case DMA_SLAVE_BUSWIDTH_4_BYTES:
-		ctrl &= ~APB_DMA_DATA_WIDTH;
-		if (ch->cfg.direction != DMA_MEM_TO_DEV)
-			ctrl |= APB_DMA_DEST_INC_4_16;
-		else
-			ctrl |= APB_DMA_SOURCE_INC_4_16;
-		break;
-	default:
-		return -EINVAL;
+	switch (ch->cfg.src_addr_width)
+	{
+		case DMA_SLAVE_BUSWIDTH_1_BYTE:
+			ctrl |= APB_DMA_DATA_WIDTH_1;
+
+			if (ch->cfg.direction != DMA_MEM_TO_DEV)
+			{
+				ctrl |= APB_DMA_DEST_INC_1_4;
+			}
+			else
+			{
+				ctrl |= APB_DMA_SOURCE_INC_1_4;
+			}
+
+			break;
+
+		case DMA_SLAVE_BUSWIDTH_2_BYTES:
+			ctrl |= APB_DMA_DATA_WIDTH_2;
+
+			if (ch->cfg.direction != DMA_MEM_TO_DEV)
+			{
+				ctrl |= APB_DMA_DEST_INC_2_8;
+			}
+			else
+			{
+				ctrl |= APB_DMA_SOURCE_INC_2_8;
+			}
+
+			break;
+
+		case DMA_SLAVE_BUSWIDTH_4_BYTES:
+			ctrl &= ~APB_DMA_DATA_WIDTH;
+
+			if (ch->cfg.direction != DMA_MEM_TO_DEV)
+			{
+				ctrl |= APB_DMA_DEST_INC_4_16;
+			}
+			else
+			{
+				ctrl |= APB_DMA_SOURCE_INC_4_16;
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	if (ch->cfg.direction == DMA_MEM_TO_DEV) {
+	if (ch->cfg.direction == DMA_MEM_TO_DEV)
+	{
 		ctrl &= ~APB_DMA_DEST_SELECT;
 		ctrl |= APB_DMA_SOURCE_SELECT;
 		ctrl |= (ch->line_reqno << 16 &
-			 APB_DMA_DEST_REQ_NO_MASK);
-	} else {
+				 APB_DMA_DEST_REQ_NO_MASK);
+	}
+	else
+	{
 		ctrl |= APB_DMA_DEST_SELECT;
 		ctrl &= ~APB_DMA_SOURCE_SELECT;
 		ctrl |= (ch->line_reqno << 24 &
-			 APB_DMA_SOURCE_REQ_NO_MASK);
+				 APB_DMA_SOURCE_REQ_NO_MASK);
 	}
 
 	writel(ctrl, ch->base + REG_OFF_CTRL);
@@ -279,45 +311,57 @@ static struct dma_async_tx_descriptor *moxart_prep_slave_sg(
 	unsigned int es;
 	unsigned int i;
 
-	if (!is_slave_direction(dir)) {
+	if (!is_slave_direction(dir))
+	{
 		dev_err(chan2dev(chan), "%s: invalid DMA direction\n",
-			__func__);
+				__func__);
 		return NULL;
 	}
 
-	if (dir == DMA_DEV_TO_MEM) {
+	if (dir == DMA_DEV_TO_MEM)
+	{
 		dev_addr = ch->cfg.src_addr;
 		dev_width = ch->cfg.src_addr_width;
-	} else {
+	}
+	else
+	{
 		dev_addr = ch->cfg.dst_addr;
 		dev_width = ch->cfg.dst_addr_width;
 	}
 
-	switch (dev_width) {
-	case DMA_SLAVE_BUSWIDTH_1_BYTE:
-		es = MOXART_DMA_DATA_TYPE_S8;
-		break;
-	case DMA_SLAVE_BUSWIDTH_2_BYTES:
-		es = MOXART_DMA_DATA_TYPE_S16;
-		break;
-	case DMA_SLAVE_BUSWIDTH_4_BYTES:
-		es = MOXART_DMA_DATA_TYPE_S32;
-		break;
-	default:
-		dev_err(chan2dev(chan), "%s: unsupported data width (%u)\n",
-			__func__, dev_width);
-		return NULL;
+	switch (dev_width)
+	{
+		case DMA_SLAVE_BUSWIDTH_1_BYTE:
+			es = MOXART_DMA_DATA_TYPE_S8;
+			break;
+
+		case DMA_SLAVE_BUSWIDTH_2_BYTES:
+			es = MOXART_DMA_DATA_TYPE_S16;
+			break;
+
+		case DMA_SLAVE_BUSWIDTH_4_BYTES:
+			es = MOXART_DMA_DATA_TYPE_S32;
+			break;
+
+		default:
+			dev_err(chan2dev(chan), "%s: unsupported data width (%u)\n",
+					__func__, dev_width);
+			return NULL;
 	}
 
 	d = kzalloc(sizeof(*d) + sg_len * sizeof(d->sg[0]), GFP_ATOMIC);
+
 	if (!d)
+	{
 		return NULL;
+	}
 
 	d->dma_dir = dir;
 	d->dev_addr = dev_addr;
 	d->es = es;
 
-	for_each_sg(sgl, sgent, sg_len, i) {
+	for_each_sg(sgl, sgent, sg_len, i)
+	{
 		d->sg[i].addr = sg_dma_address(sgent);
 		d->sg[i].len = sg_dma_len(sgent);
 	}
@@ -330,15 +374,18 @@ static struct dma_async_tx_descriptor *moxart_prep_slave_sg(
 }
 
 static struct dma_chan *moxart_of_xlate(struct of_phandle_args *dma_spec,
-					struct of_dma *ofdma)
+										struct of_dma *ofdma)
 {
 	struct moxart_dmadev *mdc = ofdma->of_dma_data;
 	struct dma_chan *chan;
 	struct moxart_chan *ch;
 
 	chan = dma_get_any_slave_channel(&mdc->dma_slave);
+
 	if (!chan)
+	{
 		return NULL;
+	}
 
 	ch = to_moxart_dma_chan(chan);
 	ch->line_reqno = dma_spec->args[0];
@@ -351,7 +398,7 @@ static int moxart_alloc_chan_resources(struct dma_chan *chan)
 	struct moxart_chan *ch = to_moxart_dma_chan(chan);
 
 	dev_dbg(chan2dev(chan), "%s: allocating channel #%u\n",
-		__func__, ch->ch_num);
+			__func__, ch->ch_num);
 	ch->allocated = 1;
 
 	return 0;
@@ -364,12 +411,12 @@ static void moxart_free_chan_resources(struct dma_chan *chan)
 	vchan_free_chan_resources(&ch->vc);
 
 	dev_dbg(chan2dev(chan), "%s: freeing channel #%u\n",
-		__func__, ch->ch_num);
+			__func__, ch->ch_num);
 	ch->allocated = 0;
 }
 
 static void moxart_dma_set_params(struct moxart_chan *ch, dma_addr_t src_addr,
-				  dma_addr_t dst_addr)
+								  dma_addr_t dst_addr)
 {
 	writel(src_addr, ch->base + REG_OFF_ADDRESS_SOURCE);
 	writel(dst_addr, ch->base + REG_OFF_ADDRESS_DEST);
@@ -389,7 +436,7 @@ static void moxart_set_transfer_params(struct moxart_chan *ch, unsigned int len)
 	writel(d->dma_cycles, ch->base + REG_OFF_CYCLES);
 
 	dev_dbg(chan2dev(&ch->vc.chan), "%s: set %u DMA cycles (len=%u)\n",
-		__func__, d->dma_cycles, len);
+			__func__, d->dma_cycles, len);
 }
 
 static void moxart_start_dma(struct moxart_chan *ch)
@@ -407,9 +454,13 @@ static void moxart_dma_start_sg(struct moxart_chan *ch, unsigned int idx)
 	struct moxart_sg *sg = ch->desc->sg + idx;
 
 	if (ch->desc->dma_dir == DMA_MEM_TO_DEV)
+	{
 		moxart_dma_set_params(ch, sg->addr, d->dev_addr);
+	}
 	else if (ch->desc->dma_dir == DMA_DEV_TO_MEM)
+	{
 		moxart_dma_set_params(ch, d->dev_addr, sg->addr);
+	}
 
 	moxart_set_transfer_params(ch, sg->len);
 
@@ -423,7 +474,8 @@ static void moxart_dma_start_desc(struct dma_chan *chan)
 
 	vd = vchan_next_desc(&ch->vc);
 
-	if (!vd) {
+	if (!vd)
+	{
 		ch->desc = NULL;
 		return;
 	}
@@ -442,19 +494,25 @@ static void moxart_issue_pending(struct dma_chan *chan)
 	unsigned long flags;
 
 	spin_lock_irqsave(&ch->vc.lock, flags);
+
 	if (vchan_issue_pending(&ch->vc) && !ch->desc)
+	{
 		moxart_dma_start_desc(chan);
+	}
+
 	spin_unlock_irqrestore(&ch->vc.lock, flags);
 }
 
 static size_t moxart_dma_desc_size(struct moxart_desc *d,
-				   unsigned int completed_sgs)
+								   unsigned int completed_sgs)
 {
 	unsigned int i;
 	size_t size;
 
 	for (size = i = completed_sgs; i < d->sglen; i++)
+	{
 		size += d->sg[i].len;
+	}
 
 	return size;
 }
@@ -475,8 +533,8 @@ static size_t moxart_dma_desc_size_in_flight(struct moxart_chan *ch)
 }
 
 static enum dma_status moxart_tx_status(struct dma_chan *chan,
-					dma_cookie_t cookie,
-					struct dma_tx_state *txstate)
+										dma_cookie_t cookie,
+										struct dma_tx_state *txstate)
 {
 	struct moxart_chan *ch = to_moxart_dma_chan(chan);
 	struct virt_dma_desc *vd;
@@ -491,16 +549,23 @@ static enum dma_status moxart_tx_status(struct dma_chan *chan,
 
 	spin_lock_irqsave(&ch->vc.lock, flags);
 	vd = vchan_find_desc(&ch->vc, cookie);
-	if (vd) {
+
+	if (vd)
+	{
 		d = to_moxart_dma_desc(&vd->tx);
 		txstate->residue = moxart_dma_desc_size(d, 0);
-	} else if (ch->desc && ch->desc->vd.tx.cookie == cookie) {
+	}
+	else if (ch->desc && ch->desc->vd.tx.cookie == cookie)
+	{
 		txstate->residue = moxart_dma_desc_size_in_flight(ch);
 	}
+
 	spin_unlock_irqrestore(&ch->vc.lock, flags);
 
 	if (ch->error)
+	{
 		return DMA_ERROR;
+	}
 
 	return ret;
 }
@@ -529,30 +594,42 @@ static irqreturn_t moxart_dma_interrupt(int irq, void *devid)
 
 	dev_dbg(chan2dev(&ch->vc.chan), "%s\n", __func__);
 
-	for (i = 0; i < APB_DMA_MAX_CHANNEL; i++, ch++) {
+	for (i = 0; i < APB_DMA_MAX_CHANNEL; i++, ch++)
+	{
 		if (!ch->allocated)
+		{
 			continue;
+		}
 
 		ctrl = readl(ch->base + REG_OFF_CTRL);
 
 		dev_dbg(chan2dev(&ch->vc.chan), "%s: ch=%p ch->base=%p ctrl=%x\n",
-			__func__, ch, ch->base, ctrl);
+				__func__, ch, ch->base, ctrl);
 
-		if (ctrl & APB_DMA_FIN_INT_STS) {
+		if (ctrl & APB_DMA_FIN_INT_STS)
+		{
 			ctrl &= ~APB_DMA_FIN_INT_STS;
-			if (ch->desc) {
+
+			if (ch->desc)
+			{
 				spin_lock_irqsave(&ch->vc.lock, flags);
-				if (++ch->sgidx < ch->desc->sglen) {
+
+				if (++ch->sgidx < ch->desc->sglen)
+				{
 					moxart_dma_start_sg(ch, ch->sgidx);
-				} else {
+				}
+				else
+				{
 					vchan_cookie_complete(&ch->desc->vd);
 					moxart_dma_start_desc(&ch->vc.chan);
 				}
+
 				spin_unlock_irqrestore(&ch->vc.lock, flags);
 			}
 		}
 
-		if (ctrl & APB_DMA_ERR_INT_STS) {
+		if (ctrl & APB_DMA_ERR_INT_STS)
+		{
 			ctrl &= ~APB_DMA_ERR_INT_STS;
 			ch->error = 1;
 		}
@@ -575,19 +652,27 @@ static int moxart_probe(struct platform_device *pdev)
 	struct moxart_dmadev *mdc;
 
 	mdc = devm_kzalloc(dev, sizeof(*mdc), GFP_KERNEL);
+
 	if (!mdc)
+	{
 		return -ENOMEM;
+	}
 
 	irq = irq_of_parse_and_map(node, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		dev_err(dev, "no IRQ resource\n");
 		return -EINVAL;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	dma_base_addr = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(dma_base_addr))
+	{
 		return PTR_ERR(dma_base_addr);
+	}
 
 	dma_cap_zero(mdc->dma_slave.cap_mask);
 	dma_cap_set(DMA_SLAVE, mdc->dma_slave.cap_mask);
@@ -596,7 +681,9 @@ static int moxart_probe(struct platform_device *pdev)
 	moxart_dma_init(&mdc->dma_slave, dev);
 
 	ch = &mdc->slave_chans[0];
-	for (i = 0; i < APB_DMA_MAX_CHANNEL; i++, ch++) {
+
+	for (i = 0; i < APB_DMA_MAX_CHANNEL; i++, ch++)
+	{
 		ch->ch_num = i;
 		ch->base = dma_base_addr + i * REG_OFF_CHAN_SIZE;
 		ch->allocated = 0;
@@ -605,27 +692,34 @@ static int moxart_probe(struct platform_device *pdev)
 		vchan_init(&ch->vc, &mdc->dma_slave);
 
 		dev_dbg(dev, "%s: chs[%d]: ch->ch_num=%u ch->base=%p\n",
-			__func__, i, ch->ch_num, ch->base);
+				__func__, i, ch->ch_num, ch->base);
 	}
 
 	platform_set_drvdata(pdev, mdc);
 
 	ret = devm_request_irq(dev, irq, moxart_dma_interrupt, 0,
-			       "moxart-dma-engine", mdc);
-	if (ret) {
+						   "moxart-dma-engine", mdc);
+
+	if (ret)
+	{
 		dev_err(dev, "devm_request_irq failed\n");
 		return ret;
 	}
+
 	mdc->irq = irq;
 
 	ret = dma_async_device_register(&mdc->dma_slave);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "dma_async_device_register failed\n");
 		return ret;
 	}
 
 	ret = of_dma_controller_register(node, moxart_of_xlate, mdc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "of_dma_controller_register failed\n");
 		dma_async_device_unregister(&mdc->dma_slave);
 		return ret;
@@ -645,18 +739,22 @@ static int moxart_remove(struct platform_device *pdev)
 	dma_async_device_unregister(&m->dma_slave);
 
 	if (pdev->dev.of_node)
+	{
 		of_dma_controller_free(pdev->dev.of_node);
+	}
 
 	return 0;
 }
 
-static const struct of_device_id moxart_dma_match[] = {
+static const struct of_device_id moxart_dma_match[] =
+{
 	{ .compatible = "moxa,moxart-dma" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, moxart_dma_match);
 
-static struct platform_driver moxart_driver = {
+static struct platform_driver moxart_driver =
+{
 	.probe	= moxart_probe,
 	.remove	= moxart_remove,
 	.driver = {

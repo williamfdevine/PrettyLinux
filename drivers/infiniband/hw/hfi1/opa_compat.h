@@ -78,7 +78,7 @@ static inline u8 port_states_to_logical_state(struct opa_port_states *ps)
 static inline u8 port_states_to_phys_state(struct opa_port_states *ps)
 {
 	return ((ps->portphysstate_portstate &
-		  OPA_PI_MASK_PORT_PHYSICAL_STATE) >> 4) & 0xf;
+			 OPA_PI_MASK_PORT_PHYSICAL_STATE) >> 4) & 0xf;
 }
 
 /*
@@ -91,7 +91,8 @@ static inline u8 port_states_to_phys_state(struct opa_port_states *ps)
  *
  * Returned by the ibphys_portstate() routine.
  */
-enum opa_port_phys_state {
+enum opa_port_phys_state
+{
 	IB_PORTPHYSSTATE_NOP = 0,
 	/* 1 is reserved */
 	IB_PORTPHYSSTATE_POLLING = 2,

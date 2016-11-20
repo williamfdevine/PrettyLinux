@@ -28,7 +28,8 @@
 #define HIDMA_TRE_DEST_LOW_IDX		4
 #define HIDMA_TRE_DEST_HI_IDX		5
 
-struct hidma_tre {
+struct hidma_tre
+{
 	atomic_t allocated;		/* if this channel is allocated	    */
 	bool queued;			/* flag whether this is pending     */
 	u16 status;			/* status			    */
@@ -45,7 +46,8 @@ struct hidma_tre {
 	u8 err_code;			/* completion code		    */
 };
 
-struct hidma_lldev {
+struct hidma_lldev
+{
 	bool initialized;		/* initialized flag               */
 	u8 trch_state;			/* trch_state of the device	  */
 	u8 evch_state;			/* evch_state of the device	  */
@@ -73,17 +75,19 @@ struct hidma_lldev {
 	u32 tre_write_offset;           /* TRE write location              */
 	struct tasklet_struct task;	/* task delivering notifications   */
 	DECLARE_KFIFO_PTR(handoff_fifo,
-		struct hidma_tre *);    /* pending TREs FIFO               */
+					  struct hidma_tre *);    /* pending TREs FIFO               */
 };
 
-struct hidma_desc {
+struct hidma_desc
+{
 	struct dma_async_tx_descriptor	desc;
 	/* link list node for this channel*/
 	struct list_head		node;
 	u32				tre_ch;
 };
 
-struct hidma_chan {
+struct hidma_chan
+{
 	bool				paused;
 	bool				allocated;
 	char				dbg_name[16];
@@ -110,7 +114,8 @@ struct hidma_chan {
 	spinlock_t			lock;
 };
 
-struct hidma_dev {
+struct hidma_dev
+{
 	int				irq;
 	int				chidx;
 	u32				nr_descriptors;
@@ -133,8 +138,8 @@ struct hidma_dev {
 };
 
 int hidma_ll_request(struct hidma_lldev *llhndl, u32 dev_id,
-			const char *dev_name,
-			void (*callback)(void *data), void *data, u32 *tre_ch);
+					 const char *dev_name,
+					 void (*callback)(void *data), void *data, u32 *tre_ch);
 
 void hidma_ll_free(struct hidma_lldev *llhndl, u32 tre_ch);
 enum dma_status hidma_ll_status(struct hidma_lldev *llhndl, u32 tre_ch);
@@ -144,15 +149,15 @@ void hidma_ll_start(struct hidma_lldev *llhndl);
 int hidma_ll_disable(struct hidma_lldev *lldev);
 int hidma_ll_enable(struct hidma_lldev *llhndl);
 void hidma_ll_set_transfer_params(struct hidma_lldev *llhndl, u32 tre_ch,
-	dma_addr_t src, dma_addr_t dest, u32 len, u32 flags);
+								  dma_addr_t src, dma_addr_t dest, u32 len, u32 flags);
 int hidma_ll_setup(struct hidma_lldev *lldev);
 struct hidma_lldev *hidma_ll_init(struct device *dev, u32 max_channels,
-			void __iomem *trca, void __iomem *evca,
-			u8 chidx);
+								  void __iomem *trca, void __iomem *evca,
+								  u8 chidx);
 int hidma_ll_uninit(struct hidma_lldev *llhndl);
 irqreturn_t hidma_ll_inthandler(int irq, void *arg);
 void hidma_cleanup_pending_tre(struct hidma_lldev *llhndl, u8 err_info,
-				u8 err_code);
+							   u8 err_code);
 int hidma_debug_init(struct hidma_dev *dmadev);
 void hidma_debug_uninit(struct hidma_dev *dmadev);
 #endif

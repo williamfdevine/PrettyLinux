@@ -18,7 +18,8 @@
 
 #define IS_ERROR_VER			011 /* IS ERROR VERSION 0.11 */
 
-enum {
+enum
+{
 	IS_ERROR_NONE,
 
 	/* General 1 ~ 99 */
@@ -112,7 +113,8 @@ enum {
 #define IS_ERROR_TIME_OUT_FLAG	0x80000000
 
 /* Set parameter error enum */
-enum fimc_is_error {
+enum fimc_is_error
+{
 	/* Common error (0~99) */
 	ERROR_COMMON_NONE		= 0,
 	ERROR_COMMON_CMD		= 1,	/* Invalid command */

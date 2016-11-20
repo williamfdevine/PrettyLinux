@@ -43,10 +43,14 @@ module_param_named(modeset, virtio_gpu_modeset, int, 0400);
 static int virtio_gpu_probe(struct virtio_device *vdev)
 {
 	if (vgacon_text_force() && virtio_gpu_modeset == -1)
+	{
 		return -EINVAL;
+	}
 
 	if (virtio_gpu_modeset == 0)
+	{
 		return -EINVAL;
+	}
 
 	return drm_virtio_init(&driver, vdev);
 }
@@ -65,12 +69,14 @@ static void virtio_gpu_config_changed(struct virtio_device *vdev)
 	schedule_work(&vgdev->config_changed_work);
 }
 
-static struct virtio_device_id id_table[] = {
+static struct virtio_device_id id_table[] =
+{
 	{ VIRTIO_ID_GPU, VIRTIO_DEV_ANY_ID },
 	{ 0 },
 };
 
-static unsigned int features[] = {
+static unsigned int features[] =
+{
 #ifdef __LITTLE_ENDIAN
 	/*
 	 * Gallium command stream send by virgl is native endian.
@@ -80,7 +86,8 @@ static unsigned int features[] = {
 	VIRTIO_GPU_F_VIRGL,
 #endif
 };
-static struct virtio_driver virtio_gpu_driver = {
+static struct virtio_driver virtio_gpu_driver =
+{
 	.feature_table = features,
 	.feature_table_size = ARRAY_SIZE(features),
 	.driver.name = KBUILD_MODNAME,
@@ -100,7 +107,8 @@ MODULE_AUTHOR("Dave Airlie <airlied@redhat.com>");
 MODULE_AUTHOR("Gerd Hoffmann <kraxel@redhat.com>");
 MODULE_AUTHOR("Alon Levy");
 
-static const struct file_operations virtio_gpu_driver_fops = {
+static const struct file_operations virtio_gpu_driver_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.mmap = virtio_gpu_mmap,
@@ -115,7 +123,8 @@ static const struct file_operations virtio_gpu_driver_fops = {
 };
 
 
-static struct drm_driver driver = {
+static struct drm_driver driver =
+{
 	.driver_features = DRIVER_MODESET | DRIVER_GEM | DRIVER_PRIME | DRIVER_RENDER | DRIVER_ATOMIC,
 	.set_busid = drm_virtio_set_busid,
 	.load = virtio_gpu_driver_load,

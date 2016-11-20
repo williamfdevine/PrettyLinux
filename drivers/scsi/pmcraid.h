@@ -208,7 +208,8 @@
 #define PMCRAID_SET_SUP_DEV_TIMEOUT		(2 * 60 * HZ)
 
 /* structure to represent a scatter-gather element (IOADL descriptor) */
-struct pmcraid_ioadl_desc {
+struct pmcraid_ioadl_desc
+{
 	__le64 address;
 	__le32 data_len;
 	__u8  reserved[3];
@@ -227,8 +228,10 @@ struct pmcraid_ioadl_desc {
  * number of IOADLs are limted to 27. In case they are more than 27, they will
  * be used in chained form
  */
-struct pmcraid_ioarcb_add_data {
-	union {
+struct pmcraid_ioarcb_add_data
+{
+	union
+	{
 		struct pmcraid_ioadl_desc ioadl[PMCRAID_IOADLS_INTERNAL];
 		__u8 add_cmd_params[PMCRAID_ADD_CMD_PARAM_LEN];
 	} u;
@@ -237,7 +240,8 @@ struct pmcraid_ioarcb_add_data {
 /*
  * IOA Request Control Block
  */
-struct pmcraid_ioarcb {
+struct pmcraid_ioarcb
+{
 	__le64 ioarcb_bus_addr;
 	__le32 resource_handle;
 	__le32 response_handle;
@@ -286,13 +290,15 @@ struct pmcraid_ioarcb {
 #define HRRQ_RESPONSE_BIT             0x02
 
 /* IOA Status Area */
-struct pmcraid_ioasa_vset {
+struct pmcraid_ioasa_vset
+{
 	__le32 failing_lba_hi;
 	__le32 failing_lba_lo;
 	__le32 reserved;
 } __attribute__((packed, aligned(4)));
 
-struct pmcraid_ioasa {
+struct pmcraid_ioasa
+{
 	__le32 ioasc;
 	__le16 returned_status_length;
 	__le16 available_status_length;
@@ -304,7 +310,8 @@ struct pmcraid_ioasa {
 	__le32 reserved;
 
 	/* resource specific sense information */
-	union {
+	union
+	{
 		struct pmcraid_ioasa_vset vset;
 	} u;
 
@@ -317,7 +324,8 @@ struct pmcraid_ioasa {
 #define PMCRAID_DRIVER_ILID           0xffffffff
 
 /* Config Table Entry per Resource */
-struct pmcraid_config_table_entry {
+struct pmcraid_config_table_entry
+{
 	__u8  resource_type;
 	__u8  bus_protocol;
 	__le16 array_id;
@@ -332,7 +340,8 @@ struct pmcraid_config_table_entry {
 } __attribute__((packed, aligned(4)));
 
 /* extended configuration table sizes are also of 32 bytes in size */
-struct pmcraid_config_table_entry_ext {
+struct pmcraid_config_table_entry_ext
+{
 	struct pmcraid_config_table_entry cfgte;
 };
 
@@ -370,17 +379,19 @@ struct pmcraid_config_table_entry_ext {
 #define RES_LUN(res_addr)    0x0
 
 /* configuration table structure */
-struct pmcraid_config_table {
+struct pmcraid_config_table
+{
 	__le16 num_entries;
 	__u8  table_format;
 	__u8  reserved1;
 	__u8  flags;
 	__u8  reserved2[11];
-	union {
+	union
+	{
 		struct pmcraid_config_table_entry
-				entries[PMCRAID_MAX_RESOURCES];
+			entries[PMCRAID_MAX_RESOURCES];
 		struct pmcraid_config_table_entry_ext
-				entries_ext[PMCRAID_MAX_RESOURCES];
+			entries_ext[PMCRAID_MAX_RESOURCES];
 	};
 } __attribute__((packed, aligned(4)));
 
@@ -393,17 +404,20 @@ struct pmcraid_config_table {
 #define PMCRAID_HOSTRCB_LDNSIZE			4056
 
 /* Error log notification format */
-struct pmcraid_hostrcb_error {
+struct pmcraid_hostrcb_error
+{
 	__le32 fd_ioasc;
 	__le32 fd_ra;
 	__le32 fd_rh;
 	__le32 prc;
-	union {
+	union
+	{
 		__u8 data[PMCRAID_HOSTRCB_LDNSIZE];
 	} u;
 } __attribute__ ((packed, aligned(4)));
 
-struct pmcraid_hcam_hdr {
+struct pmcraid_hcam_hdr
+{
 	__u8  op_code;
 	__u8  notification_type;
 	__u8  notification_lost;
@@ -418,21 +432,24 @@ struct pmcraid_hcam_hdr {
 
 #define PMCRAID_AEN_GROUP	0x3
 
-struct pmcraid_hcam_ccn {
+struct pmcraid_hcam_ccn
+{
 	struct pmcraid_hcam_hdr header;
 	struct pmcraid_config_table_entry cfg_entry;
 	struct pmcraid_config_table_entry cfg_entry_old;
 } __attribute__((packed, aligned(4)));
 
 #define PMCRAID_CCN_EXT_SIZE	3944
-struct pmcraid_hcam_ccn_ext {
+struct pmcraid_hcam_ccn_ext
+{
 	struct pmcraid_hcam_hdr header;
 	struct pmcraid_config_table_entry_ext cfg_entry;
 	struct pmcraid_config_table_entry_ext cfg_entry_old;
 	__u8   reserved[PMCRAID_CCN_EXT_SIZE];
 } __attribute__((packed, aligned(4)));
 
-struct pmcraid_hcam_ldn {
+struct pmcraid_hcam_ldn
+{
 	struct pmcraid_hcam_hdr header;
 	struct pmcraid_hostrcb_error error_log;
 } __attribute__((packed, aligned(4)));
@@ -469,7 +486,8 @@ struct pmcraid_hcam_ldn {
 #define HOSTRCB_OVERLAY_ID_FF			0xFF
 
 /* Implementation specific card details */
-struct pmcraid_chip_details {
+struct pmcraid_chip_details
+{
 	/* hardware register offsets */
 	unsigned long  ioastatus;
 	unsigned long  ioarrin;
@@ -515,22 +533,23 @@ struct pmcraid_chip_details {
 #define GLOBAL_INTERRUPT_MASK			0x5ULL
 
 #define PMCRAID_ERROR_INTERRUPTS	(INTRS_IOARCB_TRANSFER_FAILED | \
-					 INTRS_IOA_UNIT_CHECK | \
-					 INTRS_NO_HRRQ_FOR_CMD_RESPONSE | \
-					 INTRS_IOARRIN_LOST | \
-					 INTRS_SYSTEM_BUS_MMIO_ERROR | \
-					 INTRS_IOA_PROCESSOR_ERROR)
+									 INTRS_IOA_UNIT_CHECK | \
+									 INTRS_NO_HRRQ_FOR_CMD_RESPONSE | \
+									 INTRS_IOARRIN_LOST | \
+									 INTRS_SYSTEM_BUS_MMIO_ERROR | \
+									 INTRS_IOA_PROCESSOR_ERROR)
 
 #define PMCRAID_PCI_INTERRUPTS		(PMCRAID_ERROR_INTERRUPTS | \
-					 INTRS_HRRQ_VALID | \
-					 INTRS_TRANSITION_TO_OPERATIONAL |\
-					 INTRS_ALLOW_MSIX_VECTOR0)
+									 INTRS_HRRQ_VALID | \
+									 INTRS_TRANSITION_TO_OPERATIONAL |\
+									 INTRS_ALLOW_MSIX_VECTOR0)
 
 /* control_block, associated with each of the commands contains IOARCB, IOADLs
  * memory for IOASA. Additional 3 * 16 bytes are allocated in order to support
  * additional request parameters (of max size 48) any command.
  */
-struct pmcraid_control_block {
+struct pmcraid_control_block
+{
 	struct pmcraid_ioarcb ioarcb;
 	struct pmcraid_ioadl_desc ioadl[PMCRAID_IOADLS_EXTERNAL + 3];
 	struct pmcraid_ioasa ioasa;
@@ -538,7 +557,8 @@ struct pmcraid_control_block {
 
 /* pmcraid_sglist - Scatter-gather list allocated for passthrough ioctls
  */
-struct pmcraid_sglist {
+struct pmcraid_sglist
+{
 	u32 order;
 	u32 num_sg;
 	u32 num_dma_sg;
@@ -547,7 +567,8 @@ struct pmcraid_sglist {
 };
 
 /* page D0 inquiry data of focal point resource */
-struct pmcraid_inquiry_data {
+struct pmcraid_inquiry_data
+{
 	__u8	ph_dev_type;
 	__u8	page_code;
 	__u8	reserved1;
@@ -563,14 +584,16 @@ struct pmcraid_inquiry_data {
 #define PMCRAID_SCSI_SET_TIMESTAMP	0xA4
 #define PMCRAID_SCSI_SERVICE_ACTION	0x0F
 
-struct pmcraid_timestamp_data {
+struct pmcraid_timestamp_data
+{
 	__u8 reserved1[4];
 	__u8 timestamp[PMCRAID_REQ_TM_STR_LEN];		/* current time value */
 	__u8 reserved2[2];
 };
 
 /* pmcraid_cmd - LLD representation of SCSI command */
-struct pmcraid_cmd {
+struct pmcraid_cmd
+{
 
 	/* Ptr and bus address of DMA.able control block for this command */
 	struct pmcraid_control_block *ioa_cb;
@@ -594,7 +617,8 @@ struct pmcraid_cmd {
 	struct pmcraid_sglist *sglist; /* used for passthrough IOCTLs */
 
 	/* scratch used */
-	union {
+	union
+	{
 		/* during reset sequence */
 		unsigned long time_left;
 		struct pmcraid_resource_entry *res;
@@ -604,7 +628,8 @@ struct pmcraid_cmd {
 		 * for REQUEST SENSE command if firmware is not sending
 		 * auto sense data
 		 */
-		struct  {
+		struct
+		{
 			u8 *sense_buffer;
 			dma_addr_t sense_buffer_dma;
 		};
@@ -614,7 +639,8 @@ struct pmcraid_cmd {
 /*
  * Interrupt registers of IOA
  */
-struct pmcraid_interrupts {
+struct pmcraid_interrupts
+{
 	void __iomem *ioa_host_interrupt_reg;
 	void __iomem *ioa_host_msix_interrupt_reg;
 	void __iomem *ioa_host_interrupt_clr_reg;
@@ -626,7 +652,8 @@ struct pmcraid_interrupts {
 };
 
 /* ISR parameters LLD allocates (one for each MSI-X if enabled) vectors */
-struct pmcraid_isr_param {
+struct pmcraid_isr_param
+{
 	struct pmcraid_instance *drv_inst;
 	u16 vector;			/* allocated msi-x vector */
 	u8 hrrq_id;			/* hrrq entry index */
@@ -634,7 +661,8 @@ struct pmcraid_isr_param {
 
 
 /* AEN message header sent as part of event data to applications */
-struct pmcraid_aen_msg {
+struct pmcraid_aen_msg
+{
 	u32 hostno;
 	u32 length;
 	u8  reserved[8];
@@ -642,7 +670,8 @@ struct pmcraid_aen_msg {
 };
 
 /* Controller state event message type */
-struct pmcraid_state_msg {
+struct pmcraid_state_msg
+{
 	struct pmcraid_aen_msg msg;
 	u32 ioa_state;
 };
@@ -654,7 +683,8 @@ struct pmcraid_state_msg {
 #define PMC_DEVICE_EVENT_SHUTDOWN_SUCCESS	0x11000004
 #define PMC_DEVICE_EVENT_SHUTDOWN_FAILED	0x11000005
 
-struct pmcraid_hostrcb {
+struct pmcraid_hostrcb
+{
 	struct pmcraid_instance *drv_inst;
 	struct pmcraid_aen_msg *msg;
 	struct pmcraid_hcam_hdr *hcam;	/* pointer to hcam buffer */
@@ -670,7 +700,8 @@ struct pmcraid_hostrcb {
 /*
  * Per adapter structure maintained by LLD
  */
-struct pmcraid_instance {
+struct pmcraid_instance
+{
 	/* Array of allowed-to-be-exposed resources, initialized from
 	 * Configutation Table, later updated with CCNs
 	 */
@@ -781,7 +812,7 @@ struct pmcraid_instance {
 
 
 
-	u32 ioa_state:4;	/* For IOA Reset sequence FSM */
+	u32 ioa_state: 4;	/* For IOA Reset sequence FSM */
 #define IOA_STATE_OPERATIONAL       0x0
 #define IOA_STATE_UNKNOWN           0x1
 #define IOA_STATE_DEAD              0x2
@@ -791,24 +822,26 @@ struct pmcraid_instance {
 #define IOA_STATE_IN_BRINGDOWN      0x6
 #define IOA_STATE_IN_BRINGUP        0x7
 
-	u32 ioa_reset_in_progress:1; /* true if IOA reset is in progress */
-	u32 ioa_hard_reset:1;	/* TRUE if Hard Reset is needed */
-	u32 ioa_unit_check:1;	/* Indicates Unit Check condition */
-	u32 ioa_bringdown:1;	/* whether IOA needs to be brought down */
-	u32 force_ioa_reset:1;  /* force adapter reset ? */
-	u32 reinit_cfg_table:1; /* reinit config table due to lost CCN */
-	u32 ioa_shutdown_type:2;/* shutdown type used during reset */
+	u32 ioa_reset_in_progress: 1; /* true if IOA reset is in progress */
+	u32 ioa_hard_reset: 1;	/* TRUE if Hard Reset is needed */
+	u32 ioa_unit_check: 1;	/* Indicates Unit Check condition */
+	u32 ioa_bringdown: 1;	/* whether IOA needs to be brought down */
+	u32 force_ioa_reset: 1; /* force adapter reset ? */
+	u32 reinit_cfg_table: 1; /* reinit config table due to lost CCN */
+	u32 ioa_shutdown_type: 2; /* shutdown type used during reset */
 #define SHUTDOWN_NONE               0x0
 #define SHUTDOWN_NORMAL             0x1
 #define SHUTDOWN_ABBREV             0x2
-	u32 timestamp_error:1; /* indicate set timestamp for out of sync */
+	u32 timestamp_error: 1; /* indicate set timestamp for out of sync */
 
 };
 
 /* LLD maintained resource entry structure */
-struct pmcraid_resource_entry {
+struct pmcraid_resource_entry
+{
 	struct list_head queue;	/* link to "to be exposed" resources */
-	union {
+	union
+	{
 		struct pmcraid_config_table_entry cfg_entry;
 		struct pmcraid_config_table_entry_ext cfg_entry_ext;
 	};
@@ -839,7 +872,8 @@ struct pmcraid_resource_entry {
 };
 
 /* Data structures used in IOASC error code logging */
-struct pmcraid_ioasc_error {
+struct pmcraid_ioasc_error
+{
 	u32 ioasc_code;		/* IOASC code */
 	u8 log_level;		/* default log level assignment. */
 	char *error_string;
@@ -853,145 +887,280 @@ struct pmcraid_ioasc_error {
 /* Error information maintained by LLD. LLD initializes the pmcraid_error_table
  * statically.
  */
-static struct pmcraid_ioasc_error pmcraid_ioasc_error_table[] = {
-	{0x01180600, IOASC_LOG_LEVEL_HARD,
-	 "Recovered Error, soft media error, sector reassignment suggested"},
-	{0x015D0000, IOASC_LOG_LEVEL_HARD,
-	 "Recovered Error, failure prediction threshold exceeded"},
-	{0x015D9200, IOASC_LOG_LEVEL_HARD,
-	 "Recovered Error, soft Cache Card Battery error threshold"},
-	{0x015D9200, IOASC_LOG_LEVEL_HARD,
-	 "Recovered Error, soft Cache Card Battery error threshold"},
-	{0x02048000, IOASC_LOG_LEVEL_HARD,
-	 "Not Ready, IOA Reset Required"},
-	{0x02408500, IOASC_LOG_LEVEL_HARD,
-	 "Not Ready, IOA microcode download required"},
-	{0x03110B00, IOASC_LOG_LEVEL_HARD,
-	 "Medium Error, data unreadable, reassignment suggested"},
-	{0x03110C00, IOASC_LOG_LEVEL_MUST,
-	 "Medium Error, data unreadable do not reassign"},
-	{0x03310000, IOASC_LOG_LEVEL_HARD,
-	 "Medium Error, media corrupted"},
-	{0x04050000, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, IOA can't communicate with device"},
-	{0x04080000, IOASC_LOG_LEVEL_MUST,
-	 "Hardware Error, device bus error"},
-	{0x04088000, IOASC_LOG_LEVEL_MUST,
-	 "Hardware Error, device bus is not functioning"},
-	{0x04118000, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, IOA reserved area data check"},
-	{0x04118100, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, IOA reserved area invalid data pattern"},
-	{0x04118200, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, IOA reserved area LRC error"},
-	{0x04320000, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, reassignment space exhausted"},
-	{0x04330000, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, data transfer underlength error"},
-	{0x04330000, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, data transfer overlength error"},
-	{0x04418000, IOASC_LOG_LEVEL_MUST,
-	 "Hardware Error, PCI bus error"},
-	{0x04440000, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, device error"},
-	{0x04448200, IOASC_LOG_LEVEL_MUST,
-	 "Hardware Error, IOA error"},
-	{0x04448300, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, undefined device response"},
-	{0x04448400, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, IOA microcode error"},
-	{0x04448600, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, IOA reset required"},
-	{0x04449200, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, hard Cache Fearuee Card Battery error"},
-	{0x0444A000, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, failed device altered"},
-	{0x0444A200, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, data check after reassignment"},
-	{0x0444A300, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, LRC error after reassignment"},
-	{0x044A0000, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, device bus error (msg/cmd phase)"},
-	{0x04670400, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, new device can't be used"},
-	{0x04678000, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, invalid multiadapter configuration"},
-	{0x04678100, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, incorrect connection between enclosures"},
-	{0x04678200, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, connections exceed IOA design limits"},
-	{0x04678300, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, incorrect multipath connection"},
-	{0x04679000, IOASC_LOG_LEVEL_HARD,
-	 "Hardware Error, command to LUN failed"},
-	{0x064C8000, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, cache exists for missing/failed device"},
-	{0x06670100, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, incompatible exposed mode device"},
-	{0x06670600, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, attachment of logical unit failed"},
-	{0x06678000, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, cables exceed connective design limit"},
-	{0x06678300, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, incomplete multipath connection between" \
-	 "IOA and enclosure"},
-	{0x06678400, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, incomplete multipath connection between" \
-	 "device and enclosure"},
-	{0x06678500, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, incomplete multipath connection between" \
-	 "IOA and remote IOA"},
-	{0x06678600, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, missing remote IOA"},
-	{0x06679100, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, enclosure doesn't support required multipath" \
-	 "function"},
-	{0x06698200, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, corrupt array parity detected on device"},
-	{0x066B0200, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, array exposed"},
-	{0x066B8200, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, exposed array is still protected"},
-	{0x066B9200, IOASC_LOG_LEVEL_HARD,
-	 "Unit Attention, Multipath redundancy level got worse"},
-	{0x07270000, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, device is read/write protected by IOA"},
-	{0x07278000, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, IOA doesn't support device attribute"},
-	{0x07278100, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, NVRAM mirroring prohibited"},
-	{0x07278400, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, array is short 2 or more devices"},
-	{0x07278600, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, exposed array is short a required device"},
-	{0x07278700, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, array members not at required addresses"},
-	{0x07278800, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, exposed mode device resource address conflict"},
-	{0x07278900, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, incorrect resource address of exposed mode device"},
-	{0x07278A00, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, Array is missing a device and parity is out of sync"},
-	{0x07278B00, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, maximum number of arrays already exist"},
-	{0x07278C00, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, cannot locate cache data for device"},
-	{0x07278D00, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, cache data exits for a changed device"},
-	{0x07279100, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, detection of a device requiring format"},
-	{0x07279200, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, IOA exceeds maximum number of devices"},
-	{0x07279600, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, missing array, volume set is not functional"},
-	{0x07279700, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, single device for a volume set"},
-	{0x07279800, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, missing multiple devices for a volume set"},
-	{0x07279900, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, maximum number of volument sets already exists"},
-	{0x07279A00, IOASC_LOG_LEVEL_HARD,
-	 "Data Protect, other volume set problem"},
+static struct pmcraid_ioasc_error pmcraid_ioasc_error_table[] =
+{
+	{
+		0x01180600, IOASC_LOG_LEVEL_HARD,
+		"Recovered Error, soft media error, sector reassignment suggested"
+	},
+	{
+		0x015D0000, IOASC_LOG_LEVEL_HARD,
+		"Recovered Error, failure prediction threshold exceeded"
+	},
+	{
+		0x015D9200, IOASC_LOG_LEVEL_HARD,
+		"Recovered Error, soft Cache Card Battery error threshold"
+	},
+	{
+		0x015D9200, IOASC_LOG_LEVEL_HARD,
+		"Recovered Error, soft Cache Card Battery error threshold"
+	},
+	{
+		0x02048000, IOASC_LOG_LEVEL_HARD,
+		"Not Ready, IOA Reset Required"
+	},
+	{
+		0x02408500, IOASC_LOG_LEVEL_HARD,
+		"Not Ready, IOA microcode download required"
+	},
+	{
+		0x03110B00, IOASC_LOG_LEVEL_HARD,
+		"Medium Error, data unreadable, reassignment suggested"
+	},
+	{
+		0x03110C00, IOASC_LOG_LEVEL_MUST,
+		"Medium Error, data unreadable do not reassign"
+	},
+	{
+		0x03310000, IOASC_LOG_LEVEL_HARD,
+		"Medium Error, media corrupted"
+	},
+	{
+		0x04050000, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, IOA can't communicate with device"
+	},
+	{
+		0x04080000, IOASC_LOG_LEVEL_MUST,
+		"Hardware Error, device bus error"
+	},
+	{
+		0x04088000, IOASC_LOG_LEVEL_MUST,
+		"Hardware Error, device bus is not functioning"
+	},
+	{
+		0x04118000, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, IOA reserved area data check"
+	},
+	{
+		0x04118100, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, IOA reserved area invalid data pattern"
+	},
+	{
+		0x04118200, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, IOA reserved area LRC error"
+	},
+	{
+		0x04320000, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, reassignment space exhausted"
+	},
+	{
+		0x04330000, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, data transfer underlength error"
+	},
+	{
+		0x04330000, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, data transfer overlength error"
+	},
+	{
+		0x04418000, IOASC_LOG_LEVEL_MUST,
+		"Hardware Error, PCI bus error"
+	},
+	{
+		0x04440000, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, device error"
+	},
+	{
+		0x04448200, IOASC_LOG_LEVEL_MUST,
+		"Hardware Error, IOA error"
+	},
+	{
+		0x04448300, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, undefined device response"
+	},
+	{
+		0x04448400, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, IOA microcode error"
+	},
+	{
+		0x04448600, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, IOA reset required"
+	},
+	{
+		0x04449200, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, hard Cache Fearuee Card Battery error"
+	},
+	{
+		0x0444A000, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, failed device altered"
+	},
+	{
+		0x0444A200, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, data check after reassignment"
+	},
+	{
+		0x0444A300, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, LRC error after reassignment"
+	},
+	{
+		0x044A0000, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, device bus error (msg/cmd phase)"
+	},
+	{
+		0x04670400, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, new device can't be used"
+	},
+	{
+		0x04678000, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, invalid multiadapter configuration"
+	},
+	{
+		0x04678100, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, incorrect connection between enclosures"
+	},
+	{
+		0x04678200, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, connections exceed IOA design limits"
+	},
+	{
+		0x04678300, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, incorrect multipath connection"
+	},
+	{
+		0x04679000, IOASC_LOG_LEVEL_HARD,
+		"Hardware Error, command to LUN failed"
+	},
+	{
+		0x064C8000, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, cache exists for missing/failed device"
+	},
+	{
+		0x06670100, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, incompatible exposed mode device"
+	},
+	{
+		0x06670600, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, attachment of logical unit failed"
+	},
+	{
+		0x06678000, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, cables exceed connective design limit"
+	},
+	{
+		0x06678300, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, incomplete multipath connection between" \
+		"IOA and enclosure"
+	},
+	{
+		0x06678400, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, incomplete multipath connection between" \
+		"device and enclosure"
+	},
+	{
+		0x06678500, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, incomplete multipath connection between" \
+		"IOA and remote IOA"
+	},
+	{
+		0x06678600, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, missing remote IOA"
+	},
+	{
+		0x06679100, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, enclosure doesn't support required multipath" \
+		"function"
+	},
+	{
+		0x06698200, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, corrupt array parity detected on device"
+	},
+	{
+		0x066B0200, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, array exposed"
+	},
+	{
+		0x066B8200, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, exposed array is still protected"
+	},
+	{
+		0x066B9200, IOASC_LOG_LEVEL_HARD,
+		"Unit Attention, Multipath redundancy level got worse"
+	},
+	{
+		0x07270000, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, device is read/write protected by IOA"
+	},
+	{
+		0x07278000, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, IOA doesn't support device attribute"
+	},
+	{
+		0x07278100, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, NVRAM mirroring prohibited"
+	},
+	{
+		0x07278400, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, array is short 2 or more devices"
+	},
+	{
+		0x07278600, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, exposed array is short a required device"
+	},
+	{
+		0x07278700, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, array members not at required addresses"
+	},
+	{
+		0x07278800, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, exposed mode device resource address conflict"
+	},
+	{
+		0x07278900, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, incorrect resource address of exposed mode device"
+	},
+	{
+		0x07278A00, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, Array is missing a device and parity is out of sync"
+	},
+	{
+		0x07278B00, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, maximum number of arrays already exist"
+	},
+	{
+		0x07278C00, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, cannot locate cache data for device"
+	},
+	{
+		0x07278D00, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, cache data exits for a changed device"
+	},
+	{
+		0x07279100, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, detection of a device requiring format"
+	},
+	{
+		0x07279200, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, IOA exceeds maximum number of devices"
+	},
+	{
+		0x07279600, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, missing array, volume set is not functional"
+	},
+	{
+		0x07279700, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, single device for a volume set"
+	},
+	{
+		0x07279800, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, missing multiple devices for a volume set"
+	},
+	{
+		0x07279900, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, maximum number of volument sets already exists"
+	},
+	{
+		0x07279A00, IOASC_LOG_LEVEL_HARD,
+		"Data Protect, other volume set problem"
+	},
 };
 
 /* macros to help in debugging */
@@ -1006,19 +1175,19 @@ static struct pmcraid_ioasc_error pmcraid_ioasc_error_table[] = {
 #define SCSI_READ_CMD           0x1	/* any of SCSI READ commands */
 #define SCSI_WRITE_CMD          0x2	/* any of SCSI WRITE commands */
 #define SCSI_CMD_TYPE(opcode) \
-({  u8 op = opcode; u8 __type = 0;\
-	if (op == READ_6 || op == READ_10 || op == READ_12 || op == READ_16)\
-		__type = SCSI_READ_CMD;\
-	else if (op == WRITE_6 || op == WRITE_10 || op == WRITE_12 || \
-		 op == WRITE_16)\
-		__type = SCSI_WRITE_CMD;\
-	__type;\
-})
+	({  u8 op = opcode; u8 __type = 0;\
+		if (op == READ_6 || op == READ_10 || op == READ_12 || op == READ_16)\
+			__type = SCSI_READ_CMD;\
+		else if (op == WRITE_6 || op == WRITE_10 || op == WRITE_12 || \
+				 op == WRITE_16)\
+			__type = SCSI_WRITE_CMD;\
+		__type;\
+	})
 
 #define IS_SCSI_READ_WRITE(opcode) \
-({	u8 __type = SCSI_CMD_TYPE(opcode); \
-	(__type == SCSI_READ_CMD || __type == SCSI_WRITE_CMD) ? 1 : 0;\
-})
+	({	u8 __type = SCSI_CMD_TYPE(opcode); \
+		(__type == SCSI_READ_CMD || __type == SCSI_WRITE_CMD) ? 1 : 0;\
+	})
 
 
 /*
@@ -1029,7 +1198,8 @@ static struct pmcraid_ioasc_error pmcraid_ioasc_error_table[] = {
  * .reserved            : not used
  * .buffer_length       : length of the buffer following the header
  */
-struct pmcraid_ioctl_header {
+struct pmcraid_ioctl_header
+{
 	u8  signature[8];
 	u32 reserved;
 	u32 buffer_length;
@@ -1051,7 +1221,8 @@ struct pmcraid_ioctl_header {
  *                  of this buffer are valid only when ioarcb.data_transfer_len
  *                  is not zero.
  */
-struct pmcraid_passthrough_ioctl_buffer {
+struct pmcraid_passthrough_ioctl_buffer
+{
 	struct pmcraid_ioctl_header ioctl_header;
 	struct pmcraid_ioarcb ioarcb;
 	struct pmcraid_ioasa  ioasa;

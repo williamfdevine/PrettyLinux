@@ -37,13 +37,16 @@ static int enable_locking(struct dlm_ls *ls, uint64_t seq)
 	down_write(&ls->ls_recv_active);
 
 	spin_lock(&ls->ls_recover_lock);
-	if (ls->ls_recover_seq == seq) {
+
+	if (ls->ls_recover_seq == seq)
+	{
 		set_bit(LSFL_RUNNING, &ls->ls_flags);
 		/* unblocks processes waiting to enter the dlm */
 		up_write(&ls->ls_in_recovery);
 		clear_bit(LSFL_RECOVER_LOCK, &ls->ls_flags);
 		error = 0;
 	}
+
 	spin_unlock(&ls->ls_recover_lock);
 
 	up_write(&ls->ls_recv_active);
@@ -75,7 +78,9 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 	 */
 
 	error = dlm_recover_members(ls, rv, &neg);
-	if (error) {
+
+	if (error)
+	{
 		log_rinfo(ls, "dlm_recover_members error %d", error);
 		goto fail;
 	}
@@ -89,7 +94,9 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 	dlm_set_recover_status(ls, DLM_RS_NODES);
 
 	error = dlm_recover_members_wait(ls);
-	if (error) {
+
+	if (error)
+	{
 		log_rinfo(ls, "dlm_recover_members_wait error %d", error);
 		goto fail;
 	}
@@ -102,7 +109,9 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 	 */
 
 	error = dlm_recover_directory(ls);
-	if (error) {
+
+	if (error)
+	{
 		log_rinfo(ls, "dlm_recover_directory error %d", error);
 		goto fail;
 	}
@@ -110,13 +119,15 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 	dlm_set_recover_status(ls, DLM_RS_DIR);
 
 	error = dlm_recover_directory_wait(ls);
-	if (error) {
+
+	if (error)
+	{
 		log_rinfo(ls, "dlm_recover_directory_wait error %d", error);
 		goto fail;
 	}
 
 	log_rinfo(ls, "dlm_recover_directory %u out %u messages",
-		  ls->ls_recover_dir_sent_res, ls->ls_recover_dir_sent_msg);
+			  ls->ls_recover_dir_sent_res, ls->ls_recover_dir_sent_msg);
 
 	/*
 	 * We may have outstanding operations that are waiting for a reply from
@@ -127,10 +138,14 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 	dlm_recover_waiters_pre(ls);
 
 	error = dlm_recovery_stopped(ls);
-	if (error)
-		goto fail;
 
-	if (neg || dlm_no_directory(ls)) {
+	if (error)
+	{
+		goto fail;
+	}
+
+	if (neg || dlm_no_directory(ls))
+	{
 		/*
 		 * Clear lkb's for departed nodes.
 		 */
@@ -143,7 +158,9 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 		 */
 
 		error = dlm_recover_masters(ls);
-		if (error) {
+
+		if (error)
+		{
 			log_rinfo(ls, "dlm_recover_masters error %d", error);
 			goto fail;
 		}
@@ -153,7 +170,9 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 		 */
 
 		error = dlm_recover_locks(ls);
-		if (error) {
+
+		if (error)
+		{
 			log_rinfo(ls, "dlm_recover_locks error %d", error);
 			goto fail;
 		}
@@ -161,13 +180,15 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 		dlm_set_recover_status(ls, DLM_RS_LOCKS);
 
 		error = dlm_recover_locks_wait(ls);
-		if (error) {
+
+		if (error)
+		{
 			log_rinfo(ls, "dlm_recover_locks_wait error %d", error);
 			goto fail;
 		}
 
 		log_rinfo(ls, "dlm_recover_locks %u in",
-			  ls->ls_recover_locks_in);
+				  ls->ls_recover_locks_in);
 
 		/*
 		 * Finalize state in master rsb's now that all locks can be
@@ -176,7 +197,9 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 		 */
 
 		dlm_recover_rsbs(ls);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Other lockspace members may be going through the "neg" steps
 		 * while also adding us to the lockspace, in which case they'll
@@ -185,7 +208,9 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 		dlm_set_recover_status(ls, DLM_RS_LOCKS);
 
 		error = dlm_recover_locks_wait(ls);
-		if (error) {
+
+		if (error)
+		{
 			log_rinfo(ls, "dlm_recover_locks_wait error %d", error);
 			goto fail;
 		}
@@ -204,7 +229,9 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 	dlm_set_recover_status(ls, DLM_RS_DONE);
 
 	error = dlm_recover_done_wait(ls);
-	if (error) {
+
+	if (error)
+	{
 		log_rinfo(ls, "dlm_recover_done_wait error %d", error);
 		goto fail;
 	}
@@ -216,19 +243,25 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 	dlm_callback_resume(ls);
 
 	error = enable_locking(ls, rv->seq);
-	if (error) {
+
+	if (error)
+	{
 		log_rinfo(ls, "enable_locking error %d", error);
 		goto fail;
 	}
 
 	error = dlm_process_requestqueue(ls);
-	if (error) {
+
+	if (error)
+	{
 		log_rinfo(ls, "dlm_process_requestqueue error %d", error);
 		goto fail;
 	}
 
 	error = dlm_recover_waiters_post(ls);
-	if (error) {
+
+	if (error)
+	{
 		log_rinfo(ls, "dlm_recover_waiters_post error %d", error);
 		goto fail;
 	}
@@ -236,17 +269,17 @@ static int ls_recover(struct dlm_ls *ls, struct dlm_recover *rv)
 	dlm_recover_grant(ls);
 
 	log_rinfo(ls, "dlm_recover %llu generation %u done: %u ms",
-		  (unsigned long long)rv->seq, ls->ls_generation,
-		  jiffies_to_msecs(jiffies - start));
+			  (unsigned long long)rv->seq, ls->ls_generation,
+			  jiffies_to_msecs(jiffies - start));
 	mutex_unlock(&ls->ls_recoverd_active);
 
 	dlm_lsop_recover_done(ls);
 	return 0;
 
- fail:
+fail:
 	dlm_release_root_list(ls);
 	log_rinfo(ls, "dlm_recover %llu error %d",
-		  (unsigned long long)rv->seq, error);
+			  (unsigned long long)rv->seq, error);
 	mutex_unlock(&ls->ls_recoverd_active);
 	return error;
 }
@@ -262,11 +295,16 @@ static void do_ls_recovery(struct dlm_ls *ls)
 	spin_lock(&ls->ls_recover_lock);
 	rv = ls->ls_recover_args;
 	ls->ls_recover_args = NULL;
+
 	if (rv && ls->ls_recover_seq == rv->seq)
+	{
 		clear_bit(LSFL_RECOVER_STOP, &ls->ls_flags);
+	}
+
 	spin_unlock(&ls->ls_recover_lock);
 
-	if (rv) {
+	if (rv)
+	{
 		ls_recover(ls, rv);
 		kfree(rv->nodes);
 		kfree(rv);
@@ -278,7 +316,9 @@ static int dlm_recoverd(void *arg)
 	struct dlm_ls *ls;
 
 	ls = dlm_find_lockspace_local(arg);
-	if (!ls) {
+
+	if (!ls)
+	{
 		log_print("dlm_recoverd: no lockspace %p", arg);
 		return -1;
 	}
@@ -287,25 +327,35 @@ static int dlm_recoverd(void *arg)
 	set_bit(LSFL_RECOVER_LOCK, &ls->ls_flags);
 	wake_up(&ls->ls_recover_lock_wait);
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		set_current_state(TASK_INTERRUPTIBLE);
+
 		if (!test_bit(LSFL_RECOVER_WORK, &ls->ls_flags) &&
-		    !test_bit(LSFL_RECOVER_DOWN, &ls->ls_flags))
+			!test_bit(LSFL_RECOVER_DOWN, &ls->ls_flags))
+		{
 			schedule();
+		}
+
 		set_current_state(TASK_RUNNING);
 
-		if (test_and_clear_bit(LSFL_RECOVER_DOWN, &ls->ls_flags)) {
+		if (test_and_clear_bit(LSFL_RECOVER_DOWN, &ls->ls_flags))
+		{
 			down_write(&ls->ls_in_recovery);
 			set_bit(LSFL_RECOVER_LOCK, &ls->ls_flags);
 			wake_up(&ls->ls_recover_lock_wait);
 		}
 
 		if (test_and_clear_bit(LSFL_RECOVER_WORK, &ls->ls_flags))
+		{
 			do_ls_recovery(ls);
+		}
 	}
 
 	if (test_bit(LSFL_RECOVER_LOCK, &ls->ls_flags))
+	{
 		up_write(&ls->ls_in_recovery);
+	}
 
 	dlm_put_lockspace(ls);
 	return 0;
@@ -317,10 +367,16 @@ int dlm_recoverd_start(struct dlm_ls *ls)
 	int error = 0;
 
 	p = kthread_run(dlm_recoverd, ls, "dlm_recoverd");
+
 	if (IS_ERR(p))
+	{
 		error = PTR_ERR(p);
+	}
 	else
-                ls->ls_recoverd_task = p;
+	{
+		ls->ls_recoverd_task = p;
+	}
+
 	return error;
 }
 

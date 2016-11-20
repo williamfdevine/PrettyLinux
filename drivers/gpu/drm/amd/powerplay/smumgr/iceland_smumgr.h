@@ -31,7 +31,8 @@
 #include "pp_endian.h"
 #include "smu71_discrete.h"
 
-struct iceland_pt_defaults {
+struct iceland_pt_defaults
+{
 	uint8_t   svi_load_line_en;
 	uint8_t   svi_load_line_vddc;
 	uint8_t   tdc_vddc_throttle_release_limit_perc;
@@ -44,12 +45,14 @@ struct iceland_pt_defaults {
 	uint16_t  bapmti_rc[SMU71_DTE_ITERATIONS * SMU71_DTE_SOURCES * SMU71_DTE_SINKS];
 };
 
-struct iceland_mc_reg_entry {
+struct iceland_mc_reg_entry
+{
 	uint32_t mclk_max;
 	uint32_t mc_data[SMU71_DISCRETE_MC_REGISTER_ARRAY_SIZE];
 };
 
-struct iceland_mc_reg_table {
+struct iceland_mc_reg_table
+{
 	uint8_t   last;               /* number of registers*/
 	uint8_t   num_entries;        /* number of entries in mc_reg_table_entry used*/
 	uint16_t  validflag;          /* indicate the corresponding register is valid or not. 1: valid, 0: invalid. bit0->address[0], bit1->address[1], etc.*/
@@ -57,7 +60,8 @@ struct iceland_mc_reg_table {
 	SMU71_Discrete_MCRegisterAddress mc_reg_address[SMU71_DISCRETE_MC_REGISTER_ARRAY_SIZE];
 };
 
-struct iceland_smumgr {
+struct iceland_smumgr
+{
 	struct smu7_smumgr smu7_data;
 	struct SMU71_Discrete_DpmTable       smc_state_table;
 	struct SMU71_Discrete_PmFuses  power_tune_table;

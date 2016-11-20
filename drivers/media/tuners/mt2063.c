@@ -33,9 +33,9 @@ module_param(debug, int, 0644);
 MODULE_PARM_DESC(debug, "Set Verbosity level");
 
 #define dprintk(level, fmt, arg...) do {				\
-if (debug >= level)							\
-	printk(KERN_DEBUG "mt2063 %s: " fmt, __func__, ## arg);	\
-} while (0)
+		if (debug >= level)							\
+			printk(KERN_DEBUG "mt2063 %s: " fmt, __func__, ## arg);	\
+	} while (0)
 
 
 /* positive error codes used internally */
@@ -71,7 +71,8 @@ if (debug >= level)							\
 
 #define MT2063_EXCLUDE_EURO_DECT_FREQUENCIES(s) (((s) & MT2063_DECT_AVOID_EURO_FREQS) != 0)
 
-enum MT2063_DECT_Avoid_Type {
+enum MT2063_DECT_Avoid_Type
+{
 	MT2063_NO_DECT_AVOIDANCE = 0,				/* Do not create DECT exclusion zones.     */
 	MT2063_AVOID_US_DECT = MT2063_DECT_AVOID_US_FREQS,	/* Avoid US DECT frequencies.              */
 	MT2063_AVOID_EURO_DECT = MT2063_DECT_AVOID_EURO_FREQS,	/* Avoid European DECT frequencies.        */
@@ -80,7 +81,8 @@ enum MT2063_DECT_Avoid_Type {
 
 #define MT2063_MAX_ZONES 48
 
-struct MT2063_ExclZone_t {
+struct MT2063_ExclZone_t
+{
 	u32 min_;
 	u32 max_;
 	struct MT2063_ExclZone_t *next_;
@@ -89,7 +91,8 @@ struct MT2063_ExclZone_t {
 /*
  *  Structure of data needed for Spur Avoidance
  */
-struct MT2063_AvoidSpursData_t {
+struct MT2063_AvoidSpursData_t
+{
 	u32 f_ref;
 	u32 f_in;
 	u32 f_LO1;
@@ -121,7 +124,8 @@ struct MT2063_AvoidSpursData_t {
  * Parameter for function MT2063_SetPowerMask that specifies the power down
  * of various sections of the MT2063.
  */
-enum MT2063_Mask_Bits {
+enum MT2063_Mask_Bits
+{
 	MT2063_REG_SD = 0x0040,		/* Shutdown regulator                 */
 	MT2063_SRO_SD = 0x0020,		/* Shutdown SRO                       */
 	MT2063_AFC_SD = 0x0010,		/* Shutdown AFC A/D                   */
@@ -142,7 +146,8 @@ enum MT2063_Mask_Bits {
 /*
  *  Possible values for MT2063_DNC_OUTPUT
  */
-enum MT2063_DNC_Output_Enable {
+enum MT2063_DNC_Output_Enable
+{
 	MT2063_DNC_NONE = 0,
 	MT2063_DNC_1,
 	MT2063_DNC_2,
@@ -153,7 +158,8 @@ enum MT2063_DNC_Output_Enable {
  *  Two-wire serial bus subaddresses of the tuner registers.
  *  Also known as the tuner's register addresses.
  */
-enum MT2063_Register_Offsets {
+enum MT2063_Register_Offsets
+{
 	MT2063_REG_PART_REV = 0,	/*  0x00: Part/Rev Code         */
 	MT2063_REG_LO1CQ_1,		/*  0x01: LO1C Queued Byte 1    */
 	MT2063_REG_LO1CQ_2,		/*  0x02: LO1C Queued Byte 2    */
@@ -218,7 +224,8 @@ enum MT2063_Register_Offsets {
 	MT2063_REG_END_REGS
 };
 
-struct mt2063_state {
+struct mt2063_state
+{
 	struct i2c_adapter *i2c;
 
 	bool init;
@@ -250,7 +257,8 @@ static int mt2063_write(struct mt2063_state *state, u8 reg, u8 *data, u32 len)
 	struct dvb_frontend *fe = state->frontend;
 	int ret;
 	u8 buf[60];
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = state->config->tuner_address,
 		.flags = 0,
 		.buf = buf,
@@ -263,13 +271,21 @@ static int mt2063_write(struct mt2063_state *state, u8 reg, u8 *data, u32 len)
 	memcpy(msg.buf + 1, data, len);
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	ret = i2c_transfer(state->i2c, &msg, 1);
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	if (ret < 0)
+	{
 		printk(KERN_ERR "%s error ret=%d\n", __func__, ret);
+	}
 
 	return ret;
 }
@@ -284,11 +300,16 @@ static int mt2063_setreg(struct mt2063_state *state, u8 reg, u8 val)
 	dprintk(2, "\n");
 
 	if (reg >= MT2063_REG_END_REGS)
+	{
 		return -ERANGE;
+	}
 
 	status = mt2063_write(state, reg, &val, 1);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	state->reg[reg] = val;
 
@@ -299,7 +320,7 @@ static int mt2063_setreg(struct mt2063_state *state, u8 reg, u8 val)
  * mt2063_read - Read data from the I2C bus
  */
 static int mt2063_read(struct mt2063_state *state,
-			   u8 subAddress, u8 *pData, u32 cnt)
+					   u8 subAddress, u8 *pData, u32 cnt)
 {
 	int status = 0;	/* Status to be returned        */
 	struct dvb_frontend *fe = state->frontend;
@@ -308,11 +329,15 @@ static int mt2063_read(struct mt2063_state *state,
 	dprintk(2, "addr 0x%02x, cnt %d\n", subAddress, cnt);
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
-	for (i = 0; i < cnt; i++) {
+	for (i = 0; i < cnt; i++)
+	{
 		u8 b0[] = { subAddress + i };
-		struct i2c_msg msg[] = {
+		struct i2c_msg msg[] =
+		{
 			{
 				.addr = state->config->tuner_address,
 				.flags = 0,
@@ -328,16 +353,22 @@ static int mt2063_read(struct mt2063_state *state,
 
 		status = i2c_transfer(state->i2c, msg, 2);
 		dprintk(2, "addr 0x%02x, ret = %d, val = 0x%02x\n",
-			   subAddress + i, status, *(pData + i));
+				subAddress + i, status, *(pData + i));
+
 		if (status < 0)
+		{
 			break;
+		}
 	}
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	if (status < 0)
 		printk(KERN_ERR "Can't read from address 0x%02x,\n",
-		       subAddress + i);
+			   subAddress + i);
 
 	return status;
 }
@@ -363,33 +394,40 @@ static int MT2063_Sleep(struct dvb_frontend *fe)
 #define ceil(n, d) (((n) < 0) ? (-((-(n))/(d))) : (n)/(d) + ((n)%(d) != 0))
 #define floor(n, d) (((n) < 0) ? (-((-(n))/(d))) - ((n)%(d) != 0) : (n)/(d))
 
-struct MT2063_FIFZone_t {
+struct MT2063_FIFZone_t
+{
 	s32 min_;
 	s32 max_;
 };
 
 static struct MT2063_ExclZone_t *InsertNode(struct MT2063_AvoidSpursData_t
-					    *pAS_Info,
-					    struct MT2063_ExclZone_t *pPrevNode)
+		*pAS_Info,
+		struct MT2063_ExclZone_t *pPrevNode)
 {
 	struct MT2063_ExclZone_t *pNode;
 
 	dprintk(2, "\n");
 
 	/*  Check for a node in the free list  */
-	if (pAS_Info->freeZones != NULL) {
+	if (pAS_Info->freeZones != NULL)
+	{
 		/*  Use one from the free list  */
 		pNode = pAS_Info->freeZones;
 		pAS_Info->freeZones = pNode->next_;
-	} else {
+	}
+	else
+	{
 		/*  Grab a node from the array  */
 		pNode = &pAS_Info->MT2063_ExclZones[pAS_Info->nZones];
 	}
 
-	if (pPrevNode != NULL) {
+	if (pPrevNode != NULL)
+	{
 		pNode->next_ = pPrevNode->next_;
 		pPrevNode->next_ = pNode;
-	} else {		/*  insert at the beginning of the list  */
+	}
+	else  		/*  insert at the beginning of the list  */
+	{
 
 		pNode->next_ = pAS_Info->usedZones;
 		pAS_Info->usedZones = pNode;
@@ -400,10 +438,10 @@ static struct MT2063_ExclZone_t *InsertNode(struct MT2063_AvoidSpursData_t
 }
 
 static struct MT2063_ExclZone_t *RemoveNode(struct MT2063_AvoidSpursData_t
-					    *pAS_Info,
-					    struct MT2063_ExclZone_t *pPrevNode,
-					    struct MT2063_ExclZone_t
-					    *pNodeToRemove)
+		*pAS_Info,
+		struct MT2063_ExclZone_t *pPrevNode,
+		struct MT2063_ExclZone_t
+		*pNodeToRemove)
 {
 	struct MT2063_ExclZone_t *pNext = pNodeToRemove->next_;
 
@@ -411,7 +449,9 @@ static struct MT2063_ExclZone_t *RemoveNode(struct MT2063_AvoidSpursData_t
 
 	/*  Make previous node point to the subsequent node  */
 	if (pPrevNode != NULL)
+	{
 		pPrevNode->next_ = pNext;
+	}
 
 	/*  Add pNodeToRemove to the beginning of the freeZones  */
 	pNodeToRemove->next_ = pAS_Info->freeZones;
@@ -432,7 +472,7 @@ static struct MT2063_ExclZone_t *RemoveNode(struct MT2063_AvoidSpursData_t
  * If the range (f_min, f_max) is negative, ignore the entry.
  */
 static void MT2063_AddExclZone(struct MT2063_AvoidSpursData_t *pAS_Info,
-			       u32 f_min, u32 f_max)
+							   u32 f_min, u32 f_max)
 {
 	struct MT2063_ExclZone_t *pNode = pAS_Info->usedZones;
 	struct MT2063_ExclZone_t *pPrev = NULL;
@@ -442,8 +482,9 @@ static void MT2063_AddExclZone(struct MT2063_AvoidSpursData_t *pAS_Info,
 
 	/*  Check to see if this overlaps the 1st IF filter  */
 	if ((f_max > (pAS_Info->f_if1_Center - (pAS_Info->f_if1_bw / 2)))
-	    && (f_min < (pAS_Info->f_if1_Center + (pAS_Info->f_if1_bw / 2)))
-	    && (f_min < f_max)) {
+		&& (f_min < (pAS_Info->f_if1_Center + (pAS_Info->f_if1_bw / 2)))
+		&& (f_min < f_max))
+	{
 		/*
 		 *                1        2         3      4       5        6
 		 *
@@ -453,18 +494,27 @@ static void MT2063_AddExclZone(struct MT2063_AvoidSpursData_t *pAS_Info,
 		 */
 
 		/*  Check for our place in the list  */
-		while ((pNode != NULL) && (pNode->max_ < f_min)) {
+		while ((pNode != NULL) && (pNode->max_ < f_min))
+		{
 			pPrev = pNode;
 			pNode = pNode->next_;
 		}
 
-		if ((pNode != NULL) && (pNode->min_ < f_max)) {
+		if ((pNode != NULL) && (pNode->min_ < f_max))
+		{
 			/*  Combine me with pNode  */
 			if (f_min < pNode->min_)
+			{
 				pNode->min_ = f_min;
+			}
+
 			if (f_max > pNode->max_)
+			{
 				pNode->max_ = f_max;
-		} else {
+			}
+		}
+		else
+		{
 			pNode = InsertNode(pAS_Info, pPrev);
 			pNode->min_ = f_min;
 			pNode->max_ = f_max;
@@ -472,9 +522,14 @@ static void MT2063_AddExclZone(struct MT2063_AvoidSpursData_t *pAS_Info,
 
 		/*  Look for merging possibilities  */
 		pNext = pNode->next_;
-		while ((pNext != NULL) && (pNext->min_ < pNode->max_)) {
+
+		while ((pNext != NULL) && (pNext->min_ < pNode->max_))
+		{
 			if (pNext->max_ > pNode->max_)
+			{
 				pNode->max_ = pNext->max_;
+			}
+
 			/*  Remove pNext, return ptr to pNext->next  */
 			pNext = RemoveNode(pAS_Info, pNode, pNext);
 		}
@@ -496,38 +551,43 @@ static void MT2063_ResetExclZones(struct MT2063_AvoidSpursData_t *pAS_Info)
 	pAS_Info->freeZones = NULL;	/*  reset ptr                  */
 
 	center =
-	    pAS_Info->f_ref *
-	    ((pAS_Info->f_if1_Center - pAS_Info->f_if1_bw / 2 +
-	      pAS_Info->f_in) / pAS_Info->f_ref) - pAS_Info->f_in;
+		pAS_Info->f_ref *
+		((pAS_Info->f_if1_Center - pAS_Info->f_if1_bw / 2 +
+		  pAS_Info->f_in) / pAS_Info->f_ref) - pAS_Info->f_in;
+
 	while (center <
-	       pAS_Info->f_if1_Center + pAS_Info->f_if1_bw / 2 +
-	       pAS_Info->f_LO1_FracN_Avoid) {
+		   pAS_Info->f_if1_Center + pAS_Info->f_if1_bw / 2 +
+		   pAS_Info->f_LO1_FracN_Avoid)
+	{
 		/*  Exclude LO1 FracN  */
 		MT2063_AddExclZone(pAS_Info,
-				   center - pAS_Info->f_LO1_FracN_Avoid,
-				   center - 1);
+						   center - pAS_Info->f_LO1_FracN_Avoid,
+						   center - 1);
 		MT2063_AddExclZone(pAS_Info, center + 1,
-				   center + pAS_Info->f_LO1_FracN_Avoid);
+						   center + pAS_Info->f_LO1_FracN_Avoid);
 		center += pAS_Info->f_ref;
 	}
 
 	center =
-	    pAS_Info->f_ref *
-	    ((pAS_Info->f_if1_Center - pAS_Info->f_if1_bw / 2 -
-	      pAS_Info->f_out) / pAS_Info->f_ref) + pAS_Info->f_out;
+		pAS_Info->f_ref *
+		((pAS_Info->f_if1_Center - pAS_Info->f_if1_bw / 2 -
+		  pAS_Info->f_out) / pAS_Info->f_ref) + pAS_Info->f_out;
+
 	while (center <
-	       pAS_Info->f_if1_Center + pAS_Info->f_if1_bw / 2 +
-	       pAS_Info->f_LO2_FracN_Avoid) {
+		   pAS_Info->f_if1_Center + pAS_Info->f_if1_bw / 2 +
+		   pAS_Info->f_LO2_FracN_Avoid)
+	{
 		/*  Exclude LO2 FracN  */
 		MT2063_AddExclZone(pAS_Info,
-				   center - pAS_Info->f_LO2_FracN_Avoid,
-				   center - 1);
+						   center - pAS_Info->f_LO2_FracN_Avoid,
+						   center - 1);
 		MT2063_AddExclZone(pAS_Info, center + 1,
-				   center + pAS_Info->f_LO2_FracN_Avoid);
+						   center + pAS_Info->f_LO2_FracN_Avoid);
 		center += pAS_Info->f_ref;
 	}
 
-	if (MT2063_EXCLUDE_US_DECT_FREQUENCIES(pAS_Info->avoidDECT)) {
+	if (MT2063_EXCLUDE_US_DECT_FREQUENCIES(pAS_Info->avoidDECT))
+	{
 		/*  Exclude LO1 values that conflict with DECT channels */
 		MT2063_AddExclZone(pAS_Info, 1920836000 - pAS_Info->f_in, 1922236000 - pAS_Info->f_in);	/* Ctr = 1921.536 */
 		MT2063_AddExclZone(pAS_Info, 1922564000 - pAS_Info->f_in, 1923964000 - pAS_Info->f_in);	/* Ctr = 1923.264 */
@@ -536,7 +596,8 @@ static void MT2063_ResetExclZones(struct MT2063_AvoidSpursData_t *pAS_Info)
 		MT2063_AddExclZone(pAS_Info, 1927748000 - pAS_Info->f_in, 1929148000 - pAS_Info->f_in);	/* Ctr = 1928.448 */
 	}
 
-	if (MT2063_EXCLUDE_EURO_DECT_FREQUENCIES(pAS_Info->avoidDECT)) {
+	if (MT2063_EXCLUDE_EURO_DECT_FREQUENCIES(pAS_Info->avoidDECT))
+	{
 		MT2063_AddExclZone(pAS_Info, 1896644000 - pAS_Info->f_in, 1898044000 - pAS_Info->f_in);	/* Ctr = 1897.344 */
 		MT2063_AddExclZone(pAS_Info, 1894916000 - pAS_Info->f_in, 1896316000 - pAS_Info->f_in);	/* Ctr = 1895.616 */
 		MT2063_AddExclZone(pAS_Info, 1893188000 - pAS_Info->f_in, 1894588000 - pAS_Info->f_in);	/* Ctr = 1893.888 */
@@ -567,14 +628,14 @@ static u32 MT2063_ChooseFirstIF(struct MT2063_AvoidSpursData_t *pAS_Info)
 	 * However, the sum must be.
 	 */
 	const u32 f_Desired =
-	    pAS_Info->f_LO1_Step *
-	    ((pAS_Info->f_if1_Request + pAS_Info->f_in +
-	      pAS_Info->f_LO1_Step / 2) / pAS_Info->f_LO1_Step) -
-	    pAS_Info->f_in;
+		pAS_Info->f_LO1_Step *
+		((pAS_Info->f_if1_Request + pAS_Info->f_in +
+		  pAS_Info->f_LO1_Step / 2) / pAS_Info->f_LO1_Step) -
+		pAS_Info->f_in;
 	const u32 f_Step =
-	    (pAS_Info->f_LO1_Step >
-	     pAS_Info->f_LO2_Step) ? pAS_Info->f_LO1_Step : pAS_Info->
-	    f_LO2_Step;
+		(pAS_Info->f_LO1_Step >
+		 pAS_Info->f_LO2_Step) ? pAS_Info->f_LO1_Step : pAS_Info->
+		f_LO2_Step;
 	u32 f_Center;
 	s32 i;
 	s32 j = 0;
@@ -588,7 +649,9 @@ static u32 MT2063_ChooseFirstIF(struct MT2063_AvoidSpursData_t *pAS_Info)
 	dprintk(2, "\n");
 
 	if (pAS_Info->nZones == 0)
+	{
 		return f_Desired;
+	}
 
 	/*
 	 *  f_Center needs to be an integer multiple of f_Step away
@@ -596,45 +659,54 @@ static u32 MT2063_ChooseFirstIF(struct MT2063_AvoidSpursData_t *pAS_Info)
 	 */
 	if (pAS_Info->f_if1_Center > f_Desired)
 		f_Center =
-		    f_Desired +
-		    f_Step *
-		    ((pAS_Info->f_if1_Center - f_Desired +
-		      f_Step / 2) / f_Step);
+			f_Desired +
+			f_Step *
+			((pAS_Info->f_if1_Center - f_Desired +
+			  f_Step / 2) / f_Step);
 	else
 		f_Center =
-		    f_Desired -
-		    f_Step *
-		    ((f_Desired - pAS_Info->f_if1_Center +
-		      f_Step / 2) / f_Step);
+			f_Desired -
+			f_Step *
+			((f_Desired - pAS_Info->f_if1_Center +
+			  f_Step / 2) / f_Step);
 
 	/*
 	 * Take MT_ExclZones, center around f_Center and change the
 	 * resolution to f_Step
 	 */
-	while (pNode != NULL) {
+	while (pNode != NULL)
+	{
 		/*  floor function  */
 		tmpMin =
-		    floor((s32) (pNode->min_ - f_Center), (s32) f_Step);
+			floor((s32) (pNode->min_ - f_Center), (s32) f_Step);
 
 		/*  ceil function  */
 		tmpMax =
-		    ceil((s32) (pNode->max_ - f_Center), (s32) f_Step);
+			ceil((s32) (pNode->max_ - f_Center), (s32) f_Step);
 
 		if ((pNode->min_ < f_Desired) && (pNode->max_ > f_Desired))
+		{
 			bDesiredExcluded = 1;
+		}
 
 		if ((tmpMin < 0) && (tmpMax > 0))
+		{
 			bZeroExcluded = 1;
+		}
 
 		/*  See if this zone overlaps the previous  */
 		if ((j > 0) && (tmpMin < zones[j - 1].max_))
+		{
 			zones[j - 1].max_ = tmpMax;
-		else {
+		}
+		else
+		{
 			/*  Add new zone  */
 			zones[j].min_ = tmpMin;
 			zones[j].max_ = tmpMax;
 			j++;
 		}
+
 		pNode = pNode->next_;
 	}
 
@@ -642,25 +714,38 @@ static u32 MT2063_ChooseFirstIF(struct MT2063_AvoidSpursData_t *pAS_Info)
 	 *  If the desired is okay, return with it
 	 */
 	if (bDesiredExcluded == 0)
+	{
 		return f_Desired;
+	}
 
 	/*
 	 *  If the desired is excluded and the center is okay, return with it
 	 */
 	if (bZeroExcluded == 0)
+	{
 		return f_Center;
+	}
 
 	/*  Find the value closest to 0 (f_Center)  */
 	bestDiff = zones[0].min_;
-	for (i = 0; i < j; i++) {
+
+	for (i = 0; i < j; i++)
+	{
 		if (abs(zones[i].min_) < abs(bestDiff))
+		{
 			bestDiff = zones[i].min_;
+		}
+
 		if (abs(zones[i].max_) < abs(bestDiff))
+		{
 			bestDiff = zones[i].max_;
+		}
 	}
 
 	if (bestDiff < 0)
+	{
 		return f_Center - ((u32) (-bestDiff) * f_Step);
+	}
 
 	return f_Center + (bestDiff * f_Step);
 }
@@ -685,7 +770,7 @@ static u32 MT2063_ChooseFirstIF(struct MT2063_AvoidSpursData_t *pAS_Info)
  *  Returns 1 if an LO spur would be present, otherwise 0.
  */
 static u32 IsSpurInBand(struct MT2063_AvoidSpursData_t *pAS_Info,
-			u32 *fm, u32 * fp)
+						u32 *fm, u32 *fp)
 {
 	/*
 	 **  Calculate LO frequency settings.
@@ -722,29 +807,36 @@ static u32 IsSpurInBand(struct MT2063_AvoidSpursData_t *pAS_Info,
 	n0 = DIV_ROUND_UP(f_LO2 - d, f_LO1 - f_LO2);
 
 	/*  Check out all multiples of LO1 from n0 to m_maxLOSpurHarmonic  */
-	for (n = n0; n <= pAS_Info->maxH1; ++n) {
+	for (n = n0; n <= pAS_Info->maxH1; ++n)
+	{
 		md = (n * ((f_LO1 + hgds) / gd_Scale) -
-		      ((d + hgds) / gd_Scale)) / ((f_LO2 + hgds) / gd_Scale);
+			  ((d + hgds) / gd_Scale)) / ((f_LO2 + hgds) / gd_Scale);
 
 		/*  If # fLO2 harmonics > m_maxLOSpurHarmonic, then no spurs present  */
 		if (md >= pAS_Info->maxH1)
+		{
 			break;
+		}
 
 		ma = (n * ((f_LO1 + hgds) / gd_Scale) +
-		      ((d + hgds) / gd_Scale)) / ((f_LO2 + hgds) / gd_Scale);
+			  ((d + hgds) / gd_Scale)) / ((f_LO2 + hgds) / gd_Scale);
 
 		/*  If no spurs between +/- (f_out + f_IFBW/2), then try next harmonic  */
 		if (md == ma)
+		{
 			continue;
+		}
 
 		mc = (n * ((f_LO1 + hgcs) / gc_Scale) -
-		      ((c + hgcs) / gc_Scale)) / ((f_LO2 + hgcs) / gc_Scale);
-		if (mc != md) {
+			  ((c + hgcs) / gc_Scale)) / ((f_LO2 + hgcs) / gc_Scale);
+
+		if (mc != md)
+		{
 			f_nsLO1 = (s32) (n * (f_LO1 / gc_Scale));
 			f_nsLO2 = (s32) (mc * (f_LO2 / gc_Scale));
 			f_Spur =
-			    (gc_Scale * (f_nsLO1 - f_nsLO2)) +
-			    n * (f_LO1 % gc_Scale) - mc * (f_LO2 % gc_Scale);
+				(gc_Scale * (f_nsLO1 - f_nsLO2)) +
+				n * (f_LO1 % gc_Scale) - mc * (f_LO2 % gc_Scale);
 
 			*fp = ((f_Spur - (s32) c) / (mc - n)) + 1;
 			*fm = (((s32) d - f_Spur) / (mc - n)) + 1;
@@ -753,15 +845,17 @@ static u32 IsSpurInBand(struct MT2063_AvoidSpursData_t *pAS_Info,
 
 		/*  Location of Zero-IF-spur to be checked  */
 		me = (n * ((f_LO1 + hgfs) / gf_Scale) +
-		      ((f + hgfs) / gf_Scale)) / ((f_LO2 + hgfs) / gf_Scale);
+			  ((f + hgfs) / gf_Scale)) / ((f_LO2 + hgfs) / gf_Scale);
 		mf = (n * ((f_LO1 + hgfs) / gf_Scale) -
-		      ((f + hgfs) / gf_Scale)) / ((f_LO2 + hgfs) / gf_Scale);
-		if (me != mf) {
+			  ((f + hgfs) / gf_Scale)) / ((f_LO2 + hgfs) / gf_Scale);
+
+		if (me != mf)
+		{
 			f_nsLO1 = n * (f_LO1 / gf_Scale);
 			f_nsLO2 = me * (f_LO2 / gf_Scale);
 			f_Spur =
-			    (gf_Scale * (f_nsLO1 - f_nsLO2)) +
-			    n * (f_LO1 % gf_Scale) - me * (f_LO2 % gf_Scale);
+				(gf_Scale * (f_nsLO1 - f_nsLO2)) +
+				n * (f_LO1 % gf_Scale) - me * (f_LO2 % gf_Scale);
 
 			*fp = ((f_Spur + (s32) f) / (me - n)) + 1;
 			*fm = (((s32) f - f_Spur) / (me - n)) + 1;
@@ -769,13 +863,15 @@ static u32 IsSpurInBand(struct MT2063_AvoidSpursData_t *pAS_Info,
 		}
 
 		mb = (n * ((f_LO1 + hgcs) / gc_Scale) +
-		      ((c + hgcs) / gc_Scale)) / ((f_LO2 + hgcs) / gc_Scale);
-		if (ma != mb) {
+			  ((c + hgcs) / gc_Scale)) / ((f_LO2 + hgcs) / gc_Scale);
+
+		if (ma != mb)
+		{
 			f_nsLO1 = n * (f_LO1 / gc_Scale);
 			f_nsLO2 = ma * (f_LO2 / gc_Scale);
 			f_Spur =
-			    (gc_Scale * (f_nsLO1 - f_nsLO2)) +
-			    n * (f_LO1 % gc_Scale) - ma * (f_LO2 % gc_Scale);
+				(gc_Scale * (f_nsLO1 - f_nsLO2)) +
+				n * (f_LO1 % gc_Scale) - ma * (f_LO2 % gc_Scale);
 
 			*fp = (((s32) d + f_Spur) / (ma - n)) + 1;
 			*fm = (-(f_Spur + (s32) c) / (ma - n)) + 1;
@@ -803,7 +899,9 @@ static u32 MT2063_AvoidSpurs(struct MT2063_AvoidSpursData_t *pAS_Info)
 	dprintk(2, "\n");
 
 	if (pAS_Info->maxH1 == 0)
+	{
 		return 0;
+	}
 
 	/*
 	 * Avoid LO Generated Spurs
@@ -817,7 +915,9 @@ static u32 MT2063_AvoidSpurs(struct MT2063_AvoidSpursData_t *pAS_Info)
 	 * will be unchanged if a spur-free setting is not found.
 	 */
 	pAS_Info->bSpurPresent = IsSpurInBand(pAS_Info, &fm, &fp);
-	if (pAS_Info->bSpurPresent) {
+
+	if (pAS_Info->bSpurPresent)
+	{
 		u32 zfIF1 = pAS_Info->f_LO1 - pAS_Info->f_in;	/*  current attempt at a 1st IF  */
 		u32 zfLO1 = pAS_Info->f_LO1;	/*  current attempt at an LO1 freq  */
 		u32 zfLO2 = pAS_Info->f_LO2;	/*  current attempt at an LO2 freq  */
@@ -827,7 +927,8 @@ static u32 MT2063_AvoidSpurs(struct MT2063_AvoidSpursData_t *pAS_Info)
 		/*
 		 **  Spur was found, attempt to find a spur-free 1st IF
 		 */
-		do {
+		do
+		{
 			pAS_Info->nSpursFound++;
 
 			/*  Raise f_IF1_upper, if needed  */
@@ -836,43 +937,56 @@ static u32 MT2063_AvoidSpurs(struct MT2063_AvoidSpursData_t *pAS_Info)
 			/*  Choose next IF1 that is closest to f_IF1_CENTER              */
 			new_IF1 = MT2063_ChooseFirstIF(pAS_Info);
 
-			if (new_IF1 > zfIF1) {
+			if (new_IF1 > zfIF1)
+			{
 				pAS_Info->f_LO1 += (new_IF1 - zfIF1);
 				pAS_Info->f_LO2 += (new_IF1 - zfIF1);
-			} else {
+			}
+			else
+			{
 				pAS_Info->f_LO1 -= (zfIF1 - new_IF1);
 				pAS_Info->f_LO2 -= (zfIF1 - new_IF1);
 			}
+
 			zfIF1 = new_IF1;
 
 			if (zfIF1 > pAS_Info->f_if1_Center)
+			{
 				delta_IF1 = zfIF1 - pAS_Info->f_if1_Center;
+			}
 			else
+			{
 				delta_IF1 = pAS_Info->f_if1_Center - zfIF1;
+			}
 
 			pAS_Info->bSpurPresent = IsSpurInBand(pAS_Info, &fm, &fp);
-		/*
-		 *  Continue while the new 1st IF is still within the 1st IF bandwidth
-		 *  and there is a spur in the band (again)
-		 */
-		} while ((2 * delta_IF1 + pAS_Info->f_out_bw <= pAS_Info->f_if1_bw) && pAS_Info->bSpurPresent);
+			/*
+			 *  Continue while the new 1st IF is still within the 1st IF bandwidth
+			 *  and there is a spur in the band (again)
+			 */
+		}
+		while ((2 * delta_IF1 + pAS_Info->f_out_bw <= pAS_Info->f_if1_bw) && pAS_Info->bSpurPresent);
 
 		/*
 		 * Use the LO-spur free values found.  If the search went all
 		 * the way to the 1st IF band edge and always found spurs, just
 		 * leave the original choice.  It's as "good" as any other.
 		 */
-		if (pAS_Info->bSpurPresent == 1) {
+		if (pAS_Info->bSpurPresent == 1)
+		{
 			status |= MT2063_SPUR_PRESENT_ERR;
 			pAS_Info->f_LO1 = zfLO1;
 			pAS_Info->f_LO2 = zfLO2;
-		} else
+		}
+		else
+		{
 			pAS_Info->bSpurAvoided = 1;
+		}
 	}
 
 	status |=
-	    ((pAS_Info->
-	      nSpursFound << MT2063_SPUR_SHIFT) & MT2063_SPUR_CNT_MASK);
+		((pAS_Info->
+		  nSpursFound << MT2063_SPUR_SHIFT) & MT2063_SPUR_CNT_MASK);
 
 	return status;
 }
@@ -928,21 +1042,29 @@ static int mt2063_lockStatus(struct mt2063_state *state)
 
 	/*  LO2 Lock bit was in a different place for B0 version  */
 	if (state->tuner_id == MT2063_B0)
+	{
 		LO2LK = 0x40;
+	}
 
-	do {
+	do
+	{
 		status = mt2063_read(state, MT2063_REG_LO_STATUS,
-				     &state->reg[MT2063_REG_LO_STATUS], 1);
+							 &state->reg[MT2063_REG_LO_STATUS], 1);
 
 		if (status < 0)
+		{
 			return status;
+		}
 
 		if ((state->reg[MT2063_REG_LO_STATUS] & (LO1LK | LO2LK)) ==
-		    (LO1LK | LO2LK)) {
+			(LO1LK | LO2LK))
+		{
 			return TUNER_STATUS_LOCKED | TUNER_STATUS_STEREO;
 		}
+
 		msleep(nPollRate);	/*  Wait between retries  */
-	} while (++nDelays < nMaxLoops);
+	}
+	while (++nDelays < nMaxLoops);
 
 	/*
 	 * Got no lock or partial lock
@@ -986,7 +1108,8 @@ static int mt2063_lockStatus(struct mt2063_state *state)
  *    PD2 Target  |  40 |  33 |  42 |  42 | 33  | 42
  */
 
-enum mt2063_delivery_sys {
+enum mt2063_delivery_sys
+{
 	MT2063_CABLE_QAM = 0,
 	MT2063_CABLE_ANALOG,
 	MT2063_OFFAIR_COFDM,
@@ -996,7 +1119,8 @@ enum mt2063_delivery_sys {
 	MT2063_NUM_RCVR_MODES
 };
 
-static const char *mt2063_mode_name[] = {
+static const char *mt2063_mode_name[] =
+{
 	[MT2063_CABLE_QAM]		= "digital cable",
 	[MT2063_CABLE_ANALOG]		= "analog cable",
 	[MT2063_OFFAIR_COFDM]		= "digital offair",
@@ -1024,21 +1148,33 @@ static const u8 PD2TGT[]	= { 40, 33, 38, 42, 30, 38 };
  * mt2063_set_dnc_output_enable()
  */
 static u32 mt2063_get_dnc_output_enable(struct mt2063_state *state,
-					enum MT2063_DNC_Output_Enable *pValue)
+										enum MT2063_DNC_Output_Enable *pValue)
 {
 	dprintk(2, "\n");
 
-	if ((state->reg[MT2063_REG_DNC_GAIN] & 0x03) == 0x03) {	/* if DNC1 is off */
+	if ((state->reg[MT2063_REG_DNC_GAIN] & 0x03) == 0x03)  	/* if DNC1 is off */
+	{
 		if ((state->reg[MT2063_REG_VGA_GAIN] & 0x03) == 0x03)	/* if DNC2 is off */
+		{
 			*pValue = MT2063_DNC_NONE;
+		}
 		else
+		{
 			*pValue = MT2063_DNC_2;
-	} else {	/* DNC1 is on */
-		if ((state->reg[MT2063_REG_VGA_GAIN] & 0x03) == 0x03)	/* if DNC2 is off */
-			*pValue = MT2063_DNC_1;
-		else
-			*pValue = MT2063_DNC_BOTH;
+		}
 	}
+	else  	/* DNC1 is on */
+	{
+		if ((state->reg[MT2063_REG_VGA_GAIN] & 0x03) == 0x03)	/* if DNC2 is off */
+		{
+			*pValue = MT2063_DNC_1;
+		}
+		else
+		{
+			*pValue = MT2063_DNC_BOTH;
+		}
+	}
+
 	return 0;
 }
 
@@ -1046,7 +1182,7 @@ static u32 mt2063_get_dnc_output_enable(struct mt2063_state *state,
  * mt2063_set_dnc_output_enable()
  */
 static u32 mt2063_set_dnc_output_enable(struct mt2063_state *state,
-					enum MT2063_DNC_Output_Enable nValue)
+										enum MT2063_DNC_Output_Enable nValue)
 {
 	int status = 0;	/* Status to be returned        */
 	u8 val = 0;
@@ -1054,113 +1190,130 @@ static u32 mt2063_set_dnc_output_enable(struct mt2063_state *state,
 	dprintk(2, "\n");
 
 	/* selects, which DNC output is used */
-	switch (nValue) {
-	case MT2063_DNC_NONE:
-		val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | 0x03;	/* Set DNC1GC=3 */
-		if (state->reg[MT2063_REG_DNC_GAIN] !=
-		    val)
-			status |=
-			    mt2063_setreg(state,
-					  MT2063_REG_DNC_GAIN,
-					  val);
+	switch (nValue)
+	{
+		case MT2063_DNC_NONE:
+			val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | 0x03;	/* Set DNC1GC=3 */
 
-		val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | 0x03;	/* Set DNC2GC=3 */
-		if (state->reg[MT2063_REG_VGA_GAIN] !=
-		    val)
-			status |=
-			    mt2063_setreg(state,
-					  MT2063_REG_VGA_GAIN,
-					  val);
+			if (state->reg[MT2063_REG_DNC_GAIN] !=
+				val)
+				status |=
+					mt2063_setreg(state,
+								  MT2063_REG_DNC_GAIN,
+								  val);
 
-		val = (state->reg[MT2063_REG_RSVD_20] & ~0x40);	/* Set PD2MUX=0 */
-		if (state->reg[MT2063_REG_RSVD_20] !=
-		    val)
-			status |=
-			    mt2063_setreg(state,
-					  MT2063_REG_RSVD_20,
-					  val);
+			val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | 0x03;	/* Set DNC2GC=3 */
 
-		break;
-	case MT2063_DNC_1:
-		val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | (DNC1GC[state->rcvr_mode] & 0x03);	/* Set DNC1GC=x */
-		if (state->reg[MT2063_REG_DNC_GAIN] !=
-		    val)
-			status |=
-			    mt2063_setreg(state,
-					  MT2063_REG_DNC_GAIN,
-					  val);
+			if (state->reg[MT2063_REG_VGA_GAIN] !=
+				val)
+				status |=
+					mt2063_setreg(state,
+								  MT2063_REG_VGA_GAIN,
+								  val);
 
-		val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | 0x03;	/* Set DNC2GC=3 */
-		if (state->reg[MT2063_REG_VGA_GAIN] !=
-		    val)
-			status |=
-			    mt2063_setreg(state,
-					  MT2063_REG_VGA_GAIN,
-					  val);
+			val = (state->reg[MT2063_REG_RSVD_20] & ~0x40);	/* Set PD2MUX=0 */
 
-		val = (state->reg[MT2063_REG_RSVD_20] & ~0x40);	/* Set PD2MUX=0 */
-		if (state->reg[MT2063_REG_RSVD_20] !=
-		    val)
-			status |=
-			    mt2063_setreg(state,
-					  MT2063_REG_RSVD_20,
-					  val);
+			if (state->reg[MT2063_REG_RSVD_20] !=
+				val)
+				status |=
+					mt2063_setreg(state,
+								  MT2063_REG_RSVD_20,
+								  val);
 
-		break;
-	case MT2063_DNC_2:
-		val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | 0x03;	/* Set DNC1GC=3 */
-		if (state->reg[MT2063_REG_DNC_GAIN] !=
-		    val)
-			status |=
-			    mt2063_setreg(state,
-					  MT2063_REG_DNC_GAIN,
-					  val);
+			break;
 
-		val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | (DNC2GC[state->rcvr_mode] & 0x03);	/* Set DNC2GC=x */
-		if (state->reg[MT2063_REG_VGA_GAIN] !=
-		    val)
-			status |=
-			    mt2063_setreg(state,
-					  MT2063_REG_VGA_GAIN,
-					  val);
+		case MT2063_DNC_1:
+			val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | (DNC1GC[state->rcvr_mode] & 0x03);	/* Set DNC1GC=x */
 
-		val = (state->reg[MT2063_REG_RSVD_20] | 0x40);	/* Set PD2MUX=1 */
-		if (state->reg[MT2063_REG_RSVD_20] !=
-		    val)
-			status |=
-			    mt2063_setreg(state,
-					  MT2063_REG_RSVD_20,
-					  val);
+			if (state->reg[MT2063_REG_DNC_GAIN] !=
+				val)
+				status |=
+					mt2063_setreg(state,
+								  MT2063_REG_DNC_GAIN,
+								  val);
 
-		break;
-	case MT2063_DNC_BOTH:
-		val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | (DNC1GC[state->rcvr_mode] & 0x03);	/* Set DNC1GC=x */
-		if (state->reg[MT2063_REG_DNC_GAIN] !=
-		    val)
-			status |=
-			    mt2063_setreg(state,
-					  MT2063_REG_DNC_GAIN,
-					  val);
+			val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | 0x03;	/* Set DNC2GC=3 */
 
-		val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | (DNC2GC[state->rcvr_mode] & 0x03);	/* Set DNC2GC=x */
-		if (state->reg[MT2063_REG_VGA_GAIN] !=
-		    val)
-			status |=
-			    mt2063_setreg(state,
-					  MT2063_REG_VGA_GAIN,
-					  val);
+			if (state->reg[MT2063_REG_VGA_GAIN] !=
+				val)
+				status |=
+					mt2063_setreg(state,
+								  MT2063_REG_VGA_GAIN,
+								  val);
 
-		val = (state->reg[MT2063_REG_RSVD_20] | 0x40);	/* Set PD2MUX=1 */
-		if (state->reg[MT2063_REG_RSVD_20] !=
-		    val)
-			status |=
-			    mt2063_setreg(state,
-					  MT2063_REG_RSVD_20,
-					  val);
+			val = (state->reg[MT2063_REG_RSVD_20] & ~0x40);	/* Set PD2MUX=0 */
 
-		break;
-	default:
-		break;
+			if (state->reg[MT2063_REG_RSVD_20] !=
+				val)
+				status |=
+					mt2063_setreg(state,
+								  MT2063_REG_RSVD_20,
+								  val);
+
+			break;
+
+		case MT2063_DNC_2:
+			val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | 0x03;	/* Set DNC1GC=3 */
+
+			if (state->reg[MT2063_REG_DNC_GAIN] !=
+				val)
+				status |=
+					mt2063_setreg(state,
+								  MT2063_REG_DNC_GAIN,
+								  val);
+
+			val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | (DNC2GC[state->rcvr_mode] & 0x03);	/* Set DNC2GC=x */
+
+			if (state->reg[MT2063_REG_VGA_GAIN] !=
+				val)
+				status |=
+					mt2063_setreg(state,
+								  MT2063_REG_VGA_GAIN,
+								  val);
+
+			val = (state->reg[MT2063_REG_RSVD_20] | 0x40);	/* Set PD2MUX=1 */
+
+			if (state->reg[MT2063_REG_RSVD_20] !=
+				val)
+				status |=
+					mt2063_setreg(state,
+								  MT2063_REG_RSVD_20,
+								  val);
+
+			break;
+
+		case MT2063_DNC_BOTH:
+			val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | (DNC1GC[state->rcvr_mode] & 0x03);	/* Set DNC1GC=x */
+
+			if (state->reg[MT2063_REG_DNC_GAIN] !=
+				val)
+				status |=
+					mt2063_setreg(state,
+								  MT2063_REG_DNC_GAIN,
+								  val);
+
+			val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | (DNC2GC[state->rcvr_mode] & 0x03);	/* Set DNC2GC=x */
+
+			if (state->reg[MT2063_REG_VGA_GAIN] !=
+				val)
+				status |=
+					mt2063_setreg(state,
+								  MT2063_REG_VGA_GAIN,
+								  val);
+
+			val = (state->reg[MT2063_REG_RSVD_20] | 0x40);	/* Set PD2MUX=1 */
+
+			if (state->reg[MT2063_REG_RSVD_20] !=
+				val)
+				status |=
+					mt2063_setreg(state,
+								  MT2063_REG_RSVD_20,
+								  val);
+
+			break;
+
+		default:
+			break;
 	}
 
 	return status;
@@ -1180,7 +1333,7 @@ static u32 mt2063_set_dnc_output_enable(struct mt2063_state *state,
  */
 
 static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
-				  enum mt2063_delivery_sys Mode)
+								  enum mt2063_delivery_sys Mode)
 {
 	int status = 0;	/* Status to be returned        */
 	u8 val;
@@ -1189,46 +1342,59 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
 	dprintk(2, "\n");
 
 	if (Mode >= MT2063_NUM_RCVR_MODES)
+	{
 		status = -ERANGE;
+	}
 
 	/* RFAGCen */
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		val =
-		    (state->
-		     reg[MT2063_REG_PD1_TGT] & ~0x40) | (RFAGCEN[Mode]
-								   ? 0x40 :
-								   0x00);
+			(state->
+			 reg[MT2063_REG_PD1_TGT] & ~0x40) | (RFAGCEN[Mode]
+					 ? 0x40 :
+					 0x00);
+
 		if (state->reg[MT2063_REG_PD1_TGT] != val)
+		{
 			status |= mt2063_setreg(state, MT2063_REG_PD1_TGT, val);
+		}
 	}
 
 	/* LNARin */
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		u8 val = (state->reg[MT2063_REG_CTRL_2C] & ~0x03) |
-			 (LNARIN[Mode] & 0x03);
+				 (LNARIN[Mode] & 0x03);
+
 		if (state->reg[MT2063_REG_CTRL_2C] != val)
+		{
 			status |= mt2063_setreg(state, MT2063_REG_CTRL_2C, val);
+		}
 	}
 
 	/* FIFFQEN and FIFFQ */
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		val =
-		    (state->
-		     reg[MT2063_REG_FIFF_CTRL2] & ~0xF0) |
-		    (FIFFQEN[Mode] << 7) | (FIFFQ[Mode] << 4);
-		if (state->reg[MT2063_REG_FIFF_CTRL2] != val) {
+			(state->
+			 reg[MT2063_REG_FIFF_CTRL2] & ~0xF0) |
+			(FIFFQEN[Mode] << 7) | (FIFFQ[Mode] << 4);
+
+		if (state->reg[MT2063_REG_FIFF_CTRL2] != val)
+		{
 			status |=
-			    mt2063_setreg(state, MT2063_REG_FIFF_CTRL2, val);
+				mt2063_setreg(state, MT2063_REG_FIFF_CTRL2, val);
 			/* trigger FIFF calibration, needed after changing FIFFQ */
 			val =
-			    (state->reg[MT2063_REG_FIFF_CTRL] | 0x01);
+				(state->reg[MT2063_REG_FIFF_CTRL] | 0x01);
 			status |=
-			    mt2063_setreg(state, MT2063_REG_FIFF_CTRL, val);
+				mt2063_setreg(state, MT2063_REG_FIFF_CTRL, val);
 			val =
-			    (state->
-			     reg[MT2063_REG_FIFF_CTRL] & ~0x01);
+				(state->
+				 reg[MT2063_REG_FIFF_CTRL] & ~0x01);
 			status |=
-			    mt2063_setreg(state, MT2063_REG_FIFF_CTRL, val);
+				mt2063_setreg(state, MT2063_REG_FIFF_CTRL, val);
 		}
 	}
 
@@ -1237,76 +1403,113 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
 	status |= mt2063_set_dnc_output_enable(state, longval);
 
 	/* acLNAmax */
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		u8 val = (state->reg[MT2063_REG_LNA_OV] & ~0x1F) |
-			 (ACLNAMAX[Mode] & 0x1F);
+				 (ACLNAMAX[Mode] & 0x1F);
+
 		if (state->reg[MT2063_REG_LNA_OV] != val)
+		{
 			status |= mt2063_setreg(state, MT2063_REG_LNA_OV, val);
+		}
 	}
 
 	/* LNATGT */
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		u8 val = (state->reg[MT2063_REG_LNA_TGT] & ~0x3F) |
-			 (LNATGT[Mode] & 0x3F);
+				 (LNATGT[Mode] & 0x3F);
+
 		if (state->reg[MT2063_REG_LNA_TGT] != val)
+		{
 			status |= mt2063_setreg(state, MT2063_REG_LNA_TGT, val);
+		}
 	}
 
 	/* ACRF */
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		u8 val = (state->reg[MT2063_REG_RF_OV] & ~0x1F) |
-			 (ACRFMAX[Mode] & 0x1F);
+				 (ACRFMAX[Mode] & 0x1F);
+
 		if (state->reg[MT2063_REG_RF_OV] != val)
+		{
 			status |= mt2063_setreg(state, MT2063_REG_RF_OV, val);
+		}
 	}
 
 	/* PD1TGT */
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		u8 val = (state->reg[MT2063_REG_PD1_TGT] & ~0x3F) |
-			 (PD1TGT[Mode] & 0x3F);
+				 (PD1TGT[Mode] & 0x3F);
+
 		if (state->reg[MT2063_REG_PD1_TGT] != val)
+		{
 			status |= mt2063_setreg(state, MT2063_REG_PD1_TGT, val);
+		}
 	}
 
 	/* FIFATN */
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		u8 val = ACFIFMAX[Mode];
+
 		if (state->reg[MT2063_REG_PART_REV] != MT2063_B3 && val > 5)
+		{
 			val = 5;
+		}
+
 		val = (state->reg[MT2063_REG_FIF_OV] & ~0x1F) |
-		      (val & 0x1F);
+			  (val & 0x1F);
+
 		if (state->reg[MT2063_REG_FIF_OV] != val)
+		{
 			status |= mt2063_setreg(state, MT2063_REG_FIF_OV, val);
+		}
 	}
 
 	/* PD2TGT */
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		u8 val = (state->reg[MT2063_REG_PD2_TGT] & ~0x3F) |
-		    (PD2TGT[Mode] & 0x3F);
+				 (PD2TGT[Mode] & 0x3F);
+
 		if (state->reg[MT2063_REG_PD2_TGT] != val)
+		{
 			status |= mt2063_setreg(state, MT2063_REG_PD2_TGT, val);
+		}
 	}
 
 	/* Ignore ATN Overload */
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		val = (state->reg[MT2063_REG_LNA_TGT] & ~0x80) |
-		      (RFOVDIS[Mode] ? 0x80 : 0x00);
+			  (RFOVDIS[Mode] ? 0x80 : 0x00);
+
 		if (state->reg[MT2063_REG_LNA_TGT] != val)
+		{
 			status |= mt2063_setreg(state, MT2063_REG_LNA_TGT, val);
+		}
 	}
 
 	/* Ignore FIF Overload */
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		val = (state->reg[MT2063_REG_PD1_TGT] & ~0x80) |
-		      (FIFOVDIS[Mode] ? 0x80 : 0x00);
+			  (FIFOVDIS[Mode] ? 0x80 : 0x00);
+
 		if (state->reg[MT2063_REG_PD1_TGT] != val)
+		{
 			status |= mt2063_setreg(state, MT2063_REG_PD1_TGT, val);
+		}
 	}
 
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		state->rcvr_mode = Mode;
 		dprintk(1, "mt2063 mode changed to %s\n",
-			mt2063_mode_name[state->rcvr_mode]);
+				mt2063_mode_name[state->rcvr_mode]);
 	}
 
 	return status;
@@ -1322,25 +1525,29 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
  * of each of the power bits.
  */
 static u32 MT2063_ClearPowerMaskBits(struct mt2063_state *state,
-				     enum MT2063_Mask_Bits Bits)
+									 enum MT2063_Mask_Bits Bits)
 {
 	int status = 0;
 
 	dprintk(2, "\n");
 	Bits = (enum MT2063_Mask_Bits)(Bits & MT2063_ALL_SD);	/* Only valid bits for this tuner */
-	if ((Bits & 0xFF00) != 0) {
+
+	if ((Bits & 0xFF00) != 0)
+	{
 		state->reg[MT2063_REG_PWR_2] &= ~(u8) (Bits >> 8);
 		status |=
-		    mt2063_write(state,
-				    MT2063_REG_PWR_2,
-				    &state->reg[MT2063_REG_PWR_2], 1);
+			mt2063_write(state,
+						 MT2063_REG_PWR_2,
+						 &state->reg[MT2063_REG_PWR_2], 1);
 	}
-	if ((Bits & 0xFF) != 0) {
+
+	if ((Bits & 0xFF) != 0)
+	{
 		state->reg[MT2063_REG_PWR_1] &= ~(u8) (Bits & 0xFF);
 		status |=
-		    mt2063_write(state,
-				    MT2063_REG_PWR_1,
-				    &state->reg[MT2063_REG_PWR_1], 1);
+			mt2063_write(state,
+						 MT2063_REG_PWR_1,
+						 &state->reg[MT2063_REG_PWR_1], 1);
 	}
 
 	return status;
@@ -1356,30 +1563,36 @@ static u32 MT2063_SoftwareShutdown(struct mt2063_state *state, u8 Shutdown)
 	int status;
 
 	dprintk(2, "\n");
+
 	if (Shutdown == 1)
+	{
 		state->reg[MT2063_REG_PWR_1] |= 0x04;
+	}
 	else
+	{
 		state->reg[MT2063_REG_PWR_1] &= ~0x04;
+	}
 
 	status = mt2063_write(state,
-			    MT2063_REG_PWR_1,
-			    &state->reg[MT2063_REG_PWR_1], 1);
+						  MT2063_REG_PWR_1,
+						  &state->reg[MT2063_REG_PWR_1], 1);
 
-	if (Shutdown != 1) {
+	if (Shutdown != 1)
+	{
 		state->reg[MT2063_REG_BYP_CTRL] =
-		    (state->reg[MT2063_REG_BYP_CTRL] & 0x9F) | 0x40;
+			(state->reg[MT2063_REG_BYP_CTRL] & 0x9F) | 0x40;
 		status |=
-		    mt2063_write(state,
-				    MT2063_REG_BYP_CTRL,
-				    &state->reg[MT2063_REG_BYP_CTRL],
-				    1);
+			mt2063_write(state,
+						 MT2063_REG_BYP_CTRL,
+						 &state->reg[MT2063_REG_BYP_CTRL],
+						 1);
 		state->reg[MT2063_REG_BYP_CTRL] =
-		    (state->reg[MT2063_REG_BYP_CTRL] & 0x9F);
+			(state->reg[MT2063_REG_BYP_CTRL] & 0x9F);
 		status |=
-		    mt2063_write(state,
-				    MT2063_REG_BYP_CTRL,
-				    &state->reg[MT2063_REG_BYP_CTRL],
-				    1);
+			mt2063_write(state,
+						 MT2063_REG_BYP_CTRL,
+						 &state->reg[MT2063_REG_BYP_CTRL],
+						 1);
 	}
 
 	return status;
@@ -1388,7 +1601,7 @@ static u32 MT2063_SoftwareShutdown(struct mt2063_state *state, u8 Shutdown)
 static u32 MT2063_Round_fLO(u32 f_LO, u32 f_LO_Step, u32 f_ref)
 {
 	return f_ref * (f_LO / f_ref)
-	    + f_LO_Step * (((f_LO % f_ref) + (f_LO_Step / 2)) / f_LO_Step);
+		   + f_LO_Step * (((f_LO % f_ref) + (f_LO_Step / 2)) / f_LO_Step);
 }
 
 /**
@@ -1415,7 +1628,7 @@ static u32 MT2063_fLO_FractionalTerm(u32 f_ref, u32 num, u32 denom)
 	u32 term1 = t1 / denom;
 	u32 loss = t1 % denom;
 	u32 term2 =
-	    (((f_ref & 0x00003FFF) * num + (loss << 14)) + (denom / 2)) / denom;
+		(((f_ref & 0x00003FFF) * num + (loss << 14)) + (denom / 2)) / denom;
 	return (term1 << 14) + term2;
 }
 
@@ -1437,17 +1650,17 @@ static u32 MT2063_fLO_FractionalTerm(u32 f_ref, u32 num, u32 denom)
  * Returns:        Recalculated LO frequency.
  */
 static u32 MT2063_CalcLO1Mult(u32 *Div,
-			      u32 *FracN,
-			      u32 f_LO,
-			      u32 f_LO_Step, u32 f_Ref)
+							  u32 *FracN,
+							  u32 f_LO,
+							  u32 f_LO_Step, u32 f_Ref)
 {
 	/*  Calculate the whole number portion of the divider */
 	*Div = f_LO / f_Ref;
 
 	/*  Calculate the numerator value (round to nearest f_LO_Step) */
 	*FracN =
-	    (64 * (((f_LO % f_Ref) + (f_LO_Step / 2)) / f_LO_Step) +
-	     (f_Ref / f_LO_Step / 2)) / (f_Ref / f_LO_Step);
+		(64 * (((f_LO % f_Ref) + (f_LO_Step / 2)) / f_LO_Step) +
+		 (f_Ref / f_LO_Step / 2)) / (f_Ref / f_LO_Step);
 
 	return (f_Ref * (*Div)) + MT2063_fLO_FractionalTerm(f_Ref, *FracN, 64);
 }
@@ -1470,20 +1683,20 @@ static u32 MT2063_CalcLO1Mult(u32 *Div,
  * Returns: Recalculated LO frequency.
  */
 static u32 MT2063_CalcLO2Mult(u32 *Div,
-			      u32 *FracN,
-			      u32 f_LO,
-			      u32 f_LO_Step, u32 f_Ref)
+							  u32 *FracN,
+							  u32 f_LO,
+							  u32 f_LO_Step, u32 f_Ref)
 {
 	/*  Calculate the whole number portion of the divider */
 	*Div = f_LO / f_Ref;
 
 	/*  Calculate the numerator value (round to nearest f_LO_Step) */
 	*FracN =
-	    (8191 * (((f_LO % f_Ref) + (f_LO_Step / 2)) / f_LO_Step) +
-	     (f_Ref / f_LO_Step / 2)) / (f_Ref / f_LO_Step);
+		(8191 * (((f_LO % f_Ref) + (f_LO_Step / 2)) / f_LO_Step) +
+		 (f_Ref / f_LO_Step / 2)) / (f_Ref / f_LO_Step);
 
 	return (f_Ref * (*Div)) + MT2063_fLO_FractionalTerm(f_Ref, *FracN,
-							    8191);
+			8191);
 }
 
 /*
@@ -1504,12 +1717,16 @@ static u32 FindClearTuneFilter(struct mt2063_state *state, u32 f_in)
 	 **  Find RF Band setting
 	 */
 	RFBand = 31;		/*  def when f_in > all    */
-	for (idx = 0; idx < 31; ++idx) {
-		if (state->CTFiltMax[idx] >= f_in) {
+
+	for (idx = 0; idx < 31; ++idx)
+	{
+		if (state->CTFiltMax[idx] >= f_in)
+		{
 			RFBand = idx;
 			break;
 		}
 	}
+
 	return RFBand;
 }
 
@@ -1517,7 +1734,8 @@ static u32 FindClearTuneFilter(struct mt2063_state *state, u32 f_in)
  * MT2063_Tune() - Change the tuner's tuned frequency to RFin.
  */
 static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
-{				/* RF input center frequency   */
+{
+	/* RF input center frequency   */
 
 	int status = 0;
 	u32 LO1;		/*  1st LO register value           */
@@ -1534,59 +1752,72 @@ static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
 	u32 RFBand;
 
 	dprintk(2, "\n");
+
 	/*  Check the input and output frequency ranges                   */
 	if ((f_in < MT2063_MIN_FIN_FREQ) || (f_in > MT2063_MAX_FIN_FREQ))
+	{
 		return -EINVAL;
+	}
 
 	if ((state->AS_Data.f_out < MT2063_MIN_FOUT_FREQ)
-	    || (state->AS_Data.f_out > MT2063_MAX_FOUT_FREQ))
+		|| (state->AS_Data.f_out > MT2063_MAX_FOUT_FREQ))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Save original LO1 and LO2 register values
 	 */
 	ofLO1 = state->AS_Data.f_LO1;
-	ofLO2 = state->AS_Data.f_LO2; 
+	ofLO2 = state->AS_Data.f_LO2;
 
 	/*
 	 * Find and set RF Band setting
 	 */
-	if (state->ctfilt_sw == 1) {
+	if (state->ctfilt_sw == 1)
+	{
 		val = (state->reg[MT2063_REG_CTUNE_CTRL] | 0x08);
-		if (state->reg[MT2063_REG_CTUNE_CTRL] != val) {
+
+		if (state->reg[MT2063_REG_CTUNE_CTRL] != val)
+		{
 			status |=
-			    mt2063_setreg(state, MT2063_REG_CTUNE_CTRL, val);
+				mt2063_setreg(state, MT2063_REG_CTUNE_CTRL, val);
 		}
+
 		val = state->reg[MT2063_REG_CTUNE_OV];
 		RFBand = FindClearTuneFilter(state, f_in);
 		state->reg[MT2063_REG_CTUNE_OV] =
-		    (u8) ((state->reg[MT2063_REG_CTUNE_OV] & ~0x1F)
-			      | RFBand);
-		if (state->reg[MT2063_REG_CTUNE_OV] != val) {
+			(u8) ((state->reg[MT2063_REG_CTUNE_OV] & ~0x1F)
+				  | RFBand);
+
+		if (state->reg[MT2063_REG_CTUNE_OV] != val)
+		{
 			status |=
-			    mt2063_setreg(state, MT2063_REG_CTUNE_OV, val);
+				mt2063_setreg(state, MT2063_REG_CTUNE_OV, val);
 		}
 	}
 
 	/*
 	 * Read the FIFF Center Frequency from the tuner
 	 */
-	if (status >= 0) {
+	if (status >= 0)
+	{
 		status |=
-		    mt2063_read(state,
-				   MT2063_REG_FIFFC,
-				   &state->reg[MT2063_REG_FIFFC], 1);
+			mt2063_read(state,
+						MT2063_REG_FIFFC,
+						&state->reg[MT2063_REG_FIFFC], 1);
 		fiffc = state->reg[MT2063_REG_FIFFC];
 	}
+
 	/*
 	 * Assign in the requested values
 	 */
 	state->AS_Data.f_in = f_in;
 	/*  Request a 1st IF such that LO1 is on a step size */
 	state->AS_Data.f_if1_Request =
-	    MT2063_Round_fLO(state->AS_Data.f_if1_Request + f_in,
-			     state->AS_Data.f_LO1_Step,
-			     state->AS_Data.f_ref) - f_in;
+		MT2063_Round_fLO(state->AS_Data.f_if1_Request + f_in,
+						 state->AS_Data.f_LO1_Step,
+						 state->AS_Data.f_ref) - f_in;
 
 	/*
 	 * Calculate frequency settings.  f_IF1_FREQ + f_in is the
@@ -1597,12 +1828,12 @@ static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
 	f_IF1 = MT2063_ChooseFirstIF(&state->AS_Data);
 
 	state->AS_Data.f_LO1 =
-	    MT2063_Round_fLO(f_IF1 + f_in, state->AS_Data.f_LO1_Step,
-			     state->AS_Data.f_ref);
+		MT2063_Round_fLO(f_IF1 + f_in, state->AS_Data.f_LO1_Step,
+						 state->AS_Data.f_ref);
 
 	state->AS_Data.f_LO2 =
-	    MT2063_Round_fLO(state->AS_Data.f_LO1 - state->AS_Data.f_out - f_in,
-			     state->AS_Data.f_LO2_Step, state->AS_Data.f_ref);
+		MT2063_Round_fLO(state->AS_Data.f_LO1 - state->AS_Data.f_out - f_in,
+						 state->AS_Data.f_LO2_Step, state->AS_Data.f_ref);
 
 	/*
 	 * Check for any LO spurs in the output bandwidth and adjust
@@ -1615,36 +1846,45 @@ static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
 	 * in the tuning registers.
 	 */
 	state->AS_Data.f_LO1 =
-	    MT2063_CalcLO1Mult(&LO1, &Num1, state->AS_Data.f_LO1,
-			       state->AS_Data.f_LO1_Step, state->AS_Data.f_ref);
+		MT2063_CalcLO1Mult(&LO1, &Num1, state->AS_Data.f_LO1,
+						   state->AS_Data.f_LO1_Step, state->AS_Data.f_ref);
 	state->AS_Data.f_LO2 =
-	    MT2063_Round_fLO(state->AS_Data.f_LO1 - state->AS_Data.f_out - f_in,
-			     state->AS_Data.f_LO2_Step, state->AS_Data.f_ref);
+		MT2063_Round_fLO(state->AS_Data.f_LO1 - state->AS_Data.f_out - f_in,
+						 state->AS_Data.f_LO2_Step, state->AS_Data.f_ref);
 	state->AS_Data.f_LO2 =
-	    MT2063_CalcLO2Mult(&LO2, &Num2, state->AS_Data.f_LO2,
-			       state->AS_Data.f_LO2_Step, state->AS_Data.f_ref);
+		MT2063_CalcLO2Mult(&LO2, &Num2, state->AS_Data.f_LO2,
+						   state->AS_Data.f_LO2_Step, state->AS_Data.f_ref);
 
 	/*
 	 *  Check the upconverter and downconverter frequency ranges
 	 */
 	if ((state->AS_Data.f_LO1 < MT2063_MIN_UPC_FREQ)
-	    || (state->AS_Data.f_LO1 > MT2063_MAX_UPC_FREQ))
+		|| (state->AS_Data.f_LO1 > MT2063_MAX_UPC_FREQ))
+	{
 		status |= MT2063_UPC_RANGE;
+	}
+
 	if ((state->AS_Data.f_LO2 < MT2063_MIN_DNC_FREQ)
-	    || (state->AS_Data.f_LO2 > MT2063_MAX_DNC_FREQ))
+		|| (state->AS_Data.f_LO2 > MT2063_MAX_DNC_FREQ))
+	{
 		status |= MT2063_DNC_RANGE;
+	}
+
 	/*  LO2 Lock bit was in a different place for B0 version  */
 	if (state->tuner_id == MT2063_B0)
+	{
 		LO2LK = 0x40;
+	}
 
 	/*
 	 *  If we have the same LO frequencies and we're already locked,
 	 *  then skip re-programming the LO registers.
 	 */
 	if ((ofLO1 != state->AS_Data.f_LO1)
-	    || (ofLO2 != state->AS_Data.f_LO2)
-	    || ((state->reg[MT2063_REG_LO_STATUS] & (LO1LK | LO2LK)) !=
-		(LO1LK | LO2LK))) {
+		|| (ofLO2 != state->AS_Data.f_LO2)
+		|| ((state->reg[MT2063_REG_LO_STATUS] & (LO1LK | LO2LK)) !=
+			(LO1LK | LO2LK)))
+	{
 		/*
 		 * Calculate the FIFFOF register value
 		 *
@@ -1653,21 +1893,25 @@ static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
 		 *            f_ref/64
 		 */
 		fiffof =
-		    (state->AS_Data.f_LO1 -
-		     f_in) / (state->AS_Data.f_ref / 64) - 8 * (u32) fiffc -
-		    4992;
+			(state->AS_Data.f_LO1 -
+			 f_in) / (state->AS_Data.f_ref / 64) - 8 * (u32) fiffc -
+			4992;
+
 		if (fiffof > 0xFF)
+		{
 			fiffof = 0xFF;
+		}
 
 		/*
 		 * Place all of the calculated values into the local tuner
 		 * register fields.
 		 */
-		if (status >= 0) {
+		if (status >= 0)
+		{
 			state->reg[MT2063_REG_LO1CQ_1] = (u8) (LO1 & 0xFF);	/* DIV1q */
 			state->reg[MT2063_REG_LO1CQ_2] = (u8) (Num1 & 0x3F);	/* NUM1q */
 			state->reg[MT2063_REG_LO2CQ_1] = (u8) (((LO2 & 0x7F) << 1)	/* DIV2q */
-								   |(Num2 >> 12));	/* NUM2q (hi) */
+												   | (Num2 >> 12));	/* NUM2q (hi) */
 			state->reg[MT2063_REG_LO2CQ_2] = (u8) ((Num2 & 0x0FF0) >> 4);	/* NUM2q (mid) */
 			state->reg[MT2063_REG_LO2CQ_3] = (u8) (0xE0 | (Num2 & 0x000F));	/* NUM2q (lo) */
 
@@ -1677,21 +1921,25 @@ static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
 			 *            (0x05 must follow all the others).
 			 */
 			status |= mt2063_write(state, MT2063_REG_LO1CQ_1, &state->reg[MT2063_REG_LO1CQ_1], 5);	/* 0x01 - 0x05 */
-			if (state->tuner_id == MT2063_B0) {
+
+			if (state->tuner_id == MT2063_B0)
+			{
 				/* Re-write the one-shot bits to trigger the tune operation */
 				status |= mt2063_write(state, MT2063_REG_LO2CQ_3, &state->reg[MT2063_REG_LO2CQ_3], 1);	/* 0x05 */
 			}
+
 			/* Write out the FIFF offset only if it's changing */
 			if (state->reg[MT2063_REG_FIFF_OFFSET] !=
-			    (u8) fiffof) {
+				(u8) fiffof)
+			{
 				state->reg[MT2063_REG_FIFF_OFFSET] =
-				    (u8) fiffof;
+					(u8) fiffof;
 				status |=
-				    mt2063_write(state,
-						    MT2063_REG_FIFF_OFFSET,
-						    &state->
-						    reg[MT2063_REG_FIFF_OFFSET],
-						    1);
+					mt2063_write(state,
+								 MT2063_REG_FIFF_OFFSET,
+								 &state->
+								 reg[MT2063_REG_FIFF_OFFSET],
+								 1);
 			}
 		}
 
@@ -1700,13 +1948,21 @@ static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
 		 */
 
 		if (status < 0)
+		{
 			return status;
+		}
 
 		status = mt2063_lockStatus(state);
+
 		if (status < 0)
+		{
 			return status;
+		}
+
 		if (!status)
-			return -EINVAL;		/* Couldn't lock */
+		{
+			return -EINVAL;    /* Couldn't lock */
+		}
 
 		/*
 		 * If we locked OK, assign calculated data to mt2063_state structure
@@ -1717,7 +1973,8 @@ static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
 	return status;
 }
 
-static const u8 MT2063B0_defaults[] = {
+static const u8 MT2063B0_defaults[] =
+{
 	/* Reg,  Value */
 	0x19, 0x05,
 	0x1B, 0x1D,
@@ -1742,7 +1999,8 @@ static const u8 MT2063B0_defaults[] = {
 };
 
 /* writing 0x05 0xf0 sw-resets all registers, so we write only needed changes */
-static const u8 MT2063B1_defaults[] = {
+static const u8 MT2063B1_defaults[] =
+{
 	/* Reg,  Value */
 	0x05, 0xF0,
 	0x11, 0x10,	/* New Enable AFCsd */
@@ -1769,7 +2027,8 @@ static const u8 MT2063B1_defaults[] = {
 };
 
 /* writing 0x05 0xf0 sw-resets all registers, so we write only needed changes */
-static const u8 MT2063B3_defaults[] = {
+static const u8 MT2063B3_defaults[] =
+{
 	/* Reg,  Value */
 	0x05, 0xF0,
 	0x19, 0x3D,
@@ -1798,41 +2057,49 @@ static int mt2063_init(struct dvb_frontend *fe)
 
 	/*  Read the Part/Rev code from the tuner */
 	status = mt2063_read(state, MT2063_REG_PART_REV,
-			     &state->reg[MT2063_REG_PART_REV], 1);
-	if (status < 0) {
+						 &state->reg[MT2063_REG_PART_REV], 1);
+
+	if (status < 0)
+	{
 		printk(KERN_ERR "Can't read mt2063 part ID\n");
 		return status;
 	}
 
 	/* Check the part/rev code */
-	switch (state->reg[MT2063_REG_PART_REV]) {
-	case MT2063_B0:
-		step = "B0";
-		break;
-	case MT2063_B1:
-		step = "B1";
-		break;
-	case MT2063_B2:
-		step = "B2";
-		break;
-	case MT2063_B3:
-		step = "B3";
-		break;
-	default:
-		printk(KERN_ERR "mt2063: Unknown mt2063 device ID (0x%02x)\n",
-		       state->reg[MT2063_REG_PART_REV]);
-		return -ENODEV;	/*  Wrong tuner Part/Rev code */
+	switch (state->reg[MT2063_REG_PART_REV])
+	{
+		case MT2063_B0:
+			step = "B0";
+			break;
+
+		case MT2063_B1:
+			step = "B1";
+			break;
+
+		case MT2063_B2:
+			step = "B2";
+			break;
+
+		case MT2063_B3:
+			step = "B3";
+			break;
+
+		default:
+			printk(KERN_ERR "mt2063: Unknown mt2063 device ID (0x%02x)\n",
+				   state->reg[MT2063_REG_PART_REV]);
+			return -ENODEV;	/*  Wrong tuner Part/Rev code */
 	}
 
 	/*  Check the 2nd byte of the Part/Rev code from the tuner */
 	status = mt2063_read(state, MT2063_REG_RSVD_3B,
-			     &state->reg[MT2063_REG_RSVD_3B], 1);
+						 &state->reg[MT2063_REG_RSVD_3B], 1);
 
 	/* b7 != 0 ==> NOT MT2063 */
-	if (status < 0 || ((state->reg[MT2063_REG_RSVD_3B] & 0x80) != 0x00)) {
+	if (status < 0 || ((state->reg[MT2063_REG_RSVD_3B] & 0x80) != 0x00))
+	{
 		printk(KERN_ERR "mt2063: Unknown part ID (0x%02x%02x)\n",
-		       state->reg[MT2063_REG_PART_REV],
-		       state->reg[MT2063_REG_RSVD_3B]);
+			   state->reg[MT2063_REG_PART_REV],
+			   state->reg[MT2063_REG_RSVD_3B]);
 		return -ENODEV;	/*  Wrong tuner Part/Rev code */
 	}
 
@@ -1840,70 +2107,88 @@ static int mt2063_init(struct dvb_frontend *fe)
 
 	/*  Reset the tuner  */
 	status = mt2063_write(state, MT2063_REG_LO2CQ_3, &all_resets, 1);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	/* change all of the default values that vary from the HW reset values */
 	/*  def = (state->reg[PART_REV] == MT2063_B0) ? MT2063B0_defaults : MT2063B1_defaults; */
-	switch (state->reg[MT2063_REG_PART_REV]) {
-	case MT2063_B3:
-		def = MT2063B3_defaults;
-		break;
+	switch (state->reg[MT2063_REG_PART_REV])
+	{
+		case MT2063_B3:
+			def = MT2063B3_defaults;
+			break;
 
-	case MT2063_B1:
-		def = MT2063B1_defaults;
-		break;
+		case MT2063_B1:
+			def = MT2063B1_defaults;
+			break;
 
-	case MT2063_B0:
-		def = MT2063B0_defaults;
-		break;
+		case MT2063_B0:
+			def = MT2063B0_defaults;
+			break;
 
-	default:
-		return -ENODEV;
-		break;
+		default:
+			return -ENODEV;
+			break;
 	}
 
-	while (status >= 0 && *def) {
+	while (status >= 0 && *def)
+	{
 		u8 reg = *def++;
 		u8 val = *def++;
 		status = mt2063_write(state, reg, &val, 1);
 	}
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	/*  Wait for FIFF location to complete.  */
 	FCRUN = 1;
 	maxReads = 10;
-	while (status >= 0 && (FCRUN != 0) && (maxReads-- > 0)) {
+
+	while (status >= 0 && (FCRUN != 0) && (maxReads-- > 0))
+	{
 		msleep(2);
 		status = mt2063_read(state,
-					 MT2063_REG_XO_STATUS,
-					 &state->
-					 reg[MT2063_REG_XO_STATUS], 1);
+							 MT2063_REG_XO_STATUS,
+							 &state->
+							 reg[MT2063_REG_XO_STATUS], 1);
 		FCRUN = (state->reg[MT2063_REG_XO_STATUS] & 0x40) >> 6;
 	}
 
 	if (FCRUN != 0 || status < 0)
+	{
 		return -ENODEV;
+	}
 
 	status = mt2063_read(state,
-			   MT2063_REG_FIFFC,
-			   &state->reg[MT2063_REG_FIFFC], 1);
+						 MT2063_REG_FIFFC,
+						 &state->reg[MT2063_REG_FIFFC], 1);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	/* Read back all the registers from the tuner */
 	status = mt2063_read(state,
-				MT2063_REG_PART_REV,
-				state->reg, MT2063_REG_END_REGS);
+						 MT2063_REG_PART_REV,
+						 state->reg, MT2063_REG_END_REGS);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	/*  Initialize the tuner state.  */
 	state->tuner_id = state->reg[MT2063_REG_PART_REV];
 	state->AS_Data.f_ref = MT2063_REF_FREQ;
 	state->AS_Data.f_if1_Center = (state->AS_Data.f_ref / 8) *
-				      ((u32) state->reg[MT2063_REG_FIFFC] + 640);
+								  ((u32) state->reg[MT2063_REG_FIFFC] + 640);
 	state->AS_Data.f_if1_bw = MT2063_IF1_BW;
 	state->AS_Data.f_out = 43750000UL;
 	state->AS_Data.f_out_bw = 6750000UL;
@@ -1963,34 +2248,52 @@ static int mt2063_init(struct dvb_frontend *fe)
 
 	state->reg[MT2063_REG_CTUNE_CTRL] = 0x0A;
 	status = mt2063_write(state, MT2063_REG_CTUNE_CTRL,
-			      &state->reg[MT2063_REG_CTUNE_CTRL], 1);
+						  &state->reg[MT2063_REG_CTUNE_CTRL], 1);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	/*  Read the ClearTune filter calibration value  */
 	status = mt2063_read(state, MT2063_REG_FIFFC,
-			     &state->reg[MT2063_REG_FIFFC], 1);
+						 &state->reg[MT2063_REG_FIFFC], 1);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	fcu_osc = state->reg[MT2063_REG_FIFFC];
 
 	state->reg[MT2063_REG_CTUNE_CTRL] = 0x00;
 	status = mt2063_write(state, MT2063_REG_CTUNE_CTRL,
-			      &state->reg[MT2063_REG_CTUNE_CTRL], 1);
+						  &state->reg[MT2063_REG_CTUNE_CTRL], 1);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	/*  Adjust each of the values in the ClearTune filter cross-over table  */
 	for (i = 0; i < 31; i++)
+	{
 		state->CTFiltMax[i] = (state->CTFiltMax[i] / 768) * (fcu_osc + 640);
+	}
 
 	status = MT2063_SoftwareShutdown(state, 1);
+
 	if (status < 0)
+	{
 		return status;
+	}
+
 	status = MT2063_ClearPowerMaskBits(state, MT2063_ALL_SD);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	state->init = true;
 
@@ -2005,14 +2308,22 @@ static int mt2063_get_status(struct dvb_frontend *fe, u32 *tuner_status)
 	dprintk(2, "\n");
 
 	if (!state->init)
+	{
 		return -ENODEV;
+	}
 
 	*tuner_status = 0;
 	status = mt2063_lockStatus(state);
+
 	if (status < 0)
+	{
 		return status;
+	}
+
 	if (status)
+	{
 		*tuner_status = TUNER_STATUS_LOCKED;
+	}
 
 	dprintk(1, "Tuner status: %d", *tuner_status);
 
@@ -2032,7 +2343,7 @@ static int mt2063_release(struct dvb_frontend *fe)
 }
 
 static int mt2063_set_analog_params(struct dvb_frontend *fe,
-				    struct analog_parameters *params)
+									struct analog_parameters *params)
 {
 	struct mt2063_state *state = fe->tuner_priv;
 	s32 pict_car;
@@ -2044,53 +2355,74 @@ static int mt2063_set_analog_params(struct dvb_frontend *fe,
 
 	dprintk(2, "\n");
 
-	if (!state->init) {
+	if (!state->init)
+	{
 		status = mt2063_init(fe);
+
 		if (status < 0)
+		{
 			return status;
+		}
 	}
 
-	switch (params->mode) {
-	case V4L2_TUNER_RADIO:
-		pict_car = 38900000;
-		ch_bw = 8000000;
-		pict2chanb_vsb = -(ch_bw / 2);
-		rcvr_mode = MT2063_OFFAIR_ANALOG;
-		break;
-	case V4L2_TUNER_ANALOG_TV:
-		rcvr_mode = MT2063_CABLE_ANALOG;
-		if (params->std & ~V4L2_STD_MN) {
-			pict_car = 38900000;
-			ch_bw = 6000000;
-			pict2chanb_vsb = -1250000;
-		} else if (params->std & V4L2_STD_PAL_G) {
-			pict_car = 38900000;
-			ch_bw = 7000000;
-			pict2chanb_vsb = -1250000;
-		} else {		/* PAL/SECAM standards */
+	switch (params->mode)
+	{
+		case V4L2_TUNER_RADIO:
 			pict_car = 38900000;
 			ch_bw = 8000000;
-			pict2chanb_vsb = -1250000;
-		}
-		break;
-	default:
-		return -EINVAL;
+			pict2chanb_vsb = -(ch_bw / 2);
+			rcvr_mode = MT2063_OFFAIR_ANALOG;
+			break;
+
+		case V4L2_TUNER_ANALOG_TV:
+			rcvr_mode = MT2063_CABLE_ANALOG;
+
+			if (params->std & ~V4L2_STD_MN)
+			{
+				pict_car = 38900000;
+				ch_bw = 6000000;
+				pict2chanb_vsb = -1250000;
+			}
+			else if (params->std & V4L2_STD_PAL_G)
+			{
+				pict_car = 38900000;
+				ch_bw = 7000000;
+				pict2chanb_vsb = -1250000;
+			}
+			else  		/* PAL/SECAM standards */
+			{
+				pict_car = 38900000;
+				ch_bw = 8000000;
+				pict2chanb_vsb = -1250000;
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	if_mid = pict_car - (pict2chanb_vsb + (ch_bw / 2));
 
 	state->AS_Data.f_LO2_Step = 125000;	/* FIXME: probably 5000 for FM */
 	state->AS_Data.f_out = if_mid;
 	state->AS_Data.f_out_bw = ch_bw + 750000;
 	status = MT2063_SetReceiverMode(state, rcvr_mode);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	dprintk(1, "Tuning to frequency: %d, bandwidth %d, foffset %d\n",
-		params->frequency, ch_bw, pict2chanb_vsb);
+			params->frequency, ch_bw, pict2chanb_vsb);
 
 	status = MT2063_Tune(state, (params->frequency + (pict2chanb_vsb + (ch_bw / 2))));
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	state->frequency = params->frequency;
 	return 0;
@@ -2116,54 +2448,76 @@ static int mt2063_set_params(struct dvb_frontend *fe)
 	s32 if_mid;
 	s32 rcvr_mode;
 
-	if (!state->init) {
+	if (!state->init)
+	{
 		status = mt2063_init(fe);
+
 		if (status < 0)
+		{
 			return status;
+		}
 	}
 
 	dprintk(2, "\n");
 
 	if (c->bandwidth_hz == 0)
-		return -EINVAL;
-	if (c->bandwidth_hz <= 6000000)
-		ch_bw = 6000000;
-	else if (c->bandwidth_hz <= 7000000)
-		ch_bw = 7000000;
-	else
-		ch_bw = 8000000;
-
-	switch (c->delivery_system) {
-	case SYS_DVBT:
-		rcvr_mode = MT2063_OFFAIR_COFDM;
-		pict_car = 36125000;
-		pict2chanb_vsb = -(ch_bw / 2);
-		break;
-	case SYS_DVBC_ANNEX_A:
-	case SYS_DVBC_ANNEX_C:
-		rcvr_mode = MT2063_CABLE_QAM;
-		pict_car = 36125000;
-		pict2chanb_vsb = -(ch_bw / 2);
-		break;
-	default:
+	{
 		return -EINVAL;
 	}
+
+	if (c->bandwidth_hz <= 6000000)
+	{
+		ch_bw = 6000000;
+	}
+	else if (c->bandwidth_hz <= 7000000)
+	{
+		ch_bw = 7000000;
+	}
+	else
+	{
+		ch_bw = 8000000;
+	}
+
+	switch (c->delivery_system)
+	{
+		case SYS_DVBT:
+			rcvr_mode = MT2063_OFFAIR_COFDM;
+			pict_car = 36125000;
+			pict2chanb_vsb = -(ch_bw / 2);
+			break;
+
+		case SYS_DVBC_ANNEX_A:
+		case SYS_DVBC_ANNEX_C:
+			rcvr_mode = MT2063_CABLE_QAM;
+			pict_car = 36125000;
+			pict2chanb_vsb = -(ch_bw / 2);
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
 	if_mid = pict_car - (pict2chanb_vsb + (ch_bw / 2));
 
 	state->AS_Data.f_LO2_Step = 125000;	/* FIXME: probably 5000 for FM */
 	state->AS_Data.f_out = if_mid;
 	state->AS_Data.f_out_bw = ch_bw + 750000;
 	status = MT2063_SetReceiverMode(state, rcvr_mode);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	dprintk(1, "Tuning to frequency: %d, bandwidth %d, foffset %d\n",
-		c->frequency, ch_bw, pict2chanb_vsb);
+			c->frequency, ch_bw, pict2chanb_vsb);
 
 	status = MT2063_Tune(state, (c->frequency + (pict2chanb_vsb + (ch_bw / 2))));
 
 	if (status < 0)
+	{
 		return status;
+	}
 
 	state->frequency = c->frequency;
 	return 0;
@@ -2176,7 +2530,9 @@ static int mt2063_get_if_frequency(struct dvb_frontend *fe, u32 *freq)
 	dprintk(2, "\n");
 
 	if (!state->init)
+	{
 		return -ENODEV;
+	}
 
 	*freq = state->AS_Data.f_out;
 
@@ -2192,7 +2548,9 @@ static int mt2063_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
 	dprintk(2, "\n");
 
 	if (!state->init)
+	{
 		return -ENODEV;
+	}
 
 	*bw = state->AS_Data.f_out_bw - 750000;
 
@@ -2201,13 +2559,14 @@ static int mt2063_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
 	return 0;
 }
 
-static const struct dvb_tuner_ops mt2063_ops = {
+static const struct dvb_tuner_ops mt2063_ops =
+{
 	.info = {
-		 .name = "MT2063 Silicon Tuner",
-		 .frequency_min = 45000000,
-		 .frequency_max = 865000000,
-		 .frequency_step = 0,
-		 },
+		.name = "MT2063 Silicon Tuner",
+		.frequency_min = 45000000,
+		.frequency_max = 865000000,
+		.frequency_step = 0,
+	},
 
 	.init = mt2063_init,
 	.sleep = MT2063_Sleep,
@@ -2220,16 +2579,19 @@ static const struct dvb_tuner_ops mt2063_ops = {
 };
 
 struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
-				   struct mt2063_config *config,
-				   struct i2c_adapter *i2c)
+								   struct mt2063_config *config,
+								   struct i2c_adapter *i2c)
 {
 	struct mt2063_state *state = NULL;
 
 	dprintk(2, "\n");
 
 	state = kzalloc(sizeof(struct mt2063_state), GFP_KERNEL);
+
 	if (!state)
+	{
 		return NULL;
+	}
 
 	state->config = config;
 	state->i2c = i2c;
@@ -2256,8 +2618,11 @@ static int tuner_MT2063_SoftwareShutdown(struct dvb_frontend *fe)
 	dprintk(2, "\n");
 
 	err = MT2063_SoftwareShutdown(state, 1);
+
 	if (err < 0)
+	{
 		printk(KERN_ERR "%s: Couldn't shutdown\n", __func__);
+	}
 
 	return err;
 }
@@ -2270,8 +2635,11 @@ static int tuner_MT2063_ClearPowerMaskBits(struct dvb_frontend *fe)
 	dprintk(2, "\n");
 
 	err = MT2063_ClearPowerMaskBits(state, MT2063_ALL_SD);
+
 	if (err < 0)
+	{
 		printk(KERN_ERR "%s: Invalid parameter\n", __func__);
+	}
 
 	return err;
 }

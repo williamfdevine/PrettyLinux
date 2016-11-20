@@ -27,18 +27,24 @@
 #include "dw_mmc-pltfm.h"
 
 int dw_mci_pltfm_register(struct platform_device *pdev,
-			  const struct dw_mci_drv_data *drv_data)
+						  const struct dw_mci_drv_data *drv_data)
 {
 	struct dw_mci *host;
 	struct resource	*regs;
 
 	host = devm_kzalloc(&pdev->dev, sizeof(struct dw_mci), GFP_KERNEL);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	host->irq = platform_get_irq(pdev, 0);
+
 	if (host->irq < 0)
+	{
 		return host->irq;
+	}
 
 	host->drv_data = drv_data;
 	host->dev = &pdev->dev;
@@ -47,8 +53,11 @@ int dw_mci_pltfm_register(struct platform_device *pdev,
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	host->regs = devm_ioremap_resource(&pdev->dev, regs);
+
 	if (IS_ERR(host->regs))
+	{
 		return PTR_ERR(host->regs);
+	}
 
 	/* Get registers' physical base address */
 	host->phy_regs = regs->start;
@@ -80,7 +89,8 @@ static int dw_mci_pltfm_resume(struct device *dev)
 SIMPLE_DEV_PM_OPS(dw_mci_pltfm_pmops, dw_mci_pltfm_suspend, dw_mci_pltfm_resume);
 EXPORT_SYMBOL_GPL(dw_mci_pltfm_pmops);
 
-static const struct of_device_id dw_mci_pltfm_match[] = {
+static const struct of_device_id dw_mci_pltfm_match[] =
+{
 	{ .compatible = "snps,dw-mshc", },
 	{ .compatible = "altr,socfpga-dw-mshc", },
 	{ .compatible = "img,pistachio-dw-mshc", },
@@ -93,7 +103,8 @@ static int dw_mci_pltfm_probe(struct platform_device *pdev)
 	const struct dw_mci_drv_data *drv_data = NULL;
 	const struct of_device_id *match;
 
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		match = of_match_node(dw_mci_pltfm_match, pdev->dev.of_node);
 		drv_data = match->data;
 	}
@@ -110,7 +121,8 @@ int dw_mci_pltfm_remove(struct platform_device *pdev)
 }
 EXPORT_SYMBOL_GPL(dw_mci_pltfm_remove);
 
-static struct platform_driver dw_mci_pltfm_driver = {
+static struct platform_driver dw_mci_pltfm_driver =
+{
 	.probe		= dw_mci_pltfm_probe,
 	.remove		= dw_mci_pltfm_remove,
 	.driver		= {

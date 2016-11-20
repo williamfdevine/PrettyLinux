@@ -30,7 +30,8 @@
  * Initialisation data specific to either the machine or the platform
  * for the device driver to use or call-back when configuring gpio.
  */
-struct samsung_keypad_platdata {
+struct samsung_keypad_platdata
+{
 	const struct matrix_keymap_data	*keymap_data;
 	unsigned int rows;
 	unsigned int cols;

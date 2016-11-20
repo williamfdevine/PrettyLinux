@@ -29,7 +29,8 @@
 #define DLM_DEVICE_VERSION_PATCH 2
 
 /* struct passed to the lock write */
-struct dlm_lock_params {
+struct dlm_lock_params
+{
 	__u8 mode;
 	__u8 namelen;
 	__u16 unused;
@@ -47,43 +48,49 @@ struct dlm_lock_params {
 	char name[0];
 };
 
-struct dlm_lspace_params {
+struct dlm_lspace_params
+{
 	__u32 flags;
 	__u32 minor;
 	char name[0];
 };
 
-struct dlm_purge_params {
+struct dlm_purge_params
+{
 	__u32 nodeid;
 	__u32 pid;
 };
 
-struct dlm_write_request {
+struct dlm_write_request
+{
 	__u32 version[3];
 	__u8 cmd;
 	__u8 is64bit;
 	__u8 unused[2];
 
-	union  {
+	union
+	{
 		struct dlm_lock_params   lock;
 		struct dlm_lspace_params lspace;
 		struct dlm_purge_params  purge;
 	} i;
 };
 
-struct dlm_device_version {
+struct dlm_device_version
+{
 	__u32 version[3];
 };
 
 /* struct read from the "device" fd,
    consists mainly of userspace pointers for the library to use */
 
-struct dlm_lock_result {
+struct dlm_lock_result
+{
 	__u32 version[3];
 	__u32 length;
-	void __user * user_astaddr;
-	void __user * user_astparam;
-	struct dlm_lksb __user * user_lksb;
+	void __user *user_astaddr;
+	void __user *user_astparam;
+	struct dlm_lksb __user *user_lksb;
 	struct dlm_lksb lksb;
 	__u8 bast_mode;
 	__u8 unused[3];

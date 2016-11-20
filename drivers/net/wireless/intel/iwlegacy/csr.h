@@ -188,13 +188,13 @@
 #define CSR_INT_BIT_ALIVE        (1 << 0)	/* uCode interrupts once it initializes */
 
 #define CSR_INI_SET_MASK	(CSR_INT_BIT_FH_RX   | \
-				 CSR_INT_BIT_HW_ERR  | \
-				 CSR_INT_BIT_FH_TX   | \
-				 CSR_INT_BIT_SW_ERR  | \
-				 CSR_INT_BIT_RF_KILL | \
-				 CSR_INT_BIT_SW_RX   | \
-				 CSR_INT_BIT_WAKEUP  | \
-				 CSR_INT_BIT_ALIVE)
+							 CSR_INT_BIT_HW_ERR  | \
+							 CSR_INT_BIT_FH_TX   | \
+							 CSR_INT_BIT_SW_ERR  | \
+							 CSR_INT_BIT_RF_KILL | \
+							 CSR_INT_BIT_SW_RX   | \
+							 CSR_INT_BIT_WAKEUP  | \
+							 CSR_INT_BIT_ALIVE)
 
 /* interrupt flags in FH (flow handler) (PCI busmaster DMA) */
 #define CSR_FH_INT_BIT_ERR       (1 << 31)	/* Error */
@@ -207,20 +207,20 @@
 #define CSR_FH_INT_BIT_TX_CHNL0  (1 << 0)	/* Tx channel 0 */
 
 #define CSR39_FH_INT_RX_MASK	(CSR_FH_INT_BIT_HI_PRIOR | \
-				 CSR39_FH_INT_BIT_RX_CHNL2 | \
-				 CSR_FH_INT_BIT_RX_CHNL1 | \
-				 CSR_FH_INT_BIT_RX_CHNL0)
+								 CSR39_FH_INT_BIT_RX_CHNL2 | \
+								 CSR_FH_INT_BIT_RX_CHNL1 | \
+								 CSR_FH_INT_BIT_RX_CHNL0)
 
 #define CSR39_FH_INT_TX_MASK	(CSR39_FH_INT_BIT_TX_CHNL6 | \
-				 CSR_FH_INT_BIT_TX_CHNL1 | \
-				 CSR_FH_INT_BIT_TX_CHNL0)
+								 CSR_FH_INT_BIT_TX_CHNL1 | \
+								 CSR_FH_INT_BIT_TX_CHNL0)
 
 #define CSR49_FH_INT_RX_MASK	(CSR_FH_INT_BIT_HI_PRIOR | \
-				 CSR_FH_INT_BIT_RX_CHNL1 | \
-				 CSR_FH_INT_BIT_RX_CHNL0)
+								 CSR_FH_INT_BIT_RX_CHNL1 | \
+								 CSR_FH_INT_BIT_RX_CHNL0)
 
 #define CSR49_FH_INT_TX_MASK	(CSR_FH_INT_BIT_TX_CHNL1 | \
-				 CSR_FH_INT_BIT_TX_CHNL0)
+								 CSR_FH_INT_BIT_TX_CHNL0)
 
 /* GPIO */
 #define CSR_GPIO_IN_BIT_AUX_POWER                   (0x00000200)

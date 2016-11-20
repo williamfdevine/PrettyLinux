@@ -33,7 +33,8 @@
 #define FLITE_DEFAULT_HEIGHT	480
 
 /* Bit index definitions for struct fimc_lite::state */
-enum {
+enum
+{
 	ST_FLITE_LPM,
 	ST_FLITE_PENDING,
 	ST_FLITE_RUN,
@@ -62,7 +63,8 @@ enum {
  * @max_dma_bufs: number of output DMA buffer start address registers
  * @num_instances: total number of FIMC-LITE IP instances available
  */
-struct flite_drvdata {
+struct flite_drvdata
+{
 	unsigned short max_width;
 	unsigned short max_height;
 	unsigned short out_width_align;
@@ -72,7 +74,8 @@ struct flite_drvdata {
 	unsigned short num_instances;
 };
 
-struct fimc_lite_events {
+struct fimc_lite_events
+{
 	unsigned int data_overflow;
 };
 
@@ -85,7 +88,8 @@ struct fimc_lite_events {
  * @rect: crop/composition rectangle
  * @fmt: pointer to pixel format description data structure
  */
-struct flite_frame {
+struct flite_frame
+{
 	u16 f_width;
 	u16 f_height;
 	struct v4l2_rect rect;
@@ -99,7 +103,8 @@ struct flite_frame {
  * @paddr: DMA buffer start address
  * @index: DMA start address register's index
  */
-struct flite_buffer {
+struct flite_buffer
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 	dma_addr_t paddr;
@@ -141,7 +146,8 @@ struct flite_buffer {
  * @frame_count: the captured frames counter
  * @reqbufs_count: the number of buffers requested with REQBUFS ioctl
  */
-struct fimc_lite {
+struct fimc_lite
+{
 	struct platform_device	*pdev;
 	struct flite_drvdata	*dd;
 	struct exynos_video_entity ve;
@@ -187,37 +193,37 @@ static inline bool fimc_lite_active(struct fimc_lite *fimc)
 
 	spin_lock_irqsave(&fimc->slock, flags);
 	ret = fimc->state & (1 << ST_FLITE_RUN) ||
-		fimc->state & (1 << ST_FLITE_PENDING);
+		  fimc->state & (1 << ST_FLITE_PENDING);
 	spin_unlock_irqrestore(&fimc->slock, flags);
 	return ret;
 }
 
 static inline void fimc_lite_active_queue_add(struct fimc_lite *dev,
-					 struct flite_buffer *buf)
+		struct flite_buffer *buf)
 {
 	list_add_tail(&buf->list, &dev->active_buf_q);
 }
 
 static inline struct flite_buffer *fimc_lite_active_queue_pop(
-					struct fimc_lite *dev)
+	struct fimc_lite *dev)
 {
 	struct flite_buffer *buf = list_entry(dev->active_buf_q.next,
-					      struct flite_buffer, list);
+										  struct flite_buffer, list);
 	list_del(&buf->list);
 	return buf;
 }
 
 static inline void fimc_lite_pending_queue_add(struct fimc_lite *dev,
-					struct flite_buffer *buf)
+		struct flite_buffer *buf)
 {
 	list_add_tail(&buf->list, &dev->pending_buf_q);
 }
 
 static inline struct flite_buffer *fimc_lite_pending_queue_pop(
-					struct fimc_lite *dev)
+	struct fimc_lite *dev)
 {
 	struct flite_buffer *buf = list_entry(dev->pending_buf_q.next,
-					      struct flite_buffer, list);
+										  struct flite_buffer, list);
 	list_del(&buf->list);
 	return buf;
 }

@@ -8,7 +8,8 @@
 #define FOU_GENL_NAME		"fou"
 #define FOU_GENL_VERSION	0x1
 
-enum {
+enum
+{
 	FOU_ATTR_UNSPEC,
 	FOU_ATTR_PORT,				/* u16 */
 	FOU_ATTR_AF,				/* u8 */
@@ -21,7 +22,8 @@ enum {
 
 #define FOU_ATTR_MAX		(__FOU_ATTR_MAX - 1)
 
-enum {
+enum
+{
 	FOU_CMD_UNSPEC,
 	FOU_CMD_ADD,
 	FOU_CMD_DEL,
@@ -30,7 +32,8 @@ enum {
 	__FOU_CMD_MAX,
 };
 
-enum {
+enum
+{
 	FOU_ENCAP_UNSPEC,
 	FOU_ENCAP_DIRECT,
 	FOU_ENCAP_GUE,

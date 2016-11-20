@@ -24,7 +24,8 @@
 
 #include "iohelper.h"
 
-struct isac_hw {
+struct isac_hw
+{
 	struct dchannel		dch;
 	u32			type;
 	u32			off;		/* offset to isac regs */
@@ -56,7 +57,8 @@ struct isac_hw {
 
 struct ipac_hw;
 
-struct hscx_hw {
+struct hscx_hw
+{
 	struct bchannel		bch;
 	struct ipac_hw		*ip;
 	u8			fifo_size;
@@ -65,7 +67,8 @@ struct hscx_hw {
 	char			log[64];
 };
 
-struct ipac_hw {
+struct ipac_hw
+{
 	struct isac_hw		isac;
 	struct hscx_hw		hscx[2];
 	char			*name;

@@ -54,7 +54,8 @@
  * @QID_BEACON: Beacon queue (value unspecified, don't send it to device)
  * @QID_ATIM: Atim queue (value unspecified, don't send it to device)
  */
-enum data_queue_qid {
+enum data_queue_qid
+{
 	QID_AC_VO = 0,
 	QID_AC_VI = 1,
 	QID_AC_BE = 2,
@@ -79,7 +80,8 @@ enum data_queue_qid {
  * @SKBDESC_DESC_IN_SKB: The descriptor is at the start of the
  *	skb, instead of in the desc field.
  */
-enum skb_frame_desc_flags {
+enum skb_frame_desc_flags
+{
 	SKBDESC_DMA_MAPPED_RX = 1 << 0,
 	SKBDESC_DMA_MAPPED_TX = 1 << 1,
 	SKBDESC_IV_STRIPPED = 1 << 2,
@@ -104,7 +106,8 @@ enum skb_frame_desc_flags {
  * @skb_dma: (PCI-only) the DMA address associated with the sk buffer.
  * @entry: The entry to which this sk buffer belongs.
  */
-struct skb_frame_desc {
+struct skb_frame_desc
+{
 	u8 flags;
 
 	u8 desc_len;
@@ -124,10 +127,10 @@ struct skb_frame_desc {
  * get_skb_frame_desc - Obtain the rt2x00 frame descriptor from a sk_buff.
  * @skb: &struct sk_buff from where we obtain the &struct skb_frame_desc
  */
-static inline struct skb_frame_desc* get_skb_frame_desc(struct sk_buff *skb)
+static inline struct skb_frame_desc *get_skb_frame_desc(struct sk_buff *skb)
 {
 	BUILD_BUG_ON(sizeof(struct skb_frame_desc) >
-		     IEEE80211_TX_INFO_DRIVER_DATA_SIZE);
+				 IEEE80211_TX_INFO_DRIVER_DATA_SIZE);
 	return (struct skb_frame_desc *)&IEEE80211_SKB_CB(skb)->driver_data;
 }
 
@@ -142,7 +145,8 @@ static inline struct skb_frame_desc* get_skb_frame_desc(struct sk_buff *skb)
  * @RXDONE_CRYPTO_ICV: Driver provided ICV data.
  * @RXDONE_L2PAD: 802.11 payload has been padded to 4-byte boundary.
  */
-enum rxdone_entry_desc_flags {
+enum rxdone_entry_desc_flags
+{
 	RXDONE_SIGNAL_PLCP = BIT(0),
 	RXDONE_SIGNAL_BITRATE = BIT(1),
 	RXDONE_SIGNAL_MCS = BIT(2),
@@ -177,7 +181,8 @@ enum rxdone_entry_desc_flags {
  * @iv: IV/EIV data used during decryption.
  * @icv: ICV data used during decryption.
  */
-struct rxdone_entry_desc {
+struct rxdone_entry_desc
+{
 	u64 timestamp;
 	int signal;
 	int rssi;
@@ -209,7 +214,8 @@ struct rxdone_entry_desc {
  * @TXDONE_EXCESSIVE_RETRY: In addition to &TXDONE_FAILURE, the
  *	frame transmission failed due to excessive retries.
  */
-enum txdone_entry_desc_flags {
+enum txdone_entry_desc_flags
+{
 	TXDONE_UNKNOWN,
 	TXDONE_SUCCESS,
 	TXDONE_FALLBACK,
@@ -227,7 +233,8 @@ enum txdone_entry_desc_flags {
  * @flags: TX done flags (See &enum txdone_entry_desc_flags).
  * @retry: Retry count.
  */
-struct txdone_entry_desc {
+struct txdone_entry_desc
+{
 	unsigned long flags;
 	int retry;
 };
@@ -253,7 +260,8 @@ struct txdone_entry_desc {
  * @ENTRY_TXD_HT_SHORT_GI: Use short GI.
  * @ENTRY_TXD_HT_MIMO_PS: The receiving STA is in dynamic SM PS mode.
  */
-enum txentry_desc_flags {
+enum txentry_desc_flags
+{
 	ENTRY_TXD_RTS_FRAME,
 	ENTRY_TXD_CTS_FRAME,
 	ENTRY_TXD_GENERATE_SEQ,
@@ -298,14 +306,17 @@ enum txentry_desc_flags {
  * @iv_offset: Position where IV should be inserted by hardware.
  * @iv_len: Length of IV data.
  */
-struct txentry_desc {
+struct txentry_desc
+{
 	unsigned long flags;
 
 	u16 length;
 	u16 header_length;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u16 length_high;
 			u16 length_low;
 			u16 signal;
@@ -313,7 +324,8 @@ struct txentry_desc {
 			enum ifs ifs;
 		} plcp;
 
-		struct {
+		struct
+		{
 			u16 mcs;
 			u8 stbc;
 			u8 ba_size;
@@ -351,7 +363,8 @@ struct txentry_desc {
  *	returned. It is now waiting for the status reporting before the
  *	entry can be reused again.
  */
-enum queue_entry_flags {
+enum queue_entry_flags
+{
 	ENTRY_BCN_ASSIGNED,
 	ENTRY_BCN_ENABLED,
 	ENTRY_OWNER_DEVICE_DATA,
@@ -374,7 +387,8 @@ enum queue_entry_flags {
  *	points to data specific to a particular driver and queue type.
  * @status: Device specific status
  */
-struct queue_entry {
+struct queue_entry
+{
 	unsigned long flags;
 	unsigned long last_action;
 
@@ -402,7 +416,8 @@ struct queue_entry {
  * @Q_INDEX_MAX: Keep last, used in &struct data_queue to determine the size
  *	of the index array.
  */
-enum queue_index {
+enum queue_index
+{
 	Q_INDEX,
 	Q_INDEX_DMA_DONE,
 	Q_INDEX_DONE,
@@ -421,7 +436,8 @@ enum queue_index {
  *	preventing new frames to be enqueued. However, a few frames
  *	might still appear shortly after the pausing...
  */
-enum data_queue_flags {
+enum data_queue_flags
+{
 	QUEUE_STARTED,
 	QUEUE_PAUSED,
 };
@@ -456,7 +472,8 @@ enum data_queue_flags {
  * @usb_endpoint: Device endpoint used for communication (USB only)
  * @usb_maxpacket: Max packet size for given endpoint (USB only)
  */
-struct data_queue {
+struct data_queue
+{
 	struct rt2x00_dev *rt2x00dev;
 	struct queue_entry *entries;
 
@@ -532,8 +549,8 @@ struct data_queue {
  */
 #define queue_loop(__entry, __start, __end)			\
 	for ((__entry) = (__start);				\
-	     prefetch(queue_next(__entry)), (__entry) != (__end);\
-	     (__entry) = queue_next(__entry))
+		 prefetch(queue_next(__entry)), (__entry) != (__end);\
+		 (__entry) = queue_next(__entry))
 
 /**
  * queue_for_each - Loop through all queues
@@ -583,11 +600,11 @@ struct data_queue {
  * processing and return true as well.
  */
 bool rt2x00queue_for_each_entry(struct data_queue *queue,
-				enum queue_index start,
-				enum queue_index end,
-				void *data,
-				bool (*fn)(struct queue_entry *entry,
-					   void *data));
+								enum queue_index start,
+								enum queue_index end,
+								void *data,
+								bool (*fn)(struct queue_entry *entry,
+										void *data));
 
 /**
  * rt2x00queue_empty - Check if the queue is empty.
@@ -631,7 +648,10 @@ static inline int rt2x00queue_threshold(struct data_queue *queue)
 static inline int rt2x00queue_dma_timeout(struct queue_entry *entry)
 {
 	if (!test_bit(ENTRY_OWNER_DEVICE_DATA, &entry->flags))
+	{
 		return false;
+	}
+
 	return time_after(jiffies, entry->last_action + msecs_to_jiffies(100));
 }
 

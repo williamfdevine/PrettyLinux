@@ -25,9 +25,9 @@ void ledtrig_disk_activity(void)
 	unsigned long blink_delay = BLINK_DELAY;
 
 	led_trigger_blink_oneshot(ledtrig_disk,
-				  &blink_delay, &blink_delay, 0);
+							  &blink_delay, &blink_delay, 0);
 	led_trigger_blink_oneshot(ledtrig_ide,
-				  &blink_delay, &blink_delay, 0);
+							  &blink_delay, &blink_delay, 0);
 }
 EXPORT_SYMBOL(ledtrig_disk_activity);
 

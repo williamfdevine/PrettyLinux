@@ -24,7 +24,8 @@
 #ifndef VC4_QPU_DEFINES_H
 #define VC4_QPU_DEFINES_H
 
-enum qpu_op_add {
+enum qpu_op_add
+{
 	QPU_A_NOP,
 	QPU_A_FADD,
 	QPU_A_FSUB,
@@ -51,7 +52,8 @@ enum qpu_op_add {
 	QPU_A_V8SUBS = 31,
 };
 
-enum qpu_op_mul {
+enum qpu_op_mul
+{
 	QPU_M_NOP,
 	QPU_M_FMUL,
 	QPU_M_MUL24,
@@ -62,7 +64,8 @@ enum qpu_op_mul {
 	QPU_M_V8SUBS,
 };
 
-enum qpu_raddr {
+enum qpu_raddr
+{
 	QPU_R_FRAG_PAYLOAD_ZW = 15, /* W for A file, Z for B file */
 	/* 0-31 are the plain regfile a or b fields */
 	QPU_R_UNIF = 32,
@@ -77,7 +80,8 @@ enum qpu_raddr {
 	QPU_R_MUTEX_ACQUIRE,
 };
 
-enum qpu_waddr {
+enum qpu_waddr
+{
 	/* 0-31 are the plain regfile a or b fields */
 	QPU_W_ACC0 = 32, /* aka r0 */
 	QPU_W_ACC1,
@@ -114,7 +118,8 @@ enum qpu_waddr {
 	QPU_W_TMU1_B,
 };
 
-enum qpu_sig_bits {
+enum qpu_sig_bits
+{
 	QPU_SIG_SW_BREAKPOINT,
 	QPU_SIG_NONE,
 	QPU_SIG_THREAD_SWITCH,
@@ -133,7 +138,8 @@ enum qpu_sig_bits {
 	QPU_SIG_BRANCH
 };
 
-enum qpu_mux {
+enum qpu_mux
+{
 	/* hardware mux values */
 	QPU_MUX_R0,
 	QPU_MUX_R1,
@@ -148,7 +154,8 @@ enum qpu_mux {
 	QPU_MUX_IMM,
 };
 
-enum qpu_cond {
+enum qpu_cond
+{
 	QPU_COND_NEVER,
 	QPU_COND_ALWAYS,
 	QPU_COND_ZS,
@@ -159,7 +166,8 @@ enum qpu_cond {
 	QPU_COND_CC,
 };
 
-enum qpu_pack_mul {
+enum qpu_pack_mul
+{
 	QPU_PACK_MUL_NOP,
 	/* replicated to each 8 bits of the 32-bit dst. */
 	QPU_PACK_MUL_8888 = 3,
@@ -169,7 +177,8 @@ enum qpu_pack_mul {
 	QPU_PACK_MUL_8D,
 };
 
-enum qpu_pack_a {
+enum qpu_pack_a
+{
 	QPU_PACK_A_NOP,
 	/* convert to 16 bit float if float input, or to int16. */
 	QPU_PACK_A_16A,
@@ -193,7 +202,8 @@ enum qpu_pack_a {
 	QPU_PACK_A_8D_SAT,
 };
 
-enum qpu_unpack_r4 {
+enum qpu_unpack_r4
+{
 	QPU_UNPACK_R4_NOP,
 	QPU_UNPACK_R4_F16A_TO_F32,
 	QPU_UNPACK_R4_F16B_TO_F32,

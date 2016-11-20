@@ -27,7 +27,7 @@
 #define WIDTH		320
 #define HEIGHT		240
 #define DEFAULT_GAMMA	"0 0 0 0 0 0 0 0 0 0 0 0 0 0\n" \
-			"0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+	"0 0 0 0 0 0 0 0 0 0 0 0 0 0"
 
 static int init_display(struct fbtft_par *par)
 {
@@ -104,7 +104,8 @@ static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 #define CURVE(num, idx)  curves[num * par->gamma.num_values + idx]
 static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 {
-	unsigned long mask[] = {
+	unsigned long mask[] =
+	{
 		0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x7f, 0x7f, 0x1f, 0x1f,
 		0x1f, 0x1f, 0x1f, 0x0f,
 	};
@@ -113,15 +114,19 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 
 	/* apply mask */
 	for (i = 0; i < par->gamma.num_curves; i++)
-		for (j = 0; j < par->gamma.num_values; j++) {
+		for (j = 0; j < par->gamma.num_values; j++)
+		{
 			acc += CURVE(i, j);
 			CURVE(i, j) &= mask[j];
 		}
 
 	if (acc == 0) /* skip if all values are zero */
+	{
 		return 0;
+	}
 
-	for (i = 0; i < par->gamma.num_curves; i++) {
+	for (i = 0; i < par->gamma.num_curves; i++)
+	{
 		write_reg(par, 0x40 + (i * 0x10), CURVE(i, 0));
 		write_reg(par, 0x41 + (i * 0x10), CURVE(i, 1));
 		write_reg(par, 0x42 + (i * 0x10), CURVE(i, 2));
@@ -136,6 +141,7 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 		write_reg(par, 0x4B + (i * 0x10), CURVE(i, 11));
 		write_reg(par, 0x4C + (i * 0x10), CURVE(i, 12));
 	}
+
 	write_reg(par, 0x5D, (CURVE(1, 0) << 4) | CURVE(0, 0));
 
 	return 0;
@@ -143,7 +149,8 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 
 #undef CURVE
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = WIDTH,
 	.height = HEIGHT,

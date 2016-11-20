@@ -30,7 +30,8 @@
 #include <linux/types.h>
 #include <crypto/cast5.h>
 
-static const u32 s5[256] = {
+static const u32 s5[256] =
+{
 	0x7ec90c04, 0x2c6e74b9, 0x9b0e66df, 0xa6337911, 0xb86a7fff,
 	0x1dd358f5, 0x44dd9d44, 0x1731167f,
 	0x08fbf1fa, 0xe7f511cc, 0xd2051b00, 0x735aba00, 0x2ab722d8,
@@ -96,7 +97,8 @@ static const u32 s5[256] = {
 	0xe822fe15, 0x88570983, 0x750e6249, 0xda627e55, 0x5e76ffa8,
 	0xb1534546, 0x6d47de08, 0xefe9e7d4
 };
-static const u32 s6[256] = {
+static const u32 s6[256] =
+{
 	0xf6fa8f9d, 0x2cac6ce1, 0x4ca34867, 0xe2337f7c, 0x95db08e7,
 	0x016843b4, 0xeced5cbc, 0x325553ac,
 	0xbf9f0960, 0xdfa1e2ed, 0x83f0579d, 0x63ed86b9, 0x1ab6a6b8,
@@ -162,7 +164,8 @@ static const u32 s6[256] = {
 	0xa2d762cf, 0x49c92f54, 0x38b5f331, 0x7128a454, 0x48392905,
 	0xa65b1db8, 0x851c97bd, 0xd675cf2f
 };
-static const u32 s7[256] = {
+static const u32 s7[256] =
+{
 	0x85e04019, 0x332bf567, 0x662dbfff, 0xcfc65693, 0x2a8d7f6f,
 	0xab9bc912, 0xde6008a1, 0x2028da1f,
 	0x0227bce7, 0x4d642916, 0x18fac300, 0x50f18b82, 0x2cb2cb11,
@@ -228,7 +231,8 @@ static const u32 s7[256] = {
 	0x518f36b2, 0x84b1d370, 0x0fedce83, 0x878ddada, 0xf2a279c7,
 	0x94e01be8, 0x90716f4b, 0x954b8aa3
 };
-static const u32 sb8[256] = {
+static const u32 sb8[256] =
+{
 	0xe216300d, 0xbbddfffc, 0xa7ebdabd, 0x35648095, 0x7789f8b7,
 	0xe6c1121b, 0x0e241600, 0x052ce8b5,
 	0x11a9cfb0, 0xe5952f11, 0xece7990a, 0x9386d174, 0x2a42931c,
@@ -301,11 +305,11 @@ static const u32 sb8[256] = {
 #define s4 cast_s4
 
 #define F1(D, m, r)  ((I = ((m) + (D))), (I = rol32(I, (r))),   \
-	(((s1[I >> 24] ^ s2[(I>>16)&0xff]) - s3[(I>>8)&0xff]) + s4[I&0xff]))
+					  (((s1[I >> 24] ^ s2[(I>>16)&0xff]) - s3[(I>>8)&0xff]) + s4[I&0xff]))
 #define F2(D, m, r)  ((I = ((m) ^ (D))), (I = rol32(I, (r))),   \
-	(((s1[I >> 24] - s2[(I>>16)&0xff]) + s3[(I>>8)&0xff]) ^ s4[I&0xff]))
+					  (((s1[I >> 24] - s2[(I>>16)&0xff]) + s3[(I>>8)&0xff]) ^ s4[I&0xff]))
 #define F3(D, m, r)  ((I = ((m) - (D))), (I = rol32(I, (r))),   \
-	(((s1[I >> 24] + s2[(I>>16)&0xff]) ^ s3[(I>>8)&0xff]) - s4[I&0xff]))
+					  (((s1[I >> 24] + s2[(I>>16)&0xff]) ^ s3[(I>>8)&0xff]) - s4[I&0xff]))
 
 
 void __cast5_encrypt(struct cast5_ctx *c, u8 *outbuf, const u8 *inbuf)
@@ -346,7 +350,9 @@ void __cast5_encrypt(struct cast5_ctx *c, u8 *outbuf, const u8 *inbuf)
 	t = l; l = r; r = t ^ F1(r, Km[9], Kr[9]);
 	t = l; l = r; r = t ^ F2(r, Km[10], Kr[10]);
 	t = l; l = r; r = t ^ F3(r, Km[11], Kr[11]);
-	if (!(c->rr)) {
+
+	if (!(c->rr))
+	{
 		t = l; l = r; r = t ^ F1(r, Km[12], Kr[12]);
 		t = l; l = r; r = t ^ F2(r, Km[13], Kr[13]);
 		t = l; l = r; r = t ^ F3(r, Km[14], Kr[14]);
@@ -380,12 +386,14 @@ void __cast5_decrypt(struct cast5_ctx *c, u8 *outbuf, const u8 *inbuf)
 	l = be32_to_cpu(src[0]);
 	r = be32_to_cpu(src[1]);
 
-	if (!(c->rr)) {
+	if (!(c->rr))
+	{
 		t = l; l = r; r = t ^ F1(r, Km[15], Kr[15]);
 		t = l; l = r; r = t ^ F3(r, Km[14], Kr[14]);
 		t = l; l = r; r = t ^ F2(r, Km[13], Kr[13]);
 		t = l; l = r; r = t ^ F1(r, Km[12], Kr[12]);
 	}
+
 	t = l; l = r; r = t ^ F3(r, Km[11], Kr[11]);
 	t = l; l = r; r = t ^ F2(r, Km[10], Kr[10]);
 	t = l; l = r; r = t ^ F1(r, Km[9], Kr[9]);
@@ -416,68 +424,68 @@ static void key_schedule(u32 *x, u32 *z, u32 *k)
 #define zi(i)   ((z[(i)/4] >> (8*(3-((i)%4)))) & 0xff)
 
 	z[0] = x[0] ^ s5[xi(13)] ^ s6[xi(15)] ^ s7[xi(12)] ^ sb8[xi(14)] ^
-	    s7[xi(8)];
+		   s7[xi(8)];
 	z[1] = x[2] ^ s5[zi(0)] ^ s6[zi(2)] ^ s7[zi(1)] ^ sb8[zi(3)] ^
-	    sb8[xi(10)];
+		   sb8[xi(10)];
 	z[2] = x[3] ^ s5[zi(7)] ^ s6[zi(6)] ^ s7[zi(5)] ^ sb8[zi(4)] ^
-	    s5[xi(9)];
+		   s5[xi(9)];
 	z[3] = x[1] ^ s5[zi(10)] ^ s6[zi(9)] ^ s7[zi(11)] ^ sb8[zi(8)] ^
-	    s6[xi(11)];
+		   s6[xi(11)];
 	k[0] = s5[zi(8)] ^ s6[zi(9)] ^ s7[zi(7)] ^ sb8[zi(6)] ^ s5[zi(2)];
 	k[1] = s5[zi(10)] ^ s6[zi(11)] ^ s7[zi(5)] ^ sb8[zi(4)] ^
-	    s6[zi(6)];
+		   s6[zi(6)];
 	k[2] = s5[zi(12)] ^ s6[zi(13)] ^ s7[zi(3)] ^ sb8[zi(2)] ^
-	    s7[zi(9)];
+		   s7[zi(9)];
 	k[3] = s5[zi(14)] ^ s6[zi(15)] ^ s7[zi(1)] ^ sb8[zi(0)] ^
-	    sb8[zi(12)];
+		   sb8[zi(12)];
 
 	x[0] = z[2] ^ s5[zi(5)] ^ s6[zi(7)] ^ s7[zi(4)] ^ sb8[zi(6)] ^
-	    s7[zi(0)];
+		   s7[zi(0)];
 	x[1] = z[0] ^ s5[xi(0)] ^ s6[xi(2)] ^ s7[xi(1)] ^ sb8[xi(3)] ^
-	    sb8[zi(2)];
+		   sb8[zi(2)];
 	x[2] = z[1] ^ s5[xi(7)] ^ s6[xi(6)] ^ s7[xi(5)] ^ sb8[xi(4)] ^
-	    s5[zi(1)];
+		   s5[zi(1)];
 	x[3] = z[3] ^ s5[xi(10)] ^ s6[xi(9)] ^ s7[xi(11)] ^ sb8[xi(8)] ^
-	    s6[zi(3)];
+		   s6[zi(3)];
 	k[4] = s5[xi(3)] ^ s6[xi(2)] ^ s7[xi(12)] ^ sb8[xi(13)] ^
-	    s5[xi(8)];
+		   s5[xi(8)];
 	k[5] = s5[xi(1)] ^ s6[xi(0)] ^ s7[xi(14)] ^ sb8[xi(15)] ^
-	    s6[xi(13)];
+		   s6[xi(13)];
 	k[6] = s5[xi(7)] ^ s6[xi(6)] ^ s7[xi(8)] ^ sb8[xi(9)] ^ s7[xi(3)];
 	k[7] = s5[xi(5)] ^ s6[xi(4)] ^ s7[xi(10)] ^ sb8[xi(11)] ^
-	    sb8[xi(7)];
+		   sb8[xi(7)];
 
 	z[0] = x[0] ^ s5[xi(13)] ^ s6[xi(15)] ^ s7[xi(12)] ^ sb8[xi(14)] ^
-	    s7[xi(8)];
+		   s7[xi(8)];
 	z[1] = x[2] ^ s5[zi(0)] ^ s6[zi(2)] ^ s7[zi(1)] ^ sb8[zi(3)] ^
-	    sb8[xi(10)];
+		   sb8[xi(10)];
 	z[2] = x[3] ^ s5[zi(7)] ^ s6[zi(6)] ^ s7[zi(5)] ^ sb8[zi(4)] ^
-	    s5[xi(9)];
+		   s5[xi(9)];
 	z[3] = x[1] ^ s5[zi(10)] ^ s6[zi(9)] ^ s7[zi(11)] ^ sb8[zi(8)] ^
-	    s6[xi(11)];
+		   s6[xi(11)];
 	k[8] = s5[zi(3)] ^ s6[zi(2)] ^ s7[zi(12)] ^ sb8[zi(13)] ^
-	    s5[zi(9)];
+		   s5[zi(9)];
 	k[9] = s5[zi(1)] ^ s6[zi(0)] ^ s7[zi(14)] ^ sb8[zi(15)] ^
-	    s6[zi(12)];
+		   s6[zi(12)];
 	k[10] = s5[zi(7)] ^ s6[zi(6)] ^ s7[zi(8)] ^ sb8[zi(9)] ^ s7[zi(2)];
 	k[11] = s5[zi(5)] ^ s6[zi(4)] ^ s7[zi(10)] ^ sb8[zi(11)] ^
-	    sb8[zi(6)];
+			sb8[zi(6)];
 
 	x[0] = z[2] ^ s5[zi(5)] ^ s6[zi(7)] ^ s7[zi(4)] ^ sb8[zi(6)] ^
-	    s7[zi(0)];
+		   s7[zi(0)];
 	x[1] = z[0] ^ s5[xi(0)] ^ s6[xi(2)] ^ s7[xi(1)] ^ sb8[xi(3)] ^
-	    sb8[zi(2)];
+		   sb8[zi(2)];
 	x[2] = z[1] ^ s5[xi(7)] ^ s6[xi(6)] ^ s7[xi(5)] ^ sb8[xi(4)] ^
-	    s5[zi(1)];
+		   s5[zi(1)];
 	x[3] = z[3] ^ s5[xi(10)] ^ s6[xi(9)] ^ s7[xi(11)] ^ sb8[xi(8)] ^
-	    s6[zi(3)];
+		   s6[zi(3)];
 	k[12] = s5[xi(8)] ^ s6[xi(9)] ^ s7[xi(7)] ^ sb8[xi(6)] ^ s5[xi(3)];
 	k[13] = s5[xi(10)] ^ s6[xi(11)] ^ s7[xi(5)] ^ sb8[xi(4)] ^
-	    s6[xi(7)];
+			s6[xi(7)];
 	k[14] = s5[xi(12)] ^ s6[xi(13)] ^ s7[xi(3)] ^ sb8[xi(2)] ^
-	    s7[xi(8)];
+			s7[xi(8)];
 	k[15] = s5[xi(14)] ^ s6[xi(15)] ^ s7[xi(1)] ^ sb8[xi(0)] ^
-	    sb8[xi(13)];
+			sb8[xi(13)];
 
 #undef xi
 #undef zi
@@ -505,16 +513,25 @@ int cast5_setkey(struct crypto_tfm *tfm, const u8 *key, unsigned int key_len)
 	x[3] = be32_to_cpu(p_key[3]);
 
 	key_schedule(x, z, k);
+
 	for (i = 0; i < 16; i++)
+	{
 		c->Km[i] = k[i];
+	}
+
 	key_schedule(x, z, k);
+
 	for (i = 0; i < 16; i++)
+	{
 		c->Kr[i] = k[i] & 0x1f;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(cast5_setkey);
 
-static struct crypto_alg alg = {
+static struct crypto_alg alg =
+{
 	.cra_name		= "cast5",
 	.cra_driver_name	= "cast5-generic",
 	.cra_priority		= 100,

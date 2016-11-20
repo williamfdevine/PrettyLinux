@@ -21,7 +21,8 @@
 
 extern char DRIVERRELEASE_CAPI[];
 
-typedef struct _diva_card {
+typedef struct _diva_card
+{
 	struct list_head list;
 	int remove_in_progress;
 	int Id;

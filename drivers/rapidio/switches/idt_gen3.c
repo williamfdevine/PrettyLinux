@@ -35,30 +35,35 @@
 
 #define RIO_BC_L2_Gn_ENTRYx_CSR(n, x)	(0x31000 + (n)*0x400 + (x)*0x4)
 #define RIO_SPx_L2_Gn_ENTRYy_CSR(x, n, y) \
-				(0x51000 + (x)*0x2000 + (n)*0x400 + (y)*0x4)
+	(0x51000 + (x)*0x2000 + (n)*0x400 + (y)*0x4)
 
 static int
 idtg3_route_add_entry(struct rio_mport *mport, u16 destid, u8 hopcount,
-		       u16 table, u16 route_destid, u8 route_port)
+					  u16 table, u16 route_destid, u8 route_port)
 {
 	u32 rval;
 	u32 entry = route_port;
 	int err = 0;
 
 	pr_debug("RIO: %s t=0x%x did_%x to p_%x\n",
-		 __func__, table, route_destid, entry);
+			 __func__, table, route_destid, entry);
 
 	if (route_destid > 0xFF)
+	{
 		return -EINVAL;
+	}
 
 	if (route_port == RIO_INVALID_ROUTE)
+	{
 		entry = RIO_RT_ENTRY_DROP_PKT;
+	}
 
-	if (table == RIO_GLOBAL_TABLE) {
+	if (table == RIO_GLOBAL_TABLE)
+	{
 		/* Use broadcast register to update all per-port tables */
 		err = rio_mport_write_config_32(mport, destid, hopcount,
-				RIO_BC_L2_Gn_ENTRYx_CSR(0, route_destid),
-				entry);
+										RIO_BC_L2_Gn_ENTRYx_CSR(0, route_destid),
+										entry);
 		return err;
 	}
 
@@ -66,33 +71,43 @@ idtg3_route_add_entry(struct rio_mport *mport, u16 destid, u8 hopcount,
 	 * Verify that specified port/table number is valid
 	 */
 	err = rio_mport_read_config_32(mport, destid, hopcount,
-				       RIO_SWP_INFO_CAR, &rval);
+								   RIO_SWP_INFO_CAR, &rval);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (table >= RIO_GET_TOTAL_PORTS(rval))
+	{
 		return -EINVAL;
+	}
 
 	err = rio_mport_write_config_32(mport, destid, hopcount,
-			RIO_SPx_L2_Gn_ENTRYy_CSR(table, 0, route_destid),
-			entry);
+									RIO_SPx_L2_Gn_ENTRYy_CSR(table, 0, route_destid),
+									entry);
 	return err;
 }
 
 static int
 idtg3_route_get_entry(struct rio_mport *mport, u16 destid, u8 hopcount,
-		       u16 table, u16 route_destid, u8 *route_port)
+					  u16 table, u16 route_destid, u8 *route_port)
 {
 	u32 rval;
 	int err;
 
 	if (route_destid > 0xFF)
+	{
 		return -EINVAL;
+	}
 
 	err = rio_mport_read_config_32(mport, destid, hopcount,
-				       RIO_SWP_INFO_CAR, &rval);
+								   RIO_SWP_INFO_CAR, &rval);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/*
 	 * This switch device does not have the dedicated global routing table.
@@ -100,58 +115,83 @@ idtg3_route_get_entry(struct rio_mport *mport, u16 destid, u8 hopcount,
 	 * maintenance read requests.
 	 */
 	if (table == RIO_GLOBAL_TABLE)
+	{
 		table = RIO_GET_PORT_NUM(rval);
+	}
 	else if (table >= RIO_GET_TOTAL_PORTS(rval))
+	{
 		return -EINVAL;
+	}
 
 	err = rio_mport_read_config_32(mport, destid, hopcount,
-			RIO_SPx_L2_Gn_ENTRYy_CSR(table, 0, route_destid),
-			&rval);
+								   RIO_SPx_L2_Gn_ENTRYy_CSR(table, 0, route_destid),
+								   &rval);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (rval == RIO_RT_ENTRY_DROP_PKT)
+	{
 		*route_port = RIO_INVALID_ROUTE;
+	}
 	else
+	{
 		*route_port = (u8)rval;
+	}
 
 	return 0;
 }
 
 static int
 idtg3_route_clr_table(struct rio_mport *mport, u16 destid, u8 hopcount,
-		       u16 table)
+					  u16 table)
 {
 	u32 i;
 	u32 rval;
 	int err;
 
-	if (table == RIO_GLOBAL_TABLE) {
-		for (i = 0; i <= 0xff; i++) {
+	if (table == RIO_GLOBAL_TABLE)
+	{
+		for (i = 0; i <= 0xff; i++)
+		{
 			err = rio_mport_write_config_32(mport, destid, hopcount,
-						RIO_BC_L2_Gn_ENTRYx_CSR(0, i),
-						RIO_RT_ENTRY_DROP_PKT);
+											RIO_BC_L2_Gn_ENTRYx_CSR(0, i),
+											RIO_RT_ENTRY_DROP_PKT);
+
 			if (err)
+			{
 				break;
+			}
 		}
 
 		return err;
 	}
 
 	err = rio_mport_read_config_32(mport, destid, hopcount,
-				       RIO_SWP_INFO_CAR, &rval);
+								   RIO_SWP_INFO_CAR, &rval);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (table >= RIO_GET_TOTAL_PORTS(rval))
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i <= 0xff; i++) {
+	for (i = 0; i <= 0xff; i++)
+	{
 		err = rio_mport_write_config_32(mport, destid, hopcount,
-					RIO_SPx_L2_Gn_ENTRYy_CSR(table, 0, i),
-					RIO_RT_ENTRY_DROP_PKT);
+										RIO_SPx_L2_Gn_ENTRYy_CSR(table, 0, i),
+										RIO_RT_ENTRY_DROP_PKT);
+
 		if (err)
+		{
 			break;
+		}
 	}
 
 	return err;
@@ -174,29 +214,34 @@ idtg3_em_init(struct rio_dev *rdev)
 
 	/* Disable port-write event notifications during initialization */
 	rio_write_config_32(rdev, rdev->em_efptr + RIO_EM_PW_TX_CTRL,
-			    RIO_EM_PW_TX_CTRL_PW_DIS);
+						RIO_EM_PW_TX_CTRL_PW_DIS);
 
 	/* Configure Port-Write notifications for hot-swap events */
 	tmp = RIO_GET_TOTAL_PORTS(rdev->swpinfo);
-	for (i = 0; i < tmp; i++) {
+
+	for (i = 0; i < tmp; i++)
+	{
 
 		rio_read_config_32(rdev,
-			RIO_DEV_PORT_N_ERR_STS_CSR(rdev, i),
-			&rval);
+						   RIO_DEV_PORT_N_ERR_STS_CSR(rdev, i),
+						   &rval);
+
 		if (rval & RIO_PORT_N_ERR_STS_PORT_UA)
+		{
 			continue;
+		}
 
 		/* Clear events signaled before enabling notification */
 		rio_write_config_32(rdev,
-			rdev->em_efptr + RIO_EM_PN_ERR_DETECT(i), 0);
+							rdev->em_efptr + RIO_EM_PN_ERR_DETECT(i), 0);
 
 		/* Enable event notifications */
 		rio_write_config_32(rdev,
-			rdev->em_efptr + RIO_EM_PN_ERRRATE_EN(i),
-			RIO_EM_PN_ERRRATE_EN_OK2U | RIO_EM_PN_ERRRATE_EN_U2OK);
+							rdev->em_efptr + RIO_EM_PN_ERRRATE_EN(i),
+							RIO_EM_PN_ERRRATE_EN_OK2U | RIO_EM_PN_ERRRATE_EN_U2OK);
 		/* Enable port-write generation on events */
 		rio_write_config_32(rdev, RIO_PLM_SPx_PW_EN(i),
-			RIO_PLM_SPx_PW_EN_OK2U | RIO_PLM_SPx_PW_EN_LINIT);
+							RIO_PLM_SPx_PW_EN_OK2U | RIO_PLM_SPx_PW_EN_LINIT);
 
 	}
 
@@ -210,7 +255,7 @@ idtg3_em_init(struct rio_dev *rdev)
 
 	/* set TVAL = ~50us */
 	rio_write_config_32(rdev,
-		rdev->phys_efptr + RIO_PORT_LINKTO_CTL_CSR, 0x8e << 8);
+						rdev->phys_efptr + RIO_PORT_LINKTO_CTL_CSR, 0x8e << 8);
 	return 0;
 }
 
@@ -238,22 +283,25 @@ idtg3_em_handler(struct rio_dev *rdev, u8 pnum)
 	u32 rval;
 
 	rio_read_config_32(rdev,
-			RIO_DEV_PORT_N_ERR_STS_CSR(rdev, pnum),
-			&err_status);
+					   RIO_DEV_PORT_N_ERR_STS_CSR(rdev, pnum),
+					   &err_status);
 
 	/* Do nothing for device/link removal */
 	if (err_status & RIO_PORT_N_ERR_STS_PORT_UNINIT)
+	{
 		return 0;
+	}
 
 	/* When link is OK we have a device insertion.
 	 * Request port soft reset to clear errors if they present.
 	 * Inbound and outbound ackIDs will be 0 after reset.
 	 */
 	if (err_status & (RIO_PORT_N_ERR_STS_OUT_ES |
-				RIO_PORT_N_ERR_STS_INP_ES)) {
+					  RIO_PORT_N_ERR_STS_INP_ES))
+	{
 		rio_read_config_32(rdev, RIO_PLM_SPx_IMP_SPEC_CTL(pnum), &rval);
 		rio_write_config_32(rdev, RIO_PLM_SPx_IMP_SPEC_CTL(pnum),
-				    rval | RIO_PLM_SPx_IMP_SPEC_CTL_SOFT_RST);
+							rval | RIO_PLM_SPx_IMP_SPEC_CTL_SOFT_RST);
 		udelay(10);
 		rio_write_config_32(rdev, RIO_PLM_SPx_IMP_SPEC_CTL(pnum), rval);
 		msleep(500);
@@ -262,7 +310,8 @@ idtg3_em_handler(struct rio_dev *rdev, u8 pnum)
 	return 0;
 }
 
-static struct rio_switch_ops idtg3_switch_ops = {
+static struct rio_switch_ops idtg3_switch_ops =
+{
 	.owner = THIS_MODULE,
 	.add_entry = idtg3_route_add_entry,
 	.get_entry = idtg3_route_get_entry,
@@ -277,14 +326,16 @@ static int idtg3_probe(struct rio_dev *rdev, const struct rio_device_id *id)
 
 	spin_lock(&rdev->rswitch->lock);
 
-	if (rdev->rswitch->ops) {
+	if (rdev->rswitch->ops)
+	{
 		spin_unlock(&rdev->rswitch->lock);
 		return -EINVAL;
 	}
 
 	rdev->rswitch->ops = &idtg3_switch_ops;
 
-	if (rdev->do_enum) {
+	if (rdev->do_enum)
+	{
 		/* Disable hierarchical routing support: Existing fabric
 		 * enumeration/discovery process (see rio-scan.c) uses 8-bit
 		 * flat destination ID routing only.
@@ -301,8 +352,12 @@ static void idtg3_remove(struct rio_dev *rdev)
 {
 	pr_debug("RIO: %s for %s\n", __func__, rio_name(rdev));
 	spin_lock(&rdev->rswitch->lock);
+
 	if (rdev->rswitch->ops == &idtg3_switch_ops)
+	{
 		rdev->rswitch->ops = NULL;
+	}
+
 	spin_unlock(&rdev->rswitch->lock);
 }
 
@@ -319,7 +374,9 @@ static void idtg3_shutdown(struct rio_dev *rdev)
 
 	/* Currently the enumerator node acts also as PW handler */
 	if (!rdev->do_enum)
+	{
 		return;
+	}
 
 	pr_debug("RIO: %s(%s)\n", __func__, rio_name(rdev));
 
@@ -328,7 +385,9 @@ static void idtg3_shutdown(struct rio_dev *rdev)
 
 	/* Check port-write destination port */
 	if (!((1 << i) & rval))
+	{
 		return;
+	}
 
 	/* Disable sending port-write event notifications if PW destID
 	 * matches to one of the enumerator node
@@ -336,25 +395,32 @@ static void idtg3_shutdown(struct rio_dev *rdev)
 	rio_read_config_32(rdev, rdev->em_efptr + RIO_EM_PW_TGT_DEVID, &rval);
 
 	if (rval & RIO_EM_PW_TGT_DEVID_DEV16)
+	{
 		destid = rval >> 16;
+	}
 	else
+	{
 		destid = ((rval & RIO_EM_PW_TGT_DEVID_D8) >> 16);
+	}
 
-	if (rdev->net->hport->host_deviceid == destid) {
+	if (rdev->net->hport->host_deviceid == destid)
+	{
 		rio_write_config_32(rdev,
-				    rdev->em_efptr + RIO_EM_PW_TX_CTRL, 0);
+							rdev->em_efptr + RIO_EM_PW_TX_CTRL, 0);
 		pr_debug("RIO: %s(%s) PW transmission disabled\n",
-			 __func__, rio_name(rdev));
+				 __func__, rio_name(rdev));
 	}
 }
 
-static struct rio_device_id idtg3_id_table[] = {
+static struct rio_device_id idtg3_id_table[] =
+{
 	{RIO_DEVICE(RIO_DID_IDTRXS1632, RIO_VID_IDT)},
 	{RIO_DEVICE(RIO_DID_IDTRXS2448, RIO_VID_IDT)},
 	{ 0, }	/* terminate list */
 };
 
-static struct rio_driver idtg3_driver = {
+static struct rio_driver idtg3_driver =
+{
 	.name = "idt_gen3",
 	.id_table = idtg3_id_table,
 	.probe = idtg3_probe,

@@ -25,11 +25,13 @@
 
 static LIST_HEAD(ahash_algs);
 
-static const u32 std_iv_sha1[SHA256_DIGEST_SIZE / sizeof(u32)] = {
+static const u32 std_iv_sha1[SHA256_DIGEST_SIZE / sizeof(u32)] =
+{
 	SHA1_H0, SHA1_H1, SHA1_H2, SHA1_H3, SHA1_H4, 0, 0, 0
 };
 
-static const u32 std_iv_sha256[SHA256_DIGEST_SIZE / sizeof(u32)] = {
+static const u32 std_iv_sha256[SHA256_DIGEST_SIZE / sizeof(u32)] =
+{
 	SHA256_H0, SHA256_H1, SHA256_H2, SHA256_H3,
 	SHA256_H4, SHA256_H5, SHA256_H6, SHA256_H7
 };
@@ -48,22 +50,31 @@ static void qce_ahash_done(void *data)
 	u32 status;
 
 	error = qce_dma_terminate_all(&qce->dma);
+
 	if (error)
+	{
 		dev_dbg(qce->dev, "ahash dma termination error (%d)\n", error);
+	}
 
 	dma_unmap_sg(qce->dev, req->src, rctx->src_nents, DMA_TO_DEVICE);
 	dma_unmap_sg(qce->dev, &rctx->result_sg, 1, DMA_FROM_DEVICE);
 
 	memcpy(rctx->digest, result->auth_iv, digestsize);
+
 	if (req->result)
+	{
 		memcpy(req->result, result->auth_iv, digestsize);
+	}
 
 	rctx->byte_count[0] = cpu_to_be32(result->auth_byte_count[0]);
 	rctx->byte_count[1] = cpu_to_be32(result->auth_byte_count[1]);
 
 	error = qce_check_status(qce, &status);
+
 	if (error < 0)
+	{
 		dev_dbg(qce->dev, "ahash operation error (%x)\n", status);
+	}
 
 	req->src = rctx->src_orig;
 	req->nbytes = rctx->nbytes_orig;
@@ -83,40 +94,57 @@ static int qce_ahash_async_req_handle(struct crypto_async_request *async_req)
 	unsigned long flags = rctx->flags;
 	int ret;
 
-	if (IS_SHA_HMAC(flags)) {
+	if (IS_SHA_HMAC(flags))
+	{
 		rctx->authkey = ctx->authkey;
 		rctx->authklen = QCE_SHA_HMAC_KEY_SIZE;
-	} else if (IS_CMAC(flags)) {
+	}
+	else if (IS_CMAC(flags))
+	{
 		rctx->authkey = ctx->authkey;
 		rctx->authklen = AES_KEYSIZE_128;
 	}
 
 	rctx->src_nents = sg_nents_for_len(req->src, req->nbytes);
-	if (rctx->src_nents < 0) {
+
+	if (rctx->src_nents < 0)
+	{
 		dev_err(qce->dev, "Invalid numbers of src SG.\n");
 		return rctx->src_nents;
 	}
 
 	ret = dma_map_sg(qce->dev, req->src, rctx->src_nents, DMA_TO_DEVICE);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	sg_init_one(&rctx->result_sg, qce->dma.result_buf, QCE_RESULT_BUF_SZ);
 
 	ret = dma_map_sg(qce->dev, &rctx->result_sg, 1, DMA_FROM_DEVICE);
+
 	if (ret < 0)
+	{
 		goto error_unmap_src;
+	}
 
 	ret = qce_dma_prep_sgs(&qce->dma, req->src, rctx->src_nents,
-			       &rctx->result_sg, 1, qce_ahash_done, async_req);
+						   &rctx->result_sg, 1, qce_ahash_done, async_req);
+
 	if (ret)
+	{
 		goto error_unmap_dst;
+	}
 
 	qce_dma_issue_pending(&qce->dma);
 
 	ret = qce_start(async_req, tmpl->crypto_alg_type, 0, 0);
+
 	if (ret)
+	{
 		goto error_terminate;
+	}
 
 	return 0;
 
@@ -151,23 +179,28 @@ static int qce_ahash_export(struct ahash_request *req, void *out)
 	unsigned long flags = rctx->flags;
 	unsigned int digestsize = crypto_ahash_digestsize(ahash);
 	unsigned int blocksize =
-			crypto_tfm_alg_blocksize(crypto_ahash_tfm(ahash));
+		crypto_tfm_alg_blocksize(crypto_ahash_tfm(ahash));
 
-	if (IS_SHA1(flags) || IS_SHA1_HMAC(flags)) {
+	if (IS_SHA1(flags) || IS_SHA1_HMAC(flags))
+	{
 		struct sha1_state *out_state = out;
 
 		out_state->count = rctx->count;
 		qce_cpu_to_be32p_array((__be32 *)out_state->state,
-				       rctx->digest, digestsize);
+							   rctx->digest, digestsize);
 		memcpy(out_state->buffer, rctx->buf, blocksize);
-	} else if (IS_SHA256(flags) || IS_SHA256_HMAC(flags)) {
+	}
+	else if (IS_SHA256(flags) || IS_SHA256_HMAC(flags))
+	{
 		struct sha256_state *out_state = out;
 
 		out_state->count = rctx->count;
 		qce_cpu_to_be32p_array((__be32 *)out_state->state,
-				       rctx->digest, digestsize);
+							   rctx->digest, digestsize);
 		memcpy(out_state->buf, rctx->buf, blocksize);
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 
@@ -175,7 +208,7 @@ static int qce_ahash_export(struct ahash_request *req, void *out)
 }
 
 static int qce_import_common(struct ahash_request *req, u64 in_count,
-			     const u32 *state, const u8 *buffer, bool hmac)
+							 const u32 *state, const u8 *buffer, bool hmac)
 {
 	struct crypto_ahash *ahash = crypto_ahash_reqtfm(req);
 	struct qce_sha_reqctx *rctx = ahash_request_ctx(req);
@@ -187,23 +220,29 @@ static int qce_import_common(struct ahash_request *req, u64 in_count,
 	rctx->count = in_count;
 	memcpy(rctx->buf, buffer, blocksize);
 
-	if (in_count <= blocksize) {
+	if (in_count <= blocksize)
+	{
 		rctx->first_blk = 1;
-	} else {
+	}
+	else
+	{
 		rctx->first_blk = 0;
+
 		/*
 		 * For HMAC, there is a hardware padding done when first block
 		 * is set. Therefore the byte_count must be incremened by 64
 		 * after the first block operation.
 		 */
 		if (hmac)
+		{
 			count += SHA_PADDING;
+		}
 	}
 
 	rctx->byte_count[0] = (__force __be32)(count & ~SHA_PADDING_MASK);
 	rctx->byte_count[1] = (__force __be32)(count >> 32);
 	qce_cpu_to_be32p_array((__be32 *)rctx->digest, (const u8 *)state,
-			       digestsize);
+						   digestsize);
 	rctx->buflen = (unsigned int)(in_count & (blocksize - 1));
 
 	return 0;
@@ -216,16 +255,19 @@ static int qce_ahash_import(struct ahash_request *req, const void *in)
 	bool hmac = IS_SHA_HMAC(flags);
 	int ret = -EINVAL;
 
-	if (IS_SHA1(flags) || IS_SHA1_HMAC(flags)) {
+	if (IS_SHA1(flags) || IS_SHA1_HMAC(flags))
+	{
 		const struct sha1_state *state = in;
 
 		ret = qce_import_common(req, state->count, state->state,
-					state->buffer, hmac);
-	} else if (IS_SHA256(flags) || IS_SHA256_HMAC(flags)) {
+								state->buffer, hmac);
+	}
+	else if (IS_SHA256(flags) || IS_SHA256_HMAC(flags))
+	{
 		const struct sha256_state *state = in;
 
 		ret = qce_import_common(req, state->count, state->state,
-					state->buf, hmac);
+								state->buf, hmac);
 	}
 
 	return ret;
@@ -249,9 +291,10 @@ static int qce_ahash_update(struct ahash_request *req)
 	/* check for buffer from previous updates and append it */
 	total = req->nbytes + rctx->buflen;
 
-	if (total <= blocksize) {
+	if (total <= blocksize)
+	{
 		scatterwalk_map_and_copy(rctx->buf + rctx->buflen, req->src,
-					 0, req->nbytes, 0);
+								 0, req->nbytes, 0);
 		rctx->buflen += req->nbytes;
 		return 0;
 	}
@@ -265,14 +308,18 @@ static int qce_ahash_update(struct ahash_request *req)
 	 * data will be combined with current request bytes.
 	 */
 	if (rctx->buflen)
+	{
 		memcpy(rctx->tmpbuf, rctx->buf, rctx->buflen);
+	}
 
 	/* calculate how many bytes will be hashed later */
 	hash_later = total % blocksize;
-	if (hash_later) {
+
+	if (hash_later)
+	{
 		unsigned int src_offset = req->nbytes - hash_later;
 		scatterwalk_map_and_copy(rctx->buf, req->src, src_offset,
-					 hash_later, 0);
+								 hash_later, 0);
 	}
 
 	/* here nbytes is multiple of blocksize */
@@ -281,20 +328,27 @@ static int qce_ahash_update(struct ahash_request *req)
 	len = rctx->buflen;
 	sg = sg_last = req->src;
 
-	while (len < nbytes && sg) {
+	while (len < nbytes && sg)
+	{
 		if (len + sg_dma_len(sg) > nbytes)
+		{
 			break;
+		}
+
 		len += sg_dma_len(sg);
 		sg_last = sg;
 		sg = sg_next(sg);
 	}
 
 	if (!sg_last)
+	{
 		return -EINVAL;
+	}
 
 	sg_mark_end(sg_last);
 
-	if (rctx->buflen) {
+	if (rctx->buflen)
+	{
 		sg_init_table(rctx->sg, 2);
 		sg_set_buf(rctx->sg, rctx->tmpbuf, rctx->buflen);
 		sg_chain(rctx->sg, 2, req->src);
@@ -314,7 +368,9 @@ static int qce_ahash_final(struct ahash_request *req)
 	struct qce_device *qce = tmpl->qce;
 
 	if (!rctx->buflen)
+	{
 		return 0;
+	}
 
 	rctx->last_blk = true;
 
@@ -338,8 +394,11 @@ static int qce_ahash_digest(struct ahash_request *req)
 	int ret;
 
 	ret = qce_ahash_init(req);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	rctx->src_orig = req->src;
 	rctx->nbytes_orig = req->nbytes;
@@ -349,7 +408,8 @@ static int qce_ahash_digest(struct ahash_request *req)
 	return qce->async_req_enqueue(tmpl->qce, &req->base);
 }
 
-struct qce_ahash_result {
+struct qce_ahash_result
+{
 	struct completion completion;
 	int error;
 };
@@ -359,14 +419,16 @@ static void qce_digest_complete(struct crypto_async_request *req, int error)
 	struct qce_ahash_result *result = req->data;
 
 	if (error == -EINPROGRESS)
+	{
 		return;
+	}
 
 	result->error = error;
 	complete(&result->completion);
 }
 
 static int qce_ahash_hmac_setkey(struct crypto_ahash *tfm, const u8 *key,
-				 unsigned int keylen)
+								 unsigned int keylen)
 {
 	unsigned int digestsize = crypto_ahash_digestsize(tfm);
 	struct qce_sha_ctx *ctx = crypto_tfm_ctx(&tfm->base);
@@ -382,36 +444,50 @@ static int qce_ahash_hmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 	blocksize = crypto_tfm_alg_blocksize(crypto_ahash_tfm(tfm));
 	memset(ctx->authkey, 0, sizeof(ctx->authkey));
 
-	if (keylen <= blocksize) {
+	if (keylen <= blocksize)
+	{
 		memcpy(ctx->authkey, key, keylen);
 		return 0;
 	}
 
 	if (digestsize == SHA1_DIGEST_SIZE)
+	{
 		alg_name = "sha1-qce";
+	}
 	else if (digestsize == SHA256_DIGEST_SIZE)
+	{
 		alg_name = "sha256-qce";
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	ahash_tfm = crypto_alloc_ahash(alg_name, CRYPTO_ALG_TYPE_AHASH,
-				       CRYPTO_ALG_TYPE_AHASH_MASK);
+								   CRYPTO_ALG_TYPE_AHASH_MASK);
+
 	if (IS_ERR(ahash_tfm))
+	{
 		return PTR_ERR(ahash_tfm);
+	}
 
 	req = ahash_request_alloc(ahash_tfm, GFP_KERNEL);
-	if (!req) {
+
+	if (!req)
+	{
 		ret = -ENOMEM;
 		goto err_free_ahash;
 	}
 
 	init_completion(&result.completion);
 	ahash_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
-				   qce_digest_complete, &result);
+							   qce_digest_complete, &result);
 	crypto_ahash_clear_flags(ahash_tfm, ~0);
 
 	buf = kzalloc(keylen + QCE_MAX_ALIGN_SIZE, GFP_KERNEL);
-	if (!buf) {
+
+	if (!buf)
+	{
 		ret = -ENOMEM;
 		goto err_free_req;
 	}
@@ -421,14 +497,21 @@ static int qce_ahash_hmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 	ahash_request_set_crypt(req, &sg, ctx->authkey, keylen);
 
 	ret = crypto_ahash_digest(req);
-	if (ret == -EINPROGRESS || ret == -EBUSY) {
+
+	if (ret == -EINPROGRESS || ret == -EBUSY)
+	{
 		ret = wait_for_completion_interruptible(&result.completion);
+
 		if (!ret)
+		{
 			ret = result.error;
+		}
 	}
 
 	if (ret)
+	{
 		crypto_ahash_set_flags(tfm, CRYPTO_TFM_RES_BAD_KEY_LEN);
+	}
 
 	kfree(buf);
 err_free_req:
@@ -448,7 +531,8 @@ static int qce_ahash_cra_init(struct crypto_tfm *tfm)
 	return 0;
 }
 
-struct qce_ahash_def {
+struct qce_ahash_def
+{
 	unsigned long flags;
 	const char *name;
 	const char *drv_name;
@@ -458,7 +542,8 @@ struct qce_ahash_def {
 	const u32 *std_iv;
 };
 
-static const struct qce_ahash_def ahash_def[] = {
+static const struct qce_ahash_def ahash_def[] =
+{
 	{
 		.flags		= QCE_HASH_SHA1,
 		.name		= "sha1",
@@ -498,7 +583,7 @@ static const struct qce_ahash_def ahash_def[] = {
 };
 
 static int qce_ahash_register_one(const struct qce_ahash_def *def,
-				  struct qce_device *qce)
+								  struct qce_device *qce)
 {
 	struct qce_alg_template *tmpl;
 	struct ahash_alg *alg;
@@ -506,8 +591,11 @@ static int qce_ahash_register_one(const struct qce_ahash_def *def,
 	int ret;
 
 	tmpl = kzalloc(sizeof(*tmpl), GFP_KERNEL);
+
 	if (!tmpl)
+	{
 		return -ENOMEM;
+	}
 
 	tmpl->std_iv = def->std_iv;
 
@@ -518,8 +606,12 @@ static int qce_ahash_register_one(const struct qce_ahash_def *def,
 	alg->digest = qce_ahash_digest;
 	alg->export = qce_ahash_export;
 	alg->import = qce_ahash_import;
+
 	if (IS_SHA_HMAC(def->flags))
+	{
 		alg->setkey = qce_ahash_hmac_setkey;
+	}
+
 	alg->halg.digestsize = def->digestsize;
 	alg->halg.statesize = def->statesize;
 
@@ -535,7 +627,7 @@ static int qce_ahash_register_one(const struct qce_ahash_def *def,
 
 	snprintf(base->cra_name, CRYPTO_MAX_ALG_NAME, "%s", def->name);
 	snprintf(base->cra_driver_name, CRYPTO_MAX_ALG_NAME, "%s",
-		 def->drv_name);
+			 def->drv_name);
 
 	INIT_LIST_HEAD(&tmpl->entry);
 	tmpl->crypto_alg_type = CRYPTO_ALG_TYPE_AHASH;
@@ -543,7 +635,9 @@ static int qce_ahash_register_one(const struct qce_ahash_def *def,
 	tmpl->qce = qce;
 
 	ret = crypto_register_ahash(alg);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(tmpl);
 		dev_err(qce->dev, "%s registration failed\n", base->cra_name);
 		return ret;
@@ -558,7 +652,8 @@ static void qce_ahash_unregister(struct qce_device *qce)
 {
 	struct qce_alg_template *tmpl, *n;
 
-	list_for_each_entry_safe(tmpl, n, &ahash_algs, entry) {
+	list_for_each_entry_safe(tmpl, n, &ahash_algs, entry)
+	{
 		crypto_unregister_ahash(&tmpl->alg.ahash);
 		list_del(&tmpl->entry);
 		kfree(tmpl);
@@ -569,10 +664,14 @@ static int qce_ahash_register(struct qce_device *qce)
 {
 	int ret, i;
 
-	for (i = 0; i < ARRAY_SIZE(ahash_def); i++) {
+	for (i = 0; i < ARRAY_SIZE(ahash_def); i++)
+	{
 		ret = qce_ahash_register_one(&ahash_def[i], qce);
+
 		if (ret)
+		{
 			goto err;
+		}
 	}
 
 	return 0;
@@ -581,7 +680,8 @@ err:
 	return ret;
 }
 
-const struct qce_algo_ops ahash_ops = {
+const struct qce_algo_ops ahash_ops =
+{
 	.type = CRYPTO_ALG_TYPE_AHASH,
 	.register_algs = qce_ahash_register,
 	.unregister_algs = qce_ahash_unregister,

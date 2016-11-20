@@ -2,8 +2,8 @@
  * include/linux/serial.h
  *
  * Copyright (C) 1992 by Theodore Ts'o.
- * 
- * Redistribution of this file is permitted under the terms of the GNU 
+ *
+ * Redistribution of this file is permitted under the terms of the GNU
  * Public License (GPL)
  */
 #ifndef _LINUX_SERIAL_H
@@ -17,7 +17,8 @@
  * Counters of the input lines (CTS, DSR, RI, CD) interrupts
  */
 
-struct async_icount {
+struct async_icount
+{
 	__u32	cts, dsr, rng, dcd, tx, rx;
 	__u32	frame, parity, overrun, brk;
 	__u32	buf_overrun;

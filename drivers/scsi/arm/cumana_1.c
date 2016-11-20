@@ -43,133 +43,191 @@ void cumanascsi_setup(char *str, int *ints)
 #define H(v)	(((v)>>16)|((v) & 0xffff0000))
 
 static inline int cumanascsi_pwrite(struct Scsi_Host *host,
-                                    unsigned char *addr, int len)
+									unsigned char *addr, int len)
 {
-  unsigned long *laddr;
-  void __iomem *dma = priv(host)->dma + 0x2000;
+	unsigned long *laddr;
+	void __iomem *dma = priv(host)->dma + 0x2000;
 
-  if(!len) return 0;
+	if (!len) { return 0; }
 
-  writeb(0x02, priv(host)->base + CTRL);
-  laddr = (unsigned long *)addr;
-  while(len >= 32)
-  {
-    unsigned int status;
-    unsigned long v;
-    status = readb(priv(host)->base + STAT);
-    if(status & 0x80)
-      goto end;
-    if(!(status & 0x40))
-      continue;
-    v=*laddr++; writew(L(v), dma); writew(H(v), dma);
-    v=*laddr++; writew(L(v), dma); writew(H(v), dma);
-    v=*laddr++; writew(L(v), dma); writew(H(v), dma);
-    v=*laddr++; writew(L(v), dma); writew(H(v), dma);
-    v=*laddr++; writew(L(v), dma); writew(H(v), dma);
-    v=*laddr++; writew(L(v), dma); writew(H(v), dma);
-    v=*laddr++; writew(L(v), dma); writew(H(v), dma);
-    v=*laddr++; writew(L(v), dma); writew(H(v), dma);
-    len -= 32;
-    if(len == 0)
-      break;
-  }
+	writeb(0x02, priv(host)->base + CTRL);
+	laddr = (unsigned long *)addr;
 
-  addr = (unsigned char *)laddr;
-  writeb(0x12, priv(host)->base + CTRL);
+	while (len >= 32)
+	{
+		unsigned int status;
+		unsigned long v;
+		status = readb(priv(host)->base + STAT);
 
-  while(len > 0)
-  {
-    unsigned int status;
-    status = readb(priv(host)->base + STAT);
-    if(status & 0x80)
-      goto end;
-    if(status & 0x40)
-    {
-      writeb(*addr++, dma);
-      if(--len == 0)
-        break;
-    }
+		if (status & 0x80)
+		{
+			goto end;
+		}
 
-    status = readb(priv(host)->base + STAT);
-    if(status & 0x80)
-      goto end;
-    if(status & 0x40)
-    {
-      writeb(*addr++, dma);
-      if(--len == 0)
-        break;
-    }
-  }
+		if (!(status & 0x40))
+		{
+			continue;
+		}
+
+		v = *laddr++; writew(L(v), dma); writew(H(v), dma);
+		v = *laddr++; writew(L(v), dma); writew(H(v), dma);
+		v = *laddr++; writew(L(v), dma); writew(H(v), dma);
+		v = *laddr++; writew(L(v), dma); writew(H(v), dma);
+		v = *laddr++; writew(L(v), dma); writew(H(v), dma);
+		v = *laddr++; writew(L(v), dma); writew(H(v), dma);
+		v = *laddr++; writew(L(v), dma); writew(H(v), dma);
+		v = *laddr++; writew(L(v), dma); writew(H(v), dma);
+		len -= 32;
+
+		if (len == 0)
+		{
+			break;
+		}
+	}
+
+	addr = (unsigned char *)laddr;
+	writeb(0x12, priv(host)->base + CTRL);
+
+	while (len > 0)
+	{
+		unsigned int status;
+		status = readb(priv(host)->base + STAT);
+
+		if (status & 0x80)
+		{
+			goto end;
+		}
+
+		if (status & 0x40)
+		{
+			writeb(*addr++, dma);
+
+			if (--len == 0)
+			{
+				break;
+			}
+		}
+
+		status = readb(priv(host)->base + STAT);
+
+		if (status & 0x80)
+		{
+			goto end;
+		}
+
+		if (status & 0x40)
+		{
+			writeb(*addr++, dma);
+
+			if (--len == 0)
+			{
+				break;
+			}
+		}
+	}
+
 end:
-  writeb(priv(host)->ctrl | 0x40, priv(host)->base + CTRL);
+	writeb(priv(host)->ctrl | 0x40, priv(host)->base + CTRL);
 
 	if (len)
+	{
 		return -1;
+	}
+
 	return 0;
 }
 
 static inline int cumanascsi_pread(struct Scsi_Host *host,
-                                   unsigned char *addr, int len)
+								   unsigned char *addr, int len)
 {
-  unsigned long *laddr;
-  void __iomem *dma = priv(host)->dma + 0x2000;
+	unsigned long *laddr;
+	void __iomem *dma = priv(host)->dma + 0x2000;
 
-  if(!len) return 0;
+	if (!len) { return 0; }
 
-  writeb(0x00, priv(host)->base + CTRL);
-  laddr = (unsigned long *)addr;
-  while(len >= 32)
-  {
-    unsigned int status;
-    status = readb(priv(host)->base + STAT);
-    if(status & 0x80)
-      goto end;
-    if(!(status & 0x40))
-      continue;
-    *laddr++ = readw(dma) | (readw(dma) << 16);
-    *laddr++ = readw(dma) | (readw(dma) << 16);
-    *laddr++ = readw(dma) | (readw(dma) << 16);
-    *laddr++ = readw(dma) | (readw(dma) << 16);
-    *laddr++ = readw(dma) | (readw(dma) << 16);
-    *laddr++ = readw(dma) | (readw(dma) << 16);
-    *laddr++ = readw(dma) | (readw(dma) << 16);
-    *laddr++ = readw(dma) | (readw(dma) << 16);
-    len -= 32;
-    if(len == 0)
-      break;
-  }
+	writeb(0x00, priv(host)->base + CTRL);
+	laddr = (unsigned long *)addr;
 
-  addr = (unsigned char *)laddr;
-  writeb(0x10, priv(host)->base + CTRL);
+	while (len >= 32)
+	{
+		unsigned int status;
+		status = readb(priv(host)->base + STAT);
 
-  while(len > 0)
-  {
-    unsigned int status;
-    status = readb(priv(host)->base + STAT);
-    if(status & 0x80)
-      goto end;
-    if(status & 0x40)
-    {
-      *addr++ = readb(dma);
-      if(--len == 0)
-        break;
-    }
+		if (status & 0x80)
+		{
+			goto end;
+		}
 
-    status = readb(priv(host)->base + STAT);
-    if(status & 0x80)
-      goto end;
-    if(status & 0x40)
-    {
-      *addr++ = readb(dma);
-      if(--len == 0)
-        break;
-    }
-  }
+		if (!(status & 0x40))
+		{
+			continue;
+		}
+
+		*laddr++ = readw(dma) | (readw(dma) << 16);
+		*laddr++ = readw(dma) | (readw(dma) << 16);
+		*laddr++ = readw(dma) | (readw(dma) << 16);
+		*laddr++ = readw(dma) | (readw(dma) << 16);
+		*laddr++ = readw(dma) | (readw(dma) << 16);
+		*laddr++ = readw(dma) | (readw(dma) << 16);
+		*laddr++ = readw(dma) | (readw(dma) << 16);
+		*laddr++ = readw(dma) | (readw(dma) << 16);
+		len -= 32;
+
+		if (len == 0)
+		{
+			break;
+		}
+	}
+
+	addr = (unsigned char *)laddr;
+	writeb(0x10, priv(host)->base + CTRL);
+
+	while (len > 0)
+	{
+		unsigned int status;
+		status = readb(priv(host)->base + STAT);
+
+		if (status & 0x80)
+		{
+			goto end;
+		}
+
+		if (status & 0x40)
+		{
+			*addr++ = readb(dma);
+
+			if (--len == 0)
+			{
+				break;
+			}
+		}
+
+		status = readb(priv(host)->base + STAT);
+
+		if (status & 0x80)
+		{
+			goto end;
+		}
+
+		if (status & 0x40)
+		{
+			*addr++ = readb(dma);
+
+			if (--len == 0)
+			{
+				break;
+			}
+		}
+	}
+
 end:
-  writeb(priv(host)->ctrl | 0x40, priv(host)->base + CTRL);
+	writeb(priv(host)->ctrl | 0x40, priv(host)->base + CTRL);
 
 	if (len)
+	{
 		return -1;
+	}
+
 	return 0;
 }
 
@@ -202,7 +260,8 @@ static void cumanascsi_write(struct Scsi_Host *host, unsigned int reg, unsigned 
 
 #include "../NCR5380.c"
 
-static struct scsi_host_template cumanascsi_template = {
+static struct scsi_host_template cumanascsi_template =
+{
 	.module			= THIS_MODULE,
 	.name			= "Cumana 16-bit SCSI",
 	.info			= cumanascsi_info,
@@ -220,26 +279,33 @@ static struct scsi_host_template cumanascsi_template = {
 };
 
 static int cumanascsi1_probe(struct expansion_card *ec,
-			     const struct ecard_id *id)
+							 const struct ecard_id *id)
 {
 	struct Scsi_Host *host;
 	int ret;
 
 	ret = ecard_request_resources(ec);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	host = scsi_host_alloc(&cumanascsi_template, sizeof(struct NCR5380_hostdata));
-	if (!host) {
+
+	if (!host)
+	{
 		ret = -ENOMEM;
 		goto out_release;
 	}
 
 	priv(host)->base = ioremap(ecard_resource_start(ec, ECARD_RES_IOCSLOW),
-				   ecard_resource_len(ec, ECARD_RES_IOCSLOW));
+							   ecard_resource_len(ec, ECARD_RES_IOCSLOW));
 	priv(host)->dma = ioremap(ecard_resource_start(ec, ECARD_RES_MEMC),
-				  ecard_resource_len(ec, ECARD_RES_MEMC));
-	if (!priv(host)->base || !priv(host)->dma) {
+							  ecard_resource_len(ec, ECARD_RES_MEMC));
+
+	if (!priv(host)->base || !priv(host)->dma)
+	{
 		ret = -ENOMEM;
 		goto out_unmap;
 	}
@@ -247,40 +313,48 @@ static int cumanascsi1_probe(struct expansion_card *ec,
 	host->irq = ec->irq;
 
 	ret = NCR5380_init(host, FLAG_DMA_FIXUP | FLAG_LATE_DMA_SETUP);
+
 	if (ret)
+	{
 		goto out_unmap;
+	}
 
 	NCR5380_maybe_reset_bus(host);
 
-        priv(host)->ctrl = 0;
-        writeb(0, priv(host)->base + CTRL);
+	priv(host)->ctrl = 0;
+	writeb(0, priv(host)->base + CTRL);
 
 	ret = request_irq(host->irq, cumanascsi_intr, 0,
-			  "CumanaSCSI-1", host);
-	if (ret) {
+					  "CumanaSCSI-1", host);
+
+	if (ret)
+	{
 		printk("scsi%d: IRQ%d not free: %d\n",
-		    host->host_no, host->irq, ret);
+			   host->host_no, host->irq, ret);
 		goto out_exit;
 	}
 
 	ret = scsi_add_host(host, &ec->dev);
+
 	if (ret)
+	{
 		goto out_free_irq;
+	}
 
 	scsi_scan_host(host);
 	goto out;
 
- out_free_irq:
+out_free_irq:
 	free_irq(host->irq, host);
- out_exit:
+out_exit:
 	NCR5380_exit(host);
- out_unmap:
+out_unmap:
 	iounmap(priv(host)->base);
 	iounmap(priv(host)->dma);
 	scsi_host_put(host);
- out_release:
+out_release:
 	ecard_release_resources(ec);
- out:
+out:
 	return ret;
 }
 
@@ -299,12 +373,14 @@ static void cumanascsi1_remove(struct expansion_card *ec)
 	ecard_release_resources(ec);
 }
 
-static const struct ecard_id cumanascsi1_cids[] = {
+static const struct ecard_id cumanascsi1_cids[] =
+{
 	{ MANU_CUMANA, PROD_CUMANA_SCSI_1 },
 	{ 0xffff, 0xffff }
 };
 
-static struct ecard_driver cumanascsi1_driver = {
+static struct ecard_driver cumanascsi1_driver =
+{
 	.probe		= cumanascsi1_probe,
 	.remove		= cumanascsi1_remove,
 	.id_table	= cumanascsi1_cids,

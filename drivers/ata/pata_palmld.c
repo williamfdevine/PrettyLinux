@@ -33,16 +33,19 @@
 
 #define DRV_NAME "pata_palmld"
 
-static struct gpio palmld_hdd_gpios[] = {
+static struct gpio palmld_hdd_gpios[] =
+{
 	{ GPIO_NR_PALMLD_IDE_PWEN,	GPIOF_INIT_HIGH,	"HDD Power" },
 	{ GPIO_NR_PALMLD_IDE_RESET,	GPIOF_INIT_LOW,		"HDD Reset" },
 };
 
-static struct scsi_host_template palmld_sht = {
+static struct scsi_host_template palmld_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations palmld_port_ops = {
+static struct ata_port_operations palmld_port_ops =
+{
 	.inherits		= &ata_sff_port_ops,
 	.sff_data_xfer		= ata_sff_data_xfer_noirq,
 	.cable_detect		= ata_cable_40wire,
@@ -57,23 +60,30 @@ static int palmld_pata_probe(struct platform_device *pdev)
 
 	/* allocate host */
 	host = ata_host_alloc(&pdev->dev, 1);
-	if (!host) {
+
+	if (!host)
+	{
 		ret = -ENOMEM;
 		goto err1;
 	}
 
 	/* remap drive's physical memory address */
 	mem = devm_ioremap(&pdev->dev, PALMLD_IDE_PHYS, 0x1000);
-	if (!mem) {
+
+	if (!mem)
+	{
 		ret = -ENOMEM;
 		goto err1;
 	}
 
 	/* request and activate power GPIO, IRQ GPIO */
 	ret = gpio_request_array(palmld_hdd_gpios,
-				ARRAY_SIZE(palmld_hdd_gpios));
+							 ARRAY_SIZE(palmld_hdd_gpios));
+
 	if (ret)
+	{
 		goto err1;
+	}
 
 	/* reset the drive */
 	gpio_set_value(GPIO_NR_PALMLD_IDE_RESET, 0);
@@ -97,9 +107,12 @@ static int palmld_pata_probe(struct platform_device *pdev)
 
 	/* activate host */
 	ret = ata_host_activate(host, 0, NULL, IRQF_TRIGGER_RISING,
-					&palmld_sht);
+							&palmld_sht);
+
 	if (ret)
+	{
 		goto err2;
+	}
 
 	return ret;
 
@@ -121,7 +134,8 @@ static int palmld_pata_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver palmld_pata_platform_driver = {
+static struct platform_driver palmld_pata_platform_driver =
+{
 	.driver	 = {
 		.name   = DRV_NAME,
 	},

@@ -223,22 +223,22 @@
 /* OTG interrupt enable bit masks */
 #define  OTGSC_INTERRUPT_ENABLE_BITS_MASK  \
 	(OTGSC_INTR_USB_ID_EN            | \
-	OTGSC_INTR_1MS_TIMER_EN		 | \
-	OTGSC_INTR_A_VBUS_VALID_EN       | \
-	OTGSC_INTR_A_SESSION_VALID_EN    | \
-	OTGSC_INTR_B_SESSION_VALID_EN    | \
-	OTGSC_INTR_B_SESSION_END_EN      | \
-	OTGSC_INTR_DATA_PULSING_EN)
+	 OTGSC_INTR_1MS_TIMER_EN		 | \
+	 OTGSC_INTR_A_VBUS_VALID_EN       | \
+	 OTGSC_INTR_A_SESSION_VALID_EN    | \
+	 OTGSC_INTR_B_SESSION_VALID_EN    | \
+	 OTGSC_INTR_B_SESSION_END_EN      | \
+	 OTGSC_INTR_DATA_PULSING_EN)
 
 /* OTG interrupt status bit masks */
 #define  OTGSC_INTERRUPT_STATUS_BITS_MASK  \
 	(OTGSC_INTSTS_USB_ID          |    \
-	OTGSC_INTR_1MS_TIMER_EN       |    \
-	OTGSC_INTSTS_A_VBUS_VALID     |    \
-	OTGSC_INTSTS_A_SESSION_VALID  |    \
-	OTGSC_INTSTS_B_SESSION_VALID  |    \
-	OTGSC_INTSTS_B_SESSION_END    |    \
-	OTGSC_INTSTS_DATA_PULSING)
+	 OTGSC_INTR_1MS_TIMER_EN       |    \
+	 OTGSC_INTSTS_A_VBUS_VALID     |    \
+	 OTGSC_INTSTS_A_SESSION_VALID  |    \
+	 OTGSC_INTSTS_B_SESSION_VALID  |    \
+	 OTGSC_INTSTS_B_SESSION_END    |    \
+	 OTGSC_INTSTS_DATA_PULSING)
 
 /*
  *  A-DEVICE timing  constants
@@ -300,7 +300,8 @@
 
 #define SET_OTG_STATE(phy, newstate)	((phy)->otg->state = newstate)
 
-struct usb_dr_mmap {
+struct usb_dr_mmap
+{
 	/* Capability register */
 	u8 res1[256];
 	u16 caplength;		/* Capability Register Length */
@@ -346,7 +347,8 @@ struct usb_dr_mmap {
 	u32 control;		/* General Purpose Control Register */
 };
 
-struct fsl_otg_timer {
+struct fsl_otg_timer
+{
 	unsigned long expires;	/* Number of count increase to timeout */
 	unsigned long count;	/* Tick counter */
 	void (*function)(unsigned long);	/* Timeout function */
@@ -360,15 +362,20 @@ inline struct fsl_otg_timer *otg_timer_initializer
 	struct fsl_otg_timer *timer;
 
 	timer = kmalloc(sizeof(struct fsl_otg_timer), GFP_KERNEL);
+
 	if (!timer)
+	{
 		return NULL;
+	}
+
 	timer->function = function;
 	timer->expires = expires;
 	timer->data = data;
 	return timer;
 }
 
-struct fsl_otg {
+struct fsl_otg
+{
 	struct usb_phy phy;
 	struct otg_fsm fsm;
 	struct usb_dr_mmap *dr_mem_map;
@@ -381,7 +388,8 @@ struct fsl_otg {
 	int irq;
 };
 
-struct fsl_otg_config {
+struct fsl_otg_config
+{
 	u8 otg_port;
 };
 

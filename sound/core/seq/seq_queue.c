@@ -66,8 +66,11 @@ static int queue_list_add(struct snd_seq_queue *q)
 	unsigned long flags;
 
 	spin_lock_irqsave(&queue_list_lock, flags);
-	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++) {
-		if (! queue_list[i]) {
+
+	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++)
+	{
+		if (! queue_list[i])
+		{
 			queue_list[i] = q;
 			q->queue = i;
 			num_queues++;
@@ -75,6 +78,7 @@ static int queue_list_add(struct snd_seq_queue *q)
 			return i;
 		}
 	}
+
 	spin_unlock_irqrestore(&queue_list_lock, flags);
 	return -1;
 }
@@ -86,9 +90,13 @@ static struct snd_seq_queue *queue_list_remove(int id, int client)
 
 	spin_lock_irqsave(&queue_list_lock, flags);
 	q = queue_list[id];
-	if (q) {
+
+	if (q)
+	{
 		spin_lock(&q->owner_lock);
-		if (q->owner == client) {
+
+		if (q->owner == client)
+		{
 			/* found */
 			q->klocked = 1;
 			spin_unlock(&q->owner_lock);
@@ -97,8 +105,10 @@ static struct snd_seq_queue *queue_list_remove(int id, int client)
 			spin_unlock_irqrestore(&queue_list_lock, flags);
 			return q;
 		}
+
 		spin_unlock(&q->owner_lock);
 	}
+
 	spin_unlock_irqrestore(&queue_list_lock, flags);
 	return NULL;
 }
@@ -111,8 +121,11 @@ static struct snd_seq_queue *queue_new(int owner, int locked)
 	struct snd_seq_queue *q;
 
 	q = kzalloc(sizeof(*q), GFP_KERNEL);
+
 	if (!q)
+	{
 		return NULL;
+	}
 
 	spin_lock_init(&q->owner_lock);
 	spin_lock_init(&q->check_lock);
@@ -123,7 +136,9 @@ static struct snd_seq_queue *queue_new(int owner, int locked)
 	q->tickq = snd_seq_prioq_new();
 	q->timeq = snd_seq_prioq_new();
 	q->timer = snd_seq_timer_new();
-	if (q->tickq == NULL || q->timeq == NULL || q->timer == NULL) {
+
+	if (q->tickq == NULL || q->timeq == NULL || q->timer == NULL)
+	{
 		snd_seq_prioq_delete(&q->tickq);
 		snd_seq_prioq_delete(&q->timeq);
 		snd_seq_timer_delete(&q->timer);
@@ -175,9 +190,12 @@ void __exit snd_seq_queues_delete(void)
 	int i;
 
 	/* clear list */
-	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++) {
+	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++)
+	{
 		if (queue_list[i])
+		{
 			queue_delete(queue_list[i]);
+		}
 	}
 }
 
@@ -189,13 +207,20 @@ int snd_seq_queue_alloc(int client, int locked, unsigned int info_flags)
 	struct snd_seq_queue *q;
 
 	q = queue_new(client, locked);
+
 	if (q == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	q->info_flags = info_flags;
-	if (queue_list_add(q) < 0) {
+
+	if (queue_list_add(q) < 0)
+	{
 		queue_delete(q);
 		return -ENOMEM;
 	}
+
 	snd_seq_queue_use(q->queue, client, 1); /* use this queue */
 	return q->queue;
 }
@@ -206,10 +231,17 @@ int snd_seq_queue_delete(int client, int queueid)
 	struct snd_seq_queue *q;
 
 	if (queueid < 0 || queueid >= SNDRV_SEQ_MAX_QUEUES)
+	{
 		return -EINVAL;
+	}
+
 	q = queue_list_remove(queueid, client);
+
 	if (q == NULL)
+	{
 		return -EINVAL;
+	}
+
 	queue_delete(q);
 
 	return 0;
@@ -223,11 +255,18 @@ struct snd_seq_queue *queueptr(int queueid)
 	unsigned long flags;
 
 	if (queueid < 0 || queueid >= SNDRV_SEQ_MAX_QUEUES)
+	{
 		return NULL;
+	}
+
 	spin_lock_irqsave(&queue_list_lock, flags);
 	q = queue_list[queueid];
+
 	if (q)
+	{
 		snd_use_lock_use(&q->use_lock);
+	}
+
 	spin_unlock_irqrestore(&queue_list_lock, flags);
 	return q;
 }
@@ -238,13 +277,19 @@ struct snd_seq_queue *snd_seq_queue_find_name(char *name)
 	int i;
 	struct snd_seq_queue *q;
 
-	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++) {
-		if ((q = queueptr(i)) != NULL) {
+	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++)
+	{
+		if ((q = queueptr(i)) != NULL)
+		{
 			if (strncmp(q->name, name, sizeof(q->name)) == 0)
+			{
 				return q;
+			}
+
 			queuefree(q);
 		}
 	}
+
 	return NULL;
 }
 
@@ -257,27 +302,40 @@ void snd_seq_check_queue(struct snd_seq_queue *q, int atomic, int hop)
 	struct snd_seq_event_cell *cell;
 
 	if (q == NULL)
+	{
 		return;
+	}
 
 	/* make this function non-reentrant */
 	spin_lock_irqsave(&q->check_lock, flags);
-	if (q->check_blocked) {
+
+	if (q->check_blocked)
+	{
 		q->check_again = 1;
 		spin_unlock_irqrestore(&q->check_lock, flags);
 		return;		/* other thread is already checking queues */
 	}
+
 	q->check_blocked = 1;
 	spin_unlock_irqrestore(&q->check_lock, flags);
 
-      __again:
+__again:
+
 	/* Process tick queue... */
-	while ((cell = snd_seq_prioq_cell_peek(q->tickq)) != NULL) {
+	while ((cell = snd_seq_prioq_cell_peek(q->tickq)) != NULL)
+	{
 		if (snd_seq_compare_tick_time(&q->timer->tick.cur_tick,
-					      &cell->event.time.tick)) {
+									  &cell->event.time.tick))
+		{
 			cell = snd_seq_prioq_cell_out(q->tickq);
+
 			if (cell)
+			{
 				snd_seq_dispatch_event(cell, atomic, hop);
-		} else {
+			}
+		}
+		else
+		{
 			/* event remains in the queue */
 			break;
 		}
@@ -285,13 +343,20 @@ void snd_seq_check_queue(struct snd_seq_queue *q, int atomic, int hop)
 
 
 	/* Process time queue... */
-	while ((cell = snd_seq_prioq_cell_peek(q->timeq)) != NULL) {
+	while ((cell = snd_seq_prioq_cell_peek(q->timeq)) != NULL)
+	{
 		if (snd_seq_compare_real_time(&q->timer->cur_time,
-					      &cell->event.time.time)) {
+									  &cell->event.time.time))
+		{
 			cell = snd_seq_prioq_cell_out(q->timeq);
+
 			if (cell)
+			{
 				snd_seq_dispatch_event(cell, atomic, hop);
-		} else {
+			}
+		}
+		else
+		{
 			/* event remains in the queue */
 			break;
 		}
@@ -299,11 +364,14 @@ void snd_seq_check_queue(struct snd_seq_queue *q, int atomic, int hop)
 
 	/* free lock */
 	spin_lock_irqsave(&q->check_lock, flags);
-	if (q->check_again) {
+
+	if (q->check_again)
+	{
 		q->check_again = 0;
 		spin_unlock_irqrestore(&q->check_lock, flags);
 		goto __again;
 	}
+
 	q->check_blocked = 0;
 	spin_unlock_irqrestore(&q->check_lock, flags);
 }
@@ -316,39 +384,52 @@ int snd_seq_enqueue_event(struct snd_seq_event_cell *cell, int atomic, int hop)
 	struct snd_seq_queue *q;
 
 	if (snd_BUG_ON(!cell))
+	{
 		return -EINVAL;
+	}
+
 	dest = cell->event.queue;	/* destination queue */
 	q = queueptr(dest);
-	if (q == NULL)
-		return -EINVAL;
-	/* handle relative time stamps, convert them into absolute */
-	if ((cell->event.flags & SNDRV_SEQ_TIME_MODE_MASK) == SNDRV_SEQ_TIME_MODE_REL) {
-		switch (cell->event.flags & SNDRV_SEQ_TIME_STAMP_MASK) {
-		case SNDRV_SEQ_TIME_STAMP_TICK:
-			cell->event.time.tick += q->timer->tick.cur_tick;
-			break;
 
-		case SNDRV_SEQ_TIME_STAMP_REAL:
-			snd_seq_inc_real_time(&cell->event.time.time,
-					      &q->timer->cur_time);
-			break;
+	if (q == NULL)
+	{
+		return -EINVAL;
+	}
+
+	/* handle relative time stamps, convert them into absolute */
+	if ((cell->event.flags & SNDRV_SEQ_TIME_MODE_MASK) == SNDRV_SEQ_TIME_MODE_REL)
+	{
+		switch (cell->event.flags & SNDRV_SEQ_TIME_STAMP_MASK)
+		{
+			case SNDRV_SEQ_TIME_STAMP_TICK:
+				cell->event.time.tick += q->timer->tick.cur_tick;
+				break;
+
+			case SNDRV_SEQ_TIME_STAMP_REAL:
+				snd_seq_inc_real_time(&cell->event.time.time,
+									  &q->timer->cur_time);
+				break;
 		}
+
 		cell->event.flags &= ~SNDRV_SEQ_TIME_MODE_MASK;
 		cell->event.flags |= SNDRV_SEQ_TIME_MODE_ABS;
 	}
-	/* enqueue event in the real-time or midi queue */
-	switch (cell->event.flags & SNDRV_SEQ_TIME_STAMP_MASK) {
-	case SNDRV_SEQ_TIME_STAMP_TICK:
-		err = snd_seq_prioq_cell_in(q->tickq, cell);
-		break;
 
-	case SNDRV_SEQ_TIME_STAMP_REAL:
-	default:
-		err = snd_seq_prioq_cell_in(q->timeq, cell);
-		break;
+	/* enqueue event in the real-time or midi queue */
+	switch (cell->event.flags & SNDRV_SEQ_TIME_STAMP_MASK)
+	{
+		case SNDRV_SEQ_TIME_STAMP_TICK:
+			err = snd_seq_prioq_cell_in(q->tickq, cell);
+			break;
+
+		case SNDRV_SEQ_TIME_STAMP_REAL:
+		default:
+			err = snd_seq_prioq_cell_in(q->timeq, cell);
+			break;
 	}
 
-	if (err < 0) {
+	if (err < 0)
+	{
 		queuefree(q); /* unlock */
 		return err;
 	}
@@ -376,11 +457,15 @@ static int queue_access_lock(struct snd_seq_queue *q, int client)
 {
 	unsigned long flags;
 	int access_ok;
-	
+
 	spin_lock_irqsave(&q->owner_lock, flags);
 	access_ok = check_access(q, client);
+
 	if (access_ok)
+	{
 		q->klocked = 1;
+	}
+
 	spin_unlock_irqrestore(&q->owner_lock, flags);
 	return access_ok;
 }
@@ -403,7 +488,10 @@ int snd_seq_queue_check_access(int queueid, int client)
 	unsigned long flags;
 
 	if (! q)
+	{
 		return 0;
+	}
+
 	spin_lock_irqsave(&q->owner_lock, flags);
 	access_ok = check_access(q, client);
 	spin_unlock_irqrestore(&q->owner_lock, flags);
@@ -421,9 +509,12 @@ int snd_seq_queue_set_owner(int queueid, int client, int locked)
 	struct snd_seq_queue *q = queueptr(queueid);
 
 	if (q == NULL)
+	{
 		return -EINVAL;
+	}
 
-	if (! queue_access_lock(q, client)) {
+	if (! queue_access_lock(q, client))
+	{
 		queuefree(q);
 		return -EPERM;
 	}
@@ -450,13 +541,20 @@ int snd_seq_queue_timer_open(int queueid)
 	struct snd_seq_timer *tmr;
 
 	queue = queueptr(queueid);
+
 	if (queue == NULL)
+	{
 		return -EINVAL;
+	}
+
 	tmr = queue->timer;
-	if ((result = snd_seq_timer_open(queue)) < 0) {
+
+	if ((result = snd_seq_timer_open(queue)) < 0)
+	{
 		snd_seq_timer_defaults(tmr);
 		result = snd_seq_timer_open(queue);
 	}
+
 	queuefree(queue);
 	return result;
 }
@@ -470,8 +568,12 @@ int snd_seq_queue_timer_close(int queueid)
 	int result = 0;
 
 	queue = queueptr(queueid);
+
 	if (queue == NULL)
+	{
 		return -EINVAL;
+	}
+
 	snd_seq_timer_close(queue);
 	queuefree(queue);
 	return result;
@@ -479,24 +581,33 @@ int snd_seq_queue_timer_close(int queueid)
 
 /* change queue tempo and ppq */
 int snd_seq_queue_timer_set_tempo(int queueid, int client,
-				  struct snd_seq_queue_tempo *info)
+								  struct snd_seq_queue_tempo *info)
 {
 	struct snd_seq_queue *q = queueptr(queueid);
 	int result;
 
 	if (q == NULL)
+	{
 		return -EINVAL;
-	if (! queue_access_lock(q, client)) {
+	}
+
+	if (! queue_access_lock(q, client))
+	{
 		queuefree(q);
 		return -EPERM;
 	}
 
 	result = snd_seq_timer_set_tempo(q->timer, info->tempo);
+
 	if (result >= 0)
+	{
 		result = snd_seq_timer_set_ppq(q->timer, info->ppq);
+	}
+
 	if (result >= 0 && info->skew_base > 0)
 		result = snd_seq_timer_set_skew(q->timer, info->skew_value,
-						info->skew_base);
+										info->skew_base);
+
 	queue_access_unlock(q);
 	queuefree(q);
 	return result;
@@ -512,23 +623,43 @@ int snd_seq_queue_use(int queueid, int client, int use)
 	struct snd_seq_queue *queue;
 
 	queue = queueptr(queueid);
+
 	if (queue == NULL)
+	{
 		return -EINVAL;
-	mutex_lock(&queue->timer_mutex);
-	if (use) {
-		if (!test_and_set_bit(client, queue->clients_bitmap))
-			queue->clients++;
-	} else {
-		if (test_and_clear_bit(client, queue->clients_bitmap))
-			queue->clients--;
 	}
-	if (queue->clients) {
+
+	mutex_lock(&queue->timer_mutex);
+
+	if (use)
+	{
+		if (!test_and_set_bit(client, queue->clients_bitmap))
+		{
+			queue->clients++;
+		}
+	}
+	else
+	{
+		if (test_and_clear_bit(client, queue->clients_bitmap))
+		{
+			queue->clients--;
+		}
+	}
+
+	if (queue->clients)
+	{
 		if (use && queue->clients == 1)
+		{
 			snd_seq_timer_defaults(queue->timer);
+		}
+
 		snd_seq_timer_open(queue);
-	} else {
+	}
+	else
+	{
 		snd_seq_timer_close(queue);
 	}
+
 	mutex_unlock(&queue->timer_mutex);
 	queuefree(queue);
 	return 0;
@@ -545,8 +676,12 @@ int snd_seq_queue_is_used(int queueid, int client)
 	int result;
 
 	q = queueptr(queueid);
+
 	if (q == NULL)
-		return -EINVAL; /* invalid queue */
+	{
+		return -EINVAL;    /* invalid queue */
+	}
+
 	result = test_bit(client, q->clients_bitmap) ? 1 : 0;
 	queuefree(q);
 	return result;
@@ -564,18 +699,32 @@ void snd_seq_queue_client_termination(int client)
 	int i;
 	struct snd_seq_queue *q;
 
-	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++) {
+	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++)
+	{
 		if ((q = queueptr(i)) == NULL)
+		{
 			continue;
+		}
+
 		spin_lock_irqsave(&q->owner_lock, flags);
+
 		if (q->owner == client)
+		{
 			q->klocked = 1;
+		}
+
 		spin_unlock_irqrestore(&q->owner_lock, flags);
-		if (q->owner == client) {
+
+		if (q->owner == client)
+		{
 			if (q->timer->running)
+			{
 				snd_seq_timer_stop(q->timer);
+			}
+
 			snd_seq_timer_reset(q->timer);
 		}
+
 		queuefree(q);
 	}
 }
@@ -590,22 +739,31 @@ void snd_seq_queue_client_leave(int client)
 	struct snd_seq_queue *q;
 
 	/* delete own queues from queue list */
-	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++) {
+	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++)
+	{
 		if ((q = queue_list_remove(i, client)) != NULL)
+		{
 			queue_delete(q);
+		}
 	}
 
 	/* remove cells from existing queues -
 	 * they are not owned by this client
 	 */
-	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++) {
+	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++)
+	{
 		if ((q = queueptr(i)) == NULL)
+		{
 			continue;
-		if (test_bit(client, q->clients_bitmap)) {
+		}
+
+		if (test_bit(client, q->clients_bitmap))
+		{
 			snd_seq_prioq_leave(q->tickq, client, 0);
 			snd_seq_prioq_leave(q->timeq, client, 0);
 			snd_seq_queue_use(q->queue, client, 0);
 		}
+
 		queuefree(q);
 	}
 }
@@ -620,9 +778,13 @@ void snd_seq_queue_client_leave_cells(int client)
 	int i;
 	struct snd_seq_queue *q;
 
-	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++) {
+	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++)
+	{
 		if ((q = queueptr(i)) == NULL)
+		{
 			continue;
+		}
+
 		snd_seq_prioq_leave(q->tickq, client, 0);
 		snd_seq_prioq_leave(q->timeq, client, 0);
 		queuefree(q);
@@ -635,15 +797,21 @@ void snd_seq_queue_remove_cells(int client, struct snd_seq_remove_events *info)
 	int i;
 	struct snd_seq_queue *q;
 
-	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++) {
+	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++)
+	{
 		if ((q = queueptr(i)) == NULL)
+		{
 			continue;
+		}
+
 		if (test_bit(client, q->clients_bitmap) &&
-		    (! (info->remove_mode & SNDRV_SEQ_REMOVE_DEST) ||
-		     q->queue == info->queue)) {
+			(! (info->remove_mode & SNDRV_SEQ_REMOVE_DEST) ||
+			 q->queue == info->queue))
+		{
 			snd_seq_prioq_remove_events(q->tickq, client, info);
 			snd_seq_prioq_remove_events(q->timeq, client, info);
 		}
+
 		queuefree(q);
 	}
 }
@@ -654,13 +822,13 @@ void snd_seq_queue_remove_cells(int client, struct snd_seq_remove_events *info)
  * send events to all subscribed ports
  */
 static void queue_broadcast_event(struct snd_seq_queue *q, struct snd_seq_event *ev,
-				  int atomic, int hop)
+								  int atomic, int hop)
 {
 	struct snd_seq_event sev;
 
 	sev = *ev;
-	
-	sev.flags = SNDRV_SEQ_TIME_STAMP_TICK|SNDRV_SEQ_TIME_MODE_ABS;
+
+	sev.flags = SNDRV_SEQ_TIME_STAMP_TICK | SNDRV_SEQ_TIME_MODE_ABS;
 	sev.time.tick = q->timer->tick.cur_tick;
 	sev.queue = q->queue;
 	sev.data.queue.queue = q->queue;
@@ -677,50 +845,65 @@ static void queue_broadcast_event(struct snd_seq_queue *q, struct snd_seq_event 
  * this function is exported for seq_sync.c.
  */
 static void snd_seq_queue_process_event(struct snd_seq_queue *q,
-					struct snd_seq_event *ev,
-					int atomic, int hop)
+										struct snd_seq_event *ev,
+										int atomic, int hop)
 {
-	switch (ev->type) {
-	case SNDRV_SEQ_EVENT_START:
-		snd_seq_prioq_leave(q->tickq, ev->source.client, 1);
-		snd_seq_prioq_leave(q->timeq, ev->source.client, 1);
-		if (! snd_seq_timer_start(q->timer))
-			queue_broadcast_event(q, ev, atomic, hop);
-		break;
+	switch (ev->type)
+	{
+		case SNDRV_SEQ_EVENT_START:
+			snd_seq_prioq_leave(q->tickq, ev->source.client, 1);
+			snd_seq_prioq_leave(q->timeq, ev->source.client, 1);
 
-	case SNDRV_SEQ_EVENT_CONTINUE:
-		if (! snd_seq_timer_continue(q->timer))
-			queue_broadcast_event(q, ev, atomic, hop);
-		break;
+			if (! snd_seq_timer_start(q->timer))
+			{
+				queue_broadcast_event(q, ev, atomic, hop);
+			}
 
-	case SNDRV_SEQ_EVENT_STOP:
-		snd_seq_timer_stop(q->timer);
-		queue_broadcast_event(q, ev, atomic, hop);
-		break;
+			break;
 
-	case SNDRV_SEQ_EVENT_TEMPO:
-		snd_seq_timer_set_tempo(q->timer, ev->data.queue.param.value);
-		queue_broadcast_event(q, ev, atomic, hop);
-		break;
+		case SNDRV_SEQ_EVENT_CONTINUE:
+			if (! snd_seq_timer_continue(q->timer))
+			{
+				queue_broadcast_event(q, ev, atomic, hop);
+			}
 
-	case SNDRV_SEQ_EVENT_SETPOS_TICK:
-		if (snd_seq_timer_set_position_tick(q->timer, ev->data.queue.param.time.tick) == 0) {
-			queue_broadcast_event(q, ev, atomic, hop);
-		}
-		break;
+			break;
 
-	case SNDRV_SEQ_EVENT_SETPOS_TIME:
-		if (snd_seq_timer_set_position_time(q->timer, ev->data.queue.param.time.time) == 0) {
+		case SNDRV_SEQ_EVENT_STOP:
+			snd_seq_timer_stop(q->timer);
 			queue_broadcast_event(q, ev, atomic, hop);
-		}
-		break;
-	case SNDRV_SEQ_EVENT_QUEUE_SKEW:
-		if (snd_seq_timer_set_skew(q->timer,
-					   ev->data.queue.param.skew.value,
-					   ev->data.queue.param.skew.base) == 0) {
+			break;
+
+		case SNDRV_SEQ_EVENT_TEMPO:
+			snd_seq_timer_set_tempo(q->timer, ev->data.queue.param.value);
 			queue_broadcast_event(q, ev, atomic, hop);
-		}
-		break;
+			break;
+
+		case SNDRV_SEQ_EVENT_SETPOS_TICK:
+			if (snd_seq_timer_set_position_tick(q->timer, ev->data.queue.param.time.tick) == 0)
+			{
+				queue_broadcast_event(q, ev, atomic, hop);
+			}
+
+			break;
+
+		case SNDRV_SEQ_EVENT_SETPOS_TIME:
+			if (snd_seq_timer_set_position_time(q->timer, ev->data.queue.param.time.time) == 0)
+			{
+				queue_broadcast_event(q, ev, atomic, hop);
+			}
+
+			break;
+
+		case SNDRV_SEQ_EVENT_QUEUE_SKEW:
+			if (snd_seq_timer_set_skew(q->timer,
+									   ev->data.queue.param.skew.value,
+									   ev->data.queue.param.skew.base) == 0)
+			{
+				queue_broadcast_event(q, ev, atomic, hop);
+			}
+
+			break;
 	}
 }
 
@@ -734,13 +917,19 @@ int snd_seq_control_queue(struct snd_seq_event *ev, int atomic, int hop)
 	struct snd_seq_queue *q;
 
 	if (snd_BUG_ON(!ev))
+	{
 		return -EINVAL;
+	}
+
 	q = queueptr(ev->data.queue.queue);
 
 	if (q == NULL)
+	{
 		return -EINVAL;
+	}
 
-	if (! queue_access_lock(q, ev->source.client)) {
+	if (! queue_access_lock(q, ev->source.client))
+	{
 		queuefree(q);
 		return -EPERM;
 	}
@@ -757,22 +946,30 @@ int snd_seq_control_queue(struct snd_seq_event *ev, int atomic, int hop)
 
 #ifdef CONFIG_SND_PROC_FS
 /* exported to seq_info.c */
-void snd_seq_info_queues_read(struct snd_info_entry *entry, 
-			      struct snd_info_buffer *buffer)
+void snd_seq_info_queues_read(struct snd_info_entry *entry,
+							  struct snd_info_buffer *buffer)
 {
 	int i, bpm;
 	struct snd_seq_queue *q;
 	struct snd_seq_timer *tmr;
 
-	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++) {
+	for (i = 0; i < SNDRV_SEQ_MAX_QUEUES; i++)
+	{
 		if ((q = queueptr(i)) == NULL)
+		{
 			continue;
+		}
 
 		tmr = q->timer;
+
 		if (tmr->tempo)
+		{
 			bpm = 60000000 / tmr->tempo;
+		}
 		else
+		{
 			bpm = 0;
+		}
 
 		snd_iprintf(buffer, "queue %d: [%s]\n", q->queue, q->name);
 		snd_iprintf(buffer, "owned by client    : %d\n", q->owner);

@@ -35,7 +35,8 @@
 #include "conf.h"
 #include "ini.h"
 
-struct wilink_family_data {
+struct wilink_family_data
+{
 	const char *name;
 	const char *nvs_name;	/* wl12xx nvs file */
 	const char *cfg_name;	/* wl18xx cfg file */
@@ -91,13 +92,15 @@ struct wilink_family_data {
 #define WL1271_AP_BSS_INDEX        0
 #define WL1271_AP_DEF_BEACON_EXP   20
 
-enum wlcore_state {
+enum wlcore_state
+{
 	WLCORE_STATE_OFF,
 	WLCORE_STATE_RESTARTING,
 	WLCORE_STATE_ON,
 };
 
-enum wl12xx_fw_type {
+enum wl12xx_fw_type
+{
 	WL12XX_FW_TYPE_NONE,
 	WL12XX_FW_TYPE_NORMAL,
 	WL12XX_FW_TYPE_MULTI,
@@ -106,7 +109,8 @@ enum wl12xx_fw_type {
 
 struct wl1271;
 
-enum {
+enum
+{
 	FW_VER_CHIP,
 	FW_VER_IF_TYPE,
 	FW_VER_MAJOR,
@@ -116,7 +120,8 @@ enum {
 	NUM_FW_VER
 };
 
-struct wl1271_chip {
+struct wl1271_chip
+{
 	u32 id;
 	char fw_ver_str[ETHTOOL_FWVERS_LEN];
 	unsigned int fw_ver[NUM_FW_VER];
@@ -125,7 +130,8 @@ struct wl1271_chip {
 
 #define NUM_TX_QUEUES              4
 
-struct wl_fw_status {
+struct wl_fw_status
+{
 	u32 intr;
 	u8  fw_rx_counter;
 	u8  drv_rx_counter;
@@ -152,7 +158,8 @@ struct wl_fw_status {
 	/* Size (in Memory Blocks) of TX pool */
 	u32 tx_total;
 
-	struct {
+	struct
+	{
 		/*
 		 * Cumulative counter of released packets per AC
 		 * (length of the array is NUM_TX_QUEUES)
@@ -185,27 +192,30 @@ struct wl_fw_status {
 };
 
 #define WL1271_MAX_CHANNELS 64
-struct wl1271_scan {
+struct wl1271_scan
+{
 	struct cfg80211_scan_request *req;
 	unsigned long scanned_ch[BITS_TO_LONGS(WL1271_MAX_CHANNELS)];
 	bool failed;
 	u8 state;
-	u8 ssid[IEEE80211_MAX_SSID_LEN+1];
+	u8 ssid[IEEE80211_MAX_SSID_LEN + 1];
 	size_t ssid_len;
 };
 
-struct wl1271_if_operations {
+struct wl1271_if_operations
+{
 	int __must_check (*read)(struct device *child, int addr, void *buf,
-				 size_t len, bool fixed);
+							 size_t len, bool fixed);
 	int __must_check (*write)(struct device *child, int addr, void *buf,
-				  size_t len, bool fixed);
+							  size_t len, bool fixed);
 	void (*reset)(struct device *child);
 	void (*init)(struct device *child);
 	int (*power)(struct device *child, bool enable);
 	void (*set_block_size) (struct device *child, unsigned int blksz);
 };
 
-struct wlcore_platdev_data {
+struct wlcore_platdev_data
+{
 	struct wl1271_if_operations *if_ops;
 	const struct wilink_family_data *family;
 
@@ -218,7 +228,8 @@ struct wlcore_platdev_data {
 #define MAX_NUM_KEYS 14
 #define MAX_KEY_SIZE 32
 
-struct wl1271_ap_key {
+struct wl1271_ap_key
+{
 	u8 id;
 	u8 key_type;
 	u8 key_size;
@@ -228,7 +239,8 @@ struct wl1271_ap_key {
 	u16 tx_seq_16;
 };
 
-enum wl12xx_flags {
+enum wl12xx_flags
+{
 	WL1271_FLAG_GPIO_POWER,
 	WL1271_FLAG_TX_QUEUE_STOPPED,
 	WL1271_FLAG_TX_PENDING,
@@ -247,7 +259,8 @@ enum wl12xx_flags {
 	WL1271_FLAG_REINIT_TX_WDOG,
 };
 
-enum wl12xx_vif_flags {
+enum wl12xx_vif_flags
+{
 	WLVIF_FLAG_INITIALIZED,
 	WLVIF_FLAG_STA_ASSOCIATED,
 	WLVIF_FLAG_STA_AUTHORIZED,
@@ -266,7 +279,8 @@ enum wl12xx_vif_flags {
 
 struct wl12xx_vif;
 
-struct wl1271_link {
+struct wl1271_link
+{
 	/* AP-mode - TX queue per AC in link */
 	struct sk_buff_head tx_queue[NUM_TX_QUEUES];
 
@@ -310,33 +324,38 @@ struct wl1271_link {
 #define WL1271_RX_FILTER_FLAG_IP_HEADER           0
 #define WL1271_RX_FILTER_FLAG_ETHERNET_HEADER     BIT(1)
 
-enum rx_filter_action {
+enum rx_filter_action
+{
 	FILTER_DROP = 0,
 	FILTER_SIGNAL = 1,
 	FILTER_FW_HANDLE = 2
 };
 
-enum plt_mode {
+enum plt_mode
+{
 	PLT_OFF = 0,
 	PLT_ON = 1,
 	PLT_FEM_DETECT = 2,
 	PLT_CHIP_AWAKE = 3
 };
 
-struct wl12xx_rx_filter_field {
+struct wl12xx_rx_filter_field
+{
 	__le16 offset;
 	u8 len;
 	u8 flags;
 	u8 *pattern;
 } __packed;
 
-struct wl12xx_rx_filter {
+struct wl12xx_rx_filter
+{
 	u8 action;
 	int num_fields;
 	struct wl12xx_rx_filter_field fields[WL1271_RX_FILTER_MAX_FIELDS];
 };
 
-struct wl1271_station {
+struct wl1271_station
+{
 	u8 hlid;
 	bool in_connection;
 
@@ -349,7 +368,8 @@ struct wl1271_station {
 	u64 total_freed_pkts;
 };
 
-struct wl12xx_vif {
+struct wl12xx_vif
+{
 	struct wl1271 *wl;
 	struct list_head list;
 	unsigned long flags;
@@ -361,8 +381,10 @@ struct wl12xx_vif {
 	u8 dev_role_id;
 	u8 dev_hlid;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8 hlid;
 
 			u8 basic_rate_idx;
@@ -375,13 +397,14 @@ struct wl12xx_vif {
 			/* channel type we started the STA role with */
 			enum nl80211_channel_type role_chan_type;
 		} sta;
-		struct {
+		struct
+		{
 			u8 global_hlid;
 			u8 bcast_hlid;
 
 			/* HLIDs bitmap of associated stations */
 			unsigned long sta_hlid_map[BITS_TO_LONGS(
-							WLCORE_MAX_LINKS)];
+										   WLCORE_MAX_LINKS)];
 
 			/* recoreded keys - set here before AP startup */
 			struct wl1271_ap_key *recorded_keys[MAX_NUM_KEYS];
@@ -499,7 +522,8 @@ struct wl12xx_vif {
 	 * data that has to be saved acrossed reconfigs (e.g. recovery)
 	 * should be declared in this struct.
 	 */
-	struct {
+	struct
+	{
 		u8 persistent[0];
 	};
 };
@@ -522,20 +546,20 @@ static inline bool wlcore_is_p2p_mgmt(struct wl12xx_vif *wlvif)
 }
 
 #define wl12xx_for_each_wlvif(wl, wlvif) \
-		list_for_each_entry(wlvif, &wl->wlvif_list, list)
+	list_for_each_entry(wlvif, &wl->wlvif_list, list)
 
 #define wl12xx_for_each_wlvif_continue(wl, wlvif) \
-		list_for_each_entry_continue(wlvif, &wl->wlvif_list, list)
+	list_for_each_entry_continue(wlvif, &wl->wlvif_list, list)
 
 #define wl12xx_for_each_wlvif_bss_type(wl, wlvif, _bss_type)	\
-		wl12xx_for_each_wlvif(wl, wlvif)		\
-			if (wlvif->bss_type == _bss_type)
+	wl12xx_for_each_wlvif(wl, wlvif)		\
+	if (wlvif->bss_type == _bss_type)
 
 #define wl12xx_for_each_wlvif_sta(wl, wlvif)	\
-		wl12xx_for_each_wlvif_bss_type(wl, wlvif, BSS_TYPE_STA_BSS)
+	wl12xx_for_each_wlvif_bss_type(wl, wlvif, BSS_TYPE_STA_BSS)
 
 #define wl12xx_for_each_wlvif_ap(wl, wlvif)	\
-		wl12xx_for_each_wlvif_bss_type(wl, wlvif, BSS_TYPE_AP_BSS)
+	wl12xx_for_each_wlvif_bss_type(wl, wlvif, BSS_TYPE_AP_BSS)
 
 int wl1271_plt_start(struct wl1271 *wl, const enum plt_mode plt_mode);
 int wl1271_plt_stop(struct wl1271 *wl);
@@ -543,13 +567,13 @@ int wl1271_recalc_rx_streaming(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 void wl12xx_queue_recovery_work(struct wl1271 *wl);
 size_t wl12xx_copy_fwlog(struct wl1271 *wl, u8 *memblock, size_t maxlen);
 int wl1271_rx_filter_alloc_field(struct wl12xx_rx_filter *filter,
-				 u16 offset, u8 flags,
-				 const u8 *pattern, u8 len);
+								 u16 offset, u8 flags,
+								 const u8 *pattern, u8 len);
 void wl1271_rx_filter_free(struct wl12xx_rx_filter *filter);
 struct wl12xx_rx_filter *wl1271_rx_filter_alloc(void);
 int wl1271_rx_filter_get_fields_size(struct wl12xx_rx_filter *filter);
 void wl1271_rx_filter_flatten_fields(struct wl12xx_rx_filter *filter,
-				     u8 *buf);
+									 u8 *buf);
 
 #define JOIN_TIMEOUT 5000 /* 5000 milliseconds to join */
 

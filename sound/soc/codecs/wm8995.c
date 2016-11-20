@@ -33,7 +33,8 @@
 #include "wm8995.h"
 
 #define WM8995_NUM_SUPPLIES 8
-static const char *wm8995_supply_names[WM8995_NUM_SUPPLIES] = {
+static const char *wm8995_supply_names[WM8995_NUM_SUPPLIES] =
+{
 	"DCVDD",
 	"DBVDD1",
 	"DBVDD2",
@@ -44,7 +45,8 @@ static const char *wm8995_supply_names[WM8995_NUM_SUPPLIES] = {
 	"MICVDD"
 };
 
-static const struct reg_default wm8995_reg_defaults[] = {
+static const struct reg_default wm8995_reg_defaults[] =
+{
 	{ 0, 0x8995 },
 	{ 5, 0x0100 },
 	{ 16, 0x000b },
@@ -371,13 +373,15 @@ static const struct reg_default wm8995_reg_defaults[] = {
 	{ 12695, 0x0100 },
 };
 
-struct fll_config {
+struct fll_config
+{
 	int src;
 	int in;
 	int out;
 };
 
-struct wm8995_priv {
+struct wm8995_priv
+{
 	struct regmap *regmap;
 	int sysclk[2];
 	int mclk[2];
@@ -394,16 +398,16 @@ struct wm8995_priv {
  * except container_of().
  */
 #define WM8995_REGULATOR_EVENT(n) \
-static int wm8995_regulator_event_##n(struct notifier_block *nb, \
-				      unsigned long event, void *data)    \
-{ \
-	struct wm8995_priv *wm8995 = container_of(nb, struct wm8995_priv, \
-				     disable_nb[n]); \
-	if (event & REGULATOR_EVENT_DISABLE) { \
-		regcache_mark_dirty(wm8995->regmap);	\
-	} \
-	return 0; \
-}
+	static int wm8995_regulator_event_##n(struct notifier_block *nb, \
+										  unsigned long event, void *data)    \
+	{ \
+		struct wm8995_priv *wm8995 = container_of(nb, struct wm8995_priv, \
+									 disable_nb[n]); \
+		if (event & REGULATOR_EVENT_DISABLE) { \
+			regcache_mark_dirty(wm8995->regmap);	\
+		} \
+		return 0; \
+	}
 
 WM8995_REGULATOR_EVENT(0)
 WM8995_REGULATOR_EVENT(1)
@@ -419,52 +423,56 @@ static const DECLARE_TLV_DB_SCALE(in1lr_pga_tlv, -1650, 150, 0);
 static const DECLARE_TLV_DB_SCALE(in1l_boost_tlv, 0, 600, 0);
 static const DECLARE_TLV_DB_SCALE(sidetone_tlv, -3600, 150, 0);
 
-static const char *in1l_text[] = {
+static const char *in1l_text[] =
+{
 	"Differential", "Single-ended IN1LN", "Single-ended IN1LP"
 };
 
 static SOC_ENUM_SINGLE_DECL(in1l_enum, WM8995_LEFT_LINE_INPUT_CONTROL,
-			    2, in1l_text);
+							2, in1l_text);
 
-static const char *in1r_text[] = {
+static const char *in1r_text[] =
+{
 	"Differential", "Single-ended IN1RN", "Single-ended IN1RP"
 };
 
 static SOC_ENUM_SINGLE_DECL(in1r_enum, WM8995_LEFT_LINE_INPUT_CONTROL,
-			    0, in1r_text);
+							0, in1r_text);
 
-static const char *dmic_src_text[] = {
+static const char *dmic_src_text[] =
+{
 	"DMICDAT1", "DMICDAT2", "DMICDAT3"
 };
 
 static SOC_ENUM_SINGLE_DECL(dmic_src1_enum, WM8995_POWER_MANAGEMENT_5,
-			    8, dmic_src_text);
+							8, dmic_src_text);
 static SOC_ENUM_SINGLE_DECL(dmic_src2_enum, WM8995_POWER_MANAGEMENT_5,
-			    6, dmic_src_text);
+							6, dmic_src_text);
 
-static const struct snd_kcontrol_new wm8995_snd_controls[] = {
+static const struct snd_kcontrol_new wm8995_snd_controls[] =
+{
 	SOC_DOUBLE_R_TLV("DAC1 Volume", WM8995_DAC1_LEFT_VOLUME,
-		WM8995_DAC1_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
+	WM8995_DAC1_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
 	SOC_DOUBLE_R("DAC1 Switch", WM8995_DAC1_LEFT_VOLUME,
-		WM8995_DAC1_RIGHT_VOLUME, 9, 1, 1),
+	WM8995_DAC1_RIGHT_VOLUME, 9, 1, 1),
 
 	SOC_DOUBLE_R_TLV("DAC2 Volume", WM8995_DAC2_LEFT_VOLUME,
-		WM8995_DAC2_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
+	WM8995_DAC2_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
 	SOC_DOUBLE_R("DAC2 Switch", WM8995_DAC2_LEFT_VOLUME,
-		WM8995_DAC2_RIGHT_VOLUME, 9, 1, 1),
+	WM8995_DAC2_RIGHT_VOLUME, 9, 1, 1),
 
 	SOC_DOUBLE_R_TLV("AIF1DAC1 Volume", WM8995_AIF1_DAC1_LEFT_VOLUME,
-		WM8995_AIF1_DAC1_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
+	WM8995_AIF1_DAC1_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
 	SOC_DOUBLE_R_TLV("AIF1DAC2 Volume", WM8995_AIF1_DAC2_LEFT_VOLUME,
-		WM8995_AIF1_DAC2_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
+	WM8995_AIF1_DAC2_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
 	SOC_DOUBLE_R_TLV("AIF2DAC Volume", WM8995_AIF2_DAC_LEFT_VOLUME,
-		WM8995_AIF2_DAC_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
+	WM8995_AIF2_DAC_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
 
 	SOC_DOUBLE_R_TLV("IN1LR Volume", WM8995_LEFT_LINE_INPUT_1_VOLUME,
-		WM8995_RIGHT_LINE_INPUT_1_VOLUME, 0, 31, 0, in1lr_pga_tlv),
+	WM8995_RIGHT_LINE_INPUT_1_VOLUME, 0, 31, 0, in1lr_pga_tlv),
 
 	SOC_SINGLE_TLV("IN1L Boost", WM8995_LEFT_LINE_INPUT_CONTROL,
-		4, 3, 0, in1l_boost_tlv),
+	4, 3, 0, in1l_boost_tlv),
 
 	SOC_ENUM("IN1L Mode", in1l_enum),
 	SOC_ENUM("IN1R Mode", in1r_enum),
@@ -473,16 +481,16 @@ static const struct snd_kcontrol_new wm8995_snd_controls[] = {
 	SOC_ENUM("DMIC2 SRC", dmic_src2_enum),
 
 	SOC_DOUBLE_TLV("DAC1 Sidetone Volume", WM8995_DAC1_MIXER_VOLUMES, 0, 5,
-		24, 0, sidetone_tlv),
+	24, 0, sidetone_tlv),
 	SOC_DOUBLE_TLV("DAC2 Sidetone Volume", WM8995_DAC2_MIXER_VOLUMES, 0, 5,
-		24, 0, sidetone_tlv),
+	24, 0, sidetone_tlv),
 
 	SOC_DOUBLE_R_TLV("AIF1ADC1 Volume", WM8995_AIF1_ADC1_LEFT_VOLUME,
-		WM8995_AIF1_ADC1_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
+	WM8995_AIF1_ADC1_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
 	SOC_DOUBLE_R_TLV("AIF1ADC2 Volume", WM8995_AIF1_ADC2_LEFT_VOLUME,
-		WM8995_AIF1_ADC2_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
+	WM8995_AIF1_ADC2_RIGHT_VOLUME, 0, 96, 0, digital_tlv),
 	SOC_DOUBLE_R_TLV("AIF2ADC Volume", WM8995_AIF2_ADC_LEFT_VOLUME,
-		WM8995_AIF2_ADC_RIGHT_VOLUME, 0, 96, 0, digital_tlv)
+	WM8995_AIF2_ADC_RIGHT_VOLUME, 0, 96, 0, digital_tlv)
 };
 
 static void wm8995_update_class_w(struct snd_soc_codec *codec)
@@ -493,62 +501,78 @@ static void wm8995_update_class_w(struct snd_soc_codec *codec)
 
 	/* We also need the same setting for L/R and only one path */
 	reg = snd_soc_read(codec, WM8995_DAC1_LEFT_MIXER_ROUTING);
-	switch (reg) {
-	case WM8995_AIF2DACL_TO_DAC1L:
-		dev_dbg(codec->dev, "Class W source AIF2DAC\n");
-		source = 2 << WM8995_CP_DYN_SRC_SEL_SHIFT;
-		break;
-	case WM8995_AIF1DAC2L_TO_DAC1L:
-		dev_dbg(codec->dev, "Class W source AIF1DAC2\n");
-		source = 1 << WM8995_CP_DYN_SRC_SEL_SHIFT;
-		break;
-	case WM8995_AIF1DAC1L_TO_DAC1L:
-		dev_dbg(codec->dev, "Class W source AIF1DAC1\n");
-		source = 0 << WM8995_CP_DYN_SRC_SEL_SHIFT;
-		break;
-	default:
-		dev_dbg(codec->dev, "DAC mixer setting: %x\n", reg);
-		enable = 0;
-		break;
+
+	switch (reg)
+	{
+		case WM8995_AIF2DACL_TO_DAC1L:
+			dev_dbg(codec->dev, "Class W source AIF2DAC\n");
+			source = 2 << WM8995_CP_DYN_SRC_SEL_SHIFT;
+			break;
+
+		case WM8995_AIF1DAC2L_TO_DAC1L:
+			dev_dbg(codec->dev, "Class W source AIF1DAC2\n");
+			source = 1 << WM8995_CP_DYN_SRC_SEL_SHIFT;
+			break;
+
+		case WM8995_AIF1DAC1L_TO_DAC1L:
+			dev_dbg(codec->dev, "Class W source AIF1DAC1\n");
+			source = 0 << WM8995_CP_DYN_SRC_SEL_SHIFT;
+			break;
+
+		default:
+			dev_dbg(codec->dev, "DAC mixer setting: %x\n", reg);
+			enable = 0;
+			break;
 	}
 
 	reg_r = snd_soc_read(codec, WM8995_DAC1_RIGHT_MIXER_ROUTING);
-	if (reg_r != reg) {
+
+	if (reg_r != reg)
+	{
 		dev_dbg(codec->dev, "Left and right DAC mixers different\n");
 		enable = 0;
 	}
 
-	if (enable) {
+	if (enable)
+	{
 		dev_dbg(codec->dev, "Class W enabled\n");
 		snd_soc_update_bits(codec, WM8995_CLASS_W_1,
-				    WM8995_CP_DYN_PWR_MASK |
-				    WM8995_CP_DYN_SRC_SEL_MASK,
-				    source | WM8995_CP_DYN_PWR);
-	} else {
+							WM8995_CP_DYN_PWR_MASK |
+							WM8995_CP_DYN_SRC_SEL_MASK,
+							source | WM8995_CP_DYN_PWR);
+	}
+	else
+	{
 		dev_dbg(codec->dev, "Class W disabled\n");
 		snd_soc_update_bits(codec, WM8995_CLASS_W_1,
-				    WM8995_CP_DYN_PWR_MASK, 0);
+							WM8995_CP_DYN_PWR_MASK, 0);
 	}
 }
 
 static int check_clk_sys(struct snd_soc_dapm_widget *source,
-			 struct snd_soc_dapm_widget *sink)
+						 struct snd_soc_dapm_widget *sink)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(source->dapm);
 	unsigned int reg;
 	const char *clk;
 
 	reg = snd_soc_read(codec, WM8995_CLOCKING_1);
+
 	/* Check what we're currently using for CLK_SYS */
 	if (reg & WM8995_SYSCLK_SRC)
+	{
 		clk = "AIF2CLK";
+	}
 	else
+	{
 		clk = "AIF1CLK";
+	}
+
 	return !strcmp(source->name, clk);
 }
 
 static int wm8995_put_class_w(struct snd_kcontrol *kcontrol,
-			      struct snd_ctl_elem_value *ucontrol)
+							  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_kcontrol_codec(kcontrol);
 	int ret;
@@ -559,111 +583,120 @@ static int wm8995_put_class_w(struct snd_kcontrol *kcontrol,
 }
 
 static int hp_supply_event(struct snd_soc_dapm_widget *w,
-			   struct snd_kcontrol *kcontrol, int event)
+						   struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 
-	switch (event) {
-	case SND_SOC_DAPM_PRE_PMU:
-		/* Enable the headphone amp */
-		snd_soc_update_bits(codec, WM8995_POWER_MANAGEMENT_1,
-				    WM8995_HPOUT1L_ENA_MASK |
-				    WM8995_HPOUT1R_ENA_MASK,
-				    WM8995_HPOUT1L_ENA |
-				    WM8995_HPOUT1R_ENA);
+	switch (event)
+	{
+		case SND_SOC_DAPM_PRE_PMU:
+			/* Enable the headphone amp */
+			snd_soc_update_bits(codec, WM8995_POWER_MANAGEMENT_1,
+								WM8995_HPOUT1L_ENA_MASK |
+								WM8995_HPOUT1R_ENA_MASK,
+								WM8995_HPOUT1L_ENA |
+								WM8995_HPOUT1R_ENA);
 
-		/* Enable the second stage */
-		snd_soc_update_bits(codec, WM8995_ANALOGUE_HP_1,
-				    WM8995_HPOUT1L_DLY_MASK |
-				    WM8995_HPOUT1R_DLY_MASK,
-				    WM8995_HPOUT1L_DLY |
-				    WM8995_HPOUT1R_DLY);
-		break;
-	case SND_SOC_DAPM_PRE_PMD:
-		snd_soc_update_bits(codec, WM8995_CHARGE_PUMP_1,
-				    WM8995_CP_ENA_MASK, 0);
-		break;
+			/* Enable the second stage */
+			snd_soc_update_bits(codec, WM8995_ANALOGUE_HP_1,
+								WM8995_HPOUT1L_DLY_MASK |
+								WM8995_HPOUT1R_DLY_MASK,
+								WM8995_HPOUT1L_DLY |
+								WM8995_HPOUT1R_DLY);
+			break;
+
+		case SND_SOC_DAPM_PRE_PMD:
+			snd_soc_update_bits(codec, WM8995_CHARGE_PUMP_1,
+								WM8995_CP_ENA_MASK, 0);
+			break;
 	}
 
 	return 0;
 }
 
 static void dc_servo_cmd(struct snd_soc_codec *codec,
-			 unsigned int reg, unsigned int val, unsigned int mask)
+						 unsigned int reg, unsigned int val, unsigned int mask)
 {
 	int timeout = 10;
 
 	dev_dbg(codec->dev, "%s: reg = %#x, val = %#x, mask = %#x\n",
-		__func__, reg, val, mask);
+			__func__, reg, val, mask);
 
 	snd_soc_write(codec, reg, val);
-	while (timeout--) {
+
+	while (timeout--)
+	{
 		msleep(10);
 		val = snd_soc_read(codec, WM8995_DC_SERVO_READBACK_0);
+
 		if ((val & mask) == mask)
+		{
 			return;
+		}
 	}
 
 	dev_err(codec->dev, "Timed out waiting for DC Servo\n");
 }
 
 static int hp_event(struct snd_soc_dapm_widget *w,
-		    struct snd_kcontrol *kcontrol, int event)
+					struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 	unsigned int reg;
 
 	reg = snd_soc_read(codec, WM8995_ANALOGUE_HP_1);
 
-	switch (event) {
-	case SND_SOC_DAPM_POST_PMU:
-		snd_soc_update_bits(codec, WM8995_CHARGE_PUMP_1,
-				    WM8995_CP_ENA_MASK, WM8995_CP_ENA);
+	switch (event)
+	{
+		case SND_SOC_DAPM_POST_PMU:
+			snd_soc_update_bits(codec, WM8995_CHARGE_PUMP_1,
+								WM8995_CP_ENA_MASK, WM8995_CP_ENA);
 
-		msleep(5);
+			msleep(5);
 
-		snd_soc_update_bits(codec, WM8995_POWER_MANAGEMENT_1,
-				    WM8995_HPOUT1L_ENA_MASK |
-				    WM8995_HPOUT1R_ENA_MASK,
-				    WM8995_HPOUT1L_ENA | WM8995_HPOUT1R_ENA);
+			snd_soc_update_bits(codec, WM8995_POWER_MANAGEMENT_1,
+								WM8995_HPOUT1L_ENA_MASK |
+								WM8995_HPOUT1R_ENA_MASK,
+								WM8995_HPOUT1L_ENA | WM8995_HPOUT1R_ENA);
 
-		udelay(20);
+			udelay(20);
 
-		reg |= WM8995_HPOUT1L_DLY | WM8995_HPOUT1R_DLY;
-		snd_soc_write(codec, WM8995_ANALOGUE_HP_1, reg);
+			reg |= WM8995_HPOUT1L_DLY | WM8995_HPOUT1R_DLY;
+			snd_soc_write(codec, WM8995_ANALOGUE_HP_1, reg);
 
-		snd_soc_write(codec, WM8995_DC_SERVO_1, WM8995_DCS_ENA_CHAN_0 |
-			      WM8995_DCS_ENA_CHAN_1);
+			snd_soc_write(codec, WM8995_DC_SERVO_1, WM8995_DCS_ENA_CHAN_0 |
+						  WM8995_DCS_ENA_CHAN_1);
 
-		dc_servo_cmd(codec, WM8995_DC_SERVO_2,
-			     WM8995_DCS_TRIG_STARTUP_0 |
-			     WM8995_DCS_TRIG_STARTUP_1,
-			     WM8995_DCS_TRIG_DAC_WR_0 |
-			     WM8995_DCS_TRIG_DAC_WR_1);
+			dc_servo_cmd(codec, WM8995_DC_SERVO_2,
+						 WM8995_DCS_TRIG_STARTUP_0 |
+						 WM8995_DCS_TRIG_STARTUP_1,
+						 WM8995_DCS_TRIG_DAC_WR_0 |
+						 WM8995_DCS_TRIG_DAC_WR_1);
 
-		reg |= WM8995_HPOUT1R_OUTP | WM8995_HPOUT1R_RMV_SHORT |
-		       WM8995_HPOUT1L_OUTP | WM8995_HPOUT1L_RMV_SHORT;
-		snd_soc_write(codec, WM8995_ANALOGUE_HP_1, reg);
+			reg |= WM8995_HPOUT1R_OUTP | WM8995_HPOUT1R_RMV_SHORT |
+				   WM8995_HPOUT1L_OUTP | WM8995_HPOUT1L_RMV_SHORT;
+			snd_soc_write(codec, WM8995_ANALOGUE_HP_1, reg);
 
-		break;
-	case SND_SOC_DAPM_PRE_PMD:
-		snd_soc_update_bits(codec, WM8995_ANALOGUE_HP_1,
-				    WM8995_HPOUT1L_OUTP_MASK |
-				    WM8995_HPOUT1R_OUTP_MASK |
-				    WM8995_HPOUT1L_RMV_SHORT_MASK |
-				    WM8995_HPOUT1R_RMV_SHORT_MASK, 0);
+			break;
 
-		snd_soc_update_bits(codec, WM8995_ANALOGUE_HP_1,
-				    WM8995_HPOUT1L_DLY_MASK |
-				    WM8995_HPOUT1R_DLY_MASK, 0);
+		case SND_SOC_DAPM_PRE_PMD:
+			snd_soc_update_bits(codec, WM8995_ANALOGUE_HP_1,
+								WM8995_HPOUT1L_OUTP_MASK |
+								WM8995_HPOUT1R_OUTP_MASK |
+								WM8995_HPOUT1L_RMV_SHORT_MASK |
+								WM8995_HPOUT1R_RMV_SHORT_MASK, 0);
 
-		snd_soc_write(codec, WM8995_DC_SERVO_1, 0);
+			snd_soc_update_bits(codec, WM8995_ANALOGUE_HP_1,
+								WM8995_HPOUT1L_DLY_MASK |
+								WM8995_HPOUT1R_DLY_MASK, 0);
 
-		snd_soc_update_bits(codec, WM8995_POWER_MANAGEMENT_1,
-				    WM8995_HPOUT1L_ENA_MASK |
-				    WM8995_HPOUT1R_ENA_MASK,
-				    0);
-		break;
+			snd_soc_write(codec, WM8995_DC_SERVO_1, 0);
+
+			snd_soc_update_bits(codec, WM8995_POWER_MANAGEMENT_1,
+								WM8995_HPOUT1L_ENA_MASK |
+								WM8995_HPOUT1R_ENA_MASK,
+								0);
+			break;
 	}
 
 	return 0;
@@ -679,43 +712,53 @@ static int configure_aif_clock(struct snd_soc_codec *codec, int aif)
 	wm8995 = snd_soc_codec_get_drvdata(codec);
 
 	if (aif)
+	{
 		offset = 4;
+	}
 	else
+	{
 		offset = 0;
-
-	switch (wm8995->sysclk[aif]) {
-	case WM8995_SYSCLK_MCLK1:
-		rate = wm8995->mclk[0];
-		break;
-	case WM8995_SYSCLK_MCLK2:
-		reg1 |= 0x8;
-		rate = wm8995->mclk[1];
-		break;
-	case WM8995_SYSCLK_FLL1:
-		reg1 |= 0x10;
-		rate = wm8995->fll[0].out;
-		break;
-	case WM8995_SYSCLK_FLL2:
-		reg1 |= 0x18;
-		rate = wm8995->fll[1].out;
-		break;
-	default:
-		return -EINVAL;
 	}
 
-	if (rate >= 13500000) {
+	switch (wm8995->sysclk[aif])
+	{
+		case WM8995_SYSCLK_MCLK1:
+			rate = wm8995->mclk[0];
+			break;
+
+		case WM8995_SYSCLK_MCLK2:
+			reg1 |= 0x8;
+			rate = wm8995->mclk[1];
+			break;
+
+		case WM8995_SYSCLK_FLL1:
+			reg1 |= 0x10;
+			rate = wm8995->fll[0].out;
+			break;
+
+		case WM8995_SYSCLK_FLL2:
+			reg1 |= 0x18;
+			rate = wm8995->fll[1].out;
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
+	if (rate >= 13500000)
+	{
 		rate /= 2;
 		reg1 |= WM8995_AIF1CLK_DIV;
 
 		dev_dbg(codec->dev, "Dividing AIF%d clock to %dHz\n",
-			aif + 1, rate);
+				aif + 1, rate);
 	}
 
 	wm8995->aifclk[aif] = rate;
 
 	snd_soc_update_bits(codec, WM8995_AIF1_CLOCKING_1 + offset,
-			    WM8995_AIF1CLK_SRC_MASK | WM8995_AIF1CLK_DIV_MASK,
-			    reg1);
+						WM8995_AIF1CLK_SRC_MASK | WM8995_AIF1CLK_DIV_MASK,
+						reg1);
 	return 0;
 }
 
@@ -740,17 +783,26 @@ static int configure_clock(struct snd_soc_codec *codec)
 
 	/* If they're equal it doesn't matter which is used */
 	if (wm8995->aifclk[0] == wm8995->aifclk[1])
+	{
 		return 0;
+	}
 
 	if (wm8995->aifclk[0] < wm8995->aifclk[1])
+	{
 		new = WM8995_SYSCLK_SRC;
+	}
 	else
+	{
 		new = 0;
+	}
 
 	change = snd_soc_update_bits(codec, WM8995_CLOCKING_1,
-				     WM8995_SYSCLK_SRC_MASK, new);
+								 WM8995_SYSCLK_SRC_MASK, new);
+
 	if (!change)
+	{
 		return 0;
+	}
 
 	snd_soc_dapm_sync(dapm);
 
@@ -758,23 +810,25 @@ static int configure_clock(struct snd_soc_codec *codec)
 }
 
 static int clk_sys_event(struct snd_soc_dapm_widget *w,
-			 struct snd_kcontrol *kcontrol, int event)
+						 struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 
-	switch (event) {
-	case SND_SOC_DAPM_PRE_PMU:
-		return configure_clock(codec);
+	switch (event)
+	{
+		case SND_SOC_DAPM_PRE_PMU:
+			return configure_clock(codec);
 
-	case SND_SOC_DAPM_POST_PMD:
-		configure_clock(codec);
-		break;
+		case SND_SOC_DAPM_POST_PMD:
+			configure_clock(codec);
+			break;
 	}
 
 	return 0;
 }
 
-static const char *sidetone_text[] = {
+static const char *sidetone_text[] =
+{
 	"ADC/DMIC1", "DMIC2",
 };
 
@@ -788,84 +842,92 @@ static SOC_ENUM_SINGLE_DECL(sidetone2_enum, WM8995_SIDETONE, 1, sidetone_text);
 static const struct snd_kcontrol_new sidetone2_mux =
 	SOC_DAPM_ENUM("Right Sidetone Mux", sidetone2_enum);
 
-static const struct snd_kcontrol_new aif1adc1l_mix[] = {
+static const struct snd_kcontrol_new aif1adc1l_mix[] =
+{
 	SOC_DAPM_SINGLE("ADC/DMIC Switch", WM8995_AIF1_ADC1_LEFT_MIXER_ROUTING,
-		1, 1, 0),
+	1, 1, 0),
 	SOC_DAPM_SINGLE("AIF2 Switch", WM8995_AIF1_ADC1_LEFT_MIXER_ROUTING,
-		0, 1, 0),
+	0, 1, 0),
 };
 
-static const struct snd_kcontrol_new aif1adc1r_mix[] = {
+static const struct snd_kcontrol_new aif1adc1r_mix[] =
+{
 	SOC_DAPM_SINGLE("ADC/DMIC Switch", WM8995_AIF1_ADC1_RIGHT_MIXER_ROUTING,
-		1, 1, 0),
+	1, 1, 0),
 	SOC_DAPM_SINGLE("AIF2 Switch", WM8995_AIF1_ADC1_RIGHT_MIXER_ROUTING,
-		0, 1, 0),
+	0, 1, 0),
 };
 
-static const struct snd_kcontrol_new aif1adc2l_mix[] = {
+static const struct snd_kcontrol_new aif1adc2l_mix[] =
+{
 	SOC_DAPM_SINGLE("DMIC Switch", WM8995_AIF1_ADC2_LEFT_MIXER_ROUTING,
-		1, 1, 0),
+	1, 1, 0),
 	SOC_DAPM_SINGLE("AIF2 Switch", WM8995_AIF1_ADC2_LEFT_MIXER_ROUTING,
-		0, 1, 0),
+	0, 1, 0),
 };
 
-static const struct snd_kcontrol_new aif1adc2r_mix[] = {
+static const struct snd_kcontrol_new aif1adc2r_mix[] =
+{
 	SOC_DAPM_SINGLE("DMIC Switch", WM8995_AIF1_ADC2_RIGHT_MIXER_ROUTING,
-		1, 1, 0),
+	1, 1, 0),
 	SOC_DAPM_SINGLE("AIF2 Switch", WM8995_AIF1_ADC2_RIGHT_MIXER_ROUTING,
-		0, 1, 0),
+	0, 1, 0),
 };
 
-static const struct snd_kcontrol_new dac1l_mix[] = {
+static const struct snd_kcontrol_new dac1l_mix[] =
+{
 	WM8995_CLASS_W_SWITCH("Right Sidetone Switch", WM8995_DAC1_LEFT_MIXER_ROUTING,
-		5, 1, 0),
+	5, 1, 0),
 	WM8995_CLASS_W_SWITCH("Left Sidetone Switch", WM8995_DAC1_LEFT_MIXER_ROUTING,
-		4, 1, 0),
+	4, 1, 0),
 	WM8995_CLASS_W_SWITCH("AIF2 Switch", WM8995_DAC1_LEFT_MIXER_ROUTING,
-		2, 1, 0),
+	2, 1, 0),
 	WM8995_CLASS_W_SWITCH("AIF1.2 Switch", WM8995_DAC1_LEFT_MIXER_ROUTING,
-		1, 1, 0),
+	1, 1, 0),
 	WM8995_CLASS_W_SWITCH("AIF1.1 Switch", WM8995_DAC1_LEFT_MIXER_ROUTING,
-		0, 1, 0),
+	0, 1, 0),
 };
 
-static const struct snd_kcontrol_new dac1r_mix[] = {
+static const struct snd_kcontrol_new dac1r_mix[] =
+{
 	WM8995_CLASS_W_SWITCH("Right Sidetone Switch", WM8995_DAC1_RIGHT_MIXER_ROUTING,
-		5, 1, 0),
+	5, 1, 0),
 	WM8995_CLASS_W_SWITCH("Left Sidetone Switch", WM8995_DAC1_RIGHT_MIXER_ROUTING,
-		4, 1, 0),
+	4, 1, 0),
 	WM8995_CLASS_W_SWITCH("AIF2 Switch", WM8995_DAC1_RIGHT_MIXER_ROUTING,
-		2, 1, 0),
+	2, 1, 0),
 	WM8995_CLASS_W_SWITCH("AIF1.2 Switch", WM8995_DAC1_RIGHT_MIXER_ROUTING,
-		1, 1, 0),
+	1, 1, 0),
 	WM8995_CLASS_W_SWITCH("AIF1.1 Switch", WM8995_DAC1_RIGHT_MIXER_ROUTING,
-		0, 1, 0),
+	0, 1, 0),
 };
 
-static const struct snd_kcontrol_new aif2dac2l_mix[] = {
+static const struct snd_kcontrol_new aif2dac2l_mix[] =
+{
 	SOC_DAPM_SINGLE("Right Sidetone Switch", WM8995_DAC2_LEFT_MIXER_ROUTING,
-		5, 1, 0),
+	5, 1, 0),
 	SOC_DAPM_SINGLE("Left Sidetone Switch", WM8995_DAC2_LEFT_MIXER_ROUTING,
-		4, 1, 0),
+	4, 1, 0),
 	SOC_DAPM_SINGLE("AIF2 Switch", WM8995_DAC2_LEFT_MIXER_ROUTING,
-		2, 1, 0),
+	2, 1, 0),
 	SOC_DAPM_SINGLE("AIF1.2 Switch", WM8995_DAC2_LEFT_MIXER_ROUTING,
-		1, 1, 0),
+	1, 1, 0),
 	SOC_DAPM_SINGLE("AIF1.1 Switch", WM8995_DAC2_LEFT_MIXER_ROUTING,
-		0, 1, 0),
+	0, 1, 0),
 };
 
-static const struct snd_kcontrol_new aif2dac2r_mix[] = {
+static const struct snd_kcontrol_new aif2dac2r_mix[] =
+{
 	SOC_DAPM_SINGLE("Right Sidetone Switch", WM8995_DAC2_RIGHT_MIXER_ROUTING,
-		5, 1, 0),
+	5, 1, 0),
 	SOC_DAPM_SINGLE("Left Sidetone Switch", WM8995_DAC2_RIGHT_MIXER_ROUTING,
-		4, 1, 0),
+	4, 1, 0),
 	SOC_DAPM_SINGLE("AIF2 Switch", WM8995_DAC2_RIGHT_MIXER_ROUTING,
-		2, 1, 0),
+	2, 1, 0),
 	SOC_DAPM_SINGLE("AIF1.2 Switch", WM8995_DAC2_RIGHT_MIXER_ROUTING,
-		1, 1, 0),
+	1, 1, 0),
 	SOC_DAPM_SINGLE("AIF1.1 Switch", WM8995_DAC2_RIGHT_MIXER_ROUTING,
-		0, 1, 0),
+	0, 1, 0),
 };
 
 static const struct snd_kcontrol_new in1l_pga =
@@ -874,7 +936,8 @@ static const struct snd_kcontrol_new in1l_pga =
 static const struct snd_kcontrol_new in1r_pga =
 	SOC_DAPM_SINGLE("IN1R Switch", WM8995_POWER_MANAGEMENT_2, 4, 1, 0);
 
-static const char *adc_mux_text[] = {
+static const char *adc_mux_text[] =
+{
 	"ADC",
 	"DMIC",
 };
@@ -887,18 +950,19 @@ static const struct snd_kcontrol_new adcl_mux =
 static const struct snd_kcontrol_new adcr_mux =
 	SOC_DAPM_ENUM("ADCR Mux", adc_enum);
 
-static const char *spk_src_text[] = {
+static const char *spk_src_text[] =
+{
 	"DAC1L", "DAC1R", "DAC2L", "DAC2R"
 };
 
 static SOC_ENUM_SINGLE_DECL(spk1l_src_enum, WM8995_LEFT_PDM_SPEAKER_1,
-			    0, spk_src_text);
+							0, spk_src_text);
 static SOC_ENUM_SINGLE_DECL(spk1r_src_enum, WM8995_RIGHT_PDM_SPEAKER_1,
-			    0, spk_src_text);
+							0, spk_src_text);
 static SOC_ENUM_SINGLE_DECL(spk2l_src_enum, WM8995_LEFT_PDM_SPEAKER_2,
-			    0, spk_src_text);
+							0, spk_src_text);
 static SOC_ENUM_SINGLE_DECL(spk2r_src_enum, WM8995_RIGHT_PDM_SPEAKER_2,
-			    0, spk_src_text);
+							0, spk_src_text);
 
 static const struct snd_kcontrol_new spk1l_mux =
 	SOC_DAPM_ENUM("SPK1L SRC", spk1l_src_enum);
@@ -909,7 +973,8 @@ static const struct snd_kcontrol_new spk2l_mux =
 static const struct snd_kcontrol_new spk2r_mux =
 	SOC_DAPM_ENUM("SPK2R SRC", spk2r_src_enum);
 
-static const struct snd_soc_dapm_widget wm8995_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget wm8995_dapm_widgets[] =
+{
 	SND_SOC_DAPM_INPUT("DMIC1DAT"),
 	SND_SOC_DAPM_INPUT("DMIC2DAT"),
 
@@ -917,14 +982,14 @@ static const struct snd_soc_dapm_widget wm8995_dapm_widgets[] = {
 	SND_SOC_DAPM_INPUT("IN1R"),
 
 	SND_SOC_DAPM_MIXER("IN1L PGA", SND_SOC_NOPM, 0, 0,
-		&in1l_pga, 1),
+	&in1l_pga, 1),
 	SND_SOC_DAPM_MIXER("IN1R PGA", SND_SOC_NOPM, 0, 0,
-		&in1r_pga, 1),
+	&in1r_pga, 1),
 
 	SND_SOC_DAPM_SUPPLY("MICBIAS1", WM8995_POWER_MANAGEMENT_1, 8, 0,
-			    NULL, 0),
+	NULL, 0),
 	SND_SOC_DAPM_SUPPLY("MICBIAS2", WM8995_POWER_MANAGEMENT_1, 9, 0,
-			    NULL, 0),
+	NULL, 0),
 
 	SND_SOC_DAPM_SUPPLY("AIF1CLK", WM8995_AIF1_CLOCKING_1, 0, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("AIF2CLK", WM8995_AIF2_CLOCKING_1, 0, 0, NULL, 0),
@@ -932,18 +997,18 @@ static const struct snd_soc_dapm_widget wm8995_dapm_widgets[] = {
 	SND_SOC_DAPM_SUPPLY("DSP2CLK", WM8995_CLOCKING_1, 2, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("SYSDSPCLK", WM8995_CLOCKING_1, 1, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("CLK_SYS", SND_SOC_NOPM, 0, 0, clk_sys_event,
-		SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
+	SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
 
 	SND_SOC_DAPM_AIF_OUT("AIF1ADC1L", "AIF1 Capture", 0,
-		WM8995_POWER_MANAGEMENT_3, 9, 0),
+	WM8995_POWER_MANAGEMENT_3, 9, 0),
 	SND_SOC_DAPM_AIF_OUT("AIF1ADC1R", "AIF1 Capture", 0,
-		WM8995_POWER_MANAGEMENT_3, 8, 0),
+	WM8995_POWER_MANAGEMENT_3, 8, 0),
 	SND_SOC_DAPM_AIF_OUT("AIF1ADCDAT", "AIF1 Capture", 0,
 	SND_SOC_NOPM, 0, 0),
 	SND_SOC_DAPM_AIF_OUT("AIF1ADC2L", "AIF1 Capture",
-		0, WM8995_POWER_MANAGEMENT_3, 11, 0),
+	0, WM8995_POWER_MANAGEMENT_3, 11, 0),
 	SND_SOC_DAPM_AIF_OUT("AIF1ADC2R", "AIF1 Capture",
-		0, WM8995_POWER_MANAGEMENT_3, 10, 0),
+	0, WM8995_POWER_MANAGEMENT_3, 10, 0),
 
 	SND_SOC_DAPM_MUX("ADCL Mux", SND_SOC_NOPM, 1, 0, &adcl_mux),
 	SND_SOC_DAPM_MUX("ADCR Mux", SND_SOC_NOPM, 0, 0, &adcr_mux),
@@ -957,30 +1022,30 @@ static const struct snd_soc_dapm_widget wm8995_dapm_widgets[] = {
 	SND_SOC_DAPM_ADC("ADCR", NULL, WM8995_POWER_MANAGEMENT_3, 0, 0),
 
 	SND_SOC_DAPM_MIXER("AIF1ADC1L Mixer", SND_SOC_NOPM, 0, 0,
-		aif1adc1l_mix, ARRAY_SIZE(aif1adc1l_mix)),
+	aif1adc1l_mix, ARRAY_SIZE(aif1adc1l_mix)),
 	SND_SOC_DAPM_MIXER("AIF1ADC1R Mixer", SND_SOC_NOPM, 0, 0,
-		aif1adc1r_mix, ARRAY_SIZE(aif1adc1r_mix)),
+	aif1adc1r_mix, ARRAY_SIZE(aif1adc1r_mix)),
 	SND_SOC_DAPM_MIXER("AIF1ADC2L Mixer", SND_SOC_NOPM, 0, 0,
-		aif1adc2l_mix, ARRAY_SIZE(aif1adc2l_mix)),
+	aif1adc2l_mix, ARRAY_SIZE(aif1adc2l_mix)),
 	SND_SOC_DAPM_MIXER("AIF1ADC2R Mixer", SND_SOC_NOPM, 0, 0,
-		aif1adc2r_mix, ARRAY_SIZE(aif1adc2r_mix)),
+	aif1adc2r_mix, ARRAY_SIZE(aif1adc2r_mix)),
 
 	SND_SOC_DAPM_AIF_IN("AIF1DAC1L", NULL, 0, WM8995_POWER_MANAGEMENT_4,
-		9, 0),
+	9, 0),
 	SND_SOC_DAPM_AIF_IN("AIF1DAC1R", NULL, 0, WM8995_POWER_MANAGEMENT_4,
-		8, 0),
+	8, 0),
 	SND_SOC_DAPM_AIF_IN("AIF1DACDAT", "AIF1 Playback", 0, SND_SOC_NOPM,
-		0, 0),
+	0, 0),
 
 	SND_SOC_DAPM_AIF_IN("AIF1DAC2L", NULL, 0, WM8995_POWER_MANAGEMENT_4,
-		11, 0),
+	11, 0),
 	SND_SOC_DAPM_AIF_IN("AIF1DAC2R", NULL, 0, WM8995_POWER_MANAGEMENT_4,
-		10, 0),
+	10, 0),
 
 	SND_SOC_DAPM_MIXER("AIF2DAC2L Mixer", SND_SOC_NOPM, 0, 0,
-		aif2dac2l_mix, ARRAY_SIZE(aif2dac2l_mix)),
+	aif2dac2l_mix, ARRAY_SIZE(aif2dac2l_mix)),
 	SND_SOC_DAPM_MIXER("AIF2DAC2R Mixer", SND_SOC_NOPM, 0, 0,
-		aif2dac2r_mix, ARRAY_SIZE(aif2dac2r_mix)),
+	aif2dac2r_mix, ARRAY_SIZE(aif2dac2r_mix)),
 
 	SND_SOC_DAPM_DAC("DAC2L", NULL, WM8995_POWER_MANAGEMENT_4, 3, 0),
 	SND_SOC_DAPM_DAC("DAC2R", NULL, WM8995_POWER_MANAGEMENT_4, 2, 0),
@@ -988,27 +1053,27 @@ static const struct snd_soc_dapm_widget wm8995_dapm_widgets[] = {
 	SND_SOC_DAPM_DAC("DAC1R", NULL, WM8995_POWER_MANAGEMENT_4, 0, 0),
 
 	SND_SOC_DAPM_MIXER("DAC1L Mixer", SND_SOC_NOPM, 0, 0, dac1l_mix,
-		ARRAY_SIZE(dac1l_mix)),
+	ARRAY_SIZE(dac1l_mix)),
 	SND_SOC_DAPM_MIXER("DAC1R Mixer", SND_SOC_NOPM, 0, 0, dac1r_mix,
-		ARRAY_SIZE(dac1r_mix)),
+	ARRAY_SIZE(dac1r_mix)),
 
 	SND_SOC_DAPM_MUX("Left Sidetone", SND_SOC_NOPM, 0, 0, &sidetone1_mux),
 	SND_SOC_DAPM_MUX("Right Sidetone", SND_SOC_NOPM, 0, 0, &sidetone2_mux),
 
 	SND_SOC_DAPM_PGA_E("Headphone PGA", SND_SOC_NOPM, 0, 0, NULL, 0,
-		hp_event, SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
+	hp_event, SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
 
 	SND_SOC_DAPM_SUPPLY("Headphone Supply", SND_SOC_NOPM, 0, 0,
-		hp_supply_event, SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_PRE_PMD),
+	hp_supply_event, SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_PRE_PMD),
 
 	SND_SOC_DAPM_MUX("SPK1L Driver", WM8995_LEFT_PDM_SPEAKER_1,
-		4, 0, &spk1l_mux),
+	4, 0, &spk1l_mux),
 	SND_SOC_DAPM_MUX("SPK1R Driver", WM8995_RIGHT_PDM_SPEAKER_1,
-		4, 0, &spk1r_mux),
+	4, 0, &spk1r_mux),
 	SND_SOC_DAPM_MUX("SPK2L Driver", WM8995_LEFT_PDM_SPEAKER_2,
-		4, 0, &spk2l_mux),
+	4, 0, &spk2l_mux),
 	SND_SOC_DAPM_MUX("SPK2R Driver", WM8995_RIGHT_PDM_SPEAKER_2,
-		4, 0, &spk2r_mux),
+	4, 0, &spk2r_mux),
 
 	SND_SOC_DAPM_SUPPLY("LDO2", WM8995_POWER_MANAGEMENT_2, 1, 0, NULL, 0),
 
@@ -1020,7 +1085,8 @@ static const struct snd_soc_dapm_widget wm8995_dapm_widgets[] = {
 	SND_SOC_DAPM_OUTPUT("SPK2R")
 };
 
-static const struct snd_soc_dapm_route wm8995_intercon[] = {
+static const struct snd_soc_dapm_route wm8995_intercon[] =
+{
 	{ "CLK_SYS", NULL, "AIF1CLK", check_clk_sys },
 	{ "CLK_SYS", NULL, "AIF2CLK", check_clk_sys },
 
@@ -1182,241 +1248,245 @@ static const struct snd_soc_dapm_route wm8995_intercon[] = {
 
 static bool wm8995_readable(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case WM8995_SOFTWARE_RESET:
-	case WM8995_POWER_MANAGEMENT_1:
-	case WM8995_POWER_MANAGEMENT_2:
-	case WM8995_POWER_MANAGEMENT_3:
-	case WM8995_POWER_MANAGEMENT_4:
-	case WM8995_POWER_MANAGEMENT_5:
-	case WM8995_LEFT_LINE_INPUT_1_VOLUME:
-	case WM8995_RIGHT_LINE_INPUT_1_VOLUME:
-	case WM8995_LEFT_LINE_INPUT_CONTROL:
-	case WM8995_DAC1_LEFT_VOLUME:
-	case WM8995_DAC1_RIGHT_VOLUME:
-	case WM8995_DAC2_LEFT_VOLUME:
-	case WM8995_DAC2_RIGHT_VOLUME:
-	case WM8995_OUTPUT_VOLUME_ZC_1:
-	case WM8995_MICBIAS_1:
-	case WM8995_MICBIAS_2:
-	case WM8995_LDO_1:
-	case WM8995_LDO_2:
-	case WM8995_ACCESSORY_DETECT_MODE1:
-	case WM8995_ACCESSORY_DETECT_MODE2:
-	case WM8995_HEADPHONE_DETECT1:
-	case WM8995_HEADPHONE_DETECT2:
-	case WM8995_MIC_DETECT_1:
-	case WM8995_MIC_DETECT_2:
-	case WM8995_CHARGE_PUMP_1:
-	case WM8995_CLASS_W_1:
-	case WM8995_DC_SERVO_1:
-	case WM8995_DC_SERVO_2:
-	case WM8995_DC_SERVO_3:
-	case WM8995_DC_SERVO_5:
-	case WM8995_DC_SERVO_6:
-	case WM8995_DC_SERVO_7:
-	case WM8995_DC_SERVO_READBACK_0:
-	case WM8995_ANALOGUE_HP_1:
-	case WM8995_ANALOGUE_HP_2:
-	case WM8995_CHIP_REVISION:
-	case WM8995_CONTROL_INTERFACE_1:
-	case WM8995_CONTROL_INTERFACE_2:
-	case WM8995_WRITE_SEQUENCER_CTRL_1:
-	case WM8995_WRITE_SEQUENCER_CTRL_2:
-	case WM8995_AIF1_CLOCKING_1:
-	case WM8995_AIF1_CLOCKING_2:
-	case WM8995_AIF2_CLOCKING_1:
-	case WM8995_AIF2_CLOCKING_2:
-	case WM8995_CLOCKING_1:
-	case WM8995_CLOCKING_2:
-	case WM8995_AIF1_RATE:
-	case WM8995_AIF2_RATE:
-	case WM8995_RATE_STATUS:
-	case WM8995_FLL1_CONTROL_1:
-	case WM8995_FLL1_CONTROL_2:
-	case WM8995_FLL1_CONTROL_3:
-	case WM8995_FLL1_CONTROL_4:
-	case WM8995_FLL1_CONTROL_5:
-	case WM8995_FLL2_CONTROL_1:
-	case WM8995_FLL2_CONTROL_2:
-	case WM8995_FLL2_CONTROL_3:
-	case WM8995_FLL2_CONTROL_4:
-	case WM8995_FLL2_CONTROL_5:
-	case WM8995_AIF1_CONTROL_1:
-	case WM8995_AIF1_CONTROL_2:
-	case WM8995_AIF1_MASTER_SLAVE:
-	case WM8995_AIF1_BCLK:
-	case WM8995_AIF1ADC_LRCLK:
-	case WM8995_AIF1DAC_LRCLK:
-	case WM8995_AIF1DAC_DATA:
-	case WM8995_AIF1ADC_DATA:
-	case WM8995_AIF2_CONTROL_1:
-	case WM8995_AIF2_CONTROL_2:
-	case WM8995_AIF2_MASTER_SLAVE:
-	case WM8995_AIF2_BCLK:
-	case WM8995_AIF2ADC_LRCLK:
-	case WM8995_AIF2DAC_LRCLK:
-	case WM8995_AIF2DAC_DATA:
-	case WM8995_AIF2ADC_DATA:
-	case WM8995_AIF1_ADC1_LEFT_VOLUME:
-	case WM8995_AIF1_ADC1_RIGHT_VOLUME:
-	case WM8995_AIF1_DAC1_LEFT_VOLUME:
-	case WM8995_AIF1_DAC1_RIGHT_VOLUME:
-	case WM8995_AIF1_ADC2_LEFT_VOLUME:
-	case WM8995_AIF1_ADC2_RIGHT_VOLUME:
-	case WM8995_AIF1_DAC2_LEFT_VOLUME:
-	case WM8995_AIF1_DAC2_RIGHT_VOLUME:
-	case WM8995_AIF1_ADC1_FILTERS:
-	case WM8995_AIF1_ADC2_FILTERS:
-	case WM8995_AIF1_DAC1_FILTERS_1:
-	case WM8995_AIF1_DAC1_FILTERS_2:
-	case WM8995_AIF1_DAC2_FILTERS_1:
-	case WM8995_AIF1_DAC2_FILTERS_2:
-	case WM8995_AIF1_DRC1_1:
-	case WM8995_AIF1_DRC1_2:
-	case WM8995_AIF1_DRC1_3:
-	case WM8995_AIF1_DRC1_4:
-	case WM8995_AIF1_DRC1_5:
-	case WM8995_AIF1_DRC2_1:
-	case WM8995_AIF1_DRC2_2:
-	case WM8995_AIF1_DRC2_3:
-	case WM8995_AIF1_DRC2_4:
-	case WM8995_AIF1_DRC2_5:
-	case WM8995_AIF1_DAC1_EQ_GAINS_1:
-	case WM8995_AIF1_DAC1_EQ_GAINS_2:
-	case WM8995_AIF1_DAC1_EQ_BAND_1_A:
-	case WM8995_AIF1_DAC1_EQ_BAND_1_B:
-	case WM8995_AIF1_DAC1_EQ_BAND_1_PG:
-	case WM8995_AIF1_DAC1_EQ_BAND_2_A:
-	case WM8995_AIF1_DAC1_EQ_BAND_2_B:
-	case WM8995_AIF1_DAC1_EQ_BAND_2_C:
-	case WM8995_AIF1_DAC1_EQ_BAND_2_PG:
-	case WM8995_AIF1_DAC1_EQ_BAND_3_A:
-	case WM8995_AIF1_DAC1_EQ_BAND_3_B:
-	case WM8995_AIF1_DAC1_EQ_BAND_3_C:
-	case WM8995_AIF1_DAC1_EQ_BAND_3_PG:
-	case WM8995_AIF1_DAC1_EQ_BAND_4_A:
-	case WM8995_AIF1_DAC1_EQ_BAND_4_B:
-	case WM8995_AIF1_DAC1_EQ_BAND_4_C:
-	case WM8995_AIF1_DAC1_EQ_BAND_4_PG:
-	case WM8995_AIF1_DAC1_EQ_BAND_5_A:
-	case WM8995_AIF1_DAC1_EQ_BAND_5_B:
-	case WM8995_AIF1_DAC1_EQ_BAND_5_PG:
-	case WM8995_AIF1_DAC2_EQ_GAINS_1:
-	case WM8995_AIF1_DAC2_EQ_GAINS_2:
-	case WM8995_AIF1_DAC2_EQ_BAND_1_A:
-	case WM8995_AIF1_DAC2_EQ_BAND_1_B:
-	case WM8995_AIF1_DAC2_EQ_BAND_1_PG:
-	case WM8995_AIF1_DAC2_EQ_BAND_2_A:
-	case WM8995_AIF1_DAC2_EQ_BAND_2_B:
-	case WM8995_AIF1_DAC2_EQ_BAND_2_C:
-	case WM8995_AIF1_DAC2_EQ_BAND_2_PG:
-	case WM8995_AIF1_DAC2_EQ_BAND_3_A:
-	case WM8995_AIF1_DAC2_EQ_BAND_3_B:
-	case WM8995_AIF1_DAC2_EQ_BAND_3_C:
-	case WM8995_AIF1_DAC2_EQ_BAND_3_PG:
-	case WM8995_AIF1_DAC2_EQ_BAND_4_A:
-	case WM8995_AIF1_DAC2_EQ_BAND_4_B:
-	case WM8995_AIF1_DAC2_EQ_BAND_4_C:
-	case WM8995_AIF1_DAC2_EQ_BAND_4_PG:
-	case WM8995_AIF1_DAC2_EQ_BAND_5_A:
-	case WM8995_AIF1_DAC2_EQ_BAND_5_B:
-	case WM8995_AIF1_DAC2_EQ_BAND_5_PG:
-	case WM8995_AIF2_ADC_LEFT_VOLUME:
-	case WM8995_AIF2_ADC_RIGHT_VOLUME:
-	case WM8995_AIF2_DAC_LEFT_VOLUME:
-	case WM8995_AIF2_DAC_RIGHT_VOLUME:
-	case WM8995_AIF2_ADC_FILTERS:
-	case WM8995_AIF2_DAC_FILTERS_1:
-	case WM8995_AIF2_DAC_FILTERS_2:
-	case WM8995_AIF2_DRC_1:
-	case WM8995_AIF2_DRC_2:
-	case WM8995_AIF2_DRC_3:
-	case WM8995_AIF2_DRC_4:
-	case WM8995_AIF2_DRC_5:
-	case WM8995_AIF2_EQ_GAINS_1:
-	case WM8995_AIF2_EQ_GAINS_2:
-	case WM8995_AIF2_EQ_BAND_1_A:
-	case WM8995_AIF2_EQ_BAND_1_B:
-	case WM8995_AIF2_EQ_BAND_1_PG:
-	case WM8995_AIF2_EQ_BAND_2_A:
-	case WM8995_AIF2_EQ_BAND_2_B:
-	case WM8995_AIF2_EQ_BAND_2_C:
-	case WM8995_AIF2_EQ_BAND_2_PG:
-	case WM8995_AIF2_EQ_BAND_3_A:
-	case WM8995_AIF2_EQ_BAND_3_B:
-	case WM8995_AIF2_EQ_BAND_3_C:
-	case WM8995_AIF2_EQ_BAND_3_PG:
-	case WM8995_AIF2_EQ_BAND_4_A:
-	case WM8995_AIF2_EQ_BAND_4_B:
-	case WM8995_AIF2_EQ_BAND_4_C:
-	case WM8995_AIF2_EQ_BAND_4_PG:
-	case WM8995_AIF2_EQ_BAND_5_A:
-	case WM8995_AIF2_EQ_BAND_5_B:
-	case WM8995_AIF2_EQ_BAND_5_PG:
-	case WM8995_DAC1_MIXER_VOLUMES:
-	case WM8995_DAC1_LEFT_MIXER_ROUTING:
-	case WM8995_DAC1_RIGHT_MIXER_ROUTING:
-	case WM8995_DAC2_MIXER_VOLUMES:
-	case WM8995_DAC2_LEFT_MIXER_ROUTING:
-	case WM8995_DAC2_RIGHT_MIXER_ROUTING:
-	case WM8995_AIF1_ADC1_LEFT_MIXER_ROUTING:
-	case WM8995_AIF1_ADC1_RIGHT_MIXER_ROUTING:
-	case WM8995_AIF1_ADC2_LEFT_MIXER_ROUTING:
-	case WM8995_AIF1_ADC2_RIGHT_MIXER_ROUTING:
-	case WM8995_DAC_SOFTMUTE:
-	case WM8995_OVERSAMPLING:
-	case WM8995_SIDETONE:
-	case WM8995_GPIO_1:
-	case WM8995_GPIO_2:
-	case WM8995_GPIO_3:
-	case WM8995_GPIO_4:
-	case WM8995_GPIO_5:
-	case WM8995_GPIO_6:
-	case WM8995_GPIO_7:
-	case WM8995_GPIO_8:
-	case WM8995_GPIO_9:
-	case WM8995_GPIO_10:
-	case WM8995_GPIO_11:
-	case WM8995_GPIO_12:
-	case WM8995_GPIO_13:
-	case WM8995_GPIO_14:
-	case WM8995_PULL_CONTROL_1:
-	case WM8995_PULL_CONTROL_2:
-	case WM8995_INTERRUPT_STATUS_1:
-	case WM8995_INTERRUPT_STATUS_2:
-	case WM8995_INTERRUPT_RAW_STATUS_2:
-	case WM8995_INTERRUPT_STATUS_1_MASK:
-	case WM8995_INTERRUPT_STATUS_2_MASK:
-	case WM8995_INTERRUPT_CONTROL:
-	case WM8995_LEFT_PDM_SPEAKER_1:
-	case WM8995_RIGHT_PDM_SPEAKER_1:
-	case WM8995_PDM_SPEAKER_1_MUTE_SEQUENCE:
-	case WM8995_LEFT_PDM_SPEAKER_2:
-	case WM8995_RIGHT_PDM_SPEAKER_2:
-	case WM8995_PDM_SPEAKER_2_MUTE_SEQUENCE:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case WM8995_SOFTWARE_RESET:
+		case WM8995_POWER_MANAGEMENT_1:
+		case WM8995_POWER_MANAGEMENT_2:
+		case WM8995_POWER_MANAGEMENT_3:
+		case WM8995_POWER_MANAGEMENT_4:
+		case WM8995_POWER_MANAGEMENT_5:
+		case WM8995_LEFT_LINE_INPUT_1_VOLUME:
+		case WM8995_RIGHT_LINE_INPUT_1_VOLUME:
+		case WM8995_LEFT_LINE_INPUT_CONTROL:
+		case WM8995_DAC1_LEFT_VOLUME:
+		case WM8995_DAC1_RIGHT_VOLUME:
+		case WM8995_DAC2_LEFT_VOLUME:
+		case WM8995_DAC2_RIGHT_VOLUME:
+		case WM8995_OUTPUT_VOLUME_ZC_1:
+		case WM8995_MICBIAS_1:
+		case WM8995_MICBIAS_2:
+		case WM8995_LDO_1:
+		case WM8995_LDO_2:
+		case WM8995_ACCESSORY_DETECT_MODE1:
+		case WM8995_ACCESSORY_DETECT_MODE2:
+		case WM8995_HEADPHONE_DETECT1:
+		case WM8995_HEADPHONE_DETECT2:
+		case WM8995_MIC_DETECT_1:
+		case WM8995_MIC_DETECT_2:
+		case WM8995_CHARGE_PUMP_1:
+		case WM8995_CLASS_W_1:
+		case WM8995_DC_SERVO_1:
+		case WM8995_DC_SERVO_2:
+		case WM8995_DC_SERVO_3:
+		case WM8995_DC_SERVO_5:
+		case WM8995_DC_SERVO_6:
+		case WM8995_DC_SERVO_7:
+		case WM8995_DC_SERVO_READBACK_0:
+		case WM8995_ANALOGUE_HP_1:
+		case WM8995_ANALOGUE_HP_2:
+		case WM8995_CHIP_REVISION:
+		case WM8995_CONTROL_INTERFACE_1:
+		case WM8995_CONTROL_INTERFACE_2:
+		case WM8995_WRITE_SEQUENCER_CTRL_1:
+		case WM8995_WRITE_SEQUENCER_CTRL_2:
+		case WM8995_AIF1_CLOCKING_1:
+		case WM8995_AIF1_CLOCKING_2:
+		case WM8995_AIF2_CLOCKING_1:
+		case WM8995_AIF2_CLOCKING_2:
+		case WM8995_CLOCKING_1:
+		case WM8995_CLOCKING_2:
+		case WM8995_AIF1_RATE:
+		case WM8995_AIF2_RATE:
+		case WM8995_RATE_STATUS:
+		case WM8995_FLL1_CONTROL_1:
+		case WM8995_FLL1_CONTROL_2:
+		case WM8995_FLL1_CONTROL_3:
+		case WM8995_FLL1_CONTROL_4:
+		case WM8995_FLL1_CONTROL_5:
+		case WM8995_FLL2_CONTROL_1:
+		case WM8995_FLL2_CONTROL_2:
+		case WM8995_FLL2_CONTROL_3:
+		case WM8995_FLL2_CONTROL_4:
+		case WM8995_FLL2_CONTROL_5:
+		case WM8995_AIF1_CONTROL_1:
+		case WM8995_AIF1_CONTROL_2:
+		case WM8995_AIF1_MASTER_SLAVE:
+		case WM8995_AIF1_BCLK:
+		case WM8995_AIF1ADC_LRCLK:
+		case WM8995_AIF1DAC_LRCLK:
+		case WM8995_AIF1DAC_DATA:
+		case WM8995_AIF1ADC_DATA:
+		case WM8995_AIF2_CONTROL_1:
+		case WM8995_AIF2_CONTROL_2:
+		case WM8995_AIF2_MASTER_SLAVE:
+		case WM8995_AIF2_BCLK:
+		case WM8995_AIF2ADC_LRCLK:
+		case WM8995_AIF2DAC_LRCLK:
+		case WM8995_AIF2DAC_DATA:
+		case WM8995_AIF2ADC_DATA:
+		case WM8995_AIF1_ADC1_LEFT_VOLUME:
+		case WM8995_AIF1_ADC1_RIGHT_VOLUME:
+		case WM8995_AIF1_DAC1_LEFT_VOLUME:
+		case WM8995_AIF1_DAC1_RIGHT_VOLUME:
+		case WM8995_AIF1_ADC2_LEFT_VOLUME:
+		case WM8995_AIF1_ADC2_RIGHT_VOLUME:
+		case WM8995_AIF1_DAC2_LEFT_VOLUME:
+		case WM8995_AIF1_DAC2_RIGHT_VOLUME:
+		case WM8995_AIF1_ADC1_FILTERS:
+		case WM8995_AIF1_ADC2_FILTERS:
+		case WM8995_AIF1_DAC1_FILTERS_1:
+		case WM8995_AIF1_DAC1_FILTERS_2:
+		case WM8995_AIF1_DAC2_FILTERS_1:
+		case WM8995_AIF1_DAC2_FILTERS_2:
+		case WM8995_AIF1_DRC1_1:
+		case WM8995_AIF1_DRC1_2:
+		case WM8995_AIF1_DRC1_3:
+		case WM8995_AIF1_DRC1_4:
+		case WM8995_AIF1_DRC1_5:
+		case WM8995_AIF1_DRC2_1:
+		case WM8995_AIF1_DRC2_2:
+		case WM8995_AIF1_DRC2_3:
+		case WM8995_AIF1_DRC2_4:
+		case WM8995_AIF1_DRC2_5:
+		case WM8995_AIF1_DAC1_EQ_GAINS_1:
+		case WM8995_AIF1_DAC1_EQ_GAINS_2:
+		case WM8995_AIF1_DAC1_EQ_BAND_1_A:
+		case WM8995_AIF1_DAC1_EQ_BAND_1_B:
+		case WM8995_AIF1_DAC1_EQ_BAND_1_PG:
+		case WM8995_AIF1_DAC1_EQ_BAND_2_A:
+		case WM8995_AIF1_DAC1_EQ_BAND_2_B:
+		case WM8995_AIF1_DAC1_EQ_BAND_2_C:
+		case WM8995_AIF1_DAC1_EQ_BAND_2_PG:
+		case WM8995_AIF1_DAC1_EQ_BAND_3_A:
+		case WM8995_AIF1_DAC1_EQ_BAND_3_B:
+		case WM8995_AIF1_DAC1_EQ_BAND_3_C:
+		case WM8995_AIF1_DAC1_EQ_BAND_3_PG:
+		case WM8995_AIF1_DAC1_EQ_BAND_4_A:
+		case WM8995_AIF1_DAC1_EQ_BAND_4_B:
+		case WM8995_AIF1_DAC1_EQ_BAND_4_C:
+		case WM8995_AIF1_DAC1_EQ_BAND_4_PG:
+		case WM8995_AIF1_DAC1_EQ_BAND_5_A:
+		case WM8995_AIF1_DAC1_EQ_BAND_5_B:
+		case WM8995_AIF1_DAC1_EQ_BAND_5_PG:
+		case WM8995_AIF1_DAC2_EQ_GAINS_1:
+		case WM8995_AIF1_DAC2_EQ_GAINS_2:
+		case WM8995_AIF1_DAC2_EQ_BAND_1_A:
+		case WM8995_AIF1_DAC2_EQ_BAND_1_B:
+		case WM8995_AIF1_DAC2_EQ_BAND_1_PG:
+		case WM8995_AIF1_DAC2_EQ_BAND_2_A:
+		case WM8995_AIF1_DAC2_EQ_BAND_2_B:
+		case WM8995_AIF1_DAC2_EQ_BAND_2_C:
+		case WM8995_AIF1_DAC2_EQ_BAND_2_PG:
+		case WM8995_AIF1_DAC2_EQ_BAND_3_A:
+		case WM8995_AIF1_DAC2_EQ_BAND_3_B:
+		case WM8995_AIF1_DAC2_EQ_BAND_3_C:
+		case WM8995_AIF1_DAC2_EQ_BAND_3_PG:
+		case WM8995_AIF1_DAC2_EQ_BAND_4_A:
+		case WM8995_AIF1_DAC2_EQ_BAND_4_B:
+		case WM8995_AIF1_DAC2_EQ_BAND_4_C:
+		case WM8995_AIF1_DAC2_EQ_BAND_4_PG:
+		case WM8995_AIF1_DAC2_EQ_BAND_5_A:
+		case WM8995_AIF1_DAC2_EQ_BAND_5_B:
+		case WM8995_AIF1_DAC2_EQ_BAND_5_PG:
+		case WM8995_AIF2_ADC_LEFT_VOLUME:
+		case WM8995_AIF2_ADC_RIGHT_VOLUME:
+		case WM8995_AIF2_DAC_LEFT_VOLUME:
+		case WM8995_AIF2_DAC_RIGHT_VOLUME:
+		case WM8995_AIF2_ADC_FILTERS:
+		case WM8995_AIF2_DAC_FILTERS_1:
+		case WM8995_AIF2_DAC_FILTERS_2:
+		case WM8995_AIF2_DRC_1:
+		case WM8995_AIF2_DRC_2:
+		case WM8995_AIF2_DRC_3:
+		case WM8995_AIF2_DRC_4:
+		case WM8995_AIF2_DRC_5:
+		case WM8995_AIF2_EQ_GAINS_1:
+		case WM8995_AIF2_EQ_GAINS_2:
+		case WM8995_AIF2_EQ_BAND_1_A:
+		case WM8995_AIF2_EQ_BAND_1_B:
+		case WM8995_AIF2_EQ_BAND_1_PG:
+		case WM8995_AIF2_EQ_BAND_2_A:
+		case WM8995_AIF2_EQ_BAND_2_B:
+		case WM8995_AIF2_EQ_BAND_2_C:
+		case WM8995_AIF2_EQ_BAND_2_PG:
+		case WM8995_AIF2_EQ_BAND_3_A:
+		case WM8995_AIF2_EQ_BAND_3_B:
+		case WM8995_AIF2_EQ_BAND_3_C:
+		case WM8995_AIF2_EQ_BAND_3_PG:
+		case WM8995_AIF2_EQ_BAND_4_A:
+		case WM8995_AIF2_EQ_BAND_4_B:
+		case WM8995_AIF2_EQ_BAND_4_C:
+		case WM8995_AIF2_EQ_BAND_4_PG:
+		case WM8995_AIF2_EQ_BAND_5_A:
+		case WM8995_AIF2_EQ_BAND_5_B:
+		case WM8995_AIF2_EQ_BAND_5_PG:
+		case WM8995_DAC1_MIXER_VOLUMES:
+		case WM8995_DAC1_LEFT_MIXER_ROUTING:
+		case WM8995_DAC1_RIGHT_MIXER_ROUTING:
+		case WM8995_DAC2_MIXER_VOLUMES:
+		case WM8995_DAC2_LEFT_MIXER_ROUTING:
+		case WM8995_DAC2_RIGHT_MIXER_ROUTING:
+		case WM8995_AIF1_ADC1_LEFT_MIXER_ROUTING:
+		case WM8995_AIF1_ADC1_RIGHT_MIXER_ROUTING:
+		case WM8995_AIF1_ADC2_LEFT_MIXER_ROUTING:
+		case WM8995_AIF1_ADC2_RIGHT_MIXER_ROUTING:
+		case WM8995_DAC_SOFTMUTE:
+		case WM8995_OVERSAMPLING:
+		case WM8995_SIDETONE:
+		case WM8995_GPIO_1:
+		case WM8995_GPIO_2:
+		case WM8995_GPIO_3:
+		case WM8995_GPIO_4:
+		case WM8995_GPIO_5:
+		case WM8995_GPIO_6:
+		case WM8995_GPIO_7:
+		case WM8995_GPIO_8:
+		case WM8995_GPIO_9:
+		case WM8995_GPIO_10:
+		case WM8995_GPIO_11:
+		case WM8995_GPIO_12:
+		case WM8995_GPIO_13:
+		case WM8995_GPIO_14:
+		case WM8995_PULL_CONTROL_1:
+		case WM8995_PULL_CONTROL_2:
+		case WM8995_INTERRUPT_STATUS_1:
+		case WM8995_INTERRUPT_STATUS_2:
+		case WM8995_INTERRUPT_RAW_STATUS_2:
+		case WM8995_INTERRUPT_STATUS_1_MASK:
+		case WM8995_INTERRUPT_STATUS_2_MASK:
+		case WM8995_INTERRUPT_CONTROL:
+		case WM8995_LEFT_PDM_SPEAKER_1:
+		case WM8995_RIGHT_PDM_SPEAKER_1:
+		case WM8995_PDM_SPEAKER_1_MUTE_SEQUENCE:
+		case WM8995_LEFT_PDM_SPEAKER_2:
+		case WM8995_RIGHT_PDM_SPEAKER_2:
+		case WM8995_PDM_SPEAKER_2_MUTE_SEQUENCE:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
 static bool wm8995_volatile(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case WM8995_SOFTWARE_RESET:
-	case WM8995_DC_SERVO_READBACK_0:
-	case WM8995_INTERRUPT_STATUS_1:
-	case WM8995_INTERRUPT_STATUS_2:
-	case WM8995_INTERRUPT_CONTROL:
-	case WM8995_ACCESSORY_DETECT_MODE1:
-	case WM8995_ACCESSORY_DETECT_MODE2:
-	case WM8995_HEADPHONE_DETECT1:
-	case WM8995_HEADPHONE_DETECT2:
-	case WM8995_RATE_STATUS:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case WM8995_SOFTWARE_RESET:
+		case WM8995_DC_SERVO_READBACK_0:
+		case WM8995_INTERRUPT_STATUS_1:
+		case WM8995_INTERRUPT_STATUS_2:
+		case WM8995_INTERRUPT_CONTROL:
+		case WM8995_ACCESSORY_DETECT_MODE1:
+		case WM8995_ACCESSORY_DETECT_MODE2:
+		case WM8995_HEADPHONE_DETECT1:
+		case WM8995_HEADPHONE_DETECT2:
+		case WM8995_RATE_STATUS:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
@@ -1425,19 +1495,22 @@ static int wm8995_aif_mute(struct snd_soc_dai *dai, int mute)
 	struct snd_soc_codec *codec = dai->codec;
 	int mute_reg;
 
-	switch (dai->id) {
-	case 0:
-		mute_reg = WM8995_AIF1_DAC1_FILTERS_1;
-		break;
-	case 1:
-		mute_reg = WM8995_AIF2_DAC_FILTERS_1;
-		break;
-	default:
-		return -EINVAL;
+	switch (dai->id)
+	{
+		case 0:
+			mute_reg = WM8995_AIF1_DAC1_FILTERS_1;
+			break;
+
+		case 1:
+			mute_reg = WM8995_AIF2_DAC_FILTERS_1;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	snd_soc_update_bits(codec, mute_reg, WM8995_AIF1DAC1_MUTE_MASK,
-			    !!mute << WM8995_AIF1DAC1_MUTE_SHIFT);
+						!!mute << WM8995_AIF1DAC1_MUTE_SHIFT);
 	return 0;
 }
 
@@ -1450,101 +1523,128 @@ static int wm8995_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 	codec = dai->codec;
 
 	master = 0;
-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBS_CFS:
-		break;
-	case SND_SOC_DAIFMT_CBM_CFM:
-		master = WM8995_AIF1_MSTR;
-		break;
-	default:
-		dev_err(dai->dev, "Unknown master/slave configuration\n");
-		return -EINVAL;
+
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBS_CFS:
+			break;
+
+		case SND_SOC_DAIFMT_CBM_CFM:
+			master = WM8995_AIF1_MSTR;
+			break;
+
+		default:
+			dev_err(dai->dev, "Unknown master/slave configuration\n");
+			return -EINVAL;
 	}
 
 	aif = 0;
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_DSP_B:
-		aif |= WM8995_AIF1_LRCLK_INV;
-	case SND_SOC_DAIFMT_DSP_A:
-		aif |= (0x3 << WM8995_AIF1_FMT_SHIFT);
-		break;
-	case SND_SOC_DAIFMT_I2S:
-		aif |= (0x2 << WM8995_AIF1_FMT_SHIFT);
-		break;
-	case SND_SOC_DAIFMT_RIGHT_J:
-		break;
-	case SND_SOC_DAIFMT_LEFT_J:
-		aif |= (0x1 << WM8995_AIF1_FMT_SHIFT);
-		break;
-	default:
-		dev_err(dai->dev, "Unknown dai format\n");
-		return -EINVAL;
+
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_DSP_B:
+			aif |= WM8995_AIF1_LRCLK_INV;
+
+		case SND_SOC_DAIFMT_DSP_A:
+			aif |= (0x3 << WM8995_AIF1_FMT_SHIFT);
+			break;
+
+		case SND_SOC_DAIFMT_I2S:
+			aif |= (0x2 << WM8995_AIF1_FMT_SHIFT);
+			break;
+
+		case SND_SOC_DAIFMT_RIGHT_J:
+			break;
+
+		case SND_SOC_DAIFMT_LEFT_J:
+			aif |= (0x1 << WM8995_AIF1_FMT_SHIFT);
+			break;
+
+		default:
+			dev_err(dai->dev, "Unknown dai format\n");
+			return -EINVAL;
 	}
 
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_DSP_A:
-	case SND_SOC_DAIFMT_DSP_B:
-		/* frame inversion not valid for DSP modes */
-		switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-		case SND_SOC_DAIFMT_NB_NF:
-			break;
-		case SND_SOC_DAIFMT_IB_NF:
-			aif |= WM8995_AIF1_BCLK_INV;
-			break;
-		default:
-			return -EINVAL;
-		}
-		break;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_DSP_A:
+		case SND_SOC_DAIFMT_DSP_B:
 
-	case SND_SOC_DAIFMT_I2S:
-	case SND_SOC_DAIFMT_RIGHT_J:
-	case SND_SOC_DAIFMT_LEFT_J:
-		switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-		case SND_SOC_DAIFMT_NB_NF:
+			/* frame inversion not valid for DSP modes */
+			switch (fmt & SND_SOC_DAIFMT_INV_MASK)
+			{
+				case SND_SOC_DAIFMT_NB_NF:
+					break;
+
+				case SND_SOC_DAIFMT_IB_NF:
+					aif |= WM8995_AIF1_BCLK_INV;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
 			break;
-		case SND_SOC_DAIFMT_IB_IF:
-			aif |= WM8995_AIF1_BCLK_INV | WM8995_AIF1_LRCLK_INV;
+
+		case SND_SOC_DAIFMT_I2S:
+		case SND_SOC_DAIFMT_RIGHT_J:
+		case SND_SOC_DAIFMT_LEFT_J:
+			switch (fmt & SND_SOC_DAIFMT_INV_MASK)
+			{
+				case SND_SOC_DAIFMT_NB_NF:
+					break;
+
+				case SND_SOC_DAIFMT_IB_IF:
+					aif |= WM8995_AIF1_BCLK_INV | WM8995_AIF1_LRCLK_INV;
+					break;
+
+				case SND_SOC_DAIFMT_IB_NF:
+					aif |= WM8995_AIF1_BCLK_INV;
+					break;
+
+				case SND_SOC_DAIFMT_NB_IF:
+					aif |= WM8995_AIF1_LRCLK_INV;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
 			break;
-		case SND_SOC_DAIFMT_IB_NF:
-			aif |= WM8995_AIF1_BCLK_INV;
-			break;
-		case SND_SOC_DAIFMT_NB_IF:
-			aif |= WM8995_AIF1_LRCLK_INV;
-			break;
+
 		default:
 			return -EINVAL;
-		}
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	snd_soc_update_bits(codec, WM8995_AIF1_CONTROL_1,
-			    WM8995_AIF1_BCLK_INV_MASK |
-			    WM8995_AIF1_LRCLK_INV_MASK |
-			    WM8995_AIF1_FMT_MASK, aif);
+						WM8995_AIF1_BCLK_INV_MASK |
+						WM8995_AIF1_LRCLK_INV_MASK |
+						WM8995_AIF1_FMT_MASK, aif);
 	snd_soc_update_bits(codec, WM8995_AIF1_MASTER_SLAVE,
-			    WM8995_AIF1_MSTR_MASK, master);
+						WM8995_AIF1_MSTR_MASK, master);
 	return 0;
 }
 
-static const int srs[] = {
+static const int srs[] =
+{
 	8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100,
 	48000, 88200, 96000
 };
 
-static const int fs_ratios[] = {
+static const int fs_ratios[] =
+{
 	-1 /* reserved */,
 	128, 192, 256, 384, 512, 768, 1024, 1408, 1536
 };
 
-static const int bclk_divs[] = {
+static const int bclk_divs[] =
+{
 	10, 15, 20, 30, 40, 55, 60, 80, 110, 120, 160, 220, 240, 320, 440, 480
 };
 
 static int wm8995_hw_params(struct snd_pcm_substream *substream,
-			    struct snd_pcm_hw_params *params,
-			    struct snd_soc_dai *dai)
+							struct snd_pcm_hw_params *params,
+							struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec;
 	struct wm8995_priv *wm8995;
@@ -1560,89 +1660,123 @@ static int wm8995_hw_params(struct snd_pcm_substream *substream,
 	codec = dai->codec;
 	wm8995 = snd_soc_codec_get_drvdata(codec);
 
-	switch (dai->id) {
-	case 0:
-		aif1_reg = WM8995_AIF1_CONTROL_1;
-		bclk_reg = WM8995_AIF1_BCLK;
-		rate_reg = WM8995_AIF1_RATE;
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK /* ||
-			wm8995->lrclk_shared[0] */) {
-			lrclk_reg = WM8995_AIF1DAC_LRCLK;
-		} else {
-			lrclk_reg = WM8995_AIF1ADC_LRCLK;
-			dev_dbg(codec->dev, "AIF1 using split LRCLK\n");
-		}
-		break;
-	case 1:
-		aif1_reg = WM8995_AIF2_CONTROL_1;
-		bclk_reg = WM8995_AIF2_BCLK;
-		rate_reg = WM8995_AIF2_RATE;
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK /* ||
-		    wm8995->lrclk_shared[1] */) {
-			lrclk_reg = WM8995_AIF2DAC_LRCLK;
-		} else {
-			lrclk_reg = WM8995_AIF2ADC_LRCLK;
-			dev_dbg(codec->dev, "AIF2 using split LRCLK\n");
-		}
-		break;
-	default:
-		return -EINVAL;
+	switch (dai->id)
+	{
+		case 0:
+			aif1_reg = WM8995_AIF1_CONTROL_1;
+			bclk_reg = WM8995_AIF1_BCLK;
+			rate_reg = WM8995_AIF1_RATE;
+
+			if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK /* ||
+			wm8995->lrclk_shared[0] */)
+			{
+				lrclk_reg = WM8995_AIF1DAC_LRCLK;
+			}
+			else
+			{
+				lrclk_reg = WM8995_AIF1ADC_LRCLK;
+				dev_dbg(codec->dev, "AIF1 using split LRCLK\n");
+			}
+
+			break;
+
+		case 1:
+			aif1_reg = WM8995_AIF2_CONTROL_1;
+			bclk_reg = WM8995_AIF2_BCLK;
+			rate_reg = WM8995_AIF2_RATE;
+
+			if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK /* ||
+		    wm8995->lrclk_shared[1] */)
+			{
+				lrclk_reg = WM8995_AIF2DAC_LRCLK;
+			}
+			else
+			{
+				lrclk_reg = WM8995_AIF2ADC_LRCLK;
+				dev_dbg(codec->dev, "AIF2 using split LRCLK\n");
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	bclk_rate = snd_soc_params_to_bclk(params);
+
 	if (bclk_rate < 0)
+	{
 		return bclk_rate;
+	}
 
 	aif1 = 0;
-	switch (params_width(params)) {
-	case 16:
-		break;
-	case 20:
-		aif1 |= (0x1 << WM8995_AIF1_WL_SHIFT);
-		break;
-	case 24:
-		aif1 |= (0x2 << WM8995_AIF1_WL_SHIFT);
-		break;
-	case 32:
-		aif1 |= (0x3 << WM8995_AIF1_WL_SHIFT);
-		break;
-	default:
-		dev_err(dai->dev, "Unsupported word length %u\n",
-			params_width(params));
-		return -EINVAL;
+
+	switch (params_width(params))
+	{
+		case 16:
+			break;
+
+		case 20:
+			aif1 |= (0x1 << WM8995_AIF1_WL_SHIFT);
+			break;
+
+		case 24:
+			aif1 |= (0x2 << WM8995_AIF1_WL_SHIFT);
+			break;
+
+		case 32:
+			aif1 |= (0x3 << WM8995_AIF1_WL_SHIFT);
+			break;
+
+		default:
+			dev_err(dai->dev, "Unsupported word length %u\n",
+					params_width(params));
+			return -EINVAL;
 	}
 
 	/* try to find a suitable sample rate */
 	for (i = 0; i < ARRAY_SIZE(srs); ++i)
 		if (srs[i] == params_rate(params))
+		{
 			break;
-	if (i == ARRAY_SIZE(srs)) {
+		}
+
+	if (i == ARRAY_SIZE(srs))
+	{
 		dev_err(dai->dev, "Sample rate %d is not supported\n",
-			params_rate(params));
+				params_rate(params));
 		return -EINVAL;
 	}
+
 	rate_val = i << WM8995_AIF1_SR_SHIFT;
 
 	dev_dbg(dai->dev, "Sample rate is %dHz\n", srs[i]);
 	dev_dbg(dai->dev, "AIF%dCLK is %dHz, target BCLK %dHz\n",
-		dai->id + 1, wm8995->aifclk[dai->id], bclk_rate);
+			dai->id + 1, wm8995->aifclk[dai->id], bclk_rate);
 
 	/* AIFCLK/fs ratio; look for a close match in either direction */
 	best = 1;
 	best_val = abs((fs_ratios[1] * params_rate(params))
-		       - wm8995->aifclk[dai->id]);
-	for (i = 2; i < ARRAY_SIZE(fs_ratios); i++) {
+				   - wm8995->aifclk[dai->id]);
+
+	for (i = 2; i < ARRAY_SIZE(fs_ratios); i++)
+	{
 		cur_val = abs((fs_ratios[i] * params_rate(params))
-			      - wm8995->aifclk[dai->id]);
+					  - wm8995->aifclk[dai->id]);
+
 		if (cur_val >= best_val)
+		{
 			continue;
+		}
+
 		best = i;
 		best_val = cur_val;
 	}
+
 	rate_val |= best;
 
 	dev_dbg(dai->dev, "Selected AIF%dCLK/fs = %d\n",
-		dai->id + 1, fs_ratios[best]);
+			dai->id + 1, fs_ratios[best]);
 
 	/*
 	 * We may not get quite the right frequency if using
@@ -1652,31 +1786,38 @@ static int wm8995_hw_params(struct snd_pcm_substream *substream,
 	 */
 	best = 0;
 	bclk = 0;
-	for (i = 0; i < ARRAY_SIZE(bclk_divs); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(bclk_divs); i++)
+	{
 		cur_val = (wm8995->aifclk[dai->id] * 10 / bclk_divs[i]) - bclk_rate;
+
 		if (cur_val < 0) /* BCLK table is sorted */
+		{
 			break;
+		}
+
 		best = i;
 	}
+
 	bclk |= best << WM8995_AIF1_BCLK_DIV_SHIFT;
 
 	bclk_rate = wm8995->aifclk[dai->id] * 10 / bclk_divs[best];
 	dev_dbg(dai->dev, "Using BCLK_DIV %d for actual BCLK %dHz\n",
-		bclk_divs[best], bclk_rate);
+			bclk_divs[best], bclk_rate);
 
 	lrclk = bclk_rate / params_rate(params);
 	dev_dbg(dai->dev, "Using LRCLK rate %d for actual LRCLK %dHz\n",
-		lrclk, bclk_rate / lrclk);
+			lrclk, bclk_rate / lrclk);
 
 	snd_soc_update_bits(codec, aif1_reg,
-			    WM8995_AIF1_WL_MASK, aif1);
+						WM8995_AIF1_WL_MASK, aif1);
 	snd_soc_update_bits(codec, bclk_reg,
-			    WM8995_AIF1_BCLK_DIV_MASK, bclk);
+						WM8995_AIF1_BCLK_DIV_MASK, bclk);
 	snd_soc_update_bits(codec, lrclk_reg,
-			    WM8995_AIF1DAC_RATE_MASK, lrclk);
+						WM8995_AIF1DAC_RATE_MASK, lrclk);
 	snd_soc_update_bits(codec, rate_reg,
-			    WM8995_AIF1_SR_MASK |
-			    WM8995_AIF1CLK_RATE_MASK, rate_val);
+						WM8995_AIF1_SR_MASK |
+						WM8995_AIF1CLK_RATE_MASK, rate_val);
 	return 0;
 }
 
@@ -1685,27 +1826,35 @@ static int wm8995_set_tristate(struct snd_soc_dai *codec_dai, int tristate)
 	struct snd_soc_codec *codec = codec_dai->codec;
 	int reg, val, mask;
 
-	switch (codec_dai->id) {
-	case 0:
-		reg = WM8995_AIF1_MASTER_SLAVE;
-		mask = WM8995_AIF1_TRI;
-		break;
-	case 1:
-		reg = WM8995_AIF2_MASTER_SLAVE;
-		mask = WM8995_AIF2_TRI;
-		break;
-	case 2:
-		reg = WM8995_POWER_MANAGEMENT_5;
-		mask = WM8995_AIF3_TRI;
-		break;
-	default:
-		return -EINVAL;
+	switch (codec_dai->id)
+	{
+		case 0:
+			reg = WM8995_AIF1_MASTER_SLAVE;
+			mask = WM8995_AIF1_TRI;
+			break;
+
+		case 1:
+			reg = WM8995_AIF2_MASTER_SLAVE;
+			mask = WM8995_AIF2_TRI;
+			break;
+
+		case 2:
+			reg = WM8995_POWER_MANAGEMENT_5;
+			mask = WM8995_AIF3_TRI;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	if (tristate)
+	{
 		val = mask;
+	}
 	else
+	{
 		val = 0;
+	}
 
 	return snd_soc_update_bits(codec, reg, mask, val);
 }
@@ -1714,7 +1863,8 @@ static int wm8995_set_tristate(struct snd_soc_dai *codec_dai, int tristate)
  * to allow rounding later */
 #define FIXED_FLL_SIZE ((1 << 16) * 10)
 
-struct fll_div {
+struct fll_div
+{
 	u16 outdiv;
 	u16 n;
 	u16 k;
@@ -1723,7 +1873,7 @@ struct fll_div {
 };
 
 static int wm8995_get_fll_config(struct fll_div *fll,
-				 int freq_in, int freq_out)
+								 int freq_in, int freq_out)
 {
 	u64 Kpart;
 	unsigned int K, Ndiv, Nmod;
@@ -1732,40 +1882,61 @@ static int wm8995_get_fll_config(struct fll_div *fll,
 
 	/* Scale the input frequency down to <= 13.5MHz */
 	fll->clk_ref_div = 0;
-	while (freq_in > 13500000) {
+
+	while (freq_in > 13500000)
+	{
 		fll->clk_ref_div++;
 		freq_in /= 2;
 
 		if (fll->clk_ref_div > 3)
+		{
 			return -EINVAL;
+		}
 	}
+
 	pr_debug("CLK_REF_DIV=%d, Fref=%dHz\n", fll->clk_ref_div, freq_in);
 
 	/* Scale the output to give 90MHz<=Fvco<=100MHz */
 	fll->outdiv = 3;
-	while (freq_out * (fll->outdiv + 1) < 90000000) {
+
+	while (freq_out * (fll->outdiv + 1) < 90000000)
+	{
 		fll->outdiv++;
+
 		if (fll->outdiv > 63)
+		{
 			return -EINVAL;
+		}
 	}
+
 	freq_out *= fll->outdiv + 1;
 	pr_debug("OUTDIV=%d, Fvco=%dHz\n", fll->outdiv, freq_out);
 
-	if (freq_in > 1000000) {
+	if (freq_in > 1000000)
+	{
 		fll->fll_fratio = 0;
-	} else if (freq_in > 256000) {
+	}
+	else if (freq_in > 256000)
+	{
 		fll->fll_fratio = 1;
 		freq_in *= 2;
-	} else if (freq_in > 128000) {
+	}
+	else if (freq_in > 128000)
+	{
 		fll->fll_fratio = 2;
 		freq_in *= 4;
-	} else if (freq_in > 64000) {
+	}
+	else if (freq_in > 64000)
+	{
 		fll->fll_fratio = 3;
 		freq_in *= 8;
-	} else {
+	}
+	else
+	{
 		fll->fll_fratio = 4;
 		freq_in *= 16;
 	}
+
 	pr_debug("FLL_FRATIO=%d, Fref=%dHz\n", fll->fll_fratio, freq_in);
 
 	/* Now, calculate N.K */
@@ -1783,7 +1954,9 @@ static int wm8995_get_fll_config(struct fll_div *fll,
 	K = Kpart & 0xFFFFFFFF;
 
 	if ((K % 10) >= 5)
+	{
 		K += 5;
+	}
 
 	/* Move down to proper range now rounding is done */
 	fll->k = K / 10;
@@ -1794,8 +1967,8 @@ static int wm8995_get_fll_config(struct fll_div *fll,
 }
 
 static int wm8995_set_fll(struct snd_soc_dai *dai, int id,
-			  int src, unsigned int freq_in,
-			  unsigned int freq_out)
+						  int src, unsigned int freq_in,
+						  unsigned int freq_out)
 {
 	struct snd_soc_codec *codec;
 	struct wm8995_priv *wm8995;
@@ -1807,87 +1980,104 @@ static int wm8995_set_fll(struct snd_soc_dai *dai, int id,
 	wm8995 = snd_soc_codec_get_drvdata(codec);
 
 	aif1 = snd_soc_read(codec, WM8995_AIF1_CLOCKING_1)
-	       & WM8995_AIF1CLK_ENA;
+		   & WM8995_AIF1CLK_ENA;
 
 	aif2 = snd_soc_read(codec, WM8995_AIF2_CLOCKING_1)
-	       & WM8995_AIF2CLK_ENA;
+		   & WM8995_AIF2CLK_ENA;
 
-	switch (id) {
-	case WM8995_FLL1:
-		reg_offset = 0;
-		id = 0;
-		break;
-	case WM8995_FLL2:
-		reg_offset = 0x20;
-		id = 1;
-		break;
-	default:
-		return -EINVAL;
+	switch (id)
+	{
+		case WM8995_FLL1:
+			reg_offset = 0;
+			id = 0;
+			break;
+
+		case WM8995_FLL2:
+			reg_offset = 0x20;
+			id = 1;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	switch (src) {
-	case 0:
-		/* Allow no source specification when stopping */
-		if (freq_out)
+	switch (src)
+	{
+		case 0:
+
+			/* Allow no source specification when stopping */
+			if (freq_out)
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		case WM8995_FLL_SRC_MCLK1:
+		case WM8995_FLL_SRC_MCLK2:
+		case WM8995_FLL_SRC_LRCLK:
+		case WM8995_FLL_SRC_BCLK:
+			break;
+
+		default:
 			return -EINVAL;
-		break;
-	case WM8995_FLL_SRC_MCLK1:
-	case WM8995_FLL_SRC_MCLK2:
-	case WM8995_FLL_SRC_LRCLK:
-	case WM8995_FLL_SRC_BCLK:
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	/* Are we changing anything? */
 	if (wm8995->fll[id].src == src &&
-	    wm8995->fll[id].in == freq_in && wm8995->fll[id].out == freq_out)
+		wm8995->fll[id].in == freq_in && wm8995->fll[id].out == freq_out)
+	{
 		return 0;
+	}
 
 	/* If we're stopping the FLL redo the old config - no
 	 * registers will actually be written but we avoid GCC flow
 	 * analysis bugs spewing warnings.
 	 */
 	if (freq_out)
+	{
 		ret = wm8995_get_fll_config(&fll, freq_in, freq_out);
+	}
 	else
 		ret = wm8995_get_fll_config(&fll, wm8995->fll[id].in,
-					    wm8995->fll[id].out);
+									wm8995->fll[id].out);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Gate the AIF clocks while we reclock */
 	snd_soc_update_bits(codec, WM8995_AIF1_CLOCKING_1,
-			    WM8995_AIF1CLK_ENA_MASK, 0);
+						WM8995_AIF1CLK_ENA_MASK, 0);
 	snd_soc_update_bits(codec, WM8995_AIF2_CLOCKING_1,
-			    WM8995_AIF2CLK_ENA_MASK, 0);
+						WM8995_AIF2CLK_ENA_MASK, 0);
 
 	/* We always need to disable the FLL while reconfiguring */
 	snd_soc_update_bits(codec, WM8995_FLL1_CONTROL_1 + reg_offset,
-			    WM8995_FLL1_ENA_MASK, 0);
+						WM8995_FLL1_ENA_MASK, 0);
 
 	reg = (fll.outdiv << WM8995_FLL1_OUTDIV_SHIFT) |
-	      (fll.fll_fratio << WM8995_FLL1_FRATIO_SHIFT);
+		  (fll.fll_fratio << WM8995_FLL1_FRATIO_SHIFT);
 	snd_soc_update_bits(codec, WM8995_FLL1_CONTROL_2 + reg_offset,
-			    WM8995_FLL1_OUTDIV_MASK |
-			    WM8995_FLL1_FRATIO_MASK, reg);
+						WM8995_FLL1_OUTDIV_MASK |
+						WM8995_FLL1_FRATIO_MASK, reg);
 
 	snd_soc_write(codec, WM8995_FLL1_CONTROL_3 + reg_offset, fll.k);
 
 	snd_soc_update_bits(codec, WM8995_FLL1_CONTROL_4 + reg_offset,
-			    WM8995_FLL1_N_MASK,
-			    fll.n << WM8995_FLL1_N_SHIFT);
+						WM8995_FLL1_N_MASK,
+						fll.n << WM8995_FLL1_N_SHIFT);
 
 	snd_soc_update_bits(codec, WM8995_FLL1_CONTROL_5 + reg_offset,
-			    WM8995_FLL1_REFCLK_DIV_MASK |
-			    WM8995_FLL1_REFCLK_SRC_MASK,
-			    (fll.clk_ref_div << WM8995_FLL1_REFCLK_DIV_SHIFT) |
-			    (src - 1));
+						WM8995_FLL1_REFCLK_DIV_MASK |
+						WM8995_FLL1_REFCLK_SRC_MASK,
+						(fll.clk_ref_div << WM8995_FLL1_REFCLK_DIV_SHIFT) |
+						(src - 1));
 
 	if (freq_out)
 		snd_soc_update_bits(codec, WM8995_FLL1_CONTROL_1 + reg_offset,
-				    WM8995_FLL1_ENA_MASK, WM8995_FLL1_ENA);
+							WM8995_FLL1_ENA_MASK, WM8995_FLL1_ENA);
 
 	wm8995->fll[id].in = freq_in;
 	wm8995->fll[id].out = freq_out;
@@ -1895,9 +2085,9 @@ static int wm8995_set_fll(struct snd_soc_dai *dai, int id,
 
 	/* Enable any gated AIF clocks */
 	snd_soc_update_bits(codec, WM8995_AIF1_CLOCKING_1,
-			    WM8995_AIF1CLK_ENA_MASK, aif1);
+						WM8995_AIF1CLK_ENA_MASK, aif1);
 	snd_soc_update_bits(codec, WM8995_AIF2_CLOCKING_1,
-			    WM8995_AIF2CLK_ENA_MASK, aif2);
+						WM8995_AIF2CLK_ENA_MASK, aif2);
 
 	configure_clock(codec);
 
@@ -1905,7 +2095,7 @@ static int wm8995_set_fll(struct snd_soc_dai *dai, int id,
 }
 
 static int wm8995_set_dai_sysclk(struct snd_soc_dai *dai,
-				 int clk_id, unsigned int freq, int dir)
+								 int clk_id, unsigned int freq, int dir)
 {
 	struct snd_soc_codec *codec;
 	struct wm8995_priv *wm8995;
@@ -1913,40 +2103,47 @@ static int wm8995_set_dai_sysclk(struct snd_soc_dai *dai,
 	codec = dai->codec;
 	wm8995 = snd_soc_codec_get_drvdata(codec);
 
-	switch (dai->id) {
-	case 0:
-	case 1:
-		break;
-	default:
-		/* AIF3 shares clocking with AIF1/2 */
-		return -EINVAL;
+	switch (dai->id)
+	{
+		case 0:
+		case 1:
+			break;
+
+		default:
+			/* AIF3 shares clocking with AIF1/2 */
+			return -EINVAL;
 	}
 
-	switch (clk_id) {
-	case WM8995_SYSCLK_MCLK1:
-		wm8995->sysclk[dai->id] = WM8995_SYSCLK_MCLK1;
-		wm8995->mclk[0] = freq;
-		dev_dbg(dai->dev, "AIF%d using MCLK1 at %uHz\n",
-			dai->id + 1, freq);
-		break;
-	case WM8995_SYSCLK_MCLK2:
-		wm8995->sysclk[dai->id] = WM8995_SYSCLK_MCLK2;
-		wm8995->mclk[1] = freq;
-		dev_dbg(dai->dev, "AIF%d using MCLK2 at %uHz\n",
-			dai->id + 1, freq);
-		break;
-	case WM8995_SYSCLK_FLL1:
-		wm8995->sysclk[dai->id] = WM8995_SYSCLK_FLL1;
-		dev_dbg(dai->dev, "AIF%d using FLL1\n", dai->id + 1);
-		break;
-	case WM8995_SYSCLK_FLL2:
-		wm8995->sysclk[dai->id] = WM8995_SYSCLK_FLL2;
-		dev_dbg(dai->dev, "AIF%d using FLL2\n", dai->id + 1);
-		break;
-	case WM8995_SYSCLK_OPCLK:
-	default:
-		dev_err(dai->dev, "Unknown clock source %d\n", clk_id);
-		return -EINVAL;
+	switch (clk_id)
+	{
+		case WM8995_SYSCLK_MCLK1:
+			wm8995->sysclk[dai->id] = WM8995_SYSCLK_MCLK1;
+			wm8995->mclk[0] = freq;
+			dev_dbg(dai->dev, "AIF%d using MCLK1 at %uHz\n",
+					dai->id + 1, freq);
+			break;
+
+		case WM8995_SYSCLK_MCLK2:
+			wm8995->sysclk[dai->id] = WM8995_SYSCLK_MCLK2;
+			wm8995->mclk[1] = freq;
+			dev_dbg(dai->dev, "AIF%d using MCLK2 at %uHz\n",
+					dai->id + 1, freq);
+			break;
+
+		case WM8995_SYSCLK_FLL1:
+			wm8995->sysclk[dai->id] = WM8995_SYSCLK_FLL1;
+			dev_dbg(dai->dev, "AIF%d using FLL1\n", dai->id + 1);
+			break;
+
+		case WM8995_SYSCLK_FLL2:
+			wm8995->sysclk[dai->id] = WM8995_SYSCLK_FLL2;
+			dev_dbg(dai->dev, "AIF%d using FLL2\n", dai->id + 1);
+			break;
+
+		case WM8995_SYSCLK_OPCLK:
+		default:
+			dev_err(dai->dev, "Unknown clock source %d\n", clk_id);
+			return -EINVAL;
 	}
 
 	configure_clock(codec);
@@ -1955,40 +2152,51 @@ static int wm8995_set_dai_sysclk(struct snd_soc_dai *dai,
 }
 
 static int wm8995_set_bias_level(struct snd_soc_codec *codec,
-				 enum snd_soc_bias_level level)
+								 enum snd_soc_bias_level level)
 {
 	struct wm8995_priv *wm8995;
 	int ret;
 
 	wm8995 = snd_soc_codec_get_drvdata(codec);
-	switch (level) {
-	case SND_SOC_BIAS_ON:
-	case SND_SOC_BIAS_PREPARE:
-		break;
-	case SND_SOC_BIAS_STANDBY:
-		if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF) {
-			ret = regulator_bulk_enable(ARRAY_SIZE(wm8995->supplies),
-						    wm8995->supplies);
-			if (ret)
-				return ret;
 
-			ret = regcache_sync(wm8995->regmap);
-			if (ret) {
-				dev_err(codec->dev,
-					"Failed to sync cache: %d\n", ret);
-				return ret;
+	switch (level)
+	{
+		case SND_SOC_BIAS_ON:
+		case SND_SOC_BIAS_PREPARE:
+			break;
+
+		case SND_SOC_BIAS_STANDBY:
+			if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
+			{
+				ret = regulator_bulk_enable(ARRAY_SIZE(wm8995->supplies),
+											wm8995->supplies);
+
+				if (ret)
+				{
+					return ret;
+				}
+
+				ret = regcache_sync(wm8995->regmap);
+
+				if (ret)
+				{
+					dev_err(codec->dev,
+							"Failed to sync cache: %d\n", ret);
+					return ret;
+				}
+
+				snd_soc_update_bits(codec, WM8995_POWER_MANAGEMENT_1,
+									WM8995_BG_ENA_MASK, WM8995_BG_ENA);
 			}
 
+			break;
+
+		case SND_SOC_BIAS_OFF:
 			snd_soc_update_bits(codec, WM8995_POWER_MANAGEMENT_1,
-					    WM8995_BG_ENA_MASK, WM8995_BG_ENA);
-		}
-		break;
-	case SND_SOC_BIAS_OFF:
-		snd_soc_update_bits(codec, WM8995_POWER_MANAGEMENT_1,
-				    WM8995_BG_ENA_MASK, 0);
-		regulator_bulk_disable(ARRAY_SIZE(wm8995->supplies),
-				       wm8995->supplies);
-		break;
+								WM8995_BG_ENA_MASK, 0);
+			regulator_bulk_disable(ARRAY_SIZE(wm8995->supplies),
+								   wm8995->supplies);
+			break;
 	}
 
 	return 0;
@@ -2003,7 +2211,7 @@ static int wm8995_remove(struct snd_soc_codec *codec)
 
 	for (i = 0; i < ARRAY_SIZE(wm8995->supplies); ++i)
 		regulator_unregister_notifier(wm8995->supplies[i].consumer,
-					      &wm8995->disable_nb[i]);
+									  &wm8995->disable_nb[i]);
 
 	regulator_bulk_free(ARRAY_SIZE(wm8995->supplies), wm8995->supplies);
 	return 0;
@@ -2019,11 +2227,15 @@ static int wm8995_probe(struct snd_soc_codec *codec)
 	wm8995->codec = codec;
 
 	for (i = 0; i < ARRAY_SIZE(wm8995->supplies); i++)
+	{
 		wm8995->supplies[i].supply = wm8995_supply_names[i];
+	}
 
 	ret = regulator_bulk_get(codec->dev, ARRAY_SIZE(wm8995->supplies),
-				 wm8995->supplies);
-	if (ret) {
+							 wm8995->supplies);
+
+	if (ret)
+	{
 		dev_err(codec->dev, "Failed to request supplies: %d\n", ret);
 		return ret;
 	}
@@ -2038,60 +2250,70 @@ static int wm8995_probe(struct snd_soc_codec *codec)
 	wm8995->disable_nb[7].notifier_call = wm8995_regulator_event_7;
 
 	/* This should really be moved into the regulator core */
-	for (i = 0; i < ARRAY_SIZE(wm8995->supplies); i++) {
+	for (i = 0; i < ARRAY_SIZE(wm8995->supplies); i++)
+	{
 		ret = regulator_register_notifier(wm8995->supplies[i].consumer,
-						  &wm8995->disable_nb[i]);
-		if (ret) {
+										  &wm8995->disable_nb[i]);
+
+		if (ret)
+		{
 			dev_err(codec->dev,
-				"Failed to register regulator notifier: %d\n",
-				ret);
+					"Failed to register regulator notifier: %d\n",
+					ret);
 		}
 	}
 
 	ret = regulator_bulk_enable(ARRAY_SIZE(wm8995->supplies),
-				    wm8995->supplies);
-	if (ret) {
+								wm8995->supplies);
+
+	if (ret)
+	{
 		dev_err(codec->dev, "Failed to enable supplies: %d\n", ret);
 		goto err_reg_get;
 	}
 
 	ret = snd_soc_read(codec, WM8995_SOFTWARE_RESET);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(codec->dev, "Failed to read device ID: %d\n", ret);
 		goto err_reg_enable;
 	}
 
-	if (ret != 0x8995) {
+	if (ret != 0x8995)
+	{
 		dev_err(codec->dev, "Invalid device ID: %#x\n", ret);
 		ret = -EINVAL;
 		goto err_reg_enable;
 	}
 
 	ret = snd_soc_write(codec, WM8995_SOFTWARE_RESET, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(codec->dev, "Failed to issue reset: %d\n", ret);
 		goto err_reg_enable;
 	}
 
 	/* Latch volume updates (right only; we always do left then right). */
 	snd_soc_update_bits(codec, WM8995_AIF1_DAC1_RIGHT_VOLUME,
-			    WM8995_AIF1DAC1_VU_MASK, WM8995_AIF1DAC1_VU);
+						WM8995_AIF1DAC1_VU_MASK, WM8995_AIF1DAC1_VU);
 	snd_soc_update_bits(codec, WM8995_AIF1_DAC2_RIGHT_VOLUME,
-			    WM8995_AIF1DAC2_VU_MASK, WM8995_AIF1DAC2_VU);
+						WM8995_AIF1DAC2_VU_MASK, WM8995_AIF1DAC2_VU);
 	snd_soc_update_bits(codec, WM8995_AIF2_DAC_RIGHT_VOLUME,
-			    WM8995_AIF2DAC_VU_MASK, WM8995_AIF2DAC_VU);
+						WM8995_AIF2DAC_VU_MASK, WM8995_AIF2DAC_VU);
 	snd_soc_update_bits(codec, WM8995_AIF1_ADC1_RIGHT_VOLUME,
-			    WM8995_AIF1ADC1_VU_MASK, WM8995_AIF1ADC1_VU);
+						WM8995_AIF1ADC1_VU_MASK, WM8995_AIF1ADC1_VU);
 	snd_soc_update_bits(codec, WM8995_AIF1_ADC2_RIGHT_VOLUME,
-			    WM8995_AIF1ADC2_VU_MASK, WM8995_AIF1ADC2_VU);
+						WM8995_AIF1ADC2_VU_MASK, WM8995_AIF1ADC2_VU);
 	snd_soc_update_bits(codec, WM8995_AIF2_ADC_RIGHT_VOLUME,
-			    WM8995_AIF2ADC_VU_MASK, WM8995_AIF1ADC2_VU);
+						WM8995_AIF2ADC_VU_MASK, WM8995_AIF1ADC2_VU);
 	snd_soc_update_bits(codec, WM8995_DAC1_RIGHT_VOLUME,
-			    WM8995_DAC1_VU_MASK, WM8995_DAC1_VU);
+						WM8995_DAC1_VU_MASK, WM8995_DAC1_VU);
 	snd_soc_update_bits(codec, WM8995_DAC2_RIGHT_VOLUME,
-			    WM8995_DAC2_VU_MASK, WM8995_DAC2_VU);
+						WM8995_DAC2_VU_MASK, WM8995_DAC2_VU);
 	snd_soc_update_bits(codec, WM8995_RIGHT_LINE_INPUT_1_VOLUME,
-			    WM8995_IN1_VU_MASK, WM8995_IN1_VU);
+						WM8995_IN1_VU_MASK, WM8995_IN1_VU);
 
 	wm8995_update_class_w(codec);
 
@@ -2105,9 +2327,10 @@ err_reg_get:
 }
 
 #define WM8995_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE |\
-			SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE)
+						SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE)
 
-static const struct snd_soc_dai_ops wm8995_aif1_dai_ops = {
+static const struct snd_soc_dai_ops wm8995_aif1_dai_ops =
+{
 	.set_sysclk = wm8995_set_dai_sysclk,
 	.set_fmt = wm8995_set_dai_fmt,
 	.hw_params = wm8995_hw_params,
@@ -2116,7 +2339,8 @@ static const struct snd_soc_dai_ops wm8995_aif1_dai_ops = {
 	.set_tristate = wm8995_set_tristate,
 };
 
-static const struct snd_soc_dai_ops wm8995_aif2_dai_ops = {
+static const struct snd_soc_dai_ops wm8995_aif2_dai_ops =
+{
 	.set_sysclk = wm8995_set_dai_sysclk,
 	.set_fmt = wm8995_set_dai_fmt,
 	.hw_params = wm8995_hw_params,
@@ -2125,11 +2349,13 @@ static const struct snd_soc_dai_ops wm8995_aif2_dai_ops = {
 	.set_tristate = wm8995_set_tristate,
 };
 
-static const struct snd_soc_dai_ops wm8995_aif3_dai_ops = {
+static const struct snd_soc_dai_ops wm8995_aif3_dai_ops =
+{
 	.set_tristate = wm8995_set_tristate,
 };
 
-static struct snd_soc_dai_driver wm8995_dai[] = {
+static struct snd_soc_dai_driver wm8995_dai[] =
+{
 	{
 		.name = "wm8995-aif1",
 		.playback = {
@@ -2186,7 +2412,8 @@ static struct snd_soc_dai_driver wm8995_dai[] = {
 	}
 };
 
-static const struct snd_soc_codec_driver soc_codec_dev_wm8995 = {
+static const struct snd_soc_codec_driver soc_codec_dev_wm8995 =
+{
 	.probe = wm8995_probe,
 	.remove = wm8995_remove,
 	.set_bias_level = wm8995_set_bias_level,
@@ -2202,7 +2429,8 @@ static const struct snd_soc_codec_driver soc_codec_dev_wm8995 = {
 	},
 };
 
-static const struct regmap_config wm8995_regmap = {
+static const struct regmap_config wm8995_regmap =
+{
 	.reg_bits = 16,
 	.val_bits = 16,
 
@@ -2221,21 +2449,26 @@ static int wm8995_spi_probe(struct spi_device *spi)
 	int ret;
 
 	wm8995 = devm_kzalloc(&spi->dev, sizeof(*wm8995), GFP_KERNEL);
+
 	if (!wm8995)
+	{
 		return -ENOMEM;
+	}
 
 	spi_set_drvdata(spi, wm8995);
 
 	wm8995->regmap = devm_regmap_init_spi(spi, &wm8995_regmap);
-	if (IS_ERR(wm8995->regmap)) {
+
+	if (IS_ERR(wm8995->regmap))
+	{
 		ret = PTR_ERR(wm8995->regmap);
 		dev_err(&spi->dev, "Failed to register regmap: %d\n", ret);
 		return ret;
 	}
 
 	ret = snd_soc_register_codec(&spi->dev,
-				     &soc_codec_dev_wm8995, wm8995_dai,
-				     ARRAY_SIZE(wm8995_dai));
+								 &soc_codec_dev_wm8995, wm8995_dai,
+								 ARRAY_SIZE(wm8995_dai));
 	return ret;
 }
 
@@ -2245,7 +2478,8 @@ static int wm8995_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver wm8995_spi_driver = {
+static struct spi_driver wm8995_spi_driver =
+{
 	.driver = {
 		.name = "wm8995",
 	},
@@ -2256,29 +2490,37 @@ static struct spi_driver wm8995_spi_driver = {
 
 #if IS_ENABLED(CONFIG_I2C)
 static int wm8995_i2c_probe(struct i2c_client *i2c,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct wm8995_priv *wm8995;
 	int ret;
 
 	wm8995 = devm_kzalloc(&i2c->dev, sizeof(*wm8995), GFP_KERNEL);
+
 	if (!wm8995)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(i2c, wm8995);
 
 	wm8995->regmap = devm_regmap_init_i2c(i2c, &wm8995_regmap);
-	if (IS_ERR(wm8995->regmap)) {
+
+	if (IS_ERR(wm8995->regmap))
+	{
 		ret = PTR_ERR(wm8995->regmap);
 		dev_err(&i2c->dev, "Failed to register regmap: %d\n", ret);
 		return ret;
 	}
 
 	ret = snd_soc_register_codec(&i2c->dev,
-				     &soc_codec_dev_wm8995, wm8995_dai,
-				     ARRAY_SIZE(wm8995_dai));
+								 &soc_codec_dev_wm8995, wm8995_dai,
+								 ARRAY_SIZE(wm8995_dai));
+
 	if (ret < 0)
+	{
 		dev_err(&i2c->dev, "Failed to register CODEC: %d\n", ret);
+	}
 
 	return ret;
 }
@@ -2289,14 +2531,16 @@ static int wm8995_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id wm8995_i2c_id[] = {
+static const struct i2c_device_id wm8995_i2c_id[] =
+{
 	{"wm8995", 0},
 	{}
 };
 
 MODULE_DEVICE_TABLE(i2c, wm8995_i2c_id);
 
-static struct i2c_driver wm8995_i2c_driver = {
+static struct i2c_driver wm8995_i2c_driver =
+{
 	.driver = {
 		.name = "wm8995",
 	},
@@ -2312,17 +2556,23 @@ static int __init wm8995_modinit(void)
 
 #if IS_ENABLED(CONFIG_I2C)
 	ret = i2c_add_driver(&wm8995_i2c_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "Failed to register wm8995 I2C driver: %d\n",
-		       ret);
+			   ret);
 	}
+
 #endif
 #if defined(CONFIG_SPI_MASTER)
 	ret = spi_register_driver(&wm8995_spi_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "Failed to register wm8995 SPI driver: %d\n",
-		       ret);
+			   ret);
 	}
+
 #endif
 	return ret;
 }

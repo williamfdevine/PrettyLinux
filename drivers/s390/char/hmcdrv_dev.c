@@ -41,7 +41,8 @@
 #define HMCDRV_DEV_BUSY_DELAY	 500 /* delay between -EBUSY trials in ms */
 #define HMCDRV_DEV_BUSY_RETRIES  3   /* number of retries on -EBUSY */
 
-struct hmcdrv_dev_node {
+struct hmcdrv_dev_node
+{
 
 #ifdef HMCDRV_DEV_CLASS
 	struct cdev dev; /* character device structure */
@@ -56,16 +57,17 @@ static int hmcdrv_dev_open(struct inode *inode, struct file *fp);
 static int hmcdrv_dev_release(struct inode *inode, struct file *fp);
 static loff_t hmcdrv_dev_seek(struct file *fp, loff_t pos, int whence);
 static ssize_t hmcdrv_dev_read(struct file *fp, char __user *ubuf,
-			       size_t len, loff_t *pos);
+							   size_t len, loff_t *pos);
 static ssize_t hmcdrv_dev_write(struct file *fp, const char __user *ubuf,
-				size_t len, loff_t *pos);
+								size_t len, loff_t *pos);
 static ssize_t hmcdrv_dev_transfer(char __kernel *cmd, loff_t offset,
-				   char __user *buf, size_t len);
+								   char __user *buf, size_t len);
 
 /*
  * device operations
  */
-static const struct file_operations hmcdrv_dev_fops = {
+static const struct file_operations hmcdrv_dev_fops =
+{
 	.open = hmcdrv_dev_open,
 	.llseek = hmcdrv_dev_seek,
 	.release = hmcdrv_dev_release,
@@ -95,12 +97,16 @@ static char *hmcdrv_dev_name(struct device *dev, umode_t *mode)
 	const char *devname = dev_name(dev); /* kernel device name */
 
 	if (devname)
+	{
 		nodename = kasprintf(GFP_KERNEL, "%s", devname);
+	}
 
 	/* on device destroy (rmmod) the mode pointer may be NULL
 	 */
 	if (mode)
+	{
 		*mode = hmcdrv_dev.mode;
+	}
 
 	return nodename;
 }
@@ -117,24 +123,33 @@ static int hmcdrv_dev_open(struct inode *inode, struct file *fp)
 	/* check for non-blocking access, which is really unsupported
 	 */
 	if (fp->f_flags & O_NONBLOCK)
+	{
 		return -EINVAL;
+	}
 
 	/* Because it makes no sense to open this device read-only (then a
 	 * FTP command cannot be emitted), we respond with an error.
 	 */
 	if ((fp->f_flags & O_ACCMODE) == O_RDONLY)
+	{
 		return -EINVAL;
+	}
 
 	/* prevent unloading this module as long as anyone holds the
 	 * device file open - so increment the reference count here
 	 */
 	if (!try_module_get(THIS_MODULE))
+	{
 		return -ENODEV;
+	}
 
 	fp->private_data = NULL; /* no command yet */
 	rc = hmcdrv_ftp_startup();
+
 	if (rc)
+	{
 		module_put(THIS_MODULE);
+	}
 
 	pr_debug("open file '/dev/%pD' with return code %d\n", fp, rc);
 	return rc;
@@ -158,35 +173,41 @@ static int hmcdrv_dev_release(struct inode *inode, struct file *fp)
  */
 static loff_t hmcdrv_dev_seek(struct file *fp, loff_t pos, int whence)
 {
-	switch (whence) {
-	case SEEK_CUR: /* relative to current file position */
-		pos += fp->f_pos; /* new position stored in 'pos' */
-		break;
+	switch (whence)
+	{
+		case SEEK_CUR: /* relative to current file position */
+			pos += fp->f_pos; /* new position stored in 'pos' */
+			break;
 
-	case SEEK_SET: /* absolute (relative to beginning of file) */
-		break; /* SEEK_SET */
+		case SEEK_SET: /* absolute (relative to beginning of file) */
+			break; /* SEEK_SET */
 
 		/* We use SEEK_END as a special indicator for a SEEK_SET
 		 * (set absolute position), combined with a FTP command
 		 * clear.
 		 */
-	case SEEK_END:
-		if (fp->private_data) {
-			kfree(fp->private_data);
-			fp->private_data = NULL;
-		}
+		case SEEK_END:
+			if (fp->private_data)
+			{
+				kfree(fp->private_data);
+				fp->private_data = NULL;
+			}
 
-		break; /* SEEK_END */
+			break; /* SEEK_END */
 
-	default: /* SEEK_DATA, SEEK_HOLE: unsupported */
-		return -EINVAL;
+		default: /* SEEK_DATA, SEEK_HOLE: unsupported */
+			return -EINVAL;
 	}
 
 	if (pos < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (fp->f_pos != pos)
+	{
 		++fp->f_version;
+	}
 
 	fp->f_pos = pos;
 	return pos;
@@ -196,20 +217,24 @@ static loff_t hmcdrv_dev_seek(struct file *fp, loff_t pos, int whence)
  * transfer (helper function)
  */
 static ssize_t hmcdrv_dev_transfer(char __kernel *cmd, loff_t offset,
-				   char __user *buf, size_t len)
+								   char __user *buf, size_t len)
 {
 	ssize_t retlen;
 	unsigned trials = HMCDRV_DEV_BUSY_RETRIES;
 
-	do {
+	do
+	{
 		retlen = hmcdrv_ftp_cmd(cmd, offset, buf, len);
 
 		if (retlen != -EBUSY)
+		{
 			break;
+		}
 
 		msleep(HMCDRV_DEV_BUSY_DELAY);
 
-	} while (--trials > 0);
+	}
+	while (--trials > 0);
 
 	return retlen;
 }
@@ -218,23 +243,26 @@ static ssize_t hmcdrv_dev_transfer(char __kernel *cmd, loff_t offset,
  * read()
  */
 static ssize_t hmcdrv_dev_read(struct file *fp, char __user *ubuf,
-			       size_t len, loff_t *pos)
+							   size_t len, loff_t *pos)
 {
 	ssize_t retlen;
 
 	if (((fp->f_flags & O_ACCMODE) == O_WRONLY) ||
-	    (fp->private_data == NULL)) { /* no FTP cmd defined ? */
+		(fp->private_data == NULL))   /* no FTP cmd defined ? */
+	{
 		return -EBADF;
 	}
 
 	retlen = hmcdrv_dev_transfer((char *) fp->private_data,
-				     *pos, ubuf, len);
+								 *pos, ubuf, len);
 
 	pr_debug("read from file '/dev/%pD' at %lld returns %zd/%zu\n",
-		 fp, (long long) *pos, retlen, len);
+			 fp, (long long) *pos, retlen, len);
 
 	if (retlen > 0)
+	{
 		*pos += retlen;
+	}
 
 	return retlen;
 }
@@ -243,20 +271,24 @@ static ssize_t hmcdrv_dev_read(struct file *fp, char __user *ubuf,
  * write()
  */
 static ssize_t hmcdrv_dev_write(struct file *fp, const char __user *ubuf,
-				size_t len, loff_t *pos)
+								size_t len, loff_t *pos)
 {
 	ssize_t retlen;
 
 	pr_debug("writing file '/dev/%pD' at pos. %lld with length %zd\n",
-		 fp, (long long) *pos, len);
+			 fp, (long long) *pos, len);
 
-	if (!fp->private_data) { /* first expect a cmd write */
+	if (!fp->private_data)   /* first expect a cmd write */
+	{
 		fp->private_data = kmalloc(len + 1, GFP_KERNEL);
 
 		if (!fp->private_data)
+		{
 			return -ENOMEM;
+		}
 
-		if (!copy_from_user(fp->private_data, ubuf, len)) {
+		if (!copy_from_user(fp->private_data, ubuf, len))
+		{
 			((char *)fp->private_data)[len] = '\0';
 			return len;
 		}
@@ -267,9 +299,12 @@ static ssize_t hmcdrv_dev_write(struct file *fp, const char __user *ubuf,
 	}
 
 	retlen = hmcdrv_dev_transfer((char *) fp->private_data,
-				     *pos, (char __user *) ubuf, len);
+								 *pos, (char __user *) ubuf, len);
+
 	if (retlen > 0)
+	{
 		*pos += retlen;
+	}
 
 	pr_debug("write to file '/dev/%pD' returned %zd\n", fp, retlen);
 
@@ -294,14 +329,18 @@ int hmcdrv_dev_init(void)
 	rc = alloc_chrdev_region(&hmcdrv_dev_no, 0, 1, HMCDRV_DEV_NAME);
 
 	if (rc)
+	{
 		goto out_err;
+	}
 
 	cdev_init(&hmcdrv_dev.dev, &hmcdrv_dev_fops);
 	hmcdrv_dev.dev.owner = THIS_MODULE;
 	rc = cdev_add(&hmcdrv_dev.dev, hmcdrv_dev_no, 1);
 
 	if (rc)
+	{
 		goto out_unreg;
+	}
 
 	/* At this point the character device exists in the kernel (see
 	 * /proc/devices), but not under /dev nor /sys/devices/virtual. So
@@ -309,7 +348,8 @@ int hmcdrv_dev_init(void)
 	 */
 	hmcdrv_dev_class = class_create(THIS_MODULE, HMCDRV_DEV_CLASS);
 
-	if (IS_ERR(hmcdrv_dev_class)) {
+	if (IS_ERR(hmcdrv_dev_class))
+	{
 		rc = PTR_ERR(hmcdrv_dev_class);
 		goto out_devdel;
 	}
@@ -322,9 +362,12 @@ int hmcdrv_dev_init(void)
 	hmcdrv_dev_class->devnode = hmcdrv_dev_name;
 
 	dev = device_create(hmcdrv_dev_class, NULL, hmcdrv_dev_no, NULL,
-			    "%s", HMCDRV_DEV_NAME);
+						"%s", HMCDRV_DEV_NAME);
+
 	if (!IS_ERR(dev))
+	{
 		return 0;
+	}
 
 	rc = PTR_ERR(dev);
 	class_destroy(hmcdrv_dev_class);
@@ -355,7 +398,9 @@ out_err:
 void hmcdrv_dev_exit(void)
 {
 #ifdef HMCDRV_DEV_CLASS
-	if (!IS_ERR_OR_NULL(hmcdrv_dev_class)) {
+
+	if (!IS_ERR_OR_NULL(hmcdrv_dev_class))
+	{
 		device_destroy(hmcdrv_dev_class, hmcdrv_dev_no);
 		class_destroy(hmcdrv_dev_class);
 	}

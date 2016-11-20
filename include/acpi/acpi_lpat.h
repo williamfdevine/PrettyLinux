@@ -16,12 +16,14 @@
 #ifndef ACPI_LPAT_H
 #define ACPI_LPAT_H
 
-struct acpi_lpat {
+struct acpi_lpat
+{
 	int temp;
 	int raw;
 };
 
-struct acpi_lpat_conversion_table {
+struct acpi_lpat_conversion_table
+{
 	struct acpi_lpat *lpat;
 	int lpat_count;
 };
@@ -29,35 +31,35 @@ struct acpi_lpat_conversion_table {
 #ifdef CONFIG_ACPI
 
 int acpi_lpat_raw_to_temp(struct acpi_lpat_conversion_table *lpat_table,
-			  int raw);
+						  int raw);
 int acpi_lpat_temp_to_raw(struct acpi_lpat_conversion_table *lpat_table,
-			  int temp);
+						  int temp);
 struct acpi_lpat_conversion_table *acpi_lpat_get_conversion_table(acpi_handle
-								  handle);
+		handle);
 void acpi_lpat_free_conversion_table(struct acpi_lpat_conversion_table
-				     *lpat_table);
+									 *lpat_table);
 
 #else
 static int acpi_lpat_raw_to_temp(struct acpi_lpat_conversion_table *lpat_table,
-				 int raw)
+								 int raw)
 {
 	return 0;
 }
 
 static int acpi_lpat_temp_to_raw(struct acpi_lpat_conversion_table *lpat_table,
-				 int temp)
+								 int temp)
 {
 	return 0;
 }
 
 static struct acpi_lpat_conversion_table *acpi_lpat_get_conversion_table(
-							acpi_handle handle)
+	acpi_handle handle)
 {
 	return NULL;
 }
 
 static void acpi_lpat_free_conversion_table(struct acpi_lpat_conversion_table
-					    *lpat_table)
+		*lpat_table)
 {
 }
 

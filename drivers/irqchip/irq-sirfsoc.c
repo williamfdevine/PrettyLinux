@@ -43,10 +43,11 @@ static __init void sirfsoc_alloc_gc(void __iomem *base)
 	int i;
 
 	irq_alloc_domain_generic_chips(sirfsoc_irqdomain, 32, 1, "irq_sirfsoc",
-				       handle_level_irq, clr, set,
-				       IRQ_GC_INIT_MASK_CACHE);
+								   handle_level_irq, clr, set,
+								   IRQ_GC_INIT_MASK_CACHE);
 
-	for (i = 0; i < SIRFSOC_NUM_BANKS; i++) {
+	for (i = 0; i < SIRFSOC_NUM_BANKS; i++)
+	{
 		gc = irq_get_domain_generic_chip(sirfsoc_irqdomain, i * 32);
 		gc->reg_base = base + i * SIRFSOC_INT_BASE_OFFSET;
 		ct = gc->chip_types;
@@ -66,14 +67,17 @@ static void __exception_irq_entry sirfsoc_handle_irq(struct pt_regs *regs)
 }
 
 static int __init sirfsoc_irq_init(struct device_node *np,
-	struct device_node *parent)
+								   struct device_node *parent)
 {
 	void __iomem *base = of_iomap(np, 0);
+
 	if (!base)
+	{
 		panic("unable to map intc cpu registers\n");
+	}
 
 	sirfsoc_irqdomain = irq_domain_add_linear(np, SIRFSOC_NUM_IRQS,
-						  &irq_generic_chip_ops, base);
+						&irq_generic_chip_ops, base);
 	sirfsoc_alloc_gc(base);
 
 	writel_relaxed(0, base + SIRFSOC_INT_RISC_LEVEL0);
@@ -88,7 +92,8 @@ static int __init sirfsoc_irq_init(struct device_node *np,
 }
 IRQCHIP_DECLARE(sirfsoc_intc, "sirf,prima2-intc", sirfsoc_irq_init);
 
-struct sirfsoc_irq_status {
+struct sirfsoc_irq_status
+{
 	u32 mask0;
 	u32 mask1;
 	u32 level0;
@@ -119,7 +124,8 @@ static void sirfsoc_irq_resume(void)
 	writel_relaxed(sirfsoc_irq_st.level1, base + SIRFSOC_INT_RISC_LEVEL1);
 }
 
-static struct syscore_ops sirfsoc_irq_syscore_ops = {
+static struct syscore_ops sirfsoc_irq_syscore_ops =
+{
 	.suspend	= sirfsoc_irq_suspend,
 	.resume		= sirfsoc_irq_resume,
 };
@@ -127,7 +133,9 @@ static struct syscore_ops sirfsoc_irq_syscore_ops = {
 static int __init sirfsoc_irq_pm_init(void)
 {
 	if (!sirfsoc_irqdomain)
+	{
 		return 0;
+	}
 
 	register_syscore_ops(&sirfsoc_irq_syscore_ops);
 	return 0;

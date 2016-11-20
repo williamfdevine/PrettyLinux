@@ -16,15 +16,18 @@
 #include <linux/atomic.h>
 
 /* IPv4 address key for cache lookups */
-struct ipv4_addr_key {
+struct ipv4_addr_key
+{
 	__be32	addr;
 	int	vif;
 };
 
 #define INETPEER_MAXKEYSZ   (sizeof(struct in6_addr) / sizeof(u32))
 
-struct inetpeer_addr {
-	union {
+struct inetpeer_addr
+{
+	union
+	{
 		struct ipv4_addr_key	a4;
 		struct in6_addr		a6;
 		u32			key[INETPEER_MAXKEYSZ];
@@ -32,7 +35,8 @@ struct inetpeer_addr {
 	__u16				family;
 };
 
-struct inet_peer {
+struct inet_peer
+{
 	/* group together avl_left,avl_right,v4daddr to speedup lookups */
 	struct inet_peer __rcu	*avl_left, *avl_right;
 	struct inetpeer_addr	daddr;
@@ -41,7 +45,8 @@ struct inet_peer {
 	u32			metrics[RTAX_MAX];
 	u32			rate_tokens;	/* rate limiting for ICMP */
 	unsigned long		rate_last;
-	union {
+	union
+	{
 		struct list_head	gc_list;
 		struct rcu_head     gc_rcu;
 	};
@@ -50,8 +55,10 @@ struct inet_peer {
 	 * is not available: rid
 	 * We can share memory with rcu_head to help keep inet_peer small.
 	 */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			atomic_t			rid;		/* Frag reception counter */
 		};
 		struct rcu_head         rcu;
@@ -63,7 +70,8 @@ struct inet_peer {
 	atomic_t		refcnt;
 };
 
-struct inet_peer_base {
+struct inet_peer_base
+{
 	struct inet_peer __rcu	*root;
 	seqlock_t		lock;
 	int			total;
@@ -88,7 +96,7 @@ static inline __be32 inetpeer_get_addr_v4(struct inetpeer_addr *iaddr)
 }
 
 static inline void inetpeer_set_addr_v6(struct inetpeer_addr *iaddr,
-					struct in6_addr *in6)
+										struct in6_addr *in6)
 {
 	iaddr->a6 = *in6;
 	iaddr->family = AF_INET6;
@@ -101,12 +109,12 @@ static inline struct in6_addr *inetpeer_get_addr_v6(struct inetpeer_addr *iaddr)
 
 /* can be called with or without local BH being disabled */
 struct inet_peer *inet_getpeer(struct inet_peer_base *base,
-			       const struct inetpeer_addr *daddr,
-			       int create);
+							   const struct inetpeer_addr *daddr,
+							   int create);
 
 static inline struct inet_peer *inet_getpeer_v4(struct inet_peer_base *base,
-						__be32 v4daddr,
-						int vif, int create)
+		__be32 v4daddr,
+		int vif, int create)
 {
 	struct inetpeer_addr daddr;
 
@@ -117,8 +125,8 @@ static inline struct inet_peer *inet_getpeer_v4(struct inet_peer_base *base,
 }
 
 static inline struct inet_peer *inet_getpeer_v6(struct inet_peer_base *base,
-						const struct in6_addr *v6daddr,
-						int create)
+		const struct in6_addr *v6daddr,
+		int create)
 {
 	struct inetpeer_addr daddr;
 
@@ -128,20 +136,31 @@ static inline struct inet_peer *inet_getpeer_v6(struct inet_peer_base *base,
 }
 
 static inline int inetpeer_addr_cmp(const struct inetpeer_addr *a,
-				    const struct inetpeer_addr *b)
+									const struct inetpeer_addr *b)
 {
 	int i, n;
 
 	if (a->family == AF_INET)
+	{
 		n = sizeof(a->a4) / sizeof(u32);
+	}
 	else
+	{
 		n = sizeof(a->a6) / sizeof(u32);
+	}
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		if (a->key[i] == b->key[i])
+		{
 			continue;
+		}
+
 		if (a->key[i] < b->key[i])
+		{
 			return -1;
+		}
+
 		return 1;
 	}
 

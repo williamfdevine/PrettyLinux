@@ -1,4 +1,4 @@
-/* toshiba.h -- Linux driver for accessing the SMM on Toshiba laptops 
+/* toshiba.h -- Linux driver for accessing the SMM on Toshiba laptops
  *
  * Copyright (c) 1996-2000  Jonathan A. Buzzard (jonathan@buzzard.org.uk)
  * Copyright (c) 2015  Azael Avalos <coproscefalo@gmail.com>
@@ -34,7 +34,8 @@
  * Toshiba SMM structure
  */
 
-typedef struct {
+typedef struct
+{
 	unsigned int eax;
 	unsigned int ebx __attribute__ ((packed));
 	unsigned int ecx __attribute__ ((packed));

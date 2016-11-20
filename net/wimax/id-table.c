@@ -91,19 +91,21 @@ struct wimax_dev *wimax_dev_get_by_genl_info(
 
 	d_fnstart(3, NULL, "(info %p ifindex %d)\n", info, ifindex);
 	spin_lock(&wimax_id_table_lock);
-	list_for_each_entry(wimax_dev, &wimax_id_table, id_table_node) {
-		if (wimax_dev->net_dev->ifindex == ifindex) {
+	list_for_each_entry(wimax_dev, &wimax_id_table, id_table_node)
+	{
+		if (wimax_dev->net_dev->ifindex == ifindex)
+		{
 			dev_hold(wimax_dev->net_dev);
 			goto found;
 		}
 	}
 	wimax_dev = NULL;
 	d_printf(1, NULL, "wimax: no devices found with ifindex %d\n",
-		 ifindex);
+			 ifindex);
 found:
 	spin_unlock(&wimax_id_table_lock);
 	d_fnend(3, NULL, "(info %p ifindex %d) = %p\n",
-		info, ifindex, wimax_dev);
+			info, ifindex, wimax_dev);
 	return wimax_dev;
 }
 
@@ -136,9 +138,10 @@ void wimax_id_table_release(void)
 	return;
 #endif
 	spin_lock(&wimax_id_table_lock);
-	list_for_each_entry(wimax_dev, &wimax_id_table, id_table_node) {
+	list_for_each_entry(wimax_dev, &wimax_id_table, id_table_node)
+	{
 		pr_err("BUG: %s wimax_dev %p ifindex %d not cleared\n",
-		       __func__, wimax_dev, wimax_dev->net_dev->ifindex);
+			   __func__, wimax_dev, wimax_dev->net_dev->ifindex);
 		WARN_ON(1);
 	}
 	spin_unlock(&wimax_id_table_lock);

@@ -42,12 +42,18 @@ void
 gm200_sor_magic(struct nvkm_output *outp)
 {
 	struct nvkm_device *device = outp->disp->engine.subdev.device;
-	const u32 soff = outp->or * 0x100;
-	const u32 data = outp->or + 1;
+	const u32 soff = outp-> or * 0x100;
+	const u32 data = outp-> or + 1;
+
 	if (outp->info.sorconf.link & 1)
+	{
 		nvkm_mask(device, 0x612308 + soff, 0x0000001f, 0x00000000 | data);
+	}
+
 	if (outp->info.sorconf.link & 2)
+	{
 		nvkm_mask(device, 0x612388 + soff, 0x0000001f, 0x00000010 | data);
+	}
 }
 
 static inline u32
@@ -65,20 +71,24 @@ gm200_sor_dp_lnk_pwr(struct nvkm_output_dp *outp, int nr)
 	u32 mask = 0, i;
 
 	for (i = 0; i < nr; i++)
+	{
 		mask |= 1 << (gm200_sor_dp_lane_map(device, i) >> 3);
+	}
 
 	nvkm_mask(device, 0x61c130 + loff, 0x0000000f, mask);
 	nvkm_mask(device, 0x61c034 + soff, 0x80000000, 0x80000000);
 	nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x61c034 + soff) & 0x80000000))
-			break;
-	);
+
+			  if (!(nvkm_rd32(device, 0x61c034 + soff) & 0x80000000))
+			  break;
+			 );
+
 	return 0;
 }
 
 static int
 gm200_sor_dp_drv_ctl(struct nvkm_output_dp *outp,
-		     int ln, int vs, int pe, int pc)
+					 int ln, int vs, int pe, int pc)
 {
 	struct nvkm_device *device = outp->base.disp->engine.subdev.device;
 	struct nvkm_bios *bios = device->bios;
@@ -90,22 +100,33 @@ gm200_sor_dp_drv_ctl(struct nvkm_output_dp *outp,
 	struct nvbios_dpcfg ocfg;
 
 	addr = nvbios_dpout_match(bios, outp->base.info.hasht,
-					outp->base.info.hashm,
-				  &ver, &hdr, &cnt, &len, &info);
+							  outp->base.info.hashm,
+							  &ver, &hdr, &cnt, &len, &info);
+
 	if (!addr)
+	{
 		return -ENODEV;
+	}
 
 	addr = nvbios_dpcfg_match(bios, addr, pc, vs, pe,
-				  &ver, &hdr, &cnt, &len, &ocfg);
+							  &ver, &hdr, &cnt, &len, &ocfg);
+
 	if (!addr)
+	{
 		return -EINVAL;
+	}
+
 	ocfg.tx_pu &= 0x0f;
 
 	data[0] = nvkm_rd32(device, 0x61c118 + loff) & ~(0x000000ff << shift);
 	data[1] = nvkm_rd32(device, 0x61c120 + loff) & ~(0x000000ff << shift);
 	data[2] = nvkm_rd32(device, 0x61c130 + loff);
+
 	if ((data[2] & 0x00000f00) < (ocfg.tx_pu << 8) || ln == 0)
+	{
 		data[2] = (data[2] & ~0x00000f00) | (ocfg.tx_pu << 8);
+	}
+
 	nvkm_wr32(device, 0x61c118 + loff, data[0] | (ocfg.dc << shift));
 	nvkm_wr32(device, 0x61c120 + loff, data[1] | (ocfg.pe << shift));
 	nvkm_wr32(device, 0x61c130 + loff, data[2]);
@@ -115,7 +136,8 @@ gm200_sor_dp_drv_ctl(struct nvkm_output_dp *outp,
 }
 
 static const struct nvkm_output_dp_func
-gm200_sor_dp_func = {
+	gm200_sor_dp_func =
+{
 	.pattern = gm107_sor_dp_pattern,
 	.lnk_pwr = gm200_sor_dp_lnk_pwr,
 	.lnk_ctl = gf119_sor_dp_lnk_ctl,
@@ -124,7 +146,7 @@ gm200_sor_dp_func = {
 
 int
 gm200_sor_dp_new(struct nvkm_disp *disp, int index, struct dcb_output *dcbE,
-		 struct nvkm_output **poutp)
+				 struct nvkm_output **poutp)
 {
 	return nvkm_output_dp_new_(&gm200_sor_dp_func, disp, index, dcbE, poutp);
 }

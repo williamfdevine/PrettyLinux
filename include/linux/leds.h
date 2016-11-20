@@ -25,13 +25,15 @@ struct device;
  * LED Core
  */
 
-enum led_brightness {
+enum led_brightness
+{
 	LED_OFF		= 0,
 	LED_HALF	= 127,
 	LED_FULL	= 255,
 };
 
-struct led_classdev {
+struct led_classdev
+{
 	const char		*name;
 	enum led_brightness	 brightness;
 	enum led_brightness	 max_brightness;
@@ -58,13 +60,13 @@ struct led_classdev {
 	 * that can sleep while setting brightness.
 	 */
 	void		(*brightness_set)(struct led_classdev *led_cdev,
-					  enum led_brightness brightness);
+								  enum led_brightness brightness);
 	/*
 	 * Set LED brightness level immediately - it can block the caller for
 	 * the time required for accessing a LED device register.
 	 */
 	int (*brightness_set_blocking)(struct led_classdev *led_cdev,
-				       enum led_brightness brightness);
+								   enum led_brightness brightness);
 	/* Get LED brightness level */
 	enum led_brightness (*brightness_get)(struct led_classdev *led_cdev);
 
@@ -77,8 +79,8 @@ struct led_classdev {
 	 * via the brightness_set() callback.
 	 */
 	int		(*blink_set)(struct led_classdev *led_cdev,
-				     unsigned long *delay_on,
-				     unsigned long *delay_off);
+						 unsigned long *delay_on,
+						 unsigned long *delay_off);
 
 	struct device		*dev;
 	const struct attribute_group	**groups;
@@ -110,12 +112,12 @@ struct led_classdev {
 };
 
 extern int led_classdev_register(struct device *parent,
-				 struct led_classdev *led_cdev);
+								 struct led_classdev *led_cdev);
 extern int devm_led_classdev_register(struct device *parent,
-				      struct led_classdev *led_cdev);
+									  struct led_classdev *led_cdev);
 extern void led_classdev_unregister(struct led_classdev *led_cdev);
 extern void devm_led_classdev_unregister(struct device *parent,
-					 struct led_classdev *led_cdev);
+		struct led_classdev *led_cdev);
 extern void led_classdev_suspend(struct led_classdev *led_cdev);
 extern void led_classdev_resume(struct led_classdev *led_cdev);
 
@@ -135,8 +137,8 @@ extern void led_classdev_resume(struct led_classdev *led_cdev);
  * use led_classdev_brightness_set() instead.
  */
 extern void led_blink_set(struct led_classdev *led_cdev,
-			  unsigned long *delay_on,
-			  unsigned long *delay_off);
+						  unsigned long *delay_on,
+						  unsigned long *delay_off);
 /**
  * led_blink_set_oneshot - do a oneshot software blink
  * @led_cdev: the LED to start blinking
@@ -152,9 +154,9 @@ extern void led_blink_set(struct led_classdev *led_cdev,
  * delay_on and leave the led on after the on-off cycle.
  */
 extern void led_blink_set_oneshot(struct led_classdev *led_cdev,
-				  unsigned long *delay_on,
-				  unsigned long *delay_off,
-				  int invert);
+								  unsigned long *delay_on,
+								  unsigned long *delay_off,
+								  int invert);
 /**
  * led_set_brightness - set LED brightness
  * @led_cdev: the LED to set
@@ -165,7 +167,7 @@ extern void led_blink_set_oneshot(struct led_classdev *led_cdev,
  * hardware doesn't. This function is guaranteed not to sleep.
  */
 extern void led_set_brightness(struct led_classdev *led_cdev,
-			       enum led_brightness brightness);
+							   enum led_brightness brightness);
 
 /**
  * led_set_brightness_sync - set LED brightness synchronously
@@ -179,7 +181,7 @@ extern void led_set_brightness(struct led_classdev *led_cdev,
  * Returns: 0 on success or negative error value on failure
  */
 extern int led_set_brightness_sync(struct led_classdev *led_cdev,
-				   enum led_brightness value);
+								   enum led_brightness value);
 
 /**
  * led_update_brightness - update LED brightness
@@ -230,7 +232,8 @@ static inline bool led_sysfs_is_disabled(struct led_classdev *led_cdev)
 
 #define TRIG_NAME_MAX 50
 
-struct led_trigger {
+struct led_trigger
+{
 	/* Trigger Properties */
 	const char	 *name;
 	void		(*activate)(struct led_classdev *led_cdev);
@@ -245,31 +248,31 @@ struct led_trigger {
 };
 
 ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
-			const char *buf, size_t count);
+						  const char *buf, size_t count);
 ssize_t led_trigger_show(struct device *dev, struct device_attribute *attr,
-			char *buf);
+						 char *buf);
 
 /* Registration functions for complex triggers */
 extern int led_trigger_register(struct led_trigger *trigger);
 extern void led_trigger_unregister(struct led_trigger *trigger);
 extern int devm_led_trigger_register(struct device *dev,
-				     struct led_trigger *trigger);
+									 struct led_trigger *trigger);
 
 extern void led_trigger_register_simple(const char *name,
-				struct led_trigger **trigger);
+										struct led_trigger **trigger);
 extern void led_trigger_unregister_simple(struct led_trigger *trigger);
 extern void led_trigger_event(struct led_trigger *trigger,
-				enum led_brightness event);
+							  enum led_brightness event);
 extern void led_trigger_blink(struct led_trigger *trigger,
-			      unsigned long *delay_on,
-			      unsigned long *delay_off);
+							  unsigned long *delay_on,
+							  unsigned long *delay_off);
 extern void led_trigger_blink_oneshot(struct led_trigger *trigger,
-				      unsigned long *delay_on,
-				      unsigned long *delay_off,
-				      int invert);
+									  unsigned long *delay_on,
+									  unsigned long *delay_off,
+									  int invert);
 extern void led_trigger_set_default(struct led_classdev *led_cdev);
 extern void led_trigger_set(struct led_classdev *led_cdev,
-			struct led_trigger *trigger);
+							struct led_trigger *trigger);
 extern void led_trigger_remove(struct led_classdev *led_cdev);
 
 static inline void *led_get_trigger_data(struct led_classdev *led_cdev)
@@ -293,7 +296,7 @@ static inline void *led_get_trigger_data(struct led_classdev *led_cdev)
  * allocated name.
  */
 extern void led_trigger_rename_static(const char *name,
-				      struct led_trigger *trig);
+									  struct led_trigger *trig);
 
 #else
 
@@ -302,20 +305,20 @@ struct led_trigger {};
 
 /* Trigger inline empty functions */
 static inline void led_trigger_register_simple(const char *name,
-					struct led_trigger **trigger) {}
+		struct led_trigger **trigger) {}
 static inline void led_trigger_unregister_simple(struct led_trigger *trigger) {}
 static inline void led_trigger_event(struct led_trigger *trigger,
-				enum led_brightness event) {}
+									 enum led_brightness event) {}
 static inline void led_trigger_blink(struct led_trigger *trigger,
-				      unsigned long *delay_on,
-				      unsigned long *delay_off) {}
+									 unsigned long *delay_on,
+									 unsigned long *delay_off) {}
 static inline void led_trigger_blink_oneshot(struct led_trigger *trigger,
-				      unsigned long *delay_on,
-				      unsigned long *delay_off,
-				      int invert) {}
+		unsigned long *delay_on,
+		unsigned long *delay_off,
+		int invert) {}
 static inline void led_trigger_set_default(struct led_classdev *led_cdev) {}
 static inline void led_trigger_set(struct led_classdev *led_cdev,
-				struct led_trigger *trigger) {}
+								   struct led_trigger *trigger) {}
 static inline void led_trigger_remove(struct led_classdev *led_cdev) {}
 static inline void *led_get_trigger_data(struct led_classdev *led_cdev)
 {
@@ -348,24 +351,27 @@ static inline void ledtrig_torch_ctrl(bool on) {}
 /*
  * Generic LED platform data for describing LED names and default triggers.
  */
-struct led_info {
+struct led_info
+{
 	const char	*name;
 	const char	*default_trigger;
 	int		flags;
 };
 
-struct led_platform_data {
+struct led_platform_data
+{
 	int		num_leds;
 	struct led_info	*leds;
 };
 
 struct gpio_desc;
 typedef int (*gpio_blink_set_t)(struct gpio_desc *desc, int state,
-				unsigned long *delay_on,
-				unsigned long *delay_off);
+								unsigned long *delay_on,
+								unsigned long *delay_off);
 
 /* For the leds-gpio driver */
-struct gpio_led {
+struct gpio_led
+{
 	const char *name;
 	const char *default_trigger;
 	unsigned 	gpio;
@@ -380,7 +386,8 @@ struct gpio_led {
 #define LEDS_GPIO_DEFSTATE_ON		1
 #define LEDS_GPIO_DEFSTATE_KEEP		2
 
-struct gpio_led_platform_data {
+struct gpio_led_platform_data
+{
 	int 		num_leds;
 	const struct gpio_led *leds;
 
@@ -392,16 +399,17 @@ struct gpio_led_platform_data {
 
 #ifdef CONFIG_NEW_LEDS
 struct platform_device *gpio_led_register_device(
-		int id, const struct gpio_led_platform_data *pdata);
+	int id, const struct gpio_led_platform_data *pdata);
 #else
 static inline struct platform_device *gpio_led_register_device(
-		int id, const struct gpio_led_platform_data *pdata)
+	int id, const struct gpio_led_platform_data *pdata)
 {
 	return 0;
 }
 #endif
 
-enum cpu_led_event {
+enum cpu_led_event
+{
 	CPU_LED_IDLE_START,	/* CPU enters idle */
 	CPU_LED_IDLE_END,	/* CPU idle ends */
 	CPU_LED_START,		/* Machine starts, especially resume */

@@ -47,11 +47,11 @@
  * Definitions for the default names of the quotas files.
  */
 #define INITQFNAMES { \
-	"user",    /* USRQUOTA */ \
-	"group",   /* GRPQUOTA */ \
-	"project", /* PRJQUOTA */ \
-	"undefined", \
-};
+		"user",    /* USRQUOTA */ \
+		"group",   /* GRPQUOTA */ \
+		"project", /* PRJQUOTA */ \
+		"undefined", \
+	};
 
 /*
  * Command definitions for the 'quotactl' system call.
@@ -88,7 +88,8 @@
  * Quota structure used for communication with userspace via quotactl
  * Following flags are used to specify which fields are valid
  */
-enum {
+enum
+{
 	QIF_BLIMITS_B = 0,
 	QIF_SPACE_B,
 	QIF_ILIMITS_B,
@@ -108,7 +109,8 @@ enum {
 #define QIF_TIMES	(QIF_BTIME | QIF_ITIME)
 #define QIF_ALL		(QIF_LIMITS | QIF_USAGE | QIF_TIMES)
 
-struct if_dqblk {
+struct if_dqblk
+{
 	__u64 dqb_bhardlimit;
 	__u64 dqb_bsoftlimit;
 	__u64 dqb_curspace;
@@ -120,7 +122,8 @@ struct if_dqblk {
 	__u32 dqb_valid;
 };
 
-struct if_nextdqblk {
+struct if_nextdqblk
+{
 	__u64 dqb_bhardlimit;
 	__u64 dqb_bsoftlimit;
 	__u64 dqb_curspace;
@@ -142,7 +145,8 @@ struct if_nextdqblk {
 #define IIF_FLAGS	4
 #define IIF_ALL		(IIF_BGRACE | IIF_IGRACE | IIF_FLAGS)
 
-enum {
+enum
+{
 	DQF_ROOT_SQUASH_B = 0,
 	DQF_SYS_FILE_B = 16,
 	/* Kernel internal flags invisible to userspace */
@@ -154,7 +158,8 @@ enum {
 /* Quota stored in a system file */
 #define DQF_SYS_FILE	(1 << DQF_SYS_FILE_B)
 
-struct if_dqinfo {
+struct if_dqinfo
+{
 	__u64 dqi_bgrace;
 	__u64 dqi_igrace;
 	__u32 dqi_flags;	/* DFQ_* */
@@ -176,14 +181,16 @@ struct if_dqinfo {
 #define QUOTA_NL_BHARDBELOW 9		/* Usage got below block hardlimit */
 #define QUOTA_NL_BSOFTBELOW 10		/* Usage got below block softlimit */
 
-enum {
+enum
+{
 	QUOTA_NL_C_UNSPEC,
 	QUOTA_NL_C_WARNING,
 	__QUOTA_NL_C_MAX,
 };
 #define QUOTA_NL_C_MAX (__QUOTA_NL_C_MAX - 1)
 
-enum {
+enum
+{
 	QUOTA_NL_A_UNSPEC,
 	QUOTA_NL_A_QTYPE,
 	QUOTA_NL_A_EXCESS_ID,

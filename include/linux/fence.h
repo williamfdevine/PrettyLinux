@@ -69,7 +69,8 @@ struct fence_cb;
  * after fence_signal was called, any enable_signaling call will have either
  * been completed, or never called at all.
  */
-struct fence {
+struct fence
+{
 	struct kref refcount;
 	const struct fence_ops *ops;
 	struct rcu_head rcu;
@@ -82,7 +83,8 @@ struct fence {
 	int status;
 };
 
-enum fence_flag_bits {
+enum fence_flag_bits
+{
 	FENCE_FLAG_SIGNALED_BIT,
 	FENCE_FLAG_ENABLE_SIGNAL_BIT,
 	FENCE_FLAG_USER_BITS, /* must always be last member */
@@ -98,7 +100,8 @@ typedef void (*fence_func_t)(struct fence *fence, struct fence_cb *cb);
  * This struct will be initialized by fence_add_callback, additional
  * data can be passed along by embedding fence_cb in another struct.
  */
-struct fence_cb {
+struct fence_cb
+{
 	struct list_head node;
 	fence_func_t func;
 };
@@ -163,9 +166,10 @@ struct fence_cb {
  * If pointer is set to NULL, kfree will get called instead.
  */
 
-struct fence_ops {
-	const char * (*get_driver_name)(struct fence *fence);
-	const char * (*get_timeline_name)(struct fence *fence);
+struct fence_ops
+{
+	const char *(*get_driver_name)(struct fence *fence);
+	const char *(*get_timeline_name)(struct fence *fence);
 	bool (*enable_signaling)(struct fence *fence);
 	bool (*signaled)(struct fence *fence);
 	signed long (*wait)(struct fence *fence, bool intr, signed long timeout);
@@ -177,7 +181,7 @@ struct fence_ops {
 };
 
 void fence_init(struct fence *fence, const struct fence_ops *ops,
-		spinlock_t *lock, u64 context, unsigned seqno);
+				spinlock_t *lock, u64 context, unsigned seqno);
 
 void fence_release(struct kref *kref);
 void fence_free(struct fence *fence);
@@ -191,7 +195,10 @@ void fence_free(struct fence *fence);
 static inline struct fence *fence_get(struct fence *fence)
 {
 	if (fence)
+	{
 		kref_get(&fence->refcount);
+	}
+
 	return fence;
 }
 
@@ -204,9 +211,13 @@ static inline struct fence *fence_get(struct fence *fence)
 static inline struct fence *fence_get_rcu(struct fence *fence)
 {
 	if (kref_get_unless_zero(&fence->refcount))
+	{
 		return fence;
+	}
 	else
+	{
 		return NULL;
+	}
 }
 
 /**
@@ -216,14 +227,16 @@ static inline struct fence *fence_get_rcu(struct fence *fence)
 static inline void fence_put(struct fence *fence)
 {
 	if (fence)
+	{
 		kref_put(&fence->refcount, fence_release);
+	}
 }
 
 int fence_signal(struct fence *fence);
 int fence_signal_locked(struct fence *fence);
 signed long fence_default_wait(struct fence *fence, bool intr, signed long timeout);
 int fence_add_callback(struct fence *fence, struct fence_cb *cb,
-		       fence_func_t func);
+					   fence_func_t func);
 bool fence_remove_callback(struct fence *fence, struct fence_cb *cb);
 void fence_enable_sw_signaling(struct fence *fence);
 
@@ -242,9 +255,12 @@ static inline bool
 fence_is_signaled_locked(struct fence *fence)
 {
 	if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
+	{
 		return true;
+	}
 
-	if (fence->ops->signaled && fence->ops->signaled(fence)) {
+	if (fence->ops->signaled && fence->ops->signaled(fence))
+	{
 		fence_signal_locked(fence);
 		return true;
 	}
@@ -270,9 +286,12 @@ static inline bool
 fence_is_signaled(struct fence *fence)
 {
 	if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags))
+	{
 		return true;
+	}
 
-	if (fence->ops->signaled && fence->ops->signaled(fence)) {
+	if (fence->ops->signaled && fence->ops->signaled(fence))
+	{
 		fence_signal(fence);
 		return true;
 	}
@@ -291,7 +310,9 @@ fence_is_signaled(struct fence *fence)
 static inline bool fence_is_later(struct fence *f1, struct fence *f2)
 {
 	if (WARN_ON(f1->context != f2->context))
+	{
 		return false;
+	}
 
 	return (int)(f1->seqno - f2->seqno) > 0;
 }
@@ -308,7 +329,9 @@ static inline bool fence_is_later(struct fence *f1, struct fence *f2)
 static inline struct fence *fence_later(struct fence *f1, struct fence *f2)
 {
 	if (WARN_ON(f1->context != f2->context))
+	{
 		return NULL;
+	}
 
 	/*
 	 * can't check just FENCE_FLAG_SIGNALED_BIT here, it may never have been
@@ -316,14 +339,18 @@ static inline struct fence *fence_later(struct fence *f1, struct fence *f2)
 	 * overkill.
 	 */
 	if (fence_is_later(f1, f2))
+	{
 		return fence_is_signaled(f1) ? NULL : f1;
+	}
 	else
+	{
 		return fence_is_signaled(f2) ? NULL : f2;
+	}
 }
 
 signed long fence_wait_timeout(struct fence *, bool intr, signed long timeout);
 signed long fence_wait_any_timeout(struct fence **fences, uint32_t count,
-				   bool intr, signed long timeout);
+								   bool intr, signed long timeout);
 
 /**
  * fence_wait - sleep until the fence gets signaled
@@ -358,21 +385,21 @@ u64 fence_context_alloc(unsigned num);
 		struct fence *__ff = (f);				\
 		if (IS_ENABLED(CONFIG_FENCE_TRACE))			\
 			pr_info("f %llu#%u: " fmt,			\
-				__ff->context, __ff->seqno, ##args);	\
+					__ff->context, __ff->seqno, ##args);	\
 	} while (0)
 
 #define FENCE_WARN(f, fmt, args...) \
 	do {								\
 		struct fence *__ff = (f);				\
 		pr_warn("f %llu#%u: " fmt, __ff->context, __ff->seqno,	\
-			 ##args);					\
+				##args);					\
 	} while (0)
 
 #define FENCE_ERR(f, fmt, args...) \
 	do {								\
 		struct fence *__ff = (f);				\
 		pr_err("f %llu#%u: " fmt, __ff->context, __ff->seqno,	\
-			##args);					\
+			   ##args);					\
 	} while (0)
 
 #endif /* __LINUX_FENCE_H */

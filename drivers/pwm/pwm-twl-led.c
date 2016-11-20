@@ -56,7 +56,8 @@
 #define TWL6040_LED_MODE_OFF	0x02
 #define TWL6040_LED_MODE_MASK	0x03
 
-struct twl_pwmled_chip {
+struct twl_pwmled_chip
+{
 	struct pwm_chip chip;
 	struct mutex mutex;
 };
@@ -67,7 +68,7 @@ static inline struct twl_pwmled_chip *to_twl(struct pwm_chip *chip)
 }
 
 static int twl4030_pwmled_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			      int duty_ns, int period_ns)
+								 int duty_ns, int period_ns)
 {
 	int duty_cycle = DIV_ROUND_UP(duty_ns * TWL4030_LED_MAX, period_ns) + 1;
 	u8 pwm_config[2] = { 1, 0 };
@@ -85,17 +86,24 @@ static int twl4030_pwmled_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * When on cycle == off cycle the PWM will be always on
 	 */
 	if (duty_cycle == 1)
+	{
 		duty_cycle = 2;
+	}
 	else if (duty_cycle > TWL4030_LED_MAX)
+	{
 		duty_cycle = 1;
+	}
 
 	base = pwm->hwpwm * 2 + TWL4030_PWMA_REG;
 
 	pwm_config[1] = duty_cycle;
 
 	ret = twl_i2c_write(TWL4030_MODULE_LED, pwm_config, base, 2);
+
 	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to configure PWM\n", pwm->label);
+	}
 
 	return ret;
 }
@@ -108,7 +116,9 @@ static int twl4030_pwmled_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 
 	mutex_lock(&twl->mutex);
 	ret = twl_i2c_read_u8(TWL4030_MODULE_LED, &val, TWL4030_LEDEN_REG);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to read LEDEN\n", pwm->label);
 		goto out;
 	}
@@ -116,8 +126,11 @@ static int twl4030_pwmled_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	val |= TWL4030_LED_TOGGLE(pwm->hwpwm, TWL4030_LED_PINS);
 
 	ret = twl_i2c_write_u8(TWL4030_MODULE_LED, val, TWL4030_LEDEN_REG);
+
 	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to enable PWM\n", pwm->label);
+	}
 
 out:
 	mutex_unlock(&twl->mutex);
@@ -125,7 +138,7 @@ out:
 }
 
 static void twl4030_pwmled_disable(struct pwm_chip *chip,
-				   struct pwm_device *pwm)
+								   struct pwm_device *pwm)
 {
 	struct twl_pwmled_chip *twl = to_twl(chip);
 	int ret;
@@ -133,7 +146,9 @@ static void twl4030_pwmled_disable(struct pwm_chip *chip,
 
 	mutex_lock(&twl->mutex);
 	ret = twl_i2c_read_u8(TWL4030_MODULE_LED, &val, TWL4030_LEDEN_REG);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to read LEDEN\n", pwm->label);
 		goto out;
 	}
@@ -141,15 +156,18 @@ static void twl4030_pwmled_disable(struct pwm_chip *chip,
 	val &= ~TWL4030_LED_TOGGLE(pwm->hwpwm, TWL4030_LED_PINS);
 
 	ret = twl_i2c_write_u8(TWL4030_MODULE_LED, val, TWL4030_LEDEN_REG);
+
 	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
+	}
 
 out:
 	mutex_unlock(&twl->mutex);
 }
 
 static int twl6030_pwmled_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			      int duty_ns, int period_ns)
+								 int duty_ns, int period_ns)
 {
 	int duty_cycle = (duty_ns * TWL6030_LED_MAX) / period_ns;
 	u8 on_time;
@@ -158,9 +176,12 @@ static int twl6030_pwmled_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	on_time = duty_cycle & 0xff;
 
 	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, on_time,
-			       TWL6030_LED_PWM_CTRL1);
+						   TWL6030_LED_PWM_CTRL1);
+
 	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to configure PWM\n", pwm->label);
+	}
 
 	return ret;
 }
@@ -173,9 +194,11 @@ static int twl6030_pwmled_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 
 	mutex_lock(&twl->mutex);
 	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, TWL6030_LED_PWM_CTRL2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to read PWM_CTRL2\n",
-			pwm->label);
+				pwm->label);
 		goto out;
 	}
 
@@ -183,8 +206,11 @@ static int twl6030_pwmled_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	val |= TWL6040_LED_MODE_ON;
 
 	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_LED_PWM_CTRL2);
+
 	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to enable PWM\n", pwm->label);
+	}
 
 out:
 	mutex_unlock(&twl->mutex);
@@ -192,7 +218,7 @@ out:
 }
 
 static void twl6030_pwmled_disable(struct pwm_chip *chip,
-				   struct pwm_device *pwm)
+								   struct pwm_device *pwm)
 {
 	struct twl_pwmled_chip *twl = to_twl(chip);
 	int ret;
@@ -200,9 +226,11 @@ static void twl6030_pwmled_disable(struct pwm_chip *chip,
 
 	mutex_lock(&twl->mutex);
 	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, TWL6030_LED_PWM_CTRL2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to read PWM_CTRL2\n",
-			pwm->label);
+				pwm->label);
 		goto out;
 	}
 
@@ -210,8 +238,11 @@ static void twl6030_pwmled_disable(struct pwm_chip *chip,
 	val |= TWL6040_LED_MODE_OFF;
 
 	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_LED_PWM_CTRL2);
+
 	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
+	}
 
 out:
 	mutex_unlock(&twl->mutex);
@@ -225,9 +256,11 @@ static int twl6030_pwmled_request(struct pwm_chip *chip, struct pwm_device *pwm)
 
 	mutex_lock(&twl->mutex);
 	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, TWL6030_LED_PWM_CTRL2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to read PWM_CTRL2\n",
-			pwm->label);
+				pwm->label);
 		goto out;
 	}
 
@@ -235,8 +268,11 @@ static int twl6030_pwmled_request(struct pwm_chip *chip, struct pwm_device *pwm)
 	val |= TWL6040_LED_MODE_OFF;
 
 	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_LED_PWM_CTRL2);
+
 	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to request PWM\n", pwm->label);
+	}
 
 out:
 	mutex_unlock(&twl->mutex);
@@ -251,9 +287,11 @@ static void twl6030_pwmled_free(struct pwm_chip *chip, struct pwm_device *pwm)
 
 	mutex_lock(&twl->mutex);
 	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, TWL6030_LED_PWM_CTRL2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to read PWM_CTRL2\n",
-			pwm->label);
+				pwm->label);
 		goto out;
 	}
 
@@ -261,21 +299,26 @@ static void twl6030_pwmled_free(struct pwm_chip *chip, struct pwm_device *pwm)
 	val |= TWL6040_LED_MODE_HW;
 
 	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_LED_PWM_CTRL2);
+
 	if (ret < 0)
+	{
 		dev_err(chip->dev, "%s: Failed to free PWM\n", pwm->label);
+	}
 
 out:
 	mutex_unlock(&twl->mutex);
 }
 
-static const struct pwm_ops twl4030_pwmled_ops = {
+static const struct pwm_ops twl4030_pwmled_ops =
+{
 	.enable = twl4030_pwmled_enable,
 	.disable = twl4030_pwmled_disable,
 	.config = twl4030_pwmled_config,
 	.owner = THIS_MODULE,
 };
 
-static const struct pwm_ops twl6030_pwmled_ops = {
+static const struct pwm_ops twl6030_pwmled_ops =
+{
 	.enable = twl6030_pwmled_enable,
 	.disable = twl6030_pwmled_disable,
 	.config = twl6030_pwmled_config,
@@ -290,13 +333,19 @@ static int twl_pwmled_probe(struct platform_device *pdev)
 	int ret;
 
 	twl = devm_kzalloc(&pdev->dev, sizeof(*twl), GFP_KERNEL);
-	if (!twl)
-		return -ENOMEM;
 
-	if (twl_class_is_4030()) {
+	if (!twl)
+	{
+		return -ENOMEM;
+	}
+
+	if (twl_class_is_4030())
+	{
 		twl->chip.ops = &twl4030_pwmled_ops;
 		twl->chip.npwm = 2;
-	} else {
+	}
+	else
+	{
 		twl->chip.ops = &twl6030_pwmled_ops;
 		twl->chip.npwm = 1;
 	}
@@ -308,8 +357,11 @@ static int twl_pwmled_probe(struct platform_device *pdev)
 	mutex_init(&twl->mutex);
 
 	ret = pwmchip_add(&twl->chip);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	platform_set_drvdata(pdev, twl);
 
@@ -324,7 +376,8 @@ static int twl_pwmled_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id twl_pwmled_of_match[] = {
+static const struct of_device_id twl_pwmled_of_match[] =
+{
 	{ .compatible = "ti,twl4030-pwmled" },
 	{ .compatible = "ti,twl6030-pwmled" },
 	{ },
@@ -332,7 +385,8 @@ static const struct of_device_id twl_pwmled_of_match[] = {
 MODULE_DEVICE_TABLE(of, twl_pwmled_of_match);
 #endif
 
-static struct platform_driver twl_pwmled_driver = {
+static struct platform_driver twl_pwmled_driver =
+{
 	.driver = {
 		.name = "twl-pwmled",
 		.of_match_table = of_match_ptr(twl_pwmled_of_match),

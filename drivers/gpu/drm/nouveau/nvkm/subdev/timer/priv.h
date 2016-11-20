@@ -4,9 +4,10 @@
 #include <subdev/timer.h>
 
 int nvkm_timer_new_(const struct nvkm_timer_func *, struct nvkm_device *,
-		    int index, struct nvkm_timer **);
+					int index, struct nvkm_timer **);
 
-struct nvkm_timer_func {
+struct nvkm_timer_func
+{
 	void (*init)(struct nvkm_timer *);
 	void (*intr)(struct nvkm_timer *);
 	u64 (*read)(struct nvkm_timer *);

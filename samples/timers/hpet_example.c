@@ -24,10 +24,12 @@ extern void hpet_read(int, const char **);
 #include <sys/poll.h>
 #include <sys/ioctl.h>
 
-struct hpet_command {
+struct hpet_command
+{
 	char		*command;
-	void		(*func)(int argc, const char ** argv);
-} hpet_command[] = {
+	void		(*func)(int argc, const char **argv);
+} hpet_command[] =
+{
 	{
 		"open-close",
 		hpet_open_close
@@ -47,25 +49,27 @@ struct hpet_command {
 };
 
 int
-main(int argc, const char ** argv)
+main(int argc, const char **argv)
 {
 	unsigned int	i;
 
 	argc--;
 	argv++;
 
-	if (!argc) {
+	if (!argc)
+	{
 		fprintf(stderr, "-hpet: requires command\n");
 		return -1;
 	}
 
 
 	for (i = 0; i < (sizeof (hpet_command) / sizeof (hpet_command[0])); i++)
-		if (!strcmp(argv[0], hpet_command[i].command)) {
+		if (!strcmp(argv[0], hpet_command[i].command))
+		{
 			argc--;
 			argv++;
 			fprintf(stderr, "-hpet: executing %s\n",
-				hpet_command[i].command);
+					hpet_command[i].command);
 			hpet_command[i].func(argc, argv);
 			return 0;
 		}
@@ -80,16 +84,22 @@ hpet_open_close(int argc, const char **argv)
 {
 	int	fd;
 
-	if (argc != 1) {
+	if (argc != 1)
+	{
 		fprintf(stderr, "hpet_open_close: device-name\n");
 		return;
 	}
 
 	fd = open(argv[0], O_RDONLY);
+
 	if (fd < 0)
+	{
 		fprintf(stderr, "hpet_open_close: open failed\n");
+	}
 	else
+	{
 		close(fd);
+	}
 
 	return;
 }
@@ -100,26 +110,30 @@ hpet_info(int argc, const char **argv)
 	struct hpet_info	info;
 	int			fd;
 
-	if (argc != 1) {
+	if (argc != 1)
+	{
 		fprintf(stderr, "hpet_info: device-name\n");
 		return;
 	}
 
 	fd = open(argv[0], O_RDONLY);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		fprintf(stderr, "hpet_info: open of %s failed\n", argv[0]);
 		return;
 	}
 
-	if (ioctl(fd, HPET_INFO, &info) < 0) {
+	if (ioctl(fd, HPET_INFO, &info) < 0)
+	{
 		fprintf(stderr, "hpet_info: failed to get info\n");
 		goto out;
 	}
 
 	fprintf(stderr, "hpet_info: hi_irqfreq 0x%lx hi_flags 0x%lx ",
-		info.hi_ireqfreq, info.hi_flags);
+			info.hi_ireqfreq, info.hi_flags);
 	fprintf(stderr, "hi_hpet %d hi_timer %d\n",
-		info.hi_hpet, info.hi_timer);
+			info.hi_hpet, info.hi_timer);
 
 out:
 	close(fd);
@@ -137,7 +151,8 @@ hpet_poll(int argc, const char **argv)
 	struct timezone		tz;
 	long			usec;
 
-	if (argc != 3) {
+	if (argc != 3)
+	{
 		fprintf(stderr, "hpet_poll: device-name freq iterations\n");
 		return;
 	}
@@ -147,29 +162,34 @@ hpet_poll(int argc, const char **argv)
 
 	fd = open(argv[0], O_RDONLY);
 
-	if (fd < 0) {
+	if (fd < 0)
+	{
 		fprintf(stderr, "hpet_poll: open of %s failed\n", argv[0]);
 		return;
 	}
 
-	if (ioctl(fd, HPET_IRQFREQ, freq) < 0) {
+	if (ioctl(fd, HPET_IRQFREQ, freq) < 0)
+	{
 		fprintf(stderr, "hpet_poll: HPET_IRQFREQ failed\n");
 		goto out;
 	}
 
-	if (ioctl(fd, HPET_INFO, &info) < 0) {
+	if (ioctl(fd, HPET_INFO, &info) < 0)
+	{
 		fprintf(stderr, "hpet_poll: failed to get info\n");
 		goto out;
 	}
 
 	fprintf(stderr, "hpet_poll: info.hi_flags 0x%lx\n", info.hi_flags);
 
-	if (info.hi_flags && (ioctl(fd, HPET_EPI, 0) < 0)) {
+	if (info.hi_flags && (ioctl(fd, HPET_EPI, 0) < 0))
+	{
 		fprintf(stderr, "hpet_poll: HPET_EPI failed\n");
 		goto out;
 	}
 
-	if (ioctl(fd, HPET_IE_ON, 0) < 0) {
+	if (ioctl(fd, HPET_IE_ON, 0) < 0)
+	{
 		fprintf(stderr, "hpet_poll, HPET_IE_ON failed\n");
 		goto out;
 	}
@@ -177,12 +197,17 @@ hpet_poll(int argc, const char **argv)
 	pfd.fd = fd;
 	pfd.events = POLLIN;
 
-	for (i = 0; i < iterations; i++) {
+	for (i = 0; i < iterations; i++)
+	{
 		pfd.revents = 0;
 		gettimeofday(&stv, &tz);
+
 		if (poll(&pfd, 1, -1) < 0)
+		{
 			fprintf(stderr, "hpet_poll: poll failed\n");
-		else {
+		}
+		else
+		{
 			long 	data;
 
 			gettimeofday(&etv, &tz);
@@ -190,17 +215,18 @@ hpet_poll(int argc, const char **argv)
 			usec = (etv.tv_sec * 1000000 + etv.tv_usec) - usec;
 
 			fprintf(stderr,
-				"hpet_poll: expired time = 0x%lx\n", usec);
+					"hpet_poll: expired time = 0x%lx\n", usec);
 
 			fprintf(stderr, "hpet_poll: revents = 0x%x\n",
-				pfd.revents);
+					pfd.revents);
 
-			if (read(fd, &data, sizeof(data)) != sizeof(data)) {
+			if (read(fd, &data, sizeof(data)) != sizeof(data))
+			{
 				fprintf(stderr, "hpet_poll: read failed\n");
 			}
 			else
 				fprintf(stderr, "hpet_poll: data 0x%lx\n",
-					data);
+						data);
 		}
 	}
 
@@ -229,19 +255,22 @@ hpet_fasync(int argc, const char **argv)
 	hpet_sigio_count = 0;
 	fd = -1;
 
-	if ((oldsig = signal(SIGIO, hpet_sigio)) == SIG_ERR) {
+	if ((oldsig = signal(SIGIO, hpet_sigio)) == SIG_ERR)
+	{
 		fprintf(stderr, "hpet_fasync: failed to set signal handler\n");
 		return;
 	}
 
-	if (argc != 3) {
+	if (argc != 3)
+	{
 		fprintf(stderr, "hpet_fasync: device-name freq iterations\n");
 		goto out;
 	}
 
 	fd = open(argv[0], O_RDONLY);
 
-	if (fd < 0) {
+	if (fd < 0)
+	{
 		fprintf(stderr, "hpet_fasync: failed to open %s\n", argv[0]);
 		return;
 	}
@@ -249,7 +278,8 @@ hpet_fasync(int argc, const char **argv)
 
 	if ((fcntl(fd, F_SETOWN, getpid()) == 1) ||
 		((value = fcntl(fd, F_GETFL)) == 1) ||
-		(fcntl(fd, F_SETFL, value | O_ASYNC) == 1)) {
+		(fcntl(fd, F_SETFL, value | O_ASYNC) == 1))
+	{
 		fprintf(stderr, "hpet_fasync: fcntl failed\n");
 		goto out;
 	}
@@ -257,29 +287,34 @@ hpet_fasync(int argc, const char **argv)
 	freq = atoi(argv[1]);
 	iterations = atoi(argv[2]);
 
-	if (ioctl(fd, HPET_IRQFREQ, freq) < 0) {
+	if (ioctl(fd, HPET_IRQFREQ, freq) < 0)
+	{
 		fprintf(stderr, "hpet_fasync: HPET_IRQFREQ failed\n");
 		goto out;
 	}
 
-	if (ioctl(fd, HPET_INFO, &info) < 0) {
+	if (ioctl(fd, HPET_INFO, &info) < 0)
+	{
 		fprintf(stderr, "hpet_fasync: failed to get info\n");
 		goto out;
 	}
 
 	fprintf(stderr, "hpet_fasync: info.hi_flags 0x%lx\n", info.hi_flags);
 
-	if (info.hi_flags && (ioctl(fd, HPET_EPI, 0) < 0)) {
+	if (info.hi_flags && (ioctl(fd, HPET_EPI, 0) < 0))
+	{
 		fprintf(stderr, "hpet_fasync: HPET_EPI failed\n");
 		goto out;
 	}
 
-	if (ioctl(fd, HPET_IE_ON, 0) < 0) {
+	if (ioctl(fd, HPET_IE_ON, 0) < 0)
+	{
 		fprintf(stderr, "hpet_fasync, HPET_IE_ON failed\n");
 		goto out;
 	}
 
-	for (i = 0; i < iterations; i++) {
+	for (i = 0; i < iterations; i++)
+	{
 		(void) pause();
 		fprintf(stderr, "hpet_fasync: count = %d\n", hpet_sigio_count);
 	}
@@ -288,7 +323,9 @@ out:
 	signal(SIGIO, oldsig);
 
 	if (fd >= 0)
+	{
 		close(fd);
+	}
 
 	return;
 }

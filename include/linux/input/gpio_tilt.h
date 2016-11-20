@@ -9,7 +9,8 @@
  * @fuzz:		fuzz value for abs_param
  * @flat:		flat value for abs_param
  */
-struct gpio_tilt_axis {
+struct gpio_tilt_axis
+{
 	int axis;
 	int min;
 	int max;
@@ -30,7 +31,8 @@ struct gpio_tilt_axis {
  * The n-th bit in the bitfield describes the state of the n-th GPIO
  * from the gpios-array defined in gpio_regulator_config below.
  */
-struct gpio_tilt_state {
+struct gpio_tilt_state
+{
 	int gpios;
 	int *axes;
 };
@@ -53,7 +55,8 @@ struct gpio_tilt_state {
  * information that must be passed by platform code to the
  * gpio-tilt input driver.
  */
-struct gpio_tilt_platform_data {
+struct gpio_tilt_platform_data
+{
 	struct gpio *gpios;
 	int nr_gpios;
 

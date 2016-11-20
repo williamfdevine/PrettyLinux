@@ -43,20 +43,23 @@
 	(((sku) != 20) && ((sku) != 23) && ((sku) != 24) && \
 	 ((sku) != 27) && ((sku) != 28))
 
-enum {
+enum
+{
 	SPEEDO_ID_0,
 	SPEEDO_ID_1,
 	SPEEDO_ID_2,
 	SPEEDO_ID_COUNT,
 };
 
-static const u32 __initconst cpu_process_speedos[][PROCESS_CORNERS_NUM] = {
+static const u32 __initconst cpu_process_speedos[][PROCESS_CORNERS_NUM] =
+{
 	{315, 366, 420, UINT_MAX},
 	{303, 368, 419, UINT_MAX},
 	{316, 331, 383, UINT_MAX},
 };
 
-static const u32 __initconst soc_process_speedos[][PROCESS_CORNERS_NUM] = {
+static const u32 __initconst soc_process_speedos[][PROCESS_CORNERS_NUM] =
+{
 	{165, 195, 224, UINT_MAX},
 	{165, 195, 224, UINT_MAX},
 	{165, 195, 224, UINT_MAX},
@@ -72,39 +75,59 @@ void __init tegra20_init_speedo_data(struct tegra_sku_info *sku_info)
 	BUILD_BUG_ON(ARRAY_SIZE(soc_process_speedos) != SPEEDO_ID_COUNT);
 
 	if (SPEEDO_ID_SELECT_0(sku_info->revision))
+	{
 		sku_info->soc_speedo_id = SPEEDO_ID_0;
+	}
 	else if (SPEEDO_ID_SELECT_1(sku_info->sku_id))
+	{
 		sku_info->soc_speedo_id = SPEEDO_ID_1;
+	}
 	else
+	{
 		sku_info->soc_speedo_id = SPEEDO_ID_2;
+	}
 
 	val = 0;
-	for (i = CPU_SPEEDO_MSBIT; i >= CPU_SPEEDO_LSBIT; i--) {
+
+	for (i = CPU_SPEEDO_MSBIT; i >= CPU_SPEEDO_LSBIT; i--)
+	{
 		reg = tegra_fuse_read_spare(i) |
-			tegra_fuse_read_spare(i + CPU_SPEEDO_REDUND_OFFS);
+			  tegra_fuse_read_spare(i + CPU_SPEEDO_REDUND_OFFS);
 		val = (val << 1) | (reg & 0x1);
 	}
+
 	val = val * SPEEDO_MULT;
 	pr_debug("Tegra CPU speedo value %u\n", val);
 
-	for (i = 0; i < (PROCESS_CORNERS_NUM - 1); i++) {
+	for (i = 0; i < (PROCESS_CORNERS_NUM - 1); i++)
+	{
 		if (val <= cpu_process_speedos[sku_info->soc_speedo_id][i])
+		{
 			break;
+		}
 	}
+
 	sku_info->cpu_process_id = i;
 
 	val = 0;
-	for (i = SOC_SPEEDO_MSBIT; i >= SOC_SPEEDO_LSBIT; i--) {
+
+	for (i = SOC_SPEEDO_MSBIT; i >= SOC_SPEEDO_LSBIT; i--)
+	{
 		reg = tegra_fuse_read_spare(i) |
-			tegra_fuse_read_spare(i + SOC_SPEEDO_REDUND_OFFS);
+			  tegra_fuse_read_spare(i + SOC_SPEEDO_REDUND_OFFS);
 		val = (val << 1) | (reg & 0x1);
 	}
+
 	val = val * SPEEDO_MULT;
 	pr_debug("Core speedo value %u\n", val);
 
-	for (i = 0; i < (PROCESS_CORNERS_NUM - 1); i++) {
+	for (i = 0; i < (PROCESS_CORNERS_NUM - 1); i++)
+	{
 		if (val <= soc_process_speedos[sku_info->soc_speedo_id][i])
+		{
 			break;
+		}
 	}
+
 	sku_info->soc_process_id = i;
 }

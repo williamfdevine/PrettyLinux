@@ -34,13 +34,14 @@ MODULE_VERSION("0.1.99");
 /* acceptable ports: 0x350 (JP3 shorted), 0x358 (JP3 open) */
 
 #ifndef CONFIG_RADIO_TRUST_PORT
-#define CONFIG_RADIO_TRUST_PORT -1
+	#define CONFIG_RADIO_TRUST_PORT -1
 #endif
 
 #define TRUST_MAX 2
 
 static int io[TRUST_MAX] = { [0] = CONFIG_RADIO_TRUST_PORT,
-			      [1 ... (TRUST_MAX - 1)] = -1 };
+							 [1 ... (TRUST_MAX - 1)] = -1
+						   };
 static int radio_nr[TRUST_MAX] = { [0 ... (TRUST_MAX - 1)] = -1 };
 
 module_param_array(io, int, NULL, 0444);
@@ -48,7 +49,8 @@ MODULE_PARM_DESC(io, "I/O addresses of the Trust FM Radio card (0x350 or 0x358)"
 module_param_array(radio_nr, int, NULL, 0444);
 MODULE_PARM_DESC(radio_nr, "Radio device numbers");
 
-struct trust {
+struct trust
+{
 	struct radio_isa_card isa;
 	int ioval;
 };
@@ -85,18 +87,27 @@ static void write_i2c(struct trust *tr, int n, ...)
 	TR_CLR_SCL;
 	TR_DELAY;
 
-	for (; n; n--) {
+	for (; n; n--)
+	{
 		val = va_arg(args, unsigned);
-		for (mask = 0x80; mask; mask >>= 1) {
+
+		for (mask = 0x80; mask; mask >>= 1)
+		{
 			if (val & mask)
+			{
 				TR_SET_SDA;
+			}
 			else
+			{
 				TR_CLR_SDA;
+			}
+
 			TR_SET_SCL;
 			TR_DELAY;
 			TR_CLR_SCL;
 			TR_DELAY;
 		}
+
 		/* acknowledge bit */
 		TR_SET_SDA;
 		TR_SET_SCL;
@@ -140,7 +151,10 @@ static u32 trust_g_signal(struct radio_isa_card *isa)
 	int i, v;
 
 	for (i = 0, v = 0; i < 100; i++)
+	{
 		v |= inb(isa->io);
+	}
+
 	return (v & 1) ? 0 : 0xffff;
 }
 
@@ -151,11 +165,12 @@ static int trust_s_frequency(struct radio_isa_card *isa, u32 freq)
 	freq /= 160;	/* Convert to 10 kHz units	*/
 	freq += 1070;	/* Add 10.7 MHz IF		*/
 	write_i2c(tr, 5, TSA6060T_ADDR, (freq << 1) | 1,
-			freq >> 7, 0x60 | ((freq >> 15) & 1), 0);
+			  freq >> 7, 0x60 | ((freq >> 15) & 1), 0);
 	return 0;
 }
 
-static int basstreble2chip[15] = {
+static int basstreble2chip[15] =
+{
 	0, 1, 2, 3, 4, 5, 6, 7, 14, 13, 12, 11, 10, 9, 8
 };
 
@@ -165,18 +180,22 @@ static int trust_s_ctrl(struct v4l2_ctrl *ctrl)
 		container_of(ctrl->handler, struct radio_isa_card, hdl);
 	struct trust *tr = container_of(isa, struct trust, isa);
 
-	switch (ctrl->id) {
-	case V4L2_CID_AUDIO_BASS:
-		write_i2c(tr, 2, TDA7318_ADDR, 0x60 | basstreble2chip[ctrl->val]);
-		return 0;
-	case V4L2_CID_AUDIO_TREBLE:
-		write_i2c(tr, 2, TDA7318_ADDR, 0x70 | basstreble2chip[ctrl->val]);
-		return 0;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUDIO_BASS:
+			write_i2c(tr, 2, TDA7318_ADDR, 0x60 | basstreble2chip[ctrl->val]);
+			return 0;
+
+		case V4L2_CID_AUDIO_TREBLE:
+			write_i2c(tr, 2, TDA7318_ADDR, 0x70 | basstreble2chip[ctrl->val]);
+			return 0;
 	}
+
 	return -EINVAL;
 }
 
-static const struct v4l2_ctrl_ops trust_ctrl_ops = {
+static const struct v4l2_ctrl_ops trust_ctrl_ops =
+{
 	.s_ctrl = trust_s_ctrl,
 };
 
@@ -192,13 +211,14 @@ static int trust_initialize(struct radio_isa_card *isa)
 	write_i2c(tr, 2, TDA7318_ADDR, 0x40);	/* stereo 1 input, gain = 18.75 dB */
 
 	v4l2_ctrl_new_std(&isa->hdl, &trust_ctrl_ops,
-				V4L2_CID_AUDIO_BASS, 0, 15, 1, 8);
+					  V4L2_CID_AUDIO_BASS, 0, 15, 1, 8);
 	v4l2_ctrl_new_std(&isa->hdl, &trust_ctrl_ops,
-				V4L2_CID_AUDIO_TREBLE, 0, 15, 1, 8);
+					  V4L2_CID_AUDIO_TREBLE, 0, 15, 1, 8);
 	return isa->hdl.error;
 }
 
-static const struct radio_isa_ops trust_ops = {
+static const struct radio_isa_ops trust_ops =
+{
 	.init = trust_initialize,
 	.alloc = trust_alloc,
 	.s_mute_volume = trust_s_mute_volume,
@@ -209,7 +229,8 @@ static const struct radio_isa_ops trust_ops = {
 
 static const int trust_ioports[] = { 0x350, 0x358 };
 
-static struct radio_isa_driver trust_driver = {
+static struct radio_isa_driver trust_driver =
+{
 	.driver = {
 		.match		= radio_isa_match,
 		.probe		= radio_isa_probe,

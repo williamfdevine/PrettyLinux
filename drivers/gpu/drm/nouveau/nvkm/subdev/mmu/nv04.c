@@ -34,20 +34,25 @@
 
 static void
 nv04_vm_map_sg(struct nvkm_vma *vma, struct nvkm_memory *pgt,
-	       struct nvkm_mem *mem, u32 pte, u32 cnt, dma_addr_t *list)
+			   struct nvkm_mem *mem, u32 pte, u32 cnt, dma_addr_t *list)
 {
 	pte = 0x00008 + (pte * 4);
 	nvkm_kmap(pgt);
-	while (cnt) {
+
+	while (cnt)
+	{
 		u32 page = PAGE_SIZE / NV04_PDMA_PAGE;
-		u32 phys = (u32)*list++;
-		while (cnt && page--) {
+		u32 phys = (u32) * list++;
+
+		while (cnt && page--)
+		{
 			nvkm_wo32(pgt, pte, phys | 3);
 			phys += NV04_PDMA_PAGE;
 			pte += 4;
 			cnt -= 1;
 		}
 	}
+
 	nvkm_done(pgt);
 }
 
@@ -56,10 +61,13 @@ nv04_vm_unmap(struct nvkm_vma *vma, struct nvkm_memory *pgt, u32 pte, u32 cnt)
 {
 	pte = 0x00008 + (pte * 4);
 	nvkm_kmap(pgt);
-	while (cnt--) {
+
+	while (cnt--)
+	{
 		nvkm_wo32(pgt, pte, 0x00000000);
 		pte += 4;
 	}
+
 	nvkm_done(pgt);
 }
 
@@ -81,17 +89,23 @@ nv04_mmu_oneinit(struct nvkm_mmu *base)
 	int ret;
 
 	ret = nvkm_vm_create(&mmu->base, 0, NV04_PDMA_SIZE, 0, 4096, NULL,
-			     &mmu->vm);
+						 &mmu->vm);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = nvkm_memory_new(device, NVKM_MEM_TARGET_INST,
-			      (NV04_PDMA_SIZE / NV04_PDMA_PAGE) * 4 + 8,
-			      16, true, &dma);
+						  (NV04_PDMA_SIZE / NV04_PDMA_PAGE) * 4 + 8,
+						  16, true, &dma);
 	mmu->vm->pgt[0].mem[0] = dma;
 	mmu->vm->pgt[0].refcount[0] = 1;
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nvkm_kmap(dma);
 	nvkm_wo32(dma, 0x00000, 0x0002103d); /* PCI, RW, PT, !LN */
@@ -105,31 +119,41 @@ nv04_mmu_dtor(struct nvkm_mmu *base)
 {
 	struct nv04_mmu *mmu = nv04_mmu(base);
 	struct nvkm_device *device = mmu->base.subdev.device;
-	if (mmu->vm) {
+
+	if (mmu->vm)
+	{
 		nvkm_memory_del(&mmu->vm->pgt[0].mem[0]);
 		nvkm_vm_ref(NULL, &mmu->vm, NULL);
 	}
-	if (mmu->nullp) {
+
+	if (mmu->nullp)
+	{
 		dma_free_coherent(device->dev, 16 * 1024,
-				  mmu->nullp, mmu->null);
+						  mmu->nullp, mmu->null);
 	}
+
 	return mmu;
 }
 
 int
 nv04_mmu_new_(const struct nvkm_mmu_func *func, struct nvkm_device *device,
-	      int index, struct nvkm_mmu **pmmu)
+			  int index, struct nvkm_mmu **pmmu)
 {
 	struct nv04_mmu *mmu;
+
 	if (!(mmu = kzalloc(sizeof(*mmu), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pmmu = &mmu->base;
 	nvkm_mmu_ctor(func, device, index, &mmu->base);
 	return 0;
 }
 
 const struct nvkm_mmu_func
-nv04_mmu = {
+	nv04_mmu =
+{
 	.oneinit = nv04_mmu_oneinit,
 	.dtor = nv04_mmu_dtor,
 	.limit = NV04_PDMA_SIZE,

@@ -17,9 +17,12 @@ struct flex_array_part;
  * vmalloc().
  */
 
-struct flex_array {
-	union {
-		struct {
+struct flex_array
+{
+	union
+	{
+		struct
+		{
 			int element_size;
 			int total_nr_elements;
 			int elems_per_part;
@@ -52,23 +55,23 @@ struct flex_array {
  */
 #define DEFINE_FLEX_ARRAY(__arrayname, __element_size, __total)		\
 	struct flex_array __arrayname = { { {				\
-		.element_size = (__element_size),			\
-		.total_nr_elements = (__total),				\
-	} } };								\
+				.element_size = (__element_size),			\
+								.total_nr_elements = (__total),				\
+			} } };								\
 	static inline void __arrayname##_invalid_parameter(void)	\
 	{								\
 		BUILD_BUG_ON((__total) > FLEX_ARRAY_NR_BASE_PTRS *	\
-			FLEX_ARRAY_ELEMENTS_PER_PART(__element_size));	\
+					 FLEX_ARRAY_ELEMENTS_PER_PART(__element_size));	\
 	}
 
 struct flex_array *flex_array_alloc(int element_size, unsigned int total,
-		gfp_t flags);
+									gfp_t flags);
 int flex_array_prealloc(struct flex_array *fa, unsigned int start,
-		unsigned int nr_elements, gfp_t flags);
+						unsigned int nr_elements, gfp_t flags);
 void flex_array_free(struct flex_array *fa);
 void flex_array_free_parts(struct flex_array *fa);
 int flex_array_put(struct flex_array *fa, unsigned int element_nr, void *src,
-		gfp_t flags);
+				   gfp_t flags);
 int flex_array_clear(struct flex_array *fa, unsigned int element_nr);
 void *flex_array_get(struct flex_array *fa, unsigned int element_nr);
 int flex_array_shrink(struct flex_array *fa);

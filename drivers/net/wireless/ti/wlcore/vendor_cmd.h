@@ -12,12 +12,13 @@
 #define __WLCORE_VENDOR_H__
 
 #ifdef __KERNEL__
-void wlcore_set_vendor_commands(struct wiphy *wiphy);
+	void wlcore_set_vendor_commands(struct wiphy *wiphy);
 #endif
 
 #define TI_OUI	0x080028
 
-enum wlcore_vendor_commands {
+enum wlcore_vendor_commands
+{
 	WLCORE_VENDOR_CMD_SMART_CONFIG_START,
 	WLCORE_VENDOR_CMD_SMART_CONFIG_STOP,
 	WLCORE_VENDOR_CMD_SMART_CONFIG_SET_GROUP_KEY,
@@ -26,7 +27,8 @@ enum wlcore_vendor_commands {
 	MAX_WLCORE_VENDOR_CMD = NUM_WLCORE_VENDOR_CMD - 1
 };
 
-enum wlcore_vendor_attributes {
+enum wlcore_vendor_attributes
+{
 	WLCORE_VENDOR_ATTR_FREQ,
 	WLCORE_VENDOR_ATTR_PSK,
 	WLCORE_VENDOR_ATTR_SSID,
@@ -37,7 +39,8 @@ enum wlcore_vendor_attributes {
 	MAX_WLCORE_VENDOR_ATTR = NUM_WLCORE_VENDOR_ATTR - 1
 };
 
-enum wlcore_vendor_events {
+enum wlcore_vendor_events
+{
 	WLCORE_VENDOR_EVENT_SC_SYNC,
 	WLCORE_VENDOR_EVENT_SC_DECODE,
 };

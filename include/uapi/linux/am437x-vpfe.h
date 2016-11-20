@@ -23,7 +23,8 @@
 
 #include <linux/videodev2.h>
 
-enum vpfe_ccdc_data_size {
+enum vpfe_ccdc_data_size
+{
 	VPFE_CCDC_DATA_16BITS = 0,
 	VPFE_CCDC_DATA_15BITS,
 	VPFE_CCDC_DATA_14BITS,
@@ -35,7 +36,8 @@ enum vpfe_ccdc_data_size {
 };
 
 /* enum for No of pixel per line to be avg. in Black Clamping*/
-enum vpfe_ccdc_sample_length {
+enum vpfe_ccdc_sample_length
+{
 	VPFE_CCDC_SAMPLE_1PIXELS = 0,
 	VPFE_CCDC_SAMPLE_2PIXELS,
 	VPFE_CCDC_SAMPLE_4PIXELS,
@@ -44,7 +46,8 @@ enum vpfe_ccdc_sample_length {
 };
 
 /* enum for No of lines in Black Clamping */
-enum vpfe_ccdc_sample_line {
+enum vpfe_ccdc_sample_line
+{
 	VPFE_CCDC_SAMPLE_1LINES = 0,
 	VPFE_CCDC_SAMPLE_2LINES,
 	VPFE_CCDC_SAMPLE_4LINES,
@@ -53,7 +56,8 @@ enum vpfe_ccdc_sample_line {
 };
 
 /* enum for Alaw gamma width */
-enum vpfe_ccdc_gamma_width {
+enum vpfe_ccdc_gamma_width
+{
 	VPFE_CCDC_GAMMA_BITS_15_6 = 0,	/* use bits 15-6 for gamma */
 	VPFE_CCDC_GAMMA_BITS_14_5,
 	VPFE_CCDC_GAMMA_BITS_13_4,
@@ -64,7 +68,8 @@ enum vpfe_ccdc_gamma_width {
 };
 
 /* structure for ALaw */
-struct vpfe_ccdc_a_law {
+struct vpfe_ccdc_a_law
+{
 	/* Enable/disable A-Law */
 	unsigned char enable;
 	/* Gamma Width Input */
@@ -72,7 +77,8 @@ struct vpfe_ccdc_a_law {
 };
 
 /* structure for Black Clamping */
-struct vpfe_ccdc_black_clamp {
+struct vpfe_ccdc_black_clamp
+{
 	unsigned char enable;
 	/* only if bClampEnable is TRUE */
 	enum vpfe_ccdc_sample_length sample_pixel;
@@ -87,7 +93,8 @@ struct vpfe_ccdc_black_clamp {
 };
 
 /* structure for Black Level Compensation */
-struct vpfe_ccdc_black_compensation {
+struct vpfe_ccdc_black_compensation
+{
 	/* Constant value to subtract from Red component */
 	char r;
 	/* Constant value to subtract from Gr component */
@@ -101,7 +108,8 @@ struct vpfe_ccdc_black_compensation {
 /* Structure for CCDC configuration parameters for raw capture mode passed
  * by application
  */
-struct vpfe_ccdc_config_params_raw {
+struct vpfe_ccdc_config_params_raw
+{
 	/* data size value from 8 to 16 bits */
 	enum vpfe_ccdc_data_size data_sz;
 	/* Structure for Optional A-Law */

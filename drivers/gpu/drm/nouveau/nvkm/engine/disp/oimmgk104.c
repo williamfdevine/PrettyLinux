@@ -27,7 +27,8 @@
 #include <nvif/class.h>
 
 const struct nv50_disp_pioc_oclass
-gk104_disp_oimm_oclass = {
+	gk104_disp_oimm_oclass =
+{
 	.base.oclass = GK104_DISP_OVERLAY,
 	.base.minver = 0,
 	.base.maxver = 0,

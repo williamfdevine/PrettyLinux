@@ -38,13 +38,15 @@
 /* PEX LUT registers */
 #define PCIE_LUT_DBG		0x7FC /* PEX LUT Debug Register */
 
-struct ls_pcie_drvdata {
+struct ls_pcie_drvdata
+{
 	u32 lut_offset;
 	u32 ltssm_shift;
 	struct pcie_host_ops *ops;
 };
 
-struct ls_pcie {
+struct ls_pcie
+{
 	struct pcie_port pp;		/* pp.dbi_base is DT regs */
 	void __iomem *lut;
 	struct regmap *scfg;
@@ -92,13 +94,17 @@ static int ls1021_pcie_link_up(struct pcie_port *pp)
 	struct ls_pcie *pcie = to_ls_pcie(pp);
 
 	if (!pcie->scfg)
+	{
 		return 0;
+	}
 
 	regmap_read(pcie->scfg, SCFG_PEXMSCPORTSR(pcie->index), &state);
 	state = (state >> LTSSM_STATE_SHIFT) & LTSSM_STATE_MASK;
 
 	if (state < LTSSM_PCIE_L0)
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -110,18 +116,22 @@ static void ls1021_pcie_host_init(struct pcie_port *pp)
 	u32 index[2];
 
 	pcie->scfg = syscon_regmap_lookup_by_phandle(dev->of_node,
-						     "fsl,pcie-scfg");
-	if (IS_ERR(pcie->scfg)) {
+				 "fsl,pcie-scfg");
+
+	if (IS_ERR(pcie->scfg))
+	{
 		dev_err(dev, "No syscfg phandle specified\n");
 		pcie->scfg = NULL;
 		return;
 	}
 
 	if (of_property_read_u32_array(dev->of_node,
-				       "fsl,pcie-scfg", index, 2)) {
+								   "fsl,pcie-scfg", index, 2))
+	{
 		pcie->scfg = NULL;
 		return;
 	}
+
 	pcie->index = index[1];
 
 	dw_pcie_setup_rc(pp);
@@ -135,11 +145,13 @@ static int ls_pcie_link_up(struct pcie_port *pp)
 	u32 state;
 
 	state = (ioread32(pcie->lut + PCIE_LUT_DBG) >>
-		 pcie->drvdata->ltssm_shift) &
-		 LTSSM_STATE_MASK;
+			 pcie->drvdata->ltssm_shift) &
+			LTSSM_STATE_MASK;
 
 	if (state < LTSSM_PCIE_L0)
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -156,7 +168,7 @@ static void ls_pcie_host_init(struct pcie_port *pp)
 }
 
 static int ls_pcie_msi_host_init(struct pcie_port *pp,
-				 struct msi_controller *chip)
+								 struct msi_controller *chip)
 {
 	struct device *dev = pp->dev;
 	struct device_node *np = dev->of_node;
@@ -169,7 +181,9 @@ static int ls_pcie_msi_host_init(struct pcie_port *pp,
 	 * requirement that "msi-parent" exists.
 	 */
 	msi_node = of_parse_phandle(np, "msi-parent", 0);
-	if (!msi_node) {
+
+	if (!msi_node)
+	{
 		dev_err(dev, "failed to find msi-parent\n");
 		return -EINVAL;
 	}
@@ -177,35 +191,41 @@ static int ls_pcie_msi_host_init(struct pcie_port *pp,
 	return 0;
 }
 
-static struct pcie_host_ops ls1021_pcie_host_ops = {
+static struct pcie_host_ops ls1021_pcie_host_ops =
+{
 	.link_up = ls1021_pcie_link_up,
 	.host_init = ls1021_pcie_host_init,
 	.msi_host_init = ls_pcie_msi_host_init,
 };
 
-static struct pcie_host_ops ls_pcie_host_ops = {
+static struct pcie_host_ops ls_pcie_host_ops =
+{
 	.link_up = ls_pcie_link_up,
 	.host_init = ls_pcie_host_init,
 	.msi_host_init = ls_pcie_msi_host_init,
 };
 
-static struct ls_pcie_drvdata ls1021_drvdata = {
+static struct ls_pcie_drvdata ls1021_drvdata =
+{
 	.ops = &ls1021_pcie_host_ops,
 };
 
-static struct ls_pcie_drvdata ls1043_drvdata = {
+static struct ls_pcie_drvdata ls1043_drvdata =
+{
 	.lut_offset = 0x10000,
 	.ltssm_shift = 24,
 	.ops = &ls_pcie_host_ops,
 };
 
-static struct ls_pcie_drvdata ls2080_drvdata = {
+static struct ls_pcie_drvdata ls2080_drvdata =
+{
 	.lut_offset = 0x80000,
 	.ltssm_shift = 0,
 	.ops = &ls_pcie_host_ops,
 };
 
-static const struct of_device_id ls_pcie_of_match[] = {
+static const struct of_device_id ls_pcie_of_match[] =
+{
 	{ .compatible = "fsl,ls1021a-pcie", .data = &ls1021_drvdata },
 	{ .compatible = "fsl,ls1043a-pcie", .data = &ls1043_drvdata },
 	{ .compatible = "fsl,ls2080a-pcie", .data = &ls2080_drvdata },
@@ -220,7 +240,9 @@ static int __init ls_add_pcie_port(struct ls_pcie *pcie)
 	int ret;
 
 	ret = dw_pcie_host_init(pp);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to initialize host\n");
 		return ret;
 	}
@@ -238,12 +260,18 @@ static int __init ls_pcie_probe(struct platform_device *pdev)
 	int ret;
 
 	match = of_match_device(ls_pcie_of_match, dev);
+
 	if (!match)
+	{
 		return -ENODEV;
+	}
 
 	pcie = devm_kzalloc(dev, sizeof(*pcie), GFP_KERNEL);
+
 	if (!pcie)
+	{
 		return -ENOMEM;
+	}
 
 	pp = &pcie->pp;
 	pp->dev = dev;
@@ -252,7 +280,9 @@ static int __init ls_pcie_probe(struct platform_device *pdev)
 
 	dbi_base = platform_get_resource_byname(pdev, IORESOURCE_MEM, "regs");
 	pcie->pp.dbi_base = devm_ioremap_resource(dev, dbi_base);
-	if (IS_ERR(pcie->pp.dbi_base)) {
+
+	if (IS_ERR(pcie->pp.dbi_base))
+	{
 		dev_err(dev, "missing *regs* space\n");
 		return PTR_ERR(pcie->pp.dbi_base);
 	}
@@ -260,16 +290,22 @@ static int __init ls_pcie_probe(struct platform_device *pdev)
 	pcie->lut = pcie->pp.dbi_base + pcie->drvdata->lut_offset;
 
 	if (!ls_pcie_is_bridge(pcie))
+	{
 		return -ENODEV;
+	}
 
 	ret = ls_add_pcie_port(pcie);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
-static struct platform_driver ls_pcie_driver = {
+static struct platform_driver ls_pcie_driver =
+{
 	.driver = {
 		.name = "layerscape-pcie",
 		.of_match_table = ls_pcie_of_match,

@@ -49,7 +49,8 @@
 #include "../include/cl_object.h"
 #include "../llite/llite_internal.h"
 
-static const struct cl_lock_descr whole_file = {
+static const struct cl_lock_descr whole_file =
+{
 	.cld_start = 0,
 	.cld_end   = CL_PAGE_EOF,
 	.cld_mode  = CLM_READ
@@ -69,25 +70,32 @@ blkcnt_t dirty_cnt(struct inode *inode)
 
 	if (inode->i_mapping)
 		cnt += radix_tree_gang_lookup_tag(&inode->i_mapping->page_tree,
-						  results, 0, 1,
-						  PAGECACHE_TAG_DIRTY);
+										  results, 0, 1,
+										  PAGECACHE_TAG_DIRTY);
+
 	if (cnt == 0 && atomic_read(&vob->vob_mmap_cnt) > 0)
+	{
 		cnt = 1;
+	}
 
 	return (cnt > 0) ? 1 : 0;
 }
 
 int cl_glimpse_lock(const struct lu_env *env, struct cl_io *io,
-		    struct inode *inode, struct cl_object *clob, int agl)
+					struct inode *inode, struct cl_object *clob, int agl)
 {
 	struct ll_inode_info *lli   = ll_i2info(inode);
 	const struct lu_fid  *fid   = lu_object_fid(&clob->co_lu);
 	int result;
 
 	result = 0;
-	if (!(lli->lli_flags & LLIF_MDS_SIZE_LOCK)) {
+
+	if (!(lli->lli_flags & LLIF_MDS_SIZE_LOCK))
+	{
 		CDEBUG(D_DLMTRACE, "Glimpsing inode " DFID "\n", PFID(fid));
-		if (lli->lli_has_smd) {
+
+		if (lli->lli_has_smd)
+		{
 			struct cl_lock *lock = vvp_env_lock(env);
 			struct cl_lock_descr *descr = &lock->cll_descr;
 
@@ -109,8 +117,12 @@ int cl_glimpse_lock(const struct lu_env *env, struct cl_io *io,
 			descr->cld_obj   = clob;
 			descr->cld_mode  = CLM_READ;
 			descr->cld_enq_flags = CEF_ASYNC | CEF_MUST;
+
 			if (agl)
+			{
 				descr->cld_enq_flags |= CEF_AGL;
+			}
+
 			/*
 			 * CEF_ASYNC is used because glimpse sub-locks cannot
 			 * deadlock (because they never conflict with other
@@ -120,13 +132,19 @@ int cl_glimpse_lock(const struct lu_env *env, struct cl_io *io,
 			 * a lockless mode.
 			 */
 			result = cl_lock_request(env, io, lock);
-			if (result < 0)
-				return result;
 
-			if (!agl) {
+			if (result < 0)
+			{
+				return result;
+			}
+
+			if (!agl)
+			{
 				ll_merge_attr(env, inode);
+
 				if (i_size_read(inode) > 0 &&
-				    inode->i_blocks == 0) {
+					inode->i_blocks == 0)
+				{
 					/*
 					 * LU-417: Add dirty pages block count
 					 * lest i_blocks reports 0, some "cp" or
@@ -136,8 +154,11 @@ int cl_glimpse_lock(const struct lu_env *env, struct cl_io *io,
 					inode->i_blocks = dirty_cnt(inode);
 				}
 			}
+
 			cl_lock_release(env, lock);
-		} else {
+		}
+		else
+		{
 			CDEBUG(D_DLMTRACE, "No objects for inode\n");
 			ll_merge_attr(env, inode);
 		}
@@ -147,7 +168,7 @@ int cl_glimpse_lock(const struct lu_env *env, struct cl_io *io,
 }
 
 static int cl_io_get(struct inode *inode, struct lu_env **envout,
-		     struct cl_io **ioout, int *refcheck)
+					 struct cl_io **ioout, int *refcheck)
 {
 	struct lu_env	  *env;
 	struct cl_io	   *io;
@@ -155,20 +176,28 @@ static int cl_io_get(struct inode *inode, struct lu_env **envout,
 	struct cl_object       *clob = lli->lli_clob;
 	int result;
 
-	if (S_ISREG(inode->i_mode)) {
+	if (S_ISREG(inode->i_mode))
+	{
 		env = cl_env_get(refcheck);
-		if (!IS_ERR(env)) {
+
+		if (!IS_ERR(env))
+		{
 			io = vvp_env_thread_io(env);
 			io->ci_obj = clob;
 			*envout = env;
 			*ioout  = io;
 			result = 1;
-		} else {
+		}
+		else
+		{
 			result = PTR_ERR(env);
 		}
-	} else {
+	}
+	else
+	{
 		result = 0;
 	}
+
 	return result;
 }
 
@@ -190,26 +219,36 @@ int cl_glimpse_size0(struct inode *inode, int agl)
 	int		     refcheck;
 
 	result = cl_io_get(inode, &env, &io, &refcheck);
-	if (result > 0) {
+
+	if (result > 0)
+	{
 again:
 		io->ci_verify_layout = 1;
 		result = cl_io_init(env, io, CIT_MISC, io->ci_obj);
+
 		if (result > 0)
 			/*
 			 * nothing to do for this io. This currently happens
 			 * when stripe sub-object's are not yet created.
 			 */
+		{
 			result = io->ci_result;
+		}
 		else if (result == 0)
 			result = cl_glimpse_lock(env, io, inode, io->ci_obj,
-						 agl);
+									 agl);
 
 		OBD_FAIL_TIMEOUT(OBD_FAIL_GLIMPSE_DELAY, 2);
 		cl_io_fini(env, io);
+
 		if (unlikely(io->ci_need_restart))
+		{
 			goto again;
+		}
+
 		cl_env_put(env, &refcheck);
 	}
+
 	return result;
 }
 
@@ -222,28 +261,40 @@ int cl_local_size(struct inode *inode)
 	int		      refcheck;
 
 	if (!ll_i2info(inode)->lli_has_smd)
+	{
 		return 0;
+	}
 
 	result = cl_io_get(inode, &env, &io, &refcheck);
+
 	if (result <= 0)
+	{
 		return result;
+	}
 
 	clob = io->ci_obj;
 	result = cl_io_init(env, io, CIT_MISC, clob);
-	if (result > 0) {
+
+	if (result > 0)
+	{
 		result = io->ci_result;
-	} else if (result == 0) {
+	}
+	else if (result == 0)
+	{
 		struct cl_lock *lock = vvp_env_lock(env);
 
 		lock->cll_descr = whole_file;
 		lock->cll_descr.cld_enq_flags = CEF_PEEK;
 		lock->cll_descr.cld_obj = clob;
 		result = cl_lock_request(env, io, lock);
-		if (result == 0) {
+
+		if (result == 0)
+		{
 			ll_merge_attr(env, inode);
 			cl_lock_release(env, lock);
 		}
 	}
+
 	cl_io_fini(env, io);
 	cl_env_put(env, &refcheck);
 	return result;

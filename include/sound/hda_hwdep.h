@@ -29,7 +29,8 @@
 #define HDA_REG_VAL_SHIFT	0
 #define HDA_VERB(nid,verb,param)	((nid)<<24 | (verb)<<8 | (param))
 
-struct hda_verb_ioctl {
+struct hda_verb_ioctl
+{
 	u32 verb;	/* HDA_VERB() */
 	u32 res;	/* response */
 };

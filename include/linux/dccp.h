@@ -15,7 +15,8 @@
 #include <net/tcp_states.h>
 #include <uapi/linux/dccp.h>
 
-enum dccp_state {
+enum dccp_state
+{
 	DCCP_OPEN	     = TCP_ESTABLISHED,
 	DCCP_REQUESTING	     = TCP_SYN_SENT,
 	DCCP_LISTEN	     = TCP_LISTEN,
@@ -49,7 +50,8 @@ enum dccp_state {
 	DCCP_MAX_STATES
 };
 
-enum {
+enum
+{
 	DCCPF_OPEN	      = TCPF_ESTABLISHED,
 	DCCPF_REQUESTING      = TCPF_SYN_SENT,
 	DCCPF_LISTEN	      = TCPF_LISTEN,
@@ -95,9 +97,13 @@ static inline __u64 dccp_hdr_seq(const struct dccp_hdr *dh)
 	__u64 seq_nr =  ntohs(dh->dccph_seq);
 
 	if (dh->dccph_x != 0)
+	{
 		seq_nr = (seq_nr << 32) + ntohl(dccp_hdrx(dh)->dccph_seq_low);
+	}
 	else
+	{
 		seq_nr += (u32)dh->dccph_seq2 << 16;
+	}
 
 	return seq_nr;
 }
@@ -105,13 +111,13 @@ static inline __u64 dccp_hdr_seq(const struct dccp_hdr *dh)
 static inline struct dccp_hdr_request *dccp_hdr_request(struct sk_buff *skb)
 {
 	return (struct dccp_hdr_request *)(skb_transport_header(skb) +
-					   dccp_basic_hdr_len(skb));
+									   dccp_basic_hdr_len(skb));
 }
 
 static inline struct dccp_hdr_ack_bits *dccp_hdr_ack_bits(const struct sk_buff *skb)
 {
 	return (struct dccp_hdr_ack_bits *)(skb_transport_header(skb) +
-					    dccp_basic_hdr_len(skb));
+										dccp_basic_hdr_len(skb));
 }
 
 static inline u64 dccp_hdr_ack_seq(const struct sk_buff *skb)
@@ -123,19 +129,19 @@ static inline u64 dccp_hdr_ack_seq(const struct sk_buff *skb)
 static inline struct dccp_hdr_response *dccp_hdr_response(struct sk_buff *skb)
 {
 	return (struct dccp_hdr_response *)(skb_transport_header(skb) +
-					    dccp_basic_hdr_len(skb));
+										dccp_basic_hdr_len(skb));
 }
 
 static inline struct dccp_hdr_reset *dccp_hdr_reset(struct sk_buff *skb)
 {
 	return (struct dccp_hdr_reset *)(skb_transport_header(skb) +
-					 dccp_basic_hdr_len(skb));
+									 dccp_basic_hdr_len(skb));
 }
 
 static inline unsigned int __dccp_hdr_len(const struct dccp_hdr *dh)
 {
 	return __dccp_basic_hdr_len(dh) +
-	       dccp_packet_hdr_len(dh->dccph_type);
+		   dccp_packet_hdr_len(dh->dccph_type);
 }
 
 static inline unsigned int dccp_hdr_len(const struct sk_buff *skb)
@@ -156,7 +162,8 @@ static inline unsigned int dccp_hdr_len(const struct sk_buff *skb)
  * @dreq_timestamp_echo: last received timestamp to echo (13.1)
  * @dreq_timestamp_echo: the time of receiving the last @dreq_timestamp_echo
  */
-struct dccp_request_sock {
+struct dccp_request_sock
+{
 	struct inet_request_sock dreq_inet_rsk;
 	__u64			 dreq_iss;
 	__u64			 dreq_gss;
@@ -176,10 +183,11 @@ static inline struct dccp_request_sock *dccp_rsk(const struct request_sock *req)
 extern struct inet_timewait_death_row dccp_death_row;
 
 extern int dccp_parse_options(struct sock *sk, struct dccp_request_sock *dreq,
-			      struct sk_buff *skb);
+							  struct sk_buff *skb);
 
-struct dccp_options_received {
-	u64	dccpor_ndp:48;
+struct dccp_options_received
+{
+	u64	dccpor_ndp: 48;
 	u32	dccpor_timestamp;
 	u32	dccpor_timestamp_echo;
 	u32	dccpor_elapsed_time;
@@ -187,14 +195,16 @@ struct dccp_options_received {
 
 struct ccid;
 
-enum dccp_role {
+enum dccp_role
+{
 	DCCP_ROLE_UNDEFINED,
 	DCCP_ROLE_LISTEN,
 	DCCP_ROLE_CLIENT,
 	DCCP_ROLE_SERVER,
 };
 
-struct dccp_service_list {
+struct dccp_service_list
+{
 	__u32	dccpsl_nr;
 	__be32	dccpsl_list[0];
 };
@@ -203,14 +213,19 @@ struct dccp_service_list {
 #define DCCP_SERVICE_CODE_IS_ABSENT		0
 
 static inline bool dccp_list_has_service(const struct dccp_service_list *sl,
-					const __be32 service)
+		const __be32 service)
 {
-	if (likely(sl != NULL)) {
+	if (likely(sl != NULL))
+	{
 		u32 i = sl->dccpsl_nr;
+
 		while (i--)
 			if (sl->dccpsl_list[i] == service)
+			{
 				return true;
+			}
 	}
+
 	return false;
 }
 
@@ -259,7 +274,8 @@ struct dccp_ackvec;
  * @dccps_xmit_timer - used by the TX CCID to delay sending (rate-based pacing)
  * @dccps_syn_rtt - RTT sample from Request/Response exchange (in usecs)
  */
-struct dccp_sock {
+struct dccp_sock
+{
 	/* inet_connection_sock has to be the first member of dccp_sock */
 	struct inet_connection_sock	dccps_inet_connection;
 #define dccps_syn_rtt			dccps_inet_connection.icsk_ack.lrcvtime
@@ -280,12 +296,12 @@ struct dccp_sock {
 	__u32				dccps_timestamp_time;
 	__u16				dccps_l_ack_ratio;
 	__u16				dccps_r_ack_ratio;
-	__u64				dccps_l_seq_win:48;
-	__u64				dccps_r_seq_win:48;
-	__u8				dccps_pcslen:4;
-	__u8				dccps_pcrlen:4;
-	__u8				dccps_send_ndp_count:1;
-	__u64				dccps_ndp_count:48;
+	__u64				dccps_l_seq_win: 48;
+	__u64				dccps_r_seq_win: 48;
+	__u8				dccps_pcslen: 4;
+	__u8				dccps_pcrlen: 4;
+	__u8				dccps_send_ndp_count: 1;
+	__u64				dccps_ndp_count: 48;
 	unsigned long			dccps_rate_last;
 	struct list_head		dccps_featneg;
 	struct dccp_ackvec		*dccps_hc_rx_ackvec;
@@ -294,28 +310,33 @@ struct dccp_sock {
 	struct dccp_options_received	dccps_options_received;
 	__u8				dccps_qpolicy;
 	__u32				dccps_tx_qlen;
-	enum dccp_role			dccps_role:2;
-	__u8				dccps_hc_rx_insert_options:1;
-	__u8				dccps_hc_tx_insert_options:1;
-	__u8				dccps_server_timewait:1;
-	__u8				dccps_sync_scheduled:1;
-	struct tasklet_struct		dccps_xmitlet;
-	struct timer_list		dccps_xmit_timer;
-};
+	enum dccp_role			dccps_role : 2;
+		__u8				dccps_hc_rx_insert_options: 1;
+		__u8				dccps_hc_tx_insert_options: 1;
+		__u8				dccps_server_timewait: 1;
+		__u8				dccps_sync_scheduled: 1;
+		struct tasklet_struct		dccps_xmitlet;
+		struct timer_list		dccps_xmit_timer;
+	};
 
-static inline struct dccp_sock *dccp_sk(const struct sock *sk)
+	static inline struct dccp_sock *dccp_sk(const struct sock *sk)
 {
 	return (struct dccp_sock *)sk;
 }
 
 static inline const char *dccp_role(const struct sock *sk)
 {
-	switch (dccp_sk(sk)->dccps_role) {
-	case DCCP_ROLE_UNDEFINED: return "undefined";
-	case DCCP_ROLE_LISTEN:	  return "listen";
-	case DCCP_ROLE_SERVER:	  return "server";
-	case DCCP_ROLE_CLIENT:	  return "client";
+	switch (dccp_sk(sk)->dccps_role)
+	{
+		case DCCP_ROLE_UNDEFINED: return "undefined";
+
+		case DCCP_ROLE_LISTEN:	  return "listen";
+
+		case DCCP_ROLE_SERVER:	  return "server";
+
+		case DCCP_ROLE_CLIENT:	  return "client";
 	}
+
 	return NULL;
 }
 

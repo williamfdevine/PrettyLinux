@@ -28,7 +28,8 @@
 /*
  * Supported ASIC types
  */
-enum amd_asic_type {
+enum amd_asic_type
+{
 	CHIP_TAHITI = 0,
 	CHIP_PITCAIRN,
 	CHIP_VERDE,
@@ -52,7 +53,8 @@ enum amd_asic_type {
 /*
  * Chip flags
  */
-enum amd_chip_flags {
+enum amd_chip_flags
+{
 	AMD_ASIC_MASK = 0x0000ffffUL,
 	AMD_FLAGS_MASK  = 0xffff0000UL,
 	AMD_IS_MOBILITY = 0x00010000UL,
@@ -61,7 +63,8 @@ enum amd_chip_flags {
 	AMD_EXP_HW_SUPPORT = 0x00080000UL,
 };
 
-enum amd_ip_block_type {
+enum amd_ip_block_type
+{
 	AMD_IP_BLOCK_TYPE_COMMON,
 	AMD_IP_BLOCK_TYPE_GMC,
 	AMD_IP_BLOCK_TYPE_IH,
@@ -74,12 +77,14 @@ enum amd_ip_block_type {
 	AMD_IP_BLOCK_TYPE_ACP,
 };
 
-enum amd_clockgating_state {
+enum amd_clockgating_state
+{
 	AMD_CG_STATE_GATE = 0,
 	AMD_CG_STATE_UNGATE,
 };
 
-enum amd_powergating_state {
+enum amd_powergating_state
+{
 	AMD_PG_STATE_GATE = 0,
 	AMD_PG_STATE_UNGATE,
 };
@@ -119,7 +124,8 @@ enum amd_powergating_state {
 #define AMD_PG_SUPPORT_GFX_QUICK_MG		(1 << 11)
 #define AMD_PG_SUPPORT_GFX_PIPELINE		(1 << 12)
 
-enum amd_pm_state_type {
+enum amd_pm_state_type
+{
 	/* not used for dpm */
 	POWER_STATE_TYPE_DEFAULT,
 	POWER_STATE_TYPE_POWERSAVE,
@@ -140,7 +146,8 @@ enum amd_pm_state_type {
 	POWER_STATE_TYPE_INTERNAL_3DPERF,
 };
 
-struct amd_ip_funcs {
+struct amd_ip_funcs
+{
 	/* Name of IP block */
 	char *name;
 	/* sets up early driver state (pre sw_init), does not configure hw - Optional */
@@ -174,10 +181,10 @@ struct amd_ip_funcs {
 	int (*post_soft_reset)(void *handle);
 	/* enable/disable cg for the IP block */
 	int (*set_clockgating_state)(void *handle,
-				     enum amd_clockgating_state state);
+								 enum amd_clockgating_state state);
 	/* enable/disable pg for the IP block */
 	int (*set_powergating_state)(void *handle,
-				     enum amd_powergating_state state);
+								 enum amd_powergating_state state);
 };
 
 #endif /* __AMD_SHARED_H__ */

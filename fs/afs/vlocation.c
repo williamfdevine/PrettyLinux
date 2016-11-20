@@ -35,8 +35,8 @@ static struct workqueue_struct *afs_vlocation_update_worker;
  * about the volume in question
  */
 static int afs_vlocation_access_vl_by_name(struct afs_vlocation *vl,
-					   struct key *key,
-					   struct afs_cache_vlocation *vldb)
+		struct key *key,
+		struct afs_cache_vlocation *vldb)
 {
 	struct afs_cell *cell = vl->cell;
 	struct in_addr addr;
@@ -46,36 +46,46 @@ static int afs_vlocation_access_vl_by_name(struct afs_vlocation *vl,
 
 	down_write(&vl->cell->vl_sem);
 	ret = -ENOMEDIUM;
-	for (count = cell->vl_naddrs; count > 0; count--) {
+
+	for (count = cell->vl_naddrs; count > 0; count--)
+	{
 		addr = cell->vl_addrs[cell->vl_curr_svix];
 
 		_debug("CellServ[%hu]: %08x", cell->vl_curr_svix, addr.s_addr);
 
 		/* attempt to access the VL server */
 		ret = afs_vl_get_entry_by_name(&addr, key, vl->vldb.name, vldb,
-					       &afs_sync_call);
-		switch (ret) {
-		case 0:
-			goto out;
-		case -ENOMEM:
-		case -ENONET:
-		case -ENETUNREACH:
-		case -EHOSTUNREACH:
-		case -ECONNREFUSED:
-			if (ret == -ENOMEM || ret == -ENONET)
+									   &afs_sync_call);
+
+		switch (ret)
+		{
+			case 0:
 				goto out;
-			goto rotate;
-		case -ENOMEDIUM:
-		case -EKEYREJECTED:
-		case -EKEYEXPIRED:
-			goto out;
-		default:
-			ret = -EIO;
-			goto rotate;
+
+			case -ENOMEM:
+			case -ENONET:
+			case -ENETUNREACH:
+			case -EHOSTUNREACH:
+			case -ECONNREFUSED:
+				if (ret == -ENOMEM || ret == -ENONET)
+				{
+					goto out;
+				}
+
+				goto rotate;
+
+			case -ENOMEDIUM:
+			case -EKEYREJECTED:
+			case -EKEYEXPIRED:
+				goto out;
+
+			default:
+				ret = -EIO;
+				goto rotate;
 		}
 
 		/* rotate the server records upon lookup failure */
-	rotate:
+rotate:
 		cell->vl_curr_svix++;
 		cell->vl_curr_svix %= cell->vl_naddrs;
 	}
@@ -91,10 +101,10 @@ out:
  * about the volume in question
  */
 static int afs_vlocation_access_vl_by_id(struct afs_vlocation *vl,
-					 struct key *key,
-					 afs_volid_t volid,
-					 afs_voltype_t voltype,
-					 struct afs_cache_vlocation *vldb)
+		struct key *key,
+		afs_volid_t volid,
+		afs_voltype_t voltype,
+		struct afs_cache_vlocation *vldb)
 {
 	struct afs_cell *cell = vl->cell;
 	struct in_addr addr;
@@ -104,56 +114,74 @@ static int afs_vlocation_access_vl_by_id(struct afs_vlocation *vl,
 
 	down_write(&vl->cell->vl_sem);
 	ret = -ENOMEDIUM;
-	for (count = cell->vl_naddrs; count > 0; count--) {
+
+	for (count = cell->vl_naddrs; count > 0; count--)
+	{
 		addr = cell->vl_addrs[cell->vl_curr_svix];
 
 		_debug("CellServ[%hu]: %08x", cell->vl_curr_svix, addr.s_addr);
 
 		/* attempt to access the VL server */
 		ret = afs_vl_get_entry_by_id(&addr, key, volid, voltype, vldb,
-					     &afs_sync_call);
-		switch (ret) {
-		case 0:
-			goto out;
-		case -ENOMEM:
-		case -ENONET:
-		case -ENETUNREACH:
-		case -EHOSTUNREACH:
-		case -ECONNREFUSED:
-			if (ret == -ENOMEM || ret == -ENONET)
+									 &afs_sync_call);
+
+		switch (ret)
+		{
+			case 0:
 				goto out;
-			goto rotate;
-		case -EBUSY:
-			vl->upd_busy_cnt++;
-			if (vl->upd_busy_cnt <= 3) {
-				if (vl->upd_busy_cnt > 1) {
-					/* second+ BUSY - sleep a little bit */
-					set_current_state(TASK_UNINTERRUPTIBLE);
-					schedule_timeout(1);
+
+			case -ENOMEM:
+			case -ENONET:
+			case -ENETUNREACH:
+			case -EHOSTUNREACH:
+			case -ECONNREFUSED:
+				if (ret == -ENOMEM || ret == -ENONET)
+				{
+					goto out;
 				}
-				continue;
-			}
-			break;
-		case -ENOMEDIUM:
-			vl->upd_rej_cnt++;
-			goto rotate;
-		default:
-			ret = -EIO;
-			goto rotate;
+
+				goto rotate;
+
+			case -EBUSY:
+				vl->upd_busy_cnt++;
+
+				if (vl->upd_busy_cnt <= 3)
+				{
+					if (vl->upd_busy_cnt > 1)
+					{
+						/* second+ BUSY - sleep a little bit */
+						set_current_state(TASK_UNINTERRUPTIBLE);
+						schedule_timeout(1);
+					}
+
+					continue;
+				}
+
+				break;
+
+			case -ENOMEDIUM:
+				vl->upd_rej_cnt++;
+				goto rotate;
+
+			default:
+				ret = -EIO;
+				goto rotate;
 		}
 
 		/* rotate the server records upon lookup failure */
-	rotate:
+rotate:
 		cell->vl_curr_svix++;
 		cell->vl_curr_svix %= cell->vl_naddrs;
 		vl->upd_busy_cnt = 0;
 	}
 
 out:
-	if (ret < 0 && vl->upd_rej_cnt > 0) {
+
+	if (ret < 0 && vl->upd_rej_cnt > 0)
+	{
 		printk(KERN_NOTICE "kAFS:"
-		       " Active volume no longer valid '%s'\n",
-		       vl->vldb.name);
+			   " Active volume no longer valid '%s'\n",
+			   vl->vldb.name);
 		vl->valid = 0;
 		ret = -ENOMEDIUM;
 	}
@@ -167,13 +195,15 @@ out:
  * allocate a volume location record
  */
 static struct afs_vlocation *afs_vlocation_alloc(struct afs_cell *cell,
-						 const char *name,
-						 size_t namesz)
+		const char *name,
+		size_t namesz)
 {
 	struct afs_vlocation *vl;
 
 	vl = kzalloc(sizeof(struct afs_vlocation), GFP_KERNEL);
-	if (vl) {
+
+	if (vl)
+	{
 		vl->cell = cell;
 		vl->state = AFS_VL_NEW;
 		atomic_set(&vl->usage, 1);
@@ -193,8 +223,8 @@ static struct afs_vlocation *afs_vlocation_alloc(struct afs_cell *cell,
  * update record if we found it in the cache
  */
 static int afs_vlocation_update_record(struct afs_vlocation *vl,
-				       struct key *key,
-				       struct afs_cache_vlocation *vldb)
+									   struct key *key,
+									   struct afs_cache_vlocation *vldb)
 {
 	afs_voltype_t voltype;
 	afs_volid_t vid;
@@ -202,30 +232,37 @@ static int afs_vlocation_update_record(struct afs_vlocation *vl,
 
 	/* try to look up a cached volume in the cell VL databases by ID */
 	_debug("Locally Cached: %s %02x { %08x(%x) %08x(%x) %08x(%x) }",
-	       vl->vldb.name,
-	       vl->vldb.vidmask,
-	       ntohl(vl->vldb.servers[0].s_addr),
-	       vl->vldb.srvtmask[0],
-	       ntohl(vl->vldb.servers[1].s_addr),
-	       vl->vldb.srvtmask[1],
-	       ntohl(vl->vldb.servers[2].s_addr),
-	       vl->vldb.srvtmask[2]);
+		   vl->vldb.name,
+		   vl->vldb.vidmask,
+		   ntohl(vl->vldb.servers[0].s_addr),
+		   vl->vldb.srvtmask[0],
+		   ntohl(vl->vldb.servers[1].s_addr),
+		   vl->vldb.srvtmask[1],
+		   ntohl(vl->vldb.servers[2].s_addr),
+		   vl->vldb.srvtmask[2]);
 
 	_debug("Vids: %08x %08x %08x",
-	       vl->vldb.vid[0],
-	       vl->vldb.vid[1],
-	       vl->vldb.vid[2]);
+		   vl->vldb.vid[0],
+		   vl->vldb.vid[1],
+		   vl->vldb.vid[2]);
 
-	if (vl->vldb.vidmask & AFS_VOL_VTM_RW) {
+	if (vl->vldb.vidmask & AFS_VOL_VTM_RW)
+	{
 		vid = vl->vldb.vid[0];
 		voltype = AFSVL_RWVOL;
-	} else if (vl->vldb.vidmask & AFS_VOL_VTM_RO) {
+	}
+	else if (vl->vldb.vidmask & AFS_VOL_VTM_RO)
+	{
 		vid = vl->vldb.vid[1];
 		voltype = AFSVL_ROVOL;
-	} else if (vl->vldb.vidmask & AFS_VOL_VTM_BAK) {
+	}
+	else if (vl->vldb.vidmask & AFS_VOL_VTM_BAK)
+	{
 		vid = vl->vldb.vid[2];
 		voltype = AFSVL_BACKVOL;
-	} else {
+	}
+	else
+	{
 		BUG();
 		vid = 0;
 		voltype = 0;
@@ -235,29 +272,31 @@ static int afs_vlocation_update_record(struct afs_vlocation *vl,
 	 * - TODO: need to handle disconnected operation here
 	 */
 	ret = afs_vlocation_access_vl_by_id(vl, key, vid, voltype, vldb);
-	switch (ret) {
+
+	switch (ret)
+	{
 		/* net error */
-	default:
-		printk(KERN_WARNING "kAFS:"
-		       " failed to update volume '%s' (%x) up in '%s': %d\n",
-		       vl->vldb.name, vid, vl->cell->name, ret);
-		_leave(" = %d", ret);
-		return ret;
+		default:
+			printk(KERN_WARNING "kAFS:"
+				   " failed to update volume '%s' (%x) up in '%s': %d\n",
+				   vl->vldb.name, vid, vl->cell->name, ret);
+			_leave(" = %d", ret);
+			return ret;
 
 		/* pulled from local cache into memory */
-	case 0:
-		_leave(" = 0");
-		return 0;
+		case 0:
+			_leave(" = 0");
+			return 0;
 
 		/* uh oh... looks like the volume got deleted */
-	case -ENOMEDIUM:
-		printk(KERN_ERR "kAFS:"
-		       " volume '%s' (%x) does not exist '%s'\n",
-		       vl->vldb.name, vid, vl->cell->name);
+		case -ENOMEDIUM:
+			printk(KERN_ERR "kAFS:"
+				   " volume '%s' (%x) does not exist '%s'\n",
+				   vl->vldb.name, vid, vl->cell->name);
 
-		/* TODO: make existing record unavailable */
-		_leave(" = %d", ret);
-		return ret;
+			/* TODO: make existing record unavailable */
+			_leave(" = %d", ret);
+			return ret;
 	}
 }
 
@@ -265,21 +304,21 @@ static int afs_vlocation_update_record(struct afs_vlocation *vl,
  * apply the update to a VL record
  */
 static void afs_vlocation_apply_update(struct afs_vlocation *vl,
-				       struct afs_cache_vlocation *vldb)
+									   struct afs_cache_vlocation *vldb)
 {
 	_debug("Done VL Lookup: %s %02x { %08x(%x) %08x(%x) %08x(%x) }",
-	       vldb->name, vldb->vidmask,
-	       ntohl(vldb->servers[0].s_addr), vldb->srvtmask[0],
-	       ntohl(vldb->servers[1].s_addr), vldb->srvtmask[1],
-	       ntohl(vldb->servers[2].s_addr), vldb->srvtmask[2]);
+		   vldb->name, vldb->vidmask,
+		   ntohl(vldb->servers[0].s_addr), vldb->srvtmask[0],
+		   ntohl(vldb->servers[1].s_addr), vldb->srvtmask[1],
+		   ntohl(vldb->servers[2].s_addr), vldb->srvtmask[2]);
 
 	_debug("Vids: %08x %08x %08x",
-	       vldb->vid[0], vldb->vid[1], vldb->vid[2]);
+		   vldb->vid[0], vldb->vid[1], vldb->vid[2]);
 
 	if (strcmp(vldb->name, vl->vldb.name) != 0)
 		printk(KERN_NOTICE "kAFS:"
-		       " name of volume '%s' changed to '%s' on server\n",
-		       vl->vldb.name, vldb->name);
+			   " name of volume '%s' changed to '%s' on server\n",
+			   vl->vldb.name, vldb->name);
 
 	vl->vldb = *vldb;
 
@@ -293,7 +332,7 @@ static void afs_vlocation_apply_update(struct afs_vlocation *vl,
  * both
  */
 static int afs_vlocation_fill_in_record(struct afs_vlocation *vl,
-					struct key *key)
+										struct key *key)
 {
 	struct afs_cache_vlocation vldb;
 	int ret;
@@ -307,22 +346,27 @@ static int afs_vlocation_fill_in_record(struct afs_vlocation *vl,
 	/* see if we have an in-cache copy (will set vl->valid if there is) */
 #ifdef CONFIG_AFS_FSCACHE
 	vl->cache = fscache_acquire_cookie(vl->cell->cache,
-					   &afs_vlocation_cache_index_def, vl,
-					   true);
+									   &afs_vlocation_cache_index_def, vl,
+									   true);
 #endif
 
-	if (vl->valid) {
+	if (vl->valid)
+	{
 		/* try to update a known volume in the cell VL databases by
 		 * ID as the name may have changed */
 		_debug("found in cache");
 		ret = afs_vlocation_update_record(vl, key, &vldb);
-	} else {
+	}
+	else
+	{
 		/* try to look up an unknown volume in the cell VL databases by
 		 * name */
 		ret = afs_vlocation_access_vl_by_name(vl, key, &vldb);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			printk("kAFS: failed to locate '%s' in cell '%s'\n",
-			       vl->vldb.name, vl->cell->name);
+				   vl->vldb.name, vl->cell->name);
 			return ret;
 		}
 	}
@@ -344,19 +388,25 @@ static void afs_vlocation_queue_for_updates(struct afs_vlocation *vl)
 
 	spin_lock(&afs_vlocation_updates_lock);
 
-	if (!list_empty(&afs_vlocation_updates)) {
+	if (!list_empty(&afs_vlocation_updates))
+	{
 		/* ... but wait at least 1 second more than the newest record
 		 * already queued so that we don't spam the VL server suddenly
 		 * with lots of requests
 		 */
 		xvl = list_entry(afs_vlocation_updates.prev,
-				 struct afs_vlocation, update);
+						 struct afs_vlocation, update);
+
 		if (vl->update_at <= xvl->update_at)
+		{
 			vl->update_at = xvl->update_at + 1;
-	} else {
+		}
+	}
+	else
+	{
 		queue_delayed_work(afs_vlocation_update_worker,
-				   &afs_vlocation_update,
-				   afs_vlocation_update_timeout * HZ);
+						   &afs_vlocation_update,
+						   afs_vlocation_update_timeout * HZ);
 	}
 
 	list_add_tail(&vl->update, &afs_vlocation_updates);
@@ -371,18 +421,19 @@ static void afs_vlocation_queue_for_updates(struct afs_vlocation *vl)
  * - insert/update in the local cache if did get a VL response
  */
 struct afs_vlocation *afs_vlocation_lookup(struct afs_cell *cell,
-					   struct key *key,
-					   const char *name,
-					   size_t namesz)
+		struct key *key,
+		const char *name,
+		size_t namesz)
 {
 	struct afs_vlocation *vl;
 	int ret;
 
 	_enter("{%s},{%x},%*.*s,%zu",
-	       cell->name, key_serial(key),
-	       (int) namesz, (int) namesz, name, namesz);
+		   cell->name, key_serial(key),
+		   (int) namesz, (int) namesz, name, namesz);
 
-	if (namesz >= sizeof(vl->vldb.name)) {
+	if (namesz >= sizeof(vl->vldb.name))
+	{
 		_leave(" = -ENAMETOOLONG");
 		return ERR_PTR(-ENAMETOOLONG);
 	}
@@ -390,17 +441,25 @@ struct afs_vlocation *afs_vlocation_lookup(struct afs_cell *cell,
 	/* see if we have an in-memory copy first */
 	down_write(&cell->vl_sem);
 	spin_lock(&cell->vl_lock);
-	list_for_each_entry(vl, &cell->vl_list, link) {
+	list_for_each_entry(vl, &cell->vl_list, link)
+	{
 		if (vl->vldb.name[namesz] != '\0')
+		{
 			continue;
+		}
+
 		if (memcmp(vl->vldb.name, name, namesz) == 0)
+		{
 			goto found_in_memory;
+		}
 	}
 	spin_unlock(&cell->vl_lock);
 
 	/* not in the cell's in-memory lists - create a new record */
 	vl = afs_vlocation_alloc(cell, name, namesz);
-	if (!vl) {
+
+	if (!vl)
+	{
 		up_write(&cell->vl_sem);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -413,8 +472,12 @@ struct afs_vlocation *afs_vlocation_lookup(struct afs_cell *cell,
 
 fill_in_record:
 	ret = afs_vlocation_fill_in_record(vl, key);
+
 	if (ret < 0)
+	{
 		goto error_abandon;
+	}
+
 	spin_lock(&vl->lock);
 	vl->state = AFS_VL_VALID;
 	spin_unlock(&vl->lock);
@@ -434,21 +497,27 @@ found_in_memory:
 	_debug("found in memory");
 	atomic_inc(&vl->usage);
 	spin_unlock(&cell->vl_lock);
-	if (!list_empty(&vl->grave)) {
+
+	if (!list_empty(&vl->grave))
+	{
 		spin_lock(&afs_vlocation_graveyard_lock);
 		list_del_init(&vl->grave);
 		spin_unlock(&afs_vlocation_graveyard_lock);
 	}
+
 	up_write(&cell->vl_sem);
 
 	/* see if it was an abandoned record that we might try filling in */
 	spin_lock(&vl->lock);
-	while (vl->state != AFS_VL_VALID) {
+
+	while (vl->state != AFS_VL_VALID)
+	{
 		afs_vlocation_state_t state = vl->state;
 
 		_debug("invalid [state %d]", state);
 
-		if (state == AFS_VL_NEW || state == AFS_VL_NO_VOLUME) {
+		if (state == AFS_VL_NEW || state == AFS_VL_NO_VOLUME)
+		{
 			vl->state = AFS_VL_CREATING;
 			spin_unlock(&vl->lock);
 			goto fill_in_record;
@@ -460,13 +529,18 @@ found_in_memory:
 
 		spin_unlock(&vl->lock);
 		ret = wait_event_interruptible(vl->waitq,
-					       vl->state == AFS_VL_NEW ||
-					       vl->state == AFS_VL_VALID ||
-					       vl->state == AFS_VL_NO_VOLUME);
+									   vl->state == AFS_VL_NEW ||
+									   vl->state == AFS_VL_VALID ||
+									   vl->state == AFS_VL_NO_VOLUME);
+
 		if (ret < 0)
+		{
 			goto error;
+		}
+
 		spin_lock(&vl->lock);
 	}
+
 	spin_unlock(&vl->lock);
 
 success:
@@ -491,32 +565,39 @@ error:
 void afs_put_vlocation(struct afs_vlocation *vl)
 {
 	if (!vl)
+	{
 		return;
+	}
 
 	_enter("%s", vl->vldb.name);
 
 	ASSERTCMP(atomic_read(&vl->usage), >, 0);
 
-	if (likely(!atomic_dec_and_test(&vl->usage))) {
+	if (likely(!atomic_dec_and_test(&vl->usage)))
+	{
 		_leave("");
 		return;
 	}
 
 	spin_lock(&afs_vlocation_graveyard_lock);
-	if (atomic_read(&vl->usage) == 0) {
+
+	if (atomic_read(&vl->usage) == 0)
+	{
 		_debug("buried");
 		list_move_tail(&vl->grave, &afs_vlocation_graveyard);
 		vl->time_of_death = get_seconds();
 		queue_delayed_work(afs_wq, &afs_vlocation_reap,
-				   afs_vlocation_timeout * HZ);
+						   afs_vlocation_timeout * HZ);
 
 		/* suspend updates on this record */
-		if (!list_empty(&vl->update)) {
+		if (!list_empty(&vl->update))
+		{
 			spin_lock(&afs_vlocation_updates_lock);
 			list_del_init(&vl->update);
 			spin_unlock(&afs_vlocation_updates_lock);
 		}
 	}
+
 	spin_unlock(&afs_vlocation_graveyard_lock);
 	_leave(" [killed?]");
 }
@@ -550,15 +631,18 @@ static void afs_vlocation_reaper(struct work_struct *work)
 	now = get_seconds();
 	spin_lock(&afs_vlocation_graveyard_lock);
 
-	while (!list_empty(&afs_vlocation_graveyard)) {
+	while (!list_empty(&afs_vlocation_graveyard))
+	{
 		vl = list_entry(afs_vlocation_graveyard.next,
-				struct afs_vlocation, grave);
+						struct afs_vlocation, grave);
 
 		_debug("check %p", vl);
 
 		/* the queue is ordered most dead first */
 		expiry = vl->time_of_death + afs_vlocation_timeout;
-		if (expiry > now) {
+
+		if (expiry > now)
+		{
 			delay = (expiry - now) * HZ;
 			_debug("delay %lu", delay);
 			mod_delayed_work(afs_wq, &afs_vlocation_reap, delay);
@@ -566,21 +650,27 @@ static void afs_vlocation_reaper(struct work_struct *work)
 		}
 
 		spin_lock(&vl->cell->vl_lock);
-		if (atomic_read(&vl->usage) > 0) {
+
+		if (atomic_read(&vl->usage) > 0)
+		{
 			_debug("no reap");
 			list_del_init(&vl->grave);
-		} else {
+		}
+		else
+		{
 			_debug("reap");
 			list_move_tail(&vl->grave, &corpses);
 			list_del_init(&vl->link);
 		}
+
 		spin_unlock(&vl->cell->vl_lock);
 	}
 
 	spin_unlock(&afs_vlocation_graveyard_lock);
 
 	/* now reap the corpses we've extracted */
-	while (!list_empty(&corpses)) {
+	while (!list_empty(&corpses))
+	{
 		vl = list_entry(corpses.next, struct afs_vlocation, grave);
 		list_del(&vl->grave);
 		afs_vlocation_destroy(vl);
@@ -595,7 +685,7 @@ static void afs_vlocation_reaper(struct work_struct *work)
 int __init afs_vlocation_update_init(void)
 {
 	afs_vlocation_update_worker = alloc_workqueue("kafs_vlupdated",
-						      WQ_MEM_RECLAIM, 0);
+								  WQ_MEM_RECLAIM, 0);
 	return afs_vlocation_update_worker ? 0 : -ENOMEM;
 }
 
@@ -632,24 +722,33 @@ static void afs_vlocation_updater(struct work_struct *work)
 
 	/* find a record to update */
 	spin_lock(&afs_vlocation_updates_lock);
-	for (;;) {
-		if (list_empty(&afs_vlocation_updates)) {
+
+	for (;;)
+	{
+		if (list_empty(&afs_vlocation_updates))
+		{
 			spin_unlock(&afs_vlocation_updates_lock);
 			_leave(" [nothing]");
 			return;
 		}
 
 		vl = list_entry(afs_vlocation_updates.next,
-				struct afs_vlocation, update);
+						struct afs_vlocation, update);
+
 		if (atomic_read(&vl->usage) > 0)
+		{
 			break;
+		}
+
 		list_del_init(&vl->update);
 	}
 
 	timeout = vl->update_at - now;
-	if (timeout > 0) {
+
+	if (timeout > 0)
+	{
 		queue_delayed_work(afs_vlocation_update_worker,
-				   &afs_vlocation_update, timeout * HZ);
+						   &afs_vlocation_update, timeout * HZ);
 		spin_unlock(&afs_vlocation_updates_lock);
 		_leave(" [nothing]");
 		return;
@@ -667,18 +766,23 @@ static void afs_vlocation_updater(struct work_struct *work)
 
 	ret = afs_vlocation_update_record(vl, NULL, &vldb);
 	spin_lock(&vl->lock);
-	switch (ret) {
-	case 0:
-		afs_vlocation_apply_update(vl, &vldb);
-		vl->state = AFS_VL_VALID;
-		break;
-	case -ENOMEDIUM:
-		vl->state = AFS_VL_VOLUME_DELETED;
-		break;
-	default:
-		vl->state = AFS_VL_UNCERTAIN;
-		break;
+
+	switch (ret)
+	{
+		case 0:
+			afs_vlocation_apply_update(vl, &vldb);
+			vl->state = AFS_VL_VALID;
+			break;
+
+		case -ENOMEDIUM:
+			vl->state = AFS_VL_VOLUME_DELETED;
+			break;
+
+		default:
+			vl->state = AFS_VL_UNCERTAIN;
+			break;
 	}
+
 	spin_unlock(&vl->lock);
 	wake_up(&vl->waitq);
 
@@ -688,21 +792,31 @@ static void afs_vlocation_updater(struct work_struct *work)
 
 	spin_lock(&afs_vlocation_updates_lock);
 
-	if (!list_empty(&afs_vlocation_updates)) {
+	if (!list_empty(&afs_vlocation_updates))
+	{
 		/* next update in 10 minutes, but wait at least 1 second more
 		 * than the newest record already queued so that we don't spam
 		 * the VL server suddenly with lots of requests
 		 */
 		xvl = list_entry(afs_vlocation_updates.prev,
-				 struct afs_vlocation, update);
+						 struct afs_vlocation, update);
+
 		if (vl->update_at <= xvl->update_at)
+		{
 			vl->update_at = xvl->update_at + 1;
+		}
+
 		xvl = list_entry(afs_vlocation_updates.next,
-				 struct afs_vlocation, update);
+						 struct afs_vlocation, update);
 		timeout = xvl->update_at - now;
+
 		if (timeout < 0)
+		{
 			timeout = 0;
-	} else {
+		}
+	}
+	else
+	{
 		timeout = afs_vlocation_update_timeout;
 	}
 
@@ -712,7 +826,7 @@ static void afs_vlocation_updater(struct work_struct *work)
 
 	_debug("timeout %ld", timeout);
 	queue_delayed_work(afs_vlocation_update_worker,
-			   &afs_vlocation_update, timeout * HZ);
+					   &afs_vlocation_update, timeout * HZ);
 	spin_unlock(&afs_vlocation_updates_lock);
 	afs_put_vlocation(vl);
 }

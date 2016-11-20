@@ -24,7 +24,8 @@
 #define gf119_i2c_bus(p) container_of((p), struct gf119_i2c_bus, base)
 #include "bus.h"
 
-struct gf119_i2c_bus {
+struct gf119_i2c_bus
+{
 	struct nvkm_i2c_bus base;
 	u32 addr;
 };
@@ -70,7 +71,8 @@ gf119_i2c_bus_init(struct nvkm_i2c_bus *base)
 }
 
 static const struct nvkm_i2c_bus_func
-gf119_i2c_bus_func = {
+	gf119_i2c_bus_func =
+{
 	.init = gf119_i2c_bus_init,
 	.drive_scl = gf119_i2c_bus_drive_scl,
 	.drive_sda = gf119_i2c_bus_drive_sda,
@@ -81,12 +83,15 @@ gf119_i2c_bus_func = {
 
 int
 gf119_i2c_bus_new(struct nvkm_i2c_pad *pad, int id, u8 drive,
-		 struct nvkm_i2c_bus **pbus)
+				  struct nvkm_i2c_bus **pbus)
 {
 	struct gf119_i2c_bus *bus;
 
 	if (!(bus = kzalloc(sizeof(*bus), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pbus = &bus->base;
 
 	nvkm_i2c_bus_ctor(&gf119_i2c_bus_func, pad, id, &bus->base);

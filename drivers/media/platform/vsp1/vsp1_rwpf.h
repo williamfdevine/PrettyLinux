@@ -31,11 +31,13 @@ struct vsp1_pipeline;
 struct vsp1_rwpf;
 struct vsp1_video;
 
-struct vsp1_rwpf_memory {
+struct vsp1_rwpf_memory
+{
 	dma_addr_t addr[3];
 };
 
-struct vsp1_rwpf {
+struct vsp1_rwpf
+{
 	struct vsp1_entity entity;
 	struct v4l2_ctrl_handler ctrls;
 
@@ -54,7 +56,8 @@ struct vsp1_rwpf {
 	u32 mult_alpha;
 	u32 outfmt;
 
-	struct {
+	struct
+	{
 		spinlock_t lock;
 		struct v4l2_ctrl *ctrls[2];
 		unsigned int pending;
@@ -84,6 +87,6 @@ int vsp1_rwpf_init_ctrls(struct vsp1_rwpf *rwpf, unsigned int ncontrols);
 extern const struct v4l2_subdev_pad_ops vsp1_rwpf_pad_ops;
 
 struct v4l2_rect *vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf,
-				     struct v4l2_subdev_pad_config *config);
+									 struct v4l2_subdev_pad_config *config);
 
 #endif /* __VSP1_RWPF_H__ */

@@ -35,8 +35,11 @@ nv04_fbcon_copyarea(struct fb_info *info, const struct fb_copyarea *region)
 	int ret;
 
 	ret = RING_SPACE(chan, 4);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	BEGIN_NV04(chan, NvSubImageBlit, 0x0300, 3);
 	OUT_RING(chan, (region->sy << 16) | region->sx);
@@ -55,17 +58,26 @@ nv04_fbcon_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 	int ret;
 
 	ret = RING_SPACE(chan, 7);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	BEGIN_NV04(chan, NvSubGdiRect, 0x02fc, 1);
 	OUT_RING(chan, (rect->rop != ROP_COPY) ? 1 : 3);
 	BEGIN_NV04(chan, NvSubGdiRect, 0x03fc, 1);
+
 	if (info->fix.visual == FB_VISUAL_TRUECOLOR ||
-	    info->fix.visual == FB_VISUAL_DIRECTCOLOR)
+		info->fix.visual == FB_VISUAL_DIRECTCOLOR)
+	{
 		OUT_RING(chan, ((uint32_t *)info->pseudo_palette)[rect->color]);
+	}
 	else
+	{
 		OUT_RING(chan, rect->color);
+	}
+
 	BEGIN_NV04(chan, NvSubGdiRect, 0x0400, 2);
 	OUT_RING(chan, (rect->dx << 16) | rect->dy);
 	OUT_RING(chan, (rect->width << 16) | rect->height);
@@ -86,17 +98,25 @@ nv04_fbcon_imageblit(struct fb_info *info, const struct fb_image *image)
 	int ret;
 
 	if (image->depth != 1)
+	{
 		return -ENODEV;
+	}
 
 	ret = RING_SPACE(chan, 8);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (info->fix.visual == FB_VISUAL_TRUECOLOR ||
-	    info->fix.visual == FB_VISUAL_DIRECTCOLOR) {
+		info->fix.visual == FB_VISUAL_DIRECTCOLOR)
+	{
 		fg = ((uint32_t *) info->pseudo_palette)[image->fg_color];
 		bg = ((uint32_t *) info->pseudo_palette)[image->bg_color];
-	} else {
+	}
+	else
+	{
 		fg = image->fg_color;
 		bg = image->bg_color;
 	}
@@ -112,12 +132,17 @@ nv04_fbcon_imageblit(struct fb_info *info, const struct fb_image *image)
 	OUT_RING(chan, (image->dy << 16) | (image->dx & 0xffff));
 
 	dsize = ALIGN(ALIGN(image->width, 8) * image->height, 32) >> 5;
-	while (dsize) {
+
+	while (dsize)
+	{
 		int iter_len = dsize > 128 ? 128 : dsize;
 
 		ret = RING_SPACE(chan, iter_len + 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		BEGIN_NV04(chan, NvSubGdiRect, 0x0c00, iter_len);
 		OUT_RINGp(chan, data, iter_len);
@@ -140,67 +165,92 @@ nv04_fbcon_accel_init(struct fb_info *info)
 	int surface_fmt, pattern_fmt, rect_fmt;
 	int ret;
 
-	switch (info->var.bits_per_pixel) {
-	case 8:
-		surface_fmt = 1;
-		pattern_fmt = 3;
-		rect_fmt = 3;
-		break;
-	case 16:
-		surface_fmt = 4;
-		pattern_fmt = 1;
-		rect_fmt = 1;
-		break;
-	case 32:
-		switch (info->var.transp.length) {
-		case 0: /* depth 24 */
-		case 8: /* depth 32 */
+	switch (info->var.bits_per_pixel)
+	{
+		case 8:
+			surface_fmt = 1;
+			pattern_fmt = 3;
+			rect_fmt = 3;
 			break;
+
+		case 16:
+			surface_fmt = 4;
+			pattern_fmt = 1;
+			rect_fmt = 1;
+			break;
+
+		case 32:
+			switch (info->var.transp.length)
+			{
+				case 0: /* depth 24 */
+				case 8: /* depth 32 */
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
+			surface_fmt = 6;
+			pattern_fmt = 3;
+			rect_fmt = 3;
+			break;
+
 		default:
 			return -EINVAL;
-		}
-
-		surface_fmt = 6;
-		pattern_fmt = 3;
-		rect_fmt = 3;
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	ret = nvif_object_init(&chan->user, 0x0062,
-			       device->info.family >= NV_DEVICE_INFO_V0_CELSIUS ?
-			       0x0062 : 0x0042, NULL, 0, &nfbdev->surf2d);
+						   device->info.family >= NV_DEVICE_INFO_V0_CELSIUS ?
+						   0x0062 : 0x0042, NULL, 0, &nfbdev->surf2d);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = nvif_object_init(&chan->user, 0x0019, 0x0019, NULL, 0,
-			       &nfbdev->clip);
+						   &nfbdev->clip);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = nvif_object_init(&chan->user, 0x0043, 0x0043, NULL, 0,
-			       &nfbdev->rop);
+						   &nfbdev->rop);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = nvif_object_init(&chan->user, 0x0044, 0x0044, NULL, 0,
-			       &nfbdev->patt);
+						   &nfbdev->patt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = nvif_object_init(&chan->user, 0x004a, 0x004a, NULL, 0,
-			       &nfbdev->gdi);
+						   &nfbdev->gdi);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = nvif_object_init(&chan->user, 0x005f,
-			       device->info.chipset >= 0x11 ? 0x009f : 0x005f,
-			       NULL, 0, &nfbdev->blit);
-	if (ret)
-		return ret;
+						   device->info.chipset >= 0x11 ? 0x009f : 0x005f,
+						   NULL, 0, &nfbdev->blit);
 
-	if (RING_SPACE(chan, 49 + (device->info.chipset >= 0x11 ? 4 : 0))) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (RING_SPACE(chan, 49 + (device->info.chipset >= 0x11 ? 4 : 0)))
+	{
 		nouveau_fbcon_gpu_lockup(info);
 		return 0;
 	}
@@ -249,7 +299,9 @@ nv04_fbcon_accel_init(struct fb_info *info)
 	OUT_RING(chan, nfbdev->surf2d.handle);
 	BEGIN_NV04(chan, NvSubImageBlit, 0x02fc, 1);
 	OUT_RING(chan, 3);
-	if (device->info.chipset >= 0x11 /*XXX: oclass == 0x009f*/) {
+
+	if (device->info.chipset >= 0x11 /*XXX: oclass == 0x009f*/)
+	{
 		BEGIN_NV04(chan, NvSubImageBlit, 0x0120, 3);
 		OUT_RING(chan, 0);
 		OUT_RING(chan, 1);

@@ -11,7 +11,8 @@
 #ifndef __CS35L33_H
 #define __CS35L33_H
 
-struct cs35l33_hg {
+struct cs35l33_hg
+{
 	bool enable_hg_algo;
 	unsigned int mem_depth;
 	unsigned int release_rate;
@@ -25,7 +26,8 @@ struct cs35l33_hg {
 	unsigned int vp_hg_va;
 };
 
-struct cs35l33_pdata {
+struct cs35l33_pdata
+{
 	/* Boost Controller Voltage Setting */
 	unsigned int boost_ctl;
 

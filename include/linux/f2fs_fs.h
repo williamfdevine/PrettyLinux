@@ -56,7 +56,8 @@
 /*
  * For superblock
  */
-struct f2fs_super_block {
+struct f2fs_super_block
+{
 	__le32 magic;			/* Magic Number */
 	__le16 major_ver;		/* Major Version */
 	__le16 minor_ver;		/* Minor Version */
@@ -110,7 +111,8 @@ struct f2fs_super_block {
 
 #define F2FS_CP_PACKS		2	/* # of checkpoint packs */
 
-struct f2fs_checkpoint {
+struct f2fs_checkpoint
+{
 	__le64 checkpoint_ver;		/* checkpoint block version number */
 	__le64 user_block_count;	/* # of user blocks */
 	__le64 valid_block_count;	/* # of valid blocks in main area */
@@ -147,9 +149,10 @@ struct f2fs_checkpoint {
 #define F2FS_ORPHANS_PER_BLOCK	1020
 
 #define GET_ORPHAN_BLOCKS(n)	((n + F2FS_ORPHANS_PER_BLOCK - 1) / \
-					F2FS_ORPHANS_PER_BLOCK)
+								 F2FS_ORPHANS_PER_BLOCK)
 
-struct f2fs_orphan_block {
+struct f2fs_orphan_block
+{
 	__le32 ino[F2FS_ORPHANS_PER_BLOCK];	/* inode numbers */
 	__le32 reserved;	/* reserved */
 	__le16 blk_addr;	/* block index in current CP */
@@ -161,7 +164,8 @@ struct f2fs_orphan_block {
 /*
  * For NODE structure
  */
-struct f2fs_extent {
+struct f2fs_extent
+{
 	__le32 fofs;		/* start file offset of the extent */
 	__le32 blk;		/* start block address of the extent */
 	__le32 len;		/* lengh of the extent */
@@ -191,9 +195,10 @@ struct f2fs_extent {
 #define F2FS_INLINE_DOTS	0x10	/* file having implicit dot dentries */
 
 #define MAX_INLINE_DATA		(sizeof(__le32) * (DEF_ADDRS_PER_INODE - \
-						F2FS_INLINE_XATTR_ADDRS - 1))
+							 F2FS_INLINE_XATTR_ADDRS - 1))
 
-struct f2fs_inode {
+struct f2fs_inode
+{
 	__le16 i_mode;			/* file mode */
 	__u8 i_advise;			/* file hints */
 	__u8 i_inline;			/* file inline flags */
@@ -225,15 +230,18 @@ struct f2fs_inode {
 						double_indirect(1) node id */
 } __packed;
 
-struct direct_node {
+struct direct_node
+{
 	__le32 addr[ADDRS_PER_BLOCK];	/* array of data block address */
 } __packed;
 
-struct indirect_node {
+struct indirect_node
+{
 	__le32 nid[NIDS_PER_BLOCK];	/* array of data block address */
 } __packed;
 
-enum {
+enum
+{
 	COLD_BIT_SHIFT = 0,
 	FSYNC_BIT_SHIFT,
 	DENT_BIT_SHIFT,
@@ -242,7 +250,8 @@ enum {
 
 #define OFFSET_BIT_MASK		(0x07)	/* (0x01 << OFFSET_BIT_SHIFT) - 1 */
 
-struct node_footer {
+struct node_footer
+{
 	__le32 nid;		/* node id */
 	__le32 ino;		/* inode nunmber */
 	__le32 flag;		/* include cold/fsync/dentry marks and offset */
@@ -250,9 +259,11 @@ struct node_footer {
 	__le32 next_blkaddr;	/* next node page block address */
 } __packed;
 
-struct f2fs_node {
+struct f2fs_node
+{
 	/* can be one of three types: inode, direct, and indirect types */
-	union {
+	union
+	{
 		struct f2fs_inode i;
 		struct direct_node dn;
 		struct indirect_node in;
@@ -265,13 +276,15 @@ struct f2fs_node {
  */
 #define NAT_ENTRY_PER_BLOCK (PAGE_SIZE / sizeof(struct f2fs_nat_entry))
 
-struct f2fs_nat_entry {
+struct f2fs_nat_entry
+{
 	__u8 version;		/* latest version of cached nat entry */
 	__le32 ino;		/* inode number */
 	__le32 block_addr;	/* block address */
 } __packed;
 
-struct f2fs_nat_block {
+struct f2fs_nat_block
+{
 	struct f2fs_nat_entry entries[NAT_ENTRY_PER_BLOCK];
 } __packed;
 
@@ -298,13 +311,15 @@ struct f2fs_nat_block {
 	((le16_to_cpu((raw_sit)->vblocks) & ~SIT_VBLOCKS_MASK)	\
 	 >> SIT_VBLOCKS_SHIFT)
 
-struct f2fs_sit_entry {
+struct f2fs_sit_entry
+{
 	__le16 vblocks;				/* reference above */
 	__u8 valid_map[SIT_VBLOCK_MAP_SIZE];	/* bitmap for valid blocks */
 	__le64 mtime;				/* segment age for cleaning */
 } __packed;
 
-struct f2fs_sit_block {
+struct f2fs_sit_block
+{
 	struct f2fs_sit_entry entries[SIT_ENTRY_PER_BLOCK];
 } __packed;
 
@@ -329,11 +344,14 @@ struct f2fs_sit_block {
 #define SUM_ENTRY_SIZE		(SUMMARY_SIZE * ENTRIES_IN_SUM)
 
 /* a summary entry for a 4KB-sized block in a segment */
-struct f2fs_summary {
+struct f2fs_summary
+{
 	__le32 nid;		/* parent node id */
-	union {
+	union
+	{
 		__u8 reserved[3];
-		struct {
+		struct
+		{
 			__u8 version;		/* node version number */
 			__le16 ofs_in_node;	/* block index in parent node */
 		} __packed;
@@ -344,21 +362,22 @@ struct f2fs_summary {
 #define SUM_TYPE_NODE		(1)
 #define SUM_TYPE_DATA		(0)
 
-struct summary_footer {
+struct summary_footer
+{
 	unsigned char entry_type;	/* SUM_TYPE_XXX */
 	__le32 check_sum;		/* summary checksum */
 } __packed;
 
 #define SUM_JOURNAL_SIZE	(F2FS_BLKSIZE - SUM_FOOTER_SIZE -\
-				SUM_ENTRY_SIZE)
+							 SUM_ENTRY_SIZE)
 #define NAT_JOURNAL_ENTRIES	((SUM_JOURNAL_SIZE - 2) /\
-				sizeof(struct nat_journal_entry))
+							 sizeof(struct nat_journal_entry))
 #define NAT_JOURNAL_RESERVED	((SUM_JOURNAL_SIZE - 2) %\
-				sizeof(struct nat_journal_entry))
+								 sizeof(struct nat_journal_entry))
 #define SIT_JOURNAL_ENTRIES	((SUM_JOURNAL_SIZE - 2) /\
-				sizeof(struct sit_journal_entry))
+							 sizeof(struct sit_journal_entry))
 #define SIT_JOURNAL_RESERVED	((SUM_JOURNAL_SIZE - 2) %\
-				sizeof(struct sit_journal_entry))
+								 sizeof(struct sit_journal_entry))
 
 /* Reserved area should make size of f2fs_extra_info equals to
  * that of nat_journal and sit_journal.
@@ -369,43 +388,52 @@ struct summary_footer {
  * frequently updated NAT/SIT entries can be stored in the spare area in
  * summary blocks
  */
-enum {
+enum
+{
 	NAT_JOURNAL = 0,
 	SIT_JOURNAL
 };
 
-struct nat_journal_entry {
+struct nat_journal_entry
+{
 	__le32 nid;
 	struct f2fs_nat_entry ne;
 } __packed;
 
-struct nat_journal {
+struct nat_journal
+{
 	struct nat_journal_entry entries[NAT_JOURNAL_ENTRIES];
 	__u8 reserved[NAT_JOURNAL_RESERVED];
 } __packed;
 
-struct sit_journal_entry {
+struct sit_journal_entry
+{
 	__le32 segno;
 	struct f2fs_sit_entry se;
 } __packed;
 
-struct sit_journal {
+struct sit_journal
+{
 	struct sit_journal_entry entries[SIT_JOURNAL_ENTRIES];
 	__u8 reserved[SIT_JOURNAL_RESERVED];
 } __packed;
 
-struct f2fs_extra_info {
+struct f2fs_extra_info
+{
 	__le64 kbytes_written;
 	__u8 reserved[EXTRA_INFO_RESERVED];
 } __packed;
 
-struct f2fs_journal {
-	union {
+struct f2fs_journal
+{
+	union
+	{
 		__le16 n_nats;
 		__le16 n_sits;
 	};
 	/* spare area is used by NAT or SIT journals or extra info */
-	union {
+	union
+	{
 		struct nat_journal nat_j;
 		struct sit_journal sit_j;
 		struct f2fs_extra_info info;
@@ -413,7 +441,8 @@ struct f2fs_journal {
 } __packed;
 
 /* 4KB-sized summary block structure */
-struct f2fs_summary_block {
+struct f2fs_summary_block
+{
 	struct f2fs_summary entries[ENTRIES_IN_SUM];
 	struct f2fs_journal journal;
 	struct summary_footer footer;
@@ -456,13 +485,14 @@ typedef __le32	f2fs_hash_t;
 #define NR_DENTRY_IN_BLOCK	214	/* the number of dentry in a block */
 #define SIZE_OF_DIR_ENTRY	11	/* by byte */
 #define SIZE_OF_DENTRY_BITMAP	((NR_DENTRY_IN_BLOCK + BITS_PER_BYTE - 1) / \
-					BITS_PER_BYTE)
+								 BITS_PER_BYTE)
 #define SIZE_OF_RESERVED	(PAGE_SIZE - ((SIZE_OF_DIR_ENTRY + \
-				F2FS_SLOT_LEN) * \
-				NR_DENTRY_IN_BLOCK + SIZE_OF_DENTRY_BITMAP))
+							 F2FS_SLOT_LEN) * \
+							 NR_DENTRY_IN_BLOCK + SIZE_OF_DENTRY_BITMAP))
 
 /* One directory entry slot representing F2FS_SLOT_LEN-sized file name */
-struct f2fs_dir_entry {
+struct f2fs_dir_entry
+{
 	__le32 hash_code;	/* hash code of file name */
 	__le32 ino;		/* inode number */
 	__le16 name_len;	/* lengh of file name */
@@ -470,7 +500,8 @@ struct f2fs_dir_entry {
 } __packed;
 
 /* 4KB-sized directory entry block */
-struct f2fs_dentry_block {
+struct f2fs_dentry_block
+{
 	/* validity bitmap for directory entries in each block */
 	__u8 dentry_bitmap[SIZE_OF_DENTRY_BITMAP];
 	__u8 reserved[SIZE_OF_RESERVED];
@@ -480,16 +511,17 @@ struct f2fs_dentry_block {
 
 /* for inline dir */
 #define NR_INLINE_DENTRY	(MAX_INLINE_DATA * BITS_PER_BYTE / \
-				((SIZE_OF_DIR_ENTRY + F2FS_SLOT_LEN) * \
-				BITS_PER_BYTE + 1))
+							 ((SIZE_OF_DIR_ENTRY + F2FS_SLOT_LEN) * \
+							  BITS_PER_BYTE + 1))
 #define INLINE_DENTRY_BITMAP_SIZE	((NR_INLINE_DENTRY + \
-					BITS_PER_BYTE - 1) / BITS_PER_BYTE)
+									  BITS_PER_BYTE - 1) / BITS_PER_BYTE)
 #define INLINE_RESERVED_SIZE	(MAX_INLINE_DATA - \
-				((SIZE_OF_DIR_ENTRY + F2FS_SLOT_LEN) * \
-				NR_INLINE_DENTRY + INLINE_DENTRY_BITMAP_SIZE))
+								 ((SIZE_OF_DIR_ENTRY + F2FS_SLOT_LEN) * \
+								  NR_INLINE_DENTRY + INLINE_DENTRY_BITMAP_SIZE))
 
 /* inline directory entry structure */
-struct f2fs_inline_dentry {
+struct f2fs_inline_dentry
+{
 	__u8 dentry_bitmap[INLINE_DENTRY_BITMAP_SIZE];
 	__u8 reserved[INLINE_RESERVED_SIZE];
 	struct f2fs_dir_entry dentry[NR_INLINE_DENTRY];
@@ -497,7 +529,8 @@ struct f2fs_inline_dentry {
 } __packed;
 
 /* file types used in inode_info->flags */
-enum {
+enum
+{
 	F2FS_FT_UNKNOWN,
 	F2FS_FT_REG_FILE,
 	F2FS_FT_DIR,

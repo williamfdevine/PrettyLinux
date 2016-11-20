@@ -22,58 +22,70 @@
 
 static void system_power_event(unsigned int keycode)
 {
-	switch (keycode) {
-	case KEY_SUSPEND:
-		apm_queue_event(APM_USER_SUSPEND);
-		pr_info("Requesting system suspend...\n");
-		break;
-	default:
-		break;
+	switch (keycode)
+	{
+		case KEY_SUSPEND:
+			apm_queue_event(APM_USER_SUSPEND);
+			pr_info("Requesting system suspend...\n");
+			break;
+
+		default:
+			break;
 	}
 }
 
 static void apmpower_event(struct input_handle *handle, unsigned int type,
-			   unsigned int code, int value)
+						   unsigned int code, int value)
 {
 	/* only react on key down events */
 	if (value != 1)
+	{
 		return;
+	}
 
-	switch (type) {
-	case EV_PWR:
-		system_power_event(code);
-		break;
+	switch (type)
+	{
+		case EV_PWR:
+			system_power_event(code);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 
 static int apmpower_connect(struct input_handler *handler,
-					  struct input_dev *dev,
-					  const struct input_device_id *id)
+							struct input_dev *dev,
+							const struct input_device_id *id)
 {
 	struct input_handle *handle;
 	int error;
 
 	handle = kzalloc(sizeof(struct input_handle), GFP_KERNEL);
+
 	if (!handle)
+	{
 		return -ENOMEM;
+	}
 
 	handle->dev = dev;
 	handle->handler = handler;
 	handle->name = "apm-power";
 
 	error = input_register_handle(handle);
-	if (error) {
+
+	if (error)
+	{
 		pr_err("Failed to register input power handler, error %d\n",
-		       error);
+			   error);
 		kfree(handle);
 		return error;
 	}
 
 	error = input_open_device(handle);
-	if (error) {
+
+	if (error)
+	{
 		pr_err("Failed to open input power device, error %d\n", error);
 		input_unregister_handle(handle);
 		kfree(handle);
@@ -90,7 +102,8 @@ static void apmpower_disconnect(struct input_handle *handle)
 	kfree(handle);
 }
 
-static const struct input_device_id apmpower_ids[] = {
+static const struct input_device_id apmpower_ids[] =
+{
 	{
 		.flags = INPUT_DEVICE_ID_MATCH_EVBIT,
 		.evbit = { BIT_MASK(EV_PWR) },
@@ -100,7 +113,8 @@ static const struct input_device_id apmpower_ids[] = {
 
 MODULE_DEVICE_TABLE(input, apmpower_ids);
 
-static struct input_handler apmpower_handler = {
+static struct input_handler apmpower_handler =
+{
 	.event =	apmpower_event,
 	.connect =	apmpower_connect,
 	.disconnect =	apmpower_disconnect,

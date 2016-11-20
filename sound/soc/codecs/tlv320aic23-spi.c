@@ -27,8 +27,11 @@ static int aic23_spi_probe(struct spi_device *spi)
 
 	spi->mode = SPI_MODE_0;
 	ret = spi_setup(spi);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	regmap = devm_regmap_init_spi(spi, &tlv320aic23_regmap);
 	return tlv320aic23_probe(&spi->dev, regmap);
@@ -40,7 +43,8 @@ static int aic23_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver aic23_spi = {
+static struct spi_driver aic23_spi =
+{
 	.driver = {
 		.name = "tlv320aic23",
 	},

@@ -238,7 +238,8 @@
 
 /* Encoder options */
 
-struct snd_enc_wma {
+struct snd_enc_wma
+{
 	__u32 super_block_align; /* WMA Type-specific data */
 };
 
@@ -263,7 +264,8 @@ struct snd_enc_wma {
  * For best quality users should specify VBR mode and set quality levels.
  */
 
-struct snd_enc_vorbis {
+struct snd_enc_vorbis
+{
 	__s32 quality;
 	__u32 managed;
 	__u32 max_bit_rate;
@@ -281,7 +283,8 @@ struct snd_enc_vorbis {
  * These options were extracted from the OpenMAX IL spec
  */
 
-struct snd_enc_real {
+struct snd_enc_real
+{
 	__u32 quant_bits;
 	__u32 start_region;
 	__u32 num_regions;
@@ -306,17 +309,20 @@ struct snd_enc_real {
  * not supported in this API.
  */
 
-struct snd_enc_flac {
+struct snd_enc_flac
+{
 	__u32 num;
 	__u32 gain;
 } __attribute__((packed, aligned(4)));
 
-struct snd_enc_generic {
+struct snd_enc_generic
+{
 	__u32 bw;	/* encoder bandwidth */
 	__s32 reserved[15];	/* Can be used for SND_AUDIOCODEC_BESPOKE */
 } __attribute__((packed, aligned(4)));
 
-union snd_codec_options {
+union snd_codec_options
+{
 	struct snd_enc_wma wma;
 	struct snd_enc_vorbis vorbis;
 	struct snd_enc_real real;
@@ -347,7 +353,8 @@ union snd_codec_options {
  *
  */
 
-struct snd_codec_desc {
+struct snd_codec_desc
+{
 	__u32 max_ch;
 	__u32 sample_rates[MAX_NUM_SAMPLE_RATES];
 	__u32 num_sample_rates;
@@ -386,7 +393,8 @@ struct snd_codec_desc {
  * @reserved: reserved for future use
  */
 
-struct snd_codec {
+struct snd_codec
+{
 	__u32 id;
 	__u32 ch_in;
 	__u32 ch_out;

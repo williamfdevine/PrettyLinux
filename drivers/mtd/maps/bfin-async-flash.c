@@ -30,11 +30,12 @@
 #include <asm/unaligned.h>
 
 #define pr_devinit(fmt, args...) \
-		({ static const char __fmt[] = fmt; printk(__fmt, ## args); })
+	({ static const char __fmt[] = fmt; printk(__fmt, ## args); })
 
 #define DRIVER_NAME "bfin-async-flash"
 
-struct async_state {
+struct async_state
+{
 	struct mtd_info *mtd;
 	struct map_info map;
 	int enet_flash_pin;
@@ -121,8 +122,10 @@ static void bfin_flash_copy_to(struct map_info *map, unsigned long to, const voi
 	switch_back(state);
 }
 
-static const char * const part_probe_types[] = {
-	"cmdlinepart", "RedBoot", NULL };
+static const char *const part_probe_types[] =
+{
+	"cmdlinepart", "RedBoot", NULL
+};
 
 static int bfin_flash_probe(struct platform_device *pdev)
 {
@@ -132,8 +135,11 @@ static int bfin_flash_probe(struct platform_device *pdev)
 	struct async_state *state;
 
 	state = kzalloc(sizeof(*state), GFP_KERNEL);
+
 	if (!state)
+	{
 		return -ENOMEM;
+	}
 
 	state->map.name       = DRIVER_NAME;
 	state->map.read       = bfin_flash_read;
@@ -149,23 +155,27 @@ static int bfin_flash_probe(struct platform_device *pdev)
 	state->flash_ambctl0  = flash_ambctl->start;
 	state->flash_ambctl1  = flash_ambctl->end;
 
-	if (gpio_request(state->enet_flash_pin, DRIVER_NAME)) {
+	if (gpio_request(state->enet_flash_pin, DRIVER_NAME))
+	{
 		pr_devinit(KERN_ERR DRIVER_NAME ": Failed to request gpio %d\n", state->enet_flash_pin);
 		kfree(state);
 		return -EBUSY;
 	}
+
 	gpio_direction_output(state->enet_flash_pin, 1);
 
 	pr_devinit(KERN_NOTICE DRIVER_NAME ": probing %d-bit flash bus\n", state->map.bankwidth * 8);
 	state->mtd = do_map_probe(memory->name, &state->map);
-	if (!state->mtd) {
+
+	if (!state->mtd)
+	{
 		gpio_free(state->enet_flash_pin);
 		kfree(state);
 		return -ENXIO;
 	}
 
 	mtd_device_parse_register(state->mtd, part_probe_types, NULL,
-				  pdata->parts, pdata->nr_parts);
+							  pdata->parts, pdata->nr_parts);
 
 	platform_set_drvdata(pdev, state);
 
@@ -182,7 +192,8 @@ static int bfin_flash_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver bfin_flash_driver = {
+static struct platform_driver bfin_flash_driver =
+{
 	.probe		= bfin_flash_probe,
 	.remove		= bfin_flash_remove,
 	.driver		= {

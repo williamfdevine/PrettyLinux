@@ -69,7 +69,8 @@
 #include <net/cfg80211.h>
 #include "iwl-trans.h"
 
-struct iwl_nvm_data {
+struct iwl_nvm_data
+{
 	int n_hw_addrs;
 	u8 hw_addr[ETH_ALEN];
 
@@ -119,7 +120,7 @@ struct iwl_nvm_data {
  */
 struct iwl_nvm_data *
 iwl_parse_eeprom_data(struct device *dev, const struct iwl_cfg *cfg,
-		      const u8 *eeprom, size_t eeprom_size);
+					  const u8 *eeprom, size_t eeprom_size);
 
 /**
  * iwl_free_nvm_data - free NVM data
@@ -131,16 +132,16 @@ static inline void iwl_free_nvm_data(struct iwl_nvm_data *data)
 }
 
 int iwl_nvm_check_version(struct iwl_nvm_data *data,
-			  struct iwl_trans *trans);
+						  struct iwl_trans *trans);
 
 int iwl_init_sband_channels(struct iwl_nvm_data *data,
-			    struct ieee80211_supported_band *sband,
-			    int n_channels, enum nl80211_band band);
+							struct ieee80211_supported_band *sband,
+							int n_channels, enum nl80211_band band);
 
 void iwl_init_ht_hw_capab(const struct iwl_cfg *cfg,
-			  struct iwl_nvm_data *data,
-			  struct ieee80211_sta_ht_cap *ht_info,
-			  enum nl80211_band band,
-			  u8 tx_chains, u8 rx_chains);
+						  struct iwl_nvm_data *data,
+						  struct ieee80211_sta_ht_cap *ht_info,
+						  enum nl80211_band band,
+						  u8 tx_chains, u8 rx_chains);
 
 #endif /* __iwl_eeprom_parse_h__ */

@@ -58,7 +58,8 @@ SCTP_DBG_OBJCNT(keys);
 /* An array to make it easy to pretty print the debug information
  * to the proc fs.
  */
-static sctp_dbg_objcnt_entry_t sctp_dbg_objcnt[] = {
+static sctp_dbg_objcnt_entry_t sctp_dbg_objcnt[] =
+{
 	SCTP_DBG_OBJCNT_ENTRY(sock),
 	SCTP_DBG_OBJCNT_ENTRY(ep),
 	SCTP_DBG_OBJCNT_ENTRY(assoc),
@@ -80,10 +81,10 @@ static int sctp_objcnt_seq_show(struct seq_file *seq, void *v)
 {
 	int i;
 
-	i = (int)*(loff_t *)v;
+	i = (int) * (loff_t *)v;
 	seq_setwidth(seq, 127);
 	seq_printf(seq, "%s: %d", sctp_dbg_objcnt[i].label,
-				atomic_read(sctp_dbg_objcnt[i].counter));
+			   atomic_read(sctp_dbg_objcnt[i].counter));
 	seq_pad(seq, '\n');
 	return 0;
 }
@@ -103,7 +104,8 @@ static void *sctp_objcnt_seq_next(struct seq_file *seq, void *v, loff_t *pos)
 	return (*pos >= ARRAY_SIZE(sctp_dbg_objcnt)) ? NULL : (void *)pos;
 }
 
-static const struct seq_operations sctp_objcnt_seq_ops = {
+static const struct seq_operations sctp_objcnt_seq_ops =
+{
 	.start = sctp_objcnt_seq_start,
 	.next  = sctp_objcnt_seq_next,
 	.stop  = sctp_objcnt_seq_stop,
@@ -115,7 +117,8 @@ static int sctp_objcnt_seq_open(struct inode *inode, struct file *file)
 	return seq_open(file, &sctp_objcnt_seq_ops);
 }
 
-static const struct file_operations sctp_objcnt_ops = {
+static const struct file_operations sctp_objcnt_ops =
+{
 	.open	 = sctp_objcnt_seq_open,
 	.read	 = seq_read,
 	.llseek	 = seq_lseek,
@@ -128,9 +131,12 @@ void sctp_dbg_objcnt_init(struct net *net)
 	struct proc_dir_entry *ent;
 
 	ent = proc_create("sctp_dbg_objcnt", 0,
-			  net->sctp.proc_net_sctp, &sctp_objcnt_ops);
+					  net->sctp.proc_net_sctp, &sctp_objcnt_ops);
+
 	if (!ent)
+	{
 		pr_warn("sctp_dbg_objcnt: Unable to create /proc entry.\n");
+	}
 }
 
 /* Cleanup the objcount entry in the proc filesystem.  */

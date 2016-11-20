@@ -107,7 +107,8 @@ struct brcmf_cfg80211_info;
 	BRCMF_E_##id = (val),
 
 /* firmware event codes sent by the dongle */
-enum brcmf_fweh_event_code {
+enum brcmf_fweh_event_code
+{
 	BRCMF_FWEH_EVENT_ENUM_DEFLIST
 	/* this determines event mask length which must match
 	 * minimum length check in device firmware so it is
@@ -192,7 +193,8 @@ enum brcmf_fweh_event_code {
  * @oui: OUI of this packet.
  * @usr_subtype: subtype for this OUI.
  */
-struct brcm_ethhdr {
+struct brcm_ethhdr
+{
 	__be16 subtype;
 	__be16 length;
 	u8 version;
@@ -200,7 +202,8 @@ struct brcm_ethhdr {
 	__be16 usr_subtype;
 } __packed;
 
-struct brcmf_event_msg_be {
+struct brcmf_event_msg_be
+{
 	__be16 version;
 	__be16 flags;
 	__be32 event_type;
@@ -221,7 +224,8 @@ struct brcmf_event_msg_be {
  * @hdr: broadcom specific ether header.
  * @msg: common part of the actual event message.
  */
-struct brcmf_event {
+struct brcmf_event
+{
 	struct ethhdr eth;
 	struct brcm_ethhdr hdr;
 	struct brcmf_event_msg_be msg;
@@ -242,7 +246,8 @@ struct brcmf_event {
  * @ifidx: interface index.
  * @bsscfgidx: bsscfg index.
  */
-struct brcmf_event_msg {
+struct brcmf_event_msg
+{
 	u16 version;
 	u16 flags;
 	u32 event_code;
@@ -256,7 +261,8 @@ struct brcmf_event_msg {
 	u8 bsscfgidx;
 };
 
-struct brcmf_if_event {
+struct brcmf_if_event
+{
 	u8 ifidx;
 	u8 action;
 	u8 flags;
@@ -265,8 +271,8 @@ struct brcmf_if_event {
 };
 
 typedef int (*brcmf_fweh_handler_t)(struct brcmf_if *ifp,
-				    const struct brcmf_event_msg *evtmsg,
-				    void *data);
+									const struct brcmf_event_msg *evtmsg,
+									void *data);
 
 /**
  * struct brcmf_fweh_info - firmware event handling information.
@@ -277,53 +283,64 @@ typedef int (*brcmf_fweh_handler_t)(struct brcmf_if *ifp,
  * @event_q: event queue.
  * @evt_handler: registered event handlers.
  */
-struct brcmf_fweh_info {
+struct brcmf_fweh_info
+{
 	bool p2pdev_setup_ongoing;
 	struct work_struct event_work;
 	spinlock_t evt_q_lock;
 	struct list_head event_q;
 	int (*evt_handler[BRCMF_E_LAST])(struct brcmf_if *ifp,
-					 const struct brcmf_event_msg *evtmsg,
-					 void *data);
+									 const struct brcmf_event_msg *evtmsg,
+									 void *data);
 };
 
 void brcmf_fweh_attach(struct brcmf_pub *drvr);
 void brcmf_fweh_detach(struct brcmf_pub *drvr);
 int brcmf_fweh_register(struct brcmf_pub *drvr, enum brcmf_fweh_event_code code,
-			int (*handler)(struct brcmf_if *ifp,
-				       const struct brcmf_event_msg *evtmsg,
-				       void *data));
+						int (*handler)(struct brcmf_if *ifp,
+									   const struct brcmf_event_msg *evtmsg,
+									   void *data));
 void brcmf_fweh_unregister(struct brcmf_pub *drvr,
-			   enum brcmf_fweh_event_code code);
+						   enum brcmf_fweh_event_code code);
 int brcmf_fweh_activate_events(struct brcmf_if *ifp);
 void brcmf_fweh_process_event(struct brcmf_pub *drvr,
-			      struct brcmf_event *event_packet,
-			      u32 packet_len);
+							  struct brcmf_event *event_packet,
+							  u32 packet_len);
 void brcmf_fweh_p2pdev_setup(struct brcmf_if *ifp, bool ongoing);
 
 static inline void brcmf_fweh_process_skb(struct brcmf_pub *drvr,
-					  struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	struct brcmf_event *event_packet;
 	u16 usr_stype;
 
 	/* only process events when protocol matches */
 	if (skb->protocol != cpu_to_be16(ETH_P_LINK_CTL))
+	{
 		return;
+	}
 
 	if ((skb->len + ETH_HLEN) < sizeof(*event_packet))
+	{
 		return;
+	}
 
 	/* check for BRCM oui match */
 	event_packet = (struct brcmf_event *)skb_mac_header(skb);
+
 	if (memcmp(BRCM_OUI, &event_packet->hdr.oui[0],
-		   sizeof(event_packet->hdr.oui)))
+			   sizeof(event_packet->hdr.oui)))
+	{
 		return;
+	}
 
 	/* final match on usr_subtype */
 	usr_stype = get_unaligned_be16(&event_packet->hdr.usr_subtype);
+
 	if (usr_stype != BCMILCP_BCM_SUBTYPE_EVENT)
+	{
 		return;
+	}
 
 	brcmf_fweh_process_event(drvr, event_packet, skb->len + ETH_HLEN);
 }

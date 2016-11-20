@@ -22,7 +22,8 @@
 static LIST_HEAD(rxrpc_security_methods);
 static DECLARE_RWSEM(rxrpc_security_sem);
 
-static const struct rxrpc_security *rxrpc_security_types[] = {
+static const struct rxrpc_security *rxrpc_security_types[] =
+{
 	[RXRPC_SECURITY_NONE]	= &rxrpc_no_security,
 #ifdef CONFIG_RXKAD
 	[RXRPC_SECURITY_RXKAD]	= &rxkad,
@@ -33,20 +34,29 @@ int __init rxrpc_init_security(void)
 {
 	int i, ret;
 
-	for (i = 0; i < ARRAY_SIZE(rxrpc_security_types); i++) {
-		if (rxrpc_security_types[i]) {
+	for (i = 0; i < ARRAY_SIZE(rxrpc_security_types); i++)
+	{
+		if (rxrpc_security_types[i])
+		{
 			ret = rxrpc_security_types[i]->init();
+
 			if (ret < 0)
+			{
 				goto failed;
+			}
 		}
 	}
 
 	return 0;
 
 failed:
+
 	for (i--; i >= 0; i--)
 		if (rxrpc_security_types[i])
+		{
 			rxrpc_security_types[i]->exit();
+		}
+
 	return ret;
 }
 
@@ -56,7 +66,9 @@ void rxrpc_exit_security(void)
 
 	for (i = 0; i < ARRAY_SIZE(rxrpc_security_types); i++)
 		if (rxrpc_security_types[i])
+		{
 			rxrpc_security_types[i]->exit();
+		}
 }
 
 /*
@@ -65,7 +77,10 @@ void rxrpc_exit_security(void)
 static const struct rxrpc_security *rxrpc_security_lookup(u8 security_index)
 {
 	if (security_index >= ARRAY_SIZE(rxrpc_security_types))
+	{
 		return NULL;
+	}
+
 	return rxrpc_security_types[security_index];
 }
 
@@ -82,23 +97,37 @@ int rxrpc_init_client_conn_security(struct rxrpc_connection *conn)
 	_enter("{%d},{%x}", conn->debug_id, key_serial(key));
 
 	if (!key)
+	{
 		return 0;
+	}
 
 	ret = key_validate(key);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	token = key->payload.data[0];
+
 	if (!token)
+	{
 		return -EKEYREJECTED;
+	}
 
 	sec = rxrpc_security_lookup(token->security_index);
+
 	if (!sec)
+	{
 		return -EKEYREJECTED;
+	}
+
 	conn->security = sec;
 
 	ret = conn->security->init_connection_security(conn);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		conn->security = &rxrpc_no_security;
 		return ret;
 	}
@@ -124,7 +153,9 @@ int rxrpc_init_server_conn_security(struct rxrpc_connection *conn)
 	sprintf(kdesc, "%u:%u", conn->params.service_id, conn->security_ix);
 
 	sec = rxrpc_security_lookup(conn->security_ix);
-	if (!sec) {
+
+	if (!sec)
+	{
 		_leave(" = -ENOKEY [lookup]");
 		return -ENOKEY;
 	}
@@ -132,9 +163,12 @@ int rxrpc_init_server_conn_security(struct rxrpc_connection *conn)
 	/* find the service */
 	read_lock(&local->services_lock);
 	rx = rcu_dereference_protected(local->service,
-				       lockdep_is_held(&local->services_lock));
+								   lockdep_is_held(&local->services_lock));
+
 	if (rx && rx->srx.srx_service == conn->params.service_id)
+	{
 		goto found_service;
+	}
 
 	/* the service appears to have died */
 	read_unlock(&local->services_lock);
@@ -142,7 +176,9 @@ int rxrpc_init_server_conn_security(struct rxrpc_connection *conn)
 	return -ENOENT;
 
 found_service:
-	if (!rx->securities) {
+
+	if (!rx->securities)
+	{
 		read_unlock(&local->services_lock);
 		_leave(" = -ENOKEY");
 		return -ENOKEY;
@@ -150,8 +186,10 @@ found_service:
 
 	/* look through the service's keyring */
 	kref = keyring_search(make_key_ref(rx->securities, 1UL),
-			      &key_type_rxrpc_s, kdesc);
-	if (IS_ERR(kref)) {
+						  &key_type_rxrpc_s, kdesc);
+
+	if (IS_ERR(kref))
+	{
 		read_unlock(&local->services_lock);
 		_leave(" = %ld [search]", PTR_ERR(kref));
 		return PTR_ERR(kref);

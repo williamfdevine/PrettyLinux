@@ -43,9 +43,12 @@ void *radeon_gem_prime_vmap(struct drm_gem_object *obj)
 	int ret;
 
 	ret = ttm_bo_kmap(&bo->tbo, 0, bo->tbo.num_pages,
-			  &bo->dma_buf_vmap);
+					  &bo->dma_buf_vmap);
+
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
 
 	return bo->dma_buf_vmap.virtual;
 }
@@ -58,8 +61,8 @@ void radeon_gem_prime_vunmap(struct drm_gem_object *obj, void *vaddr)
 }
 
 struct drm_gem_object *radeon_gem_prime_import_sg_table(struct drm_device *dev,
-							struct dma_buf_attachment *attach,
-							struct sg_table *sg)
+		struct dma_buf_attachment *attach,
+		struct sg_table *sg)
 {
 	struct reservation_object *resv = attach->dmabuf->resv;
 	struct radeon_device *rdev = dev->dev_private;
@@ -68,10 +71,13 @@ struct drm_gem_object *radeon_gem_prime_import_sg_table(struct drm_device *dev,
 
 	ww_mutex_lock(&resv->lock, NULL);
 	ret = radeon_bo_create(rdev, attach->dmabuf->size, PAGE_SIZE, false,
-			       RADEON_GEM_DOMAIN_GTT, 0, sg, resv, &bo);
+						   RADEON_GEM_DOMAIN_GTT, 0, sg, resv, &bo);
 	ww_mutex_unlock(&resv->lock);
+
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
 
 	mutex_lock(&rdev->gem.mutex);
 	list_add_tail(&bo->list, &rdev->gem.objects);
@@ -86,8 +92,11 @@ int radeon_gem_prime_pin(struct drm_gem_object *obj)
 	int ret = 0;
 
 	ret = radeon_bo_reserve(bo, false);
+
 	if (unlikely(ret != 0))
+	{
 		return ret;
+	}
 
 	/* pin buffer into GTT */
 	ret = radeon_bo_pin(bo, RADEON_GEM_DOMAIN_GTT, NULL);
@@ -101,8 +110,11 @@ void radeon_gem_prime_unpin(struct drm_gem_object *obj)
 	int ret = 0;
 
 	ret = radeon_bo_reserve(bo, false);
+
 	if (unlikely(ret != 0))
+	{
 		return;
+	}
 
 	radeon_bo_unpin(bo);
 	radeon_bo_unreserve(bo);
@@ -117,11 +129,15 @@ struct reservation_object *radeon_gem_prime_res_obj(struct drm_gem_object *obj)
 }
 
 struct dma_buf *radeon_gem_prime_export(struct drm_device *dev,
-					struct drm_gem_object *gobj,
-					int flags)
+										struct drm_gem_object *gobj,
+										int flags)
 {
 	struct radeon_bo *bo = gem_to_radeon_bo(gobj);
+
 	if (radeon_ttm_tt_has_userptr(bo->tbo.ttm))
+	{
 		return ERR_PTR(-EPERM);
+	}
+
 	return drm_gem_prime_export(dev, gobj, flags);
 }

@@ -123,16 +123,24 @@
 
 /* Find TFD CB base pointer for given queue */
 static inline unsigned int FH_MEM_CBBC_QUEUE(struct iwl_trans *trans,
-					     unsigned int chnl)
+		unsigned int chnl)
 {
-	if (trans->cfg->use_tfh) {
+	if (trans->cfg->use_tfh)
+	{
 		WARN_ON_ONCE(chnl >= 64);
 		return TFH_TFDQ_CBB_TABLE + 8 * chnl;
 	}
+
 	if (chnl < 16)
+	{
 		return FH_MEM_CBBC_0_15_LOWER_BOUND + 4 * chnl;
+	}
+
 	if (chnl < 20)
+	{
 		return FH_MEM_CBBC_16_19_LOWER_BOUND + 4 * (chnl - 16);
+	}
+
 	WARN_ON_ONCE(chnl >= 32);
 	return FH_MEM_CBBC_20_31_LOWER_BOUND + 4 * (chnl - 20);
 }
@@ -373,7 +381,7 @@ static inline unsigned int FH_MEM_CBBC_QUEUE(struct iwl_trans *trans,
 #define FH_MEM_RSSR_SHARED_CTRL_REG       (FH_MEM_RSSR_LOWER_BOUND)
 #define FH_MEM_RSSR_RX_STATUS_REG	(FH_MEM_RSSR_LOWER_BOUND + 0x004)
 #define FH_MEM_RSSR_RX_ENABLE_ERR_IRQ2DRV\
-					(FH_MEM_RSSR_LOWER_BOUND + 0x008)
+	(FH_MEM_RSSR_LOWER_BOUND + 0x008)
 
 #define FH_RSSR_CHNL0_RX_STATUS_CHNL_IDLE	(0x01000000)
 
@@ -523,11 +531,11 @@ static inline unsigned int FH_MEM_CBBC_QUEUE(struct iwl_trans *trans,
 
 /* TCSR: tx_config register values */
 #define FH_TCSR_CHNL_TX_CONFIG_REG(_chnl)	\
-		(FH_TCSR_LOWER_BOUND + 0x20 * (_chnl))
+	(FH_TCSR_LOWER_BOUND + 0x20 * (_chnl))
 #define FH_TCSR_CHNL_TX_CREDIT_REG(_chnl)	\
-		(FH_TCSR_LOWER_BOUND + 0x20 * (_chnl) + 0x4)
+	(FH_TCSR_LOWER_BOUND + 0x20 * (_chnl) + 0x4)
 #define FH_TCSR_CHNL_TX_BUF_STS_REG(_chnl)	\
-		(FH_TCSR_LOWER_BOUND + 0x20 * (_chnl) + 0x8)
+	(FH_TCSR_LOWER_BOUND + 0x20 * (_chnl) + 0x8)
 
 #define FH_TCSR_TX_CONFIG_REG_VAL_MSG_MODE_TXF		(0x00000000)
 #define FH_TCSR_TX_CONFIG_REG_VAL_MSG_MODE_DRV		(0x00000001)
@@ -598,7 +606,7 @@ static inline unsigned int FH_MEM_CBBC_QUEUE(struct iwl_trans *trans,
 #define FH_SRVC_LOWER_BOUND	(FH_MEM_LOWER_BOUND + 0x9C8)
 #define FH_SRVC_UPPER_BOUND	(FH_MEM_LOWER_BOUND + 0x9D0)
 #define FH_SRVC_CHNL_SRAM_ADDR_REG(_chnl) \
-		(FH_SRVC_LOWER_BOUND + ((_chnl) - 9) * 0x4)
+	(FH_SRVC_LOWER_BOUND + ((_chnl) - 9) * 0x4)
 
 #define FH_TX_CHICKEN_BITS_REG	(FH_MEM_LOWER_BOUND + 0xE98)
 #define FH_TX_TRB_REG(_chan)	(FH_MEM_LOWER_BOUND + 0x958 + (_chan) * 4)
@@ -612,8 +620,8 @@ static inline unsigned int FH_MEM_CBBC_QUEUE(struct iwl_trans *trans,
 #define MQ_RX_TABLE_MASK	(MQ_RX_TABLE_SIZE - 1)
 #define MQ_RX_NUM_RBDS		(MQ_RX_TABLE_SIZE - 1)
 #define RX_POOL_SIZE		(MQ_RX_NUM_RBDS +	\
-				 IWL_MAX_RX_HW_QUEUES *	\
-				 (RX_CLAIM_REQ_ALLOC - RX_POST_REQ_ALLOC))
+							 IWL_MAX_RX_HW_QUEUES *	\
+							 (RX_CLAIM_REQ_ALLOC - RX_POST_REQ_ALLOC))
 
 #define RX_QUEUE_SIZE                         256
 #define RX_QUEUE_MASK                         255
@@ -629,7 +637,8 @@ static inline unsigned int FH_MEM_CBBC_QUEUE(struct iwl_trans *trans,
  * @finished_fr_num [0:11] - Indicates the index of the RX Frame
  * 	which was transferred
  */
-struct iwl_rb_status {
+struct iwl_rb_status
+{
 	__le16 closed_rb_num;
 	__le16 closed_fr_num;
 	__le16 finished_rb_num;
@@ -659,7 +668,8 @@ static inline u8 iwl_get_dma_hi_addr(dma_addr_t addr)
  * @hi_n_len 0-3 [35:32] portion of dma
  *	     4-15 length of the tx buffer
  */
-struct iwl_tfd_tb {
+struct iwl_tfd_tb
+{
 	__le32 lo;
 	__le16 hi_n_len;
 } __packed;
@@ -672,7 +682,8 @@ struct iwl_tfd_tb {
  * @tb_len length of the tx buffer
  * @addr 64 bits dma address
  */
-struct iwl_tfh_tb {
+struct iwl_tfh_tb
+{
 	__le16 tb_len;
 	__le64 addr;
 } __packed;
@@ -706,7 +717,8 @@ struct iwl_tfh_tb {
  * @ tbs[20]	transmit frame buffer descriptors
  * @ __pad	padding
  */
-struct iwl_tfd {
+struct iwl_tfd
+{
 	u8 __reserved1[3];
 	u8 num_tbs;
 	struct iwl_tfd_tb tbs[IWL_NUM_OF_TBS];
@@ -720,7 +732,8 @@ struct iwl_tfd {
  * @ tbs[25]	transmit frame buffer descriptors
  * @ __pad	padding
  */
-struct iwl_tfh_tfd {
+struct iwl_tfh_tfd
+{
 	__le16 num_tbs;
 	struct iwl_tfh_tb tbs[IWL_TFH_NUM_TBS];
 	__le32 __pad;
@@ -742,7 +755,8 @@ struct iwl_tfh_tfd {
  *		12-13 - number of 64 byte chunks
  *		14-16 - reserved
  */
-struct iwlagn_scd_bc_tbl {
+struct iwlagn_scd_bc_tbl
+{
 	__le16 tfd_offset[TFD_QUEUE_BC_SIZE];
 } __packed;
 

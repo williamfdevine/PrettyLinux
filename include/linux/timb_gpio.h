@@ -28,7 +28,8 @@
  *			number of IRQ:s. One IRQ per pin will be used. Set to
  *			-1 if IRQ:s is not supported.
  */
-struct timbgpio_platform_data {
+struct timbgpio_platform_data
+{
 	int gpio_base;
 	int nr_pins;
 	int irq_base;

@@ -14,7 +14,8 @@
 
 #include "adav80x.h"
 
-static const struct spi_device_id adav80x_spi_id[] = {
+static const struct spi_device_id adav80x_spi_id[] =
+{
 	{ "adav801", 0 },
 	{ }
 };
@@ -36,7 +37,8 @@ static int adav80x_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver adav80x_spi_driver = {
+static struct spi_driver adav80x_spi_driver =
+{
 	.driver = {
 		.name	= "adav801",
 	},

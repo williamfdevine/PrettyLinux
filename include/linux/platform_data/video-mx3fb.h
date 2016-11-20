@@ -27,7 +27,8 @@
  * map the internal colors to the external data lines. We only support
  * the following mappings at the moment.
  */
-enum disp_data_mapping {
+enum disp_data_mapping
+{
 	/* blue -> d[0..5], green -> d[6..11], red -> d[12..17] */
 	IPU_DISP_DATA_MAPPING_RGB666,
 	/* blue -> d[0..4], green -> d[5..10], red -> d[11..15] */
@@ -42,7 +43,8 @@ enum disp_data_mapping {
  * @dma_dev:	pointer to the dma-device, used for dma-slave connection
  * @mode:	pointer to a platform-provided per mxc_register_fb() videomode
  */
-struct mx3fb_platform_data {
+struct mx3fb_platform_data
+{
 	struct device			*dma_dev;
 	const char			*name;
 	const struct fb_videomode	*mode;

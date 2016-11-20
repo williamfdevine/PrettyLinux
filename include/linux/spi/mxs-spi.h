@@ -65,11 +65,11 @@
 #define  BP_SSP_TIMING_CLOCK_DIVIDE		8
 #define  BM_SSP_TIMING_CLOCK_DIVIDE		(0xff << 8)
 #define  BF_SSP_TIMING_CLOCK_DIVIDE(v)		\
-			(((v) << 8) & BM_SSP_TIMING_CLOCK_DIVIDE)
+	(((v) << 8) & BM_SSP_TIMING_CLOCK_DIVIDE)
 #define  BP_SSP_TIMING_CLOCK_RATE		0
 #define  BM_SSP_TIMING_CLOCK_RATE		0xff
 #define BF_SSP_TIMING_CLOCK_RATE(v)		\
-			(((v) << 0) & BM_SSP_TIMING_CLOCK_RATE)
+	(((v) << 0) & BM_SSP_TIMING_CLOCK_RATE)
 #define HW_SSP_CTRL1(h)				(ssp_is_old(h) ? 0x060 : 0x080)
 #define  BM_SSP_CTRL1_SDIO_IRQ			(1 << 31)
 #define  BM_SSP_CTRL1_SDIO_IRQ_EN		(1 << 30)
@@ -93,14 +93,14 @@
 #define  BP_SSP_CTRL1_WORD_LENGTH		4
 #define  BM_SSP_CTRL1_WORD_LENGTH		(0xf << 4)
 #define  BF_SSP_CTRL1_WORD_LENGTH(v)		\
-			(((v) << 4) & BM_SSP_CTRL1_WORD_LENGTH)
+	(((v) << 4) & BM_SSP_CTRL1_WORD_LENGTH)
 #define  BV_SSP_CTRL1_WORD_LENGTH__FOUR_BITS	0x3
 #define  BV_SSP_CTRL1_WORD_LENGTH__EIGHT_BITS	0x7
 #define  BV_SSP_CTRL1_WORD_LENGTH__SIXTEEN_BITS	0xF
 #define  BP_SSP_CTRL1_SSP_MODE			0
 #define  BM_SSP_CTRL1_SSP_MODE			0xf
 #define  BF_SSP_CTRL1_SSP_MODE(v)		\
-			(((v) << 0) & BM_SSP_CTRL1_SSP_MODE)
+	(((v) << 0) & BM_SSP_CTRL1_SSP_MODE)
 #define  BV_SSP_CTRL1_SSP_MODE__SPI		0x0
 #define  BV_SSP_CTRL1_SSP_MODE__SSI		0x1
 #define  BV_SSP_CTRL1_SSP_MODE__SD_MMC		0x3
@@ -121,12 +121,14 @@
 
 #define SSP_PIO_NUM	3
 
-enum mxs_ssp_id {
+enum mxs_ssp_id
+{
 	IMX23_SSP,
 	IMX28_SSP,
 };
 
-struct mxs_ssp {
+struct mxs_ssp
+{
 	struct device			*dev;
 	void __iomem			*base;
 	struct clk			*clk;

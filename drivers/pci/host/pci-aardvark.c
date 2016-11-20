@@ -114,8 +114,8 @@
 #define OB_WIN_BASE_ADDR			0x4c00
 #define OB_WIN_BLOCK_SIZE			0x20
 #define OB_WIN_REG_ADDR(win, offset)		(OB_WIN_BASE_ADDR + \
-						 OB_WIN_BLOCK_SIZE * (win) + \
-						 (offset))
+		OB_WIN_BLOCK_SIZE * (win) + \
+		(offset))
 #define OB_WIN_MATCH_LS(win)			OB_WIN_REG_ADDR(win, 0x00)
 #define OB_WIN_MATCH_MS(win)			OB_WIN_REG_ADDR(win, 0x04)
 #define OB_WIN_REMAP_LS(win)			OB_WIN_REG_ADDR(win, 0x08)
@@ -194,7 +194,8 @@
 #define LEGACY_IRQ_NUM			4
 #define MSI_IRQ_NUM			32
 
-struct advk_pcie {
+struct advk_pcie
+{
 	struct platform_device *pdev;
 	void __iomem *base;
 	struct list_head resources;
@@ -234,8 +235,10 @@ static int advk_pcie_wait_for_link(struct advk_pcie *pcie)
 	int retries;
 
 	/* check if the link is up or not */
-	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
-		if (advk_pcie_link_up(pcie)) {
+	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++)
+	{
+		if (advk_pcie_link_up(pcie))
+		{
 			dev_info(dev, "link up\n");
 			return 0;
 		}
@@ -252,10 +255,10 @@ static int advk_pcie_wait_for_link(struct advk_pcie *pcie)
  * mapping.
  */
 static void advk_pcie_set_ob_win(struct advk_pcie *pcie,
-				 u32 win_num, u32 match_ms,
-				 u32 match_ls, u32 mask_ms,
-				 u32 mask_ls, u32 remap_ms,
-				 u32 remap_ls, u32 action)
+								 u32 win_num, u32 match_ms,
+								 u32 match_ls, u32 mask_ms,
+								 u32 mask_ls, u32 remap_ms,
+								 u32 remap_ls, u32 action)
 {
 	advk_writel(pcie, match_ls, OB_WIN_MATCH_LS(win_num));
 	advk_writel(pcie, match_ms, OB_WIN_MATCH_MS(win_num));
@@ -274,7 +277,9 @@ static void advk_pcie_setup_hw(struct advk_pcie *pcie)
 
 	/* Point PCIe unit MBUS decode windows to DRAM space */
 	for (i = 0; i < 8; i++)
+	{
 		advk_pcie_set_ob_win(pcie, i, 0, 0, 0, 0, 0, 0, 0);
+	}
 
 	/* Set to Direct mode */
 	reg = advk_readl(pcie, CTRL_CONFIG_REG);
@@ -289,21 +294,21 @@ static void advk_pcie_setup_hw(struct advk_pcie *pcie)
 
 	/* Set Advanced Error Capabilities and Control PF0 register */
 	reg = PCIE_CORE_ERR_CAPCTL_ECRC_CHK_TX |
-		PCIE_CORE_ERR_CAPCTL_ECRC_CHK_TX_EN |
-		PCIE_CORE_ERR_CAPCTL_ECRC_CHCK |
-		PCIE_CORE_ERR_CAPCTL_ECRC_CHCK_RCV;
+		  PCIE_CORE_ERR_CAPCTL_ECRC_CHK_TX_EN |
+		  PCIE_CORE_ERR_CAPCTL_ECRC_CHCK |
+		  PCIE_CORE_ERR_CAPCTL_ECRC_CHCK_RCV;
 	advk_writel(pcie, reg, PCIE_CORE_ERR_CAPCTL_REG);
 
 	/* Set PCIe Device Control and Status 1 PF0 register */
 	reg = PCIE_CORE_DEV_CTRL_STATS_RELAX_ORDER_DISABLE |
-		(7 << PCIE_CORE_DEV_CTRL_STATS_MAX_PAYLOAD_SZ_SHIFT) |
-		PCIE_CORE_DEV_CTRL_STATS_SNOOP_DISABLE |
-		PCIE_CORE_DEV_CTRL_STATS_MAX_RD_REQ_SIZE_SHIFT;
+		  (7 << PCIE_CORE_DEV_CTRL_STATS_MAX_PAYLOAD_SZ_SHIFT) |
+		  PCIE_CORE_DEV_CTRL_STATS_SNOOP_DISABLE |
+		  PCIE_CORE_DEV_CTRL_STATS_MAX_RD_REQ_SIZE_SHIFT;
 	advk_writel(pcie, reg, PCIE_CORE_DEV_CTRL_STATS_REG);
 
 	/* Program PCIe Control 2 to disable strict ordering */
 	reg = PCIE_CORE_CTRL2_RESERVED |
-		PCIE_CORE_CTRL2_TD_ENABLE;
+		  PCIE_CORE_CTRL2_TD_ENABLE;
 	advk_writel(pcie, reg, PCIE_CORE_CTRL2_REG);
 
 	/* Set GEN2 */
@@ -364,13 +369,13 @@ static void advk_pcie_setup_hw(struct advk_pcie *pcie)
 	advk_pcie_wait_for_link(pcie);
 
 	reg = PCIE_CORE_LINK_L0S_ENTRY |
-		(1 << PCIE_CORE_LINK_WIDTH_SHIFT);
+		  (1 << PCIE_CORE_LINK_WIDTH_SHIFT);
 	advk_writel(pcie, reg, PCIE_CORE_LINK_CTRL_STAT_REG);
 
 	reg = advk_readl(pcie, PCIE_CORE_CMD_STATUS_REG);
 	reg |= PCIE_CORE_CMD_MEM_ACCESS_EN |
-		PCIE_CORE_CMD_IO_ACCESS_EN |
-		PCIE_CORE_CMD_MEM_IO_REQ_EN;
+		   PCIE_CORE_CMD_IO_ACCESS_EN |
+		   PCIE_CORE_CMD_MEM_IO_REQ_EN;
 	advk_writel(pcie, reg, PCIE_CORE_CMD_STATUS_REG);
 }
 
@@ -383,33 +388,43 @@ static void advk_pcie_check_pio_status(struct advk_pcie *pcie)
 
 	reg = advk_readl(pcie, PIO_STAT);
 	status = (reg & PIO_COMPLETION_STATUS_MASK) >>
-		PIO_COMPLETION_STATUS_SHIFT;
+			 PIO_COMPLETION_STATUS_SHIFT;
 
 	if (!status)
+	{
 		return;
+	}
 
-	switch (status) {
-	case PIO_COMPLETION_STATUS_UR:
-		strcomp_status = "UR";
-		break;
-	case PIO_COMPLETION_STATUS_CRS:
-		strcomp_status = "CRS";
-		break;
-	case PIO_COMPLETION_STATUS_CA:
-		strcomp_status = "CA";
-		break;
-	default:
-		strcomp_status = "Unknown";
-		break;
+	switch (status)
+	{
+		case PIO_COMPLETION_STATUS_UR:
+			strcomp_status = "UR";
+			break;
+
+		case PIO_COMPLETION_STATUS_CRS:
+			strcomp_status = "CRS";
+			break;
+
+		case PIO_COMPLETION_STATUS_CA:
+			strcomp_status = "CA";
+			break;
+
+		default:
+			strcomp_status = "Unknown";
+			break;
 	}
 
 	if (reg & PIO_NON_POSTED_REQ)
+	{
 		str_posted = "Non-posted";
+	}
 	else
+	{
 		str_posted = "Posted";
+	}
 
 	dev_err(dev, "%s PIO Response Status: %s, %#x @ %#x\n",
-		str_posted, strcomp_status, reg, advk_readl(pcie, PIO_ADDR_LS));
+			str_posted, strcomp_status, reg, advk_readl(pcie, PIO_ADDR_LS));
 }
 
 static int advk_pcie_wait_pio(struct advk_pcie *pcie)
@@ -419,13 +434,17 @@ static int advk_pcie_wait_pio(struct advk_pcie *pcie)
 
 	timeout = jiffies + msecs_to_jiffies(PIO_TIMEOUT_MS);
 
-	while (time_before(jiffies, timeout)) {
+	while (time_before(jiffies, timeout))
+	{
 		u32 start, isr;
 
 		start = advk_readl(pcie, PIO_START);
 		isr = advk_readl(pcie, PIO_ISR);
+
 		if (!start && isr)
+		{
 			return 0;
+		}
 	}
 
 	dev_err(dev, "config read/write timed out\n");
@@ -433,13 +452,14 @@ static int advk_pcie_wait_pio(struct advk_pcie *pcie)
 }
 
 static int advk_pcie_rd_conf(struct pci_bus *bus, u32 devfn,
-			     int where, int size, u32 *val)
+							 int where, int size, u32 *val)
 {
 	struct advk_pcie *pcie = bus->sysdata;
 	u32 reg;
 	int ret;
 
-	if (PCI_SLOT(devfn) != 0) {
+	if (PCI_SLOT(devfn) != 0)
+	{
 		*val = 0xffffffff;
 		return PCIBIOS_DEVICE_NOT_FOUND;
 	}
@@ -451,10 +471,16 @@ static int advk_pcie_rd_conf(struct pci_bus *bus, u32 devfn,
 	/* Program the control register */
 	reg = advk_readl(pcie, PIO_CTRL);
 	reg &= ~PIO_CTRL_TYPE_MASK;
+
 	if (bus->number ==  pcie->root_bus_nr)
+	{
 		reg |= PCIE_CONFIG_RD_TYPE0;
+	}
 	else
+	{
 		reg |= PCIE_CONFIG_RD_TYPE1;
+	}
+
 	advk_writel(pcie, reg, PIO_CTRL);
 
 	/* Program the address registers */
@@ -469,23 +495,31 @@ static int advk_pcie_rd_conf(struct pci_bus *bus, u32 devfn,
 	advk_writel(pcie, 1, PIO_START);
 
 	ret = advk_pcie_wait_pio(pcie);
+
 	if (ret < 0)
+	{
 		return PCIBIOS_SET_FAILED;
+	}
 
 	advk_pcie_check_pio_status(pcie);
 
 	/* Get the read result */
 	*val = advk_readl(pcie, PIO_RD_DATA);
+
 	if (size == 1)
+	{
 		*val = (*val >> (8 * (where & 3))) & 0xff;
+	}
 	else if (size == 2)
+	{
 		*val = (*val >> (8 * (where & 3))) & 0xffff;
+	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
 static int advk_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
-				int where, int size, u32 val)
+							 int where, int size, u32 val)
 {
 	struct advk_pcie *pcie = bus->sysdata;
 	u32 reg;
@@ -494,10 +528,14 @@ static int advk_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
 	int ret;
 
 	if (PCI_SLOT(devfn) != 0)
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	if (where % size)
+	{
 		return PCIBIOS_SET_FAILED;
+	}
 
 	/* Start PIO */
 	advk_writel(pcie, 0, PIO_START);
@@ -506,10 +544,16 @@ static int advk_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
 	/* Program the control register */
 	reg = advk_readl(pcie, PIO_CTRL);
 	reg &= ~PIO_CTRL_TYPE_MASK;
+
 	if (bus->number == pcie->root_bus_nr)
+	{
 		reg |= PCIE_CONFIG_WR_TYPE0;
+	}
 	else
+	{
 		reg |= PCIE_CONFIG_WR_TYPE1;
+	}
+
 	advk_writel(pcie, reg, PIO_CTRL);
 
 	/* Program the address registers */
@@ -532,15 +576,19 @@ static int advk_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
 	advk_writel(pcie, 1, PIO_START);
 
 	ret = advk_pcie_wait_pio(pcie);
+
 	if (ret < 0)
+	{
 		return PCIBIOS_SET_FAILED;
+	}
 
 	advk_pcie_check_pio_status(pcie);
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
-static struct pci_ops advk_pcie_ops = {
+static struct pci_ops advk_pcie_ops =
+{
 	.read = advk_pcie_rd_conf,
 	.write = advk_pcie_wr_conf,
 };
@@ -551,10 +599,16 @@ static int advk_pcie_alloc_msi(struct advk_pcie *pcie)
 
 	mutex_lock(&pcie->msi_used_lock);
 	hwirq = find_first_zero_bit(pcie->msi_irq_in_use, MSI_IRQ_NUM);
+
 	if (hwirq >= MSI_IRQ_NUM)
+	{
 		hwirq = -ENOSPC;
+	}
 	else
+	{
 		set_bit(hwirq, pcie->msi_irq_in_use);
+	}
+
 	mutex_unlock(&pcie->msi_used_lock);
 
 	return hwirq;
@@ -565,16 +619,22 @@ static void advk_pcie_free_msi(struct advk_pcie *pcie, int hwirq)
 	struct device *dev = &pcie->pdev->dev;
 
 	mutex_lock(&pcie->msi_used_lock);
+
 	if (!test_bit(hwirq, pcie->msi_irq_in_use))
+	{
 		dev_err(dev, "trying to free unused MSI#%d\n", hwirq);
+	}
 	else
+	{
 		clear_bit(hwirq, pcie->msi_irq_in_use);
+	}
+
 	mutex_unlock(&pcie->msi_used_lock);
 }
 
 static int advk_pcie_setup_msi_irq(struct msi_controller *chip,
-				   struct pci_dev *pdev,
-				   struct msi_desc *desc)
+								   struct pci_dev *pdev,
+								   struct msi_desc *desc)
 {
 	struct advk_pcie *pcie = pdev->bus->sysdata;
 	struct msi_msg msg;
@@ -583,14 +643,21 @@ static int advk_pcie_setup_msi_irq(struct msi_controller *chip,
 
 	/* We support MSI, but not MSI-X */
 	if (desc->msi_attrib.is_msix)
+	{
 		return -EINVAL;
+	}
 
 	hwirq = advk_pcie_alloc_msi(pcie);
+
 	if (hwirq < 0)
+	{
 		return hwirq;
+	}
 
 	virq = irq_create_mapping(pcie->msi_domain, hwirq);
-	if (!virq) {
+
+	if (!virq)
+	{
 		advk_pcie_free_msi(pcie, hwirq);
 		return -EINVAL;
 	}
@@ -609,7 +676,7 @@ static int advk_pcie_setup_msi_irq(struct msi_controller *chip,
 }
 
 static void advk_pcie_teardown_msi_irq(struct msi_controller *chip,
-				       unsigned int irq)
+									   unsigned int irq)
 {
 	struct irq_data *d = irq_get_irq_data(irq);
 	struct msi_desc *msi = irq_data_get_msi_desc(d);
@@ -621,17 +688,18 @@ static void advk_pcie_teardown_msi_irq(struct msi_controller *chip,
 }
 
 static int advk_pcie_msi_map(struct irq_domain *domain,
-			     unsigned int virq, irq_hw_number_t hw)
+							 unsigned int virq, irq_hw_number_t hw)
 {
 	struct advk_pcie *pcie = domain->host_data;
 
 	irq_set_chip_and_handler(virq, &pcie->msi_irq_chip,
-				 handle_simple_irq);
+							 handle_simple_irq);
 
 	return 0;
 }
 
-static const struct irq_domain_ops advk_pcie_msi_irq_ops = {
+static const struct irq_domain_ops advk_pcie_msi_irq_ops =
+{
 	.map = advk_pcie_msi_map,
 };
 
@@ -658,20 +726,21 @@ static void advk_pcie_irq_unmask(struct irq_data *d)
 }
 
 static int advk_pcie_irq_map(struct irq_domain *h,
-			     unsigned int virq, irq_hw_number_t hwirq)
+							 unsigned int virq, irq_hw_number_t hwirq)
 {
 	struct advk_pcie *pcie = h->host_data;
 
 	advk_pcie_irq_mask(irq_get_irq_data(virq));
 	irq_set_status_flags(virq, IRQ_LEVEL);
 	irq_set_chip_and_handler(virq, &pcie->irq_chip,
-				 handle_level_irq);
+							 handle_level_irq);
 	irq_set_chip_data(virq, pcie);
 
 	return 0;
 }
 
-static const struct irq_domain_ops advk_pcie_irq_domain_ops = {
+static const struct irq_domain_ops advk_pcie_irq_domain_ops =
+{
 	.map = advk_pcie_irq_map,
 	.xlate = irq_domain_xlate_onecell,
 };
@@ -688,9 +757,12 @@ static int advk_pcie_init_msi_irq_domain(struct advk_pcie *pcie)
 	msi_irq_chip = &pcie->msi_irq_chip;
 
 	msi_irq_chip->name = devm_kasprintf(dev, GFP_KERNEL, "%s-msi",
-					    dev_name(dev));
+										dev_name(dev));
+
 	if (!msi_irq_chip->name)
+	{
 		return -ENOMEM;
+	}
 
 	msi_irq_chip->irq_enable = pci_msi_unmask_irq;
 	msi_irq_chip->irq_disable = pci_msi_mask_irq;
@@ -708,18 +780,23 @@ static int advk_pcie_init_msi_irq_domain(struct advk_pcie *pcie)
 	msi_msg_phys = virt_to_phys(&pcie->msi_msg);
 
 	advk_writel(pcie, lower_32_bits(msi_msg_phys),
-		    PCIE_MSI_ADDR_LOW_REG);
+				PCIE_MSI_ADDR_LOW_REG);
 	advk_writel(pcie, upper_32_bits(msi_msg_phys),
-		    PCIE_MSI_ADDR_HIGH_REG);
+				PCIE_MSI_ADDR_HIGH_REG);
 
 	pcie->msi_domain =
 		irq_domain_add_linear(NULL, MSI_IRQ_NUM,
-				      &advk_pcie_msi_irq_ops, pcie);
+							  &advk_pcie_msi_irq_ops, pcie);
+
 	if (!pcie->msi_domain)
+	{
 		return -ENOMEM;
+	}
 
 	ret = of_pci_msi_chip_add(msi);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		irq_domain_remove(pcie->msi_domain);
 		return ret;
 	}
@@ -741,7 +818,9 @@ static int advk_pcie_init_irq_domain(struct advk_pcie *pcie)
 	struct irq_chip *irq_chip;
 
 	pcie_intc_node =  of_get_next_child(node, NULL);
-	if (!pcie_intc_node) {
+
+	if (!pcie_intc_node)
+	{
 		dev_err(dev, "No PCIe Intc node found\n");
 		return -ENODEV;
 	}
@@ -749,8 +828,10 @@ static int advk_pcie_init_irq_domain(struct advk_pcie *pcie)
 	irq_chip = &pcie->irq_chip;
 
 	irq_chip->name = devm_kasprintf(dev, GFP_KERNEL, "%s-irq",
-					dev_name(dev));
-	if (!irq_chip->name) {
+									dev_name(dev));
+
+	if (!irq_chip->name)
+	{
 		of_node_put(pcie_intc_node);
 		return -ENOMEM;
 	}
@@ -761,8 +842,10 @@ static int advk_pcie_init_irq_domain(struct advk_pcie *pcie)
 
 	pcie->irq_domain =
 		irq_domain_add_linear(pcie_intc_node, LEGACY_IRQ_NUM,
-				      &advk_pcie_irq_domain_ops, pcie);
-	if (!pcie->irq_domain) {
+							  &advk_pcie_irq_domain_ops, pcie);
+
+	if (!pcie->irq_domain)
+	{
 		dev_err(dev, "Failed to get a INTx IRQ domain\n");
 		of_node_put(pcie_intc_node);
 		return -ENOMEM;
@@ -785,9 +868,12 @@ static void advk_pcie_handle_msi(struct advk_pcie *pcie)
 	msi_val = advk_readl(pcie, PCIE_MSI_STATUS_REG);
 	msi_status = msi_val & ~msi_mask;
 
-	for (msi_idx = 0; msi_idx < MSI_IRQ_NUM; msi_idx++) {
+	for (msi_idx = 0; msi_idx < MSI_IRQ_NUM; msi_idx++)
+	{
 		if (!(BIT(msi_idx) & msi_status))
+		{
 			continue;
+		}
 
 		advk_writel(pcie, BIT(msi_idx), PCIE_MSI_STATUS_REG);
 		msi_data = advk_readl(pcie, PCIE_MSI_PAYLOAD_REG) & 0xFF;
@@ -795,7 +881,7 @@ static void advk_pcie_handle_msi(struct advk_pcie *pcie)
 	}
 
 	advk_writel(pcie, PCIE_ISR0_MSI_INT_PENDING,
-		    PCIE_ISR0_REG);
+				PCIE_ISR0_REG);
 }
 
 static void advk_pcie_handle_int(struct advk_pcie *pcie)
@@ -807,22 +893,28 @@ static void advk_pcie_handle_int(struct advk_pcie *pcie)
 	mask = advk_readl(pcie, PCIE_ISR0_MASK_REG);
 	status = val & ((~mask) & PCIE_ISR0_ALL_MASK);
 
-	if (!status) {
+	if (!status)
+	{
 		advk_writel(pcie, val, PCIE_ISR0_REG);
 		return;
 	}
 
 	/* Process MSI interrupts */
 	if (status & PCIE_ISR0_MSI_INT_PENDING)
+	{
 		advk_pcie_handle_msi(pcie);
+	}
 
 	/* Process legacy interrupts */
-	for (i = 0; i < LEGACY_IRQ_NUM; i++) {
+	for (i = 0; i < LEGACY_IRQ_NUM; i++)
+	{
 		if (!(status & PCIE_ISR0_INTX_ASSERT(i)))
+		{
 			continue;
+		}
 
 		advk_writel(pcie, PCIE_ISR0_INTX_ASSERT(i),
-			    PCIE_ISR0_REG);
+					PCIE_ISR0_REG);
 
 		virq = irq_find_mapping(pcie->irq_domain, i);
 		generic_handle_irq(virq);
@@ -835,8 +927,11 @@ static irqreturn_t advk_pcie_irq_handler(int irq, void *arg)
 	u32 status;
 
 	status = advk_readl(pcie, HOST_CTRL_INT_STATUS_REG);
+
 	if (!(status & PCIE_IRQ_CORE_INT))
+	{
 		return IRQ_NONE;
+	}
 
 	advk_pcie_handle_int(pcie);
 
@@ -857,48 +952,62 @@ static int advk_pcie_parse_request_of_pci_ranges(struct advk_pcie *pcie)
 	INIT_LIST_HEAD(&pcie->resources);
 
 	err = of_pci_get_host_bridge_resources(np, 0, 0xff, &pcie->resources,
-					       &iobase);
+										   &iobase);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = devm_request_pci_bus_resources(dev, &pcie->resources);
-	if (err)
-		goto out_release_res;
 
-	resource_list_for_each_entry_safe(win, tmp, &pcie->resources) {
+	if (err)
+	{
+		goto out_release_res;
+	}
+
+	resource_list_for_each_entry_safe(win, tmp, &pcie->resources)
+	{
 		struct resource *res = win->res;
 
-		switch (resource_type(res)) {
-		case IORESOURCE_IO:
-			advk_pcie_set_ob_win(pcie, 1,
-					     upper_32_bits(res->start),
-					     lower_32_bits(res->start),
-					     0,	0xF8000000, 0,
-					     lower_32_bits(res->start),
-					     OB_PCIE_IO);
-			err = pci_remap_iospace(res, iobase);
-			if (err) {
-				dev_warn(dev, "error %d: failed to map resource %pR\n",
-					 err, res);
-				resource_list_destroy_entry(win);
-			}
-			break;
-		case IORESOURCE_MEM:
-			advk_pcie_set_ob_win(pcie, 0,
-					     upper_32_bits(res->start),
-					     lower_32_bits(res->start),
-					     0x0, 0xF8000000, 0,
-					     lower_32_bits(res->start),
-					     (2 << 20) | OB_PCIE_MEM);
-			res_valid |= !(res->flags & IORESOURCE_PREFETCH);
-			break;
-		case IORESOURCE_BUS:
-			pcie->root_bus_nr = res->start;
-			break;
+		switch (resource_type(res))
+		{
+			case IORESOURCE_IO:
+				advk_pcie_set_ob_win(pcie, 1,
+									 upper_32_bits(res->start),
+									 lower_32_bits(res->start),
+									 0,	0xF8000000, 0,
+									 lower_32_bits(res->start),
+									 OB_PCIE_IO);
+				err = pci_remap_iospace(res, iobase);
+
+				if (err)
+				{
+					dev_warn(dev, "error %d: failed to map resource %pR\n",
+							 err, res);
+					resource_list_destroy_entry(win);
+				}
+
+				break;
+
+			case IORESOURCE_MEM:
+				advk_pcie_set_ob_win(pcie, 0,
+									 upper_32_bits(res->start),
+									 lower_32_bits(res->start),
+									 0x0, 0xF8000000, 0,
+									 lower_32_bits(res->start),
+									 (2 << 20) | OB_PCIE_MEM);
+				res_valid |= !(res->flags & IORESOURCE_PREFETCH);
+				break;
+
+			case IORESOURCE_BUS:
+				pcie->root_bus_nr = res->start;
+				break;
 		}
 	}
 
-	if (!res_valid) {
+	if (!res_valid)
+	{
 		dev_err(dev, "non-prefetchable memory resource required\n");
 		err = -EINVAL;
 		goto out_release_res;
@@ -922,27 +1031,37 @@ static int advk_pcie_probe(struct platform_device *pdev)
 	int ret, irq;
 
 	pcie = devm_kzalloc(dev, sizeof(struct advk_pcie), GFP_KERNEL);
+
 	if (!pcie)
+	{
 		return -ENOMEM;
+	}
 
 	pcie->pdev = pdev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pcie->base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(pcie->base))
+	{
 		return PTR_ERR(pcie->base);
+	}
 
 	irq = platform_get_irq(pdev, 0);
 	ret = devm_request_irq(dev, irq, advk_pcie_irq_handler,
-			       IRQF_SHARED | IRQF_NO_THREAD, "advk-pcie",
-			       pcie);
-	if (ret) {
+						   IRQF_SHARED | IRQF_NO_THREAD, "advk-pcie",
+						   pcie);
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to register interrupt\n");
 		return ret;
 	}
 
 	ret = advk_pcie_parse_request_of_pci_ranges(pcie);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to parse resources\n");
 		return ret;
 	}
@@ -950,27 +1069,38 @@ static int advk_pcie_probe(struct platform_device *pdev)
 	advk_pcie_setup_hw(pcie);
 
 	ret = advk_pcie_init_irq_domain(pcie);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to initialize irq\n");
 		return ret;
 	}
 
 	ret = advk_pcie_init_msi_irq_domain(pcie);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to initialize irq\n");
 		advk_pcie_remove_irq_domain(pcie);
 		return ret;
 	}
 
 	msi_node = of_parse_phandle(dev->of_node, "msi-parent", 0);
+
 	if (msi_node)
+	{
 		msi = of_pci_find_msi_chip_by_node(msi_node);
+	}
 	else
+	{
 		msi = NULL;
+	}
 
 	bus = pci_scan_root_bus_msi(dev, 0, &advk_pcie_ops,
-				    pcie, &pcie->resources, &pcie->msi);
-	if (!bus) {
+								pcie, &pcie->resources, &pcie->msi);
+
+	if (!bus)
+	{
 		advk_pcie_remove_msi_irq_domain(pcie);
 		advk_pcie_remove_irq_domain(pcie);
 		return -ENOMEM;
@@ -979,18 +1109,20 @@ static int advk_pcie_probe(struct platform_device *pdev)
 	pci_bus_assign_resources(bus);
 
 	list_for_each_entry(child, &bus->children, node)
-		pcie_bus_configure_settings(child);
+	pcie_bus_configure_settings(child);
 
 	pci_bus_add_devices(bus);
 	return 0;
 }
 
-static const struct of_device_id advk_pcie_of_match_table[] = {
+static const struct of_device_id advk_pcie_of_match_table[] =
+{
 	{ .compatible = "marvell,armada-3700-pcie", },
 	{},
 };
 
-static struct platform_driver advk_pcie_driver = {
+static struct platform_driver advk_pcie_driver =
+{
 	.driver = {
 		.name = "advk-pcie",
 		.of_match_table = advk_pcie_of_match_table,

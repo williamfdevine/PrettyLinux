@@ -2,7 +2,8 @@
 #define SCATTERLIST_H
 #include <linux/kernel.h>
 
-struct scatterlist {
+struct scatterlist
+{
 	unsigned long	page_link;
 	unsigned int	offset;
 	unsigned int	length;
@@ -56,7 +57,7 @@ static inline void sg_assign_page(struct scatterlist *sg, struct page *page)
  *
  **/
 static inline void sg_set_page(struct scatterlist *sg, struct page *page,
-			       unsigned int len, unsigned int offset)
+							   unsigned int len, unsigned int offset)
 {
 	sg_assign_page(sg, page);
 	sg->offset = offset;
@@ -89,7 +90,7 @@ static inline struct page *sg_page(struct scatterlist *sg)
  *
  **/
 static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
-			    struct scatterlist *sgl)
+							struct scatterlist *sgl)
 {
 	/*
 	 * offset and length are unused for chain entry.  Clear them.
@@ -146,12 +147,18 @@ static inline struct scatterlist *sg_next(struct scatterlist *sg)
 #ifdef CONFIG_DEBUG_SG
 	BUG_ON(sg->sg_magic != SG_MAGIC);
 #endif
+
 	if (sg_is_last(sg))
+	{
 		return NULL;
+	}
 
 	sg++;
+
 	if (unlikely(sg_is_chain(sg)))
+	{
 		sg = sg_chain_ptr(sg);
+	}
 
 	return sg;
 }
@@ -162,8 +169,11 @@ static inline void sg_init_table(struct scatterlist *sgl, unsigned int nents)
 #ifdef CONFIG_DEBUG_SG
 	{
 		unsigned int i;
+
 		for (i = 0; i < nents; i++)
+		{
 			sgl[i].sg_magic = SG_MAGIC;
+		}
 	}
 #endif
 	sg_mark_end(&sgl[nents - 1]);
@@ -175,13 +185,13 @@ static inline dma_addr_t sg_phys(struct scatterlist *sg)
 }
 
 static inline void sg_set_buf(struct scatterlist *sg, const void *buf,
-			      unsigned int buflen)
+							  unsigned int buflen)
 {
 	sg_set_page(sg, virt_to_page(buf), buflen, offset_in_page(buf));
 }
 
 static inline void sg_init_one(struct scatterlist *sg,
-			       const void *buf, unsigned int buflen)
+							   const void *buf, unsigned int buflen)
 {
 	sg_init_table(sg, 1);
 	sg_set_buf(sg, buf, buflen);

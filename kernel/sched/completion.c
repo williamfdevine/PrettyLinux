@@ -51,7 +51,7 @@ void complete_all(struct completion *x)
 	unsigned long flags;
 
 	spin_lock_irqsave(&x->wait.lock, flags);
-	x->done += UINT_MAX/2;
+	x->done += UINT_MAX / 2;
 	__wake_up_locked(&x->wait, TASK_NORMAL, 0);
 	spin_unlock_irqrestore(&x->wait.lock, flags);
 }
@@ -59,33 +59,44 @@ EXPORT_SYMBOL(complete_all);
 
 static inline long __sched
 do_wait_for_common(struct completion *x,
-		   long (*action)(long), long timeout, int state)
+				   long (*action)(long), long timeout, int state)
 {
-	if (!x->done) {
+	if (!x->done)
+	{
 		DECLARE_WAITQUEUE(wait, current);
 
 		__add_wait_queue_tail_exclusive(&x->wait, &wait);
-		do {
-			if (signal_pending_state(state, current)) {
+
+		do
+		{
+			if (signal_pending_state(state, current))
+			{
 				timeout = -ERESTARTSYS;
 				break;
 			}
+
 			__set_current_state(state);
 			spin_unlock_irq(&x->wait.lock);
 			timeout = action(timeout);
 			spin_lock_irq(&x->wait.lock);
-		} while (!x->done && timeout);
+		}
+		while (!x->done && timeout);
+
 		__remove_wait_queue(&x->wait, &wait);
+
 		if (!x->done)
+		{
 			return timeout;
+		}
 	}
+
 	x->done--;
-	return timeout ?: 1;
+	return timeout ? : 1;
 }
 
 static inline long __sched
 __wait_for_common(struct completion *x,
-		  long (*action)(long), long timeout, int state)
+				  long (*action)(long), long timeout, int state)
 {
 	might_sleep();
 
@@ -188,8 +199,12 @@ EXPORT_SYMBOL(wait_for_completion_io_timeout);
 int __sched wait_for_completion_interruptible(struct completion *x)
 {
 	long t = wait_for_common(x, MAX_SCHEDULE_TIMEOUT, TASK_INTERRUPTIBLE);
+
 	if (t == -ERESTARTSYS)
+	{
 		return t;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(wait_for_completion_interruptible);
@@ -207,7 +222,7 @@ EXPORT_SYMBOL(wait_for_completion_interruptible);
  */
 long __sched
 wait_for_completion_interruptible_timeout(struct completion *x,
-					  unsigned long timeout)
+		unsigned long timeout)
 {
 	return wait_for_common(x, timeout, TASK_INTERRUPTIBLE);
 }
@@ -225,8 +240,12 @@ EXPORT_SYMBOL(wait_for_completion_interruptible_timeout);
 int __sched wait_for_completion_killable(struct completion *x)
 {
 	long t = wait_for_common(x, MAX_SCHEDULE_TIMEOUT, TASK_KILLABLE);
+
 	if (t == -ERESTARTSYS)
+	{
 		return t;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(wait_for_completion_killable);
@@ -245,7 +264,7 @@ EXPORT_SYMBOL(wait_for_completion_killable);
  */
 long __sched
 wait_for_completion_killable_timeout(struct completion *x,
-				     unsigned long timeout)
+									 unsigned long timeout)
 {
 	return wait_for_common(x, timeout, TASK_KILLABLE);
 }
@@ -275,13 +294,21 @@ bool try_wait_for_completion(struct completion *x)
 	 * return early in the blocking case.
 	 */
 	if (!READ_ONCE(x->done))
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&x->wait.lock, flags);
+
 	if (!x->done)
+	{
 		ret = 0;
+	}
 	else
+	{
 		x->done--;
+	}
+
 	spin_unlock_irqrestore(&x->wait.lock, flags);
 	return ret;
 }
@@ -298,7 +325,9 @@ EXPORT_SYMBOL(try_wait_for_completion);
 bool completion_done(struct completion *x)
 {
 	if (!READ_ONCE(x->done))
+	{
 		return false;
+	}
 
 	/*
 	 * If ->done, we need to wait for complete() to release ->wait.lock

@@ -24,20 +24,23 @@ typedef unsigned			afs_volid_t;
 typedef unsigned			afs_vnodeid_t;
 typedef unsigned long long		afs_dataversion_t;
 
-typedef enum {
+typedef enum
+{
 	AFSVL_RWVOL,			/* read/write volume */
 	AFSVL_ROVOL,			/* read-only volume */
 	AFSVL_BACKVOL,			/* backup volume */
 } __attribute__((packed)) afs_voltype_t;
 
-typedef enum {
+typedef enum
+{
 	AFS_FTYPE_INVALID	= 0,
 	AFS_FTYPE_FILE		= 1,
 	AFS_FTYPE_DIR		= 2,
 	AFS_FTYPE_SYMLINK	= 3,
 } afs_file_type_t;
 
-typedef enum {
+typedef enum
+{
 	AFS_LOCK_READ		= 0,	/* read lock request */
 	AFS_LOCK_WRITE		= 1,	/* write lock request */
 } afs_lock_type_t;
@@ -47,7 +50,8 @@ typedef enum {
 /*
  * AFS file identifier
  */
-struct afs_fid {
+struct afs_fid
+{
 	afs_volid_t	vid;		/* volume ID */
 	afs_vnodeid_t	vnode;		/* file index within volume */
 	unsigned	unique;		/* unique ID number (file index version) */
@@ -56,14 +60,16 @@ struct afs_fid {
 /*
  * AFS callback notification
  */
-typedef enum {
+typedef enum
+{
 	AFSCM_CB_UNTYPED	= 0,	/* no type set on CB break */
 	AFSCM_CB_EXCLUSIVE	= 1,	/* CB exclusive to CM [not implemented] */
 	AFSCM_CB_SHARED		= 2,	/* CB shared by other CM's */
 	AFSCM_CB_DROPPED	= 3,	/* CB promise cancelled by file server */
 } afs_callback_type_t;
 
-struct afs_callback {
+struct afs_callback
+{
 	struct afs_fid		fid;		/* file identifier */
 	unsigned		version;	/* callback version */
 	unsigned		expiry;		/* time at which expires */
@@ -75,14 +81,16 @@ struct afs_callback {
 /*
  * AFS volume information
  */
-struct afs_volume_info {
+struct afs_volume_info
+{
 	afs_volid_t		vid;		/* volume ID */
 	afs_voltype_t		type;		/* type of this volume */
 	afs_volid_t		type_vids[5];	/* volume ID's for possible types for this vol */
 
 	/* list of fileservers serving this volume */
 	size_t			nservers;	/* number of entries used in servers[] */
-	struct {
+	struct
+	{
 		struct in_addr	addr;		/* fileserver address */
 	} servers[8];
 };
@@ -110,7 +118,8 @@ typedef u32 afs_access_t;
 /*
  * AFS file status information
  */
-struct afs_file_status {
+struct afs_file_status
+{
 	unsigned		if_version;	/* interface version */
 #define AFS_FSTATUS_VERSION	1
 
@@ -143,14 +152,16 @@ struct afs_file_status {
 /*
  * AFS volume synchronisation information
  */
-struct afs_volsync {
+struct afs_volsync
+{
 	time_t			creation;	/* volume creation time */
 };
 
 /*
  * AFS volume status record
  */
-struct afs_volume_status {
+struct afs_volume_status
+{
 	u32			vid;		/* volume ID */
 	u32			parent_id;	/* parent volume ID */
 	u8			online;		/* true if volume currently online and available */

@@ -13,7 +13,8 @@
    To be compatible with 2.4 userspace which didn't have an easy way to get
    this information.
 */
-struct iowarrior_info {
+struct iowarrior_info
+{
 	/* vendor id : supposed to be USB_VENDOR_ID_CODEMERCS in all cases */
 	__u32 vendor;
 	/* product id : depends on type of chip (USB_DEVICE_ID_CODEMERCS_X) */

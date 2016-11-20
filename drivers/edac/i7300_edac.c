@@ -69,28 +69,32 @@
 #define to_channel(ch, branch)	((((branch)) << 1) | (ch))
 
 #define to_csrow(slot, ch, branch)					\
-		(to_channel(ch, branch) | ((slot) << 2))
+	(to_channel(ch, branch) | ((slot) << 2))
 
 /* Device name and register DID (Device ID) */
-struct i7300_dev_info {
+struct i7300_dev_info
+{
 	const char *ctl_name;	/* name for this device */
 	u16 fsb_mapping_errors;	/* DID for the branchmap,control */
 };
 
 /* Table of devices attributes supported by this driver */
-static const struct i7300_dev_info i7300_devs[] = {
+static const struct i7300_dev_info i7300_devs[] =
+{
 	{
 		.ctl_name = "I7300",
 		.fsb_mapping_errors = PCI_DEVICE_ID_INTEL_I7300_MCH_ERR,
 	},
 };
 
-struct i7300_dimm_info {
+struct i7300_dimm_info
+{
 	int megabytes;		/* size, 0 means not present  */
 };
 
 /* driver private data structure */
-struct i7300_pvt {
+struct i7300_pvt
+{
 	struct pci_dev *pci_dev_16_0_fsb_ctlr;		/* 16.0 */
 	struct pci_dev *pci_dev_16_1_fsb_addr_map;	/* 16.1 */
 	struct pci_dev *pci_dev_16_2_fsb_err_regs;	/* 16.2 */
@@ -127,20 +131,20 @@ static struct edac_pci_ctl_info *i7300_pci;
  * Function 1: Memory Branch Map, Control, Errors Register
  */
 
-	/* OFFSETS for Function 0 */
+/* OFFSETS for Function 0 */
 #define AMBASE			0x48 /* AMB Mem Mapped Reg Region Base */
 #define MAXCH			0x56 /* Max Channel Number */
 #define MAXDIMMPERCH		0x57 /* Max DIMM PER Channel Number */
 
-	/* OFFSETS for Function 1 */
+/* OFFSETS for Function 1 */
 #define MC_SETTINGS		0x40
-  #define IS_MIRRORED(mc)		((mc) & (1 << 16))
-  #define IS_ECC_ENABLED(mc)		((mc) & (1 << 5))
-  #define IS_RETRY_ENABLED(mc)		((mc) & (1 << 31))
-  #define IS_SCRBALGO_ENHANCED(mc)	((mc) & (1 << 8))
+#define IS_MIRRORED(mc)		((mc) & (1 << 16))
+#define IS_ECC_ENABLED(mc)		((mc) & (1 << 5))
+#define IS_RETRY_ENABLED(mc)		((mc) & (1 << 31))
+#define IS_SCRBALGO_ENHANCED(mc)	((mc) & (1 << 8))
 
 #define MC_SETTINGS_A		0x58
-  #define IS_SINGLE_MODE(mca)		((mca) & (1 << 14))
+#define IS_SINGLE_MODE(mca)		((mca) & (1 << 14))
 
 #define TOLM			0x6C
 
@@ -162,7 +166,8 @@ static struct edac_pci_ctl_info *i7300_pci;
 #define AMBPRESENT_0	0x64
 #define AMBPRESENT_1	0x66
 
-static const u16 mtr_regs[MAX_SLOTS] = {
+static const u16 mtr_regs[MAX_SLOTS] =
+{
 	0x80, 0x84, 0x88, 0x8c,
 	0x82, 0x86, 0x8a, 0x8e
 };
@@ -190,18 +195,20 @@ static const u16 mtr_regs[MAX_SLOTS] = {
  * Device 16.1: FBD Error Registers
  */
 #define FERR_FAT_FBD	0x98
-static const char *ferr_fat_fbd_name[] = {
+static const char *ferr_fat_fbd_name[] =
+{
 	[22] = "Non-Redundant Fast Reset Timeout",
 	[2]  = ">Tmid Thermal event with intelligent throttling disabled",
 	[1]  = "Memory or FBD configuration CRC read error",
 	[0]  = "Memory Write error on non-redundant retry or "
-	       "FBD configuration Write error on retry",
+	"FBD configuration Write error on retry",
 };
 #define GET_FBD_FAT_IDX(fbderr)	(((fbderr) >> 28) & 3)
 #define FERR_FAT_FBD_ERR_MASK ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 22))
 
 #define FERR_NF_FBD	0xa0
-static const char *ferr_nf_fbd_name[] = {
+static const char *ferr_nf_fbd_name[] =
+{
 	[24] = "DIMM-Spare Copy Completed",
 	[23] = "DIMM-Spare Copy Initiated",
 	[22] = "Redundant Fast Reset Timeout",
@@ -227,27 +234,28 @@ static const char *ferr_nf_fbd_name[] = {
 };
 #define GET_FBD_NF_IDX(fbderr)	(((fbderr) >> 28) & 3)
 #define FERR_NF_FBD_ERR_MASK ((1 << 24) | (1 << 23) | (1 << 22) | (1 << 21) |\
-			      (1 << 18) | (1 << 17) | (1 << 16) | (1 << 15) |\
-			      (1 << 14) | (1 << 13) | (1 << 11) | (1 << 10) |\
-			      (1 << 9)  | (1 << 8)  | (1 << 7)  | (1 << 6)  |\
-			      (1 << 5)  | (1 << 4)  | (1 << 3)  | (1 << 2)  |\
-			      (1 << 1)  | (1 << 0))
+							  (1 << 18) | (1 << 17) | (1 << 16) | (1 << 15) |\
+							  (1 << 14) | (1 << 13) | (1 << 11) | (1 << 10) |\
+							  (1 << 9)  | (1 << 8)  | (1 << 7)  | (1 << 6)  |\
+							  (1 << 5)  | (1 << 4)  | (1 << 3)  | (1 << 2)  |\
+							  (1 << 1)  | (1 << 0))
 
 #define EMASK_FBD	0xa8
 #define EMASK_FBD_ERR_MASK ((1 << 27) | (1 << 26) | (1 << 25) | (1 << 24) |\
-			    (1 << 22) | (1 << 21) | (1 << 20) | (1 << 19) |\
-			    (1 << 18) | (1 << 17) | (1 << 16) | (1 << 14) |\
-			    (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) |\
-			    (1 << 9)  | (1 << 8)  | (1 << 7)  | (1 << 6)  |\
-			    (1 << 5)  | (1 << 4)  | (1 << 3)  | (1 << 2)  |\
-			    (1 << 1)  | (1 << 0))
+							(1 << 22) | (1 << 21) | (1 << 20) | (1 << 19) |\
+							(1 << 18) | (1 << 17) | (1 << 16) | (1 << 14) |\
+							(1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) |\
+							(1 << 9)  | (1 << 8)  | (1 << 7)  | (1 << 6)  |\
+							(1 << 5)  | (1 << 4)  | (1 << 3)  | (1 << 2)  |\
+							(1 << 1)  | (1 << 0))
 
 /*
  * Device 16.2: Global Error Registers
  */
 
 #define FERR_GLOBAL_HI	0x48
-static const char *ferr_global_hi_name[] = {
+static const char *ferr_global_hi_name[] =
+{
 	[3] = "FSB 3 Fatal Error",
 	[2] = "FSB 2 Fatal Error",
 	[1] = "FSB 1 Fatal Error",
@@ -256,7 +264,8 @@ static const char *ferr_global_hi_name[] = {
 #define ferr_global_hi_is_fatal(errno)	1
 
 #define FERR_GLOBAL_LO	0x40
-static const char *ferr_global_lo_name[] = {
+static const char *ferr_global_lo_name[] =
+{
 	[31] = "Internal MCH Fatal Error",
 	[30] = "Intel QuickData Technology Device Fatal Error",
 	[29] = "FSB1 Fatal Error",
@@ -293,27 +302,27 @@ static const char *ferr_global_lo_name[] = {
 #define ferr_global_lo_is_fatal(errno)	((errno < 16) ? 0 : 1)
 
 #define NRECMEMA	0xbe
-  #define NRECMEMA_BANK(v)	(((v) >> 12) & 7)
-  #define NRECMEMA_RANK(v)	(((v) >> 8) & 15)
+#define NRECMEMA_BANK(v)	(((v) >> 12) & 7)
+#define NRECMEMA_RANK(v)	(((v) >> 8) & 15)
 
 #define NRECMEMB	0xc0
-  #define NRECMEMB_IS_WR(v)	((v) & (1 << 31))
-  #define NRECMEMB_CAS(v)	(((v) >> 16) & 0x1fff)
-  #define NRECMEMB_RAS(v)	((v) & 0xffff)
+#define NRECMEMB_IS_WR(v)	((v) & (1 << 31))
+#define NRECMEMB_CAS(v)	(((v) >> 16) & 0x1fff)
+#define NRECMEMB_RAS(v)	((v) & 0xffff)
 
 #define REDMEMA		0xdc
 
 #define REDMEMB		0x7c
-  #define IS_SECOND_CH(v)	((v) * (1 << 17))
+#define IS_SECOND_CH(v)	((v) * (1 << 17))
 
 #define RECMEMA		0xe0
-  #define RECMEMA_BANK(v)	(((v) >> 12) & 7)
-  #define RECMEMA_RANK(v)	(((v) >> 8) & 15)
+#define RECMEMA_BANK(v)	(((v) >> 12) & 7)
+#define RECMEMA_RANK(v)	(((v) >> 8) & 15)
 
 #define RECMEMB		0xe4
-  #define RECMEMB_IS_WR(v)	((v) & (1 << 31))
-  #define RECMEMB_CAS(v)	(((v) >> 16) & 0x1fff)
-  #define RECMEMB_RAS(v)	((v) & 0xffff)
+#define RECMEMB_IS_WR(v)	((v) & (1 << 31))
+#define RECMEMB_CAS(v)	(((v) >> 16) & 0x1fff)
+#define RECMEMB_RAS(v)	((v) & 0xffff)
 
 /********************************************
  * i7300 Functions related to error detection
@@ -334,10 +343,14 @@ static const char *ferr_global_lo_name[] = {
 static const char *get_err_from_table(const char *table[], int size, int pos)
 {
 	if (unlikely(pos >= size))
+	{
 		return "Reserved";
+	}
 
 	if (unlikely(!table[pos]))
+	{
 		return "Reserved";
+	}
 
 	return table[pos];
 }
@@ -363,41 +376,46 @@ static void i7300_process_error_global(struct mem_ctl_info *mci)
 
 	/* read in the 1st FATAL error register */
 	pci_read_config_dword(pvt->pci_dev_16_2_fsb_err_regs,
-			      FERR_GLOBAL_HI, &error_reg);
-	if (unlikely(error_reg)) {
+						  FERR_GLOBAL_HI, &error_reg);
+
+	if (unlikely(error_reg))
+	{
 		errors = error_reg;
 		errnum = find_first_bit(&errors,
-					ARRAY_SIZE(ferr_global_hi_name));
+								ARRAY_SIZE(ferr_global_hi_name));
 		specific = GET_ERR_FROM_TABLE(ferr_global_hi_name, errnum);
 		is_fatal = ferr_global_hi_is_fatal(errnum);
 
 		/* Clear the error bit */
 		pci_write_config_dword(pvt->pci_dev_16_2_fsb_err_regs,
-				       FERR_GLOBAL_HI, error_reg);
+							   FERR_GLOBAL_HI, error_reg);
 
 		goto error_global;
 	}
 
 	pci_read_config_dword(pvt->pci_dev_16_2_fsb_err_regs,
-			      FERR_GLOBAL_LO, &error_reg);
-	if (unlikely(error_reg)) {
+						  FERR_GLOBAL_LO, &error_reg);
+
+	if (unlikely(error_reg))
+	{
 		errors = error_reg;
 		errnum = find_first_bit(&errors,
-					ARRAY_SIZE(ferr_global_lo_name));
+								ARRAY_SIZE(ferr_global_lo_name));
 		specific = GET_ERR_FROM_TABLE(ferr_global_lo_name, errnum);
 		is_fatal = ferr_global_lo_is_fatal(errnum);
 
 		/* Clear the error bit */
 		pci_write_config_dword(pvt->pci_dev_16_2_fsb_err_regs,
-				       FERR_GLOBAL_LO, error_reg);
+							   FERR_GLOBAL_LO, error_reg);
 
 		goto error_global;
 	}
+
 	return;
 
 error_global:
 	i7300_mc_printk(mci, KERN_EMERG, "%s misc error: %s\n",
-			is_fatal ? "Fatal" : "NOT fatal", specific);
+					is_fatal ? "Fatal" : "NOT fatal", specific);
 }
 
 /**
@@ -422,85 +440,93 @@ static void i7300_process_fbd_error(struct mem_ctl_info *mci)
 
 	/* read in the 1st FATAL error register */
 	pci_read_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-			      FERR_FAT_FBD, &error_reg);
-	if (unlikely(error_reg & FERR_FAT_FBD_ERR_MASK)) {
+						  FERR_FAT_FBD, &error_reg);
+
+	if (unlikely(error_reg & FERR_FAT_FBD_ERR_MASK))
+	{
 		errors = error_reg & FERR_FAT_FBD_ERR_MASK ;
 		errnum = find_first_bit(&errors,
-					ARRAY_SIZE(ferr_fat_fbd_name));
+								ARRAY_SIZE(ferr_fat_fbd_name));
 		specific = GET_ERR_FROM_TABLE(ferr_fat_fbd_name, errnum);
 		branch = (GET_FBD_FAT_IDX(error_reg) == 2) ? 1 : 0;
 
 		pci_read_config_word(pvt->pci_dev_16_1_fsb_addr_map,
-				     NRECMEMA, &val16);
+							 NRECMEMA, &val16);
 		bank = NRECMEMA_BANK(val16);
 		rank = NRECMEMA_RANK(val16);
 
 		pci_read_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-				NRECMEMB, &value);
+							  NRECMEMB, &value);
 		is_wr = NRECMEMB_IS_WR(value);
 		cas = NRECMEMB_CAS(value);
 		ras = NRECMEMB_RAS(value);
 
 		/* Clean the error register */
 		pci_write_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-				FERR_FAT_FBD, error_reg);
+							   FERR_FAT_FBD, error_reg);
 
 		snprintf(pvt->tmp_prt_buffer, PAGE_SIZE,
-			 "Bank=%d RAS=%d CAS=%d Err=0x%lx (%s))",
-			 bank, ras, cas, errors, specific);
+				 "Bank=%d RAS=%d CAS=%d Err=0x%lx (%s))",
+				 bank, ras, cas, errors, specific);
 
 		edac_mc_handle_error(HW_EVENT_ERR_FATAL, mci, 1, 0, 0, 0,
-				     branch, -1, rank,
-				     is_wr ? "Write error" : "Read error",
-				     pvt->tmp_prt_buffer);
+							 branch, -1, rank,
+							 is_wr ? "Write error" : "Read error",
+							 pvt->tmp_prt_buffer);
 
 	}
 
 	/* read in the 1st NON-FATAL error register */
 	pci_read_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-			      FERR_NF_FBD, &error_reg);
-	if (unlikely(error_reg & FERR_NF_FBD_ERR_MASK)) {
+						  FERR_NF_FBD, &error_reg);
+
+	if (unlikely(error_reg & FERR_NF_FBD_ERR_MASK))
+	{
 		errors = error_reg & FERR_NF_FBD_ERR_MASK;
 		errnum = find_first_bit(&errors,
-					ARRAY_SIZE(ferr_nf_fbd_name));
+								ARRAY_SIZE(ferr_nf_fbd_name));
 		specific = GET_ERR_FROM_TABLE(ferr_nf_fbd_name, errnum);
 		branch = (GET_FBD_NF_IDX(error_reg) == 2) ? 1 : 0;
 
 		pci_read_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-			REDMEMA, &syndrome);
+							  REDMEMA, &syndrome);
 
 		pci_read_config_word(pvt->pci_dev_16_1_fsb_addr_map,
-				     RECMEMA, &val16);
+							 RECMEMA, &val16);
 		bank = RECMEMA_BANK(val16);
 		rank = RECMEMA_RANK(val16);
 
 		pci_read_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-				RECMEMB, &value);
+							  RECMEMB, &value);
 		is_wr = RECMEMB_IS_WR(value);
 		cas = RECMEMB_CAS(value);
 		ras = RECMEMB_RAS(value);
 
 		pci_read_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-				     REDMEMB, &value);
+							  REDMEMB, &value);
 		channel = (branch << 1);
+
 		if (IS_SECOND_CH(value))
+		{
 			channel++;
+		}
 
 		/* Clear the error bit */
 		pci_write_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-				FERR_NF_FBD, error_reg);
+							   FERR_NF_FBD, error_reg);
 
 		/* Form out message */
 		snprintf(pvt->tmp_prt_buffer, PAGE_SIZE,
-			 "DRAM-Bank=%d RAS=%d CAS=%d, Err=0x%lx (%s))",
-			 bank, ras, cas, errors, specific);
+				 "DRAM-Bank=%d RAS=%d CAS=%d, Err=0x%lx (%s))",
+				 bank, ras, cas, errors, specific);
 
 		edac_mc_handle_error(HW_EVENT_ERR_CORRECTED, mci, 1, 0, 0,
-				     syndrome,
-				     branch >> 1, channel % 2, rank,
-				     is_wr ? "Write error" : "Read error",
-				     pvt->tmp_prt_buffer);
+							 syndrome,
+							 branch >> 1, channel % 2, rank,
+							 is_wr ? "Write error" : "Read error",
+							 pvt->tmp_prt_buffer);
 	}
+
 	return;
 }
 
@@ -529,25 +555,25 @@ static void i7300_clear_error(struct mem_ctl_info *mci)
 
 	/* Clear global error registers */
 	pci_read_config_dword(pvt->pci_dev_16_2_fsb_err_regs,
-			      FERR_GLOBAL_HI, &value);
+						  FERR_GLOBAL_HI, &value);
 	pci_write_config_dword(pvt->pci_dev_16_2_fsb_err_regs,
-			      FERR_GLOBAL_HI, value);
+						   FERR_GLOBAL_HI, value);
 
 	pci_read_config_dword(pvt->pci_dev_16_2_fsb_err_regs,
-			      FERR_GLOBAL_LO, &value);
+						  FERR_GLOBAL_LO, &value);
 	pci_write_config_dword(pvt->pci_dev_16_2_fsb_err_regs,
-			      FERR_GLOBAL_LO, value);
+						   FERR_GLOBAL_LO, value);
 
 	/* Clear FBD error registers */
 	pci_read_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-			      FERR_FAT_FBD, &value);
+						  FERR_FAT_FBD, &value);
 	pci_write_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-			      FERR_FAT_FBD, value);
+						   FERR_FAT_FBD, value);
 
 	pci_read_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-			      FERR_NF_FBD, &value);
+						  FERR_NF_FBD, &value);
 	pci_write_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-			      FERR_NF_FBD, value);
+						   FERR_NF_FBD, value);
 }
 
 /**
@@ -562,13 +588,13 @@ static void i7300_enable_error_reporting(struct mem_ctl_info *mci)
 
 	/* Read the FBD Error Mask Register */
 	pci_read_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-			      EMASK_FBD, &fbd_error_mask);
+						  EMASK_FBD, &fbd_error_mask);
 
 	/* Enable with a '0' */
 	fbd_error_mask &= ~(EMASK_FBD_ERR_MASK);
 
 	pci_write_config_dword(pvt->pci_dev_16_1_fsb_addr_map,
-			       EMASK_FBD, fbd_error_mask);
+						   EMASK_FBD, fbd_error_mask);
 }
 
 /************************************************
@@ -585,9 +611,9 @@ static void i7300_enable_error_reporting(struct mem_ctl_info *mci)
  * @p_csrow: Pointer to the struct csrow_info that corresponds to that element
  */
 static int decode_mtr(struct i7300_pvt *pvt,
-		      int slot, int ch, int branch,
-		      struct i7300_dimm_info *dinfo,
-		      struct dimm_info *dimm)
+					  int slot, int ch, int branch,
+					  struct i7300_dimm_info *dinfo,
+					  struct dimm_info *dimm)
 {
 	int mtr, ans, addrBits, channel;
 
@@ -597,11 +623,13 @@ static int decode_mtr(struct i7300_pvt *pvt,
 	ans = MTR_DIMMS_PRESENT(mtr) ? 1 : 0;
 
 	edac_dbg(2, "\tMTR%d CH%d: DIMMs are %sPresent (mtr)\n",
-		 slot, channel, ans ? "" : "NOT ");
+			 slot, channel, ans ? "" : "NOT ");
 
 	/* Determine if there is a DIMM present in this DIMM slot */
 	if (!ans)
+	{
 		return 0;
+	}
 
 	/* Start with the number of bits for a Bank
 	* on the DRAM */
@@ -622,21 +650,21 @@ static int decode_mtr(struct i7300_pvt *pvt,
 	edac_dbg(2, "\t\tWIDTH: x%d\n", MTR_DRAM_WIDTH(mtr));
 
 	edac_dbg(2, "\t\tELECTRICAL THROTTLING is %s\n",
-		 MTR_DIMMS_ETHROTTLE(mtr) ? "enabled" : "disabled");
+			 MTR_DIMMS_ETHROTTLE(mtr) ? "enabled" : "disabled");
 
 	edac_dbg(2, "\t\tNUMBANK: %d bank(s)\n", MTR_DRAM_BANKS(mtr));
 	edac_dbg(2, "\t\tNUMRANK: %s\n",
-		 MTR_DIMM_RANKS(mtr) ? "double" : "single");
+			 MTR_DIMM_RANKS(mtr) ? "double" : "single");
 	edac_dbg(2, "\t\tNUMROW: %s\n",
-		 MTR_DIMM_ROWS(mtr) == 0 ? "8,192 - 13 rows" :
-		 MTR_DIMM_ROWS(mtr) == 1 ? "16,384 - 14 rows" :
-		 MTR_DIMM_ROWS(mtr) == 2 ? "32,768 - 15 rows" :
-		 "65,536 - 16 rows");
+			 MTR_DIMM_ROWS(mtr) == 0 ? "8,192 - 13 rows" :
+			 MTR_DIMM_ROWS(mtr) == 1 ? "16,384 - 14 rows" :
+			 MTR_DIMM_ROWS(mtr) == 2 ? "32,768 - 15 rows" :
+			 "65,536 - 16 rows");
 	edac_dbg(2, "\t\tNUMCOL: %s\n",
-		 MTR_DIMM_COLS(mtr) == 0 ? "1,024 - 10 columns" :
-		 MTR_DIMM_COLS(mtr) == 1 ? "2,048 - 11 columns" :
-		 MTR_DIMM_COLS(mtr) == 2 ? "4,096 - 12 columns" :
-		 "reserved");
+			 MTR_DIMM_COLS(mtr) == 0 ? "1,024 - 10 columns" :
+			 MTR_DIMM_COLS(mtr) == 1 ? "2,048 - 11 columns" :
+			 MTR_DIMM_COLS(mtr) == 2 ? "4,096 - 12 columns" :
+			 "reserved");
 	edac_dbg(2, "\t\tSIZE: %d MB\n", dinfo->megabytes);
 
 	/*
@@ -651,26 +679,39 @@ static int decode_mtr(struct i7300_pvt *pvt,
 	dimm->nr_pages = MiB_TO_PAGES(dinfo->megabytes);
 	dimm->grain = 8;
 	dimm->mtype = MEM_FB_DDR2;
-	if (IS_SINGLE_MODE(pvt->mc_settings_a)) {
+
+	if (IS_SINGLE_MODE(pvt->mc_settings_a))
+	{
 		dimm->edac_mode = EDAC_SECDED;
 		edac_dbg(2, "\t\tECC code is 8-byte-over-32-byte SECDED+ code\n");
-	} else {
+	}
+	else
+	{
 		edac_dbg(2, "\t\tECC code is on Lockstep mode\n");
+
 		if (MTR_DRAM_WIDTH(mtr) == 8)
+		{
 			dimm->edac_mode = EDAC_S8ECD8ED;
+		}
 		else
+		{
 			dimm->edac_mode = EDAC_S4ECD4ED;
+		}
 	}
 
 	/* ask what device type on this row */
-	if (MTR_DRAM_WIDTH(mtr) == 8) {
+	if (MTR_DRAM_WIDTH(mtr) == 8)
+	{
 		edac_dbg(2, "\t\tScrub algorithm for x8 is on %s mode\n",
-			 IS_SCRBALGO_ENHANCED(pvt->mc_settings) ?
-			 "enhanced" : "normal");
+				 IS_SCRBALGO_ENHANCED(pvt->mc_settings) ?
+				 "enhanced" : "normal");
 
 		dimm->dtype = DEV_X8;
-	} else
+	}
+	else
+	{
 		dimm->dtype = DEV_X4;
+	}
 
 	return mtr;
 }
@@ -695,28 +736,33 @@ static void print_dimm_size(struct i7300_pvt *pvt)
 	n = snprintf(p, space, "              ");
 	p += n;
 	space -= n;
-	for (channel = 0; channel < MAX_CHANNELS; channel++) {
+
+	for (channel = 0; channel < MAX_CHANNELS; channel++)
+	{
 		n = snprintf(p, space, "channel %d | ", channel);
 		p += n;
 		space -= n;
 	}
+
 	edac_dbg(2, "%s\n", pvt->tmp_prt_buffer);
 	p = pvt->tmp_prt_buffer;
 	space = PAGE_SIZE;
 	n = snprintf(p, space, "-------------------------------"
-			       "------------------------------");
+				 "------------------------------");
 	p += n;
 	space -= n;
 	edac_dbg(2, "%s\n", pvt->tmp_prt_buffer);
 	p = pvt->tmp_prt_buffer;
 	space = PAGE_SIZE;
 
-	for (slot = 0; slot < MAX_SLOTS; slot++) {
+	for (slot = 0; slot < MAX_SLOTS; slot++)
+	{
 		n = snprintf(p, space, "csrow/SLOT %d  ", slot);
 		p += n;
 		space -= n;
 
-		for (channel = 0; channel < MAX_CHANNELS; channel++) {
+		for (channel = 0; channel < MAX_CHANNELS; channel++)
+		{
 			dinfo = &pvt->dimm_info[slot][channel];
 			n = snprintf(p, space, "%4d MB   | ", dinfo->megabytes);
 			p += n;
@@ -729,7 +775,7 @@ static void print_dimm_size(struct i7300_pvt *pvt)
 	}
 
 	n = snprintf(p, space, "-------------------------------"
-			       "------------------------------");
+				 "------------------------------");
 	p += n;
 	space -= n;
 	edac_dbg(2, "%s\n", pvt->tmp_prt_buffer);
@@ -757,56 +803,69 @@ static int i7300_init_csrows(struct mem_ctl_info *mci)
 
 	edac_dbg(2, "Memory Technology Registers:\n");
 
-	if (IS_SINGLE_MODE(pvt->mc_settings_a)) {
+	if (IS_SINGLE_MODE(pvt->mc_settings_a))
+	{
 		max_branch = 1;
 		max_channel = 1;
-	} else {
+	}
+	else
+	{
 		max_branch = MAX_BRANCHES;
 		max_channel = MAX_CH_PER_BRANCH;
 	}
 
 	/* Get the AMB present registers for the four channels */
-	for (branch = 0; branch < max_branch; branch++) {
+	for (branch = 0; branch < max_branch; branch++)
+	{
 		/* Read and dump branch 0's MTRs */
 		channel = to_channel(0, branch);
 		pci_read_config_word(pvt->pci_dev_2x_0_fbd_branch[branch],
-				     AMBPRESENT_0,
-				&pvt->ambpresent[channel]);
+							 AMBPRESENT_0,
+							 &pvt->ambpresent[channel]);
 		edac_dbg(2, "\t\tAMB-present CH%d = 0x%x:\n",
-			 channel, pvt->ambpresent[channel]);
+				 channel, pvt->ambpresent[channel]);
 
 		if (max_channel == 1)
+		{
 			continue;
+		}
 
 		channel = to_channel(1, branch);
 		pci_read_config_word(pvt->pci_dev_2x_0_fbd_branch[branch],
-				     AMBPRESENT_1,
-				&pvt->ambpresent[channel]);
+							 AMBPRESENT_1,
+							 &pvt->ambpresent[channel]);
 		edac_dbg(2, "\t\tAMB-present CH%d = 0x%x:\n",
-			 channel, pvt->ambpresent[channel]);
+				 channel, pvt->ambpresent[channel]);
 	}
 
 	/* Get the set of MTR[0-7] regs by each branch */
-	for (slot = 0; slot < MAX_SLOTS; slot++) {
+	for (slot = 0; slot < MAX_SLOTS; slot++)
+	{
 		int where = mtr_regs[slot];
-		for (branch = 0; branch < max_branch; branch++) {
+
+		for (branch = 0; branch < max_branch; branch++)
+		{
 			pci_read_config_word(pvt->pci_dev_2x_0_fbd_branch[branch],
-					where,
-					&pvt->mtr[slot][branch]);
-			for (ch = 0; ch < max_channel; ch++) {
+								 where,
+								 &pvt->mtr[slot][branch]);
+
+			for (ch = 0; ch < max_channel; ch++)
+			{
 				int channel = to_channel(ch, branch);
 
 				dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms,
-					       mci->n_layers, branch, ch, slot);
+									 mci->n_layers, branch, ch, slot);
 
 				dinfo = &pvt->dimm_info[slot][channel];
 
 				mtr = decode_mtr(pvt, slot, ch, branch,
-						 dinfo, dimm);
+								 dinfo, dimm);
 
 				/* if no DIMMS on this row, continue */
 				if (!MTR_DIMMS_PRESENT(mtr))
+				{
 					continue;
+				}
 
 				rc = 0;
 
@@ -826,10 +885,10 @@ static void decode_mir(int mir_no, u16 mir[MAX_MIR])
 {
 	if (mir[mir_no] & 3)
 		edac_dbg(2, "MIR%d: limit= 0x%x Branch(es) that participate: %s %s\n",
-			 mir_no,
-			 (mir[mir_no] >> 4) & 0xfff,
-			 (mir[mir_no] & 1) ? "B0" : "",
-			 (mir[mir_no] & 2) ? "B1" : "");
+				 mir_no,
+				 (mir[mir_no] >> 4) & 0xfff,
+				 (mir[mir_no] & 1) ? "B0" : "",
+				 (mir[mir_no] & 2) ? "B1" : "");
 }
 
 /**
@@ -847,7 +906,7 @@ static int i7300_get_mc_regs(struct mem_ctl_info *mci)
 	pvt = mci->pvt_info;
 
 	pci_read_config_dword(pvt->pci_dev_16_0_fsb_ctlr, AMBASE,
-			(u32 *) &pvt->ambase);
+						  (u32 *) &pvt->ambase);
 
 	edac_dbg(2, "AMBASE= 0x%lx\n", (long unsigned int)pvt->ambase);
 
@@ -855,44 +914,51 @@ static int i7300_get_mc_regs(struct mem_ctl_info *mci)
 	pci_read_config_word(pvt->pci_dev_16_1_fsb_addr_map, TOLM, &pvt->tolm);
 	pvt->tolm >>= 12;
 	edac_dbg(2, "TOLM (number of 256M regions) =%u (0x%x)\n",
-		 pvt->tolm, pvt->tolm);
+			 pvt->tolm, pvt->tolm);
 
 	actual_tolm = (u32) ((1000l * pvt->tolm) >> (30 - 28));
 	edac_dbg(2, "Actual TOLM byte addr=%u.%03u GB (0x%x)\n",
-		 actual_tolm/1000, actual_tolm % 1000, pvt->tolm << 28);
+			 actual_tolm / 1000, actual_tolm % 1000, pvt->tolm << 28);
 
 	/* Get memory controller settings */
 	pci_read_config_dword(pvt->pci_dev_16_1_fsb_addr_map, MC_SETTINGS,
-			     &pvt->mc_settings);
+						  &pvt->mc_settings);
 	pci_read_config_dword(pvt->pci_dev_16_1_fsb_addr_map, MC_SETTINGS_A,
-			     &pvt->mc_settings_a);
+						  &pvt->mc_settings_a);
 
 	if (IS_SINGLE_MODE(pvt->mc_settings_a))
+	{
 		edac_dbg(0, "Memory controller operating on single mode\n");
+	}
 	else
 		edac_dbg(0, "Memory controller operating on %smirrored mode\n",
-			 IS_MIRRORED(pvt->mc_settings) ? "" : "non-");
+				 IS_MIRRORED(pvt->mc_settings) ? "" : "non-");
 
 	edac_dbg(0, "Error detection is %s\n",
-		 IS_ECC_ENABLED(pvt->mc_settings) ? "enabled" : "disabled");
+			 IS_ECC_ENABLED(pvt->mc_settings) ? "enabled" : "disabled");
 	edac_dbg(0, "Retry is %s\n",
-		 IS_RETRY_ENABLED(pvt->mc_settings) ? "enabled" : "disabled");
+			 IS_RETRY_ENABLED(pvt->mc_settings) ? "enabled" : "disabled");
 
 	/* Get Memory Interleave Range registers */
 	pci_read_config_word(pvt->pci_dev_16_1_fsb_addr_map, MIR0,
-			     &pvt->mir[0]);
+						 &pvt->mir[0]);
 	pci_read_config_word(pvt->pci_dev_16_1_fsb_addr_map, MIR1,
-			     &pvt->mir[1]);
+						 &pvt->mir[1]);
 	pci_read_config_word(pvt->pci_dev_16_1_fsb_addr_map, MIR2,
-			     &pvt->mir[2]);
+						 &pvt->mir[2]);
 
 	/* Decode the MIR regs */
 	for (i = 0; i < MAX_MIR; i++)
+	{
 		decode_mir(i, pvt->mir);
+	}
 
 	rc = i7300_init_csrows(mci);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* Go and determine the size of each DIMM and place in an
 	 * orderly matrix */
@@ -918,7 +984,10 @@ static void i7300_put_devices(struct mem_ctl_info *mci)
 
 	/* Decrement usage count for devices */
 	for (branch = 0; branch < MAX_CH_PER_BRANCH; branch++)
+	{
 		pci_dev_put(pvt->pci_dev_2x_0_fbd_branch[branch]);
+	}
+
 	pci_dev_put(pvt->pci_dev_16_2_fsb_err_regs);
 	pci_dev_put(pvt->pci_dev_16_1_fsb_addr_map);
 }
@@ -943,69 +1012,80 @@ static int i7300_get_devices(struct mem_ctl_info *mci)
 
 	/* Attempt to 'get' the MCH register we want */
 	pdev = NULL;
+
 	while ((pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
-				      PCI_DEVICE_ID_INTEL_I7300_MCH_ERR,
-				      pdev))) {
+								  PCI_DEVICE_ID_INTEL_I7300_MCH_ERR,
+								  pdev)))
+	{
 		/* Store device 16 funcs 1 and 2 */
-		switch (PCI_FUNC(pdev->devfn)) {
-		case 1:
-			if (!pvt->pci_dev_16_1_fsb_addr_map)
-				pvt->pci_dev_16_1_fsb_addr_map =
-							pci_dev_get(pdev);
-			break;
-		case 2:
-			if (!pvt->pci_dev_16_2_fsb_err_regs)
-				pvt->pci_dev_16_2_fsb_err_regs =
-							pci_dev_get(pdev);
-			break;
+		switch (PCI_FUNC(pdev->devfn))
+		{
+			case 1:
+				if (!pvt->pci_dev_16_1_fsb_addr_map)
+					pvt->pci_dev_16_1_fsb_addr_map =
+						pci_dev_get(pdev);
+
+				break;
+
+			case 2:
+				if (!pvt->pci_dev_16_2_fsb_err_regs)
+					pvt->pci_dev_16_2_fsb_err_regs =
+						pci_dev_get(pdev);
+
+				break;
 		}
 	}
 
 	if (!pvt->pci_dev_16_1_fsb_addr_map ||
-	    !pvt->pci_dev_16_2_fsb_err_regs) {
+		!pvt->pci_dev_16_2_fsb_err_regs)
+	{
 		/* At least one device was not found */
 		i7300_printk(KERN_ERR,
-			"'system address,Process Bus' device not found:"
-			"vendor 0x%x device 0x%x ERR funcs (broken BIOS?)\n",
-			PCI_VENDOR_ID_INTEL,
-			PCI_DEVICE_ID_INTEL_I7300_MCH_ERR);
+					 "'system address,Process Bus' device not found:"
+					 "vendor 0x%x device 0x%x ERR funcs (broken BIOS?)\n",
+					 PCI_VENDOR_ID_INTEL,
+					 PCI_DEVICE_ID_INTEL_I7300_MCH_ERR);
 		goto error;
 	}
 
 	edac_dbg(1, "System Address, processor bus- PCI Bus ID: %s  %x:%x\n",
-		 pci_name(pvt->pci_dev_16_0_fsb_ctlr),
-		 pvt->pci_dev_16_0_fsb_ctlr->vendor,
-		 pvt->pci_dev_16_0_fsb_ctlr->device);
+			 pci_name(pvt->pci_dev_16_0_fsb_ctlr),
+			 pvt->pci_dev_16_0_fsb_ctlr->vendor,
+			 pvt->pci_dev_16_0_fsb_ctlr->device);
 	edac_dbg(1, "Branchmap, control and errors - PCI Bus ID: %s  %x:%x\n",
-		 pci_name(pvt->pci_dev_16_1_fsb_addr_map),
-		 pvt->pci_dev_16_1_fsb_addr_map->vendor,
-		 pvt->pci_dev_16_1_fsb_addr_map->device);
+			 pci_name(pvt->pci_dev_16_1_fsb_addr_map),
+			 pvt->pci_dev_16_1_fsb_addr_map->vendor,
+			 pvt->pci_dev_16_1_fsb_addr_map->device);
 	edac_dbg(1, "FSB Error Regs - PCI Bus ID: %s  %x:%x\n",
-		 pci_name(pvt->pci_dev_16_2_fsb_err_regs),
-		 pvt->pci_dev_16_2_fsb_err_regs->vendor,
-		 pvt->pci_dev_16_2_fsb_err_regs->device);
+			 pci_name(pvt->pci_dev_16_2_fsb_err_regs),
+			 pvt->pci_dev_16_2_fsb_err_regs->vendor,
+			 pvt->pci_dev_16_2_fsb_err_regs->device);
 
 	pvt->pci_dev_2x_0_fbd_branch[0] = pci_get_device(PCI_VENDOR_ID_INTEL,
-					    PCI_DEVICE_ID_INTEL_I7300_MCH_FB0,
-					    NULL);
-	if (!pvt->pci_dev_2x_0_fbd_branch[0]) {
+									  PCI_DEVICE_ID_INTEL_I7300_MCH_FB0,
+									  NULL);
+
+	if (!pvt->pci_dev_2x_0_fbd_branch[0])
+	{
 		i7300_printk(KERN_ERR,
-			"MC: 'BRANCH 0' device not found:"
-			"vendor 0x%x device 0x%x Func 0 (broken BIOS?)\n",
-			PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_I7300_MCH_FB0);
+					 "MC: 'BRANCH 0' device not found:"
+					 "vendor 0x%x device 0x%x Func 0 (broken BIOS?)\n",
+					 PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_I7300_MCH_FB0);
 		goto error;
 	}
 
 	pvt->pci_dev_2x_0_fbd_branch[1] = pci_get_device(PCI_VENDOR_ID_INTEL,
-					    PCI_DEVICE_ID_INTEL_I7300_MCH_FB1,
-					    NULL);
-	if (!pvt->pci_dev_2x_0_fbd_branch[1]) {
+									  PCI_DEVICE_ID_INTEL_I7300_MCH_FB1,
+									  NULL);
+
+	if (!pvt->pci_dev_2x_0_fbd_branch[1])
+	{
 		i7300_printk(KERN_ERR,
-			"MC: 'BRANCH 1' device not found:"
-			"vendor 0x%x device 0x%x Func 0 "
-			"(broken BIOS?)\n",
-			PCI_VENDOR_ID_INTEL,
-			PCI_DEVICE_ID_INTEL_I7300_MCH_FB1);
+					 "MC: 'BRANCH 1' device not found:"
+					 "vendor 0x%x device 0x%x Func 0 "
+					 "(broken BIOS?)\n",
+					 PCI_VENDOR_ID_INTEL,
+					 PCI_DEVICE_ID_INTEL_I7300_MCH_FB1);
 		goto error;
 	}
 
@@ -1030,16 +1110,21 @@ static int i7300_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	/* wake up device */
 	rc = pci_enable_device(pdev);
+
 	if (rc == -EIO)
+	{
 		return rc;
+	}
 
 	edac_dbg(0, "MC: pdev bus %u dev=0x%x fn=0x%x\n",
-		 pdev->bus->number,
-		 PCI_SLOT(pdev->devfn), PCI_FUNC(pdev->devfn));
+			 pdev->bus->number,
+			 PCI_SLOT(pdev->devfn), PCI_FUNC(pdev->devfn));
 
 	/* We only are looking for func 0 of the set */
 	if (PCI_FUNC(pdev->devfn) != 0)
+	{
 		return -ENODEV;
+	}
 
 	/* allocate a new MC control structure */
 	layers[0].type = EDAC_MC_LAYER_BRANCH;
@@ -1052,8 +1137,11 @@ static int i7300_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	layers[2].size = MAX_SLOTS;
 	layers[2].is_virt_csrow = true;
 	mci = edac_mc_alloc(0, ARRAY_SIZE(layers), layers, sizeof(*pvt));
+
 	if (mci == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	edac_dbg(0, "MC: mci = %p\n", mci);
 
@@ -1063,14 +1151,18 @@ static int i7300_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	pvt->pci_dev_16_0_fsb_ctlr = pdev;	/* Record this device in our private */
 
 	pvt->tmp_prt_buffer = kmalloc(PAGE_SIZE, GFP_KERNEL);
-	if (!pvt->tmp_prt_buffer) {
+
+	if (!pvt->tmp_prt_buffer)
+	{
 		edac_mc_free(mci);
 		return -ENOMEM;
 	}
 
 	/* 'get' the pci devices we want to reserve for our use */
 	if (i7300_get_devices(mci))
+	{
 		goto fail0;
+	}
 
 	mci->mc_idx = 0;
 	mci->mtype_cap = MEM_FLAG_FB_DDR2;
@@ -1087,16 +1179,20 @@ static int i7300_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	/* initialize the MC control structure 'csrows' table
 	 * with the mapping and control information */
-	if (i7300_get_mc_regs(mci)) {
+	if (i7300_get_mc_regs(mci))
+	{
 		edac_dbg(0, "MC: Setting mci->edac_cap to EDAC_FLAG_NONE because i7300_init_csrows() returned nonzero value\n");
 		mci->edac_cap = EDAC_FLAG_NONE;	/* no csrows found */
-	} else {
+	}
+	else
+	{
 		edac_dbg(1, "MC: Enable error reporting now\n");
 		i7300_enable_error_reporting(mci);
 	}
 
 	/* add this new MC control structure to EDAC's list of MCs */
-	if (edac_mc_add_mc(mci)) {
+	if (edac_mc_add_mc(mci))
+	{
 		edac_dbg(0, "MC: failed edac_mc_add_mc()\n");
 		/* FIXME: perhaps some code should go here that disables error
 		 * reporting if we just enabled it
@@ -1108,13 +1204,15 @@ static int i7300_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	/* allocating generic PCI control info */
 	i7300_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
-	if (!i7300_pci) {
+
+	if (!i7300_pci)
+	{
 		printk(KERN_WARNING
-			"%s(): Unable to create PCI control\n",
-			__func__);
+			   "%s(): Unable to create PCI control\n",
+			   __func__);
 		printk(KERN_WARNING
-			"%s(): PCI error report via EDAC not setup\n",
-			__func__);
+			   "%s(): PCI error report via EDAC not setup\n",
+			   __func__);
 	}
 
 	return 0;
@@ -1142,11 +1240,16 @@ static void i7300_remove_one(struct pci_dev *pdev)
 	edac_dbg(0, "\n");
 
 	if (i7300_pci)
+	{
 		edac_pci_release_generic_ctl(i7300_pci);
+	}
 
 	mci = edac_mc_del_mc(&pdev->dev);
+
 	if (!mci)
+	{
 		return;
+	}
 
 	tmp = ((struct i7300_pvt *)mci->pvt_info)->tmp_prt_buffer;
 
@@ -1162,7 +1265,8 @@ static void i7300_remove_one(struct pci_dev *pdev)
  *
  * Has only 8086:360c PCI ID
  */
-static const struct pci_device_id i7300_pci_tbl[] = {
+static const struct pci_device_id i7300_pci_tbl[] =
+{
 	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_I7300_MCH_ERR)},
 	{0,}			/* 0 terminated list. */
 };
@@ -1172,7 +1276,8 @@ MODULE_DEVICE_TABLE(pci, i7300_pci_tbl);
 /*
  * i7300_driver: pci_driver structure for this module
  */
-static struct pci_driver i7300_driver = {
+static struct pci_driver i7300_driver =
+{
 	.name = "i7300_edac",
 	.probe = i7300_init_one,
 	.remove = i7300_remove_one,
@@ -1212,7 +1317,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Mauro Carvalho Chehab");
 MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com)");
 MODULE_DESCRIPTION("MC Driver for Intel I7300 memory controllers - "
-		   I7300_REVISION);
+				   I7300_REVISION);
 
 module_param(edac_op_state, int, 0444);
 MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");

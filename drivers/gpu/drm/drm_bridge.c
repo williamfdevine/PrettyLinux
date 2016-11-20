@@ -109,15 +109,21 @@ EXPORT_SYMBOL(drm_bridge_remove);
 int drm_bridge_attach(struct drm_device *dev, struct drm_bridge *bridge)
 {
 	if (!dev || !bridge)
+	{
 		return -EINVAL;
+	}
 
 	if (bridge->dev)
+	{
 		return -EBUSY;
+	}
 
 	bridge->dev = dev;
 
 	if (bridge->funcs->attach)
+	{
 		return bridge->funcs->attach(bridge);
+	}
 
 	return 0;
 }
@@ -136,13 +142,19 @@ EXPORT_SYMBOL(drm_bridge_attach);
 void drm_bridge_detach(struct drm_bridge *bridge)
 {
 	if (WARN_ON(!bridge))
+	{
 		return;
+	}
 
 	if (WARN_ON(!bridge->dev))
+	{
 		return;
+	}
 
 	if (bridge->funcs->detach)
+	{
 		bridge->funcs->detach(bridge);
+	}
 
 	bridge->dev = NULL;
 }
@@ -175,16 +187,20 @@ EXPORT_SYMBOL(drm_bridge_detach);
  * true on success, false on failure
  */
 bool drm_bridge_mode_fixup(struct drm_bridge *bridge,
-			const struct drm_display_mode *mode,
-			struct drm_display_mode *adjusted_mode)
+						   const struct drm_display_mode *mode,
+						   struct drm_display_mode *adjusted_mode)
 {
 	bool ret = true;
 
 	if (!bridge)
+	{
 		return true;
+	}
 
 	if (bridge->funcs->mode_fixup)
+	{
 		ret = bridge->funcs->mode_fixup(bridge, mode, adjusted_mode);
+	}
 
 	ret = ret && drm_bridge_mode_fixup(bridge->next, mode, adjusted_mode);
 
@@ -206,12 +222,16 @@ EXPORT_SYMBOL(drm_bridge_mode_fixup);
 void drm_bridge_disable(struct drm_bridge *bridge)
 {
 	if (!bridge)
+	{
 		return;
+	}
 
 	drm_bridge_disable(bridge->next);
 
 	if (bridge->funcs->disable)
+	{
 		bridge->funcs->disable(bridge);
+	}
 }
 EXPORT_SYMBOL(drm_bridge_disable);
 
@@ -229,10 +249,14 @@ EXPORT_SYMBOL(drm_bridge_disable);
 void drm_bridge_post_disable(struct drm_bridge *bridge)
 {
 	if (!bridge)
+	{
 		return;
+	}
 
 	if (bridge->funcs->post_disable)
+	{
 		bridge->funcs->post_disable(bridge);
+	}
 
 	drm_bridge_post_disable(bridge->next);
 }
@@ -251,14 +275,18 @@ EXPORT_SYMBOL(drm_bridge_post_disable);
  * Note: the bridge passed should be the one closest to the encoder
  */
 void drm_bridge_mode_set(struct drm_bridge *bridge,
-			struct drm_display_mode *mode,
-			struct drm_display_mode *adjusted_mode)
+						 struct drm_display_mode *mode,
+						 struct drm_display_mode *adjusted_mode)
 {
 	if (!bridge)
+	{
 		return;
+	}
 
 	if (bridge->funcs->mode_set)
+	{
 		bridge->funcs->mode_set(bridge, mode, adjusted_mode);
+	}
 
 	drm_bridge_mode_set(bridge->next, mode, adjusted_mode);
 }
@@ -278,12 +306,16 @@ EXPORT_SYMBOL(drm_bridge_mode_set);
 void drm_bridge_pre_enable(struct drm_bridge *bridge)
 {
 	if (!bridge)
+	{
 		return;
+	}
 
 	drm_bridge_pre_enable(bridge->next);
 
 	if (bridge->funcs->pre_enable)
+	{
 		bridge->funcs->pre_enable(bridge);
+	}
 }
 EXPORT_SYMBOL(drm_bridge_pre_enable);
 
@@ -301,10 +333,14 @@ EXPORT_SYMBOL(drm_bridge_pre_enable);
 void drm_bridge_enable(struct drm_bridge *bridge)
 {
 	if (!bridge)
+	{
 		return;
+	}
 
 	if (bridge->funcs->enable)
+	{
 		bridge->funcs->enable(bridge);
+	}
 
 	drm_bridge_enable(bridge->next);
 }
@@ -326,8 +362,10 @@ struct drm_bridge *of_drm_find_bridge(struct device_node *np)
 
 	mutex_lock(&bridge_lock);
 
-	list_for_each_entry(bridge, &bridge_list, list) {
-		if (bridge->of_node == np) {
+	list_for_each_entry(bridge, &bridge_list, list)
+	{
+		if (bridge->of_node == np)
+		{
 			mutex_unlock(&bridge_lock);
 			return bridge;
 		}

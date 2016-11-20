@@ -23,13 +23,15 @@
 
 #define BCM_NS_USB3_MII_MNG_TIMEOUT_US	1000	/* usecs */
 
-enum bcm_ns_family {
+enum bcm_ns_family
+{
 	BCM_NS_UNKNOWN,
 	BCM_NS_AX,
 	BCM_NS_BX,
 };
 
-struct bcm_ns_usb3 {
+struct bcm_ns_usb3
+{
 	struct device *dev;
 	enum bcm_ns_family family;
 	void __iomem *dmp;
@@ -37,7 +39,8 @@ struct bcm_ns_usb3 {
 	struct phy *phy;
 };
 
-static const struct of_device_id bcm_ns_usb3_id_table[] = {
+static const struct of_device_id bcm_ns_usb3_id_table[] =
+{
 	{
 		.compatible = "brcm,ns-ax-usb3-phy",
 		.data = (int *)BCM_NS_AX,
@@ -51,18 +54,24 @@ static const struct of_device_id bcm_ns_usb3_id_table[] = {
 MODULE_DEVICE_TABLE(of, bcm_ns_usb3_id_table);
 
 static int bcm_ns_usb3_wait_reg(struct bcm_ns_usb3 *usb3, void __iomem *addr,
-				u32 mask, u32 value, unsigned long timeout)
+								u32 mask, u32 value, unsigned long timeout)
 {
 	unsigned long deadline = jiffies + timeout;
 	u32 val;
 
-	do {
+	do
+	{
 		val = readl(addr);
+
 		if ((val & mask) == value)
+		{
 			return 0;
+		}
+
 		cpu_relax();
 		udelay(10);
-	} while (!time_after_eq(jiffies, deadline));
+	}
+	while (!time_after_eq(jiffies, deadline));
 
 	dev_err(usb3->dev, "Timeout waiting for register %p\n", addr);
 
@@ -72,8 +81,8 @@ static int bcm_ns_usb3_wait_reg(struct bcm_ns_usb3 *usb3, void __iomem *addr,
 static inline int bcm_ns_usb3_mii_mng_wait_idle(struct bcm_ns_usb3 *usb3)
 {
 	return bcm_ns_usb3_wait_reg(usb3, usb3->ccb_mii + BCMA_CCB_MII_MNG_CTL,
-				    0x0100, 0x0000,
-				    usecs_to_jiffies(BCM_NS_USB3_MII_MNG_TIMEOUT_US));
+								0x0100, 0x0000,
+								usecs_to_jiffies(BCM_NS_USB3_MII_MNG_TIMEOUT_US));
 }
 
 static int bcm_ns_usb3_mii_mng_write32(struct bcm_ns_usb3 *usb3, u32 value)
@@ -81,7 +90,9 @@ static int bcm_ns_usb3_mii_mng_write32(struct bcm_ns_usb3 *usb3, u32 value)
 	int err;
 
 	err = bcm_ns_usb3_mii_mng_wait_idle(usb3);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(usb3->dev, "Couldn't write 0x%08x value\n", value);
 		return err;
 	}
@@ -103,8 +114,11 @@ static int bcm_ns_usb3_phy_init_ns_bx(struct bcm_ns_usb3 *usb3)
 
 	/* USB3 PLL Block */
 	err = bcm_ns_usb3_mii_mng_write32(usb3, 0x587e8000);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* Assert Ana_Pllseq start */
 	bcm_ns_usb3_mii_mng_write32(usb3, 0x58061000);
@@ -160,8 +174,11 @@ static int bcm_ns_usb3_phy_init_ns_ax(struct bcm_ns_usb3 *usb3)
 
 	/* PLL30 block */
 	err = bcm_ns_usb3_mii_mng_write32(usb3, 0x587e8000);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	bcm_ns_usb3_mii_mng_write32(usb3, 0x582a6400);
 
@@ -193,22 +210,26 @@ static int bcm_ns_usb3_phy_init(struct phy *phy)
 	/* Perform USB3 system soft reset */
 	writel(BCMA_RESET_CTL_RESET, usb3->dmp + BCMA_RESET_CTL);
 
-	switch (usb3->family) {
-	case BCM_NS_AX:
-		err = bcm_ns_usb3_phy_init_ns_ax(usb3);
-		break;
-	case BCM_NS_BX:
-		err = bcm_ns_usb3_phy_init_ns_bx(usb3);
-		break;
-	default:
-		WARN_ON(1);
-		err = -ENOTSUPP;
+	switch (usb3->family)
+	{
+		case BCM_NS_AX:
+			err = bcm_ns_usb3_phy_init_ns_ax(usb3);
+			break;
+
+		case BCM_NS_BX:
+			err = bcm_ns_usb3_phy_init_ns_bx(usb3);
+			break;
+
+		default:
+			WARN_ON(1);
+			err = -ENOTSUPP;
 	}
 
 	return err;
 }
 
-static const struct phy_ops ops = {
+static const struct phy_ops ops =
+{
 	.init		= bcm_ns_usb3_phy_init,
 	.owner		= THIS_MODULE,
 };
@@ -222,32 +243,45 @@ static int bcm_ns_usb3_probe(struct platform_device *pdev)
 	struct phy_provider *phy_provider;
 
 	usb3 = devm_kzalloc(dev, sizeof(*usb3), GFP_KERNEL);
+
 	if (!usb3)
+	{
 		return -ENOMEM;
+	}
 
 	usb3->dev = dev;
 
 	of_id = of_match_device(bcm_ns_usb3_id_table, dev);
+
 	if (!of_id)
+	{
 		return -EINVAL;
+	}
+
 	usb3->family = (enum bcm_ns_family)of_id->data;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dmp");
 	usb3->dmp = devm_ioremap_resource(dev, res);
-	if (IS_ERR(usb3->dmp)) {
+
+	if (IS_ERR(usb3->dmp))
+	{
 		dev_err(dev, "Failed to map DMP regs\n");
 		return PTR_ERR(usb3->dmp);
 	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ccb-mii");
 	usb3->ccb_mii = devm_ioremap_resource(dev, res);
-	if (IS_ERR(usb3->ccb_mii)) {
+
+	if (IS_ERR(usb3->ccb_mii))
+	{
 		dev_err(dev, "Failed to map ChipCommon B MII regs\n");
 		return PTR_ERR(usb3->ccb_mii);
 	}
 
 	usb3->phy = devm_phy_create(dev, NULL, &ops);
-	if (IS_ERR(usb3->phy)) {
+
+	if (IS_ERR(usb3->phy))
+	{
 		dev_err(dev, "Failed to create PHY\n");
 		return PTR_ERR(usb3->phy);
 	}
@@ -256,13 +290,17 @@ static int bcm_ns_usb3_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, usb3);
 
 	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
+
 	if (!IS_ERR(phy_provider))
+	{
 		dev_info(dev, "Registered Broadcom Northstar USB 3.0 PHY driver\n");
+	}
 
 	return PTR_ERR_OR_ZERO(phy_provider);
 }
 
-static struct platform_driver bcm_ns_usb3_driver = {
+static struct platform_driver bcm_ns_usb3_driver =
+{
 	.probe		= bcm_ns_usb3_probe,
 	.driver = {
 		.name = "bcm_ns_usb3",

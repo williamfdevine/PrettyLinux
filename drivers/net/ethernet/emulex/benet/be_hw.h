@@ -203,13 +203,15 @@
 #define EQ_ENTRY_RES_ID_MASK 		0xFFFF	/* bits 16 - 31 */
 #define EQ_ENTRY_RES_ID_SHIFT 		16
 
-struct be_eq_entry {
+struct be_eq_entry
+{
 	u32 evt;
 };
 
 /* TX Queue Descriptor */
 #define ETH_WRB_FRAG_LEN_MASK		0xFFFF
-struct be_eth_wrb {
+struct be_eth_wrb
+{
 	__le32 frag_pa_hi;		/* dword 0 */
 	__le32 frag_pa_lo;		/* dword 1 */
 	u32 rsvd0;			/* dword 2 */
@@ -219,7 +221,8 @@ struct be_eth_wrb {
 /* Pseudo amap definition for eth_hdr_wrb in which each bit of the
  * actual structure is defined as a byte : used to calculate
  * offset/shift/mask of each field */
-struct amap_eth_hdr_wrb {
+struct amap_eth_hdr_wrb
+{
 	u8 rsvd0[32];		/* dword 0 */
 	u8 rsvd1[32];		/* dword 1 */
 	u8 complete;		/* dword 2 */
@@ -245,7 +248,8 @@ struct amap_eth_hdr_wrb {
 #define TX_HDR_WRB_NUM_SHIFT		13		/* word 2: bits 13:17 */
 #define TX_HDR_WRB_NUM_MASK		0x1F		/* word 2: bits 13:17 */
 
-struct be_eth_hdr_wrb {
+struct be_eth_hdr_wrb
+{
 	__le32 dw[4];
 };
 
@@ -266,7 +270,8 @@ struct be_eth_hdr_wrb {
 /* Pseudo amap definition for eth_tx_compl in which each bit of the
  * actual structure is defined as a byte: used to calculate
  * offset/shift/mask of each field */
-struct amap_eth_tx_compl {
+struct amap_eth_tx_compl
+{
 	u8 wrb_index[16];	/* dword 0 */
 	u8 ct[2]; 		/* dword 0 */
 	u8 port[2];		/* dword 0 */
@@ -284,12 +289,14 @@ struct amap_eth_tx_compl {
 	u8 valid;		/* dword 3 */
 } __packed;
 
-struct be_eth_tx_compl {
+struct be_eth_tx_compl
+{
 	u32 dw[4];
 };
 
 /* RX Queue Descriptor */
-struct be_eth_rx_d {
+struct be_eth_rx_d
+{
 	u32 fragpa_hi;
 	u32 fragpa_lo;
 };
@@ -299,7 +306,8 @@ struct be_eth_rx_d {
 /* Pseudo amap definition for BE2 and BE3 legacy mode eth_rx_compl in which
  * each bit of the actual structure is defined as a byte: used to calculate
  * offset/shift/mask of each field */
-struct amap_eth_rx_compl_v0 {
+struct amap_eth_rx_compl_v0
+{
 	u8 vlan_tag[16];	/* dword 0 */
 	u8 pktsize[14];		/* dword 0 */
 	u8 port;		/* dword 0 */
@@ -333,7 +341,8 @@ struct amap_eth_rx_compl_v0 {
 /* Pseudo amap definition for BE3 native mode eth_rx_compl in which
  * each bit of the actual structure is defined as a byte: used to calculate
  * offset/shift/mask of each field */
-struct amap_eth_rx_compl_v1 {
+struct amap_eth_rx_compl_v1
+{
 	u8 vlan_tag[16];	/* dword 0 */
 	u8 pktsize[14];		/* dword 0 */
 	u8 vtp;			/* dword 0 */
@@ -366,6 +375,7 @@ struct amap_eth_rx_compl_v1 {
 	u8 rsshash[32];		/* dword 3 */
 } __packed;
 
-struct be_eth_rx_compl {
+struct be_eth_rx_compl
+{
 	u32 dw[4];
 };

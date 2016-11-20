@@ -28,19 +28,19 @@
  * SCSI interface function Prototypes
  */
 
-static int adpt_detect(struct scsi_host_template * sht);
-static int adpt_queue(struct Scsi_Host *h, struct scsi_cmnd * cmd);
-static int adpt_abort(struct scsi_cmnd * cmd);
-static int adpt_reset(struct scsi_cmnd* cmd);
+static int adpt_detect(struct scsi_host_template *sht);
+static int adpt_queue(struct Scsi_Host *h, struct scsi_cmnd *cmd);
+static int adpt_abort(struct scsi_cmnd *cmd);
+static int adpt_reset(struct scsi_cmnd *cmd);
 static int adpt_release(struct Scsi_Host *host);
 static int adpt_slave_configure(struct scsi_device *);
 
 static const char *adpt_info(struct Scsi_Host *pSHost);
-static int adpt_bios_param(struct scsi_device * sdev, struct block_device *dev,
-		sector_t, int geom[]);
+static int adpt_bios_param(struct scsi_device *sdev, struct block_device *dev,
+						   sector_t, int geom[]);
 
-static int adpt_bus_reset(struct scsi_cmnd* cmd);
-static int adpt_device_reset(struct scsi_cmnd* cmd);
+static int adpt_bus_reset(struct scsi_cmnd *cmd);
+static int adpt_device_reset(struct scsi_cmnd *cmd);
 
 
 /*
@@ -61,7 +61,7 @@ static int adpt_device_reset(struct scsi_cmnd* cmd);
 #define DPT_REVISION    '4'
 #define DPT_SUBREVISION '5'
 #define DPT_BETA	""
-#define DPT_MONTH      8 
+#define DPT_MONTH      8
 #define DPT_DAY        7
 #define DPT_YEAR        (2001-1980)
 
@@ -82,17 +82,17 @@ static int adpt_device_reset(struct scsi_cmnd* cmd);
 
 #define PCI_DPT_VENDOR_ID         (0x1044)	// DPT PCI Vendor ID
 #define PCI_DPT_DEVICE_ID         (0xA501)	// DPT PCI I2O Device ID
-#define PCI_DPT_RAPTOR_DEVICE_ID  (0xA511)	
+#define PCI_DPT_RAPTOR_DEVICE_ID  (0xA511)
 
 /* Debugging macro from Linux Device Drivers - Rubini */
 #undef PDEBUG
 #ifdef DEBUG
-//TODO add debug level switch
-#  define PDEBUG(fmt, args...)  printk(KERN_DEBUG "dpti: " fmt, ##args)
-#  define PDEBUGV(fmt, args...) printk(KERN_DEBUG "dpti: " fmt, ##args)
+	//TODO add debug level switch
+	#define PDEBUG(fmt, args...)  printk(KERN_DEBUG "dpti: " fmt, ##args)
+	#define PDEBUGV(fmt, args...) printk(KERN_DEBUG "dpti: " fmt, ##args)
 #else
-# define PDEBUG(fmt, args...) /* not debugging: nothing */
-# define PDEBUGV(fmt, args...) /* not debugging: nothing */
+	#define PDEBUG(fmt, args...) /* not debugging: nothing */
+	#define PDEBUGV(fmt, args...) /* not debugging: nothing */
 #endif
 
 #define PERROR(fmt, args...) printk(KERN_ERR fmt, ##args)
@@ -159,8 +159,8 @@ static int adpt_device_reset(struct scsi_cmnd* cmd);
 
 
 #ifndef TRUE
-#define TRUE                  1
-#define FALSE                 0
+	#define TRUE                  1
+	#define FALSE                 0
 #endif
 
 #define HBA_FLAGS_INSTALLED_B       0x00000001	// Adapter Was Installed
@@ -176,8 +176,9 @@ static int adpt_device_reset(struct scsi_cmnd* cmd);
 #define DPTI_DEV_OFFLINE   0x04
 
 
-struct adpt_device {
-	struct adpt_device* next_lun;
+struct adpt_device
+{
+	struct adpt_device *next_lun;
 	u32	flags;
 	u32	type;
 	u32	capacity;
@@ -187,23 +188,25 @@ struct adpt_device {
 	u64	scsi_lun;
 	u8	state;
 	u16	tid;
-	struct i2o_device* pI2o_dev;
+	struct i2o_device *pI2o_dev;
 	struct scsi_device *pScsi_dev;
 };
 
-struct adpt_channel {
-	struct adpt_device* device[MAX_ID];	/* used as an array of 128 scsi ids */
+struct adpt_channel
+{
+	struct adpt_device *device[MAX_ID];	/* used as an array of 128 scsi ids */
 	u8	scsi_id;
 	u8	type;
 	u16	tid;
 	u32	state;
-	struct i2o_device* pI2o_dev;
+	struct i2o_device *pI2o_dev;
 };
 
 // HBA state flags
 #define DPTI_STATE_RESET	(0x01)
 
-typedef struct _adpt_hba {
+typedef struct _adpt_hba
+{
 	struct _adpt_hba *next;
 	struct pci_dev *pDev;
 	struct Scsi_Host *host;
@@ -226,39 +229,40 @@ typedef struct _adpt_hba {
 	u16  post_count;
 	u32  post_fifo_size;
 	u32  reply_fifo_size;
-	u32* reply_pool;
+	u32 *reply_pool;
 	dma_addr_t reply_pool_pa;
-	u32  sg_tablesize;	// Scatter/Gather List Size.       
+	u32  sg_tablesize;	// Scatter/Gather List Size.
 	u8  top_scsi_channel;
 	u8  top_scsi_id;
 	u64  top_scsi_lun;
 	u8  dma64;
 
-	i2o_status_block* status_block;
+	i2o_status_block *status_block;
 	dma_addr_t status_block_pa;
-	i2o_hrt* hrt;
+	i2o_hrt *hrt;
 	dma_addr_t hrt_pa;
-	i2o_lct* lct;
+	i2o_lct *lct;
 	dma_addr_t lct_pa;
 	uint lct_size;
-	struct i2o_device* devices;
+	struct i2o_device *devices;
 	struct adpt_channel channel[MAX_CHANNEL];
-	struct proc_dir_entry* proc_entry;	/* /proc dir */
+	struct proc_dir_entry *proc_entry;	/* /proc dir */
 
 	void __iomem *FwDebugBuffer_P;	// Virtual Address Of FW Debug Buffer
 	u32   FwDebugBufferSize;	// FW Debug Buffer Size In Bytes
 	void __iomem *FwDebugStrLength_P;// Virtual Addr Of FW Debug String Len
-	void __iomem *FwDebugFlags_P;	// Virtual Address Of FW Debug Flags 
+	void __iomem *FwDebugFlags_P;	// Virtual Address Of FW Debug Flags
 	void __iomem *FwDebugBLEDflag_P;// Virtual Addr Of FW Debug BLED
 	void __iomem *FwDebugBLEDvalue_P;// Virtual Addr Of FW Debug BLED
 	u32 FwDebugFlags;
 	u32 *ioctl_reply_context[4];
 } adpt_hba;
 
-struct sg_simple_element {
-   u32  flag_count;
-   u32 addr_bus;
-}; 
+struct sg_simple_element
+{
+	u32  flag_count;
+	u32 addr_bus;
+};
 
 /*
  * Function Prototypes
@@ -269,42 +273,42 @@ static int adpt_init(void);
 static int adpt_i2o_build_sys_table(void);
 static irqreturn_t adpt_isr(int irq, void *dev_id);
 
-static void adpt_i2o_report_hba_unit(adpt_hba* pHba, struct i2o_device *d);
-static int adpt_i2o_query_scalar(adpt_hba* pHba, int tid, 
-			int group, int field, void *buf, int buflen);
+static void adpt_i2o_report_hba_unit(adpt_hba *pHba, struct i2o_device *d);
+static int adpt_i2o_query_scalar(adpt_hba *pHba, int tid,
+								 int group, int field, void *buf, int buflen);
 #ifdef DEBUG
-static const char *adpt_i2o_get_class_name(int class);
+	static const char *adpt_i2o_get_class_name(int class);
 #endif
-static int adpt_i2o_issue_params(int cmd, adpt_hba* pHba, int tid, 
-		  void *opblk, dma_addr_t opblk_pa, int oplen,
-		  void *resblk, dma_addr_t resblk_pa, int reslen);
-static int adpt_i2o_post_wait(adpt_hba* pHba, u32* msg, int len, int timeout);
-static int adpt_i2o_lct_get(adpt_hba* pHba);
-static int adpt_i2o_parse_lct(adpt_hba* pHba);
-static int adpt_i2o_activate_hba(adpt_hba* pHba);
-static int adpt_i2o_enable_hba(adpt_hba* pHba);
-static int adpt_i2o_install_device(adpt_hba* pHba, struct i2o_device *d);
-static s32 adpt_i2o_post_this(adpt_hba* pHba, u32* data, int len);
-static s32 adpt_i2o_quiesce_hba(adpt_hba* pHba);
-static s32 adpt_i2o_status_get(adpt_hba* pHba);
-static s32 adpt_i2o_init_outbound_q(adpt_hba* pHba);
-static s32 adpt_i2o_hrt_get(adpt_hba* pHba);
-static s32 adpt_scsi_to_i2o(adpt_hba* pHba, struct scsi_cmnd* cmd, struct adpt_device* dptdevice);
-static s32 adpt_i2o_to_scsi(void __iomem *reply, struct scsi_cmnd* cmd);
-static s32 adpt_scsi_host_alloc(adpt_hba* pHba,struct scsi_host_template * sht);
-static s32 adpt_hba_reset(adpt_hba* pHba);
-static s32 adpt_i2o_reset_hba(adpt_hba* pHba);
-static s32 adpt_rescan(adpt_hba* pHba);
-static s32 adpt_i2o_reparse_lct(adpt_hba* pHba);
-static s32 adpt_send_nop(adpt_hba*pHba,u32 m);
-static void adpt_i2o_delete_hba(adpt_hba* pHba);
-static void adpt_inquiry(adpt_hba* pHba);
-static void adpt_fail_posted_scbs(adpt_hba* pHba);
-static struct adpt_device* adpt_find_device(adpt_hba* pHba, u32 chan, u32 id, u64 lun);
-static int adpt_install_hba(struct scsi_host_template* sht, struct pci_dev* pDev) ;
-static int adpt_i2o_online_hba(adpt_hba* pHba);
+static int adpt_i2o_issue_params(int cmd, adpt_hba *pHba, int tid,
+								 void *opblk, dma_addr_t opblk_pa, int oplen,
+								 void *resblk, dma_addr_t resblk_pa, int reslen);
+static int adpt_i2o_post_wait(adpt_hba *pHba, u32 *msg, int len, int timeout);
+static int adpt_i2o_lct_get(adpt_hba *pHba);
+static int adpt_i2o_parse_lct(adpt_hba *pHba);
+static int adpt_i2o_activate_hba(adpt_hba *pHba);
+static int adpt_i2o_enable_hba(adpt_hba *pHba);
+static int adpt_i2o_install_device(adpt_hba *pHba, struct i2o_device *d);
+static s32 adpt_i2o_post_this(adpt_hba *pHba, u32 *data, int len);
+static s32 adpt_i2o_quiesce_hba(adpt_hba *pHba);
+static s32 adpt_i2o_status_get(adpt_hba *pHba);
+static s32 adpt_i2o_init_outbound_q(adpt_hba *pHba);
+static s32 adpt_i2o_hrt_get(adpt_hba *pHba);
+static s32 adpt_scsi_to_i2o(adpt_hba *pHba, struct scsi_cmnd *cmd, struct adpt_device *dptdevice);
+static s32 adpt_i2o_to_scsi(void __iomem *reply, struct scsi_cmnd *cmd);
+static s32 adpt_scsi_host_alloc(adpt_hba *pHba, struct scsi_host_template *sht);
+static s32 adpt_hba_reset(adpt_hba *pHba);
+static s32 adpt_i2o_reset_hba(adpt_hba *pHba);
+static s32 adpt_rescan(adpt_hba *pHba);
+static s32 adpt_i2o_reparse_lct(adpt_hba *pHba);
+static s32 adpt_send_nop(adpt_hba *pHba, u32 m);
+static void adpt_i2o_delete_hba(adpt_hba *pHba);
+static void adpt_inquiry(adpt_hba *pHba);
+static void adpt_fail_posted_scbs(adpt_hba *pHba);
+static struct adpt_device *adpt_find_device(adpt_hba *pHba, u32 chan, u32 id, u64 lun);
+static int adpt_install_hba(struct scsi_host_template *sht, struct pci_dev *pDev) ;
+static int adpt_i2o_online_hba(adpt_hba *pHba);
 static void adpt_i2o_post_wait_complete(u32, int);
-static int adpt_i2o_systab_send(adpt_hba* pHba);
+static int adpt_i2o_systab_send(adpt_hba *pHba);
 
 static int adpt_ioctl(struct inode *inode, struct file *file, uint cmd, ulong arg);
 static int adpt_open(struct inode *inode, struct file *file);
@@ -312,7 +316,7 @@ static int adpt_close(struct inode *inode, struct file *file);
 
 
 #ifdef UARTDELAY
-static void adpt_delay(int millisec);
+	static void adpt_delay(int millisec);
 #endif
 
 #define PRINT_BUFFER_SIZE     512

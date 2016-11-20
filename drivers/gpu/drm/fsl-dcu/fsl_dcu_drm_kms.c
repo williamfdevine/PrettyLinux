@@ -17,7 +17,8 @@
 #include "fsl_dcu_drm_crtc.h"
 #include "fsl_dcu_drm_drv.h"
 
-static const struct drm_mode_config_funcs fsl_dcu_drm_mode_config_funcs = {
+static const struct drm_mode_config_funcs fsl_dcu_drm_mode_config_funcs =
+{
 	.atomic_check = drm_atomic_helper_check,
 	.atomic_commit = drm_atomic_helper_commit,
 	.fb_create = drm_fb_cma_create,
@@ -36,16 +37,25 @@ int fsl_dcu_drm_modeset_init(struct fsl_dcu_drm_device *fsl_dev)
 	fsl_dev->drm->mode_config.funcs = &fsl_dcu_drm_mode_config_funcs;
 
 	ret = fsl_dcu_drm_crtc_create(fsl_dev);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = fsl_dcu_drm_encoder_create(fsl_dev, &fsl_dev->crtc);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = fsl_dcu_create_outputs(fsl_dev);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	drm_mode_config_reset(fsl_dev->drm);
 	drm_kms_helper_poll_init(fsl_dev->drm);

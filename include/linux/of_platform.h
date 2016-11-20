@@ -39,7 +39,8 @@
  * device name will not matter, and drivers should obtain data from the device
  * node instead of from an anonymous platform_data pointer.
  */
-struct of_dev_auxdata {
+struct of_dev_auxdata
+{
 	char *compatible;
 	resource_size_t phys_addr;
 	char *name;
@@ -49,44 +50,44 @@ struct of_dev_auxdata {
 /* Macro to simplify populating a lookup table */
 #define OF_DEV_AUXDATA(_compat,_phys,_name,_pdata) \
 	{ .compatible = _compat, .phys_addr = _phys, .name = _name, \
-	  .platform_data = _pdata }
+										  .platform_data = _pdata }
 
 extern const struct of_device_id of_default_bus_match_table[];
 
 /* Platform drivers register/unregister */
 extern struct platform_device *of_device_alloc(struct device_node *np,
-					 const char *bus_id,
-					 struct device *parent);
+		const char *bus_id,
+		struct device *parent);
 extern struct platform_device *of_find_device_by_node(struct device_node *np);
 
 /* Platform devices and busses creation */
 extern struct platform_device *of_platform_device_create(struct device_node *np,
-						   const char *bus_id,
-						   struct device *parent);
+		const char *bus_id,
+		struct device *parent);
 
 extern int of_platform_bus_probe(struct device_node *root,
-				 const struct of_device_id *matches,
-				 struct device *parent);
+								 const struct of_device_id *matches,
+								 struct device *parent);
 #ifdef CONFIG_OF_ADDRESS
 extern int of_platform_populate(struct device_node *root,
-				const struct of_device_id *matches,
-				const struct of_dev_auxdata *lookup,
-				struct device *parent);
+								const struct of_device_id *matches,
+								const struct of_dev_auxdata *lookup,
+								struct device *parent);
 extern int of_platform_default_populate(struct device_node *root,
-					const struct of_dev_auxdata *lookup,
-					struct device *parent);
+										const struct of_dev_auxdata *lookup,
+										struct device *parent);
 extern void of_platform_depopulate(struct device *parent);
 #else
 static inline int of_platform_populate(struct device_node *root,
-					const struct of_device_id *matches,
-					const struct of_dev_auxdata *lookup,
-					struct device *parent)
+									   const struct of_device_id *matches,
+									   const struct of_dev_auxdata *lookup,
+									   struct device *parent)
 {
 	return -ENODEV;
 }
 static inline int of_platform_default_populate(struct device_node *root,
-					       const struct of_dev_auxdata *lookup,
-					       struct device *parent)
+		const struct of_dev_auxdata *lookup,
+		struct device *parent)
 {
 	return -ENODEV;
 }

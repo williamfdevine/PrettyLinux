@@ -55,7 +55,8 @@
 #include "sdma_txreq.h"
 #include "iowait.h"
 
-struct verbs_txreq {
+struct verbs_txreq
+{
 	struct hfi1_sdma_header	phdr;
 	struct sdma_txreq       txreq;
 	struct rvt_qp           *qp;
@@ -69,22 +70,28 @@ struct verbs_txreq {
 
 struct hfi1_ibdev;
 struct verbs_txreq *__get_txreq(struct hfi1_ibdev *dev,
-				struct rvt_qp *qp);
+								struct rvt_qp *qp);
 
 static inline struct verbs_txreq *get_txreq(struct hfi1_ibdev *dev,
-					    struct rvt_qp *qp)
-	__must_hold(&qp->slock)
+		struct rvt_qp *qp)
+__must_hold(&qp->slock)
 {
 	struct verbs_txreq *tx;
 	struct hfi1_qp_priv *priv = qp->priv;
 
 	tx = kmem_cache_alloc(dev->verbs_txreq_cache, GFP_ATOMIC);
-	if (unlikely(!tx)) {
+
+	if (unlikely(!tx))
+	{
 		/* call slow path to get the lock */
 		tx = __get_txreq(dev, qp);
+
 		if (IS_ERR(tx))
+		{
 			return tx;
+		}
 	}
+
 	tx->qp = qp;
 	tx->mr = NULL;
 	tx->sde = priv->s_sde;
@@ -105,8 +112,12 @@ static inline struct verbs_txreq *get_waiting_verbs_txreq(struct rvt_qp *qp)
 	struct hfi1_qp_priv *priv = qp->priv;
 
 	stx = iowait_get_txhead(&priv->s_iowait);
+
 	if (stx)
+	{
 		return container_of(stx, struct verbs_txreq, txreq);
+	}
+
 	return NULL;
 }
 

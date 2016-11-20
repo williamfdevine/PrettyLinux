@@ -221,9 +221,9 @@
 #define ISDN_P_NT_UP0		0x06
 
 #define IS_ISDN_P_TE(p) ((p == ISDN_P_TE_S0) || (p == ISDN_P_TE_E1) || \
-				(p == ISDN_P_TE_UP0) || (p == ISDN_P_LAPD_TE))
+						 (p == ISDN_P_TE_UP0) || (p == ISDN_P_LAPD_TE))
 #define IS_ISDN_P_NT(p) ((p == ISDN_P_NT_S0) || (p == ISDN_P_NT_E1) || \
-				(p == ISDN_P_NT_UP0) || (p == ISDN_P_LAPD_NT))
+						 (p == ISDN_P_NT_UP0) || (p == ISDN_P_LAPD_NT))
 #define IS_ISDN_P_S0(p) ((p == ISDN_P_TE_S0) || (p == ISDN_P_NT_S0))
 #define IS_ISDN_P_E1(p) ((p == ISDN_P_TE_E1) || (p == ISDN_P_NT_E1))
 #define IS_ISDN_P_UP0(p) ((p == ISDN_P_TE_UP0) || (p == ISDN_P_NT_UP0))
@@ -253,7 +253,8 @@
 /* should be in sync with linux/kobject.h:KOBJ_NAME_LEN */
 #define MISDN_MAX_IDLEN		20
 
-struct mISDNhead {
+struct mISDNhead
+{
 	unsigned int	prim;
 	unsigned int	id;
 }  __packed;
@@ -280,7 +281,8 @@ struct mISDNhead {
 
 #define SOL_MISDN	0
 
-struct sockaddr_mISDN {
+struct sockaddr_mISDN
+{
 	sa_family_t    family;
 	unsigned char	dev;
 	unsigned char	channel;
@@ -288,13 +290,15 @@ struct sockaddr_mISDN {
 	unsigned char	tei;
 };
 
-struct mISDNversion {
+struct mISDNversion
+{
 	unsigned char	major;
 	unsigned char	minor;
 	unsigned short	release;
 };
 
-struct mISDN_devinfo {
+struct mISDN_devinfo
+{
 	u_int			id;
 	u_int			Dprotocols;
 	u_int			Bprotocols;
@@ -304,24 +308,28 @@ struct mISDN_devinfo {
 	char			name[MISDN_MAX_IDLEN];
 };
 
-struct mISDN_devrename {
+struct mISDN_devrename
+{
 	u_int			id;
 	char			name[MISDN_MAX_IDLEN]; /* new name */
 };
 
 /* MPH_INFORMATION_REQ payload */
-struct ph_info_ch {
+struct ph_info_ch
+{
 	__u32 protocol;
 	__u64 Flags;
 };
 
-struct ph_info_dch {
+struct ph_info_dch
+{
 	struct ph_info_ch ch;
 	__u16 state;
 	__u16 num_bch;
 };
 
-struct ph_info {
+struct ph_info
+{
 	struct ph_info_dch dch;
 	struct ph_info_ch  bch[];
 };
@@ -343,9 +351,13 @@ static inline int
 test_channelmap(u_int nr, u_char *map)
 {
 	if (nr <= MISDN_MAX_CHANNEL)
+	{
 		return map[nr >> 3] & (1 << (nr & 7));
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static inline void
@@ -397,7 +409,8 @@ clear_channelmap(u_int nr, u_char *map)
 /* socket options */
 #define MISDN_TIME_STAMP		0x0001
 
-struct mISDN_ctrl_req {
+struct mISDN_ctrl_req
+{
 	int		op;
 	int		channel;
 	int		p1;
@@ -447,7 +460,8 @@ struct mISDNdevice;
 struct mISDNstack;
 struct mISDNclock;
 
-struct channel_req {
+struct channel_req
+{
 	u_int			protocol;
 	struct sockaddr_mISDN	adr;
 	struct mISDNchannel	*ch;
@@ -457,14 +471,16 @@ typedef	int	(ctrl_func_t)(struct mISDNchannel *, u_int, void *);
 typedef	int	(send_func_t)(struct mISDNchannel *, struct sk_buff *);
 typedef int	(create_func_t)(struct channel_req *);
 
-struct Bprotocol {
+struct Bprotocol
+{
 	struct list_head	list;
 	char			*name;
 	u_int			Bprotocols;
 	create_func_t		*create;
 };
 
-struct mISDNchannel {
+struct mISDNchannel
+{
 	struct list_head	list;
 	u_int			protocol;
 	u_int			nr;
@@ -477,12 +493,14 @@ struct mISDNchannel {
 	ctrl_func_t		*ctrl;
 };
 
-struct mISDN_sock_list {
+struct mISDN_sock_list
+{
 	struct hlist_head	head;
 	rwlock_t		lock;
 };
 
-struct mISDN_sock {
+struct mISDN_sock
+{
 	struct sock		sk;
 	struct mISDNchannel	ch;
 	u_int			cmask;
@@ -491,7 +509,8 @@ struct mISDN_sock {
 
 
 
-struct mISDNdevice {
+struct mISDNdevice
+{
 	struct mISDNchannel	D;
 	u_int			id;
 	u_int			Dprotocols;
@@ -503,7 +522,8 @@ struct mISDNdevice {
 	struct device		dev;
 };
 
-struct mISDNstack {
+struct mISDNstack
+{
 	u_long			status;
 	struct mISDNdevice	*dev;
 	struct task_struct	*thread;
@@ -524,7 +544,8 @@ struct mISDNstack {
 
 typedef	int	(clockctl_func_t)(void *, int);
 
-struct	mISDNclock {
+struct	mISDNclock
+{
 	struct list_head	list;
 	char			name[64];
 	int			pri;
@@ -540,8 +561,12 @@ mI_alloc_skb(unsigned int len, gfp_t gfp_mask)
 	struct sk_buff	*skb;
 
 	skb = alloc_skb(len + MISDN_HEADER_LEN, gfp_mask);
+
 	if (likely(skb))
+	{
 		skb_reserve(skb, MISDN_HEADER_LEN);
+	}
+
 	return skb;
 }
 
@@ -552,9 +577,15 @@ _alloc_mISDN_skb(u_int prim, u_int id, u_int len, void *dp, gfp_t gfp_mask)
 	struct mISDNhead *hh;
 
 	if (!skb)
+	{
 		return NULL;
+	}
+
 	if (len)
+	{
 		memcpy(skb_put(skb, len), dp, len);
+	}
+
 	hh = mISDN_HEAD_P(skb);
 	hh->prim = prim;
 	hh->id = id;
@@ -563,36 +594,49 @@ _alloc_mISDN_skb(u_int prim, u_int id, u_int len, void *dp, gfp_t gfp_mask)
 
 static inline void
 _queue_data(struct mISDNchannel *ch, u_int prim,
-    u_int id, u_int len, void *dp, gfp_t gfp_mask)
+			u_int id, u_int len, void *dp, gfp_t gfp_mask)
 {
 	struct sk_buff		*skb;
 
 	if (!ch->peer)
+	{
 		return;
+	}
+
 	skb = _alloc_mISDN_skb(prim, id, len, dp, gfp_mask);
+
 	if (!skb)
+	{
 		return;
+	}
+
 	if (ch->recv(ch->peer, skb))
+	{
 		dev_kfree_skb(skb);
+	}
 }
 
 /* global register/unregister functions */
 
 extern int	mISDN_register_device(struct mISDNdevice *,
-					struct device *parent, char *name);
+								  struct device *parent, char *name);
 extern void	mISDN_unregister_device(struct mISDNdevice *);
 extern int	mISDN_register_Bprotocol(struct Bprotocol *);
 extern void	mISDN_unregister_Bprotocol(struct Bprotocol *);
 extern struct mISDNclock *mISDN_register_clock(char *, int, clockctl_func_t *,
-						void *);
+		void *);
 extern void	mISDN_unregister_clock(struct mISDNclock *);
 
 static inline struct mISDNdevice *dev_to_mISDN(struct device *dev)
 {
 	if (dev)
+	{
 		return dev_get_drvdata(dev);
+	}
 	else
+	{
 		return NULL;
+	}
 }
 
 extern void	set_channel_address(struct mISDNchannel *, u_int, u_int);

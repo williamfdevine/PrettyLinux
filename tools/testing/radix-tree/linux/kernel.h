@@ -13,7 +13,7 @@
 #define RADIX_TREE_MAP_SHIFT	3
 
 #ifndef NULL
-#define NULL	0
+	#define NULL	0
 #endif
 
 #define BUG_ON(expr)	assert(!(expr))
@@ -33,8 +33,8 @@
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
 #define container_of(ptr, type, member) ({                      \
-	const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
-	(type *)( (char *)__mptr - offsetof(type, member) );})
+		const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
+		(type *)( (char *)__mptr - offsetof(type, member) );})
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
 #define cond_resched()	sched_yield()

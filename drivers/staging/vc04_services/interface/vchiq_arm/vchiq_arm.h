@@ -43,7 +43,8 @@
 #include "vchiq_debugfs.h"
 
 
-enum vc_suspend_status {
+enum vc_suspend_status
+{
 	VC_SUSPEND_FORCE_CANCELED = -3, /* Force suspend canceled, too busy */
 	VC_SUSPEND_REJECTED = -2,  /* Videocore rejected suspend request */
 	VC_SUSPEND_FAILED = -1,    /* Videocore suspend failed */
@@ -53,7 +54,8 @@ enum vc_suspend_status {
 	VC_SUSPEND_SUSPENDED       /* Videocore suspend succeeded */
 };
 
-enum vc_resume_status {
+enum vc_resume_status
+{
 	VC_RESUME_FAILED = -1, /* Videocore resume failed */
 	VC_RESUME_IDLE = 0,    /* VC suspended, no resume actions */
 	VC_RESUME_REQUESTED,   /* User has requested resume */
@@ -62,7 +64,8 @@ enum vc_resume_status {
 };
 
 
-enum USE_TYPE_E {
+enum USE_TYPE_E
+{
 	USE_TYPE_SERVICE,
 	USE_TYPE_SERVICE_NO_RESUME,
 	USE_TYPE_VCHIQ
@@ -70,7 +73,8 @@ enum USE_TYPE_E {
 
 
 
-typedef struct vchiq_arm_state_struct {
+typedef struct vchiq_arm_state_struct
+{
 	/* Keepalive-related data */
 	struct task_struct *ka_thread;
 	struct completion ka_evt;
@@ -154,7 +158,7 @@ vchiq_check_resume(VCHIQ_STATE_T *state);
 
 extern void
 vchiq_check_suspend(VCHIQ_STATE_T *state);
- VCHIQ_STATUS_T
+VCHIQ_STATUS_T
 vchiq_use_service(VCHIQ_SERVICE_HANDLE_T handle);
 
 extern VCHIQ_STATUS_T
@@ -178,7 +182,7 @@ vchiq_dump_platform_use_state(VCHIQ_STATE_T *state);
 extern void
 vchiq_dump_service_use_state(VCHIQ_STATE_T *state);
 
-extern VCHIQ_ARM_STATE_T*
+extern VCHIQ_ARM_STATE_T *
 vchiq_platform_get_arm_state(VCHIQ_STATE_T *state);
 
 extern int
@@ -186,7 +190,7 @@ vchiq_videocore_wanted(VCHIQ_STATE_T *state);
 
 extern VCHIQ_STATUS_T
 vchiq_use_internal(VCHIQ_STATE_T *state, VCHIQ_SERVICE_T *service,
-		enum USE_TYPE_E use_type);
+				   enum USE_TYPE_E use_type);
 extern VCHIQ_STATUS_T
 vchiq_release_internal(VCHIQ_STATE_T *state, VCHIQ_SERVICE_T *service);
 
@@ -207,11 +211,11 @@ vchiq_instance_set_trace(VCHIQ_INSTANCE_T instance, int trace);
 
 extern void
 set_suspend_state(VCHIQ_ARM_STATE_T *arm_state,
-	enum vc_suspend_status new_state);
+				  enum vc_suspend_status new_state);
 
 extern void
 set_resume_state(VCHIQ_ARM_STATE_T *arm_state,
-	enum vc_resume_status new_state);
+				 enum vc_resume_status new_state);
 
 extern void
 start_suspend_timer(VCHIQ_ARM_STATE_T *arm_state);

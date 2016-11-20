@@ -74,7 +74,7 @@
 #define BAR_5		5
 
 #define INTEL_E1000_ETHERNET_DEVICE(device_id) {\
-	PCI_DEVICE(PCI_VENDOR_ID_INTEL, device_id)}
+		PCI_DEVICE(PCI_VENDOR_ID_INTEL, device_id)}
 
 struct e1000_adapter;
 
@@ -139,8 +139,8 @@ struct e1000_adapter;
 #define E1000_EEPROM_APME	0x0400
 
 #ifndef E1000_MASTER_SLAVE
-/* Switch to override PHY master/slave setting */
-#define E1000_MASTER_SLAVE	e1000_ms_hw_default
+	/* Switch to override PHY master/slave setting */
+	#define E1000_MASTER_SLAVE	e1000_ms_hw_default
 #endif
 
 #define E1000_MNG_VLAN_NONE	(-1)
@@ -148,7 +148,8 @@ struct e1000_adapter;
 /* wrapper around a pointer to a socket buffer,
  * so a DMA handle can be stored along with the buffer
  */
-struct e1000_tx_buffer {
+struct e1000_tx_buffer
+{
 	struct sk_buff *skb;
 	dma_addr_t dma;
 	unsigned long time_stamp;
@@ -159,15 +160,18 @@ struct e1000_tx_buffer {
 	unsigned int bytecount;
 };
 
-struct e1000_rx_buffer {
-	union {
+struct e1000_rx_buffer
+{
+	union
+	{
 		struct page *page; /* jumbo: alloc_page */
 		u8 *data; /* else, netdev_alloc_frag */
 	} rxbuf;
 	dma_addr_t dma;
 };
 
-struct e1000_tx_ring {
+struct e1000_tx_ring
+{
 	/* pointer to the descriptor ring memory */
 	void *desc;
 	/* physical address of the descriptor ring */
@@ -188,7 +192,8 @@ struct e1000_tx_ring {
 	bool last_tx_tso;
 };
 
-struct e1000_rx_ring {
+struct e1000_rx_ring
+{
 	/* pointer to the descriptor ring memory */
 	void *desc;
 	/* physical address of the descriptor ring */
@@ -213,11 +218,11 @@ struct e1000_rx_ring {
 };
 
 #define E1000_DESC_UNUSED(R)						\
-({									\
-	unsigned int clean = smp_load_acquire(&(R)->next_to_clean);	\
-	unsigned int use = READ_ONCE((R)->next_to_use);			\
-	(clean > use ? 0 : (R)->count) + clean - use - 1;		\
-})
+	({									\
+		unsigned int clean = smp_load_acquire(&(R)->next_to_clean);	\
+		unsigned int use = READ_ONCE((R)->next_to_use);			\
+		(clean > use ? 0 : (R)->count) + clean - use - 1;		\
+	})
 
 #define E1000_RX_DESC_EXT(R, i)						\
 	(&(((union e1000_rx_desc_extended *)((R).desc))[i]))
@@ -228,7 +233,8 @@ struct e1000_rx_ring {
 
 /* board specific private data structure */
 
-struct e1000_adapter {
+struct e1000_adapter
+{
 	unsigned long active_vlans[BITS_TO_LONGS(VLAN_N_VID)];
 	u16 mng_vlan_id;
 	u32 bd_number;
@@ -273,11 +279,11 @@ struct e1000_adapter {
 
 	/* RX */
 	bool (*clean_rx)(struct e1000_adapter *adapter,
-			 struct e1000_rx_ring *rx_ring,
-			 int *work_done, int work_to_do);
+					 struct e1000_rx_ring *rx_ring,
+					 int *work_done, int work_to_do);
 	void (*alloc_rx_buf)(struct e1000_adapter *adapter,
-			     struct e1000_rx_ring *rx_ring,
-			     int cleaned_count);
+						 struct e1000_rx_ring *rx_ring,
+						 int cleaned_count);
 	struct e1000_rx_ring *rx_ring;      /* One per active queue */
 	struct napi_struct napi;
 
@@ -328,7 +334,8 @@ struct e1000_adapter {
 	struct delayed_work phy_info_task;
 };
 
-enum e1000_state_t {
+enum e1000_state_t
+{
 	__E1000_TESTING,
 	__E1000_RESETTING,
 	__E1000_DOWN

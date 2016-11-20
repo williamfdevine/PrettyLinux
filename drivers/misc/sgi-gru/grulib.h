@@ -63,7 +63,8 @@
 #define THREAD_POINTER(p, th)		(p + GRU_GSEG_PAGESIZE * (th))
 #define GSEG_START(cb)			((void *)((unsigned long)(cb) & ~(GRU_GSEG_PAGESIZE - 1)))
 
-struct gru_get_gseg_statistics_req {
+struct gru_get_gseg_statistics_req
+{
 	unsigned long			gseg;
 	struct gru_gseg_statistics	stats;
 };
@@ -71,7 +72,8 @@ struct gru_get_gseg_statistics_req {
 /*
  * Structure used to pass TLB flush parameters to the driver
  */
-struct gru_create_context_req {
+struct gru_create_context_req
+{
 	unsigned long		gseg;
 	unsigned int		data_segment_bytes;
 	unsigned int		control_blocks;
@@ -83,7 +85,8 @@ struct gru_create_context_req {
 /*
  * Structure used to pass unload context parameters to the driver
  */
-struct gru_unload_context_req {
+struct gru_unload_context_req
+{
 	unsigned long	gseg;
 };
 
@@ -91,7 +94,8 @@ struct gru_unload_context_req {
  * Structure used to set context options
  */
 enum {sco_gseg_owner, sco_cch_req_slice, sco_blade_chiplet};
-struct gru_set_context_option_req {
+struct gru_set_context_option_req
+{
 	unsigned long	gseg;
 	int		op;
 	int		val0;
@@ -101,7 +105,8 @@ struct gru_set_context_option_req {
 /*
  * Structure used to pass TLB flush parameters to the driver
  */
-struct gru_flush_tlb_req {
+struct gru_flush_tlb_req
+{
 	unsigned long	gseg;
 	unsigned long	vaddr;
 	size_t		len;
@@ -111,7 +116,8 @@ struct gru_flush_tlb_req {
  * Structure used to pass TLB flush parameters to the driver
  */
 enum {dcs_pid, dcs_gid};
-struct gru_dump_chiplet_state_req {
+struct gru_dump_chiplet_state_req
+{
 	unsigned int	op;
 	unsigned int	gid;
 	int		ctxnum;
@@ -127,7 +133,8 @@ struct gru_dump_chiplet_state_req {
 };
 
 #define GRU_DUMP_MAGIC	0x3474ab6c
-struct gru_dump_context_header {
+struct gru_dump_context_header
+{
 	unsigned int	magic;
 	unsigned int	gid;
 	unsigned char	ctxnum;
@@ -142,7 +149,8 @@ struct gru_dump_context_header {
 /*
  * GRU configuration info (temp - for testing)
  */
-struct gru_config_info {
+struct gru_config_info
+{
 	int		cpus;
 	int		blades;
 	int		nodes;

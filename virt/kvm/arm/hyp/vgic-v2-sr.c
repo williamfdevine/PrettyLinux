@@ -23,7 +23,7 @@
 #include <asm/kvm_hyp.h>
 
 static void __hyp_text save_maint_int_state(struct kvm_vcpu *vcpu,
-					    void __iomem *base)
+		void __iomem *base)
 {
 	struct vgic_v2_cpu_if *cpu_if = &vcpu->arch.vgic_cpu.vgic_v2;
 	int nr_lr = (kern_hyp_va(&kvm_vgic_global_state))->nr_lr;
@@ -33,27 +33,41 @@ static void __hyp_text save_maint_int_state(struct kvm_vcpu *vcpu,
 
 	expect_mi = !!(cpu_if->vgic_hcr & GICH_HCR_UIE);
 
-	for (i = 0; i < nr_lr; i++) {
+	for (i = 0; i < nr_lr; i++)
+	{
 		if (!(vcpu->arch.vgic_cpu.live_lrs & (1UL << i)))
-				continue;
+		{
+			continue;
+		}
 
 		expect_mi |= (!(cpu_if->vgic_lr[i] & GICH_LR_HW) &&
-			      (cpu_if->vgic_lr[i] & GICH_LR_EOI));
+					  (cpu_if->vgic_lr[i] & GICH_LR_EOI));
 	}
 
-	if (expect_mi) {
+	if (expect_mi)
+	{
 		cpu_if->vgic_misr = readl_relaxed(base + GICH_MISR);
 
-		if (cpu_if->vgic_misr & GICH_MISR_EOI) {
+		if (cpu_if->vgic_misr & GICH_MISR_EOI)
+		{
 			eisr0  = readl_relaxed(base + GICH_EISR0);
+
 			if (unlikely(nr_lr > 32))
+			{
 				eisr1  = readl_relaxed(base + GICH_EISR1);
+			}
 			else
+			{
 				eisr1 = 0;
-		} else {
+			}
+		}
+		else
+		{
 			eisr0 = eisr1 = 0;
 		}
-	} else {
+	}
+	else
+	{
 		cpu_if->vgic_misr = 0;
 		eisr0 = eisr1 = 0;
 	}
@@ -72,10 +86,15 @@ static void __hyp_text save_elrsr(struct kvm_vcpu *vcpu, void __iomem *base)
 	u32 elrsr0, elrsr1;
 
 	elrsr0 = readl_relaxed(base + GICH_ELRSR0);
+
 	if (unlikely(nr_lr > 32))
+	{
 		elrsr1 = readl_relaxed(base + GICH_ELRSR1);
+	}
 	else
+	{
 		elrsr1 = 0;
+	}
 
 #ifdef CONFIG_CPU_BIG_ENDIAN
 	cpu_if->vgic_elrsr = ((u64)elrsr0 << 32) | elrsr1;
@@ -90,14 +109,21 @@ static void __hyp_text save_lrs(struct kvm_vcpu *vcpu, void __iomem *base)
 	int nr_lr = (kern_hyp_va(&kvm_vgic_global_state))->nr_lr;
 	int i;
 
-	for (i = 0; i < nr_lr; i++) {
+	for (i = 0; i < nr_lr; i++)
+	{
 		if (!(vcpu->arch.vgic_cpu.live_lrs & (1UL << i)))
+		{
 			continue;
+		}
 
 		if (cpu_if->vgic_elrsr & (1UL << i))
+		{
 			cpu_if->vgic_lr[i] &= ~GICH_LR_STATE;
+		}
 		else
+		{
 			cpu_if->vgic_lr[i] = readl_relaxed(base + GICH_LR0 + (i * 4));
+		}
 
 		writel_relaxed(0, base + GICH_LR0 + (i * 4));
 	}
@@ -112,11 +138,14 @@ void __hyp_text __vgic_v2_save_state(struct kvm_vcpu *vcpu)
 	void __iomem *base = kern_hyp_va(vgic->vctrl_base);
 
 	if (!base)
+	{
 		return;
+	}
 
 	cpu_if->vgic_vmcr = readl_relaxed(base + GICH_VMCR);
 
-	if (vcpu->arch.vgic_cpu.live_lrs) {
+	if (vcpu->arch.vgic_cpu.live_lrs)
+	{
 		cpu_if->vgic_apr = readl_relaxed(base + GICH_APR);
 
 		save_maint_int_state(vcpu, base);
@@ -126,7 +155,9 @@ void __hyp_text __vgic_v2_save_state(struct kvm_vcpu *vcpu)
 		writel_relaxed(0, base + GICH_HCR);
 
 		vcpu->arch.vgic_cpu.live_lrs = 0;
-	} else {
+	}
+	else
+	{
 		cpu_if->vgic_eisr = 0;
 		cpu_if->vgic_elrsr = ~0UL;
 		cpu_if->vgic_misr = 0;
@@ -146,22 +177,31 @@ void __hyp_text __vgic_v2_restore_state(struct kvm_vcpu *vcpu)
 	u64 live_lrs = 0;
 
 	if (!base)
+	{
 		return;
+	}
 
 
 	for (i = 0; i < nr_lr; i++)
 		if (cpu_if->vgic_lr[i] & GICH_LR_STATE)
+		{
 			live_lrs |= 1UL << i;
+		}
 
-	if (live_lrs) {
+	if (live_lrs)
+	{
 		writel_relaxed(cpu_if->vgic_hcr, base + GICH_HCR);
 		writel_relaxed(cpu_if->vgic_apr, base + GICH_APR);
-		for (i = 0; i < nr_lr; i++) {
+
+		for (i = 0; i < nr_lr; i++)
+		{
 			if (!(live_lrs & (1UL << i)))
+			{
 				continue;
+			}
 
 			writel_relaxed(cpu_if->vgic_lr[i],
-				       base + GICH_LR0 + (i * 4));
+						   base + GICH_LR0 + (i * 4));
 		}
 	}
 
@@ -195,30 +235,39 @@ int __hyp_text __vgic_v2_perform_cpuif_access(struct kvm_vcpu *vcpu)
 
 	/* If not for GICV, move on */
 	if (fault_ipa <  vgic->vgic_cpu_base ||
-	    fault_ipa >= (vgic->vgic_cpu_base + KVM_VGIC_V2_CPU_SIZE))
+		fault_ipa >= (vgic->vgic_cpu_base + KVM_VGIC_V2_CPU_SIZE))
+	{
 		return 0;
+	}
 
 	/* Reject anything but a 32bit access */
 	if (kvm_vcpu_dabt_get_as(vcpu) != sizeof(u32))
+	{
 		return -1;
+	}
 
 	/* Not aligned? Don't bother */
 	if (fault_ipa & 3)
+	{
 		return -1;
+	}
 
 	rd = kvm_vcpu_dabt_get_rd(vcpu);
 	addr  = kern_hyp_va((kern_hyp_va(&kvm_vgic_global_state))->vcpu_base_va);
 	addr += fault_ipa - vgic->vgic_cpu_base;
 
-	if (kvm_vcpu_dabt_iswrite(vcpu)) {
+	if (kvm_vcpu_dabt_iswrite(vcpu))
+	{
 		u32 data = vcpu_data_guest_to_host(vcpu,
-						   vcpu_get_reg(vcpu, rd),
-						   sizeof(u32));
+										   vcpu_get_reg(vcpu, rd),
+										   sizeof(u32));
 		writel_relaxed(data, addr);
-	} else {
+	}
+	else
+	{
 		u32 data = readl_relaxed(addr);
 		vcpu_set_reg(vcpu, rd, vcpu_data_host_to_guest(vcpu, data,
-							       sizeof(u32)));
+					 sizeof(u32)));
 	}
 
 	return 1;

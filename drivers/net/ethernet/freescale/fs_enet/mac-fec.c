@@ -39,9 +39,9 @@
 #include <asm/uaccess.h>
 
 #ifdef CONFIG_8xx
-#include <asm/8xx_immap.h>
-#include <asm/pgtable.h>
-#include <asm/cpm1.h>
+	#include <asm/8xx_immap.h>
+	#include <asm/pgtable.h>
+	#include <asm/cpm1.h>
 #endif
 
 #include "fs_enet.h"
@@ -50,17 +50,17 @@
 /*************************************************/
 
 #if defined(CONFIG_CPM1)
-/* for a CPM1 __raw_xxx's are sufficient */
-#define __fs_out32(addr, x)	__raw_writel(x, addr)
-#define __fs_out16(addr, x)	__raw_writew(x, addr)
-#define __fs_in32(addr)	__raw_readl(addr)
-#define __fs_in16(addr)	__raw_readw(addr)
+	/* for a CPM1 __raw_xxx's are sufficient */
+	#define __fs_out32(addr, x)	__raw_writel(x, addr)
+	#define __fs_out16(addr, x)	__raw_writew(x, addr)
+	#define __fs_in32(addr)	__raw_readl(addr)
+	#define __fs_in16(addr)	__raw_readw(addr)
 #else
-/* for others play it safe */
-#define __fs_out32(addr, x)	out_be32(addr, x)
-#define __fs_out16(addr, x)	out_be16(addr, x)
-#define __fs_in32(addr)	in_be32(addr)
-#define __fs_in16(addr)	in_be16(addr)
+	/* for others play it safe */
+	#define __fs_out32(addr, x)	out_be32(addr, x)
+	#define __fs_out16(addr, x)	out_be16(addr, x)
+	#define __fs_in32(addr)	in_be32(addr)
+	#define __fs_in16(addr)	in_be16(addr)
 #endif
 
 /* write */
@@ -85,9 +85,14 @@ static int whack_reset(struct fec __iomem *fecp)
 	int i;
 
 	FW(fecp, ecntrl, FEC_ECNTRL_PINMUX | FEC_ECNTRL_RESET);
-	for (i = 0; i < FEC_RESET_DELAY; i++) {
+
+	for (i = 0; i < FEC_RESET_DELAY; i++)
+	{
 		if ((FR(fecp, ecntrl) & FEC_ECNTRL_RESET) == 0)
-			return 0;	/* OK */
+		{
+			return 0;    /* OK */
+		}
+
 		udelay(1);
 	}
 
@@ -99,12 +104,18 @@ static int do_pd_setup(struct fs_enet_private *fep)
 	struct platform_device *ofdev = to_platform_device(fep->dev);
 
 	fep->interrupt = irq_of_parse_and_map(ofdev->dev.of_node, 0);
+
 	if (!fep->interrupt)
+	{
 		return -EINVAL;
+	}
 
 	fep->fec.fecp = of_iomap(ofdev->dev.of_node, 0);
+
 	if (!fep->fcc.fccp)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -112,14 +123,16 @@ static int do_pd_setup(struct fs_enet_private *fep)
 #define FEC_NAPI_EVENT_MSK	(FEC_ENET_RXF | FEC_ENET_RXB | FEC_ENET_TXF)
 #define FEC_EVENT		(FEC_ENET_RXF | FEC_ENET_TXF)
 #define FEC_ERR_EVENT_MSK	(FEC_ENET_HBERR | FEC_ENET_BABR | \
-				 FEC_ENET_BABT | FEC_ENET_EBERR)
+							 FEC_ENET_BABT | FEC_ENET_EBERR)
 
 static int setup_data(struct net_device *dev)
 {
 	struct fs_enet_private *fep = netdev_priv(dev);
 
 	if (do_pd_setup(fep) != 0)
+	{
 		return -EINVAL;
+	}
 
 	fep->fec.hthi = 0;
 	fep->fec.htlo = 0;
@@ -137,11 +150,14 @@ static int allocate_bd(struct net_device *dev)
 	const struct fs_platform_info *fpi = fep->fpi;
 
 	fep->ring_base = (void __force __iomem *)dma_alloc_coherent(fep->dev,
-					    (fpi->tx_ring + fpi->rx_ring) *
-					    sizeof(cbd_t), &fep->ring_mem_addr,
-					    GFP_KERNEL);
+					 (fpi->tx_ring + fpi->rx_ring) *
+					 sizeof(cbd_t), &fep->ring_mem_addr,
+					 GFP_KERNEL);
+
 	if (fep->ring_base == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -151,11 +167,11 @@ static void free_bd(struct net_device *dev)
 	struct fs_enet_private *fep = netdev_priv(dev);
 	const struct fs_platform_info *fpi = fep->fpi;
 
-	if(fep->ring_base)
+	if (fep->ring_base)
 		dma_free_coherent(fep->dev, (fpi->tx_ring + fpi->rx_ring)
-					* sizeof(cbd_t),
-					(void __force *)fep->ring_base,
-					fep->ring_mem_addr);
+						  * sizeof(cbd_t),
+						  (void __force *)fep->ring_base,
+						  fep->ring_mem_addr);
 }
 
 static void cleanup_data(struct net_device *dev)
@@ -187,28 +203,41 @@ static void set_multicast_one(struct net_device *dev, const u8 *mac)
 	u8 byte, msb;
 
 	crc = 0xffffffff;
-	for (i = 0; i < 6; i++) {
+
+	for (i = 0; i < 6; i++)
+	{
 		byte = mac[i];
-		for (j = 0; j < 8; j++) {
+
+		for (j = 0; j < 8; j++)
+		{
 			msb = crc >> 31;
 			crc <<= 1;
+
 			if (msb ^ (byte & 0x1))
+			{
 				crc ^= FEC_CRC_POLY;
+			}
+
 			byte >>= 1;
 		}
 	}
 
 	temp = (crc & 0x3f) >> 1;
 	hash_index = ((temp & 0x01) << 4) |
-		     ((temp & 0x02) << 2) |
-		     ((temp & 0x04)) |
-		     ((temp & 0x08) >> 2) |
-		     ((temp & 0x10) >> 4);
+				 ((temp & 0x02) << 2) |
+				 ((temp & 0x04)) |
+				 ((temp & 0x08) >> 2) |
+				 ((temp & 0x10) >> 4);
 	csrVal = 1 << hash_index;
+
 	if (crc & 1)
+	{
 		fep->fec.hthi |= csrVal;
+	}
 	else
+	{
 		fep->fec.htlo |= csrVal;
+	}
 }
 
 static void set_multicast_finish(struct net_device *dev)
@@ -218,7 +247,8 @@ static void set_multicast_finish(struct net_device *dev)
 
 	/* if all multi or too many multicasts; just enable all */
 	if ((dev->flags & IFF_ALLMULTI) != 0 ||
-	    netdev_mc_count(dev) > FEC_MAX_MULTICAST_ADDRS) {
+		netdev_mc_count(dev) > FEC_MAX_MULTICAST_ADDRS)
+	{
 		fep->fec.hthi = 0xffffffffU;
 		fep->fec.htlo = 0xffffffffU;
 	}
@@ -232,13 +262,17 @@ static void set_multicast_list(struct net_device *dev)
 {
 	struct netdev_hw_addr *ha;
 
-	if ((dev->flags & IFF_PROMISC) == 0) {
+	if ((dev->flags & IFF_PROMISC) == 0)
+	{
 		set_multicast_start(dev);
 		netdev_for_each_mc_addr(ha, dev)
-			set_multicast_one(dev, ha->addr);
+		set_multicast_one(dev, ha->addr);
 		set_multicast_finish(dev);
-	} else
+	}
+	else
+	{
 		set_promiscuous_mode(dev);
+	}
 }
 
 static void restart(struct net_device *dev)
@@ -251,20 +285,24 @@ static void restart(struct net_device *dev)
 	u32 addrhi, addrlo;
 
 	struct mii_bus *mii = dev->phydev->mdio.bus;
-	struct fec_info* fec_inf = mii->priv;
+	struct fec_info *fec_inf = mii->priv;
 
 	r = whack_reset(fep->fec.fecp);
+
 	if (r != 0)
+	{
 		dev_err(fep->dev, "FEC Reset FAILED!\n");
+	}
+
 	/*
 	 * Set station address.
 	 */
 	addrhi = ((u32) dev->dev_addr[0] << 24) |
-		 ((u32) dev->dev_addr[1] << 16) |
-		 ((u32) dev->dev_addr[2] <<  8) |
-		  (u32) dev->dev_addr[3];
+			 ((u32) dev->dev_addr[1] << 16) |
+			 ((u32) dev->dev_addr[2] <<  8) |
+			 (u32) dev->dev_addr[3];
 	addrlo = ((u32) dev->dev_addr[4] << 24) |
-		 ((u32) dev->dev_addr[5] << 16);
+			 ((u32) dev->dev_addr[5] << 16);
 	FW(fecp, addr_low, addrhi);
 	FW(fecp, addr_high, addrlo);
 
@@ -324,15 +362,19 @@ static void restart(struct net_device *dev)
 	 * configured before.
 	 */
 	FS(fecp, r_cntrl, fpi->use_rmii ?
-			FEC_RCNTRL_RMII_MODE : FEC_RCNTRL_MII_MODE);
+	   FEC_RCNTRL_RMII_MODE : FEC_RCNTRL_MII_MODE);
 #endif
+
 	/*
 	 * adjust to duplex mode
 	 */
-	if (dev->phydev->duplex) {
+	if (dev->phydev->duplex)
+	{
 		FC(fecp, r_cntrl, FEC_RCNTRL_DRT);
 		FS(fecp, x_cntrl, FEC_TCNTRL_FDEN);	/* FD enable */
-	} else {
+	}
+	else
+	{
 		FS(fecp, r_cntrl, FEC_RCNTRL_DRT);
 		FC(fecp, x_cntrl, FEC_TCNTRL_FDEN);	/* FD disable */
 	}
@@ -364,15 +406,23 @@ static void stop(struct net_device *dev)
 	int i;
 
 	if ((FR(fecp, ecntrl) & FEC_ECNTRL_ETHER_EN) == 0)
-		return;		/* already down */
+	{
+		return;    /* already down */
+	}
 
 	FW(fecp, x_cntrl, 0x01);	/* Graceful transmit stop */
+
 	for (i = 0; ((FR(fecp, ievent) & 0x10000000) == 0) &&
-	     i < FEC_RESET_DELAY; i++)
+		 i < FEC_RESET_DELAY; i++)
+	{
 		udelay(1);
+	}
 
 	if (i == FEC_RESET_DELAY)
+	{
 		dev_warn(fep->dev, "FEC timeout on graceful transmit stop\n");
+	}
+
 	/*
 	 * Disable FEC. Let only MII interrupts.
 	 */
@@ -382,10 +432,11 @@ static void stop(struct net_device *dev)
 	fs_cleanup_bds(dev);
 
 	/* shut down FEC1? that's where the mii bus is */
-	if (fpi->has_phy) {
+	if (fpi->has_phy)
+	{
 		FS(fecp, r_cntrl, fpi->use_rmii ?
-				FEC_RCNTRL_RMII_MODE :
-				FEC_RCNTRL_MII_MODE);	/* MII/RMII enable */
+		   FEC_RCNTRL_RMII_MODE :
+		   FEC_RCNTRL_MII_MODE);	/* MII/RMII enable */
 		FS(fecp, ecntrl, FEC_ECNTRL_PINMUX | FEC_ECNTRL_ETHER_EN);
 		FW(fecp, ievent, FEC_ENET_MII);
 		FW(fecp, mii_speed, feci->mii_speed);
@@ -460,7 +511,9 @@ static int get_regs(struct net_device *dev, void *p, int *sizep)
 	struct fs_enet_private *fep = netdev_priv(dev);
 
 	if (*sizep < sizeof(struct fec))
+	{
 		return -EINVAL;
+	}
 
 	memcpy_fromio(p, fep->fec.fecp, sizeof(struct fec));
 
@@ -479,7 +532,8 @@ static void tx_restart(struct net_device *dev)
 
 /*************************************************************************/
 
-const struct fs_ops fs_fec_ops = {
+const struct fs_ops fs_fec_ops =
+{
 	.setup_data		= setup_data,
 	.cleanup_data		= cleanup_data,
 	.set_multicast_list	= set_multicast_list,

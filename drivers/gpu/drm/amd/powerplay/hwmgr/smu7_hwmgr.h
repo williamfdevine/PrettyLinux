@@ -39,7 +39,8 @@
 #define DPMTABLE_UPDATE_SCLK        0x00000004
 #define DPMTABLE_UPDATE_MCLK        0x00000008
 
-enum gpu_pt_config_reg_type {
+enum gpu_pt_config_reg_type
+{
 	GPU_CONFIGREG_MMR = 0,
 	GPU_CONFIGREG_SMC_IND,
 	GPU_CONFIGREG_DIDT_IND,
@@ -48,7 +49,8 @@ enum gpu_pt_config_reg_type {
 	GPU_CONFIGREG_MAX
 };
 
-struct gpu_pt_config_reg {
+struct gpu_pt_config_reg
+{
 	uint32_t                           offset;
 	uint32_t                           mask;
 	uint32_t                           shift;
@@ -56,30 +58,35 @@ struct gpu_pt_config_reg {
 	enum gpu_pt_config_reg_type       type;
 };
 
-struct smu7_performance_level {
+struct smu7_performance_level
+{
 	uint32_t  memory_clock;
 	uint32_t  engine_clock;
 	uint16_t  pcie_gen;
 	uint16_t  pcie_lane;
 };
 
-struct smu7_thermal_temperature_setting {
+struct smu7_thermal_temperature_setting
+{
 	long temperature_low;
 	long temperature_high;
 	long temperature_shutdown;
 };
 
-struct smu7_uvd_clocks {
+struct smu7_uvd_clocks
+{
 	uint32_t  vclk;
 	uint32_t  dclk;
 };
 
-struct smu7_vce_clocks {
+struct smu7_vce_clocks
+{
 	uint32_t  evclk;
 	uint32_t  ecclk;
 };
 
-struct smu7_power_state {
+struct smu7_power_state
+{
 	uint32_t                  magic;
 	struct smu7_uvd_clocks    uvd_clks;
 	struct smu7_vce_clocks    vce_clks;
@@ -90,7 +97,8 @@ struct smu7_power_state {
 	struct smu7_performance_level  performance_levels[SMU7_MAX_HARDWARE_POWERLEVELS];
 };
 
-struct smu7_dpm_level {
+struct smu7_dpm_level
+{
 	bool	enabled;
 	uint32_t	value;
 	uint32_t	param1;
@@ -100,12 +108,14 @@ struct smu7_dpm_level {
 #define MAX_REGULAR_DPM_NUMBER 8
 #define SMU7_MINIMUM_ENGINE_CLOCK 2500
 
-struct smu7_single_dpm_table {
+struct smu7_single_dpm_table
+{
 	uint32_t		count;
 	struct smu7_dpm_level	dpm_levels[MAX_REGULAR_DPM_NUMBER];
 };
 
-struct smu7_dpm_table {
+struct smu7_dpm_table
+{
 	struct smu7_single_dpm_table  sclk_table;
 	struct smu7_single_dpm_table  mclk_table;
 	struct smu7_single_dpm_table  pcie_speed_table;
@@ -114,7 +124,8 @@ struct smu7_dpm_table {
 	struct smu7_single_dpm_table  mvdd_table;
 };
 
-struct smu7_clock_registers {
+struct smu7_clock_registers
+{
 	uint32_t  vCG_SPLL_FUNC_CNTL;
 	uint32_t  vCG_SPLL_FUNC_CNTL_2;
 	uint32_t  vCG_SPLL_FUNC_CNTL_3;
@@ -135,19 +146,22 @@ struct smu7_clock_registers {
 #define DISABLE_MC_LOADMICROCODE   1
 #define DISABLE_MC_CFGPROGRAMMING  2
 
-struct smu7_voltage_smio_registers {
+struct smu7_voltage_smio_registers
+{
 	uint32_t vS0_VID_LOWER_SMIO_CNTL;
 };
 
 #define SMU7_MAX_LEAKAGE_COUNT  8
 
-struct smu7_leakage_voltage {
+struct smu7_leakage_voltage
+{
 	uint16_t  count;
 	uint16_t  leakage_id[SMU7_MAX_LEAKAGE_COUNT];
 	uint16_t  actual_voltage[SMU7_MAX_LEAKAGE_COUNT];
 };
 
-struct smu7_vbios_boot_state {
+struct smu7_vbios_boot_state
+{
 	uint16_t    mvdd_bootup_value;
 	uint16_t    vddc_bootup_value;
 	uint16_t    vddci_bootup_value;
@@ -158,12 +172,14 @@ struct smu7_vbios_boot_state {
 	uint16_t    pcie_lane_bootup_value;
 };
 
-struct smu7_display_timing {
+struct smu7_display_timing
+{
 	uint32_t  min_clock_in_sr;
 	uint32_t  num_existing_displays;
 };
 
-struct smu7_dpmlevel_enable_mask {
+struct smu7_dpmlevel_enable_mask
+{
 	uint32_t  uvd_dpm_enable_mask;
 	uint32_t  vce_dpm_enable_mask;
 	uint32_t  acp_dpm_enable_mask;
@@ -173,12 +189,14 @@ struct smu7_dpmlevel_enable_mask {
 	uint32_t  pcie_dpm_enable_mask;
 };
 
-struct smu7_pcie_perf_range {
+struct smu7_pcie_perf_range
+{
 	uint16_t  max;
 	uint16_t  min;
 };
 
-struct smu7_hwmgr {
+struct smu7_hwmgr
+{
 	struct smu7_dpm_table			dpm_table;
 	struct smu7_dpm_table			golden_dpm_table;
 
@@ -317,7 +335,8 @@ struct smu7_hwmgr {
 /* To convert to Q8.8 format for firmware */
 #define SMU7_Q88_FORMAT_CONVERSION_UNIT             256
 
-enum SMU7_I2CLineID {
+enum SMU7_I2CLineID
+{
 	SMU7_I2CLineID_DDC1 = 0x90,
 	SMU7_I2CLineID_DDC2 = 0x91,
 	SMU7_I2CLineID_DDC3 = 0x92,

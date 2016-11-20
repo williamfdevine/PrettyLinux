@@ -18,7 +18,7 @@
 #include "hdmi.h"
 
 static void hdmi_phy_8960_powerup(struct hdmi_phy *phy,
-				  unsigned long int pixclock)
+								  unsigned long int pixclock)
 {
 	DBG("pixclock: %lu", pixclock);
 
@@ -43,15 +43,18 @@ static void hdmi_phy_8960_powerdown(struct hdmi_phy *phy)
 	hdmi_phy_write(phy, REG_HDMI_8960_PHY_REG2, 0x7f);
 }
 
-static const char * const hdmi_phy_8960_reg_names[] = {
+static const char *const hdmi_phy_8960_reg_names[] =
+{
 	"core-vdda",
 };
 
-static const char * const hdmi_phy_8960_clk_names[] = {
+static const char *const hdmi_phy_8960_clk_names[] =
+{
 	"slave_iface_clk",
 };
 
-const struct hdmi_phy_cfg msm_hdmi_phy_8960_cfg = {
+const struct hdmi_phy_cfg msm_hdmi_phy_8960_cfg =
+{
 	.type = MSM_HDMI_PHY_8960,
 	.powerup = hdmi_phy_8960_powerup,
 	.powerdown = hdmi_phy_8960_powerdown,

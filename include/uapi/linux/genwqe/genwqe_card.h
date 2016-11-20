@@ -246,7 +246,8 @@
 #define IO_APP_DEBUG_REG_18		0x02010088
 
 /* Read/write from/to registers */
-struct genwqe_reg_io {
+struct genwqe_reg_io
+{
 	__u64 num;		/* register offset/address */
 	__u64 val64;
 };
@@ -324,7 +325,8 @@ struct genwqe_reg_io {
 #define SLCMD_MOVE_FLASH_FLAG_PARTITION	(1 << 4)
 #define SLCMD_MOVE_FLASH_FLAG_ERASE	(1 << 5)
 
-enum genwqe_card_state {
+enum genwqe_card_state
+{
 	GENWQE_CARD_UNUSED = 0,
 	GENWQE_CARD_USED = 1,
 	GENWQE_CARD_FATAL_ERROR = 2,
@@ -333,7 +335,8 @@ enum genwqe_card_state {
 };
 
 /* common struct for chip image exchange */
-struct genwqe_bitstream {
+struct genwqe_bitstream
+{
 	__u64 data_addr;		/* pointer to image data */
 	__u32 size;			/* size of image file */
 	__u32 crc;			/* crc of this image */
@@ -356,7 +359,8 @@ struct genwqe_bitstream {
 #define DDCB_ASV_LENGTH			64  /* len of the DDCB ASV array  */
 #define DDCB_FIXUPS			12  /* maximum number of fixups */
 
-struct genwqe_debug_data {
+struct genwqe_debug_data
+{
 	char driver_version[64];
 	__u64 slu_unitcfg;
 	__u64 app_unitcfg;
@@ -400,7 +404,8 @@ struct genwqe_debug_data {
  * structure. On the way out the driver will not copy the ASIV data
  * back to user-space.
  */
-struct genwqe_ddcb_cmd {
+struct genwqe_ddcb_cmd
+{
 	/* START of data copied to/from driver */
 	__u64 next_addr;		/* chaining genwqe_ddcb_cmd */
 	__u64 flags;			/* reserved */
@@ -427,8 +432,10 @@ struct genwqe_ddcb_cmd {
 	__u8  asv[DDCB_ASV_LENGTH];
 
 	/* END of data copied from driver */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u64 ats;
 			__u8  asiv[DDCB_ASIV_LENGTH_ATS];
 		};
@@ -468,7 +475,8 @@ struct genwqe_ddcb_cmd {
  * after the device is closed. Note that pinnings will required
  * memory.
  */
-struct genwqe_mem {
+struct genwqe_mem
+{
 	__u64 addr;
 	__u64 size;
 	__u64 direction;

@@ -46,7 +46,8 @@
  * format: decimal value * APDS_PARAM_SCALE except df which is plain integer.
  */
 #define APDS_PARAM_SCALE 4096
-struct apds990x_chip_factors {
+struct apds990x_chip_factors
+{
 	int ga;
 	int cf1;
 	int irf1;
@@ -68,7 +69,8 @@ struct apds990x_chip_factors {
  *
  */
 
-struct apds990x_platform_data {
+struct apds990x_platform_data
+{
 	struct apds990x_chip_factors cf;
 	u8     pdrive;
 	u8     ppcount;

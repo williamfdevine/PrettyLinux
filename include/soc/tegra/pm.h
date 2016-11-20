@@ -9,7 +9,8 @@
 #ifndef __SOC_TEGRA_PM_H__
 #define __SOC_TEGRA_PM_H__
 
-enum tegra_suspend_mode {
+enum tegra_suspend_mode
+{
 	TEGRA_SUSPEND_NONE = 0,
 	TEGRA_SUSPEND_LP2, /* CPU voltage off */
 	TEGRA_SUSPEND_LP1, /* CPU voltage off, DRAM self-refresh */

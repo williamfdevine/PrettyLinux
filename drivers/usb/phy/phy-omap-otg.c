@@ -26,7 +26,8 @@
 #include <linux/platform_device.h>
 #include <linux/platform_data/usb-omap1.h>
 
-struct otg_device {
+struct otg_device
+{
 	void __iomem			*base;
 	bool				id;
 	bool				vbus;
@@ -59,17 +60,23 @@ static void omap_otg_set_mode(struct otg_device *otg_dev)
 {
 	if (!otg_dev->id && otg_dev->vbus)
 		/* Set B-session valid. */
+	{
 		omap_otg_ctrl(otg_dev, OMAP_OTG_ID | OMAP_OTG_BSESSVLD);
+	}
 	else if (otg_dev->vbus)
 		/* Set A-session valid. */
+	{
 		omap_otg_ctrl(otg_dev, OMAP_OTG_ASESSVLD);
+	}
 	else if (!otg_dev->id)
 		/* Set B-session end to indicate no VBUS. */
+	{
 		omap_otg_ctrl(otg_dev, OMAP_OTG_ID | OMAP_OTG_BSESSEND);
+	}
 }
 
 static int omap_otg_id_notifier(struct notifier_block *nb,
-				unsigned long event, void *ptr)
+								unsigned long event, void *ptr)
 {
 	struct otg_device *otg_dev = container_of(nb, struct otg_device, id_nb);
 
@@ -80,10 +87,10 @@ static int omap_otg_id_notifier(struct notifier_block *nb,
 }
 
 static int omap_otg_vbus_notifier(struct notifier_block *nb,
-				  unsigned long event, void *ptr)
+								  unsigned long event, void *ptr)
 {
 	struct otg_device *otg_dev = container_of(nb, struct otg_device,
-						  vbus_nb);
+								 vbus_nb);
 
 	otg_dev->vbus = event;
 	omap_otg_set_mode(otg_dev);
@@ -100,32 +107,48 @@ static int omap_otg_probe(struct platform_device *pdev)
 	u32 rev;
 
 	if (!config || !config->extcon)
+	{
 		return -ENODEV;
+	}
 
 	extcon = extcon_get_extcon_dev(config->extcon);
+
 	if (!extcon)
+	{
 		return -EPROBE_DEFER;
+	}
 
 	otg_dev = devm_kzalloc(&pdev->dev, sizeof(*otg_dev), GFP_KERNEL);
+
 	if (!otg_dev)
+	{
 		return -ENOMEM;
+	}
 
 	otg_dev->base = devm_ioremap_resource(&pdev->dev, &pdev->resource[0]);
+
 	if (IS_ERR(otg_dev->base))
+	{
 		return PTR_ERR(otg_dev->base);
+	}
 
 	otg_dev->extcon = extcon;
 	otg_dev->id_nb.notifier_call = omap_otg_id_notifier;
 	otg_dev->vbus_nb.notifier_call = omap_otg_vbus_notifier;
 
 	ret = extcon_register_notifier(extcon, EXTCON_USB_HOST, &otg_dev->id_nb);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = extcon_register_notifier(extcon, EXTCON_USB, &otg_dev->vbus_nb);
-	if (ret) {
+
+	if (ret)
+	{
 		extcon_unregister_notifier(extcon, EXTCON_USB_HOST,
-					&otg_dev->id_nb);
+								   &otg_dev->id_nb);
 		return ret;
 	}
 
@@ -136,9 +159,9 @@ static int omap_otg_probe(struct platform_device *pdev)
 	rev = readl(otg_dev->base);
 
 	dev_info(&pdev->dev,
-		 "OMAP USB OTG controller rev %d.%d (%s, id=%d, vbus=%d)\n",
-		 (rev >> 4) & 0xf, rev & 0xf, config->extcon, otg_dev->id,
-		 otg_dev->vbus);
+			 "OMAP USB OTG controller rev %d.%d (%s, id=%d, vbus=%d)\n",
+			 (rev >> 4) & 0xf, rev & 0xf, config->extcon, otg_dev->id,
+			 otg_dev->vbus);
 
 	platform_set_drvdata(pdev, otg_dev);
 
@@ -156,7 +179,8 @@ static int omap_otg_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver omap_otg_driver = {
+static struct platform_driver omap_otg_driver =
+{
 	.probe		= omap_otg_probe,
 	.remove		= omap_otg_remove,
 	.driver		= {

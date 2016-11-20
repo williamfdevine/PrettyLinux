@@ -24,7 +24,8 @@ static void pcspkr_do_sound(unsigned int count)
 
 	raw_spin_lock_irqsave(&i8253_lock, flags);
 
-	if (count) {
+	if (count)
+	{
 		/* set command for counter 2, 2 byte write */
 		outb_p(0xB6, 0x43);
 		/* select desired HZ */
@@ -32,7 +33,9 @@ static void pcspkr_do_sound(unsigned int count)
 		outb((count >> 8) & 0xff, 0x42);
 		/* enable counter 2 */
 		outb_p(inb_p(0x61) | 3, 0x61);
-	} else {
+	}
+	else
+	{
 		/* disable counter 2 */
 		outb(inb_p(0x61) & 0xFC, 0x61);
 	}
@@ -46,32 +49,43 @@ void pcspkr_stop_sound(void)
 }
 
 static int pcspkr_input_event(struct input_dev *dev, unsigned int type,
-			      unsigned int code, int value)
+							  unsigned int code, int value)
 {
 	unsigned int count = 0;
 
 	if (atomic_read(&pcsp_chip.timer_active) || !pcsp_chip.pcspkr)
+	{
 		return 0;
+	}
 
-	switch (type) {
-	case EV_SND:
-		switch (code) {
-		case SND_BELL:
-			if (value)
-				value = 1000;
-		case SND_TONE:
+	switch (type)
+	{
+		case EV_SND:
+			switch (code)
+			{
+				case SND_BELL:
+					if (value)
+					{
+						value = 1000;
+					}
+
+				case SND_TONE:
+					break;
+
+				default:
+					return -1;
+			}
+
 			break;
+
 		default:
 			return -1;
-		}
-		break;
-
-	default:
-		return -1;
 	}
 
 	if (value > 20 && value < 32767)
+	{
 		count = PIT_TICK_RATE / value;
+	}
 
 	pcspkr_do_sound(count);
 
@@ -83,8 +97,11 @@ int pcspkr_input_init(struct input_dev **rdev, struct device *dev)
 	int err;
 
 	struct input_dev *input_dev = input_allocate_device();
+
 	if (!input_dev)
+	{
 		return -ENOMEM;
+	}
 
 	input_dev->name = "PC Speaker";
 	input_dev->phys = "isa0061/input0";
@@ -99,7 +116,9 @@ int pcspkr_input_init(struct input_dev **rdev, struct device *dev)
 	input_dev->event = pcspkr_input_event;
 
 	err = input_register_device(input_dev);
-	if (err) {
+
+	if (err)
+	{
 		input_free_device(input_dev);
 		return err;
 	}

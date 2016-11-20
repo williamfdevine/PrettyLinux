@@ -37,10 +37,11 @@
 struct	da8xx_ohci_root_hub;
 
 typedef void (*da8xx_ocic_handler_t)(struct da8xx_ohci_root_hub *hub,
-				     unsigned port);
+									 unsigned port);
 
 /* Passed as the platform data to the OHCI driver */
-struct	da8xx_ohci_root_hub {
+struct	da8xx_ohci_root_hub
+{
 	/* Switch the port power on/off */
 	int	(*set_power)(unsigned port, int on);
 	/* Read the port power status */

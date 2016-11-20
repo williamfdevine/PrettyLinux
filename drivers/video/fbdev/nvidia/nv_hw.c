@@ -1,4 +1,4 @@
- /***************************************************************************\
+/***************************************************************************\
 |*                                                                           *|
 |*       Copyright 1993-2003 NVIDIA, Corporation.  All rights reserved.      *|
 |*                                                                           *|
@@ -35,7 +35,7 @@
 |*     all U.S. Government End Users  acquire the source code  with only     *|
 |*     those rights set forth herein.                                        *|
 |*                                                                           *|
- \***************************************************************************/
+\***************************************************************************/
 
 /*
  * GPL Licensing Note - According to Mark Vojkovich, author of the Xorg/
@@ -63,10 +63,16 @@ void NVLockUnlock(struct nvidia_par *par, int Lock)
 
 	VGA_WR08(par->PCIO, 0x3D4, 0x11);
 	cr11 = VGA_RD08(par->PCIO, 0x3D5);
+
 	if (Lock)
+	{
 		cr11 |= 0x80;
+	}
 	else
+	{
 		cr11 &= ~0x80;
+	}
+
 	VGA_WR08(par->PCIO, 0x3D5, cr11);
 }
 
@@ -75,12 +81,14 @@ int NVShowHideCursor(struct nvidia_par *par, int ShowHide)
 	int cur = par->CurrentState->cursor1;
 
 	par->CurrentState->cursor1 = (par->CurrentState->cursor1 & 0xFE) |
-	    (ShowHide & 0x01);
+								 (ShowHide & 0x01);
 	VGA_WR08(par->PCIO, 0x3D4, 0x31);
 	VGA_WR08(par->PCIO, 0x3D5, par->CurrentState->cursor1);
 
 	if (par->Architecture == NV_ARCH_40)
+	{
 		NV_WR32(par->PRAMDAC, 0x0300, NV_RD32(par->PRAMDAC, 0x0300));
+	}
 
 	return (cur & 0x01);
 }
@@ -93,7 +101,8 @@ int NVShowHideCursor(struct nvidia_par *par, int ShowHide)
 *                                                                            *
 \****************************************************************************/
 
-typedef struct {
+typedef struct
+{
 	int graphics_lwm;
 	int video_lwm;
 	int graphics_burst_size;
@@ -101,7 +110,8 @@ typedef struct {
 	int valid;
 } nv4_fifo_info;
 
-typedef struct {
+typedef struct
+{
 	int pclk_khz;
 	int mclk_khz;
 	int nvclk_khz;
@@ -115,7 +125,8 @@ typedef struct {
 	char enable_mp;
 } nv4_sim_state;
 
-typedef struct {
+typedef struct
+{
 	int graphics_lwm;
 	int video_lwm;
 	int graphics_burst_size;
@@ -123,7 +134,8 @@ typedef struct {
 	int valid;
 } nv10_fifo_info;
 
-typedef struct {
+typedef struct
+{
 	int pclk_khz;
 	int mclk_khz;
 	int nvclk_khz;
@@ -139,24 +151,30 @@ typedef struct {
 } nv10_sim_state;
 
 static void nvGetClocks(struct nvidia_par *par, unsigned int *MClk,
-			unsigned int *NVClk)
+						unsigned int *NVClk)
 {
 	unsigned int pll, N, M, MB, NB, P;
 
-	if (par->Architecture >= NV_ARCH_40) {
+	if (par->Architecture >= NV_ARCH_40)
+	{
 		pll = NV_RD32(par->PMC, 0x4020);
 		P = (pll >> 16) & 0x07;
 		pll = NV_RD32(par->PMC, 0x4024);
 		M = pll & 0xFF;
 		N = (pll >> 8) & 0xFF;
+
 		if (((par->Chipset & 0xfff0) == 0x0290) ||
-		    ((par->Chipset & 0xfff0) == 0x0390)) {
+			((par->Chipset & 0xfff0) == 0x0390))
+		{
 			MB = 1;
 			NB = 1;
-		} else {
+		}
+		else
+		{
 			MB = (pll >> 16) & 0xFF;
 			NB = (pll >> 24) & 0xFF;
 		}
+
 		*MClk = ((N * NB * par->CrystalFreqKHz) / (M * MB)) >> P;
 
 		pll = NV_RD32(par->PMC, 0x4000);
@@ -168,19 +186,26 @@ static void nvGetClocks(struct nvidia_par *par, unsigned int *MClk,
 		NB = (pll >> 24) & 0xFF;
 
 		*NVClk = ((N * NB * par->CrystalFreqKHz) / (M * MB)) >> P;
-	} else if (par->twoStagePLL) {
+	}
+	else if (par->twoStagePLL)
+	{
 		pll = NV_RD32(par->PRAMDAC0, 0x0504);
 		M = pll & 0xFF;
 		N = (pll >> 8) & 0xFF;
 		P = (pll >> 16) & 0x0F;
 		pll = NV_RD32(par->PRAMDAC0, 0x0574);
-		if (pll & 0x80000000) {
+
+		if (pll & 0x80000000)
+		{
 			MB = pll & 0xFF;
 			NB = (pll >> 8) & 0xFF;
-		} else {
+		}
+		else
+		{
 			MB = 1;
 			NB = 1;
 		}
+
 		*MClk = ((N * NB * par->CrystalFreqKHz) / (M * MB)) >> P;
 
 		pll = NV_RD32(par->PRAMDAC0, 0x0500);
@@ -188,43 +213,61 @@ static void nvGetClocks(struct nvidia_par *par, unsigned int *MClk,
 		N = (pll >> 8) & 0xFF;
 		P = (pll >> 16) & 0x0F;
 		pll = NV_RD32(par->PRAMDAC0, 0x0570);
-		if (pll & 0x80000000) {
+
+		if (pll & 0x80000000)
+		{
 			MB = pll & 0xFF;
 			NB = (pll >> 8) & 0xFF;
-		} else {
+		}
+		else
+		{
 			MB = 1;
 			NB = 1;
 		}
+
 		*NVClk = ((N * NB * par->CrystalFreqKHz) / (M * MB)) >> P;
-	} else
-	    if (((par->Chipset & 0x0ff0) == 0x0300) ||
-		((par->Chipset & 0x0ff0) == 0x0330)) {
+	}
+	else if (((par->Chipset & 0x0ff0) == 0x0300) ||
+			 ((par->Chipset & 0x0ff0) == 0x0330))
+	{
 		pll = NV_RD32(par->PRAMDAC0, 0x0504);
 		M = pll & 0x0F;
 		N = (pll >> 8) & 0xFF;
 		P = (pll >> 16) & 0x07;
-		if (pll & 0x00000080) {
+
+		if (pll & 0x00000080)
+		{
 			MB = (pll >> 4) & 0x07;
 			NB = (pll >> 19) & 0x1f;
-		} else {
+		}
+		else
+		{
 			MB = 1;
 			NB = 1;
 		}
+
 		*MClk = ((N * NB * par->CrystalFreqKHz) / (M * MB)) >> P;
 
 		pll = NV_RD32(par->PRAMDAC0, 0x0500);
 		M = pll & 0x0F;
 		N = (pll >> 8) & 0xFF;
 		P = (pll >> 16) & 0x07;
-		if (pll & 0x00000080) {
+
+		if (pll & 0x00000080)
+		{
 			MB = (pll >> 4) & 0x07;
 			NB = (pll >> 19) & 0x1f;
-		} else {
+		}
+		else
+		{
 			MB = 1;
 			NB = 1;
 		}
+
 		*NVClk = ((N * NB * par->CrystalFreqKHz) / (M * MB)) >> P;
-	} else {
+	}
+	else
+	{
 		pll = NV_RD32(par->PRAMDAC0, 0x0504);
 		M = pll & 0xFF;
 		N = (pll >> 8) & 0xFF;
@@ -239,7 +282,7 @@ static void nvGetClocks(struct nvidia_par *par, unsigned int *MClk,
 	}
 }
 
-static void nv4CalcArbitration(nv4_fifo_info * fifo, nv4_sim_state * arb)
+static void nv4CalcArbitration(nv4_fifo_info *fifo, nv4_sim_state *arb)
 {
 	int data, pagemiss, cas, width, video_enable, bpp;
 	int nvclks, mclks, pclks, vpagemiss, crtpagemiss, vbs;
@@ -278,96 +321,144 @@ static void nv4CalcArbitration(nv4_fifo_info * fifo, nv4_sim_state * arb)
 	nvclks += 1;
 	nvclks += 1;
 	nvclks += 1;
+
 	if (mp_enable)
+	{
 		mclks += 4;
+	}
+
 	nvclks += 0;
 	pclks += 0;
 	found = 0;
 	vbs = 0;
-	while (found != 1) {
+
+	while (found != 1)
+	{
 		fifo->valid = 1;
 		found = 1;
 		mclk_loop = mclks + mclk_extra;
 		us_m = mclk_loop * 1000 * 1000 / mclk_freq;
 		us_n = nvclks * 1000 * 1000 / nvclk_freq;
 		us_p = nvclks * 1000 * 1000 / pclk_freq;
-		if (video_enable) {
+
+		if (video_enable)
+		{
 			video_drain_rate = pclk_freq * 2;
 			crtc_drain_rate = pclk_freq * bpp / 8;
 			vpagemiss = 2;
 			vpagemiss += 1;
 			crtpagemiss = 2;
 			vpm_us =
-			    (vpagemiss * pagemiss) * 1000 * 1000 / mclk_freq;
+				(vpagemiss * pagemiss) * 1000 * 1000 / mclk_freq;
+
 			if (nvclk_freq * 2 > mclk_freq * width)
 				video_fill_us =
-				    cbs * 1000 * 1000 / 16 / nvclk_freq;
+					cbs * 1000 * 1000 / 16 / nvclk_freq;
 			else
 				video_fill_us =
-				    cbs * 1000 * 1000 / (8 * width) /
-				    mclk_freq;
+					cbs * 1000 * 1000 / (8 * width) /
+					mclk_freq;
+
 			us_video = vpm_us + us_m + us_n + us_p + video_fill_us;
 			vlwm = us_video * video_drain_rate / (1000 * 1000);
 			vlwm++;
 			vbs = 128;
+
 			if (vlwm > 128)
+			{
 				vbs = 64;
+			}
+
 			if (vlwm > (256 - 64))
+			{
 				vbs = 32;
+			}
+
 			if (nvclk_freq * 2 > mclk_freq * width)
 				video_fill_us =
-				    vbs * 1000 * 1000 / 16 / nvclk_freq;
+					vbs * 1000 * 1000 / 16 / nvclk_freq;
 			else
 				video_fill_us =
-				    vbs * 1000 * 1000 / (8 * width) /
-				    mclk_freq;
+					vbs * 1000 * 1000 / (8 * width) /
+					mclk_freq;
+
 			cpm_us =
-			    crtpagemiss * pagemiss * 1000 * 1000 / mclk_freq;
+				crtpagemiss * pagemiss * 1000 * 1000 / mclk_freq;
 			us_crt =
-			    us_video + video_fill_us + cpm_us + us_m + us_n +
-			    us_p;
+				us_video + video_fill_us + cpm_us + us_m + us_n +
+				us_p;
 			clwm = us_crt * crtc_drain_rate / (1000 * 1000);
 			clwm++;
-		} else {
+		}
+		else
+		{
 			crtc_drain_rate = pclk_freq * bpp / 8;
 			crtpagemiss = 2;
 			crtpagemiss += 1;
 			cpm_us =
-			    crtpagemiss * pagemiss * 1000 * 1000 / mclk_freq;
+				crtpagemiss * pagemiss * 1000 * 1000 / mclk_freq;
 			us_crt = cpm_us + us_m + us_n + us_p;
 			clwm = us_crt * crtc_drain_rate / (1000 * 1000);
 			clwm++;
 		}
+
 		m1 = clwm + cbs - 512;
 		p1 = m1 * pclk_freq / mclk_freq;
 		p1 = p1 * bpp / 8;
-		if ((p1 < m1) && (m1 > 0)) {
+
+		if ((p1 < m1) && (m1 > 0))
+		{
 			fifo->valid = 0;
 			found = 0;
+
 			if (mclk_extra == 0)
+			{
 				found = 1;
-			mclk_extra--;
-		} else if (video_enable) {
-			if ((clwm > 511) || (vlwm > 255)) {
-				fifo->valid = 0;
-				found = 0;
-				if (mclk_extra == 0)
-					found = 1;
-				mclk_extra--;
 			}
-		} else {
-			if (clwm > 519) {
+
+			mclk_extra--;
+		}
+		else if (video_enable)
+		{
+			if ((clwm > 511) || (vlwm > 255))
+			{
 				fifo->valid = 0;
 				found = 0;
+
 				if (mclk_extra == 0)
+				{
 					found = 1;
+				}
+
 				mclk_extra--;
 			}
 		}
+		else
+		{
+			if (clwm > 519)
+			{
+				fifo->valid = 0;
+				found = 0;
+
+				if (mclk_extra == 0)
+				{
+					found = 1;
+				}
+
+				mclk_extra--;
+			}
+		}
+
 		if (clwm < 384)
+		{
 			clwm = 384;
+		}
+
 		if (vlwm < 128)
+		{
 			vlwm = 128;
+		}
+
 		data = (int)(clwm);
 		fifo->graphics_lwm = data;
 		fifo->graphics_burst_size = 128;
@@ -378,9 +469,9 @@ static void nv4CalcArbitration(nv4_fifo_info * fifo, nv4_sim_state * arb)
 }
 
 static void nv4UpdateArbitrationSettings(unsigned VClk,
-					 unsigned pixelDepth,
-					 unsigned *burst,
-					 unsigned *lwm, struct nvidia_par *par)
+		unsigned pixelDepth,
+		unsigned *burst,
+		unsigned *lwm, struct nvidia_par *par)
 {
 	nv4_fifo_info fifo_data;
 	nv4_sim_state sim_data;
@@ -393,26 +484,32 @@ static void nv4UpdateArbitrationSettings(unsigned VClk,
 	sim_data.enable_video = 0;
 	sim_data.enable_mp = 0;
 	sim_data.memory_width = (NV_RD32(par->PEXTDEV, 0x0000) & 0x10) ?
-	    128 : 64;
+							128 : 64;
 	sim_data.mem_latency = (char)cfg1 & 0x0F;
 	sim_data.mem_aligned = 1;
 	sim_data.mem_page_miss =
-	    (char)(((cfg1 >> 4) & 0x0F) + ((cfg1 >> 31) & 0x01));
+		(char)(((cfg1 >> 4) & 0x0F) + ((cfg1 >> 31) & 0x01));
 	sim_data.gr_during_vid = 0;
 	sim_data.pclk_khz = VClk;
 	sim_data.mclk_khz = MClk;
 	sim_data.nvclk_khz = NVClk;
 	nv4CalcArbitration(&fifo_data, &sim_data);
-	if (fifo_data.valid) {
+
+	if (fifo_data.valid)
+	{
 		int b = fifo_data.graphics_burst_size >> 4;
 		*burst = 0;
+
 		while (b >>= 1)
+		{
 			(*burst)++;
+		}
+
 		*lwm = fifo_data.graphics_lwm >> 3;
 	}
 }
 
-static void nv10CalcArbitration(nv10_fifo_info * fifo, nv10_sim_state * arb)
+static void nv10CalcArbitration(nv10_fifo_info *fifo, nv10_sim_state *arb)
 {
 	int data, pagemiss, width, video_enable, bpp;
 	int nvclks, mclks, pclks, vpagemiss, crtpagemiss;
@@ -456,18 +553,29 @@ static void nv10CalcArbitration(nv10_fifo_info * fifo, nv10_sim_state * arb)
 	/* fb.rd.d.Put_gc   need to accumulate 256 bits for read */
 	if (arb->memory_type == 0)
 		if (arb->memory_width == 64)	/* 64 bit bus */
+		{
 			mclks += 4;
+		}
 		else
+		{
 			mclks += 2;
+		}
 	else if (arb->memory_width == 64)	/* 64 bit bus */
+	{
 		mclks += 2;
+	}
 	else
+	{
 		mclks += 1;
+	}
 
-	if ((!video_enable) && (arb->memory_width == 128)) {
+	if ((!video_enable) && (arb->memory_width == 128))
+	{
 		mclk_extra = (bpp == 32) ? 31 : 42;	/* Margin of error */
 		min_mclk_extra = 17;
-	} else {
+	}
+	else
+	{
 		mclk_extra = (bpp == 32) ? 8 : 4;	/* Margin of error */
 		/* mclk_extra = 4; *//* Margin of error */
 		min_mclk_extra = 18;
@@ -480,13 +588,18 @@ static void nv10CalcArbitration(nv10_fifo_info * fifo, nv10_sim_state * arb)
 	nvclks += 1;		/* crtfifo load */
 
 	if (mp_enable)
-		mclks += 4;	/* Mp can get in with a burst of 8. */
+	{
+		mclks += 4;    /* Mp can get in with a burst of 8. */
+	}
+
 	/* Extra clocks determined by heuristics */
 
 	nvclks += 0;
 	pclks += 0;
 	found = 0;
-	while (found != 1) {
+
+	while (found != 1)
+	{
 		fifo->valid = 1;
 		found = 1;
 		mclk_loop = mclks + mclk_extra;
@@ -504,57 +617,72 @@ static void nv10CalcArbitration(nv10_fifo_info * fifo, nv10_sim_state * arb)
 		/* Mclk latency in us */
 		vus_m = mclk_loop * 1000 * 1000 / mclk_freq;
 
-		if (video_enable) {
+		if (video_enable)
+		{
 			crtc_drain_rate = pclk_freq * bpp / 8;	/* MB/s */
 
 			vpagemiss = 1;	/* self generating page miss */
 			vpagemiss += 1;	/* One higher priority before */
 
 			crtpagemiss = 2;	/* self generating page miss */
+
 			if (mp_enable)
-				crtpagemiss += 1;	/* if MA0 conflict */
+			{
+				crtpagemiss += 1;    /* if MA0 conflict */
+			}
 
 			vpm_us =
-			    (vpagemiss * pagemiss) * 1000 * 1000 / mclk_freq;
+				(vpagemiss * pagemiss) * 1000 * 1000 / mclk_freq;
 
 			/* Video has separate read return path */
 			us_video = vpm_us + vus_m;
 
 			cpm_us =
-			    crtpagemiss * pagemiss * 1000 * 1000 / mclk_freq;
+				crtpagemiss * pagemiss * 1000 * 1000 / mclk_freq;
 			/* Wait for video */
 			us_crt = us_video
-			    + cpm_us	/* CRT Page miss */
-			    + us_m + us_n + us_p	/* other latency */
-			    ;
+					 + cpm_us	/* CRT Page miss */
+					 + us_m + us_n + us_p	/* other latency */
+					 ;
 
 			clwm = us_crt * crtc_drain_rate / (1000 * 1000);
 			/* fixed point <= float_point - 1.  Fixes that */
 			clwm++;
-		} else {
-		    /* bpp * pclk/8 */
+		}
+		else
+		{
+			/* bpp * pclk/8 */
 			crtc_drain_rate = pclk_freq * bpp / 8;
 
 			crtpagemiss = 1;	/* self generating page miss */
 			crtpagemiss += 1;	/* MA0 page miss */
+
 			if (mp_enable)
-				crtpagemiss += 1;	/* if MA0 conflict */
+			{
+				crtpagemiss += 1;    /* if MA0 conflict */
+			}
+
 			cpm_us =
-			    crtpagemiss * pagemiss * 1000 * 1000 / mclk_freq;
+				crtpagemiss * pagemiss * 1000 * 1000 / mclk_freq;
 			us_crt = cpm_us + us_m + us_n + us_p;
 			clwm = us_crt * crtc_drain_rate / (1000 * 1000);
 			/* fixed point <= float_point - 1.  Fixes that */
 			clwm++;
 
 			/* Finally, a heuristic check when width == 64 bits */
-			if (width == 1) {
+			if (width == 1)
+			{
 				nvclk_fill = nvclk_freq * 8;
+
 				if (crtc_drain_rate * 100 >= nvclk_fill * 102)
 					/*Large number to fail */
+				{
 					clwm = 0xfff;
+				}
 
 				else if (crtc_drain_rate * 100 >=
-					 nvclk_fill * 98) {
+						 nvclk_fill * 98)
+				{
 					clwm = 1024;
 					cbs = 512;
 				}
@@ -566,8 +694,11 @@ static void nv10CalcArbitration(nv10_fifo_info * fifo, nv10_sim_state * arb)
 		 */
 
 		clwm_rnd_down = ((int)clwm / 8) * 8;
+
 		if (clwm_rnd_down < clwm)
+		{
 			clwm += 8;
+		}
 
 		m1 = clwm + cbs - 1024;	/* Amount of overfill */
 		m2us = us_pipe_min + us_min_mclk_extra;
@@ -576,34 +707,53 @@ static void nv10CalcArbitration(nv10_fifo_info * fifo, nv10_sim_state * arb)
 		p1clk = m2us * pclk_freq / (1000 * 1000);
 		p2 = p1clk * bpp / 8;	/* bytes drained. */
 
-		if ((p2 < m1) && (m1 > 0)) {
+		if ((p2 < m1) && (m1 > 0))
+		{
 			fifo->valid = 0;
 			found = 0;
-			if (min_mclk_extra == 0) {
-				if (cbs <= 32) {
+
+			if (min_mclk_extra == 0)
+			{
+				if (cbs <= 32)
+				{
 					/* Can't adjust anymore! */
 					found = 1;
-				} else {
+				}
+				else
+				{
 					/* reduce the burst size */
 					cbs = cbs / 2;
 				}
-			} else {
+			}
+			else
+			{
 				min_mclk_extra--;
 			}
-		} else {
-			if (clwm > 1023) {	/* Have some margin */
+		}
+		else
+		{
+			if (clwm > 1023)  	/* Have some margin */
+			{
 				fifo->valid = 0;
 				found = 0;
+
 				if (min_mclk_extra == 0)
 					/* Can't adjust anymore! */
+				{
 					found = 1;
+				}
 				else
+				{
 					min_mclk_extra--;
+				}
 			}
 		}
 
 		if (clwm < (1024 - cbs + 8))
+		{
 			clwm = 1024 - cbs + 8;
+		}
+
 		data = (int)(clwm);
 		/*  printf("CRT LWM: %f bytes, prog: 0x%x, bs: 256\n",
 		    clwm, data ); */
@@ -616,10 +766,10 @@ static void nv10CalcArbitration(nv10_fifo_info * fifo, nv10_sim_state * arb)
 }
 
 static void nv10UpdateArbitrationSettings(unsigned VClk,
-					  unsigned pixelDepth,
-					  unsigned *burst,
-					  unsigned *lwm,
-					  struct nvidia_par *par)
+		unsigned pixelDepth,
+		unsigned *burst,
+		unsigned *lwm,
+		struct nvidia_par *par)
 {
 	nv10_fifo_info fifo_data;
 	nv10_sim_state sim_data;
@@ -633,71 +783,86 @@ static void nv10UpdateArbitrationSettings(unsigned VClk,
 	sim_data.enable_mp = 0;
 	sim_data.memory_type = (NV_RD32(par->PFB, 0x0200) & 0x01) ? 1 : 0;
 	sim_data.memory_width = (NV_RD32(par->PEXTDEV, 0x0000) & 0x10) ?
-	    128 : 64;
+							128 : 64;
 	sim_data.mem_latency = (char)cfg1 & 0x0F;
 	sim_data.mem_aligned = 1;
 	sim_data.mem_page_miss =
-	    (char)(((cfg1 >> 4) & 0x0F) + ((cfg1 >> 31) & 0x01));
+		(char)(((cfg1 >> 4) & 0x0F) + ((cfg1 >> 31) & 0x01));
 	sim_data.gr_during_vid = 0;
 	sim_data.pclk_khz = VClk;
 	sim_data.mclk_khz = MClk;
 	sim_data.nvclk_khz = NVClk;
 	nv10CalcArbitration(&fifo_data, &sim_data);
-	if (fifo_data.valid) {
+
+	if (fifo_data.valid)
+	{
 		int b = fifo_data.graphics_burst_size >> 4;
 		*burst = 0;
+
 		while (b >>= 1)
+		{
 			(*burst)++;
+		}
+
 		*lwm = fifo_data.graphics_lwm >> 3;
 	}
 }
 
 static void nv30UpdateArbitrationSettings (
-    struct nvidia_par *par,
-    unsigned int      *burst,
-    unsigned int      *lwm
+	struct nvidia_par *par,
+	unsigned int      *burst,
+	unsigned int      *lwm
 )
 {
-    unsigned int MClk, NVClk;
-    unsigned int fifo_size, burst_size, graphics_lwm;
+	unsigned int MClk, NVClk;
+	unsigned int fifo_size, burst_size, graphics_lwm;
 
-    fifo_size = 2048;
-    burst_size = 512;
-    graphics_lwm = fifo_size - burst_size;
+	fifo_size = 2048;
+	burst_size = 512;
+	graphics_lwm = fifo_size - burst_size;
 
-    nvGetClocks(par, &MClk, &NVClk);
+	nvGetClocks(par, &MClk, &NVClk);
 
-    *burst = 0;
-    burst_size >>= 5;
-    while(burst_size >>= 1) (*burst)++;
-    *lwm = graphics_lwm >> 3;
+	*burst = 0;
+	burst_size >>= 5;
+
+	while (burst_size >>= 1) { (*burst)++; }
+
+	*lwm = graphics_lwm >> 3;
 }
 
 static void nForceUpdateArbitrationSettings(unsigned VClk,
-					    unsigned pixelDepth,
-					    unsigned *burst,
-					    unsigned *lwm,
-					    struct nvidia_par *par)
+		unsigned pixelDepth,
+		unsigned *burst,
+		unsigned *lwm,
+		struct nvidia_par *par)
 {
 	nv10_fifo_info fifo_data;
 	nv10_sim_state sim_data;
 	unsigned int M, N, P, pll, MClk, NVClk, memctrl;
 	struct pci_dev *dev;
 
-	if ((par->Chipset & 0x0FF0) == 0x01A0) {
+	if ((par->Chipset & 0x0FF0) == 0x01A0)
+	{
 		unsigned int uMClkPostDiv;
 		dev = pci_get_bus_and_slot(0, 3);
 		pci_read_config_dword(dev, 0x6C, &uMClkPostDiv);
 		uMClkPostDiv = (uMClkPostDiv >> 8) & 0xf;
 
 		if (!uMClkPostDiv)
+		{
 			uMClkPostDiv = 4;
+		}
+
 		MClk = 400000 / uMClkPostDiv;
-	} else {
+	}
+	else
+	{
 		dev = pci_get_bus_and_slot(0, 5);
 		pci_read_config_dword(dev, 0x4c, &MClk);
 		MClk /= 1000;
 	}
+
 	pci_dev_put(dev);
 	pll = NV_RD32(par->PRAMDAC0, 0x0500);
 	M = (pll >> 0) & 0xFF;
@@ -718,7 +883,8 @@ static void nForceUpdateArbitrationSettings(unsigned VClk,
 	pci_dev_put(dev);
 	memctrl >>= 16;
 
-	if ((memctrl == 0x1A9) || (memctrl == 0x1AB) || (memctrl == 0x1ED)) {
+	if ((memctrl == 0x1A9) || (memctrl == 0x1AB) || (memctrl == 0x1ED))
+	{
 		u32 dimm[3];
 
 		dev = pci_get_bus_and_slot(0, 2);
@@ -729,10 +895,12 @@ static void nForceUpdateArbitrationSettings(unsigned VClk,
 		pci_read_config_dword(dev, 0x48, &dimm[2]);
 		dimm[2] = (dimm[2] >> 8) & 0x4f;
 
-		if ((dimm[0] + dimm[1]) != dimm[2]) {
+		if ((dimm[0] + dimm[1]) != dimm[2])
+		{
 			printk("nvidiafb: your nForce DIMMs are not arranged "
-			       "in optimal banks!\n");
+				   "in optimal banks!\n");
 		}
+
 		pci_dev_put(dev);
 	}
 
@@ -744,11 +912,17 @@ static void nForceUpdateArbitrationSettings(unsigned VClk,
 	sim_data.mclk_khz = MClk;
 	sim_data.nvclk_khz = NVClk;
 	nv10CalcArbitration(&fifo_data, &sim_data);
-	if (fifo_data.valid) {
+
+	if (fifo_data.valid)
+	{
 		int b = fifo_data.graphics_burst_size >> 4;
 		*burst = 0;
+
 		while (b >>= 1)
+		{
 			(*burst)++;
+		}
+
 		*lwm = fifo_data.graphics_lwm >> 3;
 	}
 }
@@ -763,7 +937,7 @@ static void nForceUpdateArbitrationSettings(unsigned VClk,
  * Calculate the Video Clock parameters for the PLL.
  */
 static void CalcVClock(int clockIn,
-		       int *clockOut, u32 * pllOut, struct nvidia_par *par)
+					   int *clockOut, u32 *pllOut, struct nvidia_par *par)
 {
 	unsigned lowM, highM;
 	unsigned DeltaNew, DeltaOld;
@@ -774,30 +948,46 @@ static void CalcVClock(int clockIn,
 
 	VClk = (unsigned)clockIn;
 
-	if (par->CrystalFreqKHz == 13500) {
+	if (par->CrystalFreqKHz == 13500)
+	{
 		lowM = 7;
 		highM = 13;
-	} else {
+	}
+	else
+	{
 		lowM = 8;
 		highM = 14;
 	}
 
-	for (P = 0; P <= 4; P++) {
+	for (P = 0; P <= 4; P++)
+	{
 		Freq = VClk << P;
-		if ((Freq >= 128000) && (Freq <= 350000)) {
-			for (M = lowM; M <= highM; M++) {
+
+		if ((Freq >= 128000) && (Freq <= 350000))
+		{
+			for (M = lowM; M <= highM; M++)
+			{
 				N = ((VClk << P) * M) / par->CrystalFreqKHz;
-				if (N <= 255) {
+
+				if (N <= 255)
+				{
 					Freq =
-					    ((par->CrystalFreqKHz * N) /
-					     M) >> P;
+						((par->CrystalFreqKHz * N) /
+						 M) >> P;
+
 					if (Freq > VClk)
+					{
 						DeltaNew = Freq - VClk;
+					}
 					else
+					{
 						DeltaNew = VClk - Freq;
-					if (DeltaNew < DeltaOld) {
+					}
+
+					if (DeltaNew < DeltaOld)
+					{
 						*pllOut =
-						    (P << 16) | (N << 8) | M;
+							(P << 16) | (N << 8) | M;
 						*clockOut = Freq;
 						DeltaOld = DeltaNew;
 					}
@@ -808,9 +998,9 @@ static void CalcVClock(int clockIn,
 }
 
 static void CalcVClock2Stage(int clockIn,
-			     int *clockOut,
-			     u32 * pllOut,
-			     u32 * pllBOut, struct nvidia_par *par)
+							 int *clockOut,
+							 u32 *pllOut,
+							 u32 *pllBOut, struct nvidia_par *par)
 {
 	unsigned DeltaNew, DeltaOld;
 	unsigned VClk, Freq;
@@ -822,23 +1012,36 @@ static void CalcVClock2Stage(int clockIn,
 
 	VClk = (unsigned)clockIn;
 
-	for (P = 0; P <= 6; P++) {
+	for (P = 0; P <= 6; P++)
+	{
 		Freq = VClk << P;
-		if ((Freq >= 400000) && (Freq <= 1000000)) {
-			for (M = 1; M <= 13; M++) {
+
+		if ((Freq >= 400000) && (Freq <= 1000000))
+		{
+			for (M = 1; M <= 13; M++)
+			{
 				N = ((VClk << P) * M) /
-				    (par->CrystalFreqKHz << 2);
-				if ((N >= 5) && (N <= 255)) {
+					(par->CrystalFreqKHz << 2);
+
+				if ((N >= 5) && (N <= 255))
+				{
 					Freq =
-					    (((par->CrystalFreqKHz << 2) * N) /
-					     M) >> P;
+						(((par->CrystalFreqKHz << 2) * N) /
+						 M) >> P;
+
 					if (Freq > VClk)
+					{
 						DeltaNew = Freq - VClk;
+					}
 					else
+					{
 						DeltaNew = VClk - Freq;
-					if (DeltaNew < DeltaOld) {
+					}
+
+					if (DeltaNew < DeltaOld)
+					{
 						*pllOut =
-						    (P << 16) | (N << 8) | M;
+							(P << 16) | (N << 8) | M;
 						*clockOut = Freq;
 						DeltaOld = DeltaNew;
 					}
@@ -853,10 +1056,10 @@ static void CalcVClock2Stage(int clockIn,
  * mode state structure.
  */
 void NVCalcStateExt(struct nvidia_par *par,
-		    RIVA_HW_STATE * state,
-		    int bpp,
-		    int width,
-		    int hDisplaySize, int height, int dotClock, int flags)
+					RIVA_HW_STATE *state,
+					int bpp,
+					int width,
+					int hDisplaySize, int height, int dotClock, int flags)
 {
 	int pixelDepth, VClk = 0;
 	/*
@@ -869,80 +1072,103 @@ void NVCalcStateExt(struct nvidia_par *par,
 	 * Extended RIVA registers.
 	 */
 	pixelDepth = (bpp + 1) / 8;
+
 	if (par->twoStagePLL)
 		CalcVClock2Stage(dotClock, &VClk, &state->pll, &state->pllB,
-				 par);
+						 par);
 	else
+	{
 		CalcVClock(dotClock, &VClk, &state->pll, par);
+	}
 
-	switch (par->Architecture) {
-	case NV_ARCH_04:
-		nv4UpdateArbitrationSettings(VClk,
-					     pixelDepth * 8,
-					     &(state->arbitration0),
-					     &(state->arbitration1), par);
-		state->cursor0 = 0x00;
-		state->cursor1 = 0xbC;
-		if (flags & FB_VMODE_DOUBLE)
-			state->cursor1 |= 2;
-		state->cursor2 = 0x00000000;
-		state->pllsel = 0x10000700;
-		state->config = 0x00001114;
-		state->general = bpp == 16 ? 0x00101100 : 0x00100100;
-		state->repaint1 = hDisplaySize < 1280 ? 0x04 : 0x00;
-		break;
-	case NV_ARCH_40:
-		if (!par->FlatPanel)
-			state->control = NV_RD32(par->PRAMDAC0, 0x0580) &
-				0xeffffeff;
+	switch (par->Architecture)
+	{
+		case NV_ARCH_04:
+			nv4UpdateArbitrationSettings(VClk,
+										 pixelDepth * 8,
+										 &(state->arbitration0),
+										 &(state->arbitration1), par);
+			state->cursor0 = 0x00;
+			state->cursor1 = 0xbC;
+
+			if (flags & FB_VMODE_DOUBLE)
+			{
+				state->cursor1 |= 2;
+			}
+
+			state->cursor2 = 0x00000000;
+			state->pllsel = 0x10000700;
+			state->config = 0x00001114;
+			state->general = bpp == 16 ? 0x00101100 : 0x00100100;
+			state->repaint1 = hDisplaySize < 1280 ? 0x04 : 0x00;
+			break;
+
+		case NV_ARCH_40:
+			if (!par->FlatPanel)
+				state->control = NV_RD32(par->PRAMDAC0, 0x0580) &
+								 0xeffffeff;
+
 		/* fallthrough */
-	case NV_ARCH_10:
-	case NV_ARCH_20:
-	case NV_ARCH_30:
-	default:
-		if ((par->Chipset & 0xfff0) == 0x0240 ||
-		    (par->Chipset & 0xfff0) == 0x03d0) {
-			state->arbitration0 = 256;
-			state->arbitration1 = 0x0480;
-		} else if (((par->Chipset & 0xffff) == 0x01A0) ||
-		    ((par->Chipset & 0xffff) == 0x01f0)) {
-			nForceUpdateArbitrationSettings(VClk,
-							pixelDepth * 8,
-							&(state->arbitration0),
-							&(state->arbitration1),
-							par);
-		} else if (par->Architecture < NV_ARCH_30) {
-			nv10UpdateArbitrationSettings(VClk,
-						      pixelDepth * 8,
-						      &(state->arbitration0),
-						      &(state->arbitration1),
-						      par);
-		} else {
-			nv30UpdateArbitrationSettings(par,
-						      &(state->arbitration0),
-						      &(state->arbitration1));
-		}
+		case NV_ARCH_10:
+		case NV_ARCH_20:
+		case NV_ARCH_30:
+		default:
+			if ((par->Chipset & 0xfff0) == 0x0240 ||
+				(par->Chipset & 0xfff0) == 0x03d0)
+			{
+				state->arbitration0 = 256;
+				state->arbitration1 = 0x0480;
+			}
+			else if (((par->Chipset & 0xffff) == 0x01A0) ||
+					 ((par->Chipset & 0xffff) == 0x01f0))
+			{
+				nForceUpdateArbitrationSettings(VClk,
+												pixelDepth * 8,
+												&(state->arbitration0),
+												&(state->arbitration1),
+												par);
+			}
+			else if (par->Architecture < NV_ARCH_30)
+			{
+				nv10UpdateArbitrationSettings(VClk,
+											  pixelDepth * 8,
+											  &(state->arbitration0),
+											  &(state->arbitration1),
+											  par);
+			}
+			else
+			{
+				nv30UpdateArbitrationSettings(par,
+											  &(state->arbitration0),
+											  &(state->arbitration1));
+			}
 
-		state->cursor0 = 0x80 | (par->CursorStart >> 17);
-		state->cursor1 = (par->CursorStart >> 11) << 2;
-		state->cursor2 = par->CursorStart >> 24;
-		if (flags & FB_VMODE_DOUBLE)
-			state->cursor1 |= 2;
-		state->pllsel = 0x10000700;
-		state->config = NV_RD32(par->PFB, 0x00000200);
-		state->general = bpp == 16 ? 0x00101100 : 0x00100100;
-		state->repaint1 = hDisplaySize < 1280 ? 0x04 : 0x00;
-		break;
+			state->cursor0 = 0x80 | (par->CursorStart >> 17);
+			state->cursor1 = (par->CursorStart >> 11) << 2;
+			state->cursor2 = par->CursorStart >> 24;
+
+			if (flags & FB_VMODE_DOUBLE)
+			{
+				state->cursor1 |= 2;
+			}
+
+			state->pllsel = 0x10000700;
+			state->config = NV_RD32(par->PFB, 0x00000200);
+			state->general = bpp == 16 ? 0x00101100 : 0x00100100;
+			state->repaint1 = hDisplaySize < 1280 ? 0x04 : 0x00;
+			break;
 	}
 
 	if (bpp != 8)		/* DirectColor */
+	{
 		state->general |= 0x00000030;
+	}
 
 	state->repaint0 = (((width / 8) * pixelDepth) & 0x700) >> 3;
 	state->pixel = (pixelDepth > 2) ? 3 : pixelDepth;
 }
 
-void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
+void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE *state)
 {
 	int i, j;
 
@@ -955,33 +1181,46 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 	NV_WR32(par->PTIMER, 0x0140 * 4, 0x00000000);
 	NV_WR32(par->PTIMER, 0x0100 * 4, 0xFFFFFFFF);
 
-	if (par->Architecture == NV_ARCH_04) {
+	if (par->Architecture == NV_ARCH_04)
+	{
 		if (state)
+		{
 			NV_WR32(par->PFB, 0x0200, state->config);
-	} else if ((par->Architecture < NV_ARCH_40) ||
-		   (par->Chipset & 0xfff0) == 0x0040) {
-		for (i = 0; i < 8; i++) {
+		}
+	}
+	else if ((par->Architecture < NV_ARCH_40) ||
+			 (par->Chipset & 0xfff0) == 0x0040)
+	{
+		for (i = 0; i < 8; i++)
+		{
 			NV_WR32(par->PFB, 0x0240 + (i * 0x10), 0);
 			NV_WR32(par->PFB, 0x0244 + (i * 0x10),
-				par->FbMapSize - 1);
+					par->FbMapSize - 1);
 		}
-	} else {
+	}
+	else
+	{
 		int regions = 12;
 
 		if (((par->Chipset & 0xfff0) == 0x0090) ||
-		    ((par->Chipset & 0xfff0) == 0x01D0) ||
-		    ((par->Chipset & 0xfff0) == 0x0290) ||
-		    ((par->Chipset & 0xfff0) == 0x0390) ||
-		    ((par->Chipset & 0xfff0) == 0x03D0))
+			((par->Chipset & 0xfff0) == 0x01D0) ||
+			((par->Chipset & 0xfff0) == 0x0290) ||
+			((par->Chipset & 0xfff0) == 0x0390) ||
+			((par->Chipset & 0xfff0) == 0x03D0))
+		{
 			regions = 15;
-		for(i = 0; i < regions; i++) {
+		}
+
+		for (i = 0; i < regions; i++)
+		{
 			NV_WR32(par->PFB, 0x0600 + (i * 0x10), 0);
 			NV_WR32(par->PFB, 0x0604 + (i * 0x10),
-				par->FbMapSize - 1);
+					par->FbMapSize - 1);
 		}
 	}
 
-	if (par->Architecture >= NV_ARCH_40) {
+	if (par->Architecture >= NV_ARCH_40)
+	{
 		NV_WR32(par->PRAMIN, 0x0000 * 4, 0x80000010);
 		NV_WR32(par->PRAMIN, 0x0001 * 4, 0x00101202);
 		NV_WR32(par->PRAMIN, 0x0002 * 4, 0x80000011);
@@ -1052,29 +1291,31 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 		NV_WR32(par->PRAMIN, 0x084C * 4, 0x00003002);
 		NV_WR32(par->PRAMIN, 0x084D * 4, 0x00007FFF);
 		NV_WR32(par->PRAMIN, 0x084E * 4,
-			par->FbUsableSize | 0x00000002);
+				par->FbUsableSize | 0x00000002);
 
 #ifdef __BIG_ENDIAN
 		NV_WR32(par->PRAMIN, 0x080A * 4,
-			NV_RD32(par->PRAMIN, 0x080A * 4) | 0x01000000);
+				NV_RD32(par->PRAMIN, 0x080A * 4) | 0x01000000);
 		NV_WR32(par->PRAMIN, 0x0812 * 4,
-			NV_RD32(par->PRAMIN, 0x0812 * 4) | 0x01000000);
+				NV_RD32(par->PRAMIN, 0x0812 * 4) | 0x01000000);
 		NV_WR32(par->PRAMIN, 0x081A * 4,
-			NV_RD32(par->PRAMIN, 0x081A * 4) | 0x01000000);
+				NV_RD32(par->PRAMIN, 0x081A * 4) | 0x01000000);
 		NV_WR32(par->PRAMIN, 0x0822 * 4,
-			NV_RD32(par->PRAMIN, 0x0822 * 4) | 0x01000000);
+				NV_RD32(par->PRAMIN, 0x0822 * 4) | 0x01000000);
 		NV_WR32(par->PRAMIN, 0x082A * 4,
-			NV_RD32(par->PRAMIN, 0x082A * 4) | 0x01000000);
+				NV_RD32(par->PRAMIN, 0x082A * 4) | 0x01000000);
 		NV_WR32(par->PRAMIN, 0x0832 * 4,
-			NV_RD32(par->PRAMIN, 0x0832 * 4) | 0x01000000);
+				NV_RD32(par->PRAMIN, 0x0832 * 4) | 0x01000000);
 		NV_WR32(par->PRAMIN, 0x083A * 4,
-			NV_RD32(par->PRAMIN, 0x083A * 4) | 0x01000000);
+				NV_RD32(par->PRAMIN, 0x083A * 4) | 0x01000000);
 		NV_WR32(par->PRAMIN, 0x0842 * 4,
-			NV_RD32(par->PRAMIN, 0x0842 * 4) | 0x01000000);
+				NV_RD32(par->PRAMIN, 0x0842 * 4) | 0x01000000);
 		NV_WR32(par->PRAMIN, 0x0819 * 4, 0x01000000);
 		NV_WR32(par->PRAMIN, 0x0839 * 4, 0x01000000);
 #endif
-	} else {
+	}
+	else
+	{
 		NV_WR32(par->PRAMIN, 0x0000 * 4, 0x80000010);
 		NV_WR32(par->PRAMIN, 0x0001 * 4, 0x80011201);
 		NV_WR32(par->PRAMIN, 0x0002 * 4, 0x80000011);
@@ -1095,10 +1336,16 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 		NV_WR32(par->PRAMIN, 0x0801 * 4, par->FbMapSize - 1);
 		NV_WR32(par->PRAMIN, 0x0802 * 4, 0x00000002);
 		NV_WR32(par->PRAMIN, 0x0803 * 4, 0x00000002);
+
 		if (par->Architecture >= NV_ARCH_10)
+		{
 			NV_WR32(par->PRAMIN, 0x0804 * 4, 0x01008062);
+		}
 		else
+		{
 			NV_WR32(par->PRAMIN, 0x0804 * 4, 0x01008042);
+		}
+
 		NV_WR32(par->PRAMIN, 0x0805 * 4, 0x00000000);
 		NV_WR32(par->PRAMIN, 0x0806 * 4, 0x12001200);
 		NV_WR32(par->PRAMIN, 0x0807 * 4, 0x00000000);
@@ -1118,10 +1365,16 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 		NV_WR32(par->PRAMIN, 0x0815 * 4, 0x00000000);
 		NV_WR32(par->PRAMIN, 0x0816 * 4, 0x00000000);
 		NV_WR32(par->PRAMIN, 0x0817 * 4, 0x00000000);
+
 		if (par->WaitVSyncPossible)
+		{
 			NV_WR32(par->PRAMIN, 0x0818 * 4, 0x0100809F);
+		}
 		else
+		{
 			NV_WR32(par->PRAMIN, 0x0818 * 4, 0x0100805F);
+		}
+
 		NV_WR32(par->PRAMIN, 0x0819 * 4, 0x00000000);
 		NV_WR32(par->PRAMIN, 0x081A * 4, 0x12001200);
 		NV_WR32(par->PRAMIN, 0x081B * 4, 0x00000000);
@@ -1136,37 +1389,41 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 		NV_WR32(par->PRAMIN, 0x0824 * 4, 0x00003002);
 		NV_WR32(par->PRAMIN, 0x0825 * 4, 0x00007FFF);
 		NV_WR32(par->PRAMIN, 0x0826 * 4,
-			par->FbUsableSize | 0x00000002);
+				par->FbUsableSize | 0x00000002);
 		NV_WR32(par->PRAMIN, 0x0827 * 4, 0x00000002);
 #ifdef __BIG_ENDIAN
 		NV_WR32(par->PRAMIN, 0x0804 * 4,
-			NV_RD32(par->PRAMIN, 0x0804 * 4) | 0x00080000);
+				NV_RD32(par->PRAMIN, 0x0804 * 4) | 0x00080000);
 		NV_WR32(par->PRAMIN, 0x0808 * 4,
-			NV_RD32(par->PRAMIN, 0x0808 * 4) | 0x00080000);
+				NV_RD32(par->PRAMIN, 0x0808 * 4) | 0x00080000);
 		NV_WR32(par->PRAMIN, 0x080C * 4,
-			NV_RD32(par->PRAMIN, 0x080C * 4) | 0x00080000);
+				NV_RD32(par->PRAMIN, 0x080C * 4) | 0x00080000);
 		NV_WR32(par->PRAMIN, 0x0810 * 4,
-			NV_RD32(par->PRAMIN, 0x0810 * 4) | 0x00080000);
+				NV_RD32(par->PRAMIN, 0x0810 * 4) | 0x00080000);
 		NV_WR32(par->PRAMIN, 0x0814 * 4,
-			NV_RD32(par->PRAMIN, 0x0814 * 4) | 0x00080000);
+				NV_RD32(par->PRAMIN, 0x0814 * 4) | 0x00080000);
 		NV_WR32(par->PRAMIN, 0x0818 * 4,
-			NV_RD32(par->PRAMIN, 0x0818 * 4) | 0x00080000);
+				NV_RD32(par->PRAMIN, 0x0818 * 4) | 0x00080000);
 		NV_WR32(par->PRAMIN, 0x081C * 4,
-			NV_RD32(par->PRAMIN, 0x081C * 4) | 0x00080000);
+				NV_RD32(par->PRAMIN, 0x081C * 4) | 0x00080000);
 		NV_WR32(par->PRAMIN, 0x0820 * 4,
-			NV_RD32(par->PRAMIN, 0x0820 * 4) | 0x00080000);
+				NV_RD32(par->PRAMIN, 0x0820 * 4) | 0x00080000);
 		NV_WR32(par->PRAMIN, 0x080D * 4, 0x00000001);
 		NV_WR32(par->PRAMIN, 0x081D * 4, 0x00000001);
 #endif
 	}
-	if (par->Architecture < NV_ARCH_10) {
-		if ((par->Chipset & 0x0fff) == 0x0020) {
+
+	if (par->Architecture < NV_ARCH_10)
+	{
+		if ((par->Chipset & 0x0fff) == 0x0020)
+		{
 			NV_WR32(par->PRAMIN, 0x0824 * 4,
-				NV_RD32(par->PRAMIN, 0x0824 * 4) | 0x00020000);
+					NV_RD32(par->PRAMIN, 0x0824 * 4) | 0x00020000);
 			NV_WR32(par->PRAMIN, 0x0826 * 4,
-				NV_RD32(par->PRAMIN,
-					0x0826 * 4) + par->FbAddress);
+					NV_RD32(par->PRAMIN,
+							0x0826 * 4) + par->FbAddress);
 		}
+
 		NV_WR32(par->PGRAPH, 0x0080, 0x000001FF);
 		NV_WR32(par->PGRAPH, 0x0080, 0x1230C000);
 		NV_WR32(par->PGRAPH, 0x0084, 0x72111101);
@@ -1180,7 +1437,9 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 		NV_WR32(par->PGRAPH, 0x0720, 0x00000001);
 		NV_WR32(par->PGRAPH, 0x0810, 0x00000000);
 		NV_WR32(par->PGRAPH, 0x0608, 0xFFFFFFFF);
-	} else {
+	}
+	else
+	{
 		NV_WR32(par->PGRAPH, 0x0080, 0xFFFFFFFF);
 		NV_WR32(par->PGRAPH, 0x0080, 0x00000000);
 
@@ -1190,19 +1449,20 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 		NV_WR32(par->PGRAPH, 0x0714, 0xFFFFFFFF);
 		NV_WR32(par->PGRAPH, 0x0720, 0x00000001);
 		NV_WR32(par->PGRAPH, 0x0710,
-			NV_RD32(par->PGRAPH, 0x0710) & 0x0007ff00);
+				NV_RD32(par->PGRAPH, 0x0710) & 0x0007ff00);
 		NV_WR32(par->PGRAPH, 0x0710,
-			NV_RD32(par->PGRAPH, 0x0710) | 0x00020100);
+				NV_RD32(par->PGRAPH, 0x0710) | 0x00020100);
 
-		if (par->Architecture == NV_ARCH_10) {
+		if (par->Architecture == NV_ARCH_10)
+		{
 			NV_WR32(par->PGRAPH, 0x0084, 0x00118700);
 			NV_WR32(par->PGRAPH, 0x0088, 0x24E00810);
 			NV_WR32(par->PGRAPH, 0x008C, 0x55DE0030);
 
 			for (i = 0; i < 32; i++)
 				NV_WR32(&par->PGRAPH[(0x0B00 / 4) + i], 0,
-					NV_RD32(&par->PFB[(0x0240 / 4) + i],
-						0));
+						NV_RD32(&par->PFB[(0x0240 / 4) + i],
+								0));
 
 			NV_WR32(par->PGRAPH, 0x640, 0);
 			NV_WR32(par->PGRAPH, 0x644, 0);
@@ -1211,102 +1471,119 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 
 			NV_WR32(par->PGRAPH, 0x0810, 0x00000000);
 			NV_WR32(par->PGRAPH, 0x0608, 0xFFFFFFFF);
-		} else {
-			if (par->Architecture >= NV_ARCH_40) {
+		}
+		else
+		{
+			if (par->Architecture >= NV_ARCH_40)
+			{
 				NV_WR32(par->PGRAPH, 0x0084, 0x401287c0);
 				NV_WR32(par->PGRAPH, 0x008C, 0x60de8051);
 				NV_WR32(par->PGRAPH, 0x0090, 0x00008000);
 				NV_WR32(par->PGRAPH, 0x0610, 0x00be3c5f);
 				NV_WR32(par->PGRAPH, 0x0bc4,
-					NV_RD32(par->PGRAPH, 0x0bc4) |
-					0x00008000);
+						NV_RD32(par->PGRAPH, 0x0bc4) |
+						0x00008000);
 
 				j = NV_RD32(par->REGS, 0x1540) & 0xff;
 
-				if (j) {
+				if (j)
+				{
 					for (i = 0; !(j & 1); j >>= 1, i++);
+
 					NV_WR32(par->PGRAPH, 0x5000, i);
 				}
 
-				if ((par->Chipset & 0xfff0) == 0x0040) {
+				if ((par->Chipset & 0xfff0) == 0x0040)
+				{
 					NV_WR32(par->PGRAPH, 0x09b0,
-						0x83280fff);
+							0x83280fff);
 					NV_WR32(par->PGRAPH, 0x09b4,
-						0x000000a0);
-				} else {
+							0x000000a0);
+				}
+				else
+				{
 					NV_WR32(par->PGRAPH, 0x0820,
-						0x83280eff);
+							0x83280eff);
 					NV_WR32(par->PGRAPH, 0x0824,
-						0x000000a0);
+							0x000000a0);
 				}
 
-				switch (par->Chipset & 0xfff0) {
-				case 0x0040:
-				case 0x0210:
-					NV_WR32(par->PGRAPH, 0x09b8,
-						0x0078e366);
-					NV_WR32(par->PGRAPH, 0x09bc,
-						0x0000014c);
-					NV_WR32(par->PFB, 0x033C,
-						NV_RD32(par->PFB, 0x33C) &
-						0xffff7fff);
-					break;
-				case 0x00C0:
-				case 0x0120:
-					NV_WR32(par->PGRAPH, 0x0828,
-						0x007596ff);
-					NV_WR32(par->PGRAPH, 0x082C,
-						0x00000108);
-					break;
-				case 0x0160:
-				case 0x01D0:
-				case 0x0240:
-				case 0x03D0:
-					NV_WR32(par->PMC, 0x1700,
-						NV_RD32(par->PFB, 0x020C));
-					NV_WR32(par->PMC, 0x1704, 0);
-					NV_WR32(par->PMC, 0x1708, 0);
-					NV_WR32(par->PMC, 0x170C,
-						NV_RD32(par->PFB, 0x020C));
-					NV_WR32(par->PGRAPH, 0x0860, 0);
-					NV_WR32(par->PGRAPH, 0x0864, 0);
-					NV_WR32(par->PRAMDAC, 0x0608,
-						NV_RD32(par->PRAMDAC,
-							0x0608) | 0x00100000);
-					break;
-				case 0x0140:
-					NV_WR32(par->PGRAPH, 0x0828,
-						0x0072cb77);
-					NV_WR32(par->PGRAPH, 0x082C,
-						0x00000108);
-					break;
-				case 0x0220:
-					NV_WR32(par->PGRAPH, 0x0860, 0);
-					NV_WR32(par->PGRAPH, 0x0864, 0);
-					NV_WR32(par->PRAMDAC, 0x0608,
-						NV_RD32(par->PRAMDAC, 0x0608) |
-						0x00100000);
-					break;
-				case 0x0090:
-				case 0x0290:
-				case 0x0390:
-					NV_WR32(par->PRAMDAC, 0x0608,
-						NV_RD32(par->PRAMDAC, 0x0608) |
-						0x00100000);
-					NV_WR32(par->PGRAPH, 0x0828,
-						0x07830610);
-					NV_WR32(par->PGRAPH, 0x082C,
-						0x0000016A);
-					break;
-				default:
-					break;
+				switch (par->Chipset & 0xfff0)
+				{
+					case 0x0040:
+					case 0x0210:
+						NV_WR32(par->PGRAPH, 0x09b8,
+								0x0078e366);
+						NV_WR32(par->PGRAPH, 0x09bc,
+								0x0000014c);
+						NV_WR32(par->PFB, 0x033C,
+								NV_RD32(par->PFB, 0x33C) &
+								0xffff7fff);
+						break;
+
+					case 0x00C0:
+					case 0x0120:
+						NV_WR32(par->PGRAPH, 0x0828,
+								0x007596ff);
+						NV_WR32(par->PGRAPH, 0x082C,
+								0x00000108);
+						break;
+
+					case 0x0160:
+					case 0x01D0:
+					case 0x0240:
+					case 0x03D0:
+						NV_WR32(par->PMC, 0x1700,
+								NV_RD32(par->PFB, 0x020C));
+						NV_WR32(par->PMC, 0x1704, 0);
+						NV_WR32(par->PMC, 0x1708, 0);
+						NV_WR32(par->PMC, 0x170C,
+								NV_RD32(par->PFB, 0x020C));
+						NV_WR32(par->PGRAPH, 0x0860, 0);
+						NV_WR32(par->PGRAPH, 0x0864, 0);
+						NV_WR32(par->PRAMDAC, 0x0608,
+								NV_RD32(par->PRAMDAC,
+										0x0608) | 0x00100000);
+						break;
+
+					case 0x0140:
+						NV_WR32(par->PGRAPH, 0x0828,
+								0x0072cb77);
+						NV_WR32(par->PGRAPH, 0x082C,
+								0x00000108);
+						break;
+
+					case 0x0220:
+						NV_WR32(par->PGRAPH, 0x0860, 0);
+						NV_WR32(par->PGRAPH, 0x0864, 0);
+						NV_WR32(par->PRAMDAC, 0x0608,
+								NV_RD32(par->PRAMDAC, 0x0608) |
+								0x00100000);
+						break;
+
+					case 0x0090:
+					case 0x0290:
+					case 0x0390:
+						NV_WR32(par->PRAMDAC, 0x0608,
+								NV_RD32(par->PRAMDAC, 0x0608) |
+								0x00100000);
+						NV_WR32(par->PGRAPH, 0x0828,
+								0x07830610);
+						NV_WR32(par->PGRAPH, 0x082C,
+								0x0000016A);
+						break;
+
+					default:
+						break;
 				}
 
 				NV_WR32(par->PGRAPH, 0x0b38, 0x2ffff800);
 				NV_WR32(par->PGRAPH, 0x0b3c, 0x00006000);
 				NV_WR32(par->PGRAPH, 0x032C, 0x01000000);
 				NV_WR32(par->PGRAPH, 0x0220, 0x00001200);
-			} else if (par->Architecture == NV_ARCH_30) {
+			}
+			else if (par->Architecture == NV_ARCH_30)
+			{
 				NV_WR32(par->PGRAPH, 0x0084, 0x40108700);
 				NV_WR32(par->PGRAPH, 0x0890, 0x00140000);
 				NV_WR32(par->PGRAPH, 0x008C, 0xf00e0431);
@@ -1314,158 +1591,185 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 				NV_WR32(par->PGRAPH, 0x0610, 0xf04b1f36);
 				NV_WR32(par->PGRAPH, 0x0B80, 0x1002d888);
 				NV_WR32(par->PGRAPH, 0x0B88, 0x62ff007f);
-			} else {
+			}
+			else
+			{
 				NV_WR32(par->PGRAPH, 0x0084, 0x00118700);
 				NV_WR32(par->PGRAPH, 0x008C, 0xF20E0431);
 				NV_WR32(par->PGRAPH, 0x0090, 0x00000000);
 				NV_WR32(par->PGRAPH, 0x009C, 0x00000040);
 
-				if ((par->Chipset & 0x0ff0) >= 0x0250) {
+				if ((par->Chipset & 0x0ff0) >= 0x0250)
+				{
 					NV_WR32(par->PGRAPH, 0x0890,
-						0x00080000);
+							0x00080000);
 					NV_WR32(par->PGRAPH, 0x0610,
-						0x304B1FB6);
+							0x304B1FB6);
 					NV_WR32(par->PGRAPH, 0x0B80,
-						0x18B82880);
+							0x18B82880);
 					NV_WR32(par->PGRAPH, 0x0B84,
-						0x44000000);
+							0x44000000);
 					NV_WR32(par->PGRAPH, 0x0098,
-						0x40000080);
+							0x40000080);
 					NV_WR32(par->PGRAPH, 0x0B88,
-						0x000000ff);
-				} else {
+							0x000000ff);
+				}
+				else
+				{
 					NV_WR32(par->PGRAPH, 0x0880,
-						0x00080000);
+							0x00080000);
 					NV_WR32(par->PGRAPH, 0x0094,
-						0x00000005);
+							0x00000005);
 					NV_WR32(par->PGRAPH, 0x0B80,
-						0x45CAA208);
+							0x45CAA208);
 					NV_WR32(par->PGRAPH, 0x0B84,
-						0x24000000);
+							0x24000000);
 					NV_WR32(par->PGRAPH, 0x0098,
-						0x00000040);
+							0x00000040);
 					NV_WR32(par->PGRAPH, 0x0750,
-						0x00E00038);
+							0x00E00038);
 					NV_WR32(par->PGRAPH, 0x0754,
-						0x00000030);
+							0x00000030);
 					NV_WR32(par->PGRAPH, 0x0750,
-						0x00E10038);
+							0x00E10038);
 					NV_WR32(par->PGRAPH, 0x0754,
-						0x00000030);
+							0x00000030);
 				}
 			}
 
 			if ((par->Architecture < NV_ARCH_40) ||
-			    ((par->Chipset & 0xfff0) == 0x0040)) {
-				for (i = 0; i < 32; i++) {
-					NV_WR32(par->PGRAPH, 0x0900 + i*4,
-						NV_RD32(par->PFB, 0x0240 +i*4));
-					NV_WR32(par->PGRAPH, 0x6900 + i*4,
-						NV_RD32(par->PFB, 0x0240 +i*4));
+				((par->Chipset & 0xfff0) == 0x0040))
+			{
+				for (i = 0; i < 32; i++)
+				{
+					NV_WR32(par->PGRAPH, 0x0900 + i * 4,
+							NV_RD32(par->PFB, 0x0240 + i * 4));
+					NV_WR32(par->PGRAPH, 0x6900 + i * 4,
+							NV_RD32(par->PFB, 0x0240 + i * 4));
 				}
-			} else {
+			}
+			else
+			{
 				if (((par->Chipset & 0xfff0) == 0x0090) ||
-				    ((par->Chipset & 0xfff0) == 0x01D0) ||
-				    ((par->Chipset & 0xfff0) == 0x0290) ||
-				    ((par->Chipset & 0xfff0) == 0x0390) ||
-				    ((par->Chipset & 0xfff0) == 0x03D0)) {
-					for (i = 0; i < 60; i++) {
+					((par->Chipset & 0xfff0) == 0x01D0) ||
+					((par->Chipset & 0xfff0) == 0x0290) ||
+					((par->Chipset & 0xfff0) == 0x0390) ||
+					((par->Chipset & 0xfff0) == 0x03D0))
+				{
+					for (i = 0; i < 60; i++)
+					{
 						NV_WR32(par->PGRAPH,
-							0x0D00 + i*4,
-							NV_RD32(par->PFB,
-								0x0600 + i*4));
-						NV_WR32(par->PGRAPH,
-							0x6900 + i*4,
-							NV_RD32(par->PFB,
-								0x0600 + i*4));
-					}
-				} else {
-					for (i = 0; i < 48; i++) {
-						NV_WR32(par->PGRAPH,
-							0x0900 + i*4,
-							NV_RD32(par->PFB,
-								0x0600 + i*4));
-						if(((par->Chipset & 0xfff0)
-						    != 0x0160) &&
-						   ((par->Chipset & 0xfff0)
-						    != 0x0220) &&
-						   ((par->Chipset & 0xfff0)
-						    != 0x240))
-							NV_WR32(par->PGRAPH,
-								0x6900 + i*4,
+								0x0D00 + i * 4,
 								NV_RD32(par->PFB,
-									0x0600 + i*4));
+										0x0600 + i * 4));
+						NV_WR32(par->PGRAPH,
+								0x6900 + i * 4,
+								NV_RD32(par->PFB,
+										0x0600 + i * 4));
+					}
+				}
+				else
+				{
+					for (i = 0; i < 48; i++)
+					{
+						NV_WR32(par->PGRAPH,
+								0x0900 + i * 4,
+								NV_RD32(par->PFB,
+										0x0600 + i * 4));
+
+						if (((par->Chipset & 0xfff0)
+							 != 0x0160) &&
+							((par->Chipset & 0xfff0)
+							 != 0x0220) &&
+							((par->Chipset & 0xfff0)
+							 != 0x240))
+							NV_WR32(par->PGRAPH,
+									0x6900 + i * 4,
+									NV_RD32(par->PFB,
+											0x0600 + i * 4));
 					}
 				}
 			}
 
-			if (par->Architecture >= NV_ARCH_40) {
-				if ((par->Chipset & 0xfff0) == 0x0040) {
+			if (par->Architecture >= NV_ARCH_40)
+			{
+				if ((par->Chipset & 0xfff0) == 0x0040)
+				{
 					NV_WR32(par->PGRAPH, 0x09A4,
-						NV_RD32(par->PFB, 0x0200));
+							NV_RD32(par->PFB, 0x0200));
 					NV_WR32(par->PGRAPH, 0x09A8,
-						NV_RD32(par->PFB, 0x0204));
+							NV_RD32(par->PFB, 0x0204));
 					NV_WR32(par->PGRAPH, 0x69A4,
-						NV_RD32(par->PFB, 0x0200));
+							NV_RD32(par->PFB, 0x0200));
 					NV_WR32(par->PGRAPH, 0x69A8,
-						NV_RD32(par->PFB, 0x0204));
+							NV_RD32(par->PFB, 0x0204));
 
 					NV_WR32(par->PGRAPH, 0x0820, 0);
 					NV_WR32(par->PGRAPH, 0x0824, 0);
 					NV_WR32(par->PGRAPH, 0x0864,
-						par->FbMapSize - 1);
+							par->FbMapSize - 1);
 					NV_WR32(par->PGRAPH, 0x0868,
-						par->FbMapSize - 1);
-				} else {
+							par->FbMapSize - 1);
+				}
+				else
+				{
 					if ((par->Chipset & 0xfff0) == 0x0090 ||
-					    (par->Chipset & 0xfff0) == 0x01D0 ||
-					    (par->Chipset & 0xfff0) == 0x0290 ||
-					    (par->Chipset & 0xfff0) == 0x0390) {
+						(par->Chipset & 0xfff0) == 0x01D0 ||
+						(par->Chipset & 0xfff0) == 0x0290 ||
+						(par->Chipset & 0xfff0) == 0x0390)
+					{
 						NV_WR32(par->PGRAPH, 0x0DF0,
-							NV_RD32(par->PFB, 0x0200));
+								NV_RD32(par->PFB, 0x0200));
 						NV_WR32(par->PGRAPH, 0x0DF4,
-							NV_RD32(par->PFB, 0x0204));
-					} else {
-						NV_WR32(par->PGRAPH, 0x09F0,
-							NV_RD32(par->PFB, 0x0200));
-						NV_WR32(par->PGRAPH, 0x09F4,
-							NV_RD32(par->PFB, 0x0204));
+								NV_RD32(par->PFB, 0x0204));
 					}
+					else
+					{
+						NV_WR32(par->PGRAPH, 0x09F0,
+								NV_RD32(par->PFB, 0x0200));
+						NV_WR32(par->PGRAPH, 0x09F4,
+								NV_RD32(par->PFB, 0x0204));
+					}
+
 					NV_WR32(par->PGRAPH, 0x69F0,
-						NV_RD32(par->PFB, 0x0200));
+							NV_RD32(par->PFB, 0x0200));
 					NV_WR32(par->PGRAPH, 0x69F4,
-						NV_RD32(par->PFB, 0x0204));
+							NV_RD32(par->PFB, 0x0204));
 
 					NV_WR32(par->PGRAPH, 0x0840, 0);
 					NV_WR32(par->PGRAPH, 0x0844, 0);
 					NV_WR32(par->PGRAPH, 0x08a0,
-						par->FbMapSize - 1);
+							par->FbMapSize - 1);
 					NV_WR32(par->PGRAPH, 0x08a4,
-						par->FbMapSize - 1);
+							par->FbMapSize - 1);
 				}
-			} else {
+			}
+			else
+			{
 				NV_WR32(par->PGRAPH, 0x09A4,
-					NV_RD32(par->PFB, 0x0200));
+						NV_RD32(par->PFB, 0x0200));
 				NV_WR32(par->PGRAPH, 0x09A8,
-					NV_RD32(par->PFB, 0x0204));
+						NV_RD32(par->PFB, 0x0204));
 				NV_WR32(par->PGRAPH, 0x0750, 0x00EA0000);
 				NV_WR32(par->PGRAPH, 0x0754,
-					NV_RD32(par->PFB, 0x0200));
+						NV_RD32(par->PFB, 0x0200));
 				NV_WR32(par->PGRAPH, 0x0750, 0x00EA0004);
 				NV_WR32(par->PGRAPH, 0x0754,
-					NV_RD32(par->PFB, 0x0204));
+						NV_RD32(par->PFB, 0x0204));
 
 				NV_WR32(par->PGRAPH, 0x0820, 0);
 				NV_WR32(par->PGRAPH, 0x0824, 0);
 				NV_WR32(par->PGRAPH, 0x0864,
-					par->FbMapSize - 1);
+						par->FbMapSize - 1);
 				NV_WR32(par->PGRAPH, 0x0868,
-					par->FbMapSize - 1);
+						par->FbMapSize - 1);
 			}
+
 			NV_WR32(par->PGRAPH, 0x0B20, 0x00000000);
 			NV_WR32(par->PGRAPH, 0x0B04, 0xFFFFFFFF);
 		}
 	}
+
 	NV_WR32(par->PGRAPH, 0x053C, 0);
 	NV_WR32(par->PGRAPH, 0x0540, 0);
 	NV_WR32(par->PGRAPH, 0x0544, 0x00007FFF);
@@ -1475,16 +1779,28 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 	NV_WR32(par->PFIFO, 0x0141 * 4, 0x00000001);
 	NV_WR32(par->PFIFO, 0x0480 * 4, 0x00000000);
 	NV_WR32(par->PFIFO, 0x0494 * 4, 0x00000000);
+
 	if (par->Architecture >= NV_ARCH_40)
+	{
 		NV_WR32(par->PFIFO, 0x0481 * 4, 0x00010000);
+	}
 	else
+	{
 		NV_WR32(par->PFIFO, 0x0481 * 4, 0x00000100);
+	}
+
 	NV_WR32(par->PFIFO, 0x0490 * 4, 0x00000000);
 	NV_WR32(par->PFIFO, 0x0491 * 4, 0x00000000);
+
 	if (par->Architecture >= NV_ARCH_40)
+	{
 		NV_WR32(par->PFIFO, 0x048B * 4, 0x00001213);
+	}
 	else
+	{
 		NV_WR32(par->PFIFO, 0x048B * 4, 0x00001209);
+	}
+
 	NV_WR32(par->PFIFO, 0x0400 * 4, 0x00000000);
 	NV_WR32(par->PFIFO, 0x0414 * 4, 0x00000000);
 	NV_WR32(par->PFIFO, 0x0084 * 4, 0x03000100);
@@ -1508,18 +1824,22 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 	NV_WR32(par->PFIFO, 0x0495 * 4, 0x00000001);
 	NV_WR32(par->PFIFO, 0x0140 * 4, 0x00000001);
 
-    if (!state) {
-	    par->CurrentState = NULL;
-	    return;
-    }
+	if (!state)
+	{
+		par->CurrentState = NULL;
+		return;
+	}
 
-	if (par->Architecture >= NV_ARCH_10) {
-		if (par->twoHeads) {
+	if (par->Architecture >= NV_ARCH_10)
+	{
+		if (par->twoHeads)
+		{
 			NV_WR32(par->PCRTC0, 0x0860, state->head);
 			NV_WR32(par->PCRTC0, 0x2860, state->head2);
 		}
+
 		NV_WR32(par->PRAMDAC, 0x0404, NV_RD32(par->PRAMDAC, 0x0404) |
-			(1 << 25));
+				(1 << 25));
 
 		NV_WR32(par->PMC, 0x8704, 1);
 		NV_WR32(par->PMC, 0x8140, 0);
@@ -1533,10 +1853,14 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 		NV_WR32(par->PCRTC, 0x0830, state->displayV - 3);
 		NV_WR32(par->PCRTC, 0x0834, state->displayV - 1);
 
-		if (par->FlatPanel) {
-			if ((par->Chipset & 0x0ff0) == 0x0110) {
+		if (par->FlatPanel)
+		{
+			if ((par->Chipset & 0x0ff0) == 0x0110)
+			{
 				NV_WR32(par->PRAMDAC, 0x0528, state->dither);
-			} else if (par->twoHeads) {
+			}
+			else if (par->twoHeads)
+			{
 				NV_WR32(par->PRAMDAC, 0x083C, state->dither);
 			}
 
@@ -1569,7 +1893,8 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 	VGA_WR08(par->PCIO, 0x03D4, 0x20);
 	VGA_WR08(par->PCIO, 0x03D5, state->arbitration1);
 
-	if(par->Architecture >= NV_ARCH_30) {
+	if (par->Architecture >= NV_ARCH_30)
+	{
 		VGA_WR08(par->PCIO, 0x03D4, 0x47);
 		VGA_WR08(par->PCIO, 0x03D5, state->arbitration1 >> 8);
 	}
@@ -1583,22 +1908,32 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 	VGA_WR08(par->PCIO, 0x03D4, 0x39);
 	VGA_WR08(par->PCIO, 0x03D5, state->interlace);
 
-	if (!par->FlatPanel) {
+	if (!par->FlatPanel)
+	{
 		if (par->Architecture >= NV_ARCH_40)
+		{
 			NV_WR32(par->PRAMDAC0, 0x0580, state->control);
+		}
 
 		NV_WR32(par->PRAMDAC0, 0x050C, state->pllsel);
 		NV_WR32(par->PRAMDAC0, 0x0508, state->vpll);
+
 		if (par->twoHeads)
+		{
 			NV_WR32(par->PRAMDAC0, 0x0520, state->vpll2);
-		if (par->twoStagePLL) {
+		}
+
+		if (par->twoStagePLL)
+		{
 			NV_WR32(par->PRAMDAC0, 0x0578, state->vpllB);
 			NV_WR32(par->PRAMDAC0, 0x057C, state->vpll2B);
 		}
-	} else {
+	}
+	else
+	{
 		NV_WR32(par->PRAMDAC, 0x0848, state->scale);
 		NV_WR32(par->PRAMDAC, 0x0828, state->crtcSync +
-			par->PanelTweak);
+				par->PanelTweak);
 	}
 
 	NV_WR32(par->PRAMDAC, 0x0600, state->general);
@@ -1609,7 +1944,8 @@ void NVLoadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state)
 	par->CurrentState = state;
 }
 
-void NVUnloadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state) {
+void NVUnloadStateExt(struct nvidia_par *par, RIVA_HW_STATE *state)
+{
 	VGA_WR08(par->PCIO, 0x03D4, 0x19);
 	state->repaint0 = VGA_RD08(par->PCIO, 0x03D5);
 	VGA_WR08(par->PCIO, 0x03D4, 0x1A);
@@ -1627,7 +1963,8 @@ void NVUnloadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state) {
 	VGA_WR08(par->PCIO, 0x03D4, 0x20);
 	state->arbitration1 = VGA_RD08(par->PCIO, 0x03D5);
 
-	if(par->Architecture >= NV_ARCH_30) {
+	if (par->Architecture >= NV_ARCH_30)
+	{
 		VGA_WR08(par->PCIO, 0x03D4, 0x47);
 		state->arbitration1 |= (VGA_RD08(par->PCIO, 0x03D5) & 1) << 8;
 	}
@@ -1641,38 +1978,53 @@ void NVUnloadStateExt(struct nvidia_par *par, RIVA_HW_STATE * state) {
 	VGA_WR08(par->PCIO, 0x03D4, 0x39);
 	state->interlace = VGA_RD08(par->PCIO, 0x03D5);
 	state->vpll = NV_RD32(par->PRAMDAC0, 0x0508);
+
 	if (par->twoHeads)
+	{
 		state->vpll2 = NV_RD32(par->PRAMDAC0, 0x0520);
-	if (par->twoStagePLL) {
+	}
+
+	if (par->twoStagePLL)
+	{
 		state->vpllB = NV_RD32(par->PRAMDAC0, 0x0578);
 		state->vpll2B = NV_RD32(par->PRAMDAC0, 0x057C);
 	}
+
 	state->pllsel = NV_RD32(par->PRAMDAC0, 0x050C);
 	state->general = NV_RD32(par->PRAMDAC, 0x0600);
 	state->scale = NV_RD32(par->PRAMDAC, 0x0848);
 	state->config = NV_RD32(par->PFB, 0x0200);
 
 	if (par->Architecture >= NV_ARCH_40 && !par->FlatPanel)
+	{
 		state->control  = NV_RD32(par->PRAMDAC0, 0x0580);
+	}
 
-	if (par->Architecture >= NV_ARCH_10) {
-		if (par->twoHeads) {
+	if (par->Architecture >= NV_ARCH_10)
+	{
+		if (par->twoHeads)
+		{
 			state->head = NV_RD32(par->PCRTC0, 0x0860);
 			state->head2 = NV_RD32(par->PCRTC0, 0x2860);
 			VGA_WR08(par->PCIO, 0x03D4, 0x44);
 			state->crtcOwner = VGA_RD08(par->PCIO, 0x03D5);
 		}
+
 		VGA_WR08(par->PCIO, 0x03D4, 0x41);
 		state->extra = VGA_RD08(par->PCIO, 0x03D5);
 		state->cursorConfig = NV_RD32(par->PCRTC, 0x0810);
 
-		if ((par->Chipset & 0x0ff0) == 0x0110) {
+		if ((par->Chipset & 0x0ff0) == 0x0110)
+		{
 			state->dither = NV_RD32(par->PRAMDAC, 0x0528);
-		} else if (par->twoHeads) {
+		}
+		else if (par->twoHeads)
+		{
 			state->dither = NV_RD32(par->PRAMDAC, 0x083C);
 		}
 
-		if (par->FlatPanel) {
+		if (par->FlatPanel)
+		{
 			VGA_WR08(par->PCIO, 0x03D4, 0x53);
 			state->timingH = VGA_RD08(par->PCIO, 0x03D5);
 			VGA_WR08(par->PCIO, 0x03D4, 0x54);

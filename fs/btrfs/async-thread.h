@@ -29,7 +29,8 @@ struct btrfs_work;
 typedef void (*btrfs_func_t)(struct btrfs_work *arg);
 typedef void (*btrfs_work_func_t)(struct work_struct *arg);
 
-struct btrfs_work {
+struct btrfs_work
+{
 	btrfs_func_t func;
 	btrfs_func_t ordered_func;
 	btrfs_func_t ordered_free;
@@ -42,7 +43,7 @@ struct btrfs_work {
 };
 
 #define BTRFS_WORK_HELPER_PROTO(name)					\
-void btrfs_##name(struct work_struct *arg)
+	void btrfs_##name(struct work_struct *arg)
 
 BTRFS_WORK_HELPER_PROTO(worker_helper);
 BTRFS_WORK_HELPER_PROTO(delalloc_helper);
@@ -69,16 +70,16 @@ BTRFS_WORK_HELPER_PROTO(scrubparity_helper);
 
 
 struct btrfs_workqueue *btrfs_alloc_workqueue(struct btrfs_fs_info *fs_info,
-					      const char *name,
-					      unsigned int flags,
-					      int limit_active,
-					      int thresh);
+		const char *name,
+		unsigned int flags,
+		int limit_active,
+		int thresh);
 void btrfs_init_work(struct btrfs_work *work, btrfs_work_func_t helper,
-		     btrfs_func_t func,
-		     btrfs_func_t ordered_func,
-		     btrfs_func_t ordered_free);
+					 btrfs_func_t func,
+					 btrfs_func_t ordered_func,
+					 btrfs_func_t ordered_free);
 void btrfs_queue_work(struct btrfs_workqueue *wq,
-		      struct btrfs_work *work);
+					  struct btrfs_work *work);
 void btrfs_destroy_workqueue(struct btrfs_workqueue *wq);
 void btrfs_workqueue_set_max(struct btrfs_workqueue *wq, int max);
 void btrfs_set_work_high_priority(struct btrfs_work *work);

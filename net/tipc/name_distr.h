@@ -59,7 +59,8 @@
  * Note: There is no field that identifies the publishing node because it is
  * the same for all items contained within a publication message.
  */
-struct distr_item {
+struct distr_item
+{
 	__be32 type;
 	__be32 lower;
 	__be32 upper;

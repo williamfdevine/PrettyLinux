@@ -18,38 +18,40 @@
 #define NVM_PATH_MAX		2
 
 /* FCoE capabilities required from the driver */
-struct fcoe_capabilities {
+struct fcoe_capabilities
+{
 	u32 capability1;
 	/* Maximum number of I/Os per connection */
-	#define FCOE_IOS_PER_CONNECTION_MASK    0x0000ffff
-	#define FCOE_IOS_PER_CONNECTION_SHIFT   0
+#define FCOE_IOS_PER_CONNECTION_MASK    0x0000ffff
+#define FCOE_IOS_PER_CONNECTION_SHIFT   0
 	/* Maximum number of Logins per port */
-	#define FCOE_LOGINS_PER_PORT_MASK       0xffff0000
-	#define FCOE_LOGINS_PER_PORT_SHIFT   16
+#define FCOE_LOGINS_PER_PORT_MASK       0xffff0000
+#define FCOE_LOGINS_PER_PORT_SHIFT   16
 
 	u32 capability2;
 	/* Maximum number of exchanges */
-	#define FCOE_NUMBER_OF_EXCHANGES_MASK   0x0000ffff
-	#define FCOE_NUMBER_OF_EXCHANGES_SHIFT  0
+#define FCOE_NUMBER_OF_EXCHANGES_MASK   0x0000ffff
+#define FCOE_NUMBER_OF_EXCHANGES_SHIFT  0
 	/* Maximum NPIV WWN per port */
-	#define FCOE_NPIV_WWN_PER_PORT_MASK     0xffff0000
-	#define FCOE_NPIV_WWN_PER_PORT_SHIFT    16
+#define FCOE_NPIV_WWN_PER_PORT_MASK     0xffff0000
+#define FCOE_NPIV_WWN_PER_PORT_SHIFT    16
 
 	u32 capability3;
 	/* Maximum number of targets supported */
-	#define FCOE_TARGETS_SUPPORTED_MASK     0x0000ffff
-	#define FCOE_TARGETS_SUPPORTED_SHIFT    0
+#define FCOE_TARGETS_SUPPORTED_MASK     0x0000ffff
+#define FCOE_TARGETS_SUPPORTED_SHIFT    0
 	/* Maximum number of outstanding commands across all connections */
-	#define FCOE_OUTSTANDING_COMMANDS_MASK  0xffff0000
-	#define FCOE_OUTSTANDING_COMMANDS_SHIFT 16
+#define FCOE_OUTSTANDING_COMMANDS_MASK  0xffff0000
+#define FCOE_OUTSTANDING_COMMANDS_SHIFT 16
 
 	u32 capability4;
-	#define FCOE_CAPABILITY4_STATEFUL			0x00000001
-	#define FCOE_CAPABILITY4_STATELESS			0x00000002
-	#define FCOE_CAPABILITY4_CAPABILITIES_REPORTED_VALID	0x00000004
+#define FCOE_CAPABILITY4_STATEFUL			0x00000001
+#define FCOE_CAPABILITY4_STATELESS			0x00000002
+#define FCOE_CAPABILITY4_CAPABILITIES_REPORTED_VALID	0x00000004
 };
 
-struct glob_ncsi_oem_data {
+struct glob_ncsi_oem_data
+{
 	u32 driver_version;
 	u32 unused[3];
 	struct fcoe_capabilities fcoe_features[NVM_PATH_MAX][PORT_MAX];
@@ -59,7 +61,8 @@ struct glob_ncsi_oem_data {
 #define DRV_INFO_CUR_VER 2
 
 /* drv_info op codes supported */
-enum drv_info_opcode {
+enum drv_info_opcode
+{
 	ETH_STATS_OPCODE,
 	FCOE_STATS_OPCODE,
 	ISCSI_STATS_OPCODE
@@ -67,7 +70,8 @@ enum drv_info_opcode {
 
 #define ETH_STAT_INFO_VERSION_LEN	12
 /*  Per PCI Function Ethernet Statistics required from the driver */
-struct eth_stats_info {
+struct eth_stats_info
+{
 	/* Function's Driver Version. padded to 12 */
 	u8 version[ETH_STAT_INFO_VERSION_LEN];
 	/* Locally Admin Addr. BigEndian EIU48. Actual size is 6 bytes */
@@ -106,7 +110,8 @@ struct eth_stats_info {
 };
 
 /*  Per PCI Function FCOE Statistics required from the driver */
-struct fcoe_stats_info {
+struct fcoe_stats_info
+{
 	u8 version[12];		/* Function's Driver Version. */
 	u8 mac_local[8];	/* Locally Admin Addr. */
 	u8 mac_add1[8];		/* Additional Programmed MAC Addr 1. */
@@ -130,7 +135,8 @@ struct fcoe_stats_info {
 };
 
 /* Per PCI  Function iSCSI Statistics required from the driver*/
-struct iscsi_stats_info {
+struct iscsi_stats_info
+{
 	u8 version[12];		/* Function's Driver Version. */
 	u8 mac_local[8];	/* Locally Admin iSCSI MAC Addr. */
 	u8 mac_add1[8];		/* Additional Programmed MAC Addr 1. */
@@ -162,7 +168,8 @@ struct iscsi_stats_info {
 				 */
 };
 
-union drv_info_to_mcp {
+union drv_info_to_mcp
+{
 	struct eth_stats_info	ether_stat;
 	struct fcoe_stats_info	fcoe_stat;
 	struct iscsi_stats_info	iscsi_stat;

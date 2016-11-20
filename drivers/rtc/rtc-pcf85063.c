@@ -46,7 +46,9 @@ static int pcf85063_stop_clock(struct i2c_client *client, u8 *ctrl1)
 	s32 ret;
 
 	ret = i2c_smbus_read_byte_data(client, PCF85063_REG_CTRL1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "Failing to stop the clock\n");
 		return -EIO;
 	}
@@ -55,7 +57,9 @@ static int pcf85063_stop_clock(struct i2c_client *client, u8 *ctrl1)
 	ret |= PCF85063_REG_CTRL1_STOP;
 
 	ret = i2c_smbus_write_byte_data(client, PCF85063_REG_CTRL1, ret);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "Failing to stop the clock\n");
 		return -EIO;
 	}
@@ -73,7 +77,9 @@ static int pcf85063_start_clock(struct i2c_client *client, u8 ctrl1)
 	ctrl1 &= PCF85063_REG_CTRL1_STOP;
 
 	ret = i2c_smbus_write_byte_data(client, PCF85063_REG_CTRL1, ctrl1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "Failing to start the clock\n");
 		return -EIO;
 	}
@@ -93,14 +99,17 @@ static int pcf85063_get_datetime(struct i2c_client *client, struct rtc_time *tm)
 	 * time/date registers in one turn.
 	 */
 	rc = i2c_smbus_read_i2c_block_data(client, PCF85063_REG_SC,
-					   sizeof(regs), regs);
-	if (rc != sizeof(regs)) {
+									   sizeof(regs), regs);
+
+	if (rc != sizeof(regs))
+	{
 		dev_err(&client->dev, "date/time register read error\n");
 		return -EIO;
 	}
 
 	/* if the clock has lost its power it makes no sense to use its time */
-	if (regs[0] & PCF85063_REG_SC_OS) {
+	if (regs[0] & PCF85063_REG_SC_OS)
+	{
 		dev_warn(&client->dev, "Power loss detected, invalid time\n");
 		return -EINVAL;
 	}
@@ -124,15 +133,20 @@ static int pcf85063_set_datetime(struct i2c_client *client, struct rtc_time *tm)
 	u8 ctrl1;
 
 	if ((tm->tm_year < 100) || (tm->tm_year > 199))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * to accurately set the time, reset the divider chain and keep it in
 	 * reset state until all time/date registers are written
 	 */
 	rc = pcf85063_stop_clock(client, &ctrl1);
+
 	if (rc != 0)
+	{
 		return rc;
+	}
 
 	/* hours, minutes and seconds */
 	regs[0] = bin2bcd(tm->tm_sec) & 0x7F; /* clear OS flag */
@@ -154,8 +168,10 @@ static int pcf85063_set_datetime(struct i2c_client *client, struct rtc_time *tm)
 
 	/* write all registers at once */
 	rc = i2c_smbus_write_i2c_block_data(client, PCF85063_REG_SC,
-					    sizeof(regs), regs);
-	if (rc < 0) {
+										sizeof(regs), regs);
+
+	if (rc < 0)
+	{
 		dev_err(&client->dev, "date/time register write error\n");
 		return rc;
 	}
@@ -166,8 +182,11 @@ static int pcf85063_set_datetime(struct i2c_client *client, struct rtc_time *tm)
 	 * PCF85063A devices.  The rollover point can not be used.
 	 */
 	rc = pcf85063_start_clock(client, ctrl1);
+
 	if (rc != 0)
+	{
 		return rc;
+	}
 
 	return 0;
 }
@@ -182,43 +201,49 @@ static int pcf85063_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	return pcf85063_set_datetime(to_i2c_client(dev), tm);
 }
 
-static const struct rtc_class_ops pcf85063_rtc_ops = {
+static const struct rtc_class_ops pcf85063_rtc_ops =
+{
 	.read_time	= pcf85063_rtc_read_time,
 	.set_time	= pcf85063_rtc_set_time
 };
 
 static int pcf85063_probe(struct i2c_client *client,
-				const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct rtc_device *rtc;
 
 	dev_dbg(&client->dev, "%s\n", __func__);
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		return -ENODEV;
+	}
 
 	rtc = devm_rtc_device_register(&client->dev,
-				       pcf85063_driver.driver.name,
-				       &pcf85063_rtc_ops, THIS_MODULE);
+								   pcf85063_driver.driver.name,
+								   &pcf85063_rtc_ops, THIS_MODULE);
 
 	return PTR_ERR_OR_ZERO(rtc);
 }
 
-static const struct i2c_device_id pcf85063_id[] = {
+static const struct i2c_device_id pcf85063_id[] =
+{
 	{ "pcf85063", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, pcf85063_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id pcf85063_of_match[] = {
+static const struct of_device_id pcf85063_of_match[] =
+{
 	{ .compatible = "nxp,pcf85063" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, pcf85063_of_match);
 #endif
 
-static struct i2c_driver pcf85063_driver = {
+static struct i2c_driver pcf85063_driver =
+{
 	.driver		= {
 		.name	= "rtc-pcf85063",
 		.of_match_table = of_match_ptr(pcf85063_of_match),

@@ -40,18 +40,19 @@
 	(BFI_MSGQ_RSP_ENTRY_SIZE * BFA_MSGQ_RSPQ_NUM_ENTRY)
 
 #define bfa_msgq_cmd_set(_cmd, _cbfn, _cbarg, _msg_size, _msg_hdr)	\
-do {									\
-	(_cmd)->cbfn = (_cbfn);						\
-	(_cmd)->cbarg = (_cbarg);					\
-	(_cmd)->msg_size = (_msg_size);					\
-	(_cmd)->msg_hdr = (_msg_hdr);					\
-} while (0)
+	do {									\
+		(_cmd)->cbfn = (_cbfn);						\
+		(_cmd)->cbarg = (_cbarg);					\
+		(_cmd)->msg_size = (_msg_size);					\
+		(_cmd)->msg_hdr = (_msg_hdr);					\
+	} while (0)
 
 struct bfa_msgq;
 
 typedef void (*bfa_msgq_cmdcbfn_t)(void *cbarg, enum bfa_status status);
 
-struct bfa_msgq_cmd_entry {
+struct bfa_msgq_cmd_entry
+{
 	struct list_head				qe;
 	bfa_msgq_cmdcbfn_t		cbfn;
 	void				*cbarg;
@@ -59,11 +60,13 @@ struct bfa_msgq_cmd_entry {
 	struct bfi_msgq_mhdr *msg_hdr;
 };
 
-enum bfa_msgq_cmdq_flags {
+enum bfa_msgq_cmdq_flags
+{
 	BFA_MSGQ_CMDQ_F_DB_UPDATE	= 1,
 };
 
-struct bfa_msgq_cmdq {
+struct bfa_msgq_cmdq
+{
 	bfa_fsm_t			fsm;
 	enum bfa_msgq_cmdq_flags flags;
 
@@ -83,13 +86,15 @@ struct bfa_msgq_cmdq {
 	struct bfa_msgq *msgq;
 };
 
-enum bfa_msgq_rspq_flags {
+enum bfa_msgq_rspq_flags
+{
 	BFA_MSGQ_RSPQ_F_DB_UPDATE	= 1,
 };
 
 typedef void (*bfa_msgq_mcfunc_t)(void *cbarg, struct bfi_msgq_mhdr *mhdr);
 
-struct bfa_msgq_rspq {
+struct bfa_msgq_rspq
+{
 	bfa_fsm_t			fsm;
 	enum bfa_msgq_rspq_flags flags;
 
@@ -100,7 +105,8 @@ struct bfa_msgq_rspq {
 	struct bfa_mbox_cmd dbell_mb;
 
 	int				nmclass;
-	struct {
+	struct
+	{
 		bfa_msgq_mcfunc_t	cbfn;
 		void			*cbarg;
 	} rsphdlr[BFI_MC_MAX];
@@ -108,7 +114,8 @@ struct bfa_msgq_rspq {
 	struct bfa_msgq *msgq;
 };
 
-struct bfa_msgq {
+struct bfa_msgq
+{
 	struct bfa_msgq_cmdq cmdq;
 	struct bfa_msgq_rspq rspq;
 
@@ -123,9 +130,9 @@ u32 bfa_msgq_meminfo(void);
 void bfa_msgq_memclaim(struct bfa_msgq *msgq, u8 *kva, u64 pa);
 void bfa_msgq_attach(struct bfa_msgq *msgq, struct bfa_ioc *ioc);
 void bfa_msgq_regisr(struct bfa_msgq *msgq, enum bfi_mclass mc,
-		     bfa_msgq_mcfunc_t cbfn, void *cbarg);
+					 bfa_msgq_mcfunc_t cbfn, void *cbarg);
 void bfa_msgq_cmd_post(struct bfa_msgq *msgq,
-		       struct bfa_msgq_cmd_entry *cmd);
+					   struct bfa_msgq_cmd_entry *cmd);
 void bfa_msgq_rsp_copy(struct bfa_msgq *msgq, u8 *buf, size_t buf_len);
 
 #endif

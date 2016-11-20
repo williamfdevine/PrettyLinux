@@ -32,16 +32,22 @@ struct auxtrace_record
 
 	cs_etm_pmu = perf_pmu__find(CORESIGHT_ETM_PMU_NAME);
 
-	if (evlist) {
-		evlist__for_each_entry(evlist, evsel) {
+	if (evlist)
+	{
+		evlist__for_each_entry(evlist, evsel)
+		{
 			if (cs_etm_pmu &&
-			    evsel->attr.type == cs_etm_pmu->type)
+				evsel->attr.type == cs_etm_pmu->type)
+			{
 				found_etm = true;
+			}
 		}
 	}
 
 	if (found_etm)
+	{
 		return cs_etm_record_init(err);
+	}
 
 	/*
 	 * Clear 'err' even if we haven't found a cs_etm event - that way perf

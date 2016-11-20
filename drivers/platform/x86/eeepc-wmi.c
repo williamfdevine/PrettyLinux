@@ -53,16 +53,17 @@ static bool hotplug_wireless;
 
 module_param(hotplug_wireless, bool, 0444);
 MODULE_PARM_DESC(hotplug_wireless,
-		 "Enable hotplug for wireless device. "
-		 "If your laptop needs that, please report to "
-		 "acpi4asus-user@lists.sourceforge.net.");
+				 "Enable hotplug for wireless device. "
+				 "If your laptop needs that, please report to "
+				 "acpi4asus-user@lists.sourceforge.net.");
 
 /* Values for T101MT "Home" key */
 #define HOME_PRESS	0xe4
 #define HOME_HOLD	0xea
 #define HOME_RELEASE	0xe5
 
-static const struct key_entry eeepc_wmi_keymap[] = {
+static const struct key_entry eeepc_wmi_keymap[] =
+{
 	{ KE_KEY, ASUS_WMI_BRN_DOWN, { KEY_BRIGHTNESSDOWN } },
 	{ KE_KEY, ASUS_WMI_BRN_UP, { KEY_BRIGHTNESSUP } },
 	/* Sleep already handled via generic ACPI code */
@@ -93,23 +94,28 @@ static const struct key_entry eeepc_wmi_keymap[] = {
 	{ KE_END, 0},
 };
 
-static struct quirk_entry quirk_asus_unknown = {
+static struct quirk_entry quirk_asus_unknown =
+{
 };
 
-static struct quirk_entry quirk_asus_1000h = {
+static struct quirk_entry quirk_asus_1000h =
+{
 	.hotplug_wireless = true,
 };
 
-static struct quirk_entry quirk_asus_et2012_type1 = {
+static struct quirk_entry quirk_asus_et2012_type1 =
+{
 	.store_backlight_power = true,
 };
 
-static struct quirk_entry quirk_asus_et2012_type3 = {
+static struct quirk_entry quirk_asus_et2012_type3 =
+{
 	.scalar_panel_brightness = true,
 	.store_backlight_power = true,
 };
 
-static struct quirk_entry quirk_asus_x101ch = {
+static struct quirk_entry quirk_asus_x101ch =
+{
 	/* We need this when ACPI function doesn't do this well */
 	.wmi_backlight_power = true,
 };
@@ -121,12 +127,19 @@ static void et2012_quirks(void)
 	const struct dmi_device *dev = NULL;
 	char oemstring[30];
 
-	while ((dev = dmi_find_device(DMI_DEV_TYPE_OEM_STRING, NULL, dev))) {
-		if (sscanf(dev->name, "AEMS%24c", oemstring) == 1) {
+	while ((dev = dmi_find_device(DMI_DEV_TYPE_OEM_STRING, NULL, dev)))
+	{
+		if (sscanf(dev->name, "AEMS%24c", oemstring) == 1)
+		{
 			if (oemstring[18] == '1')
+			{
 				quirks = &quirk_asus_et2012_type1;
+			}
 			else if (oemstring[18] == '3')
+			{
 				quirks = &quirk_asus_et2012_type3;
+			}
+
 			break;
 		}
 	}
@@ -139,13 +152,17 @@ static int dmi_matched(const struct dmi_system_id *dmi)
 	quirks = dmi->driver_data;
 
 	model = (char *)dmi->matches[1].substr;
+
 	if (unlikely(strncmp(model, "ET2012", 6) == 0))
+	{
 		et2012_quirks();
+	}
 
 	return 1;
 }
 
-static const struct dmi_system_id asus_quirks[] = {
+static const struct dmi_system_id asus_quirks[] =
+{
 	{
 		.callback = dmi_matched,
 		.ident = "ASUSTeK Computer INC. 1000H",
@@ -186,36 +203,41 @@ static const struct dmi_system_id asus_quirks[] = {
 };
 
 static void eeepc_wmi_key_filter(struct asus_wmi_driver *asus_wmi, int *code,
-				 unsigned int *value, bool *autorelease)
+								 unsigned int *value, bool *autorelease)
 {
-	switch (*code) {
-	case HOME_PRESS:
-		*value = 1;
-		*autorelease = 0;
-		break;
-	case HOME_HOLD:
-		*code = ASUS_WMI_KEY_IGNORE;
-		break;
-	case HOME_RELEASE:
-		*code = HOME_PRESS;
-		*value = 0;
-		*autorelease = 0;
-		break;
+	switch (*code)
+	{
+		case HOME_PRESS:
+			*value = 1;
+			*autorelease = 0;
+			break;
+
+		case HOME_HOLD:
+			*code = ASUS_WMI_KEY_IGNORE;
+			break;
+
+		case HOME_RELEASE:
+			*code = HOME_PRESS;
+			*value = 0;
+			*autorelease = 0;
+			break;
 	}
 }
 
 static int eeepc_wmi_probe(struct platform_device *pdev)
 {
-	if (acpi_dev_found(EEEPC_ACPI_HID)) {
+	if (acpi_dev_found(EEEPC_ACPI_HID))
+	{
 		pr_warn("Found legacy ATKD device (%s)\n", EEEPC_ACPI_HID);
 		pr_warn("WMI device present, but legacy ATKD device is also "
-			"present and enabled\n");
+				"present and enabled\n");
 		pr_warn("You probably booted with acpi_osi=\"Linux\" or "
-			"acpi_osi=\"!Windows 2009\"\n");
+				"acpi_osi=\"!Windows 2009\"\n");
 		pr_warn("Can't load eeepc-wmi, use default acpi_osi "
-			"(preferred) or eeepc-laptop\n");
+				"(preferred) or eeepc-laptop\n");
 		return -EBUSY;
 	}
+
 	return 0;
 }
 
@@ -231,7 +253,8 @@ static void eeepc_wmi_quirks(struct asus_wmi_driver *driver)
 	driver->panel_power = FB_BLANK_UNBLANK;
 }
 
-static struct asus_wmi_driver asus_wmi_driver = {
+static struct asus_wmi_driver asus_wmi_driver =
+{
 	.name = EEEPC_WMI_FILE,
 	.owner = THIS_MODULE,
 	.event_guid = EEEPC_WMI_EVENT_GUID,

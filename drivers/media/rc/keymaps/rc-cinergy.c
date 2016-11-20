@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table cinergy[] = {
+static struct rc_map_table cinergy[] =
+{
 	{ 0x00, KEY_0 },
 	{ 0x01, KEY_1 },
 	{ 0x02, KEY_2 },
@@ -53,7 +54,8 @@ static struct rc_map_table cinergy[] = {
 	{ 0x23, KEY_STOP },
 };
 
-static struct rc_map_list cinergy_map = {
+static struct rc_map_list cinergy_map =
+{
 	.map = {
 		.scan    = cinergy,
 		.size    = ARRAY_SIZE(cinergy),

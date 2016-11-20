@@ -41,7 +41,8 @@
 #define PS3ROM_MAX_SECTORS		(BOUNCE_SIZE >> 9)
 
 
-struct ps3rom_private {
+struct ps3rom_private
+{
 	struct ps3_storage_device *dev;
 	struct scsi_cmnd *curr_cmd;
 };
@@ -49,7 +50,8 @@ struct ps3rom_private {
 
 #define LV1_STORAGE_SEND_ATAPI_COMMAND	(1)
 
-struct lv1_atapi_cmnd_block {
+struct lv1_atapi_cmnd_block
+{
 	u8	pkt[32];	/* packet command block           */
 	u32	pktlen;		/* should be 12 for ATAPI 8020    */
 	u32	blocks;
@@ -60,14 +62,16 @@ struct lv1_atapi_cmnd_block {
 	u32	arglen;		/* length above                   */
 };
 
-enum lv1_atapi_proto {
+enum lv1_atapi_proto
+{
 	NON_DATA_PROTO     = 0,
 	PIO_DATA_IN_PROTO  = 1,
 	PIO_DATA_OUT_PROTO = 2,
 	DMA_PROTO = 3
 };
 
-enum lv1_atapi_in_out {
+enum lv1_atapi_in_out
+{
 	DIR_WRITE = 0,		/* memory -> device */
 	DIR_READ = 1		/* device -> memory */
 };
@@ -79,7 +83,7 @@ static int ps3rom_slave_configure(struct scsi_device *scsi_dev)
 	struct ps3_storage_device *dev = priv->dev;
 
 	dev_dbg(&dev->sbd.core, "%s:%u: id %u, lun %llu, channel %u\n", __func__,
-		__LINE__, scsi_dev->id, scsi_dev->lun, scsi_dev->channel);
+			__LINE__, scsi_dev->id, scsi_dev->lun, scsi_dev->channel);
 
 	/*
 	 * ATAPI SFF8020 devices use MODE_SENSE_10,
@@ -94,7 +98,7 @@ static int ps3rom_slave_configure(struct scsi_device *scsi_dev)
 }
 
 static int ps3rom_atapi_request(struct ps3_storage_device *dev,
-				struct scsi_cmnd *cmd)
+								struct scsi_cmnd *cmd)
 {
 	struct lv1_atapi_cmnd_block atapi_cmnd;
 	unsigned char opcode = cmd->cmnd[0];
@@ -102,7 +106,7 @@ static int ps3rom_atapi_request(struct ps3_storage_device *dev,
 	u64 lpar;
 
 	dev_dbg(&dev->sbd.core, "%s:%u: send ATAPI command 0x%02x\n", __func__,
-		__LINE__, opcode);
+			__LINE__, opcode);
 
 	memset(&atapi_cmnd, 0, sizeof(struct lv1_atapi_cmnd_block));
 	memcpy(&atapi_cmnd.pkt, cmd->cmnd, 12);
@@ -111,46 +115,60 @@ static int ps3rom_atapi_request(struct ps3_storage_device *dev,
 	atapi_cmnd.blocks = atapi_cmnd.arglen = scsi_bufflen(cmd);
 	atapi_cmnd.buffer = dev->bounce_lpar;
 
-	switch (cmd->sc_data_direction) {
-	case DMA_FROM_DEVICE:
-		if (scsi_bufflen(cmd) >= CD_FRAMESIZE)
-			atapi_cmnd.proto = DMA_PROTO;
-		else
-			atapi_cmnd.proto = PIO_DATA_IN_PROTO;
-		atapi_cmnd.in_out = DIR_READ;
-		break;
+	switch (cmd->sc_data_direction)
+	{
+		case DMA_FROM_DEVICE:
+			if (scsi_bufflen(cmd) >= CD_FRAMESIZE)
+			{
+				atapi_cmnd.proto = DMA_PROTO;
+			}
+			else
+			{
+				atapi_cmnd.proto = PIO_DATA_IN_PROTO;
+			}
 
-	case DMA_TO_DEVICE:
-		if (scsi_bufflen(cmd) >= CD_FRAMESIZE)
-			atapi_cmnd.proto = DMA_PROTO;
-		else
-			atapi_cmnd.proto = PIO_DATA_OUT_PROTO;
-		atapi_cmnd.in_out = DIR_WRITE;
-		scsi_sg_copy_to_buffer(cmd, dev->bounce_buf, dev->bounce_size);
-		break;
+			atapi_cmnd.in_out = DIR_READ;
+			break;
 
-	default:
-		atapi_cmnd.proto = NON_DATA_PROTO;
-		break;
+		case DMA_TO_DEVICE:
+			if (scsi_bufflen(cmd) >= CD_FRAMESIZE)
+			{
+				atapi_cmnd.proto = DMA_PROTO;
+			}
+			else
+			{
+				atapi_cmnd.proto = PIO_DATA_OUT_PROTO;
+			}
+
+			atapi_cmnd.in_out = DIR_WRITE;
+			scsi_sg_copy_to_buffer(cmd, dev->bounce_buf, dev->bounce_size);
+			break;
+
+		default:
+			atapi_cmnd.proto = NON_DATA_PROTO;
+			break;
 	}
 
 	lpar = ps3_mm_phys_to_lpar(__pa(&atapi_cmnd));
 	res = lv1_storage_send_device_command(dev->sbd.dev_id,
-					      LV1_STORAGE_SEND_ATAPI_COMMAND,
-					      lpar, sizeof(atapi_cmnd),
-					      atapi_cmnd.buffer,
-					      atapi_cmnd.arglen, &dev->tag);
-	if (res == LV1_DENIED_BY_POLICY) {
+										  LV1_STORAGE_SEND_ATAPI_COMMAND,
+										  lpar, sizeof(atapi_cmnd),
+										  atapi_cmnd.buffer,
+										  atapi_cmnd.arglen, &dev->tag);
+
+	if (res == LV1_DENIED_BY_POLICY)
+	{
 		dev_dbg(&dev->sbd.core,
-			"%s:%u: ATAPI command 0x%02x denied by policy\n",
-			__func__, __LINE__, opcode);
+				"%s:%u: ATAPI command 0x%02x denied by policy\n",
+				__func__, __LINE__, opcode);
 		return DID_ERROR << 16;
 	}
 
-	if (res) {
+	if (res)
+	{
 		dev_err(&dev->sbd.core,
-			"%s:%u: ATAPI command 0x%02x failed %d\n", __func__,
-			__LINE__, opcode, res);
+				"%s:%u: ATAPI command 0x%02x failed %d\n", __func__,
+				__LINE__, opcode, res);
 		return DID_ERROR << 16;
 	}
 
@@ -160,7 +178,7 @@ static int ps3rom_atapi_request(struct ps3_storage_device *dev,
 static inline unsigned int srb10_lba(const struct scsi_cmnd *cmd)
 {
 	return cmd->cmnd[2] << 24 | cmd->cmnd[3] << 16 | cmd->cmnd[4] << 8 |
-	       cmd->cmnd[5];
+		   cmd->cmnd[5];
 }
 
 static inline unsigned int srb10_len(const struct scsi_cmnd *cmd)
@@ -169,20 +187,22 @@ static inline unsigned int srb10_len(const struct scsi_cmnd *cmd)
 }
 
 static int ps3rom_read_request(struct ps3_storage_device *dev,
-			       struct scsi_cmnd *cmd, u32 start_sector,
-			       u32 sectors)
+							   struct scsi_cmnd *cmd, u32 start_sector,
+							   u32 sectors)
 {
 	int res;
 
 	dev_dbg(&dev->sbd.core, "%s:%u: read %u sectors starting at %u\n",
-		__func__, __LINE__, sectors, start_sector);
+			__func__, __LINE__, sectors, start_sector);
 
 	res = lv1_storage_read(dev->sbd.dev_id,
-			       dev->regions[dev->region_idx].id, start_sector,
-			       sectors, 0, dev->bounce_lpar, &dev->tag);
-	if (res) {
+						   dev->regions[dev->region_idx].id, start_sector,
+						   sectors, 0, dev->bounce_lpar, &dev->tag);
+
+	if (res)
+	{
 		dev_err(&dev->sbd.core, "%s:%u: read failed %d\n", __func__,
-			__LINE__, res);
+				__LINE__, res);
 		return DID_ERROR << 16;
 	}
 
@@ -190,22 +210,24 @@ static int ps3rom_read_request(struct ps3_storage_device *dev,
 }
 
 static int ps3rom_write_request(struct ps3_storage_device *dev,
-				struct scsi_cmnd *cmd, u32 start_sector,
-				u32 sectors)
+								struct scsi_cmnd *cmd, u32 start_sector,
+								u32 sectors)
 {
 	int res;
 
 	dev_dbg(&dev->sbd.core, "%s:%u: write %u sectors starting at %u\n",
-		__func__, __LINE__, sectors, start_sector);
+			__func__, __LINE__, sectors, start_sector);
 
 	scsi_sg_copy_to_buffer(cmd, dev->bounce_buf, dev->bounce_size);
 
 	res = lv1_storage_write(dev->sbd.dev_id,
-				dev->regions[dev->region_idx].id, start_sector,
-				sectors, 0, dev->bounce_lpar, &dev->tag);
-	if (res) {
+							dev->regions[dev->region_idx].id, start_sector,
+							sectors, 0, dev->bounce_lpar, &dev->tag);
+
+	if (res)
+	{
 		dev_err(&dev->sbd.core, "%s:%u: write failed %d\n", __func__,
-			__LINE__, res);
+				__LINE__, res);
 		return DID_ERROR << 16;
 	}
 
@@ -213,7 +235,7 @@ static int ps3rom_write_request(struct ps3_storage_device *dev,
 }
 
 static int ps3rom_queuecommand_lck(struct scsi_cmnd *cmd,
-			       void (*done)(struct scsi_cmnd *))
+								   void (*done)(struct scsi_cmnd *))
 {
 	struct ps3rom_private *priv = shost_priv(cmd->device->host);
 	struct ps3_storage_device *dev = priv->dev;
@@ -224,28 +246,31 @@ static int ps3rom_queuecommand_lck(struct scsi_cmnd *cmd,
 	cmd->scsi_done = done;
 
 	opcode = cmd->cmnd[0];
+
 	/*
 	 * While we can submit READ/WRITE SCSI commands as ATAPI commands,
 	 * it's recommended for various reasons (performance, error handling,
 	 * ...) to use lv1_storage_{read,write}() instead
 	 */
-	switch (opcode) {
-	case READ_10:
-		res = ps3rom_read_request(dev, cmd, srb10_lba(cmd),
-					  srb10_len(cmd));
-		break;
+	switch (opcode)
+	{
+		case READ_10:
+			res = ps3rom_read_request(dev, cmd, srb10_lba(cmd),
+									  srb10_len(cmd));
+			break;
 
-	case WRITE_10:
-		res = ps3rom_write_request(dev, cmd, srb10_lba(cmd),
-					   srb10_len(cmd));
-		break;
+		case WRITE_10:
+			res = ps3rom_write_request(dev, cmd, srb10_lba(cmd),
+									   srb10_len(cmd));
+			break;
 
-	default:
-		res = ps3rom_atapi_request(dev, cmd);
-		break;
+		default:
+			res = ps3rom_atapi_request(dev, cmd);
+			break;
 	}
 
-	if (res) {
+	if (res)
+	{
 		memset(cmd->sense_buffer, 0, SCSI_SENSE_BUFFERSIZE);
 		cmd->result = res;
 		cmd->sense_buffer[0] = 0x70;
@@ -260,10 +285,12 @@ static int ps3rom_queuecommand_lck(struct scsi_cmnd *cmd,
 static DEF_SCSI_QCMD(ps3rom_queuecommand)
 
 static int decode_lv1_status(u64 status, unsigned char *sense_key,
-			     unsigned char *asc, unsigned char *ascq)
+							 unsigned char *asc, unsigned char *ascq)
 {
 	if (((status >> 24) & 0xff) != SAM_STAT_CHECK_CONDITION)
+	{
 		return -1;
+	}
 
 	*sense_key = (status >> 16) & 0xff;
 	*asc       = (status >>  8) & 0xff;
@@ -290,12 +317,13 @@ static irqreturn_t ps3rom_interrupt(int irq, void *data)
 
 	if (tag != dev->tag)
 		dev_err(&dev->sbd.core,
-			"%s:%u: tag mismatch, got %llx, expected %llx\n",
-			__func__, __LINE__, tag, dev->tag);
+				"%s:%u: tag mismatch, got %llx, expected %llx\n",
+				__func__, __LINE__, tag, dev->tag);
 
-	if (res) {
+	if (res)
+	{
 		dev_err(&dev->sbd.core, "%s:%u: res=%d status=0x%llx\n",
-			__func__, __LINE__, res, status);
+				__func__, __LINE__, res, status);
 		return IRQ_HANDLED;
 	}
 
@@ -303,30 +331,35 @@ static irqreturn_t ps3rom_interrupt(int irq, void *data)
 	priv = shost_priv(host);
 	cmd = priv->curr_cmd;
 
-	if (!status) {
+	if (!status)
+	{
 		/* OK, completed */
-		if (cmd->sc_data_direction == DMA_FROM_DEVICE) {
+		if (cmd->sc_data_direction == DMA_FROM_DEVICE)
+		{
 			int len;
 
 			len = scsi_sg_copy_from_buffer(cmd,
-						       dev->bounce_buf,
-						       dev->bounce_size);
+										   dev->bounce_buf,
+										   dev->bounce_size);
 
 			scsi_set_resid(cmd, scsi_bufflen(cmd) - len);
 		}
+
 		cmd->result = DID_OK << 16;
 		goto done;
 	}
 
-	if (cmd->cmnd[0] == REQUEST_SENSE) {
+	if (cmd->cmnd[0] == REQUEST_SENSE)
+	{
 		/* SCSI spec says request sense should never get error */
 		dev_err(&dev->sbd.core, "%s:%u: end error without autosense\n",
-			__func__, __LINE__);
+				__func__, __LINE__);
 		cmd->result = DID_ERROR << 16 | SAM_STAT_CHECK_CONDITION;
 		goto done;
 	}
 
-	if (decode_lv1_status(status, &sense_key, &asc, &ascq)) {
+	if (decode_lv1_status(status, &sense_key, &asc, &ascq))
+	{
 		cmd->result = DID_ERROR << 16;
 		goto done;
 	}
@@ -340,7 +373,8 @@ done:
 	return IRQ_HANDLED;
 }
 
-static struct scsi_host_template ps3rom_host_template = {
+static struct scsi_host_template ps3rom_host_template =
+{
 	.name =			DEVICE_NAME,
 	.slave_configure =	ps3rom_slave_configure,
 	.queuecommand =		ps3rom_queuecommand,
@@ -361,27 +395,36 @@ static int ps3rom_probe(struct ps3_system_bus_device *_dev)
 	struct Scsi_Host *host;
 	struct ps3rom_private *priv;
 
-	if (dev->blk_size != CD_FRAMESIZE) {
+	if (dev->blk_size != CD_FRAMESIZE)
+	{
 		dev_err(&dev->sbd.core,
-			"%s:%u: cannot handle block size %llu\n", __func__,
-			__LINE__, dev->blk_size);
+				"%s:%u: cannot handle block size %llu\n", __func__,
+				__LINE__, dev->blk_size);
 		return -EINVAL;
 	}
 
 	dev->bounce_size = BOUNCE_SIZE;
 	dev->bounce_buf = kmalloc(BOUNCE_SIZE, GFP_DMA);
+
 	if (!dev->bounce_buf)
+	{
 		return -ENOMEM;
+	}
 
 	error = ps3stor_setup(dev, ps3rom_interrupt);
+
 	if (error)
+	{
 		goto fail_free_bounce;
+	}
 
 	host = scsi_host_alloc(&ps3rom_host_template,
-			       sizeof(struct ps3rom_private));
-	if (!host) {
+						   sizeof(struct ps3rom_private));
+
+	if (!host)
+	{
 		dev_err(&dev->sbd.core, "%s:%u: scsi_host_alloc failed\n",
-			__func__, __LINE__);
+				__func__, __LINE__);
 		error = -ENOMEM;
 		goto fail_teardown;
 	}
@@ -395,9 +438,11 @@ static int ps3rom_probe(struct ps3_system_bus_device *_dev)
 	host->max_lun = 1;
 
 	error = scsi_add_host(host, &dev->sbd.core);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&dev->sbd.core, "%s:%u: scsi_host_alloc failed %d\n",
-			__func__, __LINE__, error);
+				__func__, __LINE__, error);
 		error = -ENODEV;
 		goto fail_host_put;
 	}
@@ -428,7 +473,8 @@ static int ps3rom_remove(struct ps3_system_bus_device *_dev)
 	return 0;
 }
 
-static struct ps3_system_bus_driver ps3rom = {
+static struct ps3_system_bus_driver ps3rom =
+{
 	.match_id	= PS3_MATCH_ID_STOR_ROM,
 	.core.name	= DEVICE_NAME,
 	.core.owner	= THIS_MODULE,

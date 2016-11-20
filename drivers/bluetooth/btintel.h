@@ -21,7 +21,8 @@
  *
  */
 
-struct intel_version {
+struct intel_version
+{
 	u8 status;
 	u8 hw_platform;
 	u8 hw_variant;
@@ -34,7 +35,8 @@ struct intel_version {
 	u8 fw_patch_num;
 } __packed;
 
-struct intel_boot_params {
+struct intel_boot_params
+{
 	__u8     status;
 	__u8     otp_format;
 	__u8     otp_content;
@@ -54,7 +56,8 @@ struct intel_boot_params {
 	__u8     unlocked_state;
 } __packed;
 
-struct intel_bootup {
+struct intel_bootup
+{
 	__u8     zero;
 	__u8     num_cmds;
 	__u8     source;
@@ -63,7 +66,8 @@ struct intel_bootup {
 	__u8     ddc_status;
 } __packed;
 
-struct intel_secure_send_result {
+struct intel_secure_send_result
+{
 	__u8     result;
 	__le16   opcode;
 	__u8     status;
@@ -81,14 +85,14 @@ void btintel_hw_error(struct hci_dev *hdev, u8 code);
 
 void btintel_version_info(struct hci_dev *hdev, struct intel_version *ver);
 int btintel_secure_send(struct hci_dev *hdev, u8 fragment_type, u32 plen,
-			const void *param);
+						const void *param);
 int btintel_load_ddc_config(struct hci_dev *hdev, const char *ddc_name);
 int btintel_set_event_mask(struct hci_dev *hdev, bool debug);
 int btintel_set_event_mask_mfg(struct hci_dev *hdev, bool debug);
 int btintel_read_version(struct hci_dev *hdev, struct intel_version *ver);
 
 struct regmap *btintel_regmap_init(struct hci_dev *hdev, u16 opcode_read,
-				   u16 opcode_write);
+								   u16 opcode_write);
 
 #else
 
@@ -127,18 +131,18 @@ static inline void btintel_hw_error(struct hci_dev *hdev, u8 code)
 }
 
 static inline void btintel_version_info(struct hci_dev *hdev,
-					struct intel_version *ver)
+										struct intel_version *ver)
 {
 }
 
 static inline int btintel_secure_send(struct hci_dev *hdev, u8 fragment_type,
-				      u32 plen, const void *param)
+									  u32 plen, const void *param)
 {
 	return -EOPNOTSUPP;
 }
 
 static inline int btintel_load_ddc_config(struct hci_dev *hdev,
-					  const char *ddc_name)
+		const char *ddc_name)
 {
 	return -EOPNOTSUPP;
 }
@@ -154,14 +158,14 @@ static inline int btintel_set_event_mask_mfg(struct hci_dev *hdev, bool debug)
 }
 
 static inline int btintel_read_version(struct hci_dev *hdev,
-				       struct intel_version *ver)
+									   struct intel_version *ver)
 {
 	return -EOPNOTSUPP;
 }
 
 static inline struct regmap *btintel_regmap_init(struct hci_dev *hdev,
-						 u16 opcode_read,
-						 u16 opcode_write)
+		u16 opcode_read,
+		u16 opcode_write)
 {
 	return ERR_PTR(-EINVAL);
 }

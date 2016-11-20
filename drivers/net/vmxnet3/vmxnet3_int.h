@@ -60,9 +60,9 @@
 #include "vmxnet3_defs.h"
 
 #ifdef DEBUG
-# define VMXNET3_DRIVER_VERSION_REPORT VMXNET3_DRIVER_VERSION_STRING"-NAPI(debug)"
+	#define VMXNET3_DRIVER_VERSION_REPORT VMXNET3_DRIVER_VERSION_STRING"-NAPI(debug)"
 #else
-# define VMXNET3_DRIVER_VERSION_REPORT VMXNET3_DRIVER_VERSION_STRING"-NAPI"
+	#define VMXNET3_DRIVER_VERSION_REPORT VMXNET3_DRIVER_VERSION_STRING"-NAPI"
 #endif
 
 
@@ -87,7 +87,8 @@
  * Capabilities
  */
 
-enum {
+enum
+{
 	VMNET_CAP_SG	        = 0x0001, /* Can do scatter-gather transmits. */
 	VMNET_CAP_IP4_CSUM      = 0x0002, /* Can checksum only TCP/UDP over
 					   * IPv4 */
@@ -110,11 +111,11 @@ enum {
 	VMNET_CAP_LPD           = 0x10000, /* large pkt delivery */
 	VMNET_CAP_BPF           = 0x20000, /* BPF Support in VMXNET Virtual HW*/
 	VMNET_CAP_SG_SPAN_PAGES = 0x40000, /* Scatter-gather can span multiple*/
-					   /* pages transmits */
+	/* pages transmits */
 	VMNET_CAP_IP6_CSUM      = 0x80000, /* Can do IPv6 csum offload. */
 	VMNET_CAP_TSO6         = 0x100000, /* TSO seg. offload for IPv6 pkts. */
 	VMNET_CAP_TSO256k      = 0x200000, /* Can do TSO seg offload for */
-					   /* pkts up to 256kB. */
+	/* pkts up to 256kB. */
 	VMNET_CAP_UPT          = 0x400000  /* Support UPT */
 };
 
@@ -125,7 +126,8 @@ enum {
 #define MAX_ETHERNET_CARDS		10
 #define MAX_PCI_PASSTHRU_DEVICE		6
 
-struct vmxnet3_cmd_ring {
+struct vmxnet3_cmd_ring
+{
 	union Vmxnet3_GenericDesc *base;
 	u32		size;
 	u32		next2fill;
@@ -138,7 +140,9 @@ static inline void
 vmxnet3_cmd_ring_adv_next2fill(struct vmxnet3_cmd_ring *ring)
 {
 	ring->next2fill++;
-	if (unlikely(ring->next2fill == ring->size)) {
+
+	if (unlikely(ring->next2fill == ring->size))
+	{
 		ring->next2fill = 0;
 		VMXNET3_FLIP_RING_GEN(ring->gen);
 	}
@@ -154,10 +158,11 @@ static inline int
 vmxnet3_cmd_ring_desc_avail(struct vmxnet3_cmd_ring *ring)
 {
 	return (ring->next2comp > ring->next2fill ? 0 : ring->size) +
-		ring->next2comp - ring->next2fill - 1;
+		   ring->next2comp - ring->next2fill - 1;
 }
 
-struct vmxnet3_comp_ring {
+struct vmxnet3_comp_ring
+{
 	union Vmxnet3_GenericDesc *base;
 	u32               size;
 	u32               next2proc;
@@ -170,26 +175,31 @@ static inline void
 vmxnet3_comp_ring_adv_next2proc(struct vmxnet3_comp_ring *ring)
 {
 	ring->next2proc++;
-	if (unlikely(ring->next2proc == ring->size)) {
+
+	if (unlikely(ring->next2proc == ring->size))
+	{
 		ring->next2proc = 0;
 		VMXNET3_FLIP_RING_GEN(ring->gen);
 	}
 }
 
-struct vmxnet3_tx_data_ring {
+struct vmxnet3_tx_data_ring
+{
 	struct Vmxnet3_TxDataDesc *base;
 	u32              size;
 	dma_addr_t          basePA;
 };
 
-enum vmxnet3_buf_map_type {
+enum vmxnet3_buf_map_type
+{
 	VMXNET3_MAP_INVALID = 0,
 	VMXNET3_MAP_NONE,
 	VMXNET3_MAP_SINGLE,
 	VMXNET3_MAP_PAGE,
 };
 
-struct vmxnet3_tx_buf_info {
+struct vmxnet3_tx_buf_info
+{
 	u32      map_type;
 	u16      len;
 	u16      sop_idx;
@@ -197,7 +207,8 @@ struct vmxnet3_tx_buf_info {
 	struct sk_buff *skb;
 };
 
-struct vmxnet3_tq_driver_stats {
+struct vmxnet3_tq_driver_stats
+{
 	u64 drop_total;     /* # of pkts dropped by the driver, the
 				* counters below track droppings due to
 				* different reasons
@@ -213,7 +224,8 @@ struct vmxnet3_tq_driver_stats {
 	u64 oversized_hdr;
 };
 
-struct vmxnet3_tx_ctx {
+struct vmxnet3_tx_ctx
+{
 	bool   ipv4;
 	bool   ipv6;
 	u16 mss;
@@ -226,8 +238,9 @@ struct vmxnet3_tx_ctx {
 	union Vmxnet3_GenericDesc *eop_txd;
 };
 
-struct vmxnet3_tx_queue {
-	char			name[IFNAMSIZ+8]; /* To identify interrupt */
+struct vmxnet3_tx_queue
+{
+	char			name[IFNAMSIZ + 8]; /* To identify interrupt */
 	struct vmxnet3_adapter		*adapter;
 	spinlock_t                      tx_lock;
 	struct vmxnet3_cmd_ring         tx_ring;
@@ -244,41 +257,48 @@ struct vmxnet3_tx_queue {
 	u16				txdata_desc_size;
 } __attribute__((__aligned__(SMP_CACHE_BYTES)));
 
-enum vmxnet3_rx_buf_type {
+enum vmxnet3_rx_buf_type
+{
 	VMXNET3_RX_BUF_NONE = 0,
 	VMXNET3_RX_BUF_SKB = 1,
 	VMXNET3_RX_BUF_PAGE = 2
 };
 
-struct vmxnet3_rx_buf_info {
+struct vmxnet3_rx_buf_info
+{
 	enum vmxnet3_rx_buf_type buf_type;
 	u16     len;
-	union {
+	union
+	{
 		struct sk_buff *skb;
 		struct page    *page;
 	};
 	dma_addr_t dma_addr;
 };
 
-struct vmxnet3_rx_ctx {
+struct vmxnet3_rx_ctx
+{
 	struct sk_buff *skb;
 	u32 sop_idx;
 };
 
-struct vmxnet3_rq_driver_stats {
+struct vmxnet3_rq_driver_stats
+{
 	u64 drop_total;
 	u64 drop_err;
 	u64 drop_fcs;
 	u64 rx_buf_alloc_failure;
 };
 
-struct vmxnet3_rx_data_ring {
+struct vmxnet3_rx_data_ring
+{
 	Vmxnet3_RxDataDesc *base;
 	dma_addr_t basePA;
 	u16 desc_size;
 };
 
-struct vmxnet3_rx_queue {
+struct vmxnet3_rx_queue
+{
 	char			name[IFNAMSIZ + 8]; /* To identify interrupt */
 	struct vmxnet3_adapter	  *adapter;
 	struct napi_struct        napi;
@@ -302,17 +322,18 @@ struct vmxnet3_rx_queue {
 #define VMXNET3_RSS_IND_TABLE_SIZE (VMXNET3_DEVICE_MAX_RX_QUEUES * 4)
 
 #define VMXNET3_LINUX_MAX_MSIX_VECT     (VMXNET3_DEVICE_MAX_TX_QUEUES + \
-					 VMXNET3_DEVICE_MAX_RX_QUEUES + 1)
+		VMXNET3_DEVICE_MAX_RX_QUEUES + 1)
 #define VMXNET3_LINUX_MIN_MSIX_VECT     2 /* 1 for tx-rx pair and 1 for event */
 
 
-struct vmxnet3_intr {
+struct vmxnet3_intr
+{
 	enum vmxnet3_intr_mask_mode  mask_mode;
 	enum vmxnet3_intr_type       type;	/* MSI-X, MSI, or INTx? */
 	u8  num_intrs;			/* # of intr vectors */
 	u8  event_intr_idx;		/* idx of the intr vector for event */
 	u8  mod_levels[VMXNET3_LINUX_MAX_MSIX_VECT]; /* moderation level */
-	char	event_msi_vector_name[IFNAMSIZ+11];
+	char	event_msi_vector_name[IFNAMSIZ + 11];
 #ifdef CONFIG_PCI_MSI
 	struct msix_entry msix_entries[VMXNET3_LINUX_MAX_MSIX_VECT];
 #endif
@@ -326,7 +347,8 @@ struct vmxnet3_intr {
 
 #define VMXNET3_STATE_BIT_RESETTING   0
 #define VMXNET3_STATE_BIT_QUIESCED    1
-struct vmxnet3_adapter {
+struct vmxnet3_adapter
+{
 	struct vmxnet3_tx_queue		tx_queue[VMXNET3_DEVICE_MAX_TX_QUEUES];
 	struct vmxnet3_rx_queue		rx_queue[VMXNET3_DEVICE_MAX_RX_QUEUES];
 	unsigned long			active_vlans[BITS_TO_LONGS(VLAN_N_VID)];
@@ -427,47 +449,47 @@ struct vmxnet3_adapter {
 
 #define VMXNET3_GET_RING_IDX(adapter, rqID)		\
 	((rqID >= adapter->num_rx_queues &&		\
-	 rqID < 2 * adapter->num_rx_queues) ? 1 : 0)	\
+	  rqID < 2 * adapter->num_rx_queues) ? 1 : 0)	\
 
 #define VMXNET3_RX_DATA_RING(adapter, rqID)		\
 	(rqID >= 2 * adapter->num_rx_queues &&		\
-	rqID < 3 * adapter->num_rx_queues)		\
+	 rqID < 3 * adapter->num_rx_queues)		\
 
 #define VMXNET3_COAL_STATIC_DEFAULT_DEPTH	64
 
 #define VMXNET3_COAL_RBC_RATE(usecs) (1000000 / usecs)
 #define VMXNET3_COAL_RBC_USECS(rbc_rate) (1000000 / rbc_rate)
 
-int
-vmxnet3_quiesce_dev(struct vmxnet3_adapter *adapter);
+	int
+	vmxnet3_quiesce_dev(struct vmxnet3_adapter *adapter);
 
-int
-vmxnet3_activate_dev(struct vmxnet3_adapter *adapter);
+	int
+	vmxnet3_activate_dev(struct vmxnet3_adapter *adapter);
 
-void
-vmxnet3_force_close(struct vmxnet3_adapter *adapter);
+	void
+	vmxnet3_force_close(struct vmxnet3_adapter *adapter);
 
-void
-vmxnet3_reset_dev(struct vmxnet3_adapter *adapter);
+	void
+	vmxnet3_reset_dev(struct vmxnet3_adapter *adapter);
 
-void
-vmxnet3_tq_destroy_all(struct vmxnet3_adapter *adapter);
+	void
+	vmxnet3_tq_destroy_all(struct vmxnet3_adapter *adapter);
 
-void
-vmxnet3_rq_destroy_all(struct vmxnet3_adapter *adapter);
+	void
+	vmxnet3_rq_destroy_all(struct vmxnet3_adapter *adapter);
 
-int
-vmxnet3_set_features(struct net_device *netdev, netdev_features_t features);
+	int
+	vmxnet3_set_features(struct net_device *netdev, netdev_features_t features);
 
-int
-vmxnet3_create_queues(struct vmxnet3_adapter *adapter,
-		      u32 tx_ring_size, u32 rx_ring_size, u32 rx_ring2_size,
-		      u16 txdata_desc_size, u16 rxdata_desc_size);
+	int
+	vmxnet3_create_queues(struct vmxnet3_adapter *adapter,
+						  u32 tx_ring_size, u32 rx_ring_size, u32 rx_ring2_size,
+						  u16 txdata_desc_size, u16 rxdata_desc_size);
 
-void vmxnet3_set_ethtool_ops(struct net_device *netdev);
+	void vmxnet3_set_ethtool_ops(struct net_device *netdev);
 
-struct rtnl_link_stats64 *
-vmxnet3_get_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats);
+	struct rtnl_link_stats64 *
+	vmxnet3_get_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats);
 
-extern char vmxnet3_driver_name[];
+	extern char vmxnet3_driver_name[];
 #endif

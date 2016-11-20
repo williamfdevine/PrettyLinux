@@ -31,7 +31,7 @@
  */
 
 static inline struct rocker_tlv *rocker_tlv_next(const struct rocker_tlv *tlv,
-						 int *remaining)
+		int *remaining)
 {
 	int totlen = ROCKER_TLV_ALIGN(tlv->len);
 
@@ -42,18 +42,18 @@ static inline struct rocker_tlv *rocker_tlv_next(const struct rocker_tlv *tlv,
 static inline int rocker_tlv_ok(const struct rocker_tlv *tlv, int remaining)
 {
 	return remaining >= (int) ROCKER_TLV_HDRLEN &&
-	       tlv->len >= ROCKER_TLV_HDRLEN &&
-	       tlv->len <= remaining;
+		   tlv->len >= ROCKER_TLV_HDRLEN &&
+		   tlv->len <= remaining;
 }
 
 #define rocker_tlv_for_each(pos, head, len, rem)	\
 	for (pos = head, rem = len;			\
-	     rocker_tlv_ok(pos, rem);			\
-	     pos = rocker_tlv_next(pos, &(rem)))
+		 rocker_tlv_ok(pos, rem);			\
+		 pos = rocker_tlv_next(pos, &(rem)))
 
 #define rocker_tlv_for_each_nested(pos, tlv, rem)	\
 	rocker_tlv_for_each(pos, rocker_tlv_data(tlv),	\
-			    rocker_tlv_len(tlv), rem)
+						rocker_tlv_len(tlv), rem)
 
 static inline int rocker_tlv_attr_size(int payload)
 {
@@ -111,66 +111,66 @@ static inline u64 rocker_tlv_get_u64(const struct rocker_tlv *tlv)
 }
 
 void rocker_tlv_parse(const struct rocker_tlv **tb, int maxtype,
-		      const char *buf, int buf_len);
+					  const char *buf, int buf_len);
 
 static inline void rocker_tlv_parse_nested(const struct rocker_tlv **tb,
-					   int maxtype,
-					   const struct rocker_tlv *tlv)
+		int maxtype,
+		const struct rocker_tlv *tlv)
 {
 	rocker_tlv_parse(tb, maxtype, rocker_tlv_data(tlv),
-			 rocker_tlv_len(tlv));
+					 rocker_tlv_len(tlv));
 }
 
 static inline void
 rocker_tlv_parse_desc(const struct rocker_tlv **tb, int maxtype,
-		      const struct rocker_desc_info *desc_info)
+					  const struct rocker_desc_info *desc_info)
 {
 	rocker_tlv_parse(tb, maxtype, desc_info->data,
-			 desc_info->desc->tlv_size);
+					 desc_info->desc->tlv_size);
 }
 
 static inline struct rocker_tlv *
 rocker_tlv_start(struct rocker_desc_info *desc_info)
 {
 	return (struct rocker_tlv *) ((char *) desc_info->data +
-					       desc_info->tlv_size);
+								  desc_info->tlv_size);
 }
 
 int rocker_tlv_put(struct rocker_desc_info *desc_info,
-		   int attrtype, int attrlen, const void *data);
+				   int attrtype, int attrlen, const void *data);
 
 static inline int rocker_tlv_put_u8(struct rocker_desc_info *desc_info,
-				    int attrtype, u8 value)
+									int attrtype, u8 value)
 {
 	return rocker_tlv_put(desc_info, attrtype, sizeof(u8), &value);
 }
 
 static inline int rocker_tlv_put_u16(struct rocker_desc_info *desc_info,
-				     int attrtype, u16 value)
+									 int attrtype, u16 value)
 {
 	return rocker_tlv_put(desc_info, attrtype, sizeof(u16), &value);
 }
 
 static inline int rocker_tlv_put_be16(struct rocker_desc_info *desc_info,
-				      int attrtype, __be16 value)
+									  int attrtype, __be16 value)
 {
 	return rocker_tlv_put(desc_info, attrtype, sizeof(__be16), &value);
 }
 
 static inline int rocker_tlv_put_u32(struct rocker_desc_info *desc_info,
-				     int attrtype, u32 value)
+									 int attrtype, u32 value)
 {
 	return rocker_tlv_put(desc_info, attrtype, sizeof(u32), &value);
 }
 
 static inline int rocker_tlv_put_be32(struct rocker_desc_info *desc_info,
-				      int attrtype, __be32 value)
+									  int attrtype, __be32 value)
 {
 	return rocker_tlv_put(desc_info, attrtype, sizeof(__be32), &value);
 }
 
 static inline int rocker_tlv_put_u64(struct rocker_desc_info *desc_info,
-				     int attrtype, u64 value)
+									 int attrtype, u64 value)
 {
 	return rocker_tlv_put(desc_info, attrtype, sizeof(u64), &value);
 }
@@ -181,19 +181,21 @@ rocker_tlv_nest_start(struct rocker_desc_info *desc_info, int attrtype)
 	struct rocker_tlv *start = rocker_tlv_start(desc_info);
 
 	if (rocker_tlv_put(desc_info, attrtype, 0, NULL) < 0)
+	{
 		return NULL;
+	}
 
 	return start;
 }
 
 static inline void rocker_tlv_nest_end(struct rocker_desc_info *desc_info,
-				       struct rocker_tlv *start)
+									   struct rocker_tlv *start)
 {
 	start->len = (char *) rocker_tlv_start(desc_info) - (char *) start;
 }
 
 static inline void rocker_tlv_nest_cancel(struct rocker_desc_info *desc_info,
-					  const struct rocker_tlv *start)
+		const struct rocker_tlv *start)
 {
 	desc_info->tlv_size = (const char *) start - desc_info->data;
 }

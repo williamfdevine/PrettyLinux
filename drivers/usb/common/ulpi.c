@@ -41,8 +41,10 @@ static int ulpi_match(struct device *dev, struct device_driver *driver)
 
 	for (id = drv->id_table; id->vendor; id++)
 		if (id->vendor == ulpi->id.vendor &&
-		    id->product == ulpi->id.product)
+			id->product == ulpi->id.product)
+		{
 			return 1;
+		}
 
 	return 0;
 }
@@ -52,8 +54,11 @@ static int ulpi_uevent(struct device *dev, struct kobj_uevent_env *env)
 	struct ulpi *ulpi = to_ulpi_dev(dev);
 
 	if (add_uevent_var(env, "MODALIAS=ulpi:v%04xp%04x",
-			   ulpi->id.vendor, ulpi->id.product))
+					   ulpi->id.vendor, ulpi->id.product))
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -69,12 +74,15 @@ static int ulpi_remove(struct device *dev)
 	struct ulpi_driver *drv = to_ulpi_driver(dev->driver);
 
 	if (drv->remove)
+	{
 		drv->remove(to_ulpi_dev(dev));
+	}
 
 	return 0;
 }
 
-static struct bus_type ulpi_bus = {
+static struct bus_type ulpi_bus =
+{
 	.name = "ulpi",
 	.match = ulpi_match,
 	.uevent = ulpi_uevent,
@@ -85,25 +93,28 @@ static struct bus_type ulpi_bus = {
 /* -------------------------------------------------------------------------- */
 
 static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
-			     char *buf)
+							 char *buf)
 {
 	struct ulpi *ulpi = to_ulpi_dev(dev);
 
 	return sprintf(buf, "ulpi:v%04xp%04x\n",
-		       ulpi->id.vendor, ulpi->id.product);
+				   ulpi->id.vendor, ulpi->id.product);
 }
 static DEVICE_ATTR_RO(modalias);
 
-static struct attribute *ulpi_dev_attrs[] = {
+static struct attribute *ulpi_dev_attrs[] =
+{
 	&dev_attr_modalias.attr,
 	NULL
 };
 
-static struct attribute_group ulpi_dev_attr_group = {
+static struct attribute_group ulpi_dev_attr_group =
+{
 	.attrs = ulpi_dev_attrs,
 };
 
-static const struct attribute_group *ulpi_dev_attr_groups[] = {
+static const struct attribute_group *ulpi_dev_attr_groups[] =
+{
 	&ulpi_dev_attr_group,
 	NULL
 };
@@ -113,7 +124,8 @@ static void ulpi_dev_release(struct device *dev)
 	kfree(to_ulpi_dev(dev));
 }
 
-static struct device_type ulpi_dev_type = {
+static struct device_type ulpi_dev_type =
+{
 	.name = "ulpi_device",
 	.groups = ulpi_dev_attr_groups,
 	.release = ulpi_dev_release,
@@ -130,7 +142,9 @@ static struct device_type ulpi_dev_type = {
 int __ulpi_register_driver(struct ulpi_driver *drv, struct module *module)
 {
 	if (!drv->probe)
+	{
 		return -EINVAL;
+	}
 
 	drv->driver.owner = module;
 	drv->driver.bus = &ulpi_bus;
@@ -161,15 +175,23 @@ static int ulpi_register(struct device *dev, struct ulpi *ulpi)
 
 	/* Test the interface */
 	ret = ulpi_write(ulpi, ULPI_SCRATCH, 0xaa);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = ulpi_read(ulpi, ULPI_SCRATCH);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (ret != 0xaa)
+	{
 		return -ENODEV;
+	}
 
 	ulpi->id.vendor = ulpi_read(ulpi, ULPI_VENDOR_ID_LOW);
 	ulpi->id.vendor |= ulpi_read(ulpi, ULPI_VENDOR_ID_HIGH) << 8;
@@ -186,11 +208,14 @@ static int ulpi_register(struct device *dev, struct ulpi *ulpi)
 	request_module("ulpi:v%04xp%04x", ulpi->id.vendor, ulpi->id.product);
 
 	ret = device_register(&ulpi->dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev_dbg(&ulpi->dev, "registered ULPI PHY: vendor %04x, product %04x\n",
-		ulpi->id.vendor, ulpi->id.product);
+			ulpi->id.vendor, ulpi->id.product);
 
 	return 0;
 }
@@ -204,19 +229,24 @@ static int ulpi_register(struct device *dev, struct ulpi *ulpi)
  * the USB controller that provides the ULPI interface.
  */
 struct ulpi *ulpi_register_interface(struct device *dev,
-				     const struct ulpi_ops *ops)
+									 const struct ulpi_ops *ops)
 {
 	struct ulpi *ulpi;
 	int ret;
 
 	ulpi = kzalloc(sizeof(*ulpi), GFP_KERNEL);
+
 	if (!ulpi)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	ulpi->ops = ops;
 
 	ret = ulpi_register(dev, ulpi);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(ulpi);
 		return ERR_PTR(ret);
 	}

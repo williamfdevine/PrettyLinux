@@ -22,7 +22,7 @@
 #include "asix.h"
 
 int asix_read_cmd(struct usbnet *dev, u8 cmd, u16 value, u16 index,
-		  u16 size, void *data, int in_pm)
+				  u16 size, void *data, int in_pm)
 {
 	int ret;
 	int (*fn)(struct usbnet *, u8, u8, u16, u16, void *, u16);
@@ -30,22 +30,26 @@ int asix_read_cmd(struct usbnet *dev, u8 cmd, u16 value, u16 index,
 	BUG_ON(!dev);
 
 	if (!in_pm)
+	{
 		fn = usbnet_read_cmd;
+	}
 	else
+	{
 		fn = usbnet_read_cmd_nopm;
+	}
 
 	ret = fn(dev, cmd, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-		 value, index, data, size);
+			 value, index, data, size);
 
 	if (unlikely(ret < 0))
 		netdev_warn(dev->net, "Failed to read reg index 0x%04x: %d\n",
-			    index, ret);
+					index, ret);
 
 	return ret;
 }
 
 int asix_write_cmd(struct usbnet *dev, u8 cmd, u16 value, u16 index,
-		   u16 size, void *data, int in_pm)
+				   u16 size, void *data, int in_pm)
 {
 	int ret;
 	int (*fn)(struct usbnet *, u8, u8, u16, u16, const void *, u16);
@@ -53,30 +57,34 @@ int asix_write_cmd(struct usbnet *dev, u8 cmd, u16 value, u16 index,
 	BUG_ON(!dev);
 
 	if (!in_pm)
+	{
 		fn = usbnet_write_cmd;
+	}
 	else
+	{
 		fn = usbnet_write_cmd_nopm;
+	}
 
 	ret = fn(dev, cmd, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-		 value, index, data, size);
+			 value, index, data, size);
 
 	if (unlikely(ret < 0))
 		netdev_warn(dev->net, "Failed to write reg index 0x%04x: %d\n",
-			    index, ret);
+					index, ret);
 
 	return ret;
 }
 
 void asix_write_cmd_async(struct usbnet *dev, u8 cmd, u16 value, u16 index,
-			  u16 size, void *data)
+						  u16 size, void *data)
 {
 	usbnet_write_cmd_async(dev, cmd,
-			       USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			       value, index, data, size);
+						   USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+						   value, index, data, size);
 }
 
 int asix_rx_fixup_internal(struct usbnet *dev, struct sk_buff *skb,
-			   struct asix_rx_fixup_info *rx)
+						   struct asix_rx_fixup_info *rx)
 {
 	int offset = 0;
 	u16 size;
@@ -90,16 +98,21 @@ int asix_rx_fixup_internal(struct usbnet *dev, struct sk_buff *skb,
 	 * Also avoid unnecessarily discarding a good current netdev socket
 	 * buffer.
 	 */
-	if (rx->remaining && (rx->remaining + sizeof(u32) <= skb->len)) {
+	if (rx->remaining && (rx->remaining + sizeof(u32) <= skb->len))
+	{
 		offset = ((rx->remaining + 1) & 0xfffe);
 		rx->header = get_unaligned_le32(skb->data + offset);
 		offset = 0;
 
 		size = (u16)(rx->header & 0x7ff);
-		if (size != ((~rx->header >> 16) & 0x7ff)) {
+
+		if (size != ((~rx->header >> 16) & 0x7ff))
+		{
 			netdev_err(dev->net, "asix_rx_fixup() Data Header synchronisation was lost, remaining %d\n",
-				   rx->remaining);
-			if (rx->ax_skb) {
+					   rx->remaining);
+
+			if (rx->ax_skb)
+			{
 				kfree_skb(rx->ax_skb);
 				rx->ax_skb = NULL;
 				/* Discard the incomplete netdev Ethernet frame
@@ -107,44 +120,55 @@ int asix_rx_fixup_internal(struct usbnet *dev, struct sk_buff *skb,
 				 * the current URB socket buffer.
 				 */
 			}
+
 			rx->remaining = 0;
 		}
 	}
 
-	while (offset + sizeof(u16) <= skb->len) {
+	while (offset + sizeof(u16) <= skb->len)
+	{
 		u16 copy_length;
 		unsigned char *data;
 
-		if (!rx->remaining) {
-			if (skb->len - offset == sizeof(u16)) {
+		if (!rx->remaining)
+		{
+			if (skb->len - offset == sizeof(u16))
+			{
 				rx->header = get_unaligned_le16(
-						skb->data + offset);
+								 skb->data + offset);
 				rx->split_head = true;
 				offset += sizeof(u16);
 				break;
 			}
 
-			if (rx->split_head == true) {
+			if (rx->split_head == true)
+			{
 				rx->header |= (get_unaligned_le16(
-						skb->data + offset) << 16);
+								   skb->data + offset) << 16);
 				rx->split_head = false;
 				offset += sizeof(u16);
-			} else {
+			}
+			else
+			{
 				rx->header = get_unaligned_le32(skb->data +
-								offset);
+												offset);
 				offset += sizeof(u32);
 			}
 
 			/* take frame length from Data header 32-bit word */
 			size = (u16)(rx->header & 0x7ff);
-			if (size != ((~rx->header >> 16) & 0x7ff)) {
+
+			if (size != ((~rx->header >> 16) & 0x7ff))
+			{
 				netdev_err(dev->net, "asix_rx_fixup() Bad Header Length 0x%x, offset %d\n",
-					   rx->header, offset);
+						   rx->header, offset);
 				return 0;
 			}
-			if (size > dev->net->mtu + ETH_HLEN + VLAN_HLEN) {
+
+			if (size > dev->net->mtu + ETH_HLEN + VLAN_HLEN)
+			{
 				netdev_dbg(dev->net, "asix_rx_fixup() Bad RX Length %d\n",
-					   size);
+						   size);
 				return 0;
 			}
 
@@ -158,27 +182,35 @@ int asix_rx_fixup_internal(struct usbnet *dev, struct sk_buff *skb,
 			rx->remaining = size;
 		}
 
-		if (rx->remaining > skb->len - offset) {
+		if (rx->remaining > skb->len - offset)
+		{
 			copy_length = skb->len - offset;
 			rx->remaining -= copy_length;
-		} else {
+		}
+		else
+		{
 			copy_length = rx->remaining;
 			rx->remaining = 0;
 		}
 
-		if (rx->ax_skb) {
+		if (rx->ax_skb)
+		{
 			data = skb_put(rx->ax_skb, copy_length);
 			memcpy(data, skb->data + offset, copy_length);
+
 			if (!rx->remaining)
+			{
 				usbnet_skb_return(dev, rx->ax_skb);
+			}
 		}
 
 		offset += (copy_length + 1) & 0xfffe;
 	}
 
-	if (skb->len != offset) {
+	if (skb->len != offset)
+	{
 		netdev_err(dev->net, "asix_rx_fixup() Bad SKB Length %d, %d\n",
-			   skb->len, offset);
+				   skb->len, offset);
 		return 0;
 	}
 
@@ -194,7 +226,7 @@ int asix_rx_fixup_common(struct usbnet *dev, struct sk_buff *skb)
 }
 
 struct sk_buff *asix_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
-			      gfp_t flags)
+							  gfp_t flags)
 {
 	int padlen;
 	int headroom = skb_headroom(skb);
@@ -217,22 +249,29 @@ struct sk_buff *asix_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
 	 * was called in tcp stack, allowing us to use headroom for our needs.
 	 */
 	if (!skb_header_cloned(skb) &&
-	    !(padlen && skb_cloned(skb)) &&
-	    headroom + tailroom >= 4 + padlen) {
+		!(padlen && skb_cloned(skb)) &&
+		headroom + tailroom >= 4 + padlen)
+	{
 		/* following should not happen, but better be safe */
 		if (headroom < 4 ||
-		    tailroom < padlen) {
+			tailroom < padlen)
+		{
 			skb->data = memmove(skb->head + 4, skb->data, skb->len);
 			skb_set_tail_pointer(skb, skb->len);
 		}
-	} else {
+	}
+	else
+	{
 		struct sk_buff *skb2;
 
 		skb2 = skb_copy_expand(skb, 4, padlen, flags);
 		dev_kfree_skb_any(skb);
 		skb = skb2;
+
 		if (!skb)
+		{
 			return NULL;
+		}
 	}
 
 	packet_len = ((skb->len ^ 0x0000ffff) << 16) + skb->len;
@@ -240,7 +279,8 @@ struct sk_buff *asix_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
 	cpu_to_le32s(&packet_len);
 	skb_copy_to_linear_data(skb, &packet_len, sizeof(packet_len));
 
-	if (padlen) {
+	if (padlen)
+	{
 		cpu_to_le32s(&padbytes);
 		memcpy(skb_tail_pointer(skb), &padbytes, sizeof(padbytes));
 		skb_put(skb, sizeof(padbytes));
@@ -256,7 +296,10 @@ int asix_set_sw_mii(struct usbnet *dev, int in_pm)
 	ret = asix_write_cmd(dev, AX_CMD_SET_SW_MII, 0x0000, 0, 0, NULL, in_pm);
 
 	if (ret < 0)
+	{
 		netdev_err(dev->net, "Failed to enable software MII access\n");
+	}
+
 	return ret;
 }
 
@@ -264,8 +307,12 @@ int asix_set_hw_mii(struct usbnet *dev, int in_pm)
 {
 	int ret;
 	ret = asix_write_cmd(dev, AX_CMD_SET_HW_MII, 0x0000, 0, 0, NULL, in_pm);
+
 	if (ret < 0)
+	{
 		netdev_err(dev->net, "Failed to enable hardware MII access\n");
+	}
+
 	return ret;
 }
 
@@ -277,12 +324,14 @@ int asix_read_phy_addr(struct usbnet *dev, int internal)
 
 	netdev_dbg(dev->net, "asix_get_phy_addr()\n");
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		netdev_err(dev->net, "Error reading PHYID register: %02x\n", ret);
 		goto out;
 	}
+
 	netdev_dbg(dev->net, "asix_get_phy_addr() returning 0x%04x\n",
-		   *((__le16 *)buf));
+			   *((__le16 *)buf));
 	ret = buf[offset];
 
 out:
@@ -301,8 +350,11 @@ int asix_sw_reset(struct usbnet *dev, u8 flags, int in_pm)
 	int ret;
 
 	ret = asix_write_cmd(dev, AX_CMD_SW_RESET, flags, 0, 0, NULL, in_pm);
+
 	if (ret < 0)
+	{
 		netdev_err(dev->net, "Failed to send software reset: %02x\n", ret);
+	}
 
 	return ret;
 }
@@ -312,10 +364,12 @@ u16 asix_read_rx_ctl(struct usbnet *dev, int in_pm)
 	__le16 v;
 	int ret = asix_read_cmd(dev, AX_CMD_READ_RX_CTL, 0, 0, 2, &v, in_pm);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		netdev_err(dev->net, "Error reading RX_CTL register: %02x\n", ret);
 		goto out;
 	}
+
 	ret = le16_to_cpu(v);
 out:
 	return ret;
@@ -327,9 +381,10 @@ int asix_write_rx_ctl(struct usbnet *dev, u16 mode, int in_pm)
 
 	netdev_dbg(dev->net, "asix_write_rx_ctl() - mode = 0x%04x\n", mode);
 	ret = asix_write_cmd(dev, AX_CMD_WRITE_RX_CTL, mode, 0, 0, NULL, in_pm);
+
 	if (ret < 0)
 		netdev_err(dev->net, "Failed to write RX_CTL mode to 0x%04x: %02x\n",
-			   mode, ret);
+				   mode, ret);
 
 	return ret;
 }
@@ -338,11 +393,12 @@ u16 asix_read_medium_status(struct usbnet *dev, int in_pm)
 {
 	__le16 v;
 	int ret = asix_read_cmd(dev, AX_CMD_READ_MEDIUM_STATUS,
-				0, 0, 2, &v, in_pm);
+							0, 0, 2, &v, in_pm);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		netdev_err(dev->net, "Error reading Medium Status register: %02x\n",
-			   ret);
+				   ret);
 		return ret;	/* TODO: callers not checking for error ret */
 	}
 
@@ -356,10 +412,11 @@ int asix_write_medium_mode(struct usbnet *dev, u16 mode, int in_pm)
 
 	netdev_dbg(dev->net, "asix_write_medium_mode() - mode = 0x%04x\n", mode);
 	ret = asix_write_cmd(dev, AX_CMD_WRITE_MEDIUM_MODE,
-			     mode, 0, 0, NULL, in_pm);
+						 mode, 0, 0, NULL, in_pm);
+
 	if (ret < 0)
 		netdev_err(dev->net, "Failed to write Medium Mode mode to 0x%04x: %02x\n",
-			   mode, ret);
+				   mode, ret);
 
 	return ret;
 }
@@ -370,12 +427,15 @@ int asix_write_gpio(struct usbnet *dev, u16 value, int sleep, int in_pm)
 
 	netdev_dbg(dev->net, "asix_write_gpio() - value = 0x%04x\n", value);
 	ret = asix_write_cmd(dev, AX_CMD_WRITE_GPIOS, value, 0, 0, NULL, in_pm);
+
 	if (ret < 0)
 		netdev_err(dev->net, "Failed to write GPIO value 0x%04x: %02x\n",
-			   value, ret);
+				   value, ret);
 
 	if (sleep)
+	{
 		msleep(sleep);
+	}
 
 	return ret;
 }
@@ -389,14 +449,21 @@ void asix_set_multicast(struct net_device *net)
 	struct asix_data *data = (struct asix_data *)&dev->data;
 	u16 rx_ctl = AX_DEFAULT_RX_CTL;
 
-	if (net->flags & IFF_PROMISC) {
+	if (net->flags & IFF_PROMISC)
+	{
 		rx_ctl |= AX_RX_CTL_PRO;
-	} else if (net->flags & IFF_ALLMULTI ||
-		   netdev_mc_count(net) > AX_MAX_MCAST) {
+	}
+	else if (net->flags & IFF_ALLMULTI ||
+			 netdev_mc_count(net) > AX_MAX_MCAST)
+	{
 		rx_ctl |= AX_RX_CTL_AMALL;
-	} else if (netdev_mc_empty(net)) {
+	}
+	else if (netdev_mc_empty(net))
+	{
 		/* just broadcast and directed */
-	} else {
+	}
+	else
+	{
 		/* We use the 20 byte dev->data
 		 * for our 8 byte filter buffer
 		 * to avoid allocating memory that
@@ -407,14 +474,15 @@ void asix_set_multicast(struct net_device *net)
 		memset(data->multi_filter, 0, AX_MCAST_FILTER_SIZE);
 
 		/* Build the multicast hash filter. */
-		netdev_for_each_mc_addr(ha, net) {
+		netdev_for_each_mc_addr(ha, net)
+		{
 			crc_bits = ether_crc(ETH_ALEN, ha->addr) >> 26;
 			data->multi_filter[crc_bits >> 3] |=
-			    1 << (crc_bits & 7);
+				1 << (crc_bits & 7);
 		}
 
 		asix_write_cmd_async(dev, AX_CMD_WRITE_MULTI_FILTER, 0, 0,
-				   AX_MCAST_FILTER_SIZE, data->multi_filter);
+							 AX_MCAST_FILTER_SIZE, data->multi_filter);
 
 		rx_ctl |= AX_RX_CTL_AM;
 	}
@@ -431,26 +499,35 @@ int asix_mdio_read(struct net_device *netdev, int phy_id, int loc)
 	int ret;
 
 	mutex_lock(&dev->phy_mutex);
-	do {
+
+	do
+	{
 		ret = asix_set_sw_mii(dev, 0);
+
 		if (ret == -ENODEV || ret == -ETIMEDOUT)
+		{
 			break;
+		}
+
 		usleep_range(1000, 1100);
 		ret = asix_read_cmd(dev, AX_CMD_STATMNGSTS_REG,
-				    0, 0, 1, &smsr, 0);
-	} while (!(smsr & AX_HOST_EN) && (i++ < 30) && (ret != -ENODEV));
-	if (ret == -ENODEV || ret == -ETIMEDOUT) {
+							0, 0, 1, &smsr, 0);
+	}
+	while (!(smsr & AX_HOST_EN) && (i++ < 30) && (ret != -ENODEV));
+
+	if (ret == -ENODEV || ret == -ETIMEDOUT)
+	{
 		mutex_unlock(&dev->phy_mutex);
 		return ret;
 	}
 
 	asix_read_cmd(dev, AX_CMD_READ_MII_REG, phy_id,
-				(__u16)loc, 2, &res, 0);
+				  (__u16)loc, 2, &res, 0);
 	asix_set_hw_mii(dev, 0);
 	mutex_unlock(&dev->phy_mutex);
 
 	netdev_dbg(dev->net, "asix_mdio_read() phy_id=0x%02x, loc=0x%02x, returns=0x%04x\n",
-			phy_id, loc, le16_to_cpu(res));
+			   phy_id, loc, le16_to_cpu(res));
 
 	return le16_to_cpu(res);
 }
@@ -464,24 +541,33 @@ void asix_mdio_write(struct net_device *netdev, int phy_id, int loc, int val)
 	int ret;
 
 	netdev_dbg(dev->net, "asix_mdio_write() phy_id=0x%02x, loc=0x%02x, val=0x%04x\n",
-			phy_id, loc, val);
+			   phy_id, loc, val);
 
 	mutex_lock(&dev->phy_mutex);
-	do {
+
+	do
+	{
 		ret = asix_set_sw_mii(dev, 0);
+
 		if (ret == -ENODEV)
+		{
 			break;
+		}
+
 		usleep_range(1000, 1100);
 		ret = asix_read_cmd(dev, AX_CMD_STATMNGSTS_REG,
-				    0, 0, 1, &smsr, 0);
-	} while (!(smsr & AX_HOST_EN) && (i++ < 30) && (ret != -ENODEV));
-	if (ret == -ENODEV) {
+							0, 0, 1, &smsr, 0);
+	}
+	while (!(smsr & AX_HOST_EN) && (i++ < 30) && (ret != -ENODEV));
+
+	if (ret == -ENODEV)
+	{
 		mutex_unlock(&dev->phy_mutex);
 		return;
 	}
 
 	asix_write_cmd(dev, AX_CMD_WRITE_MII_REG, phy_id,
-		       (__u16)loc, 2, &res, 0);
+				   (__u16)loc, 2, &res, 0);
 	asix_set_hw_mii(dev, 0);
 	mutex_unlock(&dev->phy_mutex);
 }
@@ -495,26 +581,35 @@ int asix_mdio_read_nopm(struct net_device *netdev, int phy_id, int loc)
 	int ret;
 
 	mutex_lock(&dev->phy_mutex);
-	do {
+
+	do
+	{
 		ret = asix_set_sw_mii(dev, 1);
+
 		if (ret == -ENODEV || ret == -ETIMEDOUT)
+		{
 			break;
+		}
+
 		usleep_range(1000, 1100);
 		ret = asix_read_cmd(dev, AX_CMD_STATMNGSTS_REG,
-				    0, 0, 1, &smsr, 1);
-	} while (!(smsr & AX_HOST_EN) && (i++ < 30) && (ret != -ENODEV));
-	if (ret == -ENODEV || ret == -ETIMEDOUT) {
+							0, 0, 1, &smsr, 1);
+	}
+	while (!(smsr & AX_HOST_EN) && (i++ < 30) && (ret != -ENODEV));
+
+	if (ret == -ENODEV || ret == -ETIMEDOUT)
+	{
 		mutex_unlock(&dev->phy_mutex);
 		return ret;
 	}
 
 	asix_read_cmd(dev, AX_CMD_READ_MII_REG, phy_id,
-		      (__u16)loc, 2, &res, 1);
+				  (__u16)loc, 2, &res, 1);
 	asix_set_hw_mii(dev, 1);
 	mutex_unlock(&dev->phy_mutex);
 
 	netdev_dbg(dev->net, "asix_mdio_read_nopm() phy_id=0x%02x, loc=0x%02x, returns=0x%04x\n",
-			phy_id, loc, le16_to_cpu(res));
+			   phy_id, loc, le16_to_cpu(res));
 
 	return le16_to_cpu(res);
 }
@@ -529,24 +624,33 @@ asix_mdio_write_nopm(struct net_device *netdev, int phy_id, int loc, int val)
 	int ret;
 
 	netdev_dbg(dev->net, "asix_mdio_write() phy_id=0x%02x, loc=0x%02x, val=0x%04x\n",
-			phy_id, loc, val);
+			   phy_id, loc, val);
 
 	mutex_lock(&dev->phy_mutex);
-	do {
+
+	do
+	{
 		ret = asix_set_sw_mii(dev, 1);
+
 		if (ret == -ENODEV)
+		{
 			break;
+		}
+
 		usleep_range(1000, 1100);
 		ret = asix_read_cmd(dev, AX_CMD_STATMNGSTS_REG,
-				    0, 0, 1, &smsr, 1);
-	} while (!(smsr & AX_HOST_EN) && (i++ < 30) && (ret != -ENODEV));
-	if (ret == -ENODEV) {
+							0, 0, 1, &smsr, 1);
+	}
+	while (!(smsr & AX_HOST_EN) && (i++ < 30) && (ret != -ENODEV));
+
+	if (ret == -ENODEV)
+	{
 		mutex_unlock(&dev->phy_mutex);
 		return;
 	}
 
 	asix_write_cmd(dev, AX_CMD_WRITE_MII_REG, phy_id,
-		       (__u16)loc, 2, &res, 1);
+				   (__u16)loc, 2, &res, 1);
 	asix_set_hw_mii(dev, 1);
 	mutex_unlock(&dev->phy_mutex);
 }
@@ -557,17 +661,25 @@ void asix_get_wol(struct net_device *net, struct ethtool_wolinfo *wolinfo)
 	u8 opt;
 
 	if (asix_read_cmd(dev, AX_CMD_READ_MONITOR_MODE,
-			  0, 0, 1, &opt, 0) < 0) {
+					  0, 0, 1, &opt, 0) < 0)
+	{
 		wolinfo->supported = 0;
 		wolinfo->wolopts = 0;
 		return;
 	}
+
 	wolinfo->supported = WAKE_PHY | WAKE_MAGIC;
 	wolinfo->wolopts = 0;
+
 	if (opt & AX_MONITOR_LINK)
+	{
 		wolinfo->wolopts |= WAKE_PHY;
+	}
+
 	if (opt & AX_MONITOR_MAGIC)
+	{
 		wolinfo->wolopts |= WAKE_MAGIC;
+	}
 }
 
 int asix_set_wol(struct net_device *net, struct ethtool_wolinfo *wolinfo)
@@ -576,13 +688,20 @@ int asix_set_wol(struct net_device *net, struct ethtool_wolinfo *wolinfo)
 	u8 opt = 0;
 
 	if (wolinfo->wolopts & WAKE_PHY)
+	{
 		opt |= AX_MONITOR_LINK;
+	}
+
 	if (wolinfo->wolopts & WAKE_MAGIC)
+	{
 		opt |= AX_MONITOR_MAGIC;
+	}
 
 	if (asix_write_cmd(dev, AX_CMD_WRITE_MONITOR_MODE,
-			      opt, 0, 0, NULL, 0) < 0)
+					   opt, 0, 0, NULL, 0) < 0)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -593,7 +712,7 @@ int asix_get_eeprom_len(struct net_device *net)
 }
 
 int asix_get_eeprom(struct net_device *net, struct ethtool_eeprom *eeprom,
-		    u8 *data)
+					u8 *data)
 {
 	struct usbnet *dev = netdev_priv(net);
 	u16 *eeprom_buff;
@@ -601,7 +720,9 @@ int asix_get_eeprom(struct net_device *net, struct ethtool_eeprom *eeprom,
 	int i;
 
 	if (eeprom->len == 0)
+	{
 		return -EINVAL;
+	}
 
 	eeprom->magic = AX_EEPROM_MAGIC;
 
@@ -609,14 +730,19 @@ int asix_get_eeprom(struct net_device *net, struct ethtool_eeprom *eeprom,
 	last_word = (eeprom->offset + eeprom->len - 1) >> 1;
 
 	eeprom_buff = kmalloc(sizeof(u16) * (last_word - first_word + 1),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!eeprom_buff)
+	{
 		return -ENOMEM;
+	}
 
 	/* ax8817x returns 2 bytes from eeprom on read */
-	for (i = first_word; i <= last_word; i++) {
+	for (i = first_word; i <= last_word; i++)
+	{
 		if (asix_read_cmd(dev, AX_CMD_READ_EEPROM, i, 0, 2,
-				  &eeprom_buff[i - first_word], 0) < 0) {
+						  &eeprom_buff[i - first_word], 0) < 0)
+		{
 			kfree(eeprom_buff);
 			return -EIO;
 		}
@@ -628,7 +754,7 @@ int asix_get_eeprom(struct net_device *net, struct ethtool_eeprom *eeprom,
 }
 
 int asix_set_eeprom(struct net_device *net, struct ethtool_eeprom *eeprom,
-		    u8 *data)
+					u8 *data)
 {
 	struct usbnet *dev = netdev_priv(net);
 	u16 *eeprom_buff;
@@ -637,37 +763,50 @@ int asix_set_eeprom(struct net_device *net, struct ethtool_eeprom *eeprom,
 	int ret;
 
 	netdev_dbg(net, "write EEPROM len %d, offset %d, magic 0x%x\n",
-		   eeprom->len, eeprom->offset, eeprom->magic);
+			   eeprom->len, eeprom->offset, eeprom->magic);
 
 	if (eeprom->len == 0)
+	{
 		return -EINVAL;
+	}
 
 	if (eeprom->magic != AX_EEPROM_MAGIC)
+	{
 		return -EINVAL;
+	}
 
 	first_word = eeprom->offset >> 1;
 	last_word = (eeprom->offset + eeprom->len - 1) >> 1;
 
 	eeprom_buff = kmalloc(sizeof(u16) * (last_word - first_word + 1),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!eeprom_buff)
+	{
 		return -ENOMEM;
+	}
 
 	/* align data to 16 bit boundaries, read the missing data from
 	   the EEPROM */
-	if (eeprom->offset & 1) {
+	if (eeprom->offset & 1)
+	{
 		ret = asix_read_cmd(dev, AX_CMD_READ_EEPROM, first_word, 0, 2,
-				    &eeprom_buff[0], 0);
-		if (ret < 0) {
+							&eeprom_buff[0], 0);
+
+		if (ret < 0)
+		{
 			netdev_err(net, "Failed to read EEPROM at offset 0x%02x.\n", first_word);
 			goto free;
 		}
 	}
 
-	if ((eeprom->offset + eeprom->len) & 1) {
+	if ((eeprom->offset + eeprom->len) & 1)
+	{
 		ret = asix_read_cmd(dev, AX_CMD_READ_EEPROM, last_word, 0, 2,
-				    &eeprom_buff[last_word - first_word], 0);
-		if (ret < 0) {
+							&eeprom_buff[last_word - first_word], 0);
+
+		if (ret < 0)
+		{
 			netdev_err(net, "Failed to read EEPROM at offset 0x%02x.\n", last_word);
 			goto free;
 		}
@@ -677,27 +816,36 @@ int asix_set_eeprom(struct net_device *net, struct ethtool_eeprom *eeprom,
 
 	/* write data to EEPROM */
 	ret = asix_write_cmd(dev, AX_CMD_WRITE_ENABLE, 0x0000, 0, 0, NULL, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		netdev_err(net, "Failed to enable EEPROM write\n");
 		goto free;
 	}
+
 	msleep(20);
 
-	for (i = first_word; i <= last_word; i++) {
+	for (i = first_word; i <= last_word; i++)
+	{
 		netdev_dbg(net, "write to EEPROM at offset 0x%02x, data 0x%04x\n",
-			   i, eeprom_buff[i - first_word]);
+				   i, eeprom_buff[i - first_word]);
 		ret = asix_write_cmd(dev, AX_CMD_WRITE_EEPROM, i,
-				     eeprom_buff[i - first_word], 0, NULL, 0);
-		if (ret < 0) {
+							 eeprom_buff[i - first_word], 0, NULL, 0);
+
+		if (ret < 0)
+		{
 			netdev_err(net, "Failed to write EEPROM at offset 0x%02x.\n",
-				   i);
+					   i);
 			goto free;
 		}
+
 		msleep(20);
 	}
 
 	ret = asix_write_cmd(dev, AX_CMD_WRITE_DISABLE, 0x0000, 0, 0, NULL, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		netdev_err(net, "Failed to disable EEPROM write\n");
 		goto free;
 	}
@@ -723,9 +871,14 @@ int asix_set_mac_address(struct net_device *net, void *p)
 	struct sockaddr *addr = p;
 
 	if (netif_running(net))
+	{
 		return -EBUSY;
+	}
+
 	if (!is_valid_ether_addr(addr->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	memcpy(net->dev_addr, addr->sa_data, ETH_ALEN);
 
@@ -735,7 +888,7 @@ int asix_set_mac_address(struct net_device *net, void *p)
 	 * is tricky to free later */
 	memcpy(data->mac_addr, addr->sa_data, ETH_ALEN);
 	asix_write_cmd_async(dev, AX_CMD_WRITE_NODE_ID, 0, 0, ETH_ALEN,
-							data->mac_addr);
+						 data->mac_addr);
 
 	return 0;
 }

@@ -19,39 +19,40 @@
 #define NMK_GPIO_ALT_C4	((4<<NMK_GPIO_ALT_CX_SHIFT) | NMK_GPIO_ALT_C)
 
 #define PRCM_GPIOCR_ALTCX(pin_num,\
-	altc1_used, altc1_ri, altc1_cb,\
-	altc2_used, altc2_ri, altc2_cb,\
-	altc3_used, altc3_ri, altc3_cb,\
-	altc4_used, altc4_ri, altc4_cb)\
+						  altc1_used, altc1_ri, altc1_cb,\
+						  altc2_used, altc2_ri, altc2_cb,\
+						  altc3_used, altc3_ri, altc3_cb,\
+						  altc4_used, altc4_ri, altc4_cb)\
 {\
 	.pin = pin_num,\
-	.altcx[PRCM_IDX_GPIOCR_ALTC1] = {\
-		.used = altc1_used,\
-		.reg_index = altc1_ri,\
-		.control_bit = altc1_cb\
-	},\
-	.altcx[PRCM_IDX_GPIOCR_ALTC2] = {\
-		.used = altc2_used,\
-		.reg_index = altc2_ri,\
-		.control_bit = altc2_cb\
-	},\
-	.altcx[PRCM_IDX_GPIOCR_ALTC3] = {\
-		.used = altc3_used,\
-		.reg_index = altc3_ri,\
-		.control_bit = altc3_cb\
-	},\
-	.altcx[PRCM_IDX_GPIOCR_ALTC4] = {\
-		.used = altc4_used,\
-		.reg_index = altc4_ri,\
-		.control_bit = altc4_cb\
-	},\
+		   .altcx[PRCM_IDX_GPIOCR_ALTC1] = {\
+											.used = altc1_used,\
+											.reg_index = altc1_ri,\
+											.control_bit = altc1_cb\
+										   },\
+										   .altcx[PRCM_IDX_GPIOCR_ALTC2] = {\
+																			.used = altc2_used,\
+																			.reg_index = altc2_ri,\
+																			.control_bit = altc2_cb\
+																		   },\
+												   .altcx[PRCM_IDX_GPIOCR_ALTC3] = {\
+																					.used = altc3_used,\
+																					.reg_index = altc3_ri,\
+																					.control_bit = altc3_cb\
+																				   },\
+														   .altcx[PRCM_IDX_GPIOCR_ALTC4] = {\
+																							.used = altc4_used,\
+																							.reg_index = altc4_ri,\
+																							.control_bit = altc4_cb\
+																						   },\
 }
 
 /**
  * enum prcm_gpiocr_reg_index
  * Used to reference an PRCM GPIOCR register address.
  */
-enum prcm_gpiocr_reg_index {
+enum prcm_gpiocr_reg_index
+{
 	PRCM_IDX_GPIOCR1,
 	PRCM_IDX_GPIOCR2,
 	PRCM_IDX_GPIOCR3
@@ -60,7 +61,8 @@ enum prcm_gpiocr_reg_index {
  * enum prcm_gpiocr_altcx_index
  * Used to reference an Other alternate-C function.
  */
-enum prcm_gpiocr_altcx_index {
+enum prcm_gpiocr_altcx_index
+{
 	PRCM_IDX_GPIOCR_ALTC1,
 	PRCM_IDX_GPIOCR_ALTC2,
 	PRCM_IDX_GPIOCR_ALTC3,
@@ -74,10 +76,11 @@ enum prcm_gpiocr_altcx_index {
  * @reg_index: PRCM GPIOCR register index used to control the function
  * @control_bit: PRCM GPIOCR bit used to control the function
  */
-struct prcm_gpiocr_altcx {
-	bool used:1;
-	u8 reg_index:2;
-	u8 control_bit:5;
+struct prcm_gpiocr_altcx
+{
+	bool used: 1;
+	u8 reg_index: 2;
+	u8 control_bit: 5;
 } __packed;
 
 /**
@@ -85,7 +88,8 @@ struct prcm_gpiocr_altcx {
  * @pin: The pin number
  * @altcx: array of other alternate-C[1-4] functions
  */
-struct prcm_gpiocr_altcx_pin_desc {
+struct prcm_gpiocr_altcx_pin_desc
+{
 	unsigned short pin;
 	struct prcm_gpiocr_altcx altcx[PRCM_IDX_GPIOCR_ALTC_MAX];
 };
@@ -96,9 +100,10 @@ struct prcm_gpiocr_altcx_pin_desc {
  * @groups: An array of pin groups that may select this function.
  * @ngroups: The number of entries in @groups.
  */
-struct nmk_function {
+struct nmk_function
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	unsigned ngroups;
 };
 
@@ -112,7 +117,8 @@ struct nmk_function {
  * @altsetting: the altsetting to apply to all pins in this group to
  *	configure them to be used by a function
  */
-struct nmk_pingroup {
+struct nmk_pingroup
+{
 	const char *name;
 	const unsigned int *pins;
 	const unsigned npins;
@@ -134,7 +140,8 @@ struct nmk_pingroup {
  * @npins_altcx: The number of Other alternate-C pins
  * @prcm_gpiocr_registers: The array of PRCM GPIOCR registers on this SoC
  */
-struct nmk_pinctrl_soc_data {
+struct nmk_pinctrl_soc_data
+{
 	const struct pinctrl_pin_desc *pins;
 	unsigned npins;
 	const struct nmk_function *functions;

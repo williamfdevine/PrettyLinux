@@ -40,9 +40,10 @@
 
 
 /*
- * Fileset header 
+ * Fileset header
  */
-struct vxfs_fsh {
+struct vxfs_fsh
+{
 	__fs32		fsh_version;		/* fileset header version */
 	__fs32		fsh_fsindex;		/* fileset index */
 	__fs32		fsh_time;		/* modification time - sec */

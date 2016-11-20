@@ -40,7 +40,8 @@
  */
 
 /* Module IDs for similar functionalities found in twl4030/twl6030 */
-enum twl_module_ids {
+enum twl_module_ids
+{
 	TWL_MODULE_USB,
 	TWL_MODULE_PIH,
 	TWL_MODULE_MAIN_CHARGE,
@@ -56,7 +57,8 @@ enum twl_module_ids {
 };
 
 /* Modules only available in twl4030 series */
-enum twl4030_module_ids {
+enum twl4030_module_ids
+{
 	TWL4030_MODULE_AUDIO_VOICE = TWL_MODULE_LAST,
 	TWL4030_MODULE_GPIO,
 	TWL4030_MODULE_INTBR,
@@ -76,7 +78,8 @@ enum twl4030_module_ids {
 };
 
 /* Modules only available in twl6030 series */
-enum twl6030_module_ids {
+enum twl6030_module_ids
+{
 	TWL6030_MODULE_ID0 = TWL_MODULE_LAST,
 	TWL6030_MODULE_ID1,
 	TWL6030_MODULE_ID2,
@@ -166,10 +169,10 @@ enum twl6030_module_ids {
 unsigned int twl_rev(void);
 #define GET_TWL_REV (twl_rev())
 #define TWL_CLASS_IS(class, id)			\
-static inline int twl_class_is_ ##class(void)	\
-{						\
-	return ((id) == (GET_TWL_REV)) ? 1 : 0;	\
-}
+	static inline int twl_class_is_ ##class(void)	\
+	{						\
+			return ((id) == (GET_TWL_REV)) ? 1 : 0;	\
+	}
 
 TWL_CLASS_IS(4030, TWL4030_CLASS_ID)
 TWL_CLASS_IS(6030, TWL6030_CLASS_ID)
@@ -186,22 +189,26 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
 /*
  * Read and write single 8-bit registers
  */
-static inline int twl_i2c_write_u8(u8 mod_no, u8 val, u8 reg) {
+static inline int twl_i2c_write_u8(u8 mod_no, u8 val, u8 reg)
+{
 	return twl_i2c_write(mod_no, &val, reg, 1);
 }
 
-static inline int twl_i2c_read_u8(u8 mod_no, u8 *val, u8 reg) {
+static inline int twl_i2c_read_u8(u8 mod_no, u8 *val, u8 reg)
+{
 	return twl_i2c_read(mod_no, val, reg, 1);
 }
 
-static inline int twl_i2c_write_u16(u8 mod_no, u16 val, u8 reg) {
+static inline int twl_i2c_write_u16(u8 mod_no, u16 val, u8 reg)
+{
 	val = cpu_to_le16(val);
-	return twl_i2c_write(mod_no, (u8*) &val, reg, 2);
+	return twl_i2c_write(mod_no, (u8 *) &val, reg, 2);
 }
 
-static inline int twl_i2c_read_u16(u8 mod_no, u16 *val, u8 reg) {
+static inline int twl_i2c_read_u16(u8 mod_no, u16 *val, u8 reg)
+{
 	int ret;
-	ret = twl_i2c_read(mod_no, (u8*) val, reg, 2);
+	ret = twl_i2c_read(mod_no, (u8 *) val, reg, 2);
 	*val = le16_to_cpu(*val);
 	return ret;
 }
@@ -559,7 +566,7 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
 
 #define MSG_BROADCAST(devgrp, grp, type, type2, state) \
 	( (devgrp) << 13 | 1 << 12 | (grp) << 9 | (type2) << 7 \
-	| (type) << 4 | (state))
+	  | (type) << 4 | (state))
 
 #define MSG_SINGULAR(devgrp, id, state) \
 	((devgrp) << 13 | 0 << 12 | (id) << 4 | (state))
@@ -572,11 +579,13 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
 #define MSG_BROADCAST__CLK_RST MSG_BROADCAST_ALL
 /*----------------------------------------------------------------------*/
 
-struct twl4030_clock_init_data {
+struct twl4030_clock_init_data
+{
 	bool ck32k_lowpwr_enable;
 };
 
-struct twl4030_bci_platform_data {
+struct twl4030_bci_platform_data
+{
 	int *battery_tmp_tbl;
 	unsigned int tblsize;
 	int	bb_uvolt;	/* voltage to charge backup battery */
@@ -584,7 +593,8 @@ struct twl4030_bci_platform_data {
 };
 
 /* TWL4030_GPIO_MAX (18) GPIOs, with interrupts */
-struct twl4030_gpio_platform_data {
+struct twl4030_gpio_platform_data
+{
 	/* package the two LED signals as output-only GPIOs? */
 	bool		use_leds;
 
@@ -603,12 +613,13 @@ struct twl4030_gpio_platform_data {
 	u32		pulldowns;
 
 	int		(*setup)(struct device *dev,
-				unsigned gpio, unsigned ngpio);
+					 unsigned gpio, unsigned ngpio);
 	int		(*teardown)(struct device *dev,
-				unsigned gpio, unsigned ngpio);
+						unsigned gpio, unsigned ngpio);
 };
 
-struct twl4030_madc_platform_data {
+struct twl4030_madc_platform_data
+{
 	int		irq_line;
 };
 
@@ -618,19 +629,22 @@ struct twl4030_madc_platform_data {
  */
 #define PERSISTENT_KEY(r, c)	KEY((r), (c), KEY_RESERVED)
 
-struct twl4030_keypad_data {
+struct twl4030_keypad_data
+{
 	const struct matrix_keymap_data *keymap_data;
 	unsigned rows;
 	unsigned cols;
 	bool rep;
 };
 
-enum twl4030_usb_mode {
+enum twl4030_usb_mode
+{
 	T2_USB_MODE_ULPI = 1,
 	T2_USB_MODE_CEA2011_3PIN = 2,
 };
 
-struct twl4030_usb_data {
+struct twl4030_usb_data
+{
 	enum twl4030_usb_mode	usb_mode;
 	unsigned long		features;
 
@@ -644,12 +658,14 @@ struct twl4030_usb_data {
 	int		(*phy_suspend)(struct device *dev, int suspend);
 };
 
-struct twl4030_ins {
+struct twl4030_ins
+{
 	u16 pmb_message;
 	u8 delay;
 };
 
-struct twl4030_script {
+struct twl4030_script
+{
 	struct twl4030_ins *script;
 	unsigned size;
 	u8 flags;
@@ -659,7 +675,8 @@ struct twl4030_script {
 #define TWL4030_SLEEP_SCRIPT	(1<<3)
 };
 
-struct twl4030_resconfig {
+struct twl4030_resconfig
+{
 	u8 resource;
 	u8 devgroup;	/* Processor group that Power resource belongs to */
 	u8 type;	/* Power resource addressed, 6 / broadcast message */
@@ -668,7 +685,8 @@ struct twl4030_resconfig {
 	u8 remap_sleep;	/* sleep state remapping */
 };
 
-struct twl4030_power_data {
+struct twl4030_power_data
+{
 	struct twl4030_script **scripts;
 	unsigned num;
 	struct twl4030_resconfig *resource_config;
@@ -681,19 +699,22 @@ struct twl4030_power_data {
 extern int twl4030_remove_script(u8 flags);
 extern void twl4030_power_off(void);
 
-struct twl4030_codec_data {
+struct twl4030_codec_data
+{
 	unsigned int digimic_delay; /* in ms */
 	unsigned int ramp_delay_value;
 	unsigned int offset_cncl_path;
-	unsigned int hs_extmute:1;
+	unsigned int hs_extmute: 1;
 	int hs_extmute_gpio;
 };
 
-struct twl4030_vibra_data {
+struct twl4030_vibra_data
+{
 	unsigned int	coexist;
 };
 
-struct twl4030_audio_data {
+struct twl4030_audio_data
+{
 	unsigned int	audio_mclk;
 	struct twl4030_codec_data *codec;
 	struct twl4030_vibra_data *vibra;
@@ -704,7 +725,8 @@ struct twl4030_audio_data {
 	unsigned int irq_base;
 };
 
-struct twl4030_platform_data {
+struct twl4030_platform_data
+{
 	struct twl4030_clock_init_data		*clock;
 	struct twl4030_bci_platform_data	*bci;
 	struct twl4030_gpio_platform_data	*gpio;
@@ -759,7 +781,8 @@ struct twl4030_platform_data {
 	struct regulator_init_data		*vio6025;
 };
 
-struct twl_regulator_driver_data {
+struct twl_regulator_driver_data
+{
 	int		(*set_voltage)(void *data, int target_uV);
 	int		(*get_voltage)(void *data);
 	void		*data;

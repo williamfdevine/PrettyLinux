@@ -45,13 +45,15 @@ static int scan_rate = 100;
 module_param(scan_rate, int, 0644);
 MODULE_PARM_DESC(scan_rate, "Polling rate in times/sec. Default = 100");
 
-struct hdm_i2c {
+struct hdm_i2c
+{
 	bool is_open[NUM_CHANNELS];
 	bool polling_mode;
 	struct most_interface most_iface;
 	struct most_channel_capability capabilities[NUM_CHANNELS];
 	struct i2c_client *client;
-	struct rx {
+	struct rx
+	{
 		struct delayed_work dwork;
 		wait_queue_head_t waitq;
 		struct list_head list;
@@ -74,28 +76,32 @@ struct hdm_i2c {
  * corresponding channel.
  */
 static int configure_channel(struct most_interface *most_iface,
-			     int ch_idx,
-			     struct most_channel_config *channel_config)
+							 int ch_idx,
+							 struct most_channel_config *channel_config)
 {
 	struct hdm_i2c *dev = to_hdm(most_iface);
 
 	BUG_ON(ch_idx < 0 || ch_idx >= NUM_CHANNELS);
 	BUG_ON(dev->is_open[ch_idx]);
 
-	if (channel_config->data_type != MOST_CH_CONTROL) {
+	if (channel_config->data_type != MOST_CH_CONTROL)
+	{
 		pr_err("bad data type for channel %d\n", ch_idx);
 		return -EPERM;
 	}
 
-	if (channel_config->direction != dev->capabilities[ch_idx].direction) {
+	if (channel_config->direction != dev->capabilities[ch_idx].direction)
+	{
 		pr_err("bad direction for channel %d\n", ch_idx);
 		return -EPERM;
 	}
 
-	if ((channel_config->direction == MOST_CH_RX) && (dev->polling_mode)) {
+	if ((channel_config->direction == MOST_CH_RX) && (dev->polling_mode))
+	{
 		schedule_delayed_work(&dev->rx.dwork,
-				      msecs_to_jiffies(MSEC_PER_SEC / 4));
+							  msecs_to_jiffies(MSEC_PER_SEC / 4));
 	}
+
 	dev->is_open[ch_idx] = true;
 
 	return 0;
@@ -113,7 +119,7 @@ static int configure_channel(struct most_interface *most_iface,
  * list if it is an "read" request
  */
 static int enqueue(struct most_interface *most_iface,
-		   int ch_idx, struct mbo *mbo)
+				   int ch_idx, struct mbo *mbo)
 {
 	struct hdm_i2c *dev = to_hdm(most_iface);
 	int ret;
@@ -121,23 +127,31 @@ static int enqueue(struct most_interface *most_iface,
 	BUG_ON(ch_idx < 0 || ch_idx >= NUM_CHANNELS);
 	BUG_ON(!dev->is_open[ch_idx]);
 
-	if (ch_idx == CH_RX) {
+	if (ch_idx == CH_RX)
+	{
 		/* RX */
 		mutex_lock(&dev->rx.list_mutex);
 		list_add_tail(&mbo->list, &dev->rx.list);
 		mutex_unlock(&dev->rx.list_mutex);
 		wake_up_interruptible(&dev->rx.waitq);
-	} else {
+	}
+	else
+	{
 		/* TX */
 		ret = i2c_master_send(dev->client, mbo->virt_address,
-				      mbo->buffer_length);
-		if (ret <= 0) {
+							  mbo->buffer_length);
+
+		if (ret <= 0)
+		{
 			mbo->processed_length = 0;
 			mbo->status = MBO_E_INVAL;
-		} else {
+		}
+		else
+		{
 			mbo->processed_length = mbo->buffer_length;
 			mbo->status = MBO_SUCCESS;
 		}
+
 		mbo->complete(mbo);
 	}
 
@@ -155,7 +169,7 @@ static int enqueue(struct most_interface *most_iface,
  * status MBO_E_CLOSE
  */
 static int poison_channel(struct most_interface *most_iface,
-			  int ch_idx)
+						  int ch_idx)
 {
 	struct hdm_i2c *dev = to_hdm(most_iface);
 	struct mbo *mbo;
@@ -165,9 +179,12 @@ static int poison_channel(struct most_interface *most_iface,
 
 	dev->is_open[ch_idx] = false;
 
-	if (ch_idx == CH_RX) {
+	if (ch_idx == CH_RX)
+	{
 		mutex_lock(&dev->rx.list_mutex);
-		while (!list_empty(&dev->rx.list)) {
+
+		while (!list_empty(&dev->rx.list))
+		{
 			mbo = list_first_mbo(&dev->rx.list);
 			list_del(&mbo->list);
 			mutex_unlock(&dev->rx.list_mutex);
@@ -178,6 +195,7 @@ static int poison_channel(struct most_interface *most_iface,
 
 			mutex_lock(&dev->rx.list_mutex);
 		}
+
 		mutex_unlock(&dev->rx.list_mutex);
 		wake_up_interruptible(&dev->rx.waitq);
 	}
@@ -186,7 +204,7 @@ static int poison_channel(struct most_interface *most_iface,
 }
 
 static void request_netinfo(struct most_interface *most_iface,
-			    int ch_idx)
+							int ch_idx)
 {
 	pr_info("request_netinfo()\n");
 }
@@ -200,43 +218,56 @@ static void do_rx_work(struct hdm_i2c *dev)
 
 	/* Read PML (2 bytes) */
 	ret = i2c_master_recv(dev->client, msg, 2);
-	if (ret <= 0) {
+
+	if (ret <= 0)
+	{
 		pr_err("Failed to receive PML\n");
 		return;
 	}
 
 	pml = (msg[0] << 8) | msg[1];
+
 	if (!pml)
+	{
 		return;
+	}
 
 	data_size = pml + 2;
 
 	/* Read the whole message, including PML */
 	ret = i2c_master_recv(dev->client, msg, data_size);
-	if (ret <= 0) {
+
+	if (ret <= 0)
+	{
 		pr_err("Failed to receive a Port Message\n");
 		return;
 	}
 
-	for (;;) {
+	for (;;)
+	{
 		/* Conditions to wait for: poisoned channel or free buffer
 		 * available for reading
 		 */
 		if (wait_event_interruptible(dev->rx.waitq,
-					     !dev->is_open[ch_idx] ||
-					     !list_empty(&dev->rx.list))) {
+									 !dev->is_open[ch_idx] ||
+									 !list_empty(&dev->rx.list)))
+		{
 			pr_err("wait_event_interruptible() failed\n");
 			return;
 		}
 
 		if (!dev->is_open[ch_idx])
+		{
 			return;
+		}
 
 		mutex_lock(&dev->rx.list_mutex);
 
 		/* list may be empty if poison or remove is called */
 		if (!list_empty(&dev->rx.list))
+		{
 			break;
+		}
 
 		mutex_unlock(&dev->rx.list_mutex);
 	}
@@ -263,12 +294,15 @@ static void pending_rx_work(struct work_struct *work)
 
 	do_rx_work(dev);
 
-	if (dev->polling_mode) {
+	if (dev->polling_mode)
+	{
 		if (dev->is_open[CH_RX])
 			schedule_delayed_work(&dev->rx.dwork,
-					      msecs_to_jiffies(MSEC_PER_SEC
-							       / scan_rate));
-	} else {
+								  msecs_to_jiffies(MSEC_PER_SEC
+												   / scan_rate));
+	}
+	else
+	{
 		enable_irq(dev->client->irq);
 	}
 }
@@ -318,19 +352,24 @@ static int i2c_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	struct kobject *kobj;
 
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	/* ID format: i2c-<bus>-<address> */
 	snprintf(dev->name, sizeof(dev->name), "i2c-%d-%04x",
-		 client->adapter->nr, client->addr);
+			 client->adapter->nr, client->addr);
 
-	for (i = 0; i < NUM_CHANNELS; i++) {
+	for (i = 0; i < NUM_CHANNELS; i++)
+	{
 		dev->is_open[i] = false;
 		dev->capabilities[i].data_type = MOST_CH_CONTROL;
 		dev->capabilities[i].num_buffers_packet = MAX_BUFFERS_CONTROL;
 		dev->capabilities[i].buffer_size_packet = MAX_BUF_SIZE_CONTROL;
 	}
+
 	dev->capabilities[CH_RX].direction = MOST_CH_RX;
 	dev->capabilities[CH_RX].name_suffix = "rx";
 	dev->capabilities[CH_TX].direction = MOST_CH_TX;
@@ -355,26 +394,34 @@ static int i2c_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	i2c_set_clientdata(client, dev);
 
 	kobj = most_register_interface(&dev->most_iface);
-	if (IS_ERR(kobj)) {
+
+	if (IS_ERR(kobj))
+	{
 		pr_err("Failed to register i2c as a MOST interface\n");
 		kfree(dev);
 		return PTR_ERR(kobj);
 	}
 
 	dev->polling_mode = polling_req || client->irq <= 0;
-	if (!dev->polling_mode) {
+
+	if (!dev->polling_mode)
+	{
 		pr_info("Requesting IRQ: %d\n", client->irq);
 		ret = request_irq(client->irq, most_irq_handler, 0,
-				  client->name, dev);
-		if (ret) {
+						  client->name, dev);
+
+		if (ret)
+		{
 			pr_info("IRQ request failed: %d, falling back to polling\n",
-				ret);
+					ret);
 			dev->polling_mode = true;
 		}
 	}
 
 	if (dev->polling_mode)
+	{
 		pr_info("Using polling at rate: %d times/sec\n", scan_rate);
+	}
 
 	return 0;
 }
@@ -393,27 +440,34 @@ static int i2c_remove(struct i2c_client *client)
 	int i;
 
 	if (!dev->polling_mode)
+	{
 		free_irq(client->irq, dev);
+	}
 
 	most_deregister_interface(&dev->most_iface);
 
 	for (i = 0 ; i < NUM_CHANNELS; i++)
 		if (dev->is_open[i])
+		{
 			poison_channel(&dev->most_iface, i);
+		}
+
 	cancel_delayed_work_sync(&dev->rx.dwork);
 	kfree(dev);
 
 	return 0;
 }
 
-static const struct i2c_device_id i2c_id[] = {
+static const struct i2c_device_id i2c_id[] =
+{
 	{ "most_i2c", 0 },
 	{ }, /* Terminating entry */
 };
 
 MODULE_DEVICE_TABLE(i2c, i2c_id);
 
-static struct i2c_driver i2c_driver = {
+static struct i2c_driver i2c_driver =
+{
 	.driver = {
 		.name = "hdm_i2c",
 	},

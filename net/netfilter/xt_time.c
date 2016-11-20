@@ -16,7 +16,8 @@
 #include <linux/netfilter/x_tables.h>
 #include <linux/netfilter/xt_time.h>
 
-struct xtm {
+struct xtm
+{
 	u_int8_t month;    /* (1-12) */
 	u_int8_t monthday; /* (1-31) */
 	u_int8_t weekday;  /* (1-7) */
@@ -28,11 +29,13 @@ struct xtm {
 
 extern struct timezone sys_tz; /* ouch */
 
-static const u_int16_t days_since_year[] = {
+static const u_int16_t days_since_year[] =
+{
 	0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334,
 };
 
-static const u_int16_t days_since_leapyear[] = {
+static const u_int16_t days_since_leapyear[] =
+{
 	0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335,
 };
 
@@ -40,11 +43,13 @@ static const u_int16_t days_since_leapyear[] = {
  * Since time progresses forward, it is best to organize this array in reverse,
  * to minimize lookup time.
  */
-enum {
+enum
+{
 	DSE_FIRST = 2039,
 	SECONDS_PER_DAY = 86400,
 };
-static const u_int16_t days_since_epoch[] = {
+static const u_int16_t days_since_epoch[] =
+{
 	/* 2039 - 2030 */
 	25202, 24837, 24472, 24106, 23741, 23376, 23011, 22645, 22280, 21915,
 	/* 2029 - 2020 */
@@ -115,7 +120,7 @@ static void localtime_3(struct xtm *r, time_t time)
 	 * year == 2009. w will then be 62.
 	 */
 	for (i = 0, year = DSE_FIRST; days_since_epoch[i] > w;
-	    ++i, --year)
+		 ++i, --year)
 		/* just loop */;
 
 	w -= days_since_epoch[i];
@@ -135,16 +140,21 @@ static void localtime_3(struct xtm *r, time_t time)
 	 * (A different approach to use would be to subtract a monthlength
 	 * from w repeatedly while counting.)
 	 */
-	if (is_leap(year)) {
+	if (is_leap(year))
+	{
 		/* use days_since_leapyear[] in a leap year */
 		for (i = ARRAY_SIZE(days_since_leapyear) - 1;
-		    i > 0 && days_since_leapyear[i] > w; --i)
+			 i > 0 && days_since_leapyear[i] > w; --i)
 			/* just loop */;
+
 		r->monthday = w - days_since_leapyear[i] + 1;
-	} else {
+	}
+	else
+	{
 		for (i = ARRAY_SIZE(days_since_year) - 1;
-		    i > 0 && days_since_year[i] > w; --i)
+			 i > 0 && days_since_year[i] > w; --i)
 			/* just loop */;
+
 		r->monthday = w - days_since_year[i] + 1;
 	}
 
@@ -169,14 +179,18 @@ time_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	 * it arrived at the right moment before 13:00.
 	 */
 	if (skb->tstamp.tv64 == 0)
+	{
 		__net_timestamp((struct sk_buff *)skb);
+	}
 
 	stamp = ktime_to_ns(skb->tstamp);
 	stamp = div_s64(stamp, NSEC_PER_SEC);
 
 	if (info->flags & XT_TIME_LOCAL_TZ)
 		/* Adjust for local timezone */
+	{
 		stamp -= 60 * sys_tz.tz_minuteswest;
+	}
 
 	/*
 	 * xt_time will match when _all_ of the following hold:
@@ -188,18 +202,27 @@ time_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	 */
 
 	if (stamp < info->date_start || stamp > info->date_stop)
+	{
 		return false;
+	}
 
 	packet_time = localtime_1(&current_time, stamp);
 
-	if (info->daytime_start < info->daytime_stop) {
+	if (info->daytime_start < info->daytime_stop)
+	{
 		if (packet_time < info->daytime_start ||
-		    packet_time > info->daytime_stop)
+			packet_time > info->daytime_stop)
+		{
 			return false;
-	} else {
+		}
+	}
+	else
+	{
 		if (packet_time < info->daytime_start &&
-		    packet_time > info->daytime_stop)
+			packet_time > info->daytime_stop)
+		{
 			return false;
+		}
 
 		/** if user asked to ignore 'next day', then e.g.
 		 *  '1 PM Wed, August 1st' should be treated
@@ -210,20 +233,28 @@ time_mt(const struct sk_buff *skb, struct xt_action_param *par)
 		 * Monday 23:00 to Tuesday 01:00.
 		 */
 		if ((info->flags & XT_TIME_CONTIGUOUS) &&
-		     packet_time <= info->daytime_stop)
+			packet_time <= info->daytime_stop)
+		{
 			stamp -= SECONDS_PER_DAY;
+		}
 	}
 
 	localtime_2(&current_time, stamp);
 
 	if (!(info->weekdays_match & (1 << current_time.weekday)))
+	{
 		return false;
+	}
 
 	/* Do not spend time computing monthday if all days match anyway */
-	if (info->monthdays_match != XT_TIME_ALL_MONTHDAYS) {
+	if (info->monthdays_match != XT_TIME_ALL_MONTHDAYS)
+	{
 		localtime_3(&current_time, stamp);
+
 		if (!(info->monthdays_match & (1 << current_time.monthday)))
+		{
 			return false;
+		}
 	}
 
 	return true;
@@ -234,25 +265,30 @@ static int time_mt_check(const struct xt_mtchk_param *par)
 	const struct xt_time_info *info = par->matchinfo;
 
 	if (info->daytime_start > XT_TIME_MAX_DAYTIME ||
-	    info->daytime_stop > XT_TIME_MAX_DAYTIME) {
+		info->daytime_stop > XT_TIME_MAX_DAYTIME)
+	{
 		pr_info("invalid argument - start or "
-			"stop time greater than 23:59:59\n");
+				"stop time greater than 23:59:59\n");
 		return -EDOM;
 	}
 
-	if (info->flags & ~XT_TIME_ALL_FLAGS) {
+	if (info->flags & ~XT_TIME_ALL_FLAGS)
+	{
 		pr_info("unknown flags 0x%x\n", info->flags & ~XT_TIME_ALL_FLAGS);
 		return -EINVAL;
 	}
 
 	if ((info->flags & XT_TIME_CONTIGUOUS) &&
-	     info->daytime_start < info->daytime_stop)
+		info->daytime_start < info->daytime_stop)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
-static struct xt_match xt_time_mt_reg __read_mostly = {
+static struct xt_match xt_time_mt_reg __read_mostly =
+{
 	.name       = "time",
 	.family     = NFPROTO_UNSPEC,
 	.match      = time_mt,
@@ -267,12 +303,12 @@ static int __init time_mt_init(void)
 
 	if (minutes < 0) /* east of Greenwich */
 		printk(KERN_INFO KBUILD_MODNAME
-		       ": kernel timezone is +%02d%02d\n",
-		       -minutes / 60, -minutes % 60);
+			   ": kernel timezone is +%02d%02d\n",
+			   -minutes / 60, -minutes % 60);
 	else /* west of Greenwich */
 		printk(KERN_INFO KBUILD_MODNAME
-		       ": kernel timezone is -%02d%02d\n",
-		       minutes / 60, minutes % 60);
+			   ": kernel timezone is -%02d%02d\n",
+			   minutes / 60, minutes % 60);
 
 	return xt_register_match(&xt_time_mt_reg);
 }

@@ -20,7 +20,8 @@
 
 /* Types of messages */
 
-enum {
+enum
+{
 	RTM_BASE	= 16,
 #define RTM_BASE	RTM_BASE
 
@@ -152,13 +153,14 @@ enum {
 #define RTM_NR_FAMILIES	(RTM_NR_MSGTYPES >> 2)
 #define RTM_FAM(cmd)	(((cmd) - RTM_BASE) >> 2)
 
-/* 
+/*
    Generic structure for encapsulation of optional route information.
    It is reminiscent of sockaddr, but with sa_family replaced
    with attribute type.
  */
 
-struct rtattr {
+struct rtattr
+{
 	unsigned short	rta_len;
 	unsigned short	rta_type;
 };
@@ -168,10 +170,10 @@ struct rtattr {
 #define RTA_ALIGNTO	4U
 #define RTA_ALIGN(len) ( ((len)+RTA_ALIGNTO-1) & ~(RTA_ALIGNTO-1) )
 #define RTA_OK(rta,len) ((len) >= (int)sizeof(struct rtattr) && \
-			 (rta)->rta_len >= sizeof(struct rtattr) && \
-			 (rta)->rta_len <= (len))
+						 (rta)->rta_len >= sizeof(struct rtattr) && \
+						 (rta)->rta_len <= (len))
 #define RTA_NEXT(rta,attrlen)	((attrlen) -= RTA_ALIGN((rta)->rta_len), \
-				 (struct rtattr*)(((char*)(rta)) + RTA_ALIGN((rta)->rta_len)))
+								 (struct rtattr*)(((char*)(rta)) + RTA_ALIGN((rta)->rta_len)))
 #define RTA_LENGTH(len)	(RTA_ALIGN(sizeof(struct rtattr)) + (len))
 #define RTA_SPACE(len)	RTA_ALIGN(RTA_LENGTH(len))
 #define RTA_DATA(rta)   ((void*)(((char*)(rta)) + RTA_LENGTH(0)))
@@ -184,7 +186,8 @@ struct rtattr {
  *		Definitions used in routing table administration.
  ****/
 
-struct rtmsg {
+struct rtmsg
+{
 	unsigned char		rtm_family;
 	unsigned char		rtm_dst_len;
 	unsigned char		rtm_src_len;
@@ -192,7 +195,7 @@ struct rtmsg {
 
 	unsigned char		rtm_table;	/* Routing table id */
 	unsigned char		rtm_protocol;	/* Routing protocol; see below	*/
-	unsigned char		rtm_scope;	/* See below */	
+	unsigned char		rtm_scope;	/* See below */
 	unsigned char		rtm_type;	/* See below	*/
 
 	unsigned		rtm_flags;
@@ -200,7 +203,8 @@ struct rtmsg {
 
 /* rtm_type */
 
-enum {
+enum
+{
 	RTN_UNSPEC,
 	RTN_UNICAST,		/* Gateway or direct route	*/
 	RTN_LOCAL,		/* Accept locally		*/
@@ -260,13 +264,14 @@ enum {
    could be assigned a value between UNIVERSE and LINK.
 */
 
-enum rt_scope_t {
-	RT_SCOPE_UNIVERSE=0,
-/* User defined values  */
-	RT_SCOPE_SITE=200,
-	RT_SCOPE_LINK=253,
-	RT_SCOPE_HOST=254,
-	RT_SCOPE_NOWHERE=255
+enum rt_scope_t
+{
+	RT_SCOPE_UNIVERSE = 0,
+	/* User defined values  */
+	RT_SCOPE_SITE = 200,
+	RT_SCOPE_LINK = 253,
+	RT_SCOPE_HOST = 254,
+	RT_SCOPE_NOWHERE = 255
 };
 
 /* rtm_flags */
@@ -279,20 +284,22 @@ enum rt_scope_t {
 
 /* Reserved table identifiers */
 
-enum rt_class_t {
-	RT_TABLE_UNSPEC=0,
-/* User defined values */
-	RT_TABLE_COMPAT=252,
-	RT_TABLE_DEFAULT=253,
-	RT_TABLE_MAIN=254,
-	RT_TABLE_LOCAL=255,
-	RT_TABLE_MAX=0xFFFFFFFF
+enum rt_class_t
+{
+	RT_TABLE_UNSPEC = 0,
+	/* User defined values */
+	RT_TABLE_COMPAT = 252,
+	RT_TABLE_DEFAULT = 253,
+	RT_TABLE_MAIN = 254,
+	RT_TABLE_LOCAL = 255,
+	RT_TABLE_MAX = 0xFFFFFFFF
 };
 
 
 /* Routing message attributes */
 
-enum rtattr_type_t {
+enum rtattr_type_t
+{
 	RTA_UNSPEC,
 	RTA_DST,
 	RTA_SRC,
@@ -335,7 +342,8 @@ enum rtattr_type_t {
  * and rtt for different paths from multipath.
  */
 
-struct rtnexthop {
+struct rtnexthop
+{
 	unsigned short		rtnh_len;
 	unsigned char		rtnh_flags;
 	unsigned char		rtnh_hops;
@@ -357,21 +365,23 @@ struct rtnexthop {
 #define RTNH_ALIGNTO	4
 #define RTNH_ALIGN(len) ( ((len)+RTNH_ALIGNTO-1) & ~(RTNH_ALIGNTO-1) )
 #define RTNH_OK(rtnh,len) ((rtnh)->rtnh_len >= sizeof(struct rtnexthop) && \
-			   ((int)(rtnh)->rtnh_len) <= (len))
+						   ((int)(rtnh)->rtnh_len) <= (len))
 #define RTNH_NEXT(rtnh)	((struct rtnexthop*)(((char*)(rtnh)) + RTNH_ALIGN((rtnh)->rtnh_len)))
 #define RTNH_LENGTH(len) (RTNH_ALIGN(sizeof(struct rtnexthop)) + (len))
 #define RTNH_SPACE(len)	RTNH_ALIGN(RTNH_LENGTH(len))
 #define RTNH_DATA(rtnh)   ((struct rtattr*)(((char*)(rtnh)) + RTNH_LENGTH(0)))
 
 /* RTA_VIA */
-struct rtvia {
+struct rtvia
+{
 	__kernel_sa_family_t	rtvia_family;
 	__u8			rtvia_addr[0];
 };
 
 /* RTM_CACHEINFO */
 
-struct rta_cacheinfo {
+struct rta_cacheinfo
+{
 	__u32	rta_clntref;
 	__u32	rta_lastuse;
 	__s32	rta_expires;
@@ -386,7 +396,8 @@ struct rta_cacheinfo {
 
 /* RTM_METRICS --- array of struct rtattr with types of RTAX_* */
 
-enum {
+enum
+{
 	RTAX_UNSPEC,
 #define RTAX_UNSPEC RTAX_UNSPEC
 	RTAX_LOCK,
@@ -432,20 +443,24 @@ enum {
 #define RTAX_FEATURE_ALLFRAG	(1 << 3)
 
 #define RTAX_FEATURE_MASK	(RTAX_FEATURE_ECN | RTAX_FEATURE_SACK | \
-				 RTAX_FEATURE_TIMESTAMP | RTAX_FEATURE_ALLFRAG)
+							 RTAX_FEATURE_TIMESTAMP | RTAX_FEATURE_ALLFRAG)
 
-struct rta_session {
+struct rta_session
+{
 	__u8	proto;
 	__u8	pad1;
 	__u16	pad2;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u16	sport;
 			__u16	dport;
 		} ports;
 
-		struct {
+		struct
+		{
 			__u8	type;
 			__u8	code;
 			__u16	ident;
@@ -455,7 +470,8 @@ struct rta_session {
 	} u;
 };
 
-struct rta_mfc_stats {
+struct rta_mfc_stats
+{
 	__u64	mfcs_packets;
 	__u64	mfcs_bytes;
 	__u64	mfcs_wrong_if;
@@ -465,7 +481,8 @@ struct rta_mfc_stats {
  *		General form of address family dependent message.
  ****/
 
-struct rtgenmsg {
+struct rtgenmsg
+{
 	unsigned char		rtgen_family;
 };
 
@@ -478,7 +495,8 @@ struct rtgenmsg {
  * on network protocol.
  */
 
-struct ifinfomsg {
+struct ifinfomsg
+{
 	unsigned char	ifi_family;
 	unsigned char	__ifi_pad;
 	unsigned short	ifi_type;		/* ARPHRD_* */
@@ -488,10 +506,11 @@ struct ifinfomsg {
 };
 
 /********************************************************************
- *		prefix information 
+ *		prefix information
  ****/
 
-struct prefixmsg {
+struct prefixmsg
+{
 	unsigned char	prefix_family;
 	unsigned char	prefix_pad1;
 	unsigned short	prefix_pad2;
@@ -502,7 +521,7 @@ struct prefixmsg {
 	unsigned char	prefix_pad3;
 };
 
-enum 
+enum
 {
 	PREFIX_UNSPEC,
 	PREFIX_ADDRESS,
@@ -512,7 +531,8 @@ enum
 
 #define PREFIX_MAX	(__PREFIX_MAX - 1)
 
-struct prefix_cacheinfo {
+struct prefix_cacheinfo
+{
 	__u32	preferred_time;
 	__u32	valid_time;
 };
@@ -522,7 +542,8 @@ struct prefix_cacheinfo {
  *		Traffic control messages.
  ****/
 
-struct tcmsg {
+struct tcmsg
+{
 	unsigned char	tcm_family;
 	unsigned char	tcm__pad1;
 	unsigned short	tcm__pad2;
@@ -532,7 +553,8 @@ struct tcmsg {
 	__u32		tcm_info;
 };
 
-enum {
+enum
+{
 	TCA_UNSPEC,
 	TCA_KIND,
 	TCA_OPTIONS,
@@ -555,7 +577,8 @@ enum {
  *		Neighbor Discovery userland options
  ****/
 
-struct nduseroptmsg {
+struct nduseroptmsg
+{
 	unsigned char	nduseropt_family;
 	unsigned char	nduseropt_pad1;
 	unsigned short	nduseropt_opts_len;	/* Total length of options */
@@ -567,7 +590,8 @@ struct nduseroptmsg {
 	/* Followed by one or more ND options */
 };
 
-enum {
+enum
+{
 	NDUSEROPT_UNSPEC,
 	NDUSEROPT_SRCADDR,
 	__NDUSEROPT_MAX
@@ -576,30 +600,31 @@ enum {
 #define NDUSEROPT_MAX	(__NDUSEROPT_MAX - 1)
 
 #ifndef __KERNEL__
-/* RTnetlink multicast groups - backwards compatibility for userspace */
-#define RTMGRP_LINK		1
-#define RTMGRP_NOTIFY		2
-#define RTMGRP_NEIGH		4
-#define RTMGRP_TC		8
+	/* RTnetlink multicast groups - backwards compatibility for userspace */
+	#define RTMGRP_LINK		1
+	#define RTMGRP_NOTIFY		2
+	#define RTMGRP_NEIGH		4
+	#define RTMGRP_TC		8
 
-#define RTMGRP_IPV4_IFADDR	0x10
-#define RTMGRP_IPV4_MROUTE	0x20
-#define RTMGRP_IPV4_ROUTE	0x40
-#define RTMGRP_IPV4_RULE	0x80
+	#define RTMGRP_IPV4_IFADDR	0x10
+	#define RTMGRP_IPV4_MROUTE	0x20
+	#define RTMGRP_IPV4_ROUTE	0x40
+	#define RTMGRP_IPV4_RULE	0x80
 
-#define RTMGRP_IPV6_IFADDR	0x100
-#define RTMGRP_IPV6_MROUTE	0x200
-#define RTMGRP_IPV6_ROUTE	0x400
-#define RTMGRP_IPV6_IFINFO	0x800
+	#define RTMGRP_IPV6_IFADDR	0x100
+	#define RTMGRP_IPV6_MROUTE	0x200
+	#define RTMGRP_IPV6_ROUTE	0x400
+	#define RTMGRP_IPV6_IFINFO	0x800
 
-#define RTMGRP_DECnet_IFADDR    0x1000
-#define RTMGRP_DECnet_ROUTE     0x4000
+	#define RTMGRP_DECnet_IFADDR    0x1000
+	#define RTMGRP_DECnet_ROUTE     0x4000
 
-#define RTMGRP_IPV6_PREFIX	0x20000
+	#define RTMGRP_IPV6_PREFIX	0x20000
 #endif
 
 /* RTnetlink multicast groups */
-enum rtnetlink_groups {
+enum rtnetlink_groups
+{
 	RTNLGRP_NONE,
 #define RTNLGRP_NONE		RTNLGRP_NONE
 	RTNLGRP_LINK,
@@ -661,14 +686,15 @@ enum rtnetlink_groups {
 #define RTNLGRP_MAX	(__RTNLGRP_MAX - 1)
 
 /* TC action piece */
-struct tcamsg {
+struct tcamsg
+{
 	unsigned char	tca_family;
 	unsigned char	tca__pad1;
 	unsigned short	tca__pad2;
 };
 #define TA_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct tcamsg))))
 #define TA_PAYLOAD(n) NLMSG_PAYLOAD(n,sizeof(struct tcamsg))
-#define TCA_ACT_TAB 1 /* attr type must be >=1 */	
+#define TCA_ACT_TAB 1 /* attr type must be >=1 */
 #define TCAA_MAX 1
 
 /* New extended info filters for IFLA_EXT_MASK */

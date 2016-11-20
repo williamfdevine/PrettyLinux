@@ -17,7 +17,8 @@
 
 #include "s5p_mfc_common.h"
 
-struct s5p_mfc_regs {
+struct s5p_mfc_regs
+{
 
 	/* codec common registers */
 	void __iomem *risc_on;
@@ -270,7 +271,8 @@ struct s5p_mfc_regs {
 	void __iomem *e_vp8_hierarchical_qp_layer2;/* v7 and v8 */
 };
 
-struct s5p_mfc_hw_ops {
+struct s5p_mfc_hw_ops
+{
 	int (*alloc_dec_temp_buffers)(struct s5p_mfc_ctx *ctx);
 	void (*release_dec_desc_buffer)(struct s5p_mfc_ctx *ctx);
 	int (*alloc_codec_buffers)(struct s5p_mfc_ctx *ctx);
@@ -282,11 +284,11 @@ struct s5p_mfc_hw_ops {
 	void (*dec_calc_dpb_size)(struct s5p_mfc_ctx *ctx);
 	void (*enc_calc_src_size)(struct s5p_mfc_ctx *ctx);
 	int (*set_enc_stream_buffer)(struct s5p_mfc_ctx *ctx,
-			unsigned long addr, unsigned int size);
+								 unsigned long addr, unsigned int size);
 	void (*set_enc_frame_buffer)(struct s5p_mfc_ctx *ctx,
-			unsigned long y_addr, unsigned long c_addr);
+								 unsigned long y_addr, unsigned long c_addr);
 	void (*get_enc_frame_buffer)(struct s5p_mfc_ctx *ctx,
-			unsigned long *y_addr, unsigned long *c_addr);
+								 unsigned long *y_addr, unsigned long *c_addr);
 	void (*try_run)(struct s5p_mfc_dev *dev);
 	void (*clear_int_flags)(struct s5p_mfc_dev *dev);
 	int (*get_dspl_y_adr)(struct s5p_mfc_dev *dev);
@@ -316,9 +318,9 @@ struct s5p_mfc_hw_ops {
 void s5p_mfc_init_hw_ops(struct s5p_mfc_dev *dev);
 void s5p_mfc_init_regs(struct s5p_mfc_dev *dev);
 int s5p_mfc_alloc_priv_buf(struct device *dev, dma_addr_t base,
-					struct s5p_mfc_priv_buf *b);
+						   struct s5p_mfc_priv_buf *b);
 void s5p_mfc_release_priv_buf(struct device *dev,
-					struct s5p_mfc_priv_buf *b);
+							  struct s5p_mfc_priv_buf *b);
 
 
 #endif /* S5P_MFC_OPR_H_ */

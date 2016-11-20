@@ -51,7 +51,8 @@ static int mux_set_parent(struct clk_hw *hw, u8 index)
 	return regmap_update_bits(clkr->regmap, mux->reg, mask, val);
 }
 
-const struct clk_ops clk_regmap_mux_closest_ops = {
+const struct clk_ops clk_regmap_mux_closest_ops =
+{
 	.get_parent = mux_get_parent,
 	.set_parent = mux_set_parent,
 	.determine_rate = __clk_mux_determine_rate_closest,

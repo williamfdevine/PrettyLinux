@@ -25,7 +25,8 @@
 
 struct regulator_dev *dummy_regulator_rdev;
 
-static struct regulator_init_data dummy_initdata = {
+static struct regulator_init_data dummy_initdata =
+{
 	.constraints = {
 		.always_on = 1,
 	},
@@ -33,7 +34,8 @@ static struct regulator_init_data dummy_initdata = {
 
 static struct regulator_ops dummy_ops;
 
-static const struct regulator_desc dummy_desc = {
+static const struct regulator_desc dummy_desc =
+{
 	.name = "regulator-dummy",
 	.id = -1,
 	.type = REGULATOR_VOLTAGE,
@@ -50,7 +52,9 @@ static int dummy_regulator_probe(struct platform_device *pdev)
 	config.init_data = &dummy_initdata;
 
 	dummy_regulator_rdev = regulator_register(&dummy_desc, &config);
-	if (IS_ERR(dummy_regulator_rdev)) {
+
+	if (IS_ERR(dummy_regulator_rdev))
+	{
 		ret = PTR_ERR(dummy_regulator_rdev);
 		pr_err("Failed to register regulator: %d\n", ret);
 		return ret;
@@ -59,7 +63,8 @@ static int dummy_regulator_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver dummy_regulator_driver = {
+static struct platform_driver dummy_regulator_driver =
+{
 	.probe		= dummy_regulator_probe,
 	.driver		= {
 		.name		= "reg-dummy",
@@ -73,20 +78,26 @@ void __init regulator_dummy_init(void)
 	int ret;
 
 	dummy_pdev = platform_device_alloc("reg-dummy", -1);
-	if (!dummy_pdev) {
+
+	if (!dummy_pdev)
+	{
 		pr_err("Failed to allocate dummy regulator device\n");
 		return;
 	}
 
 	ret = platform_device_add(dummy_pdev);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		pr_err("Failed to register dummy regulator device: %d\n", ret);
 		platform_device_put(dummy_pdev);
 		return;
 	}
 
 	ret = platform_driver_register(&dummy_regulator_driver);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		pr_err("Failed to register dummy regulator driver: %d\n", ret);
 		platform_device_unregister(dummy_pdev);
 	}

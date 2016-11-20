@@ -37,7 +37,8 @@
 #define SLAVE_GPIO	7
 #define SLAVE_IRQ	24
 
-struct ixp_clock {
+struct ixp_clock
+{
 	struct ixp46x_ts_regs *regs;
 	struct ptp_clock *ptp_clock;
 	struct ptp_clock_info caps;
@@ -91,9 +92,12 @@ static irqreturn_t isr(int irq, void *priv)
 
 	val = __raw_readl(&regs->event);
 
-	if (val & TSER_SNS) {
+	if (val & TSER_SNS)
+	{
 		ack |= TSER_SNS;
-		if (ixp_clock->exts0_enabled) {
+
+		if (ixp_clock->exts0_enabled)
+		{
 			hi = __raw_readl(&regs->asms_hi);
 			lo = __raw_readl(&regs->asms_lo);
 			event.type = PTP_CLOCK_EXTTS;
@@ -105,9 +109,12 @@ static irqreturn_t isr(int irq, void *priv)
 		}
 	}
 
-	if (val & TSER_SNM) {
+	if (val & TSER_SNM)
+	{
 		ack |= TSER_SNM;
-		if (ixp_clock->exts1_enabled) {
+
+		if (ixp_clock->exts1_enabled)
+		{
 			hi = __raw_readl(&regs->amms_hi);
 			lo = __raw_readl(&regs->amms_lo);
 			event.type = PTP_CLOCK_EXTTS;
@@ -120,13 +127,19 @@ static irqreturn_t isr(int irq, void *priv)
 	}
 
 	if (val & TTIPEND)
-		ack |= TTIPEND; /* this bit seems to be always set */
+	{
+		ack |= TTIPEND;    /* this bit seems to be always set */
+	}
 
-	if (ack) {
+	if (ack)
+	{
 		__raw_writel(ack, &regs->event);
 		return IRQ_HANDLED;
-	} else
+	}
+	else
+	{
 		return IRQ_NONE;
+	}
 }
 
 /*
@@ -141,10 +154,12 @@ static int ptp_ixp_adjfreq(struct ptp_clock_info *ptp, s32 ppb)
 	struct ixp_clock *ixp_clock = container_of(ptp, struct ixp_clock, caps);
 	struct ixp46x_ts_regs *regs = ixp_clock->regs;
 
-	if (ppb < 0) {
+	if (ppb < 0)
+	{
 		neg_adj = 1;
 		ppb = -ppb;
 	}
+
 	addend = DEFAULT_ADDEND;
 	adj = addend;
 	adj *= ppb;
@@ -193,7 +208,7 @@ static int ptp_ixp_gettime(struct ptp_clock_info *ptp, struct timespec64 *ts)
 }
 
 static int ptp_ixp_settime(struct ptp_clock_info *ptp,
-			   const struct timespec64 *ts)
+						   const struct timespec64 *ts)
 {
 	u64 ns;
 	unsigned long flags;
@@ -212,31 +227,38 @@ static int ptp_ixp_settime(struct ptp_clock_info *ptp,
 }
 
 static int ptp_ixp_enable(struct ptp_clock_info *ptp,
-			  struct ptp_clock_request *rq, int on)
+						  struct ptp_clock_request *rq, int on)
 {
 	struct ixp_clock *ixp_clock = container_of(ptp, struct ixp_clock, caps);
 
-	switch (rq->type) {
-	case PTP_CLK_REQ_EXTTS:
-		switch (rq->extts.index) {
-		case 0:
-			ixp_clock->exts0_enabled = on ? 1 : 0;
-			break;
-		case 1:
-			ixp_clock->exts1_enabled = on ? 1 : 0;
-			break;
+	switch (rq->type)
+	{
+		case PTP_CLK_REQ_EXTTS:
+			switch (rq->extts.index)
+			{
+				case 0:
+					ixp_clock->exts0_enabled = on ? 1 : 0;
+					break;
+
+				case 1:
+					ixp_clock->exts1_enabled = on ? 1 : 0;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
+			return 0;
+
 		default:
-			return -EINVAL;
-		}
-		return 0;
-	default:
-		break;
+			break;
 	}
 
 	return -EOPNOTSUPP;
 }
 
-static struct ptp_clock_info ptp_ixp_caps = {
+static struct ptp_clock_info ptp_ixp_caps =
+{
 	.owner		= THIS_MODULE,
 	.name		= "IXP46X timer",
 	.max_adj	= 66666655,
@@ -260,25 +282,38 @@ static int setup_interrupt(int gpio)
 	int err;
 
 	err = gpio_request(gpio, "ixp4-ptp");
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = gpio_direction_input(gpio);
+
 	if (err)
+	{
 		return err;
+	}
 
 	irq = gpio_to_irq(gpio);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	err = irq_set_irq_type(irq, IRQF_TRIGGER_FALLING);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("cannot set trigger type for irq %d\n", irq);
 		return err;
 	}
 
 	err = request_irq(irq, isr, 0, DRIVER, &ixp_clock);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("request_irq failed for irq %d\n", irq);
 		return err;
 	}
@@ -297,7 +332,9 @@ static void __exit ptp_ixp_exit(void)
 static int __init ptp_ixp_init(void)
 {
 	if (!cpu_is_ixp46x())
+	{
 		return -ENODEV;
+	}
 
 	ixp_clock.regs =
 		(struct ixp46x_ts_regs __iomem *) IXP4XX_TIMESYNC_BASE_VIRT;
@@ -307,7 +344,9 @@ static int __init ptp_ixp_init(void)
 	ixp_clock.ptp_clock = ptp_clock_register(&ixp_clock.caps, NULL);
 
 	if (IS_ERR(ixp_clock.ptp_clock))
+	{
 		return PTR_ERR(ixp_clock.ptp_clock);
+	}
 
 	ixp46x_phc_index = ptp_clock_index(ixp_clock.ptp_clock);
 
@@ -316,11 +355,14 @@ static int __init ptp_ixp_init(void)
 	__raw_writel(0, &ixp_clock.regs->trgt_hi);
 	__raw_writel(TTIPEND, &ixp_clock.regs->event);
 
-	if (MASTER_IRQ != setup_interrupt(MASTER_GPIO)) {
+	if (MASTER_IRQ != setup_interrupt(MASTER_GPIO))
+	{
 		pr_err("failed to setup gpio %d as irq\n", MASTER_GPIO);
 		goto no_master;
 	}
-	if (SLAVE_IRQ != setup_interrupt(SLAVE_GPIO)) {
+
+	if (SLAVE_IRQ != setup_interrupt(SLAVE_GPIO))
+	{
 		pr_err("failed to setup gpio %d as irq\n", SLAVE_GPIO);
 		goto no_slave;
 	}

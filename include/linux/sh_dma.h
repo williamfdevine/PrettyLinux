@@ -18,7 +18,8 @@
 struct device;
 
 /* Used by slave DMA clients to request DMA to/from a specific peripheral */
-struct sh_dmae_slave {
+struct sh_dmae_slave
+{
 	struct shdma_slave		shdma_slave;	/* Set by the platform */
 };
 
@@ -26,7 +27,8 @@ struct sh_dmae_slave {
  * Supplied by platforms to specify, how a DMA channel has to be configured for
  * a certain peripheral
  */
-struct sh_dmae_slave_config {
+struct sh_dmae_slave_config
+{
 	int		slave_id;
 	dma_addr_t	addr;
 	u32		chcr;
@@ -41,7 +43,8 @@ struct sh_dmae_slave_config {
  * @dmars_bit:		channel DMARS field offset within the register
  * @chclr_bit:		bit position, to be set to reset the channel
  */
-struct sh_dmae_channel {
+struct sh_dmae_channel
+{
 	unsigned int	offset;
 	unsigned int	dmars;
 	unsigned int	chclr_offset;
@@ -71,7 +74,8 @@ struct sh_dmae_channel {
  * @chclr_bitwise:	channel CHCLR registers are bitwise
  * @slave_only:		DMAC cannot be used for MEMCPY
  */
-struct sh_dmae_pdata {
+struct sh_dmae_pdata
+{
 	const struct sh_dmae_slave_config *slave;
 	int slave_num;
 	const struct sh_dmae_channel *channel;
@@ -86,12 +90,12 @@ struct sh_dmae_pdata {
 	unsigned int chcr_offset;
 	u32 chcr_ie_bit;
 
-	unsigned int dmaor_is_32bit:1;
-	unsigned int needs_tend_set:1;
-	unsigned int no_dmars:1;
-	unsigned int chclr_present:1;
-	unsigned int chclr_bitwise:1;
-	unsigned int slave_only:1;
+	unsigned int dmaor_is_32bit: 1;
+	unsigned int needs_tend_set: 1;
+	unsigned int no_dmars: 1;
+	unsigned int chclr_present: 1;
+	unsigned int chclr_bitwise: 1;
+	unsigned int slave_only: 1;
 };
 
 /* DMAOR definitions */

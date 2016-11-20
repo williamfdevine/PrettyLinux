@@ -16,7 +16,8 @@ struct task_struct;
  * Details of the page allocation that triggered the oom killer that are used to
  * determine what should be killed.
  */
-struct oom_control {
+struct oom_control
+{
 	/* Used to determine cpuset */
 	struct zonelist *zonelist;
 
@@ -58,14 +59,14 @@ static inline bool oom_task_origin(const struct task_struct *p)
 	return p->signal->oom_flag_origin;
 }
 
-static inline bool tsk_is_oom_victim(struct task_struct * tsk)
+static inline bool tsk_is_oom_victim(struct task_struct *tsk)
 {
 	return tsk->signal->oom_mm;
 }
 
 extern unsigned long oom_badness(struct task_struct *p,
-		struct mem_cgroup *memcg, const nodemask_t *nodemask,
-		unsigned long totalpages);
+								 struct mem_cgroup *memcg, const nodemask_t *nodemask,
+								 unsigned long totalpages);
 
 extern bool out_of_memory(struct oom_control *oc);
 

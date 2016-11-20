@@ -17,7 +17,8 @@
 
 #define GPIO_REG_ADDR(offset) (MAX77620_REG_GPIO0 + offset)
 
-struct max77620_gpio {
+struct max77620_gpio
+{
 	struct gpio_chip	gpio_chip;
 	struct regmap		*rmap;
 	struct device		*dev;
@@ -26,7 +27,8 @@ struct max77620_gpio {
 	int			gpio_base;
 };
 
-static const struct regmap_irq max77620_gpio_irqs[] = {
+static const struct regmap_irq max77620_gpio_irqs[] =
+{
 	[0] = {
 		.mask = MAX77620_IRQ_LVL2_GPIO_EDGE0,
 		.type_rising_mask = MAX77620_CNFG_GPIO_INT_RISING,
@@ -85,7 +87,8 @@ static const struct regmap_irq max77620_gpio_irqs[] = {
 	},
 };
 
-static struct regmap_irq_chip max77620_gpio_irq_chip = {
+static struct regmap_irq_chip max77620_gpio_irq_chip =
+{
 	.name = "max77620-gpio",
 	.irqs = max77620_gpio_irqs,
 	.num_irqs = ARRAY_SIZE(max77620_gpio_irqs),
@@ -103,10 +106,13 @@ static int max77620_gpio_dir_input(struct gpio_chip *gc, unsigned int offset)
 	int ret;
 
 	ret = regmap_update_bits(mgpio->rmap, GPIO_REG_ADDR(offset),
-				 MAX77620_CNFG_GPIO_DIR_MASK,
-				 MAX77620_CNFG_GPIO_DIR_INPUT);
+							 MAX77620_CNFG_GPIO_DIR_MASK,
+							 MAX77620_CNFG_GPIO_DIR_INPUT);
+
 	if (ret < 0)
+	{
 		dev_err(mgpio->dev, "CNFG_GPIOx dir update failed: %d\n", ret);
+	}
 
 	return ret;
 }
@@ -118,110 +124,135 @@ static int max77620_gpio_get(struct gpio_chip *gc, unsigned int offset)
 	int ret;
 
 	ret = regmap_read(mgpio->rmap, GPIO_REG_ADDR(offset), &val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(mgpio->dev, "CNFG_GPIOx read failed: %d\n", ret);
 		return ret;
 	}
 
 	if  (val & MAX77620_CNFG_GPIO_DIR_MASK)
+	{
 		return !!(val & MAX77620_CNFG_GPIO_INPUT_VAL_MASK);
+	}
 	else
+	{
 		return !!(val & MAX77620_CNFG_GPIO_OUTPUT_VAL_MASK);
+	}
 }
 
 static int max77620_gpio_dir_output(struct gpio_chip *gc, unsigned int offset,
-				    int value)
+									int value)
 {
 	struct max77620_gpio *mgpio = gpiochip_get_data(gc);
 	u8 val;
 	int ret;
 
 	val = (value) ? MAX77620_CNFG_GPIO_OUTPUT_VAL_HIGH :
-				MAX77620_CNFG_GPIO_OUTPUT_VAL_LOW;
+		  MAX77620_CNFG_GPIO_OUTPUT_VAL_LOW;
 
 	ret = regmap_update_bits(mgpio->rmap, GPIO_REG_ADDR(offset),
-				 MAX77620_CNFG_GPIO_OUTPUT_VAL_MASK, val);
-	if (ret < 0) {
+							 MAX77620_CNFG_GPIO_OUTPUT_VAL_MASK, val);
+
+	if (ret < 0)
+	{
 		dev_err(mgpio->dev, "CNFG_GPIOx val update failed: %d\n", ret);
 		return ret;
 	}
 
 	ret = regmap_update_bits(mgpio->rmap, GPIO_REG_ADDR(offset),
-				 MAX77620_CNFG_GPIO_DIR_MASK,
-				 MAX77620_CNFG_GPIO_DIR_OUTPUT);
+							 MAX77620_CNFG_GPIO_DIR_MASK,
+							 MAX77620_CNFG_GPIO_DIR_OUTPUT);
+
 	if (ret < 0)
+	{
 		dev_err(mgpio->dev, "CNFG_GPIOx dir update failed: %d\n", ret);
+	}
 
 	return ret;
 }
 
 static int max77620_gpio_set_debounce(struct gpio_chip *gc,
-				      unsigned int offset,
-				      unsigned int debounce)
+									  unsigned int offset,
+									  unsigned int debounce)
 {
 	struct max77620_gpio *mgpio = gpiochip_get_data(gc);
 	u8 val;
 	int ret;
 
-	switch (debounce) {
-	case 0:
-		val = MAX77620_CNFG_GPIO_DBNC_None;
-		break;
-	case 1 ... 8:
-		val = MAX77620_CNFG_GPIO_DBNC_8ms;
-		break;
-	case 9 ... 16:
-		val = MAX77620_CNFG_GPIO_DBNC_16ms;
-		break;
-	case 17 ... 32:
-		val = MAX77620_CNFG_GPIO_DBNC_32ms;
-		break;
-	default:
-		dev_err(mgpio->dev, "Illegal value %u\n", debounce);
-		return -EINVAL;
+	switch (debounce)
+	{
+		case 0:
+			val = MAX77620_CNFG_GPIO_DBNC_None;
+			break;
+
+		case 1 ... 8:
+			val = MAX77620_CNFG_GPIO_DBNC_8ms;
+			break;
+
+		case 9 ... 16:
+			val = MAX77620_CNFG_GPIO_DBNC_16ms;
+			break;
+
+		case 17 ... 32:
+			val = MAX77620_CNFG_GPIO_DBNC_32ms;
+			break;
+
+		default:
+			dev_err(mgpio->dev, "Illegal value %u\n", debounce);
+			return -EINVAL;
 	}
 
 	ret = regmap_update_bits(mgpio->rmap, GPIO_REG_ADDR(offset),
-				 MAX77620_CNFG_GPIO_DBNC_MASK, val);
+							 MAX77620_CNFG_GPIO_DBNC_MASK, val);
+
 	if (ret < 0)
+	{
 		dev_err(mgpio->dev, "CNFG_GPIOx_DBNC update failed: %d\n", ret);
+	}
 
 	return ret;
 }
 
 static void max77620_gpio_set(struct gpio_chip *gc, unsigned int offset,
-			      int value)
+							  int value)
 {
 	struct max77620_gpio *mgpio = gpiochip_get_data(gc);
 	u8 val;
 	int ret;
 
 	val = (value) ? MAX77620_CNFG_GPIO_OUTPUT_VAL_HIGH :
-				MAX77620_CNFG_GPIO_OUTPUT_VAL_LOW;
+		  MAX77620_CNFG_GPIO_OUTPUT_VAL_LOW;
 
 	ret = regmap_update_bits(mgpio->rmap, GPIO_REG_ADDR(offset),
-				 MAX77620_CNFG_GPIO_OUTPUT_VAL_MASK, val);
+							 MAX77620_CNFG_GPIO_OUTPUT_VAL_MASK, val);
+
 	if (ret < 0)
+	{
 		dev_err(mgpio->dev, "CNFG_GPIO_OUT update failed: %d\n", ret);
+	}
 }
 
 static int max77620_gpio_set_single_ended(struct gpio_chip *gc,
-					  unsigned int offset,
-					  enum single_ended_mode mode)
+		unsigned int offset,
+		enum single_ended_mode mode)
 {
 	struct max77620_gpio *mgpio = gpiochip_get_data(gc);
 
-	switch (mode) {
-	case LINE_MODE_OPEN_DRAIN:
-		return regmap_update_bits(mgpio->rmap, GPIO_REG_ADDR(offset),
-					  MAX77620_CNFG_GPIO_DRV_MASK,
-					  MAX77620_CNFG_GPIO_DRV_OPENDRAIN);
-	case LINE_MODE_PUSH_PULL:
-		return regmap_update_bits(mgpio->rmap, GPIO_REG_ADDR(offset),
-					  MAX77620_CNFG_GPIO_DRV_MASK,
-					  MAX77620_CNFG_GPIO_DRV_PUSHPULL);
-	default:
-		break;
+	switch (mode)
+	{
+		case LINE_MODE_OPEN_DRAIN:
+			return regmap_update_bits(mgpio->rmap, GPIO_REG_ADDR(offset),
+									  MAX77620_CNFG_GPIO_DRV_MASK,
+									  MAX77620_CNFG_GPIO_DRV_OPENDRAIN);
+
+		case LINE_MODE_PUSH_PULL:
+			return regmap_update_bits(mgpio->rmap, GPIO_REG_ADDR(offset),
+									  MAX77620_CNFG_GPIO_DRV_MASK,
+									  MAX77620_CNFG_GPIO_DRV_PUSHPULL);
+
+		default:
+			break;
 	}
 
 	return -ENOTSUPP;
@@ -243,14 +274,19 @@ static int max77620_gpio_probe(struct platform_device *pdev)
 	int ret;
 
 	gpio_irq = platform_get_irq(pdev, 0);
-	if (gpio_irq <= 0) {
+
+	if (gpio_irq <= 0)
+	{
 		dev_err(&pdev->dev, "GPIO irq not available %d\n", gpio_irq);
 		return -ENODEV;
 	}
 
 	mgpio = devm_kzalloc(&pdev->dev, sizeof(*mgpio), GFP_KERNEL);
+
 	if (!mgpio)
+	{
 		return -ENOMEM;
+	}
 
 	mgpio->rmap = chip->rmap;
 	mgpio->dev = &pdev->dev;
@@ -276,17 +312,21 @@ static int max77620_gpio_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, mgpio);
 
 	ret = devm_gpiochip_add_data(&pdev->dev, &mgpio->gpio_chip, mgpio);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "gpio_init: Failed to add max77620_gpio\n");
 		return ret;
 	}
 
 	mgpio->gpio_base = mgpio->gpio_chip.base;
 	ret = devm_regmap_add_irq_chip(&pdev->dev, chip->rmap, mgpio->gpio_irq,
-				       IRQF_ONESHOT, mgpio->irq_base,
-				       &max77620_gpio_irq_chip,
-				       &chip->gpio_irq_data);
-	if (ret < 0) {
+								   IRQF_ONESHOT, mgpio->irq_base,
+								   &max77620_gpio_irq_chip,
+								   &chip->gpio_irq_data);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to add gpio irq_chip %d\n", ret);
 		return ret;
 	}
@@ -294,13 +334,15 @@ static int max77620_gpio_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct platform_device_id max77620_gpio_devtype[] = {
+static const struct platform_device_id max77620_gpio_devtype[] =
+{
 	{ .name = "max77620-gpio", },
 	{},
 };
 MODULE_DEVICE_TABLE(platform, max77620_gpio_devtype);
 
-static struct platform_driver max77620_gpio_driver = {
+static struct platform_driver max77620_gpio_driver =
+{
 	.driver.name	= "max77620-gpio",
 	.probe		= max77620_gpio_probe,
 	.id_table	= max77620_gpio_devtype,

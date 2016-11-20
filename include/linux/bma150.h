@@ -34,7 +34,8 @@
 #define BMA150_BW_750HZ		5
 #define BMA150_BW_1500HZ	6
 
-struct bma150_cfg {
+struct bma150_cfg
+{
 	bool any_motion_int;		/* Set to enable any-motion interrupt */
 	bool hg_int;			/* Set to enable high-G interrupt */
 	bool lg_int;			/* Set to enable low-G interrupt */
@@ -50,7 +51,8 @@ struct bma150_cfg {
 	unsigned char bandwidth;	/* one of BMA0150_BW_xxx */
 };
 
-struct bma150_platform_data {
+struct bma150_platform_data
+{
 	struct bma150_cfg cfg;
 	int (*irq_gpio_cfg)(void);
 };

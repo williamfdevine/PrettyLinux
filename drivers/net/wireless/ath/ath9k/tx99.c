@@ -40,13 +40,14 @@ static void ath9k_tx99_stop(struct ath_softc *sc)
 static struct sk_buff *ath9k_build_tx99_skb(struct ath_softc *sc)
 {
 	static u8 PN9Data[] = {0xff, 0x87, 0xb8, 0x59, 0xb7, 0xa1, 0xcc, 0x24,
-			       0x57, 0x5e, 0x4b, 0x9c, 0x0e, 0xe9, 0xea, 0x50,
-			       0x2a, 0xbe, 0xb4, 0x1b, 0xb6, 0xb0, 0x5d, 0xf1,
-			       0xe6, 0x9a, 0xe3, 0x45, 0xfd, 0x2c, 0x53, 0x18,
-			       0x0c, 0xca, 0xc9, 0xfb, 0x49, 0x37, 0xe5, 0xa8,
-			       0x51, 0x3b, 0x2f, 0x61, 0xaa, 0x72, 0x18, 0x84,
-			       0x02, 0x23, 0x23, 0xab, 0x63, 0x89, 0x51, 0xb3,
-			       0xe7, 0x8b, 0x72, 0x90, 0x4c, 0xe8, 0xfb, 0xc0};
+						   0x57, 0x5e, 0x4b, 0x9c, 0x0e, 0xe9, 0xea, 0x50,
+						   0x2a, 0xbe, 0xb4, 0x1b, 0xb6, 0xb0, 0x5d, 0xf1,
+						   0xe6, 0x9a, 0xe3, 0x45, 0xfd, 0x2c, 0x53, 0x18,
+						   0x0c, 0xca, 0xc9, 0xfb, 0x49, 0x37, 0xe5, 0xa8,
+						   0x51, 0x3b, 0x2f, 0x61, 0xaa, 0x72, 0x18, 0x84,
+						   0x02, 0x23, 0x23, 0xab, 0x63, 0x89, 0x51, 0xb3,
+						   0xe7, 0x8b, 0x72, 0x90, 0x4c, 0xe8, 0xfb, 0xc0
+						  };
 	u32 len = 1200;
 	struct ieee80211_tx_rate *rate;
 	struct ieee80211_hw *hw = sc->hw;
@@ -57,13 +58,18 @@ static struct sk_buff *ath9k_build_tx99_skb(struct ath_softc *sc)
 	struct ath_vif *avp;
 
 	if (!sc->tx99_vif)
+	{
 		return NULL;
+	}
 
 	avp = (struct ath_vif *)sc->tx99_vif->drv_priv;
 
 	skb = alloc_skb(len, GFP_KERNEL);
+
 	if (!skb)
+	{
 		return NULL;
+	}
 
 	skb_put(skb, len);
 
@@ -86,10 +92,15 @@ static struct sk_buff *ath9k_build_tx99_skb(struct ath_softc *sc)
 	tx_info->flags = IEEE80211_TX_CTL_NO_ACK;
 	tx_info->control.vif = sc->tx99_vif;
 	rate->count = 1;
-	if (ah->curchan && IS_CHAN_HT(ah->curchan)) {
+
+	if (ah->curchan && IS_CHAN_HT(ah->curchan))
+	{
 		rate->flags |= IEEE80211_TX_RC_MCS;
+
 		if (IS_CHAN_HT40(ah->curchan))
+		{
 			rate->flags |= IEEE80211_TX_RC_40_MHZ_WIDTH;
+		}
 	}
 
 	memcpy(skb->data + sizeof(*hdr), PN9Data, sizeof(PN9Data));
@@ -114,15 +125,19 @@ static int ath9k_tx99_init(struct ath_softc *sc)
 	struct ath_tx_control txctl;
 	int r;
 
-	if (test_bit(ATH_OP_INVALID, &common->op_flags)) {
+	if (test_bit(ATH_OP_INVALID, &common->op_flags))
+	{
 		ath_err(common,
-			"driver is in invalid state unable to use TX99");
+				"driver is in invalid state unable to use TX99");
 		return -EINVAL;
 	}
 
 	sc->tx99_skb = ath9k_build_tx99_skb(sc);
+
 	if (!sc->tx99_skb)
+	{
 		return -ENOMEM;
+	}
 
 	memset(&txctl, 0, sizeof(txctl));
 	txctl.txq = sc->tx.txq_map[IEEE80211_AC_VO];
@@ -140,18 +155,22 @@ static int ath9k_tx99_init(struct ath_softc *sc)
 	ieee80211_stop_queues(hw);
 
 	if (sc->tx99_power == MAX_RATE_POWER + 1)
+	{
 		sc->tx99_power = MAX_RATE_POWER;
+	}
 
 	ath9k_hw_tx99_set_txpower(ah, sc->tx99_power);
 	r = ath9k_tx99_send(sc, sc->tx99_skb, &txctl);
-	if (r) {
+
+	if (r)
+	{
 		ath_dbg(common, XMIT, "Failed to xmit TX99 skb\n");
 		return r;
 	}
 
 	ath_dbg(common, XMIT, "TX99 xmit started using %d ( %ddBm)\n",
-		sc->tx99_power,
-		sc->tx99_power / 2);
+			sc->tx99_power,
+			sc->tx99_power / 2);
 
 	/* We leave the harware awake as it will be chugging on */
 
@@ -159,7 +178,7 @@ static int ath9k_tx99_init(struct ath_softc *sc)
 }
 
 static ssize_t read_file_tx99(struct file *file, char __user *user_buf,
-			      size_t count, loff_t *ppos)
+							  size_t count, loff_t *ppos)
 {
 	struct ath_softc *sc = file->private_data;
 	char buf[3];
@@ -170,7 +189,7 @@ static ssize_t read_file_tx99(struct file *file, char __user *user_buf,
 }
 
 static ssize_t write_file_tx99(struct file *file, const char __user *user_buf,
-			       size_t count, loff_t *ppos)
+							   size_t count, loff_t *ppos)
 {
 	struct ath_softc *sc = file->private_data;
 	struct ath_common *common = ath9k_hw_common(sc->sc_ah);
@@ -180,35 +199,51 @@ static ssize_t write_file_tx99(struct file *file, const char __user *user_buf,
 	int r;
 
 	if (sc->cur_chan->nvifs > 1)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	len = min(count, sizeof(buf) - 1);
+
 	if (copy_from_user(buf, user_buf, len))
+	{
 		return -EFAULT;
+	}
 
 	if (strtobool(buf, &start))
+	{
 		return -EINVAL;
+	}
 
-	if (start == sc->tx99_state) {
+	if (start == sc->tx99_state)
+	{
 		if (!start)
+		{
 			return count;
+		}
+
 		ath_dbg(common, XMIT, "Resetting TX99\n");
 		ath9k_tx99_deinit(sc);
 	}
 
-	if (!start) {
+	if (!start)
+	{
 		ath9k_tx99_deinit(sc);
 		return count;
 	}
 
 	r = ath9k_tx99_init(sc);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return count;
 }
 
-static const struct file_operations fops_tx99 = {
+static const struct file_operations fops_tx99 =
+{
 	.read = read_file_tx99,
 	.write = write_file_tx99,
 	.open = simple_open,
@@ -217,34 +252,39 @@ static const struct file_operations fops_tx99 = {
 };
 
 static ssize_t read_file_tx99_power(struct file *file,
-				    char __user *user_buf,
-				    size_t count, loff_t *ppos)
+									char __user *user_buf,
+									size_t count, loff_t *ppos)
 {
 	struct ath_softc *sc = file->private_data;
 	char buf[32];
 	unsigned int len;
 
 	len = sprintf(buf, "%d (%d dBm)\n",
-		      sc->tx99_power,
-		      sc->tx99_power / 2);
+				  sc->tx99_power,
+				  sc->tx99_power / 2);
 
 	return simple_read_from_buffer(user_buf, count, ppos, buf, len);
 }
 
 static ssize_t write_file_tx99_power(struct file *file,
-				     const char __user *user_buf,
-				     size_t count, loff_t *ppos)
+									 const char __user *user_buf,
+									 size_t count, loff_t *ppos)
 {
 	struct ath_softc *sc = file->private_data;
 	int r;
 	u8 tx_power;
 
 	r = kstrtou8_from_user(user_buf, count, 0, &tx_power);
+
 	if (r)
+	{
 		return r;
+	}
 
 	if (tx_power > MAX_RATE_POWER)
+	{
 		return -EINVAL;
+	}
 
 	sc->tx99_power = tx_power;
 
@@ -255,7 +295,8 @@ static ssize_t write_file_tx99_power(struct file *file,
 	return count;
 }
 
-static const struct file_operations fops_tx99_power = {
+static const struct file_operations fops_tx99_power =
+{
 	.read = read_file_tx99_power,
 	.write = write_file_tx99_power,
 	.open = simple_open,
@@ -266,12 +307,14 @@ static const struct file_operations fops_tx99_power = {
 void ath9k_tx99_init_debug(struct ath_softc *sc)
 {
 	if (!AR_SREV_9280_20_OR_LATER(sc->sc_ah))
+	{
 		return;
+	}
 
 	debugfs_create_file("tx99", S_IRUSR | S_IWUSR,
-			    sc->debug.debugfs_phy, sc,
-			    &fops_tx99);
+						sc->debug.debugfs_phy, sc,
+						&fops_tx99);
 	debugfs_create_file("tx99_power", S_IRUSR | S_IWUSR,
-			    sc->debug.debugfs_phy, sc,
-			    &fops_tx99_power);
+						sc->debug.debugfs_phy, sc,
+						&fops_tx99_power);
 }

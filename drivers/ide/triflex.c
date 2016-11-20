@@ -1,6 +1,6 @@
 /*
  * IDE Chipset driver for the Compaq TriFlex IDE controller.
- * 
+ *
  * Known to work with the Compaq Workstation 5x00 series.
  *
  * Copyright (C) 2002 Hewlett-Packard Development Group, L.P.
@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * Loosely based on the piix & svwks drivers.
  *
  * Documentation:
@@ -43,33 +43,42 @@ static void triflex_set_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 
 	pci_read_config_dword(dev, channel_offset, &triflex_timings);
 
-	switch (drive->dma_mode) {
+	switch (drive->dma_mode)
+	{
 		case XFER_MW_DMA_2:
-			timing = 0x0103; 
+			timing = 0x0103;
 			break;
+
 		case XFER_MW_DMA_1:
 			timing = 0x0203;
 			break;
+
 		case XFER_MW_DMA_0:
 			timing = 0x0808;
 			break;
+
 		case XFER_SW_DMA_2:
 		case XFER_SW_DMA_1:
 		case XFER_SW_DMA_0:
 			timing = 0x0f0f;
 			break;
+
 		case XFER_PIO_4:
 			timing = 0x0202;
 			break;
+
 		case XFER_PIO_3:
 			timing = 0x0204;
 			break;
+
 		case XFER_PIO_2:
 			timing = 0x0404;
 			break;
+
 		case XFER_PIO_1:
 			timing = 0x0508;
 			break;
+
 		case XFER_PIO_0:
 			timing = 0x0808;
 			break;
@@ -77,7 +86,7 @@ static void triflex_set_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 
 	triflex_timings &= ~(0xFFFF << (16 * unit));
 	triflex_timings |= (timing << (16 * unit));
-	
+
 	pci_write_config_dword(dev, channel_offset, triflex_timings);
 }
 
@@ -87,12 +96,14 @@ static void triflex_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	triflex_set_mode(hwif, drive);
 }
 
-static const struct ide_port_ops triflex_port_ops = {
+static const struct ide_port_ops triflex_port_ops =
+{
 	.set_pio_mode		= triflex_set_pio_mode,
 	.set_dma_mode		= triflex_set_mode,
 };
 
-static const struct ide_port_info triflex_device = {
+static const struct ide_port_info triflex_device =
+{
 	.name		= DRV_NAME,
 	.enablebits	= {{0x80, 0x01, 0x01}, {0x80, 0x02, 0x02}},
 	.port_ops	= &triflex_port_ops,
@@ -106,7 +117,8 @@ static int triflex_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	return ide_pci_init_one(dev, &triflex_device, NULL);
 }
 
-static const struct pci_device_id triflex_pci_tbl[] = {
+static const struct pci_device_id triflex_pci_tbl[] =
+{
 	{ PCI_VDEVICE(COMPAQ, PCI_DEVICE_ID_COMPAQ_TRIFLEX_IDE), 0 },
 	{ 0, },
 };
@@ -126,7 +138,8 @@ static int triflex_ide_pci_suspend(struct pci_dev *dev, pm_message_t state)
 #define triflex_ide_pci_suspend NULL
 #endif
 
-static struct pci_driver triflex_pci_driver = {
+static struct pci_driver triflex_pci_driver =
+{
 	.name		= "TRIFLEX_IDE",
 	.id_table	= triflex_pci_tbl,
 	.probe		= triflex_init_one,

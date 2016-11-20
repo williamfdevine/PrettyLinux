@@ -24,7 +24,7 @@
  * Fibre Channel Exchanges and Sequences.
  */
 #ifndef PACKED
-#define PACKED  __attribute__ ((__packed__))
+	#define PACKED  __attribute__ ((__packed__))
 #endif /* PACKED */
 
 
@@ -33,7 +33,8 @@
  * This format is set by the FC-FS standard and is sent over the wire.
  * Note that the fields aren't all naturally aligned.
  */
-struct fc_ssb {
+struct fc_ssb
+{
 	__u8	ssb_seq_id;		/* sequence ID */
 	__u8	_ssb_resvd;
 	__be16	ssb_low_seq_cnt;	/* lowest SEQ_CNT */
@@ -82,7 +83,8 @@ struct fc_ssb {
  * This format is set by the FC-FS standard and is sent over the wire.
  * Note that the fields aren't all naturally aligned.
  */
-struct fc_esb {
+struct fc_esb
+{
 	__u8	esb_cs_ctl;		/* CS_CTL for frame header */
 	__be16	esb_ox_id;		/* originator exchange ID */
 	__be16	esb_rx_id;		/* responder exchange ID */

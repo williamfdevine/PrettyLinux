@@ -11,11 +11,13 @@
 #include "pciback.h"
 #include "conf_space.h"
 
-struct pci_cmd_info {
+struct pci_cmd_info
+{
 	u16 val;
 };
 
-struct pci_bar_info {
+struct pci_bar_info
+{
 	u32 val;
 	u32 len_val;
 	int which;
@@ -26,8 +28,8 @@ struct pci_bar_info {
 
 /* Bits guests are allowed to control in permissive mode. */
 #define PCI_COMMAND_GUEST (PCI_COMMAND_MASTER|PCI_COMMAND_SPECIAL| \
-			   PCI_COMMAND_INVALIDATE|PCI_COMMAND_VGA_PALETTE| \
-			   PCI_COMMAND_WAIT|PCI_COMMAND_FAST_BACK)
+						   PCI_COMMAND_INVALIDATE|PCI_COMMAND_VGA_PALETTE| \
+						   PCI_COMMAND_WAIT|PCI_COMMAND_FAST_BACK)
 
 static void *command_init(struct pci_dev *dev, int offset)
 {
@@ -35,10 +37,14 @@ static void *command_init(struct pci_dev *dev, int offset)
 	int err;
 
 	if (!cmd)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	err = pci_read_config_word(dev, PCI_COMMAND, &cmd->val);
-	if (err) {
+
+	if (err)
+	{
 		kfree(cmd);
 		return ERR_PTR(err);
 	}
@@ -65,66 +71,98 @@ static int command_write(struct pci_dev *dev, int offset, u16 value, void *data)
 	struct pci_cmd_info *cmd = data;
 
 	dev_data = pci_get_drvdata(dev);
-	if (!pci_is_enabled(dev) && is_enable_cmd(value)) {
+
+	if (!pci_is_enabled(dev) && is_enable_cmd(value))
+	{
 		if (unlikely(verbose_request))
 			printk(KERN_DEBUG DRV_NAME ": %s: enable\n",
-			       pci_name(dev));
+				   pci_name(dev));
+
 		err = pci_enable_device(dev);
+
 		if (err)
+		{
 			return err;
+		}
+
 		if (dev_data)
+		{
 			dev_data->enable_intx = 1;
-	} else if (pci_is_enabled(dev) && !is_enable_cmd(value)) {
+		}
+	}
+	else if (pci_is_enabled(dev) && !is_enable_cmd(value))
+	{
 		if (unlikely(verbose_request))
 			printk(KERN_DEBUG DRV_NAME ": %s: disable\n",
-			       pci_name(dev));
+				   pci_name(dev));
+
 		pci_disable_device(dev);
+
 		if (dev_data)
+		{
 			dev_data->enable_intx = 0;
+		}
 	}
 
-	if (!dev->is_busmaster && is_master_cmd(value)) {
+	if (!dev->is_busmaster && is_master_cmd(value))
+	{
 		if (unlikely(verbose_request))
 			printk(KERN_DEBUG DRV_NAME ": %s: set bus master\n",
-			       pci_name(dev));
+				   pci_name(dev));
+
 		pci_set_master(dev);
-	} else if (dev->is_busmaster && !is_master_cmd(value)) {
+	}
+	else if (dev->is_busmaster && !is_master_cmd(value))
+	{
 		if (unlikely(verbose_request))
 			printk(KERN_DEBUG DRV_NAME ": %s: clear bus master\n",
-			       pci_name(dev));
+				   pci_name(dev));
+
 		pci_clear_master(dev);
 	}
 
 	if (!(cmd->val & PCI_COMMAND_INVALIDATE) &&
-	    (value & PCI_COMMAND_INVALIDATE)) {
+		(value & PCI_COMMAND_INVALIDATE))
+	{
 		if (unlikely(verbose_request))
 			printk(KERN_DEBUG
-			       DRV_NAME ": %s: enable memory-write-invalidate\n",
-			       pci_name(dev));
+				   DRV_NAME ": %s: enable memory-write-invalidate\n",
+				   pci_name(dev));
+
 		err = pci_set_mwi(dev);
-		if (err) {
+
+		if (err)
+		{
 			pr_warn("%s: cannot enable memory-write-invalidate (%d)\n",
-				pci_name(dev), err);
+					pci_name(dev), err);
 			value &= ~PCI_COMMAND_INVALIDATE;
 		}
-	} else if ((cmd->val & PCI_COMMAND_INVALIDATE) &&
-		   !(value & PCI_COMMAND_INVALIDATE)) {
+	}
+	else if ((cmd->val & PCI_COMMAND_INVALIDATE) &&
+			 !(value & PCI_COMMAND_INVALIDATE))
+	{
 		if (unlikely(verbose_request))
 			printk(KERN_DEBUG
-			       DRV_NAME ": %s: disable memory-write-invalidate\n",
-			       pci_name(dev));
+				   DRV_NAME ": %s: disable memory-write-invalidate\n",
+				   pci_name(dev));
+
 		pci_clear_mwi(dev);
 	}
 
 	cmd->val = value;
 
 	if (!xen_pcibk_permissive && (!dev_data || !dev_data->permissive))
+	{
 		return 0;
+	}
 
 	/* Only allow the guest to control certain bits. */
 	err = pci_read_config_word(dev, offset, &val);
+
 	if (err || val == value)
+	{
 		return err;
+	}
 
 	value &= PCI_COMMAND_GUEST;
 	value |= val & ~PCI_COMMAND_GUEST;
@@ -136,9 +174,10 @@ static int rom_write(struct pci_dev *dev, int offset, u32 value, void *data)
 {
 	struct pci_bar_info *bar = data;
 
-	if (unlikely(!bar)) {
+	if (unlikely(!bar))
+	{
 		pr_warn(DRV_NAME ": driver data not found for %s\n",
-		       pci_name(dev));
+				pci_name(dev));
 		return XEN_PCI_ERR_op_failed;
 	}
 
@@ -146,14 +185,20 @@ static int rom_write(struct pci_dev *dev, int offset, u32 value, void *data)
 	 * This does not (yet) support writing individual bytes
 	 */
 	if ((value | ~PCI_ROM_ADDRESS_MASK) == ~0U)
+	{
 		bar->which = 1;
-	else {
+	}
+	else
+	{
 		u32 tmpval;
 		pci_read_config_dword(dev, offset, &tmpval);
-		if (tmpval != bar->val && value == bar->val) {
+
+		if (tmpval != bar->val && value == bar->val)
+		{
 			/* Allow restoration of bar value. */
 			pci_write_config_dword(dev, offset, bar->val);
 		}
+
 		bar->which = 0;
 	}
 
@@ -170,9 +215,10 @@ static int bar_write(struct pci_dev *dev, int offset, u32 value, void *data)
 {
 	struct pci_bar_info *bar = data;
 
-	if (unlikely(!bar)) {
+	if (unlikely(!bar))
+	{
 		pr_warn(DRV_NAME ": driver data not found for %s\n",
-		       pci_name(dev));
+				pci_name(dev));
 		return XEN_PCI_ERR_op_failed;
 	}
 
@@ -180,27 +226,34 @@ static int bar_write(struct pci_dev *dev, int offset, u32 value, void *data)
 	 * This does not (yet) support writing individual bytes
 	 */
 	if (value == ~0)
+	{
 		bar->which = 1;
-	else {
+	}
+	else
+	{
 		u32 tmpval;
 		pci_read_config_dword(dev, offset, &tmpval);
-		if (tmpval != bar->val && value == bar->val) {
+
+		if (tmpval != bar->val && value == bar->val)
+		{
 			/* Allow restoration of bar value. */
 			pci_write_config_dword(dev, offset, bar->val);
 		}
+
 		bar->which = 0;
 	}
 
 	return 0;
 }
 
-static int bar_read(struct pci_dev *dev, int offset, u32 * value, void *data)
+static int bar_read(struct pci_dev *dev, int offset, u32 *value, void *data)
 {
 	struct pci_bar_info *bar = data;
 
-	if (unlikely(!bar)) {
+	if (unlikely(!bar))
+	{
 		pr_warn(DRV_NAME ": driver data not found for %s\n",
-		       pci_name(dev));
+				pci_name(dev));
 		return XEN_PCI_ERR_op_failed;
 	}
 
@@ -216,13 +269,20 @@ static void *bar_init(struct pci_dev *dev, int offset)
 	struct pci_bar_info *bar = kzalloc(sizeof(*bar), GFP_KERNEL);
 
 	if (!bar)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	if (offset == PCI_ROM_ADDRESS || offset == PCI_ROM_ADDRESS1)
+	{
 		pos = PCI_ROM_RESOURCE;
-	else {
+	}
+	else
+	{
 		pos = (offset - PCI_BASE_ADDRESS_0) / 4;
-		if (pos && (res[pos - 1].flags & IORESOURCE_MEM_64)) {
+
+		if (pos && (res[pos - 1].flags & IORESOURCE_MEM_64))
+		{
 			bar->val = res[pos - 1].start >> 32;
 			bar->len_val = -resource_size(&res[pos - 1]) >> 32;
 			return bar;
@@ -230,14 +290,16 @@ static void *bar_init(struct pci_dev *dev, int offset)
 	}
 
 	if (!res[pos].flags ||
-	    (res[pos].flags & (IORESOURCE_DISABLED | IORESOURCE_UNSET |
-			       IORESOURCE_BUSY)))
+		(res[pos].flags & (IORESOURCE_DISABLED | IORESOURCE_UNSET |
+						   IORESOURCE_BUSY)))
+	{
 		return bar;
+	}
 
 	bar->val = res[pos].start |
-		   (res[pos].flags & PCI_REGION_FLAG_MASK);
+			   (res[pos].flags & PCI_REGION_FLAG_MASK);
 	bar->len_val = -resource_size(&res[pos]) |
-		       (res[pos].flags & PCI_REGION_FLAG_MASK);
+				   (res[pos].flags & PCI_REGION_FLAG_MASK);
 
 	return bar;
 }
@@ -255,7 +317,7 @@ static void bar_release(struct pci_dev *dev, int offset, void *data)
 }
 
 static int xen_pcibk_read_vendor(struct pci_dev *dev, int offset,
-			       u16 *value, void *data)
+								 u16 *value, void *data)
 {
 	*value = dev->vendor;
 
@@ -263,15 +325,15 @@ static int xen_pcibk_read_vendor(struct pci_dev *dev, int offset,
 }
 
 static int xen_pcibk_read_device(struct pci_dev *dev, int offset,
-			       u16 *value, void *data)
+								 u16 *value, void *data)
 {
 	*value = dev->device;
 
 	return 0;
 }
 
-static int interrupt_read(struct pci_dev *dev, int offset, u8 * value,
-			  void *data)
+static int interrupt_read(struct pci_dev *dev, int offset, u8 *value,
+						  void *data)
 {
 	*value = (u8) dev->irq;
 
@@ -284,90 +346,97 @@ static int bist_write(struct pci_dev *dev, int offset, u8 value, void *data)
 	int err;
 
 	err = pci_read_config_byte(dev, offset, &cur_value);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	if ((cur_value & ~PCI_BIST_START) == (value & ~PCI_BIST_START)
-	    || value == PCI_BIST_START)
+		|| value == PCI_BIST_START)
+	{
 		err = pci_write_config_byte(dev, offset, value);
+	}
 
 out:
 	return err;
 }
 
-static const struct config_field header_common[] = {
+static const struct config_field header_common[] =
+{
 	{
-	 .offset    = PCI_VENDOR_ID,
-	 .size      = 2,
-	 .u.w.read  = xen_pcibk_read_vendor,
+		.offset    = PCI_VENDOR_ID,
+		.size      = 2,
+		.u.w.read  = xen_pcibk_read_vendor,
 	},
 	{
-	 .offset    = PCI_DEVICE_ID,
-	 .size      = 2,
-	 .u.w.read  = xen_pcibk_read_device,
+		.offset    = PCI_DEVICE_ID,
+		.size      = 2,
+		.u.w.read  = xen_pcibk_read_device,
 	},
 	{
-	 .offset    = PCI_COMMAND,
-	 .size      = 2,
-	 .init      = command_init,
-	 .release   = bar_release,
-	 .u.w.read  = command_read,
-	 .u.w.write = command_write,
+		.offset    = PCI_COMMAND,
+		.size      = 2,
+		.init      = command_init,
+		.release   = bar_release,
+		.u.w.read  = command_read,
+		.u.w.write = command_write,
 	},
 	{
-	 .offset    = PCI_INTERRUPT_LINE,
-	 .size      = 1,
-	 .u.b.read  = interrupt_read,
+		.offset    = PCI_INTERRUPT_LINE,
+		.size      = 1,
+		.u.b.read  = interrupt_read,
 	},
 	{
-	 .offset    = PCI_INTERRUPT_PIN,
-	 .size      = 1,
-	 .u.b.read  = xen_pcibk_read_config_byte,
+		.offset    = PCI_INTERRUPT_PIN,
+		.size      = 1,
+		.u.b.read  = xen_pcibk_read_config_byte,
 	},
 	{
-	 /* Any side effects of letting driver domain control cache line? */
-	 .offset    = PCI_CACHE_LINE_SIZE,
-	 .size      = 1,
-	 .u.b.read  = xen_pcibk_read_config_byte,
-	 .u.b.write = xen_pcibk_write_config_byte,
+		/* Any side effects of letting driver domain control cache line? */
+		.offset    = PCI_CACHE_LINE_SIZE,
+		.size      = 1,
+		.u.b.read  = xen_pcibk_read_config_byte,
+		.u.b.write = xen_pcibk_write_config_byte,
 	},
 	{
-	 .offset    = PCI_LATENCY_TIMER,
-	 .size      = 1,
-	 .u.b.read  = xen_pcibk_read_config_byte,
+		.offset    = PCI_LATENCY_TIMER,
+		.size      = 1,
+		.u.b.read  = xen_pcibk_read_config_byte,
 	},
 	{
-	 .offset    = PCI_BIST,
-	 .size      = 1,
-	 .u.b.read  = xen_pcibk_read_config_byte,
-	 .u.b.write = bist_write,
+		.offset    = PCI_BIST,
+		.size      = 1,
+		.u.b.read  = xen_pcibk_read_config_byte,
+		.u.b.write = bist_write,
 	},
 	{}
 };
 
 #define CFG_FIELD_BAR(reg_offset)			\
 	{						\
-	.offset     = reg_offset,			\
-	.size       = 4,				\
-	.init       = bar_init,				\
-	.reset      = bar_reset,			\
-	.release    = bar_release,			\
-	.u.dw.read  = bar_read,				\
-	.u.dw.write = bar_write,			\
+		.offset     = reg_offset,			\
+					  .size       = 4,				\
+									.init       = bar_init,				\
+											.reset      = bar_reset,			\
+													.release    = bar_release,			\
+															.u.dw.read  = bar_read,				\
+																	.u.dw.write = bar_write,			\
 	}
 
 #define CFG_FIELD_ROM(reg_offset)			\
 	{						\
-	.offset     = reg_offset,			\
-	.size       = 4,				\
-	.init       = bar_init,				\
-	.reset      = bar_reset,			\
-	.release    = bar_release,			\
-	.u.dw.read  = bar_read,				\
-	.u.dw.write = rom_write,			\
+		.offset     = reg_offset,			\
+					  .size       = 4,				\
+									.init       = bar_init,				\
+											.reset      = bar_reset,			\
+													.release    = bar_release,			\
+															.u.dw.read  = bar_read,				\
+																	.u.dw.write = rom_write,			\
 	}
 
-static const struct config_field header_0[] = {
+static const struct config_field header_0[] =
+{
 	CFG_FIELD_BAR(PCI_BASE_ADDRESS_0),
 	CFG_FIELD_BAR(PCI_BASE_ADDRESS_1),
 	CFG_FIELD_BAR(PCI_BASE_ADDRESS_2),
@@ -378,7 +447,8 @@ static const struct config_field header_0[] = {
 	{}
 };
 
-static const struct config_field header_1[] = {
+static const struct config_field header_1[] =
+{
 	CFG_FIELD_BAR(PCI_BASE_ADDRESS_0),
 	CFG_FIELD_BAR(PCI_BASE_ADDRESS_1),
 	CFG_FIELD_ROM(PCI_ROM_ADDRESS1),
@@ -390,23 +460,27 @@ int xen_pcibk_config_header_add_fields(struct pci_dev *dev)
 	int err;
 
 	err = xen_pcibk_config_add_fields(dev, header_common);
+
 	if (err)
+	{
 		goto out;
+	}
 
-	switch (dev->hdr_type) {
-	case PCI_HEADER_TYPE_NORMAL:
-		err = xen_pcibk_config_add_fields(dev, header_0);
-		break;
+	switch (dev->hdr_type)
+	{
+		case PCI_HEADER_TYPE_NORMAL:
+			err = xen_pcibk_config_add_fields(dev, header_0);
+			break;
 
-	case PCI_HEADER_TYPE_BRIDGE:
-		err = xen_pcibk_config_add_fields(dev, header_1);
-		break;
+		case PCI_HEADER_TYPE_BRIDGE:
+			err = xen_pcibk_config_add_fields(dev, header_1);
+			break;
 
-	default:
-		err = -EINVAL;
-		pr_err("%s: Unsupported header type %d!\n",
-		       pci_name(dev), dev->hdr_type);
-		break;
+		default:
+			err = -EINVAL;
+			pr_err("%s: Unsupported header type %d!\n",
+				   pci_name(dev), dev->hdr_type);
+			break;
 	}
 
 out:

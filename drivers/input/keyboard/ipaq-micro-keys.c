@@ -23,13 +23,15 @@
 #include <linux/platform_device.h>
 #include <linux/mfd/ipaq-micro.h>
 
-struct ipaq_micro_keys {
+struct ipaq_micro_keys
+{
 	struct ipaq_micro *micro;
 	struct input_dev *input;
 	u16 *codes;
 };
 
-static const u16 micro_keycodes[] = {
+static const u16 micro_keycodes[] =
+{
 	KEY_RECORD,		/* 1:  Record button			*/
 	KEY_CALENDAR,		/* 2:  Calendar				*/
 	KEY_ADDRESSBOOK,	/* 3:  Contacts (looks like Outlook)	*/
@@ -49,7 +51,8 @@ static void micro_key_receive(void *data, int len, unsigned char *msg)
 	down = 0x80 & msg[0];
 	key  = 0x7f & msg[0];
 
-	if (key < ARRAY_SIZE(micro_keycodes)) {
+	if (key < ARRAY_SIZE(micro_keycodes))
+	{
 		input_report_key(keys->input, keys->codes[key], down);
 		input_sync(keys->input);
 	}
@@ -94,25 +97,34 @@ static int micro_key_probe(struct platform_device *pdev)
 	int i;
 
 	keys = devm_kzalloc(&pdev->dev, sizeof(*keys), GFP_KERNEL);
+
 	if (!keys)
+	{
 		return -ENOMEM;
+	}
 
 	keys->micro = dev_get_drvdata(pdev->dev.parent);
 
 	keys->input = devm_input_allocate_device(&pdev->dev);
+
 	if (!keys->input)
+	{
 		return -ENOMEM;
+	}
 
 	keys->input->keycodesize = sizeof(micro_keycodes[0]);
 	keys->input->keycodemax = ARRAY_SIZE(micro_keycodes);
 	keys->codes = devm_kmemdup(&pdev->dev, micro_keycodes,
-			   keys->input->keycodesize * keys->input->keycodemax,
-			   GFP_KERNEL);
+							   keys->input->keycodesize * keys->input->keycodemax,
+							   GFP_KERNEL);
 	keys->input->keycode = keys->codes;
 
 	__set_bit(EV_KEY, keys->input->evbit);
+
 	for (i = 0; i < ARRAY_SIZE(micro_keycodes); i++)
+	{
 		__set_bit(micro_keycodes[i], keys->input->keybit);
+	}
 
 	keys->input->name = "h3600 micro keys";
 	keys->input->open = micro_key_open;
@@ -120,8 +132,11 @@ static int micro_key_probe(struct platform_device *pdev)
 	input_set_drvdata(keys->input, keys);
 
 	error = input_register_device(keys->input);
+
 	if (error)
+	{
 		return error;
+	}
 
 	platform_set_drvdata(pdev, keys);
 	return 0;
@@ -144,7 +159,9 @@ static int __maybe_unused micro_key_resume(struct device *dev)
 	mutex_lock(&input->mutex);
 
 	if (input->users)
+	{
 		micro_key_start(keys);
+	}
 
 	mutex_unlock(&input->mutex);
 
@@ -152,9 +169,10 @@ static int __maybe_unused micro_key_resume(struct device *dev)
 }
 
 static SIMPLE_DEV_PM_OPS(micro_key_dev_pm_ops,
-			 micro_key_suspend, micro_key_resume);
+						 micro_key_suspend, micro_key_resume);
 
-static struct platform_driver micro_key_device_driver = {
+static struct platform_driver micro_key_device_driver =
+{
 	.driver = {
 		.name    = "ipaq-micro-keys",
 		.pm	= &micro_key_dev_pm_ops,

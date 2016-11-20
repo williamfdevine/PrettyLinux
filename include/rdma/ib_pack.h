@@ -36,7 +36,8 @@
 #include <rdma/ib_verbs.h>
 #include <uapi/linux/if_ether.h>
 
-enum {
+enum
+{
 	IB_LRH_BYTES  = 8,
 	IB_ETH_BYTES  = 14,
 	IB_VLAN_BYTES = 4,
@@ -47,7 +48,8 @@ enum {
 	IB_DETH_BYTES = 8
 };
 
-struct ib_field {
+struct ib_field
+{
 	size_t struct_offset_bytes;
 	size_t struct_size_bytes;
 	int    offset_words;
@@ -70,9 +72,10 @@ struct ib_field {
 */
 #define IB_OPCODE(transport, op) \
 	IB_OPCODE_ ## transport ## _ ## op = \
-		IB_OPCODE_ ## transport + IB_OPCODE_ ## op
+										 IB_OPCODE_ ## transport + IB_OPCODE_ ## op
 
-enum {
+enum
+{
 	/* transport types -- just used to define real constants */
 	IB_OPCODE_RC                                = 0x00,
 	IB_OPCODE_UC                                = 0x20,
@@ -177,14 +180,16 @@ enum {
 	IB_OPCODE(UD, SEND_ONLY_WITH_IMMEDIATE)
 };
 
-enum {
+enum
+{
 	IB_LNH_RAW        = 0,
 	IB_LNH_IP         = 1,
 	IB_LNH_IBA_LOCAL  = 2,
 	IB_LNH_IBA_GLOBAL = 3
 };
 
-struct ib_unpacked_lrh {
+struct ib_unpacked_lrh
+{
 	u8        virtual_lane;
 	u8        link_version;
 	u8        service_level;
@@ -194,7 +199,8 @@ struct ib_unpacked_lrh {
 	__be16    source_lid;
 };
 
-struct ib_unpacked_grh {
+struct ib_unpacked_grh
+{
 	u8    	     ip_version;
 	u8    	     traffic_class;
 	__be32 	     flow_label;
@@ -205,7 +211,8 @@ struct ib_unpacked_grh {
 	union ib_gid destination_gid;
 };
 
-struct ib_unpacked_bth {
+struct ib_unpacked_bth
+{
 	u8           opcode;
 	u8           solicited_event;
 	u8           mig_req;
@@ -217,12 +224,14 @@ struct ib_unpacked_bth {
 	__be32       psn;
 };
 
-struct ib_unpacked_deth {
+struct ib_unpacked_deth
+{
 	__be32       qkey;
 	__be32       source_qpn;
 };
 
-struct ib_unpacked_eth {
+struct ib_unpacked_eth
+{
 	u8	dmac_h[4];
 	u8	dmac_l[2];
 	u8	smac_h[2];
@@ -230,7 +239,8 @@ struct ib_unpacked_eth {
 	__be16	type;
 };
 
-struct ib_unpacked_ip4 {
+struct ib_unpacked_ip4
+{
 	u8	ver;
 	u8	hdr_len;
 	u8	tos;
@@ -244,19 +254,22 @@ struct ib_unpacked_ip4 {
 	__be32	daddr;
 };
 
-struct ib_unpacked_udp {
+struct ib_unpacked_udp
+{
 	__be16	sport;
 	__be16	dport;
 	__be16	length;
 	__be16	csum;
 };
 
-struct ib_unpacked_vlan {
+struct ib_unpacked_vlan
+{
 	__be16  tag;
 	__be16  type;
 };
 
-struct ib_ud_header {
+struct ib_ud_header
+{
 	int                     lrh_present;
 	struct ib_unpacked_lrh  lrh;
 	int			eth_present;
@@ -276,31 +289,31 @@ struct ib_ud_header {
 };
 
 void ib_pack(const struct ib_field        *desc,
-	     int                           desc_len,
-	     void                         *structure,
-	     void                         *buf);
+			 int                           desc_len,
+			 void                         *structure,
+			 void                         *buf);
 
 void ib_unpack(const struct ib_field        *desc,
-	       int                           desc_len,
-	       void                         *buf,
-	       void                         *structure);
+			   int                           desc_len,
+			   void                         *buf,
+			   void                         *structure);
 
 __sum16 ib_ud_ip4_csum(struct ib_ud_header *header);
 
 int ib_ud_header_init(int		    payload_bytes,
-		      int		    lrh_present,
-		      int		    eth_present,
-		      int		    vlan_present,
-		      int		    grh_present,
-		      int		    ip_version,
-		      int		    udp_present,
-		      int		    immediate_present,
-		      struct ib_ud_header *header);
+					  int		    lrh_present,
+					  int		    eth_present,
+					  int		    vlan_present,
+					  int		    grh_present,
+					  int		    ip_version,
+					  int		    udp_present,
+					  int		    immediate_present,
+					  struct ib_ud_header *header);
 
 int ib_ud_header_pack(struct ib_ud_header *header,
-		      void                *buf);
+					  void                *buf);
 
 int ib_ud_header_unpack(void                *buf,
-			struct ib_ud_header *header);
+						struct ib_ud_header *header);
 
 #endif /* IB_PACK_H */

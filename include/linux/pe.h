@@ -23,7 +23,8 @@
 
 #define MZ_MAGIC	0x5a4d	/* "MZ" */
 
-struct mz_hdr {
+struct mz_hdr
+{
 	uint16_t magic;		/* MZ_MAGIC */
 	uint16_t lbsize;	/* size of last used block */
 	uint16_t blocks;	/* pages in file, 0x3 */
@@ -46,7 +47,8 @@ struct mz_hdr {
 	char     message[64];	/* message to print */
 };
 
-struct mz_reloc {
+struct mz_reloc
+{
 	uint16_t offset;
 	uint16_t segment;
 };
@@ -98,7 +100,8 @@ struct mz_reloc {
 #define IMAGE_FILE_UP_SYSTEM_ONLY            0x4000
 #define IMAGE_FILE_BYTES_REVERSED_HI         0x8000
 
-struct pe_hdr {
+struct pe_hdr
+{
 	uint32_t magic;		/* PE magic */
 	uint16_t machine;	/* machine type */
 	uint16_t sections;	/* number of sections */
@@ -136,7 +139,8 @@ struct pe_hdr {
 
 /* the fact that pe32 isn't padded where pe32+ is 64-bit means union won't
  * work right.  vomit. */
-struct pe32_opt_hdr {
+struct pe32_opt_hdr
+{
 	/* "standard" header */
 	uint16_t magic;		/* file type */
 	uint8_t  ld_major;	/* linker major version */
@@ -172,7 +176,8 @@ struct pe32_opt_hdr {
 	uint32_t data_dirs;	/* number of data dir entries */
 };
 
-struct pe32plus_opt_hdr {
+struct pe32plus_opt_hdr
+{
 	uint16_t magic;		/* file type */
 	uint8_t  ld_major;	/* linker major version */
 	uint8_t  ld_minor;	/* linker minor version */
@@ -206,12 +211,14 @@ struct pe32plus_opt_hdr {
 	uint32_t data_dirs;	/* number of data dir entries */
 };
 
-struct data_dirent {
+struct data_dirent
+{
 	uint32_t virtual_address;	/* relative to load address */
 	uint32_t size;
 };
 
-struct data_directory {
+struct data_directory
+{
 	struct data_dirent exports;		/* .edata */
 	struct data_dirent imports;		/* .idata */
 	struct data_dirent resources;		/* .rsrc */
@@ -230,7 +237,8 @@ struct data_directory {
 	struct data_dirent reserved;
 };
 
-struct section_header {
+struct section_header
+{
 	char name[8];			/* name or "/12\0" string tbl offset */
 	uint32_t virtual_size;		/* size of loaded section in ram */
 	uint32_t virtual_address;	/* relative virtual address */
@@ -289,7 +297,8 @@ struct section_header {
 #define IMAGE_SCN_MEM_READ	0x40000000 /* readable */
 #define IMAGE_SCN_MEM_WRITE	0x80000000 /* writeable */
 
-enum x64_coff_reloc_type {
+enum x64_coff_reloc_type
+{
 	IMAGE_REL_AMD64_ABSOLUTE = 0,
 	IMAGE_REL_AMD64_ADDR64,
 	IMAGE_REL_AMD64_ADDR32,
@@ -309,7 +318,8 @@ enum x64_coff_reloc_type {
 	IMAGE_REL_AMD64_SSPAN32,
 };
 
-enum arm_coff_reloc_type {
+enum arm_coff_reloc_type
+{
 	IMAGE_REL_ARM_ABSOLUTE,
 	IMAGE_REL_ARM_ADDR32,
 	IMAGE_REL_ARM_ADDR32N,
@@ -319,7 +329,8 @@ enum arm_coff_reloc_type {
 	IMAGE_REL_ARM_SECREL,
 };
 
-enum sh_coff_reloc_type {
+enum sh_coff_reloc_type
+{
 	IMAGE_REL_SH3_ABSOLUTE,
 	IMAGE_REL_SH3_DIRECT16,
 	IMAGE_REL_SH3_DIRECT32,
@@ -348,7 +359,8 @@ enum sh_coff_reloc_type {
 	IMAGE_REL_SHM_NOMODE,
 };
 
-enum ppc_coff_reloc_type {
+enum ppc_coff_reloc_type
+{
 	IMAGE_REL_PPC_ABSOLUTE,
 	IMAGE_REL_PPC_ADDR64,
 	IMAGE_REL_PPC_ADDR32,
@@ -369,7 +381,8 @@ enum ppc_coff_reloc_type {
 	IMAGE_REL_PPC_TOKEN,
 };
 
-enum x86_coff_reloc_type {
+enum x86_coff_reloc_type
+{
 	IMAGE_REL_I386_ABSOLUTE,
 	IMAGE_REL_I386_DIR16,
 	IMAGE_REL_I386_REL16,
@@ -383,7 +396,8 @@ enum x86_coff_reloc_type {
 	IMAGE_REL_I386_REL32,
 };
 
-enum ia64_coff_reloc_type {
+enum ia64_coff_reloc_type
+{
 	IMAGE_REL_IA64_ABSOLUTE,
 	IMAGE_REL_IA64_IMM14,
 	IMAGE_REL_IA64_IMM22,
@@ -415,10 +429,12 @@ enum ia64_coff_reloc_type {
 	IMAGE_REL_IA64_ADDEND,
 };
 
-struct coff_reloc {
+struct coff_reloc
+{
 	uint32_t virtual_address;
 	uint32_t symbol_table_index;
-	union {
+	union
+	{
 		enum x64_coff_reloc_type  x64_type;
 		enum arm_coff_reloc_type  arm_type;
 		enum sh_coff_reloc_type   sh_type;
@@ -439,7 +455,8 @@ struct coff_reloc {
 #define WIN_CERT_REVISION_1_0	0x0100
 #define WIN_CERT_REVISION_2_0	0x0200
 
-struct win_certificate {
+struct win_certificate
+{
 	uint32_t length;
 	uint16_t revision;
 	uint16_t cert_type;

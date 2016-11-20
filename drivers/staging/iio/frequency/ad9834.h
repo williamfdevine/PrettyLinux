@@ -50,7 +50,8 @@
  * @freq_data:		tuning word spi transmit buffer
  */
 
-struct ad9834_state {
+struct ad9834_state
+{
 	struct spi_device		*spi;
 	struct regulator		*reg;
 	unsigned int			mclk;
@@ -87,7 +88,8 @@ struct ad9834_state {
  *			the on-board comparator is connected to SIGN BIT OUT
  */
 
-struct ad9834_platform_data {
+struct ad9834_platform_data
+{
 	unsigned int		mclk;
 	unsigned int		freq0;
 	unsigned int		freq1;
@@ -101,7 +103,8 @@ struct ad9834_platform_data {
  * ad9834_supported_device_ids:
  */
 
-enum ad9834_supported_device_ids {
+enum ad9834_supported_device_ids
+{
 	ID_AD9833,
 	ID_AD9834,
 	ID_AD9837,

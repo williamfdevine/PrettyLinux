@@ -29,20 +29,33 @@ static int genericbl_send_intensity(struct backlight_device *bd)
 	int intensity = bd->props.brightness;
 
 	if (bd->props.power != FB_BLANK_UNBLANK)
+	{
 		intensity = 0;
+	}
+
 	if (bd->props.state & BL_CORE_FBBLANK)
+	{
 		intensity = 0;
+	}
+
 	if (bd->props.state & BL_CORE_SUSPENDED)
+	{
 		intensity = 0;
+	}
+
 	if (bd->props.state & GENERICBL_BATTLOW)
+	{
 		intensity &= bl_machinfo->limit_mask;
+	}
 
 	bl_machinfo->set_bl_intensity(intensity);
 
 	genericbl_intensity = intensity;
 
 	if (bl_machinfo->kick_battery)
+	{
 		bl_machinfo->kick_battery();
+	}
 
 	return 0;
 }
@@ -52,7 +65,8 @@ static int genericbl_get_intensity(struct backlight_device *bd)
 	return genericbl_intensity;
 }
 
-static const struct backlight_ops genericbl_ops = {
+static const struct backlight_ops genericbl_ops =
+{
 	.options = BL_CORE_SUSPENDRESUME,
 	.get_brightness = genericbl_get_intensity,
 	.update_status  = genericbl_send_intensity,
@@ -66,19 +80,27 @@ static int genericbl_probe(struct platform_device *pdev)
 	struct backlight_device *bd;
 
 	bl_machinfo = machinfo;
+
 	if (!machinfo->limit_mask)
+	{
 		machinfo->limit_mask = -1;
+	}
 
 	if (machinfo->name)
+	{
 		name = machinfo->name;
+	}
 
 	memset(&props, 0, sizeof(struct backlight_properties));
 	props.type = BACKLIGHT_RAW;
 	props.max_brightness = machinfo->max_intensity;
 	bd = devm_backlight_device_register(&pdev->dev, name, &pdev->dev,
-					NULL, &genericbl_ops, &props);
+										NULL, &genericbl_ops, &props);
+
 	if (IS_ERR(bd))
+	{
 		return PTR_ERR(bd);
+	}
 
 	platform_set_drvdata(pdev, bd);
 
@@ -104,7 +126,8 @@ static int genericbl_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver genericbl_driver = {
+static struct platform_driver genericbl_driver =
+{
 	.probe		= genericbl_probe,
 	.remove		= genericbl_remove,
 	.driver		= {

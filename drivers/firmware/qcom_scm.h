@@ -31,12 +31,12 @@ extern void __qcom_scm_cpu_power_down(u32 flags);
 #define QCOM_SCM_SVC_INFO		0x6
 #define QCOM_IS_CALL_AVAIL_CMD		0x1
 extern int __qcom_scm_is_call_available(struct device *dev, u32 svc_id,
-		u32 cmd_id);
+										u32 cmd_id);
 
 #define QCOM_SCM_SVC_HDCP		0x11
 #define QCOM_SCM_CMD_HDCP		0x01
 extern int __qcom_scm_hdcp_req(struct device *dev,
-		struct qcom_scm_hdcp_req *req, u32 req_cnt, u32 *resp);
+							   struct qcom_scm_hdcp_req *req, u32 req_cnt, u32 *resp);
 
 extern void __qcom_scm_init(void);
 
@@ -49,9 +49,9 @@ extern void __qcom_scm_init(void);
 #define QCOM_SCM_PAS_MSS_RESET		0xa
 extern bool __qcom_scm_pas_supported(struct device *dev, u32 peripheral);
 extern int  __qcom_scm_pas_init_image(struct device *dev, u32 peripheral,
-		dma_addr_t metadata_phys);
+									  dma_addr_t metadata_phys);
 extern int  __qcom_scm_pas_mem_setup(struct device *dev, u32 peripheral,
-		phys_addr_t addr, phys_addr_t size);
+									 phys_addr_t addr, phys_addr_t size);
 extern int  __qcom_scm_pas_auth_and_reset(struct device *dev, u32 peripheral);
 extern int  __qcom_scm_pas_shutdown(struct device *dev, u32 peripheral);
 extern int  __qcom_scm_pas_mss_reset(struct device *dev, bool reset);
@@ -67,19 +67,25 @@ extern int  __qcom_scm_pas_mss_reset(struct device *dev, bool reset);
 
 static inline int qcom_scm_remap_error(int err)
 {
-	switch (err) {
-	case QCOM_SCM_ERROR:
-		return -EIO;
-	case QCOM_SCM_EINVAL_ADDR:
-	case QCOM_SCM_EINVAL_ARG:
-		return -EINVAL;
-	case QCOM_SCM_EOPNOTSUPP:
-		return -EOPNOTSUPP;
-	case QCOM_SCM_ENOMEM:
-		return -ENOMEM;
-	case QCOM_SCM_V2_EBUSY:
-		return -EBUSY;
+	switch (err)
+	{
+		case QCOM_SCM_ERROR:
+			return -EIO;
+
+		case QCOM_SCM_EINVAL_ADDR:
+		case QCOM_SCM_EINVAL_ARG:
+			return -EINVAL;
+
+		case QCOM_SCM_EOPNOTSUPP:
+			return -EOPNOTSUPP;
+
+		case QCOM_SCM_ENOMEM:
+			return -ENOMEM;
+
+		case QCOM_SCM_V2_EBUSY:
+			return -EBUSY;
 	}
+
 	return -EINVAL;
 }
 

@@ -26,7 +26,8 @@
 
 /* Some fake data */
 
-static const s16 fakedata[] = {
+static const s16 fakedata[] =
+{
 	[DUMMY_INDEX_VOLTAGE_0] = 7,
 	[DUMMY_INDEX_DIFFVOLTAGE_1M2] = -33,
 	[DUMMY_INDEX_DIFFVOLTAGE_3M4] = -2,
@@ -51,10 +52,14 @@ static irqreturn_t iio_simple_dummy_trigger_h(int irq, void *p)
 	u16 *data;
 
 	data = kmalloc(indio_dev->scan_bytes, GFP_KERNEL);
-	if (!data)
-		goto done;
 
-	if (!bitmap_empty(indio_dev->active_scan_mask, indio_dev->masklength)) {
+	if (!data)
+	{
+		goto done;
+	}
+
+	if (!bitmap_empty(indio_dev->active_scan_mask, indio_dev->masklength))
+	{
 		/*
 		 * Three common options here:
 		 * hardware scans: certain combinations of channels make
@@ -74,11 +79,12 @@ static irqreturn_t iio_simple_dummy_trigger_h(int irq, void *p)
 		int i, j;
 
 		for (i = 0, j = 0;
-		     i < bitmap_weight(indio_dev->active_scan_mask,
-				       indio_dev->masklength);
-		     i++, j++) {
+			 i < bitmap_weight(indio_dev->active_scan_mask,
+							   indio_dev->masklength);
+			 i++, j++)
+		{
 			j = find_next_bit(indio_dev->active_scan_mask,
-					  indio_dev->masklength, j);
+							  indio_dev->masklength, j);
 			/* random access read from the 'device' */
 			data[i] = fakedata[j];
 			len += 2;
@@ -86,7 +92,7 @@ static irqreturn_t iio_simple_dummy_trigger_h(int irq, void *p)
 	}
 
 	iio_push_to_buffers_with_timestamp(indio_dev, data,
-					   iio_get_time_ns(indio_dev));
+									   iio_get_time_ns(indio_dev));
 
 	kfree(data);
 
@@ -100,7 +106,8 @@ done:
 	return IRQ_HANDLED;
 }
 
-static const struct iio_buffer_setup_ops iio_simple_dummy_buffer_setup_ops = {
+static const struct iio_buffer_setup_ops iio_simple_dummy_buffer_setup_ops =
+{
 	/*
 	 * iio_triggered_buffer_postenable:
 	 * Generic function that simply attaches the pollfunc to the trigger.
@@ -124,7 +131,9 @@ int iio_simple_dummy_configure_buffer(struct iio_dev *indio_dev)
 
 	/* Allocate a buffer to use - here a kfifo */
 	buffer = iio_kfifo_allocate();
-	if (!buffer) {
+
+	if (!buffer)
+	{
 		ret = -ENOMEM;
 		goto error_ret;
 	}
@@ -157,13 +166,14 @@ int iio_simple_dummy_configure_buffer(struct iio_dev *indio_dev)
 	 * as seen under /proc/interrupts. Remaining parameters as per printk.
 	 */
 	indio_dev->pollfunc = iio_alloc_pollfunc(NULL,
-						 &iio_simple_dummy_trigger_h,
-						 IRQF_ONESHOT,
-						 indio_dev,
-						 "iio_simple_dummy_consumer%d",
-						 indio_dev->id);
+						  &iio_simple_dummy_trigger_h,
+						  IRQF_ONESHOT,
+						  indio_dev,
+						  "iio_simple_dummy_consumer%d",
+						  indio_dev->id);
 
-	if (!indio_dev->pollfunc) {
+	if (!indio_dev->pollfunc)
+	{
 		ret = -ENOMEM;
 		goto error_free_buffer;
 	}

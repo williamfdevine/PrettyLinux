@@ -61,13 +61,15 @@
 #define NES_MAX_IRD		 0x40
 #define NES_MAX_ORD		 0x7F
 
-enum ietf_mpa_flags {
+enum ietf_mpa_flags
+{
 	IETF_MPA_FLAGS_MARKERS = 0x80,	/* receive Markers */
 	IETF_MPA_FLAGS_CRC     = 0x40,	/* receive Markers */
 	IETF_MPA_FLAGS_REJECT  = 0x20,	/* Reject */
 };
 
-struct ietf_mpa_v1 {
+struct ietf_mpa_v1
+{
 	u8 key[IETF_MPA_KEY_SIZE];
 	u8 flags;
 	u8 rev;
@@ -77,21 +79,24 @@ struct ietf_mpa_v1 {
 
 #define ietf_mpa_req_resp_frame ietf_mpa_frame
 
-struct ietf_rtr_msg {
+struct ietf_rtr_msg
+{
 	__be16 ctrl_ird;
 	__be16 ctrl_ord;
 };
 
-struct ietf_mpa_v2 {
+struct ietf_mpa_v2
+{
 	u8 key[IETF_MPA_KEY_SIZE];
 	u8 flags;
 	u8 rev;
-	 __be16 priv_data_len;
+	__be16 priv_data_len;
 	struct ietf_rtr_msg rtr_msg;
 	u8 priv_data[0];
 };
 
-struct nes_v4_quad {
+struct nes_v4_quad
+{
 	u32 rsvd0;
 	__le32 DstIpAdrIndex;	/* Only most significant 5 bits are valid */
 	__be32 SrcIpadr;
@@ -99,7 +104,8 @@ struct nes_v4_quad {
 };
 
 struct nes_cm_node;
-enum nes_timer_type {
+enum nes_timer_type
+{
 	NES_TIMER_TYPE_SEND,
 	NES_TIMER_TYPE_RECV,
 	NES_TIMER_NODE_CLEANUP,
@@ -119,12 +125,14 @@ enum nes_timer_type {
 
 #define TCP_OPTIONS_PADDING	3
 
-struct option_base {
+struct option_base
+{
 	u8 optionnum;
 	u8 length;
 };
 
-enum option_numbers {
+enum option_numbers
+{
 	OPTION_NUMBER_END,
 	OPTION_NUMBER_NONE,
 	OPTION_NUMBER_MSS,
@@ -134,26 +142,30 @@ enum option_numbers {
 	OPTION_NUMBER_WRITE0 = 0xbc
 };
 
-struct option_mss {
+struct option_mss
+{
 	u8 optionnum;
 	u8 length;
 	__be16 mss;
 };
 
-struct option_windowscale {
+struct option_windowscale
+{
 	u8 optionnum;
 	u8 length;
 	u8 shiftcount;
 };
 
-union all_known_options {
+union all_known_options
+{
 	char as_end;
 	struct option_base as_base;
 	struct option_mss as_mss;
 	struct option_windowscale as_windowscale;
 };
 
-struct nes_timer_entry {
+struct nes_timer_entry
+{
 	struct list_head list;
 	unsigned long timetosend;	/* jiffies */
 	struct sk_buff *skb;
@@ -170,9 +182,9 @@ struct nes_timer_entry {
 #define NES_DEFAULT_RETRYS  64
 #define NES_DEFAULT_RETRANS 8
 #ifdef CONFIG_INFINIBAND_NES_DEBUG
-#define NES_RETRY_TIMEOUT   (1000*HZ/1000)
+	#define NES_RETRY_TIMEOUT   (1000*HZ/1000)
 #else
-#define NES_RETRY_TIMEOUT   (3000*HZ/1000)
+	#define NES_RETRY_TIMEOUT   (3000*HZ/1000)
 #endif
 #define NES_SHORT_TIME      (10)
 #define NES_LONG_TIME       (2000*HZ/1000)
@@ -205,7 +217,8 @@ typedef u32 nes_addr_t;
 struct nes_qp;
 
 /* cm node transition states */
-enum nes_cm_node_state {
+enum nes_cm_node_state
+{
 	NES_CM_STATE_UNKNOWN,
 	NES_CM_STATE_INITED,
 	NES_CM_STATE_LISTENING,
@@ -228,22 +241,26 @@ enum nes_cm_node_state {
 	NES_CM_STATE_CLOSED
 };
 
-enum mpa_frame_version {
+enum mpa_frame_version
+{
 	IETF_MPA_V1 = 1,
 	IETF_MPA_V2 = 2
 };
 
-enum mpa_frame_key {
+enum mpa_frame_key
+{
 	MPA_KEY_REQUEST,
 	MPA_KEY_REPLY
 };
 
-enum send_rdma0 {
+enum send_rdma0
+{
 	SEND_RDMA_READ_ZERO = 1,
 	SEND_RDMA_WRITE_ZERO = 2
 };
 
-enum nes_tcpip_pkt_type {
+enum nes_tcpip_pkt_type
+{
 	NES_PKT_TYPE_UNKNOWN,
 	NES_PKT_TYPE_SYN,
 	NES_PKT_TYPE_SYNACK,
@@ -254,12 +271,14 @@ enum nes_tcpip_pkt_type {
 
 
 /* type of nes connection */
-enum nes_cm_conn_type {
+enum nes_cm_conn_type
+{
 	NES_CM_IWARP_CONN_TYPE,
 };
 
 /* CM context params */
-struct nes_cm_tcp_context {
+struct nes_cm_tcp_context
+{
 	u8  client;
 
 	u32 loc_seq_num;
@@ -283,13 +302,15 @@ struct nes_cm_tcp_context {
 };
 
 
-enum nes_cm_listener_state {
+enum nes_cm_listener_state
+{
 	NES_CM_LISTENER_PASSIVE_STATE = 1,
 	NES_CM_LISTENER_ACTIVE_STATE = 2,
 	NES_CM_LISTENER_EITHER_STATE = 3
 };
 
-struct nes_cm_listener {
+struct nes_cm_listener
+{
 	struct list_head           list;
 	struct nes_cm_core         *cm_core;
 	u8                         loc_mac[ETH_ALEN];
@@ -307,7 +328,8 @@ struct nes_cm_listener {
 };
 
 /* per connection node and node state information */
-struct nes_cm_node {
+struct nes_cm_node
+{
 	nes_addr_t                loc_addr, rem_addr;
 	u16                       loc_port, rem_port;
 
@@ -328,7 +350,8 @@ struct nes_cm_node {
 	spinlock_t                retrans_list_lock;
 	enum send_rdma0           send_rdma0_op;
 
-	union {
+	union
+	{
 		struct ietf_mpa_v1 mpa_frame;
 		struct ietf_mpa_v2 mpa_v2_frame;
 		u8                 mpa_frame_buf[MAX_CM_BUFFER];
@@ -356,8 +379,10 @@ struct nes_cm_node {
 
 /* structure for client or CM to fill when making CM api calls. */
 /*	- only need to set relevant data, based on op. */
-struct nes_cm_info {
-	union {
+struct nes_cm_info
+{
+	union
+	{
 		struct iw_cm_id   *cm_id;
 		struct net_device *netdev;
 	};
@@ -371,7 +396,8 @@ struct nes_cm_info {
 };
 
 /* CM event codes */
-enum  nes_cm_event_type {
+enum  nes_cm_event_type
+{
 	NES_CM_EVENT_UNKNOWN,
 	NES_CM_EVENT_ESTABLISHED,
 	NES_CM_EVENT_MPA_REQ,
@@ -391,7 +417,8 @@ enum  nes_cm_event_type {
 };
 
 /* event to post to CM event handler */
-struct nes_cm_event {
+struct nes_cm_event
+{
 	enum nes_cm_event_type type;
 
 	struct nes_cm_info cm_info;
@@ -399,7 +426,8 @@ struct nes_cm_event {
 	struct nes_cm_node *cm_node;
 };
 
-struct nes_cm_core {
+struct nes_cm_core
+{
 	enum nes_cm_node_state  state;
 
 	atomic_t                listen_node_cnt;
@@ -435,26 +463,27 @@ struct nes_cm_core {
 #define NES_CM_SET_FREE_PKT_Q_SIZE (1 << 2)
 
 /* CM ops/API for client interface */
-struct nes_cm_ops {
+struct nes_cm_ops
+{
 	int (*accelerated)(struct nes_cm_core *, struct nes_cm_node *);
-	struct nes_cm_listener * (*listen)(struct nes_cm_core *, struct nes_vnic *,
-			struct nes_cm_info *);
+	struct nes_cm_listener *(*listen)(struct nes_cm_core *, struct nes_vnic *,
+									  struct nes_cm_info *);
 	int (*stop_listener)(struct nes_cm_core *, struct nes_cm_listener *);
-	struct nes_cm_node * (*connect)(struct nes_cm_core *,
-			struct nes_vnic *, u16, void *,
-			struct nes_cm_info *);
+	struct nes_cm_node *(*connect)(struct nes_cm_core *,
+								   struct nes_vnic *, u16, void *,
+								   struct nes_cm_info *);
 	int (*close)(struct nes_cm_core *, struct nes_cm_node *);
 	int (*accept)(struct nes_cm_core *, struct nes_cm_node *);
 	int (*reject)(struct nes_cm_core *, struct nes_cm_node *);
 	int (*recv_pkt)(struct nes_cm_core *, struct nes_vnic *,
-			struct sk_buff *);
+					struct sk_buff *);
 	int (*destroy_cm_core)(struct nes_cm_core *);
 	int (*get)(struct nes_cm_core *);
 	int (*set)(struct nes_cm_core *, u32, u32);
 };
 
 int schedule_nes_timer(struct nes_cm_node *, struct sk_buff *,
-		enum nes_timer_type, int, int);
+					   enum nes_timer_type, int, int);
 
 int nes_accept(struct iw_cm_id *, struct iw_cm_conn_param *);
 int nes_reject(struct iw_cm_id *, const void *, u8);

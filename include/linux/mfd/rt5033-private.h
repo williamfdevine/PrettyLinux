@@ -12,7 +12,8 @@
 #ifndef __RT5033_PRIVATE_H__
 #define __RT5033_PRIVATE_H__
 
-enum rt5033_reg {
+enum rt5033_reg
+{
 	RT5033_REG_CHG_STAT		= 0x00,
 	RT5033_REG_CHG_CTRL1		= 0x01,
 	RT5033_REG_CHG_CTRL2		= 0x02,
@@ -214,7 +215,8 @@ enum rt5033_reg {
 /* RT5033 regulator SAFE LDO output voltage uV */
 #define RT5033_REGULATOR_SAFE_LDO_VOLTAGE		4900000U
 
-enum rt5033_fuel_reg {
+enum rt5033_fuel_reg
+{
 	RT5033_FUEL_REG_OCV_H		= 0x00,
 	RT5033_FUEL_REG_OCV_L		= 0x01,
 	RT5033_FUEL_REG_VBAT_H		= 0x02,

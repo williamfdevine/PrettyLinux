@@ -73,7 +73,8 @@
 #define SUN4I_FIFO_STA_TF_CNT_MASK		0x7f
 #define SUN4I_FIFO_STA_TF_CNT_BITS		16
 
-struct sun4i_spi {
+struct sun4i_spi
+{
 	struct spi_master	*master;
 	void __iomem		*base_addr;
 	struct clk		*hclk;
@@ -107,12 +108,18 @@ static inline void sun4i_spi_drain_fifo(struct sun4i_spi *sspi, int len)
 	cnt = reg >> SUN4I_FIFO_STA_RF_CNT_BITS;
 
 	if (len > cnt)
+	{
 		len = cnt;
+	}
 
-	while (len--) {
+	while (len--)
+	{
 		byte = readb(sspi->base_addr + SUN4I_RXDATA_REG);
+
 		if (sspi->rx_buf)
+		{
 			*sspi->rx_buf++ = byte;
+		}
 	}
 }
 
@@ -121,9 +128,12 @@ static inline void sun4i_spi_fill_fifo(struct sun4i_spi *sspi, int len)
 	u8 byte;
 
 	if (len > sspi->len)
+	{
 		len = sspi->len;
+	}
 
-	while (len--) {
+	while (len--)
+	{
 		byte = sspi->tx_buf ? *sspi->tx_buf++ : 0;
 		writeb(byte, sspi->base_addr + SUN4I_TXDATA_REG);
 		sspi->len--;
@@ -144,9 +154,13 @@ static void sun4i_spi_set_cs(struct spi_device *spi, bool enable)
 	reg |= SUN4I_CTL_CS_MANUAL;
 
 	if (enable)
+	{
 		reg |= SUN4I_CTL_CS_LEVEL;
+	}
 	else
+	{
 		reg &= ~SUN4I_CTL_CS_LEVEL;
+	}
 
 	/*
 	 * Even though this looks irrelevant since we are supposed to
@@ -160,9 +174,13 @@ static void sun4i_spi_set_cs(struct spi_device *spi, bool enable)
 	 * low.
 	 */
 	if (spi->mode & SPI_CS_HIGH)
+	{
 		reg &= ~SUN4I_CTL_CS_ACTIVE_LOW;
+	}
 	else
+	{
 		reg |= SUN4I_CTL_CS_ACTIVE_LOW;
+	}
 
 	sun4i_spi_write(sspi, SUN4I_CTL_REG, reg);
 }
@@ -173,8 +191,8 @@ static size_t sun4i_spi_max_transfer_size(struct spi_device *spi)
 }
 
 static int sun4i_spi_transfer_one(struct spi_master *master,
-				  struct spi_device *spi,
-				  struct spi_transfer *tfr)
+								  struct spi_device *spi,
+								  struct spi_transfer *tfr)
 {
 	struct sun4i_spi *sspi = spi_master_get_devdata(master);
 	unsigned int mclk_rate, div, timeout;
@@ -185,10 +203,14 @@ static int sun4i_spi_transfer_one(struct spi_master *master,
 
 	/* We don't support transfer larger than the FIFO */
 	if (tfr->len > SUN4I_FIFO_DEPTH)
+	{
 		return -EMSGSIZE;
+	}
 
 	if (tfr->tx_buf && tfr->len >= SUN4I_FIFO_DEPTH)
+	{
 		return -EMSGSIZE;
+	}
 
 	reinit_completion(&sspi->done);
 	sspi->tx_buf = tfr->tx_buf;
@@ -203,26 +225,38 @@ static int sun4i_spi_transfer_one(struct spi_master *master,
 
 	/* Reset FIFOs */
 	sun4i_spi_write(sspi, SUN4I_CTL_REG,
-			reg | SUN4I_CTL_RF_RST | SUN4I_CTL_TF_RST);
+					reg | SUN4I_CTL_RF_RST | SUN4I_CTL_TF_RST);
 
 	/*
 	 * Setup the transfer control register: Chip Select,
 	 * polarities, etc.
 	 */
 	if (spi->mode & SPI_CPOL)
+	{
 		reg |= SUN4I_CTL_CPOL;
+	}
 	else
+	{
 		reg &= ~SUN4I_CTL_CPOL;
+	}
 
 	if (spi->mode & SPI_CPHA)
+	{
 		reg |= SUN4I_CTL_CPHA;
+	}
 	else
+	{
 		reg &= ~SUN4I_CTL_CPHA;
+	}
 
 	if (spi->mode & SPI_LSB_FIRST)
+	{
 		reg |= SUN4I_CTL_LMTF;
+	}
 	else
+	{
 		reg &= ~SUN4I_CTL_LMTF;
+	}
 
 
 	/*
@@ -230,15 +264,21 @@ static int sun4i_spi_transfer_one(struct spi_master *master,
 	 * FIFO with bogus data
 	 */
 	if (sspi->rx_buf)
+	{
 		reg &= ~SUN4I_CTL_DHB;
+	}
 	else
+	{
 		reg |= SUN4I_CTL_DHB;
+	}
 
 	sun4i_spi_write(sspi, SUN4I_CTL_REG, reg);
 
 	/* Ensure that we have a parent clock fast enough */
 	mclk_rate = clk_get_rate(sspi->mclk);
-	if (mclk_rate < (2 * tfr->speed_hz)) {
+
+	if (mclk_rate < (2 * tfr->speed_hz))
+	{
 		clk_set_rate(sspi->mclk, 2 * tfr->speed_hz);
 		mclk_rate = clk_get_rate(sspi->mclk);
 	}
@@ -258,12 +298,18 @@ static int sun4i_spi_transfer_one(struct spi_master *master,
 	 * frequency, fall back to CDR1.
 	 */
 	div = mclk_rate / (2 * tfr->speed_hz);
-	if (div <= (SUN4I_CLK_CTL_CDR2_MASK + 1)) {
+
+	if (div <= (SUN4I_CLK_CTL_CDR2_MASK + 1))
+	{
 		if (div > 0)
+		{
 			div--;
+		}
 
 		reg = SUN4I_CLK_CTL_CDR2(div) | SUN4I_CLK_CTL_DRS;
-	} else {
+	}
+	else
+	{
 		div = ilog2(mclk_rate) - ilog2(tfr->speed_hz);
 		reg = SUN4I_CLK_CTL_CDR1(div);
 	}
@@ -272,7 +318,9 @@ static int sun4i_spi_transfer_one(struct spi_master *master,
 
 	/* Setup the transfer now... */
 	if (sspi->tx_buf)
+	{
 		tx_len = tfr->len;
+	}
 
 	/* Setup the counters */
 	sun4i_spi_write(sspi, SUN4I_BURST_CNT_REG, SUN4I_BURST_CNT(tfr->len));
@@ -295,13 +343,15 @@ static int sun4i_spi_transfer_one(struct spi_master *master,
 	tx_time = max(tfr->len * 8 * 2 / (tfr->speed_hz / 1000), 100U);
 	start = jiffies;
 	timeout = wait_for_completion_timeout(&sspi->done,
-					      msecs_to_jiffies(tx_time));
+										  msecs_to_jiffies(tx_time));
 	end = jiffies;
-	if (!timeout) {
+
+	if (!timeout)
+	{
 		dev_warn(&master->dev,
-			 "%s: timeout transferring %u bytes@%iHz for %i(%i)ms",
-			 dev_name(&spi->dev), tfr->len, tfr->speed_hz,
-			 jiffies_to_msecs(end - start), tx_time);
+				 "%s: timeout transferring %u bytes@%iHz for %i(%i)ms",
+				 dev_name(&spi->dev), tfr->len, tfr->speed_hz,
+				 jiffies_to_msecs(end - start), tx_time);
 		ret = -ETIMEDOUT;
 		goto out;
 	}
@@ -320,7 +370,8 @@ static irqreturn_t sun4i_spi_handler(int irq, void *dev_id)
 	u32 status = sun4i_spi_read(sspi, SUN4I_INT_STA_REG);
 
 	/* Transfer complete */
-	if (status & SUN4I_INT_CTL_TC) {
+	if (status & SUN4I_INT_CTL_TC)
+	{
 		sun4i_spi_write(sspi, SUN4I_INT_STA_REG, SUN4I_INT_CTL_TC);
 		complete(&sspi->done);
 		return IRQ_HANDLED;
@@ -336,19 +387,23 @@ static int sun4i_spi_runtime_resume(struct device *dev)
 	int ret;
 
 	ret = clk_prepare_enable(sspi->hclk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't enable AHB clock\n");
 		goto out;
 	}
 
 	ret = clk_prepare_enable(sspi->mclk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't enable module clock\n");
 		goto err;
 	}
 
 	sun4i_spi_write(sspi, SUN4I_CTL_REG,
-			SUN4I_CTL_ENABLE | SUN4I_CTL_MASTER | SUN4I_CTL_TP);
+					SUN4I_CTL_ENABLE | SUN4I_CTL_MASTER | SUN4I_CTL_TP);
 
 	return 0;
 
@@ -377,7 +432,9 @@ static int sun4i_spi_probe(struct platform_device *pdev)
 	int ret = 0, irq;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(struct sun4i_spi));
-	if (!master) {
+
+	if (!master)
+	{
 		dev_err(&pdev->dev, "Unable to allocate SPI Master\n");
 		return -ENOMEM;
 	}
@@ -387,21 +444,27 @@ static int sun4i_spi_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	sspi->base_addr = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(sspi->base_addr)) {
+
+	if (IS_ERR(sspi->base_addr))
+	{
 		ret = PTR_ERR(sspi->base_addr);
 		goto err_free_master;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "No spi IRQ specified\n");
 		ret = -ENXIO;
 		goto err_free_master;
 	}
 
 	ret = devm_request_irq(&pdev->dev, irq, sun4i_spi_handler,
-			       0, "sun4i-spi", sspi);
-	if (ret) {
+						   0, "sun4i-spi", sspi);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Cannot request IRQ\n");
 		goto err_free_master;
 	}
@@ -419,14 +482,18 @@ static int sun4i_spi_probe(struct platform_device *pdev)
 	master->max_transfer_size = sun4i_spi_max_transfer_size;
 
 	sspi->hclk = devm_clk_get(&pdev->dev, "ahb");
-	if (IS_ERR(sspi->hclk)) {
+
+	if (IS_ERR(sspi->hclk))
+	{
 		dev_err(&pdev->dev, "Unable to acquire AHB clock\n");
 		ret = PTR_ERR(sspi->hclk);
 		goto err_free_master;
 	}
 
 	sspi->mclk = devm_clk_get(&pdev->dev, "mod");
-	if (IS_ERR(sspi->mclk)) {
+
+	if (IS_ERR(sspi->mclk))
+	{
 		dev_err(&pdev->dev, "Unable to acquire module clock\n");
 		ret = PTR_ERR(sspi->mclk);
 		goto err_free_master;
@@ -439,7 +506,9 @@ static int sun4i_spi_probe(struct platform_device *pdev)
 	 * device woken up, even if runtime_pm is disabled
 	 */
 	ret = sun4i_spi_runtime_resume(&pdev->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Couldn't resume the device\n");
 		goto err_free_master;
 	}
@@ -449,7 +518,9 @@ static int sun4i_spi_probe(struct platform_device *pdev)
 	pm_runtime_idle(&pdev->dev);
 
 	ret = devm_spi_register_master(&pdev->dev, master);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "cannot register SPI master\n");
 		goto err_pm_disable;
 	}
@@ -471,18 +542,21 @@ static int sun4i_spi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sun4i_spi_match[] = {
+static const struct of_device_id sun4i_spi_match[] =
+{
 	{ .compatible = "allwinner,sun4i-a10-spi", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, sun4i_spi_match);
 
-static const struct dev_pm_ops sun4i_spi_pm_ops = {
+static const struct dev_pm_ops sun4i_spi_pm_ops =
+{
 	.runtime_resume		= sun4i_spi_runtime_resume,
 	.runtime_suspend	= sun4i_spi_runtime_suspend,
 };
 
-static struct platform_driver sun4i_spi_driver = {
+static struct platform_driver sun4i_spi_driver =
+{
 	.probe	= sun4i_spi_probe,
 	.remove	= sun4i_spi_remove,
 	.driver	= {

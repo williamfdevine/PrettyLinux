@@ -56,7 +56,7 @@ module_param(min_fsb, int, 0444);
 
 MODULE_PARM_DESC(fid, "CPU multiplier to use (11.5 = 115)");
 MODULE_PARM_DESC(min_fsb,
-		"Minimum FSB to use, if not defined: current FSB - 50");
+				 "Minimum FSB to use, if not defined: current FSB - 50");
 
 /**
  * nforce2_calc_fsb - calculate FSB
@@ -72,7 +72,9 @@ static int nforce2_calc_fsb(int pll)
 	div = pll & 0xff;
 
 	if (div > 0)
+	{
 		return NFORCE2_XTAL * mul / div;
+	}
 
 	return 0;
 }
@@ -90,19 +92,24 @@ static int nforce2_calc_pll(unsigned int fsb)
 	int tried = 0;
 
 	/* Try to calculate multiplier and divider up to 4 times */
-	while (((mul == 0) || (div == 0)) && (tried <= 3)) {
+	while (((mul == 0) || (div == 0)) && (tried <= 3))
+	{
 		for (xdiv = 2; xdiv <= 0x80; xdiv++)
 			for (xmul = 1; xmul <= 0xfe; xmul++)
 				if (nforce2_calc_fsb(NFORCE2_PLL(xmul, xdiv)) ==
-				    fsb + tried) {
+					fsb + tried)
+				{
 					mul = xmul;
 					div = xdiv;
 				}
+
 		tried++;
 	}
 
 	if ((mul == 0) || (div == 0))
+	{
 		return -1;
+	}
 
 	return NFORCE2_PLL(mul, div);
 }
@@ -122,7 +129,9 @@ static void nforce2_write_pll(int pll)
 
 	/* Now write the value in all 64 registers */
 	for (temp = 0; temp <= 0x3f; temp++)
+	{
 		pci_write_config_dword(nforce2_dev, NFORCE2_PLLREG, pll);
+	}
 
 	return;
 }
@@ -140,9 +149,12 @@ static unsigned int nforce2_fsb_read(int bootfsb)
 
 	/* Get chipset boot FSB from subdevice 5 (FSB at boot-time) */
 	nforce2_sub5 = pci_get_subsys(PCI_VENDOR_ID_NVIDIA, 0x01EF,
-				PCI_ANY_ID, PCI_ANY_ID, NULL);
+								  PCI_ANY_ID, PCI_ANY_ID, NULL);
+
 	if (!nforce2_sub5)
+	{
 		return 0;
+	}
 
 	pci_read_config_dword(nforce2_sub5, NFORCE2_BOOTFSB, &fsb);
 	fsb /= 1000000;
@@ -151,7 +163,9 @@ static unsigned int nforce2_fsb_read(int bootfsb)
 	pci_read_config_byte(nforce2_dev, NFORCE2_PLLENABLE, (u8 *)&temp);
 
 	if (bootfsb || !temp)
+	{
 		return fsb;
+	}
 
 	/* Use PLL register FSB value */
 	pci_read_config_dword(nforce2_dev, NFORCE2_PLLREG, &temp);
@@ -173,24 +187,31 @@ static int nforce2_set_fsb(unsigned int fsb)
 	int diff;
 	int pll = 0;
 
-	if ((fsb > max_fsb) || (fsb < NFORCE2_MIN_FSB)) {
+	if ((fsb > max_fsb) || (fsb < NFORCE2_MIN_FSB))
+	{
 		pr_err("FSB %d is out of range!\n", fsb);
 		return -EINVAL;
 	}
 
 	tfsb = nforce2_fsb_read(0);
-	if (!tfsb) {
+
+	if (!tfsb)
+	{
 		pr_err("Error while reading the FSB\n");
 		return -EINVAL;
 	}
 
 	/* First write? Then set actual value */
 	pci_read_config_byte(nforce2_dev, NFORCE2_PLLENABLE, (u8 *)&temp);
-	if (!temp) {
+
+	if (!temp)
+	{
 		pll = nforce2_calc_pll(tfsb);
 
 		if (pll < 0)
+		{
 			return -EINVAL;
+		}
 
 		nforce2_write_pll(pll);
 	}
@@ -202,18 +223,28 @@ static int nforce2_set_fsb(unsigned int fsb)
 	diff = tfsb - fsb;
 
 	if (!diff)
+	{
 		return 0;
+	}
 
-	while ((tfsb != fsb) && (tfsb <= max_fsb) && (tfsb >= min_fsb)) {
+	while ((tfsb != fsb) && (tfsb <= max_fsb) && (tfsb >= min_fsb))
+	{
 		if (diff < 0)
+		{
 			tfsb++;
+		}
 		else
+		{
 			tfsb--;
+		}
 
 		/* Calculate the PLL reg. value */
 		pll = nforce2_calc_pll(tfsb);
+
 		if (pll == -1)
+		{
 			return -EINVAL;
+		}
 
 		nforce2_write_pll(pll);
 #ifdef NFORCE2_DELAY
@@ -236,7 +267,10 @@ static int nforce2_set_fsb(unsigned int fsb)
 static unsigned int nforce2_get(unsigned int cpu)
 {
 	if (cpu)
+	{
 		return 0;
+	}
+
 	return nforce2_fsb_read(0) * fid * 100;
 }
 
@@ -250,14 +284,16 @@ static unsigned int nforce2_get(unsigned int cpu)
  * Sets a new CPUFreq policy.
  */
 static int nforce2_target(struct cpufreq_policy *policy,
-			  unsigned int target_freq, unsigned int relation)
+						  unsigned int target_freq, unsigned int relation)
 {
-/*        unsigned long         flags; */
+	/*        unsigned long         flags; */
 	struct cpufreq_freqs freqs;
 	unsigned int target_fsb;
 
 	if ((target_freq > policy->max) || (target_freq < policy->min))
+	{
 		return -EINVAL;
+	}
 
 	target_fsb = target_freq / (fid * 100);
 
@@ -265,10 +301,12 @@ static int nforce2_target(struct cpufreq_policy *policy,
 	freqs.new = target_fsb * fid * 100;
 
 	if (freqs.old == freqs.new)
+	{
 		return 0;
+	}
 
 	pr_debug("Old CPU frequency %d kHz, new %d kHz\n",
-	       freqs.old, freqs.new);
+			 freqs.old, freqs.new);
 
 	cpufreq_freq_transition_begin(policy, &freqs);
 
@@ -276,10 +314,12 @@ static int nforce2_target(struct cpufreq_policy *policy,
 	/* local_irq_save(flags); */
 
 	if (nforce2_set_fsb(target_fsb) < 0)
+	{
 		pr_err("Changing FSB to %d failed\n", target_fsb);
+	}
 	else
 		pr_debug("Changed FSB successfully to %d\n",
-			target_fsb);
+				 target_fsb);
 
 	/* Enable IRQs */
 	/* local_irq_restore(flags); */
@@ -300,7 +340,9 @@ static int nforce2_verify(struct cpufreq_policy *policy)
 	fsb_pol_max = policy->max / (fid * 100);
 
 	if (policy->min < (fsb_pol_max * fid * 100))
+	{
 		policy->max = (fsb_pol_max + 1) * fid * 100;
+	}
 
 	cpufreq_verify_within_cpu_limits(policy);
 	return 0;
@@ -313,17 +355,23 @@ static int nforce2_cpu_init(struct cpufreq_policy *policy)
 
 	/* capability check */
 	if (policy->cpu != 0)
+	{
 		return -ENODEV;
+	}
 
 	/* Get current FSB */
 	fsb = nforce2_fsb_read(0);
 
 	if (!fsb)
+	{
 		return -EIO;
+	}
 
 	/* FIX: Get FID from CPU */
-	if (!fid) {
-		if (!cpu_khz) {
+	if (!fid)
+	{
+		if (!cpu_khz)
+		{
 			pr_warn("cpu_khz not set, can't calculate multiplier!\n");
 			return -ENODEV;
 		}
@@ -331,28 +379,39 @@ static int nforce2_cpu_init(struct cpufreq_policy *policy)
 		fid = cpu_khz / (fsb * 100);
 		rfid = fid % 5;
 
-		if (rfid) {
+		if (rfid)
+		{
 			if (rfid > 2)
+			{
 				fid += 5 - rfid;
+			}
 			else
+			{
 				fid -= rfid;
+			}
 		}
 	}
 
 	pr_info("FSB currently at %i MHz, FID %d.%d\n",
-		fsb, fid / 10, fid % 10);
+			fsb, fid / 10, fid % 10);
 
 	/* Set maximum FSB to FSB at boot time */
 	max_fsb = nforce2_fsb_read(1);
 
 	if (!max_fsb)
+	{
 		return -EIO;
+	}
 
 	if (!min_fsb)
+	{
 		min_fsb = max_fsb - NFORCE2_SAFE_DISTANCE;
+	}
 
 	if (min_fsb < NFORCE2_MIN_FSB)
+	{
 		min_fsb = NFORCE2_MIN_FSB;
+	}
 
 	/* cpuinfo and default policy values */
 	policy->min = policy->cpuinfo.min_freq = min_fsb * fid * 100;
@@ -367,7 +426,8 @@ static int nforce2_cpu_exit(struct cpufreq_policy *policy)
 	return 0;
 }
 
-static struct cpufreq_driver nforce2_driver = {
+static struct cpufreq_driver nforce2_driver =
+{
 	.name = "nforce2",
 	.verify = nforce2_verify,
 	.target = nforce2_target,
@@ -377,7 +437,8 @@ static struct cpufreq_driver nforce2_driver = {
 };
 
 #ifdef MODULE
-static const struct pci_device_id nforce2_ids[] = {
+static const struct pci_device_id nforce2_ids[] =
+{
 	{ PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE2 },
 	{}
 };
@@ -393,14 +454,16 @@ MODULE_DEVICE_TABLE(pci, nforce2_ids);
 static int nforce2_detect_chipset(void)
 {
 	nforce2_dev = pci_get_subsys(PCI_VENDOR_ID_NVIDIA,
-					PCI_DEVICE_ID_NVIDIA_NFORCE2,
-					PCI_ANY_ID, PCI_ANY_ID, NULL);
+								 PCI_DEVICE_ID_NVIDIA_NFORCE2,
+								 PCI_ANY_ID, PCI_ANY_ID, NULL);
 
 	if (nforce2_dev == NULL)
+	{
 		return -ENODEV;
+	}
 
 	pr_info("Detected nForce2 chipset revision %X\n",
-		nforce2_dev->revision);
+			nforce2_dev->revision);
 	pr_info("FSB changing is maybe unstable and can lead to crashes and data loss\n");
 
 	return 0;
@@ -418,7 +481,8 @@ static int __init nforce2_init(void)
 	/* TODO: do we need to detect the processor? */
 
 	/* detect chipset */
-	if (nforce2_detect_chipset()) {
+	if (nforce2_detect_chipset())
+	{
 		pr_info("No nForce2 chipset\n");
 		return -ENODEV;
 	}

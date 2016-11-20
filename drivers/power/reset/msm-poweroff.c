@@ -24,7 +24,7 @@
 
 static void __iomem *msm_ps_hold;
 static int do_msm_restart(struct notifier_block *nb, unsigned long action,
-			   void *data)
+						  void *data)
 {
 	writel(0, msm_ps_hold);
 	mdelay(10000);
@@ -32,7 +32,8 @@ static int do_msm_restart(struct notifier_block *nb, unsigned long action,
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block restart_nb = {
+static struct notifier_block restart_nb =
+{
 	.notifier_call = do_msm_restart,
 	.priority = 128,
 };
@@ -50,8 +51,11 @@ static int msm_restart_probe(struct platform_device *pdev)
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	msm_ps_hold = devm_ioremap_resource(dev, mem);
+
 	if (IS_ERR(msm_ps_hold))
+	{
 		return PTR_ERR(msm_ps_hold);
+	}
 
 	register_restart_handler(&restart_nb);
 
@@ -60,13 +64,15 @@ static int msm_restart_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id of_msm_restart_match[] = {
+static const struct of_device_id of_msm_restart_match[] =
+{
 	{ .compatible = "qcom,pshold", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, of_msm_restart_match);
 
-static struct platform_driver msm_restart_driver = {
+static struct platform_driver msm_restart_driver =
+{
 	.probe = msm_restart_probe,
 	.driver = {
 		.name = "msm-restart",

@@ -21,33 +21,33 @@
  * @_compress: callback for compression call.
  */
 #define LOWPAN_NHC(__nhc, _name, _nexthdr,	\
-		   _hdrlen, _idsetup, _idlen,	\
-		   _uncompress, _compress)	\
+				   _hdrlen, _idsetup, _idlen,	\
+				   _uncompress, _compress)	\
 static u8 __nhc##_val[_idlen];			\
 static u8 __nhc##_mask[_idlen];			\
 static struct lowpan_nhc __nhc = {		\
 	.name		= _name,		\
-	.nexthdr	= _nexthdr,		\
-	.nexthdrlen	= _hdrlen,		\
-	.id		= __nhc##_val,		\
-	.idmask		= __nhc##_mask,		\
-	.idlen		= _idlen,		\
-	.idsetup	= _idsetup,		\
-	.uncompress	= _uncompress,		\
-	.compress	= _compress,		\
+				  .nexthdr	= _nexthdr,		\
+								.nexthdrlen	= _hdrlen,		\
+										.id		= __nhc##_val,		\
+												.idmask		= __nhc##_mask,		\
+														.idlen		= _idlen,		\
+																.idsetup	= _idsetup,		\
+																		.uncompress	= _uncompress,		\
+																				.compress	= _compress,		\
 }
 
 #define module_lowpan_nhc(__nhc)		\
-static int __init __nhc##_init(void)		\
-{						\
-	return lowpan_nhc_add(&(__nhc));	\
-}						\
-module_init(__nhc##_init);			\
-static void __exit __nhc##_exit(void)		\
-{						\
-	lowpan_nhc_del(&(__nhc));		\
-}						\
-module_exit(__nhc##_exit);
+	static int __init __nhc##_init(void)		\
+	{						\
+		return lowpan_nhc_add(&(__nhc));	\
+	}						\
+	module_init(__nhc##_init);			\
+	static void __exit __nhc##_exit(void)		\
+	{						\
+		lowpan_nhc_del(&(__nhc));		\
+	}						\
+	module_exit(__nhc##_exit);
 
 /**
  * struct lowpan_nhc - hold 6lowpan next hdr compression ifnformation
@@ -63,7 +63,8 @@ module_exit(__nhc##_exit);
  * @compress: callback to do the header compression.
  * @uncompress: callback to do the header uncompression.
  */
-struct lowpan_nhc {
+struct lowpan_nhc
+{
 	struct rb_node	node;
 	const char	*name;
 	const u8	nexthdr;
@@ -95,7 +96,7 @@ struct lowpan_nhc *lowpan_nhc_by_nexthdr(u8 nexthdr);
  *	    replaced header.
  */
 int lowpan_nhc_check_compression(struct sk_buff *skb,
-				 const struct ipv6hdr *hdr, u8 **hc_ptr);
+								 const struct ipv6hdr *hdr, u8 **hc_ptr);
 
 /**
  * lowpan_nhc_do_compression - calling compress callback for nhc
@@ -106,7 +107,7 @@ int lowpan_nhc_check_compression(struct sk_buff *skb,
  *	    replaced header.
  */
 int lowpan_nhc_do_compression(struct sk_buff *skb, const struct ipv6hdr *hdr,
-			      u8 **hc_ptr);
+							  u8 **hc_ptr);
 
 /**
  * lowpan_nhc_do_uncompression - calling uncompress callback for nhc
@@ -117,8 +118,8 @@ int lowpan_nhc_do_compression(struct sk_buff *skb, const struct ipv6hdr *hdr,
  * @hdr: ipv6hdr for setting nexthdr value.
  */
 int lowpan_nhc_do_uncompression(struct sk_buff *skb,
-				const struct net_device *dev,
-				struct ipv6hdr *hdr);
+								const struct net_device *dev,
+								struct ipv6hdr *hdr);
 
 /**
  * lowpan_nhc_add - register a next header compression to framework

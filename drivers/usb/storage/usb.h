@@ -55,12 +55,13 @@ struct us_data;
 struct scsi_cmnd;
 
 /*
- * Unusual device list definitions 
+ * Unusual device list definitions
  */
 
-struct us_unusual_dev {
-	const char* vendorName;
-	const char* productName;
+struct us_unusual_dev
+{
+	const char *vendorName;
+	const char *productName;
 	__u8  useProtocol;
 	__u8  useTransport;
 	int (*initFunction)(struct us_data *);
@@ -90,9 +91,9 @@ struct us_unusual_dev {
 #define US_IOBUF_SIZE		64	/* Size of the DMA-mapped I/O buffer */
 #define US_SENSE_SIZE		18	/* Size of the autosense data buffer */
 
-typedef int (*trans_cmnd)(struct scsi_cmnd *, struct us_data*);
-typedef int (*trans_reset)(struct us_data*);
-typedef void (*proto_cmnd)(struct scsi_cmnd*, struct us_data*);
+typedef int (*trans_cmnd)(struct scsi_cmnd *, struct us_data *);
+typedef int (*trans_reset)(struct us_data *);
+typedef void (*proto_cmnd)(struct scsi_cmnd *, struct us_data *);
 typedef void (*extra_data_destructor)(void *);	/* extra data destructor */
 typedef void (*pm_hook)(struct us_data *, int);	/* power management hook */
 
@@ -100,7 +101,8 @@ typedef void (*pm_hook)(struct us_data *, int);	/* power management hook */
 #define US_RESUME	1
 
 /* we allocate one of these for every device that we remember */
-struct us_data {
+struct us_data
+{
 	/*
 	 * The device we're working with
 	 * It's important to note:
@@ -166,16 +168,18 @@ struct us_data {
 };
 
 /* Convert between us_data and the corresponding Scsi_Host */
-static inline struct Scsi_Host *us_to_host(struct us_data *us) {
+static inline struct Scsi_Host *us_to_host(struct us_data *us)
+{
 	return container_of((void *) us, struct Scsi_Host, hostdata);
 }
-static inline struct us_data *host_to_us(struct Scsi_Host *host) {
+static inline struct us_data *host_to_us(struct Scsi_Host *host)
+{
 	return (struct us_data *) host->hostdata;
 }
 
 /* Function to fill an inquiry response. See usb.c for details */
 extern void fill_inquiry_response(struct us_data *us,
-	unsigned char *data, unsigned int data_len);
+								  unsigned char *data, unsigned int data_len);
 
 /*
  * The scsi_lock() and scsi_unlock() macros protect the sm_state and the
@@ -186,40 +190,40 @@ extern void fill_inquiry_response(struct us_data *us,
 
 /* General routines provided by the usb-storage standard core */
 #ifdef CONFIG_PM
-extern int usb_stor_suspend(struct usb_interface *iface, pm_message_t message);
-extern int usb_stor_resume(struct usb_interface *iface);
-extern int usb_stor_reset_resume(struct usb_interface *iface);
+	extern int usb_stor_suspend(struct usb_interface *iface, pm_message_t message);
+	extern int usb_stor_resume(struct usb_interface *iface);
+	extern int usb_stor_reset_resume(struct usb_interface *iface);
 #else
-#define usb_stor_suspend	NULL
-#define usb_stor_resume		NULL
-#define usb_stor_reset_resume	NULL
+	#define usb_stor_suspend	NULL
+	#define usb_stor_resume		NULL
+	#define usb_stor_reset_resume	NULL
 #endif
 
 extern int usb_stor_pre_reset(struct usb_interface *iface);
 extern int usb_stor_post_reset(struct usb_interface *iface);
 
 extern int usb_stor_probe1(struct us_data **pus,
-		struct usb_interface *intf,
-		const struct usb_device_id *id,
-		struct us_unusual_dev *unusual_dev,
-		struct scsi_host_template *sht);
+						   struct usb_interface *intf,
+						   const struct usb_device_id *id,
+						   struct us_unusual_dev *unusual_dev,
+						   struct scsi_host_template *sht);
 extern int usb_stor_probe2(struct us_data *us);
 extern void usb_stor_disconnect(struct usb_interface *intf);
 
 extern void usb_stor_adjust_quirks(struct usb_device *dev,
-		unsigned long *fflags);
+								   unsigned long *fflags);
 
 #define module_usb_stor_driver(__driver, __sht, __name) \
-static int __init __driver##_init(void) \
-{ \
-	usb_stor_host_template_init(&(__sht), __name, THIS_MODULE); \
-	return usb_register(&(__driver)); \
-} \
-module_init(__driver##_init); \
-static void __exit __driver##_exit(void) \
-{ \
-	usb_deregister(&(__driver)); \
-} \
-module_exit(__driver##_exit)
+	static int __init __driver##_init(void) \
+	{ \
+		usb_stor_host_template_init(&(__sht), __name, THIS_MODULE); \
+		return usb_register(&(__driver)); \
+	} \
+	module_init(__driver##_init); \
+	static void __exit __driver##_exit(void) \
+	{ \
+		usb_deregister(&(__driver)); \
+	} \
+	module_exit(__driver##_exit)
 
 #endif

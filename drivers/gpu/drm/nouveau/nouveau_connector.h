@@ -35,7 +35,8 @@
 
 struct nvkm_i2c_port;
 
-enum nouveau_underscan_type {
+enum nouveau_underscan_type
+{
 	UNDERSCAN_OFF,
 	UNDERSCAN_ON,
 	UNDERSCAN_AUTO,
@@ -44,7 +45,8 @@ enum nouveau_underscan_type {
 /* the enum values specifically defined here match nv50/nvd0 hw values, and
  * the code relies on this
  */
-enum nouveau_dithering_mode {
+enum nouveau_dithering_mode
+{
 	DITHERING_MODE_OFF = 0x00,
 	DITHERING_MODE_ON = 0x01,
 	DITHERING_MODE_DYNAMIC2X2 = 0x10 | DITHERING_MODE_ON,
@@ -53,13 +55,15 @@ enum nouveau_dithering_mode {
 	DITHERING_MODE_AUTO
 };
 
-enum nouveau_dithering_depth {
+enum nouveau_dithering_depth
+{
 	DITHERING_DEPTH_6BPC = 0x00,
 	DITHERING_DEPTH_8BPC = 0x02,
 	DITHERING_DEPTH_AUTO
 };
 
-struct nouveau_connector {
+struct nouveau_connector
+{
 	struct drm_connector base;
 	enum dcb_connector_type type;
 	u8 index;
@@ -83,7 +87,7 @@ struct nouveau_connector {
 };
 
 static inline struct nouveau_connector *nouveau_connector(
-						struct drm_connector *con)
+	struct drm_connector *con)
 {
 	return container_of(con, struct nouveau_connector, base);
 }
@@ -95,9 +99,12 @@ nouveau_crtc_connector_get(struct nouveau_crtc *nv_crtc)
 	struct drm_connector *connector;
 	struct drm_crtc *crtc = to_drm_crtc(nv_crtc);
 
-	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
+	list_for_each_entry(connector, &dev->mode_config.connector_list, head)
+	{
 		if (connector->encoder && connector->encoder->crtc == crtc)
+		{
 			return nouveau_connector(connector);
+		}
 	}
 
 	return NULL;

@@ -38,40 +38,45 @@
 #define HW_SYNC_SLEEP_TIME_INTERVAL	20
 #define BT_CMD_SYNC_SHIFT		31
 
-enum {
+enum
+{
 	/* MAP HEM(Hardware Entry Memory) */
 	HEM_TYPE_QPC = 0,
 	HEM_TYPE_MTPT,
 	HEM_TYPE_CQC,
 	HEM_TYPE_SRQC,
 
-	 /* UNMAP HEM */
+	/* UNMAP HEM */
 	HEM_TYPE_MTT,
 	HEM_TYPE_IRRL,
 };
 
 #define HNS_ROCE_HEM_CHUNK_LEN	\
-	 ((256 - sizeof(struct list_head) - 2 * sizeof(int)) /	 \
+	((256 - sizeof(struct list_head) - 2 * sizeof(int)) /	 \
 	 (sizeof(struct scatterlist)))
 
-enum {
-	 HNS_ROCE_HEM_PAGE_SHIFT = 12,
-	 HNS_ROCE_HEM_PAGE_SIZE  = 1 << HNS_ROCE_HEM_PAGE_SHIFT,
+enum
+{
+	HNS_ROCE_HEM_PAGE_SHIFT = 12,
+	HNS_ROCE_HEM_PAGE_SIZE  = 1 << HNS_ROCE_HEM_PAGE_SHIFT,
 };
 
-struct hns_roce_hem_chunk {
+struct hns_roce_hem_chunk
+{
 	struct list_head	 list;
 	int			 npages;
 	int			 nsg;
 	struct scatterlist	 mem[HNS_ROCE_HEM_CHUNK_LEN];
 };
 
-struct hns_roce_hem {
+struct hns_roce_hem
+{
 	struct list_head	 chunk_list;
 	int			 refcount;
 };
 
-struct hns_roce_hem_iter {
+struct hns_roce_hem_iter
+{
 	struct hns_roce_hem		 *hem;
 	struct hns_roce_hem_chunk	 *chunk;
 	int				 page_idx;
@@ -79,33 +84,33 @@ struct hns_roce_hem_iter {
 
 void hns_roce_free_hem(struct hns_roce_dev *hr_dev, struct hns_roce_hem *hem);
 int hns_roce_table_get(struct hns_roce_dev *hr_dev,
-		       struct hns_roce_hem_table *table, unsigned long obj);
+					   struct hns_roce_hem_table *table, unsigned long obj);
 void hns_roce_table_put(struct hns_roce_dev *hr_dev,
-			struct hns_roce_hem_table *table, unsigned long obj);
+						struct hns_roce_hem_table *table, unsigned long obj);
 void *hns_roce_table_find(struct hns_roce_hem_table *table, unsigned long obj,
-			  dma_addr_t *dma_handle);
+						  dma_addr_t *dma_handle);
 int hns_roce_table_get_range(struct hns_roce_dev *hr_dev,
-			     struct hns_roce_hem_table *table,
-			     unsigned long start, unsigned long end);
+							 struct hns_roce_hem_table *table,
+							 unsigned long start, unsigned long end);
 void hns_roce_table_put_range(struct hns_roce_dev *hr_dev,
-			      struct hns_roce_hem_table *table,
-			      unsigned long start, unsigned long end);
+							  struct hns_roce_hem_table *table,
+							  unsigned long start, unsigned long end);
 int hns_roce_init_hem_table(struct hns_roce_dev *hr_dev,
-			    struct hns_roce_hem_table *table, u32 type,
-			    unsigned long obj_size, unsigned long nobj,
-			    int use_lowmem);
+							struct hns_roce_hem_table *table, u32 type,
+							unsigned long obj_size, unsigned long nobj,
+							int use_lowmem);
 void hns_roce_cleanup_hem_table(struct hns_roce_dev *hr_dev,
-				struct hns_roce_hem_table *table);
+								struct hns_roce_hem_table *table);
 void hns_roce_cleanup_hem(struct hns_roce_dev *hr_dev);
 
 static inline void hns_roce_hem_first(struct hns_roce_hem *hem,
-				      struct hns_roce_hem_iter *iter)
+									  struct hns_roce_hem_iter *iter)
 {
 	iter->hem = hem;
 	iter->chunk = list_empty(&hem->chunk_list) ? NULL :
-				 list_entry(hem->chunk_list.next,
-					    struct hns_roce_hem_chunk, list);
-	 iter->page_idx = 0;
+				  list_entry(hem->chunk_list.next,
+							 struct hns_roce_hem_chunk, list);
+	iter->page_idx = 0;
 }
 
 static inline int hns_roce_hem_last(struct hns_roce_hem_iter *iter)
@@ -115,14 +120,16 @@ static inline int hns_roce_hem_last(struct hns_roce_hem_iter *iter)
 
 static inline void hns_roce_hem_next(struct hns_roce_hem_iter *iter)
 {
-	if (++iter->page_idx >= iter->chunk->nsg) {
-		if (iter->chunk->list.next == &iter->hem->chunk_list) {
+	if (++iter->page_idx >= iter->chunk->nsg)
+	{
+		if (iter->chunk->list.next == &iter->hem->chunk_list)
+		{
 			iter->chunk = NULL;
 			return;
 		}
 
 		iter->chunk = list_entry(iter->chunk->list.next,
-					 struct hns_roce_hem_chunk, list);
+								 struct hns_roce_hem_chunk, list);
 		iter->page_idx = 0;
 	}
 }

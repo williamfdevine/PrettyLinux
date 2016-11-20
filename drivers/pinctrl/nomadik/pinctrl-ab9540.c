@@ -66,7 +66,8 @@
  * column in the table of the data sheet and often used on schematics and
  * such.
  */
-static const struct pinctrl_pin_desc ab9540_pins[] = {
+static const struct pinctrl_pin_desc ab9540_pins[] =
+{
 	PINCTRL_PIN(AB9540_PIN_R4, "GPIO1_R4"),
 	PINCTRL_PIN(AB9540_PIN_V3, "GPIO2_V3"),
 	PINCTRL_PIN(AB9540_PIN_T4, "GPIO3_T4"),
@@ -111,7 +112,8 @@ static const struct pinctrl_pin_desc ab9540_pins[] = {
 /*
  * Maps local GPIO offsets to local pin numbers
  */
-static const struct abx500_pinrange ab9540_pinranges[] = {
+static const struct abx500_pinrange ab9540_pinranges[] =
+{
 	ABX500_PINRANGE(1, 4, ABX500_ALT_A),
 	ABX500_PINRANGE(10, 2, ABX500_DEFAULT),
 	ABX500_PINRANGE(13, 1, ABX500_DEFAULT),
@@ -147,10 +149,12 @@ static const unsigned pwmout2_d_1_pins[] = { AB9540_PIN_C19 };
 static const unsigned pwmout3_d_1_pins[] = { AB9540_PIN_D19 };
 /* audio data interface 1*/
 static const unsigned adi1_d_1_pins[] = { AB9540_PIN_R3, AB9540_PIN_T2,
-					AB9540_PIN_U2, AB9540_PIN_V2 };
+										  AB9540_PIN_U2, AB9540_PIN_V2
+										};
 /* USBUICC */
 static const unsigned usbuicc_d_1_pins[] = { AB9540_PIN_N17, AB9540_PIN_N16,
-					AB9540_PIN_M19 };
+											 AB9540_PIN_M19
+										   };
 static const unsigned sysclkreq7_d_1_pins[] = { AB9540_PIN_T3 };
 static const unsigned sysclkreq8_d_1_pins[] = { AB9540_PIN_W2 };
 /* Digital microphone 1 and 2 */
@@ -215,7 +219,8 @@ static const unsigned usbvdat_c_1_pins[] = { AB9540_PIN_D18 };
 #define AB9540_PIN_GROUP(a, b) { .name = #a, .pins = a##_pins,		\
 			.npins = ARRAY_SIZE(a##_pins), .altsetting = b }
 
-static const struct abx500_pingroup ab9540_groups[] = {
+static const struct abx500_pingroup ab9540_groups[] =
+{
 	/* default column */
 	AB9540_PIN_GROUP(sysclkreq2_d_1, ABX500_DEFAULT),
 	AB9540_PIN_GROUP(sysclkreq3_d_1, ABX500_DEFAULT),
@@ -289,20 +294,20 @@ static const struct abx500_pingroup ab9540_groups[] = {
 
 /* We use this macro to define the groups applicable to a function */
 #define AB9540_FUNC_GROUPS(a, b...)	   \
-static const char * const a##_groups[] = { b };
+	static const char * const a##_groups[] = { b };
 
 AB9540_FUNC_GROUPS(sysclkreq, "sysclkreq2_d_1", "sysclkreq3_d_1",
-		"sysclkreq4_d_1", "sysclkreq5_d_1", "sysclkreq6_d_1",
-		"sysclkreq7_d_1", "sysclkreq8_d_1");
+				   "sysclkreq4_d_1", "sysclkreq5_d_1", "sysclkreq6_d_1",
+				   "sysclkreq7_d_1", "sysclkreq8_d_1");
 AB9540_FUNC_GROUPS(gpio, "gpio1_a_1", "gpio2_a_1", "gpio3_a_1", "gpio4_a_1",
-		"gpio10_d_1", "gpio11_d_1", "gpio13_d_1", "gpio14_a_1",
-		"gpio15_a_1", "gpio16_a_1", "gpio17_a_1", "gpio18_a_1",
-		"gpio19_a_1", "gpio20_a_1", "gpio21_a_1", "gpio22_a_1",
-		"gpio23_a_1", "gpio24_a_1", "gpio25_a_1", "gpio27_a_1",
-		"gpio28_a_1", "gpio29_a_1", "gpio30_a_1", "gpio31_a_1",
-		"gpio32_a_1", "gpio34_a_1", "gpio40_a_1", "gpio41_a_1",
-		"gpio42_a_1", "gpio50_d_1", "gpio51_a_1", "gpio52_a_1",
-		"gpio53_a_1", "gpio60_d_1");
+				   "gpio10_d_1", "gpio11_d_1", "gpio13_d_1", "gpio14_a_1",
+				   "gpio15_a_1", "gpio16_a_1", "gpio17_a_1", "gpio18_a_1",
+				   "gpio19_a_1", "gpio20_a_1", "gpio21_a_1", "gpio22_a_1",
+				   "gpio23_a_1", "gpio24_a_1", "gpio25_a_1", "gpio27_a_1",
+				   "gpio28_a_1", "gpio29_a_1", "gpio30_a_1", "gpio31_a_1",
+				   "gpio32_a_1", "gpio34_a_1", "gpio40_a_1", "gpio41_a_1",
+				   "gpio42_a_1", "gpio50_d_1", "gpio51_a_1", "gpio52_a_1",
+				   "gpio53_a_1", "gpio60_d_1");
 AB9540_FUNC_GROUPS(pwmout, "pwmout1_d_1", "pwmout2_d_1", "pwmout3_d_1");
 AB9540_FUNC_GROUPS(adi1, "adi1_d_1");
 AB9540_FUNC_GROUPS(usbuicc, "usbuicc_d_1", "usbuiccpd_a_1");
@@ -321,11 +326,12 @@ AB9540_FUNC_GROUPS(usbvdat, "usbvdat_c_1");
 #define FUNCTION(fname)					\
 	{						\
 		.name = #fname,				\
-		.groups = fname##_groups,		\
-		.ngroups = ARRAY_SIZE(fname##_groups),	\
+				.groups = fname##_groups,		\
+						  .ngroups = ARRAY_SIZE(fname##_groups),	\
 	}
 
-static const struct abx500_function ab9540_functions[] = {
+static const struct abx500_function ab9540_functions[] =
+{
 	FUNCTION(sysclkreq),
 	FUNCTION(gpio),
 	FUNCTION(pwmout),
@@ -380,7 +386,8 @@ static const struct abx500_function ab9540_functions[] = {
  */
 
 static struct
-alternate_functions ab9540alternate_functions[AB9540_GPIO_MAX_NUMBER + 1] = {
+	alternate_functions ab9540alternate_functions[AB9540_GPIO_MAX_NUMBER + 1] =
+{
 	/* GPIOSEL1 - bits 4-7 are reserved */
 	ALTERNATE_FUNCTIONS(0, UNUSED, UNUSED, UNUSED, 0, 0, 0), /* no GPIO0 */
 	ALTERNATE_FUNCTIONS(1,	    0, UNUSED, UNUSED, 0, 0, 0), /* GPIO1, altA controlled by bit 0 */
@@ -455,14 +462,16 @@ alternate_functions ab9540alternate_functions[AB9540_GPIO_MAX_NUMBER + 1] = {
 	ALTERNATE_FUNCTIONS(54,	     5, UNUSED, UNUSED, 0, 0, 0), /* GPIO54 = GPIO60, altA controlled by bit 5 */
 };
 
-static struct abx500_gpio_irq_cluster ab9540_gpio_irq_cluster[] = {
+static struct abx500_gpio_irq_cluster ab9540_gpio_irq_cluster[] =
+{
 	GPIO_IRQ_CLUSTER(10, 13, AB8500_INT_GPIO10R),
 	GPIO_IRQ_CLUSTER(24, 25, AB8500_INT_GPIO24R),
 	GPIO_IRQ_CLUSTER(40, 41, AB8500_INT_GPIO40R),
 	GPIO_IRQ_CLUSTER(50, 54, AB9540_INT_GPIO50R),
 };
 
-static struct abx500_pinctrl_soc_data ab9540_soc = {
+static struct abx500_pinctrl_soc_data ab9540_soc =
+{
 	.gpio_ranges = ab9540_pinranges,
 	.gpio_num_ranges = ARRAY_SIZE(ab9540_pinranges),
 	.pins = ab9540_pins,

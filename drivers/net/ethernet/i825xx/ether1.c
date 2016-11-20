@@ -92,12 +92,18 @@ ether1_inw_p (struct net_device *dev, int addr, int svflgs)
 	unsigned short ret;
 
 	if (svflgs)
+	{
 		local_irq_save (flags);
+	}
 
 	writeb(addr >> 12, REG_PAGE);
 	ret = readw(ETHER1_RAM + ((addr & 4095) << 1));
+
 	if (svflgs)
+	{
 		local_irq_restore (flags);
+	}
+
 	return ret;
 }
 
@@ -107,12 +113,17 @@ ether1_outw_p (struct net_device *dev, unsigned short val, int addr, int svflgs)
 	unsigned long flags;
 
 	if (svflgs)
+	{
 		local_irq_save (flags);
+	}
 
 	writeb(addr >> 12, REG_PAGE);
 	writew(val, ETHER1_RAM + ((addr & 4095) << 1));
+
 	if (svflgs)
+	{
 		local_irq_restore (flags);
+	}
 }
 
 /*
@@ -135,18 +146,23 @@ ether1_writebuffer (struct net_device *dev, void *data, unsigned int start, unsi
 	addr = ETHER1_RAM + (offset << 1);
 
 	if (offset + length > 4096)
+	{
 		thislen = 4096 - offset;
+	}
 	else
+	{
 		thislen = length;
+	}
 
-	do {
+	do
+	{
 		int used;
 
 		writeb(page, REG_PAGE);
 		length -= thislen;
 
 		__asm__ __volatile__(
-	"subs	%3, %3, #2\n\
+			"subs	%3, %3, #2\n\
 	bmi	2f\n\
 1:	ldr	%0, [%1], #2\n\
 	mov	%0, %0, lsl #16\n\
@@ -175,16 +191,21 @@ ether1_writebuffer (struct net_device *dev, void *data, unsigned int start, unsi
 2:	adds	%3, %3, #1\n\
 	ldreqb	%0, [%1]\n\
 	streqb	%0, [%2]"
-		: "=&r" (used), "=&r" (data)
-		: "r"  (addr), "r" (thislen), "1" (data));
+			: "=&r" (used), "=&r" (data)
+			: "r"  (addr), "r" (thislen), "1" (data));
 
 		addr = ETHER1_RAM;
 
 		thislen = length;
+
 		if (thislen > 4096)
+		{
 			thislen = 4096;
+		}
+
 		page++;
-	} while (thislen);
+	}
+	while (thislen);
 }
 
 static void
@@ -198,18 +219,23 @@ ether1_readbuffer (struct net_device *dev, void *data, unsigned int start, unsig
 	addr = ETHER1_RAM + (offset << 1);
 
 	if (offset + length > 4096)
+	{
 		thislen = 4096 - offset;
+	}
 	else
+	{
 		thislen = length;
+	}
 
-	do {
+	do
+	{
 		int used;
 
 		writeb(page, REG_PAGE);
 		length -= thislen;
 
 		__asm__ __volatile__(
-	"subs	%3, %3, #2\n\
+			"subs	%3, %3, #2\n\
 	bmi	2f\n\
 1:	ldr	%0, [%2], #4\n\
 	strb	%0, [%1], #1\n\
@@ -238,16 +264,21 @@ ether1_readbuffer (struct net_device *dev, void *data, unsigned int start, unsig
 2:	adds	%3, %3, #1\n\
 	ldreqb	%0, [%2]\n\
 	streqb	%0, [%1]"
-		: "=&r" (used), "=&r" (data)
-		: "r"  (addr), "r" (thislen), "1" (data));
+			: "=&r" (used), "=&r" (data)
+			: "r"  (addr), "r" (thislen), "1" (data));
 
 		addr = ETHER1_RAM;
 
 		thislen = length;
+
 		if (thislen > 4096)
+		{
 			thislen = 4096;
+		}
+
 		page++;
-	} while (thislen);
+	}
+	while (thislen);
 }
 
 static int
@@ -260,38 +291,57 @@ ether1_ramtest(struct net_device *dev, unsigned char byte)
 	int bad_start = 0;
 
 	if (!buffer)
+	{
 		return 1;
+	}
 
 	memset (buffer, byte, BUFFER_SIZE);
 	ether1_writebuffer (dev, buffer, 0, BUFFER_SIZE);
 	memset (buffer, byte ^ 0xff, BUFFER_SIZE);
 	ether1_readbuffer (dev, buffer, 0, BUFFER_SIZE);
 
-	for (i = 0; i < BUFFER_SIZE; i++) {
-		if (buffer[i] != byte) {
-			if (max_errors >= 0 && bad != buffer[i]) {
+	for (i = 0; i < BUFFER_SIZE; i++)
+	{
+		if (buffer[i] != byte)
+		{
+			if (max_errors >= 0 && bad != buffer[i])
+			{
 				if (bad != -1)
+				{
 					printk ("\n");
+				}
+
 				printk (KERN_CRIT "%s: RAM failed with (%02X instead of %02X) at 0x%04X",
-					dev->name, buffer[i], byte, i);
+						dev->name, buffer[i], byte, i);
 				ret = -ENODEV;
 				max_errors --;
 				bad = buffer[i];
 				bad_start = i;
 			}
-		} else {
-			if (bad != -1) {
-			    	if (bad_start == i - 1)
+		}
+		else
+		{
+			if (bad != -1)
+			{
+				if (bad_start == i - 1)
+				{
 					printk ("\n");
+				}
 				else
+				{
 					printk (" - 0x%04X\n", i - 1);
+				}
+
 				bad = -1;
 			}
 		}
 	}
 
 	if (bad != -1)
+	{
 		printk (" - 0x%04X\n", BUFFER_SIZE);
+	}
+
 	kfree (buffer);
 
 	return ret;
@@ -300,7 +350,7 @@ ether1_ramtest(struct net_device *dev, unsigned char byte)
 static int
 ether1_reset (struct net_device *dev)
 {
-	writeb(CTRL_RST|CTRL_ACK, REG_CONTROL);
+	writeb(CTRL_RST | CTRL_ACK, REG_CONTROL);
 	return BUS_16;
 }
 
@@ -313,10 +363,14 @@ ether1_init_2(struct net_device *dev)
 	i = ether1_ramtest (dev, 0x5a);
 
 	if (i > 0)
+	{
 		i = ether1_ramtest (dev, 0x1e);
+	}
 
 	if (i <= 0)
-	    	return -ENODEV;
+	{
+		return -ENODEV;
+	}
 
 	dev->mem_end = i;
 	return 0;
@@ -330,7 +384,8 @@ ether1_init_2(struct net_device *dev)
 /* at 0x0100 */
 #define NOP_ADDR	(TX_AREA_START)
 #define NOP_SIZE	(0x06)
-static nop_t  init_nop  = {
+static nop_t  init_nop  =
+{
 	0,
 	CMD_NOP,
 	NOP_ADDR
@@ -339,7 +394,8 @@ static nop_t  init_nop  = {
 /* at 0x003a */
 #define TDR_ADDR	(0x003a)
 #define TDR_SIZE	(0x08)
-static tdr_t  init_tdr	= {
+static tdr_t  init_tdr	=
+{
 	0,
 	CMD_TDR | CMD_INTR,
 	NOP_ADDR,
@@ -349,7 +405,8 @@ static tdr_t  init_tdr	= {
 /* at 0x002e */
 #define MC_ADDR		(0x002e)
 #define MC_SIZE		(0x0c)
-static mc_t   init_mc   = {
+static mc_t   init_mc   =
+{
 	0,
 	CMD_SETMULTICAST,
 	TDR_ADDR,
@@ -360,7 +417,8 @@ static mc_t   init_mc   = {
 /* at 0x0022 */
 #define SA_ADDR		(0x0022)
 #define SA_SIZE		(0x0c)
-static sa_t   init_sa   = {
+static sa_t   init_sa   =
+{
 	0,
 	CMD_SETADDRESS,
 	MC_ADDR,
@@ -370,7 +428,8 @@ static sa_t   init_sa   = {
 /* at 0x0010 */
 #define CFG_ADDR	(0x0010)
 #define CFG_SIZE	(0x12)
-static cfg_t  init_cfg  = {
+static cfg_t  init_cfg  =
+{
 	0,
 	CMD_CONFIG,
 	SA_ADDR,
@@ -388,7 +447,8 @@ static cfg_t  init_cfg  = {
 /* at 0x0000 */
 #define SCB_ADDR	(0x0000)
 #define SCB_SIZE	(0x10)
-static scb_t  init_scb  = {
+static scb_t  init_scb  =
+{
 	0,
 	SCB_CMDACKRNR | SCB_CMDACKCNA | SCB_CMDACKFR | SCB_CMDACKCX,
 	CFG_ADDR,
@@ -402,7 +462,8 @@ static scb_t  init_scb  = {
 /* at 0xffee */
 #define ISCP_ADDR	(0xffee)
 #define ISCP_SIZE	(0x08)
-static iscp_t init_iscp = {
+static iscp_t init_iscp =
+{
 	1,
 	SCB_ADDR,
 	0x0000,
@@ -412,7 +473,8 @@ static iscp_t init_iscp = {
 /* at 0xfff6 */
 #define SCP_ADDR	(0xfff6)
 #define SCP_SIZE	(0x0a)
-static scp_t  init_scp  = {
+static scp_t  init_scp  =
+{
 	SCP_SY_16BBUS,
 	{ 0, 0 },
 	ISCP_ADDR,
@@ -420,7 +482,8 @@ static scp_t  init_scp  = {
 };
 
 #define RFD_SIZE	(0x16)
-static rfd_t  init_rfd	= {
+static rfd_t  init_rfd	=
+{
 	0,
 	0,
 	0,
@@ -431,7 +494,8 @@ static rfd_t  init_rfd	= {
 };
 
 #define RBD_SIZE	(0x0a)
-static rbd_t  init_rbd	= {
+static rbd_t  init_rbd	=
+{
 	0,
 	0,
 	0,
@@ -449,10 +513,12 @@ ether1_init_for_open (struct net_device *dev)
 	int failures = 0;
 	unsigned long timeout;
 
-	writeb(CTRL_RST|CTRL_ACK, REG_CONTROL);
+	writeb(CTRL_RST | CTRL_ACK, REG_CONTROL);
 
 	for (i = 0; i < 6; i++)
+	{
 		init_sa.sa_addr[i] = dev->dev_addr[i];
+	}
 
 	/* load data structures into ether1 RAM */
 	ether1_writebuffer (dev, &init_scp,  SCP_ADDR,  SCP_SIZE);
@@ -464,9 +530,10 @@ ether1_init_for_open (struct net_device *dev)
 	ether1_writebuffer (dev, &init_tdr,  TDR_ADDR,  TDR_SIZE);
 	ether1_writebuffer (dev, &init_nop,  NOP_ADDR,  NOP_SIZE);
 
-	if (ether1_readw(dev, CFG_ADDR, cfg_t, cfg_command, NORMALIRQS) != CMD_CONFIG) {
+	if (ether1_readw(dev, CFG_ADDR, cfg_t, cfg_command, NORMALIRQS) != CMD_CONFIG)
+	{
 		printk (KERN_ERR "%s: detected either RAM fault or compiler bug\n",
-			dev->name);
+				dev->name);
 		return 1;
 	}
 
@@ -477,20 +544,32 @@ ether1_init_for_open (struct net_device *dev)
 	 * rfd.  Last rbd has a suspend command.
 	 */
 	addr = RX_AREA_START;
-	do {
+
+	do
+	{
 		next = addr + RFD_SIZE + RBD_SIZE + ETH_FRAME_LEN + 10;
 		next2 = next + RFD_SIZE + RBD_SIZE + ETH_FRAME_LEN + 10;
 
-		if (next2 >= RX_AREA_END) {
+		if (next2 >= RX_AREA_END)
+		{
 			next = RX_AREA_START;
 			init_rfd.rfd_command = RFD_CMDEL | RFD_CMDSUSPEND;
 			priv(dev)->rx_tail = addr;
-		} else
-			init_rfd.rfd_command = 0;
-		if (addr == RX_AREA_START)
-			init_rfd.rfd_rbdoffset = addr + RFD_SIZE;
+		}
 		else
+		{
+			init_rfd.rfd_command = 0;
+		}
+
+		if (addr == RX_AREA_START)
+		{
+			init_rfd.rfd_rbdoffset = addr + RFD_SIZE;
+		}
+		else
+		{
 			init_rfd.rfd_rbdoffset = 0;
+		}
+
 		init_rfd.rfd_link = next;
 		init_rbd.rbd_link = next + RFD_SIZE;
 		init_rbd.rbd_bufl = addr + RFD_SIZE + RBD_SIZE;
@@ -498,7 +577,8 @@ ether1_init_for_open (struct net_device *dev)
 		ether1_writebuffer (dev, &init_rfd, addr, RFD_SIZE);
 		ether1_writebuffer (dev, &init_rbd, addr + RFD_SIZE, RBD_SIZE);
 		addr = next;
-	} while (next2 < RX_AREA_END);
+	}
+	while (next2 < RX_AREA_END);
 
 	priv(dev)->tx_link = NOP_ADDR;
 	priv(dev)->tx_head = NOP_ADDR + NOP_SIZE;
@@ -513,98 +593,130 @@ ether1_init_for_open (struct net_device *dev)
 	writeb(CTRL_CA, REG_CONTROL);
 
 	/* 586 should now unset iscp.busy */
-	timeout = jiffies + HZ/2;
-	while (ether1_readw(dev, ISCP_ADDR, iscp_t, iscp_busy, DISABLEIRQS) == 1) {
-		if (time_after(jiffies, timeout)) {
+	timeout = jiffies + HZ / 2;
+
+	while (ether1_readw(dev, ISCP_ADDR, iscp_t, iscp_busy, DISABLEIRQS) == 1)
+	{
+		if (time_after(jiffies, timeout))
+		{
 			printk (KERN_WARNING "%s: can't initialise 82586: iscp is busy\n", dev->name);
 			return 1;
 		}
 	}
 
 	/* check status of commands that we issued */
-	timeout += HZ/10;
+	timeout += HZ / 10;
+
 	while (((status = ether1_readw(dev, CFG_ADDR, cfg_t, cfg_status, DISABLEIRQS))
-			& STAT_COMPLETE) == 0) {
+			& STAT_COMPLETE) == 0)
+	{
 		if (time_after(jiffies, timeout))
+		{
 			break;
+		}
 	}
 
-	if ((status & (STAT_COMPLETE | STAT_OK)) != (STAT_COMPLETE | STAT_OK)) {
+	if ((status & (STAT_COMPLETE | STAT_OK)) != (STAT_COMPLETE | STAT_OK))
+	{
 		printk (KERN_WARNING "%s: can't initialise 82586: config status %04X\n", dev->name, status);
 		printk (KERN_DEBUG "%s: SCB=[STS=%04X CMD=%04X CBL=%04X RFA=%04X]\n", dev->name,
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS),
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_command, NORMALIRQS),
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_cbl_offset, NORMALIRQS),
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_rfa_offset, NORMALIRQS));
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS),
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_command, NORMALIRQS),
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_cbl_offset, NORMALIRQS),
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_rfa_offset, NORMALIRQS));
 		failures += 1;
 	}
 
-	timeout += HZ/10;
+	timeout += HZ / 10;
+
 	while (((status = ether1_readw(dev, SA_ADDR, sa_t, sa_status, DISABLEIRQS))
-			& STAT_COMPLETE) == 0) {
+			& STAT_COMPLETE) == 0)
+	{
 		if (time_after(jiffies, timeout))
+		{
 			break;
+		}
 	}
 
-	if ((status & (STAT_COMPLETE | STAT_OK)) != (STAT_COMPLETE | STAT_OK)) {
+	if ((status & (STAT_COMPLETE | STAT_OK)) != (STAT_COMPLETE | STAT_OK))
+	{
 		printk (KERN_WARNING "%s: can't initialise 82586: set address status %04X\n", dev->name, status);
 		printk (KERN_DEBUG "%s: SCB=[STS=%04X CMD=%04X CBL=%04X RFA=%04X]\n", dev->name,
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS),
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_command, NORMALIRQS),
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_cbl_offset, NORMALIRQS),
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_rfa_offset, NORMALIRQS));
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS),
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_command, NORMALIRQS),
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_cbl_offset, NORMALIRQS),
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_rfa_offset, NORMALIRQS));
 		failures += 1;
 	}
 
-	timeout += HZ/10;
+	timeout += HZ / 10;
+
 	while (((status = ether1_readw(dev, MC_ADDR, mc_t, mc_status, DISABLEIRQS))
-			& STAT_COMPLETE) == 0) {
+			& STAT_COMPLETE) == 0)
+	{
 		if (time_after(jiffies, timeout))
+		{
 			break;
+		}
 	}
 
-	if ((status & (STAT_COMPLETE | STAT_OK)) != (STAT_COMPLETE | STAT_OK)) {
+	if ((status & (STAT_COMPLETE | STAT_OK)) != (STAT_COMPLETE | STAT_OK))
+	{
 		printk (KERN_WARNING "%s: can't initialise 82586: set multicast status %04X\n", dev->name, status);
 		printk (KERN_DEBUG "%s: SCB=[STS=%04X CMD=%04X CBL=%04X RFA=%04X]\n", dev->name,
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS),
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_command, NORMALIRQS),
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_cbl_offset, NORMALIRQS),
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_rfa_offset, NORMALIRQS));
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS),
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_command, NORMALIRQS),
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_cbl_offset, NORMALIRQS),
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_rfa_offset, NORMALIRQS));
 		failures += 1;
 	}
 
 	timeout += HZ;
+
 	while (((status = ether1_readw(dev, TDR_ADDR, tdr_t, tdr_status, DISABLEIRQS))
-			& STAT_COMPLETE) == 0) {
+			& STAT_COMPLETE) == 0)
+	{
 		if (time_after(jiffies, timeout))
+		{
 			break;
+		}
 	}
 
-	if ((status & (STAT_COMPLETE | STAT_OK)) != (STAT_COMPLETE | STAT_OK)) {
+	if ((status & (STAT_COMPLETE | STAT_OK)) != (STAT_COMPLETE | STAT_OK))
+	{
 		printk (KERN_WARNING "%s: can't tdr (ignored)\n", dev->name);
 		printk (KERN_DEBUG "%s: SCB=[STS=%04X CMD=%04X CBL=%04X RFA=%04X]\n", dev->name,
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS),
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_command, NORMALIRQS),
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_cbl_offset, NORMALIRQS),
-			ether1_readw(dev, SCB_ADDR, scb_t, scb_rfa_offset, NORMALIRQS));
-	} else {
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS),
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_command, NORMALIRQS),
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_cbl_offset, NORMALIRQS),
+				ether1_readw(dev, SCB_ADDR, scb_t, scb_rfa_offset, NORMALIRQS));
+	}
+	else
+	{
 		status = ether1_readw(dev, TDR_ADDR, tdr_t, tdr_result, DISABLEIRQS);
+
 		if (status & TDR_XCVRPROB)
+		{
 			printk (KERN_WARNING "%s: i/f failed tdr: transceiver problem\n", dev->name);
-		else if ((status & (TDR_SHORT|TDR_OPEN)) && (status & TDR_TIME)) {
+		}
+		else if ((status & (TDR_SHORT | TDR_OPEN)) && (status & TDR_TIME))
+		{
 #ifdef FANCY
 			printk (KERN_WARNING "%s: i/f failed tdr: cable %s %d.%d us away\n", dev->name,
-				status & TDR_SHORT ? "short" : "open", (status & TDR_TIME) / 10,
-				(status & TDR_TIME) % 10);
+					status & TDR_SHORT ? "short" : "open", (status & TDR_TIME) / 10,
+					(status & TDR_TIME) % 10);
 #else
 			printk (KERN_WARNING "%s: i/f failed tdr: cable %s %d clks away\n", dev->name,
-				status & TDR_SHORT ? "short" : "open", (status & TDR_TIME));
+					status & TDR_SHORT ? "short" : "open", (status & TDR_TIME));
 #endif
 		}
 	}
 
 	if (failures)
+	{
 		ether1_reset (dev);
+	}
+
 	return failures ? 1 : 0;
 }
 
@@ -618,16 +730,29 @@ ether1_txalloc (struct net_device *dev, int size)
 	size = (size + 1) & ~1;
 	tail = priv(dev)->tx_tail;
 
-	if (priv(dev)->tx_head + size > TX_AREA_END) {
+	if (priv(dev)->tx_head + size > TX_AREA_END)
+	{
 		if (tail > priv(dev)->tx_head)
+		{
 			return -1;
+		}
+
 		start = TX_AREA_START;
+
 		if (start + size > tail)
+		{
 			return -1;
+		}
+
 		priv(dev)->tx_head = start + size;
-	} else {
+	}
+	else
+	{
 		if (priv(dev)->tx_head < tail && (priv(dev)->tx_head + size) > tail)
+		{
 			return -1;
+		}
+
 		start = priv(dev)->tx_head;
 		priv(dev)->tx_head += size;
 	}
@@ -639,9 +764,12 @@ static int
 ether1_open (struct net_device *dev)
 {
 	if (request_irq(dev->irq, ether1_interrupt, 0, "ether1", dev))
+	{
 		return -EAGAIN;
+	}
 
-	if (ether1_init_for_open (dev)) {
+	if (ether1_init_for_open (dev))
+	{
 		free_irq (dev->irq, dev);
 		return -EAGAIN;
 	}
@@ -655,13 +783,15 @@ static void
 ether1_timeout(struct net_device *dev)
 {
 	printk(KERN_WARNING "%s: transmit timeout, network cable problem?\n",
-		dev->name);
+		   dev->name);
 	printk(KERN_WARNING "%s: resetting device\n", dev->name);
 
 	ether1_reset (dev);
 
 	if (ether1_init_for_open (dev))
+	{
 		printk (KERN_ERR "%s: unable to restart interface\n", dev->name);
+	}
 
 	dev->stats.tx_errors++;
 	netif_wake_queue(dev);
@@ -676,20 +806,28 @@ ether1_sendpacket (struct sk_buff *skb, struct net_device *dev)
 	tbd_t tbd;
 	nop_t nop;
 
-	if (priv(dev)->restart) {
+	if (priv(dev)->restart)
+	{
 		printk(KERN_WARNING "%s: resetting device\n", dev->name);
 
 		ether1_reset(dev);
 
 		if (ether1_init_for_open(dev))
+		{
 			printk(KERN_ERR "%s: unable to restart interface\n", dev->name);
+		}
 		else
+		{
 			priv(dev)->restart = 0;
+		}
 	}
 
-	if (skb->len < ETH_ZLEN) {
+	if (skb->len < ETH_ZLEN)
+	{
 		if (skb_padto(skb, ETH_ZLEN))
+		{
 			goto out;
+		}
 	}
 
 	/*
@@ -734,9 +872,11 @@ ether1_sendpacket (struct sk_buff *skb, struct net_device *dev)
 	dev_kfree_skb (skb);
 
 	if (tst == -1)
+	{
 		netif_stop_queue(dev);
+	}
 
- out:
+out:
 	return NETDEV_TX_OK;
 }
 
@@ -751,93 +891,139 @@ ether1_xmit_done (struct net_device *dev)
 again:
 	ether1_readbuffer (dev, &nop, caddr, NOP_SIZE);
 
-	switch (nop.nop_command & CMD_MASK) {
-	case CMD_TDR:
-		/* special case */
-		if (ether1_readw(dev, SCB_ADDR, scb_t, scb_cbl_offset, NORMALIRQS)
-				!= (unsigned short)I82586_NULL) {
-			ether1_writew(dev, SCB_CMDCUCSTART | SCB_CMDRXSTART, SCB_ADDR, scb_t,
-				    scb_command, NORMALIRQS);
-			writeb(CTRL_CA, REG_CONTROL);
-		}
-		priv(dev)->tx_tail = NOP_ADDR;
-		return;
+	switch (nop.nop_command & CMD_MASK)
+	{
+		case CMD_TDR:
 
-	case CMD_NOP:
-		if (nop.nop_link == caddr) {
-			if (priv(dev)->initialising == 0)
-				printk (KERN_WARNING "%s: strange command complete with no tx command!\n", dev->name);
-			else
-			        priv(dev)->initialising = 0;
+			/* special case */
+			if (ether1_readw(dev, SCB_ADDR, scb_t, scb_cbl_offset, NORMALIRQS)
+				!= (unsigned short)I82586_NULL)
+			{
+				ether1_writew(dev, SCB_CMDCUCSTART | SCB_CMDRXSTART, SCB_ADDR, scb_t,
+							  scb_command, NORMALIRQS);
+				writeb(CTRL_CA, REG_CONTROL);
+			}
+
+			priv(dev)->tx_tail = NOP_ADDR;
 			return;
-		}
-		if (caddr == nop.nop_link)
+
+		case CMD_NOP:
+			if (nop.nop_link == caddr)
+			{
+				if (priv(dev)->initialising == 0)
+				{
+					printk (KERN_WARNING "%s: strange command complete with no tx command!\n", dev->name);
+				}
+				else
+				{
+					priv(dev)->initialising = 0;
+				}
+
+				return;
+			}
+
+			if (caddr == nop.nop_link)
+			{
+				return;
+			}
+
+			caddr = nop.nop_link;
+			goto again;
+
+		case CMD_TX:
+			if (nop.nop_status & STAT_COMPLETE)
+			{
+				break;
+			}
+
+			printk (KERN_ERR "%s: strange command complete without completed command\n", dev->name);
+			priv(dev)->restart = 1;
 			return;
-		caddr = nop.nop_link;
-		goto again;
 
-	case CMD_TX:
-		if (nop.nop_status & STAT_COMPLETE)
-			break;
-		printk (KERN_ERR "%s: strange command complete without completed command\n", dev->name);
-		priv(dev)->restart = 1;
-		return;
-
-	default:
-		printk (KERN_WARNING "%s: strange command %d complete! (offset %04X)", dev->name,
-			nop.nop_command & CMD_MASK, caddr);
-		priv(dev)->restart = 1;
-		return;
+		default:
+			printk (KERN_WARNING "%s: strange command %d complete! (offset %04X)", dev->name,
+					nop.nop_command & CMD_MASK, caddr);
+			priv(dev)->restart = 1;
+			return;
 	}
 
-	while (nop.nop_status & STAT_COMPLETE) {
-		if (nop.nop_status & STAT_OK) {
+	while (nop.nop_status & STAT_COMPLETE)
+	{
+		if (nop.nop_status & STAT_OK)
+		{
 			dev->stats.tx_packets++;
 			dev->stats.collisions += (nop.nop_status & STAT_COLLISIONS);
-		} else {
+		}
+		else
+		{
 			dev->stats.tx_errors++;
 
 			if (nop.nop_status & STAT_COLLAFTERTX)
+			{
 				dev->stats.collisions++;
+			}
+
 			if (nop.nop_status & STAT_NOCARRIER)
+			{
 				dev->stats.tx_carrier_errors++;
+			}
+
 			if (nop.nop_status & STAT_TXLOSTCTS)
+			{
 				printk (KERN_WARNING "%s: cts lost\n", dev->name);
+			}
+
 			if (nop.nop_status & STAT_TXSLOWDMA)
+			{
 				dev->stats.tx_fifo_errors++;
+			}
+
 			if (nop.nop_status & STAT_COLLEXCESSIVE)
+			{
 				dev->stats.collisions += 16;
+			}
 		}
 
-		if (nop.nop_link == caddr) {
+		if (nop.nop_link == caddr)
+		{
 			printk (KERN_ERR "%s: tx buffer chaining error: tx command points to itself\n", dev->name);
 			break;
 		}
 
 		caddr = nop.nop_link;
 		ether1_readbuffer (dev, &nop, caddr, NOP_SIZE);
-		if ((nop.nop_command & CMD_MASK) != CMD_NOP) {
+
+		if ((nop.nop_command & CMD_MASK) != CMD_NOP)
+		{
 			printk (KERN_ERR "%s: tx buffer chaining error: no nop after tx command\n", dev->name);
 			break;
 		}
 
 		if (caddr == nop.nop_link)
+		{
 			break;
+		}
 
 		caddr = nop.nop_link;
 		ether1_readbuffer (dev, &nop, caddr, NOP_SIZE);
-		if ((nop.nop_command & CMD_MASK) != CMD_TX) {
+
+		if ((nop.nop_command & CMD_MASK) != CMD_TX)
+		{
 			printk (KERN_ERR "%s: tx buffer chaining error: no tx command after nop\n", dev->name);
 			break;
 		}
 	}
+
 	priv(dev)->tx_tail = caddr;
 
 	caddr = priv(dev)->tx_head;
 	tst = ether1_txalloc (dev, TX_SIZE + TBD_SIZE + NOP_SIZE + ETH_FRAME_LEN);
 	priv(dev)->tx_head = caddr;
+
 	if (tst != -1)
+	{
 		netif_wake_queue(dev);
+	}
 }
 
 static void
@@ -847,22 +1033,28 @@ ether1_recv_done (struct net_device *dev)
 	int nexttail, rbdaddr;
 	rbd_t rbd;
 
-	do {
+	do
+	{
 		status = ether1_readw(dev, priv(dev)->rx_head, rfd_t, rfd_status, NORMALIRQS);
+
 		if ((status & RFD_COMPLETE) == 0)
+		{
 			break;
+		}
 
 		rbdaddr = ether1_readw(dev, priv(dev)->rx_head, rfd_t, rfd_rbdoffset, NORMALIRQS);
 		ether1_readbuffer (dev, &rbd, rbdaddr, RBD_SIZE);
 
-		if ((rbd.rbd_status & (RBD_EOF | RBD_ACNTVALID)) == (RBD_EOF | RBD_ACNTVALID)) {
+		if ((rbd.rbd_status & (RBD_EOF | RBD_ACNTVALID)) == (RBD_EOF | RBD_ACNTVALID))
+		{
 			int length = rbd.rbd_status & RBD_ACNT;
 			struct sk_buff *skb;
 
 			length = (length + 1) & ~1;
 			skb = netdev_alloc_skb(dev, length + 2);
 
-			if (skb) {
+			if (skb)
+			{
 				skb_reserve (skb, 2);
 
 				ether1_readbuffer (dev, skb_put (skb, length), rbd.rbd_bufl, length);
@@ -870,27 +1062,35 @@ ether1_recv_done (struct net_device *dev)
 				skb->protocol = eth_type_trans (skb, dev);
 				netif_rx (skb);
 				dev->stats.rx_packets++;
-			} else
+			}
+			else
+			{
 				dev->stats.rx_dropped++;
-		} else {
+			}
+		}
+		else
+		{
 			printk(KERN_WARNING "%s: %s\n", dev->name,
-				(rbd.rbd_status & RBD_EOF) ? "oversized packet" : "acnt not valid");
+				   (rbd.rbd_status & RBD_EOF) ? "oversized packet" : "acnt not valid");
 			dev->stats.rx_dropped++;
 		}
 
 		nexttail = ether1_readw(dev, priv(dev)->rx_tail, rfd_t, rfd_link, NORMALIRQS);
+
 		/* nexttail should be rx_head */
 		if (nexttail != priv(dev)->rx_head)
 			printk(KERN_ERR "%s: receiver buffer chaining error (%04X != %04X)\n",
-				dev->name, nexttail, priv(dev)->rx_head);
+				   dev->name, nexttail, priv(dev)->rx_head);
+
 		ether1_writew(dev, RFD_CMDEL | RFD_CMDSUSPEND, nexttail, rfd_t, rfd_command, NORMALIRQS);
 		ether1_writew(dev, 0, priv(dev)->rx_tail, rfd_t, rfd_command, NORMALIRQS);
 		ether1_writew(dev, 0, priv(dev)->rx_tail, rfd_t, rfd_status, NORMALIRQS);
 		ether1_writew(dev, 0, priv(dev)->rx_tail, rfd_t, rfd_rbdoffset, NORMALIRQS);
-	
+
 		priv(dev)->rx_tail = nexttail;
 		priv(dev)->rx_head = ether1_readw(dev, priv(dev)->rx_head, rfd_t, rfd_link, NORMALIRQS);
-	} while (1);
+	}
+	while (1);
 }
 
 static irqreturn_t
@@ -901,43 +1101,67 @@ ether1_interrupt (int irq, void *dev_id)
 
 	status = ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS);
 
-	if (status) {
+	if (status)
+	{
 		ether1_writew(dev, status & (SCB_STRNR | SCB_STCNA | SCB_STFR | SCB_STCX),
-			    SCB_ADDR, scb_t, scb_command, NORMALIRQS);
+					  SCB_ADDR, scb_t, scb_command, NORMALIRQS);
 		writeb(CTRL_CA | CTRL_ACK, REG_CONTROL);
-		if (status & SCB_STCX) {
+
+		if (status & SCB_STCX)
+		{
 			ether1_xmit_done (dev);
 		}
-		if (status & SCB_STCNA) {
+
+		if (status & SCB_STCNA)
+		{
 			if (priv(dev)->resetting == 0)
+			{
 				printk (KERN_WARNING "%s: CU went not ready ???\n", dev->name);
+			}
 			else
+			{
 				priv(dev)->resetting += 1;
+			}
+
 			if (ether1_readw(dev, SCB_ADDR, scb_t, scb_cbl_offset, NORMALIRQS)
-					!= (unsigned short)I82586_NULL) {
+				!= (unsigned short)I82586_NULL)
+			{
 				ether1_writew(dev, SCB_CMDCUCSTART, SCB_ADDR, scb_t, scb_command, NORMALIRQS);
 				writeb(CTRL_CA, REG_CONTROL);
 			}
+
 			if (priv(dev)->resetting == 2)
+			{
 				priv(dev)->resetting = 0;
+			}
 		}
-		if (status & SCB_STFR) {
+
+		if (status & SCB_STFR)
+		{
 			ether1_recv_done (dev);
 		}
-		if (status & SCB_STRNR) {
-			if (ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS) & SCB_STRXSUSP) {
+
+		if (status & SCB_STRNR)
+		{
+			if (ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS) & SCB_STRXSUSP)
+			{
 				printk (KERN_WARNING "%s: RU went not ready: RU suspended\n", dev->name);
 				ether1_writew(dev, SCB_CMDRXRESUME, SCB_ADDR, scb_t, scb_command, NORMALIRQS);
 				writeb(CTRL_CA, REG_CONTROL);
 				dev->stats.rx_dropped++;	/* we suspended due to lack of buffer space */
-			} else
+			}
+			else
 				printk(KERN_WARNING "%s: RU went not ready: %04X\n", dev->name,
-					ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS));
+					   ether1_readw(dev, SCB_ADDR, scb_t, scb_status, NORMALIRQS));
+
 			printk (KERN_WARNING "RU ptr = %04X\n", ether1_readw(dev, SCB_ADDR, scb_t, scb_rfa_offset,
-						NORMALIRQS));
+					NORMALIRQS));
 		}
-	} else
+	}
+	else
+	{
 		writeb(CTRL_ACK, REG_CONTROL);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -971,10 +1195,13 @@ static void ether1_banner(void)
 	static unsigned int version_printed = 0;
 
 	if (net_debug && version_printed++ == 0)
+	{
 		printk(KERN_INFO "%s", version);
+	}
 }
 
-static const struct net_device_ops ether1_netdev_ops = {
+static const struct net_device_ops ether1_netdev_ops =
+{
 	.ndo_open		= ether1_open,
 	.ndo_stop		= ether1_close,
 	.ndo_start_xmit		= ether1_sendpacket,
@@ -994,11 +1221,16 @@ ether1_probe(struct expansion_card *ec, const struct ecard_id *id)
 	ether1_banner();
 
 	ret = ecard_request_resources(ec);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	dev = alloc_etherdev(sizeof(struct ether1_priv));
-	if (!dev) {
+
+	if (!dev)
+	{
 		ret = -ENOMEM;
 		goto release;
 	}
@@ -1007,20 +1239,26 @@ ether1_probe(struct expansion_card *ec, const struct ecard_id *id)
 
 	dev->irq = ec->irq;
 	priv(dev)->base = ecardm_iomap(ec, ECARD_RES_IOCFAST, 0, 0);
-	if (!priv(dev)->base) {
+
+	if (!priv(dev)->base)
+	{
 		ret = -ENOMEM;
 		goto free;
 	}
 
-	if ((priv(dev)->bus_type = ether1_reset(dev)) == 0) {
+	if ((priv(dev)->bus_type = ether1_reset(dev)) == 0)
+	{
 		ret = -ENODEV;
 		goto free;
 	}
 
 	for (i = 0; i < 6; i++)
+	{
 		dev->dev_addr[i] = readb(IDPROM_ADDRESS + (i << 2));
+	}
 
-	if (ether1_init_2(dev)) {
+	if (ether1_init_2(dev))
+	{
 		ret = -ENODEV;
 		goto free;
 	}
@@ -1029,20 +1267,23 @@ ether1_probe(struct expansion_card *ec, const struct ecard_id *id)
 	dev->watchdog_timeo	= 5 * HZ / 100;
 
 	ret = register_netdev(dev);
+
 	if (ret)
+	{
 		goto free;
+	}
 
 	printk(KERN_INFO "%s: ether1 in slot %d, %pM\n",
-		dev->name, ec->slot_no, dev->dev_addr);
-    
+		   dev->name, ec->slot_no, dev->dev_addr);
+
 	ecard_set_drvdata(ec, dev);
 	return 0;
 
- free:
+free:
 	free_netdev(dev);
- release:
+release:
 	ecard_release_resources(ec);
- out:
+out:
 	return ret;
 }
 
@@ -1050,19 +1291,21 @@ static void ether1_remove(struct expansion_card *ec)
 {
 	struct net_device *dev = ecard_get_drvdata(ec);
 
-	ecard_set_drvdata(ec, NULL);	
+	ecard_set_drvdata(ec, NULL);
 
 	unregister_netdev(dev);
 	free_netdev(dev);
 	ecard_release_resources(ec);
 }
 
-static const struct ecard_id ether1_ids[] = {
+static const struct ecard_id ether1_ids[] =
+{
 	{ MANU_ACORN, PROD_ACORN_ETHER1 },
 	{ 0xffff, 0xffff }
 };
 
-static struct ecard_driver ether1_driver = {
+static struct ecard_driver ether1_driver =
+{
 	.probe		= ether1_probe,
 	.remove		= ether1_remove,
 	.id_table	= ether1_ids,

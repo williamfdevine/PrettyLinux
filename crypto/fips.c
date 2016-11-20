@@ -25,13 +25,14 @@ static int fips_enable(char *str)
 {
 	fips_enabled = !!simple_strtol(str, NULL, 0);
 	printk(KERN_INFO "fips mode: %s\n",
-		fips_enabled ? "enabled" : "disabled");
+		   fips_enabled ? "enabled" : "disabled");
 	return 1;
 }
 
 __setup("fips=", fips_enable);
 
-static struct ctl_table crypto_sysctl_table[] = {
+static struct ctl_table crypto_sysctl_table[] =
+{
 	{
 		.procname       = "fips_enabled",
 		.data           = &fips_enabled,
@@ -42,7 +43,8 @@ static struct ctl_table crypto_sysctl_table[] = {
 	{}
 };
 
-static struct ctl_table crypto_dir_table[] = {
+static struct ctl_table crypto_dir_table[] =
+{
 	{
 		.procname       = "crypto",
 		.mode           = 0555,

@@ -23,12 +23,14 @@
 
 #include <linux/mfd/tps65912.h>
 
-static const struct mfd_cell tps65912_cells[] = {
+static const struct mfd_cell tps65912_cells[] =
+{
 	{ .name = "tps65912-regulator", },
 	{ .name = "tps65912-gpio", },
 };
 
-static const struct regmap_irq tps65912_irqs[] = {
+static const struct regmap_irq tps65912_irqs[] =
+{
 	/* INT_STS IRQs */
 	REGMAP_IRQ_REG(TPS65912_IRQ_PWRHOLD_F, 0, TPS65912_INT_STS_PWRHOLD_F),
 	REGMAP_IRQ_REG(TPS65912_IRQ_VMON, 0, TPS65912_INT_STS_VMON),
@@ -65,7 +67,8 @@ static const struct regmap_irq tps65912_irqs[] = {
 	REGMAP_IRQ_REG(TPS65912_IRQ_PGOOD_LDO10, 3, TPS65912_INT_STS4_PGOOD_LDO10),
 };
 
-static struct regmap_irq_chip tps65912_irq_chip = {
+static struct regmap_irq_chip tps65912_irq_chip =
+{
 	.name = "tps65912",
 	.irqs = tps65912_irqs,
 	.num_irqs = ARRAY_SIZE(tps65912_irqs),
@@ -82,14 +85,19 @@ int tps65912_device_init(struct tps65912 *tps)
 	int ret;
 
 	ret = regmap_add_irq_chip(tps->regmap, tps->irq, IRQF_ONESHOT, 0,
-				  &tps65912_irq_chip, &tps->irq_data);
+							  &tps65912_irq_chip, &tps->irq_data);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65912_cells,
-			      ARRAY_SIZE(tps65912_cells), NULL, 0,
-			      regmap_irq_get_domain(tps->irq_data));
-	if (ret) {
+						  ARRAY_SIZE(tps65912_cells), NULL, 0,
+						  regmap_irq_get_domain(tps->irq_data));
+
+	if (ret)
+	{
 		regmap_del_irq_chip(tps->irq, tps->irq_data);
 		return ret;
 	}

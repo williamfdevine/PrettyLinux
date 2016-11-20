@@ -34,7 +34,9 @@ static int tmio_mmc_suspend(struct device *dev)
 
 	/* Tell MFD core it can disable us now.*/
 	if (!ret && cell->disable)
+	{
 		cell->disable(pdev);
+	}
 
 	return ret;
 }
@@ -47,10 +49,14 @@ static int tmio_mmc_resume(struct device *dev)
 
 	/* Tell the MFD core we are ready to be enabled */
 	if (cell->resume)
+	{
 		ret = cell->resume(pdev);
+	}
 
 	if (!ret)
+	{
 		ret = pm_runtime_force_resume(dev);
+	}
 
 	return ret;
 }
@@ -65,27 +71,40 @@ static int tmio_mmc_probe(struct platform_device *pdev)
 	int ret = -EINVAL, irq;
 
 	if (pdev->num_resources != 2)
+	{
 		goto out;
+	}
 
 	pdata = pdev->dev.platform_data;
+
 	if (!pdata || !pdata->hclk)
+	{
 		goto out;
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		ret = irq;
 		goto out;
 	}
 
 	/* Tell the MFD core we are ready to be enabled */
-	if (cell->enable) {
+	if (cell->enable)
+	{
 		ret = cell->enable(pdev);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		ret = -EINVAL;
 		goto cell_disable;
 	}
@@ -93,24 +112,33 @@ static int tmio_mmc_probe(struct platform_device *pdev)
 	pdata->flags |= TMIO_MMC_HAVE_HIGH_REG;
 
 	host = tmio_mmc_host_alloc(pdev);
+
 	if (!host)
+	{
 		goto cell_disable;
+	}
 
 	/* SD control register space size is 0x200, 0x400 for bus_shift=1 */
 	host->bus_shift = resource_size(res) >> 10;
 
 	ret = tmio_mmc_host_probe(host, pdata);
+
 	if (ret)
+	{
 		goto host_free;
+	}
 
 	ret = devm_request_irq(&pdev->dev, irq, tmio_mmc_irq,
-				IRQF_TRIGGER_FALLING,
-				dev_name(&pdev->dev), host);
+						   IRQF_TRIGGER_FALLING,
+						   dev_name(&pdev->dev), host);
+
 	if (ret)
+	{
 		goto host_remove;
+	}
 
 	pr_info("%s at 0x%08lx irq %d\n", mmc_hostname(host->mmc),
-		(unsigned long)host->ctl, irq);
+			(unsigned long)host->ctl, irq);
 
 	return 0;
 
@@ -119,8 +147,12 @@ host_remove:
 host_free:
 	tmio_mmc_host_free(host);
 cell_disable:
+
 	if (cell->disable)
+	{
 		cell->disable(pdev);
+	}
+
 out:
 	return ret;
 }
@@ -130,11 +162,15 @@ static int tmio_mmc_remove(struct platform_device *pdev)
 	const struct mfd_cell *cell = mfd_get_cell(pdev);
 	struct mmc_host *mmc = platform_get_drvdata(pdev);
 
-	if (mmc) {
+	if (mmc)
+	{
 		struct tmio_mmc_host *host = mmc_priv(mmc);
 		tmio_mmc_host_remove(host);
+
 		if (cell->disable)
+		{
 			cell->disable(pdev);
+		}
 	}
 
 	return 0;
@@ -142,14 +178,16 @@ static int tmio_mmc_remove(struct platform_device *pdev)
 
 /* ------------------- device registration ----------------------- */
 
-static const struct dev_pm_ops tmio_mmc_dev_pm_ops = {
+static const struct dev_pm_ops tmio_mmc_dev_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(tmio_mmc_suspend, tmio_mmc_resume)
 	SET_RUNTIME_PM_OPS(tmio_mmc_host_runtime_suspend,
-			tmio_mmc_host_runtime_resume,
-			NULL)
+	tmio_mmc_host_runtime_resume,
+	NULL)
 };
 
-static struct platform_driver tmio_mmc_driver = {
+static struct platform_driver tmio_mmc_driver =
+{
 	.driver = {
 		.name = "tmio-mmc",
 		.pm = &tmio_mmc_dev_pm_ops,

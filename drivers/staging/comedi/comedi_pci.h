@@ -41,7 +41,7 @@ void comedi_pci_disable(struct comedi_device *);
 void comedi_pci_detach(struct comedi_device *);
 
 int comedi_pci_auto_config(struct pci_dev *, struct comedi_driver *,
-			   unsigned long context);
+						   unsigned long context);
 void comedi_pci_auto_unconfig(struct pci_dev *);
 
 int comedi_pci_driver_register(struct comedi_driver *, struct pci_driver *);
@@ -59,6 +59,6 @@ void comedi_pci_driver_unregister(struct comedi_driver *, struct pci_driver *);
  */
 #define module_comedi_pci_driver(__comedi_driver, __pci_driver) \
 	module_driver(__comedi_driver, comedi_pci_driver_register, \
-			comedi_pci_driver_unregister, &(__pci_driver))
+				  comedi_pci_driver_unregister, &(__pci_driver))
 
 #endif /* _COMEDI_PCI_H */

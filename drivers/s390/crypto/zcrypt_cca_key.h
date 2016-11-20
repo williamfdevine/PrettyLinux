@@ -26,7 +26,8 @@
 #ifndef _ZCRYPT_CCA_KEY_H_
 #define _ZCRYPT_CCA_KEY_H_
 
-struct T6_keyBlock_hdr {
+struct T6_keyBlock_hdr
+{
 	unsigned short blen;
 	unsigned short ulen;
 	unsigned short flags;
@@ -39,7 +40,8 @@ struct T6_keyBlock_hdr {
  *
  * mapping for the cca key token header
  */
-struct cca_token_hdr {
+struct cca_token_hdr
+{
 	unsigned char  token_identifier;
 	unsigned char  version;
 	unsigned short token_length;
@@ -51,7 +53,8 @@ struct cca_token_hdr {
 /**
  * mapping for the cca private ME section
  */
-struct cca_private_ext_ME_sec {
+struct cca_private_ext_ME_sec
+{
 	unsigned char  section_identifier;
 	unsigned char  version;
 	unsigned short section_length;
@@ -76,7 +79,8 @@ struct cca_private_ext_ME_sec {
  * section. So, an arbitrary public exponent of 0x010001 will be
  * used, for a section length of 0x0F always.
  */
-struct cca_public_sec {
+struct cca_public_sec
+{
 	unsigned char  section_identifier;
 	unsigned char  version;
 	unsigned short section_length;
@@ -98,7 +102,8 @@ struct cca_public_sec {
  * complement of the residue modulo 8 of the sum of
  * (p_len + q_len + dp_len + dq_len + u_len).
  */
-struct cca_pvt_ext_CRT_sec {
+struct cca_pvt_ext_CRT_sec
+{
 	unsigned char  section_identifier;
 	unsigned char  version;
 	unsigned short section_length;
@@ -134,24 +139,28 @@ struct cca_pvt_ext_CRT_sec {
  * Returns the size of the key area or -EFAULT
  */
 static inline int zcrypt_type6_mex_key_de(struct ica_rsa_modexpo *mex,
-					  void *p, int big_endian)
+		void *p, int big_endian)
 {
-	static struct cca_token_hdr static_pvt_me_hdr = {
+	static struct cca_token_hdr static_pvt_me_hdr =
+	{
 		.token_identifier	=  0x1E,
 		.token_length		=  0x0183,
 	};
-	static struct cca_private_ext_ME_sec static_pvt_me_sec = {
+	static struct cca_private_ext_ME_sec static_pvt_me_sec =
+	{
 		.section_identifier	=  0x02,
 		.section_length		=  0x016C,
-		.key_use_flags		= {0x80,0x00,0x00,0x00},
+		.key_use_flags		= {0x80, 0x00, 0x00, 0x00},
 	};
-	static struct cca_public_sec static_pub_me_sec = {
+	static struct cca_public_sec static_pub_me_sec =
+	{
 		.section_identifier	=  0x04,
 		.section_length		=  0x000F,
 		.exponent_len		=  0x0003,
 	};
 	static char pk_exponent[3] = { 0x01, 0x00, 0x01 };
-	struct {
+	struct
+	{
 		struct T6_keyBlock_hdr t6_hdr;
 		struct cca_token_hdr pvtMeHdr;
 		struct cca_private_ext_ME_sec pvtMeSec;
@@ -162,13 +171,17 @@ static inline int zcrypt_type6_mex_key_de(struct ica_rsa_modexpo *mex,
 
 	memset(key, 0, sizeof(*key));
 
-	if (big_endian) {
+	if (big_endian)
+	{
 		key->t6_hdr.blen = cpu_to_be16(0x189);
 		key->t6_hdr.ulen = cpu_to_be16(0x189 - 2);
-	} else {
+	}
+	else
+	{
 		key->t6_hdr.blen = cpu_to_le16(0x189);
 		key->t6_hdr.ulen = cpu_to_le16(0x189 - 2);
 	}
+
 	key->pvtMeHdr = static_pvt_me_hdr;
 	key->pvtMeSec = static_pvt_me_sec;
 	key->pubMeSec = static_pub_me_sec;
@@ -181,15 +194,22 @@ static inline int zcrypt_type6_mex_key_de(struct ica_rsa_modexpo *mex,
 
 	/* key parameter block */
 	temp = key->pvtMeSec.exponent +
-		sizeof(key->pvtMeSec.exponent) - mex->inputdatalength;
+		   sizeof(key->pvtMeSec.exponent) - mex->inputdatalength;
+
 	if (copy_from_user(temp, mex->b_key, mex->inputdatalength))
+	{
 		return -EFAULT;
+	}
 
 	/* modulus */
 	temp = key->pvtMeSec.modulus +
-		sizeof(key->pvtMeSec.modulus) - mex->inputdatalength;
+		   sizeof(key->pvtMeSec.modulus) - mex->inputdatalength;
+
 	if (copy_from_user(temp, mex->n_modulus, mex->inputdatalength))
+	{
 		return -EFAULT;
+	}
+
 	key->pubMeSec.modulus_bit_len = 8 * mex->inputdatalength;
 	return sizeof(*key);
 }
@@ -206,15 +226,18 @@ static inline int zcrypt_type6_mex_key_de(struct ica_rsa_modexpo *mex,
  * Returns the size of the key area or -EFAULT
  */
 static inline int zcrypt_type6_mex_key_en(struct ica_rsa_modexpo *mex,
-					  void *p, int big_endian)
+		void *p, int big_endian)
 {
-	static struct cca_token_hdr static_pub_hdr = {
+	static struct cca_token_hdr static_pub_hdr =
+	{
 		.token_identifier	=  0x1E,
 	};
-	static struct cca_public_sec static_pub_sec = {
+	static struct cca_public_sec static_pub_sec =
+	{
 		.section_identifier	=  0x04,
 	};
-	struct {
+	struct
+	{
 		struct T6_keyBlock_hdr t6_hdr;
 		struct cca_token_hdr pubHdr;
 		struct cca_public_sec pubSec;
@@ -230,35 +253,53 @@ static inline int zcrypt_type6_mex_key_en(struct ica_rsa_modexpo *mex,
 
 	/* key parameter block */
 	temp = key->exponent;
+
 	if (copy_from_user(temp, mex->b_key, mex->inputdatalength))
+	{
 		return -EFAULT;
+	}
+
 	/* Strip leading zeroes from b_key. */
 	for (i = 0; i < mex->inputdatalength; i++)
 		if (temp[i])
+		{
 			break;
+		}
+
 	if (i >= mex->inputdatalength)
+	{
 		return -EINVAL;
+	}
+
 	memmove(temp, temp + i, mex->inputdatalength - i);
 	temp += mex->inputdatalength - i;
+
 	/* modulus */
 	if (copy_from_user(temp, mex->n_modulus, mex->inputdatalength))
+	{
 		return -EFAULT;
+	}
 
 	key->pubSec.modulus_bit_len = 8 * mex->inputdatalength;
 	key->pubSec.modulus_byte_len = mex->inputdatalength;
 	key->pubSec.exponent_len = mex->inputdatalength - i;
 	key->pubSec.section_length = sizeof(key->pubSec) +
-					2*mex->inputdatalength - i;
+								 2 * mex->inputdatalength - i;
 	key->pubHdr.token_length =
 		key->pubSec.section_length + sizeof(key->pubHdr);
-	if (big_endian) {
+
+	if (big_endian)
+	{
 		key->t6_hdr.ulen = cpu_to_be16(key->pubHdr.token_length + 4);
 		key->t6_hdr.blen = cpu_to_be16(key->pubHdr.token_length + 6);
-	} else {
+	}
+	else
+	{
 		key->t6_hdr.ulen = cpu_to_le16(key->pubHdr.token_length + 4);
 		key->t6_hdr.blen = cpu_to_le16(key->pubHdr.token_length + 6);
 	}
-	return sizeof(*key) + 2*mex->inputdatalength - i;
+
+	return sizeof(*key) + 2 * mex->inputdatalength - i;
 }
 
 /**
@@ -272,15 +313,17 @@ static inline int zcrypt_type6_mex_key_en(struct ica_rsa_modexpo *mex,
  * Returns the size of the key area or -EFAULT
  */
 static inline int zcrypt_type6_crt_key(struct ica_rsa_modexpo_crt *crt,
-				       void *p, int big_endian)
+									   void *p, int big_endian)
 {
-	static struct cca_public_sec static_cca_pub_sec = {
+	static struct cca_public_sec static_cca_pub_sec =
+	{
 		.section_identifier = 4,
 		.section_length = 0x000f,
 		.exponent_len = 0x0003,
 	};
 	static char pk_exponent[3] = { 0x01, 0x00, 0x01 };
-	struct {
+	struct
+	{
 		struct T6_keyBlock_hdr t6_hdr;
 		struct cca_token_hdr token;
 		struct cca_pvt_ext_CRT_sec pvt;
@@ -293,15 +336,18 @@ static inline int zcrypt_type6_crt_key(struct ica_rsa_modexpo_crt *crt,
 
 	short_len = (crt->inputdatalength + 1) / 2;
 	long_len = short_len + 8;
-	pad_len = -(3*long_len + 2*short_len) & 7;
-	key_len = 3*long_len + 2*short_len + pad_len + crt->inputdatalength;
+	pad_len = -(3 * long_len + 2 * short_len) & 7;
+	key_len = 3 * long_len + 2 * short_len + pad_len + crt->inputdatalength;
 	size = sizeof(*key) + key_len + sizeof(*pub) + 3;
 
 	/* parameter block.key block */
-	if (big_endian) {
+	if (big_endian)
+	{
 		key->t6_hdr.blen = cpu_to_be16(size);
 		key->t6_hdr.ulen = cpu_to_be16(size - 2);
-	} else {
+	}
+	else
+	{
 		key->t6_hdr.blen = cpu_to_le16(size);
 		key->t6_hdr.ulen = cpu_to_le16(size - 2);
 	}
@@ -322,17 +368,20 @@ static inline int zcrypt_type6_crt_key(struct ica_rsa_modexpo_crt *crt,
 
 	/* key parts */
 	if (copy_from_user(key->key_parts, crt->np_prime, long_len) ||
-	    copy_from_user(key->key_parts + long_len,
-					crt->nq_prime, short_len) ||
-	    copy_from_user(key->key_parts + long_len + short_len,
-					crt->bp_key, long_len) ||
-	    copy_from_user(key->key_parts + 2*long_len + short_len,
-					crt->bq_key, short_len) ||
-	    copy_from_user(key->key_parts + 2*long_len + 2*short_len,
-					crt->u_mult_inv, long_len))
+		copy_from_user(key->key_parts + long_len,
+					   crt->nq_prime, short_len) ||
+		copy_from_user(key->key_parts + long_len + short_len,
+					   crt->bp_key, long_len) ||
+		copy_from_user(key->key_parts + 2 * long_len + short_len,
+					   crt->bq_key, short_len) ||
+		copy_from_user(key->key_parts + 2 * long_len + 2 * short_len,
+					   crt->u_mult_inv, long_len))
+	{
 		return -EFAULT;
-	memset(key->key_parts + 3*long_len + 2*short_len + pad_len,
-	       0xff, crt->inputdatalength);
+	}
+
+	memset(key->key_parts + 3 * long_len + 2 * short_len + pad_len,
+		   0xff, crt->inputdatalength);
 	pub = (struct cca_public_sec *)(key->key_parts + key_len);
 	*pub = static_cca_pub_sec;
 	pub->modulus_bit_len = 8 * crt->inputdatalength;

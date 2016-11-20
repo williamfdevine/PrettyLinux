@@ -36,7 +36,8 @@
 
 #include "flow.h"
 
-struct table_instance {
+struct table_instance
+{
 	struct flex_array *buckets;
 	unsigned int n_buckets;
 	struct rcu_head rcu;
@@ -45,7 +46,8 @@ struct table_instance {
 	bool keep_flows;
 };
 
-struct flow_table {
+struct flow_table
+{
 	struct table_instance __rcu *ti;
 	struct table_instance __rcu *ufid_ti;
 	struct list_head mask_list;
@@ -68,23 +70,23 @@ void ovs_flow_tbl_destroy(struct flow_table *table);
 int ovs_flow_tbl_flush(struct flow_table *flow_table);
 
 int ovs_flow_tbl_insert(struct flow_table *table, struct sw_flow *flow,
-			const struct sw_flow_mask *mask);
+						const struct sw_flow_mask *mask);
 void ovs_flow_tbl_remove(struct flow_table *table, struct sw_flow *flow);
 int  ovs_flow_tbl_num_masks(const struct flow_table *table);
 struct sw_flow *ovs_flow_tbl_dump_next(struct table_instance *table,
-				       u32 *bucket, u32 *idx);
+									   u32 *bucket, u32 *idx);
 struct sw_flow *ovs_flow_tbl_lookup_stats(struct flow_table *,
-				    const struct sw_flow_key *,
-				    u32 *n_mask_hit);
+		const struct sw_flow_key *,
+		u32 *n_mask_hit);
 struct sw_flow *ovs_flow_tbl_lookup(struct flow_table *,
-				    const struct sw_flow_key *);
+									const struct sw_flow_key *);
 struct sw_flow *ovs_flow_tbl_lookup_exact(struct flow_table *tbl,
-					  const struct sw_flow_match *match);
+		const struct sw_flow_match *match);
 struct sw_flow *ovs_flow_tbl_lookup_ufid(struct flow_table *,
-					 const struct sw_flow_id *);
+		const struct sw_flow_id *);
 
 bool ovs_flow_cmp(const struct sw_flow *, const struct sw_flow_match *);
 
 void ovs_flow_mask_key(struct sw_flow_key *dst, const struct sw_flow_key *src,
-		       bool full, const struct sw_flow_mask *mask);
+					   bool full, const struct sw_flow_mask *mask);
 #endif /* flow_table.h */

@@ -11,7 +11,8 @@
 
 #include "hashtab.h"
 
-struct symtab {
+struct symtab
+{
 	struct hashtab *table;	/* hash table (keyed on a string) */
 	u32 nprim;		/* number of primary names in table */
 };

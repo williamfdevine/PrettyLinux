@@ -68,8 +68,11 @@ static int __init rpcmouse_init(void)
 	int err;
 
 	rpcmouse_dev = input_allocate_device();
+
 	if (!rpcmouse_dev)
+	{
 		return -ENOMEM;
+	}
 
 	rpcmouse_dev->name = "Acorn RiscPC Mouse";
 	rpcmouse_dev->phys = "rpcmouse/input0";
@@ -80,27 +83,31 @@ static int __init rpcmouse_init(void)
 
 	rpcmouse_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
 	rpcmouse_dev->keybit[BIT_WORD(BTN_LEFT)] = BIT_MASK(BTN_LEFT) |
-		BIT_MASK(BTN_MIDDLE) | BIT_MASK(BTN_RIGHT);
+			BIT_MASK(BTN_MIDDLE) | BIT_MASK(BTN_RIGHT);
 	rpcmouse_dev->relbit[0]	= BIT_MASK(REL_X) | BIT_MASK(REL_Y);
 
 	rpcmouse_lastx = (short) iomd_readl(IOMD_MOUSEX);
 	rpcmouse_lasty = (short) iomd_readl(IOMD_MOUSEY);
 
-	if (request_irq(IRQ_VSYNCPULSE, rpcmouse_irq, IRQF_SHARED, "rpcmouse", rpcmouse_dev)) {
+	if (request_irq(IRQ_VSYNCPULSE, rpcmouse_irq, IRQF_SHARED, "rpcmouse", rpcmouse_dev))
+	{
 		printk(KERN_ERR "rpcmouse: unable to allocate VSYNC interrupt\n");
 		err = -EBUSY;
 		goto err_free_dev;
 	}
 
 	err = input_register_device(rpcmouse_dev);
+
 	if (err)
+	{
 		goto err_free_irq;
+	}
 
 	return 0;
 
- err_free_irq:
+err_free_irq:
 	free_irq(IRQ_VSYNCPULSE, rpcmouse_dev);
- err_free_dev:
+err_free_dev:
 	input_free_device(rpcmouse_dev);
 
 	return err;

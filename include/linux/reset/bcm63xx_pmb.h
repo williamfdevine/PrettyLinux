@@ -39,32 +39,42 @@
  * writes.
  */
 static inline int __bpcm_do_op(void __iomem *master, unsigned int addr,
-			       u32 off, u32 op)
+							   u32 off, u32 op)
 {
 	unsigned int timeout = 1000;
 	u32 cmd;
 
 	cmd = (PMC_PMBM_START | op | (addr & 0xff) << 12 | off);
 	writel(cmd, master + PMB_CTRL);
-	do {
+
+	do
+	{
 		cmd = readl(master + PMB_CTRL);
+
 		if (!(cmd & PMC_PMBM_START))
+		{
 			return 0;
+		}
 
 		if (cmd & PMC_PMBM_SLAVE_ERR)
+		{
 			return -EIO;
+		}
 
 		if (cmd & PMC_PMBM_TIMEOUT)
+		{
 			return -ETIMEDOUT;
+		}
 
 		udelay(1);
-	} while (timeout-- > 0);
+	}
+	while (timeout-- > 0);
 
 	return -ETIMEDOUT;
 }
 
 static inline int bpcm_rd(void __iomem *master, unsigned int addr,
-			  u32 off, u32 *val)
+						  u32 off, u32 *val)
 {
 	int ret = 0;
 
@@ -75,7 +85,7 @@ static inline int bpcm_rd(void __iomem *master, unsigned int addr,
 }
 
 static inline int bpcm_wr(void __iomem *master, unsigned int addr,
-			  u32 off, u32 val)
+						  u32 off, u32 val)
 {
 	int ret = 0;
 

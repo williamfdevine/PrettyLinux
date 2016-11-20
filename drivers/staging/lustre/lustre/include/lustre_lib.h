@@ -60,18 +60,18 @@ struct l_wait_info;
 
 #define LI_POISON 0x5a5a5a5a
 #if BITS_PER_LONG > 32
-# define LL_POISON 0x5a5a5a5a5a5a5a5aL
+	#define LL_POISON 0x5a5a5a5a5a5a5a5aL
 #else
-# define LL_POISON 0x5a5a5a5aL
+	#define LL_POISON 0x5a5a5a5aL
 #endif
 #define LP_POISON ((void *)LL_POISON)
 
 int target_pack_pool_reply(struct ptlrpc_request *req);
 int do_set_info_async(struct obd_import *imp,
-		      int opcode, int version,
-		      u32 keylen, void *key,
-		      u32 vallen, void *val,
-		      struct ptlrpc_request_set *set);
+					  int opcode, int version,
+					  u32 keylen, void *key,
+					  u32 vallen, void *val,
+					  struct ptlrpc_request_set *set);
 
 void target_send_reply(struct ptlrpc_request *req, int rc, int fail_id);
 
@@ -146,7 +146,8 @@ static inline int back_to_sleep(void *arg)
 
 #define LWI_ON_SIGNAL_NOOP ((void (*)(void *))(-1))
 
-struct l_wait_info {
+struct l_wait_info
+{
 	long lwi_timeout;
 	long lwi_interval;
 	int	    lwi_allow_intr;
@@ -157,48 +158,48 @@ struct l_wait_info {
 
 /* NB: LWI_TIMEOUT ignores signals completely */
 #define LWI_TIMEOUT(time, cb, data)	     \
-((struct l_wait_info) {			 \
-	.lwi_timeout    = time,		 \
-	.lwi_on_timeout = cb,		   \
-	.lwi_cb_data    = data,		 \
-	.lwi_interval   = 0,		    \
-	.lwi_allow_intr = 0		     \
-})
+	((struct l_wait_info) {			 \
+		.lwi_timeout    = time,		 \
+						  .lwi_on_timeout = cb,		   \
+											.lwi_cb_data    = data,		 \
+													.lwi_interval   = 0,		    \
+															.lwi_allow_intr = 0		     \
+	})
 
 #define LWI_TIMEOUT_INTERVAL(time, interval, cb, data)  \
-((struct l_wait_info) {				 \
-	.lwi_timeout    = time,			 \
-	.lwi_on_timeout = cb,			   \
-	.lwi_cb_data    = data,			 \
-	.lwi_interval   = interval,		     \
-	.lwi_allow_intr = 0			     \
-})
+	((struct l_wait_info) {				 \
+		.lwi_timeout    = time,			 \
+						  .lwi_on_timeout = cb,			   \
+											.lwi_cb_data    = data,			 \
+													.lwi_interval   = interval,		     \
+															.lwi_allow_intr = 0			     \
+	})
 
 #define LWI_TIMEOUT_INTR(time, time_cb, sig_cb, data)   \
-((struct l_wait_info) {				 \
-	.lwi_timeout    = time,			 \
-	.lwi_on_timeout = time_cb,		      \
-	.lwi_on_signal  = sig_cb,		       \
-	.lwi_cb_data    = data,			 \
-	.lwi_interval   = 0,			    \
-	.lwi_allow_intr = 0			     \
-})
+	((struct l_wait_info) {				 \
+		.lwi_timeout    = time,			 \
+						  .lwi_on_timeout = time_cb,		      \
+											.lwi_on_signal  = sig_cb,		       \
+													.lwi_cb_data    = data,			 \
+															.lwi_interval   = 0,			    \
+																	.lwi_allow_intr = 0			     \
+	})
 
 #define LWI_TIMEOUT_INTR_ALL(time, time_cb, sig_cb, data)       \
-((struct l_wait_info) {					 \
-	.lwi_timeout    = time,				 \
-	.lwi_on_timeout = time_cb,			      \
-	.lwi_on_signal  = sig_cb,			       \
-	.lwi_cb_data    = data,				 \
-	.lwi_interval   = 0,				    \
-	.lwi_allow_intr = 1				     \
-})
+	((struct l_wait_info) {					 \
+		.lwi_timeout    = time,				 \
+						  .lwi_on_timeout = time_cb,			      \
+											.lwi_on_signal  = sig_cb,			       \
+													.lwi_cb_data    = data,				 \
+															.lwi_interval   = 0,				    \
+																	.lwi_allow_intr = 1				     \
+	})
 
 #define LWI_INTR(cb, data)  LWI_TIMEOUT_INTR(0, NULL, cb, data)
 
 #define LUSTRE_FATAL_SIGS (sigmask(SIGKILL) | sigmask(SIGINT) |		\
-			   sigmask(SIGTERM) | sigmask(SIGQUIT) |	\
-			   sigmask(SIGALRM))
+						   sigmask(SIGTERM) | sigmask(SIGQUIT) |	\
+						   sigmask(SIGALRM))
 
 /**
  * wait_queue_t of Linux (version < 2.6.34) is a FIFO list for exclusively
@@ -214,141 +215,141 @@ struct l_wait_info {
  * waitq if add_wait_queue_exclusive_head is used.
  */
 #define add_wait_queue_exclusive_head(waitq, link)		\
-{								\
-	unsigned long flags;					\
-								\
-	spin_lock_irqsave(&((waitq)->lock), flags);		\
-	__add_wait_queue_exclusive(waitq, link);		\
-	spin_unlock_irqrestore(&((waitq)->lock), flags);	\
-}
+	{								\
+		unsigned long flags;					\
+		\
+		spin_lock_irqsave(&((waitq)->lock), flags);		\
+		__add_wait_queue_exclusive(waitq, link);		\
+		spin_unlock_irqrestore(&((waitq)->lock), flags);	\
+	}
 
 /*
  * wait for @condition to become true, but no longer than timeout, specified
  * by @info.
  */
 #define __l_wait_event(wq, condition, info, ret, l_add_wait)		   \
-do {									   \
-	wait_queue_t __wait;						 \
-	long __timeout = info->lwi_timeout;			  \
-	sigset_t   __blocked;					      \
-	int   __allow_intr = info->lwi_allow_intr;			     \
-									       \
-	ret = 0;							       \
-	if (condition)							 \
-		break;							 \
-									       \
-	init_waitqueue_entry(&__wait, current);					    \
-	l_add_wait(&wq, &__wait);					      \
-									       \
-	/* Block all signals (just the non-fatal ones if no timeout). */       \
-	if (info->lwi_on_signal && (__timeout == 0 || __allow_intr))   \
-		__blocked = cfs_block_sigsinv(LUSTRE_FATAL_SIGS);	      \
-	else								   \
-		__blocked = cfs_block_sigsinv(0);			      \
-									       \
-	for (;;) {							     \
-		if (condition)						 \
-			break;						 \
-									       \
-		set_current_state(TASK_INTERRUPTIBLE);			       \
-									       \
-		if (__timeout == 0) {					  \
-			schedule();					       \
-		} else {						       \
-			long interval = info->lwi_interval ?	  \
-					     min_t(long,	     \
-						 info->lwi_interval, __timeout) : \
-					     __timeout;			\
-			long remaining = schedule_timeout(interval);\
-			__timeout = cfs_time_sub(__timeout,		    \
-					    cfs_time_sub(interval, remaining));\
-			if (__timeout == 0) {				  \
-				if (!info->lwi_on_timeout ||		      \
-				    info->lwi_on_timeout(info->lwi_cb_data)) { \
-					ret = -ETIMEDOUT;		      \
-					break;				 \
-				}					      \
-				/* Take signals after the timeout expires. */  \
-				if (info->lwi_on_signal)		       \
-				    (void)cfs_block_sigsinv(LUSTRE_FATAL_SIGS);\
-			}						      \
-		}							      \
-									       \
-		set_current_state(TASK_RUNNING);			       \
-									       \
-		if (condition)						 \
-			break;						 \
-		if (signal_pending(current)) {				    \
-			if (info->lwi_on_signal &&		     \
-			    (__timeout == 0 || __allow_intr)) {		\
-				if (info->lwi_on_signal != LWI_ON_SIGNAL_NOOP) \
-					info->lwi_on_signal(info->lwi_cb_data);\
-				ret = -EINTR;				  \
-				break;					 \
-			}						      \
-			/* We have to do this here because some signals */     \
-			/* are not blockable - ie from strace(1).       */     \
-			/* In these cases we want to schedule_timeout() */     \
-			/* again, because we don't want that to return  */     \
-			/* -EINTR when the RPC actually succeeded.      */     \
-			/* the recalc_sigpending() below will deliver the */     \
-			/* signal properly.			     */     \
-			cfs_clear_sigpending();				\
-		}							      \
-	}								      \
-									       \
-	cfs_restore_sigs(__blocked);					   \
-									       \
-	remove_wait_queue(&wq, &__wait);					   \
-} while (0)
+	do {									   \
+		wait_queue_t __wait;						 \
+		long __timeout = info->lwi_timeout;			  \
+		sigset_t   __blocked;					      \
+		int   __allow_intr = info->lwi_allow_intr;			     \
+		\
+		ret = 0;							       \
+		if (condition)							 \
+			break;							 \
+		\
+		init_waitqueue_entry(&__wait, current);					    \
+		l_add_wait(&wq, &__wait);					      \
+		\
+		/* Block all signals (just the non-fatal ones if no timeout). */       \
+		if (info->lwi_on_signal && (__timeout == 0 || __allow_intr))   \
+			__blocked = cfs_block_sigsinv(LUSTRE_FATAL_SIGS);	      \
+		else								   \
+			__blocked = cfs_block_sigsinv(0);			      \
+		\
+		for (;;) {							     \
+			if (condition)						 \
+				break;						 \
+			\
+			set_current_state(TASK_INTERRUPTIBLE);			       \
+			\
+			if (__timeout == 0) {					  \
+				schedule();					       \
+			} else {						       \
+				long interval = info->lwi_interval ?	  \
+								min_t(long,	     \
+									  info->lwi_interval, __timeout) : \
+								__timeout;			\
+				long remaining = schedule_timeout(interval);\
+				__timeout = cfs_time_sub(__timeout,		    \
+										 cfs_time_sub(interval, remaining));\
+				if (__timeout == 0) {				  \
+					if (!info->lwi_on_timeout ||		      \
+						info->lwi_on_timeout(info->lwi_cb_data)) { \
+						ret = -ETIMEDOUT;		      \
+						break;				 \
+					}					      \
+					/* Take signals after the timeout expires. */  \
+					if (info->lwi_on_signal)		       \
+						(void)cfs_block_sigsinv(LUSTRE_FATAL_SIGS);\
+				}						      \
+			}							      \
+			\
+			set_current_state(TASK_RUNNING);			       \
+			\
+			if (condition)						 \
+				break;						 \
+			if (signal_pending(current)) {				    \
+				if (info->lwi_on_signal &&		     \
+					(__timeout == 0 || __allow_intr)) {		\
+					if (info->lwi_on_signal != LWI_ON_SIGNAL_NOOP) \
+						info->lwi_on_signal(info->lwi_cb_data);\
+					ret = -EINTR;				  \
+					break;					 \
+				}						      \
+				/* We have to do this here because some signals */     \
+				/* are not blockable - ie from strace(1).       */     \
+				/* In these cases we want to schedule_timeout() */     \
+				/* again, because we don't want that to return  */     \
+				/* -EINTR when the RPC actually succeeded.      */     \
+				/* the recalc_sigpending() below will deliver the */     \
+				/* signal properly.			     */     \
+				cfs_clear_sigpending();				\
+			}							      \
+		}								      \
+		\
+		cfs_restore_sigs(__blocked);					   \
+		\
+		remove_wait_queue(&wq, &__wait);					   \
+	} while (0)
 
 #define l_wait_event(wq, condition, info)		       \
-({							      \
-	int		 __ret;			      \
-	struct l_wait_info *__info = (info);		    \
-								\
-	__l_wait_event(wq, condition, __info,		   \
-		       __ret, add_wait_queue);		   \
-	__ret;						  \
-})
+	({							      \
+		int		 __ret;			      \
+		struct l_wait_info *__info = (info);		    \
+		\
+		__l_wait_event(wq, condition, __info,		   \
+					   __ret, add_wait_queue);		   \
+		__ret;						  \
+	})
 
 #define l_wait_event_exclusive(wq, condition, info)	     \
-({							      \
-	int		 __ret;			      \
-	struct l_wait_info *__info = (info);		    \
-								\
-	__l_wait_event(wq, condition, __info,		   \
-		       __ret, add_wait_queue_exclusive);	 \
-	__ret;						  \
-})
+	({							      \
+		int		 __ret;			      \
+		struct l_wait_info *__info = (info);		    \
+		\
+		__l_wait_event(wq, condition, __info,		   \
+					   __ret, add_wait_queue_exclusive);	 \
+		__ret;						  \
+	})
 
 #define l_wait_event_exclusive_head(wq, condition, info)	\
-({							      \
-	int		 __ret;			      \
-	struct l_wait_info *__info = (info);		    \
-								\
-	__l_wait_event(wq, condition, __info,		   \
-		       __ret, add_wait_queue_exclusive_head);    \
-	__ret;						  \
-})
+	({							      \
+		int		 __ret;			      \
+		struct l_wait_info *__info = (info);		    \
+		\
+		__l_wait_event(wq, condition, __info,		   \
+					   __ret, add_wait_queue_exclusive_head);    \
+		__ret;						  \
+	})
 
 #define l_wait_condition(wq, condition)			 \
-({							      \
-	struct l_wait_info lwi = { 0 };			 \
-	l_wait_event(wq, condition, &lwi);		      \
-})
+	({							      \
+		struct l_wait_info lwi = { 0 };			 \
+		l_wait_event(wq, condition, &lwi);		      \
+	})
 
 #define l_wait_condition_exclusive(wq, condition)	       \
-({							      \
-	struct l_wait_info lwi = { 0 };			 \
-	l_wait_event_exclusive(wq, condition, &lwi);	    \
-})
+	({							      \
+		struct l_wait_info lwi = { 0 };			 \
+		l_wait_event_exclusive(wq, condition, &lwi);	    \
+	})
 
 #define l_wait_condition_exclusive_head(wq, condition)	  \
-({							      \
-	struct l_wait_info lwi = { 0 };			 \
-	l_wait_event_exclusive_head(wq, condition, &lwi);       \
-})
+	({							      \
+		struct l_wait_info lwi = { 0 };			 \
+		l_wait_event_exclusive_head(wq, condition, &lwi);       \
+	})
 
 #define LIBLUSTRE_CLIENT (0)
 

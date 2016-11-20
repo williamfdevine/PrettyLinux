@@ -183,14 +183,16 @@ typedef uint64_t blkif_sector_t;
 
 #define BLKIF_MAX_INDIRECT_PAGES_PER_REQUEST 8
 
-struct blkif_request_segment {
-		grant_ref_t gref;        /* reference to I/O buffer frame        */
-		/* @first_sect: first sector in frame to transfer (inclusive).   */
-		/* @last_sect: last sector in frame to transfer (inclusive).     */
-		uint8_t     first_sect, last_sect;
+struct blkif_request_segment
+{
+	grant_ref_t gref;        /* reference to I/O buffer frame        */
+	/* @first_sect: first sector in frame to transfer (inclusive).   */
+	/* @last_sect: last sector in frame to transfer (inclusive).     */
+	uint8_t     first_sect, last_sect;
 };
 
-struct blkif_request_rw {
+struct blkif_request_rw
+{
 	uint8_t        nr_segments;  /* number of segments                   */
 	blkif_vdev_t   handle;       /* only for read/write requests         */
 #ifndef CONFIG_X86_32
@@ -201,7 +203,8 @@ struct blkif_request_rw {
 	struct blkif_request_segment seg[BLKIF_MAX_SEGMENTS_PER_REQUEST];
 } __attribute__((__packed__));
 
-struct blkif_request_discard {
+struct blkif_request_discard
+{
 	uint8_t        flag;         /* BLKIF_DISCARD_SECURE or zero.        */
 #define BLKIF_DISCARD_SECURE (1<<0)  /* ignored if discard-secure=0          */
 	blkif_vdev_t   _pad1;        /* only for read/write requests         */
@@ -214,7 +217,8 @@ struct blkif_request_discard {
 	uint8_t        _pad3;
 } __attribute__((__packed__));
 
-struct blkif_request_other {
+struct blkif_request_other
+{
 	uint8_t      _pad1;
 	blkif_vdev_t _pad2;        /* only for read/write requests         */
 #ifndef CONFIG_X86_32
@@ -223,7 +227,8 @@ struct blkif_request_other {
 	uint64_t     id;           /* private guest value, echoed in resp  */
 } __attribute__((__packed__));
 
-struct blkif_request_indirect {
+struct blkif_request_indirect
+{
 	uint8_t        indirect_op;
 	uint16_t       nr_segments;
 #ifndef CONFIG_X86_32
@@ -241,9 +246,11 @@ struct blkif_request_indirect {
 #endif
 } __attribute__((__packed__));
 
-struct blkif_request {
+struct blkif_request
+{
 	uint8_t        operation;    /* BLKIF_OP_???                         */
-	union {
+	union
+	{
 		struct blkif_request_rw rw;
 		struct blkif_request_discard discard;
 		struct blkif_request_other other;
@@ -251,7 +258,8 @@ struct blkif_request {
 	} u;
 } __attribute__((__packed__));
 
-struct blkif_response {
+struct blkif_response
+{
 	uint64_t        id;              /* copied from request */
 	uint8_t         operation;       /* copied from request */
 	int16_t         status;          /* BLKIF_RSP_???       */
@@ -260,11 +268,11 @@ struct blkif_response {
 /*
  * STATUS RETURN CODES.
  */
- /* Operation not supported (only happens on barrier writes). */
+/* Operation not supported (only happens on barrier writes). */
 #define BLKIF_RSP_EOPNOTSUPP  -2
- /* Operation failed for some unspecified reason (-EIO). */
+/* Operation failed for some unspecified reason (-EIO). */
 #define BLKIF_RSP_ERROR       -1
- /* Operation completed successfully. */
+/* Operation completed successfully. */
 #define BLKIF_RSP_OKAY         0
 
 /*

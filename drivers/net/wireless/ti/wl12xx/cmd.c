@@ -34,27 +34,35 @@ int wl1271_cmd_ext_radio_parms(struct wl1271 *wl)
 	int ret;
 
 	if (!wl->nvs)
+	{
 		return -ENODEV;
+	}
 
 	ext_radio_parms = kzalloc(sizeof(*ext_radio_parms), GFP_KERNEL);
+
 	if (!ext_radio_parms)
+	{
 		return -ENOMEM;
+	}
 
 	ext_radio_parms->test.id = TEST_CMD_INI_FILE_RF_EXTENDED_PARAM;
 
 	memcpy(ext_radio_parms->tx_per_channel_power_compensation_2,
-	       rf->tx_per_channel_power_compensation_2,
-	       CONF_TX_PWR_COMPENSATION_LEN_2);
+		   rf->tx_per_channel_power_compensation_2,
+		   CONF_TX_PWR_COMPENSATION_LEN_2);
 	memcpy(ext_radio_parms->tx_per_channel_power_compensation_5,
-	       rf->tx_per_channel_power_compensation_5,
-	       CONF_TX_PWR_COMPENSATION_LEN_5);
+		   rf->tx_per_channel_power_compensation_5,
+		   CONF_TX_PWR_COMPENSATION_LEN_5);
 
 	wl1271_dump(DEBUG_CMD, "TEST_CMD_INI_FILE_EXT_RADIO_PARAM: ",
-		    ext_radio_parms, sizeof(*ext_radio_parms));
+				ext_radio_parms, sizeof(*ext_radio_parms));
 
 	ret = wl1271_cmd_test(wl, ext_radio_parms, sizeof(*ext_radio_parms), 0);
+
 	if (ret < 0)
+	{
 		wl1271_warning("TEST_CMD_INI_FILE_RF_EXTENDED_PARAM failed");
+	}
 
 	kfree(ext_radio_parms);
 	return ret;
@@ -70,16 +78,22 @@ int wl1271_cmd_general_parms(struct wl1271 *wl)
 	int ret;
 
 	if (!wl->nvs)
+	{
 		return -ENODEV;
+	}
 
-	if (gp->tx_bip_fem_manufacturer >= WL1271_INI_FEM_MODULE_COUNT) {
+	if (gp->tx_bip_fem_manufacturer >= WL1271_INI_FEM_MODULE_COUNT)
+	{
 		wl1271_warning("FEM index from INI out of bounds");
 		return -EINVAL;
 	}
 
 	gen_parms = kzalloc(sizeof(*gen_parms), GFP_KERNEL);
+
 	if (!gen_parms)
+	{
 		return -ENOMEM;
+	}
 
 	gen_parms->test.id = TEST_CMD_INI_FILE_GENERAL_PARAM;
 
@@ -87,16 +101,22 @@ int wl1271_cmd_general_parms(struct wl1271 *wl)
 
 	/* If we started in PLT FEM_DETECT mode, force auto detect */
 	if (wl->plt_mode == PLT_FEM_DETECT)
+	{
 		gen_parms->general_params.tx_bip_fem_auto_detect = true;
+	}
 
 	if (gen_parms->general_params.tx_bip_fem_auto_detect)
+	{
 		answer = true;
+	}
 
 	/* Override the REF CLK from the NVS with the one from platform data */
 	gen_parms->general_params.ref_clock = priv->ref_clock;
 
 	ret = wl1271_cmd_test(wl, gen_parms, sizeof(*gen_parms), answer);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		wl1271_warning("CMD_INI_FILE_GENERAL_PARAM failed");
 		goto out;
 	}
@@ -104,7 +124,8 @@ int wl1271_cmd_general_parms(struct wl1271 *wl)
 	gp->tx_bip_fem_manufacturer =
 		gen_parms->general_params.tx_bip_fem_manufacturer;
 
-	if (gp->tx_bip_fem_manufacturer >= WL1271_INI_FEM_MODULE_COUNT) {
+	if (gp->tx_bip_fem_manufacturer >= WL1271_INI_FEM_MODULE_COUNT)
+	{
 		wl1271_warning("FEM index from FW out of bounds");
 		ret = -EINVAL;
 		goto out;
@@ -112,15 +133,17 @@ int wl1271_cmd_general_parms(struct wl1271 *wl)
 
 	/* If we are in calibrator based fem auto detect - save fem nr */
 	if (wl->plt_mode == PLT_FEM_DETECT)
+	{
 		wl->fem_manuf = gp->tx_bip_fem_manufacturer;
+	}
 
 	wl1271_debug(DEBUG_CMD, "FEM autodetect: %s, manufacturer: %d\n",
-		answer == false ?
-			"manual" :
-		wl->plt_mode == PLT_FEM_DETECT ?
-			"calibrator_fem_detect" :
-			"auto",
-		gp->tx_bip_fem_manufacturer);
+				 answer == false ?
+				 "manual" :
+				 wl->plt_mode == PLT_FEM_DETECT ?
+				 "calibrator_fem_detect" :
+				 "auto",
+				 gp->tx_bip_fem_manufacturer);
 
 out:
 	kfree(gen_parms);
@@ -137,16 +160,22 @@ int wl128x_cmd_general_parms(struct wl1271 *wl)
 	int ret;
 
 	if (!wl->nvs)
+	{
 		return -ENODEV;
+	}
 
-	if (gp->tx_bip_fem_manufacturer >= WL1271_INI_FEM_MODULE_COUNT) {
+	if (gp->tx_bip_fem_manufacturer >= WL1271_INI_FEM_MODULE_COUNT)
+	{
 		wl1271_warning("FEM index from ini out of bounds");
 		return -EINVAL;
 	}
 
 	gen_parms = kzalloc(sizeof(*gen_parms), GFP_KERNEL);
+
 	if (!gen_parms)
+	{
 		return -ENOMEM;
+	}
 
 	gen_parms->test.id = TEST_CMD_INI_FILE_GENERAL_PARAM;
 
@@ -154,17 +183,23 @@ int wl128x_cmd_general_parms(struct wl1271 *wl)
 
 	/* If we started in PLT FEM_DETECT mode, force auto detect */
 	if (wl->plt_mode == PLT_FEM_DETECT)
+	{
 		gen_parms->general_params.tx_bip_fem_auto_detect = true;
+	}
 
 	if (gen_parms->general_params.tx_bip_fem_auto_detect)
+	{
 		answer = true;
+	}
 
 	/* Replace REF and TCXO CLKs with the ones from platform data */
 	gen_parms->general_params.ref_clock = priv->ref_clock;
 	gen_parms->general_params.tcxo_ref_clock = priv->tcxo_clock;
 
 	ret = wl1271_cmd_test(wl, gen_parms, sizeof(*gen_parms), answer);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		wl1271_warning("CMD_INI_FILE_GENERAL_PARAM failed");
 		goto out;
 	}
@@ -172,7 +207,8 @@ int wl128x_cmd_general_parms(struct wl1271 *wl)
 	gp->tx_bip_fem_manufacturer =
 		gen_parms->general_params.tx_bip_fem_manufacturer;
 
-	if (gp->tx_bip_fem_manufacturer >= WL1271_INI_FEM_MODULE_COUNT) {
+	if (gp->tx_bip_fem_manufacturer >= WL1271_INI_FEM_MODULE_COUNT)
+	{
 		wl1271_warning("FEM index from FW out of bounds");
 		ret = -EINVAL;
 		goto out;
@@ -180,15 +216,17 @@ int wl128x_cmd_general_parms(struct wl1271 *wl)
 
 	/* If we are in calibrator based fem auto detect - save fem nr */
 	if (wl->plt_mode == PLT_FEM_DETECT)
+	{
 		wl->fem_manuf = gp->tx_bip_fem_manufacturer;
+	}
 
 	wl1271_debug(DEBUG_CMD, "FEM autodetect: %s, manufacturer: %d\n",
-		answer == false ?
-			"manual" :
-		wl->plt_mode == PLT_FEM_DETECT ?
-			"calibrator_fem_detect" :
-			"auto",
-		gp->tx_bip_fem_manufacturer);
+				 answer == false ?
+				 "manual" :
+				 wl->plt_mode == PLT_FEM_DETECT ?
+				 "calibrator_fem_detect" :
+				 "auto",
+				 gp->tx_bip_fem_manufacturer);
 
 out:
 	kfree(gen_parms);
@@ -203,11 +241,16 @@ int wl1271_cmd_radio_parms(struct wl1271 *wl)
 	int ret, fem_idx;
 
 	if (!wl->nvs)
+	{
 		return -ENODEV;
+	}
 
 	radio_parms = kzalloc(sizeof(*radio_parms), GFP_KERNEL);
+
 	if (!radio_parms)
+	{
 		return -ENOMEM;
+	}
 
 	radio_parms->test.id = TEST_CMD_INI_FILE_RADIO_PARAM;
 
@@ -215,25 +258,28 @@ int wl1271_cmd_radio_parms(struct wl1271 *wl)
 
 	/* 2.4GHz parameters */
 	memcpy(&radio_parms->static_params_2, &nvs->stat_radio_params_2,
-	       sizeof(struct wl1271_ini_band_params_2));
+		   sizeof(struct wl1271_ini_band_params_2));
 	memcpy(&radio_parms->dyn_params_2,
-	       &nvs->dyn_radio_params_2[fem_idx].params,
-	       sizeof(struct wl1271_ini_fem_params_2));
+		   &nvs->dyn_radio_params_2[fem_idx].params,
+		   sizeof(struct wl1271_ini_fem_params_2));
 
 	/* 5GHz parameters */
 	memcpy(&radio_parms->static_params_5,
-	       &nvs->stat_radio_params_5,
-	       sizeof(struct wl1271_ini_band_params_5));
+		   &nvs->stat_radio_params_5,
+		   sizeof(struct wl1271_ini_band_params_5));
 	memcpy(&radio_parms->dyn_params_5,
-	       &nvs->dyn_radio_params_5[fem_idx].params,
-	       sizeof(struct wl1271_ini_fem_params_5));
+		   &nvs->dyn_radio_params_5[fem_idx].params,
+		   sizeof(struct wl1271_ini_fem_params_5));
 
 	wl1271_dump(DEBUG_CMD, "TEST_CMD_INI_FILE_RADIO_PARAM: ",
-		    radio_parms, sizeof(*radio_parms));
+				radio_parms, sizeof(*radio_parms));
 
 	ret = wl1271_cmd_test(wl, radio_parms, sizeof(*radio_parms), 0);
+
 	if (ret < 0)
+	{
 		wl1271_warning("CMD_INI_FILE_RADIO_PARAM failed");
+	}
 
 	kfree(radio_parms);
 	return ret;
@@ -247,11 +293,16 @@ int wl128x_cmd_radio_parms(struct wl1271 *wl)
 	int ret, fem_idx;
 
 	if (!wl->nvs)
+	{
 		return -ENODEV;
+	}
 
 	radio_parms = kzalloc(sizeof(*radio_parms), GFP_KERNEL);
+
 	if (!radio_parms)
+	{
 		return -ENOMEM;
+	}
 
 	radio_parms->test.id = TEST_CMD_INI_FILE_RADIO_PARAM;
 
@@ -259,35 +310,38 @@ int wl128x_cmd_radio_parms(struct wl1271 *wl)
 
 	/* 2.4GHz parameters */
 	memcpy(&radio_parms->static_params_2, &nvs->stat_radio_params_2,
-	       sizeof(struct wl128x_ini_band_params_2));
+		   sizeof(struct wl128x_ini_band_params_2));
 	memcpy(&radio_parms->dyn_params_2,
-	       &nvs->dyn_radio_params_2[fem_idx].params,
-	       sizeof(struct wl128x_ini_fem_params_2));
+		   &nvs->dyn_radio_params_2[fem_idx].params,
+		   sizeof(struct wl128x_ini_fem_params_2));
 
 	/* 5GHz parameters */
 	memcpy(&radio_parms->static_params_5,
-	       &nvs->stat_radio_params_5,
-	       sizeof(struct wl128x_ini_band_params_5));
+		   &nvs->stat_radio_params_5,
+		   sizeof(struct wl128x_ini_band_params_5));
 	memcpy(&radio_parms->dyn_params_5,
-	       &nvs->dyn_radio_params_5[fem_idx].params,
-	       sizeof(struct wl128x_ini_fem_params_5));
+		   &nvs->dyn_radio_params_5[fem_idx].params,
+		   sizeof(struct wl128x_ini_fem_params_5));
 
 	radio_parms->fem_vendor_and_options = nvs->fem_vendor_and_options;
 
 	wl1271_dump(DEBUG_CMD, "TEST_CMD_INI_FILE_RADIO_PARAM: ",
-		    radio_parms, sizeof(*radio_parms));
+				radio_parms, sizeof(*radio_parms));
 
 	ret = wl1271_cmd_test(wl, radio_parms, sizeof(*radio_parms), 0);
+
 	if (ret < 0)
+	{
 		wl1271_warning("CMD_INI_FILE_RADIO_PARAM failed");
+	}
 
 	kfree(radio_parms);
 	return ret;
 }
 
 int wl12xx_cmd_channel_switch(struct wl1271 *wl,
-			      struct wl12xx_vif *wlvif,
-			      struct ieee80211_channel_switch *ch_switch)
+							  struct wl12xx_vif *wlvif,
+							  struct ieee80211_channel_switch *ch_switch)
 {
 	struct wl12xx_cmd_channel_switch *cmd;
 	int ret;
@@ -295,7 +349,9 @@ int wl12xx_cmd_channel_switch(struct wl1271 *wl,
 	wl1271_debug(DEBUG_ACX, "cmd channel switch");
 
 	cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
-	if (!cmd) {
+
+	if (!cmd)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -310,7 +366,9 @@ int wl12xx_cmd_channel_switch(struct wl1271 *wl,
 	cmd->post_switch_tx_disable = 0;
 
 	ret = wl1271_cmd_send(wl, CMD_CHANNEL_SWITCH, cmd, sizeof(*cmd), 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		wl1271_error("failed to send channel switch command");
 		goto out_free;
 	}

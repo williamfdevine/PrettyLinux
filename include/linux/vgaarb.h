@@ -67,10 +67,10 @@ struct pci_dev;
  */
 #if defined(CONFIG_VGA_ARB)
 extern void vga_set_legacy_decoding(struct pci_dev *pdev,
-				    unsigned int decodes);
+									unsigned int decodes);
 #else
 static inline void vga_set_legacy_decoding(struct pci_dev *pdev,
-					   unsigned int decodes) { };
+		unsigned int decodes) { };
 #endif
 
 #if defined(CONFIG_VGA_ARB)
@@ -89,9 +89,9 @@ static inline int vga_get(struct pci_dev *pdev, unsigned int rsrc, int interrupt
  * On success, release the VGA resource again with vga_put().
  */
 static inline int vga_get_interruptible(struct pci_dev *pdev,
-					unsigned int rsrc)
+										unsigned int rsrc)
 {
-       return vga_get(pdev, rsrc, 1);
+	return vga_get(pdev, rsrc, 1);
 }
 
 /**
@@ -104,9 +104,9 @@ static inline int vga_get_interruptible(struct pci_dev *pdev,
  * On success, release the VGA resource again with vga_put().
  */
 static inline int vga_get_uninterruptible(struct pci_dev *pdev,
-					  unsigned int rsrc)
+		unsigned int rsrc)
 {
-       return vga_get(pdev, rsrc, 0);
+	return vga_get(pdev, rsrc, 0);
 }
 
 #if defined(CONFIG_VGA_ARB)
@@ -116,9 +116,9 @@ static inline int vga_tryget(struct pci_dev *pdev, unsigned int rsrc) { return 0
 #endif
 
 #if defined(CONFIG_VGA_ARB)
-extern void vga_put(struct pci_dev *pdev, unsigned int rsrc);
+	extern void vga_put(struct pci_dev *pdev, unsigned int rsrc);
 #else
-#define vga_put(pdev, rsrc)
+	#define vga_put(pdev, rsrc)
 #endif
 
 
@@ -138,18 +138,18 @@ static inline void vga_set_default_device(struct pci_dev *pdev) { };
 #ifndef __ARCH_HAS_VGA_CONFLICT
 static inline int vga_conflicts(struct pci_dev *p1, struct pci_dev *p2)
 {
-       return 1;
+	return 1;
 }
 #endif
 
 #if defined(CONFIG_VGA_ARB)
 int vga_client_register(struct pci_dev *pdev, void *cookie,
-			void (*irq_set_state)(void *cookie, bool state),
-			unsigned int (*set_vga_decode)(void *cookie, bool state));
+						void (*irq_set_state)(void *cookie, bool state),
+						unsigned int (*set_vga_decode)(void *cookie, bool state));
 #else
 static inline int vga_client_register(struct pci_dev *pdev, void *cookie,
-				      void (*irq_set_state)(void *cookie, bool state),
-				      unsigned int (*set_vga_decode)(void *cookie, bool state))
+									  void (*irq_set_state)(void *cookie, bool state),
+									  unsigned int (*set_vga_decode)(void *cookie, bool state))
 {
 	return 0;
 }

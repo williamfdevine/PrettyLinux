@@ -40,14 +40,14 @@
  */
 #if IS_REACHABLE(CONFIG_DVB_PLL)
 extern struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe,
-					   int pll_addr,
-					   struct i2c_adapter *i2c,
-					   unsigned int pll_desc_id);
+		int pll_addr,
+		struct i2c_adapter *i2c,
+		unsigned int pll_desc_id);
 #else
 static inline struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe,
-					   int pll_addr,
-					   struct i2c_adapter *i2c,
-					   unsigned int pll_desc_id)
+		int pll_addr,
+		struct i2c_adapter *i2c,
+		unsigned int pll_desc_id)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

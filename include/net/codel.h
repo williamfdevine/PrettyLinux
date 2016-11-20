@@ -103,7 +103,8 @@ static inline u32 codel_time_to_us(codel_time_t val)
  * @mtu:	device mtu, or minimal queue backlog in bytes.
  * @ecn:	is Explicit Congestion Notification enabled
  */
-struct codel_params {
+struct codel_params
+{
 	codel_time_t	target;
 	codel_time_t	ce_threshold;
 	codel_time_t	interval;
@@ -123,7 +124,8 @@ struct codel_params {
  * @drop_next:		time to drop next packet, or when we dropped last
  * @ldelay:		sojourn time of last dequeued packet
  */
-struct codel_vars {
+struct codel_vars
+{
 	u32		count;
 	u32		lastcount;
 	bool		dropping;
@@ -145,7 +147,8 @@ struct codel_vars {
  * ecn_mark:	number of packets we ECN marked instead of dropping
  * ce_mark:	number of packets CE marked because sojourn time was above ce_threshold
  */
-struct codel_stats {
+struct codel_stats
+{
 	u32		maxpacket;
 	u32		drop_count;
 	u32		drop_len;
@@ -158,7 +161,7 @@ struct codel_stats {
 typedef u32 (*codel_skb_len_t)(const struct sk_buff *skb);
 typedef codel_time_t (*codel_skb_time_t)(const struct sk_buff *skb);
 typedef void (*codel_skb_drop_t)(struct sk_buff *skb, void *ctx);
-typedef struct sk_buff * (*codel_skb_dequeue_t)(struct codel_vars *vars,
-						void *ctx);
+typedef struct sk_buff *(*codel_skb_dequeue_t)(struct codel_vars *vars,
+		void *ctx);
 
 #endif

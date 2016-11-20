@@ -25,7 +25,8 @@
 
 #include <linux/dvb/frontend.h>
 
-struct lgs8gl5_config {
+struct lgs8gl5_config
+{
 	/* the demodulator's i2c address */
 	u8 demod_address;
 };
@@ -35,7 +36,8 @@ extern struct dvb_frontend *lgs8gl5_attach(
 	const struct lgs8gl5_config *config, struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *lgs8gl5_attach(
-	const struct lgs8gl5_config *config, struct i2c_adapter *i2c) {
+	const struct lgs8gl5_config *config, struct i2c_adapter *i2c)
+{
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
 }

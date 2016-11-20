@@ -26,7 +26,7 @@
 void hdmi_pll_dump(struct hdmi_pll_data *pll, struct seq_file *s)
 {
 #define DUMPPLL(r) seq_printf(s, "%-35s %08x\n", #r,\
-		hdmi_read_reg(pll->base, r))
+							  hdmi_read_reg(pll->base, r))
 
 	DUMPPLL(PLLCTRL_PLL_CONTROL);
 	DUMPPLL(PLLCTRL_PLL_STATUS);
@@ -51,8 +51,11 @@ static int hdmi_pll_enable(struct dss_pll *dsspll)
 	dss_ctrl_pll_enable(DSS_PLL_HDMI, true);
 
 	r = hdmi_wp_set_pll_pwr(wp, HDMI_PLLPWRCMD_BOTHON_ALLCLKS);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return 0;
 }
@@ -71,13 +74,15 @@ static void hdmi_pll_disable(struct dss_pll *dsspll)
 	WARN_ON(r < 0 && r != -ENOSYS);
 }
 
-static const struct dss_pll_ops dsi_pll_ops = {
+static const struct dss_pll_ops dsi_pll_ops =
+{
 	.enable = hdmi_pll_enable,
 	.disable = hdmi_pll_disable,
 	.set_config = dss_pll_write_config_type_b,
 };
 
-static const struct dss_pll_hw dss_omap4_hdmi_pll_hw = {
+static const struct dss_pll_hw dss_omap4_hdmi_pll_hw =
+{
 	.type = DSS_PLL_TYPE_B,
 
 	.n_max = 255,
@@ -102,7 +107,8 @@ static const struct dss_pll_hw dss_omap4_hdmi_pll_hw = {
 	.has_selfreqdco = true,
 };
 
-static const struct dss_pll_hw dss_omap5_hdmi_pll_hw = {
+static const struct dss_pll_hw dss_omap5_hdmi_pll_hw =
+{
 	.type = DSS_PLL_TYPE_B,
 
 	.n_max = 255,
@@ -135,7 +141,9 @@ static int dsi_init_pll_data(struct platform_device *pdev, struct hdmi_pll_data 
 	int r;
 
 	clk = devm_clk_get(&pdev->dev, "sys_clk");
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		DSSERR("can't get sys_clk\n");
 		return PTR_ERR(clk);
 	}
@@ -145,33 +153,37 @@ static int dsi_init_pll_data(struct platform_device *pdev, struct hdmi_pll_data 
 	pll->base = hpll->base;
 	pll->clkin = clk;
 
-	switch (omapdss_get_version()) {
-	case OMAPDSS_VER_OMAP4430_ES1:
-	case OMAPDSS_VER_OMAP4430_ES2:
-	case OMAPDSS_VER_OMAP4:
-		pll->hw = &dss_omap4_hdmi_pll_hw;
-		break;
+	switch (omapdss_get_version())
+	{
+		case OMAPDSS_VER_OMAP4430_ES1:
+		case OMAPDSS_VER_OMAP4430_ES2:
+		case OMAPDSS_VER_OMAP4:
+			pll->hw = &dss_omap4_hdmi_pll_hw;
+			break;
 
-	case OMAPDSS_VER_OMAP5:
-	case OMAPDSS_VER_DRA7xx:
-		pll->hw = &dss_omap5_hdmi_pll_hw;
-		break;
+		case OMAPDSS_VER_OMAP5:
+		case OMAPDSS_VER_DRA7xx:
+			pll->hw = &dss_omap5_hdmi_pll_hw;
+			break;
 
-	default:
-		return -ENODEV;
+		default:
+			return -ENODEV;
 	}
 
 	pll->ops = &dsi_pll_ops;
 
 	r = dss_pll_register(pll);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return 0;
 }
 
 int hdmi_pll_init(struct platform_device *pdev, struct hdmi_pll_data *pll,
-	struct hdmi_wp_data *wp)
+				  struct hdmi_wp_data *wp)
 {
 	int r;
 	struct resource *res;
@@ -180,19 +192,25 @@ int hdmi_pll_init(struct platform_device *pdev, struct hdmi_pll_data *pll,
 	pll->wp = wp;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pll");
-	if (!res) {
+
+	if (!res)
+	{
 		DSSERR("can't get PLL mem resource\n");
 		return -EINVAL;
 	}
 
 	pll->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(pll->base)) {
+
+	if (IS_ERR(pll->base))
+	{
 		DSSERR("can't ioremap PLLCTRL\n");
 		return PTR_ERR(pll->base);
 	}
 
 	r = dsi_init_pll_data(pdev, pll);
-	if (r) {
+
+	if (r)
+	{
 		DSSERR("failed to init HDMI PLL\n");
 		return r;
 	}

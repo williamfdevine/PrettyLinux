@@ -111,7 +111,7 @@ u64 le_readq(void __iomem *addr)
 }
 
 extern int whci_wait_for(struct device *dev, u32 __iomem *reg,
-			 u32 mask, u32 result,
-			 unsigned long max_ms,  const char *tag);
+						 u32 mask, u32 result,
+						 unsigned long max_ms,  const char *tag);
 
 #endif /* #ifndef _LINUX_UWB_WHCI_H_ */

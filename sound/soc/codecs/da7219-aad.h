@@ -169,9 +169,9 @@
 
 #define DA7219_AAD_MAX_BUTTONS		4
 #define DA7219_AAD_REPORT_ALL_MASK	(SND_JACK_MECHANICAL |			\
-					 SND_JACK_HEADSET | SND_JACK_LINEOUT |	\
-					 SND_JACK_BTN_0 | SND_JACK_BTN_1 |	\
-					 SND_JACK_BTN_2 | SND_JACK_BTN_3)
+									 SND_JACK_HEADSET | SND_JACK_LINEOUT |	\
+									 SND_JACK_BTN_0 | SND_JACK_BTN_1 |	\
+									 SND_JACK_BTN_2 | SND_JACK_BTN_3)
 
 #define DA7219_AAD_MICBIAS_CHK_DELAY	10
 #define DA7219_AAD_MICBIAS_CHK_RETRIES	5
@@ -181,14 +181,16 @@
 #define DA7219_AAD_HPTEST_PERIOD		65
 #define DA7219_AAD_HPTEST_INT_OSC_PATH_DELAY	20
 
-enum da7219_aad_event_regs {
+enum da7219_aad_event_regs
+{
 	DA7219_AAD_IRQ_REG_A = 0,
 	DA7219_AAD_IRQ_REG_B,
 	DA7219_AAD_IRQ_REG_MAX,
 };
 
 /* Private data */
-struct da7219_aad_priv {
+struct da7219_aad_priv
+{
 	struct snd_soc_codec *codec;
 	int irq;
 

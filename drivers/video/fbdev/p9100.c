@@ -26,7 +26,7 @@
  */
 
 static int p9100_setcolreg(unsigned, unsigned, unsigned, unsigned,
-			   unsigned, struct fb_info *);
+						   unsigned, struct fb_info *);
 static int p9100_blank(int, struct fb_info *);
 
 static int p9100_mmap(struct fb_info *, struct vm_area_struct *);
@@ -36,7 +36,8 @@ static int p9100_ioctl(struct fb_info *, unsigned int, unsigned long);
  *  Frame buffer operations
  */
 
-static struct fb_ops p9100_ops = {
+static struct fb_ops p9100_ops =
+{
 	.owner			= THIS_MODULE,
 	.fb_setcolreg		= p9100_setcolreg,
 	.fb_blank		= p9100_blank,
@@ -64,11 +65,12 @@ static struct fb_ops p9100_ops = {
 #define P9100_FB_OFF 0x0UL
 
 /* 3 bits: 2=8bpp 3=16bpp 5=32bpp 7=24bpp */
-#define SYS_CONFIG_PIXELSIZE_SHIFT 26 
+#define SYS_CONFIG_PIXELSIZE_SHIFT 26
 
 #define SCREENPAINT_TIMECTL1_ENABLE_VIDEO 0x20 /* 0 = off, 1 = on */
 
-struct p9100_regs {
+struct p9100_regs
+{
 	/* Registers for the system control */
 	u32 sys_base;
 	u32 sys_config;
@@ -109,7 +111,7 @@ struct p9100_regs {
 	u32 vram_xxx[25];
 
 	/* Registers for IBM RGB528 Palette */
-	u32 ramdac_cmap_wridx; 
+	u32 ramdac_cmap_wridx;
 	u32 ramdac_palette_data;
 	u32 ramdac_pixel_mask;
 	u32 ramdac_palette_rdaddr;
@@ -120,13 +122,15 @@ struct p9100_regs {
 	u32 ramdac_xxx[1784];
 };
 
-struct p9100_cmd_parameng {
+struct p9100_cmd_parameng
+{
 	u32 parameng_status;
 	u32 parameng_bltcmd;
 	u32 parameng_quadcmd;
 };
 
-struct p9100_par {
+struct p9100_par
+{
 	spinlock_t		lock;
 	struct p9100_regs	__iomem *regs;
 
@@ -146,15 +150,17 @@ struct p9100_par {
  *      @info: frame buffer info structure
  */
 static int p9100_setcolreg(unsigned regno,
-			   unsigned red, unsigned green, unsigned blue,
-			   unsigned transp, struct fb_info *info)
+						   unsigned red, unsigned green, unsigned blue,
+						   unsigned transp, struct fb_info *info)
 {
 	struct p9100_par *par = (struct p9100_par *) info->par;
 	struct p9100_regs __iomem *regs = par->regs;
 	unsigned long flags;
 
 	if (regno >= 256)
+	{
 		return 1;
+	}
 
 	red >>= 8;
 	green >>= 8;
@@ -187,23 +193,24 @@ p9100_blank(int blank, struct fb_info *info)
 
 	spin_lock_irqsave(&par->lock, flags);
 
-	switch (blank) {
-	case FB_BLANK_UNBLANK: /* Unblanking */
-		val = sbus_readl(&regs->vid_screenpaint_timectl1);
-		val |= SCREENPAINT_TIMECTL1_ENABLE_VIDEO;
-		sbus_writel(val, &regs->vid_screenpaint_timectl1);
-		par->flags &= ~P9100_FLAG_BLANKED;
-		break;
+	switch (blank)
+	{
+		case FB_BLANK_UNBLANK: /* Unblanking */
+			val = sbus_readl(&regs->vid_screenpaint_timectl1);
+			val |= SCREENPAINT_TIMECTL1_ENABLE_VIDEO;
+			sbus_writel(val, &regs->vid_screenpaint_timectl1);
+			par->flags &= ~P9100_FLAG_BLANKED;
+			break;
 
-	case FB_BLANK_NORMAL: /* Normal blanking */
-	case FB_BLANK_VSYNC_SUSPEND: /* VESA blank (vsync off) */
-	case FB_BLANK_HSYNC_SUSPEND: /* VESA blank (hsync off) */
-	case FB_BLANK_POWERDOWN: /* Poweroff */
-		val = sbus_readl(&regs->vid_screenpaint_timectl1);
-		val &= ~SCREENPAINT_TIMECTL1_ENABLE_VIDEO;
-		sbus_writel(val, &regs->vid_screenpaint_timectl1);
-		par->flags |= P9100_FLAG_BLANKED;
-		break;
+		case FB_BLANK_NORMAL: /* Normal blanking */
+		case FB_BLANK_VSYNC_SUSPEND: /* VESA blank (vsync off) */
+		case FB_BLANK_HSYNC_SUSPEND: /* VESA blank (hsync off) */
+		case FB_BLANK_POWERDOWN: /* Poweroff */
+			val = sbus_readl(&regs->vid_screenpaint_timectl1);
+			val &= ~SCREENPAINT_TIMECTL1_ENABLE_VIDEO;
+			sbus_writel(val, &regs->vid_screenpaint_timectl1);
+			par->flags |= P9100_FLAG_BLANKED;
+			break;
 	}
 
 	spin_unlock_irqrestore(&par->lock, flags);
@@ -211,7 +218,8 @@ p9100_blank(int blank, struct fb_info *info)
 	return 0;
 }
 
-static struct sbus_mmap_map p9100_mmap_map[] = {
+static struct sbus_mmap_map p9100_mmap_map[] =
+{
 	{ CG3_MMAP_OFFSET,	0,		SBUS_MMAP_FBSIZE(1) },
 	{ 0,			0,		0		    }
 };
@@ -221,16 +229,16 @@ static int p9100_mmap(struct fb_info *info, struct vm_area_struct *vma)
 	struct p9100_par *par = (struct p9100_par *)info->par;
 
 	return sbusfb_mmap_helper(p9100_mmap_map,
-				  info->fix.smem_start, info->fix.smem_len,
-				  par->which_io, vma);
+							  info->fix.smem_start, info->fix.smem_len,
+							  par->which_io, vma);
 }
 
 static int p9100_ioctl(struct fb_info *info, unsigned int cmd,
-		       unsigned long arg)
+					   unsigned long arg)
 {
 	/* Make it look like a cg3. */
 	return sbusfb_ioctl_helper(cmd, arg, info,
-				   FBTYPE_SUN3COLOR, 8, info->fix.smem_len);
+							   FBTYPE_SUN3COLOR, 8, info->fix.smem_len);
 }
 
 /*
@@ -259,8 +267,12 @@ static int p9100_probe(struct platform_device *op)
 	info = framebuffer_alloc(sizeof(struct p9100_par), &op->dev);
 
 	err = -ENOMEM;
+
 	if (!info)
+	{
 		goto out_err;
+	}
+
 	par = info->par;
 
 	spin_lock_init(&par->lock);
@@ -278,35 +290,46 @@ static int p9100_probe(struct platform_device *op)
 	info->fix.smem_len = PAGE_ALIGN(linebytes * info->var.yres);
 
 	par->regs = of_ioremap(&op->resource[0], 0,
-			       sizeof(struct p9100_regs), "p9100 regs");
+						   sizeof(struct p9100_regs), "p9100 regs");
+
 	if (!par->regs)
+	{
 		goto out_release_fb;
+	}
 
 	info->flags = FBINFO_DEFAULT;
 	info->fbops = &p9100_ops;
 	info->screen_base = of_ioremap(&op->resource[2], 0,
-				       info->fix.smem_len, "p9100 ram");
+								   info->fix.smem_len, "p9100 ram");
+
 	if (!info->screen_base)
+	{
 		goto out_unmap_regs;
+	}
 
 	p9100_blank(FB_BLANK_UNBLANK, info);
 
 	if (fb_alloc_cmap(&info->cmap, 256, 0))
+	{
 		goto out_unmap_screen;
+	}
 
 	p9100_init_fix(info, linebytes, dp);
 
 	err = register_framebuffer(info);
+
 	if (err < 0)
+	{
 		goto out_dealloc_cmap;
+	}
 
 	fb_set_cmap(&info->cmap, info);
 
 	dev_set_drvdata(&op->dev, info);
 
 	printk(KERN_INFO "%s: p9100 at %lx:%lx\n",
-	       dp->full_name,
-	       par->which_io, info->fix.smem_start);
+		   dp->full_name,
+		   par->which_io, info->fix.smem_start);
 
 	return 0;
 
@@ -342,7 +365,8 @@ static int p9100_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id p9100_match[] = {
+static const struct of_device_id p9100_match[] =
+{
 	{
 		.name = "p9100",
 	},
@@ -350,7 +374,8 @@ static const struct of_device_id p9100_match[] = {
 };
 MODULE_DEVICE_TABLE(of, p9100_match);
 
-static struct platform_driver p9100_driver = {
+static struct platform_driver p9100_driver =
+{
 	.driver = {
 		.name = "p9100",
 		.of_match_table = p9100_match,
@@ -362,7 +387,9 @@ static struct platform_driver p9100_driver = {
 static int __init p9100_init(void)
 {
 	if (fb_get_options("p9100fb", NULL))
+	{
 		return -ENODEV;
+	}
 
 	return platform_driver_register(&p9100_driver);
 }

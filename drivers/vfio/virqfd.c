@@ -27,8 +27,11 @@ static int __init vfio_virqfd_init(void)
 {
 	vfio_irqfd_cleanup_wq =
 		create_singlethread_workqueue("vfio-irqfd-cleanup");
+
 	if (!vfio_irqfd_cleanup_wq)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -48,15 +51,19 @@ static int virqfd_wakeup(wait_queue_t *wait, unsigned mode, int sync, void *key)
 	struct virqfd *virqfd = container_of(wait, struct virqfd, wait);
 	unsigned long flags = (unsigned long)key;
 
-	if (flags & POLLIN) {
+	if (flags & POLLIN)
+	{
 		/* An event has been signaled, call function */
 		if ((!virqfd->handler ||
-		     virqfd->handler(virqfd->opaque, virqfd->data)) &&
-		    virqfd->thread)
+			 virqfd->handler(virqfd->opaque, virqfd->data)) &&
+			virqfd->thread)
+		{
 			schedule_work(&virqfd->inject);
+		}
 	}
 
-	if (flags & POLLHUP) {
+	if (flags & POLLHUP)
+	{
 		unsigned long flags;
 		spin_lock_irqsave(&virqfd_lock, flags);
 
@@ -67,7 +74,8 @@ static int virqfd_wakeup(wait_queue_t *wait, unsigned mode, int sync, void *key)
 		 * with kvm irqfds, we know we won't race against the virqfd
 		 * going away because we hold the lock to get here.
 		 */
-		if (*(virqfd->pvirqfd) == virqfd) {
+		if (*(virqfd->pvirqfd) == virqfd)
+		{
 			*(virqfd->pvirqfd) = NULL;
 			virqfd_deactivate(virqfd);
 		}
@@ -79,7 +87,7 @@ static int virqfd_wakeup(wait_queue_t *wait, unsigned mode, int sync, void *key)
 }
 
 static void virqfd_ptable_queue_proc(struct file *file,
-				     wait_queue_head_t *wqh, poll_table *pt)
+									 wait_queue_head_t *wqh, poll_table *pt)
 {
 	struct virqfd *virqfd = container_of(pt, struct virqfd, pt);
 	add_wait_queue(wqh, &virqfd->wait);
@@ -100,14 +108,17 @@ static void virqfd_shutdown(struct work_struct *work)
 static void virqfd_inject(struct work_struct *work)
 {
 	struct virqfd *virqfd = container_of(work, struct virqfd, inject);
+
 	if (virqfd->thread)
+	{
 		virqfd->thread(virqfd->opaque, virqfd->data);
+	}
 }
 
 int vfio_virqfd_enable(void *opaque,
-		       int (*handler)(void *, void *),
-		       void (*thread)(void *, void *),
-		       void *data, struct virqfd **pvirqfd, int fd)
+					   int (*handler)(void *, void *),
+					   void (*thread)(void *, void *),
+					   void *data, struct virqfd **pvirqfd, int fd)
 {
 	struct fd irqfd;
 	struct eventfd_ctx *ctx;
@@ -116,8 +127,11 @@ int vfio_virqfd_enable(void *opaque,
 	unsigned int events;
 
 	virqfd = kzalloc(sizeof(*virqfd), GFP_KERNEL);
+
 	if (!virqfd)
+	{
 		return -ENOMEM;
+	}
 
 	virqfd->pvirqfd = pvirqfd;
 	virqfd->opaque = opaque;
@@ -129,13 +143,17 @@ int vfio_virqfd_enable(void *opaque,
 	INIT_WORK(&virqfd->inject, virqfd_inject);
 
 	irqfd = fdget(fd);
-	if (!irqfd.file) {
+
+	if (!irqfd.file)
+	{
 		ret = -EBADF;
 		goto err_fd;
 	}
 
 	ctx = eventfd_ctx_fileget(irqfd.file);
-	if (IS_ERR(ctx)) {
+
+	if (IS_ERR(ctx))
+	{
 		ret = PTR_ERR(ctx);
 		goto err_ctx;
 	}
@@ -150,11 +168,13 @@ int vfio_virqfd_enable(void *opaque,
 	 */
 	spin_lock_irq(&virqfd_lock);
 
-	if (*pvirqfd) {
+	if (*pvirqfd)
+	{
 		spin_unlock_irq(&virqfd_lock);
 		ret = -EBUSY;
 		goto err_busy;
 	}
+
 	*pvirqfd = virqfd;
 
 	spin_unlock_irq(&virqfd_lock);
@@ -172,9 +192,12 @@ int vfio_virqfd_enable(void *opaque,
 	 * Check if there was an event already pending on the eventfd
 	 * before we registered and trigger it as if we didn't miss it.
 	 */
-	if (events & POLLIN) {
+	if (events & POLLIN)
+	{
 		if ((!handler || handler(opaque, data)) && thread)
+		{
 			schedule_work(&virqfd->inject);
+		}
 	}
 
 	/*
@@ -201,7 +224,8 @@ void vfio_virqfd_disable(struct virqfd **pvirqfd)
 
 	spin_lock_irqsave(&virqfd_lock, flags);
 
-	if (*pvirqfd) {
+	if (*pvirqfd)
+	{
 		virqfd_deactivate(*pvirqfd);
 		*pvirqfd = NULL;
 	}

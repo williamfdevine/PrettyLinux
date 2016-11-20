@@ -30,7 +30,8 @@
 /*
  *	transaction block
  */
-struct tblock {
+struct tblock
+{
 	/*
 	 * tblock and jbuf_t common area: struct logsyncblk
 	 *
@@ -62,7 +63,8 @@ struct tblock {
 					 * ready transactions wait on this
 					 * event for group commit completion.
 					 */
-	union {
+	union
+	{
 		struct inode *ip; /* inode being deleted */
 		pxd_t ixpxd;	/* pxd of inode extent for created inode */
 	} u;
@@ -92,7 +94,8 @@ extern struct tblock *TxBlock;	/* transaction block table */
 /*
  *	transaction lock
  */
-struct tlock {
+struct tlock
+{
 	lid_t next;		/* 2: index next lockword on tid locklist
 				 *	    next lockword on freelist
 				 */
@@ -159,7 +162,8 @@ extern struct tlock *TxLock;	/* transaction lock table */
  * note: linelock and its variations are overlaid
  * at tlock.lock: watch for alignment;
  */
-struct lv {
+struct lv
+{
 	u8 offset;		/* 1: */
 	u8 length;		/* 1: */
 };				/* (2) */
@@ -167,7 +171,8 @@ struct lv {
 #define	TLOCKSHORT	20
 #define	TLOCKLONG	28
 
-struct linelock {
+struct linelock
+{
 	lid_t next;		/* 2: next linelock */
 
 	s8 maxcnt;		/* 1: */
@@ -183,7 +188,8 @@ struct linelock {
 
 #define dt_lock	linelock
 
-struct xtlock {
+struct xtlock
+{
 	lid_t next;		/* 2: */
 
 	s8 maxcnt;		/* 1: */
@@ -192,13 +198,13 @@ struct xtlock {
 	u16 flag;		/* 2: */
 	u8 type;		/* 1: */
 	u8 l2linesize;		/* 1: log2 of linesize */
-				/* (8) */
+	/* (8) */
 
 	struct lv header;	/* 2: */
 	struct lv lwm;		/* 2: low water mark */
 	struct lv hwm;		/* 2: high water mark */
 	struct lv twm;		/* 2: */
-				/* (16) */
+	/* (16) */
 
 	s32 pxdlock[8];		/* 32: */
 };				/* (48) */
@@ -214,7 +220,8 @@ struct xtlock {
  * N.B. index of the first pxdlock specifies index of next
  * free maplock (i.e., number of maplock) in the tlock;
  */
-struct maplock {
+struct maplock
+{
 	lid_t next;		/* 2: */
 
 	u8 maxcnt;		/* 2: */
@@ -223,7 +230,7 @@ struct maplock {
 	u16 flag;		/* 2: */
 	u8 type;		/* 1: */
 	u8 count;		/* 1: number of pxd/xad */
-				/* (8) */
+	/* (8) */
 
 	pxd_t pxd;		/* 8: */
 };				/* (16): */
@@ -242,7 +249,8 @@ struct maplock {
 
 #define	pxd_lock	maplock
 
-struct xdlistlock {
+struct xdlistlock
+{
 	lid_t next;		/* 2: */
 
 	u8 maxcnt;		/* 2: */
@@ -251,13 +259,14 @@ struct xdlistlock {
 	u16 flag;		/* 2: */
 	u8 type;		/* 1: */
 	u8 count;		/* 1: number of pxd/xad */
-				/* (8) */
+	/* (8) */
 
 	/*
 	 * We need xdlist to be 64 bits (8 bytes), regardless of
 	 * whether void * is 32 or 64 bits
 	 */
-	union {
+	union
+	{
 		void *_xdlist;	/* pxd/xad list */
 		s64 pad;	/* 8: Force 64-bit xdlist size */
 	} union64;
@@ -270,7 +279,8 @@ struct xdlistlock {
  *
  * parameter to the commit manager routines
  */
-struct commit {
+struct commit
+{
 	tid_t tid;		/* tid = index of tblock */
 	int flag;		/* flags */
 	struct jfs_log *log;	/* log */
@@ -302,7 +312,7 @@ extern void txFreeMap(struct inode *, struct maplock *, struct tblock *, int);
 extern void txEA(tid_t, struct inode *, dxd_t *, dxd_t *);
 extern void txFreelock(struct inode *);
 extern int lmLog(struct jfs_log *, struct tblock *, struct lrd *,
-		 struct tlock *);
+				 struct tlock *);
 extern void txQuiesce(struct super_block *);
 extern void txResume(struct super_block *);
 extern void txLazyUnlock(struct tblock *);

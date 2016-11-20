@@ -35,9 +35,9 @@ extern void jfs_free_zero_link(struct inode *);
 extern struct dentry *jfs_get_parent(struct dentry *dentry);
 extern void jfs_get_inode_flags(struct jfs_inode_info *);
 extern struct dentry *jfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
-	int fh_len, int fh_type);
+									   int fh_len, int fh_type);
 extern struct dentry *jfs_fh_to_parent(struct super_block *sb, struct fid *fid,
-	int fh_len, int fh_type);
+									   int fh_len, int fh_type);
 extern void jfs_set_inode_flags(struct inode *);
 extern int jfs_get_block(struct inode *, sector_t, struct buffer_head *, int);
 extern int jfs_setattr(struct dentry *, struct iattr *);

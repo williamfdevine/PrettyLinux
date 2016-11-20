@@ -94,13 +94,15 @@
 #define BOND_XMIT_POLICY_ENCAP23	3 /* encapsulated layer 2+3 */
 #define BOND_XMIT_POLICY_ENCAP34	4 /* encapsulated layer 3+4 */
 
-typedef struct ifbond {
+typedef struct ifbond
+{
 	__s32 bond_mode;
 	__s32 num_slaves;
 	__s32 miimon;
 } ifbond;
 
-typedef struct ifslave {
+typedef struct ifslave
+{
 	__s32 slave_id; /* Used as an IN param to the BOND_SLAVE_INFO_QUERY ioctl */
 	char slave_name[IFNAMSIZ];
 	__s8 link;
@@ -108,7 +110,8 @@ typedef struct ifslave {
 	__u32  link_failure_count;
 } ifslave;
 
-struct ad_info {
+struct ad_info
+{
 	__u16 aggregator_id;
 	__u16 ports;
 	__u16 actor_key;

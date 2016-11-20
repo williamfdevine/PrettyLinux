@@ -51,22 +51,31 @@ static int gpio_poweroff_probe(struct platform_device *pdev)
 	enum gpiod_flags flags;
 
 	/* If a pm_power_off function has already been added, leave it alone */
-	if (pm_power_off != NULL) {
+	if (pm_power_off != NULL)
+	{
 		dev_err(&pdev->dev,
-			"%s: pm_power_off function already registered",
-		       __func__);
+				"%s: pm_power_off function already registered",
+				__func__);
 		return -EBUSY;
 	}
 
 	input = of_property_read_bool(pdev->dev.of_node, "input");
+
 	if (input)
+	{
 		flags = GPIOD_IN;
+	}
 	else
+	{
 		flags = GPIOD_OUT_LOW;
+	}
 
 	reset_gpio = devm_gpiod_get(&pdev->dev, NULL, flags);
+
 	if (IS_ERR(reset_gpio))
+	{
 		return PTR_ERR(reset_gpio);
+	}
 
 	pm_power_off = &gpio_poweroff_do_poweroff;
 	return 0;
@@ -75,17 +84,21 @@ static int gpio_poweroff_probe(struct platform_device *pdev)
 static int gpio_poweroff_remove(struct platform_device *pdev)
 {
 	if (pm_power_off == &gpio_poweroff_do_poweroff)
+	{
 		pm_power_off = NULL;
+	}
 
 	return 0;
 }
 
-static const struct of_device_id of_gpio_poweroff_match[] = {
+static const struct of_device_id of_gpio_poweroff_match[] =
+{
 	{ .compatible = "gpio-poweroff", },
 	{},
 };
 
-static struct platform_driver gpio_poweroff_driver = {
+static struct platform_driver gpio_poweroff_driver =
+{
 	.probe = gpio_poweroff_probe,
 	.remove = gpio_poweroff_remove,
 	.driver = {

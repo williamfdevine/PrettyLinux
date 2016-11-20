@@ -31,12 +31,12 @@
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started "
-	"(default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "(default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static int twl4030_wdt_write(unsigned char val)
 {
 	return twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, val,
-					TWL4030_WATCHDOG_CFG_REG_OFFS);
+							TWL4030_WATCHDOG_CFG_REG_OFFS);
 }
 
 static int twl4030_wdt_start(struct watchdog_device *wdt)
@@ -50,18 +50,20 @@ static int twl4030_wdt_stop(struct watchdog_device *wdt)
 }
 
 static int twl4030_wdt_set_timeout(struct watchdog_device *wdt,
-				   unsigned int timeout)
+								   unsigned int timeout)
 {
 	wdt->timeout = timeout;
 	return 0;
 }
 
-static const struct watchdog_info twl4030_wdt_info = {
+static const struct watchdog_info twl4030_wdt_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
 	.identity = "TWL4030 Watchdog",
 };
 
-static const struct watchdog_ops twl4030_wdt_ops = {
+static const struct watchdog_ops twl4030_wdt_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= twl4030_wdt_start,
 	.stop		= twl4030_wdt_stop,
@@ -74,8 +76,11 @@ static int twl4030_wdt_probe(struct platform_device *pdev)
 	struct watchdog_device *wdt;
 
 	wdt = devm_kzalloc(&pdev->dev, sizeof(*wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	wdt->info		= &twl4030_wdt_info;
 	wdt->ops		= &twl4030_wdt_ops;
@@ -91,8 +96,11 @@ static int twl4030_wdt_probe(struct platform_device *pdev)
 	twl4030_wdt_stop(wdt);
 
 	ret = watchdog_register_device(wdt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -110,8 +118,11 @@ static int twl4030_wdt_remove(struct platform_device *pdev)
 static int twl4030_wdt_suspend(struct platform_device *pdev, pm_message_t state)
 {
 	struct watchdog_device *wdt = platform_get_drvdata(pdev);
+
 	if (watchdog_active(wdt))
+	{
 		return twl4030_wdt_stop(wdt);
+	}
 
 	return 0;
 }
@@ -119,8 +130,11 @@ static int twl4030_wdt_suspend(struct platform_device *pdev, pm_message_t state)
 static int twl4030_wdt_resume(struct platform_device *pdev)
 {
 	struct watchdog_device *wdt = platform_get_drvdata(pdev);
+
 	if (watchdog_active(wdt))
+	{
 		return twl4030_wdt_start(wdt);
+	}
 
 	return 0;
 }
@@ -129,13 +143,15 @@ static int twl4030_wdt_resume(struct platform_device *pdev)
 #define twl4030_wdt_resume         NULL
 #endif
 
-static const struct of_device_id twl_wdt_of_match[] = {
+static const struct of_device_id twl_wdt_of_match[] =
+{
 	{ .compatible = "ti,twl4030-wdt", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, twl_wdt_of_match);
 
-static struct platform_driver twl4030_wdt_driver = {
+static struct platform_driver twl4030_wdt_driver =
+{
 	.probe		= twl4030_wdt_probe,
 	.remove		= twl4030_wdt_remove,
 	.suspend	= twl4030_wdt_suspend,

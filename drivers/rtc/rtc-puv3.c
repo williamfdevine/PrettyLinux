@@ -62,7 +62,9 @@ static void puv3_rtc_setaie(struct device *dev, int to)
 	tmp = readl(RTC_RTSR) & ~RTC_RTSR_ALE;
 
 	if (to)
+	{
 		tmp |= RTC_RTSR_ALE;
+	}
 
 	writel(tmp, RTC_RTSR);
 }
@@ -77,7 +79,9 @@ static int puv3_rtc_setpie(struct device *dev, int enabled)
 	tmp = readl(RTC_RTSR) & ~RTC_RTSR_HZE;
 
 	if (enabled)
+	{
 		tmp |= RTC_RTSR_HZE;
+	}
 
 	writel(tmp, RTC_RTSR);
 	spin_unlock_irq(&puv3_rtc_pie_lock);
@@ -91,8 +95,8 @@ static int puv3_rtc_gettime(struct device *dev, struct rtc_time *rtc_tm)
 	rtc_time_to_tm(readl(RTC_RCNR), rtc_tm);
 
 	dev_dbg(dev, "read time %02x.%02x.%02x %02x/%02x/%02x\n",
-		 rtc_tm->tm_year, rtc_tm->tm_mon, rtc_tm->tm_mday,
-		 rtc_tm->tm_hour, rtc_tm->tm_min, rtc_tm->tm_sec);
+			rtc_tm->tm_year, rtc_tm->tm_mon, rtc_tm->tm_mday,
+			rtc_tm->tm_hour, rtc_tm->tm_min, rtc_tm->tm_sec);
 
 	return 0;
 }
@@ -102,8 +106,8 @@ static int puv3_rtc_settime(struct device *dev, struct rtc_time *tm)
 	unsigned long rtc_count = 0;
 
 	dev_dbg(dev, "set time %02d.%02d.%02d %02d/%02d/%02d\n",
-		 tm->tm_year, tm->tm_mon, tm->tm_mday,
-		 tm->tm_hour, tm->tm_min, tm->tm_sec);
+			tm->tm_year, tm->tm_mon, tm->tm_mday,
+			tm->tm_hour, tm->tm_min, tm->tm_sec);
 
 	rtc_tm_to_time(tm, &rtc_count);
 	writel(rtc_count, RTC_RCNR);
@@ -120,9 +124,9 @@ static int puv3_rtc_getalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	alrm->enabled = readl(RTC_RTSR) & RTC_RTSR_ALE;
 
 	dev_dbg(dev, "read alarm %02x %02x.%02x.%02x %02x/%02x/%02x\n",
-		 alrm->enabled,
-		 alm_tm->tm_year, alm_tm->tm_mon, alm_tm->tm_mday,
-		 alm_tm->tm_hour, alm_tm->tm_min, alm_tm->tm_sec);
+			alrm->enabled,
+			alm_tm->tm_year, alm_tm->tm_mon, alm_tm->tm_mday,
+			alm_tm->tm_hour, alm_tm->tm_min, alm_tm->tm_sec);
 
 	return 0;
 }
@@ -133,9 +137,9 @@ static int puv3_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	unsigned long rtcalarm_count = 0;
 
 	dev_dbg(dev, "puv3_rtc_setalarm: %d, %02x/%02x/%02x %02x.%02x.%02x\n",
-		 alrm->enabled,
-		 tm->tm_mday & 0xff, tm->tm_mon & 0xff, tm->tm_year & 0xff,
-		 tm->tm_hour & 0xff, tm->tm_min & 0xff, tm->tm_sec);
+			alrm->enabled,
+			tm->tm_mday & 0xff, tm->tm_mon & 0xff, tm->tm_year & 0xff,
+			tm->tm_hour & 0xff, tm->tm_min & 0xff, tm->tm_sec);
 
 	rtc_tm_to_time(tm, &rtcalarm_count);
 	writel(rtcalarm_count, RTC_RTAR);
@@ -143,9 +147,13 @@ static int puv3_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	puv3_rtc_setaie(dev, alrm->enabled);
 
 	if (alrm->enabled)
+	{
 		enable_irq_wake(puv3_rtc_alarmno);
+	}
 	else
+	{
 		disable_irq_wake(puv3_rtc_alarmno);
+	}
 
 	return 0;
 }
@@ -153,7 +161,7 @@ static int puv3_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
 static int puv3_rtc_proc(struct device *dev, struct seq_file *seq)
 {
 	seq_printf(seq, "periodic_IRQ\t: %s\n",
-		     (readl(RTC_RTSR) & RTC_RTSR_HZE) ? "yes" : "no");
+			   (readl(RTC_RTSR) & RTC_RTSR_HZE) ? "yes" : "no");
 	return 0;
 }
 
@@ -164,24 +172,26 @@ static int puv3_rtc_open(struct device *dev)
 	int ret;
 
 	ret = request_irq(puv3_rtc_alarmno, puv3_rtc_alarmirq,
-			0, "pkunity-rtc alarm", rtc_dev);
+					  0, "pkunity-rtc alarm", rtc_dev);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(dev, "IRQ%d error %d\n", puv3_rtc_alarmno, ret);
 		return ret;
 	}
 
 	ret = request_irq(puv3_rtc_tickno, puv3_rtc_tickirq,
-			0, "pkunity-rtc tick", rtc_dev);
+					  0, "pkunity-rtc tick", rtc_dev);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(dev, "IRQ%d error %d\n", puv3_rtc_tickno, ret);
 		goto tick_err;
 	}
 
 	return ret;
 
- tick_err:
+tick_err:
 	free_irq(puv3_rtc_alarmno, rtc_dev);
 	return ret;
 }
@@ -197,7 +207,8 @@ static void puv3_rtc_release(struct device *dev)
 	free_irq(puv3_rtc_tickno, rtc_dev);
 }
 
-static const struct rtc_class_ops puv3_rtcops = {
+static const struct rtc_class_ops puv3_rtcops =
+{
 	.open		= puv3_rtc_open,
 	.release	= puv3_rtc_release,
 	.read_time	= puv3_rtc_gettime,
@@ -209,11 +220,15 @@ static const struct rtc_class_ops puv3_rtcops = {
 
 static void puv3_rtc_enable(struct device *dev, int en)
 {
-	if (!en) {
+	if (!en)
+	{
 		writel(readl(RTC_RTSR) & ~RTC_RTSR_HZE, RTC_RTSR);
-	} else {
+	}
+	else
+	{
 		/* re-enable the device, and check it is ok */
-		if ((readl(RTC_RTSR) & RTC_RTSR_HZE) == 0) {
+		if ((readl(RTC_RTSR) & RTC_RTSR_HZE) == 0)
+		{
 			dev_info(dev, "rtc disabled, re-enabling\n");
 			writel(readl(RTC_RTSR) | RTC_RTSR_HZE, RTC_RTSR);
 		}
@@ -245,31 +260,38 @@ static int puv3_rtc_probe(struct platform_device *pdev)
 
 	/* find the IRQs */
 	puv3_rtc_tickno = platform_get_irq(pdev, 1);
-	if (puv3_rtc_tickno < 0) {
+
+	if (puv3_rtc_tickno < 0)
+	{
 		dev_err(&pdev->dev, "no irq for rtc tick\n");
 		return -ENOENT;
 	}
 
 	puv3_rtc_alarmno = platform_get_irq(pdev, 0);
-	if (puv3_rtc_alarmno < 0) {
+
+	if (puv3_rtc_alarmno < 0)
+	{
 		dev_err(&pdev->dev, "no irq for alarm\n");
 		return -ENOENT;
 	}
 
 	dev_dbg(&pdev->dev, "PKUnity_rtc: tick irq %d, alarm irq %d\n",
-		 puv3_rtc_tickno, puv3_rtc_alarmno);
+			puv3_rtc_tickno, puv3_rtc_alarmno);
 
 	/* get the memory region */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(&pdev->dev, "failed to get memory region resource\n");
 		return -ENOENT;
 	}
 
 	puv3_rtc_mem = request_mem_region(res->start, resource_size(res),
-					  pdev->name);
+									  pdev->name);
 
-	if (puv3_rtc_mem == NULL) {
+	if (puv3_rtc_mem == NULL)
+	{
 		dev_err(&pdev->dev, "failed to reserve memory region\n");
 		ret = -ENOENT;
 		goto err_nores;
@@ -279,9 +301,10 @@ static int puv3_rtc_probe(struct platform_device *pdev)
 
 	/* register RTC and exit */
 	rtc = rtc_device_register("pkunity", &pdev->dev, &puv3_rtcops,
-				  THIS_MODULE);
+							  THIS_MODULE);
 
-	if (IS_ERR(rtc)) {
+	if (IS_ERR(rtc))
+	{
 		dev_err(&pdev->dev, "cannot attach rtc\n");
 		ret = PTR_ERR(rtc);
 		goto err_nortc;
@@ -289,16 +312,18 @@ static int puv3_rtc_probe(struct platform_device *pdev)
 
 	/* platform setup code should have handled this; sigh */
 	if (!device_can_wakeup(&pdev->dev))
+	{
 		device_init_wakeup(&pdev->dev, 1);
+	}
 
 	platform_set_drvdata(pdev, rtc);
 	return 0;
 
- err_nortc:
+err_nortc:
 	puv3_rtc_enable(&pdev->dev, 0);
 	release_resource(puv3_rtc_mem);
 
- err_nores:
+err_nores:
 	return ret;
 }
 
@@ -323,7 +348,8 @@ static int puv3_rtc_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(puv3_rtc_pm_ops, puv3_rtc_suspend, puv3_rtc_resume);
 
-static struct platform_driver puv3_rtc_driver = {
+static struct platform_driver puv3_rtc_driver =
+{
 	.probe		= puv3_rtc_probe,
 	.remove		= puv3_rtc_remove,
 	.driver		= {

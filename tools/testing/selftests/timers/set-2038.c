@@ -89,25 +89,32 @@ int main(int argc, char *argv[])
 	time_t start;
 
 	/* Process arguments */
-	while ((opt = getopt(argc, argv, "d")) != -1) {
-		switch (opt) {
-		case 'd':
-			dangerous = 1;
+	while ((opt = getopt(argc, argv, "d")) != -1)
+	{
+		switch (opt)
+		{
+			case 'd':
+				dangerous = 1;
 		}
 	}
 
 	start = time(0);
 
 	/* First test that crazy values don't work */
-	if (!settime(YEAR_1901)) {
+	if (!settime(YEAR_1901))
+	{
 		ret = -1;
 		goto out;
 	}
-	if (!settime(YEAR_MAX)) {
+
+	if (!settime(YEAR_MAX))
+	{
 		ret = -1;
 		goto out;
 	}
-	if (!is32bits() && !settime(YEAR_2262)) {
+
+	if (!is32bits() && !settime(YEAR_2262))
+	{
 		ret = -1;
 		goto out;
 	}
@@ -115,22 +122,34 @@ int main(int argc, char *argv[])
 	/* Now test behavior near edges */
 	settime(YEAR_1970);
 	ret = do_tests();
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	settime(YEAR_2038 - 600);
 	ret = do_tests();
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* The rest of the tests can blowup on 32bit systems */
 	if (is32bits() && !dangerous)
+	{
 		goto out;
+	}
+
 	/* Test rollover behavior 32bit edge */
 	settime(YEAR_2038 - 10);
 	ret = do_tests();
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	settime(YEAR_2262 - 600);
 	ret = do_tests();
@@ -138,7 +157,11 @@ int main(int argc, char *argv[])
 out:
 	/* restore clock */
 	settime(start);
+
 	if (ret)
+	{
 		return ksft_exit_fail();
+	}
+
 	return ksft_exit_pass();
 }

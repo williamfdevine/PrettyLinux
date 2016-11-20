@@ -29,7 +29,9 @@ int pem_init_event_action_chains(struct pp_eventmgr *eventmgr)
 	int i;
 
 	for (i = 0; i < AMD_PP_EVENT_MAX; i++)
+	{
 		eventmgr->event_chain[i] = NULL;
+	}
 
 	eventmgr->event_chain[AMD_PP_EVENT_SUSPEND] = pem_get_suspend_action_chain(eventmgr);
 	eventmgr->event_chain[AMD_PP_EVENT_INITIALIZE] = pem_get_initialize_action_chain(eventmgr);
@@ -60,24 +62,34 @@ int pem_init_event_action_chains(struct pp_eventmgr *eventmgr)
 	return 0;
 }
 
-int pem_excute_event_chain(struct pp_eventmgr *eventmgr, const struct action_chain *event_chain, struct pem_event_data *event_data)
+int pem_excute_event_chain(struct pp_eventmgr *eventmgr, const struct action_chain *event_chain,
+						   struct pem_event_data *event_data)
 {
-	const pem_event_action * const *paction_chain;
+	const pem_event_action *const *paction_chain;
 	const pem_event_action *psub_chain;
 	int tmp_result = 0;
 	int result = 0;
 
 	if (eventmgr == NULL || event_chain == NULL || event_data == NULL)
+	{
 		return -EINVAL;
+	}
 
-	for (paction_chain = event_chain->action_chain; NULL != *paction_chain; paction_chain++) {
+	for (paction_chain = event_chain->action_chain; NULL != *paction_chain; paction_chain++)
+	{
 		if (0 != result)
+		{
 			return result;
+		}
 
-		for (psub_chain = *paction_chain; NULL != *psub_chain; psub_chain++) {
+		for (psub_chain = *paction_chain; NULL != *psub_chain; psub_chain++)
+		{
 			tmp_result = (*psub_chain)(eventmgr, event_data);
+
 			if (0 == result)
+			{
 				result = tmp_result;
+			}
 		}
 	}
 

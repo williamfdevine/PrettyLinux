@@ -77,7 +77,7 @@
  *     for IPVS lblcr entry hash table
  */
 #ifndef CONFIG_IP_VS_LBLCR_TAB_BITS
-#define CONFIG_IP_VS_LBLCR_TAB_BITS      10
+	#define CONFIG_IP_VS_LBLCR_TAB_BITS      10
 #endif
 #define IP_VS_LBLCR_TAB_BITS     CONFIG_IP_VS_LBLCR_TAB_BITS
 #define IP_VS_LBLCR_TAB_SIZE     (1 << IP_VS_LBLCR_TAB_BITS)
@@ -87,13 +87,15 @@
 /*
  *      IPVS destination set structure and operations
  */
-struct ip_vs_dest_set_elem {
+struct ip_vs_dest_set_elem
+{
 	struct list_head	list;          /* list link */
 	struct ip_vs_dest	*dest;		/* destination server */
 	struct rcu_head		rcu_head;
 };
 
-struct ip_vs_dest_set {
+struct ip_vs_dest_set
+{
 	atomic_t                size;           /* set size */
 	unsigned long           lastmod;        /* last modified time */
 	struct list_head	list;           /* destination list */
@@ -101,20 +103,27 @@ struct ip_vs_dest_set {
 
 
 static void ip_vs_dest_set_insert(struct ip_vs_dest_set *set,
-				  struct ip_vs_dest *dest, bool check)
+								  struct ip_vs_dest *dest, bool check)
 {
 	struct ip_vs_dest_set_elem *e;
 
-	if (check) {
-		list_for_each_entry(e, &set->list, list) {
+	if (check)
+	{
+		list_for_each_entry(e, &set->list, list)
+		{
 			if (e->dest == dest)
+			{
 				return;
+			}
 		}
 	}
 
 	e = kmalloc(sizeof(*e), GFP_ATOMIC);
+
 	if (e == NULL)
+	{
 		return;
+	}
 
 	ip_vs_dest_hold(dest);
 	e->dest = dest;
@@ -139,8 +148,10 @@ ip_vs_dest_set_erase(struct ip_vs_dest_set *set, struct ip_vs_dest *dest)
 {
 	struct ip_vs_dest_set_elem *e;
 
-	list_for_each_entry(e, &set->list, list) {
-		if (e->dest == dest) {
+	list_for_each_entry(e, &set->list, list)
+	{
+		if (e->dest == dest)
+		{
 			/* HIT */
 			atomic_dec(&set->size);
 			set->lastmod = jiffies;
@@ -155,7 +166,8 @@ static void ip_vs_dest_set_eraseall(struct ip_vs_dest_set *set)
 {
 	struct ip_vs_dest_set_elem *e, *ep;
 
-	list_for_each_entry_safe(e, ep, &set->list, list) {
+	list_for_each_entry_safe(e, ep, &set->list, list)
+	{
 		list_del_rcu(&e->list);
 		call_rcu(&e->rcu_head, ip_vs_lblcr_elem_rcu_free);
 	}
@@ -169,13 +181,18 @@ static inline struct ip_vs_dest *ip_vs_dest_set_min(struct ip_vs_dest_set *set)
 	int loh, doh;
 
 	/* select the first destination server, whose weight > 0 */
-	list_for_each_entry_rcu(e, &set->list, list) {
+	list_for_each_entry_rcu(e, &set->list, list)
+	{
 		least = e->dest;
+
 		if (least->flags & IP_VS_DEST_F_OVERLOAD)
+		{
 			continue;
+		}
 
 		if ((atomic_read(&least->weight) > 0)
-		    && (least->flags & IP_VS_DEST_F_AVAILABLE)) {
+			&& (least->flags & IP_VS_DEST_F_AVAILABLE))
+		{
 			loh = ip_vs_dest_conn_overhead(least);
 			goto nextstage;
 		}
@@ -183,29 +200,35 @@ static inline struct ip_vs_dest *ip_vs_dest_set_min(struct ip_vs_dest_set *set)
 	return NULL;
 
 	/* find the destination with the weighted least load */
-  nextstage:
-	list_for_each_entry_continue_rcu(e, &set->list, list) {
+nextstage:
+	list_for_each_entry_continue_rcu(e, &set->list, list)
+	{
 		dest = e->dest;
+
 		if (dest->flags & IP_VS_DEST_F_OVERLOAD)
+		{
 			continue;
+		}
 
 		doh = ip_vs_dest_conn_overhead(dest);
+
 		if (((__s64)loh * atomic_read(&dest->weight) >
-		     (__s64)doh * atomic_read(&least->weight))
-		    && (dest->flags & IP_VS_DEST_F_AVAILABLE)) {
+			 (__s64)doh * atomic_read(&least->weight))
+			&& (dest->flags & IP_VS_DEST_F_AVAILABLE))
+		{
 			least = dest;
 			loh = doh;
 		}
 	}
 
 	IP_VS_DBG_BUF(6, "%s(): server %s:%d "
-		      "activeconns %d refcnt %d weight %d overhead %d\n",
-		      __func__,
-		      IP_VS_DBG_ADDR(least->af, &least->addr),
-		      ntohs(least->port),
-		      atomic_read(&least->activeconns),
-		      atomic_read(&least->refcnt),
-		      atomic_read(&least->weight), loh);
+				  "activeconns %d refcnt %d weight %d overhead %d\n",
+				  __func__,
+				  IP_VS_DBG_ADDR(least->af, &least->addr),
+				  ntohs(least->port),
+				  atomic_read(&least->activeconns),
+				  atomic_read(&least->refcnt),
+				  atomic_read(&least->weight), loh);
 	return least;
 }
 
@@ -218,12 +241,17 @@ static inline struct ip_vs_dest *ip_vs_dest_set_max(struct ip_vs_dest_set *set)
 	int moh, doh;
 
 	if (set == NULL)
+	{
 		return NULL;
+	}
 
 	/* select the first destination server, whose weight > 0 */
-	list_for_each_entry(e, &set->list, list) {
+	list_for_each_entry(e, &set->list, list)
+	{
 		most = e->dest;
-		if (atomic_read(&most->weight) > 0) {
+
+		if (atomic_read(&most->weight) > 0)
+		{
 			moh = ip_vs_dest_conn_overhead(most);
 			goto nextstage;
 		}
@@ -231,26 +259,29 @@ static inline struct ip_vs_dest *ip_vs_dest_set_max(struct ip_vs_dest_set *set)
 	return NULL;
 
 	/* find the destination with the weighted most load */
-  nextstage:
-	list_for_each_entry_continue(e, &set->list, list) {
+nextstage:
+	list_for_each_entry_continue(e, &set->list, list)
+	{
 		dest = e->dest;
 		doh = ip_vs_dest_conn_overhead(dest);
+
 		/* moh/mw < doh/dw ==> moh*dw < doh*mw, where mw,dw>0 */
 		if (((__s64)moh * atomic_read(&dest->weight) <
-		     (__s64)doh * atomic_read(&most->weight))
-		    && (atomic_read(&dest->weight) > 0)) {
+			 (__s64)doh * atomic_read(&most->weight))
+			&& (atomic_read(&dest->weight) > 0))
+		{
 			most = dest;
 			moh = doh;
 		}
 	}
 
 	IP_VS_DBG_BUF(6, "%s(): server %s:%d "
-		      "activeconns %d refcnt %d weight %d overhead %d\n",
-		      __func__,
-		      IP_VS_DBG_ADDR(most->af, &most->addr), ntohs(most->port),
-		      atomic_read(&most->activeconns),
-		      atomic_read(&most->refcnt),
-		      atomic_read(&most->weight), moh);
+				  "activeconns %d refcnt %d weight %d overhead %d\n",
+				  __func__,
+				  IP_VS_DBG_ADDR(most->af, &most->addr), ntohs(most->port),
+				  atomic_read(&most->activeconns),
+				  atomic_read(&most->refcnt),
+				  atomic_read(&most->weight), moh);
 	return most;
 }
 
@@ -259,7 +290,8 @@ static inline struct ip_vs_dest *ip_vs_dest_set_max(struct ip_vs_dest_set *set)
  *      IPVS lblcr entry represents an association between destination
  *      IP address and its destination server set
  */
-struct ip_vs_lblcr_entry {
+struct ip_vs_lblcr_entry
+{
 	struct hlist_node       list;
 	int			af;		/* address family */
 	union nf_inet_addr      addr;           /* destination IP address */
@@ -272,7 +304,8 @@ struct ip_vs_lblcr_entry {
 /*
  *      IPVS lblcr hash table
  */
-struct ip_vs_lblcr_table {
+struct ip_vs_lblcr_table
+{
 	struct rcu_head		rcu_head;
 	struct hlist_head	bucket[IP_VS_LBLCR_TAB_SIZE];  /* hash bucket */
 	atomic_t                entries;        /* number of entries */
@@ -289,7 +322,8 @@ struct ip_vs_lblcr_table {
  *      IPVS LBLCR sysctl table
  */
 
-static struct ctl_table vs_vars_table[] = {
+static struct ctl_table vs_vars_table[] =
+{
 	{
 		.procname	= "lblcr_expiration",
 		.data		= NULL,
@@ -318,11 +352,13 @@ ip_vs_lblcr_hashkey(int af, const union nf_inet_addr *addr)
 	__be32 addr_fold = addr->ip;
 
 #ifdef CONFIG_IP_VS_IPV6
+
 	if (af == AF_INET6)
-		addr_fold = addr->ip6[0]^addr->ip6[1]^
-			    addr->ip6[2]^addr->ip6[3];
+		addr_fold = addr->ip6[0] ^ addr->ip6[1] ^
+					addr->ip6[2] ^ addr->ip6[3];
+
 #endif
-	return (ntohl(addr_fold)*2654435761UL) & IP_VS_LBLCR_TAB_MASK;
+	return (ntohl(addr_fold) * 2654435761UL) & IP_VS_LBLCR_TAB_MASK;
 }
 
 
@@ -343,14 +379,17 @@ ip_vs_lblcr_hash(struct ip_vs_lblcr_table *tbl, struct ip_vs_lblcr_entry *en)
 /* Get ip_vs_lblcr_entry associated with supplied parameters. */
 static inline struct ip_vs_lblcr_entry *
 ip_vs_lblcr_get(int af, struct ip_vs_lblcr_table *tbl,
-		const union nf_inet_addr *addr)
+				const union nf_inet_addr *addr)
 {
 	unsigned int hash = ip_vs_lblcr_hashkey(af, addr);
 	struct ip_vs_lblcr_entry *en;
 
 	hlist_for_each_entry_rcu(en, &tbl->bucket[hash], list)
-		if (ip_vs_addr_equal(af, &en->addr, addr))
-			return en;
+
+	if (ip_vs_addr_equal(af, &en->addr, addr))
+	{
+		return en;
+	}
 
 	return NULL;
 }
@@ -362,15 +401,20 @@ ip_vs_lblcr_get(int af, struct ip_vs_lblcr_table *tbl,
  */
 static inline struct ip_vs_lblcr_entry *
 ip_vs_lblcr_new(struct ip_vs_lblcr_table *tbl, const union nf_inet_addr *daddr,
-		u16 af, struct ip_vs_dest *dest)
+				u16 af, struct ip_vs_dest *dest)
 {
 	struct ip_vs_lblcr_entry *en;
 
 	en = ip_vs_lblcr_get(af, tbl, daddr);
-	if (!en) {
+
+	if (!en)
+	{
 		en = kmalloc(sizeof(*en), GFP_ATOMIC);
+
 		if (!en)
+		{
 			return NULL;
+		}
 
 		en->af = af;
 		ip_vs_addr_copy(af, &en->addr, daddr);
@@ -404,11 +448,15 @@ static void ip_vs_lblcr_flush(struct ip_vs_service *svc)
 
 	spin_lock_bh(&svc->sched_lock);
 	tbl->dead = 1;
-	for (i = 0; i < IP_VS_LBLCR_TAB_SIZE; i++) {
-		hlist_for_each_entry_safe(en, next, &tbl->bucket[i], list) {
+
+	for (i = 0; i < IP_VS_LBLCR_TAB_SIZE; i++)
+	{
+		hlist_for_each_entry_safe(en, next, &tbl->bucket[i], list)
+		{
 			ip_vs_lblcr_free(en);
 		}
 	}
+
 	spin_unlock_bh(&svc->sched_lock);
 }
 
@@ -429,20 +477,25 @@ static inline void ip_vs_lblcr_full_check(struct ip_vs_service *svc)
 	struct ip_vs_lblcr_entry *en;
 	struct hlist_node *next;
 
-	for (i = 0, j = tbl->rover; i < IP_VS_LBLCR_TAB_SIZE; i++) {
+	for (i = 0, j = tbl->rover; i < IP_VS_LBLCR_TAB_SIZE; i++)
+	{
 		j = (j + 1) & IP_VS_LBLCR_TAB_MASK;
 
 		spin_lock(&svc->sched_lock);
-		hlist_for_each_entry_safe(en, next, &tbl->bucket[j], list) {
+		hlist_for_each_entry_safe(en, next, &tbl->bucket[j], list)
+		{
 			if (time_after(en->lastuse +
-				       sysctl_lblcr_expiration(svc), now))
+						   sysctl_lblcr_expiration(svc), now))
+			{
 				continue;
+			}
 
 			ip_vs_lblcr_free(en);
 			atomic_dec(&tbl->entries);
 		}
 		spin_unlock(&svc->sched_lock);
 	}
+
 	tbl->rover = j;
 }
 
@@ -468,42 +521,55 @@ static void ip_vs_lblcr_check_expire(unsigned long data)
 	struct ip_vs_lblcr_entry *en;
 	struct hlist_node *next;
 
-	if ((tbl->counter % COUNT_FOR_FULL_EXPIRATION) == 0) {
+	if ((tbl->counter % COUNT_FOR_FULL_EXPIRATION) == 0)
+	{
 		/* do full expiration check */
 		ip_vs_lblcr_full_check(svc);
 		tbl->counter = 1;
 		goto out;
 	}
 
-	if (atomic_read(&tbl->entries) <= tbl->max_size) {
+	if (atomic_read(&tbl->entries) <= tbl->max_size)
+	{
 		tbl->counter++;
 		goto out;
 	}
 
-	goal = (atomic_read(&tbl->entries) - tbl->max_size)*4/3;
-	if (goal > tbl->max_size/2)
-		goal = tbl->max_size/2;
+	goal = (atomic_read(&tbl->entries) - tbl->max_size) * 4 / 3;
 
-	for (i = 0, j = tbl->rover; i < IP_VS_LBLCR_TAB_SIZE; i++) {
+	if (goal > tbl->max_size / 2)
+	{
+		goal = tbl->max_size / 2;
+	}
+
+	for (i = 0, j = tbl->rover; i < IP_VS_LBLCR_TAB_SIZE; i++)
+	{
 		j = (j + 1) & IP_VS_LBLCR_TAB_MASK;
 
 		spin_lock(&svc->sched_lock);
-		hlist_for_each_entry_safe(en, next, &tbl->bucket[j], list) {
-			if (time_before(now, en->lastuse+ENTRY_TIMEOUT))
+		hlist_for_each_entry_safe(en, next, &tbl->bucket[j], list)
+		{
+			if (time_before(now, en->lastuse + ENTRY_TIMEOUT))
+			{
 				continue;
+			}
 
 			ip_vs_lblcr_free(en);
 			atomic_dec(&tbl->entries);
 			goal--;
 		}
 		spin_unlock(&svc->sched_lock);
+
 		if (goal <= 0)
+		{
 			break;
+		}
 	}
+
 	tbl->rover = j;
 
-  out:
-	mod_timer(&tbl->periodic_timer, jiffies+CHECK_EXPIRE_INTERVAL);
+out:
+	mod_timer(&tbl->periodic_timer, jiffies + CHECK_EXPIRE_INTERVAL);
 }
 
 static int ip_vs_lblcr_init_svc(struct ip_vs_service *svc)
@@ -515,20 +581,25 @@ static int ip_vs_lblcr_init_svc(struct ip_vs_service *svc)
 	 *    Allocate the ip_vs_lblcr_table for this service
 	 */
 	tbl = kmalloc(sizeof(*tbl), GFP_KERNEL);
+
 	if (tbl == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	svc->sched_data = tbl;
 	IP_VS_DBG(6, "LBLCR hash table (memory=%Zdbytes) allocated for "
-		  "current service\n", sizeof(*tbl));
+			  "current service\n", sizeof(*tbl));
 
 	/*
 	 *    Initialize the hash buckets
 	 */
-	for (i = 0; i < IP_VS_LBLCR_TAB_SIZE; i++) {
+	for (i = 0; i < IP_VS_LBLCR_TAB_SIZE; i++)
+	{
 		INIT_HLIST_HEAD(&tbl->bucket[i]);
 	}
-	tbl->max_size = IP_VS_LBLCR_TAB_SIZE*16;
+
+	tbl->max_size = IP_VS_LBLCR_TAB_SIZE * 16;
 	tbl->rover = 0;
 	tbl->counter = 1;
 	tbl->dead = 0;
@@ -537,7 +608,7 @@ static int ip_vs_lblcr_init_svc(struct ip_vs_service *svc)
 	 *    Hook periodic timer for garbage collection
 	 */
 	setup_timer(&tbl->periodic_timer, ip_vs_lblcr_check_expire,
-			(unsigned long)svc);
+				(unsigned long)svc);
 	mod_timer(&tbl->periodic_timer, jiffies + CHECK_EXPIRE_INTERVAL);
 
 	return 0;
@@ -557,7 +628,7 @@ static void ip_vs_lblcr_done_svc(struct ip_vs_service *svc)
 	/* release the table itself */
 	kfree_rcu(tbl, rcu_head);
 	IP_VS_DBG(6, "LBLCR hash table (memory=%Zdbytes) released\n",
-		  sizeof(*tbl));
+			  sizeof(*tbl));
 }
 
 
@@ -579,11 +650,15 @@ __ip_vs_lblcr_schedule(struct ip_vs_service *svc)
 	 * The server with weight=0 is quiesced and will not receive any
 	 * new connection.
 	 */
-	list_for_each_entry_rcu(dest, &svc->destinations, n_list) {
+	list_for_each_entry_rcu(dest, &svc->destinations, n_list)
+	{
 		if (dest->flags & IP_VS_DEST_F_OVERLOAD)
+		{
 			continue;
+		}
 
-		if (atomic_read(&dest->weight) > 0) {
+		if (atomic_read(&dest->weight) > 0)
+		{
 			least = dest;
 			loh = ip_vs_dest_conn_overhead(least);
 			goto nextstage;
@@ -594,26 +669,31 @@ __ip_vs_lblcr_schedule(struct ip_vs_service *svc)
 	/*
 	 *    Find the destination with the least load.
 	 */
-  nextstage:
-	list_for_each_entry_continue_rcu(dest, &svc->destinations, n_list) {
+nextstage:
+	list_for_each_entry_continue_rcu(dest, &svc->destinations, n_list)
+	{
 		if (dest->flags & IP_VS_DEST_F_OVERLOAD)
+		{
 			continue;
+		}
 
 		doh = ip_vs_dest_conn_overhead(dest);
+
 		if ((__s64)loh * atomic_read(&dest->weight) >
-		    (__s64)doh * atomic_read(&least->weight)) {
+			(__s64)doh * atomic_read(&least->weight))
+		{
 			least = dest;
 			loh = doh;
 		}
 	}
 
 	IP_VS_DBG_BUF(6, "LBLCR: server %s:%d "
-		      "activeconns %d refcnt %d weight %d overhead %d\n",
-		      IP_VS_DBG_ADDR(least->af, &least->addr),
-		      ntohs(least->port),
-		      atomic_read(&least->activeconns),
-		      atomic_read(&least->refcnt),
-		      atomic_read(&least->weight), loh);
+				  "activeconns %d refcnt %d weight %d overhead %d\n",
+				  IP_VS_DBG_ADDR(least->af, &least->addr),
+				  ntohs(least->port),
+				  atomic_read(&least->activeconns),
+				  atomic_read(&least->refcnt),
+				  atomic_read(&least->weight), loh);
 
 	return least;
 }
@@ -626,16 +706,20 @@ __ip_vs_lblcr_schedule(struct ip_vs_service *svc)
 static inline int
 is_overloaded(struct ip_vs_dest *dest, struct ip_vs_service *svc)
 {
-	if (atomic_read(&dest->activeconns) > atomic_read(&dest->weight)) {
+	if (atomic_read(&dest->activeconns) > atomic_read(&dest->weight))
+	{
 		struct ip_vs_dest *d;
 
-		list_for_each_entry_rcu(d, &svc->destinations, n_list) {
-			if (atomic_read(&d->activeconns)*2
-			    < atomic_read(&d->weight)) {
+		list_for_each_entry_rcu(d, &svc->destinations, n_list)
+		{
+			if (atomic_read(&d->activeconns) * 2
+				< atomic_read(&d->weight))
+			{
 				return 1;
 			}
 		}
 	}
+
 	return 0;
 }
 
@@ -645,7 +729,7 @@ is_overloaded(struct ip_vs_dest *dest, struct ip_vs_service *svc)
  */
 static struct ip_vs_dest *
 ip_vs_lblcr_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
-		     struct ip_vs_iphdr *iph)
+					 struct ip_vs_iphdr *iph)
 {
 	struct ip_vs_lblcr_table *tbl = svc->sched_data;
 	struct ip_vs_dest *dest;
@@ -655,7 +739,9 @@ ip_vs_lblcr_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
 
 	/* First look in our cache */
 	en = ip_vs_lblcr_get(svc->af, tbl, &iph->daddr);
-	if (en) {
+
+	if (en)
+	{
 		en->lastuse = jiffies;
 
 		/* Get the least loaded destination */
@@ -663,55 +749,76 @@ ip_vs_lblcr_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
 
 		/* More than one destination + enough time passed by, cleanup */
 		if (atomic_read(&en->set.size) > 1 &&
-		    time_after(jiffies, en->set.lastmod +
-				sysctl_lblcr_expiration(svc))) {
+			time_after(jiffies, en->set.lastmod +
+					   sysctl_lblcr_expiration(svc)))
+		{
 			spin_lock_bh(&svc->sched_lock);
-			if (atomic_read(&en->set.size) > 1) {
+
+			if (atomic_read(&en->set.size) > 1)
+			{
 				struct ip_vs_dest *m;
 
 				m = ip_vs_dest_set_max(&en->set);
+
 				if (m)
+				{
 					ip_vs_dest_set_erase(&en->set, m);
+				}
 			}
+
 			spin_unlock_bh(&svc->sched_lock);
 		}
 
 		/* If the destination is not overloaded, use it */
 		if (dest && !is_overloaded(dest, svc))
+		{
 			goto out;
+		}
 
 		/* The cache entry is invalid, time to schedule */
 		dest = __ip_vs_lblcr_schedule(svc);
-		if (!dest) {
+
+		if (!dest)
+		{
 			ip_vs_scheduler_err(svc, "no destination available");
 			return NULL;
 		}
 
 		/* Update our cache entry */
 		spin_lock_bh(&svc->sched_lock);
+
 		if (!tbl->dead)
+		{
 			ip_vs_dest_set_insert(&en->set, dest, true);
+		}
+
 		spin_unlock_bh(&svc->sched_lock);
 		goto out;
 	}
 
 	/* No cache entry, time to schedule */
 	dest = __ip_vs_lblcr_schedule(svc);
-	if (!dest) {
+
+	if (!dest)
+	{
 		IP_VS_DBG(1, "no destination available\n");
 		return NULL;
 	}
 
 	/* If we fail to create a cache entry, we'll just use the valid dest */
 	spin_lock_bh(&svc->sched_lock);
+
 	if (!tbl->dead)
+	{
 		ip_vs_lblcr_new(tbl, &iph->daddr, svc->af, dest);
+	}
+
 	spin_unlock_bh(&svc->sched_lock);
 
 out:
 	IP_VS_DBG_BUF(6, "LBLCR: destination IP address %s --> server %s:%d\n",
-		      IP_VS_DBG_ADDR(svc->af, &iph->daddr),
-		      IP_VS_DBG_ADDR(dest->af, &dest->addr), ntohs(dest->port));
+				  IP_VS_DBG_ADDR(svc->af, &iph->daddr),
+				  IP_VS_DBG_ADDR(dest->af, &dest->addr), ntohs(dest->port));
 
 	return dest;
 }
@@ -740,28 +847,45 @@ static int __net_init __ip_vs_lblcr_init(struct net *net)
 	struct netns_ipvs *ipvs = net_ipvs(net);
 
 	if (!ipvs)
+	{
 		return -ENOENT;
+	}
 
-	if (!net_eq(net, &init_net)) {
+	if (!net_eq(net, &init_net))
+	{
 		ipvs->lblcr_ctl_table = kmemdup(vs_vars_table,
-						sizeof(vs_vars_table),
-						GFP_KERNEL);
+										sizeof(vs_vars_table),
+										GFP_KERNEL);
+
 		if (ipvs->lblcr_ctl_table == NULL)
+		{
 			return -ENOMEM;
+		}
 
 		/* Don't export sysctls to unprivileged users */
 		if (net->user_ns != &init_user_ns)
+		{
 			ipvs->lblcr_ctl_table[0].procname = NULL;
-	} else
+		}
+	}
+	else
+	{
 		ipvs->lblcr_ctl_table = vs_vars_table;
+	}
+
 	ipvs->sysctl_lblcr_expiration = DEFAULT_EXPIRATION;
 	ipvs->lblcr_ctl_table[0].data = &ipvs->sysctl_lblcr_expiration;
 
 	ipvs->lblcr_ctl_header =
 		register_net_sysctl(net, "net/ipv4/vs", ipvs->lblcr_ctl_table);
-	if (!ipvs->lblcr_ctl_header) {
+
+	if (!ipvs->lblcr_ctl_header)
+	{
 		if (!net_eq(net, &init_net))
+		{
 			kfree(ipvs->lblcr_ctl_table);
+		}
+
 		return -ENOMEM;
 	}
 
@@ -775,7 +899,9 @@ static void __net_exit __ip_vs_lblcr_exit(struct net *net)
 	unregister_net_sysctl_table(ipvs->lblcr_ctl_header);
 
 	if (!net_eq(net, &init_net))
+	{
 		kfree(ipvs->lblcr_ctl_table);
+	}
 }
 
 #else
@@ -785,7 +911,8 @@ static void __net_exit __ip_vs_lblcr_exit(struct net *net) { }
 
 #endif
 
-static struct pernet_operations ip_vs_lblcr_ops = {
+static struct pernet_operations ip_vs_lblcr_ops =
+{
 	.init = __ip_vs_lblcr_init,
 	.exit = __ip_vs_lblcr_exit,
 };
@@ -795,12 +922,19 @@ static int __init ip_vs_lblcr_init(void)
 	int ret;
 
 	ret = register_pernet_subsys(&ip_vs_lblcr_ops);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = register_ip_vs_scheduler(&ip_vs_lblcr_scheduler);
+
 	if (ret)
+	{
 		unregister_pernet_subsys(&ip_vs_lblcr_ops);
+	}
+
 	return ret;
 }
 

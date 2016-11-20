@@ -33,7 +33,7 @@
 static bool enable_pmp;
 module_param(enable_pmp, bool, 0);
 MODULE_PARM_DESC(enable_pmp,
-	"Enable support for sata port multipliers, only use if you use a pmp!");
+				 "Enable support for sata port multipliers, only use if you use a pmp!");
 
 #define AHCI_BISTAFR	0x00a0
 #define AHCI_BISTCR	0x00a4
@@ -102,48 +102,64 @@ static int ahci_sunxi_phy_init(struct device *dev, void __iomem *reg_base)
 
 	sunxi_setbits(reg_base + AHCI_PHYCS1R, BIT(19));
 	sunxi_clrsetbits(reg_base + AHCI_PHYCS0R,
-			 (0x7 << 24),
-			 (0x5 << 24) | BIT(23) | BIT(18));
+					 (0x7 << 24),
+					 (0x5 << 24) | BIT(23) | BIT(18));
 	sunxi_clrsetbits(reg_base + AHCI_PHYCS1R,
-			 (0x3 << 16) | (0x1f << 8) | (0x3 << 6),
-			 (0x2 << 16) | (0x6 << 8) | (0x2 << 6));
+					 (0x3 << 16) | (0x1f << 8) | (0x3 << 6),
+					 (0x2 << 16) | (0x6 << 8) | (0x2 << 6));
 	sunxi_setbits(reg_base + AHCI_PHYCS1R, BIT(28) | BIT(15));
 	sunxi_clrbits(reg_base + AHCI_PHYCS1R, BIT(19));
 	sunxi_clrsetbits(reg_base + AHCI_PHYCS0R,
-			 (0x7 << 20), (0x3 << 20));
+					 (0x7 << 20), (0x3 << 20));
 	sunxi_clrsetbits(reg_base + AHCI_PHYCS2R,
-			 (0x1f << 5), (0x19 << 5));
+					 (0x1f << 5), (0x19 << 5));
 	msleep(5);
 
 	sunxi_setbits(reg_base + AHCI_PHYCS0R, (0x1 << 19));
 
 	timeout = 250; /* Power up takes aprox 50 us */
-	do {
-		reg_val = sunxi_getbits(reg_base + AHCI_PHYCS0R, 0x7, 28);
-		if (reg_val == 0x02)
-			break;
 
-		if (--timeout == 0) {
+	do
+	{
+		reg_val = sunxi_getbits(reg_base + AHCI_PHYCS0R, 0x7, 28);
+
+		if (reg_val == 0x02)
+		{
+			break;
+		}
+
+		if (--timeout == 0)
+		{
 			dev_err(dev, "PHY power up failed.\n");
 			return -EIO;
 		}
+
 		udelay(1);
-	} while (1);
+	}
+	while (1);
 
 	sunxi_setbits(reg_base + AHCI_PHYCS2R, (0x1 << 24));
 
 	timeout = 100; /* Calibration takes aprox 10 us */
-	do {
-		reg_val = sunxi_getbits(reg_base + AHCI_PHYCS2R, 0x1, 24);
-		if (reg_val == 0x00)
-			break;
 
-		if (--timeout == 0) {
+	do
+	{
+		reg_val = sunxi_getbits(reg_base + AHCI_PHYCS2R, 0x1, 24);
+
+		if (reg_val == 0x00)
+		{
+			break;
+		}
+
+		if (--timeout == 0)
+		{
 			dev_err(dev, "PHY calibration failed.\n");
 			return -EIO;
 		}
+
 		udelay(1);
-	} while (1);
+	}
+	while (1);
 
 	msleep(15);
 
@@ -164,14 +180,16 @@ static void ahci_sunxi_start_engine(struct ata_port *ap)
 	sunxi_setbits(port_mmio + PORT_CMD, PORT_CMD_START);
 }
 
-static const struct ata_port_info ahci_sunxi_port_info = {
+static const struct ata_port_info ahci_sunxi_port_info =
+{
 	.flags		= AHCI_FLAG_COMMON | ATA_FLAG_NCQ,
 	.pio_mask	= ATA_PIO4,
 	.udma_mask	= ATA_UDMA6,
 	.port_ops	= &ahci_platform_ops,
 };
 
-static struct scsi_host_template ahci_platform_sht = {
+static struct scsi_host_template ahci_platform_sht =
+{
 	AHCI_SHT(DRV_NAME),
 };
 
@@ -182,21 +200,30 @@ static int ahci_sunxi_probe(struct platform_device *pdev)
 	int rc;
 
 	hpriv = ahci_platform_get_resources(pdev);
+
 	if (IS_ERR(hpriv))
+	{
 		return PTR_ERR(hpriv);
+	}
 
 	hpriv->start_engine = ahci_sunxi_start_engine;
 
 	rc = ahci_platform_enable_resources(hpriv);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = ahci_sunxi_phy_init(dev, hpriv->mmio);
+
 	if (rc)
+	{
 		goto disable_resources;
+	}
 
 	hpriv->flags = AHCI_HFLAG_32BIT_ONLY | AHCI_HFLAG_NO_MSI |
-		       AHCI_HFLAG_YES_NCQ;
+				   AHCI_HFLAG_YES_NCQ;
 
 	/*
 	 * The sunxi sata controller seems to be unable to successfully do a
@@ -204,12 +231,17 @@ static int ahci_sunxi_probe(struct platform_device *pdev)
 	 * requested, otherwise directly attached disks do not work.
 	 */
 	if (!enable_pmp)
+	{
 		hpriv->flags |= AHCI_HFLAG_NO_PMP;
+	}
 
 	rc = ahci_platform_init_host(pdev, hpriv, &ahci_sunxi_port_info,
-				     &ahci_platform_sht);
+								 &ahci_platform_sht);
+
 	if (rc)
+	{
 		goto disable_resources;
+	}
 
 	return 0;
 
@@ -226,16 +258,25 @@ static int ahci_sunxi_resume(struct device *dev)
 	int rc;
 
 	rc = ahci_platform_enable_resources(hpriv);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = ahci_sunxi_phy_init(dev, hpriv->mmio);
+
 	if (rc)
+	{
 		goto disable_resources;
+	}
 
 	rc = ahci_platform_resume_host(dev);
+
 	if (rc)
+	{
 		goto disable_resources;
+	}
 
 	return 0;
 
@@ -246,15 +287,17 @@ disable_resources:
 #endif
 
 static SIMPLE_DEV_PM_OPS(ahci_sunxi_pm_ops, ahci_platform_suspend,
-			 ahci_sunxi_resume);
+						 ahci_sunxi_resume);
 
-static const struct of_device_id ahci_sunxi_of_match[] = {
+static const struct of_device_id ahci_sunxi_of_match[] =
+{
 	{ .compatible = "allwinner,sun4i-a10-ahci", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, ahci_sunxi_of_match);
 
-static struct platform_driver ahci_sunxi_driver = {
+static struct platform_driver ahci_sunxi_driver =
+{
 	.probe = ahci_sunxi_probe,
 	.remove = ata_platform_remove_one,
 	.driver = {

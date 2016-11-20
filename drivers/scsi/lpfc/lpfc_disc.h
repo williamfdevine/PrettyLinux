@@ -29,7 +29,8 @@
  */
 
 /* worker thread events */
-enum lpfc_work_type {
+enum lpfc_work_type
+{
 	LPFC_EVT_ONLINE,
 	LPFC_EVT_OFFLINE_PREP,
 	LPFC_EVT_OFFLINE,
@@ -42,7 +43,8 @@ enum lpfc_work_type {
 };
 
 /* structure used to queue event to the discovery tasklet */
-struct lpfc_work_evt {
+struct lpfc_work_evt
+{
 	struct list_head      evt_listp;
 	void                 *evt_arg1;
 	void                 *evt_arg2;
@@ -56,10 +58,12 @@ struct lpfc_fabric_event_header;
 struct lpfc_fcprdchkerr_event;
 
 /* structure used for sending events from fast path */
-struct lpfc_fast_path_event {
+struct lpfc_fast_path_event
+{
 	struct lpfc_work_evt work_evt;
 	struct lpfc_vport     *vport;
-	union {
+	union
+	{
 		struct lpfc_scsi_check_condition_event check_cond_evt;
 		struct lpfc_scsi_varqueuedepth_event queue_depth_evt;
 		struct lpfc_scsi_event_header scsi_evt;
@@ -70,11 +74,13 @@ struct lpfc_fast_path_event {
 
 #define LPFC_SLI4_MAX_XRI	1024	/* Used to make the ndlp's xri_bitmap */
 #define XRI_BITMAP_ULONGS (LPFC_SLI4_MAX_XRI / BITS_PER_LONG)
-struct lpfc_node_rrqs {
+struct lpfc_node_rrqs
+{
 	unsigned long xri_bitmap[XRI_BITMAP_ULONGS];
 };
 
-struct lpfc_nodelist {
+struct lpfc_nodelist
+{
 	struct list_head nlp_listp;
 	struct lpfc_name nlp_portname;
 	struct lpfc_name nlp_nodename;
@@ -119,7 +125,8 @@ struct lpfc_nodelist {
 	unsigned long *active_rrqs_xri_bitmap;
 	struct lpfc_scsicmd_bkt *lat_data;	/* Latency data */
 };
-struct lpfc_node_rrq {
+struct lpfc_node_rrq
+{
 	struct list_head list;
 	uint16_t xritag;
 	uint16_t send_rrq;
@@ -161,28 +168,28 @@ struct lpfc_node_rrq {
 
 /* ndlp usage management macros */
 #define NLP_CHK_NODE_ACT(ndlp)		(((ndlp)->nlp_usg_map \
-						& NLP_USG_NODE_ACT_BIT) \
-					&& \
-					!((ndlp)->nlp_usg_map \
-						& NLP_USG_FREE_ACK_BIT))
+									  & NLP_USG_NODE_ACT_BIT) \
+									 && \
+									 !((ndlp)->nlp_usg_map \
+									   & NLP_USG_FREE_ACK_BIT))
 #define NLP_SET_NODE_ACT(ndlp)		((ndlp)->nlp_usg_map \
-						|= NLP_USG_NODE_ACT_BIT)
+									 |= NLP_USG_NODE_ACT_BIT)
 #define NLP_INT_NODE_ACT(ndlp)		((ndlp)->nlp_usg_map \
-						= NLP_USG_NODE_ACT_BIT)
+									 = NLP_USG_NODE_ACT_BIT)
 #define NLP_CLR_NODE_ACT(ndlp)		((ndlp)->nlp_usg_map \
-						&= ~NLP_USG_NODE_ACT_BIT)
+									 &= ~NLP_USG_NODE_ACT_BIT)
 #define NLP_CHK_IACT_REQ(ndlp)          ((ndlp)->nlp_usg_map \
-						& NLP_USG_IACT_REQ_BIT)
+		& NLP_USG_IACT_REQ_BIT)
 #define NLP_SET_IACT_REQ(ndlp)          ((ndlp)->nlp_usg_map \
-						|= NLP_USG_IACT_REQ_BIT)
+		|= NLP_USG_IACT_REQ_BIT)
 #define NLP_CHK_FREE_REQ(ndlp)		((ndlp)->nlp_usg_map \
-						& NLP_USG_FREE_REQ_BIT)
+									 & NLP_USG_FREE_REQ_BIT)
 #define NLP_SET_FREE_REQ(ndlp)		((ndlp)->nlp_usg_map \
-						|= NLP_USG_FREE_REQ_BIT)
+									 |= NLP_USG_FREE_REQ_BIT)
 #define NLP_CHK_FREE_ACK(ndlp)		((ndlp)->nlp_usg_map \
-						& NLP_USG_FREE_ACK_BIT)
+									 & NLP_USG_FREE_ACK_BIT)
 #define NLP_SET_FREE_ACK(ndlp)		((ndlp)->nlp_usg_map \
-						|= NLP_USG_FREE_ACK_BIT)
+									 |= NLP_USG_FREE_ACK_BIT)
 
 /* There are 4 different double linked lists nodelist entries can reside on.
  * The Port Login (PLOGI) list and Address Discovery (ADISC) list are used

@@ -27,21 +27,26 @@
 #define SMIAPP_PLL_FLAG_OP_PIX_CLOCK_PER_LANE			(1 << 0)
 #define SMIAPP_PLL_FLAG_NO_OP_CLOCKS				(1 << 1)
 
-struct smiapp_pll_branch {
+struct smiapp_pll_branch
+{
 	uint16_t sys_clk_div;
 	uint16_t pix_clk_div;
 	uint32_t sys_clk_freq_hz;
 	uint32_t pix_clk_freq_hz;
 };
 
-struct smiapp_pll {
+struct smiapp_pll
+{
 	/* input values */
 	uint8_t bus_type;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint8_t lanes;
 		} csi2;
-		struct {
+		struct
+		{
 			uint8_t bus_width;
 		} parallel;
 	};
@@ -66,7 +71,8 @@ struct smiapp_pll {
 	uint32_t pixel_rate_pixel_array;
 };
 
-struct smiapp_pll_branch_limits {
+struct smiapp_pll_branch_limits
+{
 	uint16_t min_sys_clk_div;
 	uint16_t max_sys_clk_div;
 	uint32_t min_sys_clk_freq_hz;
@@ -77,7 +83,8 @@ struct smiapp_pll_branch_limits {
 	uint32_t max_pix_clk_freq_hz;
 };
 
-struct smiapp_pll_limits {
+struct smiapp_pll_limits
+{
 	/* Strict PLL limits */
 	uint32_t min_ext_clk_freq_hz;
 	uint32_t max_ext_clk_freq_hz;
@@ -101,7 +108,7 @@ struct smiapp_pll_limits {
 struct device;
 
 int smiapp_pll_calculate(struct device *dev,
-			 const struct smiapp_pll_limits *limits,
-			 struct smiapp_pll *pll);
+						 const struct smiapp_pll_limits *limits,
+						 struct smiapp_pll *pll);
 
 #endif /* SMIAPP_PLL_H */

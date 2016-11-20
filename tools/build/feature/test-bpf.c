@@ -3,14 +3,14 @@
 #include <unistd.h>
 
 #ifndef __NR_bpf
-# if defined(__i386__)
-#  define __NR_bpf 357
-# elif defined(__x86_64__)
-#  define __NR_bpf 321
-# elif defined(__aarch64__)
-#  define __NR_bpf 280
-#  error __NR_bpf not defined. libbpf does not support your arch.
-# endif
+	#if defined(__i386__)
+		#define __NR_bpf 357
+	#elif defined(__x86_64__)
+		#define __NR_bpf 321
+	#elif defined(__aarch64__)
+		#define __NR_bpf 280
+		#  error __NR_bpf not defined. libbpf does not support your arch.
+	#endif
 #endif
 
 int main(void)

@@ -14,7 +14,8 @@
 #include <linux/platform_device.h>
 #include <linux/pstore_ram.h>
 
-static struct dmi_system_id chromeos_pstore_dmi_table[] __initdata = {
+static struct dmi_system_id chromeos_pstore_dmi_table[] __initdata =
+{
 	{
 		/*
 		 * Today all Chromebooks/boxes ship with Google_* as version and
@@ -56,7 +57,8 @@ MODULE_DEVICE_TABLE(dmi, chromeos_pstore_dmi_table);
  * range untouched across reboots, so we use that to store our pstore
  * contents for panic logs, etc.
  */
-static struct ramoops_platform_data chromeos_ramoops_data = {
+static struct ramoops_platform_data chromeos_ramoops_data =
+{
 	.mem_size	= 0x100000,
 	.mem_address	= 0xf00000,
 	.record_size	= 0x40000,
@@ -65,7 +67,8 @@ static struct ramoops_platform_data chromeos_ramoops_data = {
 	.dump_oops	= 1,
 };
 
-static struct platform_device chromeos_ramoops = {
+static struct platform_device chromeos_ramoops =
+{
 	.name = "ramoops",
 	.dev = {
 		.platform_data = &chromeos_ramoops_data,
@@ -73,13 +76,15 @@ static struct platform_device chromeos_ramoops = {
 };
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id cros_ramoops_acpi_match[] = {
+static const struct acpi_device_id cros_ramoops_acpi_match[] =
+{
 	{ "GOOG9999", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(acpi, cros_ramoops_acpi_match);
 
-static struct platform_driver chromeos_ramoops_acpi = {
+static struct platform_driver chromeos_ramoops_acpi =
+{
 	.driver		= {
 		.name	= "chromeos_pstore",
 		.acpi_match_table = ACPI_PTR(cros_ramoops_acpi_match),
@@ -92,12 +97,18 @@ static int __init chromeos_probe_acpi(struct platform_device *pdev)
 	resource_size_t len;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENOMEM;
+	}
 
 	len = resource_size(res);
+
 	if (!res->start || !len)
+	{
 		return -ENOMEM;
+	}
 
 	pr_info("chromeos ramoops using acpi device.\n");
 
@@ -110,7 +121,10 @@ static int __init chromeos_probe_acpi(struct platform_device *pdev)
 static bool __init chromeos_check_acpi(void)
 {
 	if (!platform_driver_probe(&chromeos_ramoops_acpi, chromeos_probe_acpi))
+	{
 		return true;
+	}
+
 	return false;
 }
 #else
@@ -125,7 +139,9 @@ static int __init chromeos_pstore_init(void)
 	acpi_dev_found = chromeos_check_acpi();
 
 	if (acpi_dev_found || dmi_check_system(chromeos_pstore_dmi_table))
+	{
 		return platform_device_register(&chromeos_ramoops);
+	}
 
 	return -ENODEV;
 }

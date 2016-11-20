@@ -45,7 +45,8 @@ module_param(debugmode, uint, S_IRUGO | S_IWUSR);
 /* -------- type definitions ----------------------------------------- */
 
 
-struct capidrv_contr {
+struct capidrv_contr
+{
 
 	struct capidrv_contr *next;
 	struct module *owner;
@@ -75,7 +76,8 @@ struct capidrv_contr {
 	 * B-Channels
 	 */
 	int nbchan;
-	struct capidrv_bchan {
+	struct capidrv_bchan
+	{
 		struct capidrv_contr *contr;
 		u8 msn[ISDN_MSNLEN];
 		int l2;
@@ -86,7 +88,8 @@ struct capidrv_contr {
 		int si2;
 		int incoming;
 		int disconnecting;
-		struct capidrv_plci {
+		struct capidrv_plci
+		{
 			struct capidrv_plci *next;
 			u32 plci;
 			u32 ncci;	/* ncci for CONNECT_ACTIVE_IND */
@@ -94,7 +97,8 @@ struct capidrv_contr {
 			int chan;
 			int state;
 			int leasedline;
-			struct capidrv_ncci {
+			struct capidrv_ncci
+			{
 				struct capidrv_ncci *next;
 				struct capidrv_plci *plcip;
 				u32 ncci;
@@ -104,7 +108,8 @@ struct capidrv_contr {
 				int oldstate;
 				/* */
 				u16 datahandle;
-				struct ncci_datahandle_queue {
+				struct ncci_datahandle_queue
+				{
 					struct ncci_datahandle_queue *next;
 					u16                         datahandle;
 					int                           len;
@@ -124,7 +129,8 @@ struct capidrv_contr {
 };
 
 
-struct capidrv_data {
+struct capidrv_data
+{
 	struct capi20_appl ap;
 	int ncontr;
 	struct capidrv_contr *contr_list;
@@ -142,69 +148,80 @@ static capidrv_data global;
 static DEFINE_SPINLOCK(global_lock);
 
 static void handle_dtrace_data(capidrv_contr *card,
-			       int send, int level2, u8 *data, u16 len);
+							   int send, int level2, u8 *data, u16 len);
 
 /* -------- convert functions ---------------------------------------- */
 
 static inline u32 b1prot(int l2, int l3)
 {
-	switch (l2) {
-	case ISDN_PROTO_L2_X75I:
-	case ISDN_PROTO_L2_X75UI:
-	case ISDN_PROTO_L2_X75BUI:
-		return 0;
-	case ISDN_PROTO_L2_HDLC:
-	default:
-		return 0;
-	case ISDN_PROTO_L2_TRANS:
-		return 1;
-	case ISDN_PROTO_L2_V11096:
-	case ISDN_PROTO_L2_V11019:
-	case ISDN_PROTO_L2_V11038:
-		return 2;
-	case ISDN_PROTO_L2_FAX:
-		return 4;
-	case ISDN_PROTO_L2_MODEM:
-		return 8;
+	switch (l2)
+	{
+		case ISDN_PROTO_L2_X75I:
+		case ISDN_PROTO_L2_X75UI:
+		case ISDN_PROTO_L2_X75BUI:
+			return 0;
+
+		case ISDN_PROTO_L2_HDLC:
+		default:
+			return 0;
+
+		case ISDN_PROTO_L2_TRANS:
+			return 1;
+
+		case ISDN_PROTO_L2_V11096:
+		case ISDN_PROTO_L2_V11019:
+		case ISDN_PROTO_L2_V11038:
+			return 2;
+
+		case ISDN_PROTO_L2_FAX:
+			return 4;
+
+		case ISDN_PROTO_L2_MODEM:
+			return 8;
 	}
 }
 
 static inline u32 b2prot(int l2, int l3)
 {
-	switch (l2) {
-	case ISDN_PROTO_L2_X75I:
-	case ISDN_PROTO_L2_X75UI:
-	case ISDN_PROTO_L2_X75BUI:
-	default:
-		return 0;
-	case ISDN_PROTO_L2_HDLC:
-	case ISDN_PROTO_L2_TRANS:
-	case ISDN_PROTO_L2_V11096:
-	case ISDN_PROTO_L2_V11019:
-	case ISDN_PROTO_L2_V11038:
-	case ISDN_PROTO_L2_MODEM:
-		return 1;
-	case ISDN_PROTO_L2_FAX:
-		return 4;
+	switch (l2)
+	{
+		case ISDN_PROTO_L2_X75I:
+		case ISDN_PROTO_L2_X75UI:
+		case ISDN_PROTO_L2_X75BUI:
+		default:
+			return 0;
+
+		case ISDN_PROTO_L2_HDLC:
+		case ISDN_PROTO_L2_TRANS:
+		case ISDN_PROTO_L2_V11096:
+		case ISDN_PROTO_L2_V11019:
+		case ISDN_PROTO_L2_V11038:
+		case ISDN_PROTO_L2_MODEM:
+			return 1;
+
+		case ISDN_PROTO_L2_FAX:
+			return 4;
 	}
 }
 
 static inline u32 b3prot(int l2, int l3)
 {
-	switch (l2) {
-	case ISDN_PROTO_L2_X75I:
-	case ISDN_PROTO_L2_X75UI:
-	case ISDN_PROTO_L2_X75BUI:
-	case ISDN_PROTO_L2_HDLC:
-	case ISDN_PROTO_L2_TRANS:
-	case ISDN_PROTO_L2_V11096:
-	case ISDN_PROTO_L2_V11019:
-	case ISDN_PROTO_L2_V11038:
-	case ISDN_PROTO_L2_MODEM:
-	default:
-		return 0;
-	case ISDN_PROTO_L2_FAX:
-		return 4;
+	switch (l2)
+	{
+		case ISDN_PROTO_L2_X75I:
+		case ISDN_PROTO_L2_X75UI:
+		case ISDN_PROTO_L2_X75BUI:
+		case ISDN_PROTO_L2_HDLC:
+		case ISDN_PROTO_L2_TRANS:
+		case ISDN_PROTO_L2_V11096:
+		case ISDN_PROTO_L2_V11019:
+		case ISDN_PROTO_L2_V11038:
+		case ISDN_PROTO_L2_MODEM:
+		default:
+			return 0;
+
+		case ISDN_PROTO_L2_FAX:
+			return 4;
 	}
 }
 
@@ -223,50 +240,60 @@ static _cstruct b1config_async_v110(u16 rate)
 
 static _cstruct b1config(int l2, int l3)
 {
-	switch (l2) {
-	case ISDN_PROTO_L2_X75I:
-	case ISDN_PROTO_L2_X75UI:
-	case ISDN_PROTO_L2_X75BUI:
-	case ISDN_PROTO_L2_HDLC:
-	case ISDN_PROTO_L2_TRANS:
-	default:
-		return NULL;
-	case ISDN_PROTO_L2_V11096:
-		return b1config_async_v110(9600);
-	case ISDN_PROTO_L2_V11019:
-		return b1config_async_v110(19200);
-	case ISDN_PROTO_L2_V11038:
-		return b1config_async_v110(38400);
+	switch (l2)
+	{
+		case ISDN_PROTO_L2_X75I:
+		case ISDN_PROTO_L2_X75UI:
+		case ISDN_PROTO_L2_X75BUI:
+		case ISDN_PROTO_L2_HDLC:
+		case ISDN_PROTO_L2_TRANS:
+		default:
+			return NULL;
+
+		case ISDN_PROTO_L2_V11096:
+			return b1config_async_v110(9600);
+
+		case ISDN_PROTO_L2_V11019:
+			return b1config_async_v110(19200);
+
+		case ISDN_PROTO_L2_V11038:
+			return b1config_async_v110(38400);
 	}
 }
 
 static inline u16 si2cip(u8 si1, u8 si2)
 {
 	static const u8 cip[17][5] =
-		{
-			/*  0  1  2  3  4  */
-			{0, 0, 0, 0, 0},	/*0 */
-			{16, 16, 4, 26, 16},	/*1 */
-			{17, 17, 17, 4, 4},	/*2 */
-			{2, 2, 2, 2, 2},	/*3 */
-			{18, 18, 18, 18, 18},	/*4 */
-			{2, 2, 2, 2, 2},	/*5 */
-			{0, 0, 0, 0, 0},	/*6 */
-			{2, 2, 2, 2, 2},	/*7 */
-			{2, 2, 2, 2, 2},	/*8 */
-			{21, 21, 21, 21, 21},	/*9 */
-			{19, 19, 19, 19, 19},	/*10 */
-			{0, 0, 0, 0, 0},	/*11 */
-			{0, 0, 0, 0, 0},	/*12 */
-			{0, 0, 0, 0, 0},	/*13 */
-			{0, 0, 0, 0, 0},	/*14 */
-			{22, 22, 22, 22, 22},	/*15 */
-			{27, 27, 27, 28, 27}	/*16 */
-		};
+	{
+		/*  0  1  2  3  4  */
+		{0, 0, 0, 0, 0},	/*0 */
+		{16, 16, 4, 26, 16},	/*1 */
+		{17, 17, 17, 4, 4},	/*2 */
+		{2, 2, 2, 2, 2},	/*3 */
+		{18, 18, 18, 18, 18},	/*4 */
+		{2, 2, 2, 2, 2},	/*5 */
+		{0, 0, 0, 0, 0},	/*6 */
+		{2, 2, 2, 2, 2},	/*7 */
+		{2, 2, 2, 2, 2},	/*8 */
+		{21, 21, 21, 21, 21},	/*9 */
+		{19, 19, 19, 19, 19},	/*10 */
+		{0, 0, 0, 0, 0},	/*11 */
+		{0, 0, 0, 0, 0},	/*12 */
+		{0, 0, 0, 0, 0},	/*13 */
+		{0, 0, 0, 0, 0},	/*14 */
+		{22, 22, 22, 22, 22},	/*15 */
+		{27, 27, 27, 28, 27}	/*16 */
+	};
+
 	if (si1 > 16)
+	{
 		si1 = 0;
+	}
+
 	if (si2 > 4)
+	{
 		si2 = 0;
+	}
 
 	return (u16) cip[si1][si2];
 }
@@ -274,26 +301,36 @@ static inline u16 si2cip(u8 si1, u8 si2)
 static inline u8 cip2si1(u16 cipval)
 {
 	static const u8 si[32] =
-		{7, 1, 7, 7, 1, 1, 7, 7,	/*0-7 */
-		 7, 1, 0, 0, 0, 0, 0, 0,	/*8-15 */
-		 1, 2, 4, 10, 9, 9, 15, 7,	/*16-23 */
-		 7, 7, 1, 16, 16, 0, 0, 0};	/*24-31 */
+	{
+		7, 1, 7, 7, 1, 1, 7, 7,	/*0-7 */
+		7, 1, 0, 0, 0, 0, 0, 0,	/*8-15 */
+		1, 2, 4, 10, 9, 9, 15, 7,	/*16-23 */
+		7, 7, 1, 16, 16, 0, 0, 0
+	};	/*24-31 */
 
 	if (cipval > 31)
-		cipval = 0;	/* .... */
+	{
+		cipval = 0;    /* .... */
+	}
+
 	return si[cipval];
 }
 
 static inline u8 cip2si2(u16 cipval)
 {
 	static const u8 si[32] =
-		{0, 0, 0, 0, 2, 3, 0, 0,	/*0-7 */
-		 0, 3, 0, 0, 0, 0, 0, 0,	/*8-15 */
-		 1, 2, 0, 0, 9, 0, 0, 0,	/*16-23 */
-		 0, 0, 3, 2, 3, 0, 0, 0};	/*24-31 */
+	{
+		0, 0, 0, 0, 2, 3, 0, 0,	/*0-7 */
+		0, 3, 0, 0, 0, 0, 0, 0,	/*8-15 */
+		1, 2, 0, 0, 9, 0, 0, 0,	/*16-23 */
+		0, 0, 3, 2, 3, 0, 0, 0
+	};	/*24-31 */
 
 	if (cipval > 31)
-		cipval = 0;	/* .... */
+	{
+		cipval = 0;    /* .... */
+	}
+
 	return si[cipval];
 }
 
@@ -306,9 +343,13 @@ static inline capidrv_contr *findcontrbydriverid(int driverid)
 	capidrv_contr *p;
 
 	spin_lock_irqsave(&global_lock, flags);
+
 	for (p = global.contr_list; p; p = p->next)
 		if (p->myid == driverid)
+		{
 			break;
+		}
+
 	spin_unlock_irqrestore(&global_lock, flags);
 	return p;
 }
@@ -319,9 +360,13 @@ static capidrv_contr *findcontrbynumber(u32 contr)
 	capidrv_contr *p = global.contr_list;
 
 	spin_lock_irqsave(&global_lock, flags);
+
 	for (p = global.contr_list; p; p = p->next)
 		if (p->contrnr == contr)
+		{
 			break;
+		}
+
 	spin_unlock_irqrestore(&global_lock, flags);
 	return p;
 }
@@ -336,7 +381,9 @@ static capidrv_plci *new_plci(capidrv_contr *card, int chan)
 	plcip = kzalloc(sizeof(capidrv_plci), GFP_ATOMIC);
 
 	if (plcip == NULL)
+	{
 		return NULL;
+	}
 
 	plcip->state = ST_PLCI_NONE;
 	plcip->plci = 0;
@@ -352,27 +399,39 @@ static capidrv_plci *new_plci(capidrv_contr *card, int chan)
 static capidrv_plci *find_plci_by_plci(capidrv_contr *card, u32 plci)
 {
 	capidrv_plci *p;
+
 	for (p = card->plci_list; p; p = p->next)
 		if (p->plci == plci)
+		{
 			return p;
+		}
+
 	return NULL;
 }
 
 static capidrv_plci *find_plci_by_msgid(capidrv_contr *card, u16 msgid)
 {
 	capidrv_plci *p;
+
 	for (p = card->plci_list; p; p = p->next)
 		if (p->msgid == msgid)
+		{
 			return p;
+		}
+
 	return NULL;
 }
 
 static capidrv_plci *find_plci_by_ncci(capidrv_contr *card, u32 ncci)
 {
 	capidrv_plci *p;
+
 	for (p = card->plci_list; p; p = p->next)
 		if (p->plci == (ncci & 0xffff))
+		{
 			return p;
+		}
+
 	return NULL;
 }
 
@@ -380,8 +439,10 @@ static void free_plci(capidrv_contr *card, capidrv_plci *plcip)
 {
 	capidrv_plci **pp;
 
-	for (pp = &card->plci_list; *pp; pp = &(*pp)->next) {
-		if (*pp == plcip) {
+	for (pp = &card->plci_list; *pp; pp = &(*pp)->next)
+	{
+		if (*pp == plcip)
+		{
 			*pp = (*pp)->next;
 			card->bchans[plcip->chan].plcip = NULL;
 			card->bchans[plcip->chan].disconnecting = 0;
@@ -390,22 +451,25 @@ static void free_plci(capidrv_contr *card, capidrv_plci *plcip)
 			return;
 		}
 	}
+
 	printk(KERN_ERR "capidrv-%d: free_plci %p (0x%x) not found, Huh?\n",
-	       card->contrnr, plcip, plcip->plci);
+		   card->contrnr, plcip, plcip->plci);
 }
 
 /* -------- ncci management ------------------------------------------ */
 
 static inline capidrv_ncci *new_ncci(capidrv_contr *card,
-				     capidrv_plci *plcip,
-				     u32 ncci)
+									 capidrv_plci *plcip,
+									 u32 ncci)
 {
 	capidrv_ncci *nccip;
 
 	nccip = kzalloc(sizeof(capidrv_ncci), GFP_ATOMIC);
 
 	if (nccip == NULL)
+	{
 		return NULL;
+	}
 
 	nccip->ncci = ncci;
 	nccip->state = ST_NCCI_NONE;
@@ -427,26 +491,36 @@ static inline capidrv_ncci *find_ncci(capidrv_contr *card, u32 ncci)
 	capidrv_ncci *p;
 
 	if ((plcip = find_plci_by_ncci(card, ncci)) == NULL)
+	{
 		return NULL;
+	}
 
 	for (p = plcip->ncci_list; p; p = p->next)
 		if (p->ncci == ncci)
+		{
 			return p;
+		}
+
 	return NULL;
 }
 
 static inline capidrv_ncci *find_ncci_by_msgid(capidrv_contr *card,
-					       u32 ncci, u16 msgid)
+		u32 ncci, u16 msgid)
 {
 	capidrv_plci *plcip;
 	capidrv_ncci *p;
 
 	if ((plcip = find_plci_by_ncci(card, ncci)) == NULL)
+	{
 		return NULL;
+	}
 
 	for (p = plcip->ncci_list; p; p = p->next)
 		if (p->msgid == msgid)
+		{
 			return p;
+		}
+
 	return NULL;
 }
 
@@ -454,30 +528,38 @@ static void free_ncci(capidrv_contr *card, struct capidrv_ncci *nccip)
 {
 	struct capidrv_ncci **pp;
 
-	for (pp = &(nccip->plcip->ncci_list); *pp; pp = &(*pp)->next) {
-		if (*pp == nccip) {
+	for (pp = &(nccip->plcip->ncci_list); *pp; pp = &(*pp)->next)
+	{
+		if (*pp == nccip)
+		{
 			*pp = (*pp)->next;
 			break;
 		}
 	}
+
 	card->bchans[nccip->chan].nccip = NULL;
 	kfree(nccip);
 }
 
 static int capidrv_add_ack(struct capidrv_ncci *nccip,
-			   u16 datahandle, int len)
+						   u16 datahandle, int len)
 {
 	struct ncci_datahandle_queue *n, **pp;
 
 	n = kmalloc(sizeof(struct ncci_datahandle_queue), GFP_ATOMIC);
-	if (!n) {
+
+	if (!n)
+	{
 		printk(KERN_ERR "capidrv: kmalloc ncci_datahandle failed\n");
 		return -1;
 	}
+
 	n->next = NULL;
 	n->datahandle = datahandle;
 	n->len = len;
+
 	for (pp = &nccip->ackqueue; *pp; pp = &(*pp)->next);
+
 	*pp = n;
 	return 0;
 }
@@ -487,8 +569,10 @@ static int capidrv_del_ack(struct capidrv_ncci *nccip, u16 datahandle)
 	struct ncci_datahandle_queue **pp, *p;
 	int len;
 
-	for (pp = &nccip->ackqueue; *pp; pp = &(*pp)->next) {
-		if ((*pp)->datahandle == datahandle) {
+	for (pp = &nccip->ackqueue; *pp; pp = &(*pp)->next)
+	{
+		if ((*pp)->datahandle == datahandle)
+		{
 			p = *pp;
 			len = p->len;
 			*pp = (*pp)->next;
@@ -496,6 +580,7 @@ static int capidrv_del_ack(struct capidrv_ncci *nccip, u16 datahandle)
 			return len;
 		}
 	}
+
 	return -1;
 }
 
@@ -506,24 +591,33 @@ static void send_message(capidrv_contr *card, _cmsg *cmsg)
 	struct sk_buff *skb;
 	size_t len;
 
-	if (capi_cmsg2message(cmsg, cmsg->buf)) {
+	if (capi_cmsg2message(cmsg, cmsg->buf))
+	{
 		printk(KERN_ERR "capidrv::send_message: parser failure\n");
 		return;
 	}
+
 	len = CAPIMSG_LEN(cmsg->buf);
 	skb = alloc_skb(len, GFP_ATOMIC);
-	if (!skb) {
+
+	if (!skb)
+	{
 		printk(KERN_ERR "capidrv::send_message: can't allocate mem\n");
 		return;
 	}
+
 	memcpy(skb_put(skb, len), cmsg->buf, len);
+
 	if (capi20_put_message(&global.ap, skb) != CAPI_NOERROR)
+	{
 		kfree_skb(skb);
+	}
 }
 
 /* -------- state machine -------------------------------------------- */
 
-struct listenstatechange {
+struct listenstatechange
+{
 	int actstate;
 	int nextstate;
 	int event;
@@ -545,18 +639,24 @@ static struct listenstatechange listentable[] =
 static void listen_change_state(capidrv_contr *card, int event)
 {
 	struct listenstatechange *p = listentable;
-	while (p->event) {
-		if (card->state == p->actstate && p->event == event) {
+
+	while (p->event)
+	{
+		if (card->state == p->actstate && p->event == event)
+		{
 			if (debugmode)
 				printk(KERN_DEBUG "capidrv-%d: listen_change_state %d -> %d\n",
-				       card->contrnr, card->state, p->nextstate);
+					   card->contrnr, card->state, p->nextstate);
+
 			card->state = p->nextstate;
 			return;
 		}
+
 		p++;
 	}
+
 	printk(KERN_ERR "capidrv-%d: listen_change_state state=%d event=%d ????\n",
-	       card->contrnr, card->state, event);
+		   card->contrnr, card->state, event);
 
 }
 
@@ -576,7 +676,8 @@ static void p0(capidrv_contr *card, capidrv_plci *plci)
 
 /* ------------------------------------------------------------------ */
 
-struct plcistatechange {
+struct plcistatechange
+{
 	int actstate;
 	int nextstate;
 	int event;
@@ -640,20 +741,30 @@ static struct plcistatechange plcitable[] =
 static void plci_change_state(capidrv_contr *card, capidrv_plci *plci, int event)
 {
 	struct plcistatechange *p = plcitable;
-	while (p->event) {
-		if (plci->state == p->actstate && p->event == event) {
+
+	while (p->event)
+	{
+		if (plci->state == p->actstate && p->event == event)
+		{
 			if (debugmode)
 				printk(KERN_DEBUG "capidrv-%d: plci_change_state:0x%x %d -> %d\n",
-				       card->contrnr, plci->plci, plci->state, p->nextstate);
+					   card->contrnr, plci->plci, plci->state, p->nextstate);
+
 			plci->state = p->nextstate;
+
 			if (p->changefunc)
+			{
 				p->changefunc(card, plci);
+			}
+
 			return;
 		}
+
 		p++;
 	}
+
 	printk(KERN_ERR "capidrv-%d: plci_change_state:0x%x state=%d event=%d ????\n",
-	       card->contrnr, plci->plci, plci->state, event);
+		   card->contrnr, plci->plci, plci->state, event);
 }
 
 /* ------------------------------------------------------------------ */
@@ -665,14 +776,14 @@ static void n0(capidrv_contr *card, capidrv_ncci *ncci)
 	isdn_ctrl cmd;
 
 	capi_fill_DISCONNECT_REQ(&cmsg,
-				 global.ap.applid,
-				 card->msgid++,
-				 ncci->plcip->plci,
-				 NULL,	/* BChannelinformation */
-				 NULL,	/* Keypadfacility */
-				 NULL,	/* Useruserdata */   /* $$$$ */
-				 NULL	/* Facilitydataarray */
-		);
+							 global.ap.applid,
+							 card->msgid++,
+							 ncci->plcip->plci,
+							 NULL,	/* BChannelinformation */
+							 NULL,	/* Keypadfacility */
+							 NULL,	/* Useruserdata */   /* $$$$ */
+							 NULL	/* Facilitydataarray */
+							);
 	plci_change_state(card, ncci->plcip, EV_PLCI_DISCONNECT_REQ);
 	send_message(card, &cmsg);
 
@@ -685,7 +796,8 @@ static void n0(capidrv_contr *card, capidrv_ncci *ncci)
 
 /* ------------------------------------------------------------------ */
 
-struct nccistatechange {
+struct nccistatechange
+{
 	int actstate;
 	int nextstate;
 	int event;
@@ -729,26 +841,39 @@ static struct nccistatechange nccitable[] =
 static void ncci_change_state(capidrv_contr *card, capidrv_ncci *ncci, int event)
 {
 	struct nccistatechange *p = nccitable;
-	while (p->event) {
-		if (ncci->state == p->actstate && p->event == event) {
+
+	while (p->event)
+	{
+		if (ncci->state == p->actstate && p->event == event)
+		{
 			if (debugmode)
 				printk(KERN_DEBUG "capidrv-%d: ncci_change_state:0x%x %d -> %d\n",
-				       card->contrnr, ncci->ncci, ncci->state, p->nextstate);
-			if (p->nextstate == ST_NCCI_PREVIOUS) {
+					   card->contrnr, ncci->ncci, ncci->state, p->nextstate);
+
+			if (p->nextstate == ST_NCCI_PREVIOUS)
+			{
 				ncci->state = ncci->oldstate;
 				ncci->oldstate = p->actstate;
-			} else {
+			}
+			else
+			{
 				ncci->oldstate = p->actstate;
 				ncci->state = p->nextstate;
 			}
+
 			if (p->changefunc)
+			{
 				p->changefunc(card, ncci);
+			}
+
 			return;
 		}
+
 		p++;
 	}
+
 	printk(KERN_ERR "capidrv-%d: ncci_change_state:0x%x state=%d event=%d ????\n",
-	       card->contrnr, ncci->ncci, ncci->state, event);
+		   card->contrnr, ncci->ncci, ncci->state, event);
 }
 
 /* ------------------------------------------------------------------- */
@@ -756,12 +881,16 @@ static void ncci_change_state(capidrv_contr *card, capidrv_ncci *ncci, int event
 static inline int new_bchan(capidrv_contr *card)
 {
 	int i;
-	for (i = 0; i < card->nbchan; i++) {
-		if (card->bchans[i].plcip == NULL) {
+
+	for (i = 0; i < card->nbchan; i++)
+	{
+		if (card->bchans[i].plcip == NULL)
+		{
 			card->bchans[i].disconnecting = 0;
 			return i;
 		}
 	}
+
 	return -1;
 }
 
@@ -771,194 +900,300 @@ static char *capi_info2str(u16 reason)
 #ifndef CONFIG_ISDN_CAPI_CAPIDRV_VERBOSE
 	return "..";
 #else
-	switch (reason) {
 
-/*-- informative values (corresponding message was processed) -----*/
-	case 0x0001:
-		return "NCPI not supported by current protocol, NCPI ignored";
-	case 0x0002:
-		return "Flags not supported by current protocol, flags ignored";
-	case 0x0003:
-		return "Alert already sent by another application";
+	switch (reason)
+	{
 
-/*-- error information concerning CAPI_REGISTER -----*/
-	case 0x1001:
-		return "Too many applications";
-	case 0x1002:
-		return "Logical block size too small, must be at least 128 Bytes";
-	case 0x1003:
-		return "Buffer exceeds 64 kByte";
-	case 0x1004:
-		return "Message buffer size too small, must be at least 1024 Bytes";
-	case 0x1005:
-		return "Max. number of logical connections not supported";
-	case 0x1006:
-		return "Reserved";
-	case 0x1007:
-		return "The message could not be accepted because of an internal busy condition";
-	case 0x1008:
-		return "OS resource error (no memory ?)";
-	case 0x1009:
-		return "CAPI not installed";
-	case 0x100A:
-		return "Controller does not support external equipment";
-	case 0x100B:
-		return "Controller does only support external equipment";
+		/*-- informative values (corresponding message was processed) -----*/
+		case 0x0001:
+			return "NCPI not supported by current protocol, NCPI ignored";
 
-/*-- error information concerning message exchange functions -----*/
-	case 0x1101:
-		return "Illegal application number";
-	case 0x1102:
-		return "Illegal command or subcommand or message length less than 12 bytes";
-	case 0x1103:
-		return "The message could not be accepted because of a queue full condition !! The error code does not imply that CAPI cannot receive messages directed to another controller, PLCI or NCCI";
-	case 0x1104:
-		return "Queue is empty";
-	case 0x1105:
-		return "Queue overflow, a message was lost !! This indicates a configuration error. The only recovery from this error is to perform a CAPI_RELEASE";
-	case 0x1106:
-		return "Unknown notification parameter";
-	case 0x1107:
-		return "The Message could not be accepted because of an internal busy condition";
-	case 0x1108:
-		return "OS Resource error (no memory ?)";
-	case 0x1109:
-		return "CAPI not installed";
-	case 0x110A:
-		return "Controller does not support external equipment";
-	case 0x110B:
-		return "Controller does only support external equipment";
+		case 0x0002:
+			return "Flags not supported by current protocol, flags ignored";
 
-/*-- error information concerning resource / coding problems -----*/
-	case 0x2001:
-		return "Message not supported in current state";
-	case 0x2002:
-		return "Illegal Controller / PLCI / NCCI";
-	case 0x2003:
-		return "Out of PLCI";
-	case 0x2004:
-		return "Out of NCCI";
-	case 0x2005:
-		return "Out of LISTEN";
-	case 0x2006:
-		return "Out of FAX resources (protocol T.30)";
-	case 0x2007:
-		return "Illegal message parameter coding";
+		case 0x0003:
+			return "Alert already sent by another application";
 
-/*-- error information concerning requested services  -----*/
-	case 0x3001:
-		return "B1 protocol not supported";
-	case 0x3002:
-		return "B2 protocol not supported";
-	case 0x3003:
-		return "B3 protocol not supported";
-	case 0x3004:
-		return "B1 protocol parameter not supported";
-	case 0x3005:
-		return "B2 protocol parameter not supported";
-	case 0x3006:
-		return "B3 protocol parameter not supported";
-	case 0x3007:
-		return "B protocol combination not supported";
-	case 0x3008:
-		return "NCPI not supported";
-	case 0x3009:
-		return "CIP Value unknown";
-	case 0x300A:
-		return "Flags not supported (reserved bits)";
-	case 0x300B:
-		return "Facility not supported";
-	case 0x300C:
-		return "Data length not supported by current protocol";
-	case 0x300D:
-		return "Reset procedure not supported by current protocol";
+		/*-- error information concerning CAPI_REGISTER -----*/
+		case 0x1001:
+			return "Too many applications";
 
-/*-- informations about the clearing of a physical connection -----*/
-	case 0x3301:
-		return "Protocol error layer 1 (broken line or B-channel removed by signalling protocol)";
-	case 0x3302:
-		return "Protocol error layer 2";
-	case 0x3303:
-		return "Protocol error layer 3";
-	case 0x3304:
-		return "Another application got that call";
-/*-- T.30 specific reasons -----*/
-	case 0x3311:
-		return "Connecting not successful (remote station is no FAX G3 machine)";
-	case 0x3312:
-		return "Connecting not successful (training error)";
-	case 0x3313:
-		return "Disconnected before transfer (remote station does not support transfer mode, e.g. resolution)";
-	case 0x3314:
-		return "Disconnected during transfer (remote abort)";
-	case 0x3315:
-		return "Disconnected during transfer (remote procedure error, e.g. unsuccessful repetition of T.30 commands)";
-	case 0x3316:
-		return "Disconnected during transfer (local tx data underrun)";
-	case 0x3317:
-		return "Disconnected during transfer (local rx data overflow)";
-	case 0x3318:
-		return "Disconnected during transfer (local abort)";
-	case 0x3319:
-		return "Illegal parameter coding (e.g. SFF coding error)";
+		case 0x1002:
+			return "Logical block size too small, must be at least 128 Bytes";
 
-/*-- disconnect causes from the network according to ETS 300 102-1/Q.931 -----*/
-	case 0x3481: return "Unallocated (unassigned) number";
-	case 0x3482: return "No route to specified transit network";
-	case 0x3483: return "No route to destination";
-	case 0x3486: return "Channel unacceptable";
-	case 0x3487:
-		return "Call awarded and being delivered in an established channel";
-	case 0x3490: return "Normal call clearing";
-	case 0x3491: return "User busy";
-	case 0x3492: return "No user responding";
-	case 0x3493: return "No answer from user (user alerted)";
-	case 0x3495: return "Call rejected";
-	case 0x3496: return "Number changed";
-	case 0x349A: return "Non-selected user clearing";
-	case 0x349B: return "Destination out of order";
-	case 0x349C: return "Invalid number format";
-	case 0x349D: return "Facility rejected";
-	case 0x349E: return "Response to STATUS ENQUIRY";
-	case 0x349F: return "Normal, unspecified";
-	case 0x34A2: return "No circuit / channel available";
-	case 0x34A6: return "Network out of order";
-	case 0x34A9: return "Temporary failure";
-	case 0x34AA: return "Switching equipment congestion";
-	case 0x34AB: return "Access information discarded";
-	case 0x34AC: return "Requested circuit / channel not available";
-	case 0x34AF: return "Resources unavailable, unspecified";
-	case 0x34B1: return "Quality of service unavailable";
-	case 0x34B2: return "Requested facility not subscribed";
-	case 0x34B9: return "Bearer capability not authorized";
-	case 0x34BA: return "Bearer capability not presently available";
-	case 0x34BF: return "Service or option not available, unspecified";
-	case 0x34C1: return "Bearer capability not implemented";
-	case 0x34C2: return "Channel type not implemented";
-	case 0x34C5: return "Requested facility not implemented";
-	case 0x34C6: return "Only restricted digital information bearer capability is available";
-	case 0x34CF: return "Service or option not implemented, unspecified";
-	case 0x34D1: return "Invalid call reference value";
-	case 0x34D2: return "Identified channel does not exist";
-	case 0x34D3: return "A suspended call exists, but this call identity does not";
-	case 0x34D4: return "Call identity in use";
-	case 0x34D5: return "No call suspended";
-	case 0x34D6: return "Call having the requested call identity has been cleared";
-	case 0x34D8: return "Incompatible destination";
-	case 0x34DB: return "Invalid transit network selection";
-	case 0x34DF: return "Invalid message, unspecified";
-	case 0x34E0: return "Mandatory information element is missing";
-	case 0x34E1: return "Message type non-existent or not implemented";
-	case 0x34E2: return "Message not compatible with call state or message type non-existent or not implemented";
-	case 0x34E3: return "Information element non-existent or not implemented";
-	case 0x34E4: return "Invalid information element contents";
-	case 0x34E5: return "Message not compatible with call state";
-	case 0x34E6: return "Recovery on timer expiry";
-	case 0x34EF: return "Protocol error, unspecified";
-	case 0x34FF: return "Interworking, unspecified";
+		case 0x1003:
+			return "Buffer exceeds 64 kByte";
 
-	default: return "No additional information";
+		case 0x1004:
+			return "Message buffer size too small, must be at least 1024 Bytes";
+
+		case 0x1005:
+			return "Max. number of logical connections not supported";
+
+		case 0x1006:
+			return "Reserved";
+
+		case 0x1007:
+			return "The message could not be accepted because of an internal busy condition";
+
+		case 0x1008:
+			return "OS resource error (no memory ?)";
+
+		case 0x1009:
+			return "CAPI not installed";
+
+		case 0x100A:
+			return "Controller does not support external equipment";
+
+		case 0x100B:
+			return "Controller does only support external equipment";
+
+		/*-- error information concerning message exchange functions -----*/
+		case 0x1101:
+			return "Illegal application number";
+
+		case 0x1102:
+			return "Illegal command or subcommand or message length less than 12 bytes";
+
+		case 0x1103:
+			return "The message could not be accepted because of a queue full condition !! The error code does not imply that CAPI cannot receive messages directed to another controller, PLCI or NCCI";
+
+		case 0x1104:
+			return "Queue is empty";
+
+		case 0x1105:
+			return "Queue overflow, a message was lost !! This indicates a configuration error. The only recovery from this error is to perform a CAPI_RELEASE";
+
+		case 0x1106:
+			return "Unknown notification parameter";
+
+		case 0x1107:
+			return "The Message could not be accepted because of an internal busy condition";
+
+		case 0x1108:
+			return "OS Resource error (no memory ?)";
+
+		case 0x1109:
+			return "CAPI not installed";
+
+		case 0x110A:
+			return "Controller does not support external equipment";
+
+		case 0x110B:
+			return "Controller does only support external equipment";
+
+		/*-- error information concerning resource / coding problems -----*/
+		case 0x2001:
+			return "Message not supported in current state";
+
+		case 0x2002:
+			return "Illegal Controller / PLCI / NCCI";
+
+		case 0x2003:
+			return "Out of PLCI";
+
+		case 0x2004:
+			return "Out of NCCI";
+
+		case 0x2005:
+			return "Out of LISTEN";
+
+		case 0x2006:
+			return "Out of FAX resources (protocol T.30)";
+
+		case 0x2007:
+			return "Illegal message parameter coding";
+
+		/*-- error information concerning requested services  -----*/
+		case 0x3001:
+			return "B1 protocol not supported";
+
+		case 0x3002:
+			return "B2 protocol not supported";
+
+		case 0x3003:
+			return "B3 protocol not supported";
+
+		case 0x3004:
+			return "B1 protocol parameter not supported";
+
+		case 0x3005:
+			return "B2 protocol parameter not supported";
+
+		case 0x3006:
+			return "B3 protocol parameter not supported";
+
+		case 0x3007:
+			return "B protocol combination not supported";
+
+		case 0x3008:
+			return "NCPI not supported";
+
+		case 0x3009:
+			return "CIP Value unknown";
+
+		case 0x300A:
+			return "Flags not supported (reserved bits)";
+
+		case 0x300B:
+			return "Facility not supported";
+
+		case 0x300C:
+			return "Data length not supported by current protocol";
+
+		case 0x300D:
+			return "Reset procedure not supported by current protocol";
+
+		/*-- informations about the clearing of a physical connection -----*/
+		case 0x3301:
+			return "Protocol error layer 1 (broken line or B-channel removed by signalling protocol)";
+
+		case 0x3302:
+			return "Protocol error layer 2";
+
+		case 0x3303:
+			return "Protocol error layer 3";
+
+		case 0x3304:
+			return "Another application got that call";
+
+		/*-- T.30 specific reasons -----*/
+		case 0x3311:
+			return "Connecting not successful (remote station is no FAX G3 machine)";
+
+		case 0x3312:
+			return "Connecting not successful (training error)";
+
+		case 0x3313:
+			return "Disconnected before transfer (remote station does not support transfer mode, e.g. resolution)";
+
+		case 0x3314:
+			return "Disconnected during transfer (remote abort)";
+
+		case 0x3315:
+			return "Disconnected during transfer (remote procedure error, e.g. unsuccessful repetition of T.30 commands)";
+
+		case 0x3316:
+			return "Disconnected during transfer (local tx data underrun)";
+
+		case 0x3317:
+			return "Disconnected during transfer (local rx data overflow)";
+
+		case 0x3318:
+			return "Disconnected during transfer (local abort)";
+
+		case 0x3319:
+			return "Illegal parameter coding (e.g. SFF coding error)";
+
+		/*-- disconnect causes from the network according to ETS 300 102-1/Q.931 -----*/
+		case 0x3481: return "Unallocated (unassigned) number";
+
+		case 0x3482: return "No route to specified transit network";
+
+		case 0x3483: return "No route to destination";
+
+		case 0x3486: return "Channel unacceptable";
+
+		case 0x3487:
+			return "Call awarded and being delivered in an established channel";
+
+		case 0x3490: return "Normal call clearing";
+
+		case 0x3491: return "User busy";
+
+		case 0x3492: return "No user responding";
+
+		case 0x3493: return "No answer from user (user alerted)";
+
+		case 0x3495: return "Call rejected";
+
+		case 0x3496: return "Number changed";
+
+		case 0x349A: return "Non-selected user clearing";
+
+		case 0x349B: return "Destination out of order";
+
+		case 0x349C: return "Invalid number format";
+
+		case 0x349D: return "Facility rejected";
+
+		case 0x349E: return "Response to STATUS ENQUIRY";
+
+		case 0x349F: return "Normal, unspecified";
+
+		case 0x34A2: return "No circuit / channel available";
+
+		case 0x34A6: return "Network out of order";
+
+		case 0x34A9: return "Temporary failure";
+
+		case 0x34AA: return "Switching equipment congestion";
+
+		case 0x34AB: return "Access information discarded";
+
+		case 0x34AC: return "Requested circuit / channel not available";
+
+		case 0x34AF: return "Resources unavailable, unspecified";
+
+		case 0x34B1: return "Quality of service unavailable";
+
+		case 0x34B2: return "Requested facility not subscribed";
+
+		case 0x34B9: return "Bearer capability not authorized";
+
+		case 0x34BA: return "Bearer capability not presently available";
+
+		case 0x34BF: return "Service or option not available, unspecified";
+
+		case 0x34C1: return "Bearer capability not implemented";
+
+		case 0x34C2: return "Channel type not implemented";
+
+		case 0x34C5: return "Requested facility not implemented";
+
+		case 0x34C6: return "Only restricted digital information bearer capability is available";
+
+		case 0x34CF: return "Service or option not implemented, unspecified";
+
+		case 0x34D1: return "Invalid call reference value";
+
+		case 0x34D2: return "Identified channel does not exist";
+
+		case 0x34D3: return "A suspended call exists, but this call identity does not";
+
+		case 0x34D4: return "Call identity in use";
+
+		case 0x34D5: return "No call suspended";
+
+		case 0x34D6: return "Call having the requested call identity has been cleared";
+
+		case 0x34D8: return "Incompatible destination";
+
+		case 0x34DB: return "Invalid transit network selection";
+
+		case 0x34DF: return "Invalid message, unspecified";
+
+		case 0x34E0: return "Mandatory information element is missing";
+
+		case 0x34E1: return "Message type non-existent or not implemented";
+
+		case 0x34E2: return "Message not compatible with call state or message type non-existent or not implemented";
+
+		case 0x34E3: return "Information element non-existent or not implemented";
+
+		case 0x34E4: return "Invalid information element contents";
+
+		case 0x34E5: return "Message not compatible with call state";
+
+		case 0x34E6: return "Recovery on timer expiry";
+
+		case 0x34EF: return "Protocol error, unspecified";
+
+		case 0x34FF: return "Interworking, unspecified";
+
+		default: return "No additional information";
 	}
+
 #endif
 }
 
@@ -966,100 +1201,139 @@ static void handle_controller(_cmsg *cmsg)
 {
 	capidrv_contr *card = findcontrbynumber(cmsg->adr.adrController & 0x7f);
 
-	if (!card) {
+	if (!card)
+	{
 		printk(KERN_ERR "capidrv: %s from unknown controller 0x%x\n",
-		       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-		       cmsg->adr.adrController & 0x7f);
+			   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+			   cmsg->adr.adrController & 0x7f);
 		return;
 	}
-	switch (CAPICMD(cmsg->Command, cmsg->Subcommand)) {
 
-	case CAPI_LISTEN_CONF:	/* Controller */
-		if (debugmode)
-			printk(KERN_DEBUG "capidrv-%d: listenconf Info=0x%4x (%s) cipmask=0x%x\n",
-			       card->contrnr, cmsg->Info, capi_info2str(cmsg->Info), card->cipmask);
-		if (cmsg->Info) {
-			listen_change_state(card, EV_LISTEN_CONF_ERROR);
-		} else if (card->cipmask == 0) {
-			listen_change_state(card, EV_LISTEN_CONF_EMPTY);
-		} else {
-			listen_change_state(card, EV_LISTEN_CONF_OK);
-		}
-		break;
+	switch (CAPICMD(cmsg->Command, cmsg->Subcommand))
+	{
 
-	case CAPI_MANUFACTURER_IND:	/* Controller */
-		if (cmsg->ManuID == 0x214D5641
-		    && cmsg->Class == 0
-		    && cmsg->Function == 1) {
-			u8  *data = cmsg->ManuData + 3;
-			u16  len = cmsg->ManuData[0];
-			u16 layer;
-			int direction;
-			if (len == 255) {
-				len = (cmsg->ManuData[1] | (cmsg->ManuData[2] << 8));
-				data += 2;
+		case CAPI_LISTEN_CONF:	/* Controller */
+			if (debugmode)
+				printk(KERN_DEBUG "capidrv-%d: listenconf Info=0x%4x (%s) cipmask=0x%x\n",
+					   card->contrnr, cmsg->Info, capi_info2str(cmsg->Info), card->cipmask);
+
+			if (cmsg->Info)
+			{
+				listen_change_state(card, EV_LISTEN_CONF_ERROR);
 			}
-			len -= 2;
-			layer = ((*(data - 1)) << 8) | *(data - 2);
-			if (layer & 0x300)
-				direction = (layer & 0x200) ? 0 : 1;
-			else direction = (layer & 0x800) ? 0 : 1;
-			if (layer & 0x0C00) {
-				if ((layer & 0xff) == 0x80) {
-					handle_dtrace_data(card, direction, 1, data, len);
+			else if (card->cipmask == 0)
+			{
+				listen_change_state(card, EV_LISTEN_CONF_EMPTY);
+			}
+			else
+			{
+				listen_change_state(card, EV_LISTEN_CONF_OK);
+			}
+
+			break;
+
+		case CAPI_MANUFACTURER_IND:	/* Controller */
+			if (cmsg->ManuID == 0x214D5641
+				&& cmsg->Class == 0
+				&& cmsg->Function == 1)
+			{
+				u8  *data = cmsg->ManuData + 3;
+				u16  len = cmsg->ManuData[0];
+				u16 layer;
+				int direction;
+
+				if (len == 255)
+				{
+					len = (cmsg->ManuData[1] | (cmsg->ManuData[2] << 8));
+					data += 2;
+				}
+
+				len -= 2;
+				layer = ((*(data - 1)) << 8) | *(data - 2);
+
+				if (layer & 0x300)
+				{
+					direction = (layer & 0x200) ? 0 : 1;
+				}
+				else { direction = (layer & 0x800) ? 0 : 1; }
+
+				if (layer & 0x0C00)
+				{
+					if ((layer & 0xff) == 0x80)
+					{
+						handle_dtrace_data(card, direction, 1, data, len);
+						break;
+					}
+				}
+				else if ((layer & 0xff) < 0x80)
+				{
+					handle_dtrace_data(card, direction, 0, data, len);
 					break;
 				}
-			} else if ((layer & 0xff) < 0x80) {
-				handle_dtrace_data(card, direction, 0, data, len);
+
+				printk(KERN_INFO "capidrv-%d: %s from controller 0x%x layer 0x%x, ignored\n",
+					   card->contrnr,
+					   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+					   cmsg->adr.adrController, layer);
 				break;
 			}
-			printk(KERN_INFO "capidrv-%d: %s from controller 0x%x layer 0x%x, ignored\n",
-			       card->contrnr,
-			       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-			       cmsg->adr.adrController, layer);
-			break;
-		}
-		goto ignored;
-	case CAPI_MANUFACTURER_CONF:	/* Controller */
-		if (cmsg->ManuID == 0x214D5641) {
-			char *s = NULL;
-			switch (cmsg->Class) {
-			case 0: break;
-			case 1: s = "unknown class"; break;
-			case 2: s = "unknown function"; break;
-			default: s = "unknown error"; break;
-			}
-			if (s)
-				printk(KERN_INFO "capidrv-%d: %s from controller 0x%x function %d: %s\n",
-				       card->contrnr,
-				       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-				       cmsg->adr.adrController,
-				       cmsg->Function, s);
-			break;
-		}
-		goto ignored;
-	case CAPI_FACILITY_IND:	/* Controller/plci/ncci */
-		goto ignored;
-	case CAPI_FACILITY_CONF:	/* Controller/plci/ncci */
-		goto ignored;
-	case CAPI_INFO_IND:	/* Controller/plci */
-		goto ignored;
-	case CAPI_INFO_CONF:	/* Controller/plci */
-		goto ignored;
 
-	default:
-		printk(KERN_ERR "capidrv-%d: got %s from controller 0x%x ???",
-		       card->contrnr,
-		       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-		       cmsg->adr.adrController);
+			goto ignored;
+
+		case CAPI_MANUFACTURER_CONF:	/* Controller */
+			if (cmsg->ManuID == 0x214D5641)
+			{
+				char *s = NULL;
+
+				switch (cmsg->Class)
+				{
+					case 0: break;
+
+					case 1: s = "unknown class"; break;
+
+					case 2: s = "unknown function"; break;
+
+					default: s = "unknown error"; break;
+				}
+
+				if (s)
+					printk(KERN_INFO "capidrv-%d: %s from controller 0x%x function %d: %s\n",
+						   card->contrnr,
+						   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+						   cmsg->adr.adrController,
+						   cmsg->Function, s);
+
+				break;
+			}
+
+			goto ignored;
+
+		case CAPI_FACILITY_IND:	/* Controller/plci/ncci */
+			goto ignored;
+
+		case CAPI_FACILITY_CONF:	/* Controller/plci/ncci */
+			goto ignored;
+
+		case CAPI_INFO_IND:	/* Controller/plci */
+			goto ignored;
+
+		case CAPI_INFO_CONF:	/* Controller/plci */
+			goto ignored;
+
+		default:
+			printk(KERN_ERR "capidrv-%d: got %s from controller 0x%x ???",
+				   card->contrnr,
+				   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+				   cmsg->adr.adrController);
 	}
+
 	return;
 
 ignored:
 	printk(KERN_INFO "capidrv-%d: %s from controller 0x%x ignored\n",
-	       card->contrnr,
-	       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-	       cmsg->adr.adrController);
+		   card->contrnr,
+		   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+		   cmsg->adr.adrController);
 }
 
 static void handle_incoming_call(capidrv_contr *card, _cmsg *cmsg)
@@ -1069,15 +1343,20 @@ static void handle_incoming_call(capidrv_contr *card, _cmsg *cmsg)
 	isdn_ctrl cmd;
 	int chan;
 
-	if ((chan = new_bchan(card)) == -1) {
+	if ((chan = new_bchan(card)) == -1)
+	{
 		printk(KERN_ERR "capidrv-%d: incoming call on not existing bchan ?\n", card->contrnr);
 		return;
 	}
+
 	bchan = &card->bchans[chan];
-	if ((plcip = new_plci(card, chan)) == NULL) {
+
+	if ((plcip = new_plci(card, chan)) == NULL)
+	{
 		printk(KERN_ERR "capidrv-%d: incoming call: no memory, sorry.\n", card->contrnr);
 		return;
 	}
+
 	bchan->incoming = 1;
 	plcip->plci = cmsg->adr.adrPLCI;
 	plci_change_state(card, plcip, EV_PLCI_CONNECT_IND);
@@ -1087,103 +1366,112 @@ static void handle_incoming_call(capidrv_contr *card, _cmsg *cmsg)
 	cmd.arg = chan;
 	memset(&cmd.parm.setup, 0, sizeof(cmd.parm.setup));
 	strncpy(cmd.parm.setup.phone,
-		cmsg->CallingPartyNumber + 3,
-		cmsg->CallingPartyNumber[0] - 2);
+			cmsg->CallingPartyNumber + 3,
+			cmsg->CallingPartyNumber[0] - 2);
 	strncpy(cmd.parm.setup.eazmsn,
-		cmsg->CalledPartyNumber + 2,
-		cmsg->CalledPartyNumber[0] - 1);
+			cmsg->CalledPartyNumber + 2,
+			cmsg->CalledPartyNumber[0] - 1);
 	cmd.parm.setup.si1 = cip2si1(cmsg->CIPValue);
 	cmd.parm.setup.si2 = cip2si2(cmsg->CIPValue);
 	cmd.parm.setup.plan = cmsg->CallingPartyNumber[1];
 	cmd.parm.setup.screen = cmsg->CallingPartyNumber[2];
 
 	printk(KERN_INFO "capidrv-%d: incoming call %s,%d,%d,%s\n",
-	       card->contrnr,
-	       cmd.parm.setup.phone,
-	       cmd.parm.setup.si1,
-	       cmd.parm.setup.si2,
-	       cmd.parm.setup.eazmsn);
+		   card->contrnr,
+		   cmd.parm.setup.phone,
+		   cmd.parm.setup.si1,
+		   cmd.parm.setup.si2,
+		   cmd.parm.setup.eazmsn);
 
-	if (cmd.parm.setup.si1 == 1 && cmd.parm.setup.si2 != 0) {
+	if (cmd.parm.setup.si1 == 1 && cmd.parm.setup.si2 != 0)
+	{
 		printk(KERN_INFO "capidrv-%d: patching si2=%d to 0 for VBOX\n",
-		       card->contrnr,
-		       cmd.parm.setup.si2);
+			   card->contrnr,
+			   cmd.parm.setup.si2);
 		cmd.parm.setup.si2 = 0;
 	}
 
-	switch (card->interface.statcallb(&cmd)) {
-	case 0:
-	case 3:
-		/* No device matching this call.
-		 * and isdn_common.c has send a HANGUP command
-		 * which is ignored in state ST_PLCI_INCOMING,
-		 * so we send RESP to ignore the call
-		 */
-		capi_cmsg_answer(cmsg);
-		cmsg->Reject = 1;	/* ignore */
-		plci_change_state(card, plcip, EV_PLCI_CONNECT_REJECT);
-		send_message(card, cmsg);
-		printk(KERN_INFO "capidrv-%d: incoming call %s,%d,%d,%s ignored\n",
-		       card->contrnr,
-		       cmd.parm.setup.phone,
-		       cmd.parm.setup.si1,
-		       cmd.parm.setup.si2,
-		       cmd.parm.setup.eazmsn);
-		break;
-	case 1:
-		/* At least one device matching this call (RING on ttyI)
-		 * HL-driver may send ALERTING on the D-channel in this
-		 * case.
-		 * really means: RING on ttyI or a net interface
-		 * accepted this call already.
-		 *
-		 * If the call was accepted, state has already changed,
-		 * and CONNECT_RESP already sent.
-		 */
-		if (plcip->state == ST_PLCI_INCOMING) {
-			printk(KERN_INFO "capidrv-%d: incoming call %s,%d,%d,%s tty alerting\n",
-			       card->contrnr,
-			       cmd.parm.setup.phone,
-			       cmd.parm.setup.si1,
-			       cmd.parm.setup.si2,
-			       cmd.parm.setup.eazmsn);
-			capi_fill_ALERT_REQ(cmsg,
-					    global.ap.applid,
-					    card->msgid++,
-					    plcip->plci,	/* adr */
-					    NULL,/* BChannelinformation */
-					    NULL,/* Keypadfacility */
-					    NULL,/* Useruserdata */
-					    NULL /* Facilitydataarray */
-				);
-			plcip->msgid = cmsg->Messagenumber;
+	switch (card->interface.statcallb(&cmd))
+	{
+		case 0:
+		case 3:
+			/* No device matching this call.
+			 * and isdn_common.c has send a HANGUP command
+			 * which is ignored in state ST_PLCI_INCOMING,
+			 * so we send RESP to ignore the call
+			 */
+			capi_cmsg_answer(cmsg);
+			cmsg->Reject = 1;	/* ignore */
+			plci_change_state(card, plcip, EV_PLCI_CONNECT_REJECT);
 			send_message(card, cmsg);
-		} else {
-			printk(KERN_INFO "capidrv-%d: incoming call %s,%d,%d,%s on netdev\n",
-			       card->contrnr,
-			       cmd.parm.setup.phone,
-			       cmd.parm.setup.si1,
-			       cmd.parm.setup.si2,
-			       cmd.parm.setup.eazmsn);
-		}
-		break;
+			printk(KERN_INFO "capidrv-%d: incoming call %s,%d,%d,%s ignored\n",
+				   card->contrnr,
+				   cmd.parm.setup.phone,
+				   cmd.parm.setup.si1,
+				   cmd.parm.setup.si2,
+				   cmd.parm.setup.eazmsn);
+			break;
 
-	case 2:		/* Call will be rejected. */
-		capi_cmsg_answer(cmsg);
-		cmsg->Reject = 2;	/* reject call, normal call clearing */
-		plci_change_state(card, plcip, EV_PLCI_CONNECT_REJECT);
-		send_message(card, cmsg);
-		break;
+		case 1:
 
-	default:
-		/* An error happened. (Invalid parameters for example.) */
-		capi_cmsg_answer(cmsg);
-		cmsg->Reject = 8;	/* reject call,
+			/* At least one device matching this call (RING on ttyI)
+			 * HL-driver may send ALERTING on the D-channel in this
+			 * case.
+			 * really means: RING on ttyI or a net interface
+			 * accepted this call already.
+			 *
+			 * If the call was accepted, state has already changed,
+			 * and CONNECT_RESP already sent.
+			 */
+			if (plcip->state == ST_PLCI_INCOMING)
+			{
+				printk(KERN_INFO "capidrv-%d: incoming call %s,%d,%d,%s tty alerting\n",
+					   card->contrnr,
+					   cmd.parm.setup.phone,
+					   cmd.parm.setup.si1,
+					   cmd.parm.setup.si2,
+					   cmd.parm.setup.eazmsn);
+				capi_fill_ALERT_REQ(cmsg,
+									global.ap.applid,
+									card->msgid++,
+									plcip->plci,	/* adr */
+									NULL,/* BChannelinformation */
+									NULL,/* Keypadfacility */
+									NULL,/* Useruserdata */
+									NULL /* Facilitydataarray */
+								   );
+				plcip->msgid = cmsg->Messagenumber;
+				send_message(card, cmsg);
+			}
+			else
+			{
+				printk(KERN_INFO "capidrv-%d: incoming call %s,%d,%d,%s on netdev\n",
+					   card->contrnr,
+					   cmd.parm.setup.phone,
+					   cmd.parm.setup.si1,
+					   cmd.parm.setup.si2,
+					   cmd.parm.setup.eazmsn);
+			}
+
+			break;
+
+		case 2:		/* Call will be rejected. */
+			capi_cmsg_answer(cmsg);
+			cmsg->Reject = 2;	/* reject call, normal call clearing */
+			plci_change_state(card, plcip, EV_PLCI_CONNECT_REJECT);
+			send_message(card, cmsg);
+			break;
+
+		default:
+			/* An error happened. (Invalid parameters for example.) */
+			capi_cmsg_answer(cmsg);
+			cmsg->Reject = 8;	/* reject call,
 					   destination out of order */
-		plci_change_state(card, plcip, EV_PLCI_CONNECT_REJECT);
-		send_message(card, cmsg);
-		break;
+			plci_change_state(card, plcip, EV_PLCI_CONNECT_REJECT);
+			send_message(card, cmsg);
+			break;
 	}
+
 	return;
 }
 
@@ -1194,179 +1482,221 @@ static void handle_plci(_cmsg *cmsg)
 	isdn_ctrl cmd;
 	_cdebbuf *cdb;
 
-	if (!card) {
+	if (!card)
+	{
 		printk(KERN_ERR "capidrv: %s from unknown controller 0x%x\n",
-		       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-		       cmsg->adr.adrController & 0x7f);
+			   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+			   cmsg->adr.adrController & 0x7f);
 		return;
 	}
-	switch (CAPICMD(cmsg->Command, cmsg->Subcommand)) {
 
-	case CAPI_DISCONNECT_IND:	/* plci */
-		if (cmsg->Reason) {
-			printk(KERN_INFO "capidrv-%d: %s reason 0x%x (%s) for plci 0x%x\n",
-			       card->contrnr,
-			       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-			       cmsg->Reason, capi_info2str(cmsg->Reason), cmsg->adr.adrPLCI);
-		}
-		if (!(plcip = find_plci_by_plci(card, cmsg->adr.adrPLCI))) {
-			capi_cmsg_answer(cmsg);
-			send_message(card, cmsg);
-			goto notfound;
-		}
-		card->bchans[plcip->chan].disconnecting = 1;
-		plci_change_state(card, plcip, EV_PLCI_DISCONNECT_IND);
-		capi_cmsg_answer(cmsg);
-		plci_change_state(card, plcip, EV_PLCI_DISCONNECT_RESP);
-		send_message(card, cmsg);
-		break;
+	switch (CAPICMD(cmsg->Command, cmsg->Subcommand))
+	{
 
-	case CAPI_DISCONNECT_CONF:	/* plci */
-		if (cmsg->Info) {
-			printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for plci 0x%x\n",
-			       card->contrnr,
-			       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-			       cmsg->Info, capi_info2str(cmsg->Info),
-			       cmsg->adr.adrPLCI);
-		}
-		if (!(plcip = find_plci_by_plci(card, cmsg->adr.adrPLCI)))
-			goto notfound;
-
-		card->bchans[plcip->chan].disconnecting = 1;
-		break;
-
-	case CAPI_ALERT_CONF:	/* plci */
-		if (cmsg->Info) {
-			printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for plci 0x%x\n",
-			       card->contrnr,
-			       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-			       cmsg->Info, capi_info2str(cmsg->Info),
-			       cmsg->adr.adrPLCI);
-		}
-		break;
-
-	case CAPI_CONNECT_IND:	/* plci */
-		handle_incoming_call(card, cmsg);
-		break;
-
-	case CAPI_CONNECT_CONF:	/* plci */
-		if (cmsg->Info) {
-			printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for plci 0x%x\n",
-			       card->contrnr,
-			       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-			       cmsg->Info, capi_info2str(cmsg->Info),
-			       cmsg->adr.adrPLCI);
-		}
-		if (!(plcip = find_plci_by_msgid(card, cmsg->Messagenumber)))
-			goto notfound;
-
-		plcip->plci = cmsg->adr.adrPLCI;
-		if (cmsg->Info) {
-			plci_change_state(card, plcip, EV_PLCI_CONNECT_CONF_ERROR);
-		} else {
-			plci_change_state(card, plcip, EV_PLCI_CONNECT_CONF_OK);
-		}
-		break;
-
-	case CAPI_CONNECT_ACTIVE_IND:	/* plci */
-
-		if (!(plcip = find_plci_by_plci(card, cmsg->adr.adrPLCI)))
-			goto notfound;
-
-		if (card->bchans[plcip->chan].incoming) {
-			capi_cmsg_answer(cmsg);
-			plci_change_state(card, plcip, EV_PLCI_CONNECT_ACTIVE_IND);
-			send_message(card, cmsg);
-		} else {
-			capidrv_ncci *nccip;
-			capi_cmsg_answer(cmsg);
-			send_message(card, cmsg);
-
-			nccip = new_ncci(card, plcip, cmsg->adr.adrPLCI);
-
-			if (!nccip) {
-				printk(KERN_ERR "capidrv-%d: no mem for ncci, sorry\n", card->contrnr);
-				break;	/* $$$$ */
+		case CAPI_DISCONNECT_IND:	/* plci */
+			if (cmsg->Reason)
+			{
+				printk(KERN_INFO "capidrv-%d: %s reason 0x%x (%s) for plci 0x%x\n",
+					   card->contrnr,
+					   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+					   cmsg->Reason, capi_info2str(cmsg->Reason), cmsg->adr.adrPLCI);
 			}
-			capi_fill_CONNECT_B3_REQ(cmsg,
-						 global.ap.applid,
-						 card->msgid++,
-						 plcip->plci,	/* adr */
-						 NULL	/* NCPI */
-				);
-			nccip->msgid = cmsg->Messagenumber;
-			plci_change_state(card, plcip,
-					  EV_PLCI_CONNECT_ACTIVE_IND);
-			ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_REQ);
+
+			if (!(plcip = find_plci_by_plci(card, cmsg->adr.adrPLCI)))
+			{
+				capi_cmsg_answer(cmsg);
+				send_message(card, cmsg);
+				goto notfound;
+			}
+
+			card->bchans[plcip->chan].disconnecting = 1;
+			plci_change_state(card, plcip, EV_PLCI_DISCONNECT_IND);
+			capi_cmsg_answer(cmsg);
+			plci_change_state(card, plcip, EV_PLCI_DISCONNECT_RESP);
 			send_message(card, cmsg);
-			cmd.command = ISDN_STAT_DCONN;
-			cmd.driver = card->myid;
-			cmd.arg = plcip->chan;
-			card->interface.statcallb(&cmd);
-		}
-		break;
+			break;
 
-	case CAPI_INFO_IND:	/* Controller/plci */
+		case CAPI_DISCONNECT_CONF:	/* plci */
+			if (cmsg->Info)
+			{
+				printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for plci 0x%x\n",
+					   card->contrnr,
+					   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+					   cmsg->Info, capi_info2str(cmsg->Info),
+					   cmsg->adr.adrPLCI);
+			}
 
-		if (!(plcip = find_plci_by_plci(card, cmsg->adr.adrPLCI)))
-			goto notfound;
+			if (!(plcip = find_plci_by_plci(card, cmsg->adr.adrPLCI)))
+			{
+				goto notfound;
+			}
 
-		if (cmsg->InfoNumber == 0x4000) {
-			if (cmsg->InfoElement[0] == 4) {
-				cmd.command = ISDN_STAT_CINF;
+			card->bchans[plcip->chan].disconnecting = 1;
+			break;
+
+		case CAPI_ALERT_CONF:	/* plci */
+			if (cmsg->Info)
+			{
+				printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for plci 0x%x\n",
+					   card->contrnr,
+					   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+					   cmsg->Info, capi_info2str(cmsg->Info),
+					   cmsg->adr.adrPLCI);
+			}
+
+			break;
+
+		case CAPI_CONNECT_IND:	/* plci */
+			handle_incoming_call(card, cmsg);
+			break;
+
+		case CAPI_CONNECT_CONF:	/* plci */
+			if (cmsg->Info)
+			{
+				printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for plci 0x%x\n",
+					   card->contrnr,
+					   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+					   cmsg->Info, capi_info2str(cmsg->Info),
+					   cmsg->adr.adrPLCI);
+			}
+
+			if (!(plcip = find_plci_by_msgid(card, cmsg->Messagenumber)))
+			{
+				goto notfound;
+			}
+
+			plcip->plci = cmsg->adr.adrPLCI;
+
+			if (cmsg->Info)
+			{
+				plci_change_state(card, plcip, EV_PLCI_CONNECT_CONF_ERROR);
+			}
+			else
+			{
+				plci_change_state(card, plcip, EV_PLCI_CONNECT_CONF_OK);
+			}
+
+			break;
+
+		case CAPI_CONNECT_ACTIVE_IND:	/* plci */
+
+			if (!(plcip = find_plci_by_plci(card, cmsg->adr.adrPLCI)))
+			{
+				goto notfound;
+			}
+
+			if (card->bchans[plcip->chan].incoming)
+			{
+				capi_cmsg_answer(cmsg);
+				plci_change_state(card, plcip, EV_PLCI_CONNECT_ACTIVE_IND);
+				send_message(card, cmsg);
+			}
+			else
+			{
+				capidrv_ncci *nccip;
+				capi_cmsg_answer(cmsg);
+				send_message(card, cmsg);
+
+				nccip = new_ncci(card, plcip, cmsg->adr.adrPLCI);
+
+				if (!nccip)
+				{
+					printk(KERN_ERR "capidrv-%d: no mem for ncci, sorry\n", card->contrnr);
+					break;	/* $$$$ */
+				}
+
+				capi_fill_CONNECT_B3_REQ(cmsg,
+										 global.ap.applid,
+										 card->msgid++,
+										 plcip->plci,	/* adr */
+										 NULL	/* NCPI */
+										);
+				nccip->msgid = cmsg->Messagenumber;
+				plci_change_state(card, plcip,
+								  EV_PLCI_CONNECT_ACTIVE_IND);
+				ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_REQ);
+				send_message(card, cmsg);
+				cmd.command = ISDN_STAT_DCONN;
 				cmd.driver = card->myid;
 				cmd.arg = plcip->chan;
-				sprintf(cmd.parm.num, "%lu",
-					(unsigned long)
-					((u32) cmsg->InfoElement[1]
-					 | ((u32) (cmsg->InfoElement[2]) << 8)
-					 | ((u32) (cmsg->InfoElement[3]) << 16)
-					 | ((u32) (cmsg->InfoElement[4]) << 24)));
 				card->interface.statcallb(&cmd);
-				break;
 			}
-		}
-		cdb = capi_cmsg2str(cmsg);
-		if (cdb) {
-			printk(KERN_WARNING "capidrv-%d: %s\n",
-			       card->contrnr, cdb->buf);
-			cdebbuf_free(cdb);
-		} else
-			printk(KERN_WARNING "capidrv-%d: CAPI_INFO_IND InfoNumber %x not handled\n",
-			       card->contrnr, cmsg->InfoNumber);
 
-		break;
+			break;
 
-	case CAPI_CONNECT_ACTIVE_CONF:		/* plci */
-		goto ignored;
-	case CAPI_SELECT_B_PROTOCOL_CONF:	/* plci */
-		goto ignored;
-	case CAPI_FACILITY_IND:	/* Controller/plci/ncci */
-		goto ignored;
-	case CAPI_FACILITY_CONF:	/* Controller/plci/ncci */
-		goto ignored;
+		case CAPI_INFO_IND:	/* Controller/plci */
 
-	case CAPI_INFO_CONF:	/* Controller/plci */
-		goto ignored;
+			if (!(plcip = find_plci_by_plci(card, cmsg->adr.adrPLCI)))
+			{
+				goto notfound;
+			}
 
-	default:
-		printk(KERN_ERR "capidrv-%d: got %s for plci 0x%x ???",
-		       card->contrnr,
-		       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-		       cmsg->adr.adrPLCI);
+			if (cmsg->InfoNumber == 0x4000)
+			{
+				if (cmsg->InfoElement[0] == 4)
+				{
+					cmd.command = ISDN_STAT_CINF;
+					cmd.driver = card->myid;
+					cmd.arg = plcip->chan;
+					sprintf(cmd.parm.num, "%lu",
+							(unsigned long)
+							((u32) cmsg->InfoElement[1]
+							 | ((u32) (cmsg->InfoElement[2]) << 8)
+							 | ((u32) (cmsg->InfoElement[3]) << 16)
+							 | ((u32) (cmsg->InfoElement[4]) << 24)));
+					card->interface.statcallb(&cmd);
+					break;
+				}
+			}
+
+			cdb = capi_cmsg2str(cmsg);
+
+			if (cdb)
+			{
+				printk(KERN_WARNING "capidrv-%d: %s\n",
+					   card->contrnr, cdb->buf);
+				cdebbuf_free(cdb);
+			}
+			else
+				printk(KERN_WARNING "capidrv-%d: CAPI_INFO_IND InfoNumber %x not handled\n",
+					   card->contrnr, cmsg->InfoNumber);
+
+			break;
+
+		case CAPI_CONNECT_ACTIVE_CONF:		/* plci */
+			goto ignored;
+
+		case CAPI_SELECT_B_PROTOCOL_CONF:	/* plci */
+			goto ignored;
+
+		case CAPI_FACILITY_IND:	/* Controller/plci/ncci */
+			goto ignored;
+
+		case CAPI_FACILITY_CONF:	/* Controller/plci/ncci */
+			goto ignored;
+
+		case CAPI_INFO_CONF:	/* Controller/plci */
+			goto ignored;
+
+		default:
+			printk(KERN_ERR "capidrv-%d: got %s for plci 0x%x ???",
+				   card->contrnr,
+				   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+				   cmsg->adr.adrPLCI);
 	}
+
 	return;
 ignored:
 	printk(KERN_INFO "capidrv-%d: %s for plci 0x%x ignored\n",
-	       card->contrnr,
-	       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-	       cmsg->adr.adrPLCI);
+		   card->contrnr,
+		   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+		   cmsg->adr.adrPLCI);
 	return;
 notfound:
 	printk(KERN_ERR "capidrv-%d: %s: plci 0x%x not found\n",
-	       card->contrnr,
-	       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-	       cmsg->adr.adrPLCI);
+		   card->contrnr,
+		   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+		   cmsg->adr.adrPLCI);
 	return;
 }
 
@@ -1378,176 +1708,218 @@ static void handle_ncci(_cmsg *cmsg)
 	isdn_ctrl cmd;
 	int len;
 
-	if (!card) {
+	if (!card)
+	{
 		printk(KERN_ERR "capidrv: %s from unknown controller 0x%x\n",
-		       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-		       cmsg->adr.adrController & 0x7f);
+			   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+			   cmsg->adr.adrController & 0x7f);
 		return;
 	}
-	switch (CAPICMD(cmsg->Command, cmsg->Subcommand)) {
 
-	case CAPI_CONNECT_B3_ACTIVE_IND:	/* ncci */
-		if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
-			goto notfound;
+	switch (CAPICMD(cmsg->Command, cmsg->Subcommand))
+	{
 
-		capi_cmsg_answer(cmsg);
-		ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_ACTIVE_IND);
-		send_message(card, cmsg);
+		case CAPI_CONNECT_B3_ACTIVE_IND:	/* ncci */
+			if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
+			{
+				goto notfound;
+			}
 
-		cmd.command = ISDN_STAT_BCONN;
-		cmd.driver = card->myid;
-		cmd.arg = nccip->chan;
-		card->interface.statcallb(&cmd);
+			capi_cmsg_answer(cmsg);
+			ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_ACTIVE_IND);
+			send_message(card, cmsg);
 
-		printk(KERN_INFO "capidrv-%d: chan %d up with ncci 0x%x\n",
-		       card->contrnr, nccip->chan, nccip->ncci);
-		break;
+			cmd.command = ISDN_STAT_BCONN;
+			cmd.driver = card->myid;
+			cmd.arg = nccip->chan;
+			card->interface.statcallb(&cmd);
 
-	case CAPI_CONNECT_B3_ACTIVE_CONF:	/* ncci */
-		goto ignored;
+			printk(KERN_INFO "capidrv-%d: chan %d up with ncci 0x%x\n",
+				   card->contrnr, nccip->chan, nccip->ncci);
+			break;
 
-	case CAPI_CONNECT_B3_IND:	/* ncci */
+		case CAPI_CONNECT_B3_ACTIVE_CONF:	/* ncci */
+			goto ignored;
 
-		plcip = find_plci_by_ncci(card, cmsg->adr.adrNCCI);
-		if (plcip) {
-			nccip = new_ncci(card, plcip, cmsg->adr.adrNCCI);
-			if (nccip) {
-				ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_IND);
-				capi_fill_CONNECT_B3_RESP(cmsg,
-							  global.ap.applid,
-							  card->msgid++,
-							  nccip->ncci,	/* adr */
-							  0,	/* Reject */
-							  NULL	/* NCPI */
-					);
-				ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_RESP);
-				send_message(card, cmsg);
+		case CAPI_CONNECT_B3_IND:	/* ncci */
+
+			plcip = find_plci_by_ncci(card, cmsg->adr.adrNCCI);
+
+			if (plcip)
+			{
+				nccip = new_ncci(card, plcip, cmsg->adr.adrNCCI);
+
+				if (nccip)
+				{
+					ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_IND);
+					capi_fill_CONNECT_B3_RESP(cmsg,
+											  global.ap.applid,
+											  card->msgid++,
+											  nccip->ncci,	/* adr */
+											  0,	/* Reject */
+											  NULL	/* NCPI */
+											 );
+					ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_RESP);
+					send_message(card, cmsg);
+					break;
+				}
+
+				printk(KERN_ERR "capidrv-%d: no mem for ncci, sorry\n",							card->contrnr);
+			}
+			else
+			{
+				printk(KERN_ERR "capidrv-%d: %s: plci for ncci 0x%x not found\n",
+					   card->contrnr,
+					   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+					   cmsg->adr.adrNCCI);
+			}
+
+			capi_fill_CONNECT_B3_RESP(cmsg,
+									  global.ap.applid,
+									  card->msgid++,
+									  cmsg->adr.adrNCCI,
+									  2,	/* Reject */
+									  NULL	/* NCPI */
+									 );
+			send_message(card, cmsg);
+			break;
+
+		case CAPI_CONNECT_B3_CONF:	/* ncci */
+
+			if (!(nccip = find_ncci_by_msgid(card,
+											 cmsg->adr.adrNCCI,
+											 cmsg->Messagenumber)))
+			{
+				goto notfound;
+			}
+
+			nccip->ncci = cmsg->adr.adrNCCI;
+
+			if (cmsg->Info)
+			{
+				printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for ncci 0x%x\n",
+					   card->contrnr,
+					   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+					   cmsg->Info, capi_info2str(cmsg->Info),
+					   cmsg->adr.adrNCCI);
+			}
+
+			if (cmsg->Info)
+			{
+				ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_CONF_ERROR);
+			}
+			else
+			{
+				ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_CONF_OK);
+			}
+
+			break;
+
+		case CAPI_CONNECT_B3_T90_ACTIVE_IND:	/* ncci */
+			capi_cmsg_answer(cmsg);
+			send_message(card, cmsg);
+			break;
+
+		case CAPI_DATA_B3_IND:	/* ncci */
+			/* handled in handle_data() */
+			goto ignored;
+
+		case CAPI_DATA_B3_CONF:	/* ncci */
+			if (cmsg->Info)
+			{
+				printk(KERN_WARNING "CAPI_DATA_B3_CONF: Info %x - %s\n",
+					   cmsg->Info, capi_info2str(cmsg->Info));
+			}
+
+			if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
+			{
+				goto notfound;
+			}
+
+			len = capidrv_del_ack(nccip, cmsg->DataHandle);
+
+			if (len < 0)
+			{
 				break;
 			}
-			printk(KERN_ERR "capidrv-%d: no mem for ncci, sorry\n",							card->contrnr);
-		} else {
-			printk(KERN_ERR "capidrv-%d: %s: plci for ncci 0x%x not found\n",
-			       card->contrnr,
-			       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-			       cmsg->adr.adrNCCI);
-		}
-		capi_fill_CONNECT_B3_RESP(cmsg,
-					  global.ap.applid,
-					  card->msgid++,
-					  cmsg->adr.adrNCCI,
-					  2,	/* Reject */
-					  NULL	/* NCPI */
-			);
-		send_message(card, cmsg);
-		break;
 
-	case CAPI_CONNECT_B3_CONF:	/* ncci */
-
-		if (!(nccip = find_ncci_by_msgid(card,
-						 cmsg->adr.adrNCCI,
-						 cmsg->Messagenumber)))
-			goto notfound;
-
-		nccip->ncci = cmsg->adr.adrNCCI;
-		if (cmsg->Info) {
-			printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for ncci 0x%x\n",
-			       card->contrnr,
-			       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-			       cmsg->Info, capi_info2str(cmsg->Info),
-			       cmsg->adr.adrNCCI);
-		}
-
-		if (cmsg->Info)
-			ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_CONF_ERROR);
-		else
-			ncci_change_state(card, nccip, EV_NCCI_CONNECT_B3_CONF_OK);
-		break;
-
-	case CAPI_CONNECT_B3_T90_ACTIVE_IND:	/* ncci */
-		capi_cmsg_answer(cmsg);
-		send_message(card, cmsg);
-		break;
-
-	case CAPI_DATA_B3_IND:	/* ncci */
-		/* handled in handle_data() */
-		goto ignored;
-
-	case CAPI_DATA_B3_CONF:	/* ncci */
-		if (cmsg->Info) {
-			printk(KERN_WARNING "CAPI_DATA_B3_CONF: Info %x - %s\n",
-			       cmsg->Info, capi_info2str(cmsg->Info));
-		}
-		if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
-			goto notfound;
-
-		len = capidrv_del_ack(nccip, cmsg->DataHandle);
-		if (len < 0)
+			cmd.command = ISDN_STAT_BSENT;
+			cmd.driver = card->myid;
+			cmd.arg = nccip->chan;
+			cmd.parm.length = len;
+			card->interface.statcallb(&cmd);
 			break;
-		cmd.command = ISDN_STAT_BSENT;
-		cmd.driver = card->myid;
-		cmd.arg = nccip->chan;
-		cmd.parm.length = len;
-		card->interface.statcallb(&cmd);
-		break;
 
-	case CAPI_DISCONNECT_B3_IND:	/* ncci */
-		if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
-			goto notfound;
+		case CAPI_DISCONNECT_B3_IND:	/* ncci */
+			if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
+			{
+				goto notfound;
+			}
 
-		card->bchans[nccip->chan].disconnecting = 1;
-		ncci_change_state(card, nccip, EV_NCCI_DISCONNECT_B3_IND);
-		capi_cmsg_answer(cmsg);
-		ncci_change_state(card, nccip, EV_NCCI_DISCONNECT_B3_RESP);
-		send_message(card, cmsg);
-		break;
+			card->bchans[nccip->chan].disconnecting = 1;
+			ncci_change_state(card, nccip, EV_NCCI_DISCONNECT_B3_IND);
+			capi_cmsg_answer(cmsg);
+			ncci_change_state(card, nccip, EV_NCCI_DISCONNECT_B3_RESP);
+			send_message(card, cmsg);
+			break;
 
-	case CAPI_DISCONNECT_B3_CONF:	/* ncci */
-		if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
-			goto notfound;
-		if (cmsg->Info) {
-			printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for ncci 0x%x\n",
-			       card->contrnr,
-			       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-			       cmsg->Info, capi_info2str(cmsg->Info),
-			       cmsg->adr.adrNCCI);
-			ncci_change_state(card, nccip, EV_NCCI_DISCONNECT_B3_CONF_ERROR);
-		}
-		break;
+		case CAPI_DISCONNECT_B3_CONF:	/* ncci */
+			if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
+			{
+				goto notfound;
+			}
 
-	case CAPI_RESET_B3_IND:	/* ncci */
-		if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
-			goto notfound;
-		ncci_change_state(card, nccip, EV_NCCI_RESET_B3_IND);
-		capi_cmsg_answer(cmsg);
-		send_message(card, cmsg);
-		break;
+			if (cmsg->Info)
+			{
+				printk(KERN_INFO "capidrv-%d: %s info 0x%x (%s) for ncci 0x%x\n",
+					   card->contrnr,
+					   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+					   cmsg->Info, capi_info2str(cmsg->Info),
+					   cmsg->adr.adrNCCI);
+				ncci_change_state(card, nccip, EV_NCCI_DISCONNECT_B3_CONF_ERROR);
+			}
 
-	case CAPI_RESET_B3_CONF:	/* ncci */
-		goto ignored;	/* $$$$ */
+			break;
 
-	case CAPI_FACILITY_IND:	/* Controller/plci/ncci */
-		goto ignored;
-	case CAPI_FACILITY_CONF:	/* Controller/plci/ncci */
-		goto ignored;
+		case CAPI_RESET_B3_IND:	/* ncci */
+			if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
+			{
+				goto notfound;
+			}
 
-	default:
-		printk(KERN_ERR "capidrv-%d: got %s for ncci 0x%x ???",
-		       card->contrnr,
-		       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-		       cmsg->adr.adrNCCI);
+			ncci_change_state(card, nccip, EV_NCCI_RESET_B3_IND);
+			capi_cmsg_answer(cmsg);
+			send_message(card, cmsg);
+			break;
+
+		case CAPI_RESET_B3_CONF:	/* ncci */
+			goto ignored;	/* $$$$ */
+
+		case CAPI_FACILITY_IND:	/* Controller/plci/ncci */
+			goto ignored;
+
+		case CAPI_FACILITY_CONF:	/* Controller/plci/ncci */
+			goto ignored;
+
+		default:
+			printk(KERN_ERR "capidrv-%d: got %s for ncci 0x%x ???",
+				   card->contrnr,
+				   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+				   cmsg->adr.adrNCCI);
 	}
+
 	return;
 ignored:
 	printk(KERN_INFO "capidrv-%d: %s for ncci 0x%x ignored\n",
-	       card->contrnr,
-	       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-	       cmsg->adr.adrNCCI);
+		   card->contrnr,
+		   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+		   cmsg->adr.adrNCCI);
 	return;
 notfound:
 	printk(KERN_ERR "capidrv-%d: %s: ncci 0x%x not found\n",
-	       card->contrnr,
-	       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-	       cmsg->adr.adrNCCI);
+		   card->contrnr,
+		   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+		   cmsg->adr.adrNCCI);
 }
 
 
@@ -1556,21 +1928,25 @@ static void handle_data(_cmsg *cmsg, struct sk_buff *skb)
 	capidrv_contr *card = findcontrbynumber(cmsg->adr.adrController & 0x7f);
 	capidrv_ncci *nccip;
 
-	if (!card) {
+	if (!card)
+	{
 		printk(KERN_ERR "capidrv: %s from unknown controller 0x%x\n",
-		       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-		       cmsg->adr.adrController & 0x7f);
+			   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+			   cmsg->adr.adrController & 0x7f);
 		kfree_skb(skb);
 		return;
 	}
-	if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI))) {
+
+	if (!(nccip = find_ncci(card, cmsg->adr.adrNCCI)))
+	{
 		printk(KERN_ERR "capidrv-%d: %s: ncci 0x%x not found\n",
-		       card->contrnr,
-		       capi_cmd2str(cmsg->Command, cmsg->Subcommand),
-		       cmsg->adr.adrNCCI);
+			   card->contrnr,
+			   capi_cmd2str(cmsg->Command, cmsg->Subcommand),
+			   cmsg->adr.adrNCCI);
 		kfree_skb(skb);
 		return;
 	}
+
 	(void) skb_pull(skb, CAPIMSG_LEN(skb->data));
 	card->interface.rcvcallb_skb(card->myid, nccip->chan, skb);
 	capi_cmsg_answer(cmsg);
@@ -1581,35 +1957,50 @@ static _cmsg s_cmsg;
 
 static void capidrv_recv_message(struct capi20_appl *ap, struct sk_buff *skb)
 {
-	if (capi_message2cmsg(&s_cmsg, skb->data)) {
+	if (capi_message2cmsg(&s_cmsg, skb->data))
+	{
 		printk(KERN_ERR "capidrv: applid=%d: received invalid message\n",
-		       ap->applid);
+			   ap->applid);
 		kfree_skb(skb);
 		return;
 	}
-	if (debugmode > 3) {
+
+	if (debugmode > 3)
+	{
 		_cdebbuf *cdb = capi_cmsg2str(&s_cmsg);
 
-		if (cdb) {
+		if (cdb)
+		{
 			printk(KERN_DEBUG "%s: applid=%d %s\n", __func__,
-			       ap->applid, cdb->buf);
+				   ap->applid, cdb->buf);
 			cdebbuf_free(cdb);
-		} else
+		}
+		else
 			printk(KERN_DEBUG "%s: applid=%d %s not traced\n",
-			       __func__, ap->applid,
-			       capi_cmd2str(s_cmsg.Command, s_cmsg.Subcommand));
+				   __func__, ap->applid,
+				   capi_cmd2str(s_cmsg.Command, s_cmsg.Subcommand));
 	}
+
 	if (s_cmsg.Command == CAPI_DATA_B3
-	    && s_cmsg.Subcommand == CAPI_IND) {
+		&& s_cmsg.Subcommand == CAPI_IND)
+	{
 		handle_data(&s_cmsg, skb);
 		return;
 	}
+
 	if ((s_cmsg.adr.adrController & 0xffffff00) == 0)
+	{
 		handle_controller(&s_cmsg);
+	}
 	else if ((s_cmsg.adr.adrPLCI & 0xffff0000) == 0)
+	{
 		handle_plci(&s_cmsg);
+	}
 	else
+	{
 		handle_ncci(&s_cmsg);
+	}
+
 	/*
 	 * data of skb used in s_cmsg,
 	 * free data when s_cmsg is not used again
@@ -1628,34 +2019,40 @@ static void capidrv_recv_message(struct capi20_appl *ap, struct sk_buff *skb)
 	} while (0)
 
 static void handle_dtrace_data(capidrv_contr *card,
-			       int send, int level2, u8 *data, u16 len)
+							   int send, int level2, u8 *data, u16 len)
 {
 	u8 *p, *end;
 	isdn_ctrl cmd;
 
-	if (!len) {
+	if (!len)
+	{
 		printk(KERN_DEBUG "capidrv-%d: avmb1_q931_data: len == %d\n",
-		       card->contrnr, len);
+			   card->contrnr, len);
 		return;
 	}
 
-	if (level2) {
+	if (level2)
+	{
 		PUTBYTE_TO_STATUS(card, 'D');
 		PUTBYTE_TO_STATUS(card, '2');
 		PUTBYTE_TO_STATUS(card, send ? '>' : '<');
 		PUTBYTE_TO_STATUS(card, ':');
-	} else {
+	}
+	else
+	{
 		PUTBYTE_TO_STATUS(card, 'D');
 		PUTBYTE_TO_STATUS(card, '3');
 		PUTBYTE_TO_STATUS(card, send ? '>' : '<');
 		PUTBYTE_TO_STATUS(card, ':');
 	}
 
-	for (p = data, end = data + len; p < end; p++) {
+	for (p = data, end = data + len; p < end; p++)
+	{
 		PUTBYTE_TO_STATUS(card, ' ');
 		PUTBYTE_TO_STATUS(card, hex_asc_hi(*p));
 		PUTBYTE_TO_STATUS(card, hex_asc_lo(*p));
 	}
+
 	PUTBYTE_TO_STATUS(card, '\n');
 
 	cmd.command = ISDN_STAT_STAVAIL;
@@ -1670,17 +2067,20 @@ static _cmsg cmdcmsg;
 
 static int capidrv_ioctl(isdn_ctrl *c, capidrv_contr *card)
 {
-	switch (c->arg) {
-	case 1:
-		debugmode = (int)(*((unsigned int *)c->parm.num));
-		printk(KERN_DEBUG "capidrv-%d: debugmode=%d\n",
-		       card->contrnr, debugmode);
-		return 0;
-	default:
-		printk(KERN_DEBUG "capidrv-%d: capidrv_ioctl(%ld) called ??\n",
-		       card->contrnr, c->arg);
-		return -EINVAL;
+	switch (c->arg)
+	{
+		case 1:
+			debugmode = (int)(*((unsigned int *)c->parm.num));
+			printk(KERN_DEBUG "capidrv-%d: debugmode=%d\n",
+				   card->contrnr, debugmode);
+			return 0;
+
+		default:
+			printk(KERN_DEBUG "capidrv-%d: capidrv_ioctl(%ld) called ??\n",
+				   card->contrnr, c->arg);
+			return -EINVAL;
 	}
+
 	return -EINVAL;
 }
 
@@ -1688,7 +2088,8 @@ static int capidrv_ioctl(isdn_ctrl *c, capidrv_contr *card)
  * Handle leased lines (CAPI-Bundling)
  */
 
-struct internal_bchannelinfo {
+struct internal_bchannelinfo
+{
 	unsigned short channelalloc;
 	unsigned short operation;
 	unsigned char  cmask[31];
@@ -1702,59 +2103,97 @@ static int decodeFVteln(char *teln, unsigned long *bmaskp, int *activep)
 	int i;
 
 	if (strncmp(teln, "FV:", 3) != 0)
+	{
 		return 1;
+	}
+
 	s = teln + 3;
-	while (*s && *s == ' ') s++;
-	if (!*s) return -2;
-	if (*s == 'p' || *s == 'P') {
+
+	while (*s && *s == ' ') { s++; }
+
+	if (!*s) { return -2; }
+
+	if (*s == 'p' || *s == 'P')
+	{
 		active = 0;
 		s++;
 	}
-	if (*s == 'a' || *s == 'A') {
+
+	if (*s == 'a' || *s == 'A')
+	{
 		active = !0;
 		s++;
 	}
-	while (*s) {
+
+	while (*s)
+	{
 		int digit1 = 0;
 		int digit2 = 0;
 		char *endp;
 
 		digit1 = simple_strtoul(s, &endp, 10);
+
 		if (s == endp)
+		{
 			return -3;
+		}
+
 		s = endp;
 
-		if (digit1 <= 0 || digit1 > 30) return -4;
-		if (*s == 0 || *s == ',' || *s == ' ') {
+		if (digit1 <= 0 || digit1 > 30) { return -4; }
+
+		if (*s == 0 || *s == ',' || *s == ' ')
+		{
 			bmask |= (1 << digit1);
 			digit1 = 0;
-			if (*s) s++;
+
+			if (*s) { s++; }
+
 			continue;
 		}
-		if (*s != '-') return -5;
+
+		if (*s != '-') { return -5; }
+
 		s++;
 
 		digit2 = simple_strtoul(s, &endp, 10);
+
 		if (s == endp)
+		{
 			return -3;
+		}
+
 		s = endp;
 
-		if (digit2 <= 0 || digit2 > 30) return -4;
-		if (*s == 0 || *s == ',' || *s == ' ') {
+		if (digit2 <= 0 || digit2 > 30) { return -4; }
+
+		if (*s == 0 || *s == ',' || *s == ' ')
+		{
 			if (digit1 > digit2)
 				for (i = digit2; i <= digit1; i++)
+				{
 					bmask |= (1 << i);
+				}
 			else
 				for (i = digit1; i <= digit2; i++)
+				{
 					bmask |= (1 << i);
+				}
+
 			digit1 = digit2 = 0;
-			if (*s) s++;
+
+			if (*s) { s++; }
+
 			continue;
 		}
+
 		return -6;
 	}
-	if (activep) *activep = active;
-	if (bmaskp) *bmaskp = bmask;
+
+	if (activep) { *activep = active; }
+
+	if (bmaskp) { *bmaskp = bmask; }
+
 	return 0;
 }
 
@@ -1765,21 +2204,32 @@ static int FVteln2capi20(char *teln, u8 AdditionalInfo[1 + 2 + 2 + 31])
 	int rc, i;
 
 	rc = decodeFVteln(teln, &bmask, &active);
-	if (rc) return rc;
+
+	if (rc) { return rc; }
+
 	/* Length */
 	AdditionalInfo[0] = 2 + 2 + 31;
 	/* Channel: 3 => use channel allocation */
 	AdditionalInfo[1] = 3; AdditionalInfo[2] = 0;
+
 	/* Operation: 0 => DTE mode, 1 => DCE mode */
-	if (active) {
+	if (active)
+	{
 		AdditionalInfo[3] = 0; AdditionalInfo[4] = 0;
-	} else {
+	}
+	else
+	{
 		AdditionalInfo[3] = 1; AdditionalInfo[4] = 0;
 	}
+
 	/* Channel mask array */
 	AdditionalInfo[5] = 0; /* no D-Channel */
+
 	for (i = 1; i <= 30; i++)
+	{
 		AdditionalInfo[5 + i] = (bmask & (1 << i)) ? 0xff : 0;
+	}
+
 	return 0;
 }
 
@@ -1792,243 +2242,285 @@ static int capidrv_command(isdn_ctrl *c, capidrv_contr *card)
 	int rc, isleasedline = 0;
 
 	if (c->command == ISDN_CMD_IOCTL)
+	{
 		return capidrv_ioctl(c, card);
-
-	switch (c->command) {
-	case ISDN_CMD_DIAL: {
-		u8 calling[ISDN_MSNLEN + 3];
-		u8 called[ISDN_MSNLEN + 2];
-
-		if (debugmode)
-			printk(KERN_DEBUG "capidrv-%d: ISDN_CMD_DIAL(ch=%ld,\"%s,%d,%d,%s\")\n",
-			       card->contrnr,
-			       c->arg,
-			       c->parm.setup.phone,
-			       c->parm.setup.si1,
-			       c->parm.setup.si2,
-			       c->parm.setup.eazmsn);
-
-		bchan = &card->bchans[c->arg % card->nbchan];
-
-		if (bchan->plcip) {
-			printk(KERN_ERR "capidrv-%d: dail ch=%ld,\"%s,%d,%d,%s\" in use (plci=0x%x)\n",
-			       card->contrnr,
-			       c->arg,
-			       c->parm.setup.phone,
-			       c->parm.setup.si1,
-			       c->parm.setup.si2,
-			       c->parm.setup.eazmsn,
-			       bchan->plcip->plci);
-			return 0;
-		}
-		bchan->si1 = c->parm.setup.si1;
-		bchan->si2 = c->parm.setup.si2;
-
-		strncpy(bchan->num, c->parm.setup.phone, sizeof(bchan->num));
-		strncpy(bchan->mynum, c->parm.setup.eazmsn, sizeof(bchan->mynum));
-		rc = FVteln2capi20(bchan->num, AdditionalInfo);
-		isleasedline = (rc == 0);
-		if (rc < 0)
-			printk(KERN_ERR "capidrv-%d: WARNING: invalid leased linedefinition \"%s\"\n", card->contrnr, bchan->num);
-
-		if (isleasedline) {
-			calling[0] = 0;
-			called[0] = 0;
-			if (debugmode)
-				printk(KERN_DEBUG "capidrv-%d: connecting leased line\n", card->contrnr);
-		} else {
-			calling[0] = strlen(bchan->mynum) + 2;
-			calling[1] = 0;
-			calling[2] = 0x80;
-			strncpy(calling + 3, bchan->mynum, ISDN_MSNLEN);
-			called[0] = strlen(bchan->num) + 1;
-			called[1] = 0x80;
-			strncpy(called + 2, bchan->num, ISDN_MSNLEN);
-		}
-
-		capi_fill_CONNECT_REQ(&cmdcmsg,
-				      global.ap.applid,
-				      card->msgid++,
-				      card->contrnr,	/* adr */
-				      si2cip(bchan->si1, bchan->si2),	/* cipvalue */
-				      called,	/* CalledPartyNumber */
-				      calling,	/* CallingPartyNumber */
-				      NULL,	/* CalledPartySubaddress */
-				      NULL,	/* CallingPartySubaddress */
-				      b1prot(bchan->l2, bchan->l3),	/* B1protocol */
-				      b2prot(bchan->l2, bchan->l3),	/* B2protocol */
-				      b3prot(bchan->l2, bchan->l3),	/* B3protocol */
-				      b1config(bchan->l2, bchan->l3),	/* B1configuration */
-				      NULL,	/* B2configuration */
-				      NULL,	/* B3configuration */
-				      NULL,	/* BC */
-				      NULL,	/* LLC */
-				      NULL,	/* HLC */
-				      /* BChannelinformation */
-				      isleasedline ? AdditionalInfo : NULL,
-				      NULL,	/* Keypadfacility */
-				      NULL,	/* Useruserdata */
-				      NULL	/* Facilitydataarray */
-			);
-		if ((plcip = new_plci(card, (c->arg % card->nbchan))) == NULL) {
-			cmd.command = ISDN_STAT_DHUP;
-			cmd.driver = card->myid;
-			cmd.arg = (c->arg % card->nbchan);
-			card->interface.statcallb(&cmd);
-			return -1;
-		}
-		plcip->msgid = cmdcmsg.Messagenumber;
-		plcip->leasedline = isleasedline;
-		plci_change_state(card, plcip, EV_PLCI_CONNECT_REQ);
-		send_message(card, &cmdcmsg);
-		return 0;
 	}
 
-	case ISDN_CMD_ACCEPTD:
+	switch (c->command)
+	{
+		case ISDN_CMD_DIAL:
+			{
+				u8 calling[ISDN_MSNLEN + 3];
+				u8 called[ISDN_MSNLEN + 2];
 
-		bchan = &card->bchans[c->arg % card->nbchan];
-		if (debugmode)
-			printk(KERN_DEBUG "capidrv-%d: ISDN_CMD_ACCEPTD(ch=%ld) l2=%d l3=%d\n",
-			       card->contrnr,
-			       c->arg, bchan->l2, bchan->l3);
+				if (debugmode)
+					printk(KERN_DEBUG "capidrv-%d: ISDN_CMD_DIAL(ch=%ld,\"%s,%d,%d,%s\")\n",
+						   card->contrnr,
+						   c->arg,
+						   c->parm.setup.phone,
+						   c->parm.setup.si1,
+						   c->parm.setup.si2,
+						   c->parm.setup.eazmsn);
 
-		capi_fill_CONNECT_RESP(&cmdcmsg,
-				       global.ap.applid,
-				       card->msgid++,
-				       bchan->plcip->plci,	/* adr */
-				       0,	/* Reject */
-				       b1prot(bchan->l2, bchan->l3),	/* B1protocol */
-				       b2prot(bchan->l2, bchan->l3),	/* B2protocol */
-				       b3prot(bchan->l2, bchan->l3),	/* B3protocol */
-				       b1config(bchan->l2, bchan->l3),	/* B1configuration */
-				       NULL,	/* B2configuration */
-				       NULL,	/* B3configuration */
-				       NULL,	/* ConnectedNumber */
-				       NULL,	/* ConnectedSubaddress */
-				       NULL,	/* LLC */
-				       NULL,	/* BChannelinformation */
-				       NULL,	/* Keypadfacility */
-				       NULL,	/* Useruserdata */
-				       NULL	/* Facilitydataarray */
-			);
-		if (capi_cmsg2message(&cmdcmsg, cmdcmsg.buf)) {
-			printk(KERN_ERR "capidrv-%d: capidrv_command: parser failure\n",
-			       card->contrnr);
-			return -EINVAL;
-		}
-		plci_change_state(card, bchan->plcip, EV_PLCI_CONNECT_RESP);
-		send_message(card, &cmdcmsg);
-		return 0;
+				bchan = &card->bchans[c->arg % card->nbchan];
 
-	case ISDN_CMD_ACCEPTB:
-		if (debugmode)
-			printk(KERN_DEBUG "capidrv-%d: ISDN_CMD_ACCEPTB(ch=%ld)\n",
-			       card->contrnr,
-			       c->arg);
-		return -ENOSYS;
+				if (bchan->plcip)
+				{
+					printk(KERN_ERR "capidrv-%d: dail ch=%ld,\"%s,%d,%d,%s\" in use (plci=0x%x)\n",
+						   card->contrnr,
+						   c->arg,
+						   c->parm.setup.phone,
+						   c->parm.setup.si1,
+						   c->parm.setup.si2,
+						   c->parm.setup.eazmsn,
+						   bchan->plcip->plci);
+					return 0;
+				}
 
-	case ISDN_CMD_HANGUP:
-		if (debugmode)
-			printk(KERN_DEBUG "capidrv-%d: ISDN_CMD_HANGUP(ch=%ld)\n",
-			       card->contrnr,
-			       c->arg);
-		bchan = &card->bchans[c->arg % card->nbchan];
+				bchan->si1 = c->parm.setup.si1;
+				bchan->si2 = c->parm.setup.si2;
 
-		if (bchan->disconnecting) {
-			if (debugmode)
-				printk(KERN_DEBUG "capidrv-%d: chan %ld already disconnecting ...\n",
-				       card->contrnr,
-				       c->arg);
-			return 0;
-		}
-		if (bchan->nccip) {
-			bchan->disconnecting = 1;
-			capi_fill_DISCONNECT_B3_REQ(&cmdcmsg,
-						    global.ap.applid,
-						    card->msgid++,
-						    bchan->nccip->ncci,
-						    NULL	/* NCPI */
-				);
-			ncci_change_state(card, bchan->nccip, EV_NCCI_DISCONNECT_B3_REQ);
-			send_message(card, &cmdcmsg);
-			return 0;
-		} else if (bchan->plcip) {
-			if (bchan->plcip->state == ST_PLCI_INCOMING) {
-				/*
-				 * just ignore, we a called from
-				 * isdn_status_callback(),
-				 * which will return 0 or 2, this is handled
-				 * by the CONNECT_IND handler
-				 */
-				bchan->disconnecting = 1;
-				return 0;
-			} else if (bchan->plcip->plci) {
-				bchan->disconnecting = 1;
-				capi_fill_DISCONNECT_REQ(&cmdcmsg,
-							 global.ap.applid,
-							 card->msgid++,
-							 bchan->plcip->plci,
-							 NULL,	/* BChannelinformation */
-							 NULL,	/* Keypadfacility */
-							 NULL,	/* Useruserdata */
-							 NULL	/* Facilitydataarray */
-					);
-				plci_change_state(card, bchan->plcip, EV_PLCI_DISCONNECT_REQ);
+				strncpy(bchan->num, c->parm.setup.phone, sizeof(bchan->num));
+				strncpy(bchan->mynum, c->parm.setup.eazmsn, sizeof(bchan->mynum));
+				rc = FVteln2capi20(bchan->num, AdditionalInfo);
+				isleasedline = (rc == 0);
+
+				if (rc < 0)
+				{
+					printk(KERN_ERR "capidrv-%d: WARNING: invalid leased linedefinition \"%s\"\n", card->contrnr, bchan->num);
+				}
+
+				if (isleasedline)
+				{
+					calling[0] = 0;
+					called[0] = 0;
+
+					if (debugmode)
+					{
+						printk(KERN_DEBUG "capidrv-%d: connecting leased line\n", card->contrnr);
+					}
+				}
+				else
+				{
+					calling[0] = strlen(bchan->mynum) + 2;
+					calling[1] = 0;
+					calling[2] = 0x80;
+					strncpy(calling + 3, bchan->mynum, ISDN_MSNLEN);
+					called[0] = strlen(bchan->num) + 1;
+					called[1] = 0x80;
+					strncpy(called + 2, bchan->num, ISDN_MSNLEN);
+				}
+
+				capi_fill_CONNECT_REQ(&cmdcmsg,
+									  global.ap.applid,
+									  card->msgid++,
+									  card->contrnr,	/* adr */
+									  si2cip(bchan->si1, bchan->si2),	/* cipvalue */
+									  called,	/* CalledPartyNumber */
+									  calling,	/* CallingPartyNumber */
+									  NULL,	/* CalledPartySubaddress */
+									  NULL,	/* CallingPartySubaddress */
+									  b1prot(bchan->l2, bchan->l3),	/* B1protocol */
+									  b2prot(bchan->l2, bchan->l3),	/* B2protocol */
+									  b3prot(bchan->l2, bchan->l3),	/* B3protocol */
+									  b1config(bchan->l2, bchan->l3),	/* B1configuration */
+									  NULL,	/* B2configuration */
+									  NULL,	/* B3configuration */
+									  NULL,	/* BC */
+									  NULL,	/* LLC */
+									  NULL,	/* HLC */
+									  /* BChannelinformation */
+									  isleasedline ? AdditionalInfo : NULL,
+									  NULL,	/* Keypadfacility */
+									  NULL,	/* Useruserdata */
+									  NULL	/* Facilitydataarray */
+									 );
+
+				if ((plcip = new_plci(card, (c->arg % card->nbchan))) == NULL)
+				{
+					cmd.command = ISDN_STAT_DHUP;
+					cmd.driver = card->myid;
+					cmd.arg = (c->arg % card->nbchan);
+					card->interface.statcallb(&cmd);
+					return -1;
+				}
+
+				plcip->msgid = cmdcmsg.Messagenumber;
+				plcip->leasedline = isleasedline;
+				plci_change_state(card, plcip, EV_PLCI_CONNECT_REQ);
 				send_message(card, &cmdcmsg);
 				return 0;
-			} else {
-				printk(KERN_ERR "capidrv-%d: chan %ld disconnect request while waiting for CONNECT_CONF\n",
-				       card->contrnr,
-				       c->arg);
+			}
+
+		case ISDN_CMD_ACCEPTD:
+
+			bchan = &card->bchans[c->arg % card->nbchan];
+
+			if (debugmode)
+				printk(KERN_DEBUG "capidrv-%d: ISDN_CMD_ACCEPTD(ch=%ld) l2=%d l3=%d\n",
+					   card->contrnr,
+					   c->arg, bchan->l2, bchan->l3);
+
+			capi_fill_CONNECT_RESP(&cmdcmsg,
+								   global.ap.applid,
+								   card->msgid++,
+								   bchan->plcip->plci,	/* adr */
+								   0,	/* Reject */
+								   b1prot(bchan->l2, bchan->l3),	/* B1protocol */
+								   b2prot(bchan->l2, bchan->l3),	/* B2protocol */
+								   b3prot(bchan->l2, bchan->l3),	/* B3protocol */
+								   b1config(bchan->l2, bchan->l3),	/* B1configuration */
+								   NULL,	/* B2configuration */
+								   NULL,	/* B3configuration */
+								   NULL,	/* ConnectedNumber */
+								   NULL,	/* ConnectedSubaddress */
+								   NULL,	/* LLC */
+								   NULL,	/* BChannelinformation */
+								   NULL,	/* Keypadfacility */
+								   NULL,	/* Useruserdata */
+								   NULL	/* Facilitydataarray */
+								  );
+
+			if (capi_cmsg2message(&cmdcmsg, cmdcmsg.buf))
+			{
+				printk(KERN_ERR "capidrv-%d: capidrv_command: parser failure\n",
+					   card->contrnr);
 				return -EINVAL;
 			}
-		}
-		printk(KERN_ERR "capidrv-%d: chan %ld disconnect request on free channel\n",
-		       card->contrnr,
-		       c->arg);
-		return -EINVAL;
-/* ready */
 
-	case ISDN_CMD_SETL2:
-		if (debugmode)
-			printk(KERN_DEBUG "capidrv-%d: set L2 on chan %ld to %ld\n",
-			       card->contrnr,
-			       (c->arg & 0xff), (c->arg >> 8));
-		bchan = &card->bchans[(c->arg & 0xff) % card->nbchan];
-		bchan->l2 = (c->arg >> 8);
-		return 0;
+			plci_change_state(card, bchan->plcip, EV_PLCI_CONNECT_RESP);
+			send_message(card, &cmdcmsg);
+			return 0;
 
-	case ISDN_CMD_SETL3:
-		if (debugmode)
-			printk(KERN_DEBUG "capidrv-%d: set L3 on chan %ld to %ld\n",
-			       card->contrnr,
-			       (c->arg & 0xff), (c->arg >> 8));
-		bchan = &card->bchans[(c->arg & 0xff) % card->nbchan];
-		bchan->l3 = (c->arg >> 8);
-		return 0;
+		case ISDN_CMD_ACCEPTB:
+			if (debugmode)
+				printk(KERN_DEBUG "capidrv-%d: ISDN_CMD_ACCEPTB(ch=%ld)\n",
+					   card->contrnr,
+					   c->arg);
 
-	case ISDN_CMD_SETEAZ:
-		if (debugmode)
-			printk(KERN_DEBUG "capidrv-%d: set EAZ \"%s\" on chan %ld\n",
-			       card->contrnr,
-			       c->parm.num, c->arg);
-		bchan = &card->bchans[c->arg % card->nbchan];
-		strncpy(bchan->msn, c->parm.num, ISDN_MSNLEN);
-		return 0;
+			return -ENOSYS;
 
-	case ISDN_CMD_CLREAZ:
-		if (debugmode)
-			printk(KERN_DEBUG "capidrv-%d: clearing EAZ on chan %ld\n",
-			       card->contrnr, c->arg);
-		bchan = &card->bchans[c->arg % card->nbchan];
-		bchan->msn[0] = 0;
-		return 0;
+		case ISDN_CMD_HANGUP:
+			if (debugmode)
+				printk(KERN_DEBUG "capidrv-%d: ISDN_CMD_HANGUP(ch=%ld)\n",
+					   card->contrnr,
+					   c->arg);
 
-	default:
-		printk(KERN_ERR "capidrv-%d: ISDN_CMD_%d, Huh?\n",
-		       card->contrnr, c->command);
-		return -EINVAL;
+			bchan = &card->bchans[c->arg % card->nbchan];
+
+			if (bchan->disconnecting)
+			{
+				if (debugmode)
+					printk(KERN_DEBUG "capidrv-%d: chan %ld already disconnecting ...\n",
+						   card->contrnr,
+						   c->arg);
+
+				return 0;
+			}
+
+			if (bchan->nccip)
+			{
+				bchan->disconnecting = 1;
+				capi_fill_DISCONNECT_B3_REQ(&cmdcmsg,
+											global.ap.applid,
+											card->msgid++,
+											bchan->nccip->ncci,
+											NULL	/* NCPI */
+										   );
+				ncci_change_state(card, bchan->nccip, EV_NCCI_DISCONNECT_B3_REQ);
+				send_message(card, &cmdcmsg);
+				return 0;
+			}
+			else if (bchan->plcip)
+			{
+				if (bchan->plcip->state == ST_PLCI_INCOMING)
+				{
+					/*
+					 * just ignore, we a called from
+					 * isdn_status_callback(),
+					 * which will return 0 or 2, this is handled
+					 * by the CONNECT_IND handler
+					 */
+					bchan->disconnecting = 1;
+					return 0;
+				}
+				else if (bchan->plcip->plci)
+				{
+					bchan->disconnecting = 1;
+					capi_fill_DISCONNECT_REQ(&cmdcmsg,
+											 global.ap.applid,
+											 card->msgid++,
+											 bchan->plcip->plci,
+											 NULL,	/* BChannelinformation */
+											 NULL,	/* Keypadfacility */
+											 NULL,	/* Useruserdata */
+											 NULL	/* Facilitydataarray */
+											);
+					plci_change_state(card, bchan->plcip, EV_PLCI_DISCONNECT_REQ);
+					send_message(card, &cmdcmsg);
+					return 0;
+				}
+				else
+				{
+					printk(KERN_ERR "capidrv-%d: chan %ld disconnect request while waiting for CONNECT_CONF\n",
+						   card->contrnr,
+						   c->arg);
+					return -EINVAL;
+				}
+			}
+
+			printk(KERN_ERR "capidrv-%d: chan %ld disconnect request on free channel\n",
+				   card->contrnr,
+				   c->arg);
+			return -EINVAL;
+
+		/* ready */
+
+		case ISDN_CMD_SETL2:
+			if (debugmode)
+				printk(KERN_DEBUG "capidrv-%d: set L2 on chan %ld to %ld\n",
+					   card->contrnr,
+					   (c->arg & 0xff), (c->arg >> 8));
+
+			bchan = &card->bchans[(c->arg & 0xff) % card->nbchan];
+			bchan->l2 = (c->arg >> 8);
+			return 0;
+
+		case ISDN_CMD_SETL3:
+			if (debugmode)
+				printk(KERN_DEBUG "capidrv-%d: set L3 on chan %ld to %ld\n",
+					   card->contrnr,
+					   (c->arg & 0xff), (c->arg >> 8));
+
+			bchan = &card->bchans[(c->arg & 0xff) % card->nbchan];
+			bchan->l3 = (c->arg >> 8);
+			return 0;
+
+		case ISDN_CMD_SETEAZ:
+			if (debugmode)
+				printk(KERN_DEBUG "capidrv-%d: set EAZ \"%s\" on chan %ld\n",
+					   card->contrnr,
+					   c->parm.num, c->arg);
+
+			bchan = &card->bchans[c->arg % card->nbchan];
+			strncpy(bchan->msn, c->parm.num, ISDN_MSNLEN);
+			return 0;
+
+		case ISDN_CMD_CLREAZ:
+			if (debugmode)
+				printk(KERN_DEBUG "capidrv-%d: clearing EAZ on chan %ld\n",
+					   card->contrnr, c->arg);
+
+			bchan = &card->bchans[c->arg % card->nbchan];
+			bchan->msn[0] = 0;
+			return 0;
+
+		default:
+			printk(KERN_ERR "capidrv-%d: ISDN_CMD_%d, Huh?\n",
+				   card->contrnr, c->command);
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -2037,11 +2529,13 @@ static int if_command(isdn_ctrl *c)
 	capidrv_contr *card = findcontrbydriverid(c->driver);
 
 	if (card)
+	{
 		return capidrv_command(c, card);
+	}
 
 	printk(KERN_ERR
-	       "capidrv: if_command %d called with invalid driverId %d!\n",
-	       c->command, c->driver);
+		   "capidrv: if_command %d called with invalid driverId %d!\n",
+		   c->command, c->driver);
 	return -ENODEV;
 }
 
@@ -2058,21 +2552,27 @@ static int if_sendbuf(int id, int channel, int doack, struct sk_buff *skb)
 	u16 datahandle;
 	u32 data;
 
-	if (!card) {
+	if (!card)
+	{
 		printk(KERN_ERR "capidrv: if_sendbuf called with invalid driverId %d!\n",
-		       id);
+			   id);
 		return 0;
 	}
+
 	if (debugmode > 4)
 		printk(KERN_DEBUG "capidrv-%d: sendbuf len=%d skb=%p doack=%d\n",
-		       card->contrnr, len, skb, doack);
+			   card->contrnr, len, skb, doack);
+
 	bchan = &card->bchans[channel % card->nbchan];
 	nccip = bchan->nccip;
-	if (!nccip || nccip->state != ST_NCCI_ACTIVE) {
+
+	if (!nccip || nccip->state != ST_NCCI_ACTIVE)
+	{
 		printk(KERN_ERR "capidrv-%d: if_sendbuf: %s:%d: chan not up!\n",
-		       card->contrnr, card->name, channel);
+			   card->contrnr, card->name, channel);
 		return 0;
 	}
+
 	datahandle = nccip->datahandle;
 
 	/*
@@ -2092,55 +2592,74 @@ static int if_sendbuf(int id, int channel, int doack, struct sk_buff *skb)
 #endif
 
 	capi_fill_DATA_B3_REQ(&sendcmsg, global.ap.applid, card->msgid++,
-			      nccip->ncci,	/* adr */
-			      data,		/* Data */
-			      skb->len,		/* DataLength */
-			      datahandle,	/* DataHandle */
-			      0	/* Flags */
-		);
+						  nccip->ncci,	/* adr */
+						  data,		/* Data */
+						  skb->len,		/* DataLength */
+						  datahandle,	/* DataHandle */
+						  0	/* Flags */
+						 );
 
 	if (capidrv_add_ack(nccip, datahandle, doack ? (int)skb->len : -1) < 0)
+	{
 		return 0;
+	}
 
-	if (capi_cmsg2message(&sendcmsg, sendcmsg.buf)) {
+	if (capi_cmsg2message(&sendcmsg, sendcmsg.buf))
+	{
 		printk(KERN_ERR "capidrv-%d: if_sendbuf: parser failure\n",
-		       card->contrnr);
+			   card->contrnr);
 		return -EINVAL;
 	}
+
 	msglen = CAPIMSG_LEN(sendcmsg.buf);
-	if (skb_headroom(skb) < msglen) {
+
+	if (skb_headroom(skb) < msglen)
+	{
 		struct sk_buff *nskb = skb_realloc_headroom(skb, msglen);
-		if (!nskb) {
+
+		if (!nskb)
+		{
 			printk(KERN_ERR "capidrv-%d: if_sendbuf: no memory\n",
-			       card->contrnr);
+				   card->contrnr);
 			(void)capidrv_del_ack(nccip, datahandle);
 			return 0;
 		}
+
 		printk(KERN_DEBUG "capidrv-%d: only %d bytes headroom, need %d\n",
-		       card->contrnr, skb_headroom(skb), msglen);
+			   card->contrnr, skb_headroom(skb), msglen);
 		memcpy(skb_push(nskb, msglen), sendcmsg.buf, msglen);
 		errcode = capi20_put_message(&global.ap, nskb);
-		if (errcode == CAPI_NOERROR) {
+
+		if (errcode == CAPI_NOERROR)
+		{
 			dev_kfree_skb(skb);
 			nccip->datahandle++;
 			return len;
 		}
+
 		if (debugmode > 3)
 			printk(KERN_DEBUG "capidrv-%d: sendbuf putmsg ret(%x) - %s\n",
-			       card->contrnr, errcode, capi_info2str(errcode));
+				   card->contrnr, errcode, capi_info2str(errcode));
+
 		(void)capidrv_del_ack(nccip, datahandle);
 		dev_kfree_skb(nskb);
 		return errcode == CAPI_SENDQUEUEFULL ? 0 : -1;
-	} else {
+	}
+	else
+	{
 		memcpy(skb_push(skb, msglen), sendcmsg.buf, msglen);
 		errcode = capi20_put_message(&global.ap, skb);
-		if (errcode == CAPI_NOERROR) {
+
+		if (errcode == CAPI_NOERROR)
+		{
 			nccip->datahandle++;
 			return len;
 		}
+
 		if (debugmode > 3)
 			printk(KERN_DEBUG "capidrv-%d: sendbuf putmsg ret(%x) - %s\n",
-			       card->contrnr, errcode, capi_info2str(errcode));
+				   card->contrnr, errcode, capi_info2str(errcode));
+
 		skb_pull(skb, msglen);
 		(void)capidrv_del_ack(nccip, datahandle);
 		return errcode == CAPI_SENDQUEUEFULL ? 0 : -1;
@@ -2153,18 +2672,26 @@ static int if_readstat(u8 __user *buf, int len, int id, int channel)
 	int count;
 	u8 __user *p;
 
-	if (!card) {
+	if (!card)
+	{
 		printk(KERN_ERR "capidrv: if_readstat called with invalid driverId %d!\n",
-		       id);
+			   id);
 		return -ENODEV;
 	}
 
-	for (p = buf, count = 0; count < len; p++, count++) {
+	for (p = buf, count = 0; count < len; p++, count++)
+	{
 		if (put_user(*card->q931_read++, p))
+		{
 			return -EFAULT;
+		}
+
 		if (card->q931_read > card->q931_end)
+		{
 			card->q931_read = card->q931_buf;
+		}
 	}
+
 	return count;
 
 }
@@ -2178,46 +2705,58 @@ static void enable_dchannel_trace(capidrv_contr *card)
 	u16 avmversion[3];
 
 	errcode = capi20_get_manufacturer(contr, manufacturer);
-	if (errcode != CAPI_NOERROR) {
+
+	if (errcode != CAPI_NOERROR)
+	{
 		printk(KERN_ERR "%s: can't get manufacturer (0x%x)\n",
-		       card->name, errcode);
+			   card->name, errcode);
 		return;
 	}
-	if (strstr(manufacturer, "AVM") == NULL) {
+
+	if (strstr(manufacturer, "AVM") == NULL)
+	{
 		printk(KERN_ERR "%s: not from AVM, no d-channel trace possible (%s)\n",
-		       card->name, manufacturer);
+			   card->name, manufacturer);
 		return;
 	}
+
 	errcode = capi20_get_version(contr, &version);
-	if (errcode != CAPI_NOERROR) {
+
+	if (errcode != CAPI_NOERROR)
+	{
 		printk(KERN_ERR "%s: can't get version (0x%x)\n",
-		       card->name, errcode);
+			   card->name, errcode);
 		return;
 	}
+
 	avmversion[0] = (version.majormanuversion >> 4) & 0x0f;
 	avmversion[1] = (version.majormanuversion << 4) & 0xf0;
 	avmversion[1] |= (version.minormanuversion >> 4) & 0x0f;
 	avmversion[2] |= version.minormanuversion & 0x0f;
 
-	if (avmversion[0] > 3 || (avmversion[0] == 3 && avmversion[1] > 5)) {
+	if (avmversion[0] > 3 || (avmversion[0] == 3 && avmversion[1] > 5))
+	{
 		printk(KERN_INFO "%s: D2 trace enabled\n", card->name);
 		capi_fill_MANUFACTURER_REQ(&cmdcmsg, global.ap.applid,
-					   card->msgid++,
-					   contr,
-					   0x214D5641,  /* ManuID */
-					   0,           /* Class */
-					   1,           /* Function */
-					   (_cstruct)"\004\200\014\000\000");
-	} else {
+								   card->msgid++,
+								   contr,
+								   0x214D5641,  /* ManuID */
+								   0,           /* Class */
+								   1,           /* Function */
+								   (_cstruct)"\004\200\014\000\000");
+	}
+	else
+	{
 		printk(KERN_INFO "%s: D3 trace enabled\n", card->name);
 		capi_fill_MANUFACTURER_REQ(&cmdcmsg, global.ap.applid,
-					   card->msgid++,
-					   contr,
-					   0x214D5641,  /* ManuID */
-					   0,           /* Class */
-					   1,           /* Function */
-					   (_cstruct)"\004\002\003\000\000");
+								   card->msgid++,
+								   contr,
+								   0x214D5641,  /* ManuID */
+								   0,           /* Class */
+								   1,           /* Function */
+								   (_cstruct)"\004\002\003\000\000");
 	}
+
 	send_message(card, &cmdcmsg);
 }
 
@@ -2225,12 +2764,12 @@ static void enable_dchannel_trace(capidrv_contr *card)
 static void send_listen(capidrv_contr *card)
 {
 	capi_fill_LISTEN_REQ(&cmdcmsg, global.ap.applid,
-			     card->msgid++,
-			     card->contrnr, /* controller */
-			     1 << 6,	/* Infomask */
-			     card->cipmask,
-			     card->cipmask2,
-			     NULL, NULL);
+						 card->msgid++,
+						 card->contrnr, /* controller */
+						 1 << 6,	/* Infomask */
+						 card->cipmask,
+						 card->cipmask2,
+						 NULL, NULL);
 	listen_change_state(card, EV_LISTEN_REQ);
 	send_message(card, &cmdcmsg);
 }
@@ -2238,8 +2777,12 @@ static void send_listen(capidrv_contr *card)
 static void listentimerfunc(unsigned long x)
 {
 	capidrv_contr *card = (capidrv_contr *)x;
+
 	if (card->state != ST_LISTEN_NONE && card->state != ST_LISTEN_ACTIVE)
+	{
 		printk(KERN_ERR "%s: controller dead ??\n", card->name);
+	}
+
 	send_listen(card);
 	mod_timer(&card->listentimer, jiffies + 60 * HZ);
 }
@@ -2254,28 +2797,36 @@ static int capidrv_addcontr(u16 contr, struct capi_profile *profp)
 	int i;
 
 	sprintf(id, "capidrv-%d", contr);
-	if (!try_module_get(THIS_MODULE)) {
+
+	if (!try_module_get(THIS_MODULE))
+	{
 		printk(KERN_WARNING "capidrv: (%s) Could not reserve module\n", id);
 		return -1;
 	}
-	if (!(card = kzalloc(sizeof(capidrv_contr), GFP_ATOMIC))) {
+
+	if (!(card = kzalloc(sizeof(capidrv_contr), GFP_ATOMIC)))
+	{
 		printk(KERN_WARNING
-		       "capidrv: (%s) Could not allocate contr-struct.\n", id);
+			   "capidrv: (%s) Could not allocate contr-struct.\n", id);
 		return -1;
 	}
+
 	card->owner = THIS_MODULE;
 	setup_timer(&card->listentimer, listentimerfunc, (unsigned long)card);
 	strcpy(card->name, id);
 	card->contrnr = contr;
 	card->nbchan = profp->nbchannel;
 	card->bchans = kmalloc(sizeof(capidrv_bchan) * card->nbchan, GFP_ATOMIC);
-	if (!card->bchans) {
+
+	if (!card->bchans)
+	{
 		printk(KERN_WARNING
-		       "capidrv: (%s) Could not allocate bchan-structs.\n", id);
+			   "capidrv: (%s) Could not allocate bchan-structs.\n", id);
 		module_put(card->owner);
 		kfree(card);
 		return -1;
 	}
+
 	card->interface.channels = profp->nbchannel;
 	card->interface.maxbufsize = 2048;
 	card->interface.command = if_command;
@@ -2290,13 +2841,18 @@ static int capidrv_addcontr(u16 contr, struct capi_profile *profp)
 		ISDN_FEATURE_L2_X75I |
 		ISDN_FEATURE_L2_X75UI |
 		ISDN_FEATURE_L2_X75BUI;
+
 	if (profp->support1 & (1 << 2))
 		card->interface.features |=
 			ISDN_FEATURE_L2_V11096 |
 			ISDN_FEATURE_L2_V11019 |
 			ISDN_FEATURE_L2_V11038;
+
 	if (profp->support1 & (1 << 8))
+	{
 		card->interface.features |= ISDN_FEATURE_L2_MODEM;
+	}
+
 	card->interface.hl_hdrlen = 22; /* len of DATA_B3_REQ */
 	strncpy(card->interface.id, id, sizeof(card->interface.id) - 1);
 
@@ -2305,16 +2861,20 @@ static int capidrv_addcontr(u16 contr, struct capi_profile *profp)
 	card->q931_write = card->q931_buf;
 	card->q931_end = card->q931_buf + sizeof(card->q931_buf) - 1;
 
-	if (!register_isdn(&card->interface)) {
+	if (!register_isdn(&card->interface))
+	{
 		printk(KERN_ERR "capidrv: Unable to register contr %s\n", id);
 		kfree(card->bchans);
 		module_put(card->owner);
 		kfree(card);
 		return -1;
 	}
+
 	card->myid = card->interface.channels;
 	memset(card->bchans, 0, sizeof(capidrv_bchan) * card->nbchan);
-	for (i = 0; i < card->nbchan; i++) {
+
+	for (i = 0; i < card->nbchan; i++)
+	{
 		card->bchans[i].contr = card;
 	}
 
@@ -2335,7 +2895,7 @@ static int capidrv_addcontr(u16 contr, struct capi_profile *profp)
 	mod_timer(&card->listentimer, jiffies + 60 * HZ);
 
 	printk(KERN_INFO "%s: now up (%d B channels)\n",
-	       card->name, card->nbchan);
+		   card->name, card->nbchan);
 
 	enable_dchannel_trace(card);
 
@@ -2349,11 +2909,17 @@ static int capidrv_delcontr(u16 contr)
 	isdn_ctrl cmd;
 
 	spin_lock_irqsave(&global_lock, flags);
-	for (card = global.contr_list; card; card = card->next) {
+
+	for (card = global.contr_list; card; card = card->next)
+	{
 		if (card->contrnr == contr)
+		{
 			break;
+		}
 	}
-	if (!card) {
+
+	if (!card)
+	{
 		spin_unlock_irqrestore(&global_lock, flags);
 		printk(KERN_ERR "capidrv: delcontr: no contr %u\n", contr);
 		return -1;
@@ -2368,37 +2934,50 @@ static int capidrv_delcontr(u16 contr)
 
 	if (debugmode)
 		printk(KERN_DEBUG "capidrv-%d: id=%d unloading\n",
-		       card->contrnr, card->myid);
+			   card->contrnr, card->myid);
 
 	cmd.command = ISDN_STAT_STOP;
 	cmd.driver = card->myid;
 	card->interface.statcallb(&cmd);
 
-	while (card->nbchan) {
+	while (card->nbchan)
+	{
 
 		cmd.command = ISDN_STAT_DISCH;
 		cmd.driver = card->myid;
 		cmd.arg = card->nbchan - 1;
 		cmd.parm.num[0] = 0;
+
 		if (debugmode)
 			printk(KERN_DEBUG "capidrv-%d: id=%d disable chan=%ld\n",
-			       card->contrnr, card->myid, cmd.arg);
+				   card->contrnr, card->myid, cmd.arg);
+
 		card->interface.statcallb(&cmd);
 
 		if (card->bchans[card->nbchan - 1].nccip)
+		{
 			free_ncci(card, card->bchans[card->nbchan - 1].nccip);
+		}
+
 		if (card->bchans[card->nbchan - 1].plcip)
+		{
 			free_plci(card, card->bchans[card->nbchan - 1].plcip);
+		}
+
 		if (card->plci_list)
+		{
 			printk(KERN_ERR "capidrv: bug in free_plci()\n");
+		}
+
 		card->nbchan--;
 	}
+
 	kfree(card->bchans);
 	card->bchans = NULL;
 
 	if (debugmode)
 		printk(KERN_DEBUG "capidrv-%d: id=%d isdn unload\n",
-		       card->contrnr, card->myid);
+			   card->contrnr, card->myid);
 
 	cmd.command = ISDN_STAT_UNLOAD;
 	cmd.driver = card->myid;
@@ -2406,17 +2985,21 @@ static int capidrv_delcontr(u16 contr)
 
 	if (debugmode)
 		printk(KERN_DEBUG "capidrv-%d: id=%d remove contr from list\n",
-		       card->contrnr, card->myid);
+			   card->contrnr, card->myid);
 
 	spin_lock_irqsave(&global_lock, flags);
-	for (pp = &global.contr_list; *pp; pp = &(*pp)->next) {
-		if (*pp == card) {
+
+	for (pp = &global.contr_list; *pp; pp = &(*pp)->next)
+	{
+		if (*pp == card)
+		{
 			*pp = (*pp)->next;
 			card->next = NULL;
 			global.ncontr--;
 			break;
 		}
 	}
+
 	spin_unlock_irqrestore(&global_lock, flags);
 
 	module_put(card->owner);
@@ -2432,17 +3015,24 @@ lower_callback(struct notifier_block *nb, unsigned long val, void *v)
 	capi_profile profile;
 	u32 contr = (long)v;
 
-	switch (val) {
-	case CAPICTR_UP:
-		printk(KERN_INFO "capidrv: controller %hu up\n", contr);
-		if (capi20_get_profile(contr, &profile) == CAPI_NOERROR)
-			(void) capidrv_addcontr(contr, &profile);
-		break;
-	case CAPICTR_DOWN:
-		printk(KERN_INFO "capidrv: controller %hu down\n", contr);
-		(void) capidrv_delcontr(contr);
-		break;
+	switch (val)
+	{
+		case CAPICTR_UP:
+			printk(KERN_INFO "capidrv: controller %hu up\n", contr);
+
+			if (capi20_get_profile(contr, &profile) == CAPI_NOERROR)
+			{
+				(void) capidrv_addcontr(contr, &profile);
+			}
+
+			break;
+
+		case CAPICTR_DOWN:
+			printk(KERN_INFO "capidrv: controller %hu down\n", contr);
+			(void) capidrv_delcontr(contr);
+			break;
 	}
+
 	return NOTIFY_OK;
 }
 
@@ -2453,10 +3043,10 @@ lower_callback(struct notifier_block *nb, unsigned long val, void *v)
 static int capidrv_proc_show(struct seq_file *m, void *v)
 {
 	seq_printf(m, "%lu %lu %lu %lu\n",
-		   global.ap.nrecvctlpkt,
-		   global.ap.nrecvdatapkt,
-		   global.ap.nsentctlpkt,
-		   global.ap.nsentdatapkt);
+			   global.ap.nrecvctlpkt,
+			   global.ap.nrecvdatapkt,
+			   global.ap.nsentctlpkt,
+			   global.ap.nsentdatapkt);
 	return 0;
 }
 
@@ -2465,7 +3055,8 @@ static int capidrv_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, capidrv_proc_show, NULL);
 }
 
-static const struct file_operations capidrv_proc_fops = {
+static const struct file_operations capidrv_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= capidrv_proc_open,
 	.read		= seq_read,
@@ -2483,7 +3074,8 @@ static void __exit proc_exit(void)
 	remove_proc_entry("capi/capidrv", NULL);
 }
 
-static struct notifier_block capictr_nb = {
+static struct notifier_block capictr_nb =
+{
 	.notifier_call = lower_callback,
 };
 
@@ -2499,26 +3091,37 @@ static int __init capidrv_init(void)
 
 	global.ap.recv_message = capidrv_recv_message;
 	errcode = capi20_register(&global.ap);
-	if (errcode) {
+
+	if (errcode)
+	{
 		return -EIO;
 	}
 
 	register_capictr_notifier(&capictr_nb);
 
 	errcode = capi20_get_profile(0, &profile);
-	if (errcode != CAPI_NOERROR) {
+
+	if (errcode != CAPI_NOERROR)
+	{
 		unregister_capictr_notifier(&capictr_nb);
 		capi20_release(&global.ap);
 		return -EIO;
 	}
 
 	ncontr = profile.ncontroller;
-	for (contr = 1; contr <= ncontr; contr++) {
+
+	for (contr = 1; contr <= ncontr; contr++)
+	{
 		errcode = capi20_get_profile(contr, &profile);
+
 		if (errcode != CAPI_NOERROR)
+		{
 			continue;
+		}
+
 		(void) capidrv_addcontr(contr, &profile);
 	}
+
 	proc_init();
 
 	return 0;

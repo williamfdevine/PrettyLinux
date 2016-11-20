@@ -28,7 +28,8 @@
  * alignment.
  */
 #ifndef HAVE_DIOATTR
-struct dioattr {
+struct dioattr
+{
 	__u32		d_mem;		/* data buffer memory alignment */
 	__u32		d_miniosz;	/* min xfer size		*/
 	__u32		d_maxiosz;	/* max xfer size		*/
@@ -43,7 +44,8 @@ struct dioattr {
  * updated on return to give the offset and length for the next call.
  */
 #ifndef HAVE_GETBMAP
-struct getbmap {
+struct getbmap
+{
 	__s64		bmv_offset;	/* file offset of segment in blocks */
 	__s64		bmv_block;	/* starting block (64-bit daddr_t)  */
 	__s64		bmv_length;	/* length of segment, blocks	    */
@@ -62,7 +64,8 @@ struct getbmap {
  *	the first.
  */
 #ifndef HAVE_GETBMAPX
-struct getbmapx {
+struct getbmapx
+{
 	__s64		bmv_offset;	/* file offset of segment in blocks */
 	__s64		bmv_block;	/* starting block (64-bit daddr_t)  */
 	__s64		bmv_length;	/* length of segment, blocks	    */
@@ -100,7 +103,8 @@ struct getbmapx {
  * xfs_bstat_t fields bs_dmevmask and bs_dmstate.)
  */
 #ifndef HAVE_FSDMIDATA
-struct fsdmidata {
+struct fsdmidata
+{
 	__u32		fsd_dmevmask;	/* corresponds to di_dmevmask */
 	__u16		fsd_padding;
 	__u16		fsd_dmstate;	/* corresponds to di_dmstate  */
@@ -111,7 +115,8 @@ struct fsdmidata {
  * File segment locking set data type for 64 bit access.
  * Also used for all the RESV/FREE interfaces.
  */
-typedef struct xfs_flock64 {
+typedef struct xfs_flock64
+{
 	__s16		l_type;
 	__s16		l_whence;
 	__s64		l_start;
@@ -124,7 +129,8 @@ typedef struct xfs_flock64 {
 /*
  * Output for XFS_IOC_FSGEOMETRY_V1
  */
-typedef struct xfs_fsop_geom_v1 {
+typedef struct xfs_fsop_geom_v1
+{
 	__u32		blocksize;	/* filesystem (data) block size */
 	__u32		rtextsize;	/* realtime extent size		*/
 	__u32		agblocks;	/* fsblocks in an AG		*/
@@ -150,7 +156,8 @@ typedef struct xfs_fsop_geom_v1 {
 /*
  * Output for XFS_IOC_FSGEOMETRY
  */
-typedef struct xfs_fsop_geom {
+typedef struct xfs_fsop_geom
+{
 	__u32		blocksize;	/* filesystem (data) block size */
 	__u32		rtextsize;	/* realtime extent size		*/
 	__u32		agblocks;	/* fsblocks in an AG		*/
@@ -175,7 +182,8 @@ typedef struct xfs_fsop_geom {
 } xfs_fsop_geom_t;
 
 /* Output for XFS_FS_COUNTS */
-typedef struct xfs_fsop_counts {
+typedef struct xfs_fsop_counts
+{
 	__u64	freedata;	/* free data section blocks */
 	__u64	freertx;	/* free rt extents */
 	__u64	freeino;	/* free inodes */
@@ -183,7 +191,8 @@ typedef struct xfs_fsop_counts {
 } xfs_fsop_counts_t;
 
 /* Input/Output for XFS_GET_RESBLKS and XFS_SET_RESBLKS */
-typedef struct xfs_fsop_resblks {
+typedef struct xfs_fsop_resblks
+{
 	__u64  resblks;
 	__u64  resblks_avail;
 } xfs_fsop_resblks_t;
@@ -228,22 +237,25 @@ typedef struct xfs_fsop_resblks {
 /* Used for sanity checks on superblock */
 #define XFS_MAX_DBLOCKS(s) ((xfs_rfsblock_t)(s)->sb_agcount * (s)->sb_agblocks)
 #define XFS_MIN_DBLOCKS(s) ((xfs_rfsblock_t)((s)->sb_agcount - 1) *	\
-			 (s)->sb_agblocks + XFS_MIN_AG_BLOCKS)
+							(s)->sb_agblocks + XFS_MIN_AG_BLOCKS)
 
 /*
  * Structures for XFS_IOC_FSGROWFSDATA, XFS_IOC_FSGROWFSLOG & XFS_IOC_FSGROWFSRT
  */
-typedef struct xfs_growfs_data {
+typedef struct xfs_growfs_data
+{
 	__u64		newblocks;	/* new data subvol size, fsblocks */
 	__u32		imaxpct;	/* new inode space percentage limit */
 } xfs_growfs_data_t;
 
-typedef struct xfs_growfs_log {
+typedef struct xfs_growfs_log
+{
 	__u32		newblocks;	/* new log size, fsblocks */
 	__u32		isint;		/* 1 if new log is internal */
 } xfs_growfs_log_t;
 
-typedef struct xfs_growfs_rt {
+typedef struct xfs_growfs_rt
+{
 	__u64		newblocks;	/* new realtime size, fsblocks */
 	__u32		extsize;	/* new realtime extent size, fsblocks */
 } xfs_growfs_rt_t;
@@ -252,12 +264,14 @@ typedef struct xfs_growfs_rt {
 /*
  * Structures returned from ioctl XFS_IOC_FSBULKSTAT & XFS_IOC_FSBULKSTAT_SINGLE
  */
-typedef struct xfs_bstime {
+typedef struct xfs_bstime
+{
 	time_t		tv_sec;		/* seconds		*/
 	__s32		tv_nsec;	/* and nanoseconds	*/
 } xfs_bstime_t;
 
-typedef struct xfs_bstat {
+typedef struct xfs_bstat
+{
 	__u64		bs_ino;		/* inode number			*/
 	__u16		bs_mode;	/* type and mode		*/
 	__u16		bs_nlink;	/* number of links		*/
@@ -299,7 +313,8 @@ bstat_get_projid(struct xfs_bstat *bs)
 /*
  * The user-level BulkStat Request interface structure.
  */
-typedef struct xfs_fsop_bulkreq {
+typedef struct xfs_fsop_bulkreq
+{
 	__u64		__user *lastip;	/* last inode # pointer		*/
 	__s32		icount;		/* count of entries in buffer	*/
 	void		__user *ubuffer;/* user buffer for inode desc.	*/
@@ -310,7 +325,8 @@ typedef struct xfs_fsop_bulkreq {
 /*
  * Structures returned from xfs_inumbers routine (XFS_IOC_FSINUMBERS).
  */
-typedef struct xfs_inogrp {
+typedef struct xfs_inogrp
+{
 	__u64		xi_startino;	/* starting inode number	*/
 	__s32		xi_alloccount;	/* # bits set in allocmask	*/
 	__u64		xi_allocmask;	/* mask of allocated inodes	*/
@@ -320,7 +336,8 @@ typedef struct xfs_inogrp {
 /*
  * Error injection.
  */
-typedef struct xfs_error_injection {
+typedef struct xfs_error_injection
+{
 	__s32		fd;
 	__s32		errtag;
 } xfs_error_injection_t;
@@ -330,7 +347,8 @@ typedef struct xfs_error_injection {
  * Speculative preallocation trimming.
  */
 #define XFS_EOFBLOCKS_VERSION		1
-struct xfs_fs_eofblocks {
+struct xfs_fs_eofblocks
+{
 	__u32		eof_version;
 	__u32		eof_flags;
 	uid_t		eof_uid;
@@ -361,7 +379,8 @@ struct xfs_fs_eofblocks {
 /*
  * The user-level Handle Request interface structure.
  */
-typedef struct xfs_fsop_handlereq {
+typedef struct xfs_fsop_handlereq
+{
 	__u32		fd;		/* fd for FD_TO_HANDLE		*/
 	void		__user *path;	/* user pathname		*/
 	__u32		oflags;		/* open flags			*/
@@ -378,16 +397,19 @@ typedef struct xfs_fsop_handlereq {
  *	     XFS_IOC_ATTRMULTI_BY_HANDLE
  */
 
-typedef struct xfs_fsop_setdm_handlereq {
+typedef struct xfs_fsop_setdm_handlereq
+{
 	struct xfs_fsop_handlereq	hreq;	/* handle information	*/
 	struct fsdmidata		__user *data;	/* DMAPI data	*/
 } xfs_fsop_setdm_handlereq_t;
 
-typedef struct xfs_attrlist_cursor {
+typedef struct xfs_attrlist_cursor
+{
 	__u32		opaque[4];
 } xfs_attrlist_cursor_t;
 
-typedef struct xfs_fsop_attrlist_handlereq {
+typedef struct xfs_fsop_attrlist_handlereq
+{
 	struct xfs_fsop_handlereq	hreq; /* handle interface structure */
 	struct xfs_attrlist_cursor	pos; /* opaque cookie, list offset */
 	__u32				flags;	/* which namespace to use */
@@ -395,7 +417,8 @@ typedef struct xfs_fsop_attrlist_handlereq {
 	void				__user *buffer;	/* returned names */
 } xfs_fsop_attrlist_handlereq_t;
 
-typedef struct xfs_attr_multiop {
+typedef struct xfs_attr_multiop
+{
 	__u32		am_opcode;
 #define ATTR_OP_GET	1	/* return the indicated attr's value */
 #define ATTR_OP_SET	2	/* set/create the indicated attr/value pair */
@@ -407,7 +430,8 @@ typedef struct xfs_attr_multiop {
 	__u32		am_flags;
 } xfs_attr_multiop_t;
 
-typedef struct xfs_fsop_attrmulti_handlereq {
+typedef struct xfs_fsop_attrmulti_handlereq
+{
 	struct xfs_fsop_handlereq	hreq; /* handle interface structure */
 	__u32				opcount;/* count of following multiop */
 	struct xfs_attr_multiop		__user *ops; /* attr_multi data */
@@ -418,15 +442,18 @@ typedef struct xfs_fsop_attrmulti_handlereq {
  */
 typedef struct { __u32 val[2]; } xfs_fsid_t; /* file system id type */
 
-typedef struct xfs_fid {
+typedef struct xfs_fid
+{
 	__u16	fid_len;		/* length of remainder	*/
 	__u16	fid_pad;
 	__u32	fid_gen;		/* generation number	*/
 	__u64	fid_ino;		/* 64 bits inode number */
 } xfs_fid_t;
 
-typedef struct xfs_handle {
-	union {
+typedef struct xfs_handle
+{
+	union
+	{
 		__s64	    align;	/* force alignment of ha_fid	 */
 		xfs_fsid_t  _ha_fsid;	/* unique file system identifier */
 	} ha_u;
@@ -435,8 +462,8 @@ typedef struct xfs_handle {
 #define ha_fsid ha_u._ha_fsid
 
 #define XFS_HSIZE(handle)	(((char *) &(handle).ha_fid.fid_pad	 \
-				 - (char *) &(handle))			  \
-				 + (handle).ha_fid.fid_len)
+							  - (char *) &(handle))			  \
+							 + (handle).ha_fid.fid_len)
 
 /*
  * Structure passed to XFS_IOC_SWAPEXT
@@ -464,9 +491,9 @@ typedef struct xfs_swapext
  * ioctl limits
  */
 #ifdef XATTR_LIST_MAX
-#  define XFS_XATTR_LIST_MAX XATTR_LIST_MAX
+	#define XFS_XATTR_LIST_MAX XATTR_LIST_MAX
 #else
-#  define XFS_XATTR_LIST_MAX 65536
+	#define XFS_XATTR_LIST_MAX 65536
 #endif
 
 
@@ -538,17 +565,17 @@ typedef struct xfs_swapext
 
 
 #ifndef HAVE_BBMACROS
-/*
- * Block I/O parameterization.	A basic block (BB) is the lowest size of
- * filesystem allocation, and must equal 512.  Length units given to bio
- * routines are in BB's.
- */
-#define BBSHIFT		9
-#define BBSIZE		(1<<BBSHIFT)
-#define BBMASK		(BBSIZE-1)
-#define BTOBB(bytes)	(((__u64)(bytes) + BBSIZE - 1) >> BBSHIFT)
-#define BTOBBT(bytes)	((__u64)(bytes) >> BBSHIFT)
-#define BBTOB(bbs)	((bbs) << BBSHIFT)
+	/*
+	* Block I/O parameterization.	A basic block (BB) is the lowest size of
+	* filesystem allocation, and must equal 512.  Length units given to bio
+	* routines are in BB's.
+	*/
+	#define BBSHIFT		9
+	#define BBSIZE		(1<<BBSHIFT)
+	#define BBMASK		(BBSIZE-1)
+	#define BTOBB(bytes)	(((__u64)(bytes) + BBSIZE - 1) >> BBSHIFT)
+	#define BTOBBT(bytes)	((__u64)(bytes) >> BBSHIFT)
+	#define BBTOB(bbs)	((bbs) << BBSHIFT)
 #endif
 
 #endif	/* __XFS_FS_H__ */

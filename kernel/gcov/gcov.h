@@ -28,9 +28,9 @@
 	(GCOV_TAG_COUNTER_BASE + ((unsigned int) (count) << 17))
 
 #if BITS_PER_LONG >= 64
-typedef long gcov_type;
+	typedef long gcov_type;
 #else
-typedef long long gcov_type;
+	typedef long long gcov_type;
 #endif
 
 /* Opaque gcov_info. The gcov structures can change as for example in gcc 4.7 so
@@ -47,7 +47,8 @@ void gcov_info_link(struct gcov_info *info);
 void gcov_info_unlink(struct gcov_info *prev, struct gcov_info *info);
 
 /* Base interface. */
-enum gcov_action {
+enum gcov_action
+{
 	GCOV_ADD,
 	GCOV_REMOVE,
 };
@@ -73,8 +74,10 @@ void gcov_info_add(struct gcov_info *dest, struct gcov_info *source);
 struct gcov_info *gcov_info_dup(struct gcov_info *info);
 void gcov_info_free(struct gcov_info *info);
 
-struct gcov_link {
-	enum {
+struct gcov_link
+{
+	enum
+	{
 		OBJ_TREE,
 		SRC_TREE,
 	} dir;

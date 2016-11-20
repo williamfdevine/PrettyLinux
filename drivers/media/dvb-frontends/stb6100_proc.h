@@ -26,18 +26,25 @@ static int stb6100_get_freq(struct dvb_frontend *fe, u32 *frequency)
 	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
 	int err = 0;
 
-	if (tuner_ops->get_frequency) {
+	if (tuner_ops->get_frequency)
+	{
 		if (frontend_ops->i2c_gate_ctrl)
+		{
 			frontend_ops->i2c_gate_ctrl(fe, 1);
+		}
 
 		err = tuner_ops->get_frequency(fe, frequency);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			printk("%s: Invalid parameter\n", __func__);
 			return err;
 		}
 
 		if (frontend_ops->i2c_gate_ctrl)
+		{
 			frontend_ops->i2c_gate_ctrl(fe, 0);
+		}
 	}
 
 	return 0;
@@ -54,19 +61,26 @@ static int stb6100_set_freq(struct dvb_frontend *fe, u32 frequency)
 	c->frequency = frequency;
 	c->bandwidth_hz = 0;		/* Don't adjust the bandwidth */
 
-	if (tuner_ops->set_params) {
+	if (tuner_ops->set_params)
+	{
 		if (frontend_ops->i2c_gate_ctrl)
+		{
 			frontend_ops->i2c_gate_ctrl(fe, 1);
+		}
 
 		err = tuner_ops->set_params(fe);
 		c->bandwidth_hz = bw;
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			printk("%s: Invalid parameter\n", __func__);
 			return err;
 		}
 
 		if (frontend_ops->i2c_gate_ctrl)
+		{
 			frontend_ops->i2c_gate_ctrl(fe, 0);
+		}
 
 	}
 
@@ -79,18 +93,25 @@ static int stb6100_get_bandw(struct dvb_frontend *fe, u32 *bandwidth)
 	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
 	int err = 0;
 
-	if (tuner_ops->get_bandwidth) {
+	if (tuner_ops->get_bandwidth)
+	{
 		if (frontend_ops->i2c_gate_ctrl)
+		{
 			frontend_ops->i2c_gate_ctrl(fe, 1);
+		}
 
 		err = tuner_ops->get_bandwidth(fe, bandwidth);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			printk(KERN_ERR "%s: Invalid parameter\n", __func__);
 			return err;
 		}
 
 		if (frontend_ops->i2c_gate_ctrl)
+		{
 			frontend_ops->i2c_gate_ctrl(fe, 0);
+		}
 	}
 
 	return 0;
@@ -107,19 +128,26 @@ static int stb6100_set_bandw(struct dvb_frontend *fe, u32 bandwidth)
 	c->bandwidth_hz = bandwidth;
 	c->frequency = 0;		/* Don't adjust the frequency */
 
-	if (tuner_ops->set_params) {
+	if (tuner_ops->set_params)
+	{
 		if (frontend_ops->i2c_gate_ctrl)
+		{
 			frontend_ops->i2c_gate_ctrl(fe, 1);
+		}
 
 		err = tuner_ops->set_params(fe);
 		c->frequency = freq;
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			printk(KERN_ERR "%s: Invalid parameter\n", __func__);
 			return err;
 		}
 
 		if (frontend_ops->i2c_gate_ctrl)
+		{
 			frontend_ops->i2c_gate_ctrl(fe, 0);
+		}
 
 	}
 

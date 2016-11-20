@@ -131,7 +131,8 @@
  * panel provided by the WISCE - see  http://www.wolfsonmicro.com/wisce/
  * for details.
  */
-struct wm8904_drc_cfg {
+struct wm8904_drc_cfg
+{
 	const char *name;
 	u16 regs[WM8904_DRC_REGS];
 };
@@ -143,13 +144,15 @@ struct wm8904_drc_cfg {
  * Configurations are expected to be generated using the ReTune Mobile
  * control panel in WISCE - see http://www.wolfsonmicro.com/wisce/
  */
-struct wm8904_retune_mobile_cfg {
+struct wm8904_retune_mobile_cfg
+{
 	const char *name;
 	unsigned int rate;
 	u16 regs[WM8904_EQ_REGS];
 };
 
-struct wm8904_pdata {
+struct wm8904_pdata
+{
 	int num_drc_cfgs;
 	struct wm8904_drc_cfg *drc_cfgs;
 

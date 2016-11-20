@@ -30,26 +30,26 @@
  */
 static int extBalloc(struct inode *, s64, s64 *, s64 *);
 #ifdef _NOTYET
-static int extBrealloc(struct inode *, s64, s64, s64 *, s64 *);
+	static int extBrealloc(struct inode *, s64, s64, s64 *, s64 *);
 #endif
 static s64 extRoundDown(s64 nb);
 
 #define DPD(a)		(printk("(a): %d\n",(a)))
 #define DPC(a)		(printk("(a): %c\n",(a)))
 #define DPL1(a)					\
-{						\
-	if ((a) >> 32)				\
-		printk("(a): %x%08x  ",(a));	\
-	else					\
-		printk("(a): %x  ",(a) << 32);	\
-}
+	{						\
+		if ((a) >> 32)				\
+			printk("(a): %x%08x  ",(a));	\
+		else					\
+			printk("(a): %x  ",(a) << 32);	\
+	}
 #define DPL(a)					\
-{						\
-	if ((a) >> 32)				\
-		printk("(a): %x%08x\n",(a));	\
-	else					\
-		printk("(a): %x\n",(a) << 32);	\
-}
+	{						\
+		if ((a) >> 32)				\
+			printk("(a): %x%08x\n",(a));	\
+		else					\
+			printk("(a): %x\n",(a) << 32);	\
+	}
 
 #define DPD1(a)		(printk("(a): %d  ",(a)))
 #define DPX(a)		(printk("(a): %08x\n",(a)))
@@ -83,7 +83,7 @@ static s64 extRoundDown(s64 nb);
  *	-ENOSPC	- insufficient disk resources.
  */
 int
-extAlloc(struct inode *ip, s64 xlen, s64 pno, xad_t * xp, bool abnr)
+extAlloc(struct inode *ip, s64 xlen, s64 pno, xad_t *xp, bool abnr)
 {
 	struct jfs_sb_info *sbi = JFS_SBI(ip->i_sb);
 	s64 nxlen, nxaddr, xoff, hint, xaddr = 0;
@@ -98,13 +98,16 @@ extAlloc(struct inode *ip, s64 xlen, s64 pno, xad_t * xp, bool abnr)
 
 	/* validate extent length */
 	if (xlen > MAXXLEN)
+	{
 		xlen = MAXXLEN;
+	}
 
 	/* get the page's starting extent offset */
 	xoff = pno << sbi->l2nbperpage;
 
 	/* check if an allocation hint was provided */
-	if ((hint = addressXAD(xp))) {
+	if ((hint = addressXAD(xp)))
+	{
 		/* get the size of the extent described by the hint */
 		nxlen = lengthXAD(xp);
 
@@ -117,8 +120,10 @@ extAlloc(struct inode *ip, s64 xlen, s64 pno, xad_t * xp, bool abnr)
 		 * following the hint extent.
 		 */
 		if (offsetXAD(xp) + nxlen == xoff &&
-		    abnr == ((xp->flag & XAD_NOTRECORDED) ? true : false))
+			abnr == ((xp->flag & XAD_NOTRECORDED) ? true : false))
+		{
 			xaddr = hint + nxlen;
+		}
 
 		/* adjust the hint to the last block of the extent */
 		hint += (nxlen - 1);
@@ -135,14 +140,18 @@ extAlloc(struct inode *ip, s64 xlen, s64 pno, xad_t * xp, bool abnr)
 	 * is smaller than the number of blocks per page.
 	 */
 	nxlen = xlen;
-	if ((rc = extBalloc(ip, hint ? hint : INOHINT(ip), &nxlen, &nxaddr))) {
+
+	if ((rc = extBalloc(ip, hint ? hint : INOHINT(ip), &nxlen, &nxaddr)))
+	{
 		mutex_unlock(&JFS_IP(ip)->commit_mutex);
 		return (rc);
 	}
 
 	/* Allocate blocks to quota. */
 	rc = dquot_alloc_block(ip, nxlen);
-	if (rc) {
+
+	if (rc)
+	{
 		dbFree(ip, nxaddr, (s64) nxlen);
 		mutex_unlock(&JFS_IP(ip)->commit_mutex);
 		return rc;
@@ -156,14 +165,19 @@ extAlloc(struct inode *ip, s64 xlen, s64 pno, xad_t * xp, bool abnr)
 	 * cover the current request.
 	 */
 	if (xaddr && xaddr == nxaddr)
+	{
 		rc = xtExtend(0, ip, xoff, (int) nxlen, 0);
+	}
 	else
+	{
 		rc = xtInsert(0, ip, xflag, xoff, (int) nxlen, &nxaddr, 0);
+	}
 
 	/* if the extend or insert failed,
 	 * free the newly allocated blocks and return the error.
 	 */
-	if (rc) {
+	if (rc)
+	{
 		dbFree(ip, nxaddr, nxlen);
 		dquot_free_block(ip, nxlen);
 		mutex_unlock(&JFS_IP(ip)->commit_mutex);
@@ -179,13 +193,16 @@ extAlloc(struct inode *ip, s64 xlen, s64 pno, xad_t * xp, bool abnr)
 	mark_inode_dirty(ip);
 
 	mutex_unlock(&JFS_IP(ip)->commit_mutex);
+
 	/*
 	 * COMMIT_SyncList flags an anonymous tlock on page that is on
 	 * sync list.
 	 * We need to commit the inode to get the page written disk.
 	 */
-	if (test_and_clear_cflag(COMMIT_Synclist,ip))
+	if (test_and_clear_cflag(COMMIT_Synclist, ip))
+	{
 		jfs_commit_inode(ip, 0);
+	}
 
 	return (0);
 }
@@ -212,7 +229,7 @@ extAlloc(struct inode *ip, s64 xlen, s64 pno, xad_t * xp, bool abnr)
  *	-EIO	- i/o error.
  *	-ENOSPC	- insufficient disk resources.
  */
-int extRealloc(struct inode *ip, s64 nxlen, xad_t * xp, bool abnr)
+int extRealloc(struct inode *ip, s64 nxlen, xad_t *xp, bool abnr)
 {
 	struct super_block *sb = ip->i_sb;
 	s64 xaddr, xlen, nxaddr, delta, xoff;
@@ -224,9 +241,12 @@ int extRealloc(struct inode *ip, s64 nxlen, xad_t * xp, bool abnr)
 	txBeginAnon(ip->i_sb);
 
 	mutex_lock(&JFS_IP(ip)->commit_mutex);
+
 	/* validate extent length */
 	if (nxlen > MAXXLEN)
+	{
 		nxlen = MAXXLEN;
+	}
 
 	/* get the extend (partial) page's disk block address and
 	 * number of blocks.
@@ -239,10 +259,14 @@ int extRealloc(struct inode *ip, s64 nxlen, xad_t * xp, bool abnr)
 	 * the extent to be allocated and recorded,
 	 * make the page allocated and recorded.
 	 */
-	if ((xp->flag & XAD_NOTRECORDED) && !abnr) {
+	if ((xp->flag & XAD_NOTRECORDED) && !abnr)
+	{
 		xp->flag = 0;
+
 		if ((rc = xtUpdate(0, ip, xp)))
+		{
 			goto exit;
+		}
 	}
 
 	/* try to allocated the request number of blocks for the
@@ -254,11 +278,15 @@ int extRealloc(struct inode *ip, s64 nxlen, xad_t * xp, bool abnr)
 	 * space as to satisfy the extend page.
 	 */
 	if ((rc = extBrealloc(ip, xaddr, xlen, &nxlen, &nxaddr)))
+	{
 		goto exit;
+	}
 
 	/* Allocat blocks to quota. */
 	rc = dquot_alloc_block(ip, nxlen);
-	if (rc) {
+
+	if (rc)
+	{
 		dbFree(ip, nxaddr, (s64) nxlen);
 		mutex_unlock(&JFS_IP(ip)->commit_mutex);
 		return rc;
@@ -277,13 +305,16 @@ int extRealloc(struct inode *ip, s64 nxlen, xad_t * xp, bool abnr)
 	 * extent will be manipulated (created) through an xtInsert() and
 	 * will be for the pages following the extend page.
 	 */
-	if (abnr && (!(xp->flag & XAD_NOTRECORDED)) && (nxlen > nbperpage)) {
+	if (abnr && (!(xp->flag & XAD_NOTRECORDED)) && (nxlen > nbperpage))
+	{
 		ntail = nbperpage;
 		nextend = ntail - xlen;
 		ninsert = nxlen - nbperpage;
 
 		xflag = XAD_NOTRECORDED;
-	} else {
+	}
+	else
+	{
 		ntail = nxlen;
 		nextend = delta;
 		ninsert = 0;
@@ -295,20 +326,25 @@ int extRealloc(struct inode *ip, s64 nxlen, xad_t * xp, bool abnr)
 	 * extend the extent.  otherwise, move the extent to a
 	 * new disk location.
 	 */
-	if (xaddr == nxaddr) {
+	if (xaddr == nxaddr)
+	{
 		/* extend the extent */
-		if ((rc = xtExtend(0, ip, xoff + xlen, (int) nextend, 0))) {
+		if ((rc = xtExtend(0, ip, xoff + xlen, (int) nextend, 0)))
+		{
 			dbFree(ip, xaddr + xlen, delta);
 			dquot_free_block(ip, nxlen);
 			goto exit;
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * move the extent to a new location:
 		 *
 		 * xtTailgate() accounts for relocated tail extent;
 		 */
-		if ((rc = xtTailgate(0, ip, xoff, (int) ntail, nxaddr, 0))) {
+		if ((rc = xtTailgate(0, ip, xoff, (int) ntail, nxaddr, 0)))
+		{
 			dbFree(ip, nxaddr, nxlen);
 			dquot_free_block(ip, nxlen);
 			goto exit;
@@ -317,14 +353,17 @@ int extRealloc(struct inode *ip, s64 nxlen, xad_t * xp, bool abnr)
 
 
 	/* check if we need to also insert a new extent */
-	if (ninsert) {
+	if (ninsert)
+	{
 		/* perform the insert.  if it fails, free the blocks
 		 * to be inserted and make it appear that we only did
 		 * the xtExtend() or xtTailgate() above.
 		 */
 		xaddr = nxaddr + ntail;
+
 		if (xtInsert (0, ip, xflag, xoff + ntail, (int) ninsert,
-			      &xaddr, 0)) {
+					  &xaddr, 0))
+		{
 			dbFree(ip, xaddr, (s64) ninsert);
 			delta = nextend;
 			nxlen = ntail;
@@ -361,7 +400,7 @@ exit:
  *	0	- success
  *	-EIO	- i/o error.
  */
-int extHint(struct inode *ip, s64 offset, xad_t * xp)
+int extHint(struct inode *ip, s64 offset, xad_t *xp)
 {
 	struct super_block *sb = ip->i_sb;
 	int nbperpage = JFS_SBI(sb)->nbperpage;
@@ -382,15 +421,20 @@ int extHint(struct inode *ip, s64 offset, xad_t * xp)
 	/* if the offset is in the first page of the file, no hint provided.
 	 */
 	if (prev < 0)
+	{
 		goto out;
+	}
 
 	rc = xtLookup(ip, prev, nbperpage, &xflag, &xaddr, &xlen, 0);
 
-	if ((rc == 0) && xlen) {
-		if (xlen != nbperpage) {
+	if ((rc == 0) && xlen)
+	{
+		if (xlen != nbperpage)
+		{
 			jfs_error(ip->i_sb, "corrupt xtree\n");
 			rc = -EIO;
 		}
+
 		XADaddress(xp, xaddr);
 		XADlength(xp, xlen);
 		XADoffset(xp, prev);
@@ -399,8 +443,11 @@ int extHint(struct inode *ip, s64 offset, xad_t * xp)
 		 * of the returned hint.
 		 */
 		xp->flag  = xflag & XAD_NOTRECORDED;
-	} else
+	}
+	else
+	{
 		rc = 0;
+	}
 
 out:
 	return (rc);
@@ -421,7 +468,7 @@ out:
  *	-EIO	- i/o error.
  *	-ENOSPC	- insufficient disk resources.
  */
-int extRecord(struct inode *ip, xad_t * xp)
+int extRecord(struct inode *ip, xad_t *xp)
 {
 	int rc;
 
@@ -453,19 +500,21 @@ int extRecord(struct inode *ip, xad_t * xp)
  *	-EIO	- i/o error.
  *	-ENOSPC	- insufficient disk resources.
  */
-int extFill(struct inode *ip, xad_t * xp)
+int extFill(struct inode *ip, xad_t *xp)
 {
 	int rc, nbperpage = JFS_SBI(ip->i_sb)->nbperpage;
 	s64 blkno = offsetXAD(xp) >> ip->i_blkbits;
 
-//	assert(ISSPARSE(ip));
+	//	assert(ISSPARSE(ip));
 
 	/* initialize the extent allocation hint */
 	XADaddress(xp, 0);
 
 	/* allocate an extent to fill the hole */
 	if ((rc = extAlloc(ip, nbperpage, blkno, xp, false)))
+	{
 		return (rc);
+	}
 
 	assert(lengthPXD(xp) == nbperpage);
 
@@ -506,7 +555,7 @@ int extFill(struct inode *ip, xad_t * xp)
  *	-ENOSPC	- insufficient disk resources.
  */
 static int
-extBalloc(struct inode *ip, s64 hint, s64 * nblocks, s64 * blkno)
+extBalloc(struct inode *ip, s64 hint, s64 *nblocks, s64 *blkno)
 {
 	struct jfs_inode_info *ji = JFS_IP(ip);
 	struct jfs_sb_info *sbi = JFS_SBI(ip->i_sb);
@@ -522,41 +571,57 @@ extBalloc(struct inode *ip, s64 hint, s64 * nblocks, s64 * blkno)
 	 * maximum free.
 	 */
 	max = (s64) 1 << bmp->db_maxfreebud;
+
 	if (*nblocks >= max && *nblocks > nbperpage)
+	{
 		nb = nblks = (max > nbperpage) ? max : nbperpage;
+	}
 	else
+	{
 		nb = nblks = *nblocks;
+	}
 
 	/* try to allocate blocks */
-	while ((rc = dbAlloc(ip, hint, nb, &daddr)) != 0) {
+	while ((rc = dbAlloc(ip, hint, nb, &daddr)) != 0)
+	{
 		/* if something other than an out of space error,
 		 * stop and return this error.
 		 */
 		if (rc != -ENOSPC)
+		{
 			return (rc);
+		}
 
 		/* decrease the allocation request size */
 		nb = min(nblks, extRoundDown(nb));
 
 		/* give up if we cannot cover a page */
 		if (nb < nbperpage)
+		{
 			return (rc);
+		}
 	}
 
 	*nblocks = nb;
 	*blkno = daddr;
 
-	if (S_ISREG(ip->i_mode) && (ji->fileset == FILESYSTEM_I)) {
+	if (S_ISREG(ip->i_mode) && (ji->fileset == FILESYSTEM_I))
+	{
 		ag = BLKTOAG(daddr, sbi);
 		spin_lock_irq(&ji->ag_lock);
-		if (ji->active_ag == -1) {
+
+		if (ji->active_ag == -1)
+		{
 			atomic_inc(&bmp->db_active[ag]);
 			ji->active_ag = ag;
-		} else if (ji->active_ag != ag) {
+		}
+		else if (ji->active_ag != ag)
+		{
 			atomic_dec(&bmp->db_active[ji->active_ag]);
 			atomic_inc(&bmp->db_active[ag]);
 			ji->active_ag = ag;
 		}
+
 		spin_unlock_irq(&ji->ag_lock);
 	}
 
@@ -600,17 +665,22 @@ extBalloc(struct inode *ip, s64 hint, s64 * nblocks, s64 * blkno)
  */
 static int
 extBrealloc(struct inode *ip,
-	    s64 blkno, s64 nblks, s64 * newnblks, s64 * newblkno)
+			s64 blkno, s64 nblks, s64 *newnblks, s64 *newblkno)
 {
 	int rc;
 
 	/* try to extend in place */
-	if ((rc = dbExtend(ip, blkno, nblks, *newnblks - nblks)) == 0) {
+	if ((rc = dbExtend(ip, blkno, nblks, *newnblks - nblks)) == 0)
+	{
 		*newblkno = blkno;
 		return (0);
-	} else {
+	}
+	else
+	{
 		if (rc != -ENOSPC)
+		{
 			return (rc);
+		}
 	}
 
 	/* in place extension not possible.
@@ -638,9 +708,12 @@ static s64 extRoundDown(s64 nb)
 	int i;
 	u64 m, k;
 
-	for (i = 0, m = (u64) 1 << 63; i < 64; i++, m >>= 1) {
+	for (i = 0, m = (u64) 1 << 63; i < 64; i++, m >>= 1)
+	{
 		if (m & nb)
+		{
 			break;
+		}
 	}
 
 	i = 63 - i;

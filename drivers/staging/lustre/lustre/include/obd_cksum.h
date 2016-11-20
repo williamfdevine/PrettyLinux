@@ -36,17 +36,22 @@
 
 static inline unsigned char cksum_obd2cfs(enum cksum_type cksum_type)
 {
-	switch (cksum_type) {
-	case OBD_CKSUM_CRC32:
-		return CFS_HASH_ALG_CRC32;
-	case OBD_CKSUM_ADLER:
-		return CFS_HASH_ALG_ADLER32;
-	case OBD_CKSUM_CRC32C:
-		return CFS_HASH_ALG_CRC32C;
-	default:
-		CERROR("Unknown checksum type (%x)!!!\n", cksum_type);
-		LBUG();
+	switch (cksum_type)
+	{
+		case OBD_CKSUM_CRC32:
+			return CFS_HASH_ALG_CRC32;
+
+		case OBD_CKSUM_ADLER:
+			return CFS_HASH_ALG_ADLER32;
+
+		case OBD_CKSUM_CRC32C:
+			return CFS_HASH_ALG_CRC32C;
+
+		default:
+			CERROR("Unknown checksum type (%x)!!!\n", cksum_type);
+			LBUG();
 	}
+
 	return 0;
 }
 
@@ -67,66 +72,88 @@ static inline u32 cksum_type_pack(enum cksum_type cksum_type)
 	unsigned int    performance = 0, tmp;
 	u32		flag = OBD_FL_CKSUM_ADLER;
 
-	if (cksum_type & OBD_CKSUM_CRC32) {
+	if (cksum_type & OBD_CKSUM_CRC32)
+	{
 		tmp = cfs_crypto_hash_speed(cksum_obd2cfs(OBD_CKSUM_CRC32));
-		if (tmp > performance) {
+
+		if (tmp > performance)
+		{
 			performance = tmp;
 			flag = OBD_FL_CKSUM_CRC32;
 		}
 	}
-	if (cksum_type & OBD_CKSUM_CRC32C) {
+
+	if (cksum_type & OBD_CKSUM_CRC32C)
+	{
 		tmp = cfs_crypto_hash_speed(cksum_obd2cfs(OBD_CKSUM_CRC32C));
-		if (tmp > performance) {
+
+		if (tmp > performance)
+		{
 			performance = tmp;
 			flag = OBD_FL_CKSUM_CRC32C;
 		}
 	}
-	if (cksum_type & OBD_CKSUM_ADLER) {
+
+	if (cksum_type & OBD_CKSUM_ADLER)
+	{
 		tmp = cfs_crypto_hash_speed(cksum_obd2cfs(OBD_CKSUM_ADLER));
-		if (tmp > performance) {
+
+		if (tmp > performance)
+		{
 			performance = tmp;
 			flag = OBD_FL_CKSUM_ADLER;
 		}
 	}
+
 	if (unlikely(cksum_type && !(cksum_type & (OBD_CKSUM_CRC32C |
-						   OBD_CKSUM_CRC32 |
-						   OBD_CKSUM_ADLER))))
+								 OBD_CKSUM_CRC32 |
+								 OBD_CKSUM_ADLER))))
+	{
 		CWARN("unknown cksum type %x\n", cksum_type);
+	}
 
 	return flag;
 }
 
 static inline enum cksum_type cksum_type_unpack(u32 o_flags)
 {
-	switch (o_flags & OBD_FL_CKSUM_ALL) {
-	case OBD_FL_CKSUM_CRC32C:
-		return OBD_CKSUM_CRC32C;
-	case OBD_FL_CKSUM_CRC32:
-		return OBD_CKSUM_CRC32;
-	default:
-		break;
+	switch (o_flags & OBD_FL_CKSUM_ALL)
+	{
+		case OBD_FL_CKSUM_CRC32C:
+					return OBD_CKSUM_CRC32C;
+
+			case OBD_FL_CKSUM_CRC32:
+				return OBD_CKSUM_CRC32;
+
+			default:
+				break;
+		}
+
+		return OBD_CKSUM_ADLER;
 	}
 
-	return OBD_CKSUM_ADLER;
-}
-
-/* Return a bitmask of the checksum types supported on this system.
- * 1.8 supported ADLER it is base and not depend on hw
- * Client uses all available local algos
- */
-static inline enum cksum_type cksum_types_supported_client(void)
+	/* Return a bitmask of the checksum types supported on this system.
+	 * 1.8 supported ADLER it is base and not depend on hw
+	 * Client uses all available local algos
+	 */
+	static inline enum cksum_type cksum_types_supported_client(void)
 {
 	enum cksum_type ret = OBD_CKSUM_ADLER;
 
 	CDEBUG(D_INFO, "Crypto hash speed: crc %d, crc32c %d, adler %d\n",
-	       cfs_crypto_hash_speed(cksum_obd2cfs(OBD_CKSUM_CRC32)),
-	       cfs_crypto_hash_speed(cksum_obd2cfs(OBD_CKSUM_CRC32C)),
-	       cfs_crypto_hash_speed(cksum_obd2cfs(OBD_CKSUM_ADLER)));
+		   cfs_crypto_hash_speed(cksum_obd2cfs(OBD_CKSUM_CRC32)),
+		   cfs_crypto_hash_speed(cksum_obd2cfs(OBD_CKSUM_CRC32C)),
+		   cfs_crypto_hash_speed(cksum_obd2cfs(OBD_CKSUM_ADLER)));
 
 	if (cfs_crypto_hash_speed(cksum_obd2cfs(OBD_CKSUM_CRC32C)) > 0)
+	{
 		ret |= OBD_CKSUM_CRC32C;
+	}
+
 	if (cfs_crypto_hash_speed(cksum_obd2cfs(OBD_CKSUM_CRC32)) > 0)
+	{
 		ret |= OBD_CKSUM_CRC32;
+	}
 
 	return ret;
 }

@@ -3,13 +3,15 @@
 #include <subdev/fb.h>
 #include <subdev/pmu.h>
 
-struct ramfuc {
+struct ramfuc
+{
 	struct nvkm_memx *memx;
 	struct nvkm_fb *fb;
 	int sequence;
 };
 
-struct ramfuc_reg {
+struct ramfuc_reg
+{
 	int sequence;
 	bool force;
 	u32 addr;
@@ -21,36 +23,39 @@ struct ramfuc_reg {
 static inline struct ramfuc_reg
 ramfuc_stride(u32 addr, u32 stride, u32 mask)
 {
-	return (struct ramfuc_reg) {
+	return (struct ramfuc_reg)
+	{
 		.sequence = 0,
-		.addr = addr,
-		.stride = stride,
-		.mask = mask,
-		.data = 0xdeadbeef,
+		 .addr = addr,
+		  .stride = stride,
+		   .mask = mask,
+			.data = 0xdeadbeef,
 	};
 }
 
 static inline struct ramfuc_reg
 ramfuc_reg2(u32 addr1, u32 addr2)
 {
-	return (struct ramfuc_reg) {
+	return (struct ramfuc_reg)
+	{
 		.sequence = 0,
-		.addr = addr1,
-		.stride = addr2 - addr1,
-		.mask = 0x3,
-		.data = 0xdeadbeef,
+		 .addr = addr1,
+		  .stride = addr2 - addr1,
+		   .mask = 0x3,
+			.data = 0xdeadbeef,
 	};
 }
 
 static noinline struct ramfuc_reg
 ramfuc_reg(u32 addr)
 {
-	return (struct ramfuc_reg) {
+	return (struct ramfuc_reg)
+	{
 		.sequence = 0,
-		.addr = addr,
-		.stride = 0,
-		.mask = 0x1,
-		.data = 0xdeadbeef,
+		 .addr = addr,
+		  .stride = 0,
+		   .mask = 0x1,
+			.data = 0xdeadbeef,
 	};
 }
 
@@ -58,8 +63,11 @@ static inline int
 ramfuc_init(struct ramfuc *ram, struct nvkm_fb *fb)
 {
 	int ret = nvkm_memx_init(fb->subdev.device->pmu, &ram->memx);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ram->sequence++;
 	ram->fb = fb;
@@ -70,10 +78,13 @@ static inline int
 ramfuc_exec(struct ramfuc *ram, bool exec)
 {
 	int ret = 0;
-	if (ram->fb) {
+
+	if (ram->fb)
+	{
 		ret = nvkm_memx_fini(&ram->memx, exec);
 		ram->fb = NULL;
 	}
+
 	return ret;
 }
 
@@ -81,8 +92,12 @@ static inline u32
 ramfuc_rd32(struct ramfuc *ram, struct ramfuc_reg *reg)
 {
 	struct nvkm_device *device = ram->fb->subdev.device;
+
 	if (reg->sequence != ram->sequence)
+	{
 		reg->data = nvkm_rd32(device, reg->addr);
+	}
+
 	return reg->data;
 }
 
@@ -94,9 +109,13 @@ ramfuc_wr32(struct ramfuc *ram, struct ramfuc_reg *reg, u32 data)
 	reg->sequence = ram->sequence;
 	reg->data = data;
 
-	for (mask = reg->mask; mask > 0; mask = (mask & ~1) >> 1) {
+	for (mask = reg->mask; mask > 0; mask = (mask & ~1) >> 1)
+	{
 		if (mask & 1)
-			nvkm_memx_wr32(ram->memx, reg->addr+off, reg->data);
+		{
+			nvkm_memx_wr32(ram->memx, reg->addr + off, reg->data);
+		}
+
 		off += reg->stride;
 	}
 }
@@ -111,10 +130,13 @@ static inline u32
 ramfuc_mask(struct ramfuc *ram, struct ramfuc_reg *reg, u32 mask, u32 data)
 {
 	u32 temp = ramfuc_rd32(ram, reg);
-	if (temp != ((temp & ~mask) | data) || reg->force) {
+
+	if (temp != ((temp & ~mask) | data) || reg->force)
+	{
 		ramfuc_wr32(ram, reg, (temp & ~mask) | data);
 		reg->force = false;
 	}
+
 	return temp;
 }
 

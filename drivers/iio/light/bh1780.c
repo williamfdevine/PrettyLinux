@@ -35,60 +35,72 @@
 /* max time before value available in ms */
 #define BH1780_INTERVAL		250
 
-struct bh1780_data {
+struct bh1780_data
+{
 	struct i2c_client *client;
 };
 
 static int bh1780_write(struct bh1780_data *bh1780, u8 reg, u8 val)
 {
 	int ret = i2c_smbus_write_byte_data(bh1780->client,
-					    BH1780_CMD_BIT | reg,
-					    val);
+										BH1780_CMD_BIT | reg,
+										val);
+
 	if (ret < 0)
 		dev_err(&bh1780->client->dev,
-			"i2c_smbus_write_byte_data failed error "
-			"%d, register %01x\n",
-			ret, reg);
+				"i2c_smbus_write_byte_data failed error "
+				"%d, register %01x\n",
+				ret, reg);
+
 	return ret;
 }
 
 static int bh1780_read(struct bh1780_data *bh1780, u8 reg)
 {
 	int ret = i2c_smbus_read_byte_data(bh1780->client,
-					   BH1780_CMD_BIT | reg);
+									   BH1780_CMD_BIT | reg);
+
 	if (ret < 0)
 		dev_err(&bh1780->client->dev,
-			"i2c_smbus_read_byte_data failed error "
-			"%d, register %01x\n",
-			ret, reg);
+				"i2c_smbus_read_byte_data failed error "
+				"%d, register %01x\n",
+				ret, reg);
+
 	return ret;
 }
 
 static int bh1780_read_word(struct bh1780_data *bh1780, u8 reg)
 {
 	int ret = i2c_smbus_read_word_data(bh1780->client,
-					   BH1780_CMD_BIT | reg);
+									   BH1780_CMD_BIT | reg);
+
 	if (ret < 0)
 		dev_err(&bh1780->client->dev,
-			"i2c_smbus_read_word_data failed error "
-			"%d, register %01x\n",
-			ret, reg);
+				"i2c_smbus_read_word_data failed error "
+				"%d, register %01x\n",
+				ret, reg);
+
 	return ret;
 }
 
 static int bh1780_debugfs_reg_access(struct iio_dev *indio_dev,
-			      unsigned int reg, unsigned int writeval,
-			      unsigned int *readval)
+									 unsigned int reg, unsigned int writeval,
+									 unsigned int *readval)
 {
 	struct bh1780_data *bh1780 = iio_priv(indio_dev);
 	int ret;
 
 	if (!readval)
+	{
 		return bh1780_write(bh1780, (u8)reg, (u8)writeval);
+	}
 
 	ret = bh1780_read(bh1780, (u8)reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*readval = ret;
 
@@ -96,53 +108,64 @@ static int bh1780_debugfs_reg_access(struct iio_dev *indio_dev,
 }
 
 static int bh1780_read_raw(struct iio_dev *indio_dev,
-			   struct iio_chan_spec const *chan,
-			   int *val, int *val2, long mask)
+						   struct iio_chan_spec const *chan,
+						   int *val, int *val2, long mask)
 {
 	struct bh1780_data *bh1780 = iio_priv(indio_dev);
 	int value;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		switch (chan->type) {
-		case IIO_LIGHT:
-			pm_runtime_get_sync(&bh1780->client->dev);
-			value = bh1780_read_word(bh1780, BH1780_REG_DLOW);
-			if (value < 0)
-				return value;
-			pm_runtime_mark_last_busy(&bh1780->client->dev);
-			pm_runtime_put_autosuspend(&bh1780->client->dev);
-			*val = value;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			switch (chan->type)
+			{
+				case IIO_LIGHT:
+					pm_runtime_get_sync(&bh1780->client->dev);
+					value = bh1780_read_word(bh1780, BH1780_REG_DLOW);
 
-			return IIO_VAL_INT;
+					if (value < 0)
+					{
+						return value;
+					}
+
+					pm_runtime_mark_last_busy(&bh1780->client->dev);
+					pm_runtime_put_autosuspend(&bh1780->client->dev);
+					*val = value;
+
+					return IIO_VAL_INT;
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_INT_TIME:
+			*val = 0;
+			*val2 = BH1780_INTERVAL * 1000;
+			return IIO_VAL_INT_PLUS_MICRO;
+
 		default:
 			return -EINVAL;
-		}
-	case IIO_CHAN_INFO_INT_TIME:
-		*val = 0;
-		*val2 = BH1780_INTERVAL * 1000;
-		return IIO_VAL_INT_PLUS_MICRO;
-	default:
-		return -EINVAL;
 	}
 }
 
-static const struct iio_info bh1780_info = {
+static const struct iio_info bh1780_info =
+{
 	.driver_module = THIS_MODULE,
 	.read_raw = bh1780_read_raw,
 	.debugfs_reg_access = bh1780_debugfs_reg_access,
 };
 
-static const struct iio_chan_spec bh1780_channels[] = {
+static const struct iio_chan_spec bh1780_channels[] =
+{
 	{
 		.type = IIO_LIGHT,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-				      BIT(IIO_CHAN_INFO_INT_TIME)
+		BIT(IIO_CHAN_INFO_INT_TIME)
 	}
 };
 
 static int bh1780_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	int ret;
 	struct bh1780_data *bh1780;
@@ -150,11 +173,16 @@ static int bh1780_probe(struct i2c_client *client,
 	struct iio_dev *indio_dev;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE))
+	{
 		return -EIO;
+	}
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*bh1780));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	bh1780 = iio_priv(indio_dev);
 	bh1780->client = client;
@@ -162,19 +190,27 @@ static int bh1780_probe(struct i2c_client *client,
 
 	/* Power up the device */
 	ret = bh1780_write(bh1780, BH1780_REG_CONTROL, BH1780_PON);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	msleep(BH1780_PON_DELAY);
 	pm_runtime_get_noresume(&client->dev);
 	pm_runtime_set_active(&client->dev);
 	pm_runtime_enable(&client->dev);
 
 	ret = bh1780_read(bh1780, BH1780_REG_PARTID);
+
 	if (ret < 0)
+	{
 		goto out_disable_pm;
+	}
+
 	dev_info(&client->dev,
-		 "Ambient Light Sensor, Rev : %lu\n",
-		 (ret & BH1780_REVMASK));
+			 "Ambient Light Sensor, Rev : %lu\n",
+			 (ret & BH1780_REVMASK));
 
 	/*
 	 * As the device takes 250 ms to even come up with a fresh
@@ -193,8 +229,12 @@ static int bh1780_probe(struct i2c_client *client,
 	indio_dev->modes = INDIO_DIRECT_MODE;
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto out_disable_pm;
+	}
+
 	return 0;
 
 out_disable_pm:
@@ -214,7 +254,9 @@ static int bh1780_remove(struct i2c_client *client)
 	pm_runtime_put_noidle(&client->dev);
 	pm_runtime_disable(&client->dev);
 	ret = bh1780_write(bh1780, BH1780_REG_CONTROL, BH1780_POFF);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed to power off\n");
 		return ret;
 	}
@@ -231,7 +273,9 @@ static int bh1780_runtime_suspend(struct device *dev)
 	int ret;
 
 	ret = bh1780_write(bh1780, BH1780_REG_CONTROL, BH1780_POFF);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to runtime suspend\n");
 		return ret;
 	}
@@ -247,7 +291,9 @@ static int bh1780_runtime_resume(struct device *dev)
 	int ret;
 
 	ret = bh1780_write(bh1780, BH1780_REG_CONTROL, BH1780_PON);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to runtime resume\n");
 		return ret;
 	}
@@ -259,14 +305,16 @@ static int bh1780_runtime_resume(struct device *dev)
 }
 #endif /* CONFIG_PM */
 
-static const struct dev_pm_ops bh1780_dev_pm_ops = {
+static const struct dev_pm_ops bh1780_dev_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-				pm_runtime_force_resume)
+	pm_runtime_force_resume)
 	SET_RUNTIME_PM_OPS(bh1780_runtime_suspend,
-			   bh1780_runtime_resume, NULL)
+	bh1780_runtime_resume, NULL)
 };
 
-static const struct i2c_device_id bh1780_id[] = {
+static const struct i2c_device_id bh1780_id[] =
+{
 	{ "bh1780", 0 },
 	{ },
 };
@@ -274,14 +322,16 @@ static const struct i2c_device_id bh1780_id[] = {
 MODULE_DEVICE_TABLE(i2c, bh1780_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id of_bh1780_match[] = {
+static const struct of_device_id of_bh1780_match[] =
+{
 	{ .compatible = "rohm,bh1780gli", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, of_bh1780_match);
 #endif
 
-static struct i2c_driver bh1780_driver = {
+static struct i2c_driver bh1780_driver =
+{
 	.probe		= bh1780_probe,
 	.remove		= bh1780_remove,
 	.id_table	= bh1780_id,

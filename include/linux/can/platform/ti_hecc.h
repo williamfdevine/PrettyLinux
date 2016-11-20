@@ -32,7 +32,8 @@
  * this structure also accounts the fact that the IP may have different
  * RAM and mailbox offsets for different SOC's
  */
-struct ti_hecc_platform_data {
+struct ti_hecc_platform_data
+{
 	u32 scc_hecc_offset;
 	u32 scc_ram_offset;
 	u32 hecc_ram_offset;

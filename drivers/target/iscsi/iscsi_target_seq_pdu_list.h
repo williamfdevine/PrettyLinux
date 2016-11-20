@@ -41,14 +41,16 @@
 #define ISCSI_PDU_READ				0x01
 #define ISCSI_PDU_WRITE				0x02
 
-struct iscsi_build_list {
+struct iscsi_build_list
+{
 	int		data_direction;
 	int		randomize;
 	int		type;
 	int		immediate_data_length;
 };
 
-struct iscsi_pdu {
+struct iscsi_pdu
+{
 	int		status;
 	int		type;
 	u8		flags;
@@ -59,7 +61,8 @@ struct iscsi_pdu {
 	u32		seq_no;
 } ____cacheline_aligned;
 
-struct iscsi_seq {
+struct iscsi_seq
+{
 	int		sent;
 	int		status;
 	int		type;

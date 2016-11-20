@@ -71,9 +71,10 @@ struct dma_buf_attachment;
  *	  address space. Same restrictions as for vmap and friends apply.
  * @vunmap: [optional] unmaps a vmap from the buffer
  */
-struct dma_buf_ops {
+struct dma_buf_ops
+{
 	int (*attach)(struct dma_buf *, struct device *,
-			struct dma_buf_attachment *);
+				  struct dma_buf_attachment *);
 
 	void (*detach)(struct dma_buf *, struct dma_buf_attachment *);
 
@@ -81,11 +82,11 @@ struct dma_buf_ops {
 	 * required should get added to device_dma_parameters accessible
 	 * via dev->dma_params.
 	 */
-	struct sg_table * (*map_dma_buf)(struct dma_buf_attachment *,
-						enum dma_data_direction);
+	struct sg_table *(*map_dma_buf)(struct dma_buf_attachment *,
+									enum dma_data_direction);
 	void (*unmap_dma_buf)(struct dma_buf_attachment *,
-						struct sg_table *,
-						enum dma_data_direction);
+						  struct sg_table *,
+						  enum dma_data_direction);
 	/* TODO: Add try_map_dma_buf version, to return immed with -EBUSY
 	 * if the call would block.
 	 */
@@ -125,7 +126,8 @@ struct dma_buf_ops {
  * @cb_excl: for userspace poll support
  * @cb_shared: for userspace poll support
  */
-struct dma_buf {
+struct dma_buf
+{
 	size_t size;
 	struct file *file;
 	struct list_head attachments;
@@ -142,7 +144,8 @@ struct dma_buf {
 	/* poll support */
 	wait_queue_head_t poll;
 
-	struct dma_buf_poll_cb_t {
+	struct dma_buf_poll_cb_t
+	{
 		struct fence_cb cb;
 		wait_queue_head_t *poll;
 
@@ -161,7 +164,8 @@ struct dma_buf {
  * and its user device(s). The list contains one attachment struct per device
  * attached to the buffer.
  */
-struct dma_buf_attachment {
+struct dma_buf_attachment
+{
 	struct dma_buf *dmabuf;
 	struct device *dev;
 	struct list_head node;
@@ -181,7 +185,8 @@ struct dma_buf_attachment {
  * This structure holds the information required to export the buffer. Used
  * with dma_buf_export() only.
  */
-struct dma_buf_export_info {
+struct dma_buf_export_info
+{
 	const char *exp_name;
 	struct module *owner;
 	const struct dma_buf_ops *ops;
@@ -198,7 +203,7 @@ struct dma_buf_export_info {
  */
 #define DEFINE_DMA_BUF_EXPORT_INFO(name)	\
 	struct dma_buf_export_info name = { .exp_name = KBUILD_MODNAME, \
-					 .owner = THIS_MODULE }
+				.owner = THIS_MODULE }
 
 /**
  * get_dma_buf - convenience wrapper for get_file.
@@ -215,9 +220,9 @@ static inline void get_dma_buf(struct dma_buf *dmabuf)
 }
 
 struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-							struct device *dev);
+		struct device *dev);
 void dma_buf_detach(struct dma_buf *dmabuf,
-				struct dma_buf_attachment *dmabuf_attach);
+					struct dma_buf_attachment *dmabuf_attach);
 
 struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info);
 
@@ -226,20 +231,20 @@ struct dma_buf *dma_buf_get(int fd);
 void dma_buf_put(struct dma_buf *dmabuf);
 
 struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
-					enum dma_data_direction);
+										enum dma_data_direction);
 void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
-				enum dma_data_direction);
+							  enum dma_data_direction);
 int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
-			     enum dma_data_direction dir);
+							 enum dma_data_direction dir);
 int dma_buf_end_cpu_access(struct dma_buf *dma_buf,
-			   enum dma_data_direction dir);
+						   enum dma_data_direction dir);
 void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long);
 void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long, void *);
 void *dma_buf_kmap(struct dma_buf *, unsigned long);
 void dma_buf_kunmap(struct dma_buf *, unsigned long, void *);
 
 int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
-		 unsigned long);
+				 unsigned long);
 void *dma_buf_vmap(struct dma_buf *);
 void dma_buf_vunmap(struct dma_buf *, void *vaddr);
 #endif /* __DMA_BUF_H__ */

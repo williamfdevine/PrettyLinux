@@ -43,7 +43,8 @@
 /* this instruction types
    needs to be reallocated when load
    code into DSP */
-enum wide_opcode {
+enum wide_opcode
+{
 	WIDE_FOR_BEGIN_LOOP = 0x20,
 	WIDE_FOR_BEGIN_LOOP2,
 
@@ -189,9 +190,9 @@ enum wide_opcode {
 static inline u8 _wrap_all_bits (u8 val)
 {
 	u8 wrapped;
-	
+
 	/* wrap all 8 bits */
-	wrapped = 
+	wrapped =
 		((val & 0x1 ) << 7) |
 		((val & 0x2 ) << 5) |
 		((val & 0x4 ) << 3) |
@@ -204,20 +205,20 @@ static inline u8 _wrap_all_bits (u8 val)
 	return wrapped;
 }
 
-static inline void cs46xx_dsp_spos_update_scb (struct snd_cs46xx * chip,
-					       struct dsp_scb_descriptor * scb) 
+static inline void cs46xx_dsp_spos_update_scb (struct snd_cs46xx *chip,
+		struct dsp_scb_descriptor *scb)
 {
 	/* update nextSCB and subListPtr in SCB */
 	snd_cs46xx_poke(chip,
-			(scb->address + SCBsubListPtr) << 2,
-			(scb->sub_list_ptr->address << 0x10) |
-			(scb->next_scb_ptr->address));	
+					(scb->address + SCBsubListPtr) << 2,
+					(scb->sub_list_ptr->address << 0x10) |
+					(scb->next_scb_ptr->address));
 	scb->updated = 1;
 }
 
-static inline void cs46xx_dsp_scb_set_volume (struct snd_cs46xx * chip,
-					      struct dsp_scb_descriptor * scb,
-					      u16 left, u16 right)
+static inline void cs46xx_dsp_scb_set_volume (struct snd_cs46xx *chip,
+		struct dsp_scb_descriptor *scb,
+		u16 left, u16 right)
 {
 	unsigned int val = ((0xffff - left) << 16 | (0xffff - right));
 

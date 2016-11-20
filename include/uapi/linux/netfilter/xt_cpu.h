@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct xt_cpu_info {
+struct xt_cpu_info
+{
 	__u32	cpu;
 	__u32	invert;
 };

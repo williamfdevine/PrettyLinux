@@ -30,7 +30,8 @@
 #include "stb6000.h"
 #include "stv0288.h"
 
-static u8 stv0288_bsbe1_d01a_inittab[] = {
+static u8 stv0288_bsbe1_d01a_inittab[] =
+{
 	0x01, 0x15,
 	0x02, 0x20,
 	0x09, 0x0,
@@ -137,7 +138,8 @@ static u8 stv0288_bsbe1_d01a_inittab[] = {
 	0xff, 0xff,
 };
 
-static struct stv0288_config stv0288_bsbe1_d01a_config = {
+static struct stv0288_config stv0288_bsbe1_d01a_config =
+{
 	.demod_address = 0x68,
 	.min_delay_ms = 100,
 	.inittab = stv0288_bsbe1_d01a_inittab,

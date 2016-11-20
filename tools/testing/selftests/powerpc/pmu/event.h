@@ -12,12 +12,14 @@
 #include "utils.h"
 
 
-struct event {
+struct event
+{
 	struct perf_event_attr attr;
 	char *name;
 	int fd;
 	/* This must match the read_format we use */
-	struct {
+	struct
+	{
 		u64 value;
 		u64 running;
 		u64 enabled;

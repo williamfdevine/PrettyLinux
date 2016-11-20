@@ -32,7 +32,7 @@
 #include "omapfb.h"
 
 static int htcherald_panel_init(struct lcd_panel *panel,
-					struct omapfb_device *fbdev)
+								struct omapfb_device *fbdev)
 {
 	return 0;
 }
@@ -56,12 +56,13 @@ static unsigned long htcherald_panel_get_caps(struct lcd_panel *panel)
 }
 
 /* Found on WIZ200 (miknix) and some HERA110 models (darkstar62) */
-struct lcd_panel htcherald_panel_1 = {
+struct lcd_panel htcherald_panel_1 =
+{
 	.name		= "lcd_herald",
 	.config		= OMAP_LCDC_PANEL_TFT |
-			  OMAP_LCDC_INV_HSYNC |
-			  OMAP_LCDC_INV_VSYNC |
-			  OMAP_LCDC_INV_PIX_CLOCK,
+	OMAP_LCDC_INV_HSYNC |
+	OMAP_LCDC_INV_VSYNC |
+	OMAP_LCDC_INV_PIX_CLOCK,
 	.bpp		= 16,
 	.data_lines	= 16,
 	.x_res		= 240,
@@ -94,7 +95,7 @@ static int htcherald_panel_remove(struct platform_device *pdev)
 }
 
 static int htcherald_panel_suspend(struct platform_device *pdev,
-						pm_message_t mesg)
+								   pm_message_t mesg)
 {
 	return 0;
 }
@@ -104,7 +105,8 @@ static int htcherald_panel_resume(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver htcherald_panel_driver = {
+static struct platform_driver htcherald_panel_driver =
+{
 	.probe		= htcherald_panel_probe,
 	.remove		= htcherald_panel_remove,
 	.suspend	= htcherald_panel_suspend,

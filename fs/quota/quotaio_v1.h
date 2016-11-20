@@ -17,7 +17,8 @@
  * (as it appears on disk) - the file is an array of these structures
  * indexed by user or group number.
  */
-struct v1_disk_dqblk {
+struct v1_disk_dqblk
+{
 	__u32 dqb_bhardlimit;	/* absolute limit on disk blks alloc */
 	__u32 dqb_bsoftlimit;	/* preferred limit on disk blks */
 	__u32 dqb_curblocks;	/* current block count */

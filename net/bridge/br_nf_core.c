@@ -22,16 +22,16 @@
 
 #include "br_private.h"
 #ifdef CONFIG_SYSCTL
-#include <linux/sysctl.h>
+	#include <linux/sysctl.h>
 #endif
 
 static void fake_update_pmtu(struct dst_entry *dst, struct sock *sk,
-			     struct sk_buff *skb, u32 mtu)
+							 struct sk_buff *skb, u32 mtu)
 {
 }
 
 static void fake_redirect(struct dst_entry *dst, struct sock *sk,
-			  struct sk_buff *skb)
+						  struct sk_buff *skb)
 {
 }
 
@@ -41,8 +41,8 @@ static u32 *fake_cow_metrics(struct dst_entry *dst, unsigned long old)
 }
 
 static struct neighbour *fake_neigh_lookup(const struct dst_entry *dst,
-					   struct sk_buff *skb,
-					   const void *daddr)
+		struct sk_buff *skb,
+		const void *daddr)
 {
 	return NULL;
 }
@@ -52,7 +52,8 @@ static unsigned int fake_mtu(const struct dst_entry *dst)
 	return dst->dev->mtu;
 }
 
-static struct dst_ops fake_dst_ops = {
+static struct dst_ops fake_dst_ops =
+{
 	.family		= AF_INET,
 	.update_pmtu	= fake_update_pmtu,
 	.redirect	= fake_redirect,
@@ -68,7 +69,8 @@ static struct dst_ops fake_dst_ops = {
  * ipt_REJECT needs it.  Future netfilter modules might
  * require us to fill additional fields.
  */
-static const u32 br_dst_default_metrics[RTAX_MAX] = {
+static const u32 br_dst_default_metrics[RTAX_MAX] =
+{
 	[RTAX_MTU - 1] = 1500,
 };
 

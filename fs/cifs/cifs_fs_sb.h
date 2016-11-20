@@ -51,7 +51,8 @@
 					      */
 #define CIFS_MOUNT_UID_FROM_ACL 0x2000000 /* try to get UID via special SID */
 
-struct cifs_sb_info {
+struct cifs_sb_info
+{
 	struct rb_root tlink_tree;
 	spinlock_t tlink_tree_lock;
 	struct tcon_link *master_tlink;

@@ -218,25 +218,29 @@
 #define	CFO_THRESHOLD_XTAL			10 /* kHz */
 #define	CFO_THRESHOLD_ATC			80 /* kHz */
 
-enum dm_1r_cca_e {
+enum dm_1r_cca_e
+{
 	CCA_1R		= 0,
 	CCA_2R		= 1,
 	CCA_MAX		= 2,
 };
 
-enum dm_rf_e {
+enum dm_rf_e
+{
 	RF_SAVE		= 0,
 	RF_NORMAL	= 1,
 	RF_MAX		= 2,
 };
 
-enum dm_sw_ant_switch_e {
+enum dm_sw_ant_switch_e
+{
 	ANS_ANTENNA_B	= 1,
 	ANS_ANTENNA_A	= 2,
 	ANS_ANTENNA_MAX	= 3,
 };
 
-enum pwr_track_control_method {
+enum pwr_track_control_method
+{
 	BBSWING,
 	TXAGC
 };
@@ -248,14 +252,14 @@ enum pwr_track_control_method {
 #define BT_RSSI_STATE_TXPOWER_LOW       BIT_OFFSET_LEN_MASK_32(4, 1)
 #define GET_UNDECORATED_AVERAGE_RSSI(_priv)     \
 	((((struct rtl_priv *)(_priv))->mac80211.opmode == \
-		NL80211_IFTYPE_ADHOC) ? \
-	(((struct rtl_priv *)(_priv))->dm.entry_min_undecoratedsmoothed_pwdb) :\
-	(((struct rtl_priv *)(_priv))->dm.undecorated_smoothed_pwdb))
+	  NL80211_IFTYPE_ADHOC) ? \
+	 (((struct rtl_priv *)(_priv))->dm.entry_min_undecoratedsmoothed_pwdb) :\
+	 (((struct rtl_priv *)(_priv))->dm.undecorated_smoothed_pwdb))
 
 void rtl8723be_dm_set_tx_ant_by_tx_info(struct ieee80211_hw *hw, u8 *pdesc,
-					u32 mac_id);
+										u32 mac_id);
 void rtl8723be_dm_ant_sel_statistics(struct ieee80211_hw *hw, u8 antsel_tr_mux,
-				     u32 mac_id, u32 rx_pwdb_all);
+									 u32 mac_id, u32 rx_pwdb_all);
 void rtl8723be_dm_fast_antenna_training_callback(unsigned long data);
 void rtl8723be_dm_init(struct ieee80211_hw *hw);
 void rtl8723be_dm_watchdog(struct ieee80211_hw *hw);
@@ -263,5 +267,5 @@ void rtl8723be_dm_write_dig(struct ieee80211_hw *hw, u8 current_igi);
 void rtl8723be_dm_check_txpower_tracking(struct ieee80211_hw *hw);
 void rtl8723be_dm_init_rate_adaptive_mask(struct ieee80211_hw *hw);
 void rtl8723be_dm_txpower_track_adjust(struct ieee80211_hw *hw, u8 type,
-				       u8 *pdirection, u32 *poutwrite_val);
+									   u8 *pdirection, u32 *poutwrite_val);
 #endif

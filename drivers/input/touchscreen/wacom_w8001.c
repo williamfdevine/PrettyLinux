@@ -54,7 +54,8 @@ MODULE_LICENSE("GPL");
 #define W8001_PEN_RESOLUTION    100
 #define W8001_TOUCH_RESOLUTION  10
 
-struct w8001_coord {
+struct w8001_coord
+{
 	u8 rdy;
 	u8 tsw;
 	u8 f1;
@@ -67,7 +68,8 @@ struct w8001_coord {
 };
 
 /* touch query reply packet */
-struct w8001_touch_query {
+struct w8001_touch_query
+{
 	u16 x;
 	u16 y;
 	u8 panel_res;
@@ -79,7 +81,8 @@ struct w8001_touch_query {
  * Per-touchscreen data.
  */
 
-struct w8001 {
+struct w8001
+{
 	struct input_dev *pen_dev;
 	struct input_dev *touch_dev;
 	struct serio *serio;
@@ -134,13 +137,17 @@ static void parse_single_touch(u8 *data, struct w8001_coord *coord)
 }
 
 static void scale_touch_coordinates(struct w8001 *w8001,
-				    unsigned int *x, unsigned int *y)
+									unsigned int *x, unsigned int *y)
 {
 	if (w8001->max_pen_x && w8001->max_touch_x)
+	{
 		*x = *x * w8001->max_pen_x / w8001->max_touch_x;
+	}
 
 	if (w8001->max_pen_y && w8001->max_touch_y)
+	{
 		*y = *y * w8001->max_pen_y / w8001->max_touch_y;
+	}
 }
 
 static void parse_multi_touch(struct w8001 *w8001)
@@ -151,12 +158,15 @@ static void parse_multi_touch(struct w8001 *w8001)
 	int i;
 	int count = 0;
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		bool touch = data[0] & (1 << i);
 
 		input_mt_slot(dev, i);
 		input_mt_report_slot_state(dev, MT_TOOL_FINGER, touch);
-		if (touch) {
+
+		if (touch)
+		{
 			x = (data[6 * i + 1] << 7) | data[6 * i + 2];
 			y = (data[6 * i + 3] << 7) | data[6 * i + 4];
 			/* data[5,6] and [11,12] is finger capacity */
@@ -175,7 +185,8 @@ static void parse_multi_touch(struct w8001 *w8001)
 	 * across all Wacom single touch devices.
 	 */
 	if (w8001->type != BTN_TOOL_PEN &&
-			    w8001->type != BTN_TOOL_RUBBER) {
+		w8001->type != BTN_TOOL_RUBBER)
+	{
 		w8001->type = count == 1 ? BTN_TOOL_FINGER : KEY_RESERVED;
 		input_mt_report_pointer_emulation(dev, true);
 	}
@@ -200,11 +211,16 @@ static void parse_touchquery(u8 *data, struct w8001_touch_query *query)
 	query->y |= (data[2] >> 3) & 0x3;
 
 	/* Early days' single-finger touch models need the following defaults */
-	if (!query->x && !query->y) {
+	if (!query->x && !query->y)
+	{
 		query->x = 1024;
 		query->y = 1024;
+
 		if (query->panel_res)
+		{
 			query->x = query->y = (1 << query->panel_res);
+		}
+
 		query->panel_res = W8001_TOUCH_RESOLUTION;
 	}
 }
@@ -223,27 +239,30 @@ static void report_pen_events(struct w8001 *w8001, struct w8001_coord *coord)
 	 * eraser and in for pen.
 	 */
 
-	switch (w8001->type) {
-	case BTN_TOOL_RUBBER:
-		if (!coord->f2) {
-			input_report_abs(dev, ABS_PRESSURE, 0);
-			input_report_key(dev, BTN_TOUCH, 0);
-			input_report_key(dev, BTN_STYLUS, 0);
-			input_report_key(dev, BTN_STYLUS2, 0);
-			input_report_key(dev, BTN_TOOL_RUBBER, 0);
-			input_sync(dev);
-			w8001->type = BTN_TOOL_PEN;
-		}
-		break;
+	switch (w8001->type)
+	{
+		case BTN_TOOL_RUBBER:
+			if (!coord->f2)
+			{
+				input_report_abs(dev, ABS_PRESSURE, 0);
+				input_report_key(dev, BTN_TOUCH, 0);
+				input_report_key(dev, BTN_STYLUS, 0);
+				input_report_key(dev, BTN_STYLUS2, 0);
+				input_report_key(dev, BTN_TOOL_RUBBER, 0);
+				input_sync(dev);
+				w8001->type = BTN_TOOL_PEN;
+			}
 
-	case BTN_TOOL_FINGER:
-	case KEY_RESERVED:
-		w8001->type = coord->f2 ? BTN_TOOL_RUBBER : BTN_TOOL_PEN;
-		break;
+			break;
 
-	default:
-		input_report_key(dev, BTN_STYLUS2, coord->f2);
-		break;
+		case BTN_TOOL_FINGER:
+		case KEY_RESERVED:
+			w8001->type = coord->f2 ? BTN_TOOL_RUBBER : BTN_TOOL_PEN;
+			break;
+
+		default:
+			input_report_key(dev, BTN_STYLUS2, coord->f2);
+			break;
 	}
 
 	input_report_abs(dev, ABS_X, coord->x);
@@ -255,7 +274,9 @@ static void report_pen_events(struct w8001 *w8001, struct w8001_coord *coord)
 	input_sync(dev);
 
 	if (!coord->rdy)
+	{
 		w8001->type = KEY_RESERVED;
+	}
 }
 
 static void report_single_touch(struct w8001 *w8001, struct w8001_coord *coord)
@@ -277,85 +298,108 @@ static void report_single_touch(struct w8001 *w8001, struct w8001_coord *coord)
 }
 
 static irqreturn_t w8001_interrupt(struct serio *serio,
-				   unsigned char data, unsigned int flags)
+								   unsigned char data, unsigned int flags)
 {
 	struct w8001 *w8001 = serio_get_drvdata(serio);
 	struct w8001_coord coord;
 	unsigned char tmp;
 
 	w8001->data[w8001->idx] = data;
-	switch (w8001->idx++) {
-	case 0:
-		if ((data & W8001_LEAD_MASK) != W8001_LEAD_BYTE) {
-			pr_debug("w8001: unsynchronized data: 0x%02x\n", data);
-			w8001->idx = 0;
-		}
-		break;
 
-	case W8001_PKTLEN_TOUCH93 - 1:
-	case W8001_PKTLEN_TOUCH9A - 1:
-		tmp = w8001->data[0] & W8001_TOUCH_BYTE;
-		if (tmp != W8001_TOUCH_BYTE)
-			break;
-
-		if (w8001->pktlen == w8001->idx) {
-			w8001->idx = 0;
-			if (w8001->type != BTN_TOOL_PEN &&
-			    w8001->type != BTN_TOOL_RUBBER) {
-				parse_single_touch(w8001->data, &coord);
-				report_single_touch(w8001, &coord);
+	switch (w8001->idx++)
+	{
+		case 0:
+			if ((data & W8001_LEAD_MASK) != W8001_LEAD_BYTE)
+			{
+				pr_debug("w8001: unsynchronized data: 0x%02x\n", data);
+				w8001->idx = 0;
 			}
-		}
-		break;
 
-	/* Pen coordinates packet */
-	case W8001_PKTLEN_TPCPEN - 1:
-		tmp = w8001->data[0] & W8001_TAB_MASK;
-		if (unlikely(tmp == W8001_TAB_BYTE))
 			break;
 
-		tmp = w8001->data[0] & W8001_TOUCH_BYTE;
-		if (tmp == W8001_TOUCH_BYTE)
+		case W8001_PKTLEN_TOUCH93 - 1:
+		case W8001_PKTLEN_TOUCH9A - 1:
+			tmp = w8001->data[0] & W8001_TOUCH_BYTE;
+
+			if (tmp != W8001_TOUCH_BYTE)
+			{
+				break;
+			}
+
+			if (w8001->pktlen == w8001->idx)
+			{
+				w8001->idx = 0;
+
+				if (w8001->type != BTN_TOOL_PEN &&
+					w8001->type != BTN_TOOL_RUBBER)
+				{
+					parse_single_touch(w8001->data, &coord);
+					report_single_touch(w8001, &coord);
+				}
+			}
+
 			break;
 
-		w8001->idx = 0;
-		parse_pen_data(w8001->data, &coord);
-		report_pen_events(w8001, &coord);
-		break;
+		/* Pen coordinates packet */
+		case W8001_PKTLEN_TPCPEN - 1:
+			tmp = w8001->data[0] & W8001_TAB_MASK;
 
-	/* control packet */
-	case W8001_PKTLEN_TPCCTL - 1:
-		tmp = w8001->data[0] & W8001_TOUCH_MASK;
-		if (tmp == W8001_TOUCH_BYTE)
-			break;
+			if (unlikely(tmp == W8001_TAB_BYTE))
+			{
+				break;
+			}
 
-		w8001->idx = 0;
-		memcpy(w8001->response, w8001->data, W8001_MAX_LENGTH);
-		w8001->response_type = W8001_QUERY_PACKET;
-		complete(&w8001->cmd_done);
-		break;
+			tmp = w8001->data[0] & W8001_TOUCH_BYTE;
 
-	/* 2 finger touch packet */
-	case W8001_PKTLEN_TOUCH2FG - 1:
-		w8001->idx = 0;
-		parse_multi_touch(w8001);
-		break;
+			if (tmp == W8001_TOUCH_BYTE)
+			{
+				break;
+			}
 
-	default:
-		/*
-		 * ThinkPad X60 Tablet PC (pen only device) sometimes
-		 * sends invalid data packets that are larger than
-		 * W8001_PKTLEN_TPCPEN. Let's start over again.
-		 */
-		if (!w8001->touch_dev && w8001->idx > W8001_PKTLEN_TPCPEN - 1)
 			w8001->idx = 0;
+			parse_pen_data(w8001->data, &coord);
+			report_pen_events(w8001, &coord);
+			break;
+
+		/* control packet */
+		case W8001_PKTLEN_TPCCTL - 1:
+			tmp = w8001->data[0] & W8001_TOUCH_MASK;
+
+			if (tmp == W8001_TOUCH_BYTE)
+			{
+				break;
+			}
+
+			w8001->idx = 0;
+			memcpy(w8001->response, w8001->data, W8001_MAX_LENGTH);
+			w8001->response_type = W8001_QUERY_PACKET;
+			complete(&w8001->cmd_done);
+			break;
+
+		/* 2 finger touch packet */
+		case W8001_PKTLEN_TOUCH2FG - 1:
+			w8001->idx = 0;
+			parse_multi_touch(w8001);
+			break;
+
+		default:
+
+			/*
+			 * ThinkPad X60 Tablet PC (pen only device) sometimes
+			 * sends invalid data packets that are larger than
+			 * W8001_PKTLEN_TPCPEN. Let's start over again.
+			 */
+			if (!w8001->touch_dev && w8001->idx > W8001_PKTLEN_TPCPEN - 1)
+			{
+				w8001->idx = 0;
+			}
 	}
 
 	return IRQ_HANDLED;
 }
 
 static int w8001_command(struct w8001 *w8001, unsigned char command,
-			 bool wait_response)
+						 bool wait_response)
 {
 	int rc;
 
@@ -363,11 +407,16 @@ static int w8001_command(struct w8001 *w8001, unsigned char command,
 	init_completion(&w8001->cmd_done);
 
 	rc = serio_write(w8001->serio, command);
-	if (rc == 0 && wait_response) {
+
+	if (rc == 0 && wait_response)
+	{
 
 		wait_for_completion_timeout(&w8001->cmd_done, HZ);
+
 		if (w8001->response_type != W8001_QUERY_PACKET)
+		{
 			rc = -EIO;
+		}
 	}
 
 	return rc;
@@ -379,13 +428,20 @@ static int w8001_open(struct input_dev *dev)
 	int err;
 
 	err = mutex_lock_interruptible(&w8001->mutex);
-	if (err)
-		return err;
 
-	if (w8001->open_count++ == 0) {
+	if (err)
+	{
+		return err;
+	}
+
+	if (w8001->open_count++ == 0)
+	{
 		err = w8001_command(w8001, W8001_CMD_START, false);
+
 		if (err)
+		{
 			w8001->open_count--;
+		}
 	}
 
 	mutex_unlock(&w8001->mutex);
@@ -399,7 +455,9 @@ static void w8001_close(struct input_dev *dev)
 	mutex_lock(&w8001->mutex);
 
 	if (--w8001->open_count == 0)
+	{
 		w8001_command(w8001, W8001_CMD_STOP, false);
+	}
 
 	mutex_unlock(&w8001->mutex);
 }
@@ -409,8 +467,11 @@ static int w8001_detect(struct w8001 *w8001)
 	int error;
 
 	error = w8001_command(w8001, W8001_CMD_STOP, false);
+
 	if (error)
+	{
 		return error;
+	}
 
 	msleep(250);	/* wait 250ms before querying the device */
 
@@ -418,7 +479,7 @@ static int w8001_detect(struct w8001 *w8001)
 }
 
 static int w8001_setup_pen(struct w8001 *w8001, char *basename,
-			   size_t basename_sz)
+						   size_t basename_sz)
 {
 	struct input_dev *dev = w8001->pen_dev;
 	struct w8001_coord coord;
@@ -426,8 +487,11 @@ static int w8001_setup_pen(struct w8001 *w8001, char *basename,
 
 	/* penabled? */
 	error = w8001_command(w8001, W8001_CMD_QUERY, true);
+
 	if (error)
+	{
 		return error;
+	}
 
 	__set_bit(EV_KEY, dev->evbit);
 	__set_bit(EV_ABS, dev->evbit);
@@ -447,7 +511,9 @@ static int w8001_setup_pen(struct w8001 *w8001, char *basename,
 	input_abs_set_res(dev, ABS_X, W8001_PEN_RESOLUTION);
 	input_abs_set_res(dev, ABS_Y, W8001_PEN_RESOLUTION);
 	input_set_abs_params(dev, ABS_PRESSURE, 0, coord.pen_pressure, 0, 0);
-	if (coord.tilt_x && coord.tilt_y) {
+
+	if (coord.tilt_x && coord.tilt_y)
+	{
 		input_set_abs_params(dev, ABS_TILT_X, 0, coord.tilt_x, 0, 0);
 		input_set_abs_params(dev, ABS_TILT_Y, 0, coord.tilt_y, 0, 0);
 	}
@@ -459,7 +525,7 @@ static int w8001_setup_pen(struct w8001 *w8001, char *basename,
 }
 
 static int w8001_setup_touch(struct w8001 *w8001, char *basename,
-			     size_t basename_sz)
+							 size_t basename_sz)
 {
 	struct input_dev *dev = w8001->touch_dev;
 	struct w8001_touch_query touch;
@@ -468,14 +534,20 @@ static int w8001_setup_touch(struct w8001 *w8001, char *basename,
 
 	/* Touch enabled? */
 	error = w8001_command(w8001, W8001_CMD_TOUCHQUERY, true);
+
 	if (error)
+	{
 		return error;
+	}
+
 	/*
 	 * Some non-touch devices may reply to the touch query. But their
 	 * second byte is empty, which indicates touch is not supported.
 	 */
 	if (!w8001->response[1])
+	{
 		return -ENXIO;
+	}
 
 	__set_bit(EV_KEY, dev->evbit);
 	__set_bit(EV_ABS, dev->evbit);
@@ -486,7 +558,8 @@ static int w8001_setup_touch(struct w8001 *w8001, char *basename,
 	w8001->max_touch_x = touch.x;
 	w8001->max_touch_y = touch.y;
 
-	if (w8001->max_pen_x && w8001->max_pen_y) {
+	if (w8001->max_pen_x && w8001->max_pen_y)
+	{
 		/* if pen is supported scale to pen maximum */
 		touch.x = w8001->max_pen_x;
 		touch.y = w8001->max_pen_y;
@@ -498,48 +571,57 @@ static int w8001_setup_touch(struct w8001 *w8001, char *basename,
 	input_abs_set_res(dev, ABS_X, touch.panel_res);
 	input_abs_set_res(dev, ABS_Y, touch.panel_res);
 
-	switch (touch.sensor_id) {
-	case 0:
-	case 2:
-		w8001->pktlen = W8001_PKTLEN_TOUCH93;
-		w8001->id = 0x93;
-		strlcat(basename, " 1FG", basename_sz);
-		break;
+	switch (touch.sensor_id)
+	{
+		case 0:
+		case 2:
+			w8001->pktlen = W8001_PKTLEN_TOUCH93;
+			w8001->id = 0x93;
+			strlcat(basename, " 1FG", basename_sz);
+			break;
 
-	case 1:
-	case 3:
-	case 4:
-		w8001->pktlen = W8001_PKTLEN_TOUCH9A;
-		strlcat(basename, " 1FG", basename_sz);
-		w8001->id = 0x9a;
-		break;
+		case 1:
+		case 3:
+		case 4:
+			w8001->pktlen = W8001_PKTLEN_TOUCH9A;
+			strlcat(basename, " 1FG", basename_sz);
+			w8001->id = 0x9a;
+			break;
 
-	case 5:
-		w8001->pktlen = W8001_PKTLEN_TOUCH2FG;
+		case 5:
+			w8001->pktlen = W8001_PKTLEN_TOUCH2FG;
 
-		__set_bit(BTN_TOOL_DOUBLETAP, dev->keybit);
-		error = input_mt_init_slots(dev, 2, 0);
-		if (error) {
-			dev_err(&w8001->serio->dev,
-				"failed to initialize MT slots: %d\n", error);
-			return error;
-		}
+			__set_bit(BTN_TOOL_DOUBLETAP, dev->keybit);
+			error = input_mt_init_slots(dev, 2, 0);
 
-		input_set_abs_params(dev, ABS_MT_POSITION_X,
-					0, touch.x, 0, 0);
-		input_set_abs_params(dev, ABS_MT_POSITION_Y,
-					0, touch.y, 0, 0);
-		input_set_abs_params(dev, ABS_MT_TOOL_TYPE,
-					0, MT_TOOL_MAX, 0, 0);
-		input_abs_set_res(dev, ABS_MT_POSITION_X, touch.panel_res);
-		input_abs_set_res(dev, ABS_MT_POSITION_Y, touch.panel_res);
+			if (error)
+			{
+				dev_err(&w8001->serio->dev,
+						"failed to initialize MT slots: %d\n", error);
+				return error;
+			}
 
-		strlcat(basename, " 2FG", basename_sz);
-		if (w8001->max_pen_x && w8001->max_pen_y)
-			w8001->id = 0xE3;
-		else
-			w8001->id = 0xE2;
-		break;
+			input_set_abs_params(dev, ABS_MT_POSITION_X,
+								 0, touch.x, 0, 0);
+			input_set_abs_params(dev, ABS_MT_POSITION_Y,
+								 0, touch.y, 0, 0);
+			input_set_abs_params(dev, ABS_MT_TOOL_TYPE,
+								 0, MT_TOOL_MAX, 0, 0);
+			input_abs_set_res(dev, ABS_MT_POSITION_X, touch.panel_res);
+			input_abs_set_res(dev, ABS_MT_POSITION_Y, touch.panel_res);
+
+			strlcat(basename, " 2FG", basename_sz);
+
+			if (w8001->max_pen_x && w8001->max_pen_y)
+			{
+				w8001->id = 0xE3;
+			}
+			else
+			{
+				w8001->id = 0xE2;
+			}
+
+			break;
 	}
 
 	strlcat(basename, " Touchscreen", basename_sz);
@@ -548,7 +630,7 @@ static int w8001_setup_touch(struct w8001 *w8001, char *basename,
 }
 
 static void w8001_set_devdata(struct input_dev *dev, struct w8001 *w8001,
-			      struct serio *serio)
+							  struct serio *serio)
 {
 	dev->phys = w8001->phys;
 	dev->id.bustype = BUS_RS232;
@@ -574,9 +656,15 @@ static void w8001_disconnect(struct serio *serio)
 	serio_close(serio);
 
 	if (w8001->pen_dev)
+	{
 		input_unregister_device(w8001->pen_dev);
+	}
+
 	if (w8001->touch_dev)
+	{
 		input_unregister_device(w8001->touch_dev);
+	}
+
 	kfree(w8001);
 
 	serio_set_drvdata(serio, NULL);
@@ -599,7 +687,9 @@ static int w8001_connect(struct serio *serio, struct serio_driver *drv)
 	w8001 = kzalloc(sizeof(struct w8001), GFP_KERNEL);
 	input_dev_pen = input_allocate_device();
 	input_dev_touch = input_allocate_device();
-	if (!w8001 || !input_dev_pen || !input_dev_touch) {
+
+	if (!w8001 || !input_dev_pen || !input_dev_touch)
+	{
 		err = -ENOMEM;
 		goto fail1;
 	}
@@ -613,12 +703,18 @@ static int w8001_connect(struct serio *serio, struct serio_driver *drv)
 
 	serio_set_drvdata(serio, w8001);
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	err = w8001_detect(w8001);
+
 	if (err)
+	{
 		goto fail3;
+	}
 
 	/* For backwards-compatibility we compose the basename based on
 	 * capabilities and then just append the tool type
@@ -627,12 +723,15 @@ static int w8001_connect(struct serio *serio, struct serio_driver *drv)
 
 	err_pen = w8001_setup_pen(w8001, basename, sizeof(basename));
 	err_touch = w8001_setup_touch(w8001, basename, sizeof(basename));
-	if (err_pen && err_touch) {
+
+	if (err_pen && err_touch)
+	{
 		err = -ENXIO;
 		goto fail3;
 	}
 
-	if (!err_pen) {
+	if (!err_pen)
+	{
 		strlcpy(w8001->pen_name, basename, sizeof(w8001->pen_name));
 		strlcat(w8001->pen_name, " Pen", sizeof(w8001->pen_name));
 		input_dev_pen->name = w8001->pen_name;
@@ -640,26 +739,37 @@ static int w8001_connect(struct serio *serio, struct serio_driver *drv)
 		w8001_set_devdata(input_dev_pen, w8001, serio);
 
 		err = input_register_device(w8001->pen_dev);
+
 		if (err)
+		{
 			goto fail3;
-	} else {
+		}
+	}
+	else
+	{
 		input_free_device(input_dev_pen);
 		input_dev_pen = NULL;
 		w8001->pen_dev = NULL;
 	}
 
-	if (!err_touch) {
+	if (!err_touch)
+	{
 		strlcpy(w8001->touch_name, basename, sizeof(w8001->touch_name));
 		strlcat(w8001->touch_name, " Finger",
-			sizeof(w8001->touch_name));
+				sizeof(w8001->touch_name));
 		input_dev_touch->name = w8001->touch_name;
 
 		w8001_set_devdata(input_dev_touch, w8001, serio);
 
 		err = input_register_device(w8001->touch_dev);
+
 		if (err)
+		{
 			goto fail4;
-	} else {
+		}
+	}
+	else
+	{
 		input_free_device(input_dev_touch);
 		input_dev_touch = NULL;
 		w8001->touch_dev = NULL;
@@ -668,8 +778,12 @@ static int w8001_connect(struct serio *serio, struct serio_driver *drv)
 	return 0;
 
 fail4:
+
 	if (w8001->pen_dev)
+	{
 		input_unregister_device(w8001->pen_dev);
+	}
+
 fail3:
 	serio_close(serio);
 fail2:
@@ -681,7 +795,8 @@ fail1:
 	return err;
 }
 
-static struct serio_device_id w8001_serio_ids[] = {
+static struct serio_device_id w8001_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_W8001,
@@ -693,7 +808,8 @@ static struct serio_device_id w8001_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, w8001_serio_ids);
 
-static struct serio_driver w8001_drv = {
+static struct serio_driver w8001_drv =
+{
 	.driver		= {
 		.name	= "w8001",
 	},

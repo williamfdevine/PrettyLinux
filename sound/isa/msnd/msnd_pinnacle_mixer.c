@@ -53,9 +53,10 @@
 #define MSND_MASK_DIGITAL	(1 << MSND_MIXER_DIGITAL)
 
 static int snd_msndmix_info_mux(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_info *uinfo)
+								struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[3] = {
+	static const char *const texts[3] =
+	{
 		"Analog", "MASS", "SPDIF",
 	};
 	struct snd_msnd *chip = snd_kcontrol_chip(kcontrol);
@@ -65,16 +66,19 @@ static int snd_msndmix_info_mux(struct snd_kcontrol *kcontrol,
 }
 
 static int snd_msndmix_get_mux(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+							   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_msnd *chip = snd_kcontrol_chip(kcontrol);
 	/* MSND_MASK_IMIX is the default */
 	ucontrol->value.enumerated.item[0] = 0;
 
-	if (chip->recsrc & MSND_MASK_SYNTH) {
+	if (chip->recsrc & MSND_MASK_SYNTH)
+	{
 		ucontrol->value.enumerated.item[0] = 1;
-	} else if ((chip->recsrc & MSND_MASK_DIGITAL) &&
-		 test_bit(F_HAVEDIGITAL, &chip->flags)) {
+	}
+	else if ((chip->recsrc & MSND_MASK_DIGITAL) &&
+			 test_bit(F_HAVEDIGITAL, &chip->flags))
+	{
 		ucontrol->value.enumerated.item[0] = 2;
 	}
 
@@ -88,36 +92,46 @@ static int snd_msndmix_set_mux(struct snd_msnd *chip, int val)
 	int change;
 	unsigned char msndbyte;
 
-	switch (val) {
-	case 0:
-		newrecsrc = MSND_MASK_IMIX;
-		msndbyte = HDEXAR_SET_ANA_IN;
-		break;
-	case 1:
-		newrecsrc = MSND_MASK_SYNTH;
-		msndbyte = HDEXAR_SET_SYNTH_IN;
-		break;
-	case 2:
-		newrecsrc = MSND_MASK_DIGITAL;
-		msndbyte = HDEXAR_SET_DAT_IN;
-		break;
-	default:
-		return -EINVAL;
+	switch (val)
+	{
+		case 0:
+			newrecsrc = MSND_MASK_IMIX;
+			msndbyte = HDEXAR_SET_ANA_IN;
+			break;
+
+		case 1:
+			newrecsrc = MSND_MASK_SYNTH;
+			msndbyte = HDEXAR_SET_SYNTH_IN;
+			break;
+
+		case 2:
+			newrecsrc = MSND_MASK_DIGITAL;
+			msndbyte = HDEXAR_SET_DAT_IN;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	change  = newrecsrc != chip->recsrc;
-	if (change) {
+
+	if (change)
+	{
 		change = 0;
+
 		if (!snd_msnd_send_word(chip, 0, 0, msndbyte))
-			if (!snd_msnd_send_dsp_cmd(chip, HDEX_AUX_REQ)) {
+			if (!snd_msnd_send_dsp_cmd(chip, HDEX_AUX_REQ))
+			{
 				chip->recsrc = newrecsrc;
 				change = 1;
 			}
 	}
+
 	return change;
 }
 
 static int snd_msndmix_put_mux(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+							   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_msnd *msnd = snd_kcontrol_chip(kcontrol);
 	return snd_msndmix_set_mux(msnd, ucontrol->value.enumerated.item[0]);
@@ -125,7 +139,7 @@ static int snd_msndmix_put_mux(struct snd_kcontrol *kcontrol,
 
 
 static int snd_msndmix_volume_info(struct snd_kcontrol *kcontrol,
-				   struct snd_ctl_elem_info *uinfo)
+								   struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 2;
@@ -135,7 +149,7 @@ static int snd_msndmix_volume_info(struct snd_kcontrol *kcontrol,
 }
 
 static int snd_msndmix_volume_get(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+								  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_msnd *msnd = snd_kcontrol_chip(kcontrol);
 	int addr = kcontrol->private_value;
@@ -153,21 +167,21 @@ static int snd_msndmix_volume_get(struct snd_kcontrol *kcontrol,
 #define update_volm(a, b)						\
 	do {								\
 		writew((dev->left_levels[a] >> 1) *			\
-		       readw(dev->SMA + SMA_wCurrMastVolLeft) / 0xffff,	\
-		       dev->SMA + SMA_##b##Left);			\
+			   readw(dev->SMA + SMA_wCurrMastVolLeft) / 0xffff,	\
+			   dev->SMA + SMA_##b##Left);			\
 		writew((dev->right_levels[a] >> 1)  *			\
-		       readw(dev->SMA + SMA_wCurrMastVolRight) / 0xffff, \
-		       dev->SMA + SMA_##b##Right);			\
+			   readw(dev->SMA + SMA_wCurrMastVolRight) / 0xffff, \
+			   dev->SMA + SMA_##b##Right);			\
 	} while (0);
 
 #define update_potm(d, s, ar)						\
 	do {								\
 		writeb((dev->left_levels[d] >> 8) *			\
-		       readw(dev->SMA + SMA_wCurrMastVolLeft) / 0xffff, \
-		       dev->SMA + SMA_##s##Left);			\
+			   readw(dev->SMA + SMA_wCurrMastVolLeft) / 0xffff, \
+			   dev->SMA + SMA_##s##Left);			\
 		writeb((dev->right_levels[d] >> 8) *			\
-		       readw(dev->SMA + SMA_wCurrMastVolRight) / 0xffff, \
-		       dev->SMA + SMA_##s##Right);			\
+			   readw(dev->SMA + SMA_wCurrMastVolRight) / 0xffff, \
+			   dev->SMA + SMA_##s##Right);			\
 		if (snd_msnd_send_word(dev, 0, 0, ar) == 0)		\
 			snd_msnd_send_dsp_cmd(dev, HDEX_AUX_REQ);	\
 	} while (0);
@@ -175,9 +189,9 @@ static int snd_msndmix_volume_get(struct snd_kcontrol *kcontrol,
 #define update_pot(d, s, ar)						\
 	do {								\
 		writeb(dev->left_levels[d] >> 8,			\
-		       dev->SMA + SMA_##s##Left);			\
+			   dev->SMA + SMA_##s##Left);			\
 		writeb(dev->right_levels[d] >> 8,			\
-		       dev->SMA + SMA_##s##Right);			\
+			   dev->SMA + SMA_##s##Right);			\
 		if (snd_msnd_send_word(dev, 0, 0, ar) == 0)		\
 			snd_msnd_send_dsp_cmd(dev, HDEX_AUX_REQ);	\
 	} while (0);
@@ -190,7 +204,9 @@ static int snd_msndmix_set(struct snd_msnd *dev, int d, int left, int right)
 	int updatemaster = 0;
 
 	if (d >= LEVEL_ENTRIES)
+	{
 		return -EINVAL;
+	}
 
 	bLeft = left * 0xff / 100;
 	wLeft = left * 0xffff / 100;
@@ -201,51 +217,72 @@ static int snd_msndmix_set(struct snd_msnd *dev, int d, int left, int right)
 	dev->left_levels[d] = wLeft;
 	dev->right_levels[d] = wRight;
 
-	switch (d) {
+	switch (d)
+	{
 		/* master volume unscaled controls */
-	case MSND_MIXER_LINE:			/* line pot control */
-		/* scaled by IMIX in digital mix */
-		writeb(bLeft, dev->SMA + SMA_bInPotPosLeft);
-		writeb(bRight, dev->SMA + SMA_bInPotPosRight);
-		if (snd_msnd_send_word(dev, 0, 0, HDEXAR_IN_SET_POTS) == 0)
-			snd_msnd_send_dsp_cmd(dev, HDEX_AUX_REQ);
-		break;
-	case MSND_MIXER_MIC:			/* mic pot control */
-		if (dev->type == msndClassic)
-			return -EINVAL;
-		/* scaled by IMIX in digital mix */
-		writeb(bLeft, dev->SMA + SMA_bMicPotPosLeft);
-		writeb(bRight, dev->SMA + SMA_bMicPotPosRight);
-		if (snd_msnd_send_word(dev, 0, 0, HDEXAR_MIC_SET_POTS) == 0)
-			snd_msnd_send_dsp_cmd(dev, HDEX_AUX_REQ);
-		break;
-	case MSND_MIXER_VOLUME:		/* master volume */
-		writew(wLeft, dev->SMA + SMA_wCurrMastVolLeft);
-		writew(wRight, dev->SMA + SMA_wCurrMastVolRight);
+		case MSND_MIXER_LINE:			/* line pot control */
+			/* scaled by IMIX in digital mix */
+			writeb(bLeft, dev->SMA + SMA_bInPotPosLeft);
+			writeb(bRight, dev->SMA + SMA_bInPotPosRight);
+
+			if (snd_msnd_send_word(dev, 0, 0, HDEXAR_IN_SET_POTS) == 0)
+			{
+				snd_msnd_send_dsp_cmd(dev, HDEX_AUX_REQ);
+			}
+
+			break;
+
+		case MSND_MIXER_MIC:			/* mic pot control */
+			if (dev->type == msndClassic)
+			{
+				return -EINVAL;
+			}
+
+			/* scaled by IMIX in digital mix */
+			writeb(bLeft, dev->SMA + SMA_bMicPotPosLeft);
+			writeb(bRight, dev->SMA + SMA_bMicPotPosRight);
+
+			if (snd_msnd_send_word(dev, 0, 0, HDEXAR_MIC_SET_POTS) == 0)
+			{
+				snd_msnd_send_dsp_cmd(dev, HDEX_AUX_REQ);
+			}
+
+			break;
+
+		case MSND_MIXER_VOLUME:		/* master volume */
+			writew(wLeft, dev->SMA + SMA_wCurrMastVolLeft);
+			writew(wRight, dev->SMA + SMA_wCurrMastVolRight);
+
 		/* fall through */
 
-	case MSND_MIXER_AUX:			/* aux pot control */
+		case MSND_MIXER_AUX:			/* aux pot control */
+
 		/* scaled by master volume */
 		/* fall through */
 
 		/* digital controls */
-	case MSND_MIXER_SYNTH:			/* synth vol (dsp mix) */
-	case MSND_MIXER_PCM:			/* pcm vol (dsp mix) */
-	case MSND_MIXER_IMIX:			/* input monitor (dsp mix) */
-		/* scaled by master volume */
-		updatemaster = 1;
-		break;
+		case MSND_MIXER_SYNTH:			/* synth vol (dsp mix) */
+		case MSND_MIXER_PCM:			/* pcm vol (dsp mix) */
+		case MSND_MIXER_IMIX:			/* input monitor (dsp mix) */
+			/* scaled by master volume */
+			updatemaster = 1;
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
-	if (updatemaster) {
+	if (updatemaster)
+	{
 		/* update master volume scaled controls */
 		update_volm(MSND_MIXER_PCM, wCurrPlayVol);
 		update_volm(MSND_MIXER_IMIX, wCurrInVol);
+
 		if (dev->type == msndPinnacle)
+		{
 			update_volm(MSND_MIXER_SYNTH, wCurrMHdrVol);
+		}
+
 		update_potm(MSND_MIXER_AUX, bAuxPotPos, HDEXAR_AUX_SET_POTS);
 	}
 
@@ -253,7 +290,7 @@ static int snd_msndmix_set(struct snd_msnd *dev, int d, int left, int right)
 }
 
 static int snd_msndmix_volume_put(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+								  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_msnd *msnd = snd_kcontrol_chip(kcontrol);
 	int change, addr = kcontrol->private_value;
@@ -264,7 +301,7 @@ static int snd_msndmix_volume_put(struct snd_kcontrol *kcontrol,
 	right = ucontrol->value.integer.value[1] % 101;
 	spin_lock_irqsave(&msnd->mixer_lock, flags);
 	change = msnd->left_levels[addr] != left
-		|| msnd->right_levels[addr] != right;
+			 || msnd->right_levels[addr] != right;
 	snd_msndmix_set(msnd, addr, left, right);
 	spin_unlock_irqrestore(&msnd->mixer_lock, flags);
 	return change;
@@ -272,26 +309,27 @@ static int snd_msndmix_volume_put(struct snd_kcontrol *kcontrol,
 
 
 #define DUMMY_VOLUME(xname, xindex, addr) \
-{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, .index = xindex, \
-  .info = snd_msndmix_volume_info, \
-  .get = snd_msndmix_volume_get, .put = snd_msndmix_volume_put, \
-  .private_value = addr }
+	{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, .index = xindex, \
+				.info = snd_msndmix_volume_info, \
+						.get = snd_msndmix_volume_get, .put = snd_msndmix_volume_put, \
+								.private_value = addr }
 
 
-static struct snd_kcontrol_new snd_msnd_controls[] = {
-DUMMY_VOLUME("Master Volume", 0, MSND_MIXER_VOLUME),
-DUMMY_VOLUME("PCM Volume", 0, MSND_MIXER_PCM),
-DUMMY_VOLUME("Aux Volume", 0, MSND_MIXER_AUX),
-DUMMY_VOLUME("Line Volume", 0, MSND_MIXER_LINE),
-DUMMY_VOLUME("Mic Volume", 0, MSND_MIXER_MIC),
-DUMMY_VOLUME("Monitor",	0, MSND_MIXER_IMIX),
+static struct snd_kcontrol_new snd_msnd_controls[] =
 {
-	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-	.name = "Capture Source",
-	.info = snd_msndmix_info_mux,
-	.get = snd_msndmix_get_mux,
-	.put = snd_msndmix_put_mux,
-}
+	DUMMY_VOLUME("Master Volume", 0, MSND_MIXER_VOLUME),
+	DUMMY_VOLUME("PCM Volume", 0, MSND_MIXER_PCM),
+	DUMMY_VOLUME("Aux Volume", 0, MSND_MIXER_AUX),
+	DUMMY_VOLUME("Line Volume", 0, MSND_MIXER_LINE),
+	DUMMY_VOLUME("Mic Volume", 0, MSND_MIXER_MIC),
+	DUMMY_VOLUME("Monitor",	0, MSND_MIXER_IMIX),
+	{
+		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+		.name = "Capture Source",
+		.info = snd_msndmix_info_mux,
+		.get = snd_msndmix_get_mux,
+		.put = snd_msndmix_put_mux,
+	}
 };
 
 
@@ -302,15 +340,22 @@ int snd_msndmix_new(struct snd_card *card)
 	int err;
 
 	if (snd_BUG_ON(!chip))
+	{
 		return -EINVAL;
+	}
+
 	spin_lock_init(&chip->mixer_lock);
 	strcpy(card->mixername, "MSND Pinnacle Mixer");
 
-	for (idx = 0; idx < ARRAY_SIZE(snd_msnd_controls); idx++) {
+	for (idx = 0; idx < ARRAY_SIZE(snd_msnd_controls); idx++)
+	{
 		err = snd_ctl_add(card,
-				  snd_ctl_new1(snd_msnd_controls + idx, chip));
+						  snd_ctl_new1(snd_msnd_controls + idx, chip));
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
 
 	return 0;
@@ -323,7 +368,9 @@ void snd_msndmix_setup(struct snd_msnd *dev)
 	update_potm(MSND_MIXER_AUX, bAuxPotPos, HDEXAR_AUX_SET_POTS);
 	update_volm(MSND_MIXER_PCM, wCurrPlayVol);
 	update_volm(MSND_MIXER_IMIX, wCurrInVol);
-	if (dev->type == msndPinnacle) {
+
+	if (dev->type == msndPinnacle)
+	{
 		update_pot(MSND_MIXER_MIC, bMicPotPos, HDEXAR_MIC_SET_POTS);
 		update_volm(MSND_MIXER_SYNTH, wCurrMHdrVol);
 	}

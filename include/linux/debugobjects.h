@@ -4,7 +4,8 @@
 #include <linux/list.h>
 #include <linux/spinlock.h>
 
-enum debug_obj_state {
+enum debug_obj_state
+{
 	ODEBUG_STATE_NONE,
 	ODEBUG_STATE_INIT,
 	ODEBUG_STATE_INACTIVE,
@@ -24,7 +25,8 @@ struct debug_obj_descr;
  * @object:	pointer to the real object
  * @descr:	pointer to an object type specific debug description structure
  */
-struct debug_obj {
+struct debug_obj
+{
 	struct hlist_node	node;
 	enum debug_obj_state	state;
 	unsigned int		astate;
@@ -51,7 +53,8 @@ struct debug_obj {
  * @fixup_assert_init:  fixup function, which is called when the assert_init
  *			check fails
  */
-struct debug_obj_descr {
+struct debug_obj_descr
+{
 	const char		*name;
 	void *(*debug_hint)(void *addr);
 	bool (*is_static_object)(void *addr);
@@ -79,7 +82,7 @@ extern void debug_object_assert_init(void *addr, struct debug_obj_descr *descr);
  */
 extern void
 debug_object_active_state(void *addr, struct debug_obj_descr *descr,
-			  unsigned int expect, unsigned int next);
+						  unsigned int expect, unsigned int next);
 
 extern void debug_objects_early_init(void);
 extern void debug_objects_mem_init(void);

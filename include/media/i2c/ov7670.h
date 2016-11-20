@@ -10,7 +10,8 @@
 #ifndef __OV7670_H
 #define __OV7670_H
 
-struct ov7670_config {
+struct ov7670_config
+{
 	int min_width;			/* Filter out smaller sizes */
 	int min_height;			/* Filter out smaller sizes */
 	int clock_speed;		/* External clock speed (MHz) */

@@ -31,7 +31,8 @@
  * @set_clock_trimmers_high: callback to tune clock trimmers for high voltage
  * @set_clock_trimmers_low: callback to tune clock trimmers for low voltage
  */
-struct tegra_dfll_soc_data {
+struct tegra_dfll_soc_data
+{
 	struct device *dev;
 	unsigned long max_freq;
 	const struct cvb_table *cvb;
@@ -42,7 +43,7 @@ struct tegra_dfll_soc_data {
 };
 
 int tegra_dfll_register(struct platform_device *pdev,
-			struct tegra_dfll_soc_data *soc);
+						struct tegra_dfll_soc_data *soc);
 int tegra_dfll_unregister(struct platform_device *pdev);
 int tegra_dfll_runtime_suspend(struct device *dev);
 int tegra_dfll_runtime_resume(struct device *dev);

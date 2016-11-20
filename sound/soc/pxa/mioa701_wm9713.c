@@ -63,23 +63,26 @@ static int rear_amp_power(struct snd_soc_codec *codec, int power)
 {
 	unsigned short reg;
 
-	if (power) {
+	if (power)
+	{
 		reg = snd_soc_read(codec, AC97_GPIO_CFG);
 		snd_soc_write(codec, AC97_GPIO_CFG, reg | 0x0100);
 		reg = snd_soc_read(codec, AC97_GPIO_PULL);
-		snd_soc_write(codec, AC97_GPIO_PULL, reg | (1<<15));
-	} else {
+		snd_soc_write(codec, AC97_GPIO_PULL, reg | (1 << 15));
+	}
+	else
+	{
 		reg = snd_soc_read(codec, AC97_GPIO_CFG);
 		snd_soc_write(codec, AC97_GPIO_CFG, reg & ~0x0100);
 		reg = snd_soc_read(codec, AC97_GPIO_PULL);
-		snd_soc_write(codec, AC97_GPIO_PULL, reg & ~(1<<15));
+		snd_soc_write(codec, AC97_GPIO_PULL, reg & ~(1 << 15));
 	}
 
 	return 0;
 }
 
 static int rear_amp_event(struct snd_soc_dapm_widget *widget,
-			  struct snd_kcontrol *kctl, int event)
+						  struct snd_kcontrol *kctl, int event)
 {
 	struct snd_soc_card *card = widget->dapm->card;
 	struct snd_soc_pcm_runtime *rtd;
@@ -91,7 +94,8 @@ static int rear_amp_event(struct snd_soc_dapm_widget *widget,
 }
 
 /* mioa701 machine dapm widgets */
-static const struct snd_soc_dapm_widget mioa701_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget mioa701_dapm_widgets[] =
+{
 	SND_SOC_DAPM_SPK("Front Speaker", NULL),
 	SND_SOC_DAPM_SPK("Rear Speaker", rear_amp_event),
 	SND_SOC_DAPM_MIC("Headset", NULL),
@@ -101,7 +105,8 @@ static const struct snd_soc_dapm_widget mioa701_dapm_widgets[] = {
 	SND_SOC_DAPM_MIC("Front Mic", NULL),
 };
 
-static const struct snd_soc_dapm_route audio_map[] = {
+static const struct snd_soc_dapm_route audio_map[] =
+{
 	/* Call Mic */
 	{"Mic Bias", NULL, "Front Mic"},
 	{"MIC1", NULL, "Mic Bias"},
@@ -143,7 +148,8 @@ static int mioa701_wm9713_init(struct snd_soc_pcm_runtime *rtd)
 
 static struct snd_soc_ops mioa701_ops;
 
-static struct snd_soc_dai_link mioa701_dai[] = {
+static struct snd_soc_dai_link mioa701_dai[] =
+{
 	{
 		.name = "AC97",
 		.stream_name = "AC97 HiFi",
@@ -158,14 +164,15 @@ static struct snd_soc_dai_link mioa701_dai[] = {
 		.name = "AC97 Aux",
 		.stream_name = "AC97 Aux",
 		.cpu_dai_name = "pxa2xx-ac97-aux",
-		.codec_dai_name ="wm9713-aux",
+		.codec_dai_name = "wm9713-aux",
 		.codec_name = "wm9713-codec",
 		.platform_name = "pxa-pcm-audio",
 		.ops = &mioa701_ops,
 	},
 };
 
-static struct snd_soc_card mioa701 = {
+static struct snd_soc_card mioa701 =
+{
 	.name = "MioA701",
 	.owner = THIS_MODULE,
 	.dai_link = mioa701_dai,
@@ -182,18 +189,23 @@ static int mioa701_wm9713_probe(struct platform_device *pdev)
 	int rc;
 
 	if (!machine_is_mioa701())
+	{
 		return -ENODEV;
+	}
 
 	mioa701.dev = &pdev->dev;
 	rc = devm_snd_soc_register_card(&pdev->dev, &mioa701);
+
 	if (!rc)
 		dev_warn(&pdev->dev, "Be warned that incorrect mixers/muxes setup will"
-			 "lead to overheating and possible destruction of your device."
-			 " Do not use without a good knowledge of mio's board design!\n");
+				 "lead to overheating and possible destruction of your device."
+				 " Do not use without a good knowledge of mio's board design!\n");
+
 	return rc;
 }
 
-static struct platform_driver mioa701_wm9713_driver = {
+static struct platform_driver mioa701_wm9713_driver =
+{
 	.probe		= mioa701_wm9713_probe,
 	.driver		= {
 		.name		= "mioa701-wm9713",

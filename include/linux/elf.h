@@ -5,10 +5,10 @@
 #include <uapi/linux/elf.h>
 
 #ifndef elf_read_implies_exec
-  /* Executables for which elf_read_implies_exec() returns TRUE will
-     have the READ_IMPLIES_EXEC personality flag set automatically.
-     Override in asm/elf.h as needed.  */
-# define elf_read_implies_exec(ex, have_pt_gnu_stack)	0
+	/* Executables for which elf_read_implies_exec() returns TRUE will
+	have the READ_IMPLIES_EXEC personality flag set automatically.
+	Override in asm/elf.h as needed.  */
+	#define elf_read_implies_exec(ex, have_pt_gnu_stack)	0
 #endif
 #ifndef SET_PERSONALITY
 #define SET_PERSONALITY(ex) \
@@ -22,23 +22,23 @@
 
 #if ELF_CLASS == ELFCLASS32
 
-extern Elf32_Dyn _DYNAMIC [];
-#define elfhdr		elf32_hdr
-#define elf_phdr	elf32_phdr
-#define elf_shdr	elf32_shdr
-#define elf_note	elf32_note
-#define elf_addr_t	Elf32_Off
-#define Elf_Half	Elf32_Half
+	extern Elf32_Dyn _DYNAMIC [];
+	#define elfhdr		elf32_hdr
+	#define elf_phdr	elf32_phdr
+	#define elf_shdr	elf32_shdr
+	#define elf_note	elf32_note
+	#define elf_addr_t	Elf32_Off
+	#define Elf_Half	Elf32_Half
 
 #else
 
-extern Elf64_Dyn _DYNAMIC [];
-#define elfhdr		elf64_hdr
-#define elf_phdr	elf64_phdr
-#define elf_shdr	elf64_shdr
-#define elf_note	elf64_note
-#define elf_addr_t	Elf64_Off
-#define Elf_Half	Elf64_Half
+	extern Elf64_Dyn _DYNAMIC [];
+	#define elfhdr		elf64_hdr
+	#define elf_phdr	elf64_phdr
+	#define elf_shdr	elf64_shdr
+	#define elf_note	elf64_note
+	#define elf_addr_t	Elf64_Off
+	#define Elf_Half	Elf64_Half
 
 #endif
 

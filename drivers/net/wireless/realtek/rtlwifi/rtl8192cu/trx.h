@@ -39,7 +39,8 @@
 
 #define RTL_AGG_ON				1
 
-enum usb_rx_agg_mode {
+enum usb_rx_agg_mode
+{
 	USB_RX_AGG_DISABLE,
 	USB_RX_AGG_DMA,
 	USB_RX_AGG_USB,
@@ -60,7 +61,8 @@ enum usb_rx_agg_mode {
 
 /*======================== rx status =========================================*/
 
-struct rx_drv_info_92c {
+struct rx_drv_info_92c
+{
 	/*
 	 * Driver info contain PHY status and other variabel size info
 	 * PHY Status content as below
@@ -90,10 +92,10 @@ struct rx_drv_info_92c {
 	/* DWORD 6 */
 	u8 sigevm;
 	u8 max_ex_pwr;
-	u8 ex_intf_flag:1;
-	u8 sgi_en:1;
-	u8 rxsc:2;
-	u8 reserve:4;
+	u8 ex_intf_flag: 1;
+	u8 sgi_en: 1;
+	u8 rxsc: 2;
+	u8 reserve: 4;
 } __packed;
 
 /* Define a macro that takes a le32 word, converts it to host ordering,
@@ -103,7 +105,7 @@ struct rx_drv_info_92c {
 
 #define SHIFT_AND_MASK_LE(__pdesc, __shift, __bits)		\
 	((le32_to_cpu(*(((__le32 *)(__pdesc)))) >> (__shift)) &	\
-	BIT_LEN_MASK_32(__bits))
+	 BIT_LEN_MASK_32(__bits))
 
 /* Define a macro that clears a bit field in an le32 word and
  * sets the specified value into that bit field. The resulting
@@ -114,9 +116,9 @@ struct rx_drv_info_92c {
 
 #define SET_BITS_OFFSET_LE(__pdesc, __shift, __len, __val)	\
 	(*(__le32 *)(__pdesc) = 				\
-	(cpu_to_le32((le32_to_cpu(*((__le32 *)(__pdesc))) &	\
-	(~(BIT_OFFSET_LEN_MASK_32((__shift), __len)))) |		\
-	(((u32)(__val) & BIT_LEN_MASK_32(__len)) << (__shift)))));
+											(cpu_to_le32((le32_to_cpu(*((__le32 *)(__pdesc))) &	\
+													(~(BIT_OFFSET_LEN_MASK_32((__shift), __len)))) |		\
+													(((u32)(__val) & BIT_LEN_MASK_32(__len)) << (__shift)))));
 
 /* macros to read various fields in RX descriptor */
 
@@ -236,7 +238,7 @@ struct rx_drv_info_92c {
 #define SET_TX_DESC_LAST_SEG(__txdesc, __value)		\
 	SET_BITS_OFFSET_LE(__txdesc, 26, 1, __value)
 #define SET_TX_DESC_FIRST_SEG(__txdesc, __value)	\
-	 SET_BITS_OFFSET_LE(__txdesc, 27, 1, __value)
+	SET_BITS_OFFSET_LE(__txdesc, 27, 1, __value)
 #define SET_TX_DESC_LINIP(__txdesc, __value)		\
 	SET_BITS_OFFSET_LE(__txdesc, 28, 1, __value)
 #define SET_TX_DESC_NO_ACM(__txdesc, __value)		\
@@ -407,29 +409,29 @@ struct rx_drv_info_92c {
 int  rtl8192cu_endpoint_mapping(struct ieee80211_hw *hw);
 u16 rtl8192cu_mq_to_hwq(__le16 fc, u16 mac80211_queue_index);
 bool rtl92cu_rx_query_desc(struct ieee80211_hw *hw,
-			   struct rtl_stats *stats,
-			   struct ieee80211_rx_status *rx_status,
-			   u8 *p_desc, struct sk_buff *skb);
-void  rtl8192cu_rx_hdl(struct ieee80211_hw *hw, struct sk_buff * skb);
+						   struct rtl_stats *stats,
+						   struct ieee80211_rx_status *rx_status,
+						   u8 *p_desc, struct sk_buff *skb);
+void  rtl8192cu_rx_hdl(struct ieee80211_hw *hw, struct sk_buff *skb);
 void rtl8192c_rx_segregate_hdl(struct ieee80211_hw *, struct sk_buff *,
-			       struct sk_buff_head *);
+							   struct sk_buff_head *);
 void rtl8192c_tx_cleanup(struct ieee80211_hw *hw, struct sk_buff  *skb);
 int rtl8192c_tx_post_hdl(struct ieee80211_hw *hw, struct urb *urb,
-			 struct sk_buff *skb);
+						 struct sk_buff *skb);
 struct sk_buff *rtl8192c_tx_aggregate_hdl(struct ieee80211_hw *,
-					   struct sk_buff_head *);
+		struct sk_buff_head *);
 void rtl92cu_tx_fill_desc(struct ieee80211_hw *hw,
-			  struct ieee80211_hdr *hdr, u8 *pdesc_tx,
-			  u8 *pbd_desc_tx, struct ieee80211_tx_info *info,
-			  struct ieee80211_sta *sta,
-			  struct sk_buff *skb,
-			  u8 queue_index,
-			  struct rtl_tcb_desc *tcb_desc);
-void rtl92cu_fill_fake_txdesc(struct ieee80211_hw *hw, u8 * pDesc,
-			      u32 buffer_len, bool bIsPsPoll);
+						  struct ieee80211_hdr *hdr, u8 *pdesc_tx,
+						  u8 *pbd_desc_tx, struct ieee80211_tx_info *info,
+						  struct ieee80211_sta *sta,
+						  struct sk_buff *skb,
+						  u8 queue_index,
+						  struct rtl_tcb_desc *tcb_desc);
+void rtl92cu_fill_fake_txdesc(struct ieee80211_hw *hw, u8 *pDesc,
+							  u32 buffer_len, bool bIsPsPoll);
 void rtl92cu_tx_fill_cmddesc(struct ieee80211_hw *hw,
-			     u8 *pdesc, bool b_firstseg,
-			     bool b_lastseg, struct sk_buff *skb);
+							 u8 *pdesc, bool b_firstseg,
+							 bool b_lastseg, struct sk_buff *skb);
 bool rtl92cu_cmd_send_packet(struct ieee80211_hw *hw, struct sk_buff *skb);
 
 #endif

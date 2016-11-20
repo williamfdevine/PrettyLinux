@@ -24,7 +24,8 @@
 
 #define BUSY_WAIT_US		100
 
-struct xtfpga_spi {
+struct xtfpga_spi
+{
 	struct spi_bitbang bitbang;
 	void __iomem *regs;
 	u32 data;
@@ -32,13 +33,13 @@ struct xtfpga_spi {
 };
 
 static inline void xtfpga_spi_write32(const struct xtfpga_spi *spi,
-				      unsigned addr, u32 val)
+									  unsigned addr, u32 val)
 {
 	__raw_writel(val, spi->regs + addr);
 }
 
 static inline unsigned int xtfpga_spi_read32(const struct xtfpga_spi *spi,
-					     unsigned addr)
+		unsigned addr)
 {
 	return __raw_readl(spi->regs + addr);
 }
@@ -48,21 +49,26 @@ static inline void xtfpga_spi_wait_busy(struct xtfpga_spi *xspi)
 	unsigned i;
 
 	for (i = 0; xtfpga_spi_read32(xspi, XTFPGA_SPI_BUSY) &&
-	     i < BUSY_WAIT_US; ++i)
+		 i < BUSY_WAIT_US; ++i)
+	{
 		udelay(1);
+	}
+
 	WARN_ON_ONCE(i == BUSY_WAIT_US);
 }
 
 static u32 xtfpga_spi_txrx_word(struct spi_device *spi, unsigned nsecs,
-				u32 v, u8 bits)
+								u32 v, u8 bits)
 {
 	struct xtfpga_spi *xspi = spi_master_get_devdata(spi->master);
 
 	xspi->data = (xspi->data << bits) | (v & GENMASK(bits - 1, 0));
 	xspi->data_sz += bits;
-	if (xspi->data_sz >= 16) {
+
+	if (xspi->data_sz >= 16)
+	{
 		xtfpga_spi_write32(xspi, XTFPGA_SPI_DATA,
-				   xspi->data >> (xspi->data_sz - 16));
+						   xspi->data >> (xspi->data_sz - 16));
 		xspi->data_sz -= 16;
 		xtfpga_spi_write32(xspi, XTFPGA_SPI_START, 1);
 		xtfpga_spi_wait_busy(xspi);
@@ -88,8 +94,11 @@ static int xtfpga_spi_probe(struct platform_device *pdev)
 	struct spi_master *master;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(struct xtfpga_spi));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	master->flags = SPI_MASTER_NO_RX;
 	master->bits_per_word_mask = SPI_BPW_RANGE_MASK(1, 16);
@@ -102,27 +111,36 @@ static int xtfpga_spi_probe(struct platform_device *pdev)
 	xspi->bitbang.txrx_word[SPI_MODE_0] = xtfpga_spi_txrx_word;
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!mem) {
+
+	if (!mem)
+	{
 		dev_err(&pdev->dev, "No memory resource\n");
 		ret = -ENODEV;
 		goto err;
 	}
+
 	xspi->regs = devm_ioremap_resource(&pdev->dev, mem);
-	if (IS_ERR(xspi->regs)) {
+
+	if (IS_ERR(xspi->regs))
+	{
 		ret = PTR_ERR(xspi->regs);
 		goto err;
 	}
 
 	xtfpga_spi_write32(xspi, XTFPGA_SPI_START, 0);
 	usleep_range(1000, 2000);
-	if (xtfpga_spi_read32(xspi, XTFPGA_SPI_BUSY)) {
+
+	if (xtfpga_spi_read32(xspi, XTFPGA_SPI_BUSY))
+	{
 		dev_err(&pdev->dev, "Device stuck in busy state\n");
 		ret = -EBUSY;
 		goto err;
 	}
 
 	ret = spi_bitbang_start(&xspi->bitbang);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "spi_bitbang_start failed\n");
 		goto err;
 	}
@@ -148,14 +166,16 @@ static int xtfpga_spi_remove(struct platform_device *pdev)
 MODULE_ALIAS("platform:" XTFPGA_SPI_NAME);
 
 #ifdef CONFIG_OF
-static const struct of_device_id xtfpga_spi_of_match[] = {
+static const struct of_device_id xtfpga_spi_of_match[] =
+{
 	{ .compatible = "cdns,xtfpga-spi", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, xtfpga_spi_of_match);
 #endif
 
-static struct platform_driver xtfpga_spi_driver = {
+static struct platform_driver xtfpga_spi_driver =
+{
 	.probe = xtfpga_spi_probe,
 	.remove = xtfpga_spi_remove,
 	.driver = {

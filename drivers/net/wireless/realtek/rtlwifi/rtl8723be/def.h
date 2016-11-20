@@ -38,7 +38,8 @@
 /* Currently only for RTL8723B */
 #define EXT_VENDOR_ID				(BIT(18) | BIT(19))
 
-enum rx_packet_type {
+enum rx_packet_type
+{
 	NORMAL_RX,
 	TX_REPORT1,
 	TX_REPORT2,
@@ -46,7 +47,8 @@ enum rx_packet_type {
 	C2H_PACKET,
 };
 
-enum rtl_desc_qsel {
+enum rtl_desc_qsel
+{
 	QSLT_BK = 0x2,
 	QSLT_BE = 0x0,
 	QSLT_VI = 0x5,
@@ -57,7 +59,8 @@ enum rtl_desc_qsel {
 	QSLT_CMD = 0x13,
 };
 
-enum rtl_desc8723e_rate {
+enum rtl_desc8723e_rate
+{
 	DESC92C_RATE1M = 0x00,
 	DESC92C_RATE2M = 0x01,
 	DESC92C_RATE5_5M = 0x02,

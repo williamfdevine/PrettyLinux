@@ -62,7 +62,8 @@
 #define NTLMSSP_NEGOTIATE_56        0x80000000
 
 /* Define AV Pair Field IDs */
-enum av_field_type {
+enum av_field_type
+{
 	NTLMSSP_AV_EOL = 0,
 	NTLMSSP_AV_NB_COMPUTER_NAME,
 	NTLMSSP_AV_NB_DOMAIN_NAME,
@@ -82,13 +83,15 @@ enum av_field_type {
 /* OpenGroup and to make the code more closely match the standard in */
 /* appearance */
 
-typedef struct _SECURITY_BUFFER {
+typedef struct _SECURITY_BUFFER
+{
 	__le16 Length;
 	__le16 MaximumLength;
 	__le32 BufferOffset;	/* offset to buffer */
 } __attribute__((packed)) SECURITY_BUFFER;
 
-typedef struct _NEGOTIATE_MESSAGE {
+typedef struct _NEGOTIATE_MESSAGE
+{
 	__u8 Signature[sizeof(NTLMSSP_SIGNATURE)];
 	__le32 MessageType;     /* NtLmNegotiate = 1 */
 	__le32 NegotiateFlags;
@@ -100,7 +103,8 @@ typedef struct _NEGOTIATE_MESSAGE {
 	/* followed by WorkstationString */
 } __attribute__((packed)) NEGOTIATE_MESSAGE, *PNEGOTIATE_MESSAGE;
 
-typedef struct _CHALLENGE_MESSAGE {
+typedef struct _CHALLENGE_MESSAGE
+{
 	__u8 Signature[sizeof(NTLMSSP_SIGNATURE)];
 	__le32 MessageType;   /* NtLmChallenge = 2 */
 	SECURITY_BUFFER TargetName;
@@ -112,7 +116,8 @@ typedef struct _CHALLENGE_MESSAGE {
 	   do not set the version is present flag */
 } __attribute__((packed)) CHALLENGE_MESSAGE, *PCHALLENGE_MESSAGE;
 
-typedef struct _AUTHENTICATE_MESSAGE {
+typedef struct _AUTHENTICATE_MESSAGE
+{
 	__u8 Signature[sizeof(NTLMSSP_SIGNATURE)];
 	__le32 MessageType;  /* NtLmsAuthenticate = 3 */
 	SECURITY_BUFFER LmChallengeResponse;
@@ -134,5 +139,5 @@ typedef struct _AUTHENTICATE_MESSAGE {
 int decode_ntlmssp_challenge(char *bcc_ptr, int blob_len, struct cifs_ses *ses);
 void build_ntlmssp_negotiate_blob(unsigned char *pbuffer, struct cifs_ses *ses);
 int build_ntlmssp_auth_blob(unsigned char **pbuffer, u16 *buflen,
-			struct cifs_ses *ses,
-			const struct nls_table *nls_cp);
+							struct cifs_ses *ses,
+							const struct nls_table *nls_cp);

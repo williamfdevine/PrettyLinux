@@ -125,7 +125,8 @@ typedef __u32 int32;
  * we saw from the conversation together with a small identifier
  * the transmit & receive ends of the line use to locate saved header.
  */
-struct cstate {
+struct cstate
+{
 	byte_t	cs_this;	/* connection id number (xmit) */
 	struct cstate *next;	/* next in ring (xmit) */
 	struct iphdr cs_ip;	/* ip/tcp hdr from most recent packet */
@@ -139,7 +140,8 @@ struct cstate {
 /*
  * all the state data for one serial line (we need one of these per line).
  */
-struct slcompress {
+struct slcompress
+{
 	struct cstate *tstate;	/* transmit connection states (array)*/
 	struct cstate *rstate;	/* receive connection states (array)*/
 
@@ -175,7 +177,7 @@ struct slcompress *slhc_init(int rslots, int tslots);
 void slhc_free(struct slcompress *comp);
 
 int slhc_compress(struct slcompress *comp, unsigned char *icp, int isize,
-		  unsigned char *ocp, unsigned char **cpp, int compress_cid);
+				  unsigned char *ocp, unsigned char **cpp, int compress_cid);
 int slhc_uncompress(struct slcompress *comp, unsigned char *icp, int isize);
 int slhc_remember(struct slcompress *comp, unsigned char *icp, int isize);
 int slhc_toss(struct slcompress *comp);

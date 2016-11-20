@@ -53,12 +53,14 @@
 #define QT1070_RESET_TIME  255
 
 /* AT42QT1070 support up to 7 keys */
-static const unsigned short qt1070_key2code[] = {
+static const unsigned short qt1070_key2code[] =
+{
 	KEY_0, KEY_1, KEY_2, KEY_3,
 	KEY_4, KEY_5, KEY_6,
 };
 
-struct qt1070_data {
+struct qt1070_data
+{
 	struct i2c_client *client;
 	struct input_dev *input;
 	unsigned int irq;
@@ -71,9 +73,10 @@ static int qt1070_read(struct i2c_client *client, u8 reg)
 	int ret;
 
 	ret = i2c_smbus_read_byte_data(client, reg);
+
 	if (ret < 0)
 		dev_err(&client->dev,
-			"can not read register, returned %d\n", ret);
+				"can not read register, returned %d\n", ret);
 
 	return ret;
 }
@@ -83,9 +86,10 @@ static int qt1070_write(struct i2c_client *client, u8 reg, u8 data)
 	int ret;
 
 	ret = i2c_smbus_write_byte_data(client, reg, data);
+
 	if (ret < 0)
 		dev_err(&client->dev,
-			"can not write register, returned %d\n", ret);
+				"can not write register, returned %d\n", ret);
 
 	return ret;
 }
@@ -96,14 +100,18 @@ static bool qt1070_identify(struct i2c_client *client)
 
 	/* Read Chip ID */
 	id = qt1070_read(client, CHIP_ID);
-	if (id != QT1070_CHIP_ID) {
+
+	if (id != QT1070_CHIP_ID)
+	{
 		dev_err(&client->dev, "ID %d not supported\n", id);
 		return false;
 	}
 
 	/* Read firmware version */
 	ver = qt1070_read(client, FW_VERSION);
-	if (ver < 0) {
+
+	if (ver < 0)
+	{
 		dev_err(&client->dev, "could not read the firmware version\n");
 		return false;
 	}
@@ -127,12 +135,18 @@ static irqreturn_t qt1070_interrupt(int irq, void *dev_id)
 	/* Read which key changed */
 	new_keys = qt1070_read(client, KEY_STATUS);
 
-	for (i = 0; i < ARRAY_SIZE(qt1070_key2code); i++) {
+	for (i = 0; i < ARRAY_SIZE(qt1070_key2code); i++)
+	{
 		keyval = new_keys & mask;
+
 		if ((data->last_keys & mask) != keyval)
+		{
 			input_report_key(input, data->keycodes[i], keyval);
+		}
+
 		mask <<= 1;
 	}
+
 	input_sync(input);
 
 	data->last_keys = new_keys;
@@ -140,7 +154,7 @@ static irqreturn_t qt1070_interrupt(int irq, void *dev_id)
 }
 
 static int qt1070_probe(struct i2c_client *client,
-				const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct qt1070_data *data;
 	struct input_dev *input;
@@ -148,24 +162,31 @@ static int qt1070_probe(struct i2c_client *client,
 	int err;
 
 	err = i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE);
-	if (!err) {
+
+	if (!err)
+	{
 		dev_err(&client->dev, "%s adapter not supported\n",
-			dev_driver_string(&client->adapter->dev));
+				dev_driver_string(&client->adapter->dev));
 		return -ENODEV;
 	}
 
-	if (!client->irq) {
+	if (!client->irq)
+	{
 		dev_err(&client->dev, "please assign the irq to this device\n");
 		return -EINVAL;
 	}
 
 	/* Identify the qt1070 chip */
 	if (!qt1070_identify(client))
+	{
 		return -ENODEV;
+	}
 
 	data = kzalloc(sizeof(struct qt1070_data), GFP_KERNEL);
 	input = input_allocate_device();
-	if (!data || !input) {
+
+	if (!data || !input)
+	{
 		dev_err(&client->dev, "insufficient memory\n");
 		err = -ENOMEM;
 		goto err_free_mem;
@@ -186,7 +207,8 @@ static int qt1070_probe(struct i2c_client *client,
 
 	__set_bit(EV_KEY, input->evbit);
 
-	for (i = 0; i < ARRAY_SIZE(qt1070_key2code); i++) {
+	for (i = 0; i < ARRAY_SIZE(qt1070_key2code); i++)
+	{
 		data->keycodes[i] = qt1070_key2code[i];
 		__set_bit(qt1070_key2code[i], input->keybit);
 	}
@@ -200,16 +222,20 @@ static int qt1070_probe(struct i2c_client *client,
 	msleep(QT1070_RESET_TIME);
 
 	err = request_threaded_irq(client->irq, NULL, qt1070_interrupt,
-				   IRQF_TRIGGER_NONE | IRQF_ONESHOT,
-				   client->dev.driver->name, data);
-	if (err) {
+							   IRQF_TRIGGER_NONE | IRQF_ONESHOT,
+							   client->dev.driver->name, data);
+
+	if (err)
+	{
 		dev_err(&client->dev, "fail to request irq\n");
 		goto err_free_mem;
 	}
 
 	/* Register the input device */
 	err = input_register_device(data->input);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&client->dev, "Failed to register input device\n");
 		goto err_free_irq;
 	}
@@ -249,7 +275,9 @@ static int qt1070_suspend(struct device *dev)
 	struct qt1070_data *data = i2c_get_clientdata(client);
 
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(data->irq);
+	}
 
 	return 0;
 }
@@ -260,7 +288,9 @@ static int qt1070_resume(struct device *dev)
 	struct qt1070_data *data = i2c_get_clientdata(client);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(data->irq);
+	}
 
 	return 0;
 }
@@ -268,13 +298,15 @@ static int qt1070_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(qt1070_pm_ops, qt1070_suspend, qt1070_resume);
 
-static const struct i2c_device_id qt1070_id[] = {
+static const struct i2c_device_id qt1070_id[] =
+{
 	{ "qt1070", 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, qt1070_id);
 
-static struct i2c_driver qt1070_driver = {
+static struct i2c_driver qt1070_driver =
+{
 	.driver	= {
 		.name	= "qt1070",
 		.pm	= &qt1070_pm_ops,

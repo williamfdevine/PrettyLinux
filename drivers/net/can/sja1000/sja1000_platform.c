@@ -41,12 +41,14 @@ MODULE_DESCRIPTION("Socket-CAN driver for SJA1000 on the platform bus");
 MODULE_ALIAS("platform:" DRV_NAME);
 MODULE_LICENSE("GPL v2");
 
-struct sja1000_of_data {
+struct sja1000_of_data
+{
 	size_t  priv_sz;
 	int     (*init)(struct sja1000_priv *priv, struct device_node *of);
 };
 
-struct technologic_priv {
+struct technologic_priv
+{
 	spinlock_t      io_lock;
 };
 
@@ -95,7 +97,7 @@ static u8 sp_technologic_read_reg16(const struct sja1000_priv *priv, int reg)
 }
 
 static void sp_technologic_write_reg16(const struct sja1000_priv *priv,
-				       int reg, u8 val)
+									   int reg, u8 val)
 {
 	struct technologic_priv *tp = priv->priv;
 	unsigned long flags;
@@ -118,28 +120,31 @@ static int sp_technologic_init(struct sja1000_priv *priv, struct device_node *of
 }
 
 static void sp_populate(struct sja1000_priv *priv,
-			struct sja1000_platform_data *pdata,
-			unsigned long resource_mem_flags)
+						struct sja1000_platform_data *pdata,
+						unsigned long resource_mem_flags)
 {
 	/* The CAN clock frequency is half the oscillator clock frequency */
 	priv->can.clock.freq = pdata->osc_freq / 2;
 	priv->ocr = pdata->ocr;
 	priv->cdr = pdata->cdr;
 
-	switch (resource_mem_flags & IORESOURCE_MEM_TYPE_MASK) {
-	case IORESOURCE_MEM_32BIT:
-		priv->read_reg = sp_read_reg32;
-		priv->write_reg = sp_write_reg32;
-		break;
-	case IORESOURCE_MEM_16BIT:
-		priv->read_reg = sp_read_reg16;
-		priv->write_reg = sp_write_reg16;
-		break;
-	case IORESOURCE_MEM_8BIT:
-	default:
-		priv->read_reg = sp_read_reg8;
-		priv->write_reg = sp_write_reg8;
-		break;
+	switch (resource_mem_flags & IORESOURCE_MEM_TYPE_MASK)
+	{
+		case IORESOURCE_MEM_32BIT:
+			priv->read_reg = sp_read_reg32;
+			priv->write_reg = sp_write_reg32;
+			break;
+
+		case IORESOURCE_MEM_16BIT:
+			priv->read_reg = sp_read_reg16;
+			priv->write_reg = sp_write_reg16;
+			break;
+
+		case IORESOURCE_MEM_8BIT:
+		default:
+			priv->read_reg = sp_read_reg8;
+			priv->write_reg = sp_write_reg8;
+			break;
 	}
 }
 
@@ -149,64 +154,97 @@ static void sp_populate_of(struct sja1000_priv *priv, struct device_node *of)
 	u32 prop;
 
 	err = of_property_read_u32(of, "reg-io-width", &prop);
-	if (err)
-		prop = 1; /* 8 bit is default */
 
-	switch (prop) {
-	case 4:
-		priv->read_reg = sp_read_reg32;
-		priv->write_reg = sp_write_reg32;
-		break;
-	case 2:
-		priv->read_reg = sp_read_reg16;
-		priv->write_reg = sp_write_reg16;
-		break;
-	case 1:	/* fallthrough */
-	default:
-		priv->read_reg = sp_read_reg8;
-		priv->write_reg = sp_write_reg8;
+	if (err)
+	{
+		prop = 1;    /* 8 bit is default */
+	}
+
+	switch (prop)
+	{
+		case 4:
+			priv->read_reg = sp_read_reg32;
+			priv->write_reg = sp_write_reg32;
+			break;
+
+		case 2:
+			priv->read_reg = sp_read_reg16;
+			priv->write_reg = sp_write_reg16;
+			break;
+
+		case 1:	/* fallthrough */
+		default:
+			priv->read_reg = sp_read_reg8;
+			priv->write_reg = sp_write_reg8;
 	}
 
 	err = of_property_read_u32(of, "nxp,external-clock-frequency", &prop);
+
 	if (!err)
+	{
 		priv->can.clock.freq = prop / 2;
+	}
 	else
-		priv->can.clock.freq = SP_CAN_CLOCK; /* default */
+	{
+		priv->can.clock.freq = SP_CAN_CLOCK;    /* default */
+	}
 
 	err = of_property_read_u32(of, "nxp,tx-output-mode", &prop);
+
 	if (!err)
+	{
 		priv->ocr |= prop & OCR_MODE_MASK;
+	}
 	else
-		priv->ocr |= OCR_MODE_NORMAL; /* default */
+	{
+		priv->ocr |= OCR_MODE_NORMAL;    /* default */
+	}
 
 	err = of_property_read_u32(of, "nxp,tx-output-config", &prop);
+
 	if (!err)
+	{
 		priv->ocr |= (prop << OCR_TX_SHIFT) & OCR_TX_MASK;
+	}
 	else
-		priv->ocr |= OCR_TX0_PULLDOWN; /* default */
+	{
+		priv->ocr |= OCR_TX0_PULLDOWN;    /* default */
+	}
 
 	err = of_property_read_u32(of, "nxp,clock-out-frequency", &prop);
-	if (!err && prop) {
+
+	if (!err && prop)
+	{
 		u32 divider = priv->can.clock.freq * 2 / prop;
 
 		if (divider > 1)
+		{
 			priv->cdr |= divider / 2 - 1;
+		}
 		else
+		{
 			priv->cdr |= CDR_CLKOUT_MASK;
-	} else {
+		}
+	}
+	else
+	{
 		priv->cdr |= CDR_CLK_OFF; /* default */
 	}
 
 	if (!of_property_read_bool(of, "nxp,no-comparator-bypass"))
-		priv->cdr |= CDR_CBP; /* default */
+	{
+		priv->cdr |= CDR_CBP;    /* default */
+	}
 }
 
-static struct sja1000_of_data technologic_data = {
+static struct sja1000_of_data technologic_data =
+{
 	.priv_sz = sizeof(struct technologic_priv),
 	.init = sp_technologic_init,
 };
 
-static const struct of_device_id sp_of_table[] = {
+static const struct of_device_id sp_of_table[] =
+{
 	{ .compatible = "nxp,sja1000", .data = NULL, },
 	{ .compatible = "technologic,sja1000", .data = &technologic_data, },
 	{ /* sentinel */ },
@@ -227,64 +265,99 @@ static int sp_probe(struct platform_device *pdev)
 	size_t priv_sz = 0;
 
 	pdata = dev_get_platdata(&pdev->dev);
-	if (!pdata && !of) {
+
+	if (!pdata && !of)
+	{
 		dev_err(&pdev->dev, "No platform data provided!\n");
 		return -ENODEV;
 	}
 
 	res_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res_mem)
+	{
 		return -ENODEV;
+	}
 
 	if (!devm_request_mem_region(&pdev->dev, res_mem->start,
-				     resource_size(res_mem), DRV_NAME))
+								 resource_size(res_mem), DRV_NAME))
+	{
 		return -EBUSY;
+	}
 
 	addr = devm_ioremap_nocache(&pdev->dev, res_mem->start,
-				    resource_size(res_mem));
+								resource_size(res_mem));
+
 	if (!addr)
+	{
 		return -ENOMEM;
+	}
 
 	if (of)
+	{
 		irq = irq_of_parse_and_map(of, 0);
+	}
 	else
+	{
 		res_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+	}
 
 	if (!irq && !res_irq)
+	{
 		return -ENODEV;
+	}
 
 	of_id = of_match_device(sp_of_table, &pdev->dev);
-	if (of_id && of_id->data) {
+
+	if (of_id && of_id->data)
+	{
 		of_data = of_id->data;
 		priv_sz = of_data->priv_sz;
 	}
 
 	dev = alloc_sja1000dev(priv_sz);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
+
 	priv = netdev_priv(dev);
 
-	if (res_irq) {
+	if (res_irq)
+	{
 		irq = res_irq->start;
 		priv->irq_flags = res_irq->flags & IRQF_TRIGGER_MASK;
+
 		if (res_irq->flags & IORESOURCE_IRQ_SHAREABLE)
+		{
 			priv->irq_flags |= IRQF_SHARED;
-	} else {
+		}
+	}
+	else
+	{
 		priv->irq_flags = IRQF_SHARED;
 	}
 
 	dev->irq = irq;
 	priv->reg_base = addr;
 
-	if (of) {
+	if (of)
+	{
 		sp_populate_of(priv, of);
 
-		if (of_data && of_data->init) {
+		if (of_data && of_data->init)
+		{
 			err = of_data->init(priv, of);
+
 			if (err)
+			{
 				goto exit_free;
+			}
 		}
-	} else {
+	}
+	else
+	{
 		sp_populate(priv, pdata, res_mem->flags);
 	}
 
@@ -292,17 +365,19 @@ static int sp_probe(struct platform_device *pdev)
 	SET_NETDEV_DEV(dev, &pdev->dev);
 
 	err = register_sja1000dev(dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "registering %s failed (err=%d)\n",
-			DRV_NAME, err);
+				DRV_NAME, err);
 		goto exit_free;
 	}
 
 	dev_info(&pdev->dev, "%s device registered (reg_base=%p, irq=%d)\n",
-		 DRV_NAME, priv->reg_base, dev->irq);
+			 DRV_NAME, priv->reg_base, dev->irq);
 	return 0;
 
- exit_free:
+exit_free:
 	free_sja1000dev(dev);
 	return err;
 }
@@ -317,7 +392,8 @@ static int sp_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver sp_driver = {
+static struct platform_driver sp_driver =
+{
 	.probe = sp_probe,
 	.remove = sp_remove,
 	.driver = {

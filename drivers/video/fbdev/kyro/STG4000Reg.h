@@ -19,59 +19,64 @@
  * Add an appropriate section for your OS or processor architecture.
  */
 #if defined(__KERNEL__)
-#include <asm/page.h>
-#include <asm/io.h>
-#define STG_WRITE_REG(reg,data) (writel(data,&pSTGReg->reg))
-#define STG_READ_REG(reg)      (readl(&pSTGReg->reg))
+	#include <asm/page.h>
+	#include <asm/io.h>
+	#define STG_WRITE_REG(reg,data) (writel(data,&pSTGReg->reg))
+	#define STG_READ_REG(reg)      (readl(&pSTGReg->reg))
 #else
-#define STG_WRITE_REG(reg,data) (pSTGReg->reg = data)
-#define STG_READ_REG(reg)      (pSTGReg->reg)
+	#define STG_WRITE_REG(reg,data) (pSTGReg->reg = data)
+	#define STG_READ_REG(reg)      (pSTGReg->reg)
 #endif /* __KERNEL__ */
 
 #define SET_BIT(n) (1<<(n))
 #define CLEAR_BIT(n) (tmp &= ~(1<<n))
 #define CLEAR_BITS_FRM_TO(frm, to) \
-{\
-int i; \
-    for(i = frm; i<= to; i++) \
-	{ \
-	    tmp &= ~(1<<i); \
-	} \
-}
+	{\
+		int i; \
+		for(i = frm; i<= to; i++) \
+		{ \
+			tmp &= ~(1<<i); \
+		} \
+	}
 
 #define CLEAR_BIT_2(n) (usTemp &= ~(1<<n))
 #define CLEAR_BITS_FRM_TO_2(frm, to) \
-{\
-int i; \
-    for(i = frm; i<= to; i++) \
-	{ \
-	    usTemp &= ~(1<<i); \
-	} \
-}
+	{\
+		int i; \
+		for(i = frm; i<= to; i++) \
+		{ \
+			usTemp &= ~(1<<i); \
+		} \
+	}
 
 /* LUT select */
-typedef enum _LUT_USES {
+typedef enum _LUT_USES
+{
 	NO_LUT = 0, RESERVED, GRAPHICS, OVERLAY
 } LUT_USES;
 
 /* Primary surface pixel format select */
-typedef enum _PIXEL_FORMAT {
+typedef enum _PIXEL_FORMAT
+{
 	_8BPP = 0, _15BPP, _16BPP, _24BPP, _32BPP
 } PIXEL_FORMAT;
 
 /* Overlay blending mode select */
-typedef enum _BLEND_MODE {
+typedef enum _BLEND_MODE
+{
 	GRAPHICS_MODE = 0, COLOR_KEY, PER_PIXEL_ALPHA, GLOBAL_ALPHA,
 	CK_PIXEL_ALPHA, CK_GLOBAL_ALPHA
 } OVRL_BLEND_MODE;
 
 /* Overlay Pixel format select */
-typedef enum _OVRL_PIX_FORMAT {
+typedef enum _OVRL_PIX_FORMAT
+{
 	UYVY, VYUY, YUYV, YVYU
 } OVRL_PIX_FORMAT;
 
 /* Register Table */
-typedef struct {
+typedef struct
+{
 	/* 0h  */
 	volatile u32 Thread0Enable;	/* 0x0000 */
 	volatile u32 Thread1Enable;	/* 0x0004 */

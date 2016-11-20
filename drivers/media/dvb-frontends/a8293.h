@@ -28,7 +28,8 @@
  * struct a8293_platform_data - Platform data for the a8293 driver
  * @dvb_frontend: DVB frontend.
  */
-struct a8293_platform_data {
+struct a8293_platform_data
+{
 	struct dvb_frontend *dvb_frontend;
 };
 

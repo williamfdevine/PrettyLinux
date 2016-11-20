@@ -24,7 +24,8 @@
 #include <linux/usb/hcd.h>
 #include "usb.h"
 
-struct usb_hub {
+struct usb_hub
+{
 	struct device		*intfdev;	/* the "interface" device */
 	struct usb_device	*hdev;
 	struct kref		kref;
@@ -32,7 +33,8 @@ struct usb_hub {
 
 	/* buffer for urb ... with extra space in case of babble */
 	u8			(*buffer)[8];
-	union {
+	union
+	{
 		struct usb_hub_status	hub;
 		struct usb_port_status	port;
 	}			*status;	/* buffer for status reports */
@@ -65,14 +67,14 @@ struct usb_hub {
 	unsigned		wakeup_enabled_descendants;
 #endif
 
-	unsigned		limited_power:1;
-	unsigned		quiescing:1;
-	unsigned		disconnected:1;
-	unsigned		in_reset:1;
+	unsigned		limited_power: 1;
+	unsigned		quiescing: 1;
+	unsigned		disconnected: 1;
+	unsigned		in_reset: 1;
 
-	unsigned		quirk_check_port_auto_suspend:1;
+	unsigned		quirk_check_port_auto_suspend: 1;
 
-	unsigned		has_indicators:1;
+	unsigned		has_indicators: 1;
 	u8			indicator[USB_MAXCHILDREN];
 	struct delayed_work	leds;
 	struct delayed_work	init_work;
@@ -95,7 +97,8 @@ struct usb_hub {
  * @usb3_lpm_u1_permit: whether USB3 U1 LPM is permitted.
  * @usb3_lpm_u2_permit: whether USB3 U2 LPM is permitted.
  */
-struct usb_port {
+struct usb_port
+{
 	struct usb_device *child;
 	struct device dev;
 	struct usb_dev_state *port_owner;
@@ -105,32 +108,35 @@ struct usb_port {
 	usb_port_location_t location;
 	struct mutex status_lock;
 	u8 portnum;
-	unsigned int is_superspeed:1;
-	unsigned int usb3_lpm_u1_permit:1;
-	unsigned int usb3_lpm_u2_permit:1;
+	unsigned int is_superspeed: 1;
+	unsigned int usb3_lpm_u1_permit: 1;
+	unsigned int usb3_lpm_u2_permit: 1;
 };
 
 #define to_usb_port(_dev) \
 	container_of(_dev, struct usb_port, dev)
 
 extern int usb_hub_create_port_device(struct usb_hub *hub,
-		int port1);
+									  int port1);
 extern void usb_hub_remove_port_device(struct usb_hub *hub,
-		int port1);
+									   int port1);
 extern int usb_hub_set_port_power(struct usb_device *hdev, struct usb_hub *hub,
-		int port1, bool set);
+								  int port1, bool set);
 extern struct usb_hub *usb_hub_to_struct_hub(struct usb_device *hdev);
 extern int hub_port_debounce(struct usb_hub *hub, int port1,
-		bool must_be_connected);
+							 bool must_be_connected);
 extern int usb_clear_port_feature(struct usb_device *hdev,
-		int port1, int feature);
+								  int port1, int feature);
 
 static inline bool hub_is_port_power_switchable(struct usb_hub *hub)
 {
 	__le16 hcs;
 
 	if (!hub)
+	{
 		return false;
+	}
+
 	hcs = hub->descriptor->wHubCharacteristics;
 	return (le16_to_cpu(hcs) & HUB_CHAR_LPSM) < HUB_CHAR_NO_LPSM;
 }
@@ -143,8 +149,8 @@ static inline int hub_is_superspeed(struct usb_device *hdev)
 static inline int hub_is_superspeedplus(struct usb_device *hdev)
 {
 	return (hdev->descriptor.bDeviceProtocol == USB_HUB_PR_SS &&
-		le16_to_cpu(hdev->descriptor.bcdUSB) >= 0x0310 &&
-		hdev->bos->ssp_cap);
+			le16_to_cpu(hdev->descriptor.bcdUSB) >= 0x0310 &&
+			hdev->bos->ssp_cap);
 }
 
 static inline unsigned hub_power_on_good_delay(struct usb_hub *hub)

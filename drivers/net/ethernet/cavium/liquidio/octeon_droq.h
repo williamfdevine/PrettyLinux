@@ -39,7 +39,8 @@
  *  The Octeon device DMA's incoming packets and its information at the address
  *  given by these descriptor fields.
  */
-struct octeon_droq_desc {
+struct octeon_droq_desc
+{
 	/** The buffer pointer */
 	u64 buffer_ptr;
 
@@ -55,7 +56,8 @@ struct octeon_droq_desc {
  *  the Info field of the first descriptor for a packet has information
  *  about the packet.
  */
-struct octeon_droq_info {
+struct octeon_droq_info
+{
 	/** The Output Receive Header. */
 	union octeon_rh rh;
 
@@ -65,7 +67,8 @@ struct octeon_droq_info {
 
 #define OCT_DROQ_INFO_SIZE   (sizeof(struct octeon_droq_info))
 
-struct octeon_skb_page_info {
+struct octeon_skb_page_info
+{
 	/* DMA address for the page */
 	dma_addr_t dma;
 
@@ -82,7 +85,8 @@ struct octeon_skb_page_info {
  *  addresses, this field is required for the driver to keep track of
  *  the virtual address pointers.
 */
-struct octeon_recv_buffer {
+struct octeon_recv_buffer
+{
 	/** Packet buffer, including metadata. */
 	void *buffer;
 
@@ -96,7 +100,8 @@ struct octeon_recv_buffer {
 #define OCT_DROQ_RECVBUF_SIZE    (sizeof(struct octeon_recv_buffer))
 
 /** Output Queue statistics. Each output queue has four stats fields. */
-struct oct_droq_stats {
+struct oct_droq_stats
+{
 	/** Number of packets received in this queue. */
 	u64 pkts_received;
 
@@ -145,7 +150,8 @@ struct oct_droq_stats {
  *  The received packet will be sent to the upper layers using this
  *  structure which is passed as a parameter to the dispatch function
  */
-struct octeon_recv_pkt {
+struct octeon_recv_pkt
+{
 	/**  Number of buffers in this received packet */
 	u16 buffer_count;
 
@@ -182,7 +188,8 @@ struct octeon_recv_pkt {
  *  |                   |
  *  |___________________|
  */
-struct octeon_recv_info {
+struct octeon_recv_info
+{
 	void *rsvd;
 	struct octeon_recv_pkt *recv_pkt;
 };
@@ -201,16 +208,22 @@ static inline struct octeon_recv_info *octeon_alloc_recv_info(int extra_bytes)
 	u8 *buf;
 
 	buf = kmalloc(OCT_RECV_PKT_SIZE + OCT_RECV_INFO_SIZE +
-		      extra_bytes, GFP_ATOMIC);
+				  extra_bytes, GFP_ATOMIC);
+
 	if (!buf)
+	{
 		return NULL;
+	}
 
 	recv_info = (struct octeon_recv_info *)buf;
 	recv_info->recv_pkt =
 		(struct octeon_recv_pkt *)(buf + OCT_RECV_INFO_SIZE);
 	recv_info->rsvd = NULL;
+
 	if (extra_bytes)
+	{
 		recv_info->rsvd = buf + OCT_RECV_INFO_SIZE + OCT_RECV_PKT_SIZE;
+	}
 
 	return recv_info;
 }
@@ -228,7 +241,8 @@ typedef int (*octeon_dispatch_fn_t)(struct octeon_recv_info *, void *);
 /** Used by NIC module to register packet handler and to get device
  * information for each octeon device.
  */
-struct octeon_droq_ops {
+struct octeon_droq_ops
+{
 	/** This registered function will be called by the driver with
 	 *  the octeon id, pointer to buffer from droq and length of
 	 *  data in the buffer. The receive header gives the port
@@ -255,7 +269,8 @@ struct octeon_droq_ops {
  *  This structure has all the information required to implement a
  *  Octeon DROQ.
  */
-struct octeon_droq {
+struct octeon_droq
+{
 	/** A spinlock to protect access to this ring. */
 	spinlock_t lock;
 
@@ -361,10 +376,10 @@ struct octeon_droq {
  * @return Success: 0    Failure: 1
 */
 int octeon_init_droq(struct octeon_device *oct_dev,
-		     u32 q_no,
-		     u32 num_descs,
-		     u32 desc_size,
-		     void *app_ctx);
+					 u32 q_no,
+					 u32 num_descs,
+					 u32 desc_size,
+					 void *app_ctx);
 
 /**
  *  Frees the space for descriptor ring for the droq.
@@ -388,8 +403,8 @@ int octeon_delete_droq(struct octeon_device *oct_dev, u32 q_no);
  */
 int
 octeon_register_droq_ops(struct octeon_device *oct,
-			 u32 q_no,
-			 struct octeon_droq_ops *ops);
+						 u32 q_no,
+						 struct octeon_droq_ops *ops);
 
 /** Resets the function pointer and flag settings made by
  * octeon_register_droq_ops(). After this routine is called, the DROQ handler
@@ -414,22 +429,22 @@ int octeon_unregister_droq_ops(struct octeon_device *oct, u32 q_no);
  *    @return Success: 0; Failure: 1
  */
 int octeon_register_dispatch_fn(struct octeon_device *oct,
-				u16 opcode,
-				u16 subcode,
-				octeon_dispatch_fn_t fn, void *fn_arg);
+								u16 opcode,
+								u16 subcode,
+								octeon_dispatch_fn_t fn, void *fn_arg);
 
 void octeon_droq_print_stats(void);
 
 u32 octeon_droq_check_hw_for_pkts(struct octeon_droq *droq);
 
 int octeon_create_droq(struct octeon_device *oct, u32 q_no,
-		       u32 num_descs, u32 desc_size, void *app_ctx);
+					   u32 num_descs, u32 desc_size, void *app_ctx);
 
 int octeon_droq_process_packets(struct octeon_device *oct,
-				struct octeon_droq *droq,
-				u32 budget);
+								struct octeon_droq *droq,
+								u32 budget);
 
 int octeon_process_droq_poll_cmd(struct octeon_device *oct, u32 q_no,
-				 int cmd, u32 arg);
+								 int cmd, u32 arg);
 
 #endif	/*__OCTEON_DROQ_H__ */

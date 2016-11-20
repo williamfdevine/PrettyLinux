@@ -5,7 +5,8 @@
  *
  * It's OK if the min/max values are zero.
  */
-struct ad7879_platform_data {
+struct ad7879_platform_data
+{
 	u16	model;			/* 7879 */
 	u16	x_plate_ohms;
 	u16	x_min, x_max;

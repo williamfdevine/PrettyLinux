@@ -47,7 +47,8 @@
 #include "conrpc.h"
 
 /* node descriptor */
-struct lstcon_node {
+struct lstcon_node
+{
 	lnet_process_id_t nd_id;      /* id of the node */
 	int		  nd_ref;     /* reference count */
 	int		  nd_state;   /* state of the node */
@@ -57,14 +58,16 @@ struct lstcon_node {
 };
 
 /* node link descriptor */
-struct lstcon_ndlink {
+struct lstcon_ndlink
+{
 	struct list_head ndl_link;    /* chain on list */
 	struct list_head ndl_hlink;   /* chain on hash */
 	struct lstcon_node	*ndl_node;	/* pointer to node */
 };
 
 /* (alias of nodes) group descriptor */
-struct lstcon_group {
+struct lstcon_group
+{
 	struct list_head grp_link;		  /* chain on global group list
 						   */
 	int		 grp_ref;		  /* reference count */
@@ -80,13 +83,15 @@ struct lstcon_group {
 #define LST_BATCH_IDLE	  0xB0	    /* idle batch */
 #define LST_BATCH_RUNNING 0xB1	    /* running batch */
 
-struct lstcon_tsb_hdr {
+struct lstcon_tsb_hdr
+{
 	lst_bid_t	 tsb_id;	 /* batch ID */
 	int		 tsb_index;	 /* test index */
 };
 
 /* (tests ) batch descriptor */
-struct lstcon_batch {
+struct lstcon_batch
+{
 	struct lstcon_tsb_hdr	bat_hdr;	/* test_batch header */
 	struct list_head bat_link;	  /* chain on session's batches list */
 	int		 bat_ntest;	  /* # of test */
@@ -106,7 +111,8 @@ struct lstcon_batch {
 };
 
 /* a single test descriptor */
-struct lstcon_test {
+struct lstcon_test
+{
 	struct lstcon_tsb_hdr	tes_hdr;	/* test batch header */
 	struct list_head tes_link;	 /* chain on batch's tests list */
 	struct lstcon_batch	*tes_batch;	 /* pointer to batch */
@@ -136,7 +142,8 @@ struct lstcon_test {
 
 #define LST_CONSOLE_TIMEOUT 300	     /* default console timeout */
 
-struct lstcon_session {
+struct lstcon_session
+{
 	struct mutex	    ses_mutex;	      /* only 1 thread in session */
 	lst_sid_t	    ses_id;	      /* global session id */
 	int		    ses_key;	      /* local session key */
@@ -146,11 +153,11 @@ struct lstcon_session {
 					       */
 	unsigned	    ses_features;     /* tests features of the session
 					       */
-	unsigned	    ses_feats_updated:1; /* features are synced with
+	unsigned	    ses_feats_updated: 1; /* features are synced with
 						  * remote test nodes */
-	unsigned	    ses_force:1;      /* force creating */
-	unsigned	    ses_shutdown:1;   /* session is shutting down */
-	unsigned	    ses_expired:1;    /* console is timedout */
+	unsigned	    ses_force: 1;     /* force creating */
+	unsigned	    ses_shutdown: 1;  /* session is shutting down */
+	unsigned	    ses_expired: 1;   /* console is timedout */
 	__u64		    ses_id_cookie;    /* batch id cookie */
 	char		    ses_name[LST_NAME_SIZE];/* session name */
 	struct lstcon_rpc_trans	*ses_ping;		/* session pinger */
@@ -189,51 +196,51 @@ int lstcon_console_init(void);
 int lstcon_console_fini(void);
 int lstcon_session_match(lst_sid_t sid);
 int lstcon_session_new(char *name, int key, unsigned version,
-		       int timeout, int flags, lst_sid_t __user *sid_up);
+					   int timeout, int flags, lst_sid_t __user *sid_up);
 int lstcon_session_info(lst_sid_t __user *sid_up, int __user *key,
-			unsigned __user *verp, lstcon_ndlist_ent_t __user *entp,
-			char __user *name_up, int len);
+						unsigned __user *verp, lstcon_ndlist_ent_t __user *entp,
+						char __user *name_up, int len);
 int lstcon_session_end(void);
 int lstcon_session_debug(int timeout, struct list_head __user *result_up);
 int lstcon_session_feats_check(unsigned feats);
 int lstcon_batch_debug(int timeout, char *name,
-		       int client, struct list_head __user *result_up);
+					   int client, struct list_head __user *result_up);
 int lstcon_group_debug(int timeout, char *name,
-		       struct list_head __user *result_up);
+					   struct list_head __user *result_up);
 int lstcon_nodes_debug(int timeout, int nnd, lnet_process_id_t __user *nds_up,
-		       struct list_head __user *result_up);
+					   struct list_head __user *result_up);
 int lstcon_group_add(char *name);
 int lstcon_group_del(char *name);
 int lstcon_group_clean(char *name, int args);
 int lstcon_group_refresh(char *name, struct list_head __user *result_up);
 int lstcon_nodes_add(char *name, int nnd, lnet_process_id_t __user *nds_up,
-		     unsigned *featp, struct list_head __user *result_up);
+					 unsigned *featp, struct list_head __user *result_up);
 int lstcon_nodes_remove(char *name, int nnd, lnet_process_id_t __user *nds_up,
-			struct list_head __user *result_up);
+						struct list_head __user *result_up);
 int lstcon_group_info(char *name, lstcon_ndlist_ent_t __user *gent_up,
-		      int *index_p, int *ndent_p,
-		      lstcon_node_ent_t __user *ndents_up);
+					  int *index_p, int *ndent_p,
+					  lstcon_node_ent_t __user *ndents_up);
 int lstcon_group_list(int idx, int len, char __user *name_up);
 int lstcon_batch_add(char *name);
 int lstcon_batch_run(char *name, int timeout,
-		     struct list_head __user *result_up);
+					 struct list_head __user *result_up);
 int lstcon_batch_stop(char *name, int force,
-		      struct list_head __user *result_up);
+					  struct list_head __user *result_up);
 int lstcon_test_batch_query(char *name, int testidx,
-			    int client, int timeout,
-			    struct list_head __user *result_up);
+							int client, int timeout,
+							struct list_head __user *result_up);
 int lstcon_batch_del(char *name);
 int lstcon_batch_list(int idx, int namelen, char __user *name_up);
 int lstcon_batch_info(char *name, lstcon_test_batch_ent_t __user *ent_up,
-		      int server, int testidx, int *index_p,
-		      int *ndent_p, lstcon_node_ent_t __user *dents_up);
+					  int server, int testidx, int *index_p,
+					  int *ndent_p, lstcon_node_ent_t __user *dents_up);
 int lstcon_group_stat(char *grp_name, int timeout,
-		      struct list_head __user *result_up);
+					  struct list_head __user *result_up);
 int lstcon_nodes_stat(int count, lnet_process_id_t __user *ids_up,
-		      int timeout, struct list_head __user *result_up);
+					  int timeout, struct list_head __user *result_up);
 int lstcon_test_add(char *batch_name, int type, int loop,
-		    int concur, int dist, int span,
-		    char *src_name, char *dst_name,
-		    void *param, int paramlen, int *retp,
-		    struct list_head __user *result_up);
+					int concur, int dist, int span,
+					char *src_name, char *dst_name,
+					void *param, int paramlen, int *retp,
+					struct list_head __user *result_up);
 #endif

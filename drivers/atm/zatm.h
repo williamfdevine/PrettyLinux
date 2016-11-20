@@ -39,7 +39,8 @@
 #define MBX_TX_0	2
 #define MBX_TX_1	3
 
-struct zatm_vcc {
+struct zatm_vcc
+{
 	/*-------------------------------- RX part */
 	int rx_chan;			/* RX channel, 0 if none */
 	int pool;			/* free buffer pool */
@@ -54,7 +55,8 @@ struct zatm_vcc {
 	struct sk_buff_head backlog;	/* list of buffers waiting for ring */
 };
 
-struct zatm_dev {
+struct zatm_dev
+{
 	/*-------------------------------- TX part */
 	int tx_bw;			/* remaining bandwidth */
 	u32 free_shapers;		/* bit set */
@@ -63,7 +65,7 @@ struct zatm_dev {
 	/*-------------------------------- RX part */
 	int pool_ref[NR_POOLS];		/* free buffer pool usage counters */
 	volatile struct sk_buff *last_free[NR_POOLS];
-					/* last entry in respective pool */
+	/* last entry in respective pool */
 	struct sk_buff_head pool[NR_POOLS];/* free buffer pools */
 	struct zatm_pool_info pool_info[NR_POOLS]; /* pool information */
 	/*-------------------------------- maps */
@@ -93,7 +95,8 @@ struct zatm_dev {
 #define ZATM_VCC(d) ((struct zatm_vcc *) (d)->dev_data)
 
 
-struct zatm_skb_prv {
+struct zatm_skb_prv
+{
 	struct atm_skb_data _;		/* reserved */
 	u32 *dsc;			/* pointer to skb's descriptor */
 };

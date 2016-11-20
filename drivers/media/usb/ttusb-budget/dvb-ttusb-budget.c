@@ -70,7 +70,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 #define ISO_FRAME_SIZE     912
 #define TTUSB_MAXCHANNEL   32
 #ifdef TTUSB_HWSECTIONS
-#define TTUSB_MAXFILTER    16	/* ??? */
+	#define TTUSB_MAXFILTER    16	/* ??? */
 #endif
 
 #define TTUSB_REV_2_2	0x22
@@ -80,7 +80,8 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
  *  since we're casting (struct ttusb*) <-> (struct dvb_demux*) around
  *  the dvb_demux field must be the first in struct!!
  */
-struct ttusb {
+struct ttusb
+{
 	struct dvb_demux dvb_demux;
 	struct dmxdev dmxdev;
 	struct dvb_net dvbnet;
@@ -128,68 +129,88 @@ struct ttusb {
 
 	int revision;
 
-	struct dvb_frontend* fe;
+	struct dvb_frontend *fe;
 };
 
 /* ugly workaround ... don't know why it's necessary to read */
 /* all result codes. */
 
 static int ttusb_cmd(struct ttusb *ttusb,
-	      const u8 * data, int len, int needresult)
+					 const u8 *data, int len, int needresult)
 {
 	int actual_len;
 	int err;
 	int i;
 
-	if (debug >= 3) {
+	if (debug >= 3)
+	{
 		printk(KERN_DEBUG ">");
+
 		for (i = 0; i < len; ++i)
+		{
 			printk(KERN_CONT " %02x", data[i]);
+		}
+
 		printk(KERN_CONT "\n");
 	}
 
 	if (mutex_lock_interruptible(&ttusb->semusb) < 0)
+	{
 		return -EAGAIN;
+	}
 
 	err = usb_bulk_msg(ttusb->dev, ttusb->bulk_out_pipe,
-			   (u8 *) data, len, &actual_len, 1000);
-	if (err != 0) {
+					   (u8 *) data, len, &actual_len, 1000);
+
+	if (err != 0)
+	{
 		dprintk("%s: usb_bulk_msg(send) failed, err == %i!\n",
-			__func__, err);
+				__func__, err);
 		mutex_unlock(&ttusb->semusb);
 		return err;
 	}
-	if (actual_len != len) {
+
+	if (actual_len != len)
+	{
 		dprintk("%s: only wrote %d of %d bytes\n", __func__,
-			actual_len, len);
+				actual_len, len);
 		mutex_unlock(&ttusb->semusb);
 		return -1;
 	}
 
 	err = usb_bulk_msg(ttusb->dev, ttusb->bulk_in_pipe,
-			   ttusb->last_result, 32, &actual_len, 1000);
+					   ttusb->last_result, 32, &actual_len, 1000);
 
-	if (err != 0) {
+	if (err != 0)
+	{
 		printk("%s: failed, receive error %d\n", __func__,
-		       err);
+			   err);
 		mutex_unlock(&ttusb->semusb);
 		return err;
 	}
 
-	if (debug >= 3) {
+	if (debug >= 3)
+	{
 		actual_len = ttusb->last_result[3] + 4;
 		printk(KERN_DEBUG "<");
+
 		for (i = 0; i < actual_len; ++i)
+		{
 			printk(KERN_CONT " %02x", ttusb->last_result[i]);
+		}
+
 		printk(KERN_CONT "\n");
 	}
 
 	if (!needresult)
+	{
 		mutex_unlock(&ttusb->semusb);
+	}
+
 	return 0;
 }
 
-static int ttusb_result(struct ttusb *ttusb, u8 * data, int len)
+static int ttusb_result(struct ttusb *ttusb, u8 *data, int len)
 {
 	memcpy(data, ttusb->last_result, len);
 	mutex_unlock(&ttusb->semusb);
@@ -197,15 +218,17 @@ static int ttusb_result(struct ttusb *ttusb, u8 * data, int len)
 }
 
 static int ttusb_i2c_msg(struct ttusb *ttusb,
-		  u8 addr, u8 * snd_buf, u8 snd_len, u8 * rcv_buf,
-		  u8 rcv_len)
+						 u8 addr, u8 *snd_buf, u8 snd_len, u8 *rcv_buf,
+						 u8 rcv_len)
 {
 	u8 b[0x28];
 	u8 id = ++ttusb->c;
 	int i, err;
 
 	if (snd_len > 0x28 - 7 || rcv_len > 0x20 - 7)
+	{
 		return -EINVAL;
+	}
 
 	b[0] = 0xaa;
 	b[1] = id;
@@ -216,55 +239,69 @@ static int ttusb_i2c_msg(struct ttusb *ttusb,
 	b[6] = rcv_len;
 
 	for (i = 0; i < snd_len; i++)
+	{
 		b[7 + i] = snd_buf[i];
+	}
 
 	err = ttusb_cmd(ttusb, b, snd_len + 7, 1);
 
 	if (err)
+	{
 		return -EREMOTEIO;
+	}
 
 	err = ttusb_result(ttusb, b, 0x20);
 
 	/* check if the i2c transaction was successful */
-	if ((snd_len != b[5]) || (rcv_len != b[6])) return -EREMOTEIO;
+	if ((snd_len != b[5]) || (rcv_len != b[6])) { return -EREMOTEIO; }
 
-	if (rcv_len > 0) {
+	if (rcv_len > 0)
+	{
 
-		if (err || b[0] != 0x55 || b[1] != id) {
+		if (err || b[0] != 0x55 || b[1] != id)
+		{
 			dprintk
-			    ("%s: usb_bulk_msg(recv) failed, err == %i, id == %02x, b == ",
-			     __func__, err, id);
+			("%s: usb_bulk_msg(recv) failed, err == %i, id == %02x, b == ",
+			 __func__, err, id);
 			return -EREMOTEIO;
 		}
 
 		for (i = 0; i < rcv_len; i++)
+		{
 			rcv_buf[i] = b[7 + i];
+		}
 	}
 
 	return rcv_len;
 }
 
-static int master_xfer(struct i2c_adapter* adapter, struct i2c_msg *msg, int num)
+static int master_xfer(struct i2c_adapter *adapter, struct i2c_msg *msg, int num)
 {
 	struct ttusb *ttusb = i2c_get_adapdata(adapter);
 	int i = 0;
 	int inc;
 
 	if (mutex_lock_interruptible(&ttusb->semi2c) < 0)
+	{
 		return -EAGAIN;
+	}
 
-	while (i < num) {
+	while (i < num)
+	{
 		u8 addr, snd_len, rcv_len, *snd_buf, *rcv_buf;
 		int err;
 
-		if (num > i + 1 && (msg[i + 1].flags & I2C_M_RD)) {
+		if (num > i + 1 && (msg[i + 1].flags & I2C_M_RD))
+		{
 			addr = msg[i].addr;
 			snd_buf = msg[i].buf;
 			snd_len = msg[i].len;
 			rcv_buf = msg[i + 1].buf;
 			rcv_len = msg[i + 1].len;
 			inc = 2;
-		} else {
+		}
+		else
+		{
 			addr = msg[i].addr;
 			snd_buf = msg[i].buf;
 			snd_len = msg[i].len;
@@ -274,9 +311,10 @@ static int master_xfer(struct i2c_adapter* adapter, struct i2c_msg *msg, int num
 		}
 
 		err = ttusb_i2c_msg(ttusb, addr,
-				    snd_buf, snd_len, rcv_buf, rcv_len);
+							snd_buf, snd_len, rcv_buf, rcv_len);
 
-		if (err < rcv_len) {
+		if (err < rcv_len)
+		{
 			dprintk("%s: i == %i\n", __func__, i);
 			break;
 		}
@@ -295,8 +333,10 @@ static int ttusb_boot_dsp(struct ttusb *ttusb)
 	u8 b[40];
 
 	err = request_firmware(&fw, "ttusb-budget/dspbootcode.bin",
-			       &ttusb->dev->dev);
-	if (err) {
+						   &ttusb->dev->dev);
+
+	if (err)
+	{
 		printk(KERN_ERR "ttusb-budget: failed to request firmware\n");
 		return err;
 	}
@@ -308,14 +348,18 @@ static int ttusb_boot_dsp(struct ttusb *ttusb)
 
 	/* upload dsp code in 32 byte steps (36 didn't work for me ...) */
 	/* 32 is max packet size, no messages should be splitted. */
-	for (i = 0; i < fw->size; i += 28) {
+	for (i = 0; i < fw->size; i += 28)
+	{
 		memcpy(&b[4], &fw->data[i], 28);
 
 		b[1] = ++ttusb->c;
 
 		err = ttusb_cmd(ttusb, b, 32, 0);
+
 		if (err)
+		{
 			goto done;
+		}
 	}
 
 	/* last block ... */
@@ -324,8 +368,11 @@ static int ttusb_boot_dsp(struct ttusb *ttusb)
 	b[3] = 0;
 
 	err = ttusb_cmd(ttusb, b, 4, 0);
+
 	if (err)
+	{
 		goto done;
+	}
 
 	/* BootEnd */
 	b[1] = ++ttusb->c;
@@ -334,24 +381,26 @@ static int ttusb_boot_dsp(struct ttusb *ttusb)
 
 	err = ttusb_cmd(ttusb, b, 4, 0);
 
-      done:
+done:
 	release_firmware(fw);
-	if (err) {
+
+	if (err)
+	{
 		dprintk("%s: usb_bulk_msg() failed, return value %i!\n",
-			__func__, err);
+				__func__, err);
 	}
 
 	return err;
 }
 
 static int ttusb_set_channel(struct ttusb *ttusb, int chan_id, int filter_type,
-		      int pid)
+							 int pid)
 {
 	int err;
 	/* SetChannel */
 	u8 b[] = { 0xaa, ++ttusb->c, 0x22, 4, chan_id, filter_type,
-		(pid >> 8) & 0xff, pid & 0xff
-	};
+			   (pid >> 8) & 0xff, pid & 0xff
+			 };
 
 	err = ttusb_cmd(ttusb, b, sizeof(b), 0);
 	return err;
@@ -369,18 +418,18 @@ static int ttusb_del_channel(struct ttusb *ttusb, int channel_id)
 
 #ifdef TTUSB_HWSECTIONS
 static int ttusb_set_filter(struct ttusb *ttusb, int filter_id,
-		     int associated_chan, u8 filter[8], u8 mask[8])
+							int associated_chan, u8 filter[8], u8 mask[8])
 {
 	int err;
 	/* SetFilter */
 	u8 b[] = { 0xaa, 0, 0x24, 0x1a, filter_id, associated_chan,
-		filter[0], filter[1], filter[2], filter[3],
-		filter[4], filter[5], filter[6], filter[7],
-		filter[8], filter[9], filter[10], filter[11],
-		mask[0], mask[1], mask[2], mask[3],
-		mask[4], mask[5], mask[6], mask[7],
-		mask[8], mask[9], mask[10], mask[11]
-	};
+			   filter[0], filter[1], filter[2], filter[3],
+			   filter[4], filter[5], filter[6], filter[7],
+			   filter[8], filter[9], filter[10], filter[11],
+			   mask[0], mask[1], mask[2], mask[3],
+			   mask[4], mask[5], mask[6], mask[7],
+			   mask[8], mask[9], mask[10], mask[11]
+			 };
 
 	err = ttusb_cmd(ttusb, b, sizeof(b), 0);
 	return err;
@@ -404,76 +453,96 @@ static int ttusb_init_controller(struct ttusb *ttusb)
 	u8 b2[] = { 0xaa, ++ttusb->c, 0x32, 1, 0 };
 	/* i2c write read: 5 bytes, addr 0x10, 0x02 bytes write, 1 bytes read. */
 	u8 b3[] =
-	    { 0xaa, ++ttusb->c, 0x31, 5, 0x10, 0x02, 0x01, 0x00, 0x1e };
+	{ 0xaa, ++ttusb->c, 0x31, 5, 0x10, 0x02, 0x01, 0x00, 0x1e };
 	u8 b4[] =
-	    { 0x55, ttusb->c, 0x31, 4, 0x10, 0x02, 0x01, 0x00, 0x1e };
+	{ 0x55, ttusb->c, 0x31, 4, 0x10, 0x02, 0x01, 0x00, 0x1e };
 
 	u8 get_version[] = { 0xaa, ++ttusb->c, 0x17, 5, 0, 0, 0, 0, 0 };
 	u8 get_dsp_version[0x20] =
-	    { 0xaa, ++ttusb->c, 0x26, 28, 0, 0, 0, 0, 0 };
+	{ 0xaa, ++ttusb->c, 0x26, 28, 0, 0, 0, 0, 0 };
 	int err;
 
 	/* reset board */
 	if ((err = ttusb_cmd(ttusb, b0, sizeof(b0), 0)))
+	{
 		return err;
+	}
 
 	/* reset board (again?) */
 	if ((err = ttusb_cmd(ttusb, b1, sizeof(b1), 0)))
+	{
 		return err;
+	}
 
 	ttusb_boot_dsp(ttusb);
 
 	/* set i2c bit rate */
 	if ((err = ttusb_cmd(ttusb, b2, sizeof(b2), 0)))
+	{
 		return err;
+	}
 
 	if ((err = ttusb_cmd(ttusb, b3, sizeof(b3), 1)))
+	{
 		return err;
+	}
 
 	err = ttusb_result(ttusb, b4, sizeof(b4));
 
 	if ((err = ttusb_cmd(ttusb, get_version, sizeof(get_version), 1)))
+	{
 		return err;
+	}
 
 	if ((err = ttusb_result(ttusb, get_version, sizeof(get_version))))
+	{
 		return err;
+	}
 
 	dprintk("%s: stc-version: %c%c%c%c%c\n", __func__,
-		get_version[4], get_version[5], get_version[6],
-		get_version[7], get_version[8]);
+			get_version[4], get_version[5], get_version[6],
+			get_version[7], get_version[8]);
 
 	if (memcmp(get_version + 4, "V 0.0", 5) &&
-	    memcmp(get_version + 4, "V 1.1", 5) &&
-	    memcmp(get_version + 4, "V 2.1", 5) &&
-	    memcmp(get_version + 4, "V 2.2", 5)) {
+		memcmp(get_version + 4, "V 1.1", 5) &&
+		memcmp(get_version + 4, "V 2.1", 5) &&
+		memcmp(get_version + 4, "V 2.2", 5))
+	{
 		printk
-		    ("%s: unknown STC version %c%c%c%c%c, please report!\n",
-		     __func__, get_version[4], get_version[5],
-		     get_version[6], get_version[7], get_version[8]);
+		("%s: unknown STC version %c%c%c%c%c, please report!\n",
+		 __func__, get_version[4], get_version[5],
+		 get_version[6], get_version[7], get_version[8]);
 	}
 
 	ttusb->revision = ((get_version[6] - '0') << 4) |
-			   (get_version[8] - '0');
+					  (get_version[8] - '0');
 
 	err =
-	    ttusb_cmd(ttusb, get_dsp_version, sizeof(get_dsp_version), 1);
+		ttusb_cmd(ttusb, get_dsp_version, sizeof(get_dsp_version), 1);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err =
-	    ttusb_result(ttusb, get_dsp_version, sizeof(get_dsp_version));
+		ttusb_result(ttusb, get_dsp_version, sizeof(get_dsp_version));
+
 	if (err)
+	{
 		return err;
+	}
+
 	printk("%s: dsp-version: %c%c%c\n", __func__,
-	       get_dsp_version[4], get_dsp_version[5], get_dsp_version[6]);
+		   get_dsp_version[4], get_dsp_version[5], get_dsp_version[6]);
 	return 0;
 }
 
 #ifdef TTUSB_DISEQC
-static int ttusb_send_diseqc(struct dvb_frontend* fe,
-			     const struct dvb_diseqc_master_cmd *cmd)
+static int ttusb_send_diseqc(struct dvb_frontend *fe,
+							 const struct dvb_diseqc_master_cmd *cmd)
 {
-	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+	struct ttusb *ttusb = (struct ttusb *) fe->dvb->priv;
 	u8 b[12] = { 0xaa, ++ttusb->c, 0x18 };
 
 	int err;
@@ -485,9 +554,10 @@ static int ttusb_send_diseqc(struct dvb_frontend* fe,
 	memcpy(b + 5, cmd->msg, cmd->msg_len);
 
 	/* Diseqc */
-	if ((err = ttusb_cmd(ttusb, b, 4 + b[3], 0))) {
+	if ((err = ttusb_cmd(ttusb, b, 4 + b[3], 0)))
+	{
 		dprintk("%s: usb_bulk_msg() failed, return value %i!\n",
-			__func__, err);
+				__func__, err);
 	}
 
 	return err;
@@ -497,24 +567,25 @@ static int ttusb_send_diseqc(struct dvb_frontend* fe,
 static int ttusb_update_lnb(struct ttusb *ttusb)
 {
 	u8 b[] = { 0xaa, ++ttusb->c, 0x16, 5, /*power: */ 1,
-		ttusb->voltage == SEC_VOLTAGE_18 ? 0 : 1,
-		ttusb->tone == SEC_TONE_ON ? 1 : 0, 1, 1
-	};
+			   ttusb->voltage == SEC_VOLTAGE_18 ? 0 : 1,
+			   ttusb->tone == SEC_TONE_ON ? 1 : 0, 1, 1
+			 };
 	int err;
 
 	/* SetLNB */
-	if ((err = ttusb_cmd(ttusb, b, sizeof(b), 0))) {
+	if ((err = ttusb_cmd(ttusb, b, sizeof(b), 0)))
+	{
 		dprintk("%s: usb_bulk_msg() failed, return value %i!\n",
-			__func__, err);
+				__func__, err);
 	}
 
 	return err;
 }
 
 static int ttusb_set_voltage(struct dvb_frontend *fe,
-			     enum fe_sec_voltage voltage)
+							 enum fe_sec_voltage voltage)
 {
-	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+	struct ttusb *ttusb = (struct ttusb *) fe->dvb->priv;
 
 	ttusb->voltage = voltage;
 	return ttusb_update_lnb(ttusb);
@@ -523,7 +594,7 @@ static int ttusb_set_voltage(struct dvb_frontend *fe,
 #ifdef TTUSB_TONE
 static int ttusb_set_tone(struct dvb_frontend *fe, enum fe_sec_tone_mode tone)
 {
-	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+	struct ttusb *ttusb = (struct ttusb *) fe->dvb->priv;
 
 	ttusb->tone = tone;
 	return ttusb_update_lnb(ttusb);
@@ -538,9 +609,11 @@ static void ttusb_set_led_freq(struct ttusb *ttusb, u8 freq)
 	int err, actual_len;
 
 	err = ttusb_cmd(ttusb, b, sizeof(b), 0);
-	if (err) {
+
+	if (err)
+	{
 		dprintk("%s: usb_bulk_msg() failed, return value %i!\n",
-			__func__, err);
+				__func__, err);
 	}
 }
 #endif
@@ -549,200 +622,251 @@ static void ttusb_set_led_freq(struct ttusb *ttusb, u8 freq)
 
 #ifdef TTUSB_HWSECTIONS
 static void ttusb_handle_ts_data(struct ttusb_channel *channel,
-				 const u8 * data, int len);
+								 const u8 *data, int len);
 static void ttusb_handle_sec_data(struct ttusb_channel *channel,
-				  const u8 * data, int len);
+								  const u8 *data, int len);
 #endif
 
 static int numpkt, numts, numstuff, numsec, numinvalid;
 static unsigned long lastj;
 
-static void ttusb_process_muxpack(struct ttusb *ttusb, const u8 * muxpack,
-			   int len)
+static void ttusb_process_muxpack(struct ttusb *ttusb, const u8 *muxpack,
+								  int len)
 {
 	u16 csum = 0, cc;
 	int i;
 
-	if (len < 4 || len & 0x1) {
+	if (len < 4 || len & 0x1)
+	{
 		pr_warn("%s: muxpack has invalid len %d\n", __func__, len);
 		numinvalid++;
 		return;
 	}
 
 	for (i = 0; i < len; i += 2)
+	{
 		csum ^= le16_to_cpup((__le16 *) (muxpack + i));
-	if (csum) {
+	}
+
+	if (csum)
+	{
 		printk("%s: muxpack with incorrect checksum, ignoring\n",
-		       __func__);
+			   __func__);
 		numinvalid++;
 		return;
 	}
 
 	cc = (muxpack[len - 4] << 8) | muxpack[len - 3];
 	cc &= 0x7FFF;
+
 	if ((cc != ttusb->cc) && (ttusb->cc != -1))
 		printk("%s: cc discontinuity (%d frames missing)\n",
-		       __func__, (cc - ttusb->cc) & 0x7FFF);
+			   __func__, (cc - ttusb->cc) & 0x7FFF);
+
 	ttusb->cc = (cc + 1) & 0x7FFF;
-	if (muxpack[0] & 0x80) {
+
+	if (muxpack[0] & 0x80)
+	{
 #ifdef TTUSB_HWSECTIONS
 		/* section data */
 		int pusi = muxpack[0] & 0x40;
 		int channel = muxpack[0] & 0x1F;
 		int payload = muxpack[1];
 		const u8 *data = muxpack + 2;
+
 		/* check offset flag */
 		if (muxpack[0] & 0x20)
+		{
 			data++;
+		}
 
 		ttusb_handle_sec_data(ttusb->channel + channel, data,
-				      payload);
+							  payload);
 		data += payload;
 
 		if ((!!(ttusb->muxpack[0] & 0x20)) ^
-		    !!(ttusb->muxpack[1] & 1))
+			!!(ttusb->muxpack[1] & 1))
+		{
 			data++;
+		}
+
 #warning TODO: pusi
 		printk("cc: %04x\n", (data[0] << 8) | data[1]);
 #endif
 		numsec++;
-	} else if (muxpack[0] == 0x47) {
+	}
+	else if (muxpack[0] == 0x47)
+	{
 #ifdef TTUSB_HWSECTIONS
 		/* we have TS data here! */
 		int pid = ((muxpack[1] & 0x0F) << 8) | muxpack[2];
 		int channel;
+
 		for (channel = 0; channel < TTUSB_MAXCHANNEL; ++channel)
 			if (ttusb->channel[channel].active
-			    && (pid == ttusb->channel[channel].pid))
+				&& (pid == ttusb->channel[channel].pid))
 				ttusb_handle_ts_data(ttusb->channel +
-						     channel, muxpack,
-						     188);
+									 channel, muxpack,
+									 188);
+
 #endif
 		numts++;
 		dvb_dmx_swfilter_packets(&ttusb->dvb_demux, muxpack, 1);
-	} else if (muxpack[0] != 0) {
+	}
+	else if (muxpack[0] != 0)
+	{
 		numinvalid++;
 		printk("illegal muxpack type %02x\n", muxpack[0]);
-	} else
+	}
+	else
+	{
 		numstuff++;
+	}
 }
 
-static void ttusb_process_frame(struct ttusb *ttusb, u8 * data, int len)
+static void ttusb_process_frame(struct ttusb *ttusb, u8 *data, int len)
 {
 	int maxwork = 1024;
-	while (len) {
-		if (!(maxwork--)) {
+
+	while (len)
+	{
+		if (!(maxwork--))
+		{
 			printk("%s: too much work\n", __func__);
 			break;
 		}
 
-		switch (ttusb->mux_state) {
-		case 0:
-		case 1:
-		case 2:
-			len--;
-			if (*data++ == 0xAA)
-				++ttusb->mux_state;
-			else {
-				ttusb->mux_state = 0;
-				if (ttusb->insync) {
-					dprintk("%s: %02x\n",
-						__func__, data[-1]);
-					printk(KERN_INFO "%s: lost sync.\n",
-					       __func__);
-					ttusb->insync = 0;
+		switch (ttusb->mux_state)
+		{
+			case 0:
+			case 1:
+			case 2:
+				len--;
+
+				if (*data++ == 0xAA)
+				{
+					++ttusb->mux_state;
 				}
-			}
-			break;
-		case 3:
-			ttusb->insync = 1;
-			len--;
-			ttusb->mux_npacks = *data++;
-			++ttusb->mux_state;
-			ttusb->muxpack_ptr = 0;
-			/* maximum bytes, until we know the length */
-			ttusb->muxpack_len = 2;
-			break;
-		case 4:
-			{
-				int avail;
-				avail = len;
-				if (avail >
-				    (ttusb->muxpack_len -
-				     ttusb->muxpack_ptr))
-					avail =
-					    ttusb->muxpack_len -
-					    ttusb->muxpack_ptr;
-				memcpy(ttusb->muxpack + ttusb->muxpack_ptr,
-				       data, avail);
-				ttusb->muxpack_ptr += avail;
-				BUG_ON(ttusb->muxpack_ptr > 264);
-				data += avail;
-				len -= avail;
-				/* determine length */
-				if (ttusb->muxpack_ptr == 2) {
-					if (ttusb->muxpack[0] & 0x80) {
-						ttusb->muxpack_len =
-						    ttusb->muxpack[1] + 2;
-						if (ttusb->
-						    muxpack[0] & 0x20)
-							ttusb->
-							    muxpack_len++;
-						if ((!!
-						     (ttusb->
-						      muxpack[0] & 0x20)) ^
-						    !!(ttusb->
-						       muxpack[1] & 1))
-							ttusb->
-							    muxpack_len++;
-						ttusb->muxpack_len += 4;
-					} else if (ttusb->muxpack[0] ==
-						   0x47)
-						ttusb->muxpack_len =
-						    188 + 4;
-					else if (ttusb->muxpack[0] == 0x00)
-						ttusb->muxpack_len =
-						    ttusb->muxpack[1] + 2 +
-						    4;
-					else {
-						dprintk
-						    ("%s: invalid state: first byte is %x\n",
-						     __func__,
-						     ttusb->muxpack[0]);
-						ttusb->mux_state = 0;
+				else
+				{
+					ttusb->mux_state = 0;
+
+					if (ttusb->insync)
+					{
+						dprintk("%s: %02x\n",
+								__func__, data[-1]);
+						printk(KERN_INFO "%s: lost sync.\n",
+							   __func__);
+						ttusb->insync = 0;
 					}
 				}
 
-			/**
-			 * if length is valid and we reached the end:
-			 * goto next muxpack
-			 */
-				if ((ttusb->muxpack_ptr >= 2) &&
-				    (ttusb->muxpack_ptr ==
-				     ttusb->muxpack_len)) {
-					ttusb_process_muxpack(ttusb,
-							      ttusb->
-							      muxpack,
-							      ttusb->
-							      muxpack_ptr);
-					ttusb->muxpack_ptr = 0;
-					/* maximum bytes, until we know the length */
-					ttusb->muxpack_len = 2;
-
-				/**
-				 * no muxpacks left?
-				 * return to search-sync state
-				 */
-					if (!ttusb->mux_npacks--) {
-						ttusb->mux_state = 0;
-						break;
-					}
-				}
 				break;
-			}
-		default:
-			BUG();
-			break;
+
+			case 3:
+				ttusb->insync = 1;
+				len--;
+				ttusb->mux_npacks = *data++;
+				++ttusb->mux_state;
+				ttusb->muxpack_ptr = 0;
+				/* maximum bytes, until we know the length */
+				ttusb->muxpack_len = 2;
+				break;
+
+			case 4:
+				{
+					int avail;
+					avail = len;
+
+					if (avail >
+						(ttusb->muxpack_len -
+						 ttusb->muxpack_ptr))
+						avail =
+							ttusb->muxpack_len -
+							ttusb->muxpack_ptr;
+
+					memcpy(ttusb->muxpack + ttusb->muxpack_ptr,
+						   data, avail);
+					ttusb->muxpack_ptr += avail;
+					BUG_ON(ttusb->muxpack_ptr > 264);
+					data += avail;
+					len -= avail;
+
+					/* determine length */
+					if (ttusb->muxpack_ptr == 2)
+					{
+						if (ttusb->muxpack[0] & 0x80)
+						{
+							ttusb->muxpack_len =
+								ttusb->muxpack[1] + 2;
+
+							if (ttusb->
+								muxpack[0] & 0x20)
+								ttusb->
+								muxpack_len++;
+
+							if ((!!
+								 (ttusb->
+								  muxpack[0] & 0x20)) ^
+								!!(ttusb->
+								   muxpack[1] & 1))
+								ttusb->
+								muxpack_len++;
+
+							ttusb->muxpack_len += 4;
+						}
+						else if (ttusb->muxpack[0] ==
+								 0x47)
+							ttusb->muxpack_len =
+								188 + 4;
+						else if (ttusb->muxpack[0] == 0x00)
+							ttusb->muxpack_len =
+								ttusb->muxpack[1] + 2 +
+								4;
+						else
+						{
+							dprintk
+							("%s: invalid state: first byte is %x\n",
+							 __func__,
+							 ttusb->muxpack[0]);
+							ttusb->mux_state = 0;
+						}
+					}
+
+					/**
+					 * if length is valid and we reached the end:
+					 * goto next muxpack
+					 */
+					if ((ttusb->muxpack_ptr >= 2) &&
+						(ttusb->muxpack_ptr ==
+						 ttusb->muxpack_len))
+					{
+						ttusb_process_muxpack(ttusb,
+											  ttusb->
+											  muxpack,
+											  ttusb->
+											  muxpack_ptr);
+						ttusb->muxpack_ptr = 0;
+						/* maximum bytes, until we know the length */
+						ttusb->muxpack_len = 2;
+
+						/**
+						 * no muxpacks left?
+						 * return to search-sync state
+						 */
+						if (!ttusb->mux_npacks--)
+						{
+							ttusb->mux_state = 0;
+							break;
+						}
+					}
+
+					break;
+				}
+
+			default:
+				BUG();
+				break;
 		}
 	}
 }
@@ -755,27 +879,34 @@ static void ttusb_iso_irq(struct urb *urb)
 	int len, i;
 
 	if (!ttusb->iso_streaming)
+	{
 		return;
+	}
 
 #if 0
 	printk("%s: status %d, errcount == %d, length == %i\n",
-	       __func__,
-	       urb->status, urb->error_count, urb->actual_length);
+		   __func__,
+		   urb->status, urb->error_count, urb->actual_length);
 #endif
 
-	if (!urb->status) {
-		for (i = 0; i < urb->number_of_packets; ++i) {
+	if (!urb->status)
+	{
+		for (i = 0; i < urb->number_of_packets; ++i)
+		{
 			numpkt++;
-			if (time_after_eq(jiffies, lastj + HZ)) {
+
+			if (time_after_eq(jiffies, lastj + HZ))
+			{
 				dprintk("frames/s: %lu (ts: %d, stuff %d, "
-					"sec: %d, invalid: %d, all: %d)\n",
-					numpkt * HZ / (jiffies - lastj),
-					numts, numstuff, numsec, numinvalid,
-					numts + numstuff + numsec + numinvalid);
+						"sec: %d, invalid: %d, all: %d)\n",
+						numpkt * HZ / (jiffies - lastj),
+						numts, numstuff, numsec, numinvalid,
+						numts + numstuff + numsec + numinvalid);
 				numts = numstuff = numsec = numinvalid = 0;
 				lastj = jiffies;
 				numpkt = 0;
 			}
+
 			d = &urb->iso_frame_desc[i];
 			data = urb->transfer_buffer + d->offset;
 			len = d->actual_length;
@@ -784,6 +915,7 @@ static void ttusb_iso_irq(struct urb *urb)
 			ttusb_process_frame(ttusb, data, len);
 		}
 	}
+
 	usb_submit_urb(urb, GFP_ATOMIC);
 }
 
@@ -792,12 +924,14 @@ static void ttusb_free_iso_urbs(struct ttusb *ttusb)
 	int i;
 
 	for (i = 0; i < ISO_BUF_COUNT; i++)
+	{
 		usb_free_urb(ttusb->iso_urb[i]);
+	}
 
 	pci_free_consistent(NULL,
-			    ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF *
-			    ISO_BUF_COUNT, ttusb->iso_buffer,
-			    ttusb->iso_dma_handle);
+						ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF *
+						ISO_BUF_COUNT, ttusb->iso_buffer,
+						ttusb->iso_dma_handle);
 }
 
 static int ttusb_alloc_iso_urbs(struct ttusb *ttusb)
@@ -805,21 +939,24 @@ static int ttusb_alloc_iso_urbs(struct ttusb *ttusb)
 	int i;
 
 	ttusb->iso_buffer = pci_zalloc_consistent(NULL,
-						  ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF * ISO_BUF_COUNT,
-						  &ttusb->iso_dma_handle);
+						ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF * ISO_BUF_COUNT,
+						&ttusb->iso_dma_handle);
 
-	if (!ttusb->iso_buffer) {
+	if (!ttusb->iso_buffer)
+	{
 		dprintk("%s: pci_alloc_consistent - not enough memory\n",
-			__func__);
+				__func__);
 		return -ENOMEM;
 	}
 
-	for (i = 0; i < ISO_BUF_COUNT; i++) {
+	for (i = 0; i < ISO_BUF_COUNT; i++)
+	{
 		struct urb *urb;
 
 		if (!
-		    (urb =
-		     usb_alloc_urb(FRAMES_PER_ISO_BUF, GFP_ATOMIC))) {
+			(urb =
+				 usb_alloc_urb(FRAMES_PER_ISO_BUF, GFP_ATOMIC)))
+		{
 			ttusb_free_iso_urbs(ttusb);
 			return -ENOMEM;
 		}
@@ -835,7 +972,9 @@ static void ttusb_stop_iso_xfer(struct ttusb *ttusb)
 	int i;
 
 	for (i = 0; i < ISO_BUF_COUNT; i++)
+	{
 		usb_kill_urb(ttusb->iso_urb[i]);
+	}
 
 	ttusb->iso_streaming = 0;
 }
@@ -844,7 +983,8 @@ static int ttusb_start_iso_xfer(struct ttusb *ttusb)
 {
 	int i, j, err, buffer_offset = 0;
 
-	if (ttusb->iso_streaming) {
+	if (ttusb->iso_streaming)
+	{
 		printk("%s: iso xfer already running!\n", __func__);
 		return 0;
 	}
@@ -853,7 +993,8 @@ static int ttusb_start_iso_xfer(struct ttusb *ttusb)
 	ttusb->insync = 0;
 	ttusb->mux_state = 0;
 
-	for (i = 0; i < ISO_BUF_COUNT; i++) {
+	for (i = 0; i < ISO_BUF_COUNT; i++)
+	{
 		int frame_offset = 0;
 		struct urb *urb = ttusb->iso_urb[i];
 
@@ -865,23 +1006,26 @@ static int ttusb_start_iso_xfer(struct ttusb *ttusb)
 		urb->interval = 1;
 		urb->number_of_packets = FRAMES_PER_ISO_BUF;
 		urb->transfer_buffer_length =
-		    ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF;
+			ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF;
 		urb->transfer_buffer = ttusb->iso_buffer + buffer_offset;
 		buffer_offset += ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF;
 
-		for (j = 0; j < FRAMES_PER_ISO_BUF; j++) {
+		for (j = 0; j < FRAMES_PER_ISO_BUF; j++)
+		{
 			urb->iso_frame_desc[j].offset = frame_offset;
 			urb->iso_frame_desc[j].length = ISO_FRAME_SIZE;
 			frame_offset += ISO_FRAME_SIZE;
 		}
 	}
 
-	for (i = 0; i < ISO_BUF_COUNT; i++) {
-		if ((err = usb_submit_urb(ttusb->iso_urb[i], GFP_ATOMIC))) {
+	for (i = 0; i < ISO_BUF_COUNT; i++)
+	{
+		if ((err = usb_submit_urb(ttusb->iso_urb[i], GFP_ATOMIC)))
+		{
 			ttusb_stop_iso_xfer(ttusb);
 			printk
-			    ("%s: failed urb submission (%i: err = %i)!\n",
-			     __func__, i, err);
+			("%s: failed urb submission (%i: err = %i)!\n",
+			 __func__, i, err);
 			return err;
 		}
 	}
@@ -892,18 +1036,18 @@ static int ttusb_start_iso_xfer(struct ttusb *ttusb)
 }
 
 #ifdef TTUSB_HWSECTIONS
-static void ttusb_handle_ts_data(struct dvb_demux_feed *dvbdmxfeed, const u8 * data,
-			  int len)
+static void ttusb_handle_ts_data(struct dvb_demux_feed *dvbdmxfeed, const u8 *data,
+								 int len)
 {
 	dvbdmxfeed->cb.ts(data, len, 0, 0, &dvbdmxfeed->feed.ts, 0);
 }
 
-static void ttusb_handle_sec_data(struct dvb_demux_feed *dvbdmxfeed, const u8 * data,
-			   int len)
+static void ttusb_handle_sec_data(struct dvb_demux_feed *dvbdmxfeed, const u8 *data,
+								  int len)
 {
-//      struct dvb_demux_feed *dvbdmxfeed = channel->dvbdmxfeed;
+	//      struct dvb_demux_feed *dvbdmxfeed = channel->dvbdmxfeed;
 #error TODO: handle ugly stuff
-//      dvbdmxfeed->cb.sec(data, len, 0, 0, &dvbdmxfeed->feed.sec, 0);
+	//      dvbdmxfeed->cb.sec(data, len, 0, 0, &dvbdmxfeed->feed.sec, 0);
 }
 #endif
 
@@ -914,41 +1058,54 @@ static int ttusb_start_feed(struct dvb_demux_feed *dvbdmxfeed)
 
 	dprintk("ttusb_start_feed\n");
 
-	switch (dvbdmxfeed->type) {
-	case DMX_TYPE_TS:
-		break;
-	case DMX_TYPE_SEC:
-		break;
-	default:
-		return -EINVAL;
-	}
-
-	if (dvbdmxfeed->type == DMX_TYPE_TS) {
-		switch (dvbdmxfeed->pes_type) {
-		case DMX_PES_VIDEO:
-		case DMX_PES_AUDIO:
-		case DMX_PES_TELETEXT:
-		case DMX_PES_PCR:
-		case DMX_PES_OTHER:
+	switch (dvbdmxfeed->type)
+	{
+		case DMX_TYPE_TS:
 			break;
+
+		case DMX_TYPE_SEC:
+			break;
+
 		default:
 			return -EINVAL;
+	}
+
+	if (dvbdmxfeed->type == DMX_TYPE_TS)
+	{
+		switch (dvbdmxfeed->pes_type)
+		{
+			case DMX_PES_VIDEO:
+			case DMX_PES_AUDIO:
+			case DMX_PES_TELETEXT:
+			case DMX_PES_PCR:
+			case DMX_PES_OTHER:
+				break;
+
+			default:
+				return -EINVAL;
 		}
 	}
 
 #ifdef TTUSB_HWSECTIONS
 #error TODO: allocate filters
-	if (dvbdmxfeed->type == DMX_TYPE_TS) {
+
+	if (dvbdmxfeed->type == DMX_TYPE_TS)
+	{
 		feed_type = 1;
-	} else if (dvbdmxfeed->type == DMX_TYPE_SEC) {
+	}
+	else if (dvbdmxfeed->type == DMX_TYPE_SEC)
+	{
 		feed_type = 2;
 	}
+
 #endif
 
 	ttusb_set_channel(ttusb, dvbdmxfeed->index, feed_type, dvbdmxfeed->pid);
 
 	if (0 == ttusb->running_feed_count++)
+	{
 		ttusb_start_iso_xfer(ttusb);
+	}
 
 	return 0;
 }
@@ -960,7 +1117,9 @@ static int ttusb_stop_feed(struct dvb_demux_feed *dvbdmxfeed)
 	ttusb_del_channel(ttusb, dvbdmxfeed->index);
 
 	if (--ttusb->running_feed_count == 0)
+	{
 		ttusb_stop_iso_xfer(ttusb);
+	}
 
 	return 0;
 }
@@ -984,17 +1143,18 @@ static int stc_open(struct inode *inode, struct file *file)
 	struct ttusb *ttusb = file->private_data;
 	int addr;
 
-	for (addr = 0; addr < 8192; addr += 16) {
+	for (addr = 0; addr < 8192; addr += 16)
+	{
 		u8 snd_buf[2] = { addr >> 8, addr & 0xFF };
 		ttusb_i2c_msg(ttusb, 0x50, snd_buf, 2, stc_firmware + addr,
-			      16);
+					  16);
 	}
 
 	return 0;
 }
 
 static ssize_t stc_read(struct file *file, char *buf, size_t count,
-		 loff_t *offset)
+						loff_t *offset)
 {
 	return simple_read_from_buffer(buf, count, offset, stc_firmware, 8192);
 }
@@ -1004,7 +1164,8 @@ static int stc_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static const struct file_operations stc_fops = {
+static const struct file_operations stc_fops =
+{
 	.owner = THIS_MODULE,
 	.read = stc_read,
 	.open = stc_open,
@@ -1022,9 +1183,9 @@ static u32 functionality(struct i2c_adapter *adapter)
 static int alps_tdmb7_tuner_set_params(struct dvb_frontend *fe)
 {
 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+	struct ttusb *ttusb = (struct ttusb *) fe->dvb->priv;
 	u8 data[4];
-	struct i2c_msg msg = {.addr=0x61, .flags=0, .buf=data, .len=sizeof(data) };
+	struct i2c_msg msg = {.addr = 0x61, .flags = 0, .buf = data, .len = sizeof(data) };
 	u32 div;
 
 	div = (p->frequency + 36166667) / 166667;
@@ -1035,12 +1196,17 @@ static int alps_tdmb7_tuner_set_params(struct dvb_frontend *fe)
 	data[3] = p->frequency < 592000000 ? 0x40 : 0x80;
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
-	if (i2c_transfer(&ttusb->i2c_adap, &msg, 1) != 1) return -EIO;
+	}
+
+	if (i2c_transfer(&ttusb->i2c_adap, &msg, 1) != 1) { return -EIO; }
+
 	return 0;
 }
 
-static struct cx22700_config alps_tdmb7_config = {
+static struct cx22700_config alps_tdmb7_config =
+{
 	.demod_address = 0x43,
 };
 
@@ -1048,26 +1214,35 @@ static struct cx22700_config alps_tdmb7_config = {
 
 
 
-static int philips_tdm1316l_tuner_init(struct dvb_frontend* fe)
+static int philips_tdm1316l_tuner_init(struct dvb_frontend *fe)
 {
-	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+	struct ttusb *ttusb = (struct ttusb *) fe->dvb->priv;
 	static u8 td1316_init[] = { 0x0b, 0xf5, 0x85, 0xab };
 	static u8 disable_mc44BC374c[] = { 0x1d, 0x74, 0xa0, 0x68 };
-	struct i2c_msg tuner_msg = { .addr=0x60, .flags=0, .buf=td1316_init, .len=sizeof(td1316_init) };
+	struct i2c_msg tuner_msg = { .addr = 0x60, .flags = 0, .buf = td1316_init, .len = sizeof(td1316_init) };
 
 	// setup PLL configuration
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
-	if (i2c_transfer(&ttusb->i2c_adap, &tuner_msg, 1) != 1) return -EIO;
+	}
+
+	if (i2c_transfer(&ttusb->i2c_adap, &tuner_msg, 1) != 1) { return -EIO; }
+
 	msleep(1);
 
 	// disable the mc44BC374c (do not check for errors)
 	tuner_msg.addr = 0x65;
 	tuner_msg.buf = disable_mc44BC374c;
 	tuner_msg.len = sizeof(disable_mc44BC374c);
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
-	if (i2c_transfer(&ttusb->i2c_adap, &tuner_msg, 1) != 1) {
+	}
+
+	if (i2c_transfer(&ttusb->i2c_adap, &tuner_msg, 1) != 1)
+	{
 		i2c_transfer(&ttusb->i2c_adap, &tuner_msg, 1);
 	}
 
@@ -1077,56 +1252,66 @@ static int philips_tdm1316l_tuner_init(struct dvb_frontend* fe)
 static int philips_tdm1316l_tuner_set_params(struct dvb_frontend *fe)
 {
 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+	struct ttusb *ttusb = (struct ttusb *) fe->dvb->priv;
 	u8 tuner_buf[4];
-	struct i2c_msg tuner_msg = {.addr=0x60, .flags=0, .buf=tuner_buf, .len=sizeof(tuner_buf) };
+	struct i2c_msg tuner_msg = {.addr = 0x60, .flags = 0, .buf = tuner_buf, .len = sizeof(tuner_buf) };
 	int tuner_frequency = 0;
 	u8 band, cp, filter;
 
 	// determine charge pump
 	tuner_frequency = p->frequency + 36130000;
-	if (tuner_frequency < 87000000) return -EINVAL;
-	else if (tuner_frequency < 130000000) cp = 3;
-	else if (tuner_frequency < 160000000) cp = 5;
-	else if (tuner_frequency < 200000000) cp = 6;
-	else if (tuner_frequency < 290000000) cp = 3;
-	else if (tuner_frequency < 420000000) cp = 5;
-	else if (tuner_frequency < 480000000) cp = 6;
-	else if (tuner_frequency < 620000000) cp = 3;
-	else if (tuner_frequency < 830000000) cp = 5;
-	else if (tuner_frequency < 895000000) cp = 7;
-	else return -EINVAL;
+
+	if (tuner_frequency < 87000000) { return -EINVAL; }
+	else if (tuner_frequency < 130000000) { cp = 3; }
+	else if (tuner_frequency < 160000000) { cp = 5; }
+	else if (tuner_frequency < 200000000) { cp = 6; }
+	else if (tuner_frequency < 290000000) { cp = 3; }
+	else if (tuner_frequency < 420000000) { cp = 5; }
+	else if (tuner_frequency < 480000000) { cp = 6; }
+	else if (tuner_frequency < 620000000) { cp = 3; }
+	else if (tuner_frequency < 830000000) { cp = 5; }
+	else if (tuner_frequency < 895000000) { cp = 7; }
+	else { return -EINVAL; }
 
 	// determine band
 	if (p->frequency < 49000000)
+	{
 		return -EINVAL;
+	}
 	else if (p->frequency < 159000000)
+	{
 		band = 1;
+	}
 	else if (p->frequency < 444000000)
+	{
 		band = 2;
+	}
 	else if (p->frequency < 861000000)
+	{
 		band = 4;
-	else return -EINVAL;
+	}
+	else { return -EINVAL; }
 
 	// setup PLL filter
-	switch (p->bandwidth_hz) {
-	case 6000000:
-		tda1004x_writereg(fe, 0x0C, 0);
-		filter = 0;
-		break;
+	switch (p->bandwidth_hz)
+	{
+		case 6000000:
+			tda1004x_writereg(fe, 0x0C, 0);
+			filter = 0;
+			break;
 
-	case 7000000:
-		tda1004x_writereg(fe, 0x0C, 0);
-		filter = 0;
-		break;
+		case 7000000:
+			tda1004x_writereg(fe, 0x0C, 0);
+			filter = 0;
+			break;
 
-	case 8000000:
-		tda1004x_writereg(fe, 0x0C, 0xFF);
-		filter = 1;
-		break;
+		case 8000000:
+			tda1004x_writereg(fe, 0x0C, 0xFF);
+			filter = 1;
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	// calculate divisor
@@ -1140,22 +1325,28 @@ static int philips_tdm1316l_tuner_set_params(struct dvb_frontend *fe)
 	tuner_buf[3] = (cp << 5) | (filter << 3) | band;
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	if (i2c_transfer(&ttusb->i2c_adap, &tuner_msg, 1) != 1)
+	{
 		return -EIO;
+	}
 
 	msleep(1);
 	return 0;
 }
 
-static int philips_tdm1316l_request_firmware(struct dvb_frontend* fe, const struct firmware **fw, char* name)
+static int philips_tdm1316l_request_firmware(struct dvb_frontend *fe, const struct firmware **fw, char *name)
 {
-	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+	struct ttusb *ttusb = (struct ttusb *) fe->dvb->priv;
 
 	return request_firmware(fw, name, &ttusb->dev->dev);
 }
 
-static struct tda1004x_config philips_tdm1316l_config = {
+static struct tda1004x_config philips_tdm1316l_config =
+{
 
 	.demod_address = 0x8,
 	.invert = 1,
@@ -1163,7 +1354,8 @@ static struct tda1004x_config philips_tdm1316l_config = {
 	.request_firmware = philips_tdm1316l_request_firmware,
 };
 
-static u8 alps_bsbe1_inittab[] = {
+static u8 alps_bsbe1_inittab[] =
+{
 	0x01, 0x15,
 	0x02, 0x30,
 	0x03, 0x00,
@@ -1205,7 +1397,8 @@ static u8 alps_bsbe1_inittab[] = {
 	0xff, 0xff
 };
 
-static u8 alps_bsru6_inittab[] = {
+static u8 alps_bsru6_inittab[] =
+{
 	0x01, 0x15,
 	0x02, 0x30,
 	0x03, 0x00,
@@ -1252,22 +1445,33 @@ static int alps_stv0299_set_symbol_rate(struct dvb_frontend *fe, u32 srate, u32 
 	u8 aclk = 0;
 	u8 bclk = 0;
 
-	if (srate < 1500000) {
+	if (srate < 1500000)
+	{
 		aclk = 0xb7;
 		bclk = 0x47;
-	} else if (srate < 3000000) {
+	}
+	else if (srate < 3000000)
+	{
 		aclk = 0xb7;
 		bclk = 0x4b;
-	} else if (srate < 7000000) {
+	}
+	else if (srate < 7000000)
+	{
 		aclk = 0xb7;
 		bclk = 0x4f;
-	} else if (srate < 14000000) {
+	}
+	else if (srate < 14000000)
+	{
 		aclk = 0xb7;
 		bclk = 0x53;
-	} else if (srate < 30000000) {
+	}
+	else if (srate < 30000000)
+	{
 		aclk = 0xb6;
 		bclk = 0x53;
-	} else if (srate < 45000000) {
+	}
+	else if (srate < 45000000)
+	{
 		aclk = 0xb4;
 		bclk = 0x51;
 	}
@@ -1284,13 +1488,15 @@ static int alps_stv0299_set_symbol_rate(struct dvb_frontend *fe, u32 srate, u32 
 static int philips_tsa5059_tuner_set_params(struct dvb_frontend *fe)
 {
 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+	struct ttusb *ttusb = (struct ttusb *) fe->dvb->priv;
 	u8 buf[4];
 	u32 div;
-	struct i2c_msg msg = {.addr = 0x61,.flags = 0,.buf = buf,.len = sizeof(buf) };
+	struct i2c_msg msg = {.addr = 0x61, .flags = 0, .buf = buf, .len = sizeof(buf) };
 
 	if ((p->frequency < 950000) || (p->frequency > 2150000))
+	{
 		return -EINVAL;
+	}
 
 	div = (p->frequency + (125 - 1)) / 125;	/* round correctly */
 	buf[0] = (div >> 8) & 0x7f;
@@ -1299,21 +1505,31 @@ static int philips_tsa5059_tuner_set_params(struct dvb_frontend *fe)
 	buf[3] = 0xC4;
 
 	if (p->frequency > 1530000)
+	{
 		buf[3] = 0xC0;
+	}
 
 	/* BSBE1 wants XCE bit set */
 	if (ttusb->revision == TTUSB_REV_2_2)
+	{
 		buf[3] |= 0x20;
+	}
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	if (i2c_transfer(&ttusb->i2c_adap, &msg, 1) != 1)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
 
-static struct stv0299_config alps_stv0299_config = {
+static struct stv0299_config alps_stv0299_config =
+{
 	.demod_address = 0x68,
 	.inittab = alps_bsru6_inittab,
 	.mclk = 88000000UL,
@@ -1328,10 +1544,10 @@ static struct stv0299_config alps_stv0299_config = {
 static int ttusb_novas_grundig_29504_491_tuner_set_params(struct dvb_frontend *fe)
 {
 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+	struct ttusb *ttusb = (struct ttusb *) fe->dvb->priv;
 	u8 buf[4];
 	u32 div;
-	struct i2c_msg msg = {.addr = 0x61,.flags = 0,.buf = buf,.len = sizeof(buf) };
+	struct i2c_msg msg = {.addr = 0x61, .flags = 0, .buf = buf, .len = sizeof(buf) };
 
 	div = p->frequency / 125;
 
@@ -1341,14 +1557,20 @@ static int ttusb_novas_grundig_29504_491_tuner_set_params(struct dvb_frontend *f
 	buf[3] = 0x00;
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	if (i2c_transfer(&ttusb->i2c_adap, &msg, 1) != 1)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
 
-static struct tda8083_config ttusb_novas_grundig_29504_491_config = {
+static struct tda8083_config ttusb_novas_grundig_29504_491_config =
+{
 
 	.demod_address = 0x68,
 };
@@ -1356,7 +1578,7 @@ static struct tda8083_config ttusb_novas_grundig_29504_491_config = {
 static int alps_tdbe2_tuner_set_params(struct dvb_frontend *fe)
 {
 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-	struct ttusb* ttusb = fe->dvb->priv;
+	struct ttusb *ttusb = fe->dvb->priv;
 	u32 div;
 	u8 data[4];
 	struct i2c_msg msg = { .addr = 0x62, .flags = 0, .buf = data, .len = sizeof(data) };
@@ -1369,30 +1591,39 @@ static int alps_tdbe2_tuner_set_params(struct dvb_frontend *fe)
 	data[3] = (p->frequency < 174000000 ? 0x88 : p->frequency < 470000000 ? 0x84 : 0x81);
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	if (i2c_transfer (&ttusb->i2c_adap, &msg, 1) != 1)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
 
 
-static struct ves1820_config alps_tdbe2_config = {
+static struct ves1820_config alps_tdbe2_config =
+{
 	.demod_address = 0x09,
 	.xin = 57840000UL,
 	.invert = 1,
 	.selagc = VES1820_SELAGC_SIGNAMPERR,
 };
 
-static u8 read_pwm(struct ttusb* ttusb)
+static u8 read_pwm(struct ttusb *ttusb)
 {
 	u8 b = 0xff;
 	u8 pwm;
-	struct i2c_msg msg[] = { { .addr = 0x50,.flags = 0,.buf = &b,.len = 1 },
-				{ .addr = 0x50,.flags = I2C_M_RD,.buf = &pwm,.len = 1} };
+	struct i2c_msg msg[] = { { .addr = 0x50, .flags = 0, .buf = &b, .len = 1 },
+		{ .addr = 0x50, .flags = I2C_M_RD, .buf = &pwm, .len = 1}
+	};
 
 	if ((i2c_transfer(&ttusb->i2c_adap, msg, 2) != 2) || (pwm == 0xff))
+	{
 		pwm = 0x48;
+	}
 
 	return pwm;
 }
@@ -1404,14 +1635,16 @@ static int dvbc_philips_tdm1316l_tuner_set_params(struct dvb_frontend *fe)
 	struct ttusb *ttusb = (struct ttusb *) fe->dvb->priv;
 	u8 tuner_buf[5];
 	struct i2c_msg tuner_msg = {.addr = 0x60,
-				    .flags = 0,
-				    .buf = tuner_buf,
-				    .len = sizeof(tuner_buf) };
+			   .flags = 0,
+				.buf = tuner_buf,
+				 .len = sizeof(tuner_buf)
+	};
 	int tuner_frequency = 0;
 	u8 band, cp, filter;
 
 	// determine charge pump
 	tuner_frequency = p->frequency;
+
 	if      (tuner_frequency <  87000000) {return -EINVAL;}
 	else if (tuner_frequency < 130000000) {cp = 3; band = 1;}
 	else if (tuner_frequency < 160000000) {cp = 5; band = 1;}
@@ -1439,8 +1672,12 @@ static int dvbc_philips_tdm1316l_tuner_set_params(struct dvb_frontend *fe)
 	tuner_buf[4] = 0x80;
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
-	if (i2c_transfer(&ttusb->i2c_adap, &tuner_msg, 1) != 1) {
+	}
+
+	if (i2c_transfer(&ttusb->i2c_adap, &tuner_msg, 1) != 1)
+	{
 		printk("dvb-ttusb-budget: dvbc_philips_tdm1316l_pll_set Error 1\n");
 		return -EIO;
 	}
@@ -1448,8 +1685,12 @@ static int dvbc_philips_tdm1316l_tuner_set_params(struct dvb_frontend *fe)
 	msleep(50);
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
-	if (i2c_transfer(&ttusb->i2c_adap, &tuner_msg, 1) != 1) {
+	}
+
+	if (i2c_transfer(&ttusb->i2c_adap, &tuner_msg, 1) != 1)
+	{
 		printk("dvb-ttusb-budget: dvbc_philips_tdm1316l_pll_set Error 2\n");
 		return -EIO;
 	}
@@ -1459,7 +1700,8 @@ static int dvbc_philips_tdm1316l_tuner_set_params(struct dvb_frontend *fe)
 	return 0;
 }
 
-static u8 dvbc_philips_tdm1316l_inittab[] = {
+static u8 dvbc_philips_tdm1316l_inittab[] =
+{
 	0x80, 0x21,
 	0x80, 0x20,
 	0x81, 0x01,
@@ -1561,77 +1803,102 @@ static u8 dvbc_philips_tdm1316l_inittab[] = {
 	0xff, 0xff,
 };
 
-static struct stv0297_config dvbc_philips_tdm1316l_config = {
+static struct stv0297_config dvbc_philips_tdm1316l_config =
+{
 	.demod_address = 0x1c,
 	.inittab = dvbc_philips_tdm1316l_inittab,
 	.invert = 0,
 };
 
-static void frontend_init(struct ttusb* ttusb)
+static void frontend_init(struct ttusb *ttusb)
 {
-	switch(le16_to_cpu(ttusb->dev->descriptor.idProduct)) {
-	case 0x1003: // Hauppauge/TT Nova-USB-S budget (stv0299/ALPS BSRU6|BSBE1(tsa5059))
-		// try the stv0299 based first
-		ttusb->fe = dvb_attach(stv0299_attach, &alps_stv0299_config, &ttusb->i2c_adap);
-		if (ttusb->fe != NULL) {
-			ttusb->fe->ops.tuner_ops.set_params = philips_tsa5059_tuner_set_params;
+	switch (le16_to_cpu(ttusb->dev->descriptor.idProduct))
+	{
+		case 0x1003: // Hauppauge/TT Nova-USB-S budget (stv0299/ALPS BSRU6|BSBE1(tsa5059))
+			// try the stv0299 based first
+			ttusb->fe = dvb_attach(stv0299_attach, &alps_stv0299_config, &ttusb->i2c_adap);
 
-			if(ttusb->revision == TTUSB_REV_2_2) { // ALPS BSBE1
-				alps_stv0299_config.inittab = alps_bsbe1_inittab;
-				dvb_attach(lnbp21_attach, ttusb->fe, &ttusb->i2c_adap, 0, 0);
-			} else { // ALPS BSRU6
-				ttusb->fe->ops.set_voltage = ttusb_set_voltage;
+			if (ttusb->fe != NULL)
+			{
+				ttusb->fe->ops.tuner_ops.set_params = philips_tsa5059_tuner_set_params;
+
+				if (ttusb->revision == TTUSB_REV_2_2)  // ALPS BSBE1
+				{
+					alps_stv0299_config.inittab = alps_bsbe1_inittab;
+					dvb_attach(lnbp21_attach, ttusb->fe, &ttusb->i2c_adap, 0, 0);
+				}
+				else     // ALPS BSRU6
+				{
+					ttusb->fe->ops.set_voltage = ttusb_set_voltage;
+				}
+
+				break;
 			}
-			break;
-		}
 
-		// Grundig 29504-491
-		ttusb->fe = dvb_attach(tda8083_attach, &ttusb_novas_grundig_29504_491_config, &ttusb->i2c_adap);
-		if (ttusb->fe != NULL) {
-			ttusb->fe->ops.tuner_ops.set_params = ttusb_novas_grundig_29504_491_tuner_set_params;
-			ttusb->fe->ops.set_voltage = ttusb_set_voltage;
-			break;
-		}
-		break;
+			// Grundig 29504-491
+			ttusb->fe = dvb_attach(tda8083_attach, &ttusb_novas_grundig_29504_491_config, &ttusb->i2c_adap);
 
-	case 0x1004: // Hauppauge/TT DVB-C budget (ves1820/ALPS TDBE2(sp5659))
-		ttusb->fe = dvb_attach(ves1820_attach, &alps_tdbe2_config, &ttusb->i2c_adap, read_pwm(ttusb));
-		if (ttusb->fe != NULL) {
-			ttusb->fe->ops.tuner_ops.set_params = alps_tdbe2_tuner_set_params;
-			break;
-		}
+			if (ttusb->fe != NULL)
+			{
+				ttusb->fe->ops.tuner_ops.set_params = ttusb_novas_grundig_29504_491_tuner_set_params;
+				ttusb->fe->ops.set_voltage = ttusb_set_voltage;
+				break;
+			}
 
-		ttusb->fe = dvb_attach(stv0297_attach, &dvbc_philips_tdm1316l_config, &ttusb->i2c_adap);
-		if (ttusb->fe != NULL) {
-			ttusb->fe->ops.tuner_ops.set_params = dvbc_philips_tdm1316l_tuner_set_params;
 			break;
-		}
-		break;
 
-	case 0x1005: // Hauppauge/TT Nova-USB-t budget (tda10046/Philips td1316(tda6651tt) OR cx22700/ALPS TDMB7(??))
-		// try the ALPS TDMB7 first
-		ttusb->fe = dvb_attach(cx22700_attach, &alps_tdmb7_config, &ttusb->i2c_adap);
-		if (ttusb->fe != NULL) {
-			ttusb->fe->ops.tuner_ops.set_params = alps_tdmb7_tuner_set_params;
-			break;
-		}
+		case 0x1004: // Hauppauge/TT DVB-C budget (ves1820/ALPS TDBE2(sp5659))
+			ttusb->fe = dvb_attach(ves1820_attach, &alps_tdbe2_config, &ttusb->i2c_adap, read_pwm(ttusb));
 
-		// Philips td1316
-		ttusb->fe = dvb_attach(tda10046_attach, &philips_tdm1316l_config, &ttusb->i2c_adap);
-		if (ttusb->fe != NULL) {
-			ttusb->fe->ops.tuner_ops.init = philips_tdm1316l_tuner_init;
-			ttusb->fe->ops.tuner_ops.set_params = philips_tdm1316l_tuner_set_params;
+			if (ttusb->fe != NULL)
+			{
+				ttusb->fe->ops.tuner_ops.set_params = alps_tdbe2_tuner_set_params;
+				break;
+			}
+
+			ttusb->fe = dvb_attach(stv0297_attach, &dvbc_philips_tdm1316l_config, &ttusb->i2c_adap);
+
+			if (ttusb->fe != NULL)
+			{
+				ttusb->fe->ops.tuner_ops.set_params = dvbc_philips_tdm1316l_tuner_set_params;
+				break;
+			}
+
 			break;
-		}
-		break;
+
+		case 0x1005: // Hauppauge/TT Nova-USB-t budget (tda10046/Philips td1316(tda6651tt) OR cx22700/ALPS TDMB7(??))
+			// try the ALPS TDMB7 first
+			ttusb->fe = dvb_attach(cx22700_attach, &alps_tdmb7_config, &ttusb->i2c_adap);
+
+			if (ttusb->fe != NULL)
+			{
+				ttusb->fe->ops.tuner_ops.set_params = alps_tdmb7_tuner_set_params;
+				break;
+			}
+
+			// Philips td1316
+			ttusb->fe = dvb_attach(tda10046_attach, &philips_tdm1316l_config, &ttusb->i2c_adap);
+
+			if (ttusb->fe != NULL)
+			{
+				ttusb->fe->ops.tuner_ops.init = philips_tdm1316l_tuner_init;
+				ttusb->fe->ops.tuner_ops.set_params = philips_tdm1316l_tuner_set_params;
+				break;
+			}
+
+			break;
 	}
 
-	if (ttusb->fe == NULL) {
+	if (ttusb->fe == NULL)
+	{
 		printk("dvb-ttusb-budget: A frontend driver was not found for device [%04x:%04x]\n",
-		       le16_to_cpu(ttusb->dev->descriptor.idVendor),
-		       le16_to_cpu(ttusb->dev->descriptor.idProduct));
-	} else {
-		if (dvb_register_frontend(&ttusb->adapter, ttusb->fe)) {
+			   le16_to_cpu(ttusb->dev->descriptor.idVendor),
+			   le16_to_cpu(ttusb->dev->descriptor.idProduct));
+	}
+	else
+	{
+		if (dvb_register_frontend(&ttusb->adapter, ttusb->fe))
+		{
 			printk("dvb-ttusb-budget: Frontend registration failed!\n");
 			dvb_frontend_detach(ttusb->fe);
 			ttusb->fe = NULL;
@@ -1641,7 +1908,8 @@ static void frontend_init(struct ttusb* ttusb)
 
 
 
-static struct i2c_algorithm ttusb_dec_algo = {
+static struct i2c_algorithm ttusb_dec_algo =
+{
 	.master_xfer	= master_xfer,
 	.functionality	= functionality,
 };
@@ -1656,10 +1924,12 @@ static int ttusb_probe(struct usb_interface *intf, const struct usb_device_id *i
 
 	udev = interface_to_usbdev(intf);
 
-	if (intf->altsetting->desc.bInterfaceNumber != 1) return -ENODEV;
+	if (intf->altsetting->desc.bInterfaceNumber != 1) { return -ENODEV; }
 
 	if (!(ttusb = kzalloc(sizeof(struct ttusb), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
 
 	ttusb->dev = udev;
 	ttusb->c = 0;
@@ -1673,7 +1943,9 @@ static int ttusb_probe(struct usb_interface *intf, const struct usb_device_id *i
 	ttusb_setup_interfaces(ttusb);
 
 	result = ttusb_alloc_iso_urbs(ttusb);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		dprintk("%s: ttusb_alloc_iso_urbs - failed\n", __func__);
 		mutex_unlock(&ttusb->semi2c);
 		kfree(ttusb);
@@ -1681,18 +1953,23 @@ static int ttusb_probe(struct usb_interface *intf, const struct usb_device_id *i
 	}
 
 	if (ttusb_init_controller(ttusb))
+	{
 		printk("ttusb_init_controller: error\n");
+	}
 
 	mutex_unlock(&ttusb->semi2c);
 
 	result = dvb_register_adapter(&ttusb->adapter,
-				      "Technotrend/Hauppauge Nova-USB",
-				      THIS_MODULE, &udev->dev, adapter_nr);
-	if (result < 0) {
+								  "Technotrend/Hauppauge Nova-USB",
+								  THIS_MODULE, &udev->dev, adapter_nr);
+
+	if (result < 0)
+	{
 		ttusb_free_iso_urbs(ttusb);
 		kfree(ttusb);
 		return result;
 	}
+
 	ttusb->adapter.priv = ttusb;
 
 	/* i2c */
@@ -1706,13 +1983,16 @@ static int ttusb_probe(struct usb_interface *intf, const struct usb_device_id *i
 	ttusb->i2c_adap.dev.parent	  = &udev->dev;
 
 	result = i2c_add_adapter(&ttusb->i2c_adap);
+
 	if (result)
+	{
 		goto err_unregister_adapter;
+	}
 
 	memset(&ttusb->dvb_demux, 0, sizeof(ttusb->dvb_demux));
 
 	ttusb->dvb_demux.dmx.capabilities =
-	    DMX_TS_FILTERING | DMX_SECTION_FILTERING;
+		DMX_TS_FILTERING | DMX_SECTION_FILTERING;
 	ttusb->dvb_demux.priv = NULL;
 #ifdef TTUSB_HWSECTIONS
 	ttusb->dvb_demux.filternum = TTUSB_MAXFILTER;
@@ -1725,25 +2005,31 @@ static int ttusb_probe(struct usb_interface *intf, const struct usb_device_id *i
 	ttusb->dvb_demux.write_to_decoder = NULL;
 
 	result = dvb_dmx_init(&ttusb->dvb_demux);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		printk("ttusb_dvb: dvb_dmx_init failed (errno = %d)\n", result);
 		result = -ENODEV;
 		goto err_i2c_del_adapter;
 	}
-//FIXME dmxdev (nur WAS?)
+
+	//FIXME dmxdev (nur WAS?)
 	ttusb->dmxdev.filternum = ttusb->dvb_demux.filternum;
 	ttusb->dmxdev.demux = &ttusb->dvb_demux.dmx;
 	ttusb->dmxdev.capabilities = 0;
 
 	result = dvb_dmxdev_init(&ttusb->dmxdev, &ttusb->adapter);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		printk("ttusb_dvb: dvb_dmxdev_init failed (errno = %d)\n",
-		       result);
+			   result);
 		result = -ENODEV;
 		goto err_release_dmx;
 	}
 
-	if (dvb_net_init(&ttusb->adapter, &ttusb->dvbnet, &ttusb->dvb_demux.dmx)) {
+	if (dvb_net_init(&ttusb->adapter, &ttusb->dvbnet, &ttusb->dvb_demux.dmx))
+	{
 		printk("ttusb_dvb: dvb_net_init failed!\n");
 		result = -ENODEV;
 		goto err_release_dmxdev;
@@ -1782,10 +2068,13 @@ static void ttusb_disconnect(struct usb_interface *intf)
 	dvb_net_release(&ttusb->dvbnet);
 	dvb_dmxdev_release(&ttusb->dmxdev);
 	dvb_dmx_release(&ttusb->dvb_demux);
-	if (ttusb->fe != NULL) {
+
+	if (ttusb->fe != NULL)
+	{
 		dvb_unregister_frontend(ttusb->fe);
 		dvb_frontend_detach(ttusb->fe);
 	}
+
 	i2c_del_adapter(&ttusb->i2c_adap);
 	dvb_unregister_adapter(&ttusb->adapter);
 
@@ -1796,7 +2085,8 @@ static void ttusb_disconnect(struct usb_interface *intf)
 	dprintk("%s: TTUSB DVB disconnected\n", __func__);
 }
 
-static struct usb_device_id ttusb_table[] = {
+static struct usb_device_id ttusb_table[] =
+{
 	{USB_DEVICE(0xb48, 0x1003)},
 	{USB_DEVICE(0xb48, 0x1004)},
 	{USB_DEVICE(0xb48, 0x1005)},
@@ -1805,11 +2095,12 @@ static struct usb_device_id ttusb_table[] = {
 
 MODULE_DEVICE_TABLE(usb, ttusb_table);
 
-static struct usb_driver ttusb_driver = {
-      .name		= "ttusb",
-      .probe		= ttusb_probe,
-      .disconnect	= ttusb_disconnect,
-      .id_table		= ttusb_table,
+static struct usb_driver ttusb_driver =
+{
+	.name		= "ttusb",
+	.probe		= ttusb_probe,
+	.disconnect	= ttusb_disconnect,
+	.id_table		= ttusb_table,
 };
 
 module_usb_driver(ttusb_driver);

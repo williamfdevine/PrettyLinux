@@ -14,7 +14,8 @@ int main(int argc, char **argv)
 	char buf[4];
 	int fd, rc;
 
-	if (argc < 2) {
+	if (argc < 2)
+	{
 		fprintf(stderr, "usage: %s <path>\n", argv[0]);
 		return EXIT_FAILURE;
 	}
@@ -23,13 +24,17 @@ int main(int argc, char **argv)
 
 	/* create a test variable */
 	fd = open(path, O_RDWR | O_CREAT, 0600);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		perror("open(O_WRONLY)");
 		return EXIT_FAILURE;
 	}
 
 	rc = read(fd, buf, sizeof(buf));
-	if (rc != 0) {
+
+	if (rc != 0)
+	{
 		fprintf(stderr, "Reading a new var should return EOF\n");
 		return EXIT_FAILURE;
 	}

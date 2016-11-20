@@ -8,15 +8,15 @@
 
 static inline void
 cpuid(unsigned int op, unsigned int *a, unsigned int *b, unsigned int *c,
-      unsigned int *d)
+	  unsigned int *d)
 {
 	__asm__ __volatile__ (".byte 0x53\n\tcpuid\n\t"
-			      "movl %%ebx, %%esi\n\t.byte 0x5b"
-			: "=a" (*a),
-			"=S" (*b),
-			"=c" (*c),
-			"=d" (*d)
-			: "a" (op));
+						  "movl %%ebx, %%esi\n\t.byte 0x5b"
+						  : "=a" (*a),
+						  "=S" (*b),
+						  "=c" (*c),
+						  "=d" (*d)
+						  : "a" (op));
 }
 
 static int
@@ -33,7 +33,8 @@ __get_cpuid(char *buffer, size_t sz, const char *fmt)
 	strncpy(&vendor[8], (char *)(&c), 4);
 	vendor[12] = '\0';
 
-	if (lvl >= 1) {
+	if (lvl >= 1)
+	{
 		cpuid(1, &a, &b, &c, &d);
 
 		family = (a >> 8) & 0xf;  /* bits 11 - 8 */
@@ -42,19 +43,26 @@ __get_cpuid(char *buffer, size_t sz, const char *fmt)
 
 		/* extended family */
 		if (family == 0xf)
+		{
 			family += (a >> 20) & 0xff;
+		}
 
 		/* extended model */
 		if (family >= 0x6)
+		{
 			model += ((a >> 16) & 0xf) << 4;
+		}
 	}
+
 	nb = scnprintf(buffer, sz, fmt, vendor, family, model, step);
 
 	/* look for end marker to ensure the entire data fit */
-	if (strchr(buffer, '$')) {
-		buffer[nb-1] = '\0';
+	if (strchr(buffer, '$'))
+	{
+		buffer[nb - 1] = '\0';
 		return 0;
 	}
+
 	return -1;
 }
 
@@ -69,9 +77,11 @@ get_cpuid_str(void)
 {
 	char *buf = malloc(128);
 
-	if (__get_cpuid(buf, 128, "%s-%u-%X$") < 0) {
+	if (__get_cpuid(buf, 128, "%s-%u-%X$") < 0)
+	{
 		free(buf);
 		return NULL;
 	}
+
 	return buf;
 }

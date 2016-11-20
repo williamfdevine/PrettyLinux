@@ -46,7 +46,8 @@ module_param(usedma, uint, 0644);
 #define AU1550_SPI_DBDMA_DESCRIPTORS 1
 #define AU1550_SPI_DMA_RXTMP_MINSIZE 2048U
 
-struct au1550_spi {
+struct au1550_spi
+{
 	struct spi_bitbang bitbang;
 
 	volatile psc_spi_t __iomem *regs;
@@ -86,7 +87,7 @@ struct au1550_spi {
 static dbdev_tab_t au1550_spi_mem_dbdev =
 {
 	.dev_id			= DBDMA_MEM_CHAN,
-	.dev_flags		= DEV_FLAGS_ANYUSE|DEV_FLAGS_SYNC,
+	.dev_flags		= DEV_FLAGS_ANYUSE | DEV_FLAGS_SYNC,
 	.dev_tsize		= 0,
 	.dev_devwidth		= 8,
 	.dev_physaddr		= 0x00000000,
@@ -113,20 +114,29 @@ static u32 au1550_spi_baudcfg(struct au1550_spi *hw, unsigned speed_hz)
 	u32 mainclk_hz = hw->pdata->mainclk_hz;
 	u32 div, brg;
 
-	for (div = 0; div < 4; div++) {
+	for (div = 0; div < 4; div++)
+	{
 		brg = mainclk_hz / speed_hz / (4 << div);
+
 		/* now we have BRG+1 in brg, so count with that */
-		if (brg < (4 + 1)) {
+		if (brg < (4 + 1))
+		{
 			brg = (4 + 1);	/* speed_hz too big */
 			break;		/* set lowest brg (div is == 0) */
 		}
+
 		if (brg <= (63 + 1))
-			break;		/* we have valid brg and div */
+		{
+			break;    /* we have valid brg and div */
+		}
 	}
-	if (div == 4) {
+
+	if (div == 4)
+	{
 		div = 3;		/* speed_hz too small */
 		brg = (63 + 1);		/* set highest brg and div */
 	}
+
 	brg--;
 	return PSC_SPICFG_SET_BAUD(brg) | PSC_SPICFG_SET_DIV(div);
 }
@@ -134,13 +144,13 @@ static u32 au1550_spi_baudcfg(struct au1550_spi *hw, unsigned speed_hz)
 static inline void au1550_spi_mask_ack_all(struct au1550_spi *hw)
 {
 	hw->regs->psc_spimsk =
-		  PSC_SPIMSK_MM | PSC_SPIMSK_RR | PSC_SPIMSK_RO
+		PSC_SPIMSK_MM | PSC_SPIMSK_RR | PSC_SPIMSK_RO
 		| PSC_SPIMSK_RU | PSC_SPIMSK_TR | PSC_SPIMSK_TO
 		| PSC_SPIMSK_TU | PSC_SPIMSK_SD | PSC_SPIMSK_MD;
 	wmb(); /* drain writebuffer */
 
 	hw->regs->psc_spievent =
-		  PSC_SPIEVNT_MM | PSC_SPIEVNT_RR | PSC_SPIEVNT_RO
+		PSC_SPIEVNT_MM | PSC_SPIEVNT_RR | PSC_SPIEVNT_RO
 		| PSC_SPIEVNT_RU | PSC_SPIEVNT_TR | PSC_SPIEVNT_TO
 		| PSC_SPIEVNT_TU | PSC_SPIEVNT_SD | PSC_SPIEVNT_MD;
 	wmb(); /* drain writebuffer */
@@ -152,10 +162,13 @@ static void au1550_spi_reset_fifos(struct au1550_spi *hw)
 
 	hw->regs->psc_spipcr = PSC_SPIPCR_RC | PSC_SPIPCR_TC;
 	wmb(); /* drain writebuffer */
-	do {
+
+	do
+	{
 		pcr = hw->regs->psc_spipcr;
 		wmb(); /* drain writebuffer */
-	} while (pcr != 0);
+	}
+	while (pcr != 0);
 }
 
 /*
@@ -173,57 +186,81 @@ static void au1550_spi_chipsel(struct spi_device *spi, int value)
 	unsigned cspol = spi->mode & SPI_CS_HIGH ? 1 : 0;
 	u32 cfg, stat;
 
-	switch (value) {
-	case BITBANG_CS_INACTIVE:
-		if (hw->pdata->deactivate_cs)
-			hw->pdata->deactivate_cs(hw->pdata, spi->chip_select,
-					cspol);
-		break;
+	switch (value)
+	{
+		case BITBANG_CS_INACTIVE:
+			if (hw->pdata->deactivate_cs)
+				hw->pdata->deactivate_cs(hw->pdata, spi->chip_select,
+										 cspol);
 
-	case BITBANG_CS_ACTIVE:
-		au1550_spi_bits_handlers_set(hw, spi->bits_per_word);
+			break;
 
-		cfg = hw->regs->psc_spicfg;
-		wmb(); /* drain writebuffer */
-		hw->regs->psc_spicfg = cfg & ~PSC_SPICFG_DE_ENABLE;
-		wmb(); /* drain writebuffer */
+		case BITBANG_CS_ACTIVE:
+			au1550_spi_bits_handlers_set(hw, spi->bits_per_word);
 
-		if (spi->mode & SPI_CPOL)
-			cfg |= PSC_SPICFG_BI;
-		else
-			cfg &= ~PSC_SPICFG_BI;
-		if (spi->mode & SPI_CPHA)
-			cfg &= ~PSC_SPICFG_CDE;
-		else
-			cfg |= PSC_SPICFG_CDE;
-
-		if (spi->mode & SPI_LSB_FIRST)
-			cfg |= PSC_SPICFG_MLF;
-		else
-			cfg &= ~PSC_SPICFG_MLF;
-
-		if (hw->usedma && spi->bits_per_word <= 8)
-			cfg &= ~PSC_SPICFG_DD_DISABLE;
-		else
-			cfg |= PSC_SPICFG_DD_DISABLE;
-		cfg = PSC_SPICFG_CLR_LEN(cfg);
-		cfg |= PSC_SPICFG_SET_LEN(spi->bits_per_word);
-
-		cfg = PSC_SPICFG_CLR_BAUD(cfg);
-		cfg &= ~PSC_SPICFG_SET_DIV(3);
-		cfg |= au1550_spi_baudcfg(hw, spi->max_speed_hz);
-
-		hw->regs->psc_spicfg = cfg | PSC_SPICFG_DE_ENABLE;
-		wmb(); /* drain writebuffer */
-		do {
-			stat = hw->regs->psc_spistat;
+			cfg = hw->regs->psc_spicfg;
 			wmb(); /* drain writebuffer */
-		} while ((stat & PSC_SPISTAT_DR) == 0);
+			hw->regs->psc_spicfg = cfg & ~PSC_SPICFG_DE_ENABLE;
+			wmb(); /* drain writebuffer */
 
-		if (hw->pdata->activate_cs)
-			hw->pdata->activate_cs(hw->pdata, spi->chip_select,
-					cspol);
-		break;
+			if (spi->mode & SPI_CPOL)
+			{
+				cfg |= PSC_SPICFG_BI;
+			}
+			else
+			{
+				cfg &= ~PSC_SPICFG_BI;
+			}
+
+			if (spi->mode & SPI_CPHA)
+			{
+				cfg &= ~PSC_SPICFG_CDE;
+			}
+			else
+			{
+				cfg |= PSC_SPICFG_CDE;
+			}
+
+			if (spi->mode & SPI_LSB_FIRST)
+			{
+				cfg |= PSC_SPICFG_MLF;
+			}
+			else
+			{
+				cfg &= ~PSC_SPICFG_MLF;
+			}
+
+			if (hw->usedma && spi->bits_per_word <= 8)
+			{
+				cfg &= ~PSC_SPICFG_DD_DISABLE;
+			}
+			else
+			{
+				cfg |= PSC_SPICFG_DD_DISABLE;
+			}
+
+			cfg = PSC_SPICFG_CLR_LEN(cfg);
+			cfg |= PSC_SPICFG_SET_LEN(spi->bits_per_word);
+
+			cfg = PSC_SPICFG_CLR_BAUD(cfg);
+			cfg &= ~PSC_SPICFG_SET_DIV(3);
+			cfg |= au1550_spi_baudcfg(hw, spi->max_speed_hz);
+
+			hw->regs->psc_spicfg = cfg | PSC_SPICFG_DE_ENABLE;
+			wmb(); /* drain writebuffer */
+
+			do
+			{
+				stat = hw->regs->psc_spistat;
+				wmb(); /* drain writebuffer */
+			}
+			while ((stat & PSC_SPISTAT_DR) == 0);
+
+			if (hw->pdata->activate_cs)
+				hw->pdata->activate_cs(hw->pdata, spi->chip_select,
+									   cspol);
+
+			break;
 	}
 }
 
@@ -233,16 +270,21 @@ static int au1550_spi_setupxfer(struct spi_device *spi, struct spi_transfer *t)
 	unsigned bpw, hz;
 	u32 cfg, stat;
 
-	if (t) {
+	if (t)
+	{
 		bpw = t->bits_per_word;
 		hz = t->speed_hz;
-	} else {
+	}
+	else
+	{
 		bpw = spi->bits_per_word;
 		hz = spi->max_speed_hz;
 	}
 
 	if (!hz)
+	{
 		return -EINVAL;
+	}
 
 	au1550_spi_bits_handlers_set(hw, spi->bits_per_word);
 
@@ -252,9 +294,14 @@ static int au1550_spi_setupxfer(struct spi_device *spi, struct spi_transfer *t)
 	wmb(); /* drain writebuffer */
 
 	if (hw->usedma && bpw <= 8)
+	{
 		cfg &= ~PSC_SPICFG_DD_DISABLE;
+	}
 	else
+	{
 		cfg |= PSC_SPICFG_DD_DISABLE;
+	}
+
 	cfg = PSC_SPICFG_CLR_LEN(cfg);
 	cfg |= PSC_SPICFG_SET_LEN(bpw);
 
@@ -265,11 +312,14 @@ static int au1550_spi_setupxfer(struct spi_device *spi, struct spi_transfer *t)
 	hw->regs->psc_spicfg = cfg;
 	wmb(); /* drain writebuffer */
 
-	if (cfg & PSC_SPICFG_DE_ENABLE) {
-		do {
+	if (cfg & PSC_SPICFG_DE_ENABLE)
+	{
+		do
+		{
 			stat = hw->regs->psc_spistat;
 			wmb(); /* drain writebuffer */
-		} while ((stat & PSC_SPISTAT_DR) == 0);
+		}
+		while ((stat & PSC_SPISTAT_DR) == 0);
 	}
 
 	au1550_spi_reset_fifos(hw);
@@ -288,24 +338,31 @@ static int au1550_spi_setupxfer(struct spi_device *spi, struct spi_transfer *t)
 static int au1550_spi_dma_rxtmp_alloc(struct au1550_spi *hw, unsigned size)
 {
 	hw->dma_rx_tmpbuf = kmalloc(size, GFP_KERNEL);
+
 	if (!hw->dma_rx_tmpbuf)
+	{
 		return -ENOMEM;
+	}
+
 	hw->dma_rx_tmpbuf_size = size;
 	hw->dma_rx_tmpbuf_addr = dma_map_single(hw->dev, hw->dma_rx_tmpbuf,
-			size, DMA_FROM_DEVICE);
-	if (dma_mapping_error(hw->dev, hw->dma_rx_tmpbuf_addr)) {
+											size, DMA_FROM_DEVICE);
+
+	if (dma_mapping_error(hw->dev, hw->dma_rx_tmpbuf_addr))
+	{
 		kfree(hw->dma_rx_tmpbuf);
 		hw->dma_rx_tmpbuf = 0;
 		hw->dma_rx_tmpbuf_size = 0;
 		return -EFAULT;
 	}
+
 	return 0;
 }
 
 static void au1550_spi_dma_rxtmp_free(struct au1550_spi *hw)
 {
 	dma_unmap_single(hw->dev, hw->dma_rx_tmpbuf_addr,
-			hw->dma_rx_tmpbuf_size, DMA_FROM_DEVICE);
+					 hw->dma_rx_tmpbuf_size, DMA_FROM_DEVICE);
 	kfree(hw->dma_rx_tmpbuf);
 	hw->dma_rx_tmpbuf = 0;
 	hw->dma_rx_tmpbuf_size = 0;
@@ -335,56 +392,80 @@ static int au1550_spi_dma_txrxb(struct spi_device *spi, struct spi_transfer *t)
 	 * use rx buffer in place of tx if tx buffer was not provided
 	 * use temp rx buffer (preallocated or realloc to fit) for rx dma
 	 */
-	if (t->tx_buf) {
-		if (t->tx_dma == 0) {	/* if DMA_ADDR_INVALID, map it */
+	if (t->tx_buf)
+	{
+		if (t->tx_dma == 0)  	/* if DMA_ADDR_INVALID, map it */
+		{
 			dma_tx_addr = dma_map_single(hw->dev,
-					(void *)t->tx_buf,
-					t->len, DMA_TO_DEVICE);
+										 (void *)t->tx_buf,
+										 t->len, DMA_TO_DEVICE);
+
 			if (dma_mapping_error(hw->dev, dma_tx_addr))
+			{
 				dev_err(hw->dev, "tx dma map error\n");
+			}
 		}
 	}
 
-	if (t->rx_buf) {
-		if (t->rx_dma == 0) {	/* if DMA_ADDR_INVALID, map it */
+	if (t->rx_buf)
+	{
+		if (t->rx_dma == 0)  	/* if DMA_ADDR_INVALID, map it */
+		{
 			dma_rx_addr = dma_map_single(hw->dev,
-					(void *)t->rx_buf,
-					t->len, DMA_FROM_DEVICE);
+										 (void *)t->rx_buf,
+										 t->len, DMA_FROM_DEVICE);
+
 			if (dma_mapping_error(hw->dev, dma_rx_addr))
+			{
 				dev_err(hw->dev, "rx dma map error\n");
+			}
 		}
-	} else {
-		if (t->len > hw->dma_rx_tmpbuf_size) {
+	}
+	else
+	{
+		if (t->len > hw->dma_rx_tmpbuf_size)
+		{
 			int ret;
 
 			au1550_spi_dma_rxtmp_free(hw);
 			ret = au1550_spi_dma_rxtmp_alloc(hw, max(t->len,
-					AU1550_SPI_DMA_RXTMP_MINSIZE));
+											 AU1550_SPI_DMA_RXTMP_MINSIZE));
+
 			if (ret < 0)
+			{
 				return ret;
+			}
 		}
+
 		hw->rx = hw->dma_rx_tmpbuf;
 		dma_rx_addr = hw->dma_rx_tmpbuf_addr;
 		dma_sync_single_for_device(hw->dev, dma_rx_addr,
-			t->len, DMA_FROM_DEVICE);
+								   t->len, DMA_FROM_DEVICE);
 	}
 
-	if (!t->tx_buf) {
+	if (!t->tx_buf)
+	{
 		dma_sync_single_for_device(hw->dev, dma_rx_addr,
-				t->len, DMA_BIDIRECTIONAL);
+								   t->len, DMA_BIDIRECTIONAL);
 		hw->tx = hw->rx;
 	}
 
 	/* put buffers on the ring */
 	res = au1xxx_dbdma_put_dest(hw->dma_rx_ch, virt_to_phys(hw->rx),
-				    t->len, DDMA_FLAGS_IE);
+								t->len, DDMA_FLAGS_IE);
+
 	if (!res)
+	{
 		dev_err(hw->dev, "rx dma put dest error\n");
+	}
 
 	res = au1xxx_dbdma_put_source(hw->dma_tx_ch, virt_to_phys(hw->tx),
-				      t->len, DDMA_FLAGS_IE);
+								  t->len, DDMA_FLAGS_IE);
+
 	if (!res)
+	{
 		dev_err(hw->dev, "tx dma put source error\n");
+	}
 
 	au1xxx_dbdma_start(hw->dma_rx_ch);
 	au1xxx_dbdma_start(hw->dma_tx_ch);
@@ -402,18 +483,21 @@ static int au1550_spi_dma_txrxb(struct spi_device *spi, struct spi_transfer *t)
 	au1xxx_dbdma_stop(hw->dma_tx_ch);
 	au1xxx_dbdma_stop(hw->dma_rx_ch);
 
-	if (!t->rx_buf) {
+	if (!t->rx_buf)
+	{
 		/* using the temporal preallocated and premapped buffer */
 		dma_sync_single_for_cpu(hw->dev, dma_rx_addr, t->len,
-			DMA_FROM_DEVICE);
+								DMA_FROM_DEVICE);
 	}
+
 	/* unmap buffers if mapped above */
 	if (t->rx_buf && t->rx_dma == 0 )
 		dma_unmap_single(hw->dev, dma_rx_addr, t->len,
-			DMA_FROM_DEVICE);
+						 DMA_FROM_DEVICE);
+
 	if (t->tx_buf && t->tx_dma == 0 )
 		dma_unmap_single(hw->dev, dma_tx_addr, t->len,
-			DMA_TO_DEVICE);
+						 DMA_TO_DEVICE);
 
 	return hw->rx_count < hw->tx_count ? hw->rx_count : hw->tx_count;
 }
@@ -425,15 +509,18 @@ static irqreturn_t au1550_spi_dma_irq_callback(struct au1550_spi *hw)
 	stat = hw->regs->psc_spistat;
 	evnt = hw->regs->psc_spievent;
 	wmb(); /* drain writebuffer */
-	if ((stat & PSC_SPISTAT_DI) == 0) {
+
+	if ((stat & PSC_SPISTAT_DI) == 0)
+	{
 		dev_err(hw->dev, "Unexpected IRQ!\n");
 		return IRQ_NONE;
 	}
 
 	if ((evnt & (PSC_SPIEVNT_MM | PSC_SPIEVNT_RO
-				| PSC_SPIEVNT_RU | PSC_SPIEVNT_TO
-				| PSC_SPIEVNT_TU | PSC_SPIEVNT_SD))
-			!= 0) {
+				 | PSC_SPIEVNT_RU | PSC_SPIEVNT_TO
+				 | PSC_SPIEVNT_TU | PSC_SPIEVNT_SD))
+		!= 0)
+	{
 		/*
 		 * due to an spi error we consider transfer as done,
 		 * so mask all events until before next transfer start
@@ -453,61 +540,63 @@ static irqreturn_t au1550_spi_dma_irq_callback(struct au1550_spi *hw)
 
 		if (evnt == PSC_SPIEVNT_RO)
 			dev_err(hw->dev,
-				"dma transfer: receive FIFO overflow!\n");
+					"dma transfer: receive FIFO overflow!\n");
 		else
 			dev_err(hw->dev,
-				"dma transfer: unexpected SPI error "
-				"(event=0x%x stat=0x%x)!\n", evnt, stat);
+					"dma transfer: unexpected SPI error "
+					"(event=0x%x stat=0x%x)!\n", evnt, stat);
 
 		complete(&hw->master_done);
 		return IRQ_HANDLED;
 	}
 
-	if ((evnt & PSC_SPIEVNT_MD) != 0) {
+	if ((evnt & PSC_SPIEVNT_MD) != 0)
+	{
 		/* transfer completed successfully */
 		au1550_spi_mask_ack_all(hw);
 		hw->rx_count = hw->len;
 		hw->tx_count = hw->len;
 		complete(&hw->master_done);
 	}
+
 	return IRQ_HANDLED;
 }
 
 
 /* routines to handle different word sizes in pio mode */
 #define AU1550_SPI_RX_WORD(size, mask)					\
-static void au1550_spi_rx_word_##size(struct au1550_spi *hw)		\
-{									\
-	u32 fifoword = hw->regs->psc_spitxrx & (u32)(mask);		\
-	wmb(); /* drain writebuffer */					\
-	if (hw->rx) {							\
-		*(u##size *)hw->rx = (u##size)fifoword;			\
-		hw->rx += (size) / 8;					\
-	}								\
-	hw->rx_count += (size) / 8;					\
-}
+	static void au1550_spi_rx_word_##size(struct au1550_spi *hw)		\
+	{									\
+		u32 fifoword = hw->regs->psc_spitxrx & (u32)(mask);		\
+		wmb(); /* drain writebuffer */					\
+		if (hw->rx) {							\
+			*(u##size *)hw->rx = (u##size)fifoword;			\
+			hw->rx += (size) / 8;					\
+		}								\
+		hw->rx_count += (size) / 8;					\
+	}
 
 #define AU1550_SPI_TX_WORD(size, mask)					\
-static void au1550_spi_tx_word_##size(struct au1550_spi *hw)		\
-{									\
-	u32 fifoword = 0;						\
-	if (hw->tx) {							\
-		fifoword = *(u##size *)hw->tx & (u32)(mask);		\
-		hw->tx += (size) / 8;					\
-	}								\
-	hw->tx_count += (size) / 8;					\
-	if (hw->tx_count >= hw->len)					\
-		fifoword |= PSC_SPITXRX_LC;				\
-	hw->regs->psc_spitxrx = fifoword;				\
-	wmb(); /* drain writebuffer */					\
-}
+	static void au1550_spi_tx_word_##size(struct au1550_spi *hw)		\
+	{									\
+		u32 fifoword = 0;						\
+		if (hw->tx) {							\
+			fifoword = *(u##size *)hw->tx & (u32)(mask);		\
+			hw->tx += (size) / 8;					\
+		}								\
+		hw->tx_count += (size) / 8;					\
+		if (hw->tx_count >= hw->len)					\
+			fifoword |= PSC_SPITXRX_LC;				\
+		hw->regs->psc_spitxrx = fifoword;				\
+		wmb(); /* drain writebuffer */					\
+	}
 
-AU1550_SPI_RX_WORD(8,0xff)
-AU1550_SPI_RX_WORD(16,0xffff)
-AU1550_SPI_RX_WORD(32,0xffffff)
-AU1550_SPI_TX_WORD(8,0xff)
-AU1550_SPI_TX_WORD(16,0xffff)
-AU1550_SPI_TX_WORD(32,0xffffff)
+AU1550_SPI_RX_WORD(8, 0xff)
+AU1550_SPI_RX_WORD(16, 0xffff)
+AU1550_SPI_RX_WORD(32, 0xffffff)
+AU1550_SPI_TX_WORD(8, 0xff)
+AU1550_SPI_TX_WORD(16, 0xffff)
+AU1550_SPI_TX_WORD(32, 0xffffff)
 
 static int au1550_spi_pio_txrxb(struct spi_device *spi, struct spi_transfer *t)
 {
@@ -524,19 +613,24 @@ static int au1550_spi_pio_txrxb(struct spi_device *spi, struct spi_transfer *t)
 	mask = PSC_SPIMSK_SD;
 
 	/* fill the transmit FIFO */
-	while (hw->tx_count < hw->len) {
+	while (hw->tx_count < hw->len)
+	{
 
 		hw->tx_word(hw);
 
-		if (hw->tx_count >= hw->len) {
+		if (hw->tx_count >= hw->len)
+		{
 			/* mask tx fifo request interrupt as we are done */
 			mask |= PSC_SPIMSK_TR;
 		}
 
 		stat = hw->regs->psc_spistat;
 		wmb(); /* drain writebuffer */
+
 		if (stat & PSC_SPISTAT_TF)
+		{
 			break;
+		}
 	}
 
 	/* enable event interrupts */
@@ -560,15 +654,18 @@ static irqreturn_t au1550_spi_pio_irq_callback(struct au1550_spi *hw)
 	stat = hw->regs->psc_spistat;
 	evnt = hw->regs->psc_spievent;
 	wmb(); /* drain writebuffer */
-	if ((stat & PSC_SPISTAT_DI) == 0) {
+
+	if ((stat & PSC_SPISTAT_DI) == 0)
+	{
 		dev_err(hw->dev, "Unexpected IRQ!\n");
 		return IRQ_NONE;
 	}
 
 	if ((evnt & (PSC_SPIEVNT_MM | PSC_SPIEVNT_RO
-				| PSC_SPIEVNT_RU | PSC_SPIEVNT_TO
-				| PSC_SPIEVNT_SD))
-			!= 0) {
+				 | PSC_SPIEVNT_RU | PSC_SPIEVNT_TO
+				 | PSC_SPIEVNT_SD))
+		!= 0)
+	{
 		/*
 		 * due to an error we consider transfer as done,
 		 * so mask all events until before next transfer start
@@ -576,8 +673,8 @@ static irqreturn_t au1550_spi_pio_irq_callback(struct au1550_spi *hw)
 		au1550_spi_mask_ack_all(hw);
 		au1550_spi_reset_fifos(hw);
 		dev_err(hw->dev,
-			"pio transfer: unexpected SPI error "
-			"(event=0x%x stat=0x%x)!\n", evnt, stat);
+				"pio transfer: unexpected SPI error "
+				"(event=0x%x stat=0x%x)!\n", evnt, stat);
 		complete(&hw->master_done);
 		return IRQ_HANDLED;
 	}
@@ -586,7 +683,8 @@ static irqreturn_t au1550_spi_pio_irq_callback(struct au1550_spi *hw)
 	 * while there is something to read from rx fifo
 	 * or there is a space to write to tx fifo:
 	 */
-	do {
+	do
+	{
 		busy = 0;
 		stat = hw->regs->psc_spistat;
 		wmb(); /* drain writebuffer */
@@ -600,14 +698,18 @@ static irqreturn_t au1550_spi_pio_irq_callback(struct au1550_spi *hw)
 		 * In case we miss a word from the read fifo, we should get a
 		 * RO event and should back out.
 		 */
-		if (!(stat & PSC_SPISTAT_RE) && hw->rx_count < hw->len) {
+		if (!(stat & PSC_SPISTAT_RE) && hw->rx_count < hw->len)
+		{
 			hw->rx_word(hw);
 			busy = 1;
 
 			if (!(stat & PSC_SPISTAT_TF) && hw->tx_count < hw->len)
+			{
 				hw->tx_word(hw);
+			}
 		}
-	} while (busy);
+	}
+	while (busy);
 
 	hw->regs->psc_spievent = PSC_SPIEVNT_RR | PSC_SPIEVNT_TR;
 	wmb(); /* drain writebuffer */
@@ -627,18 +729,21 @@ static irqreturn_t au1550_spi_pio_irq_callback(struct au1550_spi *hw)
 	 * we assume that spi transfer was paused instead of zeroes
 	 * transmittion mentioned in the Note 2 of Au1550 data book.
 	 */
-	if (evnt & PSC_SPIEVNT_TU) {
+	if (evnt & PSC_SPIEVNT_TU)
+	{
 		hw->regs->psc_spievent = PSC_SPIEVNT_TU | PSC_SPIEVNT_MD;
 		wmb(); /* drain writebuffer */
 		hw->regs->psc_spipcr = PSC_SPIPCR_MS;
 		wmb(); /* drain writebuffer */
 	}
 
-	if (hw->rx_count >= hw->len) {
+	if (hw->rx_count >= hw->len)
+	{
 		/* transfer completed successfully */
 		au1550_spi_mask_ack_all(hw);
 		complete(&hw->master_done);
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -656,22 +761,30 @@ static irqreturn_t au1550_spi_irq(int irq, void *dev)
 
 static void au1550_spi_bits_handlers_set(struct au1550_spi *hw, int bpw)
 {
-	if (bpw <= 8) {
-		if (hw->usedma) {
+	if (bpw <= 8)
+	{
+		if (hw->usedma)
+		{
 			hw->txrx_bufs = &au1550_spi_dma_txrxb;
 			hw->irq_callback = &au1550_spi_dma_irq_callback;
-		} else {
+		}
+		else
+		{
 			hw->rx_word = &au1550_spi_rx_word_8;
 			hw->tx_word = &au1550_spi_tx_word_8;
 			hw->txrx_bufs = &au1550_spi_pio_txrxb;
 			hw->irq_callback = &au1550_spi_pio_irq_callback;
 		}
-	} else if (bpw <= 16) {
+	}
+	else if (bpw <= 16)
+	{
 		hw->rx_word = &au1550_spi_rx_word_16;
 		hw->tx_word = &au1550_spi_tx_word_16;
 		hw->txrx_bufs = &au1550_spi_pio_txrxb;
 		hw->irq_callback = &au1550_spi_pio_irq_callback;
-	} else {
+	}
+	else
+	{
 		hw->rx_word = &au1550_spi_rx_word_32;
 		hw->tx_word = &au1550_spi_tx_word_32;
 		hw->txrx_bufs = &au1550_spi_pio_txrxb;
@@ -695,10 +808,12 @@ static void au1550_spi_setup_psc_as_spi(struct au1550_spi *hw)
 	hw->regs->psc_ctrl = PSC_CTRL_ENABLE;
 	wmb(); /* drain writebuffer */
 
-	do {
+	do
+	{
 		stat = hw->regs->psc_spistat;
 		wmb(); /* drain writebuffer */
-	} while ((stat & PSC_SPISTAT_SR) == 0);
+	}
+	while ((stat & PSC_SPISTAT_SR) == 0);
 
 
 	cfg = hw->usedma ? 0 : PSC_SPICFG_DD_DISABLE;
@@ -719,10 +834,12 @@ static void au1550_spi_setup_psc_as_spi(struct au1550_spi *hw)
 	hw->regs->psc_spicfg |= PSC_SPICFG_DE_ENABLE;
 	wmb(); /* drain writebuffer */
 
-	do {
+	do
+	{
 		stat = hw->regs->psc_spistat;
 		wmb(); /* drain writebuffer */
-	} while ((stat & PSC_SPISTAT_DR) == 0);
+	}
+	while ((stat & PSC_SPISTAT_DR) == 0);
 
 	au1550_spi_reset_fifos(hw);
 }
@@ -736,7 +853,9 @@ static int au1550_spi_probe(struct platform_device *pdev)
 	int err = 0;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(struct au1550_spi));
-	if (master == NULL) {
+
+	if (master == NULL)
+	{
 		dev_err(&pdev->dev, "No memory for spi_master\n");
 		err = -ENOMEM;
 		goto err_nomem;
@@ -752,53 +871,73 @@ static int au1550_spi_probe(struct platform_device *pdev)
 	hw->pdata = dev_get_platdata(&pdev->dev);
 	hw->dev = &pdev->dev;
 
-	if (hw->pdata == NULL) {
+	if (hw->pdata == NULL)
+	{
 		dev_err(&pdev->dev, "No platform data supplied\n");
 		err = -ENOENT;
 		goto err_no_pdata;
 	}
 
 	r = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	if (!r) {
+
+	if (!r)
+	{
 		dev_err(&pdev->dev, "no IRQ\n");
 		err = -ENODEV;
 		goto err_no_iores;
 	}
+
 	hw->irq = r->start;
 
 	hw->usedma = 0;
 	r = platform_get_resource(pdev, IORESOURCE_DMA, 0);
-	if (r) {
+
+	if (r)
+	{
 		hw->dma_tx_id = r->start;
 		r = platform_get_resource(pdev, IORESOURCE_DMA, 1);
-		if (r) {
+
+		if (r)
+		{
 			hw->dma_rx_id = r->start;
-			if (usedma && ddma_memid) {
+
+			if (usedma && ddma_memid)
+			{
 				if (pdev->dev.dma_mask == NULL)
+				{
 					dev_warn(&pdev->dev, "no dma mask\n");
+				}
 				else
+				{
 					hw->usedma = 1;
+				}
 			}
 		}
 	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!r) {
+
+	if (!r)
+	{
 		dev_err(&pdev->dev, "no mmio resource\n");
 		err = -ENODEV;
 		goto err_no_iores;
 	}
 
 	hw->ioarea = request_mem_region(r->start, sizeof(psc_spi_t),
-					pdev->name);
-	if (!hw->ioarea) {
+									pdev->name);
+
+	if (!hw->ioarea)
+	{
 		dev_err(&pdev->dev, "Cannot reserve iomem region\n");
 		err = -ENXIO;
 		goto err_no_iores;
 	}
 
 	hw->regs = (psc_spi_t __iomem *)ioremap(r->start, sizeof(psc_spi_t));
-	if (!hw->regs) {
+
+	if (!hw->regs)
+	{
 		dev_err(&pdev->dev, "cannot ioremap\n");
 		err = -ENXIO;
 		goto err_ioremap;
@@ -813,47 +952,60 @@ static int au1550_spi_probe(struct platform_device *pdev)
 	hw->bitbang.chipselect = au1550_spi_chipsel;
 	hw->bitbang.txrx_bufs = au1550_spi_txrx_bufs;
 
-	if (hw->usedma) {
+	if (hw->usedma)
+	{
 		hw->dma_tx_ch = au1xxx_dbdma_chan_alloc(ddma_memid,
-			hw->dma_tx_id, NULL, (void *)hw);
-		if (hw->dma_tx_ch == 0) {
+												hw->dma_tx_id, NULL, (void *)hw);
+
+		if (hw->dma_tx_ch == 0)
+		{
 			dev_err(&pdev->dev,
-				"Cannot allocate tx dma channel\n");
+					"Cannot allocate tx dma channel\n");
 			err = -ENXIO;
 			goto err_no_txdma;
 		}
+
 		au1xxx_dbdma_set_devwidth(hw->dma_tx_ch, 8);
+
 		if (au1xxx_dbdma_ring_alloc(hw->dma_tx_ch,
-			AU1550_SPI_DBDMA_DESCRIPTORS) == 0) {
+									AU1550_SPI_DBDMA_DESCRIPTORS) == 0)
+		{
 			dev_err(&pdev->dev,
-				"Cannot allocate tx dma descriptors\n");
+					"Cannot allocate tx dma descriptors\n");
 			err = -ENXIO;
 			goto err_no_txdma_descr;
 		}
 
 
 		hw->dma_rx_ch = au1xxx_dbdma_chan_alloc(hw->dma_rx_id,
-			ddma_memid, NULL, (void *)hw);
-		if (hw->dma_rx_ch == 0) {
+												ddma_memid, NULL, (void *)hw);
+
+		if (hw->dma_rx_ch == 0)
+		{
 			dev_err(&pdev->dev,
-				"Cannot allocate rx dma channel\n");
+					"Cannot allocate rx dma channel\n");
 			err = -ENXIO;
 			goto err_no_rxdma;
 		}
+
 		au1xxx_dbdma_set_devwidth(hw->dma_rx_ch, 8);
+
 		if (au1xxx_dbdma_ring_alloc(hw->dma_rx_ch,
-			AU1550_SPI_DBDMA_DESCRIPTORS) == 0) {
+									AU1550_SPI_DBDMA_DESCRIPTORS) == 0)
+		{
 			dev_err(&pdev->dev,
-				"Cannot allocate rx dma descriptors\n");
+					"Cannot allocate rx dma descriptors\n");
 			err = -ENXIO;
 			goto err_no_rxdma_descr;
 		}
 
 		err = au1550_spi_dma_rxtmp_alloc(hw,
-			AU1550_SPI_DMA_RXTMP_MINSIZE);
-		if (err < 0) {
+										 AU1550_SPI_DMA_RXTMP_MINSIZE);
+
+		if (err < 0)
+		{
 			dev_err(&pdev->dev,
-				"Cannot allocate initial rx dma tmp buffer\n");
+					"Cannot allocate initial rx dma tmp buffer\n");
 			goto err_dma_rxtmp_alloc;
 		}
 	}
@@ -861,7 +1013,9 @@ static int au1550_spi_probe(struct platform_device *pdev)
 	au1550_spi_bits_handlers_set(hw, 8);
 
 	err = request_irq(hw->irq, au1550_spi_irq, 0, pdev->name, hw);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Cannot claim IRQ\n");
 		goto err_no_irq;
 	}
@@ -883,20 +1037,22 @@ static int au1550_spi_probe(struct platform_device *pdev)
 		int max_div = (2 << 3) * (2 * (63 + 1));
 		master->max_speed_hz = hw->pdata->mainclk_hz / min_div;
 		master->min_speed_hz =
-				hw->pdata->mainclk_hz / (max_div + 1) + 1;
+			hw->pdata->mainclk_hz / (max_div + 1) + 1;
 	}
 
 	au1550_spi_setup_psc_as_spi(hw);
 
 	err = spi_bitbang_start(&hw->bitbang);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Failed to register SPI master\n");
 		goto err_register;
 	}
 
 	dev_info(&pdev->dev,
-		"spi master registered: bus_num=%d num_chipselect=%d\n",
-		master->bus_num, master->num_chipselect);
+			 "spi master registered: bus_num=%d num_chipselect=%d\n",
+			 master->bus_num, master->num_chipselect);
 
 	return 0;
 
@@ -908,13 +1064,19 @@ err_no_irq:
 
 err_dma_rxtmp_alloc:
 err_no_rxdma_descr:
+
 	if (hw->usedma)
+	{
 		au1xxx_dbdma_chan_free(hw->dma_rx_ch);
+	}
 
 err_no_rxdma:
 err_no_txdma_descr:
+
 	if (hw->usedma)
+	{
 		au1xxx_dbdma_chan_free(hw->dma_tx_ch);
+	}
 
 err_no_txdma:
 	iounmap((void __iomem *)hw->regs);
@@ -935,14 +1097,15 @@ static int au1550_spi_remove(struct platform_device *pdev)
 	struct au1550_spi *hw = platform_get_drvdata(pdev);
 
 	dev_info(&pdev->dev, "spi master remove: bus_num=%d\n",
-		hw->master->bus_num);
+			 hw->master->bus_num);
 
 	spi_bitbang_stop(&hw->bitbang);
 	free_irq(hw->irq, hw);
 	iounmap((void __iomem *)hw->regs);
 	release_mem_region(hw->ioarea->start, sizeof(psc_spi_t));
 
-	if (hw->usedma) {
+	if (hw->usedma)
+	{
 		au1550_spi_dma_rxtmp_free(hw);
 		au1xxx_dbdma_chan_free(hw->dma_rx_ch);
 		au1xxx_dbdma_chan_free(hw->dma_tx_ch);
@@ -955,7 +1118,8 @@ static int au1550_spi_remove(struct platform_device *pdev)
 /* work with hotplug and coldplug */
 MODULE_ALIAS("platform:au1550-spi");
 
-static struct platform_driver au1550_spi_drv = {
+static struct platform_driver au1550_spi_drv =
+{
 	.probe = au1550_spi_probe,
 	.remove = au1550_spi_remove,
 	.driver = {
@@ -969,21 +1133,26 @@ static int __init au1550_spi_init(void)
 	 * create memory device with 8 bits dev_devwidth
 	 * needed for proper byte ordering to spi fifo
 	 */
-	switch (alchemy_get_cputype()) {
-	case ALCHEMY_CPU_AU1550:
-	case ALCHEMY_CPU_AU1200:
-	case ALCHEMY_CPU_AU1300:
-		break;
-	default:
-		return -ENODEV;
+	switch (alchemy_get_cputype())
+	{
+		case ALCHEMY_CPU_AU1550:
+		case ALCHEMY_CPU_AU1200:
+		case ALCHEMY_CPU_AU1300:
+			break;
+
+		default:
+			return -ENODEV;
 	}
 
-	if (usedma) {
+	if (usedma)
+	{
 		ddma_memid = au1xxx_ddma_add_device(&au1550_spi_mem_dbdev);
+
 		if (!ddma_memid)
 			printk(KERN_ERR "au1550-spi: cannot add memory"
-					"dbdma device\n");
+				   "dbdma device\n");
 	}
+
 	return platform_driver_register(&au1550_spi_drv);
 }
 module_init(au1550_spi_init);
@@ -991,7 +1160,10 @@ module_init(au1550_spi_init);
 static void __exit au1550_spi_exit(void)
 {
 	if (usedma && ddma_memid)
+	{
 		au1xxx_ddma_del_device(ddma_memid);
+	}
+
 	platform_driver_unregister(&au1550_spi_drv);
 }
 module_exit(au1550_spi_exit);

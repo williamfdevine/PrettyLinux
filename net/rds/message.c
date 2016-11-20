@@ -36,12 +36,13 @@
 
 #include "rds.h"
 
-static unsigned int	rds_exthdr_size[__RDS_EXTHDR_MAX] = {
-[RDS_EXTHDR_NONE]	= 0,
-[RDS_EXTHDR_VERSION]	= sizeof(struct rds_ext_header_version),
-[RDS_EXTHDR_RDMA]	= sizeof(struct rds_ext_header_rdma),
-[RDS_EXTHDR_RDMA_DEST]	= sizeof(struct rds_ext_header_rdma_dest),
-[RDS_EXTHDR_NPATHS]	= sizeof(u16),
+static unsigned int	rds_exthdr_size[__RDS_EXTHDR_MAX] =
+{
+	[RDS_EXTHDR_NONE]	= 0,
+	[RDS_EXTHDR_VERSION]	= sizeof(struct rds_ext_header_version),
+	[RDS_EXTHDR_RDMA]	= sizeof(struct rds_ext_header_rdma),
+	[RDS_EXTHDR_RDMA_DEST]	= sizeof(struct rds_ext_header_rdma_dest),
+	[RDS_EXTHDR_NPATHS]	= sizeof(u16),
 };
 
 
@@ -60,31 +61,47 @@ static void rds_message_purge(struct rds_message *rm)
 	unsigned long i;
 
 	if (unlikely(test_bit(RDS_MSG_PAGEVEC, &rm->m_flags)))
+	{
 		return;
+	}
 
-	for (i = 0; i < rm->data.op_nents; i++) {
+	for (i = 0; i < rm->data.op_nents; i++)
+	{
 		rdsdebug("putting data page %p\n", (void *)sg_page(&rm->data.op_sg[i]));
 		/* XXX will have to put_page for page refs */
 		__free_page(sg_page(&rm->data.op_sg[i]));
 	}
+
 	rm->data.op_nents = 0;
 
 	if (rm->rdma.op_active)
+	{
 		rds_rdma_free_op(&rm->rdma);
+	}
+
 	if (rm->rdma.op_rdma_mr)
+	{
 		rds_mr_put(rm->rdma.op_rdma_mr);
+	}
 
 	if (rm->atomic.op_active)
+	{
 		rds_atomic_free_op(&rm->atomic);
+	}
+
 	if (rm->atomic.op_rdma_mr)
+	{
 		rds_mr_put(rm->atomic.op_rdma_mr);
+	}
 }
 
 void rds_message_put(struct rds_message *rm)
 {
 	rdsdebug("put rm %p ref %d\n", rm, atomic_read(&rm->m_refcount));
 	WARN(!atomic_read(&rm->m_refcount), "danger refcount zero on %p\n", rm);
-	if (atomic_dec_and_test(&rm->m_refcount)) {
+
+	if (atomic_dec_and_test(&rm->m_refcount))
+	{
 		BUG_ON(!list_empty(&rm->m_sock_item));
 		BUG_ON(!list_empty(&rm->m_conn_item));
 		rds_message_purge(rm);
@@ -95,7 +112,7 @@ void rds_message_put(struct rds_message *rm)
 EXPORT_SYMBOL_GPL(rds_message_put);
 
 void rds_message_populate_header(struct rds_header *hdr, __be16 sport,
-				 __be16 dport, u64 seq)
+								 __be16 dport, u64 seq)
 {
 	hdr->h_flags = 0;
 	hdr->h_sport = sport;
@@ -106,20 +123,27 @@ void rds_message_populate_header(struct rds_header *hdr, __be16 sport,
 EXPORT_SYMBOL_GPL(rds_message_populate_header);
 
 int rds_message_add_extension(struct rds_header *hdr, unsigned int type,
-			      const void *data, unsigned int len)
+							  const void *data, unsigned int len)
 {
 	unsigned int ext_len = sizeof(u8) + len;
 	unsigned char *dst;
 
 	/* For now, refuse to add more than one extension header */
 	if (hdr->h_exthdr[0] != RDS_EXTHDR_NONE)
+	{
 		return 0;
+	}
 
 	if (type >= __RDS_EXTHDR_MAX || len != rds_exthdr_size[type])
+	{
 		return 0;
+	}
 
 	if (ext_len >= RDS_HEADER_EXT_SPACE)
+	{
 		return 0;
+	}
+
 	dst = hdr->h_exthdr;
 
 	*dst++ = type;
@@ -145,28 +169,41 @@ EXPORT_SYMBOL_GPL(rds_message_add_extension);
  * }
  */
 int rds_message_next_extension(struct rds_header *hdr,
-		unsigned int *pos, void *buf, unsigned int *buflen)
+							   unsigned int *pos, void *buf, unsigned int *buflen)
 {
 	unsigned int offset, ext_type, ext_len;
 	u8 *src = hdr->h_exthdr;
 
 	offset = *pos;
+
 	if (offset >= RDS_HEADER_EXT_SPACE)
+	{
 		goto none;
+	}
 
 	/* Get the extension type and length. For now, the
 	 * length is implied by the extension type. */
 	ext_type = src[offset++];
 
 	if (ext_type == RDS_EXTHDR_NONE || ext_type >= __RDS_EXTHDR_MAX)
+	{
 		goto none;
+	}
+
 	ext_len = rds_exthdr_size[ext_type];
+
 	if (offset + ext_len > RDS_HEADER_EXT_SPACE)
+	{
 		goto none;
+	}
 
 	*pos = offset + ext_len;
+
 	if (ext_len < *buflen)
+	{
 		*buflen = ext_len;
+	}
+
 	memcpy(buf, src + offset, *buflen);
 	return ext_type;
 
@@ -196,11 +233,16 @@ struct rds_message *rds_message_alloc(unsigned int extra_len, gfp_t gfp)
 	struct rds_message *rm;
 
 	if (extra_len > KMALLOC_MAX_SIZE - sizeof(struct rds_message))
+	{
 		return NULL;
+	}
 
 	rm = kzalloc(sizeof(struct rds_message) + extra_len, gfp);
+
 	if (!rm)
+	{
 		goto out;
+	}
 
 	rm->m_used_sgs = 0;
 	rm->m_total_sgs = extra_len / sizeof(struct scatterlist);
@@ -227,7 +269,9 @@ struct scatterlist *rds_message_alloc_sgs(struct rds_message *rm, int nents)
 	WARN_ON(!nents);
 
 	if (rm->m_used_sgs + nents > rm->m_total_sgs)
+	{
 		return NULL;
+	}
 
 	sg_ret = &sg_first[rm->m_used_sgs];
 	sg_init_table(sg_ret, nents);
@@ -244,22 +288,28 @@ struct rds_message *rds_message_map_pages(unsigned long *page_addrs, unsigned in
 	int extra_bytes = num_sgs * sizeof(struct scatterlist);
 
 	rm = rds_message_alloc(extra_bytes, GFP_NOWAIT);
+
 	if (!rm)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	set_bit(RDS_MSG_PAGEVEC, &rm->m_flags);
 	rm->m_inc.i_hdr.h_len = cpu_to_be32(total_len);
 	rm->data.op_nents = ceil(total_len, PAGE_SIZE);
 	rm->data.op_sg = rds_message_alloc_sgs(rm, num_sgs);
-	if (!rm->data.op_sg) {
+
+	if (!rm->data.op_sg)
+	{
 		rds_message_put(rm);
 		return ERR_PTR(-ENOMEM);
 	}
 
-	for (i = 0; i < rm->data.op_nents; ++i) {
+	for (i = 0; i < rm->data.op_nents; ++i)
+	{
 		sg_set_page(&rm->data.op_sg[i],
-				virt_to_page(page_addrs[i]),
-				PAGE_SIZE, 0);
+					virt_to_page(page_addrs[i]),
+					PAGE_SIZE, 0);
 	}
 
 	return rm;
@@ -280,29 +330,40 @@ int rds_message_copy_from_user(struct rds_message *rm, struct iov_iter *from)
 	sg = rm->data.op_sg;
 	sg_off = 0; /* Dear gcc, sg->page will be null from kzalloc. */
 
-	while (iov_iter_count(from)) {
-		if (!sg_page(sg)) {
+	while (iov_iter_count(from))
+	{
+		if (!sg_page(sg))
+		{
 			ret = rds_page_remainder_alloc(sg, iov_iter_count(from),
-						       GFP_HIGHUSER);
+										   GFP_HIGHUSER);
+
 			if (ret)
+			{
 				return ret;
+			}
+
 			rm->data.op_nents++;
 			sg_off = 0;
 		}
 
 		to_copy = min_t(unsigned long, iov_iter_count(from),
-				sg->length - sg_off);
+						sg->length - sg_off);
 
 		rds_stats_add(s_copy_from_user, to_copy);
 		nbytes = copy_page_from_iter(sg_page(sg), sg->offset + sg_off,
-					     to_copy, from);
+									 to_copy, from);
+
 		if (nbytes != to_copy)
+		{
 			return -EFAULT;
+		}
 
 		sg_off += to_copy;
 
 		if (sg_off == sg->length)
+		{
 			sg++;
+		}
 	}
 
 	return ret;
@@ -325,21 +386,26 @@ int rds_message_inc_copy_to_user(struct rds_incoming *inc, struct iov_iter *to)
 	vec_off = 0;
 	copied = 0;
 
-	while (iov_iter_count(to) && copied < len) {
+	while (iov_iter_count(to) && copied < len)
+	{
 		to_copy = min_t(unsigned long, iov_iter_count(to),
-				sg->length - vec_off);
+						sg->length - vec_off);
 		to_copy = min_t(unsigned long, to_copy, len - copied);
 
 		rds_stats_add(s_copy_to_user, to_copy);
 		ret = copy_page_to_iter(sg_page(sg), sg->offset + vec_off,
-					to_copy, to);
+								to_copy, to);
+
 		if (ret != to_copy)
+		{
 			return -EFAULT;
+		}
 
 		vec_off += to_copy;
 		copied += to_copy;
 
-		if (vec_off == sg->length) {
+		if (vec_off == sg->length)
+		{
 			vec_off = 0;
 			sg++;
 		}
@@ -355,7 +421,7 @@ int rds_message_inc_copy_to_user(struct rds_incoming *inc, struct iov_iter *to)
 void rds_message_wait(struct rds_message *rm)
 {
 	wait_event_interruptible(rm->m_flush_wait,
-			!test_bit(RDS_MSG_MAPPED, &rm->m_flags));
+							 !test_bit(RDS_MSG_MAPPED, &rm->m_flags));
 }
 
 void rds_message_unmapped(struct rds_message *rm)

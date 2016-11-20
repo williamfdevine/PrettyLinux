@@ -31,24 +31,26 @@
 
 #define CYTTSP4_I2C_DATA_SIZE	(3 * 256)
 
-static const struct cyttsp4_bus_ops cyttsp4_i2c_bus_ops = {
+static const struct cyttsp4_bus_ops cyttsp4_i2c_bus_ops =
+{
 	.bustype	= BUS_I2C,
 	.write		= cyttsp_i2c_write_block_data,
 	.read           = cyttsp_i2c_read_block_data,
 };
 
 static int cyttsp4_i2c_probe(struct i2c_client *client,
-				      const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct cyttsp4 *ts;
 
-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		dev_err(&client->dev, "I2C functionality not Supported\n");
 		return -EIO;
 	}
 
 	ts = cyttsp4_probe(&cyttsp4_i2c_bus_ops, &client->dev, client->irq,
-			  CYTTSP4_I2C_DATA_SIZE);
+					   CYTTSP4_I2C_DATA_SIZE);
 
 	return PTR_ERR_OR_ZERO(ts);
 }
@@ -62,13 +64,15 @@ static int cyttsp4_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id cyttsp4_i2c_id[] = {
+static const struct i2c_device_id cyttsp4_i2c_id[] =
+{
 	{ CYTTSP4_I2C_NAME, 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, cyttsp4_i2c_id);
 
-static struct i2c_driver cyttsp4_i2c_driver = {
+static struct i2c_driver cyttsp4_i2c_driver =
+{
 	.driver = {
 		.name	= CYTTSP4_I2C_NAME,
 		.pm	= &cyttsp4_pm_ops,

@@ -3,9 +3,12 @@
 
 #include "xyarray.h"
 
-struct perf_counts_values {
-	union {
-		struct {
+struct perf_counts_values
+{
+	union
+	{
+		struct
+		{
 			u64 val;
 			u64 ena;
 			u64 run;
@@ -14,14 +17,15 @@ struct perf_counts_values {
 	};
 };
 
-struct perf_counts {
+struct perf_counts
+{
 	s8			  scaled;
 	struct perf_counts_values aggr;
 	struct xyarray		  *values;
 };
 
 
-static inline struct perf_counts_values*
+static inline struct perf_counts_values *
 perf_counts(struct perf_counts *counts, int cpu, int thread)
 {
 	return xyarray__entry(counts->values, cpu, thread);

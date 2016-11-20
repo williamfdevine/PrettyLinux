@@ -22,7 +22,8 @@ ctrlchar_handle(const unsigned char *buf, int len, struct tty_struct *tty);
 
 
 #ifdef CONFIG_MAGIC_SYSRQ
-struct sysrq_work {
+struct sysrq_work
+{
 	int key;
 	struct work_struct work;
 };

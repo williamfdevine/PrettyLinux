@@ -58,7 +58,8 @@
 #define GPINDIS_BIT	BIT(2) /* disable input sensing */
 #define GPIWP_BIT	(BIT(0) | BIT(1)) /* weak pull options */
 
-struct lp_gpio {
+struct lp_gpio
+{
 	struct gpio_chip	chip;
 	struct platform_device	*pdev;
 	spinlock_t		lock;
@@ -95,17 +96,21 @@ struct lp_gpio {
  */
 
 static unsigned long lp_gpio_reg(struct gpio_chip *chip, unsigned offset,
-				 int reg)
+								 int reg)
 {
 	struct lp_gpio *lg = gpiochip_get_data(chip);
 	int reg_offset;
 
 	if (reg == LP_CONFIG1 || reg == LP_CONFIG2)
 		/* per gpio specific config registers */
+	{
 		reg_offset = offset * 8;
+	}
 	else
 		/* bitmapped registers */
+	{
 		reg_offset = (offset / 32) * 4;
+	}
 
 	return lg->reg_base + reg + reg_offset;
 }
@@ -120,13 +125,17 @@ static int lp_gpio_request(struct gpio_chip *chip, unsigned offset)
 	pm_runtime_get(&lg->pdev->dev); /* should we put if failed */
 
 	/* Fail if BIOS reserved pin for ACPI use */
-	if (!(inl(acpi_use) & BIT(offset % 32))) {
+	if (!(inl(acpi_use) & BIT(offset % 32)))
+	{
 		dev_err(&lg->pdev->dev, "gpio %d reserved for ACPI\n", offset);
 		return -EBUSY;
 	}
+
 	/* Fail if pin is in alternate function mode (not GPIO mode) */
 	if (!(inl(reg) & USE_SEL_BIT))
+	{
 		return -ENODEV;
+	}
 
 	/* enable input sensing */
 	outl(inl(conf2) & ~GPINDIS_BIT, conf2);
@@ -156,26 +165,36 @@ static int lp_irq_type(struct irq_data *d, unsigned type)
 	unsigned long reg = lp_gpio_reg(&lg->chip, hwirq, LP_CONFIG1);
 
 	if (hwirq >= lg->chip.ngpio)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&lg->lock, flags);
 	value = inl(reg);
 
 	/* set both TRIG_SEL and INV bits to 0 for rising edge */
 	if (type & IRQ_TYPE_EDGE_RISING)
+	{
 		value &= ~(TRIG_SEL_BIT | INT_INV_BIT);
+	}
 
 	/* TRIG_SEL bit 0, INV bit 1 for falling edge */
 	if (type & IRQ_TYPE_EDGE_FALLING)
+	{
 		value = (value | INT_INV_BIT) & ~TRIG_SEL_BIT;
+	}
 
 	/* TRIG_SEL bit 1, INV bit 0 for level low */
 	if (type & IRQ_TYPE_LEVEL_LOW)
+	{
 		value = (value | TRIG_SEL_BIT) & ~INT_INV_BIT;
+	}
 
 	/* TRIG_SEL bit 1, INV bit 1 for level high */
 	if (type & IRQ_TYPE_LEVEL_HIGH)
+	{
 		value |= TRIG_SEL_BIT | INT_INV_BIT;
+	}
 
 	outl(value, reg);
 	spin_unlock_irqrestore(&lg->lock, flags);
@@ -198,9 +217,13 @@ static void lp_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	spin_lock_irqsave(&lg->lock, flags);
 
 	if (value)
+	{
 		outl(inl(reg) | OUT_LVL_BIT, reg);
+	}
 	else
+	{
 		outl(inl(reg) & ~OUT_LVL_BIT, reg);
+	}
 
 	spin_unlock_irqrestore(&lg->lock, flags);
 }
@@ -219,7 +242,7 @@ static int lp_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 }
 
 static int lp_gpio_direction_output(struct gpio_chip *chip,
-				      unsigned offset, int value)
+									unsigned offset, int value)
 {
 	struct lp_gpio *lg = gpiochip_get_data(chip);
 	unsigned long reg = lp_gpio_reg(chip, offset, LP_CONFIG1);
@@ -244,11 +267,13 @@ static void lp_gpio_irq_handler(struct irq_desc *desc)
 	unsigned long reg, ena, pending;
 
 	/* check from GPIO controller which pin triggered the interrupt */
-	for (base = 0; base < lg->chip.ngpio; base += 32) {
+	for (base = 0; base < lg->chip.ngpio; base += 32)
+	{
 		reg = lp_gpio_reg(&lg->chip, base, LP_INT_STAT);
 		ena = lp_gpio_reg(&lg->chip, base, LP_INT_ENABLE);
 
-		while ((pending = (inl(reg) & inl(ena)))) {
+		while ((pending = (inl(reg) & inl(ena))))
+		{
 			unsigned irq;
 
 			pin = __ffs(pending);
@@ -259,6 +284,7 @@ static void lp_gpio_irq_handler(struct irq_desc *desc)
 			generic_handle_irq(irq);
 		}
 	}
+
 	chip->irq_eoi(data);
 }
 
@@ -296,7 +322,8 @@ static void lp_irq_disable(struct irq_data *d)
 	spin_unlock_irqrestore(&lg->lock, flags);
 }
 
-static struct irq_chip lp_irqchip = {
+static struct irq_chip lp_irqchip =
+{
 	.name = "LP-GPIO",
 	.irq_mask = lp_irq_mask,
 	.irq_unmask = lp_irq_unmask,
@@ -311,7 +338,8 @@ static void lp_gpio_irq_init_hw(struct lp_gpio *lg)
 	unsigned long reg;
 	unsigned base;
 
-	for (base = 0; base < lg->chip.ngpio; base += 32) {
+	for (base = 0; base < lg->chip.ngpio; base += 32)
+	{
 		/* disable gpio pin interrupts */
 		reg = lp_gpio_reg(&lg->chip, base, LP_INT_ENABLE);
 		outl(0, reg);
@@ -331,8 +359,11 @@ static int lp_gpio_probe(struct platform_device *pdev)
 	int ret = -ENODEV;
 
 	lg = devm_kzalloc(dev, sizeof(struct lp_gpio), GFP_KERNEL);
+
 	if (!lg)
+	{
 		return -ENOMEM;
+	}
 
 	lg->pdev = pdev;
 	platform_set_drvdata(pdev, lg);
@@ -340,7 +371,8 @@ static int lp_gpio_probe(struct platform_device *pdev)
 	io_rc = platform_get_resource(pdev, IORESOURCE_IO, 0);
 	irq_rc = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 
-	if (!io_rc) {
+	if (!io_rc)
+	{
 		dev_err(dev, "missing IO resources\n");
 		return -EINVAL;
 	}
@@ -348,9 +380,10 @@ static int lp_gpio_probe(struct platform_device *pdev)
 	lg->reg_base = io_rc->start;
 	reg_len = resource_size(io_rc);
 
-	if (!devm_request_region(dev, lg->reg_base, reg_len, "lp-gpio")) {
+	if (!devm_request_region(dev, lg->reg_base, reg_len, "lp-gpio"))
+	{
 		dev_err(dev, "failed requesting IO region 0x%x\n",
-			(unsigned int)lg->reg_base);
+				(unsigned int)lg->reg_base);
 		return -EBUSY;
 	}
 
@@ -371,24 +404,29 @@ static int lp_gpio_probe(struct platform_device *pdev)
 	gc->parent = dev;
 
 	ret = devm_gpiochip_add_data(dev, gc, lg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed adding lp-gpio chip\n");
 		return ret;
 	}
 
 	/* set up interrupts  */
-	if (irq_rc && irq_rc->start) {
+	if (irq_rc && irq_rc->start)
+	{
 		lp_gpio_irq_init_hw(lg);
 		ret = gpiochip_irqchip_add(gc, &lp_irqchip, 0,
-					   handle_simple_irq, IRQ_TYPE_NONE);
-		if (ret) {
+								   handle_simple_irq, IRQ_TYPE_NONE);
+
+		if (ret)
+		{
 			dev_err(dev, "failed to add irqchip\n");
 			return ret;
 		}
 
 		gpiochip_set_chained_irqchip(gc, &lp_irqchip,
-					     (unsigned)irq_rc->start,
-					     lp_gpio_irq_handler);
+									 (unsigned)irq_rc->start,
+									 lp_gpio_irq_handler);
 	}
 
 	pm_runtime_enable(dev);
@@ -414,22 +452,27 @@ static int lp_gpio_resume(struct device *dev)
 	int i;
 
 	/* on some hardware suspend clears input sensing, re-enable it here */
-	for (i = 0; i < lg->chip.ngpio; i++) {
-		if (gpiochip_is_requested(&lg->chip, i) != NULL) {
+	for (i = 0; i < lg->chip.ngpio; i++)
+	{
+		if (gpiochip_is_requested(&lg->chip, i) != NULL)
+		{
 			reg = lp_gpio_reg(&lg->chip, i, LP_CONFIG2);
 			outl(inl(reg) & ~GPINDIS_BIT, reg);
 		}
 	}
+
 	return 0;
 }
 
-static const struct dev_pm_ops lp_gpio_pm_ops = {
+static const struct dev_pm_ops lp_gpio_pm_ops =
+{
 	.runtime_suspend = lp_gpio_runtime_suspend,
 	.runtime_resume = lp_gpio_runtime_resume,
 	.resume = lp_gpio_resume,
 };
 
-static const struct acpi_device_id lynxpoint_gpio_acpi_match[] = {
+static const struct acpi_device_id lynxpoint_gpio_acpi_match[] =
+{
 	{ "INT33C7", 0 },
 	{ "INT3437", 0 },
 	{ }
@@ -442,7 +485,8 @@ static int lp_gpio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver lp_gpio_driver = {
+static struct platform_driver lp_gpio_driver =
+{
 	.probe          = lp_gpio_probe,
 	.remove         = lp_gpio_remove,
 	.driver         = {

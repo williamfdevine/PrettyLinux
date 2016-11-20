@@ -41,14 +41,20 @@ static inline int isdigit(int c)
 static inline unsigned char __tolower(unsigned char c)
 {
 	if (isupper(c))
-		c -= 'A'-'a';
+	{
+		c -= 'A' - 'a';
+	}
+
 	return c;
 }
 
 static inline unsigned char __toupper(unsigned char c)
 {
 	if (islower(c))
-		c -= 'a'-'A';
+	{
+		c -= 'a' - 'A';
+	}
+
 	return c;
 }
 

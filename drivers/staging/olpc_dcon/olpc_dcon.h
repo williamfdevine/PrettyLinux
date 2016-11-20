@@ -56,7 +56,8 @@
 /* Interrupt */
 #define DCON_IRQ                6
 
-struct dcon_priv {
+struct dcon_priv
+{
 	struct i2c_client *client;
 	struct fb_info *fbinfo;
 	struct backlight_device *bl_dev;
@@ -89,7 +90,8 @@ struct dcon_priv {
 	bool ignore_fb_events;
 };
 
-struct dcon_platform_data {
+struct dcon_platform_data
+{
 	int (*init)(struct dcon_priv *);
 	void (*bus_stabilize_wiggle)(void);
 	void (*set_dconload)(int);
@@ -101,11 +103,11 @@ struct dcon_platform_data {
 irqreturn_t dcon_interrupt(int irq, void *id);
 
 #ifdef CONFIG_FB_OLPC_DCON_1
-extern struct dcon_platform_data dcon_pdata_xo_1;
+	extern struct dcon_platform_data dcon_pdata_xo_1;
 #endif
 
 #ifdef CONFIG_FB_OLPC_DCON_1_5
-extern struct dcon_platform_data dcon_pdata_xo_1_5;
+	extern struct dcon_platform_data dcon_pdata_xo_1_5;
 #endif
 
 #endif

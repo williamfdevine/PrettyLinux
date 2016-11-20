@@ -15,7 +15,7 @@ struct device_node;
 int of_clk_set_defaults(struct device_node *node, bool clk_supplier);
 #else
 static inline int of_clk_set_defaults(struct device_node *node,
-				      bool clk_supplier)
+									  bool clk_supplier)
 {
 	return 0;
 }

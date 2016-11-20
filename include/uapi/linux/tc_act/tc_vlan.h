@@ -18,12 +18,14 @@
 #define TCA_VLAN_ACT_PUSH	2
 #define TCA_VLAN_ACT_MODIFY	3
 
-struct tc_vlan {
+struct tc_vlan
+{
 	tc_gen;
 	int v_action;
 };
 
-enum {
+enum
+{
 	TCA_VLAN_UNSPEC,
 	TCA_VLAN_TM,
 	TCA_VLAN_PARMS,

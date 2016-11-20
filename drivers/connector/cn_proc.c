@@ -81,7 +81,9 @@ void proc_fork_connector(struct task_struct *task)
 	struct task_struct *parent;
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
+	{
 		return;
+	}
 
 	msg = buffer_to_cn_msg(buffer);
 	ev = (struct proc_event *)msg->data;
@@ -110,7 +112,9 @@ void proc_exec_connector(struct task_struct *task)
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
+	{
 		return;
+	}
 
 	msg = buffer_to_cn_msg(buffer);
 	ev = (struct proc_event *)msg->data;
@@ -135,7 +139,9 @@ void proc_id_connector(struct task_struct *task, int which_id)
 	const struct cred *cred;
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
+	{
 		return;
+	}
 
 	msg = buffer_to_cn_msg(buffer);
 	ev = (struct proc_event *)msg->data;
@@ -145,16 +151,23 @@ void proc_id_connector(struct task_struct *task, int which_id)
 	ev->event_data.id.process_tgid = task->tgid;
 	rcu_read_lock();
 	cred = __task_cred(task);
-	if (which_id == PROC_EVENT_UID) {
+
+	if (which_id == PROC_EVENT_UID)
+	{
 		ev->event_data.id.r.ruid = from_kuid_munged(&init_user_ns, cred->uid);
 		ev->event_data.id.e.euid = from_kuid_munged(&init_user_ns, cred->euid);
-	} else if (which_id == PROC_EVENT_GID) {
+	}
+	else if (which_id == PROC_EVENT_GID)
+	{
 		ev->event_data.id.r.rgid = from_kgid_munged(&init_user_ns, cred->gid);
 		ev->event_data.id.e.egid = from_kgid_munged(&init_user_ns, cred->egid);
-	} else {
+	}
+	else
+	{
 		rcu_read_unlock();
 		return;
 	}
+
 	rcu_read_unlock();
 	ev->timestamp_ns = ktime_get_ns();
 
@@ -172,7 +185,9 @@ void proc_sid_connector(struct task_struct *task)
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
+	{
 		return;
+	}
 
 	msg = buffer_to_cn_msg(buffer);
 	ev = (struct proc_event *)msg->data;
@@ -196,7 +211,9 @@ void proc_ptrace_connector(struct task_struct *task, int ptrace_id)
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
+	{
 		return;
+	}
 
 	msg = buffer_to_cn_msg(buffer);
 	ev = (struct proc_event *)msg->data;
@@ -205,14 +222,21 @@ void proc_ptrace_connector(struct task_struct *task, int ptrace_id)
 	ev->what = PROC_EVENT_PTRACE;
 	ev->event_data.ptrace.process_pid  = task->pid;
 	ev->event_data.ptrace.process_tgid = task->tgid;
-	if (ptrace_id == PTRACE_ATTACH) {
+
+	if (ptrace_id == PTRACE_ATTACH)
+	{
 		ev->event_data.ptrace.tracer_pid  = current->pid;
 		ev->event_data.ptrace.tracer_tgid = current->tgid;
-	} else if (ptrace_id == PTRACE_DETACH) {
+	}
+	else if (ptrace_id == PTRACE_DETACH)
+	{
 		ev->event_data.ptrace.tracer_pid  = 0;
 		ev->event_data.ptrace.tracer_tgid = 0;
-	} else
+	}
+	else
+	{
 		return;
+	}
 
 	memcpy(&msg->id, &cn_proc_event_id, sizeof(msg->id));
 	msg->ack = 0; /* not used */
@@ -228,7 +252,9 @@ void proc_comm_connector(struct task_struct *task)
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
+	{
 		return;
+	}
 
 	msg = buffer_to_cn_msg(buffer);
 	ev = (struct proc_event *)msg->data;
@@ -253,7 +279,9 @@ void proc_coredump_connector(struct task_struct *task)
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
+	{
 		return;
+	}
 
 	msg = buffer_to_cn_msg(buffer);
 	ev = (struct proc_event *)msg->data;
@@ -277,7 +305,9 @@ void proc_exit_connector(struct task_struct *task)
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
+	{
 		return;
+	}
 
 	msg = buffer_to_cn_msg(buffer);
 	ev = (struct proc_event *)msg->data;
@@ -311,7 +341,9 @@ static void cn_proc_ack(int err, int rcvd_seq, int rcvd_ack)
 	__u8 buffer[CN_PROC_MSG_SIZE] __aligned(8);
 
 	if (atomic_read(&proc_event_num_listeners) < 1)
+	{
 		return;
+	}
 
 	msg = buffer_to_cn_msg(buffer);
 	ev = (struct proc_event *)msg->data;
@@ -333,40 +365,49 @@ static void cn_proc_ack(int err, int rcvd_seq, int rcvd_ack)
  * @data: message sent from userspace via the connector
  */
 static void cn_proc_mcast_ctl(struct cn_msg *msg,
-			      struct netlink_skb_parms *nsp)
+							  struct netlink_skb_parms *nsp)
 {
 	enum proc_cn_mcast_op *mc_op = NULL;
 	int err = 0;
 
 	if (msg->len != sizeof(*mc_op))
+	{
 		return;
+	}
 
-	/* 
+	/*
 	 * Events are reported with respect to the initial pid
 	 * and user namespaces so ignore requestors from
 	 * other namespaces.
 	 */
 	if ((current_user_ns() != &init_user_ns) ||
-	    (task_active_pid_ns(current) != &init_pid_ns))
+		(task_active_pid_ns(current) != &init_pid_ns))
+	{
 		return;
+	}
 
 	/* Can only change if privileged. */
-	if (!__netlink_ns_capable(nsp, &init_user_ns, CAP_NET_ADMIN)) {
+	if (!__netlink_ns_capable(nsp, &init_user_ns, CAP_NET_ADMIN))
+	{
 		err = EPERM;
 		goto out;
 	}
 
 	mc_op = (enum proc_cn_mcast_op *)msg->data;
-	switch (*mc_op) {
-	case PROC_CN_MCAST_LISTEN:
-		atomic_inc(&proc_event_num_listeners);
-		break;
-	case PROC_CN_MCAST_IGNORE:
-		atomic_dec(&proc_event_num_listeners);
-		break;
-	default:
-		err = EINVAL;
-		break;
+
+	switch (*mc_op)
+	{
+		case PROC_CN_MCAST_LISTEN:
+			atomic_inc(&proc_event_num_listeners);
+			break;
+
+		case PROC_CN_MCAST_IGNORE:
+			atomic_dec(&proc_event_num_listeners);
+			break;
+
+		default:
+			err = EINVAL;
+			break;
 	}
 
 out:
@@ -381,12 +422,15 @@ out:
 static int __init cn_proc_init(void)
 {
 	int err = cn_add_callback(&cn_proc_event_id,
-				  "cn_proc",
-				  &cn_proc_mcast_ctl);
-	if (err) {
+							  "cn_proc",
+							  &cn_proc_mcast_ctl);
+
+	if (err)
+	{
 		pr_warn("cn_proc failed to register\n");
 		return err;
 	}
+
 	return 0;
 }
 device_initcall(cn_proc_init);

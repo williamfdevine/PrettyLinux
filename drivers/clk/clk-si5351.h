@@ -160,7 +160,8 @@
  * @SI5351_VARIANT_B: Si5351B (8 output clocks, XTAL/VXCO input)
  * @SI5351_VARIANT_C: Si5351C (8 output clocks, XTAL/CLKIN input)
  */
-enum si5351_variant {
+enum si5351_variant
+{
 	SI5351_VARIANT_A = 1,
 	SI5351_VARIANT_A3 = 2,
 	SI5351_VARIANT_B = 3,

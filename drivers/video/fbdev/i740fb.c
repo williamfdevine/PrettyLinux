@@ -32,7 +32,8 @@
 static char *mode_option;
 static int mtrr = 1;
 
-struct i740fb_par {
+struct i740fb_par
+{
 	unsigned char __iomem *regs;
 	bool has_sgram;
 	int wc_cookie;
@@ -82,7 +83,8 @@ struct i740fb_par {
 #define DACSPEED24_SD	128
 #define DACSPEED32	86
 
-static const struct fb_fix_screeninfo i740fb_fix = {
+static const struct fb_fix_screeninfo i740fb_fix =
+{
 	.id =		"i740fb",
 	.type =		FB_TYPE_PACKED_PIXELS,
 	.visual =	FB_VISUAL_TRUECOLOR,
@@ -106,13 +108,13 @@ static inline void i740outreg(struct i740fb_par *par, u16 port, u8 reg, u8 val)
 static inline u8 i740inreg(struct i740fb_par *par, u16 port, u8 reg)
 {
 	vga_mm_w(par->regs, port, reg);
-	return vga_mm_r(par->regs, port+1);
+	return vga_mm_r(par->regs, port + 1);
 }
 static inline void i740outreg_mask(struct i740fb_par *par, u16 port, u8 reg,
-				   u8 val, u8 mask)
+								   u8 val, u8 mask)
 {
 	vga_mm_w_fast(par->regs, port, reg, (val & mask)
-		| (i740inreg(par, port, reg) & ~mask));
+				  | (i740inreg(par, port, reg) & ~mask));
 }
 
 #define REG_DDC_DRIVE	0x62
@@ -159,7 +161,7 @@ static int i740fb_setup_ddc_bus(struct fb_info *info)
 	struct i740fb_par *par = info->par;
 
 	strlcpy(par->ddc_adapter.name, info->fix.id,
-		sizeof(par->ddc_adapter.name));
+			sizeof(par->ddc_adapter.name));
 	par->ddc_adapter.owner		= THIS_MODULE;
 	par->ddc_adapter.class		= I2C_CLASS_DDC;
 	par->ddc_adapter.algo_data	= &par->ddc_algo;
@@ -193,7 +195,9 @@ static int i740fb_release(struct fb_info *info, int user)
 	struct i740fb_par *par = info->par;
 
 	mutex_lock(&(par->open_lock));
-	if (par->ref_count == 0) {
+
+	if (par->ref_count == 0)
+	{
 		fb_err(info, "release called with zero refcount\n");
 		mutex_unlock(&(par->open_lock));
 		return -EINVAL;
@@ -217,115 +221,222 @@ static u32 i740_calc_fifo(struct i740fb_par *par, u32 freq, int bpp)
 
 	u32 wm;
 
-	switch (bpp) {
-	case 8:
-		if	(freq > 200)
-			wm = 0x18120000;
-		else if (freq > 175)
-			wm = 0x16110000;
-		else if (freq > 135)
-			wm = 0x120E0000;
-		else
-			wm = 0x100D0000;
-		break;
-	case 15:
-	case 16:
-		if (par->has_sgram) {
-			if	(freq > 140)
-				wm = 0x2C1D0000;
-			else if (freq > 120)
-				wm = 0x2C180000;
-			else if (freq > 100)
-				wm = 0x24160000;
-			else if (freq >  90)
+	switch (bpp)
+	{
+		case 8:
+			if	(freq > 200)
+			{
 				wm = 0x18120000;
-			else if (freq >  50)
+			}
+			else if (freq > 175)
+			{
 				wm = 0x16110000;
-			else if (freq >  32)
-				wm = 0x13100000;
-			else
+			}
+			else if (freq > 135)
+			{
 				wm = 0x120E0000;
-		} else {
-			if	(freq > 160)
-				wm = 0x28200000;
-			else if (freq > 140)
-				wm = 0x2A1E0000;
-			else if (freq > 130)
-				wm = 0x2B1A0000;
-			else if (freq > 120)
-				wm = 0x2C180000;
-			else if (freq > 100)
-				wm = 0x24180000;
-			else if (freq >  90)
-				wm = 0x18120000;
-			else if (freq >  50)
-				wm = 0x16110000;
-			else if (freq >  32)
-				wm = 0x13100000;
+			}
 			else
-				wm = 0x120E0000;
-		}
-		break;
-	case 24:
-		if (par->has_sgram) {
-			if	(freq > 130)
-				wm = 0x31200000;
-			else if (freq > 120)
-				wm = 0x2E200000;
-			else if (freq > 100)
-				wm = 0x2C1D0000;
-			else if (freq >  80)
-				wm = 0x25180000;
-			else if (freq >  64)
-				wm = 0x24160000;
-			else if (freq >  49)
-				wm = 0x18120000;
-			else if (freq >  32)
-				wm = 0x16110000;
+			{
+				wm = 0x100D0000;
+			}
+
+			break;
+
+		case 15:
+		case 16:
+			if (par->has_sgram)
+			{
+				if	(freq > 140)
+				{
+					wm = 0x2C1D0000;
+				}
+				else if (freq > 120)
+				{
+					wm = 0x2C180000;
+				}
+				else if (freq > 100)
+				{
+					wm = 0x24160000;
+				}
+				else if (freq >  90)
+				{
+					wm = 0x18120000;
+				}
+				else if (freq >  50)
+				{
+					wm = 0x16110000;
+				}
+				else if (freq >  32)
+				{
+					wm = 0x13100000;
+				}
+				else
+				{
+					wm = 0x120E0000;
+				}
+			}
 			else
-				wm = 0x13100000;
-		} else {
-			if	(freq > 120)
-				wm = 0x311F0000;
-			else if (freq > 100)
-				wm = 0x2C1D0000;
-			else if (freq >  80)
-				wm = 0x25180000;
-			else if (freq >  64)
-				wm = 0x24160000;
-			else if (freq >  49)
-				wm = 0x18120000;
-			else if (freq >  32)
-				wm = 0x16110000;
+			{
+				if	(freq > 160)
+				{
+					wm = 0x28200000;
+				}
+				else if (freq > 140)
+				{
+					wm = 0x2A1E0000;
+				}
+				else if (freq > 130)
+				{
+					wm = 0x2B1A0000;
+				}
+				else if (freq > 120)
+				{
+					wm = 0x2C180000;
+				}
+				else if (freq > 100)
+				{
+					wm = 0x24180000;
+				}
+				else if (freq >  90)
+				{
+					wm = 0x18120000;
+				}
+				else if (freq >  50)
+				{
+					wm = 0x16110000;
+				}
+				else if (freq >  32)
+				{
+					wm = 0x13100000;
+				}
+				else
+				{
+					wm = 0x120E0000;
+				}
+			}
+
+			break;
+
+		case 24:
+			if (par->has_sgram)
+			{
+				if	(freq > 130)
+				{
+					wm = 0x31200000;
+				}
+				else if (freq > 120)
+				{
+					wm = 0x2E200000;
+				}
+				else if (freq > 100)
+				{
+					wm = 0x2C1D0000;
+				}
+				else if (freq >  80)
+				{
+					wm = 0x25180000;
+				}
+				else if (freq >  64)
+				{
+					wm = 0x24160000;
+				}
+				else if (freq >  49)
+				{
+					wm = 0x18120000;
+				}
+				else if (freq >  32)
+				{
+					wm = 0x16110000;
+				}
+				else
+				{
+					wm = 0x13100000;
+				}
+			}
 			else
-				wm = 0x13100000;
-		}
-		break;
-	case 32:
-		if (par->has_sgram) {
-			if	(freq >  80)
-				wm = 0x2A200000;
-			else if (freq >  60)
-				wm = 0x281A0000;
-			else if (freq >  49)
-				wm = 0x25180000;
-			else if (freq >  32)
-				wm = 0x18120000;
+			{
+				if	(freq > 120)
+				{
+					wm = 0x311F0000;
+				}
+				else if (freq > 100)
+				{
+					wm = 0x2C1D0000;
+				}
+				else if (freq >  80)
+				{
+					wm = 0x25180000;
+				}
+				else if (freq >  64)
+				{
+					wm = 0x24160000;
+				}
+				else if (freq >  49)
+				{
+					wm = 0x18120000;
+				}
+				else if (freq >  32)
+				{
+					wm = 0x16110000;
+				}
+				else
+				{
+					wm = 0x13100000;
+				}
+			}
+
+			break;
+
+		case 32:
+			if (par->has_sgram)
+			{
+				if	(freq >  80)
+				{
+					wm = 0x2A200000;
+				}
+				else if (freq >  60)
+				{
+					wm = 0x281A0000;
+				}
+				else if (freq >  49)
+				{
+					wm = 0x25180000;
+				}
+				else if (freq >  32)
+				{
+					wm = 0x18120000;
+				}
+				else
+				{
+					wm = 0x16110000;
+				}
+			}
 			else
-				wm = 0x16110000;
-		} else {
-			if	(freq >  80)
-				wm = 0x29200000;
-			else if (freq >  60)
-				wm = 0x281A0000;
-			else if (freq >  49)
-				wm = 0x25180000;
-			else if (freq >  32)
-				wm = 0x18120000;
-			else
-				wm = 0x16110000;
-		}
-		break;
+			{
+				if	(freq >  80)
+				{
+					wm = 0x29200000;
+				}
+				else if (freq >  60)
+				{
+					wm = 0x281A0000;
+				}
+				else if (freq >  49)
+				{
+					wm = 0x25180000;
+				}
+				else if (freq >  32)
+				{
+					wm = 0x18120000;
+				}
+				else
+				{
+					wm = 0x16110000;
+				}
+			}
+
+			break;
 	}
 
 	return wm;
@@ -354,29 +465,36 @@ static void i740_calc_vclk(u32 freq, struct i740fb_par *par)
 	freq = freq / I740_RFREQ_FIX;
 
 	n = 2;
-	do {
+
+	do
+	{
 		n++;
 		m = ((f_vco * n) / I740_REF_FREQ + 2) / 4;
 
 		if (m < 3)
+		{
 			m = 3;
+		}
 
 		{
 			u32 f_out = (((m * I740_REF_FREQ * 4)
-				 / n) + ((1 << p_best) / 2)) / (1 << p_best);
+						  / n) + ((1 << p_best) / 2)) / (1 << p_best);
 
 			f_err = (freq - f_out);
 
-			if (abs(f_err) < err_max) {
+			if (abs(f_err) < err_max)
+			{
 				m_best = m;
 				n_best = n;
 				err_best = f_err;
 			}
 		}
-	} while ((abs(f_err) >= err_target) &&
-		 ((n <= TARGET_MAX_N) || (abs(err_best) > err_max)));
+	}
+	while ((abs(f_err) >= err_target) &&
+		   ((n <= TARGET_MAX_N) || (abs(err_best) > err_max)));
 
-	if (abs(f_err) < err_target) {
+	if (abs(f_err) < err_target)
+	{
 		m_best = m;
 		n_best = n;
 	}
@@ -384,12 +502,12 @@ static void i740_calc_vclk(u32 freq, struct i740fb_par *par)
 	par->video_clk2_m = (m_best - 2) & 0xFF;
 	par->video_clk2_n = (n_best - 2) & 0xFF;
 	par->video_clk2_mn_msbs = ((((n_best - 2) >> 4) & VCO_N_MSBS)
-				 | (((m_best - 2) >> 8) & VCO_M_MSBS));
+							   | (((m_best - 2) >> 8) & VCO_M_MSBS));
 	par->video_clk2_div_sel = ((p_best << 4) | REF_DIV_1);
 }
 
 static int i740fb_decode_var(const struct fb_var_screeninfo *var,
-			     struct i740fb_par *par, struct fb_info *info)
+							 struct i740fb_par *par, struct fb_info *info)
 {
 	/*
 	 * Get the video params out of 'var'.
@@ -404,67 +522,91 @@ static int i740fb_decode_var(const struct fb_var_screeninfo *var,
 	int i;
 
 	dev_dbg(info->device, "decode_var: xres: %i, yres: %i, xres_v: %i, xres_v: %i\n",
-		  var->xres, var->yres, var->xres_virtual, var->xres_virtual);
+			var->xres, var->yres, var->xres_virtual, var->xres_virtual);
 	dev_dbg(info->device, "	xoff: %i, yoff: %i, bpp: %i, graysc: %i\n",
-		  var->xoffset, var->yoffset, var->bits_per_pixel,
-		  var->grayscale);
+			var->xoffset, var->yoffset, var->bits_per_pixel,
+			var->grayscale);
 	dev_dbg(info->device, "	activate: %i, nonstd: %i, vmode: %i\n",
-		  var->activate, var->nonstd, var->vmode);
+			var->activate, var->nonstd, var->vmode);
 	dev_dbg(info->device, "	pixclock: %i, hsynclen:%i, vsynclen:%i\n",
-		  var->pixclock, var->hsync_len, var->vsync_len);
+			var->pixclock, var->hsync_len, var->vsync_len);
 	dev_dbg(info->device, "	left: %i, right: %i, up:%i, lower:%i\n",
-		  var->left_margin, var->right_margin, var->upper_margin,
-		  var->lower_margin);
+			var->left_margin, var->right_margin, var->upper_margin,
+			var->lower_margin);
 
 
 	bpp = var->bits_per_pixel;
-	switch (bpp) {
-	case 1 ... 8:
-		bpp = 8;
-		if ((1000000 / var->pixclock) > DACSPEED8) {
-			dev_err(info->device, "requested pixclock %i MHz out of range (max. %i MHz at 8bpp)\n",
-				1000000 / var->pixclock, DACSPEED8);
+
+	switch (bpp)
+	{
+		case 1 ... 8:
+			bpp = 8;
+
+			if ((1000000 / var->pixclock) > DACSPEED8)
+			{
+				dev_err(info->device, "requested pixclock %i MHz out of range (max. %i MHz at 8bpp)\n",
+						1000000 / var->pixclock, DACSPEED8);
+				return -EINVAL;
+			}
+
+			break;
+
+		case 9 ... 15:
+			bpp = 15;
+
+		case 16:
+			if ((1000000 / var->pixclock) > DACSPEED16)
+			{
+				dev_err(info->device, "requested pixclock %i MHz out of range (max. %i MHz at 15/16bpp)\n",
+						1000000 / var->pixclock, DACSPEED16);
+				return -EINVAL;
+			}
+
+			break;
+
+		case 17 ... 24:
+			bpp = 24;
+			dacspeed24 = par->has_sgram ? DACSPEED24_SG : DACSPEED24_SD;
+
+			if ((1000000 / var->pixclock) > dacspeed24)
+			{
+				dev_err(info->device, "requested pixclock %i MHz out of range (max. %i MHz at 24bpp)\n",
+						1000000 / var->pixclock, dacspeed24);
+				return -EINVAL;
+			}
+
+			break;
+
+		case 25 ... 32:
+			bpp = 32;
+
+			if ((1000000 / var->pixclock) > DACSPEED32)
+			{
+				dev_err(info->device, "requested pixclock %i MHz out of range (max. %i MHz at 32bpp)\n",
+						1000000 / var->pixclock, DACSPEED32);
+				return -EINVAL;
+			}
+
+			break;
+
+		default:
 			return -EINVAL;
-		}
-		break;
-	case 9 ... 15:
-		bpp = 15;
-	case 16:
-		if ((1000000 / var->pixclock) > DACSPEED16) {
-			dev_err(info->device, "requested pixclock %i MHz out of range (max. %i MHz at 15/16bpp)\n",
-				1000000 / var->pixclock, DACSPEED16);
-			return -EINVAL;
-		}
-		break;
-	case 17 ... 24:
-		bpp = 24;
-		dacspeed24 = par->has_sgram ? DACSPEED24_SG : DACSPEED24_SD;
-		if ((1000000 / var->pixclock) > dacspeed24) {
-			dev_err(info->device, "requested pixclock %i MHz out of range (max. %i MHz at 24bpp)\n",
-				1000000 / var->pixclock, dacspeed24);
-			return -EINVAL;
-		}
-		break;
-	case 25 ... 32:
-		bpp = 32;
-		if ((1000000 / var->pixclock) > DACSPEED32) {
-			dev_err(info->device, "requested pixclock %i MHz out of range (max. %i MHz at 32bpp)\n",
-				1000000 / var->pixclock, DACSPEED32);
-			return -EINVAL;
-		}
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	xres = ALIGN(var->xres, 8);
 	vxres = ALIGN(var->xres_virtual, 16);
+
 	if (vxres < xres)
+	{
 		vxres = xres;
+	}
 
 	xoffset = ALIGN(var->xoffset, 8);
+
 	if (xres + xoffset > vxres)
+	{
 		xoffset = vxres - xres;
+	}
 
 	left = ALIGN(var->left_margin, 8);
 	right = ALIGN(var->right_margin, 8);
@@ -472,26 +614,36 @@ static int i740fb_decode_var(const struct fb_var_screeninfo *var,
 
 	yres = var->yres;
 	vyres = var->yres_virtual;
+
 	if (yres > vyres)
+	{
 		vyres = yres;
+	}
 
 	yoffset = var->yoffset;
+
 	if (yres + yoffset > vyres)
+	{
 		yoffset = vyres - yres;
+	}
 
 	lower = var->lower_margin;
 	vslen = var->vsync_len;
 	upper = var->upper_margin;
 
 	mem = vxres * vyres * ((bpp + 1) / 8);
-	if (mem > info->screen_size) {
+
+	if (mem > info->screen_size)
+	{
 		dev_err(info->device, "not enough video memory (%d KB requested, %ld KB available)\n",
-			mem >> 10, info->screen_size >> 10);
+				mem >> 10, info->screen_size >> 10);
 		return -ENOMEM;
 	}
 
 	if (yoffset + yres > vyres)
+	{
 		yoffset = vyres - yres;
+	}
 
 	xtotal = xres + right + hslen + left;
 	ytotal = yres + lower + vslen + upper;
@@ -501,37 +653,58 @@ static int i740fb_decode_var(const struct fb_var_screeninfo *var,
 	par->crtc[VGA_CRTC_H_BLANK_START] = ((xres + right) >> 3) - 1;
 	par->crtc[VGA_CRTC_H_SYNC_START] = (xres + right) >> 3;
 	par->crtc[VGA_CRTC_H_SYNC_END] = (((xres + right + hslen) >> 3) & 0x1F)
-		| ((((xres + right + hslen) >> 3) & 0x20) << 2);
+									 | ((((xres + right + hslen) >> 3) & 0x20) << 2);
 	par->crtc[VGA_CRTC_H_BLANK_END] = ((xres + right + hslen) >> 3 & 0x1F)
-		| 0x80;
+									  | 0x80;
 
 	par->crtc[VGA_CRTC_V_TOTAL] = ytotal - 2;
 
 	r7 = 0x10;	/* disable linecompare */
+
 	if (ytotal & 0x100)
+	{
 		r7 |= 0x01;
+	}
+
 	if (ytotal & 0x200)
+	{
 		r7 |= 0x20;
+	}
 
 	par->crtc[VGA_CRTC_PRESET_ROW] = 0;
 	par->crtc[VGA_CRTC_MAX_SCAN] = 0x40;	/* 1 scanline, no linecmp */
+
 	if (var->vmode & FB_VMODE_DOUBLE)
+	{
 		par->crtc[VGA_CRTC_MAX_SCAN] |= 0x80;
+	}
+
 	par->crtc[VGA_CRTC_CURSOR_START] = 0x00;
 	par->crtc[VGA_CRTC_CURSOR_END] = 0x00;
 	par->crtc[VGA_CRTC_CURSOR_HI] = 0x00;
 	par->crtc[VGA_CRTC_CURSOR_LO] = 0x00;
-	par->crtc[VGA_CRTC_V_DISP_END] = yres-1;
-	if ((yres-1) & 0x100)
+	par->crtc[VGA_CRTC_V_DISP_END] = yres - 1;
+
+	if ((yres - 1) & 0x100)
+	{
 		r7 |= 0x02;
-	if ((yres-1) & 0x200)
+	}
+
+	if ((yres - 1) & 0x200)
+	{
 		r7 |= 0x40;
+	}
 
 	par->crtc[VGA_CRTC_V_BLANK_START] = yres + lower - 1;
 	par->crtc[VGA_CRTC_V_SYNC_START] = yres + lower - 1;
+
 	if ((yres + lower - 1) & 0x100)
+	{
 		r7 |= 0x0C;
-	if ((yres + lower - 1) & 0x200) {
+	}
+
+	if ((yres + lower - 1) & 0x200)
+	{
 		par->crtc[VGA_CRTC_MAX_SCAN] |= 0x20;
 		r7 |= 0x80;
 	}
@@ -550,17 +723,26 @@ static int i740fb_decode_var(const struct fb_var_screeninfo *var,
 	par->vss = 0x00;	/* 3DA */
 
 	for (i = 0x00; i < 0x10; i++)
+	{
 		par->atc[i] = i;
+	}
+
 	par->atc[VGA_ATC_MODE] = 0x81;
 	par->atc[VGA_ATC_OVERSCAN] = 0x00;	/* 0 for EGA, 0xFF for VGA */
 	par->atc[VGA_ATC_PLANE_ENABLE] = 0x0F;
 	par->atc[VGA_ATC_COLOR_PAGE] = 0x00;
 
 	par->misc = 0xC3;
+
 	if (var->sync & FB_SYNC_HOR_HIGH_ACT)
+	{
 		par->misc &= ~0x40;
+	}
+
 	if (var->sync & FB_SYNC_VERT_HIGH_ACT)
+	{
 		par->misc &= ~0x80;
+	}
 
 	par->seq[VGA_SEQ_CLOCK_MODE] = 0x01;
 	par->seq[VGA_SEQ_PLANE_WRITE] = 0x0F;
@@ -578,37 +760,42 @@ static int i740fb_decode_var(const struct fb_var_screeninfo *var,
 	par->gdc[VGA_GFX_BIT_MASK] = 0xFF;
 
 	base = (yoffset * vxres + (xoffset & ~7)) >> 2;
-	switch (bpp) {
-	case 8:
-		par->crtc[VGA_CRTC_OFFSET] = vxres >> 3;
-		par->ext_offset = vxres >> 11;
-		par->pixelpipe_cfg1 = DISPLAY_8BPP_MODE;
-		par->bitblt_cntl = COLEXP_8BPP;
-		break;
-	case 15: /* 0rrrrrgg gggbbbbb */
-	case 16: /* rrrrrggg gggbbbbb */
-		par->pixelpipe_cfg1 = (var->green.length == 6) ?
-			DISPLAY_16BPP_MODE : DISPLAY_15BPP_MODE;
-		par->crtc[VGA_CRTC_OFFSET] = vxres >> 2;
-		par->ext_offset = vxres >> 10;
-		par->bitblt_cntl = COLEXP_16BPP;
-		base *= 2;
-		break;
-	case 24:
-		par->crtc[VGA_CRTC_OFFSET] = (vxres * 3) >> 3;
-		par->ext_offset = (vxres * 3) >> 11;
-		par->pixelpipe_cfg1 = DISPLAY_24BPP_MODE;
-		par->bitblt_cntl = COLEXP_24BPP;
-		base &= 0xFFFFFFFE; /* ...ignore the last bit. */
-		base *= 3;
-		break;
-	case 32:
-		par->crtc[VGA_CRTC_OFFSET] = vxres >> 1;
-		par->ext_offset = vxres >> 9;
-		par->pixelpipe_cfg1 = DISPLAY_32BPP_MODE;
-		par->bitblt_cntl = COLEXP_RESERVED; /* Unimplemented on i740 */
-		base *= 4;
-		break;
+
+	switch (bpp)
+	{
+		case 8:
+			par->crtc[VGA_CRTC_OFFSET] = vxres >> 3;
+			par->ext_offset = vxres >> 11;
+			par->pixelpipe_cfg1 = DISPLAY_8BPP_MODE;
+			par->bitblt_cntl = COLEXP_8BPP;
+			break;
+
+		case 15: /* 0rrrrrgg gggbbbbb */
+		case 16: /* rrrrrggg gggbbbbb */
+			par->pixelpipe_cfg1 = (var->green.length == 6) ?
+								  DISPLAY_16BPP_MODE : DISPLAY_15BPP_MODE;
+			par->crtc[VGA_CRTC_OFFSET] = vxres >> 2;
+			par->ext_offset = vxres >> 10;
+			par->bitblt_cntl = COLEXP_16BPP;
+			base *= 2;
+			break;
+
+		case 24:
+			par->crtc[VGA_CRTC_OFFSET] = (vxres * 3) >> 3;
+			par->ext_offset = (vxres * 3) >> 11;
+			par->pixelpipe_cfg1 = DISPLAY_24BPP_MODE;
+			par->bitblt_cntl = COLEXP_24BPP;
+			base &= 0xFFFFFFFE; /* ...ignore the last bit. */
+			base *= 3;
+			break;
+
+		case 32:
+			par->crtc[VGA_CRTC_OFFSET] = vxres >> 1;
+			par->ext_offset = vxres >> 9;
+			par->pixelpipe_cfg1 = DISPLAY_32BPP_MODE;
+			par->bitblt_cntl = COLEXP_RESERVED; /* Unimplemented on i740 */
+			base *= 4;
+			break;
 	}
 
 	par->crtc[VGA_CRTC_START_LO] = base & 0x000000FF;
@@ -655,57 +842,71 @@ static int i740fb_decode_var(const struct fb_var_screeninfo *var,
 
 static int i740fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 {
-	switch (var->bits_per_pixel) {
-	case 8:
-		var->red.offset	= var->green.offset = var->blue.offset = 0;
-		var->red.length	= var->green.length = var->blue.length = 8;
-		break;
-	case 16:
-		switch (var->green.length) {
+	switch (var->bits_per_pixel)
+	{
+		case 8:
+			var->red.offset	= var->green.offset = var->blue.offset = 0;
+			var->red.length	= var->green.length = var->blue.length = 8;
+			break;
+
+		case 16:
+			switch (var->green.length)
+			{
+				default:
+				case 5:
+					var->red.offset = 10;
+					var->green.offset = 5;
+					var->blue.offset = 0;
+					var->red.length	= 5;
+					var->green.length = 5;
+					var->blue.length = 5;
+					break;
+
+				case 6:
+					var->red.offset = 11;
+					var->green.offset = 5;
+					var->blue.offset = 0;
+					var->red.length = var->blue.length = 5;
+					break;
+			}
+
+			break;
+
+		case 24:
+			var->red.offset = 16;
+			var->green.offset = 8;
+			var->blue.offset = 0;
+			var->red.length	= var->green.length = var->blue.length = 8;
+			break;
+
+		case 32:
+			var->transp.offset = 24;
+			var->red.offset = 16;
+			var->green.offset = 8;
+			var->blue.offset = 0;
+			var->transp.length = 8;
+			var->red.length = var->green.length = var->blue.length = 8;
+			break;
+
 		default:
-		case 5:
-			var->red.offset = 10;
-			var->green.offset = 5;
-			var->blue.offset = 0;
-			var->red.length	= 5;
-			var->green.length = 5;
-			var->blue.length = 5;
-			break;
-		case 6:
-			var->red.offset = 11;
-			var->green.offset = 5;
-			var->blue.offset = 0;
-			var->red.length = var->blue.length = 5;
-			break;
-		}
-		break;
-	case 24:
-		var->red.offset = 16;
-		var->green.offset = 8;
-		var->blue.offset = 0;
-		var->red.length	= var->green.length = var->blue.length = 8;
-		break;
-	case 32:
-		var->transp.offset = 24;
-		var->red.offset = 16;
-		var->green.offset = 8;
-		var->blue.offset = 0;
-		var->transp.length = 8;
-		var->red.length = var->green.length = var->blue.length = 8;
-		break;
-	default:
-		return -EINVAL;
+			return -EINVAL;
 	}
 
 	if (var->xres > var->xres_virtual)
+	{
 		var->xres_virtual = var->xres;
+	}
 
 	if (var->yres > var->yres_virtual)
+	{
 		var->yres_virtual = var->yres;
+	}
 
 	if (info->monspecs.hfmax && info->monspecs.vfmax &&
-	    info->monspecs.dclkmax && fb_validate_mode(var, info) < 0)
+		info->monspecs.dclkmax && fb_validate_mode(var, info) < 0)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -735,8 +936,11 @@ static int i740fb_set_par(struct fb_info *info)
 	int i;
 
 	i = i740fb_decode_var(&info->var, par, info);
+
 	if (i)
+	{
 		return i;
+	}
 
 	memset(info->screen_base, 0, info->screen_size);
 
@@ -752,7 +956,7 @@ static int i740fb_set_par(struct fb_info *info)
 	i740outreg(par, XRX, VCLK2_VCO_DIV_SEL, par->video_clk2_div_sel);
 
 	i740outreg_mask(par, XRX, PIXPIPE_CONFIG_0,
-			par->pixelpipe_cfg0 & DAC_8_BIT, 0x80);
+					par->pixelpipe_cfg0 & DAC_8_BIT, 0x80);
 
 	i740inb(par, 0x3DA);
 	i740outb(par, 0x3C0, 0x00);
@@ -764,27 +968,35 @@ static int i740fb_set_par(struct fb_info *info)
 	i740outreg(par, VGA_SEQ_I, VGA_SEQ_RESET, 0x01);
 	/* write sequencer registers */
 	i740outreg(par, VGA_SEQ_I, VGA_SEQ_CLOCK_MODE,
-			par->seq[VGA_SEQ_CLOCK_MODE] | 0x20);
+			   par->seq[VGA_SEQ_CLOCK_MODE] | 0x20);
+
 	for (i = 2; i < VGA_SEQ_C; i++)
+	{
 		i740outreg(par, VGA_SEQ_I, i, par->seq[i]);
+	}
 
 	/* synchronous reset off */
 	i740outreg(par, VGA_SEQ_I, VGA_SEQ_RESET, 0x03);
 
 	/* deprotect CRT registers 0-7 */
 	i740outreg(par, VGA_CRT_IC, VGA_CRTC_V_SYNC_END,
-			par->crtc[VGA_CRTC_V_SYNC_END]);
+			   par->crtc[VGA_CRTC_V_SYNC_END]);
 
 	/* write CRT registers */
 	for (i = 0; i < VGA_CRT_C; i++)
+	{
 		i740outreg(par, VGA_CRT_IC, i, par->crtc[i]);
+	}
 
 	/* write graphics controller registers */
 	for (i = 0; i < VGA_GFX_C; i++)
+	{
 		i740outreg(par, VGA_GFX_I, i, par->gdc[i]);
+	}
 
 	/* write attribute controller registers */
-	for (i = 0; i < VGA_ATT_C; i++) {
+	for (i = 0; i < VGA_ATT_C; i++)
+	{
 		i740inb(par, VGA_IS1_RC);		/* reset flip-flop */
 		i740outb(par, VGA_ATT_IW, i);
 		i740outb(par, VGA_ATT_IW, par->atc[i]);
@@ -796,9 +1008,9 @@ static int i740fb_set_par(struct fb_info *info)
 	i740outreg(par, VGA_CRT_IC, EXT_VERT_TOTAL, par->ext_vert_total);
 	i740outreg(par, VGA_CRT_IC, EXT_VERT_DISPLAY, par->ext_vert_disp_end);
 	i740outreg(par, VGA_CRT_IC, EXT_VERT_SYNC_START,
-			par->ext_vert_sync_start);
+			   par->ext_vert_sync_start);
 	i740outreg(par, VGA_CRT_IC, EXT_VERT_BLANK_START,
-			par->ext_vert_blank_start);
+			   par->ext_vert_blank_start);
 	i740outreg(par, VGA_CRT_IC, EXT_HORIZ_TOTAL, par->ext_horiz_total);
 	i740outreg(par, VGA_CRT_IC, EXT_HORIZ_BLANK, par->ext_horiz_blank);
 	i740outreg(par, VGA_CRT_IC, EXT_OFFSET, par->ext_offset);
@@ -806,18 +1018,18 @@ static int i740fb_set_par(struct fb_info *info)
 	i740outreg(par, VGA_CRT_IC, EXT_START_ADDR, par->ext_start_addr);
 
 	i740outreg_mask(par, VGA_CRT_IC, INTERLACE_CNTL,
-			par->interlace_cntl, INTERLACE_ENABLE);
+					par->interlace_cntl, INTERLACE_ENABLE);
 	i740outreg_mask(par, XRX, ADDRESS_MAPPING, par->address_mapping, 0x1F);
 	i740outreg_mask(par, XRX, BITBLT_CNTL, par->bitblt_cntl, COLEXP_MODE);
 	i740outreg_mask(par, XRX, DISPLAY_CNTL,
-			par->display_cntl, VGA_WRAP_MODE | GUI_MODE);
+					par->display_cntl, VGA_WRAP_MODE | GUI_MODE);
 	i740outreg_mask(par, XRX, PIXPIPE_CONFIG_0, par->pixelpipe_cfg0, 0x9B);
 	i740outreg_mask(par, XRX, PIXPIPE_CONFIG_2, par->pixelpipe_cfg2, 0x0C);
 
 	i740outreg(par, XRX, PLL_CNTL, par->pll_cntl);
 
 	i740outreg_mask(par, XRX, PIXPIPE_CONFIG_1,
-			par->pixelpipe_cfg1, DISPLAY_COLOR_MODE);
+					par->pixelpipe_cfg1, DISPLAY_COLOR_MODE);
 
 	itemp = readl(par->regs + FWATER_BLC);
 	itemp &= ~(LMI_BURST_LENGTH | LMI_FIFO_WATERMARK);
@@ -828,12 +1040,15 @@ static int i740fb_set_par(struct fb_info *info)
 
 	i740outreg_mask(par, MRX, COL_KEY_CNTL_1, 0, BLANK_DISP_OVERLAY);
 	i740outreg_mask(par, XRX, IO_CTNL,
-			par->io_cntl, EXTENDED_ATTR_CNTL | EXTENDED_CRTC_CNTL);
+					par->io_cntl, EXTENDED_ATTR_CNTL | EXTENDED_CRTC_CNTL);
 
-	if (par->pixelpipe_cfg1 != DISPLAY_8BPP_MODE) {
+	if (par->pixelpipe_cfg1 != DISPLAY_8BPP_MODE)
+	{
 		i740outb(par, VGA_PEL_MSK, 0xFF);
 		i740outb(par, VGA_PEL_IW, 0x00);
-		for (i = 0; i < 256; i++) {
+
+		for (i = 0; i < 256; i++)
+		{
 			itemp = (par->pixelpipe_cfg0 & DAC_8_BIT) ? i : i >> 2;
 			i740outb(par, VGA_PEL_D, itemp);
 			i740outb(par, VGA_PEL_D, itemp);
@@ -846,94 +1061,112 @@ static int i740fb_set_par(struct fb_info *info)
 	vga_unprotect(par);
 
 	info->fix.line_length =
-			info->var.xres_virtual * info->var.bits_per_pixel / 8;
+		info->var.xres_virtual * info->var.bits_per_pixel / 8;
+
 	if (info->var.bits_per_pixel == 8)
+	{
 		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+	}
 	else
+	{
 		info->fix.visual = FB_VISUAL_TRUECOLOR;
+	}
 
 	return 0;
 }
 
 static int i740fb_setcolreg(unsigned regno, unsigned red, unsigned green,
-			   unsigned blue, unsigned transp,
-			   struct fb_info *info)
+							unsigned blue, unsigned transp,
+							struct fb_info *info)
 {
 	u32 r, g, b;
 
 	dev_dbg(info->device, "setcolreg: regno: %i, red=%d, green=%d, blue=%d, transp=%d, bpp=%d\n",
-		regno, red, green, blue, transp, info->var.bits_per_pixel);
+			regno, red, green, blue, transp, info->var.bits_per_pixel);
 
-	switch (info->fix.visual) {
-	case FB_VISUAL_PSEUDOCOLOR:
-		if (regno >= 256)
+	switch (info->fix.visual)
+	{
+		case FB_VISUAL_PSEUDOCOLOR:
+			if (regno >= 256)
+			{
+				return -EINVAL;
+			}
+
+			i740outb(info->par, VGA_PEL_IW, regno);
+			i740outb(info->par, VGA_PEL_D, red >> 8);
+			i740outb(info->par, VGA_PEL_D, green >> 8);
+			i740outb(info->par, VGA_PEL_D, blue >> 8);
+			break;
+
+		case FB_VISUAL_TRUECOLOR:
+			if (regno >= 16)
+			{
+				return -EINVAL;
+			}
+
+			r = (red >> (16 - info->var.red.length))
+				<< info->var.red.offset;
+			b = (blue >> (16 - info->var.blue.length))
+				<< info->var.blue.offset;
+			g = (green >> (16 - info->var.green.length))
+				<< info->var.green.offset;
+			((u32 *) info->pseudo_palette)[regno] = r | g | b;
+			break;
+
+		default:
 			return -EINVAL;
-		i740outb(info->par, VGA_PEL_IW, regno);
-		i740outb(info->par, VGA_PEL_D, red >> 8);
-		i740outb(info->par, VGA_PEL_D, green >> 8);
-		i740outb(info->par, VGA_PEL_D, blue >> 8);
-		break;
-	case FB_VISUAL_TRUECOLOR:
-		if (regno >= 16)
-			return -EINVAL;
-		r = (red >> (16 - info->var.red.length))
-			<< info->var.red.offset;
-		b = (blue >> (16 - info->var.blue.length))
-			<< info->var.blue.offset;
-		g = (green >> (16 - info->var.green.length))
-			<< info->var.green.offset;
-		((u32 *) info->pseudo_palette)[regno] = r | g | b;
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int i740fb_pan_display(struct fb_var_screeninfo *var,
-				 struct fb_info *info)
+							  struct fb_info *info)
 {
 	struct i740fb_par *par = info->par;
 	u32 base = (var->yoffset * info->var.xres_virtual
-		 + (var->xoffset & ~7)) >> 2;
+				+ (var->xoffset & ~7)) >> 2;
 
 	dev_dbg(info->device, "pan_display: xoffset: %i yoffset: %i base: %i\n",
-		var->xoffset, var->yoffset, base);
+			var->xoffset, var->yoffset, base);
 
-	switch (info->var.bits_per_pixel) {
-	case 8:
-		break;
-	case 15:
-	case 16:
-		base *= 2;
-		break;
-	case 24:
-		/*
-		 * The last bit does not seem to have any effect on the start
-		 * address register in 24bpp mode, so...
-		 */
-		base &= 0xFFFFFFFE; /* ...ignore the last bit. */
-		base *= 3;
-		break;
-	case 32:
-		base *= 4;
-		break;
+	switch (info->var.bits_per_pixel)
+	{
+		case 8:
+			break;
+
+		case 15:
+		case 16:
+			base *= 2;
+			break;
+
+		case 24:
+			/*
+			 * The last bit does not seem to have any effect on the start
+			 * address register in 24bpp mode, so...
+			 */
+			base &= 0xFFFFFFFE; /* ...ignore the last bit. */
+			base *= 3;
+			break;
+
+		case 32:
+			base *= 4;
+			break;
 	}
 
 	par->crtc[VGA_CRTC_START_LO] = base & 0x000000FF;
 	par->crtc[VGA_CRTC_START_HI] = (base & 0x0000FF00) >>  8;
 	par->ext_start_addr_hi = (base & 0x3FC00000) >> 22;
 	par->ext_start_addr =
-			((base & 0x003F0000) >> 16) | EXT_START_ADDR_ENABLE;
+		((base & 0x003F0000) >> 16) | EXT_START_ADDR_ENABLE;
 
 	i740outreg(par, VGA_CRT_IC, VGA_CRTC_START_LO,  base & 0x000000FF);
 	i740outreg(par, VGA_CRT_IC, VGA_CRTC_START_HI,
-			(base & 0x0000FF00) >> 8);
+			   (base & 0x0000FF00) >> 8);
 	i740outreg(par, VGA_CRT_IC, EXT_START_ADDR_HI,
-			(base & 0x3FC00000) >> 22);
+			   (base & 0x3FC00000) >> 22);
 	i740outreg(par, VGA_CRT_IC, EXT_START_ADDR,
-			((base & 0x003F0000) >> 16) | EXT_START_ADDR_ENABLE);
+			   ((base & 0x003F0000) >> 16) | EXT_START_ADDR_ENABLE);
 
 	return 0;
 }
@@ -945,27 +1178,33 @@ static int i740fb_blank(int blank_mode, struct fb_info *info)
 	unsigned char SEQ01;
 	int DPMSSyncSelect;
 
-	switch (blank_mode) {
-	case FB_BLANK_UNBLANK:
-	case FB_BLANK_NORMAL:
-		SEQ01 = 0x00;
-		DPMSSyncSelect = HSYNC_ON | VSYNC_ON;
-		break;
-	case FB_BLANK_VSYNC_SUSPEND:
-		SEQ01 = 0x20;
-		DPMSSyncSelect = HSYNC_ON | VSYNC_OFF;
-		break;
-	case FB_BLANK_HSYNC_SUSPEND:
-		SEQ01 = 0x20;
-		DPMSSyncSelect = HSYNC_OFF | VSYNC_ON;
-		break;
-	case FB_BLANK_POWERDOWN:
-		SEQ01 = 0x20;
-		DPMSSyncSelect = HSYNC_OFF | VSYNC_OFF;
-		break;
-	default:
-		return -EINVAL;
+	switch (blank_mode)
+	{
+		case FB_BLANK_UNBLANK:
+		case FB_BLANK_NORMAL:
+			SEQ01 = 0x00;
+			DPMSSyncSelect = HSYNC_ON | VSYNC_ON;
+			break;
+
+		case FB_BLANK_VSYNC_SUSPEND:
+			SEQ01 = 0x20;
+			DPMSSyncSelect = HSYNC_ON | VSYNC_OFF;
+			break;
+
+		case FB_BLANK_HSYNC_SUSPEND:
+			SEQ01 = 0x20;
+			DPMSSyncSelect = HSYNC_OFF | VSYNC_ON;
+			break;
+
+		case FB_BLANK_POWERDOWN:
+			SEQ01 = 0x20;
+			DPMSSyncSelect = HSYNC_OFF | VSYNC_OFF;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	/* Turn the screen on/off */
 	i740outb(par, SRX, 0x01);
 	SEQ01 |= i740inb(par, SRX + 1) & ~0x20;
@@ -979,7 +1218,8 @@ static int i740fb_blank(int blank_mode, struct fb_info *info)
 	return (blank_mode == FB_BLANK_NORMAL) ? 1 : 0;
 }
 
-static struct fb_ops i740fb_ops = {
+static struct fb_ops i740fb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_open	= i740fb_open,
 	.fb_release	= i740fb_release,
@@ -1004,7 +1244,9 @@ static int i740fb_probe(struct pci_dev *dev, const struct pci_device_id *ent)
 	u8 *edid;
 
 	info = framebuffer_alloc(sizeof(struct i740fb_par), &(dev->dev));
-	if (!info) {
+
+	if (!info)
+	{
 		dev_err(&(dev->dev), "cannot allocate framebuffer\n");
 		return -ENOMEM;
 	}
@@ -1018,26 +1260,34 @@ static int i740fb_probe(struct pci_dev *dev, const struct pci_device_id *ent)
 	info->pseudo_palette = par->pseudo_palette;
 
 	ret = pci_enable_device(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(info->device, "cannot enable PCI device\n");
 		goto err_enable_device;
 	}
 
 	ret = pci_request_regions(dev, info->fix.id);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(info->device, "error requesting regions\n");
 		goto err_request_regions;
 	}
 
 	info->screen_base = pci_ioremap_wc_bar(dev, 0);
-	if (!info->screen_base) {
+
+	if (!info->screen_base)
+	{
 		dev_err(info->device, "error remapping base\n");
 		ret = -ENOMEM;
 		goto err_ioremap_1;
 	}
 
 	par->regs = pci_ioremap_bar(dev, 1);
-	if (!par->regs) {
+
+	if (!par->regs)
+	{
 		dev_err(info->device, "error remapping MMIO\n");
 		ret = -ENOMEM;
 		goto err_ioremap_2;
@@ -1045,19 +1295,24 @@ static int i740fb_probe(struct pci_dev *dev, const struct pci_device_id *ent)
 
 	/* detect memory size */
 	if ((i740inreg(par, XRX, DRAM_ROW_TYPE) & DRAM_ROW_1)
-							== DRAM_ROW_1_SDRAM)
+		== DRAM_ROW_1_SDRAM)
+	{
 		i740outb(par, XRX, DRAM_ROW_BNDRY_1);
+	}
 	else
+	{
 		i740outb(par, XRX, DRAM_ROW_BNDRY_0);
+	}
+
 	info->screen_size = i740inb(par, XRX + 1) * 1024 * 1024;
 	/* detect memory type */
 	tmp = i740inreg(par, XRX, DRAM_ROW_CNTL_LO);
 	par->has_sgram = !((tmp & DRAM_RAS_TIMING) ||
-			   (tmp & DRAM_RAS_PRECHARGE));
+					   (tmp & DRAM_RAS_PRECHARGE));
 
 	fb_info(info, "Intel740 on %s, %ld KB %s\n",
-		pci_name(dev), info->screen_size >> 10,
-		par->has_sgram ? "SGRAM" : "SDRAM");
+			pci_name(dev), info->screen_size >> 10,
+			par->has_sgram ? "SGRAM" : "SDRAM");
 
 	info->fix = i740fb_fix;
 	info->fix.mmio_start = pci_resource_start(dev, 1);
@@ -1066,16 +1321,21 @@ static int i740fb_probe(struct pci_dev *dev, const struct pci_device_id *ent)
 	info->fix.smem_len = info->screen_size;
 	info->flags = FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN;
 
-	if (i740fb_setup_ddc_bus(info) == 0) {
+	if (i740fb_setup_ddc_bus(info) == 0)
+	{
 		par->ddc_registered = true;
 		edid = fb_ddc_read(&par->ddc_adapter);
-		if (edid) {
+
+		if (edid)
+		{
 			fb_edid_to_monspecs(edid, &info->monspecs);
 			kfree(edid);
+
 			if (!info->monspecs.modedb)
 				dev_err(info->device,
-					"error getting mode database\n");
-			else {
+						"error getting mode database\n");
+			else
+			{
 				const struct fb_videomode *m;
 
 				fb_videomode_to_modelist(
@@ -1083,28 +1343,38 @@ static int i740fb_probe(struct pci_dev *dev, const struct pci_device_id *ent)
 					info->monspecs.modedb_len,
 					&info->modelist);
 				m = fb_find_best_display(&info->monspecs,
-							 &info->modelist);
-				if (m) {
+										 &info->modelist);
+
+				if (m)
+				{
 					fb_videomode_to_var(&info->var, m);
+
 					/* fill all other info->var's fields */
 					if (!i740fb_check_var(&info->var, info))
+					{
 						found = true;
+					}
 				}
 			}
 		}
 	}
 
 	if (!mode_option && !found)
+	{
 		mode_option = "640x480-8@60";
+	}
 
-	if (mode_option) {
+	if (mode_option)
+	{
 		ret = fb_find_mode(&info->var, info, mode_option,
-				   info->monspecs.modedb,
-				   info->monspecs.modedb_len,
-				   NULL, info->var.bits_per_pixel);
-		if (!ret || ret == 4) {
+						   info->monspecs.modedb,
+						   info->monspecs.modedb_len,
+						   NULL, info->var.bits_per_pixel);
+
+		if (!ret || ret == 4)
+		{
 			dev_err(info->device, "mode %s not found\n",
-				mode_option);
+					mode_option);
 			ret = -EINVAL;
 		}
 	}
@@ -1114,43 +1384,55 @@ static int i740fb_probe(struct pci_dev *dev, const struct pci_device_id *ent)
 
 	/* maximize virtual vertical size for fast scrolling */
 	info->var.yres_virtual = info->fix.smem_len * 8 /
-			(info->var.bits_per_pixel * info->var.xres_virtual);
+							 (info->var.bits_per_pixel * info->var.xres_virtual);
 
 	if (ret == -EINVAL)
+	{
 		goto err_find_mode;
+	}
 
 	ret = fb_alloc_cmap(&info->cmap, 256, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(info->device, "cannot allocate colormap\n");
 		goto err_alloc_cmap;
 	}
 
 	ret = register_framebuffer(info);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(info->device, "error registering framebuffer\n");
 		goto err_reg_framebuffer;
 	}
 
 	fb_info(info, "%s frame buffer device\n", info->fix.id);
 	pci_set_drvdata(dev, info);
+
 	if (mtrr)
 		par->wc_cookie = arch_phys_wc_add(info->fix.smem_start,
-						  info->fix.smem_len);
+										  info->fix.smem_len);
+
 	return 0;
 
 err_reg_framebuffer:
 	fb_dealloc_cmap(&info->cmap);
 err_alloc_cmap:
 err_find_mode:
+
 	if (par->ddc_registered)
+	{
 		i2c_del_adapter(&par->ddc_adapter);
+	}
+
 	pci_iounmap(dev, par->regs);
 err_ioremap_2:
 	pci_iounmap(dev, info->screen_base);
 err_ioremap_1:
 	pci_release_regions(dev);
 err_request_regions:
-/*	pci_disable_device(dev); */
+	/*	pci_disable_device(dev); */
 err_enable_device:
 	framebuffer_release(info);
 	return ret;
@@ -1160,17 +1442,22 @@ static void i740fb_remove(struct pci_dev *dev)
 {
 	struct fb_info *info = pci_get_drvdata(dev);
 
-	if (info) {
+	if (info)
+	{
 		struct i740fb_par *par = info->par;
 		arch_phys_wc_del(par->wc_cookie);
 		unregister_framebuffer(info);
 		fb_dealloc_cmap(&info->cmap);
+
 		if (par->ddc_registered)
+		{
 			i2c_del_adapter(&par->ddc_adapter);
+		}
+
 		pci_iounmap(dev, par->regs);
 		pci_iounmap(dev, info->screen_base);
 		pci_release_regions(dev);
-/*		pci_disable_device(dev); */
+		/*		pci_disable_device(dev); */
 		framebuffer_release(info);
 	}
 }
@@ -1183,13 +1470,16 @@ static int i740fb_suspend(struct pci_dev *dev, pm_message_t state)
 
 	/* don't disable console during hibernation and wakeup from it */
 	if (state.event == PM_EVENT_FREEZE || state.event == PM_EVENT_PRETHAW)
+	{
 		return 0;
+	}
 
 	console_lock();
 	mutex_lock(&(par->open_lock));
 
 	/* do nothing if framebuffer is not active */
-	if (par->ref_count == 0) {
+	if (par->ref_count == 0)
+	{
 		mutex_unlock(&(par->open_lock));
 		console_unlock();
 		return 0;
@@ -1216,12 +1506,17 @@ static int i740fb_resume(struct pci_dev *dev)
 	mutex_lock(&(par->open_lock));
 
 	if (par->ref_count == 0)
+	{
 		goto fail;
+	}
 
 	pci_set_power_state(dev, PCI_D0);
 	pci_restore_state(dev);
+
 	if (pci_enable_device(dev))
+	{
 		goto fail;
+	}
 
 	i740fb_set_par(info);
 	fb_set_suspend(info, 0);
@@ -1239,14 +1534,16 @@ fail:
 #define I740_ID_PCI 0x00d1
 #define I740_ID_AGP 0x7800
 
-static const struct pci_device_id i740fb_id_table[] = {
+static const struct pci_device_id i740fb_id_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, I740_ID_PCI) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, I740_ID_AGP) },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, i740fb_id_table);
 
-static struct pci_driver i740fb_driver = {
+static struct pci_driver i740fb_driver =
+{
 	.name		= "i740fb",
 	.id_table	= i740fb_id_table,
 	.probe		= i740fb_probe,
@@ -1261,15 +1558,24 @@ static int  __init i740fb_setup(char *options)
 	char *opt;
 
 	if (!options || !*options)
+	{
 		return 0;
+	}
 
-	while ((opt = strsep(&options, ",")) != NULL) {
+	while ((opt = strsep(&options, ",")) != NULL)
+	{
 		if (!*opt)
+		{
 			continue;
+		}
 		else if (!strncmp(opt, "mtrr:", 5))
+		{
 			mtrr = simple_strtoul(opt + 5, NULL, 0);
+		}
 		else
+		{
 			mode_option = opt;
+		}
 	}
 
 	return 0;
@@ -1282,7 +1588,10 @@ static int __init i740fb_init(void)
 	char *option = NULL;
 
 	if (fb_get_options("i740fb", &option))
+	{
 		return -ENODEV;
+	}
+
 	i740fb_setup(option);
 #endif
 

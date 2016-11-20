@@ -50,7 +50,8 @@ struct req_capsule;
 
 struct ptlrpc_request;
 
-enum req_location {
+enum req_location
+{
 	RCL_CLIENT,
 	RCL_SERVER,
 	RCL_NR
@@ -59,7 +60,8 @@ enum req_location {
 /* Maximal number of fields (buffers) in a request message. */
 #define REQ_MAX_FIELD_NR  9
 
-struct req_capsule {
+struct req_capsule
+{
 	struct ptlrpc_request   *rc_req;
 	const struct req_format *rc_fmt;
 	enum req_location	rc_loc;
@@ -72,51 +74,51 @@ struct req_capsule {
 #include "lustre_net.h"
 
 void req_capsule_init(struct req_capsule *pill, struct ptlrpc_request *req,
-		      enum req_location location);
+					  enum req_location location);
 void req_capsule_fini(struct req_capsule *pill);
 
 void req_capsule_set(struct req_capsule *pill, const struct req_format *fmt);
 size_t req_capsule_filled_sizes(struct req_capsule *pill,
-				enum req_location loc);
+								enum req_location loc);
 int  req_capsule_server_pack(struct req_capsule *pill);
 
 void *req_capsule_client_get(struct req_capsule *pill,
-			     const struct req_msg_field *field);
+							 const struct req_msg_field *field);
 void *req_capsule_client_swab_get(struct req_capsule *pill,
-				  const struct req_msg_field *field,
-				  void *swabber);
+								  const struct req_msg_field *field,
+								  void *swabber);
 void *req_capsule_client_sized_get(struct req_capsule *pill,
-				   const struct req_msg_field *field,
-				   u32 len);
+								   const struct req_msg_field *field,
+								   u32 len);
 void *req_capsule_server_get(struct req_capsule *pill,
-			     const struct req_msg_field *field);
+							 const struct req_msg_field *field);
 void *req_capsule_server_sized_get(struct req_capsule *pill,
-				   const struct req_msg_field *field,
-				   u32 len);
+								   const struct req_msg_field *field,
+								   u32 len);
 void *req_capsule_server_swab_get(struct req_capsule *pill,
-				  const struct req_msg_field *field,
-				  void *swabber);
+								  const struct req_msg_field *field,
+								  void *swabber);
 void *req_capsule_server_sized_swab_get(struct req_capsule *pill,
-					const struct req_msg_field *field,
-					u32 len, void *swabber);
+										const struct req_msg_field *field,
+										u32 len, void *swabber);
 
 void req_capsule_set_size(struct req_capsule *pill,
-			  const struct req_msg_field *field,
-			  enum req_location loc, u32 size);
+						  const struct req_msg_field *field,
+						  enum req_location loc, u32 size);
 u32 req_capsule_get_size(const struct req_capsule *pill,
-			 const struct req_msg_field *field,
-			 enum req_location loc);
+						 const struct req_msg_field *field,
+						 enum req_location loc);
 u32 req_capsule_msg_size(struct req_capsule *pill, enum req_location loc);
 u32 req_capsule_fmt_size(__u32 magic, const struct req_format *fmt,
-			 enum req_location loc);
+						 enum req_location loc);
 void req_capsule_extend(struct req_capsule *pill, const struct req_format *fmt);
 
 int req_capsule_has_field(const struct req_capsule *pill,
-			  const struct req_msg_field *field,
-			  enum req_location loc);
+						  const struct req_msg_field *field,
+						  enum req_location loc);
 void req_capsule_shrink(struct req_capsule *pill,
-			const struct req_msg_field *field,
-			u32 newlen, enum req_location loc);
+						const struct req_msg_field *field,
+						u32 newlen, enum req_location loc);
 int  req_layout_init(void);
 void req_layout_fini(void);
 

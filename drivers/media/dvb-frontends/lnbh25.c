@@ -35,7 +35,8 @@
  *			offset 1: DATA1 register value
  *			offset 2: DATA2 register value
  */
-struct lnbh25_priv {
+struct lnbh25_priv
+{
 	struct i2c_adapter	*i2c;
 	u8			i2c_address;
 	u8			config[3];
@@ -51,7 +52,8 @@ static int lnbh25_read_vmon(struct lnbh25_priv *priv)
 	int i, ret;
 	u8 addr = 0x00;
 	u8 status[6];
-	struct i2c_msg msg[2] = {
+	struct i2c_msg msg[2] =
+	{
 		{
 			.addr = priv->i2c_address,
 			.flags = 0,
@@ -65,78 +67,104 @@ static int lnbh25_read_vmon(struct lnbh25_priv *priv)
 		}
 	};
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		ret = i2c_transfer(priv->i2c, &msg[i], 1);
+
 		if (ret >= 0 && ret != 1)
+		{
 			ret = -EIO;
-		if (ret < 0) {
+		}
+
+		if (ret < 0)
+		{
 			dev_dbg(&priv->i2c->dev,
-				"%s(): I2C transfer %d failed (%d)\n",
-				__func__, i, ret);
+					"%s(): I2C transfer %d failed (%d)\n",
+					__func__, i, ret);
 			return ret;
 		}
 	}
+
 	print_hex_dump_bytes("lnbh25_read_vmon: ",
-		DUMP_PREFIX_OFFSET, status, sizeof(status));
-	if ((status[0] & (LNBH25_STATUS_OFL | LNBH25_STATUS_VMON)) != 0) {
+						 DUMP_PREFIX_OFFSET, status, sizeof(status));
+
+	if ((status[0] & (LNBH25_STATUS_OFL | LNBH25_STATUS_VMON)) != 0)
+	{
 		dev_err(&priv->i2c->dev,
-			"%s(): voltage in failure state, status reg 0x%x\n",
-			__func__, status[0]);
+				"%s(): voltage in failure state, status reg 0x%x\n",
+				__func__, status[0]);
 		return -EIO;
 	}
+
 	return 0;
 }
 
 static int lnbh25_set_voltage(struct dvb_frontend *fe,
-			      enum fe_sec_voltage voltage)
+							  enum fe_sec_voltage voltage)
 {
 	int ret;
 	u8 data1_reg;
 	const char *vsel;
 	struct lnbh25_priv *priv = fe->sec_priv;
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = priv->i2c_address,
 		.flags = 0,
 		.len = sizeof(priv->config),
 		.buf = priv->config
 	};
 
-	switch (voltage) {
-	case SEC_VOLTAGE_OFF:
-		data1_reg = 0x00;
-		vsel = "Off";
-		break;
-	case SEC_VOLTAGE_13:
-		data1_reg = LNBH25_VSEL_13;
-		vsel = "13V";
-		break;
-	case SEC_VOLTAGE_18:
-		data1_reg = LNBH25_VSEL_18;
-		vsel = "18V";
-		break;
-	default:
-		return -EINVAL;
+	switch (voltage)
+	{
+		case SEC_VOLTAGE_OFF:
+			data1_reg = 0x00;
+			vsel = "Off";
+			break;
+
+		case SEC_VOLTAGE_13:
+			data1_reg = LNBH25_VSEL_13;
+			vsel = "13V";
+			break;
+
+		case SEC_VOLTAGE_18:
+			data1_reg = LNBH25_VSEL_18;
+			vsel = "18V";
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	priv->config[1] = data1_reg;
 	dev_dbg(&priv->i2c->dev,
-		"%s(): %s, I2C 0x%x write [ %02x %02x %02x ]\n",
-		__func__, vsel, priv->i2c_address,
-		priv->config[0], priv->config[1], priv->config[2]);
+			"%s(): %s, I2C 0x%x write [ %02x %02x %02x ]\n",
+			__func__, vsel, priv->i2c_address,
+			priv->config[0], priv->config[1], priv->config[2]);
 	ret = i2c_transfer(priv->i2c, &msg, 1);
+
 	if (ret >= 0 && ret != 1)
+	{
 		ret = -EIO;
-	if (ret < 0) {
+	}
+
+	if (ret < 0)
+	{
 		dev_err(&priv->i2c->dev, "%s(): I2C transfer error (%d)\n",
-			__func__, ret);
+				__func__, ret);
 		return ret;
 	}
-	if (voltage != SEC_VOLTAGE_OFF) {
+
+	if (voltage != SEC_VOLTAGE_OFF)
+	{
 		msleep(120);
 		ret = lnbh25_read_vmon(priv);
-	} else {
+	}
+	else
+	{
 		msleep(20);
 		ret = 0;
 	}
+
 	return ret;
 }
 
@@ -151,25 +179,31 @@ static void lnbh25_release(struct dvb_frontend *fe)
 }
 
 struct dvb_frontend *lnbh25_attach(struct dvb_frontend *fe,
-				   struct lnbh25_config *cfg,
-				   struct i2c_adapter *i2c)
+								   struct lnbh25_config *cfg,
+								   struct i2c_adapter *i2c)
 {
 	struct lnbh25_priv *priv;
 
 	dev_dbg(&i2c->dev, "%s()\n", __func__);
 	priv = kzalloc(sizeof(struct lnbh25_priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return NULL;
+	}
+
 	priv->i2c_address = (cfg->i2c_address >> 1);
 	priv->i2c = i2c;
 	priv->config[0] = 0x02;
 	priv->config[1] = 0x00;
 	priv->config[2] = cfg->data2_config;
 	fe->sec_priv = priv;
-	if (lnbh25_set_voltage(fe, SEC_VOLTAGE_OFF)) {
+
+	if (lnbh25_set_voltage(fe, SEC_VOLTAGE_OFF))
+	{
 		dev_err(&i2c->dev,
-			"%s(): no LNBH25 found at I2C addr 0x%02x\n",
-			__func__, priv->i2c_address);
+				"%s(): no LNBH25 found at I2C addr 0x%02x\n",
+				__func__, priv->i2c_address);
 		kfree(priv);
 		fe->sec_priv = NULL;
 		return NULL;
@@ -179,7 +213,7 @@ struct dvb_frontend *lnbh25_attach(struct dvb_frontend *fe,
 	fe->ops.set_voltage = lnbh25_set_voltage;
 
 	dev_err(&i2c->dev, "%s(): attached at I2C addr 0x%02x\n",
-		__func__, priv->i2c_address);
+			__func__, priv->i2c_address);
 	return fe;
 }
 EXPORT_SYMBOL(lnbh25_attach);

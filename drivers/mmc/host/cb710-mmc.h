@@ -13,7 +13,8 @@
 #include <linux/cb710.h>
 
 /* per-MMC-reader structure */
-struct cb710_mmc_reader {
+struct cb710_mmc_reader
+{
 	struct tasklet_struct finish_req_tasklet;
 	struct mmc_request *mrq;
 	spinlock_t irq_lock;
@@ -52,7 +53,7 @@ static inline struct cb710_slot *cb710_mmc_to_slot(struct mmc_host *mmc)
 #define   CB710_MMC_IE_CARD_INSERTION_STATUS	0x1000
 #define   CB710_MMC_IE_IRQ_ENABLE		0x8000
 #define   CB710_MMC_IE_CISTATUS_MASK		\
-		(CB710_MMC_IE_CARD_INSERTION_STATUS|CB710_MMC_IE_IRQ_ENABLE)
+	(CB710_MMC_IE_CARD_INSERTION_STATUS|CB710_MMC_IE_IRQ_ENABLE)
 
 #define CB710_MMC_STATUS_PORT		0x10
 #define   CB710_MMC_STATUS_ERROR_EVENTS		0x60FF

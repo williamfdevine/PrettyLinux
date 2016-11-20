@@ -52,7 +52,8 @@
 
 static int cpu_had_pge;
 
-static struct {
+static struct
+{
 	unsigned long offset;
 	unsigned short segment;
 } lguest_entry;
@@ -90,7 +91,8 @@ static void copy_in_guest_info(struct lg_cpu *cpu, struct lguest_pages *pages)
 	 * meanwhile).  If that's not the case, we pretend everything in the
 	 * Guest has changed.
 	 */
-	if (__this_cpu_read(lg_last_cpu) != cpu || cpu->last_pages != pages) {
+	if (__this_cpu_read(lg_last_cpu) != cpu || cpu->last_pages != pages)
+	{
 		__this_cpu_write(lg_last_cpu, cpu);
 		cpu->last_pages = pages;
 		cpu->changed = CHANGED_ALL;
@@ -116,14 +118,20 @@ static void copy_in_guest_info(struct lg_cpu *cpu, struct lguest_pages *pages)
 
 	/* Copy direct-to-Guest trap entries. */
 	if (cpu->changed & CHANGED_IDT)
+	{
 		copy_traps(cpu, pages->state.guest_idt, default_idt_entries);
+	}
 
 	/* Copy all GDT entries which the Guest can change. */
 	if (cpu->changed & CHANGED_GDT)
+	{
 		copy_gdt(cpu, pages->state.guest_gdt);
+	}
 	/* If only the TLS entries have changed, copy them. */
 	else if (cpu->changed & CHANGED_GDT_TLS)
+	{
 		copy_gdt_tls(cpu, pages->state.guest_gdt);
+	}
 
 	/* Mark the Guest as unchanged for next time. */
 	cpu->changed = 0;
@@ -159,69 +167,86 @@ static void run_guest_once(struct lg_cpu *cpu, struct lguest_pages *pages)
 	 * exactly match the stack layout created by an interrupt...
 	 */
 	asm volatile("pushf; lcall *%4"
-		     /*
-		      * This is how we tell GCC that %eax ("a") and %ebx ("b")
-		      * are changed by this routine.  The "=" means output.
-		      */
-		     : "=a"(clobber), "=b"(clobber)
-		     /*
-		      * %eax contains the pages pointer.  ("0" refers to the
-		      * 0-th argument above, ie "a").  %ebx contains the
-		      * physical address of the Guest's top-level page
-		      * directory.
-		      */
-		     : "0"(pages), 
-		       "1"(__pa(cpu->lg->pgdirs[cpu->cpu_pgd].pgdir)),
-		       "m"(lguest_entry)
-		     /*
-		      * We tell gcc that all these registers could change,
-		      * which means we don't have to save and restore them in
-		      * the Switcher.
-		      */
-		     : "memory", "%edx", "%ecx", "%edi", "%esi");
+				 /*
+				  * This is how we tell GCC that %eax ("a") and %ebx ("b")
+				  * are changed by this routine.  The "=" means output.
+				  */
+				 : "=a"(clobber), "=b"(clobber)
+				 /*
+				  * %eax contains the pages pointer.  ("0" refers to the
+				  * 0-th argument above, ie "a").  %ebx contains the
+				  * physical address of the Guest's top-level page
+				  * directory.
+				  */
+				 : "0"(pages),
+				 "1"(__pa(cpu->lg->pgdirs[cpu->cpu_pgd].pgdir)),
+				 "m"(lguest_entry)
+				 /*
+				  * We tell gcc that all these registers could change,
+				  * which means we don't have to save and restore them in
+				  * the Switcher.
+				  */
+				 : "memory", "%edx", "%ecx", "%edi", "%esi");
 }
 /*:*/
 
 unsigned long *lguest_arch_regptr(struct lg_cpu *cpu, size_t reg_off, bool any)
 {
-	switch (reg_off) {
-	case offsetof(struct pt_regs, bx):
-		return &cpu->regs->ebx;
-	case offsetof(struct pt_regs, cx):
-		return &cpu->regs->ecx;
-	case offsetof(struct pt_regs, dx):
-		return &cpu->regs->edx;
-	case offsetof(struct pt_regs, si):
-		return &cpu->regs->esi;
-	case offsetof(struct pt_regs, di):
-		return &cpu->regs->edi;
-	case offsetof(struct pt_regs, bp):
-		return &cpu->regs->ebp;
-	case offsetof(struct pt_regs, ax):
-		return &cpu->regs->eax;
-	case offsetof(struct pt_regs, ip):
-		return &cpu->regs->eip;
-	case offsetof(struct pt_regs, sp):
-		return &cpu->regs->esp;
+	switch (reg_off)
+	{
+		case offsetof(struct pt_regs, bx):
+			return &cpu->regs->ebx;
+
+		case offsetof(struct pt_regs, cx):
+			return &cpu->regs->ecx;
+
+		case offsetof(struct pt_regs, dx):
+			return &cpu->regs->edx;
+
+		case offsetof(struct pt_regs, si):
+			return &cpu->regs->esi;
+
+		case offsetof(struct pt_regs, di):
+			return &cpu->regs->edi;
+
+		case offsetof(struct pt_regs, bp):
+			return &cpu->regs->ebp;
+
+		case offsetof(struct pt_regs, ax):
+			return &cpu->regs->eax;
+
+		case offsetof(struct pt_regs, ip):
+			return &cpu->regs->eip;
+
+		case offsetof(struct pt_regs, sp):
+			return &cpu->regs->esp;
 	}
 
 	/* Launcher can read these, but we don't allow any setting. */
-	if (any) {
-		switch (reg_off) {
-		case offsetof(struct pt_regs, ds):
-			return &cpu->regs->ds;
-		case offsetof(struct pt_regs, es):
-			return &cpu->regs->es;
-		case offsetof(struct pt_regs, fs):
-			return &cpu->regs->fs;
-		case offsetof(struct pt_regs, gs):
-			return &cpu->regs->gs;
-		case offsetof(struct pt_regs, cs):
-			return &cpu->regs->cs;
-		case offsetof(struct pt_regs, flags):
-			return &cpu->regs->eflags;
-		case offsetof(struct pt_regs, ss):
-			return &cpu->regs->ss;
+	if (any)
+	{
+		switch (reg_off)
+		{
+			case offsetof(struct pt_regs, ds):
+				return &cpu->regs->ds;
+
+			case offsetof(struct pt_regs, es):
+				return &cpu->regs->es;
+
+			case offsetof(struct pt_regs, fs):
+				return &cpu->regs->fs;
+
+			case offsetof(struct pt_regs, gs):
+				return &cpu->regs->gs;
+
+			case offsetof(struct pt_regs, cs):
+				return &cpu->regs->cs;
+
+			case offsetof(struct pt_regs, flags):
+				return &cpu->regs->eflags;
+
+			case offsetof(struct pt_regs, ss):
+				return &cpu->regs->ss;
 		}
 	}
 
@@ -252,7 +277,9 @@ void lguest_arch_run_guest(struct lg_cpu *cpu)
 	 * uses the FPU.
 	 */
 	if (cpu->ts && fpregs_active())
+	{
 		stts();
+	}
 
 	/*
 	 * SYSENTER is an optimized way of doing system calls.  We can't allow
@@ -262,7 +289,9 @@ void lguest_arch_run_guest(struct lg_cpu *cpu)
 	 * CPU to disable it before running the Guest.
 	 */
 	if (boot_cpu_has(X86_FEATURE_SEP))
+	{
 		wrmsr(MSR_IA32_SYSENTER_CS, 0, 0);
+	}
 
 	/*
 	 * Now we actually run the Guest.  It will return when something
@@ -278,13 +307,17 @@ void lguest_arch_run_guest(struct lg_cpu *cpu)
 	 * traps set.
 	 */
 
-	 /* Restore SYSENTER if it's supposed to be on. */
-	 if (boot_cpu_has(X86_FEATURE_SEP))
+	/* Restore SYSENTER if it's supposed to be on. */
+	if (boot_cpu_has(X86_FEATURE_SEP))
+	{
 		wrmsr(MSR_IA32_SYSENTER_CS, __KERNEL_CS, 0);
+	}
 
 	/* Clear the host TS bit if it was set above. */
 	if (cpu->ts && fpregs_active())
+	{
 		clts();
+	}
 
 	/*
 	 * If the Guest page faulted, then the cr2 register will tell us the
@@ -293,7 +326,9 @@ void lguest_arch_run_guest(struct lg_cpu *cpu)
 	 * cr2, or we could even move off to a different CPU.
 	 */
 	if (cpu->regs->trapnum == 14)
+	{
 		cpu->arch.last_pagefault = read_cr2();
+	}
 	/*
 	 * Similarly, if we took a trap because the Guest used the FPU,
 	 * we have to restore the FPU it expects to see.
@@ -302,7 +337,9 @@ void lguest_arch_run_guest(struct lg_cpu *cpu)
 	 * before this.
 	 */
 	else if (cpu->regs->trapnum == 7 && !fpregs_active())
+	{
 		fpu__restore(&current->thread.fpu);
+	}
 }
 
 /*H:130
@@ -330,7 +367,7 @@ void lguest_arch_run_guest(struct lg_cpu *cpu)
  * anything that strange.
  */
 static void copy_from_guest(struct lg_cpu *cpu,
-			    void *dst, unsigned long vaddr, size_t len)
+							void *dst, unsigned long vaddr, size_t len)
 {
 	size_t to_page_end = PAGE_SIZE - (vaddr % PAGE_SIZE);
 	unsigned long paddr;
@@ -338,15 +375,19 @@ static void copy_from_guest(struct lg_cpu *cpu,
 	BUG_ON(len > PAGE_SIZE);
 
 	/* If it goes over a page, copy in two parts. */
-	if (len > to_page_end) {
+	if (len > to_page_end)
+	{
 		/* But make sure the next page is mapped! */
 		if (__guest_pa(cpu, vaddr + to_page_end, &paddr))
 			copy_from_guest(cpu, dst + to_page_end,
-					vaddr + to_page_end,
-					len - to_page_end);
+							vaddr + to_page_end,
+							len - to_page_end);
 		else
 			/* Otherwise fill with zeroes. */
+		{
 			memset(dst + to_page_end, 0, len - to_page_end);
+		}
+
 		len = to_page_end;
 	}
 
@@ -360,7 +401,7 @@ static void setup_emulate_insn(struct lg_cpu *cpu)
 {
 	cpu->pending.trap = 13;
 	copy_from_guest(cpu, cpu->pending.insn, cpu->regs->eip,
-			sizeof(cpu->pending.insn));
+					sizeof(cpu->pending.insn));
 }
 
 static void setup_iomem_insn(struct lg_cpu *cpu, unsigned long iomem_addr)
@@ -368,7 +409,7 @@ static void setup_iomem_insn(struct lg_cpu *cpu, unsigned long iomem_addr)
 	cpu->pending.trap = 14;
 	cpu->pending.addr = iomem_addr;
 	copy_from_guest(cpu, cpu->pending.insn, cpu->regs->eip,
-			sizeof(cpu->pending.insn));
+					sizeof(cpu->pending.insn));
 }
 
 /*H:050 Once we've re-enabled interrupts, we look at why the Guest exited. */
@@ -376,78 +417,100 @@ void lguest_arch_handle_trap(struct lg_cpu *cpu)
 {
 	unsigned long iomem_addr;
 
-	switch (cpu->regs->trapnum) {
-	case 13: /* We've intercepted a General Protection Fault. */
-		/* Hand to Launcher to emulate those pesky IN and OUT insns */
-		if (cpu->regs->errcode == 0) {
-			setup_emulate_insn(cpu);
-			return;
-		}
-		break;
-	case 14: /* We've intercepted a Page Fault. */
-		/*
-		 * The Guest accessed a virtual address that wasn't mapped.
-		 * This happens a lot: we don't actually set up most of the page
-		 * tables for the Guest at all when we start: as it runs it asks
-		 * for more and more, and we set them up as required. In this
-		 * case, we don't even tell the Guest that the fault happened.
-		 *
-		 * The errcode tells whether this was a read or a write, and
-		 * whether kernel or userspace code.
-		 */
-		if (demand_page(cpu, cpu->arch.last_pagefault,
-				cpu->regs->errcode, &iomem_addr))
-			return;
+	switch (cpu->regs->trapnum)
+	{
+		case 13: /* We've intercepted a General Protection Fault. */
 
-		/* Was this an access to memory mapped IO? */
-		if (iomem_addr) {
-			/* Tell Launcher, let it handle it. */
-			setup_iomem_insn(cpu, iomem_addr);
-			return;
-		}
+			/* Hand to Launcher to emulate those pesky IN and OUT insns */
+			if (cpu->regs->errcode == 0)
+			{
+				setup_emulate_insn(cpu);
+				return;
+			}
 
-		/*
-		 * OK, it's really not there (or not OK): the Guest needs to
-		 * know.  We write out the cr2 value so it knows where the
-		 * fault occurred.
-		 *
-		 * Note that if the Guest were really messed up, this could
-		 * happen before it's done the LHCALL_LGUEST_INIT hypercall, so
-		 * lg->lguest_data could be NULL
-		 */
-		if (cpu->lg->lguest_data &&
-		    put_user(cpu->arch.last_pagefault,
-			     &cpu->lg->lguest_data->cr2))
-			kill_guest(cpu, "Writing cr2");
-		break;
-	case 7: /* We've intercepted a Device Not Available fault. */
-		/*
-		 * If the Guest doesn't want to know, we already restored the
-		 * Floating Point Unit, so we just continue without telling it.
-		 */
-		if (!cpu->ts)
-			return;
-		break;
-	case 32 ... 255:
-		/* This might be a syscall. */
-		if (could_be_syscall(cpu->regs->trapnum))
 			break;
 
-		/*
-		 * Other values mean a real interrupt occurred, in which case
-		 * the Host handler has already been run. We just do a
-		 * friendly check if another process should now be run, then
-		 * return to run the Guest again.
-		 */
-		cond_resched();
-		return;
-	case LGUEST_TRAP_ENTRY:
-		/*
-		 * Our 'struct hcall_args' maps directly over our regs: we set
-		 * up the pointer now to indicate a hypercall is pending.
-		 */
-		cpu->hcall = (struct hcall_args *)cpu->regs;
-		return;
+		case 14: /* We've intercepted a Page Fault. */
+
+			/*
+			 * The Guest accessed a virtual address that wasn't mapped.
+			 * This happens a lot: we don't actually set up most of the page
+			 * tables for the Guest at all when we start: as it runs it asks
+			 * for more and more, and we set them up as required. In this
+			 * case, we don't even tell the Guest that the fault happened.
+			 *
+			 * The errcode tells whether this was a read or a write, and
+			 * whether kernel or userspace code.
+			 */
+			if (demand_page(cpu, cpu->arch.last_pagefault,
+							cpu->regs->errcode, &iomem_addr))
+			{
+				return;
+			}
+
+			/* Was this an access to memory mapped IO? */
+			if (iomem_addr)
+			{
+				/* Tell Launcher, let it handle it. */
+				setup_iomem_insn(cpu, iomem_addr);
+				return;
+			}
+
+			/*
+			 * OK, it's really not there (or not OK): the Guest needs to
+			 * know.  We write out the cr2 value so it knows where the
+			 * fault occurred.
+			 *
+			 * Note that if the Guest were really messed up, this could
+			 * happen before it's done the LHCALL_LGUEST_INIT hypercall, so
+			 * lg->lguest_data could be NULL
+			 */
+			if (cpu->lg->lguest_data &&
+				put_user(cpu->arch.last_pagefault,
+						 &cpu->lg->lguest_data->cr2))
+			{
+				kill_guest(cpu, "Writing cr2");
+			}
+
+			break;
+
+		case 7: /* We've intercepted a Device Not Available fault. */
+
+			/*
+			 * If the Guest doesn't want to know, we already restored the
+			 * Floating Point Unit, so we just continue without telling it.
+			 */
+			if (!cpu->ts)
+			{
+				return;
+			}
+
+			break;
+
+		case 32 ... 255:
+
+			/* This might be a syscall. */
+			if (could_be_syscall(cpu->regs->trapnum))
+			{
+				break;
+			}
+
+			/*
+			 * Other values mean a real interrupt occurred, in which case
+			 * the Host handler has already been run. We just do a
+			 * friendly check if another process should now be run, then
+			 * return to run the Guest again.
+			 */
+			cond_resched();
+			return;
+
+		case LGUEST_TRAP_ENTRY:
+			/*
+			 * Our 'struct hcall_args' maps directly over our regs: we set
+			 * up the pointer now to indicate a hypercall is pending.
+			 */
+			cpu->hcall = (struct hcall_args *)cpu->regs;
+			return;
 	}
 
 	/* We didn't handle the trap, so it needs to go to the Guest. */
@@ -458,9 +521,9 @@ void lguest_arch_handle_trap(struct lg_cpu *cpu)
 		 * it handle), it dies with this cryptic error message.
 		 */
 		kill_guest(cpu, "unhandled trap %li at %#lx (%#lx)",
-			   cpu->regs->trapnum, cpu->regs->eip,
-			   cpu->regs->trapnum == 14 ? cpu->arch.last_pagefault
-			   : cpu->regs->errcode);
+				   cpu->regs->trapnum, cpu->regs->eip,
+				   cpu->regs->trapnum == 14 ? cpu->arch.last_pagefault
+				   : cpu->regs->errcode);
 }
 
 /*
@@ -473,9 +536,13 @@ void lguest_arch_handle_trap(struct lg_cpu *cpu)
 static void adjust_pge(void *on)
 {
 	if (on)
+	{
 		cr4_set_bits(X86_CR4_PGE);
+	}
 	else
+	{
 		cr4_clear_bits(X86_CR4_PGE);
+	}
 }
 
 /*H:020
@@ -498,7 +565,9 @@ void __init lguest_arch_host_init(void)
 	 * compiled-in switcher code and the high-mapped copy we just made.
 	 */
 	for (i = 0; i < IDT_ENTRIES; i++)
+	{
 		default_idt_entries[i] += switcher_offset();
+	}
 
 	/*
 	 * Set up the Switcher's per-cpu areas.
@@ -508,7 +577,8 @@ void __init lguest_arch_host_init(void)
 	 * but some depends on what Guest we are running (which is set up in
 	 * copy_in_guest_info()).
 	 */
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		/* lguest_pages() returns this CPU's two pages. */
 		struct lguest_pages *pages = lguest_pages(i);
 		/* This is a convenience pointer to make the code neater. */
@@ -520,7 +590,7 @@ void __init lguest_arch_host_init(void)
 		 * where it is and how big it is (the size is actually the last
 		 * byte, not the size, hence the "-1").
 		 */
-		state->host_gdt_desc.size = GDT_SIZE-1;
+		state->host_gdt_desc.size = GDT_SIZE - 1;
 		state->host_gdt_desc.address = (long)get_cpu_gdt_table(i);
 
 		/*
@@ -535,9 +605,9 @@ void __init lguest_arch_host_init(void)
 		 * out now, too.  We copy the GDT & IDT into ->guest_gdt and
 		 * ->guest_idt before actually running the Guest.
 		 */
-		state->guest_idt_desc.size = sizeof(state->guest_idt)-1;
+		state->guest_idt_desc.size = sizeof(state->guest_idt) - 1;
 		state->guest_idt_desc.address = (long)&state->guest_idt;
-		state->guest_gdt_desc.size = sizeof(state->guest_gdt)-1;
+		state->guest_gdt_desc.size = sizeof(state->guest_gdt) - 1;
 		state->guest_gdt_desc.address = (long)&state->guest_gdt;
 
 		/*
@@ -603,7 +673,9 @@ void __init lguest_arch_host_init(void)
 	 * doing this.
 	 */
 	get_online_cpus();
-	if (boot_cpu_has(X86_FEATURE_PGE)) { /* We have a broader idea of "global". */
+
+	if (boot_cpu_has(X86_FEATURE_PGE))   /* We have a broader idea of "global". */
+	{
 		/* Remember that this was originally set (for cleanup). */
 		cpu_had_pge = 1;
 		/*
@@ -614,6 +686,7 @@ void __init lguest_arch_host_init(void)
 		/* Turn off the feature in the global feature set. */
 		clear_cpu_cap(&boot_cpu_data, X86_FEATURE_PGE);
 	}
+
 	put_online_cpus();
 }
 /*:*/
@@ -622,11 +695,14 @@ void __exit lguest_arch_host_fini(void)
 {
 	/* If we had PGE before we started, turn it back on now. */
 	get_online_cpus();
-	if (cpu_had_pge) {
+
+	if (cpu_had_pge)
+	{
 		set_cpu_cap(&boot_cpu_data, X86_FEATURE_PGE);
 		/* adjust_pge's argument "1" means set PGE. */
 		on_each_cpu(adjust_pge, (void *)1, 1);
 	}
+
 	put_online_cpus();
 }
 
@@ -634,20 +710,25 @@ void __exit lguest_arch_host_fini(void)
 /*H:122 The i386-specific hypercalls simply farm out to the right functions. */
 int lguest_arch_do_hcall(struct lg_cpu *cpu, struct hcall_args *args)
 {
-	switch (args->arg0) {
-	case LHCALL_LOAD_GDT_ENTRY:
-		load_guest_gdt_entry(cpu, args->arg1, args->arg2, args->arg3);
-		break;
-	case LHCALL_LOAD_IDT_ENTRY:
-		load_guest_idt_entry(cpu, args->arg1, args->arg2, args->arg3);
-		break;
-	case LHCALL_LOAD_TLS:
-		guest_load_tls(cpu, args->arg1);
-		break;
-	default:
-		/* Bad Guest.  Bad! */
-		return -EIO;
+	switch (args->arg0)
+	{
+		case LHCALL_LOAD_GDT_ENTRY:
+			load_guest_gdt_entry(cpu, args->arg1, args->arg2, args->arg3);
+			break;
+
+		case LHCALL_LOAD_IDT_ENTRY:
+			load_guest_idt_entry(cpu, args->arg1, args->arg2, args->arg3);
+			break;
+
+		case LHCALL_LOAD_TLS:
+			guest_load_tls(cpu, args->arg1);
+			break;
+
+		default:
+			/* Bad Guest.  Bad! */
+			return -EIO;
 	}
+
 	return 0;
 }
 
@@ -661,8 +742,10 @@ int lguest_arch_init_hypercalls(struct lg_cpu *cpu)
 	 * We check that address now.
 	 */
 	if (!lguest_address_ok(cpu->lg, cpu->hcall->arg1,
-			       sizeof(*cpu->lg->lguest_data)))
+						   sizeof(*cpu->lg->lguest_data)))
+	{
 		return -EFAULT;
+	}
 
 	/*
 	 * Having checked it, we simply set lg->lguest_data to point straight
@@ -683,15 +766,24 @@ int lguest_arch_init_hypercalls(struct lg_cpu *cpu)
 	 * TSCs for its own purposes, and we use that here.
 	 */
 	if (boot_cpu_has(X86_FEATURE_CONSTANT_TSC) && !check_tsc_unstable())
+	{
 		tsc_speed = tsc_khz;
+	}
 	else
+	{
 		tsc_speed = 0;
+	}
+
 	if (put_user(tsc_speed, &cpu->lg->lguest_data->tsc_khz))
+	{
 		return -EFAULT;
+	}
 
 	/* The interrupt code might not like the system call vector. */
 	if (!check_syscall_vector(cpu->lg))
+	{
 		kill_guest(cpu, "bad syscall vector");
+	}
 
 	return 0;
 }
@@ -714,8 +806,8 @@ void lguest_arch_setup_regs(struct lg_cpu *cpu, unsigned long start)
 	 * The privilege level is packed into the lower bits.  The Guest runs
 	 * at privilege level 1 (GUEST_PL).
 	 */
-	regs->ds = regs->es = regs->ss = __KERNEL_DS|GUEST_PL;
-	regs->cs = __KERNEL_CS|GUEST_PL;
+	regs->ds = regs->es = regs->ss = __KERNEL_DS | GUEST_PL;
+	regs->cs = __KERNEL_CS | GUEST_PL;
 
 	/*
 	 * The "eflags" register contains miscellaneous flags.  Bit 1 (0x002)

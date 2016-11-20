@@ -24,7 +24,8 @@
 #ifndef _PP_INTERRUPT_H_
 #define _PP_INTERRUPT_H_
 
-enum amd_thermal_irq {
+enum amd_thermal_irq
+{
 	AMD_THERMAL_IRQ_LOW_TO_HIGH = 0,
 	AMD_THERMAL_IRQ_HIGH_TO_LOW,
 
@@ -33,10 +34,11 @@ enum amd_thermal_irq {
 
 /* The type of the interrupt callback functions in PowerPlay */
 typedef int (*irq_handler_func_t)(void *private_data,
-				unsigned src_id, const uint32_t *iv_entry);
+								  unsigned src_id, const uint32_t *iv_entry);
 
 /* Event Manager action chain list information */
-struct pp_interrupt_registration_info {
+struct pp_interrupt_registration_info
+{
 	irq_handler_func_t call_back; /* Pointer to callback function */
 	void *context;                   /* Pointer to callback function context */
 	uint32_t src_id;               /* Registered interrupt id */

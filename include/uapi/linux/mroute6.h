@@ -41,13 +41,14 @@ typedef unsigned short mifi_t;
 #define ALL_MIFS	((mifi_t)(-1))
 
 #ifndef IF_SETSIZE
-#define IF_SETSIZE	256
+	#define IF_SETSIZE	256
 #endif
 
 typedef	__u32		if_mask;
 #define NIFBITS (sizeof(if_mask) * 8)        /* bits per mask */
 
-typedef struct if_set {
+typedef struct if_set
+{
 	if_mask ifs_bits[__KERNEL_DIV_ROUND_UP(IF_SETSIZE, NIFBITS)];
 } if_set;
 
@@ -62,7 +63,8 @@ typedef struct if_set {
  *	mrouted 3.6 structures for compatibility
  */
 
-struct mif6ctl {
+struct mif6ctl
+{
 	mifi_t	mif6c_mifi;		/* Index of MIF */
 	unsigned char mif6c_flags;	/* MIFF_ flags */
 	unsigned char vifc_threshold;	/* ttl limit */
@@ -76,7 +78,8 @@ struct mif6ctl {
  *	Cache manipulation structures for mrouted and PIMd
  */
 
-struct mf6cctl {
+struct mf6cctl
+{
 	struct sockaddr_in6 mf6cc_origin;		/* Origin of mcast	*/
 	struct sockaddr_in6 mf6cc_mcastgrp;		/* Group in question	*/
 	mifi_t	mf6cc_parent;			/* Where it arrived	*/
@@ -87,7 +90,8 @@ struct mf6cctl {
  *	Group count retrieval for pim6sd
  */
 
-struct sioc_sg_req6 {
+struct sioc_sg_req6
+{
 	struct sockaddr_in6 src;
 	struct sockaddr_in6 grp;
 	unsigned long pktcnt;
@@ -99,7 +103,8 @@ struct sioc_sg_req6 {
  *	To get vif packet counts
  */
 
-struct sioc_mif_req6 {
+struct sioc_mif_req6
+{
 	mifi_t	mifi;		/* Which iface */
 	unsigned long icount;	/* In packets */
 	unsigned long ocount;	/* Out packets */
@@ -121,7 +126,8 @@ struct sioc_mif_req6 {
  * the IPv6 header and all the extension headers. (See section 3 of RFC 3542)
  */
 
-struct mrt6msg {
+struct mrt6msg
+{
 #define MRT6MSG_NOCACHE		1
 #define MRT6MSG_WRONGMIF	2
 #define MRT6MSG_WHOLEPKT	3		/* used for use level encap */

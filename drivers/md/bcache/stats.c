@@ -60,8 +60,8 @@ SHOW(bch_stats)
 	var_print(cache_bypass_misses);
 
 	sysfs_print(cache_hit_ratio,
-		    DIV_SAFE(var(cache_hits) * 100,
-			     var(cache_hits) + var(cache_misses)));
+				DIV_SAFE(var(cache_hits) * 100,
+						 var(cache_hits) + var(cache_misses)));
 
 	var_print(cache_readaheads);
 	var_print(cache_miss_collisions);
@@ -79,7 +79,8 @@ static void bch_stats_release(struct kobject *k)
 {
 }
 
-static struct attribute *bch_stats_files[] = {
+static struct attribute *bch_stats_files[] =
+{
 	&sysfs_cache_hits,
 	&sysfs_cache_misses,
 	&sysfs_cache_bypass_hits,
@@ -93,24 +94,24 @@ static struct attribute *bch_stats_files[] = {
 static KTYPE(bch_stats);
 
 int bch_cache_accounting_add_kobjs(struct cache_accounting *acc,
-				   struct kobject *parent)
+								   struct kobject *parent)
 {
 	int ret = kobject_add(&acc->total.kobj, parent,
-			      "stats_total");
-	ret = ret ?: kobject_add(&acc->five_minute.kobj, parent,
-				 "stats_five_minute");
-	ret = ret ?: kobject_add(&acc->hour.kobj, parent,
-				 "stats_hour");
-	ret = ret ?: kobject_add(&acc->day.kobj, parent,
-				 "stats_day");
+						  "stats_total");
+	ret = ret ? : kobject_add(&acc->five_minute.kobj, parent,
+							  "stats_five_minute");
+	ret = ret ? : kobject_add(&acc->hour.kobj, parent,
+							  "stats_hour");
+	ret = ret ? : kobject_add(&acc->day.kobj, parent,
+							  "stats_day");
 	return ret;
 }
 
 void bch_cache_accounting_clear(struct cache_accounting *acc)
 {
 	memset(&acc->total.cache_hits,
-	       0,
-	       sizeof(unsigned long) * 7);
+		   0,
+		   sizeof(unsigned long) * 7);
 }
 
 void bch_cache_accounting_destroy(struct cache_accounting *acc)
@@ -121,8 +122,11 @@ void bch_cache_accounting_destroy(struct cache_accounting *acc)
 	kobject_put(&acc->day.kobj);
 
 	atomic_set(&acc->closing, 1);
+
 	if (del_timer_sync(&acc->timer))
+	{
 		closure_return(&acc->cl);
+	}
 }
 
 /* EWMA scaling */
@@ -134,7 +138,8 @@ static void scale_stat(unsigned long *stat)
 
 static void scale_stats(struct cache_stats *stats, unsigned long rescale_at)
 {
-	if (++stats->rescale == rescale_at) {
+	if (++stats->rescale == rescale_at)
+	{
 		stats->rescale = 0;
 		scale_stat(&stats->cache_hits);
 		scale_stat(&stats->cache_misses);
@@ -151,13 +156,13 @@ static void scale_accounting(unsigned long data)
 	struct cache_accounting *acc = (struct cache_accounting *) data;
 
 #define move_stat(name) do {						\
-	unsigned t = atomic_xchg(&acc->collector.name, 0);		\
-	t <<= 16;							\
-	acc->five_minute.name += t;					\
-	acc->hour.name += t;						\
-	acc->day.name += t;						\
-	acc->total.name += t;						\
-} while (0)
+		unsigned t = atomic_xchg(&acc->collector.name, 0);		\
+		t <<= 16;							\
+		acc->five_minute.name += t;					\
+		acc->hour.name += t;						\
+		acc->day.name += t;						\
+		acc->total.name += t;						\
+	} while (0)
 
 	move_stat(cache_hits);
 	move_stat(cache_misses);
@@ -175,28 +180,39 @@ static void scale_accounting(unsigned long data)
 	acc->timer.expires += accounting_delay;
 
 	if (!atomic_read(&acc->closing))
+	{
 		add_timer(&acc->timer);
+	}
 	else
+	{
 		closure_return(&acc->cl);
+	}
 }
 
 static void mark_cache_stats(struct cache_stat_collector *stats,
-			     bool hit, bool bypass)
+							 bool hit, bool bypass)
 {
 	if (!bypass)
 		if (hit)
+		{
 			atomic_inc(&stats->cache_hits);
+		}
 		else
+		{
 			atomic_inc(&stats->cache_misses);
+		}
+	else if (hit)
+	{
+		atomic_inc(&stats->cache_bypass_hits);
+	}
 	else
-		if (hit)
-			atomic_inc(&stats->cache_bypass_hits);
-		else
-			atomic_inc(&stats->cache_bypass_misses);
+	{
+		atomic_inc(&stats->cache_bypass_misses);
+	}
 }
 
 void bch_mark_cache_accounting(struct cache_set *c, struct bcache_device *d,
-			       bool hit, bool bypass)
+							   bool hit, bool bypass)
 {
 	struct cached_dev *dc = container_of(d, struct cached_dev, disk);
 	mark_cache_stats(&dc->accounting.collector, hit, bypass);
@@ -218,14 +234,14 @@ void bch_mark_cache_miss_collision(struct cache_set *c, struct bcache_device *d)
 }
 
 void bch_mark_sectors_bypassed(struct cache_set *c, struct cached_dev *dc,
-			       int sectors)
+							   int sectors)
 {
 	atomic_add(sectors, &dc->accounting.collector.sectors_bypassed);
 	atomic_add(sectors, &c->accounting.collector.sectors_bypassed);
 }
 
 void bch_cache_accounting_init(struct cache_accounting *acc,
-			       struct closure *parent)
+							   struct closure *parent)
 {
 	kobject_init(&acc->total.kobj,		&bch_stats_ktype);
 	kobject_init(&acc->five_minute.kobj,	&bch_stats_ktype);

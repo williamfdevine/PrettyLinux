@@ -47,9 +47,13 @@ static inline void hsu_chan_enable(struct hsu_dma_chan *hsuc)
 	u32 cr = HSU_CH_CR_CHA;
 
 	if (hsuc->direction == DMA_MEM_TO_DEV)
+	{
 		cr &= ~HSU_CH_CR_CHD;
+	}
 	else if (hsuc->direction == DMA_DEV_TO_MEM)
+	{
 		cr |= HSU_CH_CR_CHD;
+	}
 
 	hsu_chan_writel(hsuc, HSU_CH_CR, cr);
 }
@@ -62,10 +66,13 @@ static void hsu_dma_chan_start(struct hsu_dma_chan *hsuc)
 	u32 dcr = HSU_CH_DCR_CHSOE | HSU_CH_DCR_CHEI;
 	unsigned int i, count;
 
-	if (hsuc->direction == DMA_MEM_TO_DEV) {
+	if (hsuc->direction == DMA_MEM_TO_DEV)
+	{
 		bsr = config->dst_maxburst;
 		mtsr = config->src_addr_width;
-	} else if (hsuc->direction == DMA_DEV_TO_MEM) {
+	}
+	else if (hsuc->direction == DMA_DEV_TO_MEM)
+	{
 		bsr = config->src_maxburst;
 		mtsr = config->dst_addr_width;
 	}
@@ -78,7 +85,9 @@ static void hsu_dma_chan_start(struct hsu_dma_chan *hsuc)
 
 	/* Set descriptors */
 	count = desc->nents - desc->active;
-	for (i = 0; i < count && i < HSU_DMA_CHAN_NR_DESC; i++) {
+
+	for (i = 0; i < count && i < HSU_DMA_CHAN_NR_DESC; i++)
+	{
 		hsu_chan_writel(hsuc, HSU_CH_DxSAR(i), desc->sg[i].addr);
 		hsu_chan_writel(hsuc, HSU_CH_DxTSR(i), desc->sg[i].len);
 
@@ -88,6 +97,7 @@ static void hsu_dma_chan_start(struct hsu_dma_chan *hsuc)
 
 		desc->active++;
 	}
+
 	/* Only for the last descriptor in the chain */
 	dcr |= HSU_CH_DCR_CHSOD(count - 1);
 	dcr |= HSU_CH_DCR_CHDI(count - 1);
@@ -114,7 +124,9 @@ static void hsu_dma_start_transfer(struct hsu_dma_chan *hsuc)
 
 	/* Get the next descriptor */
 	vdesc = vchan_next_desc(&hsuc->vchan);
-	if (!vdesc) {
+
+	if (!vdesc)
+	{
 		hsuc->desc = NULL;
 		return;
 	}
@@ -144,7 +156,7 @@ static void hsu_dma_start_transfer(struct hsu_dma_chan *hsuc)
  *      invalid parameters or no interrupt pending.
  */
 int hsu_dma_get_status(struct hsu_dma_chip *chip, unsigned short nr,
-		       u32 *status)
+					   u32 *status)
 {
 	struct hsu_dma_chan *hsuc;
 	unsigned long flags;
@@ -152,7 +164,9 @@ int hsu_dma_get_status(struct hsu_dma_chip *chip, unsigned short nr,
 
 	/* Sanity check */
 	if (nr >= chip->hsu->nr_channels)
+	{
 		return -EINVAL;
+	}
 
 	hsuc = &chip->hsu->chan[nr];
 
@@ -166,12 +180,17 @@ int hsu_dma_get_status(struct hsu_dma_chip *chip, unsigned short nr,
 
 	/* Check if any interrupt is pending */
 	sr &= ~(HSU_CH_SR_DESCE_ANY | HSU_CH_SR_CDESC_ANY);
+
 	if (!sr)
+	{
 		return -EIO;
+	}
 
 	/* Timeout IRQ, need wait some time, see Errata 2 */
 	if (sr & HSU_CH_SR_DESCTO_ANY)
+	{
 		udelay(2);
+	}
 
 	/*
 	 * At this point, at least one of Descriptor Time Out, Channel Error
@@ -210,23 +229,33 @@ int hsu_dma_do_irq(struct hsu_dma_chip *chip, unsigned short nr, u32 status)
 
 	/* Sanity check */
 	if (nr >= chip->hsu->nr_channels)
+	{
 		return 0;
+	}
 
 	hsuc = &chip->hsu->chan[nr];
 
 	spin_lock_irqsave(&hsuc->vchan.lock, flags);
 	desc = hsuc->desc;
-	if (desc) {
-		if (status & HSU_CH_SR_CHE) {
+
+	if (desc)
+	{
+		if (status & HSU_CH_SR_CHE)
+		{
 			desc->status = DMA_ERROR;
-		} else if (desc->active < desc->nents) {
+		}
+		else if (desc->active < desc->nents)
+		{
 			hsu_dma_start_channel(hsuc);
-		} else {
+		}
+		else
+		{
 			vchan_cookie_complete(&desc->vdesc);
 			desc->status = DMA_COMPLETE;
 			hsu_dma_start_transfer(hsuc);
 		}
 	}
+
 	spin_unlock_irqrestore(&hsuc->vchan.lock, flags);
 
 	return 1;
@@ -238,11 +267,16 @@ static struct hsu_dma_desc *hsu_dma_alloc_desc(unsigned int nents)
 	struct hsu_dma_desc *desc;
 
 	desc = kzalloc(sizeof(*desc), GFP_NOWAIT);
+
 	if (!desc)
+	{
 		return NULL;
+	}
 
 	desc->sg = kcalloc(nents, sizeof(*desc->sg), GFP_NOWAIT);
-	if (!desc->sg) {
+
+	if (!desc->sg)
+	{
 		kfree(desc);
 		return NULL;
 	}
@@ -259,9 +293,9 @@ static void hsu_dma_desc_free(struct virt_dma_desc *vdesc)
 }
 
 static struct dma_async_tx_descriptor *hsu_dma_prep_slave_sg(
-		struct dma_chan *chan, struct scatterlist *sgl,
-		unsigned int sg_len, enum dma_transfer_direction direction,
-		unsigned long flags, void *context)
+	struct dma_chan *chan, struct scatterlist *sgl,
+	unsigned int sg_len, enum dma_transfer_direction direction,
+	unsigned long flags, void *context)
 {
 	struct hsu_dma_chan *hsuc = to_hsu_dma_chan(chan);
 	struct hsu_dma_desc *desc;
@@ -269,10 +303,14 @@ static struct dma_async_tx_descriptor *hsu_dma_prep_slave_sg(
 	unsigned int i;
 
 	desc = hsu_dma_alloc_desc(sg_len);
-	if (!desc)
-		return NULL;
 
-	for_each_sg(sgl, sg, sg_len, i) {
+	if (!desc)
+	{
+		return NULL;
+	}
+
+	for_each_sg(sgl, sg, sg_len, i)
+	{
 		desc->sg[i].addr = sg_dma_address(sg);
 		desc->sg[i].len = sg_dma_len(sg);
 
@@ -293,8 +331,12 @@ static void hsu_dma_issue_pending(struct dma_chan *chan)
 	unsigned long flags;
 
 	spin_lock_irqsave(&hsuc->vchan.lock, flags);
+
 	if (vchan_issue_pending(&hsuc->vchan) && !hsuc->desc)
+	{
 		hsu_dma_start_transfer(hsuc);
+	}
+
 	spin_unlock_irqrestore(&hsuc->vchan.lock, flags);
 }
 
@@ -305,18 +347,23 @@ static size_t hsu_dma_active_desc_size(struct hsu_dma_chan *hsuc)
 	int i;
 
 	for (i = desc->active; i < desc->nents; i++)
+	{
 		bytes += desc->sg[i].len;
+	}
 
 	i = HSU_DMA_CHAN_NR_DESC - 1;
-	do {
+
+	do
+	{
 		bytes += hsu_chan_readl(hsuc, HSU_CH_DxTSR(i));
-	} while (--i >= 0);
+	}
+	while (--i >= 0);
 
 	return bytes;
 }
 
 static enum dma_status hsu_dma_tx_status(struct dma_chan *chan,
-	dma_cookie_t cookie, struct dma_tx_state *state)
+		dma_cookie_t cookie, struct dma_tx_state *state)
 {
 	struct hsu_dma_chan *hsuc = to_hsu_dma_chan(chan);
 	struct virt_dma_desc *vdesc;
@@ -325,32 +372,42 @@ static enum dma_status hsu_dma_tx_status(struct dma_chan *chan,
 	unsigned long flags;
 
 	status = dma_cookie_status(chan, cookie, state);
+
 	if (status == DMA_COMPLETE)
+	{
 		return status;
+	}
 
 	spin_lock_irqsave(&hsuc->vchan.lock, flags);
 	vdesc = vchan_find_desc(&hsuc->vchan, cookie);
-	if (hsuc->desc && cookie == hsuc->desc->vdesc.tx.cookie) {
+
+	if (hsuc->desc && cookie == hsuc->desc->vdesc.tx.cookie)
+	{
 		bytes = hsu_dma_active_desc_size(hsuc);
 		dma_set_residue(state, bytes);
 		status = hsuc->desc->status;
-	} else if (vdesc) {
+	}
+	else if (vdesc)
+	{
 		bytes = to_hsu_dma_desc(vdesc)->length;
 		dma_set_residue(state, bytes);
 	}
+
 	spin_unlock_irqrestore(&hsuc->vchan.lock, flags);
 
 	return status;
 }
 
 static int hsu_dma_slave_config(struct dma_chan *chan,
-				struct dma_slave_config *config)
+								struct dma_slave_config *config)
 {
 	struct hsu_dma_chan *hsuc = to_hsu_dma_chan(chan);
 
 	/* Check if chan will be configured for slave transfers */
 	if (!is_slave_direction(config->direction))
+	{
 		return -EINVAL;
+	}
 
 	memcpy(&hsuc->config, config, sizeof(hsuc->config));
 
@@ -363,10 +420,13 @@ static int hsu_dma_pause(struct dma_chan *chan)
 	unsigned long flags;
 
 	spin_lock_irqsave(&hsuc->vchan.lock, flags);
-	if (hsuc->desc && hsuc->desc->status == DMA_IN_PROGRESS) {
+
+	if (hsuc->desc && hsuc->desc->status == DMA_IN_PROGRESS)
+	{
 		hsu_chan_disable(hsuc);
 		hsuc->desc->status = DMA_PAUSED;
 	}
+
 	spin_unlock_irqrestore(&hsuc->vchan.lock, flags);
 
 	return 0;
@@ -378,10 +438,13 @@ static int hsu_dma_resume(struct dma_chan *chan)
 	unsigned long flags;
 
 	spin_lock_irqsave(&hsuc->vchan.lock, flags);
-	if (hsuc->desc && hsuc->desc->status == DMA_PAUSED) {
+
+	if (hsuc->desc && hsuc->desc->status == DMA_PAUSED)
+	{
 		hsuc->desc->status = DMA_IN_PROGRESS;
 		hsu_chan_enable(hsuc);
 	}
+
 	spin_unlock_irqrestore(&hsuc->vchan.lock, flags);
 
 	return 0;
@@ -396,7 +459,9 @@ static int hsu_dma_terminate_all(struct dma_chan *chan)
 	spin_lock_irqsave(&hsuc->vchan.lock, flags);
 
 	hsu_dma_stop_channel(hsuc);
-	if (hsuc->desc) {
+
+	if (hsuc->desc)
+	{
 		hsu_dma_desc_free(&hsuc->desc->vdesc);
 		hsuc->desc = NULL;
 	}
@@ -421,8 +486,11 @@ int hsu_dma_probe(struct hsu_dma_chip *chip)
 	int ret;
 
 	hsu = devm_kzalloc(chip->dev, sizeof(*hsu), GFP_KERNEL);
+
 	if (!hsu)
+	{
 		return -ENOMEM;
+	}
 
 	chip->hsu = hsu;
 
@@ -430,12 +498,17 @@ int hsu_dma_probe(struct hsu_dma_chip *chip)
 	hsu->nr_channels = (chip->length - chip->offset) / HSU_DMA_CHAN_LENGTH;
 
 	hsu->chan = devm_kcalloc(chip->dev, hsu->nr_channels,
-				 sizeof(*hsu->chan), GFP_KERNEL);
+							 sizeof(*hsu->chan), GFP_KERNEL);
+
 	if (!hsu->chan)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&hsu->dma.channels);
-	for (i = 0; i < hsu->nr_channels; i++) {
+
+	for (i = 0; i < hsu->nr_channels; i++)
+	{
 		struct hsu_dma_chan *hsuc = &hsu->chan[i];
 
 		hsuc->vchan.desc_free = hsu_dma_desc_free;
@@ -470,8 +543,11 @@ int hsu_dma_probe(struct hsu_dma_chip *chip)
 	dma_set_max_seg_size(hsu->dma.dev, HSU_CH_DxTSR_MASK);
 
 	ret = dma_async_device_register(&hsu->dma);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev_info(chip->dev, "Found HSU DMA, %d channels\n", hsu->nr_channels);
 	return 0;
@@ -485,7 +561,8 @@ int hsu_dma_remove(struct hsu_dma_chip *chip)
 
 	dma_async_device_unregister(&hsu->dma);
 
-	for (i = 0; i < hsu->nr_channels; i++) {
+	for (i = 0; i < hsu->nr_channels; i++)
+	{
 		struct hsu_dma_chan *hsuc = &hsu->chan[i];
 
 		tasklet_kill(&hsuc->vchan.task);

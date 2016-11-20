@@ -13,7 +13,7 @@
 /* posix_acl.c */
 struct posix_acl *hfsplus_get_posix_acl(struct inode *inode, int type);
 int hfsplus_set_posix_acl(struct inode *inode, struct posix_acl *acl,
-		int type);
+						  int type);
 extern int hfsplus_init_posix_acl(struct inode *, struct inode *);
 
 #else  /* CONFIG_HFSPLUS_FS_POSIX_ACL */

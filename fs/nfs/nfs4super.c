@@ -18,37 +18,41 @@
 static int nfs4_write_inode(struct inode *inode, struct writeback_control *wbc);
 static void nfs4_evict_inode(struct inode *inode);
 static struct dentry *nfs4_remote_mount(struct file_system_type *fs_type,
-	int flags, const char *dev_name, void *raw_data);
+										int flags, const char *dev_name, void *raw_data);
 static struct dentry *nfs4_referral_mount(struct file_system_type *fs_type,
-	int flags, const char *dev_name, void *raw_data);
+		int flags, const char *dev_name, void *raw_data);
 static struct dentry *nfs4_remote_referral_mount(struct file_system_type *fs_type,
-	int flags, const char *dev_name, void *raw_data);
+		int flags, const char *dev_name, void *raw_data);
 
-static struct file_system_type nfs4_remote_fs_type = {
+static struct file_system_type nfs4_remote_fs_type =
+{
 	.owner		= THIS_MODULE,
 	.name		= "nfs4",
 	.mount		= nfs4_remote_mount,
 	.kill_sb	= nfs_kill_super,
-	.fs_flags	= FS_RENAME_DOES_D_MOVE|FS_BINARY_MOUNTDATA,
+	.fs_flags	= FS_RENAME_DOES_D_MOVE | FS_BINARY_MOUNTDATA,
 };
 
-static struct file_system_type nfs4_remote_referral_fs_type = {
+static struct file_system_type nfs4_remote_referral_fs_type =
+{
 	.owner		= THIS_MODULE,
 	.name		= "nfs4",
 	.mount		= nfs4_remote_referral_mount,
 	.kill_sb	= nfs_kill_super,
-	.fs_flags	= FS_RENAME_DOES_D_MOVE|FS_BINARY_MOUNTDATA,
+	.fs_flags	= FS_RENAME_DOES_D_MOVE | FS_BINARY_MOUNTDATA,
 };
 
-struct file_system_type nfs4_referral_fs_type = {
+struct file_system_type nfs4_referral_fs_type =
+{
 	.owner		= THIS_MODULE,
 	.name		= "nfs4",
 	.mount		= nfs4_referral_mount,
 	.kill_sb	= nfs_kill_super,
-	.fs_flags	= FS_RENAME_DOES_D_MOVE|FS_BINARY_MOUNTDATA,
+	.fs_flags	= FS_RENAME_DOES_D_MOVE | FS_BINARY_MOUNTDATA,
 };
 
-static const struct super_operations nfs4_sops = {
+static const struct super_operations nfs4_sops =
+{
 	.alloc_inode	= nfs_alloc_inode,
 	.destroy_inode	= nfs_destroy_inode,
 	.write_inode	= nfs4_write_inode,
@@ -63,7 +67,8 @@ static const struct super_operations nfs4_sops = {
 	.remount_fs	= nfs_remount,
 };
 
-struct nfs_subversion nfs_v4 = {
+struct nfs_subversion nfs_v4 =
+{
 	.owner = THIS_MODULE,
 	.nfs_fs   = &nfs4_fs_type,
 	.rpc_vers = &nfs_version4,
@@ -78,7 +83,8 @@ static int nfs4_write_inode(struct inode *inode, struct writeback_control *wbc)
 
 	if (ret == 0)
 		ret = pnfs_layoutcommit_inode(inode,
-				wbc->sync_mode == WB_SYNC_ALL);
+									  wbc->sync_mode == WB_SYNC_ALL);
+
 	return ret;
 }
 
@@ -105,7 +111,7 @@ static void nfs4_evict_inode(struct inode *inode)
  */
 static struct dentry *
 nfs4_remote_mount(struct file_system_type *fs_type, int flags,
-		  const char *dev_name, void *info)
+				  const char *dev_name, void *info)
 {
 	struct nfs_mount_info *mount_info = info;
 	struct nfs_server *server;
@@ -115,7 +121,9 @@ nfs4_remote_mount(struct file_system_type *fs_type, int flags,
 
 	/* Get a volume representation */
 	server = nfs4_create_server(mount_info, &nfs_v4);
-	if (IS_ERR(server)) {
+
+	if (IS_ERR(server))
+	{
 		mntroot = ERR_CAST(server);
 		goto out;
 	}
@@ -135,19 +143,29 @@ static struct vfsmount *nfs_do_root_mount(struct file_system_type *fs_type,
 
 	len = strlen(hostname) + 5;
 	root_devname = kmalloc(len, GFP_KERNEL);
+
 	if (root_devname == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	/* Does hostname needs to be enclosed in brackets? */
 	if (strchr(hostname, ':'))
+	{
 		snprintf(root_devname, len, "[%s]:/", hostname);
+	}
 	else
+	{
 		snprintf(root_devname, len, "%s:/", hostname);
+	}
+
 	root_mnt = vfs_kern_mount(fs_type, flags, root_devname, data);
 	kfree(root_devname);
 	return root_mnt;
 }
 
-struct nfs_referral_count {
+struct nfs_referral_count
+{
 	struct list_head list;
 	const struct task_struct *task;
 	unsigned int referral_count;
@@ -160,9 +178,12 @@ static struct nfs_referral_count *nfs_find_referral_count(void)
 {
 	struct nfs_referral_count *p;
 
-	list_for_each_entry(p, &nfs_referral_count_list, list) {
+	list_for_each_entry(p, &nfs_referral_count_list, list)
+	{
 		if (p->task == current)
+		{
 			return p;
+		}
 	}
 	return NULL;
 }
@@ -175,23 +196,36 @@ static int nfs_referral_loop_protect(void)
 	int ret = -ENOMEM;
 
 	new = kmalloc(sizeof(*new), GFP_KERNEL);
+
 	if (!new)
+	{
 		goto out;
+	}
+
 	new->task = current;
 	new->referral_count = 1;
 
 	ret = 0;
 	spin_lock(&nfs_referral_count_list_lock);
 	p = nfs_find_referral_count();
-	if (p != NULL) {
+
+	if (p != NULL)
+	{
 		if (p->referral_count >= NFS_MAX_NESTED_REFERRALS)
+		{
 			ret = -ELOOP;
+		}
 		else
+		{
 			p->referral_count++;
-	} else {
+		}
+	}
+	else
+	{
 		list_add(&new->list, &nfs_referral_count_list);
 		new = NULL;
 	}
+
 	spin_unlock(&nfs_referral_count_list_lock);
 	kfree(new);
 out:
@@ -205,10 +239,16 @@ static void nfs_referral_loop_unprotect(void)
 	spin_lock(&nfs_referral_count_list_lock);
 	p = nfs_find_referral_count();
 	p->referral_count--;
+
 	if (p->referral_count == 0)
+	{
 		list_del(&p->list);
+	}
 	else
+	{
 		p = NULL;
+	}
+
 	spin_unlock(&nfs_referral_count_list_lock);
 	kfree(p);
 }
@@ -220,10 +260,14 @@ static struct dentry *nfs_follow_remote_path(struct vfsmount *root_mnt,
 	int err;
 
 	if (IS_ERR(root_mnt))
+	{
 		return ERR_CAST(root_mnt);
+	}
 
 	err = nfs_referral_loop_protect();
-	if (err) {
+
+	if (err)
+	{
 		mntput(root_mnt);
 		return ERR_PTR(err);
 	}
@@ -235,8 +279,8 @@ static struct dentry *nfs_follow_remote_path(struct vfsmount *root_mnt,
 }
 
 struct dentry *nfs4_try_mount(int flags, const char *dev_name,
-			      struct nfs_mount_info *mount_info,
-			      struct nfs_subversion *nfs_mod)
+							  struct nfs_mount_info *mount_info,
+							  struct nfs_subversion *nfs_mod)
 {
 	char *export_path;
 	struct vfsmount *root_mnt;
@@ -248,22 +292,23 @@ struct dentry *nfs4_try_mount(int flags, const char *dev_name,
 	export_path = data->nfs_server.export_path;
 	data->nfs_server.export_path = "/";
 	root_mnt = nfs_do_root_mount(&nfs4_remote_fs_type, flags, mount_info,
-			data->nfs_server.hostname);
+								 data->nfs_server.hostname);
 	data->nfs_server.export_path = export_path;
 
 	res = nfs_follow_remote_path(root_mnt, export_path);
 
 	dfprintk(MOUNT, "<-- nfs4_try_mount() = %d%s\n",
-		 PTR_ERR_OR_ZERO(res),
-		 IS_ERR(res) ? " [error]" : "");
+			 PTR_ERR_OR_ZERO(res),
+			 IS_ERR(res) ? " [error]" : "");
 	return res;
 }
 
 static struct dentry *
 nfs4_remote_referral_mount(struct file_system_type *fs_type, int flags,
-			   const char *dev_name, void *raw_data)
+						   const char *dev_name, void *raw_data)
 {
-	struct nfs_mount_info mount_info = {
+	struct nfs_mount_info mount_info =
+	{
 		.fill_super = nfs_fill_super,
 		.set_security = nfs_clone_sb_security,
 		.cloned = raw_data,
@@ -274,12 +319,17 @@ nfs4_remote_referral_mount(struct file_system_type *fs_type, int flags,
 	dprintk("--> nfs4_referral_get_sb()\n");
 
 	mount_info.mntfh = nfs_alloc_fhandle();
+
 	if (mount_info.cloned == NULL || mount_info.mntfh == NULL)
+	{
 		goto out;
+	}
 
 	/* create a new volume representation */
 	server = nfs4_create_referral_server(mount_info.cloned, mount_info.mntfh);
-	if (IS_ERR(server)) {
+
+	if (IS_ERR(server))
+	{
 		mntroot = ERR_CAST(server);
 		goto out;
 	}
@@ -307,13 +357,13 @@ static struct dentry *nfs4_referral_mount(struct file_system_type *fs_type,
 	data->mnt_path = "/";
 
 	root_mnt = nfs_do_root_mount(&nfs4_remote_referral_fs_type,
-			flags, data, data->hostname);
+								 flags, data, data->hostname);
 	data->mnt_path = export_path;
 
 	res = nfs_follow_remote_path(root_mnt, export_path);
 	dprintk("<-- nfs4_referral_mount() = %d%s\n",
-		PTR_ERR_OR_ZERO(res),
-		IS_ERR(res) ? " [error]" : "");
+			PTR_ERR_OR_ZERO(res),
+			IS_ERR(res) ? " [error]" : "");
 	return res;
 }
 
@@ -323,16 +373,25 @@ static int __init init_nfs_v4(void)
 	int err;
 
 	err = nfs_dns_resolver_init();
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = nfs_idmap_init();
+
 	if (err)
+	{
 		goto out1;
+	}
 
 	err = nfs4_register_sysctl();
+
 	if (err)
+	{
 		goto out2;
+	}
 
 	register_nfs_version(&nfs_v4);
 	return 0;

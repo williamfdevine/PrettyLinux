@@ -20,14 +20,16 @@
 #include <linux/bitmap.h>
 #include <linux/slab.h>
 
-static struct dev_pm_domain default_pm_domain = {
+static struct dev_pm_domain default_pm_domain =
+{
 	.ops = {
 		USE_PM_CLK_RUNTIME_OPS
 		USE_PLATFORM_PM_SLEEP_OPS
 	},
 };
 
-static struct pm_clk_notifier_block platform_bus_notifier = {
+static struct pm_clk_notifier_block platform_bus_notifier =
+{
 	.pm_domain = &default_pm_domain,
 	.con_ids = { NULL, },
 };

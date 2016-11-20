@@ -124,10 +124,10 @@
  */
 
 #define V4L2_STD_AUDIO		(V4L2_STD_A2    | \
-				 V4L2_STD_NICAM | \
-				 V4L2_STD_AM    | \
-				 V4L2_STD_BTSC  | \
-				 V4L2_STD_EIAJ)
+							 V4L2_STD_NICAM | \
+							 V4L2_STD_AM    | \
+							 V4L2_STD_BTSC  | \
+							 V4L2_STD_EIAJ)
 
 /* Used standards with audio restrictions */
 

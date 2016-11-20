@@ -39,7 +39,8 @@
 #include "dss.h"
 #include "dss_features.h"
 
-static struct {
+static struct
+{
 	struct platform_device *pdev;
 
 	const char *default_display_name;
@@ -72,7 +73,9 @@ int dss_dsi_enable_pads(int dsi_id, unsigned lane_mask)
 	struct omap_dss_board_info *board_data = core.pdev->dev.platform_data;
 
 	if (!board_data->dsi_enable_pads)
+	{
 		return -ENOENT;
+	}
 
 	return board_data->dsi_enable_pads(dsi_id, lane_mask);
 }
@@ -82,7 +85,9 @@ void dss_dsi_disable_pads(int dsi_id, unsigned lane_mask)
 	struct omap_dss_board_info *board_data = core.pdev->dev.platform_data;
 
 	if (!board_data->dsi_disable_pads)
+	{
 		return;
+	}
 
 	return board_data->dsi_disable_pads(dsi_id, lane_mask);
 }
@@ -92,9 +97,13 @@ int dss_set_min_bus_tput(struct device *dev, unsigned long tput)
 	struct omap_dss_board_info *pdata = core.pdev->dev.platform_data;
 
 	if (pdata->set_min_bus_tput)
+	{
 		return pdata->set_min_bus_tput(dev, tput);
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 #if defined(CONFIG_OMAP2_DSS_DEBUGFS)
@@ -110,7 +119,8 @@ static int dss_debug_open(struct inode *inode, struct file *file)
 	return single_open(file, dss_debug_show, inode->i_private);
 }
 
-static const struct file_operations dss_debug_fops = {
+static const struct file_operations dss_debug_fops =
+{
 	.open           = dss_debug_open,
 	.read           = seq_read,
 	.llseek         = seq_lseek,
@@ -122,14 +132,16 @@ static struct dentry *dss_debugfs_dir;
 static int dss_initialize_debugfs(void)
 {
 	dss_debugfs_dir = debugfs_create_dir("omapdss", NULL);
-	if (IS_ERR(dss_debugfs_dir)) {
+
+	if (IS_ERR(dss_debugfs_dir))
+	{
 		int err = PTR_ERR(dss_debugfs_dir);
 		dss_debugfs_dir = NULL;
 		return err;
 	}
 
 	debugfs_create_file("clk", S_IRUGO, dss_debugfs_dir,
-			&dss_debug_dump_clocks, &dss_debug_fops);
+						&dss_debug_dump_clocks, &dss_debug_fops);
 
 	return 0;
 }
@@ -137,7 +149,9 @@ static int dss_initialize_debugfs(void)
 static void dss_uninitialize_debugfs(void)
 {
 	if (dss_debugfs_dir)
+	{
 		debugfs_remove_recursive(dss_debugfs_dir);
+	}
 }
 
 int dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
@@ -145,7 +159,7 @@ int dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
 	struct dentry *d;
 
 	d = debugfs_create_file(name, S_IRUGO, dss_debugfs_dir,
-			write, &dss_debug_fops);
+							write, &dss_debug_fops);
 
 	return PTR_ERR_OR_ZERO(d);
 }
@@ -169,12 +183,17 @@ static void dss_disable_all_devices(void)
 {
 	struct omap_dss_device *dssdev = NULL;
 
-	for_each_dss_dev(dssdev) {
+	for_each_dss_dev(dssdev)
+	{
 		if (!dssdev->driver)
+		{
 			continue;
+		}
 
 		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
+		{
 			dssdev->driver->disable(dssdev);
+		}
 	}
 }
 
@@ -188,13 +207,20 @@ static int __init omap_dss_probe(struct platform_device *pdev)
 	dss_features_init(omapdss_get_version());
 
 	r = dss_initialize_debugfs();
+
 	if (r)
+	{
 		goto err_debugfs;
+	}
 
 	if (def_disp_name)
+	{
 		core.default_display_name = def_disp_name;
+	}
 	else if (pdata->default_display_name)
+	{
 		core.default_display_name = pdata->default_display_name;
+	}
 
 	return 0;
 
@@ -216,7 +242,8 @@ static void omap_dss_shutdown(struct platform_device *pdev)
 	dss_disable_all_devices();
 }
 
-static struct platform_driver omap_dss_driver = {
+static struct platform_driver omap_dss_driver =
+{
 	.remove         = omap_dss_remove,
 	.shutdown	= omap_dss_shutdown,
 	.driver         = {
@@ -225,7 +252,8 @@ static struct platform_driver omap_dss_driver = {
 };
 
 /* INIT */
-static int (*dss_output_drv_reg_funcs[])(void) __initdata = {
+static int (*dss_output_drv_reg_funcs[])(void) __initdata =
+{
 	dss_init_platform_driver,
 	dispc_init_platform_driver,
 #ifdef CONFIG_OMAP2_DSS_DSI
@@ -251,7 +279,8 @@ static int (*dss_output_drv_reg_funcs[])(void) __initdata = {
 #endif
 };
 
-static void (*dss_output_drv_unreg_funcs[])(void) = {
+static void (*dss_output_drv_unreg_funcs[])(void) =
+{
 #ifdef CONFIG_OMAP5_DSS_HDMI
 	hdmi5_uninit_platform_driver,
 #endif
@@ -283,22 +312,32 @@ static int __init omap_dss_init(void)
 	int i;
 
 	r = platform_driver_probe(&omap_dss_driver, omap_dss_probe);
-	if (r)
-		return r;
 
-	for (i = 0; i < ARRAY_SIZE(dss_output_drv_reg_funcs); ++i) {
+	if (r)
+	{
+		return r;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(dss_output_drv_reg_funcs); ++i)
+	{
 		r = dss_output_drv_reg_funcs[i]();
+
 		if (r)
+		{
 			goto err_reg;
+		}
 	}
 
 	return 0;
 
 err_reg:
+
 	for (i = ARRAY_SIZE(dss_output_drv_reg_funcs) - i;
-			i < ARRAY_SIZE(dss_output_drv_reg_funcs);
-			++i)
+		 i < ARRAY_SIZE(dss_output_drv_reg_funcs);
+		 ++i)
+	{
 		dss_output_drv_unreg_funcs[i]();
+	}
 
 	platform_driver_unregister(&omap_dss_driver);
 
@@ -310,7 +349,9 @@ static void __exit omap_dss_exit(void)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(dss_output_drv_unreg_funcs); ++i)
+	{
 		dss_output_drv_unreg_funcs[i]();
+	}
 
 	platform_driver_unregister(&omap_dss_driver);
 }

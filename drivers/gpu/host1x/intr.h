@@ -24,7 +24,8 @@
 
 struct host1x;
 
-enum host1x_intr_action {
+enum host1x_intr_action
+{
 	/*
 	 * Perform cleanup after a submit has completed.
 	 * 'data' points to a channel
@@ -46,14 +47,16 @@ enum host1x_intr_action {
 	HOST1X_INTR_ACTION_COUNT
 };
 
-struct host1x_syncpt_intr {
+struct host1x_syncpt_intr
+{
 	spinlock_t lock;
 	struct list_head wait_head;
 	char thresh_irq_name[12];
 	struct work_struct work;
 };
 
-struct host1x_waitlist {
+struct host1x_waitlist
+{
 	struct list_head list;
 	struct kref refcount;
 	u32 thresh;
@@ -76,8 +79,8 @@ struct host1x_waitlist {
  * This is a non-blocking api.
  */
 int host1x_intr_add_action(struct host1x *host, unsigned int id, u32 thresh,
-	enum host1x_intr_action action, void *data,
-	struct host1x_waitlist *waiter, void **ref);
+						   enum host1x_intr_action action, void *data,
+						   struct host1x_waitlist *waiter, void **ref);
 
 /*
  * Unreference an action submitted to host1x_intr_add_action().

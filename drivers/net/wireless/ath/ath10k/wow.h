@@ -16,7 +16,8 @@
 #ifndef _WOW_H_
 #define _WOW_H_
 
-struct ath10k_wow {
+struct ath10k_wow
+{
 	u32 max_num_patterns;
 	struct completion wakeup_completed;
 	struct wiphy_wowlan_support wowlan_support;
@@ -26,7 +27,7 @@ struct ath10k_wow {
 
 int ath10k_wow_init(struct ath10k *ar);
 int ath10k_wow_op_suspend(struct ieee80211_hw *hw,
-			  struct cfg80211_wowlan *wowlan);
+						  struct cfg80211_wowlan *wowlan);
 int ath10k_wow_op_resume(struct ieee80211_hw *hw);
 
 #else

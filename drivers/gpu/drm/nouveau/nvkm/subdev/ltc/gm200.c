@@ -43,7 +43,8 @@ gm200_ltc_init(struct nvkm_ltc *ltc)
 }
 
 static const struct nvkm_ltc_func
-gm200_ltc = {
+	gm200_ltc =
+{
 	.oneinit = gm200_ltc_oneinit,
 	.init = gm200_ltc_init,
 	.intr = gm107_ltc_intr,

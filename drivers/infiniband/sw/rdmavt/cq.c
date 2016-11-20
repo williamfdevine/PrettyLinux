@@ -74,16 +74,23 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
 	 */
 	wc = cq->queue;
 	head = wc->head;
-	if (head >= (unsigned)cq->ibcq.cqe) {
+
+	if (head >= (unsigned)cq->ibcq.cqe)
+	{
 		head = cq->ibcq.cqe;
 		next = 0;
-	} else {
+	}
+	else
+	{
 		next = head + 1;
 	}
 
-	if (unlikely(next == wc->tail)) {
+	if (unlikely(next == wc->tail))
+	{
 		spin_unlock_irqrestore(&cq->lock, flags);
-		if (cq->ibcq.event_handler) {
+
+		if (cq->ibcq.event_handler)
+		{
 			struct ib_event ev;
 
 			ev.device = cq->ibcq.device;
@@ -91,9 +98,12 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
 			ev.event = IB_EVENT_CQ_ERR;
 			cq->ibcq.event_handler(&ev, cq->ibcq.cq_context);
 		}
+
 		return;
 	}
-	if (cq->ip) {
+
+	if (cq->ip)
+	{
 		wc->uqueue[head].wr_id = entry->wr_id;
 		wc->uqueue[head].status = entry->status;
 		wc->uqueue[head].opcode = entry->opcode;
@@ -111,14 +121,18 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
 		wc->uqueue[head].port_num = entry->port_num;
 		/* Make sure entry is written before the head index. */
 		smp_wmb();
-	} else {
+	}
+	else
+	{
 		wc->kqueue[head] = *entry;
 	}
+
 	wc->head = next;
 
 	if (cq->notify == IB_CQ_NEXT_COMP ||
-	    (cq->notify == IB_CQ_SOLICITED &&
-	     (solicited || entry->status != IB_WC_SUCCESS))) {
+		(cq->notify == IB_CQ_SOLICITED &&
+		 (solicited || entry->status != IB_WC_SUCCESS)))
+	{
 		struct kthread_worker *worker;
 		/*
 		 * This will cause send_complete() to be called in
@@ -126,7 +140,9 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
 		 */
 		smp_read_barrier_depends(); /* see rvt_cq_exit */
 		worker = cq->rdi->worker;
-		if (likely(worker)) {
+
+		if (likely(worker))
+		{
 			cq->notify = RVT_CQ_NONE;
 			cq->triggered++;
 			kthread_queue_work(worker, &cq->comptask);
@@ -148,7 +164,8 @@ static void send_complete(struct kthread_work *work)
 	 * won't call us again until we return so we check triggered to
 	 * see if we need to call the handler again.
 	 */
-	for (;;) {
+	for (;;)
+	{
 		u8 triggered = cq->triggered;
 
 		/*
@@ -162,7 +179,9 @@ static void send_complete(struct kthread_work *work)
 		local_bh_enable();
 
 		if (cq->triggered == triggered)
+		{
 			return;
+		}
 	}
 }
 
@@ -179,9 +198,9 @@ static void send_complete(struct kthread_work *work)
  * for failure.
  */
 struct ib_cq *rvt_create_cq(struct ib_device *ibdev,
-			    const struct ib_cq_init_attr *attr,
-			    struct ib_ucontext *context,
-			    struct ib_udata *udata)
+							const struct ib_cq_init_attr *attr,
+							struct ib_ucontext *context,
+							struct ib_udata *udata)
 {
 	struct rvt_dev_info *rdi = ib_to_rvt(ibdev);
 	struct rvt_cq *cq;
@@ -191,15 +210,22 @@ struct ib_cq *rvt_create_cq(struct ib_device *ibdev,
 	unsigned int entries = attr->cqe;
 
 	if (attr->flags)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (entries < 1 || entries > rdi->dparms.props.max_cqe)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* Allocate the completion queue structure. */
 	cq = kzalloc(sizeof(*cq), GFP_KERNEL);
+
 	if (!cq)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/*
 	 * Allocate the completion queue entries and head/tail pointers.
@@ -209,12 +235,20 @@ struct ib_cq *rvt_create_cq(struct ib_device *ibdev,
 	 * numbers of entries.
 	 */
 	sz = sizeof(*wc);
+
 	if (udata && udata->outlen >= sizeof(__u64))
+	{
 		sz += sizeof(struct ib_uverbs_wc) * (entries + 1);
+	}
 	else
+	{
 		sz += sizeof(struct ib_wc) * (entries + 1);
+	}
+
 	wc = vmalloc_user(sz);
-	if (!wc) {
+
+	if (!wc)
+	{
 		ret = ERR_PTR(-ENOMEM);
 		goto bail_cq;
 	}
@@ -223,25 +257,32 @@ struct ib_cq *rvt_create_cq(struct ib_device *ibdev,
 	 * Return the address of the WC as the offset to mmap.
 	 * See rvt_mmap() for details.
 	 */
-	if (udata && udata->outlen >= sizeof(__u64)) {
+	if (udata && udata->outlen >= sizeof(__u64))
+	{
 		int err;
 
 		cq->ip = rvt_create_mmap_info(rdi, sz, context, wc);
-		if (!cq->ip) {
+
+		if (!cq->ip)
+		{
 			ret = ERR_PTR(-ENOMEM);
 			goto bail_wc;
 		}
 
 		err = ib_copy_to_udata(udata, &cq->ip->offset,
-				       sizeof(cq->ip->offset));
-		if (err) {
+							   sizeof(cq->ip->offset));
+
+		if (err)
+		{
 			ret = ERR_PTR(err);
 			goto bail_ip;
 		}
 	}
 
 	spin_lock(&rdi->n_cqs_lock);
-	if (rdi->n_cqs_allocated == rdi->dparms.props.max_cq) {
+
+	if (rdi->n_cqs_allocated == rdi->dparms.props.max_cq)
+	{
 		spin_unlock(&rdi->n_cqs_lock);
 		ret = ERR_PTR(-ENOMEM);
 		goto bail_ip;
@@ -250,7 +291,8 @@ struct ib_cq *rvt_create_cq(struct ib_device *ibdev,
 	rdi->n_cqs_allocated++;
 	spin_unlock(&rdi->n_cqs_lock);
 
-	if (cq->ip) {
+	if (cq->ip)
+	{
 		spin_lock_irq(&rdi->pending_lock);
 		list_add(&cq->ip->pending_mmaps, &rdi->pending_mmaps);
 		spin_unlock_irq(&rdi->pending_lock);
@@ -299,10 +341,16 @@ int rvt_destroy_cq(struct ib_cq *ibcq)
 	spin_lock(&rdi->n_cqs_lock);
 	rdi->n_cqs_allocated--;
 	spin_unlock(&rdi->n_cqs_lock);
+
 	if (cq->ip)
+	{
 		kref_put(&cq->ip->ref, rvt_release_mmap_info);
+	}
 	else
+	{
 		vfree(cq->queue);
+	}
+
 	kfree(cq);
 
 	return 0;
@@ -325,16 +373,21 @@ int rvt_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags notify_flags)
 	int ret = 0;
 
 	spin_lock_irqsave(&cq->lock, flags);
+
 	/*
 	 * Don't change IB_CQ_NEXT_COMP to IB_CQ_SOLICITED but allow
 	 * any other transitions (see C11-31 and C11-32 in ch. 11.4.2.2).
 	 */
 	if (cq->notify != IB_CQ_NEXT_COMP)
+	{
 		cq->notify = notify_flags & IB_CQ_SOLICITED_MASK;
+	}
 
 	if ((notify_flags & IB_CQ_REPORT_MISSED_EVENTS) &&
-	    cq->queue->head != cq->queue->tail)
+		cq->queue->head != cq->queue->tail)
+	{
 		ret = 1;
+	}
 
 	spin_unlock_irqrestore(&cq->lock, flags);
 
@@ -358,27 +411,42 @@ int rvt_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
 	struct rvt_dev_info *rdi = cq->rdi;
 
 	if (cqe < 1 || cqe > rdi->dparms.props.max_cqe)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Need to use vmalloc() if we want to support large #s of entries.
 	 */
 	sz = sizeof(*wc);
+
 	if (udata && udata->outlen >= sizeof(__u64))
+	{
 		sz += sizeof(struct ib_uverbs_wc) * (cqe + 1);
+	}
 	else
+	{
 		sz += sizeof(struct ib_wc) * (cqe + 1);
+	}
+
 	wc = vmalloc_user(sz);
+
 	if (!wc)
+	{
 		return -ENOMEM;
+	}
 
 	/* Check that we can write the offset to mmap. */
-	if (udata && udata->outlen >= sizeof(__u64)) {
+	if (udata && udata->outlen >= sizeof(__u64))
+	{
 		__u64 offset = 0;
 
 		ret = ib_copy_to_udata(udata, &offset, sizeof(offset));
+
 		if (ret)
+		{
 			goto bail_free;
+		}
 	}
 
 	spin_lock_irq(&cq->lock);
@@ -388,29 +456,55 @@ int rvt_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
 	 */
 	old_wc = cq->queue;
 	head = old_wc->head;
+
 	if (head > (u32)cq->ibcq.cqe)
+	{
 		head = (u32)cq->ibcq.cqe;
+	}
+
 	tail = old_wc->tail;
+
 	if (tail > (u32)cq->ibcq.cqe)
+	{
 		tail = (u32)cq->ibcq.cqe;
+	}
+
 	if (head < tail)
+	{
 		n = cq->ibcq.cqe + 1 + head - tail;
+	}
 	else
+	{
 		n = head - tail;
-	if (unlikely((u32)cqe < n)) {
+	}
+
+	if (unlikely((u32)cqe < n))
+	{
 		ret = -EINVAL;
 		goto bail_unlock;
 	}
-	for (n = 0; tail != head; n++) {
+
+	for (n = 0; tail != head; n++)
+	{
 		if (cq->ip)
+		{
 			wc->uqueue[n] = old_wc->uqueue[tail];
+		}
 		else
+		{
 			wc->kqueue[n] = old_wc->kqueue[tail];
+		}
+
 		if (tail == (u32)cq->ibcq.cqe)
+		{
 			tail = 0;
+		}
 		else
+		{
 			tail++;
+		}
 	}
+
 	cq->ibcq.cqe = cqe;
 	wc->head = n;
 	wc->tail = 0;
@@ -419,7 +513,8 @@ int rvt_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
 
 	vfree(old_wc);
 
-	if (cq->ip) {
+	if (cq->ip)
+	{
 		struct rvt_mmap_info *ip = cq->ip;
 
 		rvt_update_mmap_info(rdi, ip, sz, wc);
@@ -428,16 +523,24 @@ int rvt_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
 		 * Return the offset to mmap.
 		 * See rvt_mmap() for details.
 		 */
-		if (udata && udata->outlen >= sizeof(__u64)) {
+		if (udata && udata->outlen >= sizeof(__u64))
+		{
 			ret = ib_copy_to_udata(udata, &ip->offset,
-					       sizeof(ip->offset));
+								   sizeof(ip->offset));
+
 			if (ret)
+			{
 				return ret;
+			}
 		}
 
 		spin_lock_irq(&rdi->pending_lock);
+
 		if (list_empty(&ip->pending_mmaps))
+		{
 			list_add(&ip->pending_mmaps, &rdi->pending_mmaps);
+		}
+
 		spin_unlock_irq(&rdi->pending_lock);
 	}
 
@@ -471,24 +574,40 @@ int rvt_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry)
 
 	/* The kernel can only poll a kernel completion queue */
 	if (cq->ip)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&cq->lock, flags);
 
 	wc = cq->queue;
 	tail = wc->tail;
+
 	if (tail > (u32)cq->ibcq.cqe)
+	{
 		tail = (u32)cq->ibcq.cqe;
-	for (npolled = 0; npolled < num_entries; ++npolled, ++entry) {
+	}
+
+	for (npolled = 0; npolled < num_entries; ++npolled, ++entry)
+	{
 		if (tail == wc->head)
+		{
 			break;
+		}
+
 		/* The kernel doesn't need a RMB since it has the lock. */
 		*entry = wc->kqueue[tail];
+
 		if (tail >= cq->ibcq.cqe)
+		{
 			tail = 0;
+		}
 		else
+		{
 			tail++;
+		}
 	}
+
 	wc->tail = tail;
 
 	spin_unlock_irqrestore(&cq->lock, flags);
@@ -509,18 +628,27 @@ int rvt_driver_cq_init(struct rvt_dev_info *rdi)
 	struct task_struct *task;
 
 	if (rdi->worker)
+	{
 		return 0;
+	}
+
 	spin_lock_init(&rdi->n_cqs_lock);
 	rdi->worker = kzalloc(sizeof(*rdi->worker), GFP_KERNEL);
+
 	if (!rdi->worker)
+	{
 		return -ENOMEM;
+	}
+
 	kthread_init_worker(rdi->worker);
 	task = kthread_create_on_node(
-		kthread_worker_fn,
-		rdi->worker,
-		rdi->dparms.node,
-		"%s", rdi->dparms.cq_name);
-	if (IS_ERR(task)) {
+			   kthread_worker_fn,
+			   rdi->worker,
+			   rdi->dparms.node,
+			   "%s", rdi->dparms.cq_name);
+
+	if (IS_ERR(task))
+	{
 		kfree(rdi->worker);
 		rdi->worker = NULL;
 		return PTR_ERR(task);
@@ -542,8 +670,12 @@ void rvt_cq_exit(struct rvt_dev_info *rdi)
 	struct kthread_worker *worker;
 
 	worker = rdi->worker;
+
 	if (!worker)
+	{
 		return;
+	}
+
 	/* blocks future queuing from send_complete() */
 	rdi->worker = NULL;
 	smp_wmb(); /* See rdi_cq_enter */

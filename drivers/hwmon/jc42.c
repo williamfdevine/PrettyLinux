@@ -33,8 +33,10 @@
 #include <linux/of.h>
 
 /* Addresses to scan */
-static const unsigned short normal_i2c[] = {
-	0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, I2C_CLIENT_END };
+static const unsigned short normal_i2c[] =
+{
+	0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, I2C_CLIENT_END
+};
 
 /* JC42 registers. All registers are 16 bit. */
 #define JC42_REG_CAP		0x00
@@ -148,13 +150,15 @@ static const unsigned short normal_i2c[] = {
 
 static u16 jc42_hysteresis[] = { 0, 1500, 3000, 6000 };
 
-struct jc42_chips {
+struct jc42_chips
+{
 	u16 manid;
 	u16 devid;
 	u16 devid_mask;
 };
 
-static struct jc42_chips jc42_chips[] = {
+static struct jc42_chips jc42_chips[] =
+{
 	{ ADT_MANID, ADT7408_DEVID, ADT7408_DEVID_MASK },
 	{ ATMEL_MANID, AT30TS00_DEVID, AT30TS00_DEVID_MASK },
 	{ ATMEL_MANID2, AT30TSE004_DEVID, AT30TSE004_DEVID_MASK },
@@ -178,7 +182,8 @@ static struct jc42_chips jc42_chips[] = {
 	{ STM_MANID, STTS3000_DEVID, STTS3000_DEVID_MASK },
 };
 
-enum temp_index {
+enum temp_index
+{
 	t_input = 0,
 	t_crit,
 	t_min,
@@ -186,7 +191,8 @@ enum temp_index {
 	t_num_temp
 };
 
-static const u8 temp_regs[t_num_temp] = {
+static const u8 temp_regs[t_num_temp] =
+{
 	[t_input] = JC42_REG_TEMP,
 	[t_crit] = JC42_REG_TEMP_CRITICAL,
 	[t_min] = JC42_REG_TEMP_LOWER,
@@ -194,7 +200,8 @@ static const u8 temp_regs[t_num_temp] = {
 };
 
 /* Each client has this additional data */
-struct jc42_data {
+struct jc42_data
+{
 	struct i2c_client *client;
 	struct mutex	update_lock;	/* protect register access */
 	bool		extended;	/* true if extended range supported */
@@ -212,8 +219,8 @@ struct jc42_data {
 static u16 jc42_temp_to_reg(long temp, bool extended)
 {
 	int ntemp = clamp_val(temp,
-			      extended ? JC42_TEMP_MIN_EXTENDED :
-			      JC42_TEMP_MIN, JC42_TEMP_MAX);
+						  extended ? JC42_TEMP_MIN_EXTENDED :
+						  JC42_TEMP_MIN, JC42_TEMP_MAX);
 
 	/* convert from 0.001 to 0.0625 resolution */
 	return (ntemp * 2 / 125) & 0x1fff;
@@ -236,73 +243,92 @@ static struct jc42_data *jc42_update_device(struct device *dev)
 
 	mutex_lock(&data->update_lock);
 
-	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
-		for (i = 0; i < t_num_temp; i++) {
+	if (time_after(jiffies, data->last_updated + HZ) || !data->valid)
+	{
+		for (i = 0; i < t_num_temp; i++)
+		{
 			val = i2c_smbus_read_word_swapped(client, temp_regs[i]);
-			if (val < 0) {
+
+			if (val < 0)
+			{
 				ret = ERR_PTR(val);
 				goto abort;
 			}
+
 			data->temp[i] = val;
 		}
+
 		data->last_updated = jiffies;
 		data->valid = true;
 	}
+
 abort:
 	mutex_unlock(&data->update_lock);
 	return ret;
 }
 
 static int jc42_read(struct device *dev, enum hwmon_sensor_types type,
-		     u32 attr, int channel, long *val)
+					 u32 attr, int channel, long *val)
 {
 	struct jc42_data *data = jc42_update_device(dev);
 	int temp, hyst;
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
-	switch (attr) {
-	case hwmon_temp_input:
-		*val = jc42_temp_from_reg(data->temp[t_input]);
-		return 0;
-	case hwmon_temp_min:
-		*val = jc42_temp_from_reg(data->temp[t_min]);
-		return 0;
-	case hwmon_temp_max:
-		*val = jc42_temp_from_reg(data->temp[t_max]);
-		return 0;
-	case hwmon_temp_crit:
-		*val = jc42_temp_from_reg(data->temp[t_crit]);
-		return 0;
-	case hwmon_temp_max_hyst:
-		temp = jc42_temp_from_reg(data->temp[t_max]);
-		hyst = jc42_hysteresis[(data->config & JC42_CFG_HYST_MASK)
-						>> JC42_CFG_HYST_SHIFT];
-		*val = temp - hyst;
-		return 0;
-	case hwmon_temp_crit_hyst:
-		temp = jc42_temp_from_reg(data->temp[t_crit]);
-		hyst = jc42_hysteresis[(data->config & JC42_CFG_HYST_MASK)
-						>> JC42_CFG_HYST_SHIFT];
-		*val = temp - hyst;
-		return 0;
-	case hwmon_temp_min_alarm:
-		*val = (data->temp[t_input] >> JC42_ALARM_MIN_BIT) & 1;
-		return 0;
-	case hwmon_temp_max_alarm:
-		*val = (data->temp[t_input] >> JC42_ALARM_MAX_BIT) & 1;
-		return 0;
-	case hwmon_temp_crit_alarm:
-		*val = (data->temp[t_input] >> JC42_ALARM_CRIT_BIT) & 1;
-		return 0;
-	default:
-		return -EOPNOTSUPP;
+	switch (attr)
+	{
+		case hwmon_temp_input:
+			*val = jc42_temp_from_reg(data->temp[t_input]);
+			return 0;
+
+		case hwmon_temp_min:
+			*val = jc42_temp_from_reg(data->temp[t_min]);
+			return 0;
+
+		case hwmon_temp_max:
+			*val = jc42_temp_from_reg(data->temp[t_max]);
+			return 0;
+
+		case hwmon_temp_crit:
+			*val = jc42_temp_from_reg(data->temp[t_crit]);
+			return 0;
+
+		case hwmon_temp_max_hyst:
+			temp = jc42_temp_from_reg(data->temp[t_max]);
+			hyst = jc42_hysteresis[(data->config & JC42_CFG_HYST_MASK)
+								   >> JC42_CFG_HYST_SHIFT];
+			*val = temp - hyst;
+			return 0;
+
+		case hwmon_temp_crit_hyst:
+			temp = jc42_temp_from_reg(data->temp[t_crit]);
+			hyst = jc42_hysteresis[(data->config & JC42_CFG_HYST_MASK)
+								   >> JC42_CFG_HYST_SHIFT];
+			*val = temp - hyst;
+			return 0;
+
+		case hwmon_temp_min_alarm:
+			*val = (data->temp[t_input] >> JC42_ALARM_MIN_BIT) & 1;
+			return 0;
+
+		case hwmon_temp_max_alarm:
+			*val = (data->temp[t_input] >> JC42_ALARM_MAX_BIT) & 1;
+			return 0;
+
+		case hwmon_temp_crit_alarm:
+			*val = (data->temp[t_input] >> JC42_ALARM_CRIT_BIT) & 1;
+			return 0;
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
 static int jc42_write(struct device *dev, enum hwmon_sensor_types type,
-		      u32 attr, int channel, long val)
+					  u32 attr, int channel, long val)
 {
 	struct jc42_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -311,49 +337,63 @@ static int jc42_write(struct device *dev, enum hwmon_sensor_types type,
 
 	mutex_lock(&data->update_lock);
 
-	switch (attr) {
-	case hwmon_temp_min:
-		data->temp[t_min] = jc42_temp_to_reg(val, data->extended);
-		ret = i2c_smbus_write_word_swapped(client, temp_regs[t_min],
-						   data->temp[t_min]);
-		break;
-	case hwmon_temp_max:
-		data->temp[t_max] = jc42_temp_to_reg(val, data->extended);
-		ret = i2c_smbus_write_word_swapped(client, temp_regs[t_max],
-						   data->temp[t_max]);
-		break;
-	case hwmon_temp_crit:
-		data->temp[t_crit] = jc42_temp_to_reg(val, data->extended);
-		ret = i2c_smbus_write_word_swapped(client, temp_regs[t_crit],
-						   data->temp[t_crit]);
-		break;
-	case hwmon_temp_crit_hyst:
-		/*
-		 * JC42.4 compliant chips only support four hysteresis values.
-		 * Pick best choice and go from there.
-		 */
-		val = clamp_val(val, (data->extended ? JC42_TEMP_MIN_EXTENDED
-						     : JC42_TEMP_MIN) - 6000,
-				JC42_TEMP_MAX);
-		diff = jc42_temp_from_reg(data->temp[t_crit]) - val;
-		hyst = 0;
-		if (diff > 0) {
-			if (diff < 2250)
-				hyst = 1;	/* 1.5 degrees C */
-			else if (diff < 4500)
-				hyst = 2;	/* 3.0 degrees C */
-			else
-				hyst = 3;	/* 6.0 degrees C */
-		}
-		data->config = (data->config & ~JC42_CFG_HYST_MASK) |
-				(hyst << JC42_CFG_HYST_SHIFT);
-		ret = i2c_smbus_write_word_swapped(data->client,
-						   JC42_REG_CONFIG,
-						   data->config);
-		break;
-	default:
-		ret = -EOPNOTSUPP;
-		break;
+	switch (attr)
+	{
+		case hwmon_temp_min:
+			data->temp[t_min] = jc42_temp_to_reg(val, data->extended);
+			ret = i2c_smbus_write_word_swapped(client, temp_regs[t_min],
+											   data->temp[t_min]);
+			break;
+
+		case hwmon_temp_max:
+			data->temp[t_max] = jc42_temp_to_reg(val, data->extended);
+			ret = i2c_smbus_write_word_swapped(client, temp_regs[t_max],
+											   data->temp[t_max]);
+			break;
+
+		case hwmon_temp_crit:
+			data->temp[t_crit] = jc42_temp_to_reg(val, data->extended);
+			ret = i2c_smbus_write_word_swapped(client, temp_regs[t_crit],
+											   data->temp[t_crit]);
+			break;
+
+		case hwmon_temp_crit_hyst:
+			/*
+			 * JC42.4 compliant chips only support four hysteresis values.
+			 * Pick best choice and go from there.
+			 */
+			val = clamp_val(val, (data->extended ? JC42_TEMP_MIN_EXTENDED
+								  : JC42_TEMP_MIN) - 6000,
+							JC42_TEMP_MAX);
+			diff = jc42_temp_from_reg(data->temp[t_crit]) - val;
+			hyst = 0;
+
+			if (diff > 0)
+			{
+				if (diff < 2250)
+				{
+					hyst = 1;    /* 1.5 degrees C */
+				}
+				else if (diff < 4500)
+				{
+					hyst = 2;    /* 3.0 degrees C */
+				}
+				else
+				{
+					hyst = 3;    /* 6.0 degrees C */
+				}
+			}
+
+			data->config = (data->config & ~JC42_CFG_HYST_MASK) |
+						   (hyst << JC42_CFG_HYST_SHIFT);
+			ret = i2c_smbus_write_word_swapped(data->client,
+											   JC42_REG_CONFIG,
+											   data->config);
+			break;
+
+		default:
+			ret = -EOPNOTSUPP;
+			break;
 	}
 
 	mutex_unlock(&data->update_lock);
@@ -362,36 +402,51 @@ static int jc42_write(struct device *dev, enum hwmon_sensor_types type,
 }
 
 static umode_t jc42_is_visible(const void *_data, enum hwmon_sensor_types type,
-			       u32 attr, int channel)
+							   u32 attr, int channel)
 {
 	const struct jc42_data *data = _data;
 	unsigned int config = data->config;
 	umode_t mode = S_IRUGO;
 
-	switch (attr) {
-	case hwmon_temp_min:
-	case hwmon_temp_max:
-		if (!(config & JC42_CFG_EVENT_LOCK))
-			mode |= S_IWUSR;
-		break;
-	case hwmon_temp_crit:
-		if (!(config & JC42_CFG_TCRIT_LOCK))
-			mode |= S_IWUSR;
-		break;
-	case hwmon_temp_crit_hyst:
-		if (!(config & (JC42_CFG_EVENT_LOCK | JC42_CFG_TCRIT_LOCK)))
-			mode |= S_IWUSR;
-		break;
-	case hwmon_temp_input:
-	case hwmon_temp_max_hyst:
-	case hwmon_temp_min_alarm:
-	case hwmon_temp_max_alarm:
-	case hwmon_temp_crit_alarm:
-		break;
-	default:
-		mode = 0;
-		break;
+	switch (attr)
+	{
+		case hwmon_temp_min:
+		case hwmon_temp_max:
+			if (!(config & JC42_CFG_EVENT_LOCK))
+			{
+				mode |= S_IWUSR;
+			}
+
+			break;
+
+		case hwmon_temp_crit:
+			if (!(config & JC42_CFG_TCRIT_LOCK))
+			{
+				mode |= S_IWUSR;
+			}
+
+			break;
+
+		case hwmon_temp_crit_hyst:
+			if (!(config & (JC42_CFG_EVENT_LOCK | JC42_CFG_TCRIT_LOCK)))
+			{
+				mode |= S_IWUSR;
+			}
+
+			break;
+
+		case hwmon_temp_input:
+		case hwmon_temp_max_hyst:
+		case hwmon_temp_min_alarm:
+		case hwmon_temp_max_alarm:
+		case hwmon_temp_crit_alarm:
+			break;
+
+		default:
+			mode = 0;
+			break;
 	}
+
 	return mode;
 }
 
@@ -402,8 +457,10 @@ static int jc42_detect(struct i2c_client *client, struct i2c_board_info *info)
 	int i, config, cap, manid, devid;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
-				     I2C_FUNC_SMBUS_WORD_DATA))
+								 I2C_FUNC_SMBUS_WORD_DATA))
+	{
 		return -ENODEV;
+	}
 
 	cap = i2c_smbus_read_word_swapped(client, JC42_REG_CAP);
 	config = i2c_smbus_read_word_swapped(client, JC42_REG_CONFIG);
@@ -411,46 +468,59 @@ static int jc42_detect(struct i2c_client *client, struct i2c_board_info *info)
 	devid = i2c_smbus_read_word_swapped(client, JC42_REG_DEVICEID);
 
 	if (cap < 0 || config < 0 || manid < 0 || devid < 0)
+	{
 		return -ENODEV;
+	}
 
 	if ((cap & 0xff00) || (config & 0xf800))
+	{
 		return -ENODEV;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(jc42_chips); i++) {
+	for (i = 0; i < ARRAY_SIZE(jc42_chips); i++)
+	{
 		struct jc42_chips *chip = &jc42_chips[i];
+
 		if (manid == chip->manid &&
-		    (devid & chip->devid_mask) == chip->devid) {
+			(devid & chip->devid_mask) == chip->devid)
+		{
 			strlcpy(info->type, "jc42", I2C_NAME_SIZE);
 			return 0;
 		}
 	}
+
 	return -ENODEV;
 }
 
-static const u32 jc42_temp_config[] = {
+static const u32 jc42_temp_config[] =
+{
 	HWMON_T_INPUT | HWMON_T_MIN | HWMON_T_MAX | HWMON_T_CRIT |
 	HWMON_T_MAX_HYST | HWMON_T_CRIT_HYST |
 	HWMON_T_MIN_ALARM | HWMON_T_MAX_ALARM | HWMON_T_CRIT_ALARM,
 	0
 };
 
-static const struct hwmon_channel_info jc42_temp = {
+static const struct hwmon_channel_info jc42_temp =
+{
 	.type = hwmon_temp,
 	.config = jc42_temp_config,
 };
 
-static const struct hwmon_channel_info *jc42_info[] = {
+static const struct hwmon_channel_info *jc42_info[] =
+{
 	&jc42_temp,
 	NULL
 };
 
-static const struct hwmon_ops jc42_hwmon_ops = {
+static const struct hwmon_ops jc42_hwmon_ops =
+{
 	.is_visible = jc42_is_visible,
 	.read = jc42_read,
 	.write = jc42_write,
 };
 
-static const struct hwmon_chip_info jc42_chip_info = {
+static const struct hwmon_chip_info jc42_chip_info =
+{
 	.ops = &jc42_hwmon_ops,
 	.info = jc42_info,
 };
@@ -463,33 +533,45 @@ static int jc42_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	int config, cap;
 
 	data = devm_kzalloc(dev, sizeof(struct jc42_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->client = client;
 	i2c_set_clientdata(client, data);
 	mutex_init(&data->update_lock);
 
 	cap = i2c_smbus_read_word_swapped(client, JC42_REG_CAP);
+
 	if (cap < 0)
+	{
 		return cap;
+	}
 
 	data->extended = !!(cap & JC42_CAP_RANGE);
 
 	config = i2c_smbus_read_word_swapped(client, JC42_REG_CONFIG);
+
 	if (config < 0)
+	{
 		return config;
+	}
 
 	data->orig_config = config;
-	if (config & JC42_CFG_SHUTDOWN) {
+
+	if (config & JC42_CFG_SHUTDOWN)
+	{
 		config &= ~JC42_CFG_SHUTDOWN;
 		i2c_smbus_write_word_swapped(client, JC42_REG_CONFIG, config);
 	}
+
 	data->config = config;
 
 	hwmon_dev = devm_hwmon_device_register_with_info(dev, client->name,
-							 data, &jc42_chip_info,
-							 NULL);
+				data, &jc42_chip_info,
+				NULL);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
@@ -499,13 +581,15 @@ static int jc42_remove(struct i2c_client *client)
 
 	/* Restore original configuration except hysteresis */
 	if ((data->config & ~JC42_CFG_HYST_MASK) !=
-	    (data->orig_config & ~JC42_CFG_HYST_MASK)) {
+		(data->orig_config & ~JC42_CFG_HYST_MASK))
+	{
 		int config;
 
 		config = (data->orig_config & ~JC42_CFG_HYST_MASK)
-		  | (data->config & JC42_CFG_HYST_MASK);
+				 | (data->config & JC42_CFG_HYST_MASK);
 		i2c_smbus_write_word_swapped(client, JC42_REG_CONFIG, config);
 	}
+
 	return 0;
 }
 
@@ -517,7 +601,7 @@ static int jc42_suspend(struct device *dev)
 
 	data->config |= JC42_CFG_SHUTDOWN;
 	i2c_smbus_write_word_swapped(data->client, JC42_REG_CONFIG,
-				     data->config);
+								 data->config);
 	return 0;
 }
 
@@ -527,11 +611,12 @@ static int jc42_resume(struct device *dev)
 
 	data->config &= ~JC42_CFG_SHUTDOWN;
 	i2c_smbus_write_word_swapped(data->client, JC42_REG_CONFIG,
-				     data->config);
+								 data->config);
 	return 0;
 }
 
-static const struct dev_pm_ops jc42_dev_pm_ops = {
+static const struct dev_pm_ops jc42_dev_pm_ops =
+{
 	.suspend = jc42_suspend,
 	.resume = jc42_resume,
 };
@@ -541,21 +626,24 @@ static const struct dev_pm_ops jc42_dev_pm_ops = {
 #define JC42_DEV_PM_OPS NULL
 #endif /* CONFIG_PM */
 
-static const struct i2c_device_id jc42_id[] = {
+static const struct i2c_device_id jc42_id[] =
+{
 	{ "jc42", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, jc42_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id jc42_of_ids[] = {
+static const struct of_device_id jc42_of_ids[] =
+{
 	{ .compatible = "jedec,jc-42.4-temp", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, jc42_of_ids);
 #endif
 
-static struct i2c_driver jc42_driver = {
+static struct i2c_driver jc42_driver =
+{
 	.class		= I2C_CLASS_SPD | I2C_CLASS_HWMON,
 	.driver = {
 		.name	= "jc42",

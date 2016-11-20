@@ -16,7 +16,8 @@
 #include <linux/vmalloc.h>
 #include <asm/io.h>
 
-typedef struct {
+typedef struct
+{
 	u64 length;
 	u64 data;
 } efi_capsule_block_desc_t;
@@ -52,10 +53,14 @@ static DEFINE_MUTEX(capsule_mutex);
 bool efi_capsule_pending(int *reset_type)
 {
 	if (!capsule_pending)
+	{
 		return false;
+	}
 
 	if (reset_type)
+	{
 		*reset_type = efi_reset_type;
+	}
 
 	return true;
 }
@@ -92,18 +97,25 @@ int efi_capsule_supported(efi_guid_t guid, u32 flags, size_t size, int *reset)
 	u64 max_size;
 
 	if (flags & ~EFI_CAPSULE_SUPPORTED_FLAG_MASK)
+	{
 		return -EINVAL;
+	}
 
 	capsule.headersize = capsule.imagesize = sizeof(capsule);
 	memcpy(&capsule.guid, &guid, sizeof(efi_guid_t));
 	capsule.flags = flags;
 
 	status = efi.query_capsule_caps(cap_list, 1, &max_size, reset);
+
 	if (status != EFI_SUCCESS)
+	{
 		return efi_status_to_err(status);
+	}
 
 	if (size > max_size)
+	{
 		return -ENOSPC;
+	}
 
 	return 0;
 }
@@ -142,7 +154,7 @@ static inline unsigned int sg_pages_num(unsigned int count)
  */
 static int
 efi_capsule_update_locked(efi_capsule_header_t *capsule,
-			  struct page **sg_pages, int reset)
+						  struct page **sg_pages, int reset)
 {
 	efi_physical_addr_t sglist_phys;
 	efi_status_t status;
@@ -153,9 +165,10 @@ efi_capsule_update_locked(efi_capsule_header_t *capsule,
 	 * If someone has already registered a capsule that requires a
 	 * different reset type, we're out of luck and must abort.
 	 */
-	if (efi_reset_type >= 0 && efi_reset_type != reset) {
+	if (efi_reset_type >= 0 && efi_reset_type != reset)
+	{
 		pr_err("Conflicting capsule reset type %d (%d).\n",
-		       reset, efi_reset_type);
+			   reset, efi_reset_type);
 		return -EINVAL;
 	}
 
@@ -165,7 +178,8 @@ efi_capsule_update_locked(efi_capsule_header_t *capsule,
 	 * whether to force an EFI reboot), and we're racing against
 	 * that call. Abort in that case.
 	 */
-	if (unlikely(stop_capsules)) {
+	if (unlikely(stop_capsules))
+	{
 		pr_warn("Capsule update raced with reboot, aborting.\n");
 		return -EINVAL;
 	}
@@ -173,7 +187,9 @@ efi_capsule_update_locked(efi_capsule_header_t *capsule,
 	sglist_phys = page_to_phys(sg_pages[0]);
 
 	status = efi.update_capsule(&capsule, 1, sglist_phys);
-	if (status == EFI_SUCCESS) {
+
+	if (status == EFI_SUCCESS)
+	{
 		capsule_pending = true;
 		efi_reset_type = reset;
 	}
@@ -225,34 +241,47 @@ int efi_capsule_update(efi_capsule_header_t *capsule, struct page **pages)
 	int i, j;
 
 	rv = efi_capsule_supported(guid, flags, imagesize, &reset_type);
+
 	if (rv)
+	{
 		return rv;
+	}
 
 	count = DIV_ROUND_UP(imagesize, PAGE_SIZE);
 	sg_count = sg_pages_num(count);
 
 	sg_pages = kzalloc(sg_count * sizeof(*sg_pages), GFP_KERNEL);
-	if (!sg_pages)
-		return -ENOMEM;
 
-	for (i = 0; i < sg_count; i++) {
+	if (!sg_pages)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < sg_count; i++)
+	{
 		sg_pages[i] = alloc_page(GFP_KERNEL);
-		if (!sg_pages[i]) {
+
+		if (!sg_pages[i])
+		{
 			rv = -ENOMEM;
 			goto out;
 		}
 	}
 
-	for (i = 0; i < sg_count; i++) {
+	for (i = 0; i < sg_count; i++)
+	{
 		efi_capsule_block_desc_t *sglist;
 
 		sglist = kmap(sg_pages[i]);
-		if (!sglist) {
+
+		if (!sglist)
+		{
 			rv = -ENOMEM;
 			goto out;
 		}
 
-		for (j = 0; j < SGLIST_PER_PAGE && count > 0; j++) {
+		for (j = 0; j < SGLIST_PER_PAGE && count > 0; j++)
+		{
 			u64 sz = min_t(u64, imagesize, PAGE_SIZE);
 
 			sglist[j].length = sz;
@@ -266,9 +295,13 @@ int efi_capsule_update(efi_capsule_header_t *capsule, struct page **pages)
 		sglist[j].length = 0;
 
 		if (i + 1 == sg_count)
+		{
 			sglist[j].data = 0;
+		}
 		else
+		{
 			sglist[j].data = page_to_phys(sg_pages[i + 1]);
+		}
 
 		kunmap(sg_pages[i]);
 	}
@@ -278,9 +311,13 @@ int efi_capsule_update(efi_capsule_header_t *capsule, struct page **pages)
 	mutex_unlock(&capsule_mutex);
 
 out:
-	for (i = 0; rv && i < sg_count; i++) {
+
+	for (i = 0; rv && i < sg_count; i++)
+	{
 		if (sg_pages[i])
+		{
 			__free_page(sg_pages[i]);
+		}
 	}
 
 	kfree(sg_pages);
@@ -297,7 +334,8 @@ static int capsule_reboot_notify(struct notifier_block *nb, unsigned long event,
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block capsule_reboot_nb = {
+static struct notifier_block capsule_reboot_nb =
+{
 	.notifier_call = capsule_reboot_notify,
 };
 

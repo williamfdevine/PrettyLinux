@@ -33,6 +33,6 @@ int mt2701_turn_on_afe_clock(struct mtk_base_afe *afe);
 void mt2701_turn_off_afe_clock(struct mtk_base_afe *afe);
 
 void mt2701_mclk_configuration(struct mtk_base_afe *afe, int id, int domain,
-			       int mclk);
+							   int mclk);
 
 #endif

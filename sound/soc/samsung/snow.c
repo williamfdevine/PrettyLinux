@@ -22,14 +22,15 @@
 
 #define FIN_PLL_RATE		24000000
 
-static struct snd_soc_dai_link snow_dai[] = {
+static struct snd_soc_dai_link snow_dai[] =
+{
 	{
 		.name = "Primary",
 		.stream_name = "Primary",
 		.codec_dai_name = "HiFi",
 		.dai_fmt = SND_SOC_DAIFMT_I2S |
-				SND_SOC_DAIFMT_NB_NF |
-				SND_SOC_DAIFMT_CBS_CFS,
+		SND_SOC_DAIFMT_NB_NF |
+		SND_SOC_DAIFMT_CBS_CFS,
 	},
 };
 
@@ -46,20 +47,27 @@ static int snow_late_probe(struct snd_soc_card *card)
 
 	/* Set the MCLK rate for the codec */
 	ret = snd_soc_dai_set_sysclk(codec_dai, 0,
-					FIN_PLL_RATE, SND_SOC_CLOCK_IN);
+								 FIN_PLL_RATE, SND_SOC_CLOCK_IN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Select I2S Bus clock to set RCLK and BCLK */
 	ret = snd_soc_dai_set_sysclk(cpu_dai, SAMSUNG_I2S_RCLKSRC_0,
-					0, SND_SOC_CLOCK_IN);
+								 0, SND_SOC_CLOCK_IN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
-static struct snd_soc_card snow_snd = {
+static struct snd_soc_card snow_snd =
+{
 	.name = "Snow-I2S",
 	.owner = THIS_MODULE,
 	.dai_link = snow_dai,
@@ -75,22 +83,27 @@ static int snow_probe(struct platform_device *pdev)
 	int i, ret;
 
 	i2s_node = of_parse_phandle(pdev->dev.of_node,
-				    "samsung,i2s-controller", 0);
-	if (!i2s_node) {
+								"samsung,i2s-controller", 0);
+
+	if (!i2s_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'i2s-controller' missing or invalid\n");
+				"Property 'i2s-controller' missing or invalid\n");
 		return -EINVAL;
 	}
 
 	codec_node = of_parse_phandle(pdev->dev.of_node,
-				      "samsung,audio-codec", 0);
-	if (!codec_node) {
+								  "samsung,audio-codec", 0);
+
+	if (!codec_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'audio-codec' missing or invalid\n");
+				"Property 'audio-codec' missing or invalid\n");
 		return -EINVAL;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(snow_dai); i++) {
+	for (i = 0; i < ARRAY_SIZE(snow_dai); i++)
+	{
 		snow_dai[i].codec_of_node = codec_node;
 		snow_dai[i].cpu_of_node = i2s_node;
 		snow_dai[i].platform_of_node = i2s_node;
@@ -102,7 +115,9 @@ static int snow_probe(struct platform_device *pdev)
 	snd_soc_of_parse_card_name(card, "samsung,model");
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
 		return ret;
 	}
@@ -110,7 +125,8 @@ static int snow_probe(struct platform_device *pdev)
 	return ret;
 }
 
-static const struct of_device_id snow_of_match[] = {
+static const struct of_device_id snow_of_match[] =
+{
 	{ .compatible = "google,snow-audio-max98090", },
 	{ .compatible = "google,snow-audio-max98091", },
 	{ .compatible = "google,snow-audio-max98095", },
@@ -118,7 +134,8 @@ static const struct of_device_id snow_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, snow_of_match);
 
-static struct platform_driver snow_driver = {
+static struct platform_driver snow_driver =
+{
 	.driver = {
 		.name = "snow-audio",
 		.pm = &snd_soc_pm_ops,

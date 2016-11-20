@@ -24,9 +24,9 @@
 
 #define ID_LED_RESERVED_F746	0xF746
 #define ID_LED_DEFAULT_82573	((ID_LED_DEF1_DEF2 << 12) | \
-				 (ID_LED_OFF1_ON2  <<  8) | \
-				 (ID_LED_DEF1_DEF2 <<  4) | \
-				 (ID_LED_DEF1_DEF2))
+								 (ID_LED_OFF1_ON2  <<  8) | \
+								 (ID_LED_DEF1_DEF2 <<  4) | \
+								 (ID_LED_DEF1_DEF2))
 
 #define E1000_GCR_L1_ACT_WITHOUT_L0S_RX	0x08000000
 #define AN_RETRY_COUNT		5	/* Autoneg Retry Count value */

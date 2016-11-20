@@ -49,13 +49,18 @@ static int iproc_pcie_bcma_probe(struct bcma_device *bdev)
 	int ret;
 
 	pcie = devm_kzalloc(dev, sizeof(*pcie), GFP_KERNEL);
+
 	if (!pcie)
+	{
 		return -ENOMEM;
+	}
 
 	pcie->dev = dev;
 
 	pcie->base = bdev->io_addr;
-	if (!pcie->base) {
+
+	if (!pcie->base)
+	{
 		dev_err(dev, "no controller registers\n");
 		return -ENOMEM;
 	}
@@ -71,8 +76,11 @@ static int iproc_pcie_bcma_probe(struct bcma_device *bdev)
 	pcie->map_irq = iproc_pcie_bcma_map_irq;
 
 	ret = iproc_pcie_setup(pcie, &res);
+
 	if (ret)
+	{
 		dev_err(dev, "PCIe controller setup failed\n");
+	}
 
 	pci_free_resource_list(&res);
 
@@ -87,13 +95,15 @@ static void iproc_pcie_bcma_remove(struct bcma_device *bdev)
 	iproc_pcie_remove(pcie);
 }
 
-static const struct bcma_device_id iproc_pcie_bcma_table[] = {
+static const struct bcma_device_id iproc_pcie_bcma_table[] =
+{
 	BCMA_CORE(BCMA_MANUF_BCM, BCMA_CORE_NS_PCIEG2, BCMA_ANY_REV, BCMA_ANY_CLASS),
 	{},
 };
 MODULE_DEVICE_TABLE(bcma, iproc_pcie_bcma_table);
 
-static struct bcma_driver iproc_pcie_bcma_driver = {
+static struct bcma_driver iproc_pcie_bcma_driver =
+{
 	.name		= KBUILD_MODNAME,
 	.id_table	= iproc_pcie_bcma_table,
 	.probe		= iproc_pcie_bcma_probe,

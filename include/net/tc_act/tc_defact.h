@@ -3,7 +3,8 @@
 
 #include <net/act_api.h>
 
-struct tcf_defact {
+struct tcf_defact
+{
 	struct tc_action	common;
 	u32		tcfd_datalen;
 	void		*tcfd_defdata;

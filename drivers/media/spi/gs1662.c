@@ -47,19 +47,22 @@
 #define GS_PIXELCLOCK_MIN		10519200
 #define GS_PIXELCLOCK_MAX		74250000
 
-struct gs {
+struct gs
+{
 	struct spi_device *pdev;
 	struct v4l2_subdev sd;
 	struct v4l2_dv_timings current_timings;
 	int enabled;
 };
 
-struct gs_reg_fmt {
+struct gs_reg_fmt
+{
 	u16 reg_value;
 	struct v4l2_dv_timings format;
 };
 
-struct gs_reg_fmt_custom {
+struct gs_reg_fmt_custom
+{
 	u16 reg_value;
 	__u32 width;
 	__u32 height;
@@ -67,13 +70,15 @@ struct gs_reg_fmt_custom {
 	__u32 interlaced;
 };
 
-static const struct spi_device_id gs_id[] = {
+static const struct spi_device_id gs_id[] =
+{
 	{ "gs1662", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(spi, gs_id);
 
-static const struct v4l2_dv_timings fmt_cap[] = {
+static const struct v4l2_dv_timings fmt_cap[] =
+{
 	V4L2_DV_BT_SDI_720X487I60,
 	V4L2_DV_BT_CEA_720X576P50,
 	V4L2_DV_BT_CEA_1280X720P24,
@@ -88,7 +93,8 @@ static const struct v4l2_dv_timings fmt_cap[] = {
 	V4L2_DV_BT_CEA_1920X1080I60,
 };
 
-static const struct gs_reg_fmt reg_fmt[] = {
+static const struct gs_reg_fmt reg_fmt[] =
+{
 	{ 0x00, V4L2_DV_BT_CEA_1280X720P60 },
 	{ 0x01, V4L2_DV_BT_CEA_1280X720P60 },
 	{ 0x02, V4L2_DV_BT_CEA_1280X720P30 },
@@ -129,16 +135,17 @@ static const struct gs_reg_fmt reg_fmt[] = {
 #endif
 };
 
-static const struct v4l2_dv_timings_cap gs_timings_cap = {
+static const struct v4l2_dv_timings_cap gs_timings_cap =
+{
 	.type = V4L2_DV_BT_656_1120,
 	/* keep this initialization for compatibility with GCC < 4.4.6 */
 	.reserved = { 0 },
 	V4L2_INIT_BT_TIMINGS(GS_WIDTH_MIN, GS_WIDTH_MAX, GS_HEIGHT_MIN,
-			     GS_HEIGHT_MAX, GS_PIXELCLOCK_MIN,
-			     GS_PIXELCLOCK_MAX,
-			     V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_SDI,
-			     V4L2_DV_BT_CAP_PROGRESSIVE
-			     | V4L2_DV_BT_CAP_INTERLACED)
+	GS_HEIGHT_MAX, GS_PIXELCLOCK_MIN,
+	GS_PIXELCLOCK_MAX,
+	V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_SDI,
+	V4L2_DV_BT_CAP_PROGRESSIVE
+	| V4L2_DV_BT_CAP_INTERLACED)
 };
 
 static int gs_read_register(struct spi_device *spi, u16 addr, u16 *value)
@@ -147,7 +154,8 @@ static int gs_read_register(struct spi_device *spi, u16 addr, u16 *value)
 	u16 buf_addr = (0x8000 | (0x0FFF & addr));
 	u16 buf_value = 0;
 	struct spi_message msg;
-	struct spi_transfer tx[] = {
+	struct spi_transfer tx[] =
+	{
 		{
 			.tx_buf = &buf_addr,
 			.len = 2,
@@ -175,7 +183,8 @@ static int gs_write_register(struct spi_device *spi, u16 addr, u16 value)
 	u16 buf_addr = addr;
 	u16 buf_value = value;
 	struct spi_message msg;
-	struct spi_transfer tx[] = {
+	struct spi_transfer tx[] =
+	{
 		{
 			.tx_buf = &buf_addr,
 			.len = 2,
@@ -197,7 +206,7 @@ static int gs_write_register(struct spi_device *spi, u16 addr, u16 value)
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 static int gs_g_register(struct v4l2_subdev *sd,
-		  struct v4l2_dbg_register *reg)
+						 struct v4l2_dbg_register *reg)
 {
 	struct spi_device *spi = v4l2_get_subdevdata(sd);
 	u16 val;
@@ -210,7 +219,7 @@ static int gs_g_register(struct v4l2_subdev *sd,
 }
 
 static int gs_s_register(struct v4l2_subdev *sd,
-		  const struct v4l2_dbg_register *reg)
+						 const struct v4l2_dbg_register *reg)
 {
 	struct spi_device *spi = v4l2_get_subdevdata(sd);
 
@@ -223,8 +232,10 @@ static int gs_status_format(u16 status, struct v4l2_dv_timings *timings)
 	int std = (status & MASK_STD_STATUS) >> 5;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(reg_fmt); i++) {
-		if (reg_fmt[i].reg_value == std) {
+	for (i = 0; i < ARRAY_SIZE(reg_fmt); i++)
+	{
+		if (reg_fmt[i].reg_value == std)
+		{
 			*timings = reg_fmt[i].format;
 			return 0;
 		}
@@ -237,10 +248,13 @@ static u16 get_register_timings(struct v4l2_dv_timings *timings)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(reg_fmt); i++) {
+	for (i = 0; i < ARRAY_SIZE(reg_fmt); i++)
+	{
 		if (v4l2_match_dv_timings(timings, &reg_fmt[i].format, 0,
-					  false))
+								  false))
+		{
 			return reg_fmt[i].reg_value | MASK_FORCE_STD;
+		}
 	}
 
 	return 0x0;
@@ -252,21 +266,24 @@ static inline struct gs *to_gs(struct v4l2_subdev *sd)
 }
 
 static int gs_s_dv_timings(struct v4l2_subdev *sd,
-		    struct v4l2_dv_timings *timings)
+						   struct v4l2_dv_timings *timings)
 {
 	struct gs *gs = to_gs(sd);
 	int reg_value;
 
 	reg_value = get_register_timings(timings);
+
 	if (reg_value == 0x0)
+	{
 		return -EINVAL;
+	}
 
 	gs->current_timings = *timings;
 	return 0;
 }
 
 static int gs_g_dv_timings(struct v4l2_subdev *sd,
-		    struct v4l2_dv_timings *timings)
+						   struct v4l2_dv_timings *timings)
 {
 	struct gs *gs = to_gs(sd);
 
@@ -275,7 +292,7 @@ static int gs_g_dv_timings(struct v4l2_subdev *sd,
 }
 
 static int gs_query_dv_timings(struct v4l2_subdev *sd,
-			struct v4l2_dv_timings *timings)
+							   struct v4l2_dv_timings *timings)
 {
 	struct gs *gs = to_gs(sd);
 	struct v4l2_dv_timings fmt;
@@ -283,45 +300,65 @@ static int gs_query_dv_timings(struct v4l2_subdev *sd,
 	int ret;
 
 	if (gs->enabled)
+	{
 		return -EBUSY;
+	}
 
 	/*
 	 * Check if the component detect a line, a frame or something else
 	 * which looks like a video signal activity.
 	 */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		gs_read_register(gs->pdev, REG_LINES_PER_FRAME + i, &reg_value);
+
 		if (reg_value)
+		{
 			break;
+		}
 	}
 
 	/* If no register reports a video signal */
 	if (i >= 4)
+	{
 		return -ENOLINK;
+	}
 
 	gs_read_register(gs->pdev, REG_STATUS, &reg_value);
+
 	if (!(reg_value & MASK_H_LOCK) || !(reg_value & MASK_V_LOCK))
+	{
 		return -ENOLCK;
+	}
+
 	if (!(reg_value & MASK_STD_LOCK))
+	{
 		return -ERANGE;
+	}
 
 	ret = gs_status_format(reg_value, &fmt);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*timings = fmt;
 	return 0;
 }
 
 static int gs_enum_dv_timings(struct v4l2_subdev *sd,
-		       struct v4l2_enum_dv_timings *timings)
+							  struct v4l2_enum_dv_timings *timings)
 {
 	if (timings->index >= ARRAY_SIZE(fmt_cap))
+	{
 		return -EINVAL;
+	}
 
 	if (timings->pad != 0)
+	{
 		return -EINVAL;
+	}
 
 	timings->timings = fmt_cap[timings->index];
 	return 0;
@@ -333,11 +370,14 @@ static int gs_s_stream(struct v4l2_subdev *sd, int enable)
 	int reg_value;
 
 	if (gs->enabled == enable)
+	{
 		return 0;
+	}
 
 	gs->enabled = enable;
 
-	if (enable) {
+	if (enable)
+	{
 		/* To force the specific format */
 		reg_value = get_register_timings(&gs->current_timings);
 		return gs_write_register(gs->pdev, REG_FORCE_FMT, reg_value);
@@ -357,12 +397,18 @@ static int gs_g_input_status(struct v4l2_subdev *sd, u32 *status)
 	 * Check if the component detect a line, a frame or something else
 	 * which looks like a video signal activity.
 	 */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		ret = gs_read_register(gs->pdev,
-				       REG_LINES_PER_FRAME + i, &reg_value);
+							   REG_LINES_PER_FRAME + i, &reg_value);
+
 		if (reg_value)
+		{
 			break;
-		if (ret) {
+		}
+
+		if (ret)
+		{
 			*status = V4L2_IN_ST_NO_POWER;
 			return ret;
 		}
@@ -370,38 +416,53 @@ static int gs_g_input_status(struct v4l2_subdev *sd, u32 *status)
 
 	/* If no register reports a video signal */
 	if (i >= 4)
+	{
 		*status |= V4L2_IN_ST_NO_SIGNAL;
+	}
 
 	ret = gs_read_register(gs->pdev, REG_STATUS, &reg_value);
+
 	if (!(reg_value & MASK_H_LOCK))
+	{
 		*status |=  V4L2_IN_ST_NO_H_LOCK;
+	}
+
 	if (!(reg_value & MASK_V_LOCK))
+	{
 		*status |=  V4L2_IN_ST_NO_V_LOCK;
+	}
+
 	if (!(reg_value & MASK_STD_LOCK))
+	{
 		*status |=  V4L2_IN_ST_NO_STD_LOCK;
+	}
 
 	return ret;
 }
 
 static int gs_dv_timings_cap(struct v4l2_subdev *sd,
-			     struct v4l2_dv_timings_cap *cap)
+							 struct v4l2_dv_timings_cap *cap)
 {
 	if (cap->pad != 0)
+	{
 		return -EINVAL;
+	}
 
 	*cap = gs_timings_cap;
 	return 0;
 }
 
 /* V4L2 core operation handlers */
-static const struct v4l2_subdev_core_ops gs_core_ops = {
+static const struct v4l2_subdev_core_ops gs_core_ops =
+{
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register = gs_g_register,
 	.s_register = gs_s_register,
 #endif
 };
 
-static const struct v4l2_subdev_video_ops gs_video_ops = {
+static const struct v4l2_subdev_video_ops gs_video_ops =
+{
 	.s_dv_timings = gs_s_dv_timings,
 	.g_dv_timings = gs_g_dv_timings,
 	.s_stream = gs_s_stream,
@@ -409,13 +470,15 @@ static const struct v4l2_subdev_video_ops gs_video_ops = {
 	.query_dv_timings = gs_query_dv_timings,
 };
 
-static const struct v4l2_subdev_pad_ops gs_pad_ops = {
+static const struct v4l2_subdev_pad_ops gs_pad_ops =
+{
 	.enum_dv_timings = gs_enum_dv_timings,
 	.dv_timings_cap = gs_dv_timings_cap,
 };
 
 /* V4L2 top level operation handlers */
-static const struct v4l2_subdev_ops gs_ops = {
+static const struct v4l2_subdev_ops gs_ops =
+{
 	.core = &gs_core_ops,
 	.video = &gs_video_ops,
 	.pad = &gs_pad_ops,
@@ -428,8 +491,11 @@ static int gs_probe(struct spi_device *spi)
 	struct v4l2_subdev *sd;
 
 	gs = devm_kzalloc(&spi->dev, sizeof(struct gs), GFP_KERNEL);
+
 	if (!gs)
+	{
 		return -ENOMEM;
+	}
 
 	gs->pdev = spi;
 	sd = &gs->sd;
@@ -460,7 +526,8 @@ static int gs_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver gs_driver = {
+static struct spi_driver gs_driver =
+{
 	.driver = {
 		.name		= "gs1662",
 		.owner		= THIS_MODULE,

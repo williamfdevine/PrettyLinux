@@ -84,7 +84,8 @@
  * @buffer_depth: size of @buf.
  * @trigger_cntr: amount of words to store after a trigger.
  */
-struct etb_drvdata {
+struct etb_drvdata
+{
 	void __iomem		*base;
 	struct device		*dev;
 	struct clk		*atclk;
@@ -121,9 +122,12 @@ static void etb_enable_hw(struct etb_drvdata *drvdata)
 	depth = drvdata->buffer_depth;
 	/* reset write RAM pointer address */
 	writel_relaxed(0x0, drvdata->base + ETB_RAM_WRITE_POINTER);
+
 	/* clear entire RAM buffer */
 	for (i = 0; i < depth; i++)
+	{
 		writel_relaxed(0x0, drvdata->base + ETB_RWD_REG);
+	}
 
 	/* reset write RAM pointer address */
 	writel_relaxed(0x0, drvdata->base + ETB_RAM_WRITE_POINTER);
@@ -132,7 +136,7 @@ static void etb_enable_hw(struct etb_drvdata *drvdata)
 
 	writel_relaxed(drvdata->trigger_cntr, drvdata->base + ETB_TRG);
 	writel_relaxed(ETB_FFCR_EN_FTC | ETB_FFCR_STOP_TRIGGER,
-		       drvdata->base + ETB_FFCR);
+				   drvdata->base + ETB_FFCR);
 	/* ETB trace capture enable */
 	writel_relaxed(ETB_CTL_CAPT_EN, drvdata->base + ETB_CTL_REG);
 
@@ -146,18 +150,23 @@ static int etb_enable(struct coresight_device *csdev, u32 mode)
 	struct etb_drvdata *drvdata = dev_get_drvdata(csdev->dev.parent);
 
 	val = local_cmpxchg(&drvdata->mode,
-			    CS_MODE_DISABLED, mode);
+						CS_MODE_DISABLED, mode);
+
 	/*
 	 * When accessing from Perf, a HW buffer can be handled
 	 * by a single trace entity.  In sysFS mode many tracers
 	 * can be logging to the same HW buffer.
 	 */
 	if (val == CS_MODE_PERF)
+	{
 		return -EBUSY;
+	}
 
 	/* Nothing to do, the tracer is already enabled. */
 	if (val == CS_MODE_SYSFS)
+	{
 		goto out;
+	}
 
 	spin_lock_irqsave(&drvdata->spinlock, flags);
 	etb_enable_hw(drvdata);
@@ -182,17 +191,19 @@ static void etb_disable_hw(struct etb_drvdata *drvdata)
 	ffcr |= ETB_FFCR_FON_MAN;
 	writel_relaxed(ffcr, drvdata->base + ETB_FFCR);
 
-	if (coresight_timeout(drvdata->base, ETB_FFCR, ETB_FFCR_BIT, 0)) {
+	if (coresight_timeout(drvdata->base, ETB_FFCR, ETB_FFCR_BIT, 0))
+	{
 		dev_err(drvdata->dev,
-		"timeout while waiting for completion of Manual Flush\n");
+				"timeout while waiting for completion of Manual Flush\n");
 	}
 
 	/* disable trace capture */
 	writel_relaxed(0x0, drvdata->base + ETB_CTL_REG);
 
-	if (coresight_timeout(drvdata->base, ETB_FFSR, ETB_FFSR_BIT, 1)) {
+	if (coresight_timeout(drvdata->base, ETB_FFSR, ETB_FFSR_BIT, 1))
+	{
 		dev_err(drvdata->dev,
-			"timeout while waiting for Formatter to Stop\n");
+				"timeout while waiting for Formatter to Stop\n");
 	}
 
 	CS_LOCK(drvdata->base);
@@ -213,35 +224,46 @@ static void etb_dump_hw(struct etb_drvdata *drvdata)
 
 	frame_off = write_ptr % ETB_FRAME_SIZE_WORDS;
 	frame_endoff = ETB_FRAME_SIZE_WORDS - frame_off;
-	if (frame_off) {
+
+	if (frame_off)
+	{
 		dev_err(drvdata->dev,
-			"write_ptr: %lu not aligned to formatter frame size\n",
-			(unsigned long)write_ptr);
+				"write_ptr: %lu not aligned to formatter frame size\n",
+				(unsigned long)write_ptr);
 		dev_err(drvdata->dev, "frameoff: %lu, frame_endoff: %lu\n",
-			(unsigned long)frame_off, (unsigned long)frame_endoff);
+				(unsigned long)frame_off, (unsigned long)frame_endoff);
 		write_ptr += frame_endoff;
 	}
 
 	if ((readl_relaxed(drvdata->base + ETB_STATUS_REG)
-		      & ETB_STATUS_RAM_FULL) == 0)
+		 & ETB_STATUS_RAM_FULL) == 0)
+	{
 		writel_relaxed(0x0, drvdata->base + ETB_RAM_READ_POINTER);
+	}
 	else
+	{
 		writel_relaxed(write_ptr, drvdata->base + ETB_RAM_READ_POINTER);
+	}
 
 	depth = drvdata->buffer_depth;
 	buf_ptr = drvdata->buf;
-	for (i = 0; i < depth; i++) {
+
+	for (i = 0; i < depth; i++)
+	{
 		read_data = readl_relaxed(drvdata->base +
-					  ETB_RAM_READ_DATA_REG);
+								  ETB_RAM_READ_DATA_REG);
 		*buf_ptr++ = read_data >> 0;
 		*buf_ptr++ = read_data >> 8;
 		*buf_ptr++ = read_data >> 16;
 		*buf_ptr++ = read_data >> 24;
 	}
 
-	if (frame_off) {
+	if (frame_off)
+	{
 		buf_ptr -= (frame_endoff * 4);
-		for (i = 0; i < frame_endoff; i++) {
+
+		for (i = 0; i < frame_endoff; i++)
+		{
 			*buf_ptr++ = 0x0;
 			*buf_ptr++ = 0x0;
 			*buf_ptr++ = 0x0;
@@ -270,18 +292,24 @@ static void etb_disable(struct coresight_device *csdev)
 }
 
 static void *etb_alloc_buffer(struct coresight_device *csdev, int cpu,
-			      void **pages, int nr_pages, bool overwrite)
+							  void **pages, int nr_pages, bool overwrite)
 {
 	int node;
 	struct cs_buffers *buf;
 
 	if (cpu == -1)
+	{
 		cpu = smp_processor_id();
+	}
+
 	node = cpu_to_node(cpu);
 
 	buf = kzalloc_node(sizeof(struct cs_buffers), GFP_KERNEL, node);
+
 	if (!buf)
+	{
 		return NULL;
+	}
 
 	buf->snapshot = overwrite;
 	buf->nr_pages = nr_pages;
@@ -298,8 +326,8 @@ static void etb_free_buffer(void *config)
 }
 
 static int etb_set_buffer(struct coresight_device *csdev,
-			  struct perf_output_handle *handle,
-			  void *sink_config)
+						  struct perf_output_handle *handle,
+						  void *sink_config)
 {
 	int ret = 0;
 	unsigned long head;
@@ -320,13 +348,14 @@ static int etb_set_buffer(struct coresight_device *csdev,
 }
 
 static unsigned long etb_reset_buffer(struct coresight_device *csdev,
-				      struct perf_output_handle *handle,
-				      void *sink_config, bool *lost)
+									  struct perf_output_handle *handle,
+									  void *sink_config, bool *lost)
 {
 	unsigned long size = 0;
 	struct cs_buffers *buf = sink_config;
 
-	if (buf) {
+	if (buf)
+	{
 		/*
 		 * In snapshot mode ->data_size holds the new address of the
 		 * ring buffer's head.  The size itself is the whole address
@@ -334,7 +363,7 @@ static unsigned long etb_reset_buffer(struct coresight_device *csdev,
 		 */
 		if (buf->snapshot)
 			handle->head = local_xchg(&buf->data_size,
-						  buf->nr_pages << PAGE_SHIFT);
+									  buf->nr_pages << PAGE_SHIFT);
 
 		/*
 		 * Tell the tracer PMU how much we got in this run and if
@@ -351,8 +380,8 @@ static unsigned long etb_reset_buffer(struct coresight_device *csdev,
 }
 
 static void etb_update_buffer(struct coresight_device *csdev,
-			      struct perf_output_handle *handle,
-			      void *sink_config)
+							  struct perf_output_handle *handle,
+							  void *sink_config)
 {
 	int i, cur;
 	u8 *buf_ptr;
@@ -363,7 +392,9 @@ static void etb_update_buffer(struct coresight_device *csdev,
 	struct etb_drvdata *drvdata = dev_get_drvdata(csdev->dev.parent);
 
 	if (!buf)
+	{
 		return;
+	}
 
 	capacity = drvdata->buffer_depth * ETB_FRAME_SIZE_WORDS;
 
@@ -379,10 +410,11 @@ static void etb_update_buffer(struct coresight_device *csdev,
 	 * go back to the last alignement point to give decoding tools a
 	 * chance to fix things.
 	 */
-	if (write_ptr % ETB_FRAME_SIZE_WORDS) {
+	if (write_ptr % ETB_FRAME_SIZE_WORDS)
+	{
 		dev_err(drvdata->dev,
-			"write_ptr: %lu not aligned to formatter frame size\n",
-			(unsigned long)write_ptr);
+				"write_ptr: %lu not aligned to formatter frame size\n",
+				(unsigned long)write_ptr);
 
 		write_ptr &= ~(ETB_FRAME_SIZE_WORDS - 1);
 		local_inc(&buf->lost);
@@ -395,11 +427,15 @@ static void etb_update_buffer(struct coresight_device *csdev,
 	 * been reached.
 	 */
 	status = readl_relaxed(drvdata->base + ETB_STATUS_REG);
-	if (status & ETB_STATUS_RAM_FULL) {
+
+	if (status & ETB_STATUS_RAM_FULL)
+	{
 		local_inc(&buf->lost);
 		to_read = capacity;
 		read_ptr = write_ptr;
-	} else {
+	}
+	else
+	{
 		to_read = CIRC_CNT(write_ptr, read_ptr, drvdata->buffer_depth);
 		to_read *= ETB_FRAME_SIZE_WORDS;
 	}
@@ -414,7 +450,8 @@ static void etb_update_buffer(struct coresight_device *csdev,
 	 * such, we don't care about not overwriting data that hasn't been
 	 * processed by user space.
 	 */
-	if (!buf->snapshot && to_read > handle->size) {
+	if (!buf->snapshot && to_read > handle->size)
+	{
 		u32 mask = ~(ETB_FRAME_SIZE_WORDS - 1);
 
 		/* The new read pointer must be frame size aligned */
@@ -424,10 +461,14 @@ static void etb_update_buffer(struct coresight_device *csdev,
 		 * everything is in frame size units.
 		 */
 		read_ptr = (write_ptr + drvdata->buffer_depth) -
-					to_read / ETB_FRAME_SIZE_WORDS;
+				   to_read / ETB_FRAME_SIZE_WORDS;
+
 		/* Wrap around if need be*/
 		if (read_ptr > (drvdata->buffer_depth - 1))
+		{
 			read_ptr -= drvdata->buffer_depth;
+		}
+
 		/* let the decoder know we've skipped ahead */
 		local_inc(&buf->lost);
 	}
@@ -437,17 +478,21 @@ static void etb_update_buffer(struct coresight_device *csdev,
 
 	cur = buf->cur;
 	offset = buf->offset;
-	for (i = 0; i < to_read; i += 4) {
+
+	for (i = 0; i < to_read; i += 4)
+	{
 		buf_ptr = buf->data_pages[cur] + offset;
 		read_data = readl_relaxed(drvdata->base +
-					  ETB_RAM_READ_DATA_REG);
+								  ETB_RAM_READ_DATA_REG);
 		*buf_ptr++ = read_data >> 0;
 		*buf_ptr++ = read_data >> 8;
 		*buf_ptr++ = read_data >> 16;
 		*buf_ptr++ = read_data >> 24;
 
 		offset += 4;
-		if (offset >= PAGE_SIZE) {
+
+		if (offset >= PAGE_SIZE)
+		{
 			offset = 0;
 			cur++;
 			/* wrap around at the end of the buffer */
@@ -466,15 +511,20 @@ static void etb_update_buffer(struct coresight_device *csdev,
 	 * forward.
 	 */
 	if (buf->snapshot)
+	{
 		local_set(&buf->data_size, (cur * PAGE_SIZE) + offset);
+	}
 	else
+	{
 		local_add(to_read, &buf->data_size);
+	}
 
 	etb_enable_hw(drvdata);
 	CS_LOCK(drvdata->base);
 }
 
-static const struct coresight_ops_sink etb_sink_ops = {
+static const struct coresight_ops_sink etb_sink_ops =
+{
 	.enable		= etb_enable,
 	.disable	= etb_disable,
 	.alloc_buffer	= etb_alloc_buffer,
@@ -484,7 +534,8 @@ static const struct coresight_ops_sink etb_sink_ops = {
 	.update_buffer	= etb_update_buffer,
 };
 
-static const struct coresight_ops etb_cs_ops = {
+static const struct coresight_ops etb_cs_ops =
+{
 	.sink_ops	= &etb_sink_ops,
 };
 
@@ -493,11 +544,14 @@ static void etb_dump(struct etb_drvdata *drvdata)
 	unsigned long flags;
 
 	spin_lock_irqsave(&drvdata->spinlock, flags);
-	if (local_read(&drvdata->mode) == CS_MODE_SYSFS) {
+
+	if (local_read(&drvdata->mode) == CS_MODE_SYSFS)
+	{
 		etb_disable_hw(drvdata);
 		etb_dump_hw(drvdata);
 		etb_enable_hw(drvdata);
 	}
+
 	spin_unlock_irqrestore(&drvdata->spinlock, flags);
 
 	dev_info(drvdata->dev, "ETB dumped\n");
@@ -506,29 +560,35 @@ static void etb_dump(struct etb_drvdata *drvdata)
 static int etb_open(struct inode *inode, struct file *file)
 {
 	struct etb_drvdata *drvdata = container_of(file->private_data,
-						   struct etb_drvdata, miscdev);
+								  struct etb_drvdata, miscdev);
 
 	if (local_cmpxchg(&drvdata->reading, 0, 1))
+	{
 		return -EBUSY;
+	}
 
 	dev_dbg(drvdata->dev, "%s: successfully opened\n", __func__);
 	return 0;
 }
 
 static ssize_t etb_read(struct file *file, char __user *data,
-				size_t len, loff_t *ppos)
+						size_t len, loff_t *ppos)
 {
 	u32 depth;
 	struct etb_drvdata *drvdata = container_of(file->private_data,
-						   struct etb_drvdata, miscdev);
+								  struct etb_drvdata, miscdev);
 
 	etb_dump(drvdata);
 
 	depth = drvdata->buffer_depth;
-	if (*ppos + len > depth * 4)
-		len = depth * 4 - *ppos;
 
-	if (copy_to_user(data, drvdata->buf + *ppos, len)) {
+	if (*ppos + len > depth * 4)
+	{
+		len = depth * 4 - *ppos;
+	}
+
+	if (copy_to_user(data, drvdata->buf + *ppos, len))
+	{
 		dev_dbg(drvdata->dev, "%s: copy_to_user failed\n", __func__);
 		return -EFAULT;
 	}
@@ -536,21 +596,22 @@ static ssize_t etb_read(struct file *file, char __user *data,
 	*ppos += len;
 
 	dev_dbg(drvdata->dev, "%s: %zu bytes copied, %d bytes left\n",
-		__func__, len, (int)(depth * 4 - *ppos));
+			__func__, len, (int)(depth * 4 - *ppos));
 	return len;
 }
 
 static int etb_release(struct inode *inode, struct file *file)
 {
 	struct etb_drvdata *drvdata = container_of(file->private_data,
-						   struct etb_drvdata, miscdev);
+								  struct etb_drvdata, miscdev);
 	local_set(&drvdata->reading, 0);
 
 	dev_dbg(drvdata->dev, "%s: released\n", __func__);
 	return 0;
 }
 
-static const struct file_operations etb_fops = {
+static const struct file_operations etb_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= etb_open,
 	.read		= etb_read,
@@ -570,7 +631,8 @@ coresight_etb10_simple_func(ctl, ETB_CTL_REG);
 coresight_etb10_simple_func(ffsr, ETB_FFSR);
 coresight_etb10_simple_func(ffcr, ETB_FFCR);
 
-static struct attribute *coresight_etb_mgmt_attrs[] = {
+static struct attribute *coresight_etb_mgmt_attrs[] =
+{
 	&dev_attr_rdp.attr,
 	&dev_attr_sts.attr,
 	&dev_attr_rrp.attr,
@@ -583,7 +645,7 @@ static struct attribute *coresight_etb_mgmt_attrs[] = {
 };
 
 static ssize_t trigger_cntr_show(struct device *dev,
-			    struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	struct etb_drvdata *drvdata = dev_get_drvdata(dev->parent);
 	unsigned long val = drvdata->trigger_cntr;
@@ -592,37 +654,44 @@ static ssize_t trigger_cntr_show(struct device *dev,
 }
 
 static ssize_t trigger_cntr_store(struct device *dev,
-			     struct device_attribute *attr,
-			     const char *buf, size_t size)
+								  struct device_attribute *attr,
+								  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
 	struct etb_drvdata *drvdata = dev_get_drvdata(dev->parent);
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	drvdata->trigger_cntr = val;
 	return size;
 }
 static DEVICE_ATTR_RW(trigger_cntr);
 
-static struct attribute *coresight_etb_attrs[] = {
+static struct attribute *coresight_etb_attrs[] =
+{
 	&dev_attr_trigger_cntr.attr,
 	NULL,
 };
 
-static const struct attribute_group coresight_etb_group = {
+static const struct attribute_group coresight_etb_group =
+{
 	.attrs = coresight_etb_attrs,
 };
 
-static const struct attribute_group coresight_etb_mgmt_group = {
+static const struct attribute_group coresight_etb_mgmt_group =
+{
 	.attrs = coresight_etb_mgmt_attrs,
 	.name = "mgmt",
 };
 
-const struct attribute_group *coresight_etb_groups[] = {
+const struct attribute_group *coresight_etb_groups[] =
+{
 	&coresight_etb_group,
 	&coresight_etb_mgmt_group,
 	NULL,
@@ -639,30 +708,47 @@ static int etb_probe(struct amba_device *adev, const struct amba_id *id)
 	struct coresight_desc desc = { 0 };
 	struct device_node *np = adev->dev.of_node;
 
-	if (np) {
+	if (np)
+	{
 		pdata = of_get_coresight_platform_data(dev, np);
+
 		if (IS_ERR(pdata))
+		{
 			return PTR_ERR(pdata);
+		}
+
 		adev->dev.platform_data = pdata;
 	}
 
 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+
 	if (!drvdata)
+	{
 		return -ENOMEM;
+	}
 
 	drvdata->dev = &adev->dev;
 	drvdata->atclk = devm_clk_get(&adev->dev, "atclk"); /* optional */
-	if (!IS_ERR(drvdata->atclk)) {
+
+	if (!IS_ERR(drvdata->atclk))
+	{
 		ret = clk_prepare_enable(drvdata->atclk);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
+
 	dev_set_drvdata(dev, drvdata);
 
 	/* validity for the resource is already checked by the AMBA core */
 	base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	drvdata->base = base;
 
@@ -672,13 +758,17 @@ static int etb_probe(struct amba_device *adev, const struct amba_id *id)
 	pm_runtime_put(&adev->dev);
 
 	if (drvdata->buffer_depth & 0x80000000)
+	{
 		return -EINVAL;
+	}
 
 	drvdata->buf = devm_kzalloc(dev,
-				    drvdata->buffer_depth * 4, GFP_KERNEL);
-	if (!drvdata->buf) {
+								drvdata->buffer_depth * 4, GFP_KERNEL);
+
+	if (!drvdata->buf)
+	{
 		dev_err(dev, "Failed to allocate %u bytes for buffer data\n",
-			drvdata->buffer_depth * 4);
+				drvdata->buffer_depth * 4);
 		return -ENOMEM;
 	}
 
@@ -689,15 +779,21 @@ static int etb_probe(struct amba_device *adev, const struct amba_id *id)
 	desc.dev = dev;
 	desc.groups = coresight_etb_groups;
 	drvdata->csdev = coresight_register(&desc);
+
 	if (IS_ERR(drvdata->csdev))
+	{
 		return PTR_ERR(drvdata->csdev);
+	}
 
 	drvdata->miscdev.name = pdata->name;
 	drvdata->miscdev.minor = MISC_DYNAMIC_MINOR;
 	drvdata->miscdev.fops = &etb_fops;
 	ret = misc_register(&drvdata->miscdev);
+
 	if (ret)
+	{
 		goto err_misc_register;
+	}
 
 	return 0;
 
@@ -712,7 +808,9 @@ static int etb_runtime_suspend(struct device *dev)
 	struct etb_drvdata *drvdata = dev_get_drvdata(dev);
 
 	if (drvdata && !IS_ERR(drvdata->atclk))
+	{
 		clk_disable_unprepare(drvdata->atclk);
+	}
 
 	return 0;
 }
@@ -722,17 +820,21 @@ static int etb_runtime_resume(struct device *dev)
 	struct etb_drvdata *drvdata = dev_get_drvdata(dev);
 
 	if (drvdata && !IS_ERR(drvdata->atclk))
+	{
 		clk_prepare_enable(drvdata->atclk);
+	}
 
 	return 0;
 }
 #endif
 
-static const struct dev_pm_ops etb_dev_pm_ops = {
+static const struct dev_pm_ops etb_dev_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(etb_runtime_suspend, etb_runtime_resume, NULL)
 };
 
-static struct amba_id etb_ids[] = {
+static struct amba_id etb_ids[] =
+{
 	{
 		.id	= 0x0003b907,
 		.mask	= 0x0003ffff,
@@ -740,7 +842,8 @@ static struct amba_id etb_ids[] = {
 	{ 0, 0},
 };
 
-static struct amba_driver etb_driver = {
+static struct amba_driver etb_driver =
+{
 	.drv = {
 		.name	= "coresight-etb10",
 		.owner	= THIS_MODULE,

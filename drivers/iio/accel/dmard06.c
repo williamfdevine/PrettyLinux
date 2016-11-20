@@ -39,27 +39,29 @@
 
 /* Device channels */
 #define DMARD06_ACCEL_CHANNEL(_axis, _reg) {			\
-	.type = IIO_ACCEL,					\
-	.address = _reg,					\
-	.channel2 = IIO_MOD_##_axis,				\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
-	.modified = 1,						\
-}
+		.type = IIO_ACCEL,					\
+				.address = _reg,					\
+						   .channel2 = IIO_MOD_##_axis,				\
+									   .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
+											   .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+													   .modified = 1,						\
+	}
 
 #define DMARD06_TEMP_CHANNEL(_reg) {				\
-	.type = IIO_TEMP,					\
-	.address = _reg,					\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |		\
-			      BIT(IIO_CHAN_INFO_OFFSET),	\
-}
+		.type = IIO_TEMP,					\
+				.address = _reg,					\
+						   .info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |		\
+								   BIT(IIO_CHAN_INFO_OFFSET),	\
+	}
 
-struct dmard06_data {
+struct dmard06_data
+{
 	struct i2c_client *client;
 	u8 chip_id;
 };
 
-static const struct iio_chan_spec dmard06_channels[] = {
+static const struct iio_chan_spec dmard06_channels[] =
+{
 	DMARD06_ACCEL_CHANNEL(X, DMARD06_XOUT_REG),
 	DMARD06_ACCEL_CHANNEL(Y, DMARD06_YOUT_REG),
 	DMARD06_ACCEL_CHANNEL(Z, DMARD06_ZOUT_REG),
@@ -67,81 +69,109 @@ static const struct iio_chan_spec dmard06_channels[] = {
 };
 
 static int dmard06_read_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int *val, int *val2, long mask)
+							struct iio_chan_spec const *chan,
+							int *val, int *val2, long mask)
 {
 	struct dmard06_data *dmard06 = iio_priv(indio_dev);
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		ret = i2c_smbus_read_byte_data(dmard06->client,
-					       chan->address);
-		if (ret < 0) {
-			dev_err(&dmard06->client->dev,
-				"Error reading data: %d\n", ret);
-			return ret;
-		}
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			ret = i2c_smbus_read_byte_data(dmard06->client,
+										   chan->address);
 
-		*val = sign_extend32(ret, DMARD06_SIGN_BIT);
+			if (ret < 0)
+			{
+				dev_err(&dmard06->client->dev,
+						"Error reading data: %d\n", ret);
+				return ret;
+			}
 
-		if (dmard06->chip_id == DMARD06_CHIP_ID)
-			*val = *val >> 1;
+			*val = sign_extend32(ret, DMARD06_SIGN_BIT);
 
-		switch (chan->type) {
-		case IIO_ACCEL:
-			return IIO_VAL_INT;
-		case IIO_TEMP:
-			if (dmard06->chip_id != DMARD06_CHIP_ID)
-				*val = *val / 2;
-			return IIO_VAL_INT;
-		default:
-			return -EINVAL;
-		}
-	case IIO_CHAN_INFO_OFFSET:
-		switch (chan->type) {
-		case IIO_TEMP:
-			*val = DMARD06_TEMP_CENTER_VAL;
-			return IIO_VAL_INT;
-		default:
-			return -EINVAL;
-		}
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->type) {
-		case IIO_ACCEL:
-			*val = 0;
 			if (dmard06->chip_id == DMARD06_CHIP_ID)
-				*val2 = DMARD06_AXIS_SCALE_VAL;
-			else
-				*val2 = DMARD05_AXIS_SCALE_VAL;
-			return IIO_VAL_INT_PLUS_MICRO;
+			{
+				*val = *val >> 1;
+			}
+
+			switch (chan->type)
+			{
+				case IIO_ACCEL:
+					return IIO_VAL_INT;
+
+				case IIO_TEMP:
+					if (dmard06->chip_id != DMARD06_CHIP_ID)
+					{
+						*val = *val / 2;
+					}
+
+					return IIO_VAL_INT;
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_OFFSET:
+			switch (chan->type)
+			{
+				case IIO_TEMP:
+					*val = DMARD06_TEMP_CENTER_VAL;
+					return IIO_VAL_INT;
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->type)
+			{
+				case IIO_ACCEL:
+					*val = 0;
+
+					if (dmard06->chip_id == DMARD06_CHIP_ID)
+					{
+						*val2 = DMARD06_AXIS_SCALE_VAL;
+					}
+					else
+					{
+						*val2 = DMARD05_AXIS_SCALE_VAL;
+					}
+
+					return IIO_VAL_INT_PLUS_MICRO;
+
+				default:
+					return -EINVAL;
+			}
+
 		default:
 			return -EINVAL;
-		}
-	default:
-		return -EINVAL;
 	}
 }
 
-static const struct iio_info dmard06_info = {
+static const struct iio_info dmard06_info =
+{
 	.driver_module	= THIS_MODULE,
 	.read_raw	= dmard06_read_raw,
 };
 
 static int dmard06_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	int ret;
 	struct iio_dev *indio_dev;
 	struct dmard06_data *dmard06;
 
-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		dev_err(&client->dev, "I2C check functionality failed\n");
 		return -ENXIO;
 	}
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*dmard06));
-	if (!indio_dev) {
+
+	if (!indio_dev)
+	{
 		dev_err(&client->dev, "Failed to allocate iio device\n");
 		return -ENOMEM;
 	}
@@ -150,13 +180,16 @@ static int dmard06_probe(struct i2c_client *client,
 	dmard06->client = client;
 
 	ret = i2c_smbus_read_byte_data(dmard06->client, DMARD06_CHIP_ID_REG);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "Error reading chip id: %d\n", ret);
 		return ret;
 	}
 
 	if (ret != DMARD05_CHIP_ID && ret != DMARD06_CHIP_ID &&
-	    ret != DMARD07_CHIP_ID) {
+		ret != DMARD07_CHIP_ID)
+	{
 		dev_err(&client->dev, "Invalid chip id: %02d\n", ret);
 		return -ENODEV;
 	}
@@ -182,9 +215,12 @@ static int dmard06_suspend(struct device *dev)
 	int ret;
 
 	ret = i2c_smbus_write_byte_data(dmard06->client, DMARD06_CTRL1_REG,
-					DMARD06_MODE_POWERDOWN);
+									DMARD06_MODE_POWERDOWN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -196,9 +232,12 @@ static int dmard06_resume(struct device *dev)
 	int ret;
 
 	ret = i2c_smbus_write_byte_data(dmard06->client, DMARD06_CTRL1_REG,
-					DMARD06_MODE_NORMAL);
+									DMARD06_MODE_NORMAL);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -209,7 +248,8 @@ static SIMPLE_DEV_PM_OPS(dmard06_pm_ops, dmard06_suspend, dmard06_resume);
 #define DMARD06_PM_OPS NULL
 #endif
 
-static const struct i2c_device_id dmard06_id[] = {
+static const struct i2c_device_id dmard06_id[] =
+{
 	{ "dmard05", 0 },
 	{ "dmard06", 0 },
 	{ "dmard07", 0 },
@@ -217,7 +257,8 @@ static const struct i2c_device_id dmard06_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, dmard06_id);
 
-static const struct of_device_id dmard06_of_match[] = {
+static const struct of_device_id dmard06_of_match[] =
+{
 	{ .compatible = "domintech,dmard05" },
 	{ .compatible = "domintech,dmard06" },
 	{ .compatible = "domintech,dmard07" },
@@ -225,7 +266,8 @@ static const struct of_device_id dmard06_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, dmard06_of_match);
 
-static struct i2c_driver dmard06_driver = {
+static struct i2c_driver dmard06_driver =
+{
 	.probe = dmard06_probe,
 	.id_table = dmard06_id,
 	.driver = {

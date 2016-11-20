@@ -2,7 +2,8 @@
 #define __NVKM_GR_H__
 #include <core/engine.h>
 
-struct nvkm_gr {
+struct nvkm_gr
+{
 	const struct nvkm_gr_func *func;
 	struct nvkm_engine engine;
 };

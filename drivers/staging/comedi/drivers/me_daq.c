@@ -93,13 +93,14 @@
 #define   ME_DAC_CTRL_BIPOLAR(x)	BIT(7 - ((x) & 0x3))
 #define   ME_DAC_CTRL_GAIN(x)		BIT(11 - ((x) & 0x3))
 #define   ME_DAC_CTRL_MASK(x)		(ME_DAC_CTRL_BIPOLAR(x) |	\
-					 ME_DAC_CTRL_GAIN(x))
+									 ME_DAC_CTRL_GAIN(x))
 #define ME_AO_DATA_REG(x)		(0x14 + ((x) * 2))	/* - | W */
 #define ME_COUNTER_ENDDATA_REG(x)	(0x1c + ((x) * 2))	/* - | W */
 #define ME_COUNTER_STARTDATA_REG(x)	(0x20 + ((x) * 2))	/* - | W */
 #define ME_COUNTER_VALUE_REG(x)		(0x20 + ((x) * 2))	/* R | - */
 
-static const struct comedi_lrange me_ai_range = {
+static const struct comedi_lrange me_ai_range =
+{
 	8, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -112,7 +113,8 @@ static const struct comedi_lrange me_ai_range = {
 	}
 };
 
-static const struct comedi_lrange me_ao_range = {
+static const struct comedi_lrange me_ao_range =
+{
 	3, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -120,18 +122,21 @@ static const struct comedi_lrange me_ao_range = {
 	}
 };
 
-enum me_boardid {
+enum me_boardid
+{
 	BOARD_ME2600,
 	BOARD_ME2000,
 };
 
-struct me_board {
+struct me_board
+{
 	const char *name;
 	int needs_firmware;
 	int has_ao;
 };
 
-static const struct me_board me_boards[] = {
+static const struct me_board me_boards[] =
+{
 	[BOARD_ME2600] = {
 		.name		= "me-2600i",
 		.needs_firmware	= 1,
@@ -142,7 +147,8 @@ static const struct me_board me_boards[] = {
 	},
 };
 
-struct me_private_data {
+struct me_private_data
+{
 	void __iomem *plx_regbase;	/* PLX configuration base address */
 
 	unsigned short ctrl1;		/* Mirror of CONTROL_1 register */
@@ -156,9 +162,9 @@ static inline void sleep(unsigned int sec)
 }
 
 static int me_dio_insn_config(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn,
-			      unsigned int *data)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn,
+							  unsigned int *data)
 {
 	struct me_private_data *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -166,22 +172,38 @@ static int me_dio_insn_config(struct comedi_device *dev,
 	int ret;
 
 	if (chan < 16)
+	{
 		mask = 0x0000ffff;
+	}
 	else
+	{
 		mask = 0xffff0000;
+	}
 
 	ret = comedi_dio_insn_config(dev, s, insn, data, mask);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (s->io_bits & 0x0000ffff)
+	{
 		devpriv->ctrl2 |= ME_CTRL2_PORT_A_ENA;
+	}
 	else
+	{
 		devpriv->ctrl2 &= ~ME_CTRL2_PORT_A_ENA;
+	}
+
 	if (s->io_bits & 0xffff0000)
+	{
 		devpriv->ctrl2 |= ME_CTRL2_PORT_B_ENA;
+	}
 	else
+	{
 		devpriv->ctrl2 &= ~ME_CTRL2_PORT_B_ENA;
+	}
 
 	writew(devpriv->ctrl2, dev->mmio + ME_CTRL2_REG);
 
@@ -189,9 +211,9 @@ static int me_dio_insn_config(struct comedi_device *dev,
 }
 
 static int me_dio_insn_bits(struct comedi_device *dev,
-			    struct comedi_subdevice *s,
-			    struct comedi_insn *insn,
-			    unsigned int *data)
+							struct comedi_subdevice *s,
+							struct comedi_insn *insn,
+							unsigned int *data)
 {
 	void __iomem *mmio_porta = dev->mmio + ME_DIO_PORT_A_REG;
 	void __iomem *mmio_portb = dev->mmio + ME_DIO_PORT_B_REG;
@@ -199,22 +221,37 @@ static int me_dio_insn_bits(struct comedi_device *dev,
 	unsigned int val;
 
 	mask = comedi_dio_update_state(s, data);
-	if (mask) {
+
+	if (mask)
+	{
 		if (mask & 0x0000ffff)
+		{
 			writew((s->state & 0xffff), mmio_porta);
+		}
+
 		if (mask & 0xffff0000)
+		{
 			writew(((s->state >> 16) & 0xffff), mmio_portb);
+		}
 	}
 
 	if (s->io_bits & 0x0000ffff)
+	{
 		val = s->state & 0xffff;
+	}
 	else
+	{
 		val = readw(mmio_porta);
+	}
 
 	if (s->io_bits & 0xffff0000)
+	{
 		val |= (s->state & 0xffff0000);
+	}
 	else
+	{
 		val |= (readw(mmio_portb) << 16);
+	}
 
 	data[1] = val;
 
@@ -222,22 +259,26 @@ static int me_dio_insn_bits(struct comedi_device *dev,
 }
 
 static int me_ai_eoc(struct comedi_device *dev,
-		     struct comedi_subdevice *s,
-		     struct comedi_insn *insn,
-		     unsigned long context)
+					 struct comedi_subdevice *s,
+					 struct comedi_insn *insn,
+					 unsigned long context)
 {
 	unsigned int status;
 
 	status = readw(dev->mmio + ME_STATUS_REG);
+
 	if ((status & ME_STATUS_ADFIFO_EMPTY) == 0)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int me_ai_insn_read(struct comedi_device *dev,
-			   struct comedi_subdevice *s,
-			   struct comedi_insn *insn,
-			   unsigned int *data)
+						   struct comedi_subdevice *s,
+						   struct comedi_insn *insn,
+						   unsigned int *data)
 {
 	struct me_private_data *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -251,9 +292,12 @@ static int me_ai_insn_read(struct comedi_device *dev,
 	 * For differential operation, there are only 8 input channels
 	 * and only bipolar ranges are available.
 	 */
-	if (aref & AREF_DIFF) {
+	if (aref & AREF_DIFF)
+	{
 		if (chan > 7 || comedi_range_is_unipolar(s, range))
+		{
 			return -EINVAL;
+		}
 	}
 
 	/* clear chanlist and ad fifo */
@@ -268,24 +312,35 @@ static int me_ai_insn_read(struct comedi_device *dev,
 
 	/* write to channel list fifo */
 	val = ME_AI_FIFO_CHANLIST_CHAN(chan) | ME_AI_FIFO_CHANLIST_GAIN(range);
+
 	if (comedi_range_is_unipolar(s, range))
+	{
 		val |= ME_AI_FIFO_CHANLIST_UNIPOLAR;
+	}
+
 	if (aref & AREF_DIFF)
+	{
 		val |= ME_AI_FIFO_CHANLIST_DIFF;
+	}
+
 	writew(val, dev->mmio + ME_AI_FIFO_REG);
 
 	/* set ADC mode to software trigger */
 	devpriv->ctrl1 |= ME_CTRL1_ADC_MODE_SOFT_TRIG;
 	writew(devpriv->ctrl1, dev->mmio + ME_CTRL1_REG);
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		/* start ai conversion */
 		readw(dev->mmio + ME_CTRL1_REG);
 
 		/* wait for ADC fifo not empty flag */
 		ret = comedi_timeout(dev, s, insn, me_ai_eoc, 0);
+
 		if (ret)
+		{
 			break;
+		}
 
 		/* get value from ADC fifo */
 		val = readw(dev->mmio + ME_AI_FIFO_REG) & s->maxdata;
@@ -302,9 +357,9 @@ static int me_ai_insn_read(struct comedi_device *dev,
 }
 
 static int me_ao_insn_write(struct comedi_device *dev,
-			    struct comedi_subdevice *s,
-			    struct comedi_insn *insn,
-			    unsigned int *data)
+							struct comedi_subdevice *s,
+							struct comedi_insn *insn,
+							unsigned int *data)
 {
 	struct me_private_data *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -322,21 +377,30 @@ static int me_ao_insn_write(struct comedi_device *dev,
 
 	/* Set dac-control register */
 	devpriv->dac_ctrl &= ~ME_DAC_CTRL_MASK(chan);
+
 	if (range == 0)
+	{
 		devpriv->dac_ctrl |= ME_DAC_CTRL_GAIN(chan);
+	}
+
 	if (comedi_range_is_bipolar(s, range))
+	{
 		devpriv->dac_ctrl |= ME_DAC_CTRL_BIPOLAR(chan);
+	}
+
 	writew(devpriv->dac_ctrl, dev->mmio + ME_DAC_CTRL_REG);
 
 	/* Update dac-control register */
 	readw(dev->mmio + ME_DAC_CTRL_REG);
 
 	/* Set data register */
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		val = data[i];
 
 		writew(val, dev->mmio + ME_AO_DATA_REG(chan));
 	}
+
 	s->readback[chan] = val;
 
 	/* Update dac with data registers */
@@ -346,8 +410,8 @@ static int me_ao_insn_write(struct comedi_device *dev,
 }
 
 static int me2600_xilinx_download(struct comedi_device *dev,
-				  const u8 *data, size_t size,
-				  unsigned long context)
+								  const u8 *data, size_t size,
+								  unsigned long context)
 {
 	struct me_private_data *devpriv = dev->private;
 	unsigned int value;
@@ -376,27 +440,35 @@ static int me2600_xilinx_download(struct comedi_device *dev,
 	 * Byte 12-15: reserved
 	 */
 	if (size < 16)
+	{
 		return -EINVAL;
+	}
 
 	file_length = (((unsigned int)data[0] & 0xff) << 24) +
-	    (((unsigned int)data[1] & 0xff) << 16) +
-	    (((unsigned int)data[2] & 0xff) << 8) +
-	    ((unsigned int)data[3] & 0xff);
+				  (((unsigned int)data[1] & 0xff) << 16) +
+				  (((unsigned int)data[2] & 0xff) << 8) +
+				  ((unsigned int)data[3] & 0xff);
 
 	/*
 	 * Loop for writing firmware byte by byte to xilinx
 	 * Firmware data start at offset 16
 	 */
 	for (i = 0; i < file_length; i++)
+	{
 		writeb((data[16 + i] & 0xff), dev->mmio + 0x0);
+	}
 
 	/* Write 5 dummy values to xilinx */
 	for (i = 0; i < 5; i++)
+	{
 		writeb(0x00, dev->mmio + 0x0);
+	}
 
 	/* Test if there was an error during download -> INTB was thrown */
 	value = readl(devpriv->plx_regbase + PLX9052_INTCSR);
-	if (value & PLX9052_INTCSR_LI2STAT) {
+
+	if (value & PLX9052_INTCSR_LI2STAT)
+	{
 		/* Disable interrupt */
 		writel(0x00, devpriv->plx_regbase + PLX9052_INTCSR);
 		dev_err(dev->class_dev, "Xilinx download failed\n");
@@ -408,9 +480,9 @@ static int me2600_xilinx_download(struct comedi_device *dev,
 
 	/* Enable PLX-Interrupts */
 	writel(PLX9052_INTCSR_LI1ENAB |
-	       PLX9052_INTCSR_LI1POL |
-	       PLX9052_INTCSR_PCIENAB,
-	       devpriv->plx_regbase + PLX9052_INTCSR);
+		   PLX9052_INTCSR_LI1POL |
+		   PLX9052_INTCSR_PCIENAB,
+		   devpriv->plx_regbase + PLX9052_INTCSR);
 
 	return 0;
 }
@@ -434,7 +506,7 @@ static int me_reset(struct comedi_device *dev)
 }
 
 static int me_auto_attach(struct comedi_device *dev,
-			  unsigned long context)
+						  unsigned long context)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	const struct me_board *board = NULL;
@@ -443,41 +515,67 @@ static int me_auto_attach(struct comedi_device *dev,
 	int ret;
 
 	if (context < ARRAY_SIZE(me_boards))
+	{
 		board = &me_boards[context];
+	}
+
 	if (!board)
+	{
 		return -ENODEV;
+	}
+
 	dev->board_ptr = board;
 	dev->board_name = board->name;
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	devpriv->plx_regbase = pci_ioremap_bar(pcidev, 0);
+
 	if (!devpriv->plx_regbase)
+	{
 		return -ENOMEM;
+	}
 
 	dev->mmio = pci_ioremap_bar(pcidev, 2);
+
 	if (!dev->mmio)
+	{
 		return -ENOMEM;
+	}
 
 	/* Download firmware and reset card */
-	if (board->needs_firmware) {
+	if (board->needs_firmware)
+	{
 		ret = comedi_load_firmware(dev, &comedi_to_pci_dev(dev)->dev,
-					   ME2600_FIRMWARE,
-					   me2600_xilinx_download, 0);
+								   ME2600_FIRMWARE,
+								   me2600_xilinx_download, 0);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
+
 	me_reset(dev);
 
 	ret = comedi_alloc_subdevices(dev, 3);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[0];
 	s->type		= COMEDI_SUBD_AI;
@@ -489,7 +587,9 @@ static int me_auto_attach(struct comedi_device *dev,
 	s->insn_read	= me_ai_insn_read;
 
 	s = &dev->subdevices[1];
-	if (board->has_ao) {
+
+	if (board->has_ao)
+	{
 		s->type		= COMEDI_SUBD_AO;
 		s->subdev_flags	= SDF_WRITABLE | SDF_COMMON;
 		s->n_chan	= 4;
@@ -499,9 +599,14 @@ static int me_auto_attach(struct comedi_device *dev,
 		s->insn_write	= me_ao_insn_write;
 
 		ret = comedi_alloc_subdev_readback(s);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		s->type = COMEDI_SUBD_UNUSED;
 	}
 
@@ -522,16 +627,24 @@ static void me_detach(struct comedi_device *dev)
 {
 	struct me_private_data *devpriv = dev->private;
 
-	if (devpriv) {
+	if (devpriv)
+	{
 		if (dev->mmio)
+		{
 			me_reset(dev);
+		}
+
 		if (devpriv->plx_regbase)
+		{
 			iounmap(devpriv->plx_regbase);
+		}
 	}
+
 	comedi_pci_detach(dev);
 }
 
-static struct comedi_driver me_daq_driver = {
+static struct comedi_driver me_daq_driver =
+{
 	.driver_name	= "me_daq",
 	.module		= THIS_MODULE,
 	.auto_attach	= me_auto_attach,
@@ -539,19 +652,21 @@ static struct comedi_driver me_daq_driver = {
 };
 
 static int me_daq_pci_probe(struct pci_dev *dev,
-			    const struct pci_device_id *id)
+							const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &me_daq_driver, id->driver_data);
 }
 
-static const struct pci_device_id me_daq_pci_table[] = {
+static const struct pci_device_id me_daq_pci_table[] =
+{
 	{ PCI_VDEVICE(MEILHAUS, 0x2600), BOARD_ME2600 },
 	{ PCI_VDEVICE(MEILHAUS, 0x2000), BOARD_ME2000 },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, me_daq_pci_table);
 
-static struct pci_driver me_daq_pci_driver = {
+static struct pci_driver me_daq_pci_driver =
+{
 	.name		= "me_daq",
 	.id_table	= me_daq_pci_table,
 	.probe		= me_daq_pci_probe,

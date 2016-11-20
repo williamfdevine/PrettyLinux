@@ -48,20 +48,32 @@ static int rt2x00soc_alloc_reg(struct rt2x00_dev *rt2x00dev)
 	struct resource *res;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	rt2x00dev->csr.base = ioremap(res->start, resource_size(res));
+
 	if (!rt2x00dev->csr.base)
+	{
 		return -ENOMEM;
+	}
 
 	rt2x00dev->eeprom = kzalloc(rt2x00dev->ops->eeprom_size, GFP_KERNEL);
+
 	if (!rt2x00dev->eeprom)
+	{
 		goto exit;
+	}
 
 	rt2x00dev->rf = kzalloc(rt2x00dev->ops->rf_size, GFP_KERNEL);
+
 	if (!rt2x00dev->rf)
+	{
 		goto exit;
+	}
 
 	return 0;
 
@@ -79,7 +91,9 @@ int rt2x00soc_probe(struct platform_device *pdev, const struct rt2x00_ops *ops)
 	int retval;
 
 	hw = ieee80211_alloc_hw(sizeof(struct rt2x00_dev), ops->hw);
-	if (!hw) {
+
+	if (!hw)
+	{
 		rt2x00_probe_err("Failed to allocate hardware\n");
 		return -ENOMEM;
 	}
@@ -96,12 +110,18 @@ int rt2x00soc_probe(struct platform_device *pdev, const struct rt2x00_ops *ops)
 	rt2x00_set_chip_intf(rt2x00dev, RT2X00_CHIP_INTF_SOC);
 
 	retval = rt2x00soc_alloc_reg(rt2x00dev);
+
 	if (retval)
+	{
 		goto exit_free_device;
+	}
 
 	retval = rt2x00lib_probe_dev(rt2x00dev);
+
 	if (retval)
+	{
 		goto exit_free_reg;
+	}
 
 	return 0;
 

@@ -105,7 +105,7 @@ static inline void dmar_writeq(void __iomem *addr, u64 val)
 
 #define cap_super_page_val(c)	(((c) >> 34) & 0xf)
 #define cap_super_offset(c)	(((find_first_bit(&cap_super_page_val(c), 4)) \
-					* OFFSET_STRIDE) + 21)
+							  * OFFSET_STRIDE) + 21)
 
 #define cap_fault_reg_offset(c)	((((c) >> 24) & 0x3ff) * 16)
 #define cap_max_fault_reg_offset(c) \
@@ -239,21 +239,22 @@ static inline void dmar_writeq(void __iomem *addr, u64 val)
 #define DMA_PRS_PPR	((u32)1)
 
 #define IOMMU_WAIT_OP(iommu, offset, op, cond, sts)			\
-do {									\
-	cycles_t start_time = get_cycles();				\
-	while (1) {							\
-		sts = op(iommu->reg + offset);				\
-		if (cond)						\
-			break;						\
-		if (DMAR_OPERATION_TIMEOUT < (get_cycles() - start_time))\
-			panic("DMAR hardware is malfunctioning\n");	\
-		cpu_relax();						\
-	}								\
-} while (0)
+	do {									\
+		cycles_t start_time = get_cycles();				\
+		while (1) {							\
+			sts = op(iommu->reg + offset);				\
+			if (cond)						\
+				break;						\
+			if (DMAR_OPERATION_TIMEOUT < (get_cycles() - start_time))\
+				panic("DMAR hardware is malfunctioning\n");	\
+			cpu_relax();						\
+		}								\
+	} while (0)
 
 #define QI_LENGTH	256	/* queue length */
 
-enum {
+enum
+{
 	QI_FREE,
 	QI_IN_USE,
 	QI_DONE,
@@ -344,11 +345,13 @@ enum {
 #define QI_GRAN_NONG_PASID		2
 #define QI_GRAN_PSI_PASID		3
 
-struct qi_desc {
+struct qi_desc
+{
 	u64 low, high;
 };
 
-struct q_inval {
+struct q_inval
+{
 	raw_spinlock_t  q_lock;
 	struct qi_desc  *desc;          /* invalidation queue */
 	int             *desc_status;   /* desc status */
@@ -367,20 +370,23 @@ struct q_inval {
 
 struct irq_domain;
 
-struct ir_table {
+struct ir_table
+{
 	struct irte *base;
 	unsigned long *bitmap;
 };
 #endif
 
-struct iommu_flush {
+struct iommu_flush
+{
 	void (*flush_context)(struct intel_iommu *iommu, u16 did, u16 sid,
-			      u8 fm, u64 type);
+						  u8 fm, u64 type);
 	void (*flush_iotlb)(struct intel_iommu *iommu, u16 did, u64 addr,
-			    unsigned int size_order, u64 type);
+						unsigned int size_order, u64 type);
 };
 
-enum {
+enum
+{
 	SR_DMAR_FECTL_REG,
 	SR_DMAR_FEDATA_REG,
 	SR_DMAR_FEADDR_REG,
@@ -395,7 +401,8 @@ struct pasid_entry;
 struct pasid_state_entry;
 struct page_req_dsc;
 
-struct intel_iommu {
+struct intel_iommu
+{
 	void __iomem	*reg; /* Pointer to hardware regs, virtual addr */
 	u64 		reg_phys; /* physical address of hw register set */
 	u64		reg_size; /* size of hw register set */
@@ -412,7 +419,7 @@ struct intel_iommu {
 
 #ifdef CONFIG_INTEL_IOMMU
 	unsigned long 	*domain_ids; /* bitmap of domains */
-	struct dmar_domain ***domains; /* ptr to domains */
+	struct dmar_domain ** *domains; /* ptr to domains */
 	spinlock_t	lock; /* protect context, domain ids */
 	struct root_entry *root_entry; /* virtual address */
 
@@ -447,10 +454,12 @@ static inline void __iommu_flush_cache(
 	struct intel_iommu *iommu, void *addr, int size)
 {
 	if (!ecap_coherent(iommu->ecap))
+	{
 		clflush_cache_range(addr, size);
+	}
 }
 
-extern struct dmar_drhd_unit * dmar_find_matched_drhd_unit(struct pci_dev *dev);
+extern struct dmar_drhd_unit *dmar_find_matched_drhd_unit(struct pci_dev *dev);
 extern int dmar_find_matched_atsr_unit(struct pci_dev *dev);
 
 extern int dmar_enable_qi(struct intel_iommu *iommu);
@@ -459,11 +468,11 @@ extern int dmar_reenable_qi(struct intel_iommu *iommu);
 extern void qi_global_iec(struct intel_iommu *iommu);
 
 extern void qi_flush_context(struct intel_iommu *iommu, u16 did, u16 sid,
-			     u8 fm, u64 type);
+							 u8 fm, u64 type);
 extern void qi_flush_iotlb(struct intel_iommu *iommu, u16 did, u64 addr,
-			  unsigned int size_order, u64 type);
+						   unsigned int size_order, u64 type);
 extern void qi_flush_dev_iotlb(struct intel_iommu *iommu, u16 sid, u16 qdep,
-			       u64 addr, unsigned mask);
+							   u64 addr, unsigned mask);
 
 extern int qi_submit_sync(struct qi_desc *desc, struct intel_iommu *iommu);
 
@@ -477,18 +486,20 @@ extern int intel_svm_finish_prq(struct intel_iommu *iommu);
 
 struct svm_dev_ops;
 
-struct intel_svm_dev {
+struct intel_svm_dev
+{
 	struct list_head list;
 	struct rcu_head rcu;
 	struct device *dev;
 	struct svm_dev_ops *ops;
 	int users;
 	u16 did;
-	u16 dev_iotlb:1;
+	u16 dev_iotlb: 1;
 	u16 sid, qdep;
 };
 
-struct intel_svm {
+struct intel_svm
+{
 	struct mmu_notifier notifier;
 	struct mm_struct *mm;
 	struct intel_iommu *iommu;

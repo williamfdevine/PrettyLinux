@@ -46,7 +46,8 @@ struct blk_queue_tags;
 #define DISABLE_CLUSTERING 0
 #define ENABLE_CLUSTERING 1
 
-struct scsi_host_template {
+struct scsi_host_template
+{
 	struct module *module;
 	const char *name;
 
@@ -83,7 +84,7 @@ struct scsi_host_template {
 
 
 #ifdef CONFIG_COMPAT
-	/* 
+	/*
 	 * Compat handler. Handle 32bit ABI.
 	 * When unknown ioctl is passed return -ENOIOCTLCMD.
 	 *
@@ -114,8 +115,8 @@ struct scsi_host_template {
 	 *   SCSI_MLQUEUE_HOST_BUSY: Block all devices served by this
 	 *   host temporarily.
 	 *
-         * For compatibility, any other non-zero return is treated the
-         * same as SCSI_MLQUEUE_HOST_BUSY.
+	     * For compatibility, any other non-zero return is treated the
+	     * same as SCSI_MLQUEUE_HOST_BUSY.
 	 *
 	 * NOTE: "temporarily" means either until the next command for#
 	 * this device/host completes, or a period of time determined by
@@ -185,7 +186,7 @@ struct scsi_host_template {
 	 * this function, it *must* perform the task of setting the queue
 	 * depth on the device.  All other tasks are optional and depend
 	 * on what the driver supports and various implementation details.
-	 * 
+	 *
 	 * Things currently recommended to be handled at this time include:
 	 *
 	 * 1.  Setting the device queue depth.  Proper setting of this is
@@ -214,7 +215,7 @@ struct scsi_host_template {
 	 * has ceased the mid layer calls this point so that the low level
 	 * driver may completely detach itself from the scsi device and vice
 	 * versa.  The low level driver is responsible for freeing any memory
-	 * it allocated in the slave_alloc or slave_configure calls. 
+	 * it allocated in the slave_alloc or slave_configure calls.
 	 *
 	 * Status: OPTIONAL
 	 */
@@ -286,7 +287,7 @@ struct scsi_host_template {
 	 * Status: OPTIONAL
 	 */
 	int (* bios_param)(struct scsi_device *, struct block_device *,
-			sector_t, int []);
+					   sector_t, int []);
 
 	/*
 	 * This function is called when one or more partitions on the
@@ -408,17 +409,17 @@ struct scsi_host_template {
 	/*
 	 * Track QUEUE_FULL events and reduce queue depth on demand.
 	 */
-	unsigned track_queue_depth:1;
+	unsigned track_queue_depth: 1;
 
 	/*
 	 * This specifies the mode that a LLD supports.
 	 */
-	unsigned supported_mode:2;
+	unsigned supported_mode: 2;
 
 	/*
 	 * True if this host adapter uses unchecked DMA onto an ISA bus.
 	 */
-	unsigned unchecked_isa_dma:1;
+	unsigned unchecked_isa_dma: 1;
 
 	/*
 	 * True if this host adapter can make good use of clustering.
@@ -428,25 +429,25 @@ struct scsi_host_template {
 	 * number of segments (i.e. use clustering).  I guess it is
 	 * inefficient.
 	 */
-	unsigned use_clustering:1;
+	unsigned use_clustering: 1;
 
 	/*
 	 * True for emulated SCSI host adapters (e.g. ATAPI).
 	 */
-	unsigned emulated:1;
+	unsigned emulated: 1;
 
 	/*
 	 * True if the low-level driver performs its own reset-settle delays.
 	 */
-	unsigned skip_settle_delay:1;
+	unsigned skip_settle_delay: 1;
 
 	/* True if the controller does not support WRITE SAME */
-	unsigned no_write_same:1;
+	unsigned no_write_same: 1;
 
 	/*
 	 * True if asynchronous aborts are not supported
 	 */
-	unsigned no_async_abort:1;
+	unsigned no_async_abort: 1;
 
 	/*
 	 * Countdown for host blocking with no commands outstanding.
@@ -456,7 +457,7 @@ struct scsi_host_template {
 	/*
 	 * Default value for the blocking.  If the queue is empty,
 	 * host_blocked counts down in the request_fn until it restarts
-	 * host operations as zero is reached.  
+	 * host operations as zero is reached.
 	 *
 	 * FIXME: This should probably be a value in the template
 	 */
@@ -521,7 +522,8 @@ struct scsi_host_template {
  * (for the ascii descriptions) and the state model enforcer:
  * scsi_host_set_state()
  */
-enum scsi_host_state {
+enum scsi_host_state
+{
 	SHOST_CREATED = 1,
 	SHOST_RUNNING,
 	SHOST_CANCEL,
@@ -531,7 +533,8 @@ enum scsi_host_state {
 	SHOST_DEL_RECOVERY,
 };
 
-struct Scsi_Host {
+struct Scsi_Host
+{
 	/*
 	 * __devices is protected by the host_lock, but you should
 	 * usually use scsi_device_lookup / shost_for_each_device
@@ -542,7 +545,7 @@ struct Scsi_Host {
 	 */
 	struct list_head	__devices;
 	struct list_head	__targets;
-	
+
 	struct scsi_host_cmd_pool *cmd_pool;
 	spinlock_t		free_list_lock;
 	struct list_head	free_list; /* backup store of cmd structs */
@@ -554,8 +557,8 @@ struct Scsi_Host {
 	struct mutex		scan_mutex;/* serialize scanning activity */
 
 	struct list_head	eh_cmd_q;
-	struct task_struct    * ehandler;  /* Error recovery thread. */
-	struct completion     * eh_action; /* Wait for specific actions on the
+	struct task_struct     *ehandler;  /* Error recovery thread. */
+	struct completion      *eh_action; /* Wait for specific actions on the
 					      host. */
 	wait_queue_head_t       host_wait;
 	struct scsi_host_template *hostt;
@@ -565,7 +568,8 @@ struct Scsi_Host {
 	 * Area to keep a shared tag map (if needed, will be
 	 * NULL if not).
 	 */
-	union {
+	union
+	{
 		struct blk_queue_tag	*bqt;
 		struct blk_mq_tag_set	tag_set;
 	};
@@ -576,7 +580,7 @@ struct Scsi_Host {
 	unsigned int host_failed;	   /* commands that failed.
 					      protected by host_lock */
 	unsigned int host_eh_scheduled;    /* EH scheduled without command */
-    
+
 	unsigned int host_no;  /* Used for IOCTL_GET_IDLUN, /proc/scsi et al. */
 
 	/* next two fields are used to bound the time spent in error handling */
@@ -627,46 +631,46 @@ struct Scsi_Host {
 	 * is nr_hw_queues * can_queue.
 	 */
 	unsigned nr_hw_queues;
-	/* 
+	/*
 	 * Used to assign serial numbers to the cmds.
 	 * Protected by the host lock.
 	 */
 	unsigned long cmd_serial_number;
-	
-	unsigned active_mode:2;
-	unsigned unchecked_isa_dma:1;
-	unsigned use_clustering:1;
+
+	unsigned active_mode: 2;
+	unsigned unchecked_isa_dma: 1;
+	unsigned use_clustering: 1;
 
 	/*
 	 * Host has requested that no further requests come through for the
 	 * time being.
 	 */
-	unsigned host_self_blocked:1;
-    
+	unsigned host_self_blocked: 1;
+
 	/*
 	 * Host uses correct SCSI ordering not PC ordering. The bit is
 	 * set for the minority of drivers whose authors actually read
 	 * the spec ;).
 	 */
-	unsigned reverse_ordering:1;
+	unsigned reverse_ordering: 1;
 
 	/* Task mgmt function in progress */
-	unsigned tmf_in_progress:1;
+	unsigned tmf_in_progress: 1;
 
 	/* Asynchronous scan in progress */
-	unsigned async_scan:1;
+	unsigned async_scan: 1;
 
 	/* Don't resume host in EH */
-	unsigned eh_noresume:1;
+	unsigned eh_noresume: 1;
 
 	/* The controller does not support WRITE SAME */
-	unsigned no_write_same:1;
+	unsigned no_write_same: 1;
 
-	unsigned use_blk_mq:1;
-	unsigned use_cmd_list:1;
+	unsigned use_blk_mq: 1;
+	unsigned use_cmd_list: 1;
 
 	/* Host responded with short (<36 bytes) INQUIRY result */
-	unsigned short_inquiry:1;
+	unsigned short_inquiry: 1;
 
 	/*
 	 * Optional work queue to be utilized by the transport
@@ -680,7 +684,7 @@ struct Scsi_Host {
 	struct workqueue_struct *tmf_work_q;
 
 	/* The transport requires the LUN bits NOT to be stored in CDB[1] */
-	unsigned no_scsi2_lun_in_cdb:1;
+	unsigned no_scsi2_lun_in_cdb: 1;
 
 	/*
 	 * Value host_blocked counts down from
@@ -703,7 +707,7 @@ struct Scsi_Host {
 	unsigned char n_io_port;
 	unsigned char dma_channel;
 	unsigned int  irq;
-	
+
 
 	enum scsi_host_state shost_state;
 
@@ -737,7 +741,7 @@ struct Scsi_Host {
 	 * alignment to a long boundary.
 	 */
 	unsigned long hostdata[0]  /* Used for storage of host specific stuff */
-		__attribute__ ((aligned (sizeof(unsigned long))));
+	__attribute__ ((aligned (sizeof(unsigned long))));
 };
 
 #define		class_to_shost(d)	\
@@ -755,20 +759,25 @@ int scsi_is_host_device(const struct device *);
 
 static inline struct Scsi_Host *dev_to_shost(struct device *dev)
 {
-	while (!scsi_is_host_device(dev)) {
+	while (!scsi_is_host_device(dev))
+	{
 		if (!dev->parent)
+		{
 			return NULL;
+		}
+
 		dev = dev->parent;
 	}
+
 	return container_of(dev, struct Scsi_Host, shost_gendev);
 }
 
 static inline int scsi_host_in_recovery(struct Scsi_Host *shost)
 {
 	return shost->shost_state == SHOST_RECOVERY ||
-		shost->shost_state == SHOST_CANCEL_RECOVERY ||
-		shost->shost_state == SHOST_DEL_RECOVERY ||
-		shost->tmf_in_progress;
+		   shost->shost_state == SHOST_CANCEL_RECOVERY ||
+		   shost->shost_state == SHOST_DEL_RECOVERY ||
+		   shost->tmf_in_progress;
 }
 
 static inline bool shost_use_blk_mq(struct Scsi_Host *shost)
@@ -781,8 +790,8 @@ extern void scsi_flush_work(struct Scsi_Host *);
 
 extern struct Scsi_Host *scsi_host_alloc(struct scsi_host_template *, int);
 extern int __must_check scsi_add_host_with_dma(struct Scsi_Host *,
-					       struct device *,
-					       struct device *);
+		struct device *,
+		struct device *);
 extern void scsi_scan_host(struct Scsi_Host *);
 extern void scsi_rescan_device(struct device *);
 extern void scsi_remove_host(struct Scsi_Host *);
@@ -793,14 +802,14 @@ extern const char *scsi_host_state_name(enum scsi_host_state);
 extern void scsi_cmd_get_serial(struct Scsi_Host *, struct scsi_cmnd *);
 
 static inline int __must_check scsi_add_host(struct Scsi_Host *host,
-					     struct device *dev)
+		struct device *dev)
 {
 	return scsi_add_host_with_dma(host, dev, dev);
 }
 
 static inline struct device *scsi_get_device(struct Scsi_Host *shost)
 {
-        return shost->shost_gendev.parent;
+	return shost->shost_gendev.parent;
 }
 
 /**
@@ -810,7 +819,7 @@ static inline struct device *scsi_get_device(struct Scsi_Host *shost)
 static inline int scsi_host_scan_allowed(struct Scsi_Host *shost)
 {
 	return shost->shost_state == SHOST_RUNNING ||
-	       shost->shost_state == SHOST_RECOVERY;
+		   shost->shost_state == SHOST_RECOVERY;
 }
 
 extern void scsi_unblock_requests(struct Scsi_Host *);
@@ -819,7 +828,7 @@ extern void scsi_block_requests(struct Scsi_Host *);
 struct class_container;
 
 extern struct request_queue *__scsi_alloc_queue(struct Scsi_Host *shost,
-						void (*) (struct request_queue *));
+		void (*) (struct request_queue *));
 /*
  * These two functions are used to allocate and free a pseudo device
  * which will connect to the host adapter itself rather than any
@@ -837,7 +846,8 @@ extern struct scsi_device *scsi_get_host_dev(struct Scsi_Host *);
  * DIX defines the exchange of protection information between OS and
  * initiator.
  */
-enum scsi_host_prot_capabilities {
+enum scsi_host_prot_capabilities
+{
 	SHOST_DIF_TYPE1_PROTECTION = 1 << 0, /* T10 DIF Type 1 */
 	SHOST_DIF_TYPE2_PROTECTION = 1 << 1, /* T10 DIF Type 2 */
 	SHOST_DIF_TYPE3_PROTECTION = 1 << 2, /* T10 DIF Type 3 */
@@ -871,12 +881,15 @@ static inline int scsi_host_prot_dma(struct Scsi_Host *shost)
 static inline unsigned int scsi_host_dif_capable(struct Scsi_Host *shost, unsigned int target_type)
 {
 	static unsigned char cap[] = { 0,
-				       SHOST_DIF_TYPE1_PROTECTION,
-				       SHOST_DIF_TYPE2_PROTECTION,
-				       SHOST_DIF_TYPE3_PROTECTION };
+								   SHOST_DIF_TYPE1_PROTECTION,
+								   SHOST_DIF_TYPE2_PROTECTION,
+								   SHOST_DIF_TYPE3_PROTECTION
+								 };
 
 	if (target_type >= ARRAY_SIZE(cap))
+	{
 		return 0;
+	}
 
 	return shost->prot_capabilities & cap[target_type] ? target_type : 0;
 }
@@ -885,12 +898,15 @@ static inline unsigned int scsi_host_dix_capable(struct Scsi_Host *shost, unsign
 {
 #if defined(CONFIG_BLK_DEV_INTEGRITY)
 	static unsigned char cap[] = { SHOST_DIX_TYPE0_PROTECTION,
-				       SHOST_DIX_TYPE1_PROTECTION,
-				       SHOST_DIX_TYPE2_PROTECTION,
-				       SHOST_DIX_TYPE3_PROTECTION };
+								   SHOST_DIX_TYPE1_PROTECTION,
+								   SHOST_DIX_TYPE2_PROTECTION,
+								   SHOST_DIX_TYPE3_PROTECTION
+								 };
 
 	if (target_type >= ARRAY_SIZE(cap))
+	{
 		return 0;
+	}
 
 	return shost->prot_capabilities & cap[target_type];
 #endif
@@ -906,7 +922,8 @@ static inline unsigned int scsi_host_dix_capable(struct Scsi_Host *shost, unsign
  * and buses.
  */
 
-enum scsi_host_guard_type {
+enum scsi_host_guard_type
+{
 	SHOST_DIX_GUARD_CRC = 1 << 0,
 	SHOST_DIX_GUARD_IP  = 1 << 1,
 };

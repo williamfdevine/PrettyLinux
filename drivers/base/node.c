@@ -19,7 +19,8 @@
 #include <linux/swap.h>
 #include <linux/slab.h>
 
-static struct bus_type node_subsys = {
+static struct bus_type node_subsys =
+{
 	.name = "node",
 	.dev_name = "node",
 };
@@ -31,18 +32,18 @@ static ssize_t node_read_cpumap(struct device *dev, bool list, char *buf)
 	const struct cpumask *mask = cpumask_of_node(node_dev->dev.id);
 
 	/* 2008/04/07: buf currently PAGE_SIZE, need 9 chars per 32 bits. */
-	BUILD_BUG_ON((NR_CPUS/32 * 9) > (PAGE_SIZE-1));
+	BUILD_BUG_ON((NR_CPUS / 32 * 9) > (PAGE_SIZE - 1));
 
 	return cpumap_print_to_pagebuf(list, buf, mask);
 }
 
 static inline ssize_t node_read_cpumask(struct device *dev,
-				struct device_attribute *attr, char *buf)
+										struct device_attribute *attr, char *buf)
 {
 	return node_read_cpumap(dev, false, buf);
 }
 static inline ssize_t node_read_cpulist(struct device *dev,
-				struct device_attribute *attr, char *buf)
+										struct device_attribute *attr, char *buf)
 {
 	return node_read_cpumap(dev, true, buf);
 }
@@ -52,7 +53,7 @@ static DEVICE_ATTR(cpulist, S_IRUGO, node_read_cpulist, NULL);
 
 #define K(x) ((x) << (PAGE_SHIFT - 10))
 static ssize_t node_read_meminfo(struct device *dev,
-			struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	int n;
 	int nid = dev->id;
@@ -61,87 +62,87 @@ static ssize_t node_read_meminfo(struct device *dev,
 
 	si_meminfo_node(&i, nid);
 	n = sprintf(buf,
-		       "Node %d MemTotal:       %8lu kB\n"
-		       "Node %d MemFree:        %8lu kB\n"
-		       "Node %d MemUsed:        %8lu kB\n"
-		       "Node %d Active:         %8lu kB\n"
-		       "Node %d Inactive:       %8lu kB\n"
-		       "Node %d Active(anon):   %8lu kB\n"
-		       "Node %d Inactive(anon): %8lu kB\n"
-		       "Node %d Active(file):   %8lu kB\n"
-		       "Node %d Inactive(file): %8lu kB\n"
-		       "Node %d Unevictable:    %8lu kB\n"
-		       "Node %d Mlocked:        %8lu kB\n",
-		       nid, K(i.totalram),
-		       nid, K(i.freeram),
-		       nid, K(i.totalram - i.freeram),
-		       nid, K(node_page_state(pgdat, NR_ACTIVE_ANON) +
-				node_page_state(pgdat, NR_ACTIVE_FILE)),
-		       nid, K(node_page_state(pgdat, NR_INACTIVE_ANON) +
-				node_page_state(pgdat, NR_INACTIVE_FILE)),
-		       nid, K(node_page_state(pgdat, NR_ACTIVE_ANON)),
-		       nid, K(node_page_state(pgdat, NR_INACTIVE_ANON)),
-		       nid, K(node_page_state(pgdat, NR_ACTIVE_FILE)),
-		       nid, K(node_page_state(pgdat, NR_INACTIVE_FILE)),
-		       nid, K(node_page_state(pgdat, NR_UNEVICTABLE)),
-		       nid, K(sum_zone_node_page_state(nid, NR_MLOCK)));
+				"Node %d MemTotal:       %8lu kB\n"
+				"Node %d MemFree:        %8lu kB\n"
+				"Node %d MemUsed:        %8lu kB\n"
+				"Node %d Active:         %8lu kB\n"
+				"Node %d Inactive:       %8lu kB\n"
+				"Node %d Active(anon):   %8lu kB\n"
+				"Node %d Inactive(anon): %8lu kB\n"
+				"Node %d Active(file):   %8lu kB\n"
+				"Node %d Inactive(file): %8lu kB\n"
+				"Node %d Unevictable:    %8lu kB\n"
+				"Node %d Mlocked:        %8lu kB\n",
+				nid, K(i.totalram),
+				nid, K(i.freeram),
+				nid, K(i.totalram - i.freeram),
+				nid, K(node_page_state(pgdat, NR_ACTIVE_ANON) +
+					   node_page_state(pgdat, NR_ACTIVE_FILE)),
+				nid, K(node_page_state(pgdat, NR_INACTIVE_ANON) +
+					   node_page_state(pgdat, NR_INACTIVE_FILE)),
+				nid, K(node_page_state(pgdat, NR_ACTIVE_ANON)),
+				nid, K(node_page_state(pgdat, NR_INACTIVE_ANON)),
+				nid, K(node_page_state(pgdat, NR_ACTIVE_FILE)),
+				nid, K(node_page_state(pgdat, NR_INACTIVE_FILE)),
+				nid, K(node_page_state(pgdat, NR_UNEVICTABLE)),
+				nid, K(sum_zone_node_page_state(nid, NR_MLOCK)));
 
 #ifdef CONFIG_HIGHMEM
 	n += sprintf(buf + n,
-		       "Node %d HighTotal:      %8lu kB\n"
-		       "Node %d HighFree:       %8lu kB\n"
-		       "Node %d LowTotal:       %8lu kB\n"
-		       "Node %d LowFree:        %8lu kB\n",
-		       nid, K(i.totalhigh),
-		       nid, K(i.freehigh),
-		       nid, K(i.totalram - i.totalhigh),
-		       nid, K(i.freeram - i.freehigh));
+				 "Node %d HighTotal:      %8lu kB\n"
+				 "Node %d HighFree:       %8lu kB\n"
+				 "Node %d LowTotal:       %8lu kB\n"
+				 "Node %d LowFree:        %8lu kB\n",
+				 nid, K(i.totalhigh),
+				 nid, K(i.freehigh),
+				 nid, K(i.totalram - i.totalhigh),
+				 nid, K(i.freeram - i.freehigh));
 #endif
 	n += sprintf(buf + n,
-		       "Node %d Dirty:          %8lu kB\n"
-		       "Node %d Writeback:      %8lu kB\n"
-		       "Node %d FilePages:      %8lu kB\n"
-		       "Node %d Mapped:         %8lu kB\n"
-		       "Node %d AnonPages:      %8lu kB\n"
-		       "Node %d Shmem:          %8lu kB\n"
-		       "Node %d KernelStack:    %8lu kB\n"
-		       "Node %d PageTables:     %8lu kB\n"
-		       "Node %d NFS_Unstable:   %8lu kB\n"
-		       "Node %d Bounce:         %8lu kB\n"
-		       "Node %d WritebackTmp:   %8lu kB\n"
-		       "Node %d Slab:           %8lu kB\n"
-		       "Node %d SReclaimable:   %8lu kB\n"
-		       "Node %d SUnreclaim:     %8lu kB\n"
+				 "Node %d Dirty:          %8lu kB\n"
+				 "Node %d Writeback:      %8lu kB\n"
+				 "Node %d FilePages:      %8lu kB\n"
+				 "Node %d Mapped:         %8lu kB\n"
+				 "Node %d AnonPages:      %8lu kB\n"
+				 "Node %d Shmem:          %8lu kB\n"
+				 "Node %d KernelStack:    %8lu kB\n"
+				 "Node %d PageTables:     %8lu kB\n"
+				 "Node %d NFS_Unstable:   %8lu kB\n"
+				 "Node %d Bounce:         %8lu kB\n"
+				 "Node %d WritebackTmp:   %8lu kB\n"
+				 "Node %d Slab:           %8lu kB\n"
+				 "Node %d SReclaimable:   %8lu kB\n"
+				 "Node %d SUnreclaim:     %8lu kB\n"
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-		       "Node %d AnonHugePages:  %8lu kB\n"
-		       "Node %d ShmemHugePages: %8lu kB\n"
-		       "Node %d ShmemPmdMapped: %8lu kB\n"
+				 "Node %d AnonHugePages:  %8lu kB\n"
+				 "Node %d ShmemHugePages: %8lu kB\n"
+				 "Node %d ShmemPmdMapped: %8lu kB\n"
 #endif
-			,
-		       nid, K(node_page_state(pgdat, NR_FILE_DIRTY)),
-		       nid, K(node_page_state(pgdat, NR_WRITEBACK)),
-		       nid, K(node_page_state(pgdat, NR_FILE_PAGES)),
-		       nid, K(node_page_state(pgdat, NR_FILE_MAPPED)),
-		       nid, K(node_page_state(pgdat, NR_ANON_MAPPED)),
-		       nid, K(i.sharedram),
-		       nid, sum_zone_node_page_state(nid, NR_KERNEL_STACK_KB),
-		       nid, K(sum_zone_node_page_state(nid, NR_PAGETABLE)),
-		       nid, K(node_page_state(pgdat, NR_UNSTABLE_NFS)),
-		       nid, K(sum_zone_node_page_state(nid, NR_BOUNCE)),
-		       nid, K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
-		       nid, K(sum_zone_node_page_state(nid, NR_SLAB_RECLAIMABLE) +
-				sum_zone_node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
-		       nid, K(sum_zone_node_page_state(nid, NR_SLAB_RECLAIMABLE)),
+				 ,
+				 nid, K(node_page_state(pgdat, NR_FILE_DIRTY)),
+				 nid, K(node_page_state(pgdat, NR_WRITEBACK)),
+				 nid, K(node_page_state(pgdat, NR_FILE_PAGES)),
+				 nid, K(node_page_state(pgdat, NR_FILE_MAPPED)),
+				 nid, K(node_page_state(pgdat, NR_ANON_MAPPED)),
+				 nid, K(i.sharedram),
+				 nid, sum_zone_node_page_state(nid, NR_KERNEL_STACK_KB),
+				 nid, K(sum_zone_node_page_state(nid, NR_PAGETABLE)),
+				 nid, K(node_page_state(pgdat, NR_UNSTABLE_NFS)),
+				 nid, K(sum_zone_node_page_state(nid, NR_BOUNCE)),
+				 nid, K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
+				 nid, K(sum_zone_node_page_state(nid, NR_SLAB_RECLAIMABLE) +
+						sum_zone_node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
+				 nid, K(sum_zone_node_page_state(nid, NR_SLAB_RECLAIMABLE)),
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-		       nid, K(sum_zone_node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
-		       nid, K(node_page_state(pgdat, NR_ANON_THPS) *
-				       HPAGE_PMD_NR),
-		       nid, K(node_page_state(pgdat, NR_SHMEM_THPS) *
-				       HPAGE_PMD_NR),
-		       nid, K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED) *
-				       HPAGE_PMD_NR));
+				 nid, K(sum_zone_node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
+				 nid, K(node_page_state(pgdat, NR_ANON_THPS) *
+						HPAGE_PMD_NR),
+				 nid, K(node_page_state(pgdat, NR_SHMEM_THPS) *
+						HPAGE_PMD_NR),
+				 nid, K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED) *
+						HPAGE_PMD_NR));
 #else
-		       nid, K(sum_zone_node_page_state(nid, NR_SLAB_UNRECLAIMABLE)));
+				 nid, K(sum_zone_node_page_state(nid, NR_SLAB_UNRECLAIMABLE)));
 #endif
 	n += hugetlb_report_node_meminfo(nid, buf + n);
 	return n;
@@ -151,26 +152,26 @@ static ssize_t node_read_meminfo(struct device *dev,
 static DEVICE_ATTR(meminfo, S_IRUGO, node_read_meminfo, NULL);
 
 static ssize_t node_read_numastat(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf,
-		       "numa_hit %lu\n"
-		       "numa_miss %lu\n"
-		       "numa_foreign %lu\n"
-		       "interleave_hit %lu\n"
-		       "local_node %lu\n"
-		       "other_node %lu\n",
-		       sum_zone_node_page_state(dev->id, NUMA_HIT),
-		       sum_zone_node_page_state(dev->id, NUMA_MISS),
-		       sum_zone_node_page_state(dev->id, NUMA_FOREIGN),
-		       sum_zone_node_page_state(dev->id, NUMA_INTERLEAVE_HIT),
-		       sum_zone_node_page_state(dev->id, NUMA_LOCAL),
-		       sum_zone_node_page_state(dev->id, NUMA_OTHER));
+				   "numa_hit %lu\n"
+				   "numa_miss %lu\n"
+				   "numa_foreign %lu\n"
+				   "interleave_hit %lu\n"
+				   "local_node %lu\n"
+				   "other_node %lu\n",
+				   sum_zone_node_page_state(dev->id, NUMA_HIT),
+				   sum_zone_node_page_state(dev->id, NUMA_MISS),
+				   sum_zone_node_page_state(dev->id, NUMA_FOREIGN),
+				   sum_zone_node_page_state(dev->id, NUMA_INTERLEAVE_HIT),
+				   sum_zone_node_page_state(dev->id, NUMA_LOCAL),
+				   sum_zone_node_page_state(dev->id, NUMA_OTHER));
 }
 static DEVICE_ATTR(numastat, S_IRUGO, node_read_numastat, NULL);
 
 static ssize_t node_read_vmstat(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	int nid = dev->id;
 	struct pglist_data *pgdat = NODE_DATA(nid);
@@ -178,20 +179,20 @@ static ssize_t node_read_vmstat(struct device *dev,
 	int n = 0;
 
 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
-		n += sprintf(buf+n, "%s %lu\n", vmstat_text[i],
-			     sum_zone_node_page_state(nid, i));
+		n += sprintf(buf + n, "%s %lu\n", vmstat_text[i],
+					 sum_zone_node_page_state(nid, i));
 
 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
-		n += sprintf(buf+n, "%s %lu\n",
-			     vmstat_text[i + NR_VM_ZONE_STAT_ITEMS],
-			     node_page_state(pgdat, i));
+		n += sprintf(buf + n, "%s %lu\n",
+					 vmstat_text[i + NR_VM_ZONE_STAT_ITEMS],
+					 node_page_state(pgdat, i));
 
 	return n;
 }
 static DEVICE_ATTR(vmstat, S_IRUGO, node_read_vmstat, NULL);
 
 static ssize_t node_read_distance(struct device *dev,
-			struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	int nid = dev->id;
 	int len = 0;
@@ -204,14 +205,15 @@ static ssize_t node_read_distance(struct device *dev,
 	BUILD_BUG_ON(MAX_NUMNODES * 4 > PAGE_SIZE);
 
 	for_each_online_node(i)
-		len += sprintf(buf + len, "%s%d", i ? " " : "", node_distance(nid, i));
+	len += sprintf(buf + len, "%s%d", i ? " " : "", node_distance(nid, i));
 
 	len += sprintf(buf + len, "\n");
 	return len;
 }
 static DEVICE_ATTR(distance, S_IRUGO, node_read_distance, NULL);
 
-static struct attribute *node_dev_attrs[] = {
+static struct attribute *node_dev_attrs[] =
+{
 	&dev_attr_cpumap.attr,
 	&dev_attr_cpulist.attr,
 	&dev_attr_meminfo.attr,
@@ -238,21 +240,25 @@ static node_registration_func_t __hugetlb_unregister_node;
 static inline bool hugetlb_register_node(struct node *node)
 {
 	if (__hugetlb_register_node &&
-			node_state(node->dev.id, N_MEMORY)) {
+		node_state(node->dev.id, N_MEMORY))
+	{
 		__hugetlb_register_node(node);
 		return true;
 	}
+
 	return false;
 }
 
 static inline void hugetlb_unregister_node(struct node *node)
 {
 	if (__hugetlb_unregister_node)
+	{
 		__hugetlb_unregister_node(node);
+	}
 }
 
 void register_hugetlbfs_with_node(node_registration_func_t doregister,
-				  node_registration_func_t unregister)
+								  node_registration_func_t unregister)
 {
 	__hugetlb_register_node   = doregister;
 	__hugetlb_unregister_node = unregister;
@@ -298,11 +304,13 @@ static int register_node(struct node *node, int num, struct node *parent)
 	node->dev.groups = node_dev_groups;
 	error = device_register(&node->dev);
 
-	if (!error){
+	if (!error)
+	{
 		hugetlb_register_node(node);
 
 		compaction_register_node(node);
 	}
+
 	return error;
 }
 
@@ -331,21 +339,29 @@ int register_cpu_under_node(unsigned int cpu, unsigned int nid)
 	struct device *obj;
 
 	if (!node_online(nid))
+	{
 		return 0;
+	}
 
 	obj = get_cpu_device(cpu);
+
 	if (!obj)
+	{
 		return 0;
+	}
 
 	ret = sysfs_create_link(&node_devices[nid]->dev.kobj,
-				&obj->kobj,
-				kobject_name(&obj->kobj));
+							&obj->kobj,
+							kobject_name(&obj->kobj));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return sysfs_create_link(&obj->kobj,
-				 &node_devices[nid]->dev.kobj,
-				 kobject_name(&node_devices[nid]->dev.kobj));
+							 &node_devices[nid]->dev.kobj,
+							 kobject_name(&node_devices[nid]->dev.kobj));
 }
 
 int unregister_cpu_under_node(unsigned int cpu, unsigned int nid)
@@ -353,16 +369,21 @@ int unregister_cpu_under_node(unsigned int cpu, unsigned int nid)
 	struct device *obj;
 
 	if (!node_online(nid))
+	{
 		return 0;
+	}
 
 	obj = get_cpu_device(cpu);
+
 	if (!obj)
+	{
 		return 0;
+	}
 
 	sysfs_remove_link(&node_devices[nid]->dev.kobj,
-			  kobject_name(&obj->kobj));
+					  kobject_name(&obj->kobj));
 	sysfs_remove_link(&obj->kobj,
-			  kobject_name(&node_devices[nid]->dev.kobj));
+					  kobject_name(&node_devices[nid]->dev.kobj));
 
 	return 0;
 }
@@ -375,14 +396,25 @@ static int __ref get_nid_for_pfn(unsigned long pfn)
 	struct page *page;
 
 	if (!pfn_valid_within(pfn))
+	{
 		return -1;
+	}
+
 #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+
 	if (system_state == SYSTEM_BOOTING)
+	{
 		return early_pfn_to_nid(pfn);
+	}
+
 #endif
 	page = pfn_to_page(pfn);
+
 	if (!page_initialized(page))
+	{
 		return -1;
+	}
+
 	return pfn_to_nid(pfn);
 }
 
@@ -393,77 +425,114 @@ int register_mem_sect_under_node(struct memory_block *mem_blk, int nid)
 	unsigned long pfn, sect_start_pfn, sect_end_pfn;
 
 	if (!mem_blk)
+	{
 		return -EFAULT;
+	}
+
 	if (!node_online(nid))
+	{
 		return 0;
+	}
 
 	sect_start_pfn = section_nr_to_pfn(mem_blk->start_section_nr);
 	sect_end_pfn = section_nr_to_pfn(mem_blk->end_section_nr);
 	sect_end_pfn += PAGES_PER_SECTION - 1;
-	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++) {
+
+	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++)
+	{
 		int page_nid;
 
 		/*
 		 * memory block could have several absent sections from start.
 		 * skip pfn range from absent section
 		 */
-		if (!pfn_present(pfn)) {
+		if (!pfn_present(pfn))
+		{
 			pfn = round_down(pfn + PAGES_PER_SECTION,
-					 PAGES_PER_SECTION) - 1;
+							 PAGES_PER_SECTION) - 1;
 			continue;
 		}
 
 		page_nid = get_nid_for_pfn(pfn);
+
 		if (page_nid < 0)
+		{
 			continue;
+		}
+
 		if (page_nid != nid)
+		{
 			continue;
+		}
+
 		ret = sysfs_create_link_nowarn(&node_devices[nid]->dev.kobj,
-					&mem_blk->dev.kobj,
-					kobject_name(&mem_blk->dev.kobj));
+									   &mem_blk->dev.kobj,
+									   kobject_name(&mem_blk->dev.kobj));
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		return sysfs_create_link_nowarn(&mem_blk->dev.kobj,
-				&node_devices[nid]->dev.kobj,
-				kobject_name(&node_devices[nid]->dev.kobj));
+										&node_devices[nid]->dev.kobj,
+										kobject_name(&node_devices[nid]->dev.kobj));
 	}
+
 	/* mem section does not span the specified node */
 	return 0;
 }
 
 /* unregister memory section under all nodes that it spans */
 int unregister_mem_sect_under_nodes(struct memory_block *mem_blk,
-				    unsigned long phys_index)
+									unsigned long phys_index)
 {
 	NODEMASK_ALLOC(nodemask_t, unlinked_nodes, GFP_KERNEL);
 	unsigned long pfn, sect_start_pfn, sect_end_pfn;
 
-	if (!mem_blk) {
+	if (!mem_blk)
+	{
 		NODEMASK_FREE(unlinked_nodes);
 		return -EFAULT;
 	}
+
 	if (!unlinked_nodes)
+	{
 		return -ENOMEM;
+	}
+
 	nodes_clear(*unlinked_nodes);
 
 	sect_start_pfn = section_nr_to_pfn(phys_index);
 	sect_end_pfn = sect_start_pfn + PAGES_PER_SECTION - 1;
-	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++) {
+
+	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++)
+	{
 		int nid;
 
 		nid = get_nid_for_pfn(pfn);
+
 		if (nid < 0)
+		{
 			continue;
+		}
+
 		if (!node_online(nid))
+		{
 			continue;
+		}
+
 		if (node_test_and_set(nid, *unlinked_nodes))
+		{
 			continue;
+		}
+
 		sysfs_remove_link(&node_devices[nid]->dev.kobj,
-			 kobject_name(&mem_blk->dev.kobj));
+						  kobject_name(&mem_blk->dev.kobj));
 		sysfs_remove_link(&mem_blk->dev.kobj,
-			 kobject_name(&node_devices[nid]->dev.kobj));
+						  kobject_name(&node_devices[nid]->dev.kobj));
 	}
+
 	NODEMASK_FREE(unlinked_nodes);
 	return 0;
 }
@@ -476,32 +545,44 @@ static int link_mem_sections(int nid)
 	struct memory_block *mem_blk = NULL;
 	int err = 0;
 
-	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION)
+	{
 		unsigned long section_nr = pfn_to_section_nr(pfn);
 		struct mem_section *mem_sect;
 		int ret;
 
 		if (!present_section_nr(section_nr))
+		{
 			continue;
+		}
+
 		mem_sect = __nr_to_section(section_nr);
 
 		/* same memblock ? */
 		if (mem_blk)
 			if ((section_nr >= mem_blk->start_section_nr) &&
-			    (section_nr <= mem_blk->end_section_nr))
+				(section_nr <= mem_blk->end_section_nr))
+			{
 				continue;
+			}
 
 		mem_blk = find_memory_block_hinted(mem_sect, mem_blk);
 
 		ret = register_mem_sect_under_node(mem_blk, nid);
+
 		if (!err)
+		{
 			err = ret;
+		}
 
 		/* discard ref obtained in find_memory_block() */
 	}
 
 	if (mem_blk)
+	{
 		kobject_put(&mem_blk->dev.kobj);
+	}
+
 	return err;
 }
 
@@ -523,7 +604,9 @@ static void node_hugetlb_work(struct work_struct *work)
 	 * attributes.
 	 */
 	if (!hugetlb_register_node(node))
+	{
 		hugetlb_unregister_node(node);
+	}
 }
 
 static void init_node_hugetlb_work(int nid)
@@ -532,28 +615,33 @@ static void init_node_hugetlb_work(int nid)
 }
 
 static int node_memory_callback(struct notifier_block *self,
-				unsigned long action, void *arg)
+								unsigned long action, void *arg)
 {
 	struct memory_notify *mnb = arg;
 	int nid = mnb->status_change_nid;
 
-	switch (action) {
-	case MEM_ONLINE:
-	case MEM_OFFLINE:
-		/*
-		 * offload per node hstate [un]registration to a work thread
-		 * when transitioning to/from memoryless state.
-		 */
-		if (nid != NUMA_NO_NODE)
-			schedule_work(&node_devices[nid]->node_work);
-		break;
+	switch (action)
+	{
+		case MEM_ONLINE:
+		case MEM_OFFLINE:
 
-	case MEM_GOING_ONLINE:
-	case MEM_GOING_OFFLINE:
-	case MEM_CANCEL_ONLINE:
-	case MEM_CANCEL_OFFLINE:
-	default:
-		break;
+			/*
+			 * offload per node hstate [un]registration to a work thread
+			 * when transitioning to/from memoryless state.
+			 */
+			if (nid != NUMA_NO_NODE)
+			{
+				schedule_work(&node_devices[nid]->node_work);
+			}
+
+			break;
+
+		case MEM_GOING_ONLINE:
+		case MEM_GOING_OFFLINE:
+		case MEM_CANCEL_ONLINE:
+		case MEM_CANCEL_OFFLINE:
+		default:
+			break;
 	}
 
 	return NOTIFY_OK;
@@ -567,7 +655,7 @@ static int link_mem_sections(int nid) { return 0; }
 #if !defined(CONFIG_MEMORY_HOTPLUG_SPARSE) || \
     !defined(CONFIG_HUGETLBFS)
 static inline int node_memory_callback(struct notifier_block *self,
-				unsigned long action, void *arg)
+									   unsigned long action, void *arg)
 {
 	return NOTIFY_OK;
 }
@@ -581,23 +669,32 @@ int register_one_node(int nid)
 	int error = 0;
 	int cpu;
 
-	if (node_online(nid)) {
+	if (node_online(nid))
+	{
 		int p_node = parent_node(nid);
 		struct node *parent = NULL;
 
 		if (p_node != nid)
+		{
 			parent = node_devices[p_node];
+		}
 
 		node_devices[nid] = kzalloc(sizeof(struct node), GFP_KERNEL);
+
 		if (!node_devices[nid])
+		{
 			return -ENOMEM;
+		}
 
 		error = register_node(node_devices[nid], nid, parent);
 
 		/* link cpu under this node */
-		for_each_present_cpu(cpu) {
+		for_each_present_cpu(cpu)
+		{
 			if (cpu_to_node(cpu) == nid)
+			{
 				register_cpu_under_node(cpu, nid);
+			}
 		}
 
 		/* link memory sections under this node */
@@ -614,7 +711,9 @@ int register_one_node(int nid)
 void unregister_one_node(int nid)
 {
 	if (!node_devices[nid])
+	{
 		return;
+	}
 
 	unregister_node(node_devices[nid]);
 	node_devices[nid] = NULL;
@@ -629,19 +728,20 @@ static ssize_t print_nodes_state(enum node_states state, char *buf)
 	int n;
 
 	n = scnprintf(buf, PAGE_SIZE - 1, "%*pbl",
-		      nodemask_pr_args(&node_states[state]));
+				  nodemask_pr_args(&node_states[state]));
 	buf[n++] = '\n';
 	buf[n] = '\0';
 	return n;
 }
 
-struct node_attr {
+struct node_attr
+{
 	struct device_attribute attr;
 	enum node_states state;
 };
 
 static ssize_t show_node_state(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct node_attr *na = container_of(attr, struct node_attr, attr);
 	return print_nodes_state(na->state, buf);
@@ -650,7 +750,8 @@ static ssize_t show_node_state(struct device *dev,
 #define _NODE_ATTR(name, state) \
 	{ __ATTR(name, 0444, show_node_state, NULL), state }
 
-static struct node_attr node_state_attr[] = {
+static struct node_attr node_state_attr[] =
+{
 	[N_POSSIBLE] = _NODE_ATTR(possible, N_POSSIBLE),
 	[N_ONLINE] = _NODE_ATTR(online, N_ONLINE),
 	[N_NORMAL_MEMORY] = _NODE_ATTR(has_normal_memory, N_NORMAL_MEMORY),
@@ -663,7 +764,8 @@ static struct node_attr node_state_attr[] = {
 	[N_CPU] = _NODE_ATTR(has_cpu, N_CPU),
 };
 
-static struct attribute *node_state_attrs[] = {
+static struct attribute *node_state_attrs[] =
+{
 	&node_state_attr[N_POSSIBLE].attr.attr,
 	&node_state_attr[N_ONLINE].attr.attr,
 	&node_state_attr[N_NORMAL_MEMORY].attr.attr,
@@ -677,11 +779,13 @@ static struct attribute *node_state_attrs[] = {
 	NULL
 };
 
-static struct attribute_group memory_root_attr_group = {
+static struct attribute_group memory_root_attr_group =
+{
 	.attrs = node_state_attrs,
 };
 
-static const struct attribute_group *cpu_root_attr_groups[] = {
+static const struct attribute_group *cpu_root_attr_groups[] =
+{
 	&memory_root_attr_group,
 	NULL,
 };
@@ -691,12 +795,15 @@ static int __init register_node_type(void)
 {
 	int ret;
 
- 	BUILD_BUG_ON(ARRAY_SIZE(node_state_attr) != NR_NODE_STATES);
- 	BUILD_BUG_ON(ARRAY_SIZE(node_state_attrs)-1 != NR_NODE_STATES);
+	BUILD_BUG_ON(ARRAY_SIZE(node_state_attr) != NR_NODE_STATES);
+	BUILD_BUG_ON(ARRAY_SIZE(node_state_attrs) - 1 != NR_NODE_STATES);
 
 	ret = subsys_system_register(&node_subsys, cpu_root_attr_groups);
-	if (!ret) {
-		static struct notifier_block node_memory_callback_nb = {
+
+	if (!ret)
+	{
+		static struct notifier_block node_memory_callback_nb =
+		{
 			.notifier_call = node_memory_callback,
 			.priority = NODE_CALLBACK_PRI,
 		};

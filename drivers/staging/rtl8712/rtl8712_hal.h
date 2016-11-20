@@ -26,14 +26,16 @@
 #ifndef __RTL8712_HAL_H__
 #define __RTL8712_HAL_H__
 
-enum _HW_VERSION {
+enum _HW_VERSION
+{
 	RTL8712_FPGA,
 	RTL8712_1stCUT,	/*A Cut (RTL8712_ASIC)*/
 	RTL8712_2ndCUT,	/*B Cut*/
 	RTL8712_3rdCUT,	/*C Cut*/
 };
 
-enum _LOOPBACK_TYPE {
+enum _LOOPBACK_TYPE
+{
 	RTL8712_AIR_TRX = 0,
 	RTL8712_MAC_LBK,
 	RTL8712_BB_LBK,
@@ -41,18 +43,21 @@ enum _LOOPBACK_TYPE {
 	RTL8712_BB_FW_LBK = 8,
 };
 
-enum RTL871X_HCI_TYPE {
+enum RTL871X_HCI_TYPE
+{
 	RTL8712_SDIO,
 	RTL8712_USB,
 };
 
-enum RTL8712_RF_CONFIG {
+enum RTL8712_RF_CONFIG
+{
 	RTL8712_RF_1T1R,
 	RTL8712_RF_1T2R,
 	RTL8712_RF_2T2R
 };
 
-enum _RTL8712_HCI_TYPE_ {
+enum _RTL8712_HCI_TYPE_
+{
 	RTL8712_HCI_TYPE_PCIE = 0x01,
 	RTL8712_HCI_TYPE_AP_PCIE = 0x81,
 	RTL8712_HCI_TYPE_USB = 0x02,
@@ -63,7 +68,8 @@ enum _RTL8712_HCI_TYPE_ {
 	RTL8712_HCI_TYPE_72SDIO = 0x14
 };
 
-struct fw_priv {   /*8-bytes alignment required*/
+struct fw_priv     /*8-bytes alignment required*/
+{
 	/*--- long word 0 ----*/
 	unsigned char signature_0;  /*0x12: CE product, 0x92: IT product*/
 	unsigned char signature_1;  /*0x87: CE product, 0x81: IT product*/
@@ -126,7 +132,8 @@ struct fw_priv {   /*8-bytes alignment required*/
 	unsigned char rsvd053;
 };
 
-struct fw_hdr {/*8-byte alignment required*/
+struct fw_hdr  /*8-byte alignment required*/
+{
 	unsigned short	signature;
 	unsigned short	version;	/* 0x8000 ~ 0x8FFF for FPGA version,
 					 * 0x0000 ~ 0x7FFF for ASIC version,
@@ -142,7 +149,8 @@ struct fw_hdr {/*8-byte alignment required*/
 	struct fw_priv	fwpriv;
 };
 
-struct hal_priv {
+struct hal_priv
+{
 	/*Endpoint handles*/
 	struct  net_device *pipehdls_r8712[10];
 	u8 (*hal_bus_init)(struct _adapter *adapter);

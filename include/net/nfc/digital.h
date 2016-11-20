@@ -22,7 +22,8 @@
 /**
  * Configuration types for in_configure_hw and tg_configure_hw.
  */
-enum {
+enum
+{
 	NFC_DIGITAL_CONFIG_RF_TECH = 0,
 	NFC_DIGITAL_CONFIG_FRAMING,
 };
@@ -31,7 +32,8 @@ enum {
  * RF technology values passed as param argument to in_configure_hw and
  * tg_configure_hw for NFC_DIGITAL_CONFIG_RF_TECH configuration type.
  */
-enum {
+enum
+{
 	NFC_DIGITAL_RF_TECH_106A = 0,
 	NFC_DIGITAL_RF_TECH_212F,
 	NFC_DIGITAL_RF_TECH_424F,
@@ -45,7 +47,8 @@ enum {
  * Framing configuration passed as param argument to in_configure_hw and
  * tg_configure_hw for NFC_DIGITAL_CONFIG_FRAMING configuration type.
  */
-enum {
+enum
+{
 	NFC_DIGITAL_FRAMING_NFCA_SHORT = 0,
 	NFC_DIGITAL_FRAMING_NFCA_STANDARD,
 	NFC_DIGITAL_FRAMING_NFCA_STANDARD_WITH_CRC_A,
@@ -72,7 +75,8 @@ enum {
 
 #define DIGITAL_MDAA_NFCID1_SIZE 3
 
-struct digital_tg_mdaa_params {
+struct digital_tg_mdaa_params
+{
 	u16 sens_res;
 	u8 nfcid1[DIGITAL_MDAA_NFCID1_SIZE];
 	u8 sel_res;
@@ -94,7 +98,7 @@ struct nfc_digital_dev;
  * The callback is responsible for freeing resp sk_buff.
  */
 typedef void (*nfc_digital_cmd_complete_t)(struct nfc_digital_dev *ddev,
-					   void *arg, struct sk_buff *resp);
+		void *arg, struct sk_buff *resp);
 
 /**
  * Device side NFC Digital operations
@@ -152,26 +156,27 @@ typedef void (*nfc_digital_cmd_complete_t)(struct nfc_digital_dev *ddev,
  *	would not be able to send new commands, waiting for the reply of the
  *	current one.
  */
-struct nfc_digital_ops {
+struct nfc_digital_ops
+{
 	int (*in_configure_hw)(struct nfc_digital_dev *ddev, int type,
-			       int param);
+						   int param);
 	int (*in_send_cmd)(struct nfc_digital_dev *ddev, struct sk_buff *skb,
-			   u16 timeout, nfc_digital_cmd_complete_t cb,
-			   void *arg);
+					   u16 timeout, nfc_digital_cmd_complete_t cb,
+					   void *arg);
 
 	int (*tg_configure_hw)(struct nfc_digital_dev *ddev, int type,
-			       int param);
+						   int param);
 	int (*tg_send_cmd)(struct nfc_digital_dev *ddev, struct sk_buff *skb,
-			   u16 timeout, nfc_digital_cmd_complete_t cb,
-			   void *arg);
+					   u16 timeout, nfc_digital_cmd_complete_t cb,
+					   void *arg);
 	int (*tg_listen)(struct nfc_digital_dev *ddev, u16 timeout,
-			 nfc_digital_cmd_complete_t cb, void *arg);
+					 nfc_digital_cmd_complete_t cb, void *arg);
 	int (*tg_listen_mdaa)(struct nfc_digital_dev *ddev,
-			      struct digital_tg_mdaa_params *mdaa_params,
-			      u16 timeout, nfc_digital_cmd_complete_t cb,
-			      void *arg);
+						  struct digital_tg_mdaa_params *mdaa_params,
+						  u16 timeout, nfc_digital_cmd_complete_t cb,
+						  void *arg);
 	int (*tg_listen_md)(struct nfc_digital_dev *ddev, u16 timeout,
-			    nfc_digital_cmd_complete_t cb, void *arg);
+						nfc_digital_cmd_complete_t cb, void *arg);
 	int (*tg_get_rf_tech)(struct nfc_digital_dev *ddev, u8 *rf_tech);
 
 	int (*switch_rf)(struct nfc_digital_dev *ddev, bool on);
@@ -182,7 +187,8 @@ struct nfc_digital_ops {
 
 typedef int (*digital_poll_t)(struct nfc_digital_dev *ddev, u8 rf_tech);
 
-struct digital_poll_tech {
+struct digital_poll_tech
+{
 	u8 rf_tech;
 	digital_poll_t poll_func;
 };
@@ -198,7 +204,8 @@ struct digital_poll_tech {
 #define NFC_DIGITAL_DRV_CAPS_IN_CRC	0x0001
 #define NFC_DIGITAL_DRV_CAPS_TG_CRC	0x0002
 
-struct nfc_digital_dev {
+struct nfc_digital_dev
+{
 	struct nfc_dev *nfc_dev;
 	struct nfc_digital_ops *ops;
 
@@ -246,22 +253,22 @@ struct nfc_digital_dev {
 };
 
 struct nfc_digital_dev *nfc_digital_allocate_device(struct nfc_digital_ops *ops,
-						    __u32 supported_protocols,
-						    __u32 driver_capabilities,
-						    int tx_headroom,
-						    int tx_tailroom);
+		__u32 supported_protocols,
+		__u32 driver_capabilities,
+		int tx_headroom,
+		int tx_tailroom);
 void nfc_digital_free_device(struct nfc_digital_dev *ndev);
 int nfc_digital_register_device(struct nfc_digital_dev *ndev);
 void nfc_digital_unregister_device(struct nfc_digital_dev *ndev);
 
 static inline void nfc_digital_set_parent_dev(struct nfc_digital_dev *ndev,
-					      struct device *dev)
+		struct device *dev)
 {
 	nfc_set_parent_dev(ndev->nfc_dev, dev);
 }
 
 static inline void nfc_digital_set_drvdata(struct nfc_digital_dev *dev,
-					   void *data)
+		void *data)
 {
 	dev->driver_data = data;
 }

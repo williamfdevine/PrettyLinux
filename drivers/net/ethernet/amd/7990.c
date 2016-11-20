@@ -36,7 +36,7 @@
 #include <asm/dma.h>
 #include <asm/pgtable.h>
 #ifdef CONFIG_HP300
-#include <asm/blinken.h>
+	#include <asm/blinken.h>
 #endif
 
 #include "7990.h"
@@ -64,24 +64,32 @@
 /* These inlines can be used if only CONFIG_HPLANCE is defined */
 static inline void WRITERAP(struct lance_private *lp, __u16 value)
 {
-	do {
+	do
+	{
 		out_be16(lp->base + HPLANCE_REGOFF + LANCE_RAP, value);
-	} while ((in_8(lp->base + HPLANCE_STATUS) & LE_ACK) == 0);
+	}
+	while ((in_8(lp->base + HPLANCE_STATUS) & LE_ACK) == 0);
 }
 
 static inline void WRITERDP(struct lance_private *lp, __u16 value)
 {
-	do {
+	do
+	{
 		out_be16(lp->base + HPLANCE_REGOFF + LANCE_RDP, value);
-	} while ((in_8(lp->base + HPLANCE_STATUS) & LE_ACK) == 0);
+	}
+	while ((in_8(lp->base + HPLANCE_STATUS) & LE_ACK) == 0);
 }
 
 static inline __u16 READRDP(struct lance_private *lp)
 {
 	__u16 value;
-	do {
+
+	do
+	{
 		value = in_be16(lp->base + HPLANCE_REGOFF + LANCE_RDP);
-	} while ((in_8(lp->base + HPLANCE_STATUS) & LE_ACK) == 0);
+	}
+	while ((in_8(lp->base + HPLANCE_STATUS) & LE_ACK) == 0);
+
 	return value;
 }
 
@@ -92,21 +100,21 @@ static inline __u16 READRDP(struct lance_private *lp)
 /* #define TEST_HITS */
 #ifdef UNDEF
 #define PRINT_RINGS() \
-do { \
-	int t; \
-	for (t = 0; t < RX_RING_SIZE; t++) { \
-		printk("R%d: @(%02X %04X) len %04X, mblen %04X, bits %02X\n", \
-		       t, ib->brx_ring[t].rmd1_hadr, ib->brx_ring[t].rmd0, \
-		       ib->brx_ring[t].length, \
-		       ib->brx_ring[t].mblength, ib->brx_ring[t].rmd1_bits); \
-	} \
-	for (t = 0; t < TX_RING_SIZE; t++) { \
-		printk("T%d: @(%02X %04X) len %04X, misc %04X, bits %02X\n", \
-		       t, ib->btx_ring[t].tmd1_hadr, ib->btx_ring[t].tmd0, \
-		       ib->btx_ring[t].length, \
-		       ib->btx_ring[t].misc, ib->btx_ring[t].tmd1_bits); \
-	} \
-} while (0)
+	do { \
+		int t; \
+		for (t = 0; t < RX_RING_SIZE; t++) { \
+			printk("R%d: @(%02X %04X) len %04X, mblen %04X, bits %02X\n", \
+				   t, ib->brx_ring[t].rmd1_hadr, ib->brx_ring[t].rmd0, \
+				   ib->brx_ring[t].length, \
+				   ib->brx_ring[t].mblength, ib->brx_ring[t].rmd1_bits); \
+		} \
+		for (t = 0; t < TX_RING_SIZE; t++) { \
+			printk("T%d: @(%02X %04X) len %04X, misc %04X, bits %02X\n", \
+				   t, ib->btx_ring[t].tmd1_hadr, ib->btx_ring[t].tmd0, \
+				   ib->btx_ring[t].length, \
+				   ib->btx_ring[t].misc, ib->btx_ring[t].tmd1_bits); \
+		} \
+	} while (0)
 #else
 #define PRINT_RINGS()
 #endif
@@ -166,30 +174,45 @@ static void lance_init_ring(struct net_device *dev)
 	ib->phys_addr[4] = dev->dev_addr[5];
 	ib->phys_addr[5] = dev->dev_addr[4];
 #else
+
 	for (i = 0; i < 6; i++)
-	       ib->phys_addr[i] = dev->dev_addr[i];
+	{
+		ib->phys_addr[i] = dev->dev_addr[i];
+	}
+
 #endif
 
 	if (DEBUG_IRING)
+	{
 		printk("TX rings:\n");
+	}
 
 	lp->tx_full = 0;
+
 	/* Setup the Tx ring entries */
-	for (i = 0; i < (1 << lp->lance_log_tx_bufs); i++) {
+	for (i = 0; i < (1 << lp->lance_log_tx_bufs); i++)
+	{
 		leptr = LANCE_ADDR(&aib->tx_buf[i][0]);
 		ib->btx_ring[i].tmd0      = leptr;
 		ib->btx_ring[i].tmd1_hadr = leptr >> 16;
 		ib->btx_ring[i].tmd1_bits = 0;
 		ib->btx_ring[i].length    = 0xf000; /* The ones required by tmd2 */
 		ib->btx_ring[i].misc      = 0;
+
 		if (DEBUG_IRING)
+		{
 			printk("%d: 0x%8.8x\n", i, leptr);
+		}
 	}
 
 	/* Setup the Rx ring entries */
 	if (DEBUG_IRING)
+	{
 		printk("RX rings:\n");
-	for (i = 0; i < (1 << lp->lance_log_rx_bufs); i++) {
+	}
+
+	for (i = 0; i < (1 << lp->lance_log_rx_bufs); i++)
+	{
 		leptr = LANCE_ADDR(&aib->rx_buf[i][0]);
 
 		ib->brx_ring[i].rmd0      = leptr;
@@ -198,8 +221,11 @@ static void lance_init_ring(struct net_device *dev)
 		/* 0xf000 == bits that must be one (reserved, presumably) */
 		ib->brx_ring[i].length    = -RX_BUFF_SIZE | 0xf000;
 		ib->brx_ring[i].mblength  = 0;
+
 		if (DEBUG_IRING)
+		{
 			printk("%d: 0x%8.8x\n", i, leptr);
+		}
 	}
 
 	/* Setup the initialization block */
@@ -208,15 +234,21 @@ static void lance_init_ring(struct net_device *dev)
 	leptr = LANCE_ADDR(&aib->brx_ring);
 	ib->rx_len = (lp->lance_log_rx_bufs << 13) | (leptr >> 16);
 	ib->rx_ptr = leptr;
+
 	if (DEBUG_IRING)
+	{
 		printk("RX ptr: %8.8x\n", leptr);
+	}
 
 	/* Setup tx descriptor pointer */
 	leptr = LANCE_ADDR(&aib->btx_ring);
 	ib->tx_len = (lp->lance_log_tx_bufs << 13) | (leptr >> 16);
 	ib->tx_ptr = leptr;
+
 	if (DEBUG_IRING)
+	{
 		printk("TX ptr: %8.8x\n", leptr);
+	}
 
 	/* Clear the multicast filter */
 	ib->filter[0] = 0;
@@ -236,8 +268,12 @@ static int init_restart_lance(struct lance_private *lp)
 
 	/* Wait for the lance to complete initialization */
 	for (i = 0; (i < 100) && !(READRDP(lp) & (LE_C0_ERR | LE_C0_IDON)); i++)
+	{
 		barrier();
-	if ((i == 100) || (READRDP(lp) & LE_C0_ERR)) {
+	}
+
+	if ((i == 100) || (READRDP(lp) & LE_C0_ERR))
+	{
 		printk("LANCE unopened after %d ticks, csr0=%4.4x.\n", i, READRDP(lp));
 		return -1;
 	}
@@ -280,48 +316,73 @@ static int lance_rx(struct net_device *dev)
 
 #ifdef TEST_HITS
 	printk("[");
-	for (i = 0; i < RX_RING_SIZE; i++) {
+
+	for (i = 0; i < RX_RING_SIZE; i++)
+	{
 		if (i == lp->rx_new)
 			printk("%s",
-			       ib->brx_ring[i].rmd1_bits & LE_R1_OWN ? "_" : "X");
+				   ib->brx_ring[i].rmd1_bits & LE_R1_OWN ? "_" : "X");
 		else
 			printk("%s",
-			      ib->brx_ring[i].rmd1_bits & LE_R1_OWN ? "." : "1");
+				   ib->brx_ring[i].rmd1_bits & LE_R1_OWN ? "." : "1");
 	}
+
 	printk("]");
 #endif
 #ifdef CONFIG_HP300
 	blinken_leds(0x40, 0);
 #endif
 	WRITERDP(lp, LE_C0_RINT | LE_C0_INEA);     /* ack Rx int, reenable ints */
+
 	for (rd = &ib->brx_ring[lp->rx_new];     /* For each Rx ring we own... */
-	     !((bits = rd->rmd1_bits) & LE_R1_OWN);
-	     rd = &ib->brx_ring[lp->rx_new]) {
+		 !((bits = rd->rmd1_bits) & LE_R1_OWN);
+		 rd = &ib->brx_ring[lp->rx_new])
+	{
 
 		/* We got an incomplete frame? */
-		if ((bits & LE_R1_POK) != LE_R1_POK) {
+		if ((bits & LE_R1_POK) != LE_R1_POK)
+		{
 			dev->stats.rx_over_errors++;
 			dev->stats.rx_errors++;
 			continue;
-		} else if (bits & LE_R1_ERR) {
+		}
+		else if (bits & LE_R1_ERR)
+		{
 			/* Count only the end frame as a rx error,
 			 * not the beginning
 			 */
 			if (bits & LE_R1_BUF)
+			{
 				dev->stats.rx_fifo_errors++;
+			}
+
 			if (bits & LE_R1_CRC)
+			{
 				dev->stats.rx_crc_errors++;
+			}
+
 			if (bits & LE_R1_OFL)
+			{
 				dev->stats.rx_over_errors++;
+			}
+
 			if (bits & LE_R1_FRA)
+			{
 				dev->stats.rx_frame_errors++;
+			}
+
 			if (bits & LE_R1_EOP)
+			{
 				dev->stats.rx_errors++;
-		} else {
+			}
+		}
+		else
+		{
 			int len = (rd->mblength & 0xfff) - 4;
 			struct sk_buff *skb = netdev_alloc_skb(dev, len + 2);
 
-			if (!skb) {
+			if (!skb)
+			{
 				dev->stats.rx_dropped++;
 				rd->mblength = 0;
 				rd->rmd1_bits = LE_R1_OWN;
@@ -332,8 +393,8 @@ static int lance_rx(struct net_device *dev)
 			skb_reserve(skb, 2);           /* 16 byte align */
 			skb_put(skb, len);             /* make room */
 			skb_copy_to_linear_data(skb,
-					 (unsigned char *)&(ib->rx_buf[lp->rx_new][0]),
-					 len);
+									(unsigned char *) & (ib->rx_buf[lp->rx_new][0]),
+									len);
 			skb->protocol = eth_type_trans(skb, dev);
 			netif_rx(skb);
 			dev->stats.rx_packets++;
@@ -345,6 +406,7 @@ static int lance_rx(struct net_device *dev)
 		rd->rmd1_bits = LE_R1_OWN;
 		lp->rx_new = (lp->rx_new + 1) & lp->rx_ring_mod_mask;
 	}
+
 	return 0;
 }
 
@@ -364,29 +426,43 @@ static int lance_tx(struct net_device *dev)
 	/* csr0 is 73 */
 
 	j = lp->tx_old;
-	for (i = j; i != lp->tx_new; i = j) {
+
+	for (i = j; i != lp->tx_new; i = j)
+	{
 		td = &ib->btx_ring[i];
 
 		/* If we hit a packet not owned by us, stop */
 		if (td->tmd1_bits & LE_T1_OWN)
+		{
 			break;
+		}
 
-		if (td->tmd1_bits & LE_T1_ERR) {
+		if (td->tmd1_bits & LE_T1_ERR)
+		{
 			status = td->misc;
 
 			dev->stats.tx_errors++;
-			if (status & LE_T3_RTY)
-				dev->stats.tx_aborted_errors++;
-			if (status & LE_T3_LCOL)
-				dev->stats.tx_window_errors++;
 
-			if (status & LE_T3_CLOS) {
+			if (status & LE_T3_RTY)
+			{
+				dev->stats.tx_aborted_errors++;
+			}
+
+			if (status & LE_T3_LCOL)
+			{
+				dev->stats.tx_window_errors++;
+			}
+
+			if (status & LE_T3_CLOS)
+			{
 				dev->stats.tx_carrier_errors++;
-				if (lp->auto_select) {
+
+				if (lp->auto_select)
+				{
 					lp->tpe = 1 - lp->tpe;
 					printk("%s: Carrier Lost, trying %s\n",
-					       dev->name,
-					       lp->tpe ? "TPE" : "AUI");
+						   dev->name,
+						   lp->tpe ? "TPE" : "AUI");
 					/* Stop the lance */
 					WRITERAP(lp, LE_CSR0);
 					WRITERDP(lp, LE_C0_STOP);
@@ -399,11 +475,12 @@ static int lance_tx(struct net_device *dev)
 
 			/* buffer errors and underflows turn off the transmitter */
 			/* Restart the adapter */
-			if (status & (LE_T3_BUF|LE_T3_UFL)) {
+			if (status & (LE_T3_BUF | LE_T3_UFL))
+			{
 				dev->stats.tx_fifo_errors++;
 
 				printk("%s: Tx: ERR_BUF|ERR_UFL, restarting\n",
-				       dev->name);
+					   dev->name);
 				/* Stop the lance */
 				WRITERAP(lp, LE_CSR0);
 				WRITERDP(lp, LE_C0_STOP);
@@ -412,7 +489,9 @@ static int lance_tx(struct net_device *dev)
 				init_restart_lance(lp);
 				return 0;
 			}
-		} else if ((td->tmd1_bits & LE_T1_POK) == LE_T1_POK) {
+		}
+		else if ((td->tmd1_bits & LE_T1_POK) == LE_T1_POK)
+		{
 			/*
 			 * So we don't count the packet more than once.
 			 */
@@ -420,17 +499,22 @@ static int lance_tx(struct net_device *dev)
 
 			/* One collision before packet was sent. */
 			if (td->tmd1_bits & LE_T1_EONE)
+			{
 				dev->stats.collisions++;
+			}
 
 			/* More than one collision, be optimistic. */
 			if (td->tmd1_bits & LE_T1_EMORE)
+			{
 				dev->stats.collisions += 2;
+			}
 
 			dev->stats.tx_packets++;
 		}
 
 		j = (j + 1) & lp->tx_ring_mod_mask;
 	}
+
 	lp->tx_old = j;
 	WRITERDP(lp, LE_C0_TINT | LE_C0_INEA);
 	return 0;
@@ -450,44 +534,58 @@ lance_interrupt(int irq, void *dev_id)
 
 	PRINT_RINGS();
 
-	if (!(csr0 & LE_C0_INTR)) {     /* Check if any interrupt has */
+	if (!(csr0 & LE_C0_INTR))       /* Check if any interrupt has */
+	{
 		spin_unlock(&lp->devlock);
 		return IRQ_NONE;        /* been generated by the Lance. */
 	}
 
 	/* Acknowledge all the interrupt sources ASAP */
-	WRITERDP(lp, csr0 & ~(LE_C0_INEA|LE_C0_TDMD|LE_C0_STOP|LE_C0_STRT|LE_C0_INIT));
+	WRITERDP(lp, csr0 & ~(LE_C0_INEA | LE_C0_TDMD | LE_C0_STOP | LE_C0_STRT | LE_C0_INIT));
 
-	if ((csr0 & LE_C0_ERR)) {
+	if ((csr0 & LE_C0_ERR))
+	{
 		/* Clear the error condition */
-		WRITERDP(lp, LE_C0_BABL|LE_C0_ERR|LE_C0_MISS|LE_C0_INEA);
+		WRITERDP(lp, LE_C0_BABL | LE_C0_ERR | LE_C0_MISS | LE_C0_INEA);
 	}
 
 	if (csr0 & LE_C0_RINT)
+	{
 		lance_rx(dev);
+	}
 
 	if (csr0 & LE_C0_TINT)
+	{
 		lance_tx(dev);
+	}
 
 	/* Log misc errors. */
 	if (csr0 & LE_C0_BABL)
-		dev->stats.tx_errors++;       /* Tx babble. */
+	{
+		dev->stats.tx_errors++;    /* Tx babble. */
+	}
+
 	if (csr0 & LE_C0_MISS)
-		dev->stats.rx_errors++;       /* Missed a Rx frame. */
-	if (csr0 & LE_C0_MERR) {
+	{
+		dev->stats.rx_errors++;    /* Missed a Rx frame. */
+	}
+
+	if (csr0 & LE_C0_MERR)
+	{
 		printk("%s: Bus master arbitration failure, status %4.4x.\n",
-		       dev->name, csr0);
+			   dev->name, csr0);
 		/* Restart the chip. */
 		WRITERDP(lp, LE_C0_STRT);
 	}
 
-	if (lp->tx_full && netif_queue_stopped(dev) && (TX_BUFFS_AVAIL >= 0)) {
+	if (lp->tx_full && netif_queue_stopped(dev) && (TX_BUFFS_AVAIL >= 0))
+	{
 		lp->tx_full = 0;
 		netif_wake_queue(dev);
 	}
 
 	WRITERAP(lp, LE_CSR0);
-	WRITERDP(lp, LE_C0_BABL|LE_C0_CERR|LE_C0_MISS|LE_C0_MERR|LE_C0_IDON|LE_C0_INEA);
+	WRITERDP(lp, LE_C0_BABL | LE_C0_CERR | LE_C0_MISS | LE_C0_MERR | LE_C0_IDON | LE_C0_INEA);
 
 	spin_unlock(&lp->devlock);
 	return IRQ_HANDLED;
@@ -500,7 +598,9 @@ int lance_open(struct net_device *dev)
 
 	/* Install the Interrupt handler. Or we could shunt this out to specific drivers? */
 	if (request_irq(lp->irq, lance_interrupt, IRQF_SHARED, lp->name, dev))
+	{
 		return -EAGAIN;
+	}
 
 	res = lance_reset(dev);
 	spin_lock_init(&lp->devlock);
@@ -545,7 +645,8 @@ int lance_start_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	netif_stop_queue(dev);
 
-	if (!TX_BUFFS_AVAIL) {
+	if (!TX_BUFFS_AVAIL)
+	{
 		dev_consume_skb_any(skb);
 		return NETDEV_TX_OK;
 	}
@@ -557,9 +658,13 @@ int lance_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	{
 		int i;
 
-		for (i = 0; i < 64; i++) {
+		for (i = 0; i < 64; i++)
+		{
 			if ((i % 16) == 0)
+			{
 				printk("\n");
+			}
+
 			printk("%2.2x ", skb->data[i]);
 		}
 	}
@@ -570,11 +675,14 @@ int lance_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	ib->btx_ring[entry].misc = 0;
 
 	if (skb->len < ETH_ZLEN)
+	{
 		memset((void *)&ib->tx_buf[entry][0], 0, ETH_ZLEN);
+	}
+
 	skb_copy_from_linear_data(skb, (void *)&ib->tx_buf[entry][0], skblen);
 
 	/* Now, give the packet to the lance */
-	ib->btx_ring[entry].tmd1_bits = (LE_T1_POK|LE_T1_OWN);
+	ib->btx_ring[entry].tmd1_bits = (LE_T1_POK | LE_T1_OWN);
 	lp->tx_new = (lp->tx_new + 1) & lp->tx_ring_mod_mask;
 
 	outs++;
@@ -583,10 +691,16 @@ int lance_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	dev_consume_skb_any(skb);
 
 	spin_lock_irqsave(&lp->devlock, flags);
+
 	if (TX_BUFFS_AVAIL)
+	{
 		netif_start_queue(dev);
+	}
 	else
+	{
 		lp->tx_full = 1;
+	}
+
 	spin_unlock_irqrestore(&lp->devlock, flags);
 
 	return NETDEV_TX_OK;
@@ -603,17 +717,20 @@ static void lance_load_multicast(struct net_device *dev)
 	u32 crc;
 
 	/* set all multicast bits */
-	if (dev->flags & IFF_ALLMULTI) {
+	if (dev->flags & IFF_ALLMULTI)
+	{
 		ib->filter[0] = 0xffffffff;
 		ib->filter[1] = 0xffffffff;
 		return;
 	}
+
 	/* clear the multicast filter */
 	ib->filter[0] = 0;
 	ib->filter[1] = 0;
 
 	/* Add addresses */
-	netdev_for_each_mc_addr(ha, dev) {
+	netdev_for_each_mc_addr(ha, dev)
+	{
 		crc = ether_crc_le(6, ha->addr);
 		crc = crc >> 26;
 		mcast_table[crc >> 4] |= 1 << (crc & 0xf);
@@ -628,27 +745,38 @@ void lance_set_multicast(struct net_device *dev)
 	int stopped;
 
 	stopped = netif_queue_stopped(dev);
+
 	if (!stopped)
+	{
 		netif_stop_queue(dev);
+	}
 
 	while (lp->tx_old != lp->tx_new)
+	{
 		schedule();
+	}
 
 	WRITERAP(lp, LE_CSR0);
 	WRITERDP(lp, LE_C0_STOP);
 	lance_init_ring(dev);
 
-	if (dev->flags & IFF_PROMISC) {
+	if (dev->flags & IFF_PROMISC)
+	{
 		ib->mode |= LE_MO_PROM;
-	} else {
+	}
+	else
+	{
 		ib->mode &= ~LE_MO_PROM;
 		lance_load_multicast(dev);
 	}
+
 	load_csrs(lp);
 	init_restart_lance(lp);
 
 	if (!stopped)
+	{
 		netif_start_queue(dev);
+	}
 }
 EXPORT_SYMBOL_GPL(lance_set_multicast);
 

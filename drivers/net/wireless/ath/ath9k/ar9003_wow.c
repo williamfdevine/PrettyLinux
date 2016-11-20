@@ -23,13 +23,19 @@
 static void ath9k_hw_set_sta_powersave(struct ath_hw *ah)
 {
 	if (!ath9k_hw_mci_is_enabled(ah))
+	{
 		goto set;
+	}
+
 	/*
 	 * If MCI is being used, set PWR_SAV only when MCI's
 	 * PS state is disabled.
 	 */
 	if (ar9003_mci_state(ah, MCI_STATE_GET_WLAN_PS_STATE) != MCI_PS_DISABLE)
+	{
 		return;
+	}
+
 set:
 	REG_SET_BIT(ah, AR_STA_ID1, AR_STA_ID1_PWR_SAV);
 }
@@ -43,23 +49,33 @@ static void ath9k_hw_set_powermode_wow_sleep(struct ath_hw *ah)
 	/* set rx disable bit */
 	REG_WRITE(ah, AR_CR, AR_CR_RXD);
 
-	if (!ath9k_hw_wait(ah, AR_CR, AR_CR_RXE, 0, AH_WAIT_TIMEOUT)) {
+	if (!ath9k_hw_wait(ah, AR_CR, AR_CR_RXE, 0, AH_WAIT_TIMEOUT))
+	{
 		ath_err(common, "Failed to stop Rx DMA in 10ms AR_CR=0x%08x AR_DIAG_SW=0x%08x\n",
-			REG_READ(ah, AR_CR), REG_READ(ah, AR_DIAG_SW));
+				REG_READ(ah, AR_CR), REG_READ(ah, AR_DIAG_SW));
 		return;
 	}
 
-	if (AR_SREV_9462(ah) || AR_SREV_9565(ah)) {
+	if (AR_SREV_9462(ah) || AR_SREV_9565(ah))
+	{
 		if (!REG_READ(ah, AR_MAC_PCU_GEN_TIMER_TSF_SEL))
+		{
 			REG_CLR_BIT(ah, AR_DIRECT_CONNECT, AR_DC_TSF2_ENABLE);
-	} else if (AR_SREV_9485(ah)){
+		}
+	}
+	else if (AR_SREV_9485(ah))
+	{
 		if (!(REG_READ(ah, AR_NDP2_TIMER_MODE) &
-		      AR_GEN_TIMERS2_MODE_ENABLE_MASK))
+			  AR_GEN_TIMERS2_MODE_ENABLE_MASK))
+		{
 			REG_CLR_BIT(ah, AR_DIRECT_CONNECT, AR_DC_TSF2_ENABLE);
+		}
 	}
 
 	if (ath9k_hw_mci_is_enabled(ah))
+	{
 		REG_WRITE(ah, AR_RTC_KEEP_AWAKE, 0x2);
+	}
 
 	REG_WRITE(ah, AR_RTC_FORCE_WAKE, AR_RTC_FORCE_WAKE_ON_INT);
 }
@@ -84,64 +100,83 @@ static void ath9k_wow_create_keep_alive_pattern(struct ath_hw *ah)
 	ctl[2] = 0xf << 16; /* tx_tries 0 */
 
 	if (IS_CHAN_2GHZ(ah->curchan))
-		ctl[3] = 0x1b;	/* CCK_1M */
+	{
+		ctl[3] = 0x1b;    /* CCK_1M */
+	}
 	else
-		ctl[3] = 0xb;	/* OFDM_6M */
+	{
+		ctl[3] = 0xb;    /* OFDM_6M */
+	}
 
 	for (i = 0; i < KAL_NUM_DESC_WORDS; i++)
+	{
 		REG_WRITE(ah, (AR_WOW_KA_DESC_WORD2 + i * 4), ctl[i]);
+	}
 
 	data_word[0] = (KAL_FRAME_TYPE << 2) | (KAL_FRAME_SUB_TYPE << 4) |
-		       (KAL_TO_DS << 8) | (KAL_DURATION_ID << 16);
+				   (KAL_TO_DS << 8) | (KAL_DURATION_ID << 16);
 	data_word[1] = (ap_mac_addr[3] << 24) | (ap_mac_addr[2] << 16) |
-		       (ap_mac_addr[1] << 8) | (ap_mac_addr[0]);
+				   (ap_mac_addr[1] << 8) | (ap_mac_addr[0]);
 	data_word[2] = (sta_mac_addr[1] << 24) | (sta_mac_addr[0] << 16) |
-		       (ap_mac_addr[5] << 8) | (ap_mac_addr[4]);
+				   (ap_mac_addr[5] << 8) | (ap_mac_addr[4]);
 	data_word[3] = (sta_mac_addr[5] << 24) | (sta_mac_addr[4] << 16) |
-		       (sta_mac_addr[3] << 8) | (sta_mac_addr[2]);
+				   (sta_mac_addr[3] << 8) | (sta_mac_addr[2]);
 	data_word[4] = (ap_mac_addr[3] << 24) | (ap_mac_addr[2] << 16) |
-		       (ap_mac_addr[1] << 8) | (ap_mac_addr[0]);
+				   (ap_mac_addr[1] << 8) | (ap_mac_addr[0]);
 	data_word[5] = (ap_mac_addr[5] << 8) | (ap_mac_addr[4]);
 
-	if (AR_SREV_9462_20_OR_LATER(ah) || AR_SREV_9565(ah)) {
+	if (AR_SREV_9462_20_OR_LATER(ah) || AR_SREV_9565(ah))
+	{
 		/*
 		 * AR9462 2.0 and AR9565 have an extra descriptor word
 		 * (time based discard) compared to other chips.
 		 */
 		REG_WRITE(ah, (AR_WOW_KA_DESC_WORD2 + (12 * 4)), 0);
 		wow_ka_data_word0 = AR_WOW_TXBUF(13);
-	} else {
+	}
+	else
+	{
 		wow_ka_data_word0 = AR_WOW_TXBUF(12);
 	}
 
 	for (i = 0; i < KAL_NUM_DATA_WORDS; i++)
-		REG_WRITE(ah, (wow_ka_data_word0 + i*4), data_word[i]);
+	{
+		REG_WRITE(ah, (wow_ka_data_word0 + i * 4), data_word[i]);
+	}
 }
 
 int ath9k_hw_wow_apply_pattern(struct ath_hw *ah, u8 *user_pattern,
-			       u8 *user_mask, int pattern_count,
-			       int pattern_len)
+							   u8 *user_mask, int pattern_count,
+							   int pattern_len)
 {
 	int i;
 	u32 pattern_val, mask_val;
 	u32 set, clr;
 
 	if (pattern_count >= ah->wow.max_patterns)
+	{
 		return -ENOSPC;
+	}
 
 	if (pattern_count < MAX_NUM_PATTERN_LEGACY)
+	{
 		REG_SET_BIT(ah, AR_WOW_PATTERN, BIT(pattern_count));
+	}
 	else
+	{
 		REG_SET_BIT(ah, AR_MAC_PCU_WOW4, BIT(pattern_count - 8));
+	}
 
-	for (i = 0; i < MAX_PATTERN_SIZE; i += 4) {
+	for (i = 0; i < MAX_PATTERN_SIZE; i += 4)
+	{
 		memcpy(&pattern_val, user_pattern, 4);
 		REG_WRITE(ah, (AR_WOW_TB_PATTERN(pattern_count) + i),
-			  pattern_val);
+				  pattern_val);
 		user_pattern += 4;
 	}
 
-	for (i = 0; i < MAX_PATTERN_MASK_SIZE; i += 4) {
+	for (i = 0; i < MAX_PATTERN_MASK_SIZE; i += 4)
+	{
 		memcpy(&mask_val, user_mask, 4);
 		REG_WRITE(ah, (AR_WOW_TB_MASK(pattern_count) + i), mask_val);
 		user_mask += 4;
@@ -154,24 +189,31 @@ int ath9k_hw_wow_apply_pattern(struct ath_hw *ah, u8 *user_pattern,
 		ah->wow.wow_event_mask2 |=
 			BIT((pattern_count - 8) + AR_WOW_PAT_FOUND_SHIFT);
 
-	if (pattern_count < 4) {
+	if (pattern_count < 4)
+	{
 		set = (pattern_len & AR_WOW_LENGTH_MAX) <<
-		       AR_WOW_LEN1_SHIFT(pattern_count);
+			  AR_WOW_LEN1_SHIFT(pattern_count);
 		clr = AR_WOW_LENGTH1_MASK(pattern_count);
 		REG_RMW(ah, AR_WOW_LENGTH1, set, clr);
-	} else if (pattern_count < 8) {
+	}
+	else if (pattern_count < 8)
+	{
 		set = (pattern_len & AR_WOW_LENGTH_MAX) <<
-		       AR_WOW_LEN2_SHIFT(pattern_count);
+			  AR_WOW_LEN2_SHIFT(pattern_count);
 		clr = AR_WOW_LENGTH2_MASK(pattern_count);
 		REG_RMW(ah, AR_WOW_LENGTH2, set, clr);
-	} else if (pattern_count < 12) {
+	}
+	else if (pattern_count < 12)
+	{
 		set = (pattern_len & AR_WOW_LENGTH_MAX) <<
-		       AR_WOW_LEN3_SHIFT(pattern_count);
+			  AR_WOW_LEN3_SHIFT(pattern_count);
 		clr = AR_WOW_LENGTH3_MASK(pattern_count);
 		REG_RMW(ah, AR_WOW_LENGTH3, set, clr);
-	} else if (pattern_count < MAX_NUM_PATTERN) {
+	}
+	else if (pattern_count < MAX_NUM_PATTERN)
+	{
 		set = (pattern_len & AR_WOW_LENGTH_MAX) <<
-		       AR_WOW_LEN4_SHIFT(pattern_count);
+			  AR_WOW_LEN4_SHIFT(pattern_count);
 		clr = AR_WOW_LENGTH4_MASK(pattern_count);
 		REG_RMW(ah, AR_WOW_LENGTH4, set, clr);
 	}
@@ -199,24 +241,39 @@ u32 ath9k_hw_wow_wakeup(struct ath_hw *ah)
 	 */
 	val &= ah->wow.wow_event_mask;
 
-	if (val) {
+	if (val)
+	{
 		if (val & AR_WOW_MAGIC_PAT_FOUND)
+		{
 			wow_status |= AH_WOW_MAGIC_PATTERN_EN;
+		}
+
 		if (AR_WOW_PATTERN_FOUND(val))
+		{
 			wow_status |= AH_WOW_USER_PATTERN_EN;
+		}
+
 		if (val & AR_WOW_KEEP_ALIVE_FAIL)
+		{
 			wow_status |= AH_WOW_LINK_CHANGE;
+		}
+
 		if (val & AR_WOW_BEACON_FAIL)
+		{
 			wow_status |= AH_WOW_BEACON_MISS;
+		}
 	}
 
 	rval = REG_READ(ah, AR_MAC_PCU_WOW4);
 	val = AR_WOW_STATUS2(rval);
 	val &= ah->wow.wow_event_mask2;
 
-	if (val) {
+	if (val)
+	{
 		if (AR_WOW2_PATTERN_FOUND(val))
+		{
 			wow_status |= AH_WOW_USER_PATTERN_EN;
+		}
 	}
 
 	/*
@@ -227,15 +284,15 @@ u32 ath9k_hw_wow_wakeup(struct ath_hw *ah)
 
 	/* do we need to check the bit value 0x01000000 (7-10) ?? */
 	REG_RMW(ah, AR_PCIE_PM_CTRL, AR_PMCTRL_WOW_PME_CLR,
-		AR_PMCTRL_PWR_STATE_D1D3);
+			AR_PMCTRL_PWR_STATE_D1D3);
 
 	/*
 	 * Clear all events.
 	 */
 	REG_WRITE(ah, AR_WOW_PATTERN,
-		  AR_WOW_CLEAR_EVENTS(REG_READ(ah, AR_WOW_PATTERN)));
+			  AR_WOW_CLEAR_EVENTS(REG_READ(ah, AR_WOW_PATTERN)));
 	REG_WRITE(ah, AR_MAC_PCU_WOW4,
-		  AR_WOW_CLEAR_EVENTS2(REG_READ(ah, AR_MAC_PCU_WOW4)));
+			  AR_WOW_CLEAR_EVENTS2(REG_READ(ah, AR_MAC_PCU_WOW4)));
 
 	/*
 	 * restore the beacon threshold to init value
@@ -250,13 +307,18 @@ u32 ath9k_hw_wow_wakeup(struct ath_hw *ah)
 	 * reset from the bus will not reset our chip
 	 */
 	if (ah->is_pciexpress)
+	{
 		ath9k_hw_configpcipowersave(ah, false);
+	}
 
-	if (AR_SREV_9462(ah) || AR_SREV_9565(ah) || AR_SREV_9485(ah)) {
+	if (AR_SREV_9462(ah) || AR_SREV_9565(ah) || AR_SREV_9485(ah))
+	{
 		u32 dc = REG_READ(ah, AR_DIRECT_CONNECT);
 
 		if (!(dc & AR_DC_TSF2_ENABLE))
+		{
 			ath9k_hw_gen_timer_start_tsf2(ah);
+		}
 	}
 
 	ah->wow.wow_event_mask = 0;
@@ -271,7 +333,9 @@ static void ath9k_hw_wow_set_arwr_reg(struct ath_hw *ah)
 	u32 wa_reg;
 
 	if (!ah->is_pciexpress)
+	{
 		return;
+	}
 
 	/*
 	 * We need to untie the internal POR (power-on-reset)
@@ -310,9 +374,9 @@ void ath9k_hw_wow_enable(struct ath_hw *ah, u32 pattern_enable)
 	 * to generate next wow signal.
 	 */
 	REG_SET_BIT(ah, AR_PCIE_PM_CTRL, AR_PMCTRL_HOST_PME_EN |
-		    			 AR_PMCTRL_PWR_PM_CTRL_ENA |
-		    			 AR_PMCTRL_AUX_PWR_DET |
-		    			 AR_PMCTRL_WOW_PME_CLR);
+				AR_PMCTRL_PWR_PM_CTRL_ENA |
+				AR_PMCTRL_AUX_PWR_DET |
+				AR_PMCTRL_WOW_PME_CLR);
 	REG_CLR_BIT(ah, AR_PCIE_PM_CTRL, AR_PMCTRL_WOW_PME_CLR);
 
 	/*
@@ -324,29 +388,38 @@ void ath9k_hw_wow_enable(struct ath_hw *ah, u32 pattern_enable)
 	 *                           0 and (2 ^ N) - 1.
 	 */
 	REG_SET_BIT(ah, AR_WOW_PATTERN,
-		    AR_WOW_BACK_OFF_SHIFT(AR_WOW_PAT_BACKOFF));
+				AR_WOW_BACK_OFF_SHIFT(AR_WOW_PAT_BACKOFF));
 
 	/*
 	 * AIFS time, Slot time, Keep Alive count.
 	 */
 	REG_SET_BIT(ah, AR_WOW_COUNT, AR_WOW_AIFS_CNT(AR_WOW_CNT_AIFS_CNT) |
-		    		      AR_WOW_SLOT_CNT(AR_WOW_CNT_SLOT_CNT) |
-		    		      AR_WOW_KEEP_ALIVE_CNT(AR_WOW_CNT_KA_CNT));
+				AR_WOW_SLOT_CNT(AR_WOW_CNT_SLOT_CNT) |
+				AR_WOW_KEEP_ALIVE_CNT(AR_WOW_CNT_KA_CNT));
+
 	/*
 	 * Beacon timeout.
 	 */
 	if (pattern_enable & AH_WOW_BEACON_MISS)
+	{
 		REG_WRITE(ah, AR_WOW_BCN_TIMO, AR_WOW_BEACON_TIMO);
+	}
 	else
+	{
 		REG_WRITE(ah, AR_WOW_BCN_TIMO, AR_WOW_BEACON_TIMO_MAX);
+	}
 
 	/*
 	 * Keep alive timeout in ms.
 	 */
 	if (!pattern_enable)
+	{
 		REG_WRITE(ah, AR_WOW_KEEP_ALIVE_TIMO, AR_WOW_KEEP_ALIVE_NEVER);
+	}
 	else
+	{
 		REG_WRITE(ah, AR_WOW_KEEP_ALIVE_TIMO, KAL_TIMEOUT * 32);
+	}
 
 	/*
 	 * Keep alive delay in us.
@@ -366,10 +439,13 @@ void ath9k_hw_wow_enable(struct ath_hw *ah, u32 pattern_enable)
 	/* Send keep alive timeouts anyway */
 	keep_alive &= ~AR_WOW_KEEP_ALIVE_AUTO_DIS;
 
-	if (pattern_enable & AH_WOW_LINK_CHANGE) {
+	if (pattern_enable & AH_WOW_LINK_CHANGE)
+	{
 		keep_alive &= ~AR_WOW_KEEP_ALIVE_FAIL_DIS;
 		wow_event_mask |= AR_WOW_KEEP_ALIVE_FAIL;
-	} else {
+	}
+	else
+	{
 		keep_alive |= AR_WOW_KEEP_ALIVE_FAIL_DIS;
 	}
 
@@ -380,12 +456,15 @@ void ath9k_hw_wow_enable(struct ath_hw *ah, u32 pattern_enable)
 	 * enough threshold to prevent false positives.
 	 */
 	REG_RMW_FIELD(ah, AR_RSSI_THR, AR_RSSI_THR_BM_THR,
-		      AR_WOW_BMISSTHRESHOLD);
+				  AR_WOW_BMISSTHRESHOLD);
 
-	if (pattern_enable & AH_WOW_BEACON_MISS) {
+	if (pattern_enable & AH_WOW_BEACON_MISS)
+	{
 		wow_event_mask |= AR_WOW_BEACON_FAIL;
 		REG_SET_BIT(ah, AR_WOW_BCN_EN, AR_WOW_BEACON_FAIL_EN);
-	} else {
+	}
+	else
+	{
 		REG_CLR_BIT(ah, AR_WOW_BCN_EN, AR_WOW_BEACON_FAIL_EN);
 	}
 
@@ -395,10 +474,13 @@ void ath9k_hw_wow_enable(struct ath_hw *ah, u32 pattern_enable)
 	magic_pattern = REG_READ(ah, AR_WOW_PATTERN);
 	magic_pattern |= AR_WOW_MAC_INTR_EN;
 
-	if (pattern_enable & AH_WOW_MAGIC_PATTERN_EN) {
+	if (pattern_enable & AH_WOW_MAGIC_PATTERN_EN)
+	{
 		magic_pattern |= AR_WOW_MAGIC_EN;
 		wow_event_mask |= AR_WOW_MAGIC_PAT_FOUND;
-	} else {
+	}
+	else
+	{
 		magic_pattern &= ~AR_WOW_MAGIC_EN;
 	}
 
@@ -409,18 +491,19 @@ void ath9k_hw_wow_enable(struct ath_hw *ah, u32 pattern_enable)
 	 * than 256 bytes.
 	 */
 	REG_WRITE(ah, AR_WOW_PATTERN_MATCH_LT_256B,
-		  AR_WOW_PATTERN_SUPPORTED);
+			  AR_WOW_PATTERN_SUPPORTED);
 
 	/*
 	 * Set the power states appropriately and enable PME.
 	 */
 	host_pm_ctrl = REG_READ(ah, AR_PCIE_PM_CTRL);
 	host_pm_ctrl |= AR_PMCTRL_PWR_STATE_D1D3 |
-			AR_PMCTRL_HOST_PME_EN |
-			AR_PMCTRL_PWR_PM_CTRL_ENA;
+					AR_PMCTRL_HOST_PME_EN |
+					AR_PMCTRL_PWR_PM_CTRL_ENA;
 	host_pm_ctrl &= ~AR_PCIE_PM_CTRL_ENA;
 
-	if (AR_SREV_9462(ah)) {
+	if (AR_SREV_9462(ah))
+	{
 		/*
 		 * This is needed to prevent the chip waking up
 		 * the host within 3-4 seconds with certain
@@ -443,7 +526,9 @@ void ath9k_hw_wow_enable(struct ath_hw *ah, u32 pattern_enable)
 	ath9k_hw_wow_set_arwr_reg(ah);
 
 	if (ath9k_hw_mci_is_enabled(ah))
+	{
 		REG_WRITE(ah, AR_RTC_KEEP_AWAKE, 0x2);
+	}
 
 	/* HW WoW */
 	REG_CLR_BIT(ah, AR_PCU_MISC_MODE3, BIT(5));

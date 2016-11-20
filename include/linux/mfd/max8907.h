@@ -202,7 +202,8 @@
 #define MAX8907_NUM_REGULATORS (MAX8907_VRTC + 1)
 
 /* IRQ definitions */
-enum {
+enum
+{
 	MAX8907_IRQ_VCHG_DC_OVP = 0,
 	MAX8907_IRQ_VCHG_DC_F,
 	MAX8907_IRQ_VCHG_DC_R,
@@ -230,14 +231,16 @@ enum {
 	MAX8907_IRQ_RTC_ALARM0,
 };
 
-struct max8907_platform_data {
+struct max8907_platform_data
+{
 	struct regulator_init_data *init_data[MAX8907_NUM_REGULATORS];
 	bool pm_off;
 };
 
 struct regmap_irq_chips_data;
 
-struct max8907 {
+struct max8907
+{
 	struct device			*dev;
 	struct mutex			irq_lock;
 	struct i2c_client		*i2c_gen;

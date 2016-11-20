@@ -15,14 +15,16 @@
 #include "qed_hsi.h"
 #include "qed.h"
 
-struct qed_cxt_info {
+struct qed_cxt_info
+{
 	void			*p_cxt;
 	u32			iid;
 	enum protocol_type	type;
 };
 
 #define MAX_TID_BLOCKS                  512
-struct qed_tid_mem {
+struct qed_tid_mem
+{
 	u32 tid_size;
 	u32 num_tids_per_block;
 	u32 waste;
@@ -39,8 +41,8 @@ struct qed_tid_mem {
  * @return int
  */
 int qed_cxt_acquire_cid(struct qed_hwfn *p_hwfn,
-			enum protocol_type type,
-			u32 *p_cid);
+						enum protocol_type type,
+						u32 *p_cid);
 
 /**
  * @brief qedo_cid_get_cxt_info - Returns the context info for a specific cid
@@ -52,7 +54,7 @@ int qed_cxt_acquire_cid(struct qed_hwfn *p_hwfn,
  * @return int
  */
 int qed_cxt_get_cid_info(struct qed_hwfn *p_hwfn,
-			 struct qed_cxt_info *p_info);
+						 struct qed_cxt_info *p_info);
 
 /**
  * @brief qed_cxt_get_tid_mem_info
@@ -63,18 +65,19 @@ int qed_cxt_get_cid_info(struct qed_hwfn *p_hwfn,
  * @return int
  */
 int qed_cxt_get_tid_mem_info(struct qed_hwfn *p_hwfn,
-			     struct qed_tid_mem *p_info);
+							 struct qed_tid_mem *p_info);
 
 #define QED_CXT_ISCSI_TID_SEG	PROTOCOLID_ISCSI
 #define QED_CXT_ROCE_TID_SEG	PROTOCOLID_ROCE
-enum qed_cxt_elem_type {
+enum qed_cxt_elem_type
+{
 	QED_ELEM_CXT,
 	QED_ELEM_SRQ,
 	QED_ELEM_TASK
 };
 
 u32 qed_cxt_get_proto_cid_count(struct qed_hwfn *p_hwfn,
-				enum protocol_type type, u32 *vf_cid);
+								enum protocol_type type, u32 *vf_cid);
 
 /**
  * @brief qed_cxt_set_pf_params - Set the PF params for cxt init
@@ -169,13 +172,13 @@ int qed_qm_reconf(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt);
  * @param cid
  */
 void qed_cxt_release_cid(struct qed_hwfn *p_hwfn,
-			 u32 cid);
+						 u32 cid);
 int qed_cxt_dynamic_ilt_alloc(struct qed_hwfn *p_hwfn,
-			      enum qed_cxt_elem_type elem_type, u32 iid);
+							  enum qed_cxt_elem_type elem_type, u32 iid);
 u32 qed_cxt_get_proto_tid_count(struct qed_hwfn *p_hwfn,
-				enum protocol_type type);
+								enum protocol_type type);
 u32 qed_cxt_get_proto_cid_start(struct qed_hwfn *p_hwfn,
-				enum protocol_type type);
+								enum protocol_type type);
 int qed_cxt_free_proto_ilt(struct qed_hwfn *p_hwfn, enum protocol_type proto);
 
 #define QED_CTX_WORKING_MEM 0

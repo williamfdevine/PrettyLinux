@@ -22,7 +22,8 @@
  * @ec: Pointer to EC device
  * @chip: PWM controller chip
  */
-struct cros_ec_pwm_device {
+struct cros_ec_pwm_device
+{
 	struct device *dev;
 	struct cros_ec_device *ec;
 	struct pwm_chip chip;
@@ -35,7 +36,8 @@ static inline struct cros_ec_pwm_device *pwm_to_cros_ec_pwm(struct pwm_chip *c)
 
 static int cros_ec_pwm_set_duty(struct cros_ec_device *ec, u8 index, u16 duty)
 {
-	struct {
+	struct
+	{
 		struct cros_ec_command msg;
 		struct ec_params_pwm_set_duty params;
 	} __packed buf;
@@ -57,11 +59,13 @@ static int cros_ec_pwm_set_duty(struct cros_ec_device *ec, u8 index, u16 duty)
 }
 
 static int __cros_ec_pwm_get_duty(struct cros_ec_device *ec, u8 index,
-				  u32 *result)
+								  u32 *result)
 {
-	struct {
+	struct
+	{
 		struct cros_ec_command msg;
-		union {
+		union
+		{
 			struct ec_params_pwm_get_duty params;
 			struct ec_response_pwm_get_duty resp;
 		};
@@ -82,10 +86,16 @@ static int __cros_ec_pwm_get_duty(struct cros_ec_device *ec, u8 index,
 	params->index = index;
 
 	ret = cros_ec_cmd_xfer_status(ec, msg);
+
 	if (result)
+	{
 		*result = msg->result;
+	}
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return resp->duty;
 }
@@ -96,14 +106,16 @@ static int cros_ec_pwm_get_duty(struct cros_ec_device *ec, u8 index)
 }
 
 static int cros_ec_pwm_apply(struct pwm_chip *chip, struct pwm_device *pwm,
-			     struct pwm_state *state)
+							 struct pwm_state *state)
 {
 	struct cros_ec_pwm_device *ec_pwm = pwm_to_cros_ec_pwm(chip);
 	int duty_cycle;
 
 	/* The EC won't let us change the period */
 	if (state->period != EC_PWM_MAX_DUTY)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * EC doesn't separate the concept of duty cycle and enabled, but
@@ -115,13 +127,15 @@ static int cros_ec_pwm_apply(struct pwm_chip *chip, struct pwm_device *pwm,
 }
 
 static void cros_ec_pwm_get_state(struct pwm_chip *chip, struct pwm_device *pwm,
-				  struct pwm_state *state)
+								  struct pwm_state *state)
 {
 	struct cros_ec_pwm_device *ec_pwm = pwm_to_cros_ec_pwm(chip);
 	int ret;
 
 	ret = cros_ec_pwm_get_duty(ec_pwm->ec, pwm->hwpwm);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "error getting initial duty: %d\n", ret);
 		return;
 	}
@@ -139,11 +153,16 @@ cros_ec_pwm_xlate(struct pwm_chip *pc, const struct of_phandle_args *args)
 	struct pwm_device *pwm;
 
 	if (args->args[0] >= pc->npwm)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	pwm = pwm_request_from_chip(pc, args->args[0], NULL);
+
 	if (IS_ERR(pwm))
+	{
 		return pwm;
+	}
 
 	/* The EC won't let us change the period */
 	pwm->args.period = EC_PWM_MAX_DUTY;
@@ -151,7 +170,8 @@ cros_ec_pwm_xlate(struct pwm_chip *pc, const struct of_phandle_args *args)
 	return pwm;
 }
 
-static const struct pwm_ops cros_ec_pwm_ops = {
+static const struct pwm_ops cros_ec_pwm_ops =
+{
 	.get_state	= cros_ec_pwm_get_state,
 	.apply		= cros_ec_pwm_apply,
 	.owner		= THIS_MODULE,
@@ -162,24 +182,34 @@ static int cros_ec_num_pwms(struct cros_ec_device *ec)
 	int i, ret;
 
 	/* The index field is only 8 bits */
-	for (i = 0; i <= U8_MAX; i++) {
+	for (i = 0; i <= U8_MAX; i++)
+	{
 		u32 result = 0;
 
 		ret = __cros_ec_pwm_get_duty(ec, i, &result);
+
 		/* We want to parse EC protocol errors */
 		if (ret < 0 && !(ret == -EPROTO && result))
+		{
 			return ret;
+		}
 
 		/*
 		 * We look for SUCCESS, INVALID_COMMAND, or INVALID_PARAM
 		 * responses; everything else is treated as an error.
 		 */
 		if (result == EC_RES_INVALID_COMMAND)
+		{
 			return -ENODEV;
+		}
 		else if (result == EC_RES_INVALID_PARAM)
+		{
 			return i;
+		}
 		else if (result)
+		{
 			return -EPROTO;
+		}
 	}
 
 	return U8_MAX;
@@ -193,14 +223,19 @@ static int cros_ec_pwm_probe(struct platform_device *pdev)
 	struct pwm_chip *chip;
 	int ret;
 
-	if (!ec) {
+	if (!ec)
+	{
 		dev_err(dev, "no parent EC device\n");
 		return -EINVAL;
 	}
 
 	ec_pwm = devm_kzalloc(dev, sizeof(*ec_pwm), GFP_KERNEL);
+
 	if (!ec_pwm)
+	{
 		return -ENOMEM;
+	}
+
 	chip = &ec_pwm->chip;
 	ec_pwm->ec = ec;
 
@@ -211,15 +246,20 @@ static int cros_ec_pwm_probe(struct platform_device *pdev)
 	chip->of_pwm_n_cells = 1;
 	chip->base = -1;
 	ret = cros_ec_num_pwms(ec);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "Couldn't find PWMs: %d\n", ret);
 		return ret;
 	}
+
 	chip->npwm = ret;
 	dev_dbg(dev, "Probed %u PWMs\n", chip->npwm);
 
 	ret = pwmchip_add(chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "cannot register PWM: %d\n", ret);
 		return ret;
 	}
@@ -238,14 +278,16 @@ static int cros_ec_pwm_remove(struct platform_device *dev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id cros_ec_pwm_of_match[] = {
+static const struct of_device_id cros_ec_pwm_of_match[] =
+{
 	{ .compatible = "google,cros-ec-pwm" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, cros_ec_pwm_of_match);
 #endif
 
-static struct platform_driver cros_ec_pwm_driver = {
+static struct platform_driver cros_ec_pwm_driver =
+{
 	.probe = cros_ec_pwm_probe,
 	.remove = cros_ec_pwm_remove,
 	.driver = {

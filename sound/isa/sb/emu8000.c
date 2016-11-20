@@ -49,10 +49,13 @@ void snd_emu8000_poke(struct snd_emu8000 *emu, unsigned int port, unsigned int r
 {
 	unsigned long flags;
 	spin_lock_irqsave(&emu->reg_lock, flags);
-	if (reg != emu->last_reg) {
+
+	if (reg != emu->last_reg)
+	{
 		outw((unsigned short)reg, EMU8000_PTR(emu)); /* Set register */
 		emu->last_reg = reg;
 	}
+
 	outw((unsigned short)val, port); /* Send data */
 	spin_unlock_irqrestore(&emu->reg_lock, flags);
 }
@@ -63,10 +66,13 @@ unsigned short snd_emu8000_peek(struct snd_emu8000 *emu, unsigned int port, unsi
 	unsigned short res;
 	unsigned long flags;
 	spin_lock_irqsave(&emu->reg_lock, flags);
-	if (reg != emu->last_reg) {
+
+	if (reg != emu->last_reg)
+	{
 		outw((unsigned short)reg, EMU8000_PTR(emu)); /* Set register */
 		emu->last_reg = reg;
 	}
+
 	res = inw(port);	/* Read data */
 	spin_unlock_irqrestore(&emu->reg_lock, flags);
 	return res;
@@ -77,12 +83,15 @@ void snd_emu8000_poke_dw(struct snd_emu8000 *emu, unsigned int port, unsigned in
 {
 	unsigned long flags;
 	spin_lock_irqsave(&emu->reg_lock, flags);
-	if (reg != emu->last_reg) {
+
+	if (reg != emu->last_reg)
+	{
 		outw((unsigned short)reg, EMU8000_PTR(emu)); /* Set register */
 		emu->last_reg = reg;
 	}
+
 	outw((unsigned short)val, port); /* Send low word of data */
-	outw((unsigned short)(val>>16), port+2); /* Send high word of data */
+	outw((unsigned short)(val >> 16), port + 2); /* Send high word of data */
 	spin_unlock_irqrestore(&emu->reg_lock, flags);
 }
 
@@ -93,12 +102,15 @@ unsigned int snd_emu8000_peek_dw(struct snd_emu8000 *emu, unsigned int port, uns
 	unsigned int res;
 	unsigned long flags;
 	spin_lock_irqsave(&emu->reg_lock, flags);
-	if (reg != emu->last_reg) {
+
+	if (reg != emu->last_reg)
+	{
 		outw((unsigned short)reg, EMU8000_PTR(emu)); /* Set register */
 		emu->last_reg = reg;
 	}
+
 	low = inw(port);	/* Read low word of data */
-	res = low + (inw(port+2) << 16);
+	res = low + (inw(port + 2) << 16);
 	spin_unlock_irqrestore(&emu->reg_lock, flags);
 	return res;
 }
@@ -111,11 +123,14 @@ snd_emu8000_dma_chan(struct snd_emu8000 *emu, int ch, int mode)
 {
 	unsigned right_bit = (mode & EMU8000_RAM_RIGHT) ? 0x01000000 : 0;
 	mode &= EMU8000_RAM_MODE_MASK;
-	if (mode == EMU8000_RAM_CLOSE) {
+
+	if (mode == EMU8000_RAM_CLOSE)
+	{
 		EMU8000_CCCA_WRITE(emu, ch, 0);
 		EMU8000_DCYSUSV_WRITE(emu, ch, 0x807F);
 		return;
 	}
+
 	EMU8000_DCYSUSV_WRITE(emu, ch, 0x80);
 	EMU8000_VTFT_WRITE(emu, ch, 0);
 	EMU8000_CVCF_WRITE(emu, ch, 0);
@@ -123,10 +138,15 @@ snd_emu8000_dma_chan(struct snd_emu8000 *emu, int ch, int mode)
 	EMU8000_CPF_WRITE(emu, ch, 0x40000000);
 	EMU8000_PSST_WRITE(emu, ch, 0);
 	EMU8000_CSL_WRITE(emu, ch, 0);
+
 	if (mode == EMU8000_RAM_WRITE) /* DMA write */
+	{
 		EMU8000_CCCA_WRITE(emu, ch, 0x06000000 | right_bit);
+	}
 	else	   /* DMA read */
+	{
 		EMU8000_CCCA_WRITE(emu, ch, 0x04000000 | right_bit);
+	}
 }
 
 /*
@@ -134,10 +154,14 @@ snd_emu8000_dma_chan(struct snd_emu8000 *emu, int ch, int mode)
 static void
 snd_emu8000_read_wait(struct snd_emu8000 *emu)
 {
-	while ((EMU8000_SMALR_READ(emu) & 0x80000000) != 0) {
+	while ((EMU8000_SMALR_READ(emu) & 0x80000000) != 0)
+	{
 		schedule_timeout_interruptible(1);
+
 		if (signal_pending(current))
+		{
 			break;
+		}
 	}
 }
 
@@ -146,10 +170,14 @@ snd_emu8000_read_wait(struct snd_emu8000 *emu)
 static void
 snd_emu8000_write_wait(struct snd_emu8000 *emu)
 {
-	while ((EMU8000_SMALW_READ(emu) & 0x80000000) != 0) {
+	while ((EMU8000_SMALW_READ(emu) & 0x80000000) != 0)
+	{
 		schedule_timeout_interruptible(1);
+
 		if (signal_pending(current))
+		{
 			break;
+		}
 	}
 }
 
@@ -163,18 +191,24 @@ snd_emu8000_detect(struct snd_emu8000 *emu)
 	EMU8000_HWCF1_WRITE(emu, 0x0059);
 	EMU8000_HWCF2_WRITE(emu, 0x0020);
 	EMU8000_HWCF3_WRITE(emu, 0x0000);
+
 	/* Check for a recognisable emu8000 */
 	/*
 	if ((EMU8000_U1_READ(emu) & 0x000f) != 0x000c)
 		return -ENODEV;
 		*/
 	if ((EMU8000_HWCF1_READ(emu) & 0x007e) != 0x0058)
+	{
 		return -ENODEV;
+	}
+
 	if ((EMU8000_HWCF2_READ(emu) & 0x0003) != 0x0003)
+	{
 		return -ENODEV;
+	}
 
 	snd_printdd("EMU8000 [0x%lx]: Synth chip found\n",
-                    emu->port1);
+				emu->port1);
 	return 0;
 }
 
@@ -189,10 +223,13 @@ init_audio(struct snd_emu8000 *emu)
 
 	/* turn off envelope engines */
 	for (ch = 0; ch < EMU8000_CHANNELS; ch++)
+	{
 		EMU8000_DCYSUSV_WRITE(emu, ch, 0x80);
-  
+	}
+
 	/* reset all other parameters to zero */
-	for (ch = 0; ch < EMU8000_CHANNELS; ch++) {
+	for (ch = 0; ch < EMU8000_CHANNELS; ch++)
+	{
 		EMU8000_ENVVOL_WRITE(emu, ch, 0);
 		EMU8000_ENVVAL_WRITE(emu, ch, 0);
 		EMU8000_DCYSUS_WRITE(emu, ch, 0);
@@ -213,7 +250,8 @@ init_audio(struct snd_emu8000 *emu)
 		EMU8000_CCCA_WRITE(emu, ch, 0);
 	}
 
-	for (ch = 0; ch < EMU8000_CHANNELS; ch++) {
+	for (ch = 0; ch < EMU8000_CHANNELS; ch++)
+	{
 		EMU8000_CPF_WRITE(emu, ch, 0);
 		EMU8000_CVCF_WRITE(emu, ch, 0);
 	}
@@ -235,7 +273,8 @@ init_dma(struct snd_emu8000 *emu)
 /*
  * initialization arrays; from ADIP
  */
-static unsigned short init1[128] = {
+static unsigned short init1[128] =
+{
 	0x03ff, 0x0030,  0x07ff, 0x0130, 0x0bff, 0x0230,  0x0fff, 0x0330,
 	0x13ff, 0x0430,  0x17ff, 0x0530, 0x1bff, 0x0630,  0x1fff, 0x0730,
 	0x23ff, 0x0830,  0x27ff, 0x0930, 0x2bff, 0x0a30,  0x2fff, 0x0b30,
@@ -257,7 +296,8 @@ static unsigned short init1[128] = {
 	0xf3ff, 0x0c30,  0xf7ff, 0x0d30, 0xfbff, 0x0e30,  0xffff, 0x0f30,
 };
 
-static unsigned short init2[128] = {
+static unsigned short init2[128] =
+{
 	0x03ff, 0x8030, 0x07ff, 0x8130, 0x0bff, 0x8230, 0x0fff, 0x8330,
 	0x13ff, 0x8430, 0x17ff, 0x8530, 0x1bff, 0x8630, 0x1fff, 0x8730,
 	0x23ff, 0x8830, 0x27ff, 0x8930, 0x2bff, 0x8a30, 0x2fff, 0x8b30,
@@ -279,7 +319,8 @@ static unsigned short init2[128] = {
 	0xf3ff, 0x8c30, 0xf7ff, 0x8d30, 0xfbff, 0x8e30, 0xffff, 0x8f30,
 };
 
-static unsigned short init3[128] = {
+static unsigned short init3[128] =
+{
 	0x0C10, 0x8470, 0x14FE, 0xB488, 0x167F, 0xA470, 0x18E7, 0x84B5,
 	0x1B6E, 0x842A, 0x1F1D, 0x852A, 0x0DA3, 0x8F7C, 0x167E, 0xF254,
 	0x0000, 0x842A, 0x0001, 0x852A, 0x18E6, 0x8BAA, 0x1B6D, 0xF234,
@@ -301,7 +342,8 @@ static unsigned short init3[128] = {
 	0x1342, 0xD36E, 0x3EC7, 0xB3FF, 0x0000, 0x8365, 0x1420, 0x9570,
 };
 
-static unsigned short init4[128] = {
+static unsigned short init4[128] =
+{
 	0x0C10, 0x8470, 0x14FE, 0xB488, 0x167F, 0xA470, 0x18E7, 0x84B5,
 	0x1B6E, 0x842A, 0x1F1D, 0x852A, 0x0DA3, 0x0F7C, 0x167E, 0x7254,
 	0x0000, 0x842A, 0x0001, 0x852A, 0x18E6, 0x0BAA, 0x1B6D, 0x7234,
@@ -334,14 +376,26 @@ send_array(struct snd_emu8000 *emu, unsigned short *data, int size)
 	unsigned short *p;
 
 	p = data;
+
 	for (i = 0; i < size; i++, p++)
+	{
 		EMU8000_INIT1_WRITE(emu, i, *p);
+	}
+
 	for (i = 0; i < size; i++, p++)
+	{
 		EMU8000_INIT2_WRITE(emu, i, *p);
+	}
+
 	for (i = 0; i < size; i++, p++)
+	{
 		EMU8000_INIT3_WRITE(emu, i, *p);
+	}
+
 	for (i = 0; i < size; i++, p++)
+	{
 		EMU8000_INIT4_WRITE(emu, i, *p);
+	}
 }
 
 
@@ -352,17 +406,17 @@ send_array(struct snd_emu8000 *emu, unsigned short *data, int size)
 static void
 init_arrays(struct snd_emu8000 *emu)
 {
-	send_array(emu, init1, ARRAY_SIZE(init1)/4);
+	send_array(emu, init1, ARRAY_SIZE(init1) / 4);
 
 	msleep((1024 * 1000) / 44100); /* wait for 1024 clocks */
-	send_array(emu, init2, ARRAY_SIZE(init2)/4);
-	send_array(emu, init3, ARRAY_SIZE(init3)/4);
+	send_array(emu, init2, ARRAY_SIZE(init2) / 4);
+	send_array(emu, init3, ARRAY_SIZE(init3) / 4);
 
 	EMU8000_HWCF4_WRITE(emu, 0);
 	EMU8000_HWCF5_WRITE(emu, 0x83);
 	EMU8000_HWCF6_WRITE(emu, 0x8000);
 
-	send_array(emu, init4, ARRAY_SIZE(init4)/4);
+	send_array(emu, init4, ARRAY_SIZE(init4) / 4);
 }
 
 
@@ -381,7 +435,9 @@ size_dram(struct snd_emu8000 *emu)
 	int i, size;
 
 	if (emu->dram_checked)
+	{
 		return;
+	}
 
 	size = 0;
 
@@ -399,11 +455,16 @@ size_dram(struct snd_emu8000 *emu)
 	 */
 	EMU8000_SMALR_WRITE(emu, EMU8000_DRAM_OFFSET);
 	EMU8000_SMLD_READ(emu); /* discard stale data  */
+
 	if (EMU8000_SMLD_READ(emu) != UNIQUE_ID1)
-		goto skip_detect;   /* No RAM */
+	{
+		goto skip_detect;    /* No RAM */
+	}
+
 	snd_emu8000_read_wait(emu);
 
-	for (size = 512 * 1024; size < EMU8000_MAX_DRAM; size += 512 * 1024) {
+	for (size = 512 * 1024; size < EMU8000_MAX_DRAM; size += 512 * 1024)
+	{
 
 		/* Write a unique data on the test address.
 		 * if the address is out of range, the data is written on
@@ -411,7 +472,7 @@ size_dram(struct snd_emu8000 *emu)
 		 * changed by this data.
 		 */
 		/*snd_emu8000_dma_chan(emu, 0, EMU8000_RAM_WRITE);*/
-		EMU8000_SMALW_WRITE(emu, EMU8000_DRAM_OFFSET + (size>>1));
+		EMU8000_SMALW_WRITE(emu, EMU8000_DRAM_OFFSET + (size >> 1));
 		EMU8000_SMLD_WRITE(emu, UNIQUE_ID2);
 		snd_emu8000_write_wait(emu);
 
@@ -420,11 +481,15 @@ size_dram(struct snd_emu8000 *emu)
 		 * if not the same then we have reached the end of ram.
 		 */
 		/*snd_emu8000_dma_chan(emu, 0, EMU8000_RAM_READ);*/
-		EMU8000_SMALR_WRITE(emu, EMU8000_DRAM_OFFSET + (size>>1));
+		EMU8000_SMALR_WRITE(emu, EMU8000_DRAM_OFFSET + (size >> 1));
 		/*snd_emu8000_read_wait(emu);*/
 		EMU8000_SMLD_READ(emu); /* discard stale data  */
+
 		if (EMU8000_SMLD_READ(emu) != UNIQUE_ID2)
-			break; /* no memory at this address */
+		{
+			break;    /* no memory at this address */
+		}
+
 		snd_emu8000_read_wait(emu);
 
 		/*
@@ -434,27 +499,40 @@ size_dram(struct snd_emu8000 *emu)
 		 */
 		EMU8000_SMALR_WRITE(emu, EMU8000_DRAM_OFFSET);
 		EMU8000_SMLD_READ(emu); /* discard stale data  */
+
 		if (EMU8000_SMLD_READ(emu) != UNIQUE_ID1)
-			break; /* we must have wrapped around */
+		{
+			break;    /* we must have wrapped around */
+		}
+
 		snd_emu8000_read_wait(emu);
 
 		/* Otherwise, it's valid memory. */
 	}
 
 skip_detect:
+
 	/* wait until FULL bit in SMAxW register is false */
-	for (i = 0; i < 10000; i++) {
+	for (i = 0; i < 10000; i++)
+	{
 		if ((EMU8000_SMALW_READ(emu) & 0x80000000) == 0)
+		{
 			break;
+		}
+
 		schedule_timeout_interruptible(1);
+
 		if (signal_pending(current))
+		{
 			break;
+		}
 	}
+
 	snd_emu8000_dma_chan(emu, 0, EMU8000_RAM_CLOSE);
 	snd_emu8000_dma_chan(emu, 1, EMU8000_RAM_CLOSE);
 
 	pr_info("EMU8000 [0x%lx]: %d KiB on-board DRAM detected\n",
-		    emu->port1, size/1024);
+			emu->port1, size / 1024);
 
 	emu->mem_size = size;
 	emu->dram_checked = 1;
@@ -492,10 +570,13 @@ snd_emu8000_init_fm(struct snd_emu8000 *emu)
 	snd_emu8000_poke((emu), EMU8000_DATA0(emu), EMU8000_CMD(1, (30)), 0);
 
 	spin_lock_irqsave(&emu->reg_lock, flags);
+
 	while (!(inw(EMU8000_PTR(emu)) & 0x1000))
 		;
+
 	while ((inw(EMU8000_PTR(emu)) & 0x1000))
 		;
+
 	spin_unlock_irqrestore(&emu->reg_lock, flags);
 	snd_emu8000_poke((emu), EMU8000_DATA0(emu), EMU8000_CMD(1, (30)), 0x4828);
 	/* this is really odd part.. */
@@ -542,8 +623,10 @@ snd_emu8000_init_hw(struct snd_emu8000 *emu)
 
 	/* terminate all voices */
 	for (i = 0; i < EMU8000_DRAM_VOICES; i++)
+	{
 		EMU8000_DCYSUSV_WRITE(emu, 0, 0x807F);
-	
+	}
+
 	/* check DRAM memory size */
 	size_dram(emu);
 
@@ -561,7 +644,8 @@ snd_emu8000_init_hw(struct snd_emu8000 *emu)
  * Bass/Treble Equalizer
  *----------------------------------------------------------------*/
 
-static unsigned short bass_parm[12][3] = {
+static unsigned short bass_parm[12][3] =
+{
 	{0xD26A, 0xD36A, 0x0000}, /* -12 dB */
 	{0xD25B, 0xD35B, 0x0000}, /*  -8 */
 	{0xD24C, 0xD34C, 0x0000}, /*  -6 */
@@ -576,7 +660,8 @@ static unsigned short bass_parm[12][3] = {
 	{0xC26A, 0xC36A, 0x0002}, /* +12 dB */
 };
 
-static unsigned short treble_parm[12][9] = {
+static unsigned short treble_parm[12][9] =
+{
 	{0x821E, 0xC26A, 0x031E, 0xC36A, 0x021E, 0xD208, 0x831E, 0xD308, 0x0001}, /* -12 dB */
 	{0x821E, 0xC25B, 0x031E, 0xC35B, 0x021E, 0xD208, 0x831E, 0xD308, 0x0001},
 	{0x821E, 0xC24C, 0x031E, 0xC34C, 0x021E, 0xD208, 0x831E, 0xD308, 0x0001},
@@ -603,7 +688,10 @@ snd_emu8000_update_equalizer(struct snd_emu8000 *emu)
 	int treble = emu->treble_level;
 
 	if (bass < 0 || bass > 11 || treble < 0 || treble > 11)
+	{
 		return;
+	}
+
 	EMU8000_INIT4_WRITE(emu, 0x01, bass_parm[bass][0]);
 	EMU8000_INIT4_WRITE(emu, 0x11, bass_parm[bass][1]);
 	EMU8000_INIT3_WRITE(emu, 0x11, treble_parm[treble][0]);
@@ -639,7 +727,8 @@ snd_emu8000_update_equalizer(struct snd_emu8000 *emu)
 /* user can define chorus modes up to 32 */
 #define SNDRV_EMU8000_CHORUS_NUMBERS	32
 
-struct soundfont_chorus_fx {
+struct soundfont_chorus_fx
+{
 	unsigned short feedback;	/* feedback level (0xE600-0xE6FF) */
 	unsigned short delay_offset;	/* delay (0-0x0DA3) [1/44100 sec] */
 	unsigned short lfo_depth;	/* LFO depth (0xBC00-0xBCFF) */
@@ -649,8 +738,9 @@ struct soundfont_chorus_fx {
 
 /* 5 parameters for each chorus mode; 3 x 16bit, 2 x 32bit */
 static char chorus_defined[SNDRV_EMU8000_CHORUS_NUMBERS];
-static struct soundfont_chorus_fx chorus_parm[SNDRV_EMU8000_CHORUS_NUMBERS] = {
-	{0xE600, 0x03F6, 0xBC2C ,0x00000000, 0x0000006D}, /* chorus 1 */
+static struct soundfont_chorus_fx chorus_parm[SNDRV_EMU8000_CHORUS_NUMBERS] =
+{
+	{0xE600, 0x03F6, 0xBC2C , 0x00000000, 0x0000006D}, /* chorus 1 */
 	{0xE608, 0x031A, 0xBC6E, 0x00000000, 0x0000017C}, /* chorus 2 */
 	{0xE610, 0x031A, 0xBC84, 0x00000000, 0x00000083}, /* chorus 3 */
 	{0xE620, 0x0269, 0xBC6E, 0x00000000, 0x0000017C}, /* chorus 4 */
@@ -664,12 +754,18 @@ static struct soundfont_chorus_fx chorus_parm[SNDRV_EMU8000_CHORUS_NUMBERS] = {
 snd_emu8000_load_chorus_fx(struct snd_emu8000 *emu, int mode, const void __user *buf, long len)
 {
 	struct soundfont_chorus_fx rec;
-	if (mode < SNDRV_EMU8000_CHORUS_PREDEFINED || mode >= SNDRV_EMU8000_CHORUS_NUMBERS) {
+
+	if (mode < SNDRV_EMU8000_CHORUS_PREDEFINED || mode >= SNDRV_EMU8000_CHORUS_NUMBERS)
+	{
 		snd_printk(KERN_WARNING "invalid chorus mode %d for uploading\n", mode);
 		return -EINVAL;
 	}
+
 	if (len < (long)sizeof(rec) || copy_from_user(&rec, buf, sizeof(rec)))
+	{
 		return -EFAULT;
+	}
+
 	chorus_parm[mode] = rec;
 	chorus_defined[mode] = 1;
 	return 0;
@@ -679,9 +775,13 @@ snd_emu8000_load_chorus_fx(struct snd_emu8000 *emu, int mode, const void __user 
 snd_emu8000_update_chorus_mode(struct snd_emu8000 *emu)
 {
 	int effect = emu->chorus_mode;
+
 	if (effect < 0 || effect >= SNDRV_EMU8000_CHORUS_NUMBERS ||
-	    (effect >= SNDRV_EMU8000_CHORUS_PREDEFINED && !chorus_defined[effect]))
+		(effect >= SNDRV_EMU8000_CHORUS_PREDEFINED && !chorus_defined[effect]))
+	{
 		return;
+	}
+
 	EMU8000_INIT3_WRITE(emu, 0x09, chorus_parm[effect].feedback);
 	EMU8000_INIT3_WRITE(emu, 0x0c, chorus_parm[effect].delay_offset);
 	EMU8000_INIT4_WRITE(emu, 0x03, chorus_parm[effect].lfo_depth);
@@ -710,7 +810,8 @@ snd_emu8000_update_chorus_mode(struct snd_emu8000 *emu)
 /* user can define reverb modes up to 32 */
 #define SNDRV_EMU8000_REVERB_NUMBERS	32
 
-struct soundfont_reverb_fx {
+struct soundfont_reverb_fx
+{
 	unsigned short parms[28];
 };
 
@@ -718,55 +819,64 @@ struct soundfont_reverb_fx {
  *   on the corresponding ports in the reverb_cmds array
  */
 static char reverb_defined[SNDRV_EMU8000_CHORUS_NUMBERS];
-static struct soundfont_reverb_fx reverb_parm[SNDRV_EMU8000_REVERB_NUMBERS] = {
-{{  /* room 1 */
-	0xB488, 0xA450, 0x9550, 0x84B5, 0x383A, 0x3EB5, 0x72F4,
-	0x72A4, 0x7254, 0x7204, 0x7204, 0x7204, 0x4416, 0x4516,
-	0xA490, 0xA590, 0x842A, 0x852A, 0x842A, 0x852A, 0x8429,
-	0x8529, 0x8429, 0x8529, 0x8428, 0x8528, 0x8428, 0x8528,
-}},
-{{  /* room 2 */
-	0xB488, 0xA458, 0x9558, 0x84B5, 0x383A, 0x3EB5, 0x7284,
-	0x7254, 0x7224, 0x7224, 0x7254, 0x7284, 0x4448, 0x4548,
-	0xA440, 0xA540, 0x842A, 0x852A, 0x842A, 0x852A, 0x8429,
-	0x8529, 0x8429, 0x8529, 0x8428, 0x8528, 0x8428, 0x8528,
-}},
-{{  /* room 3 */
-	0xB488, 0xA460, 0x9560, 0x84B5, 0x383A, 0x3EB5, 0x7284,
-	0x7254, 0x7224, 0x7224, 0x7254, 0x7284, 0x4416, 0x4516,
-	0xA490, 0xA590, 0x842C, 0x852C, 0x842C, 0x852C, 0x842B,
-	0x852B, 0x842B, 0x852B, 0x842A, 0x852A, 0x842A, 0x852A,
-}},
-{{  /* hall 1 */
-	0xB488, 0xA470, 0x9570, 0x84B5, 0x383A, 0x3EB5, 0x7284,
-	0x7254, 0x7224, 0x7224, 0x7254, 0x7284, 0x4448, 0x4548,
-	0xA440, 0xA540, 0x842B, 0x852B, 0x842B, 0x852B, 0x842A,
-	0x852A, 0x842A, 0x852A, 0x8429, 0x8529, 0x8429, 0x8529,
-}},
-{{  /* hall 2 */
-	0xB488, 0xA470, 0x9570, 0x84B5, 0x383A, 0x3EB5, 0x7254,
-	0x7234, 0x7224, 0x7254, 0x7264, 0x7294, 0x44C3, 0x45C3,
-	0xA404, 0xA504, 0x842A, 0x852A, 0x842A, 0x852A, 0x8429,
-	0x8529, 0x8429, 0x8529, 0x8428, 0x8528, 0x8428, 0x8528,
-}},
-{{  /* plate */
-	0xB4FF, 0xA470, 0x9570, 0x84B5, 0x383A, 0x3EB5, 0x7234,
-	0x7234, 0x7234, 0x7234, 0x7234, 0x7234, 0x4448, 0x4548,
-	0xA440, 0xA540, 0x842A, 0x852A, 0x842A, 0x852A, 0x8429,
-	0x8529, 0x8429, 0x8529, 0x8428, 0x8528, 0x8428, 0x8528,
-}},
-{{  /* delay */
-	0xB4FF, 0xA470, 0x9500, 0x84B5, 0x333A, 0x39B5, 0x7204,
-	0x7204, 0x7204, 0x7204, 0x7204, 0x72F4, 0x4400, 0x4500,
-	0xA4FF, 0xA5FF, 0x8420, 0x8520, 0x8420, 0x8520, 0x8420,
-	0x8520, 0x8420, 0x8520, 0x8420, 0x8520, 0x8420, 0x8520,
-}},
-{{  /* panning delay */
-	0xB4FF, 0xA490, 0x9590, 0x8474, 0x333A, 0x39B5, 0x7204,
-	0x7204, 0x7204, 0x7204, 0x7204, 0x72F4, 0x4400, 0x4500,
-	0xA4FF, 0xA5FF, 0x8420, 0x8520, 0x8420, 0x8520, 0x8420,
-	0x8520, 0x8420, 0x8520, 0x8420, 0x8520, 0x8420, 0x8520,
-}},
+static struct soundfont_reverb_fx reverb_parm[SNDRV_EMU8000_REVERB_NUMBERS] =
+{
+	{	{  /* room 1 */
+			0xB488, 0xA450, 0x9550, 0x84B5, 0x383A, 0x3EB5, 0x72F4,
+			0x72A4, 0x7254, 0x7204, 0x7204, 0x7204, 0x4416, 0x4516,
+			0xA490, 0xA590, 0x842A, 0x852A, 0x842A, 0x852A, 0x8429,
+			0x8529, 0x8429, 0x8529, 0x8428, 0x8528, 0x8428, 0x8528,
+		}
+	},
+	{	{  /* room 2 */
+			0xB488, 0xA458, 0x9558, 0x84B5, 0x383A, 0x3EB5, 0x7284,
+			0x7254, 0x7224, 0x7224, 0x7254, 0x7284, 0x4448, 0x4548,
+			0xA440, 0xA540, 0x842A, 0x852A, 0x842A, 0x852A, 0x8429,
+			0x8529, 0x8429, 0x8529, 0x8428, 0x8528, 0x8428, 0x8528,
+		}
+	},
+	{	{  /* room 3 */
+			0xB488, 0xA460, 0x9560, 0x84B5, 0x383A, 0x3EB5, 0x7284,
+			0x7254, 0x7224, 0x7224, 0x7254, 0x7284, 0x4416, 0x4516,
+			0xA490, 0xA590, 0x842C, 0x852C, 0x842C, 0x852C, 0x842B,
+			0x852B, 0x842B, 0x852B, 0x842A, 0x852A, 0x842A, 0x852A,
+		}
+	},
+	{	{  /* hall 1 */
+			0xB488, 0xA470, 0x9570, 0x84B5, 0x383A, 0x3EB5, 0x7284,
+			0x7254, 0x7224, 0x7224, 0x7254, 0x7284, 0x4448, 0x4548,
+			0xA440, 0xA540, 0x842B, 0x852B, 0x842B, 0x852B, 0x842A,
+			0x852A, 0x842A, 0x852A, 0x8429, 0x8529, 0x8429, 0x8529,
+		}
+	},
+	{	{  /* hall 2 */
+			0xB488, 0xA470, 0x9570, 0x84B5, 0x383A, 0x3EB5, 0x7254,
+			0x7234, 0x7224, 0x7254, 0x7264, 0x7294, 0x44C3, 0x45C3,
+			0xA404, 0xA504, 0x842A, 0x852A, 0x842A, 0x852A, 0x8429,
+			0x8529, 0x8429, 0x8529, 0x8428, 0x8528, 0x8428, 0x8528,
+		}
+	},
+	{	{  /* plate */
+			0xB4FF, 0xA470, 0x9570, 0x84B5, 0x383A, 0x3EB5, 0x7234,
+			0x7234, 0x7234, 0x7234, 0x7234, 0x7234, 0x4448, 0x4548,
+			0xA440, 0xA540, 0x842A, 0x852A, 0x842A, 0x852A, 0x8429,
+			0x8529, 0x8429, 0x8529, 0x8428, 0x8528, 0x8428, 0x8528,
+		}
+	},
+	{	{  /* delay */
+			0xB4FF, 0xA470, 0x9500, 0x84B5, 0x333A, 0x39B5, 0x7204,
+			0x7204, 0x7204, 0x7204, 0x7204, 0x72F4, 0x4400, 0x4500,
+			0xA4FF, 0xA5FF, 0x8420, 0x8520, 0x8420, 0x8520, 0x8420,
+			0x8520, 0x8420, 0x8520, 0x8420, 0x8520, 0x8420, 0x8520,
+		}
+	},
+	{	{  /* panning delay */
+			0xB4FF, 0xA490, 0x9590, 0x8474, 0x333A, 0x39B5, 0x7204,
+			0x7204, 0x7204, 0x7204, 0x7204, 0x72F4, 0x4400, 0x4500,
+			0xA4FF, 0xA5FF, 0x8420, 0x8520, 0x8420, 0x8520, 0x8420,
+			0x8520, 0x8420, 0x8520, 0x8420, 0x8520, 0x8420, 0x8520,
+		}
+	},
 };
 
 enum { DATA1, DATA2 };
@@ -775,16 +885,18 @@ enum { DATA1, DATA2 };
 #define AWE_INIT3(c)	EMU8000_CMD(3,c), DATA1
 #define AWE_INIT4(c)	EMU8000_CMD(3,c), DATA2
 
-static struct reverb_cmd_pair {
+static struct reverb_cmd_pair
+{
 	unsigned short cmd, port;
-} reverb_cmds[28] = {
-  {AWE_INIT1(0x03)}, {AWE_INIT1(0x05)}, {AWE_INIT4(0x1F)}, {AWE_INIT1(0x07)},
-  {AWE_INIT2(0x14)}, {AWE_INIT2(0x16)}, {AWE_INIT1(0x0F)}, {AWE_INIT1(0x17)},
-  {AWE_INIT1(0x1F)}, {AWE_INIT2(0x07)}, {AWE_INIT2(0x0F)}, {AWE_INIT2(0x17)},
-  {AWE_INIT2(0x1D)}, {AWE_INIT2(0x1F)}, {AWE_INIT3(0x01)}, {AWE_INIT3(0x03)},
-  {AWE_INIT1(0x09)}, {AWE_INIT1(0x0B)}, {AWE_INIT1(0x11)}, {AWE_INIT1(0x13)},
-  {AWE_INIT1(0x19)}, {AWE_INIT1(0x1B)}, {AWE_INIT2(0x01)}, {AWE_INIT2(0x03)},
-  {AWE_INIT2(0x09)}, {AWE_INIT2(0x0B)}, {AWE_INIT2(0x11)}, {AWE_INIT2(0x13)},
+} reverb_cmds[28] =
+{
+	{AWE_INIT1(0x03)}, {AWE_INIT1(0x05)}, {AWE_INIT4(0x1F)}, {AWE_INIT1(0x07)},
+	{AWE_INIT2(0x14)}, {AWE_INIT2(0x16)}, {AWE_INIT1(0x0F)}, {AWE_INIT1(0x17)},
+	{AWE_INIT1(0x1F)}, {AWE_INIT2(0x07)}, {AWE_INIT2(0x0F)}, {AWE_INIT2(0x17)},
+	{AWE_INIT2(0x1D)}, {AWE_INIT2(0x1F)}, {AWE_INIT3(0x01)}, {AWE_INIT3(0x03)},
+	{AWE_INIT1(0x09)}, {AWE_INIT1(0x0B)}, {AWE_INIT1(0x11)}, {AWE_INIT1(0x13)},
+	{AWE_INIT1(0x19)}, {AWE_INIT1(0x1B)}, {AWE_INIT2(0x01)}, {AWE_INIT2(0x03)},
+	{AWE_INIT2(0x09)}, {AWE_INIT2(0x0B)}, {AWE_INIT2(0x11)}, {AWE_INIT2(0x13)},
 };
 
 /*exported*/ int
@@ -792,12 +904,17 @@ snd_emu8000_load_reverb_fx(struct snd_emu8000 *emu, int mode, const void __user 
 {
 	struct soundfont_reverb_fx rec;
 
-	if (mode < SNDRV_EMU8000_REVERB_PREDEFINED || mode >= SNDRV_EMU8000_REVERB_NUMBERS) {
+	if (mode < SNDRV_EMU8000_REVERB_PREDEFINED || mode >= SNDRV_EMU8000_REVERB_NUMBERS)
+	{
 		snd_printk(KERN_WARNING "invalid reverb mode %d for uploading\n", mode);
 		return -EINVAL;
 	}
+
 	if (len < (long)sizeof(rec) || copy_from_user(&rec, buf, sizeof(rec)))
+	{
 		return -EFAULT;
+	}
+
 	reverb_parm[mode] = rec;
 	reverb_defined[mode] = 1;
 	return 0;
@@ -810,14 +927,24 @@ snd_emu8000_update_reverb_mode(struct snd_emu8000 *emu)
 	int i;
 
 	if (effect < 0 || effect >= SNDRV_EMU8000_REVERB_NUMBERS ||
-	    (effect >= SNDRV_EMU8000_REVERB_PREDEFINED && !reverb_defined[effect]))
+		(effect >= SNDRV_EMU8000_REVERB_PREDEFINED && !reverb_defined[effect]))
+	{
 		return;
-	for (i = 0; i < 28; i++) {
+	}
+
+	for (i = 0; i < 28; i++)
+	{
 		int port;
+
 		if (reverb_cmds[i].port == DATA1)
+		{
 			port = EMU8000_DATA1(emu);
+		}
 		else
+		{
 			port = EMU8000_DATA2(emu);
+		}
+
 		snd_emu8000_poke(emu, port, reverb_cmds[i].cmd, reverb_parm[effect].parms[i]);
 	}
 }
@@ -842,7 +969,7 @@ static int mixer_bass_treble_info(struct snd_kcontrol *kcontrol, struct snd_ctl_
 static int mixer_bass_treble_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_emu8000 *emu = snd_kcontrol_chip(kcontrol);
-	
+
 	ucontrol->value.integer.value[0] = kcontrol->private_value ? emu->treble_level : emu->bass_level;
 	return 0;
 }
@@ -853,16 +980,21 @@ static int mixer_bass_treble_put(struct snd_kcontrol *kcontrol, struct snd_ctl_e
 	unsigned long flags;
 	int change;
 	unsigned short val1;
-	
+
 	val1 = ucontrol->value.integer.value[0] % 12;
 	spin_lock_irqsave(&emu->control_lock, flags);
-	if (kcontrol->private_value) {
+
+	if (kcontrol->private_value)
+	{
 		change = val1 != emu->treble_level;
 		emu->treble_level = val1;
-	} else {
+	}
+	else
+	{
 		change = val1 != emu->bass_level;
 		emu->bass_level = val1;
 	}
+
 	spin_unlock_irqrestore(&emu->control_lock, flags);
 	snd_emu8000_update_equalizer(emu);
 	return change;
@@ -896,14 +1028,15 @@ static int mixer_chorus_reverb_info(struct snd_kcontrol *kcontrol, struct snd_ct
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
 	uinfo->value.integer.min = 0;
-	uinfo->value.integer.max = kcontrol->private_value ? (SNDRV_EMU8000_CHORUS_NUMBERS-1) : (SNDRV_EMU8000_REVERB_NUMBERS-1);
+	uinfo->value.integer.max = kcontrol->private_value ? (SNDRV_EMU8000_CHORUS_NUMBERS - 1) :
+							   (SNDRV_EMU8000_REVERB_NUMBERS - 1);
 	return 0;
 }
 
 static int mixer_chorus_reverb_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_emu8000 *emu = snd_kcontrol_chip(kcontrol);
-	
+
 	ucontrol->value.integer.value[0] = kcontrol->private_value ? emu->chorus_mode : emu->reverb_mode;
 	return 0;
 }
@@ -914,24 +1047,36 @@ static int mixer_chorus_reverb_put(struct snd_kcontrol *kcontrol, struct snd_ctl
 	unsigned long flags;
 	int change;
 	unsigned short val1;
-	
+
 	spin_lock_irqsave(&emu->control_lock, flags);
-	if (kcontrol->private_value) {
+
+	if (kcontrol->private_value)
+	{
 		val1 = ucontrol->value.integer.value[0] % SNDRV_EMU8000_CHORUS_NUMBERS;
 		change = val1 != emu->chorus_mode;
 		emu->chorus_mode = val1;
-	} else {
+	}
+	else
+	{
 		val1 = ucontrol->value.integer.value[0] % SNDRV_EMU8000_REVERB_NUMBERS;
 		change = val1 != emu->reverb_mode;
 		emu->reverb_mode = val1;
 	}
+
 	spin_unlock_irqrestore(&emu->control_lock, flags);
-	if (change) {
+
+	if (change)
+	{
 		if (kcontrol->private_value)
+		{
 			snd_emu8000_update_chorus_mode(emu);
+		}
 		else
+		{
 			snd_emu8000_update_reverb_mode(emu);
+		}
 	}
+
 	return change;
 }
 
@@ -970,7 +1115,7 @@ static int mixer_fm_depth_info(struct snd_kcontrol *kcontrol, struct snd_ctl_ele
 static int mixer_fm_depth_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_emu8000 *emu = snd_kcontrol_chip(kcontrol);
-	
+
 	ucontrol->value.integer.value[0] = kcontrol->private_value ? emu->fm_chorus_depth : emu->fm_reverb_depth;
 	return 0;
 }
@@ -981,19 +1126,28 @@ static int mixer_fm_depth_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem
 	unsigned long flags;
 	int change;
 	unsigned short val1;
-	
+
 	val1 = ucontrol->value.integer.value[0] % 256;
 	spin_lock_irqsave(&emu->control_lock, flags);
-	if (kcontrol->private_value) {
+
+	if (kcontrol->private_value)
+	{
 		change = val1 != emu->fm_chorus_depth;
 		emu->fm_chorus_depth = val1;
-	} else {
+	}
+	else
+	{
 		change = val1 != emu->fm_reverb_depth;
 		emu->fm_reverb_depth = val1;
 	}
+
 	spin_unlock_irqrestore(&emu->control_lock, flags);
+
 	if (change)
+	{
 		snd_emu8000_init_fm(emu);
+	}
+
 	return change;
 }
 
@@ -1018,7 +1172,8 @@ static struct snd_kcontrol_new mixer_fm_reverb_depth_control =
 };
 
 
-static struct snd_kcontrol_new *mixer_defs[EMU8000_NUM_CONTROLS] = {
+static struct snd_kcontrol_new *mixer_defs[EMU8000_NUM_CONTROLS] =
+{
 	&mixer_bass_control,
 	&mixer_treble_control,
 	&mixer_chorus_mode_control,
@@ -1036,24 +1191,38 @@ snd_emu8000_create_mixer(struct snd_card *card, struct snd_emu8000 *emu)
 	int i, err = 0;
 
 	if (snd_BUG_ON(!emu || !card))
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_init(&emu->control_lock);
 
 	memset(emu->controls, 0, sizeof(emu->controls));
-	for (i = 0; i < EMU8000_NUM_CONTROLS; i++) {
+
+	for (i = 0; i < EMU8000_NUM_CONTROLS; i++)
+	{
 		if ((err = snd_ctl_add(card, emu->controls[i] = snd_ctl_new1(mixer_defs[i], emu))) < 0)
+		{
 			goto __error;
+		}
 	}
+
 	return 0;
 
 __error:
-	for (i = 0; i < EMU8000_NUM_CONTROLS; i++) {
+
+	for (i = 0; i < EMU8000_NUM_CONTROLS; i++)
+	{
 		down_write(&card->controls_rwsem);
+
 		if (emu->controls[i])
+		{
 			snd_ctl_remove(card, emu->controls[i]);
+		}
+
 		up_write(&card->controls_rwsem);
 	}
+
 	return err;
 }
 
@@ -1083,36 +1252,48 @@ static int snd_emu8000_dev_free(struct snd_device *device)
  */
 int
 snd_emu8000_new(struct snd_card *card, int index, long port, int seq_ports,
-		struct snd_seq_device **awe_ret)
+				struct snd_seq_device **awe_ret)
 {
 	struct snd_seq_device *awe;
 	struct snd_emu8000 *hw;
 	int err;
-	static struct snd_device_ops ops = {
+	static struct snd_device_ops ops =
+	{
 		.dev_free = snd_emu8000_dev_free,
 	};
 
 	if (awe_ret)
+	{
 		*awe_ret = NULL;
+	}
 
 	if (seq_ports <= 0)
+	{
 		return 0;
+	}
 
 	hw = kzalloc(sizeof(*hw), GFP_KERNEL);
+
 	if (hw == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	spin_lock_init(&hw->reg_lock);
 	hw->index = index;
 	hw->port1 = port;
 	hw->port2 = port + 0x400;
 	hw->port3 = port + 0x800;
+
 	if (!(hw->res_port1 = request_region(hw->port1, 4, "Emu8000-1")) ||
-	    !(hw->res_port2 = request_region(hw->port2, 4, "Emu8000-2")) ||
-	    !(hw->res_port3 = request_region(hw->port3, 4, "Emu8000-3"))) {
+		!(hw->res_port2 = request_region(hw->port2, 4, "Emu8000-2")) ||
+		!(hw->res_port3 = request_region(hw->port3, 4, "Emu8000-3")))
+	{
 		snd_printk(KERN_ERR "sbawe: can't grab ports 0x%lx, 0x%lx, 0x%lx\n", hw->port1, hw->port2, hw->port3);
 		snd_emu8000_free(hw);
 		return -EBUSY;
 	}
+
 	hw->mem_size = 0;
 	hw->card = card;
 	hw->seq_ports = seq_ports;
@@ -1123,32 +1304,43 @@ snd_emu8000_new(struct snd_card *card, int index, long port, int seq_ports,
 	hw->fm_chorus_depth = 0;
 	hw->fm_reverb_depth = 0;
 
-	if (snd_emu8000_detect(hw) < 0) {
+	if (snd_emu8000_detect(hw) < 0)
+	{
 		snd_emu8000_free(hw);
 		return -ENODEV;
 	}
 
 	snd_emu8000_init_hw(hw);
-	if ((err = snd_emu8000_create_mixer(card, hw)) < 0) {
+
+	if ((err = snd_emu8000_create_mixer(card, hw)) < 0)
+	{
 		snd_emu8000_free(hw);
 		return err;
 	}
-	
-	if ((err = snd_device_new(card, SNDRV_DEV_CODEC, hw, &ops)) < 0) {
+
+	if ((err = snd_device_new(card, SNDRV_DEV_CODEC, hw, &ops)) < 0)
+	{
 		snd_emu8000_free(hw);
 		return err;
 	}
+
 #if defined(CONFIG_SND_SEQUENCER) || (defined(MODULE) && defined(CONFIG_SND_SEQUENCER_MODULE))
+
 	if (snd_seq_device_new(card, index, SNDRV_SEQ_DEV_ID_EMU8000,
-			       sizeof(struct snd_emu8000*), &awe) >= 0) {
+						   sizeof(struct snd_emu8000 *), &awe) >= 0)
+	{
 		strcpy(awe->name, "EMU-8000");
 		*(struct snd_emu8000 **)SNDRV_SEQ_DEVICE_ARGPTR(awe) = hw;
 	}
+
 #else
 	awe = NULL;
 #endif
+
 	if (awe_ret)
+	{
 		*awe_ret = awe;
+	}
 
 	return 0;
 }

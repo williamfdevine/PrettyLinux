@@ -33,7 +33,7 @@ dma_cookie_t vchan_tx_submit(struct dma_async_tx_descriptor *tx)
 	spin_unlock_irqrestore(&vc->lock, flags);
 
 	dev_dbg(vc->chan.device->dev, "vchan %p: txd %p[%x]: submitted\n",
-		vc, vd, cookie);
+			vc, vd, cookie);
 
 	return cookie;
 }
@@ -60,20 +60,23 @@ int vchan_tx_desc_free(struct dma_async_tx_descriptor *tx)
 	spin_unlock_irqrestore(&vc->lock, flags);
 
 	dev_dbg(vc->chan.device->dev, "vchan %p: txd %p[%x]: freeing\n",
-		vc, vd, vd->tx.cookie);
+			vc, vd, vd->tx.cookie);
 	vc->desc_free(vd);
 	return 0;
 }
 EXPORT_SYMBOL_GPL(vchan_tx_desc_free);
 
 struct virt_dma_desc *vchan_find_desc(struct virt_dma_chan *vc,
-	dma_cookie_t cookie)
+									  dma_cookie_t cookie)
 {
 	struct virt_dma_desc *vd;
 
 	list_for_each_entry(vd, &vc->desc_issued, node)
-		if (vd->tx.cookie == cookie)
-			return vd;
+
+	if (vd->tx.cookie == cookie)
+	{
+		return vd;
+	}
 
 	return NULL;
 }
@@ -93,25 +96,36 @@ static void vchan_complete(unsigned long arg)
 	spin_lock_irq(&vc->lock);
 	list_splice_tail_init(&vc->desc_completed, &head);
 	vd = vc->cyclic;
-	if (vd) {
+
+	if (vd)
+	{
 		vc->cyclic = NULL;
 		dmaengine_desc_get_callback(&vd->tx, &cb);
-	} else {
+	}
+	else
+	{
 		memset(&cb, 0, sizeof(cb));
 	}
+
 	spin_unlock_irq(&vc->lock);
 
 	dmaengine_desc_callback_invoke(&cb, NULL);
 
-	while (!list_empty(&head)) {
+	while (!list_empty(&head))
+	{
 		vd = list_first_entry(&head, struct virt_dma_desc, node);
 		dmaengine_desc_get_callback(&vd->tx, &cb);
 
 		list_del(&vd->node);
+
 		if (dmaengine_desc_test_reuse(&vd->tx))
+		{
 			list_add(&vd->node, &vc->desc_allocated);
+		}
 		else
+		{
 			vc->desc_free(vd);
+		}
 
 		dmaengine_desc_callback_invoke(&cb, NULL);
 	}
@@ -119,12 +133,17 @@ static void vchan_complete(unsigned long arg)
 
 void vchan_dma_desc_free_list(struct virt_dma_chan *vc, struct list_head *head)
 {
-	while (!list_empty(head)) {
+	while (!list_empty(head))
+	{
 		struct virt_dma_desc *vd = list_first_entry(head,
-			struct virt_dma_desc, node);
-		if (dmaengine_desc_test_reuse(&vd->tx)) {
+								   struct virt_dma_desc, node);
+
+		if (dmaengine_desc_test_reuse(&vd->tx))
+		{
 			list_move_tail(&vd->node, &vc->desc_allocated);
-		} else {
+		}
+		else
+		{
 			dev_dbg(vc->chan.device->dev, "txd %p: freeing\n", vd);
 			list_del(&vd->node);
 			vc->desc_free(vd);

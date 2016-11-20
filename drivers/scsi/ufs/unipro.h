@@ -162,7 +162,8 @@
 #define PA_MAXDATALANES	4
 
 /* PA power modes */
-enum {
+enum
+{
 	FAST_MODE	= 1,
 	SLOW_MODE	= 2,
 	FASTAUTO_MODE	= 4,
@@ -171,12 +172,14 @@ enum {
 };
 
 /* PA TX/RX Frequency Series */
-enum {
+enum
+{
 	PA_HS_MODE_A	= 1,
 	PA_HS_MODE_B	= 2,
 };
 
-enum ufs_pwm_gear_tag {
+enum ufs_pwm_gear_tag
+{
 	UFS_PWM_DONT_CHANGE,	/* Don't change Gear */
 	UFS_PWM_G1,		/* PWM Gear 1 (default for reset) */
 	UFS_PWM_G2,		/* PWM Gear 2 */
@@ -187,14 +190,16 @@ enum ufs_pwm_gear_tag {
 	UFS_PWM_G7,		/* PWM Gear 7 */
 };
 
-enum ufs_hs_gear_tag {
+enum ufs_hs_gear_tag
+{
 	UFS_HS_DONT_CHANGE,	/* Don't change Gear */
 	UFS_HS_G1,		/* HS Gear 1 (default for reset) */
 	UFS_HS_G2,		/* HS Gear 2 */
 	UFS_HS_G3,		/* HS Gear 3 */
 };
 
-enum ufs_unipro_ver {
+enum ufs_unipro_ver
+{
 	UFS_UNIPRO_VER_RESERVED = 0,
 	UFS_UNIPRO_VER_1_40 = 1, /* UniPro version 1.40 */
 	UFS_UNIPRO_VER_1_41 = 2, /* UniPro version 1.41 */
@@ -260,15 +265,16 @@ enum ufs_unipro_ver {
 #define T_TC1TXMAXSDUSIZE	0x4061
 
 #ifdef FALSE
-#undef FALSE
+	#undef FALSE
 #endif
 
 #ifdef TRUE
-#undef TRUE
+	#undef TRUE
 #endif
 
 /* Boolean attribute values */
-enum {
+enum
+{
 	FALSE = 0,
 	TRUE,
 };

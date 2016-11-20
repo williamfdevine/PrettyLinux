@@ -96,7 +96,8 @@ static struct clk_hw_onecell_data *clk_data;
 static DEFINE_SPINLOCK(lock);
 static void __iomem *gbase;
 
-enum {
+enum
+{
 	REFCLK, VIDEO_EXT0,
 	SYSPLL, MEMPLL, CPUPLL,
 	AVPLL_A1, AVPLL_A2, AVPLL_A3, AVPLL_A4,
@@ -109,7 +110,8 @@ enum {
 	VIDEO2_PLL, VIDEO2_IN,
 };
 
-static const char *clk_names[] = {
+static const char *clk_names[] =
+{
 	[REFCLK]		= "refclk",
 	[VIDEO_EXT0]		= "video_ext0",
 	[SYSPLL]		= "syspll",
@@ -141,7 +143,8 @@ static const char *clk_names[] = {
 	[VIDEO2_IN]		= "video2_in",
 };
 
-static const struct berlin2_pll_map bg2_pll_map __initconst = {
+static const struct berlin2_pll_map bg2_pll_map __initconst =
+{
 	.vcodiv		= {10, 15, 20, 25, 30, 40, 50, 60, 80},
 	.mult		= 10,
 	.fbdiv_shift	= 6,
@@ -149,14 +152,17 @@ static const struct berlin2_pll_map bg2_pll_map __initconst = {
 	.divsel_shift	= 7,
 };
 
-static const u8 default_parent_ids[] = {
+static const u8 default_parent_ids[] =
+{
 	SYSPLL, AVPLL_B4, AVPLL_A5, AVPLL_B6, AVPLL_B7, SYSPLL
 };
 
-static const struct berlin2_div_data bg2_divs[] __initconst = {
+static const struct berlin2_div_data bg2_divs[] __initconst =
+{
 	{
 		.name = "sys",
-		.parent_ids = (const u8 []){
+		.parent_ids = (const u8 [])
+		{
 			SYSPLL, AVPLL_B4, AVPLL_B5, AVPLL_B6, AVPLL_B7, SYSPLL
 		},
 		.num_parents = 6,
@@ -173,7 +179,8 @@ static const struct berlin2_div_data bg2_divs[] __initconst = {
 	},
 	{
 		.name = "cpu",
-		.parent_ids = (const u8 []){
+		.parent_ids = (const u8 [])
+		{
 			CPUPLL, MEMPLL, MEMPLL, MEMPLL, MEMPLL
 		},
 		.num_parents = 5,
@@ -481,7 +488,8 @@ static const struct berlin2_div_data bg2_divs[] __initconst = {
 	},
 };
 
-static const struct berlin2_gate_data bg2_gates[] __initconst = {
+static const struct berlin2_gate_data bg2_gates[] __initconst =
+{
 	{ "geth0",	"perif",	7 },
 	{ "geth1",	"perif",	8 },
 	{ "sata",	"perif",	9 },
@@ -510,164 +518,234 @@ static void __init berlin2_clock_setup(struct device_node *np)
 	int n, ret;
 
 	clk_data = kzalloc(sizeof(*clk_data) +
-			   sizeof(*clk_data->hws) * MAX_CLKS, GFP_KERNEL);
+					   sizeof(*clk_data->hws) * MAX_CLKS, GFP_KERNEL);
+
 	if (!clk_data)
+	{
 		return;
+	}
+
 	clk_data->num = MAX_CLKS;
 	hws = clk_data->hws;
 
 	gbase = of_iomap(parent_np, 0);
+
 	if (!gbase)
+	{
 		return;
+	}
 
 	/* overwrite default clock names with DT provided ones */
 	clk = of_clk_get_by_name(np, clk_names[REFCLK]);
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		clk_names[REFCLK] = __clk_get_name(clk);
 		clk_put(clk);
 	}
 
 	clk = of_clk_get_by_name(np, clk_names[VIDEO_EXT0]);
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		clk_names[VIDEO_EXT0] = __clk_get_name(clk);
 		clk_put(clk);
 	}
 
 	/* simple register PLLs */
 	ret = berlin2_pll_register(&bg2_pll_map, gbase + REG_SYSPLLCTL0,
-				   clk_names[SYSPLL], clk_names[REFCLK], 0);
+							   clk_names[SYSPLL], clk_names[REFCLK], 0);
+
 	if (ret)
+	{
 		goto bg2_fail;
+	}
 
 	ret = berlin2_pll_register(&bg2_pll_map, gbase + REG_MEMPLLCTL0,
-				   clk_names[MEMPLL], clk_names[REFCLK], 0);
+							   clk_names[MEMPLL], clk_names[REFCLK], 0);
+
 	if (ret)
+	{
 		goto bg2_fail;
+	}
 
 	ret = berlin2_pll_register(&bg2_pll_map, gbase + REG_CPUPLLCTL0,
-				   clk_names[CPUPLL], clk_names[REFCLK], 0);
+							   clk_names[CPUPLL], clk_names[REFCLK], 0);
+
 	if (ret)
+	{
 		goto bg2_fail;
+	}
 
 	if (of_device_is_compatible(np, "marvell,berlin2-global-register"))
+	{
 		avpll_flags |= BERLIN2_AVPLL_SCRAMBLE_QUIRK;
+	}
 
 	/* audio/video VCOs */
 	ret = berlin2_avpll_vco_register(gbase + REG_AVPLLCTL0, "avpll_vcoA",
-			 clk_names[REFCLK], avpll_flags, 0);
-	if (ret)
-		goto bg2_fail;
+									 clk_names[REFCLK], avpll_flags, 0);
 
-	for (n = 0; n < 8; n++) {
+	if (ret)
+	{
+		goto bg2_fail;
+	}
+
+	for (n = 0; n < 8; n++)
+	{
 		ret = berlin2_avpll_channel_register(gbase + REG_AVPLLCTL0,
-			     clk_names[AVPLL_A1 + n], n, "avpll_vcoA",
-			     avpll_flags, 0);
+											 clk_names[AVPLL_A1 + n], n, "avpll_vcoA",
+											 avpll_flags, 0);
+
 		if (ret)
+		{
 			goto bg2_fail;
+		}
 	}
 
 	ret = berlin2_avpll_vco_register(gbase + REG_AVPLLCTL31, "avpll_vcoB",
-				 clk_names[REFCLK], BERLIN2_AVPLL_BIT_QUIRK |
-				 avpll_flags, 0);
-	if (ret)
-		goto bg2_fail;
+									 clk_names[REFCLK], BERLIN2_AVPLL_BIT_QUIRK |
+									 avpll_flags, 0);
 
-	for (n = 0; n < 8; n++) {
+	if (ret)
+	{
+		goto bg2_fail;
+	}
+
+	for (n = 0; n < 8; n++)
+	{
 		ret = berlin2_avpll_channel_register(gbase + REG_AVPLLCTL31,
-			     clk_names[AVPLL_B1 + n], n, "avpll_vcoB",
-			     BERLIN2_AVPLL_BIT_QUIRK | avpll_flags, 0);
+											 clk_names[AVPLL_B1 + n], n, "avpll_vcoB",
+											 BERLIN2_AVPLL_BIT_QUIRK | avpll_flags, 0);
+
 		if (ret)
+		{
 			goto bg2_fail;
+		}
 	}
 
 	/* reference clock bypass switches */
 	parent_names[0] = clk_names[SYSPLL];
 	parent_names[1] = clk_names[REFCLK];
 	hw = clk_hw_register_mux(NULL, "syspll_byp", parent_names, 2,
-			       0, gbase + REG_CLKSWITCH0, 0, 1, 0, &lock);
+							 0, gbase + REG_CLKSWITCH0, 0, 1, 0, &lock);
+
 	if (IS_ERR(hw))
+	{
 		goto bg2_fail;
+	}
+
 	clk_names[SYSPLL] = clk_hw_get_name(hw);
 
 	parent_names[0] = clk_names[MEMPLL];
 	parent_names[1] = clk_names[REFCLK];
 	hw = clk_hw_register_mux(NULL, "mempll_byp", parent_names, 2,
-			       0, gbase + REG_CLKSWITCH0, 1, 1, 0, &lock);
+							 0, gbase + REG_CLKSWITCH0, 1, 1, 0, &lock);
+
 	if (IS_ERR(hw))
+	{
 		goto bg2_fail;
+	}
+
 	clk_names[MEMPLL] = clk_hw_get_name(hw);
 
 	parent_names[0] = clk_names[CPUPLL];
 	parent_names[1] = clk_names[REFCLK];
 	hw = clk_hw_register_mux(NULL, "cpupll_byp", parent_names, 2,
-			       0, gbase + REG_CLKSWITCH0, 2, 1, 0, &lock);
+							 0, gbase + REG_CLKSWITCH0, 2, 1, 0, &lock);
+
 	if (IS_ERR(hw))
+	{
 		goto bg2_fail;
+	}
+
 	clk_names[CPUPLL] = clk_hw_get_name(hw);
 
 	/* clock muxes */
 	parent_names[0] = clk_names[AVPLL_B3];
 	parent_names[1] = clk_names[AVPLL_A3];
 	hw = clk_hw_register_mux(NULL, clk_names[AUDIO1_PLL], parent_names, 2,
-			       0, gbase + REG_CLKSELECT2, 29, 1, 0, &lock);
+							 0, gbase + REG_CLKSELECT2, 29, 1, 0, &lock);
+
 	if (IS_ERR(hw))
+	{
 		goto bg2_fail;
+	}
 
 	parent_names[0] = clk_names[VIDEO0_PLL];
 	parent_names[1] = clk_names[VIDEO_EXT0];
 	hw = clk_hw_register_mux(NULL, clk_names[VIDEO0_IN], parent_names, 2,
-			       0, gbase + REG_CLKSELECT3, 4, 1, 0, &lock);
+							 0, gbase + REG_CLKSELECT3, 4, 1, 0, &lock);
+
 	if (IS_ERR(hw))
+	{
 		goto bg2_fail;
+	}
 
 	parent_names[0] = clk_names[VIDEO1_PLL];
 	parent_names[1] = clk_names[VIDEO_EXT0];
 	hw = clk_hw_register_mux(NULL, clk_names[VIDEO1_IN], parent_names, 2,
-			       0, gbase + REG_CLKSELECT3, 6, 1, 0, &lock);
+							 0, gbase + REG_CLKSELECT3, 6, 1, 0, &lock);
+
 	if (IS_ERR(hw))
+	{
 		goto bg2_fail;
+	}
 
 	parent_names[0] = clk_names[AVPLL_A2];
 	parent_names[1] = clk_names[AVPLL_B2];
 	hw = clk_hw_register_mux(NULL, clk_names[VIDEO1_PLL], parent_names, 2,
-			       0, gbase + REG_CLKSELECT3, 7, 1, 0, &lock);
+							 0, gbase + REG_CLKSELECT3, 7, 1, 0, &lock);
+
 	if (IS_ERR(hw))
+	{
 		goto bg2_fail;
+	}
 
 	parent_names[0] = clk_names[VIDEO2_PLL];
 	parent_names[1] = clk_names[VIDEO_EXT0];
 	hw = clk_hw_register_mux(NULL, clk_names[VIDEO2_IN], parent_names, 2,
-			       0, gbase + REG_CLKSELECT3, 9, 1, 0, &lock);
+							 0, gbase + REG_CLKSELECT3, 9, 1, 0, &lock);
+
 	if (IS_ERR(hw))
+	{
 		goto bg2_fail;
+	}
 
 	parent_names[0] = clk_names[AVPLL_B1];
 	parent_names[1] = clk_names[AVPLL_A5];
 	hw = clk_hw_register_mux(NULL, clk_names[VIDEO2_PLL], parent_names, 2,
-			       0, gbase + REG_CLKSELECT3, 10, 1, 0, &lock);
+							 0, gbase + REG_CLKSELECT3, 10, 1, 0, &lock);
+
 	if (IS_ERR(hw))
+	{
 		goto bg2_fail;
+	}
 
 	/* clock divider cells */
-	for (n = 0; n < ARRAY_SIZE(bg2_divs); n++) {
+	for (n = 0; n < ARRAY_SIZE(bg2_divs); n++)
+	{
 		const struct berlin2_div_data *dd = &bg2_divs[n];
 		int k;
 
 		for (k = 0; k < dd->num_parents; k++)
+		{
 			parent_names[k] = clk_names[dd->parent_ids[k]];
+		}
 
 		hws[CLKID_SYS + n] = berlin2_div_register(&dd->map, gbase,
-				dd->name, dd->div_flags, parent_names,
-				dd->num_parents, dd->flags, &lock);
+							 dd->name, dd->div_flags, parent_names,
+							 dd->num_parents, dd->flags, &lock);
 	}
 
 	/* clock gate cells */
-	for (n = 0; n < ARRAY_SIZE(bg2_gates); n++) {
+	for (n = 0; n < ARRAY_SIZE(bg2_gates); n++)
+	{
 		const struct berlin2_gate_data *gd = &bg2_gates[n];
 
 		hws[CLKID_GETH0 + n] = clk_hw_register_gate(NULL, gd->name,
-			    gd->parent_name, gd->flags, gbase + REG_CLKENABLE,
-			    gd->bit_idx, 0, &lock);
+							   gd->parent_name, gd->flags, gbase + REG_CLKENABLE,
+							   gd->bit_idx, 0, &lock);
 	}
 
 	/* twdclk is derived from cpu/3 */
@@ -675,12 +753,15 @@ static void __init berlin2_clock_setup(struct device_node *np)
 		clk_hw_register_fixed_factor(NULL, "twd", "cpu", 0, 1, 3);
 
 	/* check for errors on leaf clocks */
-	for (n = 0; n < MAX_CLKS; n++) {
+	for (n = 0; n < MAX_CLKS; n++)
+	{
 		if (!IS_ERR(hws[n]))
+		{
 			continue;
+		}
 
 		pr_err("%s: Unable to register leaf clock %d\n",
-		       np->full_name, n);
+			   np->full_name, n);
 		goto bg2_fail;
 	}
 
@@ -693,4 +774,4 @@ bg2_fail:
 	iounmap(gbase);
 }
 CLK_OF_DECLARE(berlin2_clk, "marvell,berlin2-clk",
-	       berlin2_clock_setup);
+			   berlin2_clock_setup);

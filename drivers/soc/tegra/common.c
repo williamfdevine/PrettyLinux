@@ -10,7 +10,8 @@
 
 #include <soc/tegra/common.h>
 
-static const struct of_device_id tegra_machine_match[] = {
+static const struct of_device_id tegra_machine_match[] =
+{
 	{ .compatible = "nvidia,tegra20", },
 	{ .compatible = "nvidia,tegra30", },
 	{ .compatible = "nvidia,tegra114", },
@@ -25,8 +26,11 @@ bool soc_is_tegra(void)
 	struct device_node *root;
 
 	root = of_find_node_by_path("/");
+
 	if (!root)
+	{
 		return false;
+	}
 
 	return of_match_node(tegra_machine_match, root) != NULL;
 }

@@ -10,7 +10,8 @@
 #define __EVENTS_INTERNAL_H__
 
 /* Interrupt types. */
-enum xen_irq_type {
+enum xen_irq_type
+{
 	IRQT_UNBOUND = 0,
 	IRQT_PIRQ,
 	IRQT_VIRQ,
@@ -30,7 +31,8 @@ enum xen_irq_type {
  *    IPI - IPI vector
  *    EVTCHN -
  */
-struct irq_info {
+struct irq_info
+{
 	struct list_head list;
 	int refcnt;
 	enum xen_irq_type type;	/* type */
@@ -38,10 +40,12 @@ struct irq_info {
 	unsigned int evtchn;	/* event channel */
 	unsigned short cpu;	/* cpu bound */
 
-	union {
+	union
+	{
 		unsigned short virq;
 		enum ipi_vector ipi;
-		struct {
+		struct
+		{
 			unsigned short pirq;
 			unsigned short gsi;
 			unsigned char vector;
@@ -55,7 +59,8 @@ struct irq_info {
 #define PIRQ_SHAREABLE	(1 << 1)
 #define PIRQ_MSI_GROUP	(1 << 2)
 
-struct evtchn_ops {
+struct evtchn_ops
+{
 	unsigned (*max_channels)(void);
 	unsigned (*nr_channels)(void);
 
@@ -94,12 +99,15 @@ static inline unsigned xen_evtchn_max_channels(void)
 static inline int xen_evtchn_port_setup(struct irq_info *info)
 {
 	if (evtchn_ops->setup)
+	{
 		return evtchn_ops->setup(info);
+	}
+
 	return 0;
 }
 
 static inline void xen_evtchn_port_bind_to_cpu(struct irq_info *info,
-					       unsigned cpu)
+		unsigned cpu)
 {
 	evtchn_ops->bind_to_cpu(info, cpu);
 }
@@ -142,7 +150,9 @@ static inline void xen_evtchn_handle_events(unsigned cpu)
 static inline void xen_evtchn_resume(void)
 {
 	if (evtchn_ops->resume)
+	{
 		evtchn_ops->resume();
+	}
 }
 
 void xen_evtchn_2l_init(void);

@@ -39,21 +39,23 @@
 
 static struct fb_info fb_info;
 
-static struct fb_var_screeninfo maxinefb_defined = {
+static struct fb_var_screeninfo maxinefb_defined =
+{
 	.xres =		1024,
 	.yres =		768,
 	.xres_virtual =	1024,
 	.yres_virtual =	768,
-	.bits_per_pixel =8,
+	.bits_per_pixel = 8,
 	.activate =	FB_ACTIVATE_NOW,
 	.height =	-1,
 	.width =	-1,
 	.vmode =	FB_VMODE_NONINTERLACED,
 };
 
-static struct fb_fix_screeninfo maxinefb_fix = {
+static struct fb_fix_screeninfo maxinefb_fix =
+{
 	.id =		"Maxine",
-	.smem_len =	(1024*768),
+	.smem_len =	(1024 * 768),
 	.type =		FB_TYPE_PACKED_PIXELS,
 	.visual =	FB_VISUAL_PSEUDOCOLOR,
 	.line_length =	1024,
@@ -86,13 +88,15 @@ unsigned int maxinefb_ims332_read_register(int regno)
 
 /* Set the palette */
 static int maxinefb_setcolreg(unsigned regno, unsigned red, unsigned green,
-			      unsigned blue, unsigned transp, struct fb_info *info)
+							  unsigned blue, unsigned transp, struct fb_info *info)
 {
 	/* value to be written into the palette reg. */
 	unsigned long hw_colorvalue = 0;
 
 	if (regno > 255)
+	{
 		return 1;
+	}
 
 	red   >>= 8;    /* The cmap fields are 16 bits    */
 	green >>= 8;    /* wide, but the harware colormap */
@@ -101,11 +105,12 @@ static int maxinefb_setcolreg(unsigned regno, unsigned red, unsigned green,
 	hw_colorvalue = (blue << 16) + (green << 8) + (red);
 
 	maxinefb_ims332_write_register(IMS332_REG_COLOR_PALETTE + regno,
-				       hw_colorvalue);
+								   hw_colorvalue);
 	return 0;
 }
 
-static struct fb_ops maxinefb_ops = {
+static struct fb_ops maxinefb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_setcolreg	= maxinefb_setcolreg,
 	.fb_fillrect	= cfb_fillrect,
@@ -120,10 +125,13 @@ int __init maxinefb_init(void)
 	int i;
 
 	if (fb_get_options("maxinefb", NULL))
+	{
 		return -ENODEV;
+	}
 
 	/* Validate we're on the proper machine type */
-	if (mips_machtype != MACH_DS5000_XX) {
+	if (mips_machtype != MACH_DS5000_XX)
+	{
 		return -EINVAL;
 	}
 
@@ -135,14 +143,17 @@ int __init maxinefb_init(void)
 
 	/* Clear screen */
 	for (fboff = fb_start; fboff < fb_start + 0x1ffff; fboff++)
+	{
 		*(volatile unsigned char *)fboff = 0x0;
+	}
 
 	maxinefb_fix.smem_start = fb_start;
-	
+
 	/* erase hardware cursor */
-	for (i = 0; i < 512; i++) {
+	for (i = 0; i < 512; i++)
+	{
 		maxinefb_ims332_write_register(IMS332_REG_CURSOR_RAM + i,
-					       0);
+									   0);
 		/*
 		   if (i&0x8 == 0)
 		   maxinefb_ims332_write_register (IMS332_REG_CURSOR_RAM + i, 0x0f);
@@ -160,7 +171,10 @@ int __init maxinefb_init(void)
 	fb_alloc_cmap(&fb_info.cmap, 256, 0);
 
 	if (register_framebuffer(&fb_info) < 0)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -170,7 +184,7 @@ static void __exit maxinefb_exit(void)
 }
 
 #ifdef MODULE
-MODULE_LICENSE("GPL");
+	MODULE_LICENSE("GPL");
 #endif
 module_init(maxinefb_init);
 module_exit(maxinefb_exit);

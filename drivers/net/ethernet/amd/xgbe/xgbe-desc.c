@@ -120,16 +120,20 @@
 static void xgbe_unmap_rdata(struct xgbe_prv_data *, struct xgbe_ring_data *);
 
 static void xgbe_free_ring(struct xgbe_prv_data *pdata,
-			   struct xgbe_ring *ring)
+						   struct xgbe_ring *ring)
 {
 	struct xgbe_ring_data *rdata;
 	unsigned int i;
 
 	if (!ring)
+	{
 		return;
+	}
 
-	if (ring->rdata) {
-		for (i = 0; i < ring->rdesc_count; i++) {
+	if (ring->rdata)
+	{
+		for (i = 0; i < ring->rdesc_count; i++)
+		{
 			rdata = XGBE_GET_DESC_DATA(ring, i);
 			xgbe_unmap_rdata(pdata, rdata);
 		}
@@ -138,9 +142,10 @@ static void xgbe_free_ring(struct xgbe_prv_data *pdata,
 		ring->rdata = NULL;
 	}
 
-	if (ring->rx_hdr_pa.pages) {
+	if (ring->rx_hdr_pa.pages)
+	{
 		dma_unmap_page(pdata->dev, ring->rx_hdr_pa.pages_dma,
-			       ring->rx_hdr_pa.pages_len, DMA_FROM_DEVICE);
+					   ring->rx_hdr_pa.pages_len, DMA_FROM_DEVICE);
 		put_page(ring->rx_hdr_pa.pages);
 
 		ring->rx_hdr_pa.pages = NULL;
@@ -149,9 +154,10 @@ static void xgbe_free_ring(struct xgbe_prv_data *pdata,
 		ring->rx_hdr_pa.pages_dma = 0;
 	}
 
-	if (ring->rx_buf_pa.pages) {
+	if (ring->rx_buf_pa.pages)
+	{
 		dma_unmap_page(pdata->dev, ring->rx_buf_pa.pages_dma,
-			       ring->rx_buf_pa.pages_len, DMA_FROM_DEVICE);
+					   ring->rx_buf_pa.pages_len, DMA_FROM_DEVICE);
 		put_page(ring->rx_buf_pa.pages);
 
 		ring->rx_buf_pa.pages = NULL;
@@ -160,11 +166,12 @@ static void xgbe_free_ring(struct xgbe_prv_data *pdata,
 		ring->rx_buf_pa.pages_dma = 0;
 	}
 
-	if (ring->rdesc) {
+	if (ring->rdesc)
+	{
 		dma_free_coherent(pdata->dev,
-				  (sizeof(struct xgbe_ring_desc) *
-				   ring->rdesc_count),
-				  ring->rdesc, ring->rdesc_dma);
+						  (sizeof(struct xgbe_ring_desc) *
+						   ring->rdesc_count),
+						  ring->rdesc, ring->rdesc_dma);
 		ring->rdesc = NULL;
 	}
 }
@@ -177,7 +184,9 @@ static void xgbe_free_ring_resources(struct xgbe_prv_data *pdata)
 	DBGPR("-->xgbe_free_ring_resources\n");
 
 	channel = pdata->channel;
-	for (i = 0; i < pdata->channel_count; i++, channel++) {
+
+	for (i = 0; i < pdata->channel_count; i++, channel++)
+	{
 		xgbe_free_ring(pdata, channel->tx_ring);
 		xgbe_free_ring(pdata, channel->rx_ring);
 	}
@@ -186,31 +195,39 @@ static void xgbe_free_ring_resources(struct xgbe_prv_data *pdata)
 }
 
 static int xgbe_init_ring(struct xgbe_prv_data *pdata,
-			  struct xgbe_ring *ring, unsigned int rdesc_count)
+						  struct xgbe_ring *ring, unsigned int rdesc_count)
 {
 	DBGPR("-->xgbe_init_ring\n");
 
 	if (!ring)
+	{
 		return 0;
+	}
 
 	/* Descriptors */
 	ring->rdesc_count = rdesc_count;
 	ring->rdesc = dma_alloc_coherent(pdata->dev,
-					 (sizeof(struct xgbe_ring_desc) *
-					  rdesc_count), &ring->rdesc_dma,
-					 GFP_KERNEL);
+									 (sizeof(struct xgbe_ring_desc) *
+									  rdesc_count), &ring->rdesc_dma,
+									 GFP_KERNEL);
+
 	if (!ring->rdesc)
+	{
 		return -ENOMEM;
+	}
 
 	/* Descriptor information */
 	ring->rdata = kcalloc(rdesc_count, sizeof(struct xgbe_ring_data),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!ring->rdata)
+	{
 		return -ENOMEM;
+	}
 
 	netif_dbg(pdata, drv, pdata->netdev,
-		  "rdesc=%p, rdesc_dma=%pad, rdata=%p\n",
-		  ring->rdesc, &ring->rdesc_dma, ring->rdata);
+			  "rdesc=%p, rdesc_dma=%pad, rdata=%p\n",
+			  ring->rdesc, &ring->rdesc_dma, ring->rdata);
 
 	DBGPR("<--xgbe_init_ring\n");
 
@@ -226,26 +243,32 @@ static int xgbe_alloc_ring_resources(struct xgbe_prv_data *pdata)
 	DBGPR("-->xgbe_alloc_ring_resources\n");
 
 	channel = pdata->channel;
-	for (i = 0; i < pdata->channel_count; i++, channel++) {
+
+	for (i = 0; i < pdata->channel_count; i++, channel++)
+	{
 		netif_dbg(pdata, drv, pdata->netdev, "%s - Tx ring:\n",
-			  channel->name);
+				  channel->name);
 
 		ret = xgbe_init_ring(pdata, channel->tx_ring,
-				     pdata->tx_desc_count);
-		if (ret) {
+							 pdata->tx_desc_count);
+
+		if (ret)
+		{
 			netdev_alert(pdata->netdev,
-				     "error initializing Tx ring\n");
+						 "error initializing Tx ring\n");
 			goto err_ring;
 		}
 
 		netif_dbg(pdata, drv, pdata->netdev, "%s - Rx ring:\n",
-			  channel->name);
+				  channel->name);
 
 		ret = xgbe_init_ring(pdata, channel->rx_ring,
-				     pdata->rx_desc_count);
-		if (ret) {
+							 pdata->rx_desc_count);
+
+		if (ret)
+		{
 			netdev_alert(pdata->netdev,
-				     "error initializing Rx ring\n");
+						 "error initializing Rx ring\n");
 			goto err_ring;
 		}
 	}
@@ -261,7 +284,7 @@ err_ring:
 }
 
 static int xgbe_alloc_pages(struct xgbe_prv_data *pdata,
-			    struct xgbe_page_alloc *pa, gfp_t gfp, int order)
+							struct xgbe_page_alloc *pa, gfp_t gfp, int order)
 {
 	struct page *pages = NULL;
 	dma_addr_t pages_dma;
@@ -269,21 +292,31 @@ static int xgbe_alloc_pages(struct xgbe_prv_data *pdata,
 
 	/* Try to obtain pages, decreasing order if necessary */
 	gfp |= __GFP_COLD | __GFP_COMP | __GFP_NOWARN;
-	while (order >= 0) {
+
+	while (order >= 0)
+	{
 		pages = alloc_pages(gfp, order);
+
 		if (pages)
+		{
 			break;
+		}
 
 		order--;
 	}
+
 	if (!pages)
+	{
 		return -ENOMEM;
+	}
 
 	/* Map the pages */
 	pages_dma = dma_map_page(pdata->dev, pages, 0,
-				 PAGE_SIZE << order, DMA_FROM_DEVICE);
+							 PAGE_SIZE << order, DMA_FROM_DEVICE);
 	ret = dma_mapping_error(pdata->dev, pages_dma);
-	if (ret) {
+
+	if (ret)
+	{
 		put_page(pages);
 		return ret;
 	}
@@ -297,8 +330,8 @@ static int xgbe_alloc_pages(struct xgbe_prv_data *pdata,
 }
 
 static void xgbe_set_buffer_data(struct xgbe_buffer_data *bd,
-				 struct xgbe_page_alloc *pa,
-				 unsigned int len)
+								 struct xgbe_page_alloc *pa,
+								 unsigned int len)
 {
 	get_page(pa->pages);
 	bd->pa = *pa;
@@ -308,7 +341,9 @@ static void xgbe_set_buffer_data(struct xgbe_buffer_data *bd,
 	bd->dma_len = len;
 
 	pa->pages_offset += len;
-	if ((pa->pages_offset + len) > pa->pages_len) {
+
+	if ((pa->pages_offset + len) > pa->pages_len)
+	{
 		/* This data descriptor is responsible for unmapping page(s) */
 		bd->pa_unmap = *pa;
 
@@ -321,32 +356,40 @@ static void xgbe_set_buffer_data(struct xgbe_buffer_data *bd,
 }
 
 static int xgbe_map_rx_buffer(struct xgbe_prv_data *pdata,
-			      struct xgbe_ring *ring,
-			      struct xgbe_ring_data *rdata)
+							  struct xgbe_ring *ring,
+							  struct xgbe_ring_data *rdata)
 {
 	int order, ret;
 
-	if (!ring->rx_hdr_pa.pages) {
+	if (!ring->rx_hdr_pa.pages)
+	{
 		ret = xgbe_alloc_pages(pdata, &ring->rx_hdr_pa, GFP_ATOMIC, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
-	if (!ring->rx_buf_pa.pages) {
+	if (!ring->rx_buf_pa.pages)
+	{
 		order = max_t(int, PAGE_ALLOC_COSTLY_ORDER - 1, 0);
 		ret = xgbe_alloc_pages(pdata, &ring->rx_buf_pa, GFP_ATOMIC,
-				       order);
+							   order);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/* Set up the header page info */
 	xgbe_set_buffer_data(&rdata->rx.hdr, &ring->rx_hdr_pa,
-			     XGBE_SKB_ALLOC_SIZE);
+						 XGBE_SKB_ALLOC_SIZE);
 
 	/* Set up the buffer page info */
 	xgbe_set_buffer_data(&rdata->rx.buf, &ring->rx_buf_pa,
-			     pdata->rx_buf_size);
+						 pdata->rx_buf_size);
 
 	return 0;
 }
@@ -364,15 +407,21 @@ static void xgbe_wrapper_tx_descriptor_init(struct xgbe_prv_data *pdata)
 	DBGPR("-->xgbe_wrapper_tx_descriptor_init\n");
 
 	channel = pdata->channel;
-	for (i = 0; i < pdata->channel_count; i++, channel++) {
+
+	for (i = 0; i < pdata->channel_count; i++, channel++)
+	{
 		ring = channel->tx_ring;
+
 		if (!ring)
+		{
 			break;
+		}
 
 		rdesc = ring->rdesc;
 		rdesc_dma = ring->rdesc_dma;
 
-		for (j = 0; j < ring->rdesc_count; j++) {
+		for (j = 0; j < ring->rdesc_count; j++)
+		{
 			rdata = XGBE_GET_DESC_DATA(ring, j);
 
 			rdata->rdesc = rdesc;
@@ -405,22 +454,30 @@ static void xgbe_wrapper_rx_descriptor_init(struct xgbe_prv_data *pdata)
 	DBGPR("-->xgbe_wrapper_rx_descriptor_init\n");
 
 	channel = pdata->channel;
-	for (i = 0; i < pdata->channel_count; i++, channel++) {
+
+	for (i = 0; i < pdata->channel_count; i++, channel++)
+	{
 		ring = channel->rx_ring;
+
 		if (!ring)
+		{
 			break;
+		}
 
 		rdesc = ring->rdesc;
 		rdesc_dma = ring->rdesc_dma;
 
-		for (j = 0; j < ring->rdesc_count; j++) {
+		for (j = 0; j < ring->rdesc_count; j++)
+		{
 			rdata = XGBE_GET_DESC_DATA(ring, j);
 
 			rdata->rdesc = rdesc;
 			rdata->rdesc_dma = rdesc_dma;
 
 			if (xgbe_map_rx_buffer(pdata, ring, rdata))
+			{
 				break;
+			}
 
 			rdesc++;
 			rdesc_dma += sizeof(struct xgbe_ring_desc);
@@ -436,42 +493,54 @@ static void xgbe_wrapper_rx_descriptor_init(struct xgbe_prv_data *pdata)
 }
 
 static void xgbe_unmap_rdata(struct xgbe_prv_data *pdata,
-			     struct xgbe_ring_data *rdata)
+							 struct xgbe_ring_data *rdata)
 {
-	if (rdata->skb_dma) {
-		if (rdata->mapped_as_page) {
+	if (rdata->skb_dma)
+	{
+		if (rdata->mapped_as_page)
+		{
 			dma_unmap_page(pdata->dev, rdata->skb_dma,
-				       rdata->skb_dma_len, DMA_TO_DEVICE);
-		} else {
-			dma_unmap_single(pdata->dev, rdata->skb_dma,
-					 rdata->skb_dma_len, DMA_TO_DEVICE);
+						   rdata->skb_dma_len, DMA_TO_DEVICE);
 		}
+		else
+		{
+			dma_unmap_single(pdata->dev, rdata->skb_dma,
+							 rdata->skb_dma_len, DMA_TO_DEVICE);
+		}
+
 		rdata->skb_dma = 0;
 		rdata->skb_dma_len = 0;
 	}
 
-	if (rdata->skb) {
+	if (rdata->skb)
+	{
 		dev_kfree_skb_any(rdata->skb);
 		rdata->skb = NULL;
 	}
 
 	if (rdata->rx.hdr.pa.pages)
+	{
 		put_page(rdata->rx.hdr.pa.pages);
+	}
 
-	if (rdata->rx.hdr.pa_unmap.pages) {
+	if (rdata->rx.hdr.pa_unmap.pages)
+	{
 		dma_unmap_page(pdata->dev, rdata->rx.hdr.pa_unmap.pages_dma,
-			       rdata->rx.hdr.pa_unmap.pages_len,
-			       DMA_FROM_DEVICE);
+					   rdata->rx.hdr.pa_unmap.pages_len,
+					   DMA_FROM_DEVICE);
 		put_page(rdata->rx.hdr.pa_unmap.pages);
 	}
 
 	if (rdata->rx.buf.pa.pages)
+	{
 		put_page(rdata->rx.buf.pa.pages);
+	}
 
-	if (rdata->rx.buf.pa_unmap.pages) {
+	if (rdata->rx.buf.pa_unmap.pages)
+	{
 		dma_unmap_page(pdata->dev, rdata->rx.buf.pa_unmap.pages_dma,
-			       rdata->rx.buf.pa_unmap.pages_len,
-			       DMA_FROM_DEVICE);
+					   rdata->rx.buf.pa_unmap.pages_len,
+					   DMA_FROM_DEVICE);
 		put_page(rdata->rx.buf.pa_unmap.pages);
 	}
 
@@ -480,7 +549,8 @@ static void xgbe_unmap_rdata(struct xgbe_prv_data *pdata,
 
 	rdata->mapped_as_page = 0;
 
-	if (rdata->state_saved) {
+	if (rdata->state_saved)
+	{
 		rdata->state_saved = 0;
 		rdata->state.skb = NULL;
 		rdata->state.len = 0;
@@ -511,29 +581,36 @@ static int xgbe_map_tx_skb(struct xgbe_channel *channel, struct sk_buff *skb)
 	packet->length = 0;
 
 	tso = XGMAC_GET_BITS(packet->attributes, TX_PACKET_ATTRIBUTES,
-			     TSO_ENABLE);
+						 TSO_ENABLE);
 	vlan = XGMAC_GET_BITS(packet->attributes, TX_PACKET_ATTRIBUTES,
-			      VLAN_CTAG);
+						  VLAN_CTAG);
 
 	/* Save space for a context descriptor if needed */
 	if ((tso && (packet->mss != ring->tx.cur_mss)) ||
-	    (vlan && (packet->vlan_ctag != ring->tx.cur_vlan_ctag)))
+		(vlan && (packet->vlan_ctag != ring->tx.cur_vlan_ctag)))
+	{
 		cur_index++;
+	}
+
 	rdata = XGBE_GET_DESC_DATA(ring, cur_index);
 
-	if (tso) {
+	if (tso)
+	{
 		/* Map the TSO header */
 		skb_dma = dma_map_single(pdata->dev, skb->data,
-					 packet->header_len, DMA_TO_DEVICE);
-		if (dma_mapping_error(pdata->dev, skb_dma)) {
+								 packet->header_len, DMA_TO_DEVICE);
+
+		if (dma_mapping_error(pdata->dev, skb_dma))
+		{
 			netdev_alert(pdata->netdev, "dma_map_single failed\n");
 			goto err_out;
 		}
+
 		rdata->skb_dma = skb_dma;
 		rdata->skb_dma_len = packet->header_len;
 		netif_dbg(pdata, tx_queued, pdata->netdev,
-			  "skb header: index=%u, dma=%pad, len=%u\n",
-			  cur_index, &skb_dma, packet->header_len);
+				  "skb header: index=%u, dma=%pad, len=%u\n",
+				  cur_index, &skb_dma, packet->header_len);
 
 		offset = packet->header_len;
 
@@ -544,20 +621,24 @@ static int xgbe_map_tx_skb(struct xgbe_channel *channel, struct sk_buff *skb)
 	}
 
 	/* Map the (remainder of the) packet */
-	for (datalen = skb_headlen(skb) - offset; datalen; ) {
+	for (datalen = skb_headlen(skb) - offset; datalen; )
+	{
 		len = min_t(unsigned int, datalen, XGBE_TX_MAX_BUF_SIZE);
 
 		skb_dma = dma_map_single(pdata->dev, skb->data + offset, len,
-					 DMA_TO_DEVICE);
-		if (dma_mapping_error(pdata->dev, skb_dma)) {
+								 DMA_TO_DEVICE);
+
+		if (dma_mapping_error(pdata->dev, skb_dma))
+		{
 			netdev_alert(pdata->netdev, "dma_map_single failed\n");
 			goto err_out;
 		}
+
 		rdata->skb_dma = skb_dma;
 		rdata->skb_dma_len = len;
 		netif_dbg(pdata, tx_queued, pdata->netdev,
-			  "skb data: index=%u, dma=%pad, len=%u\n",
-			  cur_index, &skb_dma, len);
+				  "skb data: index=%u, dma=%pad, len=%u\n",
+				  cur_index, &skb_dma, len);
 
 		datalen -= len;
 		offset += len;
@@ -568,30 +649,35 @@ static int xgbe_map_tx_skb(struct xgbe_channel *channel, struct sk_buff *skb)
 		rdata = XGBE_GET_DESC_DATA(ring, cur_index);
 	}
 
-	for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
+	for (i = 0; i < skb_shinfo(skb)->nr_frags; i++)
+	{
 		netif_dbg(pdata, tx_queued, pdata->netdev,
-			  "mapping frag %u\n", i);
+				  "mapping frag %u\n", i);
 
 		frag = &skb_shinfo(skb)->frags[i];
 		offset = 0;
 
-		for (datalen = skb_frag_size(frag); datalen; ) {
+		for (datalen = skb_frag_size(frag); datalen; )
+		{
 			len = min_t(unsigned int, datalen,
-				    XGBE_TX_MAX_BUF_SIZE);
+						XGBE_TX_MAX_BUF_SIZE);
 
 			skb_dma = skb_frag_dma_map(pdata->dev, frag, offset,
-						   len, DMA_TO_DEVICE);
-			if (dma_mapping_error(pdata->dev, skb_dma)) {
+									   len, DMA_TO_DEVICE);
+
+			if (dma_mapping_error(pdata->dev, skb_dma))
+			{
 				netdev_alert(pdata->netdev,
-					     "skb_frag_dma_map failed\n");
+							 "skb_frag_dma_map failed\n");
 				goto err_out;
 			}
+
 			rdata->skb_dma = skb_dma;
 			rdata->skb_dma_len = len;
 			rdata->mapped_as_page = 1;
 			netif_dbg(pdata, tx_queued, pdata->netdev,
-				  "skb frag: index=%u, dma=%pad, len=%u\n",
-				  cur_index, &skb_dma, len);
+					  "skb frag: index=%u, dma=%pad, len=%u\n",
+					  cur_index, &skb_dma, len);
 
 			datalen -= len;
 			offset += len;
@@ -618,7 +704,9 @@ static int xgbe_map_tx_skb(struct xgbe_channel *channel, struct sk_buff *skb)
 	return packet->rdesc_count;
 
 err_out:
-	while (start_index < cur_index) {
+
+	while (start_index < cur_index)
+	{
 		rdata = XGBE_GET_DESC_DATA(ring, start_index++);
 		xgbe_unmap_rdata(pdata, rdata);
 	}

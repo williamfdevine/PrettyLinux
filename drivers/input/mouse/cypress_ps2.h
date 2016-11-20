@@ -132,24 +132,27 @@
 
 #define CYTP_MAX_MT_SLOTS 2
 
-struct cytp_contact {
+struct cytp_contact
+{
 	int x;
 	int y;
 	int z;  /* also named as touch pressure. */
 };
 
 /* The structure of Cypress Trackpad event data. */
-struct cytp_report_data {
+struct cytp_report_data
+{
 	int contact_cnt;
 	struct cytp_contact contacts[CYTP_MAX_MT_SLOTS];
-	unsigned int left:1;
-	unsigned int right:1;
-	unsigned int middle:1;
-	unsigned int tap:1;  /* multi-finger tap detected. */
+	unsigned int left: 1;
+	unsigned int right: 1;
+	unsigned int middle: 1;
+	unsigned int tap: 1; /* multi-finger tap detected. */
 };
 
 /* The structure of Cypress Trackpad device private data. */
-struct cytp_data {
+struct cytp_data
+{
 	int fw_version;
 
 	int pkt_size;

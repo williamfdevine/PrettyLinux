@@ -8,7 +8,8 @@ static int priority;
 module_param(priority, int, 0);
 MODULE_PARM_DESC(priority, "specify OF reconfig notifier priority");
 
-static struct notifier_err_inject reconfig_err_inject = {
+static struct notifier_err_inject reconfig_err_inject =
+{
 	.actions = {
 		{ NOTIFIER_ERR_INJECT_ACTION(OF_RECONFIG_ATTACH_NODE) },
 		{ NOTIFIER_ERR_INJECT_ACTION(OF_RECONFIG_DETACH_NODE) },
@@ -26,13 +27,19 @@ static int err_inject_init(void)
 	int err;
 
 	dir = notifier_err_inject_init("OF-reconfig",
-		notifier_err_inject_dir, &reconfig_err_inject, priority);
+								   notifier_err_inject_dir, &reconfig_err_inject, priority);
+
 	if (IS_ERR(dir))
+	{
 		return PTR_ERR(dir);
+	}
 
 	err = of_reconfig_notifier_register(&reconfig_err_inject.nb);
+
 	if (err)
+	{
 		debugfs_remove_recursive(dir);
+	}
 
 	return err;
 }

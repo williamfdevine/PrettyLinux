@@ -63,7 +63,8 @@ typedef unsigned int xfs_alloctype_t;
  * This is turned into a structure to avoid having 20 arguments passed
  * down several levels of the stack.
  */
-typedef struct xfs_alloc_arg {
+typedef struct xfs_alloc_arg
+{
 	struct xfs_trans *tp;		/* transaction pointer */
 	struct xfs_mount *mp;		/* file system mount point */
 	struct xfs_buf	*agbp;		/* buffer for a.g. freelist header */
@@ -122,7 +123,7 @@ xfs_extlen_t xfs_alloc_longest_free_extent(struct xfs_mount *mp,
 		struct xfs_perag *pag, xfs_extlen_t need,
 		xfs_extlen_t reserved);
 unsigned int xfs_alloc_min_freelist(struct xfs_mount *mp,
-		struct xfs_perag *pag);
+									struct xfs_perag *pag);
 
 /*
  * Compute and fill in value of m_ag_maxlevels.
@@ -216,10 +217,10 @@ xfs_alloc_get_rec(
 	int			*stat);	/* output: success/failure */
 
 int xfs_read_agf(struct xfs_mount *mp, struct xfs_trans *tp,
-			xfs_agnumber_t agno, int flags, struct xfs_buf **bpp);
+				 xfs_agnumber_t agno, int flags, struct xfs_buf **bpp);
 int xfs_alloc_fix_freelist(struct xfs_alloc_arg *args, int flags);
 int xfs_free_extent_fix_freelist(struct xfs_trans *tp, xfs_agnumber_t agno,
-		struct xfs_buf **agbp);
+								 struct xfs_buf **agbp);
 
 xfs_extlen_t xfs_prealloc_blocks(struct xfs_mount *mp);
 

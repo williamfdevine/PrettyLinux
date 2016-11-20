@@ -87,15 +87,22 @@ static DEFINE_SPINLOCK(sbc_gxx_spin);
 /* partition_info gives details on the logical partitions that the split the
  * single flash device into. If the size if zero we use up to the end of the
  * device. */
-static struct mtd_partition partition_info[]={
-    { .name = "SBC-GXx flash boot partition",
-      .offset = 0,
-      .size =   BOOT_PARTITION_SIZE_KiB*1024 },
-    { .name = "SBC-GXx flash data partition",
-      .offset = BOOT_PARTITION_SIZE_KiB*1024,
-      .size = (DATA_PARTITION_SIZE_KiB)*1024 },
-    { .name = "SBC-GXx flash application partition",
-      .offset = (BOOT_PARTITION_SIZE_KiB+DATA_PARTITION_SIZE_KiB)*1024 }
+static struct mtd_partition partition_info[] =
+{
+	{
+		.name = "SBC-GXx flash boot partition",
+		.offset = 0,
+		.size =   BOOT_PARTITION_SIZE_KiB * 1024
+	},
+	{
+		.name = "SBC-GXx flash data partition",
+		.offset = BOOT_PARTITION_SIZE_KiB * 1024,
+		.size = (DATA_PARTITION_SIZE_KiB) * 1024
+	},
+	{
+		.name = "SBC-GXx flash application partition",
+		.offset = (BOOT_PARTITION_SIZE_KiB + DATA_PARTITION_SIZE_KiB) * 1024
+	}
 };
 
 #define NUM_PARTITIONS 3
@@ -104,7 +111,8 @@ static inline void sbc_gxx_page(struct map_info *map, unsigned long ofs)
 {
 	unsigned long page = ofs >> WINDOW_SHIFT;
 
-	if( page!=page_in_window ) {
+	if ( page != page_in_window )
+	{
 		outw( page | DEVICE_ENABLE, PAGE_IO );
 		page_in_window = page;
 	}
@@ -123,10 +131,14 @@ static map_word sbc_gxx_read8(struct map_info *map, unsigned long ofs)
 
 static void sbc_gxx_copy_from(struct map_info *map, void *to, unsigned long from, ssize_t len)
 {
-	while(len) {
+	while (len)
+	{
 		unsigned long thislen = len;
+
 		if (len > (WINDOW_LENGTH - (from & WINDOW_MASK)))
-			thislen = WINDOW_LENGTH-(from & WINDOW_MASK);
+		{
+			thislen = WINDOW_LENGTH - (from & WINDOW_MASK);
+		}
 
 		spin_lock(&sbc_gxx_spin);
 		sbc_gxx_page(map, from);
@@ -148,10 +160,14 @@ static void sbc_gxx_write8(struct map_info *map, map_word d, unsigned long adr)
 
 static void sbc_gxx_copy_to(struct map_info *map, unsigned long to, const void *from, ssize_t len)
 {
-	while(len) {
+	while (len)
+	{
 		unsigned long thislen = len;
+
 		if (len > (WINDOW_LENGTH - (to & WINDOW_MASK)))
-			thislen = WINDOW_LENGTH-(to & WINDOW_MASK);
+		{
+			thislen = WINDOW_LENGTH - (to & WINDOW_MASK);
+		}
 
 		spin_lock(&sbc_gxx_spin);
 		sbc_gxx_page(map, to);
@@ -163,10 +179,11 @@ static void sbc_gxx_copy_to(struct map_info *map, unsigned long to, const void *
 	}
 }
 
-static struct map_info sbc_gxx_map = {
+static struct map_info sbc_gxx_map =
+{
 	.name = "SBC-GXx flash",
 	.phys = NO_XIP,
-	.size = MAX_SIZE_KiB*1024, /* this must be set to a maximum possible amount
+	.size = MAX_SIZE_KiB * 1024, /* this must be set to a maximum possible amount
 			 of flash so the cfi probe routines find all
 			 the chips */
 	.bankwidth = 1,
@@ -181,41 +198,47 @@ static struct mtd_info *all_mtd;
 
 static void cleanup_sbc_gxx(void)
 {
-	if( all_mtd ) {
+	if ( all_mtd )
+	{
 		mtd_device_unregister(all_mtd);
 		map_destroy( all_mtd );
 	}
 
 	iounmap(iomapadr);
-	release_region(PAGE_IO,PAGE_IO_SIZE);
+	release_region(PAGE_IO, PAGE_IO_SIZE);
 }
 
 static int __init init_sbc_gxx(void)
 {
-  	iomapadr = ioremap(WINDOW_START, WINDOW_LENGTH);
-	if (!iomapadr) {
+	iomapadr = ioremap(WINDOW_START, WINDOW_LENGTH);
+
+	if (!iomapadr)
+	{
 		printk( KERN_ERR"%s: failed to ioremap memory region\n",
-			sbc_gxx_map.name );
+				sbc_gxx_map.name );
 		return -EIO;
 	}
 
-	if (!request_region( PAGE_IO, PAGE_IO_SIZE, "SBC-GXx flash")) {
+	if (!request_region( PAGE_IO, PAGE_IO_SIZE, "SBC-GXx flash"))
+	{
 		printk( KERN_ERR"%s: IO ports 0x%x-0x%x in use\n",
-			sbc_gxx_map.name,
-			PAGE_IO, PAGE_IO+PAGE_IO_SIZE-1 );
+				sbc_gxx_map.name,
+				PAGE_IO, PAGE_IO + PAGE_IO_SIZE - 1 );
 		iounmap(iomapadr);
 		return -EAGAIN;
 	}
 
 
 	printk( KERN_INFO"%s: IO:0x%x-0x%x MEM:0x%x-0x%x\n",
-		sbc_gxx_map.name,
-		PAGE_IO, PAGE_IO+PAGE_IO_SIZE-1,
-		WINDOW_START, WINDOW_START+WINDOW_LENGTH-1 );
+			sbc_gxx_map.name,
+			PAGE_IO, PAGE_IO + PAGE_IO_SIZE - 1,
+			WINDOW_START, WINDOW_START + WINDOW_LENGTH - 1 );
 
 	/* Probe for chip. */
 	all_mtd = do_map_probe( "cfi_probe", &sbc_gxx_map );
-	if( !all_mtd ) {
+
+	if ( !all_mtd )
+	{
 		cleanup_sbc_gxx();
 		return -ENXIO;
 	}

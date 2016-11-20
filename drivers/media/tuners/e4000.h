@@ -27,7 +27,8 @@
  * I2C address
  * 0x64, 0x65, 0x66, 0x67
  */
-struct e4000_config {
+struct e4000_config
+{
 	/*
 	 * frontend
 	 */

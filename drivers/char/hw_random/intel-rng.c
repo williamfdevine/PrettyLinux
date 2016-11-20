@@ -97,25 +97,26 @@
  * register a pci_driver, because someone else might one day
  * want to register another driver on the same PCI id.
  */
-static const struct pci_device_id pci_tbl[] = {
-/* AA
-	{ PCI_DEVICE(0x8086, 0x2418) }, */
+static const struct pci_device_id pci_tbl[] =
+{
+	/* AA
+		{ PCI_DEVICE(0x8086, 0x2418) }, */
 	{ PCI_DEVICE(0x8086, 0x2410) }, /* AA */
-/* AB
-	{ PCI_DEVICE(0x8086, 0x2428) }, */
+	/* AB
+		{ PCI_DEVICE(0x8086, 0x2428) }, */
 	{ PCI_DEVICE(0x8086, 0x2420) }, /* AB */
-/* ??
-	{ PCI_DEVICE(0x8086, 0x2430) }, */
-/* BAM, CAM, DBM, FBM, GxM
-	{ PCI_DEVICE(0x8086, 0x2448) }, */
+	/* ??
+		{ PCI_DEVICE(0x8086, 0x2430) }, */
+	/* BAM, CAM, DBM, FBM, GxM
+		{ PCI_DEVICE(0x8086, 0x2448) }, */
 	{ PCI_DEVICE(0x8086, 0x244c) }, /* BAM */
 	{ PCI_DEVICE(0x8086, 0x248c) }, /* CAM */
 	{ PCI_DEVICE(0x8086, 0x24cc) }, /* DBM */
 	{ PCI_DEVICE(0x8086, 0x2641) }, /* FBM */
 	{ PCI_DEVICE(0x8086, 0x27b9) }, /* GxM */
 	{ PCI_DEVICE(0x8086, 0x27bd) }, /* GxM DH */
-/* BA, CA, DB, Ex, 6300, Fx, 631x/632x, Gx
-	{ PCI_DEVICE(0x8086, 0x244e) }, */
+	/* BA, CA, DB, Ex, 6300, Fx, 631x/632x, Gx
+		{ PCI_DEVICE(0x8086, 0x244e) }, */
 	{ PCI_DEVICE(0x8086, 0x2440) }, /* BA */
 	{ PCI_DEVICE(0x8086, 0x2480) }, /* CA */
 	{ PCI_DEVICE(0x8086, 0x24c0) }, /* DB */
@@ -139,8 +140,8 @@ static const struct pci_device_id pci_tbl[] = {
 	{ PCI_DEVICE(0x8086, 0x267e) }, /* 631x/632x */
 	{ PCI_DEVICE(0x8086, 0x267f) }, /* 631x/632x */
 	{ PCI_DEVICE(0x8086, 0x27b8) }, /* Gx */
-/* E
-	{ PCI_DEVICE(0x8086, 0x245e) }, */
+	/* E
+		{ PCI_DEVICE(0x8086, 0x245e) }, */
 	{ PCI_DEVICE(0x8086, 0x2450) }, /* E  */
 	{ 0, },	/* terminate list */
 };
@@ -149,8 +150,8 @@ MODULE_DEVICE_TABLE(pci, pci_tbl);
 static __initdata int no_fwh_detect;
 module_param(no_fwh_detect, int, 0);
 MODULE_PARM_DESC(no_fwh_detect, "Skip FWH detection:\n"
-                                " positive value - skip if FWH space locked read-only\n"
-                                " negative value - skip always");
+				 " positive value - skip if FWH space locked read-only\n"
+				 " negative value - skip always");
 
 static inline u8 hwstatus_get(void __iomem *mem)
 {
@@ -158,7 +159,7 @@ static inline u8 hwstatus_get(void __iomem *mem)
 }
 
 static inline u8 hwstatus_set(void __iomem *mem,
-			      u8 hw_status)
+							  u8 hw_status)
 {
 	writeb(hw_status, mem + INTEL_RNG_HW_STATUS);
 	return hwstatus_get(mem);
@@ -169,13 +170,19 @@ static int intel_rng_data_present(struct hwrng *rng, int wait)
 	void __iomem *mem = (void __iomem *)rng->priv;
 	int data, i;
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i++)
+	{
 		data = !!(readb(mem + INTEL_RNG_STATUS) &
-			  INTEL_RNG_DATA_PRESENT);
+				  INTEL_RNG_DATA_PRESENT);
+
 		if (data || !wait)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
+
 	return data;
 }
 
@@ -195,13 +202,19 @@ static int intel_rng_init(struct hwrng *rng)
 	int err = -EIO;
 
 	hw_status = hwstatus_get(mem);
+
 	/* turn RNG h/w on, if it's off */
 	if ((hw_status & INTEL_RNG_ENABLED) == 0)
+	{
 		hw_status = hwstatus_set(mem, hw_status | INTEL_RNG_ENABLED);
-	if ((hw_status & INTEL_RNG_ENABLED) == 0) {
+	}
+
+	if ((hw_status & INTEL_RNG_ENABLED) == 0)
+	{
 		pr_err(PFX "cannot enable RNG, aborting\n");
 		goto out;
 	}
+
 	err = 0;
 out:
 	return err;
@@ -213,14 +226,20 @@ static void intel_rng_cleanup(struct hwrng *rng)
 	u8 hw_status;
 
 	hw_status = hwstatus_get(mem);
+
 	if (hw_status & INTEL_RNG_ENABLED)
+	{
 		hwstatus_set(mem, hw_status & ~INTEL_RNG_ENABLED);
+	}
 	else
+	{
 		pr_warn(PFX "unusual: RNG already disabled\n");
+	}
 }
 
 
-static struct hwrng intel_rng = {
+static struct hwrng intel_rng =
+{
 	.name		= "intel",
 	.init		= intel_rng_init,
 	.cleanup	= intel_rng_cleanup,
@@ -228,7 +247,8 @@ static struct hwrng intel_rng = {
 	.data_read	= intel_rng_data_read,
 };
 
-struct intel_rng_hw {
+struct intel_rng_hw
+{
 	struct pci_dev *dev;
 	void __iomem *mem;
 	u8 bios_cntl_off;
@@ -246,14 +266,15 @@ static int __init intel_rng_hw_init(void *_intel_rng_hw)
 
 	if (!(intel_rng_hw->fwh_dec_en1_val & FWH_F8_EN_MASK))
 		pci_write_config_byte(intel_rng_hw->dev,
-		                      intel_rng_hw->fwh_dec_en1_off,
-		                      intel_rng_hw->fwh_dec_en1_val |
-				      FWH_F8_EN_MASK);
+							  intel_rng_hw->fwh_dec_en1_off,
+							  intel_rng_hw->fwh_dec_en1_val |
+							  FWH_F8_EN_MASK);
+
 	if (!(intel_rng_hw->bios_cntl_val & BIOS_CNTL_WRITE_ENABLE_MASK))
 		pci_write_config_byte(intel_rng_hw->dev,
-		                      intel_rng_hw->bios_cntl_off,
-		                      intel_rng_hw->bios_cntl_val |
-				      BIOS_CNTL_WRITE_ENABLE_MASK);
+							  intel_rng_hw->bios_cntl_off,
+							  intel_rng_hw->bios_cntl_val |
+							  BIOS_CNTL_WRITE_ENABLE_MASK);
 
 	writeb(INTEL_FWH_RESET_CMD, intel_rng_hw->mem);
 	writeb(INTEL_FWH_READ_ID_CMD, intel_rng_hw->mem);
@@ -262,18 +283,20 @@ static int __init intel_rng_hw_init(void *_intel_rng_hw)
 	writeb(INTEL_FWH_RESET_CMD, intel_rng_hw->mem);
 
 	if (!(intel_rng_hw->bios_cntl_val &
-	      (BIOS_CNTL_LOCK_ENABLE_MASK|BIOS_CNTL_WRITE_ENABLE_MASK)))
+		  (BIOS_CNTL_LOCK_ENABLE_MASK | BIOS_CNTL_WRITE_ENABLE_MASK)))
 		pci_write_config_byte(intel_rng_hw->dev,
-				      intel_rng_hw->bios_cntl_off,
-				      intel_rng_hw->bios_cntl_val);
+							  intel_rng_hw->bios_cntl_off,
+							  intel_rng_hw->bios_cntl_val);
+
 	if (!(intel_rng_hw->fwh_dec_en1_val & FWH_F8_EN_MASK))
 		pci_write_config_byte(intel_rng_hw->dev,
-				      intel_rng_hw->fwh_dec_en1_off,
-				      intel_rng_hw->fwh_dec_en1_val);
+							  intel_rng_hw->fwh_dec_en1_off,
+							  intel_rng_hw->fwh_dec_en1_val);
 
 	if (mfc != INTEL_FWH_MANUFACTURER_CODE ||
-	    (dvc != INTEL_FWH_DEVICE_CODE_8M &&
-	     dvc != INTEL_FWH_DEVICE_CODE_4M)) {
+		(dvc != INTEL_FWH_DEVICE_CODE_8M &&
+		 dvc != INTEL_FWH_DEVICE_CODE_4M))
+	{
 		pr_notice(PFX "FWH not detected\n");
 		return -ENODEV;
 	}
@@ -282,44 +305,54 @@ static int __init intel_rng_hw_init(void *_intel_rng_hw)
 }
 
 static int __init intel_init_hw_struct(struct intel_rng_hw *intel_rng_hw,
-					struct pci_dev *dev)
+									   struct pci_dev *dev)
 {
 	intel_rng_hw->bios_cntl_val = 0xff;
 	intel_rng_hw->fwh_dec_en1_val = 0xff;
 	intel_rng_hw->dev = dev;
 
 	/* Check for Intel 82802 */
-	if (dev->device < 0x2640) {
+	if (dev->device < 0x2640)
+	{
 		intel_rng_hw->fwh_dec_en1_off = FWH_DEC_EN1_REG_OLD;
 		intel_rng_hw->bios_cntl_off = BIOS_CNTL_REG_OLD;
-	} else {
+	}
+	else
+	{
 		intel_rng_hw->fwh_dec_en1_off = FWH_DEC_EN1_REG_NEW;
 		intel_rng_hw->bios_cntl_off = BIOS_CNTL_REG_NEW;
 	}
 
 	pci_read_config_byte(dev, intel_rng_hw->fwh_dec_en1_off,
-			     &intel_rng_hw->fwh_dec_en1_val);
+						 &intel_rng_hw->fwh_dec_en1_val);
 	pci_read_config_byte(dev, intel_rng_hw->bios_cntl_off,
-			     &intel_rng_hw->bios_cntl_val);
+						 &intel_rng_hw->bios_cntl_val);
 
 	if ((intel_rng_hw->bios_cntl_val &
-	     (BIOS_CNTL_LOCK_ENABLE_MASK|BIOS_CNTL_WRITE_ENABLE_MASK))
-	    == BIOS_CNTL_LOCK_ENABLE_MASK) {
+		 (BIOS_CNTL_LOCK_ENABLE_MASK | BIOS_CNTL_WRITE_ENABLE_MASK))
+		== BIOS_CNTL_LOCK_ENABLE_MASK)
+	{
 		static __initdata /*const*/ char warning[] =
-PFX "Firmware space is locked read-only. If you can't or\n"
-PFX "don't want to disable this in firmware setup, and if\n"
-PFX "you are certain that your system has a functional\n"
-PFX "RNG, try using the 'no_fwh_detect' option.\n";
+			PFX "Firmware space is locked read-only. If you can't or\n"
+			PFX "don't want to disable this in firmware setup, and if\n"
+			PFX "you are certain that your system has a functional\n"
+			PFX "RNG, try using the 'no_fwh_detect' option.\n";
 
 		if (no_fwh_detect)
+		{
 			return -ENODEV;
+		}
+
 		pr_warn("%s", warning);
 		return -EBUSY;
 	}
 
 	intel_rng_hw->mem = ioremap_nocache(INTEL_FWH_ADDR, INTEL_FWH_ADDR_LEN);
+
 	if (intel_rng_hw->mem == NULL)
+	{
 		return -EBUSY;
+	}
 
 	return 0;
 }
@@ -336,28 +369,39 @@ static int __init mod_init(void)
 
 	for (i = 0; !dev && pci_tbl[i].vendor; ++i)
 		dev = pci_get_device(pci_tbl[i].vendor, pci_tbl[i].device,
-				     NULL);
+							 NULL);
 
 	if (!dev)
-		goto out; /* Device not found. */
+	{
+		goto out;    /* Device not found. */
+	}
 
-	if (no_fwh_detect < 0) {
+	if (no_fwh_detect < 0)
+	{
 		pci_dev_put(dev);
 		goto fwh_done;
 	}
 
 	intel_rng_hw = kmalloc(sizeof(*intel_rng_hw), GFP_KERNEL);
-	if (!intel_rng_hw) {
+
+	if (!intel_rng_hw)
+	{
 		pci_dev_put(dev);
 		goto out;
 	}
 
 	err = intel_init_hw_struct(intel_rng_hw, dev);
-	if (err) {
+
+	if (err)
+	{
 		pci_dev_put(dev);
 		kfree(intel_rng_hw);
+
 		if (err == -ENODEV)
+		{
 			goto fwh_done;
+		}
+
 		goto out;
 	}
 
@@ -373,31 +417,43 @@ static int __init mod_init(void)
 	pci_dev_put(dev);
 	iounmap(intel_rng_hw->mem);
 	kfree(intel_rng_hw);
+
 	if (err)
+	{
 		goto out;
+	}
 
 fwh_done:
 	err = -ENOMEM;
 	mem = ioremap(INTEL_RNG_ADDR, INTEL_RNG_ADDR_LEN);
+
 	if (!mem)
+	{
 		goto out;
+	}
+
 	intel_rng.priv = (unsigned long)mem;
 
 	/* Check for Random Number Generator */
 	err = -ENODEV;
 	hw_status = hwstatus_get(mem);
-	if ((hw_status & INTEL_RNG_PRESENT) == 0) {
+
+	if ((hw_status & INTEL_RNG_PRESENT) == 0)
+	{
 		iounmap(mem);
 		goto out;
 	}
 
 	pr_info("Intel 82802 RNG detected\n");
 	err = hwrng_register(&intel_rng);
-	if (err) {
+
+	if (err)
+	{
 		pr_err(PFX "RNG registering failed (%d)\n",
-		       err);
+			   err);
 		iounmap(mem);
 	}
+
 out:
 	return err;
 

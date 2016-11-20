@@ -32,7 +32,8 @@
 #include "vpfe_video.h"
 
 /* IPIPE base specific types */
-enum ipipeif_data_shift {
+enum ipipeif_data_shift
+{
 	IPIPEIF_BITS15_2 = 0,
 	IPIPEIF_BITS14_1 = 1,
 	IPIPEIF_BITS13_0 = 2,
@@ -42,7 +43,8 @@ enum ipipeif_data_shift {
 	IPIPEIF_BITS9_0 = 6,
 };
 
-enum ipipeif_clkdiv {
+enum ipipeif_clkdiv
+{
 	IPIPEIF_DIVIDE_HALF = 0,
 	IPIPEIF_DIVIDE_THIRD = 1,
 	IPIPEIF_DIVIDE_FOURTH = 2,
@@ -53,54 +55,63 @@ enum ipipeif_clkdiv {
 	IPIPEIF_DIVIDE_THIRTY = 7,
 };
 
-enum ipipeif_pack_mode  {
+enum ipipeif_pack_mode
+{
 	IPIPEIF_PACK_16_BIT = 0,
 	IPIPEIF_PACK_8_BIT = 1,
 };
 
-enum ipipeif_5_1_pack_mode  {
+enum ipipeif_5_1_pack_mode
+{
 	IPIPEIF_5_1_PACK_16_BIT = 0,
 	IPIPEIF_5_1_PACK_8_BIT = 1,
 	IPIPEIF_5_1_PACK_8_BIT_A_LAW = 2,
 	IPIPEIF_5_1_PACK_12_BIT = 3
 };
 
-enum  ipipeif_input_source {
+enum  ipipeif_input_source
+{
 	IPIPEIF_CCDC = 0,
 	IPIPEIF_SDRAM_RAW = 1,
 	IPIPEIF_CCDC_DARKFM = 2,
 	IPIPEIF_SDRAM_YUV = 3,
 };
 
-enum ipipeif_ialaw {
+enum ipipeif_ialaw
+{
 	IPIPEIF_ALAW_OFF = 0,
 	IPIPEIF_ALAW_ON = 1,
 };
 
-enum  ipipeif_input_src1 {
+enum  ipipeif_input_src1
+{
 	IPIPEIF_SRC1_PARALLEL_PORT = 0,
 	IPIPEIF_SRC1_SDRAM_RAW = 1,
 	IPIPEIF_SRC1_ISIF_DARKFM = 2,
 	IPIPEIF_SRC1_SDRAM_YUV = 3,
 };
 
-enum ipipeif_dfs_dir {
+enum ipipeif_dfs_dir
+{
 	IPIPEIF_PORT_MINUS_SDRAM = 0,
 	IPIPEIF_SDRAM_MINUS_PORT = 1,
 };
 
-enum ipipeif_chroma_phase {
+enum ipipeif_chroma_phase
+{
 	IPIPEIF_CBCR_Y = 0,
 	IPIPEIF_Y_CBCR = 1,
 };
 
-enum ipipeif_dpcm_type {
+enum ipipeif_dpcm_type
+{
 	IPIPEIF_DPCM_8BIT_10BIT = 0,
 	IPIPEIF_DPCM_8BIT_12BIT = 1,
 };
 
 /* data shift for IPIPE 5.1 */
-enum ipipeif_5_1_data_shift {
+enum ipipeif_5_1_data_shift
+{
 	IPIPEIF_5_1_BITS11_0 = 0,
 	IPIPEIF_5_1_BITS10_0 = 1,
 	IPIPEIF_5_1_BITS9_0 = 2,
@@ -114,19 +125,22 @@ enum ipipeif_5_1_data_shift {
 
 #define IPIPEIF_NUM_PADS	2
 
-enum ipipeif_input_entity {
+enum ipipeif_input_entity
+{
 	IPIPEIF_INPUT_NONE = 0,
 	IPIPEIF_INPUT_ISIF = 1,
 	IPIPEIF_INPUT_MEMORY = 2,
 };
 
-enum ipipeif_output_entity {
+enum ipipeif_output_entity
+{
 	IPIPEIF_OUTPUT_NONE = 0,
 	IPIPEIF_OUTPUT_IPIPE = 1,
 	IPIPEIF_OUTPUT_RESIZER = 2,
 };
 
-struct vpfe_ipipeif_device {
+struct vpfe_ipipeif_device
+{
 	struct v4l2_subdev subdev;
 	struct media_pad pads[IPIPEIF_NUM_PADS];
 	struct v4l2_mbus_framefmt formats[IPIPEIF_NUM_PADS];
@@ -223,11 +237,11 @@ void vpfe_ipipeif_ss_buffer_isr(struct vpfe_ipipeif_device *ipipeif);
 int vpfe_ipipeif_decimation_enabled(struct vpfe_device *vpfe_dev);
 int vpfe_ipipeif_get_rsz(struct vpfe_device *vpfe_dev);
 void vpfe_ipipeif_cleanup(struct vpfe_ipipeif_device *ipipeif,
-			  struct platform_device *pdev);
+						  struct platform_device *pdev);
 int vpfe_ipipeif_init(struct vpfe_ipipeif_device *ipipeif,
-		      struct platform_device *pdev);
+					  struct platform_device *pdev);
 int vpfe_ipipeif_register_entities(struct vpfe_ipipeif_device *ipipeif,
-				   struct v4l2_device *vdev);
+								   struct v4l2_device *vdev);
 void vpfe_ipipeif_unregister_entities(struct vpfe_ipipeif_device *ipipeif);
 
 #endif		/* _DAVINCI_VPFE_DM365_IPIPEIF_H */

@@ -22,7 +22,8 @@
 
 /* holds the state of the VGA core and extended Riva hw state from riva_hw.c.
  * From KGI originally. */
-struct riva_regs {
+struct riva_regs
+{
 	u8 attr[NUM_ATC_REGS];
 	u8 crtc[NUM_CRT_REGS];
 	u8 gra[NUM_GRC_REGS];
@@ -33,14 +34,16 @@ struct riva_regs {
 
 struct riva_par;
 
-struct riva_i2c_chan {
+struct riva_i2c_chan
+{
 	struct riva_par *par;
 	unsigned long   ddc_base;
 	struct i2c_adapter adapter;
 	struct i2c_algo_bit_data algo;
 };
 
-struct riva_par {
+struct riva_par
+{
 	RIVA_HW_INST riva;	/* interface to riva_hw.c */
 	u32 pseudo_palette[16]; /* default palette */
 	u32 palette[16];        /* for Riva128 */

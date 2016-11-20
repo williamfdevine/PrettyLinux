@@ -41,22 +41,22 @@
  * macros defined below rather than this macro directly.
  */
 #define readx_poll_timeout(op, addr, val, cond, sleep_us, timeout_us)	\
-({ \
-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
-	might_sleep_if(sleep_us); \
-	for (;;) { \
-		(val) = op(addr); \
-		if (cond) \
-			break; \
-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
+	({ \
+		ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
+		might_sleep_if(sleep_us); \
+		for (;;) { \
 			(val) = op(addr); \
-			break; \
+			if (cond) \
+				break; \
+			if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
+				(val) = op(addr); \
+				break; \
+			} \
+			if (sleep_us) \
+				usleep_range((sleep_us >> 2) + 1, sleep_us); \
 		} \
-		if (sleep_us) \
-			usleep_range((sleep_us >> 2) + 1, sleep_us); \
-	} \
-	(cond) ? 0 : -ETIMEDOUT; \
-})
+		(cond) ? 0 : -ETIMEDOUT; \
+	})
 
 /**
  * readx_poll_timeout_atomic - Periodically poll an address until a condition is met or a timeout occurs
@@ -76,21 +76,21 @@
  * macros defined below rather than this macro directly.
  */
 #define readx_poll_timeout_atomic(op, addr, val, cond, delay_us, timeout_us) \
-({ \
-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
-	for (;;) { \
-		(val) = op(addr); \
-		if (cond) \
-			break; \
-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
+	({ \
+		ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
+		for (;;) { \
 			(val) = op(addr); \
-			break; \
+			if (cond) \
+				break; \
+			if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
+				(val) = op(addr); \
+				break; \
+			} \
+			if (delay_us) \
+				udelay(delay_us);	\
 		} \
-		if (delay_us) \
-			udelay(delay_us);	\
-	} \
-	(cond) ? 0 : -ETIMEDOUT; \
-})
+		(cond) ? 0 : -ETIMEDOUT; \
+	})
 
 
 #define readb_poll_timeout(addr, val, cond, delay_us, timeout_us) \

@@ -44,7 +44,8 @@
 #define BUF_SIZE	2048
 
 /* Per-byte channel private data */
-struct ehv_bc_data {
+struct ehv_bc_data
+{
 	struct device *dev;
 	struct tty_port port;
 	uint32_t handle;
@@ -88,7 +89,8 @@ static unsigned int stdout_irq;
  */
 static void enable_tx_interrupt(struct ehv_bc_data *bc)
 {
-	if (!bc->tx_irq_enabled) {
+	if (!bc->tx_irq_enabled)
+	{
 		enable_irq(bc->tx_irq);
 		bc->tx_irq_enabled = 1;
 	}
@@ -96,7 +98,8 @@ static void enable_tx_interrupt(struct ehv_bc_data *bc)
 
 static void disable_tx_interrupt(struct ehv_bc_data *bc)
 {
-	if (bc->tx_irq_enabled) {
+	if (bc->tx_irq_enabled)
+	{
 		disable_irq_nosync(bc->tx_irq);
 		bc->tx_irq_enabled = 0;
 	}
@@ -118,10 +121,14 @@ static int find_console_handle(void)
 	 * indicates that it's a byte channel node.
 	 */
 	if (!np || !of_device_is_compatible(np, "epapr,hv-byte-channel"))
+	{
 		return 0;
+	}
 
 	stdout_irq = irq_of_parse_and_map(np, 0);
-	if (stdout_irq == NO_IRQ) {
+
+	if (stdout_irq == NO_IRQ)
+	{
 		pr_err("ehv-bc: no 'interrupts' property in %s node\n", np->full_name);
 		return 0;
 	}
@@ -130,11 +137,14 @@ static int find_console_handle(void)
 	 * The 'hv-handle' property contains the handle for this byte channel.
 	 */
 	iprop = of_get_property(np, "hv-handle", NULL);
-	if (!iprop) {
+
+	if (!iprop)
+	{
 		pr_err("ehv-bc: no 'hv-handle' property in %s node\n",
-		       np->name);
+			   np->name);
 		return 0;
 	}
+
 	stdout_bc = be32_to_cpu(*iprop);
 	return 1;
 }
@@ -155,11 +165,13 @@ static void byte_channel_spin_send(const char data)
 {
 	int ret, count;
 
-	do {
+	do
+	{
 		count = 1;
 		ret = ev_byte_channel_send(CONFIG_PPC_EARLY_DEBUG_EHV_BC_HANDLE,
-					   &count, &data);
-	} while (ret == EV_EAGAIN);
+								   &count, &data);
+	}
+	while (ret == EV_EAGAIN);
 }
 
 /*
@@ -169,7 +181,9 @@ static void byte_channel_spin_send(const char data)
 static void ehv_bc_udbg_putc(char c)
 {
 	if (c == '\n')
+	{
 		byte_channel_spin_send('\r');
+	}
 
 	byte_channel_spin_send(c);
 }
@@ -192,15 +206,18 @@ void __init udbg_init_ehv_bc(void)
 
 	/* Verify the byte channel handle */
 	ret = ev_byte_channel_poll(CONFIG_PPC_EARLY_DEBUG_EHV_BC_HANDLE,
-				   &rx_count, &tx_count);
+							   &rx_count, &tx_count);
+
 	if (ret)
+	{
 		return;
+	}
 
 	udbg_putc = ehv_bc_udbg_putc;
 	register_early_udbg_console();
 
 	udbg_printf("ehv-bc: early console using byte channel handle %u\n",
-		    CONFIG_PPC_EARLY_DEBUG_EHV_BC_HANDLE);
+				CONFIG_PPC_EARLY_DEBUG_EHV_BC_HANDLE);
 }
 
 #endif
@@ -216,16 +233,21 @@ static struct tty_driver *ehv_bc_driver;
  * clears.
  */
 static int ehv_bc_console_byte_channel_send(unsigned int handle, const char *s,
-			     unsigned int count)
+		unsigned int count)
 {
 	unsigned int len;
 	int ret = 0;
 
-	while (count) {
+	while (count)
+	{
 		len = min_t(unsigned int, count, EV_BYTE_CHANNEL_MAX_BYTES);
-		do {
+
+		do
+		{
 			ret = ev_byte_channel_send(handle, &len, s);
-		} while (ret == EV_EAGAIN);
+		}
+		while (ret == EV_EAGAIN);
+
 		count -= len;
 		s += len;
 	}
@@ -244,28 +266,38 @@ static int ehv_bc_console_byte_channel_send(unsigned int handle, const char *s,
  * it is to make multiple hcalls for each character or each newline.
  */
 static void ehv_bc_console_write(struct console *co, const char *s,
-				 unsigned int count)
+								 unsigned int count)
 {
 	char s2[EV_BYTE_CHANNEL_MAX_BYTES];
 	unsigned int i, j = 0;
 	char c;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		c = *s++;
 
 		if (c == '\n')
+		{
 			s2[j++] = '\r';
+		}
 
 		s2[j++] = c;
-		if (j >= (EV_BYTE_CHANNEL_MAX_BYTES - 1)) {
+
+		if (j >= (EV_BYTE_CHANNEL_MAX_BYTES - 1))
+		{
 			if (ehv_bc_console_byte_channel_send(stdout_bc, s2, j))
+			{
 				return;
+			}
+
 			j = 0;
 		}
 	}
 
 	if (j)
+	{
 		ehv_bc_console_byte_channel_send(stdout_bc, s2, j);
+	}
 }
 
 /*
@@ -280,7 +312,8 @@ static struct tty_driver *ehv_bc_console_device(struct console *co, int *index)
 	return ehv_bc_driver;
 }
 
-static struct console ehv_bc_console = {
+static struct console ehv_bc_console =
+{
 	.name		= "ttyEHV",
 	.write		= ehv_bc_console_write,
 	.device		= ehv_bc_console_device,
@@ -297,18 +330,21 @@ static struct console ehv_bc_console = {
  */
 static int __init ehv_bc_console_init(void)
 {
-	if (!find_console_handle()) {
+	if (!find_console_handle())
+	{
 		pr_debug("ehv-bc: stdout is not a byte channel\n");
 		return -ENODEV;
 	}
 
 #ifdef CONFIG_PPC_EARLY_DEBUG_EHV_BC
+
 	/* Print a friendly warning if the user chose the wrong byte channel
 	 * handle for udbg.
 	 */
 	if (stdout_bc != CONFIG_PPC_EARLY_DEBUG_EHV_BC_HANDLE)
 		pr_warn("ehv-bc: udbg handle %u is not the stdout handle\n",
-			CONFIG_PPC_EARLY_DEBUG_EHV_BC_HANDLE);
+				CONFIG_PPC_EARLY_DEBUG_EHV_BC_HANDLE);
+
 #endif
 
 	/* add_preferred_console() must be called before register_console(),
@@ -319,7 +355,7 @@ static int __init ehv_bc_console_init(void)
 	register_console(&ehv_bc_console);
 
 	pr_info("ehv-bc: registered console driver for byte channel %u\n",
-		stdout_bc);
+			stdout_bc);
 
 	return 0;
 }
@@ -353,7 +389,8 @@ static irqreturn_t ehv_bc_tty_rx_isr(int irq, void *data)
 	 * correctly.
 	 */
 
-	while (count > 0) {
+	while (count > 0)
+	{
 		len = min_t(unsigned int, count, sizeof(buffer));
 
 		/* Read some data from the byte channel.  This function will
@@ -375,7 +412,9 @@ static irqreturn_t ehv_bc_tty_rx_isr(int irq, void *data)
 		 * that we read from the byte channel.
 		 */
 		if (ret != len)
+		{
 			break;
+		}
 
 		count -= len;
 	}
@@ -398,32 +437,42 @@ static void ehv_bc_tx_dequeue(struct ehv_bc_data *bc)
 	unsigned int len, ret;
 	unsigned long flags;
 
-	do {
+	do
+	{
 		spin_lock_irqsave(&bc->lock, flags);
 		len = min_t(unsigned int,
-			    CIRC_CNT_TO_END(bc->head, bc->tail, BUF_SIZE),
-			    EV_BYTE_CHANNEL_MAX_BYTES);
+					CIRC_CNT_TO_END(bc->head, bc->tail, BUF_SIZE),
+					EV_BYTE_CHANNEL_MAX_BYTES);
 
 		ret = ev_byte_channel_send(bc->handle, &len, bc->buf + bc->tail);
 
 		/* 'len' is valid only if the return code is 0 or EV_EAGAIN */
 		if (!ret || (ret == EV_EAGAIN))
+		{
 			bc->tail = (bc->tail + len) & (BUF_SIZE - 1);
+		}
 
 		count = CIRC_CNT(bc->head, bc->tail, BUF_SIZE);
 		spin_unlock_irqrestore(&bc->lock, flags);
-	} while (count && !ret);
+	}
+	while (count && !ret);
 
 	spin_lock_irqsave(&bc->lock, flags);
+
 	if (CIRC_CNT(bc->head, bc->tail, BUF_SIZE))
 		/*
 		 * If we haven't emptied the buffer, then enable the TX IRQ.
 		 * We'll get an interrupt when there's more room in the
 		 * hypervisor's output buffer.
 		 */
+	{
 		enable_tx_interrupt(bc);
+	}
 	else
+	{
 		disable_tx_interrupt(bc);
+	}
+
 	spin_unlock_irqrestore(&bc->lock, flags);
 }
 
@@ -455,25 +504,35 @@ static irqreturn_t ehv_bc_tty_tx_isr(int irq, void *data)
  * too much data.
  */
 static int ehv_bc_tty_write(struct tty_struct *ttys, const unsigned char *s,
-			    int count)
+							int count)
 {
 	struct ehv_bc_data *bc = ttys->driver_data;
 	unsigned long flags;
 	unsigned int len;
 	unsigned int written = 0;
 
-	while (1) {
+	while (1)
+	{
 		spin_lock_irqsave(&bc->lock, flags);
 		len = CIRC_SPACE_TO_END(bc->head, bc->tail, BUF_SIZE);
+
 		if (count < len)
+		{
 			len = count;
-		if (len) {
+		}
+
+		if (len)
+		{
 			memcpy(bc->buf + bc->head, s, len);
 			bc->head = (bc->head + len) & (BUF_SIZE - 1);
 		}
+
 		spin_unlock_irqrestore(&bc->lock, flags);
+
 		if (!len)
+		{
 			break;
+		}
 
 		s += len;
 		count -= len;
@@ -499,7 +558,9 @@ static int ehv_bc_tty_open(struct tty_struct *ttys, struct file *filp)
 	struct ehv_bc_data *bc = &bcs[ttys->index];
 
 	if (!bc->dev)
+	{
 		return -ENODEV;
+	}
 
 	return tty_port_open(&bc->port, ttys, filp);
 }
@@ -514,7 +575,9 @@ static void ehv_bc_tty_close(struct tty_struct *ttys, struct file *filp)
 	struct ehv_bc_data *bc = &bcs[ttys->index];
 
 	if (bc->dev)
+	{
 		tty_port_close(&bc->port, ttys, filp);
+	}
 }
 
 /*
@@ -588,7 +651,8 @@ static void ehv_bc_tty_hangup(struct tty_struct *ttys)
  * at least how big the TX buffers are, then we could implement the
  * .wait_until_sent and .chars_in_buffer functions.
  */
-static const struct tty_operations ehv_bc_ops = {
+static const struct tty_operations ehv_bc_ops =
+{
 	.open		= ehv_bc_tty_open,
 	.close		= ehv_bc_tty_close,
 	.write		= ehv_bc_tty_write,
@@ -606,7 +670,7 @@ static const struct tty_operations ehv_bc_ops = {
  * why we initialize tty_struct-related variables here.
  */
 static int ehv_bc_tty_port_activate(struct tty_port *port,
-				    struct tty_struct *ttys)
+									struct tty_struct *ttys)
 {
 	struct ehv_bc_data *bc = container_of(port, struct ehv_bc_data, port);
 	int ret;
@@ -614,9 +678,11 @@ static int ehv_bc_tty_port_activate(struct tty_port *port,
 	ttys->driver_data = bc;
 
 	ret = request_irq(bc->rx_irq, ehv_bc_tty_rx_isr, 0, "ehv-bc", bc);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(bc->dev, "could not request rx irq %u (ret=%i)\n",
-		       bc->rx_irq, ret);
+				bc->rx_irq, ret);
 		return ret;
 	}
 
@@ -624,9 +690,11 @@ static int ehv_bc_tty_port_activate(struct tty_port *port,
 	bc->tx_irq_enabled = 1;
 
 	ret = request_irq(bc->tx_irq, ehv_bc_tty_tx_isr, 0, "ehv-bc", bc);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(bc->dev, "could not request tx irq %u (ret=%i)\n",
-		       bc->tx_irq, ret);
+				bc->tx_irq, ret);
 		free_irq(bc->rx_irq, bc);
 		return ret;
 	}
@@ -647,7 +715,8 @@ static void ehv_bc_tty_port_shutdown(struct tty_port *port)
 	free_irq(bc->rx_irq, bc);
 }
 
-static const struct tty_port_operations ehv_bc_tty_port_ops = {
+static const struct tty_port_operations ehv_bc_tty_port_ops =
+{
 	.activate = ehv_bc_tty_port_activate,
 	.shutdown = ehv_bc_tty_port_shutdown,
 };
@@ -663,9 +732,11 @@ static int ehv_bc_tty_probe(struct platform_device *pdev)
 	unsigned int i;
 
 	iprop = of_get_property(np, "hv-handle", NULL);
-	if (!iprop) {
+
+	if (!iprop)
+	{
 		dev_err(&pdev->dev, "no 'hv-handle' property in %s node\n",
-			np->name);
+				np->name);
 		return -ENODEV;
 	}
 
@@ -684,9 +755,11 @@ static int ehv_bc_tty_probe(struct platform_device *pdev)
 
 	bc->rx_irq = irq_of_parse_and_map(np, 0);
 	bc->tx_irq = irq_of_parse_and_map(np, 1);
-	if ((bc->rx_irq == NO_IRQ) || (bc->tx_irq == NO_IRQ)) {
+
+	if ((bc->rx_irq == NO_IRQ) || (bc->tx_irq == NO_IRQ))
+	{
 		dev_err(&pdev->dev, "no 'interrupts' property in %s node\n",
-			np->name);
+				np->name);
 		ret = -ENODEV;
 		goto error;
 	}
@@ -695,8 +768,10 @@ static int ehv_bc_tty_probe(struct platform_device *pdev)
 	bc->port.ops = &ehv_bc_tty_port_ops;
 
 	bc->dev = tty_port_register_device(&bc->port, ehv_bc_driver, i,
-			&pdev->dev);
-	if (IS_ERR(bc->dev)) {
+									   &pdev->dev);
+
+	if (IS_ERR(bc->dev))
+	{
 		ret = PTR_ERR(bc->dev);
 		dev_err(&pdev->dev, "could not register tty (ret=%i)\n", ret);
 		goto error;
@@ -705,7 +780,7 @@ static int ehv_bc_tty_probe(struct platform_device *pdev)
 	dev_set_drvdata(&pdev->dev, bc);
 
 	dev_info(&pdev->dev, "registered /dev/%s%u for byte channel %u\n",
-		ehv_bc_driver->name, i, bc->handle);
+			 ehv_bc_driver->name, i, bc->handle);
 
 	return 0;
 
@@ -718,12 +793,14 @@ error:
 	return ret;
 }
 
-static const struct of_device_id ehv_bc_tty_of_ids[] = {
+static const struct of_device_id ehv_bc_tty_of_ids[] =
+{
 	{ .compatible = "epapr,hv-byte-channel" },
 	{}
 };
 
-static struct platform_driver ehv_bc_tty_driver = {
+static struct platform_driver ehv_bc_tty_driver =
+{
 	.driver = {
 		.name = "ehv-bc",
 		.of_match_table = ehv_bc_tty_of_ids,
@@ -747,10 +824,12 @@ static int __init ehv_bc_init(void)
 
 	/* Count the number of byte channels */
 	for_each_compatible_node(np, NULL, "epapr,hv-byte-channel")
-		count++;
+	count++;
 
 	if (!count)
+	{
 		return -ENODEV;
+	}
 
 	/* The array index of an element in bcs[] is the same as the tty index
 	 * for that element.  If you know the address of an element in the
@@ -758,11 +837,16 @@ static int __init ehv_bc_init(void)
 	 * tty index.
 	 */
 	bcs = kzalloc(count * sizeof(struct ehv_bc_data), GFP_KERNEL);
+
 	if (!bcs)
+	{
 		return -ENOMEM;
+	}
 
 	ehv_bc_driver = alloc_tty_driver(count);
-	if (!ehv_bc_driver) {
+
+	if (!ehv_bc_driver)
+	{
 		ret = -ENOMEM;
 		goto error;
 	}
@@ -776,22 +860,28 @@ static int __init ehv_bc_init(void)
 	tty_set_operations(ehv_bc_driver, &ehv_bc_ops);
 
 	ret = tty_register_driver(ehv_bc_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("ehv-bc: could not register tty driver (ret=%i)\n", ret);
 		goto error;
 	}
 
 	ret = platform_driver_register(&ehv_bc_tty_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("ehv-bc: could not register platform driver (ret=%i)\n",
-		       ret);
+			   ret);
 		goto error;
 	}
 
 	return 0;
 
 error:
-	if (ehv_bc_driver) {
+
+	if (ehv_bc_driver)
+	{
 		tty_unregister_driver(ehv_bc_driver);
 		put_tty_driver(ehv_bc_driver);
 	}

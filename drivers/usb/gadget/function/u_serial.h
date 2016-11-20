@@ -17,7 +17,8 @@
 
 #define MAX_U_SERIAL_PORTS	4
 
-struct f_serial_opts {
+struct f_serial_opts
+{
 	struct usb_function_instance func_inst;
 	u8 port_num;
 };
@@ -34,7 +35,8 @@ struct f_serial_opts {
  *
  * REVISIT someday, allow multiplexing several TTYs over these endpoints.
  */
-struct gserial {
+struct gserial
+{
 	struct usb_function		func;
 
 	/* port is managed by gserial_{connect,disconnect} */

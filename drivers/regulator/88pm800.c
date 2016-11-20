@@ -72,12 +72,14 @@
 #define PM800_BUCK4_MISC1	(0x81)
 #define PM800_BUCK5_MISC1	(0x84)
 
-struct pm800_regulator_info {
+struct pm800_regulator_info
+{
 	struct regulator_desc desc;
 	int max_ua;
 };
 
-struct pm800_regulators {
+struct pm800_regulators
+{
 	struct pm80x_chip *chip;
 	struct regmap *map;
 };
@@ -92,25 +94,25 @@ struct pm800_regulators {
  * n_volt - Number of available selectors
  */
 #define PM800_BUCK(match, vreg, ereg, ebit, amax, volt_ranges, n_volt)	\
-{									\
-	.desc	= {							\
-		.name			= #vreg,			\
-		.of_match		= of_match_ptr(#match),		\
-		.regulators_node	= of_match_ptr("regulators"),	\
-		.ops			= &pm800_volt_range_ops,	\
-		.type			= REGULATOR_VOLTAGE,		\
-		.id			= PM800_ID_##vreg,		\
-		.owner			= THIS_MODULE,			\
-		.n_voltages		= n_volt,			\
-		.linear_ranges		= volt_ranges,			\
-		.n_linear_ranges	= ARRAY_SIZE(volt_ranges),	\
-		.vsel_reg		= PM800_##vreg,			\
-		.vsel_mask		= 0x7f,				\
-		.enable_reg		= PM800_##ereg,			\
-		.enable_mask		= 1 << (ebit),			\
-	},								\
-	.max_ua	= (amax),						\
-}
+	{									\
+		.desc	= {							\
+											.name			= #vreg,			\
+											.of_match		= of_match_ptr(#match),		\
+											.regulators_node	= of_match_ptr("regulators"),	\
+											.ops			= &pm800_volt_range_ops,	\
+											.type			= REGULATOR_VOLTAGE,		\
+											.id			= PM800_ID_##vreg,		\
+											.owner			= THIS_MODULE,			\
+											.n_voltages		= n_volt,			\
+											.linear_ranges		= volt_ranges,			\
+											.n_linear_ranges	= ARRAY_SIZE(volt_ranges),	\
+											.vsel_reg		= PM800_##vreg,			\
+											.vsel_mask		= 0x7f,				\
+											.enable_reg		= PM800_##ereg,			\
+											.enable_mask		= 1 << (ebit),			\
+				},								\
+				  .max_ua	= (amax),						\
+	}
 
 /*
  * vreg - the LDO regs string
@@ -122,54 +124,60 @@ struct pm800_regulators {
  * simpler and faster.
  */
 #define PM800_LDO(match, vreg, ereg, ebit, amax, ldo_volt_table)	\
-{									\
-	.desc	= {							\
-		.name			= #vreg,			\
-		.of_match		= of_match_ptr(#match),		\
-		.regulators_node	= of_match_ptr("regulators"),	\
-		.ops			= &pm800_volt_table_ops,	\
-		.type			= REGULATOR_VOLTAGE,		\
-		.id			= PM800_ID_##vreg,		\
-		.owner			= THIS_MODULE,			\
-		.n_voltages		= ARRAY_SIZE(ldo_volt_table),	\
-		.vsel_reg		= PM800_##vreg##_VOUT,		\
-		.vsel_mask		= 0xf,				\
-		.enable_reg		= PM800_##ereg,			\
-		.enable_mask		= 1 << (ebit),			\
-		.volt_table		= ldo_volt_table,		\
-	},								\
-	.max_ua	= (amax),						\
-}
+	{									\
+		.desc	= {							\
+											.name			= #vreg,			\
+											.of_match		= of_match_ptr(#match),		\
+											.regulators_node	= of_match_ptr("regulators"),	\
+											.ops			= &pm800_volt_table_ops,	\
+											.type			= REGULATOR_VOLTAGE,		\
+											.id			= PM800_ID_##vreg,		\
+											.owner			= THIS_MODULE,			\
+											.n_voltages		= ARRAY_SIZE(ldo_volt_table),	\
+											.vsel_reg		= PM800_##vreg##_VOUT,		\
+											.vsel_mask		= 0xf,				\
+											.enable_reg		= PM800_##ereg,			\
+											.enable_mask		= 1 << (ebit),			\
+											.volt_table		= ldo_volt_table,		\
+				},								\
+				  .max_ua	= (amax),						\
+	}
 
 /* Ranges are sorted in ascending order. */
-static const struct regulator_linear_range buck1_volt_range[] = {
+static const struct regulator_linear_range buck1_volt_range[] =
+{
 	REGULATOR_LINEAR_RANGE(600000, 0, 0x4f, 12500),
 	REGULATOR_LINEAR_RANGE(1600000, 0x50, 0x54, 50000),
 };
 
 /* BUCK 2~5 have same ranges. */
-static const struct regulator_linear_range buck2_5_volt_range[] = {
+static const struct regulator_linear_range buck2_5_volt_range[] =
+{
 	REGULATOR_LINEAR_RANGE(600000, 0, 0x4f, 12500),
 	REGULATOR_LINEAR_RANGE(1600000, 0x50, 0x72, 50000),
 };
 
-static const unsigned int ldo1_volt_table[] = {
+static const unsigned int ldo1_volt_table[] =
+{
 	600000,  650000,  700000,  750000,  800000,  850000,  900000,  950000,
 	1000000, 1050000, 1100000, 1150000, 1200000, 1300000, 1400000, 1500000,
 };
 
-static const unsigned int ldo2_volt_table[] = {
+static const unsigned int ldo2_volt_table[] =
+{
 	1700000, 1800000, 1900000, 2000000, 2100000, 2500000, 2700000, 2800000,
 };
 
 /* LDO 3~17 have same voltage table. */
-static const unsigned int ldo3_17_volt_table[] = {
+static const unsigned int ldo3_17_volt_table[] =
+{
 	1200000, 1250000, 1700000, 1800000, 1850000, 1900000, 2500000, 2600000,
 	2700000, 2750000, 2800000, 2850000, 2900000, 3000000, 3100000, 3300000,
 };
 
 /* LDO 18~19 have same voltage table. */
-static const unsigned int ldo18_19_volt_table[] = {
+static const unsigned int ldo18_19_volt_table[] =
+{
 	1700000, 1800000, 1900000, 2500000, 2800000, 2900000, 3100000, 3300000,
 };
 
@@ -180,7 +188,8 @@ static int pm800_get_current_limit(struct regulator_dev *rdev)
 	return info->max_ua;
 }
 
-static struct regulator_ops pm800_volt_range_ops = {
+static struct regulator_ops pm800_volt_range_ops =
+{
 	.list_voltage		= regulator_list_voltage_linear_range,
 	.map_voltage		= regulator_map_voltage_linear_range,
 	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
@@ -191,7 +200,8 @@ static struct regulator_ops pm800_volt_range_ops = {
 	.get_current_limit	= pm800_get_current_limit,
 };
 
-static struct regulator_ops pm800_volt_table_ops = {
+static struct regulator_ops pm800_volt_table_ops =
+{
 	.list_voltage		= regulator_list_voltage_table,
 	.map_voltage		= regulator_map_voltage_iterate,
 	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
@@ -203,7 +213,8 @@ static struct regulator_ops pm800_volt_table_ops = {
 };
 
 /* The array is indexed by id(PM800_ID_XXX) */
-static struct pm800_regulator_info pm800_regulator_info[] = {
+static struct pm800_regulator_info pm800_regulator_info[] =
+{
 	PM800_BUCK(buck1, BUCK1, BUCK_ENA, 0, 3000000, buck1_volt_range, 0x55),
 	PM800_BUCK(buck2, BUCK2, BUCK_ENA, 1, 1200000, buck2_5_volt_range, 0x73),
 	PM800_BUCK(buck3, BUCK3, BUCK_ENA, 2, 1200000, buck2_5_volt_range, 0x73),
@@ -240,22 +251,32 @@ static int pm800_regulator_probe(struct platform_device *pdev)
 	struct regulator_init_data *init_data;
 	int i, ret;
 
-	if (pdata && pdata->num_regulators) {
+	if (pdata && pdata->num_regulators)
+	{
 		unsigned int count = 0;
 
 		/* Check whether num_regulator is valid. */
-		for (i = 0; i < ARRAY_SIZE(pdata->regulators); i++) {
+		for (i = 0; i < ARRAY_SIZE(pdata->regulators); i++)
+		{
 			if (pdata->regulators[i])
+			{
 				count++;
+			}
 		}
+
 		if (count != pdata->num_regulators)
+		{
 			return -EINVAL;
+		}
 	}
 
 	pm800_data = devm_kzalloc(&pdev->dev, sizeof(*pm800_data),
-					GFP_KERNEL);
+							  GFP_KERNEL);
+
 	if (!pm800_data)
+	{
 		return -ENOMEM;
+	}
 
 	pm800_data->map = chip->subchip->regmap_power;
 	pm800_data->chip = chip;
@@ -264,13 +285,19 @@ static int pm800_regulator_probe(struct platform_device *pdev)
 
 	config.dev = chip->dev;
 	config.regmap = pm800_data->map;
-	for (i = 0; i < PM800_ID_RG_MAX; i++) {
+
+	for (i = 0; i < PM800_ID_RG_MAX; i++)
+	{
 		struct regulator_dev *regulator;
 
-		if (pdata && pdata->num_regulators) {
+		if (pdata && pdata->num_regulators)
+		{
 			init_data = pdata->regulators[i];
+
 			if (!init_data)
+			{
 				continue;
+			}
 
 			config.init_data = init_data;
 		}
@@ -278,8 +305,10 @@ static int pm800_regulator_probe(struct platform_device *pdev)
 		config.driver_data = &pm800_regulator_info[i];
 
 		regulator = devm_regulator_register(&pdev->dev,
-				&pm800_regulator_info[i].desc, &config);
-		if (IS_ERR(regulator)) {
+											&pm800_regulator_info[i].desc, &config);
+
+		if (IS_ERR(regulator))
+		{
 			ret = PTR_ERR(regulator);
 			dev_err(&pdev->dev, "Failed to register %s\n",
 					pm800_regulator_info[i].desc.name);
@@ -290,7 +319,8 @@ static int pm800_regulator_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pm800_regulator_driver = {
+static struct platform_driver pm800_regulator_driver =
+{
 	.driver		= {
 		.name	= "88pm80x-regulator",
 	},

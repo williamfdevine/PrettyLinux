@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	RDMA_NL_RDMA_CM = 1,
 	RDMA_NL_IWCM,
 	RDMA_NL_RSVD,
@@ -12,7 +13,8 @@ enum {
 	RDMA_NL_NUM_CLIENTS
 };
 
-enum {
+enum
+{
 	RDMA_NL_GROUP_CM = 1,
 	RDMA_NL_GROUP_IWPM,
 	RDMA_NL_GROUP_LS,
@@ -23,19 +25,22 @@ enum {
 #define RDMA_NL_GET_OP(type) (type & ((1 << 10) - 1))
 #define RDMA_NL_GET_TYPE(client, op) ((client << 10) + op)
 
-enum {
+enum
+{
 	RDMA_NL_RDMA_CM_ID_STATS = 0,
 	RDMA_NL_RDMA_CM_NUM_OPS
 };
 
-enum {
+enum
+{
 	RDMA_NL_RDMA_CM_ATTR_SRC_ADDR = 1,
 	RDMA_NL_RDMA_CM_ATTR_DST_ADDR,
 	RDMA_NL_RDMA_CM_NUM_ATTR,
 };
 
 /* iwarp port mapper op-codes */
-enum {
+enum
+{
 	RDMA_NL_IWPM_REG_PID = 0,
 	RDMA_NL_IWPM_ADD_MAPPING,
 	RDMA_NL_IWPM_QUERY_MAPPING,
@@ -47,7 +52,8 @@ enum {
 	RDMA_NL_IWPM_NUM_OPS
 };
 
-struct rdma_cm_id_stats {
+struct rdma_cm_id_stats
+{
 	__u32	qp_num;
 	__u32	bound_dev_if;
 	__u32	port_space;
@@ -58,7 +64,8 @@ struct rdma_cm_id_stats {
 	__u8	qp_type;
 };
 
-enum {
+enum
+{
 	IWPM_NLA_REG_PID_UNSPEC = 0,
 	IWPM_NLA_REG_PID_SEQ,
 	IWPM_NLA_REG_IF_NAME,
@@ -67,7 +74,8 @@ enum {
 	IWPM_NLA_REG_PID_MAX
 };
 
-enum {
+enum
+{
 	IWPM_NLA_RREG_PID_UNSPEC = 0,
 	IWPM_NLA_RREG_PID_SEQ,
 	IWPM_NLA_RREG_IBDEV_NAME,
@@ -78,7 +86,8 @@ enum {
 
 };
 
-enum {
+enum
+{
 	IWPM_NLA_MANAGE_MAPPING_UNSPEC = 0,
 	IWPM_NLA_MANAGE_MAPPING_SEQ,
 	IWPM_NLA_MANAGE_ADDR,
@@ -91,7 +100,8 @@ enum {
 #define IWPM_NLA_QUERY_MAPPING_MAX  4
 #define IWPM_NLA_MAPINFO_SEND_MAX   3
 
-enum {
+enum
+{
 	IWPM_NLA_QUERY_MAPPING_UNSPEC = 0,
 	IWPM_NLA_QUERY_MAPPING_SEQ,
 	IWPM_NLA_QUERY_LOCAL_ADDR,
@@ -102,21 +112,24 @@ enum {
 	IWPM_NLA_RQUERY_MAPPING_MAX
 };
 
-enum {
+enum
+{
 	IWPM_NLA_MAPINFO_REQ_UNSPEC = 0,
 	IWPM_NLA_MAPINFO_ULIB_NAME,
 	IWPM_NLA_MAPINFO_ULIB_VER,
 	IWPM_NLA_MAPINFO_REQ_MAX
 };
 
-enum {
+enum
+{
 	IWPM_NLA_MAPINFO_UNSPEC = 0,
 	IWPM_NLA_MAPINFO_LOCAL_ADDR,
 	IWPM_NLA_MAPINFO_MAPPED_ADDR,
 	IWPM_NLA_MAPINFO_MAX
 };
 
-enum {
+enum
+{
 	IWPM_NLA_MAPINFO_NUM_UNSPEC = 0,
 	IWPM_NLA_MAPINFO_SEQ,
 	IWPM_NLA_MAPINFO_SEND_NUM,
@@ -124,7 +137,8 @@ enum {
 	IWPM_NLA_MAPINFO_NUM_MAX
 };
 
-enum {
+enum
+{
 	IWPM_NLA_ERR_UNSPEC = 0,
 	IWPM_NLA_ERR_SEQ,
 	IWPM_NLA_ERR_CODE,
@@ -137,7 +151,8 @@ enum {
  *   SET_TIMEOUT - The local service requests the client to set the timeout.
  *   IP_RESOLVE - The client requests the local service to resolve an IP to GID.
  */
-enum {
+enum
+{
 	RDMA_NL_LS_OP_RESOLVE = 0,
 	RDMA_NL_LS_OP_SET_TIMEOUT,
 	RDMA_NL_LS_OP_IP_RESOLVE,
@@ -163,7 +178,8 @@ enum {
  *   GMP - For miscellaneous GMP like operation (at least 1 reversible
  *         pathrecord)
  */
-enum {
+enum
+{
 	LS_RESOLVE_PATH_USE_ALL = 0,
 	LS_RESOLVE_PATH_USE_UNIDIRECTIONAL,
 	LS_RESOLVE_PATH_USE_GMP,
@@ -172,20 +188,22 @@ enum {
 
 #define LS_DEVICE_NAME_MAX 64
 
-struct rdma_ls_resolve_header {
+struct rdma_ls_resolve_header
+{
 	__u8 device_name[LS_DEVICE_NAME_MAX];
 	__u8 port_num;
 	__u8 path_use;
 };
 
-struct rdma_ls_ip_resolve_header {
+struct rdma_ls_ip_resolve_header
+{
 	__u32 ifindex;
 };
 
 /* Local service attribute type */
 #define RDMA_NLA_F_MANDATORY	(1 << 13)
 #define RDMA_NLA_TYPE_MASK	(~(NLA_F_NESTED | NLA_F_NET_BYTEORDER | \
-				  RDMA_NLA_F_MANDATORY))
+							   RDMA_NLA_F_MANDATORY))
 
 /*
  * Local service attributes:
@@ -202,7 +220,8 @@ struct rdma_ls_ip_resolve_header {
  *   IPV4            u32                        BE
  *   IPV6            u8[16]                     BE
  */
-enum {
+enum
+{
 	LS_NLA_TYPE_UNSPEC = 0,
 	LS_NLA_TYPE_PATH_RECORD,
 	LS_NLA_TYPE_TIMEOUT,
@@ -218,7 +237,8 @@ enum {
 };
 
 /* Local service DGID/SGID attribute: big endian */
-struct rdma_nla_ls_gid {
+struct rdma_nla_ls_gid
+{
 	__u8		gid[16];
 };
 

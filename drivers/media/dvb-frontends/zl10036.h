@@ -32,17 +32,18 @@
  * @return FE pointer on success, NULL on failure.
  */
 
-struct zl10036_config {
+struct zl10036_config
+{
 	u8 tuner_address;
 	int rf_loop_enable;
 };
 
 #if IS_REACHABLE(CONFIG_DVB_ZL10036)
 extern struct dvb_frontend *zl10036_attach(struct dvb_frontend *fe,
-	const struct zl10036_config *config, struct i2c_adapter *i2c);
+		const struct zl10036_config *config, struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *zl10036_attach(struct dvb_frontend *fe,
-	const struct zl10036_config *config, struct i2c_adapter *i2c)
+		const struct zl10036_config *config, struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

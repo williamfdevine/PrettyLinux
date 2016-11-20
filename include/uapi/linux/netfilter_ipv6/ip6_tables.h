@@ -60,9 +60,10 @@
 #endif
 
 /* Yes, Virginia, you have to zero the padding. */
-struct ip6t_ip6 {
+struct ip6t_ip6
+{
 	/* Source and destination IP6 addr */
-	struct in6_addr src, dst;		
+	struct in6_addr src, dst;
 	/* Mask for src and dest IP6 addr */
 	struct in6_addr smsk, dmsk;
 	char iniface[IFNAMSIZ], outiface[IFNAMSIZ];
@@ -106,7 +107,8 @@ struct ip6t_ip6 {
 /* This structure defines each of the firewall rules.  Consists of 3
    parts which are 1) general IP header stuff 2) match specific
    stuff 3) the target to perform if the rule matches */
-struct ip6t_entry {
+struct ip6t_entry
+{
 	struct ip6t_ip6 ipv6;
 
 	/* Mark with fields that we care about. */
@@ -128,37 +130,39 @@ struct ip6t_entry {
 };
 
 /* Standard entry */
-struct ip6t_standard {
+struct ip6t_standard
+{
 	struct ip6t_entry entry;
 	struct xt_standard_target target;
 };
 
-struct ip6t_error {
+struct ip6t_error
+{
 	struct ip6t_entry entry;
 	struct xt_error_target target;
 };
 
 #define IP6T_ENTRY_INIT(__size)						       \
-{									       \
-	.target_offset	= sizeof(struct ip6t_entry),			       \
-	.next_offset	= (__size),					       \
-}
+	{									       \
+		.target_offset	= sizeof(struct ip6t_entry),			       \
+						  .next_offset	= (__size),					       \
+	}
 
 #define IP6T_STANDARD_INIT(__verdict)					       \
-{									       \
-	.entry		= IP6T_ENTRY_INIT(sizeof(struct ip6t_standard)),       \
-	.target		= XT_TARGET_INIT(XT_STANDARD_TARGET,		       \
-					 sizeof(struct xt_standard_target)),   \
-	.target.verdict	= -(__verdict) - 1,				       \
-}
+	{									       \
+		.entry		= IP6T_ENTRY_INIT(sizeof(struct ip6t_standard)),       \
+					  .target		= XT_TARGET_INIT(XT_STANDARD_TARGET,		       \
+									sizeof(struct xt_standard_target)),   \
+									.target.verdict	= -(__verdict) - 1,				       \
+	}
 
 #define IP6T_ERROR_INIT							       \
-{									       \
-	.entry		= IP6T_ENTRY_INIT(sizeof(struct ip6t_error)),	       \
-	.target		= XT_TARGET_INIT(XT_ERROR_TARGET,		       \
-					 sizeof(struct xt_error_target)),      \
-	.target.errorname = "ERROR",					       \
-}
+	{									       \
+		.entry		= IP6T_ENTRY_INIT(sizeof(struct ip6t_error)),	       \
+					  .target		= XT_TARGET_INIT(XT_ERROR_TARGET,		       \
+									sizeof(struct xt_error_target)),      \
+									.target.errorname = "ERROR",					       \
+	}
 
 /*
  * New IP firewall options for [gs]etsockopt at the RAW IP level.
@@ -183,7 +187,8 @@ struct ip6t_error {
 #define IP6T_SO_ORIGINAL_DST            80
 
 /* ICMP matching stuff */
-struct ip6t_icmp {
+struct ip6t_icmp
+{
 	__u8 type;				/* type to match */
 	__u8 code[2];				/* range of code */
 	__u8 invflags;				/* Inverse flags */
@@ -193,7 +198,8 @@ struct ip6t_icmp {
 #define IP6T_ICMP_INV	0x01	/* Invert the sense of type/code test */
 
 /* The argument to IP6T_SO_GET_INFO */
-struct ip6t_getinfo {
+struct ip6t_getinfo
+{
 	/* Which table: caller fills this in. */
 	char name[XT_TABLE_MAXNAMELEN];
 
@@ -215,12 +221,13 @@ struct ip6t_getinfo {
 };
 
 /* The argument to IP6T_SO_SET_REPLACE. */
-struct ip6t_replace {
+struct ip6t_replace
+{
 	/* Which table. */
 	char name[XT_TABLE_MAXNAMELEN];
 
 	/* Which hook entry points are valid: bitmask.  You can't
-           change this. */
+	       change this. */
 	unsigned int valid_hooks;
 
 	/* Number of entries */
@@ -246,7 +253,8 @@ struct ip6t_replace {
 };
 
 /* The argument to IP6T_SO_GET_ENTRIES. */
-struct ip6t_get_entries {
+struct ip6t_get_entries
+{
 	/* Which table: user fills this in. */
 	char name[XT_TABLE_MAXNAMELEN];
 

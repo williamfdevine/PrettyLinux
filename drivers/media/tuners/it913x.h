@@ -29,7 +29,8 @@
  * I2C address
  * 0x38, 0x3a, 0x3c, 0x3e
  */
-struct it913x_config {
+struct it913x_config
+{
 	/*
 	 * pointer to DVB frontend
 	 */
@@ -40,7 +41,7 @@ struct it913x_config {
 	 * 1 = IT9135 AX
 	 * 2 = IT9135 BX
 	 */
-	unsigned int chip_ver:2;
+	unsigned int chip_ver: 2;
 
 	/*
 	 * tuner role
@@ -48,7 +49,7 @@ struct it913x_config {
 #define IT913X_ROLE_SINGLE         0
 #define IT913X_ROLE_DUAL_MASTER    1
 #define IT913X_ROLE_DUAL_SLAVE     2
-	unsigned int role:2;
+	unsigned int role: 2;
 };
 
 #endif

@@ -27,7 +27,8 @@
 #include <nvif/class.h>
 
 const struct nv50_disp_pioc_oclass
-gk104_disp_curs_oclass = {
+	gk104_disp_curs_oclass =
+{
 	.base.oclass = GK104_DISP_CURSOR,
 	.base.minver = 0,
 	.base.maxver = 0,

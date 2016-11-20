@@ -34,7 +34,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	B43legacy_ANTENNA0,	  /* Antenna 0 */
 	B43legacy_ANTENNA1,	  /* Antenna 0 */
 	B43legacy_ANTENNA_AUTO1,  /* Automatic, starting with antenna 1 */
@@ -44,7 +45,8 @@ enum {
 	B43legacy_ANTENNA_DEFAULT = B43legacy_ANTENNA_AUTO,
 };
 
-enum {
+enum
+{
 	B43legacy_INTERFMODE_NONE,
 	B43legacy_INTERFMODE_NONWLAN,
 	B43legacy_INTERFMODE_MANUALWLAN,
@@ -78,8 +80,8 @@ enum {
 #define B43legacy_PHY_RFOVERVAL		B43legacy_PHY_EXTG(0x12)	/* RF override value */
 /*** OFDM table numbers ***/
 #define B43legacy_OFDMTAB(number, offset)				\
-			  (((number) << B43legacy_PHY_OTABLENR_SHIFT)	\
-			  | (offset))
+	(((number) << B43legacy_PHY_OTABLENR_SHIFT)	\
+	 | (offset))
 #define B43legacy_OFDMTAB_AGC1		B43legacy_OFDMTAB(0x00, 0)
 #define B43legacy_OFDMTAB_GAIN0		B43legacy_OFDMTAB(0x00, 0)
 #define B43legacy_OFDMTAB_GAINX		B43legacy_OFDMTAB(0x01, 0)
@@ -201,9 +203,9 @@ void b43legacy_phy_lo_adjust(struct b43legacy_wldev *dev, int fixed);
 void b43legacy_phy_lo_mark_all_unused(struct b43legacy_wldev *dev);
 
 void b43legacy_phy_set_baseband_attenuation(struct b43legacy_wldev *dev,
-					    u16 baseband_attenuation);
+		u16 baseband_attenuation);
 
 void b43legacy_power_saving_ctl_bits(struct b43legacy_wldev *dev,
-				     int bit25, int bit26);
+									 int bit25, int bit26);
 
 #endif /* B43legacy_PHY_H_ */

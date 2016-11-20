@@ -67,7 +67,7 @@ static struct osc_object *lu2osc(const struct lu_object *obj)
  */
 
 static int osc_object_init(const struct lu_env *env, struct lu_object *obj,
-			   const struct lu_object_conf *conf)
+						   const struct lu_object_conf *conf)
 {
 	struct osc_object *osc = lu2osc(obj);
 	const struct cl_object_conf *cconf = lu2cl_conf(conf);
@@ -75,8 +75,11 @@ static int osc_object_init(const struct lu_env *env, struct lu_object *obj,
 
 	osc->oo_oinfo = cconf->u.coc_oinfo;
 	spin_lock_init(&osc->oo_seatbelt);
+
 	for (i = 0; i < CRT_NR; ++i)
+	{
 		INIT_LIST_HEAD(&osc->oo_inflight[i]);
+	}
 
 	INIT_LIST_HEAD(&osc->oo_ready_item);
 	INIT_LIST_HEAD(&osc->oo_hp_ready_item);
@@ -106,7 +109,9 @@ static void osc_object_free(const struct lu_env *env, struct lu_object *obj)
 	int i;
 
 	for (i = 0; i < CRT_NR; ++i)
+	{
 		LASSERT(list_empty(&osc->oo_inflight[i]));
+	}
 
 	LASSERT(list_empty(&osc->oo_ready_item));
 	LASSERT(list_empty(&osc->oo_hp_ready_item));
@@ -127,30 +132,30 @@ static void osc_object_free(const struct lu_env *env, struct lu_object *obj)
 }
 
 int osc_lvb_print(const struct lu_env *env, void *cookie,
-		  lu_printer_t p, const struct ost_lvb *lvb)
+				  lu_printer_t p, const struct ost_lvb *lvb)
 {
 	return (*p)(env, cookie, "size: %llu mtime: %llu atime: %llu ctime: %llu blocks: %llu",
-		    lvb->lvb_size, lvb->lvb_mtime, lvb->lvb_atime,
-		    lvb->lvb_ctime, lvb->lvb_blocks);
+				lvb->lvb_size, lvb->lvb_mtime, lvb->lvb_atime,
+				lvb->lvb_ctime, lvb->lvb_blocks);
 }
 
 static int osc_object_print(const struct lu_env *env, void *cookie,
-			    lu_printer_t p, const struct lu_object *obj)
+							lu_printer_t p, const struct lu_object *obj)
 {
 	struct osc_object *osc = lu2osc(obj);
 	struct lov_oinfo *oinfo = osc->oo_oinfo;
 	struct osc_async_rc *ar = &oinfo->loi_ar;
 
 	(*p)(env, cookie, "id: " DOSTID " idx: %d gen: %d kms_valid: %u kms %llu rc: %d force_sync: %d min_xid: %llu ",
-	     POSTID(&oinfo->loi_oi), oinfo->loi_ost_idx,
-	     oinfo->loi_ost_gen, oinfo->loi_kms_valid, oinfo->loi_kms,
-	     ar->ar_rc, ar->ar_force_sync, ar->ar_min_xid);
+		 POSTID(&oinfo->loi_oi), oinfo->loi_ost_idx,
+		 oinfo->loi_ost_gen, oinfo->loi_kms_valid, oinfo->loi_kms,
+		 ar->ar_rc, ar->ar_force_sync, ar->ar_min_xid);
 	osc_lvb_print(env, cookie, p, &oinfo->loi_lvb);
 	return 0;
 }
 
 static int osc_attr_get(const struct lu_env *env, struct cl_object *obj,
-			struct cl_attr *attr)
+						struct cl_attr *attr)
 {
 	struct lov_oinfo *oinfo = cl2osc(obj)->oo_oinfo;
 
@@ -160,31 +165,48 @@ static int osc_attr_get(const struct lu_env *env, struct cl_object *obj,
 }
 
 static int osc_attr_update(const struct lu_env *env, struct cl_object *obj,
-			   const struct cl_attr *attr, unsigned int valid)
+						   const struct cl_attr *attr, unsigned int valid)
 {
 	struct lov_oinfo *oinfo = cl2osc(obj)->oo_oinfo;
 	struct ost_lvb *lvb = &oinfo->loi_lvb;
 
 	if (valid & CAT_SIZE)
+	{
 		lvb->lvb_size = attr->cat_size;
+	}
+
 	if (valid & CAT_MTIME)
+	{
 		lvb->lvb_mtime = attr->cat_mtime;
+	}
+
 	if (valid & CAT_ATIME)
+	{
 		lvb->lvb_atime = attr->cat_atime;
+	}
+
 	if (valid & CAT_CTIME)
+	{
 		lvb->lvb_ctime = attr->cat_ctime;
+	}
+
 	if (valid & CAT_BLOCKS)
+	{
 		lvb->lvb_blocks = attr->cat_blocks;
-	if (valid & CAT_KMS) {
+	}
+
+	if (valid & CAT_KMS)
+	{
 		CDEBUG(D_CACHE, "set kms from %llu to %llu\n",
-		       oinfo->loi_kms, (__u64)attr->cat_kms);
+			   oinfo->loi_kms, (__u64)attr->cat_kms);
 		loi_kms_set(oinfo, attr->cat_kms);
 	}
+
 	return 0;
 }
 
 static int osc_object_glimpse(const struct lu_env *env,
-			      const struct cl_object *obj, struct ost_lvb *lvb)
+							  const struct cl_object *obj, struct ost_lvb *lvb)
 {
 	struct lov_oinfo *oinfo = cl2osc(obj)->oo_oinfo;
 
@@ -196,7 +218,10 @@ static int osc_object_glimpse(const struct lu_env *env,
 static int osc_object_ast_clear(struct ldlm_lock *lock, void *data)
 {
 	if (lock->l_ast_data == data)
+	{
 		lock->l_ast_data = NULL;
+	}
+
 	return LDLM_ITER_CONTINUE;
 }
 
@@ -206,15 +231,15 @@ static int osc_object_prune(const struct lu_env *env, struct cl_object *obj)
 	struct ldlm_res_id      *resname = &osc_env_info(env)->oti_resname;
 
 	LASSERTF(osc->oo_npages == 0,
-		 DFID "still have %lu pages, obj: %p, osc: %p\n",
-		 PFID(lu_object_fid(&obj->co_lu)), osc->oo_npages, obj, osc);
+			 DFID "still have %lu pages, obj: %p, osc: %p\n",
+			 PFID(lu_object_fid(&obj->co_lu)), osc->oo_npages, obj, osc);
 
 	/* DLM locks don't hold a reference of osc_object so we have to
 	 * clear it before the object is being destroyed.
 	 */
 	ostid_build_res_name(&osc->oo_oinfo->loi_oi, resname);
 	ldlm_resource_iterate(osc_export(osc)->exp_obd->obd_namespace, resname,
-			      osc_object_ast_clear, osc);
+						  osc_object_ast_clear, osc);
 	return 0;
 }
 
@@ -238,25 +263,33 @@ int osc_object_is_contended(struct osc_object *obj)
 	unsigned long retry_time;
 
 	if (OBD_FAIL_CHECK(OBD_FAIL_OSC_OBJECT_CONTENTION))
+	{
 		return 1;
+	}
 
 	if (!obj->oo_contended)
+	{
 		return 0;
+	}
 
 	/*
 	 * I like copy-paste. the code is copied from
 	 * ll_file_is_contended.
 	 */
 	retry_time = cfs_time_add(obj->oo_contention_time,
-				  cfs_time_seconds(osc_contention_time));
-	if (cfs_time_after(cur_time, retry_time)) {
+							  cfs_time_seconds(osc_contention_time));
+
+	if (cfs_time_after(cur_time, retry_time))
+	{
 		osc_object_clear_contended(obj);
 		return 0;
 	}
+
 	return 1;
 }
 
-static const struct cl_object_operations osc_ops = {
+static const struct cl_object_operations osc_ops =
+{
 	.coo_page_init = osc_page_init,
 	.coo_lock_init = osc_lock_init,
 	.coo_io_init   = osc_io_init,
@@ -266,7 +299,8 @@ static const struct cl_object_operations osc_ops = {
 	.coo_prune     = osc_object_prune
 };
 
-static const struct lu_object_operations osc_lu_obj_ops = {
+static const struct lu_object_operations osc_lu_obj_ops =
+{
 	.loo_object_init      = osc_object_init,
 	.loo_object_release   = NULL,
 	.loo_object_free      = osc_object_free,
@@ -275,21 +309,26 @@ static const struct lu_object_operations osc_lu_obj_ops = {
 };
 
 struct lu_object *osc_object_alloc(const struct lu_env *env,
-				   const struct lu_object_header *unused,
-				   struct lu_device *dev)
+								   const struct lu_object_header *unused,
+								   struct lu_device *dev)
 {
 	struct osc_object *osc;
 	struct lu_object *obj;
 
 	osc = kmem_cache_zalloc(osc_object_kmem, GFP_NOFS);
-	if (osc) {
+
+	if (osc)
+	{
 		obj = osc2lu(osc);
 		lu_object_init(obj, NULL, dev);
 		osc->oo_cl.co_ops = &osc_ops;
 		obj->lo_ops = &osc_lu_obj_ops;
-	} else {
+	}
+	else
+	{
 		obj = NULL;
 	}
+
 	return obj;
 }
 

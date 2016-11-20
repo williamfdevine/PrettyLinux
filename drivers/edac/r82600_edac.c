@@ -127,7 +127,8 @@
 				 * each row [p57]
 				 */
 
-struct r82600_error_info {
+struct r82600_error_info
+{
 	u32 eapr;
 };
 
@@ -136,7 +137,7 @@ static bool disable_hardware_scrub;
 static struct edac_pci_ctl_info *r82600_pci;
 
 static void r82600_get_error_info(struct mem_ctl_info *mci,
-				struct r82600_error_info *info)
+								  struct r82600_error_info *info)
 {
 	struct pci_dev *pdev;
 
@@ -146,19 +147,19 @@ static void r82600_get_error_info(struct mem_ctl_info *mci,
 	if (info->eapr & BIT(0))
 		/* Clear error to allow next error to be reported [p.62] */
 		pci_write_bits32(pdev, R82600_EAP,
-				 ((u32) BIT(0) & (u32) BIT(1)),
-				 ((u32) BIT(0) & (u32) BIT(1)));
+						 ((u32) BIT(0) & (u32) BIT(1)),
+						 ((u32) BIT(0) & (u32) BIT(1)));
 
 	if (info->eapr & BIT(1))
 		/* Clear error to allow next error to be reported [p.62] */
 		pci_write_bits32(pdev, R82600_EAP,
-				 ((u32) BIT(0) & (u32) BIT(1)),
-				 ((u32) BIT(0) & (u32) BIT(1)));
+						 ((u32) BIT(0) & (u32) BIT(1)),
+						 ((u32) BIT(0) & (u32) BIT(1)));
 }
 
 static int r82600_process_error_info(struct mem_ctl_info *mci,
-				struct r82600_error_info *info,
-				int handle_errors)
+									 struct r82600_error_info *info,
+									 int handle_errors)
 {
 	int error_found;
 	u32 eapaddr, page;
@@ -175,27 +176,29 @@ static int r82600_process_error_info(struct mem_ctl_info *mci,
 	 * granularity (upper 19 bits only)     */
 	page = eapaddr >> PAGE_SHIFT;
 
-	if (info->eapr & BIT(0)) {	/* CE? */
+	if (info->eapr & BIT(0))  	/* CE? */
+	{
 		error_found = 1;
 
 		if (handle_errors)
 			edac_mc_handle_error(HW_EVENT_ERR_CORRECTED, mci, 1,
-					     page, 0, syndrome,
-					     edac_mc_find_csrow_by_page(mci, page),
-					     0, -1,
-					     mci->ctl_name, "");
+								 page, 0, syndrome,
+								 edac_mc_find_csrow_by_page(mci, page),
+								 0, -1,
+								 mci->ctl_name, "");
 	}
 
-	if (info->eapr & BIT(1)) {	/* UE? */
+	if (info->eapr & BIT(1))  	/* UE? */
+	{
 		error_found = 1;
 
 		if (handle_errors)
 			/* 82600 doesn't give enough info */
 			edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
-					     page, 0, 0,
-					     edac_mc_find_csrow_by_page(mci, page),
-					     0, -1,
-					     mci->ctl_name, "");
+								 page, 0, 0,
+								 edac_mc_find_csrow_by_page(mci, page),
+								 0, -1,
+								 mci->ctl_name, "");
 	}
 
 	return error_found;
@@ -216,7 +219,7 @@ static inline int ecc_enabled(u8 dramcr)
 }
 
 static void r82600_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev,
-			u8 dramcr)
+							   u8 dramcr)
 {
 	struct csrow_info *csrow;
 	struct dimm_info *dimm;
@@ -229,7 +232,8 @@ static void r82600_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev,
 	reg_sdram = dramcr & BIT(4);
 	row_high_limit_last = 0;
 
-	for (index = 0; index < mci->nr_csrows; index++) {
+	for (index = 0; index < mci->nr_csrows; index++)
+	{
 		csrow = mci->csrows[index];
 		dimm = csrow->channels[0]->dimm;
 
@@ -239,14 +243,16 @@ static void r82600_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev,
 		edac_dbg(1, "Row=%d DRBA = %#0x\n", index, drbar);
 
 		row_high_limit = ((u32) drbar << 24);
-/*		row_high_limit = ((u32)drbar << 24) | 0xffffffUL; */
+		/*		row_high_limit = ((u32)drbar << 24) | 0xffffffUL; */
 
 		edac_dbg(1, "Row=%d, Boundary Address=%#0x, Last = %#0x\n",
-			 index, row_high_limit, row_high_limit_last);
+				 index, row_high_limit, row_high_limit_last);
 
 		/* Empty row [p.57] */
 		if (row_high_limit == row_high_limit_last)
+		{
 			continue;
+		}
 
 		row_base = row_high_limit_last;
 
@@ -291,8 +297,11 @@ static int r82600_probe1(struct pci_dev *pdev, int dev_idx)
 	layers[1].size = R82600_NR_CHANS;
 	layers[1].is_virt_csrow = false;
 	mci = edac_mc_alloc(0, ARRAY_SIZE(layers), layers, 0);
+
 	if (mci == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	edac_dbg(0, "mci = %p\n", mci);
 	mci->pdev = &pdev->dev;
@@ -308,12 +317,16 @@ static int r82600_probe1(struct pci_dev *pdev, int dev_idx)
 	 * is possible.                                               */
 	mci->edac_cap = EDAC_FLAG_NONE | EDAC_FLAG_EC | EDAC_FLAG_SECDED;
 
-	if (ecc_enabled(dramcr)) {
+	if (ecc_enabled(dramcr))
+	{
 		if (scrub_disabled)
 			edac_dbg(3, "mci = %p - Scrubbing disabled! EAP: %#0x\n",
-				 mci, eapr);
-	} else
+					 mci, eapr);
+	}
+	else
+	{
 		mci->edac_cap = EDAC_FLAG_NONE;
+	}
 
 	mci->mod_name = EDAC_MOD_STR;
 	mci->mod_ver = R82600_REVISION;
@@ -327,27 +340,31 @@ static int r82600_probe1(struct pci_dev *pdev, int dev_idx)
 	/* Here we assume that we will never see multiple instances of this
 	 * type of memory controller.  The ID is therefore hardcoded to 0.
 	 */
-	if (edac_mc_add_mc(mci)) {
+	if (edac_mc_add_mc(mci))
+	{
 		edac_dbg(3, "failed edac_mc_add_mc()\n");
 		goto fail;
 	}
 
 	/* get this far and it's successful */
 
-	if (disable_hardware_scrub) {
+	if (disable_hardware_scrub)
+	{
 		edac_dbg(3, "Disabling Hardware Scrub (scrub on error)\n");
 		pci_write_bits32(pdev, R82600_EAP, BIT(31), BIT(31));
 	}
 
 	/* allocating generic PCI control info */
 	r82600_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
-	if (!r82600_pci) {
+
+	if (!r82600_pci)
+	{
 		printk(KERN_WARNING
-			"%s(): Unable to create PCI control\n",
-			__func__);
+			   "%s(): Unable to create PCI control\n",
+			   __func__);
 		printk(KERN_WARNING
-			"%s(): PCI error report via EDAC not setup\n",
-			__func__);
+			   "%s(): PCI error report via EDAC not setup\n",
+			   __func__);
 	}
 
 	edac_dbg(3, "success\n");
@@ -360,7 +377,7 @@ fail:
 
 /* returns count (>= 0), or negative on error */
 static int r82600_init_one(struct pci_dev *pdev,
-			   const struct pci_device_id *ent)
+						   const struct pci_device_id *ent)
 {
 	edac_dbg(0, "\n");
 
@@ -375,26 +392,32 @@ static void r82600_remove_one(struct pci_dev *pdev)
 	edac_dbg(0, "\n");
 
 	if (r82600_pci)
+	{
 		edac_pci_release_generic_ctl(r82600_pci);
+	}
 
 	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
+	{
 		return;
+	}
 
 	edac_mc_free(mci);
 }
 
-static const struct pci_device_id r82600_pci_tbl[] = {
+static const struct pci_device_id r82600_pci_tbl[] =
+{
 	{
-	 PCI_DEVICE(PCI_VENDOR_ID_RADISYS, R82600_BRIDGE_ID)
-	 },
+		PCI_DEVICE(PCI_VENDOR_ID_RADISYS, R82600_BRIDGE_ID)
+	},
 	{
-	 0,
-	 }			/* 0 terminated list. */
+		0,
+	}			/* 0 terminated list. */
 };
 
 MODULE_DEVICE_TABLE(pci, r82600_pci_tbl);
 
-static struct pci_driver r82600_driver = {
+static struct pci_driver r82600_driver =
+{
 	.name = EDAC_MOD_STR,
 	.probe = r82600_init_one,
 	.remove = r82600_remove_one,
@@ -403,8 +426,8 @@ static struct pci_driver r82600_driver = {
 
 static int __init r82600_init(void)
 {
-       /* Ensure that the OPSTATE is set correctly for POLL or NMI */
-       opstate_init();
+	/* Ensure that the OPSTATE is set correctly for POLL or NMI */
+	opstate_init();
 
 	return pci_register_driver(&r82600_driver);
 }
@@ -419,12 +442,12 @@ module_exit(r82600_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Tim Small <tim@buttersideup.com> - WPAD Ltd. "
-		"on behalf of EADS Astrium");
+			  "on behalf of EADS Astrium");
 MODULE_DESCRIPTION("MC support for Radisys 82600 memory controllers");
 
 module_param(disable_hardware_scrub, bool, 0644);
 MODULE_PARM_DESC(disable_hardware_scrub,
-		 "If set, disable the chipset's automatic scrub for CEs");
+				 "If set, disable the chipset's automatic scrub for CEs");
 
 module_param(edac_op_state, int, 0444);
 MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");

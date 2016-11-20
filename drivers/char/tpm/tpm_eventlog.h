@@ -7,22 +7,25 @@
 #define ACPI_TCPA_SIG		"TCPA"	/* 0x41504354 /'TCPA' */
 
 #ifdef CONFIG_PPC64
-#define do_endian_conversion(x) be32_to_cpu(x)
+	#define do_endian_conversion(x) be32_to_cpu(x)
 #else
-#define do_endian_conversion(x) x
+	#define do_endian_conversion(x) x
 #endif
 
-enum bios_platform_class {
+enum bios_platform_class
+{
 	BIOS_CLIENT = 0x00,
 	BIOS_SERVER = 0x01,
 };
 
-struct tpm_bios_log {
+struct tpm_bios_log
+{
 	void *bios_event_log;
 	void *bios_event_log_end;
 };
 
-struct tcpa_event {
+struct tcpa_event
+{
 	u32 pcr_index;
 	u32 event_type;
 	u8 pcr_value[20];	/* SHA1 */
@@ -30,7 +33,8 @@ struct tcpa_event {
 	u8 event_data[0];
 };
 
-enum tcpa_event_types {
+enum tcpa_event_types
+{
 	PREBOOT = 0,
 	POST_CODE,
 	UNUSED,
@@ -51,13 +55,15 @@ enum tcpa_event_types {
 	NONHOST_INFO,
 };
 
-struct tcpa_pc_event {
+struct tcpa_pc_event
+{
 	u32 event_id;
 	u32 event_size;
 	u8 event_data[0];
 };
 
-enum tcpa_pc_event_ids {
+enum tcpa_pc_event_ids
+{
 	SMBIOS = 1,
 	BIS_CERT,
 	POST_BIOS_ROM,

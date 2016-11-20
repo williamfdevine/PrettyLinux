@@ -23,7 +23,9 @@ static int simple_pm_bus_probe(struct platform_device *pdev)
 	pm_runtime_enable(&pdev->dev);
 
 	if (np)
+	{
 		of_platform_populate(np, NULL, NULL, &pdev->dev);
+	}
 
 	return 0;
 }
@@ -36,13 +38,15 @@ static int simple_pm_bus_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id simple_pm_bus_of_match[] = {
+static const struct of_device_id simple_pm_bus_of_match[] =
+{
 	{ .compatible = "simple-pm-bus", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, simple_pm_bus_of_match);
 
-static struct platform_driver simple_pm_bus_driver = {
+static struct platform_driver simple_pm_bus_driver =
+{
 	.probe = simple_pm_bus_probe,
 	.remove = simple_pm_bus_remove,
 	.driver = {

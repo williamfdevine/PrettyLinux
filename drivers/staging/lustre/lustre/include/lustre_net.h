@@ -105,18 +105,18 @@
 #define OFD_MAX_BRW_SIZE	(1 << LNET_MTU_BITS)
 
 /* When PAGE_SIZE is a constant, we can check our arithmetic here with cpp! */
-# if ((PTLRPC_MAX_BRW_PAGES & (PTLRPC_MAX_BRW_PAGES - 1)) != 0)
-#  error "PTLRPC_MAX_BRW_PAGES isn't a power of two"
-# endif
-# if (PTLRPC_MAX_BRW_SIZE != (PTLRPC_MAX_BRW_PAGES * PAGE_SIZE))
-#  error "PTLRPC_MAX_BRW_SIZE isn't PTLRPC_MAX_BRW_PAGES * PAGE_SIZE"
-# endif
-# if (PTLRPC_MAX_BRW_SIZE > LNET_MTU * PTLRPC_BULK_OPS_COUNT)
-#  error "PTLRPC_MAX_BRW_SIZE too big"
-# endif
-# if (PTLRPC_MAX_BRW_PAGES > LNET_MAX_IOV * PTLRPC_BULK_OPS_COUNT)
-#  error "PTLRPC_MAX_BRW_PAGES too big"
-# endif
+#if ((PTLRPC_MAX_BRW_PAGES & (PTLRPC_MAX_BRW_PAGES - 1)) != 0)
+	#  error "PTLRPC_MAX_BRW_PAGES isn't a power of two"
+#endif
+#if (PTLRPC_MAX_BRW_SIZE != (PTLRPC_MAX_BRW_PAGES * PAGE_SIZE))
+	#  error "PTLRPC_MAX_BRW_SIZE isn't PTLRPC_MAX_BRW_PAGES * PAGE_SIZE"
+#endif
+#if (PTLRPC_MAX_BRW_SIZE > LNET_MTU * PTLRPC_BULK_OPS_COUNT)
+	#  error "PTLRPC_MAX_BRW_SIZE too big"
+#endif
+#if (PTLRPC_MAX_BRW_PAGES > LNET_MAX_IOV * PTLRPC_BULK_OPS_COUNT)
+	#  error "PTLRPC_MAX_BRW_PAGES too big"
+#endif
 
 #define PTLRPC_NTHRS_INIT	2
 
@@ -227,26 +227,26 @@
  *
  */
 
- /*
-  * LDLM threads constants:
-  *
-  * Given 8 as factor and 24 as base threads number
-  *
-  * example 1)
-  * On 4-core machine we will have 24 + 8 * 4 = 56 threads.
-  *
-  * example 2)
-  * On 8-core machine with 2 partitions we will have 24 + 4 * 8 = 56
-  * threads for each partition and total threads number will be 112.
-  *
-  * example 3)
-  * On 64-core machine with 8 partitions we will need LDLM_NTHRS_BASE(24)
-  * threads for each partition to keep service healthy, so total threads
-  * number should be 24 * 8 = 192.
-  *
-  * So with these constants, threads number will be at the similar level
-  * of old versions, unless target machine has over a hundred cores
-  */
+/*
+ * LDLM threads constants:
+ *
+ * Given 8 as factor and 24 as base threads number
+ *
+ * example 1)
+ * On 4-core machine we will have 24 + 8 * 4 = 56 threads.
+ *
+ * example 2)
+ * On 8-core machine with 2 partitions we will have 24 + 4 * 8 = 56
+ * threads for each partition and total threads number will be 112.
+ *
+ * example 3)
+ * On 64-core machine with 8 partitions we will need LDLM_NTHRS_BASE(24)
+ * threads for each partition to keep service healthy, so total threads
+ * number should be 24 * 8 = 192.
+ *
+ * So with these constants, threads number will be at the similar level
+ * of old versions, unless target machine has over a hundred cores
+ */
 #define LDLM_THR_FACTOR		8
 #define LDLM_NTHRS_INIT		PTLRPC_NTHRS_INIT
 #define LDLM_NTHRS_BASE		24
@@ -269,7 +269,8 @@
 /* Macro to hide a typecast. */
 #define ptlrpc_req_async_args(req) ((void *)&req->rq_async_args)
 
-struct ptlrpc_replay_async_args {
+struct ptlrpc_replay_async_args
+{
 	int		praa_old_state;
 	int		praa_old_status;
 };
@@ -277,7 +278,8 @@ struct ptlrpc_replay_async_args {
 /**
  * Structure to single define portal connection.
  */
-struct ptlrpc_connection {
+struct ptlrpc_connection
+{
 	/** linkage for connections hash table */
 	struct hlist_node	c_hash;
 	/** Our own lnet nid for this connection */
@@ -291,7 +293,8 @@ struct ptlrpc_connection {
 };
 
 /** Client definition for PortalRPC */
-struct ptlrpc_client {
+struct ptlrpc_client
+{
 	/** What lnet portal does this client send messages to by default */
 	__u32		   cli_request_portal;
 	/** What portal do we expect replies on */
@@ -307,7 +310,8 @@ struct ptlrpc_client {
 
 #define REQ_MAX_ACK_LOCKS 8
 
-union ptlrpc_async_args {
+union ptlrpc_async_args
+{
 	/**
 	 * Scratchpad for passing args to completion interpreter. Users
 	 * cast to the struct of their choosing, and CLASSERT that this is
@@ -334,7 +338,8 @@ typedef int (*set_producer_func)(struct ptlrpc_request_set *, void *);
  * Provides a way to call "completion callbacks" when all requests in the set
  * returned.
  */
-struct ptlrpc_request_set {
+struct ptlrpc_request_set
+{
 	atomic_t	  set_refcount;
 	/** number of in queue requests */
 	atomic_t	  set_new_count;
@@ -378,7 +383,8 @@ struct ptlrpc_request_set {
 /**
  * Description of a single ptrlrpc_set callback
  */
-struct ptlrpc_set_cbdata {
+struct ptlrpc_set_cbdata
+{
 	/** List linkage item */
 	struct list_head	      psc_item;
 	/** Pointer to interpreting function */
@@ -394,7 +400,8 @@ struct ptlrpc_service;
 /**
  * ptlrpc callback & work item stuff
  */
-struct ptlrpc_cb_id {
+struct ptlrpc_cb_id
+{
 	void   (*cbid_fn)(lnet_event_t *ev);     /* specific callback fn */
 	void    *cbid_arg;		      /* additional arg */
 };
@@ -410,7 +417,8 @@ struct ptlrpc_cb_id {
  * for the client to acknowledge the reception. In these cases locks could be
  * added to the state for replay/failover consistency guarantees.
  */
-struct ptlrpc_reply_state {
+struct ptlrpc_reply_state
+{
 	/** Callback description */
 	struct ptlrpc_cb_id    rs_cb_id;
 	/** Linkage for list of all reply states in a system */
@@ -425,16 +433,16 @@ struct ptlrpc_reply_state {
 	/** A spinlock to protect the reply state flags */
 	spinlock_t		rs_lock;
 	/** Reply state flags */
-	unsigned long	  rs_difficult:1; /* ACK/commit stuff */
-	unsigned long	  rs_no_ack:1;    /* no ACK, even for
+	unsigned long	  rs_difficult: 1; /* ACK/commit stuff */
+	unsigned long	  rs_no_ack: 1;    /* no ACK, even for
 					   * difficult requests
 					   */
-	unsigned long	  rs_scheduled:1;     /* being handled? */
-	unsigned long	  rs_scheduled_ever:1;/* any schedule attempts? */
-	unsigned long	  rs_handled:1;  /* been handled yet? */
-	unsigned long	  rs_on_net:1;   /* reply_out_callback pending? */
-	unsigned long	  rs_prealloc:1; /* rs from prealloc list */
-	unsigned long	  rs_committed:1;/* the transaction was committed
+	unsigned long	  rs_scheduled: 1;    /* being handled? */
+	unsigned long	  rs_scheduled_ever: 1; /* any schedule attempts? */
+	unsigned long	  rs_handled: 1; /* been handled yet? */
+	unsigned long	  rs_on_net: 1;  /* reply_out_callback pending? */
+	unsigned long	  rs_prealloc: 1; /* rs from prealloc list */
+	unsigned long	  rs_committed: 1;/* the transaction was committed
 					  * and the rs was dispatched
 					  */
 	/** Size of the state */
@@ -477,7 +485,8 @@ struct ptlrpc_reply_state {
 struct ptlrpc_thread;
 
 /** RPC stages */
-enum rq_phase {
+enum rq_phase
+{
 	RQ_PHASE_NEW	    = 0xebc0de00,
 	RQ_PHASE_RPC	    = 0xebc0de01,
 	RQ_PHASE_BULK	   = 0xebc0de02,
@@ -490,8 +499,8 @@ enum rq_phase {
 
 /** Type of request interpreter call-back */
 typedef int (*ptlrpc_interpterer_t)(const struct lu_env *env,
-				    struct ptlrpc_request *req,
-				    void *arg, int rc);
+									struct ptlrpc_request *req,
+									void *arg, int rc);
 
 /**
  * Definition of request pool structure.
@@ -499,7 +508,8 @@ typedef int (*ptlrpc_interpterer_t)(const struct lu_env *env,
  * when we would actually need to send something without performing
  * any allocations (to avoid e.g. OOM).
  */
-struct ptlrpc_request_pool {
+struct ptlrpc_request_pool
+{
 	/** Locks the list */
 	spinlock_t prp_lock;
 	/** list of ptlrpc_request structs */
@@ -528,7 +538,8 @@ struct ptlrpc_nrs_request;
  *
  * These are common for all policies.
  */
-enum ptlrpc_nrs_ctl {
+enum ptlrpc_nrs_ctl
+{
 	/**
 	 * Not a valid opcode.
 	 */
@@ -552,7 +563,8 @@ enum ptlrpc_nrs_ctl {
 /**
  * ORR policy operations
  */
-enum nrs_ctl_orr {
+enum nrs_ctl_orr
+{
 	NRS_CTL_ORR_RD_QUANTUM = PTLRPC_NRS_CTL_1ST_POL_SPEC,
 	NRS_CTL_ORR_WR_QUANTUM,
 	NRS_CTL_ORR_RD_OFF_TYPE,
@@ -567,7 +579,8 @@ enum nrs_ctl_orr {
  * These determine the behaviour of a policy, and are called in response to
  * NRS core events.
  */
-struct ptlrpc_nrs_pol_ops {
+struct ptlrpc_nrs_pol_ops
+{
 	/**
 	 * Called during policy registration; this operation is optional.
 	 *
@@ -614,7 +627,7 @@ struct ptlrpc_nrs_pol_ops {
 	 * \see ptlrpc_nrs_policy_control()
 	 */
 	int	(*op_policy_ctl)(struct ptlrpc_nrs_policy *policy,
-				 enum ptlrpc_nrs_ctl opc, void *arg);
+						 enum ptlrpc_nrs_ctl opc, void *arg);
 
 	/**
 	 * Called when obtaining references to the resources of the resource
@@ -652,10 +665,10 @@ struct ptlrpc_nrs_pol_ops {
 	 * \see ptlrpc_nrs_hpreq_add_nolock()
 	 */
 	int	(*op_res_get)(struct ptlrpc_nrs_policy *policy,
-			      struct ptlrpc_nrs_request *nrq,
-			      const struct ptlrpc_nrs_resource *parent,
-			      struct ptlrpc_nrs_resource **resp,
-			      bool moving_req);
+					  struct ptlrpc_nrs_request *nrq,
+					  const struct ptlrpc_nrs_resource *parent,
+					  struct ptlrpc_nrs_resource **resp,
+					  bool moving_req);
 	/**
 	 * Called when releasing references taken for resources in the resource
 	 * hierarchy for the request; this operation is optional.
@@ -667,7 +680,7 @@ struct ptlrpc_nrs_pol_ops {
 	 * \see ptlrpc_nrs_hpreq_add_nolock()
 	 */
 	void	(*op_res_put)(struct ptlrpc_nrs_policy *policy,
-			      const struct ptlrpc_nrs_resource *res);
+						  const struct ptlrpc_nrs_resource *res);
 
 	/**
 	 * Obtains a request for handling from the policy, and optionally
@@ -686,8 +699,8 @@ struct ptlrpc_nrs_pol_ops {
 	 * \see ptlrpc_nrs_req_get_nolock()
 	 */
 	struct ptlrpc_nrs_request *
-		(*op_req_get)(struct ptlrpc_nrs_policy *policy, bool peek,
-			      bool force);
+	(*op_req_get)(struct ptlrpc_nrs_policy *policy, bool peek,
+				  bool force);
 	/**
 	 * Called when attempting to add a request to a policy for later
 	 * handling; this operation is mandatory.
@@ -701,7 +714,7 @@ struct ptlrpc_nrs_pol_ops {
 	 * \see ptlrpc_nrs_req_add_nolock()
 	 */
 	int	(*op_req_enqueue)(struct ptlrpc_nrs_policy *policy,
-				  struct ptlrpc_nrs_request *nrq);
+						  struct ptlrpc_nrs_request *nrq);
 	/**
 	 * Removes a request from the policy's set of pending requests. Normally
 	 * called after a request has been polled successfully from the policy
@@ -711,7 +724,7 @@ struct ptlrpc_nrs_pol_ops {
 	 * \param[in,out] nrq    The request to dequeue
 	 */
 	void	(*op_req_dequeue)(struct ptlrpc_nrs_policy *policy,
-				  struct ptlrpc_nrs_request *nrq);
+							  struct ptlrpc_nrs_request *nrq);
 	/**
 	 * Called after the request being carried out. Could be used for
 	 * job/resource control; this operation is optional.
@@ -725,7 +738,7 @@ struct ptlrpc_nrs_pol_ops {
 	 * \see ptlrpc_nrs_req_stop_nolock()
 	 */
 	void	(*op_req_stop)(struct ptlrpc_nrs_policy *policy,
-			       struct ptlrpc_nrs_request *nrq);
+						   struct ptlrpc_nrs_request *nrq);
 	/**
 	 * Registers the policy's lprocfs interface with a PTLRPC service.
 	 *
@@ -752,7 +765,8 @@ struct ptlrpc_nrs_pol_ops {
 /**
  * Policy flags
  */
-enum nrs_policy_flags {
+enum nrs_policy_flags
+{
 	/**
 	 * Fallback policy, use this flag only on a single supported policy per
 	 * service. The flag cannot be used on policies that use
@@ -777,7 +791,8 @@ enum nrs_policy_flags {
  * RPCs, or whether an operation pertains to one or both of the NRS instances
  * in a service.
  */
-enum ptlrpc_nrs_queue_type {
+enum ptlrpc_nrs_queue_type
+{
 	PTLRPC_NRS_QUEUE_REG	= (1 << 0),
 	PTLRPC_NRS_QUEUE_HP	= (1 << 1),
 	PTLRPC_NRS_QUEUE_BOTH	= (PTLRPC_NRS_QUEUE_REG | PTLRPC_NRS_QUEUE_HP)
@@ -809,7 +824,8 @@ enum ptlrpc_nrs_queue_type {
  * \see nrs_resource_get_safe()
  * \see nrs_request_enqueue()
  */
-struct ptlrpc_nrs {
+struct ptlrpc_nrs
+{
 	spinlock_t			nrs_lock;
 	/** XXX Possibly replace svcpt->scp_req_lock with another lock here. */
 	/**
@@ -856,12 +872,12 @@ struct ptlrpc_nrs {
 	/**
 	 * This NRS head is in progress of starting a policy
 	 */
-	unsigned			nrs_policy_starting:1;
+	unsigned			nrs_policy_starting: 1;
 	/**
 	 * In progress of shutting down the whole NRS head; used during
 	 * unregistration
 	 */
-	unsigned			nrs_stopping:1;
+	unsigned			nrs_stopping: 1;
 };
 
 #define NRS_POL_NAME_MAX		16
@@ -878,9 +894,10 @@ struct ptlrpc_nrs_pol_desc;
  * result.
  */
 typedef bool (*nrs_pol_desc_compat_t) (const struct ptlrpc_service *svc,
-				       const struct ptlrpc_nrs_pol_desc *desc);
+									   const struct ptlrpc_nrs_pol_desc *desc);
 
-struct ptlrpc_nrs_pol_conf {
+struct ptlrpc_nrs_pol_conf
+{
 	/**
 	 * Human-readable policy name
 	 */
@@ -918,7 +935,8 @@ struct ptlrpc_nrs_pol_conf {
  * Is used to hold a description of a policy that can be passed to NRS core in
  * order to register the policy with NRS heads in different PTLRPC services.
  */
-struct ptlrpc_nrs_pol_desc {
+struct ptlrpc_nrs_pol_desc
+{
 	/**
 	 * Human-readable policy name
 	 */
@@ -996,7 +1014,8 @@ struct ptlrpc_nrs_pol_desc {
  *
  * Policies transition from one state to the other during their lifetime
  */
-enum ptlrpc_nrs_pol_state {
+enum ptlrpc_nrs_pol_state
+{
 	/**
 	 * Not a valid policy state.
 	 */
@@ -1028,7 +1047,8 @@ enum ptlrpc_nrs_pol_state {
  *
  * Used for obtaining information for the status of a policy via lprocfs
  */
-struct ptlrpc_nrs_pol_info {
+struct ptlrpc_nrs_pol_info
+{
 	/**
 	 * Policy name
 	 */
@@ -1048,7 +1068,7 @@ struct ptlrpc_nrs_pol_info {
 	/**
 	 * Is this a fallback policy?
 	 */
-	unsigned			pi_fallback:1;
+	unsigned			pi_fallback: 1;
 };
 
 /**
@@ -1057,7 +1077,8 @@ struct ptlrpc_nrs_pol_info {
  * There is one instance of this for each policy in each NRS head of each
  * PTLRPC service partition.
  */
-struct ptlrpc_nrs_policy {
+struct ptlrpc_nrs_policy
+{
 	/**
 	 * Linkage into the NRS head's list of policies,
 	 * ptlrpc_nrs:nrs_policy_list
@@ -1129,7 +1150,8 @@ struct ptlrpc_nrs_policy {
  * \see nrs_resource_get_safe()
  * \see ptlrpc_nrs_req_add()
  */
-struct ptlrpc_nrs_resource {
+struct ptlrpc_nrs_resource
+{
 	/**
 	 * This NRS resource's parent; is NULL for resources embedded in NRS
 	 * policy instances; i.e. those are top-level ones.
@@ -1141,7 +1163,8 @@ struct ptlrpc_nrs_resource {
 	struct ptlrpc_nrs_policy       *res_policy;
 };
 
-enum {
+enum
+{
 	NRS_RES_FALLBACK,
 	NRS_RES_PRIMARY,
 	NRS_RES_MAX
@@ -1161,7 +1184,8 @@ enum {
 /**
  * Private data structure for the FIFO policy
  */
-struct nrs_fifo_head {
+struct nrs_fifo_head
+{
 	/**
 	 * Resource object for policy instance.
 	 */
@@ -1176,7 +1200,8 @@ struct nrs_fifo_head {
 	__u64				fh_sequence;
 };
 
-struct nrs_fifo_req {
+struct nrs_fifo_req
+{
 	struct list_head		fr_list;
 	__u64			fr_sequence;
 };
@@ -1191,7 +1216,8 @@ struct nrs_fifo_req {
  * for the lifetime of the request, and to hold properties that policies use
  * use for determining the request's scheduling priority.
  */
-struct ptlrpc_nrs_request {
+struct ptlrpc_nrs_request
+{
 	/**
 	 * The request's resource hierarchy.
 	 */
@@ -1203,16 +1229,17 @@ struct ptlrpc_nrs_request {
 	 * \see nrs_request_enqueue()
 	 */
 	unsigned			nr_res_idx;
-	unsigned			nr_initialized:1;
-	unsigned			nr_enqueued:1;
-	unsigned			nr_started:1;
-	unsigned			nr_finalized:1;
+	unsigned			nr_initialized: 1;
+	unsigned			nr_enqueued: 1;
+	unsigned			nr_started: 1;
+	unsigned			nr_finalized: 1;
 
 	/**
 	 * Policy-specific fields, used for determining a request's scheduling
 	 * priority, and other supporting functionality.
 	 */
-	union {
+	union
+	{
 		/**
 		 * Fields for the FIFO policy
 		 */
@@ -1236,7 +1263,8 @@ struct ptlrpc_nrs_request {
  * IO and truncate RPCs that are coming from a locked region where a lock is
  * contended a priority over other requests.
  */
-struct ptlrpc_hpreq_ops {
+struct ptlrpc_hpreq_ops
+{
 	/**
 	 * Check if the lock handle of the given lock is the same as
 	 * taken from the request.
@@ -1252,7 +1280,8 @@ struct ptlrpc_hpreq_ops {
 	void (*hpreq_fini)(struct ptlrpc_request *);
 };
 
-struct ptlrpc_cli_req {
+struct ptlrpc_cli_req
+{
 	/** For bulk requests on client only: bulk descriptor */
 	struct ptlrpc_bulk_desc		*cr_bulk;
 	/** optional time limit for send attempts */
@@ -1346,7 +1375,8 @@ struct ptlrpc_cli_req {
 #define rq_commit_cb		rq_cli.cr_commit_cb
 #define rq_replay_cb		rq_cli.cr_replay_cb
 
-struct ptlrpc_srv_req {
+struct ptlrpc_srv_req
+{
 	/** initial thread servicing this request */
 	struct ptlrpc_thread		*sr_svc_thread;
 	/**
@@ -1421,7 +1451,8 @@ struct ptlrpc_srv_req {
  * This is a staple structure used by everybody wanting to send a request
  * in Lustre.
  */
-struct ptlrpc_request {
+struct ptlrpc_request
+{
 	/* Request type: one of PTL_RPC_MSG_* */
 	int				 rq_type;
 	/** Result of request processing */
@@ -1436,44 +1467,44 @@ struct ptlrpc_request {
 	 */
 	spinlock_t rq_lock;
 	/** client-side flags are serialized by rq_lock @{ */
-	unsigned int rq_intr:1, rq_replied:1, rq_err:1,
-		rq_timedout:1, rq_resend:1, rq_restart:1,
-		/**
-		 * when ->rq_replay is set, request is kept by the client even
-		 * after server commits corresponding transaction. This is
-		 * used for operations that require sequence of multiple
-		 * requests to be replayed. The only example currently is file
-		 * open/close. When last request in such a sequence is
-		 * committed, ->rq_replay is cleared on all requests in the
-		 * sequence.
-		 */
-		rq_replay:1,
-		rq_no_resend:1, rq_waiting:1, rq_receiving_reply:1,
-		rq_no_delay:1, rq_net_err:1, rq_wait_ctx:1,
-		rq_early:1,
-		rq_req_unlinked:1,	/* unlinked request buffer from lnet */
-		rq_reply_unlinked:1,	/* unlinked reply buffer from lnet */
-		rq_memalloc:1,      /* req originated from "kswapd" */
-		rq_committed:1,
-		rq_reply_truncated:1,
-		/** whether the "rq_set" is a valid one */
-		rq_invalid_rqset:1,
-		rq_generation_set:1,
-		/** do not resend request on -EINPROGRESS */
-		rq_no_retry_einprogress:1,
-		/* allow the req to be sent if the import is in recovery
-		 * status
-		 */
-		rq_allow_replay:1,
-		/* bulk request, sent to server, but uncommitted */
-		rq_unstable:1;
+	unsigned int rq_intr: 1, rq_replied: 1, rq_err: 1,
+			 rq_timedout: 1, rq_resend: 1, rq_restart: 1,
+			 /**
+			  * when ->rq_replay is set, request is kept by the client even
+			  * after server commits corresponding transaction. This is
+			  * used for operations that require sequence of multiple
+			  * requests to be replayed. The only example currently is file
+			  * open/close. When last request in such a sequence is
+			  * committed, ->rq_replay is cleared on all requests in the
+			  * sequence.
+			  */
+			 rq_replay: 1,
+			 rq_no_resend: 1, rq_waiting: 1, rq_receiving_reply: 1,
+			 rq_no_delay: 1, rq_net_err: 1, rq_wait_ctx: 1,
+			 rq_early: 1,
+			 rq_req_unlinked: 1,	/* unlinked request buffer from lnet */
+			 rq_reply_unlinked: 1,	/* unlinked reply buffer from lnet */
+			 rq_memalloc: 1,     /* req originated from "kswapd" */
+			 rq_committed: 1,
+			 rq_reply_truncated: 1,
+			 /** whether the "rq_set" is a valid one */
+			 rq_invalid_rqset: 1,
+			 rq_generation_set: 1,
+			 /** do not resend request on -EINPROGRESS */
+			 rq_no_retry_einprogress: 1,
+			 /* allow the req to be sent if the import is in recovery
+			  * status
+			  */
+			 rq_allow_replay: 1,
+			 /* bulk request, sent to server, but uncommitted */
+			 rq_unstable: 1;
 	/** @} */
 
 	/** server-side flags @{ */
 	unsigned int
-		rq_hp:1,		/**< high priority RPC */
-		rq_at_linked:1,		/**< link into service's srv_at_array */
-		rq_packed_final:1;	/**< packed final reply */
+	rq_hp: 1,		/**< high priority RPC */
+		   rq_at_linked: 1,		/**< link into service's srv_at_array */
+		   rq_packed_final: 1;	/**< packed final reply */
 	/** @} */
 
 	/** one of RQ_PHASE_* */
@@ -1513,7 +1544,8 @@ struct ptlrpc_request {
 	 */
 	struct list_head rq_replay_list;
 	/** non-shared members for client & server request*/
-	union {
+	union
+	{
 		struct ptlrpc_cli_req    rq_cli;
 		struct ptlrpc_srv_req    rq_srv;
 	};
@@ -1526,22 +1558,22 @@ struct ptlrpc_request {
 
 	/* client/server security flags */
 	unsigned int
-				 rq_ctx_init:1,      /* context initiation */
-				 rq_ctx_fini:1,      /* context destroy */
-				 rq_bulk_read:1,     /* request bulk read */
-				 rq_bulk_write:1,    /* request bulk write */
+	rq_ctx_init: 1,     /* context initiation */
+				 rq_ctx_fini: 1,     /* context destroy */
+				 rq_bulk_read: 1,    /* request bulk read */
+				 rq_bulk_write: 1,   /* request bulk write */
 				 /* server authentication flags */
-				 rq_auth_gss:1,      /* authenticated by gss */
-				 rq_auth_usr_root:1, /* authed as root */
-				 rq_auth_usr_mdt:1,  /* authed as mdt */
-				 rq_auth_usr_ost:1,  /* authed as ost */
+				 rq_auth_gss: 1,     /* authenticated by gss */
+				 rq_auth_usr_root: 1, /* authed as root */
+				 rq_auth_usr_mdt: 1, /* authed as mdt */
+				 rq_auth_usr_ost: 1, /* authed as ost */
 				 /* security tfm flags */
-				 rq_pack_udesc:1,
-				 rq_pack_bulk:1,
+				 rq_pack_udesc: 1,
+				 rq_pack_bulk: 1,
 				 /* doesn't expect reply FIXME */
-				 rq_no_reply:1,
-				 rq_pill_init:1, /* pill initialized */
-				 rq_srv_req:1; /* server request */
+				 rq_no_reply: 1,
+				 rq_pill_init: 1, /* pill initialized */
+				 rq_srv_req: 1; /* server request */
 
 	/** various buffer pointers */
 	struct lustre_msg       *rq_reqbuf;	/**< req wrapper */
@@ -1596,14 +1628,16 @@ struct ptlrpc_request {
  * rc if there was no handler defined for this request.
  */
 static inline int ptlrpc_req_interpret(const struct lu_env *env,
-				       struct ptlrpc_request *req, int rc)
+									   struct ptlrpc_request *req, int rc)
 {
-	if (req->rq_interpret_reply) {
+	if (req->rq_interpret_reply)
+	{
 		req->rq_status = req->rq_interpret_reply(env, req,
-							 &req->rq_async_args,
-							 rc);
+						 &req->rq_async_args,
+						 rc);
 		return req->rq_status;
 	}
+
 	return rc;
 }
 
@@ -1666,7 +1700,7 @@ static inline int ptlrpc_rep_need_swab(struct ptlrpc_request *req)
  * Mark request buffer at offset \a index that it was already swabbed
  */
 static inline void lustre_set_req_swabbed(struct ptlrpc_request *req,
-					  size_t index)
+		size_t index)
 {
 	LASSERT(index < sizeof(req->rq_req_swab_mask) * 8);
 	LASSERT((req->rq_req_swab_mask & (1 << index)) == 0);
@@ -1677,7 +1711,7 @@ static inline void lustre_set_req_swabbed(struct ptlrpc_request *req,
  * Mark request reply buffer at offset \a index that it was already swabbed
  */
 static inline void lustre_set_rep_swabbed(struct ptlrpc_request *req,
-					  size_t index)
+		size_t index)
 {
 	LASSERT(index < sizeof(req->rq_rep_swab_mask) * 8);
 	LASSERT((req->rq_rep_swab_mask & (1 << index)) == 0);
@@ -1690,23 +1724,31 @@ static inline void lustre_set_rep_swabbed(struct ptlrpc_request *req,
 static inline const char *
 ptlrpc_phase2str(enum rq_phase phase)
 {
-	switch (phase) {
-	case RQ_PHASE_NEW:
-		return "New";
-	case RQ_PHASE_RPC:
-		return "Rpc";
-	case RQ_PHASE_BULK:
-		return "Bulk";
-	case RQ_PHASE_INTERPRET:
-		return "Interpret";
-	case RQ_PHASE_COMPLETE:
-		return "Complete";
-	case RQ_PHASE_UNREG_RPC:
-		return "UnregRPC";
-	case RQ_PHASE_UNREG_BULK:
-		return "UnregBULK";
-	default:
-		return "?Phase?";
+	switch (phase)
+	{
+		case RQ_PHASE_NEW:
+			return "New";
+
+		case RQ_PHASE_RPC:
+			return "Rpc";
+
+		case RQ_PHASE_BULK:
+			return "Bulk";
+
+		case RQ_PHASE_INTERPRET:
+			return "Interpret";
+
+		case RQ_PHASE_COMPLETE:
+			return "Complete";
+
+		case RQ_PHASE_UNREG_RPC:
+			return "UnregRPC";
+
+		case RQ_PHASE_UNREG_BULK:
+			return "UnregBULK";
+
+		default:
+			return "?Phase?";
 	}
 }
 
@@ -1742,22 +1784,22 @@ ptlrpc_rqphase2str(struct ptlrpc_request *req)
 #define REQ_FLAGS_FMT "%s:%s%s%s%s%s%s%s%s%s%s%s%s%s"
 
 void _debug_req(struct ptlrpc_request *req,
-		struct libcfs_debug_msg_data *data, const char *fmt, ...)
-	__printf(3, 4);
+				struct libcfs_debug_msg_data *data, const char *fmt, ...)
+__printf(3, 4);
 
 /**
  * Helper that decides if we need to print request according to current debug
  * level settings
  */
 #define debug_req(msgdata, mask, cdls, req, fmt, a...)			\
-do {									  \
-	CFS_CHECK_STACK(msgdata, mask, cdls);				 \
-									      \
-	if (((mask) & D_CANTMASK) != 0 ||				     \
-	    ((libcfs_debug & (mask)) != 0 &&				  \
-	     (libcfs_subsystem_debug & DEBUG_SUBSYSTEM) != 0))		\
-		_debug_req((req), msgdata, fmt, ##a);			 \
-} while (0)
+	do {									  \
+		CFS_CHECK_STACK(msgdata, mask, cdls);				 \
+		\
+		if (((mask) & D_CANTMASK) != 0 ||				     \
+			((libcfs_debug & (mask)) != 0 &&				  \
+			 (libcfs_subsystem_debug & DEBUG_SUBSYSTEM) != 0))		\
+			_debug_req((req), msgdata, fmt, ##a);			 \
+	} while (0)
 
 /**
  * This is the debug print function you need to use to print request structure
@@ -1765,22 +1807,23 @@ do {									  \
  * for most callers (level is a constant) this is resolved at compile time
  */
 #define DEBUG_REQ(level, req, fmt, args...)				   \
-do {									  \
-	if ((level) & (D_ERROR | D_WARNING)) {				\
-		static struct cfs_debug_limit_state cdls;			  \
-		LIBCFS_DEBUG_MSG_DATA_DECL(msgdata, level, &cdls);	    \
-		debug_req(&msgdata, level, &cdls, req, "@@@ "fmt" ", ## args);\
-	} else {							      \
-		LIBCFS_DEBUG_MSG_DATA_DECL(msgdata, level, NULL);	     \
-		debug_req(&msgdata, level, NULL, req, "@@@ "fmt" ", ## args); \
-	}								     \
-} while (0)
+	do {									  \
+		if ((level) & (D_ERROR | D_WARNING)) {				\
+			static struct cfs_debug_limit_state cdls;			  \
+			LIBCFS_DEBUG_MSG_DATA_DECL(msgdata, level, &cdls);	    \
+			debug_req(&msgdata, level, &cdls, req, "@@@ "fmt" ", ## args);\
+		} else {							      \
+			LIBCFS_DEBUG_MSG_DATA_DECL(msgdata, level, NULL);	     \
+			debug_req(&msgdata, level, NULL, req, "@@@ "fmt" ", ## args); \
+		}								     \
+	} while (0)
 /** @} */
 
 /**
  * Structure that defines a single page of a bulk transfer
  */
-struct ptlrpc_bulk_page {
+struct ptlrpc_bulk_page
+{
 	/** Linkage to list of pages in a bulk */
 	struct list_head       bp_link;
 	/**
@@ -1808,13 +1851,14 @@ struct ptlrpc_bulk_page {
  * In lustre we use bulk transfers for READ and WRITE transfers from/to OSTs.
  *  Another user is readpage for MDT.
  */
-struct ptlrpc_bulk_desc {
+struct ptlrpc_bulk_desc
+{
 	/** completed with failure */
-	unsigned long bd_failure:1;
+	unsigned long bd_failure: 1;
 	/** {put,get}{source,sink} */
-	unsigned long bd_type:2;
+	unsigned long bd_type: 2;
 	/** client side */
-	unsigned long bd_registered:1;
+	unsigned long bd_registered: 1;
 	/** For serialization with callback */
 	spinlock_t bd_lock;
 	/** Import generation when request for this bulk was sent */
@@ -1850,7 +1894,8 @@ struct ptlrpc_bulk_desc {
 	lnet_kiov_t	    bd_iov[0];
 };
 
-enum {
+enum
+{
 	SVC_STOPPED     = 1 << 0,
 	SVC_STOPPING    = 1 << 1,
 	SVC_STARTING    = 1 << 2,
@@ -1863,7 +1908,8 @@ enum {
 /**
  * Definition of server service thread structure
  */
-struct ptlrpc_thread {
+struct ptlrpc_thread
+{
 	/**
 	 * List of active threads in svc->srv_threads
 	 */
@@ -1950,12 +1996,14 @@ static inline void thread_add_flags(struct ptlrpc_thread *thread, __u32 flags)
 }
 
 static inline int thread_test_and_clear_flags(struct ptlrpc_thread *thread,
-					      __u32 flags)
+		__u32 flags)
 {
-	if (thread->t_flags & flags) {
+	if (thread->t_flags & flags)
+	{
 		thread->t_flags &= ~flags;
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -1966,7 +2014,8 @@ static inline int thread_test_and_clear_flags(struct ptlrpc_thread *thread,
  * notifies wakes one of the service threads to process new incoming request.
  * More than one request can fit into the buffer.
  */
-struct ptlrpc_request_buffer_desc {
+struct ptlrpc_request_buffer_desc
+{
 	/** Link item for rqbds on a service */
 	struct list_head	     rqbd_list;
 	/** History of requests for this buffer */
@@ -1988,7 +2037,8 @@ struct ptlrpc_request_buffer_desc {
 
 typedef int  (*svc_handler_t)(struct ptlrpc_request *req);
 
-struct ptlrpc_service_ops {
+struct ptlrpc_service_ops
+{
 	/**
 	 * if non-NULL called during thread creation (ptlrpc_start_thread())
 	 * to initialize service specific per-thread state.
@@ -2015,8 +2065,8 @@ struct ptlrpc_service_ops {
 };
 
 #ifndef __cfs_cacheline_aligned
-/* NB: put it here for reducing patche dependence */
-# define __cfs_cacheline_aligned
+	/* NB: put it here for reducing patche dependence */
+	#define __cfs_cacheline_aligned
 #endif
 
 /**
@@ -2031,7 +2081,8 @@ struct ptlrpc_service_ops {
  * and perform actions for a specific server like IO service for OST
  * or general metadata service for MDS.
  */
-struct ptlrpc_service {
+struct ptlrpc_service
+{
 	/** serialize sysfs operations */
 	spinlock_t			srv_lock;
 	/** most often accessed fields */
@@ -2075,7 +2126,7 @@ struct ptlrpc_service {
 	/** soft watchdog timeout multiplier */
 	int			     srv_watchdog_factor;
 	/** under unregister_service */
-	unsigned			srv_is_stopping:1;
+	unsigned			srv_is_stopping: 1;
 
 	/** max # request buffers in history per partition */
 	int				srv_hist_nrqbds_cpt_max;
@@ -2115,7 +2166,8 @@ struct ptlrpc_service {
  * We don't have any use-case to take two or more locks at the same time
  * for now, so there is no lock order issue.
  */
-struct ptlrpc_service_part {
+struct ptlrpc_service_part
+{
 	/** back reference to owner */
 	struct ptlrpc_service		*scp_service __cfs_cacheline_aligned;
 	/* CPT id, reserved */
@@ -2226,14 +2278,15 @@ struct ptlrpc_service_part {
 
 #define ptlrpc_service_for_each_part(part, i, svc)			\
 	for (i = 0;							\
-	     i < (svc)->srv_ncpts &&					\
-	     (svc)->srv_parts &&					\
-	     ((part) = (svc)->srv_parts[i]); i++)
+		 i < (svc)->srv_ncpts &&					\
+		 (svc)->srv_parts &&					\
+		 ((part) = (svc)->srv_parts[i]); i++)
 
 /**
  * Declaration of ptlrpcd control structure
  */
-struct ptlrpcd_ctl {
+struct ptlrpcd_ctl
+{
 	/**
 	 * Ptlrpc thread control flags (LIOD_START, LIOD_STOP, LIOD_FORCE)
 	 */
@@ -2289,7 +2342,8 @@ struct ptlrpcd_ctl {
 };
 
 /* Bits for pc_flags */
-enum ptlrpcd_ctl_flags {
+enum ptlrpcd_ctl_flags
+{
 	/**
 	 * Ptlrpc thread start flag.
 	 */
@@ -2324,7 +2378,7 @@ enum ptlrpcd_ctl_flags {
  * \see ptlrpc_nrs_pol_desc::pd_compat()
  */
 static inline bool nrs_policy_compat_all(const struct ptlrpc_service *svc,
-					 const struct ptlrpc_nrs_pol_desc *desc)
+		const struct ptlrpc_nrs_pol_desc *desc)
 {
 	return true;
 }
@@ -2343,7 +2397,7 @@ static inline bool nrs_policy_compat_all(const struct ptlrpc_service *svc,
  * \see ptlrpc_nrs_pol_desc::pd_compat()
  */
 static inline bool nrs_policy_compat_one(const struct ptlrpc_service *svc,
-					 const struct ptlrpc_nrs_pol_desc *desc)
+		const struct ptlrpc_nrs_pol_desc *desc)
 {
 	return strcmp(svc->srv_name, desc->pd_compat_svc_name) == 0;
 }
@@ -2353,7 +2407,7 @@ static inline bool nrs_policy_compat_one(const struct ptlrpc_service *svc,
 /* ptlrpc/events.c */
 extern lnet_handle_eq_t ptlrpc_eq_h;
 int ptlrpc_uuid_to_peer(struct obd_uuid *uuid,
-			lnet_process_id_t *peer, lnet_nid_t *self);
+						lnet_process_id_t *peer, lnet_nid_t *self);
 /**
  * These callbacks are invoked by LNet when something happened to
  * underlying buffer
@@ -2368,8 +2422,8 @@ void reply_out_callback(lnet_event_t *ev);
 
 /* ptlrpc/connection.c */
 struct ptlrpc_connection *ptlrpc_connection_get(lnet_process_id_t peer,
-						lnet_nid_t self,
-						struct obd_uuid *uuid);
+		lnet_nid_t self,
+		struct obd_uuid *uuid);
 int ptlrpc_connection_put(struct ptlrpc_connection *c);
 struct ptlrpc_connection *ptlrpc_connection_addref(struct ptlrpc_connection *);
 int ptlrpc_connection_init(void);
@@ -2391,10 +2445,14 @@ static inline int ptlrpc_client_bulk_active(struct ptlrpc_request *req)
 	desc = req->rq_bulk;
 
 	if (req->rq_bulk_deadline > ktime_get_real_seconds())
+	{
 		return 1;
+	}
 
 	if (!desc)
+	{
 		return 0;
+	}
 
 	spin_lock(&desc->bd_lock);
 	rc = desc->bd_md_count;
@@ -2422,7 +2480,7 @@ int ptlrpc_register_rqbd(struct ptlrpc_request_buffer_desc *rqbd);
 void ptlrpc_request_committed(struct ptlrpc_request *req, int force);
 
 void ptlrpc_init_client(int req_portal, int rep_portal, char *name,
-			struct ptlrpc_client *);
+						struct ptlrpc_client *);
 struct ptlrpc_connection *ptlrpc_uuid_to_connection(struct obd_uuid *uuid);
 
 int ptlrpc_queue_wait(struct ptlrpc_request *req);
@@ -2432,7 +2490,7 @@ void ptlrpc_abort_set(struct ptlrpc_request_set *set);
 
 struct ptlrpc_request_set *ptlrpc_prep_set(void);
 struct ptlrpc_request_set *ptlrpc_prep_fcset(int max, set_producer_func func,
-					     void *arg);
+		void *arg);
 int ptlrpc_check_set(const struct lu_env *env, struct ptlrpc_request_set *set);
 int ptlrpc_set_wait(struct ptlrpc_request_set *);
 void ptlrpc_mark_interrupted(struct ptlrpc_request *req);
@@ -2444,28 +2502,28 @@ int ptlrpc_add_rqs_to_pool(struct ptlrpc_request_pool *pool, int num_rq);
 
 struct ptlrpc_request_pool *
 ptlrpc_init_rq_pool(int, int,
-		    int (*populate_pool)(struct ptlrpc_request_pool *, int));
+					int (*populate_pool)(struct ptlrpc_request_pool *, int));
 
 void ptlrpc_at_set_req_timeout(struct ptlrpc_request *req);
 struct ptlrpc_request *ptlrpc_request_alloc(struct obd_import *imp,
-					    const struct req_format *format);
+		const struct req_format *format);
 struct ptlrpc_request *ptlrpc_request_alloc_pool(struct obd_import *imp,
-						 struct ptlrpc_request_pool *,
-						 const struct req_format *);
+		struct ptlrpc_request_pool *,
+		const struct req_format *);
 void ptlrpc_request_free(struct ptlrpc_request *request);
 int ptlrpc_request_pack(struct ptlrpc_request *request,
-			__u32 version, int opcode);
+						__u32 version, int opcode);
 struct ptlrpc_request *ptlrpc_request_alloc_pack(struct obd_import *,
-						 const struct req_format *,
-						 __u32, int);
+		const struct req_format *,
+		__u32, int);
 int ptlrpc_request_bufs_pack(struct ptlrpc_request *request,
-			     __u32 version, int opcode, char **bufs,
-			     struct ptlrpc_cli_ctx *ctx);
+							 __u32 version, int opcode, char **bufs,
+							 struct ptlrpc_cli_ctx *ctx);
 void ptlrpc_req_finished(struct ptlrpc_request *request);
 struct ptlrpc_request *ptlrpc_request_addref(struct ptlrpc_request *req);
 struct ptlrpc_bulk_desc *ptlrpc_prep_bulk_imp(struct ptlrpc_request *req,
-					      unsigned npages, unsigned max_brw,
-					      unsigned type, unsigned portal);
+		unsigned npages, unsigned max_brw,
+		unsigned type, unsigned portal);
 void __ptlrpc_free_bulk(struct ptlrpc_bulk_desc *bulk, int pin);
 static inline void ptlrpc_free_bulk_pin(struct ptlrpc_bulk_desc *bulk)
 {
@@ -2478,35 +2536,36 @@ static inline void ptlrpc_free_bulk_nopin(struct ptlrpc_bulk_desc *bulk)
 }
 
 void __ptlrpc_prep_bulk_page(struct ptlrpc_bulk_desc *desc,
-			     struct page *page, int pageoffset, int len, int);
+							 struct page *page, int pageoffset, int len, int);
 static inline void ptlrpc_prep_bulk_page_pin(struct ptlrpc_bulk_desc *desc,
-					     struct page *page, int pageoffset,
-					     int len)
+		struct page *page, int pageoffset,
+		int len)
 {
 	__ptlrpc_prep_bulk_page(desc, page, pageoffset, len, 1);
 }
 
 static inline void ptlrpc_prep_bulk_page_nopin(struct ptlrpc_bulk_desc *desc,
-					       struct page *page, int pageoffset,
-					       int len)
+		struct page *page, int pageoffset,
+		int len)
 {
 	__ptlrpc_prep_bulk_page(desc, page, pageoffset, len, 0);
 }
 
 void ptlrpc_retain_replayable_request(struct ptlrpc_request *req,
-				      struct obd_import *imp);
+									  struct obd_import *imp);
 __u64 ptlrpc_next_xid(void);
 __u64 ptlrpc_sample_next_xid(void);
 __u64 ptlrpc_req_xid(struct ptlrpc_request *request);
 
 /* Set of routines to run a function in ptlrpcd context */
 void *ptlrpcd_alloc_work(struct obd_import *imp,
-			 int (*cb)(const struct lu_env *, void *), void *data);
+						 int (*cb)(const struct lu_env *, void *), void *data);
 void ptlrpcd_destroy_work(void *handler);
 int ptlrpcd_queue_work(void *handler);
 
 /** @} */
-struct ptlrpc_service_buf_conf {
+struct ptlrpc_service_buf_conf
+{
 	/* nbufs is buffers # to allocate when growing the pool */
 	unsigned int			bc_nbufs;
 	/* buffer size to post */
@@ -2521,7 +2580,8 @@ struct ptlrpc_service_buf_conf {
 	unsigned int			bc_rep_max_size;
 };
 
-struct ptlrpc_service_thr_conf {
+struct ptlrpc_service_thr_conf
+{
 	/* threadname should be 8 characters or less - 6 will be added on */
 	char				*tc_thr_name;
 	/* threads increasing factor for each CPU */
@@ -2547,13 +2607,15 @@ struct ptlrpc_service_thr_conf {
 	__u32				tc_ctx_tags;
 };
 
-struct ptlrpc_service_cpt_conf {
+struct ptlrpc_service_cpt_conf
+{
 	struct cfs_cpt_table		*cc_cptable;
 	/* string pattern to describe CPTs for a service */
 	char				*cc_pattern;
 };
 
-struct ptlrpc_service_conf {
+struct ptlrpc_service_conf
+{
 	/* service name */
 	char				*psc_name;
 	/* soft watchdog timeout multiplifier to print stuck service traces */
@@ -2578,8 +2640,8 @@ struct ptlrpc_service_conf {
 void ptlrpc_dispatch_difficult_reply(struct ptlrpc_reply_state *rs);
 void ptlrpc_schedule_difficult_reply(struct ptlrpc_reply_state *rs);
 struct ptlrpc_service *ptlrpc_register_service(struct ptlrpc_service_conf *conf,
-					       struct kset *parent,
-					       struct dentry *debugfs_entry);
+		struct kset *parent,
+		struct dentry *debugfs_entry);
 
 int ptlrpc_start_threads(struct ptlrpc_service *svc);
 int ptlrpc_unregister_service(struct ptlrpc_service *service);
@@ -2609,25 +2671,25 @@ int ptlrpc_reconnect_import(struct obd_import *imp);
  * @{
  */
 int ptlrpc_buf_need_swab(struct ptlrpc_request *req, const int inout,
-			 u32 index);
+						 u32 index);
 void ptlrpc_buf_set_swabbed(struct ptlrpc_request *req, const int inout,
-			    u32 index);
+							u32 index);
 int ptlrpc_unpack_rep_msg(struct ptlrpc_request *req, int len);
 int ptlrpc_unpack_req_msg(struct ptlrpc_request *req, int len);
 
 void lustre_init_msg_v2(struct lustre_msg_v2 *msg, int count, __u32 *lens,
-			char **bufs);
+						char **bufs);
 int lustre_pack_request(struct ptlrpc_request *, __u32 magic, int count,
-			__u32 *lens, char **bufs);
+						__u32 *lens, char **bufs);
 int lustre_pack_reply(struct ptlrpc_request *, int count, __u32 *lens,
-		      char **bufs);
+					  char **bufs);
 int lustre_pack_reply_v2(struct ptlrpc_request *req, int count,
-			 __u32 *lens, char **bufs, int flags);
+						 __u32 *lens, char **bufs, int flags);
 #define LPRFL_EARLY_REPLY 1
 int lustre_pack_reply_flags(struct ptlrpc_request *, int count, __u32 *lens,
-			    char **bufs, int flags);
+							char **bufs, int flags);
 int lustre_shrink_msg(struct lustre_msg *msg, int segment,
-		      unsigned int newlen, int move_data);
+					  unsigned int newlen, int move_data);
 void lustre_free_reply_state(struct ptlrpc_reply_state *rs);
 int __lustre_unpack_msg(struct lustre_msg *m, int len);
 u32 lustre_msg_hdr_size(__u32 magic, u32 count);
@@ -2667,7 +2729,7 @@ __u32 lustre_msg_get_service_time(struct lustre_msg *msg);
 __u32 lustre_msg_get_cksum(struct lustre_msg *msg);
 __u32 lustre_msg_calc_cksum(struct lustre_msg *msg);
 void lustre_msg_set_handle(struct lustre_msg *msg,
-			   struct lustre_handle *handle);
+						   struct lustre_handle *handle);
 void lustre_msg_set_type(struct lustre_msg *msg, __u32 type);
 void lustre_msg_set_opc(struct lustre_msg *msg, __u32 opc);
 void lustre_msg_set_versions(struct lustre_msg *msg, __u64 *versions);
@@ -2682,12 +2744,12 @@ void lustre_msg_set_cksum(struct lustre_msg *msg, __u32 cksum);
 
 static inline void
 lustre_shrink_reply(struct ptlrpc_request *req, int segment,
-		    unsigned int newlen, int move_data)
+					unsigned int newlen, int move_data)
 {
 	LASSERT(req->rq_reply_state);
 	LASSERT(req->rq_repmsg);
 	req->rq_replen = lustre_shrink_msg(req->rq_repmsg, segment,
-					   newlen, move_data);
+									   newlen, move_data);
 }
 
 #ifdef CONFIG_LUSTRE_TRANSLATE_ERRNOS
@@ -2699,9 +2761,13 @@ static inline int ptlrpc_status_hton(int h)
 	 * ELDLM_LOCK_ABORTED, etc.
 	 */
 	if (h < 0)
+	{
 		return -lustre_errno_hton(-h);
+	}
 	else
+	{
 		return h;
+	}
 }
 
 static inline int ptlrpc_status_ntoh(int n)
@@ -2710,9 +2776,13 @@ static inline int ptlrpc_status_ntoh(int n)
 	 * See the comment in ptlrpc_status_hton().
 	 */
 	if (n < 0)
+	{
 		return -lustre_errno_ntoh(-n);
+	}
 	else
+	{
 		return n;
+	}
 }
 
 #else
@@ -2728,28 +2798,39 @@ static inline void
 ptlrpc_rqphase_move(struct ptlrpc_request *req, enum rq_phase new_phase)
 {
 	if (req->rq_phase == new_phase)
+	{
 		return;
+	}
 
 	if (new_phase == RQ_PHASE_UNREG_RPC ||
-	    new_phase == RQ_PHASE_UNREG_BULK) {
+		new_phase == RQ_PHASE_UNREG_BULK)
+	{
 		/* No embedded unregistering phases */
 		if (req->rq_phase == RQ_PHASE_UNREG_RPC ||
-		    req->rq_phase == RQ_PHASE_UNREG_BULK)
+			req->rq_phase == RQ_PHASE_UNREG_BULK)
+		{
 			return;
+		}
 
 		req->rq_next_phase = req->rq_phase;
+
 		if (req->rq_import)
+		{
 			atomic_inc(&req->rq_import->imp_unregistering);
+		}
 	}
 
 	if (req->rq_phase == RQ_PHASE_UNREG_RPC ||
-	    req->rq_phase == RQ_PHASE_UNREG_BULK) {
+		req->rq_phase == RQ_PHASE_UNREG_BULK)
+	{
 		if (req->rq_import)
+		{
 			atomic_dec(&req->rq_import->imp_unregistering);
+		}
 	}
 
 	DEBUG_REQ(D_INFO, req, "move req \"%s\" -> \"%s\"",
-		  ptlrpc_rqphase2str(req), ptlrpc_phase2str(new_phase));
+			  ptlrpc_rqphase2str(req), ptlrpc_phase2str(new_phase));
 
 	req->rq_phase = new_phase;
 }
@@ -2770,7 +2851,10 @@ static inline int
 ptlrpc_client_replied(struct ptlrpc_request *req)
 {
 	if (req->rq_reply_deadline > ktime_get_real_seconds())
+	{
 		return 0;
+	}
+
 	return req->rq_replied;
 }
 
@@ -2779,7 +2863,10 @@ static inline int
 ptlrpc_client_recv(struct ptlrpc_request *req)
 {
 	if (req->rq_reply_deadline > ktime_get_real_seconds())
+	{
 		return 1;
+	}
+
 	return req->rq_receiving_reply;
 }
 
@@ -2789,16 +2876,21 @@ ptlrpc_client_recv_or_unlink(struct ptlrpc_request *req)
 	int rc;
 
 	spin_lock(&req->rq_lock);
-	if (req->rq_reply_deadline > ktime_get_real_seconds()) {
+
+	if (req->rq_reply_deadline > ktime_get_real_seconds())
+	{
 		spin_unlock(&req->rq_lock);
 		return 1;
 	}
-	if (req->rq_req_deadline > ktime_get_real_seconds()) {
+
+	if (req->rq_req_deadline > ktime_get_real_seconds())
+	{
 		spin_unlock(&req->rq_lock);
 		return 1;
 	}
+
 	rc = !req->rq_req_unlinked || !req->rq_reply_unlinked ||
-	     req->rq_receiving_reply;
+		 req->rq_receiving_reply;
 	spin_unlock(&req->rq_lock);
 	return rc;
 }
@@ -2807,9 +2899,13 @@ static inline void
 ptlrpc_client_wake_req(struct ptlrpc_request *req)
 {
 	if (!req->rq_set)
+	{
 		wake_up(&req->rq_reply_waitq);
+	}
 	else
+	{
 		wake_up(&req->rq_set->set_waitq);
+	}
 }
 
 static inline void
@@ -2823,15 +2919,21 @@ static inline void
 ptlrpc_rs_decref(struct ptlrpc_reply_state *rs)
 {
 	LASSERT(atomic_read(&rs->rs_refcount) > 0);
+
 	if (atomic_dec_and_test(&rs->rs_refcount))
+	{
 		lustre_free_reply_state(rs);
+	}
 }
 
 /* Should only be called once per req */
 static inline void ptlrpc_req_drop_rs(struct ptlrpc_request *req)
 {
 	if (!req->rq_reply_state)
-		return; /* shouldn't occur */
+	{
+		return;    /* shouldn't occur */
+	}
+
 	ptlrpc_rs_decref(req->rq_reply_state);
 	req->rq_reply_state = NULL;
 	req->rq_repmsg = NULL;
@@ -2844,34 +2946,40 @@ static inline __u32 lustre_request_magic(struct ptlrpc_request *req)
 
 static inline int ptlrpc_req_get_repsize(struct ptlrpc_request *req)
 {
-	switch (req->rq_reqmsg->lm_magic) {
-	case LUSTRE_MSG_MAGIC_V2:
-		return req->rq_reqmsg->lm_repsize;
-	default:
-		LASSERTF(0, "incorrect message magic: %08x\n",
-			 req->rq_reqmsg->lm_magic);
-		return -EFAULT;
+	switch (req->rq_reqmsg->lm_magic)
+	{
+		case LUSTRE_MSG_MAGIC_V2:
+			return req->rq_reqmsg->lm_repsize;
+
+		default:
+			LASSERTF(0, "incorrect message magic: %08x\n",
+					 req->rq_reqmsg->lm_magic);
+			return -EFAULT;
 	}
 }
 
 static inline int ptlrpc_send_limit_expired(struct ptlrpc_request *req)
 {
 	if (req->rq_delay_limit != 0 &&
-	    time_before(cfs_time_add(req->rq_queued_time,
-				     cfs_time_seconds(req->rq_delay_limit)),
-			cfs_time_current())) {
+		time_before(cfs_time_add(req->rq_queued_time,
+								 cfs_time_seconds(req->rq_delay_limit)),
+					cfs_time_current()))
+	{
 		return 1;
 	}
+
 	return 0;
 }
 
 static inline int ptlrpc_no_resend(struct ptlrpc_request *req)
 {
-	if (!req->rq_no_resend && ptlrpc_send_limit_expired(req)) {
+	if (!req->rq_no_resend && ptlrpc_send_limit_expired(req))
+	{
 		spin_lock(&req->rq_lock);
 		req->rq_no_resend = 1;
 		spin_unlock(&req->rq_lock);
 	}
+
 	return req->rq_no_resend;
 }
 
@@ -2881,7 +2989,7 @@ ptlrpc_server_get_timeout(struct ptlrpc_service_part *svcpt)
 	int at = AT_OFF ? 0 : at_get(&svcpt->scp_at_estimate);
 
 	return svcpt->scp_service->srv_watchdog_factor *
-	       max_t(int, at, obd_timeout);
+		   max_t(int, at, obd_timeout);
 }
 
 static inline struct ptlrpc_service *
@@ -2898,15 +3006,15 @@ ptlrpc_req2svc(struct ptlrpc_request *req)
 int client_obd_setup(struct obd_device *obddev, struct lustre_cfg *lcfg);
 int client_obd_cleanup(struct obd_device *obddev);
 int client_connect_import(const struct lu_env *env,
-			  struct obd_export **exp, struct obd_device *obd,
-			  struct obd_uuid *cluuid, struct obd_connect_data *,
-			  void *localdata);
+						  struct obd_export **exp, struct obd_device *obd,
+						  struct obd_uuid *cluuid, struct obd_connect_data *,
+						  void *localdata);
 int client_disconnect_export(struct obd_export *exp);
 int client_import_add_conn(struct obd_import *imp, struct obd_uuid *uuid,
-			   int priority);
+						   int priority);
 int client_import_del_conn(struct obd_import *imp, struct obd_uuid *uuid);
 int client_import_find_conn(struct obd_import *imp, lnet_nid_t peer,
-			    struct obd_uuid *uuid);
+							struct obd_uuid *uuid);
 int import_set_conn_priority(struct obd_import *imp, struct obd_uuid *uuid);
 void client_destroy_import(struct obd_import *imp);
 /** @} */
@@ -2916,7 +3024,8 @@ void client_destroy_import(struct obd_import *imp);
  * Pinger API (client side only)
  * @{
  */
-enum timeout_event {
+enum timeout_event
+{
 	TIMEOUT_GRANT = 1
 };
 
@@ -2925,10 +3034,10 @@ typedef int (*timeout_cb_t)(struct timeout_item *, void *);
 int ptlrpc_pinger_add_import(struct obd_import *imp);
 int ptlrpc_pinger_del_import(struct obd_import *imp);
 int ptlrpc_add_timeout_client(int time, enum timeout_event event,
-			      timeout_cb_t cb, void *data,
-			      struct list_head *obd_list);
+							  timeout_cb_t cb, void *data,
+							  struct list_head *obd_list);
 int ptlrpc_del_timeout_client(struct list_head *obd_list,
-			      enum timeout_event event);
+							  enum timeout_event event);
 struct ptlrpc_request *ptlrpc_prep_ping(struct obd_import *imp);
 int ptlrpc_obd_ping(struct obd_device *obd);
 void ptlrpc_pinger_ir_up(void);

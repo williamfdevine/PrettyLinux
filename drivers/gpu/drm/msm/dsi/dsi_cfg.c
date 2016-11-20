@@ -13,11 +13,13 @@
 
 #include "dsi_cfg.h"
 
-static const char * const dsi_v2_bus_clk_names[] = {
+static const char *const dsi_v2_bus_clk_names[] =
+{
 	"core_mmss_clk", "iface_clk", "bus_clk",
 };
 
-static const struct msm_dsi_config apq8064_dsi_cfg = {
+static const struct msm_dsi_config apq8064_dsi_cfg =
+{
 	.io_offset = 0,
 	.reg_cfg = {
 		.num = 3,
@@ -33,11 +35,13 @@ static const struct msm_dsi_config apq8064_dsi_cfg = {
 	.num_dsi = 2,
 };
 
-static const char * const dsi_6g_bus_clk_names[] = {
+static const char *const dsi_6g_bus_clk_names[] =
+{
 	"mdp_core_clk", "iface_clk", "bus_clk", "core_mmss_clk",
 };
 
-static const struct msm_dsi_config msm8974_apq8084_dsi_cfg = {
+static const struct msm_dsi_config msm8974_apq8084_dsi_cfg =
+{
 	.io_offset = DSI_6G_REG_SHIFT,
 	.reg_cfg = {
 		.num = 4,
@@ -54,11 +58,13 @@ static const struct msm_dsi_config msm8974_apq8084_dsi_cfg = {
 	.num_dsi = 2,
 };
 
-static const char * const dsi_8916_bus_clk_names[] = {
+static const char *const dsi_8916_bus_clk_names[] =
+{
 	"mdp_core_clk", "iface_clk", "bus_clk",
 };
 
-static const struct msm_dsi_config msm8916_dsi_cfg = {
+static const struct msm_dsi_config msm8916_dsi_cfg =
+{
 	.io_offset = DSI_6G_REG_SHIFT,
 	.reg_cfg = {
 		.num = 3,
@@ -74,7 +80,8 @@ static const struct msm_dsi_config msm8916_dsi_cfg = {
 	.num_dsi = 1,
 };
 
-static const struct msm_dsi_config msm8994_dsi_cfg = {
+static const struct msm_dsi_config msm8994_dsi_cfg =
+{
 	.io_offset = DSI_6G_REG_SHIFT,
 	.reg_cfg = {
 		.num = 7,
@@ -94,16 +101,25 @@ static const struct msm_dsi_config msm8994_dsi_cfg = {
 	.num_dsi = 2,
 };
 
-static const struct msm_dsi_cfg_handler dsi_cfg_handlers[] = {
+static const struct msm_dsi_cfg_handler dsi_cfg_handlers[] =
+{
 	{MSM_DSI_VER_MAJOR_V2, MSM_DSI_V2_VER_MINOR_8064, &apq8064_dsi_cfg},
-	{MSM_DSI_VER_MAJOR_6G, MSM_DSI_6G_VER_MINOR_V1_0,
-						&msm8974_apq8084_dsi_cfg},
-	{MSM_DSI_VER_MAJOR_6G, MSM_DSI_6G_VER_MINOR_V1_1,
-						&msm8974_apq8084_dsi_cfg},
-	{MSM_DSI_VER_MAJOR_6G, MSM_DSI_6G_VER_MINOR_V1_1_1,
-						&msm8974_apq8084_dsi_cfg},
-	{MSM_DSI_VER_MAJOR_6G, MSM_DSI_6G_VER_MINOR_V1_2,
-						&msm8974_apq8084_dsi_cfg},
+	{
+		MSM_DSI_VER_MAJOR_6G, MSM_DSI_6G_VER_MINOR_V1_0,
+		&msm8974_apq8084_dsi_cfg
+	},
+	{
+		MSM_DSI_VER_MAJOR_6G, MSM_DSI_6G_VER_MINOR_V1_1,
+		&msm8974_apq8084_dsi_cfg
+	},
+	{
+		MSM_DSI_VER_MAJOR_6G, MSM_DSI_6G_VER_MINOR_V1_1_1,
+		&msm8974_apq8084_dsi_cfg
+	},
+	{
+		MSM_DSI_VER_MAJOR_6G, MSM_DSI_6G_VER_MINOR_V1_2,
+		&msm8974_apq8084_dsi_cfg
+	},
 	{MSM_DSI_VER_MAJOR_6G, MSM_DSI_6G_VER_MINOR_V1_3, &msm8994_dsi_cfg},
 	{MSM_DSI_VER_MAJOR_6G, MSM_DSI_6G_VER_MINOR_V1_3_1, &msm8916_dsi_cfg},
 };
@@ -113,9 +129,11 @@ const struct msm_dsi_cfg_handler *msm_dsi_cfg_get(u32 major, u32 minor)
 	const struct msm_dsi_cfg_handler *cfg_hnd = NULL;
 	int i;
 
-	for (i = ARRAY_SIZE(dsi_cfg_handlers) - 1; i >= 0; i--) {
+	for (i = ARRAY_SIZE(dsi_cfg_handlers) - 1; i >= 0; i--)
+	{
 		if ((dsi_cfg_handlers[i].major == major) &&
-			(dsi_cfg_handlers[i].minor == minor)) {
+			(dsi_cfg_handlers[i].minor == minor))
+		{
 			cfg_hnd = &dsi_cfg_handlers[i];
 			break;
 		}

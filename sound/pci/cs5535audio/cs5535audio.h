@@ -55,7 +55,8 @@ enum { CS5535AUDIO_DMA_PLAYBACK, CS5535AUDIO_DMA_CAPTURE, NUM_CS5535AUDIO_DMAS }
 
 struct cs5535audio;
 
-struct cs5535audio_dma_ops {
+struct cs5535audio_dma_ops
+{
 	int type;
 	void (*enable_dma)(struct cs5535audio *cs5535au);
 	void (*disable_dma)(struct cs5535audio *cs5535au);
@@ -65,13 +66,15 @@ struct cs5535audio_dma_ops {
 	u32 (*read_dma_pntr)(struct cs5535audio *cs5535au);
 };
 
-struct cs5535audio_dma_desc {
+struct cs5535audio_dma_desc
+{
 	u32 addr;
 	u16 size;
 	u16 ctlreserved;
 };
 
-struct cs5535audio_dma {
+struct cs5535audio_dma
+{
 	const struct cs5535audio_dma_ops *ops;
 	struct snd_dma_buffer desc_buf;
 	struct snd_pcm_substream *substream;
@@ -81,7 +84,8 @@ struct cs5535audio_dma {
 	int pcm_open_flag;
 };
 
-struct cs5535audio {
+struct cs5535audio
+{
 	struct snd_card *card;
 	struct snd_ac97 *ac97;
 	struct snd_pcm *pcm;
@@ -98,7 +102,7 @@ extern const struct dev_pm_ops snd_cs5535audio_pm;
 
 #ifdef CONFIG_OLPC
 void olpc_prequirks(struct snd_card *card,
-		    struct snd_ac97_template *ac97);
+					struct snd_ac97_template *ac97);
 int olpc_quirks(struct snd_card *card, struct snd_ac97 *ac97);
 void olpc_quirks_cleanup(void);
 void olpc_analog_input(struct snd_ac97 *ac97, int on);
@@ -121,7 +125,7 @@ static inline void olpc_capture_close(struct snd_ac97 *ac97)
 }
 #else
 static inline void olpc_prequirks(struct snd_card *card,
-		struct snd_ac97_template *ac97) { }
+								  struct snd_ac97_template *ac97) { }
 static inline int olpc_quirks(struct snd_card *card, struct snd_ac97 *ac97)
 {
 	return 0;

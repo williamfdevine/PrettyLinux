@@ -37,19 +37,32 @@ const char *cu_find_realpath(Dwarf_Die *cu_die, const char *fname)
 	int ret;
 
 	if (!fname)
+	{
 		return NULL;
+	}
 
 	ret = dwarf_getsrcfiles(cu_die, &files, &nfiles);
-	if (ret != 0)
-		return NULL;
 
-	for (i = 0; i < nfiles; i++) {
-		src = dwarf_filesrc(files, i, NULL, NULL);
-		if (strtailcmp(src, fname) == 0)
-			break;
-	}
-	if (i == nfiles)
+	if (ret != 0)
+	{
 		return NULL;
+	}
+
+	for (i = 0; i < nfiles; i++)
+	{
+		src = dwarf_filesrc(files, i, NULL, NULL);
+
+		if (strtailcmp(src, fname) == 0)
+		{
+			break;
+		}
+	}
+
+	if (i == nfiles)
+	{
+		return NULL;
+	}
+
 	return src;
 }
 
@@ -64,8 +77,12 @@ const char *cu_find_realpath(Dwarf_Die *cu_die, const char *fname)
 const char *cu_get_comp_dir(Dwarf_Die *cu_die)
 {
 	Dwarf_Attribute attr;
+
 	if (dwarf_attr(cu_die, DW_AT_comp_dir, &attr) == NULL)
+	{
 		return NULL;
+	}
+
 	return dwarf_formstring(&attr);
 }
 
@@ -79,21 +96,26 @@ const char *cu_get_comp_dir(Dwarf_Die *cu_die)
  * Find a line number and file name for @addr in @cu_die.
  */
 int cu_find_lineinfo(Dwarf_Die *cu_die, unsigned long addr,
-		    const char **fname, int *lineno)
+					 const char **fname, int *lineno)
 {
 	Dwarf_Line *line;
 	Dwarf_Addr laddr;
 
 	line = dwarf_getsrc_die(cu_die, (Dwarf_Addr)addr);
+
 	if (line && dwarf_lineaddr(line, &laddr) == 0 &&
-	    addr == (unsigned long)laddr && dwarf_lineno(line, lineno) == 0) {
+		addr == (unsigned long)laddr && dwarf_lineno(line, lineno) == 0)
+	{
 		*fname = dwarf_linesrc(line, NULL, NULL);
+
 		if (!*fname)
 			/* line number is useless without filename */
+		{
 			*lineno = 0;
+		}
 	}
 
-	return *lineno ?: -ENOENT;
+	return *lineno ? : -ENOENT;
 }
 
 static int __die_find_inline_cb(Dwarf_Die *die_mem, void *data);
@@ -109,7 +131,7 @@ static int __die_find_inline_cb(Dwarf_Die *die_mem, void *data);
  * should be subprogram or inlined-subroutines.
  */
 int cu_walk_functions_at(Dwarf_Die *cu_die, Dwarf_Addr addr,
-		    int (*callback)(Dwarf_Die *, void *), void *data)
+						 int (*callback)(Dwarf_Die *, void *), void *data)
 {
 	Dwarf_Die die_mem;
 	Dwarf_Die *sc_die;
@@ -117,12 +139,16 @@ int cu_walk_functions_at(Dwarf_Die *cu_die, Dwarf_Addr addr,
 
 	/* Inlined function could be recursive. Trace it until fail */
 	for (sc_die = die_find_realfunc(cu_die, addr, &die_mem);
-	     sc_die != NULL;
-	     sc_die = die_find_child(sc_die, __die_find_inline_cb, &addr,
-				     &die_mem)) {
+		 sc_die != NULL;
+		 sc_die = die_find_child(sc_die, __die_find_inline_cb, &addr,
+								 &die_mem))
+	{
 		ret = callback(sc_die, data);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 
 	return ret;
@@ -141,7 +167,10 @@ const char *die_get_linkage_name(Dwarf_Die *dw_die)
 	Dwarf_Attribute attr;
 
 	if (dwarf_attr_integrate(dw_die, DW_AT_linkage_name, &attr) == NULL)
+	{
 		return NULL;
+	}
+
 	return dwarf_formstring(&attr);
 }
 
@@ -173,12 +202,19 @@ bool die_match_name(Dwarf_Die *dw_die, const char *glob)
 	const char *name;
 
 	name = dwarf_diename(dw_die);
+
 	if (name && strglobmatch(name, glob))
+	{
 		return true;
+	}
+
 	/* fall back to check linkage name */
 	name = die_get_linkage_name(dw_die);
+
 	if (name && strglobmatch(name, glob))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -196,7 +232,9 @@ int die_get_call_lineno(Dwarf_Die *in_die)
 	Dwarf_Word ret;
 
 	if (!dwarf_attr(in_die, DW_AT_call_line, &attr))
+	{
 		return -ENOENT;
+	}
 
 	dwarf_formudata(&attr, &ret);
 	return (int)ret;
@@ -215,10 +253,14 @@ Dwarf_Die *die_get_type(Dwarf_Die *vr_die, Dwarf_Die *die_mem)
 	Dwarf_Attribute attr;
 
 	if (dwarf_attr_integrate(vr_die, DW_AT_type, &attr) &&
-	    dwarf_formref_die(&attr, die_mem))
+		dwarf_formref_die(&attr, die_mem))
+	{
 		return die_mem;
+	}
 	else
+	{
 		return NULL;
+	}
 }
 
 /* Get a type die, but skip qualifiers */
@@ -226,15 +268,21 @@ static Dwarf_Die *__die_get_real_type(Dwarf_Die *vr_die, Dwarf_Die *die_mem)
 {
 	int tag;
 
-	do {
+	do
+	{
 		vr_die = die_get_type(vr_die, die_mem);
+
 		if (!vr_die)
+		{
 			break;
+		}
+
 		tag = dwarf_tag(vr_die);
-	} while (tag == DW_TAG_const_type ||
-		 tag == DW_TAG_restrict_type ||
-		 tag == DW_TAG_volatile_type ||
-		 tag == DW_TAG_shared_type);
+	}
+	while (tag == DW_TAG_const_type ||
+		   tag == DW_TAG_restrict_type ||
+		   tag == DW_TAG_volatile_type ||
+		   tag == DW_TAG_shared_type);
 
 	return vr_die;
 }
@@ -251,35 +299,41 @@ static Dwarf_Die *__die_get_real_type(Dwarf_Die *vr_die, Dwarf_Die *die_mem)
  */
 Dwarf_Die *die_get_real_type(Dwarf_Die *vr_die, Dwarf_Die *die_mem)
 {
-	do {
+	do
+	{
 		vr_die = __die_get_real_type(vr_die, die_mem);
-	} while (vr_die && dwarf_tag(vr_die) == DW_TAG_typedef);
+	}
+	while (vr_die && dwarf_tag(vr_die) == DW_TAG_typedef);
 
 	return vr_die;
 }
 
 /* Get attribute and translate it as a udata */
 static int die_get_attr_udata(Dwarf_Die *tp_die, unsigned int attr_name,
-			      Dwarf_Word *result)
+							  Dwarf_Word *result)
 {
 	Dwarf_Attribute attr;
 
 	if (dwarf_attr(tp_die, attr_name, &attr) == NULL ||
-	    dwarf_formudata(&attr, result) != 0)
+		dwarf_formudata(&attr, result) != 0)
+	{
 		return -ENOENT;
+	}
 
 	return 0;
 }
 
 /* Get attribute and translate it as a sdata */
 static int die_get_attr_sdata(Dwarf_Die *tp_die, unsigned int attr_name,
-			      Dwarf_Sword *result)
+							  Dwarf_Sword *result)
 {
 	Dwarf_Attribute attr;
 
 	if (dwarf_attr(tp_die, attr_name, &attr) == NULL ||
-	    dwarf_formsdata(&attr, result) != 0)
+		dwarf_formsdata(&attr, result) != 0)
+	{
 		return -ENOENT;
+	}
 
 	return 0;
 }
@@ -296,10 +350,12 @@ bool die_is_signed_type(Dwarf_Die *tp_die)
 	Dwarf_Word ret;
 
 	if (die_get_attr_udata(tp_die, DW_AT_encoding, &ret))
+	{
 		return false;
+	}
 
 	return (ret == DW_ATE_signed_char || ret == DW_ATE_signed ||
-		ret == DW_ATE_signed_fixed);
+			ret == DW_ATE_signed_fixed);
 }
 
 /**
@@ -314,7 +370,7 @@ bool die_is_func_def(Dwarf_Die *dw_die)
 	Dwarf_Attribute attr;
 
 	return (dwarf_tag(dw_die) == DW_TAG_subprogram &&
-		dwarf_attr(dw_die, DW_AT_declaration, &attr) == NULL);
+			dwarf_attr(dw_die, DW_AT_declaration, &attr) == NULL);
 }
 
 /**
@@ -348,21 +404,30 @@ int die_get_data_member_location(Dwarf_Die *mb_die, Dwarf_Word *offs)
 	int ret;
 
 	if (dwarf_attr(mb_die, DW_AT_data_member_location, &attr) == NULL)
+	{
 		return -ENOENT;
+	}
 
-	if (dwarf_formudata(&attr, offs) != 0) {
+	if (dwarf_formudata(&attr, offs) != 0)
+	{
 		/* DW_AT_data_member_location should be DW_OP_plus_uconst */
 		ret = dwarf_getlocation(&attr, &expr, &nexpr);
-		if (ret < 0 || nexpr == 0)
-			return -ENOENT;
 
-		if (expr[0].atom != DW_OP_plus_uconst || nexpr != 1) {
+		if (ret < 0 || nexpr == 0)
+		{
+			return -ENOENT;
+		}
+
+		if (expr[0].atom != DW_OP_plus_uconst || nexpr != 1)
+		{
 			pr_debug("Unable to get offset:Unexpected OP %x (%zd)\n",
-				 expr[0].atom, nexpr);
+					 expr[0].atom, nexpr);
 			return -ENOTSUP;
 		}
+
 		*offs = (Dwarf_Word)expr[0].number;
 	}
+
 	return 0;
 }
 
@@ -372,9 +437,13 @@ static int die_get_call_fileno(Dwarf_Die *in_die)
 	Dwarf_Sword idx;
 
 	if (die_get_attr_sdata(in_die, DW_AT_call_file, &idx) == 0)
+	{
 		return (int)idx;
+	}
 	else
+	{
 		return -ENOENT;
+	}
 }
 
 /* Get the declared file index number in CU DIE */
@@ -383,9 +452,13 @@ static int die_get_decl_fileno(Dwarf_Die *pdie)
 	Dwarf_Sword idx;
 
 	if (die_get_attr_sdata(pdie, DW_AT_decl_file, &idx) == 0)
+	{
 		return (int)idx;
+	}
 	else
+	{
 		return -ENOENT;
+	}
 }
 
 /**
@@ -402,9 +475,12 @@ const char *die_get_call_file(Dwarf_Die *in_die)
 	int idx;
 
 	idx = die_get_call_fileno(in_die);
+
 	if (idx < 0 || !dwarf_diecu(in_die, &cu_die, NULL, NULL) ||
-	    dwarf_getsrcfiles(&cu_die, &files, NULL) != 0)
+		dwarf_getsrcfiles(&cu_die, &files, NULL) != 0)
+	{
 		return NULL;
+	}
 
 	return dwarf_filesrc(files, idx, NULL, NULL);
 }
@@ -426,33 +502,43 @@ const char *die_get_call_file(Dwarf_Die *in_die)
  * Returns NULL if @callback can't find any appropriate DIE.
  */
 Dwarf_Die *die_find_child(Dwarf_Die *rt_die,
-			  int (*callback)(Dwarf_Die *, void *),
-			  void *data, Dwarf_Die *die_mem)
+						  int (*callback)(Dwarf_Die *, void *),
+						  void *data, Dwarf_Die *die_mem)
 {
 	Dwarf_Die child_die;
 	int ret;
 
 	ret = dwarf_child(rt_die, die_mem);
-	if (ret != 0)
-		return NULL;
 
-	do {
+	if (ret != 0)
+	{
+		return NULL;
+	}
+
+	do
+	{
 		ret = callback(die_mem, data);
+
 		if (ret == DIE_FIND_CB_END)
+		{
 			return die_mem;
+		}
 
 		if ((ret & DIE_FIND_CB_CHILD) &&
-		    die_find_child(die_mem, callback, data, &child_die)) {
+			die_find_child(die_mem, callback, data, &child_die))
+		{
 			memcpy(die_mem, &child_die, sizeof(Dwarf_Die));
 			return die_mem;
 		}
-	} while ((ret & DIE_FIND_CB_SIBLING) &&
-		 dwarf_siblingof(die_mem, die_mem) == 0);
+	}
+	while ((ret & DIE_FIND_CB_SIBLING) &&
+		   dwarf_siblingof(die_mem, die_mem) == 0);
 
 	return NULL;
 }
 
-struct __addr_die_search_param {
+struct __addr_die_search_param
+{
 	Dwarf_Addr	addr;
 	Dwarf_Die	*die_mem;
 };
@@ -463,11 +549,13 @@ static int __die_search_func_tail_cb(Dwarf_Die *fn_die, void *data)
 	Dwarf_Addr addr = 0;
 
 	if (dwarf_tag(fn_die) == DW_TAG_subprogram &&
-	    !dwarf_highpc(fn_die, &addr) &&
-	    addr == ad->addr) {
+		!dwarf_highpc(fn_die, &addr) &&
+		addr == ad->addr)
+	{
 		memcpy(ad->die_mem, fn_die, sizeof(Dwarf_Die));
 		return DWARF_CB_ABORT;
 	}
+
 	return DWARF_CB_OK;
 }
 
@@ -482,16 +570,21 @@ static int __die_search_func_tail_cb(Dwarf_Die *fn_die, void *data)
  * DIE to @die_mem and returns it if found. Returns NULL if failed.
  */
 Dwarf_Die *die_find_tailfunc(Dwarf_Die *cu_die, Dwarf_Addr addr,
-				    Dwarf_Die *die_mem)
+							 Dwarf_Die *die_mem)
 {
 	struct __addr_die_search_param ad;
 	ad.addr = addr;
 	ad.die_mem = die_mem;
+
 	/* dwarf_getscopes can't find subprogram. */
 	if (!dwarf_getfuncs(cu_die, __die_search_func_tail_cb, &ad, 0))
+	{
 		return NULL;
+	}
 	else
+	{
 		return die_mem;
+	}
 }
 
 /* die_find callback for non-inlined function search */
@@ -504,10 +597,12 @@ static int __die_search_func_cb(Dwarf_Die *fn_die, void *data)
 	 * function definition entry.
 	 */
 	if (dwarf_tag(fn_die) == DW_TAG_subprogram &&
-	    dwarf_haspc(fn_die, ad->addr)) {
+		dwarf_haspc(fn_die, ad->addr))
+	{
 		memcpy(ad->die_mem, fn_die, sizeof(Dwarf_Die));
 		return DWARF_CB_ABORT;
 	}
+
 	return DWARF_CB_OK;
 }
 
@@ -521,16 +616,21 @@ static int __die_search_func_cb(Dwarf_Die *fn_die, void *data)
  * DIE to @die_mem and returns it if found. Returns NULL if failed.
  */
 Dwarf_Die *die_find_realfunc(Dwarf_Die *cu_die, Dwarf_Addr addr,
-				    Dwarf_Die *die_mem)
+							 Dwarf_Die *die_mem)
 {
 	struct __addr_die_search_param ad;
 	ad.addr = addr;
 	ad.die_mem = die_mem;
+
 	/* dwarf_getscopes can't find subprogram. */
 	if (!dwarf_getfuncs(cu_die, __die_search_func_cb, &ad, 0))
+	{
 		return NULL;
+	}
 	else
+	{
 		return die_mem;
+	}
 }
 
 /* die_find callback for inline function search */
@@ -539,8 +639,10 @@ static int __die_find_inline_cb(Dwarf_Die *die_mem, void *data)
 	Dwarf_Addr *addr = data;
 
 	if (dwarf_tag(die_mem) == DW_TAG_inlined_subroutine &&
-	    dwarf_haspc(die_mem, *addr))
+		dwarf_haspc(die_mem, *addr))
+	{
 		return DIE_FIND_CB_END;
+	}
 
 	return DIE_FIND_CB_CONTINUE;
 }
@@ -557,7 +659,7 @@ static int __die_find_inline_cb(Dwarf_Die *die_mem, void *data)
  * doesn't trace it down, and returns the topmost one.
  */
 Dwarf_Die *die_find_top_inlinefunc(Dwarf_Die *sp_die, Dwarf_Addr addr,
-				   Dwarf_Die *die_mem)
+								   Dwarf_Die *die_mem)
 {
 	return die_find_child(sp_die, __die_find_inline_cb, &addr, die_mem);
 }
@@ -574,25 +676,30 @@ Dwarf_Die *die_find_top_inlinefunc(Dwarf_Die *sp_die, Dwarf_Addr addr,
  * it down and returns deepest one.
  */
 Dwarf_Die *die_find_inlinefunc(Dwarf_Die *sp_die, Dwarf_Addr addr,
-			       Dwarf_Die *die_mem)
+							   Dwarf_Die *die_mem)
 {
 	Dwarf_Die tmp_die;
 
 	sp_die = die_find_child(sp_die, __die_find_inline_cb, &addr, &tmp_die);
+
 	if (!sp_die)
+	{
 		return NULL;
+	}
 
 	/* Inlined function could be recursive. Trace it until fail */
-	while (sp_die) {
+	while (sp_die)
+	{
 		memcpy(die_mem, sp_die, sizeof(Dwarf_Die));
 		sp_die = die_find_child(sp_die, __die_find_inline_cb, &addr,
-					&tmp_die);
+								&tmp_die);
 	}
 
 	return die_mem;
 }
 
-struct __instance_walk_param {
+struct __instance_walk_param
+{
 	void    *addr;
 	int	(*callback)(Dwarf_Die *, void *);
 	void    *data;
@@ -609,20 +716,32 @@ static int __die_walk_instances_cb(Dwarf_Die *inst, void *data)
 	int tmp;
 
 	attr = dwarf_attr(inst, DW_AT_abstract_origin, &attr_mem);
+
 	if (attr == NULL)
+	{
 		return DIE_FIND_CB_CONTINUE;
+	}
 
 	origin = dwarf_formref_die(attr, &origin_mem);
+
 	if (origin == NULL || origin->addr != iwp->addr)
+	{
 		return DIE_FIND_CB_CONTINUE;
+	}
 
 	/* Ignore redundant instances */
-	if (dwarf_tag(inst) == DW_TAG_inlined_subroutine) {
+	if (dwarf_tag(inst) == DW_TAG_inlined_subroutine)
+	{
 		dwarf_decl_line(origin, &tmp);
-		if (die_get_call_lineno(inst) == tmp) {
+
+		if (die_get_call_lineno(inst) == tmp)
+		{
 			tmp = die_get_decl_fileno(origin);
+
 			if (die_get_call_fileno(inst) == tmp)
+			{
 				return DIE_FIND_CB_CONTINUE;
+			}
 		}
 	}
 
@@ -642,11 +761,12 @@ static int __die_walk_instances_cb(Dwarf_Die *inst, void *data)
  * non-zero value, or -ENOENT if there is no instance.
  */
 int die_walk_instances(Dwarf_Die *or_die, int (*callback)(Dwarf_Die *, void *),
-		       void *data)
+					   void *data)
 {
 	Dwarf_Die cu_die;
 	Dwarf_Die die_mem;
-	struct __instance_walk_param iwp = {
+	struct __instance_walk_param iwp =
+	{
 		.addr = or_die->addr,
 		.callback = callback,
 		.data = data,
@@ -654,7 +774,9 @@ int die_walk_instances(Dwarf_Die *or_die, int (*callback)(Dwarf_Die *, void *),
 	};
 
 	if (dwarf_diecu(or_die, &cu_die, NULL, NULL) == NULL)
+	{
 		return -ENOENT;
+	}
 
 	die_find_child(&cu_die, __die_walk_instances_cb, &iwp, &die_mem);
 
@@ -662,7 +784,8 @@ int die_walk_instances(Dwarf_Die *or_die, int (*callback)(Dwarf_Die *, void *),
 }
 
 /* Line walker internal parameters */
-struct __line_walk_param {
+struct __line_walk_param
+{
 	bool recursive;
 	line_walk_callback_t callback;
 	void *data;
@@ -676,25 +799,40 @@ static int __die_walk_funclines_cb(Dwarf_Die *in_die, void *data)
 	const char *fname;
 	int lineno;
 
-	if (dwarf_tag(in_die) == DW_TAG_inlined_subroutine) {
+	if (dwarf_tag(in_die) == DW_TAG_inlined_subroutine)
+	{
 		fname = die_get_call_file(in_die);
 		lineno = die_get_call_lineno(in_die);
-		if (fname && lineno > 0 && dwarf_entrypc(in_die, &addr) == 0) {
+
+		if (fname && lineno > 0 && dwarf_entrypc(in_die, &addr) == 0)
+		{
 			lw->retval = lw->callback(fname, lineno, addr, lw->data);
+
 			if (lw->retval != 0)
+			{
 				return DIE_FIND_CB_END;
+			}
 		}
 	}
+
 	if (!lw->recursive)
 		/* Don't need to search recursively */
+	{
 		return DIE_FIND_CB_SIBLING;
+	}
 
-	if (addr) {
+	if (addr)
+	{
 		fname = dwarf_decl_file(in_die);
-		if (fname && dwarf_decl_line(in_die, &lineno) == 0) {
+
+		if (fname && dwarf_decl_line(in_die, &lineno) == 0)
+		{
 			lw->retval = lw->callback(fname, lineno, addr, lw->data);
+
 			if (lw->retval != 0)
+			{
 				return DIE_FIND_CB_END;
+			}
 		}
 	}
 
@@ -704,9 +842,10 @@ static int __die_walk_funclines_cb(Dwarf_Die *in_die, void *data)
 
 /* Walk on lines of blocks included in given DIE */
 static int __die_walk_funclines(Dwarf_Die *sp_die, bool recursive,
-				line_walk_callback_t callback, void *data)
+								line_walk_callback_t callback, void *data)
 {
-	struct __line_walk_param lw = {
+	struct __line_walk_param lw =
+	{
 		.recursive = recursive,
 		.callback = callback,
 		.data = data,
@@ -719,12 +858,18 @@ static int __die_walk_funclines(Dwarf_Die *sp_die, bool recursive,
 
 	/* Handle function declaration line */
 	fname = dwarf_decl_file(sp_die);
+
 	if (fname && dwarf_decl_line(sp_die, &lineno) == 0 &&
-	    dwarf_entrypc(sp_die, &addr) == 0) {
+		dwarf_entrypc(sp_die, &addr) == 0)
+	{
 		lw.retval = callback(fname, lineno, addr, data);
+
 		if (lw.retval != 0)
+		{
 			goto done;
+		}
 	}
+
 	die_find_child(sp_die, __die_walk_funclines_cb, &lw, &die_mem);
 done:
 	return lw.retval;
@@ -735,8 +880,11 @@ static int __die_walk_culines_cb(Dwarf_Die *sp_die, void *data)
 	struct __line_walk_param *lw = data;
 
 	lw->retval = __die_walk_funclines(sp_die, true, lw->callback, lw->data);
+
 	if (lw->retval != 0)
+	{
 		return DWARF_CB_ABORT;
+	}
 
 	return DWARF_CB_OK;
 }
@@ -765,56 +913,80 @@ int die_walk_lines(Dwarf_Die *rt_die, line_walk_callback_t callback, void *data)
 	size_t nlines, i;
 
 	/* Get the CU die */
-	if (dwarf_tag(rt_die) != DW_TAG_compile_unit) {
+	if (dwarf_tag(rt_die) != DW_TAG_compile_unit)
+	{
 		cu_die = dwarf_diecu(rt_die, &die_mem, NULL, NULL);
 		dwarf_decl_line(rt_die, &decl);
 		decf = dwarf_decl_file(rt_die);
-	} else
+	}
+	else
+	{
 		cu_die = rt_die;
-	if (!cu_die) {
+	}
+
+	if (!cu_die)
+	{
 		pr_debug2("Failed to get CU from given DIE.\n");
 		return -EINVAL;
 	}
 
 	/* Get lines list in the CU */
-	if (dwarf_getsrclines(cu_die, &lines, &nlines) != 0) {
+	if (dwarf_getsrclines(cu_die, &lines, &nlines) != 0)
+	{
 		pr_debug2("Failed to get source lines on this CU.\n");
 		return -ENOENT;
 	}
+
 	pr_debug2("Get %zd lines from this CU\n", nlines);
 
 	/* Walk on the lines on lines list */
-	for (i = 0; i < nlines; i++) {
+	for (i = 0; i < nlines; i++)
+	{
 		line = dwarf_onesrcline(lines, i);
+
 		if (line == NULL ||
-		    dwarf_lineno(line, &lineno) != 0 ||
-		    dwarf_lineaddr(line, &addr) != 0) {
+			dwarf_lineno(line, &lineno) != 0 ||
+			dwarf_lineaddr(line, &addr) != 0)
+		{
 			pr_debug2("Failed to get line info. "
-				  "Possible error in debuginfo.\n");
+					  "Possible error in debuginfo.\n");
 			continue;
 		}
+
 		/* Filter lines based on address */
-		if (rt_die != cu_die) {
+		if (rt_die != cu_die)
+		{
 			/*
 			 * Address filtering
 			 * The line is included in given function, and
 			 * no inline block includes it.
 			 */
 			if (!dwarf_haspc(rt_die, addr))
+			{
 				continue;
-			if (die_find_inlinefunc(rt_die, addr, &die_mem)) {
+			}
+
+			if (die_find_inlinefunc(rt_die, addr, &die_mem))
+			{
 				dwarf_decl_line(&die_mem, &inl);
+
 				if (inl != decl ||
-				    decf != dwarf_decl_file(&die_mem))
+					decf != dwarf_decl_file(&die_mem))
+				{
 					continue;
+				}
 			}
 		}
+
 		/* Get source line */
 		fname = dwarf_linesrc(line, NULL, NULL);
 
 		ret = callback(fname, lineno, addr, data);
+
 		if (ret != 0)
+		{
 			return ret;
+		}
 	}
 
 	/*
@@ -826,9 +998,13 @@ int die_walk_lines(Dwarf_Die *rt_die, line_walk_callback_t callback, void *data)
 		 * Don't need walk functions recursively, because nested
 		 * inlined functions don't have lines of the specified DIE.
 		 */
+	{
 		ret = __die_walk_funclines(rt_die, false, callback, data);
-	else {
-		struct __line_walk_param param = {
+	}
+	else
+	{
+		struct __line_walk_param param =
+		{
 			.callback = callback,
 			.data = data,
 			.retval = 0,
@@ -840,7 +1016,8 @@ int die_walk_lines(Dwarf_Die *rt_die, line_walk_callback_t callback, void *data)
 	return ret;
 }
 
-struct __find_variable_param {
+struct __find_variable_param
+{
 	const char *name;
 	Dwarf_Addr addr;
 };
@@ -852,17 +1029,25 @@ static int __die_find_variable_cb(Dwarf_Die *die_mem, void *data)
 	int tag;
 
 	tag = dwarf_tag(die_mem);
+
 	if ((tag == DW_TAG_formal_parameter ||
-	     tag == DW_TAG_variable) &&
-	    die_compare_name(die_mem, fvp->name) &&
-	/* Does the DIE have location information or external instance? */
-	    (dwarf_attr(die_mem, DW_AT_external, &attr) ||
-	     dwarf_attr(die_mem, DW_AT_location, &attr)))
+		 tag == DW_TAG_variable) &&
+		die_compare_name(die_mem, fvp->name) &&
+		/* Does the DIE have location information or external instance? */
+		(dwarf_attr(die_mem, DW_AT_external, &attr) ||
+		 dwarf_attr(die_mem, DW_AT_location, &attr)))
+	{
 		return DIE_FIND_CB_END;
+	}
+
 	if (dwarf_haspc(die_mem, fvp->addr))
+	{
 		return DIE_FIND_CB_CONTINUE;
+	}
 	else
+	{
 		return DIE_FIND_CB_SIBLING;
+	}
 }
 
 /**
@@ -875,28 +1060,36 @@ static int __die_find_variable_cb(Dwarf_Die *die_mem, void *data)
  * Find a variable DIE called @name at @addr in @sp_die.
  */
 Dwarf_Die *die_find_variable_at(Dwarf_Die *sp_die, const char *name,
-				Dwarf_Addr addr, Dwarf_Die *die_mem)
+								Dwarf_Addr addr, Dwarf_Die *die_mem)
 {
 	struct __find_variable_param fvp = { .name = name, .addr = addr};
 
 	return die_find_child(sp_die, __die_find_variable_cb, (void *)&fvp,
-			      die_mem);
+						  die_mem);
 }
 
 static int __die_find_member_cb(Dwarf_Die *die_mem, void *data)
 {
 	const char *name = data;
 
-	if (dwarf_tag(die_mem) == DW_TAG_member) {
+	if (dwarf_tag(die_mem) == DW_TAG_member)
+	{
 		if (die_compare_name(die_mem, name))
+		{
 			return DIE_FIND_CB_END;
-		else if (!dwarf_diename(die_mem)) {	/* Unnamed structure */
+		}
+		else if (!dwarf_diename(die_mem))  	/* Unnamed structure */
+		{
 			Dwarf_Die type_die, tmp_die;
+
 			if (die_get_type(die_mem, &type_die) &&
-			    die_find_member(&type_die, name, &tmp_die))
+				die_find_member(&type_die, name, &tmp_die))
+			{
 				return DIE_FIND_CB_END;
+			}
 		}
 	}
+
 	return DIE_FIND_CB_SIBLING;
 }
 
@@ -909,10 +1102,10 @@ static int __die_find_member_cb(Dwarf_Die *die_mem, void *data)
  * Find a member DIE called @name in @st_die.
  */
 Dwarf_Die *die_find_member(Dwarf_Die *st_die, const char *name,
-			   Dwarf_Die *die_mem)
+						   Dwarf_Die *die_mem)
 {
 	return die_find_child(st_die, __die_find_member_cb, (void *)name,
-			      die_mem);
+						  die_mem);
 }
 
 /**
@@ -932,26 +1125,45 @@ int die_get_typename(Dwarf_Die *vr_die, struct strbuf *buf)
 	const char *tmp = "";
 
 	if (__die_get_real_type(vr_die, &type) == NULL)
+	{
 		return -ENOENT;
+	}
 
 	tag = dwarf_tag(&type);
+
 	if (tag == DW_TAG_array_type || tag == DW_TAG_pointer_type)
+	{
 		tmp = "*";
-	else if (tag == DW_TAG_subroutine_type) {
+	}
+	else if (tag == DW_TAG_subroutine_type)
+	{
 		/* Function pointer */
 		return strbuf_add(buf, "(function_type)", 15);
-	} else {
+	}
+	else
+	{
 		if (!dwarf_diename(&type))
+		{
 			return -ENOENT;
+		}
+
 		if (tag == DW_TAG_union_type)
+		{
 			tmp = "union ";
+		}
 		else if (tag == DW_TAG_structure_type)
+		{
 			tmp = "struct ";
+		}
 		else if (tag == DW_TAG_enumeration_type)
+		{
 			tmp = "enum ";
+		}
+
 		/* Write a base name */
 		return strbuf_addf(buf, "%s%s", tmp, dwarf_diename(&type));
 	}
+
 	ret = die_get_typename(&type, buf);
 	return ret ? ret : strbuf_addstr(buf, tmp);
 }
@@ -968,7 +1180,9 @@ int die_get_varname(Dwarf_Die *vr_die, struct strbuf *buf)
 	int ret;
 
 	ret = die_get_typename(vr_die, buf);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_debug("Failed to get type, make it unknown.\n");
 		ret = strbuf_add(buf, " (unknown_type)", 14);
 	}
@@ -987,7 +1201,7 @@ int die_get_varname(Dwarf_Die *vr_die, struct strbuf *buf)
  * "@<function_name+[NN-NN,NN-NN]>".
  */
 static int die_get_var_innermost_scope(Dwarf_Die *sp_die, Dwarf_Die *vr_die,
-				struct strbuf *buf)
+									   struct strbuf *buf)
 {
 	Dwarf_Die *scopes;
 	int count;
@@ -1000,40 +1214,56 @@ static int die_get_var_innermost_scope(Dwarf_Die *sp_die, Dwarf_Die *vr_die,
 	const char *name;
 
 	ret = dwarf_entrypc(sp_die, &entry);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	name = dwarf_diename(sp_die);
+
 	if (!name)
+	{
 		return -ENOENT;
+	}
 
 	count = dwarf_getscopes_die(vr_die, &scopes);
 
 	/* (*SCOPES)[1] is the DIE for the scope containing that scope */
-	if (count <= 1) {
+	if (count <= 1)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
 	while ((offset = dwarf_ranges(&scopes[1], offset, &base,
-					&start, &end)) > 0) {
+								  &start, &end)) > 0)
+	{
 		start -= entry;
 		end -= entry;
 
-		if (first) {
+		if (first)
+		{
 			ret = strbuf_addf(buf, "@<%s+[%" PRIu64 "-%" PRIu64,
-					  name, start, end);
+							  name, start, end);
 			first = false;
-		} else {
-			ret = strbuf_addf(buf, ",%" PRIu64 "-%" PRIu64,
-					  start, end);
 		}
+		else
+		{
+			ret = strbuf_addf(buf, ",%" PRIu64 "-%" PRIu64,
+							  start, end);
+		}
+
 		if (ret < 0)
+		{
 			goto out;
+		}
 	}
 
 	if (!first)
+	{
 		ret = strbuf_add(buf, "]>", 2);
+	}
 
 out:
 	free(scopes);
@@ -1063,19 +1293,29 @@ int die_get_var_range(Dwarf_Die *sp_die, Dwarf_Die *vr_die, struct strbuf *buf)
 	const char *name;
 
 	ret = dwarf_entrypc(sp_die, &entry);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	name = dwarf_diename(sp_die);
+
 	if (!name)
+	{
 		return -ENOENT;
+	}
 
 	if (dwarf_attr(vr_die, DW_AT_location, &attr) == NULL)
+	{
 		return -EINVAL;
+	}
 
 	while ((offset = dwarf_getlocations(&attr, offset, &base,
-					&start, &end, &op, &nops)) > 0) {
-		if (start == 0) {
+										&start, &end, &op, &nops)) > 0)
+	{
+		if (start == 0)
+		{
 			/* Single Location Descriptions */
 			ret = die_get_var_innermost_scope(sp_die, vr_die, buf);
 			goto out;
@@ -1084,27 +1324,37 @@ int die_get_var_range(Dwarf_Die *sp_die, Dwarf_Die *vr_die, struct strbuf *buf)
 		/* Location Lists */
 		start -= entry;
 		end -= entry;
-		if (first) {
+
+		if (first)
+		{
 			ret = strbuf_addf(buf, "@<%s+[%" PRIu64 "-%" PRIu64,
-					  name, start, end);
+							  name, start, end);
 			first = false;
-		} else {
-			ret = strbuf_addf(buf, ",%" PRIu64 "-%" PRIu64,
-					  start, end);
 		}
+		else
+		{
+			ret = strbuf_addf(buf, ",%" PRIu64 "-%" PRIu64,
+							  start, end);
+		}
+
 		if (ret < 0)
+		{
 			goto out;
+		}
 	}
 
 	if (!first)
+	{
 		ret = strbuf_add(buf, "]>", 2);
+	}
+
 out:
 	return ret;
 }
 #else
 int die_get_var_range(Dwarf_Die *sp_die __maybe_unused,
-		      Dwarf_Die *vr_die __maybe_unused,
-		      struct strbuf *buf __maybe_unused)
+					  Dwarf_Die *vr_die __maybe_unused,
+					  struct strbuf *buf __maybe_unused)
 {
 	return -ENOTSUP;
 }
@@ -1120,11 +1370,13 @@ static bool die_has_loclist(Dwarf_Die *vr_die)
 	int tag = dwarf_tag(vr_die);
 
 	if (tag != DW_TAG_formal_parameter &&
-	    tag != DW_TAG_variable)
+		tag != DW_TAG_variable)
+	{
 		return false;
+	}
 
 	return (dwarf_attr_integrate(vr_die, DW_AT_location, &loc) &&
-		dwarf_whatform(&loc) == DW_FORM_sec_offset);
+			dwarf_whatform(&loc) == DW_FORM_sec_offset);
 }
 
 /*
@@ -1141,15 +1393,21 @@ bool die_is_optimized_target(Dwarf_Die *cu_die)
 	Dwarf_Die tmp_die;
 
 	if (die_has_loclist(cu_die))
+	{
 		return true;
+	}
 
 	if (!dwarf_child(cu_die, &tmp_die) &&
-	    die_is_optimized_target(&tmp_die))
+		die_is_optimized_target(&tmp_die))
+	{
 		return true;
+	}
 
 	if (!dwarf_siblingof(cu_die, &tmp_die) &&
-	    die_is_optimized_target(&tmp_die))
+		die_is_optimized_target(&tmp_die))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -1167,20 +1425,25 @@ bool die_is_optimized_target(Dwarf_Die *cu_die)
  * have multiple index.
  */
 static bool die_search_idx(Dwarf_Lines *lines, unsigned long nr_lines,
-			   Dwarf_Addr addr, unsigned long *idx)
+						   Dwarf_Addr addr, unsigned long *idx)
 {
 	unsigned long i;
 	Dwarf_Addr tmp;
 
-	for (i = 0; i < nr_lines; i++) {
+	for (i = 0; i < nr_lines; i++)
+	{
 		if (dwarf_lineaddr(dwarf_onesrcline(lines, i), &tmp))
+		{
 			return false;
+		}
 
-		if (tmp == addr) {
+		if (tmp == addr)
+		{
 			*idx = i;
 			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -1196,10 +1459,10 @@ static bool die_search_idx(Dwarf_Lines *lines, unsigned long nr_lines,
  * address of next line record or next source line.
  */
 static bool die_get_postprologue_addr(unsigned long entrypc_idx,
-				      Dwarf_Lines *lines,
-				      unsigned long nr_lines,
-				      Dwarf_Addr highpc,
-				      Dwarf_Addr *postprologue_addr)
+									  Dwarf_Lines *lines,
+									  unsigned long nr_lines,
+									  Dwarf_Addr highpc,
+									  Dwarf_Addr *postprologue_addr)
 {
 	unsigned long i;
 	int entrypc_lno, lno;
@@ -1209,28 +1472,40 @@ static bool die_get_postprologue_addr(unsigned long entrypc_idx,
 
 	/* entrypc_lno is actual source line number */
 	line = dwarf_onesrcline(lines, entrypc_idx);
-	if (dwarf_lineno(line, &entrypc_lno))
-		return false;
 
-	for (i = entrypc_idx; i < nr_lines; i++) {
+	if (dwarf_lineno(line, &entrypc_lno))
+	{
+		return false;
+	}
+
+	for (i = entrypc_idx; i < nr_lines; i++)
+	{
 		line = dwarf_onesrcline(lines, i);
 
 		if (dwarf_lineaddr(line, &addr) ||
-		    dwarf_lineno(line, &lno)    ||
-		    dwarf_lineprologueend(line, &p_end))
+			dwarf_lineno(line, &lno)    ||
+			dwarf_lineprologueend(line, &p_end))
+		{
 			return false;
+		}
 
 		/* highpc is exclusive. [entrypc,highpc) */
 		if (addr >= highpc)
+		{
 			break;
+		}
 
 		/* clang supports prologue-end marker */
 		if (p_end)
+		{
 			break;
+		}
 
 		/* Actual next line in source */
 		if (lno != entrypc_lno)
+		{
 			break;
+		}
 
 		/*
 		 * Single source line can have multiple line records.
@@ -1241,13 +1516,16 @@ static bool die_get_postprologue_addr(unsigned long entrypc_idx,
 		 * incremented in this case but 'i' will.
 		 */
 		if (i != entrypc_idx)
+		{
 			break;
+		}
 	}
 
 	dwarf_lineaddr(line, postprologue_addr);
+
 	if (*postprologue_addr >= highpc)
 		dwarf_lineaddr(dwarf_onesrcline(lines, i - 1),
-			       postprologue_addr);
+					   postprologue_addr);
 
 	return true;
 }
@@ -1265,7 +1543,7 @@ static bool die_get_postprologue_addr(unsigned long entrypc_idx,
  * garbage value.
  */
 void die_skip_prologue(Dwarf_Die *sp_die, Dwarf_Die *cu_die,
-		       Dwarf_Addr *entrypc)
+					   Dwarf_Addr *entrypc)
 {
 	size_t nr_lines = 0;
 	unsigned long entrypc_idx = 0;
@@ -1274,17 +1552,25 @@ void die_skip_prologue(Dwarf_Die *sp_die, Dwarf_Die *cu_die,
 	Dwarf_Addr highpc;
 
 	if (dwarf_highpc(sp_die, &highpc))
+	{
 		return;
+	}
 
 	if (dwarf_getsrclines(cu_die, &lines, &nr_lines))
+	{
 		return;
+	}
 
 	if (!die_search_idx(lines, nr_lines, *entrypc, &entrypc_idx))
+	{
 		return;
+	}
 
 	if (!die_get_postprologue_addr(entrypc_idx, lines, nr_lines,
-				       highpc, &postprologue_addr))
+								   highpc, &postprologue_addr))
+	{
 		return;
+	}
 
 	*entrypc = postprologue_addr;
 }

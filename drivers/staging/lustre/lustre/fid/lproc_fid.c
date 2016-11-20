@@ -56,7 +56,7 @@
  */
 static int
 ldebugfs_fid_write_common(const char __user *buffer, size_t count,
-			  struct lu_seq_range *range)
+						  struct lu_seq_range *range)
 {
 	struct lu_seq_range tmp;
 	int rc;
@@ -65,27 +65,39 @@ ldebugfs_fid_write_common(const char __user *buffer, size_t count,
 	LASSERT(range);
 
 	if (count >= sizeof(kernbuf))
+	{
 		return -EINVAL;
+	}
 
 	if (copy_from_user(kernbuf, buffer, count))
+	{
 		return -EFAULT;
+	}
 
 	kernbuf[count] = 0;
 
-	if (count == 5 && strcmp(kernbuf, "clear") == 0) {
+	if (count == 5 && strcmp(kernbuf, "clear") == 0)
+	{
 		memset(range, 0, sizeof(*range));
 		return count;
 	}
 
 	/* of the form "[0x0000000240000400 - 0x000000028000400]" */
 	rc = sscanf(kernbuf, "[%llx - %llx]\n",
-		    (unsigned long long *)&tmp.lsr_start,
-		    (unsigned long long *)&tmp.lsr_end);
+				(unsigned long long *)&tmp.lsr_start,
+				(unsigned long long *)&tmp.lsr_end);
+
 	if (rc != 2)
+	{
 		return -EINVAL;
+	}
+
 	if (!range_is_sane(&tmp) || range_is_zero(&tmp) ||
-	    tmp.lsr_start < range->lsr_start || tmp.lsr_end > range->lsr_end)
+		tmp.lsr_start < range->lsr_start || tmp.lsr_end > range->lsr_end)
+	{
 		return -EINVAL;
+	}
+
 	*range = tmp;
 	return count;
 }
@@ -93,8 +105,8 @@ ldebugfs_fid_write_common(const char __user *buffer, size_t count,
 /* Client side debugfs stuff */
 static ssize_t
 ldebugfs_fid_space_seq_write(struct file *file,
-			     const char __user *buffer,
-			     size_t count, loff_t *off)
+							 const char __user *buffer,
+							 size_t count, loff_t *off)
 {
 	struct lu_client_seq *seq;
 	int rc;
@@ -104,9 +116,10 @@ ldebugfs_fid_space_seq_write(struct file *file,
 	mutex_lock(&seq->lcs_mutex);
 	rc = ldebugfs_fid_write_common(buffer, count, &seq->lcs_space);
 
-	if (rc == 0) {
+	if (rc == 0)
+	{
 		CDEBUG(D_INFO, "%s: Space: " DRANGE "\n",
-		       seq->lcs_name, PRANGE(&seq->lcs_space));
+			   seq->lcs_name, PRANGE(&seq->lcs_space));
 	}
 
 	mutex_unlock(&seq->lcs_mutex);
@@ -128,8 +141,8 @@ ldebugfs_fid_space_seq_show(struct seq_file *m, void *unused)
 
 static ssize_t
 ldebugfs_fid_width_seq_write(struct file *file,
-			     const char __user *buffer,
-			     size_t count, loff_t *off)
+							 const char __user *buffer,
+							 size_t count, loff_t *off)
 {
 	struct lu_client_seq *seq;
 	__u64  max;
@@ -138,20 +151,29 @@ ldebugfs_fid_width_seq_write(struct file *file,
 	seq = ((struct seq_file *)file->private_data)->private;
 
 	rc = lprocfs_write_helper(buffer, count, &val);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	mutex_lock(&seq->lcs_mutex);
-	if (seq->lcs_type == LUSTRE_SEQ_DATA)
-		max = LUSTRE_DATA_SEQ_MAX_WIDTH;
-	else
-		max = LUSTRE_METADATA_SEQ_MAX_WIDTH;
 
-	if (val <= max && val > 0) {
+	if (seq->lcs_type == LUSTRE_SEQ_DATA)
+	{
+		max = LUSTRE_DATA_SEQ_MAX_WIDTH;
+	}
+	else
+	{
+		max = LUSTRE_METADATA_SEQ_MAX_WIDTH;
+	}
+
+	if (val <= max && val > 0)
+	{
 		seq->lcs_width = val;
 
 		CDEBUG(D_INFO, "%s: Sequence size: %llu\n", seq->lcs_name,
-		       seq->lcs_width);
+			   seq->lcs_width);
 	}
 
 	mutex_unlock(&seq->lcs_mutex);
@@ -189,7 +211,8 @@ ldebugfs_fid_server_seq_show(struct seq_file *m, void *unused)
 	struct lu_client_seq *seq = (struct lu_client_seq *)m->private;
 	struct client_obd *cli;
 
-	if (seq->lcs_exp) {
+	if (seq->lcs_exp)
+	{
 		cli = &seq->lcs_exp->exp_obd->u.cli;
 		seq_printf(m, "%s\n", cli->cl_target_uuid.uuid);
 	}
@@ -202,7 +225,8 @@ LPROC_SEQ_FOPS(ldebugfs_fid_width);
 LPROC_SEQ_FOPS_RO(ldebugfs_fid_server);
 LPROC_SEQ_FOPS_RO(ldebugfs_fid_fid);
 
-struct lprocfs_vars seq_client_debugfs_list[] = {
+struct lprocfs_vars seq_client_debugfs_list[] =
+{
 	{ "space", &ldebugfs_fid_space_fops },
 	{ "width", &ldebugfs_fid_width_fops },
 	{ "server", &ldebugfs_fid_server_fops },

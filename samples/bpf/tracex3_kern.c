@@ -10,7 +10,8 @@
 #include <uapi/linux/bpf.h>
 #include "bpf_helpers.h"
 
-struct bpf_map_def SEC("maps") my_map = {
+struct bpf_map_def SEC("maps") my_map =
+{
 	.type = BPF_MAP_TYPE_HASH,
 	.key_size = sizeof(long),
 	.value_size = sizeof(u64),
@@ -41,7 +42,8 @@ static unsigned int log2l(unsigned long long n)
 
 #define SLOTS 100
 
-struct bpf_map_def SEC("maps") lat_map = {
+struct bpf_map_def SEC("maps") lat_map =
+{
 	.type = BPF_MAP_TYPE_PERCPU_ARRAY,
 	.key_size = sizeof(u32),
 	.value_size = sizeof(u64),
@@ -56,8 +58,11 @@ int bpf_prog2(struct pt_regs *ctx)
 	u32 index;
 
 	value = bpf_map_lookup_elem(&my_map, &rq);
+
 	if (!value)
+	{
 		return 0;
+	}
 
 	u64 cur_time = bpf_ktime_get_ns();
 	u64 delta = cur_time - *value;
@@ -77,11 +82,16 @@ int bpf_prog2(struct pt_regs *ctx)
 	index = (l * 64 + (delta - base) * 64 / base) * 3 / 64;
 
 	if (index >= SLOTS)
+	{
 		index = SLOTS - 1;
+	}
 
 	value = bpf_map_lookup_elem(&lat_map, &index);
+
 	if (value)
+	{
 		*value += 1;
+	}
 
 	return 0;
 }

@@ -85,16 +85,31 @@ static int __net_init sctp_proc_init(struct net *net)
 {
 #ifdef CONFIG_PROC_FS
 	net->sctp.proc_net_sctp = proc_net_mkdir(net, "sctp", net->proc_net);
+
 	if (!net->sctp.proc_net_sctp)
+	{
 		goto out_proc_net_sctp;
+	}
+
 	if (sctp_snmp_proc_init(net))
+	{
 		goto out_snmp_proc_init;
+	}
+
 	if (sctp_eps_proc_init(net))
+	{
 		goto out_eps_proc_init;
+	}
+
 	if (sctp_assocs_proc_init(net))
+	{
 		goto out_assocs_proc_init;
+	}
+
 	if (sctp_remaddr_proc_init(net))
+	{
 		goto out_remaddr_proc_init;
+	}
 
 	return 0;
 
@@ -134,22 +149,27 @@ static void sctp_proc_exit(struct net *net)
  * the protocol structure.
  */
 static void sctp_v4_copy_addrlist(struct list_head *addrlist,
-				  struct net_device *dev)
+								  struct net_device *dev)
 {
 	struct in_device *in_dev;
 	struct in_ifaddr *ifa;
 	struct sctp_sockaddr_entry *addr;
 
 	rcu_read_lock();
-	if ((in_dev = __in_dev_get_rcu(dev)) == NULL) {
+
+	if ((in_dev = __in_dev_get_rcu(dev)) == NULL)
+	{
 		rcu_read_unlock();
 		return;
 	}
 
-	for (ifa = in_dev->ifa_list; ifa; ifa = ifa->ifa_next) {
+	for (ifa = in_dev->ifa_list; ifa; ifa = ifa->ifa_next)
+	{
 		/* Add the address to the local list.  */
 		addr = kzalloc(sizeof(*addr), GFP_ATOMIC);
-		if (addr) {
+
+		if (addr)
+		{
 			addr->a.v4.sin_family = AF_INET;
 			addr->a.v4.sin_port = 0;
 			addr->a.v4.sin_addr.s_addr = ifa->ifa_local;
@@ -172,8 +192,10 @@ static void sctp_get_local_addr_list(struct net *net)
 	struct sctp_af *af;
 
 	rcu_read_lock();
-	for_each_netdev_rcu(net, dev) {
-		list_for_each(pos, &sctp_address_families) {
+	for_each_netdev_rcu(net, dev)
+	{
+		list_for_each(pos, &sctp_address_families)
+		{
 			af = list_entry(pos, struct sctp_af, list);
 			af->copy_addrlist(&net->sctp.local_addr_list, dev);
 		}
@@ -187,7 +209,8 @@ static void sctp_free_local_addr_list(struct net *net)
 	struct sctp_sockaddr_entry *addr;
 	struct list_head *pos, *temp;
 
-	list_for_each_safe(pos, temp, &net->sctp.local_addr_list) {
+	list_for_each_safe(pos, temp, &net->sctp.local_addr_list)
+	{
 		addr = list_entry(pos, struct sctp_sockaddr_entry, list);
 		list_del(pos);
 		kfree(addr);
@@ -196,30 +219,39 @@ static void sctp_free_local_addr_list(struct net *net)
 
 /* Copy the local addresses which are valid for 'scope' into 'bp'.  */
 int sctp_copy_local_addr_list(struct net *net, struct sctp_bind_addr *bp,
-			      sctp_scope_t scope, gfp_t gfp, int copy_flags)
+							  sctp_scope_t scope, gfp_t gfp, int copy_flags)
 {
 	struct sctp_sockaddr_entry *addr;
 	int error = 0;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(addr, &net->sctp.local_addr_list, list) {
+	list_for_each_entry_rcu(addr, &net->sctp.local_addr_list, list)
+	{
 		if (!addr->valid)
+		{
 			continue;
-		if (sctp_in_scope(net, &addr->a, scope)) {
+		}
+
+		if (sctp_in_scope(net, &addr->a, scope))
+		{
 			/* Now that the address is in scope, check to see if
 			 * the address type is really supported by the local
 			 * sock as well as the remote peer.
 			 */
 			if ((((AF_INET == addr->a.sa.sa_family) &&
-			      (copy_flags & SCTP_ADDR4_PEERSUPP))) ||
-			    (((AF_INET6 == addr->a.sa.sa_family) &&
-			      (copy_flags & SCTP_ADDR6_ALLOWED) &&
-			      (copy_flags & SCTP_ADDR6_PEERSUPP)))) {
+				  (copy_flags & SCTP_ADDR4_PEERSUPP))) ||
+				(((AF_INET6 == addr->a.sa.sa_family) &&
+				  (copy_flags & SCTP_ADDR6_ALLOWED) &&
+				  (copy_flags & SCTP_ADDR6_PEERSUPP))))
+			{
 				error = sctp_add_bind_addr(bp, &addr->a,
-						    sizeof(addr->a),
-						    SCTP_ADDR_SRC, GFP_ATOMIC);
+										   sizeof(addr->a),
+										   SCTP_ADDR_SRC, GFP_ATOMIC);
+
 				if (error)
+				{
 					goto end_copy;
+				}
 			}
 		}
 	}
@@ -231,7 +263,7 @@ end_copy:
 
 /* Initialize a sctp_addr from in incoming skb.  */
 static void sctp_v4_from_skb(union sctp_addr *addr, struct sk_buff *skb,
-			     int is_saddr)
+							 int is_saddr)
 {
 	void *from;
 	__be16 *port;
@@ -242,13 +274,18 @@ static void sctp_v4_from_skb(union sctp_addr *addr, struct sk_buff *skb,
 
 	/* Always called on head skb, so this is safe */
 	sh = sctp_hdr(skb);
-	if (is_saddr) {
+
+	if (is_saddr)
+	{
 		*port  = sh->source;
 		from = &ip_hdr(skb)->saddr;
-	} else {
+	}
+	else
+	{
 		*port = sh->dest;
 		from = &ip_hdr(skb)->daddr;
 	}
+
 	memcpy(&addr->v4.sin_addr.s_addr, from, sizeof(struct in_addr));
 }
 
@@ -274,8 +311,8 @@ static void sctp_v4_to_sk_daddr(union sctp_addr *addr, struct sock *sk)
 
 /* Initialize a sctp_addr from an address parameter. */
 static void sctp_v4_from_addr_param(union sctp_addr *addr,
-				    union sctp_addr_param *param,
-				    __be16 port, int iif)
+									union sctp_addr_param *param,
+									__be16 port, int iif)
 {
 	addr->v4.sin_family = AF_INET;
 	addr->v4.sin_port = port;
@@ -286,7 +323,7 @@ static void sctp_v4_from_addr_param(union sctp_addr *addr,
  * of the address parameter.
  */
 static int sctp_v4_to_addr_param(const union sctp_addr *addr,
-				 union sctp_addr_param *param)
+								 union sctp_addr_param *param)
 {
 	int length = sizeof(sctp_ipv4addr_param_t);
 
@@ -299,7 +336,7 @@ static int sctp_v4_to_addr_param(const union sctp_addr *addr,
 
 /* Initialize a sctp_addr from a dst_entry. */
 static void sctp_v4_dst_saddr(union sctp_addr *saddr, struct flowi4 *fl4,
-			      __be16 port)
+							  __be16 port)
 {
 	saddr->v4.sin_family = AF_INET;
 	saddr->v4.sin_port = port;
@@ -308,14 +345,22 @@ static void sctp_v4_dst_saddr(union sctp_addr *saddr, struct flowi4 *fl4,
 
 /* Compare two addresses exactly. */
 static int sctp_v4_cmp_addr(const union sctp_addr *addr1,
-			    const union sctp_addr *addr2)
+							const union sctp_addr *addr2)
 {
 	if (addr1->sa.sa_family != addr2->sa.sa_family)
+	{
 		return 0;
+	}
+
 	if (addr1->v4.sin_port != addr2->v4.sin_port)
+	{
 		return 0;
+	}
+
 	if (addr1->v4.sin_addr.s_addr != addr2->v4.sin_addr.s_addr)
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -342,20 +387,26 @@ static int sctp_v4_is_any(const union sctp_addr *addr)
  * Return 1 - If the address is a unicast.
  */
 static int sctp_v4_addr_valid(union sctp_addr *addr,
-			      struct sctp_sock *sp,
-			      const struct sk_buff *skb)
+							  struct sctp_sock *sp,
+							  const struct sk_buff *skb)
 {
 	/* IPv4 addresses not allowed */
 	if (sp && ipv6_only_sock(sctp_opt2sk(sp)))
+	{
 		return 0;
+	}
 
 	/* Is this a non-unicast address or a unusable SCTP address? */
 	if (IS_IPV4_UNUSABLE_ADDRESS(addr->v4.sin_addr.s_addr))
+	{
 		return 0;
+	}
 
 	/* Is this a broadcast address? */
 	if (skb && skb_rtable(skb)->rt_flags & RTCF_BROADCAST)
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -368,13 +419,17 @@ static int sctp_v4_available(union sctp_addr *addr, struct sctp_sock *sp)
 
 
 	if (addr->v4.sin_addr.s_addr != htonl(INADDR_ANY) &&
-	   ret != RTN_LOCAL &&
-	   !sp->inet.freebind &&
-	   !net->ipv4.sysctl_ip_nonlocal_bind)
+		ret != RTN_LOCAL &&
+		!sp->inet.freebind &&
+		!net->ipv4.sysctl_ip_nonlocal_bind)
+	{
 		return 0;
+	}
 
 	if (ipv6_only_sock(sctp_opt2sk(sp)))
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -401,17 +456,26 @@ static sctp_scope_t sctp_v4_scope(union sctp_addr *addr)
 	sctp_scope_t retval;
 
 	/* Check for unusable SCTP addresses. */
-	if (IS_IPV4_UNUSABLE_ADDRESS(addr->v4.sin_addr.s_addr)) {
+	if (IS_IPV4_UNUSABLE_ADDRESS(addr->v4.sin_addr.s_addr))
+	{
 		retval =  SCTP_SCOPE_UNUSABLE;
-	} else if (ipv4_is_loopback(addr->v4.sin_addr.s_addr)) {
+	}
+	else if (ipv4_is_loopback(addr->v4.sin_addr.s_addr))
+	{
 		retval = SCTP_SCOPE_LOOPBACK;
-	} else if (ipv4_is_linklocal_169(addr->v4.sin_addr.s_addr)) {
+	}
+	else if (ipv4_is_linklocal_169(addr->v4.sin_addr.s_addr))
+	{
 		retval = SCTP_SCOPE_LINK;
-	} else if (ipv4_is_private_10(addr->v4.sin_addr.s_addr) ||
-		   ipv4_is_private_172(addr->v4.sin_addr.s_addr) ||
-		   ipv4_is_private_192(addr->v4.sin_addr.s_addr)) {
+	}
+	else if (ipv4_is_private_10(addr->v4.sin_addr.s_addr) ||
+			 ipv4_is_private_172(addr->v4.sin_addr.s_addr) ||
+			 ipv4_is_private_192(addr->v4.sin_addr.s_addr))
+	{
 		retval = SCTP_SCOPE_PRIVATE;
-	} else {
+	}
+	else
+	{
 		retval = SCTP_SCOPE_GLOBAL;
 	}
 
@@ -423,7 +487,7 @@ static sctp_scope_t sctp_v4_scope(union sctp_addr *addr)
  * source address that matches an address in the bind address list.
  */
 static void sctp_v4_get_dst(struct sctp_transport *t, union sctp_addr *saddr,
-				struct flowi *fl, struct sock *sk)
+							struct flowi *fl, struct sock *sk)
 {
 	struct sctp_association *asoc = t->asoc;
 	struct rtable *rt;
@@ -438,44 +502,60 @@ static void sctp_v4_get_dst(struct sctp_transport *t, union sctp_addr *saddr,
 	fl4->daddr  = daddr->v4.sin_addr.s_addr;
 	fl4->fl4_dport = daddr->v4.sin_port;
 	fl4->flowi4_proto = IPPROTO_SCTP;
-	if (asoc) {
+
+	if (asoc)
+	{
 		fl4->flowi4_tos = RT_CONN_FLAGS(asoc->base.sk);
 		fl4->flowi4_oif = asoc->base.sk->sk_bound_dev_if;
 		fl4->fl4_sport = htons(asoc->base.bind_addr.port);
 	}
-	if (saddr) {
+
+	if (saddr)
+	{
 		fl4->saddr = saddr->v4.sin_addr.s_addr;
 		fl4->fl4_sport = saddr->v4.sin_port;
 	}
 
 	pr_debug("%s: dst:%pI4, src:%pI4 - ", __func__, &fl4->daddr,
-		 &fl4->saddr);
+			 &fl4->saddr);
 
 	rt = ip_route_output_key(sock_net(sk), fl4);
+
 	if (!IS_ERR(rt))
+	{
 		dst = &rt->dst;
+	}
 
 	/* If there is no association or if a source address is passed, no
 	 * more validation is required.
 	 */
 	if (!asoc || saddr)
+	{
 		goto out;
+	}
 
 	bp = &asoc->base.bind_addr;
 
-	if (dst) {
+	if (dst)
+	{
 		/* Walk through the bind address list and look for a bind
 		 * address that matches the source address of the returned dst.
 		 */
 		sctp_v4_dst_saddr(&dst_saddr, fl4, htons(bp->port));
 		rcu_read_lock();
-		list_for_each_entry_rcu(laddr, &bp->address_list, list) {
+		list_for_each_entry_rcu(laddr, &bp->address_list, list)
+		{
 			if (!laddr->valid || (laddr->state == SCTP_ADDR_DEL) ||
-			    (laddr->state != SCTP_ADDR_SRC &&
-			    !asoc->src_out_of_asoc_ok))
+				(laddr->state != SCTP_ADDR_SRC &&
+				 !asoc->src_out_of_asoc_ok))
+			{
 				continue;
+			}
+
 			if (sctp_v4_cmp_addr(&dst_saddr, &laddr->a))
+			{
 				goto out_unlock;
+			}
 		}
 		rcu_read_unlock();
 
@@ -490,42 +570,61 @@ static void sctp_v4_get_dst(struct sctp_transport *t, union sctp_addr *saddr,
 	 * matches a bind address as the source address.
 	 */
 	rcu_read_lock();
-	list_for_each_entry_rcu(laddr, &bp->address_list, list) {
+	list_for_each_entry_rcu(laddr, &bp->address_list, list)
+	{
 		struct net_device *odev;
 
 		if (!laddr->valid)
+		{
 			continue;
+		}
+
 		if (laddr->state != SCTP_ADDR_SRC ||
-		    AF_INET != laddr->a.sa.sa_family)
+			AF_INET != laddr->a.sa.sa_family)
+		{
 			continue;
+		}
 
 		fl4->fl4_sport = laddr->a.v4.sin_port;
 		flowi4_update_output(fl4,
-				     asoc->base.sk->sk_bound_dev_if,
-				     RT_CONN_FLAGS(asoc->base.sk),
-				     daddr->v4.sin_addr.s_addr,
-				     laddr->a.v4.sin_addr.s_addr);
+							 asoc->base.sk->sk_bound_dev_if,
+							 RT_CONN_FLAGS(asoc->base.sk),
+							 daddr->v4.sin_addr.s_addr,
+							 laddr->a.v4.sin_addr.s_addr);
 
 		rt = ip_route_output_key(sock_net(sk), fl4);
+
 		if (IS_ERR(rt))
+		{
 			continue;
+		}
 
 		if (!dst)
+		{
 			dst = &rt->dst;
+		}
 
 		/* Ensure the src address belongs to the output
 		 * interface.
 		 */
 		odev = __ip_dev_find(sock_net(sk), laddr->a.v4.sin_addr.s_addr,
-				     false);
-		if (!odev || odev->ifindex != fl4->flowi4_oif) {
+							 false);
+
+		if (!odev || odev->ifindex != fl4->flowi4_oif)
+		{
 			if (&rt->dst != dst)
+			{
 				dst_release(&rt->dst);
+			}
+
 			continue;
 		}
 
 		if (dst != &rt->dst)
+		{
 			dst_release(dst);
+		}
+
 		dst = &rt->dst;
 		break;
 	}
@@ -534,24 +633,28 @@ out_unlock:
 	rcu_read_unlock();
 out:
 	t->dst = dst;
+
 	if (dst)
 		pr_debug("rt_dst:%pI4, rt_src:%pI4\n",
-			 &fl4->daddr, &fl4->saddr);
+				 &fl4->daddr, &fl4->saddr);
 	else
+	{
 		pr_debug("no route\n");
+	}
 }
 
 /* For v4, the source address is cached in the route entry(dst). So no need
  * to cache it separately and hence this is an empty routine.
  */
 static void sctp_v4_get_saddr(struct sctp_sock *sk,
-			      struct sctp_transport *t,
-			      struct flowi *fl)
+							  struct sctp_transport *t,
+							  struct flowi *fl)
 {
 	union sctp_addr *saddr = &t->saddr;
 	struct rtable *rt = (struct rtable *)t->dst;
 
-	if (rt) {
+	if (rt)
+	{
 		saddr->v4.sin_family = AF_INET;
 		saddr->v4.sin_addr.s_addr = fl->u.ip4.saddr;
 	}
@@ -571,14 +674,16 @@ static int sctp_v4_is_ce(const struct sk_buff *skb)
 
 /* Create and initialize a new sk for the socket returned by accept(). */
 static struct sock *sctp_v4_create_accept_sk(struct sock *sk,
-					     struct sctp_association *asoc)
+		struct sctp_association *asoc)
 {
 	struct sock *newsk = sk_alloc(sock_net(sk), PF_INET, GFP_KERNEL,
-			sk->sk_prot, 0);
+								  sk->sk_prot, 0);
 	struct inet_sock *newinet;
 
 	if (!newsk)
+	{
 		goto out;
+	}
 
 	sock_init_data(NULL, newsk);
 
@@ -591,7 +696,8 @@ static struct sock *sctp_v4_create_accept_sk(struct sock *sk,
 
 	sk_refcnt_debug_inc(newsk);
 
-	if (newsk->sk_prot->init(newsk)) {
+	if (newsk->sk_prot->init(newsk))
+	{
 		sk_common_release(newsk);
 		newsk = NULL;
 	}
@@ -625,29 +731,36 @@ static void sctp_addr_wq_timeout_handler(unsigned long arg)
 
 	spin_lock_bh(&net->sctp.addr_wq_lock);
 
-	list_for_each_entry_safe(addrw, temp, &net->sctp.addr_waitq, list) {
+	list_for_each_entry_safe(addrw, temp, &net->sctp.addr_waitq, list)
+	{
 		pr_debug("%s: the first ent in wq:%p is addr:%pISc for cmd:%d at "
-			 "entry:%p\n", __func__, &net->sctp.addr_waitq, &addrw->a.sa,
-			 addrw->state, addrw);
+				 "entry:%p\n", __func__, &net->sctp.addr_waitq, &addrw->a.sa,
+				 addrw->state, addrw);
 
 #if IS_ENABLED(CONFIG_IPV6)
+
 		/* Now we send an ASCONF for each association */
 		/* Note. we currently don't handle link local IPv6 addressees */
-		if (addrw->a.sa.sa_family == AF_INET6) {
+		if (addrw->a.sa.sa_family == AF_INET6)
+		{
 			struct in6_addr *in6;
 
 			if (ipv6_addr_type(&addrw->a.v6.sin6_addr) &
-			    IPV6_ADDR_LINKLOCAL)
+				IPV6_ADDR_LINKLOCAL)
+			{
 				goto free_next;
+			}
 
 			in6 = (struct in6_addr *)&addrw->a.v6.sin6_addr;
+
 			if (ipv6_chk_addr(net, in6, NULL, 0) == 0 &&
-			    addrw->state == SCTP_ADDR_NEW) {
+				addrw->state == SCTP_ADDR_NEW)
+			{
 				unsigned long timeo_val;
 
 				pr_debug("%s: this is on DAD, trying %d sec "
-					 "later\n", __func__,
-					 SCTP_ADDRESS_TICK_DELAY);
+						 "later\n", __func__,
+						 SCTP_ADDRESS_TICK_DELAY);
 
 				timeo_val = jiffies;
 				timeo_val += msecs_to_jiffies(SCTP_ADDRESS_TICK_DELAY);
@@ -655,17 +768,27 @@ static void sctp_addr_wq_timeout_handler(unsigned long arg)
 				break;
 			}
 		}
+
 #endif
-		list_for_each_entry(sp, &net->sctp.auto_asconf_splist, auto_asconf_list) {
+		list_for_each_entry(sp, &net->sctp.auto_asconf_splist, auto_asconf_list)
+		{
 			struct sock *sk;
 
 			sk = sctp_opt2sk(sp);
+
 			/* ignore bound-specific endpoints */
 			if (!sctp_is_ep_boundall(sk))
+			{
 				continue;
+			}
+
 			bh_lock_sock(sk);
+
 			if (sctp_asconf_mgmt(sp, addrw) < 0)
+			{
 				pr_debug("%s: sctp_asconf_mgmt failed\n", __func__);
+			}
+
 			bh_unlock_sock(sk);
 		}
 #if IS_ENABLED(CONFIG_IPV6)
@@ -684,7 +807,8 @@ static void sctp_free_addr_wq(struct net *net)
 
 	spin_lock_bh(&net->sctp.addr_wq_lock);
 	del_timer(&net->sctp.addr_wq_timer);
-	list_for_each_entry_safe(addrw, temp, &net->sctp.addr_waitq, list) {
+	list_for_each_entry_safe(addrw, temp, &net->sctp.addr_waitq, list)
+	{
 		list_del(&addrw->list);
 		kfree(addrw);
 	}
@@ -695,21 +819,32 @@ static void sctp_free_addr_wq(struct net *net)
  * sctp_addr_wq MUST be locked
  */
 static struct sctp_sockaddr_entry *sctp_addr_wq_lookup(struct net *net,
-					struct sctp_sockaddr_entry *addr)
+		struct sctp_sockaddr_entry *addr)
 {
 	struct sctp_sockaddr_entry *addrw;
 
-	list_for_each_entry(addrw, &net->sctp.addr_waitq, list) {
+	list_for_each_entry(addrw, &net->sctp.addr_waitq, list)
+	{
 		if (addrw->a.sa.sa_family != addr->a.sa.sa_family)
+		{
 			continue;
-		if (addrw->a.sa.sa_family == AF_INET) {
+		}
+
+		if (addrw->a.sa.sa_family == AF_INET)
+		{
 			if (addrw->a.v4.sin_addr.s_addr ==
-			    addr->a.v4.sin_addr.s_addr)
+				addr->a.v4.sin_addr.s_addr)
+			{
 				return addrw;
-		} else if (addrw->a.sa.sa_family == AF_INET6) {
+			}
+		}
+		else if (addrw->a.sa.sa_family == AF_INET6)
+		{
 			if (ipv6_addr_equal(&addrw->a.v6.sin6_addr,
-			    &addr->a.v6.sin6_addr))
+								&addr->a.v6.sin6_addr))
+			{
 				return addrw;
+			}
 		}
 	}
 	return NULL;
@@ -729,36 +864,45 @@ void sctp_addr_wq_mgmt(struct net *net, struct sctp_sockaddr_entry *addr, int cm
 	spin_lock_bh(&net->sctp.addr_wq_lock);
 	/* Offsets existing events in addr_wq */
 	addrw = sctp_addr_wq_lookup(net, addr);
-	if (addrw) {
-		if (addrw->state != cmd) {
+
+	if (addrw)
+	{
+		if (addrw->state != cmd)
+		{
 			pr_debug("%s: offsets existing entry for %d, addr:%pISc "
-				 "in wq:%p\n", __func__, addrw->state, &addrw->a.sa,
-				 &net->sctp.addr_waitq);
+					 "in wq:%p\n", __func__, addrw->state, &addrw->a.sa,
+					 &net->sctp.addr_waitq);
 
 			list_del(&addrw->list);
 			kfree(addrw);
 		}
+
 		spin_unlock_bh(&net->sctp.addr_wq_lock);
 		return;
 	}
 
 	/* OK, we have to add the new address to the wait queue */
 	addrw = kmemdup(addr, sizeof(struct sctp_sockaddr_entry), GFP_ATOMIC);
-	if (addrw == NULL) {
+
+	if (addrw == NULL)
+	{
 		spin_unlock_bh(&net->sctp.addr_wq_lock);
 		return;
 	}
+
 	addrw->state = cmd;
 	list_add_tail(&addrw->list, &net->sctp.addr_waitq);
 
 	pr_debug("%s: add new entry for cmd:%d, addr:%pISc in wq:%p\n",
-		 __func__, addrw->state, &addrw->a.sa, &net->sctp.addr_waitq);
+			 __func__, addrw->state, &addrw->a.sa, &net->sctp.addr_waitq);
 
-	if (!timer_pending(&net->sctp.addr_wq_timer)) {
+	if (!timer_pending(&net->sctp.addr_wq_timer))
+	{
 		timeo_val = jiffies;
 		timeo_val += msecs_to_jiffies(SCTP_ADDRESS_TICK_DELAY);
 		mod_timer(&net->sctp.addr_wq_timer, timeo_val);
 	}
+
 	spin_unlock_bh(&net->sctp.addr_wq_lock);
 }
 
@@ -769,7 +913,7 @@ void sctp_addr_wq_mgmt(struct net *net, struct sctp_sockaddr_entry *addr, int cm
  * The reader side is protected with RCU.
  */
 static int sctp_inetaddr_event(struct notifier_block *this, unsigned long ev,
-			       void *ptr)
+							   void *ptr)
 {
 	struct in_ifaddr *ifa = (struct in_ifaddr *)ptr;
 	struct sctp_sockaddr_entry *addr = NULL;
@@ -777,38 +921,49 @@ static int sctp_inetaddr_event(struct notifier_block *this, unsigned long ev,
 	struct net *net = dev_net(ifa->ifa_dev->dev);
 	int found = 0;
 
-	switch (ev) {
-	case NETDEV_UP:
-		addr = kmalloc(sizeof(struct sctp_sockaddr_entry), GFP_ATOMIC);
-		if (addr) {
-			addr->a.v4.sin_family = AF_INET;
-			addr->a.v4.sin_port = 0;
-			addr->a.v4.sin_addr.s_addr = ifa->ifa_local;
-			addr->valid = 1;
-			spin_lock_bh(&net->sctp.local_addr_lock);
-			list_add_tail_rcu(&addr->list, &net->sctp.local_addr_list);
-			sctp_addr_wq_mgmt(net, addr, SCTP_ADDR_NEW);
-			spin_unlock_bh(&net->sctp.local_addr_lock);
-		}
-		break;
-	case NETDEV_DOWN:
-		spin_lock_bh(&net->sctp.local_addr_lock);
-		list_for_each_entry_safe(addr, temp,
-					&net->sctp.local_addr_list, list) {
-			if (addr->a.sa.sa_family == AF_INET &&
-					addr->a.v4.sin_addr.s_addr ==
-					ifa->ifa_local) {
-				sctp_addr_wq_mgmt(net, addr, SCTP_ADDR_DEL);
-				found = 1;
-				addr->valid = 0;
-				list_del_rcu(&addr->list);
-				break;
+	switch (ev)
+	{
+		case NETDEV_UP:
+			addr = kmalloc(sizeof(struct sctp_sockaddr_entry), GFP_ATOMIC);
+
+			if (addr)
+			{
+				addr->a.v4.sin_family = AF_INET;
+				addr->a.v4.sin_port = 0;
+				addr->a.v4.sin_addr.s_addr = ifa->ifa_local;
+				addr->valid = 1;
+				spin_lock_bh(&net->sctp.local_addr_lock);
+				list_add_tail_rcu(&addr->list, &net->sctp.local_addr_list);
+				sctp_addr_wq_mgmt(net, addr, SCTP_ADDR_NEW);
+				spin_unlock_bh(&net->sctp.local_addr_lock);
 			}
-		}
-		spin_unlock_bh(&net->sctp.local_addr_lock);
-		if (found)
-			kfree_rcu(addr, rcu);
-		break;
+
+			break;
+
+		case NETDEV_DOWN:
+			spin_lock_bh(&net->sctp.local_addr_lock);
+			list_for_each_entry_safe(addr, temp,
+									 &net->sctp.local_addr_list, list)
+			{
+				if (addr->a.sa.sa_family == AF_INET &&
+					addr->a.v4.sin_addr.s_addr ==
+					ifa->ifa_local)
+				{
+					sctp_addr_wq_mgmt(net, addr, SCTP_ADDR_DEL);
+					found = 1;
+					addr->valid = 0;
+					list_del_rcu(&addr->list);
+					break;
+				}
+			}
+			spin_unlock_bh(&net->sctp.local_addr_lock);
+
+			if (found)
+			{
+				kfree_rcu(addr, rcu);
+			}
+
+			break;
 	}
 
 	return NOTIFY_DONE;
@@ -824,40 +979,53 @@ static int sctp_ctl_sock_init(struct net *net)
 	sa_family_t family = PF_INET;
 
 	if (sctp_get_pf_specific(PF_INET6))
+	{
 		family = PF_INET6;
+	}
 
 	err = inet_ctl_sock_create(&net->sctp.ctl_sock, family,
-				   SOCK_SEQPACKET, IPPROTO_SCTP, net);
+							   SOCK_SEQPACKET, IPPROTO_SCTP, net);
 
 	/* If IPv6 socket could not be created, try the IPv4 socket */
 	if (err < 0 && family == PF_INET6)
 		err = inet_ctl_sock_create(&net->sctp.ctl_sock, AF_INET,
-					   SOCK_SEQPACKET, IPPROTO_SCTP,
-					   net);
+								   SOCK_SEQPACKET, IPPROTO_SCTP,
+								   net);
 
-	if (err < 0) {
+	if (err < 0)
+	{
 		pr_err("Failed to create the SCTP control socket\n");
 		return err;
 	}
+
 	return 0;
 }
 
 /* Register address family specific functions. */
 int sctp_register_af(struct sctp_af *af)
 {
-	switch (af->sa_family) {
-	case AF_INET:
-		if (sctp_af_v4_specific)
+	switch (af->sa_family)
+	{
+		case AF_INET:
+			if (sctp_af_v4_specific)
+			{
+				return 0;
+			}
+
+			sctp_af_v4_specific = af;
+			break;
+
+		case AF_INET6:
+			if (sctp_af_v6_specific)
+			{
+				return 0;
+			}
+
+			sctp_af_v6_specific = af;
+			break;
+
+		default:
 			return 0;
-		sctp_af_v4_specific = af;
-		break;
-	case AF_INET6:
-		if (sctp_af_v6_specific)
-			return 0;
-		sctp_af_v6_specific = af;
-		break;
-	default:
-		return 0;
 	}
 
 	INIT_LIST_HEAD(&af->list);
@@ -870,13 +1038,16 @@ int sctp_register_af(struct sctp_af *af)
  */
 struct sctp_af *sctp_get_af_specific(sa_family_t family)
 {
-	switch (family) {
-	case AF_INET:
-		return sctp_af_v4_specific;
-	case AF_INET6:
-		return sctp_af_v6_specific;
-	default:
-		return NULL;
+	switch (family)
+	{
+		case AF_INET:
+			return sctp_af_v4_specific;
+
+		case AF_INET6:
+			return sctp_af_v6_specific;
+
+		default:
+			return NULL;
 	}
 }
 
@@ -893,11 +1064,12 @@ static void sctp_inet_msgname(char *msgname, int *addr_len)
 
 /* Copy the primary address of the peer primary address as the msg_name. */
 static void sctp_inet_event_msgname(struct sctp_ulpevent *event, char *msgname,
-				    int *addr_len)
+									int *addr_len)
 {
 	struct sockaddr_in *sin, *sinfrom;
 
-	if (msgname) {
+	if (msgname)
+	{
 		struct sctp_association *asoc;
 
 		asoc = event->asoc;
@@ -912,7 +1084,8 @@ static void sctp_inet_event_msgname(struct sctp_ulpevent *event, char *msgname,
 /* Initialize and copy out a msgname from an inbound skb. */
 static void sctp_inet_skb_msgname(struct sk_buff *skb, char *msgname, int *len)
 {
-	if (msgname) {
+	if (msgname)
+	{
 		struct sctphdr *sh = sctp_hdr(skb);
 		struct sockaddr_in *sin = (struct sockaddr_in *)msgname;
 
@@ -931,17 +1104,25 @@ static int sctp_inet_af_supported(sa_family_t family, struct sctp_sock *sp)
 
 /* Address matching with wildcards allowed. */
 static int sctp_inet_cmp_addr(const union sctp_addr *addr1,
-			      const union sctp_addr *addr2,
-			      struct sctp_sock *opt)
+							  const union sctp_addr *addr2,
+							  struct sctp_sock *opt)
 {
 	/* PF_INET only supports AF_INET addresses. */
 	if (addr1->sa.sa_family != addr2->sa.sa_family)
+	{
 		return 0;
+	}
+
 	if (htonl(INADDR_ANY) == addr1->v4.sin_addr.s_addr ||
-	    htonl(INADDR_ANY) == addr2->v4.sin_addr.s_addr)
+		htonl(INADDR_ANY) == addr2->v4.sin_addr.s_addr)
+	{
 		return 1;
+	}
+
 	if (addr1->v4.sin_addr.s_addr == addr2->v4.sin_addr.s_addr)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -966,7 +1147,7 @@ static int sctp_inet_send_verify(struct sctp_sock *opt, union sctp_addr *addr)
  * chunks.  Returns number of addresses supported.
  */
 static int sctp_inet_supported_addrs(const struct sctp_sock *opt,
-				     __be16 *types)
+									 __be16 *types)
 {
 	types[0] = SCTP_PARAM_IPV4_ADDRESS;
 	return 1;
@@ -974,15 +1155,15 @@ static int sctp_inet_supported_addrs(const struct sctp_sock *opt,
 
 /* Wrapper routine that calls the ip transmit routine. */
 static inline int sctp_v4_xmit(struct sk_buff *skb,
-			       struct sctp_transport *transport)
+							   struct sctp_transport *transport)
 {
 	struct inet_sock *inet = inet_sk(skb->sk);
 
 	pr_debug("%s: skb:%p, len:%d, src:%pI4, dst:%pI4\n", __func__, skb,
-		 skb->len, &transport->fl.u.ip4.saddr, &transport->fl.u.ip4.daddr);
+			 skb->len, &transport->fl.u.ip4.saddr, &transport->fl.u.ip4.daddr);
 
 	inet->pmtudisc = transport->param_flags & SPP_PMTUD_ENABLE ?
-			 IP_PMTUDISC_DO : IP_PMTUDISC_DONT;
+					 IP_PMTUDISC_DO : IP_PMTUDISC_DONT;
 
 	SCTP_INC_STATS(sock_net(&inet->sk), SCTP_MIB_OUTSCTPPACKS);
 
@@ -991,7 +1172,8 @@ static inline int sctp_v4_xmit(struct sk_buff *skb,
 
 static struct sctp_af sctp_af_inet;
 
-static struct sctp_pf sctp_pf_inet = {
+static struct sctp_pf sctp_pf_inet =
+{
 	.event_msgname = sctp_inet_event_msgname,
 	.skb_msgname   = sctp_inet_skb_msgname,
 	.af_supported  = sctp_inet_af_supported,
@@ -1007,12 +1189,14 @@ static struct sctp_pf sctp_pf_inet = {
 };
 
 /* Notifier for inetaddr addition/deletion events.  */
-static struct notifier_block sctp_inetaddr_notifier = {
+static struct notifier_block sctp_inetaddr_notifier =
+{
 	.notifier_call = sctp_inetaddr_event,
 };
 
 /* Socket operations.  */
-static const struct proto_ops inet_seqpacket_ops = {
+static const struct proto_ops inet_seqpacket_ops =
+{
 	.family		   = PF_INET,
 	.owner		   = THIS_MODULE,
 	.release	   = inet_release,	/* Needs to be wrapped... */
@@ -1038,14 +1222,16 @@ static const struct proto_ops inet_seqpacket_ops = {
 };
 
 /* Registration with AF_INET family.  */
-static struct inet_protosw sctp_seqpacket_protosw = {
+static struct inet_protosw sctp_seqpacket_protosw =
+{
 	.type       = SOCK_SEQPACKET,
 	.protocol   = IPPROTO_SCTP,
 	.prot       = &sctp_prot,
 	.ops        = &inet_seqpacket_ops,
 	.flags      = SCTP_PROTOSW_FLAG
 };
-static struct inet_protosw sctp_stream_protosw = {
+static struct inet_protosw sctp_stream_protosw =
+{
 	.type       = SOCK_STREAM,
 	.protocol   = IPPROTO_SCTP,
 	.prot       = &sctp_prot,
@@ -1054,7 +1240,8 @@ static struct inet_protosw sctp_stream_protosw = {
 };
 
 /* Register with IP layer.  */
-static const struct net_protocol sctp_protocol = {
+static const struct net_protocol sctp_protocol =
+{
 	.handler     = sctp_rcv,
 	.err_handler = sctp_v4_err,
 	.no_policy   = 1,
@@ -1063,7 +1250,8 @@ static const struct net_protocol sctp_protocol = {
 };
 
 /* IPv4 address related functions.  */
-static struct sctp_af sctp_af_inet = {
+static struct sctp_af sctp_af_inet =
+{
 	.sa_family	   = AF_INET,
 	.sctp_xmit	   = sctp_v4_xmit,
 	.setsockopt	   = ip_setsockopt,
@@ -1095,41 +1283,58 @@ static struct sctp_af sctp_af_inet = {
 
 struct sctp_pf *sctp_get_pf_specific(sa_family_t family)
 {
-	switch (family) {
-	case PF_INET:
-		return sctp_pf_inet_specific;
-	case PF_INET6:
-		return sctp_pf_inet6_specific;
-	default:
-		return NULL;
+	switch (family)
+	{
+		case PF_INET:
+			return sctp_pf_inet_specific;
+
+		case PF_INET6:
+			return sctp_pf_inet6_specific;
+
+		default:
+			return NULL;
 	}
 }
 
 /* Register the PF specific function table.  */
 int sctp_register_pf(struct sctp_pf *pf, sa_family_t family)
 {
-	switch (family) {
-	case PF_INET:
-		if (sctp_pf_inet_specific)
+	switch (family)
+	{
+		case PF_INET:
+			if (sctp_pf_inet_specific)
+			{
+				return 0;
+			}
+
+			sctp_pf_inet_specific = pf;
+			break;
+
+		case PF_INET6:
+			if (sctp_pf_inet6_specific)
+			{
+				return 0;
+			}
+
+			sctp_pf_inet6_specific = pf;
+			break;
+
+		default:
 			return 0;
-		sctp_pf_inet_specific = pf;
-		break;
-	case PF_INET6:
-		if (sctp_pf_inet6_specific)
-			return 0;
-		sctp_pf_inet6_specific = pf;
-		break;
-	default:
-		return 0;
 	}
+
 	return 1;
 }
 
 static inline int init_sctp_mibs(struct net *net)
 {
 	net->sctp.sctp_statistics = alloc_percpu(struct sctp_mib);
+
 	if (!net->sctp.sctp_statistics)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -1155,8 +1360,11 @@ static int sctp_v4_protosw_init(void)
 	int rc;
 
 	rc = proto_register(&sctp_prot, 1);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Register SCTP(UDP and TCP style) with socket layer.  */
 	inet_register_protosw(&sctp_seqpacket_protosw);
@@ -1179,7 +1387,9 @@ static int sctp_v4_add_protocol(void)
 
 	/* Register SCTP with inet layer.  */
 	if (inet_add_protocol(&sctp_protocol, IPPROTO_SCTP) < 0)
+	{
 		return -EAGAIN;
+	}
 
 	return 0;
 }
@@ -1271,18 +1481,27 @@ static int __net_init sctp_defaults_init(struct net *net)
 	net->sctp.max_autoclose		= INT_MAX / HZ;
 
 	status = sctp_sysctl_net_register(net);
+
 	if (status)
+	{
 		goto err_sysctl_register;
+	}
 
 	/* Allocate and initialise sctp mibs.  */
 	status = init_sctp_mibs(net);
+
 	if (status)
+	{
 		goto err_init_mibs;
+	}
 
 	/* Initialize proc fs directory.  */
 	status = sctp_proc_init(net);
+
 	if (status)
+	{
 		goto err_init_proc;
+	}
 
 	sctp_dbg_objcnt_init(net);
 
@@ -1297,7 +1516,7 @@ static int __net_init sctp_defaults_init(struct net *net)
 	spin_lock_init(&net->sctp.addr_wq_lock);
 	net->sctp.addr_wq_timer.expires = 0;
 	setup_timer(&net->sctp.addr_wq_timer, sctp_addr_wq_timeout_handler,
-		    (unsigned long)net);
+				(unsigned long)net);
 
 	return 0;
 
@@ -1322,7 +1541,8 @@ static void __net_exit sctp_defaults_exit(struct net *net)
 	sctp_sysctl_net_unregister(net);
 }
 
-static struct pernet_operations sctp_defaults_ops = {
+static struct pernet_operations sctp_defaults_ops =
+{
 	.init = sctp_defaults_init,
 	.exit = sctp_defaults_exit,
 };
@@ -1333,8 +1553,11 @@ static int __net_init sctp_ctrlsock_init(struct net *net)
 
 	/* Initialize the control inode/socket for handling OOTB packets.  */
 	status = sctp_ctl_sock_init(net);
+
 	if (status)
+	{
 		pr_err("Failed to initialize the SCTP control sock\n");
+	}
 
 	return status;
 }
@@ -1345,7 +1568,8 @@ static void __net_init sctp_ctrlsock_exit(struct net *net)
 	inet_ctl_sock_destroy(net->sctp.ctl_sock);
 }
 
-static struct pernet_operations sctp_ctrlsock_ops = {
+static struct pernet_operations sctp_ctrlsock_ops =
+{
 	.init = sctp_ctrlsock_init,
 	.exit = sctp_ctrlsock_exit,
 };
@@ -1367,22 +1591,31 @@ static __init int sctp_init(void)
 	/* Allocate bind_bucket and chunk caches. */
 	status = -ENOBUFS;
 	sctp_bucket_cachep = kmem_cache_create("sctp_bind_bucket",
-					       sizeof(struct sctp_bind_bucket),
-					       0, SLAB_HWCACHE_ALIGN,
-					       NULL);
+										   sizeof(struct sctp_bind_bucket),
+										   0, SLAB_HWCACHE_ALIGN,
+										   NULL);
+
 	if (!sctp_bucket_cachep)
+	{
 		goto out;
+	}
 
 	sctp_chunk_cachep = kmem_cache_create("sctp_chunk",
-					       sizeof(struct sctp_chunk),
-					       0, SLAB_HWCACHE_ALIGN,
-					       NULL);
+										  sizeof(struct sctp_chunk),
+										  0, SLAB_HWCACHE_ALIGN,
+										  NULL);
+
 	if (!sctp_chunk_cachep)
+	{
 		goto err_chunk_cachep;
+	}
 
 	status = percpu_counter_init(&sctp_sockets_allocated, 0, GFP_KERNEL);
+
 	if (status)
+	{
 		goto err_percpu_counter_init;
+	}
 
 	/* Implementation specific variables. */
 
@@ -1401,24 +1634,28 @@ static __init int sctp_init(void)
 
 	/* Set per-socket limits to no more than 1/128 the pressure threshold*/
 	limit = (sysctl_sctp_mem[1]) << (PAGE_SHIFT - 7);
-	max_share = min(4UL*1024*1024, limit);
+	max_share = min(4UL * 1024 * 1024, limit);
 
 	sysctl_sctp_rmem[0] = SK_MEM_QUANTUM; /* give each asoc 1 page min */
 	sysctl_sctp_rmem[1] = 1500 * SKB_TRUESIZE(1);
 	sysctl_sctp_rmem[2] = max(sysctl_sctp_rmem[1], max_share);
 
 	sysctl_sctp_wmem[0] = SK_MEM_QUANTUM;
-	sysctl_sctp_wmem[1] = 16*1024;
-	sysctl_sctp_wmem[2] = max(64*1024, max_share);
+	sysctl_sctp_wmem[1] = 16 * 1024;
+	sysctl_sctp_wmem[2] = max(64 * 1024, max_share);
 
 	/* Size and allocate the association hash table.
 	 * The methodology is similar to that of the tcp hash tables.
 	 * Though not identical.  Start by getting a goal size
 	 */
 	if (totalram_pages >= (128 * 1024))
+	{
 		goal = totalram_pages >> (22 - PAGE_SHIFT);
+	}
 	else
+	{
 		goal = totalram_pages >> (24 - PAGE_SHIFT);
+	}
 
 	/* Then compute the page order for said goal */
 	order = get_order(goal);
@@ -1427,7 +1664,7 @@ static __init int sctp_init(void)
 	 * want to create
 	 */
 	max_entry_order = get_order(MAX_SCTP_PORT_HASH_ENTRIES *
-				    sizeof(struct sctp_bind_hashbucket));
+								sizeof(struct sctp_bind_hashbucket));
 
 	/* Limit the page order by that maximum hash table size */
 	order = min(order, max_entry_order);
@@ -1436,12 +1673,16 @@ static __init int sctp_init(void)
 	sctp_ep_hashsize = 64;
 	sctp_ep_hashtable =
 		kmalloc(64 * sizeof(struct sctp_hashbucket), GFP_KERNEL);
-	if (!sctp_ep_hashtable) {
+
+	if (!sctp_ep_hashtable)
+	{
 		pr_err("Failed endpoint_hash alloc\n");
 		status = -ENOMEM;
 		goto err_ehash_alloc;
 	}
-	for (i = 0; i < sctp_ep_hashsize; i++) {
+
+	for (i = 0; i < sctp_ep_hashsize; i++)
+	{
 		rwlock_init(&sctp_ep_hashtable[i].lock);
 		INIT_HLIST_HEAD(&sctp_ep_hashtable[i].chain);
 	}
@@ -1451,12 +1692,15 @@ static __init int sctp_init(void)
 	 * table we want to support.  If we can't get that many pages
 	 * reduce the order and try again
 	 */
-	do {
+	do
+	{
 		sctp_port_hashtable = (struct sctp_bind_hashbucket *)
-			__get_free_pages(GFP_KERNEL | __GFP_NOWARN, order);
-	} while (!sctp_port_hashtable && --order > 0);
+							  __get_free_pages(GFP_KERNEL | __GFP_NOWARN, order);
+	}
+	while (!sctp_port_hashtable && --order > 0);
 
-	if (!sctp_port_hashtable) {
+	if (!sctp_port_hashtable)
+	{
 		pr_err("Failed bind hash alloc\n");
 		status = -ENOMEM;
 		goto err_bhash_alloc;
@@ -1466,7 +1710,7 @@ static __init int sctp_init(void)
 	 * port hash space we allocated
 	 */
 	num_entries = (1UL << order) * PAGE_SIZE /
-		      sizeof(struct sctp_bind_hashbucket);
+				  sizeof(struct sctp_bind_hashbucket);
 
 	/* And finish by rounding it down to the nearest power of two
 	 * this wastes some memory of course, but its needed because
@@ -1475,17 +1719,21 @@ static __init int sctp_init(void)
 	 */
 	sctp_port_hashsize = rounddown_pow_of_two(num_entries);
 
-	for (i = 0; i < sctp_port_hashsize; i++) {
+	for (i = 0; i < sctp_port_hashsize; i++)
+	{
 		spin_lock_init(&sctp_port_hashtable[i].lock);
 		INIT_HLIST_HEAD(&sctp_port_hashtable[i].chain);
 	}
 
 	status = sctp_transport_hashtable_init();
+
 	if (status)
+	{
 		goto err_thash_alloc;
+	}
 
 	pr_info("Hash tables configured (bind %d/%d)\n", sctp_port_hashsize,
-		num_entries);
+			num_entries);
 
 	sctp_sysctl_register();
 
@@ -1494,32 +1742,52 @@ static __init int sctp_init(void)
 	sctp_v6_pf_init();
 
 	status = register_pernet_subsys(&sctp_defaults_ops);
+
 	if (status)
+	{
 		goto err_register_defaults;
+	}
 
 	status = sctp_v4_protosw_init();
+
 	if (status)
+	{
 		goto err_protosw_init;
+	}
 
 	status = sctp_v6_protosw_init();
+
 	if (status)
+	{
 		goto err_v6_protosw_init;
+	}
 
 	status = register_pernet_subsys(&sctp_ctrlsock_ops);
+
 	if (status)
+	{
 		goto err_register_ctrlsock;
+	}
 
 	status = sctp_v4_add_protocol();
+
 	if (status)
+	{
 		goto err_add_protocol;
+	}
 
 	/* Register SCTP with inet6 layer.  */
 	status = sctp_v6_add_protocol();
+
 	if (status)
+	{
 		goto err_v6_add_protocol;
+	}
 
 	if (sctp_offload_init() < 0)
+	{
 		pr_crit("%s: Cannot add SCTP protocol offload\n", __func__);
+	}
 
 out:
 	return status;
@@ -1538,8 +1806,8 @@ err_register_defaults:
 	sctp_v6_pf_exit();
 	sctp_sysctl_unregister();
 	free_pages((unsigned long)sctp_port_hashtable,
-		   get_order(sctp_port_hashsize *
-			     sizeof(struct sctp_bind_hashbucket)));
+			   get_order(sctp_port_hashsize *
+						 sizeof(struct sctp_bind_hashbucket)));
 err_bhash_alloc:
 	sctp_transport_hashtable_destroy();
 err_thash_alloc:
@@ -1579,8 +1847,8 @@ static __exit void sctp_exit(void)
 	sctp_sysctl_unregister();
 
 	free_pages((unsigned long)sctp_port_hashtable,
-		   get_order(sctp_port_hashsize *
-			     sizeof(struct sctp_bind_hashbucket)));
+			   get_order(sctp_port_hashsize *
+						 sizeof(struct sctp_bind_hashbucket)));
 	kfree(sctp_ep_hashtable);
 	sctp_transport_hashtable_destroy();
 

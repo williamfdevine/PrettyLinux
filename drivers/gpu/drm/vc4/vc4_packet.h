@@ -26,7 +26,8 @@
 
 #include "vc4_regs.h" /* for VC4_MASK, VC4_GET_FIELD, VC4_SET_FIELD */
 
-enum vc4_packet {
+enum vc4_packet
+{
 	VC4_PACKET_HALT = 0,
 	VC4_PACKET_NOP = 1,
 
@@ -305,7 +306,8 @@ enum vc4_packet {
 #define VC4_PRIMITIVE_LIST_FORMAT_TYPE_TRIANGLES   (2 << 0)
 #define VC4_PRIMITIVE_LIST_FORMAT_TYPE_RHT         (3 << 0)
 
-enum vc4_texture_data_type {
+enum vc4_texture_data_type
+{
 	VC4_TEXTURE_TYPE_RGBA8888 = 0,
 	VC4_TEXTURE_TYPE_RGBX8888 = 1,
 	VC4_TEXTURE_TYPE_RGBA4444 = 2,

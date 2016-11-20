@@ -38,7 +38,7 @@
  * Return: the physical address or CEC_PHYS_ADDR_INVALID if there is none.
  */
 u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
-			   unsigned int *offset);
+						   unsigned int *offset);
 
 /**
  * cec_set_edid_phys_addr() - find and set the physical address

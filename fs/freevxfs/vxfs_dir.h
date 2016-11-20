@@ -47,7 +47,8 @@
  * The hash may be empty and in fact we do not use it all in the
  * Linux driver for now.
  */
-struct vxfs_dirblk {
+struct vxfs_dirblk
+{
 	__fs16		d_free;		/* free space in dirblock */
 	__fs16		d_nhash;	/* no of hash chains */
 	__fs16		d_hash[1];	/* hash chain */
@@ -62,7 +63,8 @@ struct vxfs_dirblk {
 /*
  * VxFS directory entry.
  */
-struct vxfs_direct {
+struct vxfs_direct
+{
 	__fs32		d_ino;			/* inode number */
 	__fs16		d_reclen;		/* record length */
 	__fs16		d_namelen;		/* d_name length */

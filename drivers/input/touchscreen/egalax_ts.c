@@ -59,7 +59,8 @@
 #define EGALAX_MAX_Y	32760
 #define EGALAX_MAX_TRIES 100
 
-struct egalax_ts {
+struct egalax_ts
+{
 	struct i2c_client		*client;
 	struct input_dev		*input_dev;
 };
@@ -75,14 +76,19 @@ static irqreturn_t egalax_ts_interrupt(int irq, void *dev_id)
 	bool down, valid;
 	u8 state;
 
-	do {
+	do
+	{
 		ret = i2c_master_recv(client, buf, MAX_I2C_DATA_LEN);
-	} while (ret == -EAGAIN && tries++ < EGALAX_MAX_TRIES);
+	}
+	while (ret == -EAGAIN && tries++ < EGALAX_MAX_TRIES);
 
 	if (ret < 0)
+	{
 		return IRQ_HANDLED;
+	}
 
-	if (buf[0] != REPORT_MODE_MTTOUCH) {
+	if (buf[0] != REPORT_MODE_MTTOUCH)
+	{
 		/* ignore mouse events and vendor events */
 		return IRQ_HANDLED;
 	}
@@ -96,7 +102,8 @@ static irqreturn_t egalax_ts_interrupt(int irq, void *dev_id)
 	id = (state & EVENT_ID_MASK) >> EVENT_ID_OFFSET;
 	down = state & EVENT_DOWN_UP;
 
-	if (!valid || id > MAX_SUPPORT_POINTS) {
+	if (!valid || id > MAX_SUPPORT_POINTS)
+	{
 		dev_dbg(&client->dev, "point invalid\n");
 		return IRQ_HANDLED;
 	}
@@ -105,9 +112,10 @@ static irqreturn_t egalax_ts_interrupt(int irq, void *dev_id)
 	input_mt_report_slot_state(input_dev, MT_TOOL_FINGER, down);
 
 	dev_dbg(&client->dev, "%s id:%d x:%d y:%d z:%d",
-		down ? "down" : "up", id, x, y, z);
+			down ? "down" : "up", id, x, y, z);
 
-	if (down) {
+	if (down)
+	{
 		input_report_abs(input_dev, ABS_MT_POSITION_X, x);
 		input_report_abs(input_dev, ABS_MT_POSITION_Y, y);
 		input_report_abs(input_dev, ABS_MT_PRESSURE, z);
@@ -127,17 +135,24 @@ static int egalax_wake_up_device(struct i2c_client *client)
 	int ret;
 
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	gpio = of_get_named_gpio(np, "wakeup-gpios", 0);
+
 	if (!gpio_is_valid(gpio))
+	{
 		return -ENODEV;
+	}
 
 	ret = gpio_request(gpio, "egalax_irq");
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev,
-			"request gpio failed, cannot wake up controller: %d\n",
-			ret);
+				"request gpio failed, cannot wake up controller: %d\n",
+				ret);
 		return ret;
 	}
 
@@ -158,27 +173,34 @@ static int egalax_firmware_version(struct i2c_client *client)
 	int ret;
 
 	ret = i2c_master_send(client, cmd, MAX_I2C_DATA_LEN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
 static int egalax_ts_probe(struct i2c_client *client,
-			   const struct i2c_device_id *id)
+						   const struct i2c_device_id *id)
 {
 	struct egalax_ts *ts;
 	struct input_dev *input_dev;
 	int error;
 
 	ts = devm_kzalloc(&client->dev, sizeof(struct egalax_ts), GFP_KERNEL);
-	if (!ts) {
+
+	if (!ts)
+	{
 		dev_err(&client->dev, "Failed to allocate memory\n");
 		return -ENOMEM;
 	}
 
 	input_dev = devm_input_allocate_device(&client->dev);
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		dev_err(&client->dev, "Failed to allocate memory\n");
 		return -ENOMEM;
 	}
@@ -188,13 +210,17 @@ static int egalax_ts_probe(struct i2c_client *client,
 
 	/* controller may be in sleep, wake it up. */
 	error = egalax_wake_up_device(client);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "Failed to wake up the controller\n");
 		return error;
 	}
 
 	error = egalax_firmware_version(client);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(&client->dev, "Failed to read firmware version\n");
 		return error;
 	}
@@ -209,31 +235,37 @@ static int egalax_ts_probe(struct i2c_client *client,
 	input_set_abs_params(input_dev, ABS_X, 0, EGALAX_MAX_X, 0, 0);
 	input_set_abs_params(input_dev, ABS_Y, 0, EGALAX_MAX_Y, 0, 0);
 	input_set_abs_params(input_dev,
-			     ABS_MT_POSITION_X, 0, EGALAX_MAX_X, 0, 0);
+						 ABS_MT_POSITION_X, 0, EGALAX_MAX_X, 0, 0);
 	input_set_abs_params(input_dev,
-			     ABS_MT_POSITION_Y, 0, EGALAX_MAX_Y, 0, 0);
+						 ABS_MT_POSITION_Y, 0, EGALAX_MAX_Y, 0, 0);
 	input_mt_init_slots(input_dev, MAX_SUPPORT_POINTS, 0);
 
 	input_set_drvdata(input_dev, ts);
 
 	error = devm_request_threaded_irq(&client->dev, client->irq, NULL,
-					  egalax_ts_interrupt,
-					  IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-					  "egalax_ts", ts);
-	if (error < 0) {
+									  egalax_ts_interrupt,
+									  IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+									  "egalax_ts", ts);
+
+	if (error < 0)
+	{
 		dev_err(&client->dev, "Failed to register interrupt\n");
 		return error;
 	}
 
 	error = input_register_device(ts->input_dev);
+
 	if (error)
+	{
 		return error;
+	}
 
 	i2c_set_clientdata(client, ts);
 	return 0;
 }
 
-static const struct i2c_device_id egalax_ts_id[] = {
+static const struct i2c_device_id egalax_ts_id[] =
+{
 	{ "egalax_ts", 0 },
 	{ }
 };
@@ -241,7 +273,8 @@ MODULE_DEVICE_TABLE(i2c, egalax_ts_id);
 
 static int __maybe_unused egalax_ts_suspend(struct device *dev)
 {
-	static const u8 suspend_cmd[MAX_I2C_DATA_LEN] = {
+	static const u8 suspend_cmd[MAX_I2C_DATA_LEN] =
+	{
 		0x3, 0x6, 0xa, 0x3, 0x36, 0x3f, 0x2, 0, 0, 0
 	};
 	struct i2c_client *client = to_i2c_client(dev);
@@ -260,13 +293,15 @@ static int __maybe_unused egalax_ts_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(egalax_ts_pm_ops, egalax_ts_suspend, egalax_ts_resume);
 
-static const struct of_device_id egalax_ts_dt_ids[] = {
+static const struct of_device_id egalax_ts_dt_ids[] =
+{
 	{ .compatible = "eeti,egalax_ts" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, egalax_ts_dt_ids);
 
-static struct i2c_driver egalax_ts_driver = {
+static struct i2c_driver egalax_ts_driver =
+{
 	.driver = {
 		.name	= "egalax_ts",
 		.pm	= &egalax_ts_pm_ops,

@@ -33,8 +33,8 @@ module_param(debug, int, 0644);
 MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
 
 #define rc(args...)  do {						\
-	printk(KERN_ERR  "s921: " args);				\
-} while (0)
+		printk(KERN_ERR  "s921: " args);				\
+	} while (0)
 
 #define dprintk(args...)						\
 	do {								\
@@ -44,7 +44,8 @@ MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
 		}							\
 	} while (0)
 
-struct s921_state {
+struct s921_state
+{
 	struct i2c_adapter *i2c;
 	const struct s921_config *config;
 
@@ -59,10 +60,12 @@ struct s921_state {
  * fixme: The bounds on the bands do not match the doc in real life.
  * fixme: Some of them have been moved, other might need adjustment.
  */
-static struct s921_bandselect_val {
+static struct s921_bandselect_val
+{
 	u32 freq_low;
 	u8  band_reg;
-} s921_bandselect[] = {
+} s921_bandselect[] =
+{
 	{         0, 0x7b },
 	{ 485140000, 0x5b },
 	{ 515140000, 0x3b },
@@ -73,12 +76,14 @@ static struct s921_bandselect_val {
 	{ 713140000, 0x9b },
 };
 
-struct regdata {
+struct regdata
+{
 	u8 reg;
 	u8 data;
 };
 
-static struct regdata s921_init[] = {
+static struct regdata s921_init[] =
+{
 	{ 0x01, 0x80 },		/* Probably, a reset sequence */
 	{ 0x01, 0x40 },
 	{ 0x01, 0x80 },
@@ -186,7 +191,8 @@ static struct regdata s921_init[] = {
 	{ 0xf8, 0xd7 },
 };
 
-static struct regdata s921_prefreq[] = {
+static struct regdata s921_prefreq[] =
+{
 	{ 0x47, 0x60 },
 	{ 0x68, 0x00 },
 	{ 0x69, 0x89 },
@@ -194,7 +200,8 @@ static struct regdata s921_prefreq[] = {
 	{ 0xf1, 0x19 },
 };
 
-static struct regdata s921_postfreq[] = {
+static struct regdata s921_postfreq[] =
+{
 	{ 0xf5, 0xae },
 	{ 0xf6, 0xb7 },
 	{ 0xf7, 0xba },
@@ -204,18 +211,21 @@ static struct regdata s921_postfreq[] = {
 };
 
 static int s921_i2c_writereg(struct s921_state *state,
-			     u8 i2c_addr, int reg, int data)
+							 u8 i2c_addr, int reg, int data)
 {
 	u8 buf[] = { reg, data };
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = i2c_addr, .flags = 0, .buf = buf, .len = 2
 	};
 	int rc;
 
 	rc = i2c_transfer(state->i2c, &msg, 1);
-	if (rc != 1) {
+
+	if (rc != 1)
+	{
 		printk("%s: writereg rcor(rc == %i, reg == 0x%02x,"
-			 " data == 0x%02x)\n", __func__, rc, reg, data);
+			   " data == 0x%02x)\n", __func__, rc, reg, data);
 		return rc;
 	}
 
@@ -223,15 +233,20 @@ static int s921_i2c_writereg(struct s921_state *state,
 }
 
 static int s921_i2c_writeregdata(struct s921_state *state, u8 i2c_addr,
-				 struct regdata *rd, int size)
+								 struct regdata *rd, int size)
 {
 	int i, rc;
 
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		rc = s921_i2c_writereg(state, i2c_addr, rd[i].reg, rd[i].data);
+
 		if (rc < 0)
+		{
 			return rc;
+		}
 	}
+
 	return 0;
 }
 
@@ -239,14 +254,16 @@ static int s921_i2c_readreg(struct s921_state *state, u8 i2c_addr, u8 reg)
 {
 	u8 val;
 	int rc;
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{ .addr = i2c_addr, .flags = 0, .buf = &reg, .len = 1 },
 		{ .addr = i2c_addr, .flags = I2C_M_RD, .buf = &val, .len = 1 }
 	};
 
 	rc = i2c_transfer(state->i2c, msg, 2);
 
-	if (rc != 2) {
+	if (rc != 2)
+	{
 		rc("%s: reg=0x%x (rcor=%d)\n", __func__, reg, rc);
 		return rc;
 	}
@@ -260,7 +277,7 @@ static int s921_i2c_readreg(struct s921_state *state, u8 i2c_addr, u8 reg)
 	s921_i2c_writereg(state, state->config->demod_address, reg, val)
 #define s921_writeregdata(state, regdata) \
 	s921_i2c_writeregdata(state, state->config->demod_address, \
-	regdata, ARRAY_SIZE(regdata))
+						  regdata, ARRAY_SIZE(regdata))
 
 static int s921_pll_tune(struct dvb_frontend *fe)
 {
@@ -275,10 +292,14 @@ static int s921_pll_tune(struct dvb_frontend *fe)
 
 	for (band = 0; band < ARRAY_SIZE(s921_bandselect); band++)
 		if (p->frequency < s921_bandselect[band].freq_low)
+		{
 			break;
+		}
+
 	band--;
 
-	if (band < 0) {
+	if (band < 0)
+	{
 		rc("%s: frequency out of range\n", __func__);
 		return -EINVAL;
 	}
@@ -290,32 +311,52 @@ static int s921_pll_tune(struct dvb_frontend *fe)
 	f_offset = ((unsigned long)offset) + 2321;
 
 	rc = s921_writeregdata(state, s921_prefreq);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	rc = s921_writereg(state, 0xf2, (f_offset >> 8) & 0xff);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	rc = s921_writereg(state, 0xf3, f_offset & 0xff);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	rc = s921_writereg(state, 0xf4, f_switch);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	rc = s921_writeregdata(state, s921_postfreq);
-	if (rc < 0)
-		return rc;
 
-	for (i = 0 ; i < 6; i++) {
+	if (rc < 0)
+	{
+		return rc;
+	}
+
+	for (i = 0 ; i < 6; i++)
+	{
 		rc = s921_readreg(state, 0x80);
 		dprintk("status 0x80: %02x\n", rc);
 	}
+
 	rc = s921_writereg(state, 0x01, 0x40);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	rc = s921_readreg(state, 0x01);
 	dprintk("status 0x01: %02x\n", rc);
@@ -342,8 +383,11 @@ static int s921_initfe(struct dvb_frontend *fe)
 	dprintk("\n");
 
 	rc = s921_writeregdata(state, s921_init);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	return 0;
 }
@@ -356,32 +400,41 @@ static int s921_read_status(struct dvb_frontend *fe, enum fe_status *status)
 	*status = 0;
 
 	rc = s921_readreg(state, 0x81);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	regstatus = rc << 8;
 
 	rc = s921_readreg(state, 0x82);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	regstatus |= rc;
 
 	dprintk("status = %04x\n", regstatus);
 
 	/* Full Sync - We don't know what each bit means on regs 0x81/0x82 */
-	if ((regstatus & 0xff) == 0x40) {
+	if ((regstatus & 0xff) == 0x40)
+	{
 		*status = FE_HAS_SIGNAL  |
-			  FE_HAS_CARRIER |
-			  FE_HAS_VITERBI |
-			  FE_HAS_SYNC    |
-			  FE_HAS_LOCK;
-	} else if (regstatus & 0x40) {
+				  FE_HAS_CARRIER |
+				  FE_HAS_VITERBI |
+				  FE_HAS_SYNC    |
+				  FE_HAS_LOCK;
+	}
+	else if (regstatus & 0x40)
+	{
 		/* This is close to Full Sync, but not enough to get useful info */
 		*status = FE_HAS_SIGNAL  |
-			  FE_HAS_CARRIER |
-			  FE_HAS_VITERBI |
-			  FE_HAS_SYNC;
+				  FE_HAS_CARRIER |
+				  FE_HAS_VITERBI |
+				  FE_HAS_SYNC;
 	}
 
 	return 0;
@@ -395,8 +448,11 @@ static int s921_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
 
 	/* FIXME: Use the proper register for it... 0x80? */
 	rc = s921_read_status(fe, &status);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	*strength = (status & FE_HAS_LOCK) ? 0xffff : 0;
 
@@ -425,8 +481,11 @@ static int s921_set_frontend(struct dvb_frontend *fe)
 	/* FIXME: We don't know how to use non-auto mode */
 
 	rc = s921_pll_tune(fe);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	state->currentfreq = p->frequency;
 
@@ -434,7 +493,7 @@ static int s921_set_frontend(struct dvb_frontend *fe)
 }
 
 static int s921_get_frontend(struct dvb_frontend *fe,
-			     struct dtv_frontend_properties *p)
+							 struct dtv_frontend_properties *p)
 {
 	struct s921_state *state = fe->demodulator_priv;
 
@@ -446,20 +505,24 @@ static int s921_get_frontend(struct dvb_frontend *fe,
 }
 
 static int s921_tune(struct dvb_frontend *fe,
-			bool re_tune,
-			unsigned int mode_flags,
-			unsigned int *delay,
-			enum fe_status *status)
+					 bool re_tune,
+					 unsigned int mode_flags,
+					 unsigned int *delay,
+					 enum fe_status *status)
 {
 	int rc = 0;
 
 	dprintk("\n");
 
 	if (re_tune)
+	{
 		rc = s921_set_frontend(fe);
+	}
 
 	if (!(mode_flags & FE_TUNE_MODE_ONESHOT))
+	{
 		s921_read_status(fe, status);
+	}
 
 	return rc;
 }
@@ -480,14 +543,16 @@ static void s921_release(struct dvb_frontend *fe)
 static struct dvb_frontend_ops s921_ops;
 
 struct dvb_frontend *s921_attach(const struct s921_config *config,
-				    struct i2c_adapter *i2c)
+								 struct i2c_adapter *i2c)
 {
 	/* allocate memory for the internal state */
 	struct s921_state *state =
 		kzalloc(sizeof(struct s921_state), GFP_KERNEL);
 
 	dprintk("\n");
-	if (!state) {
+
+	if (!state)
+	{
 		rc("Unable to kzalloc\n");
 		return NULL;
 	}
@@ -498,14 +563,15 @@ struct dvb_frontend *s921_attach(const struct s921_config *config,
 
 	/* create dvb_frontend */
 	memcpy(&state->frontend.ops, &s921_ops,
-		sizeof(struct dvb_frontend_ops));
+		   sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 
 	return &state->frontend;
 }
 EXPORT_SYMBOL(s921_attach);
 
-static struct dvb_frontend_ops s921_ops = {
+static struct dvb_frontend_ops s921_ops =
+{
 	.delsys = { SYS_ISDBT },
 	/* Use dib8000 values per default */
 	.info = {
@@ -518,13 +584,13 @@ static struct dvb_frontend_ops s921_ops = {
 		 */
 		.frequency_max = 806000000,
 		.frequency_tolerance = 0,
-		 .caps = FE_CAN_INVERSION_AUTO |
-			 FE_CAN_FEC_1_2  | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
-			 FE_CAN_FEC_5_6  | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
-			 FE_CAN_QPSK     | FE_CAN_QAM_16 | FE_CAN_QAM_64 |
-			 FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
-			 FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_RECOVER |
-			 FE_CAN_HIERARCHY_AUTO,
+		.caps = FE_CAN_INVERSION_AUTO |
+		FE_CAN_FEC_1_2  | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+		FE_CAN_FEC_5_6  | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+		FE_CAN_QPSK     | FE_CAN_QAM_16 | FE_CAN_QAM_64 |
+		FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
+		FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_RECOVER |
+		FE_CAN_HIERARCHY_AUTO,
 	},
 
 	.release = s921_release,

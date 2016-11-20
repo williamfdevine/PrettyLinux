@@ -41,64 +41,86 @@ nvkm_output_dp_train(struct nvkm_output *base, u32 datarate, bool wait)
 
 	/* check that the link is trained at a high enough rate */
 	ret = nvkm_rdaux(outp->aux, DPCD_LC00_LINK_BW_SET, link, 2);
-	if (ret) {
+
+	if (ret)
+	{
 		OUTP_DBG(&outp->base,
-			 "failed to read link config, assuming no sink");
+				 "failed to read link config, assuming no sink");
 		goto done;
 	}
 
 	linkrate = link[0] * 27000 * (link[1] & DPCD_LC01_LANE_COUNT_SET);
 	linkrate = (linkrate * 8) / 10; /* 8B/10B coding overhead */
 	datarate = (datarate + 9) / 10; /* -> decakilobits */
-	if (linkrate < datarate) {
+
+	if (linkrate < datarate)
+	{
 		OUTP_DBG(&outp->base, "link not trained at sufficient rate");
 		goto done;
 	}
 
 	/* check that link is still trained */
 	ret = nvkm_rdaux(outp->aux, DPCD_LS02, stat, 3);
-	if (ret) {
+
+	if (ret)
+	{
 		OUTP_DBG(&outp->base,
-			 "failed to read link status, assuming no sink");
+				 "failed to read link status, assuming no sink");
 		goto done;
 	}
 
-	if (stat[2] & DPCD_LS04_INTERLANE_ALIGN_DONE) {
-		for (i = 0; i < (link[1] & DPCD_LC01_LANE_COUNT_SET); i++) {
+	if (stat[2] & DPCD_LS04_INTERLANE_ALIGN_DONE)
+	{
+		for (i = 0; i < (link[1] & DPCD_LC01_LANE_COUNT_SET); i++)
+		{
 			u8 lane = (stat[i >> 1] >> ((i & 1) * 4)) & 0x0f;
+
 			if (!(lane & DPCD_LS02_LANE0_CR_DONE) ||
-			    !(lane & DPCD_LS02_LANE0_CHANNEL_EQ_DONE) ||
-			    !(lane & DPCD_LS02_LANE0_SYMBOL_LOCKED)) {
+				!(lane & DPCD_LS02_LANE0_CHANNEL_EQ_DONE) ||
+				!(lane & DPCD_LS02_LANE0_SYMBOL_LOCKED))
+			{
 				OUTP_DBG(&outp->base,
-					 "lane %d not equalised", lane);
+						 "lane %d not equalised", lane);
 				goto done;
 			}
 		}
+
 		retrain = false;
-	} else {
+	}
+	else
+	{
 		OUTP_DBG(&outp->base, "no inter-lane alignment");
 	}
 
 done:
-	if (retrain || !atomic_read(&outp->lt.done)) {
+
+	if (retrain || !atomic_read(&outp->lt.done))
+	{
 		/* no sink, but still need to configure source */
-		if (outp->dpcd[DPCD_RC00_DPCD_REV] == 0x00) {
+		if (outp->dpcd[DPCD_RC00_DPCD_REV] == 0x00)
+		{
 			outp->dpcd[DPCD_RC01_MAX_LINK_RATE] =
 				outp->base.info.dpconf.link_bw;
 			outp->dpcd[DPCD_RC02] =
 				outp->base.info.dpconf.link_nr;
 		}
+
 		atomic_set(&outp->lt.done, 0);
 		schedule_work(&outp->lt.work);
-	} else {
+	}
+	else
+	{
 		nvkm_notify_get(&outp->irq);
 	}
 
-	if (wait) {
+	if (wait)
+	{
 		if (!wait_event_timeout(outp->lt.wait,
-					atomic_read(&outp->lt.done),
-					msecs_to_jiffies(2000)))
+								atomic_read(&outp->lt.done),
+								msecs_to_jiffies(2000)))
+		{
 			ret = -ETIMEDOUT;
+		}
 	}
 
 	return ret;
@@ -109,21 +131,25 @@ nvkm_output_dp_enable(struct nvkm_output_dp *outp, bool enable)
 {
 	struct nvkm_i2c_aux *aux = outp->aux;
 
-	if (enable) {
-		if (!outp->present) {
+	if (enable)
+	{
+		if (!outp->present)
+		{
 			OUTP_DBG(&outp->base, "aux power -> always");
 			nvkm_i2c_aux_monitor(aux, true);
 			outp->present = true;
 		}
 
 		if (!nvkm_rdaux(aux, DPCD_RC00_DPCD_REV, outp->dpcd,
-				sizeof(outp->dpcd))) {
+						sizeof(outp->dpcd)))
+		{
 			nvkm_output_dp_train(&outp->base, 0, true);
 			return;
 		}
 	}
 
-	if (outp->present) {
+	if (outp->present)
+	{
 		OUTP_DBG(&outp->base, "aux power -> demand");
 		nvkm_i2c_aux_monitor(aux, false);
 		outp->present = false;
@@ -145,9 +171,14 @@ nvkm_output_dp_hpd(struct nvkm_notify *notify)
 	nvkm_output_dp_enable(outp, true);
 
 	if (line->mask & NVKM_I2C_UNPLUG)
+	{
 		rep.mask |= NVIF_NOTIFY_CONN_V0_UNPLUG;
+	}
+
 	if (line->mask & NVKM_I2C_PLUG)
+	{
 		rep.mask |= NVIF_NOTIFY_CONN_V0_PLUG;
+	}
 
 	nvkm_event_send(&disp->hpd, rep.mask, conn->index, &rep, sizeof(rep));
 	return NVKM_NOTIFY_KEEP;
@@ -160,7 +191,8 @@ nvkm_output_dp_irq(struct nvkm_notify *notify)
 	struct nvkm_output_dp *outp = container_of(notify, typeof(*outp), irq);
 	struct nvkm_connector *conn = outp->base.conn;
 	struct nvkm_disp *disp = outp->base.disp;
-	struct nvif_notify_conn_rep_v0 rep = {
+	struct nvif_notify_conn_rep_v0 rep =
+	{
 		.mask = NVIF_NOTIFY_CONN_V0_IRQ,
 	};
 
@@ -200,7 +232,8 @@ nvkm_output_dp_dtor(struct nvkm_output *base)
 }
 
 static const struct nvkm_output_func
-nvkm_output_dp_func = {
+	nvkm_output_dp_func =
+{
 	.dtor = nvkm_output_dp_dtor,
 	.init = nvkm_output_dp_init,
 	.fini = nvkm_output_dp_fini,
@@ -208,8 +241,8 @@ nvkm_output_dp_func = {
 
 int
 nvkm_output_dp_ctor(const struct nvkm_output_dp_func *func,
-		    struct nvkm_disp *disp, int index, struct dcb_output *dcbE,
-		    struct nvkm_i2c_aux *aux, struct nvkm_output_dp *outp)
+					struct nvkm_disp *disp, int index, struct dcb_output *dcbE,
+					struct nvkm_i2c_aux *aux, struct nvkm_output_dp *outp)
 {
 	struct nvkm_device *device = disp->engine.subdev.device;
 	struct nvkm_bios *bios = device->bios;
@@ -221,22 +254,26 @@ nvkm_output_dp_ctor(const struct nvkm_output_dp_func *func,
 	nvkm_output_ctor(&nvkm_output_dp_func, disp, index, dcbE, &outp->base);
 	outp->func = func;
 	outp->aux = aux;
-	if (!outp->aux) {
+
+	if (!outp->aux)
+	{
 		OUTP_ERR(&outp->base, "no aux");
 		return -ENODEV;
 	}
 
 	/* bios data is not optional */
 	data = nvbios_dpout_match(bios, outp->base.info.hasht,
-				  outp->base.info.hashm, &outp->version,
-				  &hdr, &cnt, &len, &outp->info);
-	if (!data) {
+							  outp->base.info.hashm, &outp->version,
+							  &hdr, &cnt, &len, &outp->info);
+
+	if (!data)
+	{
 		OUTP_ERR(&outp->base, "no bios dp data");
 		return -ENODEV;
 	}
 
 	OUTP_DBG(&outp->base, "bios dp %02x %02x %02x %02x",
-		 outp->version, hdr, cnt, len);
+			 outp->version, hdr, cnt, len);
 
 	/* link training */
 	INIT_WORK(&outp->lt.work, nvkm_dp_train);
@@ -245,28 +282,34 @@ nvkm_output_dp_ctor(const struct nvkm_output_dp_func *func,
 
 	/* link maintenance */
 	ret = nvkm_notify_init(NULL, &i2c->event, nvkm_output_dp_irq, true,
-			       &(struct nvkm_i2c_ntfy_req) {
-				.mask = NVKM_I2C_IRQ,
-				.port = outp->aux->id,
-			       },
-			       sizeof(struct nvkm_i2c_ntfy_req),
-			       sizeof(struct nvkm_i2c_ntfy_rep),
-			       &outp->irq);
-	if (ret) {
+						   &(struct nvkm_i2c_ntfy_req)
+	{
+		.mask = NVKM_I2C_IRQ,
+		 .port = outp->aux->id,
+	},
+	sizeof(struct nvkm_i2c_ntfy_req),
+	sizeof(struct nvkm_i2c_ntfy_rep),
+	&outp->irq);
+
+	if (ret)
+	{
 		OUTP_ERR(&outp->base, "error monitoring aux irq: %d", ret);
 		return ret;
 	}
 
 	/* hotplug detect, replaces gpio-based mechanism with aux events */
 	ret = nvkm_notify_init(NULL, &i2c->event, nvkm_output_dp_hpd, true,
-			       &(struct nvkm_i2c_ntfy_req) {
-				.mask = NVKM_I2C_PLUG | NVKM_I2C_UNPLUG,
-				.port = outp->aux->id,
-			       },
-			       sizeof(struct nvkm_i2c_ntfy_req),
-			       sizeof(struct nvkm_i2c_ntfy_rep),
-			       &outp->hpd);
-	if (ret) {
+						   &(struct nvkm_i2c_ntfy_req)
+	{
+		.mask = NVKM_I2C_PLUG | NVKM_I2C_UNPLUG,
+		 .port = outp->aux->id,
+	},
+	sizeof(struct nvkm_i2c_ntfy_req),
+	sizeof(struct nvkm_i2c_ntfy_rep),
+	&outp->hpd);
+
+	if (ret)
+	{
 		OUTP_ERR(&outp->base, "error monitoring aux hpd: %d", ret);
 		return ret;
 	}
@@ -276,15 +319,18 @@ nvkm_output_dp_ctor(const struct nvkm_output_dp_func *func,
 
 int
 nvkm_output_dp_new_(const struct nvkm_output_dp_func *func,
-		    struct nvkm_disp *disp, int index, struct dcb_output *dcbE,
-		    struct nvkm_output **poutp)
+					struct nvkm_disp *disp, int index, struct dcb_output *dcbE,
+					struct nvkm_output **poutp)
 {
 	struct nvkm_i2c *i2c = disp->engine.subdev.device->i2c;
 	struct nvkm_i2c_aux *aux = nvkm_i2c_aux_find(i2c, dcbE->i2c_index);
 	struct nvkm_output_dp *outp;
 
 	if (!(outp = kzalloc(sizeof(*outp), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*poutp = &outp->base;
 
 	return nvkm_output_dp_ctor(func, disp, index, dcbE, aux, outp);

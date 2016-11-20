@@ -42,7 +42,8 @@
  * register a pci_driver, because someone else might one day
  * want to register another driver on the same PCI id.
  */
-static const struct pci_device_id pci_tbl[] = {
+static const struct pci_device_id pci_tbl[] =
+{
 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_LX_AES), 0, },
 	{ 0, },	/* terminate list */
 };
@@ -63,17 +64,24 @@ static int geode_rng_data_present(struct hwrng *rng, int wait)
 	void __iomem *mem = (void __iomem *)rng->priv;
 	int data, i;
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i++)
+	{
 		data = !!(readl(mem + GEODE_RNG_STATUS_REG));
+
 		if (data || !wait)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
+
 	return data;
 }
 
 
-static struct hwrng geode_rng = {
+static struct hwrng geode_rng =
+{
 	.name		= "geode",
 	.data_present	= geode_rng_data_present,
 	.data_read	= geode_rng_data_read,
@@ -87,16 +95,26 @@ static int __init mod_init(void)
 	void __iomem *mem;
 	unsigned long rng_base;
 
-	for_each_pci_dev(pdev) {
+	for_each_pci_dev(pdev)
+	{
 		ent = pci_match_id(pci_tbl, pdev);
-		if (ent) {
+
+		if (ent)
+		{
 			rng_base = pci_resource_start(pdev, 0);
+
 			if (rng_base == 0)
+			{
 				return -ENODEV;
+			}
 
 			mem = devm_ioremap(&pdev->dev, rng_base, 0x58);
+
 			if (!mem)
+			{
 				return -ENOMEM;
+			}
+
 			geode_rng.priv = (unsigned long)mem;
 
 			pr_info("AMD Geode RNG detected\n");

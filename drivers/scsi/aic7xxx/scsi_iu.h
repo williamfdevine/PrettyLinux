@@ -25,9 +25,9 @@ struct scsi_status_iu_header
 #define		SIU_PFC_INVALID_TYPE_CODE	6
 #define		SIU_PFC_ILLEGAL_REQUEST		7
 #define SIU_SENSE_OFFSET(siu)				\
-    (12 + (((siu)->flags & SIU_RSPVALID)		\
-	? scsi_4btoul((siu)->pkt_failures_length)	\
-	: 0))
+	(12 + (((siu)->flags & SIU_RSPVALID)		\
+		   ? scsi_4btoul((siu)->pkt_failures_length)	\
+		   : 0))
 
 #define	SIU_TASKMGMT_NONE		0x00
 #define	SIU_TASKMGMT_ABORT_TASK		0x01

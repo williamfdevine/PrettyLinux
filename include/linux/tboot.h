@@ -24,7 +24,8 @@
 #define _LINUX_TBOOT_H
 
 /* these must have the values from 0-5 in this order */
-enum {
+enum
+{
 	TB_SHUTDOWN_REBOOT = 0,
 	TB_SHUTDOWN_S5,
 	TB_SHUTDOWN_S4,
@@ -41,13 +42,15 @@ enum {
 
 #define MAX_TB_MAC_REGIONS      32
 
-struct tboot_mac_region {
+struct tboot_mac_region
+{
 	u64  start;         /* must be 64 byte -aligned */
 	u32  size;          /* must be 64 byte -granular */
 } __packed;
 
 /* GAS - Generic Address Structure (ACPI 2.0+) */
-struct tboot_acpi_generic_address {
+struct tboot_acpi_generic_address
+{
 	u8  space_id;
 	u8  bit_width;
 	u8  bit_offset;
@@ -59,7 +62,8 @@ struct tboot_acpi_generic_address {
  * combines Sx info from FADT and FACS tables per ACPI 2.0+ spec
  * (http://www.acpi.info/)
  */
-struct tboot_acpi_sleep_info {
+struct tboot_acpi_sleep_info
+{
 	struct tboot_acpi_generic_address pm1a_cnt_blk;
 	struct tboot_acpi_generic_address pm1b_cnt_blk;
 	struct tboot_acpi_generic_address pm1a_evt_blk;
@@ -74,7 +78,8 @@ struct tboot_acpi_sleep_info {
 /*
  * shared memory page used for communication between tboot and kernel
  */
-struct tboot {
+struct tboot
+{
 	/*
 	 * version 3+ fields:
 	 */
@@ -132,7 +137,7 @@ struct tboot {
  * represented as {} in the char array used here
  */
 #define TBOOT_UUID	{0xff, 0x8d, 0x3c, 0x66, 0xb3, 0xe8, 0x82, 0x4b, 0xbf,\
-			 0xaa, 0x19, 0xea, 0x4d, 0x5, 0x7a, 0x8}
+		0xaa, 0x19, 0xea, 0x4d, 0x5, 0x7a, 0x8}
 
 extern struct tboot *tboot;
 
@@ -144,7 +149,7 @@ static inline int tboot_enabled(void)
 extern void tboot_probe(void);
 extern void tboot_shutdown(u32 shutdown_type);
 extern struct acpi_table_header *tboot_get_dmar_table(
-				      struct acpi_table_header *dmar_tbl);
+	struct acpi_table_header *dmar_tbl);
 extern int tboot_force_iommu(void);
 
 #else
@@ -153,7 +158,7 @@ extern int tboot_force_iommu(void);
 #define tboot_probe()			do { } while (0)
 #define tboot_shutdown(shutdown_type)	do { } while (0)
 #define tboot_sleep(sleep_state, pm1a_control, pm1b_control)	\
-					do { } while (0)
+	do { } while (0)
 #define tboot_get_dmar_table(dmar_tbl)	(dmar_tbl)
 #define tboot_force_iommu()		0
 

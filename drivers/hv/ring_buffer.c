@@ -69,27 +69,35 @@ u32 hv_end_read(struct hv_ring_buffer_info *rbi)
  */
 
 static bool hv_need_to_signal(u32 old_write, struct hv_ring_buffer_info *rbi,
-			      enum hv_signal_policy policy)
+							  enum hv_signal_policy policy)
 {
 	virt_mb();
+
 	if (READ_ONCE(rbi->ring_buffer->interrupt_mask))
+	{
 		return false;
+	}
 
 	/*
 	 * When the client wants to control signaling,
 	 * we only honour the host interrupt mask.
 	 */
 	if (policy == HV_SIGNAL_POLICY_EXPLICIT)
+	{
 		return true;
+	}
 
 	/* check interrupt_mask before read_index */
 	virt_rmb();
+
 	/*
 	 * This is the only case we need to signal when the
 	 * ring transitions from being empty to non-empty.
 	 */
 	if (old_write == READ_ONCE(rbi->ring_buffer->read_index))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -106,7 +114,7 @@ hv_get_next_write_location(struct hv_ring_buffer_info *ring_info)
 /* Set the next write location for the specified ring buffer. */
 static inline void
 hv_set_next_write_location(struct hv_ring_buffer_info *ring_info,
-		     u32 next_write_location)
+						   u32 next_write_location)
 {
 	ring_info->ring_buffer->write_index = next_write_location;
 }
@@ -126,7 +134,7 @@ hv_get_next_read_location(struct hv_ring_buffer_info *ring_info)
  */
 static inline u32
 hv_get_next_readlocation_withoffset(struct hv_ring_buffer_info *ring_info,
-				 u32 offset)
+									u32 offset)
 {
 	u32 next = ring_info->ring_buffer->read_index;
 
@@ -139,7 +147,7 @@ hv_get_next_readlocation_withoffset(struct hv_ring_buffer_info *ring_info,
 /* Set the next read location for the specified ring buffer. */
 static inline void
 hv_set_next_read_location(struct hv_ring_buffer_info *ring_info,
-		    u32 next_read_location)
+						  u32 next_read_location)
 {
 	ring_info->ring_buffer->read_index = next_read_location;
 	ring_info->priv_read_index = next_read_location;
@@ -204,15 +212,16 @@ static u32 hv_copyto_ringbuffer(
 
 /* Get various debug metrics for the specified ring buffer. */
 void hv_ringbuffer_get_debuginfo(struct hv_ring_buffer_info *ring_info,
-			    struct hv_ring_buffer_debug_info *debug_info)
+								 struct hv_ring_buffer_debug_info *debug_info)
 {
 	u32 bytes_avail_towrite;
 	u32 bytes_avail_toread;
 
-	if (ring_info->ring_buffer) {
+	if (ring_info->ring_buffer)
+	{
 		hv_get_ringbuffer_availbytes(ring_info,
-					&bytes_avail_toread,
-					&bytes_avail_towrite);
+									 &bytes_avail_toread,
+									 &bytes_avail_towrite);
 
 		debug_info->bytes_avail_toread = bytes_avail_toread;
 		debug_info->bytes_avail_towrite = bytes_avail_towrite;
@@ -227,7 +236,7 @@ void hv_ringbuffer_get_debuginfo(struct hv_ring_buffer_info *ring_info,
 
 /* Initialize the ring buffer. */
 int hv_ringbuffer_init(struct hv_ring_buffer_info *ring_info,
-		       struct page *pages, u32 page_cnt)
+					   struct page *pages, u32 page_cnt)
 {
 	int i;
 	struct page **pages_wraparound;
@@ -241,22 +250,30 @@ int hv_ringbuffer_init(struct hv_ring_buffer_info *ring_info,
 	 * the rest.
 	 */
 	pages_wraparound = kzalloc(sizeof(struct page *) * (page_cnt * 2 - 1),
-				   GFP_KERNEL);
+							   GFP_KERNEL);
+
 	if (!pages_wraparound)
+	{
 		return -ENOMEM;
+	}
 
 	pages_wraparound[0] = pages;
+
 	for (i = 0; i < 2 * (page_cnt - 1); i++)
+	{
 		pages_wraparound[i + 1] = &pages[i % (page_cnt - 1) + 1];
+	}
 
 	ring_info->ring_buffer = (struct hv_ring_buffer *)
-		vmap(pages_wraparound, page_cnt * 2 - 1, VM_MAP, PAGE_KERNEL);
+							 vmap(pages_wraparound, page_cnt * 2 - 1, VM_MAP, PAGE_KERNEL);
 
 	kfree(pages_wraparound);
 
 
 	if (!ring_info->ring_buffer)
+	{
 		return -ENOMEM;
+	}
 
 	ring_info->ring_buffer->read_index =
 		ring_info->ring_buffer->write_index = 0;
@@ -266,7 +283,7 @@ int hv_ringbuffer_init(struct hv_ring_buffer_info *ring_info,
 
 	ring_info->ring_size = page_cnt << PAGE_SHIFT;
 	ring_info->ring_datasize = ring_info->ring_size -
-		sizeof(struct hv_ring_buffer);
+							   sizeof(struct hv_ring_buffer);
 
 	spin_lock_init(&ring_info->ring_lock);
 
@@ -281,8 +298,8 @@ void hv_ringbuffer_cleanup(struct hv_ring_buffer_info *ring_info)
 
 /* Write to the ring buffer. */
 int hv_ringbuffer_write(struct hv_ring_buffer_info *outring_info,
-		    struct kvec *kv_list, u32 kv_count, bool *signal, bool lock,
-		    enum hv_signal_policy policy)
+						struct kvec *kv_list, u32 kv_count, bool *signal, bool lock,
+						enum hv_signal_policy policy)
 {
 	int i = 0;
 	u32 bytes_avail_towrite;
@@ -294,12 +311,16 @@ int hv_ringbuffer_write(struct hv_ring_buffer_info *outring_info,
 	unsigned long flags = 0;
 
 	for (i = 0; i < kv_count; i++)
+	{
 		totalbytes_towrite += kv_list[i].iov_len;
+	}
 
 	totalbytes_towrite += sizeof(u64);
 
 	if (lock)
+	{
 		spin_lock_irqsave(&outring_info->ring_lock, flags);
+	}
 
 	bytes_avail_towrite = hv_get_bytes_to_write(outring_info);
 
@@ -308,9 +329,13 @@ int hv_ringbuffer_write(struct hv_ring_buffer_info *outring_info,
 	 * Otherwise, the next time around, we think the ring buffer
 	 * is empty since the read index == write index.
 	 */
-	if (bytes_avail_towrite <= totalbytes_towrite) {
+	if (bytes_avail_towrite <= totalbytes_towrite)
+	{
 		if (lock)
+		{
 			spin_unlock_irqrestore(&outring_info->ring_lock, flags);
+		}
+
 		return -EAGAIN;
 	}
 
@@ -319,20 +344,21 @@ int hv_ringbuffer_write(struct hv_ring_buffer_info *outring_info,
 
 	old_write = next_write_location;
 
-	for (i = 0; i < kv_count; i++) {
+	for (i = 0; i < kv_count; i++)
+	{
 		next_write_location = hv_copyto_ringbuffer(outring_info,
-						     next_write_location,
-						     kv_list[i].iov_base,
-						     kv_list[i].iov_len);
+							  next_write_location,
+							  kv_list[i].iov_base,
+							  kv_list[i].iov_len);
 	}
 
 	/* Set previous packet start */
 	prev_indices = hv_get_ring_bufferindices(outring_info);
 
 	next_write_location = hv_copyto_ringbuffer(outring_info,
-					     next_write_location,
-					     &prev_indices,
-					     sizeof(u64));
+						  next_write_location,
+						  &prev_indices,
+						  sizeof(u64));
 
 	/* Issue a full memory barrier before updating the write index */
 	virt_mb();
@@ -342,15 +368,17 @@ int hv_ringbuffer_write(struct hv_ring_buffer_info *outring_info,
 
 
 	if (lock)
+	{
 		spin_unlock_irqrestore(&outring_info->ring_lock, flags);
+	}
 
 	*signal = hv_need_to_signal(old_write, outring_info, policy);
 	return 0;
 }
 
 int hv_ringbuffer_read(struct hv_ring_buffer_info *inring_info,
-		       void *buffer, u32 buflen, u32 *buffer_actual_len,
-		       u64 *requestid, bool *signal, bool raw)
+					   void *buffer, u32 buflen, u32 *buffer_actual_len,
+					   u64 *requestid, bool *signal, bool raw)
 {
 	u32 bytes_avail_toread;
 	u32 next_read_location = 0;
@@ -361,15 +389,19 @@ int hv_ringbuffer_read(struct hv_ring_buffer_info *inring_info,
 	int ret = 0;
 
 	if (buflen <= 0)
+	{
 		return -EINVAL;
+	}
 
 
 	*buffer_actual_len = 0;
 	*requestid = 0;
 
 	bytes_avail_toread = hv_get_bytes_to_read(inring_info);
+
 	/* Make sure there is something to read */
-	if (bytes_avail_toread < sizeof(desc)) {
+	if (bytes_avail_toread < sizeof(desc))
+	{
 		/*
 		 * No error is set when there is even no header, drivers are
 		 * supposed to analyze buffer_actual_len.
@@ -379,8 +411,8 @@ int hv_ringbuffer_read(struct hv_ring_buffer_info *inring_info,
 
 	next_read_location = hv_get_next_read_location(inring_info);
 	next_read_location = hv_copyfrom_ringbuffer(inring_info, &desc,
-						    sizeof(desc),
-						    next_read_location);
+						 sizeof(desc),
+						 next_read_location);
 
 	offset = raw ? 0 : (desc.offset8 << 3);
 	packetlen = (desc.len8 << 3) - offset;
@@ -388,23 +420,27 @@ int hv_ringbuffer_read(struct hv_ring_buffer_info *inring_info,
 	*requestid = desc.trans_id;
 
 	if (bytes_avail_toread < packetlen + offset)
+	{
 		return -EAGAIN;
+	}
 
 	if (packetlen > buflen)
+	{
 		return -ENOBUFS;
+	}
 
 	next_read_location =
 		hv_get_next_readlocation_withoffset(inring_info, offset);
 
 	next_read_location = hv_copyfrom_ringbuffer(inring_info,
-						buffer,
-						packetlen,
-						next_read_location);
+						 buffer,
+						 packetlen,
+						 next_read_location);
 
 	next_read_location = hv_copyfrom_ringbuffer(inring_info,
-						&prev_indices,
-						sizeof(u64),
-						next_read_location);
+						 &prev_indices,
+						 sizeof(u64),
+						 next_read_location);
 
 	/*
 	 * Make sure all reads are done before we update the read index since

@@ -140,7 +140,8 @@
 #define PHY_28NM_CTRL3_AVALID			BIT(5)
 #define PHY_28NM_CTRL3_BVALID			BIT(6)
 
-struct mv_usb2_phy {
+struct mv_usb2_phy
+{
 	struct phy		*phy;
 	struct platform_device	*pdev;
 	void __iomem		*base;
@@ -150,11 +151,17 @@ struct mv_usb2_phy {
 static bool wait_for_reg(void __iomem *reg, u32 mask, unsigned long timeout)
 {
 	timeout += jiffies;
-	while (time_is_after_eq_jiffies(timeout)) {
+
+	while (time_is_after_eq_jiffies(timeout))
+	{
 		if ((readl(reg) & mask) == mask)
+		{
 			return true;
+		}
+
 		msleep(1);
 	}
+
 	return false;
 }
 
@@ -170,38 +177,38 @@ static int mv_usb2_phy_28nm_init(struct phy *phy)
 
 	/* PHY_28NM_PLL_REG0 */
 	reg = readl(base + PHY_28NM_PLL_REG0) &
-		~(PHY_28NM_PLL_SELLPFR_MASK | PHY_28NM_PLL_FBDIV_MASK
-		| PHY_28NM_PLL_ICP_MASK	| PHY_28NM_PLL_REFDIV_MASK);
+		  ~(PHY_28NM_PLL_SELLPFR_MASK | PHY_28NM_PLL_FBDIV_MASK
+			| PHY_28NM_PLL_ICP_MASK	| PHY_28NM_PLL_REFDIV_MASK);
 	writel(reg | (0x1 << PHY_28NM_PLL_SELLPFR_SHIFT
-		| 0xf0 << PHY_28NM_PLL_FBDIV_SHIFT
-		| 0x3 << PHY_28NM_PLL_ICP_SHIFT
-		| 0xd << PHY_28NM_PLL_REFDIV_SHIFT),
-		base + PHY_28NM_PLL_REG0);
+				  | 0xf0 << PHY_28NM_PLL_FBDIV_SHIFT
+				  | 0x3 << PHY_28NM_PLL_ICP_SHIFT
+				  | 0xd << PHY_28NM_PLL_REFDIV_SHIFT),
+		   base + PHY_28NM_PLL_REG0);
 
 	/* PHY_28NM_PLL_REG1 */
 	reg = readl(base + PHY_28NM_PLL_REG1);
 	writel(reg | PHY_28NM_PLL_PU_PLL | PHY_28NM_PLL_PU_BY_REG,
-		base + PHY_28NM_PLL_REG1);
+		   base + PHY_28NM_PLL_REG1);
 
 	/* PHY_28NM_TX_REG0 */
 	reg = readl(base + PHY_28NM_TX_REG0) & ~PHY_28NM_TX_AMP_MASK;
 	writel(reg | PHY_28NM_TX_PU_BY_REG | 0x3 << PHY_28NM_TX_AMP_SHIFT |
-		PHY_28NM_TX_PU_ANA,
-		base + PHY_28NM_TX_REG0);
+		   PHY_28NM_TX_PU_ANA,
+		   base + PHY_28NM_TX_REG0);
 
 	/* PHY_28NM_RX_REG0 */
 	reg = readl(base + PHY_28NM_RX_REG0) & ~PHY_28NM_RX_SQ_THRESH_MASK;
 	writel(reg | 0xa << PHY_28NM_RX_SQ_THRESH_SHIFT,
-		base + PHY_28NM_RX_REG0);
+		   base + PHY_28NM_RX_REG0);
 
 	/* PHY_28NM_DIG_REG0 */
 	reg = readl(base + PHY_28NM_DIG_REG0) &
-		~(PHY_28NM_DIG_BITSTAFFING_ERR | PHY_28NM_DIG_SYNC_ERR |
-		PHY_28NM_DIG_SQ_FILT_MASK | PHY_28NM_DIG_SQ_BLK_MASK |
-		PHY_28NM_DIG_SYNC_NUM_MASK);
+		  ~(PHY_28NM_DIG_BITSTAFFING_ERR | PHY_28NM_DIG_SYNC_ERR |
+			PHY_28NM_DIG_SQ_FILT_MASK | PHY_28NM_DIG_SQ_BLK_MASK |
+			PHY_28NM_DIG_SYNC_NUM_MASK);
 	writel(reg | (0x1 << PHY_28NM_DIG_SYNC_NUM_SHIFT |
-		PHY_28NM_PLL_LOCK_BYPASS),
-		base + PHY_28NM_DIG_REG0);
+				  PHY_28NM_PLL_LOCK_BYPASS),
+		   base + PHY_28NM_DIG_REG0);
 
 	/* PHY_28NM_OTG_REG */
 	reg = readl(base + PHY_28NM_OTG_REG) | PHY_28NM_OTG_PU_OTG;
@@ -218,21 +225,26 @@ static int mv_usb2_phy_28nm_init(struct phy *phy)
 
 	/* Make sure PHY Calibration is ready */
 	if (!wait_for_reg(base + PHY_28NM_CAL_REG,
-	    PHY_28NM_PLL_PLLCAL_DONE | PHY_28NM_PLL_IMPCAL_DONE,
-	    HZ / 10)) {
+					  PHY_28NM_PLL_PLLCAL_DONE | PHY_28NM_PLL_IMPCAL_DONE,
+					  HZ / 10))
+	{
 		dev_warn(&pdev->dev, "USB PHY PLL calibrate not done after 100mS.");
 		ret = -ETIMEDOUT;
 		goto err_clk;
 	}
+
 	if (!wait_for_reg(base + PHY_28NM_RX_REG1,
-	    PHY_28NM_RX_SQCAL_DONE, HZ / 10)) {
+					  PHY_28NM_RX_SQCAL_DONE, HZ / 10))
+	{
 		dev_warn(&pdev->dev, "USB PHY RX SQ calibrate not done after 100mS.");
 		ret = -ETIMEDOUT;
 		goto err_clk;
 	}
+
 	/* Make sure PHY PLL is ready */
 	if (!wait_for_reg(base + PHY_28NM_PLL_REG0,
-	    PHY_28NM_PLL_READY, HZ / 10)) {
+					  PHY_28NM_PLL_READY, HZ / 10))
+	{
 		dev_warn(&pdev->dev, "PLL_READY not set after 100mS.");
 		ret = -ETIMEDOUT;
 		goto err_clk;
@@ -250,9 +262,9 @@ static int mv_usb2_phy_28nm_power_on(struct phy *phy)
 	void __iomem *base = mv_phy->base;
 
 	writel(readl(base + PHY_28NM_CTRL_REG3) |
-		(PHY_28NM_CTRL3_OVERWRITE | PHY_28NM_CTRL3_VBUS_VALID |
-		PHY_28NM_CTRL3_AVALID | PHY_28NM_CTRL3_BVALID),
-		base + PHY_28NM_CTRL_REG3);
+		   (PHY_28NM_CTRL3_OVERWRITE | PHY_28NM_CTRL3_VBUS_VALID |
+			PHY_28NM_CTRL3_AVALID | PHY_28NM_CTRL3_BVALID),
+		   base + PHY_28NM_CTRL_REG3);
 
 	return 0;
 }
@@ -263,9 +275,9 @@ static int mv_usb2_phy_28nm_power_off(struct phy *phy)
 	void __iomem *base = mv_phy->base;
 
 	writel(readl(base + PHY_28NM_CTRL_REG3) |
-		~(PHY_28NM_CTRL3_OVERWRITE | PHY_28NM_CTRL3_VBUS_VALID
-		| PHY_28NM_CTRL3_AVALID	| PHY_28NM_CTRL3_BVALID),
-		base + PHY_28NM_CTRL_REG3);
+		   ~(PHY_28NM_CTRL3_OVERWRITE | PHY_28NM_CTRL3_VBUS_VALID
+			 | PHY_28NM_CTRL3_AVALID	| PHY_28NM_CTRL3_BVALID),
+		   base + PHY_28NM_CTRL_REG3);
 
 	return 0;
 }
@@ -294,7 +306,8 @@ static int mv_usb2_phy_28nm_exit(struct phy *phy)
 	return 0;
 }
 
-static const struct phy_ops usb_ops = {
+static const struct phy_ops usb_ops =
+{
 	.init		= mv_usb2_phy_28nm_init,
 	.power_on	= mv_usb2_phy_28nm_power_on,
 	.power_off	= mv_usb2_phy_28nm_power_off,
@@ -309,25 +322,36 @@ static int mv_usb2_phy_probe(struct platform_device *pdev)
 	struct resource *r;
 
 	mv_phy = devm_kzalloc(&pdev->dev, sizeof(*mv_phy), GFP_KERNEL);
+
 	if (!mv_phy)
+	{
 		return -ENOMEM;
+	}
 
 	mv_phy->pdev = pdev;
 
 	mv_phy->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(mv_phy->clk)) {
+
+	if (IS_ERR(mv_phy->clk))
+	{
 		dev_err(&pdev->dev, "failed to get clock.\n");
 		return PTR_ERR(mv_phy->clk);
 	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mv_phy->base = devm_ioremap_resource(&pdev->dev, r);
+
 	if (IS_ERR(mv_phy->base))
+	{
 		return PTR_ERR(mv_phy->base);
+	}
 
 	mv_phy->phy = devm_phy_create(&pdev->dev, pdev->dev.of_node, &usb_ops);
+
 	if (IS_ERR(mv_phy->phy))
+	{
 		return PTR_ERR(mv_phy->phy);
+	}
 
 	phy_set_drvdata(mv_phy->phy, mv_phy);
 
@@ -335,13 +359,15 @@ static int mv_usb2_phy_probe(struct platform_device *pdev)
 	return PTR_ERR_OR_ZERO(phy_provider);
 }
 
-static const struct of_device_id mv_usbphy_dt_match[] = {
+static const struct of_device_id mv_usbphy_dt_match[] =
+{
 	{ .compatible = "marvell,pxa1928-usb-phy", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, mv_usbphy_dt_match);
 
-static struct platform_driver mv_usb2_phy_driver = {
+static struct platform_driver mv_usb2_phy_driver =
+{
 	.probe	= mv_usb2_phy_probe,
 	.driver = {
 		.name   = "mv-usb2-phy",

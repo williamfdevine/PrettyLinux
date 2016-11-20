@@ -21,7 +21,7 @@
 /*****************************************************************************
  * Permedia2 registers used in the framebuffer
  *****************************************************************************/
- 
+
 #define PM2R_RESET_STATUS				0x0000
 #define PM2R_IN_FIFO_SPACE				0x0018
 #define PM2R_OUT_FIFO_WORDS				0x0020
@@ -242,7 +242,8 @@
 #define PM2F_CURSORMODE_CURSOR_ENABLE			(1 << 0)
 #define PM2F_CURSORMODE_TYPE_X				(1 << 4)
 
-typedef enum {
+typedef enum
+{
 	PM2_TYPE_PERMEDIA2,
 	PM2_TYPE_PERMEDIA2V
 } pm2type_t;

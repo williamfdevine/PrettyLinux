@@ -6,13 +6,15 @@
 struct v4l2_input;
 struct ppi_info;
 
-struct bcap_route {
+struct bcap_route
+{
 	u32 input;
 	u32 output;
 	u32 ppi_control;
 };
 
-struct bfin_capture_config {
+struct bfin_capture_config
+{
 	/* card name */
 	char *card_name;
 	/* inputs available at the sub device */

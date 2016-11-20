@@ -37,7 +37,8 @@ static void kernel_loop(void)
 	void *addr = sbrk(0);
 	int err = 0;
 
-	while (!done && !err) {
+	while (!done && !err)
+	{
 		err = brk(addr + 4096);
 		err |= brk(addr);
 	}
@@ -67,7 +68,8 @@ static int check_diff(struct timeval start, struct timeval end)
 	diff = end.tv_usec - start.tv_usec;
 	diff += (end.tv_sec - start.tv_sec) * USECS_PER_SEC;
 
-	if (abs(diff - DELAY * USECS_PER_SEC) > USECS_PER_SEC / 2) {
+	if (abs(diff - DELAY * USECS_PER_SEC) > USECS_PER_SEC / 2)
+	{
 		printf("Diff too high: %lld..", diff);
 		return -1;
 	}
@@ -79,59 +81,88 @@ static int check_itimer(int which)
 {
 	int err;
 	struct timeval start, end;
-	struct itimerval val = {
+	struct itimerval val =
+	{
 		.it_value.tv_sec = DELAY,
 	};
 
 	printf("Check itimer ");
 
 	if (which == ITIMER_VIRTUAL)
+	{
 		printf("virtual... ");
+	}
 	else if (which == ITIMER_PROF)
+	{
 		printf("prof... ");
+	}
 	else if (which == ITIMER_REAL)
+	{
 		printf("real... ");
+	}
 
 	fflush(stdout);
 
 	done = 0;
 
 	if (which == ITIMER_VIRTUAL)
+	{
 		signal(SIGVTALRM, sig_handler);
+	}
 	else if (which == ITIMER_PROF)
+	{
 		signal(SIGPROF, sig_handler);
+	}
 	else if (which == ITIMER_REAL)
+	{
 		signal(SIGALRM, sig_handler);
+	}
 
 	err = gettimeofday(&start, NULL);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		perror("Can't call gettimeofday()\n");
 		return -1;
 	}
 
 	err = setitimer(which, &val, NULL);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		perror("Can't set timer\n");
 		return -1;
 	}
 
 	if (which == ITIMER_VIRTUAL)
+	{
 		user_loop();
+	}
 	else if (which == ITIMER_PROF)
+	{
 		kernel_loop();
+	}
 	else if (which == ITIMER_REAL)
+	{
 		idle_loop();
+	}
 
 	err = gettimeofday(&end, NULL);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		perror("Can't call gettimeofday()\n");
 		return -1;
 	}
 
 	if (!check_diff(start, end))
+	{
 		printf("[OK]\n");
+	}
 	else
+	{
 		printf("[FAIL]\n");
+	}
 
 	return 0;
 }
@@ -141,34 +172,47 @@ static int check_timer_create(int which)
 	int err;
 	timer_t id;
 	struct timeval start, end;
-	struct itimerspec val = {
+	struct itimerspec val =
+	{
 		.it_value.tv_sec = DELAY,
 	};
 
 	printf("Check timer_create() ");
-	if (which == CLOCK_THREAD_CPUTIME_ID) {
+
+	if (which == CLOCK_THREAD_CPUTIME_ID)
+	{
 		printf("per thread... ");
-	} else if (which == CLOCK_PROCESS_CPUTIME_ID) {
+	}
+	else if (which == CLOCK_PROCESS_CPUTIME_ID)
+	{
 		printf("per process... ");
 	}
+
 	fflush(stdout);
 
 	done = 0;
 	err = timer_create(which, NULL, &id);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		perror("Can't create timer\n");
 		return -1;
 	}
+
 	signal(SIGALRM, sig_handler);
 
 	err = gettimeofday(&start, NULL);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		perror("Can't call gettimeofday()\n");
 		return -1;
 	}
 
 	err = timer_settime(id, 0, &val, NULL);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		perror("Can't set timer\n");
 		return -1;
 	}
@@ -176,15 +220,21 @@ static int check_timer_create(int which)
 	user_loop();
 
 	err = gettimeofday(&end, NULL);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		perror("Can't call gettimeofday()\n");
 		return -1;
 	}
 
 	if (!check_diff(start, end))
+	{
 		printf("[OK]\n");
+	}
 	else
+	{
 		printf("[FAIL]\n");
+	}
 
 	return 0;
 }
@@ -195,16 +245,24 @@ int main(int argc, char **argv)
 	printf("based timers if other threads run on the CPU...\n");
 
 	if (check_itimer(ITIMER_VIRTUAL) < 0)
+	{
 		return ksft_exit_fail();
+	}
 
 	if (check_itimer(ITIMER_PROF) < 0)
+	{
 		return ksft_exit_fail();
+	}
 
 	if (check_itimer(ITIMER_REAL) < 0)
+	{
 		return ksft_exit_fail();
+	}
 
 	if (check_timer_create(CLOCK_THREAD_CPUTIME_ID) < 0)
+	{
 		return ksft_exit_fail();
+	}
 
 	/*
 	 * It's unfortunately hard to reliably test a timer expiration
@@ -216,7 +274,9 @@ int main(int argc, char **argv)
 	 * find a better solution.
 	 */
 	if (check_timer_create(CLOCK_PROCESS_CPUTIME_ID) < 0)
+	{
 		return ksft_exit_fail();
+	}
 
 	return ksft_exit_pass();
 }

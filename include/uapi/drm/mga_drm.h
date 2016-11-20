@@ -130,7 +130,8 @@ extern "C" {
 
 /* Setup registers for 3D context
  */
-typedef struct {
+typedef struct
+{
 	unsigned int dstorg;
 	unsigned int maccess;
 	unsigned int plnwt;
@@ -147,13 +148,15 @@ typedef struct {
 
 /* Setup registers for 2D, X server
  */
-typedef struct {
+typedef struct
+{
 	unsigned int pitch;
 } drm_mga_server_regs_t;
 
 /* Setup registers for each texture unit
  */
-typedef struct {
+typedef struct
+{
 	unsigned int texctl;
 	unsigned int texctl2;
 	unsigned int texfilter;
@@ -169,12 +172,14 @@ typedef struct {
 
 /* General aging mechanism
  */
-typedef struct {
+typedef struct
+{
 	unsigned int head;	/* Position of head pointer          */
 	unsigned int wrap;	/* Primary DMA wrap count            */
 } drm_mga_age_t;
 
-typedef struct _drm_mga_sarea {
+typedef struct _drm_mga_sarea
+{
 	/* The channel for communication of state information to the kernel
 	 * on firing a vertex dma buffer.
 	 */
@@ -265,14 +270,17 @@ typedef struct _drm_mga_sarea {
 #define DRM_IOCTL_MGA_WAIT_FENCE    DRM_IOWR(DRM_COMMAND_BASE + DRM_MGA_WAIT_FENCE, __u32)
 #define DRM_IOCTL_MGA_DMA_BOOTSTRAP DRM_IOWR(DRM_COMMAND_BASE + DRM_MGA_DMA_BOOTSTRAP, drm_mga_dma_bootstrap_t)
 
-typedef struct _drm_mga_warp_index {
+typedef struct _drm_mga_warp_index
+{
 	int installed;
 	unsigned long phys_addr;
 	int size;
 } drm_mga_warp_index_t;
 
-typedef struct drm_mga_init {
-	enum {
+typedef struct drm_mga_init
+{
+	enum
+	{
 		MGA_INIT_DMA = 0x01,
 		MGA_CLEANUP_DMA = 0x02
 	} func;
@@ -302,7 +310,8 @@ typedef struct drm_mga_init {
 	unsigned long buffers_offset;
 } drm_mga_init_t;
 
-typedef struct drm_mga_dma_bootstrap {
+typedef struct drm_mga_dma_bootstrap
+{
 	/**
 	 * \name AGP texture region
 	 *
@@ -364,7 +373,8 @@ typedef struct drm_mga_dma_bootstrap {
 	__u8 agp_size;
 } drm_mga_dma_bootstrap_t;
 
-typedef struct drm_mga_clear {
+typedef struct drm_mga_clear
+{
 	unsigned int flags;
 	unsigned int clear_color;
 	unsigned int clear_depth;
@@ -372,26 +382,30 @@ typedef struct drm_mga_clear {
 	unsigned int depth_mask;
 } drm_mga_clear_t;
 
-typedef struct drm_mga_vertex {
+typedef struct drm_mga_vertex
+{
 	int idx;		/* buffer to queue */
 	int used;		/* bytes in use */
 	int discard;		/* client finished with buffer?  */
 } drm_mga_vertex_t;
 
-typedef struct drm_mga_indices {
+typedef struct drm_mga_indices
+{
 	int idx;		/* buffer to queue */
 	unsigned int start;
 	unsigned int end;
 	int discard;		/* client finished with buffer?  */
 } drm_mga_indices_t;
 
-typedef struct drm_mga_iload {
+typedef struct drm_mga_iload
+{
 	int idx;
 	unsigned int dstorg;
 	unsigned int length;
 } drm_mga_iload_t;
 
-typedef struct _drm_mga_blit {
+typedef struct _drm_mga_blit
+{
 	unsigned int planemask;
 	unsigned int srcorg;
 	unsigned int dstorg;
@@ -415,7 +429,8 @@ typedef struct _drm_mga_blit {
  */
 #define MGA_PARAM_CARD_TYPE         2
 
-typedef struct drm_mga_getparam {
+typedef struct drm_mga_getparam
+{
 	int param;
 	void __user *value;
 } drm_mga_getparam_t;

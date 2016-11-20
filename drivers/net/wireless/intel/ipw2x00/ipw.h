@@ -13,7 +13,8 @@
 
 #include <linux/ieee80211.h>
 
-static const u32 ipw_cipher_suites[] = {
+static const u32 ipw_cipher_suites[] =
+{
 	WLAN_CIPHER_SUITE_WEP40,
 	WLAN_CIPHER_SUITE_WEP104,
 	WLAN_CIPHER_SUITE_TKIP,

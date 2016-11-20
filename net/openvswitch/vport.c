@@ -48,9 +48,12 @@ static struct hlist_head *dev_table;
 int ovs_vport_init(void)
 {
 	dev_table = kzalloc(VPORT_HASH_BUCKETS * sizeof(struct hlist_head),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!dev_table)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -78,8 +81,11 @@ int __ovs_vport_ops_register(struct vport_ops *ops)
 
 	ovs_lock();
 	list_for_each_entry(o, &vport_ops_list, list)
-		if (ops->type == o->type)
-			goto errout;
+
+	if (ops->type == o->type)
+	{
+		goto errout;
+	}
 
 	list_add_tail(&ops->list, &vport_ops_list);
 	err = 0;
@@ -110,9 +116,12 @@ struct vport *ovs_vport_locate(const struct net *net, const char *name)
 	struct vport *vport;
 
 	hlist_for_each_entry_rcu(vport, bucket, hash_node)
-		if (!strcmp(name, ovs_vport_name(vport)) &&
-		    net_eq(ovs_dp_get_net(vport->dp), net))
-			return vport;
+
+	if (!strcmp(name, ovs_vport_name(vport)) &&
+		net_eq(ovs_dp_get_net(vport->dp), net))
+	{
+		return vport;
+	}
 
 	return NULL;
 }
@@ -129,27 +138,33 @@ struct vport *ovs_vport_locate(const struct net *net, const char *name)
  * vport_free().
  */
 struct vport *ovs_vport_alloc(int priv_size, const struct vport_ops *ops,
-			  const struct vport_parms *parms)
+							  const struct vport_parms *parms)
 {
 	struct vport *vport;
 	size_t alloc_size;
 
 	alloc_size = sizeof(struct vport);
-	if (priv_size) {
+
+	if (priv_size)
+	{
 		alloc_size = ALIGN(alloc_size, VPORT_ALIGN);
 		alloc_size += priv_size;
 	}
 
 	vport = kzalloc(alloc_size, GFP_KERNEL);
+
 	if (!vport)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	vport->dp = parms->dp;
 	vport->port_no = parms->port_no;
 	vport->ops = ops;
 	INIT_HLIST_NODE(&vport->dp_hash_node);
 
-	if (ovs_vport_set_upcall_portids(vport, parms->upcall_portids)) {
+	if (ovs_vport_set_upcall_portids(vport, parms->upcall_portids))
+	{
 		kfree(vport);
 		return ERR_PTR(-EINVAL);
 	}
@@ -183,8 +198,11 @@ static struct vport_ops *ovs_vport_lookup(const struct vport_parms *parms)
 	struct vport_ops *ops;
 
 	list_for_each_entry(ops, &vport_ops_list, list)
-		if (ops->type == parms->type)
-			return ops;
+
+	if (ops->type == parms->type)
+	{
+		return ops;
+	}
 
 	return NULL;
 }
@@ -203,20 +221,26 @@ struct vport *ovs_vport_add(const struct vport_parms *parms)
 	struct vport *vport;
 
 	ops = ovs_vport_lookup(parms);
-	if (ops) {
+
+	if (ops)
+	{
 		struct hlist_head *bucket;
 
 		if (!try_module_get(ops->owner))
+		{
 			return ERR_PTR(-EAFNOSUPPORT);
+		}
 
 		vport = ops->create(parms);
-		if (IS_ERR(vport)) {
+
+		if (IS_ERR(vport))
+		{
 			module_put(ops->owner);
 			return vport;
 		}
 
 		bucket = hash_bucket(ovs_dp_get_net(vport->dp),
-				     ovs_vport_name(vport));
+							 ovs_vport_name(vport));
 		hlist_add_head_rcu(&vport->hash_node, bucket);
 		return vport;
 	}
@@ -230,9 +254,13 @@ struct vport *ovs_vport_add(const struct vport_parms *parms)
 	ovs_lock();
 
 	if (!ovs_vport_lookup(parms))
+	{
 		return ERR_PTR(-EAFNOSUPPORT);
+	}
 	else
+	{
 		return ERR_PTR(-EAGAIN);
+	}
 }
 
 /**
@@ -247,7 +275,10 @@ struct vport *ovs_vport_add(const struct vport_parms *parms)
 int ovs_vport_set_options(struct vport *vport, struct nlattr *options)
 {
 	if (!vport->ops->set_options)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	return vport->ops->set_options(vport, options);
 }
 
@@ -317,14 +348,21 @@ int ovs_vport_get_options(const struct vport *vport, struct sk_buff *skb)
 	int err;
 
 	if (!vport->ops->get_options)
+	{
 		return 0;
+	}
 
 	nla = nla_nest_start(skb, OVS_VPORT_ATTR_OPTIONS);
+
 	if (!nla)
+	{
 		return -EMSGSIZE;
+	}
 
 	err = vport->ops->get_options(vport, skb);
-	if (err) {
+
+	if (err)
+	{
 		nla_nest_cancel(skb, nla);
 		return err;
 	}
@@ -351,14 +389,19 @@ int ovs_vport_set_upcall_portids(struct vport *vport, const struct nlattr *ids)
 	struct vport_portids *old, *vport_portids;
 
 	if (!nla_len(ids) || nla_len(ids) % sizeof(u32))
+	{
 		return -EINVAL;
+	}
 
 	old = ovsl_dereference(vport->upcall_portids);
 
 	vport_portids = kmalloc(sizeof(*vport_portids) + nla_len(ids),
-				GFP_KERNEL);
+							GFP_KERNEL);
+
 	if (!vport_portids)
+	{
 		return -ENOMEM;
+	}
 
 	vport_portids->n_ids = nla_len(ids) / sizeof(u32);
 	vport_portids->rn_ids = reciprocal_value(vport_portids->n_ids);
@@ -367,7 +410,10 @@ int ovs_vport_set_upcall_portids(struct vport *vport, const struct nlattr *ids)
 	rcu_assign_pointer(vport->upcall_portids, vport_portids);
 
 	if (old)
+	{
 		kfree_rcu(old, rcu);
+	}
+
 	return 0;
 }
 
@@ -386,7 +432,7 @@ int ovs_vport_set_upcall_portids(struct vport *vport, const struct nlattr *ids)
  * ovs_mutex or rcu_read_lock.
  */
 int ovs_vport_get_upcall_portids(const struct vport *vport,
-				 struct sk_buff *skb)
+								 struct sk_buff *skb)
 {
 	struct vport_portids *ids;
 
@@ -394,9 +440,11 @@ int ovs_vport_get_upcall_portids(const struct vport *vport,
 
 	if (vport->dp->user_features & OVS_DP_F_VPORT_PIDS)
 		return nla_put(skb, OVS_VPORT_ATTR_UPCALL_PID,
-			       ids->n_ids * sizeof(u32), (void *)ids->ids);
+					   ids->n_ids * sizeof(u32), (void *)ids->ids);
 	else
+	{
 		return nla_put_u32(skb, OVS_VPORT_ATTR_UPCALL_PID, ids->ids[0]);
+	}
 }
 
 /**
@@ -419,7 +467,9 @@ u32 ovs_vport_find_upcall_portid(const struct vport *vport, struct sk_buff *skb)
 	ids = rcu_dereference(vport->upcall_portids);
 
 	if (ids->n_ids == 1 && ids->ids[0] == 0)
+	{
 		return 0;
+	}
 
 	hash = skb_get_hash(skb);
 	ids_index = hash - ids->n_ids * reciprocal_divide(hash, ids->rn_ids);
@@ -437,7 +487,7 @@ u32 ovs_vport_find_upcall_portid(const struct vport *vport, struct sk_buff *skb)
  * skb->data should point to the Ethernet header.
  */
 int ovs_vport_receive(struct vport *vport, struct sk_buff *skb,
-		      const struct ip_tunnel_info *tun_info)
+					  const struct ip_tunnel_info *tun_info)
 {
 	struct sw_flow_key key;
 	int error;
@@ -445,7 +495,9 @@ int ovs_vport_receive(struct vport *vport, struct sk_buff *skb,
 	OVS_CB(skb)->input_vport = vport;
 	OVS_CB(skb)->mru = 0;
 	OVS_CB(skb)->cutlen = 0;
-	if (unlikely(dev_net(skb->dev) != ovs_dp_get_net(vport->dp))) {
+
+	if (unlikely(dev_net(skb->dev) != ovs_dp_get_net(vport->dp)))
+	{
 		u32 mark;
 
 		mark = skb->mark;
@@ -456,10 +508,13 @@ int ovs_vport_receive(struct vport *vport, struct sk_buff *skb,
 
 	/* Extract flow from 'skb' into 'key'. */
 	error = ovs_flow_key_extract(tun_info, skb, &key);
-	if (unlikely(error)) {
+
+	if (unlikely(error))
+	{
 		kfree_skb(skb);
 		return error;
 	}
+
 	ovs_dp_process_packet(skb, &key);
 	return 0;
 }
@@ -475,7 +530,9 @@ static void free_vport_rcu(struct rcu_head *rcu)
 void ovs_vport_deferred_free(struct vport *vport)
 {
 	if (!vport)
+	{
 		return;
+	}
 
 	call_rcu(&vport->rcu, free_vport_rcu);
 }
@@ -486,8 +543,10 @@ static unsigned int packet_length(const struct sk_buff *skb)
 	unsigned int length = skb->len - ETH_HLEN;
 
 	if (!skb_vlan_tag_present(skb) &&
-	    eth_type_vlan(skb->protocol))
+		eth_type_vlan(skb->protocol))
+	{
 		length -= VLAN_HLEN;
+	}
 
 	/* Don't subtract for multiple VLAN tags. Most (all?) drivers allow
 	 * (ETH_LEN + VLAN_HLEN) in addition to the mtu value, but almost none
@@ -501,10 +560,11 @@ void ovs_vport_send(struct vport *vport, struct sk_buff *skb)
 {
 	int mtu = vport->dev->mtu;
 
-	if (unlikely(packet_length(skb) > mtu && !skb_is_gso(skb))) {
+	if (unlikely(packet_length(skb) > mtu && !skb_is_gso(skb)))
+	{
 		net_warn_ratelimited("%s: dropped over-mtu packet: %d > %d\n",
-				     vport->dev->name,
-				     packet_length(skb), mtu);
+							 vport->dev->name,
+							 packet_length(skb), mtu);
 		vport->dev->stats.tx_errors++;
 		goto drop;
 	}

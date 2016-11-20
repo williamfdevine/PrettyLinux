@@ -30,12 +30,14 @@
 #include <linux/fb.h>
 
 
-struct via_aux_bus {
+struct via_aux_bus
+{
 	struct i2c_adapter *adap;	/* the I2C device to access the bus */
 	struct list_head drivers;	/* drivers for devices on this bus */
 };
 
-struct via_aux_drv {
+struct via_aux_drv
+{
 	struct list_head chain;		/* chain to support multiple drivers */
 
 	struct via_aux_bus *bus;	/* the I2C bus used */
@@ -45,8 +47,8 @@ struct via_aux_drv {
 	void *data;		/* private data of this driver */
 
 	void (*cleanup)(struct via_aux_drv *drv);
-	const struct fb_videomode* (*get_preferred_mode)
-		(struct via_aux_drv *drv);
+	const struct fb_videomode *(*get_preferred_mode)
+	(struct via_aux_drv *drv);
 };
 
 
@@ -60,7 +62,9 @@ static inline bool via_aux_add(struct via_aux_drv *drv)
 	struct via_aux_drv *data = kmalloc(sizeof(*data), GFP_KERNEL);
 
 	if (!data)
+	{
 		return false;
+	}
 
 	*data = *drv;
 	list_add_tail(&data->chain, &data->bus->drivers);
@@ -68,11 +72,13 @@ static inline bool via_aux_add(struct via_aux_drv *drv)
 }
 
 static inline bool via_aux_read(struct via_aux_drv *drv, u8 start, u8 *buf,
-	u8 len)
+								u8 len)
 {
-	struct i2c_msg msg[2] = {
+	struct i2c_msg msg[2] =
+	{
 		{.addr = drv->addr, .flags = 0, .len = 1, .buf = &start},
-		{.addr = drv->addr, .flags = I2C_M_RD, .len = len, .buf = buf} };
+		{.addr = drv->addr, .flags = I2C_M_RD, .len = len, .buf = buf}
+	};
 
 	return i2c_transfer(drv->bus->adap, msg, 2) == 2;
 }

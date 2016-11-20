@@ -10,7 +10,8 @@
 
 #define ISAC_IOM1	0
 
-struct isac {
+struct isac
+{
 	void *priv;
 
 	u_long flags;

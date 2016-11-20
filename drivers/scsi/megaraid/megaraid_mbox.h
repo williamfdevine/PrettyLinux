@@ -129,7 +129,8 @@
  *
  * command control block specific to the mailbox based controllers
  */
-typedef struct {
+typedef struct
+{
 	uint8_t			*raw_mbox;
 	mbox_t			*mbox;
 	mbox64_t		*mbox64;
@@ -185,7 +186,8 @@ typedef struct {
  * NOTE: The fields of this structures are placed to minimize cache misses
  */
 #define MAX_LD_EXTENDED64	64
-typedef struct {
+typedef struct
+{
 	mbox64_t			*una_mbox64;
 	dma_addr_t			una_mbox64_dma;
 	mbox_t				*mbox;
@@ -193,7 +195,7 @@ typedef struct {
 	dma_addr_t			mbox_dma;
 	spinlock_t			mailbox_lock;
 	unsigned long			baseport;
-	void __iomem *			baseaddr;
+	void __iomem 			*baseaddr;
 	struct mraid_pci_blk		mbox_pool[MBOX_MAX_SCSI_CMDS];
 	struct dma_pool			*mbox_pool_handle;
 	struct mraid_pci_blk		epthru_pool[MBOX_MAX_SCSI_CMDS];

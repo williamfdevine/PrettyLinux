@@ -47,7 +47,8 @@ enum pid_type
  * find_pid_ns() using the int nr and struct pid_namespace *ns.
  */
 
-struct upid {
+struct upid
+{
 	/* Try to keep pid_chain in the same cacheline as nr for find_vpid */
 	int nr;
 	struct pid_namespace *ns;
@@ -75,7 +76,10 @@ struct pid_link
 static inline struct pid *get_pid(struct pid *pid)
 {
 	if (pid)
+	{
 		atomic_inc(&pid->count);
+	}
+
 	return pid;
 }
 
@@ -91,9 +95,9 @@ extern struct pid *get_task_pid(struct task_struct *task, enum pid_type type);
 extern void attach_pid(struct task_struct *task, enum pid_type);
 extern void detach_pid(struct task_struct *task, enum pid_type);
 extern void change_pid(struct task_struct *task, enum pid_type,
-			struct pid *pid);
+					   struct pid *pid);
 extern void transfer_pid(struct task_struct *old, struct task_struct *new,
-			 enum pid_type);
+						 enum pid_type);
 
 struct pid_namespace;
 extern struct pid_namespace init_pid_ns;
@@ -134,8 +138,12 @@ extern void disable_pid_allocation(struct pid_namespace *ns);
 static inline struct pid_namespace *ns_of_pid(struct pid *pid)
 {
 	struct pid_namespace *ns = NULL;
+
 	if (pid)
+	{
 		ns = pid->numbers[pid->level].ns;
+	}
+
 	return ns;
 }
 
@@ -164,8 +172,12 @@ static inline bool is_child_reaper(struct pid *pid)
 static inline pid_t pid_nr(struct pid *pid)
 {
 	pid_t nr = 0;
+
 	if (pid)
+	{
 		nr = pid->numbers[0].nr;
+	}
+
 	return nr;
 }
 
@@ -176,16 +188,16 @@ pid_t pid_vnr(struct pid *pid);
 	do {								\
 		if ((pid) != NULL)					\
 			hlist_for_each_entry_rcu((task),		\
-				&(pid)->tasks[type], pids[type].node) {
+									 &(pid)->tasks[type], pids[type].node) {
 
-			/*
-			 * Both old and new leaders may be attached to
-			 * the same pid in the middle of de_thread().
-			 */
+/*
+ * Both old and new leaders may be attached to
+ * the same pid in the middle of de_thread().
+ */
 #define while_each_pid_task(pid, type, task)				\
-				if (type == PIDTYPE_PID)		\
-					break;				\
-			}						\
+	if (type == PIDTYPE_PID)		\
+		break;				\
+	}						\
 	} while (0)
 
 #define do_each_pid_thread(pid, type, task)				\
@@ -194,7 +206,7 @@ pid_t pid_vnr(struct pid *pid);
 		do {
 
 #define while_each_pid_thread(pid, type, task)				\
-		} while_each_thread(tg___, task);			\
-		task = tg___;						\
+	} while_each_thread(tg___, task);			\
+	task = tg___;						\
 	} while_each_pid_task(pid, type, task)
 #endif /* _LINUX_PID_H */

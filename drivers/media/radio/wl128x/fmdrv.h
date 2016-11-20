@@ -63,7 +63,8 @@
 #else /* DEBUG */
 #define fmdbg(format, ...) do {} while(0)
 #endif
-enum {
+enum
+{
 	FM_MODE_OFF,
 	FM_MODE_TX,
 	FM_MODE_RX,
@@ -73,24 +74,30 @@ enum {
 #define FM_RX_RDS_INFO_FIELD_MAX	8	/* 4 Group * 2 Bytes */
 
 /* RX RDS data format */
-struct fm_rdsdata_format {
-	union {
-		struct {
+struct fm_rdsdata_format
+{
+	union
+	{
+		struct
+		{
 			u8 buff[FM_RX_RDS_INFO_FIELD_MAX];
 		} groupdatabuff;
-		struct {
+		struct
+		{
 			u16 pidata;
 			u8 blk_b[2];
 			u8 blk_c[2];
 			u8 blk_d[2];
 		} groupgeneral;
-		struct {
+		struct
+		{
 			u16 pidata;
 			u8 blk_b[2];
 			u8 af[2];
 			u8 ps[2];
 		} group0A;
-		struct {
+		struct
+		{
 			u16 pi[2];
 			u8 blk_b[2];
 			u8 ps[2];
@@ -99,7 +106,8 @@ struct fm_rdsdata_format {
 };
 
 /* FM region (Europe/US, Japan) info */
-struct region_info {
+struct region_info
+{
 	u32 chanl_space;
 	u32 bot_freq;
 	u32 top_freq;
@@ -109,7 +117,8 @@ struct fmdev;
 typedef void (*int_handler_prototype) (struct fmdev *);
 
 /* FM Interrupt processing related info */
-struct fm_irq {
+struct fm_irq
+{
 	u8 stage;
 	u16 flag;	/* FM interrupt flag */
 	u16 mask;	/* FM interrupt mask */
@@ -120,7 +129,8 @@ struct fm_irq {
 };
 
 /* RDS info */
-struct fm_rds {
+struct fm_rds
+{
 	u8 flag;	/* RX RDS on/off status */
 	u8 last_blk_idx;	/* Last received RDS block */
 
@@ -139,7 +149,8 @@ struct fm_rds {
  * This info is used to switch to other freq (AF)
  * when current channel signal strengh is below RSSI threshold.
  */
-struct tuned_station_info {
+struct tuned_station_info
+{
 	u16 picode;
 	u32 af_cache[FM_RDS_MAX_AF_LIST];
 	u8 afcache_size;
@@ -147,7 +158,8 @@ struct tuned_station_info {
 };
 
 /* FM RX mode info */
-struct fm_rx {
+struct fm_rx
+{
 	struct region_info region;	/* Current selected band */
 	u32 freq;	/* Current RX frquency */
 	u8 mute_mode;	/* Current mute mode */
@@ -175,7 +187,8 @@ struct fm_rx {
  * @ af_freq: alternate frequency for Tx
  * TODO: to be declared in application
  */
-struct tx_rds {
+struct tx_rds
+{
 	u8 text_type;
 	u8 text[FMTX_RDS_TXT_STR_SIZE];
 	u8 flag;
@@ -189,7 +202,8 @@ struct tx_rds {
  * @ audio_io: i2S/Analog
  * @ tx_frq: Transmission frequency
  */
-struct fmtx_data {
+struct fmtx_data
+{
 	u8 pwr_lvl;
 	u8 xmit_state;
 	u8 audio_io;
@@ -201,7 +215,8 @@ struct fmtx_data {
 };
 
 /* FM driver operation structure */
-struct fmdev {
+struct fmdev
+{
 	struct video_device *radio_dev;	/* V4L2 video device pointer */
 	struct v4l2_device v4l2_dev;	/* V4L2 top level struct */
 	struct snd_card *card;	/* Card which holds FM mixer controls */

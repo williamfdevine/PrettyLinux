@@ -64,7 +64,7 @@
 
 #define DMA_AXI_OSR_MAX			0xf
 #define DMA_AXI_MAX_OSR_LIMIT ((DMA_AXI_OSR_MAX << DMA_AXI_WR_OSR_LMT_SHIFT) | \
-				(DMA_AXI_OSR_MAX << DMA_AXI_RD_OSR_LMT_SHIFT))
+							   (DMA_AXI_OSR_MAX << DMA_AXI_RD_OSR_LMT_SHIFT))
 
 #define DMA_SYS_BUS_MB			BIT(14)
 #define DMA_AXI_1KBBE			BIT(13)
@@ -79,9 +79,9 @@
 #define DMA_SYS_BUS_FB			BIT(0)
 
 #define DMA_BURST_LEN_DEFAULT		(DMA_AXI_BLEN256 | DMA_AXI_BLEN128 | \
-					DMA_AXI_BLEN64 | DMA_AXI_BLEN32 | \
-					DMA_AXI_BLEN16 | DMA_AXI_BLEN8 | \
-					DMA_AXI_BLEN4)
+									 DMA_AXI_BLEN64 | DMA_AXI_BLEN32 | \
+									 DMA_AXI_BLEN16 | DMA_AXI_BLEN8 | \
+									 DMA_AXI_BLEN4)
 
 #define DMA_AXI_BURST_LEN_MASK		0x000000FE
 
@@ -89,7 +89,7 @@
 #define DMA_CHAN_BASE_ADDR		0x00001100
 #define DMA_CHAN_BASE_OFFSET		0x80
 #define DMA_CHANX_BASE_ADDR(x)		(DMA_CHAN_BASE_ADDR + \
-					(x * DMA_CHAN_BASE_OFFSET))
+									 (x * DMA_CHAN_BASE_OFFSET))
 #define DMA_CHAN_REG_NUMBER		17
 
 #define DMA_CHAN_CONTROL(x)		DMA_CHANX_BASE_ADDR(x)
@@ -158,24 +158,24 @@
 #define DMA_CHAN_INTR_ENA_TIE		BIT(0)
 
 #define DMA_CHAN_INTR_NORMAL		(DMA_CHAN_INTR_ENA_NIE | \
-					 DMA_CHAN_INTR_ENA_RIE | \
-					 DMA_CHAN_INTR_ENA_TIE)
+									 DMA_CHAN_INTR_ENA_RIE | \
+									 DMA_CHAN_INTR_ENA_TIE)
 
 #define DMA_CHAN_INTR_ABNORMAL		(DMA_CHAN_INTR_ENA_AIE | \
-					 DMA_CHAN_INTR_ENA_FBE)
+									 DMA_CHAN_INTR_ENA_FBE)
 /* DMA default interrupt mask for 4.00 */
 #define DMA_CHAN_INTR_DEFAULT_MASK	(DMA_CHAN_INTR_NORMAL | \
-					 DMA_CHAN_INTR_ABNORMAL)
+									 DMA_CHAN_INTR_ABNORMAL)
 
 #define DMA_CHAN_INTR_NORMAL_4_10	(DMA_CHAN_INTR_ENA_NIE_4_10 | \
-					 DMA_CHAN_INTR_ENA_RIE | \
-					 DMA_CHAN_INTR_ENA_TIE)
+									 DMA_CHAN_INTR_ENA_RIE | \
+									 DMA_CHAN_INTR_ENA_TIE)
 
 #define DMA_CHAN_INTR_ABNORMAL_4_10	(DMA_CHAN_INTR_ENA_AIE_4_10 | \
-					 DMA_CHAN_INTR_ENA_FBE)
+									 DMA_CHAN_INTR_ENA_FBE)
 /* DMA default interrupt mask for 4.10a */
 #define DMA_CHAN_INTR_DEFAULT_MASK_4_10	(DMA_CHAN_INTR_NORMAL_4_10 | \
-					 DMA_CHAN_INTR_ABNORMAL_4_10)
+		DMA_CHAN_INTR_ABNORMAL_4_10)
 
 /* channel 0 specific fields */
 #define DMA_CHAN0_DBG_STAT_TPS		GENMASK(15, 12)
@@ -193,7 +193,7 @@ void dwmac4_dma_stop_tx(void __iomem *ioaddr);
 void dwmac4_dma_start_rx(void __iomem *ioaddr);
 void dwmac4_dma_stop_rx(void __iomem *ioaddr);
 int dwmac4_dma_interrupt(void __iomem *ioaddr,
-			 struct stmmac_extra_stats *x);
+						 struct stmmac_extra_stats *x);
 void dwmac4_set_rx_ring_len(void __iomem *ioaddr, u32 len);
 void dwmac4_set_tx_ring_len(void __iomem *ioaddr, u32 len);
 void dwmac4_set_rx_tail_ptr(void __iomem *ioaddr, u32 tail_ptr, u32 chan);

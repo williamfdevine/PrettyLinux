@@ -30,13 +30,15 @@
 #include <linux/io.h>
 #include "sdhci.h"
 
-struct spear_sdhci {
+struct spear_sdhci
+{
 	struct clk *clk;
 	int card_int_gpio;
 };
 
 /* sdhci ops */
-static const struct sdhci_ops sdhci_pltfm_ops = {
+static const struct sdhci_ops sdhci_pltfm_ops =
+{
 	.set_clock = sdhci_set_clock,
 	.set_bus_width = sdhci_set_bus_width,
 	.reset = sdhci_reset,
@@ -44,13 +46,16 @@ static const struct sdhci_ops sdhci_pltfm_ops = {
 };
 
 static void sdhci_probe_config_dt(struct device_node *np,
-				struct spear_sdhci *host)
+								  struct spear_sdhci *host)
 {
 	int cd_gpio;
 
 	cd_gpio = of_get_named_gpio(np, "cd-gpios", 0);
+
 	if (!gpio_is_valid(cd_gpio))
+	{
 		cd_gpio = -1;
+	}
 
 	host->card_int_gpio = cd_gpio;
 }
@@ -65,7 +70,9 @@ static int sdhci_probe(struct platform_device *pdev)
 
 	dev = pdev->dev.parent ? pdev->dev.parent : &pdev->dev;
 	host = sdhci_alloc_host(dev, sizeof(*sdhci));
-	if (IS_ERR(host)) {
+
+	if (IS_ERR(host))
+	{
 		ret = PTR_ERR(host);
 		dev_dbg(&pdev->dev, "cannot allocate memory for sdhci\n");
 		goto err;
@@ -73,7 +80,9 @@ static int sdhci_probe(struct platform_device *pdev)
 
 	iomem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	host->ioaddr = devm_ioremap_resource(&pdev->dev, iomem);
-	if (IS_ERR(host->ioaddr)) {
+
+	if (IS_ERR(host->ioaddr))
+	{
 		ret = PTR_ERR(host->ioaddr);
 		dev_dbg(&pdev->dev, "unable to map iomem: %d\n", ret);
 		goto err_host;
@@ -88,41 +97,52 @@ static int sdhci_probe(struct platform_device *pdev)
 
 	/* clk enable */
 	sdhci->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(sdhci->clk)) {
+
+	if (IS_ERR(sdhci->clk))
+	{
 		ret = PTR_ERR(sdhci->clk);
 		dev_dbg(&pdev->dev, "Error getting clock\n");
 		goto err_host;
 	}
 
 	ret = clk_prepare_enable(sdhci->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_dbg(&pdev->dev, "Error enabling clock\n");
 		goto err_host;
 	}
 
 	ret = clk_set_rate(sdhci->clk, 50000000);
+
 	if (ret)
 		dev_dbg(&pdev->dev, "Error setting desired clk, clk=%lu\n",
 				clk_get_rate(sdhci->clk));
 
 	sdhci_probe_config_dt(pdev->dev.of_node, sdhci);
+
 	/*
 	 * It is optional to use GPIOs for sdhci card detection. If
 	 * sdhci->card_int_gpio < 0, then use original sdhci lines otherwise
 	 * GPIO lines. We use the built-in GPIO support for this.
 	 */
-	if (sdhci->card_int_gpio >= 0) {
+	if (sdhci->card_int_gpio >= 0)
+	{
 		ret = mmc_gpio_request_cd(host->mmc, sdhci->card_int_gpio, 0);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_dbg(&pdev->dev,
-				"failed to request card-detect gpio%d\n",
-				sdhci->card_int_gpio);
+					"failed to request card-detect gpio%d\n",
+					sdhci->card_int_gpio);
 			goto disable_clk;
 		}
 	}
 
 	ret = sdhci_add_host(host);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_dbg(&pdev->dev, "error adding host\n");
 		goto disable_clk;
 	}
@@ -148,8 +168,11 @@ static int sdhci_remove(struct platform_device *pdev)
 	u32 scratch;
 
 	scratch = readl(host->ioaddr + SDHCI_INT_STATUS);
-	if (scratch == (u32)-1)
+
+	if (scratch == (u32) - 1)
+	{
 		dead = 1;
+	}
 
 	sdhci_remove_host(host, dead);
 	clk_disable_unprepare(sdhci->clk);
@@ -166,8 +189,11 @@ static int sdhci_suspend(struct device *dev)
 	int ret;
 
 	ret = sdhci_suspend_host(host);
+
 	if (!ret)
+	{
 		clk_disable(sdhci->clk);
+	}
 
 	return ret;
 }
@@ -179,7 +205,9 @@ static int sdhci_resume(struct device *dev)
 	int ret;
 
 	ret = clk_enable(sdhci->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_dbg(dev, "Resume: Error enabling clock\n");
 		return ret;
 	}
@@ -191,14 +219,16 @@ static int sdhci_resume(struct device *dev)
 static SIMPLE_DEV_PM_OPS(sdhci_pm_ops, sdhci_suspend, sdhci_resume);
 
 #ifdef CONFIG_OF
-static const struct of_device_id sdhci_spear_id_table[] = {
+static const struct of_device_id sdhci_spear_id_table[] =
+{
 	{ .compatible = "st,spear300-sdhci" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, sdhci_spear_id_table);
 #endif
 
-static struct platform_driver sdhci_driver = {
+static struct platform_driver sdhci_driver =
+{
 	.driver = {
 		.name	= "sdhci",
 		.pm	= &sdhci_pm_ops,

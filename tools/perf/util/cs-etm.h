@@ -21,7 +21,8 @@
 /* Versionning header in case things need tro change in the future.  That way
  * decoding of old snapshot is still possible.
  */
-enum {
+enum
+{
 	/* Starting with 0x0 */
 	CS_HEADER_VERSION_0,
 	/* PMU->type (32 bit), total # of CPUs (32 bit) */
@@ -31,13 +32,15 @@ enum {
 };
 
 /* Beginning of header common to both ETMv3 and V4 */
-enum {
+enum
+{
 	CS_ETM_MAGIC,
 	CS_ETM_CPU,
 };
 
 /* ETMv3/PTM metadata */
-enum {
+enum
+{
 	/* Dynamic, configurable parameters */
 	CS_ETM_ETMCR = CS_ETM_CPU + 1,
 	CS_ETM_ETMTRACEIDR,
@@ -48,7 +51,8 @@ enum {
 };
 
 /* ETMv4 metadata */
-enum {
+enum
+{
 	/* Dynamic, configurable parameters */
 	CS_ETMV4_TRCCONFIGR = CS_ETM_CPU + 1,
 	CS_ETMV4_TRCTRACEIDR,

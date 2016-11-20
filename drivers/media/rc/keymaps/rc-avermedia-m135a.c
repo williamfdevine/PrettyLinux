@@ -23,7 +23,8 @@
  * codes added by Herton Ronaldo Krzesinski <herton@mandriva.com.br>
  */
 
-static struct rc_map_table avermedia_m135a[] = {
+static struct rc_map_table avermedia_m135a[] =
+{
 	/* RM-JX */
 	{ 0x0200, KEY_POWER2 },
 	{ 0x022e, KEY_DOT },		/* '.' */
@@ -122,7 +123,8 @@ static struct rc_map_table avermedia_m135a[] = {
 	{ 0x041e, KEY_NEXT },
 };
 
-static struct rc_map_list avermedia_m135a_map = {
+static struct rc_map_list avermedia_m135a_map =
+{
 	.map = {
 		.scan    = avermedia_m135a,
 		.size    = ARRAY_SIZE(avermedia_m135a),

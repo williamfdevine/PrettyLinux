@@ -40,19 +40,25 @@ static struct sk_buff *dnrmg_build_message(struct sk_buff *rt_skb, int *errp)
 	struct nf_dn_rtmsg *rtm;
 
 	size = NLMSG_ALIGN(rt_skb->len) +
-	       NLMSG_ALIGN(sizeof(struct nf_dn_rtmsg));
+		   NLMSG_ALIGN(sizeof(struct nf_dn_rtmsg));
 	skb = nlmsg_new(size, GFP_ATOMIC);
-	if (!skb) {
+
+	if (!skb)
+	{
 		*errp = -ENOMEM;
 		return NULL;
 	}
+
 	old_tail = skb->tail;
 	nlh = nlmsg_put(skb, 0, 0, 0, size, 0);
-	if (!nlh) {
+
+	if (!nlh)
+	{
 		kfree_skb(skb);
 		*errp = -ENOMEM;
 		return NULL;
 	}
+
 	rtm = (struct nf_dn_rtmsg *)nlmsg_data(nlh);
 	rtm->nfdn_ifindex = rt_skb->dev->ifindex;
 	ptr = NFDN_RTMSG(rtm);
@@ -68,28 +74,35 @@ static void dnrmg_send_peer(struct sk_buff *skb)
 	int group = 0;
 	unsigned char flags = *skb->data;
 
-	switch (flags & DN_RT_CNTL_MSK) {
-	case DN_RT_PKT_L1RT:
-		group = DNRNG_NLGRP_L1;
-		break;
-	case DN_RT_PKT_L2RT:
-		group = DNRNG_NLGRP_L2;
-		break;
-	default:
-		return;
+	switch (flags & DN_RT_CNTL_MSK)
+	{
+		case DN_RT_PKT_L1RT:
+			group = DNRNG_NLGRP_L1;
+			break;
+
+		case DN_RT_PKT_L2RT:
+			group = DNRNG_NLGRP_L2;
+			break;
+
+		default:
+			return;
 	}
 
 	skb2 = dnrmg_build_message(skb, &status);
+
 	if (skb2 == NULL)
+	{
 		return;
+	}
+
 	NETLINK_CB(skb2).dst_group = group;
 	netlink_broadcast(dnrmg, skb2, 0, group, GFP_ATOMIC);
 }
 
 
 static unsigned int dnrmg_hook(void *priv,
-			struct sk_buff *skb,
-			const struct nf_hook_state *state)
+							   struct sk_buff *skb,
+							   const struct nf_hook_state *state)
 {
 	dnrmg_send_peer(skb);
 	return NF_ACCEPT;
@@ -103,17 +116,22 @@ static inline void dnrmg_receive_user_skb(struct sk_buff *skb)
 	struct nlmsghdr *nlh = nlmsg_hdr(skb);
 
 	if (nlh->nlmsg_len < sizeof(*nlh) || skb->len < nlh->nlmsg_len)
+	{
 		return;
+	}
 
 	if (!netlink_capable(skb, CAP_NET_ADMIN))
+	{
 		RCV_SKB_FAIL(-EPERM);
+	}
 
 	/* Eventually we might send routing messages too */
 
 	RCV_SKB_FAIL(-EINVAL);
 }
 
-static struct nf_hook_ops dnrmg_ops __read_mostly = {
+static struct nf_hook_ops dnrmg_ops __read_mostly =
+{
 	.hook		= dnrmg_hook,
 	.pf		= NFPROTO_DECNET,
 	.hooknum	= NF_DN_ROUTE,
@@ -123,19 +141,24 @@ static struct nf_hook_ops dnrmg_ops __read_mostly = {
 static int __init dn_rtmsg_init(void)
 {
 	int rv = 0;
-	struct netlink_kernel_cfg cfg = {
+	struct netlink_kernel_cfg cfg =
+	{
 		.groups	= DNRNG_NLGRP_MAX,
 		.input	= dnrmg_receive_user_skb,
 	};
 
 	dnrmg = netlink_kernel_create(&init_net, NETLINK_DNRTMSG, &cfg);
-	if (dnrmg == NULL) {
+
+	if (dnrmg == NULL)
+	{
 		printk(KERN_ERR "dn_rtmsg: Cannot create netlink socket");
 		return -ENOMEM;
 	}
 
 	rv = nf_register_hook(&dnrmg_ops);
-	if (rv) {
+
+	if (rv)
+	{
 		netlink_kernel_release(dnrmg);
 	}
 

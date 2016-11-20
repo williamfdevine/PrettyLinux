@@ -85,49 +85,62 @@ ACPI_MODULE_NAME("nsrepair")
  ******************************************************************************/
 /* Local prototypes */
 static const struct acpi_simple_repair_info *acpi_ns_match_simple_repair(struct
-									 acpi_namespace_node
-									 *node,
-									 u32
-									 return_btype,
-									 u32
-									 package_index);
+		acpi_namespace_node
+		*node,
+		u32
+		return_btype,
+		u32
+		package_index);
 
 /*
  * Special but simple repairs for some names.
  *
  * 2nd argument: Unexpected types that can be repaired
  */
-static const struct acpi_simple_repair_info acpi_object_repair_info[] = {
+static const struct acpi_simple_repair_info acpi_object_repair_info[] =
+{
 	/* Resource descriptor conversions */
 
-	{"_CRS",
-	 ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING | ACPI_RTYPE_BUFFER |
-	 ACPI_RTYPE_NONE,
-	 ACPI_NOT_PACKAGE_ELEMENT,
-	 acpi_ns_convert_to_resource},
-	{"_DMA",
-	 ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING | ACPI_RTYPE_BUFFER |
-	 ACPI_RTYPE_NONE,
-	 ACPI_NOT_PACKAGE_ELEMENT,
-	 acpi_ns_convert_to_resource},
-	{"_PRS",
-	 ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING | ACPI_RTYPE_BUFFER |
-	 ACPI_RTYPE_NONE,
-	 ACPI_NOT_PACKAGE_ELEMENT,
-	 acpi_ns_convert_to_resource},
+	{
+		"_CRS",
+		ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING | ACPI_RTYPE_BUFFER |
+		ACPI_RTYPE_NONE,
+		ACPI_NOT_PACKAGE_ELEMENT,
+		acpi_ns_convert_to_resource
+	},
+	{
+		"_DMA",
+		ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING | ACPI_RTYPE_BUFFER |
+		ACPI_RTYPE_NONE,
+		ACPI_NOT_PACKAGE_ELEMENT,
+		acpi_ns_convert_to_resource
+	},
+	{
+		"_PRS",
+		ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING | ACPI_RTYPE_BUFFER |
+		ACPI_RTYPE_NONE,
+		ACPI_NOT_PACKAGE_ELEMENT,
+		acpi_ns_convert_to_resource
+	},
 
 	/* Object reference conversions */
 
-	{"_DEP", ACPI_RTYPE_STRING, ACPI_ALL_PACKAGE_ELEMENTS,
-	 acpi_ns_convert_to_reference},
+	{
+		"_DEP", ACPI_RTYPE_STRING, ACPI_ALL_PACKAGE_ELEMENTS,
+		acpi_ns_convert_to_reference
+	},
 
 	/* Unicode conversions */
 
-	{"_MLS", ACPI_RTYPE_STRING, 1,
-	 acpi_ns_convert_to_unicode},
-	{"_STR", ACPI_RTYPE_STRING | ACPI_RTYPE_BUFFER,
-	 ACPI_NOT_PACKAGE_ELEMENT,
-	 acpi_ns_convert_to_unicode},
+	{
+		"_MLS", ACPI_RTYPE_STRING, 1,
+		acpi_ns_convert_to_unicode
+	},
+	{
+		"_STR", ACPI_RTYPE_STRING | ACPI_RTYPE_BUFFER,
+		ACPI_NOT_PACKAGE_ELEMENT,
+		acpi_ns_convert_to_unicode
+	},
 	{{0, 0, 0, 0}, 0, 0, NULL}	/* Table terminator */
 };
 
@@ -152,9 +165,9 @@ static const struct acpi_simple_repair_info acpi_object_repair_info[] = {
 
 acpi_status
 acpi_ns_simple_repair(struct acpi_evaluate_info *info,
-		      u32 expected_btypes,
-		      u32 package_index,
-		      union acpi_operand_object **return_object_ptr)
+					  u32 expected_btypes,
+					  u32 package_index,
+					  union acpi_operand_object **return_object_ptr)
 {
 	union acpi_operand_object *return_object = *return_object_ptr;
 	union acpi_operand_object *new_object = NULL;
@@ -168,26 +181,33 @@ acpi_ns_simple_repair(struct acpi_evaluate_info *info,
 	 * Check if this name is in the list of repairable names.
 	 */
 	predefined = acpi_ns_match_simple_repair(info->node,
-						 info->return_btype,
-						 package_index);
-	if (predefined) {
-		if (!return_object) {
+				 info->return_btype,
+				 package_index);
+
+	if (predefined)
+	{
+		if (!return_object)
+		{
 			ACPI_WARN_PREDEFINED((AE_INFO, info->full_pathname,
-					      ACPI_WARN_ALWAYS,
-					      "Missing expected return value"));
+								  ACPI_WARN_ALWAYS,
+								  "Missing expected return value"));
 		}
 
 		status = predefined->object_converter(info->node, return_object,
-						      &new_object);
-		if (ACPI_FAILURE(status)) {
+											  &new_object);
+
+		if (ACPI_FAILURE(status))
+		{
 
 			/* A fatal error occurred during a conversion */
 
 			ACPI_EXCEPTION((AE_INFO, status,
-					"During return object analysis"));
+							"During return object analysis"));
 			return (status);
 		}
-		if (new_object) {
+
+		if (new_object)
+		{
 			goto object_repaired;
 		}
 	}
@@ -196,7 +216,8 @@ acpi_ns_simple_repair(struct acpi_evaluate_info *info,
 	 * Do not perform simple object repair unless the return type is not
 	 * expected.
 	 */
-	if (info->return_btype & expected_btypes) {
+	if (info->return_btype & expected_btypes)
+	{
 		return (AE_OK);
 	}
 
@@ -214,52 +235,72 @@ acpi_ns_simple_repair(struct acpi_evaluate_info *info,
 	 *
 	 * Try to fix if there was no return object. Warning if failed to fix.
 	 */
-	if (!return_object) {
-		if (expected_btypes && (!(expected_btypes & ACPI_RTYPE_NONE))) {
-			if (package_index != ACPI_NOT_PACKAGE_ELEMENT) {
+	if (!return_object)
+	{
+		if (expected_btypes && (!(expected_btypes & ACPI_RTYPE_NONE)))
+		{
+			if (package_index != ACPI_NOT_PACKAGE_ELEMENT)
+			{
 				ACPI_WARN_PREDEFINED((AE_INFO,
-						      info->full_pathname,
-						      ACPI_WARN_ALWAYS,
-						      "Found unexpected NULL package element"));
+									  info->full_pathname,
+									  ACPI_WARN_ALWAYS,
+									  "Found unexpected NULL package element"));
 
 				status =
-				    acpi_ns_repair_null_element(info,
-								expected_btypes,
-								package_index,
-								return_object_ptr);
-				if (ACPI_SUCCESS(status)) {
+					acpi_ns_repair_null_element(info,
+												expected_btypes,
+												package_index,
+												return_object_ptr);
+
+				if (ACPI_SUCCESS(status))
+				{
 					return (AE_OK);	/* Repair was successful */
 				}
-			} else {
+			}
+			else
+			{
 				ACPI_WARN_PREDEFINED((AE_INFO,
-						      info->full_pathname,
-						      ACPI_WARN_ALWAYS,
-						      "Missing expected return value"));
+									  info->full_pathname,
+									  ACPI_WARN_ALWAYS,
+									  "Missing expected return value"));
 			}
 
 			return (AE_AML_NO_RETURN_VALUE);
 		}
 	}
 
-	if (expected_btypes & ACPI_RTYPE_INTEGER) {
+	if (expected_btypes & ACPI_RTYPE_INTEGER)
+	{
 		status = acpi_ns_convert_to_integer(return_object, &new_object);
-		if (ACPI_SUCCESS(status)) {
+
+		if (ACPI_SUCCESS(status))
+		{
 			goto object_repaired;
 		}
 	}
-	if (expected_btypes & ACPI_RTYPE_STRING) {
+
+	if (expected_btypes & ACPI_RTYPE_STRING)
+	{
 		status = acpi_ns_convert_to_string(return_object, &new_object);
-		if (ACPI_SUCCESS(status)) {
+
+		if (ACPI_SUCCESS(status))
+		{
 			goto object_repaired;
 		}
 	}
-	if (expected_btypes & ACPI_RTYPE_BUFFER) {
+
+	if (expected_btypes & ACPI_RTYPE_BUFFER)
+	{
 		status = acpi_ns_convert_to_buffer(return_object, &new_object);
-		if (ACPI_SUCCESS(status)) {
+
+		if (ACPI_SUCCESS(status))
+		{
 			goto object_repaired;
 		}
 	}
-	if (expected_btypes & ACPI_RTYPE_PACKAGE) {
+
+	if (expected_btypes & ACPI_RTYPE_PACKAGE)
+	{
 		/*
 		 * A package is expected. We will wrap the existing object with a
 		 * new package object. It is often the case that if a variable-length
@@ -269,8 +310,10 @@ acpi_ns_simple_repair(struct acpi_evaluate_info *info,
 		 * for correct contents (expected object type or types).
 		 */
 		status =
-		    acpi_ns_wrap_with_package(info, return_object, &new_object);
-		if (ACPI_SUCCESS(status)) {
+			acpi_ns_wrap_with_package(info, return_object, &new_object);
+
+		if (ACPI_SUCCESS(status))
+		{
 			/*
 			 * The original object just had its reference count
 			 * incremented for being inserted into the new package.
@@ -289,7 +332,8 @@ object_repaired:
 
 	/* Object was successfully repaired */
 
-	if (package_index != ACPI_NOT_PACKAGE_ELEMENT) {
+	if (package_index != ACPI_NOT_PACKAGE_ELEMENT)
+	{
 		/*
 		 * The original object is a package element. We need to
 		 * decrement the reference count of the original object,
@@ -299,27 +343,31 @@ object_repaired:
 		 * package object as part of the repair, we don't need to
 		 * change the reference count.
 		 */
-		if (!(info->return_flags & ACPI_OBJECT_WRAPPED)) {
+		if (!(info->return_flags & ACPI_OBJECT_WRAPPED))
+		{
 			new_object->common.reference_count =
-			    return_object->common.reference_count;
+				return_object->common.reference_count;
 
-			if (return_object->common.reference_count > 1) {
+			if (return_object->common.reference_count > 1)
+			{
 				return_object->common.reference_count--;
 			}
 		}
 
 		ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
-				  "%s: Converted %s to expected %s at Package index %u\n",
-				  info->full_pathname,
-				  acpi_ut_get_object_type_name(return_object),
-				  acpi_ut_get_object_type_name(new_object),
-				  package_index));
-	} else {
+						  "%s: Converted %s to expected %s at Package index %u\n",
+						  info->full_pathname,
+						  acpi_ut_get_object_type_name(return_object),
+						  acpi_ut_get_object_type_name(new_object),
+						  package_index));
+	}
+	else
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
-				  "%s: Converted %s to expected %s\n",
-				  info->full_pathname,
-				  acpi_ut_get_object_type_name(return_object),
-				  acpi_ut_get_object_type_name(new_object)));
+						  "%s: Converted %s to expected %s\n",
+						  info->full_pathname,
+						  acpi_ut_get_object_type_name(return_object),
+						  acpi_ut_get_object_type_name(new_object)));
 	}
 
 	/* Delete old object, install the new return object */
@@ -347,27 +395,31 @@ object_repaired:
  *****************************************************************************/
 
 static const struct acpi_simple_repair_info *acpi_ns_match_simple_repair(struct
-									 acpi_namespace_node
-									 *node,
-									 u32
-									 return_btype,
-									 u32
-									 package_index)
+		acpi_namespace_node
+		*node,
+		u32
+		return_btype,
+		u32
+		package_index)
 {
 	const struct acpi_simple_repair_info *this_name;
 
 	/* Search info table for a repairable predefined method/object name */
 
 	this_name = acpi_object_repair_info;
-	while (this_name->object_converter) {
-		if (ACPI_COMPARE_NAME(node->name.ascii, this_name->name)) {
+
+	while (this_name->object_converter)
+	{
+		if (ACPI_COMPARE_NAME(node->name.ascii, this_name->name))
+		{
 
 			/* Check if we can actually repair this name/type combination */
 
 			if ((return_btype & this_name->unexpected_btypes) &&
-			    (this_name->package_index ==
-			     ACPI_ALL_PACKAGE_ELEMENTS
-			     || package_index == this_name->package_index)) {
+				(this_name->package_index ==
+				 ACPI_ALL_PACKAGE_ELEMENTS
+				 || package_index == this_name->package_index))
+			{
 				return (this_name);
 			}
 
@@ -400,9 +452,9 @@ static const struct acpi_simple_repair_info *acpi_ns_match_simple_repair(struct
 
 acpi_status
 acpi_ns_repair_null_element(struct acpi_evaluate_info *info,
-			    u32 expected_btypes,
-			    u32 package_index,
-			    union acpi_operand_object **return_object_ptr)
+							u32 expected_btypes,
+							u32 package_index,
+							union acpi_operand_object **return_object_ptr)
 {
 	union acpi_operand_object *return_object = *return_object_ptr;
 	union acpi_operand_object *new_object;
@@ -411,7 +463,8 @@ acpi_ns_repair_null_element(struct acpi_evaluate_info *info,
 
 	/* No repair needed if return object is non-NULL */
 
-	if (return_object) {
+	if (return_object)
+	{
 		return (AE_OK);
 	}
 
@@ -421,41 +474,49 @@ acpi_ns_repair_null_element(struct acpi_evaluate_info *info,
 	 * is required. It does not apply to variable-length packages where NULL
 	 * elements are allowed, especially at the end of the package.
 	 */
-	if (expected_btypes & ACPI_RTYPE_INTEGER) {
+	if (expected_btypes & ACPI_RTYPE_INTEGER)
+	{
 
 		/* Need an integer - create a zero-value integer */
 
 		new_object = acpi_ut_create_integer_object((u64)0);
-	} else if (expected_btypes & ACPI_RTYPE_STRING) {
+	}
+	else if (expected_btypes & ACPI_RTYPE_STRING)
+	{
 
 		/* Need a string - create a NULL string */
 
 		new_object = acpi_ut_create_string_object(0);
-	} else if (expected_btypes & ACPI_RTYPE_BUFFER) {
+	}
+	else if (expected_btypes & ACPI_RTYPE_BUFFER)
+	{
 
 		/* Need a buffer - create a zero-length buffer */
 
 		new_object = acpi_ut_create_buffer_object(0);
-	} else {
+	}
+	else
+	{
 		/* Error for all other expected types */
 
 		return (AE_AML_OPERAND_TYPE);
 	}
 
-	if (!new_object) {
+	if (!new_object)
+	{
 		return (AE_NO_MEMORY);
 	}
 
 	/* Set the reference count according to the parent Package object */
 
 	new_object->common.reference_count =
-	    info->parent_package->common.reference_count;
+		info->parent_package->common.reference_count;
 
 	ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
-			  "%s: Converted NULL package element to expected %s at index %u\n",
-			  info->full_pathname,
-			  acpi_ut_get_object_type_name(new_object),
-			  package_index));
+					  "%s: Converted NULL package element to expected %s at index %u\n",
+					  info->full_pathname,
+					  acpi_ut_get_object_type_name(new_object),
+					  package_index));
 
 	*return_object_ptr = new_object;
 	info->return_flags |= ACPI_OBJECT_REPAIRED;
@@ -480,8 +541,8 @@ acpi_ns_repair_null_element(struct acpi_evaluate_info *info,
 
 void
 acpi_ns_remove_null_elements(struct acpi_evaluate_info *info,
-			     u8 package_type,
-			     union acpi_operand_object *obj_desc)
+							 u8 package_type,
+							 union acpi_operand_object *obj_desc)
 {
 	union acpi_operand_object **source;
 	union acpi_operand_object **dest;
@@ -496,22 +557,23 @@ acpi_ns_remove_null_elements(struct acpi_evaluate_info *info,
 	 * PTYPE1_VAR packages contain a variable number of simple data types.
 	 * PTYPE2 packages contain a variable number of subpackages.
 	 */
-	switch (package_type) {
-	case ACPI_PTYPE1_VAR:
-	case ACPI_PTYPE2:
-	case ACPI_PTYPE2_COUNT:
-	case ACPI_PTYPE2_PKG_COUNT:
-	case ACPI_PTYPE2_FIXED:
-	case ACPI_PTYPE2_MIN:
-	case ACPI_PTYPE2_REV_FIXED:
-	case ACPI_PTYPE2_FIX_VAR:
-		break;
+	switch (package_type)
+	{
+		case ACPI_PTYPE1_VAR:
+		case ACPI_PTYPE2:
+		case ACPI_PTYPE2_COUNT:
+		case ACPI_PTYPE2_PKG_COUNT:
+		case ACPI_PTYPE2_FIXED:
+		case ACPI_PTYPE2_MIN:
+		case ACPI_PTYPE2_REV_FIXED:
+		case ACPI_PTYPE2_FIX_VAR:
+			break;
 
-	default:
-	case ACPI_PTYPE2_VAR_VAR:
-	case ACPI_PTYPE1_FIXED:
-	case ACPI_PTYPE1_OPTION:
-		return;
+		default:
+		case ACPI_PTYPE2_VAR_VAR:
+		case ACPI_PTYPE1_FIXED:
+		case ACPI_PTYPE1_OPTION:
+			return;
 	}
 
 	count = obj_desc->package.count;
@@ -522,10 +584,14 @@ acpi_ns_remove_null_elements(struct acpi_evaluate_info *info,
 
 	/* Examine all elements of the package object, remove nulls */
 
-	for (i = 0; i < count; i++) {
-		if (!*source) {
+	for (i = 0; i < count; i++)
+	{
+		if (!*source)
+		{
 			new_count--;
-		} else {
+		}
+		else
+		{
 			*dest = *source;
 			dest++;
 		}
@@ -535,10 +601,11 @@ acpi_ns_remove_null_elements(struct acpi_evaluate_info *info,
 
 	/* Update parent package if any null elements were removed */
 
-	if (new_count < count) {
+	if (new_count < count)
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
-				  "%s: Found and removed %u NULL elements\n",
-				  info->full_pathname, (count - new_count)));
+						  "%s: Found and removed %u NULL elements\n",
+						  info->full_pathname, (count - new_count)));
 
 		/* NULL terminate list and update the package count */
 
@@ -573,8 +640,8 @@ acpi_ns_remove_null_elements(struct acpi_evaluate_info *info,
 
 acpi_status
 acpi_ns_wrap_with_package(struct acpi_evaluate_info *info,
-			  union acpi_operand_object *original_object,
-			  union acpi_operand_object **obj_desc_ptr)
+						  union acpi_operand_object *original_object,
+						  union acpi_operand_object **obj_desc_ptr)
 {
 	union acpi_operand_object *pkg_obj_desc;
 
@@ -585,16 +652,18 @@ acpi_ns_wrap_with_package(struct acpi_evaluate_info *info,
 	 * package will have a single element, the lone sub-object.
 	 */
 	pkg_obj_desc = acpi_ut_create_package_object(1);
-	if (!pkg_obj_desc) {
+
+	if (!pkg_obj_desc)
+	{
 		return (AE_NO_MEMORY);
 	}
 
 	pkg_obj_desc->package.elements[0] = original_object;
 
 	ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
-			  "%s: Wrapped %s with expected Package object\n",
-			  info->full_pathname,
-			  acpi_ut_get_object_type_name(original_object)));
+					  "%s: Wrapped %s with expected Package object\n",
+					  info->full_pathname,
+					  acpi_ut_get_object_type_name(original_object)));
 
 	/* Return the new object in the object pointer */
 

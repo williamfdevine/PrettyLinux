@@ -13,7 +13,8 @@
  * GNU General Public License for more details.
  */
 
-struct vt8500lcd_info {
+struct vt8500lcd_info
+{
 	struct fb_info		fb;
 	void __iomem		*regbase;
 	void __iomem		*palette_cpu;
@@ -22,7 +23,8 @@ struct vt8500lcd_info {
 	wait_queue_head_t	wait;
 };
 
-static int bpp_values[] = {
+static int bpp_values[] =
+{
 	1,
 	2,
 	4,

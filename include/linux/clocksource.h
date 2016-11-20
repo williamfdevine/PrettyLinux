@@ -23,7 +23,7 @@ struct clocksource;
 struct module;
 
 #ifdef CONFIG_ARCH_CLOCKSOURCE_DATA
-#include <asm/clocksource.h>
+	#include <asm/clocksource.h>
 #endif
 
 /**
@@ -74,7 +74,8 @@ struct module;
  * information you need you should consider to cache line align that
  * structure.
  */
-struct clocksource {
+struct clocksource
+{
 	cycle_t (*read)(struct clocksource *cs);
 	cycle_t mask;
 	u32 mult;
@@ -130,7 +131,7 @@ static inline u32 clocksource_freq2mult(u32 freq, u32 shift_constant, u64 from)
 	 */
 	u64 tmp = ((u64)from) << shift_constant;
 
-	tmp += freq/2; /* round for do_div */
+	tmp += freq / 2; /* round for do_div */
 	do_div(tmp, freq);
 
 	return (u32)tmp;
@@ -179,12 +180,12 @@ static inline s64 clocksource_cyc2ns(cycle_t cycles, u32 mult, u32 shift)
 }
 
 
-extern int clocksource_unregister(struct clocksource*);
+extern int clocksource_unregister(struct clocksource *);
 extern void clocksource_touch_watchdog(void);
 extern void clocksource_change_rating(struct clocksource *cs, int rating);
 extern void clocksource_suspend(void);
 extern void clocksource_resume(void);
-extern struct clocksource * __init clocksource_default_clock(void);
+extern struct clocksource *__init clocksource_default_clock(void);
 extern void clocksource_mark_unstable(struct clocksource *cs);
 
 extern u64
@@ -239,7 +240,7 @@ extern cycle_t clocksource_mmio_readw_up(struct clocksource *);
 extern cycle_t clocksource_mmio_readw_down(struct clocksource *);
 
 extern int clocksource_mmio_init(void __iomem *, const char *,
-	unsigned long, int, unsigned, cycle_t (*)(struct clocksource *));
+								 unsigned long, int, unsigned, cycle_t (*)(struct clocksource *));
 
 extern int clocksource_i8253_init(void);
 

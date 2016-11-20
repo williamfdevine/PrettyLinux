@@ -23,7 +23,8 @@
 struct isp_csiphy;
 
 /* This is not an exhaustive list */
-enum isp_csi2_pix_formats {
+enum isp_csi2_pix_formats
+{
 	CSI2_PIX_FMT_OTHERS = 0,
 	CSI2_PIX_FMT_YUV422_8BIT = 0x1e,
 	CSI2_PIX_FMT_YUV422_8BIT_VP = 0x9e,
@@ -38,7 +39,8 @@ enum isp_csi2_pix_formats {
 	CSI2_USERDEF_8BIT_DATA1 = 0x40,
 };
 
-enum isp_csi2_irqevents {
+enum isp_csi2_irqevents
+{
 	OCP_ERR_IRQ = 0x4000,
 	SHORT_PACKET_IRQ = 0x2000,
 	ECC_CORRECTION_IRQ = 0x1000,
@@ -56,7 +58,8 @@ enum isp_csi2_irqevents {
 	CONTEXT0 = 0x1,
 };
 
-enum isp_csi2_ctx_irqevents {
+enum isp_csi2_ctx_irqevents
+{
 	CTX_ECC_CORRECTION = 0x100,
 	CTX_LINE_NUMBER = 0x80,
 	CTX_FRAME_NUMBER = 0x40,
@@ -67,14 +70,16 @@ enum isp_csi2_ctx_irqevents {
 	CTX_FS = 0x1,
 };
 
-enum isp_csi2_frame_mode {
+enum isp_csi2_frame_mode
+{
 	ISP_CSI2_FRAME_IMMEDIATE,
 	ISP_CSI2_FRAME_AFTERFEC,
 };
 
 #define ISP_CSI2_MAX_CTX_NUM	7
 
-struct isp_csi2_ctx_cfg {
+struct isp_csi2_ctx_cfg
+{
 	u8 ctxnum;		/* context number 0 - 7 */
 	u8 dpcm_decompress;
 
@@ -94,15 +99,17 @@ struct isp_csi2_ctx_cfg {
 	u8 enabled;
 };
 
-struct isp_csi2_timing_cfg {
+struct isp_csi2_timing_cfg
+{
 	u8 ionum;			/* IO1 or IO2 as in CSI2_TIMING */
-	unsigned force_rx_mode:1;
-	unsigned stop_state_16x:1;
-	unsigned stop_state_4x:1;
+	unsigned force_rx_mode: 1;
+	unsigned stop_state_16x: 1;
+	unsigned stop_state_4x: 1;
 	u16 stop_state_counter;
 };
 
-struct isp_csi2_ctrl_cfg {
+struct isp_csi2_ctrl_cfg
+{
 	bool vp_clk_enable;
 	bool vp_only_enable;
 	u8 vp_out_ctrl;
@@ -118,7 +125,8 @@ struct isp_csi2_ctrl_cfg {
 #define CSI2_OUTPUT_CCDC	(1 << 0)
 #define CSI2_OUTPUT_MEMORY	(1 << 1)
 
-struct isp_csi2_device {
+struct isp_csi2_device
+{
 	struct v4l2_subdev subdev;
 	struct media_pad pads[CSI2_PADS_NUM];
 	struct v4l2_mbus_framefmt formats[CSI2_PADS_NUM];
@@ -151,5 +159,5 @@ int omap3isp_csi2_init(struct isp_device *isp);
 void omap3isp_csi2_cleanup(struct isp_device *isp);
 void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2);
 int omap3isp_csi2_register_entities(struct isp_csi2_device *csi2,
-				    struct v4l2_device *vdev);
+									struct v4l2_device *vdev);
 #endif	/* OMAP3_ISP_CSI2_H */

@@ -6,7 +6,8 @@
 
 #define TP_MAX_RX_COALESCING_SIZE 16224U
 
-struct tp_mib_statistics {
+struct tp_mib_statistics
+{
 
 	/* IP */
 	u32 ipInReceive_hi;

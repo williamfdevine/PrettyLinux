@@ -42,10 +42,10 @@
 #define ALL_TC2PFC         0xFF
 
 void i40iw_debug_buf(struct i40iw_sc_dev *dev, enum i40iw_debug_flag mask,
-		     char *desc, u64 *buf, u32 size);
+					 char *desc, u64 *buf, u32 size);
 /* init operations */
 enum i40iw_status_code i40iw_device_init(struct i40iw_sc_dev *dev,
-					 struct i40iw_device_init_info *info);
+		struct i40iw_device_init_info *info);
 
 enum i40iw_status_code i40iw_device_init_pestat(struct i40iw_dev_pestat *);
 
@@ -54,15 +54,15 @@ void i40iw_sc_cqp_post_sq(struct i40iw_sc_cqp *cqp);
 u64 *i40iw_sc_cqp_get_next_send_wqe(struct i40iw_sc_cqp *cqp, u64 scratch);
 
 enum i40iw_status_code i40iw_sc_mr_fast_register(struct i40iw_sc_qp *qp,
-						 struct i40iw_fast_reg_stag_info *info,
-						 bool post_sq);
+		struct i40iw_fast_reg_stag_info *info,
+		bool post_sq);
 
 /* HMC/FPM functions */
 enum i40iw_status_code i40iw_sc_init_iw_hmc(struct i40iw_sc_dev *dev,
-					    u8 hmc_fn_id);
+		u8 hmc_fn_id);
 
 enum i40iw_status_code i40iw_pf_init_vfhmc(struct i40iw_sc_dev *dev, u8 vf_hmc_fn_id,
-					   u32 *vf_cnt_array);
+		u32 *vf_cnt_array);
 
 /* cqp misc functions */
 
@@ -73,34 +73,34 @@ void i40iw_terminate_connection(struct i40iw_sc_qp *qp, struct i40iw_aeqe_info *
 void i40iw_terminate_received(struct i40iw_sc_qp *qp, struct i40iw_aeqe_info *info);
 
 enum i40iw_status_code i40iw_sc_suspend_qp(struct i40iw_sc_cqp *cqp,
-					   struct i40iw_sc_qp *qp, u64 scratch);
+		struct i40iw_sc_qp *qp, u64 scratch);
 
 enum i40iw_status_code i40iw_sc_resume_qp(struct i40iw_sc_cqp *cqp,
-					  struct i40iw_sc_qp *qp, u64 scratch);
+		struct i40iw_sc_qp *qp, u64 scratch);
 
 enum i40iw_status_code i40iw_sc_static_hmc_pages_allocated(struct i40iw_sc_cqp *cqp,
-							   u64 scratch, u8 hmc_fn_id,
-							   bool post_sq,
-							   bool poll_registers);
+		u64 scratch, u8 hmc_fn_id,
+		bool post_sq,
+		bool poll_registers);
 
 enum i40iw_status_code i40iw_config_fpm_values(struct i40iw_sc_dev *dev, u32 qp_count);
 
 void free_sd_mem(struct i40iw_sc_dev *dev);
 
 enum i40iw_status_code i40iw_process_cqp_cmd(struct i40iw_sc_dev *dev,
-					     struct cqp_commands_info *pcmdinfo);
+		struct cqp_commands_info *pcmdinfo);
 
 enum i40iw_status_code i40iw_process_bh(struct i40iw_sc_dev *dev);
 
 /* prototype for functions used for dynamic memory allocation */
 enum i40iw_status_code i40iw_allocate_dma_mem(struct i40iw_hw *hw,
-					      struct i40iw_dma_mem *mem, u64 size,
-					      u32 alignment);
+		struct i40iw_dma_mem *mem, u64 size,
+		u32 alignment);
 void i40iw_free_dma_mem(struct i40iw_hw *hw, struct i40iw_dma_mem *mem);
 enum i40iw_status_code i40iw_allocate_virt_mem(struct i40iw_hw *hw,
-					       struct i40iw_virt_mem *mem, u32 size);
+		struct i40iw_virt_mem *mem, u32 size);
 enum i40iw_status_code i40iw_free_virt_mem(struct i40iw_hw *hw,
-					   struct i40iw_virt_mem *mem);
+		struct i40iw_virt_mem *mem);
 u8 i40iw_get_encoded_wqe_size(u32 wqsize, bool cqpsq);
 
 #endif

@@ -183,7 +183,8 @@
  *    in fw. So driver will load a truncated firmware in this case.
  */
 
-struct guc_css_header {
+struct guc_css_header
+{
 	uint32_t module_type;
 	/* header_size includes all non-uCode bits, including css_header, rsa
 	 * key, modulus key and exponent data. */
@@ -191,8 +192,10 @@ struct guc_css_header {
 	uint32_t header_version;
 	uint32_t module_id;
 	uint32_t module_vendor;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint8_t day;
 			uint8_t month;
 			uint16_t year;
@@ -203,8 +206,10 @@ struct guc_css_header {
 	uint32_t key_size_dw;
 	uint32_t modulus_size_dw;
 	uint32_t exponent_size_dw;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint8_t hour;
 			uint8_t min;
 			uint16_t sec;
@@ -221,14 +226,17 @@ struct guc_css_header {
 	uint32_t header_info;
 } __packed;
 
-struct guc_doorbell_info {
+struct guc_doorbell_info
+{
 	u32 db_status;
 	u32 cookie;
 	u32 reserved[14];
 } __packed;
 
-union guc_doorbell_qw {
-	struct {
+union guc_doorbell_qw
+{
+	struct
+	{
 		u32 db_status;
 		u32 cookie;
 	};
@@ -242,14 +250,16 @@ union guc_doorbell_qw {
 #define GUC_WQ_SIZE			(PAGE_SIZE * 2)
 
 /* Work item for submitting workloads into work queue of GuC. */
-struct guc_wq_item {
+struct guc_wq_item
+{
 	u32 header;
 	u32 context_desc;
 	u32 ring_tail;
 	u32 fence_id;
 } __packed;
 
-struct guc_process_desc {
+struct guc_process_desc
+{
 	u32 context_id;
 	u64 db_base_addr;
 	u32 head;
@@ -268,7 +278,8 @@ struct guc_process_desc {
 #define GUC_ELC_ENGINE_OFFSET		29
 
 /* The execlist context including software and HW information */
-struct guc_execlist_context {
+struct guc_execlist_context
+{
 	u32 context_desc;
 	u32 context_id;
 	u32 ring_status;
@@ -284,7 +295,8 @@ struct guc_execlist_context {
 } __packed;
 
 /*Context descriptor for communicating between uKernel and Driver*/
-struct guc_context_desc {
+struct guc_context_desc
+{
 	u32 sched_common_area;
 	u32 context_id;
 	u32 pas_id;
@@ -335,7 +347,8 @@ struct guc_context_desc {
 
 #define POLICY_MAX_NUM_WI		15
 
-struct guc_policy {
+struct guc_policy
+{
 	/* Time for one workload to execute. (in micro seconds) */
 	u32 execution_quantum;
 	u32 reserved1;
@@ -352,7 +365,8 @@ struct guc_policy {
 	u32 reserved[2];
 } __packed;
 
-struct guc_policies {
+struct guc_policies
+{
 	struct guc_policy policy[GUC_CTX_PRIORITY_NUM][GUC_MAX_ENGINES_NUM];
 
 	/* In micro seconds. How much time to allow before DPC processing is
@@ -384,8 +398,10 @@ struct guc_policies {
 #define GUC_MMIO_WHITE_LIST_MAX		12
 #define GUC_S3_SAVE_SPACE_PAGES		10
 
-struct guc_mmio_regset {
-	struct __packed {
+struct guc_mmio_regset
+{
+	struct __packed
+	{
 		u32 offset;
 		u32 value;
 		u32 flags;
@@ -395,12 +411,14 @@ struct guc_mmio_regset {
 	u32 number_of_registers;
 } __packed;
 
-struct guc_mmio_reg_state {
+struct guc_mmio_reg_state
+{
 	struct guc_mmio_regset global_reg;
 	struct guc_mmio_regset engine_reg[GUC_MAX_ENGINES_NUM];
 
 	/* MMIO registers that are set as non privileged */
-	struct __packed {
+	struct __packed
+	{
 		u32 mmio_start;
 		u32 offsets[GUC_MMIO_WHITE_LIST_MAX];
 		u32 count;
@@ -409,7 +427,8 @@ struct guc_mmio_reg_state {
 
 /* GuC Additional Data Struct */
 
-struct guc_ads {
+struct guc_ads
+{
 	u32 reg_state_addr;
 	u32 reg_state_buffer;
 	u32 golden_context_lrca;
@@ -420,7 +439,8 @@ struct guc_ads {
 } __packed;
 
 /* This Action will be programmed in C180 - SOFT_SCRATCH_O_REG */
-enum host2guc_action {
+enum host2guc_action
+{
 	HOST2GUC_ACTION_DEFAULT = 0x0,
 	HOST2GUC_ACTION_SAMPLE_FORCEWAKE = 0x6,
 	HOST2GUC_ACTION_ALLOCATE_DOORBELL = 0x10,
@@ -442,7 +462,8 @@ enum host2guc_action {
 #define	GUC2HOST_STATUS(x)		(GUC2HOST_RESPONSE_MASK | (x))
 
 /* GUC will return status back to SOFT_SCRATCH_O_REG */
-enum guc2host_status {
+enum guc2host_status
+{
 	GUC2HOST_STATUS_SUCCESS = GUC2HOST_STATUS(0x0),
 	GUC2HOST_STATUS_ALLOCATE_DOORBELL_FAIL = GUC2HOST_STATUS(0x10),
 	GUC2HOST_STATUS_DEALLOCATE_DOORBELL_FAIL = GUC2HOST_STATUS(0x20),

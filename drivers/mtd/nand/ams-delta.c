@@ -41,25 +41,38 @@ static struct mtd_info *ams_delta_mtd = NULL;
  * Define partitions for flash devices
  */
 
-static struct mtd_partition partition_info[] = {
-	{ .name		= "Kernel",
-	  .offset	= 0,
-	  .size		= 3 * SZ_1M + SZ_512K },
-	{ .name		= "u-boot",
-	  .offset	= 3 * SZ_1M + SZ_512K,
-	  .size		= SZ_256K },
-	{ .name		= "u-boot params",
-	  .offset	= 3 * SZ_1M + SZ_512K + SZ_256K,
-	  .size		= SZ_256K },
-	{ .name		= "Amstrad LDR",
-	  .offset	= 4 * SZ_1M,
-	  .size		= SZ_256K },
-	{ .name		= "File system",
-	  .offset	= 4 * SZ_1M + 1 * SZ_256K,
-	  .size		= 27 * SZ_1M },
-	{ .name		= "PBL reserved",
-	  .offset	= 32 * SZ_1M - 3 * SZ_256K,
-	  .size		=  3 * SZ_256K },
+static struct mtd_partition partition_info[] =
+{
+	{
+		.name		= "Kernel",
+		.offset	= 0,
+		.size		= 3 * SZ_1M + SZ_512K
+	},
+	{
+		.name		= "u-boot",
+		.offset	= 3 * SZ_1M + SZ_512K,
+		.size		= SZ_256K
+	},
+	{
+		.name		= "u-boot params",
+		.offset	= 3 * SZ_1M + SZ_512K + SZ_256K,
+		.size		= SZ_256K
+	},
+	{
+		.name		= "Amstrad LDR",
+		.offset	= 4 * SZ_1M,
+		.size		= SZ_256K
+	},
+	{
+		.name		= "File system",
+		.offset	= 4 * SZ_1M + 1 * SZ_256K,
+		.size		= 27 * SZ_1M
+	},
+	{
+		.name		= "PBL reserved",
+		.offset	= 32 * SZ_1M - 3 * SZ_256K,
+		.size		=  3 * SZ_256K
+	},
 };
 
 static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
@@ -90,20 +103,24 @@ static u_char ams_delta_read_byte(struct mtd_info *mtd)
 }
 
 static void ams_delta_write_buf(struct mtd_info *mtd, const u_char *buf,
-				int len)
+								int len)
 {
 	int i;
 
-	for (i=0; i<len; i++)
+	for (i = 0; i < len; i++)
+	{
 		ams_delta_write_byte(mtd, buf[i]);
+	}
 }
 
 static void ams_delta_read_buf(struct mtd_info *mtd, u_char *buf, int len)
 {
 	int i;
 
-	for (i=0; i<len; i++)
+	for (i = 0; i < len; i++)
+	{
 		buf[i] = ams_delta_read_byte(mtd);
+	}
 }
 
 /*
@@ -115,20 +132,23 @@ static void ams_delta_read_buf(struct mtd_info *mtd, u_char *buf, int len)
  * NAND_ALE: bit 2 -> bit 6
  */
 static void ams_delta_hwcontrol(struct mtd_info *mtd, int cmd,
-				unsigned int ctrl)
+								unsigned int ctrl)
 {
 
-	if (ctrl & NAND_CTRL_CHANGE) {
+	if (ctrl & NAND_CTRL_CHANGE)
+	{
 		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NCE,
-				(ctrl & NAND_NCE) == 0);
+					   (ctrl & NAND_NCE) == 0);
 		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_CLE,
-				(ctrl & NAND_CLE) != 0);
+					   (ctrl & NAND_CLE) != 0);
 		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_ALE,
-				(ctrl & NAND_ALE) != 0);
+					   (ctrl & NAND_ALE) != 0);
 	}
 
 	if (cmd != NAND_CMD_NONE)
+	{
 		ams_delta_write_byte(mtd, cmd);
+	}
 }
 
 static int ams_delta_nand_ready(struct mtd_info *mtd)
@@ -136,7 +156,8 @@ static int ams_delta_nand_ready(struct mtd_info *mtd)
 	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
 }
 
-static const struct gpio _mandatory_gpio[] = {
+static const struct gpio _mandatory_gpio[] =
+{
 	{
 		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NCE,
 		.flags	= GPIOF_OUT_INIT_HIGH,
@@ -180,11 +201,15 @@ static int ams_delta_init(struct platform_device *pdev)
 	int err = 0;
 
 	if (!res)
+	{
 		return -ENXIO;
+	}
 
 	/* Allocate memory for MTD device structure and private data */
 	this = kzalloc(sizeof(struct nand_chip), GFP_KERNEL);
-	if (!this) {
+
+	if (!this)
+	{
 		printk (KERN_WARNING "Unable to allocate E3 NAND MTD device structure.\n");
 		err = -ENOMEM;
 		goto out;
@@ -200,7 +225,9 @@ static int ams_delta_init(struct platform_device *pdev)
 	 */
 
 	io_base = ioremap(res->start, resource_size(res));
-	if (io_base == NULL) {
+
+	if (io_base == NULL)
+	{
 		dev_err(&pdev->dev, "ioremap failed\n");
 		err = -EIO;
 		goto out_free;
@@ -215,12 +242,17 @@ static int ams_delta_init(struct platform_device *pdev)
 	this->write_buf = ams_delta_write_buf;
 	this->read_buf = ams_delta_read_buf;
 	this->cmd_ctrl = ams_delta_hwcontrol;
-	if (gpio_request(AMS_DELTA_GPIO_PIN_NAND_RB, "nand_rdy") == 0) {
+
+	if (gpio_request(AMS_DELTA_GPIO_PIN_NAND_RB, "nand_rdy") == 0)
+	{
 		this->dev_ready = ams_delta_nand_ready;
-	} else {
+	}
+	else
+	{
 		this->dev_ready = NULL;
 		printk(KERN_NOTICE "Couldn't request gpio for Delta NAND ready.\n");
 	}
+
 	/* 25 us command delay time */
 	this->chip_delay = 30;
 	this->ecc.mode = NAND_ECC_SOFT;
@@ -230,29 +262,33 @@ static int ams_delta_init(struct platform_device *pdev)
 
 	/* Set chip enabled, but  */
 	err = gpio_request_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
+
 	if (err)
+	{
 		goto out_gpio;
+	}
 
 	/* Scan to find existence of the device */
-	if (nand_scan(ams_delta_mtd, 1)) {
+	if (nand_scan(ams_delta_mtd, 1))
+	{
 		err = -ENXIO;
 		goto out_mtd;
 	}
 
 	/* Register the partitions */
 	mtd_device_register(ams_delta_mtd, partition_info,
-			    ARRAY_SIZE(partition_info));
+						ARRAY_SIZE(partition_info));
 
 	goto out;
 
- out_mtd:
+out_mtd:
 	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
 out_gpio:
 	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
 	iounmap(io_base);
 out_free:
 	kfree(this);
- out:
+out:
 	return err;
 }
 
@@ -276,7 +312,8 @@ static int ams_delta_cleanup(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ams_delta_nand_driver = {
+static struct platform_driver ams_delta_nand_driver =
+{
 	.probe		= ams_delta_init,
 	.remove		= ams_delta_cleanup,
 	.driver		= {

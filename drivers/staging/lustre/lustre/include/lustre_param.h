@@ -48,7 +48,8 @@
  */
 
 /* For interoperability */
-struct cfg_interop_param {
+struct cfg_interop_param
+{
 	char *old_param;
 	char *new_param;
 };

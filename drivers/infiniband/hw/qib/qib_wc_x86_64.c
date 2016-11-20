@@ -69,57 +69,78 @@ int qib_enable_wc(struct qib_devdata *dd)
 	 * register has both offsets, 2K in low 32 bits, 4K in high 32 bits.
 	 * The buffers are still packed, so a single range covers both.
 	 */
-	if (dd->piobcnt2k && dd->piobcnt4k) {
+	if (dd->piobcnt2k && dd->piobcnt4k)
+	{
 		/* 2 sizes for chip */
 		unsigned long pio2kbase, pio4kbase;
 
 		pio2kbase = dd->piobufbase & 0xffffffffUL;
 		pio4kbase = (dd->piobufbase >> 32) & 0xffffffffUL;
-		if (pio2kbase < pio4kbase) {
+
+		if (pio2kbase < pio4kbase)
+		{
 			/* all current chips */
 			pioaddr = addr + pio2kbase;
 			piolen = pio4kbase - pio2kbase +
-				dd->piobcnt4k * dd->align4k;
-		} else {
+					 dd->piobcnt4k * dd->align4k;
+		}
+		else
+		{
 			pioaddr = addr + pio4kbase;
 			piolen = pio2kbase - pio4kbase +
-				dd->piobcnt2k * dd->palign;
+					 dd->piobcnt2k * dd->palign;
 		}
-	} else {  /* single buffer size (2K, currently) */
+	}
+	else      /* single buffer size (2K, currently) */
+	{
 		pioaddr = addr + dd->piobufbase;
 		piolen = dd->piobcnt2k * dd->palign +
-			dd->piobcnt4k * dd->align4k;
+				 dd->piobcnt4k * dd->align4k;
 	}
 
 	for (bits = 0; !(piolen & (1ULL << bits)); bits++)
 		; /* do nothing */
 
-	if (piolen != (1ULL << bits)) {
+	if (piolen != (1ULL << bits))
+	{
 		piolen >>= bits;
+
 		while (piolen >>= 1)
+		{
 			bits++;
+		}
+
 		piolen = 1ULL << (bits + 1);
 	}
-	if (pioaddr & (piolen - 1)) {
+
+	if (pioaddr & (piolen - 1))
+	{
 		u64 atmp = pioaddr & ~(piolen - 1);
 
-		if (atmp < addr || (atmp + piolen) > (addr + len)) {
+		if (atmp < addr || (atmp + piolen) > (addr + len))
+		{
 			qib_dev_err(dd,
-				"No way to align address/size (%llx/%llx), no WC mtrr\n",
-				(unsigned long long) atmp,
-				(unsigned long long) piolen << 1);
+						"No way to align address/size (%llx/%llx), no WC mtrr\n",
+						(unsigned long long) atmp,
+						(unsigned long long) piolen << 1);
 			ret = -ENODEV;
-		} else {
+		}
+		else
+		{
 			pioaddr = atmp;
 			piolen <<= 1;
 		}
 	}
 
-	if (!ret) {
+	if (!ret)
+	{
 		dd->wc_cookie = arch_phys_wc_add(pioaddr, piolen);
+
 		if (dd->wc_cookie < 0)
 			/* use error from routine */
+		{
 			ret = dd->wc_cookie;
+		}
 	}
 
 	return ret;

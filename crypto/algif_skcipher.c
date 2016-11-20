@@ -23,7 +23,8 @@
 #include <linux/net.h>
 #include <net/sock.h>
 
-struct skcipher_sg_list {
+struct skcipher_sg_list
+{
 	struct list_head list;
 
 	int cur;
@@ -31,12 +32,14 @@ struct skcipher_sg_list {
 	struct scatterlist sg[0];
 };
 
-struct skcipher_tfm {
+struct skcipher_tfm
+{
 	struct crypto_skcipher *skcipher;
 	bool has_key;
 };
 
-struct skcipher_ctx {
+struct skcipher_ctx
+{
 	struct list_head tsgl;
 	struct af_alg_sgl rsgl;
 
@@ -55,12 +58,14 @@ struct skcipher_ctx {
 	struct skcipher_request req;
 };
 
-struct skcipher_async_rsgl {
+struct skcipher_async_rsgl
+{
 	struct af_alg_sgl sgl;
 	struct list_head list;
 };
 
-struct skcipher_async_req {
+struct skcipher_async_req
+{
 	struct kiocb *iocb;
 	struct skcipher_async_rsgl first_sgl;
 	struct list_head list;
@@ -70,7 +75,7 @@ struct skcipher_async_req {
 };
 
 #define MAX_SGL_ENTS ((4096 - sizeof(struct skcipher_sg_list)) / \
-		      sizeof(struct scatterlist) - 1)
+					  sizeof(struct scatterlist) - 1)
 
 static void skcipher_free_async_sgls(struct skcipher_async_req *sreq)
 {
@@ -79,15 +84,19 @@ static void skcipher_free_async_sgls(struct skcipher_async_req *sreq)
 	struct scatterlist *sg;
 	int i, n;
 
-	list_for_each_entry_safe(rsgl, tmp, &sreq->list, list) {
+	list_for_each_entry_safe(rsgl, tmp, &sreq->list, list)
+	{
 		af_alg_free_sg(&rsgl->sgl);
+
 		if (rsgl != &sreq->first_sgl)
+		{
 			kfree(rsgl);
+		}
 	}
 	sgl = sreq->tsg;
 	n = sg_nents(sgl);
 	for_each_sg(sgl, sg, n, i)
-		put_page(sg_page(sg));
+	put_page(sg_page(sg));
 
 	kfree(sreq->tsg);
 }
@@ -109,7 +118,7 @@ static inline int skcipher_sndbuf(struct sock *sk)
 	struct skcipher_ctx *ctx = ask->private;
 
 	return max_t(int, max_t(int, sk->sk_sndbuf & PAGE_MASK, PAGE_SIZE) -
-			  ctx->used, 0);
+				 ctx->used, 0);
 }
 
 static inline bool skcipher_writable(struct sock *sk)
@@ -125,21 +134,30 @@ static int skcipher_alloc_sgl(struct sock *sk)
 	struct scatterlist *sg = NULL;
 
 	sgl = list_entry(ctx->tsgl.prev, struct skcipher_sg_list, list);
-	if (!list_empty(&ctx->tsgl))
-		sg = sgl->sg;
 
-	if (!sg || sgl->cur >= MAX_SGL_ENTS) {
+	if (!list_empty(&ctx->tsgl))
+	{
+		sg = sgl->sg;
+	}
+
+	if (!sg || sgl->cur >= MAX_SGL_ENTS)
+	{
 		sgl = sock_kmalloc(sk, sizeof(*sgl) +
-				       sizeof(sgl->sg[0]) * (MAX_SGL_ENTS + 1),
-				   GFP_KERNEL);
+						   sizeof(sgl->sg[0]) * (MAX_SGL_ENTS + 1),
+						   GFP_KERNEL);
+
 		if (!sgl)
+		{
 			return -ENOMEM;
+		}
 
 		sg_init_table(sgl->sg, MAX_SGL_ENTS + 1);
 		sgl->cur = 0;
 
 		if (sg)
+		{
 			sg_chain(sg, MAX_SGL_ENTS + 1, sgl->sg);
+		}
 
 		list_add_tail(&sgl->list, &ctx->tsgl);
 	}
@@ -155,16 +173,20 @@ static void skcipher_pull_sgl(struct sock *sk, size_t used, int put)
 	struct scatterlist *sg;
 	int i;
 
-	while (!list_empty(&ctx->tsgl)) {
+	while (!list_empty(&ctx->tsgl))
+	{
 		sgl = list_first_entry(&ctx->tsgl, struct skcipher_sg_list,
-				       list);
+							   list);
 		sg = sgl->sg;
 
-		for (i = 0; i < sgl->cur; i++) {
+		for (i = 0; i < sgl->cur; i++)
+		{
 			size_t plen = min_t(size_t, used, sg[i].length);
 
 			if (!sg_page(sg + i))
+			{
 				continue;
+			}
 
 			sg[i].length -= plen;
 			sg[i].offset += plen;
@@ -173,20 +195,28 @@ static void skcipher_pull_sgl(struct sock *sk, size_t used, int put)
 			ctx->used -= plen;
 
 			if (sg[i].length)
+			{
 				return;
+			}
+
 			if (put)
+			{
 				put_page(sg_page(sg + i));
+			}
+
 			sg_assign_page(sg + i, NULL);
 		}
 
 		list_del(&sgl->list);
 		sock_kfree_s(sk, sgl,
-			     sizeof(*sgl) + sizeof(sgl->sg[0]) *
-					    (MAX_SGL_ENTS + 1));
+					 sizeof(*sgl) + sizeof(sgl->sg[0]) *
+					 (MAX_SGL_ENTS + 1));
 	}
 
 	if (!ctx->used)
+	{
 		ctx->merge = 0;
+	}
 }
 
 static void skcipher_free_sgl(struct sock *sk)
@@ -204,20 +234,29 @@ static int skcipher_wait_for_wmem(struct sock *sk, unsigned flags)
 	int err = -ERESTARTSYS;
 
 	if (flags & MSG_DONTWAIT)
+	{
 		return -EAGAIN;
+	}
 
 	sk_set_bit(SOCKWQ_ASYNC_NOSPACE, sk);
 
-	for (;;) {
+	for (;;)
+	{
 		if (signal_pending(current))
+		{
 			break;
+		}
+
 		prepare_to_wait(sk_sleep(sk), &wait, TASK_INTERRUPTIBLE);
 		timeout = MAX_SCHEDULE_TIMEOUT;
-		if (sk_wait_event(sk, &timeout, skcipher_writable(sk))) {
+
+		if (sk_wait_event(sk, &timeout, skcipher_writable(sk)))
+		{
 			err = 0;
 			break;
 		}
 	}
+
 	finish_wait(sk_sleep(sk), &wait);
 
 	return err;
@@ -228,14 +267,18 @@ static void skcipher_wmem_wakeup(struct sock *sk)
 	struct socket_wq *wq;
 
 	if (!skcipher_writable(sk))
+	{
 		return;
+	}
 
 	rcu_read_lock();
 	wq = rcu_dereference(sk->sk_wq);
+
 	if (skwq_has_sleeper(wq))
 		wake_up_interruptible_sync_poll(&wq->wait, POLLIN |
-							   POLLRDNORM |
-							   POLLRDBAND);
+										POLLRDNORM |
+										POLLRDBAND);
+
 	sk_wake_async(sk, SOCK_WAKE_WAITD, POLL_IN);
 	rcu_read_unlock();
 }
@@ -248,22 +291,30 @@ static int skcipher_wait_for_data(struct sock *sk, unsigned flags)
 	DEFINE_WAIT(wait);
 	int err = -ERESTARTSYS;
 
-	if (flags & MSG_DONTWAIT) {
+	if (flags & MSG_DONTWAIT)
+	{
 		return -EAGAIN;
 	}
 
 	sk_set_bit(SOCKWQ_ASYNC_WAITDATA, sk);
 
-	for (;;) {
+	for (;;)
+	{
 		if (signal_pending(current))
+		{
 			break;
+		}
+
 		prepare_to_wait(sk_sleep(sk), &wait, TASK_INTERRUPTIBLE);
 		timeout = MAX_SCHEDULE_TIMEOUT;
-		if (sk_wait_event(sk, &timeout, ctx->used)) {
+
+		if (sk_wait_event(sk, &timeout, ctx->used))
+		{
 			err = 0;
 			break;
 		}
 	}
+
 	finish_wait(sk_sleep(sk), &wait);
 
 	sk_clear_bit(SOCKWQ_ASYNC_WAITDATA, sk);
@@ -278,20 +329,24 @@ static void skcipher_data_wakeup(struct sock *sk)
 	struct socket_wq *wq;
 
 	if (!ctx->used)
+	{
 		return;
+	}
 
 	rcu_read_lock();
 	wq = rcu_dereference(sk->sk_wq);
+
 	if (skwq_has_sleeper(wq))
 		wake_up_interruptible_sync_poll(&wq->wait, POLLOUT |
-							   POLLRDNORM |
-							   POLLRDBAND);
+										POLLRDNORM |
+										POLLRDBAND);
+
 	sk_wake_async(sk, SOCK_WAKE_SPACE, POLL_OUT);
 	rcu_read_unlock();
 }
 
 static int skcipher_sendmsg(struct socket *sock, struct msghdr *msg,
-			    size_t size)
+							size_t size)
 {
 	struct sock *sk = sock->sk;
 	struct alg_sock *ask = alg_sk(sk);
@@ -309,60 +364,82 @@ static int skcipher_sendmsg(struct socket *sock, struct msghdr *msg,
 	int err;
 	int i;
 
-	if (msg->msg_controllen) {
+	if (msg->msg_controllen)
+	{
 		err = af_alg_cmsg_send(msg, &con);
+
 		if (err)
+		{
 			return err;
+		}
 
 		init = 1;
-		switch (con.op) {
-		case ALG_OP_ENCRYPT:
-			enc = 1;
-			break;
-		case ALG_OP_DECRYPT:
-			enc = 0;
-			break;
-		default:
-			return -EINVAL;
+
+		switch (con.op)
+		{
+			case ALG_OP_ENCRYPT:
+				enc = 1;
+				break;
+
+			case ALG_OP_DECRYPT:
+				enc = 0;
+				break;
+
+			default:
+				return -EINVAL;
 		}
 
 		if (con.iv && con.iv->ivlen != ivsize)
+		{
 			return -EINVAL;
+		}
 	}
 
 	err = -EINVAL;
 
 	lock_sock(sk);
-	if (!ctx->more && ctx->used)
-		goto unlock;
 
-	if (init) {
-		ctx->enc = enc;
-		if (con.iv)
-			memcpy(ctx->iv, con.iv->iv, ivsize);
+	if (!ctx->more && ctx->used)
+	{
+		goto unlock;
 	}
 
-	while (size) {
+	if (init)
+	{
+		ctx->enc = enc;
+
+		if (con.iv)
+		{
+			memcpy(ctx->iv, con.iv->iv, ivsize);
+		}
+	}
+
+	while (size)
+	{
 		struct scatterlist *sg;
 		unsigned long len = size;
 		size_t plen;
 
-		if (ctx->merge) {
+		if (ctx->merge)
+		{
 			sgl = list_entry(ctx->tsgl.prev,
-					 struct skcipher_sg_list, list);
+							 struct skcipher_sg_list, list);
 			sg = sgl->sg + sgl->cur - 1;
 			len = min_t(unsigned long, len,
-				    PAGE_SIZE - sg->offset - sg->length);
+						PAGE_SIZE - sg->offset - sg->length);
 
 			err = memcpy_from_msg(page_address(sg_page(sg)) +
-					      sg->offset + sg->length,
-					      msg, len);
+								  sg->offset + sg->length,
+								  msg, len);
+
 			if (err)
+			{
 				goto unlock;
+			}
 
 			sg->length += len;
 			ctx->merge = (sg->offset + sg->length) &
-				     (PAGE_SIZE - 1);
+						 (PAGE_SIZE - 1);
 
 			ctx->used += len;
 			copied += len;
@@ -370,34 +447,51 @@ static int skcipher_sendmsg(struct socket *sock, struct msghdr *msg,
 			continue;
 		}
 
-		if (!skcipher_writable(sk)) {
+		if (!skcipher_writable(sk))
+		{
 			err = skcipher_wait_for_wmem(sk, msg->msg_flags);
+
 			if (err)
+			{
 				goto unlock;
+			}
 		}
 
 		len = min_t(unsigned long, len, skcipher_sndbuf(sk));
 
 		err = skcipher_alloc_sgl(sk);
+
 		if (err)
+		{
 			goto unlock;
+		}
 
 		sgl = list_entry(ctx->tsgl.prev, struct skcipher_sg_list, list);
 		sg = sgl->sg;
+
 		if (sgl->cur)
+		{
 			sg_unmark_end(sg + sgl->cur - 1);
-		do {
+		}
+
+		do
+		{
 			i = sgl->cur;
 			plen = min_t(size_t, len, PAGE_SIZE);
 
 			sg_assign_page(sg + i, alloc_page(GFP_KERNEL));
 			err = -ENOMEM;
+
 			if (!sg_page(sg + i))
+			{
 				goto unlock;
+			}
 
 			err = memcpy_from_msg(page_address(sg_page(sg + i)),
-					      msg, plen);
-			if (err) {
+								  msg, plen);
+
+			if (err)
+			{
 				__free_page(sg_page(sg + i));
 				sg_assign_page(sg + i, NULL);
 				goto unlock;
@@ -409,10 +503,13 @@ static int skcipher_sendmsg(struct socket *sock, struct msghdr *msg,
 			copied += plen;
 			size -= plen;
 			sgl->cur++;
-		} while (len && sgl->cur < MAX_SGL_ENTS);
+		}
+		while (len && sgl->cur < MAX_SGL_ENTS);
 
 		if (!size)
+		{
 			sg_mark_end(sg + sgl->cur - 1);
+		}
 
 		ctx->merge = plen & (PAGE_SIZE - 1);
 	}
@@ -425,11 +522,11 @@ unlock:
 	skcipher_data_wakeup(sk);
 	release_sock(sk);
 
-	return copied ?: err;
+	return copied ? : err;
 }
 
 static ssize_t skcipher_sendpage(struct socket *sock, struct page *page,
-				 int offset, size_t size, int flags)
+								 int offset, size_t size, int flags)
 {
 	struct sock *sk = sock->sk;
 	struct alg_sock *ask = alg_sk(sk);
@@ -438,30 +535,46 @@ static ssize_t skcipher_sendpage(struct socket *sock, struct page *page,
 	int err = -EINVAL;
 
 	if (flags & MSG_SENDPAGE_NOTLAST)
+	{
 		flags |= MSG_MORE;
+	}
 
 	lock_sock(sk);
+
 	if (!ctx->more && ctx->used)
+	{
 		goto unlock;
+	}
 
 	if (!size)
+	{
 		goto done;
+	}
 
-	if (!skcipher_writable(sk)) {
+	if (!skcipher_writable(sk))
+	{
 		err = skcipher_wait_for_wmem(sk, flags);
+
 		if (err)
+		{
 			goto unlock;
+		}
 	}
 
 	err = skcipher_alloc_sgl(sk);
+
 	if (err)
+	{
 		goto unlock;
+	}
 
 	ctx->merge = 0;
 	sgl = list_entry(ctx->tsgl.prev, struct skcipher_sg_list, list);
 
 	if (sgl->cur)
+	{
 		sg_unmark_end(sgl->sg + sgl->cur - 1);
+	}
 
 	sg_mark_end(sgl->sg + sgl->cur);
 	get_page(page);
@@ -476,7 +589,7 @@ unlock:
 	skcipher_data_wakeup(sk);
 	release_sock(sk);
 
-	return err ?: size;
+	return err ? : size;
 }
 
 static int skcipher_all_sg_nents(struct skcipher_ctx *ctx)
@@ -485,11 +598,14 @@ static int skcipher_all_sg_nents(struct skcipher_ctx *ctx)
 	struct scatterlist *sg;
 	int nents = 0;
 
-	list_for_each_entry(sgl, &ctx->tsgl, list) {
+	list_for_each_entry(sgl, &ctx->tsgl, list)
+	{
 		sg = sgl->sg;
 
 		while (!sg->length)
+		{
 			sg++;
+		}
 
 		nents += sg_nents(sg);
 	}
@@ -497,7 +613,7 @@ static int skcipher_all_sg_nents(struct skcipher_ctx *ctx)
 }
 
 static int skcipher_recvmsg_async(struct socket *sock, struct msghdr *msg,
-				  int flags)
+								  int flags)
 {
 	struct sock *sk = sock->sk;
 	struct alg_sock *ask = alg_sk(sk);
@@ -519,8 +635,11 @@ static int skcipher_recvmsg_async(struct socket *sock, struct msghdr *msg,
 	char *iv;
 
 	sreq = kzalloc(sizeof(*sreq) + reqsize + ivsize, GFP_KERNEL);
+
 	if (unlikely(!sreq))
+	{
 		goto out;
+	}
 
 	req = &sreq->req;
 	iv = (char *)(req + 1) + reqsize;
@@ -531,77 +650,108 @@ static int skcipher_recvmsg_async(struct socket *sock, struct msghdr *msg,
 	lock_sock(sk);
 	tx_nents = skcipher_all_sg_nents(ctx);
 	sreq->tsg = kcalloc(tx_nents, sizeof(*sg), GFP_KERNEL);
+
 	if (unlikely(!sreq->tsg))
+	{
 		goto unlock;
+	}
+
 	sg_init_table(sreq->tsg, tx_nents);
 	memcpy(iv, ctx->iv, ivsize);
 	skcipher_request_set_tfm(req, tfm);
 	skcipher_request_set_callback(req, CRYPTO_TFM_REQ_MAY_SLEEP,
-				      skcipher_async_cb, sreq);
+								  skcipher_async_cb, sreq);
 
-	while (iov_iter_count(&msg->msg_iter)) {
+	while (iov_iter_count(&msg->msg_iter))
+	{
 		struct skcipher_async_rsgl *rsgl;
 		int used;
 
-		if (!ctx->used) {
+		if (!ctx->used)
+		{
 			err = skcipher_wait_for_data(sk, flags);
+
 			if (err)
+			{
 				goto free;
+			}
 		}
+
 		sgl = list_first_entry(&ctx->tsgl,
-				       struct skcipher_sg_list, list);
+							   struct skcipher_sg_list, list);
 		sg = sgl->sg;
 
 		while (!sg->length)
+		{
 			sg++;
+		}
 
 		used = min_t(unsigned long, ctx->used,
-			     iov_iter_count(&msg->msg_iter));
+					 iov_iter_count(&msg->msg_iter));
 		used = min_t(unsigned long, used, sg->length);
 
-		if (txbufs == tx_nents) {
+		if (txbufs == tx_nents)
+		{
 			struct scatterlist *tmp;
 			int x;
 			/* Ran out of tx slots in async request
 			 * need to expand */
 			tmp = kcalloc(tx_nents * 2, sizeof(*tmp),
-				      GFP_KERNEL);
+						  GFP_KERNEL);
+
 			if (!tmp)
+			{
 				goto free;
+			}
 
 			sg_init_table(tmp, tx_nents * 2);
+
 			for (x = 0; x < tx_nents; x++)
 				sg_set_page(&tmp[x], sg_page(&sreq->tsg[x]),
-					    sreq->tsg[x].length,
-					    sreq->tsg[x].offset);
+							sreq->tsg[x].length,
+							sreq->tsg[x].offset);
+
 			kfree(sreq->tsg);
 			sreq->tsg = tmp;
 			tx_nents *= 2;
 			mark = true;
 		}
+
 		/* Need to take over the tx sgl from ctx
 		 * to the asynch req - these sgls will be freed later */
 		sg_set_page(sreq->tsg + txbufs++, sg_page(sg), sg->length,
-			    sg->offset);
+					sg->offset);
 
-		if (list_empty(&sreq->list)) {
+		if (list_empty(&sreq->list))
+		{
 			rsgl = &sreq->first_sgl;
 			list_add_tail(&rsgl->list, &sreq->list);
-		} else {
+		}
+		else
+		{
 			rsgl = kmalloc(sizeof(*rsgl), GFP_KERNEL);
-			if (!rsgl) {
+
+			if (!rsgl)
+			{
 				err = -ENOMEM;
 				goto free;
 			}
+
 			list_add_tail(&rsgl->list, &sreq->list);
 		}
 
 		used = af_alg_make_sg(&rsgl->sgl, &msg->msg_iter, used);
 		err = used;
+
 		if (used < 0)
+		{
 			goto free;
+		}
+
 		if (last_rsgl)
+		{
 			af_alg_link_sg(&last_rsgl->sgl, &rsgl->sgl);
+		}
 
 		last_rsgl = rsgl;
 		len += used;
@@ -610,18 +760,23 @@ static int skcipher_recvmsg_async(struct socket *sock, struct msghdr *msg,
 	}
 
 	if (mark)
+	{
 		sg_mark_end(sreq->tsg + txbufs - 1);
+	}
 
 	skcipher_request_set_crypt(req, sreq->tsg, sreq->first_sgl.sgl.sg,
-				   len, iv);
+							   len, iv);
 	err = ctx->enc ? crypto_skcipher_encrypt(req) :
-			 crypto_skcipher_decrypt(req);
-	if (err == -EINPROGRESS) {
+		  crypto_skcipher_decrypt(req);
+
+	if (err == -EINPROGRESS)
+	{
 		atomic_inc(&ctx->inflight);
 		err = -EIOCBQUEUED;
 		sreq = NULL;
 		goto unlock;
 	}
+
 free:
 	skcipher_free_async_sgls(sreq);
 unlock:
@@ -633,7 +788,7 @@ out:
 }
 
 static int skcipher_recvmsg_sync(struct socket *sock, struct msghdr *msg,
-				 int flags)
+								 int flags)
 {
 	struct sock *sk = sock->sk;
 	struct alg_sock *ask = alg_sk(sk);
@@ -650,48 +805,66 @@ static int skcipher_recvmsg_sync(struct socket *sock, struct msghdr *msg,
 	long copied = 0;
 
 	lock_sock(sk);
-	while (msg_data_left(msg)) {
-		if (!ctx->used) {
+
+	while (msg_data_left(msg))
+	{
+		if (!ctx->used)
+		{
 			err = skcipher_wait_for_data(sk, flags);
+
 			if (err)
+			{
 				goto unlock;
+			}
 		}
 
 		used = min_t(unsigned long, ctx->used, msg_data_left(msg));
 
 		used = af_alg_make_sg(&ctx->rsgl, &msg->msg_iter, used);
 		err = used;
+
 		if (err < 0)
+		{
 			goto unlock;
+		}
 
 		if (ctx->more || used < ctx->used)
+		{
 			used -= used % bs;
+		}
 
 		err = -EINVAL;
+
 		if (!used)
+		{
 			goto free;
+		}
 
 		sgl = list_first_entry(&ctx->tsgl,
-				       struct skcipher_sg_list, list);
+							   struct skcipher_sg_list, list);
 		sg = sgl->sg;
 
 		while (!sg->length)
+		{
 			sg++;
+		}
 
 		skcipher_request_set_crypt(&ctx->req, sg, ctx->rsgl.sg, used,
-					   ctx->iv);
+								   ctx->iv);
 
 		err = af_alg_wait_for_completion(
-				ctx->enc ?
-					crypto_skcipher_encrypt(&ctx->req) :
-					crypto_skcipher_decrypt(&ctx->req),
-				&ctx->completion);
+				  ctx->enc ?
+				  crypto_skcipher_encrypt(&ctx->req) :
+				  crypto_skcipher_decrypt(&ctx->req),
+				  &ctx->completion);
 
 free:
 		af_alg_free_sg(&ctx->rsgl);
 
 		if (err)
+		{
 			goto unlock;
+		}
 
 		copied += used;
 		skcipher_pull_sgl(sk, used, 1);
@@ -704,19 +877,19 @@ unlock:
 	skcipher_wmem_wakeup(sk);
 	release_sock(sk);
 
-	return copied ?: err;
+	return copied ? : err;
 }
 
 static int skcipher_recvmsg(struct socket *sock, struct msghdr *msg,
-			    size_t ignored, int flags)
+							size_t ignored, int flags)
 {
 	return (msg->msg_iocb && !is_sync_kiocb(msg->msg_iocb)) ?
-		skcipher_recvmsg_async(sock, msg, flags) :
-		skcipher_recvmsg_sync(sock, msg, flags);
+		   skcipher_recvmsg_async(sock, msg, flags) :
+		   skcipher_recvmsg_sync(sock, msg, flags);
 }
 
 static unsigned int skcipher_poll(struct file *file, struct socket *sock,
-				  poll_table *wait)
+								  poll_table *wait)
 {
 	struct sock *sk = sock->sk;
 	struct alg_sock *ask = alg_sk(sk);
@@ -727,15 +900,20 @@ static unsigned int skcipher_poll(struct file *file, struct socket *sock,
 	mask = 0;
 
 	if (ctx->used)
+	{
 		mask |= POLLIN | POLLRDNORM;
+	}
 
 	if (skcipher_writable(sk))
+	{
 		mask |= POLLOUT | POLLWRNORM | POLLWRBAND;
+	}
 
 	return mask;
 }
 
-static struct proto_ops algif_skcipher_ops = {
+static struct proto_ops algif_skcipher_ops =
+{
 	.family		=	PF_ALG,
 
 	.connect	=	sock_no_connect,
@@ -767,8 +945,11 @@ static int skcipher_check_key(struct socket *sock)
 	struct alg_sock *ask = alg_sk(sk);
 
 	lock_sock(sk);
+
 	if (ask->refcnt)
+	{
 		goto unlock_child;
+	}
 
 	psk = ask->parent;
 	pask = alg_sk(ask->parent);
@@ -776,11 +957,16 @@ static int skcipher_check_key(struct socket *sock)
 
 	err = -ENOKEY;
 	lock_sock_nested(psk, SINGLE_DEPTH_NESTING);
+
 	if (!tfm->has_key)
+	{
 		goto unlock;
+	}
 
 	if (!pask->refcnt++)
+	{
 		sock_hold(psk);
+	}
 
 	ask->refcnt = 1;
 	sock_put(psk);
@@ -796,42 +982,52 @@ unlock_child:
 }
 
 static int skcipher_sendmsg_nokey(struct socket *sock, struct msghdr *msg,
-				  size_t size)
+								  size_t size)
 {
 	int err;
 
 	err = skcipher_check_key(sock);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return skcipher_sendmsg(sock, msg, size);
 }
 
 static ssize_t skcipher_sendpage_nokey(struct socket *sock, struct page *page,
-				       int offset, size_t size, int flags)
+									   int offset, size_t size, int flags)
 {
 	int err;
 
 	err = skcipher_check_key(sock);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return skcipher_sendpage(sock, page, offset, size, flags);
 }
 
 static int skcipher_recvmsg_nokey(struct socket *sock, struct msghdr *msg,
-				  size_t ignored, int flags)
+								  size_t ignored, int flags)
 {
 	int err;
 
 	err = skcipher_check_key(sock);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return skcipher_recvmsg(sock, msg, ignored, flags);
 }
 
-static struct proto_ops algif_skcipher_ops_nokey = {
+static struct proto_ops algif_skcipher_ops_nokey =
+{
 	.family		=	PF_ALG,
 
 	.connect	=	sock_no_connect,
@@ -859,11 +1055,16 @@ static void *skcipher_bind(const char *name, u32 type, u32 mask)
 	struct crypto_skcipher *skcipher;
 
 	tfm = kzalloc(sizeof(*tfm), GFP_KERNEL);
+
 	if (!tfm)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	skcipher = crypto_alloc_skcipher(name, type, mask);
-	if (IS_ERR(skcipher)) {
+
+	if (IS_ERR(skcipher))
+	{
 		kfree(tfm);
 		return ERR_CAST(skcipher);
 	}
@@ -899,7 +1100,9 @@ static void skcipher_wait(struct sock *sk)
 	int ctr = 0;
 
 	while (atomic_read(&ctx->inflight) && ctr++ < 100)
+	{
 		msleep(100);
+	}
 }
 
 static void skcipher_sock_destruct(struct sock *sk)
@@ -909,7 +1112,9 @@ static void skcipher_sock_destruct(struct sock *sk)
 	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(&ctx->req);
 
 	if (atomic_read(&ctx->inflight))
+	{
 		skcipher_wait(sk);
+	}
 
 	skcipher_free_sgl(sk);
 	sock_kzfree_s(sk, ctx->iv, crypto_skcipher_ivsize(tfm));
@@ -926,12 +1131,17 @@ static int skcipher_accept_parent_nokey(void *private, struct sock *sk)
 	unsigned int len = sizeof(*ctx) + crypto_skcipher_reqsize(skcipher);
 
 	ctx = sock_kmalloc(sk, len, GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	ctx->iv = sock_kmalloc(sk, crypto_skcipher_ivsize(skcipher),
-			       GFP_KERNEL);
-	if (!ctx->iv) {
+						   GFP_KERNEL);
+
+	if (!ctx->iv)
+	{
 		sock_kfree_s(sk, ctx, len);
 		return -ENOMEM;
 	}
@@ -951,8 +1161,8 @@ static int skcipher_accept_parent_nokey(void *private, struct sock *sk)
 
 	skcipher_request_set_tfm(&ctx->req, skcipher);
 	skcipher_request_set_callback(&ctx->req, CRYPTO_TFM_REQ_MAY_SLEEP |
-						 CRYPTO_TFM_REQ_MAY_BACKLOG,
-				      af_alg_complete, &ctx->completion);
+								  CRYPTO_TFM_REQ_MAY_BACKLOG,
+								  af_alg_complete, &ctx->completion);
 
 	sk->sk_destruct = skcipher_sock_destruct;
 
@@ -964,12 +1174,15 @@ static int skcipher_accept_parent(void *private, struct sock *sk)
 	struct skcipher_tfm *tfm = private;
 
 	if (!tfm->has_key && crypto_skcipher_has_setkey(tfm->skcipher))
+	{
 		return -ENOKEY;
+	}
 
 	return skcipher_accept_parent_nokey(private, sk);
 }
 
-static const struct af_alg_type algif_type_skcipher = {
+static const struct af_alg_type algif_type_skcipher =
+{
 	.bind		=	skcipher_bind,
 	.release	=	skcipher_release,
 	.setkey		=	skcipher_setkey,

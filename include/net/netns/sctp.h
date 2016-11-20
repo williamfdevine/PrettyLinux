@@ -6,7 +6,8 @@ struct proc_dir_entry;
 struct sctp_mib;
 struct ctl_table_header;
 
-struct netns_sctp {
+struct netns_sctp
+{
 	DEFINE_SNMP_STAT(struct sctp_mib, sctp_statistics);
 
 #ifdef CONFIG_PROC_FS

@@ -39,7 +39,7 @@
 #define L2_EIE_MBECCINTEN	0x8
 #define L2_EIE_TPARINTEN	0x10
 #define L2_EIE_MASK	(L2_EIE_L2CFGINTEN | L2_EIE_SBECCINTEN | \
-			L2_EIE_MBECCINTEN | L2_EIE_TPARINTEN)
+					 L2_EIE_MBECCINTEN | L2_EIE_TPARINTEN)
 
 /* Error Detect */
 #define L2_EDE_L2CFGERR		0x1
@@ -50,9 +50,9 @@
 
 #define L2_EDE_CE_MASK	L2_EDE_SBECCERR
 #define L2_EDE_UE_MASK	(L2_EDE_L2CFGERR | L2_EDE_MBECCERR | \
-			L2_EDE_TPARERR)
+						 L2_EDE_TPARERR)
 #define L2_EDE_MASK	(L2_EDE_L2CFGERR | L2_EDE_SBECCERR | \
-			L2_EDE_MBECCERR | L2_EDE_TPARERR | L2_EDE_MULL2ERR)
+					 L2_EDE_MBECCERR | L2_EDE_TPARERR | L2_EDE_MULL2ERR)
 
 /*
  * PCI Err defines
@@ -71,7 +71,7 @@
 #define PCI_EDE_MULTI_ERR		0x80000000
 
 #define PCI_EDE_PERR_MASK	(PCI_EDE_TGT_PERR | PCI_EDE_MST_PERR | \
-				PCI_EDE_ADDR_PERR)
+							 PCI_EDE_ADDR_PERR)
 
 #define MPC85XX_PCI_ERR_DR		0x0000
 #define MPC85XX_PCI_ERR_CAP_DR		0x0004
@@ -90,14 +90,16 @@
 #define MPC85XX_PCIE_ERR_CAP_R2		0x0030
 #define MPC85XX_PCIE_ERR_CAP_R3		0x0034
 
-struct mpc85xx_l2_pdata {
+struct mpc85xx_l2_pdata
+{
 	char *name;
 	int edac_idx;
 	void __iomem *l2_vbase;
 	int irq;
 };
 
-struct mpc85xx_pci_pdata {
+struct mpc85xx_pci_pdata
+{
 	char *name;
 	bool is_pcie;
 	int edac_idx;

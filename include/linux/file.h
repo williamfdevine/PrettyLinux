@@ -18,15 +18,18 @@ struct vfsmount;
 struct dentry;
 struct path;
 extern struct file *alloc_file(struct path *, fmode_t mode,
-	const struct file_operations *fop);
+							   const struct file_operations *fop);
 
 static inline void fput_light(struct file *file, int fput_needed)
 {
 	if (fput_needed)
+	{
 		fput(file);
+	}
 }
 
-struct fd {
+struct fd
+{
 	struct file *file;
 	unsigned int flags;
 };
@@ -36,7 +39,9 @@ struct fd {
 static inline void fdput(struct fd fd)
 {
 	if (fd.flags & FDPUT_FPUT)
+	{
 		fput(fd.file);
+	}
 }
 
 extern struct file *fget(unsigned int fd);
@@ -48,7 +53,7 @@ extern void __f_unlock_pos(struct file *);
 
 static inline struct fd __to_fd(unsigned long v)
 {
-	return (struct fd){(struct file *)(v & ~3),v & 3};
+	return (struct fd) {(struct file *)(v & ~3), v & 3};
 }
 
 static inline struct fd fdget(unsigned int fd)
@@ -69,7 +74,10 @@ static inline struct fd fdget_pos(int fd)
 static inline void fdput_pos(struct fd f)
 {
 	if (f.flags & FDPUT_POS_UNLOCK)
+	{
 		__f_unlock_pos(f.file);
+	}
+
 	fdput(f);
 }
 

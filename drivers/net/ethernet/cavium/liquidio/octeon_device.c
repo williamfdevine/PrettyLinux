@@ -36,7 +36,8 @@
 /** Default configuration
  *  for CN66XX OCTEON Models.
  */
-static struct octeon_config default_cn66xx_conf = {
+static struct octeon_config default_cn66xx_conf =
+{
 	.card_type                              = LIO_210SV,
 	.card_name                              = LIO_210SV_NAME,
 
@@ -44,7 +45,7 @@ static struct octeon_config default_cn66xx_conf = {
 	.iq					= {
 		.max_iqs			= CN6XXX_CFG_IO_QUEUES,
 		.pending_list_size		=
-			(CN6XXX_MAX_IQ_DESCRIPTORS * CN6XXX_CFG_IO_QUEUES),
+		(CN6XXX_MAX_IQ_DESCRIPTORS * CN6XXX_CFG_IO_QUEUES),
 		.instr_type			= OCTEON_64BYTE_INSTR,
 		.db_min				= CN6XXX_DB_MIN,
 		.db_timeout			= CN6XXX_DB_TIMEOUT,
@@ -146,7 +147,8 @@ static struct octeon_config default_cn66xx_conf = {
  *  for CN68XX OCTEON Model.
  */
 
-static struct octeon_config default_cn68xx_conf = {
+static struct octeon_config default_cn68xx_conf =
+{
 	.card_type                              = LIO_410NV,
 	.card_name                              = LIO_410NV_NAME,
 
@@ -154,7 +156,7 @@ static struct octeon_config default_cn68xx_conf = {
 	.iq					= {
 		.max_iqs			= CN6XXX_CFG_IO_QUEUES,
 		.pending_list_size		=
-			(CN6XXX_MAX_IQ_DESCRIPTORS * CN6XXX_CFG_IO_QUEUES),
+		(CN6XXX_MAX_IQ_DESCRIPTORS * CN6XXX_CFG_IO_QUEUES),
 		.instr_type			= OCTEON_64BYTE_INSTR,
 		.db_min				= CN6XXX_DB_MIN,
 		.db_timeout			= CN6XXX_DB_TIMEOUT,
@@ -312,7 +314,8 @@ static struct octeon_config default_cn68xx_conf = {
 /** Default configuration
  *  for CN68XX OCTEON Model.
  */
-static struct octeon_config default_cn68xx_210nv_conf = {
+static struct octeon_config default_cn68xx_210nv_conf =
+{
 	.card_type                              = LIO_210NV,
 	.card_name                              = LIO_210NV_NAME,
 
@@ -321,7 +324,7 @@ static struct octeon_config default_cn68xx_210nv_conf = {
 	.iq					= {
 		.max_iqs			= CN6XXX_CFG_IO_QUEUES,
 		.pending_list_size		=
-			(CN6XXX_MAX_IQ_DESCRIPTORS * CN6XXX_CFG_IO_QUEUES),
+		(CN6XXX_MAX_IQ_DESCRIPTORS * CN6XXX_CFG_IO_QUEUES),
 		.instr_type			= OCTEON_64BYTE_INSTR,
 		.db_min				= CN6XXX_DB_MIN,
 		.db_timeout			= CN6XXX_DB_TIMEOUT,
@@ -418,14 +421,15 @@ static struct octeon_config default_cn68xx_210nv_conf = {
 	,
 };
 
-static struct octeon_config default_cn23xx_conf = {
+static struct octeon_config default_cn23xx_conf =
+{
 	.card_type                              = LIO_23XX,
 	.card_name                              = LIO_23XX_NAME,
 	/** IQ attributes */
 	.iq = {
 		.max_iqs		= CN23XX_CFG_IO_QUEUES,
 		.pending_list_size	= (CN23XX_MAX_IQ_DESCRIPTORS *
-					   CN23XX_CFG_IO_QUEUES),
+		CN23XX_CFG_IO_QUEUES),
 		.instr_type		= OCTEON_64BYTE_INSTR,
 		.db_min			= CN23XX_DB_MIN,
 		.db_timeout		= CN23XX_DB_TIMEOUT,
@@ -520,14 +524,17 @@ static struct octeon_config default_cn23xx_conf = {
 	}
 };
 
-enum {
+enum
+{
 	OCTEON_CONFIG_TYPE_DEFAULT = 0,
 	NUM_OCTEON_CONFS,
 };
 
-static struct octeon_config_ptr {
+static struct octeon_config_ptr
+{
 	u32 conf_type;
-} oct_conf_info[MAX_OCTEON_DEVICES] = {
+} oct_conf_info[MAX_OCTEON_DEVICES] =
+{
 	{
 		OCTEON_CONFIG_TYPE_DEFAULT,
 	}, {
@@ -539,7 +546,8 @@ static struct octeon_config_ptr {
 	},
 };
 
-static char oct_dev_state_str[OCT_DEV_STATES + 1][32] = {
+static char oct_dev_state_str[OCT_DEV_STATES + 1][32] =
+{
 	"BEGIN", "PCI-MAP-DONE", "DISPATCH-INIT-DONE",
 	"IQ-INIT-DONE", "SCBUFF-POOL-INIT-DONE", "RESPLIST-INIT-DONE",
 	"DROQ-INIT-DONE", "IO-QUEUES-INIT-DONE", "CONSOLE-INIT-DONE",
@@ -547,8 +555,10 @@ static char oct_dev_state_str[OCT_DEV_STATES + 1][32] = {
 	"INVALID"
 };
 
-static char oct_dev_app_str[CVM_DRV_APP_COUNT + 1][32] = {
-	"BASE", "NIC", "UNKNOWN"};
+static char oct_dev_app_str[CVM_DRV_APP_COUNT + 1][32] =
+{
+	"BASE", "NIC", "UNKNOWN"
+};
 
 static struct octeon_device *octeon_device[MAX_OCTEON_DEVICES];
 static u32 octeon_device_count;
@@ -558,7 +568,10 @@ static struct octeon_core_setup core_setup[MAX_OCTEON_DEVICES];
 static void oct_set_config_info(int oct_id, int conf_type)
 {
 	if (conf_type < 0 || conf_type > (NUM_OCTEON_CONFS - 1))
+	{
 		conf_type = OCTEON_CONFIG_TYPE_DEFAULT;
+	}
+
 	oct_conf_info[oct_id].conf_type = conf_type;
 }
 
@@ -567,46 +580,63 @@ void octeon_init_device_list(int conf_type)
 	int i;
 
 	memset(octeon_device, 0, (sizeof(void *) * MAX_OCTEON_DEVICES));
+
 	for (i = 0; i <  MAX_OCTEON_DEVICES; i++)
+	{
 		oct_set_config_info(i, conf_type);
+	}
 }
 
 static void *__retrieve_octeon_config_info(struct octeon_device *oct,
-					   u16 card_type)
+		u16 card_type)
 {
 	u32 oct_id = oct->octeon_id;
 	void *ret = NULL;
 
-	switch (oct_conf_info[oct_id].conf_type) {
-	case OCTEON_CONFIG_TYPE_DEFAULT:
-		if (oct->chip_id == OCTEON_CN66XX) {
-			ret = (void *)&default_cn66xx_conf;
-		} else if ((oct->chip_id == OCTEON_CN68XX) &&
-			   (card_type == LIO_210NV)) {
-			ret =  (void *)&default_cn68xx_210nv_conf;
-		} else if ((oct->chip_id == OCTEON_CN68XX) &&
-			   (card_type == LIO_410NV)) {
-			ret =  (void *)&default_cn68xx_conf;
-		} else if (oct->chip_id == OCTEON_CN23XX_PF_VID) {
-			ret =  (void *)&default_cn23xx_conf;
-		}
-		break;
-	default:
-		break;
+	switch (oct_conf_info[oct_id].conf_type)
+	{
+		case OCTEON_CONFIG_TYPE_DEFAULT:
+			if (oct->chip_id == OCTEON_CN66XX)
+			{
+				ret = (void *)&default_cn66xx_conf;
+			}
+			else if ((oct->chip_id == OCTEON_CN68XX) &&
+					 (card_type == LIO_210NV))
+			{
+				ret =  (void *)&default_cn68xx_210nv_conf;
+			}
+			else if ((oct->chip_id == OCTEON_CN68XX) &&
+					 (card_type == LIO_410NV))
+			{
+				ret =  (void *)&default_cn68xx_conf;
+			}
+			else if (oct->chip_id == OCTEON_CN23XX_PF_VID)
+			{
+				ret =  (void *)&default_cn23xx_conf;
+			}
+
+			break;
+
+		default:
+			break;
 	}
+
 	return ret;
 }
 
 static int __verify_octeon_config_info(struct octeon_device *oct, void *conf)
 {
-	switch (oct->chip_id) {
-	case OCTEON_CN66XX:
-	case OCTEON_CN68XX:
-		return lio_validate_cn6xxx_config_info(oct, conf);
-	case OCTEON_CN23XX_PF_VID:
-		return 0;
-	default:
-		break;
+	switch (oct->chip_id)
+	{
+		case OCTEON_CN66XX:
+		case OCTEON_CN68XX:
+			return lio_validate_cn6xxx_config_info(oct, conf);
+
+		case OCTEON_CN23XX_PF_VID:
+			return 0;
+
+		default:
+			break;
 	}
 
 	return 1;
@@ -617,10 +647,14 @@ void *oct_get_config_info(struct octeon_device *oct, u16 card_type)
 	void *conf = NULL;
 
 	conf = __retrieve_octeon_config_info(oct, card_type);
-	if (!conf)
-		return NULL;
 
-	if (__verify_octeon_config_info(oct, conf)) {
+	if (!conf)
+	{
+		return NULL;
+	}
+
+	if (__verify_octeon_config_info(oct, conf))
+	{
 		dev_err(&oct->pci_dev->dev, "Configuration verification failed\n");
 		return NULL;
 	}
@@ -633,14 +667,20 @@ char *lio_get_state_string(atomic_t *state_ptr)
 	s32 istate = (s32)atomic_read(state_ptr);
 
 	if (istate > OCT_DEV_STATES || istate < 0)
+	{
 		return oct_dev_state_str[OCT_DEV_STATE_INVALID];
+	}
+
 	return oct_dev_state_str[istate];
 }
 
 static char *get_oct_app_string(u32 app_mode)
 {
 	if (app_mode <= CVM_DRV_APP_END)
+	{
 		return oct_dev_app_str[app_mode - CVM_DRV_APP_START];
+	}
+
 	return oct_dev_app_str[CVM_DRV_INVALID_APP - CVM_DRV_APP_START];
 }
 
@@ -648,14 +688,20 @@ void octeon_free_device_mem(struct octeon_device *oct)
 {
 	int i;
 
-	for (i = 0; i < MAX_OCTEON_OUTPUT_QUEUES(oct); i++) {
+	for (i = 0; i < MAX_OCTEON_OUTPUT_QUEUES(oct); i++)
+	{
 		if (oct->io_qmask.oq & (1ULL << i))
+		{
 			vfree(oct->droq[i]);
+		}
 	}
 
-	for (i = 0; i < MAX_OCTEON_INSTR_QUEUES(oct); i++) {
+	for (i = 0; i < MAX_OCTEON_INSTR_QUEUES(oct); i++)
+	{
 		if (oct->io_qmask.iq & (1ULL << i))
+		{
 			vfree(oct->instr_queue[i]);
+		}
 	}
 
 	i = oct->octeon_id;
@@ -666,44 +712,56 @@ void octeon_free_device_mem(struct octeon_device *oct)
 }
 
 static struct octeon_device *octeon_allocate_device_mem(u32 pci_id,
-							u32 priv_size)
+		u32 priv_size)
 {
 	struct octeon_device *oct;
 	u8 *buf = NULL;
 	u32 octdevsize = 0, configsize = 0, size;
 
-	switch (pci_id) {
-	case OCTEON_CN68XX:
-	case OCTEON_CN66XX:
-		configsize = sizeof(struct octeon_cn6xxx);
-		break;
+	switch (pci_id)
+	{
+		case OCTEON_CN68XX:
+		case OCTEON_CN66XX:
+			configsize = sizeof(struct octeon_cn6xxx);
+			break;
 
-	case OCTEON_CN23XX_PF_VID:
-		configsize = sizeof(struct octeon_cn23xx_pf);
-		break;
-	default:
-		pr_err("%s: Unknown PCI Device: 0x%x\n",
-		       __func__,
-		       pci_id);
-		return NULL;
+		case OCTEON_CN23XX_PF_VID:
+			configsize = sizeof(struct octeon_cn23xx_pf);
+			break;
+
+		default:
+			pr_err("%s: Unknown PCI Device: 0x%x\n",
+				   __func__,
+				   pci_id);
+			return NULL;
 	}
 
 	if (configsize & 0x7)
+	{
 		configsize += (8 - (configsize & 0x7));
+	}
 
 	octdevsize = sizeof(struct octeon_device);
+
 	if (octdevsize & 0x7)
+	{
 		octdevsize += (8 - (octdevsize & 0x7));
+	}
 
 	if (priv_size & 0x7)
+	{
 		priv_size += (8 - (priv_size & 0x7));
+	}
 
 	size = octdevsize + priv_size + configsize +
-		(sizeof(struct octeon_dispatch) * DISPATCH_LIST_SIZE);
+		   (sizeof(struct octeon_dispatch) * DISPATCH_LIST_SIZE);
 
 	buf = vmalloc(size);
+
 	if (!buf)
+	{
 		return NULL;
+	}
 
 	memset(buf, 0, size);
 
@@ -711,27 +769,34 @@ static struct octeon_device *octeon_allocate_device_mem(u32 pci_id,
 	oct->priv = (void *)(buf + octdevsize);
 	oct->chip = (void *)(buf + octdevsize + priv_size);
 	oct->dispatch.dlist = (struct octeon_dispatch *)
-		(buf + octdevsize + priv_size + configsize);
+						  (buf + octdevsize + priv_size + configsize);
 
 	return oct;
 }
 
 struct octeon_device *octeon_allocate_device(u32 pci_id,
-					     u32 priv_size)
+		u32 priv_size)
 {
 	u32 oct_idx = 0;
 	struct octeon_device *oct = NULL;
 
 	for (oct_idx = 0; oct_idx < MAX_OCTEON_DEVICES; oct_idx++)
 		if (!octeon_device[oct_idx])
+		{
 			break;
+		}
 
 	if (oct_idx == MAX_OCTEON_DEVICES)
+	{
 		return NULL;
+	}
 
 	oct = octeon_allocate_device_mem(pci_id, priv_size);
+
 	if (!oct)
+	{
 		return NULL;
+	}
 
 	spin_lock_init(&oct->pci_win_lock);
 	spin_lock_init(&oct->mem_access_lock);
@@ -741,7 +806,7 @@ struct octeon_device *octeon_allocate_device(u32 pci_id,
 
 	oct->octeon_id = oct_idx;
 	snprintf(oct->device_name, sizeof(oct->device_name),
-		 "LiquidIO%d", (oct->octeon_id));
+			 "LiquidIO%d", (oct->octeon_id));
 
 	return oct;
 }
@@ -755,14 +820,23 @@ octeon_allocate_ioq_vector(struct octeon_device  *oct)
 	int size;
 
 	if (OCTEON_CN23XX_PF(oct))
+	{
 		num_ioqs = oct->sriov_info.num_pf_rings;
+	}
+
 	size = sizeof(struct octeon_ioq_vector) * num_ioqs;
 
 	oct->ioq_vector = vmalloc(size);
+
 	if (!oct->ioq_vector)
+	{
 		return 1;
+	}
+
 	memset(oct->ioq_vector, 0, size);
-	for (i = 0; i < num_ioqs; i++) {
+
+	for (i = 0; i < num_ioqs; i++)
+	{
 		ioq_vector		= &oct->ioq_vector[i];
 		ioq_vector->oct_dev	= oct;
 		ioq_vector->iq_index	= i;
@@ -772,10 +846,15 @@ octeon_allocate_ioq_vector(struct octeon_device  *oct)
 		cpumask_set_cpu(cpu_num, &ioq_vector->affinity_mask);
 
 		if (oct->chip_id == OCTEON_CN23XX_PF_VID)
+		{
 			ioq_vector->ioq_num	= i + oct->sriov_info.pf_srn;
+		}
 		else
+		{
 			ioq_vector->ioq_num	= i;
+		}
 	}
+
 	return 0;
 }
 
@@ -798,17 +877,22 @@ int octeon_setup_instr_queues(struct octeon_device *oct)
 			CFG_GET_NUM_DEF_TX_DESCS(CHIP_FIELD(oct, cn6xxx, conf));
 	else if (OCTEON_CN23XX_PF(oct))
 		num_descs = CFG_GET_NUM_DEF_TX_DESCS(CHIP_FIELD(oct, cn23xx_pf,
-								conf));
+											 conf));
 
 	oct->num_iqs = 0;
 
 	oct->instr_queue[0] = vmalloc_node(sizeof(*oct->instr_queue[0]),
-				numa_node);
+									   numa_node);
+
 	if (!oct->instr_queue[0])
 		oct->instr_queue[0] =
 			vmalloc(sizeof(struct octeon_instr_queue));
+
 	if (!oct->instr_queue[0])
+	{
 		return 1;
+	}
+
 	memset(oct->instr_queue[0], 0, sizeof(struct octeon_instr_queue));
 	oct->instr_queue[0]->q_index = 0;
 	oct->instr_queue[0]->app_ctx = (void *)(size_t)0;
@@ -818,7 +902,9 @@ int octeon_setup_instr_queues(struct octeon_device *oct)
 	txpciq.s.pkind = oct->pfvf_hsword.pkind;
 	txpciq.s.use_qpg = 0;
 	txpciq.s.qpg = 0;
-	if (octeon_init_instr_queue(oct, txpciq, num_descs)) {
+
+	if (octeon_init_instr_queue(oct, txpciq, num_descs))
+	{
 		/* prevent memory leak */
 		vfree(oct->instr_queue[0]);
 		return 1;
@@ -835,26 +921,39 @@ int octeon_setup_output_queues(struct octeon_device *oct)
 	u32 oq_no = 0;
 	int numa_node = cpu_to_node(oq_no % num_online_cpus());
 
-	if (OCTEON_CN6XXX(oct)) {
+	if (OCTEON_CN6XXX(oct))
+	{
 		num_descs =
 			CFG_GET_NUM_DEF_RX_DESCS(CHIP_FIELD(oct, cn6xxx, conf));
 		desc_size =
 			CFG_GET_DEF_RX_BUF_SIZE(CHIP_FIELD(oct, cn6xxx, conf));
-	} else if (OCTEON_CN23XX_PF(oct)) {
-		num_descs = CFG_GET_NUM_DEF_RX_DESCS(CHIP_FIELD(oct, cn23xx_pf,
-								conf));
-		desc_size = CFG_GET_DEF_RX_BUF_SIZE(CHIP_FIELD(oct, cn23xx_pf,
-							       conf));
 	}
+	else if (OCTEON_CN23XX_PF(oct))
+	{
+		num_descs = CFG_GET_NUM_DEF_RX_DESCS(CHIP_FIELD(oct, cn23xx_pf,
+											 conf));
+		desc_size = CFG_GET_DEF_RX_BUF_SIZE(CHIP_FIELD(oct, cn23xx_pf,
+											conf));
+	}
+
 	oct->num_oqs = 0;
 	oct->droq[0] = vmalloc_node(sizeof(*oct->droq[0]), numa_node);
+
 	if (!oct->droq[0])
+	{
 		oct->droq[0] = vmalloc(sizeof(*oct->droq[0]));
+	}
+
 	if (!oct->droq[0])
+	{
 		return 1;
+	}
 
 	if (octeon_init_droq(oct, oq_no, num_descs, desc_size, NULL))
+	{
 		return 1;
+	}
+
 	oct->num_oqs++;
 
 	return 0;
@@ -862,26 +961,32 @@ int octeon_setup_output_queues(struct octeon_device *oct)
 
 void octeon_set_io_queues_off(struct octeon_device *oct)
 {
-	if (OCTEON_CN6XXX(oct)) {
+	if (OCTEON_CN6XXX(oct))
+	{
 		octeon_write_csr(oct, CN6XXX_SLI_PKT_INSTR_ENB, 0);
 		octeon_write_csr(oct, CN6XXX_SLI_PKT_OUT_ENB, 0);
 	}
 }
 
 void octeon_set_droq_pkt_op(struct octeon_device *oct,
-			    u32 q_no,
-			    u32 enable)
+							u32 q_no,
+							u32 enable)
 {
 	u32 reg_val = 0;
 
 	/* Disable the i/p and o/p queues for this Octeon. */
-	if (OCTEON_CN6XXX(oct)) {
+	if (OCTEON_CN6XXX(oct))
+	{
 		reg_val = octeon_read_csr(oct, CN6XXX_SLI_PKT_OUT_ENB);
 
 		if (enable)
+		{
 			reg_val = reg_val | (1 << q_no);
+		}
 		else
+		{
 			reg_val = reg_val & (~(1 << q_no));
+		}
 
 		octeon_write_csr(oct, CN6XXX_SLI_PKT_OUT_ENB, reg_val);
 	}
@@ -893,13 +998,16 @@ int octeon_init_dispatch_list(struct octeon_device *oct)
 
 	oct->dispatch.count = 0;
 
-	for (i = 0; i < DISPATCH_LIST_SIZE; i++) {
+	for (i = 0; i < DISPATCH_LIST_SIZE; i++)
+	{
 		oct->dispatch.dlist[i].opcode = 0;
 		INIT_LIST_HEAD(&oct->dispatch.dlist[i].list);
 	}
 
 	for (i = 0; i <= REQTYPE_LAST; i++)
+	{
 		octeon_register_reqtype_free_fn(oct, i, NULL);
+	}
 
 	spin_lock_init(&oct->dispatch.lock);
 
@@ -915,11 +1023,14 @@ void octeon_delete_dispatch_list(struct octeon_device *oct)
 
 	spin_lock_bh(&oct->dispatch.lock);
 
-	for (i = 0; i < DISPATCH_LIST_SIZE; i++) {
+	for (i = 0; i < DISPATCH_LIST_SIZE; i++)
+	{
 		struct list_head *dispatch;
 
 		dispatch = &oct->dispatch.dlist[i].list;
-		while (dispatch->next != dispatch) {
+
+		while (dispatch->next != dispatch)
+		{
 			temp = dispatch->next;
 			list_del(temp);
 			list_add_tail(temp, &freelist);
@@ -932,7 +1043,8 @@ void octeon_delete_dispatch_list(struct octeon_device *oct)
 
 	spin_unlock_bh(&oct->dispatch.lock);
 
-	list_for_each_safe(temp, tmp2, &freelist) {
+	list_for_each_safe(temp, tmp2, &freelist)
+	{
 		list_del(temp);
 		vfree(temp);
 	}
@@ -940,7 +1052,7 @@ void octeon_delete_dispatch_list(struct octeon_device *oct)
 
 octeon_dispatch_fn_t
 octeon_get_dispatch(struct octeon_device *octeon_dev, u16 opcode,
-		    u16 subcode)
+					u16 subcode)
 {
 	u32 idx;
 	struct list_head *dispatch;
@@ -951,25 +1063,32 @@ octeon_get_dispatch(struct octeon_device *octeon_dev, u16 opcode,
 
 	spin_lock_bh(&octeon_dev->dispatch.lock);
 
-	if (octeon_dev->dispatch.count == 0) {
+	if (octeon_dev->dispatch.count == 0)
+	{
 		spin_unlock_bh(&octeon_dev->dispatch.lock);
 		return NULL;
 	}
 
-	if (!(octeon_dev->dispatch.dlist[idx].opcode)) {
+	if (!(octeon_dev->dispatch.dlist[idx].opcode))
+	{
 		spin_unlock_bh(&octeon_dev->dispatch.lock);
 		return NULL;
 	}
 
-	if (octeon_dev->dispatch.dlist[idx].opcode == combined_opcode) {
+	if (octeon_dev->dispatch.dlist[idx].opcode == combined_opcode)
+	{
 		fn = octeon_dev->dispatch.dlist[idx].dispatch_fn;
-	} else {
+	}
+	else
+	{
 		list_for_each(dispatch,
-			      &octeon_dev->dispatch.dlist[idx].list) {
+					  &octeon_dev->dispatch.dlist[idx].list)
+		{
 			if (((struct octeon_dispatch *)dispatch)->opcode ==
-			    combined_opcode) {
+				combined_opcode)
+			{
 				fn = ((struct octeon_dispatch *)
-				      dispatch)->dispatch_fn;
+					  dispatch)->dispatch_fn;
 				break;
 			}
 		}
@@ -998,9 +1117,9 @@ octeon_get_dispatch(struct octeon_device *octeon_dev, u16 opcode,
  */
 int
 octeon_register_dispatch_fn(struct octeon_device *oct,
-			    u16 opcode,
-			    u16 subcode,
-			    octeon_dispatch_fn_t fn, void *fn_arg)
+							u16 opcode,
+							u16 subcode,
+							octeon_dispatch_fn_t fn, void *fn_arg)
 {
 	u32 idx;
 	octeon_dispatch_fn_t pfn;
@@ -1009,8 +1128,10 @@ octeon_register_dispatch_fn(struct octeon_device *oct,
 	idx = combined_opcode & OCTEON_OPCODE_MASK;
 
 	spin_lock_bh(&oct->dispatch.lock);
+
 	/* Add dispatch function to first level of lookup table */
-	if (oct->dispatch.dlist[idx].opcode == 0) {
+	if (oct->dispatch.dlist[idx].opcode == 0)
+	{
 		oct->dispatch.dlist[idx].opcode = combined_opcode;
 		oct->dispatch.dlist[idx].dispatch_fn = fn;
 		oct->dispatch.dlist[idx].arg = fn_arg;
@@ -1025,18 +1146,23 @@ octeon_register_dispatch_fn(struct octeon_device *oct,
 	 * opcode/subcode.
 	 */
 	pfn = octeon_get_dispatch(oct, opcode, subcode);
-	if (!pfn) {
+
+	if (!pfn)
+	{
 		struct octeon_dispatch *dispatch;
 
 		dev_dbg(&oct->pci_dev->dev,
-			"Adding opcode to dispatch list linked list\n");
+				"Adding opcode to dispatch list linked list\n");
 		dispatch = (struct octeon_dispatch *)
-			   vmalloc(sizeof(struct octeon_dispatch));
-		if (!dispatch) {
+				   vmalloc(sizeof(struct octeon_dispatch));
+
+		if (!dispatch)
+		{
 			dev_err(&oct->pci_dev->dev,
-				"No memory to add dispatch function\n");
+					"No memory to add dispatch function\n");
 			return 1;
 		}
+
 		dispatch->opcode = combined_opcode;
 		dispatch->dispatch_fn = fn;
 		dispatch->arg = fn_arg;
@@ -1049,10 +1175,12 @@ octeon_register_dispatch_fn(struct octeon_device *oct,
 		oct->dispatch.count++;
 		spin_unlock_bh(&oct->dispatch.lock);
 
-	} else {
+	}
+	else
+	{
 		dev_err(&oct->pci_dev->dev,
-			"Found previously registered dispatch fn for opcode/subcode: %x/%x\n",
-			opcode, subcode);
+				"Found previously registered dispatch fn for opcode/subcode: %x/%x\n",
+				opcode, subcode);
 		return 1;
 	}
 
@@ -1075,30 +1203,35 @@ int octeon_core_drv_init(struct octeon_recv_info *recv_info, void *buf)
 		num_nic_ports =
 			CFG_GET_NUM_NIC_PORTS(CHIP_FIELD(oct, cn23xx_pf, conf));
 
-	if (atomic_read(&oct->status) >= OCT_DEV_RUNNING) {
+	if (atomic_read(&oct->status) >= OCT_DEV_RUNNING)
+	{
 		dev_err(&oct->pci_dev->dev, "Received CORE OK when device state is 0x%x\n",
-			atomic_read(&oct->status));
+				atomic_read(&oct->status));
 		goto core_drv_init_err;
 	}
 
 	strncpy(app_name,
-		get_oct_app_string(
-		(u32)recv_pkt->rh.r_core_drv_init.app_mode),
-		sizeof(app_name) - 1);
+			get_oct_app_string(
+				(u32)recv_pkt->rh.r_core_drv_init.app_mode),
+			sizeof(app_name) - 1);
 	oct->app_mode = (u32)recv_pkt->rh.r_core_drv_init.app_mode;
-	if (recv_pkt->rh.r_core_drv_init.app_mode == CVM_DRV_NIC_APP) {
+
+	if (recv_pkt->rh.r_core_drv_init.app_mode == CVM_DRV_NIC_APP)
+	{
 		oct->fw_info.max_nic_ports =
 			(u32)recv_pkt->rh.r_core_drv_init.max_nic_ports;
 		oct->fw_info.num_gmx_ports =
 			(u32)recv_pkt->rh.r_core_drv_init.num_gmx_ports;
 	}
 
-	if (oct->fw_info.max_nic_ports < num_nic_ports) {
+	if (oct->fw_info.max_nic_ports < num_nic_ports)
+	{
 		dev_err(&oct->pci_dev->dev,
-			"Config has more ports than firmware allows (%d > %d).\n",
-			num_nic_ports, oct->fw_info.max_nic_ports);
+				"Config has more ports than firmware allows (%d > %d).\n",
+				num_nic_ports, oct->fw_info.max_nic_ports);
 		goto core_drv_init_err;
 	}
+
 	oct->fw_info.app_cap_flags = recv_pkt->rh.r_core_drv_init.app_cap_flags;
 	oct->fw_info.app_mode = (u32)recv_pkt->rh.r_core_drv_init.app_mode;
 	oct->pfvf_hsword.app_mode = (u32)recv_pkt->rh.r_core_drv_init.app_mode;
@@ -1106,22 +1239,25 @@ int octeon_core_drv_init(struct octeon_recv_info *recv_info, void *buf)
 	oct->pfvf_hsword.pkind = recv_pkt->rh.r_core_drv_init.pkind;
 
 	for (i = 0; i < oct->num_iqs; i++)
+	{
 		oct->instr_queue[i]->txpciq.s.pkind = oct->pfvf_hsword.pkind;
+	}
 
 	atomic_set(&oct->status, OCT_DEV_CORE_OK);
 
 	cs = &core_setup[oct->octeon_id];
 
-	if (recv_pkt->buffer_size[0] != sizeof(*cs)) {
+	if (recv_pkt->buffer_size[0] != sizeof(*cs))
+	{
 		dev_dbg(&oct->pci_dev->dev, "Core setup bytes expected %u found %d\n",
-			(u32)sizeof(*cs),
-			recv_pkt->buffer_size[0]);
+				(u32)sizeof(*cs),
+				recv_pkt->buffer_size[0]);
 	}
 
 	memcpy(cs, get_rbd(recv_pkt->buffer_ptr[0]), sizeof(*cs));
 	strncpy(oct->boardinfo.name, cs->boardname, OCT_BOARD_NAME);
 	strncpy(oct->boardinfo.serial_number, cs->board_serial_number,
-		OCT_SERIAL_LEN);
+			OCT_SERIAL_LEN);
 
 	octeon_swap_8B_data((u64 *)cs, (sizeof(*cs) >> 3));
 
@@ -1129,12 +1265,16 @@ int octeon_core_drv_init(struct octeon_recv_info *recv_info, void *buf)
 	oct->boardinfo.minor = cs->board_rev_minor;
 
 	dev_info(&oct->pci_dev->dev,
-		 "Running %s (%llu Hz)\n",
-		 app_name, CVM_CAST64(cs->corefreq));
+			 "Running %s (%llu Hz)\n",
+			 app_name, CVM_CAST64(cs->corefreq));
 
 core_drv_init_err:
+
 	for (i = 0; i < recv_pkt->buffer_count; i++)
+	{
 		recv_buffer_free(recv_pkt->buffer_ptr[i]);
+	}
+
 	octeon_free_recv_info(recv_info);
 	return 0;
 }
@@ -1143,8 +1283,10 @@ int octeon_get_tx_qsize(struct octeon_device *oct, u32 q_no)
 
 {
 	if (oct && (q_no < MAX_OCTEON_INSTR_QUEUES(oct)) &&
-	    (oct->io_qmask.iq & (1ULL << q_no)))
+		(oct->io_qmask.iq & (1ULL << q_no)))
+	{
 		return oct->instr_queue[q_no]->max_count;
+	}
 
 	return -1;
 }
@@ -1152,8 +1294,11 @@ int octeon_get_tx_qsize(struct octeon_device *oct, u32 q_no)
 int octeon_get_rx_qsize(struct octeon_device *oct, u32 q_no)
 {
 	if (oct && (q_no < MAX_OCTEON_OUTPUT_QUEUES(oct)) &&
-	    (oct->io_qmask.oq & (1ULL << q_no)))
+		(oct->io_qmask.oq & (1ULL << q_no)))
+	{
 		return oct->droq[q_no]->max_count;
+	}
+
 	return -1;
 }
 
@@ -1166,13 +1311,17 @@ struct octeon_config *octeon_get_conf(struct octeon_device *oct)
 	 * configuration
 	 */
 
-	if (OCTEON_CN6XXX(oct)) {
+	if (OCTEON_CN6XXX(oct))
+	{
 		default_oct_conf =
 			(struct octeon_config *)(CHIP_FIELD(oct, cn6xxx, conf));
-	} else if (OCTEON_CN23XX_PF(oct)) {
-		default_oct_conf = (struct octeon_config *)
-			(CHIP_FIELD(oct, cn23xx_pf, conf));
 	}
+	else if (OCTEON_CN23XX_PF(oct))
+	{
+		default_oct_conf = (struct octeon_config *)
+						   (CHIP_FIELD(oct, cn23xx_pf, conf));
+	}
+
 	return default_oct_conf;
 }
 
@@ -1187,9 +1336,13 @@ struct octeon_config *octeon_get_conf(struct octeon_device *oct)
 struct octeon_device *lio_get_device(u32 octeon_id)
 {
 	if (octeon_id >= MAX_OCTEON_DEVICES)
+	{
 		return NULL;
+	}
 	else
+	{
 		return octeon_device[octeon_id];
+	}
 }
 
 u64 lio_pci_readq(struct octeon_device *oct, u64 addr)
@@ -1204,10 +1357,14 @@ u64 lio_pci_readq(struct octeon_device *oct, u64 addr)
 	 * So write MSB first
 	 */
 	addrhi = (addr >> 32);
+
 	if ((oct->chip_id == OCTEON_CN66XX) ||
-	    (oct->chip_id == OCTEON_CN68XX) ||
-	    (oct->chip_id == OCTEON_CN23XX_PF_VID))
+		(oct->chip_id == OCTEON_CN68XX) ||
+		(oct->chip_id == OCTEON_CN23XX_PF_VID))
+	{
 		addrhi |= 0x00060000;
+	}
+
 	writel(addrhi, oct->reg_list.pci_win_rd_addr_hi);
 
 	/* Read back to preserve ordering of writes */
@@ -1224,8 +1381,8 @@ u64 lio_pci_readq(struct octeon_device *oct, u64 addr)
 }
 
 void lio_pci_writeq(struct octeon_device *oct,
-		    u64 val,
-		    u64 addr)
+					u64 val,
+					u64 addr)
 {
 	u32 val32;
 	unsigned long flags;
@@ -1250,11 +1407,14 @@ int octeon_mem_access_ok(struct octeon_device *oct)
 	u64 lmc0_reset_ctl;
 
 	/* Check to make sure a DDR interface is enabled */
-	if (OCTEON_CN23XX_PF(oct)) {
+	if (OCTEON_CN23XX_PF(oct))
+	{
 		lmc0_reset_ctl = lio_pci_readq(oct, CN23XX_LMC0_RESET_CTL);
 		access_okay =
 			(lmc0_reset_ctl & CN23XX_LMC0_RESET_CTL_DDR3RST_MASK);
-	} else {
+	}
+	else
+	{
 		lmc0_reset_ctl = lio_pci_readq(oct, CN6XXX_LMC0_RESET_CTL);
 		access_okay =
 			(lmc0_reset_ctl & CN6XXX_LMC0_RESET_CTL_DDR3RST_MASK);
@@ -1269,15 +1429,20 @@ int octeon_wait_for_ddr_init(struct octeon_device *oct, u32 *timeout)
 	u32 ms;
 
 	if (!timeout)
+	{
 		return ret;
+	}
 
 	for (ms = 0; (ret != 0) && ((*timeout == 0) || (ms <= *timeout));
-	     ms += HZ / 10) {
+		 ms += HZ / 10)
+	{
 		ret = octeon_mem_access_ok(oct);
 
 		/* wait 100 ms */
 		if (ret)
+		{
 			schedule_timeout_uninterruptible(HZ / 10);
+		}
 	}
 
 	return ret;
@@ -1295,7 +1460,10 @@ int lio_get_device_id(void *dev)
 
 	for (i = 0; i < MAX_OCTEON_DEVICES; i++)
 		if (octeon_device[i] == octeon_dev)
+		{
 			return octeon_dev->octeon_id;
+		}
+
 	return -1;
 }
 
@@ -1305,32 +1473,40 @@ void lio_enable_irq(struct octeon_droq *droq, struct octeon_instr_queue *iq)
 	struct octeon_device *oct = NULL;
 
 	/* the whole thing needs to be atomic, ideally */
-	if (droq) {
+	if (droq)
+	{
 		spin_lock_bh(&droq->lock);
 		writel(droq->pkt_count, droq->pkts_sent_reg);
 		droq->pkt_count = 0;
 		spin_unlock_bh(&droq->lock);
 		oct = droq->oct_dev;
 	}
-	if (iq) {
+
+	if (iq)
+	{
 		spin_lock_bh(&iq->lock);
 		writel(iq->pkt_in_done, iq->inst_cnt_reg);
 		iq->pkt_in_done = 0;
 		spin_unlock_bh(&iq->lock);
 		oct = iq->oct_dev;
 	}
+
 	/*write resend. Writing RESEND in SLI_PKTX_CNTS should be enough
 	 *to trigger tx interrupts as well, if they are pending.
 	 */
-	if (oct && OCTEON_CN23XX_PF(oct)) {
+	if (oct && OCTEON_CN23XX_PF(oct))
+	{
 		if (droq)
+		{
 			writeq(CN23XX_INTR_RESEND, droq->pkts_sent_reg);
+		}
 		/*we race with firmrware here. read and write the IN_DONE_CNTS*/
-		else if (iq) {
+		else if (iq)
+		{
 			instr_cnt =  readq(iq->inst_cnt_reg);
 			writeq(((instr_cnt & 0xFFFFFFFF00000000ULL) |
-				CN23XX_INTR_RESEND),
-			       iq->inst_cnt_reg);
+					CN23XX_INTR_RESEND),
+				   iq->inst_cnt_reg);
 		}
 	}
 }

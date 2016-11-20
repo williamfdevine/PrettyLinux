@@ -52,7 +52,8 @@
 #define SPEC_DEV_ID_RF_CONFIG_2T2R	BIT(4)
 #define SPEC_DEV_ID_ASSIGN_IFNAME	BIT(5)
 
-struct registry_priv {
+struct registry_priv
+{
 	struct ndis_802_11_ssid	ssid;
 	u8	channel;/* ad-hoc support requirement */
 	u8	wireless_mode;/* A, B, G, auto */
@@ -68,7 +69,7 @@ struct registry_priv {
 	u8	software_encrypt;
 	u8	software_decrypt;
 	u8	acm_method;
-	  /* UAPSD */
+	/* UAPSD */
 	u8	wmm_enable;
 	u8	uapsd_enable;
 
@@ -106,7 +107,8 @@ struct registry_priv {
 
 #define MAX_CONTINUAL_URB_ERR		4
 
-struct dvobj_priv {
+struct dvobj_priv
+{
 	struct adapter *if1;
 	/* For 92D, DMDP have 2 interface. */
 	u8	InterfaceNumber;
@@ -117,7 +119,7 @@ struct dvobj_priv {
 	int	RtOutPipe[3];
 	u8	Queue2Pipe[HW_QUEUE_ENTRY];/* for out pipe mapping */
 
-/*-------- below is for USB INTERFACE --------*/
+	/*-------- below is for USB INTERFACE --------*/
 	u8	ishighspeed;
 	u8	RtNumInPipes;
 	u8	RtNumOutPipes;
@@ -134,7 +136,8 @@ static inline struct device *dvobj_to_dev(struct dvobj_priv *dvobj)
 	return &dvobj->pusbintf->dev;
 };
 
-struct adapter {
+struct adapter
+{
 	struct dvobj_priv *dvobj;
 	struct	mlme_priv mlmepriv;
 	struct	mlme_ext_priv mlmeextpriv;

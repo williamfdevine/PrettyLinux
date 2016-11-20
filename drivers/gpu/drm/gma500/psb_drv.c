@@ -54,7 +54,8 @@ static int psb_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent);
  * PowerVR SGX545    - Cedartrail - Intel GMA 3650, Intel Atom D2550, D2700,
  *                                  N2800
  */
-static const struct pci_device_id pciidlist[] = {
+static const struct pci_device_id pciidlist[] =
+{
 	{ 0x8086, 0x8108, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &psb_chip_ops },
 	{ 0x8086, 0x8109, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &psb_chip_ops },
 #if defined(CONFIG_DRM_GMA600)
@@ -103,7 +104,8 @@ MODULE_DEVICE_TABLE(pci, pciidlist);
 /*
  * Standard IOCTLs.
  */
-static const struct drm_ioctl_desc psb_ioctls[] = {
+static const struct drm_ioctl_desc psb_ioctls[] =
+{
 };
 
 static void psb_driver_lastclose(struct drm_device *dev)
@@ -113,8 +115,11 @@ static void psb_driver_lastclose(struct drm_device *dev)
 	struct psb_fbdev *fbdev = dev_priv->fbdev;
 
 	ret = drm_fb_helper_restore_fbdev_mode_unlocked(&fbdev->psb_fb_helper);
+
 	if (ret)
+	{
 		DRM_DEBUG("failed to restore crtc mode\n");
+	}
 
 	return;
 }
@@ -126,7 +131,8 @@ static int psb_do_init(struct drm_device *dev)
 
 	uint32_t stolen_gtt;
 
-	if (pg->mmu_gatt_start & 0x0FFFFFFF) {
+	if (pg->mmu_gatt_start & 0x0FFFFFFF)
+	{
 		dev_err(dev->dev, "Gatt must be 256M aligned. This is a bug.\n");
 		return -EINVAL;
 	}
@@ -136,7 +142,7 @@ static int psb_do_init(struct drm_device *dev)
 	stolen_gtt = (stolen_gtt < pg->gtt_pages) ? stolen_gtt : pg->gtt_pages;
 
 	dev_priv->gatt_free_offset = pg->mmu_gatt_start +
-	    (stolen_gtt << PAGE_SHIFT) * 1024;
+								 (stolen_gtt << PAGE_SHIFT) * 1024;
 
 	spin_lock_init(&dev_priv->irqmask_lock);
 	spin_lock_init(&dev_priv->lock_2d);
@@ -147,7 +153,7 @@ static int psb_do_init(struct drm_device *dev)
 
 	/* Do not bypass any MMU access, let them pagefault instead */
 	PSB_WSGX32((PSB_RSGX32(PSB_CR_BIF_CTRL) & ~_PSB_MMU_ER_MASK),
-		   PSB_CR_BIF_CTRL);
+			   PSB_CR_BIF_CTRL);
 	PSB_RSGX32(PSB_CR_BIF_CTRL);
 
 	psb_spank(dev_priv);
@@ -165,21 +171,30 @@ static int psb_driver_unload(struct drm_device *dev)
 
 	/* TODO: Kill vblank etc here */
 
-	if (dev_priv) {
+	if (dev_priv)
+	{
 		if (dev_priv->backlight_device)
+		{
 			gma_backlight_exit(dev);
+		}
+
 		psb_modeset_cleanup(dev);
 
 		if (dev_priv->ops->chip_teardown)
+		{
 			dev_priv->ops->chip_teardown(dev);
+		}
 
 		psb_intel_opregion_fini(dev);
 
-		if (dev_priv->pf_pd) {
+		if (dev_priv->pf_pd)
+		{
 			psb_mmu_free_pagedir(dev_priv->pf_pd);
 			dev_priv->pf_pd = NULL;
 		}
-		if (dev_priv->mmu) {
+
+		if (dev_priv->mmu)
+		{
 			struct psb_gtt *pg = &dev_priv->gtt;
 
 			down_read(&pg->sem);
@@ -192,24 +207,34 @@ static int psb_driver_unload(struct drm_device *dev)
 			psb_mmu_driver_takedown(dev_priv->mmu);
 			dev_priv->mmu = NULL;
 		}
+
 		psb_gtt_takedown(dev);
-		if (dev_priv->scratch_page) {
+
+		if (dev_priv->scratch_page)
+		{
 			set_pages_wb(dev_priv->scratch_page, 1);
 			__free_page(dev_priv->scratch_page);
 			dev_priv->scratch_page = NULL;
 		}
-		if (dev_priv->vdc_reg) {
+
+		if (dev_priv->vdc_reg)
+		{
 			iounmap(dev_priv->vdc_reg);
 			dev_priv->vdc_reg = NULL;
 		}
-		if (dev_priv->sgx_reg) {
+
+		if (dev_priv->sgx_reg)
+		{
 			iounmap(dev_priv->sgx_reg);
 			dev_priv->sgx_reg = NULL;
 		}
-		if (dev_priv->aux_reg) {
+
+		if (dev_priv->aux_reg)
+		{
 			iounmap(dev_priv->aux_reg);
 			dev_priv->aux_reg = NULL;
 		}
+
 		pci_dev_put(dev_priv->aux_pdev);
 		pci_dev_put(dev_priv->lpc_pdev);
 
@@ -219,6 +244,7 @@ static int psb_driver_unload(struct drm_device *dev)
 		kfree(dev_priv);
 		dev->dev_private = NULL;
 	}
+
 	gma_power_uninit(dev);
 	return 0;
 }
@@ -235,8 +261,11 @@ static int psb_driver_load(struct drm_device *dev, unsigned long flags)
 
 	/* allocating and initializing driver private data */
 	dev_priv = kzalloc(sizeof(*dev_priv), GFP_KERNEL);
+
 	if (dev_priv == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	dev_priv->ops = (struct psb_ops *)flags;
 	dev_priv->dev = dev;
@@ -251,62 +280,85 @@ static int psb_driver_load(struct drm_device *dev, unsigned long flags)
 	resource_start = pci_resource_start(dev->pdev, PSB_MMIO_RESOURCE);
 
 	dev_priv->vdc_reg =
-	    ioremap(resource_start + PSB_VDC_OFFSET, PSB_VDC_SIZE);
+		ioremap(resource_start + PSB_VDC_OFFSET, PSB_VDC_SIZE);
+
 	if (!dev_priv->vdc_reg)
+	{
 		goto out_err;
+	}
 
 	dev_priv->sgx_reg = ioremap(resource_start + dev_priv->ops->sgx_offset,
-							PSB_SGX_SIZE);
-	if (!dev_priv->sgx_reg)
-		goto out_err;
+								PSB_SGX_SIZE);
 
-	if (IS_MRST(dev)) {
+	if (!dev_priv->sgx_reg)
+	{
+		goto out_err;
+	}
+
+	if (IS_MRST(dev))
+	{
 		dev_priv->aux_pdev = pci_get_bus_and_slot(0, PCI_DEVFN(3, 0));
 
-		if (dev_priv->aux_pdev) {
+		if (dev_priv->aux_pdev)
+		{
 			resource_start = pci_resource_start(dev_priv->aux_pdev,
-							    PSB_AUX_RESOURCE);
+												PSB_AUX_RESOURCE);
 			resource_len = pci_resource_len(dev_priv->aux_pdev,
-							PSB_AUX_RESOURCE);
+											PSB_AUX_RESOURCE);
 			dev_priv->aux_reg = ioremap_nocache(resource_start,
-							    resource_len);
+												resource_len);
+
 			if (!dev_priv->aux_reg)
+			{
 				goto out_err;
+			}
 
 			DRM_DEBUG_KMS("Found aux vdc");
-		} else {
+		}
+		else
+		{
 			/* Couldn't find the aux vdc so map to primary vdc */
 			dev_priv->aux_reg = dev_priv->vdc_reg;
 			DRM_DEBUG_KMS("Couldn't find aux pci device");
 		}
+
 		dev_priv->gmbus_reg = dev_priv->aux_reg;
 
 		dev_priv->lpc_pdev = pci_get_bus_and_slot(0, PCI_DEVFN(31, 0));
-		if (dev_priv->lpc_pdev) {
+
+		if (dev_priv->lpc_pdev)
+		{
 			pci_read_config_word(dev_priv->lpc_pdev, PSB_LPC_GBA,
-				&dev_priv->lpc_gpio_base);
+								 &dev_priv->lpc_gpio_base);
 			pci_write_config_dword(dev_priv->lpc_pdev, PSB_LPC_GBA,
-				(u32)dev_priv->lpc_gpio_base | (1L<<31));
+								   (u32)dev_priv->lpc_gpio_base | (1L << 31));
 			pci_read_config_word(dev_priv->lpc_pdev, PSB_LPC_GBA,
-				&dev_priv->lpc_gpio_base);
+								 &dev_priv->lpc_gpio_base);
 			dev_priv->lpc_gpio_base &= 0xffc0;
+
 			if (dev_priv->lpc_gpio_base)
 				DRM_DEBUG_KMS("Found LPC GPIO at 0x%04x\n",
-						dev_priv->lpc_gpio_base);
-			else {
+							  dev_priv->lpc_gpio_base);
+			else
+			{
 				pci_dev_put(dev_priv->lpc_pdev);
 				dev_priv->lpc_pdev = NULL;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		dev_priv->gmbus_reg = dev_priv->vdc_reg;
 	}
 
 	psb_intel_opregion_setup(dev);
 
 	ret = dev_priv->ops->chip_setup(dev);
+
 	if (ret)
+	{
 		goto out_err;
+	}
 
 	/* Init OSPM support */
 	gma_power_init(dev);
@@ -314,33 +366,48 @@ static int psb_driver_load(struct drm_device *dev, unsigned long flags)
 	ret = -ENOMEM;
 
 	dev_priv->scratch_page = alloc_page(GFP_DMA32 | __GFP_ZERO);
+
 	if (!dev_priv->scratch_page)
+	{
 		goto out_err;
+	}
 
 	set_pages_uc(dev_priv->scratch_page, 1);
 
 	ret = psb_gtt_init(dev, 0);
+
 	if (ret)
+	{
 		goto out_err;
+	}
 
 	dev_priv->mmu = psb_mmu_driver_init(dev, 1, 0, 0);
+
 	if (!dev_priv->mmu)
+	{
 		goto out_err;
+	}
 
 	dev_priv->pf_pd = psb_mmu_alloc_pd(dev_priv->mmu, 1, 0);
+
 	if (!dev_priv->pf_pd)
+	{
 		goto out_err;
+	}
 
 	ret = psb_do_init(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Add stolen memory to SGX MMU */
 	down_read(&pg->sem);
 	ret = psb_mmu_insert_pfn_sequence(psb_mmu_get_default_pd(dev_priv->mmu),
-					  dev_priv->stolen_base >> PAGE_SHIFT,
-					  pg->gatt_start,
-					  pg->stolen_size >> PAGE_SHIFT, 0);
+									  dev_priv->stolen_base >> PAGE_SHIFT,
+									  pg->gatt_start,
+									  pg->stolen_size >> PAGE_SHIFT, 0);
 	up_read(&pg->sem);
 
 	psb_mmu_set_pd_context(psb_mmu_get_default_pd(dev_priv->mmu), 0);
@@ -353,8 +420,11 @@ static int psb_driver_load(struct drm_device *dev, unsigned long flags)
 
 	/* Setup vertical blanking handling */
 	ret = drm_vblank_init(dev, dev_priv->num_pipe);
+
 	if (ret)
+	{
 		goto out_err;
+	}
 
 	/*
 	 * Install interrupt handlers prior to powering off SGX or else we will
@@ -381,19 +451,24 @@ static int psb_driver_load(struct drm_device *dev, unsigned long flags)
 
 	/* Only add backlight support if we have LVDS output */
 	list_for_each_entry(connector, &dev->mode_config.connector_list,
-			    head) {
+						head)
+	{
 		gma_encoder = gma_attached_encoder(connector);
 
-		switch (gma_encoder->type) {
-		case INTEL_OUTPUT_LVDS:
-		case INTEL_OUTPUT_MIPI:
-			ret = gma_backlight_init(dev);
-			break;
+		switch (gma_encoder->type)
+		{
+			case INTEL_OUTPUT_LVDS:
+			case INTEL_OUTPUT_MIPI:
+				ret = gma_backlight_init(dev);
+				break;
 		}
 	}
 
 	if (ret)
+	{
 		return ret;
+	}
+
 	psb_intel_opregion_enable_asle(dev);
 #if 0
 	/* Enable runtime pm at last */
@@ -415,26 +490,31 @@ static int psb_driver_device_is_agp(struct drm_device *dev)
 static inline void get_brightness(struct backlight_device *bd)
 {
 #ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
-	if (bd) {
+
+	if (bd)
+	{
 		bd->props.brightness = bd->ops->get_brightness(bd);
 		backlight_update_status(bd);
 	}
+
 #endif
 }
 
 static long psb_unlocked_ioctl(struct file *filp, unsigned int cmd,
-			       unsigned long arg)
+							   unsigned long arg)
 {
 	struct drm_file *file_priv = filp->private_data;
 	struct drm_device *dev = file_priv->minor->dev;
 	struct drm_psb_private *dev_priv = dev->dev_private;
 	static unsigned int runtime_allowed;
 
-	if (runtime_allowed == 1 && dev_priv->is_lvds_on) {
+	if (runtime_allowed == 1 && dev_priv->is_lvds_on)
+	{
 		runtime_allowed++;
 		pm_runtime_allow(&dev->pdev->dev);
 		dev_priv->rpm_enabled = 1;
 	}
+
 	return drm_ioctl(filp, cmd, arg);
 	/* FIXME: do we need to wrap the other side of this */
 }
@@ -451,7 +531,8 @@ static void psb_pci_remove(struct pci_dev *pdev)
 	drm_put_dev(dev);
 }
 
-static const struct dev_pm_ops psb_pm_ops = {
+static const struct dev_pm_ops psb_pm_ops =
+{
 	.resume = gma_power_resume,
 	.suspend = gma_power_suspend,
 	.thaw = gma_power_thaw,
@@ -462,13 +543,15 @@ static const struct dev_pm_ops psb_pm_ops = {
 	.runtime_idle = psb_runtime_idle,
 };
 
-static const struct vm_operations_struct psb_gem_vm_ops = {
+static const struct vm_operations_struct psb_gem_vm_ops =
+{
 	.fault = psb_gem_fault,
 	.open = drm_gem_vm_open,
 	.close = drm_gem_vm_close,
 };
 
-static const struct file_operations psb_gem_fops = {
+static const struct file_operations psb_gem_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -478,9 +561,10 @@ static const struct file_operations psb_gem_fops = {
 	.read = drm_read,
 };
 
-static struct drm_driver driver = {
+static struct drm_driver driver =
+{
 	.driver_features = DRIVER_HAVE_IRQ | DRIVER_IRQ_SHARED | \
-			   DRIVER_MODESET | DRIVER_GEM,
+	DRIVER_MODESET | DRIVER_GEM,
 	.load = psb_driver_load,
 	.unload = psb_driver_unload,
 	.lastclose = psb_driver_lastclose,
@@ -512,7 +596,8 @@ static struct drm_driver driver = {
 	.patchlevel = DRIVER_PATCHLEVEL
 };
 
-static struct pci_driver psb_pci_driver = {
+static struct pci_driver psb_pci_driver =
+{
 	.name = DRIVER_NAME,
 	.id_table = pciidlist,
 	.probe = psb_pci_probe,

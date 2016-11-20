@@ -213,7 +213,8 @@
 #define DA7210_OUT2_OUTMIX_L		(1 << 6)
 #define DA7210_OUT2_EN			(1 << 7)
 
-struct pll_div {
+struct pll_div
+{
 	int fref;
 	int fout;
 	u8 div1;
@@ -223,7 +224,8 @@ struct pll_div {
 };
 
 /* PLL dividers table */
-static const struct pll_div da7210_pll_div[] = {
+static const struct pll_div da7210_pll_div[] =
+{
 	/* for MASTER mode, fs = 44.1Khz */
 	{ 12000000, 2822400, 0xE8, 0x6C, 0x2, 1},	/* MCLK=12Mhz */
 	{ 13000000, 2822400, 0xDF, 0x28, 0xC, 1},	/* MCLK=13Mhz */
@@ -250,7 +252,8 @@ static const struct pll_div da7210_pll_div[] = {
 	{ 19800000, 2822400, 0xBC, 0x35, 0xE, 0},	/* MCLK=19.8Mhz  */
 };
 
-enum clk_src {
+enum clk_src
+{
 	DA7210_CLKSRC_MCLK
 };
 
@@ -268,28 +271,28 @@ enum clk_src {
  * Reserved area are considered as "mute".
  */
 static const DECLARE_TLV_DB_RANGE(hp_out_tlv,
-	0x0, 0x10, TLV_DB_SCALE_ITEM(TLV_DB_GAIN_MUTE, 0, 1),
-	/* -54 dB to +15 dB */
-	0x11, 0x3f, TLV_DB_SCALE_ITEM(-5400, 150, 0)
-);
+								  0x0, 0x10, TLV_DB_SCALE_ITEM(TLV_DB_GAIN_MUTE, 0, 1),
+								  /* -54 dB to +15 dB */
+								  0x11, 0x3f, TLV_DB_SCALE_ITEM(-5400, 150, 0)
+								 );
 
 static const DECLARE_TLV_DB_RANGE(lineout_vol_tlv,
-	0x0, 0x10, TLV_DB_SCALE_ITEM(TLV_DB_GAIN_MUTE, 0, 1),
-	/* -54dB to 15dB */
-	0x11, 0x3f, TLV_DB_SCALE_ITEM(-5400, 150, 0)
-);
+								  0x0, 0x10, TLV_DB_SCALE_ITEM(TLV_DB_GAIN_MUTE, 0, 1),
+								  /* -54dB to 15dB */
+								  0x11, 0x3f, TLV_DB_SCALE_ITEM(-5400, 150, 0)
+								 );
 
 static const DECLARE_TLV_DB_RANGE(mono_vol_tlv,
-	0x0, 0x2, TLV_DB_SCALE_ITEM(-1800, 0, 1),
-	/* -18dB to 6dB */
-	0x3, 0x7, TLV_DB_SCALE_ITEM(-1800, 600, 0)
-);
+								  0x0, 0x2, TLV_DB_SCALE_ITEM(-1800, 0, 1),
+								  /* -18dB to 6dB */
+								  0x3, 0x7, TLV_DB_SCALE_ITEM(-1800, 600, 0)
+								 );
 
 static const DECLARE_TLV_DB_RANGE(aux1_vol_tlv,
-	0x0, 0x10, TLV_DB_SCALE_ITEM(TLV_DB_GAIN_MUTE, 0, 1),
-	/* -48dB to 21dB */
-	0x11, 0x3f, TLV_DB_SCALE_ITEM(-4800, 150, 0)
-);
+								  0x0, 0x10, TLV_DB_SCALE_ITEM(TLV_DB_GAIN_MUTE, 0, 1),
+								  /* -48dB to 21dB */
+								  0x11, 0x3f, TLV_DB_SCALE_ITEM(-4800, 150, 0)
+								 );
 
 static const DECLARE_TLV_DB_SCALE(eq_gain_tlv, -1050, 150, 0);
 static const DECLARE_TLV_DB_SCALE(adc_eq_master_gain_tlv, -1800, 600, 1);
@@ -299,48 +302,54 @@ static const DECLARE_TLV_DB_SCALE(aux2_vol_tlv, -600, 600, 0);
 static const DECLARE_TLV_DB_SCALE(inpga_gain_tlv, -450, 150, 0);
 
 /* ADC and DAC high pass filter f0 value */
-static const char * const da7210_hpf_cutoff_txt[] = {
+static const char *const da7210_hpf_cutoff_txt[] =
+{
 	"Fs/8192*pi", "Fs/4096*pi", "Fs/2048*pi", "Fs/1024*pi"
 };
 
 static SOC_ENUM_SINGLE_DECL(da7210_dac_hpf_cutoff,
-			    DA7210_DAC_HPF, 0, da7210_hpf_cutoff_txt);
+							DA7210_DAC_HPF, 0, da7210_hpf_cutoff_txt);
 
 static SOC_ENUM_SINGLE_DECL(da7210_adc_hpf_cutoff,
-			    DA7210_ADC_HPF, 0, da7210_hpf_cutoff_txt);
+							DA7210_ADC_HPF, 0, da7210_hpf_cutoff_txt);
 
 /* ADC and DAC voice (8kHz) high pass cutoff value */
-static const char * const da7210_vf_cutoff_txt[] = {
+static const char *const da7210_vf_cutoff_txt[] =
+{
 	"2.5Hz", "25Hz", "50Hz", "100Hz", "150Hz", "200Hz", "300Hz", "400Hz"
 };
 
 static SOC_ENUM_SINGLE_DECL(da7210_dac_vf_cutoff,
-			    DA7210_DAC_HPF, 4, da7210_vf_cutoff_txt);
+							DA7210_DAC_HPF, 4, da7210_vf_cutoff_txt);
 
 static SOC_ENUM_SINGLE_DECL(da7210_adc_vf_cutoff,
-			    DA7210_ADC_HPF, 4, da7210_vf_cutoff_txt);
+							DA7210_ADC_HPF, 4, da7210_vf_cutoff_txt);
 
-static const char *da7210_hp_mode_txt[] = {
+static const char *da7210_hp_mode_txt[] =
+{
 	"Class H", "Class G"
 };
 
 static SOC_ENUM_SINGLE_DECL(da7210_hp_mode_sel,
-			    DA7210_HP_CFG, 0, da7210_hp_mode_txt);
+							DA7210_HP_CFG, 0, da7210_hp_mode_txt);
 
 /* ALC can be enabled only if noise suppression is disabled */
 static int da7210_put_alc_sw(struct snd_kcontrol *kcontrol,
-			     struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 
-	if (ucontrol->value.integer.value[0]) {
+	if (ucontrol->value.integer.value[0])
+	{
 		/* Check if noise suppression is enabled */
-		if (snd_soc_read(codec, DA7210_CONTROL) & DA7210_NOISE_SUP_EN) {
+		if (snd_soc_read(codec, DA7210_CONTROL) & DA7210_NOISE_SUP_EN)
+		{
 			dev_dbg(codec->dev,
-				"Disable noise suppression to enable ALC\n");
+					"Disable noise suppression to enable ALC\n");
 			return -EINVAL;
 		}
 	}
+
 	/* If all conditions are met or we are actually disabling ALC */
 	return snd_soc_put_volsw(kcontrol, ucontrol);
 }
@@ -352,37 +361,48 @@ static int da7210_put_alc_sw(struct snd_kcontrol *kcontrol,
  *  AUX1_L_VOL and AUX1_R_VOL >= 6 dB
  */
 static int da7210_put_noise_sup_sw(struct snd_kcontrol *kcontrol,
-				   struct snd_ctl_elem_value *ucontrol)
+								   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	u8 val;
 
-	if (ucontrol->value.integer.value[0]) {
+	if (ucontrol->value.integer.value[0])
+	{
 		/* Check if ALC is enabled */
 		if (snd_soc_read(codec, DA7210_ADC) & DA7210_ADC_ALC_EN)
+		{
 			goto err;
+		}
 
 		/* Check ZC for HP and AUX1 PGA */
 		if ((snd_soc_read(codec, DA7210_ZERO_CROSS) &
-			(DA7210_AUX1_L_ZC | DA7210_AUX1_R_ZC | DA7210_HP_L_ZC |
-			DA7210_HP_R_ZC)) != (DA7210_AUX1_L_ZC |
-			DA7210_AUX1_R_ZC | DA7210_HP_L_ZC | DA7210_HP_R_ZC))
+			 (DA7210_AUX1_L_ZC | DA7210_AUX1_R_ZC | DA7210_HP_L_ZC |
+			  DA7210_HP_R_ZC)) != (DA7210_AUX1_L_ZC |
+								   DA7210_AUX1_R_ZC | DA7210_HP_L_ZC | DA7210_HP_R_ZC))
+		{
 			goto err;
+		}
 
 		/* Check INPGA_L_VOL and INPGA_R_VOL */
 		val = snd_soc_read(codec, DA7210_IN_GAIN);
+
 		if (((val & DA7210_INPGA_L_VOL) < DA7210_INPGA_MIN_VOL_NS) ||
 			(((val & DA7210_INPGA_R_VOL) >> 4) <
-			DA7210_INPGA_MIN_VOL_NS))
+			 DA7210_INPGA_MIN_VOL_NS))
+		{
 			goto err;
+		}
 
 		/* Check AUX1_L_VOL and AUX1_R_VOL */
 		if (((snd_soc_read(codec, DA7210_AUX1_L) & DA7210_AUX1_L_VOL) <
-		    DA7210_AUX1_MIN_VOL_NS) ||
-		    ((snd_soc_read(codec, DA7210_AUX1_R) & DA7210_AUX1_R_VOL) <
-		    DA7210_AUX1_MIN_VOL_NS))
+			 DA7210_AUX1_MIN_VOL_NS) ||
+			((snd_soc_read(codec, DA7210_AUX1_R) & DA7210_AUX1_R_VOL) <
+			 DA7210_AUX1_MIN_VOL_NS))
+		{
 			goto err;
+		}
 	}
+
 	/* If all conditions are met or we are actually disabling Noise sup */
 	return snd_soc_put_volsw(kcontrol, ucontrol);
 
@@ -390,58 +410,59 @@ err:
 	return -EINVAL;
 }
 
-static const struct snd_kcontrol_new da7210_snd_controls[] = {
+static const struct snd_kcontrol_new da7210_snd_controls[] =
+{
 
 	SOC_DOUBLE_R_TLV("HeadPhone Playback Volume",
-			 DA7210_HP_L_VOL, DA7210_HP_R_VOL,
-			 0, 0x3F, 0, hp_out_tlv),
+	DA7210_HP_L_VOL, DA7210_HP_R_VOL,
+	0, 0x3F, 0, hp_out_tlv),
 	SOC_DOUBLE_R_TLV("Digital Playback Volume",
-			 DA7210_DAC_L, DA7210_DAC_R,
-			 0, 0x77, 1, dac_gain_tlv),
+	DA7210_DAC_L, DA7210_DAC_R,
+	0, 0x77, 1, dac_gain_tlv),
 	SOC_DOUBLE_R_TLV("Lineout Playback Volume",
-			 DA7210_OUT1_L, DA7210_OUT1_R,
-			 0, 0x3f, 0, lineout_vol_tlv),
+	DA7210_OUT1_L, DA7210_OUT1_R,
+	0, 0x3f, 0, lineout_vol_tlv),
 	SOC_SINGLE_TLV("Mono Playback Volume", DA7210_OUT2, 0, 0x7, 0,
-		       mono_vol_tlv),
+	mono_vol_tlv),
 
 	SOC_DOUBLE_R_TLV("Mic Capture Volume",
-			 DA7210_MIC_L, DA7210_MIC_R,
-			 0, 0x5, 0, mic_vol_tlv),
+	DA7210_MIC_L, DA7210_MIC_R,
+	0, 0x5, 0, mic_vol_tlv),
 	SOC_DOUBLE_R_TLV("Aux1 Capture Volume",
-			 DA7210_AUX1_L, DA7210_AUX1_R,
-			 0, 0x3f, 0, aux1_vol_tlv),
+	DA7210_AUX1_L, DA7210_AUX1_R,
+	0, 0x3f, 0, aux1_vol_tlv),
 	SOC_SINGLE_TLV("Aux2 Capture Volume", DA7210_AUX2, 0, 0x3, 0,
-		       aux2_vol_tlv),
+	aux2_vol_tlv),
 	SOC_DOUBLE_TLV("In PGA Capture Volume", DA7210_IN_GAIN, 0, 4, 0xF, 0,
-		       inpga_gain_tlv),
+	inpga_gain_tlv),
 
 	/* DAC Equalizer  controls */
 	SOC_SINGLE("DAC EQ Switch", DA7210_DAC_EQ5, 7, 1, 0),
 	SOC_SINGLE_TLV("DAC EQ1 Volume", DA7210_DAC_EQ1_2, 0, 0xf, 1,
-		       eq_gain_tlv),
+	eq_gain_tlv),
 	SOC_SINGLE_TLV("DAC EQ2 Volume", DA7210_DAC_EQ1_2, 4, 0xf, 1,
-		       eq_gain_tlv),
+	eq_gain_tlv),
 	SOC_SINGLE_TLV("DAC EQ3 Volume", DA7210_DAC_EQ3_4, 0, 0xf, 1,
-		       eq_gain_tlv),
+	eq_gain_tlv),
 	SOC_SINGLE_TLV("DAC EQ4 Volume", DA7210_DAC_EQ3_4, 4, 0xf, 1,
-		       eq_gain_tlv),
+	eq_gain_tlv),
 	SOC_SINGLE_TLV("DAC EQ5 Volume", DA7210_DAC_EQ5, 0, 0xf, 1,
-		       eq_gain_tlv),
+	eq_gain_tlv),
 
 	/* ADC Equalizer  controls */
 	SOC_SINGLE("ADC EQ Switch", DA7210_ADC_EQ5, 7, 1, 0),
 	SOC_SINGLE_TLV("ADC EQ Master Volume", DA7210_ADC_EQ5, 4, 0x3,
-		       1, adc_eq_master_gain_tlv),
+	1, adc_eq_master_gain_tlv),
 	SOC_SINGLE_TLV("ADC EQ1 Volume", DA7210_ADC_EQ1_2, 0, 0xf, 1,
-		       eq_gain_tlv),
+	eq_gain_tlv),
 	SOC_SINGLE_TLV("ADC EQ2 Volume", DA7210_ADC_EQ1_2, 4, 0xf, 1,
-		       eq_gain_tlv),
+	eq_gain_tlv),
 	SOC_SINGLE_TLV("ADC EQ3 Volume", DA7210_ADC_EQ3_4, 0, 0xf, 1,
-		       eq_gain_tlv),
+	eq_gain_tlv),
 	SOC_SINGLE_TLV("ADC EQ4 Volume", DA7210_ADC_EQ3_4, 4, 0xf, 1,
-		       eq_gain_tlv),
+	eq_gain_tlv),
 	SOC_SINGLE_TLV("ADC EQ5 Volume", DA7210_ADC_EQ5, 0, 0xf, 1,
-		       eq_gain_tlv),
+	eq_gain_tlv),
 
 	SOC_SINGLE("DAC HPF Switch", DA7210_DAC_HPF, 3, 1, 0),
 	SOC_ENUM("DAC HPF Cutoff", da7210_dac_hpf_cutoff),
@@ -470,7 +491,7 @@ static const struct snd_kcontrol_new da7210_snd_controls[] = {
 
 	/* ALC controls */
 	SOC_SINGLE_EXT("ALC Enable Switch", DA7210_ADC, 0, 1, 0,
-		       snd_soc_get_volsw, da7210_put_alc_sw),
+	snd_soc_get_volsw, da7210_put_alc_sw),
 	SOC_SINGLE("ALC Capture Max Volume", DA7210_ALC_MAX, 0, 0x3F, 0),
 	SOC_SINGLE("ALC Capture Min Volume", DA7210_ALC_MIN, 0, 0x3F, 0),
 	SOC_SINGLE("ALC Capture Noise Volume", DA7210_ALC_NOIS, 0, 0x3F, 0),
@@ -479,7 +500,7 @@ static const struct snd_kcontrol_new da7210_snd_controls[] = {
 	SOC_SINGLE("ALC Capture Release Delay", DA7210_ALC_DEL, 0, 0xFF, 0),
 
 	SOC_SINGLE_EXT("Noise Suppression Enable Switch", DA7210_CONTROL, 3, 1,
-		       0, snd_soc_get_volsw, da7210_put_noise_sup_sw),
+	0, snd_soc_get_volsw, da7210_put_noise_sup_sw),
 };
 
 /*
@@ -489,7 +510,8 @@ static const struct snd_kcontrol_new da7210_snd_controls[] = {
  * mixers, PGAs,ADC and DAC.
  */
 /* In Mixer Left */
-static const struct snd_kcontrol_new da7210_dapm_inmixl_controls[] = {
+static const struct snd_kcontrol_new da7210_dapm_inmixl_controls[] =
+{
 	SOC_DAPM_SINGLE("Mic Left Switch", DA7210_INMIX_L, 0, 1, 0),
 	SOC_DAPM_SINGLE("Mic Right Switch", DA7210_INMIX_L, 1, 1, 0),
 	SOC_DAPM_SINGLE("Aux1 Left Switch", DA7210_INMIX_L, 2, 1, 0),
@@ -498,7 +520,8 @@ static const struct snd_kcontrol_new da7210_dapm_inmixl_controls[] = {
 };
 
 /* In Mixer Right */
-static const struct snd_kcontrol_new da7210_dapm_inmixr_controls[] = {
+static const struct snd_kcontrol_new da7210_dapm_inmixr_controls[] =
+{
 	SOC_DAPM_SINGLE("Mic Right Switch", DA7210_INMIX_R, 0, 1, 0),
 	SOC_DAPM_SINGLE("Mic Left Switch", DA7210_INMIX_R, 1, 1, 0),
 	SOC_DAPM_SINGLE("Aux1 Right Switch", DA7210_INMIX_R, 2, 1, 0),
@@ -507,7 +530,8 @@ static const struct snd_kcontrol_new da7210_dapm_inmixr_controls[] = {
 };
 
 /* Out Mixer Left */
-static const struct snd_kcontrol_new da7210_dapm_outmixl_controls[] = {
+static const struct snd_kcontrol_new da7210_dapm_outmixl_controls[] =
+{
 	SOC_DAPM_SINGLE("Aux1 Left Switch", DA7210_OUTMIX_L, 0, 1, 0),
 	SOC_DAPM_SINGLE("Aux2 Switch", DA7210_OUTMIX_L, 1, 1, 0),
 	SOC_DAPM_SINGLE("INPGA Left Switch", DA7210_OUTMIX_L, 2, 1, 0),
@@ -516,7 +540,8 @@ static const struct snd_kcontrol_new da7210_dapm_outmixl_controls[] = {
 };
 
 /* Out Mixer Right */
-static const struct snd_kcontrol_new da7210_dapm_outmixr_controls[] = {
+static const struct snd_kcontrol_new da7210_dapm_outmixr_controls[] =
+{
 	SOC_DAPM_SINGLE("Aux1 Right Switch", DA7210_OUTMIX_R, 0, 1, 0),
 	SOC_DAPM_SINGLE("Aux2 Switch", DA7210_OUTMIX_R, 1, 1, 0),
 	SOC_DAPM_SINGLE("INPGA Left Switch", DA7210_OUTMIX_R, 2, 1, 0),
@@ -525,7 +550,8 @@ static const struct snd_kcontrol_new da7210_dapm_outmixr_controls[] = {
 };
 
 /* Mono Mixer */
-static const struct snd_kcontrol_new da7210_dapm_monomix_controls[] = {
+static const struct snd_kcontrol_new da7210_dapm_monomix_controls[] =
+{
 	SOC_DAPM_SINGLE("INPGA Right Switch", DA7210_OUT2, 3, 1, 0),
 	SOC_DAPM_SINGLE("INPGA Left Switch", DA7210_OUT2, 4, 1, 0),
 	SOC_DAPM_SINGLE("Outmix Right Switch", DA7210_OUT2, 5, 1, 0),
@@ -533,7 +559,8 @@ static const struct snd_kcontrol_new da7210_dapm_monomix_controls[] = {
 };
 
 /* DAPM widgets */
-static const struct snd_soc_dapm_widget da7210_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget da7210_dapm_widgets[] =
+{
 	/* Input Side */
 	/* Input Lines */
 	SND_SOC_DAPM_INPUT("MICL"),
@@ -557,12 +584,12 @@ static const struct snd_soc_dapm_widget da7210_dapm_widgets[] = {
 
 	/* Input Mixers */
 	SND_SOC_DAPM_MIXER("In Mixer Left", SND_SOC_NOPM, 0, 0,
-		&da7210_dapm_inmixl_controls[0],
-		ARRAY_SIZE(da7210_dapm_inmixl_controls)),
+	&da7210_dapm_inmixl_controls[0],
+	ARRAY_SIZE(da7210_dapm_inmixl_controls)),
 
 	SND_SOC_DAPM_MIXER("In Mixer Right", SND_SOC_NOPM, 0, 0,
-		&da7210_dapm_inmixr_controls[0],
-		ARRAY_SIZE(da7210_dapm_inmixr_controls)),
+	&da7210_dapm_inmixr_controls[0],
+	ARRAY_SIZE(da7210_dapm_inmixr_controls)),
 
 	/* ADCs */
 	SND_SOC_DAPM_ADC("ADC Left", "Capture", DA7210_STARTUP3, 5, 1),
@@ -575,16 +602,16 @@ static const struct snd_soc_dapm_widget da7210_dapm_widgets[] = {
 
 	/* Output Mixers */
 	SND_SOC_DAPM_MIXER("Out Mixer Left", SND_SOC_NOPM, 0, 0,
-		&da7210_dapm_outmixl_controls[0],
-		ARRAY_SIZE(da7210_dapm_outmixl_controls)),
+	&da7210_dapm_outmixl_controls[0],
+	ARRAY_SIZE(da7210_dapm_outmixl_controls)),
 
 	SND_SOC_DAPM_MIXER("Out Mixer Right", SND_SOC_NOPM, 0, 0,
-		&da7210_dapm_outmixr_controls[0],
-		ARRAY_SIZE(da7210_dapm_outmixr_controls)),
+	&da7210_dapm_outmixr_controls[0],
+	ARRAY_SIZE(da7210_dapm_outmixr_controls)),
 
 	SND_SOC_DAPM_MIXER("Mono Mixer", SND_SOC_NOPM, 0, 0,
-		&da7210_dapm_monomix_controls[0],
-		ARRAY_SIZE(da7210_dapm_monomix_controls)),
+	&da7210_dapm_monomix_controls[0],
+	ARRAY_SIZE(da7210_dapm_monomix_controls)),
 
 	/* Output PGAs */
 	SND_SOC_DAPM_PGA("OUTPGA Left Enable", DA7210_OUTMIX_L, 7, 0, NULL, 0),
@@ -605,7 +632,8 @@ static const struct snd_soc_dapm_widget da7210_dapm_widgets[] = {
 };
 
 /* DAPM audio route definition */
-static const struct snd_soc_dapm_route da7210_audio_map[] = {
+static const struct snd_soc_dapm_route da7210_audio_map[] =
+{
 	/* Dest       Connecting Widget    source */
 	/* Input path */
 	{"Mic Left", NULL, "MICL"},
@@ -670,13 +698,15 @@ static const struct snd_soc_dapm_route da7210_audio_map[] = {
 };
 
 /* Codec private data */
-struct da7210_priv {
+struct da7210_priv
+{
 	struct regmap *regmap;
 	unsigned int mclk_rate;
 	int master;
 };
 
-static const struct reg_default da7210_reg_defaults[] = {
+static const struct reg_default da7210_reg_defaults[] =
+{
 	{ 0x00, 0x00 },
 	{ 0x01, 0x11 },
 	{ 0x03, 0x00 },
@@ -731,25 +761,29 @@ static const struct reg_default da7210_reg_defaults[] = {
 
 static bool da7210_readable_register(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case DA7210_A_HID_UNLOCK:
-	case DA7210_A_TEST_UNLOCK:
-	case DA7210_A_PLL1:
-	case DA7210_A_CP_MODE:
-		return false;
-	default:
-		return true;
+	switch (reg)
+	{
+		case DA7210_A_HID_UNLOCK:
+		case DA7210_A_TEST_UNLOCK:
+		case DA7210_A_PLL1:
+		case DA7210_A_CP_MODE:
+			return false;
+
+		default:
+			return true;
 	}
 }
 
 static bool da7210_volatile_register(struct device *dev,
-				    unsigned int reg)
+									 unsigned int reg)
 {
-	switch (reg) {
-	case DA7210_STATUS:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case DA7210_STATUS:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
@@ -757,8 +791,8 @@ static bool da7210_volatile_register(struct device *dev,
  * Set PCM DAI word length.
  */
 static int da7210_hw_params(struct snd_pcm_substream *substream,
-			    struct snd_pcm_hw_params *params,
-			    struct snd_soc_dai *dai)
+							struct snd_pcm_hw_params *params,
+							struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct da7210_priv *da7210 = snd_soc_codec_get_drvdata(codec);
@@ -767,75 +801,91 @@ static int da7210_hw_params(struct snd_pcm_substream *substream,
 
 	/* set DAI source to Left and Right ADC */
 	snd_soc_write(codec, DA7210_DAI_SRC_SEL,
-		     DA7210_DAI_OUT_R_SRC | DA7210_DAI_OUT_L_SRC);
+				  DA7210_DAI_OUT_R_SRC | DA7210_DAI_OUT_L_SRC);
 
 	/* Enable DAI */
 	snd_soc_write(codec, DA7210_DAI_CFG3, DA7210_DAI_OE | DA7210_DAI_EN);
 
 	dai_cfg1 = 0xFC & snd_soc_read(codec, DA7210_DAI_CFG1);
 
-	switch (params_width(params)) {
-	case 16:
-		dai_cfg1 |= DA7210_DAI_WORD_S16_LE;
-		break;
-	case 20:
-		dai_cfg1 |= DA7210_DAI_WORD_S20_3LE;
-		break;
-	case 24:
-		dai_cfg1 |= DA7210_DAI_WORD_S24_LE;
-		break;
-	case 32:
-		dai_cfg1 |= DA7210_DAI_WORD_S32_LE;
-		break;
-	default:
-		return -EINVAL;
+	switch (params_width(params))
+	{
+		case 16:
+			dai_cfg1 |= DA7210_DAI_WORD_S16_LE;
+			break;
+
+		case 20:
+			dai_cfg1 |= DA7210_DAI_WORD_S20_3LE;
+			break;
+
+		case 24:
+			dai_cfg1 |= DA7210_DAI_WORD_S24_LE;
+			break;
+
+		case 32:
+			dai_cfg1 |= DA7210_DAI_WORD_S32_LE;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	snd_soc_write(codec, DA7210_DAI_CFG1, dai_cfg1);
 
-	switch (params_rate(params)) {
-	case 8000:
-		fs		= DA7210_PLL_FS_8000;
-		sysclk		= 3072000;
-		break;
-	case 11025:
-		fs		= DA7210_PLL_FS_11025;
-		sysclk		= 2822400;
-		break;
-	case 12000:
-		fs		= DA7210_PLL_FS_12000;
-		sysclk		= 3072000;
-		break;
-	case 16000:
-		fs		= DA7210_PLL_FS_16000;
-		sysclk		= 3072000;
-		break;
-	case 22050:
-		fs		= DA7210_PLL_FS_22050;
-		sysclk		= 2822400;
-		break;
-	case 32000:
-		fs		= DA7210_PLL_FS_32000;
-		sysclk		= 3072000;
-		break;
-	case 44100:
-		fs		= DA7210_PLL_FS_44100;
-		sysclk		= 2822400;
-		break;
-	case 48000:
-		fs		= DA7210_PLL_FS_48000;
-		sysclk		= 3072000;
-		break;
-	case 88200:
-		fs		= DA7210_PLL_FS_88200;
-		sysclk		= 2822400;
-		break;
-	case 96000:
-		fs		= DA7210_PLL_FS_96000;
-		sysclk		= 3072000;
-		break;
-	default:
-		return -EINVAL;
+	switch (params_rate(params))
+	{
+		case 8000:
+			fs		= DA7210_PLL_FS_8000;
+			sysclk		= 3072000;
+			break;
+
+		case 11025:
+			fs		= DA7210_PLL_FS_11025;
+			sysclk		= 2822400;
+			break;
+
+		case 12000:
+			fs		= DA7210_PLL_FS_12000;
+			sysclk		= 3072000;
+			break;
+
+		case 16000:
+			fs		= DA7210_PLL_FS_16000;
+			sysclk		= 3072000;
+			break;
+
+		case 22050:
+			fs		= DA7210_PLL_FS_22050;
+			sysclk		= 2822400;
+			break;
+
+		case 32000:
+			fs		= DA7210_PLL_FS_32000;
+			sysclk		= 3072000;
+			break;
+
+		case 44100:
+			fs		= DA7210_PLL_FS_44100;
+			sysclk		= 2822400;
+			break;
+
+		case 48000:
+			fs		= DA7210_PLL_FS_48000;
+			sysclk		= 3072000;
+			break;
+
+		case 88200:
+			fs		= DA7210_PLL_FS_88200;
+			sysclk		= 2822400;
+			break;
+
+		case 96000:
+			fs		= DA7210_PLL_FS_96000;
+			sysclk		= 3072000;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* Disable active mode */
@@ -843,28 +893,33 @@ static int da7210_hw_params(struct snd_pcm_substream *substream,
 
 	snd_soc_update_bits(codec, DA7210_PLL, DA7210_PLL_FS_MASK, fs);
 
-	if (da7210->mclk_rate && (da7210->mclk_rate != sysclk)) {
+	if (da7210->mclk_rate && (da7210->mclk_rate != sysclk))
+	{
 		/* PLL mode, disable PLL bypass */
 		snd_soc_update_bits(codec, DA7210_PLL_DIV3, DA7210_PLL_BYP, 0);
 
-		if (!da7210->master) {
+		if (!da7210->master)
+		{
 			/* PLL slave mode, also enable SRM */
 			snd_soc_update_bits(codec, DA7210_PLL,
-						   (DA7210_MCLK_SRM_EN |
-						    DA7210_MCLK_DET_EN),
-						   (DA7210_MCLK_SRM_EN |
-						    DA7210_MCLK_DET_EN));
+								(DA7210_MCLK_SRM_EN |
+								 DA7210_MCLK_DET_EN),
+								(DA7210_MCLK_SRM_EN |
+								 DA7210_MCLK_DET_EN));
 		}
-	} else {
+	}
+	else
+	{
 		/* PLL bypass mode, enable PLL bypass and Auto Detection */
 		snd_soc_update_bits(codec, DA7210_PLL, DA7210_MCLK_DET_EN,
-						       DA7210_MCLK_DET_EN);
+							DA7210_MCLK_DET_EN);
 		snd_soc_update_bits(codec, DA7210_PLL_DIV3, DA7210_PLL_BYP,
-							    DA7210_PLL_BYP);
+							DA7210_PLL_BYP);
 	}
+
 	/* Enable active mode */
 	snd_soc_update_bits(codec, DA7210_STARTUP1,
-			    DA7210_SC_MST_EN, DA7210_SC_MST_EN);
+						DA7210_SC_MST_EN, DA7210_SC_MST_EN);
 
 	return 0;
 }
@@ -884,37 +939,46 @@ static int da7210_set_dai_fmt(struct snd_soc_dai *codec_dai, u32 fmt)
 
 	if ((snd_soc_read(codec, DA7210_PLL) & DA7210_PLL_EN) &&
 		(!(snd_soc_read(codec, DA7210_PLL_DIV3) & DA7210_PLL_BYP)))
+	{
 		return -EINVAL;
+	}
 
-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBM_CFM:
-		da7210->master = 1;
-		dai_cfg1 |= DA7210_DAI_MODE_MASTER;
-		break;
-	case SND_SOC_DAIFMT_CBS_CFS:
-		da7210->master = 0;
-		dai_cfg1 |= DA7210_DAI_MODE_SLAVE;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBM_CFM:
+			da7210->master = 1;
+			dai_cfg1 |= DA7210_DAI_MODE_MASTER;
+			break;
+
+		case SND_SOC_DAIFMT_CBS_CFS:
+			da7210->master = 0;
+			dai_cfg1 |= DA7210_DAI_MODE_SLAVE;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* FIXME
 	 *
 	 * It support I2S only now
 	 */
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_I2S:
-		dai_cfg3 |= DA7210_DAI_FORMAT_I2SMODE;
-		break;
-	case SND_SOC_DAIFMT_LEFT_J:
-		dai_cfg3 |= DA7210_DAI_FORMAT_LEFT_J;
-		break;
-	case SND_SOC_DAIFMT_RIGHT_J:
-		dai_cfg3 |= DA7210_DAI_FORMAT_RIGHT_J;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_I2S:
+			dai_cfg3 |= DA7210_DAI_FORMAT_I2SMODE;
+			break;
+
+		case SND_SOC_DAIFMT_LEFT_J:
+			dai_cfg3 |= DA7210_DAI_FORMAT_LEFT_J;
+			break;
+
+		case SND_SOC_DAIFMT_RIGHT_J:
+			dai_cfg3 |= DA7210_DAI_FORMAT_RIGHT_J;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* FIXME
@@ -935,42 +999,52 @@ static int da7210_mute(struct snd_soc_dai *dai, int mute)
 	u8 mute_reg = snd_soc_read(codec, DA7210_DAC_HPF) & 0xFB;
 
 	if (mute)
+	{
 		snd_soc_write(codec, DA7210_DAC_HPF, mute_reg | 0x4);
+	}
 	else
+	{
 		snd_soc_write(codec, DA7210_DAC_HPF, mute_reg);
+	}
+
 	return 0;
 }
 
 #define DA7210_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE |\
-			SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE)
+						SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE)
 
 static int da7210_set_dai_sysclk(struct snd_soc_dai *codec_dai,
-				 int clk_id, unsigned int freq, int dir)
+								 int clk_id, unsigned int freq, int dir)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct da7210_priv *da7210 = snd_soc_codec_get_drvdata(codec);
 
-	switch (clk_id) {
-	case DA7210_CLKSRC_MCLK:
-		switch (freq) {
-		case 12000000:
-		case 13000000:
-		case 13500000:
-		case 14400000:
-		case 19200000:
-		case 19680000:
-		case 19800000:
-			da7210->mclk_rate = freq;
-			return 0;
+	switch (clk_id)
+	{
+		case DA7210_CLKSRC_MCLK:
+			switch (freq)
+			{
+				case 12000000:
+				case 13000000:
+				case 13500000:
+				case 14400000:
+				case 19200000:
+				case 19680000:
+				case 19800000:
+					da7210->mclk_rate = freq;
+					return 0;
+
+				default:
+					dev_err(codec_dai->dev, "Unsupported MCLK value %d\n",
+							freq);
+					return -EINVAL;
+			}
+
+			break;
+
 		default:
-			dev_err(codec_dai->dev, "Unsupported MCLK value %d\n",
-				freq);
+			dev_err(codec_dai->dev, "Unknown clock source %d\n", clk_id);
 			return -EINVAL;
-		}
-		break;
-	default:
-		dev_err(codec_dai->dev, "Unknown clock source %d\n", clk_id);
-		return -EINVAL;
 	}
 }
 
@@ -986,7 +1060,7 @@ static int da7210_set_dai_sysclk(struct snd_soc_dai *codec_dai,
  *       19.2MHz, 19.6MHz and 19.8MHz
  */
 static int da7210_set_dai_pll(struct snd_soc_dai *codec_dai, int pll_id,
-			      int source, unsigned int fref, unsigned int fout)
+							  int source, unsigned int fref, unsigned int fout)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct da7210_priv *da7210 = snd_soc_codec_get_drvdata(codec);
@@ -995,14 +1069,18 @@ static int da7210_set_dai_pll(struct snd_soc_dai *codec_dai, int pll_id,
 
 	/* In slave mode, there is only one set of divisors */
 	if (!da7210->master)
+	{
 		fout = 2822400;
+	}
 
 	/* Search pll div array for correct divisors */
-	for (cnt = 0; cnt < ARRAY_SIZE(da7210_pll_div); cnt++) {
+	for (cnt = 0; cnt < ARRAY_SIZE(da7210_pll_div); cnt++)
+	{
 		/* check fref, mode  and fout */
 		if ((fref == da7210_pll_div[cnt].fref) &&
-		    (da7210->master ==  da7210_pll_div[cnt].mode) &&
-		    (fout == da7210_pll_div[cnt].fout)) {
+			(da7210->master ==  da7210_pll_div[cnt].mode) &&
+			(fout == da7210_pll_div[cnt].fout))
+		{
 			/* all match, pick up divisors */
 			pll_div1 = da7210_pll_div[cnt].div1;
 			pll_div2 = da7210_pll_div[cnt].div2;
@@ -1010,8 +1088,11 @@ static int da7210_set_dai_pll(struct snd_soc_dai *codec_dai, int pll_id,
 			break;
 		}
 	}
+
 	if (cnt >= ARRAY_SIZE(da7210_pll_div))
+	{
 		goto err;
+	}
 
 	/* Disable active mode */
 	snd_soc_update_bits(codec, DA7210_STARTUP1, DA7210_SC_MST_EN, 0);
@@ -1019,14 +1100,14 @@ static int da7210_set_dai_pll(struct snd_soc_dai *codec_dai, int pll_id,
 	snd_soc_write(codec, DA7210_PLL_DIV1, pll_div1);
 	snd_soc_write(codec, DA7210_PLL_DIV2, pll_div2);
 	snd_soc_update_bits(codec, DA7210_PLL_DIV3,
-				   DA7210_PLL_DIV_L_MASK, pll_div3);
+						DA7210_PLL_DIV_L_MASK, pll_div3);
 
 	/* Enable PLL */
 	snd_soc_update_bits(codec, DA7210_PLL, DA7210_PLL_EN, DA7210_PLL_EN);
 
 	/* Enable active mode */
 	snd_soc_update_bits(codec, DA7210_STARTUP1, DA7210_SC_MST_EN,
-						    DA7210_SC_MST_EN);
+						DA7210_SC_MST_EN);
 	return 0;
 err:
 	dev_err(codec_dai->dev, "Unsupported PLL input frequency %d\n", fref);
@@ -1034,7 +1115,8 @@ err:
 }
 
 /* DAI operations */
-static const struct snd_soc_dai_ops da7210_dai_ops = {
+static const struct snd_soc_dai_ops da7210_dai_ops =
+{
 	.hw_params	= da7210_hw_params,
 	.set_fmt	= da7210_set_dai_fmt,
 	.set_sysclk	= da7210_set_dai_sysclk,
@@ -1042,7 +1124,8 @@ static const struct snd_soc_dai_ops da7210_dai_ops = {
 	.digital_mute	= da7210_mute,
 };
 
-static struct snd_soc_dai_driver da7210_dai = {
+static struct snd_soc_dai_driver da7210_dai =
+{
 	.name = "da7210-hifi",
 	/* playback capabilities */
 	.playback = {
@@ -1097,8 +1180,8 @@ static int da7210_probe(struct snd_soc_codec *codec)
 
 	/* Enable Left and Right DAC */
 	snd_soc_write(codec, DA7210_DAC_SEL,
-		     DA7210_DAC_L_SRC_DAI_L | DA7210_DAC_L_EN |
-		     DA7210_DAC_R_SRC_DAI_R | DA7210_DAC_R_EN);
+				  DA7210_DAC_L_SRC_DAI_L | DA7210_DAC_L_EN |
+				  DA7210_DAC_R_SRC_DAI_R | DA7210_DAC_R_EN);
 
 	/* Enable Left and Right out PGA */
 	snd_soc_write(codec, DA7210_OUTMIX_L, DA7210_OUT_L_EN);
@@ -1106,8 +1189,8 @@ static int da7210_probe(struct snd_soc_codec *codec)
 
 	/* Enable Left and Right HeadPhone PGA */
 	snd_soc_write(codec, DA7210_HP_CFG,
-		     DA7210_HP_2CAP_MODE | DA7210_HP_SENSE_EN |
-		     DA7210_HP_L_EN | DA7210_HP_MODE | DA7210_HP_R_EN);
+				  DA7210_HP_2CAP_MODE | DA7210_HP_SENSE_EN |
+				  DA7210_HP_L_EN | DA7210_HP_MODE | DA7210_HP_R_EN);
 
 	/* Enable ramp mode for DAC gain update */
 	snd_soc_write(codec, DA7210_SOFTMUTE, DA7210_RAMP_EN);
@@ -1141,7 +1224,7 @@ static int da7210_probe(struct snd_soc_codec *codec)
 	snd_soc_write(codec, DA7210_OUT1_L, DA7210_OUT1_L_EN);
 	snd_soc_write(codec, DA7210_OUT1_R, DA7210_OUT1_R_EN);
 	snd_soc_write(codec, DA7210_OUT2, DA7210_OUT2_EN |
-		     DA7210_OUT2_OUTMIX_L | DA7210_OUT2_OUTMIX_R);
+				  DA7210_OUT2_OUTMIX_L | DA7210_OUT2_OUTMIX_R);
 
 	/* Enable Aux1 */
 	snd_soc_write(codec, DA7210_AUX1_L, DA7210_AUX1_L_EN);
@@ -1151,7 +1234,7 @@ static int da7210_probe(struct snd_soc_codec *codec)
 
 	/* Set PLL Master clock range 10-20 MHz, enable PLL bypass */
 	snd_soc_write(codec, DA7210_PLL_DIV3, DA7210_MCLK_RANGE_10_20_MHZ |
-					      DA7210_PLL_BYP);
+				  DA7210_PLL_BYP);
 
 	/* Diable PLL and bypass it */
 	snd_soc_write(codec, DA7210_PLL, DA7210_PLL_FS_48000);
@@ -1164,7 +1247,8 @@ static int da7210_probe(struct snd_soc_codec *codec)
 	return 0;
 }
 
-static struct snd_soc_codec_driver soc_codec_dev_da7210 = {
+static struct snd_soc_codec_driver soc_codec_dev_da7210 =
+{
 	.probe			= da7210_probe,
 
 	.component_driver = {
@@ -1179,7 +1263,8 @@ static struct snd_soc_codec_driver soc_codec_dev_da7210 = {
 
 #if IS_ENABLED(CONFIG_I2C)
 
-static const struct reg_sequence da7210_regmap_i2c_patch[] = {
+static const struct reg_sequence da7210_regmap_i2c_patch[] =
+{
 
 	/* System controller master disable */
 	{ DA7210_STARTUP1, 0x00 },
@@ -1196,7 +1281,8 @@ static const struct reg_sequence da7210_regmap_i2c_patch[] = {
 	{ DA7210_A_TEST_UNLOCK, 0x00},
 };
 
-static const struct regmap_config da7210_regmap_config_i2c = {
+static const struct regmap_config da7210_regmap_config_i2c =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 
@@ -1208,34 +1294,45 @@ static const struct regmap_config da7210_regmap_config_i2c = {
 };
 
 static int da7210_i2c_probe(struct i2c_client *i2c,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct da7210_priv *da7210;
 	int ret;
 
 	da7210 = devm_kzalloc(&i2c->dev, sizeof(struct da7210_priv),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!da7210)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(i2c, da7210);
 
 	da7210->regmap = devm_regmap_init_i2c(i2c, &da7210_regmap_config_i2c);
-	if (IS_ERR(da7210->regmap)) {
+
+	if (IS_ERR(da7210->regmap))
+	{
 		ret = PTR_ERR(da7210->regmap);
 		dev_err(&i2c->dev, "regmap_init() failed: %d\n", ret);
 		return ret;
 	}
 
 	ret = regmap_register_patch(da7210->regmap, da7210_regmap_i2c_patch,
-				    ARRAY_SIZE(da7210_regmap_i2c_patch));
+								ARRAY_SIZE(da7210_regmap_i2c_patch));
+
 	if (ret != 0)
+	{
 		dev_warn(&i2c->dev, "Failed to apply regmap patch: %d\n", ret);
+	}
 
 	ret =  snd_soc_register_codec(&i2c->dev,
-			&soc_codec_dev_da7210, &da7210_dai, 1);
+								  &soc_codec_dev_da7210, &da7210_dai, 1);
+
 	if (ret < 0)
+	{
 		dev_err(&i2c->dev, "Failed to register codec: %d\n", ret);
+	}
 
 	return ret;
 }
@@ -1246,14 +1343,16 @@ static int da7210_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id da7210_i2c_id[] = {
+static const struct i2c_device_id da7210_i2c_id[] =
+{
 	{ "da7210", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, da7210_i2c_id);
 
 /* I2C codec control layer */
-static struct i2c_driver da7210_i2c_driver = {
+static struct i2c_driver da7210_i2c_driver =
+{
 	.driver = {
 		.name = "da7210",
 	},
@@ -1265,7 +1364,8 @@ static struct i2c_driver da7210_i2c_driver = {
 
 #if defined(CONFIG_SPI_MASTER)
 
-static const struct reg_sequence da7210_regmap_spi_patch[] = {
+static const struct reg_sequence da7210_regmap_spi_patch[] =
+{
 	/* Dummy read to give two pulses over nCS for SPI */
 	{ DA7210_AUX2, 0x00 },
 	{ DA7210_AUX2, 0x00 },
@@ -1289,7 +1389,8 @@ static const struct reg_sequence da7210_regmap_spi_patch[] = {
 	{ DA7210_PAGE_CONTROL, 0x00 },
 };
 
-static const struct regmap_config da7210_regmap_config_spi = {
+static const struct regmap_config da7210_regmap_config_spi =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.read_flag_mask = 0x01,
@@ -1308,25 +1409,33 @@ static int da7210_spi_probe(struct spi_device *spi)
 	int ret;
 
 	da7210 = devm_kzalloc(&spi->dev, sizeof(struct da7210_priv),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!da7210)
+	{
 		return -ENOMEM;
+	}
 
 	spi_set_drvdata(spi, da7210);
 	da7210->regmap = devm_regmap_init_spi(spi, &da7210_regmap_config_spi);
-	if (IS_ERR(da7210->regmap)) {
+
+	if (IS_ERR(da7210->regmap))
+	{
 		ret = PTR_ERR(da7210->regmap);
 		dev_err(&spi->dev, "Failed to register regmap: %d\n", ret);
 		return ret;
 	}
 
 	ret = regmap_register_patch(da7210->regmap, da7210_regmap_spi_patch,
-				    ARRAY_SIZE(da7210_regmap_spi_patch));
+								ARRAY_SIZE(da7210_regmap_spi_patch));
+
 	if (ret != 0)
+	{
 		dev_warn(&spi->dev, "Failed to apply regmap patch: %d\n", ret);
+	}
 
 	ret = snd_soc_register_codec(&spi->dev,
-			&soc_codec_dev_da7210, &da7210_dai, 1);
+								 &soc_codec_dev_da7210, &da7210_dai, 1);
 
 	return ret;
 }
@@ -1337,7 +1446,8 @@ static int da7210_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver da7210_spi_driver = {
+static struct spi_driver da7210_spi_driver =
+{
 	.driver = {
 		.name = "da7210",
 	},
@@ -1354,10 +1464,13 @@ static int __init da7210_modinit(void)
 #endif
 #if defined(CONFIG_SPI_MASTER)
 	ret = spi_register_driver(&da7210_spi_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "Failed to register da7210 SPI driver: %d\n",
-		       ret);
+			   ret);
 	}
+
 #endif
 	return ret;
 }

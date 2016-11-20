@@ -34,7 +34,8 @@
 
 typedef unsigned long stack_entries[MAX_STACK];
 
-struct block_lock {
+struct block_lock
+{
 	spinlock_t lock;
 	__s32 count;
 	struct list_head waiters;
@@ -46,20 +47,23 @@ struct block_lock {
 #endif
 };
 
-struct waiter {
+struct waiter
+{
 	struct list_head list;
 	struct task_struct *task;
 	int wants_write;
 };
 
 static unsigned __find_holder(struct block_lock *lock,
-			      struct task_struct *task)
+							  struct task_struct *task)
 {
 	unsigned i;
 
 	for (i = 0; i < MAX_HOLDERS; i++)
 		if (lock->holders[i] == task)
+		{
 			break;
+		}
 
 	BUG_ON(i == MAX_HOLDERS);
 	return i;
@@ -98,8 +102,10 @@ static int __check_holder(struct block_lock *lock)
 {
 	unsigned i;
 
-	for (i = 0; i < MAX_HOLDERS; i++) {
-		if (lock->holders[i] == current) {
+	for (i = 0; i < MAX_HOLDERS; i++)
+	{
+		if (lock->holders[i] == current)
+		{
 			DMERR("recursive lock detected in metadata");
 #ifdef CONFIG_DM_DEBUG_BLOCK_STACK_TRACING
 			DMERR("previously held here:");
@@ -117,11 +123,14 @@ static int __check_holder(struct block_lock *lock)
 
 static void __wait(struct waiter *w)
 {
-	for (;;) {
+	for (;;)
+	{
 		set_task_state(current, TASK_UNINTERRUPTIBLE);
 
 		if (!w->task)
+		{
 			break;
+		}
 
 		schedule();
 	}
@@ -148,13 +157,19 @@ static void __wake_many(struct block_lock *lock)
 	struct waiter *w, *tmp;
 
 	BUG_ON(lock->count < 0);
-	list_for_each_entry_safe(w, tmp, &lock->waiters, list) {
+	list_for_each_entry_safe(w, tmp, &lock->waiters, list)
+	{
 		if (lock->count >= MAX_HOLDERS)
+		{
 			return;
+		}
 
-		if (w->wants_write) {
+		if (w->wants_write)
+		{
 			if (lock->count > 0)
-				return; /* still read locked */
+			{
+				return;    /* still read locked */
+			}
 
 			lock->count = -1;
 			__add_holder(lock, w->task);
@@ -175,15 +190,18 @@ static void bl_init(struct block_lock *lock)
 	spin_lock_init(&lock->lock);
 	lock->count = 0;
 	INIT_LIST_HEAD(&lock->waiters);
+
 	for (i = 0; i < MAX_HOLDERS; i++)
+	{
 		lock->holders[i] = NULL;
+	}
 }
 
 static int __available_for_read(struct block_lock *lock)
 {
 	return lock->count >= 0 &&
-		lock->count < MAX_HOLDERS &&
-		list_empty(&lock->waiters);
+		   lock->count < MAX_HOLDERS &&
+		   list_empty(&lock->waiters);
 }
 
 static int bl_down_read(struct block_lock *lock)
@@ -193,12 +211,15 @@ static int bl_down_read(struct block_lock *lock)
 
 	spin_lock(&lock->lock);
 	r = __check_holder(lock);
-	if (r) {
+
+	if (r)
+	{
 		spin_unlock(&lock->lock);
 		return r;
 	}
 
-	if (__available_for_read(lock)) {
+	if (__available_for_read(lock))
+	{
 		lock->count++;
 		__add_holder(lock, current);
 		spin_unlock(&lock->lock);
@@ -223,15 +244,22 @@ static int bl_down_read_nonblock(struct block_lock *lock)
 
 	spin_lock(&lock->lock);
 	r = __check_holder(lock);
-	if (r)
-		goto out;
 
-	if (__available_for_read(lock)) {
+	if (r)
+	{
+		goto out;
+	}
+
+	if (__available_for_read(lock))
+	{
 		lock->count++;
 		__add_holder(lock, current);
 		r = 0;
-	} else
+	}
+	else
+	{
 		r = -EWOULDBLOCK;
+	}
 
 out:
 	spin_unlock(&lock->lock);
@@ -244,8 +272,12 @@ static void bl_up_read(struct block_lock *lock)
 	BUG_ON(lock->count <= 0);
 	__del_holder(lock, current);
 	--lock->count;
+
 	if (!list_empty(&lock->waiters))
+	{
 		__wake_many(lock);
+	}
+
 	spin_unlock(&lock->lock);
 }
 
@@ -256,12 +288,15 @@ static int bl_down_write(struct block_lock *lock)
 
 	spin_lock(&lock->lock);
 	r = __check_holder(lock);
-	if (r) {
+
+	if (r)
+	{
 		spin_unlock(&lock->lock);
 		return r;
 	}
 
-	if (lock->count == 0 && list_empty(&lock->waiters)) {
+	if (lock->count == 0 && list_empty(&lock->waiters))
+	{
 		lock->count = -1;
 		__add_holder(lock, current);
 		spin_unlock(&lock->lock);
@@ -290,8 +325,12 @@ static void bl_up_write(struct block_lock *lock)
 	spin_lock(&lock->lock);
 	__del_holder(lock, current);
 	lock->count = 0;
+
 	if (!list_empty(&lock->waiters))
+	{
 		__wake_many(lock);
+	}
+
 	spin_unlock(&lock->lock);
 }
 
@@ -299,7 +338,7 @@ static void report_recursive_bug(dm_block_t b, int r)
 {
 	if (r == -EINVAL)
 		DMERR("recursive acquisition of block %llu requested.",
-		      (unsigned long long) b);
+			  (unsigned long long) b);
 }
 
 /*----------------------------------------------------------------*/
@@ -328,7 +367,8 @@ void *dm_block_data(struct dm_block *b)
 }
 EXPORT_SYMBOL_GPL(dm_block_data);
 
-struct buffer_aux {
+struct buffer_aux
+{
 	struct dm_block_validator *validator;
 	struct block_lock lock;
 	int write_locked;
@@ -344,39 +384,46 @@ static void dm_block_manager_alloc_callback(struct dm_buffer *buf)
 static void dm_block_manager_write_callback(struct dm_buffer *buf)
 {
 	struct buffer_aux *aux = dm_bufio_get_aux_data(buf);
-	if (aux->validator) {
+
+	if (aux->validator)
+	{
 		aux->validator->prepare_for_write(aux->validator, (struct dm_block *) buf,
-			 dm_bufio_get_block_size(dm_bufio_get_client(buf)));
+										  dm_bufio_get_block_size(dm_bufio_get_client(buf)));
 	}
 }
 
 /*----------------------------------------------------------------
  * Public interface
  *--------------------------------------------------------------*/
-struct dm_block_manager {
+struct dm_block_manager
+{
 	struct dm_bufio_client *bufio;
-	bool read_only:1;
+	bool read_only: 1;
 };
 
 struct dm_block_manager *dm_block_manager_create(struct block_device *bdev,
-						 unsigned block_size,
-						 unsigned cache_size,
-						 unsigned max_held_per_thread)
+		unsigned block_size,
+		unsigned cache_size,
+		unsigned max_held_per_thread)
 {
 	int r;
 	struct dm_block_manager *bm;
 
 	bm = kmalloc(sizeof(*bm), GFP_KERNEL);
-	if (!bm) {
+
+	if (!bm)
+	{
 		r = -ENOMEM;
 		goto bad;
 	}
 
 	bm->bufio = dm_bufio_client_create(bdev, block_size, max_held_per_thread,
-					   sizeof(struct buffer_aux),
-					   dm_block_manager_alloc_callback,
-					   dm_block_manager_write_callback);
-	if (IS_ERR(bm->bufio)) {
+									   sizeof(struct buffer_aux),
+									   dm_block_manager_alloc_callback,
+									   dm_block_manager_write_callback);
+
+	if (IS_ERR(bm->bufio))
+	{
 		r = PTR_ERR(bm->bufio);
 		kfree(bm);
 		goto bad;
@@ -410,26 +457,37 @@ dm_block_t dm_bm_nr_blocks(struct dm_block_manager *bm)
 }
 
 static int dm_bm_validate_buffer(struct dm_block_manager *bm,
-				 struct dm_buffer *buf,
-				 struct buffer_aux *aux,
-				 struct dm_block_validator *v)
+								 struct dm_buffer *buf,
+								 struct buffer_aux *aux,
+								 struct dm_block_validator *v)
 {
-	if (unlikely(!aux->validator)) {
+	if (unlikely(!aux->validator))
+	{
 		int r;
+
 		if (!v)
+		{
 			return 0;
+		}
+
 		r = v->check(v, (struct dm_block *) buf, dm_bufio_get_block_size(bm->bufio));
-		if (unlikely(r)) {
+
+		if (unlikely(r))
+		{
 			DMERR_LIMIT("%s validator check failed for block %llu", v->name,
-				    (unsigned long long) dm_bufio_get_block_number(buf));
+						(unsigned long long) dm_bufio_get_block_number(buf));
 			return r;
 		}
+
 		aux->validator = v;
-	} else {
-		if (unlikely(aux->validator != v)) {
+	}
+	else
+	{
+		if (unlikely(aux->validator != v))
+		{
 			DMERR_LIMIT("validator mismatch (old=%s vs new=%s) for block %llu",
-				    aux->validator->name, v ? v->name : "NULL",
-				    (unsigned long long) dm_bufio_get_block_number(buf));
+						aux->validator->name, v ? v->name : "NULL",
+						(unsigned long long) dm_bufio_get_block_number(buf));
 			return -EINVAL;
 		}
 	}
@@ -437,20 +495,25 @@ static int dm_bm_validate_buffer(struct dm_block_manager *bm,
 	return 0;
 }
 int dm_bm_read_lock(struct dm_block_manager *bm, dm_block_t b,
-		    struct dm_block_validator *v,
-		    struct dm_block **result)
+					struct dm_block_validator *v,
+					struct dm_block **result)
 {
 	struct buffer_aux *aux;
 	void *p;
 	int r;
 
 	p = dm_bufio_read(bm->bufio, b, (struct dm_buffer **) result);
+
 	if (IS_ERR(p))
+	{
 		return PTR_ERR(p);
+	}
 
 	aux = dm_bufio_get_aux_data(to_buffer(*result));
 	r = bl_down_read(&aux->lock);
-	if (unlikely(r)) {
+
+	if (unlikely(r))
+	{
 		dm_bufio_release(to_buffer(*result));
 		report_recursive_bug(b, r);
 		return r;
@@ -459,7 +522,9 @@ int dm_bm_read_lock(struct dm_block_manager *bm, dm_block_t b,
 	aux->write_locked = 0;
 
 	r = dm_bm_validate_buffer(bm, to_buffer(*result), aux, v);
-	if (unlikely(r)) {
+
+	if (unlikely(r))
+	{
 		bl_up_read(&aux->lock);
 		dm_bufio_release(to_buffer(*result));
 		return r;
@@ -470,23 +535,30 @@ int dm_bm_read_lock(struct dm_block_manager *bm, dm_block_t b,
 EXPORT_SYMBOL_GPL(dm_bm_read_lock);
 
 int dm_bm_write_lock(struct dm_block_manager *bm,
-		     dm_block_t b, struct dm_block_validator *v,
-		     struct dm_block **result)
+					 dm_block_t b, struct dm_block_validator *v,
+					 struct dm_block **result)
 {
 	struct buffer_aux *aux;
 	void *p;
 	int r;
 
 	if (bm->read_only)
+	{
 		return -EPERM;
+	}
 
 	p = dm_bufio_read(bm->bufio, b, (struct dm_buffer **) result);
+
 	if (IS_ERR(p))
+	{
 		return PTR_ERR(p);
+	}
 
 	aux = dm_bufio_get_aux_data(to_buffer(*result));
 	r = bl_down_write(&aux->lock);
-	if (r) {
+
+	if (r)
+	{
 		dm_bufio_release(to_buffer(*result));
 		report_recursive_bug(b, r);
 		return r;
@@ -495,7 +567,9 @@ int dm_bm_write_lock(struct dm_block_manager *bm,
 	aux->write_locked = 1;
 
 	r = dm_bm_validate_buffer(bm, to_buffer(*result), aux, v);
-	if (unlikely(r)) {
+
+	if (unlikely(r))
+	{
 		bl_up_write(&aux->lock);
 		dm_bufio_release(to_buffer(*result));
 		return r;
@@ -506,30 +580,41 @@ int dm_bm_write_lock(struct dm_block_manager *bm,
 EXPORT_SYMBOL_GPL(dm_bm_write_lock);
 
 int dm_bm_read_try_lock(struct dm_block_manager *bm,
-			dm_block_t b, struct dm_block_validator *v,
-			struct dm_block **result)
+						dm_block_t b, struct dm_block_validator *v,
+						struct dm_block **result)
 {
 	struct buffer_aux *aux;
 	void *p;
 	int r;
 
 	p = dm_bufio_get(bm->bufio, b, (struct dm_buffer **) result);
+
 	if (IS_ERR(p))
+	{
 		return PTR_ERR(p);
+	}
+
 	if (unlikely(!p))
+	{
 		return -EWOULDBLOCK;
+	}
 
 	aux = dm_bufio_get_aux_data(to_buffer(*result));
 	r = bl_down_read_nonblock(&aux->lock);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		dm_bufio_release(to_buffer(*result));
 		report_recursive_bug(b, r);
 		return r;
 	}
+
 	aux->write_locked = 0;
 
 	r = dm_bm_validate_buffer(bm, to_buffer(*result), aux, v);
-	if (unlikely(r)) {
+
+	if (unlikely(r))
+	{
 		bl_up_read(&aux->lock);
 		dm_bufio_release(to_buffer(*result));
 		return r;
@@ -539,25 +624,32 @@ int dm_bm_read_try_lock(struct dm_block_manager *bm,
 }
 
 int dm_bm_write_lock_zero(struct dm_block_manager *bm,
-			  dm_block_t b, struct dm_block_validator *v,
-			  struct dm_block **result)
+						  dm_block_t b, struct dm_block_validator *v,
+						  struct dm_block **result)
 {
 	int r;
 	struct buffer_aux *aux;
 	void *p;
 
 	if (bm->read_only)
+	{
 		return -EPERM;
+	}
 
 	p = dm_bufio_new(bm->bufio, b, (struct dm_buffer **) result);
+
 	if (IS_ERR(p))
+	{
 		return PTR_ERR(p);
+	}
 
 	memset(p, 0, dm_bm_block_size(bm));
 
 	aux = dm_bufio_get_aux_data(to_buffer(*result));
 	r = bl_down_write(&aux->lock);
-	if (r) {
+
+	if (r)
+	{
 		dm_bufio_release(to_buffer(*result));
 		return r;
 	}
@@ -574,11 +666,15 @@ void dm_bm_unlock(struct dm_block *b)
 	struct buffer_aux *aux;
 	aux = dm_bufio_get_aux_data(to_buffer(b));
 
-	if (aux->write_locked) {
+	if (aux->write_locked)
+	{
 		dm_bufio_mark_buffer_dirty(to_buffer(b));
 		bl_up_write(&aux->lock);
-	} else
+	}
+	else
+	{
 		bl_up_read(&aux->lock);
+	}
 
 	dm_bufio_release(to_buffer(b));
 }
@@ -587,7 +683,9 @@ EXPORT_SYMBOL_GPL(dm_bm_unlock);
 int dm_bm_flush(struct dm_block_manager *bm)
 {
 	if (bm->read_only)
+	{
 		return -EPERM;
+	}
 
 	return dm_bufio_write_dirty_buffers(bm->bufio);
 }

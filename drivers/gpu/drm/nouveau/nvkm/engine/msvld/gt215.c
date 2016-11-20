@@ -26,7 +26,8 @@
 #include <nvif/class.h>
 
 static const struct nvkm_falcon_func
-gt215_msvld = {
+	gt215_msvld =
+{
 	.init = g98_msvld_init,
 	.sclass = {
 		{ -1, -1, GT212_MSVLD },
@@ -36,7 +37,7 @@ gt215_msvld = {
 
 int
 gt215_msvld_new(struct nvkm_device *device, int index,
-	      struct nvkm_engine **pengine)
+				struct nvkm_engine **pengine)
 {
 	return nvkm_msvld_new_(&gt215_msvld, device, index, pengine);
 }

@@ -20,18 +20,20 @@
 #include <linux/of_address.h>
 
 #define to_clk_sp810_timerclken(_hw) \
-		container_of(_hw, struct clk_sp810_timerclken, hw)
+	container_of(_hw, struct clk_sp810_timerclken, hw)
 
 struct clk_sp810;
 
-struct clk_sp810_timerclken {
+struct clk_sp810_timerclken
+{
 	struct clk_hw hw;
 	struct clk *clk;
 	struct clk_sp810 *sp810;
 	int channel;
 };
 
-struct clk_sp810 {
+struct clk_sp810
+{
 	struct device_node *node;
 	void __iomem *base;
 	spinlock_t lock;
@@ -54,7 +56,9 @@ static int clk_sp810_timerclken_set_parent(struct clk_hw *hw, u8 index)
 	unsigned long flags = 0;
 
 	if (WARN_ON(index > 1))
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&sp810->lock, flags);
 
@@ -68,7 +72,8 @@ static int clk_sp810_timerclken_set_parent(struct clk_hw *hw, u8 index)
 	return 0;
 }
 
-static const struct clk_ops clk_sp810_timerclken_ops = {
+static const struct clk_ops clk_sp810_timerclken_ops =
+{
 	.get_parent = clk_sp810_timerclken_get_parent,
 	.set_parent = clk_sp810_timerclken_set_parent,
 };
@@ -79,8 +84,10 @@ static struct clk *clk_sp810_timerclken_of_get(struct of_phandle_args *clkspec,
 	struct clk_sp810 *sp810 = data;
 
 	if (WARN_ON(clkspec->args_count != 1 ||
-		    clkspec->args[0] >=	ARRAY_SIZE(sp810->timerclken)))
+				clkspec->args[0] >=	ARRAY_SIZE(sp810->timerclken)))
+	{
 		return NULL;
+	}
 
 	return sp810->timerclken[clkspec->args[0]].clk;
 }
@@ -97,9 +104,12 @@ static void __init clk_sp810_of_setup(struct device_node *node)
 	bool deprecated;
 
 	if (!sp810)
+	{
 		return;
+	}
 
-	if (of_clk_parent_fill(node, parent_names, num) != num) {
+	if (of_clk_parent_fill(node, parent_names, num) != num)
+	{
 		pr_warn("Failed to obtain parent clocks for SP810!\n");
 		kfree(sp810);
 		return;
@@ -117,7 +127,8 @@ static void __init clk_sp810_of_setup(struct device_node *node)
 
 	deprecated = !of_find_property(node, "assigned-clock-parents", NULL);
 
-	for (i = 0; i < ARRAY_SIZE(sp810->timerclken); i++) {
+	for (i = 0; i < ARRAY_SIZE(sp810->timerclken); i++)
+	{
 		snprintf(name, sizeof(name), "sp810_%d_%d", instance, i);
 
 		sp810->timerclken[i].sp810 = sp810;
@@ -131,10 +142,12 @@ static void __init clk_sp810_of_setup(struct device_node *node)
 		 * the parent and setup the tree properly.
 		 */
 		if (deprecated)
+		{
 			init.ops->set_parent(&sp810->timerclken[i].hw, 1);
+		}
 
 		sp810->timerclken[i].clk = clk_register(NULL,
-				&sp810->timerclken[i].hw);
+												&sp810->timerclken[i].hw);
 		WARN_ON(IS_ERR(sp810->timerclken[i].clk));
 	}
 

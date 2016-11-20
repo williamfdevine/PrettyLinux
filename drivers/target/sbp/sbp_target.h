@@ -83,25 +83,29 @@
 #define AGENT_STATE_SUSPENDED	2
 #define AGENT_STATE_DEAD	3
 
-struct sbp2_pointer {
+struct sbp2_pointer
+{
 	__be32 high;
 	__be32 low;
 };
 
-struct sbp_command_block_orb {
+struct sbp_command_block_orb
+{
 	struct sbp2_pointer next_orb;
 	struct sbp2_pointer data_descriptor;
 	__be32 misc;
 	u8 command_block[12];
 };
 
-struct sbp_page_table_entry {
+struct sbp_page_table_entry
+{
 	__be16 segment_length;
 	__be16 segment_base_hi;
 	__be32 segment_base_lo;
 };
 
-struct sbp_management_orb {
+struct sbp_management_orb
+{
 	struct sbp2_pointer ptr1;
 	struct sbp2_pointer ptr2;
 	__be32 misc;
@@ -109,19 +113,22 @@ struct sbp_management_orb {
 	struct sbp2_pointer status_fifo;
 };
 
-struct sbp_status_block {
+struct sbp_status_block
+{
 	__be32 status;
 	__be32 orb_low;
 	u8 data[24];
 };
 
-struct sbp_login_response_block {
+struct sbp_login_response_block
+{
 	__be32 misc;
 	struct sbp2_pointer command_block_agent;
 	__be32 reconnect_hold;
 };
 
-struct sbp_login_descriptor {
+struct sbp_login_descriptor
+{
 	struct sbp_session *sess;
 	struct list_head link;
 
@@ -134,7 +141,8 @@ struct sbp_login_descriptor {
 	struct sbp_target_agent *tgt_agt;
 };
 
-struct sbp_session {
+struct sbp_session
+{
 	spinlock_t lock;
 	struct se_session *se_sess;
 	struct list_head login_list;
@@ -151,7 +159,8 @@ struct sbp_session {
 	u64 reconnect_expires;
 };
 
-struct sbp_tpg {
+struct sbp_tpg
+{
 	/* Target portal group tag for TCM */
 	u16 tport_tpgt;
 	/* Pointer back to sbp_tport */
@@ -160,7 +169,8 @@ struct sbp_tpg {
 	struct se_portal_group se_tpg;
 };
 
-struct sbp_tport {
+struct sbp_tport
+{
 	/* Target Unit Identifier (EUI-64) */
 	u64 guid;
 	/* Target port name */
@@ -187,7 +197,7 @@ struct sbp_tport {
 static inline u64 sbp2_pointer_to_addr(const struct sbp2_pointer *ptr)
 {
 	return (u64)(be32_to_cpu(ptr->high) & 0x0000ffff) << 32 |
-		(be32_to_cpu(ptr->low) & 0xfffffffc);
+		   (be32_to_cpu(ptr->low) & 0xfffffffc);
 }
 
 static inline void addr_to_sbp2_pointer(u64 addr, struct sbp2_pointer *ptr)
@@ -196,7 +206,8 @@ static inline void addr_to_sbp2_pointer(u64 addr, struct sbp2_pointer *ptr)
 	ptr->low = cpu_to_be32(addr);
 }
 
-struct sbp_target_agent {
+struct sbp_target_agent
+{
 	spinlock_t lock;
 	struct fw_address_handler handler;
 	struct sbp_login_descriptor *login;
@@ -206,7 +217,8 @@ struct sbp_target_agent {
 	bool doorbell;
 };
 
-struct sbp_target_request {
+struct sbp_target_request
+{
 	struct sbp_login_descriptor *login;
 	u64 orb_pointer;
 	struct sbp_command_block_orb orb;
@@ -220,7 +232,8 @@ struct sbp_target_request {
 	unsigned char sense_buf[TRANSPORT_SENSE_BUFFER];
 };
 
-struct sbp_management_agent {
+struct sbp_management_agent
+{
 	spinlock_t lock;
 	struct sbp_tport *tport;
 	struct fw_address_handler handler;
@@ -230,7 +243,8 @@ struct sbp_management_agent {
 	struct sbp_management_request *request;
 };
 
-struct sbp_management_request {
+struct sbp_management_request
+{
 	struct sbp_management_orb orb;
 	struct sbp_status_block status;
 	struct fw_card *card;

@@ -38,7 +38,9 @@
 static bool mutex_is_locked_by(struct mutex *mutex, struct task_struct *task)
 {
 	if (!mutex_is_locked(mutex))
+	{
 		return false;
+	}
 
 #if defined(CONFIG_DEBUG_MUTEXES) || defined(CONFIG_MUTEX_SPIN_ON_OWNER)
 	return mutex->owner == task;
@@ -53,8 +55,11 @@ static bool any_vma_pinned(struct drm_i915_gem_object *obj)
 	struct i915_vma *vma;
 
 	list_for_each_entry(vma, &obj->vma_list, obj_link)
-		if (i915_vma_is_pinned(vma))
-			return true;
+
+	if (i915_vma_is_pinned(vma))
+	{
+		return true;
+	}
 
 	return false;
 }
@@ -68,7 +73,9 @@ static bool can_release_pages(struct drm_i915_gem_object *obj)
 {
 	/* Only shmemfs objects are backed by swap */
 	if (!obj->base.filp)
+	{
 		return false;
+	}
 
 	/* Only report true if by unbinding the object and putting its pages
 	 * we can actually make forward progress towards freeing physical
@@ -79,10 +86,14 @@ static bool can_release_pages(struct drm_i915_gem_object *obj)
 	 * in releasing our pin count on the pages themselves.
 	 */
 	if (obj->pages_pin_count > obj->bind_count)
+	{
 		return false;
+	}
 
 	if (any_vma_pinned(obj))
+	{
 		return false;
+	}
 
 	/* We can only return physical pages to the system if we can either
 	 * discard the contents (because the user has marked them as being
@@ -117,12 +128,14 @@ static bool can_release_pages(struct drm_i915_gem_object *obj)
  */
 unsigned long
 i915_gem_shrink(struct drm_i915_private *dev_priv,
-		unsigned long target, unsigned flags)
+				unsigned long target, unsigned flags)
 {
-	const struct {
+	const struct
+	{
 		struct list_head *list;
 		unsigned int bit;
-	} phases[] = {
+	} phases[] =
+	{
 		{ &dev_priv->mm.unbound_list, I915_SHRINK_UNBOUND },
 		{ &dev_priv->mm.bound_list, I915_SHRINK_BOUND },
 		{ NULL, 0 },
@@ -138,8 +151,10 @@ i915_gem_shrink(struct drm_i915_private *dev_priv,
 	 * we will force the wake during oom-notifier.
 	 */
 	if ((flags & I915_SHRINK_BOUND) &&
-	    !intel_runtime_pm_get_if_in_use(dev_priv))
+		!intel_runtime_pm_get_if_in_use(dev_priv))
+	{
 		flags &= ~I915_SHRINK_BOUND;
+	}
 
 	/*
 	 * As we may completely rewrite the (un)bound list whilst unbinding
@@ -160,49 +175,68 @@ i915_gem_shrink(struct drm_i915_private *dev_priv,
 	 * dev->struct_mutex and so we won't ever be able to observe an
 	 * object on the bound_list with a reference count equals 0.
 	 */
-	for (phase = phases; phase->list; phase++) {
+	for (phase = phases; phase->list; phase++)
+	{
 		struct list_head still_in_list;
 		struct drm_i915_gem_object *obj;
 
 		if ((flags & phase->bit) == 0)
+		{
 			continue;
+		}
 
 		INIT_LIST_HEAD(&still_in_list);
+
 		while (count < target &&
-		       (obj = list_first_entry_or_null(phase->list,
-						       typeof(*obj),
-						       global_list))) {
+			   (obj = list_first_entry_or_null(phase->list,
+											   typeof(*obj),
+											   global_list)))
+		{
 			list_move_tail(&obj->global_list, &still_in_list);
 
 			if (flags & I915_SHRINK_PURGEABLE &&
-			    obj->madv != I915_MADV_DONTNEED)
+				obj->madv != I915_MADV_DONTNEED)
+			{
 				continue;
+			}
 
 			if (flags & I915_SHRINK_VMAPS &&
-			    !is_vmalloc_addr(obj->mapping))
+				!is_vmalloc_addr(obj->mapping))
+			{
 				continue;
+			}
 
 			if ((flags & I915_SHRINK_ACTIVE) == 0 &&
-			    i915_gem_object_is_active(obj))
+				i915_gem_object_is_active(obj))
+			{
 				continue;
+			}
 
 			if (!can_release_pages(obj))
+			{
 				continue;
+			}
 
 			i915_gem_object_get(obj);
 
 			/* For the unbound phase, this should be a no-op! */
 			i915_gem_object_unbind(obj);
+
 			if (i915_gem_object_put_pages(obj) == 0)
+			{
 				count += obj->base.size >> PAGE_SHIFT;
+			}
 
 			i915_gem_object_put(obj);
 		}
+
 		list_splice(&still_in_list, phase->list);
 	}
 
 	if (flags & I915_SHRINK_BOUND)
+	{
 		intel_runtime_pm_put(dev_priv);
+	}
 
 	i915_gem_retire_requests(dev_priv);
 	/* expedite the RCU grace period to free some request slabs */
@@ -230,9 +264,9 @@ unsigned long i915_gem_shrink_all(struct drm_i915_private *dev_priv)
 	unsigned long freed;
 
 	freed = i915_gem_shrink(dev_priv, -1UL,
-				I915_SHRINK_BOUND |
-				I915_SHRINK_UNBOUND |
-				I915_SHRINK_ACTIVE);
+							I915_SHRINK_BOUND |
+							I915_SHRINK_UNBOUND |
+							I915_SHRINK_ACTIVE);
 	rcu_barrier(); /* wait until our RCU delayed slab frees are completed */
 
 	return freed;
@@ -240,13 +274,19 @@ unsigned long i915_gem_shrink_all(struct drm_i915_private *dev_priv)
 
 static bool i915_gem_shrinker_lock(struct drm_device *dev, bool *unlock)
 {
-	if (!mutex_trylock(&dev->struct_mutex)) {
+	if (!mutex_trylock(&dev->struct_mutex))
+	{
 		if (!mutex_is_locked_by(&dev->struct_mutex, current))
+		{
 			return false;
+		}
 
 		*unlock = false;
-	} else
+	}
+	else
+	{
 		*unlock = true;
+	}
 
 	return true;
 }
@@ -262,22 +302,32 @@ i915_gem_shrinker_count(struct shrinker *shrinker, struct shrink_control *sc)
 	bool unlock;
 
 	if (!i915_gem_shrinker_lock(dev, &unlock))
+	{
 		return 0;
+	}
 
 	i915_gem_retire_requests(dev_priv);
 
 	count = 0;
 	list_for_each_entry(obj, &dev_priv->mm.unbound_list, global_list)
-		if (can_release_pages(obj))
-			count += obj->base.size >> PAGE_SHIFT;
 
-	list_for_each_entry(obj, &dev_priv->mm.bound_list, global_list) {
+	if (can_release_pages(obj))
+	{
+		count += obj->base.size >> PAGE_SHIFT;
+	}
+
+	list_for_each_entry(obj, &dev_priv->mm.bound_list, global_list)
+	{
 		if (!i915_gem_object_is_active(obj) && can_release_pages(obj))
+		{
 			count += obj->base.size >> PAGE_SHIFT;
+		}
 	}
 
 	if (unlock)
+	{
 		mutex_unlock(&dev->struct_mutex);
+	}
 
 	return count;
 }
@@ -292,50 +342,65 @@ i915_gem_shrinker_scan(struct shrinker *shrinker, struct shrink_control *sc)
 	bool unlock;
 
 	if (!i915_gem_shrinker_lock(dev, &unlock))
+	{
 		return SHRINK_STOP;
+	}
 
 	freed = i915_gem_shrink(dev_priv,
-				sc->nr_to_scan,
-				I915_SHRINK_BOUND |
-				I915_SHRINK_UNBOUND |
-				I915_SHRINK_PURGEABLE);
+							sc->nr_to_scan,
+							I915_SHRINK_BOUND |
+							I915_SHRINK_UNBOUND |
+							I915_SHRINK_PURGEABLE);
+
 	if (freed < sc->nr_to_scan)
 		freed += i915_gem_shrink(dev_priv,
-					 sc->nr_to_scan - freed,
-					 I915_SHRINK_BOUND |
-					 I915_SHRINK_UNBOUND);
+								 sc->nr_to_scan - freed,
+								 I915_SHRINK_BOUND |
+								 I915_SHRINK_UNBOUND);
+
 	if (unlock)
+	{
 		mutex_unlock(&dev->struct_mutex);
+	}
 
 	return freed;
 }
 
-struct shrinker_lock_uninterruptible {
+struct shrinker_lock_uninterruptible
+{
 	bool was_interruptible;
 	bool unlock;
 };
 
 static bool
 i915_gem_shrinker_lock_uninterruptible(struct drm_i915_private *dev_priv,
-				       struct shrinker_lock_uninterruptible *slu,
-				       int timeout_ms)
+									   struct shrinker_lock_uninterruptible *slu,
+									   int timeout_ms)
 {
 	unsigned long timeout = jiffies + msecs_to_jiffies_timeout(timeout_ms);
 
-	do {
+	do
+	{
 		if (i915_gem_wait_for_idle(dev_priv, 0) == 0 &&
-		    i915_gem_shrinker_lock(&dev_priv->drm, &slu->unlock))
+			i915_gem_shrinker_lock(&dev_priv->drm, &slu->unlock))
+		{
 			break;
+		}
 
 		schedule_timeout_killable(1);
-		if (fatal_signal_pending(current))
-			return false;
 
-		if (time_after(jiffies, timeout)) {
+		if (fatal_signal_pending(current))
+		{
+			return false;
+		}
+
+		if (time_after(jiffies, timeout))
+		{
 			pr_err("Unable to lock GPU to purge memory.\n");
 			return false;
 		}
-	} while (1);
+	}
+	while (1);
 
 	slu->was_interruptible = dev_priv->mm.interruptible;
 	dev_priv->mm.interruptible = false;
@@ -344,11 +409,14 @@ i915_gem_shrinker_lock_uninterruptible(struct drm_i915_private *dev_priv,
 
 static void
 i915_gem_shrinker_unlock_uninterruptible(struct drm_i915_private *dev_priv,
-					 struct shrinker_lock_uninterruptible *slu)
+		struct shrinker_lock_uninterruptible *slu)
 {
 	dev_priv->mm.interruptible = slu->was_interruptible;
+
 	if (slu->unlock)
+	{
 		mutex_unlock(&dev_priv->drm.struct_mutex);
+	}
 }
 
 static int
@@ -361,7 +429,9 @@ i915_gem_shrinker_oom(struct notifier_block *nb, unsigned long event, void *ptr)
 	unsigned long unevictable, bound, unbound, freed_pages;
 
 	if (!i915_gem_shrinker_lock_uninterruptible(dev_priv, &slu, 5000))
+	{
 		return NOTIFY_DONE;
+	}
 
 	intel_runtime_pm_get(dev_priv);
 	freed_pages = i915_gem_shrink_all(dev_priv);
@@ -372,29 +442,40 @@ i915_gem_shrinker_oom(struct notifier_block *nb, unsigned long event, void *ptr)
 	 * being pointed to by hardware.
 	 */
 	unbound = bound = unevictable = 0;
-	list_for_each_entry(obj, &dev_priv->mm.unbound_list, global_list) {
+	list_for_each_entry(obj, &dev_priv->mm.unbound_list, global_list)
+	{
 		if (!can_release_pages(obj))
+		{
 			unevictable += obj->base.size >> PAGE_SHIFT;
+		}
 		else
+		{
 			unbound += obj->base.size >> PAGE_SHIFT;
+		}
 	}
-	list_for_each_entry(obj, &dev_priv->mm.bound_list, global_list) {
+	list_for_each_entry(obj, &dev_priv->mm.bound_list, global_list)
+	{
 		if (!can_release_pages(obj))
+		{
 			unevictable += obj->base.size >> PAGE_SHIFT;
+		}
 		else
+		{
 			bound += obj->base.size >> PAGE_SHIFT;
+		}
 	}
 
 	i915_gem_shrinker_unlock_uninterruptible(dev_priv, &slu);
 
 	if (freed_pages || unbound || bound)
 		pr_info("Purging GPU memory, %lu pages freed, "
-			"%lu pages still pinned.\n",
-			freed_pages, unevictable);
+				"%lu pages still pinned.\n",
+				freed_pages, unevictable);
+
 	if (unbound || bound)
 		pr_err("%lu and %lu pages still available in the "
-		       "bound and unbound GPU page lists.\n",
-		       bound, unbound);
+			   "bound and unbound GPU page lists.\n",
+			   bound, unbound);
 
 	*(unsigned long *)ptr += freed_pages;
 	return NOTIFY_DONE;
@@ -411,27 +492,36 @@ i915_gem_shrinker_vmap(struct notifier_block *nb, unsigned long event, void *ptr
 	int ret;
 
 	if (!i915_gem_shrinker_lock_uninterruptible(dev_priv, &slu, 5000))
+	{
 		return NOTIFY_DONE;
+	}
 
 	/* Force everything onto the inactive lists */
 	ret = i915_gem_wait_for_idle(dev_priv, I915_WAIT_LOCKED);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	intel_runtime_pm_get(dev_priv);
 	freed_pages += i915_gem_shrink(dev_priv, -1UL,
-				       I915_SHRINK_BOUND |
-				       I915_SHRINK_UNBOUND |
-				       I915_SHRINK_ACTIVE |
-				       I915_SHRINK_VMAPS);
+								   I915_SHRINK_BOUND |
+								   I915_SHRINK_UNBOUND |
+								   I915_SHRINK_ACTIVE |
+								   I915_SHRINK_VMAPS);
 	intel_runtime_pm_put(dev_priv);
 
 	/* We also want to clear any cached iomaps as they wrap vmap */
 	list_for_each_entry_safe(vma, next,
-				 &dev_priv->ggtt.base.inactive_list, vm_link) {
+							 &dev_priv->ggtt.base.inactive_list, vm_link)
+	{
 		unsigned long count = vma->node.size >> PAGE_SHIFT;
+
 		if (vma->iomap && i915_vma_unbind(vma) == 0)
+		{
 			freed_pages += count;
+		}
 	}
 
 out:

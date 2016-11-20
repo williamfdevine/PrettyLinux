@@ -33,7 +33,8 @@
 #define DRV_NAME	"mpc52xx_ata"
 
 /* Private structures used by the driver */
-struct mpc52xx_ata_timings {
+struct mpc52xx_ata_timings
+{
 	u32	pio1;
 	u32	pio2;
 	u32	mdma1;
@@ -46,7 +47,8 @@ struct mpc52xx_ata_timings {
 	int	using_udma;
 };
 
-struct mpc52xx_ata_priv {
+struct mpc52xx_ata_priv
+{
 	unsigned int			ipb_period;
 	struct mpc52xx_ata __iomem	*ata_regs;
 	phys_addr_t			ata_regs_pa;
@@ -77,7 +79,8 @@ static const u16 ataspec_ta[5]		= { 35,  35,  35,  35,  35};
 /* ======================================================================== */
 
 /* ATAPI-4 MDMA specs (in clocks) */
-struct mdmaspec {
+struct mdmaspec
+{
 	u8 t0M;
 	u8 td;
 	u8 th;
@@ -87,20 +90,23 @@ struct mdmaspec {
 	u8 tn;
 };
 
-static const struct mdmaspec mdmaspec66[3] = {
+static const struct mdmaspec mdmaspec66[3] =
+{
 	{ .t0M = 32, .td = 15, .th = 2, .tj = 2, .tkw = 15, .tm = 4, .tn = 1 },
 	{ .t0M = 10, .td = 6,  .th = 1, .tj = 1, .tkw = 4,  .tm = 2, .tn = 1 },
 	{ .t0M = 8,  .td = 5,  .th = 1, .tj = 1, .tkw = 2,  .tm = 2, .tn = 1 },
 };
 
-static const struct mdmaspec mdmaspec132[3] = {
+static const struct mdmaspec mdmaspec132[3] =
+{
 	{ .t0M = 64, .td = 29, .th = 3, .tj = 3, .tkw = 29, .tm = 7, .tn = 2 },
 	{ .t0M = 20, .td = 11, .th = 2, .tj = 1, .tkw = 7,  .tm = 4, .tn = 1 },
 	{ .t0M = 16, .td = 10, .th = 2, .tj = 1, .tkw = 4,  .tm = 4, .tn = 1 },
 };
 
 /* ATAPI-4 UDMA specs (in clocks) */
-struct udmaspec {
+struct udmaspec
+{
 	u8 tcyc;
 	u8 t2cyc;
 	u8 tds;
@@ -120,57 +126,71 @@ struct udmaspec {
 	u8 tss;
 };
 
-static const struct udmaspec udmaspec66[6] = {
-	{ .tcyc = 8,  .t2cyc = 16, .tds  = 1,  .tdh  = 1, .tdvs = 5,  .tdvh = 1,
-	  .tfs  = 16, .tli   = 10, .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
-	  .tsr  = 3,  .trfs  = 5,  .trp  = 11, .tack = 2, .tss  = 4,
+static const struct udmaspec udmaspec66[6] =
+{
+	{
+		.tcyc = 8,  .t2cyc = 16, .tds  = 1,  .tdh  = 1, .tdvs = 5,  .tdvh = 1,
+		.tfs  = 16, .tli   = 10, .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
+		.tsr  = 3,  .trfs  = 5,  .trp  = 11, .tack = 2, .tss  = 4,
 	},
-	{ .tcyc = 5,  .t2cyc = 11, .tds  = 1,  .tdh  = 1, .tdvs = 4,  .tdvh = 1,
-	  .tfs  = 14, .tli   = 10, .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
-	  .tsr  = 2,  .trfs  = 5,  .trp  = 9,  .tack = 2, .tss  = 4,
+	{
+		.tcyc = 5,  .t2cyc = 11, .tds  = 1,  .tdh  = 1, .tdvs = 4,  .tdvh = 1,
+		.tfs  = 14, .tli   = 10, .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
+		.tsr  = 2,  .trfs  = 5,  .trp  = 9,  .tack = 2, .tss  = 4,
 	},
-	{ .tcyc = 4,  .t2cyc = 8,  .tds  = 1,  .tdh  = 1, .tdvs = 3,  .tdvh = 1,
-	  .tfs  = 12, .tli   = 10, .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
-	  .tsr  = 2,  .trfs  = 4,  .trp  = 7,  .tack = 2, .tss  = 4,
+	{
+		.tcyc = 4,  .t2cyc = 8,  .tds  = 1,  .tdh  = 1, .tdvs = 3,  .tdvh = 1,
+		.tfs  = 12, .tli   = 10, .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
+		.tsr  = 2,  .trfs  = 4,  .trp  = 7,  .tack = 2, .tss  = 4,
 	},
-	{ .tcyc = 3,  .t2cyc = 6,  .tds  = 1,  .tdh  = 1, .tdvs = 2,  .tdvh = 1,
-	  .tfs  = 9,  .tli   = 7,  .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
-	  .tsr  = 2,  .trfs  = 4,  .trp  = 7,  .tack = 2, .tss  = 4,
+	{
+		.tcyc = 3,  .t2cyc = 6,  .tds  = 1,  .tdh  = 1, .tdvs = 2,  .tdvh = 1,
+		.tfs  = 9,  .tli   = 7,  .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
+		.tsr  = 2,  .trfs  = 4,  .trp  = 7,  .tack = 2, .tss  = 4,
 	},
-	{ .tcyc = 2,  .t2cyc = 4,  .tds  = 1,  .tdh  = 1, .tdvs = 1,  .tdvh = 1,
-	  .tfs  = 8,  .tli   = 8,  .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
-	  .tsr  = 2,  .trfs  = 4,  .trp  = 7,  .tack = 2, .tss  = 4,
+	{
+		.tcyc = 2,  .t2cyc = 4,  .tds  = 1,  .tdh  = 1, .tdvs = 1,  .tdvh = 1,
+		.tfs  = 8,  .tli   = 8,  .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
+		.tsr  = 2,  .trfs  = 4,  .trp  = 7,  .tack = 2, .tss  = 4,
 	},
-	{ .tcyc = 2,  .t2cyc = 2,  .tds  = 1,  .tdh  = 1, .tdvs = 1,  .tdvh = 1,
-	  .tfs  = 6,  .tli   = 5,  .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
-	  .tsr  = 2,  .trfs  = 4,  .trp  = 6,  .tack = 2, .tss  = 4,
+	{
+		.tcyc = 2,  .t2cyc = 2,  .tds  = 1,  .tdh  = 1, .tdvs = 1,  .tdvh = 1,
+		.tfs  = 6,  .tli   = 5,  .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
+		.tsr  = 2,  .trfs  = 4,  .trp  = 6,  .tack = 2, .tss  = 4,
 	},
 };
 
-static const struct udmaspec udmaspec132[6] = {
-	{ .tcyc = 15, .t2cyc = 31, .tds  = 2,  .tdh  = 1, .tdvs = 10, .tdvh = 1,
-	  .tfs  = 30, .tli   = 20, .tmli = 3,  .taz  = 2, .tzah = 3,  .tenv = 3,
-	  .tsr  = 7,  .trfs  = 10, .trp  = 22, .tack = 3, .tss  = 7,
+static const struct udmaspec udmaspec132[6] =
+{
+	{
+		.tcyc = 15, .t2cyc = 31, .tds  = 2,  .tdh  = 1, .tdvs = 10, .tdvh = 1,
+		.tfs  = 30, .tli   = 20, .tmli = 3,  .taz  = 2, .tzah = 3,  .tenv = 3,
+		.tsr  = 7,  .trfs  = 10, .trp  = 22, .tack = 3, .tss  = 7,
 	},
-	{ .tcyc = 10, .t2cyc = 21, .tds  = 2,  .tdh  = 1, .tdvs = 7,  .tdvh = 1,
-	  .tfs  = 27, .tli   = 20, .tmli = 3,  .taz  = 2, .tzah = 3,  .tenv = 3,
-	  .tsr  = 4,  .trfs  = 10, .trp  = 17, .tack = 3, .tss  = 7,
+	{
+		.tcyc = 10, .t2cyc = 21, .tds  = 2,  .tdh  = 1, .tdvs = 7,  .tdvh = 1,
+		.tfs  = 27, .tli   = 20, .tmli = 3,  .taz  = 2, .tzah = 3,  .tenv = 3,
+		.tsr  = 4,  .trfs  = 10, .trp  = 17, .tack = 3, .tss  = 7,
 	},
-	{ .tcyc = 6,  .t2cyc = 12, .tds  = 1,  .tdh  = 1, .tdvs = 5,  .tdvh = 1,
-	  .tfs  = 23, .tli   = 20, .tmli = 3,  .taz  = 2, .tzah = 3,  .tenv = 3,
-	  .tsr  = 3,  .trfs  = 8,  .trp  = 14, .tack = 3, .tss  = 7,
+	{
+		.tcyc = 6,  .t2cyc = 12, .tds  = 1,  .tdh  = 1, .tdvs = 5,  .tdvh = 1,
+		.tfs  = 23, .tli   = 20, .tmli = 3,  .taz  = 2, .tzah = 3,  .tenv = 3,
+		.tsr  = 3,  .trfs  = 8,  .trp  = 14, .tack = 3, .tss  = 7,
 	},
-	{ .tcyc = 7,  .t2cyc = 12, .tds  = 1,  .tdh  = 1, .tdvs = 3,  .tdvh = 1,
-	  .tfs  = 15, .tli   = 13, .tmli = 3,  .taz  = 2, .tzah = 3,  .tenv = 3,
-	  .tsr  = 3,  .trfs  = 8,  .trp  = 14, .tack = 3, .tss  = 7,
+	{
+		.tcyc = 7,  .t2cyc = 12, .tds  = 1,  .tdh  = 1, .tdvs = 3,  .tdvh = 1,
+		.tfs  = 15, .tli   = 13, .tmli = 3,  .taz  = 2, .tzah = 3,  .tenv = 3,
+		.tsr  = 3,  .trfs  = 8,  .trp  = 14, .tack = 3, .tss  = 7,
 	},
-	{ .tcyc = 2,  .t2cyc = 5,  .tds  = 0,  .tdh  = 0, .tdvs = 1,  .tdvh = 1,
-	  .tfs  = 16, .tli   = 14, .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
-	  .tsr  = 2,  .trfs  = 7,  .trp  = 13, .tack = 2, .tss  = 6,
+	{
+		.tcyc = 2,  .t2cyc = 5,  .tds  = 0,  .tdh  = 0, .tdvs = 1,  .tdvh = 1,
+		.tfs  = 16, .tli   = 14, .tmli = 2,  .taz  = 1, .tzah = 2,  .tenv = 2,
+		.tsr  = 2,  .trfs  = 7,  .trp  = 13, .tack = 2, .tss  = 6,
 	},
-	{ .tcyc = 3,  .t2cyc = 6,  .tds  = 1,  .tdh  = 1, .tdvs = 1,  .tdvh = 1,
-	  .tfs  = 12, .tli   = 10, .tmli = 3,  .taz  = 2, .tzah = 3,  .tenv = 3,
-	  .tsr  = 3,  .trfs  = 7,  .trp  = 12, .tack = 3, .tss  = 7,
+	{
+		.tcyc = 3,  .t2cyc = 6,  .tds  = 1,  .tdh  = 1, .tdvs = 1,  .tdvh = 1,
+		.tfs  = 12, .tli   = 10, .tmli = 3,  .taz  = 2, .tzah = 3,  .tenv = 3,
+		.tsr  = 3,  .trfs  = 7,  .trp  = 12, .tack = 3, .tss  = 7,
 	},
 };
 
@@ -202,7 +222,8 @@ static const struct udmaspec udmaspec132[6] = {
 #define MAX_DMA_BUFFER_SIZE 0x20000u
 
 /* Structure of the hardware registers */
-struct mpc52xx_ata {
+struct mpc52xx_ata
+{
 
 	/* Host interface registers */
 	u32 config;		/* ATA + 0x00 Host configuration */
@@ -273,7 +294,9 @@ mpc52xx_ata_compute_pio_timings(struct mpc52xx_ata_priv *priv, int dev, int pio)
 	u32 t0, t1, t2_8, t2_16, t2i, t4, ta;
 
 	if ((pio < 0) || (pio > 4))
+	{
 		return -EINVAL;
+	}
 
 	t0	= CALC_CLKCYC(ipb_period, 1000 * ataspec_t0[pio]);
 	t1	= CALC_CLKCYC(ipb_period, 1000 * ataspec_t1[pio]);
@@ -291,13 +314,15 @@ mpc52xx_ata_compute_pio_timings(struct mpc52xx_ata_priv *priv, int dev, int pio)
 
 static int
 mpc52xx_ata_compute_mdma_timings(struct mpc52xx_ata_priv *priv, int dev,
-				 int speed)
+								 int speed)
 {
 	struct mpc52xx_ata_timings *t = &priv->timings[dev];
 	const struct mdmaspec *s = &priv->mdmaspec[speed];
 
 	if (speed < 0 || speed > 2)
+	{
 		return -EINVAL;
+	}
 
 	t->mdma1 = ((u32)s->t0M << 24) | ((u32)s->td << 16) | ((u32)s->tkw << 8) | s->tm;
 	t->mdma2 = ((u32)s->th << 24) | ((u32)s->tj << 16) | ((u32)s->tn << 8);
@@ -308,13 +333,15 @@ mpc52xx_ata_compute_mdma_timings(struct mpc52xx_ata_priv *priv, int dev,
 
 static int
 mpc52xx_ata_compute_udma_timings(struct mpc52xx_ata_priv *priv, int dev,
-				 int speed)
+								 int speed)
 {
 	struct mpc52xx_ata_timings *t = &priv->timings[dev];
 	const struct udmaspec *s = &priv->udmaspec[speed];
 
 	if (speed < 0 || speed > 2)
+	{
 		return -EINVAL;
+	}
 
 	t->udma1 = ((u32)s->t2cyc << 24) | ((u32)s->tcyc << 16) | ((u32)s->tds << 8) | s->tdh;
 	t->udma2 = ((u32)s->tdvs << 24) | ((u32)s->tdvh << 16) | ((u32)s->tfs << 8) | s->tli;
@@ -355,23 +382,23 @@ mpc52xx_ata_hw_init(struct mpc52xx_ata_priv *priv)
 
 	/* Configure and reset host */
 	out_be32(&regs->config,
-			MPC52xx_ATA_HOSTCONF_IE |
-			MPC52xx_ATA_HOSTCONF_IORDY |
-			MPC52xx_ATA_HOSTCONF_SMR |
-			MPC52xx_ATA_HOSTCONF_FR);
+			 MPC52xx_ATA_HOSTCONF_IE |
+			 MPC52xx_ATA_HOSTCONF_IORDY |
+			 MPC52xx_ATA_HOSTCONF_SMR |
+			 MPC52xx_ATA_HOSTCONF_FR);
 
 	udelay(10);
 
 	out_be32(&regs->config,
-			MPC52xx_ATA_HOSTCONF_IE |
-			MPC52xx_ATA_HOSTCONF_IORDY);
+			 MPC52xx_ATA_HOSTCONF_IE |
+			 MPC52xx_ATA_HOSTCONF_IORDY);
 
 	/* Set the time slot to 1us */
 	tslot = CALC_CLKCYC(priv->ipb_period, 1000000);
 	out_be32(&regs->share_cnt, tslot << 16);
 
 	/* Init timings to PIO0 */
-	memset(priv->timings, 0x00, 2*sizeof(struct mpc52xx_ata_timings));
+	memset(priv->timings, 0x00, 2 * sizeof(struct mpc52xx_ata_timings));
 
 	mpc52xx_ata_compute_pio_timings(priv, 0, 0);
 	mpc52xx_ata_compute_pio_timings(priv, 1, 0);
@@ -396,7 +423,8 @@ mpc52xx_ata_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 	rv = mpc52xx_ata_compute_pio_timings(priv, adev->devno, pio);
 
-	if (rv) {
+	if (rv)
+	{
 		dev_err(ap->dev, "error: invalid PIO mode: %d\n", pio);
 		return;
 	}
@@ -410,18 +438,22 @@ mpc52xx_ata_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 	struct mpc52xx_ata_priv *priv = ap->host->private_data;
 	int rv;
 
-	if (adev->dma_mode >= XFER_UDMA_0) {
+	if (adev->dma_mode >= XFER_UDMA_0)
+	{
 		int dma = adev->dma_mode - XFER_UDMA_0;
 		rv = mpc52xx_ata_compute_udma_timings(priv, adev->devno, dma);
-	} else {
+	}
+	else
+	{
 		int dma = adev->dma_mode - XFER_MW_DMA_0;
 		rv = mpc52xx_ata_compute_mdma_timings(priv, adev->devno, dma);
 	}
 
-	if (rv) {
+	if (rv)
+	{
 		dev_alert(ap->dev,
-			"Trying to select invalid DMA mode %d\n",
-			adev->dma_mode);
+				  "Trying to select invalid DMA mode %d\n",
+				  adev->dma_mode);
 		return;
 	}
 
@@ -434,7 +466,9 @@ mpc52xx_ata_dev_select(struct ata_port *ap, unsigned int device)
 	struct mpc52xx_ata_priv *priv = ap->host->private_data;
 
 	if (device != priv->csel)
+	{
 		mpc52xx_ata_apply_timings(priv, device);
+	}
 
 	ata_sff_dev_select(ap, device);
 }
@@ -450,29 +484,38 @@ mpc52xx_ata_build_dmatable(struct ata_queued_cmd *qc)
 	int count = 0;
 
 	if (read)
+	{
 		bcom_ata_rx_prepare(priv->dmatsk);
+	}
 	else
+	{
 		bcom_ata_tx_prepare(priv->dmatsk);
+	}
 
-	for_each_sg(qc->sg, sg, qc->n_elem, si) {
+	for_each_sg(qc->sg, sg, qc->n_elem, si)
+	{
 		dma_addr_t cur_addr = sg_dma_address(sg);
 		u32 cur_len = sg_dma_len(sg);
 
-		while (cur_len) {
+		while (cur_len)
+		{
 			unsigned int tc = min(cur_len, MAX_DMA_BUFFER_SIZE);
 			bd = (struct bcom_ata_bd *)
-				bcom_prepare_next_buffer(priv->dmatsk);
+				 bcom_prepare_next_buffer(priv->dmatsk);
 
-			if (read) {
+			if (read)
+			{
 				bd->status = tc;
 				bd->src_pa = (__force u32) priv->ata_regs_pa +
-					offsetof(struct mpc52xx_ata, fifo_data);
+							 offsetof(struct mpc52xx_ata, fifo_data);
 				bd->dst_pa = (__force u32) cur_addr;
-			} else {
+			}
+			else
+			{
 				bd->status = tc;
 				bd->src_pa = (__force u32) cur_addr;
 				bd->dst_pa = (__force u32) priv->ata_regs_pa +
-					offsetof(struct mpc52xx_ata, fifo_data);
+							 offsetof(struct mpc52xx_ata, fifo_data);
 			}
 
 			bcom_submit_next_buffer(priv->dmatsk, NULL);
@@ -481,16 +524,17 @@ mpc52xx_ata_build_dmatable(struct ata_queued_cmd *qc)
 			cur_len -= tc;
 			count++;
 
-			if (count > MAX_DMA_BUFFERS) {
+			if (count > MAX_DMA_BUFFERS)
+			{
 				dev_alert(ap->dev, "dma table"
-					"too small\n");
+						  "too small\n");
 				goto use_pio_instead;
 			}
 		}
 	}
 	return 1;
 
- use_pio_instead:
+use_pio_instead:
 	bcom_ata_reset_bd(priv->dmatsk);
 	return 0;
 }
@@ -507,19 +551,21 @@ mpc52xx_bmdma_setup(struct ata_queued_cmd *qc)
 
 	if (!mpc52xx_ata_build_dmatable(qc))
 		dev_alert(ap->dev, "%s: %i, return 1?\n",
-			__func__, __LINE__);
+				  __func__, __LINE__);
 
 	/* Check FIFO is OK... */
 	if (in_8(&priv->ata_regs->fifo_status) & MPC52xx_ATA_FIFOSTAT_ERROR)
 		dev_alert(ap->dev, "%s: FIFO error detected: 0x%02x!\n",
-			__func__, in_8(&priv->ata_regs->fifo_status));
+				  __func__, in_8(&priv->ata_regs->fifo_status));
 
-	if (read) {
+	if (read)
+	{
 		dma_mode = MPC52xx_ATA_DMAMODE_IE | MPC52xx_ATA_DMAMODE_READ |
-				MPC52xx_ATA_DMAMODE_FE;
+				   MPC52xx_ATA_DMAMODE_FE;
 
 		/* Setup FIFO if direction changed */
-		if (priv->mpc52xx_ata_dma_last_write != 0) {
+		if (priv->mpc52xx_ata_dma_last_write != 0)
+		{
 			priv->mpc52xx_ata_dma_last_write = 0;
 
 			/* Configure FIFO with granularity to 7 */
@@ -529,11 +575,14 @@ mpc52xx_bmdma_setup(struct ata_queued_cmd *qc)
 			/* Set FIFO Reset bit (FR) */
 			out_8(&regs->dma_mode, MPC52xx_ATA_DMAMODE_FR);
 		}
-	} else {
+	}
+	else
+	{
 		dma_mode = MPC52xx_ATA_DMAMODE_IE | MPC52xx_ATA_DMAMODE_WRITE;
 
 		/* Setup FIFO if direction changed */
-		if (priv->mpc52xx_ata_dma_last_write != 1) {
+		if (priv->mpc52xx_ata_dma_last_write != 1)
+		{
 			priv->mpc52xx_ata_dma_last_write = 1;
 
 			/* Configure FIFO with granularity to 4 */
@@ -543,7 +592,9 @@ mpc52xx_bmdma_setup(struct ata_queued_cmd *qc)
 	}
 
 	if (priv->timings[qc->dev->devno].using_udma)
+	{
 		dma_mode |= MPC52xx_ATA_DMAMODE_UDMA;
+	}
 
 	out_8(&regs->dma_mode, dma_mode);
 	priv->waiting_for_dma = ATA_DMA_ACTIVE;
@@ -575,7 +626,7 @@ mpc52xx_bmdma_stop(struct ata_queued_cmd *qc)
 	/* Check FIFO is OK... */
 	if (in_8(&priv->ata_regs->fifo_status) & MPC52xx_ATA_FIFOSTAT_ERROR)
 		dev_alert(ap->dev, "%s: FIFO error detected: 0x%02x!\n",
-			__func__, in_8(&priv->ata_regs->fifo_status));
+				  __func__, in_8(&priv->ata_regs->fifo_status));
 }
 
 static u8
@@ -584,9 +635,10 @@ mpc52xx_bmdma_status(struct ata_port *ap)
 	struct mpc52xx_ata_priv *priv = ap->host->private_data;
 
 	/* Check FIFO is OK... */
-	if (in_8(&priv->ata_regs->fifo_status) & MPC52xx_ATA_FIFOSTAT_ERROR) {
+	if (in_8(&priv->ata_regs->fifo_status) & MPC52xx_ATA_FIFOSTAT_ERROR)
+	{
 		dev_alert(ap->dev, "%s: FIFO error detected: 0x%02x!\n",
-			__func__, in_8(&priv->ata_regs->fifo_status));
+				  __func__, in_8(&priv->ata_regs->fifo_status));
 		return priv->waiting_for_dma | ATA_DMA_ERR;
 	}
 
@@ -597,19 +649,24 @@ static irqreturn_t
 mpc52xx_ata_task_irq(int irq, void *vpriv)
 {
 	struct mpc52xx_ata_priv *priv = vpriv;
+
 	while (bcom_buffer_done(priv->dmatsk))
+	{
 		bcom_retrieve_buffer(priv->dmatsk, NULL, NULL);
+	}
 
 	priv->waiting_for_dma |= ATA_DMA_INTR;
 
 	return IRQ_HANDLED;
 }
 
-static struct scsi_host_template mpc52xx_ata_sht = {
+static struct scsi_host_template mpc52xx_ata_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations mpc52xx_ata_port_ops = {
+static struct ata_port_operations mpc52xx_ata_port_ops =
+{
 	.inherits		= &ata_bmdma_port_ops,
 	.sff_dev_select		= mpc52xx_ata_dev_select,
 	.set_piomode		= mpc52xx_ata_set_piomode,
@@ -622,17 +679,20 @@ static struct ata_port_operations mpc52xx_ata_port_ops = {
 };
 
 static int mpc52xx_ata_init_one(struct device *dev,
-				struct mpc52xx_ata_priv *priv,
-				unsigned long raw_ata_regs,
-				int mwdma_mask, int udma_mask)
+								struct mpc52xx_ata_priv *priv,
+								unsigned long raw_ata_regs,
+								int mwdma_mask, int udma_mask)
 {
 	struct ata_host *host;
 	struct ata_port *ap;
 	struct ata_ioports *aio;
 
 	host = ata_host_alloc(dev, 1);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	ap = host->ports[0];
 	ap->flags		|= ATA_FLAG_SLAVE_POSS;
@@ -661,7 +721,7 @@ static int mpc52xx_ata_init_one(struct device *dev,
 
 	/* activate host */
 	return ata_host_activate(host, priv->ata_irq, ata_bmdma_interrupt, 0,
-				 &mpc52xx_ata_sht);
+							 &mpc52xx_ata_sht);
 }
 
 /* ======================================================================== */
@@ -683,7 +743,9 @@ static int mpc52xx_ata_probe(struct platform_device *op)
 
 	/* Get ipb frequency */
 	ipb_freq = mpc5xxx_get_bus_frequency(op->dev.of_node);
-	if (!ipb_freq) {
+
+	if (!ipb_freq)
+	{
 		dev_err(&op->dev, "could not determine IPB bus frequency\n");
 		return -ENODEV;
 	}
@@ -691,19 +753,24 @@ static int mpc52xx_ata_probe(struct platform_device *op)
 	/* Get device base address from device tree, request the region
 	 * and ioremap it. */
 	rv = of_address_to_resource(op->dev.of_node, 0, &res_mem);
-	if (rv) {
+
+	if (rv)
+	{
 		dev_err(&op->dev, "could not determine device base address\n");
 		return rv;
 	}
 
 	if (!devm_request_mem_region(&op->dev, res_mem.start,
-				     sizeof(*ata_regs), DRV_NAME)) {
+								 sizeof(*ata_regs), DRV_NAME))
+	{
 		dev_err(&op->dev, "error requesting register region\n");
 		return -EBUSY;
 	}
 
 	ata_regs = devm_ioremap(&op->dev, res_mem.start, sizeof(*ata_regs));
-	if (!ata_regs) {
+
+	if (!ata_regs)
+	{
 		dev_err(&op->dev, "error mapping device registers\n");
 		return -ENOMEM;
 	}
@@ -723,21 +790,32 @@ static int mpc52xx_ata_probe(struct platform_device *op)
 	 * UDMA modes 0, 1 and 2.
 	 */
 	prop = of_get_property(op->dev.of_node, "mwdma-mode", &proplen);
+
 	if ((prop) && (proplen >= 4))
+	{
 		mwdma_mask = ATA_MWDMA2 & ((1 << (*prop + 1)) - 1);
+	}
+
 	prop = of_get_property(op->dev.of_node, "udma-mode", &proplen);
+
 	if ((prop) && (proplen >= 4))
+	{
 		udma_mask = ATA_UDMA2 & ((1 << (*prop + 1)) - 1);
+	}
 
 	ata_irq = irq_of_parse_and_map(op->dev.of_node, 0);
-	if (ata_irq == NO_IRQ) {
+
+	if (ata_irq == NO_IRQ)
+	{
 		dev_err(&op->dev, "error mapping irq\n");
 		return -EINVAL;
 	}
 
 	/* Prepare our private structure */
 	priv = devm_kzalloc(&op->dev, sizeof(*priv), GFP_ATOMIC);
-	if (!priv) {
+
+	if (!priv)
+	{
 		dev_err(&op->dev, "error allocating private structure\n");
 		rv = -ENOMEM;
 		goto err1;
@@ -750,17 +828,22 @@ static int mpc52xx_ata_probe(struct platform_device *op)
 	priv->csel = -1;
 	priv->mpc52xx_ata_dma_last_write = -1;
 
-	if (ipb_freq/1000000 == 66) {
+	if (ipb_freq / 1000000 == 66)
+	{
 		priv->mdmaspec = mdmaspec66;
 		priv->udmaspec = udmaspec66;
-	} else {
+	}
+	else
+	{
 		priv->mdmaspec = mdmaspec132;
 		priv->udmaspec = udmaspec132;
 	}
 
 	/* Allocate a BestComm task for DMA */
 	dmatsk = bcom_ata_init(MAX_DMA_BUFFERS, MAX_DMA_BUFFER_SIZE);
-	if (!dmatsk) {
+
+	if (!dmatsk)
+	{
 		dev_err(&op->dev, "bestcomm initialization failed\n");
 		rv = -ENOMEM;
 		goto err1;
@@ -768,34 +851,41 @@ static int mpc52xx_ata_probe(struct platform_device *op)
 
 	task_irq = bcom_get_task_irq(dmatsk);
 	rv = devm_request_irq(&op->dev, task_irq, &mpc52xx_ata_task_irq, 0,
-				"ATA task", priv);
-	if (rv) {
+						  "ATA task", priv);
+
+	if (rv)
+	{
 		dev_err(&op->dev, "error requesting DMA IRQ\n");
 		goto err2;
 	}
+
 	priv->dmatsk = dmatsk;
 
 	/* Init the hw */
 	rv = mpc52xx_ata_hw_init(priv);
-	if (rv) {
+
+	if (rv)
+	{
 		dev_err(&op->dev, "error initializing hardware\n");
 		goto err2;
 	}
 
 	/* Register ourselves to libata */
 	rv = mpc52xx_ata_init_one(&op->dev, priv, res_mem.start,
-				  mwdma_mask, udma_mask);
-	if (rv) {
+							  mwdma_mask, udma_mask);
+
+	if (rv)
+	{
 		dev_err(&op->dev, "error registering with ATA layer\n");
 		goto err2;
 	}
 
 	return 0;
 
- err2:
+err2:
 	irq_dispose_mapping(task_irq);
 	bcom_ata_release(dmatsk);
- err1:
+err1:
 	irq_dispose_mapping(ata_irq);
 	return rv;
 }
@@ -836,7 +926,9 @@ mpc52xx_ata_resume(struct platform_device *op)
 	int rv;
 
 	rv = mpc52xx_ata_hw_init(priv);
-	if (rv) {
+
+	if (rv)
+	{
 		dev_err(host->dev, "error initializing hardware\n");
 		return rv;
 	}
@@ -847,14 +939,16 @@ mpc52xx_ata_resume(struct platform_device *op)
 }
 #endif
 
-static struct of_device_id mpc52xx_ata_of_match[] = {
+static struct of_device_id mpc52xx_ata_of_match[] =
+{
 	{ .compatible = "fsl,mpc5200-ata", },
 	{ .compatible = "mpc5200-ata", },
 	{},
 };
 
 
-static struct platform_driver mpc52xx_ata_of_platform_driver = {
+static struct platform_driver mpc52xx_ata_of_platform_driver =
+{
 	.probe		= mpc52xx_ata_probe,
 	.remove		= mpc52xx_ata_remove,
 #ifdef CONFIG_PM_SLEEP

@@ -57,12 +57,18 @@ static void tegra20_ac97_codec_reset(struct snd_ac97 *ac97)
 
 	timeout = jiffies + msecs_to_jiffies(100);
 
-	do {
+	do
+	{
 		regmap_read(workdata->regmap, TEGRA20_AC97_STATUS1, &readback);
+
 		if (readback & TEGRA20_AC97_STATUS1_CODEC1_RDY)
+		{
 			break;
+		}
+
 		usleep_range(1000, 2000);
-	} while (!time_after(jiffies, timeout));
+	}
+	while (!time_after(jiffies, timeout));
 }
 
 static void tegra20_ac97_codec_warm_reset(struct snd_ac97 *ac97)
@@ -86,62 +92,81 @@ static void tegra20_ac97_codec_warm_reset(struct snd_ac97 *ac97)
 
 	timeout = jiffies + msecs_to_jiffies(100);
 
-	do {
+	do
+	{
 		regmap_read(workdata->regmap, TEGRA20_AC97_STATUS1, &readback);
+
 		if (readback & TEGRA20_AC97_STATUS1_CODEC1_RDY)
+		{
 			break;
+		}
+
 		usleep_range(1000, 2000);
-	} while (!time_after(jiffies, timeout));
+	}
+	while (!time_after(jiffies, timeout));
 }
 
 static unsigned short tegra20_ac97_codec_read(struct snd_ac97 *ac97_snd,
-					      unsigned short reg)
+		unsigned short reg)
 {
 	u32 readback;
 	unsigned long timeout;
 
 	regmap_write(workdata->regmap, TEGRA20_AC97_CMD,
-		     (((reg | 0x80) << TEGRA20_AC97_CMD_CMD_ADDR_SHIFT) &
-		      TEGRA20_AC97_CMD_CMD_ADDR_MASK) |
-		     TEGRA20_AC97_CMD_BUSY);
+				 (((reg | 0x80) << TEGRA20_AC97_CMD_CMD_ADDR_SHIFT) &
+				  TEGRA20_AC97_CMD_CMD_ADDR_MASK) |
+				 TEGRA20_AC97_CMD_BUSY);
 
 	timeout = jiffies + msecs_to_jiffies(100);
 
-	do {
+	do
+	{
 		regmap_read(workdata->regmap, TEGRA20_AC97_STATUS1, &readback);
+
 		if (readback & TEGRA20_AC97_STATUS1_STA_VALID1)
+		{
 			break;
+		}
+
 		usleep_range(1000, 2000);
-	} while (!time_after(jiffies, timeout));
+	}
+	while (!time_after(jiffies, timeout));
 
 	return ((readback & TEGRA20_AC97_STATUS1_STA_DATA1_MASK) >>
-		TEGRA20_AC97_STATUS1_STA_DATA1_SHIFT);
+			TEGRA20_AC97_STATUS1_STA_DATA1_SHIFT);
 }
 
 static void tegra20_ac97_codec_write(struct snd_ac97 *ac97_snd,
-				     unsigned short reg, unsigned short val)
+									 unsigned short reg, unsigned short val)
 {
 	u32 readback;
 	unsigned long timeout;
 
 	regmap_write(workdata->regmap, TEGRA20_AC97_CMD,
-		     ((reg << TEGRA20_AC97_CMD_CMD_ADDR_SHIFT) &
-		      TEGRA20_AC97_CMD_CMD_ADDR_MASK) |
-		     ((val << TEGRA20_AC97_CMD_CMD_DATA_SHIFT) &
-		      TEGRA20_AC97_CMD_CMD_DATA_MASK) |
-		     TEGRA20_AC97_CMD_BUSY);
+				 ((reg << TEGRA20_AC97_CMD_CMD_ADDR_SHIFT) &
+				  TEGRA20_AC97_CMD_CMD_ADDR_MASK) |
+				 ((val << TEGRA20_AC97_CMD_CMD_DATA_SHIFT) &
+				  TEGRA20_AC97_CMD_CMD_DATA_MASK) |
+				 TEGRA20_AC97_CMD_BUSY);
 
 	timeout = jiffies + msecs_to_jiffies(100);
 
-	do {
+	do
+	{
 		regmap_read(workdata->regmap, TEGRA20_AC97_CMD, &readback);
+
 		if (!(readback & TEGRA20_AC97_CMD_BUSY))
+		{
 			break;
+		}
+
 		usleep_range(1000, 2000);
-	} while (!time_after(jiffies, timeout));
+	}
+	while (!time_after(jiffies, timeout));
 }
 
-static struct snd_ac97_bus_ops tegra20_ac97_ops = {
+static struct snd_ac97_bus_ops tegra20_ac97_ops =
+{
 	.read		= tegra20_ac97_codec_read,
 	.write		= tegra20_ac97_codec_write,
 	.reset		= tegra20_ac97_codec_reset,
@@ -151,68 +176,82 @@ static struct snd_ac97_bus_ops tegra20_ac97_ops = {
 static inline void tegra20_ac97_start_playback(struct tegra20_ac97 *ac97)
 {
 	regmap_update_bits(ac97->regmap, TEGRA20_AC97_FIFO1_SCR,
-			   TEGRA20_AC97_FIFO_SCR_PB_QRT_MT_EN,
-			   TEGRA20_AC97_FIFO_SCR_PB_QRT_MT_EN);
+					   TEGRA20_AC97_FIFO_SCR_PB_QRT_MT_EN,
+					   TEGRA20_AC97_FIFO_SCR_PB_QRT_MT_EN);
 
 	regmap_update_bits(ac97->regmap, TEGRA20_AC97_CTRL,
-			   TEGRA20_AC97_CTRL_PCM_DAC_EN |
-			   TEGRA20_AC97_CTRL_STM_EN,
-			   TEGRA20_AC97_CTRL_PCM_DAC_EN |
-			   TEGRA20_AC97_CTRL_STM_EN);
+					   TEGRA20_AC97_CTRL_PCM_DAC_EN |
+					   TEGRA20_AC97_CTRL_STM_EN,
+					   TEGRA20_AC97_CTRL_PCM_DAC_EN |
+					   TEGRA20_AC97_CTRL_STM_EN);
 }
 
 static inline void tegra20_ac97_stop_playback(struct tegra20_ac97 *ac97)
 {
 	regmap_update_bits(ac97->regmap, TEGRA20_AC97_FIFO1_SCR,
-			   TEGRA20_AC97_FIFO_SCR_PB_QRT_MT_EN, 0);
+					   TEGRA20_AC97_FIFO_SCR_PB_QRT_MT_EN, 0);
 
 	regmap_update_bits(ac97->regmap, TEGRA20_AC97_CTRL,
-			   TEGRA20_AC97_CTRL_PCM_DAC_EN, 0);
+					   TEGRA20_AC97_CTRL_PCM_DAC_EN, 0);
 }
 
 static inline void tegra20_ac97_start_capture(struct tegra20_ac97 *ac97)
 {
 	regmap_update_bits(ac97->regmap, TEGRA20_AC97_FIFO1_SCR,
-			   TEGRA20_AC97_FIFO_SCR_REC_FULL_EN,
-			   TEGRA20_AC97_FIFO_SCR_REC_FULL_EN);
+					   TEGRA20_AC97_FIFO_SCR_REC_FULL_EN,
+					   TEGRA20_AC97_FIFO_SCR_REC_FULL_EN);
 }
 
 static inline void tegra20_ac97_stop_capture(struct tegra20_ac97 *ac97)
 {
 	regmap_update_bits(ac97->regmap, TEGRA20_AC97_FIFO1_SCR,
-			   TEGRA20_AC97_FIFO_SCR_REC_FULL_EN, 0);
+					   TEGRA20_AC97_FIFO_SCR_REC_FULL_EN, 0);
 }
 
 static int tegra20_ac97_trigger(struct snd_pcm_substream *substream, int cmd,
-				struct snd_soc_dai *dai)
+								struct snd_soc_dai *dai)
 {
 	struct tegra20_ac97 *ac97 = snd_soc_dai_get_drvdata(dai);
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-	case SNDRV_PCM_TRIGGER_RESUME:
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-			tegra20_ac97_start_playback(ac97);
-		else
-			tegra20_ac97_start_capture(ac97);
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-	case SNDRV_PCM_TRIGGER_SUSPEND:
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-			tegra20_ac97_stop_playback(ac97);
-		else
-			tegra20_ac97_stop_capture(ac97);
-		break;
-	default:
-		return -EINVAL;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+		case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+		case SNDRV_PCM_TRIGGER_RESUME:
+			if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+			{
+				tegra20_ac97_start_playback(ac97);
+			}
+			else
+			{
+				tegra20_ac97_start_capture(ac97);
+			}
+
+			break;
+
+		case SNDRV_PCM_TRIGGER_STOP:
+		case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+		case SNDRV_PCM_TRIGGER_SUSPEND:
+			if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+			{
+				tegra20_ac97_stop_playback(ac97);
+			}
+			else
+			{
+				tegra20_ac97_stop_capture(ac97);
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
-static const struct snd_soc_dai_ops tegra20_ac97_dai_ops = {
+static const struct snd_soc_dai_ops tegra20_ac97_dai_ops =
+{
 	.trigger	= tegra20_ac97_trigger,
 };
 
@@ -226,7 +265,8 @@ static int tegra20_ac97_probe(struct snd_soc_dai *dai)
 	return 0;
 }
 
-static struct snd_soc_dai_driver tegra20_ac97_dai = {
+static struct snd_soc_dai_driver tegra20_ac97_dai =
+{
 	.name = "tegra-ac97-pcm",
 	.bus_control = true,
 	.probe = tegra20_ac97_probe,
@@ -247,22 +287,25 @@ static struct snd_soc_dai_driver tegra20_ac97_dai = {
 	.ops = &tegra20_ac97_dai_ops,
 };
 
-static const struct snd_soc_component_driver tegra20_ac97_component = {
+static const struct snd_soc_component_driver tegra20_ac97_component =
+{
 	.name		= DRV_NAME,
 };
 
 static bool tegra20_ac97_wr_rd_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case TEGRA20_AC97_CTRL:
-	case TEGRA20_AC97_CMD:
-	case TEGRA20_AC97_STATUS1:
-	case TEGRA20_AC97_FIFO1_SCR:
-	case TEGRA20_AC97_FIFO_TX1:
-	case TEGRA20_AC97_FIFO_RX1:
-		return true;
-	default:
-		break;
+	switch (reg)
+	{
+		case TEGRA20_AC97_CTRL:
+		case TEGRA20_AC97_CMD:
+		case TEGRA20_AC97_STATUS1:
+		case TEGRA20_AC97_FIFO1_SCR:
+		case TEGRA20_AC97_FIFO_TX1:
+		case TEGRA20_AC97_FIFO_RX1:
+			return true;
+
+		default:
+			break;
 	}
 
 	return false;
@@ -270,14 +313,16 @@ static bool tegra20_ac97_wr_rd_reg(struct device *dev, unsigned int reg)
 
 static bool tegra20_ac97_volatile_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case TEGRA20_AC97_STATUS1:
-	case TEGRA20_AC97_FIFO1_SCR:
-	case TEGRA20_AC97_FIFO_TX1:
-	case TEGRA20_AC97_FIFO_RX1:
-		return true;
-	default:
-		break;
+	switch (reg)
+	{
+		case TEGRA20_AC97_STATUS1:
+		case TEGRA20_AC97_FIFO1_SCR:
+		case TEGRA20_AC97_FIFO_TX1:
+		case TEGRA20_AC97_FIFO_RX1:
+			return true;
+
+		default:
+			break;
 	}
 
 	return false;
@@ -285,18 +330,21 @@ static bool tegra20_ac97_volatile_reg(struct device *dev, unsigned int reg)
 
 static bool tegra20_ac97_precious_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case TEGRA20_AC97_FIFO_TX1:
-	case TEGRA20_AC97_FIFO_RX1:
-		return true;
-	default:
-		break;
+	switch (reg)
+	{
+		case TEGRA20_AC97_FIFO_TX1:
+		case TEGRA20_AC97_FIFO_RX1:
+			return true;
+
+		default:
+			break;
 	}
 
 	return false;
 }
 
-static const struct regmap_config tegra20_ac97_regmap_config = {
+static const struct regmap_config tegra20_ac97_regmap_config =
+{
 	.reg_bits = 32,
 	.reg_stride = 4,
 	.val_bits = 32,
@@ -316,16 +364,21 @@ static int tegra20_ac97_platform_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	ac97 = devm_kzalloc(&pdev->dev, sizeof(struct tegra20_ac97),
-			    GFP_KERNEL);
-	if (!ac97) {
+						GFP_KERNEL);
+
+	if (!ac97)
+	{
 		dev_err(&pdev->dev, "Can't allocate tegra20_ac97\n");
 		ret = -ENOMEM;
 		goto err;
 	}
+
 	dev_set_drvdata(&pdev->dev, ac97);
 
 	ac97->clk_ac97 = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(ac97->clk_ac97)) {
+
+	if (IS_ERR(ac97->clk_ac97))
+	{
 		dev_err(&pdev->dev, "Can't retrieve ac97 clock\n");
 		ret = PTR_ERR(ac97->clk_ac97);
 		goto err;
@@ -333,36 +386,48 @@ static int tegra20_ac97_platform_probe(struct platform_device *pdev)
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	regs = devm_ioremap_resource(&pdev->dev, mem);
-	if (IS_ERR(regs)) {
+
+	if (IS_ERR(regs))
+	{
 		ret = PTR_ERR(regs);
 		goto err_clk_put;
 	}
 
 	ac97->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
-					    &tegra20_ac97_regmap_config);
-	if (IS_ERR(ac97->regmap)) {
+										 &tegra20_ac97_regmap_config);
+
+	if (IS_ERR(ac97->regmap))
+	{
 		dev_err(&pdev->dev, "regmap init failed\n");
 		ret = PTR_ERR(ac97->regmap);
 		goto err_clk_put;
 	}
 
 	ac97->reset_gpio = of_get_named_gpio(pdev->dev.of_node,
-					     "nvidia,codec-reset-gpio", 0);
-	if (gpio_is_valid(ac97->reset_gpio)) {
+										 "nvidia,codec-reset-gpio", 0);
+
+	if (gpio_is_valid(ac97->reset_gpio))
+	{
 		ret = devm_gpio_request_one(&pdev->dev, ac97->reset_gpio,
-					    GPIOF_OUT_INIT_HIGH, "codec-reset");
-		if (ret) {
+									GPIOF_OUT_INIT_HIGH, "codec-reset");
+
+		if (ret)
+		{
 			dev_err(&pdev->dev, "could not get codec-reset GPIO\n");
 			goto err_clk_put;
 		}
-	} else {
+	}
+	else
+	{
 		dev_err(&pdev->dev, "no codec-reset GPIO supplied\n");
 		goto err_clk_put;
 	}
 
 	ac97->sync_gpio = of_get_named_gpio(pdev->dev.of_node,
-					    "nvidia,codec-sync-gpio", 0);
-	if (!gpio_is_valid(ac97->sync_gpio)) {
+										"nvidia,codec-sync-gpio", 0);
+
+	if (!gpio_is_valid(ac97->sync_gpio))
+	{
 		dev_err(&pdev->dev, "no codec-sync GPIO supplied\n");
 		goto err_clk_put;
 	}
@@ -376,27 +441,35 @@ static int tegra20_ac97_platform_probe(struct platform_device *pdev)
 	ac97->playback_dma_data.maxburst = 4;
 
 	ret = clk_prepare_enable(ac97->clk_ac97);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "clk_enable failed: %d\n", ret);
 		goto err;
 	}
 
 	ret = snd_soc_set_ac97_ops(&tegra20_ac97_ops);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to set AC'97 ops: %d\n", ret);
 		goto err_clk_disable_unprepare;
 	}
 
 	ret = snd_soc_register_component(&pdev->dev, &tegra20_ac97_component,
-					 &tegra20_ac97_dai, 1);
-	if (ret) {
+									 &tegra20_ac97_dai, 1);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Could not register DAI: %d\n", ret);
 		ret = -ENOMEM;
 		goto err_clk_disable_unprepare;
 	}
 
 	ret = tegra_pcm_platform_register(&pdev->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Could not register PCM: %d\n", ret);
 		goto err_unregister_component;
 	}
@@ -430,12 +503,14 @@ static int tegra20_ac97_platform_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id tegra20_ac97_of_match[] = {
+static const struct of_device_id tegra20_ac97_of_match[] =
+{
 	{ .compatible = "nvidia,tegra20-ac97", },
 	{},
 };
 
-static struct platform_driver tegra20_ac97_driver = {
+static struct platform_driver tegra20_ac97_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 		.of_match_table = tegra20_ac97_of_match,

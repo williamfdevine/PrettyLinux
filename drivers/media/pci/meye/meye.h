@@ -34,7 +34,7 @@
 #define MEYE_DRIVER_MINORVERSION	14
 
 #define MEYE_DRIVER_VERSION __stringify(MEYE_DRIVER_MAJORVERSION) "." \
-			    __stringify(MEYE_DRIVER_MINORVERSION)
+	__stringify(MEYE_DRIVER_MINORVERSION)
 
 #include <linux/types.h>
 #include <linux/pci.h>
@@ -78,7 +78,7 @@
 #define MCHIP_MM_INTA_PCI_ERR_MASK	0x00004000
 
 #define MCHIP_MM_PT_ADDR		0x08		/* page table address*/
-							/* n*4kB */
+/* n*4kB */
 #define MCHIP_NB_PAGES			1024		/* pages for display */
 #define MCHIP_NB_PAGES_MJPEG		256		/* pages for mjpeg */
 
@@ -87,7 +87,7 @@
 #define MCHIP_MM_FIR_FAILFR_MASK	0xf8000000	/* # of failed frames */
 #define MCHIP_MM_FIR_FAILFR_SHIFT	27
 
-	/* continuous comp/decomp mode */
+/* continuous comp/decomp mode */
 #define MCHIP_MM_FIR_C_ENDL_MASK	0x000007fe	/* end DW [10] */
 #define MCHIP_MM_FIR_C_ENDL_SHIFT	1
 #define MCHIP_MM_FIR_C_ENDP_MASK	0x0007f800	/* end page [8] */
@@ -95,7 +95,7 @@
 #define MCHIP_MM_FIR_C_STARTP_MASK	0x07f80000	/* start page [8] */
 #define MCHIP_MM_FIR_C_STARTP_SHIFT	19
 
-	/* continuous picture output mode */
+/* continuous picture output mode */
 #define MCHIP_MM_FIR_O_STARTP_MASK	0x7ffe0000	/* start page [10] */
 #define MCHIP_MM_FIR_O_STARTP_SHIFT	17
 
@@ -149,7 +149,7 @@
 
 #define MCHIP_HIC_PCI_VFMT		0x64		/* video format */
 #define MCHIP_HIC_PCI_VFMT_YVYU		0x00000001	/* 0: V Y' U Y */
-							/* 1: Y' V Y U */
+/* 1: Y' V Y U */
 
 #define MCHIP_MCC_CMD			0x80		/* MCC commands */
 #define MCHIP_MCC_CMD_INITIAL		0x0		/* idle ? */
@@ -278,7 +278,8 @@
 #define MEYE_BUF_DONE	2	/* done */
 
 /* grab buffer */
-struct meye_grab_buffer {
+struct meye_grab_buffer
+{
 	int state;			/* state of buffer */
 	unsigned long size;		/* size of jpg frame */
 	struct timeval timestamp;	/* timestamp */
@@ -289,7 +290,8 @@ struct meye_grab_buffer {
 #define MEYE_QUEUE_SIZE	MEYE_MAX_BUFNBRS
 
 /* Motion Eye device structure */
-struct meye {
+struct meye
+{
 	struct v4l2_device v4l2_dev;	/* Main v4l2_device struct */
 	struct v4l2_ctrl_handler hdl;
 	struct pci_dev *mchip_dev;	/* pci device */
@@ -302,7 +304,7 @@ struct meye {
 	dma_addr_t mchip_dmahandle;	/* mchip: dma handle to ptable toc */
 	unsigned char *grab_fbuffer;	/* capture framebuffer */
 	unsigned char *grab_temp;	/* temporary buffer */
-					/* list of buffers */
+	/* list of buffers */
 	struct meye_grab_buffer grab_buffer[MEYE_MAX_BUFNBRS];
 	int vma_use_count[MEYE_MAX_BUFNBRS]; /* mmap count */
 	struct mutex lock;		/* mutex for open/mmap... */

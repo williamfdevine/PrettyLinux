@@ -108,7 +108,8 @@
  * USB 3.1 extends the port status request and may return 4 additional bytes.
  * See USB 3.1 spec section 10.16.2.6 Table 10-12 and 10-15
  */
-struct usb_port_status {
+struct usb_port_status
+{
 	__le16 wPortStatus;
 	__le16 wPortChange;
 	__le32 dwExtPortStatus;
@@ -143,9 +144,9 @@ struct usb_port_status {
 /* Valid only if port is enabled */
 /* Bits that are the same from USB 2.0 */
 #define USB_SS_PORT_STAT_MASK (USB_PORT_STAT_CONNECTION |	    \
-				USB_PORT_STAT_ENABLE |	    \
-				USB_PORT_STAT_OVERCURRENT | \
-				USB_PORT_STAT_RESET)
+							   USB_PORT_STAT_ENABLE |	    \
+							   USB_PORT_STAT_OVERCURRENT | \
+							   USB_PORT_STAT_RESET)
 
 /*
  * Definitions for PORT_LINK_STATE values
@@ -212,7 +213,8 @@ struct usb_port_status {
 #define HUB_CHAR_TTTT		0x0060 /* TT Think Time mask */
 #define HUB_CHAR_PORTIND	0x0080 /* per-port indicators (LEDs) */
 
-struct usb_hub_status {
+struct usb_hub_status
+{
 	__le16 wHubStatus;
 	__le16 wHubChange;
 } __attribute__ ((packed));
@@ -250,7 +252,8 @@ struct usb_hub_status {
 #define USB_HUB_PR_HS_MULTI_TT	2 /* Hi-speed hub with multiple TT */
 #define USB_HUB_PR_SS		3 /* Super speed hub */
 
-struct usb_hub_descriptor {
+struct usb_hub_descriptor
+{
 	__u8  bDescLength;
 	__u8  bDescriptorType;
 	__u8  bNbrPorts;
@@ -259,14 +262,17 @@ struct usb_hub_descriptor {
 	__u8  bHubContrCurrent;
 
 	/* 2.0 and 3.0 hubs differ here */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			/* add 1 bit for hub status change; round to bytes */
 			__u8  DeviceRemovable[(USB_MAXCHILDREN + 1 + 7) / 8];
 			__u8  PortPwrCtrlMask[(USB_MAXCHILDREN + 1 + 7) / 8];
 		}  __attribute__ ((packed)) hs;
 
-		struct {
+		struct
+		{
 			__u8 bHubHdrDecLat;
 			__le16 wHubDelay;
 			__le16 DeviceRemovable;
@@ -280,7 +286,8 @@ struct usb_hub_descriptor {
 #define HUB_LED_GREEN	2
 #define HUB_LED_OFF	3
 
-enum hub_led_mode {
+enum hub_led_mode
+{
 	INDICATOR_AUTO = 0,
 	INDICATOR_CYCLE,
 	/* software blinks for attention:  software, hardware, reserved */

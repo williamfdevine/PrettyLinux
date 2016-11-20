@@ -26,15 +26,16 @@
 /* Used to dump to Linux trace buffer, if enabled */
 #define hid_ishtp_trace(client, ...)	\
 	client->cl_device->ishtp_dev->print_log(\
-		client->cl_device->ishtp_dev, __VA_ARGS__)
+											client->cl_device->ishtp_dev, __VA_ARGS__)
 
 /* ISH Transport protocol (ISHTP in short) GUID */
 static const uuid_le hid_ishtp_guid = UUID_LE(0x33AECD58, 0xB679, 0x4E54,
-					      0x9B, 0xD9, 0xA0, 0x4D, 0x34,
-					      0xF0, 0xC2, 0x26);
+									  0x9B, 0xD9, 0xA0, 0x4D, 0x34,
+									  0xF0, 0xC2, 0x26);
 
 /* ISH HID message structure */
-struct hostif_msg_hdr {
+struct hostif_msg_hdr
+{
 	uint8_t	command; /* Bit 7: is_response */
 	uint8_t	device_id;
 	uint8_t	status;
@@ -42,23 +43,27 @@ struct hostif_msg_hdr {
 	uint16_t size;
 } __packed;
 
-struct hostif_msg {
+struct hostif_msg
+{
 	struct hostif_msg_hdr	hdr;
 } __packed;
 
-struct hostif_msg_to_sensor {
+struct hostif_msg_to_sensor
+{
 	struct hostif_msg_hdr	hdr;
 	uint8_t	report_id;
 } __packed;
 
-struct device_info {
+struct device_info
+{
 	uint32_t dev_id;
 	uint8_t dev_class;
 	uint16_t pid;
 	uint16_t vid;
 } __packed;
 
-struct ishtp_version {
+struct ishtp_version
+{
 	uint8_t	major;
 	uint8_t	minor;
 	uint8_t	hotfix;
@@ -66,11 +71,13 @@ struct ishtp_version {
 } __packed;
 
 /* struct for ISHTP aggregated input data */
-struct report_list {
+struct report_list
+{
 	uint16_t total_size;
 	uint8_t	num_of_reports;
 	uint8_t	flags;
-	struct {
+	struct
+	{
 		uint16_t	size_of_report;
 		uint8_t report[1];
 	} __packed reports[1];
@@ -120,7 +127,8 @@ struct report_list {
  * This structure is used to store completion flags and per client data like
  * like report description, number of HID devices etc.
  */
-struct ishtp_cl_data {
+struct ishtp_cl_data
+{
 	/* completion flags */
 	bool enum_devices_done;
 	bool hid_descr_done;
@@ -161,7 +169,8 @@ struct ishtp_cl_data {
  *
  * Used to tie hid hid->driver data to driver client instance
  */
-struct ishtp_hid_data {
+struct ishtp_hid_data
+{
 	int index;
 	bool request_done;
 	struct ishtp_cl_data *client_data;
@@ -170,11 +179,11 @@ struct ishtp_hid_data {
 
 /* Interface functions between HID LL driver and ISH TP client */
 void hid_ishtp_set_feature(struct hid_device *hid, char *buf, unsigned int len,
-			   int report_id);
+						   int report_id);
 void hid_ishtp_get_report(struct hid_device *hid, int report_id,
-			  int report_type);
+						  int report_type);
 int ishtp_hid_probe(unsigned int cur_hid_dev,
-		    struct ishtp_cl_data *client_data);
+					struct ishtp_cl_data *client_data);
 void ishtp_hid_remove(struct ishtp_cl_data *client_data);
 int ishtp_hid_link_ready_wait(struct ishtp_cl_data *client_data);
 void ishtp_hid_wakeup(struct hid_device *hid);

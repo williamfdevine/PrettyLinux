@@ -46,22 +46,26 @@
 #define SIMR_TFSD(n)	(n)
 #define SIMR_RFSD(n)	((n) << 8)
 
-enum tdm_ts_t {
+enum tdm_ts_t
+{
 	TDM_TX_TS,
 	TDM_RX_TS
 };
 
-enum tdm_framer_t {
+enum tdm_framer_t
+{
 	TDM_FRAMER_T1,
 	TDM_FRAMER_E1
 };
 
-enum tdm_mode_t {
+enum tdm_mode_t
+{
 	TDM_INTERNAL_LOOPBACK,
 	TDM_NORMAL
 };
 
-struct si_mode_info {
+struct si_mode_info
+{
 	u8 simr_rfsd;
 	u8 simr_tfsd;
 	u8 simr_crt;
@@ -71,12 +75,14 @@ struct si_mode_info {
 	u8 simr_gm;
 };
 
-struct ucc_tdm_info {
+struct ucc_tdm_info
+{
 	struct ucc_fast_info uf_info;
 	struct si_mode_info si_info;
 };
 
-struct ucc_tdm {
+struct ucc_tdm
+{
 	u16 tdm_port;		/* port for this tdm:TDMA,TDMB */
 	u32 siram_entry_id;
 	u16 __iomem *siram;
@@ -89,6 +95,6 @@ struct ucc_tdm {
 };
 
 int ucc_of_parse_tdm(struct device_node *np, struct ucc_tdm *utdm,
-		     struct ucc_tdm_info *ut_info);
+					 struct ucc_tdm_info *ut_info);
 void ucc_tdm_init(struct ucc_tdm *utdm, struct ucc_tdm_info *ut_info);
 #endif

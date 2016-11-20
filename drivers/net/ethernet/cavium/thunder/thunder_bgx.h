@@ -185,11 +185,12 @@
 #define LMAC_INTR_LINK_DOWN	BIT(1)
 
 /*  RX_DMAC_CTL configuration*/
-enum MCAST_MODE {
-		MCAST_MODE_REJECT,
-		MCAST_MODE_ACCEPT,
-		MCAST_MODE_CAM_FILTER,
-		RSVD
+enum MCAST_MODE
+{
+	MCAST_MODE_REJECT,
+	MCAST_MODE_ACCEPT,
+	MCAST_MODE_CAM_FILTER,
+	RSVD
 };
 
 #define BCAST_ACCEPT	1
@@ -204,7 +205,7 @@ const u8 *bgx_get_lmac_mac(int node, int bgx_idx, int lmacid);
 void bgx_set_lmac_mac(int node, int bgx_idx, int lmacid, const u8 *mac);
 void bgx_get_lmac_link_state(int node, int bgx_idx, int lmacid, void *status);
 void bgx_lmac_internal_loopback(int node, int bgx_idx,
-				int lmac_idx, bool enable);
+								int lmac_idx, bool enable);
 void xcv_init_hw(void);
 void xcv_setup_link(bool link_up, int link_speed);
 
@@ -213,12 +214,14 @@ u64 bgx_get_tx_stats(int node, int bgx_idx, int lmac, int idx);
 #define BGX_RX_STATS_COUNT 11
 #define BGX_TX_STATS_COUNT 18
 
-struct bgx_stats {
+struct bgx_stats
+{
 	u64 rx_stats[BGX_RX_STATS_COUNT];
 	u64 tx_stats[BGX_TX_STATS_COUNT];
 };
 
-enum LMAC_TYPE {
+enum LMAC_TYPE
+{
 	BGX_MODE_SGMII = 0, /* 1 lane, 1.250 Gbaud */
 	BGX_MODE_XAUI = 1,  /* 4 lanes, 3.125 Gbaud */
 	BGX_MODE_DXAUI = 1, /* 4 lanes, 6.250 Gbaud */

@@ -73,7 +73,8 @@
 #define ASPEED_TIMER1_ENABLE   (ASPEED_CR_2_ENABLE | ASPEED_CR_1_ENABLE)
 #define ASPEED_TIMER1_DISABLE  (ASPEED_CR_2_ENABLE)
 
-struct moxart_timer {
+struct moxart_timer
+{
 	void __iomem *base;
 	unsigned int t1_disable_val;
 	unsigned int t1_enable_val;
@@ -125,7 +126,7 @@ static int moxart_set_periodic(struct clock_event_device *evt)
 }
 
 static int moxart_clkevt_next_event(unsigned long cycles,
-				    struct clock_event_device *evt)
+									struct clock_event_device *evt)
 {
 	struct moxart_timer *timer = to_moxart(evt);
 	u32 u;
@@ -155,36 +156,50 @@ static int __init moxart_timer_init(struct device_node *node)
 	struct moxart_timer *timer;
 
 	timer = kzalloc(sizeof(*timer), GFP_KERNEL);
+
 	if (!timer)
+	{
 		return -ENOMEM;
+	}
 
 	timer->base = of_iomap(node, 0);
-	if (!timer->base) {
+
+	if (!timer->base)
+	{
 		pr_err("%s: of_iomap failed\n", node->full_name);
 		return -ENXIO;
 	}
 
 	irq = irq_of_parse_and_map(node, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		pr_err("%s: irq_of_parse_and_map failed\n", node->full_name);
 		return -EINVAL;
 	}
 
 	clk = of_clk_get(node, 0);
-	if (IS_ERR(clk))  {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("%s: of_clk_get failed\n", node->full_name);
 		return PTR_ERR(clk);
 	}
 
 	pclk = clk_get_rate(clk);
 
-	if (of_device_is_compatible(node, "moxa,moxart-timer")) {
+	if (of_device_is_compatible(node, "moxa,moxart-timer"))
+	{
 		timer->t1_enable_val = MOXART_TIMER1_ENABLE;
 		timer->t1_disable_val = MOXART_TIMER1_DISABLE;
-	} else if (of_device_is_compatible(node, "aspeed,ast2400-timer")) {
+	}
+	else if (of_device_is_compatible(node, "aspeed,ast2400-timer"))
+	{
 		timer->t1_enable_val = ASPEED_TIMER1_ENABLE;
 		timer->t1_disable_val = ASPEED_TIMER1_DISABLE;
-	} else {
+	}
+	else
+	{
 		pr_err("%s: unknown platform\n", node->full_name);
 		return -EINVAL;
 	}
@@ -194,7 +209,7 @@ static int __init moxart_timer_init(struct device_node *node)
 	timer->clkevt.name = node->name;
 	timer->clkevt.rating = 200;
 	timer->clkevt.features = CLOCK_EVT_FEAT_PERIODIC |
-					CLOCK_EVT_FEAT_ONESHOT;
+							 CLOCK_EVT_FEAT_ONESHOT;
 	timer->clkevt.set_state_shutdown = moxart_shutdown;
 	timer->clkevt.set_state_periodic = moxart_set_periodic;
 	timer->clkevt.set_state_oneshot = moxart_set_oneshot;
@@ -204,16 +219,20 @@ static int __init moxart_timer_init(struct device_node *node)
 	timer->clkevt.irq = irq;
 
 	ret = clocksource_mmio_init(timer->base + TIMER2_BASE + REG_COUNT,
-				    "moxart_timer", pclk, 200, 32,
-				    clocksource_mmio_readl_down);
-	if (ret) {
+								"moxart_timer", pclk, 200, 32,
+								clocksource_mmio_readl_down);
+
+	if (ret)
+	{
 		pr_err("%s: clocksource_mmio_init failed\n", node->full_name);
 		return ret;
 	}
 
 	ret = request_irq(irq, moxart_timer_interrupt, IRQF_TIMER,
-			  node->name, &timer->clkevt);
-	if (ret) {
+					  node->name, &timer->clkevt);
+
+	if (ret)
+	{
 		pr_err("%s: setup_irq failed\n", node->full_name);
 		return ret;
 	}

@@ -30,21 +30,26 @@ MODULE_PARM_DESC(reset_required, "override reset requirement (default: 1)");
 /* probing devices from the linux platform bus */
 
 static struct resource *get_platform_resource(struct vfio_platform_device *vdev,
-					      int num)
+		int num)
 {
 	struct platform_device *dev = (struct platform_device *) vdev->opaque;
 	int i;
 
-	for (i = 0; i < dev->num_resources; i++) {
+	for (i = 0; i < dev->num_resources; i++)
+	{
 		struct resource *r = &dev->resource[i];
 
-		if (resource_type(r) & (IORESOURCE_MEM|IORESOURCE_IO)) {
+		if (resource_type(r) & (IORESOURCE_MEM | IORESOURCE_IO))
+		{
 			if (!num)
+			{
 				return r;
+			}
 
 			num--;
 		}
 	}
+
 	return NULL;
 }
 
@@ -61,8 +66,11 @@ static int vfio_platform_probe(struct platform_device *pdev)
 	int ret;
 
 	vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
+
 	if (!vdev)
+	{
 		return -ENOMEM;
+	}
 
 	vdev->opaque = (void *) pdev;
 	vdev->name = pdev->name;
@@ -73,8 +81,11 @@ static int vfio_platform_probe(struct platform_device *pdev)
 	vdev->reset_required = reset_required;
 
 	ret = vfio_platform_probe_common(vdev, &pdev->dev);
+
 	if (ret)
+	{
 		kfree(vdev);
+	}
 
 	return ret;
 }
@@ -84,7 +95,9 @@ static int vfio_platform_remove(struct platform_device *pdev)
 	struct vfio_platform_device *vdev;
 
 	vdev = vfio_platform_remove_common(&pdev->dev);
-	if (vdev) {
+
+	if (vdev)
+	{
 		kfree(vdev);
 		return 0;
 	}
@@ -92,7 +105,8 @@ static int vfio_platform_remove(struct platform_device *pdev)
 	return -EINVAL;
 }
 
-static struct platform_driver vfio_platform_driver = {
+static struct platform_driver vfio_platform_driver =
+{
 	.probe		= vfio_platform_probe,
 	.remove		= vfio_platform_remove,
 	.driver	= {

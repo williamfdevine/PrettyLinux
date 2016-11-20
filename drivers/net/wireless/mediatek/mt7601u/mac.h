@@ -15,12 +15,13 @@
 #ifndef __MT76_MAC_H
 #define __MT76_MAC_H
 
-struct mt76_tx_status {
-	u8 valid:1;
-	u8 success:1;
-	u8 aggr:1;
-	u8 ack_req:1;
-	u8 is_probe:1;
+struct mt76_tx_status
+{
+	u8 valid: 1;
+	u8 success: 1;
+	u8 aggr: 1;
+	u8 ack_req: 1;
+	u8 is_probe: 1;
 	u8 wcid;
 	u8 pktid;
 	u8 retry;
@@ -31,7 +32,8 @@ struct mt76_tx_status {
  *	 are called for MT7601U, names used by this driver are educated guesses
  *	 (see vendor mac/ral_omac.c).
  */
-struct mt7601u_rxwi {
+struct mt7601u_rxwi
+{
 	__le32 rxinfo;
 
 	__le32 ctl;
@@ -102,19 +104,22 @@ struct mt7601u_rxwi {
 
 #define MT_RXWI_EANT_ENC_ANT_ID		GENMASK(7, 0)
 
-enum mt76_phy_type {
+enum mt76_phy_type
+{
 	MT_PHY_TYPE_CCK,
 	MT_PHY_TYPE_OFDM,
 	MT_PHY_TYPE_HT,
 	MT_PHY_TYPE_HT_GF,
 };
 
-enum mt76_phy_bandwidth {
+enum mt76_phy_bandwidth
+{
 	MT_PHY_BW_20,
 	MT_PHY_BW_40,
 };
 
-struct mt76_txwi {
+struct mt76_txwi
+{
 	__le16 flags;
 	__le16 rate_ctl;
 
@@ -161,16 +166,16 @@ struct mt76_txwi {
 #define MT_TXWI_CTL_PIFS_REV		BIT(6)
 
 u32 mt76_mac_process_rx(struct mt7601u_dev *dev, struct sk_buff *skb,
-			u8 *data, void *rxi);
+						u8 *data, void *rxi);
 int mt76_mac_wcid_set_key(struct mt7601u_dev *dev, u8 idx,
-			  struct ieee80211_key_conf *key);
+						  struct ieee80211_key_conf *key);
 void mt76_mac_wcid_set_rate(struct mt7601u_dev *dev, struct mt76_wcid *wcid,
-			    const struct ieee80211_tx_rate *rate);
+							const struct ieee80211_tx_rate *rate);
 
 int mt76_mac_shared_key_setup(struct mt7601u_dev *dev, u8 vif_idx, u8 key_idx,
-			      struct ieee80211_key_conf *key);
+							  struct ieee80211_key_conf *key);
 u16 mt76_mac_tx_rate_val(struct mt7601u_dev *dev,
-			 const struct ieee80211_tx_rate *rate, u8 *nss_val);
+						 const struct ieee80211_tx_rate *rate, u8 *nss_val);
 struct mt76_tx_status
 mt7601u_mac_fetch_tx_status(struct mt7601u_dev *dev);
 void mt76_send_tx_status(struct mt7601u_dev *dev, struct mt76_tx_status *stat);

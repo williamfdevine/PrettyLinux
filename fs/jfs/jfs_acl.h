@@ -27,7 +27,7 @@ int jfs_init_acl(tid_t, struct inode *, struct inode *);
 #else
 
 static inline int jfs_init_acl(tid_t tid, struct inode *inode,
-			       struct inode *dir)
+							   struct inode *dir)
 {
 	return 0;
 }

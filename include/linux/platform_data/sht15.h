@@ -26,7 +26,8 @@
  * @no_otp_reload:	flag to indicate no reload from OTP.
  * @low_resolution:	flag to indicate the temp/humidity resolution to use.
  */
-struct sht15_platform_data {
+struct sht15_platform_data
+{
 	int gpio_data;
 	int gpio_sck;
 	int supply_mv;

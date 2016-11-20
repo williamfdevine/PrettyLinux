@@ -25,7 +25,7 @@
 #include <asm/xor.h>
 
 #ifndef XOR_SELECT_TEMPLATE
-#define XOR_SELECT_TEMPLATE(x) (x)
+	#define XOR_SELECT_TEMPLATE(x) (x)
 #endif
 
 /* The xor routines to use.  */
@@ -37,19 +37,25 @@ xor_blocks(unsigned int src_count, unsigned int bytes, void *dest, void **srcs)
 	unsigned long *p1, *p2, *p3, *p4;
 
 	p1 = (unsigned long *) srcs[0];
-	if (src_count == 1) {
+
+	if (src_count == 1)
+	{
 		active_template->do_2(bytes, dest, p1);
 		return;
 	}
 
 	p2 = (unsigned long *) srcs[1];
-	if (src_count == 2) {
+
+	if (src_count == 2)
+	{
 		active_template->do_3(bytes, dest, p1, p2);
 		return;
 	}
 
 	p3 = (unsigned long *) srcs[2];
-	if (src_count == 3) {
+
+	if (src_count == 3)
+	{
 		active_template->do_4(bytes, dest, p1, p2, p3);
 		return;
 	}
@@ -82,20 +88,30 @@ do_xor_speed(struct xor_block_template *tmpl, void *b1, void *b2)
 	 * allocation to have guaranteed color L1-cache layout.
 	 */
 	max = 0;
-	for (i = 0; i < 5; i++) {
+
+	for (i = 0; i < 5; i++)
+	{
 		j = jiffies;
 		count = 0;
+
 		while ((now = jiffies) == j)
+		{
 			cpu_relax();
-		while (time_before(jiffies, now + 1)) {
+		}
+
+		while (time_before(jiffies, now + 1))
+		{
 			mb(); /* prevent loop optimzation */
 			tmpl->do_2(BENCH_SIZE, b1, b2);
 			mb();
 			count++;
 			mb();
 		}
+
 		if (count > max)
+		{
 			max = count;
+		}
 	}
 
 	preempt_enable();
@@ -104,7 +120,7 @@ do_xor_speed(struct xor_block_template *tmpl, void *b1, void *b2)
 	tmpl->speed = speed;
 
 	printk(KERN_INFO "   %-10s: %5d.%03d MB/sec\n", tmpl->name,
-	       speed / 1000, speed % 1000);
+		   speed / 1000, speed % 1000);
 }
 
 static int __init
@@ -115,10 +131,11 @@ calibrate_xor_blocks(void)
 
 	fastest = XOR_SELECT_TEMPLATE(NULL);
 
-	if (fastest) {
+	if (fastest)
+	{
 		printk(KERN_INFO "xor: automatically using best "
-				 "checksumming function   %-10s\n",
-		       fastest->name);
+			   "checksumming function   %-10s\n",
+			   fastest->name);
 		goto out;
 	}
 
@@ -128,11 +145,14 @@ calibrate_xor_blocks(void)
 	 * reading uninitialized bytes here.
 	 */
 	b1 = (void *) __get_free_pages(GFP_KERNEL | __GFP_NOTRACK, 2);
-	if (!b1) {
+
+	if (!b1)
+	{
 		printk(KERN_WARNING "xor: Yikes!  No memory available.\n");
 		return -ENOMEM;
 	}
-	b2 = b1 + 2*PAGE_SIZE + BENCH_SIZE;
+
+	b2 = b1 + 2 * PAGE_SIZE + BENCH_SIZE;
 
 	/*
 	 * If this arch/cpu has a short-circuited selection, don't loop through
@@ -144,12 +164,15 @@ calibrate_xor_blocks(void)
 	printk(KERN_INFO "xor: measuring software checksum speed\n");
 	XOR_TRY_TEMPLATES;
 	fastest = template_list;
+
 	for (f = fastest; f; f = f->next)
 		if (f->speed > fastest->speed)
+		{
 			fastest = f;
+		}
 
 	printk(KERN_INFO "xor: using function: %s (%d.%03d MB/sec)\n",
-	       fastest->name, fastest->speed / 1000, fastest->speed % 1000);
+		   fastest->name, fastest->speed / 1000, fastest->speed % 1000);
 
 #undef xor_speed
 

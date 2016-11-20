@@ -2,7 +2,7 @@
 #define _DYNAMIC_DEBUG_H
 
 #if defined(CC_HAVE_ASM_GOTO) && defined(CONFIG_JUMP_LABEL)
-#include <linux/jump_label.h>
+	#include <linux/jump_label.h>
 #endif
 
 /*
@@ -10,7 +10,8 @@
  * ELF section at every dynamic debug callsite.  At runtime,
  * the special section is treated as an array of these.
  */
-struct _ddebug {
+struct _ddebug
+{
 	/*
 	 * These fields are used to drive the user interface
 	 * for selecting and displaying debug callsites.
@@ -19,7 +20,7 @@ struct _ddebug {
 	const char *function;
 	const char *filename;
 	const char *format;
-	unsigned int lineno:18;
+	unsigned int lineno: 18;
 	/*
 	 * The flags field controls the behaviour at the callsite.
 	 * The bits here are changed dynamically when the user
@@ -36,9 +37,10 @@ struct _ddebug {
 #else
 #define _DPRINTK_FLAGS_DEFAULT 0
 #endif
-	unsigned int flags:8;
+	unsigned int flags: 8;
 #ifdef HAVE_JUMP_LABEL
-	union {
+	union
+	{
 		struct static_key_true dd_key_true;
 		struct static_key_false dd_key_false;
 	} key;
@@ -47,7 +49,7 @@ struct _ddebug {
 
 
 int ddebug_add_module(struct _ddebug *tab, unsigned int n,
-				const char *modname);
+					  const char *modname);
 
 #if defined(CONFIG_DYNAMIC_DEBUG)
 extern int ddebug_remove_module(const char *mod_name);
@@ -55,32 +57,32 @@ extern __printf(2, 3)
 void __dynamic_pr_debug(struct _ddebug *descriptor, const char *fmt, ...);
 
 extern int ddebug_dyndbg_module_param_cb(char *param, char *val,
-					const char *modname);
+		const char *modname);
 
 struct device;
 
 extern __printf(3, 4)
 void __dynamic_dev_dbg(struct _ddebug *descriptor, const struct device *dev,
-		       const char *fmt, ...);
+					   const char *fmt, ...);
 
 struct net_device;
 
 extern __printf(3, 4)
 void __dynamic_netdev_dbg(struct _ddebug *descriptor,
-			  const struct net_device *dev,
-			  const char *fmt, ...);
+						  const struct net_device *dev,
+						  const char *fmt, ...);
 
 #define DEFINE_DYNAMIC_DEBUG_METADATA_KEY(name, fmt, key, init)	\
 	static struct _ddebug  __aligned(8)			\
 	__attribute__((section("__verbose"))) name = {		\
-		.modname = KBUILD_MODNAME,			\
-		.function = __func__,				\
-		.filename = __FILE__,				\
-		.format = (fmt),				\
-		.lineno = __LINE__,				\
-		.flags = _DPRINTK_FLAGS_DEFAULT,		\
-		dd_key_init(key, init)				\
-	}
+														.modname = KBUILD_MODNAME,			\
+														.function = __func__,				\
+														.filename = __FILE__,				\
+														.format = (fmt),				\
+														.lineno = __LINE__,				\
+														.flags = _DPRINTK_FLAGS_DEFAULT,		\
+														dd_key_init(key, init)				\
+												 }
 
 #ifdef HAVE_JUMP_LABEL
 
@@ -89,14 +91,14 @@ void __dynamic_netdev_dbg(struct _ddebug *descriptor,
 #ifdef DEBUG
 #define DEFINE_DYNAMIC_DEBUG_METADATA(name, fmt) \
 	DEFINE_DYNAMIC_DEBUG_METADATA_KEY(name, fmt, .key.dd_key_true, \
-					  (STATIC_KEY_TRUE_INIT))
+									  (STATIC_KEY_TRUE_INIT))
 
 #define DYNAMIC_DEBUG_BRANCH(descriptor) \
 	static_branch_likely(&descriptor.key.dd_key_true)
 #else
 #define DEFINE_DYNAMIC_DEBUG_METADATA(name, fmt) \
 	DEFINE_DYNAMIC_DEBUG_METADATA_KEY(name, fmt, .key.dd_key_false, \
-					  (STATIC_KEY_FALSE_INIT))
+									  (STATIC_KEY_FALSE_INIT))
 
 #define DYNAMIC_DEBUG_BRANCH(descriptor) \
 	static_branch_unlikely(&descriptor.key.dd_key_false)
@@ -120,38 +122,38 @@ void __dynamic_netdev_dbg(struct _ddebug *descriptor,
 #endif
 
 #define dynamic_pr_debug(fmt, ...)				\
-do {								\
-	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);		\
-	if (DYNAMIC_DEBUG_BRANCH(descriptor))			\
-		__dynamic_pr_debug(&descriptor, pr_fmt(fmt),	\
-				   ##__VA_ARGS__);		\
-} while (0)
+	do {								\
+		DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);		\
+		if (DYNAMIC_DEBUG_BRANCH(descriptor))			\
+			__dynamic_pr_debug(&descriptor, pr_fmt(fmt),	\
+							   ##__VA_ARGS__);		\
+	} while (0)
 
 #define dynamic_dev_dbg(dev, fmt, ...)				\
-do {								\
-	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);		\
-	if (DYNAMIC_DEBUG_BRANCH(descriptor))			\
-		__dynamic_dev_dbg(&descriptor, dev, fmt,	\
-				  ##__VA_ARGS__);		\
-} while (0)
+	do {								\
+		DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);		\
+		if (DYNAMIC_DEBUG_BRANCH(descriptor))			\
+			__dynamic_dev_dbg(&descriptor, dev, fmt,	\
+							  ##__VA_ARGS__);		\
+	} while (0)
 
 #define dynamic_netdev_dbg(dev, fmt, ...)			\
-do {								\
-	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);		\
-	if (DYNAMIC_DEBUG_BRANCH(descriptor))			\
-		__dynamic_netdev_dbg(&descriptor, dev, fmt,	\
-				     ##__VA_ARGS__);		\
-} while (0)
+	do {								\
+		DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);		\
+		if (DYNAMIC_DEBUG_BRANCH(descriptor))			\
+			__dynamic_netdev_dbg(&descriptor, dev, fmt,	\
+								 ##__VA_ARGS__);		\
+	} while (0)
 
 #define dynamic_hex_dump(prefix_str, prefix_type, rowsize,	\
-			 groupsize, buf, len, ascii)		\
+						 groupsize, buf, len, ascii)		\
 do {								\
 	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor,		\
-		__builtin_constant_p(prefix_str) ? prefix_str : "hexdump");\
+								  __builtin_constant_p(prefix_str) ? prefix_str : "hexdump");\
 	if (DYNAMIC_DEBUG_BRANCH(descriptor))			\
 		print_hex_dump(KERN_DEBUG, prefix_str,		\
-			       prefix_type, rowsize, groupsize,	\
-			       buf, len, ascii);		\
+					   prefix_type, rowsize, groupsize,	\
+					   buf, len, ascii);		\
 } while (0)
 
 #else
@@ -165,14 +167,16 @@ static inline int ddebug_remove_module(const char *mod)
 }
 
 static inline int ddebug_dyndbg_module_param_cb(char *param, char *val,
-						const char *modname)
+		const char *modname)
 {
-	if (strstr(param, "dyndbg")) {
+	if (strstr(param, "dyndbg"))
+	{
 		/* avoid pr_warn(), which wants pr_fmt() fully defined */
 		printk(KERN_WARNING "dyndbg param is supported only in "
-			"CONFIG_DYNAMIC_DEBUG builds\n");
+			   "CONFIG_DYNAMIC_DEBUG builds\n");
 		return 0; /* allow and ignore */
 	}
+
 	return -EINVAL;
 }
 

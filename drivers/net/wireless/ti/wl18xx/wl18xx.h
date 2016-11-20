@@ -45,7 +45,8 @@
 #define WL18XX_MAX_AP_STATIONS 10
 #define WL18XX_MAX_LINKS 16
 
-struct wl18xx_priv {
+struct wl18xx_priv
+{
 	/* buffer for sending commands to FW */
 	u8 cmd_buf[WL18XX_CMD_MAX_SIZE];
 
@@ -60,7 +61,8 @@ struct wl18xx_priv {
 
 #define WL18XX_FW_MAX_TX_STATUS_DESC 33
 
-struct wl18xx_fw_status_priv {
+struct wl18xx_fw_status_priv
+{
 	/*
 	 * Index in released_tx_desc for first byte that holds
 	 * released tx host desc
@@ -112,7 +114,8 @@ struct wl18xx_fw_status_priv {
 	u8 padding[3];
 };
 
-struct wl18xx_fw_packet_counters {
+struct wl18xx_fw_packet_counters
+{
 	/* Cumulative counter of released packets per AC */
 	u8 tx_released_pkts[NUM_TX_QUEUES];
 
@@ -133,7 +136,8 @@ struct wl18xx_fw_packet_counters {
 } __packed;
 
 /* FW status registers */
-struct wl18xx_fw_status {
+struct wl18xx_fw_status
+{
 	__le32 intr;
 	u8  fw_rx_counter;
 	u8  drv_rx_counter;
@@ -171,11 +175,13 @@ struct wl18xx_fw_status {
 
 #define WL18XX_PHY_VERSION_MAX_LEN 20
 
-struct wl18xx_static_data_priv {
+struct wl18xx_static_data_priv
+{
 	char phy_version[WL18XX_PHY_VERSION_MAX_LEN];
 };
 
-struct wl18xx_clk_cfg {
+struct wl18xx_clk_cfg
+{
 	u32 n;
 	u32 m;
 	u32 p;
@@ -183,7 +189,8 @@ struct wl18xx_clk_cfg {
 	bool swallow;
 };
 
-enum {
+enum
+{
 	CLOCK_CONFIG_16_2_M	= 1,
 	CLOCK_CONFIG_16_368_M,
 	CLOCK_CONFIG_16_8_M,

@@ -9,7 +9,8 @@
 
 #define BFIN_TDM_DAI_MAX_SLOTS 8
 
-struct bf5xx_i2s_pcm_data {
+struct bf5xx_i2s_pcm_data
+{
 	unsigned int map[BFIN_TDM_DAI_MAX_SLOTS];
 	bool tdm_mode;
 };

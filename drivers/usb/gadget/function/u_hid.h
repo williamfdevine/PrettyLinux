@@ -18,7 +18,8 @@
 
 #include <linux/usb/composite.h>
 
-struct f_hid_opts {
+struct f_hid_opts
+{
 	struct usb_function_instance	func_inst;
 	int				minor;
 	unsigned char			subclass;
@@ -32,8 +33,8 @@ struct f_hid_opts {
 	 * Protect the data form concurrent access by read/write
 	 * and create symlink/remove symlink.
 	 */
-	 struct mutex			lock;
-	 int				refcnt;
+	struct mutex			lock;
+	int				refcnt;
 };
 
 int ghid_setup(struct usb_gadget *g, int count);

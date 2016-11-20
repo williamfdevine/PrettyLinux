@@ -39,7 +39,7 @@ MODULE_LICENSE("GPL");
 #define UV_MMTIMER_VERSION "1.0"
 
 static long uv_mmtimer_ioctl(struct file *file, unsigned int cmd,
-						unsigned long arg);
+							 unsigned long arg);
 static int uv_mmtimer_mmap(struct file *file, struct vm_area_struct *vma);
 
 /*
@@ -47,7 +47,8 @@ static int uv_mmtimer_mmap(struct file *file, struct vm_area_struct *vma);
  */
 static unsigned long uv_mmtimer_femtoperiod;
 
-static const struct file_operations uv_mmtimer_fops = {
+static const struct file_operations uv_mmtimer_fops =
+{
 	.owner = THIS_MODULE,
 	.mmap =	uv_mmtimer_mmap,
 	.unlocked_ioctl = uv_mmtimer_ioctl,
@@ -82,57 +83,73 @@ static const struct file_operations uv_mmtimer_fops = {
  * in the address specified by @arg.
  */
 static long uv_mmtimer_ioctl(struct file *file, unsigned int cmd,
-						unsigned long arg)
+							 unsigned long arg)
 {
 	int ret = 0;
 
-	switch (cmd) {
-	case MMTIMER_GETOFFSET:	/* offset of the counter */
-		/*
-		 * Starting with HUB rev 2.0, the UV RTC register is
-		 * replicated across all cachelines of it's own page.
-		 * This allows faster simultaneous reads from a given socket.
-		 *
-		 * The offset returned is in 64 bit units.
-		 */
-		if (uv_get_min_hub_revision_id() == 1)
-			ret = 0;
-		else
-			ret = ((uv_blade_processor_id() * L1_CACHE_BYTES) %
-					PAGE_SIZE) / 8;
-		break;
+	switch (cmd)
+	{
+		case MMTIMER_GETOFFSET:	/* offset of the counter */
 
-	case MMTIMER_GETRES: /* resolution of the clock in 10^-15 s */
-		if (copy_to_user((unsigned long __user *)arg,
-				&uv_mmtimer_femtoperiod, sizeof(unsigned long)))
-			ret = -EFAULT;
-		break;
+			/*
+			 * Starting with HUB rev 2.0, the UV RTC register is
+			 * replicated across all cachelines of it's own page.
+			 * This allows faster simultaneous reads from a given socket.
+			 *
+			 * The offset returned is in 64 bit units.
+			 */
+			if (uv_get_min_hub_revision_id() == 1)
+			{
+				ret = 0;
+			}
+			else
+				ret = ((uv_blade_processor_id() * L1_CACHE_BYTES) %
+					   PAGE_SIZE) / 8;
 
-	case MMTIMER_GETFREQ: /* frequency in Hz */
-		if (copy_to_user((unsigned long __user *)arg,
-				&sn_rtc_cycles_per_second,
-				sizeof(unsigned long)))
-			ret = -EFAULT;
-		break;
+			break;
 
-	case MMTIMER_GETBITS: /* number of bits in the clock */
-		ret = hweight64(UVH_RTC_REAL_TIME_CLOCK_MASK);
-		break;
+		case MMTIMER_GETRES: /* resolution of the clock in 10^-15 s */
+			if (copy_to_user((unsigned long __user *)arg,
+							 &uv_mmtimer_femtoperiod, sizeof(unsigned long)))
+			{
+				ret = -EFAULT;
+			}
 
-	case MMTIMER_MMAPAVAIL:
-		ret = 1;
-		break;
+			break;
 
-	case MMTIMER_GETCOUNTER:
-		if (copy_to_user((unsigned long __user *)arg,
-				(unsigned long *)uv_local_mmr_address(UVH_RTC),
-				sizeof(unsigned long)))
-			ret = -EFAULT;
-		break;
-	default:
-		ret = -ENOTTY;
-		break;
+		case MMTIMER_GETFREQ: /* frequency in Hz */
+			if (copy_to_user((unsigned long __user *)arg,
+							 &sn_rtc_cycles_per_second,
+							 sizeof(unsigned long)))
+			{
+				ret = -EFAULT;
+			}
+
+			break;
+
+		case MMTIMER_GETBITS: /* number of bits in the clock */
+			ret = hweight64(UVH_RTC_REAL_TIME_CLOCK_MASK);
+			break;
+
+		case MMTIMER_MMAPAVAIL:
+			ret = 1;
+			break;
+
+		case MMTIMER_GETCOUNTER:
+			if (copy_to_user((unsigned long __user *)arg,
+							 (unsigned long *)uv_local_mmr_address(UVH_RTC),
+							 sizeof(unsigned long)))
+			{
+				ret = -EFAULT;
+			}
+
+			break;
+
+		default:
+			ret = -ENOTTY;
+			break;
 	}
+
 	return ret;
 }
 
@@ -149,13 +166,19 @@ static int uv_mmtimer_mmap(struct file *file, struct vm_area_struct *vma)
 	unsigned long uv_mmtimer_addr;
 
 	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	if (vma->vm_flags & VM_WRITE)
+	{
 		return -EPERM;
+	}
 
 	if (PAGE_SIZE > (1 << 16))
+	{
 		return -ENOSYS;
+	}
 
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 
@@ -164,7 +187,8 @@ static int uv_mmtimer_mmap(struct file *file, struct vm_area_struct *vma)
 	uv_mmtimer_addr &= 0xfffffffffffffffUL;
 
 	if (remap_pfn_range(vma, vma->vm_start, uv_mmtimer_addr >> PAGE_SHIFT,
-					PAGE_SIZE, vma->vm_page_prot)) {
+						PAGE_SIZE, vma->vm_page_prot))
+	{
 		printk(KERN_ERR "remap_pfn_range failed in uv_mmtimer_mmap\n");
 		return -EAGAIN;
 	}
@@ -172,7 +196,8 @@ static int uv_mmtimer_mmap(struct file *file, struct vm_area_struct *vma)
 	return 0;
 }
 
-static struct miscdevice uv_mmtimer_miscdev = {
+static struct miscdevice uv_mmtimer_miscdev =
+{
 	MISC_DYNAMIC_MINOR,
 	UV_MMTIMER_NAME,
 	&uv_mmtimer_fops
@@ -186,7 +211,8 @@ static struct miscdevice uv_mmtimer_miscdev = {
  */
 static int __init uv_mmtimer_init(void)
 {
-	if (!is_uv_system()) {
+	if (!is_uv_system())
+	{
 		printk(KERN_ERR "%s: Hardware unsupported\n", UV_MMTIMER_NAME);
 		return -1;
 	}
@@ -194,25 +220,27 @@ static int __init uv_mmtimer_init(void)
 	/*
 	 * Sanity check the cycles/sec variable
 	 */
-	if (sn_rtc_cycles_per_second < 100000) {
+	if (sn_rtc_cycles_per_second < 100000)
+	{
 		printk(KERN_ERR "%s: unable to determine clock frequency\n",
-		       UV_MMTIMER_NAME);
+			   UV_MMTIMER_NAME);
 		return -1;
 	}
 
 	uv_mmtimer_femtoperiod = ((unsigned long)1E15 +
-				sn_rtc_cycles_per_second / 2) /
-				sn_rtc_cycles_per_second;
+							  sn_rtc_cycles_per_second / 2) /
+							 sn_rtc_cycles_per_second;
 
-	if (misc_register(&uv_mmtimer_miscdev)) {
+	if (misc_register(&uv_mmtimer_miscdev))
+	{
 		printk(KERN_ERR "%s: failed to register device\n",
-		       UV_MMTIMER_NAME);
+			   UV_MMTIMER_NAME);
 		return -1;
 	}
 
 	printk(KERN_INFO "%s: v%s, %ld MHz\n", UV_MMTIMER_DESC,
-		UV_MMTIMER_VERSION,
-		sn_rtc_cycles_per_second/(unsigned long)1E6);
+		   UV_MMTIMER_VERSION,
+		   sn_rtc_cycles_per_second / (unsigned long)1E6);
 
 	return 0;
 }

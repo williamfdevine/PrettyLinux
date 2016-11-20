@@ -19,18 +19,21 @@
 #include "../codecs/wm8994.h"
 #include "mmp-sspa.h"
 
-static const struct snd_kcontrol_new brownstone_dapm_control[] = {
+static const struct snd_kcontrol_new brownstone_dapm_control[] =
+{
 	SOC_DAPM_PIN_SWITCH("Ext Spk"),
 };
 
-static const struct snd_soc_dapm_widget brownstone_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget brownstone_dapm_widgets[] =
+{
 	SND_SOC_DAPM_SPK("Ext Spk", NULL),
 	SND_SOC_DAPM_HP("Headset Stereophone", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
 	SND_SOC_DAPM_MIC("Main Mic", NULL),
 };
 
-static const struct snd_soc_dapm_route brownstone_audio_map[] = {
+static const struct snd_soc_dapm_route brownstone_audio_map[] =
+{
 	{"Ext Spk", NULL, "SPKOUTLP"},
 	{"Ext Spk", NULL, "SPKOUTLN"},
 	{"Ext Spk", NULL, "SPKOUTRP"},
@@ -46,18 +49,21 @@ static const struct snd_soc_dapm_route brownstone_audio_map[] = {
 };
 
 static int brownstone_wm8994_hw_params(struct snd_pcm_substream *substream,
-				       struct snd_pcm_hw_params *params)
+									   struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
 	int freq_out, sspa_mclk, sysclk;
 
-	if (params_rate(params) > 11025) {
+	if (params_rate(params) > 11025)
+	{
 		freq_out  = params_rate(params) * 512;
 		sysclk    = params_rate(params) * 256;
 		sspa_mclk = params_rate(params) * 64;
-	} else {
+	}
+	else
+	{
 		freq_out  = params_rate(params) * 1024;
 		sysclk    = params_rate(params) * 512;
 		sspa_mclk = params_rate(params) * 64;
@@ -74,26 +80,29 @@ static int brownstone_wm8994_hw_params(struct snd_pcm_substream *substream,
 }
 
 /* machine stream operations */
-static struct snd_soc_ops brownstone_ops = {
+static struct snd_soc_ops brownstone_ops =
+{
 	.hw_params = brownstone_wm8994_hw_params,
 };
 
-static struct snd_soc_dai_link brownstone_wm8994_dai[] = {
+static struct snd_soc_dai_link brownstone_wm8994_dai[] =
 {
-	.name		= "WM8994",
-	.stream_name	= "WM8994 HiFi",
-	.cpu_dai_name	= "mmp-sspa-dai.0",
-	.codec_dai_name	= "wm8994-aif1",
-	.platform_name	= "mmp-pcm-audio",
-	.codec_name	= "wm8994-codec",
-	.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-				SND_SOC_DAIFMT_CBS_CFS,
-	.ops		= &brownstone_ops,
-},
+	{
+		.name		= "WM8994",
+		.stream_name	= "WM8994 HiFi",
+		.cpu_dai_name	= "mmp-sspa-dai.0",
+		.codec_dai_name	= "wm8994-aif1",
+		.platform_name	= "mmp-pcm-audio",
+		.codec_name	= "wm8994-codec",
+		.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
+		SND_SOC_DAIFMT_CBS_CFS,
+		.ops		= &brownstone_ops,
+	},
 };
 
 /* audio machine driver */
-static struct snd_soc_card brownstone = {
+static struct snd_soc_card brownstone =
+{
 	.name         = "brownstone",
 	.owner        = THIS_MODULE,
 	.dai_link     = brownstone_wm8994_dai,
@@ -114,13 +123,16 @@ static int brownstone_probe(struct platform_device *pdev)
 
 	brownstone.dev = &pdev->dev;
 	ret = devm_snd_soc_register_card(&pdev->dev, &brownstone);
+
 	if (ret)
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
 				ret);
+
 	return ret;
 }
 
-static struct platform_driver mmp_driver = {
+static struct platform_driver mmp_driver =
+{
 	.driver		= {
 		.name	= "brownstone-audio",
 		.pm     = &snd_soc_pm_ops,

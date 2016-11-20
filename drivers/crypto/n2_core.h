@@ -3,23 +3,27 @@
 
 #ifndef __ASSEMBLY__
 
-struct ino_blob {
+struct ino_blob
+{
 	u64			intr;
 	u64			ino;
 };
 
-struct spu_mdesc_info {
+struct spu_mdesc_info
+{
 	u64			cfg_handle;
 	struct ino_blob		*ino_table;
 	int			num_intrs;
 };
 
-struct n2_crypto {
+struct n2_crypto
+{
 	struct spu_mdesc_info	cwq_info;
 	struct list_head	cwq_list;
 };
 
-struct n2_mau {
+struct n2_mau
+{
 	struct spu_mdesc_info	mau_info;
 	struct list_head	mau_list;
 };
@@ -30,7 +34,8 @@ struct n2_mau {
 #define MAU_ENTRY_SIZE		64
 #define MAU_NUM_ENTRIES		64
 
-struct cwq_initial_entry {
+struct cwq_initial_entry
+{
 	u64			control;
 	u64			src_addr;
 	u64			auth_key_addr;
@@ -41,7 +46,8 @@ struct cwq_initial_entry {
 	u64			dest_addr;
 };
 
-struct cwq_ext_entry {
+struct cwq_ext_entry
+{
 	u64			len;
 	u64			src_addr;
 	u64			resv1;
@@ -52,7 +58,8 @@ struct cwq_ext_entry {
 	u64			resv6;
 };
 
-struct cwq_final_entry {
+struct cwq_final_entry
+{
 	u64			control;
 	u64			src_addr;
 	u64			resv1;
@@ -209,23 +216,23 @@ struct cwq_final_entry {
 
 #ifndef __ASSEMBLY__
 extern unsigned long sun4v_ncs_qconf(unsigned long queue_type,
-				     unsigned long queue_ra,
-				     unsigned long num_entries,
-				     unsigned long *qhandle);
+									 unsigned long queue_ra,
+									 unsigned long num_entries,
+									 unsigned long *qhandle);
 extern unsigned long sun4v_ncs_qinfo(unsigned long qhandle,
-				     unsigned long *queue_type,
-				     unsigned long *queue_ra,
-				     unsigned long *num_entries);
+									 unsigned long *queue_type,
+									 unsigned long *queue_ra,
+									 unsigned long *num_entries);
 extern unsigned long sun4v_ncs_gethead(unsigned long qhandle,
-				       unsigned long *head);
+									   unsigned long *head);
 extern unsigned long sun4v_ncs_gettail(unsigned long qhandle,
-				       unsigned long *tail);
+									   unsigned long *tail);
 extern unsigned long sun4v_ncs_settail(unsigned long qhandle,
-				       unsigned long tail);
+									   unsigned long tail);
 extern unsigned long sun4v_ncs_qhandle_to_devino(unsigned long qhandle,
-						 unsigned long *devino);
+		unsigned long *devino);
 extern unsigned long sun4v_ncs_sethead_marker(unsigned long qhandle,
-					      unsigned long head);
+		unsigned long head);
 #endif /* !(__ASSEMBLY__) */
 
 #endif /* _N2_CORE_H */

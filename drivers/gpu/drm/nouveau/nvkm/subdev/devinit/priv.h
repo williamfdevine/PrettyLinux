@@ -3,7 +3,8 @@
 #define nvkm_devinit(p) container_of((p), struct nvkm_devinit, subdev)
 #include <subdev/devinit.h>
 
-struct nvkm_devinit_func {
+struct nvkm_devinit_func
+{
 	void *(*dtor)(struct nvkm_devinit *);
 	void (*preinit)(struct nvkm_devinit *);
 	void (*init)(struct nvkm_devinit *);
@@ -15,7 +16,7 @@ struct nvkm_devinit_func {
 };
 
 void nvkm_devinit_ctor(const struct nvkm_devinit_func *, struct nvkm_device *,
-		       int index, struct nvkm_devinit *);
+					   int index, struct nvkm_devinit *);
 
 int nv04_devinit_post(struct nvkm_devinit *, bool);
 #endif

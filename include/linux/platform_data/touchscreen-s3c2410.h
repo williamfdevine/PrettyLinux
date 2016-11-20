@@ -9,7 +9,8 @@
 #ifndef __TOUCHSCREEN_S3C2410_H
 #define __TOUCHSCREEN_S3C2410_H
 
-struct s3c2410_ts_mach_info {
+struct s3c2410_ts_mach_info
+{
 	int delay;
 	int presc;
 	int oversampling_shift;

@@ -22,7 +22,8 @@
 /* Search max. number of dirty segments to select a victim segment */
 #define DEF_MAX_VICTIM_SEARCH 4096 /* covers 8GB */
 
-struct f2fs_gc_kthread {
+struct f2fs_gc_kthread
+{
 	struct task_struct *f2fs_gc_task;
 	wait_queue_head_t gc_wait_queue_head;
 
@@ -35,7 +36,8 @@ struct f2fs_gc_kthread {
 	unsigned int gc_idle;
 };
 
-struct gc_inode_list {
+struct gc_inode_list
+{
 	struct list_head ilist;
 	struct radix_tree_root iroot;
 };
@@ -46,10 +48,12 @@ struct gc_inode_list {
 static inline block_t free_user_blocks(struct f2fs_sb_info *sbi)
 {
 	if (free_segments(sbi) < overprovision_segments(sbi))
+	{
 		return 0;
+	}
 	else
 		return (free_segments(sbi) - overprovision_segments(sbi))
-			<< sbi->log_blocks_per_seg;
+			   << sbi->log_blocks_per_seg;
 }
 
 static inline block_t limit_invalid_user_blocks(struct f2fs_sb_info *sbi)
@@ -60,43 +64,57 @@ static inline block_t limit_invalid_user_blocks(struct f2fs_sb_info *sbi)
 static inline block_t limit_free_user_blocks(struct f2fs_sb_info *sbi)
 {
 	block_t reclaimable_user_blocks = sbi->user_block_count -
-		written_block_count(sbi);
+									  written_block_count(sbi);
 	return (long)(reclaimable_user_blocks * LIMIT_FREE_BLOCK) / 100;
 }
 
 static inline void increase_sleep_time(struct f2fs_gc_kthread *gc_th,
-								long *wait)
+									   long *wait)
 {
 	if (*wait == gc_th->no_gc_sleep_time)
+	{
 		return;
+	}
 
 	*wait += gc_th->min_sleep_time;
+
 	if (*wait > gc_th->max_sleep_time)
+	{
 		*wait = gc_th->max_sleep_time;
+	}
 }
 
 static inline void decrease_sleep_time(struct f2fs_gc_kthread *gc_th,
-								long *wait)
+									   long *wait)
 {
 	if (*wait == gc_th->no_gc_sleep_time)
+	{
 		*wait = gc_th->max_sleep_time;
+	}
 
 	*wait -= gc_th->min_sleep_time;
+
 	if (*wait <= gc_th->min_sleep_time)
+	{
 		*wait = gc_th->min_sleep_time;
+	}
 }
 
 static inline bool has_enough_invalid_blocks(struct f2fs_sb_info *sbi)
 {
 	block_t invalid_user_blocks = sbi->user_block_count -
-					written_block_count(sbi);
+								  written_block_count(sbi);
+
 	/*
 	 * Background GC is triggered with the following conditions.
 	 * 1. There are a number of invalid blocks.
 	 * 2. There is not enough free space.
 	 */
 	if (invalid_user_blocks > limit_invalid_user_blocks(sbi) &&
-			free_user_blocks(sbi) < limit_free_user_blocks(sbi))
+		free_user_blocks(sbi) < limit_free_user_blocks(sbi))
+	{
 		return true;
+	}
+
 	return false;
 }

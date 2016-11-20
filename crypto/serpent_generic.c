@@ -43,194 +43,194 @@
 	({ storekeys(x0, x1, x2, x3, s); loadkeys(x0, x1, x2, x3, l); })
 
 #define K(x0, x1, x2, x3, i) ({				\
-	x3 ^= k[4*(i)+3];        x2 ^= k[4*(i)+2];	\
-	x1 ^= k[4*(i)+1];        x0 ^= k[4*(i)+0];	\
+		x3 ^= k[4*(i)+3];        x2 ^= k[4*(i)+2];	\
+		x1 ^= k[4*(i)+1];        x0 ^= k[4*(i)+0];	\
 	})
 
 #define LK(x0, x1, x2, x3, x4, i) ({					   \
-							x0 = rol32(x0, 13);\
-	x2 = rol32(x2, 3);	x1 ^= x0;		x4  = x0 << 3;	   \
-	x3 ^= x2;		x1 ^= x2;				   \
-	x1 = rol32(x1, 1);	x3 ^= x4;				   \
-	x3 = rol32(x3, 7);	x4  = x1;				   \
-	x0 ^= x1;		x4 <<= 7;		x2 ^= x3;	   \
-	x0 ^= x3;		x2 ^= x4;		x3 ^= k[4*i+3];	   \
-	x1 ^= k[4*i+1];		x0 = rol32(x0, 5);	x2 = rol32(x2, 22);\
-	x0 ^= k[4*i+0];		x2 ^= k[4*i+2];				   \
+		x0 = rol32(x0, 13);\
+		x2 = rol32(x2, 3);	x1 ^= x0;		x4  = x0 << 3;	   \
+		x3 ^= x2;		x1 ^= x2;				   \
+		x1 = rol32(x1, 1);	x3 ^= x4;				   \
+		x3 = rol32(x3, 7);	x4  = x1;				   \
+		x0 ^= x1;		x4 <<= 7;		x2 ^= x3;	   \
+		x0 ^= x3;		x2 ^= x4;		x3 ^= k[4*i+3];	   \
+		x1 ^= k[4*i+1];		x0 = rol32(x0, 5);	x2 = rol32(x2, 22);\
+		x0 ^= k[4*i+0];		x2 ^= k[4*i+2];				   \
 	})
 
 #define KL(x0, x1, x2, x3, x4, i) ({					   \
-	x0 ^= k[4*i+0];		x1 ^= k[4*i+1];		x2 ^= k[4*i+2];	   \
-	x3 ^= k[4*i+3];		x0 = ror32(x0, 5);	x2 = ror32(x2, 22);\
-	x4 =  x1;		x2 ^= x3;		x0 ^= x3;	   \
-	x4 <<= 7;		x0 ^= x1;		x1 = ror32(x1, 1); \
-	x2 ^= x4;		x3 = ror32(x3, 7);	x4 = x0 << 3;	   \
-	x1 ^= x0;		x3 ^= x4;		x0 = ror32(x0, 13);\
-	x1 ^= x2;		x3 ^= x2;		x2 = ror32(x2, 3); \
+		x0 ^= k[4*i+0];		x1 ^= k[4*i+1];		x2 ^= k[4*i+2];	   \
+		x3 ^= k[4*i+3];		x0 = ror32(x0, 5);	x2 = ror32(x2, 22);\
+		x4 =  x1;		x2 ^= x3;		x0 ^= x3;	   \
+		x4 <<= 7;		x0 ^= x1;		x1 = ror32(x1, 1); \
+		x2 ^= x4;		x3 = ror32(x3, 7);	x4 = x0 << 3;	   \
+		x1 ^= x0;		x3 ^= x4;		x0 = ror32(x0, 13);\
+		x1 ^= x2;		x3 ^= x2;		x2 = ror32(x2, 3); \
 	})
 
 #define S0(x0, x1, x2, x3, x4) ({			\
-					x4  = x3;	\
-	x3 |= x0;	x0 ^= x4;	x4 ^= x2;	\
-	x4 = ~x4;	x3 ^= x1;	x1 &= x0;	\
-	x1 ^= x4;	x2 ^= x0;	x0 ^= x3;	\
-	x4 |= x0;	x0 ^= x2;	x2 &= x1;	\
-	x3 ^= x2;	x1 = ~x1;	x2 ^= x4;	\
-	x1 ^= x2;					\
+		x4  = x3;	\
+		x3 |= x0;	x0 ^= x4;	x4 ^= x2;	\
+		x4 = ~x4;	x3 ^= x1;	x1 &= x0;	\
+		x1 ^= x4;	x2 ^= x0;	x0 ^= x3;	\
+		x4 |= x0;	x0 ^= x2;	x2 &= x1;	\
+		x3 ^= x2;	x1 = ~x1;	x2 ^= x4;	\
+		x1 ^= x2;					\
 	})
 
 #define S1(x0, x1, x2, x3, x4) ({			\
-					x4  = x1;	\
-	x1 ^= x0;	x0 ^= x3;	x3 = ~x3;	\
-	x4 &= x1;	x0 |= x1;	x3 ^= x2;	\
-	x0 ^= x3;	x1 ^= x3;	x3 ^= x4;	\
-	x1 |= x4;	x4 ^= x2;	x2 &= x0;	\
-	x2 ^= x1;	x1 |= x0;	x0 = ~x0;	\
-	x0 ^= x2;	x4 ^= x1;			\
+		x4  = x1;	\
+		x1 ^= x0;	x0 ^= x3;	x3 = ~x3;	\
+		x4 &= x1;	x0 |= x1;	x3 ^= x2;	\
+		x0 ^= x3;	x1 ^= x3;	x3 ^= x4;	\
+		x1 |= x4;	x4 ^= x2;	x2 &= x0;	\
+		x2 ^= x1;	x1 |= x0;	x0 = ~x0;	\
+		x0 ^= x2;	x4 ^= x1;			\
 	})
 
 #define S2(x0, x1, x2, x3, x4) ({			\
-					x3 = ~x3;	\
-	x1 ^= x0;	x4  = x0;	x0 &= x2;	\
-	x0 ^= x3;	x3 |= x4;	x2 ^= x1;	\
-	x3 ^= x1;	x1 &= x0;	x0 ^= x2;	\
-	x2 &= x3;	x3 |= x1;	x0 = ~x0;	\
-	x3 ^= x0;	x4 ^= x0;	x0 ^= x2;	\
-	x1 |= x2;					\
+		x3 = ~x3;	\
+		x1 ^= x0;	x4  = x0;	x0 &= x2;	\
+		x0 ^= x3;	x3 |= x4;	x2 ^= x1;	\
+		x3 ^= x1;	x1 &= x0;	x0 ^= x2;	\
+		x2 &= x3;	x3 |= x1;	x0 = ~x0;	\
+		x3 ^= x0;	x4 ^= x0;	x0 ^= x2;	\
+		x1 |= x2;					\
 	})
 
 #define S3(x0, x1, x2, x3, x4) ({			\
-					x4  = x1;	\
-	x1 ^= x3;	x3 |= x0;	x4 &= x0;	\
-	x0 ^= x2;	x2 ^= x1;	x1 &= x3;	\
-	x2 ^= x3;	x0 |= x4;	x4 ^= x3;	\
-	x1 ^= x0;	x0 &= x3;	x3 &= x4;	\
-	x3 ^= x2;	x4 |= x1;	x2 &= x1;	\
-	x4 ^= x3;	x0 ^= x3;	x3 ^= x2;	\
+		x4  = x1;	\
+		x1 ^= x3;	x3 |= x0;	x4 &= x0;	\
+		x0 ^= x2;	x2 ^= x1;	x1 &= x3;	\
+		x2 ^= x3;	x0 |= x4;	x4 ^= x3;	\
+		x1 ^= x0;	x0 &= x3;	x3 &= x4;	\
+		x3 ^= x2;	x4 |= x1;	x2 &= x1;	\
+		x4 ^= x3;	x0 ^= x3;	x3 ^= x2;	\
 	})
 
 #define S4(x0, x1, x2, x3, x4) ({			\
-					x4  = x3;	\
-	x3 &= x0;	x0 ^= x4;			\
-	x3 ^= x2;	x2 |= x4;	x0 ^= x1;	\
-	x4 ^= x3;	x2 |= x0;			\
-	x2 ^= x1;	x1 &= x0;			\
-	x1 ^= x4;	x4 &= x2;	x2 ^= x3;	\
-	x4 ^= x0;	x3 |= x1;	x1 = ~x1;	\
-	x3 ^= x0;					\
+		x4  = x3;	\
+		x3 &= x0;	x0 ^= x4;			\
+		x3 ^= x2;	x2 |= x4;	x0 ^= x1;	\
+		x4 ^= x3;	x2 |= x0;			\
+		x2 ^= x1;	x1 &= x0;			\
+		x1 ^= x4;	x4 &= x2;	x2 ^= x3;	\
+		x4 ^= x0;	x3 |= x1;	x1 = ~x1;	\
+		x3 ^= x0;					\
 	})
 
 #define S5(x0, x1, x2, x3, x4) ({			\
-	x4  = x1;	x1 |= x0;			\
-	x2 ^= x1;	x3 = ~x3;	x4 ^= x0;	\
-	x0 ^= x2;	x1 &= x4;	x4 |= x3;	\
-	x4 ^= x0;	x0 &= x3;	x1 ^= x3;	\
-	x3 ^= x2;	x0 ^= x1;	x2 &= x4;	\
-	x1 ^= x2;	x2 &= x0;			\
-	x3 ^= x2;					\
+		x4  = x1;	x1 |= x0;			\
+		x2 ^= x1;	x3 = ~x3;	x4 ^= x0;	\
+		x0 ^= x2;	x1 &= x4;	x4 |= x3;	\
+		x4 ^= x0;	x0 &= x3;	x1 ^= x3;	\
+		x3 ^= x2;	x0 ^= x1;	x2 &= x4;	\
+		x1 ^= x2;	x2 &= x0;			\
+		x3 ^= x2;					\
 	})
 
 #define S6(x0, x1, x2, x3, x4) ({			\
-					x4  = x1;	\
-	x3 ^= x0;	x1 ^= x2;	x2 ^= x0;	\
-	x0 &= x3;	x1 |= x3;	x4 = ~x4;	\
-	x0 ^= x1;	x1 ^= x2;			\
-	x3 ^= x4;	x4 ^= x0;	x2 &= x0;	\
-	x4 ^= x1;	x2 ^= x3;	x3 &= x1;	\
-	x3 ^= x0;	x1 ^= x2;			\
+		x4  = x1;	\
+		x3 ^= x0;	x1 ^= x2;	x2 ^= x0;	\
+		x0 &= x3;	x1 |= x3;	x4 = ~x4;	\
+		x0 ^= x1;	x1 ^= x2;			\
+		x3 ^= x4;	x4 ^= x0;	x2 &= x0;	\
+		x4 ^= x1;	x2 ^= x3;	x3 &= x1;	\
+		x3 ^= x0;	x1 ^= x2;			\
 	})
 
 #define S7(x0, x1, x2, x3, x4) ({			\
-					x1 = ~x1;	\
-	x4  = x1;	x0 = ~x0;	x1 &= x2;	\
-	x1 ^= x3;	x3 |= x4;	x4 ^= x2;	\
-	x2 ^= x3;	x3 ^= x0;	x0 |= x1;	\
-	x2 &= x0;	x0 ^= x4;	x4 ^= x3;	\
-	x3 &= x0;	x4 ^= x1;			\
-	x2 ^= x4;	x3 ^= x1;	x4 |= x0;	\
-	x4 ^= x1;					\
+		x1 = ~x1;	\
+		x4  = x1;	x0 = ~x0;	x1 &= x2;	\
+		x1 ^= x3;	x3 |= x4;	x4 ^= x2;	\
+		x2 ^= x3;	x3 ^= x0;	x0 |= x1;	\
+		x2 &= x0;	x0 ^= x4;	x4 ^= x3;	\
+		x3 &= x0;	x4 ^= x1;			\
+		x2 ^= x4;	x3 ^= x1;	x4 |= x0;	\
+		x4 ^= x1;					\
 	})
 
 #define SI0(x0, x1, x2, x3, x4) ({			\
-			x4  = x3;	x1 ^= x0;	\
-	x3 |= x1;	x4 ^= x1;	x0 = ~x0;	\
-	x2 ^= x3;	x3 ^= x0;	x0 &= x1;	\
-	x0 ^= x2;	x2 &= x3;	x3 ^= x4;	\
-	x2 ^= x3;	x1 ^= x3;	x3 &= x0;	\
-	x1 ^= x0;	x0 ^= x2;	x4 ^= x3;	\
+		x4  = x3;	x1 ^= x0;	\
+		x3 |= x1;	x4 ^= x1;	x0 = ~x0;	\
+		x2 ^= x3;	x3 ^= x0;	x0 &= x1;	\
+		x0 ^= x2;	x2 &= x3;	x3 ^= x4;	\
+		x2 ^= x3;	x1 ^= x3;	x3 &= x0;	\
+		x1 ^= x0;	x0 ^= x2;	x4 ^= x3;	\
 	})
 
 #define SI1(x0, x1, x2, x3, x4) ({			\
-	x1 ^= x3;	x4  = x0;			\
-	x0 ^= x2;	x2 = ~x2;	x4 |= x1;	\
-	x4 ^= x3;	x3 &= x1;	x1 ^= x2;	\
-	x2 &= x4;	x4 ^= x1;	x1 |= x3;	\
-	x3 ^= x0;	x2 ^= x0;	x0 |= x4;	\
-	x2 ^= x4;	x1 ^= x0;			\
-	x4 ^= x1;					\
+		x1 ^= x3;	x4  = x0;			\
+		x0 ^= x2;	x2 = ~x2;	x4 |= x1;	\
+		x4 ^= x3;	x3 &= x1;	x1 ^= x2;	\
+		x2 &= x4;	x4 ^= x1;	x1 |= x3;	\
+		x3 ^= x0;	x2 ^= x0;	x0 |= x4;	\
+		x2 ^= x4;	x1 ^= x0;			\
+		x4 ^= x1;					\
 	})
 
 #define SI2(x0, x1, x2, x3, x4) ({			\
-	x2 ^= x1;	x4  = x3;	x3 = ~x3;	\
-	x3 |= x2;	x2 ^= x4;	x4 ^= x0;	\
-	x3 ^= x1;	x1 |= x2;	x2 ^= x0;	\
-	x1 ^= x4;	x4 |= x3;	x2 ^= x3;	\
-	x4 ^= x2;	x2 &= x1;			\
-	x2 ^= x3;	x3 ^= x4;	x4 ^= x0;	\
+		x2 ^= x1;	x4  = x3;	x3 = ~x3;	\
+		x3 |= x2;	x2 ^= x4;	x4 ^= x0;	\
+		x3 ^= x1;	x1 |= x2;	x2 ^= x0;	\
+		x1 ^= x4;	x4 |= x3;	x2 ^= x3;	\
+		x4 ^= x2;	x2 &= x1;			\
+		x2 ^= x3;	x3 ^= x4;	x4 ^= x0;	\
 	})
 
 #define SI3(x0, x1, x2, x3, x4) ({			\
-					x2 ^= x1;	\
-	x4  = x1;	x1 &= x2;			\
-	x1 ^= x0;	x0 |= x4;	x4 ^= x3;	\
-	x0 ^= x3;	x3 |= x1;	x1 ^= x2;	\
-	x1 ^= x3;	x0 ^= x2;	x2 ^= x3;	\
-	x3 &= x1;	x1 ^= x0;	x0 &= x2;	\
-	x4 ^= x3;	x3 ^= x0;	x0 ^= x1;	\
+		x2 ^= x1;	\
+		x4  = x1;	x1 &= x2;			\
+		x1 ^= x0;	x0 |= x4;	x4 ^= x3;	\
+		x0 ^= x3;	x3 |= x1;	x1 ^= x2;	\
+		x1 ^= x3;	x0 ^= x2;	x2 ^= x3;	\
+		x3 &= x1;	x1 ^= x0;	x0 &= x2;	\
+		x4 ^= x3;	x3 ^= x0;	x0 ^= x1;	\
 	})
 
 #define SI4(x0, x1, x2, x3, x4) ({			\
-	x2 ^= x3;	x4  = x0;	x0 &= x1;	\
-	x0 ^= x2;	x2 |= x3;	x4 = ~x4;	\
-	x1 ^= x0;	x0 ^= x2;	x2 &= x4;	\
-	x2 ^= x0;	x0 |= x4;			\
-	x0 ^= x3;	x3 &= x2;			\
-	x4 ^= x3;	x3 ^= x1;	x1 &= x0;	\
-	x4 ^= x1;	x0 ^= x3;			\
+		x2 ^= x3;	x4  = x0;	x0 &= x1;	\
+		x0 ^= x2;	x2 |= x3;	x4 = ~x4;	\
+		x1 ^= x0;	x0 ^= x2;	x2 &= x4;	\
+		x2 ^= x0;	x0 |= x4;			\
+		x0 ^= x3;	x3 &= x2;			\
+		x4 ^= x3;	x3 ^= x1;	x1 &= x0;	\
+		x4 ^= x1;	x0 ^= x3;			\
 	})
 
 #define SI5(x0, x1, x2, x3, x4) ({			\
-			x4  = x1;	x1 |= x2;	\
-	x2 ^= x4;	x1 ^= x3;	x3 &= x4;	\
-	x2 ^= x3;	x3 |= x0;	x0 = ~x0;	\
-	x3 ^= x2;	x2 |= x0;	x4 ^= x1;	\
-	x2 ^= x4;	x4 &= x0;	x0 ^= x1;	\
-	x1 ^= x3;	x0 &= x2;	x2 ^= x3;	\
-	x0 ^= x2;	x2 ^= x4;	x4 ^= x3;	\
+		x4  = x1;	x1 |= x2;	\
+		x2 ^= x4;	x1 ^= x3;	x3 &= x4;	\
+		x2 ^= x3;	x3 |= x0;	x0 = ~x0;	\
+		x3 ^= x2;	x2 |= x0;	x4 ^= x1;	\
+		x2 ^= x4;	x4 &= x0;	x0 ^= x1;	\
+		x1 ^= x3;	x0 &= x2;	x2 ^= x3;	\
+		x0 ^= x2;	x2 ^= x4;	x4 ^= x3;	\
 	})
 
 #define SI6(x0, x1, x2, x3, x4) ({			\
-			x0 ^= x2;			\
-	x4  = x0;	x0 &= x3;	x2 ^= x3;	\
-	x0 ^= x2;	x3 ^= x1;	x2 |= x4;	\
-	x2 ^= x3;	x3 &= x0;	x0 = ~x0;	\
-	x3 ^= x1;	x1 &= x2;	x4 ^= x0;	\
-	x3 ^= x4;	x4 ^= x2;	x0 ^= x1;	\
-	x2 ^= x0;					\
+		x0 ^= x2;			\
+		x4  = x0;	x0 &= x3;	x2 ^= x3;	\
+		x0 ^= x2;	x3 ^= x1;	x2 |= x4;	\
+		x2 ^= x3;	x3 &= x0;	x0 = ~x0;	\
+		x3 ^= x1;	x1 &= x2;	x4 ^= x0;	\
+		x3 ^= x4;	x4 ^= x2;	x0 ^= x1;	\
+		x2 ^= x0;					\
 	})
 
 #define SI7(x0, x1, x2, x3, x4) ({			\
-	x4  = x3;	x3 &= x0;	x0 ^= x2;	\
-	x2 |= x4;	x4 ^= x1;	x0 = ~x0;	\
-	x1 |= x3;	x4 ^= x0;	x0 &= x2;	\
-	x0 ^= x1;	x1 &= x2;	x3 ^= x2;	\
-	x4 ^= x3;	x2 &= x3;	x3 |= x0;	\
-	x1 ^= x4;	x3 ^= x4;	x4 &= x0;	\
-	x4 ^= x2;					\
+		x4  = x3;	x3 &= x0;	x0 ^= x2;	\
+		x2 |= x4;	x4 ^= x1;	x0 = ~x0;	\
+		x1 |= x3;	x4 ^= x0;	x0 &= x2;	\
+		x0 ^= x1;	x1 &= x2;	x3 ^= x2;	\
+		x4 ^= x3;	x2 &= x3;	x3 |= x0;	\
+		x1 ^= x4;	x3 ^= x4;	x4 &= x0;	\
+		x4 ^= x2;					\
 	})
 
 int __serpent_setkey(struct serpent_ctx *ctx, const u8 *key,
-		     unsigned int keylen)
+					 unsigned int keylen)
 {
 	u32 *k = ctx->expkey;
 	u8  *k8 = (u8 *)k;
@@ -240,11 +240,19 @@ int __serpent_setkey(struct serpent_ctx *ctx, const u8 *key,
 	/* Copy key, add padding */
 
 	for (i = 0; i < keylen; ++i)
+	{
 		k8[i] = key[i];
+	}
+
 	if (i < SERPENT_MAX_KEY_SIZE)
+	{
 		k8[i++] = 1;
+	}
+
 	while (i < SERPENT_MAX_KEY_SIZE)
+	{
 		k8[i++] = 0;
+	}
 
 	/* Expand key using polynomial */
 
@@ -449,17 +457,17 @@ void __serpent_encrypt(struct serpent_ctx *ctx, u8 *dst, const u8 *src)
 	__le32	*d = (__le32 *)dst;
 	u32	r0, r1, r2, r3, r4;
 
-/*
- * Note: The conversions between u8* and u32* might cause trouble
- * on architectures with stricter alignment rules than x86
- */
+	/*
+	 * Note: The conversions between u8* and u32* might cause trouble
+	 * on architectures with stricter alignment rules than x86
+	 */
 
 	r0 = le32_to_cpu(s[0]);
 	r1 = le32_to_cpu(s[1]);
 	r2 = le32_to_cpu(s[2]);
 	r3 = le32_to_cpu(s[3]);
 
-					K(r0, r1, r2, r3, 0);
+	K(r0, r1, r2, r3, 0);
 	S0(r0, r1, r2, r3, r4);		LK(r2, r1, r3, r0, r4, 1);
 	S1(r2, r1, r3, r0, r4);		LK(r4, r3, r0, r2, r1, 2);
 	S2(r4, r3, r0, r2, r1);		LK(r1, r3, r4, r2, r0, 3);
@@ -519,7 +527,7 @@ void __serpent_decrypt(struct serpent_ctx *ctx, u8 *dst, const u8 *src)
 	r2 = le32_to_cpu(s[2]);
 	r3 = le32_to_cpu(s[3]);
 
-					K(r0, r1, r2, r3, 32);
+	K(r0, r1, r2, r3, 32);
 	SI7(r0, r1, r2, r3, r4);	KL(r1, r3, r0, r4, r2, 31);
 	SI6(r1, r3, r0, r4, r2);	KL(r0, r2, r4, r1, r3, 30);
 	SI5(r0, r2, r4, r1, r3);	KL(r2, r3, r0, r4, r1, 29);
@@ -568,21 +576,23 @@ static void serpent_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 }
 
 static int tnepres_setkey(struct crypto_tfm *tfm, const u8 *key,
-			  unsigned int keylen)
+						  unsigned int keylen)
 {
 	u8 rev_key[SERPENT_MAX_KEY_SIZE];
 	int i;
 
 	for (i = 0; i < keylen; ++i)
+	{
 		rev_key[keylen - i - 1] = key[i];
+	}
 
 	return serpent_setkey(tfm, rev_key, keylen);
 }
 
 static void tnepres_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 {
-	const u32 * const s = (const u32 * const)src;
-	u32 * const d = (u32 * const)dst;
+	const u32 *const s = (const u32 * const)src;
+	u32 *const d = (u32 * const)dst;
 
 	u32 rs[4], rd[4];
 
@@ -601,8 +611,8 @@ static void tnepres_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 
 static void tnepres_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 {
-	const u32 * const s = (const u32 * const)src;
-	u32 * const d = (u32 * const)dst;
+	const u32 *const s = (const u32 * const)src;
+	u32 *const d = (u32 * const)dst;
 
 	u32 rs[4], rd[4];
 
@@ -620,34 +630,41 @@ static void tnepres_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 }
 
 static struct crypto_alg srp_algs[2] = { {
-	.cra_name		=	"serpent",
-	.cra_driver_name	=	"serpent-generic",
-	.cra_priority		=	100,
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	SERPENT_BLOCK_SIZE,
-	.cra_ctxsize		=	sizeof(struct serpent_ctx),
-	.cra_alignmask		=	3,
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	SERPENT_MIN_KEY_SIZE,
-	.cia_max_keysize	=	SERPENT_MAX_KEY_SIZE,
-	.cia_setkey		=	serpent_setkey,
-	.cia_encrypt		=	serpent_encrypt,
-	.cia_decrypt		=	serpent_decrypt } }
-}, {
-	.cra_name		=	"tnepres",
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	SERPENT_BLOCK_SIZE,
-	.cra_ctxsize		=	sizeof(struct serpent_ctx),
-	.cra_alignmask		=	3,
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	SERPENT_MIN_KEY_SIZE,
-	.cia_max_keysize	=	SERPENT_MAX_KEY_SIZE,
-	.cia_setkey		=	tnepres_setkey,
-	.cia_encrypt		=	tnepres_encrypt,
-	.cia_decrypt		=	tnepres_decrypt } }
-} };
+		.cra_name		=	"serpent",
+		.cra_driver_name	=	"serpent-generic",
+		.cra_priority		=	100,
+		.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
+		.cra_blocksize		=	SERPENT_BLOCK_SIZE,
+		.cra_ctxsize		=	sizeof(struct serpent_ctx),
+		.cra_alignmask		=	3,
+		.cra_module		=	THIS_MODULE,
+		.cra_u			=	{
+			.cipher = {
+				.cia_min_keysize	=	SERPENT_MIN_KEY_SIZE,
+				.cia_max_keysize	=	SERPENT_MAX_KEY_SIZE,
+				.cia_setkey		=	serpent_setkey,
+				.cia_encrypt		=	serpent_encrypt,
+				.cia_decrypt		=	serpent_decrypt
+			}
+		}
+	}, {
+		.cra_name		=	"tnepres",
+		.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
+		.cra_blocksize		=	SERPENT_BLOCK_SIZE,
+		.cra_ctxsize		=	sizeof(struct serpent_ctx),
+		.cra_alignmask		=	3,
+		.cra_module		=	THIS_MODULE,
+		.cra_u			=	{
+			.cipher = {
+				.cia_min_keysize	=	SERPENT_MIN_KEY_SIZE,
+				.cia_max_keysize	=	SERPENT_MAX_KEY_SIZE,
+				.cia_setkey		=	tnepres_setkey,
+				.cia_encrypt		=	tnepres_encrypt,
+				.cia_decrypt		=	tnepres_decrypt
+			}
+		}
+	}
+};
 
 static int __init serpent_mod_init(void)
 {

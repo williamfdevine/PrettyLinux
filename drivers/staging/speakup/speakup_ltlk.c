@@ -28,7 +28,8 @@
 
 static int synth_probe(struct spk_synth *synth);
 
-static struct var_t vars[] = {
+static struct var_t vars[] =
+{
 	{ CAPS_START, .u.s = {"\x01+35p" } },
 	{ CAPS_STOP, .u.s = {"\x01-35p" } },
 	{ RATE, .u.n = {"\x01%ds", 8, 0, 9, 0, 0, NULL } },
@@ -46,40 +47,41 @@ static struct var_t vars[] = {
  * These attributes will appear in /sys/accessibility/speakup/ltlk.
  */
 static struct kobj_attribute caps_start_attribute =
-	__ATTR(caps_start, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(caps_start, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute caps_stop_attribute =
-	__ATTR(caps_stop, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(caps_stop, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute freq_attribute =
-	__ATTR(freq, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(freq, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute pitch_attribute =
-	__ATTR(pitch, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(pitch, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute punct_attribute =
-	__ATTR(punct, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(punct, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute rate_attribute =
-	__ATTR(rate, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(rate, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute tone_attribute =
-	__ATTR(tone, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(tone, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute voice_attribute =
-	__ATTR(voice, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(voice, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute vol_attribute =
-	__ATTR(vol, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(vol, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 
 static struct kobj_attribute delay_time_attribute =
-	__ATTR(delay_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(delay_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute direct_attribute =
-	__ATTR(direct, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(direct, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute full_time_attribute =
-	__ATTR(full_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(full_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute jiffy_delta_attribute =
-	__ATTR(jiffy_delta, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(jiffy_delta, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute trigger_time_attribute =
-	__ATTR(trigger_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(trigger_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 
 /*
  * Create a group of attributes so that we can create and destroy them all
  * at once.
  */
-static struct attribute *synth_attrs[] = {
+static struct attribute *synth_attrs[] =
+{
 	&caps_start_attribute.attr,
 	&caps_stop_attribute.attr,
 	&freq_attribute.attr,
@@ -97,7 +99,8 @@ static struct attribute *synth_attrs[] = {
 	NULL,	/* need to NULL terminate the list of attributes */
 };
 
-static struct spk_synth synth_ltlk = {
+static struct spk_synth synth_ltlk =
+{
 	.name = "ltlk",
 	.version = DRV_VERSION,
 	.long_name = "LiteTalk",
@@ -139,17 +142,29 @@ static void synth_interrogate(struct spk_synth *synth)
 	unsigned char buf[50], rom_v[20];
 
 	spk_synth_immediate(synth, "\x18\x01?");
-	for (i = 0; i < 50; i++) {
+
+	for (i = 0; i < 50; i++)
+	{
 		buf[i] = spk_serial_in();
+
 		if (i > 2 && buf[i] == 0x7f)
+		{
 			break;
+		}
 	}
-	t = buf+2;
-	for (i = 0; *t != '\r'; t++) {
+
+	t = buf + 2;
+
+	for (i = 0; *t != '\r'; t++)
+	{
 		rom_v[i] = *t;
+
 		if (++i >= 19)
+		{
 			break;
+		}
 	}
+
 	rom_v[i] = 0;
 	pr_info("%s: ROM version: %s\n", synth->long_name, rom_v);
 }
@@ -159,8 +174,12 @@ static int synth_probe(struct spk_synth *synth)
 	int failed = 0;
 
 	failed = spk_serial_synth_probe(synth);
+
 	if (failed == 0)
+	{
 		synth_interrogate(synth);
+	}
+
 	synth->alive = !failed;
 	return failed;
 }

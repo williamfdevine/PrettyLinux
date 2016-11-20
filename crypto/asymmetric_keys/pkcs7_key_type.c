@@ -23,13 +23,13 @@ MODULE_DESCRIPTION("PKCS#7 testing key type");
 static unsigned pkcs7_usage;
 module_param_named(usage, pkcs7_usage, uint, S_IWUSR | S_IRUGO);
 MODULE_PARM_DESC(pkcs7_usage,
-		 "Usage to specify when verifying the PKCS#7 message");
+				 "Usage to specify when verifying the PKCS#7 message");
 
 /*
  * Retrieve the PKCS#7 message content.
  */
 static int pkcs7_view_content(void *ctx, const void *data, size_t len,
-			      size_t asn1hdrlen)
+							  size_t asn1hdrlen)
 {
 	struct key_preparsed_payload *prep = ctx;
 	const void *saved_prep_data;
@@ -55,22 +55,24 @@ static int pkcs7_preparse(struct key_preparsed_payload *prep)
 {
 	enum key_being_used_for usage = pkcs7_usage;
 
-	if (usage >= NR__KEY_BEING_USED_FOR) {
+	if (usage >= NR__KEY_BEING_USED_FOR)
+	{
 		pr_err("Invalid usage type %d\n", usage);
 		return -EINVAL;
 	}
 
 	return verify_pkcs7_signature(NULL, 0,
-				      prep->data, prep->datalen,
-				      (void *)1UL, usage,
-				      pkcs7_view_content, prep);
+								  prep->data, prep->datalen,
+								  (void *)1UL, usage,
+								  pkcs7_view_content, prep);
 }
 
 /*
  * user defined keys take an arbitrary string as the description and an
  * arbitrary blob of data as the payload
  */
-static struct key_type key_type_pkcs7 = {
+static struct key_type key_type_pkcs7 =
+{
 	.name			= "pkcs7_test",
 	.preparse		= pkcs7_preparse,
 	.free_preparse		= user_free_preparse,

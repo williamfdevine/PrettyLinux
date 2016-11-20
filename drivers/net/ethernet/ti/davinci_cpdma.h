@@ -24,7 +24,8 @@
 #define CPDMA_EOI_TX		0x2
 #define CPDMA_EOI_MISC		0x3
 
-struct cpdma_params {
+struct cpdma_params
+{
 	struct device		*dev;
 	void __iomem		*dmaregs;
 	void __iomem		*txhdp, *rxhdp, *txcp, *rxcp;
@@ -45,7 +46,8 @@ struct cpdma_params {
 	bool			has_ext_regs;
 };
 
-struct cpdma_chan_stats {
+struct cpdma_chan_stats
+{
 	u32			head_enqueue;
 	u32			tail_enqueue;
 	u32			pad_enqueue;
@@ -72,16 +74,16 @@ int cpdma_ctlr_start(struct cpdma_ctlr *ctlr);
 int cpdma_ctlr_stop(struct cpdma_ctlr *ctlr);
 
 struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
-				     cpdma_handler_fn handler, int rx_type);
+									 cpdma_handler_fn handler, int rx_type);
 int cpdma_chan_get_rx_buf_num(struct cpdma_chan *chan);
 int cpdma_chan_destroy(struct cpdma_chan *chan);
 int cpdma_chan_start(struct cpdma_chan *chan);
 int cpdma_chan_stop(struct cpdma_chan *chan);
 
 int cpdma_chan_get_stats(struct cpdma_chan *chan,
-			 struct cpdma_chan_stats *stats);
+						 struct cpdma_chan_stats *stats);
 int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
-		      int len, int directed);
+					  int len, int directed);
 int cpdma_chan_process(struct cpdma_chan *chan, int quota);
 
 int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable);
@@ -91,7 +93,8 @@ u32 cpdma_ctrl_rxchs_state(struct cpdma_ctlr *ctlr);
 u32 cpdma_ctrl_txchs_state(struct cpdma_ctlr *ctlr);
 bool cpdma_check_free_tx_desc(struct cpdma_chan *chan);
 
-enum cpdma_control {
+enum cpdma_control
+{
 	CPDMA_CMD_IDLE,			/* write-only */
 	CPDMA_COPY_ERROR_FRAMES,	/* read-write */
 	CPDMA_RX_OFF_LEN_UPDATE,	/* read-write */

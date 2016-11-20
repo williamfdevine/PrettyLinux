@@ -217,7 +217,7 @@
 #define NV10_PGRAPH_CTX_SWITCH(i)                         (0x0040014C + 0x4*(i))
 #define NV04_PGRAPH_CTX_SWITCH1                            0x00400160
 #define NV10_PGRAPH_CTX_CACHE(i, j)                       (0x00400160	\
-							   + 0x4*(i) + 0x20*(j))
+		+ 0x4*(i) + 0x20*(j))
 #define NV04_PGRAPH_CTX_SWITCH2                            0x00400164
 #define NV04_PGRAPH_CTX_SWITCH3                            0x00400168
 #define NV04_PGRAPH_CTX_SWITCH4                            0x0040016C

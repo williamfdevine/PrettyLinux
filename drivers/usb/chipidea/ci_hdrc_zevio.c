@@ -16,7 +16,8 @@
 
 #include "ci.h"
 
-static struct ci_hdrc_platform_data ci_hdrc_zevio_platdata = {
+static struct ci_hdrc_platform_data ci_hdrc_zevio_platdata =
+{
 	.name			= "ci_hdrc_zevio",
 	.flags			= CI_HDRC_REGS_SHARED | CI_HDRC_FORCE_FULLSPEED,
 	.capoffset		= DEF_CAPOFFSET,
@@ -29,10 +30,11 @@ static int ci_hdrc_zevio_probe(struct platform_device *pdev)
 	dev_dbg(&pdev->dev, "ci_hdrc_zevio_probe\n");
 
 	ci_pdev = ci_hdrc_add_device(&pdev->dev,
-				pdev->resource, pdev->num_resources,
-				&ci_hdrc_zevio_platdata);
+								 pdev->resource, pdev->num_resources,
+								 &ci_hdrc_zevio_platdata);
 
-	if (IS_ERR(ci_pdev)) {
+	if (IS_ERR(ci_pdev))
+	{
 		dev_err(&pdev->dev, "ci_hdrc_add_device failed!\n");
 		return PTR_ERR(ci_pdev);
 	}
@@ -51,12 +53,14 @@ static int ci_hdrc_zevio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id ci_hdrc_zevio_dt_ids[] = {
+static const struct of_device_id ci_hdrc_zevio_dt_ids[] =
+{
 	{ .compatible = "lsi,zevio-usb", },
 	{ /* sentinel */ }
 };
 
-static struct platform_driver ci_hdrc_zevio_driver = {
+static struct platform_driver ci_hdrc_zevio_driver =
+{
 	.probe = ci_hdrc_zevio_probe,
 	.remove = ci_hdrc_zevio_remove,
 	.driver = {

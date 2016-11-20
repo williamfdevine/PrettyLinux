@@ -10,22 +10,22 @@
 #include <net/flow.h>
 
 int selinux_xfrm_policy_alloc(struct xfrm_sec_ctx **ctxp,
-			      struct xfrm_user_sec_ctx *uctx,
-			      gfp_t gfp);
+							  struct xfrm_user_sec_ctx *uctx,
+							  gfp_t gfp);
 int selinux_xfrm_policy_clone(struct xfrm_sec_ctx *old_ctx,
-			      struct xfrm_sec_ctx **new_ctxp);
+							  struct xfrm_sec_ctx **new_ctxp);
 void selinux_xfrm_policy_free(struct xfrm_sec_ctx *ctx);
 int selinux_xfrm_policy_delete(struct xfrm_sec_ctx *ctx);
 int selinux_xfrm_state_alloc(struct xfrm_state *x,
-			     struct xfrm_user_sec_ctx *uctx);
+							 struct xfrm_user_sec_ctx *uctx);
 int selinux_xfrm_state_alloc_acquire(struct xfrm_state *x,
-				     struct xfrm_sec_ctx *polsec, u32 secid);
+									 struct xfrm_sec_ctx *polsec, u32 secid);
 void selinux_xfrm_state_free(struct xfrm_state *x);
 int selinux_xfrm_state_delete(struct xfrm_state *x);
 int selinux_xfrm_policy_lookup(struct xfrm_sec_ctx *ctx, u32 fl_secid, u8 dir);
 int selinux_xfrm_state_pol_flow_match(struct xfrm_state *x,
-				      struct xfrm_policy *xp,
-				      const struct flowi *fl);
+									  struct xfrm_policy *xp,
+									  const struct flowi *fl);
 
 #ifdef CONFIG_SECURITY_NETWORK_XFRM
 extern atomic_t selinux_xfrm_refcount;
@@ -36,9 +36,9 @@ static inline int selinux_xfrm_enabled(void)
 }
 
 int selinux_xfrm_sock_rcv_skb(u32 sk_sid, struct sk_buff *skb,
-			      struct common_audit_data *ad);
+							  struct common_audit_data *ad);
 int selinux_xfrm_postroute_last(u32 sk_sid, struct sk_buff *skb,
-				struct common_audit_data *ad, u8 proto);
+								struct common_audit_data *ad, u8 proto);
 int selinux_xfrm_decode_session(struct sk_buff *skb, u32 *sid, int ckall);
 int selinux_xfrm_skb_sid(struct sk_buff *skb, u32 *sid);
 
@@ -47,7 +47,8 @@ static inline void selinux_xfrm_notify_policyload(void)
 	struct net *net;
 
 	rtnl_lock();
-	for_each_net(net) {
+	for_each_net(net)
+	{
 		atomic_inc(&net->xfrm.flow_cache_genid);
 		rt_genid_bump_all(net);
 	}
@@ -60,20 +61,20 @@ static inline int selinux_xfrm_enabled(void)
 }
 
 static inline int selinux_xfrm_sock_rcv_skb(u32 sk_sid, struct sk_buff *skb,
-					    struct common_audit_data *ad)
+		struct common_audit_data *ad)
 {
 	return 0;
 }
 
 static inline int selinux_xfrm_postroute_last(u32 sk_sid, struct sk_buff *skb,
-					      struct common_audit_data *ad,
-					      u8 proto)
+		struct common_audit_data *ad,
+		u8 proto)
 {
 	return 0;
 }
 
 static inline int selinux_xfrm_decode_session(struct sk_buff *skb, u32 *sid,
-					      int ckall)
+		int ckall)
 {
 	*sid = SECSID_NULL;
 	return 0;

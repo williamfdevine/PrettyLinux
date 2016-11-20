@@ -24,7 +24,8 @@
 #define APBC_POWER	(1 << 7)  /* Reset Generation */
 
 #define to_clk_apbc(hw) container_of(hw, struct clk_apbc, hw)
-struct clk_apbc {
+struct clk_apbc
+{
 	struct clk_hw		hw;
 	void __iomem		*base;
 	unsigned int		delay;
@@ -43,41 +44,58 @@ static int clk_apbc_prepare(struct clk_hw *hw)
 	 * and it will impact FNCLK enable. Spinlock is needed
 	 */
 	if (apbc->lock)
+	{
 		spin_lock_irqsave(apbc->lock, flags);
+	}
 
 	data = readl_relaxed(apbc->base);
+
 	if (apbc->flags & APBC_POWER_CTRL)
+	{
 		data |= APBC_POWER;
+	}
+
 	data |= APBC_FNCLK;
 	writel_relaxed(data, apbc->base);
 
 	if (apbc->lock)
+	{
 		spin_unlock_irqrestore(apbc->lock, flags);
+	}
 
 	udelay(apbc->delay);
 
 	if (apbc->lock)
+	{
 		spin_lock_irqsave(apbc->lock, flags);
+	}
 
 	data = readl_relaxed(apbc->base);
 	data |= APBC_APBCLK;
 	writel_relaxed(data, apbc->base);
 
 	if (apbc->lock)
+	{
 		spin_unlock_irqrestore(apbc->lock, flags);
+	}
 
 	udelay(apbc->delay);
 
-	if (!(apbc->flags & APBC_NO_BUS_CTRL)) {
+	if (!(apbc->flags & APBC_NO_BUS_CTRL))
+	{
 		if (apbc->lock)
+		{
 			spin_lock_irqsave(apbc->lock, flags);
+		}
 
 		data = readl_relaxed(apbc->base);
 		data &= ~APBC_RST;
 		writel_relaxed(data, apbc->base);
 
 		if (apbc->lock)
+		{
 			spin_unlock_irqrestore(apbc->lock, flags);
+		}
 	}
 
 	return 0;
@@ -90,46 +108,62 @@ static void clk_apbc_unprepare(struct clk_hw *hw)
 	unsigned long flags = 0;
 
 	if (apbc->lock)
+	{
 		spin_lock_irqsave(apbc->lock, flags);
+	}
 
 	data = readl_relaxed(apbc->base);
+
 	if (apbc->flags & APBC_POWER_CTRL)
+	{
 		data &= ~APBC_POWER;
+	}
+
 	data &= ~APBC_FNCLK;
 	writel_relaxed(data, apbc->base);
 
 	if (apbc->lock)
+	{
 		spin_unlock_irqrestore(apbc->lock, flags);
+	}
 
 	udelay(10);
 
 	if (apbc->lock)
+	{
 		spin_lock_irqsave(apbc->lock, flags);
+	}
 
 	data = readl_relaxed(apbc->base);
 	data &= ~APBC_APBCLK;
 	writel_relaxed(data, apbc->base);
 
 	if (apbc->lock)
+	{
 		spin_unlock_irqrestore(apbc->lock, flags);
+	}
 }
 
-static struct clk_ops clk_apbc_ops = {
+static struct clk_ops clk_apbc_ops =
+{
 	.prepare = clk_apbc_prepare,
 	.unprepare = clk_apbc_unprepare,
 };
 
 struct clk *mmp_clk_register_apbc(const char *name, const char *parent_name,
-		void __iomem *base, unsigned int delay,
-		unsigned int apbc_flags, spinlock_t *lock)
+								  void __iomem *base, unsigned int delay,
+								  unsigned int apbc_flags, spinlock_t *lock)
 {
 	struct clk_apbc *apbc;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	apbc = kzalloc(sizeof(*apbc), GFP_KERNEL);
+
 	if (!apbc)
+	{
 		return NULL;
+	}
 
 	init.name = name;
 	init.ops = &clk_apbc_ops;
@@ -144,8 +178,11 @@ struct clk *mmp_clk_register_apbc(const char *name, const char *parent_name,
 	apbc->hw.init = &init;
 
 	clk = clk_register(NULL, &apbc->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(apbc);
+	}
 
 	return clk;
 }

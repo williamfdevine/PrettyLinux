@@ -123,7 +123,8 @@
 #define SSC_TXFIFO_SIZE			0x8
 #define SSC_RXFIFO_SIZE			0x8
 
-enum st_i2c_mode {
+enum st_i2c_mode
+{
 	I2C_MODE_STANDARD,
 	I2C_MODE_FAST,
 	I2C_MODE_END,
@@ -140,7 +141,8 @@ enum st_i2c_mode {
  * @bus_free_time: I2C bus free time requirement
  * @sda_pulse_min_limit: I2C SDA pulse mini width limit
  */
-struct st_i2c_timings {
+struct st_i2c_timings
+{
 	u32 rate;
 	u32 rep_start_hold;
 	u32 rep_start_setup;
@@ -160,7 +162,8 @@ struct st_i2c_timings {
  * @result: result of the transfer
  * @stop: last I2C msg to be sent, i.e. STOP to be generated
  */
-struct st_i2c_client {
+struct st_i2c_client
+{
 	u8	addr;
 	u32	count;
 	u32	xfered;
@@ -183,7 +186,8 @@ struct st_i2c_client {
  * @client: I2C transfert information
  * @busy: I2C transfer on-going
  */
-struct st_i2c_dev {
+struct st_i2c_dev
+{
 	struct i2c_adapter	adap;
 	struct device		*dev;
 	void __iomem		*base;
@@ -214,7 +218,8 @@ static inline void st_i2c_clr_bits(void __iomem *reg, u32 mask)
  * compatible with some out-of-spec devices,
  * like HDMI link of the Toshiba 19AV600 TV.
  */
-static struct st_i2c_timings i2c_timings[] = {
+static struct st_i2c_timings i2c_timings[] =
+{
 	[I2C_MODE_STANDARD] = {
 		.rate			= 100000,
 		.rep_start_hold		= 4400,
@@ -245,13 +250,17 @@ static void st_i2c_flush_rx_fifo(struct st_i2c_dev *i2c_dev)
 	 * set
 	 */
 	if (readl_relaxed(i2c_dev->base + SSC_STA) & SSC_STA_RIR)
+	{
 		count = SSC_RXFIFO_SIZE;
+	}
 	else
 		count = readl_relaxed(i2c_dev->base + SSC_RX_FSTAT) &
-			SSC_RX_FSTAT_STATUS;
+				SSC_RX_FSTAT_STATUS;
 
 	for (i = 0; i < count; i++)
+	{
 		readl_relaxed(i2c_dev->base + SSC_RBUF);
+	}
 }
 
 static void st_i2c_soft_reset(struct st_i2c_dev *i2c_dev)
@@ -279,7 +288,7 @@ static void st_i2c_hw_config(struct st_i2c_dev *i2c_dev)
 	st_i2c_soft_reset(i2c_dev);
 
 	val = SSC_CLR_REPSTRT | SSC_CLR_NACK | SSC_CLR_SSCARBL |
-		SSC_CLR_SSCAAS | SSC_CLR_SSCSTOP;
+		  SSC_CLR_SSCAAS | SSC_CLR_SSCSTOP;
 	writel_relaxed(val, i2c_dev->base + SSC_CLR);
 
 	/* SSC Control register setup */
@@ -374,10 +383,14 @@ static int st_i2c_wait_free_bus(struct st_i2c_dev *i2c_dev)
 	u32 sta;
 	int i, ret;
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		sta = readl_relaxed(i2c_dev->base + SSC_STA);
+
 		if (!(sta & SSC_STA_BUSY))
+		{
 			return 0;
+		}
 
 		usleep_range(2000, 4000);
 	}
@@ -385,7 +398,9 @@ static int st_i2c_wait_free_bus(struct st_i2c_dev *i2c_dev)
 	dev_err(i2c_dev->dev, "bus not free (status = 0x%08x)\n", sta);
 
 	ret = i2c_recover_bus(&i2c_dev->adap);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(i2c_dev->dev, "Failed to recover the bus (%d)\n", ret);
 		return ret;
 	}
@@ -419,19 +434,28 @@ static void st_i2c_wr_fill_tx_fifo(struct st_i2c_dev *i2c_dev)
 	int i;
 
 	sta = readl_relaxed(i2c_dev->base + SSC_STA);
+
 	if (sta & SSC_STA_TX_FIFO_FULL)
+	{
 		return;
+	}
 
 	tx_fstat = readl_relaxed(i2c_dev->base + SSC_TX_FSTAT);
 	tx_fstat &= SSC_TX_FSTAT_STATUS;
 
 	if (c->count < (SSC_TXFIFO_SIZE - tx_fstat))
+	{
 		i = c->count;
+	}
 	else
+	{
 		i = SSC_TXFIFO_SIZE - tx_fstat;
+	}
 
 	for (; i > 0; i--, c->count--, c->buf++)
+	{
 		st_i2c_write_tx_fifo(i2c_dev, *c->buf);
+	}
 }
 
 /**
@@ -448,19 +472,28 @@ static void st_i2c_rd_fill_tx_fifo(struct st_i2c_dev *i2c_dev, int max)
 	int i;
 
 	sta = readl_relaxed(i2c_dev->base + SSC_STA);
+
 	if (sta & SSC_STA_TX_FIFO_FULL)
+	{
 		return;
+	}
 
 	tx_fstat = readl_relaxed(i2c_dev->base + SSC_TX_FSTAT);
 	tx_fstat &= SSC_TX_FSTAT_STATUS;
 
 	if (max < (SSC_TXFIFO_SIZE - tx_fstat))
+	{
 		i = max;
+	}
 	else
+	{
 		i = SSC_TXFIFO_SIZE - tx_fstat;
+	}
 
 	for (; i > 0; i--, c->xfered++)
+	{
 		st_i2c_write_tx_fifo(i2c_dev, 0xff);
+	}
 }
 
 static void st_i2c_read_rx_fifo(struct st_i2c_dev *i2c_dev)
@@ -470,19 +503,25 @@ static void st_i2c_read_rx_fifo(struct st_i2c_dev *i2c_dev)
 	u16 rbuf;
 
 	sta = readl_relaxed(i2c_dev->base + SSC_STA);
-	if (sta & SSC_STA_RIR) {
+
+	if (sta & SSC_STA_RIR)
+	{
 		i = SSC_RXFIFO_SIZE;
-	} else {
+	}
+	else
+	{
 		i = readl_relaxed(i2c_dev->base + SSC_RX_FSTAT);
 		i &= SSC_RX_FSTAT_STATUS;
 	}
 
-	for (; (i > 0) && (c->count > 0); i--, c->count--) {
+	for (; (i > 0) && (c->count > 0); i--, c->count--)
+	{
 		rbuf = readl_relaxed(i2c_dev->base + SSC_RBUF) >> 1;
 		*c->buf++ = (u8)rbuf & 0xff;
 	}
 
-	if (i) {
+	if (i)
+	{
 		dev_err(i2c_dev->dev, "Unexpected %d bytes in rx fifo\n", i);
 		st_i2c_flush_rx_fifo(i2c_dev);
 	}
@@ -499,10 +538,13 @@ static void st_i2c_terminate_xfer(struct st_i2c_dev *i2c_dev)
 	st_i2c_clr_bits(i2c_dev->base + SSC_IEN, SSC_IEN_TEEN);
 	st_i2c_clr_bits(i2c_dev->base + SSC_I2C, SSC_I2C_STRTG);
 
-	if (c->stop) {
+	if (c->stop)
+	{
 		st_i2c_set_bits(i2c_dev->base + SSC_IEN, SSC_IEN_STOPEN);
 		st_i2c_set_bits(i2c_dev->base + SSC_I2C, SSC_I2C_STOPG);
-	} else {
+	}
+	else
+	{
 		st_i2c_set_bits(i2c_dev->base + SSC_IEN, SSC_IEN_REPSTRTEN);
 		st_i2c_set_bits(i2c_dev->base + SSC_I2C, SSC_I2C_REPSTRTG);
 	}
@@ -520,9 +562,13 @@ static void st_i2c_handle_write(struct st_i2c_dev *i2c_dev)
 
 	if (!c->count)
 		/* End of xfer, send stop or repstart */
+	{
 		st_i2c_terminate_xfer(i2c_dev);
+	}
 	else
+	{
 		st_i2c_wr_fill_tx_fifo(i2c_dev);
+	}
 }
 
 /**
@@ -535,17 +581,23 @@ static void st_i2c_handle_read(struct st_i2c_dev *i2c_dev)
 	u32 ien;
 
 	/* Trash the address read back */
-	if (!c->xfered) {
+	if (!c->xfered)
+	{
 		readl_relaxed(i2c_dev->base + SSC_RBUF);
 		st_i2c_clr_bits(i2c_dev->base + SSC_I2C, SSC_I2C_TXENB);
-	} else {
+	}
+	else
+	{
 		st_i2c_read_rx_fifo(i2c_dev);
 	}
 
-	if (!c->count) {
+	if (!c->count)
+	{
 		/* End of xfer, send stop or repstart */
 		st_i2c_terminate_xfer(i2c_dev);
-	} else if (c->count == 1) {
+	}
+	else if (c->count == 1)
+	{
 		/* Penultimate byte to xfer, disable ACK gen. */
 		st_i2c_clr_bits(i2c_dev->base + SSC_I2C, SSC_I2C_ACKG);
 
@@ -554,7 +606,9 @@ static void st_i2c_handle_read(struct st_i2c_dev *i2c_dev)
 		writel_relaxed(ien, i2c_dev->base + SSC_IEN);
 
 		st_i2c_rd_fill_tx_fifo(i2c_dev, c->count);
-	} else {
+	}
+	else
+	{
 		st_i2c_rd_fill_tx_fifo(i2c_dev, c->count - 1);
 	}
 }
@@ -576,55 +630,64 @@ static irqreturn_t st_i2c_isr_thread(int irq, void *data)
 
 	/* Use __fls() to check error bits first */
 	it = __fls(sta & ien);
-	if (it < 0) {
+
+	if (it < 0)
+	{
 		dev_dbg(i2c_dev->dev, "spurious it (sta=0x%04x, ien=0x%04x)\n",
 				sta, ien);
 		return IRQ_NONE;
 	}
 
-	switch (1 << it) {
-	case SSC_STA_TE:
-		if (c->addr & I2C_M_RD)
-			st_i2c_handle_read(i2c_dev);
-		else
-			st_i2c_handle_write(i2c_dev);
-		break;
+	switch (1 << it)
+	{
+		case SSC_STA_TE:
+			if (c->addr & I2C_M_RD)
+			{
+				st_i2c_handle_read(i2c_dev);
+			}
+			else
+			{
+				st_i2c_handle_write(i2c_dev);
+			}
 
-	case SSC_STA_STOP:
-	case SSC_STA_REPSTRT:
-		writel_relaxed(0, i2c_dev->base + SSC_IEN);
-		complete(&i2c_dev->complete);
-		break;
-
-	case SSC_STA_NACK:
-		writel_relaxed(SSC_CLR_NACK, i2c_dev->base + SSC_CLR);
-
-		/* Last received byte handled by NACK interrupt */
-		if ((c->addr & I2C_M_RD) && (c->count == 1) && (c->xfered)) {
-			st_i2c_handle_read(i2c_dev);
 			break;
-		}
 
-		it = SSC_IEN_STOPEN | SSC_IEN_ARBLEN;
-		writel_relaxed(it, i2c_dev->base + SSC_IEN);
+		case SSC_STA_STOP:
+		case SSC_STA_REPSTRT:
+			writel_relaxed(0, i2c_dev->base + SSC_IEN);
+			complete(&i2c_dev->complete);
+			break;
 
-		st_i2c_set_bits(i2c_dev->base + SSC_I2C, SSC_I2C_STOPG);
-		c->result = -EIO;
-		break;
+		case SSC_STA_NACK:
+			writel_relaxed(SSC_CLR_NACK, i2c_dev->base + SSC_CLR);
 
-	case SSC_STA_ARBL:
-		writel_relaxed(SSC_CLR_SSCARBL, i2c_dev->base + SSC_CLR);
+			/* Last received byte handled by NACK interrupt */
+			if ((c->addr & I2C_M_RD) && (c->count == 1) && (c->xfered))
+			{
+				st_i2c_handle_read(i2c_dev);
+				break;
+			}
 
-		it = SSC_IEN_STOPEN | SSC_IEN_ARBLEN;
-		writel_relaxed(it, i2c_dev->base + SSC_IEN);
+			it = SSC_IEN_STOPEN | SSC_IEN_ARBLEN;
+			writel_relaxed(it, i2c_dev->base + SSC_IEN);
 
-		st_i2c_set_bits(i2c_dev->base + SSC_I2C, SSC_I2C_STOPG);
-		c->result = -EAGAIN;
-		break;
+			st_i2c_set_bits(i2c_dev->base + SSC_I2C, SSC_I2C_STOPG);
+			c->result = -EIO;
+			break;
 
-	default:
-		dev_err(i2c_dev->dev,
-				"it %d unhandled (sta=0x%04x)\n", it, sta);
+		case SSC_STA_ARBL:
+			writel_relaxed(SSC_CLR_SSCARBL, i2c_dev->base + SSC_CLR);
+
+			it = SSC_IEN_STOPEN | SSC_IEN_ARBLEN;
+			writel_relaxed(it, i2c_dev->base + SSC_IEN);
+
+			st_i2c_set_bits(i2c_dev->base + SSC_I2C, SSC_I2C_STOPG);
+			c->result = -EAGAIN;
+			break;
+
+		default:
+			dev_err(i2c_dev->dev,
+					"it %d unhandled (sta=0x%04x)\n", it, sta);
 	}
 
 	/*
@@ -645,7 +708,7 @@ static irqreturn_t st_i2c_isr_thread(int irq, void *data)
  * @is_last: last message of the sequence
  */
 static int st_i2c_xfer_msg(struct st_i2c_dev *i2c_dev, struct i2c_msg *msg,
-			    bool is_first, bool is_last)
+						   bool is_first, bool is_last)
 {
 	struct st_i2c_client *c = &i2c_dev->client;
 	u32 ctl, i2c, it;
@@ -665,8 +728,12 @@ static int st_i2c_xfer_msg(struct st_i2c_dev *i2c_dev, struct i2c_msg *msg,
 	st_i2c_set_bits(i2c_dev->base + SSC_CTL, ctl);
 
 	i2c = SSC_I2C_TXENB;
+
 	if (c->addr & I2C_M_RD)
+	{
 		i2c |= SSC_I2C_ACKG;
+	}
+
 	st_i2c_set_bits(i2c_dev->base + SSC_I2C, i2c);
 
 	/* Write slave address */
@@ -674,24 +741,31 @@ static int st_i2c_xfer_msg(struct st_i2c_dev *i2c_dev, struct i2c_msg *msg,
 
 	/* Pre-fill Tx fifo with data in case of write */
 	if (!(c->addr & I2C_M_RD))
+	{
 		st_i2c_wr_fill_tx_fifo(i2c_dev);
+	}
 
 	it = SSC_IEN_NACKEN | SSC_IEN_TEEN | SSC_IEN_ARBLEN;
 	writel_relaxed(it, i2c_dev->base + SSC_IEN);
 
-	if (is_first) {
+	if (is_first)
+	{
 		ret = st_i2c_wait_free_bus(i2c_dev);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		st_i2c_set_bits(i2c_dev->base + SSC_I2C, SSC_I2C_STRTG);
 	}
 
 	timeout = wait_for_completion_timeout(&i2c_dev->complete,
-			i2c_dev->adap.timeout);
+										  i2c_dev->adap.timeout);
 	ret = c->result;
 
-	if (!timeout) {
+	if (!timeout)
+	{
 		dev_err(i2c_dev->dev, "Write to slave 0x%x timed out\n",
 				c->addr);
 		ret = -ETIMEDOUT;
@@ -701,7 +775,7 @@ static int st_i2c_xfer_msg(struct st_i2c_dev *i2c_dev, struct i2c_msg *msg,
 	st_i2c_clr_bits(i2c_dev->base + SSC_I2C, i2c);
 
 	writel_relaxed(SSC_CLR_SSCSTOP | SSC_CLR_REPSTRT,
-			i2c_dev->base + SSC_CLR);
+				   i2c_dev->base + SSC_CLR);
 
 	return ret;
 }
@@ -713,7 +787,7 @@ static int st_i2c_xfer_msg(struct st_i2c_dev *i2c_dev, struct i2c_msg *msg,
  * @num: Number of messages to be executed
  */
 static int st_i2c_xfer(struct i2c_adapter *i2c_adap,
-			struct i2c_msg msgs[], int num)
+					   struct i2c_msg msgs[], int num)
 {
 	struct st_i2c_dev *i2c_dev = i2c_get_adapdata(i2c_adap);
 	int ret, i;
@@ -721,7 +795,9 @@ static int st_i2c_xfer(struct i2c_adapter *i2c_adap,
 	i2c_dev->busy = true;
 
 	ret = clk_prepare_enable(i2c_dev->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(i2c_dev->dev, "Failed to prepare_enable clock\n");
 		return ret;
 	}
@@ -731,7 +807,9 @@ static int st_i2c_xfer(struct i2c_adapter *i2c_adap,
 	st_i2c_hw_config(i2c_dev);
 
 	for (i = 0; (i < num) && !ret; i++)
+	{
 		ret = st_i2c_xfer_msg(i2c_dev, &msgs[i], i == 0, i == num - 1);
+	}
 
 	pinctrl_pm_select_idle_state(i2c_dev->dev);
 
@@ -749,7 +827,9 @@ static int st_i2c_suspend(struct device *dev)
 	struct st_i2c_dev *i2c_dev = platform_get_drvdata(pdev);
 
 	if (i2c_dev->busy)
+	{
 		return -EBUSY;
+	}
 
 	pinctrl_pm_select_sleep_state(dev);
 
@@ -776,30 +856,36 @@ static u32 st_i2c_func(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
 }
 
-static struct i2c_algorithm st_i2c_algo = {
+static struct i2c_algorithm st_i2c_algo =
+{
 	.master_xfer = st_i2c_xfer,
 	.functionality = st_i2c_func,
 };
 
-static struct i2c_bus_recovery_info st_i2c_recovery_info = {
+static struct i2c_bus_recovery_info st_i2c_recovery_info =
+{
 	.recover_bus = st_i2c_recover_bus,
 };
 
 static int st_i2c_of_get_deglitch(struct device_node *np,
-		struct st_i2c_dev *i2c_dev)
+								  struct st_i2c_dev *i2c_dev)
 {
 	int ret;
 
 	ret = of_property_read_u32(np, "st,i2c-min-scl-pulse-width-us",
-			&i2c_dev->scl_min_width_us);
-	if ((ret == -ENODATA) || (ret == -EOVERFLOW)) {
+							   &i2c_dev->scl_min_width_us);
+
+	if ((ret == -ENODATA) || (ret == -EOVERFLOW))
+	{
 		dev_err(i2c_dev->dev, "st,i2c-min-scl-pulse-width-us invalid\n");
 		return ret;
 	}
 
 	ret = of_property_read_u32(np, "st,i2c-min-sda-pulse-width-us",
-			&i2c_dev->sda_min_width_us);
-	if ((ret == -ENODATA) || (ret == -EOVERFLOW)) {
+							   &i2c_dev->sda_min_width_us);
+
+	if ((ret == -ENODATA) || (ret == -EOVERFLOW))
+	{
 		dev_err(i2c_dev->dev, "st,i2c-min-sda-pulse-width-us invalid\n");
 		return ret;
 	}
@@ -817,37 +903,52 @@ static int st_i2c_probe(struct platform_device *pdev)
 	int ret;
 
 	i2c_dev = devm_kzalloc(&pdev->dev, sizeof(*i2c_dev), GFP_KERNEL);
+
 	if (!i2c_dev)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	i2c_dev->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(i2c_dev->base))
+	{
 		return PTR_ERR(i2c_dev->base);
+	}
 
 	i2c_dev->irq = irq_of_parse_and_map(np, 0);
-	if (!i2c_dev->irq) {
+
+	if (!i2c_dev->irq)
+	{
 		dev_err(&pdev->dev, "IRQ missing or invalid\n");
 		return -EINVAL;
 	}
 
 	i2c_dev->clk = of_clk_get_by_name(np, "ssc");
-	if (IS_ERR(i2c_dev->clk)) {
+
+	if (IS_ERR(i2c_dev->clk))
+	{
 		dev_err(&pdev->dev, "Unable to request clock\n");
 		return PTR_ERR(i2c_dev->clk);
 	}
 
 	i2c_dev->mode = I2C_MODE_STANDARD;
 	ret = of_property_read_u32(np, "clock-frequency", &clk_rate);
+
 	if ((!ret) && (clk_rate == 400000))
+	{
 		i2c_dev->mode = I2C_MODE_FAST;
+	}
 
 	i2c_dev->dev = &pdev->dev;
 
 	ret = devm_request_threaded_irq(&pdev->dev, i2c_dev->irq,
-			NULL, st_i2c_isr_thread,
-			IRQF_ONESHOT, pdev->name, i2c_dev);
-	if (ret) {
+									NULL, st_i2c_isr_thread,
+									IRQF_ONESHOT, pdev->name, i2c_dev);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to request irq %i\n", i2c_dev->irq);
 		return ret;
 	}
@@ -857,8 +958,11 @@ static int st_i2c_probe(struct platform_device *pdev)
 	pinctrl_pm_select_idle_state(i2c_dev->dev);
 
 	ret = st_i2c_of_get_deglitch(np, i2c_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	adap = &i2c_dev->adap;
 	i2c_set_adapdata(adap, i2c_dev);
@@ -874,8 +978,11 @@ static int st_i2c_probe(struct platform_device *pdev)
 	init_completion(&i2c_dev->complete);
 
 	ret = i2c_add_adapter(adap);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	platform_set_drvdata(pdev, i2c_dev);
 
@@ -893,14 +1000,16 @@ static int st_i2c_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id st_i2c_match[] = {
+static const struct of_device_id st_i2c_match[] =
+{
 	{ .compatible = "st,comms-ssc-i2c", },
 	{ .compatible = "st,comms-ssc4-i2c", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, st_i2c_match);
 
-static struct platform_driver st_i2c_driver = {
+static struct platform_driver st_i2c_driver =
+{
 	.driver = {
 		.name = "st-i2c",
 		.of_match_table = st_i2c_match,

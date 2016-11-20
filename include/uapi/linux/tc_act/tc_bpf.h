@@ -14,11 +14,13 @@
 
 #define TCA_ACT_BPF 13
 
-struct tc_act_bpf {
+struct tc_act_bpf
+{
 	tc_gen;
 };
 
-enum {
+enum
+{
 	TCA_ACT_BPF_UNSPEC,
 	TCA_ACT_BPF_TM,
 	TCA_ACT_BPF_PARMS,

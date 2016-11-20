@@ -37,20 +37,23 @@
 #define DRV_NAME	"pata_sis"
 #define DRV_VERSION	"0.5.2"
 
-struct sis_chipset {
+struct sis_chipset
+{
 	u16 device;				/* PCI host ID */
 	const struct ata_port_info *info;	/* Info block */
 	/* Probably add family, cable detect type etc here to clean
 	   up code later */
 };
 
-struct sis_laptop {
+struct sis_laptop
+{
 	u16 device;
 	u16 subvendor;
 	u16 subdevice;
 };
 
-static const struct sis_laptop sis_laptop[] = {
+static const struct sis_laptop sis_laptop[] =
+{
 	/* devid, subvendor, subdev */
 	{ 0x5513, 0x1043, 0x1107 },	/* ASUS A6K */
 	{ 0x5513, 0x1734, 0x105F },	/* FSC Amilo A1630 */
@@ -63,11 +66,15 @@ static int sis_short_ata40(struct pci_dev *dev)
 {
 	const struct sis_laptop *lap = &sis_laptop[0];
 
-	while (lap->device) {
+	while (lap->device)
+	{
 		if (lap->device == dev->device &&
-		    lap->subvendor == dev->subsystem_vendor &&
-		    lap->subdevice == dev->subsystem_device)
+			lap->subvendor == dev->subsystem_vendor &&
+			lap->subdevice == dev->subsystem_device)
+		{
 			return 1;
+		}
+
 		lap++;
 	}
 
@@ -104,8 +111,11 @@ static int sis_port_base(struct ata_device *adev)
 
 	/* If bit 30 is set then the registers are mapped at 0x70 not 0x40 */
 	pci_read_config_dword(pdev, 0x54, &reg54);
+
 	if (reg54 & 0x40000000)
+	{
 		port = 0x70;
+	}
 
 	return port + (8 * ap->port_no) + (4 * adev->devno);
 }
@@ -126,8 +136,12 @@ static int sis_133_cable_detect(struct ata_port *ap)
 
 	/* The top bit of this register is the cable detect bit */
 	pci_read_config_word(pdev, 0x50 + 2 * ap->port_no, &tmp);
+
 	if ((tmp & 0x8000) && !sis_short_ata40(pdev))
+	{
 		return ATA_CBL_PATA40;
+	}
+
 	return ATA_CBL_PATA80;
 }
 
@@ -147,8 +161,12 @@ static int sis_66_cable_detect(struct ata_port *ap)
 	/* Older chips keep cable detect in bits 4/5 of reg 0x48 */
 	pci_read_config_byte(pdev, 0x48, &tmp);
 	tmp >>= ap->port_no;
+
 	if ((tmp & 0x10) && !sis_short_ata40(pdev))
+	{
 		return ATA_CBL_PATA40;
+	}
+
 	return ATA_CBL_PATA80;
 }
 
@@ -163,7 +181,8 @@ static int sis_66_cable_detect(struct ata_port *ap)
 
 static int sis_pre_reset(struct ata_link *link, unsigned long deadline)
 {
-	static const struct pci_bits sis_enable_bits[] = {
+	static const struct pci_bits sis_enable_bits[] =
+	{
 		{ 0x4aU, 1U, 0x02UL, 0x02UL },	/* port 0 */
 		{ 0x4aU, 1U, 0x04UL, 0x04UL },	/* port 1 */
 	};
@@ -172,7 +191,9 @@ static int sis_pre_reset(struct ata_link *link, unsigned long deadline)
 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
 
 	if (!pci_test_config_bits(pdev, &sis_enable_bits[ap->port_no]))
+	{
 		return -ENOENT;
+	}
 
 	/* Clear the FIFO settings. We can't enable the FIFO until
 	   we know we are poking at a disk */
@@ -206,7 +227,10 @@ static void sis_set_fifo(struct ata_port *ap, struct ata_device *adev)
 
 	/* Enable for ATA (disk) only */
 	if (adev->class == ATA_DEV_ATA)
+	{
 		fifoctrl |= mask;
+	}
+
 	pci_write_config_byte(pdev, 0x4B, fifoctrl);
 }
 
@@ -292,14 +316,16 @@ static void sis_133_set_piomode (struct ata_port *ap, struct ata_device *adev)
 	u32 t1;
 	int speed = adev->pio_mode - XFER_PIO_0;
 
-	static const u32 timing133[] = {
+	static const u32 timing133[] =
+	{
 		0x28269000,	/* Recovery << 24 | Act << 16 | Ini << 12 */
 		0x0C266000,
 		0x04263000,
 		0x0C0A3000,
 		0x05093000
 	};
-	static const u32 timing100[] = {
+	static const u32 timing100[] =
+	{
 		0x1E1C6000,	/* Recovery << 24 | Act << 16 | Ini << 12 */
 		0x091C4000,
 		0x031C2000,
@@ -314,9 +340,14 @@ static void sis_133_set_piomode (struct ata_port *ap, struct ata_device *adev)
 	t1 &= 0xC0C00FFF;	/* Mask out timing */
 
 	if (t1 & 0x08)		/* 100 or 133 ? */
+	{
 		t1 |= timing133[speed];
+	}
 	else
+	{
 		t1 |= timing100[speed];
+	}
+
 	pci_write_config_byte(pdev, port, t1);
 }
 
@@ -345,17 +376,21 @@ static void sis_old_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 
 	pci_read_config_word(pdev, drive_pci, &timing);
 
-	if (adev->dma_mode < XFER_UDMA_0) {
+	if (adev->dma_mode < XFER_UDMA_0)
+	{
 		/* bits 3-0 hold recovery timing bits 8-10 active timing and
 		   the higher bits are dependent on the device */
 		timing &= ~0x870F;
 		timing |= mwdma_bits[speed];
-	} else {
+	}
+	else
+	{
 		/* Bit 15 is UDMA on/off, bit 13-14 are cycle time */
 		speed = adev->dma_mode - XFER_UDMA_0;
 		timing &= ~0x6000;
 		timing |= udma_bits[speed];
 	}
+
 	pci_write_config_word(pdev, drive_pci, timing);
 }
 
@@ -385,17 +420,21 @@ static void sis_66_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 
 	pci_read_config_word(pdev, drive_pci, &timing);
 
-	if (adev->dma_mode < XFER_UDMA_0) {
+	if (adev->dma_mode < XFER_UDMA_0)
+	{
 		/* bits 3-0 hold recovery timing bits 8-10 active timing and
 		   the higher bits are dependent on the device, bit 15 udma */
 		timing &= ~0x870F;
 		timing |= mwdma_bits[speed];
-	} else {
+	}
+	else
+	{
 		/* Bit 15 is UDMA on/off, bit 12-14 are cycle time */
 		speed = adev->dma_mode - XFER_UDMA_0;
 		timing &= ~0xF000;
 		timing |= udma_bits[speed];
 	}
+
 	pci_write_config_word(pdev, drive_pci, timing);
 }
 
@@ -422,14 +461,18 @@ static void sis_100_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 
 	pci_read_config_byte(pdev, drive_pci + 1, &timing);
 
-	if (adev->dma_mode < XFER_UDMA_0) {
+	if (adev->dma_mode < XFER_UDMA_0)
+	{
 		/* NOT SUPPORTED YET: NEED DATA SHEET. DITTO IN OLD DRIVER */
-	} else {
+	}
+	else
+	{
 		/* Bit 7 is UDMA on/off, bit 0-3 are cycle time */
 		speed = adev->dma_mode - XFER_UDMA_0;
 		timing &= ~0x8F;
 		timing |= udma_bits[speed];
 	}
+
 	pci_write_config_byte(pdev, drive_pci + 1, timing);
 }
 
@@ -456,14 +499,18 @@ static void sis_133_early_set_dmamode (struct ata_port *ap, struct ata_device *a
 
 	pci_read_config_byte(pdev, drive_pci + 1, &timing);
 
-	if (adev->dma_mode < XFER_UDMA_0) {
+	if (adev->dma_mode < XFER_UDMA_0)
+	{
 		/* NOT SUPPORTED YET: NEED DATA SHEET. DITTO IN OLD DRIVER */
-	} else {
+	}
+	else
+	{
 		/* Bit 7 is UDMA on/off, bit 0-3 are cycle time */
 		speed = adev->dma_mode - XFER_UDMA_0;
 		timing &= ~0x8F;
 		timing |= udma_bits[speed];
 	}
+
 	pci_write_config_byte(pdev, drive_pci + 1, timing);
 }
 
@@ -487,7 +534,8 @@ static void sis_133_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 	port = sis_port_base(adev);
 	pci_read_config_dword(pdev, port, &t1);
 
-	if (adev->dma_mode < XFER_UDMA_0) {
+	if (adev->dma_mode < XFER_UDMA_0)
+	{
 		/* Recovery << 24 | Act << 16 | Ini << 12, like PIO modes */
 		static const u32 timing_u100[] = { 0x19154000, 0x06072000, 0x04062000 };
 		static const u32 timing_u133[] = { 0x221C6000, 0x0C0A3000, 0x05093000 };
@@ -496,11 +544,18 @@ static void sis_133_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 		t1 &= 0xC0C00FFF;
 		/* disable UDMA */
 		t1 &= ~0x00000004;
+
 		if (t1 & 0x08)
+		{
 			t1 |= timing_u133[speed];
+		}
 		else
+		{
 			t1 |= timing_u100[speed];
-	} else {
+		}
+	}
+	else
+	{
 		/* bits 4- cycle time 8 - cvs time */
 		static const u32 timing_u100[] = { 0x6B0, 0x470, 0x350, 0x140, 0x120, 0x110, 0x000 };
 		static const u32 timing_u133[] = { 0x9F0, 0x6A0, 0x470, 0x250, 0x230, 0x220, 0x210 };
@@ -509,11 +564,17 @@ static void sis_133_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 		t1 &= ~0x00000FF0;
 		/* enable UDMA */
 		t1 |= 0x00000004;
+
 		if (t1 & 0x08)
+		{
 			t1 |= timing_u133[speed];
+		}
 		else
+		{
 			t1 |= timing_u100[speed];
+		}
 	}
+
 	pci_write_config_dword(pdev, port, t1);
 }
 
@@ -532,29 +593,37 @@ static unsigned long sis_133_mode_filter(struct ata_device *adev, unsigned long 
 	u32 t1;
 
 	pci_read_config_dword(pdev, port, &t1);
+
 	/* if ATA133 is disabled, mask it out */
 	if (!(t1 & 0x08))
+	{
 		mask &= ~(0xC0 << ATA_SHIFT_UDMA);
+	}
+
 	return mask;
 }
 
-static struct scsi_host_template sis_sht = {
+static struct scsi_host_template sis_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations sis_133_for_sata_ops = {
+static struct ata_port_operations sis_133_for_sata_ops =
+{
 	.inherits		= &ata_bmdma_port_ops,
 	.set_piomode		= sis_133_set_piomode,
 	.set_dmamode		= sis_133_set_dmamode,
 	.cable_detect		= sis_133_cable_detect,
 };
 
-static struct ata_port_operations sis_base_ops = {
+static struct ata_port_operations sis_base_ops =
+{
 	.inherits		= &ata_bmdma_port_ops,
 	.prereset		= sis_pre_reset,
 };
 
-static struct ata_port_operations sis_133_ops = {
+static struct ata_port_operations sis_133_ops =
+{
 	.inherits		= &sis_base_ops,
 	.set_piomode		= sis_133_set_piomode,
 	.set_dmamode		= sis_133_set_dmamode,
@@ -562,84 +631,96 @@ static struct ata_port_operations sis_133_ops = {
 	.mode_filter		= sis_133_mode_filter,
 };
 
-static struct ata_port_operations sis_133_early_ops = {
+static struct ata_port_operations sis_133_early_ops =
+{
 	.inherits		= &sis_base_ops,
 	.set_piomode		= sis_100_set_piomode,
 	.set_dmamode		= sis_133_early_set_dmamode,
 	.cable_detect		= sis_66_cable_detect,
 };
 
-static struct ata_port_operations sis_100_ops = {
+static struct ata_port_operations sis_100_ops =
+{
 	.inherits		= &sis_base_ops,
 	.set_piomode		= sis_100_set_piomode,
 	.set_dmamode		= sis_100_set_dmamode,
 	.cable_detect		= sis_66_cable_detect,
 };
 
-static struct ata_port_operations sis_66_ops = {
+static struct ata_port_operations sis_66_ops =
+{
 	.inherits		= &sis_base_ops,
 	.set_piomode		= sis_old_set_piomode,
 	.set_dmamode		= sis_66_set_dmamode,
 	.cable_detect		= sis_66_cable_detect,
 };
 
-static struct ata_port_operations sis_old_ops = {
+static struct ata_port_operations sis_old_ops =
+{
 	.inherits		= &sis_base_ops,
 	.set_piomode		= sis_old_set_piomode,
 	.set_dmamode		= sis_old_set_dmamode,
 	.cable_detect		= ata_cable_40wire,
 };
 
-static const struct ata_port_info sis_info = {
+static const struct ata_port_info sis_info =
+{
 	.flags		= ATA_FLAG_SLAVE_POSS,
 	.pio_mask	= ATA_PIO4,
 	.mwdma_mask	= ATA_MWDMA2,
 	/* No UDMA */
 	.port_ops	= &sis_old_ops,
 };
-static const struct ata_port_info sis_info33 = {
+static const struct ata_port_info sis_info33 =
+{
 	.flags		= ATA_FLAG_SLAVE_POSS,
 	.pio_mask	= ATA_PIO4,
 	.mwdma_mask	= ATA_MWDMA2,
 	.udma_mask	= ATA_UDMA2,
 	.port_ops	= &sis_old_ops,
 };
-static const struct ata_port_info sis_info66 = {
+static const struct ata_port_info sis_info66 =
+{
 	.flags		= ATA_FLAG_SLAVE_POSS,
 	.pio_mask	= ATA_PIO4,
 	/* No MWDMA */
 	.udma_mask	= ATA_UDMA4,
 	.port_ops	= &sis_66_ops,
 };
-static const struct ata_port_info sis_info100 = {
+static const struct ata_port_info sis_info100 =
+{
 	.flags		= ATA_FLAG_SLAVE_POSS,
 	.pio_mask	= ATA_PIO4,
 	/* No MWDMA */
 	.udma_mask	= ATA_UDMA5,
 	.port_ops	= &sis_100_ops,
 };
-static const struct ata_port_info sis_info100_early = {
+static const struct ata_port_info sis_info100_early =
+{
 	.flags		= ATA_FLAG_SLAVE_POSS,
 	.pio_mask	= ATA_PIO4,
 	/* No MWDMA */
 	.udma_mask	= ATA_UDMA5,
 	.port_ops	= &sis_66_ops,
 };
-static const struct ata_port_info sis_info133 = {
+static const struct ata_port_info sis_info133 =
+{
 	.flags		= ATA_FLAG_SLAVE_POSS,
 	.pio_mask	= ATA_PIO4,
 	.mwdma_mask	= ATA_MWDMA2,
 	.udma_mask	= ATA_UDMA6,
 	.port_ops	= &sis_133_ops,
 };
-const struct ata_port_info sis_info133_for_sata = {
+const struct ata_port_info sis_info133_for_sata =
+{
 	.flags		= ATA_FLAG_SLAVE_POSS,
 	.pio_mask	= ATA_PIO4,
 	/* No MWDMA */
 	.udma_mask	= ATA_UDMA6,
 	.port_ops	= &sis_133_for_sata_ops,
 };
-static const struct ata_port_info sis_info133_early = {
+static const struct ata_port_info sis_info133_early =
+{
 	.flags		= ATA_FLAG_SLAVE_POSS,
 	.pio_mask	= ATA_PIO4,
 	/* No MWDMA */
@@ -655,49 +736,78 @@ static void sis_fixup(struct pci_dev *pdev, struct sis_chipset *sis)
 	u16 regw;
 	u8 reg;
 
-	if (sis->info == &sis_info133) {
+	if (sis->info == &sis_info133)
+	{
 		pci_read_config_word(pdev, 0x50, &regw);
+
 		if (regw & 0x08)
+		{
 			pci_write_config_word(pdev, 0x50, regw & ~0x08);
+		}
+
 		pci_read_config_word(pdev, 0x52, &regw);
+
 		if (regw & 0x08)
+		{
 			pci_write_config_word(pdev, 0x52, regw & ~0x08);
+		}
+
 		return;
 	}
 
-	if (sis->info == &sis_info133_early || sis->info == &sis_info100) {
+	if (sis->info == &sis_info133_early || sis->info == &sis_info100)
+	{
 		/* Fix up latency */
 		pci_write_config_byte(pdev, PCI_LATENCY_TIMER, 0x80);
 		/* Set compatibility bit */
 		pci_read_config_byte(pdev, 0x49, &reg);
+
 		if (!(reg & 0x01))
+		{
 			pci_write_config_byte(pdev, 0x49, reg | 0x01);
+		}
+
 		return;
 	}
 
-	if (sis->info == &sis_info66 || sis->info == &sis_info100_early) {
+	if (sis->info == &sis_info66 || sis->info == &sis_info100_early)
+	{
 		/* Fix up latency */
 		pci_write_config_byte(pdev, PCI_LATENCY_TIMER, 0x80);
 		/* Set compatibility bit */
 		pci_read_config_byte(pdev, 0x52, &reg);
+
 		if (!(reg & 0x04))
+		{
 			pci_write_config_byte(pdev, 0x52, reg | 0x04);
+		}
+
 		return;
 	}
 
-	if (sis->info == &sis_info33) {
+	if (sis->info == &sis_info33)
+	{
 		pci_read_config_byte(pdev, PCI_CLASS_PROG, &reg);
+
 		if (( reg & 0x0F ) != 0x00)
+		{
 			pci_write_config_byte(pdev, PCI_CLASS_PROG, reg & 0xF0);
+		}
+
 		/* Fall through to ATA16 fixup below */
 	}
 
-	if (sis->info == &sis_info || sis->info == &sis_info33) {
+	if (sis->info == &sis_info || sis->info == &sis_info33)
+	{
 		/* force per drive recovery and active timings
 		   needed on ATA_33 and below chips */
 		pci_read_config_byte(pdev, 0x52, &reg);
+
 		if (!(reg & 0x08))
-			pci_write_config_byte(pdev, 0x52, reg|0x08);
+		{
+			pci_write_config_byte(pdev, 0x52, reg | 0x08);
+		}
+
 		return;
 	}
 
@@ -727,7 +837,8 @@ static int sis_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
 	struct sis_chipset *sets;
 	int rc;
 
-	static struct sis_chipset sis_chipsets[] = {
+	static struct sis_chipset sis_chipsets[] =
+	{
 
 		{ 0x0968, &sis_info133 },
 		{ 0x0966, &sis_info133 },
@@ -761,40 +872,56 @@ static int sis_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
 
 		{0}
 	};
-	static struct sis_chipset sis133_early = {
+	static struct sis_chipset sis133_early =
+	{
 		0x0, &sis_info133_early
 	};
-	static struct sis_chipset sis133 = {
+	static struct sis_chipset sis133 =
+	{
 		0x0, &sis_info133
 	};
-	static struct sis_chipset sis100_early = {
+	static struct sis_chipset sis100_early =
+	{
 		0x0, &sis_info100_early
 	};
-	static struct sis_chipset sis100 = {
+	static struct sis_chipset sis100 =
+	{
 		0x0, &sis_info100
 	};
 
 	ata_print_version_once(&pdev->dev, DRV_VERSION);
 
 	rc = pcim_enable_device(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* We have to find the bridge first */
-	for (sets = &sis_chipsets[0]; sets->device; sets++) {
+	for (sets = &sis_chipsets[0]; sets->device; sets++)
+	{
 		host = pci_get_device(PCI_VENDOR_ID_SI, sets->device, NULL);
-		if (host != NULL) {
+
+		if (host != NULL)
+		{
 			chipset = sets;			/* Match found */
-			if (sets->device == 0x630) {	/* SIS630 */
+
+			if (sets->device == 0x630)  	/* SIS630 */
+			{
 				if (host->revision >= 0x30)	/* 630 ET */
+				{
 					chipset = &sis100_early;
+				}
 			}
+
 			break;
 		}
 	}
 
 	/* Look for concealed bridges */
-	if (chipset == NULL) {
+	if (chipset == NULL)
+	{
 		/* Second check */
 		u32 idemisc;
 		u16 trueid;
@@ -807,28 +934,35 @@ static int sis_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
 		pci_read_config_word(pdev, PCI_DEVICE_ID, &trueid);
 		pci_write_config_dword(pdev, 0x54, idemisc);
 
-		switch(trueid) {
-		case 0x5518:	/* SIS 962/963 */
-			dev_info(&pdev->dev,
-				 "SiS 962/963 MuTIOL IDE UDMA133 controller\n");
-			chipset = &sis133;
-			if ((idemisc & 0x40000000) == 0) {
-				pci_write_config_dword(pdev, 0x54, idemisc | 0x40000000);
+		switch (trueid)
+		{
+			case 0x5518:	/* SIS 962/963 */
 				dev_info(&pdev->dev,
-					 "Switching to 5513 register mapping\n");
-			}
-			break;
-		case 0x0180:	/* SIS 965/965L */
-			chipset = &sis133;
-			break;
-		case 0x1180:	/* SIS 966/966L */
-			chipset = &sis133;
-			break;
+						 "SiS 962/963 MuTIOL IDE UDMA133 controller\n");
+				chipset = &sis133;
+
+				if ((idemisc & 0x40000000) == 0)
+				{
+					pci_write_config_dword(pdev, 0x54, idemisc | 0x40000000);
+					dev_info(&pdev->dev,
+							 "Switching to 5513 register mapping\n");
+				}
+
+				break;
+
+			case 0x0180:	/* SIS 965/965L */
+				chipset = &sis133;
+				break;
+
+			case 0x1180:	/* SIS 966/966L */
+				chipset = &sis133;
+				break;
 		}
 	}
 
 	/* Further check */
-	if (chipset == NULL) {
+	if (chipset == NULL)
+	{
 		struct pci_dev *lpc_bridge;
 		u16 trueid;
 		u8 prefctl;
@@ -840,27 +974,37 @@ static int sis_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
 		pci_read_config_word(pdev, PCI_DEVICE_ID, &trueid);
 		pci_write_config_byte(pdev, 0x4a, idecfg);
 
-		switch(trueid) {
-		case 0x5517:
-			lpc_bridge = pci_get_slot(pdev->bus, 0x10); /* Bus 0 Dev 2 Fn 0 */
-			if (lpc_bridge == NULL)
-				break;
-			pci_read_config_byte(pdev, 0x49, &prefctl);
-			pci_dev_put(lpc_bridge);
+		switch (trueid)
+		{
+			case 0x5517:
+				lpc_bridge = pci_get_slot(pdev->bus, 0x10); /* Bus 0 Dev 2 Fn 0 */
 
-			if (lpc_bridge->revision == 0x10 && (prefctl & 0x80)) {
-				chipset = &sis133_early;
+				if (lpc_bridge == NULL)
+				{
+					break;
+				}
+
+				pci_read_config_byte(pdev, 0x49, &prefctl);
+				pci_dev_put(lpc_bridge);
+
+				if (lpc_bridge->revision == 0x10 && (prefctl & 0x80))
+				{
+					chipset = &sis133_early;
+					break;
+				}
+
+				chipset = &sis100;
 				break;
-			}
-			chipset = &sis100;
-			break;
 		}
 	}
+
 	pci_dev_put(host);
 
 	/* No chipset info, no support */
 	if (chipset == NULL)
+	{
 		return -ENODEV;
+	}
 
 	ppi[0] = chipset->info;
 
@@ -876,8 +1020,11 @@ static int sis_reinit_one(struct pci_dev *pdev)
 	int rc;
 
 	rc = ata_pci_device_do_resume(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	sis_fixup(pdev, host->private_data);
 
@@ -886,7 +1033,8 @@ static int sis_reinit_one(struct pci_dev *pdev)
 }
 #endif
 
-static const struct pci_device_id sis_pci_tbl[] = {
+static const struct pci_device_id sis_pci_tbl[] =
+{
 	{ PCI_VDEVICE(SI, 0x5513), },	/* SiS 5513 */
 	{ PCI_VDEVICE(SI, 0x5518), },	/* SiS 5518 */
 	{ PCI_VDEVICE(SI, 0x1180), },	/* SiS 1180 */
@@ -894,7 +1042,8 @@ static const struct pci_device_id sis_pci_tbl[] = {
 	{ }
 };
 
-static struct pci_driver sis_pci_driver = {
+static struct pci_driver sis_pci_driver =
+{
 	.name			= DRV_NAME,
 	.id_table		= sis_pci_tbl,
 	.probe			= sis_init_one,

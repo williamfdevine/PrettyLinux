@@ -50,7 +50,8 @@
  */
 
 /* Qdiscs using codel plugin must use codel_skb_cb in their own cb[] */
-struct codel_skb_cb {
+struct codel_skb_cb
+{
 	codel_time_t enqueue_time;
 	unsigned int mem_usage;
 };

@@ -118,7 +118,7 @@ static void ht6560b_dev_select(ide_drive_t *drive)
 	static u8 current_select = 0;
 	static u8 current_timing = 0;
 	u8 select, timing;
-	
+
 	local_irq_save(flags);
 
 	select = HT_CONFIG(drive);
@@ -129,10 +129,13 @@ static void ht6560b_dev_select(ide_drive_t *drive)
 	 * it'll hang (hard).
 	 */
 	if (drive->media != ide_disk ||
-	    (drive->dev_flags & IDE_DFLAG_PRESENT) == 0)
+		(drive->dev_flags & IDE_DFLAG_PRESENT) == 0)
+	{
 		select |= HT_PREFETCH_MODE;
+	}
 
-	if (select != current_select || timing != current_timing) {
+	if (select != current_select || timing != current_timing)
+	{
 		current_select = select;
 		current_timing = timing;
 		(void)inb(HT_CONFIG_PORT);
@@ -147,9 +150,10 @@ static void ht6560b_dev_select(ide_drive_t *drive)
 		(void)inb(hwif->io_ports.status_addr);
 #ifdef DEBUG
 		printk("ht6560b: %s: select=%#x timing=%#x\n",
-			drive->name, select, timing);
+			   drive->name, select, timing);
 #endif
 	}
+
 	local_irq_restore(flags);
 
 	outb(drive->select | ATA_DEVICE_OBS, hwif->io_ports.device_addr);
@@ -162,23 +166,32 @@ static int __init try_to_init_ht6560b(void)
 {
 	u8 orig_value;
 	int i;
-	
+
 	/* Autodetect ht6560b */
 	if ((orig_value = inb(HT_CONFIG_PORT)) == 0xff)
+	{
 		return 0;
-	
-	for (i=3;i>0;i--) {
+	}
+
+	for (i = 3; i > 0; i--)
+	{
 		outb(0x00, HT_CONFIG_PORT);
-		if (!( (~inb(HT_CONFIG_PORT)) & 0x3f )) {
+
+		if (!( (~inb(HT_CONFIG_PORT)) & 0x3f ))
+		{
 			outb(orig_value, HT_CONFIG_PORT);
 			return 0;
 		}
 	}
+
 	outb(0x00, HT_CONFIG_PORT);
-	if ((~inb(HT_CONFIG_PORT))& 0x3f) {
+
+	if ((~inb(HT_CONFIG_PORT)) & 0x3f)
+	{
 		outb(orig_value, HT_CONFIG_PORT);
 		return 0;
 	}
+
 	/*
 	 * Ht6560b autodetected
 	 */
@@ -187,12 +200,12 @@ static int __init try_to_init_ht6560b(void)
 	(void)inb(0x1f7);		/* Status register */
 
 	printk("ht6560b " HT6560B_VERSION
-	       ": chipset detected and initialized"
+		   ": chipset detected and initialized"
 #ifdef DEBUG
-	       " with debug enabled"
+		   " with debug enabled"
 #endif
-	       "\n"
-		);
+		   "\n"
+		  );
 	return 1;
 }
 
@@ -202,7 +215,8 @@ static u8 ht_pio2timings(ide_drive_t *drive, const u8 pio)
 	int active_cycles, recovery_cycles;
 	int bus_speed = ide_vlb_clk ? ide_vlb_clk : 50;
 
-        if (pio) {
+	if (pio)
+	{
 		unsigned int cycle_time;
 		struct ide_timing *t = ide_timing_find_mode(XFER_PIO_0 + pio);
 
@@ -220,25 +234,32 @@ static u8 ht_pio2timings(ide_drive_t *drive, const u8 pio)
 		 */
 		active_cycles   = (active_time   * bus_speed + 999) / 1000;
 		recovery_cycles = (recovery_time * bus_speed + 999) / 1000;
+
 		/*
 		 *  Upper and lower limits
 		 */
-		if (active_cycles   < 2)  active_cycles   = 2;
-		if (recovery_cycles < 2)  recovery_cycles = 2;
-		if (active_cycles   > 15) active_cycles   = 15;
-		if (recovery_cycles > 15) recovery_cycles = 0;  /* 0==16 */
-		
+		if (active_cycles   < 2) { active_cycles   = 2; }
+
+		if (recovery_cycles < 2) { recovery_cycles = 2; }
+
+		if (active_cycles   > 15) { active_cycles   = 15; }
+
+		if (recovery_cycles > 15) { recovery_cycles = 0; }  /* 0==16 */
+
 #ifdef DEBUG
-		printk("ht6560b: drive %s setting pio=%d recovery=%d (%dns) active=%d (%dns)\n", drive->name, pio, recovery_cycles, recovery_time, active_cycles, active_time);
+		printk("ht6560b: drive %s setting pio=%d recovery=%d (%dns) active=%d (%dns)\n", drive->name, pio, recovery_cycles,
+			   recovery_time, active_cycles, active_time);
 #endif
-		
+
 		return (u8)((recovery_cycles << 4) | active_cycles);
-	} else {
-		
+	}
+	else
+	{
+
 #ifdef DEBUG
 		printk("ht6560b: drive %s setting pio=0\n", drive->name);
 #endif
-		
+
 		return HT_TIMING_DEFAULT;    /* default setting */
 	}
 }
@@ -260,11 +281,14 @@ static void ht_set_prefetch(ide_drive_t *drive, u8 state)
 	/*
 	 *  Prefetch mode and unmask irq seems to conflict
 	 */
-	if (state) {
+	if (state)
+	{
 		config |= t;   /* enable prefetch mode */
 		drive->dev_flags |= IDE_DFLAG_NO_UNMASK;
 		drive->dev_flags &= ~IDE_DFLAG_UNMASK;
-	} else {
+	}
+	else
+	{
 		config &= ~t;  /* disable prefetch mode */
 		drive->dev_flags &= ~IDE_DFLAG_NO_UNMASK;
 	}
@@ -283,12 +307,13 @@ static void ht6560b_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	unsigned long flags, config;
 	const u8 pio = drive->pio_mode - XFER_PIO_0;
 	u8 timing;
-	
-	switch (pio) {
-	case 8:         /* set prefetch off */
-	case 9:         /* set prefetch on */
-		ht_set_prefetch(drive, pio & 1);
-		return;
+
+	switch (pio)
+	{
+		case 8:         /* set prefetch off */
+		case 9:         /* set prefetch on */
+			ht_set_prefetch(drive, pio & 1);
+			return;
 	}
 
 	timing = ht_pio2timings(drive, pio);
@@ -312,7 +337,9 @@ static void __init ht6560b_init_dev(ide_drive_t *drive)
 	int t = (HT_CONFIG_DEFAULT << 8) | HT_TIMING_DEFAULT;
 
 	if (hwif->channel)
+	{
 		t |= (HT_SECONDARY_IF << 8);
+	}
 
 	ide_set_drivedata(drive, (void *)t);
 }
@@ -322,7 +349,8 @@ static bool probe_ht6560b;
 module_param_named(probe, probe_ht6560b, bool, 0);
 MODULE_PARM_DESC(probe, "probe for HT6560B chipset");
 
-static const struct ide_tp_ops ht6560b_tp_ops = {
+static const struct ide_tp_ops ht6560b_tp_ops =
+{
 	.exec_command		= ide_exec_command,
 	.read_status		= ide_read_status,
 	.read_altstatus		= ide_read_altstatus,
@@ -336,34 +364,40 @@ static const struct ide_tp_ops ht6560b_tp_ops = {
 	.output_data		= ide_output_data,
 };
 
-static const struct ide_port_ops ht6560b_port_ops = {
+static const struct ide_port_ops ht6560b_port_ops =
+{
 	.init_dev		= ht6560b_init_dev,
 	.set_pio_mode		= ht6560b_set_pio_mode,
 };
 
-static const struct ide_port_info ht6560b_port_info __initconst = {
+static const struct ide_port_info ht6560b_port_info __initconst =
+{
 	.name			= DRV_NAME,
 	.chipset		= ide_ht6560b,
 	.tp_ops 		= &ht6560b_tp_ops,
 	.port_ops		= &ht6560b_port_ops,
 	.host_flags		= IDE_HFLAG_SERIALIZE | /* is this needed? */
-				  IDE_HFLAG_NO_DMA |
-				  IDE_HFLAG_ABUSE_PREFETCH,
+	IDE_HFLAG_NO_DMA |
+	IDE_HFLAG_ABUSE_PREFETCH,
 	.pio_mask		= ATA_PIO4,
 };
 
 static int __init ht6560b_init(void)
 {
 	if (probe_ht6560b == 0)
-		return -ENODEV;
-
-	if (!request_region(HT_CONFIG_PORT, 1, DRV_NAME)) {
-		printk(KERN_NOTICE "%s: HT_CONFIG_PORT not found\n",
-			__func__);
+	{
 		return -ENODEV;
 	}
 
-	if (!try_to_init_ht6560b()) {
+	if (!request_region(HT_CONFIG_PORT, 1, DRV_NAME))
+	{
+		printk(KERN_NOTICE "%s: HT_CONFIG_PORT not found\n",
+			   __func__);
+		return -ENODEV;
+	}
+
+	if (!try_to_init_ht6560b())
+	{
 		printk(KERN_NOTICE "%s: HBA not found\n", __func__);
 		goto release_region;
 	}

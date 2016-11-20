@@ -59,7 +59,8 @@
  *	@dataoffs - configuration data load offset
  *	@datasize - configuration data size
  */
-struct cycx_fw_info {
+struct cycx_fw_info
+{
 	unsigned short	codeid;
 	unsigned short	version;
 	unsigned short	adapter[CFM_MAX_CYCX];
@@ -83,7 +84,8 @@ struct cycx_fw_info {
  *	@info - firmware module info
  *	@image - code image (variable size)
  */
-struct cycx_firmware {
+struct cycx_firmware
+{
 	char		    signature[80];
 	unsigned short	    version;
 	unsigned short	    checksum;
@@ -93,7 +95,8 @@ struct cycx_firmware {
 	unsigned char	    image[0];
 };
 
-struct cycx_fw_header {
+struct cycx_fw_header
+{
 	unsigned long  reset_size;
 	unsigned long  data_size;
 	unsigned long  code_size;

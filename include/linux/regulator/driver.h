@@ -25,7 +25,8 @@ struct regulator_config;
 struct regulator_init_data;
 struct regulator_enable_gpio;
 
-enum regulator_status {
+enum regulator_status
+{
 	REGULATOR_STATUS_OFF,
 	REGULATOR_STATUS_ON,
 	REGULATOR_STATUS_ERROR,
@@ -51,7 +52,8 @@ enum regulator_status {
  * @max_sel: Highest selector for range
  * @uV_step: Step size
  */
-struct regulator_linear_range {
+struct regulator_linear_range
+{
 	unsigned int min_uV;
 	unsigned int min_sel;
 	unsigned int max_sel;
@@ -60,12 +62,12 @@ struct regulator_linear_range {
 
 /* Initialize struct regulator_linear_range */
 #define REGULATOR_LINEAR_RANGE(_min_uV, _min_sel, _max_sel, _step_uV)	\
-{									\
-	.min_uV		= _min_uV,					\
-	.min_sel	= _min_sel,					\
-	.max_sel	= _max_sel,					\
-	.uV_step	= _step_uV,					\
-}
+	{									\
+		.min_uV		= _min_uV,					\
+					  .min_sel	= _min_sel,					\
+									.max_sel	= _max_sel,					\
+											.uV_step	= _step_uV,					\
+	}
 
 /**
  * struct regulator_ops - regulator operations.
@@ -138,14 +140,15 @@ struct regulator_linear_range {
  * This struct describes regulator operations which can be implemented by
  * regulator chip drivers.
  */
-struct regulator_ops {
+struct regulator_ops
+{
 
 	/* enumerate supported voltages */
 	int (*list_voltage) (struct regulator_dev *, unsigned selector);
 
 	/* get/set regulator voltage */
 	int (*set_voltage) (struct regulator_dev *, int min_uV, int max_uV,
-			    unsigned *selector);
+						unsigned *selector);
 	int (*map_voltage)(struct regulator_dev *, int min_uV, int max_uV);
 	int (*set_voltage_sel) (struct regulator_dev *, unsigned selector);
 	int (*get_voltage) (struct regulator_dev *);
@@ -153,7 +156,7 @@ struct regulator_ops {
 
 	/* get/set regulator current  */
 	int (*set_current_limit) (struct regulator_dev *,
-				 int min_uA, int max_uA);
+							  int min_uA, int max_uA);
 	int (*get_current_limit) (struct regulator_dev *);
 
 	int (*set_input_current_limit) (struct regulator_dev *, int lim_uA);
@@ -173,10 +176,10 @@ struct regulator_ops {
 	int (*enable_time) (struct regulator_dev *);
 	int (*set_ramp_delay) (struct regulator_dev *, int ramp_delay);
 	int (*set_voltage_time) (struct regulator_dev *, int old_uV,
-				 int new_uV);
+							 int new_uV);
 	int (*set_voltage_time_sel) (struct regulator_dev *,
-				     unsigned int old_selector,
-				     unsigned int new_selector);
+								 unsigned int old_selector,
+								 unsigned int new_selector);
 
 	int (*set_soft_start) (struct regulator_dev *);
 
@@ -189,7 +192,7 @@ struct regulator_ops {
 
 	/* get most efficient regulator operating mode for load */
 	unsigned int (*get_optimum_mode) (struct regulator_dev *, int input_uV,
-					  int output_uV, int load_uA);
+									  int output_uV, int load_uA);
 	/* set the load on the regulator */
 	int (*set_load)(struct regulator_dev *, int load_uA);
 
@@ -216,7 +219,8 @@ struct regulator_ops {
 /*
  * Regulators can either control voltage or current.
  */
-enum regulator_type {
+enum regulator_type
+{
 	REGULATOR_VOLTAGE,
 	REGULATOR_CURRENT,
 };
@@ -294,16 +298,17 @@ enum regulator_type {
  *
  * @of_map_mode: Maps a hardware mode defined in a DeviceTree to a standard mode
  */
-struct regulator_desc {
+struct regulator_desc
+{
 	const char *name;
 	const char *supply_name;
 	const char *of_match;
 	const char *regulators_node;
 	int (*of_parse_cb)(struct device_node *,
-			    const struct regulator_desc *,
-			    struct regulator_config *);
+					   const struct regulator_desc *,
+					   struct regulator_config *);
 	int id;
-	unsigned int continuous_voltage_range:1;
+	unsigned int continuous_voltage_range: 1;
 	unsigned n_voltages;
 	const struct regulator_ops *ops;
 	int irq;
@@ -370,7 +375,8 @@ struct regulator_desc {
  * @ena_gpio_invert: Sense for GPIO enable control.
  * @ena_gpio_flags: Flags to use when calling gpio_request_one()
  */
-struct regulator_config {
+struct regulator_config
+{
 	struct device *dev;
 	const struct regulator_init_data *init_data;
 	void *driver_data;
@@ -379,7 +385,7 @@ struct regulator_config {
 
 	bool ena_gpio_initialized;
 	int ena_gpio;
-	unsigned int ena_gpio_invert:1;
+	unsigned int ena_gpio_invert: 1;
 	unsigned int ena_gpio_flags;
 };
 
@@ -393,7 +399,8 @@ struct regulator_config {
  * core and notification injection (which should take the mutex and do
  * no other direct access).
  */
-struct regulator_dev {
+struct regulator_dev
+{
 	const struct regulator_desc *desc;
 	int exclusive;
 	u32 use_count;
@@ -423,7 +430,7 @@ struct regulator_dev {
 	struct dentry *debugfs;
 
 	struct regulator_enable_gpio *ena_pin;
-	unsigned int ena_gpio_state:1;
+	unsigned int ena_gpio_state: 1;
 
 	/* time when this regulator was disabled last time */
 	unsigned long last_off_jiffy;
@@ -431,16 +438,16 @@ struct regulator_dev {
 
 struct regulator_dev *
 regulator_register(const struct regulator_desc *regulator_desc,
-		   const struct regulator_config *config);
+				   const struct regulator_config *config);
 struct regulator_dev *
 devm_regulator_register(struct device *dev,
-			const struct regulator_desc *regulator_desc,
-			const struct regulator_config *config);
+						const struct regulator_desc *regulator_desc,
+						const struct regulator_config *config);
 void regulator_unregister(struct regulator_dev *rdev);
 void devm_regulator_unregister(struct device *dev, struct regulator_dev *rdev);
 
 int regulator_notifier_call_chain(struct regulator_dev *rdev,
-				  unsigned long event, void *data);
+								  unsigned long event, void *data);
 
 void *rdev_get_drvdata(struct regulator_dev *rdev);
 struct device *rdev_get_dev(struct regulator_dev *rdev);
@@ -449,32 +456,32 @@ int rdev_get_id(struct regulator_dev *rdev);
 int regulator_mode_to_status(unsigned int);
 
 int regulator_list_voltage_linear(struct regulator_dev *rdev,
-				  unsigned int selector);
+								  unsigned int selector);
 int regulator_list_voltage_linear_range(struct regulator_dev *rdev,
-					unsigned int selector);
+										unsigned int selector);
 int regulator_list_voltage_table(struct regulator_dev *rdev,
-				  unsigned int selector);
+								 unsigned int selector);
 int regulator_map_voltage_linear(struct regulator_dev *rdev,
-				  int min_uV, int max_uV);
+								 int min_uV, int max_uV);
 int regulator_map_voltage_linear_range(struct regulator_dev *rdev,
-				       int min_uV, int max_uV);
+									   int min_uV, int max_uV);
 int regulator_map_voltage_iterate(struct regulator_dev *rdev,
-				  int min_uV, int max_uV);
+								  int min_uV, int max_uV);
 int regulator_map_voltage_ascend(struct regulator_dev *rdev,
-				  int min_uV, int max_uV);
+								 int min_uV, int max_uV);
 int regulator_get_voltage_sel_regmap(struct regulator_dev *rdev);
 int regulator_set_voltage_sel_regmap(struct regulator_dev *rdev, unsigned sel);
 int regulator_is_enabled_regmap(struct regulator_dev *rdev);
 int regulator_enable_regmap(struct regulator_dev *rdev);
 int regulator_disable_regmap(struct regulator_dev *rdev);
 int regulator_set_voltage_time_sel(struct regulator_dev *rdev,
-				   unsigned int old_selector,
-				   unsigned int new_selector);
+								   unsigned int old_selector,
+								   unsigned int new_selector);
 int regulator_set_bypass_regmap(struct regulator_dev *rdev, bool enable);
 int regulator_get_bypass_regmap(struct regulator_dev *rdev, bool *enable);
 
 int regulator_set_active_discharge_regmap(struct regulator_dev *rdev,
-					  bool enable);
+		bool enable);
 void *regulator_get_init_drvdata(struct regulator_init_data *reg_init_data);
 
 #endif

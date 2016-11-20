@@ -65,17 +65,19 @@ static int dcon_init_xo_1_5(struct dcon_priv *dcon)
 	dcon_clear_irq();
 
 	/* set   PMIO_Rx52[6] to enable SCI/SMI on gpio12 */
-	outb(inb(VX855_GPI_SCI_SMI)|BIT_GPIO12, VX855_GPI_SCI_SMI);
+	outb(inb(VX855_GPI_SCI_SMI) | BIT_GPIO12, VX855_GPI_SCI_SMI);
 
 	/* Determine the current state of DCONLOAD, likely set by firmware */
 	/* GPIO1 */
 	dcon->curr_src = (inl(VX855_GENL_PURPOSE_OUTPUT) & 0x1000) ?
-			DCON_SOURCE_CPU : DCON_SOURCE_DCON;
+					 DCON_SOURCE_CPU : DCON_SOURCE_DCON;
 	dcon->pending_src = dcon->curr_src;
 
 	/* we're sharing the IRQ with ACPI */
 	irq = acpi_gbl_FADT.sci_interrupt;
-	if (request_irq(irq, &dcon_interrupt, IRQF_SHARED, "DCON", dcon)) {
+
+	if (request_irq(irq, &dcon_interrupt, IRQF_SHARED, "DCON", dcon))
+	{
 		pr_err("DCON (IRQ%d) allocation failed\n", irq);
 		return 1;
 	}
@@ -93,14 +95,22 @@ static void set_i2c_line(int sda, int scl)
 	tmp = inb(0x3c5);
 
 	if (scl)
+	{
 		tmp |= 0x20;
+	}
 	else
+	{
 		tmp &= ~0x20;
+	}
 
 	if (sda)
+	{
 		tmp |= 0x10;
+	}
 	else
+	{
 		tmp &= ~0x10;
+	}
 
 	tmp |= 0x01;
 
@@ -122,16 +132,18 @@ static void dcon_wiggle_xo_1_5(void)
 	 */
 	set_i2c_line(1, 1);
 
-	for (x = 0; x < 16; x++) {
+	for (x = 0; x < 16; x++)
+	{
 		udelay(5);
 		set_i2c_line(1, 0);
 		udelay(5);
 		set_i2c_line(1, 1);
 	}
+
 	udelay(5);
 
 	/* set   PMIO_Rx52[6] to enable SCI/SMI on gpio12 */
-	outb(inb(VX855_GPI_SCI_SMI)|BIT_GPIO12, VX855_GPI_SCI_SMI);
+	outb(inb(VX855_GPI_SCI_SMI) | BIT_GPIO12, VX855_GPI_SCI_SMI);
 }
 
 static void dcon_set_dconload_xo_1_5(int val)
@@ -142,7 +154,9 @@ static void dcon_set_dconload_xo_1_5(int val)
 static int dcon_read_status_xo_1_5(u8 *status)
 {
 	if (!dcon_was_irq())
+	{
 		return -1;
+	}
 
 	/* i believe this is the same as "inb(0x44b) & 3" */
 	*status = gpio_get_value(VX855_GPI(10));
@@ -153,7 +167,8 @@ static int dcon_read_status_xo_1_5(u8 *status)
 	return 0;
 }
 
-struct dcon_platform_data dcon_pdata_xo_1_5 = {
+struct dcon_platform_data dcon_pdata_xo_1_5 =
+{
 	.init = dcon_init_xo_1_5,
 	.bus_stabilize_wiggle = dcon_wiggle_xo_1_5,
 	.set_dconload = dcon_set_dconload_xo_1_5,

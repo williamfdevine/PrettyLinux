@@ -30,7 +30,7 @@ spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, bool invert)
 {
 	bool r;
 	pr_debug("spi_match:%c 0x%x <= 0x%x <= 0x%x\n",
-		 invert ? '!' : ' ', min, spi, max);
+			 invert ? '!' : ' ', min, spi, max);
 	r = (spi >= min && spi <= max) ^ invert;
 	pr_debug(" result %s\n", r ? "PASS" : "FAILED");
 	return r;
@@ -44,10 +44,14 @@ static bool esp_mt(const struct sk_buff *skb, struct xt_action_param *par)
 
 	/* Must not be a fragment. */
 	if (par->fragoff != 0)
+	{
 		return false;
+	}
 
 	eh = skb_header_pointer(skb, par->thoff, sizeof(_esp), &_esp);
-	if (eh == NULL) {
+
+	if (eh == NULL)
+	{
 		/* We've been asked to examine this packet, and we
 		 * can't.  Hence, no choice but to drop.
 		 */
@@ -57,14 +61,15 @@ static bool esp_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	}
 
 	return spi_match(espinfo->spis[0], espinfo->spis[1], ntohl(eh->spi),
-			 !!(espinfo->invflags & XT_ESP_INV_SPI));
+					 !!(espinfo->invflags & XT_ESP_INV_SPI));
 }
 
 static int esp_mt_check(const struct xt_mtchk_param *par)
 {
 	const struct xt_esp *espinfo = par->matchinfo;
 
-	if (espinfo->invflags & ~XT_ESP_INV_MASK) {
+	if (espinfo->invflags & ~XT_ESP_INV_MASK)
+	{
 		pr_debug("unknown flags %X\n", espinfo->invflags);
 		return -EINVAL;
 	}
@@ -72,7 +77,8 @@ static int esp_mt_check(const struct xt_mtchk_param *par)
 	return 0;
 }
 
-static struct xt_match esp_mt_reg[] __read_mostly = {
+static struct xt_match esp_mt_reg[] __read_mostly =
+{
 	{
 		.name		= "esp",
 		.family		= NFPROTO_IPV4,

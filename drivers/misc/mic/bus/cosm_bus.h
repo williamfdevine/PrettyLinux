@@ -52,7 +52,8 @@
  * @heartbeat_watchdog_enable: if heartbeat watchdog is enabled for this cdev
  * @sysfs_heartbeat_enable: sysfs setting for disabling heartbeat notification
  */
-struct cosm_device {
+struct cosm_device
+{
 	const struct attribute_group **attr_group;
 	struct device *sdev;
 	u8 state;
@@ -86,7 +87,8 @@ struct cosm_device {
  * @probe: the function to call when a device is found.  Returns 0 or -errno.
  * @remove: the function to call when a device is removed.
  */
-struct cosm_driver {
+struct cosm_driver
+{
 	struct device_driver driver;
 	int (*probe)(struct cosm_device *dev);
 	void (*remove)(struct cosm_device *dev);
@@ -105,7 +107,8 @@ struct cosm_driver {
  * @stepping: return MIC HW stepping string
  * @aper: return MIC PCIe aperture
  */
-struct cosm_hw_ops {
+struct cosm_hw_ops
+{
 	void (*reset)(struct cosm_device *cdev);
 	void (*force_reset)(struct cosm_device *cdev);
 	void (*post_reset)(struct cosm_device *cdev, enum mic_states state);

@@ -21,11 +21,12 @@
 #include <mach/palmtc.h>
 #include "soc_common.h"
 
-static struct gpio palmtc_pcmcia_gpios[] = {
+static struct gpio palmtc_pcmcia_gpios[] =
+{
 	{ GPIO_NR_PALMTC_PCMCIA_POWER1,	GPIOF_INIT_LOW,	"PCMCIA Power 1" },
 	{ GPIO_NR_PALMTC_PCMCIA_POWER2,	GPIOF_INIT_LOW,	"PCMCIA Power 2" },
 	{ GPIO_NR_PALMTC_PCMCIA_POWER3,	GPIOF_INIT_LOW,	"PCMCIA Power 3" },
-	{ GPIO_NR_PALMTC_PCMCIA_RESET,	GPIOF_INIT_HIGH,"PCMCIA Reset" },
+	{ GPIO_NR_PALMTC_PCMCIA_RESET,	GPIOF_INIT_HIGH, "PCMCIA Reset" },
 	{ GPIO_NR_PALMTC_PCMCIA_PWRREADY, GPIOF_IN,	"PCMCIA Power Ready" },
 };
 
@@ -34,7 +35,7 @@ static int palmtc_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 	int ret;
 
 	ret = gpio_request_array(palmtc_pcmcia_gpios,
-				ARRAY_SIZE(palmtc_pcmcia_gpios));
+							 ARRAY_SIZE(palmtc_pcmcia_gpios));
 
 	skt->stat[SOC_STAT_RDY].gpio = GPIO_NR_PALMTC_PCMCIA_READY;
 	skt->stat[SOC_STAT_RDY].name = "PCMCIA Ready";
@@ -48,7 +49,7 @@ static void palmtc_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 }
 
 static void palmtc_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
-					struct pcmcia_state *state)
+									   struct pcmcia_state *state)
 {
 	state->detect = 1; /* always inserted */
 	state->vs_3v  = 1;
@@ -78,13 +79,15 @@ static int palmtc_wifi_powerup(void)
 
 	/* Wait till the card is ready */
 	while (!gpio_get_value(GPIO_NR_PALMTC_PCMCIA_PWRREADY) &&
-		timeout) {
+		   timeout)
+	{
 		mdelay(1);
 		timeout--;
 	}
 
 	/* Power down the WiFi in case of error */
-	if (!timeout) {
+	if (!timeout)
+	{
 		palmtc_wifi_powerdown();
 		return 1;
 	}
@@ -101,19 +104,24 @@ static int palmtc_wifi_powerup(void)
 }
 
 static int palmtc_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
-					const socket_state_t *state)
+		const socket_state_t *state)
 {
 	int ret = 1;
 
 	if (state->Vcc == 0)
+	{
 		ret = palmtc_wifi_powerdown();
+	}
 	else if (state->Vcc == 33)
+	{
 		ret = palmtc_wifi_powerup();
+	}
 
 	return ret;
 }
 
-static struct pcmcia_low_level palmtc_pcmcia_ops = {
+static struct pcmcia_low_level palmtc_pcmcia_ops =
+{
 	.owner			= THIS_MODULE,
 
 	.first			= 0,
@@ -133,20 +141,29 @@ static int __init palmtc_pcmcia_init(void)
 	int ret;
 
 	if (!machine_is_palmtc())
+	{
 		return -ENODEV;
+	}
 
 	palmtc_pcmcia_device = platform_device_alloc("pxa2xx-pcmcia", -1);
+
 	if (!palmtc_pcmcia_device)
+	{
 		return -ENOMEM;
+	}
 
 	ret = platform_device_add_data(palmtc_pcmcia_device, &palmtc_pcmcia_ops,
-					sizeof(palmtc_pcmcia_ops));
+								   sizeof(palmtc_pcmcia_ops));
 
 	if (!ret)
+	{
 		ret = platform_device_add(palmtc_pcmcia_device);
+	}
 
 	if (ret)
+	{
 		platform_device_put(palmtc_pcmcia_device);
+	}
 
 	return ret;
 }
@@ -160,7 +177,7 @@ module_init(palmtc_pcmcia_init);
 module_exit(palmtc_pcmcia_exit);
 
 MODULE_AUTHOR("Alex Osborne <ato@meshy.org>,"
-	    " Marek Vasut <marek.vasut@gmail.com>");
+			  " Marek Vasut <marek.vasut@gmail.com>");
 MODULE_DESCRIPTION("PCMCIA support for Palm Tungsten|C");
 MODULE_ALIAS("platform:pxa2xx-pcmcia");
 MODULE_LICENSE("GPL");

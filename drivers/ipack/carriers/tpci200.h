@@ -36,7 +36,8 @@
 #define TPCI200_MEM16_SPACE_BAR       4
 #define TPCI200_MEM8_SPACE_BAR        5
 
-struct tpci200_regs {
+struct tpci200_regs
+{
 	__le16	revision;
 	/* writes to control should occur with the mutex held to protect
 	 * read-modify-write operations */
@@ -119,7 +120,8 @@ struct tpci200_regs {
  * @arg		Handler argument
  *
  */
-struct slot_irq {
+struct slot_irq
+{
 	struct ipack_device *holder;
 	int		vector;
 	irqreturn_t	(*handler)(void *);
@@ -136,7 +138,8 @@ struct slot_irq {
  * @mem_phys	MEM physical base address register of the slot
  *
  */
-struct tpci200_slot {
+struct tpci200_slot
+{
 	struct slot_irq	    *irq;
 };
 
@@ -148,14 +151,16 @@ struct tpci200_slot {
  * @mem8_space		Pointer to MEM space (Bar 4)
  *
  */
-struct tpci200_infos {
+struct tpci200_infos
+{
 	struct pci_dev			*pdev;
 	struct pci_device_id		*id_table;
 	struct tpci200_regs __iomem	*interface_regs;
 	void __iomem			*cfg_regs;
 	struct ipack_bus_device		*ipack_bus;
 };
-struct tpci200_board {
+struct tpci200_board
+{
 	unsigned int		number;
 	struct mutex		mutex;
 	spinlock_t		regs_lock;

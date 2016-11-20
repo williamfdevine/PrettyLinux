@@ -18,7 +18,8 @@ MODULE_AUTHOR("Adrian McMenamin <adrian@mcmen.demon.co.uk>");
 MODULE_DESCRIPTION("SEGA Dreamcast mouse driver");
 MODULE_LICENSE("GPL");
 
-struct dc_mouse {
+struct dc_mouse
+{
 	struct input_dev *dev;
 	struct maple_device *mdev;
 };
@@ -49,8 +50,8 @@ static int dc_mouse_open(struct input_dev *dev)
 {
 	struct dc_mouse *mse = maple_get_drvdata(to_maple_dev(&dev->dev));
 
-	maple_getcond_callback(mse->mdev, dc_mouse_callback, HZ/50,
-		MAPLE_FUNC_MOUSE);
+	maple_getcond_callback(mse->mdev, dc_mouse_callback, HZ / 50,
+						   MAPLE_FUNC_MOUSE);
 
 	return 0;
 }
@@ -60,7 +61,7 @@ static void dc_mouse_close(struct input_dev *dev)
 	struct dc_mouse *mse = maple_get_drvdata(to_maple_dev(&dev->dev));
 
 	maple_getcond_callback(mse->mdev, dc_mouse_callback, 0,
-		MAPLE_FUNC_MOUSE);
+						   MAPLE_FUNC_MOUSE);
 }
 
 /* allow the mouse to be used */
@@ -73,13 +74,17 @@ static int probe_maple_mouse(struct device *dev)
 	struct dc_mouse *mse;
 
 	mse = kzalloc(sizeof(struct dc_mouse), GFP_KERNEL);
-	if (!mse) {
+
+	if (!mse)
+	{
 		error = -ENOMEM;
 		goto fail;
 	}
 
 	input_dev = input_allocate_device();
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		error = -ENOMEM;
 		goto fail_nomem;
 	}
@@ -90,16 +95,19 @@ static int probe_maple_mouse(struct device *dev)
 	input_set_drvdata(input_dev, mse);
 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
 	input_dev->keybit[BIT_WORD(BTN_MOUSE)] = BIT_MASK(BTN_LEFT) |
-		BIT_MASK(BTN_RIGHT) | BIT_MASK(BTN_MIDDLE);
+			BIT_MASK(BTN_RIGHT) | BIT_MASK(BTN_MIDDLE);
 	input_dev->relbit[0] = BIT_MASK(REL_X) | BIT_MASK(REL_Y) |
-		BIT_MASK(REL_WHEEL);
+						   BIT_MASK(REL_WHEEL);
 	input_dev->open = dc_mouse_open;
 	input_dev->close = dc_mouse_close;
 	input_dev->name = mdev->product_name;
 	input_dev->id.bustype = BUS_HOST;
 	error =	input_register_device(input_dev);
+
 	if (error)
+	{
 		goto fail_register;
+	}
 
 	mdev->driver = mdrv;
 	maple_set_drvdata(mdev, mse);
@@ -127,7 +135,8 @@ static int remove_maple_mouse(struct device *dev)
 	return 0;
 }
 
-static struct maple_driver dc_mouse_driver = {
+static struct maple_driver dc_mouse_driver =
+{
 	.function =	MAPLE_FUNC_MOUSE,
 	.drv = {
 		.name = "Dreamcast_mouse",

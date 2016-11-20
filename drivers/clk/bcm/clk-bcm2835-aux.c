@@ -32,19 +32,30 @@ static int bcm2835_aux_clk_probe(struct platform_device *pdev)
 	void __iomem *reg, *gate;
 
 	parent_clk = devm_clk_get(dev, NULL);
+
 	if (IS_ERR(parent_clk))
+	{
 		return PTR_ERR(parent_clk);
+	}
+
 	parent = __clk_get_name(parent_clk);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	reg = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(reg))
+	{
 		return PTR_ERR(reg);
+	}
 
 	onecell = devm_kmalloc(dev, sizeof(*onecell) + sizeof(*onecell->hws) *
-			       BCM2835_AUX_CLOCK_COUNT, GFP_KERNEL);
+						   BCM2835_AUX_CLOCK_COUNT, GFP_KERNEL);
+
 	if (!onecell)
+	{
 		return -ENOMEM;
+	}
+
 	onecell->num = BCM2835_AUX_CLOCK_COUNT;
 
 	gate = reg + BCM2835_AUXENB;
@@ -58,16 +69,18 @@ static int bcm2835_aux_clk_probe(struct platform_device *pdev)
 		clk_hw_register_gate(dev, "aux_spi2", parent, 0, gate, 2, 0, NULL);
 
 	return of_clk_add_hw_provider(pdev->dev.of_node, of_clk_hw_onecell_get,
-				      onecell);
+								  onecell);
 }
 
-static const struct of_device_id bcm2835_aux_clk_of_match[] = {
+static const struct of_device_id bcm2835_aux_clk_of_match[] =
+{
 	{ .compatible = "brcm,bcm2835-aux", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, bcm2835_aux_clk_of_match);
 
-static struct platform_driver bcm2835_aux_clk_driver = {
+static struct platform_driver bcm2835_aux_clk_driver =
+{
 	.driver = {
 		.name = "bcm2835-aux-clk",
 		.of_match_table = bcm2835_aux_clk_of_match,

@@ -24,7 +24,8 @@
 
 /* Slow or fast type for UCCs.
 */
-enum ucc_speed_type {
+enum ucc_speed_type
+{
 	UCC_SPEED_TYPE_FAST = UCC_GUEMR_MODE_FAST_RX | UCC_GUEMR_MODE_FAST_TX,
 	UCC_SPEED_TYPE_SLOW = UCC_GUEMR_MODE_SLOW_RX | UCC_GUEMR_MODE_SLOW_TX
 };
@@ -40,11 +41,11 @@ int ucc_set_type(unsigned int ucc_num, enum ucc_speed_type speed);
 int ucc_set_qe_mux_mii_mng(unsigned int ucc_num);
 
 int ucc_set_qe_mux_rxtx(unsigned int ucc_num, enum qe_clock clock,
-	enum comm_dir mode);
+						enum comm_dir mode);
 int ucc_set_tdm_rxtx_clk(unsigned int tdm_num, enum qe_clock clock,
-			 enum comm_dir mode);
+						 enum comm_dir mode);
 int ucc_set_tdm_rxtx_sync(unsigned int tdm_num, enum qe_clock clock,
-			  enum comm_dir mode);
+						  enum comm_dir mode);
 
 int ucc_mux_set_grant_tsa_bkpt(unsigned int ucc_num, int set, u32 mask);
 

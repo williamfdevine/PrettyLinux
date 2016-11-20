@@ -28,7 +28,8 @@
 #define TEST_CMD_INI_FILE_RADIO_PARAM       0x19
 #define TEST_CMD_INI_FILE_GENERAL_PARAM     0x1E
 
-struct wl1271_general_parms_cmd {
+struct wl1271_general_parms_cmd
+{
 	struct wl1271_cmd_header header;
 
 	struct wl1271_cmd_test_header test;
@@ -43,7 +44,8 @@ struct wl1271_general_parms_cmd {
 	u8 padding[3];
 } __packed;
 
-struct wl128x_general_parms_cmd {
+struct wl128x_general_parms_cmd
+{
 	struct wl1271_cmd_header header;
 
 	struct wl1271_cmd_test_header test;
@@ -58,7 +60,8 @@ struct wl128x_general_parms_cmd {
 	u8 padding[3];
 } __packed;
 
-struct wl1271_radio_parms_cmd {
+struct wl1271_radio_parms_cmd
+{
 	struct wl1271_cmd_header header;
 
 	struct wl1271_cmd_test_header test;
@@ -74,7 +77,8 @@ struct wl1271_radio_parms_cmd {
 	u8 padding3[2];
 } __packed;
 
-struct wl128x_radio_parms_cmd {
+struct wl128x_radio_parms_cmd
+{
 	struct wl1271_cmd_header header;
 
 	struct wl1271_cmd_test_header test;
@@ -93,7 +97,8 @@ struct wl128x_radio_parms_cmd {
 
 #define TEST_CMD_INI_FILE_RF_EXTENDED_PARAM 0x26
 
-struct wl1271_ext_radio_parms_cmd {
+struct wl1271_ext_radio_parms_cmd
+{
 	struct wl1271_cmd_header header;
 
 	struct wl1271_cmd_test_header test;
@@ -103,7 +108,8 @@ struct wl1271_ext_radio_parms_cmd {
 	u8 padding[3];
 } __packed;
 
-struct wl12xx_cmd_channel_switch {
+struct wl12xx_cmd_channel_switch
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
@@ -126,7 +132,7 @@ int wl1271_cmd_radio_parms(struct wl1271 *wl);
 int wl128x_cmd_radio_parms(struct wl1271 *wl);
 int wl1271_cmd_ext_radio_parms(struct wl1271 *wl);
 int wl12xx_cmd_channel_switch(struct wl1271 *wl,
-			      struct wl12xx_vif *wlvif,
-			      struct ieee80211_channel_switch *ch_switch);
+							  struct wl12xx_vif *wlvif,
+							  struct ieee80211_channel_switch *ch_switch);
 
 #endif /* __WL12XX_CMD_H__ */

@@ -27,16 +27,17 @@ unsigned int cached_irq_mask;
  * internal (0).
  */
 static int xtensa_pic_irq_domain_xlate(struct irq_domain *d,
-		struct device_node *ctrlr,
-		const u32 *intspec, unsigned int intsize,
-		unsigned long *out_hwirq, unsigned int *out_type)
+									   struct device_node *ctrlr,
+									   const u32 *intspec, unsigned int intsize,
+									   unsigned long *out_hwirq, unsigned int *out_type)
 {
 	return xtensa_irq_domain_xlate(intspec, intsize,
-			intspec[0], intspec[0],
-			out_hwirq, out_type);
+								   intspec[0], intspec[0],
+								   out_hwirq, out_type);
 }
 
-static const struct irq_domain_ops xtensa_irq_domain_ops = {
+static const struct irq_domain_ops xtensa_irq_domain_ops =
+{
 	.xlate = xtensa_pic_irq_domain_xlate,
 	.map = xtensa_irq_map,
 };
@@ -76,7 +77,8 @@ static int xtensa_irq_retrigger(struct irq_data *d)
 	return 1;
 }
 
-static struct irq_chip xtensa_irq_chip = {
+static struct irq_chip xtensa_irq_chip =
+{
 	.name		= "xtensa",
 	.irq_enable	= xtensa_irq_enable,
 	.irq_disable	= xtensa_irq_disable,
@@ -90,17 +92,17 @@ int __init xtensa_pic_init_legacy(struct device_node *interrupt_parent)
 {
 	struct irq_domain *root_domain =
 		irq_domain_add_legacy(NULL, NR_IRQS, 0, 0,
-				&xtensa_irq_domain_ops, &xtensa_irq_chip);
+							  &xtensa_irq_domain_ops, &xtensa_irq_chip);
 	irq_set_default_host(root_domain);
 	return 0;
 }
 
 static int __init xtensa_pic_init(struct device_node *np,
-		struct device_node *interrupt_parent)
+								  struct device_node *interrupt_parent)
 {
 	struct irq_domain *root_domain =
 		irq_domain_add_linear(np, NR_IRQS, &xtensa_irq_domain_ops,
-				&xtensa_irq_chip);
+							  &xtensa_irq_chip);
 	irq_set_default_host(root_domain);
 	return 0;
 }

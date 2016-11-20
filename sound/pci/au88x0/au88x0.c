@@ -47,11 +47,15 @@ MODULE_DEVICE_TABLE(pci, snd_vortex_ids);
 static void vortex_fix_latency(struct pci_dev *vortex)
 {
 	int rc;
-	if (!(rc = pci_write_config_byte(vortex, 0x40, 0xff))) {
-			dev_info(&vortex->dev, "vortex latency is 0xff\n");
-	} else {
+
+	if (!(rc = pci_write_config_byte(vortex, 0x40, 0xff)))
+	{
+		dev_info(&vortex->dev, "vortex latency is 0xff\n");
+	}
+	else
+	{
 		dev_warn(&vortex->dev,
-			 "could not set vortex latency: pci error 0x%x\n", rc);
+				 "could not set vortex latency: pci error 0x%x\n", rc);
 	}
 }
 
@@ -67,12 +71,15 @@ static void vortex_fix_agp_bridge(struct pci_dev *via)
 	 */
 
 	if (!(rc = pci_read_config_byte(via, 0x42, &value))
-			&& ((value & 0x10)
-				|| !(rc = pci_write_config_byte(via, 0x42, value | 0x10)))) {
+		&& ((value & 0x10)
+			|| !(rc = pci_write_config_byte(via, 0x42, value | 0x10))))
+	{
 		dev_info(&via->dev, "bridge config is 0x%x\n", value | 0x10);
-	} else {
+	}
+	else
+	{
 		dev_warn(&via->dev,
-			 "could not set vortex latency: pci error 0x%x\n", rc);
+				 "could not set vortex latency: pci error 0x%x\n", rc);
 	}
 }
 
@@ -81,38 +88,58 @@ static void snd_vortex_workaround(struct pci_dev *vortex, int fix)
 	struct pci_dev *via = NULL;
 
 	/* autodetect if workarounds are required */
-	if (fix == 255) {
+	if (fix == 255)
+	{
 		/* VIA KT133 */
 		via = pci_get_device(PCI_VENDOR_ID_VIA,
-			PCI_DEVICE_ID_VIA_8365_1, NULL);
+							 PCI_DEVICE_ID_VIA_8365_1, NULL);
+
 		/* VIA Apollo */
-		if (via == NULL) {
+		if (via == NULL)
+		{
 			via = pci_get_device(PCI_VENDOR_ID_VIA,
-				PCI_DEVICE_ID_VIA_82C598_1, NULL);
+								 PCI_DEVICE_ID_VIA_82C598_1, NULL);
+
 			/* AMD Irongate */
 			if (via == NULL)
 				via = pci_get_device(PCI_VENDOR_ID_AMD,
-					PCI_DEVICE_ID_AMD_FE_GATE_7007, NULL);
+									 PCI_DEVICE_ID_AMD_FE_GATE_7007, NULL);
 		}
-		if (via) {
+
+		if (via)
+		{
 			dev_info(&vortex->dev,
-				 "Activating latency workaround...\n");
+					 "Activating latency workaround...\n");
 			vortex_fix_latency(vortex);
 			vortex_fix_agp_bridge(via);
 		}
-	} else {
-		if (fix & 0x1)
-			vortex_fix_latency(vortex);
-		if ((fix & 0x2) && (via = pci_get_device(PCI_VENDOR_ID_VIA,
-				PCI_DEVICE_ID_VIA_8365_1, NULL)))
-			vortex_fix_agp_bridge(via);
-		if ((fix & 0x4) && (via = pci_get_device(PCI_VENDOR_ID_VIA,
-				PCI_DEVICE_ID_VIA_82C598_1, NULL)))
-			vortex_fix_agp_bridge(via);
-		if ((fix & 0x8) && (via = pci_get_device(PCI_VENDOR_ID_AMD,
-				PCI_DEVICE_ID_AMD_FE_GATE_7007, NULL)))
-			vortex_fix_agp_bridge(via);
 	}
+	else
+	{
+		if (fix & 0x1)
+		{
+			vortex_fix_latency(vortex);
+		}
+
+		if ((fix & 0x2) && (via = pci_get_device(PCI_VENDOR_ID_VIA,
+								  PCI_DEVICE_ID_VIA_8365_1, NULL)))
+		{
+			vortex_fix_agp_bridge(via);
+		}
+
+		if ((fix & 0x4) && (via = pci_get_device(PCI_VENDOR_ID_VIA,
+								  PCI_DEVICE_ID_VIA_82C598_1, NULL)))
+		{
+			vortex_fix_agp_bridge(via);
+		}
+
+		if ((fix & 0x8) && (via = pci_get_device(PCI_VENDOR_ID_AMD,
+								  PCI_DEVICE_ID_AMD_FE_GATE_7007, NULL)))
+		{
+			vortex_fix_agp_bridge(via);
+		}
+	}
+
 	pci_dev_put(via);
 }
 
@@ -137,11 +164,12 @@ static int snd_vortex_dev_free(struct snd_device *device)
 // chip-specific constructor
 // (see "Management of Cards and Components")
 static int
-snd_vortex_create(struct snd_card *card, struct pci_dev *pci, vortex_t ** rchip)
+snd_vortex_create(struct snd_card *card, struct pci_dev *pci, vortex_t **rchip)
 {
 	vortex_t *chip;
 	int err;
-	static struct snd_device_ops ops = {
+	static struct snd_device_ops ops =
+	{
 		.dev_free = snd_vortex_dev_free,
 	};
 
@@ -149,16 +177,22 @@ snd_vortex_create(struct snd_card *card, struct pci_dev *pci, vortex_t ** rchip)
 
 	// check PCI availability (DMA).
 	if ((err = pci_enable_device(pci)) < 0)
+	{
 		return err;
+	}
+
 	if (dma_set_mask(&pci->dev, DMA_BIT_MASK(32)) < 0 ||
-	    dma_set_coherent_mask(&pci->dev, DMA_BIT_MASK(32)) < 0) {
+		dma_set_coherent_mask(&pci->dev, DMA_BIT_MASK(32)) < 0)
+	{
 		dev_err(card->dev, "error to set DMA mask\n");
 		pci_disable_device(pci);
 		return -ENXIO;
 	}
 
 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
-	if (chip == NULL) {
+
+	if (chip == NULL)
+	{
 		pci_disable_device(pci);
 		return -ENOMEM;
 	}
@@ -177,10 +211,14 @@ snd_vortex_create(struct snd_card *card, struct pci_dev *pci, vortex_t ** rchip)
 	// Get MMIO area
 	//
 	if ((err = pci_request_regions(pci, CARD_NAME_SHORT)) != 0)
+	{
 		goto regions_out;
+	}
 
 	chip->mmio = pci_ioremap_bar(pci, 0);
-	if (!chip->mmio) {
+
+	if (!chip->mmio)
+	{
 		dev_err(card->dev, "MMIO area remap failed.\n");
 		err = -ENOMEM;
 		goto ioremap_out;
@@ -189,24 +227,28 @@ snd_vortex_create(struct snd_card *card, struct pci_dev *pci, vortex_t ** rchip)
 	/* Init audio core.
 	 * This must be done before we do request_irq otherwise we can get spurious
 	 * interrupts that we do not handle properly and make a mess of things */
-	if ((err = vortex_core_init(chip)) != 0) {
+	if ((err = vortex_core_init(chip)) != 0)
+	{
 		dev_err(card->dev, "hw core init failed\n");
 		goto core_out;
 	}
 
 	if ((err = request_irq(pci->irq, vortex_interrupt,
-			       IRQF_SHARED, KBUILD_MODNAME,
-	                       chip)) != 0) {
+						   IRQF_SHARED, KBUILD_MODNAME,
+						   chip)) != 0)
+	{
 		dev_err(card->dev, "cannot grab irq\n");
 		goto irq_out;
 	}
+
 	chip->irq = pci->irq;
 
 	pci_set_master(pci);
 	// End of PCI setup.
 
 	// Register alsa root device.
-	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0)
+	{
 		goto alloc_out;
 	}
 
@@ -214,15 +256,15 @@ snd_vortex_create(struct snd_card *card, struct pci_dev *pci, vortex_t ** rchip)
 
 	return 0;
 
-      alloc_out:
+alloc_out:
 	free_irq(chip->irq, chip);
-      irq_out:
+irq_out:
 	vortex_core_shutdown(chip);
-      core_out:
+core_out:
 	iounmap(chip->mmio);
-      ioremap_out:
+ioremap_out:
 	pci_release_regions(chip->pci_dev);
-      regions_out:
+regions_out:
 	pci_disable_device(chip->pci_dev);
 	//FIXME: this not the right place to unregister the gameport
 	vortex_gameport_unregister(chip);
@@ -241,53 +283,74 @@ snd_vortex_probe(struct pci_dev *pci, const struct pci_device_id *pci_id)
 
 	// (1)
 	if (dev >= SNDRV_CARDS)
+	{
 		return -ENODEV;
-	if (!enable[dev]) {
+	}
+
+	if (!enable[dev])
+	{
 		dev++;
 		return -ENOENT;
 	}
+
 	// (2)
 	err = snd_card_new(&pci->dev, index[dev], id[dev], THIS_MODULE,
-			   0, &card);
+					   0, &card);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	// (3)
-	if ((err = snd_vortex_create(card, pci, &chip)) < 0) {
+	if ((err = snd_vortex_create(card, pci, &chip)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 	snd_vortex_workaround(pci, pcifix[dev]);
 
 	// Card details needed in snd_vortex_midi
 	strcpy(card->driver, CARD_NAME_SHORT);
 	sprintf(card->shortname, "Aureal Vortex %s", CARD_NAME_SHORT);
 	sprintf(card->longname, "%s at 0x%lx irq %i",
-		card->shortname, chip->io, chip->irq);
+			card->shortname, chip->io, chip->irq);
 
 	// (4) Alloc components.
 	err = snd_vortex_mixer(chip);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 	// ADB pcm.
 	err = snd_vortex_new_pcm(chip, VORTEX_PCM_ADB, NR_PCM);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 #ifndef CHIP_AU8820
+
 	// ADB SPDIF
-	if ((err = snd_vortex_new_pcm(chip, VORTEX_PCM_SPDIF, 1)) < 0) {
+	if ((err = snd_vortex_new_pcm(chip, VORTEX_PCM_SPDIF, 1)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 	// A3D
-	if ((err = snd_vortex_new_pcm(chip, VORTEX_PCM_A3D, NR_A3D)) < 0) {
+	if ((err = snd_vortex_new_pcm(chip, VORTEX_PCM_A3D, NR_A3D)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 #endif
 	/*
 	   // ADB I2S
@@ -297,13 +360,18 @@ snd_vortex_probe(struct pci_dev *pci, const struct pci_device_id *pci_id)
 	   }
 	 */
 #ifndef CHIP_AU8810
+
 	// WT pcm.
-	if ((err = snd_vortex_new_pcm(chip, VORTEX_PCM_WT, NR_WT)) < 0) {
+	if ((err = snd_vortex_new_pcm(chip, VORTEX_PCM_WT, NR_WT)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 #endif
-	if ((err = snd_vortex_midi(chip)) < 0) {
+
+	if ((err = snd_vortex_midi(chip)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
@@ -311,11 +379,15 @@ snd_vortex_probe(struct pci_dev *pci, const struct pci_device_id *pci_id)
 	vortex_gameport_register(chip);
 
 #if 0
+
 	if (snd_seq_device_new(card, 1, SNDRV_SEQ_DEV_ID_VORTEX_SYNTH,
-			       sizeof(snd_vortex_synth_arg_t), &wave) < 0
-	    || wave == NULL) {
+						   sizeof(snd_vortex_synth_arg_t), &wave) < 0
+		|| wave == NULL)
+	{
 		dev_err(card->dev, "Can't initialize Aureal wavetable synth\n");
-	} else {
+	}
+	else
+	{
 		snd_vortex_synth_arg_t *arg;
 
 		arg = SNDRV_SEQ_DEVICE_ARGPTR(wave);
@@ -325,38 +397,48 @@ snd_vortex_probe(struct pci_dev *pci, const struct pci_device_id *pci_id)
 		arg->seq_ports = seq_ports[dev];
 		arg->max_voices = max_synth_voices[dev];
 	}
+
 #endif
 
 	// (5)
 	if ((err = pci_read_config_word(pci, PCI_DEVICE_ID,
-				  &(chip->device))) < 0) {
-		snd_card_free(card);
-		return err;
-	}	
-	if ((err = pci_read_config_word(pci, PCI_VENDOR_ID,
-				  &(chip->vendor))) < 0) {
+									&(chip->device))) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
+	if ((err = pci_read_config_word(pci, PCI_VENDOR_ID,
+									&(chip->vendor))) < 0)
+	{
+		snd_card_free(card);
+		return err;
+	}
+
 	chip->rev = pci->revision;
 #ifdef CHIP_AU8830
-	if ((chip->rev) != 0xfe && (chip->rev) != 0xfa) {
+
+	if ((chip->rev) != 0xfe && (chip->rev) != 0xfa)
+	{
 		dev_alert(card->dev,
-			  "The revision (%x) of your card has not been seen before.\n",
-		       chip->rev);
+				  "The revision (%x) of your card has not been seen before.\n",
+				  chip->rev);
 		dev_alert(card->dev,
-			  "Please email the results of 'lspci -vv' to openvortex-dev@nongnu.org.\n");
+				  "Please email the results of 'lspci -vv' to openvortex-dev@nongnu.org.\n");
 		snd_card_free(card);
 		err = -ENODEV;
 		return err;
 	}
+
 #endif
 
 	// (6)
-	if ((err = snd_card_register(card)) < 0) {
+	if ((err = snd_card_register(card)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 	// (7)
 	pci_set_drvdata(pci, card);
 	dev++;
@@ -372,7 +454,8 @@ static void snd_vortex_remove(struct pci_dev *pci)
 }
 
 // pci_driver definition
-static struct pci_driver vortex_driver = {
+static struct pci_driver vortex_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = snd_vortex_ids,
 	.probe = snd_vortex_probe,

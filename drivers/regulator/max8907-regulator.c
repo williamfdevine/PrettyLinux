@@ -32,87 +32,90 @@
 #define MAX8907_II2RR_VERSION_REV_B	0x10
 #define MAX8907_II2RR_VERSION_REV_C	0x30
 
-struct max8907_regulator {
+struct max8907_regulator
+{
 	struct regulator_desc desc[MAX8907_NUM_REGULATORS];
 };
 
 #define REG_MBATT() \
 	[MAX8907_MBATT] = { \
-		.name = "MBATT", \
-		.supply_name = "mbatt", \
-		.id = MAX8907_MBATT, \
-		.ops = &max8907_mbatt_ops, \
-		.type = REGULATOR_VOLTAGE, \
-		.owner = THIS_MODULE, \
-	}
+						.name = "MBATT", \
+						.supply_name = "mbatt", \
+						.id = MAX8907_MBATT, \
+						.ops = &max8907_mbatt_ops, \
+						.type = REGULATOR_VOLTAGE, \
+						.owner = THIS_MODULE, \
+					  }
 
 #define REG_LDO(ids, supply, base, min, max, step) \
 	[MAX8907_##ids] = { \
-		.name = #ids, \
-		.supply_name = supply, \
-		.id = MAX8907_##ids, \
-		.n_voltages = ((max) - (min)) / (step) + 1, \
-		.ops = &max8907_ldo_ops, \
-		.type = REGULATOR_VOLTAGE, \
-		.owner = THIS_MODULE, \
-		.min_uV = (min), \
-		.uV_step = (step), \
-		.vsel_reg = (base) + MAX8907_VOUT, \
-		.vsel_mask = 0x3f, \
-		.enable_reg = (base) + MAX8907_CTL, \
-		.enable_mask = MAX8907_MASK_LDO_EN, \
-	}
+						.name = #ids, \
+						.supply_name = supply, \
+						.id = MAX8907_##ids, \
+						.n_voltages = ((max) - (min)) / (step) + 1, \
+						.ops = &max8907_ldo_ops, \
+						.type = REGULATOR_VOLTAGE, \
+						.owner = THIS_MODULE, \
+						.min_uV = (min), \
+						.uV_step = (step), \
+						.vsel_reg = (base) + MAX8907_VOUT, \
+						.vsel_mask = 0x3f, \
+						.enable_reg = (base) + MAX8907_CTL, \
+						.enable_mask = MAX8907_MASK_LDO_EN, \
+					  }
 
 #define REG_FIXED(ids, supply, voltage) \
 	[MAX8907_##ids] = { \
-		.name = #ids, \
-		.supply_name = supply, \
-		.id = MAX8907_##ids, \
-		.n_voltages = 1, \
-		.ops = &max8907_fixed_ops, \
-		.type = REGULATOR_VOLTAGE, \
-		.owner = THIS_MODULE, \
-		.min_uV = (voltage), \
-	}
+						.name = #ids, \
+						.supply_name = supply, \
+						.id = MAX8907_##ids, \
+						.n_voltages = 1, \
+						.ops = &max8907_fixed_ops, \
+						.type = REGULATOR_VOLTAGE, \
+						.owner = THIS_MODULE, \
+						.min_uV = (voltage), \
+					  }
 
 #define REG_OUT5V(ids, supply, base, voltage) \
 	[MAX8907_##ids] = { \
-		.name = #ids, \
-		.supply_name = supply, \
-		.id = MAX8907_##ids, \
-		.n_voltages = 1, \
-		.ops = &max8907_out5v_ops, \
-		.type = REGULATOR_VOLTAGE, \
-		.owner = THIS_MODULE, \
-		.min_uV = (voltage), \
-		.enable_reg = (base), \
-		.enable_mask = MAX8907_MASK_OUT5V_EN, \
-	}
+						.name = #ids, \
+						.supply_name = supply, \
+						.id = MAX8907_##ids, \
+						.n_voltages = 1, \
+						.ops = &max8907_out5v_ops, \
+						.type = REGULATOR_VOLTAGE, \
+						.owner = THIS_MODULE, \
+						.min_uV = (voltage), \
+						.enable_reg = (base), \
+						.enable_mask = MAX8907_MASK_OUT5V_EN, \
+					  }
 
 #define REG_BBAT(ids, supply, base, min, max, step) \
 	[MAX8907_##ids] = { \
-		.name = #ids, \
-		.supply_name = supply, \
-		.id = MAX8907_##ids, \
-		.n_voltages = ((max) - (min)) / (step) + 1, \
-		.ops = &max8907_bbat_ops, \
-		.type = REGULATOR_VOLTAGE, \
-		.owner = THIS_MODULE, \
-		.min_uV = (min), \
-		.uV_step = (step), \
-		.vsel_reg = (base), \
-		.vsel_mask = MAX8907_MASK_VBBATTCV, \
-	}
+						.name = #ids, \
+						.supply_name = supply, \
+						.id = MAX8907_##ids, \
+						.n_voltages = ((max) - (min)) / (step) + 1, \
+						.ops = &max8907_bbat_ops, \
+						.type = REGULATOR_VOLTAGE, \
+						.owner = THIS_MODULE, \
+						.min_uV = (min), \
+						.uV_step = (step), \
+						.vsel_reg = (base), \
+						.vsel_mask = MAX8907_MASK_VBBATTCV, \
+					  }
 
 #define LDO_750_50(id, supply, base) REG_LDO(id, supply, (base), \
-			750000, 3900000, 50000)
+		750000, 3900000, 50000)
 #define LDO_650_25(id, supply, base) REG_LDO(id, supply, (base), \
-			650000, 2225000, 25000)
+		650000, 2225000, 25000)
 
-static struct regulator_ops max8907_mbatt_ops = {
+static struct regulator_ops max8907_mbatt_ops =
+{
 };
 
-static struct regulator_ops max8907_ldo_ops = {
+static struct regulator_ops max8907_ldo_ops =
+{
 	.list_voltage = regulator_list_voltage_linear,
 	.set_voltage_sel = regulator_set_voltage_sel_regmap,
 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
@@ -121,34 +124,40 @@ static struct regulator_ops max8907_ldo_ops = {
 	.is_enabled = regulator_is_enabled_regmap,
 };
 
-static struct regulator_ops max8907_ldo_hwctl_ops = {
+static struct regulator_ops max8907_ldo_hwctl_ops =
+{
 	.list_voltage = regulator_list_voltage_linear,
 	.set_voltage_sel = regulator_set_voltage_sel_regmap,
 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
 };
 
-static struct regulator_ops max8907_fixed_ops = {
+static struct regulator_ops max8907_fixed_ops =
+{
 	.list_voltage = regulator_list_voltage_linear,
 };
 
-static struct regulator_ops max8907_out5v_ops = {
+static struct regulator_ops max8907_out5v_ops =
+{
 	.list_voltage = regulator_list_voltage_linear,
 	.enable = regulator_enable_regmap,
 	.disable = regulator_disable_regmap,
 	.is_enabled = regulator_is_enabled_regmap,
 };
 
-static struct regulator_ops max8907_out5v_hwctl_ops = {
+static struct regulator_ops max8907_out5v_hwctl_ops =
+{
 	.list_voltage = regulator_list_voltage_linear,
 };
 
-static struct regulator_ops max8907_bbat_ops = {
+static struct regulator_ops max8907_bbat_ops =
+{
 	.list_voltage = regulator_list_voltage_linear,
 	.set_voltage_sel = regulator_set_voltage_sel_regmap,
 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
 };
 
-static struct regulator_desc max8907_regulators[] = {
+static struct regulator_desc max8907_regulators[] =
+{
 	REG_MBATT(),
 	REG_LDO(SD1, "in-v1", MAX8907_REG_SDCTL1, 650000, 2225000, 25000),
 	REG_LDO(SD2, "in-v2", MAX8907_REG_SDCTL2, 637500, 1425000, 12500),
@@ -176,7 +185,7 @@ static struct regulator_desc max8907_regulators[] = {
 	REG_OUT5V(OUT5V, "mbatt", MAX8907_REG_OUT5VEN, 5000000),
 	REG_OUT5V(OUT33V, "mbatt",  MAX8907_REG_OUT33VEN, 3300000),
 	REG_BBAT(BBAT, "MBATT", MAX8907_REG_BBAT_CNFG,
-						2400000, 3000000, 200000),
+	2400000, 3000000, 200000),
 	REG_FIXED(SDBY, "MBATT", 1200000),
 	REG_FIXED(VRTC, "MBATT", 3300000),
 };
@@ -185,11 +194,12 @@ static struct regulator_desc max8907_regulators[] = {
 
 #define MATCH(_name, _id) \
 	[MAX8907_##_id] = { \
-		.name = #_name, \
-		.driver_data = (void *)&max8907_regulators[MAX8907_##_id], \
-	}
+						.name = #_name, \
+						.driver_data = (void *)&max8907_regulators[MAX8907_##_id], \
+					  }
 
-static struct of_regulator_match max8907_matches[] = {
+static struct of_regulator_match max8907_matches[] =
+{
 	MATCH(mbatt, MBATT),
 	MATCH(sd1, SD1),
 	MATCH(sd2, SD2),
@@ -227,21 +237,28 @@ static int max8907_regulator_parse_dt(struct platform_device *pdev)
 	int ret;
 
 	np = pdev->dev.parent->of_node;
+
 	if (!np)
+	{
 		return 0;
+	}
 
 	regulators = of_get_child_by_name(np, "regulators");
-	if (!regulators) {
+
+	if (!regulators)
+	{
 		dev_err(&pdev->dev, "regulators node not found\n");
 		return -EINVAL;
 	}
 
 	ret = of_regulator_match(&pdev->dev, regulators, max8907_matches,
-				 ARRAY_SIZE(max8907_matches));
+							 ARRAY_SIZE(max8907_matches));
 	of_node_put(regulators);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Error parsing regulator init data: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -287,12 +304,18 @@ static int max8907_regulator_probe(struct platform_device *pdev)
 	const char *mbatt_rail_name = NULL;
 
 	ret = max8907_regulator_parse_dt(pdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pmic = devm_kzalloc(&pdev->dev, sizeof(*pmic), GFP_KERNEL);
+
 	if (!pmic)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, pmic);
 
@@ -300,62 +323,89 @@ static int max8907_regulator_probe(struct platform_device *pdev)
 
 	/* Backwards compatibility with MAX8907B; SD1 uses different voltages */
 	regmap_read(max8907->regmap_gen, MAX8907_REG_II2RR, &val);
+
 	if ((val & MAX8907_II2RR_VERSION_MASK) ==
-	    MAX8907_II2RR_VERSION_REV_B) {
+		MAX8907_II2RR_VERSION_REV_B)
+	{
 		pmic->desc[MAX8907_SD1].min_uV = 637500;
 		pmic->desc[MAX8907_SD1].uV_step = 12500;
 		pmic->desc[MAX8907_SD1].n_voltages =
-						(1425000 - 637500) / 12500 + 1;
+			(1425000 - 637500) / 12500 + 1;
 	}
 
-	for (i = 0; i < MAX8907_NUM_REGULATORS; i++) {
+	for (i = 0; i < MAX8907_NUM_REGULATORS; i++)
+	{
 		struct regulator_dev *rdev;
 
 		config.dev = pdev->dev.parent;
+
 		if (pdata)
+		{
 			idata = pdata->init_data[i];
+		}
 		else
+		{
 			idata = match_init_data(i);
+		}
+
 		config.init_data = idata;
 		config.driver_data = pmic;
 		config.regmap = max8907->regmap_gen;
 		config.of_node = match_of_node(i);
 
-		switch (pmic->desc[i].id) {
-		case MAX8907_MBATT:
-			if (idata && idata->constraints.name)
-				mbatt_rail_name = idata->constraints.name;
-			else
-				mbatt_rail_name = pmic->desc[i].name;
-			break;
-		case MAX8907_BBAT:
-		case MAX8907_SDBY:
-		case MAX8907_VRTC:
-			idata->supply_regulator = mbatt_rail_name;
-			break;
+		switch (pmic->desc[i].id)
+		{
+			case MAX8907_MBATT:
+				if (idata && idata->constraints.name)
+				{
+					mbatt_rail_name = idata->constraints.name;
+				}
+				else
+				{
+					mbatt_rail_name = pmic->desc[i].name;
+				}
+
+				break;
+
+			case MAX8907_BBAT:
+			case MAX8907_SDBY:
+			case MAX8907_VRTC:
+				idata->supply_regulator = mbatt_rail_name;
+				break;
 		}
 
-		if (pmic->desc[i].ops == &max8907_ldo_ops) {
+		if (pmic->desc[i].ops == &max8907_ldo_ops)
+		{
 			regmap_read(config.regmap, pmic->desc[i].enable_reg,
-				    &val);
+						&val);
+
 			if ((val & MAX8907_MASK_LDO_SEQ) !=
-			    MAX8907_MASK_LDO_SEQ)
+				MAX8907_MASK_LDO_SEQ)
+			{
 				pmic->desc[i].ops = &max8907_ldo_hwctl_ops;
-		} else if (pmic->desc[i].ops == &max8907_out5v_ops) {
+			}
+		}
+		else if (pmic->desc[i].ops == &max8907_out5v_ops)
+		{
 			regmap_read(config.regmap, pmic->desc[i].enable_reg,
-				    &val);
+						&val);
+
 			if ((val & (MAX8907_MASK_OUT5V_VINEN |
 						MAX8907_MASK_OUT5V_ENSRC)) !=
-			    MAX8907_MASK_OUT5V_ENSRC)
+				MAX8907_MASK_OUT5V_ENSRC)
+			{
 				pmic->desc[i].ops = &max8907_out5v_hwctl_ops;
+			}
 		}
 
 		rdev = devm_regulator_register(&pdev->dev,
-						&pmic->desc[i], &config);
-		if (IS_ERR(rdev)) {
+									   &pmic->desc[i], &config);
+
+		if (IS_ERR(rdev))
+		{
 			dev_err(&pdev->dev,
-				"failed to register %s regulator\n",
-				pmic->desc[i].name);
+					"failed to register %s regulator\n",
+					pmic->desc[i].name);
 			return PTR_ERR(rdev);
 		}
 	}
@@ -363,10 +413,11 @@ static int max8907_regulator_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver max8907_regulator_driver = {
+static struct platform_driver max8907_regulator_driver =
+{
 	.driver = {
-		   .name = "max8907-regulator",
-		   },
+		.name = "max8907-regulator",
+	},
 	.probe = max8907_regulator_probe,
 };
 

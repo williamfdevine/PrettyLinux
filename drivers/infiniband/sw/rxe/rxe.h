@@ -35,7 +35,7 @@
 #define RXE_H
 
 #ifdef pr_fmt
-#undef pr_fmt
+	#undef pr_fmt
 #endif
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
@@ -74,7 +74,7 @@ int rxe_rcv(struct sk_buff *skb);
 
 void rxe_dev_put(struct rxe_dev *rxe);
 struct rxe_dev *net_to_rxe(struct net_device *ndev);
-struct rxe_dev *get_rxe_by_name(const char* name);
+struct rxe_dev *get_rxe_by_name(const char *name);
 
 void rxe_port_up(struct rxe_dev *rxe);
 void rxe_port_down(struct rxe_dev *rxe);

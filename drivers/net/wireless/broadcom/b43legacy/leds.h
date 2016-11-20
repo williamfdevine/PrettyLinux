@@ -11,7 +11,8 @@ struct b43legacy_wldev;
 
 #define B43legacy_LED_MAX_NAME_LEN	31
 
-struct b43legacy_led {
+struct b43legacy_led
+{
 	struct b43legacy_wldev *dev;
 	/* The LED class device */
 	struct led_classdev led_dev;
@@ -27,7 +28,8 @@ struct b43legacy_led {
 #define B43legacy_LED_BEHAVIOUR		0x7F
 #define B43legacy_LED_ACTIVELOW		0x80
 /* LED behaviour values */
-enum b43legacy_led_behaviour {
+enum b43legacy_led_behaviour
+{
 	B43legacy_LED_OFF,
 	B43legacy_LED_ON,
 	B43legacy_LED_ACTIVITY,
@@ -48,7 +50,8 @@ void b43legacy_leds_exit(struct b43legacy_wldev *dev);
 #else /* CONFIG_B43LEGACY_LEDS */
 /* LED support disabled */
 
-struct b43legacy_led {
+struct b43legacy_led
+{
 	/* empty */
 };
 

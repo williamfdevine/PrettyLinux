@@ -99,7 +99,9 @@ EXPORT_SYMBOL(drm_panel_remove);
 int drm_panel_attach(struct drm_panel *panel, struct drm_connector *connector)
 {
 	if (panel->connector)
+	{
 		return -EBUSY;
+	}
 
 	panel->connector = connector;
 	panel->drm = connector->dev;
@@ -143,8 +145,10 @@ struct drm_panel *of_drm_find_panel(struct device_node *np)
 
 	mutex_lock(&panel_lock);
 
-	list_for_each_entry(panel, &panel_list, list) {
-		if (panel->dev->of_node == np) {
+	list_for_each_entry(panel, &panel_list, list)
+	{
+		if (panel->dev->of_node == np)
+		{
 			mutex_unlock(&panel_lock);
 			return panel;
 		}

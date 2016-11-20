@@ -33,7 +33,8 @@ static spinlock_t cpm_muram_lock;
 static u8 __iomem *muram_vbase;
 static phys_addr_t muram_pbase;
 
-struct muram_block {
+struct muram_block
+{
 	struct list_head head;
 	unsigned long start;
 	int size;
@@ -55,14 +56,20 @@ int cpm_muram_init(void)
 	int ret = 0;
 
 	if (muram_pbase)
+	{
 		return 0;
+	}
 
 	spin_lock_init(&cpm_muram_lock);
 	np = of_find_compatible_node(NULL, NULL, "fsl,cpm-muram-data");
-	if (!np) {
+
+	if (!np)
+	{
 		/* try legacy bindings */
 		np = of_find_node_by_name(NULL, "data-only");
-		if (!np) {
+
+		if (!np)
+		{
 			pr_err("Cannot find CPM muram data node");
 			ret = -ENODEV;
 			goto out_muram;
@@ -70,35 +77,49 @@ int cpm_muram_init(void)
 	}
 
 	muram_pool = gen_pool_create(0, -1);
-	if (!muram_pool) {
+
+	if (!muram_pool)
+	{
 		pr_err("Cannot allocate memory pool for CPM/QE muram");
 		ret = -ENOMEM;
 		goto out_muram;
 	}
+
 	muram_pbase = of_translate_address(np, zero);
-	if (muram_pbase == (phys_addr_t)OF_BAD_ADDR) {
+
+	if (muram_pbase == (phys_addr_t)OF_BAD_ADDR)
+	{
 		pr_err("Cannot translate zero through CPM muram node");
 		ret = -ENODEV;
 		goto out_pool;
 	}
 
-	while (of_address_to_resource(np, i++, &r) == 0) {
+	while (of_address_to_resource(np, i++, &r) == 0)
+	{
 		if (r.end > max)
+		{
 			max = r.end;
+		}
+
 		ret = gen_pool_add(muram_pool, r.start - muram_pbase +
-				   GENPOOL_OFFSET, resource_size(&r), -1);
-		if (ret) {
+						   GENPOOL_OFFSET, resource_size(&r), -1);
+
+		if (ret)
+		{
 			pr_err("QE: couldn't add muram to pool!\n");
 			goto out_pool;
 		}
 	}
 
 	muram_vbase = ioremap(muram_pbase, max - muram_pbase + 1);
-	if (!muram_vbase) {
+
+	if (!muram_vbase)
+	{
 		pr_err("Cannot map QE muram");
 		ret = -ENOMEM;
 		goto out_pool;
 	}
+
 	goto out_muram;
 out_pool:
 	gen_pool_destroy(muram_pool);
@@ -122,16 +143,26 @@ static unsigned long cpm_muram_alloc_common(unsigned long size,
 	unsigned long start;
 
 	if (!muram_pool && cpm_muram_init())
+	{
 		goto out2;
+	}
 
 	start = gen_pool_alloc_algo(muram_pool, size, algo, data);
+
 	if (!start)
+	{
 		goto out2;
+	}
+
 	start = start - GENPOOL_OFFSET;
 	memset_io(cpm_muram_addr(start), 0, size);
 	entry = kmalloc(sizeof(*entry), GFP_ATOMIC);
+
 	if (!entry)
+	{
 		goto out1;
+	}
+
 	entry->start = start;
 	entry->size = size;
 	list_add(&entry->head, &muram_block_list);
@@ -140,7 +171,7 @@ static unsigned long cpm_muram_alloc_common(unsigned long size,
 out1:
 	gen_pool_free(muram_pool, start, size);
 out2:
-	return (unsigned long)-ENOMEM;
+	return (unsigned long) - ENOMEM;
 }
 
 /*
@@ -161,7 +192,7 @@ unsigned long cpm_muram_alloc(unsigned long size, unsigned long align)
 	spin_lock_irqsave(&cpm_muram_lock, flags);
 	muram_pool_data.align = align;
 	start = cpm_muram_alloc_common(size, gen_pool_first_fit_align,
-				       &muram_pool_data);
+								   &muram_pool_data);
 	spin_unlock_irqrestore(&cpm_muram_lock, flags);
 	return start;
 }
@@ -179,8 +210,10 @@ int cpm_muram_free(unsigned long offset)
 
 	size = 0;
 	spin_lock_irqsave(&cpm_muram_lock, flags);
-	list_for_each_entry(tmp, &muram_block_list, head) {
-		if (tmp->start == offset) {
+	list_for_each_entry(tmp, &muram_block_list, head)
+	{
+		if (tmp->start == offset)
+		{
 			size = tmp->size;
 			list_del(&tmp->head);
 			kfree(tmp);
@@ -210,7 +243,7 @@ unsigned long cpm_muram_alloc_fixed(unsigned long offset, unsigned long size)
 	spin_lock_irqsave(&cpm_muram_lock, flags);
 	muram_pool_data_fixed.offset = offset + GENPOOL_OFFSET;
 	start = cpm_muram_alloc_common(size, gen_pool_fixed_alloc,
-				       &muram_pool_data_fixed);
+								   &muram_pool_data_fixed);
 	spin_unlock_irqrestore(&cpm_muram_lock, flags);
 	return start;
 }

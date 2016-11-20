@@ -27,7 +27,7 @@
 #include "omapfb.h"
 
 static int palmz71_panel_init(struct lcd_panel *panel,
-			      struct omapfb_device *fbdev)
+							  struct omapfb_device *fbdev)
 {
 	return 0;
 }
@@ -51,11 +51,12 @@ static unsigned long palmz71_panel_get_caps(struct lcd_panel *panel)
 	return OMAPFB_CAPS_SET_BACKLIGHT;
 }
 
-struct lcd_panel palmz71_panel = {
+struct lcd_panel palmz71_panel =
+{
 	.name		= "palmz71",
 	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-			  OMAP_LCDC_INV_HSYNC | OMAP_LCDC_HSVS_RISING_EDGE |
-			  OMAP_LCDC_HSVS_OPPOSITE,
+	OMAP_LCDC_INV_HSYNC | OMAP_LCDC_HSVS_RISING_EDGE |
+	OMAP_LCDC_HSVS_OPPOSITE,
 	.data_lines	= 16,
 	.bpp		= 16,
 	.pixel_clock	= 24000,
@@ -88,7 +89,7 @@ static int palmz71_panel_remove(struct platform_device *pdev)
 }
 
 static int palmz71_panel_suspend(struct platform_device *pdev,
-				 pm_message_t mesg)
+								 pm_message_t mesg)
 {
 	return 0;
 }
@@ -98,7 +99,8 @@ static int palmz71_panel_resume(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver palmz71_panel_driver = {
+static struct platform_driver palmz71_panel_driver =
+{
 	.probe		= palmz71_panel_probe,
 	.remove		= palmz71_panel_remove,
 	.suspend	= palmz71_panel_suspend,

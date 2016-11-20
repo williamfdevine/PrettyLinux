@@ -25,11 +25,12 @@
 #include "dvb_frontend.h"
 
 
-struct mb86a16_config {
+struct mb86a16_config
+{
 	u8 demod_address;
 
 	int (*set_voltage)(struct dvb_frontend *fe,
-			   enum fe_sec_voltage voltage);
+					   enum fe_sec_voltage voltage);
 };
 
 
@@ -37,12 +38,12 @@ struct mb86a16_config {
 #if IS_REACHABLE(CONFIG_DVB_MB86A16)
 
 extern struct dvb_frontend *mb86a16_attach(const struct mb86a16_config *config,
-					   struct i2c_adapter *i2c_adap);
+		struct i2c_adapter *i2c_adap);
 
 #else
 
 static inline struct dvb_frontend *mb86a16_attach(const struct mb86a16_config *config,
-					   struct i2c_adapter *i2c_adap)
+		struct i2c_adapter *i2c_adap)
 {
 	printk(KERN_WARNING "%s: Driver disabled by Kconfig\n", __func__);
 	return NULL;

@@ -38,8 +38,8 @@ xfs_allocbt_dup_cursor(
 	struct xfs_btree_cur	*cur)
 {
 	return xfs_allocbt_init_cursor(cur->bc_mp, cur->bc_tp,
-			cur->bc_private.a.agbp, cur->bc_private.a.agno,
-			cur->bc_btnum);
+								   cur->bc_private.a.agbp, cur->bc_private.a.agno,
+								   cur->bc_btnum);
 }
 
 STATIC void
@@ -78,13 +78,16 @@ xfs_allocbt_alloc_block(
 
 	/* Allocate the new block from the freelist. If we can't, give up.  */
 	error = xfs_alloc_get_freelist(cur->bc_tp, cur->bc_private.a.agbp,
-				       &bno, 1);
-	if (error) {
+								   &bno, 1);
+
+	if (error)
+	{
 		XFS_BTREE_TRACE_CURSOR(cur, XBT_ERROR);
 		return error;
 	}
 
-	if (bno == NULLAGBLOCK) {
+	if (bno == NULLAGBLOCK)
+	{
 		XFS_BTREE_TRACE_CURSOR(cur, XBT_EXIT);
 		*stat = 0;
 		return 0;
@@ -112,11 +115,14 @@ xfs_allocbt_free_block(
 
 	bno = xfs_daddr_to_agbno(cur->bc_mp, XFS_BUF_ADDR(bp));
 	error = xfs_alloc_put_freelist(cur->bc_tp, agbp, NULL, bno, 1);
+
 	if (error)
+	{
 		return error;
+	}
 
 	xfs_extent_busy_insert(cur->bc_tp, be32_to_cpu(agf->agf_seqno), bno, 1,
-			      XFS_EXTENT_BUSY_SKIP_DISCARD);
+						   XFS_EXTENT_BUSY_SKIP_DISCARD);
 	xfs_trans_agbtree_delta(cur->bc_tp, -1);
 	return 0;
 }
@@ -140,41 +146,59 @@ xfs_allocbt_update_lastrec(
 
 	ASSERT(cur->bc_btnum == XFS_BTNUM_CNT);
 
-	switch (reason) {
-	case LASTREC_UPDATE:
-		/*
-		 * If this is the last leaf block and it's the last record,
-		 * then update the size of the longest extent in the AG.
-		 */
-		if (ptr != xfs_btree_get_numrecs(block))
-			return;
-		len = rec->alloc.ar_blockcount;
-		break;
-	case LASTREC_INSREC:
-		if (be32_to_cpu(rec->alloc.ar_blockcount) <=
-		    be32_to_cpu(agf->agf_longest))
-			return;
-		len = rec->alloc.ar_blockcount;
-		break;
-	case LASTREC_DELREC:
-		numrecs = xfs_btree_get_numrecs(block);
-		if (ptr <= numrecs)
-			return;
-		ASSERT(ptr == numrecs + 1);
+	switch (reason)
+	{
+		case LASTREC_UPDATE:
 
-		if (numrecs) {
-			xfs_alloc_rec_t *rrp;
+			/*
+			 * If this is the last leaf block and it's the last record,
+			 * then update the size of the longest extent in the AG.
+			 */
+			if (ptr != xfs_btree_get_numrecs(block))
+			{
+				return;
+			}
 
-			rrp = XFS_ALLOC_REC_ADDR(cur->bc_mp, block, numrecs);
-			len = rrp->ar_blockcount;
-		} else {
-			len = 0;
-		}
+			len = rec->alloc.ar_blockcount;
+			break;
 
-		break;
-	default:
-		ASSERT(0);
-		return;
+		case LASTREC_INSREC:
+			if (be32_to_cpu(rec->alloc.ar_blockcount) <=
+				be32_to_cpu(agf->agf_longest))
+			{
+				return;
+			}
+
+			len = rec->alloc.ar_blockcount;
+			break;
+
+		case LASTREC_DELREC:
+			numrecs = xfs_btree_get_numrecs(block);
+
+			if (ptr <= numrecs)
+			{
+				return;
+			}
+
+			ASSERT(ptr == numrecs + 1);
+
+			if (numrecs)
+			{
+				xfs_alloc_rec_t *rrp;
+
+				rrp = XFS_ALLOC_REC_ADDR(cur->bc_mp, block, numrecs);
+				len = rrp->ar_blockcount;
+			}
+			else
+			{
+				len = 0;
+			}
+
+			break;
+
+		default:
+			ASSERT(0);
+			return;
 	}
 
 	agf->agf_longest = len;
@@ -244,14 +268,18 @@ xfs_allocbt_key_diff(
 	xfs_alloc_key_t		*kp = &key->alloc;
 	__int64_t		diff;
 
-	if (cur->bc_btnum == XFS_BTNUM_BNO) {
+	if (cur->bc_btnum == XFS_BTNUM_BNO)
+	{
 		return (__int64_t)be32_to_cpu(kp->ar_startblock) -
-				rec->ar_startblock;
+			   rec->ar_startblock;
 	}
 
 	diff = (__int64_t)be32_to_cpu(kp->ar_blockcount) - rec->ar_blockcount;
+
 	if (diff)
+	{
 		return diff;
+	}
 
 	return (__int64_t)be32_to_cpu(kp->ar_startblock) - rec->ar_startblock;
 }
@@ -278,31 +306,55 @@ xfs_allocbt_verify(
 	 * in this case.
 	 */
 	level = be16_to_cpu(block->bb_level);
-	switch (block->bb_magic) {
-	case cpu_to_be32(XFS_ABTB_CRC_MAGIC):
-		if (!xfs_btree_sblock_v5hdr_verify(bp))
-			return false;
-		/* fall through */
-	case cpu_to_be32(XFS_ABTB_MAGIC):
-		if (pag && pag->pagf_init) {
-			if (level >= pag->pagf_levels[XFS_BTNUM_BNOi])
+
+	switch (block->bb_magic)
+	{
+		case cpu_to_be32(XFS_ABTB_CRC_MAGIC):
+			if (!xfs_btree_sblock_v5hdr_verify(bp))
+			{
 				return false;
-		} else if (level >= mp->m_ag_maxlevels)
-			return false;
-		break;
-	case cpu_to_be32(XFS_ABTC_CRC_MAGIC):
-		if (!xfs_btree_sblock_v5hdr_verify(bp))
-			return false;
+			}
+
 		/* fall through */
-	case cpu_to_be32(XFS_ABTC_MAGIC):
-		if (pag && pag->pagf_init) {
-			if (level >= pag->pagf_levels[XFS_BTNUM_CNTi])
+		case cpu_to_be32(XFS_ABTB_MAGIC):
+			if (pag && pag->pagf_init)
+			{
+				if (level >= pag->pagf_levels[XFS_BTNUM_BNOi])
+				{
+					return false;
+				}
+			}
+			else if (level >= mp->m_ag_maxlevels)
+			{
 				return false;
-		} else if (level >= mp->m_ag_maxlevels)
+			}
+
+			break;
+
+		case cpu_to_be32(XFS_ABTC_CRC_MAGIC):
+			if (!xfs_btree_sblock_v5hdr_verify(bp))
+			{
+				return false;
+			}
+
+		/* fall through */
+		case cpu_to_be32(XFS_ABTC_MAGIC):
+			if (pag && pag->pagf_init)
+			{
+				if (level >= pag->pagf_levels[XFS_BTNUM_CNTi])
+				{
+					return false;
+				}
+			}
+			else if (level >= mp->m_ag_maxlevels)
+			{
+				return false;
+			}
+
+			break;
+
+		default:
 			return false;
-		break;
-	default:
-		return false;
 	}
 
 	return xfs_btree_sblock_verify(bp, mp->m_alloc_mxr[level != 0]);
@@ -313,11 +365,16 @@ xfs_allocbt_read_verify(
 	struct xfs_buf	*bp)
 {
 	if (!xfs_btree_sblock_verify_crc(bp))
+	{
 		xfs_buf_ioerror(bp, -EFSBADCRC);
+	}
 	else if (!xfs_allocbt_verify(bp))
+	{
 		xfs_buf_ioerror(bp, -EFSCORRUPTED);
+	}
 
-	if (bp->b_error) {
+	if (bp->b_error)
+	{
 		trace_xfs_btree_corrupt(bp, _RET_IP_);
 		xfs_verifier_error(bp);
 	}
@@ -327,17 +384,20 @@ static void
 xfs_allocbt_write_verify(
 	struct xfs_buf	*bp)
 {
-	if (!xfs_allocbt_verify(bp)) {
+	if (!xfs_allocbt_verify(bp))
+	{
 		trace_xfs_btree_corrupt(bp, _RET_IP_);
 		xfs_buf_ioerror(bp, -EFSCORRUPTED);
 		xfs_verifier_error(bp);
 		return;
 	}
+
 	xfs_btree_sblock_calc_crc(bp);
 
 }
 
-const struct xfs_buf_ops xfs_allocbt_buf_ops = {
+const struct xfs_buf_ops xfs_allocbt_buf_ops =
+{
 	.name = "xfs_allocbt",
 	.verify_read = xfs_allocbt_read_verify,
 	.verify_write = xfs_allocbt_write_verify,
@@ -351,15 +411,18 @@ xfs_allocbt_keys_inorder(
 	union xfs_btree_key	*k1,
 	union xfs_btree_key	*k2)
 {
-	if (cur->bc_btnum == XFS_BTNUM_BNO) {
+	if (cur->bc_btnum == XFS_BTNUM_BNO)
+	{
 		return be32_to_cpu(k1->alloc.ar_startblock) <
-		       be32_to_cpu(k2->alloc.ar_startblock);
-	} else {
+			   be32_to_cpu(k2->alloc.ar_startblock);
+	}
+	else
+	{
 		return be32_to_cpu(k1->alloc.ar_blockcount) <
-			be32_to_cpu(k2->alloc.ar_blockcount) ||
-			(k1->alloc.ar_blockcount == k2->alloc.ar_blockcount &&
-			 be32_to_cpu(k1->alloc.ar_startblock) <
-			 be32_to_cpu(k2->alloc.ar_startblock));
+			   be32_to_cpu(k2->alloc.ar_blockcount) ||
+			   (k1->alloc.ar_blockcount == k2->alloc.ar_blockcount &&
+				be32_to_cpu(k1->alloc.ar_startblock) <
+				be32_to_cpu(k2->alloc.ar_startblock));
 	}
 }
 
@@ -369,21 +432,25 @@ xfs_allocbt_recs_inorder(
 	union xfs_btree_rec	*r1,
 	union xfs_btree_rec	*r2)
 {
-	if (cur->bc_btnum == XFS_BTNUM_BNO) {
+	if (cur->bc_btnum == XFS_BTNUM_BNO)
+	{
 		return be32_to_cpu(r1->alloc.ar_startblock) +
-			be32_to_cpu(r1->alloc.ar_blockcount) <=
-			be32_to_cpu(r2->alloc.ar_startblock);
-	} else {
+			   be32_to_cpu(r1->alloc.ar_blockcount) <=
+			   be32_to_cpu(r2->alloc.ar_startblock);
+	}
+	else
+	{
 		return be32_to_cpu(r1->alloc.ar_blockcount) <
-			be32_to_cpu(r2->alloc.ar_blockcount) ||
-			(r1->alloc.ar_blockcount == r2->alloc.ar_blockcount &&
-			 be32_to_cpu(r1->alloc.ar_startblock) <
-			 be32_to_cpu(r2->alloc.ar_startblock));
+			   be32_to_cpu(r2->alloc.ar_blockcount) ||
+			   (r1->alloc.ar_blockcount == r2->alloc.ar_blockcount &&
+				be32_to_cpu(r1->alloc.ar_startblock) <
+				be32_to_cpu(r2->alloc.ar_startblock));
 	}
 }
 #endif	/* DEBUG */
 
-static const struct xfs_btree_ops xfs_allocbt_ops = {
+static const struct xfs_btree_ops xfs_allocbt_ops =
+{
 	.rec_len		= sizeof(xfs_alloc_rec_t),
 	.key_len		= sizeof(xfs_alloc_key_t),
 
@@ -429,10 +496,13 @@ xfs_allocbt_init_cursor(
 	cur->bc_blocklog = mp->m_sb.sb_blocklog;
 	cur->bc_ops = &xfs_allocbt_ops;
 
-	if (btnum == XFS_BTNUM_CNT) {
+	if (btnum == XFS_BTNUM_CNT)
+	{
 		cur->bc_nlevels = be32_to_cpu(agf->agf_levels[XFS_BTNUM_CNT]);
 		cur->bc_flags = XFS_BTREE_LASTREC_UPDATE;
-	} else {
+	}
+	else
+	{
 		cur->bc_nlevels = be32_to_cpu(agf->agf_levels[XFS_BTNUM_BNO]);
 	}
 
@@ -440,7 +510,9 @@ xfs_allocbt_init_cursor(
 	cur->bc_private.a.agno = agno;
 
 	if (xfs_sb_version_hascrc(&mp->m_sb))
+	{
 		cur->bc_flags |= XFS_BTREE_CRC_BLOCKS;
+	}
 
 	return cur;
 }
@@ -457,6 +529,9 @@ xfs_allocbt_maxrecs(
 	blocklen -= XFS_ALLOC_BLOCK_LEN(mp);
 
 	if (leaf)
+	{
 		return blocklen / sizeof(xfs_alloc_rec_t);
+	}
+
 	return blocklen / (sizeof(xfs_alloc_key_t) + sizeof(xfs_alloc_ptr_t));
 }

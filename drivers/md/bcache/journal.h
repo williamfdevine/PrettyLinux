@@ -79,7 +79,8 @@
  * Only used for holding the journal entries we read in btree_journal_read()
  * during cache_registration
  */
-struct journal_replay {
+struct journal_replay
+{
 	struct list_head	list;
 	atomic_t		*pin;
 	struct jset		j;
@@ -89,7 +90,8 @@ struct journal_replay {
  * We put two of these in struct journal; we used them for writes to the
  * journal that are being staged or in flight.
  */
-struct journal_write {
+struct journal_write
+{
 	struct jset		*data;
 #define JSET_BITS		3
 
@@ -100,7 +102,8 @@ struct journal_write {
 };
 
 /* Embedded in struct cache_set */
-struct journal {
+struct journal
+{
 	spinlock_t		lock;
 	/* used when waiting because the journal was full */
 	struct closure_waitlist	wait;
@@ -122,7 +125,8 @@ struct journal {
  * Embedded in struct cache. First three fields refer to the array of journal
  * buckets, in cache_sb.
  */
-struct journal_device {
+struct journal_device
+{
 	/*
 	 * For each journal bucket, contains the max sequence number of the
 	 * journal writes it contains - so we know when a bucket can be reused.

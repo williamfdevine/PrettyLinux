@@ -70,7 +70,8 @@
 #define ALARM_DISABLED	((u32)~0)
 
 
-struct sam9_rtc {
+struct sam9_rtc
+{
 	void __iomem		*rtt;
 	struct rtc_device	*rtcdev;
 	u32			imr;
@@ -113,20 +114,26 @@ static int at91_rtc_readtime(struct device *dev, struct rtc_time *tm)
 
 	/* read current time offset */
 	offset = gpbr_readl(rtc);
+
 	if (offset == 0)
+	{
 		return -EILSEQ;
+	}
 
 	/* reread the counter to help sync the two clock domains */
 	secs = rtt_readl(rtc, VR);
 	secs2 = rtt_readl(rtc, VR);
+
 	if (secs != secs2)
+	{
 		secs = rtt_readl(rtc, VR);
+	}
 
 	rtc_time_to_tm(offset + secs, tm);
 
 	dev_dbg(dev, "%s: %4d-%02d-%02d %02d:%02d:%02d\n", "readtime",
-		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
-		tm->tm_hour, tm->tm_min, tm->tm_sec);
+			1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+			tm->tm_hour, tm->tm_min, tm->tm_sec);
 
 	return 0;
 }
@@ -142,12 +149,15 @@ static int at91_rtc_settime(struct device *dev, struct rtc_time *tm)
 	unsigned long secs;
 
 	dev_dbg(dev, "%s: %4d-%02d-%02d %02d:%02d:%02d\n", "settime",
-		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
-		tm->tm_hour, tm->tm_min, tm->tm_sec);
+			1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+			tm->tm_hour, tm->tm_min, tm->tm_sec);
 
 	err = rtc_tm_to_time(tm, &secs);
+
 	if (err != 0)
+	{
 		return err;
+	}
 
 	mr = rtt_readl(rtc, MR);
 
@@ -163,18 +173,26 @@ static int at91_rtc_settime(struct device *dev, struct rtc_time *tm)
 
 	/* adjust the alarm time for the new base */
 	alarm = rtt_readl(rtc, AR);
-	if (alarm != ALARM_DISABLED) {
-		if (offset > secs) {
+
+	if (alarm != ALARM_DISABLED)
+	{
+		if (offset > secs)
+		{
 			/* time jumped backwards, increase time until alarm */
 			alarm += (offset - secs);
-		} else if ((alarm + offset) > secs) {
+		}
+		else if ((alarm + offset) > secs)
+		{
 			/* time jumped forwards, decrease time until alarm */
 			alarm -= (secs - offset);
-		} else {
+		}
+		else
+		{
 			/* time jumped past the alarm, disable alarm */
 			alarm = ALARM_DISABLED;
 			mr &= ~AT91_RTT_ALMIEN;
 		}
+
 		rtt_writel(rtc, AR, alarm);
 	}
 
@@ -192,19 +210,26 @@ static int at91_rtc_readalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	u32 offset;
 
 	offset = gpbr_readl(rtc);
+
 	if (offset == 0)
+	{
 		return -EILSEQ;
+	}
 
 	memset(alrm, 0, sizeof(*alrm));
-	if (alarm != ALARM_DISABLED && offset != 0) {
+
+	if (alarm != ALARM_DISABLED && offset != 0)
+	{
 		rtc_time_to_tm(offset + alarm, tm);
 
 		dev_dbg(dev, "%s: %4d-%02d-%02d %02d:%02d:%02d\n", "readalarm",
-			1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
-			tm->tm_hour, tm->tm_min, tm->tm_sec);
+				1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+				tm->tm_hour, tm->tm_min, tm->tm_sec);
 
 		if (rtt_readl(rtc, MR) & AT91_RTT_ALMIEN)
+		{
 			alrm->enabled = 1;
+		}
 	}
 
 	return 0;
@@ -220,31 +245,41 @@ static int at91_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	int err;
 
 	err = rtc_tm_to_time(tm, &secs);
+
 	if (err != 0)
+	{
 		return err;
+	}
 
 	offset = gpbr_readl(rtc);
-	if (offset == 0) {
+
+	if (offset == 0)
+	{
 		/* time is not set */
 		return -EILSEQ;
 	}
+
 	mr = rtt_readl(rtc, MR);
 	rtt_writel(rtc, MR, mr & ~AT91_RTT_ALMIEN);
 
 	/* alarm in the past? finish and leave disabled */
-	if (secs <= offset) {
+	if (secs <= offset)
+	{
 		rtt_writel(rtc, AR, ALARM_DISABLED);
 		return 0;
 	}
 
 	/* else set alarm and maybe enable it */
 	rtt_writel(rtc, AR, secs - offset);
+
 	if (alrm->enabled)
+	{
 		rtt_writel(rtc, MR, mr | AT91_RTT_ALMIEN);
+	}
 
 	dev_dbg(dev, "%s: %4d-%02d-%02d %02d:%02d:%02d\n", "setalarm",
-		tm->tm_year, tm->tm_mon, tm->tm_mday, tm->tm_hour,
-		tm->tm_min, tm->tm_sec);
+			tm->tm_year, tm->tm_mon, tm->tm_mday, tm->tm_hour,
+			tm->tm_min, tm->tm_sec);
 
 	return 0;
 }
@@ -255,10 +290,16 @@ static int at91_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
 	u32 mr = rtt_readl(rtc, MR);
 
 	dev_dbg(dev, "alarm_irq_enable: enabled=%08x, mr %08x\n", enabled, mr);
+
 	if (enabled)
+	{
 		rtt_writel(rtc, MR, mr | AT91_RTT_ALMIEN);
+	}
 	else
+	{
 		rtt_writel(rtc, MR, mr & ~AT91_RTT_ALMIEN);
+	}
+
 	return 0;
 }
 
@@ -271,7 +312,7 @@ static int at91_rtc_proc(struct device *dev, struct seq_file *seq)
 	u32 mr = rtt_readl(rtc, MR);
 
 	seq_printf(seq, "update_IRQ\t: %s\n",
-			(mr & AT91_RTT_RTTINCIEN) ? "yes" : "no");
+			   (mr & AT91_RTT_RTTINCIEN) ? "yes" : "no");
 	return 0;
 }
 
@@ -284,16 +325,23 @@ static irqreturn_t at91_rtc_cache_events(struct sam9_rtc *rtc)
 	 */
 	mr = rtt_readl(rtc, MR) & (AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN);
 	sr = rtt_readl(rtc, SR) & (mr >> 16);
+
 	if (!sr)
+	{
 		return IRQ_NONE;
+	}
 
 	/* alarm status */
 	if (sr & AT91_RTT_ALMS)
+	{
 		rtc->events |= (RTC_AF | RTC_IRQF);
+	}
 
 	/* timer update/increment */
 	if (sr & AT91_RTT_RTTINC)
+	{
 		rtc->events |= (RTC_UF | RTC_IRQF);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -301,13 +349,15 @@ static irqreturn_t at91_rtc_cache_events(struct sam9_rtc *rtc)
 static void at91_rtc_flush_events(struct sam9_rtc *rtc)
 {
 	if (!rtc->events)
+	{
 		return;
+	}
 
 	rtc_update_irq(rtc->rtcdev, 1, rtc->events);
 	rtc->events = 0;
 
 	pr_debug("%s: num=%ld, events=0x%02lx\n", __func__,
-		rtc->events >> 8, rtc->events & 0x000000FF);
+			 rtc->events >> 8, rtc->events & 0x000000FF);
 }
 
 /*
@@ -323,14 +373,17 @@ static irqreturn_t at91_rtc_interrupt(int irq, void *_rtc)
 	ret = at91_rtc_cache_events(rtc);
 
 	/* We're called in suspended state */
-	if (rtc->suspended) {
+	if (rtc->suspended)
+	{
 		/* Mask irqs coming from this peripheral */
 		rtt_writel(rtc, MR,
-			   rtt_readl(rtc, MR) &
-			   ~(AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN));
+				   rtt_readl(rtc, MR) &
+				   ~(AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN));
 		/* Trigger a system wakeup */
 		pm_system_wakeup();
-	} else {
+	}
+	else
+	{
 		at91_rtc_flush_events(rtc);
 	}
 
@@ -339,7 +392,8 @@ static irqreturn_t at91_rtc_interrupt(int irq, void *_rtc)
 	return ret;
 }
 
-static const struct rtc_class_ops at91_rtc_ops = {
+static const struct rtc_class_ops at91_rtc_ops =
+{
 	.read_time	= at91_rtc_readtime,
 	.set_time	= at91_rtc_settime,
 	.read_alarm	= at91_rtc_readalarm,
@@ -348,7 +402,8 @@ static const struct rtc_class_ops at91_rtc_ops = {
 	.alarm_irq_enable = at91_rtc_alarm_irq_enable,
 };
 
-static const struct regmap_config gpbr_regmap_config = {
+static const struct regmap_config gpbr_regmap_config =
+{
 	.reg_bits = 32,
 	.val_bits = 32,
 	.reg_stride = 4,
@@ -366,30 +421,41 @@ static int at91_rtc_probe(struct platform_device *pdev)
 	unsigned int	sclk_rate;
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "failed to get interrupt resource\n");
 		return irq;
 	}
 
 	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
+
 	if (!rtc)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&rtc->lock);
 	rtc->irq = irq;
 
 	/* platform setup code should have handled this; sigh */
 	if (!device_can_wakeup(&pdev->dev))
+	{
 		device_init_wakeup(&pdev->dev, 1);
+	}
 
 	platform_set_drvdata(pdev, rtc);
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rtc->rtt = devm_ioremap_resource(&pdev->dev, r);
-	if (IS_ERR(rtc->rtt))
-		return PTR_ERR(rtc->rtt);
 
-	if (!pdev->dev.of_node) {
+	if (IS_ERR(rtc->rtt))
+	{
+		return PTR_ERR(rtc->rtt);
+	}
+
+	if (!pdev->dev.of_node)
+	{
 		/*
 		 * TODO: Remove this code chunk when removing non DT board
 		 * support. Remember to remove the gpbr_regmap_config
@@ -399,41 +465,57 @@ static int at91_rtc_probe(struct platform_device *pdev)
 
 		r = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 		gpbr = devm_ioremap_resource(&pdev->dev, r);
+
 		if (IS_ERR(gpbr))
+		{
 			return PTR_ERR(gpbr);
+		}
 
 		rtc->gpbr = regmap_init_mmio(NULL, gpbr,
-					     &gpbr_regmap_config);
-	} else {
+									 &gpbr_regmap_config);
+	}
+	else
+	{
 		struct of_phandle_args args;
 
 		ret = of_parse_phandle_with_fixed_args(pdev->dev.of_node,
-						"atmel,rtt-rtc-time-reg", 1, 0,
-						&args);
+											   "atmel,rtt-rtc-time-reg", 1, 0,
+											   &args);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		rtc->gpbr = syscon_node_to_regmap(args.np);
 		rtc->gpbr_offset = args.args[0];
 	}
 
-	if (IS_ERR(rtc->gpbr)) {
+	if (IS_ERR(rtc->gpbr))
+	{
 		dev_err(&pdev->dev, "failed to retrieve gpbr regmap, aborting.\n");
 		return -ENOMEM;
 	}
 
 	rtc->sclk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(rtc->sclk))
+	{
 		return PTR_ERR(rtc->sclk);
+	}
 
 	ret = clk_prepare_enable(rtc->sclk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Could not enable slow clock\n");
 		return ret;
 	}
 
 	sclk_rate = clk_get_rate(rtc->sclk);
-	if (!sclk_rate || sclk_rate > AT91_RTT_RTPRES) {
+
+	if (!sclk_rate || sclk_rate > AT91_RTT_RTPRES)
+	{
 		dev_err(&pdev->dev, "Invalid slow clock rate\n");
 		ret = -EINVAL;
 		goto err_clk;
@@ -442,7 +524,8 @@ static int at91_rtc_probe(struct platform_device *pdev)
 	mr = rtt_readl(rtc, MR);
 
 	/* unless RTT is counting at 1 Hz, re-initialize it */
-	if ((mr & AT91_RTT_RTPRES) != sclk_rate) {
+	if ((mr & AT91_RTT_RTPRES) != sclk_rate)
+	{
 		mr = AT91_RTT_RTTRST | (sclk_rate & AT91_RTT_RTPRES);
 		gpbr_writel(rtc, 0);
 	}
@@ -452,17 +535,21 @@ static int at91_rtc_probe(struct platform_device *pdev)
 	rtt_writel(rtc, MR, mr);
 
 	rtc->rtcdev = devm_rtc_device_register(&pdev->dev, pdev->name,
-					&at91_rtc_ops, THIS_MODULE);
-	if (IS_ERR(rtc->rtcdev)) {
+										   &at91_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(rtc->rtcdev))
+	{
 		ret = PTR_ERR(rtc->rtcdev);
 		goto err_clk;
 	}
 
 	/* register irq handler after we know what name we'll use */
 	ret = devm_request_irq(&pdev->dev, rtc->irq, at91_rtc_interrupt,
-			       IRQF_SHARED | IRQF_COND_SUSPEND,
-			       dev_name(&rtc->rtcdev->dev), rtc);
-	if (ret) {
+						   IRQF_SHARED | IRQF_COND_SUSPEND,
+						   dev_name(&rtc->rtcdev->dev), rtc);
+
+	if (ret)
+	{
 		dev_dbg(&pdev->dev, "can't share IRQ %d?\n", rtc->irq);
 		goto err_clk;
 	}
@@ -475,7 +562,7 @@ static int at91_rtc_probe(struct platform_device *pdev)
 
 	if (gpbr_readl(rtc) == 0)
 		dev_warn(&pdev->dev, "%s: SET TIME!\n",
-				dev_name(&rtc->rtcdev->dev));
+				 dev_name(&rtc->rtcdev->dev));
 
 	return 0;
 
@@ -524,19 +611,28 @@ static int at91_rtc_suspend(struct device *dev)
 	 * necessarily a wakeup event source.
 	 */
 	rtc->imr = mr & (AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN);
-	if (rtc->imr) {
-		if (device_may_wakeup(dev) && (mr & AT91_RTT_ALMIEN)) {
+
+	if (rtc->imr)
+	{
+		if (device_may_wakeup(dev) && (mr & AT91_RTT_ALMIEN))
+		{
 			unsigned long flags;
 
 			enable_irq_wake(rtc->irq);
 			spin_lock_irqsave(&rtc->lock, flags);
 			rtc->suspended = true;
 			spin_unlock_irqrestore(&rtc->lock, flags);
+
 			/* don't let RTTINC cause wakeups */
 			if (mr & AT91_RTT_RTTINCIEN)
+			{
 				rtt_writel(rtc, MR, mr & ~AT91_RTT_RTTINCIEN);
-		} else
+			}
+		}
+		else
+		{
 			rtt_writel(rtc, MR, mr & ~rtc->imr);
+		}
 	}
 
 	return 0;
@@ -547,11 +643,15 @@ static int at91_rtc_resume(struct device *dev)
 	struct sam9_rtc	*rtc = dev_get_drvdata(dev);
 	u32		mr;
 
-	if (rtc->imr) {
+	if (rtc->imr)
+	{
 		unsigned long flags;
 
 		if (device_may_wakeup(dev))
+		{
 			disable_irq_wake(rtc->irq);
+		}
+
 		mr = rtt_readl(rtc, MR);
 		rtt_writel(rtc, MR, mr | rtc->imr);
 
@@ -569,14 +669,16 @@ static int at91_rtc_resume(struct device *dev)
 static SIMPLE_DEV_PM_OPS(at91_rtc_pm_ops, at91_rtc_suspend, at91_rtc_resume);
 
 #ifdef CONFIG_OF
-static const struct of_device_id at91_rtc_dt_ids[] = {
+static const struct of_device_id at91_rtc_dt_ids[] =
+{
 	{ .compatible = "atmel,at91sam9260-rtt" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, at91_rtc_dt_ids);
 #endif
 
-static struct platform_driver at91_rtc_driver = {
+static struct platform_driver at91_rtc_driver =
+{
 	.probe		= at91_rtc_probe,
 	.remove		= at91_rtc_remove,
 	.shutdown	= at91_rtc_shutdown,

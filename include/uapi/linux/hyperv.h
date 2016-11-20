@@ -50,7 +50,8 @@
  */
 #define VSS_OP_REGISTER1 129
 
-enum hv_vss_op {
+enum hv_vss_op
+{
 	VSS_OP_CREATE = 0,
 	VSS_OP_DELETE,
 	VSS_OP_HOT_BACKUP,
@@ -69,7 +70,8 @@ enum hv_vss_op {
 /*
  * Header for all VSS messages.
  */
-struct hv_vss_hdr {
+struct hv_vss_hdr
+{
 	__u8 operation;
 	__u8 reserved[7];
 } __attribute__((packed));
@@ -81,20 +83,25 @@ struct hv_vss_hdr {
  */
 #define VSS_HBU_NO_AUTO_RECOVERY	0x00000005
 
-struct hv_vss_check_feature {
+struct hv_vss_check_feature
+{
 	__u32 flags;
 } __attribute__((packed));
 
-struct hv_vss_check_dm_info {
+struct hv_vss_check_dm_info
+{
 	__u32 flags;
 } __attribute__((packed));
 
-struct hv_vss_msg {
-	union {
+struct hv_vss_msg
+{
+	union
+	{
 		struct hv_vss_hdr vss_hdr;
 		int error;
 	};
-	union {
+	union
+	{
 		struct hv_vss_check_feature vss_cf;
 		struct hv_vss_check_dm_info dm_info;
 	};
@@ -109,14 +116,16 @@ struct hv_vss_msg {
 #define FCOPY_CURRENT_VERSION FCOPY_VERSION_1
 #define W_MAX_PATH 260
 
-enum hv_fcopy_op {
+enum hv_fcopy_op
+{
 	START_FILE_COPY = 0,
 	WRITE_TO_FILE,
 	COMPLETE_FCOPY,
 	CANCEL_FCOPY,
 };
 
-struct hv_fcopy_hdr {
+struct hv_fcopy_hdr
+{
 	__u32 operation;
 	uuid_le service_id0; /* currently unused */
 	uuid_le service_id1; /* currently unused */
@@ -125,7 +134,8 @@ struct hv_fcopy_hdr {
 #define OVER_WRITE	0x1
 #define CREATE_PATH	0x2
 
-struct hv_start_fcopy {
+struct hv_start_fcopy
+{
 	struct hv_fcopy_hdr hdr;
 	__u16 file_name[W_MAX_PATH];
 	__u16 path_name[W_MAX_PATH];
@@ -138,7 +148,8 @@ struct hv_start_fcopy {
  */
 #define DATA_FRAGMENT	(6 * 1024)
 
-struct hv_do_fcopy {
+struct hv_do_fcopy
+{
 	struct hv_fcopy_hdr hdr;
 	__u32   pad;
 	__u64	offset;
@@ -281,7 +292,8 @@ struct hv_do_fcopy {
 
 #define KVP_OP_REGISTER1 100
 
-enum hv_kvp_exchg_op {
+enum hv_kvp_exchg_op
+{
 	KVP_OP_GET = 0,
 	KVP_OP_SET,
 	KVP_OP_DELETE,
@@ -291,7 +303,8 @@ enum hv_kvp_exchg_op {
 	KVP_OP_COUNT /* Number of operations, must be last. */
 };
 
-enum hv_kvp_exchg_pool {
+enum hv_kvp_exchg_pool
+{
 	KVP_POOL_EXTERNAL = 0,
 	KVP_POOL_GUEST,
 	KVP_POOL_AUTO,
@@ -324,7 +337,8 @@ enum hv_kvp_exchg_pool {
 #define MAX_GATEWAY_SIZE	512
 
 
-struct hv_kvp_ipaddr_value {
+struct hv_kvp_ipaddr_value
+{
 	__u16	adapter_id[MAX_ADAPTER_ID_SIZE];
 	__u8	addr_family;
 	__u8	dhcp_enabled;
@@ -335,52 +349,63 @@ struct hv_kvp_ipaddr_value {
 } __attribute__((packed));
 
 
-struct hv_kvp_hdr {
+struct hv_kvp_hdr
+{
 	__u8 operation;
 	__u8 pool;
 	__u16 pad;
 } __attribute__((packed));
 
-struct hv_kvp_exchg_msg_value {
+struct hv_kvp_exchg_msg_value
+{
 	__u32 value_type;
 	__u32 key_size;
 	__u32 value_size;
 	__u8 key[HV_KVP_EXCHANGE_MAX_KEY_SIZE];
-	union {
+	union
+	{
 		__u8 value[HV_KVP_EXCHANGE_MAX_VALUE_SIZE];
 		__u32 value_u32;
 		__u64 value_u64;
 	};
 } __attribute__((packed));
 
-struct hv_kvp_msg_enumerate {
+struct hv_kvp_msg_enumerate
+{
 	__u32 index;
 	struct hv_kvp_exchg_msg_value data;
 } __attribute__((packed));
 
-struct hv_kvp_msg_get {
+struct hv_kvp_msg_get
+{
 	struct hv_kvp_exchg_msg_value data;
 };
 
-struct hv_kvp_msg_set {
+struct hv_kvp_msg_set
+{
 	struct hv_kvp_exchg_msg_value data;
 };
 
-struct hv_kvp_msg_delete {
+struct hv_kvp_msg_delete
+{
 	__u32 key_size;
 	__u8 key[HV_KVP_EXCHANGE_MAX_KEY_SIZE];
 };
 
-struct hv_kvp_register {
+struct hv_kvp_register
+{
 	__u8 version[HV_KVP_EXCHANGE_MAX_KEY_SIZE];
 };
 
-struct hv_kvp_msg {
-	union {
+struct hv_kvp_msg
+{
+	union
+	{
 		struct hv_kvp_hdr	kvp_hdr;
 		int error;
 	};
-	union {
+	union
+	{
 		struct hv_kvp_msg_get		kvp_get;
 		struct hv_kvp_msg_set		kvp_set;
 		struct hv_kvp_msg_delete	kvp_delete;
@@ -390,7 +415,8 @@ struct hv_kvp_msg {
 	} body;
 } __attribute__((packed));
 
-struct hv_kvp_ip_msg {
+struct hv_kvp_ip_msg
+{
 	__u8 operation;
 	__u8 pool;
 	struct hv_kvp_ipaddr_value      kvp_ip_val;

@@ -41,7 +41,8 @@
  */
 #define XENFB_TYPE_UPDATE 2
 
-struct xenfb_update {
+struct xenfb_update
+{
 	uint8_t type;		/* XENFB_TYPE_UPDATE */
 	int32_t x;		/* source x */
 	int32_t y;		/* source y */
@@ -55,7 +56,8 @@ struct xenfb_update {
  */
 #define XENFB_TYPE_RESIZE 3
 
-struct xenfb_resize {
+struct xenfb_resize
+{
 	uint8_t type;		/* XENFB_TYPE_RESIZE */
 	int32_t width;		/* width in pixels */
 	int32_t height;		/* height in pixels */
@@ -66,7 +68,8 @@ struct xenfb_resize {
 
 #define XENFB_OUT_EVENT_SIZE 40
 
-union xenfb_out_event {
+union xenfb_out_event
+{
 	uint8_t type;
 	struct xenfb_update update;
 	struct xenfb_resize resize;
@@ -82,7 +85,8 @@ union xenfb_out_event {
 
 #define XENFB_IN_EVENT_SIZE 40
 
-union xenfb_in_event {
+union xenfb_in_event
+{
 	uint8_t type;
 	char pad[XENFB_IN_EVENT_SIZE];
 };
@@ -105,7 +109,8 @@ union xenfb_in_event {
 #define XENFB_OUT_RING_REF(page, idx) \
 	(XENFB_OUT_RING((page))[(idx) % XENFB_OUT_RING_LEN])
 
-struct xenfb_page {
+struct xenfb_page
+{
 	uint32_t in_cons, in_prod;
 	uint32_t out_cons, out_prod;
 
@@ -135,9 +140,9 @@ struct xenfb_page {
  * better solution is found, but don't leak it to the backend.
  */
 #ifdef __KERNEL__
-#define XENFB_WIDTH 800
-#define XENFB_HEIGHT 600
-#define XENFB_DEPTH 32
+	#define XENFB_WIDTH 800
+	#define XENFB_HEIGHT 600
+	#define XENFB_DEPTH 32
 #endif
 
 #endif

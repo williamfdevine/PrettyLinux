@@ -94,7 +94,8 @@
 #define AD7879_VBAT_BIT			(1<<2)
 #define AD7879_TEMP_BIT			(1<<1)
 
-enum {
+enum
+{
 	AD7879_SEQ_YPOS  = 0,
 	AD7879_SEQ_XPOS  = 1,
 	AD7879_SEQ_Z1    = 2,
@@ -105,7 +106,8 @@ enum {
 #define	MAX_12BIT			((1<<12)-1)
 #define	TS_PEN_UP_TIMEOUT		msecs_to_jiffies(50)
 
-struct ad7879 {
+struct ad7879
+{
 	const struct ad7879_bus_ops *bops;
 
 	struct device		*dev;
@@ -162,7 +164,9 @@ static int ad7879_report(struct ad7879 *ts)
 	z2 = ts->conversion_data[AD7879_SEQ_Z2] & MAX_12BIT;
 
 	if (ts->swap_xy)
+	{
 		swap(x, y);
+	}
 
 	/*
 	 * The samples processed here are already preprocessed by the AD7879.
@@ -176,7 +180,8 @@ static int ad7879_report(struct ad7879 *ts)
 	 * be taken per conversion.
 	 */
 
-	if (likely(x && z1)) {
+	if (likely(x && z1))
+	{
 		/* compute touch pressure resistance using equation #1 */
 		Rt = (z2 - z1) * x * ts->x_plate_ohms;
 		Rt /= z1;
@@ -187,7 +192,9 @@ static int ad7879_report(struct ad7879 *ts)
 		 * the maximum. Don't report it to user space.
 		 */
 		if (Rt > input_abs_get_max(input_dev, ABS_PRESSURE))
+		{
 			return -EINVAL;
+		}
 
 		/*
 		 * Note that we delay reporting events by one sample.
@@ -195,7 +202,8 @@ static int ad7879_report(struct ad7879 *ts)
 		 * touch sequence, which may be incomplete if finger
 		 * leaves the surface before last reading is taken.
 		 */
-		if (timer_pending(&ts->timer)) {
+		if (timer_pending(&ts->timer))
+		{
 			/* Touch continues */
 			input_report_key(input_dev, BTN_TOUCH, 1);
 			input_report_abs(input_dev, ABS_X, ts->x);
@@ -237,7 +245,9 @@ static irqreturn_t ad7879_irq(int irq, void *handle)
 	ad7879_multi_read(ts, AD7879_REG_XPLUS, AD7879_NR_SENSE, ts->conversion_data);
 
 	if (!ad7879_report(ts))
+	{
 		mod_timer(&ts->timer, jiffies + TS_PEN_UP_TIMEOUT);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -254,11 +264,13 @@ static void __ad7879_enable(struct ad7879 *ts)
 static void __ad7879_disable(struct ad7879 *ts)
 {
 	u16 reg = (ts->cmd_crtl2 & ~AD7879_PM(-1)) |
-		AD7879_PM(AD7879_PM_SHUTDOWN);
+			  AD7879_PM(AD7879_PM_SHUTDOWN);
 	disable_irq(ts->irq);
 
 	if (del_timer_sync(&ts->timer))
+	{
 		ad7879_ts_event_release(ts);
+	}
 
 	ad7879_write(ts, AD7879_REG_CTRL2, reg);
 }
@@ -270,18 +282,22 @@ static int ad7879_open(struct input_dev *input)
 
 	/* protected by input->mutex */
 	if (!ts->disabled && !ts->suspended)
+	{
 		__ad7879_enable(ts);
+	}
 
 	return 0;
 }
 
-static void ad7879_close(struct input_dev* input)
+static void ad7879_close(struct input_dev *input)
 {
 	struct ad7879 *ts = input_get_drvdata(input);
 
 	/* protected by input->mutex */
 	if (!ts->disabled && !ts->suspended)
+	{
 		__ad7879_disable(ts);
+	}
 }
 
 static int __maybe_unused ad7879_suspend(struct device *dev)
@@ -291,7 +307,9 @@ static int __maybe_unused ad7879_suspend(struct device *dev)
 	mutex_lock(&ts->input->mutex);
 
 	if (!ts->suspended && !ts->disabled && ts->input->users)
+	{
 		__ad7879_disable(ts);
+	}
 
 	ts->suspended = true;
 
@@ -307,7 +325,9 @@ static int __maybe_unused ad7879_resume(struct device *dev)
 	mutex_lock(&ts->input->mutex);
 
 	if (ts->suspended && !ts->disabled && ts->input->users)
+	{
 		__ad7879_enable(ts);
+	}
 
 	ts->suspended = false;
 
@@ -323,14 +343,22 @@ static void ad7879_toggle(struct ad7879 *ts, bool disable)
 {
 	mutex_lock(&ts->input->mutex);
 
-	if (!ts->suspended && ts->input->users != 0) {
+	if (!ts->suspended && ts->input->users != 0)
+	{
 
-		if (disable) {
+		if (disable)
+		{
 			if (ts->disabled)
+			{
 				__ad7879_enable(ts);
-		} else {
+			}
+		}
+		else
+		{
 			if (!ts->disabled)
+			{
 				__ad7879_disable(ts);
+			}
 		}
 	}
 
@@ -340,7 +368,7 @@ static void ad7879_toggle(struct ad7879 *ts, bool disable)
 }
 
 static ssize_t ad7879_disable_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	struct ad7879 *ts = dev_get_drvdata(dev);
 
@@ -348,16 +376,19 @@ static ssize_t ad7879_disable_show(struct device *dev,
 }
 
 static ssize_t ad7879_disable_store(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									struct device_attribute *attr,
+									const char *buf, size_t count)
 {
 	struct ad7879 *ts = dev_get_drvdata(dev);
 	unsigned int val;
 	int error;
 
 	error = kstrtouint(buf, 10, &val);
+
 	if (error)
+	{
 		return error;
+	}
 
 	ad7879_toggle(ts, val);
 
@@ -366,18 +397,20 @@ static ssize_t ad7879_disable_store(struct device *dev,
 
 static DEVICE_ATTR(disable, 0664, ad7879_disable_show, ad7879_disable_store);
 
-static struct attribute *ad7879_attributes[] = {
+static struct attribute *ad7879_attributes[] =
+{
 	&dev_attr_disable.attr,
 	NULL
 };
 
-static const struct attribute_group ad7879_attr_group = {
+static const struct attribute_group ad7879_attr_group =
+{
 	.attrs = ad7879_attributes,
 };
 
 #ifdef CONFIG_GPIOLIB
 static int ad7879_gpio_direction_input(struct gpio_chip *chip,
-					unsigned gpio)
+									   unsigned gpio)
 {
 	struct ad7879 *ts = gpiochip_get_data(chip);
 	int err;
@@ -391,7 +424,7 @@ static int ad7879_gpio_direction_input(struct gpio_chip *chip,
 }
 
 static int ad7879_gpio_direction_output(struct gpio_chip *chip,
-					unsigned gpio, int level)
+										unsigned gpio, int level)
 {
 	struct ad7879 *ts = gpiochip_get_data(chip);
 	int err;
@@ -399,10 +432,15 @@ static int ad7879_gpio_direction_output(struct gpio_chip *chip,
 	mutex_lock(&ts->mutex);
 	ts->cmd_crtl2 &= ~AD7879_GPIODIR;
 	ts->cmd_crtl2 |= AD7879_GPIO_EN | AD7879_GPIOPOL;
+
 	if (level)
+	{
 		ts->cmd_crtl2 |= AD7879_GPIO_DATA;
+	}
 	else
+	{
 		ts->cmd_crtl2 &= ~AD7879_GPIO_DATA;
+	}
 
 	err = ad7879_write(ts, AD7879_REG_CTRL2, ts->cmd_crtl2);
 	mutex_unlock(&ts->mutex);
@@ -423,28 +461,34 @@ static int ad7879_gpio_get_value(struct gpio_chip *chip, unsigned gpio)
 }
 
 static void ad7879_gpio_set_value(struct gpio_chip *chip,
-				  unsigned gpio, int value)
+								  unsigned gpio, int value)
 {
 	struct ad7879 *ts = gpiochip_get_data(chip);
 
 	mutex_lock(&ts->mutex);
+
 	if (value)
+	{
 		ts->cmd_crtl2 |= AD7879_GPIO_DATA;
+	}
 	else
+	{
 		ts->cmd_crtl2 &= ~AD7879_GPIO_DATA;
+	}
 
 	ad7879_write(ts, AD7879_REG_CTRL2, ts->cmd_crtl2);
 	mutex_unlock(&ts->mutex);
 }
 
 static int ad7879_gpio_add(struct ad7879 *ts,
-			   const struct ad7879_platform_data *pdata)
+						   const struct ad7879_platform_data *pdata)
 {
 	int ret = 0;
 
 	mutex_init(&ts->mutex);
 
-	if (pdata->gpio_export) {
+	if (pdata->gpio_export)
+	{
 		ts->gc.direction_input = ad7879_gpio_direction_input;
 		ts->gc.direction_output = ad7879_gpio_direction_output;
 		ts->gc.get = ad7879_gpio_get_value;
@@ -457,9 +501,10 @@ static int ad7879_gpio_add(struct ad7879 *ts,
 		ts->gc.parent = ts->dev;
 
 		ret = gpiochip_add_data(&ts->gc, ts);
+
 		if (ret)
 			dev_err(ts->dev, "failed to register gpio %d\n",
-				ts->gc.base);
+					ts->gc.base);
 	}
 
 	return ret;
@@ -470,12 +515,14 @@ static void ad7879_gpio_remove(struct ad7879 *ts)
 	const struct ad7879_platform_data *pdata = dev_get_platdata(ts->dev);
 
 	if (pdata && pdata->gpio_export)
+	{
 		gpiochip_remove(&ts->gc);
+	}
 
 }
 #else
 static inline int ad7879_gpio_add(struct ad7879 *ts,
-				  const struct ad7879_platform_data *pdata)
+								  const struct ad7879_platform_data *pdata)
 {
 	return 0;
 }
@@ -491,20 +538,23 @@ static int ad7879_parse_dt(struct device *dev, struct ad7879 *ts)
 	u32 tmp;
 
 	err = device_property_read_u32(dev, "adi,resistance-plate-x", &tmp);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "failed to get resistance-plate-x property\n");
 		return err;
 	}
+
 	ts->x_plate_ohms = (u16)tmp;
 
 	device_property_read_u8(dev, "adi,first-conversion-delay",
-				&ts->first_conversion_delay);
+							&ts->first_conversion_delay);
 	device_property_read_u8(dev, "adi,acquisition-time",
-				&ts->acquisition_time);
+							&ts->acquisition_time);
 	device_property_read_u8(dev, "adi,median-filter-size", &ts->median);
 	device_property_read_u8(dev, "adi,averaging", &ts->averaging);
 	device_property_read_u8(dev, "adi,conversion-interval",
-				&ts->pen_down_acc_interval);
+							&ts->pen_down_acc_interval);
 
 	ts->swap_xy = device_property_read_bool(dev, "touchscreen-swapped-x-y");
 
@@ -512,7 +562,7 @@ static int ad7879_parse_dt(struct device *dev, struct ad7879 *ts)
 }
 
 struct ad7879 *ad7879_probe(struct device *dev, u8 devid, unsigned int irq,
-			    const struct ad7879_bus_ops *bops)
+							const struct ad7879_bus_ops *bops)
 {
 	struct ad7879_platform_data *pdata = dev_get_platdata(dev);
 	struct ad7879 *ts;
@@ -520,16 +570,21 @@ struct ad7879 *ad7879_probe(struct device *dev, u8 devid, unsigned int irq,
 	int err;
 	u16 revid;
 
-	if (!irq) {
+	if (!irq)
+	{
 		dev_err(dev, "No IRQ specified\n");
 		return ERR_PTR(-EINVAL);
 	}
 
 	ts = devm_kzalloc(dev, sizeof(*ts), GFP_KERNEL);
-	if (!ts)
-		return ERR_PTR(-ENOMEM);
 
-	if (pdata) {
+	if (!ts)
+	{
+		return ERR_PTR(-ENOMEM);
+	}
+
+	if (pdata)
+	{
 		/* Platform data use swapped axis (backward compatibility) */
 		ts->swap_xy = !pdata->swap_xy;
 
@@ -540,15 +595,21 @@ struct ad7879 *ad7879_probe(struct device *dev, u8 devid, unsigned int irq,
 		ts->averaging = pdata->averaging;
 		ts->pen_down_acc_interval = pdata->pen_down_acc_interval;
 		ts->median = pdata->median;
-	} else if (dev->of_node) {
+	}
+	else if (dev->of_node)
+	{
 		ad7879_parse_dt(dev, ts);
-	} else {
+	}
+	else
+	{
 		dev_err(dev, "No platform data\n");
 		return ERR_PTR(-EINVAL);
 	}
 
 	input_dev = devm_input_allocate_device(dev);
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		dev_err(dev, "Failed to allocate input device\n");
 		return ERR_PTR(-ENOMEM);
 	}
@@ -579,31 +640,38 @@ struct ad7879 *ad7879_probe(struct device *dev, u8 devid, unsigned int irq,
 	__set_bit(EV_KEY, input_dev->evbit);
 	__set_bit(BTN_TOUCH, input_dev->keybit);
 
-	if (pdata) {
+	if (pdata)
+	{
 		input_set_abs_params(input_dev, ABS_X,
-				pdata->x_min ? : 0,
-				pdata->x_max ? : MAX_12BIT,
-				0, 0);
+							 pdata->x_min ? : 0,
+							 pdata->x_max ? : MAX_12BIT,
+							 0, 0);
 		input_set_abs_params(input_dev, ABS_Y,
-				pdata->y_min ? : 0,
-				pdata->y_max ? : MAX_12BIT,
-				0, 0);
+							 pdata->y_min ? : 0,
+							 pdata->y_max ? : MAX_12BIT,
+							 0, 0);
 		input_set_abs_params(input_dev, ABS_PRESSURE,
-				pdata->pressure_min,
-				pdata->pressure_max ? : ~0,
-				0, 0);
-	} else {
+							 pdata->pressure_min,
+							 pdata->pressure_max ? : ~0,
+							 0, 0);
+	}
+	else
+	{
 		input_set_abs_params(input_dev, ABS_X, 0, MAX_12BIT, 0, 0);
 		input_set_abs_params(input_dev, ABS_Y, 0, MAX_12BIT, 0, 0);
 		touchscreen_parse_properties(input_dev, false, NULL);
-		if (!input_abs_get_max(input_dev, ABS_PRESSURE)) {
+
+		if (!input_abs_get_max(input_dev, ABS_PRESSURE))
+		{
 			dev_err(dev, "Touchscreen pressure is not specified\n");
 			return ERR_PTR(-EINVAL);
 		}
 	}
 
 	err = ad7879_write(ts, AD7879_REG_CTRL2, AD7879_RESET);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(dev, "Failed to write %s\n", input_dev->name);
 		return ERR_PTR(err);
 	}
@@ -611,33 +679,37 @@ struct ad7879 *ad7879_probe(struct device *dev, u8 devid, unsigned int irq,
 	revid = ad7879_read(ts, AD7879_REG_REVID);
 	input_dev->id.product = (revid & 0xff);
 	input_dev->id.version = revid >> 8;
-	if (input_dev->id.product != devid) {
+
+	if (input_dev->id.product != devid)
+	{
 		dev_err(dev, "Failed to probe %s (%x vs %x)\n",
-			input_dev->name, devid, revid);
+				input_dev->name, devid, revid);
 		return ERR_PTR(-ENODEV);
 	}
 
 	ts->cmd_crtl3 = AD7879_YPLUS_BIT |
-			AD7879_XPLUS_BIT |
-			AD7879_Z2_BIT |
-			AD7879_Z1_BIT |
-			AD7879_TEMPMASK_BIT |
-			AD7879_AUXVBATMASK_BIT |
-			AD7879_GPIOALERTMASK_BIT;
+					AD7879_XPLUS_BIT |
+					AD7879_Z2_BIT |
+					AD7879_Z1_BIT |
+					AD7879_TEMPMASK_BIT |
+					AD7879_AUXVBATMASK_BIT |
+					AD7879_GPIOALERTMASK_BIT;
 
 	ts->cmd_crtl2 = AD7879_PM(AD7879_PM_DYN) | AD7879_DFR |
-			AD7879_AVG(ts->averaging) |
-			AD7879_MFS(ts->median) |
-			AD7879_FCD(ts->first_conversion_delay);
+					AD7879_AVG(ts->averaging) |
+					AD7879_MFS(ts->median) |
+					AD7879_FCD(ts->first_conversion_delay);
 
 	ts->cmd_crtl1 = AD7879_MODE_INT | AD7879_MODE_SEQ1 |
-			AD7879_ACQ(ts->acquisition_time) |
-			AD7879_TMR(ts->pen_down_acc_interval);
+					AD7879_ACQ(ts->acquisition_time) |
+					AD7879_TMR(ts->pen_down_acc_interval);
 
 	err = devm_request_threaded_irq(dev, ts->irq, NULL, ad7879_irq,
-					IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-					dev_name(dev), ts);
-	if (err) {
+									IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+									dev_name(dev), ts);
+
+	if (err)
+	{
 		dev_err(dev, "Failed to request IRQ: %d\n", err);
 		return ERR_PTR(err);
 	}
@@ -645,18 +717,28 @@ struct ad7879 *ad7879_probe(struct device *dev, u8 devid, unsigned int irq,
 	__ad7879_disable(ts);
 
 	err = sysfs_create_group(&dev->kobj, &ad7879_attr_group);
-	if (err)
-		goto err_out;
 
-	if (pdata) {
+	if (err)
+	{
+		goto err_out;
+	}
+
+	if (pdata)
+	{
 		err = ad7879_gpio_add(ts, pdata);
+
 		if (err)
+		{
 			goto err_remove_attr;
+		}
 	}
 
 	err = input_register_device(input_dev);
+
 	if (err)
+	{
 		goto err_remove_gpio;
+	}
 
 	return ts;
 

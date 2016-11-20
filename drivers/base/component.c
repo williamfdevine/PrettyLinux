@@ -20,7 +20,8 @@
 
 struct component;
 
-struct component_match_array {
+struct component_match_array
+{
 	void *data;
 	int (*compare)(struct device *, void *);
 	void (*release)(struct device *, void *);
@@ -28,13 +29,15 @@ struct component_match_array {
 	bool duplicate;
 };
 
-struct component_match {
+struct component_match
+{
 	size_t alloc;
 	size_t num;
 	struct component_match_array *compare;
 };
 
-struct master {
+struct master
+{
 	struct list_head node;
 	bool bound;
 
@@ -43,7 +46,8 @@ struct master {
 	struct component_match *match;
 };
 
-struct component {
+struct component
+{
 	struct list_head node;
 	struct master *master;
 	bool bound;
@@ -57,28 +61,36 @@ static LIST_HEAD(component_list);
 static LIST_HEAD(masters);
 
 static struct master *__master_find(struct device *dev,
-	const struct component_master_ops *ops)
+									const struct component_master_ops *ops)
 {
 	struct master *m;
 
 	list_for_each_entry(m, &masters, node)
-		if (m->dev == dev && (!ops || m->ops == ops))
-			return m;
+
+	if (m->dev == dev && (!ops || m->ops == ops))
+	{
+		return m;
+	}
 
 	return NULL;
 }
 
 static struct component *find_component(struct master *master,
-	int (*compare)(struct device *, void *), void *compare_data)
+										int (*compare)(struct device *, void *), void *compare_data)
 {
 	struct component *c;
 
-	list_for_each_entry(c, &component_list, node) {
+	list_for_each_entry(c, &component_list, node)
+	{
 		if (c->master && c->master != master)
+		{
 			continue;
+		}
 
 		if (compare(c->dev, compare_data))
+		{
 			return c;
+		}
 	}
 
 	return NULL;
@@ -94,17 +106,22 @@ static int find_components(struct master *master)
 	 * Scan the array of match functions and attach
 	 * any components which are found to this master.
 	 */
-	for (i = 0; i < match->num; i++) {
+	for (i = 0; i < match->num; i++)
+	{
 		struct component_match_array *mc = &match->compare[i];
 		struct component *c;
 
 		dev_dbg(master->dev, "Looking for component %zu\n", i);
 
 		if (match->compare[i].component)
+		{
 			continue;
+		}
 
 		c = find_component(master, mc->compare, mc->data);
-		if (!c) {
+
+		if (!c)
+		{
 			ret = -ENXIO;
 			break;
 		}
@@ -116,6 +133,7 @@ static int find_components(struct master *master)
 		match->compare[i].component = c;
 		c->master = master;
 	}
+
 	return ret;
 }
 
@@ -127,7 +145,9 @@ static void remove_component(struct master *master, struct component *c)
 	/* Detach the component from this master. */
 	for (i = 0; i < master->match->num; i++)
 		if (master->match->compare[i].component == c)
+		{
 			master->match->compare[i].component = NULL;
+		}
 }
 
 /*
@@ -138,29 +158,35 @@ static void remove_component(struct master *master, struct component *c)
  * Returns 1 for successful bringup, 0 if not ready, or -ve errno.
  */
 static int try_to_bring_up_master(struct master *master,
-	struct component *component)
+								  struct component *component)
 {
 	int ret;
 
 	dev_dbg(master->dev, "trying to bring up master\n");
 
-	if (find_components(master)) {
+	if (find_components(master))
+	{
 		dev_dbg(master->dev, "master has incomplete components\n");
 		return 0;
 	}
 
-	if (component && component->master != master) {
+	if (component && component->master != master)
+	{
 		dev_dbg(master->dev, "master is not for this component (%s)\n",
-			dev_name(component->dev));
+				dev_name(component->dev));
 		return 0;
 	}
 
 	if (!devres_open_group(master->dev, NULL, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	/* Found all components */
 	ret = master->ops->bind(master->dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		devres_release_group(master->dev, NULL);
 		dev_info(master->dev, "master bind failed: %d\n", ret);
 		return ret;
@@ -175,11 +201,16 @@ static int try_to_bring_up_masters(struct component *component)
 	struct master *m;
 	int ret = 0;
 
-	list_for_each_entry(m, &masters, node) {
-		if (!m->bound) {
+	list_for_each_entry(m, &masters, node)
+	{
+		if (!m->bound)
+		{
 			ret = try_to_bring_up_master(m, component);
+
 			if (ret != 0)
+			{
 				break;
+			}
 		}
 	}
 
@@ -188,7 +219,8 @@ static int try_to_bring_up_masters(struct component *component)
 
 static void take_down_master(struct master *master)
 {
-	if (master->bound) {
+	if (master->bound)
+	{
 		master->ops->unbind(master->dev);
 		devres_release_group(master->dev, NULL);
 		master->bound = false;
@@ -196,15 +228,18 @@ static void take_down_master(struct master *master)
 }
 
 static void component_match_release(struct device *master,
-	struct component_match *match)
+									struct component_match *match)
 {
 	unsigned int i;
 
-	for (i = 0; i < match->num; i++) {
+	for (i = 0; i < match->num; i++)
+	{
 		struct component_match_array *mc = &match->compare[i];
 
 		if (mc->release)
+		{
 			mc->release(master, mc->data);
+		}
 	}
 
 	kfree(match->compare);
@@ -216,22 +251,29 @@ static void devm_component_match_release(struct device *dev, void *res)
 }
 
 static int component_match_realloc(struct device *dev,
-	struct component_match *match, size_t num)
+								   struct component_match *match, size_t num)
 {
 	struct component_match_array *new;
 
 	if (match->alloc == num)
+	{
 		return 0;
+	}
 
 	new = kmalloc_array(num, sizeof(*new), GFP_KERNEL);
-	if (!new)
-		return -ENOMEM;
 
-	if (match->compare) {
+	if (!new)
+	{
+		return -ENOMEM;
+	}
+
+	if (match->compare)
+	{
 		memcpy(new, match->compare, sizeof(*new) *
-					    min(match->num, num));
+			   min(match->num, num));
 		kfree(match->compare);
 	}
+
 	match->compare = new;
 	match->alloc = num;
 
@@ -244,19 +286,24 @@ static int component_match_realloc(struct device *dev,
  * The match array is first created or extended if necessary.
  */
 void component_match_add_release(struct device *master,
-	struct component_match **matchptr,
-	void (*release)(struct device *, void *),
-	int (*compare)(struct device *, void *), void *compare_data)
+								 struct component_match **matchptr,
+								 void (*release)(struct device *, void *),
+								 int (*compare)(struct device *, void *), void *compare_data)
 {
 	struct component_match *match = *matchptr;
 
 	if (IS_ERR(match))
+	{
 		return;
+	}
 
-	if (!match) {
+	if (!match)
+	{
 		match = devres_alloc(devm_component_match_release,
-				     sizeof(*match), GFP_KERNEL);
-		if (!match) {
+							 sizeof(*match), GFP_KERNEL);
+
+		if (!match)
+		{
 			*matchptr = ERR_PTR(-ENOMEM);
 			return;
 		}
@@ -266,12 +313,15 @@ void component_match_add_release(struct device *master,
 		*matchptr = match;
 	}
 
-	if (match->num == match->alloc) {
+	if (match->num == match->alloc)
+	{
 		size_t new_size = match->alloc + 16;
 		int ret;
 
 		ret = component_match_realloc(master, match, new_size);
-		if (ret) {
+
+		if (ret)
+		{
 			*matchptr = ERR_PTR(ret);
 			return;
 		}
@@ -292,11 +342,16 @@ static void free_master(struct master *master)
 
 	list_del(&master->node);
 
-	if (match) {
-		for (i = 0; i < match->num; i++) {
+	if (match)
+	{
+		for (i = 0; i < match->num; i++)
+		{
 			struct component *c = match->compare[i].component;
+
 			if (c)
+			{
 				c->master = NULL;
+			}
 		}
 	}
 
@@ -304,20 +359,26 @@ static void free_master(struct master *master)
 }
 
 int component_master_add_with_match(struct device *dev,
-	const struct component_master_ops *ops,
-	struct component_match *match)
+									const struct component_master_ops *ops,
+									struct component_match *match)
 {
 	struct master *master;
 	int ret;
 
 	/* Reallocate the match array for its true size */
 	ret = component_match_realloc(dev, match, match->num);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	master = kzalloc(sizeof(*master), GFP_KERNEL);
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	master->dev = dev;
 	master->ops = ops;
@@ -330,7 +391,9 @@ int component_master_add_with_match(struct device *dev,
 	ret = try_to_bring_up_master(master, NULL);
 
 	if (ret < 0)
+	{
 		free_master(master);
+	}
 
 	mutex_unlock(&component_mutex);
 
@@ -339,22 +402,25 @@ int component_master_add_with_match(struct device *dev,
 EXPORT_SYMBOL_GPL(component_master_add_with_match);
 
 void component_master_del(struct device *dev,
-	const struct component_master_ops *ops)
+						  const struct component_master_ops *ops)
 {
 	struct master *master;
 
 	mutex_lock(&component_mutex);
 	master = __master_find(dev, ops);
-	if (master) {
+
+	if (master)
+	{
 		take_down_master(master);
 		free_master(master);
 	}
+
 	mutex_unlock(&component_mutex);
 }
 EXPORT_SYMBOL_GPL(component_master_del);
 
 static void component_unbind(struct component *component,
-	struct master *master, void *data)
+							 struct master *master, void *data)
 {
 	WARN_ON(!component->bound);
 
@@ -374,12 +440,16 @@ void component_unbind_all(struct device *master_dev, void *data)
 	WARN_ON(!mutex_is_locked(&component_mutex));
 
 	master = __master_find(master_dev, NULL);
+
 	if (!master)
+	{
 		return;
+	}
 
 	/* Unbind components in reverse order */
 	for (i = master->match->num; i--; )
-		if (!master->match->compare[i].duplicate) {
+		if (!master->match->compare[i].duplicate)
+		{
 			c = master->match->compare[i].component;
 			component_unbind(c, master, data);
 		}
@@ -387,7 +457,7 @@ void component_unbind_all(struct device *master_dev, void *data)
 EXPORT_SYMBOL_GPL(component_unbind_all);
 
 static int component_bind(struct component *component, struct master *master,
-	void *data)
+						  void *data)
 {
 	int ret;
 
@@ -397,23 +467,28 @@ static int component_bind(struct component *component, struct master *master,
 	 * affecting anything else.
 	 */
 	if (!devres_open_group(master->dev, NULL, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * Also open a group for the device itself: this allows us
 	 * to release the resources claimed against the sub-device
 	 * at the appropriate moment.
 	 */
-	if (!devres_open_group(component->dev, component, GFP_KERNEL)) {
+	if (!devres_open_group(component->dev, component, GFP_KERNEL))
+	{
 		devres_release_group(master->dev, NULL);
 		return -ENOMEM;
 	}
 
 	dev_dbg(master->dev, "binding %s (ops %ps)\n",
-		dev_name(component->dev), component->ops);
+			dev_name(component->dev), component->ops);
 
 	ret = component->ops->bind(component->dev, master->dev, data);
-	if (!ret) {
+
+	if (!ret)
+	{
 		component->bound = true;
 
 		/*
@@ -426,13 +501,15 @@ static int component_bind(struct component *component, struct master *master,
 		devres_remove_group(master->dev, NULL);
 
 		dev_info(master->dev, "bound %s (ops %ps)\n",
-			 dev_name(component->dev), component->ops);
-	} else {
+				 dev_name(component->dev), component->ops);
+	}
+	else
+	{
 		devres_release_group(component->dev, NULL);
 		devres_release_group(master->dev, NULL);
 
 		dev_err(master->dev, "failed to bind %s (ops %ps): %d\n",
-			dev_name(component->dev), component->ops, ret);
+				dev_name(component->dev), component->ops, ret);
 	}
 
 	return ret;
@@ -448,21 +525,30 @@ int component_bind_all(struct device *master_dev, void *data)
 	WARN_ON(!mutex_is_locked(&component_mutex));
 
 	master = __master_find(master_dev, NULL);
+
 	if (!master)
+	{
 		return -EINVAL;
+	}
 
 	/* Bind components in match order */
 	for (i = 0; i < master->match->num; i++)
-		if (!master->match->compare[i].duplicate) {
+		if (!master->match->compare[i].duplicate)
+		{
 			c = master->match->compare[i].component;
 			ret = component_bind(c, master, data);
+
 			if (ret)
+			{
 				break;
+			}
 		}
 
-	if (ret != 0) {
+	if (ret != 0)
+	{
 		for (; i--; )
-			if (!master->match->compare[i].duplicate) {
+			if (!master->match->compare[i].duplicate)
+			{
 				c = master->match->compare[i].component;
 				component_unbind(c, master, data);
 			}
@@ -478,8 +564,11 @@ int component_add(struct device *dev, const struct component_ops *ops)
 	int ret;
 
 	component = kzalloc(sizeof(*component), GFP_KERNEL);
+
 	if (!component)
+	{
 		return -ENOMEM;
+	}
 
 	component->ops = ops;
 	component->dev = dev;
@@ -490,13 +579,19 @@ int component_add(struct device *dev, const struct component_ops *ops)
 	list_add_tail(&component->node, &component_list);
 
 	ret = try_to_bring_up_masters(component);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		if (component->master)
+		{
 			remove_component(component->master, component);
+		}
+
 		list_del(&component->node);
 
 		kfree(component);
 	}
+
 	mutex_unlock(&component_mutex);
 
 	return ret < 0 ? ret : 0;
@@ -509,13 +604,16 @@ void component_del(struct device *dev, const struct component_ops *ops)
 
 	mutex_lock(&component_mutex);
 	list_for_each_entry(c, &component_list, node)
-		if (c->dev == dev && c->ops == ops) {
-			list_del(&c->node);
-			component = c;
-			break;
-		}
 
-	if (component && component->master) {
+	if (c->dev == dev && c->ops == ops)
+	{
+		list_del(&c->node);
+		component = c;
+		break;
+	}
+
+	if (component && component->master)
+	{
 		take_down_master(component->master);
 		remove_component(component->master, component);
 	}

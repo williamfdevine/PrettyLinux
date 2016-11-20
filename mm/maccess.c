@@ -21,7 +21,7 @@
  */
 
 long __weak probe_kernel_read(void *dst, const void *src, size_t size)
-    __attribute__((alias("__probe_kernel_read")));
+__attribute__((alias("__probe_kernel_read")));
 
 long __probe_kernel_read(void *dst, const void *src, size_t size)
 {
@@ -31,7 +31,7 @@ long __probe_kernel_read(void *dst, const void *src, size_t size)
 	set_fs(KERNEL_DS);
 	pagefault_disable();
 	ret = __copy_from_user_inatomic(dst,
-			(__force const void __user *)src, size);
+									(__force const void __user *)src, size);
 	pagefault_enable();
 	set_fs(old_fs);
 
@@ -49,7 +49,7 @@ EXPORT_SYMBOL_GPL(probe_kernel_read);
  * happens, handle that and return -EFAULT.
  */
 long __weak probe_kernel_write(void *dst, const void *src, size_t size)
-    __attribute__((alias("__probe_kernel_write")));
+__attribute__((alias("__probe_kernel_write")));
 
 long __probe_kernel_write(void *dst, const void *src, size_t size)
 {
@@ -90,14 +90,18 @@ long strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count)
 	long ret;
 
 	if (unlikely(count <= 0))
+	{
 		return 0;
+	}
 
 	set_fs(KERNEL_DS);
 	pagefault_disable();
 
-	do {
+	do
+	{
 		ret = __get_user(*dst++, (const char __user __force *)src++);
-	} while (dst[-1] && ret == 0 && src - unsafe_addr < count);
+	}
+	while (dst[-1] && ret == 0 && src - unsafe_addr < count);
 
 	dst[-1] = '\0';
 	pagefault_enable();

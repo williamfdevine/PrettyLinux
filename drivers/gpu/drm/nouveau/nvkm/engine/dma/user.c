@@ -33,7 +33,7 @@
 
 static int
 nvkm_dmaobj_bind(struct nvkm_object *base, struct nvkm_gpuobj *gpuobj,
-		 int align, struct nvkm_gpuobj **pgpuobj)
+				 int align, struct nvkm_gpuobj **pgpuobj)
 {
 	struct nvkm_dmaobj *dmaobj = nvkm_dmaobj(base);
 	return dmaobj->func->bind(dmaobj, gpuobj, align, pgpuobj);
@@ -43,23 +43,29 @@ static void *
 nvkm_dmaobj_dtor(struct nvkm_object *base)
 {
 	struct nvkm_dmaobj *dmaobj = nvkm_dmaobj(base);
+
 	if (!RB_EMPTY_NODE(&dmaobj->rb))
+	{
 		rb_erase(&dmaobj->rb, &dmaobj->object.client->dmaroot);
+	}
+
 	return dmaobj;
 }
 
 static const struct nvkm_object_func
-nvkm_dmaobj_func = {
+	nvkm_dmaobj_func =
+{
 	.dtor = nvkm_dmaobj_dtor,
 	.bind = nvkm_dmaobj_bind,
 };
 
 int
 nvkm_dmaobj_ctor(const struct nvkm_dmaobj_func *func, struct nvkm_dma *dma,
-		 const struct nvkm_oclass *oclass, void **pdata, u32 *psize,
-		 struct nvkm_dmaobj *dmaobj)
+				 const struct nvkm_oclass *oclass, void **pdata, u32 *psize,
+				 struct nvkm_dmaobj *dmaobj)
 {
-	union {
+	union
+	{
 		struct nv_dma_v0 v0;
 	} *args = *pdata;
 	struct nvkm_device *device = dma->engine.subdev.device;
@@ -77,67 +83,97 @@ nvkm_dmaobj_ctor(const struct nvkm_dmaobj_func *func, struct nvkm_dma *dma,
 	RB_CLEAR_NODE(&dmaobj->rb);
 
 	nvif_ioctl(parent, "create dma size %d\n", *psize);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, true))) {
+
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, true)))
+	{
 		nvif_ioctl(parent, "create dma vers %d target %d access %d "
 				   "start %016llx limit %016llx\n",
-			   args->v0.version, args->v0.target, args->v0.access,
-			   args->v0.start, args->v0.limit);
+				   args->v0.version, args->v0.target, args->v0.access,
+				   args->v0.start, args->v0.limit);
 		dmaobj->target = args->v0.target;
 		dmaobj->access = args->v0.access;
 		dmaobj->start  = args->v0.start;
 		dmaobj->limit  = args->v0.limit;
-	} else
+	}
+	else
+	{
 		return ret;
+	}
 
 	*pdata = data;
 	*psize = size;
 
 	if (dmaobj->start > dmaobj->limit)
-		return -EINVAL;
-
-	switch (dmaobj->target) {
-	case NV_DMA_V0_TARGET_VM:
-		dmaobj->target = NV_MEM_TARGET_VM;
-		break;
-	case NV_DMA_V0_TARGET_VRAM:
-		if (!client->super) {
-			if (dmaobj->limit >= fb->ram->size - instmem->reserved)
-				return -EACCES;
-			if (device->card_type >= NV_50)
-				return -EACCES;
-		}
-		dmaobj->target = NV_MEM_TARGET_VRAM;
-		break;
-	case NV_DMA_V0_TARGET_PCI:
-		if (!client->super)
-			return -EACCES;
-		dmaobj->target = NV_MEM_TARGET_PCI;
-		break;
-	case NV_DMA_V0_TARGET_PCI_US:
-	case NV_DMA_V0_TARGET_AGP:
-		if (!client->super)
-			return -EACCES;
-		dmaobj->target = NV_MEM_TARGET_PCI_NOSNOOP;
-		break;
-	default:
+	{
 		return -EINVAL;
 	}
 
-	switch (dmaobj->access) {
-	case NV_DMA_V0_ACCESS_VM:
-		dmaobj->access = NV_MEM_ACCESS_VM;
-		break;
-	case NV_DMA_V0_ACCESS_RD:
-		dmaobj->access = NV_MEM_ACCESS_RO;
-		break;
-	case NV_DMA_V0_ACCESS_WR:
-		dmaobj->access = NV_MEM_ACCESS_WO;
-		break;
-	case NV_DMA_V0_ACCESS_RDWR:
-		dmaobj->access = NV_MEM_ACCESS_RW;
-		break;
-	default:
-		return -EINVAL;
+	switch (dmaobj->target)
+	{
+		case NV_DMA_V0_TARGET_VM:
+			dmaobj->target = NV_MEM_TARGET_VM;
+			break;
+
+		case NV_DMA_V0_TARGET_VRAM:
+			if (!client->super)
+			{
+				if (dmaobj->limit >= fb->ram->size - instmem->reserved)
+				{
+					return -EACCES;
+				}
+
+				if (device->card_type >= NV_50)
+				{
+					return -EACCES;
+				}
+			}
+
+			dmaobj->target = NV_MEM_TARGET_VRAM;
+			break;
+
+		case NV_DMA_V0_TARGET_PCI:
+			if (!client->super)
+			{
+				return -EACCES;
+			}
+
+			dmaobj->target = NV_MEM_TARGET_PCI;
+			break;
+
+		case NV_DMA_V0_TARGET_PCI_US:
+		case NV_DMA_V0_TARGET_AGP:
+			if (!client->super)
+			{
+				return -EACCES;
+			}
+
+			dmaobj->target = NV_MEM_TARGET_PCI_NOSNOOP;
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
+	switch (dmaobj->access)
+	{
+		case NV_DMA_V0_ACCESS_VM:
+			dmaobj->access = NV_MEM_ACCESS_VM;
+			break;
+
+		case NV_DMA_V0_ACCESS_RD:
+			dmaobj->access = NV_MEM_ACCESS_RO;
+			break;
+
+		case NV_DMA_V0_ACCESS_WR:
+			dmaobj->access = NV_MEM_ACCESS_WO;
+			break;
+
+		case NV_DMA_V0_ACCESS_RDWR:
+			dmaobj->access = NV_MEM_ACCESS_RW;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return ret;

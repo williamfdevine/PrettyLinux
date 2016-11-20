@@ -24,7 +24,7 @@
  * to save and restore the text font.
  */
 #ifdef CONFIG_VGA_CONSOLE
-#define BROKEN_GRAPHICS_PROGRAMS 1
+	#define BROKEN_GRAPHICS_PROGRAMS 1
 #endif
 
 extern void kd_mksound(unsigned int hz, unsigned int ticks);
@@ -61,10 +61,10 @@ int tioclinux(struct tty_struct *tty, unsigned long arg);
 
 struct unipair;
 
-int con_set_trans_old(unsigned char __user * table);
-int con_get_trans_old(unsigned char __user * table);
-int con_set_trans_new(unsigned short __user * table);
-int con_get_trans_new(unsigned short __user * table);
+int con_set_trans_old(unsigned char __user *table);
+int con_get_trans_old(unsigned char __user *table);
+int con_set_trans_new(unsigned short __user *table);
+int con_get_trans_new(unsigned short __user *table);
 int con_clear_unimap(struct vc_data *vc);
 int con_set_unimap(struct vc_data *vc, ushort ct, struct unipair __user *list);
 int con_get_unimap(struct vc_data *vc, ushort ct, ushort __user *uct, struct unipair __user *list);
@@ -73,7 +73,7 @@ void con_free_unimap(struct vc_data *vc);
 int con_copy_unimap(struct vc_data *dst_vc, struct vc_data *src_vc);
 
 #define vc_translate(vc, c) ((vc)->vc_translate[(c) |			\
-					((vc)->vc_toggle_meta ? 0x80 : 0)])
+							 ((vc)->vc_toggle_meta ? 0x80 : 0)])
 #else
 static inline int con_set_trans_old(unsigned char __user *table)
 {
@@ -102,7 +102,7 @@ int con_set_unimap(struct vc_data *vc, ushort ct, struct unipair __user *list)
 }
 static inline
 int con_get_unimap(struct vc_data *vc, ushort ct, ushort __user *uct,
-		   struct unipair __user *list)
+				   struct unipair __user *list)
 {
 	return -EINVAL;
 }
@@ -131,13 +131,16 @@ int vt_waitactive(int n);
 void change_console(struct vc_data *new_vc);
 void reset_vc(struct vc_data *vc);
 extern int do_unbind_con_driver(const struct consw *csw, int first, int last,
-			     int deflt);
+								int deflt);
 int vty_init(const struct file_operations *console_fops);
 
 static inline bool vt_force_oops_output(struct vc_data *vc)
 {
 	if (oops_in_progress && vc->vc_panic_force_write  && panic_timeout >= 0)
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -145,7 +148,8 @@ extern char vt_dont_switch;
 extern int default_utf8;
 extern int global_cursor_default;
 
-struct vt_spawn_console {
+struct vt_spawn_console
+{
 	spinlock_t lock;
 	struct pid *pid;
 	int sig;
@@ -156,7 +160,8 @@ extern int vt_move_to_console(unsigned int vt, int alloc);
 
 /* Interfaces for VC notification of character events (for accessibility etc) */
 
-struct vt_notifier_param {
+struct vt_notifier_param
+{
 	struct vc_data *vc;	/* VC on which the update happened */
 	unsigned int c;		/* Printed char */
 };
@@ -171,11 +176,11 @@ extern int vt_do_diacrit(unsigned int cmd, void __user *up, int eperm);
 extern int vt_do_kdskbmode(int console, unsigned int arg);
 extern int vt_do_kdskbmeta(int console, unsigned int arg);
 extern int vt_do_kbkeycode_ioctl(int cmd, struct kbkeycode __user *user_kbkc,
-								int perm);
+								 int perm);
 extern int vt_do_kdsk_ioctl(int cmd, struct kbentry __user *user_kbe,
-					int perm, int console);
+							int perm, int console);
 extern int vt_do_kdgkb_ioctl(int cmd, struct kbsentry __user *user_kdgkb,
-                                        int perm);
+							 int perm);
 extern int vt_do_kdskled(int console, int cmd, unsigned long arg, int perm);
 extern int vt_do_kdgkbmode(int console);
 extern int vt_do_kdgkbmeta(int console);

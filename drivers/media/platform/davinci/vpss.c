@@ -89,7 +89,8 @@ MODULE_AUTHOR("Texas Instruments");
 #define CCD_SRC_SEL_SHIFT		4
 
 /* Different SoC platforms supported by this driver */
-enum vpss_platform_type {
+enum vpss_platform_type
+{
 	DM644X,
 	DM355,
 	DM365,
@@ -101,7 +102,8 @@ enum vpss_platform_type {
  * invoking it. In the probe, the function ptrs are initialized based on
  * vpss name. vpss name can be "dm355_vpss", "dm644x_vpss" etc.
  */
-struct vpss_hw_ops {
+struct vpss_hw_ops
+{
 	/* enable clock */
 	int (*enable_clock)(enum vpss_clock_sel clock_sel, int en);
 	/* select input to ccdc */
@@ -117,7 +119,8 @@ struct vpss_hw_ops {
 };
 
 /* vpss configuration */
-struct vpss_oper_config {
+struct vpss_oper_config
+{
 	__iomem void *vpss_regs_base0;
 	__iomem void *vpss_regs_base1;
 	resource_size_t *vpss_regs_base2;
@@ -167,7 +170,9 @@ static void dm365_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
 
 	/* if we are using pattern generator, enable it */
 	if (src_sel == VPSS_PGLPBK || src_sel == VPSS_CCDCPG)
+	{
 		temp |= 0x08;
+	}
 
 	temp |= (src_sel << CCD_SRC_SEL_SHIFT);
 	isp5_write(temp, DM365_ISP5_CCDCMUX);
@@ -181,7 +186,10 @@ static void dm355_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
 int vpss_dma_complete_interrupt(void)
 {
 	if (!oper_cfg.hw_ops.dma_complete_interrupt)
+	{
 		return 2;
+	}
+
 	return oper_cfg.hw_ops.dma_complete_interrupt();
 }
 EXPORT_SYMBOL(vpss_dma_complete_interrupt);
@@ -189,7 +197,9 @@ EXPORT_SYMBOL(vpss_dma_complete_interrupt);
 int vpss_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
 {
 	if (!oper_cfg.hw_ops.select_ccdc_source)
+	{
 		return -EINVAL;
+	}
 
 	oper_cfg.hw_ops.select_ccdc_source(src_sel);
 	return 0;
@@ -201,8 +211,10 @@ static int dm644x_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
 	u32 mask = 1, val;
 
 	if (wbl_sel < VPSS_PCR_AEW_WBL_0 ||
-	    wbl_sel > VPSS_PCR_CCDC_WBL_O)
+		wbl_sel > VPSS_PCR_CCDC_WBL_O)
+	{
 		return -EINVAL;
+	}
 
 	/* writing a 0 clear the overflow */
 	mask = ~(mask << wbl_sel);
@@ -214,7 +226,9 @@ static int dm644x_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
 void vpss_set_sync_pol(struct vpss_sync_pol sync)
 {
 	if (!oper_cfg.hw_ops.set_sync_pol)
+	{
 		return;
+	}
 
 	oper_cfg.hw_ops.set_sync_pol(sync);
 }
@@ -223,7 +237,9 @@ EXPORT_SYMBOL(vpss_set_sync_pol);
 int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
 {
 	if (!oper_cfg.hw_ops.clear_wbl_overflow)
+	{
 		return -EINVAL;
+	}
 
 	return oper_cfg.hw_ops.clear_wbl_overflow(wbl_sel);
 }
@@ -241,37 +257,49 @@ static int dm355_enable_clock(enum vpss_clock_sel clock_sel, int en)
 	unsigned long flags;
 	u32 utemp, mask = 0x1, shift = 0;
 
-	switch (clock_sel) {
-	case VPSS_VPBE_CLOCK:
-		/* nothing since lsb */
-		break;
-	case VPSS_VENC_CLOCK_SEL:
-		shift = 2;
-		break;
-	case VPSS_CFALD_CLOCK:
-		shift = 3;
-		break;
-	case VPSS_H3A_CLOCK:
-		shift = 4;
-		break;
-	case VPSS_IPIPE_CLOCK:
-		shift = 5;
-		break;
-	case VPSS_CCDC_CLOCK:
-		shift = 6;
-		break;
-	default:
-		printk(KERN_ERR "dm355_enable_clock:"
-				" Invalid selector: %d\n", clock_sel);
-		return -EINVAL;
+	switch (clock_sel)
+	{
+		case VPSS_VPBE_CLOCK:
+			/* nothing since lsb */
+			break;
+
+		case VPSS_VENC_CLOCK_SEL:
+			shift = 2;
+			break;
+
+		case VPSS_CFALD_CLOCK:
+			shift = 3;
+			break;
+
+		case VPSS_H3A_CLOCK:
+			shift = 4;
+			break;
+
+		case VPSS_IPIPE_CLOCK:
+			shift = 5;
+			break;
+
+		case VPSS_CCDC_CLOCK:
+			shift = 6;
+			break;
+
+		default:
+			printk(KERN_ERR "dm355_enable_clock:"
+				   " Invalid selector: %d\n", clock_sel);
+			return -EINVAL;
 	}
 
 	spin_lock_irqsave(&oper_cfg.vpss_lock, flags);
 	utemp = vpss_regr(DM355_VPSSCLK_CLKCTRL);
+
 	if (!en)
+	{
 		utemp &= ~(mask << shift);
+	}
 	else
+	{
 		utemp |= (mask << shift);
+	}
 
 	vpss_regw(utemp, DM355_VPSSCLK_CLKCTRL);
 	spin_unlock_irqrestore(&oper_cfg.vpss_lock, flags);
@@ -285,78 +313,98 @@ static int dm365_enable_clock(enum vpss_clock_sel clock_sel, int en)
 	u32 (*read)(u32 offset) = isp5_read;
 	void(*write)(u32 val, u32 offset) = isp5_write;
 
-	switch (clock_sel) {
-	case VPSS_BL_CLOCK:
-		break;
-	case VPSS_CCDC_CLOCK:
-		shift = 1;
-		break;
-	case VPSS_H3A_CLOCK:
-		shift = 2;
-		break;
-	case VPSS_RSZ_CLOCK:
-		shift = 3;
-		break;
-	case VPSS_IPIPE_CLOCK:
-		shift = 4;
-		break;
-	case VPSS_IPIPEIF_CLOCK:
-		shift = 5;
-		break;
-	case VPSS_PCLK_INTERNAL:
-		shift = 6;
-		break;
-	case VPSS_PSYNC_CLOCK_SEL:
-		shift = 7;
-		break;
-	case VPSS_VPBE_CLOCK:
-		read = vpss_regr;
-		write = vpss_regw;
-		offset = DM365_VPBE_CLK_CTRL;
-		break;
-	case VPSS_VENC_CLOCK_SEL:
-		shift = 2;
-		read = vpss_regr;
-		write = vpss_regw;
-		offset = DM365_VPBE_CLK_CTRL;
-		break;
-	case VPSS_LDC_CLOCK:
-		shift = 3;
-		read = vpss_regr;
-		write = vpss_regw;
-		offset = DM365_VPBE_CLK_CTRL;
-		break;
-	case VPSS_FDIF_CLOCK:
-		shift = 4;
-		read = vpss_regr;
-		write = vpss_regw;
-		offset = DM365_VPBE_CLK_CTRL;
-		break;
-	case VPSS_OSD_CLOCK_SEL:
-		shift = 6;
-		read = vpss_regr;
-		write = vpss_regw;
-		offset = DM365_VPBE_CLK_CTRL;
-		break;
-	case VPSS_LDC_CLOCK_SEL:
-		shift = 7;
-		read = vpss_regr;
-		write = vpss_regw;
-		offset = DM365_VPBE_CLK_CTRL;
-		break;
-	default:
-		printk(KERN_ERR "dm365_enable_clock: Invalid selector: %d\n",
-		       clock_sel);
-		return -1;
+	switch (clock_sel)
+	{
+		case VPSS_BL_CLOCK:
+			break;
+
+		case VPSS_CCDC_CLOCK:
+			shift = 1;
+			break;
+
+		case VPSS_H3A_CLOCK:
+			shift = 2;
+			break;
+
+		case VPSS_RSZ_CLOCK:
+			shift = 3;
+			break;
+
+		case VPSS_IPIPE_CLOCK:
+			shift = 4;
+			break;
+
+		case VPSS_IPIPEIF_CLOCK:
+			shift = 5;
+			break;
+
+		case VPSS_PCLK_INTERNAL:
+			shift = 6;
+			break;
+
+		case VPSS_PSYNC_CLOCK_SEL:
+			shift = 7;
+			break;
+
+		case VPSS_VPBE_CLOCK:
+			read = vpss_regr;
+			write = vpss_regw;
+			offset = DM365_VPBE_CLK_CTRL;
+			break;
+
+		case VPSS_VENC_CLOCK_SEL:
+			shift = 2;
+			read = vpss_regr;
+			write = vpss_regw;
+			offset = DM365_VPBE_CLK_CTRL;
+			break;
+
+		case VPSS_LDC_CLOCK:
+			shift = 3;
+			read = vpss_regr;
+			write = vpss_regw;
+			offset = DM365_VPBE_CLK_CTRL;
+			break;
+
+		case VPSS_FDIF_CLOCK:
+			shift = 4;
+			read = vpss_regr;
+			write = vpss_regw;
+			offset = DM365_VPBE_CLK_CTRL;
+			break;
+
+		case VPSS_OSD_CLOCK_SEL:
+			shift = 6;
+			read = vpss_regr;
+			write = vpss_regw;
+			offset = DM365_VPBE_CLK_CTRL;
+			break;
+
+		case VPSS_LDC_CLOCK_SEL:
+			shift = 7;
+			read = vpss_regr;
+			write = vpss_regw;
+			offset = DM365_VPBE_CLK_CTRL;
+			break;
+
+		default:
+			printk(KERN_ERR "dm365_enable_clock: Invalid selector: %d\n",
+				   clock_sel);
+			return -1;
 	}
 
 	spin_lock_irqsave(&oper_cfg.vpss_lock, flags);
 	utemp = read(offset);
-	if (!en) {
+
+	if (!en)
+	{
 		mask = ~mask;
 		utemp &= (mask << shift);
-	} else
+	}
+	else
+	{
 		utemp |= (mask << shift);
+	}
 
 	write(utemp, offset);
 	spin_unlock_irqrestore(&oper_cfg.vpss_lock, flags);
@@ -367,7 +415,9 @@ static int dm365_enable_clock(enum vpss_clock_sel clock_sel, int en)
 int vpss_enable_clock(enum vpss_clock_sel clock_sel, int en)
 {
 	if (!oper_cfg.hw_ops.enable_clock)
+	{
 		return -EINVAL;
+	}
 
 	return oper_cfg.hw_ops.enable_clock(clock_sel, en);
 }
@@ -388,7 +438,9 @@ EXPORT_SYMBOL(dm365_vpss_set_sync_pol);
 void vpss_set_pg_frame_size(struct vpss_pg_frame_size frame_size)
 {
 	if (!oper_cfg.hw_ops.set_pg_frame_size)
+	{
 		return;
+	}
 
 	oper_cfg.hw_ops.set_pg_frame_size(frame_size);
 }
@@ -408,21 +460,30 @@ static int vpss_probe(struct platform_device *pdev)
 	struct resource *res;
 	char *platform_name;
 
-	if (!pdev->dev.platform_data) {
+	if (!pdev->dev.platform_data)
+	{
 		dev_err(&pdev->dev, "no platform data\n");
 		return -ENOENT;
 	}
 
 	platform_name = pdev->dev.platform_data;
+
 	if (!strcmp(platform_name, "dm355_vpss"))
+	{
 		oper_cfg.platform = DM355;
+	}
 	else if (!strcmp(platform_name, "dm365_vpss"))
+	{
 		oper_cfg.platform = DM365;
+	}
 	else if (!strcmp(platform_name, "dm644x_vpss"))
+	{
 		oper_cfg.platform = DM644X;
-	else {
+	}
+	else
+	{
 		dev_err(&pdev->dev, "vpss driver not supported on"
-			" this platform\n");
+				" this platform\n");
 		return -ENODEV;
 	}
 
@@ -430,43 +491,56 @@ static int vpss_probe(struct platform_device *pdev)
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	oper_cfg.vpss_regs_base0 = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(oper_cfg.vpss_regs_base0))
-		return PTR_ERR(oper_cfg.vpss_regs_base0);
 
-	if (oper_cfg.platform == DM355 || oper_cfg.platform == DM365) {
+	if (IS_ERR(oper_cfg.vpss_regs_base0))
+	{
+		return PTR_ERR(oper_cfg.vpss_regs_base0);
+	}
+
+	if (oper_cfg.platform == DM355 || oper_cfg.platform == DM365)
+	{
 		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 
 		oper_cfg.vpss_regs_base1 = devm_ioremap_resource(&pdev->dev,
-								 res);
+								   res);
+
 		if (IS_ERR(oper_cfg.vpss_regs_base1))
+		{
 			return PTR_ERR(oper_cfg.vpss_regs_base1);
+		}
 	}
 
-	if (oper_cfg.platform == DM355) {
+	if (oper_cfg.platform == DM355)
+	{
 		oper_cfg.hw_ops.enable_clock = dm355_enable_clock;
 		oper_cfg.hw_ops.select_ccdc_source = dm355_select_ccdc_source;
 		/* Setup vpss interrupts */
 		bl_regw(DM355_VPSSBL_INTSEL_DEFAULT, DM355_VPSSBL_INTSEL);
 		bl_regw(DM355_VPSSBL_EVTSEL_DEFAULT, DM355_VPSSBL_EVTSEL);
-	} else if (oper_cfg.platform == DM365) {
+	}
+	else if (oper_cfg.platform == DM365)
+	{
 		oper_cfg.hw_ops.enable_clock = dm365_enable_clock;
 		oper_cfg.hw_ops.select_ccdc_source = dm365_select_ccdc_source;
 		/* Setup vpss interrupts */
 		isp5_write((isp5_read(DM365_ISP5_PCCR) |
-				      DM365_ISP5_PCCR_BL_CLK_ENABLE |
-				      DM365_ISP5_PCCR_ISIF_CLK_ENABLE |
-				      DM365_ISP5_PCCR_H3A_CLK_ENABLE |
-				      DM365_ISP5_PCCR_RSZ_CLK_ENABLE |
-				      DM365_ISP5_PCCR_IPIPE_CLK_ENABLE |
-				      DM365_ISP5_PCCR_IPIPEIF_CLK_ENABLE |
-				      DM365_ISP5_PCCR_RSV), DM365_ISP5_PCCR);
+					DM365_ISP5_PCCR_BL_CLK_ENABLE |
+					DM365_ISP5_PCCR_ISIF_CLK_ENABLE |
+					DM365_ISP5_PCCR_H3A_CLK_ENABLE |
+					DM365_ISP5_PCCR_RSZ_CLK_ENABLE |
+					DM365_ISP5_PCCR_IPIPE_CLK_ENABLE |
+					DM365_ISP5_PCCR_IPIPEIF_CLK_ENABLE |
+					DM365_ISP5_PCCR_RSV), DM365_ISP5_PCCR);
 		isp5_write((isp5_read(DM365_ISP5_BCR) |
-			    DM365_ISP5_BCR_ISIF_OUT_ENABLE), DM365_ISP5_BCR);
+					DM365_ISP5_BCR_ISIF_OUT_ENABLE), DM365_ISP5_BCR);
 		isp5_write(DM365_ISP5_INTSEL1_DEFAULT, DM365_ISP5_INTSEL1);
 		isp5_write(DM365_ISP5_INTSEL2_DEFAULT, DM365_ISP5_INTSEL2);
 		isp5_write(DM365_ISP5_INTSEL3_DEFAULT, DM365_ISP5_INTSEL3);
-	} else
+	}
+	else
+	{
 		oper_cfg.hw_ops.clear_wbl_overflow = dm644x_clear_wbl_overflow;
+	}
 
 	pm_runtime_enable(&pdev->dev);
 
@@ -496,12 +570,14 @@ static int vpss_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops vpss_pm_ops = {
+static const struct dev_pm_ops vpss_pm_ops =
+{
 	.suspend = vpss_suspend,
 	.resume = vpss_resume,
 };
 
-static struct platform_driver vpss_driver = {
+static struct platform_driver vpss_driver =
+{
 	.driver = {
 		.name	= "vpss",
 		.pm = &vpss_pm_ops,
@@ -520,11 +596,13 @@ static void vpss_exit(void)
 static int __init vpss_init(void)
 {
 	if (!request_mem_region(VPSS_CLK_CTRL, 4, "vpss_clock_control"))
+	{
 		return -EBUSY;
+	}
 
 	oper_cfg.vpss_regs_base2 = ioremap(VPSS_CLK_CTRL, 4);
 	writel(VPSS_CLK_CTRL_VENCCLKEN |
-		     VPSS_CLK_CTRL_DACCLKEN, oper_cfg.vpss_regs_base2);
+		   VPSS_CLK_CTRL_DACCLKEN, oper_cfg.vpss_regs_base2);
 
 	return platform_driver_register(&vpss_driver);
 }

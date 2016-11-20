@@ -45,90 +45,92 @@ struct wl1271_tx_hw_descr;
 enum wl_rx_buf_align;
 struct wl1271_rx_descriptor;
 
-struct wlcore_ops {
+struct wlcore_ops
+{
 	int (*setup)(struct wl1271 *wl);
 	int (*identify_chip)(struct wl1271 *wl);
 	int (*identify_fw)(struct wl1271 *wl);
 	int (*boot)(struct wl1271 *wl);
 	int (*plt_init)(struct wl1271 *wl);
 	int (*trigger_cmd)(struct wl1271 *wl, int cmd_box_addr,
-			   void *buf, size_t len);
+					   void *buf, size_t len);
 	int (*ack_event)(struct wl1271 *wl);
 	int (*wait_for_event)(struct wl1271 *wl, enum wlcore_wait_event event,
-			      bool *timeout);
+						  bool *timeout);
 	int (*process_mailbox_events)(struct wl1271 *wl);
 	u32 (*calc_tx_blocks)(struct wl1271 *wl, u32 len, u32 spare_blks);
 	void (*set_tx_desc_blocks)(struct wl1271 *wl,
-				   struct wl1271_tx_hw_descr *desc,
-				   u32 blks, u32 spare_blks);
+							   struct wl1271_tx_hw_descr *desc,
+							   u32 blks, u32 spare_blks);
 	void (*set_tx_desc_data_len)(struct wl1271 *wl,
-				     struct wl1271_tx_hw_descr *desc,
-				     struct sk_buff *skb);
+								 struct wl1271_tx_hw_descr *desc,
+								 struct sk_buff *skb);
 	enum wl_rx_buf_align (*get_rx_buf_align)(struct wl1271 *wl,
-						 u32 rx_desc);
+			u32 rx_desc);
 	int (*prepare_read)(struct wl1271 *wl, u32 rx_desc, u32 len);
 	u32 (*get_rx_packet_len)(struct wl1271 *wl, void *rx_data,
-				 u32 data_len);
+							 u32 data_len);
 	int (*tx_delayed_compl)(struct wl1271 *wl);
 	void (*tx_immediate_compl)(struct wl1271 *wl);
 	int (*hw_init)(struct wl1271 *wl);
 	int (*init_vif)(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 	void (*convert_fw_status)(struct wl1271 *wl, void *raw_fw_status,
-				  struct wl_fw_status *fw_status);
+							  struct wl_fw_status *fw_status);
 	u32 (*sta_get_ap_rate_mask)(struct wl1271 *wl,
-				    struct wl12xx_vif *wlvif);
+								struct wl12xx_vif *wlvif);
 	int (*get_pg_ver)(struct wl1271 *wl, s8 *ver);
 	int (*get_mac)(struct wl1271 *wl);
 	void (*set_tx_desc_csum)(struct wl1271 *wl,
-				 struct wl1271_tx_hw_descr *desc,
-				 struct sk_buff *skb);
+							 struct wl1271_tx_hw_descr *desc,
+							 struct sk_buff *skb);
 	void (*set_rx_csum)(struct wl1271 *wl,
-			    struct wl1271_rx_descriptor *desc,
-			    struct sk_buff *skb);
+						struct wl1271_rx_descriptor *desc,
+						struct sk_buff *skb);
 	u32 (*ap_get_mimo_wide_rate_mask)(struct wl1271 *wl,
-					  struct wl12xx_vif *wlvif);
+									  struct wl12xx_vif *wlvif);
 	int (*debugfs_init)(struct wl1271 *wl, struct dentry *rootdir);
 	int (*handle_static_data)(struct wl1271 *wl,
-				  struct wl1271_static_data *static_data);
+							  struct wl1271_static_data *static_data);
 	int (*scan_start)(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			  struct cfg80211_scan_request *req);
+					  struct cfg80211_scan_request *req);
 	int (*scan_stop)(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 	int (*sched_scan_start)(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-				struct cfg80211_sched_scan_request *req,
-				struct ieee80211_scan_ies *ies);
+							struct cfg80211_sched_scan_request *req,
+							struct ieee80211_scan_ies *ies);
 	void (*sched_scan_stop)(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 	int (*get_spare_blocks)(struct wl1271 *wl, bool is_gem);
 	int (*set_key)(struct wl1271 *wl, enum set_key_cmd cmd,
-		       struct ieee80211_vif *vif,
-		       struct ieee80211_sta *sta,
-		       struct ieee80211_key_conf *key_conf);
+				   struct ieee80211_vif *vif,
+				   struct ieee80211_sta *sta,
+				   struct ieee80211_key_conf *key_conf);
 	int (*channel_switch)(struct wl1271 *wl,
-			      struct wl12xx_vif *wlvif,
-			      struct ieee80211_channel_switch *ch_switch);
+						  struct wl12xx_vif *wlvif,
+						  struct ieee80211_channel_switch *ch_switch);
 	u32 (*pre_pkt_send)(struct wl1271 *wl, u32 buf_offset, u32 last_len);
 	void (*sta_rc_update)(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 	int (*set_peer_cap)(struct wl1271 *wl,
-			    struct ieee80211_sta_ht_cap *ht_cap,
-			    bool allow_ht_operation,
-			    u32 rate_set, u8 hlid);
+						struct ieee80211_sta_ht_cap *ht_cap,
+						bool allow_ht_operation,
+						u32 rate_set, u8 hlid);
 	u32 (*convert_hwaddr)(struct wl1271 *wl, u32 hwaddr);
 	bool (*lnk_high_prio)(struct wl1271 *wl, u8 hlid,
-			      struct wl1271_link *lnk);
+						  struct wl1271_link *lnk);
 	bool (*lnk_low_prio)(struct wl1271 *wl, u8 hlid,
-			     struct wl1271_link *lnk);
+						 struct wl1271_link *lnk);
 	int (*interrupt_notify)(struct wl1271 *wl, bool action);
 	int (*rx_ba_filter)(struct wl1271 *wl, bool action);
 	int (*ap_sleep)(struct wl1271 *wl);
 	int (*smart_config_start)(struct wl1271 *wl, u32 group_bitmap);
 	int (*smart_config_stop)(struct wl1271 *wl);
 	int (*smart_config_set_group_key)(struct wl1271 *wl, u16 group_id,
-					  u8 key_len, u8 *key);
+									  u8 key_len, u8 *key);
 	int (*set_cac)(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-		       bool start);
+				   bool start);
 	int (*dfs_master_restart)(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 };
 
-enum wlcore_partitions {
+enum wlcore_partitions
+{
 	PART_DOWN,
 	PART_WORK,
 	PART_BOOT,
@@ -139,19 +141,22 @@ enum wlcore_partitions {
 	PART_TABLE_LEN,
 };
 
-struct wlcore_partition {
+struct wlcore_partition
+{
 	u32 size;
 	u32 start;
 };
 
-struct wlcore_partition_set {
+struct wlcore_partition_set
+{
 	struct wlcore_partition mem;
 	struct wlcore_partition reg;
 	struct wlcore_partition mem2;
 	struct wlcore_partition mem3;
 };
 
-enum wlcore_registers {
+enum wlcore_registers
+{
 	/* register addresses, used with partition translation */
 	REG_ECPU_CONTROL,
 	REG_INTERRUPT_NO_CLEAR,
@@ -174,7 +179,8 @@ enum wlcore_registers {
 	REG_TABLE_LEN,
 };
 
-struct wl1271_stats {
+struct wl1271_stats
+{
 	void *fw_stats;
 	unsigned long fw_stats_update;
 	size_t fw_stats_len;
@@ -183,7 +189,8 @@ struct wl1271_stats {
 	unsigned int excessive_retries;
 };
 
-struct wl1271 {
+struct wl1271
+{
 	bool initialized;
 	struct ieee80211_hw *hw;
 	bool mac80211_registered;
@@ -237,9 +244,9 @@ struct wl1271 {
 	unsigned long roles_map[BITS_TO_LONGS(WL12XX_MAX_ROLES)];
 	unsigned long roc_map[BITS_TO_LONGS(WL12XX_MAX_ROLES)];
 	unsigned long rate_policies_map[
-			BITS_TO_LONGS(WL12XX_MAX_RATE_POLICIES)];
+		BITS_TO_LONGS(WL12XX_MAX_RATE_POLICIES)];
 	unsigned long klv_templates_map[
-			BITS_TO_LONGS(WLCORE_MAX_KLV_TEMPLATES)];
+		BITS_TO_LONGS(WLCORE_MAX_KLV_TEMPLATES)];
 
 	u8 session_ids[WLCORE_MAX_LINKS];
 
@@ -269,7 +276,7 @@ struct wl1271 {
 	/* Frames scheduled for transmission, not handled yet */
 	int tx_queue_count[NUM_TX_QUEUES];
 	unsigned long queue_stop_reasons[
-				NUM_TX_QUEUES * WLCORE_NUM_MAC_ADDRESSES];
+		NUM_TX_QUEUES * WLCORE_NUM_MAC_ADDRESSES];
 
 	/* Frames received, not handled yet by mac80211 */
 	struct sk_buff_head deferred_rx_queue;
@@ -509,19 +516,19 @@ struct wl1271 {
 int wlcore_probe(struct wl1271 *wl, struct platform_device *pdev);
 int wlcore_remove(struct platform_device *pdev);
 struct ieee80211_hw *wlcore_alloc_hw(size_t priv_size, u32 aggr_buf_size,
-				     u32 mbox_size);
+									 u32 mbox_size);
 int wlcore_free_hw(struct wl1271 *wl);
 int wlcore_set_key(struct wl1271 *wl, enum set_key_cmd cmd,
-		   struct ieee80211_vif *vif,
-		   struct ieee80211_sta *sta,
-		   struct ieee80211_key_conf *key_conf);
+				   struct ieee80211_vif *vif,
+				   struct ieee80211_sta *sta,
+				   struct ieee80211_key_conf *key_conf);
 void wlcore_regdomain_config(struct wl1271 *wl);
 void wlcore_update_inconn_sta(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			      struct wl1271_station *wl_sta, bool in_conn);
+							  struct wl1271_station *wl_sta, bool in_conn);
 
 static inline void
 wlcore_set_ht_cap(struct wl1271 *wl, enum nl80211_band band,
-		  struct ieee80211_sta_ht_cap *ht_cap)
+				  struct ieee80211_sta_ht_cap *ht_cap)
 {
 	memcpy(&wl->ht_cap[band], ht_cap, sizeof(*ht_cap));
 }
@@ -531,10 +538,10 @@ wlcore_set_ht_cap(struct wl1271 *wl, enum nl80211_band band,
 
 static inline void
 wlcore_set_min_fw_ver(struct wl1271 *wl, unsigned int chip,
-		      unsigned int iftype_sr, unsigned int major_sr,
-		      unsigned int subtype_sr, unsigned int minor_sr,
-		      unsigned int iftype_mr, unsigned int major_mr,
-		      unsigned int subtype_mr, unsigned int minor_mr)
+					  unsigned int iftype_sr, unsigned int major_sr,
+					  unsigned int subtype_sr, unsigned int minor_sr,
+					  unsigned int iftype_mr, unsigned int major_mr,
+					  unsigned int subtype_mr, unsigned int minor_mr)
 {
 	wl->min_sr_fw_ver[FW_VER_CHIP] = chip;
 	wl->min_sr_fw_ver[FW_VER_IF_TYPE] = iftype_sr;

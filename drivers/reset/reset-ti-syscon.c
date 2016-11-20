@@ -34,7 +34,8 @@
  * @status_bit: reset status bit in the reset status register
  * @flags: reset flag indicating how the (de)assert and status are handled
  */
-struct ti_syscon_reset_control {
+struct ti_syscon_reset_control
+{
 	unsigned int assert_offset;
 	unsigned int assert_bit;
 	unsigned int deassert_offset;
@@ -51,7 +52,8 @@ struct ti_syscon_reset_control {
  * @controls: array of reset controls
  * @nr_controls: number of controls in control array
  */
-struct ti_syscon_reset_data {
+struct ti_syscon_reset_data
+{
 	struct reset_controller_dev rcdev;
 	struct regmap *regmap;
 	struct ti_syscon_reset_control *controls;
@@ -72,19 +74,23 @@ struct ti_syscon_reset_data {
  * Return: 0 for successful request, else a corresponding error value
  */
 static int ti_syscon_reset_assert(struct reset_controller_dev *rcdev,
-				  unsigned long id)
+								  unsigned long id)
 {
 	struct ti_syscon_reset_data *data = to_ti_syscon_reset_data(rcdev);
 	struct ti_syscon_reset_control *control;
 	unsigned int mask, value;
 
 	if (id >= data->nr_controls)
+	{
 		return -EINVAL;
+	}
 
 	control = &data->controls[id];
 
 	if (control->flags & ASSERT_NONE)
-		return -ENOTSUPP; /* assert not supported for this reset */
+	{
+		return -ENOTSUPP;    /* assert not supported for this reset */
+	}
 
 	mask = BIT(control->assert_bit);
 	value = (control->flags & ASSERT_SET) ? mask : 0x0;
@@ -103,19 +109,23 @@ static int ti_syscon_reset_assert(struct reset_controller_dev *rcdev,
  * Return: 0 for successful request, else a corresponding error value
  */
 static int ti_syscon_reset_deassert(struct reset_controller_dev *rcdev,
-				    unsigned long id)
+									unsigned long id)
 {
 	struct ti_syscon_reset_data *data = to_ti_syscon_reset_data(rcdev);
 	struct ti_syscon_reset_control *control;
 	unsigned int mask, value;
 
 	if (id >= data->nr_controls)
+	{
 		return -EINVAL;
+	}
 
 	control = &data->controls[id];
 
 	if (control->flags & DEASSERT_NONE)
-		return -ENOTSUPP; /* deassert not supported for this reset */
+	{
+		return -ENOTSUPP;    /* deassert not supported for this reset */
+	}
 
 	mask = BIT(control->deassert_bit);
 	value = (control->flags & DEASSERT_SET) ? mask : 0x0;
@@ -135,7 +145,7 @@ static int ti_syscon_reset_deassert(struct reset_controller_dev *rcdev,
  * corresponding error value
  */
 static int ti_syscon_reset_status(struct reset_controller_dev *rcdev,
-				  unsigned long id)
+								  unsigned long id)
 {
 	struct ti_syscon_reset_data *data = to_ti_syscon_reset_data(rcdev);
 	struct ti_syscon_reset_control *control;
@@ -143,22 +153,30 @@ static int ti_syscon_reset_status(struct reset_controller_dev *rcdev,
 	int ret;
 
 	if (id >= data->nr_controls)
+	{
 		return -EINVAL;
+	}
 
 	control = &data->controls[id];
 
 	if (control->flags & STATUS_NONE)
-		return -ENOTSUPP; /* status not supported for this reset */
+	{
+		return -ENOTSUPP;    /* status not supported for this reset */
+	}
 
 	ret = regmap_read(data->regmap, control->status_offset, &reset_state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return (reset_state & BIT(control->status_bit)) &&
-			(control->flags & STATUS_SET);
+		   (control->flags & STATUS_SET);
 }
 
-static struct reset_control_ops ti_syscon_reset_ops = {
+static struct reset_control_ops ti_syscon_reset_ops =
+{
 	.assert		= ti_syscon_reset_assert,
 	.deassert	= ti_syscon_reset_deassert,
 	.status		= ti_syscon_reset_status,
@@ -175,25 +193,37 @@ static int ti_syscon_reset_probe(struct platform_device *pdev)
 	int size, nr_controls, i;
 
 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	regmap = syscon_node_to_regmap(np->parent);
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
 
 	list = of_get_property(np, "ti,reset-bits", &size);
-	if (!list || (size / sizeof(*list)) % 7 != 0) {
+
+	if (!list || (size / sizeof(*list)) % 7 != 0)
+	{
 		dev_err(dev, "invalid DT reset description\n");
 		return -EINVAL;
 	}
 
 	nr_controls = (size / sizeof(*list)) / 7;
 	controls = devm_kzalloc(dev, nr_controls * sizeof(*controls), GFP_KERNEL);
-	if (!controls)
-		return -ENOMEM;
 
-	for (i = 0; i < nr_controls; i++) {
+	if (!controls)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < nr_controls; i++)
+	{
 		controls[i].assert_offset = be32_to_cpup(list++);
 		controls[i].assert_bit = be32_to_cpup(list++);
 		controls[i].deassert_offset = be32_to_cpup(list++);
@@ -216,13 +246,15 @@ static int ti_syscon_reset_probe(struct platform_device *pdev)
 	return devm_reset_controller_register(dev, &data->rcdev);
 }
 
-static const struct of_device_id ti_syscon_reset_of_match[] = {
+static const struct of_device_id ti_syscon_reset_of_match[] =
+{
 	{ .compatible = "ti,syscon-reset", },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, ti_syscon_reset_of_match);
 
-static struct platform_driver ti_syscon_reset_driver = {
+static struct platform_driver ti_syscon_reset_driver =
+{
 	.probe = ti_syscon_reset_probe,
 	.driver = {
 		.name = "ti-syscon-reset",

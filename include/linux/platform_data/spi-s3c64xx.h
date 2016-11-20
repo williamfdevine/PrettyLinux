@@ -24,7 +24,8 @@ struct platform_device;
  * Allocate and initialize one in machine init code and make the
  * spi_board_info.controller_data point to it.
  */
-struct s3c64xx_spi_csinfo {
+struct s3c64xx_spi_csinfo
+{
 	u8 fb_delay;
 	unsigned line;
 };
@@ -35,7 +36,8 @@ struct s3c64xx_spi_csinfo {
  * @num_cs: Number of CS this controller emulates.
  * @cfg_gpio: Configure pins for this SPI controller.
  */
-struct s3c64xx_spi_info {
+struct s3c64xx_spi_info
+{
 	int src_clk_nr;
 	int num_cs;
 	bool no_cs;
@@ -56,11 +58,11 @@ struct s3c64xx_spi_info {
  * has some chips attached to it.
  */
 extern void s3c64xx_spi0_set_platdata(int (*cfg_gpio)(void), int src_clk_nr,
-						int num_cs);
+									  int num_cs);
 extern void s3c64xx_spi1_set_platdata(int (*cfg_gpio)(void), int src_clk_nr,
-						int num_cs);
+									  int num_cs);
 extern void s3c64xx_spi2_set_platdata(int (*cfg_gpio)(void), int src_clk_nr,
-						int num_cs);
+									  int num_cs);
 
 /* defined by architecture to configure gpio */
 extern int s3c64xx_spi0_cfg_gpio(void);

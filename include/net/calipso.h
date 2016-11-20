@@ -53,7 +53,8 @@
  */
 
 /* DOI definition struct */
-struct calipso_doi {
+struct calipso_doi
+{
 	u32 doi;
 	u32 type;
 
@@ -82,7 +83,7 @@ static inline void calipso_exit(void)
 {
 }
 static inline bool calipso_validate(const struct sk_buff *skb,
-				    const unsigned char *option)
+									const unsigned char *option)
 {
 	return true;
 }

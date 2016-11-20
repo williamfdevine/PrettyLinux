@@ -46,16 +46,17 @@
  * @svn software version number of the IMEI
  * @debugfs a debugfs file used when dumping to file
  */
-struct ab3100_otp {
+struct ab3100_otp
+{
 	struct device *dev;
 	bool locked;
 	u32 freq;
 	bool paf;
 	bool imeich;
-	u16 cid:14;
-	u32 tac:20;
+	u16 cid: 14;
+	u32 tac: 20;
 	u8 fac;
-	u32 svn:20;
+	u32 svn: 20;
 	struct dentry *debugfs;
 };
 
@@ -66,15 +67,19 @@ static int __init ab3100_otp_read(struct ab3100_otp *otp)
 	int err;
 
 	err = abx500_get_register_interruptible(otp->dev, 0,
-		AB3100_OTPP, &otpp);
-	if (err) {
+											AB3100_OTPP, &otpp);
+
+	if (err)
+	{
 		dev_err(otp->dev, "unable to read OTPP register\n");
 		return err;
 	}
 
 	err = abx500_get_register_page_interruptible(otp->dev, 0,
-		AB3100_OTP0, otpval, 8);
-	if (err) {
+			AB3100_OTP0, otpval, 8);
+
+	if (err)
+	{
 		dev_err(otp->dev, "unable to read OTP register page\n");
 		return err;
 	}
@@ -104,7 +109,7 @@ static int ab3100_show_otp(struct seq_file *s, void *v)
 	seq_printf(s, "OTP clock switch startup is %uHz\n", otp->freq);
 	seq_printf(s, "PAF is %s\n", otp->paf ? "SET" : "NOT SET");
 	seq_printf(s, "IMEI is %s\n", otp->imeich ?
-		   "CHANGEABLE" : "NOT CHANGEABLE");
+			   "CHANGEABLE" : "NOT CHANGEABLE");
 	seq_printf(s, "CID: 0x%04x (decimal: %d)\n", otp->cid, otp->cid);
 	seq_printf(s, "IMEI: %u-%u-%u\n", otp->tac, otp->fac, otp->svn);
 	return 0;
@@ -115,7 +120,8 @@ static int ab3100_otp_open(struct inode *inode, struct file *file)
 	return single_open(file, ab3100_show_otp, inode->i_private);
 }
 
-static const struct file_operations ab3100_otp_operations = {
+static const struct file_operations ab3100_otp_operations =
+{
 	.open		= ab3100_otp_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -123,15 +129,18 @@ static const struct file_operations ab3100_otp_operations = {
 };
 
 static int __init ab3100_otp_init_debugfs(struct device *dev,
-					  struct ab3100_otp *otp)
+		struct ab3100_otp *otp)
 {
 	otp->debugfs = debugfs_create_file("ab3100_otp", S_IFREG | S_IRUGO,
-					   NULL, otp,
-					   &ab3100_otp_operations);
-	if (!otp->debugfs) {
+									   NULL, otp,
+									   &ab3100_otp_operations);
+
+	if (!otp->debugfs)
+	{
 		dev_err(dev, "AB3100 debugfs OTP file registration failed!\n");
 		return -ENOENT;
 	}
+
 	return 0;
 }
 
@@ -142,7 +151,7 @@ static void __exit ab3100_otp_exit_debugfs(struct ab3100_otp *otp)
 #else
 /* Compile this out if debugfs not selected */
 static inline int __init ab3100_otp_init_debugfs(struct device *dev,
-						 struct ab3100_otp *otp)
+		struct ab3100_otp *otp)
 {
 	return 0;
 }
@@ -153,13 +162,13 @@ static inline void __exit ab3100_otp_exit_debugfs(struct ab3100_otp *otp)
 #endif
 
 #define SHOW_AB3100_ATTR(name) \
-static ssize_t ab3100_otp_##name##_show(struct device *dev, \
-			       struct device_attribute *attr, \
-			       char *buf) \
-{\
-	struct ab3100_otp *otp = dev_get_drvdata(dev); \
-	return sprintf(buf, "%u\n", otp->name); \
-}
+	static ssize_t ab3100_otp_##name##_show(struct device *dev, \
+											struct device_attribute *attr, \
+											char *buf) \
+	{\
+		struct ab3100_otp *otp = dev_get_drvdata(dev); \
+		return sprintf(buf, "%u\n", otp->name); \
+	}
 
 SHOW_AB3100_ATTR(locked)
 SHOW_AB3100_ATTR(freq)
@@ -170,7 +179,8 @@ SHOW_AB3100_ATTR(fac)
 SHOW_AB3100_ATTR(tac)
 SHOW_AB3100_ATTR(svn)
 
-static struct device_attribute ab3100_otp_attrs[] = {
+static struct device_attribute ab3100_otp_attrs[] =
+{
 	__ATTR(locked, S_IRUGO, ab3100_otp_locked_show, NULL),
 	__ATTR(freq, S_IRUGO, ab3100_otp_freq_show, NULL),
 	__ATTR(paf, S_IRUGO, ab3100_otp_paf_show, NULL),
@@ -188,8 +198,11 @@ static int __init ab3100_otp_probe(struct platform_device *pdev)
 	int i;
 
 	otp = devm_kzalloc(&pdev->dev, sizeof(struct ab3100_otp), GFP_KERNEL);
+
 	if (!otp)
+	{
 		return -ENOMEM;
+	}
 
 	otp->dev = &pdev->dev;
 
@@ -197,29 +210,43 @@ static int __init ab3100_otp_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, otp);
 
 	err = ab3100_otp_read(otp);
+
 	if (err)
+	{
 		return err;
+	}
 
 	dev_info(&pdev->dev, "AB3100 OTP readout registered\n");
 
 	/* sysfs entries */
-	for (i = 0; i < ARRAY_SIZE(ab3100_otp_attrs); i++) {
+	for (i = 0; i < ARRAY_SIZE(ab3100_otp_attrs); i++)
+	{
 		err = device_create_file(&pdev->dev,
-					 &ab3100_otp_attrs[i]);
+								 &ab3100_otp_attrs[i]);
+
 		if (err)
+		{
 			goto err;
+		}
 	}
 
 	/* debugfs entries */
 	err = ab3100_otp_init_debugfs(&pdev->dev, otp);
+
 	if (err)
+	{
 		goto err;
+	}
 
 	return 0;
 
 err:
+
 	while (--i >= 0)
+	{
 		device_remove_file(&pdev->dev, &ab3100_otp_attrs[i]);
+	}
+
 	return err;
 }
 
@@ -230,12 +257,14 @@ static int __exit ab3100_otp_remove(struct platform_device *pdev)
 
 	for (i = 0; i < ARRAY_SIZE(ab3100_otp_attrs); i++)
 		device_remove_file(&pdev->dev,
-				   &ab3100_otp_attrs[i]);
+						   &ab3100_otp_attrs[i]);
+
 	ab3100_otp_exit_debugfs(otp);
 	return 0;
 }
 
-static struct platform_driver ab3100_otp_driver = {
+static struct platform_driver ab3100_otp_driver =
+{
 	.driver = {
 		.name = "ab3100-otp",
 	},

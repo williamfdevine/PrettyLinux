@@ -80,10 +80,15 @@ static int cs5535_cable_detect(struct ata_port *ap)
 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
 
 	pci_read_config_byte(pdev, CS5535_CABLE_DETECT, &cable);
+
 	if (cable & 1)
+	{
 		return ATA_CBL_PATA80;
+	}
 	else
+	{
 		return ATA_CBL_PATA40;
+	}
 }
 
 /**
@@ -96,10 +101,12 @@ static int cs5535_cable_detect(struct ata_port *ap)
 
 static void cs5535_set_piomode(struct ata_port *ap, struct ata_device *adev)
 {
-	static const u16 pio_timings[5] = {
+	static const u16 pio_timings[5] =
+	{
 		0xF7F4, 0xF173, 0x8141, 0x5131, 0x1131
 	};
-	static const u16 pio_cmd_timings[5] = {
+	static const u16 pio_cmd_timings[5] =
+	{
 		0xF7F4, 0x53F3, 0x13F1, 0x5131, 0x1131
 	};
 	u32 reg, dummy;
@@ -109,17 +116,20 @@ static void cs5535_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	int cmdmode = mode;
 
 	/* Command timing has to be for the lowest of the pair of devices */
-	if (pair) {
+	if (pair)
+	{
 		int pairmode = pair->pio_mode - XFER_PIO_0;
 		cmdmode = min(mode, pairmode);
+
 		/* Write the other drive timing register if it changed */
 		if (cmdmode < pairmode)
 			wrmsr(ATAC_CH0D0_PIO + 2 * pair->devno,
-				pio_cmd_timings[cmdmode] << 16 | pio_timings[pairmode], 0);
+				  pio_cmd_timings[cmdmode] << 16 | pio_timings[pairmode], 0);
 	}
+
 	/* Write the drive timing register */
 	wrmsr(ATAC_CH0D0_PIO + 2 * adev->devno,
-		pio_cmd_timings[cmdmode] << 16 | pio_timings[mode], 0);
+		  pio_cmd_timings[cmdmode] << 16 | pio_timings[mode], 0);
 
 	/* Set the PIO "format 1" bit in the DMA timing register */
 	rdmsr(ATAC_CH0D0_DMA + 2 * adev->devno, reg, dummy);
@@ -135,10 +145,12 @@ static void cs5535_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 static void cs5535_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 {
-	static const u32 udma_timings[5] = {
+	static const u32 udma_timings[5] =
+	{
 		0x7F7436A1, 0x7F733481, 0x7F723261, 0x7F713161, 0x7F703061
 	};
-	static const u32 mwdma_timings[3] = {
+	static const u32 mwdma_timings[3] =
+	{
 		0x7F0FFFF3, 0x7F035352, 0x7F024241
 	};
 	u32 reg, dummy;
@@ -146,18 +158,26 @@ static void cs5535_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 
 	rdmsr(ATAC_CH0D0_DMA + 2 * adev->devno, reg, dummy);
 	reg &= 0x80000000UL;
+
 	if (mode >= XFER_UDMA_0)
+	{
 		reg |= udma_timings[mode - XFER_UDMA_0];
+	}
 	else
+	{
 		reg |= mwdma_timings[mode - XFER_MW_DMA_0];
+	}
+
 	wrmsr(ATAC_CH0D0_DMA + 2 * adev->devno, reg, 0);
 }
 
-static struct scsi_host_template cs5535_sht = {
+static struct scsi_host_template cs5535_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations cs5535_port_ops = {
+static struct ata_port_operations cs5535_port_ops =
+{
 	.inherits	= &ata_bmdma_port_ops,
 	.cable_detect	= cs5535_cable_detect,
 	.set_piomode	= cs5535_set_piomode,
@@ -176,7 +196,8 @@ static struct ata_port_operations cs5535_port_ops = {
 
 static int cs5535_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags = ATA_FLAG_SLAVE_POSS,
 		.pio_mask = ATA_PIO4,
 		.mwdma_mask = ATA_MWDMA2,
@@ -188,14 +209,16 @@ static int cs5535_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	return ata_pci_bmdma_init_one(dev, ppi, &cs5535_sht, NULL, 0);
 }
 
-static const struct pci_device_id cs5535[] = {
+static const struct pci_device_id cs5535[] =
+{
 	{ PCI_VDEVICE(NS, PCI_DEVICE_ID_NS_CS5535_IDE), },
 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CS5535_IDE), },
 
 	{ },
 };
 
-static struct pci_driver cs5535_pci_driver = {
+static struct pci_driver cs5535_pci_driver =
+{
 	.name		= DRV_NAME,
 	.id_table	= cs5535,
 	.probe 		= cs5535_init_one,

@@ -6,7 +6,7 @@
 #include <linux/migrate_mode.h>
 
 typedef struct page *new_page_t(struct page *page, unsigned long private,
-				int **reason);
+								int **reason);
 typedef void free_page_t(struct page *page, unsigned long private);
 
 /*
@@ -16,7 +16,8 @@ typedef void free_page_t(struct page *page, unsigned long private);
  */
 #define MIGRATEPAGE_SUCCESS		0
 
-enum migrate_reason {
+enum migrate_reason
+{
 	MR_COMPACTION,
 	MR_MEMORY_FAILURE,
 	MR_MEMORY_HOTPLUG,
@@ -34,9 +35,9 @@ extern char *migrate_reason_names[MR_TYPES];
 
 extern void putback_movable_pages(struct list_head *l);
 extern int migrate_page(struct address_space *,
-			struct page *, struct page *, enum migrate_mode);
+						struct page *, struct page *, enum migrate_mode);
 extern int migrate_pages(struct list_head *l, new_page_t new, free_page_t free,
-		unsigned long private, enum migrate_mode mode, int reason);
+						 unsigned long private, enum migrate_mode mode, int reason);
 extern bool isolate_movable_page(struct page *page, isolate_mode_t mode);
 extern void putback_movable_page(struct page *page);
 
@@ -44,27 +45,27 @@ extern int migrate_prep(void);
 extern int migrate_prep_local(void);
 extern void migrate_page_copy(struct page *newpage, struct page *page);
 extern int migrate_huge_page_move_mapping(struct address_space *mapping,
-				  struct page *newpage, struct page *page);
+		struct page *newpage, struct page *page);
 extern int migrate_page_move_mapping(struct address_space *mapping,
-		struct page *newpage, struct page *page,
-		struct buffer_head *head, enum migrate_mode mode,
-		int extra_count);
+									 struct page *newpage, struct page *page,
+									 struct buffer_head *head, enum migrate_mode mode,
+									 int extra_count);
 #else
 
 static inline void putback_movable_pages(struct list_head *l) {}
 static inline int migrate_pages(struct list_head *l, new_page_t new,
-		free_page_t free, unsigned long private, enum migrate_mode mode,
-		int reason)
-	{ return -ENOSYS; }
+								free_page_t free, unsigned long private, enum migrate_mode mode,
+								int reason)
+{ return -ENOSYS; }
 
 static inline int migrate_prep(void) { return -ENOSYS; }
 static inline int migrate_prep_local(void) { return -ENOSYS; }
 
 static inline void migrate_page_copy(struct page *newpage,
-				     struct page *page) {}
+									 struct page *page) {}
 
 static inline int migrate_huge_page_move_mapping(struct address_space *mapping,
-				  struct page *newpage, struct page *page)
+		struct page *newpage, struct page *page)
 {
 	return -ENOSYS;
 }
@@ -78,7 +79,7 @@ extern void __ClearPageMovable(struct page *page);
 #else
 static inline int PageMovable(struct page *page) { return 0; };
 static inline void __SetPageMovable(struct page *page,
-				struct address_space *mapping)
+									struct address_space *mapping)
 {
 }
 static inline void __ClearPageMovable(struct page *page)
@@ -89,14 +90,14 @@ static inline void __ClearPageMovable(struct page *page)
 #ifdef CONFIG_NUMA_BALANCING
 extern bool pmd_trans_migrating(pmd_t pmd);
 extern int migrate_misplaced_page(struct page *page,
-				  struct vm_area_struct *vma, int node);
+								  struct vm_area_struct *vma, int node);
 #else
 static inline bool pmd_trans_migrating(pmd_t pmd)
 {
 	return false;
 }
 static inline int migrate_misplaced_page(struct page *page,
-					 struct vm_area_struct *vma, int node)
+		struct vm_area_struct *vma, int node)
 {
 	return -EAGAIN; /* can't migrate now */
 }
@@ -104,16 +105,16 @@ static inline int migrate_misplaced_page(struct page *page,
 
 #if defined(CONFIG_NUMA_BALANCING) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
 extern int migrate_misplaced_transhuge_page(struct mm_struct *mm,
-			struct vm_area_struct *vma,
-			pmd_t *pmd, pmd_t entry,
-			unsigned long address,
-			struct page *page, int node);
+		struct vm_area_struct *vma,
+		pmd_t *pmd, pmd_t entry,
+		unsigned long address,
+		struct page *page, int node);
 #else
 static inline int migrate_misplaced_transhuge_page(struct mm_struct *mm,
-			struct vm_area_struct *vma,
-			pmd_t *pmd, pmd_t entry,
-			unsigned long address,
-			struct page *page, int node)
+		struct vm_area_struct *vma,
+		pmd_t *pmd, pmd_t entry,
+		unsigned long address,
+		struct page *page, int node)
 {
 	return -EAGAIN;
 }

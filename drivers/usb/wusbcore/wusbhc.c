@@ -55,8 +55,8 @@ static struct wusbhc *usbhc_dev_to_wusbhc(struct device *dev)
  * value of trust_timeout is jiffies.
  */
 static ssize_t wusb_trust_timeout_show(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
+									   struct device_attribute *attr,
+									   char *buf)
 {
 	struct wusbhc *wusbhc = usbhc_dev_to_wusbhc(dev);
 
@@ -64,43 +64,50 @@ static ssize_t wusb_trust_timeout_show(struct device *dev,
 }
 
 static ssize_t wusb_trust_timeout_store(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t size)
+										struct device_attribute *attr,
+										const char *buf, size_t size)
 {
 	struct wusbhc *wusbhc = usbhc_dev_to_wusbhc(dev);
 	ssize_t result = -ENOSYS;
 	unsigned trust_timeout;
 
 	result = sscanf(buf, "%u", &trust_timeout);
-	if (result != 1) {
+
+	if (result != 1)
+	{
 		result = -EINVAL;
 		goto out;
 	}
+
 	wusbhc->trust_timeout = min_t(unsigned, trust_timeout, 500);
 	cancel_delayed_work(&wusbhc->keep_alive_timer);
 	flush_workqueue(wusbd);
 	queue_delayed_work(wusbd, &wusbhc->keep_alive_timer,
-			   msecs_to_jiffies(wusbhc->trust_timeout / 2));
+					   msecs_to_jiffies(wusbhc->trust_timeout / 2));
 out:
 	return result < 0 ? result : size;
 }
 static DEVICE_ATTR(wusb_trust_timeout, 0644, wusb_trust_timeout_show,
-					     wusb_trust_timeout_store);
+				   wusb_trust_timeout_store);
 
 /*
  * Show the current WUSB CHID.
  */
 static ssize_t wusb_chid_show(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct wusbhc *wusbhc = usbhc_dev_to_wusbhc(dev);
 	const struct wusb_ckhdid *chid;
 	ssize_t result = 0;
 
 	if (wusbhc->wuie_host_info != NULL)
+	{
 		chid = &wusbhc->wuie_host_info->CHID;
+	}
 	else
+	{
 		chid = &wusb_ckhdid_zero;
+	}
 
 	result += ckhdid_printf(buf, PAGE_SIZE, chid);
 	result += sprintf(buf + result, "\n");
@@ -117,31 +124,34 @@ static ssize_t wusb_chid_show(struct device *dev,
  * See wusbhc_chid_set() for more info.
  */
 static ssize_t wusb_chid_store(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf, size_t size)
+							   struct device_attribute *attr,
+							   const char *buf, size_t size)
 {
 	struct wusbhc *wusbhc = usbhc_dev_to_wusbhc(dev);
 	struct wusb_ckhdid chid;
 	ssize_t result;
 
 	result = sscanf(buf,
-			"%02hhx %02hhx %02hhx %02hhx "
-			"%02hhx %02hhx %02hhx %02hhx "
-			"%02hhx %02hhx %02hhx %02hhx "
-			"%02hhx %02hhx %02hhx %02hhx\n",
-			&chid.data[0] , &chid.data[1] ,
-			&chid.data[2] , &chid.data[3] ,
-			&chid.data[4] , &chid.data[5] ,
-			&chid.data[6] , &chid.data[7] ,
-			&chid.data[8] , &chid.data[9] ,
-			&chid.data[10], &chid.data[11],
-			&chid.data[12], &chid.data[13],
-			&chid.data[14], &chid.data[15]);
-	if (result != 16) {
+					"%02hhx %02hhx %02hhx %02hhx "
+					"%02hhx %02hhx %02hhx %02hhx "
+					"%02hhx %02hhx %02hhx %02hhx "
+					"%02hhx %02hhx %02hhx %02hhx\n",
+					&chid.data[0] , &chid.data[1] ,
+					&chid.data[2] , &chid.data[3] ,
+					&chid.data[4] , &chid.data[5] ,
+					&chid.data[6] , &chid.data[7] ,
+					&chid.data[8] , &chid.data[9] ,
+					&chid.data[10], &chid.data[11],
+					&chid.data[12], &chid.data[13],
+					&chid.data[14], &chid.data[15]);
+
+	if (result != 16)
+	{
 		dev_err(dev, "Unrecognized CHID (need 16 8-bit hex digits): "
-			"%d\n", (int)result);
+				"%d\n", (int)result);
 		return -EINVAL;
 	}
+
 	result = wusbhc_chid_set(wusbhc, &chid);
 	return result < 0 ? result : size;
 }
@@ -149,8 +159,8 @@ static DEVICE_ATTR(wusb_chid, 0644, wusb_chid_show, wusb_chid_store);
 
 
 static ssize_t wusb_phy_rate_show(struct device *dev,
-				  struct device_attribute *attr,
-				  char *buf)
+								  struct device_attribute *attr,
+								  char *buf)
 {
 	struct wusbhc *wusbhc = usbhc_dev_to_wusbhc(dev);
 
@@ -158,38 +168,44 @@ static ssize_t wusb_phy_rate_show(struct device *dev,
 }
 
 static ssize_t wusb_phy_rate_store(struct device *dev,
-				   struct device_attribute *attr,
-				   const char *buf, size_t size)
+								   struct device_attribute *attr,
+								   const char *buf, size_t size)
 {
 	struct wusbhc *wusbhc = usbhc_dev_to_wusbhc(dev);
 	uint8_t phy_rate;
 	ssize_t result;
 
 	result = sscanf(buf, "%hhu", &phy_rate);
+
 	if (result != 1)
+	{
 		return -EINVAL;
+	}
+
 	if (phy_rate >= UWB_PHY_RATE_INVALID)
+	{
 		return -EINVAL;
+	}
 
 	wusbhc->phy_rate = phy_rate;
 	return size;
 }
 static DEVICE_ATTR(wusb_phy_rate, 0644, wusb_phy_rate_show,
-			wusb_phy_rate_store);
+				   wusb_phy_rate_store);
 
 static ssize_t wusb_dnts_show(struct device *dev,
-				  struct device_attribute *attr,
-				  char *buf)
+							  struct device_attribute *attr,
+							  char *buf)
 {
 	struct wusbhc *wusbhc = usbhc_dev_to_wusbhc(dev);
 
 	return sprintf(buf, "num slots: %d\ninterval: %dms\n",
-			wusbhc->dnts_num_slots, wusbhc->dnts_interval);
+				   wusbhc->dnts_num_slots, wusbhc->dnts_interval);
 }
 
 static ssize_t wusb_dnts_store(struct device *dev,
-				   struct device_attribute *attr,
-				   const char *buf, size_t size)
+							   struct device_attribute *attr,
+							   const char *buf, size_t size)
 {
 	struct wusbhc *wusbhc = usbhc_dev_to_wusbhc(dev);
 	uint8_t num_slots, interval;
@@ -198,7 +214,9 @@ static ssize_t wusb_dnts_store(struct device *dev,
 	result = sscanf(buf, "%hhu %hhu", &num_slots, &interval);
 
 	if (result != 2)
+	{
 		return -EINVAL;
+	}
 
 	wusbhc->dnts_num_slots = num_slots;
 	wusbhc->dnts_interval = interval;
@@ -208,8 +226,8 @@ static ssize_t wusb_dnts_store(struct device *dev,
 static DEVICE_ATTR(wusb_dnts, 0644, wusb_dnts_show, wusb_dnts_store);
 
 static ssize_t wusb_retry_count_show(struct device *dev,
-				  struct device_attribute *attr,
-				  char *buf)
+									 struct device_attribute *attr,
+									 char *buf)
 {
 	struct wusbhc *wusbhc = usbhc_dev_to_wusbhc(dev);
 
@@ -217,8 +235,8 @@ static ssize_t wusb_retry_count_show(struct device *dev,
 }
 
 static ssize_t wusb_retry_count_store(struct device *dev,
-				   struct device_attribute *attr,
-				   const char *buf, size_t size)
+									  struct device_attribute *attr,
+									  const char *buf, size_t size)
 {
 	struct wusbhc *wusbhc = usbhc_dev_to_wusbhc(dev);
 	uint8_t retry_count;
@@ -227,27 +245,31 @@ static ssize_t wusb_retry_count_store(struct device *dev,
 	result = sscanf(buf, "%hhu", &retry_count);
 
 	if (result != 1)
+	{
 		return -EINVAL;
+	}
 
 	wusbhc->retry_count = max_t(uint8_t, retry_count,
-					WUSB_RETRY_COUNT_MAX);
+								WUSB_RETRY_COUNT_MAX);
 
 	return size;
 }
 static DEVICE_ATTR(wusb_retry_count, 0644, wusb_retry_count_show,
-	wusb_retry_count_store);
+				   wusb_retry_count_store);
 
 /* Group all the WUSBHC attributes */
-static struct attribute *wusbhc_attrs[] = {
-		&dev_attr_wusb_trust_timeout.attr,
-		&dev_attr_wusb_chid.attr,
-		&dev_attr_wusb_phy_rate.attr,
-		&dev_attr_wusb_dnts.attr,
-		&dev_attr_wusb_retry_count.attr,
-		NULL,
+static struct attribute *wusbhc_attrs[] =
+{
+	&dev_attr_wusb_trust_timeout.attr,
+	&dev_attr_wusb_chid.attr,
+	&dev_attr_wusb_phy_rate.attr,
+	&dev_attr_wusb_dnts.attr,
+	&dev_attr_wusb_retry_count.attr,
+	NULL,
 };
 
-static struct attribute_group wusbhc_attr_group = {
+static struct attribute_group wusbhc_attr_group =
+{
 	.name = NULL,	/* we want them in the same directory */
 	.attrs = wusbhc_attrs,
 };
@@ -278,17 +300,33 @@ int wusbhc_create(struct wusbhc *wusbhc)
 
 	mutex_init(&wusbhc->mutex);
 	result = wusbhc_mmcie_create(wusbhc);
+
 	if (result < 0)
+	{
 		goto error_mmcie_create;
+	}
+
 	result = wusbhc_devconnect_create(wusbhc);
+
 	if (result < 0)
+	{
 		goto error_devconnect_create;
+	}
+
 	result = wusbhc_rh_create(wusbhc);
+
 	if (result < 0)
+	{
 		goto error_rh_create;
+	}
+
 	result = wusbhc_sec_create(wusbhc);
+
 	if (result < 0)
+	{
 		goto error_sec_create;
+	}
+
 	return 0;
 
 error_sec_create:
@@ -323,9 +361,11 @@ int wusbhc_b_create(struct wusbhc *wusbhc)
 	struct device *dev = wusbhc->usb_hcd.self.controller;
 
 	result = sysfs_create_group(wusbhc_kobj(wusbhc), &wusbhc_attr_group);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		dev_err(dev, "Cannot register WUSBHC attributes: %d\n",
-			result);
+				result);
 		goto error_create_attr_group;
 	}
 
@@ -382,10 +422,13 @@ u8 wusb_cluster_id_get(void)
 	u8 id;
 	spin_lock(&wusb_cluster_ids_lock);
 	id = find_first_zero_bit(wusb_cluster_id_table, CLUSTER_IDS);
-	if (id >= CLUSTER_IDS) {
+
+	if (id >= CLUSTER_IDS)
+	{
 		id = 0;
 		goto out;
 	}
+
 	set_bit(id, wusb_cluster_id_table);
 	id = (u8) 0xff - id;
 out:
@@ -430,17 +473,22 @@ EXPORT_SYMBOL_GPL(wusb_cluster_id_put);
 void wusbhc_giveback_urb(struct wusbhc *wusbhc, struct urb *urb, int status)
 {
 	struct wusb_dev *wusb_dev = __wusb_dev_get_by_usb_dev(wusbhc,
-					urb->dev);
+								urb->dev);
 
-	if (status == 0 && wusb_dev) {
+	if (status == 0 && wusb_dev)
+	{
 		wusb_dev->entry_ts = jiffies;
 
 		/* wusbhc_devconnect_acked() can't be called from
 		   atomic context so defer it to a work queue. */
 		if (!list_empty(&wusb_dev->cack_node))
+		{
 			queue_work(wusbd, &wusb_dev->devconnect_acked_work);
+		}
 		else
+		{
 			wusb_dev_put(wusb_dev);
+		}
 	}
 
 	usb_hcd_giveback_urb(&wusbhc->usb_hcd, urb, status);
@@ -457,11 +505,14 @@ EXPORT_SYMBOL_GPL(wusbhc_giveback_urb);
 void wusbhc_reset_all(struct wusbhc *wusbhc)
 {
 	if (wusbhc->uwb_rc)
+	{
 		uwb_rc_reset_all(wusbhc->uwb_rc);
+	}
 }
 EXPORT_SYMBOL_GPL(wusbhc_reset_all);
 
-static struct notifier_block wusb_usb_notifier = {
+static struct notifier_block wusb_usb_notifier =
+{
 	.notifier_call = wusb_usb_ncb,
 	.priority = INT_MAX	/* Need to be called first of all */
 };
@@ -470,15 +521,22 @@ static int __init wusbcore_init(void)
 {
 	int result;
 	result = wusb_crypto_init();
+
 	if (result < 0)
+	{
 		goto error_crypto_init;
+	}
+
 	/* WQ is singlethread because we need to serialize notifications */
 	wusbd = create_singlethread_workqueue("wusbd");
-	if (wusbd == NULL) {
+
+	if (wusbd == NULL)
+	{
 		result = -ENOMEM;
 		printk(KERN_ERR "WUSB-core: Cannot create wusbd workqueue\n");
 		goto error_wusbd_create;
 	}
+
 	usb_register_notify(&wusb_usb_notifier);
 	bitmap_zero(wusb_cluster_id_table, CLUSTER_IDS);
 	set_bit(0, wusb_cluster_id_table);	/* reserve Cluster ID 0xff */
@@ -495,11 +553,14 @@ module_init(wusbcore_init);
 static void __exit wusbcore_exit(void)
 {
 	clear_bit(0, wusb_cluster_id_table);
-	if (!bitmap_empty(wusb_cluster_id_table, CLUSTER_IDS)) {
+
+	if (!bitmap_empty(wusb_cluster_id_table, CLUSTER_IDS))
+	{
 		printk(KERN_ERR "BUG: WUSB Cluster IDs not released on exit: %*pb\n",
-		       CLUSTER_IDS, wusb_cluster_id_table);
+			   CLUSTER_IDS, wusb_cluster_id_table);
 		WARN_ON(1);
 	}
+
 	usb_unregister_notify(&wusb_usb_notifier);
 	destroy_workqueue(wusbd);
 	wusb_crypto_exit();

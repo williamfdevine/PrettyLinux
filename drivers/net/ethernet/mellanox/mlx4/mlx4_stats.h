@@ -2,15 +2,16 @@
 #define _MLX4_STATS_
 
 #ifdef MLX4_EN_PERF_STAT
-#define NUM_PERF_STATS			NUM_PERF_COUNTERS
+	#define NUM_PERF_STATS			NUM_PERF_COUNTERS
 #else
-#define NUM_PERF_STATS			0
+	#define NUM_PERF_STATS			0
 #endif
 
 #define NUM_PRIORITIES	9
 #define NUM_PRIORITY_STATS 2
 
-struct mlx4_en_pkt_stats {
+struct mlx4_en_pkt_stats
+{
 	unsigned long rx_multicast_packets;
 	unsigned long rx_broadcast_packets;
 	unsigned long rx_jabbers;
@@ -23,7 +24,8 @@ struct mlx4_en_pkt_stats {
 #define NUM_PKT_STATS		43
 };
 
-struct mlx4_en_counter_stats {
+struct mlx4_en_counter_stats
+{
 	unsigned long rx_packets;
 	unsigned long rx_bytes;
 	unsigned long tx_packets;
@@ -31,7 +33,8 @@ struct mlx4_en_counter_stats {
 #define NUM_PF_STATS      4
 };
 
-struct mlx4_en_port_stats {
+struct mlx4_en_port_stats
+{
 	unsigned long tso_packets;
 	unsigned long xmit_more;
 	unsigned long queue_stopped;
@@ -45,7 +48,8 @@ struct mlx4_en_port_stats {
 #define NUM_PORT_STATS		10
 };
 
-struct mlx4_en_perf_stats {
+struct mlx4_en_perf_stats
+{
 	u32 tx_poll;
 	u64 tx_pktsz_avg;
 	u32 inflight_avg;
@@ -59,29 +63,32 @@ struct mlx4_en_perf_stats {
 
 #define MLX4_NUM_PRIORITIES	8
 
-struct mlx4_en_flow_stats_rx {
+struct mlx4_en_flow_stats_rx
+{
 	u64 rx_pause;
 	u64 rx_pause_duration;
 	u64 rx_pause_transition;
 #define NUM_FLOW_STATS_RX	3
 #define NUM_FLOW_PRIORITY_STATS_RX	(NUM_FLOW_STATS_RX * \
-					 MLX4_NUM_PRIORITIES)
+									 MLX4_NUM_PRIORITIES)
 };
 
-struct mlx4_en_flow_stats_tx {
+struct mlx4_en_flow_stats_tx
+{
 	u64 tx_pause;
 	u64 tx_pause_duration;
 	u64 tx_pause_transition;
 #define NUM_FLOW_STATS_TX	3
 #define NUM_FLOW_PRIORITY_STATS_TX	(NUM_FLOW_STATS_TX * \
-					 MLX4_NUM_PRIORITIES)
+									 MLX4_NUM_PRIORITIES)
 };
 
 #define NUM_FLOW_STATS (NUM_FLOW_STATS_RX + NUM_FLOW_STATS_TX + \
-			NUM_FLOW_PRIORITY_STATS_TX + \
-			NUM_FLOW_PRIORITY_STATS_RX)
+						NUM_FLOW_PRIORITY_STATS_TX + \
+						NUM_FLOW_PRIORITY_STATS_RX)
 
-struct mlx4_en_stat_out_flow_control_mbox {
+struct mlx4_en_stat_out_flow_control_mbox
+{
 	/* Total number of PAUSE frames received from the far-end port */
 	__be64 rx_pause;
 	/* Total number of microseconds that far-end port requested to pause
@@ -102,14 +109,15 @@ struct mlx4_en_stat_out_flow_control_mbox {
 	__be64 reserved[2];
 };
 
-enum {
+enum
+{
 	MLX4_DUMP_ETH_STATS_FLOW_CONTROL = 1 << 12
 };
 
 #define NUM_ALL_STATS	(NUM_MAIN_STATS + NUM_PORT_STATS + NUM_PKT_STATS + \
-			 NUM_FLOW_STATS + NUM_PERF_STATS + NUM_PF_STATS)
+						 NUM_FLOW_STATS + NUM_PERF_STATS + NUM_PF_STATS)
 
 #define MLX4_FIND_NETDEV_STAT(n) (offsetof(struct net_device_stats, n) / \
-				  sizeof(((struct net_device_stats *)0)->n))
+								  sizeof(((struct net_device_stats *)0)->n))
 
 #endif

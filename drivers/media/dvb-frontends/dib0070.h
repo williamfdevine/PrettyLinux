@@ -15,12 +15,14 @@ struct i2c_adapter;
 
 #define DEFAULT_DIB0070_I2C_ADDRESS 0x60
 
-struct dib0070_wbd_gain_cfg {
+struct dib0070_wbd_gain_cfg
+{
 	u16 freq;
 	u16 wbd_gain_val;
 };
 
-struct dib0070_config {
+struct dib0070_config
+{
 	u8 i2c_address;
 
 	/* tuner pins controlled externally */
@@ -49,13 +51,15 @@ struct dib0070_config {
 };
 
 #if IS_REACHABLE(CONFIG_DVB_TUNER_DIB0070)
-extern struct dvb_frontend *dib0070_attach(struct dvb_frontend *fe, struct i2c_adapter *i2c, struct dib0070_config *cfg);
+extern struct dvb_frontend *dib0070_attach(struct dvb_frontend *fe, struct i2c_adapter *i2c,
+		struct dib0070_config *cfg);
 extern u16 dib0070_wbd_offset(struct dvb_frontend *);
 extern void dib0070_ctrl_agc_filter(struct dvb_frontend *, u8 open);
 extern u8 dib0070_get_rf_output(struct dvb_frontend *fe);
 extern int dib0070_set_rf_output(struct dvb_frontend *fe, u8 no);
 #else
-static inline struct dvb_frontend *dib0070_attach(struct dvb_frontend *fe, struct i2c_adapter *i2c, struct dib0070_config *cfg)
+static inline struct dvb_frontend *dib0070_attach(struct dvb_frontend *fe, struct i2c_adapter *i2c,
+		struct dib0070_config *cfg)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

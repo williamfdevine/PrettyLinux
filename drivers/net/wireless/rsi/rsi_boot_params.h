@@ -55,32 +55,37 @@
 	 WIFI_TAPLL_CONFIGS | CRYSTAL_GOOD_TIME | BOOTUP_MODE_INFO)
 
 /* structure to store configs related to TAPLL programming */
-struct tapll_info {
+struct tapll_info
+{
 	__le16 pll_reg_1;
 	__le16 pll_reg_2;
 } __packed;
 
 /* structure to store configs related to PLL960 programming */
-struct pll960_info {
+struct pll960_info
+{
 	__le16 pll_reg_1;
 	__le16 pll_reg_2;
 	__le16 pll_reg_3;
 } __packed;
 
 /* structure to store configs related to AFEPLL programming */
-struct afepll_info {
+struct afepll_info
+{
 	__le16 pll_reg;
 } __packed;
 
 /* structure to store configs related to pll configs */
-struct pll_config {
+struct pll_config
+{
 	struct tapll_info tapll_info_g;
 	struct pll960_info pll960_info_g;
 	struct afepll_info afepll_info_g;
 } __packed;
 
 /* structure to store configs related to UMAC clk programming */
-struct switch_clk {
+struct switch_clk
+{
 	__le16 switch_clk_info;
 	/* If switch_bbp_lmac_clk_reg is set then this value will be programmed
 	 * into reg
@@ -92,12 +97,14 @@ struct switch_clk {
 	__le16 qspi_uart_clock_reg_config;
 } __packed;
 
-struct device_clk_info {
+struct device_clk_info
+{
 	struct pll_config pll_config_g;
 	struct switch_clk switch_clk_g;
 } __packed;
 
-struct bootup_params {
+struct bootup_params
+{
 	__le16 magic_number;
 	__le16 crystal_good_time;
 	__le32 valid;

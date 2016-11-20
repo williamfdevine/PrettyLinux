@@ -25,7 +25,8 @@ typedef void (sdio_irq_handler_t)(struct sdio_func *);
 /*
  * SDIO function CIS tuple (unknown to the core)
  */
-struct sdio_func_tuple {
+struct sdio_func_tuple
+{
 	struct sdio_func_tuple *next;
 	unsigned char code;
 	unsigned char size;
@@ -35,7 +36,8 @@ struct sdio_func_tuple {
 /*
  * SDIO function devices
  */
-struct sdio_func {
+struct sdio_func
+{
 	struct mmc_card		*card;		/* the card this device belongs to */
 	struct device		dev;		/* the device */
 	sdio_irq_handler_t	*irq_handler;	/* IRQ callback */
@@ -74,7 +76,8 @@ struct sdio_func {
 /*
  * SDIO function device driver
  */
-struct sdio_driver {
+struct sdio_driver
+{
 	char *name;
 	const struct sdio_device_id *id_table;
 
@@ -94,7 +97,7 @@ struct sdio_driver {
  */
 #define SDIO_DEVICE(vend,dev) \
 	.class = SDIO_ANY_ID, \
-	.vendor = (vend), .device = (dev)
+			 .vendor = (vend), .device = (dev)
 
 /**
  * SDIO_DEVICE_CLASS - macro used to describe a specific SDIO device class
@@ -106,7 +109,7 @@ struct sdio_driver {
  */
 #define SDIO_DEVICE_CLASS(dev_class) \
 	.class = (dev_class), \
-	.vendor = SDIO_ANY_ID, .device = SDIO_ANY_ID
+			 .vendor = SDIO_ANY_ID, .device = SDIO_ANY_ID
 
 extern int sdio_register_driver(struct sdio_driver *);
 extern void sdio_unregister_driver(struct sdio_driver *);
@@ -132,29 +135,29 @@ extern u16 sdio_readw(struct sdio_func *func, unsigned int addr, int *err_ret);
 extern u32 sdio_readl(struct sdio_func *func, unsigned int addr, int *err_ret);
 
 extern int sdio_memcpy_fromio(struct sdio_func *func, void *dst,
-	unsigned int addr, int count);
+							  unsigned int addr, int count);
 extern int sdio_readsb(struct sdio_func *func, void *dst,
-	unsigned int addr, int count);
+					   unsigned int addr, int count);
 
 extern void sdio_writeb(struct sdio_func *func, u8 b,
-	unsigned int addr, int *err_ret);
+						unsigned int addr, int *err_ret);
 extern void sdio_writew(struct sdio_func *func, u16 b,
-	unsigned int addr, int *err_ret);
+						unsigned int addr, int *err_ret);
 extern void sdio_writel(struct sdio_func *func, u32 b,
-	unsigned int addr, int *err_ret);
+						unsigned int addr, int *err_ret);
 
 extern u8 sdio_writeb_readb(struct sdio_func *func, u8 write_byte,
-	unsigned int addr, int *err_ret);
+							unsigned int addr, int *err_ret);
 
 extern int sdio_memcpy_toio(struct sdio_func *func, unsigned int addr,
-	void *src, int count);
+							void *src, int count);
 extern int sdio_writesb(struct sdio_func *func, unsigned int addr,
-	void *src, int count);
+						void *src, int count);
 
 extern unsigned char sdio_f0_readb(struct sdio_func *func,
-	unsigned int addr, int *err_ret);
+								   unsigned int addr, int *err_ret);
 extern void sdio_f0_writeb(struct sdio_func *func, unsigned char b,
-	unsigned int addr, int *err_ret);
+						   unsigned int addr, int *err_ret);
 
 extern mmc_pm_flag_t sdio_get_host_pm_caps(struct sdio_func *func);
 extern int sdio_set_host_pm_flags(struct sdio_func *func, mmc_pm_flag_t flags);

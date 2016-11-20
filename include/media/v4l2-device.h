@@ -57,7 +57,8 @@ struct v4l2_ctrl_handler;
  *    #) @dev might be %NULL if there is no parent device
  */
 
-struct v4l2_device {
+struct v4l2_device
+{
 	struct device *dev;
 #if defined(CONFIG_MEDIA_CONTROLLER)
 	struct media_device *mdev;
@@ -66,7 +67,7 @@ struct v4l2_device {
 	spinlock_t lock;
 	char name[V4L2_DEVICE_NAME_SIZE];
 	void (*notify)(struct v4l2_subdev *sd,
-			unsigned int notification, void *arg);
+				   unsigned int notification, void *arg);
 	struct v4l2_ctrl_handler *ctrl_handler;
 	struct v4l2_prio_state prio;
 	struct kref ref;
@@ -109,7 +110,7 @@ int v4l2_device_put(struct v4l2_device *v4l2_dev);
  *	before calling this function.
  */
 int __must_check v4l2_device_register(struct device *dev,
-				      struct v4l2_device *v4l2_dev);
+									  struct v4l2_device *v4l2_dev);
 
 /**
  * v4l2_device_set_name - Optional function to initialize the
@@ -139,7 +140,7 @@ int __must_check v4l2_device_register(struct device *dev,
  * then the name will be set to cx18-0 since cx180 would look really odd.
  */
 int v4l2_device_set_name(struct v4l2_device *v4l2_dev, const char *basename,
-			 atomic_t *instance);
+						 atomic_t *instance);
 
 /**
  * v4l2_device_disconnect - Change V4L2 device state to disconnected.
@@ -174,7 +175,7 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev);
  * to register it.
  */
 int __must_check v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
-					     struct v4l2_subdev *sd);
+		struct v4l2_subdev *sd);
 
 /**
  * v4l2_device_unregister_subdev - Unregisters a subdev with a v4l2 device.
@@ -208,10 +209,12 @@ v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev);
  *	notification type.
  */
 static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
-				      unsigned int notification, void *arg)
+									  unsigned int notification, void *arg)
 {
 	if (sd && sd->v4l2_dev && sd->v4l2_dev->notify)
+	{
 		sd->v4l2_dev->notify(sd, notification, arg);
+	}
 }
 
 /* Iterate over all subdevs. */
@@ -224,16 +227,16 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
 #define __v4l2_device_call_subdevs_p(v4l2_dev, sd, cond, o, f, args...)	\
 	do {								\
 		list_for_each_entry((sd), &(v4l2_dev)->subdevs, list)	\
-			if ((cond) && (sd)->ops->o && (sd)->ops->o->f)	\
-				(sd)->ops->o->f((sd) , ##args);		\
+		if ((cond) && (sd)->ops->o && (sd)->ops->o->f)	\
+			(sd)->ops->o->f((sd) , ##args);		\
 	} while (0)
 
 #define __v4l2_device_call_subdevs(v4l2_dev, cond, o, f, args...)	\
 	do {								\
 		struct v4l2_subdev *__sd;				\
-									\
+		\
 		__v4l2_device_call_subdevs_p(v4l2_dev, __sd, cond, o,	\
-						f , ##args);		\
+									 f , ##args);		\
 	} while (0)
 
 /* Call the specified callback for all subdevs matching the condition.
@@ -241,24 +244,24 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
    return with that error code. Note that you cannot add or delete a
    subdev while walking the subdevs list. */
 #define __v4l2_device_call_subdevs_until_err_p(v4l2_dev, sd, cond, o, f, args...) \
-({									\
-	long __err = 0;							\
-									\
-	list_for_each_entry((sd), &(v4l2_dev)->subdevs, list) {		\
-		if ((cond) && (sd)->ops->o && (sd)->ops->o->f)		\
-			__err = (sd)->ops->o->f((sd) , ##args);		\
-		if (__err && __err != -ENOIOCTLCMD)			\
-			break;						\
-	}								\
-	(__err == -ENOIOCTLCMD) ? 0 : __err;				\
-})
+	({									\
+		long __err = 0;							\
+		\
+		list_for_each_entry((sd), &(v4l2_dev)->subdevs, list) {		\
+			if ((cond) && (sd)->ops->o && (sd)->ops->o->f)		\
+				__err = (sd)->ops->o->f((sd) , ##args);		\
+			if (__err && __err != -ENOIOCTLCMD)			\
+				break;						\
+		}								\
+		(__err == -ENOIOCTLCMD) ? 0 : __err;				\
+	})
 
 #define __v4l2_device_call_subdevs_until_err(v4l2_dev, cond, o, f, args...) \
-({									\
-	struct v4l2_subdev *__sd;					\
-	__v4l2_device_call_subdevs_until_err_p(v4l2_dev, __sd, cond, o,	\
-						f , ##args);		\
-})
+	({									\
+		struct v4l2_subdev *__sd;					\
+		__v4l2_device_call_subdevs_until_err_p(v4l2_dev, __sd, cond, o,	\
+											   f , ##args);		\
+	})
 
 /* Call the specified callback for all subdevs matching grp_id (if 0, then
    match them all). Ignore any errors. Note that you cannot add or delete
@@ -266,10 +269,10 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
 #define v4l2_device_call_all(v4l2_dev, grpid, o, f, args...)		\
 	do {								\
 		struct v4l2_subdev *__sd;				\
-									\
+		\
 		__v4l2_device_call_subdevs_p(v4l2_dev, __sd,		\
-			!(grpid) || __sd->grp_id == (grpid), o, f ,	\
-			##args);					\
+									 !(grpid) || __sd->grp_id == (grpid), o, f ,	\
+									 ##args);					\
 	} while (0)
 
 /* Call the specified callback for all subdevs matching grp_id (if 0, then
@@ -277,12 +280,12 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
    -ENOIOCTLCMD, then return with that error code. Note that you cannot
    add or delete a subdev while walking the subdevs list. */
 #define v4l2_device_call_until_err(v4l2_dev, grpid, o, f, args...)	\
-({									\
-	struct v4l2_subdev *__sd;					\
-	__v4l2_device_call_subdevs_until_err_p(v4l2_dev, __sd,		\
-			!(grpid) || __sd->grp_id == (grpid), o, f ,	\
-			##args);					\
-})
+	({									\
+		struct v4l2_subdev *__sd;					\
+		__v4l2_device_call_subdevs_until_err_p(v4l2_dev, __sd,		\
+											   !(grpid) || __sd->grp_id == (grpid), o, f ,	\
+											   ##args);					\
+	})
 
 /*
  * Call the specified callback for all subdevs where grp_id & grpmsk != 0
@@ -292,10 +295,10 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
 #define v4l2_device_mask_call_all(v4l2_dev, grpmsk, o, f, args...)	\
 	do {								\
 		struct v4l2_subdev *__sd;				\
-									\
+		\
 		__v4l2_device_call_subdevs_p(v4l2_dev, __sd,		\
-			!(grpmsk) || (__sd->grp_id & (grpmsk)), o, f ,	\
-			##args);					\
+									 !(grpmsk) || (__sd->grp_id & (grpmsk)), o, f ,	\
+									 ##args);					\
 	} while (0)
 
 /*
@@ -305,49 +308,49 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
  * you cannot add or delete a subdev while walking the subdevs list.
  */
 #define v4l2_device_mask_call_until_err(v4l2_dev, grpmsk, o, f, args...) \
-({									\
-	struct v4l2_subdev *__sd;					\
-	__v4l2_device_call_subdevs_until_err_p(v4l2_dev, __sd,		\
-			!(grpmsk) || (__sd->grp_id & (grpmsk)), o, f ,	\
-			##args);					\
-})
+	({									\
+		struct v4l2_subdev *__sd;					\
+		__v4l2_device_call_subdevs_until_err_p(v4l2_dev, __sd,		\
+											   !(grpmsk) || (__sd->grp_id & (grpmsk)), o, f ,	\
+											   ##args);					\
+	})
 
 /*
  * Does any subdev with matching grpid (or all if grpid == 0) has the given
  * op?
  */
 #define v4l2_device_has_op(v4l2_dev, grpid, o, f)			\
-({									\
-	struct v4l2_subdev *__sd;					\
-	bool __result = false;						\
-	list_for_each_entry(__sd, &(v4l2_dev)->subdevs, list) {		\
-		if ((grpid) && __sd->grp_id != (grpid))			\
-			continue;					\
-		if (v4l2_subdev_has_op(__sd, o, f)) {			\
-			__result = true;				\
-			break;						\
-		}							\
-	}								\
-	__result;							\
-})
+	({									\
+		struct v4l2_subdev *__sd;					\
+		bool __result = false;						\
+		list_for_each_entry(__sd, &(v4l2_dev)->subdevs, list) {		\
+			if ((grpid) && __sd->grp_id != (grpid))			\
+				continue;					\
+			if (v4l2_subdev_has_op(__sd, o, f)) {			\
+				__result = true;				\
+				break;						\
+			}							\
+		}								\
+		__result;							\
+	})
 
 /*
  * Does any subdev with matching grpmsk (or all if grpmsk == 0) has the given
  * op?
  */
 #define v4l2_device_mask_has_op(v4l2_dev, grpmsk, o, f)			\
-({									\
-	struct v4l2_subdev *__sd;					\
-	bool __result = false;						\
-	list_for_each_entry(__sd, &(v4l2_dev)->subdevs, list) {		\
-		if ((grpmsk) && !(__sd->grp_id & (grpmsk)))		\
-			continue;					\
-		if (v4l2_subdev_has_op(__sd, o, f)) {			\
-			__result = true;				\
-			break;						\
-		}							\
-	}								\
-	__result;							\
-})
+	({									\
+		struct v4l2_subdev *__sd;					\
+		bool __result = false;						\
+		list_for_each_entry(__sd, &(v4l2_dev)->subdevs, list) {		\
+			if ((grpmsk) && !(__sd->grp_id & (grpmsk)))		\
+				continue;					\
+			if (v4l2_subdev_has_op(__sd, o, f)) {			\
+				__result = true;				\
+				break;						\
+			}							\
+		}								\
+		__result;							\
+	})
 
 #endif

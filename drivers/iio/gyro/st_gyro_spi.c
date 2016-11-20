@@ -25,16 +25,22 @@ static int st_gyro_spi_probe(struct spi_device *spi)
 	int err;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*gdata));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	gdata = iio_priv(indio_dev);
 
 	st_sensors_spi_configure(indio_dev, spi, gdata);
 
 	err = st_gyro_common_probe(indio_dev);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -46,7 +52,8 @@ static int st_gyro_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id st_gyro_id_table[] = {
+static const struct spi_device_id st_gyro_id_table[] =
+{
 	{ L3G4200D_GYRO_DEV_NAME },
 	{ LSM330D_GYRO_DEV_NAME },
 	{ LSM330DL_GYRO_DEV_NAME },
@@ -59,7 +66,8 @@ static const struct spi_device_id st_gyro_id_table[] = {
 };
 MODULE_DEVICE_TABLE(spi, st_gyro_id_table);
 
-static struct spi_driver st_gyro_driver = {
+static struct spi_driver st_gyro_driver =
+{
 	.driver = {
 		.name = "st-gyro-spi",
 	},

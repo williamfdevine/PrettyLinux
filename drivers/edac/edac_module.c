@@ -25,11 +25,16 @@ static int edac_set_debug_level(const char *buf, struct kernel_param *kp)
 	int ret;
 
 	ret = kstrtoul(buf, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val > 4)
+	{
 		return -EINVAL;
+	}
 
 	return param_set_int(buf, kp);
 }
@@ -39,7 +44,7 @@ int edac_debug_level = 2;
 EXPORT_SYMBOL_GPL(edac_debug_level);
 
 module_param_call(edac_debug_level, edac_set_debug_level, param_get_int,
-		  &edac_debug_level, 0644);
+				  &edac_debug_level, 0644);
 MODULE_PARM_DESC(edac_debug_level, "EDAC debug level: [0-4], default: 2");
 #endif
 
@@ -49,15 +54,25 @@ MODULE_PARM_DESC(edac_debug_level, "EDAC debug level: [0-4], default: 2");
 char *edac_op_state_to_string(int opstate)
 {
 	if (opstate == OP_RUNNING_POLL)
+	{
 		return "POLLED";
+	}
 	else if (opstate == OP_RUNNING_INTERRUPT)
+	{
 		return "INTERRUPT";
+	}
 	else if (opstate == OP_RUNNING_POLL_INTR)
+	{
 		return "POLL-INTR";
+	}
 	else if (opstate == OP_ALLOC)
+	{
 		return "ALLOC";
+	}
 	else if (opstate == OP_OFFLINE)
+	{
 		return "OFFLINE";
+	}
 
 	return "UNKNOWN";
 }
@@ -66,7 +81,8 @@ char *edac_op_state_to_string(int opstate)
  * sysfs object: /sys/devices/system/edac
  *	need to export to other files
  */
-static struct bus_type edac_subsys = {
+static struct bus_type edac_subsys =
+{
 	.name = "edac",
 	.dev_name = "edac",
 };
@@ -77,8 +93,11 @@ static int edac_subsys_init(void)
 
 	/* create the /sys/devices/system/edac directory */
 	err = subsys_system_register(&edac_subsys, NULL);
+
 	if (err)
+	{
 		printk(KERN_ERR "Error registering toplevel EDAC sysfs dir\n");
+	}
 
 	return err;
 }
@@ -105,8 +124,11 @@ static int __init edac_init(void)
 	edac_printk(KERN_INFO, EDAC_MC, EDAC_VERSION "\n");
 
 	err = edac_subsys_init();
+
 	if (err)
+	{
 		return err;
+	}
 
 	/*
 	 * Harvest and clear any boot/initialization PCI parity errors
@@ -118,13 +140,18 @@ static int __init edac_init(void)
 	edac_pci_clear_parity_errors();
 
 	err = edac_mc_sysfs_init();
+
 	if (err)
+	{
 		goto err_sysfs;
+	}
 
 	edac_debugfs_init();
 
 	err = edac_workqueue_setup();
-	if (err) {
+
+	if (err)
+	{
 		edac_printk(KERN_ERR, EDAC_MC, "Failure initializing workqueue\n");
 		goto err_wq;
 	}

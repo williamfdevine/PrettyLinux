@@ -38,19 +38,22 @@
  */
 #define SD_LAST_BUGGY_SECTORS	8
 
-enum {
+enum
+{
 	SD_EXT_CDB_SIZE = 32,	/* Extended CDB size */
 	SD_MEMPOOL_SIZE = 2,	/* CDB pool size */
 };
 
-enum {
+enum
+{
 	SD_DEF_XFER_BLOCKS = 0xffff,
 	SD_MAX_XFER_BLOCKS = 0xffffffff,
 	SD_MAX_WS10_BLOCKS = 0xffff,
 	SD_MAX_WS16_BLOCKS = 0x7fffff,
 };
 
-enum {
+enum
+{
 	SD_LBP_FULL = 0,	/* Full logical block provisioning */
 	SD_LBP_UNMAP,		/* Use UNMAP command */
 	SD_LBP_WS16,		/* Use WRITE SAME(16) with UNMAP bit */
@@ -59,7 +62,8 @@ enum {
 	SD_LBP_DISABLE,		/* Discard disabled due to failed cmd */
 };
 
-struct scsi_disk {
+struct scsi_disk
+{
 	struct scsi_driver *driver;	/* always &sd_template */
 	struct scsi_device *device;
 	struct device	dev;
@@ -103,10 +107,10 @@ static inline struct scsi_disk *scsi_disk(struct gendisk *disk)
 }
 
 #define sd_printk(prefix, sdsk, fmt, a...)				\
-        (sdsk)->disk ?							\
-	      sdev_prefix_printk(prefix, (sdsk)->device,		\
-				 (sdsk)->disk->disk_name, fmt, ##a) :	\
-	      sdev_printk(prefix, (sdsk)->device, fmt, ##a)
+	(sdsk)->disk ?							\
+	sdev_prefix_printk(prefix, (sdsk)->device,		\
+					   (sdsk)->disk->disk_name, fmt, ##a) :	\
+	sdev_printk(prefix, (sdsk)->device, fmt, ##a)
 
 #define sd_first_printk(prefix, sdsk, fmt, a...)			\
 	do {								\
@@ -116,31 +120,34 @@ static inline struct scsi_disk *scsi_disk(struct gendisk *disk)
 
 static inline int scsi_medium_access_command(struct scsi_cmnd *scmd)
 {
-	switch (scmd->cmnd[0]) {
-	case READ_6:
-	case READ_10:
-	case READ_12:
-	case READ_16:
-	case SYNCHRONIZE_CACHE:
-	case VERIFY:
-	case VERIFY_12:
-	case VERIFY_16:
-	case WRITE_6:
-	case WRITE_10:
-	case WRITE_12:
-	case WRITE_16:
-	case WRITE_SAME:
-	case WRITE_SAME_16:
-	case UNMAP:
-		return 1;
-	case VARIABLE_LENGTH_CMD:
-		switch (scmd->cmnd[9]) {
-		case READ_32:
-		case VERIFY_32:
-		case WRITE_32:
-		case WRITE_SAME_32:
+	switch (scmd->cmnd[0])
+	{
+		case READ_6:
+		case READ_10:
+		case READ_12:
+		case READ_16:
+		case SYNCHRONIZE_CACHE:
+		case VERIFY:
+		case VERIFY_12:
+		case VERIFY_16:
+		case WRITE_6:
+		case WRITE_10:
+		case WRITE_12:
+		case WRITE_16:
+		case WRITE_SAME:
+		case WRITE_SAME_16:
+		case UNMAP:
 			return 1;
-		}
+
+		case VARIABLE_LENGTH_CMD:
+			switch (scmd->cmnd[9])
+			{
+				case READ_32:
+				case VERIFY_32:
+				case WRITE_32:
+				case WRITE_SAME_32:
+					return 1;
+			}
 	}
 
 	return 0;
@@ -163,7 +170,8 @@ static inline unsigned int logical_to_bytes(struct scsi_device *sdev, sector_t b
 static inline unsigned int sd_prot_op(bool write, bool dix, bool dif)
 {
 	/* Lookup table: bit 2 (write), bit 1 (dix), bit 0 (dif) */
-	const unsigned int ops[] = {	/* wrt dix dif */
+	const unsigned int ops[] =  	/* wrt dix dif */
+	{
 		SCSI_PROT_NORMAL,	/*  0	0   0  */
 		SCSI_PROT_READ_STRIP,	/*  0	0   1  */
 		SCSI_PROT_READ_INSERT,	/*  0	1   0  */
@@ -183,36 +191,37 @@ static inline unsigned int sd_prot_op(bool write, bool dix, bool dif)
  */
 static inline unsigned int sd_prot_flag_mask(unsigned int prot_op)
 {
-	const unsigned int flag_mask[] = {
+	const unsigned int flag_mask[] =
+	{
 		[SCSI_PROT_NORMAL]		= 0,
 
 		[SCSI_PROT_READ_STRIP]		= SCSI_PROT_TRANSFER_PI |
-						  SCSI_PROT_GUARD_CHECK |
-						  SCSI_PROT_REF_CHECK |
-						  SCSI_PROT_REF_INCREMENT,
+		SCSI_PROT_GUARD_CHECK |
+		SCSI_PROT_REF_CHECK |
+		SCSI_PROT_REF_INCREMENT,
 
 		[SCSI_PROT_READ_INSERT]		= SCSI_PROT_REF_INCREMENT |
-						  SCSI_PROT_IP_CHECKSUM,
+		SCSI_PROT_IP_CHECKSUM,
 
 		[SCSI_PROT_READ_PASS]		= SCSI_PROT_TRANSFER_PI |
-						  SCSI_PROT_GUARD_CHECK |
-						  SCSI_PROT_REF_CHECK |
-						  SCSI_PROT_REF_INCREMENT |
-						  SCSI_PROT_IP_CHECKSUM,
+		SCSI_PROT_GUARD_CHECK |
+		SCSI_PROT_REF_CHECK |
+		SCSI_PROT_REF_INCREMENT |
+		SCSI_PROT_IP_CHECKSUM,
 
 		[SCSI_PROT_WRITE_INSERT]	= SCSI_PROT_TRANSFER_PI |
-						  SCSI_PROT_REF_INCREMENT,
+		SCSI_PROT_REF_INCREMENT,
 
 		[SCSI_PROT_WRITE_STRIP]		= SCSI_PROT_GUARD_CHECK |
-						  SCSI_PROT_REF_CHECK |
-						  SCSI_PROT_REF_INCREMENT |
-						  SCSI_PROT_IP_CHECKSUM,
+		SCSI_PROT_REF_CHECK |
+		SCSI_PROT_REF_INCREMENT |
+		SCSI_PROT_IP_CHECKSUM,
 
 		[SCSI_PROT_WRITE_PASS]		= SCSI_PROT_TRANSFER_PI |
-						  SCSI_PROT_GUARD_CHECK |
-						  SCSI_PROT_REF_CHECK |
-						  SCSI_PROT_REF_INCREMENT |
-						  SCSI_PROT_IP_CHECKSUM,
+		SCSI_PROT_GUARD_CHECK |
+		SCSI_PROT_REF_CHECK |
+		SCSI_PROT_REF_INCREMENT |
+		SCSI_PROT_IP_CHECKSUM,
 	};
 
 	return flag_mask[prot_op];

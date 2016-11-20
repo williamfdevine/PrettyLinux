@@ -19,7 +19,8 @@ typedef void (fn_handler_fn)(struct kbd_data *);
  * FIXME: explain key_maps tricks.
  */
 
-struct kbd_data {
+struct kbd_data
+{
 	struct tty_port *port;
 	unsigned short **key_maps;
 	char **func_table;
@@ -51,6 +52,9 @@ static inline void
 kbd_puts_queue(struct tty_port *port, char *cp)
 {
 	while (*cp)
+	{
 		tty_insert_flip_char(port, *cp++, 0);
+	}
+
 	tty_schedule_flip(port);
 }

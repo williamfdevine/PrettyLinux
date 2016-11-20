@@ -24,7 +24,8 @@
 #include <sound/soc.h>
 #include <dt-bindings/sound/apq8016-lpass.h>
 
-struct apq8016_sbc_data {
+struct apq8016_sbc_data
+{
 	void __iomem *mic_iomux;
 	void __iomem *spkr_iomux;
 	struct snd_soc_dai_link dai_link[];	/* dynamically allocated */
@@ -42,29 +43,31 @@ static int apq8016_sbc_dai_init(struct snd_soc_pcm_runtime *rtd)
 	struct apq8016_sbc_data *pdata = snd_soc_card_get_drvdata(card);
 	int rval = 0;
 
-	switch (cpu_dai->id) {
-	case MI2S_PRIMARY:
-		writel(readl(pdata->spkr_iomux) | SPKR_CTL_PRI_WS_SLAVE_SEL_11,
-			pdata->spkr_iomux);
-		break;
+	switch (cpu_dai->id)
+	{
+		case MI2S_PRIMARY:
+			writel(readl(pdata->spkr_iomux) | SPKR_CTL_PRI_WS_SLAVE_SEL_11,
+				   pdata->spkr_iomux);
+			break;
 
-	case MI2S_QUATERNARY:
-		/* Configure the Quat MI2S to TLMM */
-		writel(readl(pdata->mic_iomux) | MIC_CTRL_QUA_WS_SLAVE_SEL_10 |
-			MIC_CTRL_TLMM_SCLK_EN,
-			pdata->mic_iomux);
-		break;
-	case MI2S_TERTIARY:
-		writel(readl(pdata->mic_iomux) | MIC_CTRL_TER_WS_SLAVE_SEL |
-			MIC_CTRL_TLMM_SCLK_EN,
-			pdata->mic_iomux);
+		case MI2S_QUATERNARY:
+			/* Configure the Quat MI2S to TLMM */
+			writel(readl(pdata->mic_iomux) | MIC_CTRL_QUA_WS_SLAVE_SEL_10 |
+				   MIC_CTRL_TLMM_SCLK_EN,
+				   pdata->mic_iomux);
+			break;
 
-		break;
+		case MI2S_TERTIARY:
+			writel(readl(pdata->mic_iomux) | MIC_CTRL_TER_WS_SLAVE_SEL |
+				   MIC_CTRL_TLMM_SCLK_EN,
+				   pdata->mic_iomux);
 
-	default:
-		dev_err(card->dev, "unsupported cpu dai configuration\n");
-		rval = -EINVAL;
-		break;
+			break;
+
+		default:
+			dev_err(card->dev, "unsupported cpu dai configuration\n");
+			rval = -EINVAL;
+			break;
 
 	}
 
@@ -80,17 +83,23 @@ static struct apq8016_sbc_data *apq8016_sbc_parse_of(struct snd_soc_card *card)
 	int ret, num_links;
 
 	ret = snd_soc_of_parse_card_name(card, "qcom,model");
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Error parsing card name: %d\n", ret);
 		return ERR_PTR(ret);
 	}
 
 	/* DAPM routes */
-	if (of_property_read_bool(node, "qcom,audio-routing")) {
+	if (of_property_read_bool(node, "qcom,audio-routing"))
+	{
 		ret = snd_soc_of_parse_audio_routing(card,
-					"qcom,audio-routing");
+											 "qcom,audio-routing");
+
 		if (ret)
+		{
 			return ERR_PTR(ret);
+		}
 	}
 
 
@@ -99,51 +108,66 @@ static struct apq8016_sbc_data *apq8016_sbc_parse_of(struct snd_soc_card *card)
 
 	/* Allocate the private data and the DAI link array */
 	data = devm_kzalloc(dev, sizeof(*data) + sizeof(*link) * num_links,
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!data)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	card->dai_link	= &data->dai_link[0];
 	card->num_links	= num_links;
 
 	link = data->dai_link;
 
-	for_each_child_of_node(node, np) {
+	for_each_child_of_node(node, np)
+	{
 		cpu = of_get_child_by_name(np, "cpu");
 		codec = of_get_child_by_name(np, "codec");
 
-		if (!cpu || !codec) {
+		if (!cpu || !codec)
+		{
 			dev_err(dev, "Can't find cpu/codec DT node\n");
 			return ERR_PTR(-EINVAL);
 		}
 
 		link->cpu_of_node = of_parse_phandle(cpu, "sound-dai", 0);
-		if (!link->cpu_of_node) {
+
+		if (!link->cpu_of_node)
+		{
 			dev_err(card->dev, "error getting cpu phandle\n");
 			return ERR_PTR(-EINVAL);
 		}
 
 		link->codec_of_node = of_parse_phandle(codec, "sound-dai", 0);
-		if (!link->codec_of_node) {
+
+		if (!link->codec_of_node)
+		{
 			dev_err(card->dev, "error getting codec phandle\n");
 			return ERR_PTR(-EINVAL);
 		}
 
 		ret = snd_soc_of_get_dai_name(cpu, &link->cpu_dai_name);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(card->dev, "error getting cpu dai name\n");
 			return ERR_PTR(ret);
 		}
 
 		ret = snd_soc_of_get_dai_name(codec, &link->codec_dai_name);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(card->dev, "error getting codec dai name\n");
 			return ERR_PTR(ret);
 		}
 
 		link->platform_of_node = link->cpu_of_node;
 		ret = of_property_read_string(np, "link-name", &link->name);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(card->dev, "error getting codec dai_link name\n");
 			return ERR_PTR(ret);
 		}
@@ -156,7 +180,8 @@ static struct apq8016_sbc_data *apq8016_sbc_parse_of(struct snd_soc_card *card)
 	return data;
 }
 
-static const struct snd_soc_dapm_widget apq8016_sbc_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget apq8016_sbc_dapm_widgets[] =
+{
 
 	SND_SOC_DAPM_MIC("Handset Mic", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
@@ -173,28 +198,39 @@ static int apq8016_sbc_platform_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	card = devm_kzalloc(dev, sizeof(*card), GFP_KERNEL);
+
 	if (!card)
+	{
 		return -ENOMEM;
+	}
 
 	card->dev = dev;
 	card->dapm_widgets = apq8016_sbc_dapm_widgets;
 	card->num_dapm_widgets = ARRAY_SIZE(apq8016_sbc_dapm_widgets);
 	data = apq8016_sbc_parse_of(card);
-	if (IS_ERR(data)) {
+
+	if (IS_ERR(data))
+	{
 		dev_err(&pdev->dev, "Error resolving dai links: %ld\n",
-			PTR_ERR(data));
+				PTR_ERR(data));
 		return PTR_ERR(data);
 	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mic-iomux");
 	data->mic_iomux = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(data->mic_iomux))
+	{
 		return PTR_ERR(data->mic_iomux);
+	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "spkr-iomux");
 	data->spkr_iomux = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(data->spkr_iomux))
+	{
 		return PTR_ERR(data->spkr_iomux);
+	}
 
 	platform_set_drvdata(pdev, data);
 	snd_soc_card_set_drvdata(card, data);
@@ -202,13 +238,15 @@ static int apq8016_sbc_platform_probe(struct platform_device *pdev)
 	return devm_snd_soc_register_card(&pdev->dev, card);
 }
 
-static const struct of_device_id apq8016_sbc_device_id[]  = {
+static const struct of_device_id apq8016_sbc_device_id[]  =
+{
 	{ .compatible = "qcom,apq8016-sbc-sndcard" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, apq8016_sbc_device_id);
 
-static struct platform_driver apq8016_sbc_platform_driver = {
+static struct platform_driver apq8016_sbc_platform_driver =
+{
 	.driver = {
 		.name = "qcom-apq8016-sbc",
 		.of_match_table = of_match_ptr(apq8016_sbc_device_id),

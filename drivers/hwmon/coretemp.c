@@ -82,7 +82,8 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
  *		Otherwise, temp_data holds coretemp data.
  * @valid: If this is 1, the current temperature is valid.
  */
-struct temp_data {
+struct temp_data
+{
 	int temp;
 	int ttarget;
 	int tjmax;
@@ -101,14 +102,16 @@ struct temp_data {
 };
 
 /* Platform Data per Physical CPU */
-struct platform_data {
+struct platform_data
+{
 	struct device *hwmon_dev;
 	u16 phys_proc_id;
 	struct temp_data *core_data[MAX_CORE_DATA];
 	struct device_attribute name_attr;
 };
 
-struct pdev_entry {
+struct pdev_entry
+{
 	struct list_head list;
 	struct platform_device *pdev;
 	u16 phys_proc_id;
@@ -118,20 +121,22 @@ static LIST_HEAD(pdev_list);
 static DEFINE_MUTEX(pdev_list_mutex);
 
 static ssize_t show_label(struct device *dev,
-				struct device_attribute *devattr, char *buf)
+						  struct device_attribute *devattr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct platform_data *pdata = dev_get_drvdata(dev);
 	struct temp_data *tdata = pdata->core_data[attr->index];
 
 	if (tdata->is_pkg_data)
+	{
 		return sprintf(buf, "Physical id %u\n", pdata->phys_proc_id);
+	}
 
 	return sprintf(buf, "Core %u\n", tdata->cpu_core_id);
 }
 
 static ssize_t show_crit_alarm(struct device *dev,
-				struct device_attribute *devattr, char *buf)
+							   struct device_attribute *devattr, char *buf)
 {
 	u32 eax, edx;
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -144,7 +149,7 @@ static ssize_t show_crit_alarm(struct device *dev,
 }
 
 static ssize_t show_tjmax(struct device *dev,
-			struct device_attribute *devattr, char *buf)
+						  struct device_attribute *devattr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct platform_data *pdata = dev_get_drvdata(dev);
@@ -153,7 +158,7 @@ static ssize_t show_tjmax(struct device *dev,
 }
 
 static ssize_t show_ttarget(struct device *dev,
-				struct device_attribute *devattr, char *buf)
+							struct device_attribute *devattr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct platform_data *pdata = dev_get_drvdata(dev);
@@ -162,7 +167,7 @@ static ssize_t show_ttarget(struct device *dev,
 }
 
 static ssize_t show_temp(struct device *dev,
-			struct device_attribute *devattr, char *buf)
+						 struct device_attribute *devattr, char *buf)
 {
 	u32 eax, edx;
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -172,7 +177,8 @@ static ssize_t show_temp(struct device *dev,
 	mutex_lock(&tdata->update_lock);
 
 	/* Check whether the time interval has elapsed */
-	if (!tdata->valid || time_after(jiffies, tdata->last_updated + HZ)) {
+	if (!tdata->valid || time_after(jiffies, tdata->last_updated + HZ))
+	{
 		rdmsr_on_cpu(tdata->cpu, tdata->status_reg, &eax, &edx);
 		/*
 		 * Ignore the valid bit. In all observed cases the register
@@ -189,29 +195,34 @@ static ssize_t show_temp(struct device *dev,
 	return sprintf(buf, "%d\n", tdata->temp);
 }
 
-struct tjmax_pci {
+struct tjmax_pci
+{
 	unsigned int device;
 	int tjmax;
 };
 
-static const struct tjmax_pci tjmax_pci_table[] = {
+static const struct tjmax_pci tjmax_pci_table[] =
+{
 	{ 0x0708, 110000 },	/* CE41x0 (Sodaville ) */
 	{ 0x0c72, 102000 },	/* Atom S1240 (Centerton) */
 	{ 0x0c73, 95000 },	/* Atom S1220 (Centerton) */
 	{ 0x0c75, 95000 },	/* Atom S1260 (Centerton) */
 };
 
-struct tjmax {
+struct tjmax
+{
 	char const *id;
 	int tjmax;
 };
 
-static const struct tjmax tjmax_table[] = {
+static const struct tjmax tjmax_table[] =
+{
 	{ "CPU  230", 100000 },		/* Model 0x1c, stepping 2	*/
 	{ "CPU  330", 125000 },		/* Model 0x1c, stepping 2	*/
 };
 
-struct tjmax_model {
+struct tjmax_model
+{
 	u8 model;
 	u8 mask;
 	int tjmax;
@@ -219,7 +230,8 @@ struct tjmax_model {
 
 #define ANY 0xff
 
-static const struct tjmax_model tjmax_model_table[] = {
+static const struct tjmax_model tjmax_model_table[] =
+{
 	{ 0x1c, 10, 100000 },	/* D4xx, K4xx, N4xx, D5xx, K5xx, N5xx */
 	{ 0x1c, ANY, 90000 },	/* Z5xx, N2xx, possibly others
 				 * Note: Also matches 230 and 330,
@@ -254,31 +266,45 @@ static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
 	 * First try PCI host bridge IDs, followed by model ID strings
 	 * and model/stepping information.
 	 */
-	if (host_bridge && host_bridge->vendor == PCI_VENDOR_ID_INTEL) {
-		for (i = 0; i < ARRAY_SIZE(tjmax_pci_table); i++) {
+	if (host_bridge && host_bridge->vendor == PCI_VENDOR_ID_INTEL)
+	{
+		for (i = 0; i < ARRAY_SIZE(tjmax_pci_table); i++)
+		{
 			if (host_bridge->device == tjmax_pci_table[i].device)
+			{
 				return tjmax_pci_table[i].tjmax;
+			}
 		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(tjmax_table); i++) {
+	for (i = 0; i < ARRAY_SIZE(tjmax_table); i++)
+	{
 		if (strstr(c->x86_model_id, tjmax_table[i].id))
+		{
 			return tjmax_table[i].tjmax;
+		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(tjmax_model_table); i++) {
+	for (i = 0; i < ARRAY_SIZE(tjmax_model_table); i++)
+	{
 		const struct tjmax_model *tm = &tjmax_model_table[i];
+
 		if (c->x86_model == tm->model &&
-		    (tm->mask == ANY || c->x86_mask == tm->mask))
+			(tm->mask == ANY || c->x86_mask == tm->mask))
+		{
 			return tm->tjmax;
+		}
 	}
 
 	/* Early chips have no MSR for TjMax */
 
 	if (c->x86_model == 0xf && c->x86_mask < 4)
+	{
 		usemsr_ee = 0;
+	}
 
-	if (c->x86_model > 0xe && usemsr_ee) {
+	if (c->x86_model > 0xe && usemsr_ee)
+	{
 		u8 platform_id;
 
 		/*
@@ -287,19 +313,25 @@ static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
 		 * For Core2 cores, check MSR 0x17, bit 28 1 = Mobile CPU
 		 */
 		err = rdmsr_safe_on_cpu(id, 0x17, &eax, &edx);
-		if (err) {
+
+		if (err)
+		{
 			dev_warn(dev,
-				 "Unable to access MSR 0x17, assuming desktop"
-				 " CPU\n");
+					 "Unable to access MSR 0x17, assuming desktop"
+					 " CPU\n");
 			usemsr_ee = 0;
-		} else if (c->x86_model < 0x17 && !(eax & 0x10000000)) {
+		}
+		else if (c->x86_model < 0x17 && !(eax & 0x10000000))
+		{
 			/*
 			 * Trust bit 28 up to Penryn, I could not find any
 			 * documentation on that; if you happen to know
 			 * someone at Intel please ask
 			 */
 			usemsr_ee = 0;
-		} else {
+		}
+		else
+		{
 			/* Platform ID bits 52:50 (EDX starts at bit 32) */
 			platform_id = (edx >> 18) & 0x7;
 
@@ -308,7 +340,8 @@ static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
 			 * (guesswork)
 			 */
 			if (c->x86_model == 0x17 &&
-			    (platform_id == 5 || platform_id == 7)) {
+				(platform_id == 5 || platform_id == 7))
+			{
 				/*
 				 * If MSR EE bit is set, set it to 90 degrees C,
 				 * otherwise 105 degrees C
@@ -319,16 +352,23 @@ static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
 		}
 	}
 
-	if (usemsr_ee) {
+	if (usemsr_ee)
+	{
 		err = rdmsr_safe_on_cpu(id, 0xee, &eax, &edx);
-		if (err) {
+
+		if (err)
+		{
 			dev_warn(dev,
-				 "Unable to access MSR 0xEE, for Tjmax, left"
-				 " at default\n");
-		} else if (eax & 0x40000000) {
+					 "Unable to access MSR 0xEE, for Tjmax, left"
+					 " at default\n");
+		}
+		else if (eax & 0x40000000)
+		{
 			tjmax = tjmax_ee;
 		}
-	} else if (tjmax == 100000) {
+	}
+	else if (tjmax == 100000)
+	{
 		/*
 		 * If we don't use msr EE it means we are desktop CPU
 		 * (with exeception of Atom)
@@ -344,11 +384,11 @@ static bool cpu_has_tjmax(struct cpuinfo_x86 *c)
 	u8 model = c->x86_model;
 
 	return model > 0xe &&
-	       model != 0x1c &&
-	       model != 0x26 &&
-	       model != 0x27 &&
-	       model != 0x35 &&
-	       model != 0x36;
+		   model != 0x1c &&
+		   model != 0x26 &&
+		   model != 0x27 &&
+		   model != 0x35 &&
+		   model != 0x36;
 }
 
 static int get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
@@ -362,24 +402,33 @@ static int get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
 	 * IA32_TEMPERATURE_TARGET contains the TjMax value
 	 */
 	err = rdmsr_safe_on_cpu(id, MSR_IA32_TEMPERATURE_TARGET, &eax, &edx);
-	if (err) {
+
+	if (err)
+	{
 		if (cpu_has_tjmax(c))
+		{
 			dev_warn(dev, "Unable to read TjMax from CPU %u\n", id);
-	} else {
+		}
+	}
+	else
+	{
 		val = (eax >> 16) & 0xff;
+
 		/*
 		 * If the TjMax is not plausible, an assumption
 		 * will be used
 		 */
-		if (val) {
+		if (val)
+		{
 			dev_dbg(dev, "TjMax is %d degrees C\n", val);
 			return val * 1000;
 		}
 	}
 
-	if (force_tjmax) {
+	if (force_tjmax)
+	{
 		dev_notice(dev, "TjMax forced to %d degrees C by user\n",
-			   force_tjmax);
+				   force_tjmax);
 		return force_tjmax * 1000;
 	}
 
@@ -391,20 +440,24 @@ static int get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
 }
 
 static int create_core_attrs(struct temp_data *tdata, struct device *dev,
-			     int attr_no)
+							 int attr_no)
 {
 	int i;
-	static ssize_t (*const rd_ptr[TOTAL_ATTRS]) (struct device *dev,
-			struct device_attribute *devattr, char *buf) = {
-			show_label, show_crit_alarm, show_temp, show_tjmax,
-			show_ttarget };
-	static const char *const suffixes[TOTAL_ATTRS] = {
+	static ssize_t (*const rd_ptr[TOTAL_ATTRS]) (struct device * dev,
+			struct device_attribute * devattr, char *buf) =
+	{
+		show_label, show_crit_alarm, show_temp, show_tjmax,
+		show_ttarget
+	};
+	static const char *const suffixes[TOTAL_ATTRS] =
+	{
 		"label", "crit_alarm", "input", "crit", "max"
 	};
 
-	for (i = 0; i < tdata->attr_size; i++) {
+	for (i = 0; i < tdata->attr_size; i++)
+	{
 		snprintf(tdata->attr_name[i], CORETEMP_NAME_LENGTH,
-			 "temp%d_%s", attr_no, suffixes[i]);
+				 "temp%d_%s", attr_no, suffixes[i]);
 		sysfs_attr_init(&tdata->sd_attrs[i].dev_attr.attr);
 		tdata->sd_attrs[i].dev_attr.attr.name = tdata->attr_name[i];
 		tdata->sd_attrs[i].dev_attr.attr.mode = S_IRUGO;
@@ -412,6 +465,7 @@ static int create_core_attrs(struct temp_data *tdata, struct device *dev,
 		tdata->sd_attrs[i].index = attr_no;
 		tdata->attrs[i] = &tdata->sd_attrs[i].dev_attr.attr;
 	}
+
 	tdata->attr_group.attrs = tdata->attrs;
 	return sysfs_create_group(&dev->kobj, &tdata->attr_group);
 }
@@ -426,10 +480,12 @@ static int chk_ucode_version(unsigned int cpu)
 	 * Readings might stop update when processor visited too deep sleep,
 	 * fixed for stepping D0 (6EC).
 	 */
-	if (c->x86_model == 0xe && c->x86_mask < 0xc && c->microcode < 0x39) {
+	if (c->x86_model == 0xe && c->x86_mask < 0xc && c->microcode < 0x39)
+	{
 		pr_err("Errata AE18 not fixed, update BIOS or microcode of the CPU!\n");
 		return -ENODEV;
 	}
+
 	return 0;
 }
 
@@ -441,10 +497,12 @@ static struct platform_device *coretemp_get_pdev(unsigned int cpu)
 	mutex_lock(&pdev_list_mutex);
 
 	list_for_each_entry(p, &pdev_list, list)
-		if (p->phys_proc_id == phys_proc_id) {
-			mutex_unlock(&pdev_list_mutex);
-			return p->pdev;
-		}
+
+	if (p->phys_proc_id == phys_proc_id)
+	{
+		mutex_unlock(&pdev_list_mutex);
+		return p->pdev;
+	}
 
 	mutex_unlock(&pdev_list_mutex);
 	return NULL;
@@ -455,11 +513,14 @@ static struct temp_data *init_temp_data(unsigned int cpu, int pkg_flag)
 	struct temp_data *tdata;
 
 	tdata = kzalloc(sizeof(struct temp_data), GFP_KERNEL);
+
 	if (!tdata)
+	{
 		return NULL;
+	}
 
 	tdata->status_reg = pkg_flag ? MSR_IA32_PACKAGE_THERM_STATUS :
-							MSR_IA32_THERM_STATUS;
+						MSR_IA32_THERM_STATUS;
 	tdata->is_pkg_data = pkg_flag;
 	tdata->cpu = cpu;
 	tdata->cpu_core_id = TO_CORE_ID(cpu);
@@ -469,7 +530,7 @@ static struct temp_data *init_temp_data(unsigned int cpu, int pkg_flag)
 }
 
 static int create_core_data(struct platform_device *pdev, unsigned int cpu,
-			    int pkg_flag)
+							int pkg_flag)
 {
 	struct temp_data *tdata;
 	struct platform_data *pdata = platform_get_drvdata(pdev);
@@ -486,7 +547,9 @@ static int create_core_data(struct platform_device *pdev, unsigned int cpu,
 	attr_no = pkg_flag ? 1 : TO_ATTR_NO(cpu);
 
 	if (attr_no > MAX_CORE_DATA - 1)
+	{
 		return -ERANGE;
+	}
 
 	/*
 	 * Provide a single set of attributes for all HT siblings of a core
@@ -496,16 +559,24 @@ static int create_core_data(struct platform_device *pdev, unsigned int cpu,
 	 * This is not an error.
 	 */
 	if (pdata->core_data[attr_no] != NULL)
+	{
 		return 0;
+	}
 
 	tdata = init_temp_data(cpu, pkg_flag);
+
 	if (!tdata)
+	{
 		return -ENOMEM;
+	}
 
 	/* Test if we can access the status register */
 	err = rdmsr_safe_on_cpu(cpu, tdata->status_reg, &eax, &edx);
+
 	if (err)
+	{
 		goto exit_free;
+	}
 
 	/* We can access status register. Get Critical Temperature */
 	tdata->tjmax = get_tjmax(c, cpu, &pdev->dev);
@@ -515,12 +586,15 @@ static int create_core_data(struct platform_device *pdev, unsigned int cpu,
 	 * The target temperature is available on older CPUs but not in this
 	 * register. Atoms don't have the register at all.
 	 */
-	if (c->x86_model > 0xe && c->x86_model != 0x1c) {
+	if (c->x86_model > 0xe && c->x86_model != 0x1c)
+	{
 		err = rdmsr_safe_on_cpu(cpu, MSR_IA32_TEMPERATURE_TARGET,
-					&eax, &edx);
-		if (!err) {
+								&eax, &edx);
+
+		if (!err)
+		{
 			tdata->ttarget
-			  = tdata->tjmax - ((eax >> 8) & 0xff) * 1000;
+				= tdata->tjmax - ((eax >> 8) & 0xff) * 1000;
 			tdata->attr_size++;
 		}
 	}
@@ -529,8 +603,11 @@ static int create_core_data(struct platform_device *pdev, unsigned int cpu,
 
 	/* Create sysfs interfaces */
 	err = create_core_attrs(tdata, pdata->hwmon_dev, attr_no);
+
 	if (err)
+	{
 		goto exit_free;
+	}
 
 	return 0;
 exit_free:
@@ -545,15 +622,20 @@ static void coretemp_add_core(unsigned int cpu, int pkg_flag)
 	int err;
 
 	if (!pdev)
+	{
 		return;
+	}
 
 	err = create_core_data(pdev, cpu, pkg_flag);
+
 	if (err)
+	{
 		dev_err(&pdev->dev, "Adding Core %u failed\n", cpu);
+	}
 }
 
 static void coretemp_remove_core(struct platform_data *pdata,
-				 int indx)
+								 int indx)
 {
 	struct temp_data *tdata = pdata->core_data[indx];
 
@@ -571,14 +653,17 @@ static int coretemp_probe(struct platform_device *pdev)
 
 	/* Initialize the per-package data structures */
 	pdata = devm_kzalloc(dev, sizeof(struct platform_data), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
 
 	pdata->phys_proc_id = pdev->id;
 	platform_set_drvdata(pdev, pdata);
 
 	pdata->hwmon_dev = devm_hwmon_device_register_with_groups(dev, DRVNAME,
-								  pdata, NULL);
+					   pdata, NULL);
 	return PTR_ERR_OR_ZERO(pdata->hwmon_dev);
 }
 
@@ -589,12 +674,15 @@ static int coretemp_remove(struct platform_device *pdev)
 
 	for (i = MAX_CORE_DATA - 1; i >= 0; --i)
 		if (pdata->core_data[i])
+		{
 			coretemp_remove_core(pdata, i);
+		}
 
 	return 0;
 }
 
-static struct platform_driver coretemp_driver = {
+static struct platform_driver coretemp_driver =
+{
 	.driver = {
 		.name = DRVNAME,
 	},
@@ -611,20 +699,26 @@ static int coretemp_device_add(unsigned int cpu)
 	mutex_lock(&pdev_list_mutex);
 
 	pdev = platform_device_alloc(DRVNAME, TO_PHYS_ID(cpu));
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		err = -ENOMEM;
 		pr_err("Device allocation failed\n");
 		goto exit;
 	}
 
 	pdev_entry = kzalloc(sizeof(struct pdev_entry), GFP_KERNEL);
-	if (!pdev_entry) {
+
+	if (!pdev_entry)
+	{
 		err = -ENOMEM;
 		goto exit_device_put;
 	}
 
 	err = platform_device_add(pdev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Device addition failed (%d)\n", err);
 		goto exit_device_free;
 	}
@@ -652,9 +746,13 @@ static void coretemp_device_remove(unsigned int cpu)
 	u16 phys_proc_id = TO_PHYS_ID(cpu);
 
 	mutex_lock(&pdev_list_mutex);
-	list_for_each_entry_safe(p, n, &pdev_list, list) {
+	list_for_each_entry_safe(p, n, &pdev_list, list)
+	{
 		if (p->phys_proc_id != phys_proc_id)
+		{
 			continue;
+		}
+
 		platform_device_unregister(p->pdev);
 		list_del(&p->list);
 		kfree(p);
@@ -667,12 +765,15 @@ static bool is_any_core_online(struct platform_data *pdata)
 	int i;
 
 	/* Find online cores, except pkgtemp data */
-	for (i = MAX_CORE_DATA - 1; i >= 0; --i) {
+	for (i = MAX_CORE_DATA - 1; i >= 0; --i)
+	{
 		if (pdata->core_data[i] &&
-			!pdata->core_data[i]->is_pkg_data) {
+			!pdata->core_data[i]->is_pkg_data)
+		{
 			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -688,12 +789,17 @@ static void get_core_online(unsigned int cpu)
 	 * without thermal sensors will be filtered out.
 	 */
 	if (!cpu_has(c, X86_FEATURE_DTHERM))
+	{
 		return;
+	}
 
-	if (!pdev) {
+	if (!pdev)
+	{
 		/* Check the microcode version of the CPU */
 		if (chk_ucode_version(cpu))
+		{
 			return;
+		}
 
 		/*
 		 * Alright, we have DTS support.
@@ -702,15 +808,22 @@ static void get_core_online(unsigned int cpu)
 		 * then bring this core online.
 		 */
 		err = coretemp_device_add(cpu);
+
 		if (err)
+		{
 			return;
+		}
+
 		/*
 		 * Check whether pkgtemp support is available.
 		 * If so, add interfaces for pkgtemp.
 		 */
 		if (cpu_has(c, X86_FEATURE_PTS))
+		{
 			coretemp_add_core(cpu, 1);
+		}
 	}
+
 	/*
 	 * Physical CPU device already exists.
 	 * So, just add interfaces for this core.
@@ -726,7 +839,9 @@ static void put_core_offline(unsigned int cpu)
 
 	/* If the physical CPU device does not exist, just return */
 	if (!pdev)
+	{
 		return;
+	}
 
 	pdata = platform_get_drvdata(pdev);
 
@@ -734,10 +849,14 @@ static void put_core_offline(unsigned int cpu)
 
 	/* The core id is too big, just return */
 	if (indx > MAX_CORE_DATA - 1)
+	{
 		return;
+	}
 
 	if (pdata->core_data[indx] && pdata->core_data[indx]->cpu == cpu)
+	{
 		coretemp_remove_core(pdata, indx);
+	}
 
 	/*
 	 * If a HT sibling of a core is taken offline, but another HT sibling
@@ -745,8 +864,10 @@ static void put_core_offline(unsigned int cpu)
 	 * This ensures that exactly one set of attributes is provided as long
 	 * as at least one HT sibling of a core is online.
 	 */
-	for_each_sibling(i, cpu) {
-		if (i != cpu) {
+	for_each_sibling(i, cpu)
+	{
+		if (i != cpu)
+		{
 			get_core_online(i);
 			/*
 			 * Display temperature sensor data for one HT sibling
@@ -756,6 +877,7 @@ static void put_core_offline(unsigned int cpu)
 			break;
 		}
 	}
+
 	/*
 	 * If all cores in this pkg are offline, remove the device.
 	 * coretemp_device_remove calls unregister_platform_device,
@@ -763,31 +885,38 @@ static void put_core_offline(unsigned int cpu)
 	 * pkgtemp entry and does other clean ups.
 	 */
 	if (!is_any_core_online(pdata))
+	{
 		coretemp_device_remove(cpu);
+	}
 }
 
 static int coretemp_cpu_callback(struct notifier_block *nfb,
-				 unsigned long action, void *hcpu)
+								 unsigned long action, void *hcpu)
 {
 	unsigned int cpu = (unsigned long) hcpu;
 
-	switch (action) {
-	case CPU_ONLINE:
-	case CPU_DOWN_FAILED:
-		get_core_online(cpu);
-		break;
-	case CPU_DOWN_PREPARE:
-		put_core_offline(cpu);
-		break;
+	switch (action)
+	{
+		case CPU_ONLINE:
+		case CPU_DOWN_FAILED:
+			get_core_online(cpu);
+			break;
+
+		case CPU_DOWN_PREPARE:
+			put_core_offline(cpu);
+			break;
 	}
+
 	return NOTIFY_OK;
 }
 
-static struct notifier_block coretemp_cpu_notifier __refdata = {
+static struct notifier_block coretemp_cpu_notifier __refdata =
+{
 	.notifier_call = coretemp_cpu_callback,
 };
 
-static const struct x86_cpu_id __initconst coretemp_ids[] = {
+static const struct x86_cpu_id __initconst coretemp_ids[] =
+{
 	{ X86_VENDOR_INTEL, X86_FAMILY_ANY, X86_MODEL_ANY, X86_FEATURE_DTHERM },
 	{}
 };
@@ -803,22 +932,30 @@ static int __init coretemp_init(void)
 	 * without thermal sensors will be filtered out.
 	 */
 	if (!x86_match_cpu(coretemp_ids))
+	{
 		return -ENODEV;
+	}
 
 	err = platform_driver_register(&coretemp_driver);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	cpu_notifier_register_begin();
 	for_each_online_cpu(i)
-		get_core_online(i);
+	get_core_online(i);
 
 #ifndef CONFIG_HOTPLUG_CPU
-	if (list_empty(&pdev_list)) {
+
+	if (list_empty(&pdev_list))
+	{
 		cpu_notifier_register_done();
 		err = -ENODEV;
 		goto exit_driver_unreg;
 	}
+
 #endif
 
 	__register_hotcpu_notifier(&coretemp_cpu_notifier);
@@ -840,7 +977,8 @@ static void __exit coretemp_exit(void)
 	cpu_notifier_register_begin();
 	__unregister_hotcpu_notifier(&coretemp_cpu_notifier);
 	mutex_lock(&pdev_list_mutex);
-	list_for_each_entry_safe(p, n, &pdev_list, list) {
+	list_for_each_entry_safe(p, n, &pdev_list, list)
+	{
 		platform_device_unregister(p->pdev);
 		list_del(&p->list);
 		kfree(p);

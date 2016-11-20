@@ -26,10 +26,15 @@ int of_irq_parse_pci(const struct pci_dev *pdev, struct of_phandle_args *out_irq
 	 * device tree parsing
 	 */
 	dn = pci_device_to_OF_node(pdev);
-	if (dn) {
+
+	if (dn)
+	{
 		rc = of_irq_parse_one(dn, 0, out_irq);
+
 		if (!rc)
+		{
 			return rc;
+		}
 	}
 
 	/* Ok, we don't, time to have fun. Let's start by building up an
@@ -37,27 +42,38 @@ int of_irq_parse_pci(const struct pci_dev *pdev, struct of_phandle_args *out_irq
 	 * for PCI. If you do different, then don't use that routine.
 	 */
 	rc = pci_read_config_byte(pdev, PCI_INTERRUPT_PIN, &pin);
+
 	if (rc != 0)
+	{
 		goto err;
+	}
+
 	/* No pin, exit with no error message. */
 	if (pin == 0)
+	{
 		return -ENODEV;
+	}
 
 	/* Now we walk up the PCI tree */
-	for (;;) {
+	for (;;)
+	{
 		/* Get the pci_dev of our parent */
 		ppdev = pdev->bus->self;
 
 		/* Ouch, it's a host bridge... */
-		if (ppdev == NULL) {
+		if (ppdev == NULL)
+		{
 			ppnode = pci_bus_to_OF_node(pdev->bus);
 
 			/* No node for host bridge ? give up */
-			if (ppnode == NULL) {
+			if (ppnode == NULL)
+			{
 				rc = -EINVAL;
 				goto err;
 			}
-		} else {
+		}
+		else
+		{
 			/* We found a P2P bridge, check if it has a node */
 			ppnode = pci_device_to_OF_node(ppdev);
 		}
@@ -74,7 +90,9 @@ int of_irq_parse_pci(const struct pci_dev *pdev, struct of_phandle_args *out_irq
 		 * create device nodes for all PCI devices).
 		 */
 		if (ppnode)
+		{
 			break;
+		}
 
 		/* We can only get here if we hit a P2P bridge with no node,
 		 * let's do standard swizzling and try again
@@ -89,8 +107,12 @@ int of_irq_parse_pci(const struct pci_dev *pdev, struct of_phandle_args *out_irq
 	laddr[0] = cpu_to_be32((pdev->bus->number << 16) | (pdev->devfn << 8));
 	laddr[1] = laddr[2] = cpu_to_be32(0);
 	rc = of_irq_parse_raw(laddr, out_irq);
+
 	if (rc)
+	{
 		goto err;
+	}
+
 	return 0;
 err:
 	dev_err(&pdev->dev, "of_irq_parse_pci() failed with rc=%d\n", rc);
@@ -113,8 +135,11 @@ int of_irq_parse_and_map_pci(const struct pci_dev *dev, u8 slot, u8 pin)
 	int ret;
 
 	ret = of_irq_parse_pci(dev, &oirq);
+
 	if (ret)
-		return 0; /* Proper return code 0 == NO_IRQ */
+	{
+		return 0;    /* Proper return code 0 == NO_IRQ */
+	}
 
 	return irq_create_of_mapping(&oirq);
 }

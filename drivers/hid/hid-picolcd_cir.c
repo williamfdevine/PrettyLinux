@@ -41,7 +41,7 @@
 
 
 int picolcd_raw_cir(struct picolcd_data *data,
-		struct hid_report *report, u8 *raw_data, int size)
+					struct hid_report *report, u8 *raw_data, int size)
 {
 	unsigned long flags;
 	int i, w, sz;
@@ -49,10 +49,13 @@ int picolcd_raw_cir(struct picolcd_data *data,
 
 	/* ignore if rc_dev is NULL or status is shunned */
 	spin_lock_irqsave(&data->lock, flags);
-	if (!data->rc_dev || (data->status & PICOLCD_CIR_SHUN)) {
+
+	if (!data->rc_dev || (data->status & PICOLCD_CIR_SHUN))
+	{
 		spin_unlock_irqrestore(&data->lock, flags);
 		return 1;
 	}
+
 	spin_unlock_irqrestore(&data->lock, flags);
 
 	/* PicoLCD USB packets contain 16-bit intervals in network order,
@@ -65,17 +68,24 @@ int picolcd_raw_cir(struct picolcd_data *data,
 	 * interval for non-first report of IR data - thus the quirk below
 	 * to get RC_CODE to understand Sony and JVC remotes I have at hand
 	 */
-	sz = size > 0 ? min((int)raw_data[0], size-1) : 0;
-	for (i = 0; i+1 < sz; i += 2) {
+	sz = size > 0 ? min((int)raw_data[0], size - 1) : 0;
+
+	for (i = 0; i + 1 < sz; i += 2)
+	{
 		init_ir_raw_event(&rawir);
-		w = (raw_data[i] << 8) | (raw_data[i+1]);
+		w = (raw_data[i] << 8) | (raw_data[i + 1]);
 		rawir.pulse = !!(w & 0x8000);
 		rawir.duration = US_TO_NS(rawir.pulse ? (65536 - w) : w);
+
 		/* Quirk!! - see above */
 		if (i == 0 && rawir.duration > 15000000)
+		{
 			rawir.duration -= 15000000;
+		}
+
 		ir_raw_event_store(data->rc_dev, &rawir);
 	}
+
 	ir_raw_event_handle(data->rc_dev);
 
 	return 1;
@@ -109,8 +119,11 @@ int picolcd_init_cir(struct picolcd_data *data, struct hid_report *report)
 	int ret = 0;
 
 	rdev = rc_allocate_device();
+
 	if (!rdev)
+	{
 		return -ENOMEM;
+	}
 
 	rdev->priv             = data;
 	rdev->driver_type      = RC_DRIVER_IR_RAW;
@@ -130,8 +143,12 @@ int picolcd_init_cir(struct picolcd_data *data, struct hid_report *report)
 	rdev->rx_resolution    = US_TO_NS(1);
 
 	ret = rc_register_device(rdev);
+
 	if (ret)
+	{
 		goto err;
+	}
+
 	data->rc_dev = rdev;
 	return 0;
 

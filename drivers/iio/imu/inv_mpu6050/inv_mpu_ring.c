@@ -41,58 +41,90 @@ int inv_reset_fifo(struct iio_dev *indio_dev)
 
 	/* disable interrupt */
 	result = regmap_write(st->map, st->reg->int_enable, 0);
-	if (result) {
+
+	if (result)
+	{
 		dev_err(regmap_get_device(st->map), "int_enable failed %d\n",
-			result);
+				result);
 		return result;
 	}
+
 	/* disable the sensor output to FIFO */
 	result = regmap_write(st->map, st->reg->fifo_en, 0);
+
 	if (result)
+	{
 		goto reset_fifo_fail;
+	}
+
 	/* disable fifo reading */
 	result = regmap_write(st->map, st->reg->user_ctrl, 0);
+
 	if (result)
+	{
 		goto reset_fifo_fail;
+	}
 
 	/* reset FIFO*/
 	result = regmap_write(st->map, st->reg->user_ctrl,
-			      INV_MPU6050_BIT_FIFO_RST);
+						  INV_MPU6050_BIT_FIFO_RST);
+
 	if (result)
+	{
 		goto reset_fifo_fail;
+	}
 
 	/* clear timestamps fifo */
 	inv_clear_kfifo(st);
 
 	/* enable interrupt */
 	if (st->chip_config.accl_fifo_enable ||
-	    st->chip_config.gyro_fifo_enable) {
+		st->chip_config.gyro_fifo_enable)
+	{
 		result = regmap_write(st->map, st->reg->int_enable,
-				      INV_MPU6050_BIT_DATA_RDY_EN);
+							  INV_MPU6050_BIT_DATA_RDY_EN);
+
 		if (result)
+		{
 			return result;
+		}
 	}
+
 	/* enable FIFO reading and I2C master interface*/
 	result = regmap_write(st->map, st->reg->user_ctrl,
-			      INV_MPU6050_BIT_FIFO_EN);
+						  INV_MPU6050_BIT_FIFO_EN);
+
 	if (result)
+	{
 		goto reset_fifo_fail;
+	}
+
 	/* enable sensor output to FIFO */
 	d = 0;
+
 	if (st->chip_config.gyro_fifo_enable)
+	{
 		d |= INV_MPU6050_BITS_GYRO_OUT;
+	}
+
 	if (st->chip_config.accl_fifo_enable)
+	{
 		d |= INV_MPU6050_BIT_ACCEL_OUT;
+	}
+
 	result = regmap_write(st->map, st->reg->fifo_en, d);
+
 	if (result)
+	{
 		goto reset_fifo_fail;
+	}
 
 	return 0;
 
 reset_fifo_fail:
 	dev_err(regmap_get_device(st->map), "reset fifo failed %d\n", result);
 	result = regmap_write(st->map, st->reg->int_enable,
-			      INV_MPU6050_BIT_DATA_RDY_EN);
+						  INV_MPU6050_BIT_DATA_RDY_EN);
 
 	return result;
 }
@@ -109,7 +141,7 @@ irqreturn_t inv_mpu6050_irq_handler(int irq, void *p)
 
 	timestamp = iio_get_time_ns(indio_dev);
 	kfifo_in_spinlocked(&st->timestamps, &timestamp, 1,
-			    &st->time_stamp_lock);
+						&st->time_stamp_lock);
 
 	return IRQ_WAKE_THREAD;
 }
@@ -129,51 +161,88 @@ irqreturn_t inv_mpu6050_read_fifo(int irq, void *p)
 	s64 timestamp;
 
 	mutex_lock(&indio_dev->mlock);
+
 	if (!(st->chip_config.accl_fifo_enable |
-		st->chip_config.gyro_fifo_enable))
+		  st->chip_config.gyro_fifo_enable))
+	{
 		goto end_session;
+	}
+
 	bytes_per_datum = 0;
+
 	if (st->chip_config.accl_fifo_enable)
+	{
 		bytes_per_datum += INV_MPU6050_BYTES_PER_3AXIS_SENSOR;
+	}
 
 	if (st->chip_config.gyro_fifo_enable)
+	{
 		bytes_per_datum += INV_MPU6050_BYTES_PER_3AXIS_SENSOR;
+	}
 
 	/*
 	 * read fifo_count register to know how many bytes inside FIFO
 	 * right now
 	 */
 	result = regmap_bulk_read(st->map, st->reg->fifo_count_h, data,
-				  INV_MPU6050_FIFO_COUNT_BYTE);
+							  INV_MPU6050_FIFO_COUNT_BYTE);
+
 	if (result)
+	{
 		goto end_session;
+	}
+
 	fifo_count = be16_to_cpup((__be16 *)(&data[0]));
+
 	if (fifo_count < bytes_per_datum)
+	{
 		goto end_session;
+	}
+
 	/* fifo count can't be odd number, if it is odd, reset fifo*/
 	if (fifo_count & 1)
+	{
 		goto flush_fifo;
+	}
+
 	if (fifo_count >  INV_MPU6050_FIFO_THRESHOLD)
+	{
 		goto flush_fifo;
+	}
+
 	/* Timestamp mismatch. */
 	if (kfifo_len(&st->timestamps) >
-	    fifo_count / bytes_per_datum + INV_MPU6050_TIME_STAMP_TOR)
+		fifo_count / bytes_per_datum + INV_MPU6050_TIME_STAMP_TOR)
+	{
 		goto flush_fifo;
-	while (fifo_count >= bytes_per_datum) {
+	}
+
+	while (fifo_count >= bytes_per_datum)
+	{
 		result = regmap_bulk_read(st->map, st->reg->fifo_r_w,
-					  data, bytes_per_datum);
+								  data, bytes_per_datum);
+
 		if (result)
+		{
 			goto flush_fifo;
+		}
 
 		result = kfifo_out(&st->timestamps, &timestamp, 1);
+
 		/* when there is no timestamp, put timestamp as 0 */
 		if (result == 0)
+		{
 			timestamp = 0;
+		}
 
 		result = iio_push_to_buffers_with_timestamp(indio_dev, data,
-							    timestamp);
+				 timestamp);
+
 		if (result)
+		{
 			goto flush_fifo;
+		}
+
 		fifo_count -= bytes_per_datum;
 	}
 

@@ -35,7 +35,8 @@
 
 #define SDHCI_AT91_PRESET_COMMON_CONF	0x400 /* drv type B, programmable clock mode */
 
-struct sdhci_at91_priv {
+struct sdhci_at91_priv
+{
 	struct clk *hclock;
 	struct clk *gck;
 	struct clk *mainck;
@@ -61,7 +62,9 @@ static void sdhci_at91_set_clock(struct sdhci_host *host, unsigned int clock)
 	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
 
 	if (clock == 0)
+	{
 		return;
+	}
 
 	clk = sdhci_calc_clk(host, clock, &host->mmc->actual_clock);
 
@@ -70,13 +73,17 @@ static void sdhci_at91_set_clock(struct sdhci_host *host, unsigned int clock)
 
 	/* Wait max 20 ms */
 	timeout = 20;
+
 	while (!((clk = sdhci_readw(host, SDHCI_CLOCK_CONTROL))
-		& SDHCI_CLOCK_INT_STABLE)) {
-		if (timeout == 0) {
+			 & SDHCI_CLOCK_INT_STABLE))
+	{
+		if (timeout == 0)
+		{
 			pr_err("%s: Internal clock never stabilised.\n",
-			       mmc_hostname(host->mmc));
+				   mmc_hostname(host->mmc));
 			return;
 		}
+
 		timeout--;
 		mdelay(1);
 	}
@@ -85,18 +92,21 @@ static void sdhci_at91_set_clock(struct sdhci_host *host, unsigned int clock)
 	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
 }
 
-static const struct sdhci_ops sdhci_at91_sama5d2_ops = {
+static const struct sdhci_ops sdhci_at91_sama5d2_ops =
+{
 	.set_clock		= sdhci_at91_set_clock,
 	.set_bus_width		= sdhci_set_bus_width,
 	.reset			= sdhci_reset,
 	.set_uhs_signaling	= sdhci_set_uhs_signaling,
 };
 
-static const struct sdhci_pltfm_data soc_data_sama5d2 = {
+static const struct sdhci_pltfm_data soc_data_sama5d2 =
+{
 	.ops = &sdhci_at91_sama5d2_ops,
 };
 
-static const struct of_device_id sdhci_at91_dt_match[] = {
+static const struct of_device_id sdhci_at91_dt_match[] =
+{
 	{ .compatible = "atmel,sama5d2-sdhci", .data = &soc_data_sama5d2 },
 	{}
 };
@@ -126,19 +136,25 @@ static int sdhci_at91_runtime_resume(struct device *dev)
 	int ret;
 
 	ret = clk_prepare_enable(priv->mainck);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "can't enable mainck\n");
 		return ret;
 	}
 
 	ret = clk_prepare_enable(priv->hclock);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "can't enable hclock\n");
 		return ret;
 	}
 
 	ret = clk_prepare_enable(priv->gck);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "can't enable gck\n");
 		return ret;
 	}
@@ -147,12 +163,13 @@ static int sdhci_at91_runtime_resume(struct device *dev)
 }
 #endif /* CONFIG_PM */
 
-static const struct dev_pm_ops sdhci_at91_dev_pm_ops = {
+static const struct dev_pm_ops sdhci_at91_dev_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-				pm_runtime_force_resume)
+	pm_runtime_force_resume)
 	SET_RUNTIME_PM_OPS(sdhci_at91_runtime_suspend,
-			   sdhci_at91_runtime_resume,
-			   NULL)
+	sdhci_at91_runtime_resume,
+	NULL)
 };
 
 static int sdhci_at91_probe(struct platform_device *pdev)
@@ -169,31 +186,44 @@ static int sdhci_at91_probe(struct platform_device *pdev)
 	unsigned int			preset_div;
 
 	match = of_match_device(sdhci_at91_dt_match, &pdev->dev);
+
 	if (!match)
+	{
 		return -EINVAL;
+	}
+
 	soc_data = match->data;
 
 	host = sdhci_pltfm_init(pdev, soc_data, sizeof(*priv));
+
 	if (IS_ERR(host))
+	{
 		return PTR_ERR(host);
+	}
 
 	pltfm_host = sdhci_priv(host);
 	priv = sdhci_pltfm_priv(pltfm_host);
 
 	priv->mainck = devm_clk_get(&pdev->dev, "baseclk");
-	if (IS_ERR(priv->mainck)) {
+
+	if (IS_ERR(priv->mainck))
+	{
 		dev_err(&pdev->dev, "failed to get baseclk\n");
 		return PTR_ERR(priv->mainck);
 	}
 
 	priv->hclock = devm_clk_get(&pdev->dev, "hclock");
-	if (IS_ERR(priv->hclock)) {
+
+	if (IS_ERR(priv->hclock))
+	{
 		dev_err(&pdev->dev, "failed to get hclock\n");
 		return PTR_ERR(priv->hclock);
 	}
 
 	priv->gck = devm_clk_get(&pdev->dev, "multclk");
-	if (IS_ERR(priv->gck)) {
+
+	if (IS_ERR(priv->gck))
+	{
 		dev_err(&pdev->dev, "failed to get multclk\n");
 		return PTR_ERR(priv->gck);
 	}
@@ -210,10 +240,13 @@ static int sdhci_at91_probe(struct platform_device *pdev)
 	clk_mul = (caps1 & SDHCI_CLOCK_MUL_MASK) >> SDHCI_CLOCK_MUL_SHIFT;
 	gck_rate = clk_base * 1000000 * (clk_mul + 1);
 	ret = clk_set_rate(priv->gck, gck_rate);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to set gck");
 		goto hclock_disable_unprepare;
 	}
+
 	/*
 	 * We need to check if we have the requested rate for gck because in
 	 * some cases this rate could be not supported. If it happens, the rate
@@ -221,7 +254,9 @@ static int sdhci_at91_probe(struct platform_device *pdev)
 	 * of clk mul.
 	 */
 	real_gck_rate = clk_get_rate(priv->gck);
-	if (real_gck_rate != gck_rate) {
+
+	if (real_gck_rate != gck_rate)
+	{
 		clk_mul = real_gck_rate / (clk_base * 1000000) - 1;
 		caps1 &= (~SDHCI_CLOCK_MUL_MASK);
 		caps1 |= ((clk_mul << SDHCI_CLOCK_MUL_SHIFT) & SDHCI_CLOCK_MUL_MASK);
@@ -231,7 +266,7 @@ static int sdhci_at91_probe(struct platform_device *pdev)
 		/* Set capabilities in ro mode. */
 		writel(0, host->ioaddr + SDMMC_CACR);
 		dev_info(&pdev->dev, "update clk mul to %u as gck rate is %u Hz\n",
-			 clk_mul, real_gck_rate);
+				 clk_mul, real_gck_rate);
 	}
 
 	/*
@@ -242,26 +277,29 @@ static int sdhci_at91_probe(struct platform_device *pdev)
 	 */
 	preset_div = DIV_ROUND_UP(real_gck_rate, 24000000) - 1;
 	writew(SDHCI_AT91_PRESET_COMMON_CONF | preset_div,
-	       host->ioaddr + SDHCI_PRESET_FOR_SDR12);
+		   host->ioaddr + SDHCI_PRESET_FOR_SDR12);
 	preset_div = DIV_ROUND_UP(real_gck_rate, 50000000) - 1;
 	writew(SDHCI_AT91_PRESET_COMMON_CONF | preset_div,
-	       host->ioaddr + SDHCI_PRESET_FOR_SDR25);
+		   host->ioaddr + SDHCI_PRESET_FOR_SDR25);
 	preset_div = DIV_ROUND_UP(real_gck_rate, 100000000) - 1;
 	writew(SDHCI_AT91_PRESET_COMMON_CONF | preset_div,
-	       host->ioaddr + SDHCI_PRESET_FOR_SDR50);
+		   host->ioaddr + SDHCI_PRESET_FOR_SDR50);
 	preset_div = DIV_ROUND_UP(real_gck_rate, 120000000) - 1;
 	writew(SDHCI_AT91_PRESET_COMMON_CONF | preset_div,
-	       host->ioaddr + SDHCI_PRESET_FOR_SDR104);
+		   host->ioaddr + SDHCI_PRESET_FOR_SDR104);
 	preset_div = DIV_ROUND_UP(real_gck_rate, 50000000) - 1;
 	writew(SDHCI_AT91_PRESET_COMMON_CONF | preset_div,
-	       host->ioaddr + SDHCI_PRESET_FOR_DDR50);
+		   host->ioaddr + SDHCI_PRESET_FOR_DDR50);
 
 	clk_prepare_enable(priv->mainck);
 	clk_prepare_enable(priv->gck);
 
 	ret = mmc_of_parse(host->mmc);
+
 	if (ret)
+	{
 		goto clocks_disable_unprepare;
+	}
 
 	sdhci_get_of_property(pdev);
 
@@ -272,8 +310,11 @@ static int sdhci_at91_probe(struct platform_device *pdev)
 	pm_runtime_use_autosuspend(&pdev->dev);
 
 	ret = sdhci_add_host(host);
+
 	if (ret)
+	{
 		goto pm_runtime_disable;
+	}
 
 	/*
 	 * When calling sdhci_runtime_suspend_host(), the sdhci layer makes
@@ -289,7 +330,8 @@ static int sdhci_at91_probe(struct platform_device *pdev)
 	 * to enable polling via device tree with broken-cd property.
 	 */
 	if (mmc_card_is_removable(host->mmc) &&
-	    mmc_gpio_get_cd(host->mmc) < 0) {
+		mmc_gpio_get_cd(host->mmc) < 0)
+	{
 		host->mmc->caps |= MMC_CAP_NEEDS_POLL;
 		host->quirks &= ~SDHCI_QUIRK_BROKEN_CARD_DETECTION;
 	}
@@ -333,7 +375,8 @@ static int sdhci_at91_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver sdhci_at91_driver = {
+static struct platform_driver sdhci_at91_driver =
+{
 	.driver		= {
 		.name	= "sdhci-at91",
 		.of_match_table = sdhci_at91_dt_match,

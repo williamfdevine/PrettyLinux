@@ -13,7 +13,8 @@
 #ifndef _LINUX_TCP_STATES_H
 #define _LINUX_TCP_STATES_H
 
-enum {
+enum
+{
 	TCP_ESTABLISHED = 1,
 	TCP_SYN_SENT,
 	TCP_SYN_RECV,
@@ -34,7 +35,8 @@ enum {
 
 #define TCP_ACTION_FIN	(1 << 7)
 
-enum {
+enum
+{
 	TCPF_ESTABLISHED = (1 << 1),
 	TCPF_SYN_SENT	 = (1 << 2),
 	TCPF_SYN_RECV	 = (1 << 3),

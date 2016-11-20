@@ -59,7 +59,8 @@
 
 /* Description of in-progress IO operation, used for operations
  * that trigger response from device */
-struct picolcd_pending {
+struct picolcd_pending
+{
 	struct hid_report *out_report;
 	struct hid_report *in_report;
 	struct completion ready;
@@ -71,7 +72,8 @@ struct picolcd_pending {
 #define PICOLCD_KEYS 17
 
 /* Per device data structure */
-struct picolcd_data {
+struct picolcd_data
+{
 	struct hid_device *hdev;
 #ifdef CONFIG_DEBUG_FS
 	struct dentry *debug_reset;
@@ -120,7 +122,8 @@ struct picolcd_data {
 };
 
 #ifdef CONFIG_HID_PICOLCD_FB
-struct picolcd_fb_data {
+struct picolcd_fb_data
+{
 	/* Framebuffer stuff */
 	spinlock_t lock;
 	struct picolcd_data *picolcd;
@@ -141,7 +144,7 @@ struct hid_report *picolcd_report(int id, struct hid_device *hdev, int dir);
 
 #ifdef CONFIG_DEBUG_FS
 void picolcd_debug_out_report(struct picolcd_data *data,
-		struct hid_device *hdev, struct hid_report *report);
+							  struct hid_device *hdev, struct hid_report *report);
 #define hid_hw_request(a, b, c) \
 	do { \
 		picolcd_debug_out_report(hid_get_drvdata(a), a, b); \
@@ -149,13 +152,13 @@ void picolcd_debug_out_report(struct picolcd_data *data,
 	} while (0)
 
 void picolcd_debug_raw_event(struct picolcd_data *data,
-		struct hid_device *hdev, struct hid_report *report,
-		u8 *raw_data, int size);
+							 struct hid_device *hdev, struct hid_report *report,
+							 u8 *raw_data, int size);
 
 void picolcd_init_devfs(struct picolcd_data *data,
-		struct hid_report *eeprom_r, struct hid_report *eeprom_w,
-		struct hid_report *flash_r, struct hid_report *flash_w,
-		struct hid_report *reset);
+						struct hid_report *eeprom_r, struct hid_report *eeprom_w,
+						struct hid_report *flash_r, struct hid_report *flash_w,
+						struct hid_report *reset);
 
 void picolcd_exit_devfs(struct picolcd_data *data);
 #else
@@ -169,9 +172,9 @@ static inline void picolcd_debug_raw_event(struct picolcd_data *data,
 {
 }
 static inline void picolcd_init_devfs(struct picolcd_data *data,
-		struct hid_report *eeprom_r, struct hid_report *eeprom_w,
-		struct hid_report *flash_r, struct hid_report *flash_w,
-		struct hid_report *reset)
+									  struct hid_report *eeprom_r, struct hid_report *eeprom_w,
+									  struct hid_report *flash_r, struct hid_report *flash_w,
+									  struct hid_report *reset)
 {
 }
 static inline void picolcd_exit_devfs(struct picolcd_data *data)
@@ -210,7 +213,7 @@ static inline void picolcd_fb_refresh(struct picolcd_data *data)
 
 #ifdef CONFIG_HID_PICOLCD_BACKLIGHT
 int picolcd_init_backlight(struct picolcd_data *data,
-		struct hid_report *report);
+						   struct hid_report *report);
 
 void picolcd_exit_backlight(struct picolcd_data *data);
 
@@ -239,14 +242,14 @@ static inline void picolcd_suspend_backlight(struct picolcd_data *data)
 
 #ifdef CONFIG_HID_PICOLCD_LCD
 int picolcd_init_lcd(struct picolcd_data *data,
-		struct hid_report *report);
+					 struct hid_report *report);
 
 void picolcd_exit_lcd(struct picolcd_data *data);
 
 int picolcd_resume_lcd(struct picolcd_data *data);
 #else
 static inline int picolcd_init_lcd(struct picolcd_data *data,
-		struct hid_report *report)
+								   struct hid_report *report)
 {
 	return 0;
 }
@@ -262,14 +265,14 @@ static inline int picolcd_resume_lcd(struct picolcd_data *data)
 
 #ifdef CONFIG_HID_PICOLCD_LEDS
 int picolcd_init_leds(struct picolcd_data *data,
-		struct hid_report *report);
+					  struct hid_report *report);
 
 void picolcd_exit_leds(struct picolcd_data *data);
 
 void picolcd_leds_set(struct picolcd_data *data);
 #else
 static inline int picolcd_init_leds(struct picolcd_data *data,
-		struct hid_report *report)
+									struct hid_report *report)
 {
 	return 0;
 }
@@ -284,14 +287,14 @@ static inline void picolcd_leds_set(struct picolcd_data *data)
 
 #ifdef CONFIG_HID_PICOLCD_CIR
 int picolcd_raw_cir(struct picolcd_data *data,
-		struct hid_report *report, u8 *raw_data, int size);
+					struct hid_report *report, u8 *raw_data, int size);
 
 int picolcd_init_cir(struct picolcd_data *data, struct hid_report *report);
 
 void picolcd_exit_cir(struct picolcd_data *data);
 #else
 static inline int picolcd_raw_cir(struct picolcd_data *data,
-		struct hid_report *report, u8 *raw_data, int size)
+								  struct hid_report *report, u8 *raw_data, int size)
 {
 	return 1;
 }
@@ -306,4 +309,4 @@ static inline void picolcd_exit_cir(struct picolcd_data *data)
 
 int picolcd_reset(struct hid_device *hdev);
 struct picolcd_pending *picolcd_send_and_wait(struct hid_device *hdev,
-			int report_id, const u8 *raw_data, int size);
+		int report_id, const u8 *raw_data, int size);

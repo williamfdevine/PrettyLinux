@@ -114,44 +114,59 @@ static int self_check_ai(struct ubi_device *ubi, struct ubi_attach_info *ai);
  * the volume does not exist.
  */
 static struct ubi_ainf_volume *find_or_add_av(struct ubi_attach_info *ai,
-					      int vol_id, unsigned int flags,
-					      bool *created)
+		int vol_id, unsigned int flags,
+		bool *created)
 {
 	struct ubi_ainf_volume *av;
 	struct rb_node **p = &ai->volumes.rb_node, *parent = NULL;
 
 	/* Walk the volume RB-tree to look if this volume is already present */
-	while (*p) {
+	while (*p)
+	{
 		parent = *p;
 		av = rb_entry(parent, struct ubi_ainf_volume, rb);
 
-		if (vol_id == av->vol_id) {
+		if (vol_id == av->vol_id)
+		{
 			*created = false;
 
 			if (!(flags & AV_FIND))
+			{
 				return ERR_PTR(-EEXIST);
+			}
 
 			return av;
 		}
 
 		if (vol_id > av->vol_id)
+		{
 			p = &(*p)->rb_left;
+		}
 		else
+		{
 			p = &(*p)->rb_right;
+		}
 	}
 
 	if (!(flags & AV_ADD))
+	{
 		return NULL;
+	}
 
 	/* The volume is absent - add it */
 	av = kzalloc(sizeof(*av), GFP_KERNEL);
+
 	if (!av)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	av->vol_id = vol_id;
 
 	if (vol_id > ai->highest_vol_id)
+	{
 		ai->highest_vol_id = vol_id;
+	}
 
 	rb_link_node(&av->rb, parent, p);
 	rb_insert_color(&av->rb, &ai->volumes);
@@ -172,7 +187,7 @@ static struct ubi_ainf_volume *find_or_add_av(struct ubi_attach_info *ai,
  * ERR_PTR if the operation failed.
  */
 static struct ubi_ainf_volume *ubi_find_or_add_av(struct ubi_attach_info *ai,
-						  int vol_id, bool *created)
+		int vol_id, bool *created)
 {
 	return find_or_add_av(ai, vol_id, AV_FIND_OR_ADD, created);
 }
@@ -189,13 +204,16 @@ static struct ubi_ainf_volume *ubi_find_or_add_av(struct ubi_attach_info *ai,
  * Note that the element is not added in any list or RB tree.
  */
 struct ubi_ainf_peb *ubi_alloc_aeb(struct ubi_attach_info *ai, int pnum,
-				   int ec)
+								   int ec)
 {
 	struct ubi_ainf_peb *aeb;
 
 	aeb = kmem_cache_zalloc(ai->aeb_slab_cache, GFP_KERNEL);
+
 	if (!aeb)
+	{
 		return NULL;
+	}
 
 	aeb->pnum = pnum;
 	aeb->ec = ec;
@@ -240,30 +258,47 @@ void ubi_free_aeb(struct ubi_attach_info *ai, struct ubi_ainf_peb *aeb)
  * failure.
  */
 static int add_to_list(struct ubi_attach_info *ai, int pnum, int vol_id,
-		       int lnum, int ec, int to_head, struct list_head *list)
+					   int lnum, int ec, int to_head, struct list_head *list)
 {
 	struct ubi_ainf_peb *aeb;
 
-	if (list == &ai->free) {
+	if (list == &ai->free)
+	{
 		dbg_bld("add to free: PEB %d, EC %d", pnum, ec);
-	} else if (list == &ai->erase) {
+	}
+	else if (list == &ai->erase)
+	{
 		dbg_bld("add to erase: PEB %d, EC %d", pnum, ec);
-	} else if (list == &ai->alien) {
+	}
+	else if (list == &ai->alien)
+	{
 		dbg_bld("add to alien: PEB %d, EC %d", pnum, ec);
 		ai->alien_peb_count += 1;
-	} else
+	}
+	else
+	{
 		BUG();
+	}
 
 	aeb = ubi_alloc_aeb(ai, pnum, ec);
+
 	if (!aeb)
+	{
 		return -ENOMEM;
+	}
 
 	aeb->vol_id = vol_id;
 	aeb->lnum = lnum;
+
 	if (to_head)
+	{
 		list_add(&aeb->u.list, list);
+	}
 	else
+	{
 		list_add_tail(&aeb->u.list, list);
+	}
+
 	return 0;
 }
 
@@ -285,8 +320,11 @@ static int add_corrupted(struct ubi_attach_info *ai, int pnum, int ec)
 	dbg_bld("add to corrupted: PEB %d, EC %d", pnum, ec);
 
 	aeb = ubi_alloc_aeb(ai, pnum, ec);
+
 	if (!aeb)
+	{
 		return -ENOMEM;
+	}
 
 	ai->corr_peb_count += 1;
 	list_add(&aeb->u.list, &ai->corr);
@@ -307,20 +345,23 @@ static int add_corrupted(struct ubi_attach_info *ai, int pnum, int ec)
  * be erased.
  */
 static int add_fastmap(struct ubi_attach_info *ai, int pnum,
-		       struct ubi_vid_hdr *vid_hdr, int ec)
+					   struct ubi_vid_hdr *vid_hdr, int ec)
 {
 	struct ubi_ainf_peb *aeb;
 
 	aeb = ubi_alloc_aeb(ai, pnum, ec);
+
 	if (!aeb)
+	{
 		return -ENOMEM;
+	}
 
 	aeb->vol_id = be32_to_cpu(vid_hdr->vol_id);
 	aeb->sqnum = be64_to_cpu(vid_hdr->sqnum);
 	list_add(&aeb->u.list, &ai->fastmap);
 
 	dbg_bld("add to fastmap list: PEB %d, vol_id %d, sqnum: %llu", pnum,
-		aeb->vol_id, aeb->sqnum);
+			aeb->vol_id, aeb->sqnum);
 
 	return 0;
 }
@@ -341,15 +382,16 @@ static int add_fastmap(struct ubi_attach_info *ai, int pnum,
  * headers of the same volume.
  */
 static int validate_vid_hdr(const struct ubi_device *ubi,
-			    const struct ubi_vid_hdr *vid_hdr,
-			    const struct ubi_ainf_volume *av, int pnum)
+							const struct ubi_vid_hdr *vid_hdr,
+							const struct ubi_ainf_volume *av, int pnum)
 {
 	int vol_type = vid_hdr->vol_type;
 	int vol_id = be32_to_cpu(vid_hdr->vol_id);
 	int used_ebs = be32_to_cpu(vid_hdr->used_ebs);
 	int data_pad = be32_to_cpu(vid_hdr->data_pad);
 
-	if (av->leb_count != 0) {
+	if (av->leb_count != 0)
+	{
 		int av_vol_type;
 
 		/*
@@ -358,27 +400,35 @@ static int validate_vid_hdr(const struct ubi_device *ubi,
 		 * to the data in previous logical eraseblock headers.
 		 */
 
-		if (vol_id != av->vol_id) {
+		if (vol_id != av->vol_id)
+		{
 			ubi_err(ubi, "inconsistent vol_id");
 			goto bad;
 		}
 
 		if (av->vol_type == UBI_STATIC_VOLUME)
+		{
 			av_vol_type = UBI_VID_STATIC;
+		}
 		else
+		{
 			av_vol_type = UBI_VID_DYNAMIC;
+		}
 
-		if (vol_type != av_vol_type) {
+		if (vol_type != av_vol_type)
+		{
 			ubi_err(ubi, "inconsistent vol_type");
 			goto bad;
 		}
 
-		if (used_ebs != av->used_ebs) {
+		if (used_ebs != av->used_ebs)
+		{
 			ubi_err(ubi, "inconsistent used_ebs");
 			goto bad;
 		}
 
-		if (data_pad != av->data_pad) {
+		if (data_pad != av->data_pad)
+		{
 			ubi_err(ubi, "inconsistent data_pad");
 			goto bad;
 		}
@@ -407,8 +457,8 @@ bad:
  * case of failure.
  */
 static struct ubi_ainf_volume *add_volume(struct ubi_attach_info *ai,
-					  int vol_id, int pnum,
-					  const struct ubi_vid_hdr *vid_hdr)
+		int vol_id, int pnum,
+		const struct ubi_vid_hdr *vid_hdr)
 {
 	struct ubi_ainf_volume *av;
 	bool created;
@@ -416,14 +466,17 @@ static struct ubi_ainf_volume *add_volume(struct ubi_attach_info *ai,
 	ubi_assert(vol_id == be32_to_cpu(vid_hdr->vol_id));
 
 	av = ubi_find_or_add_av(ai, vol_id, &created);
+
 	if (IS_ERR(av) || !created)
+	{
 		return av;
+	}
 
 	av->used_ebs = be32_to_cpu(vid_hdr->used_ebs);
 	av->data_pad = be32_to_cpu(vid_hdr->data_pad);
 	av->compat = vid_hdr->compat;
 	av->vol_type = vid_hdr->vol_type == UBI_VID_DYNAMIC ? UBI_DYNAMIC_VOLUME
-							    : UBI_STATIC_VOLUME;
+				   : UBI_STATIC_VOLUME;
 
 	return av;
 }
@@ -449,14 +502,15 @@ static struct ubi_ainf_volume *add_volume(struct ubi_attach_info *ai,
  *     o bit 2 is set: the older LEB is corrupted.
  */
 int ubi_compare_lebs(struct ubi_device *ubi, const struct ubi_ainf_peb *aeb,
-			int pnum, const struct ubi_vid_hdr *vid_hdr)
+					 int pnum, const struct ubi_vid_hdr *vid_hdr)
 {
 	int len, err, second_is_newer, bitflips = 0, corrupted = 0;
 	uint32_t data_crc, crc;
 	struct ubi_vid_io_buf *vidb = NULL;
 	unsigned long long sqnum2 = be64_to_cpu(vid_hdr->sqnum);
 
-	if (sqnum2 == aeb->sqnum) {
+	if (sqnum2 == aeb->sqnum)
+	{
 		/*
 		 * This must be a really ancient UBI image which has been
 		 * created before sequence numbers support has been added. At
@@ -481,35 +535,51 @@ int ubi_compare_lebs(struct ubi_device *ubi, const struct ubi_ainf_peb *aeb,
 	 * Note: this may be optimized so that we wouldn't read twice.
 	 */
 
-	if (second_is_newer) {
-		if (!vid_hdr->copy_flag) {
+	if (second_is_newer)
+	{
+		if (!vid_hdr->copy_flag)
+		{
 			/* It is not a copy, so it is newer */
 			dbg_bld("second PEB %d is newer, copy_flag is unset",
-				pnum);
+					pnum);
 			return 1;
 		}
-	} else {
-		if (!aeb->copy_flag) {
+	}
+	else
+	{
+		if (!aeb->copy_flag)
+		{
 			/* It is not a copy, so it is newer */
 			dbg_bld("first PEB %d is newer, copy_flag is unset",
-				pnum);
+					pnum);
 			return bitflips << 1;
 		}
 
 		vidb = ubi_alloc_vid_buf(ubi, GFP_KERNEL);
+
 		if (!vidb)
+		{
 			return -ENOMEM;
+		}
 
 		pnum = aeb->pnum;
 		err = ubi_io_read_vid_hdr(ubi, pnum, vidb, 0);
-		if (err) {
+
+		if (err)
+		{
 			if (err == UBI_IO_BITFLIPS)
+			{
 				bitflips = 1;
-			else {
+			}
+			else
+			{
 				ubi_err(ubi, "VID of PEB %d header is bad, but it was OK earlier, err %d",
-					pnum, err);
+						pnum, err);
+
 				if (err > 0)
+				{
 					err = -EIO;
+				}
 
 				goto out_free_vidh;
 			}
@@ -524,29 +594,41 @@ int ubi_compare_lebs(struct ubi_device *ubi, const struct ubi_ainf_peb *aeb,
 
 	mutex_lock(&ubi->buf_mutex);
 	err = ubi_io_read_data(ubi, ubi->peb_buf, pnum, 0, len);
+
 	if (err && err != UBI_IO_BITFLIPS && !mtd_is_eccerr(err))
+	{
 		goto out_unlock;
+	}
 
 	data_crc = be32_to_cpu(vid_hdr->data_crc);
 	crc = crc32(UBI_CRC32_INIT, ubi->peb_buf, len);
-	if (crc != data_crc) {
+
+	if (crc != data_crc)
+	{
 		dbg_bld("PEB %d CRC error: calculated %#08x, must be %#08x",
-			pnum, crc, data_crc);
+				pnum, crc, data_crc);
 		corrupted = 1;
 		bitflips = 0;
 		second_is_newer = !second_is_newer;
-	} else {
+	}
+	else
+	{
 		dbg_bld("PEB %d CRC is OK", pnum);
 		bitflips |= !!err;
 	}
+
 	mutex_unlock(&ubi->buf_mutex);
 
 	ubi_free_vid_buf(vidb);
 
 	if (second_is_newer)
+	{
 		dbg_bld("second PEB %d is newer, copy_flag is set", pnum);
+	}
 	else
+	{
 		dbg_bld("first PEB %d is newer, copy_flag is set", pnum);
+	}
 
 	return second_is_newer | (bitflips << 1) | (corrupted << 2);
 
@@ -574,7 +656,7 @@ out_free_vidh:
  * zero in case of success and a negative error code in case of failure.
  */
 int ubi_add_to_av(struct ubi_device *ubi, struct ubi_attach_info *ai, int pnum,
-		  int ec, const struct ubi_vid_hdr *vid_hdr, int bitflips)
+				  int ec, const struct ubi_vid_hdr *vid_hdr, int bitflips)
 {
 	int err, vol_id, lnum;
 	unsigned long long sqnum;
@@ -587,30 +669,44 @@ int ubi_add_to_av(struct ubi_device *ubi, struct ubi_attach_info *ai, int pnum,
 	sqnum = be64_to_cpu(vid_hdr->sqnum);
 
 	dbg_bld("PEB %d, LEB %d:%d, EC %d, sqnum %llu, bitflips %d",
-		pnum, vol_id, lnum, ec, sqnum, bitflips);
+			pnum, vol_id, lnum, ec, sqnum, bitflips);
 
 	av = add_volume(ai, vol_id, pnum, vid_hdr);
+
 	if (IS_ERR(av))
+	{
 		return PTR_ERR(av);
+	}
 
 	if (ai->max_sqnum < sqnum)
+	{
 		ai->max_sqnum = sqnum;
+	}
 
 	/*
 	 * Walk the RB-tree of logical eraseblocks of volume @vol_id to look
 	 * if this is the first instance of this logical eraseblock or not.
 	 */
 	p = &av->root.rb_node;
-	while (*p) {
+
+	while (*p)
+	{
 		int cmp_res;
 
 		parent = *p;
 		aeb = rb_entry(parent, struct ubi_ainf_peb, u.rb);
-		if (lnum != aeb->lnum) {
+
+		if (lnum != aeb->lnum)
+		{
 			if (lnum < aeb->lnum)
+			{
 				p = &(*p)->rb_left;
+			}
 			else
+			{
 				p = &(*p)->rb_right;
+			}
+
 			continue;
 		}
 
@@ -620,7 +716,7 @@ int ubi_add_to_av(struct ubi_device *ubi, struct ubi_attach_info *ai, int pnum,
 		 */
 
 		dbg_bld("this LEB already exists: PEB %d, sqnum %llu, EC %d",
-			aeb->pnum, aeb->sqnum, aeb->ec);
+				aeb->pnum, aeb->sqnum, aeb->ec);
 
 		/*
 		 * Make sure that the logical eraseblocks have different
@@ -635,9 +731,10 @@ int ubi_add_to_av(struct ubi_device *ubi, struct ubi_attach_info *ai, int pnum,
 		 * images, but refuse attaching old images with duplicated
 		 * logical eraseblocks because there was an unclean reboot.
 		 */
-		if (aeb->sqnum == sqnum && sqnum != 0) {
+		if (aeb->sqnum == sqnum && sqnum != 0)
+		{
 			ubi_err(ubi, "two LEBs with same sequence number %llu",
-				sqnum);
+					sqnum);
 			ubi_dump_aeb(aeb, 0);
 			ubi_dump_vid_hdr(vid_hdr);
 			return -EINVAL;
@@ -648,23 +745,33 @@ int ubi_add_to_av(struct ubi_device *ubi, struct ubi_attach_info *ai, int pnum,
 		 * one.
 		 */
 		cmp_res = ubi_compare_lebs(ubi, aeb, pnum, vid_hdr);
-		if (cmp_res < 0)
-			return cmp_res;
 
-		if (cmp_res & 1) {
+		if (cmp_res < 0)
+		{
+			return cmp_res;
+		}
+
+		if (cmp_res & 1)
+		{
 			/*
 			 * This logical eraseblock is newer than the one
 			 * found earlier.
 			 */
 			err = validate_vid_hdr(ubi, vid_hdr, av, pnum);
+
 			if (err)
+			{
 				return err;
+			}
 
 			err = add_to_list(ai, aeb->pnum, aeb->vol_id,
-					  aeb->lnum, aeb->ec, cmp_res & 4,
-					  &ai->erase);
+							  aeb->lnum, aeb->ec, cmp_res & 4,
+							  &ai->erase);
+
 			if (err)
+			{
 				return err;
+			}
 
 			aeb->ec = ec;
 			aeb->pnum = pnum;
@@ -679,13 +786,15 @@ int ubi_add_to_av(struct ubi_device *ubi, struct ubi_attach_info *ai, int pnum,
 					be32_to_cpu(vid_hdr->data_size);
 
 			return 0;
-		} else {
+		}
+		else
+		{
 			/*
 			 * This logical eraseblock is older than the one found
 			 * previously.
 			 */
 			return add_to_list(ai, pnum, vol_id, lnum, ec,
-					   cmp_res & 4, &ai->erase);
+							   cmp_res & 4, &ai->erase);
 		}
 	}
 
@@ -695,12 +804,18 @@ int ubi_add_to_av(struct ubi_device *ubi, struct ubi_attach_info *ai, int pnum,
 	 */
 
 	err = validate_vid_hdr(ubi, vid_hdr, av, pnum);
+
 	if (err)
+	{
 		return err;
+	}
 
 	aeb = ubi_alloc_aeb(ai, pnum, ec);
+
 	if (!aeb)
+	{
 		return -ENOMEM;
+	}
 
 	aeb->vol_id = vol_id;
 	aeb->lnum = lnum;
@@ -708,7 +823,8 @@ int ubi_add_to_av(struct ubi_device *ubi, struct ubi_attach_info *ai, int pnum,
 	aeb->copy_flag = vid_hdr->copy_flag;
 	aeb->sqnum = sqnum;
 
-	if (av->highest_lnum <= lnum) {
+	if (av->highest_lnum <= lnum)
+	{
 		av->highest_lnum = lnum;
 		av->last_data_size = be32_to_cpu(vid_hdr->data_size);
 	}
@@ -743,16 +859,16 @@ struct ubi_ainf_volume *ubi_add_av(struct ubi_attach_info *ai, int vol_id)
  * are no data about this volume in the attaching information.
  */
 struct ubi_ainf_volume *ubi_find_av(const struct ubi_attach_info *ai,
-				    int vol_id)
+									int vol_id)
 {
 	bool created;
 
 	return find_or_add_av((struct ubi_attach_info *)ai, vol_id, AV_FIND,
-			      &created);
+						  &created);
 }
 
 static void destroy_av(struct ubi_attach_info *ai, struct ubi_ainf_volume *av,
-		       struct list_head *list);
+					   struct list_head *list);
 
 /**
  * ubi_remove_av - delete attaching information about a volume.
@@ -782,30 +898,37 @@ void ubi_remove_av(struct ubi_attach_info *ai, struct ubi_ainf_volume *av)
  * case of failure.
  */
 static int early_erase_peb(struct ubi_device *ubi,
-			   const struct ubi_attach_info *ai, int pnum, int ec)
+						   const struct ubi_attach_info *ai, int pnum, int ec)
 {
 	int err;
 	struct ubi_ec_hdr *ec_hdr;
 
-	if ((long long)ec >= UBI_MAX_ERASECOUNTER) {
+	if ((long long)ec >= UBI_MAX_ERASECOUNTER)
+	{
 		/*
 		 * Erase counter overflow. Upgrade UBI and use 64-bit
 		 * erase counters internally.
 		 */
 		ubi_err(ubi, "erase counter overflow at PEB %d, EC %d",
-			pnum, ec);
+				pnum, ec);
 		return -EINVAL;
 	}
 
 	ec_hdr = kzalloc(ubi->ec_hdr_alsize, GFP_KERNEL);
+
 	if (!ec_hdr)
+	{
 		return -ENOMEM;
+	}
 
 	ec_hdr->ec = cpu_to_be64(ec);
 
 	err = ubi_io_sync_erase(ubi, pnum, 0);
+
 	if (err < 0)
+	{
 		goto out_free;
+	}
 
 	err = ubi_io_write_ec_hdr(ubi, pnum, ec_hdr);
 
@@ -829,12 +952,13 @@ out_free:
  * of success and an error code in case of failure.
  */
 struct ubi_ainf_peb *ubi_early_get_peb(struct ubi_device *ubi,
-				       struct ubi_attach_info *ai)
+									   struct ubi_attach_info *ai)
 {
 	int err = 0;
 	struct ubi_ainf_peb *aeb, *tmp_aeb;
 
-	if (!list_empty(&ai->free)) {
+	if (!list_empty(&ai->free))
+	{
 		aeb = list_entry(ai->free.next, struct ubi_ainf_peb, u.list);
 		list_del(&aeb->u.list);
 		dbg_bld("return free PEB %d, EC %d", aeb->pnum, aeb->ec);
@@ -847,13 +971,19 @@ struct ubi_ainf_peb *ubi_early_get_peb(struct ubi_device *ubi,
 	 * so forth. We don't want to take care about bad eraseblocks here -
 	 * they'll be handled later.
 	 */
-	list_for_each_entry_safe(aeb, tmp_aeb, &ai->erase, u.list) {
+	list_for_each_entry_safe(aeb, tmp_aeb, &ai->erase, u.list)
+	{
 		if (aeb->ec == UBI_UNKNOWN)
+		{
 			aeb->ec = ai->mean_ec;
+		}
 
-		err = early_erase_peb(ubi, ai, aeb->pnum, aeb->ec+1);
+		err = early_erase_peb(ubi, ai, aeb->pnum, aeb->ec + 1);
+
 		if (err)
+		{
 			continue;
+		}
 
 		aeb->ec += 1;
 		list_del(&aeb->u.list);
@@ -883,7 +1013,7 @@ struct ubi_ainf_peb *ubi_early_get_peb(struct ubi_device *ubi,
  * information.
  */
 static int check_corruption(struct ubi_device *ubi, struct ubi_vid_hdr *vid_hdr,
-			    int pnum)
+							int pnum)
 {
 	int err;
 
@@ -891,8 +1021,10 @@ static int check_corruption(struct ubi_device *ubi, struct ubi_vid_hdr *vid_hdr,
 	memset(ubi->peb_buf, 0x00, ubi->leb_size);
 
 	err = ubi_io_read(ubi, ubi->peb_buf, pnum, ubi->leb_start,
-			  ubi->leb_size);
-	if (err == UBI_IO_BITFLIPS || mtd_is_eccerr(err)) {
+					  ubi->leb_size);
+
+	if (err == UBI_IO_BITFLIPS || mtd_is_eccerr(err))
+	{
 		/*
 		 * Bit-flips or integrity errors while reading the data area.
 		 * It is difficult to say for sure what type of corruption is
@@ -905,19 +1037,23 @@ static int check_corruption(struct ubi_device *ubi, struct ubi_vid_hdr *vid_hdr,
 	}
 
 	if (err)
+	{
 		goto out_unlock;
+	}
 
 	if (ubi_check_pattern(ubi->peb_buf, 0xFF, ubi->leb_size))
+	{
 		goto out_unlock;
+	}
 
 	ubi_err(ubi, "PEB %d contains corrupted VID header, and the data does not contain all 0xFF",
-		pnum);
+			pnum);
 	ubi_err(ubi, "this may be a non-UBI PEB or a severe VID header corruption which requires manual inspection");
 	ubi_dump_vid_hdr(vid_hdr);
 	pr_err("hexdump of PEB %d offset %d, length %d",
-	       pnum, ubi->leb_start, ubi->leb_size);
+		   pnum, ubi->leb_start, ubi->leb_size);
 	ubi_dbg_print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_OFFSET, 32, 1,
-			       ubi->peb_buf, ubi->leb_size, 1);
+						   ubi->peb_buf, ubi->leb_size, 1);
 	err = 1;
 
 out_unlock:
@@ -927,9 +1063,10 @@ out_unlock:
 
 static bool vol_ignored(int vol_id)
 {
-	switch (vol_id) {
+	switch (vol_id)
+	{
 		case UBI_LAYOUT_VOLUME_ID:
-		return true;
+			return true;
 	}
 
 #ifdef CONFIG_MTD_UBI_FASTMAP
@@ -952,7 +1089,7 @@ static bool vol_ignored(int vol_id)
  * successfully handled and a negative error code in case of failure.
  */
 static int scan_peb(struct ubi_device *ubi, struct ubi_attach_info *ai,
-		    int pnum, bool fast)
+					int pnum, bool fast)
 {
 	struct ubi_ec_hdr *ech = ai->ech;
 	struct ubi_vid_io_buf *vidb = ai->vidb;
@@ -964,59 +1101,77 @@ static int scan_peb(struct ubi_device *ubi, struct ubi_attach_info *ai,
 
 	/* Skip bad physical eraseblocks */
 	err = ubi_io_is_bad(ubi, pnum);
+
 	if (err < 0)
+	{
 		return err;
-	else if (err) {
+	}
+	else if (err)
+	{
 		ai->bad_peb_count += 1;
 		return 0;
 	}
 
 	err = ubi_io_read_ec_hdr(ubi, pnum, ech, 0);
+
 	if (err < 0)
+	{
 		return err;
-	switch (err) {
-	case 0:
-		break;
-	case UBI_IO_BITFLIPS:
-		bitflips = 1;
-		break;
-	case UBI_IO_FF:
-		ai->empty_peb_count += 1;
-		return add_to_list(ai, pnum, UBI_UNKNOWN, UBI_UNKNOWN,
-				   UBI_UNKNOWN, 0, &ai->erase);
-	case UBI_IO_FF_BITFLIPS:
-		ai->empty_peb_count += 1;
-		return add_to_list(ai, pnum, UBI_UNKNOWN, UBI_UNKNOWN,
-				   UBI_UNKNOWN, 1, &ai->erase);
-	case UBI_IO_BAD_HDR_EBADMSG:
-	case UBI_IO_BAD_HDR:
-		/*
-		 * We have to also look at the VID header, possibly it is not
-		 * corrupted. Set %bitflips flag in order to make this PEB be
-		 * moved and EC be re-created.
-		 */
-		ec_err = err;
-		ec = UBI_UNKNOWN;
-		bitflips = 1;
-		break;
-	default:
-		ubi_err(ubi, "'ubi_io_read_ec_hdr()' returned unknown code %d",
-			err);
-		return -EINVAL;
 	}
 
-	if (!ec_err) {
+	switch (err)
+	{
+		case 0:
+			break;
+
+		case UBI_IO_BITFLIPS:
+			bitflips = 1;
+			break;
+
+		case UBI_IO_FF:
+			ai->empty_peb_count += 1;
+			return add_to_list(ai, pnum, UBI_UNKNOWN, UBI_UNKNOWN,
+							   UBI_UNKNOWN, 0, &ai->erase);
+
+		case UBI_IO_FF_BITFLIPS:
+			ai->empty_peb_count += 1;
+			return add_to_list(ai, pnum, UBI_UNKNOWN, UBI_UNKNOWN,
+							   UBI_UNKNOWN, 1, &ai->erase);
+
+		case UBI_IO_BAD_HDR_EBADMSG:
+		case UBI_IO_BAD_HDR:
+			/*
+			 * We have to also look at the VID header, possibly it is not
+			 * corrupted. Set %bitflips flag in order to make this PEB be
+			 * moved and EC be re-created.
+			 */
+			ec_err = err;
+			ec = UBI_UNKNOWN;
+			bitflips = 1;
+			break;
+
+		default:
+			ubi_err(ubi, "'ubi_io_read_ec_hdr()' returned unknown code %d",
+					err);
+			return -EINVAL;
+	}
+
+	if (!ec_err)
+	{
 		int image_seq;
 
 		/* Make sure UBI version is OK */
-		if (ech->version != UBI_VERSION) {
+		if (ech->version != UBI_VERSION)
+		{
 			ubi_err(ubi, "this UBI version is %d, image version is %d",
-				UBI_VERSION, (int)ech->version);
+					UBI_VERSION, (int)ech->version);
 			return -EINVAL;
 		}
 
 		ec = be64_to_cpu(ech->ec);
-		if (ec > UBI_MAX_ERASECOUNTER) {
+
+		if (ec > UBI_MAX_ERASECOUNTER)
+		{
 			/*
 			 * Erase counter overflow. The EC headers have 64 bits
 			 * reserved, but we anyway make use of only 31 bit
@@ -1025,7 +1180,7 @@ static int scan_peb(struct ubi_device *ubi, struct ubi_attach_info *ai,
 			 * internally.
 			 */
 			ubi_err(ubi, "erase counter overflow, max is %d",
-				UBI_MAX_ERASECOUNTER);
+					UBI_MAX_ERASECOUNTER);
 			ubi_dump_ec_hdr(ech);
 			return -EINVAL;
 		}
@@ -1042,11 +1197,16 @@ static int scan_peb(struct ubi_device *ubi, struct ubi_attach_info *ai,
 		 * number.
 		 */
 		image_seq = be32_to_cpu(ech->image_seq);
+
 		if (!ubi->image_seq)
+		{
 			ubi->image_seq = image_seq;
-		if (image_seq && ubi->image_seq != image_seq) {
+		}
+
+		if (image_seq && ubi->image_seq != image_seq)
+		{
 			ubi_err(ubi, "bad image sequence number %d in PEB %d, expected %d",
-				image_seq, pnum, ubi->image_seq);
+					image_seq, pnum, ubi->image_seq);
 			ubi_dump_ec_hdr(ech);
 			return -EINVAL;
 		}
@@ -1055,24 +1215,35 @@ static int scan_peb(struct ubi_device *ubi, struct ubi_attach_info *ai,
 	/* OK, we've done with the EC header, let's look at the VID header */
 
 	err = ubi_io_read_vid_hdr(ubi, pnum, vidb, 0);
+
 	if (err < 0)
+	{
 		return err;
-	switch (err) {
-	case 0:
-		break;
-	case UBI_IO_BITFLIPS:
-		bitflips = 1;
-		break;
-	case UBI_IO_BAD_HDR_EBADMSG:
-		if (ec_err == UBI_IO_BAD_HDR_EBADMSG)
-			/*
-			 * Both EC and VID headers are corrupted and were read
-			 * with data integrity error, probably this is a bad
-			 * PEB, bit it is not marked as bad yet. This may also
-			 * be a result of power cut during erasure.
-			 */
-			ai->maybe_bad_peb_count += 1;
-	case UBI_IO_BAD_HDR:
+	}
+
+	switch (err)
+	{
+		case 0:
+			break;
+
+		case UBI_IO_BITFLIPS:
+			bitflips = 1;
+			break;
+
+		case UBI_IO_BAD_HDR_EBADMSG:
+			if (ec_err == UBI_IO_BAD_HDR_EBADMSG)
+				/*
+				 * Both EC and VID headers are corrupted and were read
+				 * with data integrity error, probably this is a bad
+				 * PEB, bit it is not marked as bad yet. This may also
+				 * be a result of power cut during erasure.
+				 */
+			{
+				ai->maybe_bad_peb_count += 1;
+			}
+
+		case UBI_IO_BAD_HDR:
+
 			/*
 			 * If we're facing a bad VID header we have to drop *all*
 			 * Fastmap data structures we find. The most recent Fastmap
@@ -1085,121 +1256,171 @@ static int scan_peb(struct ubi_device *ubi, struct ubi_attach_info *ai,
 			 * analyze.
 			 */
 			if (fast)
+			{
 				ai->force_full_scan = 1;
+			}
 
-		if (ec_err)
-			/*
-			 * Both headers are corrupted. There is a possibility
-			 * that this a valid UBI PEB which has corresponding
-			 * LEB, but the headers are corrupted. However, it is
-			 * impossible to distinguish it from a PEB which just
-			 * contains garbage because of a power cut during erase
-			 * operation. So we just schedule this PEB for erasure.
-			 *
-			 * Besides, in case of NOR flash, we deliberately
-			 * corrupt both headers because NOR flash erasure is
-			 * slow and can start from the end.
-			 */
-			err = 0;
-		else
-			/*
-			 * The EC was OK, but the VID header is corrupted. We
-			 * have to check what is in the data area.
-			 */
-			err = check_corruption(ubi, vidh, pnum);
+			if (ec_err)
+				/*
+				 * Both headers are corrupted. There is a possibility
+				 * that this a valid UBI PEB which has corresponding
+				 * LEB, but the headers are corrupted. However, it is
+				 * impossible to distinguish it from a PEB which just
+				 * contains garbage because of a power cut during erase
+				 * operation. So we just schedule this PEB for erasure.
+				 *
+				 * Besides, in case of NOR flash, we deliberately
+				 * corrupt both headers because NOR flash erasure is
+				 * slow and can start from the end.
+				 */
+			{
+				err = 0;
+			}
+			else
+				/*
+				 * The EC was OK, but the VID header is corrupted. We
+				 * have to check what is in the data area.
+				 */
+			{
+				err = check_corruption(ubi, vidh, pnum);
+			}
 
-		if (err < 0)
-			return err;
-		else if (!err)
-			/* This corruption is caused by a power cut */
-			err = add_to_list(ai, pnum, UBI_UNKNOWN,
-					  UBI_UNKNOWN, ec, 1, &ai->erase);
-		else
-			/* This is an unexpected corruption */
-			err = add_corrupted(ai, pnum, ec);
-		if (err)
-			return err;
-		goto adjust_mean_ec;
-	case UBI_IO_FF_BITFLIPS:
-		err = add_to_list(ai, pnum, UBI_UNKNOWN, UBI_UNKNOWN,
-				  ec, 1, &ai->erase);
-		if (err)
-			return err;
-		goto adjust_mean_ec;
-	case UBI_IO_FF:
-		if (ec_err || bitflips)
-			err = add_to_list(ai, pnum, UBI_UNKNOWN,
-					  UBI_UNKNOWN, ec, 1, &ai->erase);
-		else
-			err = add_to_list(ai, pnum, UBI_UNKNOWN,
-					  UBI_UNKNOWN, ec, 0, &ai->free);
-		if (err)
-			return err;
-		goto adjust_mean_ec;
-	default:
-		ubi_err(ubi, "'ubi_io_read_vid_hdr()' returned unknown code %d",
-			err);
-		return -EINVAL;
+			if (err < 0)
+			{
+				return err;
+			}
+			else if (!err)
+				/* This corruption is caused by a power cut */
+				err = add_to_list(ai, pnum, UBI_UNKNOWN,
+								  UBI_UNKNOWN, ec, 1, &ai->erase);
+			else
+				/* This is an unexpected corruption */
+			{
+				err = add_corrupted(ai, pnum, ec);
+			}
+
+			if (err)
+			{
+				return err;
+			}
+
+			goto adjust_mean_ec;
+
+		case UBI_IO_FF_BITFLIPS:
+			err = add_to_list(ai, pnum, UBI_UNKNOWN, UBI_UNKNOWN,
+							  ec, 1, &ai->erase);
+
+			if (err)
+			{
+				return err;
+			}
+
+			goto adjust_mean_ec;
+
+		case UBI_IO_FF:
+			if (ec_err || bitflips)
+				err = add_to_list(ai, pnum, UBI_UNKNOWN,
+								  UBI_UNKNOWN, ec, 1, &ai->erase);
+			else
+				err = add_to_list(ai, pnum, UBI_UNKNOWN,
+								  UBI_UNKNOWN, ec, 0, &ai->free);
+
+			if (err)
+			{
+				return err;
+			}
+
+			goto adjust_mean_ec;
+
+		default:
+			ubi_err(ubi, "'ubi_io_read_vid_hdr()' returned unknown code %d",
+					err);
+			return -EINVAL;
 	}
 
 	vol_id = be32_to_cpu(vidh->vol_id);
-	if (vol_id > UBI_MAX_VOLUMES && !vol_ignored(vol_id)) {
+
+	if (vol_id > UBI_MAX_VOLUMES && !vol_ignored(vol_id))
+	{
 		int lnum = be32_to_cpu(vidh->lnum);
 
 		/* Unsupported internal volume */
-		switch (vidh->compat) {
-		case UBI_COMPAT_DELETE:
-			ubi_msg(ubi, "\"delete\" compatible internal volume %d:%d found, will remove it",
-				vol_id, lnum);
+		switch (vidh->compat)
+		{
+			case UBI_COMPAT_DELETE:
+				ubi_msg(ubi, "\"delete\" compatible internal volume %d:%d found, will remove it",
+						vol_id, lnum);
 
-			err = add_to_list(ai, pnum, vol_id, lnum,
-					  ec, 1, &ai->erase);
-			if (err)
-				return err;
-			return 0;
+				err = add_to_list(ai, pnum, vol_id, lnum,
+								  ec, 1, &ai->erase);
 
-		case UBI_COMPAT_RO:
-			ubi_msg(ubi, "read-only compatible internal volume %d:%d found, switch to read-only mode",
-				vol_id, lnum);
-			ubi->ro_mode = 1;
-			break;
+				if (err)
+				{
+					return err;
+				}
 
-		case UBI_COMPAT_PRESERVE:
-			ubi_msg(ubi, "\"preserve\" compatible internal volume %d:%d found",
-				vol_id, lnum);
-			err = add_to_list(ai, pnum, vol_id, lnum,
-					  ec, 0, &ai->alien);
-			if (err)
-				return err;
-			return 0;
+				return 0;
 
-		case UBI_COMPAT_REJECT:
-			ubi_err(ubi, "incompatible internal volume %d:%d found",
-				vol_id, lnum);
-			return -EINVAL;
+			case UBI_COMPAT_RO:
+				ubi_msg(ubi, "read-only compatible internal volume %d:%d found, switch to read-only mode",
+						vol_id, lnum);
+				ubi->ro_mode = 1;
+				break;
+
+			case UBI_COMPAT_PRESERVE:
+				ubi_msg(ubi, "\"preserve\" compatible internal volume %d:%d found",
+						vol_id, lnum);
+				err = add_to_list(ai, pnum, vol_id, lnum,
+								  ec, 0, &ai->alien);
+
+				if (err)
+				{
+					return err;
+				}
+
+				return 0;
+
+			case UBI_COMPAT_REJECT:
+				ubi_err(ubi, "incompatible internal volume %d:%d found",
+						vol_id, lnum);
+				return -EINVAL;
 		}
 	}
 
 	if (ec_err)
 		ubi_warn(ubi, "valid VID header but corrupted EC header at PEB %d",
-			 pnum);
+				 pnum);
 
 	if (ubi_is_fm_vol(vol_id))
+	{
 		err = add_fastmap(ai, pnum, vidh, ec);
+	}
 	else
+	{
 		err = ubi_add_to_av(ubi, ai, pnum, ec, vidh, bitflips);
+	}
 
 	if (err)
+	{
 		return err;
+	}
 
 adjust_mean_ec:
-	if (!ec_err) {
+
+	if (!ec_err)
+	{
 		ai->ec_sum += ec;
 		ai->ec_count += 1;
+
 		if (ec > ai->max_ec)
+		{
 			ai->max_ec = ec;
+		}
+
 		if (ec < ai->min_ec)
+		{
 			ai->min_ec = ec;
+		}
 	}
 
 	return 0;
@@ -1222,32 +1443,35 @@ static int late_analysis(struct ubi_device *ubi, struct ubi_attach_info *ai)
 	int max_corr, peb_count;
 
 	peb_count = ubi->peb_count - ai->bad_peb_count - ai->alien_peb_count;
-	max_corr = peb_count / 20 ?: 8;
+	max_corr = peb_count / 20 ? : 8;
 
 	/*
 	 * Few corrupted PEBs is not a problem and may be just a result of
 	 * unclean reboots. However, many of them may indicate some problems
 	 * with the flash HW or driver.
 	 */
-	if (ai->corr_peb_count) {
+	if (ai->corr_peb_count)
+	{
 		ubi_err(ubi, "%d PEBs are corrupted and preserved",
-			ai->corr_peb_count);
+				ai->corr_peb_count);
 		pr_err("Corrupted PEBs are:");
 		list_for_each_entry(aeb, &ai->corr, u.list)
-			pr_cont(" %d", aeb->pnum);
+		pr_cont(" %d", aeb->pnum);
 		pr_cont("\n");
 
 		/*
 		 * If too many PEBs are corrupted, we refuse attaching,
 		 * otherwise, only print a warning.
 		 */
-		if (ai->corr_peb_count >= max_corr) {
+		if (ai->corr_peb_count >= max_corr)
+		{
 			ubi_err(ubi, "too many corrupted PEBs, refusing");
 			return -EINVAL;
 		}
 	}
 
-	if (ai->empty_peb_count + ai->maybe_bad_peb_count == peb_count) {
+	if (ai->empty_peb_count + ai->maybe_bad_peb_count == peb_count)
+	{
 		/*
 		 * All PEBs are empty, or almost all - a couple PEBs look like
 		 * they may be bad PEBs which were not marked as bad yet.
@@ -1263,12 +1487,15 @@ static int late_analysis(struct ubi_device *ubi, struct ubi_attach_info *ai)
 		 * 2. Flash contains non-UBI data and we do not want to format
 		 *    it and destroy possibly important information.
 		 */
-		if (ai->maybe_bad_peb_count <= 2) {
+		if (ai->maybe_bad_peb_count <= 2)
+		{
 			ai->is_empty = 1;
 			ubi_msg(ubi, "empty MTD device detected");
 			get_random_bytes(&ubi->image_seq,
-					 sizeof(ubi->image_seq));
-		} else {
+							 sizeof(ubi->image_seq));
+		}
+		else
+		{
 			ubi_err(ubi, "MTD device is not UBI-formatted and possibly contains non-UBI data - refusing it");
 			return -EINVAL;
 		}
@@ -1287,32 +1514,49 @@ static int late_analysis(struct ubi_device *ubi, struct ubi_attach_info *ai)
  * This function destroys the volume attaching information.
  */
 static void destroy_av(struct ubi_attach_info *ai, struct ubi_ainf_volume *av,
-		       struct list_head *list)
+					   struct list_head *list)
 {
 	struct ubi_ainf_peb *aeb;
 	struct rb_node *this = av->root.rb_node;
 
-	while (this) {
+	while (this)
+	{
 		if (this->rb_left)
+		{
 			this = this->rb_left;
+		}
 		else if (this->rb_right)
+		{
 			this = this->rb_right;
-		else {
+		}
+		else
+		{
 			aeb = rb_entry(this, struct ubi_ainf_peb, u.rb);
 			this = rb_parent(this);
-			if (this) {
+
+			if (this)
+			{
 				if (this->rb_left == &aeb->u.rb)
+				{
 					this->rb_left = NULL;
+				}
 				else
+				{
 					this->rb_right = NULL;
+				}
 			}
 
 			if (list)
+			{
 				list_add_tail(&aeb->u.list, list);
+			}
 			else
+			{
 				ubi_free_aeb(ai, aeb);
+			}
 		}
 	}
+
 	kfree(av);
 }
 
@@ -1326,43 +1570,61 @@ static void destroy_ai(struct ubi_attach_info *ai)
 	struct ubi_ainf_volume *av;
 	struct rb_node *rb;
 
-	list_for_each_entry_safe(aeb, aeb_tmp, &ai->alien, u.list) {
+	list_for_each_entry_safe(aeb, aeb_tmp, &ai->alien, u.list)
+	{
 		list_del(&aeb->u.list);
 		ubi_free_aeb(ai, aeb);
 	}
-	list_for_each_entry_safe(aeb, aeb_tmp, &ai->erase, u.list) {
+	list_for_each_entry_safe(aeb, aeb_tmp, &ai->erase, u.list)
+	{
 		list_del(&aeb->u.list);
 		ubi_free_aeb(ai, aeb);
 	}
-	list_for_each_entry_safe(aeb, aeb_tmp, &ai->corr, u.list) {
+	list_for_each_entry_safe(aeb, aeb_tmp, &ai->corr, u.list)
+	{
 		list_del(&aeb->u.list);
 		ubi_free_aeb(ai, aeb);
 	}
-	list_for_each_entry_safe(aeb, aeb_tmp, &ai->free, u.list) {
+	list_for_each_entry_safe(aeb, aeb_tmp, &ai->free, u.list)
+	{
 		list_del(&aeb->u.list);
 		ubi_free_aeb(ai, aeb);
 	}
-	list_for_each_entry_safe(aeb, aeb_tmp, &ai->fastmap, u.list) {
+	list_for_each_entry_safe(aeb, aeb_tmp, &ai->fastmap, u.list)
+	{
 		list_del(&aeb->u.list);
 		ubi_free_aeb(ai, aeb);
 	}
 
 	/* Destroy the volume RB-tree */
 	rb = ai->volumes.rb_node;
-	while (rb) {
+
+	while (rb)
+	{
 		if (rb->rb_left)
+		{
 			rb = rb->rb_left;
+		}
 		else if (rb->rb_right)
+		{
 			rb = rb->rb_right;
-		else {
+		}
+		else
+		{
 			av = rb_entry(rb, struct ubi_ainf_volume, rb);
 
 			rb = rb_parent(rb);
-			if (rb) {
+
+			if (rb)
+			{
 				if (rb->rb_left == &av->rb)
+				{
 					rb->rb_left = NULL;
+				}
 				else
+				{
 					rb->rb_right = NULL;
+				}
 			}
 
 			destroy_av(ai, av, NULL);
@@ -1384,7 +1646,7 @@ static void destroy_ai(struct ubi_attach_info *ai)
  * of failure, an error code is returned.
  */
 static int scan_all(struct ubi_device *ubi, struct ubi_attach_info *ai,
-		    int start)
+					int start)
 {
 	int err, pnum;
 	struct rb_node *rb1, *rb2;
@@ -1394,58 +1656,89 @@ static int scan_all(struct ubi_device *ubi, struct ubi_attach_info *ai,
 	err = -ENOMEM;
 
 	ai->ech = kzalloc(ubi->ec_hdr_alsize, GFP_KERNEL);
+
 	if (!ai->ech)
+	{
 		return err;
+	}
 
 	ai->vidb = ubi_alloc_vid_buf(ubi, GFP_KERNEL);
-	if (!ai->vidb)
-		goto out_ech;
 
-	for (pnum = start; pnum < ubi->peb_count; pnum++) {
+	if (!ai->vidb)
+	{
+		goto out_ech;
+	}
+
+	for (pnum = start; pnum < ubi->peb_count; pnum++)
+	{
 		cond_resched();
 
 		dbg_gen("process PEB %d", pnum);
 		err = scan_peb(ubi, ai, pnum, false);
+
 		if (err < 0)
+		{
 			goto out_vidh;
+		}
 	}
 
 	ubi_msg(ubi, "scanning is finished");
 
 	/* Calculate mean erase counter */
 	if (ai->ec_count)
+	{
 		ai->mean_ec = div_u64(ai->ec_sum, ai->ec_count);
+	}
 
 	err = late_analysis(ubi, ai);
+
 	if (err)
+	{
 		goto out_vidh;
+	}
 
 	/*
 	 * In case of unknown erase counter we use the mean erase counter
 	 * value.
 	 */
-	ubi_rb_for_each_entry(rb1, av, &ai->volumes, rb) {
+	ubi_rb_for_each_entry(rb1, av, &ai->volumes, rb)
+	{
 		ubi_rb_for_each_entry(rb2, aeb, &av->root, u.rb)
-			if (aeb->ec == UBI_UNKNOWN)
-				aeb->ec = ai->mean_ec;
+
+		if (aeb->ec == UBI_UNKNOWN)
+		{
+			aeb->ec = ai->mean_ec;
+		}
 	}
 
-	list_for_each_entry(aeb, &ai->free, u.list) {
+	list_for_each_entry(aeb, &ai->free, u.list)
+	{
 		if (aeb->ec == UBI_UNKNOWN)
+		{
 			aeb->ec = ai->mean_ec;
+		}
 	}
 
 	list_for_each_entry(aeb, &ai->corr, u.list)
-		if (aeb->ec == UBI_UNKNOWN)
-			aeb->ec = ai->mean_ec;
+
+	if (aeb->ec == UBI_UNKNOWN)
+	{
+		aeb->ec = ai->mean_ec;
+	}
 
 	list_for_each_entry(aeb, &ai->erase, u.list)
-		if (aeb->ec == UBI_UNKNOWN)
-			aeb->ec = ai->mean_ec;
+
+	if (aeb->ec == UBI_UNKNOWN)
+	{
+		aeb->ec = ai->mean_ec;
+	}
 
 	err = self_check_ai(ubi, ai);
+
 	if (err)
+	{
 		goto out_vidh;
+	}
 
 	ubi_free_vid_buf(ai->vidb);
 	kfree(ai->ech);
@@ -1464,8 +1757,11 @@ static struct ubi_attach_info *alloc_ai(void)
 	struct ubi_attach_info *ai;
 
 	ai = kzalloc(sizeof(struct ubi_attach_info), GFP_KERNEL);
+
 	if (!ai)
+	{
 		return ai;
+	}
 
 	INIT_LIST_HEAD(&ai->corr);
 	INIT_LIST_HEAD(&ai->free);
@@ -1474,9 +1770,11 @@ static struct ubi_attach_info *alloc_ai(void)
 	INIT_LIST_HEAD(&ai->fastmap);
 	ai->volumes = RB_ROOT;
 	ai->aeb_slab_cache = kmem_cache_create("ubi_aeb_slab_cache",
-					       sizeof(struct ubi_ainf_peb),
-					       0, 0, NULL);
-	if (!ai->aeb_slab_cache) {
+										   sizeof(struct ubi_ainf_peb),
+										   0, 0, NULL);
+
+	if (!ai->aeb_slab_cache)
+	{
 		kfree(ai);
 		ai = NULL;
 	}
@@ -1504,43 +1802,64 @@ static int scan_fast(struct ubi_device *ubi, struct ubi_attach_info **ai)
 	err = -ENOMEM;
 
 	scan_ai = alloc_ai();
+
 	if (!scan_ai)
+	{
 		goto out;
+	}
 
 	scan_ai->ech = kzalloc(ubi->ec_hdr_alsize, GFP_KERNEL);
+
 	if (!scan_ai->ech)
+	{
 		goto out_ai;
+	}
 
 	scan_ai->vidb = ubi_alloc_vid_buf(ubi, GFP_KERNEL);
-	if (!scan_ai->vidb)
-		goto out_ech;
 
-	for (pnum = 0; pnum < UBI_FM_MAX_START; pnum++) {
+	if (!scan_ai->vidb)
+	{
+		goto out_ech;
+	}
+
+	for (pnum = 0; pnum < UBI_FM_MAX_START; pnum++)
+	{
 		cond_resched();
 
 		dbg_gen("process PEB %d", pnum);
 		err = scan_peb(ubi, scan_ai, pnum, true);
+
 		if (err < 0)
+		{
 			goto out_vidh;
+		}
 	}
 
 	ubi_free_vid_buf(scan_ai->vidb);
 	kfree(scan_ai->ech);
 
 	if (scan_ai->force_full_scan)
+	{
 		err = UBI_NO_FASTMAP;
+	}
 	else
+	{
 		err = ubi_scan_fastmap(ubi, *ai, scan_ai);
+	}
 
-	if (err) {
+	if (err)
+	{
 		/*
 		 * Didn't attach via fastmap, do a full scan but reuse what
 		 * we've aready scanned.
 		 */
 		destroy_ai(*ai);
 		*ai = scan_ai;
-	} else
+	}
+	else
+	{
 		destroy_ai(scan_ai);
+	}
 
 	return err;
 
@@ -1570,38 +1889,58 @@ int ubi_attach(struct ubi_device *ubi, int force_scan)
 	struct ubi_attach_info *ai;
 
 	ai = alloc_ai();
+
 	if (!ai)
+	{
 		return -ENOMEM;
+	}
 
 #ifdef CONFIG_MTD_UBI_FASTMAP
+
 	/* On small flash devices we disable fastmap in any case. */
-	if ((int)mtd_div_by_eb(ubi->mtd->size, ubi->mtd) <= UBI_FM_MAX_START) {
+	if ((int)mtd_div_by_eb(ubi->mtd->size, ubi->mtd) <= UBI_FM_MAX_START)
+	{
 		ubi->fm_disabled = 1;
 		force_scan = 1;
 	}
 
 	if (force_scan)
+	{
 		err = scan_all(ubi, ai, 0);
-	else {
+	}
+	else
+	{
 		err = scan_fast(ubi, &ai);
-		if (err > 0 || mtd_is_eccerr(err)) {
-			if (err != UBI_NO_FASTMAP) {
+
+		if (err > 0 || mtd_is_eccerr(err))
+		{
+			if (err != UBI_NO_FASTMAP)
+			{
 				destroy_ai(ai);
 				ai = alloc_ai();
+
 				if (!ai)
+				{
 					return -ENOMEM;
+				}
 
 				err = scan_all(ubi, ai, 0);
-			} else {
+			}
+			else
+			{
 				err = scan_all(ubi, ai, UBI_FM_MAX_START);
 			}
 		}
 	}
+
 #else
 	err = scan_all(ubi, ai, 0);
 #endif
+
 	if (err)
+	{
 		goto out_ai;
+	}
 
 	ubi->bad_peb_count = ai->bad_peb_count;
 	ubi->good_peb_count = ubi->peb_count - ubi->bad_peb_count;
@@ -1611,29 +1950,44 @@ int ubi_attach(struct ubi_device *ubi, int force_scan)
 	dbg_gen("max. sequence number:       %llu", ai->max_sqnum);
 
 	err = ubi_read_volume_table(ubi, ai);
+
 	if (err)
+	{
 		goto out_ai;
+	}
 
 	err = ubi_wl_init(ubi, ai);
+
 	if (err)
+	{
 		goto out_vtbl;
+	}
 
 	err = ubi_eba_init(ubi, ai);
+
 	if (err)
+	{
 		goto out_wl;
+	}
 
 #ifdef CONFIG_MTD_UBI_FASTMAP
-	if (ubi->fm && ubi_dbg_chk_fastmap(ubi)) {
+
+	if (ubi->fm && ubi_dbg_chk_fastmap(ubi))
+	{
 		struct ubi_attach_info *scan_ai;
 
 		scan_ai = alloc_ai();
-		if (!scan_ai) {
+
+		if (!scan_ai)
+		{
 			err = -ENOMEM;
 			goto out_wl;
 		}
 
 		err = scan_all(ubi, scan_ai, 0);
-		if (err) {
+
+		if (err)
+		{
 			destroy_ai(scan_ai);
 			goto out_wl;
 		}
@@ -1642,8 +1996,11 @@ int ubi_attach(struct ubi_device *ubi, int force_scan)
 		destroy_ai(scan_ai);
 
 		if (err)
+		{
 			goto out_wl;
+		}
 	}
+
 #endif
 
 	destroy_ai(ai);
@@ -1678,128 +2035,155 @@ static int self_check_ai(struct ubi_device *ubi, struct ubi_attach_info *ai)
 	uint8_t *buf;
 
 	if (!ubi_dbg_chk_gen(ubi))
+	{
 		return 0;
+	}
 
 	/*
 	 * At first, check that attaching information is OK.
 	 */
-	ubi_rb_for_each_entry(rb1, av, &ai->volumes, rb) {
+	ubi_rb_for_each_entry(rb1, av, &ai->volumes, rb)
+	{
 		int leb_count = 0;
 
 		cond_resched();
 
 		vols_found += 1;
 
-		if (ai->is_empty) {
+		if (ai->is_empty)
+		{
 			ubi_err(ubi, "bad is_empty flag");
 			goto bad_av;
 		}
 
 		if (av->vol_id < 0 || av->highest_lnum < 0 ||
-		    av->leb_count < 0 || av->vol_type < 0 || av->used_ebs < 0 ||
-		    av->data_pad < 0 || av->last_data_size < 0) {
+			av->leb_count < 0 || av->vol_type < 0 || av->used_ebs < 0 ||
+			av->data_pad < 0 || av->last_data_size < 0)
+		{
 			ubi_err(ubi, "negative values");
 			goto bad_av;
 		}
 
 		if (av->vol_id >= UBI_MAX_VOLUMES &&
-		    av->vol_id < UBI_INTERNAL_VOL_START) {
+			av->vol_id < UBI_INTERNAL_VOL_START)
+		{
 			ubi_err(ubi, "bad vol_id");
 			goto bad_av;
 		}
 
-		if (av->vol_id > ai->highest_vol_id) {
+		if (av->vol_id > ai->highest_vol_id)
+		{
 			ubi_err(ubi, "highest_vol_id is %d, but vol_id %d is there",
-				ai->highest_vol_id, av->vol_id);
+					ai->highest_vol_id, av->vol_id);
 			goto out;
 		}
 
 		if (av->vol_type != UBI_DYNAMIC_VOLUME &&
-		    av->vol_type != UBI_STATIC_VOLUME) {
+			av->vol_type != UBI_STATIC_VOLUME)
+		{
 			ubi_err(ubi, "bad vol_type");
 			goto bad_av;
 		}
 
-		if (av->data_pad > ubi->leb_size / 2) {
+		if (av->data_pad > ubi->leb_size / 2)
+		{
 			ubi_err(ubi, "bad data_pad");
 			goto bad_av;
 		}
 
 		last_aeb = NULL;
-		ubi_rb_for_each_entry(rb2, aeb, &av->root, u.rb) {
+		ubi_rb_for_each_entry(rb2, aeb, &av->root, u.rb)
+		{
 			cond_resched();
 
 			last_aeb = aeb;
 			leb_count += 1;
 
-			if (aeb->pnum < 0 || aeb->ec < 0) {
+			if (aeb->pnum < 0 || aeb->ec < 0)
+			{
 				ubi_err(ubi, "negative values");
 				goto bad_aeb;
 			}
 
-			if (aeb->ec < ai->min_ec) {
+			if (aeb->ec < ai->min_ec)
+			{
 				ubi_err(ubi, "bad ai->min_ec (%d), %d found",
-					ai->min_ec, aeb->ec);
+						ai->min_ec, aeb->ec);
 				goto bad_aeb;
 			}
 
-			if (aeb->ec > ai->max_ec) {
+			if (aeb->ec > ai->max_ec)
+			{
 				ubi_err(ubi, "bad ai->max_ec (%d), %d found",
-					ai->max_ec, aeb->ec);
+						ai->max_ec, aeb->ec);
 				goto bad_aeb;
 			}
 
-			if (aeb->pnum >= ubi->peb_count) {
+			if (aeb->pnum >= ubi->peb_count)
+			{
 				ubi_err(ubi, "too high PEB number %d, total PEBs %d",
-					aeb->pnum, ubi->peb_count);
+						aeb->pnum, ubi->peb_count);
 				goto bad_aeb;
 			}
 
-			if (av->vol_type == UBI_STATIC_VOLUME) {
-				if (aeb->lnum >= av->used_ebs) {
+			if (av->vol_type == UBI_STATIC_VOLUME)
+			{
+				if (aeb->lnum >= av->used_ebs)
+				{
 					ubi_err(ubi, "bad lnum or used_ebs");
 					goto bad_aeb;
 				}
-			} else {
-				if (av->used_ebs != 0) {
+			}
+			else
+			{
+				if (av->used_ebs != 0)
+				{
 					ubi_err(ubi, "non-zero used_ebs");
 					goto bad_aeb;
 				}
 			}
 
-			if (aeb->lnum > av->highest_lnum) {
+			if (aeb->lnum > av->highest_lnum)
+			{
 				ubi_err(ubi, "incorrect highest_lnum or lnum");
 				goto bad_aeb;
 			}
 		}
 
-		if (av->leb_count != leb_count) {
+		if (av->leb_count != leb_count)
+		{
 			ubi_err(ubi, "bad leb_count, %d objects in the tree",
-				leb_count);
+					leb_count);
 			goto bad_av;
 		}
 
 		if (!last_aeb)
+		{
 			continue;
+		}
 
 		aeb = last_aeb;
 
-		if (aeb->lnum != av->highest_lnum) {
+		if (aeb->lnum != av->highest_lnum)
+		{
 			ubi_err(ubi, "bad highest_lnum");
 			goto bad_aeb;
 		}
 	}
 
-	if (vols_found != ai->vols_found) {
+	if (vols_found != ai->vols_found)
+	{
 		ubi_err(ubi, "bad ai->vols_found %d, should be %d",
-			ai->vols_found, vols_found);
+				ai->vols_found, vols_found);
 		goto out;
 	}
 
 	/* Check that attaching information is correct */
-	ubi_rb_for_each_entry(rb1, av, &ai->volumes, rb) {
+	ubi_rb_for_each_entry(rb1, av, &ai->volumes, rb)
+	{
 		last_aeb = NULL;
-		ubi_rb_for_each_entry(rb2, aeb, &av->root, u.rb) {
+		ubi_rb_for_each_entry(rb2, aeb, &av->root, u.rb)
+		{
 			int vol_type;
 
 			cond_resched();
@@ -1807,63 +2191,81 @@ static int self_check_ai(struct ubi_device *ubi, struct ubi_attach_info *ai)
 			last_aeb = aeb;
 
 			err = ubi_io_read_vid_hdr(ubi, aeb->pnum, vidb, 1);
-			if (err && err != UBI_IO_BITFLIPS) {
+
+			if (err && err != UBI_IO_BITFLIPS)
+			{
 				ubi_err(ubi, "VID header is not OK (%d)",
-					err);
+						err);
+
 				if (err > 0)
+				{
 					err = -EIO;
+				}
+
 				return err;
 			}
 
 			vol_type = vidh->vol_type == UBI_VID_DYNAMIC ?
-				   UBI_DYNAMIC_VOLUME : UBI_STATIC_VOLUME;
-			if (av->vol_type != vol_type) {
+					   UBI_DYNAMIC_VOLUME : UBI_STATIC_VOLUME;
+
+			if (av->vol_type != vol_type)
+			{
 				ubi_err(ubi, "bad vol_type");
 				goto bad_vid_hdr;
 			}
 
-			if (aeb->sqnum != be64_to_cpu(vidh->sqnum)) {
+			if (aeb->sqnum != be64_to_cpu(vidh->sqnum))
+			{
 				ubi_err(ubi, "bad sqnum %llu", aeb->sqnum);
 				goto bad_vid_hdr;
 			}
 
-			if (av->vol_id != be32_to_cpu(vidh->vol_id)) {
+			if (av->vol_id != be32_to_cpu(vidh->vol_id))
+			{
 				ubi_err(ubi, "bad vol_id %d", av->vol_id);
 				goto bad_vid_hdr;
 			}
 
-			if (av->compat != vidh->compat) {
+			if (av->compat != vidh->compat)
+			{
 				ubi_err(ubi, "bad compat %d", vidh->compat);
 				goto bad_vid_hdr;
 			}
 
-			if (aeb->lnum != be32_to_cpu(vidh->lnum)) {
+			if (aeb->lnum != be32_to_cpu(vidh->lnum))
+			{
 				ubi_err(ubi, "bad lnum %d", aeb->lnum);
 				goto bad_vid_hdr;
 			}
 
-			if (av->used_ebs != be32_to_cpu(vidh->used_ebs)) {
+			if (av->used_ebs != be32_to_cpu(vidh->used_ebs))
+			{
 				ubi_err(ubi, "bad used_ebs %d", av->used_ebs);
 				goto bad_vid_hdr;
 			}
 
-			if (av->data_pad != be32_to_cpu(vidh->data_pad)) {
+			if (av->data_pad != be32_to_cpu(vidh->data_pad))
+			{
 				ubi_err(ubi, "bad data_pad %d", av->data_pad);
 				goto bad_vid_hdr;
 			}
 		}
 
 		if (!last_aeb)
+		{
 			continue;
+		}
 
-		if (av->highest_lnum != be32_to_cpu(vidh->lnum)) {
+		if (av->highest_lnum != be32_to_cpu(vidh->lnum))
+		{
 			ubi_err(ubi, "bad highest_lnum %d", av->highest_lnum);
 			goto bad_vid_hdr;
 		}
 
-		if (av->last_data_size != be32_to_cpu(vidh->data_size)) {
+		if (av->last_data_size != be32_to_cpu(vidh->data_size))
+		{
 			ubi_err(ubi, "bad last_data_size %d",
-				av->last_data_size);
+					av->last_data_size);
 			goto bad_vid_hdr;
 		}
 	}
@@ -1873,44 +2275,59 @@ static int self_check_ai(struct ubi_device *ubi, struct ubi_attach_info *ai)
 	 * or trees.
 	 */
 	buf = kzalloc(ubi->peb_count, GFP_KERNEL);
-	if (!buf)
-		return -ENOMEM;
 
-	for (pnum = 0; pnum < ubi->peb_count; pnum++) {
+	if (!buf)
+	{
+		return -ENOMEM;
+	}
+
+	for (pnum = 0; pnum < ubi->peb_count; pnum++)
+	{
 		err = ubi_io_is_bad(ubi, pnum);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			kfree(buf);
 			return err;
-		} else if (err)
+		}
+		else if (err)
+		{
 			buf[pnum] = 1;
+		}
 	}
 
 	ubi_rb_for_each_entry(rb1, av, &ai->volumes, rb)
-		ubi_rb_for_each_entry(rb2, aeb, &av->root, u.rb)
-			buf[aeb->pnum] = 1;
+	ubi_rb_for_each_entry(rb2, aeb, &av->root, u.rb)
+	buf[aeb->pnum] = 1;
 
 	list_for_each_entry(aeb, &ai->free, u.list)
-		buf[aeb->pnum] = 1;
+	buf[aeb->pnum] = 1;
 
 	list_for_each_entry(aeb, &ai->corr, u.list)
-		buf[aeb->pnum] = 1;
+	buf[aeb->pnum] = 1;
 
 	list_for_each_entry(aeb, &ai->erase, u.list)
-		buf[aeb->pnum] = 1;
+	buf[aeb->pnum] = 1;
 
 	list_for_each_entry(aeb, &ai->alien, u.list)
-		buf[aeb->pnum] = 1;
+	buf[aeb->pnum] = 1;
 
 	err = 0;
+
 	for (pnum = 0; pnum < ubi->peb_count; pnum++)
-		if (!buf[pnum]) {
+		if (!buf[pnum])
+		{
 			ubi_err(ubi, "PEB %d is not referred", pnum);
 			err = 1;
 		}
 
 	kfree(buf);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	return 0;
 
 bad_aeb:

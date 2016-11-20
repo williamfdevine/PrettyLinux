@@ -47,7 +47,8 @@
 #define UNIPHIER_I2C_DEFAULT_SPEED	100000
 #define UNIPHIER_I2C_MAX_SPEED		400000
 
-struct uniphier_i2c_priv {
+struct uniphier_i2c_priv
+{
 	struct completion comp;
 	struct i2c_adapter adap;
 	void __iomem *membase;
@@ -70,7 +71,7 @@ static irqreturn_t uniphier_i2c_interrupt(int irq, void *dev_id)
 }
 
 static int uniphier_i2c_xfer_byte(struct i2c_adapter *adap, u32 txdata,
-				  u32 *rxdatap)
+								  u32 *rxdatap)
 {
 	struct uniphier_i2c_priv *priv = i2c_get_adapdata(adap);
 	unsigned long time_left;
@@ -83,7 +84,9 @@ static int uniphier_i2c_xfer_byte(struct i2c_adapter *adap, u32 txdata,
 	writel(txdata, priv->membase + UNIPHIER_I2C_DTRM);
 
 	time_left = wait_for_completion_timeout(&priv->comp, adap->timeout);
-	if (unlikely(!time_left)) {
+
+	if (unlikely(!time_left))
+	{
 		dev_err(&adap->dev, "transaction timeout\n");
 		return -ETIMEDOUT;
 	}
@@ -92,7 +95,9 @@ static int uniphier_i2c_xfer_byte(struct i2c_adapter *adap, u32 txdata,
 	dev_dbg(&adap->dev, "read data: 0x%04x\n", rxdata);
 
 	if (rxdatap)
+	{
 		*rxdatap = rxdata;
+	}
 
 	return 0;
 }
@@ -103,14 +108,20 @@ static int uniphier_i2c_send_byte(struct i2c_adapter *adap, u32 txdata)
 	int ret;
 
 	ret = uniphier_i2c_xfer_byte(adap, txdata, &rxdata);
-	if (ret)
-		return ret;
 
-	if (unlikely(rxdata & UNIPHIER_I2C_DREC_LAB)) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (unlikely(rxdata & UNIPHIER_I2C_DREC_LAB))
+	{
 		dev_dbg(&adap->dev, "arbitration lost\n");
 		return -EAGAIN;
 	}
-	if (unlikely(rxdata & UNIPHIER_I2C_DREC_LRB)) {
+
+	if (unlikely(rxdata & UNIPHIER_I2C_DREC_LRB))
+	{
 		dev_dbg(&adap->dev, "could not get ACK\n");
 		return -ENXIO;
 	}
@@ -119,48 +130,63 @@ static int uniphier_i2c_send_byte(struct i2c_adapter *adap, u32 txdata)
 }
 
 static int uniphier_i2c_tx(struct i2c_adapter *adap, u16 addr, u16 len,
-			   const u8 *buf)
+						   const u8 *buf)
 {
 	int ret;
 
 	dev_dbg(&adap->dev, "start condition\n");
 	ret = uniphier_i2c_send_byte(adap, addr << 1 |
-				     UNIPHIER_I2C_DTRM_STA |
-				     UNIPHIER_I2C_DTRM_NACK);
-	if (ret)
-		return ret;
+								 UNIPHIER_I2C_DTRM_STA |
+								 UNIPHIER_I2C_DTRM_NACK);
 
-	while (len--) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	while (len--)
+	{
 		ret = uniphier_i2c_send_byte(adap,
-					     UNIPHIER_I2C_DTRM_NACK | *buf++);
+									 UNIPHIER_I2C_DTRM_NACK | *buf++);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
 }
 
 static int uniphier_i2c_rx(struct i2c_adapter *adap, u16 addr, u16 len,
-			   u8 *buf)
+						   u8 *buf)
 {
 	int ret;
 
 	dev_dbg(&adap->dev, "start condition\n");
 	ret = uniphier_i2c_send_byte(adap, addr << 1 |
-				     UNIPHIER_I2C_DTRM_STA |
-				     UNIPHIER_I2C_DTRM_NACK |
-				     UNIPHIER_I2C_DTRM_RD);
-	if (ret)
-		return ret;
+								 UNIPHIER_I2C_DTRM_STA |
+								 UNIPHIER_I2C_DTRM_NACK |
+								 UNIPHIER_I2C_DTRM_RD);
 
-	while (len--) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	while (len--)
+	{
 		u32 rxdata;
 
 		ret = uniphier_i2c_xfer_byte(adap,
-					     len ? 0 : UNIPHIER_I2C_DTRM_NACK,
-					     &rxdata);
+									 len ? 0 : UNIPHIER_I2C_DTRM_NACK,
+									 &rxdata);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		*buf++ = rxdata;
 	}
 
@@ -171,45 +197,56 @@ static int uniphier_i2c_stop(struct i2c_adapter *adap)
 {
 	dev_dbg(&adap->dev, "stop condition\n");
 	return uniphier_i2c_send_byte(adap, UNIPHIER_I2C_DTRM_STO |
-				      UNIPHIER_I2C_DTRM_NACK);
+								  UNIPHIER_I2C_DTRM_NACK);
 }
 
 static int uniphier_i2c_master_xfer_one(struct i2c_adapter *adap,
-					struct i2c_msg *msg, bool stop)
+										struct i2c_msg *msg, bool stop)
 {
 	bool is_read = msg->flags & I2C_M_RD;
 	bool recovery = false;
 	int ret;
 
 	dev_dbg(&adap->dev, "%s: addr=0x%02x, len=%d, stop=%d\n",
-		is_read ? "receive" : "transmit", msg->addr, msg->len, stop);
+			is_read ? "receive" : "transmit", msg->addr, msg->len, stop);
 
 	if (is_read)
+	{
 		ret = uniphier_i2c_rx(adap, msg->addr, msg->len, msg->buf);
+	}
 	else
+	{
 		ret = uniphier_i2c_tx(adap, msg->addr, msg->len, msg->buf);
+	}
 
 	if (ret == -EAGAIN) /* could not acquire bus. bail out without STOP */
+	{
 		return ret;
+	}
 
-	if (ret == -ETIMEDOUT) {
+	if (ret == -ETIMEDOUT)
+	{
 		/* This error is fatal.  Needs recovery. */
 		stop = false;
 		recovery = true;
 	}
 
-	if (stop) {
+	if (stop)
+	{
 		int ret2 = uniphier_i2c_stop(adap);
 
-		if (ret2) {
+		if (ret2)
+		{
 			/* Failed to issue STOP.  The bus needs recovery. */
 			recovery = true;
-			ret = ret ?: ret2;
+			ret = ret ? : ret2;
 		}
 	}
 
 	if (recovery)
+	{
 		i2c_recover_bus(adap);
+	}
 
 	return ret;
 }
@@ -219,8 +256,10 @@ static int uniphier_i2c_check_bus_busy(struct i2c_adapter *adap)
 	struct uniphier_i2c_priv *priv = i2c_get_adapdata(adap);
 
 	if (!(readl(priv->membase + UNIPHIER_I2C_DREC) &
-						UNIPHIER_I2C_DREC_BBN)) {
-		if (priv->busy_cnt++ > 3) {
+		  UNIPHIER_I2C_DREC_BBN))
+	{
+		if (priv->busy_cnt++ > 3)
+		{
 			/*
 			 * If bus busy continues too long, it is probably
 			 * in a wrong state.  Try bus recovery.
@@ -237,25 +276,35 @@ static int uniphier_i2c_check_bus_busy(struct i2c_adapter *adap)
 }
 
 static int uniphier_i2c_master_xfer(struct i2c_adapter *adap,
-				    struct i2c_msg *msgs, int num)
+									struct i2c_msg *msgs, int num)
 {
 	struct i2c_msg *msg, *emsg = msgs + num;
 	int ret;
 
 	ret = uniphier_i2c_check_bus_busy(adap);
-	if (ret)
-		return ret;
 
-	for (msg = msgs; msg < emsg; msg++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (msg = msgs; msg < emsg; msg++)
+	{
 		/* If next message is read, skip the stop condition */
 		bool stop = !(msg + 1 < emsg && msg[1].flags & I2C_M_RD);
+
 		/* but, force it if I2C_M_STOP is set */
 		if (msg->flags & I2C_M_STOP)
+		{
 			stop = true;
+		}
 
 		ret = uniphier_i2c_master_xfer_one(adap, msg, stop);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return num;
@@ -266,7 +315,8 @@ static u32 uniphier_i2c_functionality(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
 }
 
-static const struct i2c_algorithm uniphier_i2c_algo = {
+static const struct i2c_algorithm uniphier_i2c_algo =
+{
 	.master_xfer = uniphier_i2c_master_xfer,
 	.functionality = uniphier_i2c_functionality,
 };
@@ -284,7 +334,7 @@ static int uniphier_i2c_get_scl(struct i2c_adapter *adap)
 	struct uniphier_i2c_priv *priv = i2c_get_adapdata(adap);
 
 	return !!(readl(priv->membase + UNIPHIER_I2C_BSTS) &
-							UNIPHIER_I2C_BSTS_SCL);
+			  UNIPHIER_I2C_BSTS_SCL);
 }
 
 static void uniphier_i2c_set_scl(struct i2c_adapter *adap, int val)
@@ -292,7 +342,7 @@ static void uniphier_i2c_set_scl(struct i2c_adapter *adap, int val)
 	struct uniphier_i2c_priv *priv = i2c_get_adapdata(adap);
 
 	writel(val ? UNIPHIER_I2C_BRST_RSCL : 0,
-	       priv->membase + UNIPHIER_I2C_BRST);
+		   priv->membase + UNIPHIER_I2C_BRST);
 }
 
 static int uniphier_i2c_get_sda(struct i2c_adapter *adap)
@@ -300,7 +350,7 @@ static int uniphier_i2c_get_sda(struct i2c_adapter *adap)
 	struct uniphier_i2c_priv *priv = i2c_get_adapdata(adap);
 
 	return !!(readl(priv->membase + UNIPHIER_I2C_BSTS) &
-							UNIPHIER_I2C_BSTS_SDA);
+			  UNIPHIER_I2C_BSTS_SDA);
 }
 
 static void uniphier_i2c_unprepare_recovery(struct i2c_adapter *adap)
@@ -308,7 +358,8 @@ static void uniphier_i2c_unprepare_recovery(struct i2c_adapter *adap)
 	uniphier_i2c_reset(i2c_get_adapdata(adap), false);
 }
 
-static struct i2c_bus_recovery_info uniphier_i2c_bus_recovery_info = {
+static struct i2c_bus_recovery_info uniphier_i2c_bus_recovery_info =
+{
 	.recover_bus = i2c_generic_scl_recovery,
 	.get_scl = uniphier_i2c_get_scl,
 	.set_scl = uniphier_i2c_set_scl,
@@ -317,12 +368,12 @@ static struct i2c_bus_recovery_info uniphier_i2c_bus_recovery_info = {
 };
 
 static void uniphier_i2c_hw_init(struct uniphier_i2c_priv *priv,
-				 u32 bus_speed, unsigned long clk_rate)
+								 u32 bus_speed, unsigned long clk_rate)
 {
 	uniphier_i2c_reset(priv, true);
 
 	writel((clk_rate / bus_speed / 2 << 16) | (clk_rate / bus_speed),
-	       priv->membase + UNIPHIER_I2C_CLK);
+		   priv->membase + UNIPHIER_I2C_CLK);
 
 	uniphier_i2c_reset(priv, false);
 }
@@ -337,40 +388,58 @@ static int uniphier_i2c_probe(struct platform_device *pdev)
 	int irq, ret;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->membase = devm_ioremap_resource(dev, regs);
+
 	if (IS_ERR(priv->membase))
+	{
 		return PTR_ERR(priv->membase);
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(dev, "failed to get IRQ number\n");
 		return irq;
 	}
 
 	if (of_property_read_u32(dev->of_node, "clock-frequency", &bus_speed))
+	{
 		bus_speed = UNIPHIER_I2C_DEFAULT_SPEED;
+	}
 
-	if (!bus_speed || bus_speed > UNIPHIER_I2C_MAX_SPEED) {
+	if (!bus_speed || bus_speed > UNIPHIER_I2C_MAX_SPEED)
+	{
 		dev_err(dev, "invalid clock-frequency %d\n", bus_speed);
 		return -EINVAL;
 	}
 
 	priv->clk = devm_clk_get(dev, NULL);
-	if (IS_ERR(priv->clk)) {
+
+	if (IS_ERR(priv->clk))
+	{
 		dev_err(dev, "failed to get clock\n");
 		return PTR_ERR(priv->clk);
 	}
 
 	ret = clk_prepare_enable(priv->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	clk_rate = clk_get_rate(priv->clk);
-	if (!clk_rate) {
+
+	if (!clk_rate)
+	{
 		dev_err(dev, "input clock rate should not be zero\n");
 		ret = -EINVAL;
 		goto err;
@@ -389,16 +458,21 @@ static int uniphier_i2c_probe(struct platform_device *pdev)
 	uniphier_i2c_hw_init(priv, bus_speed, clk_rate);
 
 	ret = devm_request_irq(dev, irq, uniphier_i2c_interrupt, 0, pdev->name,
-			       priv);
-	if (ret) {
+						   priv);
+
+	if (ret)
+	{
 		dev_err(dev, "failed to request irq %d\n", irq);
 		goto err;
 	}
 
 	ret = i2c_add_adapter(&priv->adap);
 err:
+
 	if (ret)
+	{
 		clk_disable_unprepare(priv->clk);
+	}
 
 	return ret;
 }
@@ -413,13 +487,15 @@ static int uniphier_i2c_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id uniphier_i2c_match[] = {
+static const struct of_device_id uniphier_i2c_match[] =
+{
 	{ .compatible = "socionext,uniphier-i2c" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, uniphier_i2c_match);
 
-static struct platform_driver uniphier_i2c_drv = {
+static struct platform_driver uniphier_i2c_drv =
+{
 	.probe  = uniphier_i2c_probe,
 	.remove = uniphier_i2c_remove,
 	.driver = {

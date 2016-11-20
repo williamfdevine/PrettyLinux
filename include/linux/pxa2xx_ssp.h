@@ -181,7 +181,8 @@
 #define SSIRF			0x48		/* RX FIFO trigger level */
 #define SSIRF_RxThresh(x)	((x) - 1)
 
-enum pxa_ssp_type {
+enum pxa_ssp_type
+{
 	SSP_UNDEFINED = 0,
 	PXA25x_SSP,  /* pxa 210, 250, 255, 26x */
 	PXA25x_NSSP, /* pxa 255, 26x (including ASSP) */
@@ -198,7 +199,8 @@ enum pxa_ssp_type {
 	LPSS_BXT_SSP,
 };
 
-struct ssp_device {
+struct ssp_device
+{
 	struct platform_device *pdev;
 	struct list_head	node;
 
@@ -244,14 +246,14 @@ static inline u32 pxa_ssp_read_reg(struct ssp_device *dev, u32 reg)
 struct ssp_device *pxa_ssp_request(int port, const char *label);
 void pxa_ssp_free(struct ssp_device *);
 struct ssp_device *pxa_ssp_request_of(const struct device_node *of_node,
-				      const char *label);
+									  const char *label);
 #else
 static inline struct ssp_device *pxa_ssp_request(int port, const char *label)
 {
 	return NULL;
 }
 static inline struct ssp_device *pxa_ssp_request_of(const struct device_node *n,
-						    const char *name)
+		const char *name)
 {
 	return NULL;
 }

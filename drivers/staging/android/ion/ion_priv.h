@@ -55,9 +55,11 @@
  * @pid:		pid of last client to reference this buffer in a
  *			handle, used for debugging
 */
-struct ion_buffer {
+struct ion_buffer
+{
 	struct kref ref;
-	union {
+	union
+	{
 		struct rb_node node;
 		struct list_head list;
 	};
@@ -90,14 +92,15 @@ void ion_buffer_destroy(struct ion_buffer *buffer);
  * @heaps:		list of all the heaps in the system
  * @user_clients:	list of all the clients created from userspace
  */
-struct ion_device {
+struct ion_device
+{
 	struct miscdevice dev;
 	struct rb_root buffers;
 	struct mutex buffer_lock;
 	struct rw_semaphore lock;
 	struct plist_head heaps;
 	long (*custom_ioctl)(struct ion_client *client, unsigned int cmd,
-			     unsigned long arg);
+						 unsigned long arg);
 	struct rb_root clients;
 	struct dentry *debug_root;
 	struct dentry *heaps_debug_root;
@@ -121,7 +124,8 @@ struct ion_device {
  * The mutex stored here is used to protect both handles tree
  * as well as the handles themselves, and should be held while modifying either.
  */
-struct ion_client {
+struct ion_client
+{
 	struct rb_node node;
 	struct ion_device *dev;
 	struct rb_root handles;
@@ -147,7 +151,8 @@ struct ion_client {
  * Modifications to node, map_cnt or mapping should be protected by the
  * lock in the client.  Other fields are never changed after initialization.
  */
-struct ion_handle {
+struct ion_handle
+{
 	struct kref ref;
 	struct ion_client *client;
 	struct ion_buffer *buffer;
@@ -171,15 +176,16 @@ struct ion_handle {
  * case, the pages being free'd must be truly free'd back to the
  * system, not put in a page pool or otherwise cached.
  */
-struct ion_heap_ops {
+struct ion_heap_ops
+{
 	int (*allocate)(struct ion_heap *heap,
-			struct ion_buffer *buffer, unsigned long len,
-			unsigned long align, unsigned long flags);
+					struct ion_buffer *buffer, unsigned long len,
+					unsigned long align, unsigned long flags);
 	void (*free)(struct ion_buffer *buffer);
-	void * (*map_kernel)(struct ion_heap *heap, struct ion_buffer *buffer);
+	void *(*map_kernel)(struct ion_heap *heap, struct ion_buffer *buffer);
 	void (*unmap_kernel)(struct ion_heap *heap, struct ion_buffer *buffer);
 	int (*map_user)(struct ion_heap *mapper, struct ion_buffer *buffer,
-			struct vm_area_struct *vma);
+					struct vm_area_struct *vma);
 	int (*shrink)(struct ion_heap *heap, gfp_t gfp_mask, int nr_to_scan);
 };
 
@@ -224,7 +230,8 @@ struct ion_heap_ops {
  * On others, some blocks might require large physically contiguous buffers
  * that are allocated from a specially reserved heap.
  */
-struct ion_heap {
+struct ion_heap
+{
 	struct plist_node node;
 	struct ion_device *dev;
 	enum ion_heap_type type;
@@ -266,9 +273,9 @@ bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer);
  * returns a valid device or -PTR_ERR
  */
 struct ion_device *ion_device_create(long (*custom_ioctl)
-				     (struct ion_client *client,
-				      unsigned int cmd,
-				      unsigned long arg));
+									 (struct ion_client *client,
+									  unsigned int cmd,
+									  unsigned long arg));
 
 /**
  * ion_device_destroy - free and device and it's resource
@@ -290,7 +297,7 @@ void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap);
 void *ion_heap_map_kernel(struct ion_heap *, struct ion_buffer *);
 void ion_heap_unmap_kernel(struct ion_heap *, struct ion_buffer *);
 int ion_heap_map_user(struct ion_heap *, struct ion_buffer *,
-			struct vm_area_struct *);
+					  struct vm_area_struct *);
 int ion_heap_buffer_zero(struct ion_buffer *buffer);
 int ion_heap_pages_zero(struct page *page, size_t size, pgprot_t pgprot);
 
@@ -356,7 +363,7 @@ size_t ion_heap_freelist_drain(struct ion_heap *heap, size_t size);
  * flag.
  */
 size_t ion_heap_freelist_shrink(struct ion_heap *heap,
-					size_t size);
+								size_t size);
 
 /**
  * ion_heap_freelist_size - returns the size of the freelist in bytes
@@ -413,7 +420,8 @@ void ion_cma_heap_destroy(struct ion_heap *);
  * been invalidated from the cache, provides a significant performance benefit
  * on many systems
  */
-struct ion_page_pool {
+struct ion_page_pool
+{
 	int high_count;
 	int low_count;
 	bool cached;
@@ -426,7 +434,7 @@ struct ion_page_pool {
 };
 
 struct ion_page_pool *ion_page_pool_create(gfp_t gfp_mask, unsigned int order,
-					   bool cached);
+		bool cached);
 void ion_page_pool_destroy(struct ion_page_pool *);
 struct page *ion_page_pool_alloc(struct ion_page_pool *);
 void ion_page_pool_free(struct ion_page_pool *, struct page *);
@@ -439,7 +447,7 @@ void ion_page_pool_free(struct ion_page_pool *, struct page *);
  * returns the number of items freed in pages
  */
 int ion_page_pool_shrink(struct ion_page_pool *pool, gfp_t gfp_mask,
-			  int nr_to_scan);
+						 int nr_to_scan);
 
 /**
  * ion_pages_sync_for_device - cache flush pages for use with the specified
@@ -450,21 +458,21 @@ int ion_page_pool_shrink(struct ion_page_pool *pool, gfp_t gfp_mask,
  * @dir:		direction of dma transfer
  */
 void ion_pages_sync_for_device(struct device *dev, struct page *page,
-		size_t size, enum dma_data_direction dir);
+							   size_t size, enum dma_data_direction dir);
 
 long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 
 int ion_sync_for_device(struct ion_client *client, int fd);
 
 struct ion_handle *ion_handle_get_by_id_nolock(struct ion_client *client,
-						int id);
+		int id);
 
 void ion_free_nolock(struct ion_client *client, struct ion_handle *handle);
 
 int ion_handle_put_nolock(struct ion_handle *handle);
 
 struct ion_handle *ion_handle_get_by_id(struct ion_client *client,
-						int id);
+										int id);
 
 int ion_handle_put(struct ion_handle *handle);
 

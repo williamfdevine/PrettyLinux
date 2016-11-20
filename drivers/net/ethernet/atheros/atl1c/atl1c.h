@@ -61,11 +61,11 @@
 
 #define AT_VLAN_TO_TAG(_vlan, _tag)	   \
 	_tag =  ((((_vlan) >> 8) & 0xFF)  |\
-		 (((_vlan) & 0xFF) << 8))
+			 (((_vlan) & 0xFF) << 8))
 
 #define AT_TAG_TO_VLAN(_tag, _vlan) 	 \
 	_vlan = ((((_tag) >> 8) & 0xFF) |\
-		(((_tag) & 0xFF) << 8))
+			 (((_tag) & 0xFF) << 8))
 
 #define SPEED_0		   0xffff
 #define HALF_DUPLEX        1
@@ -152,14 +152,16 @@
 #define TPD_EOP_MASK		0x0001
 #define TPD_EOP_SHIFT		31
 
-struct atl1c_tpd_desc {
+struct atl1c_tpd_desc
+{
 	__le16	buffer_len; /* include 4-byte CRC */
 	__le16	vlan_tag;
 	__le32	word1;
 	__le64	buffer_addr;
 };
 
-struct atl1c_tpd_ext_desc {
+struct atl1c_tpd_ext_desc
+{
 	u32 reservd_0;
 	__le32 word1;
 	__le32 pkt_len;
@@ -191,11 +193,11 @@ struct atl1c_tpd_ext_desc {
 
 #define RRS_IS_HDS_HEAD(flag) \
 	((((flag) >> (RRS_HDS_TYPE_SHIFT)) & RRS_HDS_TYPE_MASK) == \
-			RRS_HDS_TYPE_HEAD)
+	 RRS_HDS_TYPE_HEAD)
 
 #define RRS_IS_HDS_DATA(flag) \
 	((((flag) >> (RRS_HDS_TYPE_SHIFT)) & RRS_HDS_TYPE_MASK) == \
-			RRS_HDS_TYPE_DATA)
+	 RRS_HDS_TYPE_DATA)
 
 /* rrs word 3 bit 0:31 */
 #define RRS_PKT_SIZE_MASK	0x3FFF
@@ -245,7 +247,7 @@ struct atl1c_tpd_ext_desc {
 #define RRS_PACKET_TYPE_ETH	0
 #define RRS_PACKET_IS_ETH(word) \
 	((((word) >> RRS_PACKET_TYPE_SHIFT) & RRS_PACKET_TYPE_MASK) == \
-			RRS_PACKET_TYPE_ETH)
+	 RRS_PACKET_TYPE_ETH)
 #define RRS_RXD_IS_VALID(word) \
 	((((word) >> RRS_RXD_UPDATED_SHIFT) & RRS_RXD_UPDATED_MASK) == 1)
 
@@ -254,7 +256,8 @@ struct atl1c_tpd_ext_desc {
 #define RRS_PACKET_PROT_IS_IPV6_ONLY(word) \
 	((((word) >> RRS_PROT_ID_SHIFT) & RRS_PROT_ID_MASK) == 6)
 
-struct atl1c_recv_ret_status {
+struct atl1c_recv_ret_status
+{
 	__le32  word0;
 	__le32	rss_hash;
 	__le16	vlan_tag;
@@ -263,29 +266,34 @@ struct atl1c_recv_ret_status {
 };
 
 /* RFD descriptor */
-struct atl1c_rx_free_desc {
+struct atl1c_rx_free_desc
+{
 	__le64	buffer_addr;
 };
 
 /* DMA Order Settings */
-enum atl1c_dma_order {
+enum atl1c_dma_order
+{
 	atl1c_dma_ord_in = 1,
 	atl1c_dma_ord_enh = 2,
 	atl1c_dma_ord_out = 4
 };
 
-enum atl1c_dma_rcb {
+enum atl1c_dma_rcb
+{
 	atl1c_rcb_64 = 0,
 	atl1c_rcb_128 = 1
 };
 
-enum atl1c_mac_speed {
+enum atl1c_mac_speed
+{
 	atl1c_mac_speed_0 = 0,
 	atl1c_mac_speed_10_100 = 1,
 	atl1c_mac_speed_1000 = 2
 };
 
-enum atl1c_dma_req_block {
+enum atl1c_dma_req_block
+{
 	atl1c_dma_req_128 = 0,
 	atl1c_dma_req_256 = 1,
 	atl1c_dma_req_512 = 2,
@@ -295,7 +303,8 @@ enum atl1c_dma_req_block {
 };
 
 
-enum atl1c_nic_type {
+enum atl1c_nic_type
+{
 	athr_l1c = 0,
 	athr_l2c = 1,
 	athr_l2c_b,
@@ -304,12 +313,14 @@ enum atl1c_nic_type {
 	athr_l1d_2,
 };
 
-enum atl1c_trans_queue {
+enum atl1c_trans_queue
+{
 	atl1c_trans_normal = 0,
 	atl1c_trans_high = 1
 };
 
-struct atl1c_hw_stats {
+struct atl1c_hw_stats
+{
 	/* rx */
 	unsigned long rx_ok;		/* The number of good packet received. */
 	unsigned long rx_bcast;		/* The number of good broadcast packet received. */
@@ -326,9 +337,11 @@ struct atl1c_hw_stats {
 	unsigned long rx_sz_128_255;	/* The number of good and bad packets received that are between 128 and 255-byte long. */
 	unsigned long rx_sz_256_511;	/* The number of good and bad packets received that are between 256 and 511-byte long. */
 	unsigned long rx_sz_512_1023;	/* The number of good and bad packets received that are between 512 and 1023-byte long. */
-	unsigned long rx_sz_1024_1518;	/* The number of good and bad packets received that are between 1024 and 1518-byte long. */
+	unsigned long
+	rx_sz_1024_1518;	/* The number of good and bad packets received that are between 1024 and 1518-byte long. */
 	unsigned long rx_sz_1519_max;	/* The number of good and bad packets received that are between 1519-byte and MTU. */
-	unsigned long rx_sz_ov;		/* The number of good and bad packets received that are more than MTU size truncated by Selene. */
+	unsigned long
+	rx_sz_ov;		/* The number of good and bad packets received that are more than MTU size truncated by Selene. */
 	unsigned long rx_rxf_ov;	/* The number of frame dropped due to occurrence of RX FIFO overflow. */
 	unsigned long rx_rrd_ov;	/* The number of frame dropped due to occurrence of RRD overflow. */
 	unsigned long rx_align_err;	/* Alignment Error */
@@ -347,24 +360,33 @@ struct atl1c_hw_stats {
 	unsigned long tx_byte_cnt;	/* The number of bytes of data transmitted. FCS is NOT included. */
 	unsigned long tx_sz_64;		/* The number of good and bad packets transmitted that are 64 byte long. */
 	unsigned long tx_sz_65_127;	/* The number of good and bad packets transmitted that are between 65 and 127-byte long. */
-	unsigned long tx_sz_128_255;	/* The number of good and bad packets transmitted that are between 128 and 255-byte long. */
-	unsigned long tx_sz_256_511;	/* The number of good and bad packets transmitted that are between 256 and 511-byte long. */
-	unsigned long tx_sz_512_1023;	/* The number of good and bad packets transmitted that are between 512 and 1023-byte long. */
-	unsigned long tx_sz_1024_1518;	/* The number of good and bad packets transmitted that are between 1024 and 1518-byte long. */
+	unsigned long
+	tx_sz_128_255;	/* The number of good and bad packets transmitted that are between 128 and 255-byte long. */
+	unsigned long
+	tx_sz_256_511;	/* The number of good and bad packets transmitted that are between 256 and 511-byte long. */
+	unsigned long
+	tx_sz_512_1023;	/* The number of good and bad packets transmitted that are between 512 and 1023-byte long. */
+	unsigned long
+	tx_sz_1024_1518;	/* The number of good and bad packets transmitted that are between 1024 and 1518-byte long. */
 	unsigned long tx_sz_1519_max;	/* The number of good and bad packets transmitted that are between 1519-byte and MTU. */
-	unsigned long tx_1_col;		/* The number of packets subsequently transmitted successfully with a single prior collision. */
-	unsigned long tx_2_col;		/* The number of packets subsequently transmitted successfully with multiple prior collisions. */
+	unsigned long
+	tx_1_col;		/* The number of packets subsequently transmitted successfully with a single prior collision. */
+	unsigned long
+	tx_2_col;		/* The number of packets subsequently transmitted successfully with multiple prior collisions. */
 	unsigned long tx_late_col;	/* The number of packets transmitted with late collisions. */
 	unsigned long tx_abort_col;	/* The number of transmit packets aborted due to excessive collisions. */
-	unsigned long tx_underrun;	/* The number of transmit packets aborted due to transmit FIFO underrun, or TRD FIFO underrun */
-	unsigned long tx_rd_eop;	/* The number of times that read beyond the EOP into the next frame area when TRD was not written timely */
+	unsigned long
+	tx_underrun;	/* The number of transmit packets aborted due to transmit FIFO underrun, or TRD FIFO underrun */
+	unsigned long
+	tx_rd_eop;	/* The number of times that read beyond the EOP into the next frame area when TRD was not written timely */
 	unsigned long tx_len_err;	/* The number of transmit packets with length field does NOT match the actual frame size. */
 	unsigned long tx_trunc;		/* The number of transmit packets truncated due to size exceeding MTU. */
 	unsigned long tx_bcast_byte;	/* The byte count of broadcast packet transmitted, excluding FCS. */
 	unsigned long tx_mcast_byte;	/* The byte count of multicast packet transmitted, excluding FCS. */
 };
 
-struct atl1c_hw {
+struct atl1c_hw
+{
 	u8 __iomem      *hw_addr;            /* inner register address */
 	struct atl1c_adapter *adapter;
 	enum atl1c_nic_type  nic_type;
@@ -442,7 +464,8 @@ struct atl1c_hw {
  * atl1c_ring_header represents a single, contiguous block of DMA space
  * mapped for the three descriptor rings (tpd, rfd, rrd) described below
  */
-struct atl1c_ring_header {
+struct atl1c_ring_header
+{
 	void *desc;		/* virtual address */
 	dma_addr_t dma;		/* physical address*/
 	unsigned int size;	/* length in bytes */
@@ -452,7 +475,8 @@ struct atl1c_ring_header {
  * atl1c_buffer is wrapper around a pointer to a socket buffer
  * so a DMA handle can be stored along with the skb
  */
-struct atl1c_buffer {
+struct atl1c_buffer
+{
 	struct sk_buff *skb;	/* socket buffer */
 	u16 length;		/* rx buffer length */
 	u16 flags;		/* information of buffer */
@@ -471,19 +495,20 @@ struct atl1c_buffer {
 };
 
 #define ATL1C_SET_BUFFER_STATE(buff, state) do {	\
-	((buff)->flags) &= ~ATL1C_BUFFER_STATE_MASK;	\
-	((buff)->flags) |= (state);			\
+		((buff)->flags) &= ~ATL1C_BUFFER_STATE_MASK;	\
+		((buff)->flags) |= (state);			\
 	} while (0)
 
 #define ATL1C_SET_PCIMAP_TYPE(buff, type, direction) do {	\
-	((buff)->flags) &= ~ATL1C_PCIMAP_TYPE_MASK;		\
-	((buff)->flags) |= (type);				\
-	((buff)->flags) &= ~ATL1C_PCIMAP_DIRECTION_MASK;	\
-	((buff)->flags) |= (direction);				\
+		((buff)->flags) &= ~ATL1C_PCIMAP_TYPE_MASK;		\
+		((buff)->flags) |= (type);				\
+		((buff)->flags) &= ~ATL1C_PCIMAP_DIRECTION_MASK;	\
+		((buff)->flags) |= (direction);				\
 	} while (0)
 
 /* transimit packet descriptor (tpd) ring */
-struct atl1c_tpd_ring {
+struct atl1c_tpd_ring
+{
 	void *desc;		/* descriptor ring virtual address */
 	dma_addr_t dma;		/* descriptor ring physical address */
 	u16 size;		/* descriptor ring length in bytes */
@@ -494,7 +519,8 @@ struct atl1c_tpd_ring {
 };
 
 /* receive free descriptor (rfd) ring */
-struct atl1c_rfd_ring {
+struct atl1c_rfd_ring
+{
 	void *desc;		/* descriptor ring virtual address */
 	dma_addr_t dma;		/* descriptor ring physical address */
 	u16 size;		/* descriptor ring length in bytes */
@@ -505,7 +531,8 @@ struct atl1c_rfd_ring {
 };
 
 /* receive return descriptor (rrd) ring */
-struct atl1c_rrd_ring {
+struct atl1c_rrd_ring
+{
 	void *desc;		/* descriptor ring virtual address */
 	dma_addr_t dma;		/* descriptor ring physical address */
 	u16 size;		/* descriptor ring length in bytes */
@@ -515,7 +542,8 @@ struct atl1c_rrd_ring {
 };
 
 /* board specific private data structure */
-struct atl1c_adapter {
+struct atl1c_adapter
+{
 	struct net_device   *netdev;
 	struct pci_dev      *pdev;
 	struct napi_struct  napi;
@@ -557,10 +585,10 @@ struct atl1c_adapter {
 };
 
 #define AT_WRITE_REG(a, reg, value) ( \
-		writel((value), ((a)->hw_addr + reg)))
+									  writel((value), ((a)->hw_addr + reg)))
 
 #define AT_WRITE_FLUSH(a) (\
-		readl((a)->hw_addr))
+						   readl((a)->hw_addr))
 
 #define AT_READ_REG(a, reg, pdata) do {					\
 		if (unlikely((a)->hibernate)) {				\
@@ -572,13 +600,13 @@ struct atl1c_adapter {
 	} while (0)
 
 #define AT_WRITE_REGB(a, reg, value) (\
-		writeb((value), ((a)->hw_addr + reg)))
+									  writeb((value), ((a)->hw_addr + reg)))
 
 #define AT_READ_REGB(a, reg) (\
-		readb((a)->hw_addr + reg))
+							  readb((a)->hw_addr + reg))
 
 #define AT_WRITE_REGW(a, reg, value) (\
-		writew((value), ((a)->hw_addr + reg)))
+									  writew((value), ((a)->hw_addr + reg)))
 
 #define AT_READ_REGW(a, reg, pdata) do {				\
 		if (unlikely((a)->hibernate)) {				\

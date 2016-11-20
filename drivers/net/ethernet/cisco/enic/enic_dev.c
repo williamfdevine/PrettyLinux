@@ -52,7 +52,9 @@ int enic_dev_add_station_addr(struct enic *enic)
 	int err;
 
 	if (!is_valid_ether_addr(enic->netdev->dev_addr))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	spin_lock_bh(&enic->devcmd_lock);
 	err = vnic_dev_add_addr(enic->vdev, enic->netdev->dev_addr);
@@ -66,7 +68,9 @@ int enic_dev_del_station_addr(struct enic *enic)
 	int err;
 
 	if (!is_valid_ether_addr(enic->netdev->dev_addr))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	spin_lock_bh(&enic->devcmd_lock);
 	err = vnic_dev_del_addr(enic->vdev, enic->netdev->dev_addr);
@@ -76,13 +80,13 @@ int enic_dev_del_station_addr(struct enic *enic)
 }
 
 int enic_dev_packet_filter(struct enic *enic, int directed, int multicast,
-	int broadcast, int promisc, int allmulti)
+						   int broadcast, int promisc, int allmulti)
 {
 	int err;
 
 	spin_lock_bh(&enic->devcmd_lock);
 	err = vnic_dev_packet_filter(enic->vdev, directed,
-		multicast, broadcast, promisc, allmulti);
+								 multicast, broadcast, promisc, allmulti);
 	spin_unlock_bh(&enic->devcmd_lock);
 
 	return err;
@@ -138,7 +142,7 @@ int enic_dev_set_ig_vlan_rewrite_mode(struct enic *enic)
 
 	spin_lock_bh(&enic->devcmd_lock);
 	err = vnic_dev_set_ig_vlan_rewrite_mode(enic->vdev,
-		IG_VLAN_REWRITE_MODE_PRIORITY_TAG_DEFAULT_VLAN);
+											IG_VLAN_REWRITE_MODE_PRIORITY_TAG_DEFAULT_VLAN);
 	spin_unlock_bh(&enic->devcmd_lock);
 
 	return err;
@@ -205,32 +209,44 @@ int enic_vlan_rx_kill_vid(struct net_device *netdev, __be16 proto, u16 vid)
 
 int enic_dev_status_to_errno(int devcmd_status)
 {
-	switch (devcmd_status) {
-	case ERR_SUCCESS:
-		return 0;
-	case ERR_EINVAL:
-		return -EINVAL;
-	case ERR_EFAULT:
-		return -EFAULT;
-	case ERR_EPERM:
-		return -EPERM;
-	case ERR_EBUSY:
-		return -EBUSY;
-	case ERR_ECMDUNKNOWN:
-	case ERR_ENOTSUPPORTED:
-		return -EOPNOTSUPP;
-	case ERR_EBADSTATE:
-		return -EINVAL;
-	case ERR_ENOMEM:
-		return -ENOMEM;
-	case ERR_ETIMEDOUT:
-		return -ETIMEDOUT;
-	case ERR_ELINKDOWN:
-		return -ENETDOWN;
-	case ERR_EINPROGRESS:
-		return -EINPROGRESS;
-	case ERR_EMAXRES:
-	default:
-		return (devcmd_status < 0) ? devcmd_status : -1;
+	switch (devcmd_status)
+	{
+		case ERR_SUCCESS:
+			return 0;
+
+		case ERR_EINVAL:
+			return -EINVAL;
+
+		case ERR_EFAULT:
+			return -EFAULT;
+
+		case ERR_EPERM:
+			return -EPERM;
+
+		case ERR_EBUSY:
+			return -EBUSY;
+
+		case ERR_ECMDUNKNOWN:
+		case ERR_ENOTSUPPORTED:
+			return -EOPNOTSUPP;
+
+		case ERR_EBADSTATE:
+			return -EINVAL;
+
+		case ERR_ENOMEM:
+			return -ENOMEM;
+
+		case ERR_ETIMEDOUT:
+			return -ETIMEDOUT;
+
+		case ERR_ELINKDOWN:
+			return -ENETDOWN;
+
+		case ERR_EINPROGRESS:
+			return -EINPROGRESS;
+
+		case ERR_EMAXRES:
+		default:
+			return (devcmd_status < 0) ? devcmd_status : -1;
 	}
 }

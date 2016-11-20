@@ -44,7 +44,8 @@
 #define ALTERA_SPI_CONTROL_IE_MSK	0x100
 #define ALTERA_SPI_CONTROL_SSO_MSK	0x400
 
-struct altera_spi {
+struct altera_spi
+{
 	/* bitbang has to be first */
 	struct spi_bitbang bitbang;
 	struct completion done;
@@ -70,49 +71,58 @@ static void altera_spi_chipsel(struct spi_device *spi, int value)
 {
 	struct altera_spi *hw = altera_spi_to_hw(spi);
 
-	if (spi->mode & SPI_CS_HIGH) {
-		switch (value) {
-		case BITBANG_CS_INACTIVE:
-			writel(1 << spi->chip_select,
-			       hw->base + ALTERA_SPI_SLAVE_SEL);
-			hw->imr |= ALTERA_SPI_CONTROL_SSO_MSK;
-			writel(hw->imr, hw->base + ALTERA_SPI_CONTROL);
-			break;
+	if (spi->mode & SPI_CS_HIGH)
+	{
+		switch (value)
+		{
+			case BITBANG_CS_INACTIVE:
+				writel(1 << spi->chip_select,
+					   hw->base + ALTERA_SPI_SLAVE_SEL);
+				hw->imr |= ALTERA_SPI_CONTROL_SSO_MSK;
+				writel(hw->imr, hw->base + ALTERA_SPI_CONTROL);
+				break;
 
-		case BITBANG_CS_ACTIVE:
-			hw->imr &= ~ALTERA_SPI_CONTROL_SSO_MSK;
-			writel(hw->imr, hw->base + ALTERA_SPI_CONTROL);
-			writel(0, hw->base + ALTERA_SPI_SLAVE_SEL);
-			break;
+			case BITBANG_CS_ACTIVE:
+				hw->imr &= ~ALTERA_SPI_CONTROL_SSO_MSK;
+				writel(hw->imr, hw->base + ALTERA_SPI_CONTROL);
+				writel(0, hw->base + ALTERA_SPI_SLAVE_SEL);
+				break;
 		}
-	} else {
-		switch (value) {
-		case BITBANG_CS_INACTIVE:
-			hw->imr &= ~ALTERA_SPI_CONTROL_SSO_MSK;
-			writel(hw->imr, hw->base + ALTERA_SPI_CONTROL);
-			break;
+	}
+	else
+	{
+		switch (value)
+		{
+			case BITBANG_CS_INACTIVE:
+				hw->imr &= ~ALTERA_SPI_CONTROL_SSO_MSK;
+				writel(hw->imr, hw->base + ALTERA_SPI_CONTROL);
+				break;
 
-		case BITBANG_CS_ACTIVE:
-			writel(1 << spi->chip_select,
-			       hw->base + ALTERA_SPI_SLAVE_SEL);
-			hw->imr |= ALTERA_SPI_CONTROL_SSO_MSK;
-			writel(hw->imr, hw->base + ALTERA_SPI_CONTROL);
-			break;
+			case BITBANG_CS_ACTIVE:
+				writel(1 << spi->chip_select,
+					   hw->base + ALTERA_SPI_SLAVE_SEL);
+				hw->imr |= ALTERA_SPI_CONTROL_SSO_MSK;
+				writel(hw->imr, hw->base + ALTERA_SPI_CONTROL);
+				break;
 		}
 	}
 }
 
 static inline unsigned int hw_txbyte(struct altera_spi *hw, int count)
 {
-	if (hw->tx) {
-		switch (hw->bytes_per_word) {
-		case 1:
-			return hw->tx[count];
-		case 2:
-			return (hw->tx[count * 2]
-				| (hw->tx[count * 2 + 1] << 8));
+	if (hw->tx)
+	{
+		switch (hw->bytes_per_word)
+		{
+			case 1:
+				return hw->tx[count];
+
+			case 2:
+				return (hw->tx[count * 2]
+						| (hw->tx[count * 2 + 1] << 8));
 		}
 	}
+
 	return 0;
 }
 
@@ -126,7 +136,8 @@ static int altera_spi_txrx(struct spi_device *spi, struct spi_transfer *t)
 	hw->bytes_per_word = DIV_ROUND_UP(t->bits_per_word, 8);
 	hw->len = t->len / hw->bytes_per_word;
 
-	if (hw->irq >= 0) {
+	if (hw->irq >= 0)
+	{
 		/* enable receive interrupt */
 		hw->imr |= ALTERA_SPI_CONTROL_IRRDY_MSK;
 		writel(hw->imr, hw->base + ALTERA_SPI_CONTROL);
@@ -138,27 +149,36 @@ static int altera_spi_txrx(struct spi_device *spi, struct spi_transfer *t)
 		/* disable receive interrupt */
 		hw->imr &= ~ALTERA_SPI_CONTROL_IRRDY_MSK;
 		writel(hw->imr, hw->base + ALTERA_SPI_CONTROL);
-	} else {
-		while (hw->count < hw->len) {
+	}
+	else
+	{
+		while (hw->count < hw->len)
+		{
 			unsigned int rxd;
 
 			writel(hw_txbyte(hw, hw->count),
-			       hw->base + ALTERA_SPI_TXDATA);
+				   hw->base + ALTERA_SPI_TXDATA);
 
 			while (!(readl(hw->base + ALTERA_SPI_STATUS) &
-				 ALTERA_SPI_STATUS_RRDY_MSK))
+					 ALTERA_SPI_STATUS_RRDY_MSK))
+			{
 				cpu_relax();
+			}
 
 			rxd = readl(hw->base + ALTERA_SPI_RXDATA);
-			if (hw->rx) {
-				switch (hw->bytes_per_word) {
-				case 1:
-					hw->rx[hw->count] = rxd;
-					break;
-				case 2:
-					hw->rx[hw->count * 2] = rxd;
-					hw->rx[hw->count * 2 + 1] = rxd >> 8;
-					break;
+
+			if (hw->rx)
+			{
+				switch (hw->bytes_per_word)
+				{
+					case 1:
+						hw->rx[hw->count] = rxd;
+						break;
+
+					case 2:
+						hw->rx[hw->count * 2] = rxd;
+						hw->rx[hw->count * 2 + 1] = rxd >> 8;
+						break;
 				}
 			}
 
@@ -175,24 +195,32 @@ static irqreturn_t altera_spi_irq(int irq, void *dev)
 	unsigned int rxd;
 
 	rxd = readl(hw->base + ALTERA_SPI_RXDATA);
-	if (hw->rx) {
-		switch (hw->bytes_per_word) {
-		case 1:
-			hw->rx[hw->count] = rxd;
-			break;
-		case 2:
-			hw->rx[hw->count * 2] = rxd;
-			hw->rx[hw->count * 2 + 1] = rxd >> 8;
-			break;
+
+	if (hw->rx)
+	{
+		switch (hw->bytes_per_word)
+		{
+			case 1:
+				hw->rx[hw->count] = rxd;
+				break;
+
+			case 2:
+				hw->rx[hw->count * 2] = rxd;
+				hw->rx[hw->count * 2 + 1] = rxd >> 8;
+				break;
 		}
 	}
 
 	hw->count++;
 
 	if (hw->count < hw->len)
+	{
 		writel(hw_txbyte(hw, hw->count), hw->base + ALTERA_SPI_TXDATA);
+	}
 	else
+	{
 		complete(&hw->done);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -205,8 +233,11 @@ static int altera_spi_probe(struct platform_device *pdev)
 	int err = -ENODEV;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(struct altera_spi));
+
 	if (!master)
+	{
 		return err;
+	}
 
 	/* setup the master state. */
 	master->bus_num = pdev->id;
@@ -226,30 +257,46 @@ static int altera_spi_probe(struct platform_device *pdev)
 	/* find and map our resources */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hw->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(hw->base)) {
+
+	if (IS_ERR(hw->base))
+	{
 		err = PTR_ERR(hw->base);
 		goto exit;
 	}
+
 	/* program defaults into the registers */
 	hw->imr = 0;		/* disable spi interrupts */
 	writel(hw->imr, hw->base + ALTERA_SPI_CONTROL);
 	writel(0, hw->base + ALTERA_SPI_STATUS);	/* clear status reg */
+
 	if (readl(hw->base + ALTERA_SPI_STATUS) & ALTERA_SPI_STATUS_RRDY_MSK)
-		readl(hw->base + ALTERA_SPI_RXDATA);	/* flush rxdata */
+	{
+		readl(hw->base + ALTERA_SPI_RXDATA);    /* flush rxdata */
+	}
+
 	/* irq is optional */
 	hw->irq = platform_get_irq(pdev, 0);
-	if (hw->irq >= 0) {
+
+	if (hw->irq >= 0)
+	{
 		init_completion(&hw->done);
 		err = devm_request_irq(&pdev->dev, hw->irq, altera_spi_irq, 0,
-				       pdev->name, hw);
+							   pdev->name, hw);
+
 		if (err)
+		{
 			goto exit;
+		}
 	}
 
 	/* register our spi controller */
 	err = spi_bitbang_start(&hw->bitbang);
+
 	if (err)
+	{
 		goto exit;
+	}
+
 	dev_info(&pdev->dev, "base %p, irq %d\n", hw->base, hw->irq);
 
 	return 0;
@@ -269,7 +316,8 @@ static int altera_spi_remove(struct platform_device *dev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id altera_spi_match[] = {
+static const struct of_device_id altera_spi_match[] =
+{
 	{ .compatible = "ALTR,spi-1.0", },
 	{ .compatible = "altr,spi-1.0", },
 	{},
@@ -277,7 +325,8 @@ static const struct of_device_id altera_spi_match[] = {
 MODULE_DEVICE_TABLE(of, altera_spi_match);
 #endif /* CONFIG_OF */
 
-static struct platform_driver altera_spi_driver = {
+static struct platform_driver altera_spi_driver =
+{
 	.probe = altera_spi_probe,
 	.remove = altera_spi_remove,
 	.driver = {

@@ -76,7 +76,8 @@
 #define AD1848_THINKPAD_CTL_PORT2		0x15e9
 #define AD1848_THINKPAD_CS4248_ENABLE_BIT	0x02
 
-struct snd_wss {
+struct snd_wss
+{
 	unsigned long port;		/* base i/o port */
 	struct resource *res_port;
 	unsigned long cport;		/* control base i/o port (CS4236) */
@@ -88,10 +89,10 @@ struct snd_wss {
 	unsigned short mode;		/* see to WSS_MODE_XXXX */
 	unsigned short hardware;	/* see to WSS_HW_XXXX */
 	unsigned short hwshare;		/* shared resources */
-	unsigned short single_dma:1,	/* forced single DMA mode (GUS 16-bit */
-					/* daughter board) or dma1 == dma2 */
-		       ebus_flag:1,	/* SPARC: EBUS present */
-		       thinkpad_flag:1;	/* Thinkpad CS4248 needs extra help */
+	unsigned short single_dma: 1,	/* forced single DMA mode (GUS 16-bit */
+			 /* daughter board) or dma1 == dma2 */
+			 ebus_flag: 1,	/* SPARC: EBUS present */
+			 thinkpad_flag: 1;	/* Thinkpad CS4248 needs extra help */
 
 	struct snd_card *card;
 	struct snd_pcm *pcm;
@@ -114,11 +115,11 @@ struct snd_wss {
 
 	int (*rate_constraint) (struct snd_pcm_runtime *runtime);
 	void (*set_playback_format) (struct snd_wss *chip,
-				     struct snd_pcm_hw_params *hw_params,
-				     unsigned char pdfr);
+								 struct snd_pcm_hw_params *hw_params,
+								 unsigned char pdfr);
 	void (*set_capture_format) (struct snd_wss *chip,
-				    struct snd_pcm_hw_params *hw_params,
-				    unsigned char cdfr);
+								struct snd_pcm_hw_params *hw_params,
+								unsigned char cdfr);
 	void (*trigger) (struct snd_wss *chip, unsigned int what, int start);
 #ifdef CONFIG_PM
 	void (*suspend) (struct snd_wss *chip);
@@ -126,9 +127,9 @@ struct snd_wss {
 #endif
 	void *dma_private_data;
 	int (*claim_dma) (struct snd_wss *chip,
-			  void *dma_private_data, int dma);
+					  void *dma_private_data, int dma);
 	int (*release_dma) (struct snd_wss *chip,
-			    void *dma_private_data, int dma);
+						void *dma_private_data, int dma);
 };
 
 /* exported functions */
@@ -136,7 +137,7 @@ struct snd_wss {
 void snd_wss_out(struct snd_wss *chip, unsigned char reg, unsigned char val);
 unsigned char snd_wss_in(struct snd_wss *chip, unsigned char reg);
 void snd_cs4236_ext_out(struct snd_wss *chip,
-			unsigned char reg, unsigned char val);
+						unsigned char reg, unsigned char val);
 unsigned char snd_cs4236_ext_in(struct snd_wss *chip, unsigned char reg);
 void snd_wss_mce_up(struct snd_wss *chip);
 void snd_wss_mce_down(struct snd_wss *chip);
@@ -148,12 +149,12 @@ irqreturn_t snd_wss_interrupt(int irq, void *dev_id);
 const char *snd_wss_chip_id(struct snd_wss *chip);
 
 int snd_wss_create(struct snd_card *card,
-		      unsigned long port,
-		      unsigned long cport,
-		      int irq, int dma1, int dma2,
-		      unsigned short hardware,
-		      unsigned short hwshare,
-		      struct snd_wss **rchip);
+				   unsigned long port,
+				   unsigned long cport,
+				   int irq, int dma1, int dma2,
+				   unsigned short hardware,
+				   unsigned short hwshare,
+				   struct snd_wss **rchip);
 int snd_wss_pcm(struct snd_wss *chip, int device);
 int snd_wss_timer(struct snd_wss *chip, int device);
 int snd_wss_mixer(struct snd_wss *chip);
@@ -161,12 +162,12 @@ int snd_wss_mixer(struct snd_wss *chip);
 const struct snd_pcm_ops *snd_wss_get_pcm_ops(int direction);
 
 int snd_cs4236_create(struct snd_card *card,
-		      unsigned long port,
-		      unsigned long cport,
-		      int irq, int dma1, int dma2,
-		      unsigned short hardware,
-		      unsigned short hwshare,
-		      struct snd_wss **rchip);
+					  unsigned long port,
+					  unsigned long cport,
+					  int irq, int dma1, int dma2,
+					  unsigned short hardware,
+					  unsigned short hwshare,
+					  struct snd_wss **rchip);
 int snd_cs4236_pcm(struct snd_wss *chip, int device);
 int snd_cs4236_mixer(struct snd_wss *chip);
 
@@ -175,61 +176,61 @@ int snd_cs4236_mixer(struct snd_wss *chip);
  */
 
 #define WSS_SINGLE(xname, xindex, reg, shift, mask, invert) \
-{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
-  .name = xname, \
-  .index = xindex, \
-  .info = snd_wss_info_single, \
-  .get = snd_wss_get_single, \
-  .put = snd_wss_put_single, \
-  .private_value = reg | (shift << 8) | (mask << 16) | (invert << 24) }
+	{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
+			   .name = xname, \
+					   .index = xindex, \
+								.info = snd_wss_info_single, \
+										.get = snd_wss_get_single, \
+											   .put = snd_wss_put_single, \
+													   .private_value = reg | (shift << 8) | (mask << 16) | (invert << 24) }
 
 int snd_wss_info_single(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_info *uinfo);
+						struct snd_ctl_elem_info *uinfo);
 int snd_wss_get_single(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol);
+					   struct snd_ctl_elem_value *ucontrol);
 int snd_wss_put_single(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol);
+					   struct snd_ctl_elem_value *ucontrol);
 
 #define WSS_DOUBLE(xname, xindex, left_reg, right_reg, shift_left, shift_right, mask, invert) \
-{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
-  .name = xname, \
-  .index = xindex, \
-  .info = snd_wss_info_double, \
-  .get = snd_wss_get_double, \
-  .put = snd_wss_put_double, \
-  .private_value = left_reg | (right_reg << 8) | (shift_left << 16) | \
-		   (shift_right << 19) | (mask << 24) | (invert << 22) }
+	{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
+			   .name = xname, \
+					   .index = xindex, \
+								.info = snd_wss_info_double, \
+										.get = snd_wss_get_double, \
+											   .put = snd_wss_put_double, \
+													   .private_value = left_reg | (right_reg << 8) | (shift_left << 16) | \
+															   (shift_right << 19) | (mask << 24) | (invert << 22) }
 
 #define WSS_SINGLE_TLV(xname, xindex, reg, shift, mask, invert, xtlv) \
-{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
-  .access = SNDRV_CTL_ELEM_ACCESS_READWRITE | SNDRV_CTL_ELEM_ACCESS_TLV_READ, \
-  .name = xname, \
-  .index = xindex, \
-  .info = snd_wss_info_single, \
-  .get = snd_wss_get_single, \
-  .put = snd_wss_put_single, \
-  .private_value = reg | (shift << 8) | (mask << 16) | (invert << 24), \
-  .tlv = { .p = (xtlv) } }
+	{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
+			   .access = SNDRV_CTL_ELEM_ACCESS_READWRITE | SNDRV_CTL_ELEM_ACCESS_TLV_READ, \
+						 .name = xname, \
+								 .index = xindex, \
+										  .info = snd_wss_info_single, \
+												  .get = snd_wss_get_single, \
+														  .put = snd_wss_put_single, \
+																  .private_value = reg | (shift << 8) | (mask << 16) | (invert << 24), \
+																		  .tlv = { .p = (xtlv) } }
 
 #define WSS_DOUBLE_TLV(xname, xindex, left_reg, right_reg, \
-			shift_left, shift_right, mask, invert, xtlv) \
+					   shift_left, shift_right, mask, invert, xtlv) \
 { .iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
-  .access = SNDRV_CTL_ELEM_ACCESS_READWRITE | SNDRV_CTL_ELEM_ACCESS_TLV_READ, \
-  .name = xname, \
-  .index = xindex, \
-  .info = snd_wss_info_double, \
-  .get = snd_wss_get_double, \
-  .put = snd_wss_put_double, \
-  .private_value = left_reg | (right_reg << 8) | (shift_left << 16) | \
-		   (shift_right << 19) | (mask << 24) | (invert << 22), \
-  .tlv = { .p = (xtlv) } }
+		   .access = SNDRV_CTL_ELEM_ACCESS_READWRITE | SNDRV_CTL_ELEM_ACCESS_TLV_READ, \
+					 .name = xname, \
+							 .index = xindex, \
+									  .info = snd_wss_info_double, \
+											  .get = snd_wss_get_double, \
+													  .put = snd_wss_put_double, \
+															  .private_value = left_reg | (right_reg << 8) | (shift_left << 16) | \
+																	  (shift_right << 19) | (mask << 24) | (invert << 22), \
+																	  .tlv = { .p = (xtlv) } }
 
 
 int snd_wss_info_double(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_info *uinfo);
+						struct snd_ctl_elem_info *uinfo);
 int snd_wss_get_double(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol);
+					   struct snd_ctl_elem_value *ucontrol);
 int snd_wss_put_double(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol);
+					   struct snd_ctl_elem_value *ucontrol);
 
 #endif /* __SOUND_WSS_H */

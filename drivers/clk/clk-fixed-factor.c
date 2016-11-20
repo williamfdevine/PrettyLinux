@@ -36,11 +36,12 @@ static unsigned long clk_factor_recalc_rate(struct clk_hw *hw,
 }
 
 static long clk_factor_round_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long *prate)
+								  unsigned long *prate)
 {
 	struct clk_fixed_factor *fix = to_clk_fixed_factor(hw);
 
-	if (clk_hw_get_flags(hw) & CLK_SET_RATE_PARENT) {
+	if (clk_hw_get_flags(hw) & CLK_SET_RATE_PARENT)
+	{
 		unsigned long best_parent;
 
 		best_parent = (rate / fix->mult) * fix->div;
@@ -51,7 +52,7 @@ static long clk_factor_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int clk_factor_set_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long parent_rate)
+							   unsigned long parent_rate)
 {
 	/*
 	 * We must report success but we can do so unconditionally because
@@ -62,7 +63,8 @@ static int clk_factor_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-const struct clk_ops clk_fixed_factor_ops = {
+const struct clk_ops clk_fixed_factor_ops =
+{
 	.round_rate = clk_factor_round_rate,
 	.set_rate = clk_factor_set_rate,
 	.recalc_rate = clk_factor_recalc_rate,
@@ -79,8 +81,11 @@ struct clk_hw *clk_hw_register_fixed_factor(struct device *dev,
 	int ret;
 
 	fix = kmalloc(sizeof(*fix), GFP_KERNEL);
+
 	if (!fix)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/* struct clk_fixed_factor assignments */
 	fix->mult = mult;
@@ -95,7 +100,9 @@ struct clk_hw *clk_hw_register_fixed_factor(struct device *dev,
 
 	hw = &fix->hw;
 	ret = clk_hw_register(dev, hw);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(fix);
 		hw = ERR_PTR(ret);
 	}
@@ -105,15 +112,19 @@ struct clk_hw *clk_hw_register_fixed_factor(struct device *dev,
 EXPORT_SYMBOL_GPL(clk_hw_register_fixed_factor);
 
 struct clk *clk_register_fixed_factor(struct device *dev, const char *name,
-		const char *parent_name, unsigned long flags,
-		unsigned int mult, unsigned int div)
+									  const char *parent_name, unsigned long flags,
+									  unsigned int mult, unsigned int div)
 {
 	struct clk_hw *hw;
 
 	hw = clk_hw_register_fixed_factor(dev, name, parent_name, flags, mult,
-					  div);
+									  div);
+
 	if (IS_ERR(hw))
+	{
 		return ERR_CAST(hw);
+	}
+
 	return hw->clk;
 }
 EXPORT_SYMBOL_GPL(clk_register_fixed_factor);
@@ -123,8 +134,11 @@ void clk_unregister_fixed_factor(struct clk *clk)
 	struct clk_hw *hw;
 
 	hw = __clk_get_hw(clk);
+
 	if (!hw)
+	{
 		return;
+	}
 
 	clk_unregister(clk);
 	kfree(to_clk_fixed_factor(hw));
@@ -143,7 +157,8 @@ void clk_hw_unregister_fixed_factor(struct clk_hw *hw)
 EXPORT_SYMBOL_GPL(clk_hw_unregister_fixed_factor);
 
 #ifdef CONFIG_OF
-static const struct of_device_id set_rate_parent_matches[] = {
+static const struct of_device_id set_rate_parent_matches[] =
+{
 	{ .compatible = "allwinner,sun4i-a10-pll3-2x-clk" },
 	{ /* Sentinel */ },
 };
@@ -157,15 +172,17 @@ static struct clk *_of_fixed_factor_clk_setup(struct device_node *node)
 	u32 div, mult;
 	int ret;
 
-	if (of_property_read_u32(node, "clock-div", &div)) {
+	if (of_property_read_u32(node, "clock-div", &div))
+	{
 		pr_err("%s Fixed factor clock <%s> must have a clock-div property\n",
-			__func__, node->name);
+			   __func__, node->name);
 		return ERR_PTR(-EIO);
 	}
 
-	if (of_property_read_u32(node, "clock-mult", &mult)) {
+	if (of_property_read_u32(node, "clock-mult", &mult))
+	{
 		pr_err("%s Fixed factor clock <%s> must have a clock-mult property\n",
-			__func__, node->name);
+			   __func__, node->name);
 		return ERR_PTR(-EIO);
 	}
 
@@ -173,15 +190,22 @@ static struct clk *_of_fixed_factor_clk_setup(struct device_node *node)
 	parent_name = of_clk_get_parent_name(node, 0);
 
 	if (of_match_node(set_rate_parent_matches, node))
+	{
 		flags |= CLK_SET_RATE_PARENT;
+	}
 
 	clk = clk_register_fixed_factor(NULL, clk_name, parent_name, flags,
-					mult, div);
+									mult, div);
+
 	if (IS_ERR(clk))
+	{
 		return clk;
+	}
 
 	ret = of_clk_add_provider(node, of_clk_src_simple_get, clk);
-	if (ret) {
+
+	if (ret)
+	{
 		clk_unregister(clk);
 		return ERR_PTR(ret);
 	}
@@ -197,7 +221,7 @@ void __init of_fixed_factor_clk_setup(struct device_node *node)
 	_of_fixed_factor_clk_setup(node);
 }
 CLK_OF_DECLARE(fixed_factor_clk, "fixed-factor-clock",
-		of_fixed_factor_clk_setup);
+			   of_fixed_factor_clk_setup);
 
 static int of_fixed_factor_clk_remove(struct platform_device *pdev)
 {
@@ -217,21 +241,26 @@ static int of_fixed_factor_clk_probe(struct platform_device *pdev)
 	 * succeeded.
 	 */
 	clk = _of_fixed_factor_clk_setup(pdev->dev.of_node);
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
 
 	platform_set_drvdata(pdev, clk);
 
 	return 0;
 }
 
-static const struct of_device_id of_fixed_factor_clk_ids[] = {
+static const struct of_device_id of_fixed_factor_clk_ids[] =
+{
 	{ .compatible = "fixed-factor-clock" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, of_fixed_factor_clk_ids);
 
-static struct platform_driver of_fixed_factor_clk_driver = {
+static struct platform_driver of_fixed_factor_clk_driver =
+{
 	.driver = {
 		.name = "of_fixed_factor_clk",
 		.of_match_table = of_fixed_factor_clk_ids,

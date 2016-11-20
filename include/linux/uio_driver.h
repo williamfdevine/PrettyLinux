@@ -32,7 +32,8 @@ struct uio_map;
  * @internal_addr:	ioremap-ped version of addr, for driver internal use
  * @map:		for use by the UIO core only.
  */
-struct uio_mem {
+struct uio_mem
+{
 	const char		*name;
 	phys_addr_t		addr;
 	resource_size_t		size;
@@ -53,7 +54,8 @@ struct uio_portio;
  * @porttype:		type of port (see UIO_PORT_* below)
  * @portio:		for use by the UIO core only.
  */
-struct uio_port {
+struct uio_port
+{
 	const char		*name;
 	unsigned long		start;
 	unsigned long		size;
@@ -63,16 +65,17 @@ struct uio_port {
 
 #define MAX_UIO_PORT_REGIONS	5
 
-struct uio_device {
-        struct module           *owner;
-        struct device           *dev;
-        int                     minor;
-        atomic_t                event;
-        struct fasync_struct    *async_queue;
-        wait_queue_head_t       wait;
-        struct uio_info         *info;
-        struct kobject          *map_dir;
-        struct kobject          *portio_dir;
+struct uio_device
+{
+	struct module           *owner;
+	struct device           *dev;
+	int                     minor;
+	atomic_t                event;
+	struct fasync_struct    *async_queue;
+	wait_queue_head_t       wait;
+	struct uio_info         *info;
+	struct kobject          *map_dir;
+	struct kobject          *portio_dir;
 };
 
 /**
@@ -91,7 +94,8 @@ struct uio_device {
  * @release:		release operation for this uio device
  * @irqcontrol:		disable/enable irqs when 0/1 is written to /dev/uioX
  */
-struct uio_info {
+struct uio_info
+{
 	struct uio_device	*uio_dev;
 	const char		*name;
 	const char		*version;
@@ -108,9 +112,9 @@ struct uio_info {
 };
 
 extern int __must_check
-	__uio_register_device(struct module *owner,
-			      struct device *parent,
-			      struct uio_info *info);
+__uio_register_device(struct module *owner,
+					  struct device *parent,
+					  struct uio_info *info);
 
 /* use a define to avoid include chaining to get THIS_MODULE */
 #define uio_register_device(parent, info) \

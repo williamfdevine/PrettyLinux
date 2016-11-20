@@ -1,9 +1,9 @@
 /*
- *	Types and definitions for AF_INET6 
- *	Linux INET6 implementation 
+ *	Types and definitions for AF_INET6
+ *	Linux INET6 implementation
  *
  *	Authors:
- *	Pedro Roque		<roque@di.fc.ul.pt>	
+ *	Pedro Roque		<roque@di.fc.ul.pt>
  *
  *	Sources:
  *	IPv6 Program Interfaces for BSD Systems
@@ -29,8 +29,10 @@
  */
 
 #if __UAPI_DEF_IN6_ADDR
-struct in6_addr {
-	union {
+struct in6_addr
+{
+	union
+	{
 		__u8		u6_addr8[16];
 #if __UAPI_DEF_IN6_ADDR_ALT
 		__be16		u6_addr16[8];
@@ -46,7 +48,8 @@ struct in6_addr {
 #endif /* __UAPI_DEF_IN6_ADDR */
 
 #if __UAPI_DEF_SOCKADDR_IN6
-struct sockaddr_in6 {
+struct sockaddr_in6
+{
 	unsigned short int	sin6_family;    /* AF_INET6 */
 	__be16			sin6_port;      /* Transport layer port # */
 	__be32			sin6_flowinfo;  /* IPv6 flow information */
@@ -56,7 +59,8 @@ struct sockaddr_in6 {
 #endif /* __UAPI_DEF_SOCKADDR_IN6 */
 
 #if __UAPI_DEF_IPV6_MREQ
-struct ipv6_mreq {
+struct ipv6_mreq
+{
 	/* IPv6 multicast address of group */
 	struct in6_addr ipv6mr_multiaddr;
 
@@ -67,7 +71,8 @@ struct ipv6_mreq {
 
 #define ipv6mr_acaddr	ipv6mr_multiaddr
 
-struct in6_flowlabel_req {
+struct in6_flowlabel_req
+{
 	struct in6_addr	flr_dst;
 	__be32	flr_label;
 	__u8	flr_action;
@@ -96,7 +101,7 @@ struct in6_flowlabel_req {
 
 
 /*
- *	Bitmask constant declarations to help applications select out the 
+ *	Bitmask constant declarations to help applications select out the
  *	flow label and priority fields.
  *
  *	Note that this are in host byte order while the flowinfo field of
@@ -128,13 +133,13 @@ struct in6_flowlabel_req {
  *	IPV6 extension headers
  */
 #if __UAPI_DEF_IPPROTO_V6
-#define IPPROTO_HOPOPTS		0	/* IPv6 hop-by-hop options	*/
-#define IPPROTO_ROUTING		43	/* IPv6 routing header		*/
-#define IPPROTO_FRAGMENT	44	/* IPv6 fragmentation header	*/
-#define IPPROTO_ICMPV6		58	/* ICMPv6			*/
-#define IPPROTO_NONE		59	/* IPv6 no next header		*/
-#define IPPROTO_DSTOPTS		60	/* IPv6 destination options	*/
-#define IPPROTO_MH		135	/* IPv6 mobility header		*/
+	#define IPPROTO_HOPOPTS		0	/* IPv6 hop-by-hop options	*/
+	#define IPPROTO_ROUTING		43	/* IPv6 routing header		*/
+	#define IPPROTO_FRAGMENT	44	/* IPv6 fragmentation header	*/
+	#define IPPROTO_ICMPV6		58	/* ICMPv6			*/
+	#define IPPROTO_NONE		59	/* IPv6 no next header		*/
+	#define IPPROTO_DSTOPTS		60	/* IPv6 destination options	*/
+	#define IPPROTO_MH		135	/* IPv6 mobility header		*/
 #endif /* __UAPI_DEF_IPPROTO_V6 */
 
 /*
@@ -151,53 +156,53 @@ struct in6_flowlabel_req {
  *	IPV6 socket options
  */
 #if __UAPI_DEF_IPV6_OPTIONS
-#define IPV6_ADDRFORM		1
-#define IPV6_2292PKTINFO	2
-#define IPV6_2292HOPOPTS	3
-#define IPV6_2292DSTOPTS	4
-#define IPV6_2292RTHDR		5
-#define IPV6_2292PKTOPTIONS	6
-#define IPV6_CHECKSUM		7
-#define IPV6_2292HOPLIMIT	8
-#define IPV6_NEXTHOP		9
-#define IPV6_AUTHHDR		10	/* obsolete */
-#define IPV6_FLOWINFO		11
+	#define IPV6_ADDRFORM		1
+	#define IPV6_2292PKTINFO	2
+	#define IPV6_2292HOPOPTS	3
+	#define IPV6_2292DSTOPTS	4
+	#define IPV6_2292RTHDR		5
+	#define IPV6_2292PKTOPTIONS	6
+	#define IPV6_CHECKSUM		7
+	#define IPV6_2292HOPLIMIT	8
+	#define IPV6_NEXTHOP		9
+	#define IPV6_AUTHHDR		10	/* obsolete */
+	#define IPV6_FLOWINFO		11
 
-#define IPV6_UNICAST_HOPS	16
-#define IPV6_MULTICAST_IF	17
-#define IPV6_MULTICAST_HOPS	18
-#define IPV6_MULTICAST_LOOP	19
-#define IPV6_ADD_MEMBERSHIP	20
-#define IPV6_DROP_MEMBERSHIP	21
-#define IPV6_ROUTER_ALERT	22
-#define IPV6_MTU_DISCOVER	23
-#define IPV6_MTU		24
-#define IPV6_RECVERR		25
-#define IPV6_V6ONLY		26
-#define IPV6_JOIN_ANYCAST	27
-#define IPV6_LEAVE_ANYCAST	28
+	#define IPV6_UNICAST_HOPS	16
+	#define IPV6_MULTICAST_IF	17
+	#define IPV6_MULTICAST_HOPS	18
+	#define IPV6_MULTICAST_LOOP	19
+	#define IPV6_ADD_MEMBERSHIP	20
+	#define IPV6_DROP_MEMBERSHIP	21
+	#define IPV6_ROUTER_ALERT	22
+	#define IPV6_MTU_DISCOVER	23
+	#define IPV6_MTU		24
+	#define IPV6_RECVERR		25
+	#define IPV6_V6ONLY		26
+	#define IPV6_JOIN_ANYCAST	27
+	#define IPV6_LEAVE_ANYCAST	28
 
-/* IPV6_MTU_DISCOVER values */
-#define IPV6_PMTUDISC_DONT		0
-#define IPV6_PMTUDISC_WANT		1
-#define IPV6_PMTUDISC_DO		2
-#define IPV6_PMTUDISC_PROBE		3
-/* same as IPV6_PMTUDISC_PROBE, provided for symetry with IPv4
- * also see comments on IP_PMTUDISC_INTERFACE
- */
-#define IPV6_PMTUDISC_INTERFACE		4
-/* weaker version of IPV6_PMTUDISC_INTERFACE, which allows packets to
- * get fragmented if they exceed the interface mtu
- */
-#define IPV6_PMTUDISC_OMIT		5
+	/* IPV6_MTU_DISCOVER values */
+	#define IPV6_PMTUDISC_DONT		0
+	#define IPV6_PMTUDISC_WANT		1
+	#define IPV6_PMTUDISC_DO		2
+	#define IPV6_PMTUDISC_PROBE		3
+	/* same as IPV6_PMTUDISC_PROBE, provided for symetry with IPv4
+	* also see comments on IP_PMTUDISC_INTERFACE
+	*/
+	#define IPV6_PMTUDISC_INTERFACE		4
+	/* weaker version of IPV6_PMTUDISC_INTERFACE, which allows packets to
+	* get fragmented if they exceed the interface mtu
+	*/
+	#define IPV6_PMTUDISC_OMIT		5
 
-/* Flowlabel */
-#define IPV6_FLOWLABEL_MGR	32
-#define IPV6_FLOWINFO_SEND	33
+	/* Flowlabel */
+	#define IPV6_FLOWLABEL_MGR	32
+	#define IPV6_FLOWINFO_SEND	33
 
-#define IPV6_IPSEC_POLICY	34
-#define IPV6_XFRM_POLICY	35
-#define IPV6_HDRINCL		36
+	#define IPV6_IPSEC_POLICY	34
+	#define IPV6_XFRM_POLICY	35
+	#define IPV6_HDRINCL		36
 #endif
 
 /*
@@ -234,7 +239,7 @@ struct in6_flowlabel_req {
 #define IPV6_PATHMTU		61
 #define IPV6_DONTFRAG		62
 #if 0	/* not yet */
-#define IPV6_USE_MIN_MTU	63
+	#define IPV6_USE_MIN_MTU	63
 #endif
 
 /*

@@ -32,10 +32,10 @@
 #include <linux/string.h>
 
 MODULE_AUTHOR
-	("(C) 2004 IBM Corporation by Xenia Tkatschow (xenia@us.ibm.com)\n"
-	 "                            Stefan Weinhuber (wein@de.ibm.com)");
+("(C) 2004 IBM Corporation by Xenia Tkatschow (xenia@us.ibm.com)\n"
+ "                            Stefan Weinhuber (wein@de.ibm.com)");
 MODULE_DESCRIPTION ("Character device driver for reading z/VM "
-		    "system service records.");
+					"system service records.");
 MODULE_LICENSE("GPL");
 
 
@@ -58,7 +58,8 @@ MODULE_LICENSE("GPL");
  * it's a flag used by open to make sure that the device is opened only
  * by one user at the same time.
  */
-struct vmlogrdr_priv_t {
+struct vmlogrdr_priv_t
+{
 	char system_service[8];
 	char internal_name[8];
 	char recording_name[8];
@@ -68,8 +69,8 @@ struct vmlogrdr_priv_t {
 	struct iucv_message local_interrupt_buffer;
 	atomic_t receive_ready;
 	int minor_num;
-	char * buffer;
-	char * current_position;
+	char *buffer;
+	char *current_position;
 	int remaining;
 	ulong residual_length;
 	int buffer_free;
@@ -88,9 +89,10 @@ struct vmlogrdr_priv_t {
 static int vmlogrdr_open(struct inode *, struct file *);
 static int vmlogrdr_release(struct inode *, struct file *);
 static ssize_t vmlogrdr_read (struct file *filp, char __user *data,
-			      size_t count, loff_t * ppos);
+							  size_t count, loff_t *ppos);
 
-static const struct file_operations vmlogrdr_fops = {
+static const struct file_operations vmlogrdr_fops =
+{
 	.owner   = THIS_MODULE,
 	.open    = vmlogrdr_open,
 	.release = vmlogrdr_release,
@@ -102,10 +104,11 @@ static const struct file_operations vmlogrdr_fops = {
 static void vmlogrdr_iucv_path_complete(struct iucv_path *, u8 *ipuser);
 static void vmlogrdr_iucv_path_severed(struct iucv_path *, u8 *ipuser);
 static void vmlogrdr_iucv_message_pending(struct iucv_path *,
-					  struct iucv_message *);
+		struct iucv_message *);
 
 
-static struct iucv_handler vmlogrdr_iucv_handler = {
+static struct iucv_handler vmlogrdr_iucv_handler =
+{
 	.path_complete	 = vmlogrdr_iucv_path_complete,
 	.path_severed	 = vmlogrdr_iucv_path_severed,
 	.message_pending = vmlogrdr_iucv_message_pending,
@@ -122,33 +125,37 @@ static DECLARE_WAIT_QUEUE_HEAD(read_wait_queue);
  * minor number 2 --> symptom
  */
 
-static struct vmlogrdr_priv_t sys_ser[] = {
-	{ .system_service = "*LOGREC ",
-	  .internal_name  = "logrec",
-	  .recording_name = "EREP",
-	  .minor_num      = 0,
-	  .buffer_free    = 1,
-	  .priv_lock	  = __SPIN_LOCK_UNLOCKED(sys_ser[0].priv_lock),
-	  .autorecording  = 1,
-	  .autopurge      = 1,
+static struct vmlogrdr_priv_t sys_ser[] =
+{
+	{
+		.system_service = "*LOGREC ",
+		.internal_name  = "logrec",
+		.recording_name = "EREP",
+		.minor_num      = 0,
+		.buffer_free    = 1,
+		.priv_lock	  = __SPIN_LOCK_UNLOCKED(sys_ser[0].priv_lock),
+		.autorecording  = 1,
+		.autopurge      = 1,
 	},
-	{ .system_service = "*ACCOUNT",
-	  .internal_name  = "account",
-	  .recording_name = "ACCOUNT",
-	  .minor_num      = 1,
-	  .buffer_free    = 1,
-	  .priv_lock	  = __SPIN_LOCK_UNLOCKED(sys_ser[1].priv_lock),
-	  .autorecording  = 1,
-	  .autopurge      = 1,
+	{
+		.system_service = "*ACCOUNT",
+		.internal_name  = "account",
+		.recording_name = "ACCOUNT",
+		.minor_num      = 1,
+		.buffer_free    = 1,
+		.priv_lock	  = __SPIN_LOCK_UNLOCKED(sys_ser[1].priv_lock),
+		.autorecording  = 1,
+		.autopurge      = 1,
 	},
-	{ .system_service = "*SYMPTOM",
-	  .internal_name  = "symptom",
-	  .recording_name = "SYMPTOM",
-	  .minor_num      = 2,
-	  .buffer_free    = 1,
-	  .priv_lock	  = __SPIN_LOCK_UNLOCKED(sys_ser[2].priv_lock),
-	  .autorecording  = 1,
-	  .autopurge      = 1,
+	{
+		.system_service = "*SYMPTOM",
+		.internal_name  = "symptom",
+		.recording_name = "SYMPTOM",
+		.minor_num      = 2,
+		.buffer_free    = 1,
+		.priv_lock	  = __SPIN_LOCK_UNLOCKED(sys_ser[2].priv_lock),
+		.autorecording  = 1,
+		.autopurge      = 1,
 	}
 };
 
@@ -162,7 +169,7 @@ static int recording_class_AB;
 
 static void vmlogrdr_iucv_path_complete(struct iucv_path *path, u8 *ipuser)
 {
-	struct vmlogrdr_priv_t * logptr = path->private;
+	struct vmlogrdr_priv_t *logptr = path->private;
 
 	spin_lock(&logptr->priv_lock);
 	logptr->connection_established = 1;
@@ -173,7 +180,7 @@ static void vmlogrdr_iucv_path_complete(struct iucv_path *path, u8 *ipuser)
 
 static void vmlogrdr_iucv_path_severed(struct iucv_path *path, u8 *ipuser)
 {
-	struct vmlogrdr_priv_t * logptr = path->private;
+	struct vmlogrdr_priv_t *logptr = path->private;
 	u8 reason = (u8) ipuser[8];
 
 	pr_err("vmlogrdr: connection severed with reason %i\n", reason);
@@ -194,9 +201,9 @@ static void vmlogrdr_iucv_path_severed(struct iucv_path *path, u8 *ipuser)
 
 
 static void vmlogrdr_iucv_message_pending(struct iucv_path *path,
-					  struct iucv_message *msg)
+		struct iucv_message *msg)
 {
-	struct vmlogrdr_priv_t * logptr = path->private;
+	struct vmlogrdr_priv_t *logptr = path->private;
 
 	/*
 	 * This function is the bottom half so it should be quick.
@@ -216,32 +223,46 @@ static int vmlogrdr_get_recording_class_AB(void)
 	static const char cp_command[] = "QUERY COMMAND RECORDING ";
 	char cp_response[80];
 	char *tail;
-	int len,i;
+	int len, i;
 
 	cpcmd(cp_command, cp_response, sizeof(cp_response), NULL);
-	len = strnlen(cp_response,sizeof(cp_response));
+	len = strnlen(cp_response, sizeof(cp_response));
 	// now the parsing
-	tail=strnchr(cp_response,len,'=');
+	tail = strnchr(cp_response, len, '=');
+
 	if (!tail)
+	{
 		return 0;
+	}
+
 	tail++;
-	if (!strncmp("ANY",tail,3))
+
+	if (!strncmp("ANY", tail, 3))
+	{
 		return 1;
-	if (!strncmp("NONE",tail,4))
+	}
+
+	if (!strncmp("NONE", tail, 4))
+	{
 		return 0;
+	}
+
 	/*
 	 * expect comma separated list of classes here, if one of them
 	 * is A or B return 1 otherwise 0
 	 */
-        for (i=tail-cp_response; i<len; i++)
-		if ( cp_response[i]=='A' || cp_response[i]=='B' )
+	for (i = tail - cp_response; i < len; i++)
+		if ( cp_response[i] == 'A' || cp_response[i] == 'B' )
+		{
 			return 1;
+		}
+
 	return 0;
 }
 
 
-static int vmlogrdr_recording(struct vmlogrdr_priv_t * logptr,
-			      int action, int purge)
+static int vmlogrdr_recording(struct vmlogrdr_priv_t *logptr,
+							  int action, int purge)
 {
 
 	char cp_command[80];
@@ -259,45 +280,53 @@ static int vmlogrdr_recording(struct vmlogrdr_priv_t * logptr,
 	 * can't be switched on as long as records are on the queue.
 	 * Doing both at the same time doesn't work.
 	 */
-	if (purge && (action == 1)) {
+	if (purge && (action == 1))
+	{
 		memset(cp_command, 0x00, sizeof(cp_command));
 		memset(cp_response, 0x00, sizeof(cp_response));
 		snprintf(cp_command, sizeof(cp_command),
-			 "RECORDING %s PURGE %s",
-			 logptr->recording_name,
-			 qid_string);
+				 "RECORDING %s PURGE %s",
+				 logptr->recording_name,
+				 qid_string);
 		cpcmd(cp_command, cp_response, sizeof(cp_response), NULL);
 	}
 
 	memset(cp_command, 0x00, sizeof(cp_command));
 	memset(cp_response, 0x00, sizeof(cp_response));
 	snprintf(cp_command, sizeof(cp_command), "RECORDING %s %s %s",
-		logptr->recording_name,
-		onoff,
-		qid_string);
+			 logptr->recording_name,
+			 onoff,
+			 qid_string);
 	cpcmd(cp_command, cp_response, sizeof(cp_response), NULL);
+
 	/* The recording command will usually answer with 'Command complete'
 	 * on success, but when the specific service was never connected
 	 * before then there might be an additional informational message
 	 * 'HCPCRC8072I Recording entry not found' before the
 	 * 'Command complete'. So I use strstr rather then the strncmp.
 	 */
-	if (strstr(cp_response,"Command complete"))
+	if (strstr(cp_response, "Command complete"))
+	{
 		rc = 0;
+	}
 	else
+	{
 		rc = -EIO;
+	}
+
 	/*
 	 * If we turn recording off, we have to purge any remaining records
 	 * afterwards, as a large number of queued records may impact z/VM
 	 * performance.
 	 */
-	if (purge && (action == 0)) {
+	if (purge && (action == 0))
+	{
 		memset(cp_command, 0x00, sizeof(cp_command));
 		memset(cp_response, 0x00, sizeof(cp_response));
 		snprintf(cp_command, sizeof(cp_command),
-			 "RECORDING %s PURGE %s",
-			 logptr->recording_name,
-			 qid_string);
+				 "RECORDING %s PURGE %s",
+				 logptr->recording_name,
+				 qid_string);
 		cpcmd(cp_command, cp_response, sizeof(cp_response), NULL);
 	}
 
@@ -308,27 +337,36 @@ static int vmlogrdr_recording(struct vmlogrdr_priv_t * logptr,
 static int vmlogrdr_open (struct inode *inode, struct file *filp)
 {
 	int dev_num = 0;
-	struct vmlogrdr_priv_t * logptr = NULL;
+	struct vmlogrdr_priv_t *logptr = NULL;
 	int connect_rc = 0;
 	int ret;
 
 	dev_num = iminor(inode);
+
 	if (dev_num >= MAXMINOR)
+	{
 		return -ENODEV;
+	}
+
 	logptr = &sys_ser[dev_num];
 
 	/*
 	 * only allow for blocking reads to be open
 	 */
 	if (filp->f_flags & O_NONBLOCK)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/* Besure this device hasn't already been opened */
 	spin_lock_bh(&logptr->priv_lock);
-	if (logptr->dev_in_use)	{
+
+	if (logptr->dev_in_use)
+	{
 		spin_unlock_bh(&logptr->priv_lock);
 		return -EBUSY;
 	}
+
 	logptr->dev_in_use = 1;
 	logptr->connection_established = 0;
 	logptr->iucv_path_severed = 0;
@@ -340,23 +378,33 @@ static int vmlogrdr_open (struct inode *inode, struct file *filp)
 	filp->private_data = logptr;
 
 	/* start recording for this service*/
-	if (logptr->autorecording) {
-		ret = vmlogrdr_recording(logptr,1,logptr->autopurge);
+	if (logptr->autorecording)
+	{
+		ret = vmlogrdr_recording(logptr, 1, logptr->autopurge);
+
 		if (ret)
+		{
 			pr_warn("vmlogrdr: failed to start recording automatically\n");
+		}
 	}
 
 	/* create connection to the system service */
 	logptr->path = iucv_path_alloc(10, 0, GFP_KERNEL);
+
 	if (!logptr->path)
+	{
 		goto out_dev;
+	}
+
 	connect_rc = iucv_path_connect(logptr->path, &vmlogrdr_iucv_handler,
-				       logptr->system_service, NULL, NULL,
-				       logptr);
-	if (connect_rc) {
+								   logptr->system_service, NULL, NULL,
+								   logptr);
+
+	if (connect_rc)
+	{
 		pr_err("vmlogrdr: iucv connection to %s "
-		       "failed with rc %i \n",
-		       logptr->system_service, connect_rc);
+			   "failed with rc %i \n",
+			   logptr->system_service, connect_rc);
 		goto out_path;
 	}
 
@@ -365,15 +413,23 @@ static int vmlogrdr_open (struct inode *inode, struct file *filp)
 	 * before we can continue to process.
 	 */
 	wait_event(conn_wait_queue, (logptr->connection_established)
-		   || (logptr->iucv_path_severed));
+			   || (logptr->iucv_path_severed));
+
 	if (logptr->iucv_path_severed)
+	{
 		goto out_record;
+	}
+
 	nonseekable_open(inode, filp);
 	return 0;
 
 out_record:
+
 	if (logptr->autorecording)
-		vmlogrdr_recording(logptr,0,logptr->autopurge);
+	{
+		vmlogrdr_recording(logptr, 0, logptr->autopurge);
+	}
+
 out_path:
 	kfree(logptr->path);	/* kfree(NULL) is ok. */
 	logptr->path = NULL;
@@ -387,16 +443,22 @@ static int vmlogrdr_release (struct inode *inode, struct file *filp)
 {
 	int ret;
 
-	struct vmlogrdr_priv_t * logptr = filp->private_data;
+	struct vmlogrdr_priv_t *logptr = filp->private_data;
 
 	iucv_path_sever(logptr->path, NULL);
 	kfree(logptr->path);
 	logptr->path = NULL;
-	if (logptr->autorecording) {
-		ret = vmlogrdr_recording(logptr,0,logptr->autopurge);
+
+	if (logptr->autorecording)
+	{
+		ret = vmlogrdr_recording(logptr, 0, logptr->autopurge);
+
 		if (ret)
+		{
 			pr_warn("vmlogrdr: failed to stop recording automatically\n");
+		}
 	}
+
 	logptr->dev_in_use = 0;
 
 	return 0;
@@ -411,53 +473,74 @@ static int vmlogrdr_receive_data(struct vmlogrdr_priv_t *priv)
 	 * the total number of bytes we actually write into the buffer.
 	 */
 	int user_data_count, iucv_data_count;
-	char * buffer;
+	char *buffer;
 
-	if (atomic_read(&priv->receive_ready)) {
+	if (atomic_read(&priv->receive_ready))
+	{
 		spin_lock_bh(&priv->priv_lock);
-		if (priv->residual_length){
+
+		if (priv->residual_length)
+		{
 			/* receive second half of a record */
 			iucv_data_count = priv->residual_length;
 			user_data_count = 0;
 			buffer = priv->buffer;
-		} else {
+		}
+		else
+		{
 			/* receive a new record:
 			 * We need to return the total length of the record
-                         * + size of FENCE in the first 4 bytes of the buffer.
-		         */
+			             * + size of FENCE in the first 4 bytes of the buffer.
+			     */
 			iucv_data_count = priv->local_interrupt_buffer.length;
 			user_data_count = sizeof(int);
-			temp = (int*)priv->buffer;
-			*temp= iucv_data_count + sizeof(FENCE);
+			temp = (int *)priv->buffer;
+			*temp = iucv_data_count + sizeof(FENCE);
 			buffer = priv->buffer + sizeof(int);
 		}
+
 		/*
 		 * If the record is bigger than our buffer, we receive only
 		 * a part of it. We can get the rest later.
 		 */
 		if (iucv_data_count > NET_BUFFER_SIZE)
+		{
 			iucv_data_count = NET_BUFFER_SIZE;
+		}
+
 		rc = iucv_message_receive(priv->path,
-					  &priv->local_interrupt_buffer,
-					  0, buffer, iucv_data_count,
-					  &priv->residual_length);
+								  &priv->local_interrupt_buffer,
+								  0, buffer, iucv_data_count,
+								  &priv->residual_length);
 		spin_unlock_bh(&priv->priv_lock);
+
 		/* An rc of 5 indicates that the record was bigger than
 		 * the buffer, which is OK for us. A 9 indicates that the
 		 * record was purged befor we could receive it.
 		 */
 		if (rc == 5)
+		{
 			rc = 0;
+		}
+
 		if (rc == 9)
+		{
 			atomic_set(&priv->receive_ready, 0);
-	} else {
+		}
+	}
+	else
+	{
 		rc = 1;
 	}
-	if (!rc) {
+
+	if (!rc)
+	{
 		priv->buffer_free = 0;
- 		user_data_count += iucv_data_count;
+		user_data_count += iucv_data_count;
 		priv->current_position = priv->buffer;
-		if (priv->residual_length == 0){
+
+		if (priv->residual_length == 0)
+		{
 			/* the whole record has been captured,
 			 * now add the fence */
 			atomic_dec(&priv->receive_ready);
@@ -465,6 +548,7 @@ static int vmlogrdr_receive_data(struct vmlogrdr_priv_t *priv)
 			memcpy(buffer, FENCE, sizeof(FENCE));
 			user_data_count += sizeof(FENCE);
 		}
+
 		priv->remaining = user_data_count;
 	}
 
@@ -473,26 +557,37 @@ static int vmlogrdr_receive_data(struct vmlogrdr_priv_t *priv)
 
 
 static ssize_t vmlogrdr_read(struct file *filp, char __user *data,
-			     size_t count, loff_t * ppos)
+							 size_t count, loff_t *ppos)
 {
 	int rc;
-	struct vmlogrdr_priv_t * priv = filp->private_data;
+	struct vmlogrdr_priv_t *priv = filp->private_data;
 
-	while (priv->buffer_free) {
+	while (priv->buffer_free)
+	{
 		rc = vmlogrdr_receive_data(priv);
-		if (rc) {
+
+		if (rc)
+		{
 			rc = wait_event_interruptible(read_wait_queue,
-					atomic_read(&priv->receive_ready));
+										  atomic_read(&priv->receive_ready));
+
 			if (rc)
+			{
 				return rc;
+			}
 		}
 	}
+
 	/* copy only up to end of record */
 	if (count > priv->remaining)
+	{
 		count = priv->remaining;
+	}
 
 	if (copy_to_user(data, priv->current_position, count))
+	{
 		return -EFAULT;
+	}
 
 	*ppos += count;
 	priv->current_position += count;
@@ -500,35 +595,41 @@ static ssize_t vmlogrdr_read(struct file *filp, char __user *data,
 
 	/* if all data has been transferred, set buffer free */
 	if (priv->remaining == 0)
+	{
 		priv->buffer_free = 1;
+	}
 
 	return count;
 }
 
-static ssize_t vmlogrdr_autopurge_store(struct device * dev,
-					struct device_attribute *attr,
-					const char * buf, size_t count)
+static ssize_t vmlogrdr_autopurge_store(struct device *dev,
+										struct device_attribute *attr,
+										const char *buf, size_t count)
 {
 	struct vmlogrdr_priv_t *priv = dev_get_drvdata(dev);
 	ssize_t ret = count;
 
-	switch (buf[0]) {
-	case '0':
-		priv->autopurge=0;
-		break;
-	case '1':
-		priv->autopurge=1;
-		break;
-	default:
-		ret = -EINVAL;
+	switch (buf[0])
+	{
+		case '0':
+			priv->autopurge = 0;
+			break;
+
+		case '1':
+			priv->autopurge = 1;
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
+
 	return ret;
 }
 
 
 static ssize_t vmlogrdr_autopurge_show(struct device *dev,
-				       struct device_attribute *attr,
-				       char *buf)
+									   struct device_attribute *attr,
+									   char *buf)
 {
 	struct vmlogrdr_priv_t *priv = dev_get_drvdata(dev);
 	return sprintf(buf, "%u\n", priv->autopurge);
@@ -536,12 +637,12 @@ static ssize_t vmlogrdr_autopurge_show(struct device *dev,
 
 
 static DEVICE_ATTR(autopurge, 0644, vmlogrdr_autopurge_show,
-		   vmlogrdr_autopurge_store);
+				   vmlogrdr_autopurge_store);
 
 
-static ssize_t vmlogrdr_purge_store(struct device * dev,
-				    struct device_attribute *attr,
-				    const char * buf, size_t count)
+static ssize_t vmlogrdr_purge_store(struct device *dev,
+									struct device_attribute *attr,
+									const char *buf, size_t count)
 {
 
 	char cp_command[80];
@@ -549,13 +650,15 @@ static ssize_t vmlogrdr_purge_store(struct device * dev,
 	struct vmlogrdr_priv_t *priv = dev_get_drvdata(dev);
 
 	if (buf[0] != '1')
+	{
 		return -EINVAL;
+	}
 
 	memset(cp_command, 0x00, sizeof(cp_command));
 	memset(cp_response, 0x00, sizeof(cp_response));
 
-        /*
-	 * The recording command needs to be called with option QID
+	/*
+	* The recording command needs to be called with option QID
 	 * for guests that have previlege classes A or B.
 	 * Other guests will not recognize the command and we have to
 	 * issue the same command without the QID parameter.
@@ -563,12 +666,12 @@ static ssize_t vmlogrdr_purge_store(struct device * dev,
 
 	if (recording_class_AB)
 		snprintf(cp_command, sizeof(cp_command),
-			 "RECORDING %s PURGE QID * ",
-			 priv->recording_name);
+				 "RECORDING %s PURGE QID * ",
+				 priv->recording_name);
 	else
 		snprintf(cp_command, sizeof(cp_command),
-			 "RECORDING %s PURGE ",
-			 priv->recording_name);
+				 "RECORDING %s PURGE ",
+				 priv->recording_name);
 
 	cpcmd(cp_command, cp_response, sizeof(cp_response), NULL);
 
@@ -580,29 +683,33 @@ static DEVICE_ATTR(purge, 0200, NULL, vmlogrdr_purge_store);
 
 
 static ssize_t vmlogrdr_autorecording_store(struct device *dev,
-					    struct device_attribute *attr,
-					    const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct vmlogrdr_priv_t *priv = dev_get_drvdata(dev);
 	ssize_t ret = count;
 
-	switch (buf[0]) {
-	case '0':
-		priv->autorecording=0;
-		break;
-	case '1':
-		priv->autorecording=1;
-		break;
-	default:
-		ret = -EINVAL;
+	switch (buf[0])
+	{
+		case '0':
+			priv->autorecording = 0;
+			break;
+
+		case '1':
+			priv->autorecording = 1;
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
+
 	return ret;
 }
 
 
 static ssize_t vmlogrdr_autorecording_show(struct device *dev,
-					   struct device_attribute *attr,
-					   char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	struct vmlogrdr_priv_t *priv = dev_get_drvdata(dev);
 	return sprintf(buf, "%u\n", priv->autorecording);
@@ -610,30 +717,38 @@ static ssize_t vmlogrdr_autorecording_show(struct device *dev,
 
 
 static DEVICE_ATTR(autorecording, 0644, vmlogrdr_autorecording_show,
-		   vmlogrdr_autorecording_store);
+				   vmlogrdr_autorecording_store);
 
 
-static ssize_t vmlogrdr_recording_store(struct device * dev,
-					struct device_attribute *attr,
-					const char * buf, size_t count)
+static ssize_t vmlogrdr_recording_store(struct device *dev,
+										struct device_attribute *attr,
+										const char *buf, size_t count)
 {
 	struct vmlogrdr_priv_t *priv = dev_get_drvdata(dev);
 	ssize_t ret;
 
-	switch (buf[0]) {
-	case '0':
-		ret = vmlogrdr_recording(priv,0,0);
-		break;
-	case '1':
-		ret = vmlogrdr_recording(priv,1,0);
-		break;
-	default:
-		ret = -EINVAL;
+	switch (buf[0])
+	{
+		case '0':
+			ret = vmlogrdr_recording(priv, 0, 0);
+			break;
+
+		case '1':
+			ret = vmlogrdr_recording(priv, 1, 0);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
+
 	if (ret)
+	{
 		return ret;
+	}
 	else
+	{
 		return count;
+	}
 
 }
 
@@ -642,7 +757,7 @@ static DEVICE_ATTR(recording, 0200, NULL, vmlogrdr_recording_store);
 
 
 static ssize_t vmlogrdr_recording_status_show(struct device_driver *driver,
-					      char *buf)
+		char *buf)
 {
 
 	static const char cp_command[] = "QUERY RECORDING ";
@@ -653,30 +768,36 @@ static ssize_t vmlogrdr_recording_status_show(struct device_driver *driver,
 	return len;
 }
 static DRIVER_ATTR(recording_status, 0444, vmlogrdr_recording_status_show,
-		   NULL);
-static struct attribute *vmlogrdr_drv_attrs[] = {
+				   NULL);
+static struct attribute *vmlogrdr_drv_attrs[] =
+{
 	&driver_attr_recording_status.attr,
 	NULL,
 };
-static struct attribute_group vmlogrdr_drv_attr_group = {
+static struct attribute_group vmlogrdr_drv_attr_group =
+{
 	.attrs = vmlogrdr_drv_attrs,
 };
-static const struct attribute_group *vmlogrdr_drv_attr_groups[] = {
+static const struct attribute_group *vmlogrdr_drv_attr_groups[] =
+{
 	&vmlogrdr_drv_attr_group,
 	NULL,
 };
 
-static struct attribute *vmlogrdr_attrs[] = {
+static struct attribute *vmlogrdr_attrs[] =
+{
 	&dev_attr_autopurge.attr,
 	&dev_attr_purge.attr,
 	&dev_attr_autorecording.attr,
 	&dev_attr_recording.attr,
 	NULL,
 };
-static struct attribute_group vmlogrdr_attr_group = {
+static struct attribute_group vmlogrdr_attr_group =
+{
 	.attrs = vmlogrdr_attrs,
 };
-static const struct attribute_group *vmlogrdr_attr_groups[] = {
+static const struct attribute_group *vmlogrdr_attr_groups[] =
+{
 	&vmlogrdr_attr_group,
 	NULL,
 };
@@ -687,25 +808,35 @@ static int vmlogrdr_pm_prepare(struct device *dev)
 	struct vmlogrdr_priv_t *priv = dev_get_drvdata(dev);
 
 	rc = 0;
-	if (priv) {
+
+	if (priv)
+	{
 		spin_lock_bh(&priv->priv_lock);
+
 		if (priv->dev_in_use)
+		{
 			rc = -EBUSY;
+		}
+
 		spin_unlock_bh(&priv->priv_lock);
 	}
+
 	if (rc)
 		pr_err("vmlogrdr: device %s is busy. Refuse to suspend.\n",
-		       dev_name(dev));
+			   dev_name(dev));
+
 	return rc;
 }
 
 
-static const struct dev_pm_ops vmlogrdr_pm_ops = {
+static const struct dev_pm_ops vmlogrdr_pm_ops =
+{
 	.prepare = vmlogrdr_pm_prepare,
 };
 
 static struct class *vmlogrdr_class;
-static struct device_driver vmlogrdr_driver = {
+static struct device_driver vmlogrdr_driver =
+{
 	.name = "vmlogrdr",
 	.bus  = &iucv_bus,
 	.pm = &vmlogrdr_pm_ops,
@@ -718,19 +849,28 @@ static int vmlogrdr_register_driver(void)
 
 	/* Register with iucv driver */
 	ret = iucv_register(&vmlogrdr_iucv_handler, 1);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = driver_register(&vmlogrdr_driver);
+
 	if (ret)
+	{
 		goto out_iucv;
+	}
 
 	vmlogrdr_class = class_create(THIS_MODULE, "vmlogrdr");
-	if (IS_ERR(vmlogrdr_class)) {
+
+	if (IS_ERR(vmlogrdr_class))
+	{
 		ret = PTR_ERR(vmlogrdr_class);
 		vmlogrdr_class = NULL;
 		goto out_driver;
 	}
+
 	return 0;
 
 out_driver:
@@ -757,7 +897,9 @@ static int vmlogrdr_register_device(struct vmlogrdr_priv_t *priv)
 	int ret;
 
 	dev = kzalloc(sizeof(struct device), GFP_KERNEL);
-	if (dev) {
+
+	if (dev)
+	{
 		dev_set_name(dev, "%s", priv->internal_name);
 		dev->bus = &iucv_bus;
 		dev->parent = iucv_root;
@@ -772,24 +914,33 @@ static int vmlogrdr_register_device(struct vmlogrdr_priv_t *priv)
 		 * but legitime ...).
 		 */
 		dev->release = (void (*)(struct device *))kfree;
-	} else
+	}
+	else
+	{
 		return -ENOMEM;
+	}
+
 	ret = device_register(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		put_device(dev);
 		return ret;
 	}
 
 	priv->class_device = device_create(vmlogrdr_class, dev,
-					   MKDEV(vmlogrdr_major,
-						 priv->minor_num),
-					   priv, "%s", dev_name(dev));
-	if (IS_ERR(priv->class_device)) {
+									   MKDEV(vmlogrdr_major,
+											   priv->minor_num),
+									   priv, "%s", dev_name(dev));
+
+	if (IS_ERR(priv->class_device))
+	{
 		ret = PTR_ERR(priv->class_device);
-		priv->class_device=NULL;
+		priv->class_device = NULL;
 		device_unregister(dev);
 		return ret;
 	}
+
 	priv->device = dev;
 	return 0;
 }
@@ -798,10 +949,13 @@ static int vmlogrdr_register_device(struct vmlogrdr_priv_t *priv)
 static int vmlogrdr_unregister_device(struct vmlogrdr_priv_t *priv)
 {
 	device_destroy(vmlogrdr_class, MKDEV(vmlogrdr_major, priv->minor_num));
-	if (priv->device != NULL) {
+
+	if (priv->device != NULL)
+	{
 		device_unregister(priv->device);
-		priv->device=NULL;
+		priv->device = NULL;
 	}
+
 	return 0;
 }
 
@@ -810,39 +964,51 @@ static int vmlogrdr_register_cdev(dev_t dev)
 {
 	int rc = 0;
 	vmlogrdr_cdev = cdev_alloc();
-	if (!vmlogrdr_cdev) {
+
+	if (!vmlogrdr_cdev)
+	{
 		return -ENOMEM;
 	}
+
 	vmlogrdr_cdev->owner = THIS_MODULE;
 	vmlogrdr_cdev->ops = &vmlogrdr_fops;
 	vmlogrdr_cdev->dev = dev;
 	rc = cdev_add(vmlogrdr_cdev, vmlogrdr_cdev->dev, MAXMINOR);
+
 	if (!rc)
+	{
 		return 0;
+	}
 
 	// cleanup: cdev is not fully registered, no cdev_del here!
 	kobject_put(&vmlogrdr_cdev->kobj);
-	vmlogrdr_cdev=NULL;
+	vmlogrdr_cdev = NULL;
 	return rc;
 }
 
 
 static void vmlogrdr_cleanup(void)
 {
-        int i;
+	int i;
 
-	if (vmlogrdr_cdev) {
+	if (vmlogrdr_cdev)
+	{
 		cdev_del(vmlogrdr_cdev);
-		vmlogrdr_cdev=NULL;
+		vmlogrdr_cdev = NULL;
 	}
-	for (i=0; i < MAXMINOR; ++i ) {
+
+	for (i = 0; i < MAXMINOR; ++i )
+	{
 		vmlogrdr_unregister_device(&sys_ser[i]);
 		free_page((unsigned long)sys_ser[i].buffer);
 	}
+
 	vmlogrdr_unregister_driver();
-	if (vmlogrdr_major) {
+
+	if (vmlogrdr_major)
+	{
 		unregister_chrdev_region(MKDEV(vmlogrdr_major, 0), MAXMINOR);
-		vmlogrdr_major=0;
+		vmlogrdr_major = 0;
 	}
 }
 
@@ -853,39 +1019,61 @@ static int __init vmlogrdr_init(void)
 	int i;
 	dev_t dev;
 
-	if (! MACHINE_IS_VM) {
+	if (! MACHINE_IS_VM)
+	{
 		pr_err("not running under VM, driver not loaded.\n");
 		return -ENODEV;
 	}
 
-        recording_class_AB = vmlogrdr_get_recording_class_AB();
+	recording_class_AB = vmlogrdr_get_recording_class_AB();
 
 	rc = alloc_chrdev_region(&dev, 0, MAXMINOR, "vmlogrdr");
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	vmlogrdr_major = MAJOR(dev);
 
-	rc=vmlogrdr_register_driver();
-	if (rc)
-		goto cleanup;
+	rc = vmlogrdr_register_driver();
 
-	for (i=0; i < MAXMINOR; ++i ) {
+	if (rc)
+	{
+		goto cleanup;
+	}
+
+	for (i = 0; i < MAXMINOR; ++i )
+	{
 		sys_ser[i].buffer = (char *) get_zeroed_page(GFP_KERNEL);
-		if (!sys_ser[i].buffer) {
+
+		if (!sys_ser[i].buffer)
+		{
 			rc = -ENOMEM;
 			break;
 		}
+
 		sys_ser[i].current_position = sys_ser[i].buffer;
-		rc=vmlogrdr_register_device(&sys_ser[i]);
+		rc = vmlogrdr_register_device(&sys_ser[i]);
+
 		if (rc)
+		{
 			break;
+		}
 	}
+
 	if (rc)
+	{
 		goto cleanup;
+	}
 
 	rc = vmlogrdr_register_cdev(dev);
+
 	if (rc)
+	{
 		goto cleanup;
+	}
+
 	return 0;
 
 cleanup:

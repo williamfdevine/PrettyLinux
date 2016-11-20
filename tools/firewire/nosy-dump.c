@@ -36,7 +36,8 @@
 #include "nosy-dump.h"
 #include "nosy-user.h"
 
-enum {
+enum
+{
 	PACKET_FIELD_DETAIL		= 0x01,
 	PACKET_FIELD_DATA_LENGTH	= 0x02,
 	/* Marks the fields we print in transaction view. */
@@ -45,7 +46,7 @@ enum {
 
 static void print_packet(uint32_t *data, size_t length);
 static void decode_link_packet(struct link_packet *packet, size_t length,
-			       int include_flags, int exclude_flags);
+							   int include_flags, int exclude_flags);
 static int run = 1;
 sig_t sys_sigint_handler;
 
@@ -59,13 +60,15 @@ static int option_cycle_start;
 static int option_version;
 static int option_verbose;
 
-enum {
+enum
+{
 	VIEW_TRANSACTION,
 	VIEW_PACKET,
 	VIEW_STATS,
 };
 
-static const struct poptOption options[] = {
+static const struct poptOption options[] =
+{
 	{
 		.longName	= "device",
 		.shortName	= 'd',
@@ -137,7 +140,8 @@ static const struct poptOption options[] = {
 static void
 sigint_handler(int signal_num)
 {
-	if (run == 1) {
+	if (run == 1)
+	{
 		run = 0;
 		signal(SIGINT, SIG_DFL);
 	}
@@ -149,9 +153,13 @@ subaction_create(uint32_t *data, size_t length)
 	struct subaction *sa;
 
 	/* we put the ack in the subaction struct for easy access. */
-	sa = malloc(sizeof *sa - sizeof sa->packet + length);
+	sa = malloc(sizeof * sa - sizeof sa->packet + length);
+
 	if (!sa)
+	{
 		exit(EXIT_FAILURE);
+	}
+
 	sa->ack = data[length / 4 - 1];
 	sa->length = length;
 	memcpy(&sa->packet, data, length);
@@ -165,7 +173,8 @@ subaction_destroy(struct subaction *sa)
 	free(sa);
 }
 
-static struct list pending_transaction_list = {
+static struct list pending_transaction_list =
+{
 	&pending_transaction_list, &pending_transaction_list
 };
 
@@ -174,16 +183,23 @@ link_transaction_lookup(int request_node, int response_node, int tlabel)
 {
 	struct link_transaction *t;
 
-	list_for_each_entry(t, &pending_transaction_list, link) {
+	list_for_each_entry(t, &pending_transaction_list, link)
+	{
 		if (t->request_node == request_node &&
-		    t->response_node == response_node &&
-		    t->tlabel == tlabel)
+			t->response_node == response_node &&
+			t->tlabel == tlabel)
+		{
 			return t;
+		}
 	}
 
-	t = malloc(sizeof *t);
+	t = malloc(sizeof * t);
+
 	if (!t)
+	{
 		exit(EXIT_FAILURE);
+	}
+
 	t->request_node = request_node;
 	t->response_node = response_node;
 	t->tlabel = tlabel;
@@ -200,25 +216,31 @@ link_transaction_destroy(struct link_transaction *t)
 {
 	struct subaction *sa;
 
-	while (!list_empty(&t->request_list)) {
+	while (!list_empty(&t->request_list))
+	{
 		sa = list_head(&t->request_list, struct subaction, link);
 		list_remove(&sa->link);
 		subaction_destroy(sa);
 	}
-	while (!list_empty(&t->response_list)) {
+
+	while (!list_empty(&t->response_list))
+	{
 		sa = list_head(&t->response_list, struct subaction, link);
 		list_remove(&sa->link);
 		subaction_destroy(sa);
 	}
+
 	free(t);
 }
 
-struct protocol_decoder {
+struct protocol_decoder
+{
 	const char *name;
 	int (*decode)(struct link_transaction *t);
 };
 
-static const struct protocol_decoder protocol_decoders[] = {
+static const struct protocol_decoder protocol_decoders[] =
+{
 	{ "FCP", decode_fcp }
 };
 
@@ -228,32 +250,40 @@ handle_transaction(struct link_transaction *t)
 	struct subaction *sa;
 	int i;
 
-	if (!t->request) {
+	if (!t->request)
+	{
 		printf("BUG in handle_transaction\n");
 		return;
 	}
 
 	for (i = 0; i < array_length(protocol_decoders); i++)
 		if (protocol_decoders[i].decode(t))
+		{
 			break;
+		}
 
 	/* HACK: decode only fcp right now. */
 	return;
 
 	decode_link_packet(&t->request->packet, t->request->length,
-			   PACKET_FIELD_TRANSACTION, 0);
+					   PACKET_FIELD_TRANSACTION, 0);
+
 	if (t->response)
 		decode_link_packet(&t->response->packet, t->request->length,
-				   PACKET_FIELD_TRANSACTION, 0);
+						   PACKET_FIELD_TRANSACTION, 0);
 	else
+	{
 		printf("[no response]");
-
-	if (option_verbose) {
-		list_for_each_entry(sa, &t->request_list, link)
-			print_packet((uint32_t *) &sa->packet, sa->length);
-		list_for_each_entry(sa, &t->response_list, link)
-			print_packet((uint32_t *) &sa->packet, sa->length);
 	}
+
+	if (option_verbose)
+	{
+		list_for_each_entry(sa, &t->request_list, link)
+		print_packet((uint32_t *) &sa->packet, sa->length);
+		list_for_each_entry(sa, &t->response_list, link)
+		print_packet((uint32_t *) &sa->packet, sa->length);
+	}
+
 	printf("\r\n");
 
 	link_transaction_destroy(t);
@@ -264,16 +294,18 @@ clear_pending_transaction_list(void)
 {
 	struct link_transaction *t;
 
-	while (!list_empty(&pending_transaction_list)) {
+	while (!list_empty(&pending_transaction_list))
+	{
 		t = list_head(&pending_transaction_list,
-			      struct link_transaction, link);
+					  struct link_transaction, link);
 		list_remove(&t->link);
 		link_transaction_destroy(t);
 		/* print unfinished transactions */
 	}
 }
 
-static const char * const tcode_names[] = {
+static const char *const tcode_names[] =
+{
 	[0x0] = "write_quadlet_request",	[0x6] = "read_quadlet_response",
 	[0x1] = "write_block_request",		[0x7] = "read_block_response",
 	[0x2] = "write_response",		[0x8] = "cycle_start",
@@ -282,7 +314,8 @@ static const char * const tcode_names[] = {
 	[0x5] = "read_block_request",		[0xb] = "lock_response",
 };
 
-static const char * const ack_names[] = {
+static const char *const ack_names[] =
+{
 	[0x0] = "no ack",			[0x8] = "reserved (0x08)",
 	[0x1] = "ack_complete",			[0x9] = "reserved (0x09)",
 	[0x2] = "ack_pending",			[0xa] = "reserved (0x0a)",
@@ -293,28 +326,32 @@ static const char * const ack_names[] = {
 	[0x7] = "reserved (0x07)",		[0xf] = "reserved (0x0f)",
 };
 
-static const char * const rcode_names[] = {
+static const char *const rcode_names[] =
+{
 	[0x0] = "complete",			[0x4] = "conflict_error",
 	[0x1] = "reserved (0x01)",		[0x5] = "data_error",
 	[0x2] = "reserved (0x02)",		[0x6] = "type_error",
 	[0x3] = "reserved (0x03)",		[0x7] = "address_error",
 };
 
-static const char * const retry_names[] = {
+static const char *const retry_names[] =
+{
 	[0x0] = "retry_1",
 	[0x1] = "retry_x",
 	[0x2] = "retry_a",
 	[0x3] = "retry_b",
 };
 
-enum {
+enum
+{
 	PACKET_RESERVED,
 	PACKET_REQUEST,
 	PACKET_RESPONSE,
 	PACKET_OTHER,
 };
 
-struct packet_info {
+struct packet_info
+{
 	const char *name;
 	int type;
 	int response_tcode;
@@ -322,13 +359,14 @@ struct packet_info {
 	int field_count;
 };
 
-struct packet_field {
+struct packet_field
+{
 	const char *name; /* Short name for field. */
 	int offset;	/* Location of field, specified in bits; */
-			/* negative means from end of packet.    */
+	/* negative means from end of packet.    */
 	int width;	/* Width of field, 0 means use data_length. */
 	int flags;	/* Show options. */
-	const char * const *value_names;
+	const char *const *value_names;
 };
 
 #define COMMON_REQUEST_FIELDS						\
@@ -349,20 +387,23 @@ struct packet_field {
 	{ "src", 32, 16 },						\
 	{ "rcode", 48, 4, PACKET_FIELD_TRANSACTION, rcode_names }
 
-static const struct packet_field read_quadlet_request_fields[] = {
+static const struct packet_field read_quadlet_request_fields[] =
+{
 	COMMON_REQUEST_FIELDS,
 	{ "crc", 96, 32, PACKET_FIELD_DETAIL },
 	{ "ack", 156, 4, 0, ack_names },
 };
 
-static const struct packet_field read_quadlet_response_fields[] = {
+static const struct packet_field read_quadlet_response_fields[] =
+{
 	COMMON_RESPONSE_FIELDS,
 	{ "data", 96, 32, PACKET_FIELD_TRANSACTION },
 	{ "crc", 128, 32, PACKET_FIELD_DETAIL },
 	{ "ack", 188, 4, 0, ack_names },
 };
 
-static const struct packet_field read_block_request_fields[] = {
+static const struct packet_field read_block_request_fields[] =
+{
 	COMMON_REQUEST_FIELDS,
 	{ "data_length", 96, 16, PACKET_FIELD_TRANSACTION },
 	{ "extended_tcode", 112, 16 },
@@ -370,7 +411,8 @@ static const struct packet_field read_block_request_fields[] = {
 	{ "ack", 188, 4, 0, ack_names },
 };
 
-static const struct packet_field block_response_fields[] = {
+static const struct packet_field block_response_fields[] =
+{
 	COMMON_RESPONSE_FIELDS,
 	{ "data_length", 96, 16, PACKET_FIELD_DATA_LENGTH },
 	{ "extended_tcode", 112, 16 },
@@ -380,13 +422,15 @@ static const struct packet_field block_response_fields[] = {
 	{ "ack", -4, 4, 0, ack_names },
 };
 
-static const struct packet_field write_quadlet_request_fields[] = {
+static const struct packet_field write_quadlet_request_fields[] =
+{
 	COMMON_REQUEST_FIELDS,
 	{ "data", 96, 32, PACKET_FIELD_TRANSACTION },
 	{ "ack", -4, 4, 0, ack_names },
 };
 
-static const struct packet_field block_request_fields[] = {
+static const struct packet_field block_request_fields[] =
+{
 	COMMON_REQUEST_FIELDS,
 	{ "data_length", 96, 16, PACKET_FIELD_DATA_LENGTH | PACKET_FIELD_TRANSACTION },
 	{ "extended_tcode", 112, 16, PACKET_FIELD_TRANSACTION },
@@ -396,13 +440,15 @@ static const struct packet_field block_request_fields[] = {
 	{ "ack", -4, 4, 0, ack_names },
 };
 
-static const struct packet_field write_response_fields[] = {
+static const struct packet_field write_response_fields[] =
+{
 	COMMON_RESPONSE_FIELDS,
 	{ "reserved", 64, 32, PACKET_FIELD_DETAIL },
 	{ "ack", -4, 4, 0, ack_names },
 };
 
-static const struct packet_field iso_data_fields[] = {
+static const struct packet_field iso_data_fields[] =
+{
 	{ "data_length", 0, 16, PACKET_FIELD_DATA_LENGTH },
 	{ "tag", 16, 2 },
 	{ "channel", 18, 6 },
@@ -414,7 +460,8 @@ static const struct packet_field iso_data_fields[] = {
 	{ "ack", -4, 4, 0, ack_names },
 };
 
-static const struct packet_info packet_info[] = {
+static const struct packet_info packet_info[] =
+{
 	{
 		.name		= "write_quadlet_request",
 		.type		= PACKET_REQUEST,
@@ -499,15 +546,17 @@ handle_request_packet(uint32_t *data, size_t length)
 	struct link_transaction *t;
 
 	t = link_transaction_lookup(p->common.source, p->common.destination,
-			p->common.tlabel);
+								p->common.tlabel);
 	sa = subaction_create(data, length);
 	t->request = sa;
 
-	if (!list_empty(&t->request_list)) {
+	if (!list_empty(&t->request_list))
+	{
 		prev = list_tail(&t->request_list,
-				 struct subaction, link);
+						 struct subaction, link);
 
-		if (!ACK_BUSY(prev->ack)) {
+		if (!ACK_BUSY(prev->ack))
+		{
 			/*
 			 * error, we should only see ack_busy_* before the
 			 * ack_pending/ack_complete -- this is an ack_pending
@@ -517,7 +566,8 @@ handle_request_packet(uint32_t *data, size_t length)
 		}
 
 		if (prev->packet.common.tcode != sa->packet.common.tcode ||
-		    prev->packet.common.tlabel != sa->packet.common.tlabel) {
+			prev->packet.common.tlabel != sa->packet.common.tlabel)
+		{
 			/* memcmp() ? */
 			/* error, these should match for retries. */
 		}
@@ -525,32 +575,34 @@ handle_request_packet(uint32_t *data, size_t length)
 
 	list_append(&t->request_list, &sa->link);
 
-	switch (sa->ack) {
-	case ACK_COMPLETE:
-		if (p->common.tcode != TCODE_WRITE_QUADLET_REQUEST &&
-		    p->common.tcode != TCODE_WRITE_BLOCK_REQUEST)
-			/* error, unified transactions only allowed for write */;
-		list_remove(&t->link);
-		handle_transaction(t);
-		break;
+	switch (sa->ack)
+	{
+		case ACK_COMPLETE:
+			if (p->common.tcode != TCODE_WRITE_QUADLET_REQUEST &&
+				p->common.tcode != TCODE_WRITE_BLOCK_REQUEST)
+				/* error, unified transactions only allowed for write */;
 
-	case ACK_NO_ACK:
-	case ACK_DATA_ERROR:
-	case ACK_TYPE_ERROR:
-		list_remove(&t->link);
-		handle_transaction(t);
-		break;
+			list_remove(&t->link);
+			handle_transaction(t);
+			break;
 
-	case ACK_PENDING:
-		/* request subaction phase over, wait for response. */
-		break;
+		case ACK_NO_ACK:
+		case ACK_DATA_ERROR:
+		case ACK_TYPE_ERROR:
+			list_remove(&t->link);
+			handle_transaction(t);
+			break;
 
-	case ACK_BUSY_X:
-	case ACK_BUSY_A:
-	case ACK_BUSY_B:
-		/* ok, wait for retry. */
-		/* check that retry protocol is respected. */
-		break;
+		case ACK_PENDING:
+			/* request subaction phase over, wait for response. */
+			break;
+
+		case ACK_BUSY_X:
+		case ACK_BUSY_A:
+		case ACK_BUSY_B:
+			/* ok, wait for retry. */
+			/* check that retry protocol is respected. */
+			break;
 	}
 
 	return 1;
@@ -564,18 +616,22 @@ handle_response_packet(uint32_t *data, size_t length)
 	struct link_transaction *t;
 
 	t = link_transaction_lookup(p->common.destination, p->common.source,
-			p->common.tlabel);
-	if (list_empty(&t->request_list)) {
+								p->common.tlabel);
+
+	if (list_empty(&t->request_list))
+	{
 		/* unsolicited response */
 	}
 
 	sa = subaction_create(data, length);
 	t->response = sa;
 
-	if (!list_empty(&t->response_list)) {
+	if (!list_empty(&t->response_list))
+	{
 		prev = list_tail(&t->response_list, struct subaction, link);
 
-		if (!ACK_BUSY(prev->ack)) {
+		if (!ACK_BUSY(prev->ack))
+		{
 			/*
 			 * error, we should only see ack_busy_* before the
 			 * ack_pending/ack_complete
@@ -583,13 +639,18 @@ handle_response_packet(uint32_t *data, size_t length)
 		}
 
 		if (prev->packet.common.tcode != sa->packet.common.tcode ||
-		    prev->packet.common.tlabel != sa->packet.common.tlabel) {
+			prev->packet.common.tlabel != sa->packet.common.tlabel)
+		{
 			/* use memcmp() instead? */
 			/* error, these should match for retries. */
 		}
-	} else {
+	}
+	else
+	{
 		prev = list_tail(&t->request_list, struct subaction, link);
-		if (prev->ack != ACK_PENDING) {
+
+		if (prev->ack != ACK_PENDING)
+		{
 			/*
 			 * error, should not get response unless last request got
 			 * ack_pending.
@@ -597,32 +658,34 @@ handle_response_packet(uint32_t *data, size_t length)
 		}
 
 		if (packet_info[prev->packet.common.tcode].response_tcode !=
-		    sa->packet.common.tcode) {
+			sa->packet.common.tcode)
+		{
 			/* error, tcode mismatch */
 		}
 	}
 
 	list_append(&t->response_list, &sa->link);
 
-	switch (sa->ack) {
-	case ACK_COMPLETE:
-	case ACK_NO_ACK:
-	case ACK_DATA_ERROR:
-	case ACK_TYPE_ERROR:
-		list_remove(&t->link);
-		handle_transaction(t);
-		/* transaction complete, remove t from pending list. */
-		break;
+	switch (sa->ack)
+	{
+		case ACK_COMPLETE:
+		case ACK_NO_ACK:
+		case ACK_DATA_ERROR:
+		case ACK_TYPE_ERROR:
+			list_remove(&t->link);
+			handle_transaction(t);
+			/* transaction complete, remove t from pending list. */
+			break;
 
-	case ACK_PENDING:
-		/* error for responses. */
-		break;
+		case ACK_PENDING:
+			/* error for responses. */
+			break;
 
-	case ACK_BUSY_X:
-	case ACK_BUSY_A:
-	case ACK_BUSY_B:
-		/* no problem, wait for next retry */
-		break;
+		case ACK_BUSY_X:
+		case ACK_BUSY_A:
+		case ACK_BUSY_B:
+			/* no problem, wait for next retry */
+			break;
 	}
 
 	return 1;
@@ -631,22 +694,26 @@ handle_response_packet(uint32_t *data, size_t length)
 static int
 handle_packet(uint32_t *data, size_t length)
 {
-	if (length == 0) {
+	if (length == 0)
+	{
 		printf("bus reset\r\n");
 		clear_pending_transaction_list();
-	} else if (length > sizeof(struct phy_packet)) {
+	}
+	else if (length > sizeof(struct phy_packet))
+	{
 		struct link_packet *p = (struct link_packet *) data;
 
-		switch (packet_info[p->common.tcode].type) {
-		case PACKET_REQUEST:
-			return handle_request_packet(data, length);
+		switch (packet_info[p->common.tcode].type)
+		{
+			case PACKET_REQUEST:
+				return handle_request_packet(data, length);
 
-		case PACKET_RESPONSE:
-			return handle_response_packet(data, length);
+			case PACKET_RESPONSE:
+				return handle_response_packet(data, length);
 
-		case PACKET_OTHER:
-		case PACKET_RESERVED:
-			return 0;
+			case PACKET_OTHER:
+			case PACKET_RESERVED:
+				return 0;
 		}
 	}
 
@@ -667,11 +734,11 @@ get_bits(struct link_packet *packet, int offset, int width)
 }
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-#define byte_index(i) ((i) ^ 3)
+	#define byte_index(i) ((i) ^ 3)
 #elif __BYTE_ORDER == __BIG_ENDIAN
-#define byte_index(i) (i)
+	#define byte_index(i) (i)
 #else
-#error unsupported byte order.
+	#error unsupported byte order.
 #endif
 
 static void
@@ -680,22 +747,28 @@ dump_data(unsigned char *data, int length)
 	int i, print_length;
 
 	if (length > 128)
+	{
 		print_length = 128;
+	}
 	else
+	{
 		print_length = length;
+	}
 
 	for (i = 0; i < print_length; i++)
 		printf("%s%02hhx",
-		       (i % 4 == 0 && i != 0) ? " " : "",
-		       data[byte_index(i)]);
+			   (i % 4 == 0 && i != 0) ? " " : "",
+			   data[byte_index(i)]);
 
 	if (print_length < length)
+	{
 		printf(" (%d more bytes)", length - print_length);
+	}
 }
 
 static void
 decode_link_packet(struct link_packet *packet, size_t length,
-		   int include_flags, int exclude_flags)
+				   int include_flags, int exclude_flags)
 {
 	const struct packet_info *pi;
 	int data_length = 0;
@@ -703,53 +776,75 @@ decode_link_packet(struct link_packet *packet, size_t length,
 
 	pi = &packet_info[packet->common.tcode];
 
-	for (i = 0; i < pi->field_count; i++) {
+	for (i = 0; i < pi->field_count; i++)
+	{
 		const struct packet_field *f = &pi->fields[i];
 		int offset;
 
 		if (f->flags & exclude_flags)
+		{
 			continue;
+		}
+
 		if (include_flags && !(f->flags & include_flags))
+		{
 			continue;
+		}
 
 		if (f->offset < 0)
+		{
 			offset = length * 8 + f->offset - 32;
+		}
 		else
+		{
 			offset = f->offset;
+		}
 
-		if (f->value_names != NULL) {
+		if (f->value_names != NULL)
+		{
 			uint32_t bits;
 
 			bits = get_bits(packet, offset, f->width);
 			printf("%s", f->value_names[bits]);
-		} else if (f->width == 0) {
+		}
+		else if (f->width == 0)
+		{
 			printf("%s=[", f->name);
 			dump_data((unsigned char *) packet + (offset / 8 + 4), data_length);
 			printf("]");
-		} else {
+		}
+		else
+		{
 			unsigned long long bits;
 			int high_width, low_width;
 
-			if ((offset & ~31) != ((offset + f->width - 1) & ~31)) {
+			if ((offset & ~31) != ((offset + f->width - 1) & ~31))
+			{
 				/* Bit field spans quadlet boundary. */
 				high_width = ((offset + 31) & ~31) - offset;
 				low_width = f->width - high_width;
 
 				bits = get_bits(packet, offset, high_width);
 				bits = (bits << low_width) |
-					get_bits(packet, offset + high_width, low_width);
-			} else {
+					   get_bits(packet, offset + high_width, low_width);
+			}
+			else
+			{
 				bits = get_bits(packet, offset, f->width);
 			}
 
 			printf("%s=0x%0*llx", f->name, (f->width + 3) / 4, bits);
 
 			if (f->flags & PACKET_FIELD_DATA_LENGTH)
+			{
 				data_length = bits;
+			}
 		}
 
 		if (i < pi->field_count - 1)
+		{
 			printf(", ");
+		}
 	}
 }
 
@@ -760,70 +855,103 @@ print_packet(uint32_t *data, size_t length)
 
 	printf("%6u  ", data[0]);
 
-	if (length == 4) {
+	if (length == 4)
+	{
 		printf("bus reset");
-	} else if (length < sizeof(struct phy_packet)) {
+	}
+	else if (length < sizeof(struct phy_packet))
+	{
 		printf("short packet: ");
+
 		for (i = 1; i < length / 4; i++)
+		{
 			printf("%s%08x", i == 0 ? "[" : " ", data[i]);
+		}
+
 		printf("]");
 
-	} else if (length == sizeof(struct phy_packet) && data[1] == ~data[2]) {
+	}
+	else if (length == sizeof(struct phy_packet) && data[1] == ~data[2])
+	{
 		struct phy_packet *pp = (struct phy_packet *) data;
 
 		/* phy packet are 3 quadlets: the 1 quadlet payload,
 		 * the bitwise inverse of the payload and the snoop
 		 * mode ack */
 
-		switch (pp->common.identifier) {
-		case PHY_PACKET_CONFIGURATION:
-			if (!pp->phy_config.set_root && !pp->phy_config.set_gap_count) {
-				printf("ext phy config: phy_id=%02x", pp->phy_config.root_id);
-			} else {
-				printf("phy config:");
-				if (pp->phy_config.set_root)
-					printf(" set_root_id=%02x", pp->phy_config.root_id);
-				if (pp->phy_config.set_gap_count)
-					printf(" set_gap_count=%d", pp->phy_config.gap_count);
-			}
-			break;
+		switch (pp->common.identifier)
+		{
+			case PHY_PACKET_CONFIGURATION:
+				if (!pp->phy_config.set_root && !pp->phy_config.set_gap_count)
+				{
+					printf("ext phy config: phy_id=%02x", pp->phy_config.root_id);
+				}
+				else
+				{
+					printf("phy config:");
 
-		case PHY_PACKET_LINK_ON:
-			printf("link-on packet, phy_id=%02x", pp->link_on.phy_id);
-			break;
+					if (pp->phy_config.set_root)
+					{
+						printf(" set_root_id=%02x", pp->phy_config.root_id);
+					}
 
-		case PHY_PACKET_SELF_ID:
-			if (pp->self_id.extended) {
-				printf("extended self id: phy_id=%02x, seq=%d",
-				       pp->ext_self_id.phy_id, pp->ext_self_id.sequence);
-			} else {
-				static const char * const speed_names[] = {
-					"S100", "S200", "S400", "BETA"
-				};
-				printf("self id: phy_id=%02x, link %s, gap_count=%d, speed=%s%s%s",
-				       pp->self_id.phy_id,
-				       (pp->self_id.link_active ? "active" : "not active"),
-				       pp->self_id.gap_count,
-				       speed_names[pp->self_id.phy_speed],
-				       (pp->self_id.contender ? ", irm contender" : ""),
-				       (pp->self_id.initiated_reset ? ", initiator" : ""));
-			}
-			break;
-		default:
-			printf("unknown phy packet: ");
-			for (i = 1; i < length / 4; i++)
-				printf("%s%08x", i == 0 ? "[" : " ", data[i]);
-			printf("]");
-			break;
+					if (pp->phy_config.set_gap_count)
+					{
+						printf(" set_gap_count=%d", pp->phy_config.gap_count);
+					}
+				}
+
+				break;
+
+			case PHY_PACKET_LINK_ON:
+				printf("link-on packet, phy_id=%02x", pp->link_on.phy_id);
+				break;
+
+			case PHY_PACKET_SELF_ID:
+				if (pp->self_id.extended)
+				{
+					printf("extended self id: phy_id=%02x, seq=%d",
+						   pp->ext_self_id.phy_id, pp->ext_self_id.sequence);
+				}
+				else
+				{
+					static const char *const speed_names[] =
+					{
+						"S100", "S200", "S400", "BETA"
+					};
+					printf("self id: phy_id=%02x, link %s, gap_count=%d, speed=%s%s%s",
+						   pp->self_id.phy_id,
+						   (pp->self_id.link_active ? "active" : "not active"),
+						   pp->self_id.gap_count,
+						   speed_names[pp->self_id.phy_speed],
+						   (pp->self_id.contender ? ", irm contender" : ""),
+						   (pp->self_id.initiated_reset ? ", initiator" : ""));
+				}
+
+				break;
+
+			default:
+				printf("unknown phy packet: ");
+
+				for (i = 1; i < length / 4; i++)
+				{
+					printf("%s%08x", i == 0 ? "[" : " ", data[i]);
+				}
+
+				printf("]");
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		struct link_packet *packet = (struct link_packet *) data;
 
 		decode_link_packet(packet, length, 0,
-				   option_verbose ? 0 : PACKET_FIELD_DETAIL);
+						   option_verbose ? 0 : PACKET_FIELD_DETAIL);
 	}
 
-	if (option_hex) {
+	if (option_hex)
+	{
 		printf("  [");
 		dump_data((unsigned char *) data + 4, length - 4);
 		printf("]");
@@ -846,31 +974,44 @@ print_stats(uint32_t *data, size_t length)
 	int i;
 
 	if (length == 0)
+	{
 		bus_reset_count++;
+	}
 	else if (length < sizeof(struct phy_packet))
+	{
 		short_packet_count++;
+	}
 	else if (length == sizeof(struct phy_packet) && data[1] == ~data[2])
+	{
 		phy_packet_count++;
-	else {
+	}
+	else
+	{
 		struct link_packet *packet = (struct link_packet *) data;
 		tcode_count[packet->common.tcode]++;
 	}
 
 	gettimeofday(&now, NULL);
+
 	if (now.tv_sec <= last_update.tv_sec &&
-	    now.tv_usec < last_update.tv_usec + 500000)
+		now.tv_usec < last_update.tv_usec + 500000)
+	{
 		return;
+	}
 
 	last_update = now;
 	printf(CLEAR HIDE_CURSOR
-	       "  bus resets              : %8d\n"
-	       "  short packets           : %8d\n"
-	       "  phy packets             : %8d\n",
-	       bus_reset_count, short_packet_count, phy_packet_count);
+		   "  bus resets              : %8d\n"
+		   "  short packets           : %8d\n"
+		   "  phy packets             : %8d\n",
+		   bus_reset_count, short_packet_count, phy_packet_count);
 
 	for (i = 0; i < array_length(packet_info); i++)
 		if (packet_info[i].type != PACKET_RESERVED)
+		{
 			printf("  %-24s: %8d\n", packet_info[i].name, tcode_count[i]);
+		}
+
 	printf(SHOW_CURSOR "\n");
 }
 
@@ -888,7 +1029,8 @@ set_input_mode(void)
 	struct termios tattr;
 
 	/* Make sure stdin is a terminal. */
-	if (!isatty(STDIN_FILENO)) {
+	if (!isatty(STDIN_FILENO))
+	{
 		fprintf(stderr, "Not a terminal.\n");
 		exit(EXIT_FAILURE);
 	}
@@ -899,7 +1041,7 @@ set_input_mode(void)
 
 	/* Set the funny terminal modes. */
 	tcgetattr(STDIN_FILENO, &tattr);
-	tattr.c_lflag &= ~(ICANON|ECHO); /* Clear ICANON and ECHO. */
+	tattr.c_lflag &= ~(ICANON | ECHO); /* Clear ICANON and ECHO. */
 	tattr.c_cc[VMIN] = 1;
 	tattr.c_cc[VTIME] = 0;
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &tattr);
@@ -920,45 +1062,65 @@ int main(int argc, const char *argv[])
 
 	con = poptGetContext(NULL, argc, argv, options, 0);
 	retval = poptGetNextOpt(con);
-	if (retval < -1) {
+
+	if (retval < -1)
+	{
 		poptPrintUsage(con, stdout, 0);
 		return -1;
 	}
 
-	if (option_version) {
+	if (option_version)
+	{
 		printf("dump tool for nosy sniffer, version %s\n", VERSION);
 		return 0;
 	}
 
 	if (__BYTE_ORDER != __LITTLE_ENDIAN)
 		fprintf(stderr, "warning: nosy has only been tested on little "
-			"endian machines\n");
+				"endian machines\n");
 
-	if (option_input != NULL) {
+	if (option_input != NULL)
+	{
 		input = fopen(option_input, "r");
-		if (input == NULL) {
+
+		if (input == NULL)
+		{
 			fprintf(stderr, "Could not open %s, %m\n", option_input);
 			return -1;
 		}
-	} else {
+	}
+	else
+	{
 		fd = open(option_nosy_device, O_RDWR);
-		if (fd < 0) {
+
+		if (fd < 0)
+		{
 			fprintf(stderr, "Could not open %s, %m\n", option_nosy_device);
 			return -1;
 		}
+
 		set_input_mode();
 	}
 
 	if (strcmp(option_view, "transaction") == 0)
+	{
 		view = VIEW_TRANSACTION;
+	}
 	else if (strcmp(option_view, "stats") == 0)
+	{
 		view = VIEW_STATS;
+	}
 	else
+	{
 		view = VIEW_PACKET;
+	}
 
-	if (option_output) {
+	if (option_output)
+	{
 		output = fopen(option_output, "w");
-		if (output == NULL) {
+
+		if (output == NULL)
+		{
 			fprintf(stderr, "Could not open %s, %m\n", option_output);
 			return -1;
 		}
@@ -967,12 +1129,21 @@ int main(int argc, const char *argv[])
 	setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
 
 	filter = ~0;
+
 	if (!option_iso)
+	{
 		filter &= ~(1 << TCODE_STREAM_DATA);
+	}
+
 	if (!option_cycle_start)
+	{
 		filter &= ~(1 << TCODE_CYCLE_START);
+	}
+
 	if (view == VIEW_STATS)
+	{
 		filter = ~(1 << TCODE_CYCLE_START);
+	}
 
 	ioctl(fd, NOSY_IOC_FILTER, filter);
 
@@ -983,49 +1154,73 @@ int main(int argc, const char *argv[])
 	pollfds[1].fd = STDIN_FILENO;
 	pollfds[1].events = POLLIN;
 
-	while (run) {
-		if (input != NULL) {
+	while (run)
+	{
+		if (input != NULL)
+		{
 			if (fread(&length, sizeof length, 1, input) != 1)
+			{
 				return 0;
+			}
+
 			fread(buf, 1, length, input);
-		} else {
+		}
+		else
+		{
 			poll(pollfds, 2, -1);
-			if (pollfds[1].revents) {
+
+			if (pollfds[1].revents)
+			{
 				read(STDIN_FILENO, &c, sizeof c);
-				switch (c) {
-				case 'q':
-					if (output != NULL)
-						fclose(output);
-					return 0;
+
+				switch (c)
+				{
+					case 'q':
+						if (output != NULL)
+						{
+							fclose(output);
+						}
+
+						return 0;
 				}
 			}
 
 			if (pollfds[0].revents)
+			{
 				length = read(fd, buf, sizeof buf);
+			}
 			else
+			{
 				continue;
+			}
 		}
 
-		if (output != NULL) {
+		if (output != NULL)
+		{
 			fwrite(&length, sizeof length, 1, output);
 			fwrite(buf, 1, length, output);
 		}
 
-		switch (view) {
-		case VIEW_TRANSACTION:
-			handle_packet(buf, length);
-			break;
-		case VIEW_PACKET:
-			print_packet(buf, length);
-			break;
-		case VIEW_STATS:
-			print_stats(buf, length);
-			break;
+		switch (view)
+		{
+			case VIEW_TRANSACTION:
+				handle_packet(buf, length);
+				break;
+
+			case VIEW_PACKET:
+				print_packet(buf, length);
+				break;
+
+			case VIEW_STATS:
+				print_stats(buf, length);
+				break;
 		}
 	}
 
 	if (output != NULL)
+	{
 		fclose(output);
+	}
 
 	close(fd);
 

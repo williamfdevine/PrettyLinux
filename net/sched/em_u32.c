@@ -19,26 +19,33 @@
 #include <net/pkt_cls.h>
 
 static int em_u32_match(struct sk_buff *skb, struct tcf_ematch *em,
-			struct tcf_pkt_info *info)
+						struct tcf_pkt_info *info)
 {
 	struct tc_u32_key *key = (struct tc_u32_key *) em->data;
 	const unsigned char *ptr = skb_network_header(skb);
 
-	if (info) {
+	if (info)
+	{
 		if (info->ptr)
+		{
 			ptr = info->ptr;
+		}
+
 		ptr += (info->nexthdr & key->offmask);
 	}
 
 	ptr += key->off;
 
 	if (!tcf_valid_offset(skb, ptr, sizeof(u32)))
+	{
 		return 0;
+	}
 
 	return !(((*(__be32 *) ptr)  ^ key->val) & key->mask);
 }
 
-static struct tcf_ematch_ops em_u32_ops = {
+static struct tcf_ematch_ops em_u32_ops =
+{
 	.kind	  = TCF_EM_U32,
 	.datalen  = sizeof(struct tc_u32_key),
 	.match	  = em_u32_match,

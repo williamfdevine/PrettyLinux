@@ -22,7 +22,8 @@
 #define bset(b, a) iowrite8(ioread8(a) | (1 << (b)), (a))
 #define bclr(b, a) iowrite8(ioread8(a) & ~(1 << (b)), (a))
 
-struct timer16_priv {
+struct timer16_priv
+{
 	struct clocksource cs;
 	unsigned long total_cycles;
 	void __iomem *mapbase;
@@ -41,19 +42,25 @@ static unsigned long timer16_get_counter(struct timer16_priv *p)
 	o1 = ioread8(p->mapcommon + TISRC) & p->ovf;
 
 	/* Make sure the timer value is stable. Stolen from acpi_pm.c */
-	do {
+	do
+	{
 		o2 = o1;
 		v1 = ioread16be(p->mapbase + TCNT);
 		v2 = ioread16be(p->mapbase + TCNT);
 		v3 = ioread16be(p->mapbase + TCNT);
 		o1 = ioread8(p->mapcommon + TISRC) & p->ovf;
-	} while (unlikely((o1 != o2) || (v1 > v2 && v1 < v3)
-			  || (v2 > v3 && v2 < v1) || (v3 > v1 && v3 < v2)));
+	}
+	while (unlikely((o1 != o2) || (v1 > v2 && v1 < v3)
+					|| (v2 > v3 && v2 < v1) || (v3 > v1 && v3 < v2)));
 
 	if (likely(!o1))
+	{
 		return v2;
+	}
 	else
+	{
 		return v2 + 0x10000;
+	}
 }
 
 
@@ -111,7 +118,8 @@ static void timer16_disable(struct clocksource *cs)
 	p->cs_enabled = false;
 }
 
-static struct timer16_priv timer16_priv = {
+static struct timer16_priv timer16_priv =
+{
 	.cs = {
 		.name = "h8300_16timer",
 		.rating = 200,
@@ -134,27 +142,35 @@ static int __init h8300_16timer_init(struct device_node *node)
 	struct clk *clk;
 
 	clk = of_clk_get(node, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("failed to get clock for clocksource\n");
 		return PTR_ERR(clk);
 	}
 
 	ret = -ENXIO;
 	base[REG_CH] = of_iomap(node, 0);
-	if (!base[REG_CH]) {
+
+	if (!base[REG_CH])
+	{
 		pr_err("failed to map registers for clocksource\n");
 		goto free_clk;
 	}
 
 	base[REG_COMM] = of_iomap(node, 1);
-	if (!base[REG_COMM]) {
+
+	if (!base[REG_COMM])
+	{
 		pr_err("failed to map registers for clocksource\n");
 		goto unmap_ch;
 	}
 
 	ret = -EINVAL;
 	irq = irq_of_parse_and_map(node, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		pr_err("failed to get irq for clockevent\n");
 		goto unmap_comm;
 	}
@@ -168,14 +184,16 @@ static int __init h8300_16timer_init(struct device_node *node)
 	timer16_priv.ovie = 4 + ch;
 
 	ret = request_irq(irq, timer16_interrupt,
-			  IRQF_TIMER, timer16_priv.cs.name, &timer16_priv);
-	if (ret < 0) {
+					  IRQF_TIMER, timer16_priv.cs.name, &timer16_priv);
+
+	if (ret < 0)
+	{
 		pr_err("failed to request irq %d of clocksource\n", irq);
 		goto unmap_comm;
 	}
 
 	clocksource_register_hz(&timer16_priv.cs,
-				clk_get_rate(clk) / 8);
+							clk_get_rate(clk) / 8);
 	return 0;
 
 unmap_comm:
@@ -188,4 +206,4 @@ free_clk:
 }
 
 CLOCKSOURCE_OF_DECLARE(h8300_16bit, "renesas,16bit-timer",
-			   h8300_16timer_init);
+					   h8300_16timer_init);

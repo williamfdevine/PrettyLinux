@@ -106,7 +106,8 @@ static u8 twl4030_start_script_address = 0x2b;
 #define OFF_STATE_SHIFT		4
 #define OFF_STATE_MASK		(0xf << OFF_STATE_SHIFT)
 
-static u8 res_config_addrs[] = {
+static u8 res_config_addrs[] =
+{
 	[RES_VAUX1]	= 0x17,
 	[RES_VAUX2]	= 0x1b,
 	[RES_VAUX3]	= 0x1f,
@@ -141,7 +142,8 @@ static u8 res_config_addrs[] = {
  * Usable values for .remap_sleep and .remap_off
  * Based on table "5.3.3 Resource Operating modes"
  */
-enum {
+enum
+{
 	TWL_REMAP_OFF = 0,
 	TWL_REMAP_SLEEP = 8,
 	TWL_REMAP_ACTIVE = 9,
@@ -167,77 +169,104 @@ enum {
 	{ MSG_SINGULAR(DEV_GRP_NULL, (res), RES_STATE_ACTIVE), (state) }
 #define TWL_RESOURCE_GROUP_RESET(group, type1, type2)			\
 	{ MSG_BROADCAST(DEV_GRP_NULL, (group), (type1), (type2),	\
-		RES_STATE_WRST), TWL_DFLT_DELAY }
+					RES_STATE_WRST), TWL_DFLT_DELAY }
 #define TWL_RESOURCE_GROUP_SLEEP(group, type, type2)			\
 	{ MSG_BROADCAST(DEV_GRP_NULL, (group), (type), (type2),		\
-		RES_STATE_SLEEP), TWL_DFLT_DELAY }
+					RES_STATE_SLEEP), TWL_DFLT_DELAY }
 #define TWL_RESOURCE_GROUP_ACTIVE(group, type, type2)			\
 	{ MSG_BROADCAST(DEV_GRP_NULL, (group), (type), (type2),		\
-		RES_STATE_ACTIVE), TWL_DFLT_DELAY }
+					RES_STATE_ACTIVE), TWL_DFLT_DELAY }
 #define TWL_REMAP_SLEEP(res, devgrp, typ, typ2)				\
 	{ .resource = (res), .devgroup = (devgrp),			\
-	  .type = (typ), .type2 = (typ2),				\
-	  .remap_off = TWL_REMAP_OFF,					\
-	  .remap_sleep = TWL_REMAP_SLEEP, }
+									 .type = (typ), .type2 = (typ2),				\
+											 .remap_off = TWL_REMAP_OFF,					\
+													 .remap_sleep = TWL_REMAP_SLEEP, }
 #define TWL_REMAP_OFF(res, devgrp, typ, typ2)				\
 	{ .resource = (res), .devgroup = (devgrp),			\
-	  .type = (typ), .type2 = (typ2),				\
-	  .remap_off = TWL_REMAP_OFF, .remap_sleep = TWL_REMAP_OFF, }
+									 .type = (typ), .type2 = (typ2),				\
+											 .remap_off = TWL_REMAP_OFF, .remap_sleep = TWL_REMAP_OFF, }
 
 static int twl4030_write_script_byte(u8 address, u8 byte)
 {
 	int err;
 
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, address, R_MEMORY_ADDRESS);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, byte, R_MEMORY_DATA);
 out:
 	return err;
 }
 
 static int twl4030_write_script_ins(u8 address, u16 pmb_message,
-					   u8 delay, u8 next)
+									u8 delay, u8 next)
 {
 	int err;
 
 	address *= 4;
 	err = twl4030_write_script_byte(address++, pmb_message >> 8);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	err = twl4030_write_script_byte(address++, pmb_message & 0xff);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	err = twl4030_write_script_byte(address++, delay);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	err = twl4030_write_script_byte(address++, next);
 out:
 	return err;
 }
 
 static int twl4030_write_script(u8 address, struct twl4030_ins *script,
-				       int len)
+								int len)
 {
 	int err = -EINVAL;
 
-	for (; len; len--, address++, script++) {
-		if (len == 1) {
+	for (; len; len--, address++, script++)
+	{
+		if (len == 1)
+		{
 			err = twl4030_write_script_ins(address,
-						script->pmb_message,
-						script->delay,
-						END_OF_SCRIPT);
+										   script->pmb_message,
+										   script->delay,
+										   END_OF_SCRIPT);
+
 			if (err)
+			{
 				break;
-		} else {
+			}
+		}
+		else
+		{
 			err = twl4030_write_script_ins(address,
-						script->pmb_message,
-						script->delay,
-						address + 1);
+										   script->pmb_message,
+										   script->delay,
+										   address + 1);
+
 			if (err)
+			{
 				break;
+			}
 		}
 	}
+
 	return err;
 }
 
@@ -248,70 +277,106 @@ static int twl4030_config_wakeup3_sequence(u8 address)
 
 	/* Set SLEEP to ACTIVE SEQ address for P3 */
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, address, R_SEQ_ADD_S2A3);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	/* P3 LVL_WAKEUP should be on LEVEL */
 	err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &data, R_P3_SW_EVENTS);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	data |= PWR_LVL_WAKEUP;
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, data, R_P3_SW_EVENTS);
 out:
+
 	if (err)
+	{
 		pr_err("TWL4030 wakeup sequence for P3 config error\n");
+	}
+
 	return err;
 }
 
 static int
 twl4030_config_wakeup12_sequence(const struct twl4030_power_data *pdata,
-				 u8 address)
+								 u8 address)
 {
 	int err = 0;
 	u8 data;
 
 	/* Set SLEEP to ACTIVE SEQ address for P1 and P2 */
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, address, R_SEQ_ADD_S2A12);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	/* P1/P2 LVL_WAKEUP should be on LEVEL */
 	err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &data, R_P1_SW_EVENTS);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	data |= PWR_LVL_WAKEUP;
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, data, R_P1_SW_EVENTS);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &data, R_P2_SW_EVENTS);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	data |= PWR_LVL_WAKEUP;
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, data, R_P2_SW_EVENTS);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	if (pdata->ac_charger_quirk || machine_is_omap_3430sdp() ||
-	    machine_is_omap_ldp()) {
+		machine_is_omap_ldp())
+	{
 		/* Disabling AC charger effect on sleep-active transitions */
 		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &data,
-				      R_CFG_P1_TRANSITION);
+							  R_CFG_P1_TRANSITION);
+
 		if (err)
+		{
 			goto out;
+		}
+
 		data &= ~STARTON_CHG;
 		err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, data,
-				       R_CFG_P1_TRANSITION);
+							   R_CFG_P1_TRANSITION);
+
 		if (err)
+		{
 			goto out;
+		}
 	}
 
 out:
+
 	if (err)
 		pr_err("TWL4030 wakeup sequence for P1 and P2" \
-			"config error\n");
+			   "config error\n");
+
 	return err;
 }
 
@@ -323,7 +388,9 @@ static int twl4030_config_sleep_sequence(u8 address)
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, address, R_SEQ_ADD_A2S);
 
 	if (err)
+	{
 		pr_err("TWL4030 sleep sequence config error\n");
+	}
 
 	return err;
 }
@@ -335,37 +402,59 @@ static int twl4030_config_warmreset_sequence(u8 address)
 
 	/* Set WARM RESET SEQ address for P1 */
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, address, R_SEQ_ADD_WARM);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	/* P1/P2/P3 enable WARMRESET */
 	err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &rd_data, R_P1_SW_EVENTS);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	rd_data |= PWR_ENABLE_WARMRESET;
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, rd_data, R_P1_SW_EVENTS);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &rd_data, R_P2_SW_EVENTS);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	rd_data |= PWR_ENABLE_WARMRESET;
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, rd_data, R_P2_SW_EVENTS);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &rd_data, R_P3_SW_EVENTS);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	rd_data |= PWR_ENABLE_WARMRESET;
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, rd_data, R_P3_SW_EVENTS);
 out:
+
 	if (err)
+	{
 		pr_err("TWL4030 warmreset seq config error\n");
+	}
+
 	return err;
 }
 
@@ -377,9 +466,10 @@ static int twl4030_configure_resource(struct twl4030_resconfig *rconfig)
 	u8 grp;
 	u8 remap;
 
-	if (rconfig->resource > TOTAL_RESOURCES) {
+	if (rconfig->resource > TOTAL_RESOURCES)
+	{
 		pr_err("TWL4030 Resource %d does not exist\n",
-			rconfig->resource);
+			   rconfig->resource);
 		return -EINVAL;
 	}
 
@@ -387,19 +477,24 @@ static int twl4030_configure_resource(struct twl4030_resconfig *rconfig)
 
 	/* Set resource group */
 	err = twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER, &grp,
-			      rconfig_addr + DEV_GRP_OFFSET);
-	if (err) {
+						  rconfig_addr + DEV_GRP_OFFSET);
+
+	if (err)
+	{
 		pr_err("TWL4030 Resource %d group could not be read\n",
-			rconfig->resource);
+			   rconfig->resource);
 		return err;
 	}
 
-	if (rconfig->devgroup != TWL4030_RESCONFIG_UNDEF) {
+	if (rconfig->devgroup != TWL4030_RESCONFIG_UNDEF)
+	{
 		grp &= ~DEV_GRP_MASK;
 		grp |= rconfig->devgroup << DEV_GRP_SHIFT;
 		err = twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER,
-				       grp, rconfig_addr + DEV_GRP_OFFSET);
-		if (err < 0) {
+							   grp, rconfig_addr + DEV_GRP_OFFSET);
+
+		if (err < 0)
+		{
 			pr_err("TWL4030 failed to program devgroup\n");
 			return err;
 		}
@@ -407,53 +502,65 @@ static int twl4030_configure_resource(struct twl4030_resconfig *rconfig)
 
 	/* Set resource types */
 	err = twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER, &type,
-				rconfig_addr + TYPE_OFFSET);
-	if (err < 0) {
+						  rconfig_addr + TYPE_OFFSET);
+
+	if (err < 0)
+	{
 		pr_err("TWL4030 Resource %d type could not be read\n",
-			rconfig->resource);
+			   rconfig->resource);
 		return err;
 	}
 
-	if (rconfig->type != TWL4030_RESCONFIG_UNDEF) {
+	if (rconfig->type != TWL4030_RESCONFIG_UNDEF)
+	{
 		type &= ~TYPE_MASK;
 		type |= rconfig->type << TYPE_SHIFT;
 	}
 
-	if (rconfig->type2 != TWL4030_RESCONFIG_UNDEF) {
+	if (rconfig->type2 != TWL4030_RESCONFIG_UNDEF)
+	{
 		type &= ~TYPE2_MASK;
 		type |= rconfig->type2 << TYPE2_SHIFT;
 	}
 
 	err = twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER,
-				type, rconfig_addr + TYPE_OFFSET);
-	if (err < 0) {
+						   type, rconfig_addr + TYPE_OFFSET);
+
+	if (err < 0)
+	{
 		pr_err("TWL4030 failed to program resource type\n");
 		return err;
 	}
 
 	/* Set remap states */
 	err = twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER, &remap,
-			      rconfig_addr + REMAP_OFFSET);
-	if (err < 0) {
+						  rconfig_addr + REMAP_OFFSET);
+
+	if (err < 0)
+	{
 		pr_err("TWL4030 Resource %d remap could not be read\n",
-			rconfig->resource);
+			   rconfig->resource);
 		return err;
 	}
 
-	if (rconfig->remap_off != TWL4030_RESCONFIG_UNDEF) {
+	if (rconfig->remap_off != TWL4030_RESCONFIG_UNDEF)
+	{
 		remap &= ~OFF_STATE_MASK;
 		remap |= rconfig->remap_off << OFF_STATE_SHIFT;
 	}
 
-	if (rconfig->remap_sleep != TWL4030_RESCONFIG_UNDEF) {
+	if (rconfig->remap_sleep != TWL4030_RESCONFIG_UNDEF)
+	{
 		remap &= ~SLEEP_STATE_MASK;
 		remap |= rconfig->remap_sleep << SLEEP_STATE_SHIFT;
 	}
 
 	err = twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER,
-			       remap,
-			       rconfig_addr + REMAP_OFFSET);
-	if (err < 0) {
+						   remap,
+						   rconfig_addr + REMAP_OFFSET);
+
+	if (err < 0)
+	{
 		pr_err("TWL4030 failed to program remap\n");
 		return err;
 	}
@@ -462,51 +569,77 @@ static int twl4030_configure_resource(struct twl4030_resconfig *rconfig)
 }
 
 static int load_twl4030_script(const struct twl4030_power_data *pdata,
-			       struct twl4030_script *tscript,
-			       u8 address)
+							   struct twl4030_script *tscript,
+							   u8 address)
 {
 	int err;
 	static int order;
 
 	/* Make sure the script isn't going beyond last valid address (0x3f) */
-	if ((address + tscript->size) > END_OF_SCRIPT) {
+	if ((address + tscript->size) > END_OF_SCRIPT)
+	{
 		pr_err("TWL4030 scripts too big error\n");
 		return -EINVAL;
 	}
 
 	err = twl4030_write_script(address, tscript->script, tscript->size);
-	if (err)
-		goto out;
 
-	if (tscript->flags & TWL4030_WRST_SCRIPT) {
-		err = twl4030_config_warmreset_sequence(address);
-		if (err)
-			goto out;
+	if (err)
+	{
+		goto out;
 	}
-	if (tscript->flags & TWL4030_WAKEUP12_SCRIPT) {
+
+	if (tscript->flags & TWL4030_WRST_SCRIPT)
+	{
+		err = twl4030_config_warmreset_sequence(address);
+
+		if (err)
+		{
+			goto out;
+		}
+	}
+
+	if (tscript->flags & TWL4030_WAKEUP12_SCRIPT)
+	{
 		/* Reset any existing sleep script to avoid hangs on reboot */
 		err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, END_OF_SCRIPT,
-				       R_SEQ_ADD_A2S);
+							   R_SEQ_ADD_A2S);
+
 		if (err)
+		{
 			goto out;
+		}
 
 		err = twl4030_config_wakeup12_sequence(pdata, address);
+
 		if (err)
+		{
 			goto out;
+		}
+
 		order = 1;
 	}
-	if (tscript->flags & TWL4030_WAKEUP3_SCRIPT) {
+
+	if (tscript->flags & TWL4030_WAKEUP3_SCRIPT)
+	{
 		err = twl4030_config_wakeup3_sequence(address);
+
 		if (err)
+		{
 			goto out;
+		}
 	}
-	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
+
+	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+	{
 		if (!order)
 			pr_warning("TWL4030: Bad order of scripts (sleep "\
-					"script before wakeup) Leads to boot"\
-					"failure on some boards\n");
+					   "script before wakeup) Leads to boot"\
+					   "failure on some boards\n");
+
 		err = twl4030_config_sleep_sequence(address);
 	}
+
 out:
 	return err;
 }
@@ -516,48 +649,74 @@ int twl4030_remove_script(u8 flags)
 	int err = 0;
 
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, TWL4030_PM_MASTER_KEY_CFG1,
-			       TWL4030_PM_MASTER_PROTECT_KEY);
-	if (err) {
+						   TWL4030_PM_MASTER_PROTECT_KEY);
+
+	if (err)
+	{
 		pr_err("twl4030: unable to unlock PROTECT_KEY\n");
 		return err;
 	}
 
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, TWL4030_PM_MASTER_KEY_CFG2,
-			       TWL4030_PM_MASTER_PROTECT_KEY);
-	if (err) {
+						   TWL4030_PM_MASTER_PROTECT_KEY);
+
+	if (err)
+	{
 		pr_err("twl4030: unable to unlock PROTECT_KEY\n");
 		return err;
 	}
 
-	if (flags & TWL4030_WRST_SCRIPT) {
+	if (flags & TWL4030_WRST_SCRIPT)
+	{
 		err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, END_OF_SCRIPT,
-				       R_SEQ_ADD_WARM);
+							   R_SEQ_ADD_WARM);
+
 		if (err)
+		{
 			return err;
+		}
 	}
-	if (flags & TWL4030_WAKEUP12_SCRIPT) {
+
+	if (flags & TWL4030_WAKEUP12_SCRIPT)
+	{
 		err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, END_OF_SCRIPT,
-				       R_SEQ_ADD_S2A12);
+							   R_SEQ_ADD_S2A12);
+
 		if (err)
+		{
 			return err;
+		}
 	}
-	if (flags & TWL4030_WAKEUP3_SCRIPT) {
+
+	if (flags & TWL4030_WAKEUP3_SCRIPT)
+	{
 		err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, END_OF_SCRIPT,
-				       R_SEQ_ADD_S2A3);
+							   R_SEQ_ADD_S2A3);
+
 		if (err)
+		{
 			return err;
+		}
 	}
-	if (flags & TWL4030_SLEEP_SCRIPT) {
+
+	if (flags & TWL4030_SLEEP_SCRIPT)
+	{
 		err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, END_OF_SCRIPT,
-				       R_SEQ_ADD_A2S);
+							   R_SEQ_ADD_A2S);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, 0,
-			       TWL4030_PM_MASTER_PROTECT_KEY);
+						   TWL4030_PM_MASTER_PROTECT_KEY);
+
 	if (err)
+	{
 		pr_err("TWL4030 Unable to relock registers\n");
+	}
 
 	return err;
 }
@@ -569,10 +728,15 @@ twl4030_power_configure_scripts(const struct twl4030_power_data *pdata)
 	int i;
 	u8 address = twl4030_start_script_address;
 
-	for (i = 0; i < pdata->num; i++) {
+	for (i = 0; i < pdata->num; i++)
+	{
 		err = load_twl4030_script(pdata, pdata->scripts[i], address);
+
 		if (err)
+		{
 			return err;
+		}
+
 		address += pdata->scripts[i]->size;
 	}
 
@@ -580,18 +744,23 @@ twl4030_power_configure_scripts(const struct twl4030_power_data *pdata)
 }
 
 static void twl4030_patch_rconfig(struct twl4030_resconfig *common,
-				  struct twl4030_resconfig *board)
+								  struct twl4030_resconfig *board)
 {
-	while (common->resource) {
+	while (common->resource)
+	{
 		struct twl4030_resconfig *b = board;
 
-		while (b->resource) {
-			if (b->resource == common->resource) {
+		while (b->resource)
+		{
+			if (b->resource == common->resource)
+			{
 				*common = *b;
 				break;
 			}
+
 			b++;
 		}
+
 		common++;
 	}
 }
@@ -603,14 +772,22 @@ twl4030_power_configure_resources(const struct twl4030_power_data *pdata)
 	struct twl4030_resconfig *boardconf = pdata->board_config;
 	int err;
 
-	if (resconfig) {
+	if (resconfig)
+	{
 		if (boardconf)
+		{
 			twl4030_patch_rconfig(resconfig, boardconf);
+		}
 
-		while (resconfig->resource) {
+		while (resconfig->resource)
+		{
 			err = twl4030_configure_resource(resconfig);
+
 			if (err)
+			{
 				return err;
+			}
+
 			resconfig++;
 		}
 	}
@@ -621,39 +798,57 @@ twl4030_power_configure_resources(const struct twl4030_power_data *pdata)
 static int twl4030_starton_mask_and_set(u8 bitmask, u8 bitvalues)
 {
 	u8 regs[3] = { TWL4030_PM_MASTER_CFG_P1_TRANSITION,
-		       TWL4030_PM_MASTER_CFG_P2_TRANSITION,
-		       TWL4030_PM_MASTER_CFG_P3_TRANSITION, };
+				   TWL4030_PM_MASTER_CFG_P2_TRANSITION,
+				   TWL4030_PM_MASTER_CFG_P3_TRANSITION,
+				 };
 	u8 val;
 	int i, err;
 
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, TWL4030_PM_MASTER_KEY_CFG1,
-			       TWL4030_PM_MASTER_PROTECT_KEY);
-	if (err)
-		goto relock;
-	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
-			       TWL4030_PM_MASTER_KEY_CFG2,
-			       TWL4030_PM_MASTER_PROTECT_KEY);
-	if (err)
-		goto relock;
+						   TWL4030_PM_MASTER_PROTECT_KEY);
 
-	for (i = 0; i < sizeof(regs); i++) {
+	if (err)
+	{
+		goto relock;
+	}
+
+	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
+						   TWL4030_PM_MASTER_KEY_CFG2,
+						   TWL4030_PM_MASTER_PROTECT_KEY);
+
+	if (err)
+	{
+		goto relock;
+	}
+
+	for (i = 0; i < sizeof(regs); i++)
+	{
 		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER,
-				      &val, regs[i]);
+							  &val, regs[i]);
+
 		if (err)
+		{
 			break;
+		}
+
 		val = (~bitmask & val) | (bitmask & bitvalues);
 		err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
-				       val, regs[i]);
+							   val, regs[i]);
+
 		if (err)
+		{
 			break;
+		}
 	}
 
 	if (err)
+	{
 		pr_err("TWL4030 Register access failed: %i\n", err);
+	}
 
 relock:
 	return twl_i2c_write_u8(TWL_MODULE_PM_MASTER, 0,
-				TWL4030_PM_MASTER_PROTECT_KEY);
+							TWL4030_PM_MASTER_PROTECT_KEY);
 }
 
 /*
@@ -667,26 +862,38 @@ void twl4030_power_off(void)
 
 	/* Disable start on charger or VBUS as it can break poweroff */
 	err = twl4030_starton_mask_and_set(STARTON_VBUS | STARTON_CHG, 0);
+
 	if (err)
+	{
 		pr_err("TWL4030 Unable to configure start-up\n");
+	}
 
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, PWR_DEVOFF,
-			       TWL4030_PM_MASTER_P1_SW_EVENTS);
+						   TWL4030_PM_MASTER_P1_SW_EVENTS);
+
 	if (err)
+	{
 		pr_err("TWL4030 Unable to power off\n");
+	}
 }
 
 static bool twl4030_power_use_poweroff(const struct twl4030_power_data *pdata,
-					struct device_node *node)
+									   struct device_node *node)
 {
 	if (pdata && pdata->use_poweroff)
+	{
 		return true;
+	}
 
 	if (of_property_read_bool(node, "ti,system-power-controller"))
+	{
 		return true;
+	}
 
 	if (of_property_read_bool(node, "ti,use_poweroff"))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -695,7 +902,8 @@ static bool twl4030_power_use_poweroff(const struct twl4030_power_data *pdata,
 
 /* Generic warm reset configuration for omap3 */
 
-static struct twl4030_ins omap3_wrst_seq[] = {
+static struct twl4030_ins omap3_wrst_seq[] =
+{
 	TWL_RESOURCE_OFF(RES_NRES_PWRON),
 	TWL_RESOURCE_OFF(RES_RESET),
 	TWL_RESOURCE_RESET(RES_MAIN_REF),
@@ -707,24 +915,28 @@ static struct twl4030_ins omap3_wrst_seq[] = {
 	TWL_RESOURCE_ON(RES_NRES_PWRON),
 };
 
-static struct twl4030_script omap3_wrst_script = {
+static struct twl4030_script omap3_wrst_script =
+{
 	.script	= omap3_wrst_seq,
 	.size	= ARRAY_SIZE(omap3_wrst_seq),
 	.flags	= TWL4030_WRST_SCRIPT,
 };
 
-static struct twl4030_script *omap3_reset_scripts[] = {
+static struct twl4030_script *omap3_reset_scripts[] =
+{
 	&omap3_wrst_script,
 };
 
-static struct twl4030_resconfig omap3_rconfig[] = {
+static struct twl4030_resconfig omap3_rconfig[] =
+{
 	TWL_REMAP_SLEEP(RES_HFCLKOUT, DEV_GRP_P3, -1, -1),
 	TWL_REMAP_SLEEP(RES_VDD1, DEV_GRP_P1, -1, -1),
 	TWL_REMAP_SLEEP(RES_VDD2, DEV_GRP_P1, -1, -1),
 	{ 0, 0 },
 };
 
-static struct twl4030_power_data omap3_reset = {
+static struct twl4030_power_data omap3_reset =
+{
 	.scripts		= omap3_reset_scripts,
 	.num			= ARRAY_SIZE(omap3_reset_scripts),
 	.resource_config	= omap3_rconfig,
@@ -733,40 +945,47 @@ static struct twl4030_power_data omap3_reset = {
 /* Recommended generic default idle configuration for off-idle */
 
 /* Broadcast message to put res to sleep */
-static struct twl4030_ins omap3_idle_sleep_on_seq[] = {
+static struct twl4030_ins omap3_idle_sleep_on_seq[] =
+{
 	TWL_RESOURCE_GROUP_SLEEP(RES_GRP_ALL, RES_TYPE_ALL, 0),
 };
 
-static struct twl4030_script omap3_idle_sleep_on_script = {
+static struct twl4030_script omap3_idle_sleep_on_script =
+{
 	.script	= omap3_idle_sleep_on_seq,
 	.size	= ARRAY_SIZE(omap3_idle_sleep_on_seq),
 	.flags	= TWL4030_SLEEP_SCRIPT,
 };
 
 /* Broadcast message to put res to active */
-static struct twl4030_ins omap3_idle_wakeup_p12_seq[] = {
+static struct twl4030_ins omap3_idle_wakeup_p12_seq[] =
+{
 	TWL_RESOURCE_GROUP_ACTIVE(RES_GRP_ALL, RES_TYPE_ALL, 0),
 };
 
-static struct twl4030_script omap3_idle_wakeup_p12_script = {
+static struct twl4030_script omap3_idle_wakeup_p12_script =
+{
 	.script	= omap3_idle_wakeup_p12_seq,
 	.size	= ARRAY_SIZE(omap3_idle_wakeup_p12_seq),
 	.flags	= TWL4030_WAKEUP12_SCRIPT,
 };
 
 /* Broadcast message to put res to active */
-static struct twl4030_ins omap3_idle_wakeup_p3_seq[] = {
+static struct twl4030_ins omap3_idle_wakeup_p3_seq[] =
+{
 	TWL_RESOURCE_SET_ACTIVE(RES_CLKEN, 0x37),
 	TWL_RESOURCE_GROUP_ACTIVE(RES_GRP_ALL, RES_TYPE_ALL, 0),
 };
 
-static struct twl4030_script omap3_idle_wakeup_p3_script = {
+static struct twl4030_script omap3_idle_wakeup_p3_script =
+{
 	.script	= omap3_idle_wakeup_p3_seq,
 	.size	= ARRAY_SIZE(omap3_idle_wakeup_p3_seq),
 	.flags	= TWL4030_WAKEUP3_SCRIPT,
 };
 
-static struct twl4030_script *omap3_idle_scripts[] = {
+static struct twl4030_script *omap3_idle_scripts[] =
+{
 	&omap3_idle_wakeup_p12_script,
 	&omap3_idle_wakeup_p3_script,
 	&omap3_wrst_script,
@@ -781,7 +1000,8 @@ static struct twl4030_script *omap3_idle_scripts[] = {
  * for type1 and type2 groups as specified in the document mentioned
  * above.
  */
-static struct twl4030_resconfig omap3_idle_rconfig[] = {
+static struct twl4030_resconfig omap3_idle_rconfig[] =
+{
 	TWL_REMAP_SLEEP(RES_VAUX1, TWL4030_RESCONFIG_UNDEF, 0, 0),
 	TWL_REMAP_SLEEP(RES_VAUX2, TWL4030_RESCONFIG_UNDEF, 0, 0),
 	TWL_REMAP_SLEEP(RES_VAUX3, TWL4030_RESCONFIG_UNDEF, 0, 0),
@@ -813,33 +1033,38 @@ static struct twl4030_resconfig omap3_idle_rconfig[] = {
 	{ /* Terminator */ },
 };
 
-static struct twl4030_power_data omap3_idle = {
+static struct twl4030_power_data omap3_idle =
+{
 	.scripts		= omap3_idle_scripts,
 	.num			= ARRAY_SIZE(omap3_idle_scripts),
 	.resource_config	= omap3_idle_rconfig,
 };
 
 /* Disable 32 KiHz oscillator during idle */
-static struct twl4030_resconfig osc_off_rconfig[] = {
+static struct twl4030_resconfig osc_off_rconfig[] =
+{
 	TWL_REMAP_OFF(RES_CLKEN, DEV_GRP_P1 | DEV_GRP_P3, 3, 2),
 	{ /* Terminator */ },
 };
 
-static struct twl4030_power_data osc_off_idle = {
+static struct twl4030_power_data osc_off_idle =
+{
 	.scripts		= omap3_idle_scripts,
 	.num			= ARRAY_SIZE(omap3_idle_scripts),
 	.resource_config	= omap3_idle_rconfig,
 	.board_config		= osc_off_rconfig,
 };
 
-static struct twl4030_power_data omap3_idle_ac_quirk = {
+static struct twl4030_power_data omap3_idle_ac_quirk =
+{
 	.scripts		= omap3_idle_scripts,
 	.num			= ARRAY_SIZE(omap3_idle_scripts),
 	.resource_config	= omap3_idle_rconfig,
 	.ac_charger_quirk	= true,
 };
 
-static struct twl4030_power_data omap3_idle_ac_quirk_osc_off = {
+static struct twl4030_power_data omap3_idle_ac_quirk_osc_off =
+{
 	.scripts		= omap3_idle_scripts,
 	.num			= ARRAY_SIZE(omap3_idle_scripts),
 	.resource_config	= omap3_idle_rconfig,
@@ -847,7 +1072,8 @@ static struct twl4030_power_data omap3_idle_ac_quirk_osc_off = {
 	.ac_charger_quirk	= true,
 };
 
-static const struct of_device_id twl4030_power_of_match[] = {
+static const struct of_device_id twl4030_power_of_match[] =
+{
 	{
 		.compatible = "ti,twl4030-power",
 	},
@@ -889,53 +1115,71 @@ static int twl4030_power_probe(struct platform_device *pdev)
 	int err2 = 0;
 	u8 val;
 
-	if (!pdata && !node) {
+	if (!pdata && !node)
+	{
 		dev_err(&pdev->dev, "Platform data is missing\n");
 		return -EINVAL;
 	}
 
 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, TWL4030_PM_MASTER_KEY_CFG1,
-			       TWL4030_PM_MASTER_PROTECT_KEY);
+						   TWL4030_PM_MASTER_PROTECT_KEY);
 	err |= twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
-			       TWL4030_PM_MASTER_KEY_CFG2,
-			       TWL4030_PM_MASTER_PROTECT_KEY);
+							TWL4030_PM_MASTER_KEY_CFG2,
+							TWL4030_PM_MASTER_PROTECT_KEY);
 
-	if (err) {
+	if (err)
+	{
 		pr_err("TWL4030 Unable to unlock registers\n");
 		return err;
 	}
 
 	match = of_match_device(of_match_ptr(twl4030_power_of_match),
-				&pdev->dev);
-	if (match && match->data)
-		pdata = match->data;
+							&pdev->dev);
 
-	if (pdata) {
+	if (match && match->data)
+	{
+		pdata = match->data;
+	}
+
+	if (pdata)
+	{
 		err = twl4030_power_configure_scripts(pdata);
-		if (err) {
+
+		if (err)
+		{
 			pr_err("TWL4030 failed to load scripts\n");
 			goto relock;
 		}
+
 		err = twl4030_power_configure_resources(pdata);
-		if (err) {
+
+		if (err)
+		{
 			pr_err("TWL4030 failed to configure resource\n");
 			goto relock;
 		}
 	}
 
 	/* Board has to be wired properly to use this feature */
-	if (twl4030_power_use_poweroff(pdata, node) && !pm_power_off) {
+	if (twl4030_power_use_poweroff(pdata, node) && !pm_power_off)
+	{
 		/* Default for SEQ_OFFSYNC is set, lets ensure this */
 		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &val,
-				      TWL4030_PM_MASTER_CFG_P123_TRANSITION);
-		if (err) {
+							  TWL4030_PM_MASTER_CFG_P123_TRANSITION);
+
+		if (err)
+		{
 			pr_warning("TWL4030 Unable to read registers\n");
 
-		} else if (!(val & SEQ_OFFSYNC)) {
+		}
+		else if (!(val & SEQ_OFFSYNC))
+		{
 			val |= SEQ_OFFSYNC;
 			err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, val,
-					TWL4030_PM_MASTER_CFG_P123_TRANSITION);
-			if (err) {
+								   TWL4030_PM_MASTER_CFG_P123_TRANSITION);
+
+			if (err)
+			{
 				pr_err("TWL4030 Unable to setup SEQ_OFFSYNC\n");
 				goto relock;
 			}
@@ -946,8 +1190,10 @@ static int twl4030_power_probe(struct platform_device *pdev)
 
 relock:
 	err2 = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, 0,
-			       TWL4030_PM_MASTER_PROTECT_KEY);
-	if (err2) {
+							TWL4030_PM_MASTER_PROTECT_KEY);
+
+	if (err2)
+	{
 		pr_err("TWL4030 Unable to relock registers\n");
 		return err2;
 	}
@@ -960,7 +1206,8 @@ static int twl4030_power_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver twl4030_power_driver = {
+static struct platform_driver twl4030_power_driver =
+{
 	.driver = {
 		.name	= "twl4030_power",
 		.of_match_table = of_match_ptr(twl4030_power_of_match),

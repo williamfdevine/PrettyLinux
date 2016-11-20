@@ -78,24 +78,32 @@
 static int try_cancel_split_timeout(struct fw_transaction *t)
 {
 	if (t->is_split_transaction)
+	{
 		return del_timer(&t->split_timeout_timer);
+	}
 	else
+	{
 		return 1;
+	}
 }
 
 static int close_transaction(struct fw_transaction *transaction,
-			     struct fw_card *card, int rcode)
+							 struct fw_card *card, int rcode)
 {
 	struct fw_transaction *t;
 	unsigned long flags;
 
 	spin_lock_irqsave(&card->lock, flags);
-	list_for_each_entry(t, &card->transaction_list, link) {
-		if (t == transaction) {
-			if (!try_cancel_split_timeout(t)) {
+	list_for_each_entry(t, &card->transaction_list, link)
+	{
+		if (t == transaction)
+		{
+			if (!try_cancel_split_timeout(t))
+			{
 				spin_unlock_irqrestore(&card->lock, flags);
 				goto timed_out;
 			}
+
 			list_del_init(&t->link);
 			card->tlabel_mask &= ~(1ULL << t->tlabel);
 			break;
@@ -103,12 +111,13 @@ static int close_transaction(struct fw_transaction *transaction,
 	}
 	spin_unlock_irqrestore(&card->lock, flags);
 
-	if (&t->link != &card->transaction_list) {
+	if (&t->link != &card->transaction_list)
+	{
 		t->callback(card, rcode, NULL, 0, t->callback_data);
 		return 0;
 	}
 
- timed_out:
+timed_out:
 	return -ENOENT;
 }
 
@@ -117,7 +126,7 @@ static int close_transaction(struct fw_transaction *transaction,
  * been sent).
  */
 int fw_cancel_transaction(struct fw_card *card,
-			  struct fw_transaction *transaction)
+						  struct fw_transaction *transaction)
 {
 	/*
 	 * Cancel the packet transmission if it's still queued.  That
@@ -126,7 +135,9 @@ int fw_cancel_transaction(struct fw_card *card,
 	 */
 
 	if (card->driver->cancel_packet(card, &transaction->packet) == 0)
+	{
 		return 0;
+	}
 
 	/*
 	 * If the request packet has already been sent, we need to see
@@ -144,10 +155,13 @@ static void split_transaction_timeout_callback(unsigned long data)
 	unsigned long flags;
 
 	spin_lock_irqsave(&card->lock, flags);
-	if (list_empty(&t->link)) {
+
+	if (list_empty(&t->link))
+	{
 		spin_unlock_irqrestore(&card->lock, flags);
 		return;
 	}
+
 	list_del(&t->link);
 	card->tlabel_mask &= ~(1ULL << t->tlabel);
 	spin_unlock_irqrestore(&card->lock, flags);
@@ -156,65 +170,73 @@ static void split_transaction_timeout_callback(unsigned long data)
 }
 
 static void start_split_transaction_timeout(struct fw_transaction *t,
-					    struct fw_card *card)
+		struct fw_card *card)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&card->lock, flags);
 
-	if (list_empty(&t->link) || WARN_ON(t->is_split_transaction)) {
+	if (list_empty(&t->link) || WARN_ON(t->is_split_transaction))
+	{
 		spin_unlock_irqrestore(&card->lock, flags);
 		return;
 	}
 
 	t->is_split_transaction = true;
 	mod_timer(&t->split_timeout_timer,
-		  jiffies + card->split_timeout_jiffies);
+			  jiffies + card->split_timeout_jiffies);
 
 	spin_unlock_irqrestore(&card->lock, flags);
 }
 
 static void transmit_complete_callback(struct fw_packet *packet,
-				       struct fw_card *card, int status)
+									   struct fw_card *card, int status)
 {
 	struct fw_transaction *t =
-	    container_of(packet, struct fw_transaction, packet);
+		container_of(packet, struct fw_transaction, packet);
 
-	switch (status) {
-	case ACK_COMPLETE:
-		close_transaction(t, card, RCODE_COMPLETE);
-		break;
-	case ACK_PENDING:
-		start_split_transaction_timeout(t, card);
-		break;
-	case ACK_BUSY_X:
-	case ACK_BUSY_A:
-	case ACK_BUSY_B:
-		close_transaction(t, card, RCODE_BUSY);
-		break;
-	case ACK_DATA_ERROR:
-		close_transaction(t, card, RCODE_DATA_ERROR);
-		break;
-	case ACK_TYPE_ERROR:
-		close_transaction(t, card, RCODE_TYPE_ERROR);
-		break;
-	default:
-		/*
-		 * In this case the ack is really a juju specific
-		 * rcode, so just forward that to the callback.
-		 */
-		close_transaction(t, card, status);
-		break;
+	switch (status)
+	{
+		case ACK_COMPLETE:
+			close_transaction(t, card, RCODE_COMPLETE);
+			break;
+
+		case ACK_PENDING:
+			start_split_transaction_timeout(t, card);
+			break;
+
+		case ACK_BUSY_X:
+		case ACK_BUSY_A:
+		case ACK_BUSY_B:
+			close_transaction(t, card, RCODE_BUSY);
+			break;
+
+		case ACK_DATA_ERROR:
+			close_transaction(t, card, RCODE_DATA_ERROR);
+			break;
+
+		case ACK_TYPE_ERROR:
+			close_transaction(t, card, RCODE_TYPE_ERROR);
+			break;
+
+		default:
+			/*
+			 * In this case the ack is really a juju specific
+			 * rcode, so just forward that to the callback.
+			 */
+			close_transaction(t, card, status);
+			break;
 	}
 }
 
 static void fw_fill_request(struct fw_packet *packet, int tcode, int tlabel,
-		int destination_id, int source_id, int generation, int speed,
-		unsigned long long offset, void *payload, size_t length)
+							int destination_id, int source_id, int generation, int speed,
+							unsigned long long offset, void *payload, size_t length)
 {
 	int ext_tcode;
 
-	if (tcode == TCODE_STREAM_DATA) {
+	if (tcode == TCODE_STREAM_DATA)
+	{
 		packet->header[0] =
 			HEADER_DATA_LENGTH(length) |
 			destination_id |
@@ -226,11 +248,15 @@ static void fw_fill_request(struct fw_packet *packet, int tcode, int tlabel,
 		goto common;
 	}
 
-	if (tcode > 0x10) {
+	if (tcode > 0x10)
+	{
 		ext_tcode = tcode & ~0x10;
 		tcode = TCODE_LOCK_REQUEST;
-	} else
+	}
+	else
+	{
 		ext_tcode = 0;
+	}
 
 	packet->header[0] =
 		HEADER_RETRY(RETRY_X) |
@@ -242,40 +268,42 @@ static void fw_fill_request(struct fw_packet *packet, int tcode, int tlabel,
 	packet->header[2] =
 		offset;
 
-	switch (tcode) {
-	case TCODE_WRITE_QUADLET_REQUEST:
-		packet->header[3] = *(u32 *)payload;
-		packet->header_length = 16;
-		packet->payload_length = 0;
-		break;
+	switch (tcode)
+	{
+		case TCODE_WRITE_QUADLET_REQUEST:
+			packet->header[3] = *(u32 *)payload;
+			packet->header_length = 16;
+			packet->payload_length = 0;
+			break;
 
-	case TCODE_LOCK_REQUEST:
-	case TCODE_WRITE_BLOCK_REQUEST:
-		packet->header[3] =
-			HEADER_DATA_LENGTH(length) |
-			HEADER_EXTENDED_TCODE(ext_tcode);
-		packet->header_length = 16;
-		packet->payload = payload;
-		packet->payload_length = length;
-		break;
+		case TCODE_LOCK_REQUEST:
+		case TCODE_WRITE_BLOCK_REQUEST:
+			packet->header[3] =
+				HEADER_DATA_LENGTH(length) |
+				HEADER_EXTENDED_TCODE(ext_tcode);
+			packet->header_length = 16;
+			packet->payload = payload;
+			packet->payload_length = length;
+			break;
 
-	case TCODE_READ_QUADLET_REQUEST:
-		packet->header_length = 12;
-		packet->payload_length = 0;
-		break;
+		case TCODE_READ_QUADLET_REQUEST:
+			packet->header_length = 12;
+			packet->payload_length = 0;
+			break;
 
-	case TCODE_READ_BLOCK_REQUEST:
-		packet->header[3] =
-			HEADER_DATA_LENGTH(length) |
-			HEADER_EXTENDED_TCODE(ext_tcode);
-		packet->header_length = 16;
-		packet->payload_length = 0;
-		break;
+		case TCODE_READ_BLOCK_REQUEST:
+			packet->header[3] =
+				HEADER_DATA_LENGTH(length) |
+				HEADER_EXTENDED_TCODE(ext_tcode);
+			packet->header_length = 16;
+			packet->payload_length = 0;
+			break;
 
-	default:
-		WARN(1, "wrong tcode %d\n", tcode);
+		default:
+			WARN(1, "wrong tcode %d\n", tcode);
 	}
- common:
+
+common:
 	packet->speed = speed;
 	packet->generation = generation;
 	packet->ack = 0;
@@ -287,10 +315,15 @@ static int allocate_tlabel(struct fw_card *card)
 	int tlabel;
 
 	tlabel = card->current_tlabel;
-	while (card->tlabel_mask & (1ULL << tlabel)) {
+
+	while (card->tlabel_mask & (1ULL << tlabel))
+	{
 		tlabel = (tlabel + 1) & 0x3f;
+
 		if (tlabel == card->current_tlabel)
+		{
 			return -EBUSY;
+		}
 	}
 
 	card->current_tlabel = (tlabel + 1) & 0x3f;
@@ -348,9 +381,9 @@ static int allocate_tlabel(struct fw_card *card)
  * before fw_send_request() returns.
  */
 void fw_send_request(struct fw_card *card, struct fw_transaction *t, int tcode,
-		     int destination_id, int generation, int speed,
-		     unsigned long long offset, void *payload, size_t length,
-		     fw_transaction_callback_t callback, void *callback_data)
+					 int destination_id, int generation, int speed,
+					 unsigned long long offset, void *payload, size_t length,
+					 fw_transaction_callback_t callback, void *callback_data)
 {
 	unsigned long flags;
 	int tlabel;
@@ -363,7 +396,9 @@ void fw_send_request(struct fw_card *card, struct fw_transaction *t, int tcode,
 	spin_lock_irqsave(&card->lock, flags);
 
 	tlabel = allocate_tlabel(card);
-	if (tlabel < 0) {
+
+	if (tlabel < 0)
+	{
 		spin_unlock_irqrestore(&card->lock, flags);
 		callback(card, RCODE_SEND_ERROR, NULL, 0, callback_data);
 		return;
@@ -374,13 +409,13 @@ void fw_send_request(struct fw_card *card, struct fw_transaction *t, int tcode,
 	t->card = card;
 	t->is_split_transaction = false;
 	setup_timer(&t->split_timeout_timer,
-		    split_transaction_timeout_callback, (unsigned long)t);
+				split_transaction_timeout_callback, (unsigned long)t);
 	t->callback = callback;
 	t->callback_data = callback_data;
 
 	fw_fill_request(&t->packet, tcode, t->tlabel,
-			destination_id, card->node_id, generation,
-			speed, offset, payload, length);
+					destination_id, card->node_id, generation,
+					speed, offset, payload, length);
 	t->packet.callback = transmit_complete_callback;
 
 	list_add_tail(&t->link, &card->transaction_list);
@@ -391,19 +426,23 @@ void fw_send_request(struct fw_card *card, struct fw_transaction *t, int tcode,
 }
 EXPORT_SYMBOL(fw_send_request);
 
-struct transaction_callback_data {
+struct transaction_callback_data
+{
 	struct completion done;
 	void *payload;
 	int rcode;
 };
 
 static void transaction_callback(struct fw_card *card, int rcode,
-				 void *payload, size_t length, void *data)
+								 void *payload, size_t length, void *data)
 {
 	struct transaction_callback_data *d = data;
 
 	if (rcode == RCODE_COMPLETE)
+	{
 		memcpy(d->payload, payload, length);
+	}
+
 	d->rcode = rcode;
 	complete(&d->done);
 }
@@ -417,8 +456,8 @@ static void transaction_callback(struct fw_card *card, int rcode,
  * request payloads of >= 8 bytes but not to inbound response payloads.
  */
 int fw_run_transaction(struct fw_card *card, int tcode, int destination_id,
-		       int generation, int speed, unsigned long long offset,
-		       void *payload, size_t length)
+					   int generation, int speed, unsigned long long offset,
+					   void *payload, size_t length)
 {
 	struct transaction_callback_data d;
 	struct fw_transaction t;
@@ -427,7 +466,7 @@ int fw_run_transaction(struct fw_card *card, int tcode, int destination_id,
 	init_completion(&d.done);
 	d.payload = payload;
 	fw_send_request(card, &t, tcode, destination_id, generation, speed,
-			offset, payload, length, transaction_callback, &d);
+					offset, payload, length, transaction_callback, &d);
 	wait_for_completion(&d.done);
 	destroy_timer_on_stack(&t.split_timeout_timer);
 
@@ -439,12 +478,13 @@ static DEFINE_MUTEX(phy_config_mutex);
 static DECLARE_COMPLETION(phy_config_done);
 
 static void transmit_phy_packet_callback(struct fw_packet *packet,
-					 struct fw_card *card, int status)
+		struct fw_card *card, int status)
 {
 	complete(&phy_config_done);
 }
 
-static struct fw_packet phy_config_packet = {
+static struct fw_packet phy_config_packet =
+{
 	.header_length	= 12,
 	.header[0]	= TCODE_LINK_INTERNAL << 4,
 	.payload_length	= 0,
@@ -453,23 +493,33 @@ static struct fw_packet phy_config_packet = {
 };
 
 void fw_send_phy_config(struct fw_card *card,
-			int node_id, int generation, int gap_count)
+						int node_id, int generation, int gap_count)
 {
 	long timeout = DIV_ROUND_UP(HZ, 10);
 	u32 data = PHY_IDENTIFIER(PHY_PACKET_CONFIG);
 
 	if (node_id != FW_PHY_CONFIG_NO_NODE_ID)
+	{
 		data |= PHY_CONFIG_ROOT_ID(node_id);
+	}
 
-	if (gap_count == FW_PHY_CONFIG_CURRENT_GAP_COUNT) {
+	if (gap_count == FW_PHY_CONFIG_CURRENT_GAP_COUNT)
+	{
 		gap_count = card->driver->read_phy_reg(card, 1);
+
 		if (gap_count < 0)
+		{
 			return;
+		}
 
 		gap_count &= 63;
+
 		if (gap_count == 63)
+		{
 			return;
+		}
 	}
+
 	data |= PHY_CONFIG_GAP_COUNT(gap_count);
 
 	mutex_lock(&phy_config_mutex);
@@ -490,20 +540,23 @@ static struct fw_address_handler *lookup_overlapping_address_handler(
 {
 	struct fw_address_handler *handler;
 
-	list_for_each_entry_rcu(handler, list, link) {
+	list_for_each_entry_rcu(handler, list, link)
+	{
 		if (handler->offset < offset + length &&
-		    offset < handler->offset + handler->length)
+			offset < handler->offset + handler->length)
+		{
 			return handler;
+		}
 	}
 
 	return NULL;
 }
 
 static bool is_enclosing_handler(struct fw_address_handler *handler,
-				 unsigned long long offset, size_t length)
+								 unsigned long long offset, size_t length)
 {
 	return handler->offset <= offset &&
-		offset + length <= handler->offset + handler->length;
+		   offset + length <= handler->offset + handler->length;
 }
 
 static struct fw_address_handler *lookup_enclosing_address_handler(
@@ -511,9 +564,12 @@ static struct fw_address_handler *lookup_enclosing_address_handler(
 {
 	struct fw_address_handler *handler;
 
-	list_for_each_entry_rcu(handler, list, link) {
+	list_for_each_entry_rcu(handler, list, link)
+	{
 		if (is_enclosing_handler(handler, offset, length))
+		{
 			return handler;
+		}
 	}
 
 	return NULL;
@@ -523,26 +579,28 @@ static DEFINE_SPINLOCK(address_handler_list_lock);
 static LIST_HEAD(address_handler_list);
 
 const struct fw_address_region fw_high_memory_region =
-	{ .start = FW_MAX_PHYSICAL_RANGE, .end = 0xffffe0000000ULL, };
+{ .start = FW_MAX_PHYSICAL_RANGE, .end = 0xffffe0000000ULL, };
 EXPORT_SYMBOL(fw_high_memory_region);
 
 static const struct fw_address_region low_memory_region =
-	{ .start = 0x000000000000ULL, .end = FW_MAX_PHYSICAL_RANGE, };
+{ .start = 0x000000000000ULL, .end = FW_MAX_PHYSICAL_RANGE, };
 
 #if 0
 const struct fw_address_region fw_private_region =
-	{ .start = 0xffffe0000000ULL, .end = 0xfffff0000000ULL,  };
+{ .start = 0xffffe0000000ULL, .end = 0xfffff0000000ULL,  };
 const struct fw_address_region fw_csr_region =
-	{ .start = CSR_REGISTER_BASE,
-	  .end   = CSR_REGISTER_BASE | CSR_CONFIG_ROM_END,  };
+{
+	.start = CSR_REGISTER_BASE,
+	.end   = CSR_REGISTER_BASE | CSR_CONFIG_ROM_END,
+};
 const struct fw_address_region fw_unit_space_region =
-	{ .start = 0xfffff0000900ULL, .end = 0x1000000000000ULL, };
+{ .start = 0xfffff0000900ULL, .end = 0x1000000000000ULL, };
 #endif  /*  0  */
 
 static bool is_in_fcp_region(u64 offset, size_t length)
 {
 	return offset >= (CSR_REGISTER_BASE | CSR_FCP_COMMAND) &&
-		offset + length <= (CSR_REGISTER_BASE | CSR_FCP_END);
+		   offset + length <= (CSR_REGISTER_BASE | CSR_FCP_END);
 }
 
 /**
@@ -565,31 +623,41 @@ static bool is_in_fcp_region(u64 offset, size_t length)
  * Address allocations are exclusive, except for the FCP registers.
  */
 int fw_core_add_address_handler(struct fw_address_handler *handler,
-				const struct fw_address_region *region)
+								const struct fw_address_region *region)
 {
 	struct fw_address_handler *other;
 	int ret = -EBUSY;
 
 	if (region->start & 0xffff000000000003ULL ||
-	    region->start >= region->end ||
-	    region->end   > 0x0001000000000000ULL ||
-	    handler->length & 3 ||
-	    handler->length == 0)
+		region->start >= region->end ||
+		region->end   > 0x0001000000000000ULL ||
+		handler->length & 3 ||
+		handler->length == 0)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock(&address_handler_list_lock);
 
 	handler->offset = region->start;
-	while (handler->offset + handler->length <= region->end) {
+
+	while (handler->offset + handler->length <= region->end)
+	{
 		if (is_in_fcp_region(handler->offset, handler->length))
+		{
 			other = NULL;
+		}
 		else
 			other = lookup_overlapping_address_handler
 					(&address_handler_list,
 					 handler->offset, handler->length);
-		if (other != NULL) {
+
+		if (other != NULL)
+		{
 			handler->offset += other->length;
-		} else {
+		}
+		else
+		{
 			list_add_tail_rcu(&handler->link, &address_handler_list);
 			ret = 0;
 			break;
@@ -619,7 +687,8 @@ void fw_core_remove_address_handler(struct fw_address_handler *handler)
 }
 EXPORT_SYMBOL(fw_core_remove_address_handler);
 
-struct fw_request {
+struct fw_request
+{
 	struct fw_packet response;
 	u32 request_header[4];
 	int ack;
@@ -628,7 +697,7 @@ struct fw_request {
 };
 
 static void free_response_callback(struct fw_packet *packet,
-				   struct fw_card *card, int status)
+								   struct fw_card *card, int status)
 {
 	struct fw_request *request;
 
@@ -642,37 +711,41 @@ int fw_get_response_length(struct fw_request *r)
 
 	tcode = HEADER_GET_TCODE(r->request_header[0]);
 
-	switch (tcode) {
-	case TCODE_WRITE_QUADLET_REQUEST:
-	case TCODE_WRITE_BLOCK_REQUEST:
-		return 0;
+	switch (tcode)
+	{
+		case TCODE_WRITE_QUADLET_REQUEST:
+		case TCODE_WRITE_BLOCK_REQUEST:
+			return 0;
 
-	case TCODE_READ_QUADLET_REQUEST:
-		return 4;
+		case TCODE_READ_QUADLET_REQUEST:
+			return 4;
 
-	case TCODE_READ_BLOCK_REQUEST:
-		data_length = HEADER_GET_DATA_LENGTH(r->request_header[3]);
-		return data_length;
-
-	case TCODE_LOCK_REQUEST:
-		ext_tcode = HEADER_GET_EXTENDED_TCODE(r->request_header[3]);
-		data_length = HEADER_GET_DATA_LENGTH(r->request_header[3]);
-		switch (ext_tcode) {
-		case EXTCODE_FETCH_ADD:
-		case EXTCODE_LITTLE_ADD:
+		case TCODE_READ_BLOCK_REQUEST:
+			data_length = HEADER_GET_DATA_LENGTH(r->request_header[3]);
 			return data_length;
-		default:
-			return data_length / 2;
-		}
 
-	default:
-		WARN(1, "wrong tcode %d\n", tcode);
-		return 0;
+		case TCODE_LOCK_REQUEST:
+			ext_tcode = HEADER_GET_EXTENDED_TCODE(r->request_header[3]);
+			data_length = HEADER_GET_DATA_LENGTH(r->request_header[3]);
+
+			switch (ext_tcode)
+			{
+				case EXTCODE_FETCH_ADD:
+				case EXTCODE_LITTLE_ADD:
+					return data_length;
+
+				default:
+					return data_length / 2;
+			}
+
+		default:
+			WARN(1, "wrong tcode %d\n", tcode);
+			return 0;
 	}
 }
 
 void fw_fill_response(struct fw_packet *response, u32 *request_header,
-		      int rcode, void *payload, size_t length)
+					  int rcode, void *payload, size_t length)
 {
 	int tcode, tlabel, extended_tcode, source, destination;
 
@@ -691,38 +764,45 @@ void fw_fill_response(struct fw_packet *response, u32 *request_header,
 		HEADER_RCODE(rcode);
 	response->header[2] = 0;
 
-	switch (tcode) {
-	case TCODE_WRITE_QUADLET_REQUEST:
-	case TCODE_WRITE_BLOCK_REQUEST:
-		response->header[0] |= HEADER_TCODE(TCODE_WRITE_RESPONSE);
-		response->header_length = 12;
-		response->payload_length = 0;
-		break;
+	switch (tcode)
+	{
+		case TCODE_WRITE_QUADLET_REQUEST:
+		case TCODE_WRITE_BLOCK_REQUEST:
+			response->header[0] |= HEADER_TCODE(TCODE_WRITE_RESPONSE);
+			response->header_length = 12;
+			response->payload_length = 0;
+			break;
 
-	case TCODE_READ_QUADLET_REQUEST:
-		response->header[0] |=
-			HEADER_TCODE(TCODE_READ_QUADLET_RESPONSE);
-		if (payload != NULL)
-			response->header[3] = *(u32 *)payload;
-		else
-			response->header[3] = 0;
-		response->header_length = 16;
-		response->payload_length = 0;
-		break;
+		case TCODE_READ_QUADLET_REQUEST:
+			response->header[0] |=
+				HEADER_TCODE(TCODE_READ_QUADLET_RESPONSE);
 
-	case TCODE_READ_BLOCK_REQUEST:
-	case TCODE_LOCK_REQUEST:
-		response->header[0] |= HEADER_TCODE(tcode + 2);
-		response->header[3] =
-			HEADER_DATA_LENGTH(length) |
-			HEADER_EXTENDED_TCODE(extended_tcode);
-		response->header_length = 16;
-		response->payload = payload;
-		response->payload_length = length;
-		break;
+			if (payload != NULL)
+			{
+				response->header[3] = *(u32 *)payload;
+			}
+			else
+			{
+				response->header[3] = 0;
+			}
 
-	default:
-		WARN(1, "wrong tcode %d\n", tcode);
+			response->header_length = 16;
+			response->payload_length = 0;
+			break;
+
+		case TCODE_READ_BLOCK_REQUEST:
+		case TCODE_LOCK_REQUEST:
+			response->header[0] |= HEADER_TCODE(tcode + 2);
+			response->header[3] =
+				HEADER_DATA_LENGTH(length) |
+				HEADER_EXTENDED_TCODE(extended_tcode);
+			response->header_length = 16;
+			response->payload = payload;
+			response->payload_length = length;
+			break;
+
+		default:
+			WARN(1, "wrong tcode %d\n", tcode);
 	}
 
 	response->payload_mapped = false;
@@ -730,7 +810,7 @@ void fw_fill_response(struct fw_packet *response, u32 *request_header,
 EXPORT_SYMBOL(fw_fill_response);
 
 static u32 compute_split_timeout_timestamp(struct fw_card *card,
-					   u32 request_timestamp)
+		u32 request_timestamp)
 {
 	unsigned int cycles;
 	u32 timestamp;
@@ -746,55 +826,63 @@ static u32 compute_split_timeout_timestamp(struct fw_card *card,
 }
 
 static struct fw_request *allocate_request(struct fw_card *card,
-					   struct fw_packet *p)
+		struct fw_packet *p)
 {
 	struct fw_request *request;
 	u32 *data, length;
 	int request_tcode;
 
 	request_tcode = HEADER_GET_TCODE(p->header[0]);
-	switch (request_tcode) {
-	case TCODE_WRITE_QUADLET_REQUEST:
-		data = &p->header[3];
-		length = 4;
-		break;
 
-	case TCODE_WRITE_BLOCK_REQUEST:
-	case TCODE_LOCK_REQUEST:
-		data = p->payload;
-		length = HEADER_GET_DATA_LENGTH(p->header[3]);
-		break;
+	switch (request_tcode)
+	{
+		case TCODE_WRITE_QUADLET_REQUEST:
+			data = &p->header[3];
+			length = 4;
+			break;
 
-	case TCODE_READ_QUADLET_REQUEST:
-		data = NULL;
-		length = 4;
-		break;
+		case TCODE_WRITE_BLOCK_REQUEST:
+		case TCODE_LOCK_REQUEST:
+			data = p->payload;
+			length = HEADER_GET_DATA_LENGTH(p->header[3]);
+			break;
 
-	case TCODE_READ_BLOCK_REQUEST:
-		data = NULL;
-		length = HEADER_GET_DATA_LENGTH(p->header[3]);
-		break;
+		case TCODE_READ_QUADLET_REQUEST:
+			data = NULL;
+			length = 4;
+			break;
 
-	default:
-		fw_notice(card, "ERROR - corrupt request received - %08x %08x %08x\n",
-			 p->header[0], p->header[1], p->header[2]);
-		return NULL;
+		case TCODE_READ_BLOCK_REQUEST:
+			data = NULL;
+			length = HEADER_GET_DATA_LENGTH(p->header[3]);
+			break;
+
+		default:
+			fw_notice(card, "ERROR - corrupt request received - %08x %08x %08x\n",
+					  p->header[0], p->header[1], p->header[2]);
+			return NULL;
 	}
 
 	request = kmalloc(sizeof(*request) + length, GFP_ATOMIC);
+
 	if (request == NULL)
+	{
 		return NULL;
+	}
 
 	request->response.speed = p->speed;
 	request->response.timestamp =
-			compute_split_timeout_timestamp(card, p->timestamp);
+		compute_split_timeout_timestamp(card, p->timestamp);
 	request->response.generation = p->generation;
 	request->response.ack = 0;
 	request->response.callback = free_response_callback;
 	request->ack = p->ack;
 	request->length = length;
+
 	if (data)
+	{
 		memcpy(request->data, data, length);
+	}
 
 	memcpy(request->request_header, p->header, sizeof(p->header));
 
@@ -802,25 +890,28 @@ static struct fw_request *allocate_request(struct fw_card *card,
 }
 
 void fw_send_response(struct fw_card *card,
-		      struct fw_request *request, int rcode)
+					  struct fw_request *request, int rcode)
 {
 	if (WARN_ONCE(!request, "invalid for FCP address handlers"))
+	{
 		return;
+	}
 
 	/* unified transaction or broadcast transaction: don't respond */
 	if (request->ack != ACK_PENDING ||
-	    HEADER_DESTINATION_IS_BROADCAST(request->request_header[0])) {
+		HEADER_DESTINATION_IS_BROADCAST(request->request_header[0]))
+	{
 		kfree(request);
 		return;
 	}
 
 	if (rcode == RCODE_COMPLETE)
 		fw_fill_response(&request->response, request->request_header,
-				 rcode, request->data,
-				 fw_get_response_length(request));
+						 rcode, request->data,
+						 fw_get_response_length(request));
 	else
 		fw_fill_response(&request->response, request->request_header,
-				 rcode, NULL, 0);
+						 rcode, NULL, 0);
 
 	card->driver->send_response(card, &request->response);
 }
@@ -836,9 +927,9 @@ int fw_get_request_speed(struct fw_request *request)
 EXPORT_SYMBOL(fw_get_request_speed);
 
 static void handle_exclusive_region_request(struct fw_card *card,
-					    struct fw_packet *p,
-					    struct fw_request *request,
-					    unsigned long long offset)
+		struct fw_packet *p,
+		struct fw_request *request,
+		unsigned long long offset)
 {
 	struct fw_address_handler *handler;
 	int tcode, destination, source;
@@ -846,35 +937,43 @@ static void handle_exclusive_region_request(struct fw_card *card,
 	destination = HEADER_GET_DESTINATION(p->header[0]);
 	source      = HEADER_GET_SOURCE(p->header[1]);
 	tcode       = HEADER_GET_TCODE(p->header[0]);
+
 	if (tcode == TCODE_LOCK_REQUEST)
+	{
 		tcode = 0x10 + HEADER_GET_EXTENDED_TCODE(p->header[3]);
+	}
 
 	rcu_read_lock();
 	handler = lookup_enclosing_address_handler(&address_handler_list,
-						   offset, request->length);
+			  offset, request->length);
+
 	if (handler)
 		handler->address_callback(card, request,
-					  tcode, destination, source,
-					  p->generation, offset,
-					  request->data, request->length,
-					  handler->callback_data);
+								  tcode, destination, source,
+								  p->generation, offset,
+								  request->data, request->length,
+								  handler->callback_data);
+
 	rcu_read_unlock();
 
 	if (!handler)
+	{
 		fw_send_response(card, request, RCODE_ADDRESS_ERROR);
+	}
 }
 
 static void handle_fcp_region_request(struct fw_card *card,
-				      struct fw_packet *p,
-				      struct fw_request *request,
-				      unsigned long long offset)
+									  struct fw_packet *p,
+									  struct fw_request *request,
+									  unsigned long long offset)
 {
 	struct fw_address_handler *handler;
 	int tcode, destination, source;
 
 	if ((offset != (CSR_REGISTER_BASE | CSR_FCP_COMMAND) &&
-	     offset != (CSR_REGISTER_BASE | CSR_FCP_RESPONSE)) ||
-	    request->length > 0x200) {
+		 offset != (CSR_REGISTER_BASE | CSR_FCP_RESPONSE)) ||
+		request->length > 0x200)
+	{
 		fw_send_response(card, request, RCODE_ADDRESS_ERROR);
 
 		return;
@@ -885,21 +984,23 @@ static void handle_fcp_region_request(struct fw_card *card,
 	source      = HEADER_GET_SOURCE(p->header[1]);
 
 	if (tcode != TCODE_WRITE_QUADLET_REQUEST &&
-	    tcode != TCODE_WRITE_BLOCK_REQUEST) {
+		tcode != TCODE_WRITE_BLOCK_REQUEST)
+	{
 		fw_send_response(card, request, RCODE_TYPE_ERROR);
 
 		return;
 	}
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(handler, &address_handler_list, link) {
+	list_for_each_entry_rcu(handler, &address_handler_list, link)
+	{
 		if (is_enclosing_handler(handler, offset, request->length))
 			handler->address_callback(card, NULL, tcode,
-						  destination, source,
-						  p->generation, offset,
-						  request->data,
-						  request->length,
-						  handler->callback_data);
+									  destination, source,
+									  p->generation, offset,
+									  request->data,
+									  request->length,
+									  handler->callback_data);
 	}
 	rcu_read_unlock();
 
@@ -912,26 +1013,35 @@ void fw_core_handle_request(struct fw_card *card, struct fw_packet *p)
 	unsigned long long offset;
 
 	if (p->ack != ACK_PENDING && p->ack != ACK_COMPLETE)
+	{
 		return;
+	}
 
-	if (TCODE_IS_LINK_INTERNAL(HEADER_GET_TCODE(p->header[0]))) {
+	if (TCODE_IS_LINK_INTERNAL(HEADER_GET_TCODE(p->header[0])))
+	{
 		fw_cdev_handle_phy_packet(card, p);
 		return;
 	}
 
 	request = allocate_request(card, p);
-	if (request == NULL) {
+
+	if (request == NULL)
+	{
 		/* FIXME: send statically allocated busy packet. */
 		return;
 	}
 
 	offset = ((u64)HEADER_GET_OFFSET_HIGH(p->header[1]) << 32) |
-		p->header[2];
+			 p->header[2];
 
 	if (!is_in_fcp_region(offset, request->length))
+	{
 		handle_exclusive_region_request(card, p, request, offset);
+	}
 	else
+	{
 		handle_fcp_region_request(card, p, request, offset);
+	}
 
 }
 EXPORT_SYMBOL(fw_core_handle_request);
@@ -950,12 +1060,16 @@ void fw_core_handle_response(struct fw_card *card, struct fw_packet *p)
 	rcode	= HEADER_GET_RCODE(p->header[1]);
 
 	spin_lock_irqsave(&card->lock, flags);
-	list_for_each_entry(t, &card->transaction_list, link) {
-		if (t->node_id == source && t->tlabel == tlabel) {
-			if (!try_cancel_split_timeout(t)) {
+	list_for_each_entry(t, &card->transaction_list, link)
+	{
+		if (t->node_id == source && t->tlabel == tlabel)
+		{
+			if (!try_cancel_split_timeout(t))
+			{
 				spin_unlock_irqrestore(&card->lock, flags);
 				goto timed_out;
 			}
+
 			list_del_init(&t->link);
 			card->tlabel_mask &= ~(1ULL << t->tlabel);
 			break;
@@ -963,10 +1077,11 @@ void fw_core_handle_response(struct fw_card *card, struct fw_packet *p)
 	}
 	spin_unlock_irqrestore(&card->lock, flags);
 
-	if (&t->link == &card->transaction_list) {
- timed_out:
+	if (&t->link == &card->transaction_list)
+	{
+timed_out:
 		fw_notice(card, "unsolicited response (source %x, tlabel %x)\n",
-			  source, tlabel);
+				  source, tlabel);
 		return;
 	}
 
@@ -975,28 +1090,29 @@ void fw_core_handle_response(struct fw_card *card, struct fw_packet *p)
 	 * and addresses match.
 	 */
 
-	switch (tcode) {
-	case TCODE_READ_QUADLET_RESPONSE:
-		data = (u32 *) &p->header[3];
-		data_length = 4;
-		break;
+	switch (tcode)
+	{
+		case TCODE_READ_QUADLET_RESPONSE:
+			data = (u32 *) &p->header[3];
+			data_length = 4;
+			break;
 
-	case TCODE_WRITE_RESPONSE:
-		data = NULL;
-		data_length = 0;
-		break;
+		case TCODE_WRITE_RESPONSE:
+			data = NULL;
+			data_length = 0;
+			break;
 
-	case TCODE_READ_BLOCK_RESPONSE:
-	case TCODE_LOCK_RESPONSE:
-		data = p->payload;
-		data_length = HEADER_GET_DATA_LENGTH(p->header[3]);
-		break;
+		case TCODE_READ_BLOCK_RESPONSE:
+		case TCODE_LOCK_RESPONSE:
+			data = p->payload;
+			data_length = HEADER_GET_DATA_LENGTH(p->header[3]);
+			break;
 
-	default:
-		/* Should never happen, this is just to shut up gcc. */
-		data = NULL;
-		data_length = 0;
-		break;
+		default:
+			/* Should never happen, this is just to shut up gcc. */
+			data = NULL;
+			data_length = 0;
+			break;
 	}
 
 	/*
@@ -1015,7 +1131,8 @@ EXPORT_SYMBOL(fw_core_handle_response);
  */
 const char *fw_rcode_string(int rcode)
 {
-	static const char *const names[] = {
+	static const char *const names[] =
+	{
 		[RCODE_COMPLETE]       = "no error",
 		[RCODE_CONFLICT_ERROR] = "conflict error",
 		[RCODE_DATA_ERROR]     = "data error",
@@ -1029,29 +1146,37 @@ const char *fw_rcode_string(int rcode)
 	};
 
 	if ((unsigned int)rcode < ARRAY_SIZE(names) && names[rcode])
+	{
 		return names[rcode];
+	}
 	else
+	{
 		return "unknown";
+	}
 }
 EXPORT_SYMBOL(fw_rcode_string);
 
 static const struct fw_address_region topology_map_region =
-	{ .start = CSR_REGISTER_BASE | CSR_TOPOLOGY_MAP,
-	  .end   = CSR_REGISTER_BASE | CSR_TOPOLOGY_MAP_END, };
+{
+	.start = CSR_REGISTER_BASE | CSR_TOPOLOGY_MAP,
+	.end   = CSR_REGISTER_BASE | CSR_TOPOLOGY_MAP_END,
+};
 
 static void handle_topology_map(struct fw_card *card, struct fw_request *request,
-		int tcode, int destination, int source, int generation,
-		unsigned long long offset, void *payload, size_t length,
-		void *callback_data)
+								int tcode, int destination, int source, int generation,
+								unsigned long long offset, void *payload, size_t length,
+								void *callback_data)
 {
 	int start;
 
-	if (!TCODE_IS_READ_REQUEST(tcode)) {
+	if (!TCODE_IS_READ_REQUEST(tcode))
+	{
 		fw_send_response(card, request, RCODE_TYPE_ERROR);
 		return;
 	}
 
-	if ((offset & 3) > 0 || (length & 3) > 0) {
+	if ((offset & 3) > 0 || (length & 3) > 0)
+	{
 		fw_send_response(card, request, RCODE_ADDRESS_ERROR);
 		return;
 	}
@@ -1062,14 +1187,17 @@ static void handle_topology_map(struct fw_card *card, struct fw_request *request
 	fw_send_response(card, request, RCODE_COMPLETE);
 }
 
-static struct fw_address_handler topology_map = {
+static struct fw_address_handler topology_map =
+{
 	.length			= 0x400,
 	.address_callback	= handle_topology_map,
 };
 
 static const struct fw_address_region registers_region =
-	{ .start = CSR_REGISTER_BASE,
-	  .end   = CSR_REGISTER_BASE | CSR_CONFIG_ROM, };
+{
+	.start = CSR_REGISTER_BASE,
+	.end   = CSR_REGISTER_BASE | CSR_CONFIG_ROM,
+};
 
 static void update_split_timeout(struct fw_card *card)
 {
@@ -1085,129 +1213,168 @@ static void update_split_timeout(struct fw_card *card)
 }
 
 static void handle_registers(struct fw_card *card, struct fw_request *request,
-		int tcode, int destination, int source, int generation,
-		unsigned long long offset, void *payload, size_t length,
-		void *callback_data)
+							 int tcode, int destination, int source, int generation,
+							 unsigned long long offset, void *payload, size_t length,
+							 void *callback_data)
 {
 	int reg = offset & ~CSR_REGISTER_BASE;
 	__be32 *data = payload;
 	int rcode = RCODE_COMPLETE;
 	unsigned long flags;
 
-	switch (reg) {
-	case CSR_PRIORITY_BUDGET:
-		if (!card->priority_budget_implemented) {
-			rcode = RCODE_ADDRESS_ERROR;
-			break;
-		}
+	switch (reg)
+	{
+		case CSR_PRIORITY_BUDGET:
+			if (!card->priority_budget_implemented)
+			{
+				rcode = RCODE_ADDRESS_ERROR;
+				break;
+			}
+
 		/* else fall through */
 
-	case CSR_NODE_IDS:
+		case CSR_NODE_IDS:
+
 		/*
 		 * per IEEE 1394-2008 8.3.22.3, not IEEE 1394.1-2004 3.2.8
 		 * and 9.6, but interoperable with IEEE 1394.1-2004 bridges
 		 */
 		/* fall through */
 
-	case CSR_STATE_CLEAR:
-	case CSR_STATE_SET:
-	case CSR_CYCLE_TIME:
-	case CSR_BUS_TIME:
-	case CSR_BUSY_TIMEOUT:
-		if (tcode == TCODE_READ_QUADLET_REQUEST)
-			*data = cpu_to_be32(card->driver->read_csr(card, reg));
-		else if (tcode == TCODE_WRITE_QUADLET_REQUEST)
-			card->driver->write_csr(card, reg, be32_to_cpu(*data));
-		else
-			rcode = RCODE_TYPE_ERROR;
-		break;
+		case CSR_STATE_CLEAR:
+		case CSR_STATE_SET:
+		case CSR_CYCLE_TIME:
+		case CSR_BUS_TIME:
+		case CSR_BUSY_TIMEOUT:
+			if (tcode == TCODE_READ_QUADLET_REQUEST)
+			{
+				*data = cpu_to_be32(card->driver->read_csr(card, reg));
+			}
+			else if (tcode == TCODE_WRITE_QUADLET_REQUEST)
+			{
+				card->driver->write_csr(card, reg, be32_to_cpu(*data));
+			}
+			else
+			{
+				rcode = RCODE_TYPE_ERROR;
+			}
 
-	case CSR_RESET_START:
-		if (tcode == TCODE_WRITE_QUADLET_REQUEST)
-			card->driver->write_csr(card, CSR_STATE_CLEAR,
-						CSR_STATE_BIT_ABDICATE);
-		else
-			rcode = RCODE_TYPE_ERROR;
-		break;
+			break;
 
-	case CSR_SPLIT_TIMEOUT_HI:
-		if (tcode == TCODE_READ_QUADLET_REQUEST) {
-			*data = cpu_to_be32(card->split_timeout_hi);
-		} else if (tcode == TCODE_WRITE_QUADLET_REQUEST) {
-			spin_lock_irqsave(&card->lock, flags);
-			card->split_timeout_hi = be32_to_cpu(*data) & 7;
-			update_split_timeout(card);
-			spin_unlock_irqrestore(&card->lock, flags);
-		} else {
-			rcode = RCODE_TYPE_ERROR;
-		}
-		break;
+		case CSR_RESET_START:
+			if (tcode == TCODE_WRITE_QUADLET_REQUEST)
+				card->driver->write_csr(card, CSR_STATE_CLEAR,
+										CSR_STATE_BIT_ABDICATE);
+			else
+			{
+				rcode = RCODE_TYPE_ERROR;
+			}
 
-	case CSR_SPLIT_TIMEOUT_LO:
-		if (tcode == TCODE_READ_QUADLET_REQUEST) {
-			*data = cpu_to_be32(card->split_timeout_lo);
-		} else if (tcode == TCODE_WRITE_QUADLET_REQUEST) {
-			spin_lock_irqsave(&card->lock, flags);
-			card->split_timeout_lo =
+			break;
+
+		case CSR_SPLIT_TIMEOUT_HI:
+			if (tcode == TCODE_READ_QUADLET_REQUEST)
+			{
+				*data = cpu_to_be32(card->split_timeout_hi);
+			}
+			else if (tcode == TCODE_WRITE_QUADLET_REQUEST)
+			{
+				spin_lock_irqsave(&card->lock, flags);
+				card->split_timeout_hi = be32_to_cpu(*data) & 7;
+				update_split_timeout(card);
+				spin_unlock_irqrestore(&card->lock, flags);
+			}
+			else
+			{
+				rcode = RCODE_TYPE_ERROR;
+			}
+
+			break;
+
+		case CSR_SPLIT_TIMEOUT_LO:
+			if (tcode == TCODE_READ_QUADLET_REQUEST)
+			{
+				*data = cpu_to_be32(card->split_timeout_lo);
+			}
+			else if (tcode == TCODE_WRITE_QUADLET_REQUEST)
+			{
+				spin_lock_irqsave(&card->lock, flags);
+				card->split_timeout_lo =
 					be32_to_cpu(*data) & 0xfff80000;
-			update_split_timeout(card);
-			spin_unlock_irqrestore(&card->lock, flags);
-		} else {
-			rcode = RCODE_TYPE_ERROR;
-		}
-		break;
+				update_split_timeout(card);
+				spin_unlock_irqrestore(&card->lock, flags);
+			}
+			else
+			{
+				rcode = RCODE_TYPE_ERROR;
+			}
 
-	case CSR_MAINT_UTILITY:
-		if (tcode == TCODE_READ_QUADLET_REQUEST)
-			*data = card->maint_utility_register;
-		else if (tcode == TCODE_WRITE_QUADLET_REQUEST)
-			card->maint_utility_register = *data;
-		else
-			rcode = RCODE_TYPE_ERROR;
-		break;
+			break;
 
-	case CSR_BROADCAST_CHANNEL:
-		if (tcode == TCODE_READ_QUADLET_REQUEST)
-			*data = cpu_to_be32(card->broadcast_channel);
-		else if (tcode == TCODE_WRITE_QUADLET_REQUEST)
-			card->broadcast_channel =
-			    (be32_to_cpu(*data) & BROADCAST_CHANNEL_VALID) |
-			    BROADCAST_CHANNEL_INITIAL;
-		else
-			rcode = RCODE_TYPE_ERROR;
-		break;
+		case CSR_MAINT_UTILITY:
+			if (tcode == TCODE_READ_QUADLET_REQUEST)
+			{
+				*data = card->maint_utility_register;
+			}
+			else if (tcode == TCODE_WRITE_QUADLET_REQUEST)
+			{
+				card->maint_utility_register = *data;
+			}
+			else
+			{
+				rcode = RCODE_TYPE_ERROR;
+			}
 
-	case CSR_BUS_MANAGER_ID:
-	case CSR_BANDWIDTH_AVAILABLE:
-	case CSR_CHANNELS_AVAILABLE_HI:
-	case CSR_CHANNELS_AVAILABLE_LO:
-		/*
-		 * FIXME: these are handled by the OHCI hardware and
-		 * the stack never sees these request. If we add
-		 * support for a new type of controller that doesn't
-		 * handle this in hardware we need to deal with these
-		 * transactions.
-		 */
-		BUG();
-		break;
+			break;
 
-	default:
-		rcode = RCODE_ADDRESS_ERROR;
-		break;
+		case CSR_BROADCAST_CHANNEL:
+			if (tcode == TCODE_READ_QUADLET_REQUEST)
+			{
+				*data = cpu_to_be32(card->broadcast_channel);
+			}
+			else if (tcode == TCODE_WRITE_QUADLET_REQUEST)
+				card->broadcast_channel =
+					(be32_to_cpu(*data) & BROADCAST_CHANNEL_VALID) |
+					BROADCAST_CHANNEL_INITIAL;
+			else
+			{
+				rcode = RCODE_TYPE_ERROR;
+			}
+
+			break;
+
+		case CSR_BUS_MANAGER_ID:
+		case CSR_BANDWIDTH_AVAILABLE:
+		case CSR_CHANNELS_AVAILABLE_HI:
+		case CSR_CHANNELS_AVAILABLE_LO:
+			/*
+			 * FIXME: these are handled by the OHCI hardware and
+			 * the stack never sees these request. If we add
+			 * support for a new type of controller that doesn't
+			 * handle this in hardware we need to deal with these
+			 * transactions.
+			 */
+			BUG();
+			break;
+
+		default:
+			rcode = RCODE_ADDRESS_ERROR;
+			break;
 	}
 
 	fw_send_response(card, request, rcode);
 }
 
-static struct fw_address_handler registers = {
+static struct fw_address_handler registers =
+{
 	.length			= 0x400,
 	.address_callback	= handle_registers,
 };
 
 static void handle_low_memory(struct fw_card *card, struct fw_request *request,
-		int tcode, int destination, int source, int generation,
-		unsigned long long offset, void *payload, size_t length,
-		void *callback_data)
+							  int tcode, int destination, int source, int generation,
+							  unsigned long long offset, void *payload, size_t length,
+							  void *callback_data)
 {
 	/*
 	 * This catches requests not handled by the physical DMA unit,
@@ -1216,7 +1383,8 @@ static void handle_low_memory(struct fw_card *card, struct fw_request *request,
 	fw_send_response(card, request, RCODE_TYPE_ERROR);
 }
 
-static struct fw_address_handler low_memory = {
+static struct fw_address_handler low_memory =
+{
 	.length			= FW_MAX_PHYSICAL_RANGE,
 	.address_callback	= handle_low_memory,
 };
@@ -1225,7 +1393,8 @@ MODULE_AUTHOR("Kristian Hoegsberg <krh@bitplanet.net>");
 MODULE_DESCRIPTION("Core IEEE1394 transaction logic");
 MODULE_LICENSE("GPL");
 
-static const u32 vendor_textual_descriptor[] = {
+static const u32 vendor_textual_descriptor[] =
+{
 	/* textual descriptor leaf () */
 	0x00060000,
 	0x00000000,
@@ -1236,7 +1405,8 @@ static const u32 vendor_textual_descriptor[] = {
 	0x72650000,		/* r e     */
 };
 
-static const u32 model_textual_descriptor[] = {
+static const u32 model_textual_descriptor[] =
+{
 	/* model descriptor leaf () */
 	0x00030000,
 	0x00000000,
@@ -1244,14 +1414,16 @@ static const u32 model_textual_descriptor[] = {
 	0x4a756a75,		/* J u j u */
 };
 
-static struct fw_descriptor vendor_id_descriptor = {
+static struct fw_descriptor vendor_id_descriptor =
+{
 	.length = ARRAY_SIZE(vendor_textual_descriptor),
 	.immediate = 0x03001f11,
 	.key = 0x81000000,
 	.data = vendor_textual_descriptor,
 };
 
-static struct fw_descriptor model_id_descriptor = {
+static struct fw_descriptor model_id_descriptor =
+{
 	.length = ARRAY_SIZE(model_textual_descriptor),
 	.immediate = 0x17023901,
 	.key = 0x81000000,
@@ -1263,17 +1435,24 @@ static int __init fw_core_init(void)
 	int ret;
 
 	fw_workqueue = alloc_workqueue("firewire", WQ_MEM_RECLAIM, 0);
+
 	if (!fw_workqueue)
+	{
 		return -ENOMEM;
+	}
 
 	ret = bus_register(&fw_bus_type);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		destroy_workqueue(fw_workqueue);
 		return ret;
 	}
 
 	fw_cdev_major = register_chrdev(0, "firewire", &fw_device_ops);
-	if (fw_cdev_major < 0) {
+
+	if (fw_cdev_major < 0)
+	{
 		bus_unregister(&fw_bus_type);
 		destroy_workqueue(fw_workqueue);
 		return fw_cdev_major;

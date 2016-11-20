@@ -45,7 +45,7 @@ MODULE_FIRMWARE(XHCI_RCAR_FIRMWARE_NAME_V2);
 #define RCAR_USB3_INT_PME_ENA	0x00000002
 #define RCAR_USB3_INT_HSE_ENA	0x00000004
 #define RCAR_USB3_INT_ENA_VAL	(RCAR_USB3_INT_XHC_ENA | \
-				RCAR_USB3_INT_PME_ENA | RCAR_USB3_INT_HSE_ENA)
+								 RCAR_USB3_INT_PME_ENA | RCAR_USB3_INT_HSE_ENA)
 
 /* FW Download Control & Status */
 #define RCAR_USB3_DL_CTRL_ENABLE	0x00000001
@@ -82,9 +82,9 @@ static int xhci_rcar_is_gen2(struct device *dev)
 	struct device_node *node = dev->of_node;
 
 	return of_device_is_compatible(node, "renesas,xhci-r8a7790") ||
-		of_device_is_compatible(node, "renesas,xhci-r8a7791") ||
-		of_device_is_compatible(node, "renesas,xhci-r8a7793") ||
-		of_device_is_compatible(node, "renensas,rcar-gen2-xhci");
+		   of_device_is_compatible(node, "renesas,xhci-r8a7791") ||
+		   of_device_is_compatible(node, "renesas,xhci-r8a7793") ||
+		   of_device_is_compatible(node, "renensas,rcar-gen2-xhci");
 }
 
 static int xhci_rcar_is_gen3(struct device *dev)
@@ -92,20 +92,24 @@ static int xhci_rcar_is_gen3(struct device *dev)
 	struct device_node *node = dev->of_node;
 
 	return of_device_is_compatible(node, "renesas,xhci-r8a7795") ||
-		of_device_is_compatible(node, "renesas,rcar-gen3-xhci");
+		   of_device_is_compatible(node, "renesas,rcar-gen3-xhci");
 }
 
 void xhci_rcar_start(struct usb_hcd *hcd)
 {
 	u32 temp;
 
-	if (hcd->regs != NULL) {
+	if (hcd->regs != NULL)
+	{
 		/* Interrupt Enable */
 		temp = readl(hcd->regs + RCAR_USB3_INT_ENA);
 		temp |= RCAR_USB3_INT_ENA_VAL;
 		writel(temp, hcd->regs + RCAR_USB3_INT_ENA);
+
 		if (xhci_rcar_is_gen2(hcd->self.controller))
+		{
 			xhci_rcar_start_gen2(hcd);
+		}
 	}
 }
 
@@ -121,32 +125,47 @@ static int xhci_rcar_download_firmware(struct usb_hcd *hcd)
 
 	/* request R-Car USB3.0 firmware */
 	retval = request_firmware(&fw, priv->firmware_name, dev);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	/* download R-Car USB3.0 firmware */
 	temp = readl(regs + RCAR_USB3_DL_CTRL);
 	temp |= RCAR_USB3_DL_CTRL_ENABLE;
 	writel(temp, regs + RCAR_USB3_DL_CTRL);
 
-	for (index = 0; index < fw->size; index += 4) {
+	for (index = 0; index < fw->size; index += 4)
+	{
 		/* to avoid reading beyond the end of the buffer */
-		for (data = 0, j = 3; j >= 0; j--) {
+		for (data = 0, j = 3; j >= 0; j--)
+		{
 			if ((j + index) < fw->size)
+			{
 				data |= fw->data[index + j] << (8 * j);
+			}
 		}
+
 		writel(data, regs + RCAR_USB3_FW_DATA0);
 		temp = readl(regs + RCAR_USB3_DL_CTRL);
 		temp |= RCAR_USB3_DL_CTRL_FW_SET_DATA0;
 		writel(temp, regs + RCAR_USB3_DL_CTRL);
 
-		for (time = 0; time < timeout; time++) {
+		for (time = 0; time < timeout; time++)
+		{
 			val = readl(regs + RCAR_USB3_DL_CTRL);
+
 			if ((val & RCAR_USB3_DL_CTRL_FW_SET_DATA0) == 0)
+			{
 				break;
+			}
+
 			udelay(1);
 		}
-		if (time == timeout) {
+
+		if (time == timeout)
+		{
 			retval = -ETIMEDOUT;
 			break;
 		}
@@ -156,16 +175,23 @@ static int xhci_rcar_download_firmware(struct usb_hcd *hcd)
 	temp &= ~RCAR_USB3_DL_CTRL_ENABLE;
 	writel(temp, regs + RCAR_USB3_DL_CTRL);
 
-	for (time = 0; time < timeout; time++) {
+	for (time = 0; time < timeout; time++)
+	{
 		val = readl(regs + RCAR_USB3_DL_CTRL);
-		if (val & RCAR_USB3_DL_CTRL_FW_SUCCESS) {
+
+		if (val & RCAR_USB3_DL_CTRL_FW_SUCCESS)
+		{
 			retval = 0;
 			break;
 		}
+
 		udelay(1);
 	}
+
 	if (time == timeout)
+	{
 		retval = -ETIMEDOUT;
+	}
 
 	release_firmware(fw);
 
@@ -179,7 +205,9 @@ int xhci_rcar_init_quirk(struct usb_hcd *hcd)
 
 	/* If hcd->regs is NULL, we don't just call the following function */
 	if (!hcd->regs)
+	{
 		return 0;
+	}
 
 	/*
 	 * On R-Car Gen2 and Gen3, the AC64 bit (bit 0) of HCCPARAMS1 is set
@@ -189,8 +217,10 @@ int xhci_rcar_init_quirk(struct usb_hcd *hcd)
 	 * xhci_gen_setup().
 	 */
 	if (xhci_rcar_is_gen2(hcd->self.controller) ||
-			xhci_rcar_is_gen3(hcd->self.controller))
+		xhci_rcar_is_gen3(hcd->self.controller))
+	{
 		xhci->quirks |= XHCI_NO_64BIT_SUPPORT;
+	}
 
 	return xhci_rcar_download_firmware(hcd);
 }

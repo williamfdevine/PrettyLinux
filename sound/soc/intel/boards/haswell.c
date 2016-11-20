@@ -27,12 +27,14 @@
 #include "../../codecs/rt5640.h"
 
 /* Haswell ULT platforms have a Headphone and Mic jack */
-static const struct snd_soc_dapm_widget haswell_widgets[] = {
+static const struct snd_soc_dapm_widget haswell_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphones", NULL),
 	SND_SOC_DAPM_MIC("Mic", NULL),
 };
 
-static const struct snd_soc_dapm_route haswell_rt5640_map[] = {
+static const struct snd_soc_dapm_route haswell_rt5640_map[] =
+{
 
 	{"Headphones", NULL, "HPOR"},
 	{"Headphones", NULL, "HPOL"},
@@ -44,12 +46,12 @@ static const struct snd_soc_dapm_route haswell_rt5640_map[] = {
 };
 
 static int haswell_ssp0_fixup(struct snd_soc_pcm_runtime *rtd,
-			struct snd_pcm_hw_params *params)
+							  struct snd_pcm_hw_params *params)
 {
 	struct snd_interval *rate = hw_param_interval(params,
-			SNDRV_PCM_HW_PARAM_RATE);
+								SNDRV_PCM_HW_PARAM_RATE);
 	struct snd_interval *channels = hw_param_interval(params,
-						SNDRV_PCM_HW_PARAM_CHANNELS);
+									SNDRV_PCM_HW_PARAM_CHANNELS);
 
 	/* The ADSP will covert the FE rate to 48k, stereo */
 	rate->min = rate->max = 48000;
@@ -61,16 +63,17 @@ static int haswell_ssp0_fixup(struct snd_soc_pcm_runtime *rtd,
 }
 
 static int haswell_rt5640_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params)
+									struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	int ret;
 
 	ret = snd_soc_dai_set_sysclk(codec_dai, RT5640_SCLK_S_MCLK, 12288000,
-		SND_SOC_CLOCK_IN);
+								 SND_SOC_CLOCK_IN);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "can't set codec sysclk configuration\n");
 		return ret;
 	}
@@ -81,7 +84,8 @@ static int haswell_rt5640_hw_params(struct snd_pcm_substream *substream,
 	return ret;
 }
 
-static struct snd_soc_ops haswell_rt5640_ops = {
+static struct snd_soc_ops haswell_rt5640_ops =
+{
 	.hw_params = haswell_rt5640_hw_params,
 };
 
@@ -93,9 +97,11 @@ static int haswell_rtd_init(struct snd_soc_pcm_runtime *rtd)
 
 	/* Set ADSP SSP port settings */
 	ret = sst_hsw_device_set_config(haswell, SST_HSW_DEVICE_SSP_0,
-		SST_HSW_DEVICE_MCLK_FREQ_24_MHZ,
-		SST_HSW_DEVICE_CLOCK_MASTER, 9);
-	if (ret < 0) {
+									SST_HSW_DEVICE_MCLK_FREQ_24_MHZ,
+									SST_HSW_DEVICE_CLOCK_MASTER, 9);
+
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "failed to set device config\n");
 		return ret;
 	}
@@ -103,7 +109,8 @@ static int haswell_rtd_init(struct snd_soc_pcm_runtime *rtd)
 	return 0;
 }
 
-static struct snd_soc_dai_link haswell_rt5640_dais[] = {
+static struct snd_soc_dai_link haswell_rt5640_dais[] =
+{
 	/* Front End DAI links */
 	{
 		.name = "System",
@@ -163,7 +170,7 @@ static struct snd_soc_dai_link haswell_rt5640_dais[] = {
 		.codec_name = "i2c-INT33CA:00",
 		.codec_dai_name = "rt5640-aif1",
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_CBS_CFS,
+		SND_SOC_DAIFMT_CBS_CFS,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.be_hw_params_fixup = haswell_ssp0_fixup,
@@ -174,7 +181,8 @@ static struct snd_soc_dai_link haswell_rt5640_dais[] = {
 };
 
 /* audio machine driver for Haswell Lynxpoint DSP + RT5640 */
-static struct snd_soc_card haswell_rt5640 = {
+static struct snd_soc_card haswell_rt5640 =
+{
 	.name = "haswell-rt5640",
 	.owner = THIS_MODULE,
 	.dai_link = haswell_rt5640_dais,
@@ -193,7 +201,8 @@ static int haswell_audio_probe(struct platform_device *pdev)
 	return devm_snd_soc_register_card(&pdev->dev, &haswell_rt5640);
 }
 
-static struct platform_driver haswell_audio = {
+static struct platform_driver haswell_audio =
+{
 	.probe = haswell_audio_probe,
 	.driver = {
 		.name = "haswell-audio",

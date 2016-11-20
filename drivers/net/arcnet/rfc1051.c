@@ -38,13 +38,14 @@
 
 static __be16 type_trans(struct sk_buff *skb, struct net_device *dev);
 static void rx(struct net_device *dev, int bufnum,
-	       struct archdr *pkthdr, int length);
+			   struct archdr *pkthdr, int length);
 static int build_header(struct sk_buff *skb, struct net_device *dev,
-			unsigned short type, uint8_t daddr);
+						unsigned short type, uint8_t daddr);
 static int prepare_tx(struct net_device *dev, struct archdr *pkt, int length,
-		      int bufnum);
+					  int bufnum);
 
-static struct ArcProto rfc1051_proto = {
+static struct ArcProto rfc1051_proto =
+{
 	.suffix		= 's',
 	.mtu		= XMTU - RFC1051_HDR_SIZE,
 	.is_ip          = 1,
@@ -60,12 +61,14 @@ static int __init arcnet_rfc1051_init(void)
 	pr_info("%s\n", "RFC1051 \"simple standard\" (`s') encapsulation support loaded");
 
 	arc_proto_map[ARC_P_IP_RFC1051]
-	    = arc_proto_map[ARC_P_ARP_RFC1051]
-	    = &rfc1051_proto;
+		= arc_proto_map[ARC_P_ARP_RFC1051]
+		  = &rfc1051_proto;
 
 	/* if someone else already owns the broadcast, we won't take it */
 	if (arc_bcast_proto == arc_proto_default)
+	{
 		arc_bcast_proto = &rfc1051_proto;
+	}
 
 	return 0;
 }
@@ -94,24 +97,32 @@ static __be16 type_trans(struct sk_buff *skb, struct net_device *dev)
 	skb_reset_mac_header(skb);
 	skb_pull(skb, hdr_size);
 
-	if (pkt->hard.dest == 0) {
+	if (pkt->hard.dest == 0)
+	{
 		skb->pkt_type = PACKET_BROADCAST;
-	} else if (dev->flags & IFF_PROMISC) {
+	}
+	else if (dev->flags & IFF_PROMISC)
+	{
 		/* if we're not sending to ourselves :) */
 		if (pkt->hard.dest != dev->dev_addr[0])
+		{
 			skb->pkt_type = PACKET_OTHERHOST;
+		}
 	}
-	/* now return the protocol number */
-	switch (soft->proto) {
-	case ARC_P_IP_RFC1051:
-		return htons(ETH_P_IP);
-	case ARC_P_ARP_RFC1051:
-		return htons(ETH_P_ARP);
 
-	default:
-		dev->stats.rx_errors++;
-		dev->stats.rx_crc_errors++;
-		return 0;
+	/* now return the protocol number */
+	switch (soft->proto)
+	{
+		case ARC_P_IP_RFC1051:
+			return htons(ETH_P_IP);
+
+		case ARC_P_ARP_RFC1051:
+			return htons(ETH_P_ARP);
+
+		default:
+			dev->stats.rx_errors++;
+			dev->stats.rx_crc_errors++;
+			return 0;
 	}
 
 	return htons(ETH_P_IP);
@@ -119,7 +130,7 @@ static __be16 type_trans(struct sk_buff *skb, struct net_device *dev)
 
 /* packet receiver */
 static void rx(struct net_device *dev, int bufnum,
-	       struct archdr *pkthdr, int length)
+			   struct archdr *pkthdr, int length)
 {
 	struct arcnet_local *lp = netdev_priv(dev);
 	struct sk_buff *skb;
@@ -129,15 +140,22 @@ static void rx(struct net_device *dev, int bufnum,
 	arc_printk(D_DURING, dev, "it's a raw packet (length=%d)\n", length);
 
 	if (length >= MinTU)
+	{
 		ofs = 512 - length;
+	}
 	else
+	{
 		ofs = 256 - length;
+	}
 
 	skb = alloc_skb(length + ARC_HDR_SIZE, GFP_ATOMIC);
-	if (!skb) {
+
+	if (!skb)
+	{
 		dev->stats.rx_dropped++;
 		return;
 	}
+
 	skb_put(skb, length + ARC_HDR_SIZE);
 	skb->dev = dev;
 
@@ -145,13 +163,16 @@ static void rx(struct net_device *dev, int bufnum,
 
 	/* up to sizeof(pkt->soft) has already been copied from the card */
 	memcpy(pkt, pkthdr, sizeof(struct archdr));
+
 	if (length > sizeof(pkt->soft))
 		lp->hw.copy_from_card(dev, bufnum, ofs + sizeof(pkt->soft),
-				      pkt->soft.raw + sizeof(pkt->soft),
-				      length - sizeof(pkt->soft));
+							  pkt->soft.raw + sizeof(pkt->soft),
+							  length - sizeof(pkt->soft));
 
 	if (BUGLVL(D_SKB))
+	{
 		arcnet_dump_skb(dev, skb, "rx");
+	}
 
 	skb->protocol = type_trans(skb, dev);
 	netif_rx(skb);
@@ -159,26 +180,29 @@ static void rx(struct net_device *dev, int bufnum,
 
 /* Create the ARCnet hard/soft headers for RFC1051 */
 static int build_header(struct sk_buff *skb, struct net_device *dev,
-			unsigned short type, uint8_t daddr)
+						unsigned short type, uint8_t daddr)
 {
 	int hdr_size = ARC_HDR_SIZE + RFC1051_HDR_SIZE;
 	struct archdr *pkt = (struct archdr *)skb_push(skb, hdr_size);
 	struct arc_rfc1051 *soft = &pkt->soft.rfc1051;
 
 	/* set the protocol ID according to RFC1051 */
-	switch (type) {
-	case ETH_P_IP:
-		soft->proto = ARC_P_IP_RFC1051;
-		break;
-	case ETH_P_ARP:
-		soft->proto = ARC_P_ARP_RFC1051;
-		break;
-	default:
-		arc_printk(D_NORMAL, dev, "RFC1051: I don't understand protocol %d (%Xh)\n",
-			   type, type);
-		dev->stats.tx_errors++;
-		dev->stats.tx_aborted_errors++;
-		return 0;
+	switch (type)
+	{
+		case ETH_P_IP:
+			soft->proto = ARC_P_IP_RFC1051;
+			break;
+
+		case ETH_P_ARP:
+			soft->proto = ARC_P_ARP_RFC1051;
+			break;
+
+		default:
+			arc_printk(D_NORMAL, dev, "RFC1051: I don't understand protocol %d (%Xh)\n",
+					   type, type);
+			dev->stats.tx_errors++;
+			dev->stats.tx_aborted_errors++;
+			return 0;
 	}
 
 	/* Set the source hardware address.
@@ -191,13 +215,15 @@ static int build_header(struct sk_buff *skb, struct net_device *dev,
 
 	/* see linux/net/ethernet/eth.c to see where I got the following */
 
-	if (dev->flags & (IFF_LOOPBACK | IFF_NOARP)) {
+	if (dev->flags & (IFF_LOOPBACK | IFF_NOARP))
+	{
 		/* FIXME: fill in the last byte of the dest ipaddr here to
 		 * better comply with RFC1051 in "noarp" mode.
 		 */
 		pkt->hard.dest = 0;
 		return hdr_size;
 	}
+
 	/* otherwise, just fill it in and go! */
 	pkt->hard.dest = daddr;
 
@@ -205,31 +231,38 @@ static int build_header(struct sk_buff *skb, struct net_device *dev,
 }
 
 static int prepare_tx(struct net_device *dev, struct archdr *pkt, int length,
-		      int bufnum)
+					  int bufnum)
 {
 	struct arcnet_local *lp = netdev_priv(dev);
 	struct arc_hardware *hard = &pkt->hard;
 	int ofs;
 
 	arc_printk(D_DURING, dev, "prepare_tx: txbufs=%d/%d/%d\n",
-		   lp->next_tx, lp->cur_tx, bufnum);
+			   lp->next_tx, lp->cur_tx, bufnum);
 
 	/* hard header is not included in packet length */
 	length -= ARC_HDR_SIZE;
 
-	if (length > XMTU) {
+	if (length > XMTU)
+	{
 		/* should never happen! other people already check for this. */
 		arc_printk(D_NORMAL, dev, "Bug!  prepare_tx with size %d (> %d)\n",
-			   length, XMTU);
+				   length, XMTU);
 		length = XMTU;
 	}
-	if (length > MinTU) {
+
+	if (length > MinTU)
+	{
 		hard->offset[0] = 0;
 		hard->offset[1] = ofs = 512 - length;
-	} else if (length > MTU) {
+	}
+	else if (length > MTU)
+	{
 		hard->offset[0] = 0;
 		hard->offset[1] = ofs = 512 - length - 3;
-	} else {
+	}
+	else
+	{
 		hard->offset[0] = ofs = 256 - length;
 	}
 

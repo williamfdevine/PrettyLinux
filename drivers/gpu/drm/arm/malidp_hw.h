@@ -20,14 +20,16 @@ struct videomode;
 struct clk;
 
 /* Mali DP IP blocks */
-enum {
+enum
+{
 	MALIDP_DE_BLOCK = 0,
 	MALIDP_SE_BLOCK,
 	MALIDP_DC_BLOCK
 };
 
 /* Mali DP layer IDs */
-enum {
+enum
+{
 	DE_VIDEO1 = BIT(0),
 	DE_GRAPHICS1 = BIT(1),
 	DE_GRAPHICS2 = BIT(2), /* used only in DP500 */
@@ -35,7 +37,8 @@ enum {
 	DE_SMART = BIT(4),
 };
 
-struct malidp_input_format {
+struct malidp_input_format
+{
 	u32 format;		/* DRM fourcc */
 	u8 layer;		/* bitmask of layers supporting it */
 	u8 id;			/* used internally */
@@ -49,12 +52,14 @@ struct malidp_input_format {
  * base register offsets
  */
 
-struct malidp_irq_map {
+struct malidp_irq_map
+{
 	u32 irq_mask;		/* mask of IRQs that can be enabled in the block */
 	u32 vsync_irq;		/* IRQ bit used for signaling during VSYNC */
 };
 
-struct malidp_layer {
+struct malidp_layer
+{
 	u16 id;			/* layer ID */
 	u16 base;		/* address offset for the register bank */
 	u16 ptr;		/* address offset for the pointer register */
@@ -63,7 +68,8 @@ struct malidp_layer {
 /* regmap features */
 #define MALIDP_REGMAP_HAS_CLEARIRQ	(1 << 0)
 
-struct malidp_hw_regmap {
+struct malidp_hw_regmap
+{
 	/* address offset of the DE register bank */
 	/* is always 0x0000 */
 	/* address offset of the SE registers bank */
@@ -90,7 +96,8 @@ struct malidp_hw_regmap {
 	const u8 n_input_formats;
 };
 
-struct malidp_hw_device {
+struct malidp_hw_device
+{
 	const struct malidp_hw_regmap map;
 	void __iomem *regs;
 
@@ -153,7 +160,8 @@ struct malidp_hw_device {
 };
 
 /* Supported variants of the hardware */
-enum {
+enum
+{
 	MALIDP_500 = 0,
 	MALIDP_550,
 	MALIDP_650,
@@ -169,13 +177,13 @@ static inline u32 malidp_hw_read(struct malidp_hw_device *hwdev, u32 reg)
 }
 
 static inline void malidp_hw_write(struct malidp_hw_device *hwdev,
-				   u32 value, u32 reg)
+								   u32 value, u32 reg)
 {
 	writel(value, hwdev->regs + reg);
 }
 
 static inline void malidp_hw_setbits(struct malidp_hw_device *hwdev,
-				     u32 mask, u32 reg)
+									 u32 mask, u32 reg)
 {
 	u32 data = malidp_hw_read(hwdev, reg);
 
@@ -184,7 +192,7 @@ static inline void malidp_hw_setbits(struct malidp_hw_device *hwdev,
 }
 
 static inline void malidp_hw_clearbits(struct malidp_hw_device *hwdev,
-				       u32 mask, u32 reg)
+									   u32 mask, u32 reg)
 {
 	u32 data = malidp_hw_read(hwdev, reg);
 
@@ -193,20 +201,22 @@ static inline void malidp_hw_clearbits(struct malidp_hw_device *hwdev,
 }
 
 static inline u32 malidp_get_block_base(struct malidp_hw_device *hwdev,
-					u8 block)
+										u8 block)
 {
-	switch (block) {
-	case MALIDP_SE_BLOCK:
-		return hwdev->map.se_base;
-	case MALIDP_DC_BLOCK:
-		return hwdev->map.dc_base;
+	switch (block)
+	{
+		case MALIDP_SE_BLOCK:
+			return hwdev->map.se_base;
+
+		case MALIDP_DC_BLOCK:
+			return hwdev->map.dc_base;
 	}
 
 	return 0;
 }
 
 static inline void malidp_hw_disable_irq(struct malidp_hw_device *hwdev,
-					 u8 block, u32 irq)
+		u8 block, u32 irq)
 {
 	u32 base = malidp_get_block_base(hwdev, block);
 
@@ -214,7 +224,7 @@ static inline void malidp_hw_disable_irq(struct malidp_hw_device *hwdev,
 }
 
 static inline void malidp_hw_enable_irq(struct malidp_hw_device *hwdev,
-					u8 block, u32 irq)
+										u8 block, u32 irq)
 {
 	u32 base = malidp_get_block_base(hwdev, block);
 
@@ -227,7 +237,7 @@ int malidp_se_irq_init(struct drm_device *drm, int irq);
 void malidp_se_irq_fini(struct drm_device *drm);
 
 u8 malidp_hw_get_format_id(const struct malidp_hw_regmap *map,
-			   u8 layer_id, u32 format);
+						   u8 layer_id, u32 format);
 
 /*
  * background color components are defined as 12bits values,

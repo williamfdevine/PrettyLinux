@@ -42,24 +42,28 @@
 	((256 - sizeof (struct list_head) - 2 * sizeof (int)) /		\
 	 (sizeof (struct scatterlist)))
 
-enum {
+enum
+{
 	MLX4_ICM_PAGE_SHIFT	= 12,
 	MLX4_ICM_PAGE_SIZE	= 1 << MLX4_ICM_PAGE_SHIFT,
 };
 
-struct mlx4_icm_chunk {
+struct mlx4_icm_chunk
+{
 	struct list_head	list;
 	int			npages;
 	int			nsg;
 	struct scatterlist	mem[MLX4_ICM_CHUNK_LEN];
 };
 
-struct mlx4_icm {
+struct mlx4_icm
+{
 	struct list_head	chunk_list;
 	int			refcount;
 };
 
-struct mlx4_icm_iter {
+struct mlx4_icm_iter
+{
 	struct mlx4_icm	       *icm;
 	struct mlx4_icm_chunk  *chunk;
 	int			page_idx;
@@ -68,29 +72,29 @@ struct mlx4_icm_iter {
 struct mlx4_dev;
 
 struct mlx4_icm *mlx4_alloc_icm(struct mlx4_dev *dev, int npages,
-				gfp_t gfp_mask, int coherent);
+								gfp_t gfp_mask, int coherent);
 void mlx4_free_icm(struct mlx4_dev *dev, struct mlx4_icm *icm, int coherent);
 
 int mlx4_table_get(struct mlx4_dev *dev, struct mlx4_icm_table *table, u32 obj,
-		   gfp_t gfp);
+				   gfp_t gfp);
 void mlx4_table_put(struct mlx4_dev *dev, struct mlx4_icm_table *table, u32 obj);
 int mlx4_table_get_range(struct mlx4_dev *dev, struct mlx4_icm_table *table,
-			 u32 start, u32 end);
+						 u32 start, u32 end);
 void mlx4_table_put_range(struct mlx4_dev *dev, struct mlx4_icm_table *table,
-			  u32 start, u32 end);
+						  u32 start, u32 end);
 int mlx4_init_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table,
-			u64 virt, int obj_size,	u32 nobj, int reserved,
-			int use_lowmem, int use_coherent);
+						u64 virt, int obj_size,	u32 nobj, int reserved,
+						int use_lowmem, int use_coherent);
 void mlx4_cleanup_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table);
 void *mlx4_table_find(struct mlx4_icm_table *table, u32 obj, dma_addr_t *dma_handle);
 
 static inline void mlx4_icm_first(struct mlx4_icm *icm,
-				  struct mlx4_icm_iter *iter)
+								  struct mlx4_icm_iter *iter)
 {
 	iter->icm      = icm;
 	iter->chunk    = list_empty(&icm->chunk_list) ?
-		NULL : list_entry(icm->chunk_list.next,
-				  struct mlx4_icm_chunk, list);
+					 NULL : list_entry(icm->chunk_list.next,
+									   struct mlx4_icm_chunk, list);
 	iter->page_idx = 0;
 }
 
@@ -101,14 +105,16 @@ static inline int mlx4_icm_last(struct mlx4_icm_iter *iter)
 
 static inline void mlx4_icm_next(struct mlx4_icm_iter *iter)
 {
-	if (++iter->page_idx >= iter->chunk->nsg) {
-		if (iter->chunk->list.next == &iter->icm->chunk_list) {
+	if (++iter->page_idx >= iter->chunk->nsg)
+	{
+		if (iter->chunk->list.next == &iter->icm->chunk_list)
+		{
 			iter->chunk = NULL;
 			return;
 		}
 
 		iter->chunk = list_entry(iter->chunk->list.next,
-					 struct mlx4_icm_chunk, list);
+								 struct mlx4_icm_chunk, list);
 		iter->page_idx = 0;
 	}
 }

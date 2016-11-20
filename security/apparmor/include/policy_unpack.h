@@ -17,7 +17,8 @@
 
 #include <linux/list.h>
 
-struct aa_load_ent {
+struct aa_load_ent
+{
 	struct list_head list;
 	struct aa_profile *new;
 	struct aa_profile *old;

@@ -49,39 +49,47 @@
 #define PCI6208_DIO_DI_SHIFT		(4)
 
 static int pci6208_ao_eoc(struct comedi_device *dev,
-			  struct comedi_subdevice *s,
-			  struct comedi_insn *insn,
-			  unsigned long context)
+						  struct comedi_subdevice *s,
+						  struct comedi_insn *insn,
+						  unsigned long context)
 {
 	unsigned int status;
 
 	status = inw(dev->iobase + PCI6208_AO_STATUS);
+
 	if ((status & PCI6208_AO_STATUS_DATA_SEND) == 0)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int pci6208_ao_insn_write(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int val = s->readback[chan];
 	int ret;
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		val = data[i];
 
 		/* D/A transfer rate is 2.2us */
 		ret = comedi_timeout(dev, s, insn, pci6208_ao_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		/* the hardware expects two's complement values */
 		outw(comedi_offset_munge(s, val),
-		     dev->iobase + PCI6208_AO_CONTROL(chan));
+			 dev->iobase + PCI6208_AO_CONTROL(chan));
 
 		s->readback[chan] = val;
 	}
@@ -90,9 +98,9 @@ static int pci6208_ao_insn_write(struct comedi_device *dev,
 }
 
 static int pci6208_di_insn_bits(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	unsigned int val;
 
@@ -105,12 +113,14 @@ static int pci6208_di_insn_bits(struct comedi_device *dev,
 }
 
 static int pci6208_do_insn_bits(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		outw(s->state, dev->iobase + PCI6208_DIO);
+	}
 
 	data[1] = s->state;
 
@@ -118,7 +128,7 @@ static int pci6208_do_insn_bits(struct comedi_device *dev,
 }
 
 static int pci6208_auto_attach(struct comedi_device *dev,
-			       unsigned long context_unused)
+							   unsigned long context_unused)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	struct comedi_subdevice *s;
@@ -126,13 +136,20 @@ static int pci6208_auto_attach(struct comedi_device *dev,
 	int ret;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = pci_resource_start(pcidev, 2);
 
 	ret = comedi_alloc_subdevices(dev, 3);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[0];
 	/* analog output subdevice */
@@ -144,8 +161,11 @@ static int pci6208_auto_attach(struct comedi_device *dev,
 	s->insn_write	= pci6208_ao_insn_write;
 
 	ret = comedi_alloc_subdev_readback(s);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[1];
 	/* digital input subdevice */
@@ -176,7 +196,8 @@ static int pci6208_auto_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver adl_pci6208_driver = {
+static struct comedi_driver adl_pci6208_driver =
+{
 	.driver_name	= "adl_pci6208",
 	.module		= THIS_MODULE,
 	.auto_attach	= pci6208_auto_attach,
@@ -184,21 +205,25 @@ static struct comedi_driver adl_pci6208_driver = {
 };
 
 static int adl_pci6208_pci_probe(struct pci_dev *dev,
-				 const struct pci_device_id *id)
+								 const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &adl_pci6208_driver,
-				      id->driver_data);
+								  id->driver_data);
 }
 
-static const struct pci_device_id adl_pci6208_pci_table[] = {
+static const struct pci_device_id adl_pci6208_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_ADLINK, 0x6208) },
-	{ PCI_DEVICE_SUB(PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
-			 0x9999, 0x6208) },
+	{
+		PCI_DEVICE_SUB(PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
+		0x9999, 0x6208)
+	},
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, adl_pci6208_pci_table);
 
-static struct pci_driver adl_pci6208_pci_driver = {
+static struct pci_driver adl_pci6208_pci_driver =
+{
 	.name		= "adl_pci6208",
 	.id_table	= adl_pci6208_pci_table,
 	.probe		= adl_pci6208_pci_probe,

@@ -17,14 +17,16 @@
 #ifndef _VPBE_TYPES_H
 #define _VPBE_TYPES_H
 
-enum vpbe_version {
+enum vpbe_version
+{
 	VPBE_VERSION_1 = 1,
 	VPBE_VERSION_2,
 	VPBE_VERSION_3,
 };
 
 /* vpbe_timing_type - Timing types used in vpbe device */
-enum vpbe_enc_timings_type {
+enum vpbe_enc_timings_type
+{
 	VPBE_ENC_STD = 0x1,
 	VPBE_ENC_DV_TIMINGS = 0x4,
 	/* Used when set timings through FB device interface */
@@ -64,7 +66,8 @@ enum vpbe_enc_timings_type {
  *     b1       - vsync polarity, 0 - negative, 1 - positive
  *     b2       - field id polarity, 0 - negative, 1  - positive
  */
-struct vpbe_enc_mode_info {
+struct vpbe_enc_mode_info
+{
 	unsigned char *name;
 	enum vpbe_enc_timings_type timings_type;
 	v4l2_std_id std_id;

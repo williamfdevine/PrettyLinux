@@ -26,15 +26,18 @@ unsigned long qnx4_count_free_blocks(struct super_block *sb)
 	int size = le32_to_cpu(qnx4_sb(sb)->BitMap->di_size);
 	struct buffer_head *bh;
 
-	while (total < size) {
+	while (total < size)
+	{
 		int bytes = min(size - total, QNX4_BLOCK_SIZE);
 
-		if ((bh = sb_bread(sb, start + offset)) == NULL) {
+		if ((bh = sb_bread(sb, start + offset)) == NULL)
+		{
 			printk(KERN_ERR "qnx4: I/O error in counting free blocks\n");
 			break;
 		}
+
 		total_free += bytes * BITS_PER_BYTE -
-				memweight(bh->b_data, bytes);
+					  memweight(bh->b_data, bytes);
 		brelse(bh);
 		total += bytes;
 		offset++;

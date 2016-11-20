@@ -61,7 +61,7 @@ bool cxl_slot_is_supported(struct pci_dev *dev, int flags);
  * if it is not found.
  */
 #ifdef CONFIG_CXL_BIMODAL
-int cxl_check_and_switch_mode(struct pci_dev *dev, int mode, int vsec);
+	int cxl_check_and_switch_mode(struct pci_dev *dev, int mode, int vsec);
 #endif
 
 /* Get the AFU associated with a pci_dev */
@@ -148,7 +148,7 @@ void cxl_free_afu_irqs(struct cxl_context *cxl);
  * is private data is that will be provided to the interrupt handler.
  */
 int cxl_map_afu_irq(struct cxl_context *cxl, int num,
-		    irq_handler_t handler, void *cookie, char *name);
+					irq_handler_t handler, void *cookie, char *name);
 /* unmap mapped IRQ handlers */
 void cxl_unmap_afu_irq(struct cxl_context *cxl, int num, void *cookie);
 
@@ -157,7 +157,7 @@ void cxl_unmap_afu_irq(struct cxl_context *cxl, int num, void *cookie);
  * task. task == NULL will make it a kernel context.
  */
 int cxl_start_context(struct cxl_context *ctx, u64 wed,
-		      struct task_struct *task);
+					  struct task_struct *task);
 /*
  * Stop a context and remove it from the PSL
  */
@@ -251,7 +251,7 @@ int cxl_next_msi_hwirq(struct pci_dev *pdev, struct cxl_context **ctx, int *afu_
  * cxl driver with the default ops to mimic the standard API.
  */
 struct file *cxl_get_fd(struct cxl_context *ctx, struct file_operations *fops,
-			int *fd);
+						int *fd);
 /* Get the context associated with this file */
 struct cxl_context *cxl_fops_get_context(struct file *file);
 /*
@@ -259,7 +259,7 @@ struct cxl_context *cxl_fops_get_context(struct file *file);
  * standard cxl user API.
  */
 int cxl_start_work(struct cxl_context *ctx,
-		   struct cxl_ioctl_start_work *work);
+				   struct cxl_ioctl_start_work *work);
 /*
  * Export all the existing fops so drivers can use them
  */
@@ -269,7 +269,7 @@ long cxl_fd_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 int cxl_fd_mmap(struct file *file, struct vm_area_struct *vm);
 unsigned int cxl_fd_poll(struct file *file, struct poll_table_struct *poll);
 ssize_t cxl_fd_read(struct file *file, char __user *buf, size_t count,
-			   loff_t *off);
+					loff_t *off);
 
 /*
  * For EEH, a driver may want to assert a PERST will reload the same image
@@ -279,7 +279,7 @@ ssize_t cxl_fd_read(struct file *file, char __user *buf, size_t count,
  * should set this property with care!
  */
 void cxl_perst_reloads_same_image(struct cxl_afu *afu,
-				  bool perst_reloads_same_image);
+								  bool perst_reloads_same_image);
 
 /*
  * Read the VPD for the card where the AFU resides
@@ -315,12 +315,13 @@ ssize_t cxl_read_adapter_vpd(struct pci_dev *dev, void *buf, size_t count);
  *   -EINVAL  Event data pointer is NULL, or event size is greater than
  *            CXL_READ_MIN_SIZE.
  */
-struct cxl_afu_driver_ops {
+struct cxl_afu_driver_ops
+{
 	struct cxl_event_afu_driver_reserved *(*fetch_event) (
-						struct cxl_context *ctx);
+		struct cxl_context *ctx);
 	void (*event_delivered) (struct cxl_context *ctx,
-				 struct cxl_event_afu_driver_reserved *event,
-				 int rc);
+							 struct cxl_event_afu_driver_reserved *event,
+							 int rc);
 };
 
 /*
@@ -328,10 +329,10 @@ struct cxl_afu_driver_ops {
  * Reset the current count of AFU driver events.
  */
 void cxl_set_driver_ops(struct cxl_context *ctx,
-			struct cxl_afu_driver_ops *ops);
+						struct cxl_afu_driver_ops *ops);
 
 /* Notify cxl driver that new events are ready to be delivered for context */
 void cxl_context_events_pending(struct cxl_context *ctx,
-				unsigned int new_events);
+								unsigned int new_events);
 
 #endif /* _MISC_CXL_H */

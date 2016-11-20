@@ -52,8 +52,12 @@ parport_atari_read_control(struct parport *p)
 
 	local_irq_save(flags);
 	sound_ym.rd_data_reg_sel = 14;
+
 	if (!(sound_ym.rd_data_reg_sel & (1 << 5)))
+	{
 		control = PARPORT_CONTROL_STROBE;
+	}
+
 	local_irq_restore(flags);
 	return control;
 }
@@ -65,16 +69,22 @@ parport_atari_write_control(struct parport *p, unsigned char control)
 
 	local_irq_save(flags);
 	sound_ym.rd_data_reg_sel = 14;
+
 	if (control & PARPORT_CONTROL_STROBE)
+	{
 		sound_ym.wd_data = sound_ym.rd_data_reg_sel & ~(1 << 5);
+	}
 	else
+	{
 		sound_ym.wd_data = sound_ym.rd_data_reg_sel | (1 << 5);
+	}
+
 	local_irq_restore(flags);
 }
 
 static unsigned char
 parport_atari_frob_control(struct parport *p, unsigned char mask,
-			   unsigned char val)
+						   unsigned char val)
 {
 	unsigned char old = parport_atari_read_control(p);
 	parport_atari_write_control(p, (old & ~mask) ^ val);
@@ -85,7 +95,7 @@ static unsigned char
 parport_atari_read_status(struct parport *p)
 {
 	return ((st_mfp.par_dt_reg & 1 ? 0 : PARPORT_STATUS_BUSY) |
-		PARPORT_STATUS_SELECT | PARPORT_STATUS_ERROR);
+			PARPORT_STATUS_SELECT | PARPORT_STATUS_ERROR);
 }
 
 static void
@@ -132,7 +142,8 @@ parport_atari_data_reverse(struct parport *p)
 {
 }
 
-static struct parport_operations parport_atari_ops = {
+static struct parport_operations parport_atari_ops =
+{
 	.write_data	= parport_atari_write_data,
 	.read_data	= parport_atari_read_data,
 
@@ -174,7 +185,8 @@ static int __init parport_atari_init(void)
 	struct parport *p;
 	unsigned long flags;
 
-	if (MACH_IS_ATARI) {
+	if (MACH_IS_ATARI)
+	{
 		local_irq_save(flags);
 		/* Soundchip port A/B as output. */
 		sound_ym.rd_data_reg_sel = 7;
@@ -188,12 +200,17 @@ static int __init parport_atari_init(void)
 		/* MFP port I0 interrupt on high->low edge. */
 		st_mfp.active_edge &= ~1;
 		p = parport_register_port((unsigned long)&sound_ym.wd_data,
-					  IRQ_MFP_BUSY, PARPORT_DMA_NONE,
-					  &parport_atari_ops);
+								  IRQ_MFP_BUSY, PARPORT_DMA_NONE,
+								  &parport_atari_ops);
+
 		if (!p)
+		{
 			return -ENODEV;
+		}
+
 		if (request_irq(IRQ_MFP_BUSY, parport_irq_handler, 0, p->name,
-				p)) {
+						p))
+		{
 			parport_put_port (p);
 			return -ENODEV;
 		}
@@ -204,14 +221,19 @@ static int __init parport_atari_init(void)
 
 		return 0;
 	}
+
 	return -ENODEV;
 }
 
 static void __exit parport_atari_exit(void)
 {
 	parport_remove_port(this_port);
+
 	if (this_port->irq != PARPORT_IRQ_NONE)
+	{
 		free_irq(IRQ_MFP_BUSY, this_port);
+	}
+
 	parport_put_port(this_port);
 }
 

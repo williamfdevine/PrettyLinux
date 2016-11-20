@@ -24,7 +24,7 @@
 #define __LINUX_MEDIA_H
 
 #ifndef __KERNEL__
-#include <stdint.h>
+	#include <stdint.h>
 #endif
 #include <linux/ioctl.h>
 #include <linux/types.h>
@@ -32,7 +32,8 @@
 
 #define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 0)
 
-struct media_device_info {
+struct media_device_info
+{
 	char driver[16];
 	char model[32];
 	char serial[40];
@@ -110,13 +111,13 @@ struct media_device_info {
 /* It is a responsibility of the entity drivers to add connectors and links */
 #ifdef __KERNEL__
 	/*
-	 * For now, it should not be used in userspace, as some
-	 * definitions may change
-	 */
+	* For now, it should not be used in userspace, as some
+	* definitions may change
+	*/
 
-#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
-#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
-#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
+	#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
+	#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
+	#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
 
 #endif
 
@@ -165,7 +166,7 @@ struct media_device_info {
 
 /* End of the old subdev reserved numberspace */
 #define MEDIA_ENT_T_DEVNODE_UNKNOWN	(MEDIA_ENT_T_DEVNODE | \
-					 MEDIA_ENT_SUBTYPE_MASK)
+									 MEDIA_ENT_SUBTYPE_MASK)
 
 #define MEDIA_ENT_T_DEVNODE		MEDIA_ENT_F_OLD_BASE
 #define MEDIA_ENT_T_DEVNODE_V4L		MEDIA_ENT_F_IO_V4L
@@ -187,7 +188,8 @@ struct media_device_info {
 #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
 #define MEDIA_ENT_FL_CONNECTOR		(1 << 1)
 
-struct media_entity_desc {
+struct media_entity_desc
+{
 	__u32 id;
 	char name[32];
 	__u32 type;
@@ -199,9 +201,11 @@ struct media_entity_desc {
 
 	__u32 reserved[4];
 
-	union {
+	union
+	{
 		/* Node specifications */
-		struct {
+		struct
+		{
 			__u32 major;
 			__u32 minor;
 		} dev;
@@ -220,7 +224,8 @@ struct media_entity_desc {
 		 *
 		 * So for now mark this as a to do.
 		 */
-		struct {
+		struct
+		{
 			__u32 card;
 			__u32 device;
 			__u32 subdevice;
@@ -236,11 +241,13 @@ struct media_entity_desc {
 		 * be just major/minor inside the struct, as this is enough
 		 * to represent any devnode, no matter what type.
 		 */
-		struct {
+		struct
+		{
 			__u32 major;
 			__u32 minor;
 		} v4l;
-		struct {
+		struct
+		{
 			__u32 major;
 			__u32 minor;
 		} fb;
@@ -257,7 +264,8 @@ struct media_entity_desc {
 #define MEDIA_PAD_FL_SOURCE		(1 << 1)
 #define MEDIA_PAD_FL_MUST_CONNECT	(1 << 2)
 
-struct media_pad_desc {
+struct media_pad_desc
+{
 	__u32 entity;		/* entity ID */
 	__u16 index;		/* pad index */
 	__u32 flags;		/* pad flags */
@@ -272,14 +280,16 @@ struct media_pad_desc {
 #  define MEDIA_LNK_FL_DATA_LINK	(0 << 28)
 #  define MEDIA_LNK_FL_INTERFACE_LINK	(1 << 28)
 
-struct media_link_desc {
+struct media_link_desc
+{
 	struct media_pad_desc source;
 	struct media_pad_desc sink;
 	__u32 flags;
 	__u32 reserved[2];
 };
 
-struct media_links_enum {
+struct media_links_enum
+{
 	__u32 entity;
 	/* Should have enough room for pads elements */
 	struct media_pad_desc __user *pads;
@@ -338,7 +348,8 @@ struct media_links_enum {
  */
 
 
-struct media_v2_entity {
+struct media_v2_entity
+{
 	__u32 id;
 	char name[64];		/* FIXME: move to a property? (RFC says so) */
 	__u32 function;		/* Main function of the entity */
@@ -346,31 +357,36 @@ struct media_v2_entity {
 } __attribute__ ((packed));
 
 /* Should match the specific fields at media_intf_devnode */
-struct media_v2_intf_devnode {
+struct media_v2_intf_devnode
+{
 	__u32 major;
 	__u32 minor;
 } __attribute__ ((packed));
 
-struct media_v2_interface {
+struct media_v2_interface
+{
 	__u32 id;
 	__u32 intf_type;
 	__u32 flags;
 	__u32 reserved[9];
 
-	union {
+	union
+	{
 		struct media_v2_intf_devnode devnode;
 		__u32 raw[16];
 	};
 } __attribute__ ((packed));
 
-struct media_v2_pad {
+struct media_v2_pad
+{
 	__u32 id;
 	__u32 entity_id;
 	__u32 flags;
 	__u32 reserved[5];
 } __attribute__ ((packed));
 
-struct media_v2_link {
+struct media_v2_link
+{
 	__u32 id;
 	__u32 source_id;
 	__u32 sink_id;
@@ -378,7 +394,8 @@ struct media_v2_link {
 	__u32 reserved[6];
 } __attribute__ ((packed));
 
-struct media_v2_topology {
+struct media_v2_topology
+{
 	__u64 topology_version;
 
 	__u32 num_entities;

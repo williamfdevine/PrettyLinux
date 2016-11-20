@@ -59,7 +59,7 @@ module_param(fastreg_support, int, 0644);
 MODULE_PARM_DESC(fastreg_support, "Advertise fastreg support (default=1)");
 
 static struct ib_ah *c4iw_ah_create(struct ib_pd *pd,
-				    struct ib_ah_attr *ah_attr)
+									struct ib_ah_attr *ah_attr)
 {
 	return ERR_PTR(-ENOSYS);
 }
@@ -80,13 +80,13 @@ static int c4iw_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
 }
 
 static int c4iw_process_mad(struct ib_device *ibdev, int mad_flags,
-			    u8 port_num, const struct ib_wc *in_wc,
-			    const struct ib_grh *in_grh,
-			    const struct ib_mad_hdr *in_mad,
-			    size_t in_mad_size,
-			    struct ib_mad_hdr *out_mad,
-			    size_t *out_mad_size,
-			    u16 *out_mad_pkey_index)
+							u8 port_num, const struct ib_wc *in_wc,
+							const struct ib_grh *in_grh,
+							const struct ib_mad_hdr *in_mad,
+							size_t in_mad_size,
+							struct ib_mad_hdr *out_mad,
+							size_t *out_mad_size,
+							u16 *out_mad_pkey_index)
 {
 	return -ENOSYS;
 }
@@ -99,14 +99,14 @@ static int c4iw_dealloc_ucontext(struct ib_ucontext *context)
 
 	PDBG("%s context %p\n", __func__, context);
 	list_for_each_entry_safe(mm, tmp, &ucontext->mmaps, entry)
-		kfree(mm);
+	kfree(mm);
 	c4iw_release_dev_ucontext(&rhp->rdev, &ucontext->uctx);
 	kfree(ucontext);
 	return 0;
 }
 
 static struct ib_ucontext *c4iw_alloc_ucontext(struct ib_device *ibdev,
-					       struct ib_udata *udata)
+		struct ib_udata *udata)
 {
 	struct c4iw_ucontext *context;
 	struct c4iw_dev *rhp = to_c4iw_dev(ibdev);
@@ -117,7 +117,9 @@ static struct ib_ucontext *c4iw_alloc_ucontext(struct ib_device *ibdev,
 
 	PDBG("%s ibdev %p\n", __func__, ibdev);
 	context = kzalloc(sizeof(*context), GFP_KERNEL);
-	if (!context) {
+
+	if (!context)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
@@ -126,13 +128,21 @@ static struct ib_ucontext *c4iw_alloc_ucontext(struct ib_device *ibdev,
 	INIT_LIST_HEAD(&context->mmaps);
 	spin_lock_init(&context->mmap_lock);
 
-	if (udata->outlen < sizeof(uresp) - sizeof(uresp.reserved)) {
+	if (udata->outlen < sizeof(uresp) - sizeof(uresp.reserved))
+	{
 		if (!warned++)
+		{
 			pr_err(MOD "Warning - downlevel libcxgb4 (non-fatal), device status page disabled.");
+		}
+
 		rhp->rdev.flags |= T4_STATUS_PAGE_DISABLED;
-	} else {
+	}
+	else
+	{
 		mm = kmalloc(sizeof(*mm), GFP_KERNEL);
-		if (!mm) {
+
+		if (!mm)
+		{
 			ret = -ENOMEM;
 			goto err_free;
 		}
@@ -145,15 +155,19 @@ static struct ib_ucontext *c4iw_alloc_ucontext(struct ib_device *ibdev,
 		spin_unlock(&context->mmap_lock);
 
 		ret = ib_copy_to_udata(udata, &uresp,
-				       sizeof(uresp) - sizeof(uresp.reserved));
+							   sizeof(uresp) - sizeof(uresp.reserved));
+
 		if (ret)
+		{
 			goto err_mm;
+		}
 
 		mm->key = uresp.status_page_key;
 		mm->addr = virt_to_phys(rhp->rdev.status_page);
 		mm->len = PAGE_SIZE;
 		insert_mmap(context, mm);
 	}
+
 	return &context->ibucontext;
 err_mm:
 	kfree(mm);
@@ -174,41 +188,53 @@ static int c4iw_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
 	u64 addr;
 
 	PDBG("%s pgoff 0x%lx key 0x%x len %d\n", __func__, vma->vm_pgoff,
-	     key, len);
+		 key, len);
 
-	if (vma->vm_start & (PAGE_SIZE-1))
+	if (vma->vm_start & (PAGE_SIZE - 1))
+	{
 		return -EINVAL;
+	}
 
 	rdev = &(to_c4iw_dev(context->device)->rdev);
 	ucontext = to_c4iw_ucontext(context);
 
 	mm = remove_mmap(ucontext, key, len);
+
 	if (!mm)
+	{
 		return -EINVAL;
+	}
+
 	addr = mm->addr;
 	kfree(mm);
 
 	if ((addr >= pci_resource_start(rdev->lldi.pdev, 0)) &&
-	    (addr < (pci_resource_start(rdev->lldi.pdev, 0) +
-		    pci_resource_len(rdev->lldi.pdev, 0)))) {
+		(addr < (pci_resource_start(rdev->lldi.pdev, 0) +
+				 pci_resource_len(rdev->lldi.pdev, 0))))
+	{
 
 		/*
 		 * MA_SYNC register...
 		 */
 		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 		ret = io_remap_pfn_range(vma, vma->vm_start,
-					 addr >> PAGE_SHIFT,
-					 len, vma->vm_page_prot);
-	} else if ((addr >= pci_resource_start(rdev->lldi.pdev, 2)) &&
-		   (addr < (pci_resource_start(rdev->lldi.pdev, 2) +
-		    pci_resource_len(rdev->lldi.pdev, 2)))) {
+								 addr >> PAGE_SHIFT,
+								 len, vma->vm_page_prot);
+	}
+	else if ((addr >= pci_resource_start(rdev->lldi.pdev, 2)) &&
+			 (addr < (pci_resource_start(rdev->lldi.pdev, 2) +
+					  pci_resource_len(rdev->lldi.pdev, 2))))
+	{
 
 		/*
 		 * Map user DB or OCQP memory...
 		 */
 		if (addr >= rdev->oc_mw_pa)
+		{
 			vma->vm_page_prot = t4_pgprot_wc(vma->vm_page_prot);
-		else {
+		}
+		else
+		{
 			if (!is_t4(rdev->lldi.adapter_type))
 				vma->vm_page_prot =
 					t4_pgprot_wc(vma->vm_page_prot);
@@ -216,17 +242,20 @@ static int c4iw_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
 				vma->vm_page_prot =
 					pgprot_noncached(vma->vm_page_prot);
 		}
+
 		ret = io_remap_pfn_range(vma, vma->vm_start,
-					 addr >> PAGE_SHIFT,
-					 len, vma->vm_page_prot);
-	} else {
+								 addr >> PAGE_SHIFT,
+								 len, vma->vm_page_prot);
+	}
+	else
+	{
 
 		/*
 		 * Map WQ or CQ contig dma memory...
 		 */
 		ret = remap_pfn_range(vma, vma->vm_start,
-				      addr >> PAGE_SHIFT,
-				      len, vma->vm_page_prot);
+							  addr >> PAGE_SHIFT,
+							  len, vma->vm_page_prot);
 	}
 
 	return ret;
@@ -249,8 +278,8 @@ static int c4iw_deallocate_pd(struct ib_pd *pd)
 }
 
 static struct ib_pd *c4iw_allocate_pd(struct ib_device *ibdev,
-				      struct ib_ucontext *context,
-				      struct ib_udata *udata)
+									  struct ib_ucontext *context,
+									  struct ib_udata *udata)
 {
 	struct c4iw_pd *php;
 	u32 pdid;
@@ -259,32 +288,47 @@ static struct ib_pd *c4iw_allocate_pd(struct ib_device *ibdev,
 	PDBG("%s ibdev %p\n", __func__, ibdev);
 	rhp = (struct c4iw_dev *) ibdev;
 	pdid =  c4iw_get_resource(&rhp->rdev.resource.pdid_table);
+
 	if (!pdid)
+	{
 		return ERR_PTR(-EINVAL);
+	}
+
 	php = kzalloc(sizeof(*php), GFP_KERNEL);
-	if (!php) {
+
+	if (!php)
+	{
 		c4iw_put_resource(&rhp->rdev.resource.pdid_table, pdid);
 		return ERR_PTR(-ENOMEM);
 	}
+
 	php->pdid = pdid;
 	php->rhp = rhp;
-	if (context) {
-		if (ib_copy_to_udata(udata, &php->pdid, sizeof(u32))) {
+
+	if (context)
+	{
+		if (ib_copy_to_udata(udata, &php->pdid, sizeof(u32)))
+		{
 			c4iw_deallocate_pd(&php->ibpd);
 			return ERR_PTR(-EFAULT);
 		}
 	}
+
 	mutex_lock(&rhp->rdev.stats.lock);
 	rhp->rdev.stats.pd.cur++;
+
 	if (rhp->rdev.stats.pd.cur > rhp->rdev.stats.pd.max)
+	{
 		rhp->rdev.stats.pd.max = rhp->rdev.stats.pd.cur;
+	}
+
 	mutex_unlock(&rhp->rdev.stats.lock);
 	PDBG("%s pdid 0x%0x ptr 0x%p\n", __func__, pdid, php);
 	return &php->ibpd;
 }
 
 static int c4iw_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
-			   u16 *pkey)
+						   u16 *pkey)
 {
 	PDBG("%s ibdev %p\n", __func__, ibdev);
 	*pkey = 0;
@@ -292,21 +336,21 @@ static int c4iw_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
 }
 
 static int c4iw_query_gid(struct ib_device *ibdev, u8 port, int index,
-			  union ib_gid *gid)
+						  union ib_gid *gid)
 {
 	struct c4iw_dev *dev;
 
 	PDBG("%s ibdev %p, port %d, index %d, gid %p\n",
-	       __func__, ibdev, port, index, gid);
+		 __func__, ibdev, port, index, gid);
 	dev = to_c4iw_dev(ibdev);
 	BUG_ON(port == 0);
 	memset(&(gid->raw[0]), 0, sizeof(gid->raw));
-	memcpy(&(gid->raw[0]), dev->rdev.lldi.ports[port-1]->dev_addr, 6);
+	memcpy(&(gid->raw[0]), dev->rdev.lldi.ports[port - 1]->dev_addr, 6);
 	return 0;
 }
 
 static int c4iw_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
-			     struct ib_udata *uhw)
+							 struct ib_udata *uhw)
 {
 
 	struct c4iw_dev *dev;
@@ -314,10 +358,12 @@ static int c4iw_query_device(struct ib_device *ibdev, struct ib_device_attr *pro
 	PDBG("%s ibdev %p\n", __func__, ibdev);
 
 	if (uhw->inlen || uhw->outlen)
+	{
 		return -EINVAL;
+	}
 
 	dev = to_c4iw_dev(ibdev);
-	memset(props, 0, sizeof *props);
+	memset(props, 0, sizeof * props);
 	memcpy(&props->sys_image_guid, dev->rdev.lldi.ports[0]->dev_addr, 6);
 	props->hw_ver = CHELSIO_CHIP_RELEASE(dev->rdev.lldi.adapter_type);
 	props->fw_ver = dev->rdev.lldi.fw_vers;
@@ -332,7 +378,7 @@ static int c4iw_query_device(struct ib_device *ibdev, struct ib_device_attr *pro
 	props->max_sge_rd = 1;
 	props->max_res_rd_atom = dev->rdev.lldi.max_ird_adapter;
 	props->max_qp_rd_atom = min(dev->rdev.lldi.max_ordird_qp,
-				    c4iw_max_read_depth);
+								c4iw_max_read_depth);
 	props->max_qp_init_rd_atom = props->max_qp_rd_atom;
 	props->max_cq = dev->rdev.lldi.vr->qp.size;
 	props->max_cqe = dev->rdev.hw_queue.t4_max_cq_depth;
@@ -346,7 +392,7 @@ static int c4iw_query_device(struct ib_device *ibdev, struct ib_device_attr *pro
 }
 
 static int c4iw_query_port(struct ib_device *ibdev, u8 port,
-			   struct ib_port_attr *props)
+						   struct ib_port_attr *props)
 {
 	struct c4iw_dev *dev;
 	struct net_device *netdev;
@@ -355,41 +401,65 @@ static int c4iw_query_port(struct ib_device *ibdev, u8 port,
 	PDBG("%s ibdev %p\n", __func__, ibdev);
 
 	dev = to_c4iw_dev(ibdev);
-	netdev = dev->rdev.lldi.ports[port-1];
+	netdev = dev->rdev.lldi.ports[port - 1];
 
 	memset(props, 0, sizeof(struct ib_port_attr));
 	props->max_mtu = IB_MTU_4096;
+
 	if (netdev->mtu >= 4096)
+	{
 		props->active_mtu = IB_MTU_4096;
+	}
 	else if (netdev->mtu >= 2048)
+	{
 		props->active_mtu = IB_MTU_2048;
+	}
 	else if (netdev->mtu >= 1024)
+	{
 		props->active_mtu = IB_MTU_1024;
+	}
 	else if (netdev->mtu >= 512)
+	{
 		props->active_mtu = IB_MTU_512;
+	}
 	else
+	{
 		props->active_mtu = IB_MTU_256;
+	}
 
 	if (!netif_carrier_ok(netdev))
+	{
 		props->state = IB_PORT_DOWN;
-	else {
+	}
+	else
+	{
 		inetdev = in_dev_get(netdev);
-		if (inetdev) {
+
+		if (inetdev)
+		{
 			if (inetdev->ifa_list)
+			{
 				props->state = IB_PORT_ACTIVE;
+			}
 			else
+			{
 				props->state = IB_PORT_INIT;
+			}
+
 			in_dev_put(inetdev);
-		} else
+		}
+		else
+		{
 			props->state = IB_PORT_INIT;
+		}
 	}
 
 	props->port_cap_flags =
-	    IB_PORT_CM_SUP |
-	    IB_PORT_SNMP_TUNNEL_SUP |
-	    IB_PORT_REINIT_SUP |
-	    IB_PORT_DEVICE_MGMT_SUP |
-	    IB_PORT_VENDOR_CLASS_SUP | IB_PORT_BOOT_MGMT_SUP;
+		IB_PORT_CM_SUP |
+		IB_PORT_SNMP_TUNNEL_SUP |
+		IB_PORT_REINIT_SUP |
+		IB_PORT_DEVICE_MGMT_SUP |
+		IB_PORT_VENDOR_CLASS_SUP | IB_PORT_BOOT_MGMT_SUP;
 	props->gid_tbl_len = 1;
 	props->pkey_tbl_len = 1;
 	props->active_width = 2;
@@ -400,20 +470,20 @@ static int c4iw_query_port(struct ib_device *ibdev, u8 port,
 }
 
 static ssize_t show_rev(struct device *dev, struct device_attribute *attr,
-			char *buf)
+						char *buf)
 {
 	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
-						 ibdev.dev);
+								ibdev.dev);
 	PDBG("%s dev 0x%p\n", __func__, dev);
 	return sprintf(buf, "%d\n",
-		       CHELSIO_CHIP_RELEASE(c4iw_dev->rdev.lldi.adapter_type));
+				   CHELSIO_CHIP_RELEASE(c4iw_dev->rdev.lldi.adapter_type));
 }
 
 static ssize_t show_hca(struct device *dev, struct device_attribute *attr,
-			char *buf)
+						char *buf)
 {
 	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
-						 ibdev.dev);
+								ibdev.dev);
 	struct ethtool_drvinfo info;
 	struct net_device *lldev = c4iw_dev->rdev.lldi.ports[0];
 
@@ -423,16 +493,17 @@ static ssize_t show_hca(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t show_board(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+						  char *buf)
 {
 	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
-						 ibdev.dev);
+								ibdev.dev);
 	PDBG("%s dev 0x%p\n", __func__, dev);
 	return sprintf(buf, "%x.%x\n", c4iw_dev->rdev.lldi.pdev->vendor,
-		       c4iw_dev->rdev.lldi.pdev->device);
+				   c4iw_dev->rdev.lldi.pdev->device);
 }
 
-enum counters {
+enum counters
+{
 	IP4INSEGS,
 	IP4OUTSEGS,
 	IP4RETRANSSEGS,
@@ -444,7 +515,8 @@ enum counters {
 	NR_COUNTERS
 };
 
-static const char * const names[] = {
+static const char *const names[] =
+{
 	[IP4INSEGS] = "ip4InSegs",
 	[IP4OUTSEGS] = "ip4OutSegs",
 	[IP4RETRANSSEGS] = "ip4RetransSegs",
@@ -456,20 +528,22 @@ static const char * const names[] = {
 };
 
 static struct rdma_hw_stats *c4iw_alloc_stats(struct ib_device *ibdev,
-					      u8 port_num)
+		u8 port_num)
 {
 	BUILD_BUG_ON(ARRAY_SIZE(names) != NR_COUNTERS);
 
 	if (port_num != 0)
+	{
 		return NULL;
+	}
 
 	return rdma_alloc_hw_stats_struct(names, NR_COUNTERS,
-					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
+									  RDMA_HW_STATS_DEFAULT_LIFESPAN);
 }
 
 static int c4iw_get_mib(struct ib_device *ibdev,
-			struct rdma_hw_stats *stats,
-			u8 port, int index)
+						struct rdma_hw_stats *stats,
+						u8 port, int index)
 {
 	struct tp_tcp_stats v4, v6;
 	struct c4iw_dev *c4iw_dev = to_c4iw_dev(ibdev);
@@ -491,21 +565,25 @@ static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
 static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
 static DEVICE_ATTR(board_id, S_IRUGO, show_board, NULL);
 
-static struct device_attribute *c4iw_class_attributes[] = {
+static struct device_attribute *c4iw_class_attributes[] =
+{
 	&dev_attr_hw_rev,
 	&dev_attr_hca_type,
 	&dev_attr_board_id,
 };
 
 static int c4iw_port_immutable(struct ib_device *ibdev, u8 port_num,
-			       struct ib_port_immutable *immutable)
+							   struct ib_port_immutable *immutable)
 {
 	struct ib_port_attr attr;
 	int err;
 
 	err = c4iw_query_port(ibdev, port_num, &attr);
+
 	if (err)
+	{
 		return err;
+	}
 
 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
 	immutable->gid_tbl_len = attr.gid_tbl_len;
@@ -515,17 +593,17 @@ static int c4iw_port_immutable(struct ib_device *ibdev, u8 port_num,
 }
 
 static void get_dev_fw_str(struct ib_device *dev, char *str,
-			   size_t str_len)
+						   size_t str_len)
 {
 	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
-						 ibdev);
+								ibdev);
 	PDBG("%s dev 0x%p\n", __func__, dev);
 
 	snprintf(str, str_len, "%u.%u.%u.%u",
-		 FW_HDR_FW_VER_MAJOR_G(c4iw_dev->rdev.lldi.fw_vers),
-		 FW_HDR_FW_VER_MINOR_G(c4iw_dev->rdev.lldi.fw_vers),
-		 FW_HDR_FW_VER_MICRO_G(c4iw_dev->rdev.lldi.fw_vers),
-		 FW_HDR_FW_VER_BUILD_G(c4iw_dev->rdev.lldi.fw_vers));
+			 FW_HDR_FW_VER_MAJOR_G(c4iw_dev->rdev.lldi.fw_vers),
+			 FW_HDR_FW_VER_MINOR_G(c4iw_dev->rdev.lldi.fw_vers),
+			 FW_HDR_FW_VER_MICRO_G(c4iw_dev->rdev.lldi.fw_vers),
+			 FW_HDR_FW_VER_BUILD_G(c4iw_dev->rdev.lldi.fw_vers));
 }
 
 int c4iw_register_device(struct c4iw_dev *dev)
@@ -540,28 +618,32 @@ int c4iw_register_device(struct c4iw_dev *dev)
 	memcpy(&dev->ibdev.node_guid, dev->rdev.lldi.ports[0]->dev_addr, 6);
 	dev->ibdev.owner = THIS_MODULE;
 	dev->device_cap_flags = IB_DEVICE_LOCAL_DMA_LKEY | IB_DEVICE_MEM_WINDOW;
+
 	if (fastreg_support)
+	{
 		dev->device_cap_flags |= IB_DEVICE_MEM_MGT_EXTENSIONS;
+	}
+
 	dev->ibdev.local_dma_lkey = 0;
 	dev->ibdev.uverbs_cmd_mask =
-	    (1ull << IB_USER_VERBS_CMD_GET_CONTEXT) |
-	    (1ull << IB_USER_VERBS_CMD_QUERY_DEVICE) |
-	    (1ull << IB_USER_VERBS_CMD_QUERY_PORT) |
-	    (1ull << IB_USER_VERBS_CMD_ALLOC_PD) |
-	    (1ull << IB_USER_VERBS_CMD_DEALLOC_PD) |
-	    (1ull << IB_USER_VERBS_CMD_REG_MR) |
-	    (1ull << IB_USER_VERBS_CMD_DEREG_MR) |
-	    (1ull << IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL) |
-	    (1ull << IB_USER_VERBS_CMD_CREATE_CQ) |
-	    (1ull << IB_USER_VERBS_CMD_DESTROY_CQ) |
-	    (1ull << IB_USER_VERBS_CMD_REQ_NOTIFY_CQ) |
-	    (1ull << IB_USER_VERBS_CMD_CREATE_QP) |
-	    (1ull << IB_USER_VERBS_CMD_MODIFY_QP) |
-	    (1ull << IB_USER_VERBS_CMD_QUERY_QP) |
-	    (1ull << IB_USER_VERBS_CMD_POLL_CQ) |
-	    (1ull << IB_USER_VERBS_CMD_DESTROY_QP) |
-	    (1ull << IB_USER_VERBS_CMD_POST_SEND) |
-	    (1ull << IB_USER_VERBS_CMD_POST_RECV);
+		(1ull << IB_USER_VERBS_CMD_GET_CONTEXT) |
+		(1ull << IB_USER_VERBS_CMD_QUERY_DEVICE) |
+		(1ull << IB_USER_VERBS_CMD_QUERY_PORT) |
+		(1ull << IB_USER_VERBS_CMD_ALLOC_PD) |
+		(1ull << IB_USER_VERBS_CMD_DEALLOC_PD) |
+		(1ull << IB_USER_VERBS_CMD_REG_MR) |
+		(1ull << IB_USER_VERBS_CMD_DEREG_MR) |
+		(1ull << IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL) |
+		(1ull << IB_USER_VERBS_CMD_CREATE_CQ) |
+		(1ull << IB_USER_VERBS_CMD_DESTROY_CQ) |
+		(1ull << IB_USER_VERBS_CMD_REQ_NOTIFY_CQ) |
+		(1ull << IB_USER_VERBS_CMD_CREATE_QP) |
+		(1ull << IB_USER_VERBS_CMD_MODIFY_QP) |
+		(1ull << IB_USER_VERBS_CMD_QUERY_QP) |
+		(1ull << IB_USER_VERBS_CMD_POLL_CQ) |
+		(1ull << IB_USER_VERBS_CMD_DESTROY_QP) |
+		(1ull << IB_USER_VERBS_CMD_POST_SEND) |
+		(1ull << IB_USER_VERBS_CMD_POST_RECV);
 	dev->ibdev.node_type = RDMA_NODE_RNIC;
 	BUILD_BUG_ON(sizeof(C4IW_NODE_DESC) > IB_DEVICE_NODE_DESC_MAX);
 	memcpy(dev->ibdev.node_desc, C4IW_NODE_DESC, sizeof(C4IW_NODE_DESC));
@@ -609,8 +691,11 @@ int c4iw_register_device(struct c4iw_dev *dev)
 	dev->ibdev.drain_rq = c4iw_drain_rq;
 
 	dev->ibdev.iwcm = kmalloc(sizeof(struct iw_cm_verbs), GFP_KERNEL);
+
 	if (!dev->ibdev.iwcm)
+	{
 		return -ENOMEM;
+	}
 
 	dev->ibdev.iwcm->connect = c4iw_connect;
 	dev->ibdev.iwcm->accept = c4iw_accept_cr;
@@ -621,18 +706,26 @@ int c4iw_register_device(struct c4iw_dev *dev)
 	dev->ibdev.iwcm->rem_ref = c4iw_qp_rem_ref;
 	dev->ibdev.iwcm->get_qp = c4iw_get_qp;
 	memcpy(dev->ibdev.iwcm->ifname, dev->rdev.lldi.ports[0]->name,
-	       sizeof(dev->ibdev.iwcm->ifname));
+		   sizeof(dev->ibdev.iwcm->ifname));
 
 	ret = ib_register_device(&dev->ibdev, NULL);
-	if (ret)
-		goto bail1;
 
-	for (i = 0; i < ARRAY_SIZE(c4iw_class_attributes); ++i) {
-		ret = device_create_file(&dev->ibdev.dev,
-					 c4iw_class_attributes[i]);
-		if (ret)
-			goto bail2;
+	if (ret)
+	{
+		goto bail1;
 	}
+
+	for (i = 0; i < ARRAY_SIZE(c4iw_class_attributes); ++i)
+	{
+		ret = device_create_file(&dev->ibdev.dev,
+								 c4iw_class_attributes[i]);
+
+		if (ret)
+		{
+			goto bail2;
+		}
+	}
+
 	return 0;
 bail2:
 	ib_unregister_device(&dev->ibdev);
@@ -646,9 +739,11 @@ void c4iw_unregister_device(struct c4iw_dev *dev)
 	int i;
 
 	PDBG("%s c4iw_dev %p\n", __func__, dev);
+
 	for (i = 0; i < ARRAY_SIZE(c4iw_class_attributes); ++i)
 		device_remove_file(&dev->ibdev.dev,
-				   c4iw_class_attributes[i]);
+						   c4iw_class_attributes[i]);
+
 	ib_unregister_device(&dev->ibdev);
 	kfree(dev->ibdev.iwcm);
 	return;

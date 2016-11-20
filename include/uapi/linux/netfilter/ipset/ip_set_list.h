@@ -4,7 +4,8 @@
 #include <linux/netfilter/ipset/ip_set.h>
 
 /* List type specific error codes */
-enum {
+enum
+{
 	/* Set name to be added/deleted/tested does not exist. */
 	IPSET_ERR_NAME = IPSET_ERR_TYPE_SPECIFIC,
 	/* list:set type is not permitted to add */

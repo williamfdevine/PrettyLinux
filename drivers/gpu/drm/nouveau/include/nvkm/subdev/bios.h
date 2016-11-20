@@ -2,7 +2,8 @@
 #define __NVKM_BIOS_H__
 #include <core/subdev.h>
 
-struct nvkm_bios {
+struct nvkm_bios
+{
 	struct nvkm_subdev subdev;
 	u32 size;
 	u8 *data;
@@ -13,7 +14,8 @@ struct nvkm_bios {
 	u32 bmp_offset;
 	u32 bit_offset;
 
-	struct {
+	struct
+	{
 		u8 major;
 		u8 chip;
 		u8 minor;

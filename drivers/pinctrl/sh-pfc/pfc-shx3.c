@@ -13,7 +13,8 @@
 
 #include "sh_pfc.h"
 
-enum {
+enum
+{
 	PINMUX_RESERVED = 0,
 
 	PINMUX_DATA_BEGIN,
@@ -127,7 +128,8 @@ enum {
 	PINMUX_MARK_END,
 };
 
-static const u16 pinmux_data[] = {
+static const u16 pinmux_data[] =
+{
 	/* PA GPIO */
 	PINMUX_DATA(PA7_DATA, PA7_IN, PA7_OUT),
 	PINMUX_DATA(PA6_DATA, PA6_IN, PA6_OUT),
@@ -285,7 +287,8 @@ static const u16 pinmux_data[] = {
 	PINMUX_DATA(IRQOUT_MARK,	PH0_FN),
 };
 
-static const struct sh_pfc_pin pinmux_pins[] = {
+static const struct sh_pfc_pin pinmux_pins[] =
+{
 	/* PA */
 	PINMUX_GPIO(PA7),
 	PINMUX_GPIO(PA6),
@@ -367,7 +370,8 @@ static const struct sh_pfc_pin pinmux_pins[] = {
 
 #define PINMUX_FN_BASE	ARRAY_SIZE(pinmux_pins)
 
-static const struct pinmux_func pinmux_func_gpios[] = {
+static const struct pinmux_func pinmux_func_gpios[] =
+{
 	/* FN */
 	GPIO_FN(D31),
 	GPIO_FN(D30),
@@ -433,119 +437,146 @@ static const struct pinmux_func pinmux_func_gpios[] = {
 	GPIO_FN(IRQOUT),
 };
 
-static const struct pinmux_cfg_reg pinmux_config_regs[] = {
-	{ PINMUX_CFG_REG("PABCR", 0xffc70000, 32, 2) {
-		PA7_FN, PA7_OUT, PA7_IN, 0,
-		PA6_FN, PA6_OUT, PA6_IN, 0,
-		PA5_FN, PA5_OUT, PA5_IN, 0,
-		PA4_FN, PA4_OUT, PA4_IN, 0,
-		PA3_FN, PA3_OUT, PA3_IN, 0,
-		PA2_FN, PA2_OUT, PA2_IN, 0,
-		PA1_FN, PA1_OUT, PA1_IN, 0,
-		PA0_FN, PA0_OUT, PA0_IN, 0,
-		PB7_FN, PB7_OUT, PB7_IN, 0,
-		PB6_FN, PB6_OUT, PB6_IN, 0,
-		PB5_FN, PB5_OUT, PB5_IN, 0,
-		PB4_FN, PB4_OUT, PB4_IN, 0,
-		PB3_FN, PB3_OUT, PB3_IN, 0,
-		PB2_FN, PB2_OUT, PB2_IN, 0,
-		PB1_FN, PB1_OUT, PB1_IN, 0,
-		PB0_FN, PB0_OUT, PB0_IN, 0, },
+static const struct pinmux_cfg_reg pinmux_config_regs[] =
+{
+	{
+		PINMUX_CFG_REG("PABCR", 0xffc70000, 32, 2)
+		{
+			PA7_FN, PA7_OUT, PA7_IN, 0,
+			PA6_FN, PA6_OUT, PA6_IN, 0,
+			PA5_FN, PA5_OUT, PA5_IN, 0,
+			PA4_FN, PA4_OUT, PA4_IN, 0,
+			PA3_FN, PA3_OUT, PA3_IN, 0,
+			PA2_FN, PA2_OUT, PA2_IN, 0,
+			PA1_FN, PA1_OUT, PA1_IN, 0,
+			PA0_FN, PA0_OUT, PA0_IN, 0,
+			PB7_FN, PB7_OUT, PB7_IN, 0,
+			PB6_FN, PB6_OUT, PB6_IN, 0,
+			PB5_FN, PB5_OUT, PB5_IN, 0,
+			PB4_FN, PB4_OUT, PB4_IN, 0,
+			PB3_FN, PB3_OUT, PB3_IN, 0,
+			PB2_FN, PB2_OUT, PB2_IN, 0,
+			PB1_FN, PB1_OUT, PB1_IN, 0,
+			PB0_FN, PB0_OUT, PB0_IN, 0,
+		},
 	},
-	{ PINMUX_CFG_REG("PCDCR", 0xffc70004, 32, 2) {
-		PC7_FN, PC7_OUT, PC7_IN, 0,
-		PC6_FN, PC6_OUT, PC6_IN, 0,
-		PC5_FN, PC5_OUT, PC5_IN, 0,
-		PC4_FN, PC4_OUT, PC4_IN, 0,
-		PC3_FN, PC3_OUT, PC3_IN, 0,
-		PC2_FN, PC2_OUT, PC2_IN, 0,
-		PC1_FN, PC1_OUT, PC1_IN, 0,
-		PC0_FN, PC0_OUT, PC0_IN, 0,
-		PD7_FN, PD7_OUT, PD7_IN, 0,
-		PD6_FN, PD6_OUT, PD6_IN, 0,
-		PD5_FN, PD5_OUT, PD5_IN, 0,
-		PD4_FN, PD4_OUT, PD4_IN, 0,
-		PD3_FN, PD3_OUT, PD3_IN, 0,
-		PD2_FN, PD2_OUT, PD2_IN, 0,
-		PD1_FN, PD1_OUT, PD1_IN, 0,
-		PD0_FN, PD0_OUT, PD0_IN, 0, },
+	{
+		PINMUX_CFG_REG("PCDCR", 0xffc70004, 32, 2)
+		{
+			PC7_FN, PC7_OUT, PC7_IN, 0,
+			PC6_FN, PC6_OUT, PC6_IN, 0,
+			PC5_FN, PC5_OUT, PC5_IN, 0,
+			PC4_FN, PC4_OUT, PC4_IN, 0,
+			PC3_FN, PC3_OUT, PC3_IN, 0,
+			PC2_FN, PC2_OUT, PC2_IN, 0,
+			PC1_FN, PC1_OUT, PC1_IN, 0,
+			PC0_FN, PC0_OUT, PC0_IN, 0,
+			PD7_FN, PD7_OUT, PD7_IN, 0,
+			PD6_FN, PD6_OUT, PD6_IN, 0,
+			PD5_FN, PD5_OUT, PD5_IN, 0,
+			PD4_FN, PD4_OUT, PD4_IN, 0,
+			PD3_FN, PD3_OUT, PD3_IN, 0,
+			PD2_FN, PD2_OUT, PD2_IN, 0,
+			PD1_FN, PD1_OUT, PD1_IN, 0,
+			PD0_FN, PD0_OUT, PD0_IN, 0,
+		},
 	},
-	{ PINMUX_CFG_REG("PEFCR", 0xffc70008, 32, 2) {
-		PE7_FN, PE7_OUT, PE7_IN, 0,
-		PE6_FN, PE6_OUT, PE6_IN, 0,
-		PE5_FN, PE5_OUT, PE5_IN, 0,
-		PE4_FN, PE4_OUT, PE4_IN, 0,
-		PE3_FN, PE3_OUT, PE3_IN, 0,
-		PE2_FN, PE2_OUT, PE2_IN, 0,
-		PE1_FN, PE1_OUT, PE1_IN, 0,
-		PE0_FN, PE0_OUT, PE0_IN, 0,
-		PF7_FN, PF7_OUT, PF7_IN, 0,
-		PF6_FN, PF6_OUT, PF6_IN, 0,
-		PF5_FN, PF5_OUT, PF5_IN, 0,
-		PF4_FN, PF4_OUT, PF4_IN, 0,
-		PF3_FN, PF3_OUT, PF3_IN, 0,
-		PF2_FN, PF2_OUT, PF2_IN, 0,
-		PF1_FN, PF1_OUT, PF1_IN, 0,
-		PF0_FN, PF0_OUT, PF0_IN, 0, },
+	{
+		PINMUX_CFG_REG("PEFCR", 0xffc70008, 32, 2)
+		{
+			PE7_FN, PE7_OUT, PE7_IN, 0,
+			PE6_FN, PE6_OUT, PE6_IN, 0,
+			PE5_FN, PE5_OUT, PE5_IN, 0,
+			PE4_FN, PE4_OUT, PE4_IN, 0,
+			PE3_FN, PE3_OUT, PE3_IN, 0,
+			PE2_FN, PE2_OUT, PE2_IN, 0,
+			PE1_FN, PE1_OUT, PE1_IN, 0,
+			PE0_FN, PE0_OUT, PE0_IN, 0,
+			PF7_FN, PF7_OUT, PF7_IN, 0,
+			PF6_FN, PF6_OUT, PF6_IN, 0,
+			PF5_FN, PF5_OUT, PF5_IN, 0,
+			PF4_FN, PF4_OUT, PF4_IN, 0,
+			PF3_FN, PF3_OUT, PF3_IN, 0,
+			PF2_FN, PF2_OUT, PF2_IN, 0,
+			PF1_FN, PF1_OUT, PF1_IN, 0,
+			PF0_FN, PF0_OUT, PF0_IN, 0,
+		},
 	},
-	{ PINMUX_CFG_REG("PGHCR", 0xffc7000c, 32, 2) {
-		PG7_FN, PG7_OUT, PG7_IN, 0,
-		PG6_FN, PG6_OUT, PG6_IN, 0,
-		PG5_FN, PG5_OUT, PG5_IN, 0,
-		PG4_FN, PG4_OUT, PG4_IN, 0,
-		PG3_FN, PG3_OUT, PG3_IN, 0,
-		PG2_FN, PG2_OUT, PG2_IN, 0,
-		PG1_FN, PG1_OUT, PG1_IN, 0,
-		PG0_FN, PG0_OUT, PG0_IN, 0,
-		0, 0, 0, 0,
-		0, 0, 0, 0,
-		PH5_FN, PH5_OUT, PH5_IN, 0,
-		PH4_FN, PH4_OUT, PH4_IN, 0,
-		PH3_FN, PH3_OUT, PH3_IN, 0,
-		PH2_FN, PH2_OUT, PH2_IN, 0,
-		PH1_FN, PH1_OUT, PH1_IN, 0,
-		PH0_FN, PH0_OUT, PH0_IN, 0, },
-	},
-	{ },
-};
-
-static const struct pinmux_data_reg pinmux_data_regs[] = {
-	{ PINMUX_DATA_REG("PABDR", 0xffc70010, 32) {
-		0, 0, 0, 0, 0, 0, 0, 0,
-		PA7_DATA, PA6_DATA, PA5_DATA, PA4_DATA,
-		PA3_DATA, PA2_DATA, PA1_DATA, PA0_DATA,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		PB7_DATA, PB6_DATA, PB5_DATA, PB4_DATA,
-		PB3_DATA, PB2_DATA, PB1_DATA, PB0_DATA, },
-	},
-	{ PINMUX_DATA_REG("PCDDR", 0xffc70014, 32) {
-		0, 0, 0, 0, 0, 0, 0, 0,
-		PC7_DATA, PC6_DATA, PC5_DATA, PC4_DATA,
-		PC3_DATA, PC2_DATA, PC1_DATA, PC0_DATA,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		PD7_DATA, PD6_DATA, PD5_DATA, PD4_DATA,
-		PD3_DATA, PD2_DATA, PD1_DATA, PD0_DATA, },
-	},
-	{ PINMUX_DATA_REG("PEFDR", 0xffc70018, 32) {
-		0, 0, 0, 0, 0, 0, 0, 0,
-		PE7_DATA, PE6_DATA, PE5_DATA, PE4_DATA,
-		PE3_DATA, PE2_DATA, PE1_DATA, PE0_DATA,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		PF7_DATA, PF6_DATA, PF5_DATA, PF4_DATA,
-		PF3_DATA, PF2_DATA, PF1_DATA, PF0_DATA, },
-	},
-	{ PINMUX_DATA_REG("PGHDR", 0xffc7001c, 32) {
-		0, 0, 0, 0, 0, 0, 0, 0,
-		PG7_DATA, PG6_DATA, PG5_DATA, PG4_DATA,
-		PG3_DATA, PG2_DATA, PG1_DATA, PG0_DATA,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, PH5_DATA, PH4_DATA,
-		PH3_DATA, PH2_DATA, PH1_DATA, PH0_DATA, },
+	{
+		PINMUX_CFG_REG("PGHCR", 0xffc7000c, 32, 2)
+		{
+			PG7_FN, PG7_OUT, PG7_IN, 0,
+			PG6_FN, PG6_OUT, PG6_IN, 0,
+			PG5_FN, PG5_OUT, PG5_IN, 0,
+			PG4_FN, PG4_OUT, PG4_IN, 0,
+			PG3_FN, PG3_OUT, PG3_IN, 0,
+			PG2_FN, PG2_OUT, PG2_IN, 0,
+			PG1_FN, PG1_OUT, PG1_IN, 0,
+			PG0_FN, PG0_OUT, PG0_IN, 0,
+			0, 0, 0, 0,
+			0, 0, 0, 0,
+			PH5_FN, PH5_OUT, PH5_IN, 0,
+			PH4_FN, PH4_OUT, PH4_IN, 0,
+			PH3_FN, PH3_OUT, PH3_IN, 0,
+			PH2_FN, PH2_OUT, PH2_IN, 0,
+			PH1_FN, PH1_OUT, PH1_IN, 0,
+			PH0_FN, PH0_OUT, PH0_IN, 0,
+		},
 	},
 	{ },
 };
 
-const struct sh_pfc_soc_info shx3_pinmux_info = {
+static const struct pinmux_data_reg pinmux_data_regs[] =
+{
+	{
+		PINMUX_DATA_REG("PABDR", 0xffc70010, 32)
+		{
+			0, 0, 0, 0, 0, 0, 0, 0,
+			PA7_DATA, PA6_DATA, PA5_DATA, PA4_DATA,
+			PA3_DATA, PA2_DATA, PA1_DATA, PA0_DATA,
+			0, 0, 0, 0, 0, 0, 0, 0,
+			PB7_DATA, PB6_DATA, PB5_DATA, PB4_DATA,
+			PB3_DATA, PB2_DATA, PB1_DATA, PB0_DATA,
+		},
+	},
+	{
+		PINMUX_DATA_REG("PCDDR", 0xffc70014, 32)
+		{
+			0, 0, 0, 0, 0, 0, 0, 0,
+			PC7_DATA, PC6_DATA, PC5_DATA, PC4_DATA,
+			PC3_DATA, PC2_DATA, PC1_DATA, PC0_DATA,
+			0, 0, 0, 0, 0, 0, 0, 0,
+			PD7_DATA, PD6_DATA, PD5_DATA, PD4_DATA,
+			PD3_DATA, PD2_DATA, PD1_DATA, PD0_DATA,
+		},
+	},
+	{
+		PINMUX_DATA_REG("PEFDR", 0xffc70018, 32)
+		{
+			0, 0, 0, 0, 0, 0, 0, 0,
+			PE7_DATA, PE6_DATA, PE5_DATA, PE4_DATA,
+			PE3_DATA, PE2_DATA, PE1_DATA, PE0_DATA,
+			0, 0, 0, 0, 0, 0, 0, 0,
+			PF7_DATA, PF6_DATA, PF5_DATA, PF4_DATA,
+			PF3_DATA, PF2_DATA, PF1_DATA, PF0_DATA,
+		},
+	},
+	{
+		PINMUX_DATA_REG("PGHDR", 0xffc7001c, 32)
+		{
+			0, 0, 0, 0, 0, 0, 0, 0,
+			PG7_DATA, PG6_DATA, PG5_DATA, PG4_DATA,
+			PG3_DATA, PG2_DATA, PG1_DATA, PG0_DATA,
+			0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, PH5_DATA, PH4_DATA,
+			PH3_DATA, PH2_DATA, PH1_DATA, PH0_DATA,
+		},
+	},
+	{ },
+};
+
+const struct sh_pfc_soc_info shx3_pinmux_info =
+{
 	.name		= "shx3_pfc",
 	.input		= { PINMUX_INPUT_BEGIN,	   PINMUX_INPUT_END },
 	.output		= { PINMUX_OUTPUT_BEGIN,   PINMUX_OUTPUT_END },

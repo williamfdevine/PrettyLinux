@@ -58,7 +58,7 @@
  * Debug output has to be enabled during compile time.
  */
 #ifdef CONFIG_RT2X00_DEBUG
-#define DEBUG
+	#define DEBUG
 #endif /* CONFIG_RT2X00_DEBUG */
 
 /* Utility printing macros
@@ -66,24 +66,24 @@
  */
 #define rt2x00_probe_err(fmt, ...)					\
 	printk(KERN_ERR KBUILD_MODNAME ": %s: Error - " fmt,		\
-	       __func__, ##__VA_ARGS__)
+		   __func__, ##__VA_ARGS__)
 #define rt2x00_err(dev, fmt, ...)					\
 	wiphy_err((dev)->hw->wiphy, "%s: Error - " fmt,			\
-		  __func__, ##__VA_ARGS__)
+			  __func__, ##__VA_ARGS__)
 #define rt2x00_warn(dev, fmt, ...)					\
 	wiphy_warn((dev)->hw->wiphy, "%s: Warning - " fmt,		\
-		   __func__, ##__VA_ARGS__)
+			   __func__, ##__VA_ARGS__)
 #define rt2x00_info(dev, fmt, ...)					\
 	wiphy_info((dev)->hw->wiphy, "%s: Info - " fmt,			\
-		   __func__, ##__VA_ARGS__)
+			   __func__, ##__VA_ARGS__)
 
 /* Various debug levels */
 #define rt2x00_dbg(dev, fmt, ...)					\
 	wiphy_dbg((dev)->hw->wiphy, "%s: Debug - " fmt,			\
-		  __func__, ##__VA_ARGS__)
+			  __func__, ##__VA_ARGS__)
 #define rt2x00_eeprom_dbg(dev, fmt, ...)				\
 	wiphy_dbg((dev)->hw->wiphy, "%s: EEPROM recovery - " fmt,	\
-		  __func__, ##__VA_ARGS__)
+			  __func__, ##__VA_ARGS__)
 
 /*
  * Duration calculations
@@ -134,11 +134,12 @@
 #define DIFS			(PIFS + SLOT_TIME)
 #define SHORT_DIFS		(SHORT_PIFS + SHORT_SLOT_TIME)
 #define EIFS			(SIFS + DIFS + \
-				  GET_DURATION(IEEE80211_HEADER + ACK_SIZE, 10))
+						 GET_DURATION(IEEE80211_HEADER + ACK_SIZE, 10))
 #define SHORT_EIFS		(SIFS + SHORT_DIFS + \
-				  GET_DURATION(IEEE80211_HEADER + ACK_SIZE, 10))
+						 GET_DURATION(IEEE80211_HEADER + ACK_SIZE, 10))
 
-enum rt2x00_chip_intf {
+enum rt2x00_chip_intf
+{
 	RT2X00_CHIP_INTF_PCI,
 	RT2X00_CHIP_INTF_PCIE,
 	RT2X00_CHIP_INTF_USB,
@@ -150,7 +151,8 @@ enum rt2x00_chip_intf {
  * The chipset on the device is composed of a RT and RF chip.
  * The chipset combination is important for determining device capabilities.
  */
-struct rt2x00_chip {
+struct rt2x00_chip
+{
 	u16 rt;
 #define RT2460		0x2460
 #define RT2560		0x2560
@@ -182,7 +184,8 @@ struct rt2x00_chip {
 /*
  * RF register values that belong to a particular channel.
  */
-struct rf_channel {
+struct rf_channel
+{
 	int channel;
 	u32 rf1;
 	u32 rf2;
@@ -193,7 +196,8 @@ struct rf_channel {
 /*
  * Channel information structure
  */
-struct channel_info {
+struct channel_info
+{
 	unsigned int flags;
 #define GEOGRAPHY_ALLOWED	0x00000001
 
@@ -206,7 +210,8 @@ struct channel_info {
 /*
  * Antenna setup values.
  */
-struct antenna_setup {
+struct antenna_setup
+{
 	enum antenna rx;
 	enum antenna tx;
 	u8 rx_chain_num;
@@ -216,7 +221,8 @@ struct antenna_setup {
 /*
  * Quality statistics about the currently active link.
  */
-struct link_qual {
+struct link_qual
+{
 	/*
 	 * Statistics required for Link tuning by driver
 	 * The rssi value is provided by rt2x00lib during the
@@ -260,7 +266,8 @@ DECLARE_EWMA(rssi, 1024, 8)
 /*
  * Antenna settings about the currently active link.
  */
-struct link_ant {
+struct link_ant
+{
 	/*
 	 * Antenna flags
 	 */
@@ -296,7 +303,8 @@ struct link_ant {
  * the quality of received frames and periodically
  * optimize the link.
  */
-struct link {
+struct link
+{
 	/*
 	 * Link tuner counter
 	 * The number of times the link has been tuned
@@ -345,7 +353,8 @@ struct link {
 	struct delayed_work vco_work;
 };
 
-enum rt2x00_delayed_flags {
+enum rt2x00_delayed_flags
+{
 	DELAYED_UPDATE_BEACON,
 };
 
@@ -354,7 +363,8 @@ enum rt2x00_delayed_flags {
  * Per interface configuration details, this structure
  * is allocated as the private data for ieee80211_vif.
  */
-struct rt2x00_intf {
+struct rt2x00_intf
+{
 	/*
 	 * beacon->skb must be protected with the mutex.
 	 */
@@ -381,7 +391,7 @@ struct rt2x00_intf {
 	atomic_t seqno;
 };
 
-static inline struct rt2x00_intf* vif_to_intf(struct ieee80211_vif *vif)
+static inline struct rt2x00_intf *vif_to_intf(struct ieee80211_vif *vif)
 {
 	return (struct rt2x00_intf *)vif->drv_priv;
 }
@@ -401,7 +411,8 @@ static inline struct rt2x00_intf* vif_to_intf(struct ieee80211_vif *vif)
  * @channels_info: Additional information for channels (See &struct channel_info).
  * @ht: Driver HT Capabilities (See &ieee80211_sta_ht_cap).
  */
-struct hw_mode_spec {
+struct hw_mode_spec
+{
 	unsigned int supported_bands;
 #define SUPPORT_BAND_2GHZ	0x00000001
 #define SUPPORT_BAND_5GHZ	0x00000002
@@ -424,7 +435,8 @@ struct hw_mode_spec {
  * can precalculate values which are equal for all
  * rt2x00 drivers. Those values can be stored in here.
  */
-struct rt2x00lib_conf {
+struct rt2x00lib_conf
+{
 	struct ieee80211_conf *conf;
 
 	struct rf_channel rf;
@@ -434,7 +446,8 @@ struct rt2x00lib_conf {
 /*
  * Configuration structure for erp settings.
  */
-struct rt2x00lib_erp {
+struct rt2x00lib_erp
+{
 	int short_preamble;
 	int cts_protection;
 
@@ -454,7 +467,8 @@ struct rt2x00lib_erp {
 /*
  * Configuration structure for hardware encryption.
  */
-struct rt2x00lib_crypto {
+struct rt2x00lib_crypto
+{
 	enum cipher cipher;
 
 	enum set_key_cmd cmd;
@@ -473,7 +487,8 @@ struct rt2x00lib_crypto {
  * Configuration structure wrapper around the
  * rt2x00 interface configuration handler.
  */
-struct rt2x00intf_conf {
+struct rt2x00intf_conf
+{
 	/*
 	 * Interface type
 	 */
@@ -504,11 +519,12 @@ struct rt2x00intf_conf {
  * Private structure for storing STA details
  * wcid: Wireless Client ID
  */
-struct rt2x00_sta {
+struct rt2x00_sta
+{
 	int wcid;
 };
 
-static inline struct rt2x00_sta* sta_to_rt2x00_sta(struct ieee80211_sta *sta)
+static inline struct rt2x00_sta *sta_to_rt2x00_sta(struct ieee80211_sta *sta)
 {
 	return (struct rt2x00_sta *)sta->drv_priv;
 }
@@ -516,7 +532,8 @@ static inline struct rt2x00_sta* sta_to_rt2x00_sta(struct ieee80211_sta *sta)
 /*
  * rt2x00lib callback functions.
  */
-struct rt2x00lib_ops {
+struct rt2x00lib_ops
+{
 	/*
 	 * Interrupt handlers.
 	 */
@@ -537,9 +554,9 @@ struct rt2x00lib_ops {
 	int (*probe_hw) (struct rt2x00_dev *rt2x00dev);
 	char *(*get_firmware_name) (struct rt2x00_dev *rt2x00dev);
 	int (*check_firmware) (struct rt2x00_dev *rt2x00dev,
-			       const u8 *data, const size_t len);
+						   const u8 *data, const size_t len);
 	int (*load_firmware) (struct rt2x00_dev *rt2x00dev,
-			      const u8 *data, const size_t len);
+						  const u8 *data, const size_t len);
 
 	/*
 	 * Device initialization/deinitialization handlers.
@@ -557,14 +574,14 @@ struct rt2x00lib_ops {
 	 * Radio control handlers.
 	 */
 	int (*set_device_state) (struct rt2x00_dev *rt2x00dev,
-				 enum dev_state state);
+							 enum dev_state state);
 	int (*rfkill_poll) (struct rt2x00_dev *rt2x00dev);
 	void (*link_stats) (struct rt2x00_dev *rt2x00dev,
-			    struct link_qual *qual);
+						struct link_qual *qual);
 	void (*reset_tuner) (struct rt2x00_dev *rt2x00dev,
-			     struct link_qual *qual);
+						 struct link_qual *qual);
 	void (*link_tuner) (struct rt2x00_dev *rt2x00dev,
-			    struct link_qual *qual, const u32 count);
+						struct link_qual *qual, const u32 count);
 	void (*gain_calibration) (struct rt2x00_dev *rt2x00dev);
 	void (*vco_calibration) (struct rt2x00_dev *rt2x00dev);
 
@@ -582,11 +599,11 @@ struct rt2x00lib_ops {
 	 * TX control handlers
 	 */
 	void (*write_tx_desc) (struct queue_entry *entry,
-			       struct txentry_desc *txdesc);
+						   struct txentry_desc *txdesc);
 	void (*write_tx_data) (struct queue_entry *entry,
-			       struct txentry_desc *txdesc);
+						   struct txentry_desc *txdesc);
 	void (*write_beacon) (struct queue_entry *entry,
-			      struct txentry_desc *txdesc);
+						  struct txentry_desc *txdesc);
 	void (*clear_beacon) (struct queue_entry *entry);
 	int (*get_tx_data_len) (struct queue_entry *entry);
 
@@ -594,46 +611,47 @@ struct rt2x00lib_ops {
 	 * RX control handlers
 	 */
 	void (*fill_rxdone) (struct queue_entry *entry,
-			     struct rxdone_entry_desc *rxdesc);
+						 struct rxdone_entry_desc *rxdesc);
 
 	/*
 	 * Configuration handlers.
 	 */
 	int (*config_shared_key) (struct rt2x00_dev *rt2x00dev,
-				  struct rt2x00lib_crypto *crypto,
-				  struct ieee80211_key_conf *key);
+							  struct rt2x00lib_crypto *crypto,
+							  struct ieee80211_key_conf *key);
 	int (*config_pairwise_key) (struct rt2x00_dev *rt2x00dev,
-				    struct rt2x00lib_crypto *crypto,
-				    struct ieee80211_key_conf *key);
+								struct rt2x00lib_crypto *crypto,
+								struct ieee80211_key_conf *key);
 	void (*config_filter) (struct rt2x00_dev *rt2x00dev,
-			       const unsigned int filter_flags);
+						   const unsigned int filter_flags);
 	void (*config_intf) (struct rt2x00_dev *rt2x00dev,
-			     struct rt2x00_intf *intf,
-			     struct rt2x00intf_conf *conf,
-			     const unsigned int flags);
+						 struct rt2x00_intf *intf,
+						 struct rt2x00intf_conf *conf,
+						 const unsigned int flags);
 #define CONFIG_UPDATE_TYPE		( 1 << 1 )
 #define CONFIG_UPDATE_MAC		( 1 << 2 )
 #define CONFIG_UPDATE_BSSID		( 1 << 3 )
 
 	void (*config_erp) (struct rt2x00_dev *rt2x00dev,
-			    struct rt2x00lib_erp *erp,
-			    u32 changed);
+						struct rt2x00lib_erp *erp,
+						u32 changed);
 	void (*config_ant) (struct rt2x00_dev *rt2x00dev,
-			    struct antenna_setup *ant);
+						struct antenna_setup *ant);
 	void (*config) (struct rt2x00_dev *rt2x00dev,
-			struct rt2x00lib_conf *libconf,
-			const unsigned int changed_flags);
+					struct rt2x00lib_conf *libconf,
+					const unsigned int changed_flags);
 	int (*sta_add) (struct rt2x00_dev *rt2x00dev,
-			struct ieee80211_vif *vif,
-			struct ieee80211_sta *sta);
+					struct ieee80211_vif *vif,
+					struct ieee80211_sta *sta);
 	int (*sta_remove) (struct rt2x00_dev *rt2x00dev,
-			   int wcid);
+					   int wcid);
 };
 
 /*
  * rt2x00 driver callback operation structure.
  */
-struct rt2x00_ops {
+struct rt2x00_ops
+{
 	const char *name;
 	const unsigned int drv_data_size;
 	const unsigned int max_ap_intf;
@@ -652,7 +670,8 @@ struct rt2x00_ops {
 /*
  * rt2x00 state flags
  */
-enum rt2x00_state_flags {
+enum rt2x00_state_flags
+{
 	/*
 	 * Device flags
 	 */
@@ -682,7 +701,8 @@ enum rt2x00_state_flags {
 /*
  * rt2x00 capability flags
  */
-enum rt2x00_capability_flags {
+enum rt2x00_capability_flags
+{
 	/*
 	 * Requirements
 	 */
@@ -721,7 +741,8 @@ enum rt2x00_capability_flags {
 /*
  * Interface combinations
  */
-enum {
+enum
+{
 	IF_COMB_AP = 0,
 	NUM_IF_COMB,
 };
@@ -729,7 +750,8 @@ enum {
 /*
  * rt2x00 device structure.
  */
-struct rt2x00_dev {
+struct rt2x00_dev
+{
 	/*
 	 * Device structure.
 	 * The structure stored in here depends on the
@@ -817,7 +839,8 @@ struct rt2x00_dev {
 	 * csr.base: CSR base register address. (PCI)
 	 * csr.cache: CSR cache for usb_control_msg. (USB)
 	 */
-	union csr {
+	union csr
+	{
 		void __iomem *base;
 		void *cache;
 	} csr;
@@ -1007,7 +1030,8 @@ struct rt2x00_dev {
 	struct usb_anchor *anchor;
 };
 
-struct rt2x00_bar_list_entry {
+struct rt2x00_bar_list_entry
+{
 	struct list_head list;
 	struct rcu_head head;
 
@@ -1038,14 +1062,14 @@ struct rt2x00_bar_list_entry {
  * The RF is being accessed by word index.
  */
 static inline void rt2x00_rf_read(struct rt2x00_dev *rt2x00dev,
-				  const unsigned int word, u32 *data)
+								  const unsigned int word, u32 *data)
 {
 	BUG_ON(word < 1 || word > rt2x00dev->ops->rf_size / sizeof(u32));
 	*data = rt2x00dev->rf[word - 1];
 }
 
 static inline void rt2x00_rf_write(struct rt2x00_dev *rt2x00dev,
-				   const unsigned int word, u32 data)
+								   const unsigned int word, u32 data)
 {
 	BUG_ON(word < 1 || word > rt2x00dev->ops->rf_size / sizeof(u32));
 	rt2x00dev->rf[word - 1] = data;
@@ -1055,25 +1079,25 @@ static inline void rt2x00_rf_write(struct rt2x00_dev *rt2x00dev,
  * Generic EEPROM access. The EEPROM is being accessed by word or byte index.
  */
 static inline void *rt2x00_eeprom_addr(struct rt2x00_dev *rt2x00dev,
-				       const unsigned int word)
+									   const unsigned int word)
 {
 	return (void *)&rt2x00dev->eeprom[word];
 }
 
 static inline void rt2x00_eeprom_read(struct rt2x00_dev *rt2x00dev,
-				      const unsigned int word, u16 *data)
+									  const unsigned int word, u16 *data)
 {
 	*data = le16_to_cpu(rt2x00dev->eeprom[word]);
 }
 
 static inline void rt2x00_eeprom_write(struct rt2x00_dev *rt2x00dev,
-				       const unsigned int word, u16 data)
+									   const unsigned int word, u16 data)
 {
 	rt2x00dev->eeprom[word] = cpu_to_le16(data);
 }
 
 static inline u8 rt2x00_eeprom_byte(struct rt2x00_dev *rt2x00dev,
-				    const unsigned int byte)
+									const unsigned int byte)
 {
 	return *(((u8 *)rt2x00dev->eeprom) + byte);
 }
@@ -1082,25 +1106,25 @@ static inline u8 rt2x00_eeprom_byte(struct rt2x00_dev *rt2x00dev,
  * Chipset handlers
  */
 static inline void rt2x00_set_chip(struct rt2x00_dev *rt2x00dev,
-				   const u16 rt, const u16 rf, const u16 rev)
+								   const u16 rt, const u16 rf, const u16 rev)
 {
 	rt2x00dev->chip.rt = rt;
 	rt2x00dev->chip.rf = rf;
 	rt2x00dev->chip.rev = rev;
 
 	rt2x00_info(rt2x00dev, "Chipset detected - rt: %04x, rf: %04x, rev: %04x\n",
-		    rt2x00dev->chip.rt, rt2x00dev->chip.rf,
-		    rt2x00dev->chip.rev);
+				rt2x00dev->chip.rt, rt2x00dev->chip.rf,
+				rt2x00dev->chip.rev);
 }
 
 static inline void rt2x00_set_rt(struct rt2x00_dev *rt2x00dev,
-				 const u16 rt, const u16 rev)
+								 const u16 rt, const u16 rev)
 {
 	rt2x00dev->chip.rt = rt;
 	rt2x00dev->chip.rev = rev;
 
 	rt2x00_info(rt2x00dev, "RT chipset %04x, rev %04x detected\n",
-		    rt2x00dev->chip.rt, rt2x00dev->chip.rev);
+				rt2x00dev->chip.rt, rt2x00dev->chip.rev);
 }
 
 static inline void rt2x00_set_rf(struct rt2x00_dev *rt2x00dev, const u16 rf)
@@ -1108,7 +1132,7 @@ static inline void rt2x00_set_rf(struct rt2x00_dev *rt2x00dev, const u16 rf)
 	rt2x00dev->chip.rf = rf;
 
 	rt2x00_info(rt2x00dev, "RF chipset %04x detected\n",
-		    rt2x00dev->chip.rf);
+				rt2x00dev->chip.rf);
 }
 
 static inline bool rt2x00_rt(struct rt2x00_dev *rt2x00dev, const u16 rt)
@@ -1127,31 +1151,31 @@ static inline u16 rt2x00_rev(struct rt2x00_dev *rt2x00dev)
 }
 
 static inline bool rt2x00_rt_rev(struct rt2x00_dev *rt2x00dev,
-				 const u16 rt, const u16 rev)
+								 const u16 rt, const u16 rev)
 {
 	return (rt2x00_rt(rt2x00dev, rt) && rt2x00_rev(rt2x00dev) == rev);
 }
 
 static inline bool rt2x00_rt_rev_lt(struct rt2x00_dev *rt2x00dev,
-				    const u16 rt, const u16 rev)
+									const u16 rt, const u16 rev)
 {
 	return (rt2x00_rt(rt2x00dev, rt) && rt2x00_rev(rt2x00dev) < rev);
 }
 
 static inline bool rt2x00_rt_rev_gte(struct rt2x00_dev *rt2x00dev,
-				     const u16 rt, const u16 rev)
+									 const u16 rt, const u16 rev)
 {
 	return (rt2x00_rt(rt2x00dev, rt) && rt2x00_rev(rt2x00dev) >= rev);
 }
 
 static inline void rt2x00_set_chip_intf(struct rt2x00_dev *rt2x00dev,
-					enum rt2x00_chip_intf intf)
+										enum rt2x00_chip_intf intf)
 {
 	rt2x00dev->chip.intf = intf;
 }
 
 static inline bool rt2x00_intf(struct rt2x00_dev *rt2x00dev,
-			       enum rt2x00_chip_intf intf)
+							   enum rt2x00_chip_intf intf)
 {
 	return (rt2x00dev->chip.intf == intf);
 }
@@ -1159,7 +1183,7 @@ static inline bool rt2x00_intf(struct rt2x00_dev *rt2x00dev,
 static inline bool rt2x00_is_pci(struct rt2x00_dev *rt2x00dev)
 {
 	return rt2x00_intf(rt2x00dev, RT2X00_CHIP_INTF_PCI) ||
-	       rt2x00_intf(rt2x00dev, RT2X00_CHIP_INTF_PCIE);
+		   rt2x00_intf(rt2x00dev, RT2X00_CHIP_INTF_PCIE);
 }
 
 static inline bool rt2x00_is_pcie(struct rt2x00_dev *rt2x00dev)
@@ -1181,7 +1205,7 @@ static inline bool rt2x00_is_soc(struct rt2x00_dev *rt2x00dev)
 
 static inline bool
 rt2x00_has_cap_flag(struct rt2x00_dev *rt2x00dev,
-		    enum rt2x00_capability_flags cap_flag)
+					enum rt2x00_capability_flags cap_flag)
 {
 	return test_bit(cap_flag, &rt2x00dev->cap_flags);
 }
@@ -1287,13 +1311,17 @@ void rt2x00queue_unmap_skb(struct queue_entry *entry);
  */
 static inline struct data_queue *
 rt2x00queue_get_tx_queue(struct rt2x00_dev *rt2x00dev,
-			 const enum data_queue_qid queue)
+						 const enum data_queue_qid queue)
 {
 	if (queue < rt2x00dev->ops->tx_queues && rt2x00dev->tx)
+	{
 		return &rt2x00dev->tx[queue];
+	}
 
 	if (queue == QID_ATIM)
+	{
 		return rt2x00dev->atim;
+	}
 
 	return NULL;
 }
@@ -1304,7 +1332,7 @@ rt2x00queue_get_tx_queue(struct rt2x00_dev *rt2x00dev,
  * @index: Index identifier for obtaining the correct index.
  */
 struct queue_entry *rt2x00queue_get_entry(struct data_queue *queue,
-					  enum queue_index index);
+		enum queue_index index);
 
 /**
  * rt2x00queue_pause_queue - Pause a data queue
@@ -1389,11 +1417,11 @@ void rt2x00queue_flush_queues(struct rt2x00_dev *rt2x00dev, bool drop);
  */
 #ifdef CONFIG_RT2X00_LIB_DEBUGFS
 void rt2x00debug_dump_frame(struct rt2x00_dev *rt2x00dev,
-			    enum rt2x00_dump_type type, struct sk_buff *skb);
+							enum rt2x00_dump_type type, struct sk_buff *skb);
 #else
 static inline void rt2x00debug_dump_frame(struct rt2x00_dev *rt2x00dev,
-					  enum rt2x00_dump_type type,
-					  struct sk_buff *skb)
+		enum rt2x00_dump_type type,
+		struct sk_buff *skb)
 {
 }
 #endif /* CONFIG_RT2X00_LIB_DEBUGFS */
@@ -1402,7 +1430,7 @@ static inline void rt2x00debug_dump_frame(struct rt2x00_dev *rt2x00dev,
  * Utility functions.
  */
 u32 rt2x00lib_get_bssidx(struct rt2x00_dev *rt2x00dev,
-			 struct ieee80211_vif *vif);
+						 struct ieee80211_vif *vif);
 
 /*
  * Interrupt context handlers.
@@ -1412,7 +1440,7 @@ void rt2x00lib_pretbtt(struct rt2x00_dev *rt2x00dev);
 void rt2x00lib_dmastart(struct queue_entry *entry);
 void rt2x00lib_dmadone(struct queue_entry *entry);
 void rt2x00lib_txdone(struct queue_entry *entry,
-		      struct txdone_entry_desc *txdesc);
+					  struct txdone_entry_desc *txdesc);
 void rt2x00lib_txdone_noinfo(struct queue_entry *entry, u32 status);
 void rt2x00lib_rxdone(struct queue_entry *entry, gfp_t gfp);
 
@@ -1420,53 +1448,53 @@ void rt2x00lib_rxdone(struct queue_entry *entry, gfp_t gfp);
  * mac80211 handlers.
  */
 void rt2x00mac_tx(struct ieee80211_hw *hw,
-		  struct ieee80211_tx_control *control,
-		  struct sk_buff *skb);
+				  struct ieee80211_tx_control *control,
+				  struct sk_buff *skb);
 int rt2x00mac_start(struct ieee80211_hw *hw);
 void rt2x00mac_stop(struct ieee80211_hw *hw);
 int rt2x00mac_add_interface(struct ieee80211_hw *hw,
-			    struct ieee80211_vif *vif);
+							struct ieee80211_vif *vif);
 void rt2x00mac_remove_interface(struct ieee80211_hw *hw,
-				struct ieee80211_vif *vif);
+								struct ieee80211_vif *vif);
 int rt2x00mac_config(struct ieee80211_hw *hw, u32 changed);
 void rt2x00mac_configure_filter(struct ieee80211_hw *hw,
-				unsigned int changed_flags,
-				unsigned int *total_flags,
-				u64 multicast);
+								unsigned int changed_flags,
+								unsigned int *total_flags,
+								u64 multicast);
 int rt2x00mac_set_tim(struct ieee80211_hw *hw, struct ieee80211_sta *sta,
-		      bool set);
+					  bool set);
 #ifdef CONFIG_RT2X00_LIB_CRYPTO
 int rt2x00mac_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
-		      struct ieee80211_vif *vif, struct ieee80211_sta *sta,
-		      struct ieee80211_key_conf *key);
+					  struct ieee80211_vif *vif, struct ieee80211_sta *sta,
+					  struct ieee80211_key_conf *key);
 #else
 #define rt2x00mac_set_key	NULL
 #endif /* CONFIG_RT2X00_LIB_CRYPTO */
 int rt2x00mac_sta_add(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-		      struct ieee80211_sta *sta);
+					  struct ieee80211_sta *sta);
 int rt2x00mac_sta_remove(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-			 struct ieee80211_sta *sta);
+						 struct ieee80211_sta *sta);
 void rt2x00mac_sw_scan_start(struct ieee80211_hw *hw,
-			     struct ieee80211_vif *vif,
-			     const u8 *mac_addr);
+							 struct ieee80211_vif *vif,
+							 const u8 *mac_addr);
 void rt2x00mac_sw_scan_complete(struct ieee80211_hw *hw,
-				struct ieee80211_vif *vif);
+								struct ieee80211_vif *vif);
 int rt2x00mac_get_stats(struct ieee80211_hw *hw,
-			struct ieee80211_low_level_stats *stats);
+						struct ieee80211_low_level_stats *stats);
 void rt2x00mac_bss_info_changed(struct ieee80211_hw *hw,
-				struct ieee80211_vif *vif,
-				struct ieee80211_bss_conf *bss_conf,
-				u32 changes);
+								struct ieee80211_vif *vif,
+								struct ieee80211_bss_conf *bss_conf,
+								u32 changes);
 int rt2x00mac_conf_tx(struct ieee80211_hw *hw,
-		      struct ieee80211_vif *vif, u16 queue,
-		      const struct ieee80211_tx_queue_params *params);
+					  struct ieee80211_vif *vif, u16 queue,
+					  const struct ieee80211_tx_queue_params *params);
 void rt2x00mac_rfkill_poll(struct ieee80211_hw *hw);
 void rt2x00mac_flush(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-		     u32 queues, bool drop);
+					 u32 queues, bool drop);
 int rt2x00mac_set_antenna(struct ieee80211_hw *hw, u32 tx_ant, u32 rx_ant);
 int rt2x00mac_get_antenna(struct ieee80211_hw *hw, u32 *tx_ant, u32 *rx_ant);
 void rt2x00mac_get_ringparam(struct ieee80211_hw *hw,
-			     u32 *tx, u32 *tx_max, u32 *rx, u32 *rx_max);
+							 u32 *tx, u32 *tx_max, u32 *rx, u32 *rx_max);
 bool rt2x00mac_tx_frames_pending(struct ieee80211_hw *hw);
 
 /*
@@ -1475,8 +1503,8 @@ bool rt2x00mac_tx_frames_pending(struct ieee80211_hw *hw);
 int rt2x00lib_probe_dev(struct rt2x00_dev *rt2x00dev);
 void rt2x00lib_remove_dev(struct rt2x00_dev *rt2x00dev);
 #ifdef CONFIG_PM
-int rt2x00lib_suspend(struct rt2x00_dev *rt2x00dev, pm_message_t state);
-int rt2x00lib_resume(struct rt2x00_dev *rt2x00dev);
+	int rt2x00lib_suspend(struct rt2x00_dev *rt2x00dev, pm_message_t state);
+	int rt2x00lib_resume(struct rt2x00_dev *rt2x00dev);
 #endif /* CONFIG_PM */
 
 #endif /* RT2X00_H */

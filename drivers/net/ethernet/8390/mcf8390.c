@@ -50,7 +50,10 @@ static u32 mcf8390_msg_enable;
 static inline u32 NE_PTR(u32 addr)
 {
 	if (addr & 1)
+	{
 		return addr - 1 + NE2000_ODDOFFSET;
+	}
+
 	return addr;
 }
 
@@ -84,7 +87,9 @@ void ei_insb(u32 addr, void *vbuf, int len)
 
 	buf = (u8 *) vbuf;
 	rp = (NE2000_BYTE *) NE_DATA_PTR(addr);
-	for (; (len > 0); len--) {
+
+	for (; (len > 0); len--)
+	{
 		val = *rp;
 		*buf++ = RSWAP(val);
 	}
@@ -97,7 +102,9 @@ void ei_insw(u32 addr, void *vbuf, int len)
 
 	buf = (u16 *) vbuf;
 	rp = (volatile u16 *) NE_DATA_PTR(addr);
-	for (; (len > 0); len--) {
+
+	for (; (len > 0); len--)
+	{
 		w = *rp;
 		*buf++ = BSWAP(w);
 	}
@@ -110,7 +117,9 @@ void ei_outsb(u32 addr, const void *vbuf, int len)
 
 	buf = (u8 *) vbuf;
 	rp = (NE2000_BYTE *) NE_DATA_PTR(addr);
-	for (; (len > 0); len--) {
+
+	for (; (len > 0); len--)
+	{
 		val = *buf++;
 		*rp = RSWAP(val);
 	}
@@ -123,7 +132,9 @@ void ei_outsw(u32 addr, const void *vbuf, int len)
 
 	buf = (u16 *) vbuf;
 	rp = (volatile u16 *) NE_DATA_PTR(addr);
-	for (; (len > 0); len--) {
+
+	for (; (len > 0); len--)
+	{
 		w = *buf++;
 		*rp = BSWAP(w);
 	}
@@ -163,8 +174,10 @@ static void mcf8390_reset_8390(struct net_device *dev)
 	ei_status.dmaing = 0;
 
 	/* This check _should_not_ be necessary, omit eventually. */
-	while ((ei_inb(addr + NE_EN0_ISR) & ENISR_RESET) == 0) {
-		if (time_after(jiffies, reset_start_time + 2 * HZ / 100)) {
+	while ((ei_inb(addr + NE_EN0_ISR) & ENISR_RESET) == 0)
+	{
+		if (time_after(jiffies, reset_start_time + 2 * HZ / 100))
+		{
 			netdev_warn(dev, "%s: did not complete\n", __func__);
 			break;
 		}
@@ -178,10 +191,10 @@ static void mcf8390_reset_8390(struct net_device *dev)
  * If it does, it's the last thing you'll see
  */
 static void mcf8390_dmaing_err(const char *func, struct net_device *dev,
-			       struct ei_device *ei_local)
+							   struct ei_device *ei_local)
 {
 	netdev_err(dev, "%s: DMAing conflict [DMAstat:%d][irqlock:%d]\n",
-		func, ei_local->dmaing, ei_local->irqlock);
+			   func, ei_local->dmaing, ei_local->irqlock);
 }
 
 /*
@@ -190,12 +203,13 @@ static void mcf8390_dmaing_err(const char *func, struct net_device *dev,
  * the start of a page, so we optimize accordingly.
  */
 static void mcf8390_get_8390_hdr(struct net_device *dev,
-				 struct e8390_pkt_hdr *hdr, int ring_page)
+								 struct e8390_pkt_hdr *hdr, int ring_page)
 {
 	struct ei_device *ei_local = netdev_priv(dev);
 	u32 addr = dev->base_addr;
 
-	if (ei_local->dmaing) {
+	if (ei_local->dmaing)
+	{
 		mcf8390_dmaing_err(__func__, dev, ei_local);
 		return;
 	}
@@ -225,13 +239,14 @@ static void mcf8390_get_8390_hdr(struct net_device *dev,
  * using z_writeb.
  */
 static void mcf8390_block_input(struct net_device *dev, int count,
-				struct sk_buff *skb, int ring_offset)
+								struct sk_buff *skb, int ring_offset)
 {
 	struct ei_device *ei_local = netdev_priv(dev);
 	u32 addr = dev->base_addr;
 	char *buf = skb->data;
 
-	if (ei_local->dmaing) {
+	if (ei_local->dmaing)
+	{
 		mcf8390_dmaing_err(__func__, dev, ei_local);
 		return;
 	}
@@ -246,16 +261,19 @@ static void mcf8390_block_input(struct net_device *dev, int count,
 	ei_outb(E8390_RREAD + E8390_START, addr + NE_CMD);
 
 	ei_insw(addr + NE_DATAPORT, buf, count >> 1);
+
 	if (count & 1)
+	{
 		buf[count - 1] = ei_inb(addr + NE_DATAPORT);
+	}
 
 	ei_outb(ENISR_RDC, addr + NE_EN0_ISR);	/* Ack intr */
 	ei_local->dmaing &= ~0x01;
 }
 
 static void mcf8390_block_output(struct net_device *dev, int count,
-				 const unsigned char *buf,
-				 const int start_page)
+								 const unsigned char *buf,
+								 const int start_page)
 {
 	struct ei_device *ei_local = netdev_priv(dev);
 	u32 addr = dev->base_addr;
@@ -263,9 +281,12 @@ static void mcf8390_block_output(struct net_device *dev, int count,
 
 	/* Make sure we transfer all bytes if 16bit IO writes */
 	if (count & 0x1)
+	{
 		count++;
+	}
 
-	if (ei_local->dmaing) {
+	if (ei_local->dmaing)
+	{
 		mcf8390_dmaing_err(__func__, dev, ei_local);
 		return;
 	}
@@ -286,8 +307,11 @@ static void mcf8390_block_output(struct net_device *dev, int count,
 	ei_outsw(addr + NE_DATAPORT, buf, count >> 1);
 
 	dma_start = jiffies;
-	while ((ei_inb(addr + NE_EN0_ISR) & ENISR_RDC) == 0) {
-		if (time_after(jiffies, dma_start + 2 * HZ / 100)) { /* 20ms */
+
+	while ((ei_inb(addr + NE_EN0_ISR) & ENISR_RDC) == 0)
+	{
+		if (time_after(jiffies, dma_start + 2 * HZ / 100))   /* 20ms */
+		{
 			netdev_warn(dev, "timeout waiting for Tx RDC\n");
 			mcf8390_reset_8390(dev);
 			__NS8390_init(dev, 1);
@@ -299,7 +323,8 @@ static void mcf8390_block_output(struct net_device *dev, int count,
 	ei_local->dmaing &= ~0x01;
 }
 
-static const struct net_device_ops mcf8390_netdev_ops = {
+static const struct net_device_ops mcf8390_netdev_ops =
+{
 	.ndo_open		= __ei_open,
 	.ndo_stop		= __ei_close,
 	.ndo_start_xmit		= __ei_start_xmit,
@@ -316,7 +341,8 @@ static const struct net_device_ops mcf8390_netdev_ops = {
 
 static int mcf8390_init(struct net_device *dev)
 {
-	static u32 offsets[] = {
+	static u32 offsets[] =
+	{
 		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
 		0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
 	};
@@ -336,12 +362,14 @@ static int mcf8390_init(struct net_device *dev)
 	 * (I learned the hard way!).
 	 */
 	{
-		static const struct {
+		static const struct
+		{
 			u32 value;
 			u32 offset;
-		} program_seq[] = {
+		} program_seq[] =
+		{
 			{E8390_NODMA + E8390_PAGE0 + E8390_STOP, NE_CMD},
-						/* Select page 0 */
+			/* Select page 0 */
 			{0x48,	NE_EN0_DCFG},	/* 0x48: Set byte-wide access */
 			{0x00,	NE_EN0_RCNTLO},	/* Clear the count regs */
 			{0x00,	NE_EN0_RCNTHI},
@@ -355,13 +383,16 @@ static int mcf8390_init(struct net_device *dev)
 			{0x00,	NE_EN0_RSARHI},
 			{E8390_RREAD + E8390_START, NE_CMD},
 		};
-		for (i = 0; i < ARRAY_SIZE(program_seq); i++) {
+
+		for (i = 0; i < ARRAY_SIZE(program_seq); i++)
+		{
 			ei_outb(program_seq[i].value,
-				 addr + program_seq[i].offset);
+					addr + program_seq[i].offset);
 		}
 	}
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		SA_prom[i] = ei_inb(addr + NE_DATAPORT);
 		ei_inb(addr + NE_DATAPORT);
 	}
@@ -373,11 +404,16 @@ static int mcf8390_init(struct net_device *dev)
 
 	/* Install the Interrupt handler */
 	ret = request_irq(dev->irq, __ei_interrupt, 0, dev->name, dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		dev->dev_addr[i] = SA_prom[i];
+	}
 
 	netdev_dbg(dev, "Found ethernet address: %pM\n", dev->dev_addr);
 
@@ -395,13 +431,15 @@ static int mcf8390_init(struct net_device *dev)
 	dev->netdev_ops = &mcf8390_netdev_ops;
 	__NS8390_init(dev, 0);
 	ret = register_netdev(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		free_irq(dev->irq, dev);
 		return ret;
 	}
 
 	netdev_info(dev, "addr=0x%08x irq=%d, Ethernet Address %pM\n",
-		addr, dev->irq, dev->dev_addr);
+				addr, dev->irq, dev->dev_addr);
 	return 0;
 }
 
@@ -414,22 +452,32 @@ static int mcf8390_probe(struct platform_device *pdev)
 	int ret;
 
 	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	if (irq == NULL) {
+
+	if (irq == NULL)
+	{
 		dev_err(&pdev->dev, "no IRQ specified?\n");
 		return -ENXIO;
 	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (mem == NULL) {
+
+	if (mem == NULL)
+	{
 		dev_err(&pdev->dev, "no memory address specified?\n");
 		return -ENXIO;
 	}
+
 	msize = resource_size(mem);
+
 	if (!request_mem_region(mem->start, msize, pdev->name))
+	{
 		return -EBUSY;
+	}
 
 	dev = ____alloc_ei_netdev(0);
-	if (dev == NULL) {
+
+	if (dev == NULL)
+	{
 		release_mem_region(mem->start, msize);
 		return -ENOMEM;
 	}
@@ -443,11 +491,14 @@ static int mcf8390_probe(struct platform_device *pdev)
 	dev->base_addr = mem->start;
 
 	ret = mcf8390_init(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		release_mem_region(mem->start, msize);
 		free_netdev(dev);
 		return ret;
 	}
+
 	return 0;
 }
 
@@ -458,13 +509,18 @@ static int mcf8390_remove(struct platform_device *pdev)
 
 	unregister_netdev(dev);
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (mem)
+	{
 		release_mem_region(mem->start, resource_size(mem));
+	}
+
 	free_netdev(dev);
 	return 0;
 }
 
-static struct platform_driver mcf8390_drv = {
+static struct platform_driver mcf8390_drv =
+{
 	.driver = {
 		.name	= "mcf8390",
 	},

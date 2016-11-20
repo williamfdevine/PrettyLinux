@@ -26,9 +26,10 @@ static void restart_poweroff_do_poweroff(void)
 static int restart_poweroff_probe(struct platform_device *pdev)
 {
 	/* If a pm_power_off function has already been added, leave it alone */
-	if (pm_power_off != NULL) {
+	if (pm_power_off != NULL)
+	{
 		dev_err(&pdev->dev,
-			"pm_power_off function already registered");
+				"pm_power_off function already registered");
 		return -EBUSY;
 	}
 
@@ -39,17 +40,21 @@ static int restart_poweroff_probe(struct platform_device *pdev)
 static int restart_poweroff_remove(struct platform_device *pdev)
 {
 	if (pm_power_off == &restart_poweroff_do_poweroff)
+	{
 		pm_power_off = NULL;
+	}
 
 	return 0;
 }
 
-static const struct of_device_id of_restart_poweroff_match[] = {
+static const struct of_device_id of_restart_poweroff_match[] =
+{
 	{ .compatible = "restart-poweroff", },
 	{},
 };
 
-static struct platform_driver restart_poweroff_driver = {
+static struct platform_driver restart_poweroff_driver =
+{
 	.probe = restart_poweroff_probe,
 	.remove = restart_poweroff_remove,
 	.driver = {

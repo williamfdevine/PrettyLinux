@@ -19,7 +19,8 @@
 #include <linux/of_device.h>
 #include <linux/platform_device.h>
 
-struct qcom_coincell {
+struct qcom_coincell
+{
 	struct device	*dev;
 	struct regmap	*regmap;
 	u32		base_addr;
@@ -37,21 +38,24 @@ static const int qcom_vset_map[] = { 2500, 3200, 3100, 3000 };
 
 /* if enable==0, rset and vset are ignored */
 static int qcom_coincell_chgr_config(struct qcom_coincell *chgr, int rset,
-				     int vset, bool enable)
+									 int vset, bool enable)
 {
 	int i, j, rc;
 
 	/* if disabling, just do that and skip other operations */
 	if (!enable)
 		return regmap_write(chgr->regmap,
-			  chgr->base_addr + QCOM_COINCELL_REG_ENABLE, 0);
+							chgr->base_addr + QCOM_COINCELL_REG_ENABLE, 0);
 
 	/* find index for current-limiting resistor */
 	for (i = 0; i < ARRAY_SIZE(qcom_rset_map); i++)
 		if (rset == qcom_rset_map[i])
+		{
 			break;
+		}
 
-	if (i >= ARRAY_SIZE(qcom_rset_map)) {
+	if (i >= ARRAY_SIZE(qcom_rset_map))
+	{
 		dev_err(chgr->dev, "invalid rset-ohms value %d\n", rset);
 		return -EINVAL;
 	}
@@ -59,16 +63,21 @@ static int qcom_coincell_chgr_config(struct qcom_coincell *chgr, int rset,
 	/* find index for charge voltage */
 	for (j = 0; j < ARRAY_SIZE(qcom_vset_map); j++)
 		if (vset == qcom_vset_map[j])
+		{
 			break;
+		}
 
-	if (j >= ARRAY_SIZE(qcom_vset_map)) {
+	if (j >= ARRAY_SIZE(qcom_vset_map))
+	{
 		dev_err(chgr->dev, "invalid vset-millivolts value %d\n", vset);
 		return -EINVAL;
 	}
 
 	rc = regmap_write(chgr->regmap,
-			  chgr->base_addr + QCOM_COINCELL_REG_RSET, i);
-	if (rc) {
+					  chgr->base_addr + QCOM_COINCELL_REG_RSET, i);
+
+	if (rc)
+	{
 		/*
 		 * This is mainly to flag a bad base_addr (reg) from dts.
 		 * Other failures writing to the registers should be
@@ -80,14 +89,17 @@ static int qcom_coincell_chgr_config(struct qcom_coincell *chgr, int rset,
 	}
 
 	rc = regmap_write(chgr->regmap,
-		chgr->base_addr + QCOM_COINCELL_REG_VSET, j);
+					  chgr->base_addr + QCOM_COINCELL_REG_VSET, j);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* set 'enable' register */
 	return regmap_write(chgr->regmap,
-			    chgr->base_addr + QCOM_COINCELL_REG_ENABLE,
-			    QCOM_COINCELL_ENABLE);
+						chgr->base_addr + QCOM_COINCELL_REG_ENABLE,
+						QCOM_COINCELL_ENABLE);
 }
 
 static int qcom_coincell_probe(struct platform_device *pdev)
@@ -102,29 +114,39 @@ static int qcom_coincell_probe(struct platform_device *pdev)
 	chgr.dev = &pdev->dev;
 
 	chgr.regmap = dev_get_regmap(pdev->dev.parent, NULL);
-	if (!chgr.regmap) {
+
+	if (!chgr.regmap)
+	{
 		dev_err(chgr.dev, "Unable to get regmap\n");
 		return -EINVAL;
 	}
 
 	rc = of_property_read_u32(node, "reg", &chgr.base_addr);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	enable = !of_property_read_bool(node, "qcom,charger-disable");
 
-	if (enable) {
+	if (enable)
+	{
 		rc = of_property_read_u32(node, "qcom,rset-ohms", &rset);
-		if (rc) {
+
+		if (rc)
+		{
 			dev_err(chgr.dev,
-				"can't find 'qcom,rset-ohms' in DT block");
+					"can't find 'qcom,rset-ohms' in DT block");
 			return rc;
 		}
 
 		rc = of_property_read_u32(node, "qcom,vset-millivolts", &vset);
-		if (rc) {
+
+		if (rc)
+		{
 			dev_err(chgr.dev,
-			    "can't find 'qcom,vset-millivolts' in DT block");
+					"can't find 'qcom,vset-millivolts' in DT block");
 			return rc;
 		}
 	}
@@ -132,14 +154,16 @@ static int qcom_coincell_probe(struct platform_device *pdev)
 	return qcom_coincell_chgr_config(&chgr, rset, vset, enable);
 }
 
-static const struct of_device_id qcom_coincell_match_table[] = {
+static const struct of_device_id qcom_coincell_match_table[] =
+{
 	{ .compatible = "qcom,pm8941-coincell", },
 	{}
 };
 
 MODULE_DEVICE_TABLE(of, qcom_coincell_match_table);
 
-static struct platform_driver qcom_coincell_driver = {
+static struct platform_driver qcom_coincell_driver =
+{
 	.driver	= {
 		.name		= "qcom-spmi-coincell",
 		.of_match_table	= qcom_coincell_match_table,

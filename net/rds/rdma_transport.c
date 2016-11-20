@@ -40,7 +40,7 @@
 static struct rdma_cm_id *rds_rdma_listen_id;
 
 int rds_rdma_cm_event_handler(struct rdma_cm_id *cm_id,
-			      struct rdma_cm_event *event)
+							  struct rdma_cm_event *event)
 {
 	/* this can be null in the listening path */
 	struct rds_connection *conn = cm_id->context;
@@ -48,97 +48,121 @@ int rds_rdma_cm_event_handler(struct rdma_cm_id *cm_id,
 	int ret = 0;
 
 	rdsdebug("conn %p id %p handling event %u (%s)\n", conn, cm_id,
-		 event->event, rdma_event_msg(event->event));
+			 event->event, rdma_event_msg(event->event));
 
 	if (cm_id->device->node_type == RDMA_NODE_IB_CA)
+	{
 		trans = &rds_ib_transport;
+	}
 
 	/* Prevent shutdown from tearing down the connection
 	 * while we're executing. */
-	if (conn) {
+	if (conn)
+	{
 		mutex_lock(&conn->c_cm_lock);
 
 		/* If the connection is being shut down, bail out
 		 * right away. We return 0 so cm_id doesn't get
 		 * destroyed prematurely */
-		if (rds_conn_state(conn) == RDS_CONN_DISCONNECTING) {
+		if (rds_conn_state(conn) == RDS_CONN_DISCONNECTING)
+		{
 			/* Reject incoming connections while we're tearing
 			 * down an existing one. */
 			if (event->event == RDMA_CM_EVENT_CONNECT_REQUEST)
+			{
 				ret = 1;
+			}
+
 			goto out;
 		}
 	}
 
-	switch (event->event) {
-	case RDMA_CM_EVENT_CONNECT_REQUEST:
-		ret = trans->cm_handle_connect(cm_id, event);
-		break;
+	switch (event->event)
+	{
+		case RDMA_CM_EVENT_CONNECT_REQUEST:
+			ret = trans->cm_handle_connect(cm_id, event);
+			break;
 
-	case RDMA_CM_EVENT_ADDR_RESOLVED:
-		/* XXX do we need to clean up if this fails? */
-		ret = rdma_resolve_route(cm_id,
-					 RDS_RDMA_RESOLVE_TIMEOUT_MS);
-		break;
+		case RDMA_CM_EVENT_ADDR_RESOLVED:
+			/* XXX do we need to clean up if this fails? */
+			ret = rdma_resolve_route(cm_id,
+									 RDS_RDMA_RESOLVE_TIMEOUT_MS);
+			break;
 
-	case RDMA_CM_EVENT_ROUTE_RESOLVED:
-		/* Connection could have been dropped so make sure the
-		 * cm_id is valid before proceeding
-		 */
-		if (conn) {
-			struct rds_ib_connection *ibic;
+		case RDMA_CM_EVENT_ROUTE_RESOLVED:
 
-			ibic = conn->c_transport_data;
-			if (ibic && ibic->i_cm_id == cm_id)
-				ret = trans->cm_initiate_connect(cm_id);
-			else
+			/* Connection could have been dropped so make sure the
+			 * cm_id is valid before proceeding
+			 */
+			if (conn)
+			{
+				struct rds_ib_connection *ibic;
+
+				ibic = conn->c_transport_data;
+
+				if (ibic && ibic->i_cm_id == cm_id)
+				{
+					ret = trans->cm_initiate_connect(cm_id);
+				}
+				else
+				{
+					rds_conn_drop(conn);
+				}
+			}
+
+			break;
+
+		case RDMA_CM_EVENT_ESTABLISHED:
+			trans->cm_connect_complete(conn, event);
+			break;
+
+		case RDMA_CM_EVENT_ADDR_ERROR:
+		case RDMA_CM_EVENT_ROUTE_ERROR:
+		case RDMA_CM_EVENT_CONNECT_ERROR:
+		case RDMA_CM_EVENT_UNREACHABLE:
+		case RDMA_CM_EVENT_REJECTED:
+		case RDMA_CM_EVENT_DEVICE_REMOVAL:
+		case RDMA_CM_EVENT_ADDR_CHANGE:
+			if (conn)
+			{
 				rds_conn_drop(conn);
-		}
-		break;
+			}
 
-	case RDMA_CM_EVENT_ESTABLISHED:
-		trans->cm_connect_complete(conn, event);
-		break;
+			break;
 
-	case RDMA_CM_EVENT_ADDR_ERROR:
-	case RDMA_CM_EVENT_ROUTE_ERROR:
-	case RDMA_CM_EVENT_CONNECT_ERROR:
-	case RDMA_CM_EVENT_UNREACHABLE:
-	case RDMA_CM_EVENT_REJECTED:
-	case RDMA_CM_EVENT_DEVICE_REMOVAL:
-	case RDMA_CM_EVENT_ADDR_CHANGE:
-		if (conn)
+		case RDMA_CM_EVENT_DISCONNECTED:
+			rdsdebug("DISCONNECT event - dropping connection "
+					 "%pI4->%pI4\n", &conn->c_laddr,
+					 &conn->c_faddr);
 			rds_conn_drop(conn);
-		break;
+			break;
 
-	case RDMA_CM_EVENT_DISCONNECTED:
-		rdsdebug("DISCONNECT event - dropping connection "
-			"%pI4->%pI4\n", &conn->c_laddr,
-			 &conn->c_faddr);
-		rds_conn_drop(conn);
-		break;
+		case RDMA_CM_EVENT_TIMEWAIT_EXIT:
+			if (conn)
+			{
+				pr_info("RDS: RDMA_CM_EVENT_TIMEWAIT_EXIT event: dropping connection %pI4->%pI4\n",
+						&conn->c_laddr, &conn->c_faddr);
+				rds_conn_drop(conn);
+			}
 
-	case RDMA_CM_EVENT_TIMEWAIT_EXIT:
-		if (conn) {
-			pr_info("RDS: RDMA_CM_EVENT_TIMEWAIT_EXIT event: dropping connection %pI4->%pI4\n",
-				&conn->c_laddr, &conn->c_faddr);
-			rds_conn_drop(conn);
-		}
-		break;
+			break;
 
-	default:
-		/* things like device disconnect? */
-		printk(KERN_ERR "RDS: unknown event %u (%s)!\n",
-		       event->event, rdma_event_msg(event->event));
-		break;
+		default:
+			/* things like device disconnect? */
+			printk(KERN_ERR "RDS: unknown event %u (%s)!\n",
+				   event->event, rdma_event_msg(event->event));
+			break;
 	}
 
 out:
+
 	if (conn)
+	{
 		mutex_unlock(&conn->c_cm_lock);
+	}
 
 	rdsdebug("id %p event %u (%s) handling ret %d\n", cm_id, event->event,
-		 rdma_event_msg(event->event), ret);
+			 rdma_event_msg(event->event), ret);
 
 	return ret;
 }
@@ -150,11 +174,13 @@ static int rds_rdma_listen_init(void)
 	int ret;
 
 	cm_id = rdma_create_id(&init_net, rds_rdma_cm_event_handler, NULL,
-			       RDMA_PS_TCP, IB_QPT_RC);
-	if (IS_ERR(cm_id)) {
+						   RDMA_PS_TCP, IB_QPT_RC);
+
+	if (IS_ERR(cm_id))
+	{
 		ret = PTR_ERR(cm_id);
 		printk(KERN_ERR "RDS/RDMA: failed to setup listener, "
-		       "rdma_create_id() returned %d\n", ret);
+			   "rdma_create_id() returned %d\n", ret);
 		return ret;
 	}
 
@@ -167,16 +193,20 @@ static int rds_rdma_listen_init(void)
 	 * fail-over we'll have to take this into consideration.
 	 */
 	ret = rdma_bind_addr(cm_id, (struct sockaddr *)&sin);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "RDS/RDMA: failed to setup listener, "
-		       "rdma_bind_addr() returned %d\n", ret);
+			   "rdma_bind_addr() returned %d\n", ret);
 		goto out;
 	}
 
 	ret = rdma_listen(cm_id, 128);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "RDS/RDMA: failed to setup listener, "
-		       "rdma_listen() returned %d\n", ret);
+			   "rdma_listen() returned %d\n", ret);
 		goto out;
 	}
 
@@ -185,14 +215,19 @@ static int rds_rdma_listen_init(void)
 	rds_rdma_listen_id = cm_id;
 	cm_id = NULL;
 out:
+
 	if (cm_id)
+	{
 		rdma_destroy_id(cm_id);
+	}
+
 	return ret;
 }
 
 static void rds_rdma_listen_stop(void)
 {
-	if (rds_rdma_listen_id) {
+	if (rds_rdma_listen_id)
+	{
 		rdsdebug("cm %p\n", rds_rdma_listen_id);
 		rdma_destroy_id(rds_rdma_listen_id);
 		rds_rdma_listen_id = NULL;
@@ -204,12 +239,18 @@ static int rds_rdma_init(void)
 	int ret;
 
 	ret = rds_rdma_listen_init();
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = rds_ib_init();
+
 	if (ret)
+	{
 		goto err_ib_init;
+	}
 
 	goto out;
 

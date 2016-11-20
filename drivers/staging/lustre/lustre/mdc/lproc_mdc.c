@@ -37,12 +37,12 @@
 #include "mdc_internal.h"
 
 static ssize_t max_rpcs_in_flight_show(struct kobject *kobj,
-				       struct attribute *attr,
-				       char *buf)
+									   struct attribute *attr,
+									   char *buf)
 {
 	int len;
 	struct obd_device *dev = container_of(kobj, struct obd_device,
-					      obd_kobj);
+										  obd_kobj);
 	__u32 max;
 
 	max = obd_get_max_rpcs_in_flight(&dev->u.cli);
@@ -52,22 +52,28 @@ static ssize_t max_rpcs_in_flight_show(struct kobject *kobj,
 }
 
 static ssize_t max_rpcs_in_flight_store(struct kobject *kobj,
-					struct attribute *attr,
-					const char *buffer,
-					size_t count)
+										struct attribute *attr,
+										const char *buffer,
+										size_t count)
 {
 	struct obd_device *dev = container_of(kobj, struct obd_device,
-					      obd_kobj);
+										  obd_kobj);
 	int rc;
 	unsigned long val;
 
 	rc = kstrtoul(buffer, 10, &val);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = obd_set_max_rpcs_in_flight(&dev->u.cli, val);
+
 	if (rc)
+	{
 		count = rc;
+	}
 
 	return count;
 }
@@ -88,11 +94,11 @@ LPROC_SEQ_FOPS_RO_TYPE(mdc, state);
  * Don't forget to enable sysfs store function then.
  */
 static ssize_t max_pages_per_rpc_show(struct kobject *kobj,
-				      struct attribute *attr,
-				      char *buf)
+									  struct attribute *attr,
+									  char *buf)
 {
 	struct obd_device *dev = container_of(kobj, struct obd_device,
-					      obd_kobj);
+										  obd_kobj);
 	struct client_obd *cli = &dev->u.cli;
 
 	return sprintf(buf, "%d\n", cli->cl_max_pages_per_rpc);
@@ -102,7 +108,8 @@ LUSTRE_RO_ATTR(max_pages_per_rpc);
 LPROC_SEQ_FOPS_RW_TYPE(mdc, import);
 LPROC_SEQ_FOPS_RW_TYPE(mdc, pinger_recov);
 
-static struct lprocfs_vars lprocfs_mdc_obd_vars[] = {
+static struct lprocfs_vars lprocfs_mdc_obd_vars[] =
+{
 	{ "ping",		&mdc_ping_fops,			NULL, 0222 },
 	{ "connect_flags",	&mdc_connect_flags_fops,	NULL, 0 },
 	/*{ "filegroups",	lprocfs_rd_filegroups,		NULL, 0 },*/
@@ -115,13 +122,15 @@ static struct lprocfs_vars lprocfs_mdc_obd_vars[] = {
 	{ NULL }
 };
 
-static struct attribute *mdc_attrs[] = {
+static struct attribute *mdc_attrs[] =
+{
 	&lustre_attr_max_rpcs_in_flight.attr,
 	&lustre_attr_max_pages_per_rpc.attr,
 	NULL,
 };
 
-static struct attribute_group mdc_attr_group = {
+static struct attribute_group mdc_attr_group =
+{
 	.attrs = mdc_attrs,
 };
 

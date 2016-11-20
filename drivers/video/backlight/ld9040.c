@@ -35,7 +35,8 @@
 #define MIN_BRIGHTNESS		0
 #define MAX_BRIGHTNESS		24
 
-struct ld9040 {
+struct ld9040
+{
 	struct device			*dev;
 	struct spi_device		*spi;
 	unsigned int			power;
@@ -49,7 +50,8 @@ struct ld9040 {
 	bool  enabled;
 };
 
-static struct regulator_bulk_data supplies[] = {
+static struct regulator_bulk_data supplies[] =
+{
 	{ .supply = "vdd3", },
 	{ .supply = "vci", },
 };
@@ -61,13 +63,19 @@ static void ld9040_regulator_enable(struct ld9040 *lcd)
 
 	pd = lcd->lcd_pd;
 	mutex_lock(&lcd->lock);
-	if (!lcd->enabled) {
+
+	if (!lcd->enabled)
+	{
 		ret = regulator_bulk_enable(ARRAY_SIZE(supplies), supplies);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		lcd->enabled = true;
 	}
+
 	msleep(pd->power_on_delay);
 out:
 	mutex_unlock(&lcd->lock);
@@ -78,30 +86,39 @@ static void ld9040_regulator_disable(struct ld9040 *lcd)
 	int ret = 0;
 
 	mutex_lock(&lcd->lock);
-	if (lcd->enabled) {
+
+	if (lcd->enabled)
+	{
 		ret = regulator_bulk_disable(ARRAY_SIZE(supplies), supplies);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		lcd->enabled = false;
 	}
+
 out:
 	mutex_unlock(&lcd->lock);
 }
 
-static const unsigned short seq_swreset[] = {
+static const unsigned short seq_swreset[] =
+{
 	0x01, COMMAND_ONLY,
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_user_setting[] = {
+static const unsigned short seq_user_setting[] =
+{
 	0xF0, 0x5A,
 
 	DATA_ONLY, 0x5A,
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_elvss_on[] = {
+static const unsigned short seq_elvss_on[] =
+{
 	0xB1, 0x0D,
 
 	DATA_ONLY, 0x00,
@@ -109,7 +126,8 @@ static const unsigned short seq_elvss_on[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_gtcon[] = {
+static const unsigned short seq_gtcon[] =
+{
 	0xF7, 0x09,
 
 	DATA_ONLY, 0x00,
@@ -117,7 +135,8 @@ static const unsigned short seq_gtcon[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_panel_condition[] = {
+static const unsigned short seq_panel_condition[] =
+{
 	0xF8, 0x05,
 
 	DATA_ONLY, 0x65,
@@ -145,7 +164,8 @@ static const unsigned short seq_panel_condition[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_gamma_set1[] = {
+static const unsigned short seq_gamma_set1[] =
+{
 	0xF9, 0x00,
 
 	DATA_ONLY, 0xA7,
@@ -171,20 +191,23 @@ static const unsigned short seq_gamma_set1[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_gamma_ctrl[] = {
+static const unsigned short seq_gamma_ctrl[] =
+{
 	0xFB, 0x02,
 
 	DATA_ONLY, 0x5A,
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_gamma_start[] = {
+static const unsigned short seq_gamma_start[] =
+{
 	0xF9, COMMAND_ONLY,
 
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_apon[] = {
+static const unsigned short seq_apon[] =
+{
 	0xF3, 0x00,
 
 	DATA_ONLY, 0x00,
@@ -194,7 +217,8 @@ static const unsigned short seq_apon[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_display_ctrl[] = {
+static const unsigned short seq_display_ctrl[] =
+{
 	0xF2, 0x02,
 
 	DATA_ONLY, 0x08,
@@ -204,12 +228,14 @@ static const unsigned short seq_display_ctrl[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_manual_pwr[] = {
+static const unsigned short seq_manual_pwr[] =
+{
 	0xB0, 0x04,
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_pwr_ctrl[] = {
+static const unsigned short seq_pwr_ctrl[] =
+{
 	0xF4, 0x0A,
 
 	DATA_ONLY, 0x87,
@@ -221,27 +247,32 @@ static const unsigned short seq_pwr_ctrl[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_sleep_out[] = {
+static const unsigned short seq_sleep_out[] =
+{
 	0x11, COMMAND_ONLY,
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_sleep_in[] = {
+static const unsigned short seq_sleep_in[] =
+{
 	0x10, COMMAND_ONLY,
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_display_on[] = {
+static const unsigned short seq_display_on[] =
+{
 	0x29, COMMAND_ONLY,
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_display_off[] = {
+static const unsigned short seq_display_off[] =
+{
 	0x28, COMMAND_ONLY,
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_vci1_1st_en[] = {
+static const unsigned short seq_vci1_1st_en[] =
+{
 	0xF3, 0x10,
 
 	DATA_ONLY, 0x00,
@@ -251,7 +282,8 @@ static const unsigned short seq_vci1_1st_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_vl1_en[] = {
+static const unsigned short seq_vl1_en[] =
+{
 	0xF3, 0x11,
 
 	DATA_ONLY, 0x00,
@@ -261,7 +293,8 @@ static const unsigned short seq_vl1_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_vl2_en[] = {
+static const unsigned short seq_vl2_en[] =
+{
 	0xF3, 0x13,
 
 	DATA_ONLY, 0x00,
@@ -271,7 +304,8 @@ static const unsigned short seq_vl2_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_vci1_2nd_en[] = {
+static const unsigned short seq_vci1_2nd_en[] =
+{
 	0xF3, 0x33,
 
 	DATA_ONLY, 0x00,
@@ -281,7 +315,8 @@ static const unsigned short seq_vci1_2nd_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_vl3_en[] = {
+static const unsigned short seq_vl3_en[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0x00,
@@ -291,7 +326,8 @@ static const unsigned short seq_vl3_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_vreg1_amp_en[] = {
+static const unsigned short seq_vreg1_amp_en[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0x01,
@@ -301,7 +337,8 @@ static const unsigned short seq_vreg1_amp_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_vgh_amp_en[] = {
+static const unsigned short seq_vgh_amp_en[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0x11,
@@ -311,7 +348,8 @@ static const unsigned short seq_vgh_amp_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_vgl_amp_en[] = {
+static const unsigned short seq_vgl_amp_en[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0x31,
@@ -321,7 +359,8 @@ static const unsigned short seq_vgl_amp_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_vmos_amp_en[] = {
+static const unsigned short seq_vmos_amp_en[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0xB1,
@@ -331,7 +370,8 @@ static const unsigned short seq_vmos_amp_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_vint_amp_en[] = {
+static const unsigned short seq_vint_amp_en[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0xF1,
@@ -343,7 +383,8 @@ static const unsigned short seq_vint_amp_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_vbh_amp_en[] = {
+static const unsigned short seq_vbh_amp_en[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0xF9,
@@ -353,7 +394,8 @@ static const unsigned short seq_vbh_amp_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_vbl_amp_en[] = {
+static const unsigned short seq_vbl_amp_en[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0xFD,
@@ -363,7 +405,8 @@ static const unsigned short seq_vbl_amp_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_gam_amp_en[] = {
+static const unsigned short seq_gam_amp_en[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0xFF,
@@ -375,7 +418,8 @@ static const unsigned short seq_gam_amp_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_sd_amp_en[] = {
+static const unsigned short seq_sd_amp_en[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0xFF,
@@ -387,7 +431,8 @@ static const unsigned short seq_sd_amp_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_gls_en[] = {
+static const unsigned short seq_gls_en[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0xFF,
@@ -399,7 +444,8 @@ static const unsigned short seq_gls_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_els_en[] = {
+static const unsigned short seq_els_en[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0xFF,
@@ -411,7 +457,8 @@ static const unsigned short seq_els_en[] = {
 	ENDDEF, 0x00
 };
 
-static const unsigned short seq_el_on[] = {
+static const unsigned short seq_el_on[] =
+{
 	0xF3, 0x37,
 
 	DATA_ONLY, 0xFF,
@@ -428,7 +475,8 @@ static int ld9040_spi_write_byte(struct ld9040 *lcd, int addr, int data)
 	u16 buf[1];
 	struct spi_message msg;
 
-	struct spi_transfer xfer = {
+	struct spi_transfer xfer =
+	{
 		.len		= 2,
 		.tx_buf		= buf,
 	};
@@ -442,31 +490,44 @@ static int ld9040_spi_write_byte(struct ld9040 *lcd, int addr, int data)
 }
 
 static int ld9040_spi_write(struct ld9040 *lcd, unsigned char address,
-	unsigned char command)
+							unsigned char command)
 {
 	int ret = 0;
 
 	if (address != DATA_ONLY)
+	{
 		ret = ld9040_spi_write_byte(lcd, 0x0, address);
+	}
+
 	if (command != COMMAND_ONLY)
+	{
 		ret = ld9040_spi_write_byte(lcd, 0x1, command);
+	}
 
 	return ret;
 }
 
 static int ld9040_panel_send_sequence(struct ld9040 *lcd,
-	const unsigned short *wbuf)
+									  const unsigned short *wbuf)
 {
 	int ret = 0, i = 0;
 
-	while ((wbuf[i] & DEFMASK) != ENDDEF) {
-		if ((wbuf[i] & DEFMASK) != SLEEPMSEC) {
-			ret = ld9040_spi_write(lcd, wbuf[i], wbuf[i+1]);
+	while ((wbuf[i] & DEFMASK) != ENDDEF)
+	{
+		if ((wbuf[i] & DEFMASK) != SLEEPMSEC)
+		{
+			ret = ld9040_spi_write(lcd, wbuf[i], wbuf[i + 1]);
+
 			if (ret)
+			{
 				break;
-		} else {
-			msleep(wbuf[i+1]);
+			}
 		}
+		else
+		{
+			msleep(wbuf[i + 1]);
+		}
+
 		i += 2;
 	}
 
@@ -480,14 +541,19 @@ static int _ld9040_gamma_ctl(struct ld9040 *lcd, const unsigned int *gamma)
 
 	/* start gamma table updating. */
 	ret = ld9040_panel_send_sequence(lcd, seq_gamma_start);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(lcd->dev, "failed to disable gamma table updating.\n");
 		goto gamma_err;
 	}
 
-	for (i = 0 ; i < GAMMA_TABLE_COUNT; i++) {
+	for (i = 0 ; i < GAMMA_TABLE_COUNT; i++)
+	{
 		ret = ld9040_spi_write(lcd, DATA_ONLY, gamma[i]);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(lcd->dev, "failed to set gamma table.\n");
 			goto gamma_err;
 		}
@@ -495,8 +561,11 @@ static int _ld9040_gamma_ctl(struct ld9040 *lcd, const unsigned int *gamma)
 
 	/* update gamma table. */
 	ret = ld9040_panel_send_sequence(lcd, seq_gamma_ctrl);
+
 	if (ret)
+	{
 		dev_err(lcd->dev, "failed to update gamma table.\n");
+	}
 
 gamma_err:
 	return ret;
@@ -510,7 +579,8 @@ static int ld9040_gamma_ctl(struct ld9040 *lcd, int gamma)
 static int ld9040_ldi_init(struct ld9040 *lcd)
 {
 	int ret, i;
-	static const unsigned short *init_seq[] = {
+	static const unsigned short *init_seq[] =
+	{
 		seq_user_setting,
 		seq_panel_condition,
 		seq_display_ctrl,
@@ -522,12 +592,16 @@ static int ld9040_ldi_init(struct ld9040 *lcd)
 		seq_sleep_out,
 	};
 
-	for (i = 0; i < ARRAY_SIZE(init_seq); i++) {
+	for (i = 0; i < ARRAY_SIZE(init_seq); i++)
+	{
 		ret = ld9040_panel_send_sequence(lcd, init_seq[i]);
 		/* workaround: minimum delay time for transferring CMD */
 		usleep_range(300, 310);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 
 	return ret;
@@ -563,7 +637,8 @@ static int ld9040_power_on(struct ld9040 *lcd)
 	/* lcd power on */
 	ld9040_regulator_enable(lcd);
 
-	if (!pd->reset) {
+	if (!pd->reset)
+	{
 		dev_err(lcd->dev, "reset is NULL.\n");
 		return -EINVAL;
 	}
@@ -572,13 +647,17 @@ static int ld9040_power_on(struct ld9040 *lcd)
 	msleep(pd->reset_delay);
 
 	ret = ld9040_ldi_init(lcd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(lcd->dev, "failed to initialize ldi.\n");
 		return ret;
 	}
 
 	ret = ld9040_ldi_enable(lcd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(lcd->dev, "failed to enable ldi.\n");
 		return ret;
 	}
@@ -594,7 +673,9 @@ static int ld9040_power_off(struct ld9040 *lcd)
 	pd = lcd->lcd_pd;
 
 	ret = ld9040_ldi_disable(lcd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(lcd->dev, "lcd setting failed.\n");
 		return -EIO;
 	}
@@ -612,12 +693,18 @@ static int ld9040_power(struct ld9040 *lcd, int power)
 	int ret = 0;
 
 	if (ld9040_power_is_on(power) && !ld9040_power_is_on(lcd->power))
+	{
 		ret = ld9040_power_on(lcd);
+	}
 	else if (!ld9040_power_is_on(power) && ld9040_power_is_on(lcd->power))
+	{
 		ret = ld9040_power_off(lcd);
+	}
 
 	if (!ret)
+	{
 		lcd->power = power;
+	}
 
 	return ret;
 }
@@ -627,7 +714,8 @@ static int ld9040_set_power(struct lcd_device *ld, int power)
 	struct ld9040 *lcd = lcd_get_data(ld);
 
 	if (power != FB_BLANK_UNBLANK && power != FB_BLANK_POWERDOWN &&
-		power != FB_BLANK_NORMAL) {
+		power != FB_BLANK_NORMAL)
+	{
 		dev_err(lcd->dev, "power value should be 0, 1 or 4.\n");
 		return -EINVAL;
 	}
@@ -648,14 +736,17 @@ static int ld9040_set_brightness(struct backlight_device *bd)
 	struct ld9040 *lcd = bl_get_data(bd);
 
 	if (brightness < MIN_BRIGHTNESS ||
-		brightness > bd->props.max_brightness) {
+		brightness > bd->props.max_brightness)
+	{
 		dev_err(&bd->dev, "lcd brightness should be %d to %d.\n",
-			MIN_BRIGHTNESS, MAX_BRIGHTNESS);
+				MIN_BRIGHTNESS, MAX_BRIGHTNESS);
 		return -EINVAL;
 	}
 
 	ret = ld9040_gamma_ctl(lcd, bd->props.brightness);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&bd->dev, "lcd brightness setting failed.\n");
 		return -EIO;
 	}
@@ -663,12 +754,14 @@ static int ld9040_set_brightness(struct backlight_device *bd)
 	return ret;
 }
 
-static struct lcd_ops ld9040_lcd_ops = {
+static struct lcd_ops ld9040_lcd_ops =
+{
 	.set_power = ld9040_set_power,
 	.get_power = ld9040_get_power,
 };
 
-static const struct backlight_ops ld9040_backlight_ops  = {
+static const struct backlight_ops ld9040_backlight_ops  =
+{
 	.update_status = ld9040_set_brightness,
 };
 
@@ -681,14 +774,19 @@ static int ld9040_probe(struct spi_device *spi)
 	struct backlight_properties props;
 
 	lcd = devm_kzalloc(&spi->dev, sizeof(struct ld9040), GFP_KERNEL);
+
 	if (!lcd)
+	{
 		return -ENOMEM;
+	}
 
 	/* ld9040 lcd panel uses 3-wire 9bits SPI Mode. */
 	spi->bits_per_word = 9;
 
 	ret = spi_setup(spi);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&spi->dev, "spi setup failed.\n");
 		return ret;
 	}
@@ -697,7 +795,9 @@ static int ld9040_probe(struct spi_device *spi)
 	lcd->dev = &spi->dev;
 
 	lcd->lcd_pd = dev_get_platdata(&spi->dev);
-	if (!lcd->lcd_pd) {
+
+	if (!lcd->lcd_pd)
+	{
 		dev_err(&spi->dev, "platform data is NULL.\n");
 		return -EINVAL;
 	}
@@ -705,15 +805,20 @@ static int ld9040_probe(struct spi_device *spi)
 	mutex_init(&lcd->lock);
 
 	ret = devm_regulator_bulk_get(lcd->dev, ARRAY_SIZE(supplies), supplies);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(lcd->dev, "Failed to get regulators: %d\n", ret);
 		return ret;
 	}
 
 	ld = devm_lcd_device_register(&spi->dev, "ld9040", &spi->dev, lcd,
-					&ld9040_lcd_ops);
+								  &ld9040_lcd_ops);
+
 	if (IS_ERR(ld))
+	{
 		return PTR_ERR(ld);
+	}
 
 	lcd->ld = ld;
 
@@ -722,9 +827,12 @@ static int ld9040_probe(struct spi_device *spi)
 	props.max_brightness = MAX_BRIGHTNESS;
 
 	bd = devm_backlight_device_register(&spi->dev, "ld9040-bl", &spi->dev,
-					lcd, &ld9040_backlight_ops, &props);
+										lcd, &ld9040_backlight_ops, &props);
+
 	if (IS_ERR(bd))
+	{
 		return PTR_ERR(bd);
+	}
 
 	bd->props.brightness = MAX_BRIGHTNESS;
 	lcd->bd = bd;
@@ -733,7 +841,8 @@ static int ld9040_probe(struct spi_device *spi)
 	 * if lcd panel was on from bootloader like u-boot then
 	 * do not lcd on.
 	 */
-	if (!lcd->lcd_pd->lcd_enabled) {
+	if (!lcd->lcd_pd->lcd_enabled)
+	{
 		/*
 		 * if lcd panel was off from bootloader then
 		 * current lcd status is powerdown and then
@@ -742,7 +851,9 @@ static int ld9040_probe(struct spi_device *spi)
 		lcd->power = FB_BLANK_POWERDOWN;
 
 		ld9040_power(lcd, FB_BLANK_UNBLANK);
-	} else {
+	}
+	else
+	{
 		lcd->power = FB_BLANK_UNBLANK;
 	}
 
@@ -794,7 +905,8 @@ static void ld9040_shutdown(struct spi_device *spi)
 	ld9040_power(lcd, FB_BLANK_POWERDOWN);
 }
 
-static struct spi_driver ld9040_driver = {
+static struct spi_driver ld9040_driver =
+{
 	.driver = {
 		.name	= "ld9040",
 		.pm	= &ld9040_pm_ops,

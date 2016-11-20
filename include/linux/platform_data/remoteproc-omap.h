@@ -32,7 +32,8 @@ struct platform_device;
  * @device_shutdown: omap-specific handler for shutting down a device
  * @set_bootaddr: omap-specific handler for setting the rproc boot address
  */
-struct omap_rproc_pdata {
+struct omap_rproc_pdata
+{
 	const char *name;
 	const char *oh_name;
 	const char *oh_name_opt;

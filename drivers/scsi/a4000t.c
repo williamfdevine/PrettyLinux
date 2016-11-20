@@ -21,7 +21,8 @@
 #include "53c700.h"
 
 
-static struct scsi_host_template a4000t_scsi_driver_template = {
+static struct scsi_host_template a4000t_scsi_driver_template =
+{
 	.name		= "A4000T builtin SCSI",
 	.proc_name	= "A4000t",
 	.this_id	= 7,
@@ -39,16 +40,23 @@ static int __init amiga_a4000t_scsi_probe(struct platform_device *pdev)
 	struct Scsi_Host *host;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	if (!request_mem_region(res->start, resource_size(res),
-				"A4000T builtin SCSI"))
+							"A4000T builtin SCSI"))
+	{
 		return -EBUSY;
+	}
 
 	hostdata = kzalloc(sizeof(struct NCR_700_Host_Parameters),
-			   GFP_KERNEL);
-	if (!hostdata) {
+					   GFP_KERNEL);
+
+	if (!hostdata)
+	{
 		dev_err(&pdev->dev, "Failed to allocate host data\n");
 		goto out_release;
 	}
@@ -64,10 +72,12 @@ static int __init amiga_a4000t_scsi_probe(struct platform_device *pdev)
 
 	/* and register the chip */
 	host = NCR_700_detect(&a4000t_scsi_driver_template, hostdata,
-			      &pdev->dev);
-	if (!host) {
+						  &pdev->dev);
+
+	if (!host)
+	{
 		dev_err(&pdev->dev,
-			"No host detected; board configuration problem?\n");
+				"No host detected; board configuration problem?\n");
 		goto out_free;
 	}
 
@@ -76,7 +86,8 @@ static int __init amiga_a4000t_scsi_probe(struct platform_device *pdev)
 	host->irq = IRQ_AMIGA_PORTS;
 
 	if (request_irq(host->irq, NCR_700_intr, IRQF_SHARED, "a4000t-scsi",
-			host)) {
+					host))
+	{
 		dev_err(&pdev->dev, "request_irq failed\n");
 		goto out_put_host;
 	}
@@ -85,11 +96,11 @@ static int __init amiga_a4000t_scsi_probe(struct platform_device *pdev)
 	scsi_scan_host(host);
 	return 0;
 
- out_put_host:
+out_put_host:
 	scsi_host_put(host);
- out_free:
+out_free:
 	kfree(hostdata);
- out_release:
+out_release:
 	release_mem_region(res->start, resource_size(res));
 	return -ENODEV;
 }
@@ -108,7 +119,8 @@ static int __exit amiga_a4000t_scsi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver amiga_a4000t_scsi_driver = {
+static struct platform_driver amiga_a4000t_scsi_driver =
+{
 	.remove = __exit_p(amiga_a4000t_scsi_remove),
 	.driver   = {
 		.name	= "amiga-a4000t-scsi",
@@ -118,7 +130,7 @@ static struct platform_driver amiga_a4000t_scsi_driver = {
 module_platform_driver_probe(amiga_a4000t_scsi_driver, amiga_a4000t_scsi_probe);
 
 MODULE_AUTHOR("Alan Hourihane <alanh@fairlite.demon.co.uk> / "
-	      "Kars de Jong <jongk@linux-m68k.org>");
+			  "Kars de Jong <jongk@linux-m68k.org>");
 MODULE_DESCRIPTION("Amiga A4000T NCR53C710 driver");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:amiga-a4000t-scsi");

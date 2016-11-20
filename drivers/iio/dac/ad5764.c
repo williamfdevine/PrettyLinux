@@ -37,7 +37,8 @@
  * @channel	channel specification
 */
 
-struct ad5764_chip_info {
+struct ad5764_chip_info
+{
 	unsigned long int_vref;
 	const struct iio_chan_spec *channels;
 };
@@ -50,7 +51,8 @@ struct ad5764_chip_info {
  * @data:		spi transfer buffers
  */
 
-struct ad5764_state {
+struct ad5764_state
+{
 	struct spi_device		*spi;
 	const struct ad5764_chip_info	*chip_info;
 	struct regulator_bulk_data	vref_reg[2];
@@ -59,13 +61,15 @@ struct ad5764_state {
 	 * DMA (thus cache coherency maintenance) requires the
 	 * transfer buffers to live in their own cache lines.
 	 */
-	union {
+	union
+	{
 		__be32 d32;
 		u8 d8[4];
 	} data[2] ____cacheline_aligned;
 };
 
-enum ad5764_type {
+enum ad5764_type
+{
 	ID_AD5744,
 	ID_AD5744R,
 	ID_AD5764,
@@ -73,36 +77,37 @@ enum ad5764_type {
 };
 
 #define AD5764_CHANNEL(_chan, _bits) {				\
-	.type = IIO_VOLTAGE,					\
-	.indexed = 1,						\
-	.output = 1,						\
-	.channel = (_chan),					\
-	.address = (_chan),					\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |		\
-		BIT(IIO_CHAN_INFO_SCALE) |			\
-		BIT(IIO_CHAN_INFO_CALIBSCALE) |			\
-		BIT(IIO_CHAN_INFO_CALIBBIAS),			\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_OFFSET),	\
-	.scan_type = {						\
-		.sign = 'u',					\
-		.realbits = (_bits),				\
-		.storagebits = 16,				\
-		.shift = 16 - (_bits),				\
-	},							\
-}
+		.type = IIO_VOLTAGE,					\
+				.indexed = 1,						\
+						   .output = 1,						\
+									 .channel = (_chan),					\
+												.address = (_chan),					\
+														.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |		\
+																BIT(IIO_CHAN_INFO_SCALE) |			\
+																BIT(IIO_CHAN_INFO_CALIBSCALE) |			\
+																BIT(IIO_CHAN_INFO_CALIBBIAS),			\
+																.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_OFFSET),	\
+																		.scan_type = {						\
+																											.sign = 'u',					\
+																											.realbits = (_bits),				\
+																											.storagebits = 16,				\
+																											.shift = 16 - (_bits),				\
+																					 },							\
+	}
 
 #define DECLARE_AD5764_CHANNELS(_name, _bits) \
-const struct iio_chan_spec _name##_channels[] = { \
-	AD5764_CHANNEL(0, (_bits)), \
-	AD5764_CHANNEL(1, (_bits)), \
-	AD5764_CHANNEL(2, (_bits)), \
-	AD5764_CHANNEL(3, (_bits)), \
-};
+	const struct iio_chan_spec _name##_channels[] = { \
+		AD5764_CHANNEL(0, (_bits)), \
+		AD5764_CHANNEL(1, (_bits)), \
+		AD5764_CHANNEL(2, (_bits)), \
+		AD5764_CHANNEL(3, (_bits)), \
+	};
 
 static DECLARE_AD5764_CHANNELS(ad5764, 16);
 static DECLARE_AD5764_CHANNELS(ad5744, 14);
 
-static const struct ad5764_chip_info ad5764_chip_infos[] = {
+static const struct ad5764_chip_info ad5764_chip_infos[] =
+{
 	[ID_AD5744] = {
 		.int_vref = 0,
 		.channels = ad5744_channels,
@@ -122,7 +127,7 @@ static const struct ad5764_chip_info ad5764_chip_infos[] = {
 };
 
 static int ad5764_write(struct iio_dev *indio_dev, unsigned int reg,
-	unsigned int val)
+						unsigned int val)
 {
 	struct ad5764_state *st = iio_priv(indio_dev);
 	int ret;
@@ -137,11 +142,12 @@ static int ad5764_write(struct iio_dev *indio_dev, unsigned int reg,
 }
 
 static int ad5764_read(struct iio_dev *indio_dev, unsigned int reg,
-	unsigned int *val)
+					   unsigned int *val)
 {
 	struct ad5764_state *st = iio_priv(indio_dev);
 	int ret;
-	struct spi_transfer t[] = {
+	struct spi_transfer t[] =
+	{
 		{
 			.tx_buf = &st->data[0].d8[1],
 			.len = 3,
@@ -157,8 +163,11 @@ static int ad5764_read(struct iio_dev *indio_dev, unsigned int reg,
 	st->data[0].d32 = cpu_to_be32((1 << 23) | (reg << 16));
 
 	ret = spi_sync_transfer(st->spi, t, ARRAY_SIZE(t));
+
 	if (ret >= 0)
+	{
 		*val = be32_to_cpu(st->data[1].d32) & 0xffff;
+	}
 
 	mutex_unlock(&indio_dev->mlock);
 
@@ -167,42 +176,59 @@ static int ad5764_read(struct iio_dev *indio_dev, unsigned int reg,
 
 static int ad5764_chan_info_to_reg(struct iio_chan_spec const *chan, long info)
 {
-	switch (info) {
-	case 0:
-		return AD5764_REG_DATA(chan->address);
-	case IIO_CHAN_INFO_CALIBBIAS:
-		return AD5764_REG_OFFSET(chan->address);
-	case IIO_CHAN_INFO_CALIBSCALE:
-		return AD5764_REG_FINE_GAIN(chan->address);
-	default:
-		break;
+	switch (info)
+	{
+		case 0:
+			return AD5764_REG_DATA(chan->address);
+
+		case IIO_CHAN_INFO_CALIBBIAS:
+			return AD5764_REG_OFFSET(chan->address);
+
+		case IIO_CHAN_INFO_CALIBSCALE:
+			return AD5764_REG_FINE_GAIN(chan->address);
+
+		default:
+			break;
 	}
 
 	return 0;
 }
 
 static int ad5764_write_raw(struct iio_dev *indio_dev,
-	struct iio_chan_spec const *chan, int val, int val2, long info)
+							struct iio_chan_spec const *chan, int val, int val2, long info)
 {
 	const int max_val = (1 << chan->scan_type.realbits);
 	unsigned int reg;
 
-	switch (info) {
-	case IIO_CHAN_INFO_RAW:
-		if (val >= max_val || val < 0)
+	switch (info)
+	{
+		case IIO_CHAN_INFO_RAW:
+			if (val >= max_val || val < 0)
+			{
+				return -EINVAL;
+			}
+
+			val <<= chan->scan_type.shift;
+			break;
+
+		case IIO_CHAN_INFO_CALIBBIAS:
+			if (val >= 128 || val < -128)
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		case IIO_CHAN_INFO_CALIBSCALE:
+			if (val >= 32 || val < -32)
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		default:
 			return -EINVAL;
-		val <<= chan->scan_type.shift;
-		break;
-	case IIO_CHAN_INFO_CALIBBIAS:
-		if (val >= 128 || val < -128)
-			return -EINVAL;
-		break;
-	case IIO_CHAN_INFO_CALIBSCALE:
-		if (val >= 32 || val < -32)
-			return -EINVAL;
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	reg = ad5764_chan_info_to_reg(chan, info);
@@ -210,62 +236,87 @@ static int ad5764_write_raw(struct iio_dev *indio_dev,
 }
 
 static int ad5764_get_channel_vref(struct ad5764_state *st,
-	unsigned int channel)
+								   unsigned int channel)
 {
 	if (st->chip_info->int_vref)
+	{
 		return st->chip_info->int_vref;
+	}
 	else
+	{
 		return regulator_get_voltage(st->vref_reg[channel / 2].consumer);
+	}
 }
 
 static int ad5764_read_raw(struct iio_dev *indio_dev,
-	struct iio_chan_spec const *chan, int *val, int *val2, long info)
+						   struct iio_chan_spec const *chan, int *val, int *val2, long info)
 {
 	struct ad5764_state *st = iio_priv(indio_dev);
 	unsigned int reg;
 	int vref;
 	int ret;
 
-	switch (info) {
-	case IIO_CHAN_INFO_RAW:
-		reg = AD5764_REG_DATA(chan->address);
-		ret = ad5764_read(indio_dev, reg, val);
-		if (ret < 0)
-			return ret;
-		*val >>= chan->scan_type.shift;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_CALIBBIAS:
-		reg = AD5764_REG_OFFSET(chan->address);
-		ret = ad5764_read(indio_dev, reg, val);
-		if (ret < 0)
-			return ret;
-		*val = sign_extend32(*val, 7);
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_CALIBSCALE:
-		reg = AD5764_REG_FINE_GAIN(chan->address);
-		ret = ad5764_read(indio_dev, reg, val);
-		if (ret < 0)
-			return ret;
-		*val = sign_extend32(*val, 5);
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		/* vout = 4 * vref + ((dac_code / 65536) - 0.5) */
-		vref = ad5764_get_channel_vref(st, chan->channel);
-		if (vref < 0)
-			return vref;
+	switch (info)
+	{
+		case IIO_CHAN_INFO_RAW:
+			reg = AD5764_REG_DATA(chan->address);
+			ret = ad5764_read(indio_dev, reg, val);
 
-		*val = vref * 4 / 1000;
-		*val2 = chan->scan_type.realbits;
-		return IIO_VAL_FRACTIONAL_LOG2;
-	case IIO_CHAN_INFO_OFFSET:
-		*val = -(1 << chan->scan_type.realbits) / 2;
-		return IIO_VAL_INT;
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			*val >>= chan->scan_type.shift;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_CALIBBIAS:
+			reg = AD5764_REG_OFFSET(chan->address);
+			ret = ad5764_read(indio_dev, reg, val);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			*val = sign_extend32(*val, 7);
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_CALIBSCALE:
+			reg = AD5764_REG_FINE_GAIN(chan->address);
+			ret = ad5764_read(indio_dev, reg, val);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			*val = sign_extend32(*val, 5);
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			/* vout = 4 * vref + ((dac_code / 65536) - 0.5) */
+			vref = ad5764_get_channel_vref(st, chan->channel);
+
+			if (vref < 0)
+			{
+				return vref;
+			}
+
+			*val = vref * 4 / 1000;
+			*val2 = chan->scan_type.realbits;
+			return IIO_VAL_FRACTIONAL_LOG2;
+
+		case IIO_CHAN_INFO_OFFSET:
+			*val = -(1 << chan->scan_type.realbits) / 2;
+			return IIO_VAL_INT;
 	}
 
 	return -EINVAL;
 }
 
-static const struct iio_info ad5764_info = {
+static const struct iio_info ad5764_info =
+{
 	.read_raw = ad5764_read_raw,
 	.write_raw = ad5764_write_raw,
 	.driver_module = THIS_MODULE,
@@ -279,7 +330,9 @@ static int ad5764_probe(struct spi_device *spi)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
-	if (indio_dev == NULL) {
+
+	if (indio_dev == NULL)
+	{
 		dev_err(&spi->dev, "Failed to allocate iio device\n");
 		return -ENOMEM;
 	}
@@ -297,29 +350,36 @@ static int ad5764_probe(struct spi_device *spi)
 	indio_dev->num_channels = AD5764_NUM_CHANNELS;
 	indio_dev->channels = st->chip_info->channels;
 
-	if (st->chip_info->int_vref == 0) {
+	if (st->chip_info->int_vref == 0)
+	{
 		st->vref_reg[0].supply = "vrefAB";
 		st->vref_reg[1].supply = "vrefCD";
 
 		ret = devm_regulator_bulk_get(&st->spi->dev,
-			ARRAY_SIZE(st->vref_reg), st->vref_reg);
-		if (ret) {
+									  ARRAY_SIZE(st->vref_reg), st->vref_reg);
+
+		if (ret)
+		{
 			dev_err(&spi->dev, "Failed to request vref regulators: %d\n",
-				ret);
+					ret);
 			return ret;
 		}
 
 		ret = regulator_bulk_enable(ARRAY_SIZE(st->vref_reg),
-			st->vref_reg);
-		if (ret) {
+									st->vref_reg);
+
+		if (ret)
+		{
 			dev_err(&spi->dev, "Failed to enable vref regulators: %d\n",
-				ret);
+					ret);
 			return ret;
 		}
 	}
 
 	ret = iio_device_register(indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&spi->dev, "Failed to register iio device: %d\n", ret);
 		goto error_disable_reg;
 	}
@@ -327,8 +387,12 @@ static int ad5764_probe(struct spi_device *spi)
 	return 0;
 
 error_disable_reg:
+
 	if (st->chip_info->int_vref == 0)
+	{
 		regulator_bulk_disable(ARRAY_SIZE(st->vref_reg), st->vref_reg);
+	}
+
 	return ret;
 }
 
@@ -340,12 +404,15 @@ static int ad5764_remove(struct spi_device *spi)
 	iio_device_unregister(indio_dev);
 
 	if (st->chip_info->int_vref == 0)
+	{
 		regulator_bulk_disable(ARRAY_SIZE(st->vref_reg), st->vref_reg);
+	}
 
 	return 0;
 }
 
-static const struct spi_device_id ad5764_ids[] = {
+static const struct spi_device_id ad5764_ids[] =
+{
 	{ "ad5744", ID_AD5744 },
 	{ "ad5744r", ID_AD5744R },
 	{ "ad5764", ID_AD5764 },
@@ -354,7 +421,8 @@ static const struct spi_device_id ad5764_ids[] = {
 };
 MODULE_DEVICE_TABLE(spi, ad5764_ids);
 
-static struct spi_driver ad5764_driver = {
+static struct spi_driver ad5764_driver =
+{
 	.driver = {
 		.name = "ad5764",
 	},

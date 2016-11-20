@@ -31,7 +31,8 @@
  * @lock:		mutual exclusion around the send/complete pair
  * @ack_status:		result of the rpm request
  */
-struct qcom_smd_rpm {
+struct qcom_smd_rpm
+{
 	struct qcom_smd_channel *rpm_channel;
 	struct device *dev;
 
@@ -45,7 +46,8 @@ struct qcom_smd_rpm {
  * @service_type:	identifier of the service
  * @length:		length of the payload
  */
-struct qcom_rpm_header {
+struct qcom_rpm_header
+{
 	__le32 service_type;
 	__le32 length;
 };
@@ -58,7 +60,8 @@ struct qcom_rpm_header {
  * @id:		resource id
  * @data_len:	length of the payload following this header
  */
-struct qcom_rpm_request {
+struct qcom_rpm_request
+{
 	__le32 msg_id;
 	__le32 flags;
 	__le32 type;
@@ -75,10 +78,12 @@ struct qcom_rpm_request {
  *
  * Multiple of these messages can be stacked in an rpm message.
  */
-struct qcom_rpm_message {
+struct qcom_rpm_message
+{
 	__le32 msg_type;
 	__le32 length;
-	union {
+	union
+	{
 		__le32 msg_id;
 		u8 message[0];
 	};
@@ -98,15 +103,16 @@ struct qcom_rpm_message {
  * @count:	number of bytes in @buf
  */
 int qcom_rpm_smd_write(struct qcom_smd_rpm *rpm,
-		       int state,
-		       u32 type, u32 id,
-		       void *buf,
-		       size_t count)
+					   int state,
+					   u32 type, u32 id,
+					   void *buf,
+					   size_t count)
 {
 	static unsigned msg_id = 1;
 	int left;
 	int ret;
-	struct {
+	struct
+	{
 		struct qcom_rpm_header hdr;
 		struct qcom_rpm_request req;
 		u8 payload[];
@@ -115,11 +121,16 @@ int qcom_rpm_smd_write(struct qcom_smd_rpm *rpm,
 
 	/* SMD packets to the RPM may not exceed 256 bytes */
 	if (WARN_ON(size >= 256))
+	{
 		return -EINVAL;
+	}
 
 	pkt = kmalloc(size, GFP_KERNEL);
+
 	if (!pkt)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_lock(&rpm->lock);
 
@@ -134,14 +145,22 @@ int qcom_rpm_smd_write(struct qcom_smd_rpm *rpm,
 	memcpy(pkt->payload, buf, count);
 
 	ret = qcom_smd_send(rpm->rpm_channel, pkt, size);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	left = wait_for_completion_timeout(&rpm->ack, RPM_REQUEST_TIMEOUT);
+
 	if (!left)
+	{
 		ret = -ETIMEDOUT;
+	}
 	else
+	{
 		ret = rpm->ack_status;
+	}
 
 out:
 	kfree(pkt);
@@ -151,8 +170,8 @@ out:
 EXPORT_SYMBOL(qcom_rpm_smd_write);
 
 static int qcom_smd_rpm_callback(struct qcom_smd_channel *channel,
-				 const void *data,
-				 size_t count)
+								 const void *data,
+								 size_t count)
 {
 	const struct qcom_rpm_header *hdr = data;
 	size_t hdr_length = le32_to_cpu(hdr->length);
@@ -165,27 +184,37 @@ static int qcom_smd_rpm_callback(struct qcom_smd_channel *channel,
 	u32 len, msg_length;
 
 	if (le32_to_cpu(hdr->service_type) != RPM_SERVICE_TYPE_REQUEST ||
-	    hdr_length < sizeof(struct qcom_rpm_message)) {
+		hdr_length < sizeof(struct qcom_rpm_message))
+	{
 		dev_err(rpm->dev, "invalid request\n");
 		return 0;
 	}
 
-	while (buf < end) {
+	while (buf < end)
+	{
 		msg = (struct qcom_rpm_message *)buf;
 		msg_length = le32_to_cpu(msg->length);
-		switch (le32_to_cpu(msg->msg_type)) {
-		case RPM_MSG_TYPE_MSG_ID:
-			break;
-		case RPM_MSG_TYPE_ERR:
-			len = min_t(u32, ALIGN(msg_length, 4), sizeof(msgbuf));
-			memcpy_fromio(msgbuf, msg->message, len);
-			msgbuf[len - 1] = 0;
 
-			if (!strcmp(msgbuf, "resource does not exist"))
-				status = -ENXIO;
-			else
-				status = -EINVAL;
-			break;
+		switch (le32_to_cpu(msg->msg_type))
+		{
+			case RPM_MSG_TYPE_MSG_ID:
+				break;
+
+			case RPM_MSG_TYPE_ERR:
+				len = min_t(u32, ALIGN(msg_length, 4), sizeof(msgbuf));
+				memcpy_fromio(msgbuf, msg->message, len);
+				msgbuf[len - 1] = 0;
+
+				if (!strcmp(msgbuf, "resource does not exist"))
+				{
+					status = -ENXIO;
+				}
+				else
+				{
+					status = -EINVAL;
+				}
+
+				break;
 		}
 
 		buf = PTR_ALIGN(buf + 2 * sizeof(u32) + msg_length, 4);
@@ -201,8 +230,11 @@ static int qcom_smd_rpm_probe(struct qcom_smd_device *sdev)
 	struct qcom_smd_rpm *rpm;
 
 	rpm = devm_kzalloc(&sdev->dev, sizeof(*rpm), GFP_KERNEL);
+
 	if (!rpm)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&rpm->lock);
 	init_completion(&rpm->ack);
@@ -221,7 +253,8 @@ static void qcom_smd_rpm_remove(struct qcom_smd_device *sdev)
 	of_platform_depopulate(&sdev->dev);
 }
 
-static const struct of_device_id qcom_smd_rpm_of_match[] = {
+static const struct of_device_id qcom_smd_rpm_of_match[] =
+{
 	{ .compatible = "qcom,rpm-apq8084" },
 	{ .compatible = "qcom,rpm-msm8916" },
 	{ .compatible = "qcom,rpm-msm8974" },
@@ -229,7 +262,8 @@ static const struct of_device_id qcom_smd_rpm_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, qcom_smd_rpm_of_match);
 
-static struct qcom_smd_driver qcom_smd_rpm_driver = {
+static struct qcom_smd_driver qcom_smd_rpm_driver =
+{
 	.probe = qcom_smd_rpm_probe,
 	.remove = qcom_smd_rpm_remove,
 	.callback = qcom_smd_rpm_callback,

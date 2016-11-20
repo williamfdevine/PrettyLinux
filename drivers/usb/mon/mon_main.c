@@ -38,17 +38,24 @@ void mon_reader_add(struct mon_bus *mbus, struct mon_reader *r)
 	struct list_head *p;
 
 	spin_lock_irqsave(&mbus->lock, flags);
-	if (mbus->nreaders == 0) {
-		if (mbus == &mon_bus0) {
-			list_for_each (p, &mon_buses) {
+
+	if (mbus->nreaders == 0)
+	{
+		if (mbus == &mon_bus0)
+		{
+			list_for_each (p, &mon_buses)
+			{
 				struct mon_bus *m1;
 				m1 = list_entry(p, struct mon_bus, bus_link);
 				m1->u_bus->monitored = 1;
 			}
-		} else {
+		}
+		else
+		{
 			mbus->u_bus->monitored = 1;
 		}
 	}
+
 	mbus->nreaders++;
 	list_add_tail(&r->r_link, &mbus->r_list);
 	spin_unlock_irqrestore(&mbus->lock, flags);
@@ -68,8 +75,12 @@ void mon_reader_del(struct mon_bus *mbus, struct mon_reader *r)
 	spin_lock_irqsave(&mbus->lock, flags);
 	list_del(&r->r_link);
 	--mbus->nreaders;
+
 	if (mbus->nreaders == 0)
+	{
 		mon_stop(mbus);
+	}
+
 	spin_unlock_irqrestore(&mbus->lock, flags);
 
 	kref_put(&mbus->ref, mon_bus_drop);
@@ -85,7 +96,8 @@ static void mon_bus_submit(struct mon_bus *mbus, struct urb *urb)
 
 	spin_lock_irqsave(&mbus->lock, flags);
 	mbus->cnt_events++;
-	list_for_each (pos, &mbus->r_list) {
+	list_for_each (pos, &mbus->r_list)
+	{
 		r = list_entry(pos, struct mon_reader, r_link);
 		r->rnf_submit(r->r_data, urb);
 	}
@@ -97,8 +109,12 @@ static void mon_submit(struct usb_bus *ubus, struct urb *urb)
 	struct mon_bus *mbus;
 
 	mbus = ubus->mon_bus;
+
 	if (mbus != NULL)
+	{
 		mon_bus_submit(mbus, urb);
+	}
+
 	mon_bus_submit(&mon_bus0, urb);
 }
 
@@ -112,7 +128,8 @@ static void mon_bus_submit_error(struct mon_bus *mbus, struct urb *urb, int erro
 
 	spin_lock_irqsave(&mbus->lock, flags);
 	mbus->cnt_events++;
-	list_for_each (pos, &mbus->r_list) {
+	list_for_each (pos, &mbus->r_list)
+	{
 		r = list_entry(pos, struct mon_reader, r_link);
 		r->rnf_error(r->r_data, urb, error);
 	}
@@ -124,8 +141,12 @@ static void mon_submit_error(struct usb_bus *ubus, struct urb *urb, int error)
 	struct mon_bus *mbus;
 
 	mbus = ubus->mon_bus;
+
 	if (mbus != NULL)
+	{
 		mon_bus_submit_error(mbus, urb, error);
+	}
+
 	mon_bus_submit_error(&mon_bus0, urb, error);
 }
 
@@ -139,7 +160,8 @@ static void mon_bus_complete(struct mon_bus *mbus, struct urb *urb, int status)
 
 	spin_lock_irqsave(&mbus->lock, flags);
 	mbus->cnt_events++;
-	list_for_each (pos, &mbus->r_list) {
+	list_for_each (pos, &mbus->r_list)
+	{
 		r = list_entry(pos, struct mon_reader, r_link);
 		r->rnf_complete(r->r_data, urb, status);
 	}
@@ -151,8 +173,12 @@ static void mon_complete(struct usb_bus *ubus, struct urb *urb, int status)
 	struct mon_bus *mbus;
 
 	mbus = ubus->mon_bus;
+
 	if (mbus != NULL)
+	{
 		mon_bus_complete(mbus, urb, status);
+	}
+
 	mon_bus_complete(&mon_bus0, urb, status);
 }
 
@@ -166,21 +192,29 @@ static void mon_stop(struct mon_bus *mbus)
 	struct usb_bus *ubus;
 	struct list_head *p;
 
-	if (mbus == &mon_bus0) {
-		list_for_each (p, &mon_buses) {
+	if (mbus == &mon_bus0)
+	{
+		list_for_each (p, &mon_buses)
+		{
 			mbus = list_entry(p, struct mon_bus, bus_link);
+
 			/*
 			 * We do not change nreaders here, so rely on mon_lock.
 			 */
 			if (mbus->nreaders == 0 && (ubus = mbus->u_bus) != NULL)
+			{
 				ubus->monitored = 0;
+			}
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * A stop can be called for a dissolved mon_bus in case of
 		 * a reader staying across an rmmod foo_hcd, so test ->u_bus.
 		 */
-		if (mon_bus0.nreaders == 0 && (ubus = mbus->u_bus) != NULL) {
+		if (mon_bus0.nreaders == 0 && (ubus = mbus->u_bus) != NULL)
+		{
 			ubus->monitored = 0;
 			mb();
 		}
@@ -197,8 +231,12 @@ static void mon_bus_add(struct usb_bus *ubus)
 {
 	mon_bus_init(ubus);
 	mutex_lock(&mon_lock);
+
 	if (mon_bus0.nreaders != 0)
+	{
 		ubus->monitored = 1;
+	}
+
 	mutex_unlock(&mon_lock);
 }
 
@@ -211,10 +249,16 @@ static void mon_bus_remove(struct usb_bus *ubus)
 
 	mutex_lock(&mon_lock);
 	list_del(&mbus->bus_link);
+
 	if (mbus->text_inited)
+	{
 		mon_text_del(mbus);
+	}
+
 	if (mbus->bin_inited)
+	{
 		mon_bin_del(mbus);
+	}
 
 	mon_dissolve(mbus, ubus);
 	kref_put(&mbus->ref, mon_bus_drop);
@@ -222,26 +266,31 @@ static void mon_bus_remove(struct usb_bus *ubus)
 }
 
 static int mon_notify(struct notifier_block *self, unsigned long action,
-		      void *dev)
+					  void *dev)
 {
-	switch (action) {
-	case USB_BUS_ADD:
-		mon_bus_add(dev);
-		break;
-	case USB_BUS_REMOVE:
-		mon_bus_remove(dev);
+	switch (action)
+	{
+		case USB_BUS_ADD:
+			mon_bus_add(dev);
+			break;
+
+		case USB_BUS_REMOVE:
+			mon_bus_remove(dev);
 	}
+
 	return NOTIFY_OK;
 }
 
-static struct notifier_block mon_nb = {
+static struct notifier_block mon_nb =
+{
 	.notifier_call = 	mon_notify,
 };
 
 /*
  * Ops
  */
-static const struct usb_mon_operations mon_ops_0 = {
+static const struct usb_mon_operations mon_ops_0 =
+{
 	.urb_submit =	mon_submit,
 	.urb_submit_error = mon_submit_error,
 	.urb_complete =	mon_complete,
@@ -253,7 +302,8 @@ static const struct usb_mon_operations mon_ops_0 = {
 static void mon_dissolve(struct mon_bus *mbus, struct usb_bus *ubus)
 {
 
-	if (ubus->monitored) {
+	if (ubus->monitored)
+	{
 		ubus->monitored = 0;
 		mb();
 	}
@@ -284,8 +334,12 @@ static void mon_bus_init(struct usb_bus *ubus)
 	struct mon_bus *mbus;
 
 	mbus = kzalloc(sizeof(struct mon_bus), GFP_KERNEL);
+
 	if (mbus == NULL)
+	{
 		goto err_alloc;
+	}
+
 	kref_init(&mbus->ref);
 	spin_lock_init(&mbus->lock);
 	INIT_LIST_HEAD(&mbus->r_list);
@@ -334,12 +388,17 @@ struct mon_bus *mon_bus_lookup(unsigned int num)
 	struct list_head *p;
 	struct mon_bus *mbus;
 
-	if (num == 0) {
+	if (num == 0)
+	{
 		return &mon_bus0;
 	}
-	list_for_each (p, &mon_buses) {
+
+	list_for_each (p, &mon_buses)
+	{
 		mbus = list_entry(p, struct mon_bus, bus_link);
-		if (mbus->u_bus->busnum == num) {
+
+		if (mbus->u_bus->busnum == num)
+		{
 			return mbus;
 		}
 	}
@@ -352,22 +411,29 @@ static int __init mon_init(void)
 	int rc, id;
 
 	if ((rc = mon_text_init()) != 0)
+	{
 		goto err_text;
+	}
+
 	if ((rc = mon_bin_init()) != 0)
+	{
 		goto err_bin;
+	}
 
 	mon_bus0_init();
 
-	if (usb_mon_register(&mon_ops_0) != 0) {
+	if (usb_mon_register(&mon_ops_0) != 0)
+	{
 		printk(KERN_NOTICE TAG ": unable to register with the core\n");
 		rc = -ENODEV;
 		goto err_reg;
 	}
+
 	// MOD_INC_USE_COUNT(which_module?);
 
 	mutex_lock(&usb_bus_idr_lock);
 	idr_for_each_entry(&usb_bus_idr, ubus, id)
-		mon_bus_init(ubus);
+	mon_bus_init(ubus);
 	usb_register_notify(&mon_nb);
 	mutex_unlock(&usb_bus_idr_lock);
 	return 0;
@@ -390,25 +456,32 @@ static void __exit mon_exit(void)
 
 	mutex_lock(&mon_lock);
 
-	while (!list_empty(&mon_buses)) {
+	while (!list_empty(&mon_buses))
+	{
 		p = mon_buses.next;
 		mbus = list_entry(p, struct mon_bus, bus_link);
 		list_del(p);
 
 		if (mbus->text_inited)
+		{
 			mon_text_del(mbus);
+		}
+
 		if (mbus->bin_inited)
+		{
 			mon_bin_del(mbus);
+		}
 
 		/*
 		 * This never happens, because the open/close paths in
 		 * file level maintain module use counters and so rmmod fails
 		 * before reaching here. However, better be safe...
 		 */
-		if (mbus->nreaders) {
+		if (mbus->nreaders)
+		{
 			printk(KERN_ERR TAG
-			    ": Outstanding opens (%d) on usb%d, leaking...\n",
-			    mbus->nreaders, mbus->u_bus->busnum);
+				   ": Outstanding opens (%d) on usb%d, leaking...\n",
+				   mbus->nreaders, mbus->u_bus->busnum);
 			atomic_set(&mbus->ref.refcount, 2);	/* Force leak */
 		}
 
@@ -417,10 +490,16 @@ static void __exit mon_exit(void)
 	}
 
 	mbus = &mon_bus0;
+
 	if (mbus->text_inited)
+	{
 		mon_text_del(mbus);
+	}
+
 	if (mbus->bin_inited)
+	{
 		mon_bin_del(mbus);
+	}
 
 	mutex_unlock(&mon_lock);
 

@@ -31,7 +31,8 @@
 /*
  * Per device, used to track global memory allocations.
  */
-struct ilo_hwinfo {
+struct ilo_hwinfo
+{
 	/* mmio registers on device */
 	char __iomem *mmio_vaddr;
 
@@ -78,28 +79,34 @@ struct ilo_hwinfo {
  */
 #define ILOSW_CCB_SZ	64
 #define ILOHW_CCB_SZ 	128
-struct ccb {
-	union {
+struct ccb
+{
+	union
+	{
 		char *send_fifobar;
 		u64 send_fifobar_pa;
 	} ccb_u1;
-	union {
+	union
+	{
 		char *send_desc;
 		u64 send_desc_pa;
 	} ccb_u2;
 	u64 send_ctrl;
 
-	union {
+	union
+	{
 		char *recv_fifobar;
 		u64 recv_fifobar_pa;
 	} ccb_u3;
-	union {
+	union
+	{
 		char *recv_desc;
 		u64 recv_desc_pa;
 	} ccb_u4;
 	u64 recv_ctrl;
 
-	union {
+	union
+	{
 		char __iomem *db_base;
 		u64 padding5;
 	} ccb_u5;
@@ -129,7 +136,8 @@ struct ccb {
 /*
  * Per fd structure used to track the ccb allocated to that dev file.
  */
-struct ccb_data {
+struct ccb_data
+{
 	/* software version of ccb, using virtual addrs */
 	struct ccb  driver_ccb;
 
@@ -162,20 +170,21 @@ struct ccb_data {
  */
 #define ILO_START_ALIGN	4096
 #define ILO_CACHE_SZ 	 128
-struct fifo {
-    u64 nrents;	/* user requested number of fifo entries */
-    u64 imask;  /* mask to extract valid fifo index */
-    u64 merge;	/*  O/C bits to merge in during enqueue operation */
-    u64 reset;	/* set to non-zero when the target device resets */
-    u8  pad_0[ILO_CACHE_SZ - (sizeof(u64) * 4)];
+struct fifo
+{
+	u64 nrents;	/* user requested number of fifo entries */
+	u64 imask;  /* mask to extract valid fifo index */
+	u64 merge;	/*  O/C bits to merge in during enqueue operation */
+	u64 reset;	/* set to non-zero when the target device resets */
+	u8  pad_0[ILO_CACHE_SZ - (sizeof(u64) * 4)];
 
-    u64 head;
-    u8  pad_1[ILO_CACHE_SZ - (sizeof(u64))];
+	u64 head;
+	u8  pad_1[ILO_CACHE_SZ - (sizeof(u64))];
 
-    u64 tail;
-    u8  pad_2[ILO_CACHE_SZ - (sizeof(u64))];
+	u64 tail;
+	u8  pad_2[ILO_CACHE_SZ - (sizeof(u64))];
 
-    u64 fifobar[1];
+	u64 fifobar[1];
 };
 
 /* convert between struct fifo, and the fifobar, which is saved in the ccb */

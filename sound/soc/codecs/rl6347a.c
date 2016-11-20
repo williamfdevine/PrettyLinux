@@ -24,15 +24,20 @@ int rl6347a_hw_write(void *context, unsigned int reg, unsigned int value)
 	int ret, i;
 
 	/* handle index registers */
-	if (reg <= 0xff) {
+	if (reg <= 0xff)
+	{
 		rl6347a_hw_write(client, RL6347A_COEF_INDEX, reg);
-		for (i = 0; i < rl6347a->index_cache_size; i++) {
-			if (reg == rl6347a->index_cache[i].reg) {
+
+		for (i = 0; i < rl6347a->index_cache_size; i++)
+		{
+			if (reg == rl6347a->index_cache[i].reg)
+			{
 				rl6347a->index_cache[i].def = value;
 				break;
 			}
 
 		}
+
 		reg = RL6347A_PROC_COEF;
 	}
 
@@ -49,13 +54,22 @@ int rl6347a_hw_write(void *context, unsigned int reg, unsigned int value)
 	ret = i2c_master_send(client, data, 4);
 
 	if (ret == 4)
+	{
 		return 0;
+	}
 	else
+	{
 		pr_err("ret=%d\n", ret);
+	}
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 	else
+	{
 		return -EIO;
+	}
 }
 EXPORT_SYMBOL_GPL(rl6347a_hw_write);
 
@@ -68,7 +82,8 @@ int rl6347a_hw_read(void *context, unsigned int reg, unsigned int *value)
 	unsigned int index, vid, buf = 0x0;
 
 	/* handle index registers */
-	if (reg <= 0xff) {
+	if (reg <= 0xff)
+	{
 		rl6347a_hw_write(client, RL6347A_COEF_INDEX, reg);
 		reg = RL6347A_PROC_COEF;
 	}
@@ -76,10 +91,12 @@ int rl6347a_hw_read(void *context, unsigned int reg, unsigned int *value)
 	reg = reg | 0x80000;
 	vid = (reg >> 8) & 0xfff;
 
-	if (AC_VERB_GET_AMP_GAIN_MUTE == (vid & 0xf00)) {
+	if (AC_VERB_GET_AMP_GAIN_MUTE == (vid & 0xf00))
+	{
 		index = (reg >> 8) & 0xf;
 		reg = (reg & ~0xf0f) | index;
 	}
+
 	be_reg = cpu_to_be32(reg);
 
 	/* Write register */
@@ -95,10 +112,15 @@ int rl6347a_hw_read(void *context, unsigned int reg, unsigned int *value)
 	xfer[1].buf = (u8 *)&buf;
 
 	ret = i2c_transfer(client->adapter, xfer, 2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 	else if (ret != 2)
+	{
 		return -EIO;
+	}
 
 	*value = be32_to_cpu(buf);
 

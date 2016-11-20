@@ -27,11 +27,12 @@
  * @shutdown: shutdown function
  * @cmd: FTP transfer function
  */
-struct hmcdrv_ftp_ops {
+struct hmcdrv_ftp_ops
+{
 	int (*startup)(void);
 	void (*shutdown)(void);
 	ssize_t (*transfer)(const struct hmcdrv_ftp_cmdspec *ftp,
-			    size_t *fsize);
+						size_t *fsize);
 };
 
 static enum hmcdrv_ftp_cmdid hmcdrv_ftp_cmd_getid(const char *cmd, int len);
@@ -49,7 +50,8 @@ static unsigned hmcdrv_ftp_refcnt; /* start/shutdown reference counter */
 static enum hmcdrv_ftp_cmdid hmcdrv_ftp_cmd_getid(const char *cmd, int len)
 {
 	/* HMC FTP command descriptor */
-	struct hmcdrv_ftp_cmd_desc {
+	struct hmcdrv_ftp_cmd_desc
+	{
 		const char *str;	   /* command string */
 		enum hmcdrv_ftp_cmdid cmd; /* associated command as enum */
 	};
@@ -63,20 +65,33 @@ static enum hmcdrv_ftp_cmdid hmcdrv_ftp_cmd_getid(const char *cmd, int len)
 	 * 3. Original command 'nlist' was renamed, else the CRC would
 	 *    collide with 'append' (see point 2).
 	 */
-	static const struct hmcdrv_ftp_cmd_desc ftpcmds[7] = {
+	static const struct hmcdrv_ftp_cmd_desc ftpcmds[7] =
+	{
 
-		{.str = "get", /* [0] get (CRC = 0x68eb) */
-		 .cmd = HMCDRV_FTP_GET},
-		{.str = "dir", /* [1] dir (CRC = 0x6a9e) */
-		 .cmd = HMCDRV_FTP_DIR},
-		{.str = "delete", /* [2] delete (CRC = 0x53ae) */
-		 .cmd = HMCDRV_FTP_DELETE},
-		{.str = "nls", /* [3] nls (CRC = 0xf87c) */
-		 .cmd = HMCDRV_FTP_NLIST},
-		{.str = "put", /* [4] put (CRC = 0xac56) */
-		 .cmd = HMCDRV_FTP_PUT},
-		{.str = "append", /* [5] append (CRC = 0xf56e) */
-		 .cmd = HMCDRV_FTP_APPEND},
+		{
+			.str = "get", /* [0] get (CRC = 0x68eb) */
+			.cmd = HMCDRV_FTP_GET
+		},
+		{
+			.str = "dir", /* [1] dir (CRC = 0x6a9e) */
+			.cmd = HMCDRV_FTP_DIR
+		},
+		{
+			.str = "delete", /* [2] delete (CRC = 0x53ae) */
+			.cmd = HMCDRV_FTP_DELETE
+		},
+		{
+			.str = "nls", /* [3] nls (CRC = 0xf87c) */
+			.cmd = HMCDRV_FTP_NLIST
+		},
+		{
+			.str = "put", /* [4] put (CRC = 0xac56) */
+			.cmd = HMCDRV_FTP_PUT
+		},
+		{
+			.str = "append", /* [5] append (CRC = 0xf56e) */
+			.cmd = HMCDRV_FTP_APPEND
+		},
 		{.str = NULL} /* [6] unused */
 	};
 
@@ -85,18 +100,22 @@ static enum hmcdrv_ftp_cmdid hmcdrv_ftp_cmd_getid(const char *cmd, int len)
 	u16 crc = 0xffffU;
 
 	if (len == 0)
-		return HMCDRV_FTP_NOOP; /* error indiactor */
+	{
+		return HMCDRV_FTP_NOOP;    /* error indiactor */
+	}
 
 	crc = crc16(crc, cmd, len);
 	pdesc = ftpcmds + (crc % ARRAY_SIZE(ftpcmds));
 	pr_debug("FTP command '%s' has CRC 0x%04x, at table pos. %lu\n",
-		 cmd, crc, (crc % ARRAY_SIZE(ftpcmds)));
+			 cmd, crc, (crc % ARRAY_SIZE(ftpcmds)));
 
 	if (!pdesc->str || strncmp(pdesc->str, cmd, len))
+	{
 		return HMCDRV_FTP_NOOP;
+	}
 
 	pr_debug("FTP command '%s' found, with ID %d\n",
-		 pdesc->str, pdesc->cmd);
+			 pdesc->str, pdesc->cmd);
 
 	return pdesc->cmd;
 }
@@ -116,37 +135,53 @@ static int hmcdrv_ftp_parse(char *cmd, struct hmcdrv_ftp_cmdspec *ftp)
 	ftp->id = HMCDRV_FTP_NOOP;
 	ftp->fname = NULL;
 
-	while (*cmd != '\0') {
+	while (*cmd != '\0')
+	{
 
 		while (isspace(*cmd))
+		{
 			++cmd;
+		}
 
 		if (*cmd == '\0')
+		{
 			break;
+		}
 
 		start = cmd;
 
-		switch (argc) {
-		case 0: /* 1st argument (FTP command) */
-			while ((*cmd != '\0') && !isspace(*cmd))
-				++cmd;
-			ftp->id = hmcdrv_ftp_cmd_getid(start, cmd - start);
-			break;
-		case 1: /* 2nd / last argument (rest of line) */
-			while ((*cmd != '\0') && !iscntrl(*cmd))
-				++cmd;
-			ftp->fname = start;
+		switch (argc)
+		{
+			case 0: /* 1st argument (FTP command) */
+				while ((*cmd != '\0') && !isspace(*cmd))
+				{
+					++cmd;
+				}
+
+				ftp->id = hmcdrv_ftp_cmd_getid(start, cmd - start);
+				break;
+
+			case 1: /* 2nd / last argument (rest of line) */
+				while ((*cmd != '\0') && !iscntrl(*cmd))
+				{
+					++cmd;
+				}
+
+				ftp->fname = start;
+
 			/* fall through */
-		default:
-			*cmd = '\0';
-			break;
+			default:
+				*cmd = '\0';
+				break;
 		} /* switch */
 
 		++argc;
 	} /* while */
 
 	if (!ftp->fname || (ftp->id == HMCDRV_FTP_NOOP))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -163,11 +198,14 @@ ssize_t hmcdrv_ftp_do(const struct hmcdrv_ftp_cmdspec *ftp)
 
 	mutex_lock(&hmcdrv_ftp_mutex);
 
-	if (hmcdrv_ftp_funcs && hmcdrv_ftp_refcnt) {
+	if (hmcdrv_ftp_funcs && hmcdrv_ftp_refcnt)
+	{
 		pr_debug("starting transfer, cmd %d for '%s' at %lld with %zd bytes\n",
-			 ftp->id, ftp->fname, (long long) ftp->ofs, ftp->len);
+				 ftp->id, ftp->fname, (long long) ftp->ofs, ftp->len);
 		len = hmcdrv_cache_cmd(ftp, hmcdrv_ftp_funcs->transfer);
-	} else {
+	}
+	else
+	{
 		len = -ENXIO;
 	}
 
@@ -185,7 +223,8 @@ int hmcdrv_ftp_probe(void)
 {
 	int rc;
 
-	struct hmcdrv_ftp_cmdspec ftp = {
+	struct hmcdrv_ftp_cmdspec ftp =
+	{
 		.id = HMCDRV_FTP_NOOP,
 		.ofs = 0,
 		.fname = "",
@@ -195,26 +234,36 @@ int hmcdrv_ftp_probe(void)
 	ftp.buf = (void *) get_zeroed_page(GFP_KERNEL | GFP_DMA);
 
 	if (!ftp.buf)
+	{
 		return -ENOMEM;
+	}
 
 	rc = hmcdrv_ftp_startup();
 
 	if (rc)
+	{
 		goto out;
+	}
 
 	rc = hmcdrv_ftp_do(&ftp);
 	hmcdrv_ftp_shutdown();
 
-	switch (rc) {
-	case -ENOENT: /* no such file/media or currently busy, */
-	case -EBUSY:  /* but service seems to be available */
-		rc = 0;
-		break;
-	default: /* leave 'rc' as it is for [0, -EPERM, -E...] */
-		if (rc > 0)
-			rc = 0; /* clear length (success) */
-		break;
+	switch (rc)
+	{
+		case -ENOENT: /* no such file/media or currently busy, */
+		case -EBUSY:  /* but service seems to be available */
+			rc = 0;
+			break;
+
+		default: /* leave 'rc' as it is for [0, -EPERM, -E...] */
+			if (rc > 0)
+			{
+				rc = 0;    /* clear length (success) */
+			}
+
+			break;
 	} /* switch */
+
 out:
 	free_page((unsigned long) ftp.buf);
 	return rc;
@@ -234,7 +283,7 @@ EXPORT_SYMBOL(hmcdrv_ftp_probe);
  * Return: number of bytes read/written or a negative error code
  */
 ssize_t hmcdrv_ftp_cmd(char __kernel *cmd, loff_t offset,
-		       char __user *buf, size_t len)
+					   char __user *buf, size_t len)
 {
 	int order;
 
@@ -242,40 +291,53 @@ ssize_t hmcdrv_ftp_cmd(char __kernel *cmd, loff_t offset,
 	ssize_t retlen = hmcdrv_ftp_parse(cmd, &ftp);
 
 	if (retlen)
+	{
 		return retlen;
+	}
 
 	order = get_order(ftp.len);
 	ftp.buf = (void *) __get_free_pages(GFP_KERNEL | GFP_DMA, order);
 
 	if (!ftp.buf)
+	{
 		return -ENOMEM;
+	}
 
-	switch (ftp.id) {
-	case HMCDRV_FTP_DIR:
-	case HMCDRV_FTP_NLIST:
-	case HMCDRV_FTP_GET:
-		retlen = hmcdrv_ftp_do(&ftp);
-
-		if ((retlen >= 0) &&
-		    copy_to_user(buf, ftp.buf, retlen))
-			retlen = -EFAULT;
-		break;
-
-	case HMCDRV_FTP_PUT:
-	case HMCDRV_FTP_APPEND:
-		if (!copy_from_user(ftp.buf, buf, ftp.len))
+	switch (ftp.id)
+	{
+		case HMCDRV_FTP_DIR:
+		case HMCDRV_FTP_NLIST:
+		case HMCDRV_FTP_GET:
 			retlen = hmcdrv_ftp_do(&ftp);
-		else
-			retlen = -EFAULT;
-		break;
 
-	case HMCDRV_FTP_DELETE:
-		retlen = hmcdrv_ftp_do(&ftp);
-		break;
+			if ((retlen >= 0) &&
+				copy_to_user(buf, ftp.buf, retlen))
+			{
+				retlen = -EFAULT;
+			}
 
-	default:
-		retlen = -EOPNOTSUPP;
-		break;
+			break;
+
+		case HMCDRV_FTP_PUT:
+		case HMCDRV_FTP_APPEND:
+			if (!copy_from_user(ftp.buf, buf, ftp.len))
+			{
+				retlen = hmcdrv_ftp_do(&ftp);
+			}
+			else
+			{
+				retlen = -EFAULT;
+			}
+
+			break;
+
+		case HMCDRV_FTP_DELETE:
+			retlen = hmcdrv_ftp_do(&ftp);
+			break;
+
+		default:
+			retlen = -EOPNOTSUPP;
+			break;
 	}
 
 	free_pages((unsigned long) ftp.buf, order);
@@ -290,13 +352,15 @@ ssize_t hmcdrv_ftp_cmd(char __kernel *cmd, loff_t offset,
  */
 int hmcdrv_ftp_startup(void)
 {
-	static const struct hmcdrv_ftp_ops hmcdrv_ftp_zvm = {
+	static const struct hmcdrv_ftp_ops hmcdrv_ftp_zvm =
+	{
 		.startup = diag_ftp_startup,
 		.shutdown = diag_ftp_shutdown,
 		.transfer = diag_ftp_cmd
 	};
 
-	static const struct hmcdrv_ftp_ops hmcdrv_ftp_lpar = {
+	static const struct hmcdrv_ftp_ops hmcdrv_ftp_lpar =
+	{
 		.startup = sclp_ftp_startup,
 		.shutdown = sclp_ftp_shutdown,
 		.transfer = sclp_ftp_cmd
@@ -306,20 +370,31 @@ int hmcdrv_ftp_startup(void)
 
 	mutex_lock(&hmcdrv_ftp_mutex); /* block transfers while start-up */
 
-	if (hmcdrv_ftp_refcnt == 0) {
+	if (hmcdrv_ftp_refcnt == 0)
+	{
 		if (MACHINE_IS_VM)
+		{
 			hmcdrv_ftp_funcs = &hmcdrv_ftp_zvm;
+		}
 		else if (MACHINE_IS_LPAR || MACHINE_IS_KVM)
+		{
 			hmcdrv_ftp_funcs = &hmcdrv_ftp_lpar;
+		}
 		else
+		{
 			rc = -EOPNOTSUPP;
+		}
 
 		if (hmcdrv_ftp_funcs)
+		{
 			rc = hmcdrv_ftp_funcs->startup();
+		}
 	}
 
 	if (!rc)
+	{
 		++hmcdrv_ftp_refcnt;
+	}
 
 	mutex_unlock(&hmcdrv_ftp_mutex);
 	return rc;
@@ -336,7 +411,9 @@ void hmcdrv_ftp_shutdown(void)
 	--hmcdrv_ftp_refcnt;
 
 	if ((hmcdrv_ftp_refcnt == 0) && hmcdrv_ftp_funcs)
+	{
 		hmcdrv_ftp_funcs->shutdown();
+	}
 
 	mutex_unlock(&hmcdrv_ftp_mutex);
 }

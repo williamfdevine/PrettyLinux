@@ -53,7 +53,7 @@ int tipc_socket_init(void);
 void tipc_socket_stop(void);
 void tipc_sk_rcv(struct net *net, struct sk_buff_head *inputq);
 void tipc_sk_mcast_rcv(struct net *net, struct sk_buff_head *arrvq,
-		       struct sk_buff_head *inputq);
+					   struct sk_buff_head *inputq);
 void tipc_sk_reinit(struct net *net);
 int tipc_sk_rht_init(struct net *net);
 void tipc_sk_rht_destroy(struct net *net);

@@ -71,14 +71,16 @@ struct mc_command;
  * FSL_MC_IO_ATOMIC_CONTEXT_PORTAL flag on. mc_send_command() calls for this
  * fsl_mc_io object can be made from atomic or non-atomic context.
  */
-struct fsl_mc_io {
+struct fsl_mc_io
+{
 	struct device *dev;
 	u16 flags;
 	u16 portal_size;
 	phys_addr_t portal_phys_addr;
 	void __iomem *portal_virt_addr;
 	struct fsl_mc_device *dpmcp_dev;
-	union {
+	union
+	{
 		/*
 		 * This field is only meaningful if the
 		 * FSL_MC_IO_ATOMIC_CONTEXT_PORTAL flag is not set

@@ -74,21 +74,31 @@
 
 static void p80211req_handlemsg(struct wlandevice *wlandev, struct p80211msg *msg);
 static void p80211req_mibset_mibget(struct wlandevice *wlandev,
-				   struct p80211msg_dot11req_mibget *mib_msg,
-				   int isget);
+									struct p80211msg_dot11req_mibget *mib_msg,
+									int isget);
 
 static void p80211req_handle_action(struct wlandevice *wlandev, u32 *data,
-				    int isget, u32 flag)
+									int isget, u32 flag)
 {
-	if (isget) {
+	if (isget)
+	{
 		if (wlandev->hostwep & flag)
+		{
 			*data = P80211ENUM_truth_true;
+		}
 		else
+		{
 			*data = P80211ENUM_truth_false;
-	} else {
+		}
+	}
+	else
+	{
 		wlandev->hostwep &= ~flag;
+
 		if (*data == P80211ENUM_truth_true)
+		{
 			wlandev->hostwep |= flag;
+		}
 	}
 }
 
@@ -114,24 +124,28 @@ int p80211req_dorequest(struct wlandevice *wlandev, u8 *msgbuf)
 
 	/* Check to make sure the MSD is running */
 	if (!((wlandev->msdstate == WLAN_MSD_HWPRESENT &&
-	       msg->msgcode == DIDmsg_lnxreq_ifstate) ||
-	      wlandev->msdstate == WLAN_MSD_RUNNING ||
-	      wlandev->msdstate == WLAN_MSD_FWLOAD)) {
+		   msg->msgcode == DIDmsg_lnxreq_ifstate) ||
+		  wlandev->msdstate == WLAN_MSD_RUNNING ||
+		  wlandev->msdstate == WLAN_MSD_FWLOAD))
+	{
 		return -ENODEV;
 	}
 
 	/* Check Permissions */
 	if (!capable(CAP_NET_ADMIN) &&
-	(msg->msgcode != DIDmsg_dot11req_mibget)) {
+		(msg->msgcode != DIDmsg_dot11req_mibget))
+	{
 		netdev_err(wlandev->netdev,
-			   "%s: only dot11req_mibget allowed for non-root.\n",
-			   wlandev->name);
+				   "%s: only dot11req_mibget allowed for non-root.\n",
+				   wlandev->name);
 		return -EPERM;
 	}
 
 	/* Check for busy status */
 	if (test_and_set_bit(1, &(wlandev->request_pending)))
+	{
 		return -EBUSY;
+	}
 
 	/* Allow p80211 to look at msg and handle if desired. */
 	/* So far, all p80211 msgs are immediate, no waitq/timer necessary */
@@ -140,7 +154,9 @@ int p80211req_dorequest(struct wlandevice *wlandev, u8 *msgbuf)
 
 	/* Pass it down to wlandev via wlandev->mlmerequest */
 	if (wlandev->mlmerequest != NULL)
+	{
 		wlandev->mlmerequest(wlandev, msg);
+	}
 
 	clear_bit(1, &(wlandev->request_pending));
 	return 0;	/* if result==0, msg->status still may contain an err */
@@ -166,74 +182,95 @@ int p80211req_dorequest(struct wlandevice *wlandev, u8 *msgbuf)
 ----------------------------------------------------------------*/
 static void p80211req_handlemsg(struct wlandevice *wlandev, struct p80211msg *msg)
 {
-	switch (msg->msgcode) {
+	switch (msg->msgcode)
+	{
 
-	case DIDmsg_lnxreq_hostwep:{
-		struct p80211msg_lnxreq_hostwep *req =
-			(struct p80211msg_lnxreq_hostwep *)msg;
-		wlandev->hostwep &=
-				~(HOSTWEP_DECRYPT | HOSTWEP_ENCRYPT);
-		if (req->decrypt.data == P80211ENUM_truth_true)
-			wlandev->hostwep |= HOSTWEP_DECRYPT;
-		if (req->encrypt.data == P80211ENUM_truth_true)
-			wlandev->hostwep |= HOSTWEP_ENCRYPT;
+		case DIDmsg_lnxreq_hostwep:
+			{
+				struct p80211msg_lnxreq_hostwep *req =
+					(struct p80211msg_lnxreq_hostwep *)msg;
+				wlandev->hostwep &=
+					~(HOSTWEP_DECRYPT | HOSTWEP_ENCRYPT);
 
-	break;
-	}
-	case DIDmsg_dot11req_mibget:
-	case DIDmsg_dot11req_mibset:{
-		int isget = (msg->msgcode == DIDmsg_dot11req_mibget);
-		struct p80211msg_dot11req_mibget *mib_msg =
-			(struct p80211msg_dot11req_mibget *)msg;
-		p80211req_mibset_mibget(wlandev, mib_msg, isget);
-	break;
-	}
+				if (req->decrypt.data == P80211ENUM_truth_true)
+				{
+					wlandev->hostwep |= HOSTWEP_DECRYPT;
+				}
+
+				if (req->encrypt.data == P80211ENUM_truth_true)
+				{
+					wlandev->hostwep |= HOSTWEP_ENCRYPT;
+				}
+
+				break;
+			}
+
+		case DIDmsg_dot11req_mibget:
+		case DIDmsg_dot11req_mibset:
+			{
+				int isget = (msg->msgcode == DIDmsg_dot11req_mibget);
+				struct p80211msg_dot11req_mibget *mib_msg =
+					(struct p80211msg_dot11req_mibget *)msg;
+				p80211req_mibset_mibget(wlandev, mib_msg, isget);
+				break;
+			}
 	}			/* switch msg->msgcode */
 }
 
 static void p80211req_mibset_mibget(struct wlandevice *wlandev,
-				   struct p80211msg_dot11req_mibget *mib_msg,
-				   int isget)
+									struct p80211msg_dot11req_mibget *mib_msg,
+									int isget)
 {
 	struct p80211itemd *mibitem = (struct p80211itemd *)mib_msg->mibattribute.data;
 	struct p80211pstrd *pstr = (struct p80211pstrd *)mibitem->data;
 	u8 *key = mibitem->data + sizeof(struct p80211pstrd);
 
-	switch (mibitem->did) {
-	case DIDmib_dot11smt_dot11WEPDefaultKeysTable_key(1):
-	case DIDmib_dot11smt_dot11WEPDefaultKeysTable_key(2):
-	case DIDmib_dot11smt_dot11WEPDefaultKeysTable_key(3):
-	case DIDmib_dot11smt_dot11WEPDefaultKeysTable_key(4):
-		if (!isget)
-			wep_change_key(wlandev,
-				       P80211DID_ITEM(mibitem->did) - 1,
-				       key, pstr->len);
-		break;
+	switch (mibitem->did)
+	{
+		case DIDmib_dot11smt_dot11WEPDefaultKeysTable_key(1):
+		case DIDmib_dot11smt_dot11WEPDefaultKeysTable_key(2):
+		case DIDmib_dot11smt_dot11WEPDefaultKeysTable_key(3):
+		case DIDmib_dot11smt_dot11WEPDefaultKeysTable_key(4):
+			if (!isget)
+				wep_change_key(wlandev,
+							   P80211DID_ITEM(mibitem->did) - 1,
+							   key, pstr->len);
 
-	case DIDmib_dot11smt_dot11PrivacyTable_dot11WEPDefaultKeyID:{
-		u32 *data = (u32 *)mibitem->data;
+			break;
 
-		if (isget) {
-			*data = wlandev->hostwep & HOSTWEP_DEFAULTKEY_MASK;
-		} else {
-			wlandev->hostwep &= ~(HOSTWEP_DEFAULTKEY_MASK);
-			wlandev->hostwep |= (*data & HOSTWEP_DEFAULTKEY_MASK);
-		}
-	break;
-	}
-	case DIDmib_dot11smt_dot11PrivacyTable_dot11PrivacyInvoked:{
-		u32 *data = (u32 *)mibitem->data;
+		case DIDmib_dot11smt_dot11PrivacyTable_dot11WEPDefaultKeyID:
+			{
+				u32 *data = (u32 *)mibitem->data;
 
-		p80211req_handle_action(wlandev, data, isget,
-					HOSTWEP_PRIVACYINVOKED);
-	break;
-	}
-	case DIDmib_dot11smt_dot11PrivacyTable_dot11ExcludeUnencrypted:{
-		u32 *data = (u32 *)mibitem->data;
+				if (isget)
+				{
+					*data = wlandev->hostwep & HOSTWEP_DEFAULTKEY_MASK;
+				}
+				else
+				{
+					wlandev->hostwep &= ~(HOSTWEP_DEFAULTKEY_MASK);
+					wlandev->hostwep |= (*data & HOSTWEP_DEFAULTKEY_MASK);
+				}
 
-		p80211req_handle_action(wlandev, data, isget,
-					HOSTWEP_EXCLUDEUNENCRYPTED);
-	break;
-	}
+				break;
+			}
+
+		case DIDmib_dot11smt_dot11PrivacyTable_dot11PrivacyInvoked:
+			{
+				u32 *data = (u32 *)mibitem->data;
+
+				p80211req_handle_action(wlandev, data, isget,
+										HOSTWEP_PRIVACYINVOKED);
+				break;
+			}
+
+		case DIDmib_dot11smt_dot11PrivacyTable_dot11ExcludeUnencrypted:
+			{
+				u32 *data = (u32 *)mibitem->data;
+
+				p80211req_handle_action(wlandev, data, isget,
+										HOSTWEP_EXCLUDEUNENCRYPTED);
+				break;
+			}
 	}
 }

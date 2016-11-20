@@ -28,7 +28,7 @@
     and other provisions required by the GPL.  If you do not delete
     the provisions above, a recipient may use your version of this
     file under either the MPL or the GPL.
-    
+
 ======================================================================*/
 
 #include <linux/module.h>
@@ -59,9 +59,10 @@ MODULE_LICENSE("Dual MPL/GPL");
 
 /*====================================================================*/
 
-typedef struct scsi_info_t {
+typedef struct scsi_info_t
+{
 	struct pcmcia_device	*p_dev;
-    struct Scsi_Host	*host;
+	struct Scsi_Host	*host;
 } scsi_info_t;
 
 
@@ -77,8 +78,11 @@ static int fdomain_probe(struct pcmcia_device *link)
 
 	/* Create new SCSI device */
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	info->p_dev = link;
 	link->priv = info;
@@ -113,47 +117,61 @@ static int fdomain_config_check(struct pcmcia_device *p_dev, void *priv_data)
 
 static int fdomain_config(struct pcmcia_device *link)
 {
-    scsi_info_t *info = link->priv;
-    int ret;
-    char str[22];
-    struct Scsi_Host *host;
+	scsi_info_t *info = link->priv;
+	int ret;
+	char str[22];
+	struct Scsi_Host *host;
 
-    dev_dbg(&link->dev, "fdomain_config\n");
+	dev_dbg(&link->dev, "fdomain_config\n");
 
-    ret = pcmcia_loop_config(link, fdomain_config_check, NULL);
-    if (ret)
-	    goto failed;
+	ret = pcmcia_loop_config(link, fdomain_config_check, NULL);
 
-    if (!link->irq)
-	    goto failed;
-    ret = pcmcia_enable_device(link);
-    if (ret)
-	    goto failed;
+	if (ret)
+	{
+		goto failed;
+	}
 
-    /* A bad hack... */
-    release_region(link->resource[0]->start, resource_size(link->resource[0]));
+	if (!link->irq)
+	{
+		goto failed;
+	}
 
-    /* Set configuration options for the fdomain driver */
-    sprintf(str, "%d,%d", (unsigned int) link->resource[0]->start, link->irq);
-    fdomain_setup(str);
+	ret = pcmcia_enable_device(link);
 
-    host = __fdomain_16x0_detect(&fdomain_driver_template);
-    if (!host) {
-        printk(KERN_INFO "fdomain_cs: no SCSI devices found\n");
-	goto failed;
-    }
+	if (ret)
+	{
+		goto failed;
+	}
 
-    if (scsi_add_host(host, NULL))
-	    goto failed;
-    scsi_scan_host(host);
+	/* A bad hack... */
+	release_region(link->resource[0]->start, resource_size(link->resource[0]));
 
-    info->host = host;
+	/* Set configuration options for the fdomain driver */
+	sprintf(str, "%d,%d", (unsigned int) link->resource[0]->start, link->irq);
+	fdomain_setup(str);
 
-    return 0;
+	host = __fdomain_16x0_detect(&fdomain_driver_template);
+
+	if (!host)
+	{
+		printk(KERN_INFO "fdomain_cs: no SCSI devices found\n");
+		goto failed;
+	}
+
+	if (scsi_add_host(host, NULL))
+	{
+		goto failed;
+	}
+
+	scsi_scan_host(host);
+
+	info->host = host;
+
+	return 0;
 
 failed:
-    fdomain_release(link);
-    return -ENODEV;
+	fdomain_release(link);
+	return -ENODEV;
 } /* fdomain_config */
 
 /*====================================================================*/
@@ -178,7 +196,8 @@ static int fdomain_resume(struct pcmcia_device *link)
 	return 0;
 }
 
-static const struct pcmcia_device_id fdomain_ids[] = {
+static const struct pcmcia_device_id fdomain_ids[] =
+{
 	PCMCIA_DEVICE_PROD_ID12("IBM Corp.", "SCSI PCMCIA Card", 0xe3736c88, 0x859cad20),
 	PCMCIA_DEVICE_PROD_ID1("SCSI PCMCIA Adapter Card", 0x8dacb57e),
 	PCMCIA_DEVICE_PROD_ID12(" SIMPLE TECHNOLOGY Corporation", "SCSI PCMCIA Credit Card Controller", 0x182bdafe, 0xc80d106f),
@@ -186,7 +205,8 @@ static const struct pcmcia_device_id fdomain_ids[] = {
 };
 MODULE_DEVICE_TABLE(pcmcia, fdomain_ids);
 
-static struct pcmcia_driver fdomain_cs_driver = {
+static struct pcmcia_driver fdomain_cs_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "fdomain_cs",
 	.probe		= fdomain_probe,

@@ -1,11 +1,11 @@
 /*
  * AEAD: Authenticated Encryption with Associated Data
- * 
+ *
  * Copyright (c) 2007-2015 Herbert Xu <herbert@gondor.apana.org.au>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option) 
+ * Software Foundation; either version 2 of the License, or (at your option)
  * any later version.
  *
  */
@@ -83,7 +83,8 @@ struct crypto_aead;
  *	@dst: Destination data
  *	@__ctx: Start of private context data
  */
-struct aead_request {
+struct aead_request
+{
 	struct crypto_async_request base;
 
 	unsigned int assoclen;
@@ -133,9 +134,10 @@ struct aead_request {
  *
  * All fields except @ivsize is mandatory and must be filled.
  */
-struct aead_alg {
+struct aead_alg
+{
 	int (*setkey)(struct crypto_aead *tfm, const u8 *key,
-	              unsigned int keylen);
+				  unsigned int keylen);
 	int (*setauthsize)(struct crypto_aead *tfm, unsigned int authsize);
 	int (*encrypt)(struct aead_request *req);
 	int (*decrypt)(struct aead_request *req);
@@ -151,7 +153,8 @@ struct aead_alg {
 	struct crypto_alg base;
 };
 
-struct crypto_aead {
+struct crypto_aead
+{
 	unsigned int authsize;
 	unsigned int reqsize;
 
@@ -196,7 +199,7 @@ static inline void crypto_free_aead(struct crypto_aead *tfm)
 static inline struct aead_alg *crypto_aead_alg(struct crypto_aead *tfm)
 {
 	return container_of(crypto_aead_tfm(tfm)->__crt_alg,
-			    struct aead_alg, base);
+						struct aead_alg, base);
 }
 
 static inline unsigned int crypto_aead_alg_ivsize(struct aead_alg *alg)
@@ -287,7 +290,7 @@ static inline void crypto_aead_clear_flags(struct crypto_aead *tfm, u32 flags)
  * Return: 0 if the setting of the key was successful; < 0 if an error occurred
  */
 int crypto_aead_setkey(struct crypto_aead *tfm,
-		       const u8 *key, unsigned int keylen);
+					   const u8 *key, unsigned int keylen);
 
 /**
  * crypto_aead_setauthsize() - set authentication data size
@@ -357,7 +360,9 @@ static inline int crypto_aead_decrypt(struct aead_request *req)
 	struct crypto_aead *aead = crypto_aead_reqtfm(req);
 
 	if (req->cryptlen < crypto_aead_authsize(aead))
+	{
 		return -EINVAL;
+	}
 
 	return crypto_aead_alg(aead)->decrypt(req);
 }
@@ -393,7 +398,7 @@ static inline unsigned int crypto_aead_reqsize(struct crypto_aead *tfm)
  * data structure with a different one.
  */
 static inline void aead_request_set_tfm(struct aead_request *req,
-					struct crypto_aead *tfm)
+										struct crypto_aead *tfm)
 {
 	req->base.tfm = crypto_aead_tfm(tfm);
 }
@@ -410,14 +415,16 @@ static inline void aead_request_set_tfm(struct aead_request *req,
  * Return: allocated request handle in case of success, or NULL if out of memory
  */
 static inline struct aead_request *aead_request_alloc(struct crypto_aead *tfm,
-						      gfp_t gfp)
+		gfp_t gfp)
 {
 	struct aead_request *req;
 
 	req = kmalloc(sizeof(*req) + crypto_aead_reqsize(tfm), gfp);
 
 	if (likely(req))
+	{
 		aead_request_set_tfm(req, tfm);
+	}
 
 	return req;
 }
@@ -457,9 +464,9 @@ static inline void aead_request_free(struct aead_request *req)
  *	void callback_function(struct crypto_async_request *req, int error)
  */
 static inline void aead_request_set_callback(struct aead_request *req,
-					     u32 flags,
-					     crypto_completion_t compl,
-					     void *data)
+		u32 flags,
+		crypto_completion_t compl,
+		void *data)
 {
 	req->base.complete = compl;
 	req->base.data = data;
@@ -509,9 +516,9 @@ static inline void aead_request_set_callback(struct aead_request *req,
  *		  aead_request_set_crypt(req, &sg, &sg, ptbuflen, iv);
  */
 static inline void aead_request_set_crypt(struct aead_request *req,
-					  struct scatterlist *src,
-					  struct scatterlist *dst,
-					  unsigned int cryptlen, u8 *iv)
+		struct scatterlist *src,
+		struct scatterlist *dst,
+		unsigned int cryptlen, u8 *iv)
 {
 	req->src = src;
 	req->dst = dst;
@@ -528,7 +535,7 @@ static inline void aead_request_set_crypt(struct aead_request *req,
  * the associated data.
  */
 static inline void aead_request_set_ad(struct aead_request *req,
-				       unsigned int assoclen)
+									   unsigned int assoclen)
 {
 	req->assoclen = assoclen;
 }

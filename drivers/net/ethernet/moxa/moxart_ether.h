@@ -290,7 +290,8 @@
 #define AN_COMPLETE		0x20
 #define LINK_STATUS		0x4
 
-struct moxart_mac_priv_t {
+struct moxart_mac_priv_t
+{
 	void __iomem *base;
 	struct net_device_stats stats;
 	unsigned int reg_maccr;
@@ -321,10 +322,10 @@ struct moxart_mac_priv_t {
 };
 
 #if TX_BUF_SIZE >= TX_BUF_SIZE_MAX
-#error MOXA ART Ethernet device driver TX buffer is too large!
+	#error MOXA ART Ethernet device driver TX buffer is too large!
 #endif
 #if RX_BUF_SIZE >= RX_BUF_SIZE_MAX
-#error MOXA ART Ethernet device driver RX buffer is too large!
+	#error MOXA ART Ethernet device driver RX buffer is too large!
 #endif
 
 #endif

@@ -13,7 +13,8 @@
 
 #define XT_CHECKSUM_OP_FILL	0x01	/* fill in checksum in IP header */
 
-struct xt_CHECKSUM_info {
+struct xt_CHECKSUM_info
+{
 	__u8 operation;	/* bitset of operations */
 };
 

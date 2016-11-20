@@ -34,16 +34,21 @@ static int caching_kthread(void *data)
 	struct btrfs_key key;
 	struct btrfs_path *path;
 	struct extent_buffer *leaf;
-	u64 last = (u64)-1;
+	u64 last = (u64) - 1;
 	int slot;
 	int ret;
 
 	if (!btrfs_test_opt(root->fs_info, INODE_MAP_CACHE))
+	{
 		return 0;
+	}
 
 	path = btrfs_alloc_path();
+
 	if (!path)
+	{
 		return -ENOMEM;
+	}
 
 	/* Since the commit root is read-only, we can safely skip locking. */
 	path->skip_locking = 1;
@@ -58,28 +63,44 @@ again:
 	down_read(&fs_info->commit_root_sem);
 
 	ret = btrfs_search_slot(NULL, root, &key, path, 0, 0);
-	if (ret < 0)
-		goto out;
 
-	while (1) {
+	if (ret < 0)
+	{
+		goto out;
+	}
+
+	while (1)
+	{
 		if (btrfs_fs_closing(fs_info))
+		{
 			goto out;
+		}
 
 		leaf = path->nodes[0];
 		slot = path->slots[0];
-		if (slot >= btrfs_header_nritems(leaf)) {
+
+		if (slot >= btrfs_header_nritems(leaf))
+		{
 			ret = btrfs_next_leaf(root, path);
+
 			if (ret < 0)
+			{
 				goto out;
+			}
 			else if (ret > 0)
+			{
 				break;
+			}
 
 			if (need_resched() ||
-			    btrfs_transaction_in_commit(fs_info)) {
+				btrfs_transaction_in_commit(fs_info))
+			{
 				leaf = path->nodes[0];
 
 				if (WARN_ON(btrfs_header_nritems(leaf) == 0))
+				{
 					break;
+				}
 
 				/*
 				 * Save the key so we can advances forward
@@ -91,21 +112,29 @@ again:
 				up_read(&fs_info->commit_root_sem);
 				schedule_timeout(1);
 				goto again;
-			} else
+			}
+			else
+			{
 				continue;
+			}
 		}
 
 		btrfs_item_key_to_cpu(leaf, &key, slot);
 
 		if (key.type != BTRFS_INODE_ITEM_KEY)
+		{
 			goto next;
+		}
 
 		if (key.objectid >= root->highest_objectid)
+		{
 			break;
+		}
 
-		if (last != (u64)-1 && last + 1 != key.objectid) {
+		if (last != (u64) - 1 && last + 1 != key.objectid)
+		{
 			__btrfs_add_free_space(fs_info, ctl, last + 1,
-					       key.objectid - last - 1);
+								   key.objectid - last - 1);
 			wake_up(&root->ino_cache_wait);
 		}
 
@@ -114,16 +143,17 @@ next:
 		path->slots[0]++;
 	}
 
-	if (last < root->highest_objectid - 1) {
+	if (last < root->highest_objectid - 1)
+	{
 		__btrfs_add_free_space(fs_info, ctl, last + 1,
-				       root->highest_objectid - last - 1);
+							   root->highest_objectid - last - 1);
 	}
 
 	spin_lock(&root->ino_cache_lock);
 	root->ino_cache_state = BTRFS_CACHE_FINISHED;
 	spin_unlock(&root->ino_cache_lock);
 
-	root->ino_cache_progress = (u64)-1;
+	root->ino_cache_progress = (u64) - 1;
 	btrfs_unpin_free_ino(root);
 out:
 	wake_up(&root->ino_cache_wait);
@@ -143,10 +173,14 @@ static void start_caching(struct btrfs_root *root)
 	u64 objectid;
 
 	if (!btrfs_test_opt(fs_info, INODE_MAP_CACHE))
+	{
 		return;
+	}
 
 	spin_lock(&root->ino_cache_lock);
-	if (root->ino_cache_state != BTRFS_CACHE_NO) {
+
+	if (root->ino_cache_state != BTRFS_CACHE_NO)
+	{
 		spin_unlock(&root->ino_cache_lock);
 		return;
 	}
@@ -155,7 +189,9 @@ static void start_caching(struct btrfs_root *root)
 	spin_unlock(&root->ino_cache_lock);
 
 	ret = load_free_ino_cache(fs_info, root);
-	if (ret == 1) {
+
+	if (ret == 1)
+	{
 		spin_lock(&root->ino_cache_lock);
 		root->ino_cache_state = BTRFS_CACHE_FINISHED;
 		spin_unlock(&root->ino_cache_lock);
@@ -170,42 +206,54 @@ static void start_caching(struct btrfs_root *root)
 	 * [highest_ino + 1, BTRFS_LAST_FREE_OBJECTID].
 	 */
 	ret = btrfs_find_free_objectid(root, &objectid);
-	if (!ret && objectid <= BTRFS_LAST_FREE_OBJECTID) {
+
+	if (!ret && objectid <= BTRFS_LAST_FREE_OBJECTID)
+	{
 		__btrfs_add_free_space(fs_info, ctl, objectid,
-				       BTRFS_LAST_FREE_OBJECTID - objectid + 1);
+							   BTRFS_LAST_FREE_OBJECTID - objectid + 1);
 	}
 
 	tsk = kthread_run(caching_kthread, root, "btrfs-ino-cache-%llu",
-			  root->root_key.objectid);
-	if (IS_ERR(tsk)) {
+					  root->root_key.objectid);
+
+	if (IS_ERR(tsk))
+	{
 		btrfs_warn(fs_info, "failed to start inode caching task");
 		btrfs_clear_pending_and_info(fs_info, INODE_MAP_CACHE,
-				"disabling inode map caching");
+									 "disabling inode map caching");
 	}
 }
 
 int btrfs_find_free_ino(struct btrfs_root *root, u64 *objectid)
 {
 	if (!btrfs_test_opt(root->fs_info, INODE_MAP_CACHE))
+	{
 		return btrfs_find_free_objectid(root, objectid);
+	}
 
 again:
 	*objectid = btrfs_find_ino_for_alloc(root);
 
 	if (*objectid != 0)
+	{
 		return 0;
+	}
 
 	start_caching(root);
 
 	wait_event(root->ino_cache_wait,
-		   root->ino_cache_state == BTRFS_CACHE_FINISHED ||
-		   root->free_ino_ctl->free_space > 0);
+			   root->ino_cache_state == BTRFS_CACHE_FINISHED ||
+			   root->free_ino_ctl->free_space > 0);
 
 	if (root->ino_cache_state == BTRFS_CACHE_FINISHED &&
-	    root->free_ino_ctl->free_space == 0)
+		root->free_ino_ctl->free_space == 0)
+	{
 		return -ENOSPC;
+	}
 	else
+	{
 		goto again;
+	}
 }
 
 void btrfs_return_ino(struct btrfs_root *root, u64 objectid)
@@ -214,18 +262,28 @@ void btrfs_return_ino(struct btrfs_root *root, u64 objectid)
 	struct btrfs_free_space_ctl *pinned = root->free_ino_pinned;
 
 	if (!btrfs_test_opt(fs_info, INODE_MAP_CACHE))
+	{
 		return;
+	}
+
 again:
-	if (root->ino_cache_state == BTRFS_CACHE_FINISHED) {
+
+	if (root->ino_cache_state == BTRFS_CACHE_FINISHED)
+	{
 		__btrfs_add_free_space(fs_info, pinned, objectid, 1);
-	} else {
+	}
+	else
+	{
 		down_write(&fs_info->commit_root_sem);
 		spin_lock(&root->ino_cache_lock);
-		if (root->ino_cache_state == BTRFS_CACHE_FINISHED) {
+
+		if (root->ino_cache_state == BTRFS_CACHE_FINISHED)
+		{
 			spin_unlock(&root->ino_cache_lock);
 			up_write(&fs_info->commit_root_sem);
 			goto again;
 		}
+
 		spin_unlock(&root->ino_cache_lock);
 
 		start_caching(root);
@@ -254,14 +312,19 @@ void btrfs_unpin_free_ino(struct btrfs_root *root)
 	u64 count;
 
 	if (!btrfs_test_opt(root->fs_info, INODE_MAP_CACHE))
+	{
 		return;
+	}
 
-	while (1) {
+	while (1)
+	{
 		bool add_to_ctl = true;
 
 		spin_lock(rbroot_lock);
 		n = rb_first(rbroot);
-		if (!n) {
+
+		if (!n)
+		{
 			spin_unlock(rbroot_lock);
 			break;
 		}
@@ -270,17 +333,25 @@ void btrfs_unpin_free_ino(struct btrfs_root *root)
 		BUG_ON(info->bitmap); /* Logic error */
 
 		if (info->offset > root->ino_cache_progress)
+		{
 			add_to_ctl = false;
+		}
 		else if (info->offset + info->bytes > root->ino_cache_progress)
+		{
 			count = root->ino_cache_progress - info->offset + 1;
+		}
 		else
+		{
 			count = info->bytes;
+		}
 
 		rb_erase(&info->offset_index, rbroot);
 		spin_unlock(rbroot_lock);
+
 		if (add_to_ctl)
 			__btrfs_add_free_space(root->fs_info, ctl,
-					       info->offset, count);
+								   info->offset, count);
+
 		kmem_cache_free(btrfs_free_space_cachep, info);
 	}
 }
@@ -300,10 +371,13 @@ static void recalculate_thresholds(struct btrfs_free_space_ctl *ctl)
 	int max_bitmaps;
 
 	n = rb_last(&ctl->free_space_offset);
-	if (!n) {
+
+	if (!n)
+	{
 		ctl->extents_thresh = INIT_THRESHOLD;
 		return;
 	}
+
 	info = rb_entry(n, struct btrfs_free_space, offset_index);
 
 	/*
@@ -314,13 +388,15 @@ static void recalculate_thresholds(struct btrfs_free_space_ctl *ctl)
 	max_ino = info->bytes - 1;
 
 	max_bitmaps = ALIGN(max_ino, INODES_PER_BITMAP) / INODES_PER_BITMAP;
-	if (max_bitmaps <= ctl->total_bitmaps) {
+
+	if (max_bitmaps <= ctl->total_bitmaps)
+	{
 		ctl->extents_thresh = 0;
 		return;
 	}
 
 	ctl->extents_thresh = (max_bitmaps - ctl->total_bitmaps) *
-				PAGE_SIZE / sizeof(*info);
+						  PAGE_SIZE / sizeof(*info);
 }
 
 /*
@@ -328,16 +404,19 @@ static void recalculate_thresholds(struct btrfs_free_space_ctl *ctl)
  * or this chunk of inode numbers is a big one.
  */
 static bool use_bitmap(struct btrfs_free_space_ctl *ctl,
-		       struct btrfs_free_space *info)
+					   struct btrfs_free_space *info)
 {
 	if (ctl->free_extents < ctl->extents_thresh ||
-	    info->bytes > INODES_PER_BITMAP / 10)
+		info->bytes > INODES_PER_BITMAP / 10)
+	{
 		return false;
+	}
 
 	return true;
 }
 
-static const struct btrfs_free_space_op free_ino_op = {
+static const struct btrfs_free_space_op free_ino_op =
+{
 	.recalc_thresholds	= recalculate_thresholds,
 	.use_bitmap		= use_bitmap,
 };
@@ -347,7 +426,7 @@ static void pinned_recalc_thresholds(struct btrfs_free_space_ctl *ctl)
 }
 
 static bool pinned_use_bitmap(struct btrfs_free_space_ctl *ctl,
-			      struct btrfs_free_space *info)
+							  struct btrfs_free_space *info)
 {
 	/*
 	 * We always use extents for two reasons:
@@ -359,7 +438,8 @@ static bool pinned_use_bitmap(struct btrfs_free_space_ctl *ctl,
 	return false;
 }
 
-static const struct btrfs_free_space_op pinned_free_ino_op = {
+static const struct btrfs_free_space_op pinned_free_ino_op =
+{
 	.recalc_thresholds	= pinned_recalc_thresholds,
 	.use_bitmap		= pinned_use_bitmap,
 };
@@ -393,7 +473,7 @@ void btrfs_init_free_ino_ctl(struct btrfs_root *root)
 }
 
 int btrfs_save_ino_cache(struct btrfs_root *root,
-			 struct btrfs_trans_handle *trans)
+						 struct btrfs_trans_handle *trans)
 {
 	struct btrfs_free_space_ctl *ctl = root->free_ino_ctl;
 	struct btrfs_path *path;
@@ -407,20 +487,29 @@ int btrfs_save_ino_cache(struct btrfs_root *root,
 
 	/* only fs tree and subvol/snap needs ino cache */
 	if (root->root_key.objectid != BTRFS_FS_TREE_OBJECTID &&
-	    (root->root_key.objectid < BTRFS_FIRST_FREE_OBJECTID ||
-	     root->root_key.objectid > BTRFS_LAST_FREE_OBJECTID))
+		(root->root_key.objectid < BTRFS_FIRST_FREE_OBJECTID ||
+		 root->root_key.objectid > BTRFS_LAST_FREE_OBJECTID))
+	{
 		return 0;
+	}
 
 	/* Don't save inode cache if we are deleting this root */
 	if (btrfs_root_refs(&root->root_item) == 0)
+	{
 		return 0;
+	}
 
 	if (!btrfs_test_opt(root->fs_info, INODE_MAP_CACHE))
+	{
 		return 0;
+	}
 
 	path = btrfs_alloc_path();
+
 	if (!path)
+	{
 		return -ENOMEM;
+	}
 
 	rsv = trans->block_rsv;
 	trans->block_rsv = &root->fs_info->trans_block_rsv;
@@ -435,51 +524,73 @@ int btrfs_save_ino_cache(struct btrfs_root *root,
 	 */
 	trans->bytes_reserved = btrfs_calc_trans_metadata_size(root, 10);
 	ret = btrfs_block_rsv_add(root, trans->block_rsv,
-				  trans->bytes_reserved,
-				  BTRFS_RESERVE_NO_FLUSH);
+							  trans->bytes_reserved,
+							  BTRFS_RESERVE_NO_FLUSH);
+
 	if (ret)
+	{
 		goto out;
+	}
+
 	trace_btrfs_space_reservation(root->fs_info, "ino_cache",
-				      trans->transid, trans->bytes_reserved, 1);
+								  trans->transid, trans->bytes_reserved, 1);
 again:
 	inode = lookup_free_ino_inode(root, path);
-	if (IS_ERR(inode) && (PTR_ERR(inode) != -ENOENT || retry)) {
+
+	if (IS_ERR(inode) && (PTR_ERR(inode) != -ENOENT || retry))
+	{
 		ret = PTR_ERR(inode);
 		goto out_release;
 	}
 
-	if (IS_ERR(inode)) {
+	if (IS_ERR(inode))
+	{
 		BUG_ON(retry); /* Logic error */
 		retry = true;
 
 		ret = create_free_ino_inode(root, trans, path);
+
 		if (ret)
+		{
 			goto out_release;
+		}
+
 		goto again;
 	}
 
 	BTRFS_I(inode)->generation = 0;
 	ret = btrfs_update_inode(trans, root, inode);
-	if (ret) {
+
+	if (ret)
+	{
 		btrfs_abort_transaction(trans, ret);
 		goto out_put;
 	}
 
-	if (i_size_read(inode) > 0) {
+	if (i_size_read(inode) > 0)
+	{
 		ret = btrfs_truncate_free_space_cache(root, trans, NULL, inode);
-		if (ret) {
+
+		if (ret)
+		{
 			if (ret != -ENOSPC)
+			{
 				btrfs_abort_transaction(trans, ret);
+			}
+
 			goto out_put;
 		}
 	}
 
 	spin_lock(&root->ino_cache_lock);
-	if (root->ino_cache_state != BTRFS_CACHE_FINISHED) {
+
+	if (root->ino_cache_state != BTRFS_CACHE_FINISHED)
+	{
 		ret = -1;
 		spin_unlock(&root->ino_cache_lock);
 		goto out_put;
 	}
+
 	spin_unlock(&root->ino_cache_lock);
 
 	spin_lock(&ctl->tree_lock);
@@ -492,12 +603,17 @@ again:
 	prealloc += 8 * PAGE_SIZE;
 
 	ret = btrfs_delalloc_reserve_space(inode, 0, prealloc);
+
 	if (ret)
+	{
 		goto out_put;
+	}
 
 	ret = btrfs_prealloc_file_range_trans(inode, trans, 0, 0, prealloc,
-					      prealloc, prealloc, &alloc_hint);
-	if (ret) {
+										  prealloc, prealloc, &alloc_hint);
+
+	if (ret)
+	{
 		btrfs_delalloc_release_metadata(inode, prealloc);
 		goto out_put;
 	}
@@ -507,7 +623,7 @@ out_put:
 	iput(inode);
 out_release:
 	trace_btrfs_space_reservation(root->fs_info, "ino_cache",
-				      trans->transid, trans->bytes_reserved, 0);
+								  trans->transid, trans->bytes_reserved, 0);
 	btrfs_block_rsv_release(root, trans->block_rsv, trans->bytes_reserved);
 out:
 	trans->block_rsv = rsv;
@@ -527,25 +643,37 @@ int btrfs_find_highest_objectid(struct btrfs_root *root, u64 *objectid)
 	int slot;
 
 	path = btrfs_alloc_path();
+
 	if (!path)
+	{
 		return -ENOMEM;
+	}
 
 	search_key.objectid = BTRFS_LAST_FREE_OBJECTID;
 	search_key.type = -1;
-	search_key.offset = (u64)-1;
+	search_key.offset = (u64) - 1;
 	ret = btrfs_search_slot(NULL, root, &search_key, path, 0, 0);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
+
 	BUG_ON(ret == 0); /* Corruption */
-	if (path->slots[0] > 0) {
+
+	if (path->slots[0] > 0)
+	{
 		slot = path->slots[0] - 1;
 		l = path->nodes[0];
 		btrfs_item_key_to_cpu(l, &found_key, slot);
 		*objectid = max_t(u64, found_key.objectid,
-				  BTRFS_FIRST_FREE_OBJECTID - 1);
-	} else {
+						  BTRFS_FIRST_FREE_OBJECTID - 1);
+	}
+	else
+	{
 		*objectid = BTRFS_FIRST_FREE_OBJECTID - 1;
 	}
+
 	ret = 0;
 error:
 	btrfs_free_path(path);
@@ -557,10 +685,11 @@ int btrfs_find_free_objectid(struct btrfs_root *root, u64 *objectid)
 	int ret;
 	mutex_lock(&root->objectid_mutex);
 
-	if (unlikely(root->highest_objectid >= BTRFS_LAST_FREE_OBJECTID)) {
+	if (unlikely(root->highest_objectid >= BTRFS_LAST_FREE_OBJECTID))
+	{
 		btrfs_warn(root->fs_info,
-			   "the objectid of root %llu reaches its highest value",
-			   root->root_key.objectid);
+				   "the objectid of root %llu reaches its highest value",
+				   root->root_key.objectid);
 		ret = -ENOSPC;
 		goto out;
 	}

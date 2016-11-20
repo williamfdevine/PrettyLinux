@@ -13,7 +13,7 @@ static inline u8 xgifb_reg_get(unsigned long port, u8 index)
 }
 
 static inline void xgifb_reg_and_or(unsigned long port, u8 index,
-				    unsigned int data_and, unsigned int data_or)
+									unsigned int data_and, unsigned int data_or)
 {
 	u8 temp;
 
@@ -23,7 +23,7 @@ static inline void xgifb_reg_and_or(unsigned long port, u8 index,
 }
 
 static inline void xgifb_reg_and(unsigned long port, u8 index,
-				 unsigned int data_and)
+								 unsigned int data_and)
 {
 	u8 temp;
 
@@ -33,7 +33,7 @@ static inline void xgifb_reg_and(unsigned long port, u8 index,
 }
 
 static inline void xgifb_reg_or(unsigned long port, u8 index,
-				unsigned int data_or)
+								unsigned int data_or)
 {
 	u8 temp;
 

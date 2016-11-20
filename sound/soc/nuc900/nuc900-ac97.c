@@ -35,14 +35,16 @@ static int nuc900_checkready(void)
 	struct nuc900_audio *nuc900_audio = nuc900_ac97_data;
 
 	if (!(AUDIO_READ(nuc900_audio->mmio + ACTL_ACIS0) & CODEC_READY))
+	{
 		return -EPERM;
+	}
 
 	return 0;
 }
 
 /* AC97 controller reads codec register */
 static unsigned short nuc900_ac97_read(struct snd_ac97 *ac97,
-					unsigned short reg)
+									   unsigned short reg)
 {
 	struct nuc900_audio *nuc900_audio = nuc900_ac97_data;
 	unsigned long timeout = 0x10000, val;
@@ -50,7 +52,9 @@ static unsigned short nuc900_ac97_read(struct snd_ac97 *ac97,
 	mutex_lock(&ac97_mutex);
 
 	val = nuc900_checkready();
-	if (val) {
+
+	if (val)
+	{
 		dev_err(nuc900_audio->dev, "AC97 codec is not ready\n");
 		goto out;
 	}
@@ -67,10 +71,13 @@ static unsigned short nuc900_ac97_read(struct snd_ac97 *ac97,
 
 	/* polling the AC_R_FINISH */
 	while (!(AUDIO_READ(nuc900_audio->mmio + ACTL_ACCON) & AC_R_FINISH)
-								&& timeout--)
+		   && timeout--)
+	{
 		mdelay(1);
+	}
 
-	if (!timeout) {
+	if (!timeout)
+	{
 		dev_err(nuc900_audio->dev, "AC97 read register time out !\n");
 		val = -EPERM;
 		goto out;
@@ -80,7 +87,8 @@ static unsigned short nuc900_ac97_read(struct snd_ac97 *ac97,
 	val &= ~SLOT1_VALID;
 	AUDIO_WRITE(nuc900_audio->mmio + ACTL_ACOS0, val);
 
-	if (AUDIO_READ(nuc900_audio->mmio + ACTL_ACIS1) >> 2 != reg) {
+	if (AUDIO_READ(nuc900_audio->mmio + ACTL_ACIS1) >> 2 != reg)
+	{
 		dev_err(nuc900_audio->dev,
 				"R_INDEX of REG_ACTL_ACIS1 not match!\n");
 	}
@@ -95,7 +103,7 @@ out:
 
 /* AC97 controller writes to codec register */
 static void nuc900_ac97_write(struct snd_ac97 *ac97, unsigned short reg,
-				unsigned short val)
+							  unsigned short val)
 {
 	struct nuc900_audio *nuc900_audio = nuc900_ac97_data;
 	unsigned long tmp, timeout = 0x10000;
@@ -103,8 +111,11 @@ static void nuc900_ac97_write(struct snd_ac97 *ac97, unsigned short reg,
 	mutex_lock(&ac97_mutex);
 
 	tmp = nuc900_checkready();
+
 	if (tmp)
+	{
 		dev_err(nuc900_audio->dev, "AC97 codec is not ready\n");
+	}
 
 	/* clear the R_WB bit and write register index */
 	AUDIO_WRITE(nuc900_audio->mmio + ACTL_ACOS1, reg);
@@ -121,11 +132,15 @@ static void nuc900_ac97_write(struct snd_ac97 *ac97, unsigned short reg,
 
 	/* polling the AC_W_FINISH */
 	while ((AUDIO_READ(nuc900_audio->mmio + ACTL_ACCON) & AC_W_FINISH)
-								&& timeout--)
+		   && timeout--)
+	{
 		mdelay(1);
+	}
 
 	if (!timeout)
+	{
 		dev_err(nuc900_audio->dev, "AC97 write register time out !\n");
+	}
 
 	tmp = AUDIO_READ(nuc900_audio->mmio + ACTL_ACOS0);
 	tmp &= ~(SLOT1_VALID | SLOT2_VALID);
@@ -150,8 +165,11 @@ static void nuc900_ac97_warm_reset(struct snd_ac97 *ac97)
 	udelay(100);
 
 	val = nuc900_checkready();
+
 	if (val)
+	{
 		dev_err(nuc900_audio->dev, "AC97 codec is not ready\n");
+	}
 
 	mutex_unlock(&ac97_mutex);
 }
@@ -198,7 +216,8 @@ static void nuc900_ac97_cold_reset(struct snd_ac97 *ac97)
 }
 
 /* AC97 controller operations */
-static struct snd_ac97_bus_ops nuc900_ac97_ops = {
+static struct snd_ac97_bus_ops nuc900_ac97_ops =
+{
 	.read		= nuc900_ac97_read,
 	.write		= nuc900_ac97_write,
 	.reset		= nuc900_ac97_cold_reset,
@@ -206,7 +225,7 @@ static struct snd_ac97_bus_ops nuc900_ac97_ops = {
 };
 
 static int nuc900_ac97_trigger(struct snd_pcm_substream *substream,
-				int cmd, struct snd_soc_dai *dai)
+							   int cmd, struct snd_soc_dai *dai)
 {
 	struct nuc900_audio *nuc900_audio = nuc900_ac97_data;
 	int ret;
@@ -214,50 +233,61 @@ static int nuc900_ac97_trigger(struct snd_pcm_substream *substream,
 
 	ret = 0;
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-	case SNDRV_PCM_TRIGGER_RESUME:
-		val = AUDIO_READ(nuc900_audio->mmio + ACTL_RESET);
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
-			tmp = AUDIO_READ(nuc900_audio->mmio + ACTL_ACOS0);
-			tmp |= (SLOT3_VALID | SLOT4_VALID | VALID_FRAME);
-			AUDIO_WRITE(nuc900_audio->mmio + ACTL_ACOS0, tmp);
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+		case SNDRV_PCM_TRIGGER_RESUME:
+			val = AUDIO_READ(nuc900_audio->mmio + ACTL_RESET);
 
-			tmp = AUDIO_READ(nuc900_audio->mmio + ACTL_PSR);
-			tmp |= (P_DMA_END_IRQ | P_DMA_MIDDLE_IRQ);
-			AUDIO_WRITE(nuc900_audio->mmio + ACTL_PSR, tmp);
-			val |= AC_PLAY;
-		} else {
-			tmp = AUDIO_READ(nuc900_audio->mmio + ACTL_RSR);
-			tmp |= (R_DMA_END_IRQ | R_DMA_MIDDLE_IRQ);
+			if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+			{
+				tmp = AUDIO_READ(nuc900_audio->mmio + ACTL_ACOS0);
+				tmp |= (SLOT3_VALID | SLOT4_VALID | VALID_FRAME);
+				AUDIO_WRITE(nuc900_audio->mmio + ACTL_ACOS0, tmp);
 
-			AUDIO_WRITE(nuc900_audio->mmio + ACTL_RSR, tmp);
-			val |= AC_RECORD;
-		}
+				tmp = AUDIO_READ(nuc900_audio->mmio + ACTL_PSR);
+				tmp |= (P_DMA_END_IRQ | P_DMA_MIDDLE_IRQ);
+				AUDIO_WRITE(nuc900_audio->mmio + ACTL_PSR, tmp);
+				val |= AC_PLAY;
+			}
+			else
+			{
+				tmp = AUDIO_READ(nuc900_audio->mmio + ACTL_RSR);
+				tmp |= (R_DMA_END_IRQ | R_DMA_MIDDLE_IRQ);
 
-		AUDIO_WRITE(nuc900_audio->mmio + ACTL_RESET, val);
+				AUDIO_WRITE(nuc900_audio->mmio + ACTL_RSR, tmp);
+				val |= AC_RECORD;
+			}
 
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-	case SNDRV_PCM_TRIGGER_SUSPEND:
-		val = AUDIO_READ(nuc900_audio->mmio + ACTL_RESET);
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
-			tmp = AUDIO_READ(nuc900_audio->mmio + ACTL_ACOS0);
-			tmp &= ~(SLOT3_VALID | SLOT4_VALID);
-			AUDIO_WRITE(nuc900_audio->mmio + ACTL_ACOS0, tmp);
+			AUDIO_WRITE(nuc900_audio->mmio + ACTL_RESET, val);
 
-			AUDIO_WRITE(nuc900_audio->mmio + ACTL_PSR, RESET_PRSR);
-			val &= ~AC_PLAY;
-		} else {
-			AUDIO_WRITE(nuc900_audio->mmio + ACTL_RSR, RESET_PRSR);
-			val &= ~AC_RECORD;
-		}
+			break;
 
-		AUDIO_WRITE(nuc900_audio->mmio + ACTL_RESET, val);
+		case SNDRV_PCM_TRIGGER_STOP:
+		case SNDRV_PCM_TRIGGER_SUSPEND:
+			val = AUDIO_READ(nuc900_audio->mmio + ACTL_RESET);
 
-		break;
-	default:
-		ret = -EINVAL;
+			if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+			{
+				tmp = AUDIO_READ(nuc900_audio->mmio + ACTL_ACOS0);
+				tmp &= ~(SLOT3_VALID | SLOT4_VALID);
+				AUDIO_WRITE(nuc900_audio->mmio + ACTL_ACOS0, tmp);
+
+				AUDIO_WRITE(nuc900_audio->mmio + ACTL_PSR, RESET_PRSR);
+				val &= ~AC_PLAY;
+			}
+			else
+			{
+				AUDIO_WRITE(nuc900_audio->mmio + ACTL_RSR, RESET_PRSR);
+				val &= ~AC_RECORD;
+			}
+
+			AUDIO_WRITE(nuc900_audio->mmio + ACTL_RESET, val);
+
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	return ret;
@@ -291,11 +321,13 @@ static int nuc900_ac97_remove(struct snd_soc_dai *dai)
 	return 0;
 }
 
-static const struct snd_soc_dai_ops nuc900_ac97_dai_ops = {
+static const struct snd_soc_dai_ops nuc900_ac97_dai_ops =
+{
 	.trigger	= nuc900_ac97_trigger,
 };
 
-static struct snd_soc_dai_driver nuc900_ac97_dai = {
+static struct snd_soc_dai_driver nuc900_ac97_dai =
+{
 	.probe			= nuc900_ac97_probe,
 	.remove			= nuc900_ac97_remove,
 	.bus_control		= true,
@@ -314,7 +346,8 @@ static struct snd_soc_dai_driver nuc900_ac97_dai = {
 	.ops = &nuc900_ac97_dai_ops,
 };
 
-static const struct snd_soc_component_driver nuc900_ac97_component = {
+static const struct snd_soc_component_driver nuc900_ac97_component =
+{
 	.name		= "nuc900-ac97",
 };
 
@@ -324,29 +357,41 @@ static int nuc900_ac97_drvprobe(struct platform_device *pdev)
 	int ret;
 
 	if (nuc900_ac97_data)
+	{
 		return -EBUSY;
+	}
 
 	nuc900_audio = devm_kzalloc(&pdev->dev, sizeof(struct nuc900_audio),
-				    GFP_KERNEL);
+								GFP_KERNEL);
+
 	if (!nuc900_audio)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&nuc900_audio->lock);
 
 	nuc900_audio->res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	nuc900_audio->mmio = devm_ioremap_resource(&pdev->dev,
-						   nuc900_audio->res);
+						 nuc900_audio->res);
+
 	if (IS_ERR(nuc900_audio->mmio))
+	{
 		return PTR_ERR(nuc900_audio->mmio);
+	}
 
 	nuc900_audio->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(nuc900_audio->clk)) {
+
+	if (IS_ERR(nuc900_audio->clk))
+	{
 		ret = PTR_ERR(nuc900_audio->clk);
 		goto out;
 	}
 
 	nuc900_audio->irq_num = platform_get_irq(pdev, 0);
-	if (!nuc900_audio->irq_num) {
+
+	if (!nuc900_audio->irq_num)
+	{
 		ret = -EBUSY;
 		goto out;
 	}
@@ -354,13 +399,19 @@ static int nuc900_ac97_drvprobe(struct platform_device *pdev)
 	nuc900_ac97_data = nuc900_audio;
 
 	ret = snd_soc_set_ac97_ops(&nuc900_ac97_ops);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = snd_soc_register_component(&pdev->dev, &nuc900_ac97_component,
-					 &nuc900_ac97_dai, 1);
+									 &nuc900_ac97_dai, 1);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* enbale ac97 multifunction pin */
 	mfp_set_groupg(nuc900_audio->dev, NULL);
@@ -382,7 +433,8 @@ static int nuc900_ac97_drvremove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver nuc900_ac97_driver = {
+static struct platform_driver nuc900_ac97_driver =
+{
 	.driver	= {
 		.name	= "nuc900-ac97",
 	},

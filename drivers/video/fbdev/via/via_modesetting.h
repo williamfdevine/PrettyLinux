@@ -33,7 +33,8 @@
 #define VIA_PITCH_MAX	0x3FF8
 
 
-struct via_display_timing {
+struct via_display_timing
+{
 	u16 hor_total;
 	u16 hor_addr;
 	u16 hor_blank_start;

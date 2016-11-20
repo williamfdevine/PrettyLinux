@@ -3,26 +3,27 @@
 #include <linux/radix-tree.h>
 #include <linux/rcupdate.h>
 
-struct item {
+struct item
+{
 	unsigned long index;
 };
 
 struct item *item_create(unsigned long index);
 int __item_insert(struct radix_tree_root *root, struct item *item,
-			unsigned order);
+				  unsigned order);
 int item_insert(struct radix_tree_root *root, unsigned long index);
 int item_insert_order(struct radix_tree_root *root, unsigned long index,
-			unsigned order);
+					  unsigned order);
 int item_delete(struct radix_tree_root *root, unsigned long index);
 struct item *item_lookup(struct radix_tree_root *root, unsigned long index);
 
 void item_check_present(struct radix_tree_root *root, unsigned long index);
 void item_check_absent(struct radix_tree_root *root, unsigned long index);
 void item_gang_check_present(struct radix_tree_root *root,
-			unsigned long start, unsigned long nr,
-			int chunk, int hop);
+							 unsigned long start, unsigned long nr,
+							 int chunk, int hop);
 void item_full_scan(struct radix_tree_root *root, unsigned long start,
-			unsigned long nr, int chunk);
+					unsigned long nr, int chunk);
 void item_kill_tree(struct radix_tree_root *root);
 
 void tag_check(void);

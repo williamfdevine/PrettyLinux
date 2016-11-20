@@ -23,7 +23,8 @@
 #include <linux/dvb/frontend.h>
 #include "dvb_frontend.h"
 
-struct m88rs2000_config {
+struct m88rs2000_config
+{
 	/* Demodulator i2c address */
 	u8 demod_addr;
 
@@ -35,7 +36,8 @@ struct m88rs2000_config {
 	int (*set_ts_params)(struct dvb_frontend *, int);
 };
 
-enum {
+enum
+{
 	CALL_IS_SET_FRONTEND = 0x0,
 	CALL_IS_READ,
 };
@@ -54,7 +56,8 @@ static inline struct dvb_frontend *m88rs2000_attach(
 
 #define RS2000_FE_CRYSTAL_KHZ 27000
 
-enum {
+enum
+{
 	DEMOD_WRITE = 0x1,
 	WRITE_DELAY = 0x10,
 };

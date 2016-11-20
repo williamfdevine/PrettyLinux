@@ -22,7 +22,8 @@
 
 struct ipu_soc;
 
-enum ipuv3_type {
+enum ipuv3_type
+{
 	IPUV3EX,
 	IPUV3M,
 	IPUV3H,
@@ -33,10 +34,11 @@ enum ipuv3_type {
 /*
  * Bitfield of Display Interface signal polarities.
  */
-struct ipu_di_signal_cfg {
-	unsigned data_pol:1;	/* true = inverted */
-	unsigned clk_pol:1;	/* true = rising edge */
-	unsigned enable_pol:1;
+struct ipu_di_signal_cfg
+{
+	unsigned data_pol: 1;	/* true = inverted */
+	unsigned clk_pol: 1;	/* true = rising edge */
+	unsigned enable_pol: 1;
 
 	struct videomode mode;
 
@@ -54,7 +56,8 @@ struct ipu_di_signal_cfg {
 /*
  * Enumeration of CSI destinations
  */
-enum ipu_csi_dest {
+enum ipu_csi_dest
+{
 	IPU_CSI_DEST_IDMAC, /* to memory via SMFC */
 	IPU_CSI_DEST_IC,	/* to Image Converter */
 	IPU_CSI_DEST_VDIC,  /* to VDIC */
@@ -67,7 +70,8 @@ enum ipu_csi_dest {
 #define IPU_ROT_BIT_HFLIP (1 << 1)
 #define IPU_ROT_BIT_90    (1 << 2)
 
-enum ipu_rotate_mode {
+enum ipu_rotate_mode
+{
 	IPU_ROTATE_NONE = 0,
 	IPU_ROTATE_VERT_FLIP = IPU_ROT_BIT_VFLIP,
 	IPU_ROTATE_HORIZ_FLIP = IPU_ROT_BIT_HFLIP,
@@ -76,13 +80,14 @@ enum ipu_rotate_mode {
 	IPU_ROTATE_90_RIGHT_VFLIP = (IPU_ROT_BIT_90 | IPU_ROT_BIT_VFLIP),
 	IPU_ROTATE_90_RIGHT_HFLIP = (IPU_ROT_BIT_90 | IPU_ROT_BIT_HFLIP),
 	IPU_ROTATE_90_LEFT = (IPU_ROT_BIT_90 |
-			      IPU_ROT_BIT_VFLIP | IPU_ROT_BIT_HFLIP),
+						  IPU_ROT_BIT_VFLIP | IPU_ROT_BIT_HFLIP),
 };
 
 /* 90-degree rotations require the IRT unit */
 #define ipu_rot_mode_is_irt(m) (((m) & IPU_ROT_BIT_90) != 0)
 
-enum ipu_color_space {
+enum ipu_color_space
+{
 	IPUV3_COLORSPACE_RGB,
 	IPUV3_COLORSPACE_YUV,
 	IPUV3_COLORSPACE_UNKNOWN,
@@ -91,7 +96,8 @@ enum ipu_color_space {
 /*
  * Enumeration of VDI MOTION select
  */
-enum ipu_motion_sel {
+enum ipu_motion_sel
+{
 	MOTION_NONE = 0,
 	LOW_MOTION,
 	MED_MOTION,
@@ -100,7 +106,8 @@ enum ipu_motion_sel {
 
 struct ipuv3_channel;
 
-enum ipu_channel_irq {
+enum ipu_channel_irq
+{
 	IPU_IRQ_EOF = 0,
 	IPU_IRQ_NFACK = 64,
 	IPU_IRQ_NFB4EOF = 128,
@@ -163,7 +170,7 @@ enum ipu_channel_irq {
 
 int ipu_map_irq(struct ipu_soc *ipu, int irq);
 int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
-		enum ipu_channel_irq irq);
+						  enum ipu_channel_irq irq);
 
 #define IPU_IRQ_DP_SF_START		(448 + 2)
 #define IPU_IRQ_DP_SF_END		(448 + 3)
@@ -198,7 +205,7 @@ int ipu_idmac_lock_enable(struct ipuv3_channel *channel, int num_bursts);
 int ipu_idmac_wait_busy(struct ipuv3_channel *channel, int ms);
 
 void ipu_idmac_set_double_buffer(struct ipuv3_channel *channel,
-		bool doublebuffer);
+								 bool doublebuffer);
 int ipu_idmac_get_current_buffer(struct ipuv3_channel *channel);
 bool ipu_idmac_buffer_is_ready(struct ipuv3_channel *channel, u32 buf_num);
 void ipu_idmac_select_buffer(struct ipuv3_channel *channel, u32 buf_num);
@@ -211,7 +218,8 @@ int ipu_idmac_unlink(struct ipuv3_channel *src, struct ipuv3_channel *sink);
 /*
  * IPU Channel Parameter Memory (cpmem) functions
  */
-struct ipu_rgb {
+struct ipu_rgb
+{
 	struct fb_bitfield      red;
 	struct fb_bitfield      green;
 	struct fb_bitfield      blue;
@@ -219,7 +227,8 @@ struct ipu_rgb {
 	int                     bits_per_pixel;
 };
 
-struct ipu_image {
+struct ipu_image
+{
 	struct v4l2_pix_format pix;
 	struct v4l2_rect rect;
 	dma_addr_t phys0;
@@ -238,17 +247,17 @@ int ipu_cpmem_get_burstsize(struct ipuv3_channel *ch);
 void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize);
 void ipu_cpmem_set_block_mode(struct ipuv3_channel *ch);
 void ipu_cpmem_set_rotation(struct ipuv3_channel *ch,
-			    enum ipu_rotate_mode rot);
+							enum ipu_rotate_mode rot);
 int ipu_cpmem_set_format_rgb(struct ipuv3_channel *ch,
-			     const struct ipu_rgb *rgb);
+							 const struct ipu_rgb *rgb);
 int ipu_cpmem_set_format_passthrough(struct ipuv3_channel *ch, int width);
 void ipu_cpmem_set_yuv_interleaved(struct ipuv3_channel *ch, u32 pixel_format);
 void ipu_cpmem_set_yuv_planar_full(struct ipuv3_channel *ch,
-				   unsigned int uv_stride,
-				   unsigned int u_offset,
-				   unsigned int v_offset);
+								   unsigned int uv_stride,
+								   unsigned int u_offset,
+								   unsigned int v_offset);
 void ipu_cpmem_set_yuv_planar(struct ipuv3_channel *ch,
-			      u32 pixel_format, int stride, int height);
+							  u32 pixel_format, int stride, int height);
 int ipu_cpmem_set_fmt(struct ipuv3_channel *ch, u32 drm_fourcc);
 int ipu_cpmem_set_image(struct ipuv3_channel *ch, struct ipu_image *image);
 void ipu_cpmem_dump(struct ipuv3_channel *ch);
@@ -261,7 +270,7 @@ struct ipu_di;
 struct ipu_dc *ipu_dc_get(struct ipu_soc *ipu, int channel);
 void ipu_dc_put(struct ipu_dc *dc);
 int ipu_dc_init_sync(struct ipu_dc *dc, struct ipu_di *di, bool interlaced,
-		u32 pixel_fmt, u32 width);
+					 u32 pixel_fmt, u32 width);
 void ipu_dc_enable(struct ipu_soc *ipu);
 void ipu_dc_enable_channel(struct ipu_dc *dc);
 void ipu_dc_disable_channel(struct ipu_dc *dc);
@@ -305,28 +314,28 @@ int ipu_dp_enable_channel(struct ipu_dp *dp);
 void ipu_dp_disable_channel(struct ipu_dp *dp);
 void ipu_dp_disable(struct ipu_soc *ipu);
 int ipu_dp_setup_channel(struct ipu_dp *dp,
-		enum ipu_color_space in, enum ipu_color_space out);
+						 enum ipu_color_space in, enum ipu_color_space out);
 int ipu_dp_set_window_pos(struct ipu_dp *, u16 x_pos, u16 y_pos);
 int ipu_dp_set_global_alpha(struct ipu_dp *dp, bool enable, u8 alpha,
-		bool bg_chan);
+							bool bg_chan);
 
 /*
  * IPU CMOS Sensor Interface (csi) functions
  */
 struct ipu_csi;
 int ipu_csi_init_interface(struct ipu_csi *csi,
-			   struct v4l2_mbus_config *mbus_cfg,
-			   struct v4l2_mbus_framefmt *mbus_fmt);
+						   struct v4l2_mbus_config *mbus_cfg,
+						   struct v4l2_mbus_framefmt *mbus_fmt);
 bool ipu_csi_is_interlaced(struct ipu_csi *csi);
 void ipu_csi_get_window(struct ipu_csi *csi, struct v4l2_rect *w);
 void ipu_csi_set_window(struct ipu_csi *csi, struct v4l2_rect *w);
 void ipu_csi_set_test_generator(struct ipu_csi *csi, bool active,
-				u32 r_value, u32 g_value, u32 b_value,
-				u32 pix_clk);
+								u32 r_value, u32 g_value, u32 b_value,
+								u32 pix_clk);
 int ipu_csi_set_mipi_datatype(struct ipu_csi *csi, u32 vc,
-			      struct v4l2_mbus_framefmt *mbus_fmt);
+							  struct v4l2_mbus_framefmt *mbus_fmt);
 int ipu_csi_set_skip_smfc(struct ipu_csi *csi, u32 skip,
-			  u32 max_ratio, u32 id);
+						  u32 max_ratio, u32 id);
 int ipu_csi_set_dest(struct ipu_csi *csi, enum ipu_csi_dest csi_dest);
 int ipu_csi_enable(struct ipu_csi *csi);
 int ipu_csi_disable(struct ipu_csi *csi);
@@ -337,7 +346,8 @@ void ipu_csi_dump(struct ipu_csi *csi);
 /*
  * IPU Image Converter (ic) functions
  */
-enum ipu_ic_task {
+enum ipu_ic_task
+{
 	IC_TASK_ENCODER,
 	IC_TASK_VIEWFINDER,
 	IC_TASK_POST_PROCESSOR,
@@ -346,19 +356,19 @@ enum ipu_ic_task {
 
 struct ipu_ic;
 int ipu_ic_task_init(struct ipu_ic *ic,
-		     int in_width, int in_height,
-		     int out_width, int out_height,
-		     enum ipu_color_space in_cs,
-		     enum ipu_color_space out_cs);
+					 int in_width, int in_height,
+					 int out_width, int out_height,
+					 enum ipu_color_space in_cs,
+					 enum ipu_color_space out_cs);
 int ipu_ic_task_graphics_init(struct ipu_ic *ic,
-			      enum ipu_color_space in_g_cs,
-			      bool galpha_en, u32 galpha,
-			      bool colorkey_en, u32 colorkey);
+							  enum ipu_color_space in_g_cs,
+							  bool galpha_en, u32 galpha,
+							  bool colorkey_en, u32 colorkey);
 void ipu_ic_task_enable(struct ipu_ic *ic);
 void ipu_ic_task_disable(struct ipu_ic *ic);
 int ipu_ic_task_idma_init(struct ipu_ic *ic, struct ipuv3_channel *channel,
-			  u32 width, u32 height, int burst_size,
-			  enum ipu_rotate_mode rot);
+						  u32 width, u32 height, int burst_size,
+						  enum ipu_rotate_mode rot);
 int ipu_ic_enable(struct ipu_ic *ic);
 int ipu_ic_disable(struct ipu_ic *ic);
 struct ipu_ic *ipu_ic_get(struct ipu_soc *ipu, enum ipu_ic_task task);
@@ -395,11 +405,12 @@ enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code);
 int ipu_stride_to_bytes(u32 pixel_stride, u32 pixelformat);
 bool ipu_pixelformat_is_planar(u32 pixelformat);
 int ipu_degrees_to_rot_mode(enum ipu_rotate_mode *mode, int degrees,
-			    bool hflip, bool vflip);
+							bool hflip, bool vflip);
 int ipu_rot_mode_to_degrees(int *degrees, enum ipu_rotate_mode mode,
-			    bool hflip, bool vflip);
+							bool hflip, bool vflip);
 
-struct ipu_client_platformdata {
+struct ipu_client_platformdata
+{
 	int csi;
 	int di;
 	int dc;

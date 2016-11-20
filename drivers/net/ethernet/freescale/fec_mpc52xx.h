@@ -30,7 +30,8 @@
 /* Hardware register sets & bits                                            */
 /* ======================================================================== */
 
-struct mpc52xx_fec {
+struct mpc52xx_fec
+{
 	u32 fec_id;			/* FEC + 0x000 */
 	u32 ievent;			/* FEC + 0x004 */
 	u32 imask;			/* FEC + 0x008 */
@@ -234,9 +235,9 @@ struct mpc52xx_fec {
 
 /* all but MII, which is enabled separately */
 #define FEC_IMASK_ENABLE	(FEC_IMASK_HBERR | FEC_IMASK_BABR | \
-		FEC_IMASK_BABT | FEC_IMASK_GRA | FEC_IMASK_LATE_COL | \
-		FEC_IMASK_COL_RETRY_LIM | FEC_IMASK_XFIFO_UN | \
-		FEC_IMASK_XFIFO_ERROR | FEC_IMASK_RFIFO_ERROR)
+							 FEC_IMASK_BABT | FEC_IMASK_GRA | FEC_IMASK_LATE_COL | \
+							 FEC_IMASK_COL_RETRY_LIM | FEC_IMASK_XFIFO_UN | \
+							 FEC_IMASK_XFIFO_ERROR | FEC_IMASK_RFIFO_ERROR)
 
 #define	FEC_RCNTRL_MAX_FL_SHIFT		16
 #define	FEC_RCNTRL_LOOP			0x01

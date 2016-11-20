@@ -18,7 +18,8 @@
    present on PV MPEG 8000GT
  */
 
-static struct rc_map_table pixelview_new[] = {
+static struct rc_map_table pixelview_new[] =
+{
 	{ 0x3c, KEY_TIME },		/* Timeshift */
 	{ 0x12, KEY_POWER },
 
@@ -58,7 +59,8 @@ static struct rc_map_table pixelview_new[] = {
 	{ 0x34, KEY_RADIO },
 };
 
-static struct rc_map_list pixelview_new_map = {
+static struct rc_map_list pixelview_new_map =
+{
 	.map = {
 		.scan    = pixelview_new,
 		.size    = ARRAY_SIZE(pixelview_new),

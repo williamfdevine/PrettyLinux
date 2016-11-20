@@ -661,9 +661,9 @@
 
 /* async DMA packets */
 #define DMA_PACKET(cmd, t, s, n)	((((cmd) & 0xF) << 28) |	\
-					 (((t) & 0x1) << 23) |		\
-					 (((s) & 0x1) << 22) |		\
-					 (((n) & 0xFFFF) << 0))
+									 (((t) & 0x1) << 23) |		\
+									 (((s) & 0x1) << 22) |		\
+									 (((n) & 0xFFFF) << 0))
 /* async DMA Packet types */
 #define	DMA_PACKET_WRITE				  0x2
 #define	DMA_PACKET_COPY					  0x3
@@ -983,11 +983,11 @@
  * PM4
  */
 #define PACKET0(reg, n)	((RADEON_PACKET_TYPE0 << 30) |			\
-			 (((reg) >> 2) & 0xFFFF) |			\
-			 ((n) & 0x3FFF) << 16)
+						 (((reg) >> 2) & 0xFFFF) |			\
+						 ((n) & 0x3FFF) << 16)
 #define PACKET3(op, n)	((RADEON_PACKET_TYPE3 << 30) |			\
-			 (((op) & 0xFF) << 8) |				\
-			 ((n) & 0x3FFF) << 16)
+						 (((op) & 0xFF) << 8) |				\
+						 ((n) & 0x3FFF) << 16)
 
 /* UVD */
 #define UVD_SEMA_ADDR_LOW				0xef00

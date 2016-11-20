@@ -31,7 +31,7 @@
 #include <linux/device.h>
 
 #if defined(CONFIG_SND_SEQUENCER) || defined(CONFIG_SND_SEQUENCER_MODULE)
-#include <sound/seq_device.h>
+	#include <sound/seq_device.h>
 #endif
 
 /*
@@ -50,24 +50,27 @@ struct snd_rawmidi_substream;
 struct snd_seq_port_info;
 struct pid;
 
-struct snd_rawmidi_ops {
-	int (*open) (struct snd_rawmidi_substream * substream);
-	int (*close) (struct snd_rawmidi_substream * substream);
-	void (*trigger) (struct snd_rawmidi_substream * substream, int up);
-	void (*drain) (struct snd_rawmidi_substream * substream);
+struct snd_rawmidi_ops
+{
+	int (*open) (struct snd_rawmidi_substream *substream);
+	int (*close) (struct snd_rawmidi_substream *substream);
+	void (*trigger) (struct snd_rawmidi_substream *substream, int up);
+	void (*drain) (struct snd_rawmidi_substream *substream);
 };
 
-struct snd_rawmidi_global_ops {
-	int (*dev_register) (struct snd_rawmidi * rmidi);
-	int (*dev_unregister) (struct snd_rawmidi * rmidi);
+struct snd_rawmidi_global_ops
+{
+	int (*dev_register) (struct snd_rawmidi *rmidi);
+	int (*dev_unregister) (struct snd_rawmidi *rmidi);
 	void (*get_port_info)(struct snd_rawmidi *rmidi, int number,
-			      struct snd_seq_port_info *info);
+						  struct snd_seq_port_info *info);
 };
 
-struct snd_rawmidi_runtime {
+struct snd_rawmidi_runtime
+{
 	struct snd_rawmidi_substream *substream;
 	unsigned int drain: 1,	/* drain stage */
-		     oss: 1;	/* OSS compatible mode */
+			 oss: 1;	/* OSS compatible mode */
 	/* midi stream buffer */
 	unsigned char *buffer;	/* buffer for MIDI data */
 	size_t buffer_size;	/* size of buffer */
@@ -88,13 +91,14 @@ struct snd_rawmidi_runtime {
 	void (*private_free)(struct snd_rawmidi_substream *substream);
 };
 
-struct snd_rawmidi_substream {
+struct snd_rawmidi_substream
+{
 	struct list_head list;		/* list of all substream for given stream */
 	int stream;			/* direction */
 	int number;			/* substream number */
 	unsigned int opened: 1,		/* open flag */
-		     append: 1,		/* append flag (merge more streams) */
-		     active_sensing: 1; /* send active sensing when close */
+			 append: 1,		/* append flag (merge more streams) */
+			 active_sensing: 1; /* send active sensing when close */
 	int use_count;			/* use counter (for output) */
 	size_t bytes;
 	struct snd_rawmidi *rmidi;
@@ -106,19 +110,22 @@ struct snd_rawmidi_substream {
 	struct snd_rawmidi_ops *ops;
 };
 
-struct snd_rawmidi_file {
+struct snd_rawmidi_file
+{
 	struct snd_rawmidi *rmidi;
 	struct snd_rawmidi_substream *input;
 	struct snd_rawmidi_substream *output;
 };
 
-struct snd_rawmidi_str {
+struct snd_rawmidi_str
+{
 	unsigned int substream_count;
 	unsigned int substream_opened;
 	struct list_head substreams;
 };
 
-struct snd_rawmidi {
+struct snd_rawmidi
+{
 	struct snd_card *card;
 	struct list_head list;
 	unsigned int device;		/* device number */
@@ -152,42 +159,42 @@ struct snd_rawmidi {
 /* main rawmidi functions */
 
 int snd_rawmidi_new(struct snd_card *card, char *id, int device,
-		    int output_count, int input_count,
-		    struct snd_rawmidi **rmidi);
+					int output_count, int input_count,
+					struct snd_rawmidi **rmidi);
 void snd_rawmidi_set_ops(struct snd_rawmidi *rmidi, int stream,
-			 struct snd_rawmidi_ops *ops);
+						 struct snd_rawmidi_ops *ops);
 
 /* callbacks */
 
 int snd_rawmidi_receive(struct snd_rawmidi_substream *substream,
-			const unsigned char *buffer, int count);
+						const unsigned char *buffer, int count);
 int snd_rawmidi_transmit_empty(struct snd_rawmidi_substream *substream);
 int snd_rawmidi_transmit_peek(struct snd_rawmidi_substream *substream,
-			      unsigned char *buffer, int count);
+							  unsigned char *buffer, int count);
 int snd_rawmidi_transmit_ack(struct snd_rawmidi_substream *substream, int count);
 int snd_rawmidi_transmit(struct snd_rawmidi_substream *substream,
-			 unsigned char *buffer, int count);
+						 unsigned char *buffer, int count);
 int __snd_rawmidi_transmit_peek(struct snd_rawmidi_substream *substream,
-			      unsigned char *buffer, int count);
+								unsigned char *buffer, int count);
 int __snd_rawmidi_transmit_ack(struct snd_rawmidi_substream *substream,
-			       int count);
+							   int count);
 
 /* main midi functions */
 
 int snd_rawmidi_info_select(struct snd_card *card, struct snd_rawmidi_info *info);
 int snd_rawmidi_kernel_open(struct snd_card *card, int device, int subdevice,
-			    int mode, struct snd_rawmidi_file *rfile);
+							int mode, struct snd_rawmidi_file *rfile);
 int snd_rawmidi_kernel_release(struct snd_rawmidi_file *rfile);
 int snd_rawmidi_output_params(struct snd_rawmidi_substream *substream,
-			      struct snd_rawmidi_params *params);
+							  struct snd_rawmidi_params *params);
 int snd_rawmidi_input_params(struct snd_rawmidi_substream *substream,
-			     struct snd_rawmidi_params *params);
+							 struct snd_rawmidi_params *params);
 int snd_rawmidi_drop_output(struct snd_rawmidi_substream *substream);
 int snd_rawmidi_drain_output(struct snd_rawmidi_substream *substream);
 int snd_rawmidi_drain_input(struct snd_rawmidi_substream *substream);
 long snd_rawmidi_kernel_read(struct snd_rawmidi_substream *substream,
-			     unsigned char *buf, long count);
+							 unsigned char *buf, long count);
 long snd_rawmidi_kernel_write(struct snd_rawmidi_substream *substream,
-			      const unsigned char *buf, long count);
+							  const unsigned char *buf, long count);
 
 #endif /* __SOUND_RAWMIDI_H */

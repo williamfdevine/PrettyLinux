@@ -46,13 +46,14 @@
  * @elp:        error locator polynomial
  * @poly_2t:    temporary polynomials of degree 2t
  */
-struct bch_control {
+struct bch_control
+{
 	unsigned int    m;
 	unsigned int    n;
 	unsigned int    t;
 	unsigned int    ecc_bits;
 	unsigned int    ecc_bytes;
-/* private: */
+	/* private: */
 	uint16_t       *a_pow_tab;
 	uint16_t       *a_log_tab;
 	uint32_t       *mod8_tab;
@@ -70,10 +71,10 @@ struct bch_control *init_bch(int m, int t, unsigned int prim_poly);
 void free_bch(struct bch_control *bch);
 
 void encode_bch(struct bch_control *bch, const uint8_t *data,
-		unsigned int len, uint8_t *ecc);
+				unsigned int len, uint8_t *ecc);
 
 int decode_bch(struct bch_control *bch, const uint8_t *data, unsigned int len,
-	       const uint8_t *recv_ecc, const uint8_t *calc_ecc,
-	       const unsigned int *syn, unsigned int *errloc);
+			   const uint8_t *recv_ecc, const uint8_t *calc_ecc,
+			   const unsigned int *syn, unsigned int *errloc);
 
 #endif /* _BCH_H */

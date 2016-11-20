@@ -26,7 +26,8 @@ struct platform_device;
  * @input_val: the select input value for this pin.
  * @configs: the config for this pin.
  */
-struct imx_pin {
+struct imx_pin
+{
 	unsigned int pin;
 	unsigned int mux_mode;
 	u16 input_reg;
@@ -42,7 +43,8 @@ struct imx_pin {
  * @pin_ids: array of pin_ids. pinctrl forces us to maintain such an array
  * @pins: array of pins
  */
-struct imx_pin_group {
+struct imx_pin_group
+{
 	const char *name;
 	unsigned npins;
 	unsigned int *pin_ids;
@@ -55,7 +57,8 @@ struct imx_pin_group {
  * @groups: corresponding pin groups
  * @num_groups: the number of groups
  */
-struct imx_pmx_func {
+struct imx_pmx_func
+{
 	const char *name;
 	const char **groups;
 	unsigned num_groups;
@@ -66,12 +69,14 @@ struct imx_pmx_func {
  * @mux_reg: mux register offset
  * @conf_reg: config register offset
  */
-struct imx_pin_reg {
+struct imx_pin_reg
+{
 	s16 mux_reg;
 	s16 conf_reg;
 };
 
-struct imx_pinctrl_soc_info {
+struct imx_pinctrl_soc_info
+{
 	struct device *dev;
 	const struct pinctrl_pin_desc *pins;
 	unsigned int npins;
@@ -98,5 +103,5 @@ struct imx_pinctrl_soc_info {
 #define IOMUXC_CONFIG_SION	(0x1 << 4)
 
 int imx_pinctrl_probe(struct platform_device *pdev,
-			struct imx_pinctrl_soc_info *info);
+					  struct imx_pinctrl_soc_info *info);
 #endif /* __DRIVERS_PINCTRL_IMX_H */

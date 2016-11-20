@@ -39,7 +39,8 @@ MODULE_LICENSE("GPL");
 #define CCMP_TK_LEN 16
 #define CCMP_PN_LEN 6
 
-struct lib80211_ccmp_data {
+struct lib80211_ccmp_data
+{
 	u8 key[CCMP_TK_LEN];
 	int key_set;
 
@@ -56,12 +57,12 @@ struct lib80211_ccmp_data {
 
 	/* scratch buffers for virt_to_page() (crypto API) */
 	u8 tx_b0[AES_BLOCK_LEN], tx_b[AES_BLOCK_LEN],
-	    tx_e[AES_BLOCK_LEN], tx_s0[AES_BLOCK_LEN];
+	tx_e[AES_BLOCK_LEN], tx_s0[AES_BLOCK_LEN];
 	u8 rx_b0[AES_BLOCK_LEN], rx_b[AES_BLOCK_LEN], rx_a[AES_BLOCK_LEN];
 };
 
 static inline void lib80211_ccmp_aes_encrypt(struct crypto_cipher *tfm,
-					      const u8 pt[16], u8 ct[16])
+		const u8 pt[16], u8 ct[16])
 {
 	crypto_cipher_encrypt_one(tfm, ct, pt);
 }
@@ -71,22 +72,33 @@ static void *lib80211_ccmp_init(int key_idx)
 	struct lib80211_ccmp_data *priv;
 
 	priv = kzalloc(sizeof(*priv), GFP_ATOMIC);
+
 	if (priv == NULL)
+	{
 		goto fail;
+	}
+
 	priv->key_idx = key_idx;
 
 	priv->tfm = crypto_alloc_cipher("aes", 0, CRYPTO_ALG_ASYNC);
-	if (IS_ERR(priv->tfm)) {
+
+	if (IS_ERR(priv->tfm))
+	{
 		priv->tfm = NULL;
 		goto fail;
 	}
 
 	return priv;
 
-      fail:
-	if (priv) {
+fail:
+
+	if (priv)
+	{
 		if (priv->tfm)
+		{
 			crypto_free_cipher(priv->tfm);
+		}
+
 		kfree(priv);
 	}
 
@@ -96,21 +108,28 @@ static void *lib80211_ccmp_init(int key_idx)
 static void lib80211_ccmp_deinit(void *priv)
 {
 	struct lib80211_ccmp_data *_priv = priv;
+
 	if (_priv && _priv->tfm)
+	{
 		crypto_free_cipher(_priv->tfm);
+	}
+
 	kfree(priv);
 }
 
-static inline void xor_block(u8 * b, u8 * a, size_t len)
+static inline void xor_block(u8 *b, u8 *a, size_t len)
 {
 	int i;
+
 	for (i = 0; i < len; i++)
+	{
 		b[i] ^= a[i];
+	}
 }
 
 static void ccmp_init_blocks(struct crypto_cipher *tfm,
-			     struct ieee80211_hdr *hdr,
-			     u8 * pn, size_t dlen, u8 * b0, u8 * auth, u8 * s0)
+							 struct ieee80211_hdr *hdr,
+							 u8 *pn, size_t dlen, u8 *b0, u8 *auth, u8 *s0)
 {
 	u8 *pos, qc = 0;
 	size_t aad_len;
@@ -121,12 +140,21 @@ static void ccmp_init_blocks(struct crypto_cipher *tfm,
 	qc_included = ieee80211_is_data_qos(hdr->frame_control);
 
 	aad_len = 22;
+
 	if (a4_included)
+	{
 		aad_len += 6;
-	if (qc_included) {
+	}
+
+	if (qc_included)
+	{
 		pos = (u8 *) & hdr->addr4;
+
 		if (a4_included)
+		{
 			pos += 6;
+		}
+
 		qc = *pos & 0x0f;
 		aad_len += 2;
 	}
@@ -160,9 +188,14 @@ static void ccmp_init_blocks(struct crypto_cipher *tfm,
 	aad[22] = pos[0] & 0x0f;
 	aad[23] = 0;		/* all bits masked */
 	memset(aad + 24, 0, 8);
+
 	if (a4_included)
+	{
 		memcpy(aad + 24, hdr->addr4, ETH_ALEN);
-	if (qc_included) {
+	}
+
+	if (qc_included)
+	{
 		aad[a4_included ? 30 : 24] = qc;
 		/* rest of QC masked */
 	}
@@ -179,27 +212,37 @@ static void ccmp_init_blocks(struct crypto_cipher *tfm,
 }
 
 static int lib80211_ccmp_hdr(struct sk_buff *skb, int hdr_len,
-			      u8 *aeskey, int keylen, void *priv)
+							 u8 *aeskey, int keylen, void *priv)
 {
 	struct lib80211_ccmp_data *key = priv;
 	int i;
 	u8 *pos;
 
 	if (skb_headroom(skb) < CCMP_HDR_LEN || skb->len < hdr_len)
+	{
 		return -1;
+	}
 
 	if (aeskey != NULL && keylen >= CCMP_TK_LEN)
+	{
 		memcpy(aeskey, key->key, CCMP_TK_LEN);
+	}
 
 	pos = skb_push(skb, CCMP_HDR_LEN);
 	memmove(pos, pos + CCMP_HDR_LEN, hdr_len);
 	pos += hdr_len;
 
 	i = CCMP_PN_LEN - 1;
-	while (i >= 0) {
+
+	while (i >= 0)
+	{
 		key->tx_pn[i]++;
+
 		if (key->tx_pn[i] != 0)
+		{
 			break;
+		}
+
 		i--;
 	}
 
@@ -227,12 +270,17 @@ static int lib80211_ccmp_encrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	u8 *s0 = key->tx_s0;
 
 	if (skb_tailroom(skb) < CCMP_MIC_LEN || skb->len < hdr_len)
+	{
 		return -1;
+	}
 
 	data_len = skb->len - hdr_len;
 	len = lib80211_ccmp_hdr(skb, hdr_len, NULL, 0, priv);
+
 	if (len < 0)
+	{
 		return -1;
+	}
 
 	pos = skb->data + hdr_len + CCMP_HDR_LEN;
 	hdr = (struct ieee80211_hdr *)skb->data;
@@ -241,7 +289,8 @@ static int lib80211_ccmp_encrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	blocks = DIV_ROUND_UP(data_len, AES_BLOCK_LEN);
 	last = data_len % AES_BLOCK_LEN;
 
-	for (i = 1; i <= blocks; i++) {
+	for (i = 1; i <= blocks; i++)
+	{
 		len = (i == blocks && last) ? last : AES_BLOCK_LEN;
 		/* Authentication */
 		xor_block(b, pos, len);
@@ -255,8 +304,11 @@ static int lib80211_ccmp_encrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	}
 
 	mic = skb_put(skb, CCMP_MIC_LEN);
+
 	for (i = 0; i < CCMP_MIC_LEN; i++)
+	{
 		mic[i] = b[i] ^ s0[i];
+	}
 
 	return 0;
 }
@@ -277,8 +329,11 @@ static inline int ccmp_replay_check(u8 *pn_n, u8 *pn_o)
 	iv16_o = (pn_o[4] << 8) | pn_o[5];
 
 	if ((s32)iv32_n - (s32)iv32_o < 0 ||
-	    (iv32_n == iv32_o && iv16_n <= iv16_o))
+		(iv32_n == iv32_o && iv16_n <= iv16_o))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -295,7 +350,8 @@ static int lib80211_ccmp_decrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	size_t data_len = skb->len - hdr_len - CCMP_HDR_LEN - CCMP_MIC_LEN;
 	u8 *mic = skb->data + skb->len - CCMP_MIC_LEN;
 
-	if (skb->len < hdr_len + CCMP_HDR_LEN + CCMP_MIC_LEN) {
+	if (skb->len < hdr_len + CCMP_HDR_LEN + CCMP_MIC_LEN)
+	{
 		key->dot11RSNAStatsCCMPFormatErrors++;
 		return -1;
 	}
@@ -303,21 +359,28 @@ static int lib80211_ccmp_decrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	hdr = (struct ieee80211_hdr *)skb->data;
 	pos = skb->data + hdr_len;
 	keyidx = pos[3];
-	if (!(keyidx & (1 << 5))) {
+
+	if (!(keyidx & (1 << 5)))
+	{
 		net_dbg_ratelimited("CCMP: received packet without ExtIV flag from %pM\n",
-				    hdr->addr2);
+							hdr->addr2);
 		key->dot11RSNAStatsCCMPFormatErrors++;
 		return -2;
 	}
+
 	keyidx >>= 6;
-	if (key->key_idx != keyidx) {
+
+	if (key->key_idx != keyidx)
+	{
 		net_dbg_ratelimited("CCMP: RX tkey->key_idx=%d frame keyidx=%d\n",
-				    key->key_idx, keyidx);
+							key->key_idx, keyidx);
 		return -6;
 	}
-	if (!key->key_set) {
+
+	if (!key->key_set)
+	{
 		net_dbg_ratelimited("CCMP: received packet from %pM with keyid=%d that does not have a configured key\n",
-				    hdr->addr2, keyidx);
+							hdr->addr2, keyidx);
 		return -3;
 	}
 
@@ -329,13 +392,14 @@ static int lib80211_ccmp_decrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	pn[5] = pos[0];
 	pos += 8;
 
-	if (ccmp_replay_check(pn, key->rx_pn)) {
+	if (ccmp_replay_check(pn, key->rx_pn))
+	{
 #ifdef CONFIG_LIB80211_DEBUG
 		net_dbg_ratelimited("CCMP: replay detected: STA=%pM previous PN %02x%02x%02x%02x%02x%02x received PN %02x%02x%02x%02x%02x%02x\n",
-				    hdr->addr2,
-				    key->rx_pn[0], key->rx_pn[1], key->rx_pn[2],
-				    key->rx_pn[3], key->rx_pn[4], key->rx_pn[5],
-				    pn[0], pn[1], pn[2], pn[3], pn[4], pn[5]);
+							hdr->addr2,
+							key->rx_pn[0], key->rx_pn[1], key->rx_pn[2],
+							key->rx_pn[3], key->rx_pn[4], key->rx_pn[5],
+							pn[0], pn[1], pn[2], pn[3], pn[4], pn[5]);
 #endif
 		key->dot11RSNAStatsCCMPReplays++;
 		return -4;
@@ -347,7 +411,8 @@ static int lib80211_ccmp_decrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	blocks = DIV_ROUND_UP(data_len, AES_BLOCK_LEN);
 	last = data_len % AES_BLOCK_LEN;
 
-	for (i = 1; i <= blocks; i++) {
+	for (i = 1; i <= blocks; i++)
+	{
 		len = (i == blocks && last) ? last : AES_BLOCK_LEN;
 		/* Decrypt, with counter */
 		b0[14] = (i >> 8) & 0xff;
@@ -360,9 +425,10 @@ static int lib80211_ccmp_decrypt(struct sk_buff *skb, int hdr_len, void *priv)
 		pos += len;
 	}
 
-	if (memcmp(mic, a, CCMP_MIC_LEN) != 0) {
+	if (memcmp(mic, a, CCMP_MIC_LEN) != 0)
+	{
 		net_dbg_ratelimited("CCMP: decrypt failed: STA=%pM\n",
-				    hdr->addr2);
+							hdr->addr2);
 		key->dot11RSNAStatsCCMPDecryptErrors++;
 		return -5;
 	}
@@ -377,7 +443,7 @@ static int lib80211_ccmp_decrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	return keyidx;
 }
 
-static int lib80211_ccmp_set_key(void *key, int len, u8 * seq, void *priv)
+static int lib80211_ccmp_set_key(void *key, int len, u8 *seq, void *priv)
 {
 	struct lib80211_ccmp_data *data = priv;
 	int keyidx;
@@ -387,10 +453,14 @@ static int lib80211_ccmp_set_key(void *key, int len, u8 * seq, void *priv)
 	memset(data, 0, sizeof(*data));
 	data->key_idx = keyidx;
 	data->tfm = tfm;
-	if (len == CCMP_TK_LEN) {
+
+	if (len == CCMP_TK_LEN)
+	{
 		memcpy(data->key, key, CCMP_TK_LEN);
 		data->key_set = 1;
-		if (seq) {
+
+		if (seq)
+		{
 			data->rx_pn[0] = seq[5];
 			data->rx_pn[1] = seq[4];
 			data->rx_pn[2] = seq[3];
@@ -398,27 +468,39 @@ static int lib80211_ccmp_set_key(void *key, int len, u8 * seq, void *priv)
 			data->rx_pn[4] = seq[1];
 			data->rx_pn[5] = seq[0];
 		}
+
 		crypto_cipher_setkey(data->tfm, data->key, CCMP_TK_LEN);
-	} else if (len == 0)
+	}
+	else if (len == 0)
+	{
 		data->key_set = 0;
+	}
 	else
+	{
 		return -1;
+	}
 
 	return 0;
 }
 
-static int lib80211_ccmp_get_key(void *key, int len, u8 * seq, void *priv)
+static int lib80211_ccmp_get_key(void *key, int len, u8 *seq, void *priv)
 {
 	struct lib80211_ccmp_data *data = priv;
 
 	if (len < CCMP_TK_LEN)
+	{
 		return -1;
+	}
 
 	if (!data->key_set)
+	{
 		return 0;
+	}
+
 	memcpy(key, data->key, CCMP_TK_LEN);
 
-	if (seq) {
+	if (seq)
+	{
 		seq[0] = data->tx_pn[5];
 		seq[1] = data->tx_pn[4];
 		seq[2] = data->tx_pn[3];
@@ -435,21 +517,22 @@ static void lib80211_ccmp_print_stats(struct seq_file *m, void *priv)
 	struct lib80211_ccmp_data *ccmp = priv;
 
 	seq_printf(m,
-		   "key[%d] alg=CCMP key_set=%d "
-		   "tx_pn=%02x%02x%02x%02x%02x%02x "
-		   "rx_pn=%02x%02x%02x%02x%02x%02x "
-		   "format_errors=%d replays=%d decrypt_errors=%d\n",
-		   ccmp->key_idx, ccmp->key_set,
-		   ccmp->tx_pn[0], ccmp->tx_pn[1], ccmp->tx_pn[2],
-		   ccmp->tx_pn[3], ccmp->tx_pn[4], ccmp->tx_pn[5],
-		   ccmp->rx_pn[0], ccmp->rx_pn[1], ccmp->rx_pn[2],
-		   ccmp->rx_pn[3], ccmp->rx_pn[4], ccmp->rx_pn[5],
-		   ccmp->dot11RSNAStatsCCMPFormatErrors,
-		   ccmp->dot11RSNAStatsCCMPReplays,
-		   ccmp->dot11RSNAStatsCCMPDecryptErrors);
+			   "key[%d] alg=CCMP key_set=%d "
+			   "tx_pn=%02x%02x%02x%02x%02x%02x "
+			   "rx_pn=%02x%02x%02x%02x%02x%02x "
+			   "format_errors=%d replays=%d decrypt_errors=%d\n",
+			   ccmp->key_idx, ccmp->key_set,
+			   ccmp->tx_pn[0], ccmp->tx_pn[1], ccmp->tx_pn[2],
+			   ccmp->tx_pn[3], ccmp->tx_pn[4], ccmp->tx_pn[5],
+			   ccmp->rx_pn[0], ccmp->rx_pn[1], ccmp->rx_pn[2],
+			   ccmp->rx_pn[3], ccmp->rx_pn[4], ccmp->rx_pn[5],
+			   ccmp->dot11RSNAStatsCCMPFormatErrors,
+			   ccmp->dot11RSNAStatsCCMPReplays,
+			   ccmp->dot11RSNAStatsCCMPDecryptErrors);
 }
 
-static struct lib80211_crypto_ops lib80211_crypt_ccmp = {
+static struct lib80211_crypto_ops lib80211_crypt_ccmp =
+{
 	.name = "CCMP",
 	.init = lib80211_ccmp_init,
 	.deinit = lib80211_ccmp_deinit,

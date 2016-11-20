@@ -26,7 +26,8 @@
 #include <crypto/sha1_base.h>
 #include <asm/byteorder.h>
 
-const u8 sha1_zero_message_hash[SHA1_DIGEST_SIZE] = {
+const u8 sha1_zero_message_hash[SHA1_DIGEST_SIZE] =
+{
 	0xda, 0x39, 0xa3, 0xee, 0x5e, 0x6b, 0x4b, 0x0d,
 	0x32, 0x55, 0xbf, 0xef, 0x95, 0x60, 0x18, 0x90,
 	0xaf, 0xd8, 0x07, 0x09
@@ -34,19 +35,21 @@ const u8 sha1_zero_message_hash[SHA1_DIGEST_SIZE] = {
 EXPORT_SYMBOL_GPL(sha1_zero_message_hash);
 
 static void sha1_generic_block_fn(struct sha1_state *sst, u8 const *src,
-				  int blocks)
+								  int blocks)
 {
 	u32 temp[SHA_WORKSPACE_WORDS];
 
-	while (blocks--) {
+	while (blocks--)
+	{
 		sha_transform(sst->state, src, temp);
 		src += SHA1_BLOCK_SIZE;
 	}
+
 	memzero_explicit(temp, sizeof(temp));
 }
 
 int crypto_sha1_update(struct shash_desc *desc, const u8 *data,
-		       unsigned int len)
+					   unsigned int len)
 {
 	return sha1_base_do_update(desc, data, len, sha1_generic_block_fn);
 }
@@ -59,14 +62,15 @@ static int sha1_final(struct shash_desc *desc, u8 *out)
 }
 
 int crypto_sha1_finup(struct shash_desc *desc, const u8 *data,
-		      unsigned int len, u8 *out)
+					  unsigned int len, u8 *out)
 {
 	sha1_base_do_update(desc, data, len, sha1_generic_block_fn);
 	return sha1_final(desc, out);
 }
 EXPORT_SYMBOL(crypto_sha1_finup);
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize	=	SHA1_DIGEST_SIZE,
 	.init		=	sha1_base_init,
 	.update		=	crypto_sha1_update,
@@ -75,7 +79,7 @@ static struct shash_alg alg = {
 	.descsize	=	sizeof(struct sha1_state),
 	.base		=	{
 		.cra_name	=	"sha1",
-		.cra_driver_name=	"sha1-generic",
+		.cra_driver_name =	"sha1-generic",
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA1_BLOCK_SIZE,
 		.cra_module	=	THIS_MODULE,

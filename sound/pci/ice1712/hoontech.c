@@ -19,7 +19,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- */      
+ */
 
 #include <linux/delay.h>
 #include <linux/interrupt.h>
@@ -33,7 +33,8 @@
 #include "hoontech.h"
 
 /* Hoontech-specific setting */
-struct hoontech_spec {
+struct hoontech_spec
+{
 	unsigned char boxbits[4];
 	unsigned int config;
 	unsigned short boxconfig[4];
@@ -91,7 +92,10 @@ static void snd_ice1712_stdsp24_box_channel(struct snd_ice1712 *ice, int box, in
 
 	/* prepare for write */
 	if (chn == 3)
+	{
 		ICE1712_STDSP24_2_CHN4(spec->boxbits, 0);
+	}
+
 	ICE1712_STDSP24_2_MIDI1(spec->boxbits, activate);
 	snd_ice1712_stdsp24_gpio_write(ice, spec->boxbits[2]);
 	snd_ice1712_stdsp24_gpio_write(ice, spec->boxbits[3]);
@@ -103,17 +107,26 @@ static void snd_ice1712_stdsp24_box_channel(struct snd_ice1712 *ice, int box, in
 	snd_ice1712_stdsp24_gpio_write(ice, spec->boxbits[1]);
 	snd_ice1712_stdsp24_gpio_write(ice, spec->boxbits[2]);
 	udelay(100);
-	if (chn == 3) {
+
+	if (chn == 3)
+	{
 		ICE1712_STDSP24_2_CHN4(spec->boxbits, 0);
 		snd_ice1712_stdsp24_gpio_write(ice, spec->boxbits[2]);
-	} else {
-		switch (chn) {
-		case 0:	ICE1712_STDSP24_1_CHN1(spec->boxbits, 0); break;
-		case 1:	ICE1712_STDSP24_1_CHN2(spec->boxbits, 0); break;
-		case 2:	ICE1712_STDSP24_1_CHN3(spec->boxbits, 0); break;
+	}
+	else
+	{
+		switch (chn)
+		{
+			case 0:	ICE1712_STDSP24_1_CHN1(spec->boxbits, 0); break;
+
+			case 1:	ICE1712_STDSP24_1_CHN2(spec->boxbits, 0); break;
+
+			case 2:	ICE1712_STDSP24_1_CHN3(spec->boxbits, 0); break;
 		}
+
 		snd_ice1712_stdsp24_gpio_write(ice, spec->boxbits[1]);
 	}
+
 	udelay(100);
 	ICE1712_STDSP24_1_CHN1(spec->boxbits, 1);
 	ICE1712_STDSP24_1_CHN2(spec->boxbits, 1);
@@ -145,12 +158,12 @@ static void snd_ice1712_stdsp24_box_midi(struct snd_ice1712 *ice, int box, int m
 	snd_ice1712_stdsp24_gpio_write(ice, spec->boxbits[3]);
 
 	udelay(100);
-	
+
 	ICE1712_STDSP24_2_MIDIIN(spec->boxbits, 0);
 	snd_ice1712_stdsp24_gpio_write(ice, spec->boxbits[2]);
-	
+
 	mdelay(10);
-	
+
 	ICE1712_STDSP24_2_MIDIIN(spec->boxbits, 1);
 	snd_ice1712_stdsp24_gpio_write(ice, spec->boxbits[2]);
 
@@ -175,8 +188,12 @@ static int snd_ice1712_hoontech_init(struct snd_ice1712 *ice)
 	ice->num_total_adcs = 8;
 
 	spec = kzalloc(sizeof(*spec), GFP_KERNEL);
+
 	if (!spec)
+	{
 		return -ENOMEM;
+	}
+
 	ice->spec = spec;
 
 	ICE1712_STDSP24_SET_ADDR(spec->boxbits, 0);
@@ -189,7 +206,7 @@ static int snd_ice1712_hoontech_init(struct snd_ice1712 *ice)
 	ICE1712_STDSP24_1_CHN1(spec->boxbits, 1);
 	ICE1712_STDSP24_1_CHN2(spec->boxbits, 1);
 	ICE1712_STDSP24_1_CHN3(spec->boxbits, 1);
-	
+
 	ICE1712_STDSP24_SET_ADDR(spec->boxbits, 2);
 	ICE1712_STDSP24_CLOCK(spec->boxbits, 2, 1);
 	ICE1712_STDSP24_2_CHN4(spec->boxbits, 1);
@@ -204,9 +221,9 @@ static int snd_ice1712_hoontech_init(struct snd_ice1712 *ice)
 
 	/* let's go - activate only functions in first box */
 	spec->config = 0;
-			    /* ICE1712_STDSP24_MUTE |
-			       ICE1712_STDSP24_INSEL |
-			       ICE1712_STDSP24_DAREAR; */
+	/* ICE1712_STDSP24_MUTE |
+	   ICE1712_STDSP24_INSEL |
+	   ICE1712_STDSP24_DAREAR; */
 	/*  These boxconfigs have caused problems in the past.
 	 *  The code is not optimal, but should now enable a working config to
 	 *  be achieved.
@@ -221,28 +238,36 @@ static int snd_ice1712_hoontech_init(struct snd_ice1712 *ice)
 	 *  Alan Horstmann  5.2.2008
 	 */
 	spec->boxconfig[0] = ICE1712_STDSP24_BOX_CHN1 |
-				     ICE1712_STDSP24_BOX_CHN2 |
-				     ICE1712_STDSP24_BOX_CHN3 |
-				     ICE1712_STDSP24_BOX_CHN4 |
-				     ICE1712_STDSP24_BOX_MIDI1 |
-				     ICE1712_STDSP24_BOX_MIDI2;
-	spec->boxconfig[1] = 
-	spec->boxconfig[2] = 
-	spec->boxconfig[3] = 0;
+						 ICE1712_STDSP24_BOX_CHN2 |
+						 ICE1712_STDSP24_BOX_CHN3 |
+						 ICE1712_STDSP24_BOX_CHN4 |
+						 ICE1712_STDSP24_BOX_MIDI1 |
+						 ICE1712_STDSP24_BOX_MIDI2;
+	spec->boxconfig[1] =
+		spec->boxconfig[2] =
+			spec->boxconfig[3] = 0;
 	snd_ice1712_stdsp24_darear(ice,
-		(spec->config & ICE1712_STDSP24_DAREAR) ? 1 : 0);
+							   (spec->config & ICE1712_STDSP24_DAREAR) ? 1 : 0);
 	snd_ice1712_stdsp24_mute(ice,
-		(spec->config & ICE1712_STDSP24_MUTE) ? 1 : 0);
+							 (spec->config & ICE1712_STDSP24_MUTE) ? 1 : 0);
 	snd_ice1712_stdsp24_insel(ice,
-		(spec->config & ICE1712_STDSP24_INSEL) ? 1 : 0);
-	for (box = 0; box < 4; box++) {
+							  (spec->config & ICE1712_STDSP24_INSEL) ? 1 : 0);
+
+	for (box = 0; box < 4; box++)
+	{
 		if (spec->boxconfig[box] & ICE1712_STDSP24_BOX_MIDI2)
-                        snd_ice1712_stdsp24_midi2(ice, 1);
+		{
+			snd_ice1712_stdsp24_midi2(ice, 1);
+		}
+
 		for (chn = 0; chn < 4; chn++)
 			snd_ice1712_stdsp24_box_channel(ice, box, chn,
-				(spec->boxconfig[box] & (1 << chn)) ? 1 : 0);
+											(spec->boxconfig[box] & (1 << chn)) ? 1 : 0);
+
 		if (spec->boxconfig[box] & ICE1712_STDSP24_BOX_MIDI1)
+		{
 			snd_ice1712_stdsp24_box_midi(ice, box, 1);
+		}
 	}
 
 	return 0;
@@ -259,17 +284,18 @@ static void stdsp24_ak4524_lock(struct snd_akm4xxx *ak, int chip)
 	unsigned char tmp;
 	snd_ice1712_save_gpio_status(ice);
 	tmp =	ICE1712_STDSP24_SERIAL_DATA |
-		ICE1712_STDSP24_SERIAL_CLOCK |
-		ICE1712_STDSP24_AK4524_CS;
+			ICE1712_STDSP24_SERIAL_CLOCK |
+			ICE1712_STDSP24_AK4524_CS;
 	snd_ice1712_write(ice, ICE1712_IREG_GPIO_DIRECTION,
-			  ice->gpio.direction | tmp);
+					  ice->gpio.direction | tmp);
 	snd_ice1712_write(ice, ICE1712_IREG_GPIO_WRITE_MASK, ~tmp);
 }
 
 static int snd_ice1712_value_init(struct snd_ice1712 *ice)
 {
 	/* Hoontech STDSP24 with modified hardware */
-	static struct snd_akm4xxx akm_stdsp24_mv = {
+	static struct snd_akm4xxx akm_stdsp24_mv =
+	{
 		.num_adcs = 2,
 		.num_dacs = 2,
 		.type = SND_AK4524,
@@ -278,7 +304,8 @@ static int snd_ice1712_value_init(struct snd_ice1712 *ice)
 		}
 	};
 
-	static struct snd_ak4xxx_private akm_stdsp24_mv_priv = {
+	static struct snd_ak4xxx_private akm_stdsp24_mv_priv =
+	{
 		.caddr = 2,
 		.cif = 1, /* CIF high */
 		.data_mask = ICE1712_STDSP24_SERIAL_DATA,
@@ -297,16 +324,23 @@ static int snd_ice1712_value_init(struct snd_ice1712 *ice)
 
 	/* set the analog ADCs */
 	ice->num_total_adcs = 2;
-	
+
 	/* analog section */
 	ak = ice->akm = kmalloc(sizeof(struct snd_akm4xxx), GFP_KERNEL);
+
 	if (! ak)
+	{
 		return -ENOMEM;
+	}
+
 	ice->akm_codecs = 1;
 
 	err = snd_ice1712_akm4xxx_init(ak, &akm_stdsp24_mv, &akm_stdsp24_mv_priv, ice);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* ak4524 controls */
 	return snd_ice1712_akm4xxx_build_controls(ice);
@@ -324,7 +358,8 @@ static int snd_ice1712_ez8_init(struct snd_ice1712 *ice)
 
 
 /* entry point */
-struct snd_ice1712_card_info snd_ice1712_hoontech_cards[] = {
+struct snd_ice1712_card_info snd_ice1712_hoontech_cards[] =
+{
 	{
 		.subvendor = ICE1712_SUBDEVICE_STDSP24,
 		.name = "Hoontech SoundTrack Audio DSP24",

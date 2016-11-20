@@ -75,9 +75,9 @@
 #ifdef __KERNEL__
 
 #ifdef NEOFB_DEBUG
-# define DBG(x)		printk (KERN_DEBUG "neofb: %s\n", (x));
+	#define DBG(x)		printk (KERN_DEBUG "neofb: %s\n", (x));
 #else
-# define DBG(x)
+	#define DBG(x)
 #endif
 
 #define PCI_CHIP_NM2070 0x0001
@@ -92,7 +92,8 @@
 
 /* --------------------------------------------------------------------- */
 
-typedef volatile struct {
+typedef volatile struct
+{
 	__u32 bltStat;
 	__u32 bltCntl;
 	__u32 xpColor;
@@ -121,7 +122,8 @@ typedef volatile struct {
 #define NEO_EXT_CR_MAX 0x85
 #define NEO_EXT_GR_MAX 0xC7
 
-struct neofb_par {
+struct neofb_par
+{
 	struct vgastate state;
 	unsigned int ref_count;
 
@@ -180,7 +182,8 @@ struct neofb_par {
 	u32 palette[16];
 };
 
-typedef struct {
+typedef struct
+{
 	int x_res;
 	int y_res;
 	int mode;

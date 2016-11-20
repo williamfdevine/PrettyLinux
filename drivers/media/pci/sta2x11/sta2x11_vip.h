@@ -28,7 +28,8 @@
  * @reset_name: ADV reset name
  * @reset_pin: ADV reset pin
  */
-struct vip_config {
+struct vip_config
+{
 	const char *pwr_name;
 	int pwr_pin;
 	const char *reset_name;

@@ -21,7 +21,8 @@
 #include "isl_38xx.h"
 #include "islpci_dev.h"
 
-struct rfmon_header {
+struct rfmon_header
+{
 	__le16 unk0;		/* = 0x0000 */
 	__le16 length;		/* = 0x1400 */
 	__le32 clock;		/* 1MHz clock */
@@ -35,7 +36,8 @@ struct rfmon_header {
 	u8 padding[3];
 } __packed;
 
-struct rx_annex_header {
+struct rx_annex_header
+{
 	u8 addr1[ETH_ALEN];
 	u8 addr2[ETH_ALEN];
 	struct rfmon_header rfmon;
@@ -45,7 +47,8 @@ struct rx_annex_header {
  * network byte order. */
 #define P80211CAPTURE_VERSION 0x80211001
 
-struct avs_80211_1_header {
+struct avs_80211_1_header
+{
 	__be32 version;
 	__be32 length;
 	__be64 mactime;

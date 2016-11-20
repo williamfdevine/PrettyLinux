@@ -8,7 +8,8 @@
 struct device_node;
 struct attribute;
 
-enum cache_type {
+enum cache_type
+{
 	CACHE_TYPE_NOCACHE = 0,
 	CACHE_TYPE_INST = BIT(0),
 	CACHE_TYPE_DATA = BIT(1),
@@ -43,7 +44,8 @@ enum cache_type {
  * While @of_node, @disable_sysfs and @priv are used for internal book
  * keeping, the remaining members form the core properties of the cache
  */
-struct cacheinfo {
+struct cacheinfo
+{
 	enum cache_type type;
 	unsigned int level;
 	unsigned int coherency_line_size;
@@ -67,7 +69,8 @@ struct cacheinfo {
 	void *priv;
 };
 
-struct cpu_cacheinfo {
+struct cpu_cacheinfo
+{
 	struct cacheinfo *info_list;
 	unsigned int num_levels;
 	unsigned int num_leaves;
@@ -78,18 +81,18 @@ struct cpu_cacheinfo {
  * attributes are being detected
  */
 #define DEFINE_SMP_CALL_CACHE_FUNCTION(func)			\
-static inline void _##func(void *ret)				\
-{								\
-	int cpu = smp_processor_id();				\
-	*(int *)ret = __##func(cpu);				\
-}								\
-								\
-int func(unsigned int cpu)					\
-{								\
-	int ret;						\
-	smp_call_function_single(cpu, _##func, &ret, true);	\
-	return ret;						\
-}
+	static inline void _##func(void *ret)				\
+	{								\
+		int cpu = smp_processor_id();				\
+		*(int *)ret = __##func(cpu);				\
+	}								\
+	\
+	int func(unsigned int cpu)					\
+	{								\
+		int ret;						\
+		smp_call_function_single(cpu, _##func, &ret, true);	\
+		return ret;						\
+	}
 
 struct cpu_cacheinfo *get_cpu_cacheinfo(unsigned int cpu);
 int init_cache_level(unsigned int cpu);

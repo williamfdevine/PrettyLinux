@@ -34,7 +34,8 @@ struct drm_dp_mst_branch;
  * @aligned_pbn: PBN aligned with slot size
  * @num_slots: number of slots for this PBN
  */
-struct drm_dp_vcpi {
+struct drm_dp_vcpi
+{
 	int vcpi;
 	int pbn;
 	int aligned_pbn;
@@ -65,7 +66,8 @@ struct drm_dp_vcpi {
  * This structure represents an MST port endpoint on a device somewhere
  * in the MST topology.
  */
-struct drm_dp_mst_port {
+struct drm_dp_mst_port
+{
 	struct kref kref;
 
 	u8 port_num;
@@ -119,7 +121,8 @@ struct drm_dp_mst_port {
  * primary branch device at the root, along with any other branches connected
  * to downstream port of parent branches.
  */
-struct drm_dp_mst_branch {
+struct drm_dp_mst_branch
+{
 	struct kref kref;
 	u8 rad[8];
 	u8 lct;
@@ -143,7 +146,8 @@ struct drm_dp_mst_branch {
 
 
 /* sideband msg header - not bit struct */
-struct drm_dp_sideband_msg_hdr {
+struct drm_dp_sideband_msg_hdr
+{
 	u8 lct;
 	u8 lcr;
 	u8 rad[8];
@@ -155,16 +159,19 @@ struct drm_dp_sideband_msg_hdr {
 	bool seqno;
 };
 
-struct drm_dp_nak_reply {
+struct drm_dp_nak_reply
+{
 	u8 guid[16];
 	u8 reason;
 	u8 nak_data;
 };
 
-struct drm_dp_link_address_ack_reply {
+struct drm_dp_link_address_ack_reply
+{
 	u8 guid[16];
 	u8 nports;
-	struct drm_dp_link_addr_reply_port {
+	struct drm_dp_link_addr_reply_port
+	{
 		bool input_port;
 		u8 peer_device_type;
 		u8 port_number;
@@ -178,40 +185,47 @@ struct drm_dp_link_address_ack_reply {
 	} ports[16];
 };
 
-struct drm_dp_remote_dpcd_read_ack_reply {
+struct drm_dp_remote_dpcd_read_ack_reply
+{
 	u8 port_number;
 	u8 num_bytes;
 	u8 bytes[255];
 };
 
-struct drm_dp_remote_dpcd_write_ack_reply {
+struct drm_dp_remote_dpcd_write_ack_reply
+{
 	u8 port_number;
 };
 
-struct drm_dp_remote_dpcd_write_nak_reply {
+struct drm_dp_remote_dpcd_write_nak_reply
+{
 	u8 port_number;
 	u8 reason;
 	u8 bytes_written_before_failure;
 };
 
-struct drm_dp_remote_i2c_read_ack_reply {
+struct drm_dp_remote_i2c_read_ack_reply
+{
 	u8 port_number;
 	u8 num_bytes;
 	u8 bytes[255];
 };
 
-struct drm_dp_remote_i2c_read_nak_reply {
+struct drm_dp_remote_i2c_read_nak_reply
+{
 	u8 port_number;
 	u8 nak_reason;
 	u8 i2c_nak_transaction;
 };
 
-struct drm_dp_remote_i2c_write_ack_reply {
+struct drm_dp_remote_i2c_write_ack_reply
+{
 	u8 port_number;
 };
 
 
-struct drm_dp_sideband_msg_rx {
+struct drm_dp_sideband_msg_rx
+{
 	u8 chunk[48];
 	u8 msg[256];
 	u8 curchunk_len;
@@ -224,7 +238,8 @@ struct drm_dp_sideband_msg_rx {
 };
 
 #define DRM_DP_MAX_SDP_STREAMS 16
-struct drm_dp_allocate_payload {
+struct drm_dp_allocate_payload
+{
 	u8 port_number;
 	u8 number_sdp_streams;
 	u8 vcpi;
@@ -232,13 +247,15 @@ struct drm_dp_allocate_payload {
 	u8 sdp_stream_sink[DRM_DP_MAX_SDP_STREAMS];
 };
 
-struct drm_dp_allocate_payload_ack_reply {
+struct drm_dp_allocate_payload_ack_reply
+{
 	u8 port_number;
 	u8 vcpi;
 	u16 allocated_pbn;
 };
 
-struct drm_dp_connection_status_notify {
+struct drm_dp_connection_status_notify
+{
 	u8 guid[16];
 	u8 port_number;
 	bool legacy_device_plug_status;
@@ -248,13 +265,15 @@ struct drm_dp_connection_status_notify {
 	u8 peer_device_type;
 };
 
-struct drm_dp_remote_dpcd_read {
+struct drm_dp_remote_dpcd_read
+{
 	u8 port_number;
 	u32 dpcd_address;
 	u8 num_bytes;
 };
 
-struct drm_dp_remote_dpcd_write {
+struct drm_dp_remote_dpcd_write
+{
 	u8 port_number;
 	u32 dpcd_address;
 	u8 num_bytes;
@@ -262,10 +281,12 @@ struct drm_dp_remote_dpcd_write {
 };
 
 #define DP_REMOTE_I2C_READ_MAX_TRANSACTIONS 4
-struct drm_dp_remote_i2c_read {
+struct drm_dp_remote_i2c_read
+{
 	u8 num_transactions;
 	u8 port_number;
-	struct {
+	struct
+	{
 		u8 i2c_dev_id;
 		u8 num_bytes;
 		u8 *bytes;
@@ -276,7 +297,8 @@ struct drm_dp_remote_i2c_read {
 	u8 num_bytes_read;
 };
 
-struct drm_dp_remote_i2c_write {
+struct drm_dp_remote_i2c_write
+{
 	u8 port_number;
 	u8 write_i2c_device_id;
 	u8 num_bytes;
@@ -284,40 +306,48 @@ struct drm_dp_remote_i2c_write {
 };
 
 /* this covers ENUM_RESOURCES, POWER_DOWN_PHY, POWER_UP_PHY */
-struct drm_dp_port_number_req {
+struct drm_dp_port_number_req
+{
 	u8 port_number;
 };
 
-struct drm_dp_enum_path_resources_ack_reply {
+struct drm_dp_enum_path_resources_ack_reply
+{
 	u8 port_number;
 	u16 full_payload_bw_number;
 	u16 avail_payload_bw_number;
 };
 
 /* covers POWER_DOWN_PHY, POWER_UP_PHY */
-struct drm_dp_port_number_rep {
+struct drm_dp_port_number_rep
+{
 	u8 port_number;
 };
 
-struct drm_dp_query_payload {
+struct drm_dp_query_payload
+{
 	u8 port_number;
 	u8 vcpi;
 };
 
-struct drm_dp_resource_status_notify {
+struct drm_dp_resource_status_notify
+{
 	u8 port_number;
 	u8 guid[16];
 	u16 available_pbn;
 };
 
-struct drm_dp_query_payload_ack_reply {
+struct drm_dp_query_payload_ack_reply
+{
 	u8 port_number;
 	u8 allocated_pbn;
 };
 
-struct drm_dp_sideband_msg_req_body {
+struct drm_dp_sideband_msg_req_body
+{
 	u8 req_type;
-	union ack_req {
+	union ack_req
+	{
 		struct drm_dp_connection_status_notify conn_stat;
 		struct drm_dp_port_number_req port_num;
 		struct drm_dp_resource_status_notify resource_stat;
@@ -333,10 +363,12 @@ struct drm_dp_sideband_msg_req_body {
 	} u;
 };
 
-struct drm_dp_sideband_msg_reply_body {
+struct drm_dp_sideband_msg_reply_body
+{
 	u8 reply_type;
 	u8 req_type;
-	union ack_replies {
+	union ack_replies
+	{
 		struct drm_dp_nak_reply nak;
 		struct drm_dp_link_address_ack_reply link_addr;
 		struct drm_dp_port_number_rep port_number;
@@ -365,7 +397,8 @@ struct drm_dp_sideband_msg_reply_body {
 #define DRM_DP_SIDEBAND_TX_RX 3
 #define DRM_DP_SIDEBAND_TX_TIMEOUT 4
 
-struct drm_dp_sideband_msg_tx {
+struct drm_dp_sideband_msg_tx
+{
 	u8 msg[256];
 	u8 chunk[48];
 	u8 cur_offset;
@@ -380,12 +413,14 @@ struct drm_dp_sideband_msg_tx {
 
 /* sideband msg handler */
 struct drm_dp_mst_topology_mgr;
-struct drm_dp_mst_topology_cbs {
+struct drm_dp_mst_topology_cbs
+{
 	/* create a connector for a port */
-	struct drm_connector *(*add_connector)(struct drm_dp_mst_topology_mgr *mgr, struct drm_dp_mst_port *port, const char *path);
+	struct drm_connector *(*add_connector)(struct drm_dp_mst_topology_mgr *mgr, struct drm_dp_mst_port *port,
+										   const char *path);
 	void (*register_connector)(struct drm_connector *connector);
 	void (*destroy_connector)(struct drm_dp_mst_topology_mgr *mgr,
-				  struct drm_connector *connector);
+							  struct drm_connector *connector);
 	void (*hotplug)(struct drm_dp_mst_topology_mgr *mgr);
 
 };
@@ -396,7 +431,8 @@ struct drm_dp_mst_topology_cbs {
 #define DP_PAYLOAD_REMOTE 2
 #define DP_PAYLOAD_DELETE_LOCAL 3
 
-struct drm_dp_payload {
+struct drm_dp_payload
+{
 	int payload_state;
 	int start_slot;
 	int num_slots;
@@ -410,7 +446,8 @@ struct drm_dp_payload {
  * There should be one instance of this for every MST capable DP connector
  * on the GPU.
  */
-struct drm_dp_mst_topology_mgr {
+struct drm_dp_mst_topology_mgr
+{
 	/**
 	 * @dev: device pointer for adding i2c devices etc.
 	 */
@@ -556,7 +593,8 @@ struct drm_dp_mst_topology_mgr {
 	struct work_struct destroy_connector_work;
 };
 
-int drm_dp_mst_topology_mgr_init(struct drm_dp_mst_topology_mgr *mgr, struct device *dev, struct drm_dp_aux *aux, int max_dpcd_transaction_bytes, int max_payloads, int conn_base_id);
+int drm_dp_mst_topology_mgr_init(struct drm_dp_mst_topology_mgr *mgr, struct device *dev, struct drm_dp_aux *aux,
+								 int max_dpcd_transaction_bytes, int max_payloads, int conn_base_id);
 
 void drm_dp_mst_topology_mgr_destroy(struct drm_dp_mst_topology_mgr *mgr);
 
@@ -567,11 +605,13 @@ int drm_dp_mst_topology_mgr_set_mst(struct drm_dp_mst_topology_mgr *mgr, bool ms
 int drm_dp_mst_hpd_irq(struct drm_dp_mst_topology_mgr *mgr, u8 *esi, bool *handled);
 
 
-enum drm_connector_status drm_dp_mst_detect_port(struct drm_connector *connector, struct drm_dp_mst_topology_mgr *mgr, struct drm_dp_mst_port *port);
+enum drm_connector_status drm_dp_mst_detect_port(struct drm_connector *connector, struct drm_dp_mst_topology_mgr *mgr,
+		struct drm_dp_mst_port *port);
 
 bool drm_dp_mst_port_has_audio(struct drm_dp_mst_topology_mgr *mgr,
-					struct drm_dp_mst_port *port);
-struct edid *drm_dp_mst_get_edid(struct drm_connector *connector, struct drm_dp_mst_topology_mgr *mgr, struct drm_dp_mst_port *port);
+							   struct drm_dp_mst_port *port);
+struct edid *drm_dp_mst_get_edid(struct drm_connector *connector, struct drm_dp_mst_topology_mgr *mgr,
+								 struct drm_dp_mst_port *port);
 
 
 int drm_dp_calc_pbn_mode(int clock, int bpp);
@@ -586,11 +626,11 @@ void drm_dp_mst_reset_vcpi_slots(struct drm_dp_mst_topology_mgr *mgr, struct drm
 
 
 void drm_dp_mst_deallocate_vcpi(struct drm_dp_mst_topology_mgr *mgr,
-				struct drm_dp_mst_port *port);
+								struct drm_dp_mst_port *port);
 
 
 int drm_dp_find_vcpi_slots(struct drm_dp_mst_topology_mgr *mgr,
-			   int pbn);
+						   int pbn);
 
 
 int drm_dp_update_payload_part1(struct drm_dp_mst_topology_mgr *mgr);
@@ -601,7 +641,7 @@ int drm_dp_update_payload_part2(struct drm_dp_mst_topology_mgr *mgr);
 int drm_dp_check_act_status(struct drm_dp_mst_topology_mgr *mgr);
 
 void drm_dp_mst_dump_topology(struct seq_file *m,
-			      struct drm_dp_mst_topology_mgr *mgr);
+							  struct drm_dp_mst_topology_mgr *mgr);
 
 void drm_dp_mst_topology_mgr_suspend(struct drm_dp_mst_topology_mgr *mgr);
 int drm_dp_mst_topology_mgr_resume(struct drm_dp_mst_topology_mgr *mgr);

@@ -39,12 +39,14 @@
 #include <linux/mlx5/cmd.h>
 #include "mlx5_core.h"
 
-enum {
+enum
+{
 	MLX5_HEALTH_POLL_INTERVAL	= 2 * HZ,
 	MAX_MISSES			= 3,
 };
 
-enum {
+enum
+{
 	MLX5_HEALTH_SYNDR_FW_ERR		= 0x1,
 	MLX5_HEALTH_SYNDR_IRISC_ERR		= 0x7,
 	MLX5_HEALTH_SYNDR_HW_UNRECOVERABLE_ERR	= 0x8,
@@ -58,14 +60,16 @@ enum {
 	MLX5_HEALTH_SYNDR_HIGH_TEMP		= 0x10
 };
 
-enum {
+enum
+{
 	MLX5_NIC_IFC_FULL		= 0,
 	MLX5_NIC_IFC_DISABLED		= 1,
 	MLX5_NIC_IFC_NO_DRAM_NIC	= 2,
 	MLX5_NIC_IFC_INVALID		= 3
 };
 
-enum {
+enum
+{
 	MLX5_DROP_NEW_HEALTH_WORK,
 };
 
@@ -83,8 +87,11 @@ static void trigger_cmd_completions(struct mlx5_core_dev *dev)
 	synchronize_irq(dev->priv.msix_arr[MLX5_EQ_VEC_CMD].vector);
 	spin_lock_irqsave(&dev->cmd.alloc_lock, flags);
 	vector = ~dev->cmd.bitmask & ((1ul << (1 << dev->cmd.log_sz)) - 1);
+
 	if (!vector)
+	{
 		goto no_trig;
+	}
 
 	vector |= MLX5_TRIGGERED_CMD_COMP;
 	spin_unlock_irqrestore(&dev->cmd.alloc_lock, flags);
@@ -103,10 +110,14 @@ static int in_fatal(struct mlx5_core_dev *dev)
 	struct health_buffer __iomem *h = health->health;
 
 	if (get_nic_state(dev) == MLX5_NIC_IFC_DISABLED)
+	{
 		return 1;
+	}
 
 	if (ioread32be(&h->fw_ver) == 0xffffffff)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -114,11 +125,16 @@ static int in_fatal(struct mlx5_core_dev *dev)
 void mlx5_enter_error_state(struct mlx5_core_dev *dev)
 {
 	mutex_lock(&dev->intf_state_mutex);
+
 	if (dev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR)
+	{
 		goto unlock;
+	}
 
 	mlx5_core_err(dev, "start\n");
-	if (pci_channel_offline(dev->pdev) || in_fatal(dev)) {
+
+	if (pci_channel_offline(dev->pdev) || in_fatal(dev))
+	{
 		dev->state = MLX5_DEVICE_STATE_INTERNAL_ERROR;
 		trigger_cmd_completions(dev);
 	}
@@ -134,21 +150,23 @@ static void mlx5_handle_bad_state(struct mlx5_core_dev *dev)
 {
 	u8 nic_interface = get_nic_state(dev);
 
-	switch (nic_interface) {
-	case MLX5_NIC_IFC_FULL:
-		mlx5_core_warn(dev, "Expected to see disabled NIC but it is full driver\n");
-		break;
+	switch (nic_interface)
+	{
+		case MLX5_NIC_IFC_FULL:
+			mlx5_core_warn(dev, "Expected to see disabled NIC but it is full driver\n");
+			break;
 
-	case MLX5_NIC_IFC_DISABLED:
-		mlx5_core_warn(dev, "starting teardown\n");
-		break;
+		case MLX5_NIC_IFC_DISABLED:
+			mlx5_core_warn(dev, "starting teardown\n");
+			break;
 
-	case MLX5_NIC_IFC_NO_DRAM_NIC:
-		mlx5_core_warn(dev, "Expected to see disabled NIC but it is no dram nic\n");
-		break;
-	default:
-		mlx5_core_warn(dev, "Expected to see disabled NIC but it is has invalid value %d\n",
-			       nic_interface);
+		case MLX5_NIC_IFC_NO_DRAM_NIC:
+			mlx5_core_warn(dev, "Expected to see disabled NIC but it is no dram nic\n");
+			break;
+
+		default:
+			mlx5_core_warn(dev, "Expected to see disabled NIC but it is has invalid value %d\n",
+						   nic_interface);
 	}
 
 	mlx5_disable_device(dev);
@@ -168,7 +186,9 @@ static void health_recover(struct work_struct *work)
 	dev = container_of(priv, struct mlx5_core_dev, priv);
 
 	nic_state = get_nic_state(dev);
-	if (nic_state == MLX5_NIC_IFC_INVALID) {
+
+	if (nic_state == MLX5_NIC_IFC_INVALID)
+	{
 		dev_err(&dev->pdev->dev, "health recovery flow aborted since the nic state is invalid\n");
 		return;
 	}
@@ -193,41 +213,57 @@ static void health_care(struct work_struct *work)
 	mlx5_handle_bad_state(dev);
 
 	spin_lock(&health->wq_lock);
+
 	if (!test_bit(MLX5_DROP_NEW_HEALTH_WORK, &health->flags))
+	{
 		schedule_delayed_work(&health->recover_work, recover_delay);
+	}
 	else
 		dev_err(&dev->pdev->dev,
-			"new health works are not permitted at this stage\n");
+				"new health works are not permitted at this stage\n");
+
 	spin_unlock(&health->wq_lock);
 }
 
 static const char *hsynd_str(u8 synd)
 {
-	switch (synd) {
-	case MLX5_HEALTH_SYNDR_FW_ERR:
-		return "firmware internal error";
-	case MLX5_HEALTH_SYNDR_IRISC_ERR:
-		return "irisc not responding";
-	case MLX5_HEALTH_SYNDR_HW_UNRECOVERABLE_ERR:
-		return "unrecoverable hardware error";
-	case MLX5_HEALTH_SYNDR_CRC_ERR:
-		return "firmware CRC error";
-	case MLX5_HEALTH_SYNDR_FETCH_PCI_ERR:
-		return "ICM fetch PCI error";
-	case MLX5_HEALTH_SYNDR_HW_FTL_ERR:
-		return "HW fatal error\n";
-	case MLX5_HEALTH_SYNDR_ASYNC_EQ_OVERRUN_ERR:
-		return "async EQ buffer overrun";
-	case MLX5_HEALTH_SYNDR_EQ_ERR:
-		return "EQ error";
-	case MLX5_HEALTH_SYNDR_EQ_INV:
-		return "Invalid EQ referenced";
-	case MLX5_HEALTH_SYNDR_FFSER_ERR:
-		return "FFSER error";
-	case MLX5_HEALTH_SYNDR_HIGH_TEMP:
-		return "High temperature";
-	default:
-		return "unrecognized error";
+	switch (synd)
+	{
+		case MLX5_HEALTH_SYNDR_FW_ERR:
+			return "firmware internal error";
+
+		case MLX5_HEALTH_SYNDR_IRISC_ERR:
+			return "irisc not responding";
+
+		case MLX5_HEALTH_SYNDR_HW_UNRECOVERABLE_ERR:
+			return "unrecoverable hardware error";
+
+		case MLX5_HEALTH_SYNDR_CRC_ERR:
+			return "firmware CRC error";
+
+		case MLX5_HEALTH_SYNDR_FETCH_PCI_ERR:
+			return "ICM fetch PCI error";
+
+		case MLX5_HEALTH_SYNDR_HW_FTL_ERR:
+			return "HW fatal error\n";
+
+		case MLX5_HEALTH_SYNDR_ASYNC_EQ_OVERRUN_ERR:
+			return "async EQ buffer overrun";
+
+		case MLX5_HEALTH_SYNDR_EQ_ERR:
+			return "EQ error";
+
+		case MLX5_HEALTH_SYNDR_EQ_INV:
+			return "Invalid EQ referenced";
+
+		case MLX5_HEALTH_SYNDR_FFSER_ERR:
+			return "FFSER error";
+
+		case MLX5_HEALTH_SYNDR_HIGH_TEMP:
+			return "High temperature";
+
+		default:
+			return "unrecognized error";
 	}
 }
 
@@ -256,10 +292,14 @@ static void print_health_info(struct mlx5_core_dev *dev)
 
 	/* If the syndrom is 0, the device is OK and no need to print buffer */
 	if (!ioread8(&h->synd))
+	{
 		return;
+	}
 
 	for (i = 0; i < ARRAY_SIZE(h->assert_var); i++)
+	{
 		dev_err(&dev->pdev->dev, "assert_var[%d] 0x%08x\n", i, ioread32be(h->assert_var + i));
+	}
 
 	dev_err(&dev->pdev->dev, "assert_exit_ptr 0x%08x\n", ioread32be(&h->assert_exit_ptr));
 	dev_err(&dev->pdev->dev, "assert_callra 0x%08x\n", ioread32be(&h->assert_callra));
@@ -289,34 +329,49 @@ static void poll_health(unsigned long data)
 	struct mlx5_core_health *health = &dev->priv.health;
 	u32 count;
 
-	if (dev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR) {
+	if (dev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR)
+	{
 		mod_timer(&health->timer, get_next_poll_jiffies());
 		return;
 	}
 
 	count = ioread32be(health->health_counter);
+
 	if (count == health->prev)
+	{
 		++health->miss_counter;
+	}
 	else
+	{
 		health->miss_counter = 0;
+	}
 
 	health->prev = count;
-	if (health->miss_counter == MAX_MISSES) {
+
+	if (health->miss_counter == MAX_MISSES)
+	{
 		dev_err(&dev->pdev->dev, "device's health compromised - reached miss count\n");
 		print_health_info(dev);
-	} else {
+	}
+	else
+	{
 		mod_timer(&health->timer, get_next_poll_jiffies());
 	}
 
-	if (in_fatal(dev) && !health->sick) {
+	if (in_fatal(dev) && !health->sick)
+	{
 		health->sick = true;
 		print_health_info(dev);
 		spin_lock(&health->wq_lock);
+
 		if (!test_bit(MLX5_DROP_NEW_HEALTH_WORK, &health->flags))
+		{
 			queue_work(health->wq, &health->work);
+		}
 		else
 			dev_err(&dev->pdev->dev,
-				"new health works are not permitted at this stage\n");
+					"new health works are not permitted at this stage\n");
+
 		spin_unlock(&health->wq_lock);
 	}
 }
@@ -369,15 +424,22 @@ int mlx5_health_init(struct mlx5_core_dev *dev)
 
 	health = &dev->priv.health;
 	name = kmalloc(64, GFP_KERNEL);
+
 	if (!name)
+	{
 		return -ENOMEM;
+	}
 
 	strcpy(name, "mlx5_health");
 	strcat(name, dev_name(&dev->pdev->dev));
 	health->wq = create_singlethread_workqueue(name);
 	kfree(name);
+
 	if (!health->wq)
+	{
 		return -ENOMEM;
+	}
+
 	spin_lock_init(&health->wq_lock);
 	INIT_WORK(&health->work, health_care);
 	INIT_DELAYED_WORK(&health->recover_work, health_recover);

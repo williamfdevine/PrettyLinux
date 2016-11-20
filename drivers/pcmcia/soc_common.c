@@ -59,11 +59,13 @@ static int pc_debug;
 module_param(pc_debug, int, 0644);
 
 void soc_pcmcia_debug(struct soc_pcmcia_socket *skt, const char *func,
-		      int lvl, const char *fmt, ...)
+					  int lvl, const char *fmt, ...)
 {
 	struct va_format vaf;
 	va_list args;
-	if (pc_debug > lvl) {
+
+	if (pc_debug > lvl)
+	{
 		va_start(args, fmt);
 
 		vaf.fmt = fmt;
@@ -82,35 +84,48 @@ EXPORT_SYMBOL(soc_pcmcia_debug);
 	container_of(x, struct soc_pcmcia_socket, socket)
 
 int soc_pcmcia_regulator_set(struct soc_pcmcia_socket *skt,
-	struct soc_pcmcia_regulator *r, int v)
+							 struct soc_pcmcia_regulator *r, int v)
 {
 	bool on;
 	int ret;
 
 	if (!r->reg)
+	{
 		return 0;
+	}
 
 	on = v != 0;
-	if (r->on == on)
-		return 0;
 
-	if (on) {
+	if (r->on == on)
+	{
+		return 0;
+	}
+
+	if (on)
+	{
 		ret = regulator_set_voltage(r->reg, v * 100000, v * 100000);
-		if (ret) {
+
+		if (ret)
+		{
 			int vout = regulator_get_voltage(r->reg) / 100000;
 
 			dev_warn(&skt->socket.dev,
-				 "CS requested %s=%u.%uV, applying %u.%uV\n",
-				 r == &skt->vcc ? "Vcc" : "Vpp",
-				 v / 10, v % 10, vout / 10, vout % 10);
+					 "CS requested %s=%u.%uV, applying %u.%uV\n",
+					 r == &skt->vcc ? "Vcc" : "Vpp",
+					 v / 10, v % 10, vout / 10, vout % 10);
 		}
 
 		ret = regulator_enable(r->reg);
-	} else {
+	}
+	else
+	{
 		ret = regulator_disable(r->reg);
 	}
+
 	if (ret == 0)
+	{
 		r->on = on;
+	}
 
 	return ret;
 }
@@ -124,15 +139,20 @@ calc_speed(unsigned short *spds, int num, unsigned short dflt)
 
 	for (i = 0; i < num; i++)
 		if (speed < spds[i])
+		{
 			speed = spds[i];
+		}
+
 	if (speed == 0)
+	{
 		speed = dflt;
+	}
 
 	return speed;
 }
 
 void soc_common_pcmcia_get_timing(struct soc_pcmcia_socket *skt,
-	struct soc_pcmcia_timing *timing)
+								  struct soc_pcmcia_timing *timing)
 {
 	timing->io =
 		calc_speed(skt->spd_io, MAX_IO_WIN, SOC_PCMCIA_IO_ACCESS);
@@ -144,16 +164,20 @@ void soc_common_pcmcia_get_timing(struct soc_pcmcia_socket *skt,
 EXPORT_SYMBOL(soc_common_pcmcia_get_timing);
 
 static void __soc_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt,
-	unsigned int nr)
+									 unsigned int nr)
 {
 	unsigned int i;
 
 	for (i = 0; i < nr; i++)
 		if (skt->stat[i].irq)
+		{
 			free_irq(skt->stat[i].irq, skt);
+		}
 
 	if (skt->ops->hw_shutdown)
+	{
 		skt->ops->hw_shutdown(skt);
+	}
 
 	clk_disable_unprepare(skt->clk);
 }
@@ -169,14 +193,19 @@ int soc_pcmcia_request_gpiods(struct soc_pcmcia_socket *skt)
 	struct gpio_desc *desc;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(skt->stat); i++) {
+	for (i = 0; i < ARRAY_SIZE(skt->stat); i++)
+	{
 		if (!skt->stat[i].name)
+		{
 			continue;
+		}
 
 		desc = devm_gpiod_get(dev, skt->stat[i].name, GPIOD_IN);
-		if (IS_ERR(desc)) {
+
+		if (IS_ERR(desc))
+		{
 			dev_err(dev, "Failed to get GPIO for %s: %ld\n",
-				skt->stat[i].name, PTR_ERR(desc));
+					skt->stat[i].name, PTR_ERR(desc));
 			return PTR_ERR(desc);
 		}
 
@@ -193,24 +222,34 @@ static int soc_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 
 	clk_prepare_enable(skt->clk);
 
-	if (skt->ops->hw_init) {
+	if (skt->ops->hw_init)
+	{
 		ret = skt->ops->hw_init(skt);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(skt->stat); i++) {
-		if (gpio_is_valid(skt->stat[i].gpio)) {
+	for (i = 0; i < ARRAY_SIZE(skt->stat); i++)
+	{
+		if (gpio_is_valid(skt->stat[i].gpio))
+		{
 			unsigned long flags = GPIOF_IN;
 
 			/* CD is active low by default */
 			if (i == SOC_STAT_CD)
+			{
 				flags |= GPIOF_ACTIVE_LOW;
+			}
 
 			ret = devm_gpio_request_one(skt->socket.dev.parent,
-						    skt->stat[i].gpio, flags,
-						    skt->stat[i].name);
-			if (ret) {
+										skt->stat[i].gpio, flags,
+										skt->stat[i].name);
+
+			if (ret)
+			{
 				__soc_pcmcia_hw_shutdown(skt, i);
 				return ret;
 			}
@@ -218,23 +257,32 @@ static int soc_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 			skt->stat[i].desc = gpio_to_desc(skt->stat[i].gpio);
 		}
 
-		if (i < SOC_STAT_VS1 && skt->stat[i].desc) {
+		if (i < SOC_STAT_VS1 && skt->stat[i].desc)
+		{
 			int irq = gpiod_to_irq(skt->stat[i].desc);
 
-			if (irq > 0) {
+			if (irq > 0)
+			{
 				if (i == SOC_STAT_RDY)
+				{
 					skt->socket.pci_irq = irq;
+				}
 				else
+				{
 					skt->stat[i].irq = irq;
+				}
 			}
 		}
 
-		if (skt->stat[i].irq) {
+		if (skt->stat[i].irq)
+		{
 			ret = request_irq(skt->stat[i].irq,
-					  soc_common_pcmcia_interrupt,
-					  IRQF_TRIGGER_NONE,
-					  skt->stat[i].name, skt);
-			if (ret) {
+							  soc_common_pcmcia_interrupt,
+							  IRQF_TRIGGER_NONE,
+							  skt->stat[i].name, skt);
+
+			if (ret)
+			{
 				__soc_pcmcia_hw_shutdown(skt, i);
 				return ret;
 			}
@@ -249,7 +297,8 @@ static void soc_pcmcia_hw_enable(struct soc_pcmcia_socket *skt)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(skt->stat); i++)
-		if (skt->stat[i].irq) {
+		if (skt->stat[i].irq)
+		{
 			irq_set_irq_type(skt->stat[i].irq, IRQ_TYPE_EDGE_RISING);
 			irq_set_irq_type(skt->stat[i].irq, IRQ_TYPE_EDGE_BOTH);
 		}
@@ -261,7 +310,9 @@ static void soc_pcmcia_hw_disable(struct soc_pcmcia_socket *skt)
 
 	for (i = 0; i < ARRAY_SIZE(skt->stat); i++)
 		if (skt->stat[i].irq)
+		{
 			irq_set_irq_type(skt->stat[i].irq, IRQ_TYPE_NONE);
+		}
 }
 
 /*
@@ -270,7 +321,7 @@ static void soc_pcmcia_hw_disable(struct soc_pcmcia_socket *skt)
  * provide hard-coded values as per the CF 3.0 spec.
  */
 void soc_common_cf_socket_state(struct soc_pcmcia_socket *skt,
-	struct pcmcia_state *state)
+								struct pcmcia_state *state)
 {
 	state->vs_3v = 1;
 }
@@ -288,17 +339,34 @@ static unsigned int soc_common_pcmcia_skt_state(struct soc_pcmcia_socket *skt)
 	state.bvd2 = 1;
 
 	if (skt->stat[SOC_STAT_CD].desc)
+	{
 		state.detect = !!gpiod_get_value(skt->stat[SOC_STAT_CD].desc);
+	}
+
 	if (skt->stat[SOC_STAT_RDY].desc)
+	{
 		state.ready = !!gpiod_get_value(skt->stat[SOC_STAT_RDY].desc);
+	}
+
 	if (skt->stat[SOC_STAT_BVD1].desc)
+	{
 		state.bvd1 = !!gpiod_get_value(skt->stat[SOC_STAT_BVD1].desc);
+	}
+
 	if (skt->stat[SOC_STAT_BVD2].desc)
+	{
 		state.bvd2 = !!gpiod_get_value(skt->stat[SOC_STAT_BVD2].desc);
+	}
+
 	if (skt->stat[SOC_STAT_VS1].desc)
+	{
 		state.vs_3v = !!gpiod_get_value(skt->stat[SOC_STAT_VS1].desc);
+	}
+
 	if (skt->stat[SOC_STAT_VS2].desc)
+	{
 		state.vs_Xv = !!gpiod_get_value(skt->stat[SOC_STAT_VS2].desc);
+	}
 
 	skt->ops->socket_state(skt, &state);
 
@@ -315,13 +383,21 @@ static unsigned int soc_common_pcmcia_skt_state(struct soc_pcmcia_socket *skt)
 	stat |= skt->cs_state.Vcc ? SS_POWERON : 0;
 
 	if (skt->cs_state.flags & SS_IOCARD)
+	{
 		stat |= state.bvd1 ? 0 : SS_STSCHG;
-	else {
-		if (state.bvd1 == 0)
-			stat |= SS_BATDEAD;
-		else if (state.bvd2 == 0)
-			stat |= SS_BATWARN;
 	}
+	else
+	{
+		if (state.bvd1 == 0)
+		{
+			stat |= SS_BATDEAD;
+		}
+		else if (state.bvd2 == 0)
+		{
+			stat |= SS_BATWARN;
+		}
+	}
+
 	return stat;
 }
 
@@ -337,39 +413,50 @@ static int soc_common_pcmcia_config_skt(
 	int ret;
 
 	ret = skt->ops->configure_socket(skt, state);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("soc_common_pcmcia: unable to configure socket %d\n",
-		       skt->nr);
+			   skt->nr);
 		/* restore the previous state */
 		WARN_ON(skt->ops->configure_socket(skt, &skt->cs_state));
 		return ret;
 	}
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		struct gpio_desc *descs[2];
 		int values[2], n = 0;
 
-		if (skt->gpio_reset) {
+		if (skt->gpio_reset)
+		{
 			descs[n] = skt->gpio_reset;
 			values[n++] = !!(state->flags & SS_RESET);
 		}
-		if (skt->gpio_bus_enable) {
+
+		if (skt->gpio_bus_enable)
+		{
 			descs[n] = skt->gpio_bus_enable;
 			values[n++] = !!(state->flags & SS_OUTPUT_ENA);
 		}
 
 		if (n)
+		{
 			gpiod_set_array_value_cansleep(n, descs, values);
+		}
 
 		/*
 		 * This really needs a better solution.  The IRQ
 		 * may or may not be claimed by the driver.
 		 */
-		if (skt->irq_state != 1 && state->io_irq) {
+		if (skt->irq_state != 1 && state->io_irq)
+		{
 			skt->irq_state = 1;
 			irq_set_irq_type(skt->socket.pci_irq,
-					 IRQ_TYPE_EDGE_FALLING);
-		} else if (skt->irq_state == 1 && state->io_irq == 0) {
+							 IRQ_TYPE_EDGE_FALLING);
+		}
+		else if (skt->irq_state == 1 && state->io_irq == 0)
+		{
 			skt->irq_state = 0;
 			irq_set_irq_type(skt->socket.pci_irq, IRQ_TYPE_NONE);
 		}
@@ -394,8 +481,12 @@ static int soc_common_pcmcia_sock_init(struct pcmcia_socket *sock)
 	struct soc_pcmcia_socket *skt = to_soc_pcmcia_socket(sock);
 
 	debug(skt, 2, "initializing socket\n");
+
 	if (skt->ops->socket_init)
+	{
 		skt->ops->socket_init(skt);
+	}
+
 	soc_pcmcia_hw_enable(skt);
 	return 0;
 }
@@ -417,8 +508,11 @@ static int soc_common_pcmcia_suspend(struct pcmcia_socket *sock)
 	debug(skt, 2, "suspending socket\n");
 
 	soc_pcmcia_hw_disable(skt);
+
 	if (skt->ops->socket_suspend)
+	{
 		skt->ops->socket_suspend(skt);
+	}
 
 	return 0;
 }
@@ -431,7 +525,8 @@ static void soc_common_check_status(struct soc_pcmcia_socket *skt)
 
 	debug(skt, 4, "entering PCMCIA monitoring thread\n");
 
-	do {
+	do
+	{
 		unsigned int status;
 		unsigned long flags;
 
@@ -443,16 +538,19 @@ static void soc_common_check_status(struct soc_pcmcia_socket *skt)
 		spin_unlock_irqrestore(&status_lock, flags);
 
 		debug(skt, 4, "events: %s%s%s%s%s%s\n",
-			events == 0         ? "<NONE>"   : "",
-			events & SS_DETECT  ? "DETECT "  : "",
-			events & SS_READY   ? "READY "   : "",
-			events & SS_BATDEAD ? "BATDEAD " : "",
-			events & SS_BATWARN ? "BATWARN " : "",
-			events & SS_STSCHG  ? "STSCHG "  : "");
+			  events == 0         ? "<NONE>"   : "",
+			  events & SS_DETECT  ? "DETECT "  : "",
+			  events & SS_READY   ? "READY "   : "",
+			  events & SS_BATDEAD ? "BATDEAD " : "",
+			  events & SS_BATWARN ? "BATWARN " : "",
+			  events & SS_STSCHG  ? "STSCHG "  : "");
 
 		if (events)
+		{
 			pcmcia_parse_events(&skt->socket, events);
-	} while (events);
+		}
+	}
+	while (events);
 }
 
 /* Let's poll for events in addition to IRQs since IRQ only is unreliable... */
@@ -527,19 +625,19 @@ static int soc_common_pcmcia_set_socket(
 	struct soc_pcmcia_socket *skt = to_soc_pcmcia_socket(sock);
 
 	debug(skt, 2, "mask: %s%s%s%s%s%s flags: %s%s%s%s%s%s Vcc %d Vpp %d irq %d\n",
-			(state->csc_mask == 0)		? "<NONE> " :	"",
-			(state->csc_mask & SS_DETECT)	? "DETECT " :	"",
-			(state->csc_mask & SS_READY)	? "READY " :	"",
-			(state->csc_mask & SS_BATDEAD)	? "BATDEAD " :	"",
-			(state->csc_mask & SS_BATWARN)	? "BATWARN " :	"",
-			(state->csc_mask & SS_STSCHG)	? "STSCHG " :	"",
-			(state->flags == 0)		? "<NONE> " :	"",
-			(state->flags & SS_PWR_AUTO)	? "PWR_AUTO " :	"",
-			(state->flags & SS_IOCARD)	? "IOCARD " :	"",
-			(state->flags & SS_RESET)	? "RESET " :	"",
-			(state->flags & SS_SPKR_ENA)	? "SPKR_ENA " :	"",
-			(state->flags & SS_OUTPUT_ENA)	? "OUTPUT_ENA " : "",
-			state->Vcc, state->Vpp, state->io_irq);
+		  (state->csc_mask == 0)		? "<NONE> " :	"",
+		  (state->csc_mask & SS_DETECT)	? "DETECT " :	"",
+		  (state->csc_mask & SS_READY)	? "READY " :	"",
+		  (state->csc_mask & SS_BATDEAD)	? "BATDEAD " :	"",
+		  (state->csc_mask & SS_BATWARN)	? "BATWARN " :	"",
+		  (state->csc_mask & SS_STSCHG)	? "STSCHG " :	"",
+		  (state->flags == 0)		? "<NONE> " :	"",
+		  (state->flags & SS_PWR_AUTO)	? "PWR_AUTO " :	"",
+		  (state->flags & SS_IOCARD)	? "IOCARD " :	"",
+		  (state->flags & SS_RESET)	? "RESET " :	"",
+		  (state->flags & SS_SPKR_ENA)	? "SPKR_ENA " :	"",
+		  (state->flags & SS_OUTPUT_ENA)	? "OUTPUT_ENA " : "",
+		  state->Vcc, state->Vpp, state->io_irq);
 
 	return soc_common_pcmcia_config_skt(skt, state);
 }
@@ -560,28 +658,34 @@ static int soc_common_pcmcia_set_io_map(
 	unsigned short speed = map->speed;
 
 	debug(skt, 2, "map %u  speed %u start 0x%08llx stop 0x%08llx\n",
-		map->map, map->speed, (unsigned long long)map->start,
-		(unsigned long long)map->stop);
+		  map->map, map->speed, (unsigned long long)map->start,
+		  (unsigned long long)map->stop);
 	debug(skt, 2, "flags: %s%s%s%s%s%s%s%s\n",
-		(map->flags == 0)		? "<NONE>"	: "",
-		(map->flags & MAP_ACTIVE)	? "ACTIVE "	: "",
-		(map->flags & MAP_16BIT)	? "16BIT "	: "",
-		(map->flags & MAP_AUTOSZ)	? "AUTOSZ "	: "",
-		(map->flags & MAP_0WS)		? "0WS "	: "",
-		(map->flags & MAP_WRPROT)	? "WRPROT "	: "",
-		(map->flags & MAP_USE_WAIT)	? "USE_WAIT "	: "",
-		(map->flags & MAP_PREFETCH)	? "PREFETCH "	: "");
+		  (map->flags == 0)		? "<NONE>"	: "",
+		  (map->flags & MAP_ACTIVE)	? "ACTIVE "	: "",
+		  (map->flags & MAP_16BIT)	? "16BIT "	: "",
+		  (map->flags & MAP_AUTOSZ)	? "AUTOSZ "	: "",
+		  (map->flags & MAP_0WS)		? "0WS "	: "",
+		  (map->flags & MAP_WRPROT)	? "WRPROT "	: "",
+		  (map->flags & MAP_USE_WAIT)	? "USE_WAIT "	: "",
+		  (map->flags & MAP_PREFETCH)	? "PREFETCH "	: "");
 
-	if (map->map >= MAX_IO_WIN) {
+	if (map->map >= MAX_IO_WIN)
+	{
 		printk(KERN_ERR "%s(): map (%d) out of range\n", __func__,
-		       map->map);
+			   map->map);
 		return -1;
 	}
 
-	if (map->flags & MAP_ACTIVE) {
+	if (map->flags & MAP_ACTIVE)
+	{
 		if (speed == 0)
+		{
 			speed = SOC_PCMCIA_IO_ACCESS;
-	} else {
+		}
+	}
+	else
+	{
 		speed = 0;
 	}
 
@@ -589,7 +693,9 @@ static int soc_common_pcmcia_set_io_map(
 	skt->ops->set_timing(skt);
 
 	if (map->stop == 1)
-		map->stop = PAGE_SIZE-1;
+	{
+		map->stop = PAGE_SIZE - 1;
+	}
 
 	map->stop -= map->start;
 	map->stop += skt->socket.io_offset;
@@ -615,32 +721,42 @@ static int soc_common_pcmcia_set_mem_map(
 	unsigned short speed = map->speed;
 
 	debug(skt, 2, "map %u speed %u card_start %08x\n",
-		map->map, map->speed, map->card_start);
+		  map->map, map->speed, map->card_start);
 	debug(skt, 2, "flags: %s%s%s%s%s%s%s%s\n",
-		(map->flags == 0)		? "<NONE>"	: "",
-		(map->flags & MAP_ACTIVE)	? "ACTIVE "	: "",
-		(map->flags & MAP_16BIT)	? "16BIT "	: "",
-		(map->flags & MAP_AUTOSZ)	? "AUTOSZ "	: "",
-		(map->flags & MAP_0WS)		? "0WS "	: "",
-		(map->flags & MAP_WRPROT)	? "WRPROT "	: "",
-		(map->flags & MAP_ATTRIB)	? "ATTRIB "	: "",
-		(map->flags & MAP_USE_WAIT)	? "USE_WAIT "	: "");
+		  (map->flags == 0)		? "<NONE>"	: "",
+		  (map->flags & MAP_ACTIVE)	? "ACTIVE "	: "",
+		  (map->flags & MAP_16BIT)	? "16BIT "	: "",
+		  (map->flags & MAP_AUTOSZ)	? "AUTOSZ "	: "",
+		  (map->flags & MAP_0WS)		? "0WS "	: "",
+		  (map->flags & MAP_WRPROT)	? "WRPROT "	: "",
+		  (map->flags & MAP_ATTRIB)	? "ATTRIB "	: "",
+		  (map->flags & MAP_USE_WAIT)	? "USE_WAIT "	: "");
 
 	if (map->map >= MAX_WIN)
+	{
 		return -EINVAL;
+	}
 
-	if (map->flags & MAP_ACTIVE) {
+	if (map->flags & MAP_ACTIVE)
+	{
 		if (speed == 0)
+		{
 			speed = 300;
-	} else {
+		}
+	}
+	else
+	{
 		speed = 0;
 	}
 
-	if (map->flags & MAP_ATTRIB) {
+	if (map->flags & MAP_ATTRIB)
+	{
 		res = &skt->res_attr;
 		skt->spd_attr[map->map] = speed;
 		skt->spd_mem[map->map] = 0;
-	} else {
+	}
+	else
+	{
 		res = &skt->res_mem;
 		skt->spd_attr[map->map] = 0;
 		skt->spd_mem[map->map] = speed;
@@ -653,12 +769,14 @@ static int soc_common_pcmcia_set_mem_map(
 	return 0;
 }
 
-struct bittbl {
+struct bittbl
+{
 	unsigned int mask;
 	const char *name;
 };
 
-static struct bittbl status_bits[] = {
+static struct bittbl status_bits[] =
+{
 	{ SS_WRPROT,		"SS_WRPROT"	},
 	{ SS_BATDEAD,		"SS_BATDEAD"	},
 	{ SS_BATWARN,		"SS_BATWARN"	},
@@ -670,7 +788,8 @@ static struct bittbl status_bits[] = {
 	{ SS_XVCARD,		"SS_XVCARD"	},
 };
 
-static struct bittbl conf_bits[] = {
+static struct bittbl conf_bits[] =
+{
 	{ SS_PWR_AUTO,		"SS_PWR_AUTO"	},
 	{ SS_IOCARD,		"SS_IOCARD"	},
 	{ SS_RESET,		"SS_RESET"	},
@@ -680,15 +799,19 @@ static struct bittbl conf_bits[] = {
 };
 
 static void dump_bits(char **p, const char *prefix,
-	unsigned int val, struct bittbl *bits, int sz)
+					  unsigned int val, struct bittbl *bits, int sz)
 {
 	char *b = *p;
 	int i;
 
 	b += sprintf(b, "%-9s:", prefix);
+
 	for (i = 0; i < sz; i++)
 		if (val & bits[i].mask)
+		{
 			b += sprintf(b, " %s", bits[i].name);
+		}
+
 	*b++ = '\n';
 	*p = b;
 }
@@ -708,25 +831,29 @@ static ssize_t show_status(
 	p += sprintf(p, "slot     : %d\n", skt->nr);
 
 	dump_bits(&p, "status", skt->status,
-		  status_bits, ARRAY_SIZE(status_bits));
+			  status_bits, ARRAY_SIZE(status_bits));
 	dump_bits(&p, "csc_mask", skt->cs_state.csc_mask,
-		  status_bits, ARRAY_SIZE(status_bits));
+			  status_bits, ARRAY_SIZE(status_bits));
 	dump_bits(&p, "cs_flags", skt->cs_state.flags,
-		  conf_bits, ARRAY_SIZE(conf_bits));
+			  conf_bits, ARRAY_SIZE(conf_bits));
 
 	p += sprintf(p, "Vcc      : %d\n", skt->cs_state.Vcc);
 	p += sprintf(p, "Vpp      : %d\n", skt->cs_state.Vpp);
 	p += sprintf(p, "IRQ      : %d (%d)\n", skt->cs_state.io_irq,
-		skt->socket.pci_irq);
-	if (skt->ops->show_timing)
-		p += skt->ops->show_timing(skt, p);
+				 skt->socket.pci_irq);
 
-	return p-buf;
+	if (skt->ops->show_timing)
+	{
+		p += skt->ops->show_timing(skt, p);
+	}
+
+	return p - buf;
 }
 static DEVICE_ATTR(status, S_IRUGO, show_status, NULL);
 
 
-static struct pccard_operations soc_common_pcmcia_operations = {
+static struct pccard_operations soc_common_pcmcia_operations =
+{
 	.init			= soc_common_pcmcia_sock_init,
 	.suspend		= soc_common_pcmcia_suspend,
 	.get_status		= soc_common_pcmcia_get_status,
@@ -738,7 +865,7 @@ static struct pccard_operations soc_common_pcmcia_operations = {
 
 #ifdef CONFIG_CPU_FREQ
 static int soc_common_pcmcia_cpufreq_nb(struct notifier_block *nb,
-	unsigned long val, void *data)
+										unsigned long val, void *data)
 {
 	struct soc_pcmcia_socket *skt = container_of(nb, struct soc_pcmcia_socket, cpufreq_nb);
 	struct cpufreq_freqs *freqs = data;
@@ -748,7 +875,7 @@ static int soc_common_pcmcia_cpufreq_nb(struct notifier_block *nb,
 #endif
 
 void soc_pcmcia_init_one(struct soc_pcmcia_socket *skt,
-	const struct pcmcia_low_level *ops, struct device *dev)
+						 const struct pcmcia_low_level *ops, struct device *dev)
 {
 	int i;
 
@@ -758,7 +885,9 @@ void soc_pcmcia_init_one(struct soc_pcmcia_socket *skt,
 	skt->socket.pci_irq = NO_IRQ;
 
 	for (i = 0; i < ARRAY_SIZE(skt->stat); i++)
+	{
 		skt->stat[i].gpio = -EINVAL;
+	}
 }
 EXPORT_SYMBOL(soc_pcmcia_init_one);
 
@@ -769,9 +898,11 @@ void soc_pcmcia_remove_one(struct soc_pcmcia_socket *skt)
 	pcmcia_unregister_socket(&skt->socket);
 
 #ifdef CONFIG_CPU_FREQ
+
 	if (skt->ops->frequency_change)
 		cpufreq_unregister_notifier(&skt->cpufreq_nb,
-					    CPUFREQ_TRANSITION_NOTIFIER);
+									CPUFREQ_TRANSITION_NOTIFIER);
+
 #endif
 
 	soc_pcmcia_hw_shutdown(skt);
@@ -795,27 +926,41 @@ int soc_pcmcia_add_one(struct soc_pcmcia_socket *skt)
 	skt->cs_state = dead_socket;
 
 	setup_timer(&skt->poll_timer, soc_common_pcmcia_poll_event,
-		    (unsigned long)skt);
+				(unsigned long)skt);
 	skt->poll_timer.expires = jiffies + SOC_PCMCIA_POLL_PERIOD;
 
 	ret = request_resource(&iomem_resource, &skt->res_skt);
+
 	if (ret)
+	{
 		goto out_err_1;
+	}
 
 	ret = request_resource(&skt->res_skt, &skt->res_io);
+
 	if (ret)
+	{
 		goto out_err_2;
+	}
 
 	ret = request_resource(&skt->res_skt, &skt->res_mem);
+
 	if (ret)
+	{
 		goto out_err_3;
+	}
 
 	ret = request_resource(&skt->res_skt, &skt->res_attr);
+
 	if (ret)
+	{
 		goto out_err_4;
+	}
 
 	skt->virt_io = ioremap(skt->res_io.start, 0x10000);
-	if (skt->virt_io == NULL) {
+
+	if (skt->virt_io == NULL)
+	{
 		ret = -ENOMEM;
 		goto out_err_5;
 	}
@@ -828,11 +973,14 @@ int soc_pcmcia_add_one(struct soc_pcmcia_socket *skt)
 	skt->ops->set_timing(skt);
 
 	ret = soc_pcmcia_hw_init(skt);
+
 	if (ret)
+	{
 		goto out_err_6;
+	}
 
 	skt->socket.ops = &soc_common_pcmcia_operations;
-	skt->socket.features = SS_CAP_STATIC_MAP|SS_CAP_PCCARD;
+	skt->socket.features = SS_CAP_STATIC_MAP | SS_CAP_PCCARD;
 	skt->socket.resource_ops = &pccard_static_ops;
 	skt->socket.irq_mask = 0;
 	skt->socket.map_size = PAGE_SIZE;
@@ -841,45 +989,55 @@ int soc_pcmcia_add_one(struct soc_pcmcia_socket *skt)
 	skt->status = soc_common_pcmcia_skt_state(skt);
 
 #ifdef CONFIG_CPU_FREQ
-	if (skt->ops->frequency_change) {
+
+	if (skt->ops->frequency_change)
+	{
 		skt->cpufreq_nb.notifier_call = soc_common_pcmcia_cpufreq_nb;
 
 		ret = cpufreq_register_notifier(&skt->cpufreq_nb,
-						CPUFREQ_TRANSITION_NOTIFIER);
+										CPUFREQ_TRANSITION_NOTIFIER);
+
 		if (ret < 0)
 			dev_err(skt->socket.dev.parent,
-				"unable to register CPU frequency change notifier for PCMCIA (%d)\n",
-				ret);
+					"unable to register CPU frequency change notifier for PCMCIA (%d)\n",
+					ret);
 	}
+
 #endif
 
 	ret = pcmcia_register_socket(&skt->socket);
+
 	if (ret)
+	{
 		goto out_err_7;
+	}
 
 	ret = device_create_file(&skt->socket.dev, &dev_attr_status);
+
 	if (ret)
+	{
 		goto out_err_8;
+	}
 
 	return ret;
 
- out_err_8:
+out_err_8:
 	del_timer_sync(&skt->poll_timer);
 	pcmcia_unregister_socket(&skt->socket);
 
- out_err_7:
+out_err_7:
 	soc_pcmcia_hw_shutdown(skt);
- out_err_6:
+out_err_6:
 	iounmap(skt->virt_io);
- out_err_5:
+out_err_5:
 	release_resource(&skt->res_attr);
- out_err_4:
+out_err_4:
 	release_resource(&skt->res_mem);
- out_err_3:
+out_err_3:
 	release_resource(&skt->res_io);
- out_err_2:
+out_err_2:
 	release_resource(&skt->res_skt);
- out_err_1:
+out_err_1:
 
 	return ret;
 }

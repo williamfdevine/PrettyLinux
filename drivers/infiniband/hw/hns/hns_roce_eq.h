@@ -52,45 +52,53 @@
 
 #define CEQ_REG_OFFSET			0x18
 
-enum {
+enum
+{
 	HNS_ROCE_EQ_STAT_INVALID  = 0,
 	HNS_ROCE_EQ_STAT_VALID    = 2,
 };
 
-struct hns_roce_aeqe {
+struct hns_roce_aeqe
+{
 	u32 asyn;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 qp;
 			u32 rsv0;
 			u32 rsv1;
 		} qp_event;
 
-		struct {
+		struct
+		{
 			u32 cq;
 			u32 rsv0;
 			u32 rsv1;
 		} cq_event;
 
-		struct {
+		struct
+		{
 			u32 port;
 			u32 rsv0;
 			u32 rsv1;
 		} port_event;
 
-		struct {
+		struct
+		{
 			u32 ceqe;
 			u32 rsv0;
 			u32 rsv1;
 		} ce_event;
 
-		struct {
+		struct
+		{
 			__le64  out_param;
 			__le16  token;
 			u8	status;
 			u8	rsv0;
 		} __packed cmd;
-	 } event;
+	} event;
 };
 
 #define HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S 16
@@ -119,8 +127,10 @@ struct hns_roce_aeqe {
 #define HNS_ROCE_AEQE_EVENT_CE_EVENT_CEQE_CEQN_M   \
 	(((1UL << 5) - 1) << HNS_ROCE_AEQE_EVENT_CE_EVENT_CEQE_CEQN_S)
 
-struct hns_roce_ceqe {
-	union {
+struct hns_roce_ceqe
+{
+	union
+	{
 		int		comp;
 	} ceqe;
 };

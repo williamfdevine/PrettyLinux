@@ -37,7 +37,8 @@
 #define CAMU_WLCD_MODE			(1 << 11)
 #define CAML_LCD_MODE			(1 << 12)
 
-static struct spear_pmx_mode pmx_mode_nand = {
+static struct spear_pmx_mode pmx_mode_nand =
+{
 	.name = "nand",
 	.mode = NAND_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -45,7 +46,8 @@ static struct spear_pmx_mode pmx_mode_nand = {
 	.val = 0x00,
 };
 
-static struct spear_pmx_mode pmx_mode_nor = {
+static struct spear_pmx_mode pmx_mode_nor =
+{
 	.name = "nor",
 	.mode = NOR_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -53,7 +55,8 @@ static struct spear_pmx_mode pmx_mode_nor = {
 	.val = 0x01,
 };
 
-static struct spear_pmx_mode pmx_mode_photo_frame = {
+static struct spear_pmx_mode pmx_mode_photo_frame =
+{
 	.name = "photo frame mode",
 	.mode = PHOTO_FRAME_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -61,7 +64,8 @@ static struct spear_pmx_mode pmx_mode_photo_frame = {
 	.val = 0x02,
 };
 
-static struct spear_pmx_mode pmx_mode_lend_ip_phone = {
+static struct spear_pmx_mode pmx_mode_lend_ip_phone =
+{
 	.name = "lend ip phone mode",
 	.mode = LEND_IP_PHONE_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -69,7 +73,8 @@ static struct spear_pmx_mode pmx_mode_lend_ip_phone = {
 	.val = 0x03,
 };
 
-static struct spear_pmx_mode pmx_mode_hend_ip_phone = {
+static struct spear_pmx_mode pmx_mode_hend_ip_phone =
+{
 	.name = "hend ip phone mode",
 	.mode = HEND_IP_PHONE_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -77,7 +82,8 @@ static struct spear_pmx_mode pmx_mode_hend_ip_phone = {
 	.val = 0x04,
 };
 
-static struct spear_pmx_mode pmx_mode_lend_wifi_phone = {
+static struct spear_pmx_mode pmx_mode_lend_wifi_phone =
+{
 	.name = "lend wifi phone mode",
 	.mode = LEND_WIFI_PHONE_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -85,7 +91,8 @@ static struct spear_pmx_mode pmx_mode_lend_wifi_phone = {
 	.val = 0x05,
 };
 
-static struct spear_pmx_mode pmx_mode_hend_wifi_phone = {
+static struct spear_pmx_mode pmx_mode_hend_wifi_phone =
+{
 	.name = "hend wifi phone mode",
 	.mode = HEND_WIFI_PHONE_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -93,7 +100,8 @@ static struct spear_pmx_mode pmx_mode_hend_wifi_phone = {
 	.val = 0x06,
 };
 
-static struct spear_pmx_mode pmx_mode_ata_pabx_wi2s = {
+static struct spear_pmx_mode pmx_mode_ata_pabx_wi2s =
+{
 	.name = "ata pabx wi2s mode",
 	.mode = ATA_PABX_WI2S_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -101,7 +109,8 @@ static struct spear_pmx_mode pmx_mode_ata_pabx_wi2s = {
 	.val = 0x07,
 };
 
-static struct spear_pmx_mode pmx_mode_ata_pabx_i2s = {
+static struct spear_pmx_mode pmx_mode_ata_pabx_i2s =
+{
 	.name = "ata pabx i2s mode",
 	.mode = ATA_PABX_I2S_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -109,7 +118,8 @@ static struct spear_pmx_mode pmx_mode_ata_pabx_i2s = {
 	.val = 0x08,
 };
 
-static struct spear_pmx_mode pmx_mode_caml_lcdw = {
+static struct spear_pmx_mode pmx_mode_caml_lcdw =
+{
 	.name = "caml lcdw mode",
 	.mode = CAML_LCDW_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -117,7 +127,8 @@ static struct spear_pmx_mode pmx_mode_caml_lcdw = {
 	.val = 0x0C,
 };
 
-static struct spear_pmx_mode pmx_mode_camu_lcd = {
+static struct spear_pmx_mode pmx_mode_camu_lcd =
+{
 	.name = "camu lcd mode",
 	.mode = CAMU_LCD_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -125,7 +136,8 @@ static struct spear_pmx_mode pmx_mode_camu_lcd = {
 	.val = 0x0D,
 };
 
-static struct spear_pmx_mode pmx_mode_camu_wlcd = {
+static struct spear_pmx_mode pmx_mode_camu_wlcd =
+{
 	.name = "camu wlcd mode",
 	.mode = CAMU_WLCD_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -133,7 +145,8 @@ static struct spear_pmx_mode pmx_mode_camu_wlcd = {
 	.val = 0xE,
 };
 
-static struct spear_pmx_mode pmx_mode_caml_lcd = {
+static struct spear_pmx_mode pmx_mode_caml_lcd =
+{
 	.name = "caml lcd mode",
 	.mode = CAML_LCD_MODE,
 	.reg = MODE_CONFIG_REG,
@@ -141,7 +154,8 @@ static struct spear_pmx_mode pmx_mode_caml_lcd = {
 	.val = 0x0F,
 };
 
-static struct spear_pmx_mode *spear300_pmx_modes[] = {
+static struct spear_pmx_mode *spear300_pmx_modes[] =
+{
 	&pmx_mode_nand,
 	&pmx_mode_nor,
 	&pmx_mode_photo_frame,
@@ -159,7 +173,8 @@ static struct spear_pmx_mode *spear300_pmx_modes[] = {
 
 /* fsmc_2chips_pins */
 static const unsigned fsmc_2chips_pins[] = { 1, 97 };
-static struct spear_muxreg fsmc_2chips_muxreg[] = {
+static struct spear_muxreg fsmc_2chips_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_FIRDA_MASK,
@@ -167,16 +182,18 @@ static struct spear_muxreg fsmc_2chips_muxreg[] = {
 	},
 };
 
-static struct spear_modemux fsmc_2chips_modemux[] = {
+static struct spear_modemux fsmc_2chips_modemux[] =
+{
 	{
 		.modes = NAND_MODE | NOR_MODE | PHOTO_FRAME_MODE |
-			ATA_PABX_WI2S_MODE | ATA_PABX_I2S_MODE,
+		ATA_PABX_WI2S_MODE | ATA_PABX_I2S_MODE,
 		.muxregs = fsmc_2chips_muxreg,
 		.nmuxregs = ARRAY_SIZE(fsmc_2chips_muxreg),
 	},
 };
 
-static struct spear_pingroup fsmc_2chips_pingroup = {
+static struct spear_pingroup fsmc_2chips_pingroup =
+{
 	.name = "fsmc_2chips_grp",
 	.pins = fsmc_2chips_pins,
 	.npins = ARRAY_SIZE(fsmc_2chips_pins),
@@ -186,7 +203,8 @@ static struct spear_pingroup fsmc_2chips_pingroup = {
 
 /* fsmc_4chips_pins */
 static const unsigned fsmc_4chips_pins[] = { 1, 2, 3, 97 };
-static struct spear_muxreg fsmc_4chips_muxreg[] = {
+static struct spear_muxreg fsmc_4chips_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_FIRDA_MASK | PMX_UART0_MASK,
@@ -194,16 +212,18 @@ static struct spear_muxreg fsmc_4chips_muxreg[] = {
 	},
 };
 
-static struct spear_modemux fsmc_4chips_modemux[] = {
+static struct spear_modemux fsmc_4chips_modemux[] =
+{
 	{
 		.modes = NAND_MODE | NOR_MODE | PHOTO_FRAME_MODE |
-			ATA_PABX_WI2S_MODE | ATA_PABX_I2S_MODE,
+		ATA_PABX_WI2S_MODE | ATA_PABX_I2S_MODE,
 		.muxregs = fsmc_4chips_muxreg,
 		.nmuxregs = ARRAY_SIZE(fsmc_4chips_muxreg),
 	},
 };
 
-static struct spear_pingroup fsmc_4chips_pingroup = {
+static struct spear_pingroup fsmc_4chips_pingroup =
+{
 	.name = "fsmc_4chips_grp",
 	.pins = fsmc_4chips_pins,
 	.npins = ARRAY_SIZE(fsmc_4chips_pins),
@@ -212,8 +232,9 @@ static struct spear_pingroup fsmc_4chips_pingroup = {
 };
 
 static const char *const fsmc_grps[] = { "fsmc_2chips_grp", "fsmc_4chips_grp"
-};
-static struct spear_function fsmc_function = {
+									   };
+static struct spear_function fsmc_function =
+{
 	.name = "fsmc",
 	.groups = fsmc_grps,
 	.ngroups = ARRAY_SIZE(fsmc_grps),
@@ -221,7 +242,8 @@ static struct spear_function fsmc_function = {
 
 /* clcd_lcdmode_pins */
 static const unsigned clcd_lcdmode_pins[] = { 49, 50 };
-static struct spear_muxreg clcd_lcdmode_muxreg[] = {
+static struct spear_muxreg clcd_lcdmode_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_TIMER_0_1_MASK | PMX_TIMER_2_3_MASK,
@@ -229,16 +251,18 @@ static struct spear_muxreg clcd_lcdmode_muxreg[] = {
 	},
 };
 
-static struct spear_modemux clcd_lcdmode_modemux[] = {
+static struct spear_modemux clcd_lcdmode_modemux[] =
+{
 	{
 		.modes = HEND_IP_PHONE_MODE | HEND_WIFI_PHONE_MODE |
-			CAMU_LCD_MODE | CAML_LCD_MODE,
+		CAMU_LCD_MODE | CAML_LCD_MODE,
 		.muxregs = clcd_lcdmode_muxreg,
 		.nmuxregs = ARRAY_SIZE(clcd_lcdmode_muxreg),
 	},
 };
 
-static struct spear_pingroup clcd_lcdmode_pingroup = {
+static struct spear_pingroup clcd_lcdmode_pingroup =
+{
 	.name = "clcd_lcdmode_grp",
 	.pins = clcd_lcdmode_pins,
 	.npins = ARRAY_SIZE(clcd_lcdmode_pins),
@@ -248,7 +272,8 @@ static struct spear_pingroup clcd_lcdmode_pingroup = {
 
 /* clcd_pfmode_pins */
 static const unsigned clcd_pfmode_pins[] = { 47, 48, 49, 50 };
-static struct spear_muxreg clcd_pfmode_muxreg[] = {
+static struct spear_muxreg clcd_pfmode_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_TIMER_2_3_MASK,
@@ -256,7 +281,8 @@ static struct spear_muxreg clcd_pfmode_muxreg[] = {
 	},
 };
 
-static struct spear_modemux clcd_pfmode_modemux[] = {
+static struct spear_modemux clcd_pfmode_modemux[] =
+{
 	{
 		.modes = PHOTO_FRAME_MODE,
 		.muxregs = clcd_pfmode_muxreg,
@@ -264,7 +290,8 @@ static struct spear_modemux clcd_pfmode_modemux[] = {
 	},
 };
 
-static struct spear_pingroup clcd_pfmode_pingroup = {
+static struct spear_pingroup clcd_pfmode_pingroup =
+{
 	.name = "clcd_pfmode_grp",
 	.pins = clcd_pfmode_pins,
 	.npins = ARRAY_SIZE(clcd_pfmode_pins),
@@ -273,8 +300,9 @@ static struct spear_pingroup clcd_pfmode_pingroup = {
 };
 
 static const char *const clcd_grps[] = { "clcd_lcdmode_grp", "clcd_pfmode_grp"
-};
-static struct spear_function clcd_function = {
+									   };
+static struct spear_function clcd_function =
+{
 	.name = "clcd",
 	.groups = clcd_grps,
 	.ngroups = ARRAY_SIZE(clcd_grps),
@@ -282,7 +310,8 @@ static struct spear_function clcd_function = {
 
 /* tdm_pins */
 static const unsigned tdm_pins[] = { 34, 35, 36, 37, 38 };
-static struct spear_muxreg tdm_muxreg[] = {
+static struct spear_muxreg tdm_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_UART0_MODEM_MASK | PMX_SSP_CS_MASK,
@@ -290,19 +319,21 @@ static struct spear_muxreg tdm_muxreg[] = {
 	},
 };
 
-static struct spear_modemux tdm_modemux[] = {
+static struct spear_modemux tdm_modemux[] =
+{
 	{
 		.modes = PHOTO_FRAME_MODE | LEND_IP_PHONE_MODE |
-			HEND_IP_PHONE_MODE | LEND_WIFI_PHONE_MODE
-			| HEND_WIFI_PHONE_MODE | ATA_PABX_WI2S_MODE
-			| ATA_PABX_I2S_MODE | CAML_LCDW_MODE | CAMU_LCD_MODE
-			| CAMU_WLCD_MODE | CAML_LCD_MODE,
+		HEND_IP_PHONE_MODE | LEND_WIFI_PHONE_MODE
+		| HEND_WIFI_PHONE_MODE | ATA_PABX_WI2S_MODE
+		| ATA_PABX_I2S_MODE | CAML_LCDW_MODE | CAMU_LCD_MODE
+		| CAMU_WLCD_MODE | CAML_LCD_MODE,
 		.muxregs = tdm_muxreg,
 		.nmuxregs = ARRAY_SIZE(tdm_muxreg),
 	},
 };
 
-static struct spear_pingroup tdm_pingroup = {
+static struct spear_pingroup tdm_pingroup =
+{
 	.name = "tdm_grp",
 	.pins = tdm_pins,
 	.npins = ARRAY_SIZE(tdm_pins),
@@ -311,7 +342,8 @@ static struct spear_pingroup tdm_pingroup = {
 };
 
 static const char *const tdm_grps[] = { "tdm_grp" };
-static struct spear_function tdm_function = {
+static struct spear_function tdm_function =
+{
 	.name = "tdm",
 	.groups = tdm_grps,
 	.ngroups = ARRAY_SIZE(tdm_grps),
@@ -319,7 +351,8 @@ static struct spear_function tdm_function = {
 
 /* i2c_clk_pins */
 static const unsigned i2c_clk_pins[] = { 45, 46, 47, 48 };
-static struct spear_muxreg i2c_clk_muxreg[] = {
+static struct spear_muxreg i2c_clk_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_TIMER_0_1_MASK | PMX_TIMER_2_3_MASK,
@@ -327,18 +360,20 @@ static struct spear_muxreg i2c_clk_muxreg[] = {
 	},
 };
 
-static struct spear_modemux i2c_clk_modemux[] = {
+static struct spear_modemux i2c_clk_modemux[] =
+{
 	{
 		.modes = LEND_IP_PHONE_MODE | HEND_IP_PHONE_MODE |
-			LEND_WIFI_PHONE_MODE | HEND_WIFI_PHONE_MODE |
-			ATA_PABX_WI2S_MODE | ATA_PABX_I2S_MODE | CAML_LCDW_MODE
-			| CAML_LCD_MODE,
+		LEND_WIFI_PHONE_MODE | HEND_WIFI_PHONE_MODE |
+		ATA_PABX_WI2S_MODE | ATA_PABX_I2S_MODE | CAML_LCDW_MODE
+		| CAML_LCD_MODE,
 		.muxregs = i2c_clk_muxreg,
 		.nmuxregs = ARRAY_SIZE(i2c_clk_muxreg),
 	},
 };
 
-static struct spear_pingroup i2c_clk_pingroup = {
+static struct spear_pingroup i2c_clk_pingroup =
+{
 	.name = "i2c_clk_grp_grp",
 	.pins = i2c_clk_pins,
 	.npins = ARRAY_SIZE(i2c_clk_pins),
@@ -347,7 +382,8 @@ static struct spear_pingroup i2c_clk_pingroup = {
 };
 
 static const char *const i2c_grps[] = { "i2c_clk_grp" };
-static struct spear_function i2c_function = {
+static struct spear_function i2c_function =
+{
 	.name = "i2c1",
 	.groups = i2c_grps,
 	.ngroups = ARRAY_SIZE(i2c_grps),
@@ -355,7 +391,8 @@ static struct spear_function i2c_function = {
 
 /* caml_pins */
 static const unsigned caml_pins[] = { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 };
-static struct spear_muxreg caml_muxreg[] = {
+static struct spear_muxreg caml_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_MII_MASK,
@@ -363,7 +400,8 @@ static struct spear_muxreg caml_muxreg[] = {
 	},
 };
 
-static struct spear_modemux caml_modemux[] = {
+static struct spear_modemux caml_modemux[] =
+{
 	{
 		.modes = CAML_LCDW_MODE | CAML_LCD_MODE,
 		.muxregs = caml_muxreg,
@@ -371,7 +409,8 @@ static struct spear_modemux caml_modemux[] = {
 	},
 };
 
-static struct spear_pingroup caml_pingroup = {
+static struct spear_pingroup caml_pingroup =
+{
 	.name = "caml_grp",
 	.pins = caml_pins,
 	.npins = ARRAY_SIZE(caml_pins),
@@ -381,7 +420,8 @@ static struct spear_pingroup caml_pingroup = {
 
 /* camu_pins */
 static const unsigned camu_pins[] = { 16, 17, 18, 19, 20, 21, 45, 46, 47, 48 };
-static struct spear_muxreg camu_muxreg[] = {
+static struct spear_muxreg camu_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_TIMER_0_1_MASK | PMX_TIMER_2_3_MASK | PMX_MII_MASK,
@@ -389,7 +429,8 @@ static struct spear_muxreg camu_muxreg[] = {
 	},
 };
 
-static struct spear_modemux camu_modemux[] = {
+static struct spear_modemux camu_modemux[] =
+{
 	{
 		.modes = CAMU_LCD_MODE | CAMU_WLCD_MODE,
 		.muxregs = camu_muxreg,
@@ -397,7 +438,8 @@ static struct spear_modemux camu_modemux[] = {
 	},
 };
 
-static struct spear_pingroup camu_pingroup = {
+static struct spear_pingroup camu_pingroup =
+{
 	.name = "camu_grp",
 	.pins = camu_pins,
 	.npins = ARRAY_SIZE(camu_pins),
@@ -406,7 +448,8 @@ static struct spear_pingroup camu_pingroup = {
 };
 
 static const char *const cam_grps[] = { "caml_grp", "camu_grp" };
-static struct spear_function cam_function = {
+static struct spear_function cam_function =
+{
 	.name = "cam",
 	.groups = cam_grps,
 	.ngroups = ARRAY_SIZE(cam_grps),
@@ -414,7 +457,8 @@ static struct spear_function cam_function = {
 
 /* dac_pins */
 static const unsigned dac_pins[] = { 43, 44 };
-static struct spear_muxreg dac_muxreg[] = {
+static struct spear_muxreg dac_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_TIMER_0_1_MASK,
@@ -422,16 +466,18 @@ static struct spear_muxreg dac_muxreg[] = {
 	},
 };
 
-static struct spear_modemux dac_modemux[] = {
+static struct spear_modemux dac_modemux[] =
+{
 	{
 		.modes = ATA_PABX_I2S_MODE | CAML_LCDW_MODE | CAMU_LCD_MODE
-			| CAMU_WLCD_MODE | CAML_LCD_MODE,
+		| CAMU_WLCD_MODE | CAML_LCD_MODE,
 		.muxregs = dac_muxreg,
 		.nmuxregs = ARRAY_SIZE(dac_muxreg),
 	},
 };
 
-static struct spear_pingroup dac_pingroup = {
+static struct spear_pingroup dac_pingroup =
+{
 	.name = "dac_grp",
 	.pins = dac_pins,
 	.npins = ARRAY_SIZE(dac_pins),
@@ -440,7 +486,8 @@ static struct spear_pingroup dac_pingroup = {
 };
 
 static const char *const dac_grps[] = { "dac_grp" };
-static struct spear_function dac_function = {
+static struct spear_function dac_function =
+{
 	.name = "dac",
 	.groups = dac_grps,
 	.ngroups = ARRAY_SIZE(dac_grps),
@@ -448,7 +495,8 @@ static struct spear_function dac_function = {
 
 /* i2s_pins */
 static const unsigned i2s_pins[] = { 39, 40, 41, 42 };
-static struct spear_muxreg i2s_muxreg[] = {
+static struct spear_muxreg i2s_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_UART0_MODEM_MASK,
@@ -456,18 +504,20 @@ static struct spear_muxreg i2s_muxreg[] = {
 	},
 };
 
-static struct spear_modemux i2s_modemux[] = {
+static struct spear_modemux i2s_modemux[] =
+{
 	{
 		.modes = LEND_IP_PHONE_MODE | HEND_IP_PHONE_MODE
-			| LEND_WIFI_PHONE_MODE | HEND_WIFI_PHONE_MODE |
-			ATA_PABX_I2S_MODE | CAML_LCDW_MODE | CAMU_LCD_MODE
-			| CAMU_WLCD_MODE | CAML_LCD_MODE,
+		| LEND_WIFI_PHONE_MODE | HEND_WIFI_PHONE_MODE |
+		ATA_PABX_I2S_MODE | CAML_LCDW_MODE | CAMU_LCD_MODE
+		| CAMU_WLCD_MODE | CAML_LCD_MODE,
 		.muxregs = i2s_muxreg,
 		.nmuxregs = ARRAY_SIZE(i2s_muxreg),
 	},
 };
 
-static struct spear_pingroup i2s_pingroup = {
+static struct spear_pingroup i2s_pingroup =
+{
 	.name = "i2s_grp",
 	.pins = i2s_pins,
 	.npins = ARRAY_SIZE(i2s_pins),
@@ -476,7 +526,8 @@ static struct spear_pingroup i2s_pingroup = {
 };
 
 static const char *const i2s_grps[] = { "i2s_grp" };
-static struct spear_function i2s_function = {
+static struct spear_function i2s_function =
+{
 	.name = "i2s",
 	.groups = i2s_grps,
 	.ngroups = ARRAY_SIZE(i2s_grps),
@@ -484,28 +535,31 @@ static struct spear_function i2s_function = {
 
 /* sdhci_4bit_pins */
 static const unsigned sdhci_4bit_pins[] = { 28, 29, 30, 31, 32, 33 };
-static struct spear_muxreg sdhci_4bit_muxreg[] = {
+static struct spear_muxreg sdhci_4bit_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_GPIO_PIN0_MASK | PMX_GPIO_PIN1_MASK |
-			PMX_GPIO_PIN2_MASK | PMX_GPIO_PIN3_MASK |
-			PMX_GPIO_PIN4_MASK | PMX_GPIO_PIN5_MASK,
+		PMX_GPIO_PIN2_MASK | PMX_GPIO_PIN3_MASK |
+		PMX_GPIO_PIN4_MASK | PMX_GPIO_PIN5_MASK,
 		.val = 0,
 	},
 };
 
-static struct spear_modemux sdhci_4bit_modemux[] = {
+static struct spear_modemux sdhci_4bit_modemux[] =
+{
 	{
 		.modes = PHOTO_FRAME_MODE | LEND_IP_PHONE_MODE |
-			HEND_IP_PHONE_MODE | LEND_WIFI_PHONE_MODE |
-			HEND_WIFI_PHONE_MODE | CAML_LCDW_MODE | CAMU_LCD_MODE |
-			CAMU_WLCD_MODE | CAML_LCD_MODE | ATA_PABX_WI2S_MODE,
+		HEND_IP_PHONE_MODE | LEND_WIFI_PHONE_MODE |
+		HEND_WIFI_PHONE_MODE | CAML_LCDW_MODE | CAMU_LCD_MODE |
+		CAMU_WLCD_MODE | CAML_LCD_MODE | ATA_PABX_WI2S_MODE,
 		.muxregs = sdhci_4bit_muxreg,
 		.nmuxregs = ARRAY_SIZE(sdhci_4bit_muxreg),
 	},
 };
 
-static struct spear_pingroup sdhci_4bit_pingroup = {
+static struct spear_pingroup sdhci_4bit_pingroup =
+{
 	.name = "sdhci_4bit_grp",
 	.pins = sdhci_4bit_pins,
 	.npins = ARRAY_SIZE(sdhci_4bit_pins),
@@ -515,29 +569,33 @@ static struct spear_pingroup sdhci_4bit_pingroup = {
 
 /* sdhci_8bit_pins */
 static const unsigned sdhci_8bit_pins[] = { 24, 25, 26, 27, 28, 29, 30, 31, 32,
-	33 };
-static struct spear_muxreg sdhci_8bit_muxreg[] = {
+											33
+										  };
+static struct spear_muxreg sdhci_8bit_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_GPIO_PIN0_MASK | PMX_GPIO_PIN1_MASK |
-			PMX_GPIO_PIN2_MASK | PMX_GPIO_PIN3_MASK |
-			PMX_GPIO_PIN4_MASK | PMX_GPIO_PIN5_MASK | PMX_MII_MASK,
+		PMX_GPIO_PIN2_MASK | PMX_GPIO_PIN3_MASK |
+		PMX_GPIO_PIN4_MASK | PMX_GPIO_PIN5_MASK | PMX_MII_MASK,
 		.val = 0,
 	},
 };
 
-static struct spear_modemux sdhci_8bit_modemux[] = {
+static struct spear_modemux sdhci_8bit_modemux[] =
+{
 	{
 		.modes = PHOTO_FRAME_MODE | LEND_IP_PHONE_MODE |
-			HEND_IP_PHONE_MODE | LEND_WIFI_PHONE_MODE |
-			HEND_WIFI_PHONE_MODE | CAML_LCDW_MODE | CAMU_LCD_MODE |
-			CAMU_WLCD_MODE | CAML_LCD_MODE,
+		HEND_IP_PHONE_MODE | LEND_WIFI_PHONE_MODE |
+		HEND_WIFI_PHONE_MODE | CAML_LCDW_MODE | CAMU_LCD_MODE |
+		CAMU_WLCD_MODE | CAML_LCD_MODE,
 		.muxregs = sdhci_8bit_muxreg,
 		.nmuxregs = ARRAY_SIZE(sdhci_8bit_muxreg),
 	},
 };
 
-static struct spear_pingroup sdhci_8bit_pingroup = {
+static struct spear_pingroup sdhci_8bit_pingroup =
+{
 	.name = "sdhci_8bit_grp",
 	.pins = sdhci_8bit_pins,
 	.npins = ARRAY_SIZE(sdhci_8bit_pins),
@@ -546,7 +604,8 @@ static struct spear_pingroup sdhci_8bit_pingroup = {
 };
 
 static const char *const sdhci_grps[] = { "sdhci_4bit_grp", "sdhci_8bit_grp" };
-static struct spear_function sdhci_function = {
+static struct spear_function sdhci_function =
+{
 	.name = "sdhci",
 	.groups = sdhci_grps,
 	.ngroups = ARRAY_SIZE(sdhci_grps),
@@ -554,7 +613,8 @@ static struct spear_function sdhci_function = {
 
 /* gpio1_0_to_3_pins */
 static const unsigned gpio1_0_to_3_pins[] = { 39, 40, 41, 42 };
-static struct spear_muxreg gpio1_0_to_3_muxreg[] = {
+static struct spear_muxreg gpio1_0_to_3_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_UART0_MODEM_MASK,
@@ -562,7 +622,8 @@ static struct spear_muxreg gpio1_0_to_3_muxreg[] = {
 	},
 };
 
-static struct spear_modemux gpio1_0_to_3_modemux[] = {
+static struct spear_modemux gpio1_0_to_3_modemux[] =
+{
 	{
 		.modes = PHOTO_FRAME_MODE,
 		.muxregs = gpio1_0_to_3_muxreg,
@@ -570,7 +631,8 @@ static struct spear_modemux gpio1_0_to_3_modemux[] = {
 	},
 };
 
-static struct spear_pingroup gpio1_0_to_3_pingroup = {
+static struct spear_pingroup gpio1_0_to_3_pingroup =
+{
 	.name = "gpio1_0_to_3_grp",
 	.pins = gpio1_0_to_3_pins,
 	.npins = ARRAY_SIZE(gpio1_0_to_3_pins),
@@ -581,7 +643,8 @@ static struct spear_pingroup gpio1_0_to_3_pingroup = {
 /* gpio1_4_to_7_pins */
 static const unsigned gpio1_4_to_7_pins[] = { 43, 44, 45, 46 };
 
-static struct spear_muxreg gpio1_4_to_7_muxreg[] = {
+static struct spear_muxreg gpio1_4_to_7_muxreg[] =
+{
 	{
 		.reg = PMX_CONFIG_REG,
 		.mask = PMX_TIMER_0_1_MASK | PMX_TIMER_2_3_MASK,
@@ -589,7 +652,8 @@ static struct spear_muxreg gpio1_4_to_7_muxreg[] = {
 	},
 };
 
-static struct spear_modemux gpio1_4_to_7_modemux[] = {
+static struct spear_modemux gpio1_4_to_7_modemux[] =
+{
 	{
 		.modes = PHOTO_FRAME_MODE,
 		.muxregs = gpio1_4_to_7_muxreg,
@@ -597,7 +661,8 @@ static struct spear_modemux gpio1_4_to_7_modemux[] = {
 	},
 };
 
-static struct spear_pingroup gpio1_4_to_7_pingroup = {
+static struct spear_pingroup gpio1_4_to_7_pingroup =
+{
 	.name = "gpio1_4_to_7_grp",
 	.pins = gpio1_4_to_7_pins,
 	.npins = ARRAY_SIZE(gpio1_4_to_7_pins),
@@ -606,15 +671,17 @@ static struct spear_pingroup gpio1_4_to_7_pingroup = {
 };
 
 static const char *const gpio1_grps[] = { "gpio1_0_to_3_grp", "gpio1_4_to_7_grp"
-};
-static struct spear_function gpio1_function = {
+										};
+static struct spear_function gpio1_function =
+{
 	.name = "gpio1",
 	.groups = gpio1_grps,
 	.ngroups = ARRAY_SIZE(gpio1_grps),
 };
 
 /* pingroups */
-static struct spear_pingroup *spear300_pingroups[] = {
+static struct spear_pingroup *spear300_pingroups[] =
+{
 	SPEAR3XX_COMMON_PINGROUPS,
 	&fsmc_2chips_pingroup,
 	&fsmc_4chips_pingroup,
@@ -633,7 +700,8 @@ static struct spear_pingroup *spear300_pingroups[] = {
 };
 
 /* functions */
-static struct spear_function *spear300_functions[] = {
+static struct spear_function *spear300_functions[] =
+{
 	SPEAR3XX_COMMON_FUNCTIONS,
 	&fsmc_function,
 	&clcd_function,
@@ -646,7 +714,8 @@ static struct spear_function *spear300_functions[] = {
 	&gpio1_function,
 };
 
-static const struct of_device_id spear300_pinctrl_of_match[] = {
+static const struct of_device_id spear300_pinctrl_of_match[] =
+{
 	{
 		.compatible = "st,spear300-pinmux",
 	},
@@ -671,13 +740,17 @@ static int spear300_pinctrl_probe(struct platform_device *pdev)
 	pmx_init_addr(&spear3xx_machdata, PMX_CONFIG_REG);
 
 	ret = spear_pinctrl_probe(pdev, &spear3xx_machdata);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
-static struct platform_driver spear300_pinctrl_driver = {
+static struct platform_driver spear300_pinctrl_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 		.of_match_table = spear300_pinctrl_of_match,

@@ -75,7 +75,8 @@
  *      with or without "success".
  */
 
-enum drbd_req_event {
+enum drbd_req_event
+{
 	CREATED,
 	TO_BE_SENT,
 	TO_BE_SUBMITTED,
@@ -129,7 +130,8 @@ enum drbd_req_event {
  * need to look at the connection state and/or manipulate some lists at the
  * same time, so we should hold the request lock anyways.
  */
-enum drbd_req_state_bits {
+enum drbd_req_state_bits
+{
 	/* 3210
 	 * 0000: no local possible
 	 * 0001: to be submitted
@@ -275,7 +277,8 @@ static inline void drbd_req_make_private_bio(struct drbd_request *req, struct bi
 /* Short lived temporary struct on the stack.
  * We could squirrel the error to be returned into
  * bio->bi_iter.bi_size, or similar. But that would be too ugly. */
-struct bio_and_error {
+struct bio_and_error
+{
 	struct bio *bio;
 	int error;
 };
@@ -283,11 +286,11 @@ struct bio_and_error {
 extern void start_new_tl_epoch(struct drbd_connection *connection);
 extern void drbd_req_destroy(struct kref *kref);
 extern void _req_may_be_done(struct drbd_request *req,
-		struct bio_and_error *m);
+							 struct bio_and_error *m);
 extern int __req_mod(struct drbd_request *req, enum drbd_req_event what,
-		struct bio_and_error *m);
+					 struct bio_and_error *m);
 extern void complete_master_bio(struct drbd_device *device,
-		struct bio_and_error *m);
+								struct bio_and_error *m);
 extern void request_timer_fn(unsigned long data);
 extern void tl_restart(struct drbd_connection *connection, enum drbd_req_event what);
 extern void _tl_restart(struct drbd_connection *connection, enum drbd_req_event what);
@@ -306,8 +309,11 @@ static inline int _req_mod(struct drbd_request *req, enum drbd_req_event what)
 
 	/* __req_mod possibly frees req, do not touch req after that! */
 	rv = __req_mod(req, what, &m);
+
 	if (m.bio)
+	{
 		complete_master_bio(device, &m);
+	}
 
 	return rv;
 }
@@ -317,7 +323,7 @@ static inline int _req_mod(struct drbd_request *req, enum drbd_req_event what)
  * of the lower level driver completion callback, so we need to
  * spin_lock_irqsave here. */
 static inline int req_mod(struct drbd_request *req,
-		enum drbd_req_event what)
+						  enum drbd_req_event what)
 {
 	unsigned long flags;
 	struct drbd_device *device = req->device;
@@ -329,7 +335,9 @@ static inline int req_mod(struct drbd_request *req,
 	spin_unlock_irqrestore(&device->resource->req_lock, flags);
 
 	if (m.bio)
+	{
 		complete_master_bio(device, &m);
+	}
 
 	return rv;
 }

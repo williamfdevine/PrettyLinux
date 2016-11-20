@@ -25,12 +25,13 @@ void pci_remove_firmware_label_files(struct pci_dev *pdev);
 #endif
 void pci_cleanup_rom(struct pci_dev *dev);
 #ifdef HAVE_PCI_MMAP
-enum pci_mmap_api {
+enum pci_mmap_api
+{
 	PCI_MMAP_SYSFS,	/* mmap on /sys/bus/pci/devices/<BDF>/resource<N> */
 	PCI_MMAP_PROCFS	/* mmap on /proc/bus/pci/<BDF> */
 };
 int pci_mmap_fits(struct pci_dev *pdev, int resno, struct vm_area_struct *vmai,
-		  enum pci_mmap_api mmap_api);
+				  enum pci_mmap_api mmap_api);
 #endif
 int pci_probe_reset_function(struct pci_dev *dev);
 
@@ -61,7 +62,8 @@ int pci_probe_reset_function(struct pci_dev *dev);
  * If given platform is generally capable of power managing PCI devices, all of
  * these callbacks are mandatory.
  */
-struct pci_platform_pm_ops {
+struct pci_platform_pm_ops
+{
 	bool (*is_manageable)(struct pci_dev *dev);
 	int (*set_state)(struct pci_dev *dev, pci_power_t state);
 	pci_power_t (*get_state)(struct pci_dev *dev);
@@ -108,21 +110,23 @@ static inline bool pci_power_manageable(struct pci_dev *pci_dev)
 	return !pci_has_subordinate(pci_dev) || pci_dev->bridge_d3;
 }
 
-struct pci_vpd_ops {
+struct pci_vpd_ops
+{
 	ssize_t (*read)(struct pci_dev *dev, loff_t pos, size_t count, void *buf);
 	ssize_t (*write)(struct pci_dev *dev, loff_t pos, size_t count, const void *buf);
 	int (*set_size)(struct pci_dev *dev, size_t len);
 };
 
-struct pci_vpd {
+struct pci_vpd
+{
 	const struct pci_vpd_ops *ops;
 	struct bin_attribute *attr; /* descriptor for sysfs VPD entry */
 	struct mutex	lock;
 	unsigned int	len;
 	u16		flag;
 	u8		cap;
-	u8		busy:1;
-	u8		valid:1;
+	u8		busy: 1;
+	u8		valid: 1;
 };
 
 int pci_vpd_init(struct pci_dev *dev);
@@ -169,8 +173,12 @@ static inline void pci_msi_set_enable(struct pci_dev *dev, int enable)
 
 	pci_read_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS, &control);
 	control &= ~PCI_MSI_FLAGS_ENABLE;
+
 	if (enable)
+	{
 		control |= PCI_MSI_FLAGS_ENABLE;
+	}
+
 	pci_write_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS, control);
 }
 
@@ -191,7 +199,10 @@ static inline int pci_no_d1d2(struct pci_dev *dev)
 	unsigned int parent_dstates = 0;
 
 	if (dev->bus->self)
+	{
 		parent_dstates = dev->bus->self->no_d1d2;
+	}
+
 	return (dev->no_d1d2 || parent_dstates);
 
 }
@@ -213,11 +224,14 @@ static inline const struct pci_device_id *
 pci_match_one_device(const struct pci_device_id *id, const struct pci_dev *dev)
 {
 	if ((id->vendor == PCI_ANY_ID || id->vendor == dev->vendor) &&
-	    (id->device == PCI_ANY_ID || id->device == dev->device) &&
-	    (id->subvendor == PCI_ANY_ID || id->subvendor == dev->subsystem_vendor) &&
-	    (id->subdevice == PCI_ANY_ID || id->subdevice == dev->subsystem_device) &&
-	    !((id->class ^ dev->class) & id->class_mask))
+		(id->device == PCI_ANY_ID || id->device == dev->device) &&
+		(id->subvendor == PCI_ANY_ID || id->subvendor == dev->subsystem_vendor) &&
+		(id->subdevice == PCI_ANY_ID || id->subdevice == dev->subsystem_device) &&
+		!((id->class ^ dev->class) & id->class_mask))
+	{
 		return id;
+	}
+
 	return NULL;
 }
 
@@ -226,14 +240,16 @@ pci_match_one_device(const struct pci_device_id *id, const struct pci_dev *dev)
 
 extern struct kset *pci_slots_kset;
 
-struct pci_slot_attribute {
+struct pci_slot_attribute
+{
 	struct attribute attr;
 	ssize_t (*show)(struct pci_slot *, char *);
 	ssize_t (*store)(struct pci_slot *, const char *, size_t);
 };
 #define to_pci_slot_attr(s) container_of(s, struct pci_slot_attribute, attr)
 
-enum pci_bar_type {
+enum pci_bar_type
+{
 	pci_bar_unknown,	/* Standard PCI BAR probe */
 	pci_bar_io,		/* An io port BAR */
 	pci_bar_mem32,		/* A 32-bit memory BAR */
@@ -241,24 +257,25 @@ enum pci_bar_type {
 };
 
 bool pci_bus_read_dev_vendor_id(struct pci_bus *bus, int devfn, u32 *pl,
-				int crs_timeout);
+								int crs_timeout);
 int pci_setup_device(struct pci_dev *dev);
 int __pci_read_base(struct pci_dev *dev, enum pci_bar_type type,
-		    struct resource *res, unsigned int reg);
+					struct resource *res, unsigned int reg);
 int pci_resource_bar(struct pci_dev *dev, int resno, enum pci_bar_type *type);
 void pci_configure_ari(struct pci_dev *dev);
 void __pci_bus_size_bridges(struct pci_bus *bus,
-			struct list_head *realloc_head);
+							struct list_head *realloc_head);
 void __pci_bus_assign_resources(const struct pci_bus *bus,
-				struct list_head *realloc_head,
-				struct list_head *fail_head);
+								struct list_head *realloc_head,
+								struct list_head *fail_head);
 bool pci_bus_clip_resource(struct pci_dev *dev, int idx);
 
 void pci_reassigndev_resource_alignment(struct pci_dev *dev);
 void pci_disable_bridge_window(struct pci_dev *dev);
 
 /* Single Root I/O Virtualization */
-struct pci_sriov {
+struct pci_sriov
+{
 	int pos;		/* capability position */
 	int nres;		/* number of resources */
 	u32 cap;		/* SR-IOV Capabilities */
@@ -320,16 +337,23 @@ static inline int pci_iov_bus_range(struct pci_bus *bus)
 unsigned long pci_cardbus_resource_alignment(struct resource *);
 
 static inline resource_size_t pci_resource_alignment(struct pci_dev *dev,
-						     struct resource *res)
+		struct resource *res)
 {
 #ifdef CONFIG_PCI_IOV
 	int resno = res - dev->resource;
 
 	if (resno >= PCI_IOV_RESOURCES && resno <= PCI_IOV_RESOURCE_END)
+	{
 		return pci_sriov_resource_alignment(dev, resno);
+	}
+
 #endif
+
 	if (dev->class >> 8  == PCI_CLASS_BRIDGE_CARDBUS)
+	{
 		return pci_cardbus_resource_alignment(res);
+	}
+
 	return resource_alignment(res);
 }
 
@@ -341,7 +365,8 @@ void pci_ptm_init(struct pci_dev *dev);
 static inline void pci_ptm_init(struct pci_dev *dev) { }
 #endif
 
-struct pci_dev_reset_methods {
+struct pci_dev_reset_methods
+{
 	u16 vendor;
 	u16 device;
 	int (*reset)(struct pci_dev *dev, int probe);

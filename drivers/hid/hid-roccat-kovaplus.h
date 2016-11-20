@@ -14,27 +14,31 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	KOVAPLUS_SIZE_CONTROL = 0x03,
 	KOVAPLUS_SIZE_INFO = 0x06,
 	KOVAPLUS_SIZE_PROFILE_SETTINGS = 0x10,
 	KOVAPLUS_SIZE_PROFILE_BUTTONS = 0x17,
 };
 
-enum kovaplus_control_requests {
+enum kovaplus_control_requests
+{
 	/* write; value = profile number range 0-4 */
 	KOVAPLUS_CONTROL_REQUEST_PROFILE_SETTINGS = 0x10,
 	/* write; value = profile number range 0-4 */
 	KOVAPLUS_CONTROL_REQUEST_PROFILE_BUTTONS = 0x20,
 };
 
-struct kovaplus_actual_profile {
+struct kovaplus_actual_profile
+{
 	uint8_t command; /* KOVAPLUS_COMMAND_ACTUAL_PROFILE */
 	uint8_t size; /* always 3 */
 	uint8_t actual_profile; /* Range 0-4! */
 } __packed;
 
-struct kovaplus_profile_settings {
+struct kovaplus_profile_settings
+{
 	uint8_t command; /* KOVAPLUS_COMMAND_PROFILE_SETTINGS */
 	uint8_t size; /* 16 */
 	uint8_t profile_index; /* range 0-4 */
@@ -46,21 +50,24 @@ struct kovaplus_profile_settings {
 	uint8_t data[8];
 } __packed;
 
-struct kovaplus_profile_buttons {
+struct kovaplus_profile_buttons
+{
 	uint8_t command; /* KOVAPLUS_COMMAND_PROFILE_BUTTONS */
 	uint8_t size; /* 23 */
 	uint8_t profile_index; /* range 0-4 */
 	uint8_t data[20];
 } __packed;
 
-struct kovaplus_info {
+struct kovaplus_info
+{
 	uint8_t command; /* KOVAPLUS_COMMAND_INFO */
 	uint8_t size; /* 6 */
 	uint8_t firmware_version;
 	uint8_t unknown[3];
 } __packed;
 
-enum kovaplus_commands {
+enum kovaplus_commands
+{
 	KOVAPLUS_COMMAND_ACTUAL_PROFILE = 0x5,
 	KOVAPLUS_COMMAND_CONTROL = 0x4,
 	KOVAPLUS_COMMAND_PROFILE_SETTINGS = 0x6,
@@ -69,14 +76,16 @@ enum kovaplus_commands {
 	KOVAPLUS_COMMAND_A = 0xa,
 };
 
-enum kovaplus_mouse_report_numbers {
+enum kovaplus_mouse_report_numbers
+{
 	KOVAPLUS_MOUSE_REPORT_NUMBER_MOUSE = 1,
 	KOVAPLUS_MOUSE_REPORT_NUMBER_AUDIO = 2,
 	KOVAPLUS_MOUSE_REPORT_NUMBER_BUTTON = 3,
 	KOVAPLUS_MOUSE_REPORT_NUMBER_KBD = 4,
 };
 
-struct kovaplus_mouse_report_button {
+struct kovaplus_mouse_report_button
+{
 	uint8_t report_number; /* KOVAPLUS_MOUSE_REPORT_NUMBER_BUTTON */
 	uint8_t unknown1;
 	uint8_t type;
@@ -84,7 +93,8 @@ struct kovaplus_mouse_report_button {
 	uint8_t data2;
 } __packed;
 
-enum kovaplus_mouse_report_button_types {
+enum kovaplus_mouse_report_button_types
+{
 	/* data1 = profile_number range 1-5; no release event */
 	KOVAPLUS_MOUSE_REPORT_BUTTON_TYPE_PROFILE_1 = 0x20,
 	/* data1 = profile_number range 1-5; no release event */
@@ -105,12 +115,14 @@ enum kovaplus_mouse_report_button_types {
 	KOVAPLUS_MOUSE_REPORT_BUTTON_TYPE_MULTIMEDIA = 0xf0,
 };
 
-enum kovaplus_mouse_report_button_actions {
+enum kovaplus_mouse_report_button_actions
+{
 	KOVAPLUS_MOUSE_REPORT_BUTTON_ACTION_PRESS = 0,
 	KOVAPLUS_MOUSE_REPORT_BUTTON_ACTION_RELEASE = 1,
 };
 
-struct kovaplus_roccat_report {
+struct kovaplus_roccat_report
+{
 	uint8_t type;
 	uint8_t profile;
 	uint8_t button;
@@ -118,7 +130,8 @@ struct kovaplus_roccat_report {
 	uint8_t data2;
 } __packed;
 
-struct kovaplus_device {
+struct kovaplus_device
+{
 	int actual_profile;
 	int actual_cpi;
 	int actual_x_sensitivity;

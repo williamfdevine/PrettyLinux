@@ -16,7 +16,8 @@
 /* Call with exclusively locked inode->i_rwsem */
 static void nfs_block_o_direct(struct nfs_inode *nfsi, struct inode *inode)
 {
-	if (test_bit(NFS_INO_ODIRECT, &nfsi->flags)) {
+	if (test_bit(NFS_INO_ODIRECT, &nfsi->flags))
+	{
 		clear_bit(NFS_INO_ODIRECT, &nfsi->flags);
 		inode_dio_wait(inode);
 	}
@@ -44,8 +45,12 @@ nfs_start_io_read(struct inode *inode)
 	struct nfs_inode *nfsi = NFS_I(inode);
 	/* Be an optimist! */
 	down_read(&inode->i_rwsem);
+
 	if (test_bit(NFS_INO_ODIRECT, &nfsi->flags) == 0)
+	{
 		return;
+	}
+
 	up_read(&inode->i_rwsem);
 	/* Slow path.... */
 	down_write(&inode->i_rwsem);
@@ -96,7 +101,8 @@ nfs_end_io_write(struct inode *inode)
 /* Call with exclusively locked inode->i_rwsem */
 static void nfs_block_buffered(struct nfs_inode *nfsi, struct inode *inode)
 {
-	if (!test_bit(NFS_INO_ODIRECT, &nfsi->flags)) {
+	if (!test_bit(NFS_INO_ODIRECT, &nfsi->flags))
+	{
 		set_bit(NFS_INO_ODIRECT, &nfsi->flags);
 		nfs_wb_all(inode);
 	}
@@ -124,8 +130,12 @@ nfs_start_io_direct(struct inode *inode)
 	struct nfs_inode *nfsi = NFS_I(inode);
 	/* Be an optimist! */
 	down_read(&inode->i_rwsem);
+
 	if (test_bit(NFS_INO_ODIRECT, &nfsi->flags) != 0)
+	{
 		return;
+	}
+
 	up_read(&inode->i_rwsem);
 	/* Slow path.... */
 	down_write(&inode->i_rwsem);

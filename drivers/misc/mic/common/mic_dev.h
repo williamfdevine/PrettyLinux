@@ -27,7 +27,8 @@
 /**
  * enum mic_hw_family - The hardware family to which a device belongs.
  */
-enum mic_hw_family {
+enum mic_hw_family
+{
 	MIC_FAMILY_X100 = 0,
 	MIC_FAMILY_X200,
 	MIC_FAMILY_UNKNOWN,
@@ -41,7 +42,8 @@ enum mic_hw_family {
  * @va: Base ioremap'd virtual address.
  * @len: Size of the memory window.
  */
-struct mic_mw {
+struct mic_mw
+{
 	phys_addr_t pa;
 	void __iomem *va;
 	resource_size_t len;

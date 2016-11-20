@@ -29,7 +29,9 @@ gm20b_grctx_generate_r406028(struct gf100_gr *gr)
 	int i;
 
 	for (i = 0; i < gr->gpc_nr; i++)
+	{
 		tpc_per_gpc |= gr->tpc_nr[i] << (4 * i);
+	}
 
 	nvkm_wr32(device, 0x406028, tpc_per_gpc);
 	nvkm_wr32(device, 0x405870, tpc_per_gpc);
@@ -58,14 +60,19 @@ gm20b_grctx_generate_main(struct gf100_gr *gr, struct gf100_grctx *info)
 	gk104_grctx_generate_r418bb8(gr);
 
 	for (i = 0; i < 8; i++)
+	{
 		nvkm_wr32(device, 0x4064d0 + (i * 0x04), 0x00000000);
+	}
 
 	nvkm_wr32(device, 0x405b00, (gr->tpc_total << 8) | gr->gpc_nr);
 
 	nvkm_wr32(device, 0x408908, nvkm_rd32(device, 0x410108) | 0x80000000);
 
 	for (tmp = 0, i = 0; i < gr->gpc_nr; i++)
+	{
 		tmp |= ((1 << gr->tpc_nr[i]) - 1) << (i * 4);
+	}
+
 	nvkm_wr32(device, 0x4041c4, tmp);
 
 	gm200_grctx_generate_405b60(gr);
@@ -84,7 +91,8 @@ gm20b_grctx_generate_main(struct gf100_gr *gr, struct gf100_grctx *info)
 }
 
 const struct gf100_grctx_func
-gm20b_grctx = {
+	gm20b_grctx =
+{
 	.main  = gm20b_grctx_generate_main,
 	.unkn  = gk104_grctx_generate_unkn,
 	.bundle = gm107_grctx_generate_bundle,

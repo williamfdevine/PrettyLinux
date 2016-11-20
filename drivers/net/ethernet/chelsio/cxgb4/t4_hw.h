@@ -37,7 +37,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	NCHAN          = 4,     /* # of HW channels */
 	MAX_MTU        = 9600,  /* max MAC MTU, excluding header + FCS */
 	EEPROMSIZE     = 17408, /* Serial EEPROM physical size */
@@ -54,7 +55,8 @@ enum {
 	FILTER_OPT_LEN = 36,    /* filter tuple width for optional components */
 };
 
-enum {
+enum
+{
 	CIM_NUM_IBQ    = 6,     /* # of CIM IBQs */
 	CIM_NUM_OBQ    = 6,     /* # of CIM OBQs */
 	CIM_NUM_OBQ_T5 = 8,     /* # of CIM OBQs for T5 adapter */
@@ -67,7 +69,8 @@ enum {
 	ULPRX_LA_SIZE  = 512,   /* # of 256-bit words in ULP_RX LA */
 };
 
-enum {
+enum
+{
 	SF_PAGE_SIZE = 256,           /* serial flash page size */
 	SF_SEC_SIZE = 64 * 1024,      /* serial flash sector size */
 };
@@ -76,7 +79,8 @@ enum { RSP_TYPE_FLBUF, RSP_TYPE_CPL, RSP_TYPE_INTR }; /* response entry types */
 
 enum { MBOX_OWNER_NONE, MBOX_OWNER_FW, MBOX_OWNER_DRV };    /* mailbox owners */
 
-enum {
+enum
+{
 	SGE_MAX_WR_LEN = 512,     /* max WR size in bytes */
 	SGE_NTIMERS = 6,          /* # of interrupt holdoff timer values */
 	SGE_NCOUNTERS = 4,        /* # of interrupt packet counter values */
@@ -123,7 +127,8 @@ enum {
 };
 
 /* PCI-e memory window access */
-enum pcie_memwin {
+enum pcie_memwin
+{
 	MEMWIN_NIC      = 0,
 	MEMWIN_RSVD1    = 1,
 	MEMWIN_RSVD2    = 2,
@@ -134,7 +139,8 @@ enum pcie_memwin {
 	MEMWIN_RSVD7    = 7,
 };
 
-struct sge_qstat {                /* data written to SGE queue status entries */
+struct sge_qstat                  /* data written to SGE queue status entries */
+{
 	__be32 qid;
 	__be16 cidx;
 	__be16 pidx;
@@ -143,10 +149,12 @@ struct sge_qstat {                /* data written to SGE queue status entries */
 /*
  * Structure for last 128 bits of response descriptors
  */
-struct rsp_ctrl {
+struct rsp_ctrl
+{
 	__be32 hdrbuflen_pidx;
 	__be32 pldbuflen_qid;
-	union {
+	union
+	{
 		u8 type_gen;
 		__be64 last_flit;
 	};
@@ -186,7 +194,8 @@ struct rsp_ctrl {
 #define FLASH_START(start)	((start) * SF_SEC_SIZE)
 #define FLASH_MAX_SIZE(nsecs)	((nsecs) * SF_SEC_SIZE)
 
-enum {
+enum
+{
 	/*
 	 * Various Expansion-ROM boot images, etc.
 	 */

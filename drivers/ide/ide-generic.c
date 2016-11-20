@@ -15,10 +15,10 @@
 
 /* FIXME: convert arm and m32r to use ide_platform host driver */
 #ifdef CONFIG_ARM
-#include <asm/irq.h>
+	#include <asm/irq.h>
 #endif
 #ifdef CONFIG_M32R
-#include <asm/m32r.h>
+	#include <asm/m32r.h>
 #endif
 
 #define DRV_NAME	"ide_generic"
@@ -27,7 +27,8 @@ static int probe_mask;
 module_param(probe_mask, int, 0);
 MODULE_PARM_DESC(probe_mask, "probe mask for legacy ISA IDE ports");
 
-static const struct ide_port_info ide_generic_port_info = {
+static const struct ide_port_info ide_generic_port_info =
+{
 	.host_flags		= IDE_HFLAG_NO_DMA,
 	.chipset		= ide_generic,
 };
@@ -56,28 +57,43 @@ static void ide_generic_check_pci_legacy_iobases(int *primary, int *secondary)
 	struct pci_dev *p = NULL;
 	u16 val;
 
-	for_each_pci_dev(p) {
+	for_each_pci_dev(p)
+	{
 		if (pci_resource_start(p, 0) == 0x1f0)
+		{
 			*primary = 1;
+		}
+
 		if (pci_resource_start(p, 2) == 0x170)
+		{
 			*secondary = 1;
+		}
 
 		/* Cyrix CS55{1,2}0 pre SFF MWDMA ATA on the bridge */
 		if (p->vendor == PCI_VENDOR_ID_CYRIX &&
-		    (p->device == PCI_DEVICE_ID_CYRIX_5510 ||
-		     p->device == PCI_DEVICE_ID_CYRIX_5520))
+			(p->device == PCI_DEVICE_ID_CYRIX_5510 ||
+			 p->device == PCI_DEVICE_ID_CYRIX_5520))
+		{
 			*primary = *secondary = 1;
+		}
 
 		/* Intel MPIIX - PIO ATA on non PCI side of bridge */
 		if (p->vendor == PCI_VENDOR_ID_INTEL &&
-		    p->device == PCI_DEVICE_ID_INTEL_82371MX) {
+			p->device == PCI_DEVICE_ID_INTEL_82371MX)
+		{
 			pci_read_config_word(p, 0x6C, &val);
-			if (val & 0x8000) {
+
+			if (val & 0x8000)
+			{
 				/* ATA port enabled */
 				if (val & 0x4000)
+				{
 					*secondary = 1;
+				}
 				else
+				{
 					*primary = 1;
+				}
 			}
 		}
 	}
@@ -92,35 +108,45 @@ static int __init ide_generic_init(void)
 
 	ide_generic_check_pci_legacy_iobases(&primary, &secondary);
 
-	if (!probe_mask) {
+	if (!probe_mask)
+	{
 		printk(KERN_INFO DRV_NAME ": please use \"probe_mask=0x3f\" "
-		     "module parameter for probing all legacy ISA IDE ports\n");
+			   "module parameter for probing all legacy ISA IDE ports\n");
 
 		if (primary == 0)
+		{
 			probe_mask |= 0x1;
+		}
 
 		if (secondary == 0)
+		{
 			probe_mask |= 0x2;
-	} else
+		}
+	}
+	else
 		printk(KERN_INFO DRV_NAME ": enforcing probing of I/O ports "
-			"upon user request\n");
+			   "upon user request\n");
 
-	for (i = 0; i < ARRAY_SIZE(legacy_bases); i++) {
+	for (i = 0; i < ARRAY_SIZE(legacy_bases); i++)
+	{
 		io_addr = legacy_bases[i];
 
-		if ((probe_mask & (1 << i)) && io_addr) {
-			if (!request_region(io_addr, 8, DRV_NAME)) {
+		if ((probe_mask & (1 << i)) && io_addr)
+		{
+			if (!request_region(io_addr, 8, DRV_NAME))
+			{
 				printk(KERN_ERR "%s: I/O resource 0x%lX-0x%lX "
-						"not free.\n",
-						DRV_NAME, io_addr, io_addr + 7);
+					   "not free.\n",
+					   DRV_NAME, io_addr, io_addr + 7);
 				rc = -EBUSY;
 				continue;
 			}
 
-			if (!request_region(io_addr + 0x206, 1, DRV_NAME)) {
+			if (!request_region(io_addr + 0x206, 1, DRV_NAME))
+			{
 				printk(KERN_ERR "%s: I/O resource 0x%lX "
-						"not free.\n",
-						DRV_NAME, io_addr + 0x206);
+					   "not free.\n",
+					   DRV_NAME, io_addr + 0x206);
 				release_region(io_addr, 8);
 				rc = -EBUSY;
 				continue;
@@ -134,7 +160,9 @@ static int __init ide_generic_init(void)
 			hw.irq = legacy_irqs[i];
 #endif
 			rc = ide_host_add(&ide_generic_port_info, hws, 1, NULL);
-			if (rc) {
+
+			if (rc)
+			{
 				release_region(io_addr + 0x206, 1);
 				release_region(io_addr, 8);
 			}

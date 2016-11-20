@@ -36,7 +36,8 @@
  * erasesize aligned (e.g. use MTDPART_OFS_NEXTBLK).
  */
 
-struct mtd_partition {
+struct mtd_partition
+{
 	const char *name;		/* identifier string */
 	uint64_t size;			/* partition size */
 	uint64_t offset;		/* offset within the master MTD space */
@@ -56,7 +57,8 @@ struct device_node;
  * struct mtd_part_parser_data - used to pass data to MTD partition parsers.
  * @origin: for RedBoot, start address of MTD device
  */
-struct mtd_part_parser_data {
+struct mtd_part_parser_data
+{
 	unsigned long origin;
 };
 
@@ -65,24 +67,26 @@ struct mtd_part_parser_data {
  * Functions dealing with the various ways of partitioning the space
  */
 
-struct mtd_part_parser {
+struct mtd_part_parser
+{
 	struct list_head list;
 	struct module *owner;
 	const char *name;
 	int (*parse_fn)(struct mtd_info *, const struct mtd_partition **,
-			struct mtd_part_parser_data *);
+					struct mtd_part_parser_data *);
 	void (*cleanup)(const struct mtd_partition *pparts, int nr_parts);
 };
 
 /* Container for passing around a set of parsed partitions */
-struct mtd_partitions {
+struct mtd_partitions
+{
 	const struct mtd_partition *parts;
 	int nr_parts;
 	const struct mtd_part_parser *parser;
 };
 
 extern int __register_mtd_parser(struct mtd_part_parser *parser,
-				 struct module *owner);
+								 struct module *owner);
 #define register_mtd_parser(parser) __register_mtd_parser(parser, THIS_MODULE)
 
 extern void deregister_mtd_parser(struct mtd_part_parser *parser);
@@ -94,11 +98,11 @@ extern void deregister_mtd_parser(struct mtd_part_parser *parser);
  */
 #define module_mtd_part_parser(__mtd_part_parser) \
 	module_driver(__mtd_part_parser, register_mtd_parser, \
-		      deregister_mtd_parser)
+				  deregister_mtd_parser)
 
 int mtd_is_partition(const struct mtd_info *mtd);
 int mtd_add_partition(struct mtd_info *master, const char *name,
-		      long long offset, long long length);
+					  long long offset, long long length);
 int mtd_del_partition(struct mtd_info *master, int partno);
 uint64_t mtd_get_device_size(const struct mtd_info *mtd);
 

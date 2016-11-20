@@ -32,10 +32,10 @@
 #define FNIC_FC_LE 0x4C /* Character L */
 
 extern ssize_t simple_read_from_buffer(void __user *to,
-					  size_t count,
-					  loff_t *ppos,
-					  const void *from,
-					  size_t available);
+									   size_t count,
+									   loff_t *ppos,
+									   const void *from,
+									   size_t available);
 
 extern unsigned int fnic_trace_max_pages;
 extern int fnic_tracing_enabled;
@@ -45,20 +45,25 @@ extern unsigned int fnic_fc_trace_max_pages;
 extern int fnic_fc_tracing_enabled;
 extern int fnic_fc_trace_cleared;
 
-typedef struct fnic_trace_dbg {
+typedef struct fnic_trace_dbg
+{
 	int wr_idx;
 	int rd_idx;
 	unsigned long *page_offset;
 } fnic_trace_dbg_t;
 
-typedef struct fnic_dbgfs {
+typedef struct fnic_dbgfs
+{
 	int buffer_len;
 	char *buffer;
 } fnic_dbgfs_t;
 
-struct fnic_trace_data {
-	union {
-		struct {
+struct fnic_trace_data
+{
+	union
+	{
+		struct
+		{
 			u32 low;
 			u32 high;
 		};
@@ -71,7 +76,8 @@ struct fnic_trace_data {
 
 typedef struct fnic_trace_data fnic_trace_data_t;
 
-struct fc_trace_hdr {
+struct fc_trace_hdr
+{
 	struct timespec time_stamp;
 	u32 host_no;
 	u8 frame_type;
@@ -82,7 +88,7 @@ struct fc_trace_hdr {
 	((unsigned long)(a) + sizeof(struct fc_trace_hdr))
 
 #define FNIC_TRACE_ENTRY_SIZE \
-		  (FNIC_ENTRY_SIZE_BYTES - sizeof(fnic_trace_data_t))
+	(FNIC_ENTRY_SIZE_BYTES - sizeof(fnic_trace_data_t))
 
 #define FNIC_TRACE(_fn, _hn, _t, _a, _b, _c, _d, _e)           \
 	if (unlikely(fnic_tracing_enabled)) {                   \
@@ -118,11 +124,11 @@ void fnic_trace_debugfs_terminate(void);
 int fnic_fc_trace_init(void);
 void fnic_fc_trace_free(void);
 int fnic_fc_trace_set_data(u32 host_no, u8 frame_type,
-				char *frame, u32 fc_frame_len);
+						   char *frame, u32 fc_frame_len);
 int fnic_fc_trace_get_data(fnic_dbgfs_t *fnic_dbgfs_prt, u8 rdata_flag);
 void copy_and_format_trace_data(struct fc_trace_hdr *tdata,
-				fnic_dbgfs_t *fnic_dbgfs_prt,
-				int *len, u8 rdata_flag);
+								fnic_dbgfs_t *fnic_dbgfs_prt,
+								int *len, u8 rdata_flag);
 int fnic_fc_trace_debugfs_init(void);
 void fnic_fc_trace_debugfs_terminate(void);
 

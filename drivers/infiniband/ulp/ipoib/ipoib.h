@@ -55,13 +55,15 @@
 
 /* constants */
 
-enum ipoib_flush_level {
+enum ipoib_flush_level
+{
 	IPOIB_FLUSH_LIGHT,
 	IPOIB_FLUSH_NORMAL,
 	IPOIB_FLUSH_HEAVY
 };
 
-enum {
+enum
+{
 	IPOIB_ENCAP_LEN		  = 4,
 	IPOIB_PSEUDO_LEN	  = 20,
 	IPOIB_HARD_LEN		  = IPOIB_ENCAP_LEN + IPOIB_PSEUDO_LEN,
@@ -122,21 +124,23 @@ enum {
 
 #define	IPOIB_OP_RECV   (1ul << 31)
 #ifdef CONFIG_INFINIBAND_IPOIB_CM
-#define	IPOIB_OP_CM     (1ul << 30)
+	#define	IPOIB_OP_CM     (1ul << 30)
 #else
-#define	IPOIB_OP_CM     (0)
+	#define	IPOIB_OP_CM     (0)
 #endif
 
 #define IPOIB_QPN_MASK ((__force u32) cpu_to_be32(0xFFFFFF))
 
 /* structs */
 
-struct ipoib_header {
+struct ipoib_header
+{
 	__be16	proto;
 	u16	reserved;
 };
 
-struct ipoib_pseudo_header {
+struct ipoib_pseudo_header
+{
 	u8	hwaddr[INFINIBAND_ALEN];
 };
 
@@ -154,7 +158,8 @@ static inline void skb_add_pseudo_hdr(struct sk_buff *skb)
 }
 
 /* Used for all multicast joins (broadcast, IPv4 mcast and IPv6 mcast) */
-struct ipoib_mcast {
+struct ipoib_mcast
+{
 	struct ib_sa_mcmember_rec mcmember;
 	struct ib_sa_multicast	 *mc;
 	struct ipoib_ah		 *ah;
@@ -177,24 +182,28 @@ struct ipoib_mcast {
 	struct completion done;
 };
 
-struct ipoib_rx_buf {
+struct ipoib_rx_buf
+{
 	struct sk_buff *skb;
 	u64		mapping[IPOIB_UD_RX_SG];
 };
 
-struct ipoib_tx_buf {
+struct ipoib_tx_buf
+{
 	struct sk_buff *skb;
 	u64		mapping[MAX_SKB_FRAGS + 1];
 };
 
-struct ipoib_cm_tx_buf {
+struct ipoib_cm_tx_buf
+{
 	struct sk_buff *skb;
 	u64		mapping;
 };
 
 struct ib_cm_id;
 
-struct ipoib_cm_data {
+struct ipoib_cm_data
+{
 	__be32 qpn; /* High byte MUST be ignored on receive */
 	__be32 mtu;
 };
@@ -226,13 +235,15 @@ struct ipoib_cm_data {
  * same CQ before destroying QPs attached to our SRQ.
  */
 
-enum ipoib_cm_state {
+enum ipoib_cm_state
+{
 	IPOIB_CM_RX_LIVE,
 	IPOIB_CM_RX_ERROR, /* Ignored by stale task */
 	IPOIB_CM_RX_FLUSH  /* Last WQE Reached event observed */
 };
 
-struct ipoib_cm_rx {
+struct ipoib_cm_rx
+{
 	struct ib_cm_id	       *id;
 	struct ib_qp	       *qp;
 	struct ipoib_cm_rx_buf *rx_ring;
@@ -243,7 +254,8 @@ struct ipoib_cm_rx {
 	int			recv_count;
 };
 
-struct ipoib_cm_tx {
+struct ipoib_cm_tx
+{
 	struct ib_cm_id	    *id;
 	struct ib_qp	    *qp;
 	struct list_head     list;
@@ -258,12 +270,14 @@ struct ipoib_cm_tx {
 	unsigned             max_send_sge;
 };
 
-struct ipoib_cm_rx_buf {
+struct ipoib_cm_rx_buf
+{
 	struct sk_buff *skb;
 	u64 mapping[IPOIB_CM_RX_SG];
 };
 
-struct ipoib_cm_dev_priv {
+struct ipoib_cm_dev_priv
+{
 	struct ib_srq	       *srq;
 	struct ipoib_cm_rx_buf *srq_ring;
 	struct ib_cm_id	       *id;
@@ -288,14 +302,16 @@ struct ipoib_cm_dev_priv {
 	int			num_frags;
 };
 
-struct ipoib_ethtool_st {
+struct ipoib_ethtool_st
+{
 	u16     coalesce_usecs;
 	u16     max_coalesced_frames;
 };
 
 struct ipoib_neigh_table;
 
-struct ipoib_neigh_hash {
+struct ipoib_neigh_hash
+{
 	struct ipoib_neigh_table       *ntbl;
 	struct ipoib_neigh __rcu      **buckets;
 	struct rcu_head			rcu;
@@ -303,14 +319,16 @@ struct ipoib_neigh_hash {
 	u32				size;
 };
 
-struct ipoib_neigh_table {
+struct ipoib_neigh_table
+{
 	struct ipoib_neigh_hash __rcu  *htbl;
 	atomic_t			entries;
 	struct completion		flushed;
 	struct completion		deleted;
 };
 
-struct ipoib_qp_state_validate {
+struct ipoib_qp_state_validate
+{
 	struct work_struct work;
 	struct ipoib_dev_priv   *priv;
 };
@@ -320,7 +338,8 @@ struct ipoib_qp_state_validate {
  * in TX fast path, lock protects everything else.  lock nests inside
  * of tx_lock (ie tx_lock must be acquired first if needed).
  */
-struct ipoib_dev_priv {
+struct ipoib_dev_priv
+{
 	spinlock_t lock;
 
 	struct net_device *dev;
@@ -406,7 +425,8 @@ struct ipoib_dev_priv {
 	bool sm_fullmember_sendonly_support;
 };
 
-struct ipoib_ah {
+struct ipoib_ah
+{
 	struct net_device *dev;
 	struct ib_ah	  *ah;
 	struct list_head   list;
@@ -414,7 +434,8 @@ struct ipoib_ah {
 	unsigned	   last_send;
 };
 
-struct ipoib_path {
+struct ipoib_path
+{
 	struct net_device    *dev;
 	struct ib_sa_path_rec pathrec;
 	struct ipoib_ah      *ah;
@@ -431,7 +452,8 @@ struct ipoib_path {
 	int  		      valid;
 };
 
-struct ipoib_neigh {
+struct ipoib_neigh
+{
 	struct ipoib_ah    *ah;
 #ifdef CONFIG_INFINIBAND_IPOIB_CM
 	struct ipoib_cm_tx *cm;
@@ -455,11 +477,13 @@ void ipoib_neigh_dtor(struct ipoib_neigh *neigh);
 static inline void ipoib_neigh_put(struct ipoib_neigh *neigh)
 {
 	if (atomic_dec_and_test(&neigh->refcnt))
+	{
 		ipoib_neigh_dtor(neigh);
+	}
 }
 struct ipoib_neigh *ipoib_neigh_get(struct net_device *dev, u8 *daddr);
 struct ipoib_neigh *ipoib_neigh_alloc(u8 *daddr,
-				      struct net_device *dev);
+									  struct net_device *dev);
 void ipoib_neigh_free(struct ipoib_neigh *neigh);
 void ipoib_del_neighs_by_gid(struct net_device *dev, u8 *gid);
 
@@ -472,7 +496,7 @@ void ipoib_ib_completion(struct ib_cq *cq, void *dev_ptr);
 void ipoib_send_comp_handler(struct ib_cq *cq, void *dev_ptr);
 
 struct ipoib_ah *ipoib_create_ah(struct net_device *dev,
-				 struct ib_pd *pd, struct ib_ah_attr *attr);
+								 struct ib_pd *pd, struct ib_ah_attr *attr);
 void ipoib_free_ah(struct kref *kref);
 static inline void ipoib_put_ah(struct ipoib_ah *ah)
 {
@@ -483,7 +507,7 @@ int ipoib_add_pkey_attr(struct net_device *dev);
 int ipoib_add_umcast_attr(struct net_device *dev);
 
 void ipoib_send(struct net_device *dev, struct sk_buff *skb,
-		struct ipoib_ah *address, u32 qpn);
+				struct ipoib_ah *address, u32 qpn);
 void ipoib_reap_ah(struct work_struct *work);
 
 struct ipoib_path *__path_find(struct net_device *dev, void *gid);
@@ -521,10 +545,10 @@ void ipoib_mcast_dev_flush(struct net_device *dev);
 
 int ipoib_dma_map_tx(struct ib_device *ca, struct ipoib_tx_buf *tx_req);
 void ipoib_dma_unmap_tx(struct ipoib_dev_priv *priv,
-			struct ipoib_tx_buf *tx_req);
+						struct ipoib_tx_buf *tx_req);
 
 static inline void ipoib_build_sge(struct ipoib_dev_priv *priv,
-				   struct ipoib_tx_buf *tx_req)
+								   struct ipoib_tx_buf *tx_req)
 {
 	int i, off;
 	struct sk_buff *skb = tx_req->skb;
@@ -532,17 +556,23 @@ static inline void ipoib_build_sge(struct ipoib_dev_priv *priv,
 	int nr_frags = skb_shinfo(skb)->nr_frags;
 	u64 *mapping = tx_req->mapping;
 
-	if (skb_headlen(skb)) {
+	if (skb_headlen(skb))
+	{
 		priv->tx_sge[0].addr         = mapping[0];
 		priv->tx_sge[0].length       = skb_headlen(skb);
 		off = 1;
-	} else
+	}
+	else
+	{
 		off = 0;
+	}
 
-	for (i = 0; i < nr_frags; ++i) {
+	for (i = 0; i < nr_frags; ++i)
+	{
 		priv->tx_sge[i + off].addr = mapping[i + off];
 		priv->tx_sge[i + off].length = skb_frag_size(&frags[i]);
 	}
+
 	priv->tx_wr.wr.num_sge	     = nr_frags + off;
 }
 
@@ -550,36 +580,36 @@ static inline void ipoib_build_sge(struct ipoib_dev_priv *priv,
 struct ipoib_mcast_iter *ipoib_mcast_iter_init(struct net_device *dev);
 int ipoib_mcast_iter_next(struct ipoib_mcast_iter *iter);
 void ipoib_mcast_iter_read(struct ipoib_mcast_iter *iter,
-				  union ib_gid *gid,
-				  unsigned long *created,
-				  unsigned int *queuelen,
-				  unsigned int *complete,
-				  unsigned int *send_only);
+						   union ib_gid *gid,
+						   unsigned long *created,
+						   unsigned int *queuelen,
+						   unsigned int *complete,
+						   unsigned int *send_only);
 
 struct ipoib_path_iter *ipoib_path_iter_init(struct net_device *dev);
 int ipoib_path_iter_next(struct ipoib_path_iter *iter);
 void ipoib_path_iter_read(struct ipoib_path_iter *iter,
-			  struct ipoib_path *path);
+						  struct ipoib_path *path);
 #endif
 
 int ipoib_mcast_attach(struct net_device *dev, u16 mlid,
-		       union ib_gid *mgid, int set_qkey);
+					   union ib_gid *mgid, int set_qkey);
 void ipoib_mcast_remove_list(struct list_head *remove_list);
 void ipoib_check_and_add_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
-				struct list_head *remove_list);
+										struct list_head *remove_list);
 
 int ipoib_init_qp(struct net_device *dev);
 int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca);
 void ipoib_transport_dev_cleanup(struct net_device *dev);
 
 void ipoib_event(struct ib_event_handler *handler,
-		 struct ib_event *record);
+				 struct ib_event *record);
 
 int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey);
 int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey);
 
 int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
-		     u16 pkey, int child_type);
+					 u16 pkey, int child_type);
 
 int  __init ipoib_netlink_init(void);
 void __exit ipoib_netlink_fini(void);
@@ -609,14 +639,14 @@ static inline int ipoib_cm_admin_enabled(struct net_device *dev)
 {
 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 	return IPOIB_CM_SUPPORTED(dev->dev_addr) &&
-		test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags);
+		   test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags);
 }
 
 static inline int ipoib_cm_enabled(struct net_device *dev, u8 *hwaddr)
 {
 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 	return IPOIB_CM_SUPPORTED(hwaddr) &&
-		test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags);
+		   test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags);
 }
 
 static inline int ipoib_cm_up(struct ipoib_neigh *neigh)
@@ -654,10 +684,10 @@ int ipoib_cm_dev_init(struct net_device *dev);
 int ipoib_cm_add_mode_attr(struct net_device *dev);
 void ipoib_cm_dev_cleanup(struct net_device *dev);
 struct ipoib_cm_tx *ipoib_cm_create_tx(struct net_device *dev, struct ipoib_path *path,
-				    struct ipoib_neigh *neigh);
+									   struct ipoib_neigh *neigh);
 void ipoib_cm_destroy_tx(struct ipoib_cm_tx *tx);
 void ipoib_cm_skb_too_long(struct net_device *dev, struct sk_buff *skb,
-			   unsigned int mtu);
+						   unsigned int mtu);
 void ipoib_cm_handle_rx_wc(struct net_device *dev, struct ib_wc *wc);
 void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc);
 #else
@@ -733,7 +763,7 @@ void ipoib_cm_dev_cleanup(struct net_device *dev)
 
 static inline
 struct ipoib_cm_tx *ipoib_cm_create_tx(struct net_device *dev, struct ipoib_path *path,
-				    struct ipoib_neigh *neigh)
+									   struct ipoib_neigh *neigh)
 {
 	return NULL;
 }
@@ -751,7 +781,7 @@ int ipoib_cm_add_mode_attr(struct net_device *dev)
 }
 
 static inline void ipoib_cm_skb_too_long(struct net_device *dev, struct sk_buff *skb,
-					 unsigned int mtu)
+		unsigned int mtu)
 {
 	dev_kfree_skb_any(skb);
 }
@@ -780,13 +810,13 @@ static inline void ipoib_unregister_debugfs(void) { }
 #define ipoib_printk(level, priv, format, arg...)	\
 	printk(level "%s: " format, ((struct ipoib_dev_priv *) priv)->dev->name , ## arg)
 #define ipoib_warn(priv, format, arg...)		\
-do {							\
-	static DEFINE_RATELIMIT_STATE(_rs,		\
-		10 * HZ /*10 seconds */,		\
-		100);		\
-	if (__ratelimit(&_rs))				\
-		ipoib_printk(KERN_WARNING, priv, format , ## arg);\
-} while (0)
+	do {							\
+		static DEFINE_RATELIMIT_STATE(_rs,		\
+									  10 * HZ /*10 seconds */,		\
+									  100);		\
+		if (__ratelimit(&_rs))				\
+			ipoib_printk(KERN_WARNING, priv, format , ## arg);\
+	} while (0)
 
 extern int ipoib_sendq_size;
 extern int ipoib_recvq_size;

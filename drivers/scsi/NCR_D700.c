@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2001 by James.Bottomley@HansenPartnership.com
 **-----------------------------------------------------------------------------
-**  
+**
 **  This program is free software; you can redistribute it and/or modify
 **  it under the terms of the GNU General Public License as published by
 **  the Free Software Foundation; either version 2 of the License, or
@@ -34,7 +34,7 @@
  * */
 
 
-/* CHANGELOG 
+/* CHANGELOG
  *
  * Version 2.2
  *
@@ -84,7 +84,7 @@
  * 2. Disconnection and reselection
  *
  * Testing:
- * 
+ *
  *  I've only really tested this with the 700-66 chip, but have done
  * soak tests in multi-device environments to verify that
  * disconnections and reselections are being processed correctly.
@@ -114,13 +114,13 @@ MODULE_DESCRIPTION("NCR Dual700 SCSI Driver");
 MODULE_LICENSE("GPL");
 module_param(NCR_D700, charp, 0);
 
-static __u8 id_array[2*(MCA_MAX_SLOT_NR + 1)] =
-	{ [0 ... 2*(MCA_MAX_SLOT_NR + 1)-1] = 7 };
+static __u8 id_array[2 * (MCA_MAX_SLOT_NR + 1)] =
+{ [0 ... 2 * (MCA_MAX_SLOT_NR + 1) - 1] = 7 };
 
 #ifdef MODULE
-#define ARG_SEP ' '
+	#define ARG_SEP ' '
 #else
-#define ARG_SEP ','
+	#define ARG_SEP ','
 #endif
 
 static int __init
@@ -129,36 +129,55 @@ param_setup(char *string)
 	char *pos = string, *next;
 	int slot = -1, siop = -1;
 
-	while(pos != NULL && (next = strchr(pos, ':')) != NULL) {
+	while (pos != NULL && (next = strchr(pos, ':')) != NULL)
+	{
 		int val = (int)simple_strtoul(++next, NULL, 0);
 
-		if(!strncmp(pos, "slot:", 5))
+		if (!strncmp(pos, "slot:", 5))
+		{
 			slot = val;
-		else if(!strncmp(pos, "siop:", 5))
+		}
+		else if (!strncmp(pos, "siop:", 5))
+		{
 			siop = val;
-		else if(!strncmp(pos, "id:", 3)) {
-			if(slot == -1) {
+		}
+		else if (!strncmp(pos, "id:", 3))
+		{
+			if (slot == -1)
+			{
 				printk(KERN_WARNING "NCR D700: Must specify slot for id parameter\n");
-			} else if(slot > MCA_MAX_SLOT_NR) {
+			}
+			else if (slot > MCA_MAX_SLOT_NR)
+			{
 				printk(KERN_WARNING "NCR D700: Illegal slot %d for id %d\n", slot, val);
-			} else {
-				if(siop != 0 && siop != 1) {
-					id_array[slot*2] = val;
-					id_array[slot*2 + 1] =val;
-				} else {
-					id_array[slot*2 + siop] = val;
+			}
+			else
+			{
+				if (siop != 0 && siop != 1)
+				{
+					id_array[slot * 2] = val;
+					id_array[slot * 2 + 1] = val;
+				}
+				else
+				{
+					id_array[slot * 2 + siop] = val;
 				}
 			}
 		}
-		if((pos = strchr(pos, ARG_SEP)) != NULL)
+
+		if ((pos = strchr(pos, ARG_SEP)) != NULL)
+		{
 			pos++;
+		}
 	}
+
 	return 1;
 }
 
 /* Host template.  The 53c700 routine NCR_700_detect will
  * fill in all of the missing routines */
-static struct scsi_host_template NCR_D700_driver_template = {
+static struct scsi_host_template NCR_D700_driver_template =
+{
 	.module			= THIS_MODULE,
 	.name			= "NCR Dual 700 MCA",
 	.proc_name		= "NCR_D700",
@@ -166,7 +185,8 @@ static struct scsi_host_template NCR_D700_driver_template = {
 };
 
 /* We needs this helper because we have two hosts per struct device */
-struct NCR_D700_private {
+struct NCR_D700_private
+{
 	struct device		*dev;
 	struct Scsi_Host	*hosts[2];
 	char			name[30];
@@ -175,35 +195,40 @@ struct NCR_D700_private {
 
 static int
 NCR_D700_probe_one(struct NCR_D700_private *p, int siop, int irq,
-		   int slot, u32 region, int differential)
+				   int slot, u32 region, int differential)
 {
 	struct NCR_700_Host_Parameters *hostdata;
 	struct Scsi_Host *host;
 	int ret;
 
 	hostdata = kzalloc(sizeof(*hostdata), GFP_KERNEL);
-	if (!hostdata) {
+
+	if (!hostdata)
+	{
 		printk(KERN_ERR "NCR D700: SIOP%d: Failed to allocate host"
-		       "data, detatching\n", siop);
+			   "data, detatching\n", siop);
 		return -ENOMEM;
 	}
 
-	if (!request_region(region, 64, "NCR_D700")) {
+	if (!request_region(region, 64, "NCR_D700"))
+	{
 		printk(KERN_ERR "NCR D700: Failed to reserve IO region 0x%x\n",
-				region);
+			   region);
 		ret = -ENODEV;
 		goto region_failed;
 	}
-		
+
 	/* Fill in the three required pieces of hostdata */
 	hostdata->base = ioport_map(region, 64);
-	hostdata->differential = (((1<<siop) & differential) != 0);
+	hostdata->differential = (((1 << siop) & differential) != 0);
 	hostdata->clock = NCR_D700_CLOCK_MHZ;
 	hostdata->burst_length = 8;
 
 	/* and register the siop */
 	host = NCR_700_detect(&NCR_D700_driver_template, hostdata, p->dev);
-	if (!host) {
+
+	if (!host)
+	{
 		ret = -ENOMEM;
 		goto detect_failed;
 	}
@@ -217,9 +242,9 @@ NCR_D700_probe_one(struct NCR_D700_private *p, int siop, int irq,
 
 	return 0;
 
- detect_failed:
+detect_failed:
 	release_region(region, 64);
- region_failed:
+region_failed:
 	kfree(hostdata);
 
 	return ret;
@@ -233,8 +258,10 @@ NCR_D700_intr(int irq, void *data)
 
 	for (i = 0; i < 2; i++)
 		if (p->hosts[i] &&
-		    NCR_700_intr(irq, p->hosts[i]) == IRQ_HANDLED)
+			NCR_700_intr(irq, p->hosts[i]) == IRQ_HANDLED)
+		{
 			found++;
+		}
 
 	return found ? IRQ_HANDLED : IRQ_NONE;
 }
@@ -274,14 +301,20 @@ NCR_D700_probe(struct device *dev)
 	offset_addr = ((pos3a << 8) | pos3b) & 0xffffff70;
 
 	irq = (pos4 & 0x3) + 11;
-	if(irq >= 13)
+
+	if (irq >= 13)
+	{
 		irq++;
-	if(banner) {
+	}
+
+	if (banner)
+	{
 		printk(KERN_NOTICE "NCR D700: Driver Version " NCR_D700_VERSION "\n"
-		       "NCR D700:  Copyright (c) 2001 by James.Bottomley@HansenPartnership.com\n"
-		       "NCR D700:\n");
+			   "NCR D700:  Copyright (c) 2001 by James.Bottomley@HansenPartnership.com\n"
+			   "NCR D700:\n");
 		banner = 0;
 	}
+
 	/* now do the bus related transforms */
 	irq = mca_device_transform_irq(mca_dev, irq);
 	base_addr = mca_device_transform_ioport(mca_dev, base_addr);
@@ -293,52 +326,67 @@ NCR_D700_probe(struct device *dev)
 
 	/* clear any pending interrupts */
 	(void)inb(base_addr + 0x08);
+
 	/* get modctl, used later for setting diff bits */
-	switch(differential = (inb(base_addr + 0x08) >> 6)) {
-	case 0x00:
-		/* only SIOP1 differential */
-		differential = 0x02;
-		break;
-	case 0x01:
-		/* Both SIOPs differential */
-		differential = 0x03;
-		break;
-	case 0x03:
-		/* No SIOPs differential */
-		differential = 0x00;
-		break;
-	default:
-		printk(KERN_ERR "D700: UNEXPECTED DIFFERENTIAL RESULT 0x%02x\n",
-		       differential);
-		differential = 0x00;
-		break;
+	switch (differential = (inb(base_addr + 0x08) >> 6))
+	{
+		case 0x00:
+			/* only SIOP1 differential */
+			differential = 0x02;
+			break;
+
+		case 0x01:
+			/* Both SIOPs differential */
+			differential = 0x03;
+			break;
+
+		case 0x03:
+			/* No SIOPs differential */
+			differential = 0x00;
+			break;
+
+		default:
+			printk(KERN_ERR "D700: UNEXPECTED DIFFERENTIAL RESULT 0x%02x\n",
+				   differential);
+			differential = 0x00;
+			break;
 	}
 
 	p = kzalloc(sizeof(*p), GFP_KERNEL);
+
 	if (!p)
+	{
 		return -ENOMEM;
+	}
 
 	p->dev = dev;
 	snprintf(p->name, sizeof(p->name), "D700(%s)", dev_name(dev));
-	if (request_irq(irq, NCR_D700_intr, IRQF_SHARED, p->name, p)) {
+
+	if (request_irq(irq, NCR_D700_intr, IRQF_SHARED, p->name, p))
+	{
 		printk(KERN_ERR "D700: request_irq failed\n");
 		kfree(p);
 		return -EBUSY;
 	}
+
 	/* plumb in both 700 chips */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		int err;
 
 		if ((err = NCR_D700_probe_one(p, i, irq, slot,
-					      offset_addr + (0x80 * i),
-					      differential)) != 0)
+									  offset_addr + (0x80 * i),
+									  differential)) != 0)
 			printk("D700: SIOP%d: probe failed, error = %d\n",
-			       i, err);
+				   i, err);
 		else
+		{
 			found++;
+		}
 	}
 
-	if (!found) {
+	if (!found)
+	{
 		kfree(p);
 		return -ENODEV;
 	}
@@ -366,7 +414,9 @@ NCR_D700_remove(struct device *dev)
 	int i;
 
 	for (i = 0; i < 2; i++)
+	{
 		NCR_D700_remove_one(p->hosts[i]);
+	}
 
 	kfree(p);
 	return 0;
@@ -374,7 +424,8 @@ NCR_D700_remove(struct device *dev)
 
 static short NCR_D700_id_table[] = { NCR_D700_MCA_ID, 0 };
 
-static struct mca_driver NCR_D700_driver = {
+static struct mca_driver NCR_D700_driver =
+{
 	.id_table = NCR_D700_id_table,
 	.driver = {
 		.name		= "NCR_D700",
@@ -387,8 +438,12 @@ static struct mca_driver NCR_D700_driver = {
 static int __init NCR_D700_init(void)
 {
 #ifdef MODULE
+
 	if (NCR_D700)
+	{
 		param_setup(NCR_D700);
+	}
+
 #endif
 
 	return mca_register_driver(&NCR_D700_driver);

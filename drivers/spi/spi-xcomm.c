@@ -30,7 +30,8 @@
 
 #define SPI_XCOMM_CLOCK 48000000
 
-struct spi_xcomm {
+struct spi_xcomm
+{
 	struct i2c_client *i2c;
 
 	uint16_t settings;
@@ -57,84 +58,123 @@ static int spi_xcomm_sync_config(struct spi_xcomm *spi_xcomm, unsigned int len)
 }
 
 static void spi_xcomm_chipselect(struct spi_xcomm *spi_xcomm,
-	struct spi_device *spi, int is_active)
+								 struct spi_device *spi, int is_active)
 {
 	unsigned long cs = spi->chip_select;
 	uint16_t chipselect = spi_xcomm->chipselect;
 
 	if (is_active)
+	{
 		chipselect |= BIT(cs);
+	}
 	else
+	{
 		chipselect &= ~BIT(cs);
+	}
 
 	spi_xcomm->chipselect = chipselect;
 }
 
 static int spi_xcomm_setup_transfer(struct spi_xcomm *spi_xcomm,
-	struct spi_device *spi, struct spi_transfer *t, unsigned int *settings)
+									struct spi_device *spi, struct spi_transfer *t, unsigned int *settings)
 {
 	if (t->len > 62)
+	{
 		return -EINVAL;
+	}
 
-	if (t->speed_hz != spi_xcomm->current_speed) {
+	if (t->speed_hz != spi_xcomm->current_speed)
+	{
 		unsigned int divider;
 
 		divider = DIV_ROUND_UP(SPI_XCOMM_CLOCK, t->speed_hz);
+
 		if (divider >= 64)
+		{
 			*settings |= SPI_XCOMM_SETTINGS_CLOCK_DIV_64;
+		}
 		else if (divider >= 16)
+		{
 			*settings |= SPI_XCOMM_SETTINGS_CLOCK_DIV_16;
+		}
 		else
+		{
 			*settings |= SPI_XCOMM_SETTINGS_CLOCK_DIV_4;
+		}
 
 		spi_xcomm->current_speed = t->speed_hz;
 	}
 
 	if (spi->mode & SPI_CPOL)
+	{
 		*settings |= SPI_XCOMM_SETTINGS_CPOL;
+	}
 	else
+	{
 		*settings &= ~SPI_XCOMM_SETTINGS_CPOL;
+	}
 
 	if (spi->mode & SPI_CPHA)
+	{
 		*settings &= ~SPI_XCOMM_SETTINGS_CPHA;
+	}
 	else
+	{
 		*settings |= SPI_XCOMM_SETTINGS_CPHA;
+	}
 
 	if (spi->mode & SPI_3WIRE)
+	{
 		*settings |= SPI_XCOMM_SETTINGS_3WIRE;
+	}
 	else
+	{
 		*settings &= ~SPI_XCOMM_SETTINGS_3WIRE;
+	}
 
 	return 0;
 }
 
 static int spi_xcomm_txrx_bufs(struct spi_xcomm *spi_xcomm,
-	struct spi_device *spi, struct spi_transfer *t)
+							   struct spi_device *spi, struct spi_transfer *t)
 {
 	int ret;
 
-	if (t->tx_buf) {
+	if (t->tx_buf)
+	{
 		spi_xcomm->buf[0] = SPI_XCOMM_CMD_WRITE;
 		memcpy(spi_xcomm->buf + 1, t->tx_buf, t->len);
 
 		ret = i2c_master_send(spi_xcomm->i2c, spi_xcomm->buf, t->len + 1);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 		else if (ret != t->len + 1)
+		{
 			return -EIO;
-	} else if (t->rx_buf) {
+		}
+	}
+	else if (t->rx_buf)
+	{
 		ret = i2c_master_recv(spi_xcomm->i2c, t->rx_buf, t->len);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 		else if (ret != t->len)
+		{
 			return -EIO;
+		}
 	}
 
 	return t->len;
 }
 
 static int spi_xcomm_transfer_one(struct spi_master *master,
-	struct spi_message *msg)
+								  struct spi_message *msg)
 {
 	struct spi_xcomm *spi_xcomm = spi_master_get_devdata(master);
 	unsigned int settings = spi_xcomm->settings;
@@ -147,56 +187,84 @@ static int spi_xcomm_transfer_one(struct spi_master *master,
 
 	spi_xcomm_chipselect(spi_xcomm, spi, true);
 
-	list_for_each_entry(t, &msg->transfers, transfer_list) {
+	list_for_each_entry(t, &msg->transfers, transfer_list)
+	{
 
-		if (!t->tx_buf && !t->rx_buf && t->len) {
+		if (!t->tx_buf && !t->rx_buf && t->len)
+		{
 			status = -EINVAL;
 			break;
 		}
 
 		status = spi_xcomm_setup_transfer(spi_xcomm, spi, t, &settings);
+
 		if (status < 0)
+		{
 			break;
+		}
 
 		is_last = list_is_last(&t->transfer_list, &msg->transfers);
 		cs_change = t->cs_change;
 
 		if (cs_change ^ is_last)
+		{
 			settings |= BIT(5);
+		}
 		else
+		{
 			settings &= ~BIT(5);
-
-		if (t->rx_buf) {
-			spi_xcomm->settings = settings;
-			status = spi_xcomm_sync_config(spi_xcomm, t->len);
-			if (status < 0)
-				break;
-		} else if (settings != spi_xcomm->settings || is_first) {
-			spi_xcomm->settings = settings;
-			status = spi_xcomm_sync_config(spi_xcomm, 0);
-			if (status < 0)
-				break;
 		}
 
-		if (t->len) {
+		if (t->rx_buf)
+		{
+			spi_xcomm->settings = settings;
+			status = spi_xcomm_sync_config(spi_xcomm, t->len);
+
+			if (status < 0)
+			{
+				break;
+			}
+		}
+		else if (settings != spi_xcomm->settings || is_first)
+		{
+			spi_xcomm->settings = settings;
+			status = spi_xcomm_sync_config(spi_xcomm, 0);
+
+			if (status < 0)
+			{
+				break;
+			}
+		}
+
+		if (t->len)
+		{
 			status = spi_xcomm_txrx_bufs(spi_xcomm, spi, t);
 
 			if (status < 0)
+			{
 				break;
+			}
 
 			if (status > 0)
+			{
 				msg->actual_length += status;
+			}
 		}
+
 		status = 0;
 
 		if (t->delay_usecs)
+		{
 			udelay(t->delay_usecs);
+		}
 
 		is_first = false;
 	}
 
 	if (status != 0 || !cs_change)
+	{
 		spi_xcomm_chipselect(spi_xcomm, spi, false);
+	}
 
 	msg->status = status;
 	spi_finalize_current_message(master);
@@ -205,15 +273,18 @@ static int spi_xcomm_transfer_one(struct spi_master *master,
 }
 
 static int spi_xcomm_probe(struct i2c_client *i2c,
-	const struct i2c_device_id *id)
+						   const struct i2c_device_id *id)
 {
 	struct spi_xcomm *spi_xcomm;
 	struct spi_master *master;
 	int ret;
 
 	master = spi_alloc_master(&i2c->dev, sizeof(*spi_xcomm));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	spi_xcomm = spi_master_get_devdata(master);
 	spi_xcomm->i2c = i2c;
@@ -227,19 +298,24 @@ static int spi_xcomm_probe(struct i2c_client *i2c,
 	i2c_set_clientdata(i2c, master);
 
 	ret = devm_spi_register_master(&i2c->dev, master);
+
 	if (ret < 0)
+	{
 		spi_master_put(master);
+	}
 
 	return ret;
 }
 
-static const struct i2c_device_id spi_xcomm_ids[] = {
+static const struct i2c_device_id spi_xcomm_ids[] =
+{
 	{ "spi-xcomm" },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, spi_xcomm_ids);
 
-static struct i2c_driver spi_xcomm_driver = {
+static struct i2c_driver spi_xcomm_driver =
+{
 	.driver = {
 		.name	= "spi-xcomm",
 	},

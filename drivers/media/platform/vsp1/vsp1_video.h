@@ -20,7 +20,8 @@
 
 #include "vsp1_rwpf.h"
 
-struct vsp1_vb2_buffer {
+struct vsp1_vb2_buffer
+{
 	struct vb2_v4l2_buffer buf;
 	struct list_head queue;
 	struct vsp1_rwpf_memory mem;
@@ -32,7 +33,8 @@ to_vsp1_vb2_buffer(struct vb2_v4l2_buffer *vbuf)
 	return container_of(vbuf, struct vsp1_vb2_buffer, buf);
 }
 
-struct vsp1_video {
+struct vsp1_video
+{
 	struct list_head list;
 	struct vsp1_device *vsp1;
 	struct vsp1_rwpf *rwpf;
@@ -56,7 +58,7 @@ static inline struct vsp1_video *to_vsp1_video(struct video_device *vdev)
 }
 
 struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
-				     struct vsp1_rwpf *rwpf);
+									 struct vsp1_rwpf *rwpf);
 void vsp1_video_cleanup(struct vsp1_video *video);
 
 #endif /* __VSP1_VIDEO_H__ */

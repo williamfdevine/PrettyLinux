@@ -39,7 +39,8 @@
 #define MEM_MAP_SIZE	0x400000
 #define IO_MAP_SIZE	0x1000
 
-struct db1x_pcmcia_sock {
+struct db1x_pcmcia_sock
+{
 	struct pcmcia_socket	socket;
 	int		nr;		/* socket number */
 	void		*virt_io;
@@ -89,13 +90,16 @@ static int db1000_card_inserted(struct db1x_pcmcia_sock *sock)
 
 static int db1x_card_inserted(struct db1x_pcmcia_sock *sock)
 {
-	switch (sock->board_type) {
-	case BOARD_TYPE_DB1200:
-		return db1200_card_inserted(sock);
-	case BOARD_TYPE_DB1300:
-		return db1300_card_inserted(sock);
-	default:
-		return db1000_card_inserted(sock);
+	switch (sock->board_type)
+	{
+		case BOARD_TYPE_DB1200:
+			return db1200_card_inserted(sock);
+
+		case BOARD_TYPE_DB1300:
+			return db1300_card_inserted(sock);
+
+		default:
+			return db1000_card_inserted(sock);
 	}
 }
 
@@ -105,11 +109,16 @@ static int db1x_card_inserted(struct db1x_pcmcia_sock *sock)
  */
 static inline void set_stschg(struct db1x_pcmcia_sock *sock, int en)
 {
-	if (sock->stschg_irq != -1) {
+	if (sock->stschg_irq != -1)
+	{
 		if (en)
+		{
 			enable_irq(sock->stschg_irq);
+		}
 		else
+		{
 			disable_irq(sock->stschg_irq);
+		}
 	}
 }
 
@@ -140,10 +149,13 @@ static irqreturn_t db1200_pcmcia_cdirq(int irq, void *data)
 	 * inserted/missing.  The one which caused us to be called
 	 * needs to be disabled and the other one enabled.
 	 */
-	if (irq == sock->insert_irq) {
+	if (irq == sock->insert_irq)
+	{
 		disable_irq_nosync(sock->insert_irq);
 		enable_irq(sock->eject_irq);
-	} else {
+	}
+	else
+	{
 		disable_irq_nosync(sock->eject_irq);
 		enable_irq(sock->insert_irq);
 	}
@@ -157,11 +169,15 @@ static int db1x_pcmcia_setup_irqs(struct db1x_pcmcia_sock *sock)
 {
 	int ret;
 
-	if (sock->stschg_irq != -1) {
+	if (sock->stschg_irq != -1)
+	{
 		ret = request_irq(sock->stschg_irq, db1000_pcmcia_stschgirq,
-				  0, "pcmcia_stschg", sock);
+						  0, "pcmcia_stschg", sock);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/* Db/Pb1200 have separate per-socket insertion and ejection
@@ -171,41 +187,58 @@ static int db1x_pcmcia_setup_irqs(struct db1x_pcmcia_sock *sock)
 	 * active one disabled.
 	 */
 	if ((sock->board_type == BOARD_TYPE_DB1200) ||
-	    (sock->board_type == BOARD_TYPE_DB1300)) {
+		(sock->board_type == BOARD_TYPE_DB1300))
+	{
 		ret = request_irq(sock->insert_irq, db1200_pcmcia_cdirq,
-				  0, "pcmcia_insert", sock);
+						  0, "pcmcia_insert", sock);
+
 		if (ret)
+		{
 			goto out1;
+		}
 
 		ret = request_irq(sock->eject_irq, db1200_pcmcia_cdirq,
-				  0, "pcmcia_eject", sock);
-		if (ret) {
+						  0, "pcmcia_eject", sock);
+
+		if (ret)
+		{
 			free_irq(sock->insert_irq, sock);
 			goto out1;
 		}
 
 		/* enable the currently silent one */
 		if (db1x_card_inserted(sock))
+		{
 			enable_irq(sock->eject_irq);
+		}
 		else
+		{
 			enable_irq(sock->insert_irq);
-	} else {
+		}
+	}
+	else
+	{
 		/* all other (older) Db1x00 boards use a GPIO to show
 		 * card detection status:  use both-edge triggers.
 		 */
 		irq_set_irq_type(sock->insert_irq, IRQ_TYPE_EDGE_BOTH);
 		ret = request_irq(sock->insert_irq, db1000_pcmcia_cdirq,
-				  0, "pcmcia_carddetect", sock);
+						  0, "pcmcia_carddetect", sock);
 
 		if (ret)
+		{
 			goto out1;
+		}
 	}
 
 	return 0;	/* all done */
 
 out1:
+
 	if (sock->stschg_irq != -1)
+	{
 		free_irq(sock->stschg_irq, sock);
+	}
 
 	return ret;
 }
@@ -213,11 +246,16 @@ out1:
 static void db1x_pcmcia_free_irqs(struct db1x_pcmcia_sock *sock)
 {
 	if (sock->stschg_irq != -1)
+	{
 		free_irq(sock->stschg_irq, sock);
+	}
 
 	free_irq(sock->insert_irq, sock);
+
 	if (sock->eject_irq != -1)
+	{
 		free_irq(sock->eject_irq, sock);
+	}
 }
 
 /*
@@ -234,7 +272,7 @@ static void db1x_pcmcia_free_irqs(struct db1x_pcmcia_sock *sock)
  *	add 8 for second socket.
  */
 static int db1x_pcmcia_configure(struct pcmcia_socket *skt,
-				 struct socket_state_t *state)
+								 struct socket_state_t *state)
 {
 	struct db1x_pcmcia_sock *sock = to_db1x_socket(skt);
 	unsigned short cr_clr, cr_set;
@@ -246,53 +284,68 @@ static int db1x_pcmcia_configure(struct pcmcia_socket *skt,
 	cr_set = 0;
 	v = p = ret = 0;
 
-	switch (state->Vcc) {
-	case 50:
-		++v;
-	case 33:
-		++v;
-	case 0:
-		break;
-	default:
-		printk(KERN_INFO "pcmcia%d unsupported Vcc %d\n",
-			sock->nr, state->Vcc);
+	switch (state->Vcc)
+	{
+		case 50:
+			++v;
+
+		case 33:
+			++v;
+
+		case 0:
+			break;
+
+		default:
+			printk(KERN_INFO "pcmcia%d unsupported Vcc %d\n",
+				   sock->nr, state->Vcc);
 	}
 
-	switch (state->Vpp) {
-	case 12:
-		++p;
-	case 33:
-	case 50:
-		++p;
-	case 0:
-		break;
-	default:
-		printk(KERN_INFO "pcmcia%d unsupported Vpp %d\n",
-			sock->nr, state->Vpp);
+	switch (state->Vpp)
+	{
+		case 12:
+			++p;
+
+		case 33:
+		case 50:
+			++p;
+
+		case 0:
+			break;
+
+		default:
+			printk(KERN_INFO "pcmcia%d unsupported Vpp %d\n",
+				   sock->nr, state->Vpp);
 	}
 
 	/* sanity check: Vpp must be 0, 12, or Vcc */
 	if (((state->Vcc == 33) && (state->Vpp == 50)) ||
-	    ((state->Vcc == 50) && (state->Vpp == 33))) {
+		((state->Vcc == 50) && (state->Vpp == 33)))
+	{
 		printk(KERN_INFO "pcmcia%d bad Vcc/Vpp combo (%d %d)\n",
-			sock->nr, state->Vcc, state->Vpp);
+			   sock->nr, state->Vcc, state->Vpp);
 		v = p = 0;
 		ret = -EINVAL;
 	}
 
 	/* create new voltage code */
 	if (sock->board_type != BOARD_TYPE_DB1300)
+	{
 		cr_set |= ((v << 2) | p) << (sock->nr * 8);
+	}
 
 	changed = state->flags ^ sock->old_flags;
 
-	if (changed & SS_RESET) {
-		if (state->flags & SS_RESET) {
+	if (changed & SS_RESET)
+	{
+		if (state->flags & SS_RESET)
+		{
 			set_stschg(sock, 0);
 			/* assert reset, disable io buffers */
 			cr_clr |= (1 << (7 + (sock->nr * 8)));
 			cr_clr |= (1 << (4 + (sock->nr * 8)));
-		} else {
+		}
+		else
+		{
 			/* de-assert reset, enable io buffers */
 			cr_set |= 1 << (7 + (sock->nr * 8));
 			cr_set |= 1 << (4 + (sock->nr * 8));
@@ -305,7 +358,8 @@ static int db1x_pcmcia_configure(struct pcmcia_socket *skt,
 	sock->old_flags = state->flags;
 
 	/* reset was taken away: give card time to initialize properly */
-	if ((changed & SS_RESET) && !(state->flags & SS_RESET)) {
+	if ((changed & SS_RESET) && !(state->flags & SS_RESET))
+	{
 		msleep(500);
 		set_stschg(sock, 1);
 	}
@@ -326,7 +380,7 @@ static int db1x_pcmcia_configure(struct pcmcia_socket *skt,
 	((cr) & (1 << (7 + (8 * (socknr)))))
 
 static int db1x_pcmcia_get_status(struct pcmcia_socket *skt,
-				  unsigned int *value)
+								  unsigned int *value)
 {
 	struct db1x_pcmcia_sock *sock = to_db1x_socket(skt);
 	unsigned short cr, sr;
@@ -339,17 +393,22 @@ static int db1x_pcmcia_get_status(struct pcmcia_socket *skt,
 
 	/* PB1100/PB1500: voltage key bits are at [5:4] */
 	if (sock->board_type == BOARD_TYPE_PB1100)
+	{
 		sr >>= 4;
+	}
 
 	/* determine card type */
-	switch (GET_VS(sr, sock->nr)) {
-	case 0:
-	case 2:
-		status |= SS_3VCARD;	/* 3V card */
-	case 3:
-		break;			/* 5V card: set nothing */
-	default:
-		status |= SS_XVCARD;	/* treated as unsupported in core */
+	switch (GET_VS(sr, sock->nr))
+	{
+		case 0:
+		case 2:
+			status |= SS_3VCARD;	/* 3V card */
+
+		case 3:
+			break;			/* 5V card: set nothing */
+
+		default:
+			status |= SS_XVCARD;	/* treated as unsupported in core */
 	}
 
 	/* if Vcc is not zero, we have applied power to a card */
@@ -357,7 +416,9 @@ static int db1x_pcmcia_get_status(struct pcmcia_socket *skt,
 
 	/* DB1300: power always on, but don't tell when no card present */
 	if ((sock->board_type == BOARD_TYPE_DB1300) && (status & SS_DETECT))
+	{
 		status = SS_POWERON | SS_3VCARD | SS_DETECT;
+	}
 
 	/* reset de-asserted? then we're ready */
 	status |= (GET_RESET(cr, sock->nr)) ? SS_READY : SS_RESET;
@@ -378,7 +439,7 @@ static int db1x_pcmcia_sock_suspend(struct pcmcia_socket *skt)
 }
 
 static int au1x00_pcmcia_set_io_map(struct pcmcia_socket *skt,
-				    struct pccard_io_map *map)
+									struct pccard_io_map *map)
 {
 	struct db1x_pcmcia_sock *sock = to_db1x_socket(skt);
 
@@ -389,19 +450,24 @@ static int au1x00_pcmcia_set_io_map(struct pcmcia_socket *skt,
 }
 
 static int au1x00_pcmcia_set_mem_map(struct pcmcia_socket *skt,
-				     struct pccard_mem_map *map)
+									 struct pccard_mem_map *map)
 {
 	struct db1x_pcmcia_sock *sock = to_db1x_socket(skt);
 
 	if (map->flags & MAP_ATTRIB)
+	{
 		map->static_start = sock->phys_attr + map->card_start;
+	}
 	else
+	{
 		map->static_start = sock->phys_mem + map->card_start;
+	}
 
 	return 0;
 }
 
-static struct pccard_operations db1x_pcmcia_operations = {
+static struct pccard_operations db1x_pcmcia_operations =
+{
 	.init			= db1x_pcmcia_sock_init,
 	.suspend		= db1x_pcmcia_sock_suspend,
 	.get_status		= db1x_pcmcia_get_status,
@@ -417,31 +483,40 @@ static int db1x_pcmcia_socket_probe(struct platform_device *pdev)
 	int ret, bid;
 
 	sock = kzalloc(sizeof(struct db1x_pcmcia_sock), GFP_KERNEL);
+
 	if (!sock)
+	{
 		return -ENOMEM;
+	}
 
 	sock->nr = pdev->id;
 
 	bid = BCSR_WHOAMI_BOARD(bcsr_read(BCSR_WHOAMI));
-	switch (bid) {
-	case BCSR_WHOAMI_PB1500:
-	case BCSR_WHOAMI_PB1500R2:
-	case BCSR_WHOAMI_PB1100:
-		sock->board_type = BOARD_TYPE_PB1100;
-		break;
-	case BCSR_WHOAMI_DB1000 ... BCSR_WHOAMI_PB1550_SDR:
-		sock->board_type = BOARD_TYPE_DEFAULT;
-		break;
-	case BCSR_WHOAMI_PB1200 ... BCSR_WHOAMI_DB1200:
-		sock->board_type = BOARD_TYPE_DB1200;
-		break;
-	case BCSR_WHOAMI_DB1300:
-		sock->board_type = BOARD_TYPE_DB1300;
-		break;
-	default:
-		printk(KERN_INFO "db1xxx-ss: unknown board %d!\n", bid);
-		ret = -ENODEV;
-		goto out0;
+
+	switch (bid)
+	{
+		case BCSR_WHOAMI_PB1500:
+		case BCSR_WHOAMI_PB1500R2:
+		case BCSR_WHOAMI_PB1100:
+			sock->board_type = BOARD_TYPE_PB1100;
+			break;
+
+		case BCSR_WHOAMI_DB1000 ... BCSR_WHOAMI_PB1550_SDR:
+			sock->board_type = BOARD_TYPE_DEFAULT;
+			break;
+
+		case BCSR_WHOAMI_PB1200 ... BCSR_WHOAMI_DB1200:
+			sock->board_type = BOARD_TYPE_DB1200;
+			break;
+
+		case BCSR_WHOAMI_DB1300:
+			sock->board_type = BOARD_TYPE_DB1300;
+			break;
+
+		default:
+			printk(KERN_INFO "db1xxx-ss: unknown board %d!\n", bid);
+			ret = -ENODEV;
+			goto out0;
 	};
 
 	/*
@@ -463,7 +538,9 @@ static int db1x_pcmcia_socket_probe(struct platform_device *pdev)
 	 */
 	r = platform_get_resource_byname(pdev, IORESOURCE_IRQ, "insert");
 	sock->insert_irq = r ? r->start : -1;
-	if (sock->board_type == BOARD_TYPE_DEFAULT) {
+
+	if (sock->board_type == BOARD_TYPE_DEFAULT)
+	{
 		sock->insert_gpio = r ? r->start : -1;
 		sock->insert_irq = r ? gpio_to_irq(r->start) : -1;
 	}
@@ -480,29 +557,38 @@ static int db1x_pcmcia_socket_probe(struct platform_device *pdev)
 
 	/* 36bit PCMCIA Attribute area address */
 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pcmcia-attr");
-	if (!r) {
+
+	if (!r)
+	{
 		printk(KERN_ERR "pcmcia%d has no 'pseudo-attr' resource!\n",
-			sock->nr);
+			   sock->nr);
 		goto out0;
 	}
+
 	sock->phys_attr = r->start;
 
 	/* 36bit PCMCIA Memory area address */
 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pcmcia-mem");
-	if (!r) {
+
+	if (!r)
+	{
 		printk(KERN_ERR "pcmcia%d has no 'pseudo-mem' resource!\n",
-			sock->nr);
+			   sock->nr);
 		goto out0;
 	}
+
 	sock->phys_mem = r->start;
 
 	/* 36bit PCMCIA IO area address */
 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pcmcia-io");
-	if (!r) {
+
+	if (!r)
+	{
 		printk(KERN_ERR "pcmcia%d has no 'pseudo-io' resource!\n",
-			sock->nr);
+			   sock->nr);
 		goto out0;
 	}
+
 	sock->phys_io = r->start;
 
 	/*
@@ -514,11 +600,12 @@ static int db1x_pcmcia_socket_probe(struct platform_device *pdev)
 	 * going through this "mips_io_port_base" mechanism.
 	 */
 	sock->virt_io = (void *)(ioremap(sock->phys_io, IO_MAP_SIZE) -
-				 mips_io_port_base);
+							 mips_io_port_base);
 
-	if (!sock->virt_io) {
+	if (!sock->virt_io)
+	{
 		printk(KERN_ERR "pcmcia%d: cannot remap IO area\n",
-			sock->nr);
+			   sock->nr);
 		ret = -ENOMEM;
 		goto out0;
 	}
@@ -535,25 +622,29 @@ static int db1x_pcmcia_socket_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, sock);
 
 	ret = db1x_pcmcia_setup_irqs(sock);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "pcmcia%d cannot setup interrupts\n",
-			sock->nr);
+			   sock->nr);
 		goto out1;
 	}
 
 	set_stschg(sock, 0);
 
 	ret = pcmcia_register_socket(&sock->socket);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "pcmcia%d failed to register\n", sock->nr);
 		goto out2;
 	}
 
 	printk(KERN_INFO "Alchemy Db/Pb1xxx pcmcia%d @ io/attr/mem %09llx"
-		"(%p) %09llx %09llx  card/insert/stschg/eject irqs @ %d "
-		"%d %d %d\n", sock->nr, sock->phys_io, sock->virt_io,
-		sock->phys_attr, sock->phys_mem, sock->card_irq,
-		sock->insert_irq, sock->stschg_irq, sock->eject_irq);
+		   "(%p) %09llx %09llx  card/insert/stschg/eject irqs @ %d "
+		   "%d %d %d\n", sock->nr, sock->phys_io, sock->virt_io,
+		   sock->phys_attr, sock->phys_mem, sock->card_irq,
+		   sock->insert_irq, sock->stschg_irq, sock->eject_irq);
 
 	return 0;
 
@@ -578,7 +669,8 @@ static int db1x_pcmcia_socket_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver db1x_pcmcia_socket_driver = {
+static struct platform_driver db1x_pcmcia_socket_driver =
+{
 	.driver	= {
 		.name	= "db1xxx_pcmcia",
 	},

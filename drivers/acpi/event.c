@@ -33,7 +33,7 @@ int acpi_notifier_call_chain(struct acpi_device *dev, u32 type, u32 data)
 	event.type = type;
 	event.data = data;
 	return (blocking_notifier_call_chain(&acpi_chain_head, 0, (void *)&event)
-                        == NOTIFY_BAD) ? -EINVAL : 0;
+			== NOTIFY_BAD) ? -EINVAL : 0;
 }
 EXPORT_SYMBOL(acpi_notifier_call_chain);
 
@@ -51,7 +51,8 @@ EXPORT_SYMBOL(unregister_acpi_notifier);
 
 #ifdef CONFIG_NET
 static unsigned int acpi_event_seqnum;
-struct acpi_genl_event {
+struct acpi_genl_event
+{
 	acpi_device_class device_class;
 	char bus_id[15];
 	u32 type;
@@ -59,7 +60,8 @@ struct acpi_genl_event {
 };
 
 /* attributes of acpi_genl_family */
-enum {
+enum
+{
 	ACPI_GENL_ATTR_UNSPEC,
 	ACPI_GENL_ATTR_EVENT,	/* ACPI event info needed by user space */
 	__ACPI_GENL_ATTR_MAX,
@@ -67,7 +69,8 @@ enum {
 #define ACPI_GENL_ATTR_MAX (__ACPI_GENL_ATTR_MAX - 1)
 
 /* commands supported by the acpi_genl_family */
-enum {
+enum
+{
 	ACPI_GENL_CMD_UNSPEC,
 	ACPI_GENL_CMD_EVENT,	/* kernel->user notifications for ACPI events */
 	__ACPI_GENL_CMD_MAX,
@@ -78,11 +81,13 @@ enum {
 #define ACPI_GENL_VERSION		0x01
 #define ACPI_GENL_MCAST_GROUP_NAME 	"acpi_mc_group"
 
-static const struct genl_multicast_group acpi_event_mcgrps[] = {
+static const struct genl_multicast_group acpi_event_mcgrps[] =
+{
 	{ .name = ACPI_GENL_MCAST_GROUP_NAME, },
 };
 
-static struct genl_family acpi_event_genl_family = {
+static struct genl_family acpi_event_genl_family =
+{
 	.id = GENL_ID_GENERATE,
 	.name = ACPI_GENL_FAMILY_NAME,
 	.version = ACPI_GENL_VERSION,
@@ -92,8 +97,8 @@ static struct genl_family acpi_event_genl_family = {
 };
 
 int acpi_bus_generate_netlink_event(const char *device_class,
-				      const char *bus_id,
-				      u8 type, int data)
+									const char *bus_id,
+									u8 type, int data)
 {
 	struct sk_buff *skb;
 	struct nlattr *attr;
@@ -103,26 +108,33 @@ int acpi_bus_generate_netlink_event(const char *device_class,
 
 	/* allocate memory */
 	size = nla_total_size(sizeof(struct acpi_genl_event)) +
-	    nla_total_size(0);
+		   nla_total_size(0);
 
 	skb = genlmsg_new(size, GFP_ATOMIC);
+
 	if (!skb)
+	{
 		return -ENOMEM;
+	}
 
 	/* add the genetlink message header */
 	msg_header = genlmsg_put(skb, 0, acpi_event_seqnum++,
-				 &acpi_event_genl_family, 0,
-				 ACPI_GENL_CMD_EVENT);
-	if (!msg_header) {
+							 &acpi_event_genl_family, 0,
+							 ACPI_GENL_CMD_EVENT);
+
+	if (!msg_header)
+	{
 		nlmsg_free(skb);
 		return -ENOMEM;
 	}
 
 	/* fill the data */
 	attr =
-	    nla_reserve(skb, ACPI_GENL_ATTR_EVENT,
-			sizeof(struct acpi_genl_event));
-	if (!attr) {
+		nla_reserve(skb, ACPI_GENL_ATTR_EVENT,
+					sizeof(struct acpi_genl_event));
+
+	if (!attr)
+	{
 		nlmsg_free(skb);
 		return -EINVAL;
 	}
@@ -151,8 +163,8 @@ static int acpi_event_genetlink_init(void)
 
 #else
 int acpi_bus_generate_netlink_event(const char *device_class,
-				      const char *bus_id,
-				      u8 type, int data)
+									const char *bus_id,
+									u8 type, int data)
 {
 	return 0;
 }
@@ -170,13 +182,17 @@ static int __init acpi_event_init(void)
 	int error = 0;
 
 	if (acpi_disabled)
+	{
 		return 0;
+	}
 
 	/* create genetlink for acpi event */
 	error = acpi_event_genetlink_init();
+
 	if (error)
 		printk(KERN_WARNING PREFIX
-		       "Failed to create genetlink family for ACPI event\n");
+			   "Failed to create genetlink family for ACPI event\n");
+
 	return 0;
 }
 

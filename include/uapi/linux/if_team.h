@@ -18,7 +18,8 @@
  * NETLINK_GENERIC netlink family.
  **********************************/
 
-enum {
+enum
+{
 	TEAM_CMD_NOOP,
 	TEAM_CMD_OPTIONS_SET,
 	TEAM_CMD_OPTIONS_GET,
@@ -28,7 +29,8 @@ enum {
 	TEAM_CMD_MAX = (__TEAM_CMD_MAX - 1),
 };
 
-enum {
+enum
+{
 	TEAM_ATTR_UNSPEC,
 	TEAM_ATTR_TEAM_IFINDEX,		/* u32 */
 	TEAM_ATTR_LIST_OPTION,		/* nest */
@@ -54,7 +56,8 @@ enum {
  *		...
  */
 
-enum {
+enum
+{
 	TEAM_ATTR_ITEM_OPTION_UNSPEC,
 	TEAM_ATTR_ITEM_OPTION,		/* nest */
 
@@ -62,7 +65,8 @@ enum {
 	TEAM_ATTR_ITEM_OPTION_MAX = __TEAM_ATTR_ITEM_OPTION_MAX - 1,
 };
 
-enum {
+enum
+{
 	TEAM_ATTR_OPTION_UNSPEC,
 	TEAM_ATTR_OPTION_NAME,		/* string */
 	TEAM_ATTR_OPTION_CHANGED,	/* flag */
@@ -76,7 +80,8 @@ enum {
 	TEAM_ATTR_OPTION_MAX = __TEAM_ATTR_OPTION_MAX - 1,
 };
 
-enum {
+enum
+{
 	TEAM_ATTR_ITEM_PORT_UNSPEC,
 	TEAM_ATTR_ITEM_PORT,		/* nest */
 
@@ -84,7 +89,8 @@ enum {
 	TEAM_ATTR_ITEM_PORT_MAX = __TEAM_ATTR_ITEM_PORT_MAX - 1,
 };
 
-enum {
+enum
+{
 	TEAM_ATTR_PORT_UNSPEC,
 	TEAM_ATTR_PORT_IFINDEX,		/* u32 */
 	TEAM_ATTR_PORT_CHANGED,		/* flag */

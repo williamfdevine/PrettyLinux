@@ -17,7 +17,8 @@
 #ifndef _MTK_BASE_AFE_H_
 #define _MTK_BASE_AFE_H_
 
-struct mtk_base_memif_data {
+struct mtk_base_memif_data
+{
 	int id;
 	const char *name;
 	int reg_ofs_base;
@@ -37,7 +38,8 @@ struct mtk_base_memif_data {
 	int agent_disable_shift;
 };
 
-struct mtk_base_irq_data {
+struct mtk_base_irq_data
+{
 	int id;
 	int irq_cnt_reg;
 	int irq_cnt_shift;
@@ -58,7 +60,8 @@ struct regmap;
 struct snd_pcm_substream;
 struct snd_soc_dai;
 
-struct mtk_base_afe {
+struct mtk_base_afe
+{
 	void __iomem *base_addr;
 	struct device *dev;
 	struct regmap *regmap;
@@ -79,14 +82,15 @@ struct mtk_base_afe {
 
 	const struct snd_pcm_hardware *mtk_afe_hardware;
 	int (*memif_fs)(struct snd_pcm_substream *substream,
-			unsigned int rate);
+					unsigned int rate);
 	int (*irq_fs)(struct snd_pcm_substream *substream,
-		      unsigned int rate);
+				  unsigned int rate);
 
 	void *platform_priv;
 };
 
-struct mtk_base_afe_memif {
+struct mtk_base_afe_memif
+{
 	unsigned int phys_buf_addr;
 	int buffer_size;
 	struct snd_pcm_substream *substream;
@@ -95,7 +99,8 @@ struct mtk_base_afe_memif {
 	int const_irq;
 };
 
-struct mtk_base_afe_irq {
+struct mtk_base_afe_irq
+{
 	const struct mtk_base_irq_data *irq_data;
 	int irq_occupyed;
 };

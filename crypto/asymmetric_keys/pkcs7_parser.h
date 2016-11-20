@@ -18,7 +18,8 @@
 #define kleave(FMT, ...) \
 	pr_devel("<== %s()"FMT"\n", __func__, ##__VA_ARGS__)
 
-struct pkcs7_signed_info {
+struct pkcs7_signed_info
+{
 	struct pkcs7_signed_info *next;
 	struct x509_certificate *signer; /* Signing certificate (in msg->certs) */
 	unsigned	index;
@@ -53,7 +54,8 @@ struct pkcs7_signed_info {
 	struct public_key_signature *sig;
 };
 
-struct pkcs7_message {
+struct pkcs7_message
+{
 	struct x509_certificate *certs;	/* Certificate list */
 	struct x509_certificate *crl;	/* Revocation list */
 	struct pkcs7_signed_info *signed_infos;

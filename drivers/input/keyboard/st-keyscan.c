@@ -28,7 +28,8 @@
 #define KEYSCAN_MATRIX_DIM_X_SHIFT	0x0
 #define KEYSCAN_MATRIX_DIM_Y_SHIFT	0x2
 
-struct st_keyscan {
+struct st_keyscan
+{
 	void __iomem *base;
 	int irq;
 	struct clk *clk;
@@ -51,8 +52,8 @@ static irqreturn_t keyscan_isr(int irq, void *dev_id)
 	keypad->last_state = state;
 
 	for_each_set_bit(bit_nr, &change, BITS_PER_LONG)
-		input_report_key(keypad->input_dev,
-				 keycode[bit_nr], state & BIT(bit_nr));
+	input_report_key(keypad->input_dev,
+					 keycode[bit_nr], state & BIT(bit_nr));
 
 	input_sync(keypad->input_dev);
 
@@ -64,15 +65,18 @@ static int keyscan_start(struct st_keyscan *keypad)
 	int error;
 
 	error = clk_enable(keypad->clk);
+
 	if (error)
+	{
 		return error;
+	}
 
 	writel(keypad->debounce_us * (clk_get_rate(keypad->clk) / 1000000),
-	       keypad->base + KEYSCAN_DEBOUNCE_TIME_OFF);
+		   keypad->base + KEYSCAN_DEBOUNCE_TIME_OFF);
 
 	writel(((keypad->n_cols - 1) << KEYSCAN_MATRIX_DIM_X_SHIFT) |
-	       ((keypad->n_rows - 1) << KEYSCAN_MATRIX_DIM_Y_SHIFT),
-	       keypad->base + KEYSCAN_MATRIX_DIM_OFF);
+		   ((keypad->n_rows - 1) << KEYSCAN_MATRIX_DIM_Y_SHIFT),
+		   keypad->base + KEYSCAN_MATRIX_DIM_OFF);
 
 	writel(KEYSCAN_CONFIG_ENABLE, keypad->base + KEYSCAN_CONFIG_OFF);
 
@@ -107,8 +111,10 @@ static int keypad_matrix_key_parse_dt(struct st_keyscan *keypad_data)
 	int error;
 
 	error = matrix_keypad_parse_of_params(dev, &keypad_data->n_rows,
-					      &keypad_data->n_cols);
-	if (error) {
+										  &keypad_data->n_cols);
+
+	if (error)
+	{
 		dev_err(dev, "failed to parse keypad params\n");
 		return error;
 	}
@@ -116,8 +122,8 @@ static int keypad_matrix_key_parse_dt(struct st_keyscan *keypad_data)
 	of_property_read_u32(np, "st,debounce-us", &keypad_data->debounce_us);
 
 	dev_dbg(dev, "n_rows=%d n_col=%d debounce=%d\n",
-		keypad_data->n_rows, keypad_data->n_cols,
-		keypad_data->debounce_us);
+			keypad_data->n_rows, keypad_data->n_cols,
+			keypad_data->debounce_us);
 
 	return 0;
 }
@@ -129,18 +135,24 @@ static int keyscan_probe(struct platform_device *pdev)
 	struct resource *res;
 	int error;
 
-	if (!pdev->dev.of_node) {
+	if (!pdev->dev.of_node)
+	{
 		dev_err(&pdev->dev, "no DT data present\n");
 		return -EINVAL;
 	}
 
 	keypad_data = devm_kzalloc(&pdev->dev, sizeof(*keypad_data),
-				   GFP_KERNEL);
+							   GFP_KERNEL);
+
 	if (!keypad_data)
+	{
 		return -ENOMEM;
+	}
 
 	input_dev = devm_input_allocate_device(&pdev->dev);
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		dev_err(&pdev->dev, "failed to allocate the input device\n");
 		return -ENOMEM;
 	}
@@ -154,14 +166,19 @@ static int keyscan_probe(struct platform_device *pdev)
 	input_dev->id.bustype = BUS_HOST;
 
 	error = keypad_matrix_key_parse_dt(keypad_data);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = matrix_keypad_build_keymap(NULL, NULL,
-					   keypad_data->n_rows,
-					   keypad_data->n_cols,
-					   NULL, input_dev);
-	if (error) {
+									   keypad_data->n_rows,
+									   keypad_data->n_cols,
+									   NULL, input_dev);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to build keymap\n");
 		return error;
 	}
@@ -172,17 +189,24 @@ static int keyscan_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	keypad_data->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(keypad_data->base))
+	{
 		return PTR_ERR(keypad_data->base);
+	}
 
 	keypad_data->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(keypad_data->clk)) {
+
+	if (IS_ERR(keypad_data->clk))
+	{
 		dev_err(&pdev->dev, "cannot get clock\n");
 		return PTR_ERR(keypad_data->clk);
 	}
 
 	error = clk_enable(keypad_data->clk);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to enable clock\n");
 		return error;
 	}
@@ -190,20 +214,26 @@ static int keyscan_probe(struct platform_device *pdev)
 	keyscan_stop(keypad_data);
 
 	keypad_data->irq = platform_get_irq(pdev, 0);
-	if (keypad_data->irq < 0) {
+
+	if (keypad_data->irq < 0)
+	{
 		dev_err(&pdev->dev, "no IRQ specified\n");
 		return -EINVAL;
 	}
 
 	error = devm_request_irq(&pdev->dev, keypad_data->irq, keyscan_isr, 0,
-				 pdev->name, keypad_data);
-	if (error) {
+							 pdev->name, keypad_data);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to request IRQ\n");
 		return error;
 	}
 
 	error = input_register_device(input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to register input device\n");
 		return error;
 	}
@@ -225,9 +255,13 @@ static int keyscan_suspend(struct device *dev)
 	mutex_lock(&input->mutex);
 
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(keypad->irq);
+	}
 	else if (input->users)
+	{
 		keyscan_stop(keypad);
+	}
 
 	mutex_unlock(&input->mutex);
 	return 0;
@@ -243,9 +277,13 @@ static int keyscan_resume(struct device *dev)
 	mutex_lock(&input->mutex);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(keypad->irq);
+	}
 	else if (input->users)
+	{
 		retval = keyscan_start(keypad);
+	}
 
 	mutex_unlock(&input->mutex);
 	return retval;
@@ -254,13 +292,15 @@ static int keyscan_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(keyscan_dev_pm_ops, keyscan_suspend, keyscan_resume);
 
-static const struct of_device_id keyscan_of_match[] = {
+static const struct of_device_id keyscan_of_match[] =
+{
 	{ .compatible = "st,sti-keyscan" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, keyscan_of_match);
 
-static struct platform_driver keyscan_device_driver = {
+static struct platform_driver keyscan_device_driver =
+{
 	.probe		= keyscan_probe,
 	.driver		= {
 		.name	= "st-keyscan",

@@ -29,7 +29,8 @@
 #include "llsec.h"
 
 /* mac802154 device private data */
-struct ieee802154_local {
+struct ieee802154_local
+{
 	struct ieee802154_hw hw;
 	const struct ieee802154_ops *ops;
 
@@ -65,11 +66,13 @@ struct ieee802154_local {
 	struct work_struct tx_work;
 };
 
-enum {
+enum
+{
 	IEEE802154_RX_MSG        = 1,
 };
 
-enum ieee802154_sdata_state_bits {
+enum ieee802154_sdata_state_bits
+{
 	SDATA_STATE_RUNNING,
 };
 
@@ -79,7 +82,8 @@ enum ieee802154_sdata_state_bits {
  * Each ieee802154 device/transceiver may have several slaves and able
  * to be associated with several networks at the same time.
  */
-struct ieee802154_sub_if_data {
+struct ieee802154_sub_if_data
+{
 	struct list_head list; /* the ieee802154_priv->slaves list */
 
 	struct wpan_dev wpan_dev;
@@ -139,36 +143,36 @@ enum hrtimer_restart ieee802154_xmit_ifs_timer(struct hrtimer *timer);
 void mac802154_dev_set_page_channel(struct net_device *dev, u8 page, u8 chan);
 
 int mac802154_get_params(struct net_device *dev,
-			 struct ieee802154_llsec_params *params);
+						 struct ieee802154_llsec_params *params);
 int mac802154_set_params(struct net_device *dev,
-			 const struct ieee802154_llsec_params *params,
-			 int changed);
+						 const struct ieee802154_llsec_params *params,
+						 int changed);
 
 int mac802154_add_key(struct net_device *dev,
-		      const struct ieee802154_llsec_key_id *id,
-		      const struct ieee802154_llsec_key *key);
+					  const struct ieee802154_llsec_key_id *id,
+					  const struct ieee802154_llsec_key *key);
 int mac802154_del_key(struct net_device *dev,
-		      const struct ieee802154_llsec_key_id *id);
+					  const struct ieee802154_llsec_key_id *id);
 
 int mac802154_add_dev(struct net_device *dev,
-		      const struct ieee802154_llsec_device *llsec_dev);
+					  const struct ieee802154_llsec_device *llsec_dev);
 int mac802154_del_dev(struct net_device *dev, __le64 dev_addr);
 
 int mac802154_add_devkey(struct net_device *dev,
-			 __le64 device_addr,
-			 const struct ieee802154_llsec_device_key *key);
+						 __le64 device_addr,
+						 const struct ieee802154_llsec_device_key *key);
 int mac802154_del_devkey(struct net_device *dev,
-			 __le64 device_addr,
-			 const struct ieee802154_llsec_device_key *key);
+						 __le64 device_addr,
+						 const struct ieee802154_llsec_device_key *key);
 
 int mac802154_add_seclevel(struct net_device *dev,
-			   const struct ieee802154_llsec_seclevel *sl);
+						   const struct ieee802154_llsec_seclevel *sl);
 int mac802154_del_seclevel(struct net_device *dev,
-			   const struct ieee802154_llsec_seclevel *sl);
+						   const struct ieee802154_llsec_seclevel *sl);
 
 void mac802154_lock_table(struct net_device *dev);
 void mac802154_get_table(struct net_device *dev,
-			 struct ieee802154_llsec_table **t);
+						 struct ieee802154_llsec_table **t);
 void mac802154_unlock_table(struct net_device *dev);
 
 int mac802154_wpan_update_llsec(struct net_device *dev);
@@ -179,8 +183,8 @@ void ieee802154_iface_exit(void);
 void ieee802154_if_remove(struct ieee802154_sub_if_data *sdata);
 struct net_device *
 ieee802154_if_add(struct ieee802154_local *local, const char *name,
-		  unsigned char name_assign_type, enum nl802154_iftype type,
-		  __le64 extended_addr);
+				  unsigned char name_assign_type, enum nl802154_iftype type,
+				  __le64 extended_addr);
 void ieee802154_remove_interfaces(struct ieee802154_local *local);
 void ieee802154_stop_device(struct ieee802154_local *local);
 

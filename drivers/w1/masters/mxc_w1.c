@@ -34,7 +34,8 @@
 #define MXC_W1_RESET		0x04
 # define MXC_W1_RESET_RST	BIT(0)
 
-struct mxc_w1_device {
+struct mxc_w1_device
+{
 	void __iomem *regs;
 	struct clk *clk;
 	struct w1_bus_master bus_master;
@@ -57,13 +58,17 @@ static u8 mxc_w1_ds2_reset_bus(void *data)
 
 	udelay(511 + 512);
 
-	do {
+	do
+	{
 		u8 ctrl = readb(dev->regs + MXC_W1_CONTROL);
 
 		/* PST bit is valid after the RPP bit is self-cleared */
 		if (!(ctrl & MXC_W1_CONTROL_RPP))
+		{
 			return !(ctrl & MXC_W1_CONTROL_PST);
-	} while (time_is_after_jiffies(timeout));
+		}
+	}
+	while (time_is_after_jiffies(timeout));
 
 	return 1;
 }
@@ -85,13 +90,17 @@ static u8 mxc_w1_ds2_touch_bit(void *data, u8 bit)
 
 	udelay(60);
 
-	do {
+	do
+	{
 		u8 ctrl = readb(dev->regs + MXC_W1_CONTROL);
 
 		/* RDST bit is valid after the WR1/RD bit is self-cleared */
 		if (!(ctrl & MXC_W1_CONTROL_WR(bit)))
+		{
 			return !!(ctrl & MXC_W1_CONTROL_RDST);
-	} while (time_is_after_jiffies(timeout));
+		}
+	}
+	while (time_is_after_jiffies(timeout));
 
 	return 0;
 }
@@ -105,33 +114,47 @@ static int mxc_w1_probe(struct platform_device *pdev)
 	int err;
 
 	mdev = devm_kzalloc(&pdev->dev, sizeof(struct mxc_w1_device),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!mdev)
+	{
 		return -ENOMEM;
+	}
 
 	mdev->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(mdev->clk))
+	{
 		return PTR_ERR(mdev->clk);
+	}
 
 	clkrate = clk_get_rate(mdev->clk);
+
 	if (clkrate < 10000000)
 		dev_warn(&pdev->dev,
-			 "Low clock frequency causes improper function\n");
+				 "Low clock frequency causes improper function\n");
 
 	clkdiv = DIV_ROUND_CLOSEST(clkrate, 1000000);
 	clkrate /= clkdiv;
+
 	if ((clkrate < 980000) || (clkrate > 1020000))
 		dev_warn(&pdev->dev,
-			 "Incorrect time base frequency %lu Hz\n", clkrate);
+				 "Incorrect time base frequency %lu Hz\n", clkrate);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mdev->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(mdev->regs))
+	{
 		return PTR_ERR(mdev->regs);
+	}
 
 	err = clk_prepare_enable(mdev->clk);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Software reset 1-Wire module */
 	writeb(MXC_W1_RESET_RST, mdev->regs + MXC_W1_RESET);
@@ -146,8 +169,11 @@ static int mxc_w1_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, mdev);
 
 	err = w1_add_master_device(&mdev->bus_master);
+
 	if (err)
+	{
 		clk_disable_unprepare(mdev->clk);
+	}
 
 	return err;
 }
@@ -166,13 +192,15 @@ static int mxc_w1_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id mxc_w1_dt_ids[] = {
+static const struct of_device_id mxc_w1_dt_ids[] =
+{
 	{ .compatible = "fsl,imx21-owire" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, mxc_w1_dt_ids);
 
-static struct platform_driver mxc_w1_driver = {
+static struct platform_driver mxc_w1_driver =
+{
 	.driver = {
 		.name = "mxc_w1",
 		.of_match_table = mxc_w1_dt_ids,

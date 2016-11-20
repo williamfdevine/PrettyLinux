@@ -53,7 +53,9 @@ int ebb_on_child(void)
 	FAIL_IF(pipe(write_pipe.fds) == -1);
 
 	pid = fork();
-	if (pid == 0) {
+
+	if (pid == 0)
+	{
 		/* NB order of pipes looks reversed */
 		exit(victim_child(write_pipe, read_pipe));
 	}

@@ -25,7 +25,8 @@
 
 struct d11init;
 
-struct brcms_ucode {
+struct brcms_ucode
+{
 	struct d11init *d11lcn0bsinitvals24;
 	struct d11init *d11lcn0initvals24;
 	struct d11init *d11lcn1bsinitvals24;
@@ -49,7 +50,7 @@ void brcms_ucode_data_free(struct brcms_ucode *ucode);
 
 int brcms_ucode_init_buf(struct brcms_info *wl, void **pbuf, unsigned int idx);
 int brcms_ucode_init_uint(struct brcms_info *wl, size_t *n_bytes,
-			  unsigned int idx);
+						  unsigned int idx);
 void brcms_ucode_free_buf(void *);
 int  brcms_check_firmwares(struct brcms_info *wl);
 

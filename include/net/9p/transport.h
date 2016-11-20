@@ -49,7 +49,8 @@
  * The transport module list is protected by v9fs_trans_lock.
  */
 
-struct p9_trans_module {
+struct p9_trans_module
+{
 	struct list_head list;
 	char *name;		/* name of transport */
 	int maxsize;		/* max message size of transport */
@@ -61,7 +62,7 @@ struct p9_trans_module {
 	int (*cancel) (struct p9_client *, struct p9_req_t *req);
 	int (*cancelled)(struct p9_client *, struct p9_req_t *req);
 	int (*zc_request)(struct p9_client *, struct p9_req_t *,
-			  struct iov_iter *, struct iov_iter *, int , int, int);
+					  struct iov_iter *, struct iov_iter *, int , int, int);
 };
 
 void v9fs_register_trans(struct p9_trans_module *m);

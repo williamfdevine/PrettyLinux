@@ -33,12 +33,14 @@
  * unlock addresses to ensure that access to the NOR device works correctly.
  */
 
-enum {
+enum
+{
 	LTQ_NOR_PROBING,
 	LTQ_NOR_NORMAL
 };
 
-struct ltq_mtd {
+struct ltq_mtd
+{
 	struct resource *res;
 	struct mtd_info *mtd;
 	struct map_info *map;
@@ -53,7 +55,10 @@ ltq_read16(struct map_info *map, unsigned long adr)
 	map_word temp;
 
 	if (map->map_priv_1 == LTQ_NOR_PROBING)
+	{
 		adr ^= 2;
+	}
+
 	spin_lock_irqsave(&ebu_lock, flags);
 	temp.x[0] = *(u16 *)(map->virt + adr);
 	spin_unlock_irqrestore(&ebu_lock, flags);
@@ -66,7 +71,10 @@ ltq_write16(struct map_info *map, map_word d, unsigned long adr)
 	unsigned long flags;
 
 	if (map->map_priv_1 == LTQ_NOR_PROBING)
+	{
 		adr ^= 2;
+	}
+
 	spin_lock_irqsave(&ebu_lock, flags);
 	*(u16 *)(map->virt + adr) = d.x[0];
 	spin_unlock_irqrestore(&ebu_lock, flags);
@@ -81,29 +89,37 @@ ltq_write16(struct map_info *map, map_word d, unsigned long adr)
  */
 static void
 ltq_copy_from(struct map_info *map, void *to,
-	unsigned long from, ssize_t len)
+			  unsigned long from, ssize_t len)
 {
 	unsigned char *f = (unsigned char *)map->virt + from;
 	unsigned char *t = (unsigned char *)to;
 	unsigned long flags;
 
 	spin_lock_irqsave(&ebu_lock, flags);
+
 	while (len--)
+	{
 		*t++ = *f++;
+	}
+
 	spin_unlock_irqrestore(&ebu_lock, flags);
 }
 
 static void
 ltq_copy_to(struct map_info *map, unsigned long to,
-	const void *from, ssize_t len)
+			const void *from, ssize_t len)
 {
 	unsigned char *f = (unsigned char *)from;
 	unsigned char *t = (unsigned char *)map->virt + to;
 	unsigned long flags;
 
 	spin_lock_irqsave(&ebu_lock, flags);
+
 	while (len--)
+	{
 		*t++ = *f++;
+	}
+
 	spin_unlock_irqrestore(&ebu_lock, flags);
 }
 
@@ -115,33 +131,45 @@ ltq_mtd_probe(struct platform_device *pdev)
 	int err;
 
 	if (of_machine_is_compatible("lantiq,falcon") &&
-			(ltq_boot_select() != BS_FLASH)) {
+		(ltq_boot_select() != BS_FLASH))
+	{
 		dev_err(&pdev->dev, "invalid bootstrap options\n");
 		return -ENODEV;
 	}
 
 	ltq_mtd = devm_kzalloc(&pdev->dev, sizeof(struct ltq_mtd), GFP_KERNEL);
+
 	if (!ltq_mtd)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, ltq_mtd);
 
 	ltq_mtd->res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!ltq_mtd->res) {
+
+	if (!ltq_mtd->res)
+	{
 		dev_err(&pdev->dev, "failed to get memory resource\n");
 		return -ENOENT;
 	}
 
 	ltq_mtd->map = devm_kzalloc(&pdev->dev, sizeof(struct map_info),
-				    GFP_KERNEL);
+								GFP_KERNEL);
+
 	if (!ltq_mtd->map)
+	{
 		return -ENOMEM;
+	}
 
 	ltq_mtd->map->phys = ltq_mtd->res->start;
 	ltq_mtd->map->size = resource_size(ltq_mtd->res);
 	ltq_mtd->map->virt = devm_ioremap_resource(&pdev->dev, ltq_mtd->res);
+
 	if (IS_ERR(ltq_mtd->map->virt))
+	{
 		return PTR_ERR(ltq_mtd->map->virt);
+	}
 
 	ltq_mtd->map->name = ltq_map_name;
 	ltq_mtd->map->bankwidth = 2;
@@ -154,7 +182,8 @@ ltq_mtd_probe(struct platform_device *pdev)
 	ltq_mtd->mtd = do_map_probe("cfi_probe", ltq_mtd->map);
 	ltq_mtd->map->map_priv_1 = LTQ_NOR_NORMAL;
 
-	if (!ltq_mtd->mtd) {
+	if (!ltq_mtd->mtd)
+	{
 		dev_err(&pdev->dev, "probing failed\n");
 		return -ENXIO;
 	}
@@ -167,7 +196,9 @@ ltq_mtd_probe(struct platform_device *pdev)
 	cfi->addr_unlock2 ^= 1;
 
 	err = mtd_device_register(ltq_mtd->mtd, NULL, 0);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to add partitions\n");
 		goto err_destroy;
 	}
@@ -184,20 +215,24 @@ ltq_mtd_remove(struct platform_device *pdev)
 {
 	struct ltq_mtd *ltq_mtd = platform_get_drvdata(pdev);
 
-	if (ltq_mtd && ltq_mtd->mtd) {
+	if (ltq_mtd && ltq_mtd->mtd)
+	{
 		mtd_device_unregister(ltq_mtd->mtd);
 		map_destroy(ltq_mtd->mtd);
 	}
+
 	return 0;
 }
 
-static const struct of_device_id ltq_mtd_match[] = {
+static const struct of_device_id ltq_mtd_match[] =
+{
 	{ .compatible = "lantiq,nor" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ltq_mtd_match);
 
-static struct platform_driver ltq_mtd_driver = {
+static struct platform_driver ltq_mtd_driver =
+{
 	.probe = ltq_mtd_probe,
 	.remove = ltq_mtd_remove,
 	.driver = {

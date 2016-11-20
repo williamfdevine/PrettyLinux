@@ -18,7 +18,8 @@
 
 #include <linux/regulator/machine.h>
 
-enum {
+enum
+{
 	ACT8600_ID_DCDC1,
 	ACT8600_ID_DCDC2,
 	ACT8600_ID_DCDC3,
@@ -31,7 +32,8 @@ enum {
 	ACT8600_ID_LDO10,
 };
 
-enum {
+enum
+{
 	ACT8865_ID_DCDC1,
 	ACT8865_ID_DCDC2,
 	ACT8865_ID_DCDC3,
@@ -42,7 +44,8 @@ enum {
 	ACT8865_REG_NUM,
 };
 
-enum {
+enum
+{
 	ACT8846_ID_REG1,
 	ACT8846_ID_REG2,
 	ACT8846_ID_REG3,
@@ -58,7 +61,8 @@ enum {
 	ACT8846_REG_NUM,
 };
 
-enum {
+enum
+{
 	ACT8600,
 	ACT8865,
 	ACT8846,
@@ -71,7 +75,8 @@ enum {
  * @init_data: regulator init data
  * @of_node: device tree node (optional)
  */
-struct act8865_regulator_data {
+struct act8865_regulator_data
+{
 	int id;
 	const char *name;
 	struct regulator_init_data *init_data;
@@ -83,7 +88,8 @@ struct act8865_regulator_data {
  * @num_regulators: number of regulators used
  * @regulators: pointer to regulators used
  */
-struct act8865_platform_data {
+struct act8865_platform_data
+{
 	int num_regulators;
 	struct act8865_regulator_data *regulators;
 };

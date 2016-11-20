@@ -22,7 +22,8 @@
 #ifndef __TWL6040_H__
 #define __TWL6040_H__
 
-enum twl6040_trim {
+enum twl6040_trim
+{
 	TWL6040_TRIM_TRIM1 = 0,
 	TWL6040_TRIM_TRIM2,
 	TWL6040_TRIM_TRIM3,
@@ -36,7 +37,7 @@ enum twl6040_trim {
 
 int twl6040_get_dl1_gain(struct snd_soc_codec *codec);
 void twl6040_hs_jack_detect(struct snd_soc_codec *codec,
-			    struct snd_soc_jack *jack, int report);
+							struct snd_soc_jack *jack, int report);
 int twl6040_get_clk_id(struct snd_soc_codec *codec);
 int twl6040_get_trim_value(struct snd_soc_codec *codec, enum twl6040_trim trim);
 int twl6040_get_hs_step_size(struct snd_soc_codec *codec);

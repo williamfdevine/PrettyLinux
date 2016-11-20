@@ -196,19 +196,19 @@ s32 atl1e_restart_autoneg(struct atl1e_hw *hw);
 #define     GPHY_CTRL_PHY_PLL_ON        0x2000
 #define     GPHY_CTRL_PWDOWN_HW		0x4000
 #define     GPHY_CTRL_DEFAULT (\
-		GPHY_CTRL_PHY_PLL_ON	|\
-		GPHY_CTRL_SEL_ANA_RST	|\
-		GPHY_CTRL_HIB_PULSE	|\
-		GPHY_CTRL_HIB_EN)
+							   GPHY_CTRL_PHY_PLL_ON	|\
+							   GPHY_CTRL_SEL_ANA_RST	|\
+							   GPHY_CTRL_HIB_PULSE	|\
+							   GPHY_CTRL_HIB_EN)
 
 #define     GPHY_CTRL_PW_WOL_DIS (\
-		GPHY_CTRL_PHY_PLL_ON	|\
-		GPHY_CTRL_SEL_ANA_RST	|\
-		GPHY_CTRL_HIB_PULSE	|\
-		GPHY_CTRL_HIB_EN	|\
-		GPHY_CTRL_PWDOWN_HW	|\
-		GPHY_CTRL_PCLK_SEL_DIS	|\
-		GPHY_CTRL_PHY_IDDQ)
+								  GPHY_CTRL_PHY_PLL_ON	|\
+								  GPHY_CTRL_SEL_ANA_RST	|\
+								  GPHY_CTRL_HIB_PULSE	|\
+								  GPHY_CTRL_HIB_EN	|\
+								  GPHY_CTRL_PWDOWN_HW	|\
+								  GPHY_CTRL_PCLK_SEL_DIS	|\
+								  GPHY_CTRL_PHY_IDDQ)
 
 /* IRQ Anti-Lost Timer Initial Value Register */
 #define REG_CMBDISDMA_TIMER         0x140E
@@ -581,18 +581,18 @@ s32 atl1e_restart_autoneg(struct atl1e_hw *hw);
 
 
 #define IMR_NORMAL_MASK (\
-		ISR_SMB	        |\
-		ISR_TXF_UN      |\
-		ISR_HW_RXF_OV   |\
-		ISR_HOST_RXF0_OV|\
-		ISR_MANUAL      |\
-		ISR_GPHY        |\
-		ISR_GPHY_LPW    |\
-		ISR_DMAR_TO_RST |\
-		ISR_DMAW_TO_RST |\
-		ISR_PHY_LINKDOWN|\
-		ISR_RX_PKT      |\
-		ISR_TX_PKT)
+						 ISR_SMB	        |\
+						 ISR_TXF_UN      |\
+						 ISR_HW_RXF_OV   |\
+						 ISR_HOST_RXF0_OV|\
+						 ISR_MANUAL      |\
+						 ISR_GPHY        |\
+						 ISR_GPHY_LPW    |\
+						 ISR_DMAR_TO_RST |\
+						 ISR_DMAW_TO_RST |\
+						 ISR_PHY_LINKDOWN|\
+						 ISR_RX_PKT      |\
+						 ISR_TX_PKT)
 
 #define ISR_TX_EVENT (ISR_TXF_UN | ISR_TX_PKT)
 #define ISR_RX_EVENT (ISR_HOST_RXF0_OV | ISR_HW_RXF_OV | ISR_RX_PKT)

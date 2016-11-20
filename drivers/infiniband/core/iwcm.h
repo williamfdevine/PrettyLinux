@@ -33,7 +33,8 @@
 #ifndef IWCM_H
 #define IWCM_H
 
-enum iw_cm_state {
+enum iw_cm_state
+{
 	IW_CM_STATE_IDLE,             /* unbound, inactive */
 	IW_CM_STATE_LISTEN,           /* listen waiting for connect */
 	IW_CM_STATE_CONN_RECV,        /* inbound waiting for user accept */
@@ -43,7 +44,8 @@ enum iw_cm_state {
 	IW_CM_STATE_DESTROYING        /* object being deleted */
 };
 
-struct iwcm_id_private {
+struct iwcm_id_private
+{
 	struct iw_cm_id	id;
 	enum iw_cm_state state;
 	unsigned long flags;

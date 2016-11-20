@@ -43,13 +43,16 @@ static int malidp_set_and_wait_config_valid(struct drm_device *drm)
 	int ret;
 
 	hwdev->set_config_valid(hwdev);
+
 	/* don't wait for config_valid flag if we are in config mode */
 	if (hwdev->in_config_mode(hwdev))
+	{
 		return 0;
+	}
 
 	ret = wait_event_interruptible_timeout(malidp->wq,
-			atomic_read(&malidp->config_valid) == 1,
-			msecs_to_jiffies(MALIDP_CONF_VALID_TIMEOUT));
+										   atomic_read(&malidp->config_valid) == 1,
+										   msecs_to_jiffies(MALIDP_CONF_VALID_TIMEOUT));
 
 	return (ret > 0) ? 0 : -ETIMEDOUT;
 }
@@ -69,19 +72,30 @@ static void malidp_atomic_commit_hw_done(struct drm_atomic_state *state)
 	int ret = malidp_set_and_wait_config_valid(drm);
 
 	if (ret)
+	{
 		DRM_DEBUG_DRIVER("timed out waiting for updated configuration\n");
+	}
 
 	event = malidp->crtc.state->event;
-	if (event) {
+
+	if (event)
+	{
 		malidp->crtc.state->event = NULL;
 
 		spin_lock_irq(&drm->event_lock);
+
 		if (drm_crtc_vblank_get(&malidp->crtc) == 0)
+		{
 			drm_crtc_arm_vblank_event(&malidp->crtc, event);
+		}
 		else
+		{
 			drm_crtc_send_vblank_event(&malidp->crtc, event);
+		}
+
 		spin_unlock_irq(&drm->event_lock);
 	}
+
 	drm_atomic_helper_commit_hw_done(state);
 }
 
@@ -92,7 +106,7 @@ static void malidp_atomic_commit_tail(struct drm_atomic_state *state)
 	drm_atomic_helper_commit_modeset_disables(drm, state);
 	drm_atomic_helper_commit_modeset_enables(drm, state);
 	drm_atomic_helper_commit_planes(drm, state,
-					DRM_PLANE_COMMIT_ACTIVE_ONLY);
+									DRM_PLANE_COMMIT_ACTIVE_ONLY);
 
 	malidp_atomic_commit_hw_done(state);
 
@@ -101,11 +115,13 @@ static void malidp_atomic_commit_tail(struct drm_atomic_state *state)
 	drm_atomic_helper_cleanup_planes(drm, state);
 }
 
-static struct drm_mode_config_helper_funcs malidp_mode_config_helpers = {
+static struct drm_mode_config_helper_funcs malidp_mode_config_helpers =
+{
 	.atomic_commit_tail = malidp_atomic_commit_tail,
 };
 
-static const struct drm_mode_config_funcs malidp_mode_config_funcs = {
+static const struct drm_mode_config_funcs malidp_mode_config_funcs =
+{
 	.fb_create = drm_fb_cma_create,
 	.output_poll_changed = malidp_output_poll_changed,
 	.atomic_check = drm_atomic_helper_check,
@@ -118,7 +134,7 @@ static int malidp_enable_vblank(struct drm_device *drm, unsigned int crtc)
 	struct malidp_hw_device *hwdev = malidp->dev;
 
 	malidp_hw_enable_irq(hwdev, MALIDP_DE_BLOCK,
-			     hwdev->map.de_irq_map.vsync_irq);
+						 hwdev->map.de_irq_map.vsync_irq);
 	return 0;
 }
 
@@ -128,7 +144,7 @@ static void malidp_disable_vblank(struct drm_device *drm, unsigned int pipe)
 	struct malidp_hw_device *hwdev = malidp->dev;
 
 	malidp_hw_disable_irq(hwdev, MALIDP_DE_BLOCK,
-			      hwdev->map.de_irq_map.vsync_irq);
+						  hwdev->map.de_irq_map.vsync_irq);
 }
 
 static int malidp_init(struct drm_device *drm)
@@ -147,7 +163,9 @@ static int malidp_init(struct drm_device *drm)
 	drm->mode_config.helper_private = &malidp_mode_config_helpers;
 
 	ret = malidp_crtc_init(drm);
-	if (ret) {
+
+	if (ret)
+	{
 		drm_mode_config_cleanup(drm);
 		return ret;
 	}
@@ -162,22 +180,32 @@ static int malidp_irq_init(struct platform_device *pdev)
 
 	/* fetch the interrupts from DT */
 	irq_de = platform_get_irq_byname(pdev, "DE");
-	if (irq_de < 0) {
+
+	if (irq_de < 0)
+	{
 		DRM_ERROR("no 'DE' IRQ specified!\n");
 		return irq_de;
 	}
+
 	irq_se = platform_get_irq_byname(pdev, "SE");
-	if (irq_se < 0) {
+
+	if (irq_se < 0)
+	{
 		DRM_ERROR("no 'SE' IRQ specified!\n");
 		return irq_se;
 	}
 
 	ret = malidp_de_irq_init(drm, irq_de);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = malidp_se_irq_init(drm, irq_se);
-	if (ret) {
+
+	if (ret)
+	{
 		malidp_de_irq_fini(drm);
 		return ret;
 	}
@@ -192,7 +220,8 @@ static void malidp_lastclose(struct drm_device *drm)
 	drm_fbdev_cma_restore_mode(malidp->fbdev);
 }
 
-static const struct file_operations fops = {
+static const struct file_operations fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -206,9 +235,10 @@ static const struct file_operations fops = {
 	.mmap = drm_gem_cma_mmap,
 };
 
-static struct drm_driver malidp_driver = {
+static struct drm_driver malidp_driver =
+{
 	.driver_features = DRIVER_GEM | DRIVER_MODESET | DRIVER_ATOMIC |
-			   DRIVER_PRIME,
+	DRIVER_PRIME,
 	.lastclose = malidp_lastclose,
 	.get_vblank_counter = drm_vblank_no_hw_counter,
 	.enable_vblank = malidp_enable_vblank,
@@ -235,7 +265,8 @@ static struct drm_driver malidp_driver = {
 	.minor = 0,
 };
 
-static const struct of_device_id  malidp_drm_of_match[] = {
+static const struct of_device_id  malidp_drm_of_match[] =
+{
 	{
 		.compatible = "arm,mali-dp500",
 		.data = &malidp_device[MALIDP_500]
@@ -268,12 +299,18 @@ static int malidp_bind(struct device *dev)
 	u32 version, out_depth = 0;
 
 	malidp = devm_kzalloc(dev, sizeof(*malidp), GFP_KERNEL);
+
 	if (!malidp)
+	{
 		return -ENOMEM;
+	}
 
 	hwdev = devm_kzalloc(dev, sizeof(*hwdev), GFP_KERNEL);
+
 	if (!hwdev)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * copy the associated data from malidp_drm_of_match to avoid
@@ -286,32 +323,52 @@ static int malidp_bind(struct device *dev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hwdev->regs = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(hwdev->regs))
+	{
 		return PTR_ERR(hwdev->regs);
+	}
 
 	hwdev->pclk = devm_clk_get(dev, "pclk");
+
 	if (IS_ERR(hwdev->pclk))
+	{
 		return PTR_ERR(hwdev->pclk);
+	}
 
 	hwdev->aclk = devm_clk_get(dev, "aclk");
+
 	if (IS_ERR(hwdev->aclk))
+	{
 		return PTR_ERR(hwdev->aclk);
+	}
 
 	hwdev->mclk = devm_clk_get(dev, "mclk");
+
 	if (IS_ERR(hwdev->mclk))
+	{
 		return PTR_ERR(hwdev->mclk);
+	}
 
 	hwdev->pxlclk = devm_clk_get(dev, "pxlclk");
+
 	if (IS_ERR(hwdev->pxlclk))
+	{
 		return PTR_ERR(hwdev->pxlclk);
+	}
 
 	/* Get the optional framebuffer memory resource */
 	ret = of_reserved_mem_device_init(dev);
+
 	if (ret && ret != -ENODEV)
+	{
 		return ret;
+	}
 
 	drm = drm_dev_alloc(&malidp_driver, dev);
-	if (IS_ERR(drm)) {
+
+	if (IS_ERR(drm))
+	{
 		ret = PTR_ERR(drm);
 		goto alloc_fail;
 	}
@@ -326,24 +383,32 @@ static int malidp_bind(struct device *dev)
 	clk_prepare_enable(hwdev->mclk);
 
 	ret = hwdev->query_hw(hwdev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("Invalid HW configuration\n");
 		goto query_hw_fail;
 	}
 
 	version = malidp_hw_read(hwdev, hwdev->map.dc_base + MALIDP_DE_CORE_ID);
 	DRM_INFO("found ARM Mali-DP%3x version r%dp%d\n", version >> 16,
-		 (version >> 12) & 0xf, (version >> 8) & 0xf);
+			 (version >> 12) & 0xf, (version >> 8) & 0xf);
 
 	/* set the number of lines used for output of RGB data */
 	ret = of_property_read_u8_array(dev->of_node,
-					"arm,malidp-output-port-lines",
-					output_width, MAX_OUTPUT_CHANNELS);
+									"arm,malidp-output-port-lines",
+									output_width, MAX_OUTPUT_CHANNELS);
+
 	if (ret)
+	{
 		goto query_hw_fail;
+	}
 
 	for (i = 0; i < MAX_OUTPUT_CHANNELS; i++)
+	{
 		out_depth = (out_depth << 8) | (output_width[i] & 0xf);
+	}
+
 	malidp_hw_write(hwdev, out_depth, hwdev->map.out_depth_base);
 
 	drm->dev_private = malidp;
@@ -352,33 +417,49 @@ static int malidp_bind(struct device *dev)
 	init_waitqueue_head(&malidp->wq);
 
 	ret = malidp_init(drm);
+
 	if (ret < 0)
+	{
 		goto init_fail;
+	}
 
 	ret = drm_dev_register(drm, 0);
+
 	if (ret)
+	{
 		goto register_fail;
+	}
 
 	/* Set the CRTC's port so that the encoder component can find it */
 	ep = of_graph_get_next_endpoint(dev->of_node, NULL);
-	if (!ep) {
+
+	if (!ep)
+	{
 		ret = -EINVAL;
 		goto port_fail;
 	}
+
 	malidp->crtc.port = of_get_next_parent(ep);
 
 	ret = component_bind_all(dev, drm);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("Failed to bind all components\n");
 		goto bind_fail;
 	}
 
 	ret = malidp_irq_init(pdev);
+
 	if (ret < 0)
+	{
 		goto irq_init_fail;
+	}
 
 	ret = drm_vblank_init(drm, drm->mode_config.num_crtc);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		DRM_ERROR("failed to initialise vblank\n");
 		goto vblank_fail;
 	}
@@ -386,9 +467,10 @@ static int malidp_bind(struct device *dev)
 	drm_mode_config_reset(drm);
 
 	malidp->fbdev = drm_fbdev_cma_init(drm, 32, drm->mode_config.num_crtc,
-					   drm->mode_config.num_connector);
+									   drm->mode_config.num_connector);
 
-	if (IS_ERR(malidp->fbdev)) {
+	if (IS_ERR(malidp->fbdev))
+	{
 		ret = PTR_ERR(malidp->fbdev);
 		malidp->fbdev = NULL;
 		goto fbdev_fail;
@@ -432,10 +514,12 @@ static void malidp_unbind(struct device *dev)
 	struct malidp_drm *malidp = drm->dev_private;
 	struct malidp_hw_device *hwdev = malidp->dev;
 
-	if (malidp->fbdev) {
+	if (malidp->fbdev)
+	{
 		drm_fbdev_cma_fini(malidp->fbdev);
 		malidp->fbdev = NULL;
 	}
+
 	drm_kms_helper_poll_fini(drm);
 	malidp_se_irq_fini(drm);
 	malidp_de_irq_fini(drm);
@@ -455,7 +539,8 @@ static void malidp_unbind(struct device *dev)
 	of_reserved_mem_device_release(dev);
 }
 
-static const struct component_master_ops malidp_master_ops = {
+static const struct component_master_ops malidp_master_ops =
+{
 	.bind = malidp_bind,
 	.unbind = malidp_unbind,
 };
@@ -473,14 +558,20 @@ static int malidp_platform_probe(struct platform_device *pdev)
 	struct component_match *match = NULL;
 
 	if (!pdev->dev.of_node)
+	{
 		return -ENODEV;
+	}
 
 	/* there is only one output port inside each device, find it */
 	ep = of_graph_get_next_endpoint(pdev->dev.of_node, NULL);
-	if (!ep)
-		return -ENODEV;
 
-	if (!of_device_is_available(ep)) {
+	if (!ep)
+	{
+		return -ENODEV;
+	}
+
+	if (!of_device_is_available(ep))
+	{
 		of_node_put(ep);
 		return -ENODEV;
 	}
@@ -488,14 +579,16 @@ static int malidp_platform_probe(struct platform_device *pdev)
 	/* add the remote encoder port as component */
 	port = of_graph_get_remote_port_parent(ep);
 	of_node_put(ep);
-	if (!port || !of_device_is_available(port)) {
+
+	if (!port || !of_device_is_available(port))
+	{
 		of_node_put(port);
 		return -EAGAIN;
 	}
 
 	component_match_add(&pdev->dev, &match, malidp_compare_dev, port);
 	return component_master_add_with_match(&pdev->dev, &malidp_master_ops,
-					       match);
+										   match);
 }
 
 static int malidp_platform_remove(struct platform_device *pdev)
@@ -504,7 +597,8 @@ static int malidp_platform_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver malidp_platform_driver = {
+static struct platform_driver malidp_platform_driver =
+{
 	.probe		= malidp_platform_probe,
 	.remove		= malidp_platform_remove,
 	.driver	= {

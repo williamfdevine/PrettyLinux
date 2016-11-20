@@ -31,9 +31,10 @@ module_param(nowayout, bool, 0);
 
 MODULE_PARM_DESC(timeout, "Default watchdog timeout (in seconds)");
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-			__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
-struct atlas7_wdog {
+struct atlas7_wdog
+{
 	struct device *dev;
 	void __iomem *base;
 	unsigned long tick_rate;
@@ -73,7 +74,7 @@ static int atlas7_wdt_enable(struct watchdog_device *wdd)
 	atlas7_wdt_ping(wdd);
 
 	writel(readl(wdt->base + ATLAS7_WDT_CNT_CTRL) | ATLAS7_WDT_CNT_EN,
-	      wdt->base + ATLAS7_WDT_CNT_CTRL);
+		   wdt->base + ATLAS7_WDT_CNT_CTRL);
 	writel(1, wdt->base + ATLAS7_WDT_EN);
 
 	return 0;
@@ -85,7 +86,7 @@ static int atlas7_wdt_disable(struct watchdog_device *wdd)
 
 	writel(0, wdt->base + ATLAS7_WDT_EN);
 	writel(readl(wdt->base + ATLAS7_WDT_CNT_CTRL) & ~ATLAS7_WDT_CNT_EN,
-	      wdt->base + ATLAS7_WDT_CNT_CTRL);
+		   wdt->base + ATLAS7_WDT_CNT_CTRL);
 
 	return 0;
 }
@@ -99,13 +100,15 @@ static int atlas7_wdt_settimeout(struct watchdog_device *wdd, unsigned int to)
 
 #define OPTIONS (WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE)
 
-static const struct watchdog_info atlas7_wdt_ident = {
+static const struct watchdog_info atlas7_wdt_ident =
+{
 	.options = OPTIONS,
 	.firmware_version = 0,
 	.identity = "atlas7 Watchdog",
 };
 
-static struct watchdog_ops atlas7_wdt_ops = {
+static struct watchdog_ops atlas7_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = atlas7_wdt_enable,
 	.stop = atlas7_wdt_disable,
@@ -114,13 +117,15 @@ static struct watchdog_ops atlas7_wdt_ops = {
 	.set_timeout = atlas7_wdt_settimeout,
 };
 
-static struct watchdog_device atlas7_wdd = {
+static struct watchdog_device atlas7_wdd =
+{
 	.info = &atlas7_wdt_ident,
 	.ops = &atlas7_wdt_ops,
 	.timeout = ATLAS7_WDT_DEFAULT_TIMEOUT,
 };
 
-static const struct of_device_id atlas7_wdt_ids[] = {
+static const struct of_device_id atlas7_wdt_ids[] =
+{
 	{ .compatible = "sirf,atlas7-tick"},
 	{}
 };
@@ -134,18 +139,31 @@ static int atlas7_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	wdt = devm_kzalloc(&pdev->dev, sizeof(*wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
+
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	wdt->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(wdt->base))
+	{
 		return PTR_ERR(wdt->base);
+	}
 
 	clk = of_clk_get(np, 0);
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
+
 	ret = clk_prepare_enable(clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "clk enable failed\n");
 		goto err;
 	}
@@ -154,7 +172,9 @@ static int atlas7_wdt_probe(struct platform_device *pdev)
 	writel(0, wdt->base + ATLAS7_WDT_CNT_CTRL);
 
 	wdt->tick_rate = clk_get_rate(clk);
-	if (!wdt->tick_rate) {
+
+	if (!wdt->tick_rate)
+	{
 		ret = -EINVAL;
 		goto err1;
 	}
@@ -170,8 +190,11 @@ static int atlas7_wdt_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, &atlas7_wdd);
 
 	ret = watchdog_register_device(&atlas7_wdd);
+
 	if (ret)
+	{
 		goto err1;
+	}
 
 	return 0;
 
@@ -225,11 +248,12 @@ static int __maybe_unused atlas7_wdt_resume(struct device *dev)
 }
 
 static SIMPLE_DEV_PM_OPS(atlas7_wdt_pm_ops,
-		atlas7_wdt_suspend, atlas7_wdt_resume);
+						 atlas7_wdt_suspend, atlas7_wdt_resume);
 
 MODULE_DEVICE_TABLE(of, atlas7_wdt_ids);
 
-static struct platform_driver atlas7_wdt_driver = {
+static struct platform_driver atlas7_wdt_driver =
+{
 	.driver = {
 		.name = "atlas7-wdt",
 		.pm = &atlas7_wdt_pm_ops,

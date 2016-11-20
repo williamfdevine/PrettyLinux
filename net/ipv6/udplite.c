@@ -20,19 +20,21 @@ static int udplitev6_rcv(struct sk_buff *skb)
 }
 
 static void udplitev6_err(struct sk_buff *skb,
-			  struct inet6_skb_parm *opt,
-			  u8 type, u8 code, int offset, __be32 info)
+						  struct inet6_skb_parm *opt,
+						  u8 type, u8 code, int offset, __be32 info)
 {
 	__udp6_lib_err(skb, opt, type, code, offset, info, &udplite_table);
 }
 
-static const struct inet6_protocol udplitev6_protocol = {
+static const struct inet6_protocol udplitev6_protocol =
+{
 	.handler	=	udplitev6_rcv,
 	.err_handler	=	udplitev6_err,
-	.flags		=	INET6_PROTO_NOPOLICY|INET6_PROTO_FINAL,
+	.flags		=	INET6_PROTO_NOPOLICY | INET6_PROTO_FINAL,
 };
 
-struct proto udplitev6_prot = {
+struct proto udplitev6_prot =
+{
 	.name		   = "UDPLITEv6",
 	.owner		   = THIS_MODULE,
 	.close		   = udp_lib_close,
@@ -57,7 +59,8 @@ struct proto udplitev6_prot = {
 #endif
 };
 
-static struct inet_protosw udplite6_protosw = {
+static struct inet_protosw udplite6_protosw =
+{
 	.type		= SOCK_DGRAM,
 	.protocol	= IPPROTO_UDPLITE,
 	.prot		= &udplitev6_prot,
@@ -70,12 +73,19 @@ int __init udplitev6_init(void)
 	int ret;
 
 	ret = inet6_add_protocol(&udplitev6_protocol, IPPROTO_UDPLITE);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = inet6_register_protosw(&udplite6_protosw);
+
 	if (ret)
+	{
 		goto out_udplitev6_protocol;
+	}
+
 out:
 	return ret;
 
@@ -92,7 +102,8 @@ void udplitev6_exit(void)
 
 #ifdef CONFIG_PROC_FS
 
-static const struct file_operations udplite6_afinfo_seq_fops = {
+static const struct file_operations udplite6_afinfo_seq_fops =
+{
 	.owner    = THIS_MODULE,
 	.open     = udp_seq_open,
 	.read     = seq_read,
@@ -100,7 +111,8 @@ static const struct file_operations udplite6_afinfo_seq_fops = {
 	.release  = seq_release_net
 };
 
-static struct udp_seq_afinfo udplite6_seq_afinfo = {
+static struct udp_seq_afinfo udplite6_seq_afinfo =
+{
 	.name		= "udplite6",
 	.family		= AF_INET6,
 	.udp_table	= &udplite_table,
@@ -120,7 +132,8 @@ static void __net_exit udplite6_proc_exit_net(struct net *net)
 	udp_proc_unregister(net, &udplite6_seq_afinfo);
 }
 
-static struct pernet_operations udplite6_net_ops = {
+static struct pernet_operations udplite6_net_ops =
+{
 	.init = udplite6_proc_init_net,
 	.exit = udplite6_proc_exit_net,
 };

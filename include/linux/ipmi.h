@@ -53,7 +53,8 @@ typedef struct ipmi_user *ipmi_user_t;
  * used after the message is delivered, so the upper layer may use the
  * link to build a linked list, if it likes.
  */
-struct ipmi_recv_msg {
+struct ipmi_recv_msg
+{
 	struct list_head link;
 
 	/* The type of message as defined in the "Receive Types"
@@ -84,14 +85,15 @@ struct ipmi_recv_msg {
 /* Allocate and free the receive message. */
 void ipmi_free_recv_msg(struct ipmi_recv_msg *msg);
 
-struct ipmi_user_hndl {
+struct ipmi_user_hndl
+{
 	/* Routine type to call when a message needs to be routed to
 	   the upper layer.  This will be called with some locks held,
 	   the only IPMI routines that can be called are ipmi_request
 	   and the alloc/free operations.  The handler_data is the
 	   variable supplied when the receive handler was registered. */
 	void (*ipmi_recv_hndl)(struct ipmi_recv_msg *msg,
-			       void                 *user_msg_data);
+						   void                 *user_msg_data);
 
 	/* Called when the interface detects a watchdog pre-timeout.  If
 	   this is NULL, it will be ignored for the user. */
@@ -100,9 +102,9 @@ struct ipmi_user_hndl {
 
 /* Create a new user of the IPMI layer on the given interface number. */
 int ipmi_create_user(unsigned int          if_num,
-		     struct ipmi_user_hndl *handler,
-		     void                  *handler_data,
-		     ipmi_user_t           *user);
+					 struct ipmi_user_hndl *handler,
+					 void                  *handler_data,
+					 ipmi_user_t           *user);
 
 /* Destroy the given user of the IPMI layer.  Note that after this
    function returns, the system is guaranteed to not call any
@@ -114,8 +116,8 @@ int ipmi_destroy_user(ipmi_user_t user);
 
 /* Get the IPMI version of the BMC we are talking to. */
 void ipmi_get_version(ipmi_user_t   user,
-		      unsigned char *major,
-		      unsigned char *minor);
+					  unsigned char *major,
+					  unsigned char *minor);
 
 /* Set and get the slave address and LUN that we will use for our
    source messages.  Note that this affects the interface, not just
@@ -124,17 +126,17 @@ void ipmi_get_version(ipmi_user_t   user,
    things it takes to determine your address (if not the BMC) and set
    it for everyone else.  Note that each channel can have its own address. */
 int ipmi_set_my_address(ipmi_user_t   user,
-			unsigned int  channel,
-			unsigned char address);
+						unsigned int  channel,
+						unsigned char address);
 int ipmi_get_my_address(ipmi_user_t   user,
-			unsigned int  channel,
-			unsigned char *address);
+						unsigned int  channel,
+						unsigned char *address);
 int ipmi_set_my_LUN(ipmi_user_t   user,
-		    unsigned int  channel,
-		    unsigned char LUN);
+					unsigned int  channel,
+					unsigned char LUN);
 int ipmi_get_my_LUN(ipmi_user_t   user,
-		    unsigned int  channel,
-		    unsigned char *LUN);
+					unsigned int  channel,
+					unsigned char *LUN);
 
 /*
  * Like ipmi_request, but lets you specify the number of retries and
@@ -150,13 +152,13 @@ int ipmi_get_my_LUN(ipmi_user_t   user,
  * have unusual requirements.
  */
 int ipmi_request_settime(ipmi_user_t      user,
-			 struct ipmi_addr *addr,
-			 long             msgid,
-			 struct kernel_ipmi_msg  *msg,
-			 void             *user_msg_data,
-			 int              priority,
-			 int              max_retries,
-			 unsigned int     retry_time_ms);
+						 struct ipmi_addr *addr,
+						 long             msgid,
+						 struct kernel_ipmi_msg  *msg,
+						 void             *user_msg_data,
+						 int              priority,
+						 int              max_retries,
+						 unsigned int     retry_time_ms);
 
 /*
  * Like ipmi_request, but with messages supplied.  This will not
@@ -168,13 +170,13 @@ int ipmi_request_settime(ipmi_user_t      user,
  * have to.
  */
 int ipmi_request_supply_msgs(ipmi_user_t          user,
-			     struct ipmi_addr     *addr,
-			     long                 msgid,
-			     struct kernel_ipmi_msg *msg,
-			     void                 *user_msg_data,
-			     void                 *supplied_smi,
-			     struct ipmi_recv_msg *supplied_recv,
-			     int                  priority);
+							 struct ipmi_addr     *addr,
+							 long                 msgid,
+							 struct kernel_ipmi_msg *msg,
+							 void                 *user_msg_data,
+							 void                 *supplied_smi,
+							 struct ipmi_recv_msg *supplied_recv,
+							 int                  priority);
 
 /*
  * Poll the IPMI interface for the user.  This causes the IPMI code to
@@ -195,13 +197,13 @@ void ipmi_poll_interface(ipmi_user_t user);
  * mean all channels.
  */
 int ipmi_register_for_cmd(ipmi_user_t   user,
-			  unsigned char netfn,
-			  unsigned char cmd,
-			  unsigned int  chans);
+						  unsigned char netfn,
+						  unsigned char cmd,
+						  unsigned int  chans);
 int ipmi_unregister_for_cmd(ipmi_user_t   user,
-			    unsigned char netfn,
-			    unsigned char cmd,
-			    unsigned int  chans);
+							unsigned char netfn,
+							unsigned char cmd,
+							unsigned int  chans);
 
 /*
  * Go into a mode where the driver will not autonomously attempt to do
@@ -245,7 +247,8 @@ int ipmi_set_gets_events(ipmi_user_t user, bool val);
  * every existing interface when a new watcher is registered with
  * ipmi_smi_watcher_register().
  */
-struct ipmi_smi_watcher {
+struct ipmi_smi_watcher
+{
 	struct list_head link;
 
 	/* You must set the owner to the current module, if you are in
@@ -275,25 +278,29 @@ int ipmi_validate_addr(struct ipmi_addr *addr, int len);
 /*
  * How did the IPMI driver find out about the device?
  */
-enum ipmi_addr_src {
+enum ipmi_addr_src
+{
 	SI_INVALID = 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_SMBIOS,
 	SI_PCI,	SI_DEVICETREE, SI_LAST
 };
 const char *ipmi_addr_src_to_str(enum ipmi_addr_src src);
 
-union ipmi_smi_info_union {
+union ipmi_smi_info_union
+{
 #ifdef CONFIG_ACPI
 	/*
 	 * the acpi_info element is defined for the SI_ACPI
 	 * address type
 	 */
-	struct {
+	struct
+	{
 		acpi_handle acpi_handle;
 	} acpi_info;
 #endif
 };
 
-struct ipmi_smi_info {
+struct ipmi_smi_info
+{
 	enum ipmi_addr_src addr_src;
 
 	/*

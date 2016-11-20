@@ -22,9 +22,10 @@
 #define REF2USB_TX_LPF_EN	BIT(1)
 #define REF2USB_TX_OUT_EN	BIT(2)
 #define REF2USB_EN_MASK		(REF2USB_TX_EN | REF2USB_TX_LPF_EN | \
-				 REF2USB_TX_OUT_EN)
+							 REF2USB_TX_OUT_EN)
 
-struct mtk_ref2usb_tx {
+struct mtk_ref2usb_tx
+{
 	struct clk_hw	hw;
 	void __iomem	*base_addr;
 };
@@ -71,22 +72,26 @@ static void mtk_ref2usb_tx_unprepare(struct clk_hw *hw)
 	writel(val, tx->base_addr);
 }
 
-static const struct clk_ops mtk_ref2usb_tx_ops = {
+static const struct clk_ops mtk_ref2usb_tx_ops =
+{
 	.is_prepared	= mtk_ref2usb_tx_is_prepared,
 	.prepare	= mtk_ref2usb_tx_prepare,
 	.unprepare	= mtk_ref2usb_tx_unprepare,
 };
 
-struct clk * __init mtk_clk_register_ref2usb_tx(const char *name,
-			const char *parent_name, void __iomem *reg)
+struct clk *__init mtk_clk_register_ref2usb_tx(const char *name,
+		const char *parent_name, void __iomem *reg)
 {
 	struct mtk_ref2usb_tx *tx;
 	struct clk_init_data init = {};
 	struct clk *clk;
 
 	tx = kzalloc(sizeof(*tx), GFP_KERNEL);
+
 	if (!tx)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	tx->base_addr = reg;
 	tx->hw.init = &init;
@@ -98,7 +103,8 @@ struct clk * __init mtk_clk_register_ref2usb_tx(const char *name,
 
 	clk = clk_register(NULL, &tx->hw);
 
-	if (IS_ERR(clk)) {
+	if (IS_ERR(clk))
+	{
 		pr_err("Failed to register clk %s: %ld\n", name, PTR_ERR(clk));
 		kfree(tx);
 	}

@@ -160,23 +160,24 @@
 static unsigned rw_threshold = 32;
 module_param(rw_threshold, uint, S_IRUGO);
 MODULE_PARM_DESC(rw_threshold,
-		"Read/Write threshold. Default = 32");
+				 "Read/Write threshold. Default = 32");
 
 static unsigned poll_threshold = 128;
 module_param(poll_threshold, uint, S_IRUGO);
 MODULE_PARM_DESC(poll_threshold,
-		 "Polling transaction size threshold. Default = 128");
+				 "Polling transaction size threshold. Default = 128");
 
 static unsigned poll_loopcount = 32;
 module_param(poll_loopcount, uint, S_IRUGO);
 MODULE_PARM_DESC(poll_loopcount,
-		 "Maximum polling loop count. Default = 32");
+				 "Maximum polling loop count. Default = 32");
 
 static unsigned __initdata use_dma = 1;
 module_param(use_dma, uint, 0);
 MODULE_PARM_DESC(use_dma, "Whether to use DMA or not. Default = 1");
 
-struct mmc_davinci_host {
+struct mmc_davinci_host
+{
 	struct mmc_command *cmd;
 	struct mmc_data *data;
 	struct mmc_host *mmc;
@@ -229,24 +230,32 @@ static void mmc_davinci_sg_to_buf(struct mmc_davinci_host *host)
 {
 	host->buffer_bytes_left = sg_dma_len(host->sg);
 	host->buffer = sg_virt(host->sg);
+
 	if (host->buffer_bytes_left > host->bytes_left)
+	{
 		host->buffer_bytes_left = host->bytes_left;
+	}
 }
 
 static void davinci_fifo_data_trans(struct mmc_davinci_host *host,
-					unsigned int n)
+									unsigned int n)
 {
 	u8 *p;
 	unsigned int i;
 
-	if (host->buffer_bytes_left == 0) {
+	if (host->buffer_bytes_left == 0)
+	{
 		host->sg = sg_next(host->data->sg);
 		mmc_davinci_sg_to_buf(host);
 	}
 
 	p = host->buffer;
+
 	if (n > host->buffer_bytes_left)
+	{
 		n = host->buffer_bytes_left;
+	}
+
 	host->buffer_bytes_left -= n;
 	host->bytes_left -= n;
 
@@ -254,78 +263,100 @@ static void davinci_fifo_data_trans(struct mmc_davinci_host *host,
 	 * to/from the fifo here; there's no I/O overlap.
 	 * This also assumes that access width( i.e. ACCWD) is 4 bytes
 	 */
-	if (host->data_dir == DAVINCI_MMC_DATADIR_WRITE) {
-		for (i = 0; i < (n >> 2); i++) {
+	if (host->data_dir == DAVINCI_MMC_DATADIR_WRITE)
+	{
+		for (i = 0; i < (n >> 2); i++)
+		{
 			writel(*((u32 *)p), host->base + DAVINCI_MMCDXR);
 			p = p + 4;
 		}
-		if (n & 3) {
+
+		if (n & 3)
+		{
 			iowrite8_rep(host->base + DAVINCI_MMCDXR, p, (n & 3));
 			p = p + (n & 3);
 		}
-	} else {
-		for (i = 0; i < (n >> 2); i++) {
+	}
+	else
+	{
+		for (i = 0; i < (n >> 2); i++)
+		{
 			*((u32 *)p) = readl(host->base + DAVINCI_MMCDRR);
 			p  = p + 4;
 		}
-		if (n & 3) {
+
+		if (n & 3)
+		{
 			ioread8_rep(host->base + DAVINCI_MMCDRR, p, (n & 3));
 			p = p + (n & 3);
 		}
 	}
+
 	host->buffer = p;
 }
 
 static void mmc_davinci_start_command(struct mmc_davinci_host *host,
-		struct mmc_command *cmd)
+									  struct mmc_command *cmd)
 {
 	u32 cmd_reg = 0;
 	u32 im_val;
 
 	dev_dbg(mmc_dev(host->mmc), "CMD%d, arg 0x%08x%s\n",
-		cmd->opcode, cmd->arg,
-		({ char *s;
-		switch (mmc_resp_type(cmd)) {
-		case MMC_RSP_R1:
-			s = ", R1/R5/R6/R7 response";
-			break;
-		case MMC_RSP_R1B:
-			s = ", R1b response";
-			break;
-		case MMC_RSP_R2:
-			s = ", R2 response";
-			break;
-		case MMC_RSP_R3:
-			s = ", R3/R4 response";
-			break;
-		default:
-			s = ", (R? response)";
-			break;
-		}; s; }));
+			cmd->opcode, cmd->arg,
+			({ char *s;
+
+			   switch (mmc_resp_type(cmd))
+{
+	case MMC_RSP_R1:
+		s = ", R1/R5/R6/R7 response";
+		break;
+
+	case MMC_RSP_R1B:
+		s = ", R1b response";
+		break;
+
+	case MMC_RSP_R2:
+		s = ", R2 response";
+		break;
+
+	case MMC_RSP_R3:
+		s = ", R3/R4 response";
+		break;
+
+	default:
+		s = ", (R? response)";
+		break;
+}; s;
+		 }));
 	host->cmd = cmd;
 
-	switch (mmc_resp_type(cmd)) {
-	case MMC_RSP_R1B:
-		/* There's some spec confusion about when R1B is
-		 * allowed, but if the card doesn't issue a BUSY
-		 * then it's harmless for us to allow it.
-		 */
-		cmd_reg |= MMCCMD_BSYEXP;
+	switch (mmc_resp_type(cmd))
+	{
+		case MMC_RSP_R1B:
+			/* There's some spec confusion about when R1B is
+			 * allowed, but if the card doesn't issue a BUSY
+			 * then it's harmless for us to allow it.
+			 */
+			cmd_reg |= MMCCMD_BSYEXP;
+
 		/* FALLTHROUGH */
-	case MMC_RSP_R1:		/* 48 bits, CRC */
-		cmd_reg |= MMCCMD_RSPFMT_R1456;
-		break;
-	case MMC_RSP_R2:		/* 136 bits, CRC */
-		cmd_reg |= MMCCMD_RSPFMT_R2;
-		break;
-	case MMC_RSP_R3:		/* 48 bits, no CRC */
-		cmd_reg |= MMCCMD_RSPFMT_R3;
-		break;
-	default:
-		cmd_reg |= MMCCMD_RSPFMT_NONE;
-		dev_dbg(mmc_dev(host->mmc), "unknown resp_type %04x\n",
-			mmc_resp_type(cmd));
-		break;
+		case MMC_RSP_R1:		/* 48 bits, CRC */
+			cmd_reg |= MMCCMD_RSPFMT_R1456;
+			break;
+
+		case MMC_RSP_R2:		/* 136 bits, CRC */
+			cmd_reg |= MMCCMD_RSPFMT_R2;
+			break;
+
+		case MMC_RSP_R3:		/* 48 bits, no CRC */
+			cmd_reg |= MMCCMD_RSPFMT_R3;
+			break;
+
+		default:
+			cmd_reg |= MMCCMD_RSPFMT_NONE;
+			dev_dbg(mmc_dev(host->mmc), "unknown resp_type %04x\n",
+					mmc_resp_type(cmd));
+			break;
 	}
 
 	/* Set command index */
@@ -333,38 +364,56 @@ static void mmc_davinci_start_command(struct mmc_davinci_host *host,
 
 	/* Enable EDMA transfer triggers */
 	if (host->do_dma)
+	{
 		cmd_reg |= MMCCMD_DMATRIG;
+	}
 
 	if (host->version == MMC_CTLR_VERSION_2 && host->data != NULL &&
-			host->data_dir == DAVINCI_MMC_DATADIR_READ)
+		host->data_dir == DAVINCI_MMC_DATADIR_READ)
+	{
 		cmd_reg |= MMCCMD_DMATRIG;
+	}
 
 	/* Setting whether command involves data transfer or not */
 	if (cmd->data)
+	{
 		cmd_reg |= MMCCMD_WDATX;
+	}
 
 	/* Setting whether data read or write */
 	if (host->data_dir == DAVINCI_MMC_DATADIR_WRITE)
+	{
 		cmd_reg |= MMCCMD_DTRW;
+	}
 
 	if (host->bus_mode == MMC_BUSMODE_PUSHPULL)
+	{
 		cmd_reg |= MMCCMD_PPLEN;
+	}
 
 	/* set Command timeout */
 	writel(0x1FFF, host->base + DAVINCI_MMCTOR);
 
 	/* Enable interrupt (calculate here, defer until FIFO is stuffed). */
 	im_val =  MMCST0_RSPDNE | MMCST0_CRCRS | MMCST0_TOUTRS;
-	if (host->data_dir == DAVINCI_MMC_DATADIR_WRITE) {
+
+	if (host->data_dir == DAVINCI_MMC_DATADIR_WRITE)
+	{
 		im_val |= MMCST0_DATDNE | MMCST0_CRCWR;
 
 		if (!host->do_dma)
+		{
 			im_val |= MMCST0_DXRDY;
-	} else if (host->data_dir == DAVINCI_MMC_DATADIR_READ) {
+		}
+	}
+	else if (host->data_dir == DAVINCI_MMC_DATADIR_READ)
+	{
 		im_val |= MMCST0_DATDNE | MMCST0_CRCRD | MMCST0_TOUTRD;
 
 		if (!host->do_dma)
+		{
 			im_val |= MMCST0_DRRDY;
+		}
 	}
 
 	/*
@@ -372,24 +421,30 @@ static void mmc_davinci_start_command(struct mmc_davinci_host *host,
 	 * FIFO should be populated with 32 bytes i.e. whatever is the FIFO size
 	 */
 	if (!host->do_dma && (host->data_dir == DAVINCI_MMC_DATADIR_WRITE))
+	{
 		davinci_fifo_data_trans(host, rw_threshold);
+	}
 
 	writel(cmd->arg, host->base + DAVINCI_MMCARGHL);
 	writel(cmd_reg,  host->base + DAVINCI_MMCCMD);
 
 	host->active_request = true;
 
-	if (!host->do_dma && host->bytes_left <= poll_threshold) {
+	if (!host->do_dma && host->bytes_left <= poll_threshold)
+	{
 		u32 count = poll_loopcount;
 
-		while (host->active_request && count--) {
+		while (host->active_request && count--)
+		{
 			mmc_davinci_irq(0, host);
 			cpu_relax();
 		}
 	}
 
 	if (host->active_request)
+	{
 		writel(im_val, host->base + DAVINCI_MMCIM);
+	}
 }
 
 /*----------------------------------------------------------------------*/
@@ -401,61 +456,74 @@ static void davinci_abort_dma(struct mmc_davinci_host *host)
 	struct dma_chan *sync_dev;
 
 	if (host->data_dir == DAVINCI_MMC_DATADIR_READ)
+	{
 		sync_dev = host->dma_rx;
+	}
 	else
+	{
 		sync_dev = host->dma_tx;
+	}
 
 	dmaengine_terminate_all(sync_dev);
 }
 
 static int mmc_davinci_send_dma_request(struct mmc_davinci_host *host,
-		struct mmc_data *data)
+										struct mmc_data *data)
 {
 	struct dma_chan *chan;
 	struct dma_async_tx_descriptor *desc;
 	int ret = 0;
 
-	if (host->data_dir == DAVINCI_MMC_DATADIR_WRITE) {
-		struct dma_slave_config dma_tx_conf = {
+	if (host->data_dir == DAVINCI_MMC_DATADIR_WRITE)
+	{
+		struct dma_slave_config dma_tx_conf =
+		{
 			.direction = DMA_MEM_TO_DEV,
 			.dst_addr = host->mem_res->start + DAVINCI_MMCDXR,
 			.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES,
 			.dst_maxburst =
-				rw_threshold / DMA_SLAVE_BUSWIDTH_4_BYTES,
+			rw_threshold / DMA_SLAVE_BUSWIDTH_4_BYTES,
 		};
 		chan = host->dma_tx;
 		dmaengine_slave_config(host->dma_tx, &dma_tx_conf);
 
 		desc = dmaengine_prep_slave_sg(host->dma_tx,
-				data->sg,
-				host->sg_len,
-				DMA_MEM_TO_DEV,
-				DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-		if (!desc) {
+									   data->sg,
+									   host->sg_len,
+									   DMA_MEM_TO_DEV,
+									   DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+
+		if (!desc)
+		{
 			dev_dbg(mmc_dev(host->mmc),
-				"failed to allocate DMA TX descriptor");
+					"failed to allocate DMA TX descriptor");
 			ret = -1;
 			goto out;
 		}
-	} else {
-		struct dma_slave_config dma_rx_conf = {
+	}
+	else
+	{
+		struct dma_slave_config dma_rx_conf =
+		{
 			.direction = DMA_DEV_TO_MEM,
 			.src_addr = host->mem_res->start + DAVINCI_MMCDRR,
 			.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES,
 			.src_maxburst =
-				rw_threshold / DMA_SLAVE_BUSWIDTH_4_BYTES,
+			rw_threshold / DMA_SLAVE_BUSWIDTH_4_BYTES,
 		};
 		chan = host->dma_rx;
 		dmaengine_slave_config(host->dma_rx, &dma_rx_conf);
 
 		desc = dmaengine_prep_slave_sg(host->dma_rx,
-				data->sg,
-				host->sg_len,
-				DMA_DEV_TO_MEM,
-				DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-		if (!desc) {
+									   data->sg,
+									   host->sg_len,
+									   DMA_DEV_TO_MEM,
+									   DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+
+		if (!desc)
+		{
 			dev_dbg(mmc_dev(host->mmc),
-				"failed to allocate DMA RX descriptor");
+					"failed to allocate DMA RX descriptor");
 			ret = -1;
 			goto out;
 		}
@@ -476,18 +544,20 @@ static int mmc_davinci_start_dma_transfer(struct mmc_davinci_host *host,
 	int ret = 0;
 
 	host->sg_len = dma_map_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
-				((data->flags & MMC_DATA_WRITE)
-				? DMA_TO_DEVICE
-				: DMA_FROM_DEVICE));
+							  ((data->flags & MMC_DATA_WRITE)
+							   ? DMA_TO_DEVICE
+							   : DMA_FROM_DEVICE));
 
 	/* no individual DMA segment should need a partial FIFO */
-	for (i = 0; i < host->sg_len; i++) {
-		if (sg_dma_len(data->sg + i) & mask) {
+	for (i = 0; i < host->sg_len; i++)
+	{
+		if (sg_dma_len(data->sg + i) & mask)
+		{
 			dma_unmap_sg(mmc_dev(host->mmc),
-					data->sg, data->sg_len,
-					(data->flags & MMC_DATA_WRITE)
-					? DMA_TO_DEVICE
-					: DMA_FROM_DEVICE);
+						 data->sg, data->sg_len,
+						 (data->flags & MMC_DATA_WRITE)
+						 ? DMA_TO_DEVICE
+						 : DMA_FROM_DEVICE);
 			return -1;
 		}
 	}
@@ -502,7 +572,9 @@ static void __init_or_module
 davinci_release_dma_channels(struct mmc_davinci_host *host)
 {
 	if (!host->use_dma)
+	{
 		return;
+	}
 
 	dma_release_channel(host->dma_tx);
 	dma_release_channel(host->dma_rx);
@@ -511,13 +583,17 @@ davinci_release_dma_channels(struct mmc_davinci_host *host)
 static int __init davinci_acquire_dma_channels(struct mmc_davinci_host *host)
 {
 	host->dma_tx = dma_request_chan(mmc_dev(host->mmc), "tx");
-	if (IS_ERR(host->dma_tx)) {
+
+	if (IS_ERR(host->dma_tx))
+	{
 		dev_err(mmc_dev(host->mmc), "Can't get dma_tx channel\n");
 		return PTR_ERR(host->dma_tx);
 	}
 
 	host->dma_rx = dma_request_chan(mmc_dev(host->mmc), "rx");
-	if (IS_ERR(host->dma_rx)) {
+
+	if (IS_ERR(host->dma_rx))
+	{
 		dev_err(mmc_dev(host->mmc), "Can't get dma_rx channel\n");
 		dma_release_channel(host->dma_tx);
 		return PTR_ERR(host->dma_rx);
@@ -536,10 +612,14 @@ mmc_davinci_prepare_data(struct mmc_davinci_host *host, struct mmc_request *req)
 	struct mmc_data *data = req->data;
 
 	if (host->version == MMC_CTLR_VERSION_2)
+	{
 		fifo_lev = (rw_threshold == 64) ? MMCFIFOCTL_FIFOLEV : 0;
+	}
 
 	host->data = data;
-	if (data == NULL) {
+
+	if (data == NULL)
+	{
 		host->data_dir = DAVINCI_MMC_DATADIR_NONE;
 		writel(0, host->base + DAVINCI_MMCBLEN);
 		writel(0, host->base + DAVINCI_MMCNBLK);
@@ -547,32 +627,38 @@ mmc_davinci_prepare_data(struct mmc_davinci_host *host, struct mmc_request *req)
 	}
 
 	dev_dbg(mmc_dev(host->mmc), "%s, %d blocks of %d bytes\n",
-		(data->flags & MMC_DATA_WRITE) ? "write" : "read",
-		data->blocks, data->blksz);
+			(data->flags & MMC_DATA_WRITE) ? "write" : "read",
+			data->blocks, data->blksz);
 	dev_dbg(mmc_dev(host->mmc), "  DTO %d cycles + %d ns\n",
-		data->timeout_clks, data->timeout_ns);
+			data->timeout_clks, data->timeout_ns);
 	timeout = data->timeout_clks +
-		(data->timeout_ns / host->ns_in_one_cycle);
+			  (data->timeout_ns / host->ns_in_one_cycle);
+
 	if (timeout > 0xffff)
+	{
 		timeout = 0xffff;
+	}
 
 	writel(timeout, host->base + DAVINCI_MMCTOD);
 	writel(data->blocks, host->base + DAVINCI_MMCNBLK);
 	writel(data->blksz, host->base + DAVINCI_MMCBLEN);
 
 	/* Configure the FIFO */
-	if (data->flags & MMC_DATA_WRITE) {
+	if (data->flags & MMC_DATA_WRITE)
+	{
 		host->data_dir = DAVINCI_MMC_DATADIR_WRITE;
 		writel(fifo_lev | MMCFIFOCTL_FIFODIR_WR | MMCFIFOCTL_FIFORST,
-			host->base + DAVINCI_MMCFIFOCTL);
+			   host->base + DAVINCI_MMCFIFOCTL);
 		writel(fifo_lev | MMCFIFOCTL_FIFODIR_WR,
-			host->base + DAVINCI_MMCFIFOCTL);
-	} else {
+			   host->base + DAVINCI_MMCFIFOCTL);
+	}
+	else
+	{
 		host->data_dir = DAVINCI_MMC_DATADIR_READ;
 		writel(fifo_lev | MMCFIFOCTL_FIFODIR_RD | MMCFIFOCTL_FIFORST,
-			host->base + DAVINCI_MMCFIFOCTL);
+			   host->base + DAVINCI_MMCFIFOCTL);
 		writel(fifo_lev | MMCFIFOCTL_FIFODIR_RD,
-			host->base + DAVINCI_MMCFIFOCTL);
+			   host->base + DAVINCI_MMCFIFOCTL);
 	}
 
 	host->buffer = NULL;
@@ -587,10 +673,13 @@ mmc_davinci_prepare_data(struct mmc_davinci_host *host, struct mmc_request *req)
 	 * used.  The occasional fallback to PIO should't hurt.
 	 */
 	if (host->use_dma && (host->bytes_left & (rw_threshold - 1)) == 0
-			&& mmc_davinci_start_dma_transfer(host, data) == 0) {
+		&& mmc_davinci_start_dma_transfer(host, data) == 0)
+	{
 		/* zero this to ensure we take no PIO paths */
 		host->bytes_left = 0;
-	} else {
+	}
+	else
+	{
 		/* Revert to CPU Copy */
 		host->sg_len = data->sg_len;
 		host->sg = host->data->sg;
@@ -607,13 +696,20 @@ static void mmc_davinci_request(struct mmc_host *mmc, struct mmc_request *req)
 	/* Card may still be sending BUSY after a previous operation,
 	 * typically some kind of write.  If so, we can't proceed yet.
 	 */
-	while (time_before(jiffies, timeout)) {
+	while (time_before(jiffies, timeout))
+	{
 		mmcst1  = readl(host->base + DAVINCI_MMCST1);
+
 		if (!(mmcst1 & MMCST1_BUSY))
+		{
 			break;
+		}
+
 		cpu_relax();
 	}
-	if (mmcst1 & MMCST1_BUSY) {
+
+	if (mmcst1 & MMCST1_BUSY)
+	{
 		dev_err(mmc_dev(host->mmc), "still BUSY? bad ... \n");
 		req->cmd->error = -ETIMEDOUT;
 		mmc_request_done(mmc, req);
@@ -626,29 +722,35 @@ static void mmc_davinci_request(struct mmc_host *mmc, struct mmc_request *req)
 }
 
 static unsigned int calculate_freq_for_card(struct mmc_davinci_host *host,
-	unsigned int mmc_req_freq)
+		unsigned int mmc_req_freq)
 {
 	unsigned int mmc_freq = 0, mmc_pclk = 0, mmc_push_pull_divisor = 0;
 
 	mmc_pclk = host->mmc_input_clk;
+
 	if (mmc_req_freq && mmc_pclk > (2 * mmc_req_freq))
 		mmc_push_pull_divisor = ((unsigned int)mmc_pclk
-				/ (2 * mmc_req_freq)) - 1;
+								 / (2 * mmc_req_freq)) - 1;
 	else
+	{
 		mmc_push_pull_divisor = 0;
+	}
 
 	mmc_freq = (unsigned int)mmc_pclk
-		/ (2 * (mmc_push_pull_divisor + 1));
+			   / (2 * (mmc_push_pull_divisor + 1));
 
 	if (mmc_freq > mmc_req_freq)
+	{
 		mmc_push_pull_divisor = mmc_push_pull_divisor + 1;
+	}
+
 	/* Convert ns to clock cycles */
 	if (mmc_req_freq <= 400000)
 		host->ns_in_one_cycle = (1000000) / (((mmc_pclk
-				/ (2 * (mmc_push_pull_divisor + 1)))/1000));
+											   / (2 * (mmc_push_pull_divisor + 1))) / 1000));
 	else
 		host->ns_in_one_cycle = (1000000) / (((mmc_pclk
-				/ (2 * (mmc_push_pull_divisor + 1)))/1000000));
+											   / (2 * (mmc_push_pull_divisor + 1))) / 1000000));
 
 	return mmc_push_pull_divisor;
 }
@@ -659,30 +761,37 @@ static void calculate_clk_divider(struct mmc_host *mmc, struct mmc_ios *ios)
 	unsigned int mmc_push_pull_freq = 0;
 	struct mmc_davinci_host *host = mmc_priv(mmc);
 
-	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN) {
+	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
+	{
 		u32 temp;
 
 		/* Ignoring the init clock value passed for fixing the inter
 		 * operability with different cards.
 		 */
 		open_drain_freq = ((unsigned int)mmc_pclk
-				/ (2 * MMCSD_INIT_CLOCK)) - 1;
+						   / (2 * MMCSD_INIT_CLOCK)) - 1;
 
 		if (open_drain_freq > 0xFF)
+		{
 			open_drain_freq = 0xFF;
+		}
 
 		temp = readl(host->base + DAVINCI_MMCCLK) & ~MMCCLK_CLKRT_MASK;
 		temp |= open_drain_freq;
 		writel(temp, host->base + DAVINCI_MMCCLK);
 
 		/* Convert ns to clock cycles */
-		host->ns_in_one_cycle = (1000000) / (MMCSD_INIT_CLOCK/1000);
-	} else {
+		host->ns_in_one_cycle = (1000000) / (MMCSD_INIT_CLOCK / 1000);
+	}
+	else
+	{
 		u32 temp;
 		mmc_push_pull_freq = calculate_freq_for_card(host, ios->clock);
 
 		if (mmc_push_pull_freq > 0xFF)
+		{
 			mmc_push_pull_freq = 0xFF;
+		}
 
 		temp = readl(host->base + DAVINCI_MMCCLK) & ~MMCCLK_CLKEN;
 		writel(temp, host->base + DAVINCI_MMCCLK);
@@ -706,73 +815,97 @@ static void mmc_davinci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	struct davinci_mmc_config *config = pdev->dev.platform_data;
 
 	dev_dbg(mmc_dev(host->mmc),
-		"clock %dHz busmode %d powermode %d Vdd %04x\n",
-		ios->clock, ios->bus_mode, ios->power_mode,
-		ios->vdd);
+			"clock %dHz busmode %d powermode %d Vdd %04x\n",
+			ios->clock, ios->bus_mode, ios->power_mode,
+			ios->vdd);
 
-	switch (ios->power_mode) {
-	case MMC_POWER_OFF:
-		if (config && config->set_power)
-			config->set_power(pdev->id, false);
-		break;
-	case MMC_POWER_UP:
-		if (config && config->set_power)
-			config->set_power(pdev->id, true);
-		break;
+	switch (ios->power_mode)
+	{
+		case MMC_POWER_OFF:
+			if (config && config->set_power)
+			{
+				config->set_power(pdev->id, false);
+			}
+
+			break;
+
+		case MMC_POWER_UP:
+			if (config && config->set_power)
+			{
+				config->set_power(pdev->id, true);
+			}
+
+			break;
 	}
 
-	switch (ios->bus_width) {
-	case MMC_BUS_WIDTH_8:
-		dev_dbg(mmc_dev(host->mmc), "Enabling 8 bit mode\n");
-		writel((readl(host->base + DAVINCI_MMCCTL) &
-			~MMCCTL_WIDTH_4_BIT) | MMCCTL_WIDTH_8_BIT,
-			host->base + DAVINCI_MMCCTL);
-		break;
-	case MMC_BUS_WIDTH_4:
-		dev_dbg(mmc_dev(host->mmc), "Enabling 4 bit mode\n");
-		if (host->version == MMC_CTLR_VERSION_2)
+	switch (ios->bus_width)
+	{
+		case MMC_BUS_WIDTH_8:
+			dev_dbg(mmc_dev(host->mmc), "Enabling 8 bit mode\n");
 			writel((readl(host->base + DAVINCI_MMCCTL) &
-				~MMCCTL_WIDTH_8_BIT) | MMCCTL_WIDTH_4_BIT,
-				host->base + DAVINCI_MMCCTL);
-		else
-			writel(readl(host->base + DAVINCI_MMCCTL) |
-				MMCCTL_WIDTH_4_BIT,
-				host->base + DAVINCI_MMCCTL);
-		break;
-	case MMC_BUS_WIDTH_1:
-		dev_dbg(mmc_dev(host->mmc), "Enabling 1 bit mode\n");
-		if (host->version == MMC_CTLR_VERSION_2)
-			writel(readl(host->base + DAVINCI_MMCCTL) &
-				~(MMCCTL_WIDTH_8_BIT | MMCCTL_WIDTH_4_BIT),
-				host->base + DAVINCI_MMCCTL);
-		else
-			writel(readl(host->base + DAVINCI_MMCCTL) &
-				~MMCCTL_WIDTH_4_BIT,
-				host->base + DAVINCI_MMCCTL);
-		break;
+					~MMCCTL_WIDTH_4_BIT) | MMCCTL_WIDTH_8_BIT,
+				   host->base + DAVINCI_MMCCTL);
+			break;
+
+		case MMC_BUS_WIDTH_4:
+			dev_dbg(mmc_dev(host->mmc), "Enabling 4 bit mode\n");
+
+			if (host->version == MMC_CTLR_VERSION_2)
+				writel((readl(host->base + DAVINCI_MMCCTL) &
+						~MMCCTL_WIDTH_8_BIT) | MMCCTL_WIDTH_4_BIT,
+					   host->base + DAVINCI_MMCCTL);
+			else
+				writel(readl(host->base + DAVINCI_MMCCTL) |
+					   MMCCTL_WIDTH_4_BIT,
+					   host->base + DAVINCI_MMCCTL);
+
+			break;
+
+		case MMC_BUS_WIDTH_1:
+			dev_dbg(mmc_dev(host->mmc), "Enabling 1 bit mode\n");
+
+			if (host->version == MMC_CTLR_VERSION_2)
+				writel(readl(host->base + DAVINCI_MMCCTL) &
+					   ~(MMCCTL_WIDTH_8_BIT | MMCCTL_WIDTH_4_BIT),
+					   host->base + DAVINCI_MMCCTL);
+			else
+				writel(readl(host->base + DAVINCI_MMCCTL) &
+					   ~MMCCTL_WIDTH_4_BIT,
+					   host->base + DAVINCI_MMCCTL);
+
+			break;
 	}
 
 	calculate_clk_divider(mmc, ios);
 
 	host->bus_mode = ios->bus_mode;
-	if (ios->power_mode == MMC_POWER_UP) {
+
+	if (ios->power_mode == MMC_POWER_UP)
+	{
 		unsigned long timeout = jiffies + msecs_to_jiffies(50);
 		bool lose = true;
 
 		/* Send clock cycles, poll completion */
 		writel(0, host->base + DAVINCI_MMCARGHL);
 		writel(MMCCMD_INITCK, host->base + DAVINCI_MMCCMD);
-		while (time_before(jiffies, timeout)) {
+
+		while (time_before(jiffies, timeout))
+		{
 			u32 tmp = readl(host->base + DAVINCI_MMCST0);
 
-			if (tmp & MMCST0_RSPDNE) {
+			if (tmp & MMCST0_RSPDNE)
+			{
 				lose = false;
 				break;
 			}
+
 			cpu_relax();
 		}
+
 		if (lose)
+		{
 			dev_warn(mmc_dev(host->mmc), "powerup timeout\n");
+		}
 	}
 
 	/* FIXME on power OFF, reset things ... */
@@ -783,59 +916,75 @@ mmc_davinci_xfer_done(struct mmc_davinci_host *host, struct mmc_data *data)
 {
 	host->data = NULL;
 
-	if (host->mmc->caps & MMC_CAP_SDIO_IRQ) {
+	if (host->mmc->caps & MMC_CAP_SDIO_IRQ)
+	{
 		/*
 		 * SDIO Interrupt Detection work-around as suggested by
 		 * Davinci Errata (TMS320DM355 Silicon Revision 1.1 Errata
 		 * 2.1.6): Signal SDIO interrupt only if it is enabled by core
 		 */
 		if (host->sdio_int && !(readl(host->base + DAVINCI_SDIOST0) &
-					SDIOST0_DAT1_HI)) {
+								SDIOST0_DAT1_HI))
+		{
 			writel(SDIOIST_IOINT, host->base + DAVINCI_SDIOIST);
 			mmc_signal_sdio_irq(host->mmc);
 		}
 	}
 
-	if (host->do_dma) {
+	if (host->do_dma)
+	{
 		davinci_abort_dma(host);
 
 		dma_unmap_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
-			     (data->flags & MMC_DATA_WRITE)
-			     ? DMA_TO_DEVICE
-			     : DMA_FROM_DEVICE);
+					 (data->flags & MMC_DATA_WRITE)
+					 ? DMA_TO_DEVICE
+					 : DMA_FROM_DEVICE);
 		host->do_dma = false;
 	}
+
 	host->data_dir = DAVINCI_MMC_DATADIR_NONE;
 
-	if (!data->stop || (host->cmd && host->cmd->error)) {
+	if (!data->stop || (host->cmd && host->cmd->error))
+	{
 		mmc_request_done(host->mmc, data->mrq);
 		writel(0, host->base + DAVINCI_MMCIM);
 		host->active_request = false;
-	} else
+	}
+	else
+	{
 		mmc_davinci_start_command(host, data->stop);
+	}
 }
 
 static void mmc_davinci_cmd_done(struct mmc_davinci_host *host,
-				 struct mmc_command *cmd)
+								 struct mmc_command *cmd)
 {
 	host->cmd = NULL;
 
-	if (cmd->flags & MMC_RSP_PRESENT) {
-		if (cmd->flags & MMC_RSP_136) {
+	if (cmd->flags & MMC_RSP_PRESENT)
+	{
+		if (cmd->flags & MMC_RSP_136)
+		{
 			/* response type 2 */
 			cmd->resp[3] = readl(host->base + DAVINCI_MMCRSP01);
 			cmd->resp[2] = readl(host->base + DAVINCI_MMCRSP23);
 			cmd->resp[1] = readl(host->base + DAVINCI_MMCRSP45);
 			cmd->resp[0] = readl(host->base + DAVINCI_MMCRSP67);
-		} else {
+		}
+		else
+		{
 			/* response types 1, 1b, 3, 4, 5, 6 */
 			cmd->resp[0] = readl(host->base + DAVINCI_MMCRSP67);
 		}
 	}
 
-	if (host->data == NULL || cmd->error) {
+	if (host->data == NULL || cmd->error)
+	{
 		if (cmd->error == -ETIMEDOUT)
+		{
 			cmd->mrq->cmd->retries = 0;
+		}
+
 		mmc_request_done(host->mmc, cmd->mrq);
 		writel(0, host->base + DAVINCI_MMCIM);
 		host->active_request = false;
@@ -843,15 +992,20 @@ static void mmc_davinci_cmd_done(struct mmc_davinci_host *host,
 }
 
 static inline void mmc_davinci_reset_ctrl(struct mmc_davinci_host *host,
-								int val)
+		int val)
 {
 	u32 temp;
 
 	temp = readl(host->base + DAVINCI_MMCCTL);
+
 	if (val)	/* reset */
+	{
 		temp |= MMCCTL_CMDRST | MMCCTL_DATRST;
+	}
 	else		/* enable */
+	{
 		temp &= ~(MMCCTL_CMDRST | MMCCTL_DATRST);
+	}
 
 	writel(temp, host->base + DAVINCI_MMCCTL);
 	udelay(10);
@@ -870,12 +1024,15 @@ static irqreturn_t mmc_davinci_sdio_irq(int irq, void *dev_id)
 	unsigned int status;
 
 	status = readl(host->base + DAVINCI_SDIOIST);
-	if (status & SDIOIST_IOINT) {
+
+	if (status & SDIOIST_IOINT)
+	{
 		dev_dbg(mmc_dev(host->mmc),
-			"SDIO interrupt status %x\n", status);
+				"SDIO interrupt status %x\n", status);
 		writel(status | SDIOIST_IOINT, host->base + DAVINCI_SDIOIST);
 		mmc_signal_sdio_irq(host->mmc);
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -887,10 +1044,11 @@ static irqreturn_t mmc_davinci_irq(int irq, void *dev_id)
 	int end_transfer = 0;
 	struct mmc_data *data = host->data;
 
-	if (host->cmd == NULL && host->data == NULL) {
+	if (host->cmd == NULL && host->data == NULL)
+	{
 		status = readl(host->base + DAVINCI_MMCST0);
 		dev_dbg(mmc_dev(host->mmc),
-			"Spurious interrupt 0x%04x\n", status);
+				"Spurious interrupt 0x%04x\n", status);
 		/* Disable the interrupt from mmcsd */
 		writel(0, host->base + DAVINCI_MMCIM);
 		return IRQ_NONE;
@@ -906,7 +1064,8 @@ static irqreturn_t mmc_davinci_irq(int irq, void *dev_id)
 	 * by read. So, it is not unbouned loop even in the case of
 	 * non-dma.
 	 */
-	if (host->bytes_left && (status & (MMCST0_DXRDY | MMCST0_DRRDY))) {
+	if (host->bytes_left && (status & (MMCST0_DXRDY | MMCST0_DRRDY)))
+	{
 		unsigned long im_val;
 
 		/*
@@ -919,12 +1078,14 @@ static irqreturn_t mmc_davinci_irq(int irq, void *dev_id)
 		im_val = readl(host->base + DAVINCI_MMCIM);
 		writel(0, host->base + DAVINCI_MMCIM);
 
-		do {
+		do
+		{
 			davinci_fifo_data_trans(host, rw_threshold);
 			status = readl(host->base + DAVINCI_MMCST0);
 			qstatus |= status;
-		} while (host->bytes_left &&
-			 (status & (MMCST0_DXRDY | MMCST0_DRRDY)));
+		}
+		while (host->bytes_left &&
+			   (status & (MMCST0_DXRDY | MMCST0_DRRDY)));
 
 		/*
 		 * If an interrupt is pending, it is assumed it will fire when
@@ -935,36 +1096,44 @@ static irqreturn_t mmc_davinci_irq(int irq, void *dev_id)
 		writel(im_val, host->base + DAVINCI_MMCIM);
 	}
 
-	if (qstatus & MMCST0_DATDNE) {
+	if (qstatus & MMCST0_DATDNE)
+	{
 		/* All blocks sent/received, and CRC checks passed */
-		if (data != NULL) {
-			if ((host->do_dma == 0) && (host->bytes_left > 0)) {
+		if (data != NULL)
+		{
+			if ((host->do_dma == 0) && (host->bytes_left > 0))
+			{
 				/* if datasize < rw_threshold
 				 * no RX ints are generated
 				 */
 				davinci_fifo_data_trans(host, host->bytes_left);
 			}
+
 			end_transfer = 1;
 			data->bytes_xfered = data->blocks * data->blksz;
-		} else {
+		}
+		else
+		{
 			dev_err(mmc_dev(host->mmc),
 					"DATDNE with no host->data\n");
 		}
 	}
 
-	if (qstatus & MMCST0_TOUTRD) {
+	if (qstatus & MMCST0_TOUTRD)
+	{
 		/* Read data timeout */
 		data->error = -ETIMEDOUT;
 		end_transfer = 1;
 
 		dev_dbg(mmc_dev(host->mmc),
-			"read data timeout, status %x\n",
-			qstatus);
+				"read data timeout, status %x\n",
+				qstatus);
 
 		davinci_abort_data(host, data);
 	}
 
-	if (qstatus & (MMCST0_CRCWR | MMCST0_CRCRD)) {
+	if (qstatus & (MMCST0_CRCWR | MMCST0_CRCRD))
+	{
 		/* Data CRC error */
 		data->error = -EILSEQ;
 		end_transfer = 1;
@@ -975,52 +1144,73 @@ static irqreturn_t mmc_davinci_irq(int irq, void *dev_id)
 		 * case and the two three-bit patterns in various SD specs
 		 * (101, 010) aren't part of it ...
 		 */
-		if (qstatus & MMCST0_CRCWR) {
+		if (qstatus & MMCST0_CRCWR)
+		{
 			u32 temp = readb(host->base + DAVINCI_MMCDRSP);
 
 			if (temp == 0x9f)
+			{
 				data->error = -ETIMEDOUT;
+			}
 		}
+
 		dev_dbg(mmc_dev(host->mmc), "data %s %s error\n",
-			(qstatus & MMCST0_CRCWR) ? "write" : "read",
-			(data->error == -ETIMEDOUT) ? "timeout" : "CRC");
+				(qstatus & MMCST0_CRCWR) ? "write" : "read",
+				(data->error == -ETIMEDOUT) ? "timeout" : "CRC");
 
 		davinci_abort_data(host, data);
 	}
 
-	if (qstatus & MMCST0_TOUTRS) {
+	if (qstatus & MMCST0_TOUTRS)
+	{
 		/* Command timeout */
-		if (host->cmd) {
+		if (host->cmd)
+		{
 			dev_dbg(mmc_dev(host->mmc),
-				"CMD%d timeout, status %x\n",
-				host->cmd->opcode, qstatus);
+					"CMD%d timeout, status %x\n",
+					host->cmd->opcode, qstatus);
 			host->cmd->error = -ETIMEDOUT;
-			if (data) {
+
+			if (data)
+			{
 				end_transfer = 1;
 				davinci_abort_data(host, data);
-			} else
+			}
+			else
+			{
 				end_command = 1;
+			}
 		}
 	}
 
-	if (qstatus & MMCST0_CRCRS) {
+	if (qstatus & MMCST0_CRCRS)
+	{
 		/* Command CRC error */
 		dev_dbg(mmc_dev(host->mmc), "Command CRC error\n");
-		if (host->cmd) {
+
+		if (host->cmd)
+		{
 			host->cmd->error = -EILSEQ;
 			end_command = 1;
 		}
 	}
 
-	if (qstatus & MMCST0_RSPDNE) {
+	if (qstatus & MMCST0_RSPDNE)
+	{
 		/* End of command phase */
 		end_command = (int) host->cmd;
 	}
 
 	if (end_command)
+	{
 		mmc_davinci_cmd_done(host, host->cmd);
+	}
+
 	if (end_transfer)
+	{
 		mmc_davinci_xfer_done(host, data);
+	}
+
 	return IRQ_HANDLED;
 }
 
@@ -1030,7 +1220,10 @@ static int mmc_davinci_get_cd(struct mmc_host *mmc)
 	struct davinci_mmc_config *config = pdev->dev.platform_data;
 
 	if (!config || !config->get_cd)
+	{
 		return -ENOSYS;
+	}
+
 	return config->get_cd(pdev->id);
 }
 
@@ -1040,7 +1233,10 @@ static int mmc_davinci_get_ro(struct mmc_host *mmc)
 	struct davinci_mmc_config *config = pdev->dev.platform_data;
 
 	if (!config || !config->get_ro)
+	{
 		return -ENOSYS;
+	}
+
 	return config->get_ro(pdev->id);
 }
 
@@ -1048,23 +1244,30 @@ static void mmc_davinci_enable_sdio_irq(struct mmc_host *mmc, int enable)
 {
 	struct mmc_davinci_host *host = mmc_priv(mmc);
 
-	if (enable) {
-		if (!(readl(host->base + DAVINCI_SDIOST0) & SDIOST0_DAT1_HI)) {
+	if (enable)
+	{
+		if (!(readl(host->base + DAVINCI_SDIOST0) & SDIOST0_DAT1_HI))
+		{
 			writel(SDIOIST_IOINT, host->base + DAVINCI_SDIOIST);
 			mmc_signal_sdio_irq(host->mmc);
-		} else {
+		}
+		else
+		{
 			host->sdio_int = true;
 			writel(readl(host->base + DAVINCI_SDIOIEN) |
-			       SDIOIEN_IOINTEN, host->base + DAVINCI_SDIOIEN);
+				   SDIOIEN_IOINTEN, host->base + DAVINCI_SDIOIEN);
 		}
-	} else {
+	}
+	else
+	{
 		host->sdio_int = false;
 		writel(readl(host->base + DAVINCI_SDIOIEN) & ~SDIOIEN_IOINTEN,
-		       host->base + DAVINCI_SDIOIEN);
+			   host->base + DAVINCI_SDIOIEN);
 	}
 }
 
-static struct mmc_host_ops mmc_davinci_ops = {
+static struct mmc_host_ops mmc_davinci_ops =
+{
 	.request	= mmc_davinci_request,
 	.set_ios	= mmc_davinci_set_ios,
 	.get_cd		= mmc_davinci_get_cd,
@@ -1076,7 +1279,7 @@ static struct mmc_host_ops mmc_davinci_ops = {
 
 #ifdef CONFIG_CPU_FREQ
 static int mmc_davinci_cpufreq_transition(struct notifier_block *nb,
-				     unsigned long val, void *data)
+		unsigned long val, void *data)
 {
 	struct mmc_davinci_host *host;
 	unsigned int mmc_pclk;
@@ -1087,7 +1290,8 @@ static int mmc_davinci_cpufreq_transition(struct notifier_block *nb,
 	mmc = host->mmc;
 	mmc_pclk = clk_get_rate(host->clk);
 
-	if (val == CPUFREQ_POSTCHANGE) {
+	if (val == CPUFREQ_POSTCHANGE)
+	{
 		spin_lock_irqsave(&mmc->lock, flags);
 		host->mmc_input_clk = mmc_pclk;
 		calculate_clk_divider(mmc, &mmc->ios);
@@ -1102,13 +1306,13 @@ static inline int mmc_davinci_cpufreq_register(struct mmc_davinci_host *host)
 	host->freq_transition.notifier_call = mmc_davinci_cpufreq_transition;
 
 	return cpufreq_register_notifier(&host->freq_transition,
-					 CPUFREQ_TRANSITION_NOTIFIER);
+									 CPUFREQ_TRANSITION_NOTIFIER);
 }
 
 static inline void mmc_davinci_cpufreq_deregister(struct mmc_davinci_host *host)
 {
 	cpufreq_unregister_notifier(&host->freq_transition,
-				    CPUFREQ_TRANSITION_NOTIFIER);
+								CPUFREQ_TRANSITION_NOTIFIER);
 }
 #else
 static inline int mmc_davinci_cpufreq_register(struct mmc_davinci_host *host)
@@ -1134,7 +1338,8 @@ static void __init init_mmcsd_host(struct mmc_davinci_host *host)
 	mmc_davinci_reset_ctrl(host, 0);
 }
 
-static const struct platform_device_id davinci_mmc_devtype[] = {
+static const struct platform_device_id davinci_mmc_devtype[] =
+{
 	{
 		.name	= "dm6441-mmc",
 		.driver_data = MMC_CTLR_VERSION_1,
@@ -1146,7 +1351,8 @@ static const struct platform_device_id davinci_mmc_devtype[] = {
 };
 MODULE_DEVICE_TABLE(platform, davinci_mmc_devtype);
 
-static const struct of_device_id davinci_mmc_dt_ids[] = {
+static const struct of_device_id davinci_mmc_dt_ids[] =
+{
 	{
 		.compatible = "ti,dm6441-mmc",
 		.data = &davinci_mmc_devtype[MMC_CTLR_VERSION_1],
@@ -1160,7 +1366,7 @@ static const struct of_device_id davinci_mmc_dt_ids[] = {
 MODULE_DEVICE_TABLE(of, davinci_mmc_dt_ids);
 
 static struct davinci_mmc_config
-	*mmc_parse_pdata(struct platform_device *pdev)
+*mmc_parse_pdata(struct platform_device *pdev)
 {
 	struct device_node *np;
 	struct davinci_mmc_config *pdata = pdev->dev.platform_data;
@@ -1169,32 +1375,45 @@ static struct davinci_mmc_config
 	u32 data;
 
 	np = pdev->dev.of_node;
+
 	if (!np)
+	{
 		return pdata;
+	}
 
 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "Failed to allocate memory for struct davinci_mmc_config\n");
 		goto nodata;
 	}
 
 	if (match)
+	{
 		pdev->id_entry = match->data;
+	}
 
 	if (of_property_read_u32(np, "max-frequency", &pdata->max_freq))
+	{
 		dev_info(&pdev->dev, "'max-frequency' property not specified, defaulting to 25MHz\n");
+	}
 
 	of_property_read_u32(np, "bus-width", &data);
-	switch (data) {
-	case 1:
-	case 4:
-	case 8:
-		pdata->wires = data;
-		break;
-	default:
-		pdata->wires = 1;
-		dev_info(&pdev->dev, "Unsupported buswidth, defaulting to 1 bit\n");
+
+	switch (data)
+	{
+		case 1:
+		case 4:
+		case 8:
+			pdata->wires = data;
+			break;
+
+		default:
+			pdata->wires = 1;
+			dev_info(&pdev->dev, "Unsupported buswidth, defaulting to 1 bit\n");
 	}
+
 nodata:
 	return pdata;
 }
@@ -1210,67 +1429,100 @@ static int __init davinci_mmcsd_probe(struct platform_device *pdev)
 	const struct platform_device_id *id_entry;
 
 	pdata = mmc_parse_pdata(pdev);
-	if (pdata == NULL) {
+
+	if (pdata == NULL)
+	{
 		dev_err(&pdev->dev, "Couldn't get platform data\n");
 		return -ENOENT;
 	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!r)
+	{
 		return -ENODEV;
+	}
+
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	mem_size = resource_size(r);
 	mem = devm_request_mem_region(&pdev->dev, r->start, mem_size,
-				      pdev->name);
+								  pdev->name);
+
 	if (!mem)
+	{
 		return -EBUSY;
+	}
 
 	mmc = mmc_alloc_host(sizeof(struct mmc_davinci_host), &pdev->dev);
+
 	if (!mmc)
+	{
 		return -ENOMEM;
+	}
 
 	host = mmc_priv(mmc);
 	host->mmc = mmc;	/* Important */
 
 	host->mem_res = mem;
 	host->base = devm_ioremap(&pdev->dev, mem->start, mem_size);
-	if (!host->base) {
+
+	if (!host->base)
+	{
 		ret = -ENOMEM;
 		goto ioremap_fail;
 	}
 
 	host->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(host->clk)) {
+
+	if (IS_ERR(host->clk))
+	{
 		ret = PTR_ERR(host->clk);
 		goto clk_get_fail;
 	}
+
 	ret = clk_prepare_enable(host->clk);
+
 	if (ret)
+	{
 		goto clk_prepare_enable_fail;
+	}
 
 	host->mmc_input_clk = clk_get_rate(host->clk);
 
 	init_mmcsd_host(host);
 
 	if (pdata->nr_sg)
+	{
 		host->nr_sg = pdata->nr_sg - 1;
+	}
 
 	if (host->nr_sg > MAX_NR_SG || !host->nr_sg)
+	{
 		host->nr_sg = MAX_NR_SG;
+	}
 
 	host->use_dma = use_dma;
 	host->mmc_irq = irq;
 	host->sdio_irq = platform_get_irq(pdev, 1);
 
-	if (host->use_dma) {
+	if (host->use_dma)
+	{
 		ret = davinci_acquire_dma_channels(host);
+
 		if (ret == -EPROBE_DEFER)
+		{
 			goto dma_probe_defer;
+		}
 		else if (ret)
+		{
 			host->use_dma = 0;
+		}
 	}
 
 	/* REVISIT:  someday, support IRQ-driven card detection.  */
@@ -1278,22 +1530,36 @@ static int __init davinci_mmcsd_probe(struct platform_device *pdev)
 	mmc->caps |= MMC_CAP_WAIT_WHILE_BUSY;
 
 	if (pdata && (pdata->wires == 4 || pdata->wires == 0))
+	{
 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+	}
 
 	if (pdata && (pdata->wires == 8))
+	{
 		mmc->caps |= (MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA);
+	}
 
 	id_entry = platform_get_device_id(pdev);
+
 	if (id_entry)
+	{
 		host->version = id_entry->driver_data;
+	}
 
 	mmc->ops = &mmc_davinci_ops;
 	mmc->f_min = 312500;
 	mmc->f_max = 25000000;
+
 	if (pdata && pdata->max_freq)
+	{
 		mmc->f_max = pdata->max_freq;
+	}
+
 	if (pdata && pdata->caps)
+	{
 		mmc->caps |= pdata->caps;
+	}
+
 	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
 
 	/* With no iommu coalescing pages, each phys_seg is a hw_seg.
@@ -1318,33 +1584,45 @@ static int __init davinci_mmcsd_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, host);
 
 	ret = mmc_davinci_cpufreq_register(host);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register cpufreq\n");
 		goto cpu_freq_fail;
 	}
 
 	ret = mmc_add_host(mmc);
+
 	if (ret < 0)
+	{
 		goto mmc_add_host_fail;
+	}
 
 	ret = devm_request_irq(&pdev->dev, irq, mmc_davinci_irq, 0,
-			       mmc_hostname(mmc), host);
-	if (ret)
-		goto request_irq_fail;
+						   mmc_hostname(mmc), host);
 
-	if (host->sdio_irq >= 0) {
+	if (ret)
+	{
+		goto request_irq_fail;
+	}
+
+	if (host->sdio_irq >= 0)
+	{
 		ret = devm_request_irq(&pdev->dev, host->sdio_irq,
-				       mmc_davinci_sdio_irq, 0,
-				       mmc_hostname(mmc), host);
+							   mmc_davinci_sdio_irq, 0,
+							   mmc_hostname(mmc), host);
+
 		if (!ret)
+		{
 			mmc->caps |= MMC_CAP_SDIO_IRQ;
+		}
 	}
 
 	rename_region(mem, mmc_hostname(mmc));
 
 	dev_info(mmc_dev(host->mmc), "Using %s, %d-bit mode\n",
-		host->use_dma ? "DMA" : "PIO",
-		(mmc->caps & MMC_CAP_4_BIT_DATA) ? 4 : 1);
+			 host->use_dma ? "DMA" : "PIO",
+			 (mmc->caps & MMC_CAP_4_BIT_DATA) ? 4 : 1);
 
 	return 0;
 
@@ -1401,7 +1679,8 @@ static int davinci_mmcsd_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops davinci_mmcsd_pm = {
+static const struct dev_pm_ops davinci_mmcsd_pm =
+{
 	.suspend        = davinci_mmcsd_suspend,
 	.resume         = davinci_mmcsd_resume,
 };
@@ -1411,7 +1690,8 @@ static const struct dev_pm_ops davinci_mmcsd_pm = {
 #define davinci_mmcsd_pm_ops NULL
 #endif
 
-static struct platform_driver davinci_mmcsd_driver = {
+static struct platform_driver davinci_mmcsd_driver =
+{
 	.driver		= {
 		.name	= "davinci_mmc",
 		.pm	= davinci_mmcsd_pm_ops,

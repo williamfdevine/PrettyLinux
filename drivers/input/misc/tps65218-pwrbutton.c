@@ -27,25 +27,29 @@
 #include <linux/regmap.h>
 #include <linux/slab.h>
 
-struct tps6521x_data {
+struct tps6521x_data
+{
 	unsigned int reg_status;
 	unsigned int pb_mask;
 	const char *name;
 };
 
-static const struct tps6521x_data tps65217_data = {
+static const struct tps6521x_data tps65217_data =
+{
 	.reg_status = TPS65217_REG_STATUS,
 	.pb_mask = TPS65217_STATUS_PB,
 	.name = "tps65217_pwrbutton",
 };
 
-static const struct tps6521x_data tps65218_data = {
+static const struct tps6521x_data tps65218_data =
+{
 	.reg_status = TPS65218_REG_STATUS,
 	.pb_mask = TPS65218_STATUS_PB_STATE,
 	.name = "tps65218_pwrbutton",
 };
 
-struct tps6521x_pwrbutton {
+struct tps6521x_pwrbutton
+{
 	struct device *dev;
 	struct regmap *regmap;
 	struct input_dev *idev;
@@ -53,7 +57,8 @@ struct tps6521x_pwrbutton {
 	char phys[32];
 };
 
-static const struct of_device_id of_tps6521x_pb_match[] = {
+static const struct of_device_id of_tps6521x_pb_match[] =
+{
 	{ .compatible = "ti,tps65217-pwrbutton", .data = &tps65217_data },
 	{ .compatible = "ti,tps65218-pwrbutton", .data = &tps65218_data },
 	{ },
@@ -68,15 +73,20 @@ static irqreturn_t tps6521x_pb_irq(int irq, void *_pwr)
 	int error;
 
 	error = regmap_read(pwr->regmap, tps_data->reg_status, &reg);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(pwr->dev, "can't read register: %d\n", error);
 		goto out;
 	}
 
-	if (reg & tps_data->pb_mask) {
+	if (reg & tps_data->pb_mask)
+	{
 		input_report_key(pwr->idev, KEY_POWER, 1);
 		pm_wakeup_event(pwr->dev, 0);
-	} else {
+	}
+	else
+	{
 		input_report_key(pwr->idev, KEY_POWER, 0);
 	}
 
@@ -96,22 +106,31 @@ static int tps6521x_pb_probe(struct platform_device *pdev)
 	int irq;
 
 	match = of_match_node(of_tps6521x_pb_match, pdev->dev.of_node);
+
 	if (!match)
+	{
 		return -ENXIO;
+	}
 
 	pwr = devm_kzalloc(dev, sizeof(*pwr), GFP_KERNEL);
+
 	if (!pwr)
+	{
 		return -ENOMEM;
+	}
 
 	pwr->data = match->data;
 
 	idev = devm_input_allocate_device(dev);
+
 	if (!idev)
+	{
 		return -ENOMEM;
+	}
 
 	idev->name = pwr->data->name;
 	snprintf(pwr->phys, sizeof(pwr->phys), "%s/input0",
-		pwr->data->name);
+			 pwr->data->name);
 	idev->phys = pwr->phys;
 	idev->dev.parent = dev;
 	idev->id.bustype = BUS_I2C;
@@ -125,24 +144,30 @@ static int tps6521x_pb_probe(struct platform_device *pdev)
 	device_init_wakeup(dev, true);
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(dev, "No IRQ resource!\n");
 		return -EINVAL;
 	}
 
 	error = devm_request_threaded_irq(dev, irq, NULL, tps6521x_pb_irq,
-					  IRQF_TRIGGER_RISING |
-						IRQF_TRIGGER_FALLING |
-						IRQF_ONESHOT,
-					  pwr->data->name, pwr);
-	if (error) {
+									  IRQF_TRIGGER_RISING |
+									  IRQF_TRIGGER_FALLING |
+									  IRQF_ONESHOT,
+									  pwr->data->name, pwr);
+
+	if (error)
+	{
 		dev_err(dev, "failed to request IRQ #%d: %d\n",
-			irq, error);
+				irq, error);
 		return error;
 	}
 
-	error= input_register_device(idev);
-	if (error) {
+	error = input_register_device(idev);
+
+	if (error)
+	{
 		dev_err(dev, "Can't register power button: %d\n", error);
 		return error;
 	}
@@ -150,7 +175,8 @@ static int tps6521x_pb_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver tps6521x_pb_driver = {
+static struct platform_driver tps6521x_pb_driver =
+{
 	.probe	= tps6521x_pb_probe,
 	.driver	= {
 		.name	= "tps6521x_pwrbutton",

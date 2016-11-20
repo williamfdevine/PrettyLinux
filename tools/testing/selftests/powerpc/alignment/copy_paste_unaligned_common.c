@@ -37,7 +37,9 @@ void signal_action_handler(int signal_num, siginfo_t *info, void *ptr)
 	 * mask because the compiler assigns the register at RB.
 	 */
 	if ((*pc & instruction_mask) == expected_instruction)
-		_exit(0); /* We hit the right instruction */
+	{
+		_exit(0);    /* We hit the right instruction */
+	}
 
 	_exit(1);
 }

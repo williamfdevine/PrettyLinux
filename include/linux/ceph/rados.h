@@ -11,12 +11,13 @@
 /*
  * fs id
  */
-struct ceph_fsid {
+struct ceph_fsid
+{
 	unsigned char fsid[16];
 };
 
 static inline int ceph_fsid_compare(const struct ceph_fsid *a,
-				    const struct ceph_fsid *b)
+									const struct ceph_fsid *b)
 {
 	return memcmp(a, b, sizeof(*a));
 }
@@ -29,7 +30,8 @@ typedef __le64 ceph_snapid_t;
 #define CEPH_NOSNAP  ((__u64)(-2))  /* "head", "live" revision */
 #define CEPH_MAXSNAP ((__u64)(-3))  /* largest valid snapid */
 
-struct ceph_timespec {
+struct ceph_timespec
+{
 	__le32 tv_sec;
 	__le32 tv_nsec;
 } __attribute__ ((packed));
@@ -56,7 +58,8 @@ struct ceph_timespec {
  * placement group.
  * we encode this into one __le64.
  */
-struct ceph_pg_v1 {
+struct ceph_pg_v1
+{
 	__le16 preferred; /* preferred primary osd */
 	__le16 ps;        /* placement seed */
 	__le32 pool;      /* object pool */
@@ -97,15 +100,20 @@ struct ceph_pg_v1 {
 static inline int ceph_stable_mod(int x, int b, int bmask)
 {
 	if ((x & bmask) < b)
+	{
 		return x & bmask;
+	}
 	else
+	{
 		return x & (bmask >> 1);
+	}
 }
 
 /*
  * object layout - how a given object should be stored.
  */
-struct ceph_object_layout {
+struct ceph_object_layout
+{
 	struct ceph_pg_v1 ol_pgid;   /* raw pg, with _full_ ps precision. */
 	__le32 ol_stripe_unit;    /* for per-object parity, if any */
 } __attribute__ ((packed));
@@ -113,7 +121,8 @@ struct ceph_object_layout {
 /*
  * compound epoch+version, used by storage layer to serialize mutations
  */
-struct ceph_eversion {
+struct ceph_eversion
+{
 	__le64 version;
 	__le32 epoch;
 } __attribute__ ((packed));
@@ -199,46 +208,46 @@ extern const char *ceph_osd_state_name(int s);
 	f(READ,		__CEPH_OSD_OP(RD, DATA, 1),	"read")		    \
 	f(STAT,		__CEPH_OSD_OP(RD, DATA, 2),	"stat")		    \
 	f(MAPEXT,	__CEPH_OSD_OP(RD, DATA, 3),	"mapext")	    \
-									    \
+	\
 	/* fancy read */						    \
 	f(MASKTRUNC,	__CEPH_OSD_OP(RD, DATA, 4),	"masktrunc")	    \
 	f(SPARSE_READ,	__CEPH_OSD_OP(RD, DATA, 5),	"sparse-read")	    \
-									    \
+	\
 	f(NOTIFY,	__CEPH_OSD_OP(RD, DATA, 6),	"notify")	    \
 	f(NOTIFY_ACK,	__CEPH_OSD_OP(RD, DATA, 7),	"notify-ack")	    \
-									    \
+	\
 	/* versioning */						    \
 	f(ASSERT_VER,	__CEPH_OSD_OP(RD, DATA, 8),	"assert-version")   \
-									    \
+	\
 	f(LIST_WATCHERS, __CEPH_OSD_OP(RD, DATA, 9),	"list-watchers")    \
-									    \
+	\
 	f(LIST_SNAPS,	__CEPH_OSD_OP(RD, DATA, 10),	"list-snaps")	    \
-									    \
+	\
 	/* sync */							    \
 	f(SYNC_READ,	__CEPH_OSD_OP(RD, DATA, 11),	"sync_read")	    \
-									    \
+	\
 	/* write */							    \
 	f(WRITE,	__CEPH_OSD_OP(WR, DATA, 1),	"write")	    \
 	f(WRITEFULL,	__CEPH_OSD_OP(WR, DATA, 2),	"writefull")	    \
 	f(TRUNCATE,	__CEPH_OSD_OP(WR, DATA, 3),	"truncate")	    \
 	f(ZERO,		__CEPH_OSD_OP(WR, DATA, 4),	"zero")		    \
 	f(DELETE,	__CEPH_OSD_OP(WR, DATA, 5),	"delete")	    \
-									    \
+	\
 	/* fancy write */						    \
 	f(APPEND,	__CEPH_OSD_OP(WR, DATA, 6),	"append")	    \
 	f(STARTSYNC,	__CEPH_OSD_OP(WR, DATA, 7),	"startsync")	    \
 	f(SETTRUNC,	__CEPH_OSD_OP(WR, DATA, 8),	"settrunc")	    \
 	f(TRIMTRUNC,	__CEPH_OSD_OP(WR, DATA, 9),	"trimtrunc")	    \
-									    \
+	\
 	f(TMAPUP,	__CEPH_OSD_OP(RMW, DATA, 10),	"tmapup")	    \
 	f(TMAPPUT,	__CEPH_OSD_OP(WR, DATA, 11),	"tmapput")	    \
 	f(TMAPGET,	__CEPH_OSD_OP(RD, DATA, 12),	"tmapget")	    \
-									    \
+	\
 	f(CREATE,	__CEPH_OSD_OP(WR, DATA, 13),	"create")	    \
 	f(ROLLBACK,	__CEPH_OSD_OP(WR, DATA, 14),	"rollback")	    \
-									    \
+	\
 	f(WATCH,	__CEPH_OSD_OP(WR, DATA, 15),	"watch")	    \
-									    \
+	\
 	/* omap */							    \
 	f(OMAPGETKEYS,	__CEPH_OSD_OP(RD, DATA, 17),	"omap-get-keys")    \
 	f(OMAPGETVALS,	__CEPH_OSD_OP(RD, DATA, 18),	"omap-get-vals")    \
@@ -249,7 +258,7 @@ extern const char *ceph_osd_state_name(int s);
 	f(OMAPCLEAR,	__CEPH_OSD_OP(WR, DATA, 23),	"omap-clear")	    \
 	f(OMAPRMKEYS,	__CEPH_OSD_OP(WR, DATA, 24),	"omap-rm-keys")	    \
 	f(OMAP_CMP,	__CEPH_OSD_OP(RD, DATA, 25),	"omap-cmp")	    \
-									    \
+	\
 	/* tiering */							    \
 	f(COPY_FROM,	__CEPH_OSD_OP(WR, DATA, 26),	"copy-from")	    \
 	f(COPY_GET_CLASSIC, __CEPH_OSD_OP(RD, DATA, 27), "copy-get-classic") \
@@ -259,30 +268,30 @@ extern const char *ceph_osd_state_name(int s);
 	f(CACHE_FLUSH,	__CEPH_OSD_OP(CACHE, DATA, 31),	"cache-flush")	    \
 	f(CACHE_EVICT,	__CEPH_OSD_OP(CACHE, DATA, 32),	"cache-evict")	    \
 	f(CACHE_TRY_FLUSH, __CEPH_OSD_OP(CACHE, DATA, 33), "cache-try-flush") \
-									    \
+	\
 	/* convert tmap to omap */					    \
 	f(TMAP2OMAP,	__CEPH_OSD_OP(RMW, DATA, 34),	"tmap2omap")	    \
-									    \
+	\
 	/* hints */							    \
 	f(SETALLOCHINT,	__CEPH_OSD_OP(WR, DATA, 35),	"set-alloc-hint")   \
-									    \
+	\
 	/** multi **/							    \
 	f(CLONERANGE,	__CEPH_OSD_OP(WR, MULTI, 1),	"clonerange")	    \
 	f(ASSERT_SRC_VERSION, __CEPH_OSD_OP(RD, MULTI, 2), "assert-src-version") \
 	f(SRC_CMPXATTR,	__CEPH_OSD_OP(RD, MULTI, 3),	"src-cmpxattr")	    \
-									    \
+	\
 	/** attrs **/							    \
 	/* read */							    \
 	f(GETXATTR,	__CEPH_OSD_OP(RD, ATTR, 1),	"getxattr")	    \
 	f(GETXATTRS,	__CEPH_OSD_OP(RD, ATTR, 2),	"getxattrs")	    \
 	f(CMPXATTR,	__CEPH_OSD_OP(RD, ATTR, 3),	"cmpxattr")	    \
-									    \
+	\
 	/* write */							    \
 	f(SETXATTR,	__CEPH_OSD_OP(WR, ATTR, 1),	"setxattr")	    \
 	f(SETXATTRS,	__CEPH_OSD_OP(WR, ATTR, 2),	"setxattrs")	    \
 	f(RESETXATTRS,	__CEPH_OSD_OP(WR, ATTR, 3),	"resetxattrs")	    \
 	f(RMXATTR,	__CEPH_OSD_OP(WR, ATTR, 4),	"rmxattr")	    \
-									    \
+	\
 	/** subop **/							    \
 	f(PULL,		__CEPH_OSD_OP1(SUB, 1),		"pull")		    \
 	f(PUSH,		__CEPH_OSD_OP1(SUB, 2),		"push")		    \
@@ -293,7 +302,7 @@ extern const char *ceph_osd_state_name(int s);
 	f(SCRUB_UNRESERVE, __CEPH_OSD_OP1(SUB, 7),	"scrub-unreserve")  \
 	f(SCRUB_STOP,	__CEPH_OSD_OP1(SUB, 8),		"scrub-stop")	    \
 	f(SCRUB_MAP,	__CEPH_OSD_OP1(SUB, 9),		"scrub-map")	    \
-									    \
+	\
 	/** lock **/							    \
 	f(WRLOCK,	__CEPH_OSD_OP(WR, LOCK, 1),	"wrlock")	    \
 	f(WRUNLOCK,	__CEPH_OSD_OP(WR, LOCK, 2),	"wrunlock")	    \
@@ -301,20 +310,21 @@ extern const char *ceph_osd_state_name(int s);
 	f(RDUNLOCK,	__CEPH_OSD_OP(WR, LOCK, 4),	"rdunlock")	    \
 	f(UPLOCK,	__CEPH_OSD_OP(WR, LOCK, 5),	"uplock")	    \
 	f(DNLOCK,	__CEPH_OSD_OP(WR, LOCK, 6),	"dnlock")	    \
-									    \
+	\
 	/** exec **/							    \
 	/* note: the RD bit here is wrong; see special-case below in helper */ \
 	f(CALL,		__CEPH_OSD_OP(RD, EXEC, 1),	"call")		    \
-									    \
+	\
 	/** pg **/							    \
 	f(PGLS,		__CEPH_OSD_OP(RD, PG, 1),	"pgls")		    \
 	f(PGLS_FILTER,	__CEPH_OSD_OP(RD, PG, 2),	"pgls-filter")	    \
 	f(PG_HITSET_LS,	__CEPH_OSD_OP(RD, PG, 3),	"pg-hitset-ls")	    \
 	f(PG_HITSET_GET, __CEPH_OSD_OP(RD, PG, 4),	"pg-hitset-get")
 
-enum {
+enum
+{
 #define GENERATE_ENUM_ENTRY(op, opcode, str)	CEPH_OSD_OP_##op = (opcode),
-__CEPH_FORALL_OSD_OPS(GENERATE_ENUM_ENTRY)
+	__CEPH_FORALL_OSD_OPS(GENERATE_ENUM_ENTRY)
 #undef GENERATE_ENUM_ENTRY
 };
 
@@ -350,7 +360,7 @@ static inline int ceph_osd_op_mode_subop(int op)
 static inline int ceph_osd_op_mode_read(int op)
 {
 	return (op & CEPH_OSD_OP_MODE_RD) &&
-		op != CEPH_OSD_OP_CALL;
+		   op != CEPH_OSD_OP_CALL;
 }
 static inline int ceph_osd_op_mode_modify(int op)
 {
@@ -374,7 +384,8 @@ extern const char *ceph_osd_op_name(int op);
  *
  * An op may be READ, WRITE, or READ|WRITE.
  */
-enum {
+enum
+{
 	CEPH_OSD_FLAG_ACK =            0x0001,  /* want (or is) "ack" ack */
 	CEPH_OSD_FLAG_ONNVRAM =        0x0002,  /* want (or is) "onnvram" ack */
 	CEPH_OSD_FLAG_ONDISK =         0x0004,  /* want (or is) "ondisk" ack */
@@ -403,7 +414,8 @@ enum {
 	CEPH_OSD_FLAG_FULL_FORCE = 0x1000000,  /* force op despite full flag */
 };
 
-enum {
+enum
+{
 	CEPH_OSD_OP_FLAG_EXCL = 1,      /* EXCL object create */
 	CEPH_OSD_OP_FLAG_FAILOK = 2,    /* continue despite failure */
 };
@@ -412,7 +424,8 @@ enum {
 #define EBLACKLISTED ESHUTDOWN /* blacklisted */
 
 /* xattr comparison */
-enum {
+enum
+{
 	CEPH_OSD_CMPXATTR_OP_NOP = 0,
 	CEPH_OSD_CMPXATTR_OP_EQ  = 1,
 	CEPH_OSD_CMPXATTR_OP_NE  = 2,
@@ -422,12 +435,14 @@ enum {
 	CEPH_OSD_CMPXATTR_OP_LTE = 6
 };
 
-enum {
+enum
+{
 	CEPH_OSD_CMPXATTR_MODE_STRING = 1,
 	CEPH_OSD_CMPXATTR_MODE_U64    = 2
 };
 
-enum {
+enum
+{
 	CEPH_OSD_WATCH_OP_UNWATCH = 0,
 	CEPH_OSD_WATCH_OP_LEGACY_WATCH = 1,
 	/* note: use only ODD ids to prevent pre-giant code from
@@ -443,47 +458,58 @@ const char *ceph_osd_watch_op_name(int o);
  * an individual object operation.  each may be accompanied by some data
  * payload
  */
-struct ceph_osd_op {
+struct ceph_osd_op
+{
 	__le16 op;           /* CEPH_OSD_OP_* */
 	__le32 flags;        /* CEPH_OSD_OP_FLAG_* */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__le64 offset, length;
 			__le64 truncate_size;
 			__le32 truncate_seq;
 		} __attribute__ ((packed)) extent;
-		struct {
+		struct
+		{
 			__le32 name_len;
 			__le32 value_len;
 			__u8 cmp_op;       /* CEPH_OSD_CMPXATTR_OP_* */
 			__u8 cmp_mode;     /* CEPH_OSD_CMPXATTR_MODE_* */
 		} __attribute__ ((packed)) xattr;
-		struct {
+		struct
+		{
 			__u8 class_len;
 			__u8 method_len;
 			__u8 argc;
 			__le32 indata_len;
 		} __attribute__ ((packed)) cls;
-		struct {
+		struct
+		{
 			__le64 cookie, count;
 		} __attribute__ ((packed)) pgls;
-	        struct {
-		        __le64 snapid;
-	        } __attribute__ ((packed)) snap;
-		struct {
+		struct
+		{
+			__le64 snapid;
+		} __attribute__ ((packed)) snap;
+		struct
+		{
 			__le64 cookie;
 			__le64 ver;     /* no longer used */
 			__u8 op;	/* CEPH_OSD_WATCH_OP_* */
 			__le32 gen;     /* registration generation */
 		} __attribute__ ((packed)) watch;
-		struct {
+		struct
+		{
 			__le64 cookie;
 		} __attribute__ ((packed)) notify;
-		struct {
+		struct
+		{
 			__le64 offset, length;
 			__le64 src_offset;
 		} __attribute__ ((packed)) clonerange;
-		struct {
+		struct
+		{
 			__le64 expected_object_size;
 			__le64 expected_write_size;
 		} __attribute__ ((packed)) alloc_hint;

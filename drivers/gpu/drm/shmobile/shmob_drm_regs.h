@@ -251,33 +251,35 @@
 
 static inline bool lcdc_is_banked(u32 reg)
 {
-	switch (reg) {
-	case LDMT1R:
-	case LDMT2R:
-	case LDMT3R:
-	case LDDFR:
-	case LDSM1R:
-	case LDSA1R:
-	case LDSA2R:
-	case LDMLSR:
-	case LDWBFR:
-	case LDWBCNTR:
-	case LDWBAR:
-	case LDHCNR:
-	case LDHSYNR:
-	case LDVLNR:
-	case LDVSYNR:
-	case LDHPDR:
-	case LDVPDR:
-	case LDHAJR:
-		return true;
-	default:
-		return reg >= LDBnBBGCL(0) && reg <= LDBnBPPCR(3);
+	switch (reg)
+	{
+		case LDMT1R:
+		case LDMT2R:
+		case LDMT3R:
+		case LDDFR:
+		case LDSM1R:
+		case LDSA1R:
+		case LDSA2R:
+		case LDMLSR:
+		case LDWBFR:
+		case LDWBCNTR:
+		case LDWBAR:
+		case LDHCNR:
+		case LDHSYNR:
+		case LDVLNR:
+		case LDVSYNR:
+		case LDHPDR:
+		case LDVPDR:
+		case LDHAJR:
+			return true;
+
+		default:
+			return reg >= LDBnBBGCL(0) && reg <= LDBnBPPCR(3);
 	}
 }
 
 static inline void lcdc_write_mirror(struct shmob_drm_device *sdev, u32 reg,
-				     u32 data)
+									 u32 data)
 {
 	iowrite32(data, sdev->mmio + reg + LCDC_MIRROR_OFFSET);
 }
@@ -285,8 +287,11 @@ static inline void lcdc_write_mirror(struct shmob_drm_device *sdev, u32 reg,
 static inline void lcdc_write(struct shmob_drm_device *sdev, u32 reg, u32 data)
 {
 	iowrite32(data, sdev->mmio + reg);
+
 	if (lcdc_is_banked(reg))
+	{
 		iowrite32(data, sdev->mmio + reg + LCDC_SIDE_B_OFFSET);
+	}
 }
 
 static inline u32 lcdc_read(struct shmob_drm_device *sdev, u32 reg)
@@ -295,13 +300,17 @@ static inline u32 lcdc_read(struct shmob_drm_device *sdev, u32 reg)
 }
 
 static inline int lcdc_wait_bit(struct shmob_drm_device *sdev, u32 reg,
-				u32 mask, u32 until)
+								u32 mask, u32 until)
 {
 	unsigned long timeout = jiffies + msecs_to_jiffies(5);
 
-	while ((lcdc_read(sdev, reg) & mask) != until) {
+	while ((lcdc_read(sdev, reg) & mask) != until)
+	{
 		if (time_after(jiffies, timeout))
+		{
 			return -ETIMEDOUT;
+		}
+
 		cpu_relax();
 	}
 

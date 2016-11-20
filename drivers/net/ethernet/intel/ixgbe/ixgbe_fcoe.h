@@ -57,7 +57,8 @@
 /* FCoE DDP for target mode */
 #define __IXGBE_FCOE_TARGET	1
 
-struct ixgbe_fcoe_ddp {
+struct ixgbe_fcoe_ddp
+{
 	int len;
 	u32 err;
 	unsigned int sgc;
@@ -68,13 +69,15 @@ struct ixgbe_fcoe_ddp {
 };
 
 /* per cpu variables */
-struct ixgbe_fcoe_ddp_pool {
+struct ixgbe_fcoe_ddp_pool
+{
 	struct dma_pool *pool;
 	u64 noddp;
 	u64 noddp_ext_buff;
 };
 
-struct ixgbe_fcoe {
+struct ixgbe_fcoe
+{
 	struct ixgbe_fcoe_ddp_pool __percpu *ddp_pool;
 	atomic_t refcnt;
 	spinlock_t lock;

@@ -21,26 +21,31 @@
 static DEFINE_MUTEX(pmsg_lock);
 
 static ssize_t write_pmsg(struct file *file, const char __user *buf,
-			  size_t count, loff_t *ppos)
+						  size_t count, loff_t *ppos)
 {
 	u64 id;
 	int ret;
 
 	if (!count)
+	{
 		return 0;
+	}
 
 	/* check outside lock, page in any data. write_buf_user also checks */
 	if (!access_ok(VERIFY_READ, buf, count))
+	{
 		return -EFAULT;
+	}
 
 	mutex_lock(&pmsg_lock);
 	ret = psinfo->write_buf_user(PSTORE_TYPE_PMSG, 0, &id, 0, buf, 0, count,
-				     psinfo);
+								 psinfo);
 	mutex_unlock(&pmsg_lock);
 	return ret ? ret : count;
 }
 
-static const struct file_operations pmsg_fops = {
+static const struct file_operations pmsg_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= noop_llseek,
 	.write		= write_pmsg,
@@ -55,7 +60,10 @@ static int pmsg_major;
 static char *pmsg_devnode(struct device *dev, umode_t *mode)
 {
 	if (mode)
+	{
 		*mode = 0220;
+	}
+
 	return NULL;
 }
 
@@ -64,24 +72,32 @@ void pstore_register_pmsg(void)
 	struct device *pmsg_device;
 
 	pmsg_major = register_chrdev(0, PMSG_NAME, &pmsg_fops);
-	if (pmsg_major < 0) {
+
+	if (pmsg_major < 0)
+	{
 		pr_err("register_chrdev failed\n");
 		goto err;
 	}
 
 	pmsg_class = class_create(THIS_MODULE, PMSG_NAME);
-	if (IS_ERR(pmsg_class)) {
+
+	if (IS_ERR(pmsg_class))
+	{
 		pr_err("device class file already in use\n");
 		goto err_class;
 	}
+
 	pmsg_class->devnode = pmsg_devnode;
 
 	pmsg_device = device_create(pmsg_class, NULL, MKDEV(pmsg_major, 0),
-					NULL, "%s%d", PMSG_NAME, 0);
-	if (IS_ERR(pmsg_device)) {
+								NULL, "%s%d", PMSG_NAME, 0);
+
+	if (IS_ERR(pmsg_device))
+	{
 		pr_err("failed to create device\n");
 		goto err_device;
 	}
+
 	return;
 
 err_device:

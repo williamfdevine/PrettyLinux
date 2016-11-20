@@ -31,7 +31,8 @@
 #define TCON_CH1_SCLK1_GATE_BIT		BIT(15)
 #define TCON_CH1_SCLK1_HALF_BIT		BIT(11)
 
-struct tcon_ch1_clk {
+struct tcon_ch1_clk
+{
 	struct clk_hw	hw;
 	spinlock_t	lock;
 	void __iomem	*reg;
@@ -104,27 +105,32 @@ static int tcon_ch1_set_parent(struct clk_hw *hw, u8 index)
 };
 
 static unsigned long tcon_ch1_calc_divider(unsigned long rate,
-					   unsigned long parent_rate,
-					   u8 *div,
-					   bool *half)
+		unsigned long parent_rate,
+		u8 *div,
+		bool *half)
 {
 	unsigned long best_rate = 0;
 	u8 best_m = 0, m;
 	bool is_double;
 
-	for (m = 1; m < 16; m++) {
+	for (m = 1; m < 16; m++)
+	{
 		u8 d;
 
-		for (d = 1; d < 3; d++) {
+		for (d = 1; d < 3; d++)
+		{
 			unsigned long tmp_rate;
 
 			tmp_rate = parent_rate / m / d;
 
 			if (tmp_rate > rate)
+			{
 				continue;
+			}
 
 			if (!best_rate ||
-			    (rate - tmp_rate) < (rate - best_rate)) {
+				(rate - tmp_rate) < (rate - best_rate))
+			{
 				best_rate = tmp_rate;
 				best_m = m;
 				is_double = d;
@@ -132,7 +138,8 @@ static unsigned long tcon_ch1_calc_divider(unsigned long rate,
 		}
 	}
 
-	if (div && half) {
+	if (div && half)
+	{
 		*div = best_m;
 		*half = is_double;
 	}
@@ -141,27 +148,32 @@ static unsigned long tcon_ch1_calc_divider(unsigned long rate,
 }
 
 static int tcon_ch1_determine_rate(struct clk_hw *hw,
-				   struct clk_rate_request *req)
+								   struct clk_rate_request *req)
 {
 	long best_rate = -EINVAL;
 	int i;
 
-	for (i = 0; i < clk_hw_get_num_parents(hw); i++) {
+	for (i = 0; i < clk_hw_get_num_parents(hw); i++)
+	{
 		unsigned long parent_rate;
 		unsigned long tmp_rate;
 		struct clk_hw *parent;
 
 		parent = clk_hw_get_parent_by_index(hw, i);
+
 		if (!parent)
+		{
 			continue;
+		}
 
 		parent_rate = clk_hw_get_rate(parent);
 
 		tmp_rate = tcon_ch1_calc_divider(req->rate, parent_rate,
-						 NULL, NULL);
+										 NULL, NULL);
 
 		if (best_rate < 0 ||
-		    (req->rate - tmp_rate) < (req->rate - best_rate)) {
+			(req->rate - tmp_rate) < (req->rate - best_rate))
+		{
 			best_rate = tmp_rate;
 			req->best_parent_rate = parent_rate;
 			req->best_parent_hw = parent;
@@ -169,14 +181,16 @@ static int tcon_ch1_determine_rate(struct clk_hw *hw,
 	}
 
 	if (best_rate < 0)
+	{
 		return best_rate;
+	}
 
 	req->rate = best_rate;
 	return 0;
 }
 
 static unsigned long tcon_ch1_recalc_rate(struct clk_hw *hw,
-					  unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct tcon_ch1_clk *tclk = hw_to_tclk(hw);
 	u32 reg;
@@ -186,13 +200,15 @@ static unsigned long tcon_ch1_recalc_rate(struct clk_hw *hw,
 	parent_rate /= (reg & TCON_CH1_SCLK2_DIV_MASK) + 1;
 
 	if (reg & TCON_CH1_SCLK1_HALF_BIT)
+	{
 		parent_rate /= 2;
+	}
 
 	return parent_rate;
 }
 
 static int tcon_ch1_set_rate(struct clk_hw *hw, unsigned long rate,
-			     unsigned long parent_rate)
+							 unsigned long parent_rate)
 {
 	struct tcon_ch1_clk *tclk = hw_to_tclk(hw);
 	unsigned long flags;
@@ -208,7 +224,9 @@ static int tcon_ch1_set_rate(struct clk_hw *hw, unsigned long rate,
 	reg |= (div_m - 1) & TCON_CH1_SCLK2_DIV_MASK;
 
 	if (half)
+	{
 		reg |= TCON_CH1_SCLK1_HALF_BIT;
+	}
 
 	writel(reg, tclk->reg);
 	spin_unlock_irqrestore(&tclk->lock, flags);
@@ -216,7 +234,8 @@ static int tcon_ch1_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-static const struct clk_ops tcon_ch1_ops = {
+static const struct clk_ops tcon_ch1_ops =
+{
 	.disable	= tcon_ch1_disable,
 	.enable		= tcon_ch1_enable,
 	.is_enabled	= tcon_ch1_is_enabled,
@@ -243,20 +262,27 @@ static void __init tcon_ch1_setup(struct device_node *node)
 	of_property_read_string(node, "clock-output-names", &clk_name);
 
 	reg = of_io_request_and_map(node, 0, of_node_full_name(node));
-	if (IS_ERR(reg)) {
+
+	if (IS_ERR(reg))
+	{
 		pr_err("%s: Could not map the clock registers\n", clk_name);
 		return;
 	}
 
 	ret = of_clk_parent_fill(node, parents, TCON_CH1_SCLK2_PARENTS);
-	if (ret != TCON_CH1_SCLK2_PARENTS) {
+
+	if (ret != TCON_CH1_SCLK2_PARENTS)
+	{
 		pr_err("%s Could not retrieve the parents\n", clk_name);
 		goto err_unmap;
 	}
 
 	tclk = kzalloc(sizeof(*tclk), GFP_KERNEL);
+
 	if (!tclk)
+	{
 		goto err_unmap;
+	}
 
 	init.name = clk_name;
 	init.ops = &tcon_ch1_ops;
@@ -269,13 +295,17 @@ static void __init tcon_ch1_setup(struct device_node *node)
 	spin_lock_init(&tclk->lock);
 
 	clk = clk_register(NULL, &tclk->hw);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("%s: Couldn't register the clock\n", clk_name);
 		goto err_free_data;
 	}
 
 	ret = of_clk_add_provider(node, of_clk_src_simple_get, clk);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: Couldn't register our clock provider\n", clk_name);
 		goto err_unregister_clk;
 	}
@@ -293,4 +323,4 @@ err_unmap:
 }
 
 CLK_OF_DECLARE(tcon_ch1, "allwinner,sun4i-a10-tcon-ch1-clk",
-	       tcon_ch1_setup);
+			   tcon_ch1_setup);

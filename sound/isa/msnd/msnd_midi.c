@@ -40,7 +40,8 @@
 #define MSNDMIDI_MODE_BIT_INPUT_TRIGGER	2
 #define MSNDMIDI_MODE_BIT_OUTPUT_TRIGGER	3
 
-struct snd_msndmidi {
+struct snd_msndmidi
+{
 	struct snd_msnd *dev;
 
 	unsigned long mode;		/* MSNDMIDI_MODE_XXXX */
@@ -94,7 +95,7 @@ static void snd_msndmidi_input_drop(struct snd_msndmidi *mpu)
  * trigger input
  */
 static void snd_msndmidi_input_trigger(struct snd_rawmidi_substream *substream,
-					int up)
+									   int up)
 {
 	unsigned long flags;
 	struct snd_msndmidi *mpu;
@@ -103,16 +104,26 @@ static void snd_msndmidi_input_trigger(struct snd_rawmidi_substream *substream,
 
 	mpu = substream->rmidi->private_data;
 	spin_lock_irqsave(&mpu->input_lock, flags);
-	if (up) {
+
+	if (up)
+	{
 		if (!test_and_set_bit(MSNDMIDI_MODE_BIT_INPUT_TRIGGER,
-				      &mpu->mode))
+							  &mpu->mode))
+		{
 			snd_msndmidi_input_drop(mpu);
-	} else {
+		}
+	}
+	else
+	{
 		clear_bit(MSNDMIDI_MODE_BIT_INPUT_TRIGGER, &mpu->mode);
 	}
+
 	spin_unlock_irqrestore(&mpu->input_lock, flags);
+
 	if (up)
+	{
 		snd_msndmidi_input_read(mpu);
+	}
 }
 
 void snd_msndmidi_input_read(void *mpuv)
@@ -122,27 +133,36 @@ void snd_msndmidi_input_read(void *mpuv)
 	void *pwMIDQData = mpu->dev->mappedbase + MIDQ_DATA_BUFF;
 
 	spin_lock_irqsave(&mpu->input_lock, flags);
+
 	while (readw(mpu->dev->MIDQ + JQS_wTail) !=
-	       readw(mpu->dev->MIDQ + JQS_wHead)) {
+		   readw(mpu->dev->MIDQ + JQS_wHead))
+	{
 		u16 wTmp, val;
 		val = readw(pwMIDQData + 2 * readw(mpu->dev->MIDQ + JQS_wHead));
 
-			if (test_bit(MSNDMIDI_MODE_BIT_INPUT_TRIGGER,
-				     &mpu->mode))
-				snd_rawmidi_receive(mpu->substream_input,
-						    (unsigned char *)&val, 1);
+		if (test_bit(MSNDMIDI_MODE_BIT_INPUT_TRIGGER,
+					 &mpu->mode))
+			snd_rawmidi_receive(mpu->substream_input,
+								(unsigned char *)&val, 1);
 
 		wTmp = readw(mpu->dev->MIDQ + JQS_wHead) + 1;
+
 		if (wTmp > readw(mpu->dev->MIDQ + JQS_wSize))
+		{
 			writew(0,  mpu->dev->MIDQ + JQS_wHead);
+		}
 		else
+		{
 			writew(wTmp,  mpu->dev->MIDQ + JQS_wHead);
+		}
 	}
+
 	spin_unlock_irqrestore(&mpu->input_lock, flags);
 }
 EXPORT_SYMBOL(snd_msndmidi_input_read);
 
-static struct snd_rawmidi_ops snd_msndmidi_input = {
+static struct snd_rawmidi_ops snd_msndmidi_input =
+{
 	.open =		snd_msndmidi_input_open,
 	.close =	snd_msndmidi_input_close,
 	.trigger =	snd_msndmidi_input_trigger,
@@ -162,13 +182,20 @@ int snd_msndmidi_new(struct snd_card *card, int device)
 	int err;
 
 	err = snd_rawmidi_new(card, "MSND-MIDI", device, 1, 1, &rmidi);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	mpu = kzalloc(sizeof(*mpu), GFP_KERNEL);
-	if (mpu == NULL) {
+
+	if (mpu == NULL)
+	{
 		snd_device_free(card, rmidi);
 		return -ENOMEM;
 	}
+
 	mpu->dev = chip;
 	chip->msndmidi_mpu = mpu;
 	rmidi->private_data = mpu;
@@ -176,7 +203,7 @@ int snd_msndmidi_new(struct snd_card *card, int device)
 	spin_lock_init(&mpu->input_lock);
 	strcpy(rmidi->name, "MSND MIDI");
 	snd_rawmidi_set_ops(rmidi, SNDRV_RAWMIDI_STREAM_INPUT,
-			    &snd_msndmidi_input);
+						&snd_msndmidi_input);
 	rmidi->info_flags |= SNDRV_RAWMIDI_INFO_INPUT;
 	return 0;
 }

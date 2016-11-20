@@ -59,7 +59,7 @@ int sst_alloc_stream_mrfld(struct intel_sst_drv *sst_drv_ctx, void *params)
 	alloc_param.frag_size = str_params->aparams.frag_size;
 
 	memcpy(&alloc_param.codec_params, &str_params->sparams,
-			sizeof(struct snd_sst_stream_params));
+		   sizeof(struct snd_sst_stream_params));
 
 	/*
 	 * fill channel map params for multichannel support.
@@ -68,16 +68,24 @@ int sst_alloc_stream_mrfld(struct intel_sst_drv *sst_drv_ctx, void *params)
 	 * Currently hardcoding as per FW reqm.
 	 */
 	num_ch = sst_get_num_channel(str_params);
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		if (i < num_ch)
+		{
 			alloc_param.codec_params.uc.pcm_params.channel_map[i] = i;
+		}
 		else
+		{
 			alloc_param.codec_params.uc.pcm_params.channel_map[i] = 0xFF;
+		}
 	}
 
 	str_id = str_params->stream_id;
 	str_info = get_stream_info(sst_drv_ctx, str_id);
-	if (str_info == NULL) {
+
+	if (str_info == NULL)
+	{
 		dev_err(sst_drv_ctx->dev, "get stream info returned null\n");
 		return -EINVAL;
 	}
@@ -90,10 +98,10 @@ int sst_alloc_stream_mrfld(struct intel_sst_drv *sst_drv_ctx, void *params)
 
 	if (sst_drv_ctx->info.lpe_viewpt_rqd)
 		alloc_param.ts = sst_drv_ctx->info.mailbox_start +
-			sst_drv_ctx->tstamp + (str_id * sizeof(fw_tstamp));
+						 sst_drv_ctx->tstamp + (str_id * sizeof(fw_tstamp));
 	else
 		alloc_param.ts = sst_drv_ctx->mailbox_add +
-			sst_drv_ctx->tstamp + (str_id * sizeof(fw_tstamp));
+						 sst_drv_ctx->tstamp + (str_id * sizeof(fw_tstamp));
 
 	dev_dbg(sst_drv_ctx->dev, "alloc tstamp location = 0x%x\n",
 			alloc_param.ts);
@@ -102,32 +110,43 @@ int sst_alloc_stream_mrfld(struct intel_sst_drv *sst_drv_ctx, void *params)
 
 	/* allocate device type context */
 	sst_init_stream(&sst_drv_ctx->streams[str_id], alloc_param.codec_type,
-			str_id, alloc_param.operation, 0);
+					str_id, alloc_param.operation, 0);
 
 	dev_info(sst_drv_ctx->dev, "Alloc for str %d pipe %#x\n",
-			str_id, pipe_id);
+			 str_id, pipe_id);
 	ret = sst_prepare_and_post_msg(sst_drv_ctx, task_id, IPC_CMD,
-			IPC_IA_ALLOC_STREAM_MRFLD, pipe_id, sizeof(alloc_param),
-			&alloc_param, &data, true, true, false, true);
+								   IPC_IA_ALLOC_STREAM_MRFLD, pipe_id, sizeof(alloc_param),
+								   &alloc_param, &data, true, true, false, true);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_err(sst_drv_ctx->dev, "FW alloc failed ret %d\n", ret);
 		/* alloc failed, so reset the state to uninit */
 		str_info->status = STREAM_UN_INIT;
 		str_id = ret;
-	} else if (data) {
+	}
+	else if (data)
+	{
 		response = (struct snd_sst_alloc_response *)data;
 		ret = response->str_type.result;
+
 		if (!ret)
+		{
 			goto out;
+		}
+
 		dev_err(sst_drv_ctx->dev, "FW alloc failed ret %d\n", ret);
-		if (ret == SST_ERR_STREAM_IN_USE) {
+
+		if (ret == SST_ERR_STREAM_IN_USE)
+		{
 			dev_err(sst_drv_ctx->dev,
-				"FW not in clean state, send free for:%d\n", str_id);
+					"FW not in clean state, send free for:%d\n", str_id);
 			sst_free_stream(sst_drv_ctx, str_id);
 		}
+
 		str_id = -ret;
 	}
+
 out:
 	kfree(data);
 	return str_id;
@@ -148,44 +167,57 @@ int sst_start_stream(struct intel_sst_drv *sst_drv_ctx, int str_id)
 
 	dev_dbg(sst_drv_ctx->dev, "sst_start_stream for %d\n", str_id);
 	str_info = get_stream_info(sst_drv_ctx, str_id);
+
 	if (!str_info)
+	{
 		return -EINVAL;
+	}
+
 	if (str_info->status != STREAM_RUNNING)
+	{
 		return -EBADRQC;
+	}
 
 	retval = sst_prepare_and_post_msg(sst_drv_ctx, str_info->task_id,
-			IPC_CMD, IPC_IA_START_STREAM_MRFLD, str_info->pipe_id,
-			sizeof(u16), &data, NULL, true, true, true, false);
+									  IPC_CMD, IPC_IA_START_STREAM_MRFLD, str_info->pipe_id,
+									  sizeof(u16), &data, NULL, true, true, true, false);
 
 	return retval;
 }
 
 int sst_send_byte_stream_mrfld(struct intel_sst_drv *sst_drv_ctx,
-		struct snd_sst_bytes_v2 *bytes)
-{	struct ipc_post *msg = NULL;
+							   struct snd_sst_bytes_v2 *bytes)
+{
+	struct ipc_post *msg = NULL;
 	u32 length;
 	int pvt_id, ret = 0;
 	struct sst_block *block = NULL;
 
 	dev_dbg(sst_drv_ctx->dev,
-		"type:%u ipc_msg:%u block:%u task_id:%u pipe: %#x length:%#x\n",
-		bytes->type, bytes->ipc_msg, bytes->block, bytes->task_id,
-		bytes->pipe_id, bytes->len);
+			"type:%u ipc_msg:%u block:%u task_id:%u pipe: %#x length:%#x\n",
+			bytes->type, bytes->ipc_msg, bytes->block, bytes->task_id,
+			bytes->pipe_id, bytes->len);
 
 	if (sst_create_ipc_msg(&msg, true))
+	{
 		return -ENOMEM;
+	}
 
 	pvt_id = sst_assign_pvt_id(sst_drv_ctx);
 	sst_fill_header_mrfld(&msg->mrfld_header, bytes->ipc_msg,
-			bytes->task_id, 1, pvt_id);
+						  bytes->task_id, 1, pvt_id);
 	msg->mrfld_header.p.header_high.part.res_rqd = bytes->block;
 	length = bytes->len;
 	msg->mrfld_header.p.header_low_payload = length;
 	dev_dbg(sst_drv_ctx->dev, "length is %d\n", length);
 	memcpy(msg->mailbox_data, &bytes->bytes, bytes->len);
-	if (bytes->block) {
+
+	if (bytes->block)
+	{
 		block = sst_create_block(sst_drv_ctx, bytes->ipc_msg, pvt_id);
-		if (block == NULL) {
+
+		if (block == NULL)
+		{
 			kfree(msg);
 			ret = -ENOMEM;
 			goto out;
@@ -196,20 +228,26 @@ int sst_send_byte_stream_mrfld(struct intel_sst_drv *sst_drv_ctx,
 	dev_dbg(sst_drv_ctx->dev, "msg->mrfld_header.p.header_low_payload:%d",
 			msg->mrfld_header.p.header_low_payload);
 
-	if (bytes->block) {
+	if (bytes->block)
+	{
 		ret = sst_wait_timeout(sst_drv_ctx, block);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(sst_drv_ctx->dev, "fw returned err %d\n", ret);
 			sst_free_block(sst_drv_ctx, block);
 			goto out;
 		}
 	}
-	if (bytes->type == SND_SST_BYTES_GET) {
+
+	if (bytes->type == SND_SST_BYTES_GET)
+	{
 		/*
 		 * copy the reply and send back
 		 * we need to update only sz and payload
 		 */
-		if (bytes->block) {
+		if (bytes->block)
+		{
 			unsigned char *r = block->data;
 
 			dev_dbg(sst_drv_ctx->dev, "read back %d bytes",
@@ -217,8 +255,12 @@ int sst_send_byte_stream_mrfld(struct intel_sst_drv *sst_drv_ctx,
 			memcpy(bytes->bytes, r, bytes->len);
 		}
 	}
+
 	if (bytes->block)
+	{
 		sst_free_block(sst_drv_ctx, block);
+	}
+
 out:
 	test_and_clear_bit(pvt_id, &sst_drv_ctx->pvt_id);
 	return 0;
@@ -238,29 +280,44 @@ int sst_pause_stream(struct intel_sst_drv *sst_drv_ctx, int str_id)
 
 	dev_dbg(sst_drv_ctx->dev, "SST DBG:sst_pause_stream for %d\n", str_id);
 	str_info = get_stream_info(sst_drv_ctx, str_id);
+
 	if (!str_info)
+	{
 		return -EINVAL;
+	}
+
 	if (str_info->status == STREAM_PAUSED)
+	{
 		return 0;
+	}
+
 	if (str_info->status == STREAM_RUNNING ||
-		str_info->status == STREAM_INIT) {
+		str_info->status == STREAM_INIT)
+	{
 		if (str_info->prev == STREAM_UN_INIT)
+		{
 			return -EBADRQC;
+		}
 
 		retval = sst_prepare_and_post_msg(sst_drv_ctx, str_info->task_id, IPC_CMD,
-				IPC_IA_PAUSE_STREAM_MRFLD, str_info->pipe_id,
-				0, NULL, NULL, true, true, false, true);
+										  IPC_IA_PAUSE_STREAM_MRFLD, str_info->pipe_id,
+										  0, NULL, NULL, true, true, false, true);
 
-		if (retval == 0) {
+		if (retval == 0)
+		{
 			str_info->prev = str_info->status;
 			str_info->status = STREAM_PAUSED;
-		} else if (retval == SST_ERR_INVALID_STREAM_ID) {
+		}
+		else if (retval == SST_ERR_INVALID_STREAM_ID)
+		{
 			retval = -EINVAL;
 			mutex_lock(&sst_drv_ctx->sst_lock);
 			sst_clean_stream(str_info);
 			mutex_unlock(&sst_drv_ctx->sst_lock);
 		}
-	} else {
+	}
+	else
+	{
 		retval = -EBADRQC;
 		dev_dbg(sst_drv_ctx->dev, "SST DBG:BADRQC for stream\n ");
 	}
@@ -282,29 +339,47 @@ int sst_resume_stream(struct intel_sst_drv *sst_drv_ctx, int str_id)
 
 	dev_dbg(sst_drv_ctx->dev, "SST DBG:sst_resume_stream for %d\n", str_id);
 	str_info = get_stream_info(sst_drv_ctx, str_id);
-	if (!str_info)
-		return -EINVAL;
-	if (str_info->status == STREAM_RUNNING)
-			return 0;
-	if (str_info->status == STREAM_PAUSED) {
-		retval = sst_prepare_and_post_msg(sst_drv_ctx, str_info->task_id,
-				IPC_CMD, IPC_IA_RESUME_STREAM_MRFLD,
-				str_info->pipe_id, 0, NULL, NULL,
-				true, true, false, true);
 
-		if (!retval) {
+	if (!str_info)
+	{
+		return -EINVAL;
+	}
+
+	if (str_info->status == STREAM_RUNNING)
+	{
+		return 0;
+	}
+
+	if (str_info->status == STREAM_PAUSED)
+	{
+		retval = sst_prepare_and_post_msg(sst_drv_ctx, str_info->task_id,
+										  IPC_CMD, IPC_IA_RESUME_STREAM_MRFLD,
+										  str_info->pipe_id, 0, NULL, NULL,
+										  true, true, false, true);
+
+		if (!retval)
+		{
 			if (str_info->prev == STREAM_RUNNING)
+			{
 				str_info->status = STREAM_RUNNING;
+			}
 			else
+			{
 				str_info->status = STREAM_INIT;
+			}
+
 			str_info->prev = STREAM_PAUSED;
-		} else if (retval == -SST_ERR_INVALID_STREAM_ID) {
+		}
+		else if (retval == -SST_ERR_INVALID_STREAM_ID)
+		{
 			retval = -EINVAL;
 			mutex_lock(&sst_drv_ctx->sst_lock);
 			sst_clean_stream(str_info);
 			mutex_unlock(&sst_drv_ctx->sst_lock);
 		}
-	} else {
+	}
+	else
+	{
 		retval = -EBADRQC;
 		dev_err(sst_drv_ctx->dev, "SST ERR: BADQRC for stream\n");
 	}
@@ -327,22 +402,29 @@ int sst_drop_stream(struct intel_sst_drv *sst_drv_ctx, int str_id)
 
 	dev_dbg(sst_drv_ctx->dev, "SST DBG:sst_drop_stream for %d\n", str_id);
 	str_info = get_stream_info(sst_drv_ctx, str_id);
-	if (!str_info)
-		return -EINVAL;
 
-	if (str_info->status != STREAM_UN_INIT) {
+	if (!str_info)
+	{
+		return -EINVAL;
+	}
+
+	if (str_info->status != STREAM_UN_INIT)
+	{
 		str_info->prev = STREAM_UN_INIT;
 		str_info->status = STREAM_INIT;
 		str_info->cumm_bytes = 0;
 		retval = sst_prepare_and_post_msg(sst_drv_ctx, str_info->task_id,
-				IPC_CMD, IPC_IA_DROP_STREAM_MRFLD,
-				str_info->pipe_id, 0, NULL, NULL,
-				true, true, true, false);
-	} else {
+										  IPC_CMD, IPC_IA_DROP_STREAM_MRFLD,
+										  str_info->pipe_id, 0, NULL, NULL,
+										  true, true, true, false);
+	}
+	else
+	{
 		retval = -EBADRQC;
 		dev_dbg(sst_drv_ctx->dev, "BADQRC for stream, state %x\n",
 				str_info->status);
 	}
+
 	return retval;
 }
 
@@ -354,26 +436,31 @@ int sst_drop_stream(struct intel_sst_drv *sst_drv_ctx, int str_id)
 * a stream.
 */
 int sst_drain_stream(struct intel_sst_drv *sst_drv_ctx,
-			int str_id, bool partial_drain)
+					 int str_id, bool partial_drain)
 {
 	int retval = 0;
 	struct stream_info *str_info;
 
 	dev_dbg(sst_drv_ctx->dev, "SST DBG:sst_drain_stream for %d\n", str_id);
 	str_info = get_stream_info(sst_drv_ctx, str_id);
+
 	if (!str_info)
+	{
 		return -EINVAL;
+	}
+
 	if (str_info->status != STREAM_RUNNING &&
 		str_info->status != STREAM_INIT &&
-		str_info->status != STREAM_PAUSED) {
-			dev_err(sst_drv_ctx->dev, "SST ERR: BADQRC for stream = %d\n",
-				       str_info->status);
-			return -EBADRQC;
+		str_info->status != STREAM_PAUSED)
+	{
+		dev_err(sst_drv_ctx->dev, "SST ERR: BADQRC for stream = %d\n",
+				str_info->status);
+		return -EBADRQC;
 	}
 
 	retval = sst_prepare_and_post_msg(sst_drv_ctx, str_info->task_id, IPC_CMD,
-			IPC_IA_DRAIN_STREAM_MRFLD, str_info->pipe_id,
-			sizeof(u8), &partial_drain, NULL, true, true, false, false);
+									  IPC_IA_DRAIN_STREAM_MRFLD, str_info->pipe_id,
+									  sizeof(u8), &partial_drain, NULL, true, true, false, false);
 	/*
 	 * with new non blocked drain implementation in core we dont need to
 	 * wait for respsonse, and need to only invoke callback for drain
@@ -399,27 +486,36 @@ int sst_free_stream(struct intel_sst_drv *sst_drv_ctx, int str_id)
 	dev_dbg(sst_drv_ctx->dev, "SST DBG:sst_free_stream for %d\n", str_id);
 
 	mutex_lock(&sst_drv_ctx->sst_lock);
-	if (sst_drv_ctx->sst_state == SST_RESET) {
+
+	if (sst_drv_ctx->sst_state == SST_RESET)
+	{
 		mutex_unlock(&sst_drv_ctx->sst_lock);
 		return -ENODEV;
 	}
+
 	mutex_unlock(&sst_drv_ctx->sst_lock);
 	str_info = get_stream_info(sst_drv_ctx, str_id);
+
 	if (!str_info)
+	{
 		return -EINVAL;
+	}
+
 	ops = sst_drv_ctx->ops;
 
 	mutex_lock(&str_info->lock);
-	if (str_info->status != STREAM_UN_INIT) {
+
+	if (str_info->status != STREAM_UN_INIT)
+	{
 		str_info->prev =  str_info->status;
 		str_info->status = STREAM_UN_INIT;
 		mutex_unlock(&str_info->lock);
 
 		dev_info(sst_drv_ctx->dev, "Free for str %d pipe %#x\n",
-				str_id, str_info->pipe_id);
+				 str_id, str_info->pipe_id);
 		retval = sst_prepare_and_post_msg(sst_drv_ctx, str_info->task_id, IPC_CMD,
-				IPC_IA_FREE_STREAM_MRFLD, str_info->pipe_id, 0,
-				NULL, NULL, true, true, false, true);
+										  IPC_IA_FREE_STREAM_MRFLD, str_info->pipe_id, 0,
+										  NULL, NULL, true, true, false, true);
 
 		dev_dbg(sst_drv_ctx->dev, "sst: wait for free returned %d\n",
 				retval);
@@ -427,7 +523,9 @@ int sst_free_stream(struct intel_sst_drv *sst_drv_ctx, int str_id)
 		sst_clean_stream(str_info);
 		mutex_unlock(&sst_drv_ctx->sst_lock);
 		dev_dbg(sst_drv_ctx->dev, "SST DBG:Stream freed\n");
-	} else {
+	}
+	else
+	{
 		mutex_unlock(&str_info->lock);
 		retval = -EBADRQC;
 		dev_dbg(sst_drv_ctx->dev, "SST DBG:BADQRC for stream\n");

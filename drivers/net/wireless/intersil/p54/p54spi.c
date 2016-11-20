@@ -37,7 +37,7 @@
 #include "lmac.h"
 
 #ifdef CONFIG_P54_SPI_DEFAULT_EEPROM
-#include "p54spi_eeprom.h"
+	#include "p54spi_eeprom.h"
 #endif /* CONFIG_P54_SPI_DEFAULT_EEPROM */
 
 MODULE_FIRMWARE("3826.arm");
@@ -56,7 +56,7 @@ module_param(p54spi_gpio_irq, int, 0444);
 MODULE_PARM_DESC(p54spi_gpio_irq, "gpio number for irq line");
 
 static void p54spi_spi_read(struct p54s_priv *priv, u8 address,
-			      void *buf, size_t len)
+							void *buf, size_t len)
 {
 	struct spi_transfer t[2];
 	struct spi_message m;
@@ -81,7 +81,7 @@ static void p54spi_spi_read(struct p54s_priv *priv, u8 address,
 
 
 static void p54spi_spi_write(struct p54s_priv *priv, u8 address,
-			     const void *buf, size_t len)
+							 const void *buf, size_t len)
 {
 	struct spi_transfer t[3];
 	struct spi_message m;
@@ -101,7 +101,8 @@ static void p54spi_spi_write(struct p54s_priv *priv, u8 address,
 	t[1].len = len & ~1;
 	spi_message_add_tail(&t[1], &m);
 
-	if (len % 2) {
+	if (len % 2)
+	{
 		__le16 last_word;
 		last_word = cpu_to_le16(((u8 *)buf)[len - 1]);
 
@@ -136,25 +137,31 @@ static int p54spi_wait_bit(struct p54s_priv *priv, u16 reg, u32 bits)
 {
 	int i;
 
-	for (i = 0; i < 2000; i++) {
+	for (i = 0; i < 2000; i++)
+	{
 		u32 buffer = p54spi_read32(priv, reg);
+
 		if ((buffer & bits) == bits)
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
 static int p54spi_spi_write_dma(struct p54s_priv *priv, __le32 base,
-				const void *buf, size_t len)
+								const void *buf, size_t len)
 {
-	if (!p54spi_wait_bit(priv, SPI_ADRS_DMA_WRITE_CTRL, HOST_ALLOWED)) {
+	if (!p54spi_wait_bit(priv, SPI_ADRS_DMA_WRITE_CTRL, HOST_ALLOWED))
+	{
 		dev_err(&priv->spi->dev, "spi_write_dma not allowed "
-			"to DMA write.\n");
+				"to DMA write.\n");
 		return -EAGAIN;
 	}
 
 	p54spi_write16(priv, SPI_ADRS_DMA_WRITE_CTRL,
-		       cpu_to_le16(SPI_DMA_WRITE_CTRL_ENABLE));
+				   cpu_to_le16(SPI_DMA_WRITE_CTRL_ENABLE));
 
 	p54spi_write16(priv, SPI_ADRS_DMA_WRITE_LEN, cpu_to_le16(len));
 	p54spi_write32(priv, SPI_ADRS_DMA_WRITE_BASE, base);
@@ -170,13 +177,16 @@ static int p54spi_request_firmware(struct ieee80211_hw *dev)
 	/* FIXME: should driver use it's own struct device? */
 	ret = request_firmware(&priv->firmware, "3826.arm", &priv->spi->dev);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_err(&priv->spi->dev, "request_firmware() failed: %d", ret);
 		return ret;
 	}
 
 	ret = p54_parse_firmware(dev, priv->firmware);
-	if (ret) {
+
+	if (ret)
+	{
 		release_firmware(priv->firmware);
 		return ret;
 	}
@@ -194,20 +204,25 @@ static int p54spi_request_eeprom(struct ieee80211_hw *dev)
 	 */
 
 	ret = request_firmware_direct(&eeprom, "3826.eeprom", &priv->spi->dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 #ifdef CONFIG_P54_SPI_DEFAULT_EEPROM
 		dev_info(&priv->spi->dev, "loading default eeprom...\n");
 		ret = p54_parse_eeprom(dev, (void *) p54spi_eeprom,
-				       sizeof(p54spi_eeprom));
+							   sizeof(p54spi_eeprom));
 #else
 		dev_err(&priv->spi->dev, "Failed to request user eeprom\n");
 #endif /* CONFIG_P54_SPI_DEFAULT_EEPROM */
-	} else {
+	}
+	else
+	{
 		dev_info(&priv->spi->dev, "loading user eeprom...\n");
 		ret = p54_parse_eeprom(dev, (void *) eeprom->data,
-				       (int)eeprom->size);
+							   (int)eeprom->size);
 		release_firmware(eeprom);
 	}
+
 	return ret;
 }
 
@@ -221,30 +236,37 @@ static int p54spi_upload_firmware(struct ieee80211_hw *dev)
 
 	fw_len = priv->firmware->size;
 	fw = kmemdup(priv->firmware->data, fw_len, GFP_KERNEL);
+
 	if (!fw)
+	{
 		return -ENOMEM;
+	}
 
 	/* stop the device */
 	p54spi_write16(priv, SPI_ADRS_DEV_CTRL_STAT, cpu_to_le16(
-		       SPI_CTRL_STAT_HOST_OVERRIDE | SPI_CTRL_STAT_HOST_RESET |
-		       SPI_CTRL_STAT_START_HALTED));
+					   SPI_CTRL_STAT_HOST_OVERRIDE | SPI_CTRL_STAT_HOST_RESET |
+					   SPI_CTRL_STAT_START_HALTED));
 
 	msleep(TARGET_BOOT_SLEEP);
 
 	p54spi_write16(priv, SPI_ADRS_DEV_CTRL_STAT, cpu_to_le16(
-		       SPI_CTRL_STAT_HOST_OVERRIDE |
-		       SPI_CTRL_STAT_START_HALTED));
+					   SPI_CTRL_STAT_HOST_OVERRIDE |
+					   SPI_CTRL_STAT_START_HALTED));
 
 	msleep(TARGET_BOOT_SLEEP);
 
-	while (fw_len > 0) {
+	while (fw_len > 0)
+	{
 		_fw_len = min_t(long, fw_len, SPI_MAX_PACKET_SIZE);
 
 		err = p54spi_spi_write_dma(priv, cpu_to_le32(
-					   ISL38XX_DEV_FIRMWARE_ADDR + offset),
-					   (fw + offset), _fw_len);
+									   ISL38XX_DEV_FIRMWARE_ADDR + offset),
+								   (fw + offset), _fw_len);
+
 		if (err < 0)
+		{
 			goto out;
+		}
 
 		fw_len -= _fw_len;
 		offset += _fw_len;
@@ -254,17 +276,17 @@ static int p54spi_upload_firmware(struct ieee80211_hw *dev)
 
 	/* enable host interrupts */
 	p54spi_write32(priv, SPI_ADRS_HOST_INT_EN,
-		       cpu_to_le32(SPI_HOST_INTS_DEFAULT));
+				   cpu_to_le32(SPI_HOST_INTS_DEFAULT));
 
 	/* boot the device */
 	p54spi_write16(priv, SPI_ADRS_DEV_CTRL_STAT, cpu_to_le16(
-		       SPI_CTRL_STAT_HOST_OVERRIDE | SPI_CTRL_STAT_HOST_RESET |
-		       SPI_CTRL_STAT_RAM_BOOT));
+					   SPI_CTRL_STAT_HOST_OVERRIDE | SPI_CTRL_STAT_HOST_RESET |
+					   SPI_CTRL_STAT_RAM_BOOT));
 
 	msleep(TARGET_BOOT_SLEEP);
 
 	p54spi_write16(priv, SPI_ADRS_DEV_CTRL_STAT, cpu_to_le16(
-		       SPI_CTRL_STAT_HOST_OVERRIDE | SPI_CTRL_STAT_RAM_BOOT));
+					   SPI_CTRL_STAT_HOST_OVERRIDE | SPI_CTRL_STAT_RAM_BOOT));
 	msleep(TARGET_BOOT_SLEEP);
 
 out:
@@ -298,11 +320,12 @@ static int p54spi_wakeup(struct p54s_priv *priv)
 {
 	/* wake the chip */
 	p54spi_write32(priv, SPI_ADRS_ARM_INTERRUPTS,
-		       cpu_to_le32(SPI_TARGET_INT_WAKEUP));
+				   cpu_to_le32(SPI_TARGET_INT_WAKEUP));
 
 	/* And wait for the READY interrupt */
 	if (!p54spi_wait_bit(priv, SPI_ADRS_HOST_INTERRUPTS,
-			     SPI_HOST_INT_READY)) {
+						 SPI_HOST_INT_READY))
+	{
 		dev_err(&priv->spi->dev, "INT_READY timeout\n");
 		return -EBUSY;
 	}
@@ -314,25 +337,28 @@ static int p54spi_wakeup(struct p54s_priv *priv)
 static inline void p54spi_sleep(struct p54s_priv *priv)
 {
 	p54spi_write32(priv, SPI_ADRS_ARM_INTERRUPTS,
-		       cpu_to_le32(SPI_TARGET_INT_SLEEP));
+				   cpu_to_le32(SPI_TARGET_INT_SLEEP));
 }
 
 static void p54spi_int_ready(struct p54s_priv *priv)
 {
 	p54spi_write32(priv, SPI_ADRS_HOST_INT_EN, cpu_to_le32(
-		       SPI_HOST_INT_UPDATE | SPI_HOST_INT_SW_UPDATE));
+					   SPI_HOST_INT_UPDATE | SPI_HOST_INT_SW_UPDATE));
 
-	switch (priv->fw_state) {
-	case FW_STATE_BOOTING:
-		priv->fw_state = FW_STATE_READY;
-		complete(&priv->fw_comp);
-		break;
-	case FW_STATE_RESETTING:
-		priv->fw_state = FW_STATE_READY;
-		/* TODO: reinitialize state */
-		break;
-	default:
-		break;
+	switch (priv->fw_state)
+	{
+		case FW_STATE_BOOTING:
+			priv->fw_state = FW_STATE_READY;
+			complete(&priv->fw_comp);
+			break;
+
+		case FW_STATE_RESETTING:
+			priv->fw_state = FW_STATE_READY;
+			/* TODO: reinitialize state */
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -344,7 +370,9 @@ static int p54spi_rx(struct p54s_priv *priv)
 #define READAHEAD_SZ (sizeof(rx_head)-sizeof(u16))
 
 	if (p54spi_wakeup(priv) < 0)
+	{
 		return -EBUSY;
+	}
 
 	/* Read data size and first data word in one SPI transaction
 	 * This is workaround for firmware/DMA bug,
@@ -353,7 +381,8 @@ static int p54spi_rx(struct p54s_priv *priv)
 	p54spi_spi_read(priv, SPI_ADRS_DMA_DATA, rx_head, sizeof(rx_head));
 	len = rx_head[0];
 
-	if (len == 0) {
+	if (len == 0)
+	{
 		p54spi_sleep(priv);
 		dev_err(&priv->spi->dev, "rx request of zero bytes\n");
 		return 0;
@@ -365,20 +394,26 @@ static int p54spi_rx(struct p54s_priv *priv)
 	 * past the end of allocated skb. Reserve extra 4 bytes for this case
 	 */
 	skb = dev_alloc_skb(len + 4);
-	if (!skb) {
+
+	if (!skb)
+	{
 		p54spi_sleep(priv);
 		dev_err(&priv->spi->dev, "could not alloc skb");
 		return -ENOMEM;
 	}
 
-	if (len <= READAHEAD_SZ) {
+	if (len <= READAHEAD_SZ)
+	{
 		memcpy(skb_put(skb, len), rx_head + 1, len);
-	} else {
+	}
+	else
+	{
 		memcpy(skb_put(skb, READAHEAD_SZ), rx_head + 1, READAHEAD_SZ);
 		p54spi_spi_read(priv, SPI_ADRS_DMA_DATA,
-				skb_put(skb, len - READAHEAD_SZ),
-				len - READAHEAD_SZ);
+						skb_put(skb, len - READAHEAD_SZ),
+						len - READAHEAD_SZ);
 	}
+
 	p54spi_sleep(priv);
 	/* Put additional bytes to compensate for the possible
 	 * alignment-caused truncation
@@ -386,7 +421,9 @@ static int p54spi_rx(struct p54s_priv *priv)
 	skb_put(skb, 4);
 
 	if (p54_rx(priv->hw, skb) == 0)
+	{
 		dev_kfree_skb(skb);
+	}
 
 	return 0;
 }
@@ -408,14 +445,20 @@ static int p54spi_tx_frame(struct p54s_priv *priv, struct sk_buff *skb)
 	int ret = 0;
 
 	if (p54spi_wakeup(priv) < 0)
+	{
 		return -EBUSY;
+	}
 
 	ret = p54spi_spi_write_dma(priv, hdr->req_id, skb->data, skb->len);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	if (!p54spi_wait_bit(priv, SPI_ADRS_HOST_INTERRUPTS,
-			     SPI_HOST_INT_WR_READY)) {
+						 SPI_HOST_INT_WR_READY))
+	{
 		dev_err(&priv->spi->dev, "WR_READY timeout\n");
 		ret = -EAGAIN;
 		goto out;
@@ -424,7 +467,10 @@ static int p54spi_tx_frame(struct p54s_priv *priv, struct sk_buff *skb)
 	p54spi_int_ack(priv, SPI_HOST_INT_WR_READY);
 
 	if (FREE_AFTER_TX(skb))
+	{
 		p54_free_skb(priv->hw, skb);
+	}
+
 out:
 	p54spi_sleep(priv);
 	return ret;
@@ -442,31 +488,34 @@ static int p54spi_wq_tx(struct p54s_priv *priv)
 
 	spin_lock_irqsave(&priv->tx_lock, flags);
 
-	while (!list_empty(&priv->tx_pending)) {
+	while (!list_empty(&priv->tx_pending))
+	{
 		entry = list_entry(priv->tx_pending.next,
-				   struct p54s_tx_info, tx_list);
+						   struct p54s_tx_info, tx_list);
 
 		list_del_init(&entry->tx_list);
 
 		spin_unlock_irqrestore(&priv->tx_lock, flags);
 
 		dinfo = container_of((void *) entry, struct p54s_tx_info,
-				     tx_list);
+							 tx_list);
 		minfo = container_of((void *) dinfo, struct p54_tx_info,
-				     data);
+							 data);
 		info = container_of((void *) minfo, struct ieee80211_tx_info,
-				    rate_driver_data);
+							rate_driver_data);
 		skb = container_of((void *) info, struct sk_buff, cb);
 
 		ret = p54spi_tx_frame(priv, skb);
 
-		if (ret < 0) {
+		if (ret < 0)
+		{
 			p54_free_skb(priv->hw, skb);
 			return ret;
 		}
 
 		spin_lock_irqsave(&priv->tx_lock, flags);
 	}
+
 	spin_unlock_irqrestore(&priv->tx_lock, flags);
 	return ret;
 }
@@ -497,29 +546,43 @@ static void p54spi_work(struct work_struct *work)
 	mutex_lock(&priv->mutex);
 
 	if (priv->fw_state == FW_STATE_OFF)
+	{
 		goto out;
+	}
 
 	ints = p54spi_read32(priv, SPI_ADRS_HOST_INTERRUPTS);
 
-	if (ints & SPI_HOST_INT_READY) {
+	if (ints & SPI_HOST_INT_READY)
+	{
 		p54spi_int_ready(priv);
 		p54spi_int_ack(priv, SPI_HOST_INT_READY);
 	}
 
 	if (priv->fw_state != FW_STATE_READY)
+	{
 		goto out;
+	}
 
-	if (ints & SPI_HOST_INT_UPDATE) {
+	if (ints & SPI_HOST_INT_UPDATE)
+	{
 		p54spi_int_ack(priv, SPI_HOST_INT_UPDATE);
 		ret = p54spi_rx(priv);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
 	}
-	if (ints & SPI_HOST_INT_SW_UPDATE) {
+
+	if (ints & SPI_HOST_INT_SW_UPDATE)
+	{
 		p54spi_int_ack(priv, SPI_HOST_INT_SW_UPDATE);
 		ret = p54spi_rx(priv);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
 	}
 
 	ret = p54spi_wq_tx(priv);
@@ -533,7 +596,8 @@ static int p54spi_op_start(struct ieee80211_hw *dev)
 	unsigned long timeout;
 	int ret = 0;
 
-	if (mutex_lock_interruptible(&priv->mutex)) {
+	if (mutex_lock_interruptible(&priv->mutex))
+	{
 		ret = -EINTR;
 		goto out;
 	}
@@ -543,7 +607,9 @@ static int p54spi_op_start(struct ieee80211_hw *dev)
 	p54spi_power_on(priv);
 
 	ret = p54spi_upload_firmware(dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		p54spi_power_off(priv);
 		goto out_unlock;
 	}
@@ -552,15 +618,18 @@ static int p54spi_op_start(struct ieee80211_hw *dev)
 
 	timeout = msecs_to_jiffies(2000);
 	timeout = wait_for_completion_interruptible_timeout(&priv->fw_comp,
-							    timeout);
-	if (!timeout) {
+			  timeout);
+
+	if (!timeout)
+	{
 		dev_err(&priv->spi->dev, "firmware boot failed");
 		p54spi_power_off(priv);
 		ret = -1;
 		goto out;
 	}
 
-	if (mutex_lock_interruptible(&priv->mutex)) {
+	if (mutex_lock_interruptible(&priv->mutex))
+	{
 		ret = -EINTR;
 		p54spi_power_off(priv);
 		goto out;
@@ -601,7 +670,9 @@ static int p54spi_probe(struct spi_device *spi)
 	int ret = -EINVAL;
 
 	hw = p54_init_common(sizeof(*priv));
-	if (!hw) {
+
+	if (!hw)
+	{
 		dev_err(&spi->dev, "could not alloc ieee80211_hw");
 		return -ENOMEM;
 	}
@@ -615,19 +686,25 @@ static int p54spi_probe(struct spi_device *spi)
 	spi->max_speed_hz = 24000000;
 
 	ret = spi_setup(spi);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&priv->spi->dev, "spi_setup failed");
 		goto err_free;
 	}
 
 	ret = gpio_request(p54spi_gpio_power, "p54spi power");
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&priv->spi->dev, "power GPIO request failed: %d", ret);
 		goto err_free;
 	}
 
 	ret = gpio_request(p54spi_gpio_irq, "p54spi irq");
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&priv->spi->dev, "irq GPIO request failed: %d", ret);
 		goto err_free_gpio_power;
 	}
@@ -636,9 +713,11 @@ static int p54spi_probe(struct spi_device *spi)
 	gpio_direction_input(p54spi_gpio_irq);
 
 	ret = request_irq(gpio_to_irq(p54spi_gpio_irq),
-			  p54spi_interrupt, 0, "p54spi",
-			  priv->spi);
-	if (ret < 0) {
+					  p54spi_interrupt, 0, "p54spi",
+					  priv->spi);
+
+	if (ret < 0)
+	{
 		dev_err(&priv->spi->dev, "request_irq() failed");
 		goto err_free_gpio_irq;
 	}
@@ -658,16 +737,25 @@ static int p54spi_probe(struct spi_device *spi)
 	priv->common.tx = p54spi_op_tx;
 
 	ret = p54spi_request_firmware(hw);
+
 	if (ret < 0)
+	{
 		goto err_free_common;
+	}
 
 	ret = p54spi_request_eeprom(hw);
+
 	if (ret)
+	{
 		goto err_free_common;
+	}
 
 	ret = p54_register_common(hw, &priv->spi->dev);
+
 	if (ret)
+	{
 		goto err_free_common;
+	}
 
 	return 0;
 
@@ -702,7 +790,8 @@ static int p54spi_remove(struct spi_device *spi)
 }
 
 
-static struct spi_driver p54spi_driver = {
+static struct spi_driver p54spi_driver =
+{
 	.driver = {
 		.name		= "p54spi",
 	},

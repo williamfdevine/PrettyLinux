@@ -348,7 +348,8 @@
 #define AS3722_FUSE7_SD0_LOW_VOLTAGE			BIT(4)
 
 /* Interrupt IDs */
-enum as3722_irq {
+enum as3722_irq
+{
 	AS3722_IRQ_LID,
 	AS3722_IRQ_ACOK,
 	AS3722_IRQ_ENABLE1,
@@ -384,7 +385,8 @@ enum as3722_irq {
 	AS3722_IRQ_MAX,
 };
 
-struct as3722 {
+struct as3722
+{
 	struct device *dev;
 	struct regmap *regmap;
 	int chip_irq;
@@ -405,19 +407,19 @@ static inline int as3722_write(struct as3722 *as3722, u32 reg, u32 value)
 }
 
 static inline int as3722_block_read(struct as3722 *as3722, u32 reg,
-		int count, u8 *buf)
+									int count, u8 *buf)
 {
 	return regmap_bulk_read(as3722->regmap, reg, buf, count);
 }
 
 static inline int as3722_block_write(struct as3722 *as3722, u32 reg,
-		int count, u8 *data)
+									 int count, u8 *data)
 {
 	return regmap_bulk_write(as3722->regmap, reg, data, count);
 }
 
 static inline int as3722_update_bits(struct as3722 *as3722, u32 reg,
-		u32 mask, u8 val)
+									 u32 mask, u8 val)
 {
 	return regmap_update_bits(as3722->regmap, reg, mask, val);
 }

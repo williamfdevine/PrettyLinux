@@ -21,21 +21,25 @@
 
 #include "ci.h"
 
-struct ci_hdrc_usb2_priv {
+struct ci_hdrc_usb2_priv
+{
 	struct platform_device	*ci_pdev;
 	struct clk		*clk;
 };
 
-static const struct ci_hdrc_platform_data ci_default_pdata = {
+static const struct ci_hdrc_platform_data ci_default_pdata =
+{
 	.capoffset	= DEF_CAPOFFSET,
 	.flags		= CI_HDRC_DISABLE_STREAMING,
 };
 
-static struct ci_hdrc_platform_data ci_zynq_pdata = {
+static struct ci_hdrc_platform_data ci_zynq_pdata =
+{
 	.capoffset	= DEF_CAPOFFSET,
 };
 
-static const struct of_device_id ci_hdrc_usb2_of_match[] = {
+static const struct of_device_id ci_hdrc_usb2_of_match[] =
+{
 	{ .compatible = "chipidea,usb2"},
 	{ .compatible = "xlnx,zynq-usb-2.20a", .data = &ci_zynq_pdata},
 	{ }
@@ -50,44 +54,61 @@ static int ci_hdrc_usb2_probe(struct platform_device *pdev)
 	int ret;
 	const struct of_device_id *match;
 
-	if (!ci_pdata) {
+	if (!ci_pdata)
+	{
 		ci_pdata = devm_kmalloc(dev, sizeof(*ci_pdata), GFP_KERNEL);
 		*ci_pdata = ci_default_pdata;	/* struct copy */
 	}
 
 	match = of_match_device(ci_hdrc_usb2_of_match, &pdev->dev);
-	if (match && match->data) {
+
+	if (match && match->data)
+	{
 		/* struct copy */
 		*ci_pdata = *(struct ci_hdrc_platform_data *)match->data;
 	}
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->clk = devm_clk_get(dev, NULL);
-	if (!IS_ERR(priv->clk)) {
+
+	if (!IS_ERR(priv->clk))
+	{
 		ret = clk_prepare_enable(priv->clk);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "failed to enable the clock: %d\n", ret);
 			return ret;
 		}
 	}
 
 	ret = dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32));
+
 	if (ret)
+	{
 		goto clk_err;
+	}
 
 	ci_pdata->name = dev_name(dev);
 
 	priv->ci_pdev = ci_hdrc_add_device(dev, pdev->resource,
-					   pdev->num_resources, ci_pdata);
-	if (IS_ERR(priv->ci_pdev)) {
+									   pdev->num_resources, ci_pdata);
+
+	if (IS_ERR(priv->ci_pdev))
+	{
 		ret = PTR_ERR(priv->ci_pdev);
+
 		if (ret != -EPROBE_DEFER)
 			dev_err(dev,
-				"failed to register ci_hdrc platform device: %d\n",
-				ret);
+					"failed to register ci_hdrc platform device: %d\n",
+					ret);
+
 		goto clk_err;
 	}
 
@@ -99,8 +120,12 @@ static int ci_hdrc_usb2_probe(struct platform_device *pdev)
 	return 0;
 
 clk_err:
+
 	if (!IS_ERR(priv->clk))
+	{
 		clk_disable_unprepare(priv->clk);
+	}
+
 	return ret;
 }
 
@@ -115,7 +140,8 @@ static int ci_hdrc_usb2_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ci_hdrc_usb2_driver = {
+static struct platform_driver ci_hdrc_usb2_driver =
+{
 	.probe	= ci_hdrc_usb2_probe,
 	.remove	= ci_hdrc_usb2_remove,
 	.driver	= {

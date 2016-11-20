@@ -97,7 +97,8 @@ struct ixgb_adapter;
 
 /* wrapper around a pointer to a socket buffer,
  * so a DMA handle can be stored along with the buffer */
-struct ixgb_buffer {
+struct ixgb_buffer
+{
 	struct sk_buff *skb;
 	dma_addr_t dma;
 	unsigned long time_stamp;
@@ -106,7 +107,8 @@ struct ixgb_buffer {
 	u16 mapped_as_page;
 };
 
-struct ixgb_desc_ring {
+struct ixgb_desc_ring
+{
 	/* pointer to the descriptor ring memory */
 	void *desc;
 	/* physical address of the descriptor ring */
@@ -125,7 +127,7 @@ struct ixgb_desc_ring {
 
 #define IXGB_DESC_UNUSED(R) \
 	((((R)->next_to_clean > (R)->next_to_use) ? 0 : (R)->count) + \
-	(R)->next_to_clean - (R)->next_to_use - 1)
+	 (R)->next_to_clean - (R)->next_to_use - 1)
 
 #define IXGB_GET_DESC(R, i, type)	(&(((struct type *)((R).desc))[i]))
 #define IXGB_RX_DESC(R, i)		IXGB_GET_DESC(R, i, ixgb_rx_desc)
@@ -134,7 +136,8 @@ struct ixgb_desc_ring {
 
 /* board specific private data structure */
 
-struct ixgb_adapter {
+struct ixgb_adapter
+{
 	struct timer_list watchdog_timer;
 	unsigned long active_vlans[BITS_TO_LONGS(VLAN_N_VID)];
 	u32 bd_number;
@@ -177,7 +180,8 @@ struct ixgb_adapter {
 	unsigned long flags;
 };
 
-enum ixgb_state_t {
+enum ixgb_state_t
+{
 	/* TBD
 	__IXGB_TESTING,
 	__IXGB_RESETTING,

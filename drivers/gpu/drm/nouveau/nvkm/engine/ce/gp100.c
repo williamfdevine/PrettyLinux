@@ -27,7 +27,8 @@
 #include <nvif/class.h>
 
 static const struct nvkm_enum
-gp100_ce_launcherr_report[] = {
+	gp100_ce_launcherr_report[] =
+{
 	{ 0x0, "NO_ERR" },
 	{ 0x1, "2D_LAYER_EXCEEDS_DEPTH" },
 	{ 0x2, "INVALID_ALIGNMENT" },
@@ -64,29 +65,38 @@ gp100_ce_intr(struct nvkm_engine *ce)
 	struct nvkm_device *device = subdev->device;
 	u32 mask = nvkm_rd32(device, 0x10440c + base);
 	u32 intr = nvkm_rd32(device, 0x104410 + base) & mask;
-	if (intr & 0x00000001) { //XXX: guess
+
+	if (intr & 0x00000001)   //XXX: guess
+	{
 		nvkm_warn(subdev, "BLOCKPIPE\n");
 		nvkm_wr32(device, 0x104410 + base, 0x00000001);
 		intr &= ~0x00000001;
 	}
-	if (intr & 0x00000002) { //XXX: guess
+
+	if (intr & 0x00000002)   //XXX: guess
+	{
 		nvkm_warn(subdev, "NONBLOCKPIPE\n");
 		nvkm_wr32(device, 0x104410 + base, 0x00000002);
 		intr &= ~0x00000002;
 	}
-	if (intr & 0x00000004) {
+
+	if (intr & 0x00000004)
+	{
 		gp100_ce_intr_launcherr(ce, base);
 		nvkm_wr32(device, 0x104410 + base, 0x00000004);
 		intr &= ~0x00000004;
 	}
-	if (intr) {
+
+	if (intr)
+	{
 		nvkm_warn(subdev, "intr %08x\n", intr);
 		nvkm_wr32(device, 0x104410 + base, intr);
 	}
 }
 
 static const struct nvkm_engine_func
-gp100_ce = {
+	gp100_ce =
+{
 	.intr = gp100_ce_intr,
 	.sclass = {
 		{ -1, -1, PASCAL_DMA_COPY_A },
@@ -96,7 +106,7 @@ gp100_ce = {
 
 int
 gp100_ce_new(struct nvkm_device *device, int index,
-	     struct nvkm_engine **pengine)
+			 struct nvkm_engine **pengine)
 {
 	return nvkm_engine_new_(&gp100_ce, device, index, true, pengine);
 }

@@ -26,7 +26,8 @@ struct pl08x_phy_chan;
 struct pl08x_txd;
 
 /* Bitmasks for selecting AHB ports for DMA transfers */
-enum {
+enum
+{
 	PL08X_AHB1 = (1 << 0),
 	PL08X_AHB2 = (1 << 1)
 };
@@ -58,7 +59,8 @@ enum {
  * @periph_buses: the device connected to this channel is accessible via
  * these buses (use PL08X_AHB1 | PL08X_AHB2).
  */
-struct pl08x_channel_data {
+struct pl08x_channel_data
+{
 	const char *bus_id;
 	int min_signal;
 	int max_signal;
@@ -85,7 +87,8 @@ struct pl08x_channel_data {
  * @lli_buses: buses which LLIs can be fetched from: PL08X_AHB1 | PL08X_AHB2
  * @mem_buses: buses which memory can be accessed from: PL08X_AHB1 | PL08X_AHB2
  */
-struct pl08x_platform_data {
+struct pl08x_platform_data
+{
 	struct pl08x_channel_data *slave_channels;
 	unsigned int num_slave_channels;
 	struct pl08x_channel_data memcpy_channel;

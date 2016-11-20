@@ -123,7 +123,8 @@ struct ipu_soc;
 
 #define IPU_NUM_IRQS	(32 * 15)
 
-enum ipu_modules {
+enum ipu_modules
+{
 	IPU_CONF_CSI0_EN		= (1 << 0),
 	IPU_CONF_CSI1_EN		= (1 << 1),
 	IPU_CONF_IC_EN			= (1 << 2),
@@ -150,7 +151,8 @@ enum ipu_modules {
 	IPU_CONF_CSI_SEL		= (1 << 31),
 };
 
-struct ipuv3_channel {
+struct ipuv3_channel
+{
 	unsigned int num;
 
 	bool enabled;
@@ -171,7 +173,8 @@ struct ipu_smfc_priv;
 
 struct ipu_devtype;
 
-struct ipu_soc {
+struct ipu_soc
+{
 	struct device		*dev;
 	const struct ipu_devtype	*devtype;
 	enum ipuv3_type		ipu_type;
@@ -210,7 +213,7 @@ static inline u32 ipu_idmac_read(struct ipu_soc *ipu, unsigned offset)
 }
 
 static inline void ipu_idmac_write(struct ipu_soc *ipu, u32 value,
-				   unsigned offset)
+								   unsigned offset)
 {
 	writel(value, ipu->idmac_reg + offset);
 }
@@ -224,33 +227,33 @@ bool ipu_idmac_channel_busy(struct ipu_soc *ipu, unsigned int chno);
 int ipu_wait_interrupt(struct ipu_soc *ipu, int irq, int ms);
 
 int ipu_csi_init(struct ipu_soc *ipu, struct device *dev, int id,
-		 unsigned long base, u32 module, struct clk *clk_ipu);
+				 unsigned long base, u32 module, struct clk *clk_ipu);
 void ipu_csi_exit(struct ipu_soc *ipu, int id);
 
 int ipu_ic_init(struct ipu_soc *ipu, struct device *dev,
-		unsigned long base, unsigned long tpmem_base);
+				unsigned long base, unsigned long tpmem_base);
 void ipu_ic_exit(struct ipu_soc *ipu);
 
 int ipu_vdi_init(struct ipu_soc *ipu, struct device *dev,
-		 unsigned long base, u32 module);
+				 unsigned long base, u32 module);
 void ipu_vdi_exit(struct ipu_soc *ipu);
 
 int ipu_image_convert_init(struct ipu_soc *ipu, struct device *dev);
 void ipu_image_convert_exit(struct ipu_soc *ipu);
 
 int ipu_di_init(struct ipu_soc *ipu, struct device *dev, int id,
-		unsigned long base, u32 module, struct clk *ipu_clk);
+				unsigned long base, u32 module, struct clk *ipu_clk);
 void ipu_di_exit(struct ipu_soc *ipu, int id);
 
 int ipu_dmfc_init(struct ipu_soc *ipu, struct device *dev, unsigned long base,
-		struct clk *ipu_clk);
+				  struct clk *ipu_clk);
 void ipu_dmfc_exit(struct ipu_soc *ipu);
 
 int ipu_dp_init(struct ipu_soc *ipu, struct device *dev, unsigned long base);
 void ipu_dp_exit(struct ipu_soc *ipu);
 
 int ipu_dc_init(struct ipu_soc *ipu, struct device *dev, unsigned long base,
-		unsigned long template_base);
+				unsigned long template_base);
 void ipu_dc_exit(struct ipu_soc *ipu);
 
 int ipu_cpmem_init(struct ipu_soc *ipu, struct device *dev, unsigned long base);

@@ -17,26 +17,26 @@ static struct nls_table *p_nls;
 #define IS_SJIS_LOW_BYTE(l)	((0x40 <= (l)) && ((l) <= 0xFC) && ((l) != 0x7F))
 /* JIS X 0208 (include NEC spesial characters) */
 #define IS_SJIS_JISX0208(h, l)	((((0x81 <= (h)) && ((h) <= 0x9F))	\
-				 || ((0xE0 <= (h)) && ((h) <= 0xEA)))	\
-				 && IS_SJIS_LOW_BYTE(l))
+								  || ((0xE0 <= (h)) && ((h) <= 0xEA)))	\
+								 && IS_SJIS_LOW_BYTE(l))
 #define IS_SJIS_JISX0201KANA(c)	((0xA1 <= (c)) && ((c) <= 0xDF))
 #define IS_SJIS_UDC_LOW(h, l)	(((0xF0 <= (h)) && ((h) <= 0xF4))	\
-				 && IS_SJIS_LOW_BYTE(l))
+								 && IS_SJIS_LOW_BYTE(l))
 #define IS_SJIS_UDC_HI(h, l)	(((0xF5 <= (h)) && ((h) <= 0xF9))	\
-				 && IS_SJIS_LOW_BYTE(l))
+								 && IS_SJIS_LOW_BYTE(l))
 #define IS_SJIS_IBM(h, l)	(((0xFA <= (h)) && ((h) <= 0xFC))	\
-				 && IS_SJIS_LOW_BYTE(l))
+							 && IS_SJIS_LOW_BYTE(l))
 #define IS_SJIS_NECIBM(h, l)	(((0xED <= (h)) && ((h) <= 0xEE))	\
-				 && IS_SJIS_LOW_BYTE(l))
+								 && IS_SJIS_LOW_BYTE(l))
 #define MAP_SJIS2EUC(sjis_hi, sjis_lo, sjis_p, euc_hi, euc_lo, euc_p) {		\
-	if ((sjis_lo) >= 0x9F) {						\
-		(euc_hi) = (sjis_hi) * 2 - (((sjis_p) * 2 - (euc_p)) - 1);	\
-		(euc_lo) = (sjis_lo) + 2;					\
-	} else {								\
-		(euc_hi) = (sjis_hi) * 2 - ((sjis_p) * 2 - (euc_p));		\
-		(euc_lo) = (sjis_lo) + ((sjis_lo) >= 0x7F ? 0x60 : 0x61);	\
-	}									\
-} while(0)
+		if ((sjis_lo) >= 0x9F) {						\
+			(euc_hi) = (sjis_hi) * 2 - (((sjis_p) * 2 - (euc_p)) - 1);	\
+			(euc_lo) = (sjis_lo) + 2;					\
+		} else {								\
+			(euc_hi) = (sjis_hi) * 2 - ((sjis_p) * 2 - (euc_p));		\
+			(euc_lo) = (sjis_lo) + ((sjis_lo) >= 0x7F ? 0x60 : 0x61);	\
+		}									\
+	} while(0)
 
 #define SS2		(0x8E)		/* Single Shift 2 */
 #define SS3		(0x8F)		/* Single Shift 3 */
@@ -44,20 +44,21 @@ static struct nls_table *p_nls;
 #define IS_EUC_JISX0208(h, l)	(IS_EUC_BYTE(h) && IS_EUC_BYTE(l))
 #define IS_EUC_JISX0201KANA(h, l)	(((h) == SS2) && (0xA1 <= (l) && (l) <= 0xDF))
 #define IS_EUC_UDC_LOW(h, l)	(((0xF5 <= (h)) && ((h) <= 0xFE))	\
-				 && IS_EUC_BYTE(l))
+								 && IS_EUC_BYTE(l))
 #define IS_EUC_UDC_HI(h, l)	IS_EUC_UDC_LOW(h, l) /* G3 block */
 #define MAP_EUC2SJIS(euc_hi, euc_lo, euc_p, sjis_hi, sjis_lo, sjis_p) {		\
-	if ((euc_hi) & 1) {							\
-		(sjis_hi) = (euc_hi) / 2 + ((sjis_p) - (euc_p) / 2);		\
-		(sjis_lo) = (euc_lo) - ((euc_lo) >= 0xE0 ? 0x60 : 0x61);	\
-	} else {								\
-		(sjis_hi) = (euc_hi) / 2 + (((sjis_p) - (euc_p) / 2) - 1);	\
-		(sjis_lo) = (euc_lo) - 2;					\
-	}									\
-} while(0)
+		if ((euc_hi) & 1) {							\
+			(sjis_hi) = (euc_hi) / 2 + ((sjis_p) - (euc_p) / 2);		\
+			(sjis_lo) = (euc_lo) - ((euc_lo) >= 0xE0 ? 0x60 : 0x61);	\
+		} else {								\
+			(sjis_hi) = (euc_hi) / 2 + (((sjis_p) - (euc_p) / 2) - 1);	\
+			(sjis_lo) = (euc_lo) - 2;					\
+		}									\
+	} while(0)
 
 /* SJIS IBM extended characters to EUC map */
-static const unsigned char sjisibm2euc_map[][2] = {
+static const unsigned char sjisibm2euc_map[][2] =
+{
 	{0xF3, 0xF3}, {0xF3, 0xF4}, {0xF3, 0xF5}, {0xF3, 0xF6}, {0xF3, 0xF7},
 	{0xF3, 0xF8}, {0xF3, 0xF9}, {0xF3, 0xFA}, {0xF3, 0xFB}, {0xF3, 0xFC},
 	{0xF3, 0xFD}, {0xF3, 0xFE}, {0xF4, 0xA1}, {0xF4, 0xA2}, {0xF4, 0xA3},
@@ -139,13 +140,15 @@ static const unsigned char sjisibm2euc_map[][2] = {
 };
 
 #define IS_EUC_IBM2JISX0208(h, l) \
-		(((h) == 0xA2 && (l) == 0xCC) || ((h) == 0xA2 && (l) == 0xE8))
+	(((h) == 0xA2 && (l) == 0xCC) || ((h) == 0xA2 && (l) == 0xE8))
 
 /* EUC to SJIS IBM extended characters map (G3 JIS X 0212 block) */
-static struct {
+static struct
+{
 	unsigned short euc;
 	unsigned char sjis[2];
-} euc2sjisibm_jisx0212_map[] = {
+} euc2sjisibm_jisx0212_map[] =
+{
 	{0xA2C3, {0xFA, 0x55}}, {0xB0A9, {0xFA, 0x68}}, {0xB0C8, {0xFA, 0x69}},
 	{0xB0D2, {0xFA, 0x6B}}, {0xB0D4, {0xFA, 0x6C}}, {0xB0E3, {0xFA, 0x6D}},
 	{0xB0EE, {0xFA, 0x6E}}, {0xB1A3, {0xFA, 0x70}}, {0xB1A7, {0xFA, 0x6F}},
@@ -243,7 +246,8 @@ static struct {
 };
 
 /* EUC to SJIS IBM extended characters map (G3 Upper block) */
-static const unsigned char euc2sjisibm_g3upper_map[][2] = {
+static const unsigned char euc2sjisibm_g3upper_map[][2] =
+{
 	{0xFA, 0x40}, {0xFA, 0x41}, {0xFA, 0x42}, {0xFA, 0x43}, {0xFA, 0x44},
 	{0xFA, 0x45}, {0xFA, 0x46}, {0xFA, 0x47}, {0xFA, 0x48}, {0xFA, 0x49},
 	{0xFA, 0x4A}, {0xFA, 0x4B}, {0xFA, 0x4C}, {0xFA, 0x4D}, {0xFA, 0x4E},
@@ -269,30 +273,34 @@ static const unsigned char euc2sjisibm_g3upper_map[][2] = {
 };
 
 static inline int sjisibm2euc(unsigned char *euc, const unsigned char sjis_hi,
-			      const unsigned char sjis_lo);
+							  const unsigned char sjis_lo);
 static inline int euc2sjisibm_jisx0212(unsigned char *sjis, const unsigned char euc_hi,
-				       const unsigned char euc_lo);
+									   const unsigned char euc_lo);
 static inline int euc2sjisibm_g3upper(unsigned char *sjis, const unsigned char euc_hi,
-				      const unsigned char euc_lo);
+									  const unsigned char euc_lo);
 static inline int euc2sjisibm(unsigned char *sjis, const unsigned char euc_hi,
-			      const unsigned char euc_lo);
+							  const unsigned char euc_lo);
 static inline int sjisnec2sjisibm(unsigned char *sjisibm,
-				  const unsigned char sjisnec_hi,
-				  const unsigned char sjisnec_lo);
+								  const unsigned char sjisnec_hi,
+								  const unsigned char sjisnec_lo);
 
 /* SJIS IBM extended characters to EUC */
 static inline int sjisibm2euc(unsigned char *euc, const unsigned char sjis_hi,
-			      const unsigned char sjis_lo)
+							  const unsigned char sjis_lo)
 {
 	int index;
 
 	index = ((sjis_hi - 0xFA) * (0xFD - 0x40)) + (sjis_lo - 0x40);
+
 	if (IS_EUC_IBM2JISX0208(sjisibm2euc_map[index][0],
-				sjisibm2euc_map[index][1])) {
+							sjisibm2euc_map[index][1]))
+	{
 		euc[0] = sjisibm2euc_map[index][0];
 		euc[1] = sjisibm2euc_map[index][1];
 		return 2;
-	} else {
+	}
+	else
+	{
 		euc[0] = SS3;
 		euc[1] = sjisibm2euc_map[index][0];
 		euc[2] = sjisibm2euc_map[index][1];
@@ -302,7 +310,7 @@ static inline int sjisibm2euc(unsigned char *euc, const unsigned char sjis_hi,
 
 /* EUC to SJIS IBM extended characters (G3 JIS X 0212 block) */
 static inline int euc2sjisibm_jisx0212(unsigned char *sjis, const unsigned char euc_hi,
-				       const unsigned char euc_lo)
+									   const unsigned char euc_lo)
 {
 	int index, min_index, max_index;
 	unsigned short euc;
@@ -311,34 +319,49 @@ static inline int euc2sjisibm_jisx0212(unsigned char *sjis, const unsigned char 
 	max_index = ARRAY_SIZE(euc2sjisibm_jisx0212_map) - 1;
 	euc = (euc_hi << 8) | euc_lo;
 
-	while (min_index <= max_index) {
+	while (min_index <= max_index)
+	{
 		index = (min_index + max_index) / 2;
+
 		if (euc < euc2sjisibm_jisx0212_map[index].euc)
+		{
 			max_index = index - 1;
+		}
 		else
+		{
 			min_index = index + 1;
-		if (euc == euc2sjisibm_jisx0212_map[index].euc) {
+		}
+
+		if (euc == euc2sjisibm_jisx0212_map[index].euc)
+		{
 			sjis[0] = euc2sjisibm_jisx0212_map[index].sjis[0];
 			sjis[1] = euc2sjisibm_jisx0212_map[index].sjis[1];
 			return 3;
 		}
 	}
+
 	return 0;
 }
 
 /* EUC to SJIS IBM extended characters (G3 Upper block) */
 static inline int euc2sjisibm_g3upper(unsigned char *sjis, const unsigned char euc_hi,
-				      const unsigned char euc_lo)
+									  const unsigned char euc_lo)
 {
 	int index;
 
 	if (euc_hi == 0xF3)
+	{
 		index = ((euc_hi << 8) | euc_lo) - 0xF3F3;
+	}
 	else
+	{
 		index = ((euc_hi << 8) | euc_lo) - 0xF4A1 + 12;
+	}
 
 	if ((index < 0) || (index >= ARRAY_SIZE(euc2sjisibm_g3upper_map)))
+	{
 		return 0;
+	}
 
 	sjis[0] = euc2sjisibm_g3upper_map[index][0];
 	sjis[1] = euc2sjisibm_g3upper_map[index][1];
@@ -348,24 +371,33 @@ static inline int euc2sjisibm_g3upper(unsigned char *sjis, const unsigned char e
 
 /* EUC to SJIS IBM extended characters (G3 block) */
 static inline int euc2sjisibm(unsigned char *sjis, const unsigned char euc_hi,
-			      const unsigned char euc_lo)
+							  const unsigned char euc_lo)
 {
 	int n;
 
 #if 0
-	if ((euc_hi == 0xA2) && (euc_lo == 0xCC)) {
+
+	if ((euc_hi == 0xA2) && (euc_lo == 0xCC))
+	{
 		sjis[0] = 0xFA;
 		sjis[1] = 0x54;
 		return 2;
-	} else if ((euc_hi == 0xA2) && (euc_lo == 0xE8)) {
+	}
+	else if ((euc_hi == 0xA2) && (euc_lo == 0xE8))
+	{
 		sjis[0] = 0xFA;
 		sjis[1] = 0x5B;
 		return 2;
 	}
+
 #endif
-	if ((n = euc2sjisibm_g3upper(sjis, euc_hi, euc_lo))) {
+
+	if ((n = euc2sjisibm_g3upper(sjis, euc_hi, euc_lo)))
+	{
 		return n;
-	} else if ((n = euc2sjisibm_jisx0212(sjis, euc_hi, euc_lo))) {
+	}
+	else if ((n = euc2sjisibm_jisx0212(sjis, euc_hi, euc_lo)))
+	{
 		return n;
 	}
 
@@ -374,133 +406,199 @@ static inline int euc2sjisibm(unsigned char *sjis, const unsigned char euc_hi,
 
 /* NEC/IBM extended characters to IBM extended characters */
 static inline int sjisnec2sjisibm(unsigned char *sjisibm,
-				  const unsigned char sjisnec_hi,
-				  const unsigned char sjisnec_lo)
+								  const unsigned char sjisnec_hi,
+								  const unsigned char sjisnec_lo)
 {
 	int count;
 
 	if (! IS_SJIS_NECIBM(sjisnec_hi, sjisnec_lo))
+	{
 		return 0;
+	}
 
-	if ((sjisnec_hi == 0xEE) && (sjisnec_lo == 0xF9)) {
+	if ((sjisnec_hi == 0xEE) && (sjisnec_lo == 0xF9))
+	{
 		sjisibm[0] = 0x81;
 		sjisibm[1] = 0xCA;
 		return 2;
 	}
 
-	if ((sjisnec_hi == 0xEE) && (sjisnec_lo >= 0xEF)) {
+	if ((sjisnec_hi == 0xEE) && (sjisnec_lo >= 0xEF))
+	{
 		count = (sjisnec_hi << 8 | sjisnec_lo)
-			- (sjisnec_lo <= 0xF9 ? 0xEEEF : (0xEEEF - 10));
-	} else {
+				- (sjisnec_lo <= 0xF9 ? 0xEEEF : (0xEEEF - 10));
+	}
+	else
+	{
 		count = (sjisnec_hi - 0xED) * (0xFC - 0x40)
-			+ (sjisnec_lo - 0x40) + (0x5C - 0x40);
+				+ (sjisnec_lo - 0x40) + (0x5C - 0x40);
+
 		if (sjisnec_lo >= 0x7F)
+		{
 			count--;
+		}
 	}
 
 	sjisibm[0] = 0xFA + (count / (0xFC - 0x40));
 	sjisibm[1] = 0x40 + (count % (0xFC - 0x40));
+
 	if (sjisibm[1] >= 0x7F)
+	{
 		sjisibm[1]++;
+	}
 
 	return 2;
 }
 
 static int uni2char(const wchar_t uni,
-		    unsigned char *out, int boundlen)
+					unsigned char *out, int boundlen)
 {
 	int n;
 
 	if (!p_nls)
+	{
 		return -EINVAL;
+	}
+
 	if ((n = p_nls->uni2char(uni, out, boundlen)) < 0)
+	{
 		return n;
+	}
 
 	/* translate SJIS into EUC-JP */
-	if (n == 1) {
-		if (IS_SJIS_JISX0201KANA(out[0])) {
+	if (n == 1)
+	{
+		if (IS_SJIS_JISX0201KANA(out[0]))
+		{
 			/* JIS X 0201 KANA */
 			if (boundlen < 2)
+			{
 				return -ENAMETOOLONG;
+			}
 
 			out[1] = out[0];
 			out[0] = SS2;
 			return 2;
 		}
-	} else if (n == 2) {
+	}
+	else if (n == 2)
+	{
 		/* NEC/IBM extended characters to IBM extended characters */
 		sjisnec2sjisibm(out, out[0], out[1]);
 
-		if (IS_SJIS_UDC_LOW(out[0], out[1])) {
+		if (IS_SJIS_UDC_LOW(out[0], out[1]))
+		{
 			/* User defined characters half low */
 			MAP_SJIS2EUC(out[0], out[1], 0xF0, out[0], out[1], 0xF5);
-		} else if (IS_SJIS_UDC_HI(out[0], out[1])) {
+		}
+		else if (IS_SJIS_UDC_HI(out[0], out[1]))
+		{
 			/* User defined characters half high */
 			unsigned char ch, cl;
 
 			if (boundlen < 3)
+			{
 				return -ENAMETOOLONG;
+			}
 
 			n = 3; ch = out[0]; cl = out[1];
 			out[0] = SS3;
 			MAP_SJIS2EUC(ch, cl, 0xF5, out[1], out[2], 0xF5);
-		} else if (IS_SJIS_IBM(out[0], out[1])) {
+		}
+		else if (IS_SJIS_IBM(out[0], out[1]))
+		{
 			/* IBM extended characters */
 			unsigned char euc[3], i;
 
 			n = sjisibm2euc(euc, out[0], out[1]);
+
 			if (boundlen < n)
+			{
 				return -ENAMETOOLONG;
+			}
+
 			for (i = 0; i < n; i++)
+			{
 				out[i] = euc[i];
-		} else if (IS_SJIS_JISX0208(out[0], out[1])) {
+			}
+		}
+		else if (IS_SJIS_JISX0208(out[0], out[1]))
+		{
 			/* JIS X 0208 (include NEC special characters) */
-			out[0] = (out[0]^0xA0)*2 + 0x5F;
+			out[0] = (out[0] ^ 0xA0) * 2 + 0x5F;
+
 			if (out[1] > 0x9E)
+			{
 				out[0]++;
+			}
 
 			if (out[1] < 0x7F)
+			{
 				out[1] = out[1] + 0x61;
+			}
 			else if (out[1] < 0x9F)
+			{
 				out[1] = out[1] + 0x60;
+			}
 			else
+			{
 				out[1] = out[1] + 0x02;
-		} else {
+			}
+		}
+		else
+		{
 			/* Invalid characters */
 			return -EINVAL;
 		}
 	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	return n;
 }
 
 static int char2uni(const unsigned char *rawstring, int boundlen,
-		    wchar_t *uni)
+					wchar_t *uni)
 {
 	unsigned char sjis_temp[2];
 	int euc_offset, n;
 
 	if ( !p_nls )
+	{
 		return -EINVAL;
+	}
+
 	if (boundlen <= 0)
+	{
 		return -ENAMETOOLONG;
+	}
 
 	/* translate EUC-JP into SJIS */
-	if (rawstring[0] > 0x7F) {
-		if (rawstring[0] == SS3) {
+	if (rawstring[0] > 0x7F)
+	{
+		if (rawstring[0] == SS3)
+		{
 			if (boundlen < 3)
+			{
 				return -EINVAL;
+			}
+
 			euc_offset = 3;
 
-			if (IS_EUC_UDC_HI(rawstring[1], rawstring[2])) {
+			if (IS_EUC_UDC_HI(rawstring[1], rawstring[2]))
+			{
 				/* User defined characters half high */
 				MAP_EUC2SJIS(rawstring[1], rawstring[2], 0xF5,
-					     sjis_temp[0], sjis_temp[1], 0xF5);
-			} else if (euc2sjisibm(sjis_temp,rawstring[1],rawstring[2])) {
+							 sjis_temp[0], sjis_temp[1], 0xF5);
+			}
+			else if (euc2sjisibm(sjis_temp, rawstring[1], rawstring[2]))
+			{
 				/* IBM extended characters */
-			} else {
+			}
+			else
+			{
 				/* JIS X 0212 and Invalid characters*/
 				return -EINVAL;
 
@@ -508,34 +606,55 @@ static int char2uni(const unsigned char *rawstring, int boundlen,
 				/* sjis_temp[0] = 0x81; */
 				/* sjis_temp[1] = 0xAC; */
 			}
-		} else {
+		}
+		else
+		{
 			if (boundlen < 2)
+			{
 				return -EINVAL;
+			}
+
 			euc_offset = 2;
 
-			if (IS_EUC_JISX0201KANA(rawstring[0], rawstring[1])) {
+			if (IS_EUC_JISX0201KANA(rawstring[0], rawstring[1]))
+			{
 				/* JIS X 0201 KANA */
 				sjis_temp[0] = rawstring[1];
 				sjis_temp[1] = 0x00;
-			} else if (IS_EUC_UDC_LOW(rawstring[0], rawstring[1])) {
+			}
+			else if (IS_EUC_UDC_LOW(rawstring[0], rawstring[1]))
+			{
 				/* User defined characters half low */
 				MAP_EUC2SJIS(rawstring[0], rawstring[1], 0xF5,
-					     sjis_temp[0], sjis_temp[1], 0xF0);
-			} else if (IS_EUC_JISX0208(rawstring[0], rawstring[1])) {
+							 sjis_temp[0], sjis_temp[1], 0xF0);
+			}
+			else if (IS_EUC_JISX0208(rawstring[0], rawstring[1]))
+			{
 				/* JIS X 0208 (include NEC spesial characters) */
-				sjis_temp[0] = ((rawstring[0]-0x5f)/2) ^ 0xA0;
+				sjis_temp[0] = ((rawstring[0] - 0x5f) / 2) ^ 0xA0;
+
 				if (!(rawstring[0] & 1))
+				{
 					sjis_temp[1] = rawstring[1] - 0x02;
+				}
 				else if (rawstring[1] < 0xE0)
+				{
 					sjis_temp[1] = rawstring[1] - 0x61;
+				}
 				else
+				{
 					sjis_temp[1] = rawstring[1] - 0x60;
-			} else {
+				}
+			}
+			else
+			{
 				/* Invalid characters */
 				return -EINVAL;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		euc_offset = 1;
 
 		/* JIS X 0201 ROMAJI */
@@ -544,12 +663,15 @@ static int char2uni(const unsigned char *rawstring, int boundlen,
 	}
 
 	if ( (n = p_nls->char2uni(sjis_temp, sizeof(sjis_temp), uni)) < 0)
+	{
 		return n;
+	}
 
 	return euc_offset;
 }
 
-static struct nls_table table = {
+static struct nls_table table =
+{
 	.charset	= "euc-jp",
 	.uni2char	= uni2char,
 	.char2uni	= char2uni,
@@ -559,7 +681,8 @@ static int __init init_nls_euc_jp(void)
 {
 	p_nls = load_nls("cp932");
 
-	if (p_nls) {
+	if (p_nls)
+	{
 		table.charset2upper = p_nls->charset2upper;
 		table.charset2lower = p_nls->charset2lower;
 		return register_nls(&table);

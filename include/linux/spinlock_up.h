@@ -2,7 +2,7 @@
 #define __LINUX_SPINLOCK_UP_H
 
 #ifndef __LINUX_SPINLOCK_H
-# error "please don't include this file directly"
+	# error "please don't include this file directly"
 #endif
 
 #include <asm/processor.h>	/* for cpu_relax() */

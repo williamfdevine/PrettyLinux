@@ -33,19 +33,22 @@
  * TODO: this might need rework when switching to nl80211-based
  * interface.
  */
-enum ath_fft_sample_type {
+enum ath_fft_sample_type
+{
 	ATH_FFT_SAMPLE_HT20 = 1,
 	ATH_FFT_SAMPLE_HT20_40,
 	ATH_FFT_SAMPLE_ATH10K,
 };
 
-struct fft_sample_tlv {
+struct fft_sample_tlv
+{
 	u8 type;	/* see ath_fft_sample */
 	__be16 length;
 	/* type dependent data follows */
 } __packed;
 
-struct fft_sample_ht20 {
+struct fft_sample_ht20
+{
 	struct fft_sample_tlv tlv;
 
 	u8 max_exp;
@@ -63,7 +66,8 @@ struct fft_sample_ht20 {
 	u8 data[SPECTRAL_HT20_NUM_BINS];
 } __packed;
 
-struct fft_sample_ht20_40 {
+struct fft_sample_ht20_40
+{
 	struct fft_sample_tlv tlv;
 
 	u8 channel_type;
@@ -91,7 +95,8 @@ struct fft_sample_ht20_40 {
 	u8 data[SPECTRAL_HT20_40_NUM_BINS];
 } __packed;
 
-struct fft_sample_ath10k {
+struct fft_sample_ath10k
+{
 	struct fft_sample_tlv tlv;
 	u8 chan_width_mhz;
 	__be16 freq1;

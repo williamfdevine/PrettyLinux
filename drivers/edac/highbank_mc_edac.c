@@ -57,7 +57,8 @@
 #define HB_DDR_ECC_INT_STAT_UE		0x20
 #define HB_DDR_ECC_INT_STAT_DOUBLE_UE	0x40
 
-struct hb_mc_drvdata {
+struct hb_mc_drvdata
+{
 	void __iomem *mc_err_base;
 	void __iomem *mc_int_base;
 };
@@ -71,23 +72,26 @@ static irqreturn_t highbank_mc_err_handler(int irq, void *dev_id)
 	/* Read the interrupt status register */
 	status = readl(drvdata->mc_int_base + HB_DDR_ECC_INT_STATUS);
 
-	if (status & HB_DDR_ECC_INT_STAT_UE) {
+	if (status & HB_DDR_ECC_INT_STAT_UE)
+	{
 		err_addr = readl(drvdata->mc_err_base + HB_DDR_ECC_U_ERR_ADDR);
 		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
-				     err_addr >> PAGE_SHIFT,
-				     err_addr & ~PAGE_MASK, 0,
-				     0, 0, -1,
-				     mci->ctl_name, "");
+							 err_addr >> PAGE_SHIFT,
+							 err_addr & ~PAGE_MASK, 0,
+							 0, 0, -1,
+							 mci->ctl_name, "");
 	}
-	if (status & HB_DDR_ECC_INT_STAT_CE) {
+
+	if (status & HB_DDR_ECC_INT_STAT_CE)
+	{
 		u32 syndrome = readl(drvdata->mc_err_base + HB_DDR_ECC_C_ERR_STAT);
 		syndrome = (syndrome >> 8) & 0xff;
 		err_addr = readl(drvdata->mc_err_base + HB_DDR_ECC_C_ERR_ADDR);
 		edac_mc_handle_error(HW_EVENT_ERR_CORRECTED, mci, 1,
-				     err_addr >> PAGE_SHIFT,
-				     err_addr & ~PAGE_MASK, syndrome,
-				     0, 0, -1,
-				     mci->ctl_name, "");
+							 err_addr >> PAGE_SHIFT,
+							 err_addr & ~PAGE_MASK, syndrome,
+							 0, 0, -1,
+							 mci->ctl_name, "");
 	}
 
 	/* clear the error, clears the interrupt */
@@ -109,13 +113,15 @@ static void highbank_mc_err_inject(struct mem_ctl_info *mci, u8 synd)
 #define to_mci(k) container_of(k, struct mem_ctl_info, dev)
 
 static ssize_t highbank_mc_inject_ctrl(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+									   struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 	u8 synd;
 
 	if (kstrtou8(buf, 16, &synd))
+	{
 		return -EINVAL;
+	}
 
 	highbank_mc_err_inject(mci, synd);
 
@@ -124,29 +130,34 @@ static ssize_t highbank_mc_inject_ctrl(struct device *dev,
 
 static DEVICE_ATTR(inject_ctrl, S_IWUSR, NULL, highbank_mc_inject_ctrl);
 
-static struct attribute *highbank_dev_attrs[] = {
+static struct attribute *highbank_dev_attrs[] =
+{
 	&dev_attr_inject_ctrl.attr,
 	NULL
 };
 
 ATTRIBUTE_GROUPS(highbank_dev);
 
-struct hb_mc_settings {
+struct hb_mc_settings
+{
 	int	err_offset;
 	int	int_offset;
 };
 
-static struct hb_mc_settings hb_settings = {
+static struct hb_mc_settings hb_settings =
+{
 	.err_offset = HB_DDR_ECC_ERR_BASE,
 	.int_offset = HB_DDR_ECC_INT_BASE,
 };
 
-static struct hb_mc_settings mw_settings = {
+static struct hb_mc_settings mw_settings =
+{
 	.err_offset = MW_DDR_ECC_ERR_BASE,
 	.int_offset = MW_DDR_ECC_INT_BASE,
 };
 
-static const struct of_device_id hb_ddr_ctrl_of_match[] = {
+static const struct of_device_id hb_ddr_ctrl_of_match[] =
+{
 	{ .compatible = "calxeda,hb-ddr-ctrl",		.data = &hb_settings },
 	{ .compatible = "calxeda,ecx-2000-ddr-ctrl",	.data = &mw_settings },
 	{},
@@ -168,8 +179,11 @@ static int highbank_mc_probe(struct platform_device *pdev)
 	int res = 0;
 
 	id = of_match_device(hb_ddr_ctrl_of_match, &pdev->dev);
+
 	if (!id)
+	{
 		return -ENODEV;
+	}
 
 	layers[0].type = EDAC_MC_LAYER_CHIP_SELECT;
 	layers[0].size = 1;
@@ -178,33 +192,43 @@ static int highbank_mc_probe(struct platform_device *pdev)
 	layers[1].size = 1;
 	layers[1].is_virt_csrow = false;
 	mci = edac_mc_alloc(0, ARRAY_SIZE(layers), layers,
-			    sizeof(struct hb_mc_drvdata));
+						sizeof(struct hb_mc_drvdata));
+
 	if (!mci)
+	{
 		return -ENOMEM;
+	}
 
 	mci->pdev = &pdev->dev;
 	drvdata = mci->pvt_info;
 	platform_set_drvdata(pdev, mci);
 
 	if (!devres_open_group(&pdev->dev, NULL, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!r) {
+
+	if (!r)
+	{
 		dev_err(&pdev->dev, "Unable to get mem resource\n");
 		res = -ENODEV;
 		goto err;
 	}
 
 	if (!devm_request_mem_region(&pdev->dev, r->start,
-				     resource_size(r), dev_name(&pdev->dev))) {
+								 resource_size(r), dev_name(&pdev->dev)))
+	{
 		dev_err(&pdev->dev, "Error while requesting mem region\n");
 		res = -EBUSY;
 		goto err;
 	}
 
 	base = devm_ioremap(&pdev->dev, r->start, resource_size(r));
-	if (!base) {
+
+	if (!base)
+	{
 		dev_err(&pdev->dev, "Unable to map regs\n");
 		res = -ENOMEM;
 		goto err;
@@ -215,7 +239,9 @@ static int highbank_mc_probe(struct platform_device *pdev)
 	drvdata->mc_int_base = base + settings->int_offset;
 
 	control = readl(drvdata->mc_err_base + HB_DDR_ECC_OPT) & 0x3;
-	if (!control || (control == 0x2)) {
+
+	if (!control || (control == 0x2))
+	{
 		dev_err(&pdev->dev, "No ECC present, or ECC disabled\n");
 		res = -ENODEV;
 		goto err;
@@ -239,13 +265,18 @@ static int highbank_mc_probe(struct platform_device *pdev)
 	dimm->edac_mode = EDAC_SECDED;
 
 	res = edac_mc_add_mc_with_groups(mci, highbank_dev_groups);
+
 	if (res < 0)
+	{
 		goto err;
+	}
 
 	irq = platform_get_irq(pdev, 0);
 	res = devm_request_irq(&pdev->dev, irq, highbank_mc_err_handler,
-			       0, dev_name(&pdev->dev), mci);
-	if (res < 0) {
+						   0, dev_name(&pdev->dev), mci);
+
+	if (res < 0)
+	{
 		dev_err(&pdev->dev, "Unable to request irq %d\n", irq);
 		goto err2;
 	}
@@ -269,7 +300,8 @@ static int highbank_mc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver highbank_mc_edac_driver = {
+static struct platform_driver highbank_mc_edac_driver =
+{
 	.probe = highbank_mc_probe,
 	.remove = highbank_mc_remove,
 	.driver = {

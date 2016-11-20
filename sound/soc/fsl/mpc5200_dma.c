@@ -35,11 +35,15 @@ static irqreturn_t psc_dma_status_irq(int irq, void *_psc_dma)
 
 	/* Playback underrun error */
 	if (psc_dma->playback.active && (isr & MPC52xx_PSC_IMR_TXEMP))
+	{
 		psc_dma->stats.underrun_count++;
+	}
 
 	/* Capture overrun error */
 	if (psc_dma->capture.active && (isr & MPC52xx_PSC_IMR_ORERR))
+	{
 		psc_dma->stats.overrun_count++;
+	}
 
 	out_8(&regs->command, MPC52xx_PSC_RST_ERR_STAT);
 
@@ -76,22 +80,27 @@ static irqreturn_t psc_dma_bcom_irq(int irq, void *_psc_dma_stream)
 	struct psc_dma_stream *s = _psc_dma_stream;
 
 	spin_lock(&s->psc_dma->lock);
+
 	/* For each finished period, dequeue the completed period buffer
 	 * and enqueue a new one in it's place. */
-	while (bcom_buffer_done(s->bcom_task)) {
+	while (bcom_buffer_done(s->bcom_task))
+	{
 		bcom_retrieve_buffer(s->bcom_task, NULL, NULL);
 
-		s->period_current = (s->period_current+1) % s->runtime->periods;
+		s->period_current = (s->period_current + 1) % s->runtime->periods;
 		s->period_count++;
 
 		psc_dma_bcom_enqueue_next_buffer(s);
 	}
+
 	spin_unlock(&s->psc_dma->lock);
 
 	/* If the stream is active, then also inform the PCM middle layer
 	 * of the period finished event. */
 	if (s->active)
+	{
 		snd_pcm_period_elapsed(s->stream);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -119,67 +128,87 @@ static int psc_dma_trigger(struct snd_pcm_substream *substream, int cmd)
 	unsigned long flags;
 	int i;
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-		dev_dbg(psc_dma->dev, "START: stream=%i fbits=%u ps=%u #p=%u\n",
-			substream->pstr->stream, runtime->frame_bits,
-			(int)runtime->period_size, runtime->periods);
-		s->period_bytes = frames_to_bytes(runtime,
-						  runtime->period_size);
-		s->period_next = 0;
-		s->period_current = 0;
-		s->active = 1;
-		s->period_count = 0;
-		s->runtime = runtime;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+			dev_dbg(psc_dma->dev, "START: stream=%i fbits=%u ps=%u #p=%u\n",
+					substream->pstr->stream, runtime->frame_bits,
+					(int)runtime->period_size, runtime->periods);
+			s->period_bytes = frames_to_bytes(runtime,
+											  runtime->period_size);
+			s->period_next = 0;
+			s->period_current = 0;
+			s->active = 1;
+			s->period_count = 0;
+			s->runtime = runtime;
 
-		/* Fill up the bestcomm bd queue and enable DMA.
-		 * This will begin filling the PSC's fifo.
-		 */
-		spin_lock_irqsave(&psc_dma->lock, flags);
+			/* Fill up the bestcomm bd queue and enable DMA.
+			 * This will begin filling the PSC's fifo.
+			 */
+			spin_lock_irqsave(&psc_dma->lock, flags);
 
-		if (substream->pstr->stream == SNDRV_PCM_STREAM_CAPTURE)
-			bcom_gen_bd_rx_reset(s->bcom_task);
-		else
-			bcom_gen_bd_tx_reset(s->bcom_task);
+			if (substream->pstr->stream == SNDRV_PCM_STREAM_CAPTURE)
+			{
+				bcom_gen_bd_rx_reset(s->bcom_task);
+			}
+			else
+			{
+				bcom_gen_bd_tx_reset(s->bcom_task);
+			}
 
-		for (i = 0; i < runtime->periods; i++)
-			if (!bcom_queue_full(s->bcom_task))
-				psc_dma_bcom_enqueue_next_buffer(s);
+			for (i = 0; i < runtime->periods; i++)
+				if (!bcom_queue_full(s->bcom_task))
+				{
+					psc_dma_bcom_enqueue_next_buffer(s);
+				}
 
-		bcom_enable(s->bcom_task);
-		spin_unlock_irqrestore(&psc_dma->lock, flags);
+			bcom_enable(s->bcom_task);
+			spin_unlock_irqrestore(&psc_dma->lock, flags);
 
-		out_8(&regs->command, MPC52xx_PSC_RST_ERR_STAT);
+			out_8(&regs->command, MPC52xx_PSC_RST_ERR_STAT);
 
-		break;
+			break;
 
-	case SNDRV_PCM_TRIGGER_STOP:
-		dev_dbg(psc_dma->dev, "STOP: stream=%i periods_count=%i\n",
-			substream->pstr->stream, s->period_count);
-		s->active = 0;
+		case SNDRV_PCM_TRIGGER_STOP:
+			dev_dbg(psc_dma->dev, "STOP: stream=%i periods_count=%i\n",
+					substream->pstr->stream, s->period_count);
+			s->active = 0;
 
-		spin_lock_irqsave(&psc_dma->lock, flags);
-		bcom_disable(s->bcom_task);
-		if (substream->pstr->stream == SNDRV_PCM_STREAM_CAPTURE)
-			bcom_gen_bd_rx_reset(s->bcom_task);
-		else
-			bcom_gen_bd_tx_reset(s->bcom_task);
-		spin_unlock_irqrestore(&psc_dma->lock, flags);
+			spin_lock_irqsave(&psc_dma->lock, flags);
+			bcom_disable(s->bcom_task);
 
-		break;
+			if (substream->pstr->stream == SNDRV_PCM_STREAM_CAPTURE)
+			{
+				bcom_gen_bd_rx_reset(s->bcom_task);
+			}
+			else
+			{
+				bcom_gen_bd_tx_reset(s->bcom_task);
+			}
 
-	default:
-		dev_dbg(psc_dma->dev, "unhandled trigger: stream=%i cmd=%i\n",
-			substream->pstr->stream, cmd);
-		return -EINVAL;
+			spin_unlock_irqrestore(&psc_dma->lock, flags);
+
+			break;
+
+		default:
+			dev_dbg(psc_dma->dev, "unhandled trigger: stream=%i cmd=%i\n",
+					substream->pstr->stream, cmd);
+			return -EINVAL;
 	}
 
 	/* Update interrupt enable settings */
 	imr = 0;
+
 	if (psc_dma->playback.active)
+	{
 		imr |= MPC52xx_PSC_IMR_TXEMP;
+	}
+
 	if (psc_dma->capture.active)
+	{
 		imr |= MPC52xx_PSC_IMR_ORERR;
+	}
+
 	out_be16(&regs->isr_imr.imr, psc_dma->imr | imr);
 
 	return 0;
@@ -194,12 +223,13 @@ static int psc_dma_trigger(struct snd_pcm_substream *substream, int cmd)
  * interaction with the attached codec
  */
 
-static const struct snd_pcm_hardware psc_dma_hardware = {
+static const struct snd_pcm_hardware psc_dma_hardware =
+{
 	.info = SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_MMAP_VALID |
-		SNDRV_PCM_INFO_INTERLEAVED | SNDRV_PCM_INFO_BLOCK_TRANSFER |
-		SNDRV_PCM_INFO_BATCH,
+	SNDRV_PCM_INFO_INTERLEAVED | SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_BATCH,
 	.formats = SNDRV_PCM_FMTBIT_S8 | SNDRV_PCM_FMTBIT_S16_BE |
-		SNDRV_PCM_FMTBIT_S24_BE | SNDRV_PCM_FMTBIT_S32_BE,
+	SNDRV_PCM_FMTBIT_S24_BE | SNDRV_PCM_FMTBIT_S32_BE,
 	.period_bytes_max	= 1024 * 1024,
 	.period_bytes_min	= 32,
 	.periods_min		= 2,
@@ -219,15 +249,21 @@ static int psc_dma_open(struct snd_pcm_substream *substream)
 	dev_dbg(psc_dma->dev, "psc_dma_open(substream=%p)\n", substream);
 
 	if (substream->pstr->stream == SNDRV_PCM_STREAM_CAPTURE)
+	{
 		s = &psc_dma->capture;
+	}
 	else
+	{
 		s = &psc_dma->playback;
+	}
 
 	snd_soc_set_runtime_hwparams(substream, &psc_dma_hardware);
 
 	rc = snd_pcm_hw_constraint_integer(runtime,
-		SNDRV_PCM_HW_PARAM_PERIODS);
-	if (rc < 0) {
+									   SNDRV_PCM_HW_PARAM_PERIODS);
+
+	if (rc < 0)
+	{
 		dev_err(substream->pcm->card->dev, "invalid buffer size\n");
 		return rc;
 	}
@@ -245,17 +281,23 @@ static int psc_dma_close(struct snd_pcm_substream *substream)
 	dev_dbg(psc_dma->dev, "psc_dma_close(substream=%p)\n", substream);
 
 	if (substream->pstr->stream == SNDRV_PCM_STREAM_CAPTURE)
+	{
 		s = &psc_dma->capture;
+	}
 	else
+	{
 		s = &psc_dma->playback;
+	}
 
 	if (!psc_dma->playback.active &&
-	    !psc_dma->capture.active) {
+		!psc_dma->capture.active)
+	{
 
 		/* Disable all interrupts and reset the PSC */
 		out_be16(&psc_dma->psc_regs->isr_imr.imr, psc_dma->imr);
 		out_8(&psc_dma->psc_regs->command, 4 << 4); /* reset error */
 	}
+
 	s->stream = NULL;
 	return 0;
 }
@@ -269,9 +311,13 @@ psc_dma_pointer(struct snd_pcm_substream *substream)
 	dma_addr_t count;
 
 	if (substream->pstr->stream == SNDRV_PCM_STREAM_CAPTURE)
+	{
 		s = &psc_dma->capture;
+	}
 	else
+	{
 		s = &psc_dma->playback;
+	}
 
 	count = s->period_current * s->period_bytes;
 
@@ -280,14 +326,15 @@ psc_dma_pointer(struct snd_pcm_substream *substream)
 
 static int
 psc_dma_hw_params(struct snd_pcm_substream *substream,
-			 struct snd_pcm_hw_params *params)
+				  struct snd_pcm_hw_params *params)
 {
 	snd_pcm_set_runtime_buffer(substream, &substream->dma_buffer);
 
 	return 0;
 }
 
-static struct snd_pcm_ops psc_dma_ops = {
+static struct snd_pcm_ops psc_dma_ops =
+{
 	.open		= psc_dma_open,
 	.close		= psc_dma_close,
 	.hw_free	= psc_dma_hw_free,
@@ -307,33 +354,47 @@ static int psc_dma_new(struct snd_soc_pcm_runtime *rtd)
 	int rc;
 
 	dev_dbg(rtd->platform->dev, "psc_dma_new(card=%p, dai=%p, pcm=%p)\n",
-		card, dai, pcm);
+			card, dai, pcm);
 
 	rc = dma_coerce_mask_and_coherent(card->dev, DMA_BIT_MASK(32));
-	if (rc)
-		return rc;
 
-	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream) {
-		rc = snd_dma_alloc_pages(SNDRV_DMA_TYPE_DEV, pcm->card->dev,
-				size, &pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream->dma_buffer);
-		if (rc)
-			goto playback_alloc_err;
+	if (rc)
+	{
+		return rc;
 	}
 
-	if (pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream) {
+	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream)
+	{
 		rc = snd_dma_alloc_pages(SNDRV_DMA_TYPE_DEV, pcm->card->dev,
-				size, &pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream->dma_buffer);
+								 size, &pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream->dma_buffer);
+
 		if (rc)
+		{
+			goto playback_alloc_err;
+		}
+	}
+
+	if (pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream)
+	{
+		rc = snd_dma_alloc_pages(SNDRV_DMA_TYPE_DEV, pcm->card->dev,
+								 size, &pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream->dma_buffer);
+
+		if (rc)
+		{
 			goto capture_alloc_err;
+		}
 	}
 
 	return 0;
 
- capture_alloc_err:
-	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream)
-		snd_dma_free_pages(&pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream->dma_buffer);
+capture_alloc_err:
 
- playback_alloc_err:
+	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream)
+	{
+		snd_dma_free_pages(&pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream->dma_buffer);
+	}
+
+playback_alloc_err:
 	dev_err(card->dev, "Cannot allocate buffer(s)\n");
 
 	return -ENOMEM;
@@ -347,9 +408,12 @@ static void psc_dma_free(struct snd_pcm *pcm)
 
 	dev_dbg(rtd->platform->dev, "psc_dma_free(pcm=%p)\n", pcm);
 
-	for (stream = 0; stream < 2; stream++) {
+	for (stream = 0; stream < 2; stream++)
+	{
 		substream = pcm->streams[stream].substream;
-		if (substream) {
+
+		if (substream)
+		{
 			snd_dma_free_pages(&substream->dma_buffer);
 			substream->dma_buffer.area = NULL;
 			substream->dma_buffer.addr = 0;
@@ -357,7 +421,8 @@ static void psc_dma_free(struct snd_pcm *pcm)
 	}
 }
 
-static struct snd_soc_platform_driver mpc5200_audio_dma_platform = {
+static struct snd_soc_platform_driver mpc5200_audio_dma_platform =
+{
 	.ops		= &psc_dma_ops,
 	.pcm_new	= &psc_dma_new,
 	.pcm_free	= &psc_dma_free,
@@ -375,26 +440,35 @@ int mpc5200_audio_dma_create(struct platform_device *op)
 
 	/* Fetch the registers and IRQ of the PSC */
 	irq = irq_of_parse_and_map(op->dev.of_node, 0);
-	if (of_address_to_resource(op->dev.of_node, 0, &res)) {
+
+	if (of_address_to_resource(op->dev.of_node, 0, &res))
+	{
 		dev_err(&op->dev, "Missing reg property\n");
 		return -ENODEV;
 	}
+
 	regs = ioremap(res.start, resource_size(&res));
-	if (!regs) {
+
+	if (!regs)
+	{
 		dev_err(&op->dev, "Could not map registers\n");
 		return -ENODEV;
 	}
 
 	/* Allocate and initialize the driver private data */
-	psc_dma = kzalloc(sizeof *psc_dma, GFP_KERNEL);
-	if (!psc_dma) {
+	psc_dma = kzalloc(sizeof * psc_dma, GFP_KERNEL);
+
+	if (!psc_dma)
+	{
 		ret = -ENOMEM;
 		goto out_unmap;
 	}
 
 	/* Get the PSC ID */
 	prop = of_get_property(op->dev.of_node, "cell-index", &size);
-	if (!prop || size < sizeof *prop) {
+
+	if (!prop || size < sizeof * prop)
+	{
 		ret = -ENODEV;
 		goto out_free;
 	}
@@ -404,7 +478,7 @@ int mpc5200_audio_dma_create(struct platform_device *op)
 	psc_dma->id = be32_to_cpu(*prop);
 	psc_dma->irq = irq;
 	psc_dma->psc_regs = regs;
-	psc_dma->fifo_regs = regs + sizeof *psc_dma->psc_regs;
+	psc_dma->fifo_regs = regs + sizeof * psc_dma->psc_regs;
 	psc_dma->dev = &op->dev;
 	psc_dma->playback.psc_dma = psc_dma;
 	psc_dma->capture.psc_dma = psc_dma;
@@ -417,8 +491,10 @@ int mpc5200_audio_dma_create(struct platform_device *op)
 		bcom_psc_gen_bd_rx_init(psc_dma->id, 10, fifo, 512);
 	psc_dma->playback.bcom_task =
 		bcom_psc_gen_bd_tx_init(psc_dma->id, 10, fifo);
+
 	if (!psc_dma->capture.bcom_task ||
-	    !psc_dma->playback.bcom_task) {
+		!psc_dma->playback.bcom_task)
+	{
 		dev_err(&op->dev, "Could not allocate bestcomm tasks\n");
 		ret = -ENODEV;
 		goto out_free;
@@ -426,13 +502,13 @@ int mpc5200_audio_dma_create(struct platform_device *op)
 
 	/* Disable all interrupts and reset the PSC */
 	out_be16(&psc_dma->psc_regs->isr_imr.imr, psc_dma->imr);
-	 /* reset receiver */
+	/* reset receiver */
 	out_8(&psc_dma->psc_regs->command, MPC52xx_PSC_RST_RX);
-	 /* reset transmitter */
+	/* reset transmitter */
 	out_8(&psc_dma->psc_regs->command, MPC52xx_PSC_RST_TX);
-	 /* reset error */
+	/* reset error */
 	out_8(&psc_dma->psc_regs->command, MPC52xx_PSC_RST_ERR_STAT);
-	 /* reset mode */
+	/* reset mode */
 	out_8(&psc_dma->psc_regs->command, MPC52xx_PSC_SEL_MODE_REG_1);
 
 	/* Set up mode register;
@@ -455,12 +531,14 @@ int mpc5200_audio_dma_create(struct platform_device *op)
 		bcom_get_task_irq(psc_dma->capture.bcom_task);
 
 	rc = request_irq(psc_dma->irq, &psc_dma_status_irq, IRQF_SHARED,
-			 "psc-dma-status", psc_dma);
+					 "psc-dma-status", psc_dma);
 	rc |= request_irq(psc_dma->capture.irq, &psc_dma_bcom_irq, IRQF_SHARED,
-			  "psc-dma-capture", &psc_dma->capture);
+					  "psc-dma-capture", &psc_dma->capture);
 	rc |= request_irq(psc_dma->playback.irq, &psc_dma_bcom_irq, IRQF_SHARED,
-			  "psc-dma-playback", &psc_dma->playback);
-	if (rc) {
+					  "psc-dma-playback", &psc_dma->playback);
+
+	if (rc)
+	{
 		ret = -ENODEV;
 		goto out_irq;
 	}

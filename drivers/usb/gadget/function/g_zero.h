@@ -13,7 +13,8 @@
 #define GZERO_SS_BULK_QLEN	1
 #define GZERO_SS_ISO_QLEN	8
 
-struct usb_zero_options {
+struct usb_zero_options
+{
 	unsigned pattern;
 	unsigned isoc_interval;
 	unsigned isoc_maxpacket;
@@ -25,7 +26,8 @@ struct usb_zero_options {
 	unsigned ss_iso_qlen;
 };
 
-struct f_ss_opts {
+struct f_ss_opts
+{
 	struct usb_function_instance func_inst;
 	unsigned pattern;
 	unsigned isoc_interval;
@@ -46,7 +48,8 @@ struct f_ss_opts {
 	int				refcnt;
 };
 
-struct f_lb_opts {
+struct f_lb_opts
+{
 	struct usb_function_instance func_inst;
 	unsigned bulk_buflen;
 	unsigned qlen;
@@ -66,7 +69,7 @@ int lb_modinit(void);
 
 /* common utilities */
 void disable_endpoints(struct usb_composite_dev *cdev,
-		struct usb_ep *in, struct usb_ep *out,
-		struct usb_ep *iso_in, struct usb_ep *iso_out);
+					   struct usb_ep *in, struct usb_ep *out,
+					   struct usb_ep *iso_in, struct usb_ep *iso_out);
 
 #endif /* __G_ZERO_H */

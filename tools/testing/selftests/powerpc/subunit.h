@@ -39,9 +39,13 @@ static inline void test_success(char *name)
 static inline void test_finish(char *name, int status)
 {
 	if (status)
+	{
 		test_failure(name);
+	}
 	else
+	{
 		test_success(name);
+	}
 }
 
 static inline void test_set_git_version(char *value)

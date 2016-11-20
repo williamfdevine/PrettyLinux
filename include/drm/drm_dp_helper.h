@@ -377,8 +377,8 @@
 # define DP_LANE_SYMBOL_LOCKED		    (1 << 2)
 
 #define DP_CHANNEL_EQ_BITS (DP_LANE_CR_DONE |		\
-			    DP_LANE_CHANNEL_EQ_DONE |	\
-			    DP_LANE_SYMBOL_LOCKED)
+							DP_LANE_CHANNEL_EQ_DONE |	\
+							DP_LANE_SYMBOL_LOCKED)
 
 #define DP_LANE_ALIGN_STATUS_UPDATED	    0x204
 
@@ -616,13 +616,13 @@
 
 #define DP_LINK_STATUS_SIZE	   6
 bool drm_dp_channel_eq_ok(const u8 link_status[DP_LINK_STATUS_SIZE],
-			  int lane_count);
+						  int lane_count);
 bool drm_dp_clock_recovery_ok(const u8 link_status[DP_LINK_STATUS_SIZE],
-			      int lane_count);
+							  int lane_count);
 u8 drm_dp_get_adjust_request_voltage(const u8 link_status[DP_LINK_STATUS_SIZE],
-				     int lane);
+									 int lane);
 u8 drm_dp_get_adjust_request_pre_emphasis(const u8 link_status[DP_LINK_STATUS_SIZE],
-					  int lane);
+		int lane);
 
 #define DP_BRANCH_OUI_HEADER_SIZE	0xc
 #define DP_RECEIVER_CAP_SIZE		0xf
@@ -635,7 +635,8 @@ void drm_dp_link_train_channel_eq_delay(const u8 dpcd[DP_RECEIVER_CAP_SIZE]);
 u8 drm_dp_link_rate_to_bw_code(int link_rate);
 int drm_dp_bw_code_to_link_rate(u8 link_bw);
 
-struct edp_sdp_header {
+struct edp_sdp_header
+{
 	u8 HB0; /* Secondary Data Packet ID */
 	u8 HB1; /* Secondary Data Packet Type */
 	u8 HB2; /* 7:5 reserved, 4:0 revision number */
@@ -645,7 +646,8 @@ struct edp_sdp_header {
 #define EDP_SDP_HEADER_REVISION_MASK		0x1F
 #define EDP_SDP_HEADER_VALID_PAYLOAD_BYTES	0x1F
 
-struct edp_vsc_psr {
+struct edp_vsc_psr
+{
 	struct edp_sdp_header sdp_header;
 	u8 DB0; /* Stereo Interface */
 	u8 DB1; /* 0 - PSR State; 1 - Update RFB; 2 - CRC Valid */
@@ -680,14 +682,14 @@ static inline bool
 drm_dp_enhanced_frame_cap(const u8 dpcd[DP_RECEIVER_CAP_SIZE])
 {
 	return dpcd[DP_DPCD_REV] >= 0x11 &&
-		(dpcd[DP_MAX_LANE_COUNT] & DP_ENHANCED_FRAME_CAP);
+		   (dpcd[DP_MAX_LANE_COUNT] & DP_ENHANCED_FRAME_CAP);
 }
 
 static inline bool
 drm_dp_tps3_supported(const u8 dpcd[DP_RECEIVER_CAP_SIZE])
 {
 	return dpcd[DP_DPCD_REV] >= 0x12 &&
-		dpcd[DP_MAX_LANE_COUNT] & DP_TPS3_SUPPORTED;
+		   dpcd[DP_MAX_LANE_COUNT] & DP_TPS3_SUPPORTED;
 }
 
 /*
@@ -702,7 +704,8 @@ drm_dp_tps3_supported(const u8 dpcd[DP_RECEIVER_CAP_SIZE])
  * @buffer: pointer to a transmission or reception buffer
  * @size: size of @buffer
  */
-struct drm_dp_aux_msg {
+struct drm_dp_aux_msg
+{
 	unsigned int address;
 	u8 request;
 	u8 reply;
@@ -747,13 +750,14 @@ struct drm_dp_aux_msg {
  * only modifies the reply field of the drm_dp_aux_msg structure.  The
  * retry logic and i2c helpers assume this is the case.
  */
-struct drm_dp_aux {
+struct drm_dp_aux
+{
 	const char *name;
 	struct i2c_adapter ddc;
 	struct device *dev;
 	struct mutex hw_mutex;
 	ssize_t (*transfer)(struct drm_dp_aux *aux,
-			    struct drm_dp_aux_msg *msg);
+						struct drm_dp_aux_msg *msg);
 	/**
 	 * @i2c_nack_count: Counts I2C NACKs, used for DP validation.
 	 */
@@ -765,9 +769,9 @@ struct drm_dp_aux {
 };
 
 ssize_t drm_dp_dpcd_read(struct drm_dp_aux *aux, unsigned int offset,
-			 void *buffer, size_t size);
+						 void *buffer, size_t size);
 ssize_t drm_dp_dpcd_write(struct drm_dp_aux *aux, unsigned int offset,
-			  void *buffer, size_t size);
+						  void *buffer, size_t size);
 
 /**
  * drm_dp_dpcd_readb() - read a single byte from the DPCD
@@ -779,7 +783,7 @@ ssize_t drm_dp_dpcd_write(struct drm_dp_aux *aux, unsigned int offset,
  * error code on failure.
  */
 static inline ssize_t drm_dp_dpcd_readb(struct drm_dp_aux *aux,
-					unsigned int offset, u8 *valuep)
+										unsigned int offset, u8 *valuep)
 {
 	return drm_dp_dpcd_read(aux, offset, valuep, 1);
 }
@@ -794,20 +798,21 @@ static inline ssize_t drm_dp_dpcd_readb(struct drm_dp_aux *aux,
  * error code on failure.
  */
 static inline ssize_t drm_dp_dpcd_writeb(struct drm_dp_aux *aux,
-					 unsigned int offset, u8 value)
+		unsigned int offset, u8 value)
 {
 	return drm_dp_dpcd_write(aux, offset, &value, 1);
 }
 
 int drm_dp_dpcd_read_link_status(struct drm_dp_aux *aux,
-				 u8 status[DP_LINK_STATUS_SIZE]);
+								 u8 status[DP_LINK_STATUS_SIZE]);
 
 /*
  * DisplayPort link
  */
 #define DP_LINK_CAP_ENHANCED_FRAMING (1 << 0)
 
-struct drm_dp_link {
+struct drm_dp_link
+{
 	unsigned char revision;
 	unsigned int rate;
 	unsigned int num_lanes;
@@ -819,12 +824,12 @@ int drm_dp_link_power_up(struct drm_dp_aux *aux, struct drm_dp_link *link);
 int drm_dp_link_power_down(struct drm_dp_aux *aux, struct drm_dp_link *link);
 int drm_dp_link_configure(struct drm_dp_aux *aux, struct drm_dp_link *link);
 int drm_dp_downstream_max_clock(const u8 dpcd[DP_RECEIVER_CAP_SIZE],
-				const u8 port_cap[4]);
+								const u8 port_cap[4]);
 int drm_dp_downstream_max_bpc(const u8 dpcd[DP_RECEIVER_CAP_SIZE],
-			      const u8 port_cap[4]);
+							  const u8 port_cap[4]);
 int drm_dp_downstream_id(struct drm_dp_aux *aux, char id[6]);
 void drm_dp_downstream_debug(struct seq_file *m, const u8 dpcd[DP_RECEIVER_CAP_SIZE],
-			     const u8 port_cap[4], struct drm_dp_aux *aux);
+							 const u8 port_cap[4], struct drm_dp_aux *aux);
 
 void drm_dp_aux_init(struct drm_dp_aux *aux);
 int drm_dp_aux_register(struct drm_dp_aux *aux);

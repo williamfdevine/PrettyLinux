@@ -27,7 +27,8 @@
 #include "phy_common.h"
 #include "phy_ht.h"
 
-static const u16 b43_httab_0x12[] = {
+static const u16 b43_httab_0x12[] =
+{
 	0x0000, 0x0008, 0x000a, 0x0010, 0x0012, 0x0019,
 	0x001a, 0x001c, 0x0080, 0x0088, 0x008a, 0x0090,
 	0x0092, 0x0099, 0x009a, 0x009c, 0x0100, 0x0108,
@@ -52,7 +53,8 @@ static const u16 b43_httab_0x12[] = {
 	0x0007, 0x0007,
 };
 
-static const u16 b43_httab_0x27[] = {
+static const u16 b43_httab_0x27[] =
+{
 	0x0009, 0x000e, 0x0011, 0x0014, 0x0017, 0x001a,
 	0x001d, 0x0020, 0x0009, 0x000e, 0x0011, 0x0014,
 	0x0017, 0x001a, 0x001d, 0x0020, 0x0009, 0x000e,
@@ -61,7 +63,8 @@ static const u16 b43_httab_0x27[] = {
 	0x001d, 0x0020,
 };
 
-static const u16 b43_httab_0x26[] = {
+static const u16 b43_httab_0x26[] =
+{
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -86,7 +89,8 @@ static const u16 b43_httab_0x26[] = {
 	0x0000, 0x0000,
 };
 
-static const u32 b43_httab_0x25[] = {
+static const u32 b43_httab_0x25[] =
+{
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
@@ -121,7 +125,8 @@ static const u32 b43_httab_0x25[] = {
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 };
 
-static const u32 b43_httab_0x2f[] = {
+static const u32 b43_httab_0x2f[] =
+{
 	0x00035700, 0x0002cc9a, 0x00026666, 0x0001581f,
 	0x0001581f, 0x0001581f, 0x0001581f, 0x0001581f,
 	0x0001581f, 0x0001581f, 0x0001581f, 0x00035700,
@@ -130,7 +135,8 @@ static const u32 b43_httab_0x2f[] = {
 	0x0001581f, 0x0001581f,
 };
 
-static const u16 b43_httab_0x1a[] = {
+static const u16 b43_httab_0x1a[] =
+{
 	0x0055, 0x0054, 0x0054, 0x0053, 0x0052, 0x0052,
 	0x0051, 0x0051, 0x0050, 0x004f, 0x004f, 0x004e,
 	0x004e, 0x004d, 0x004c, 0x004c, 0x004b, 0x004a,
@@ -144,7 +150,8 @@ static const u16 b43_httab_0x1a[] = {
 	0x000b, 0x0007, 0x0002, 0x00fd,
 };
 
-static const u16 b43_httab_0x1b[] = {
+static const u16 b43_httab_0x1b[] =
+{
 	0x0055, 0x0054, 0x0054, 0x0053, 0x0052, 0x0052,
 	0x0051, 0x0051, 0x0050, 0x004f, 0x004f, 0x004e,
 	0x004e, 0x004d, 0x004c, 0x004c, 0x004b, 0x004a,
@@ -158,7 +165,8 @@ static const u16 b43_httab_0x1b[] = {
 	0x000b, 0x0007, 0x0002, 0x00fd,
 };
 
-static const u16 b43_httab_0x1c[] = {
+static const u16 b43_httab_0x1c[] =
+{
 	0x0055, 0x0054, 0x0054, 0x0053, 0x0052, 0x0052,
 	0x0051, 0x0051, 0x0050, 0x004f, 0x004f, 0x004e,
 	0x004e, 0x004d, 0x004c, 0x004c, 0x004b, 0x004a,
@@ -172,7 +180,8 @@ static const u16 b43_httab_0x1c[] = {
 	0x000b, 0x0007, 0x0002, 0x00fd,
 };
 
-static const u32 b43_httab_0x1a_0xc0[] = {
+static const u32 b43_httab_0x1a_0xc0[] =
+{
 	0x5bf70044, 0x5bf70042, 0x5bf70040, 0x5bf7003e,
 	0x5bf7003c, 0x5bf7003b, 0x5bf70039, 0x5bf70037,
 	0x5bf70036, 0x5bf70034, 0x5bf70033, 0x5bf70031,
@@ -207,7 +216,8 @@ static const u32 b43_httab_0x1a_0xc0[] = {
 	0x5b07001e, 0x5b07001d, 0x5b07001d, 0x5b07001c,
 };
 
-static const u32 b43_httab_0x1a_0x140[] = {
+static const u32 b43_httab_0x1a_0x140[] =
+{
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
@@ -242,7 +252,8 @@ static const u32 b43_httab_0x1a_0x140[] = {
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 };
 
-static const u32 b43_httab_0x1b_0x140[] = {
+static const u32 b43_httab_0x1b_0x140[] =
+{
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
@@ -277,7 +288,8 @@ static const u32 b43_httab_0x1b_0x140[] = {
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 };
 
-static const u32 b43_httab_0x1c_0x140[] = {
+static const u32 b43_httab_0x1c_0x140[] =
+{
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
@@ -312,7 +324,8 @@ static const u32 b43_httab_0x1c_0x140[] = {
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 };
 
-static const u16 b43_httab_0x1a_0x1c0[] = {
+static const u16 b43_httab_0x1a_0x1c0[] =
+{
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -337,7 +350,8 @@ static const u16 b43_httab_0x1a_0x1c0[] = {
 	0x0000, 0x0000,
 };
 
-static const u16 b43_httab_0x1b_0x1c0[] = {
+static const u16 b43_httab_0x1b_0x1c0[] =
+{
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -362,7 +376,8 @@ static const u16 b43_httab_0x1b_0x1c0[] = {
 	0x0000, 0x0000,
 };
 
-static const u16 b43_httab_0x1c_0x1c0[] = {
+static const u16 b43_httab_0x1c_0x1c0[] =
+{
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -387,7 +402,8 @@ static const u16 b43_httab_0x1c_0x1c0[] = {
 	0x0000, 0x0000,
 };
 
-static const u16 b43_httab_0x1a_0x240[] = {
+static const u16 b43_httab_0x1a_0x240[] =
+{
 	0x0036, 0x0036, 0x0036, 0x0036, 0x0036, 0x0036,
 	0x0036, 0x0036, 0x0036, 0x0036, 0x0036, 0x0036,
 	0x0036, 0x002a, 0x002a, 0x002a, 0x002a, 0x002a,
@@ -412,7 +428,8 @@ static const u16 b43_httab_0x1a_0x240[] = {
 	0x01d6, 0x01d6,
 };
 
-static const u16 b43_httab_0x1b_0x240[] = {
+static const u16 b43_httab_0x1b_0x240[] =
+{
 	0x0036, 0x0036, 0x0036, 0x0036, 0x0036, 0x0036,
 	0x0036, 0x0036, 0x0036, 0x0036, 0x0036, 0x0036,
 	0x0036, 0x002a, 0x002a, 0x002a, 0x002a, 0x002a,
@@ -437,7 +454,8 @@ static const u16 b43_httab_0x1b_0x240[] = {
 	0x01d6, 0x01d6,
 };
 
-static const u16 b43_httab_0x1c_0x240[] = {
+static const u16 b43_httab_0x1c_0x240[] =
+{
 	0x0036, 0x0036, 0x0036, 0x0036, 0x0036, 0x0036,
 	0x0036, 0x0036, 0x0036, 0x0036, 0x0036, 0x0036,
 	0x0036, 0x002a, 0x002a, 0x002a, 0x002a, 0x002a,
@@ -462,7 +480,8 @@ static const u16 b43_httab_0x1c_0x240[] = {
 	0x01d6, 0x01d6,
 };
 
-static const u32 b43_httab_0x1f[] = {
+static const u32 b43_httab_0x1f[] =
+{
 	0x00000000, 0x00000000, 0x00016023, 0x00006028,
 	0x00034036, 0x0003402e, 0x0007203c, 0x0006e037,
 	0x00070030, 0x0009401f, 0x0009a00f, 0x000b600d,
@@ -481,7 +500,8 @@ static const u32 b43_httab_0x1f[] = {
 	0x015b4fff, 0x015acfff, 0x01590fff, 0x0156cfff,
 };
 
-static const u32 b43_httab_0x21[] = {
+static const u32 b43_httab_0x21[] =
+{
 	0x00000000, 0x00000000, 0x00016023, 0x00006028,
 	0x00034036, 0x0003402e, 0x0007203c, 0x0006e037,
 	0x00070030, 0x0009401f, 0x0009a00f, 0x000b600d,
@@ -500,7 +520,8 @@ static const u32 b43_httab_0x21[] = {
 	0x015b4fff, 0x015acfff, 0x01590fff, 0x0156cfff,
 };
 
-static const u32 b43_httab_0x23[] = {
+static const u32 b43_httab_0x23[] =
+{
 	0x00000000, 0x00000000, 0x00016023, 0x00006028,
 	0x00034036, 0x0003402e, 0x0007203c, 0x0006e037,
 	0x00070030, 0x0009401f, 0x0009a00f, 0x000b600d,
@@ -519,7 +540,8 @@ static const u32 b43_httab_0x23[] = {
 	0x015b4fff, 0x015acfff, 0x01590fff, 0x0156cfff,
 };
 
-static const u32 b43_httab_0x20[] = {
+static const u32 b43_httab_0x20[] =
+{
 	0x0b5e002d, 0x0ae2002f, 0x0a3b0032, 0x09a70035,
 	0x09220038, 0x08ab003b, 0x081f003f, 0x07a20043,
 	0x07340047, 0x06d2004b, 0x067a004f, 0x06170054,
@@ -538,7 +560,8 @@ static const u32 b43_httab_0x20[] = {
 	0x005d0582, 0x005805d6, 0x0053062e, 0x004e068c,
 };
 
-static const u32 b43_httab_0x22[] = {
+static const u32 b43_httab_0x22[] =
+{
 	0x0b5e002d, 0x0ae2002f, 0x0a3b0032, 0x09a70035,
 	0x09220038, 0x08ab003b, 0x081f003f, 0x07a20043,
 	0x07340047, 0x06d2004b, 0x067a004f, 0x06170054,
@@ -557,7 +580,8 @@ static const u32 b43_httab_0x22[] = {
 	0x005d0582, 0x005805d6, 0x0053062e, 0x004e068c,
 };
 
-static const u32 b43_httab_0x24[] = {
+static const u32 b43_httab_0x24[] =
+{
 	0x0b5e002d, 0x0ae2002f, 0x0a3b0032, 0x09a70035,
 	0x09220038, 0x08ab003b, 0x081f003f, 0x07a20043,
 	0x07340047, 0x06d2004b, 0x067a004f, 0x06170054,
@@ -577,7 +601,8 @@ static const u32 b43_httab_0x24[] = {
 };
 
 /* Some late-init table */
-const u32 b43_httab_0x1a_0xc0_late[] = {
+const u32 b43_httab_0x1a_0xc0_late[] =
+{
 	0x10f90040, 0x10e10040, 0x10e1003c, 0x10c9003d,
 	0x10b9003c, 0x10a9003d, 0x10a1003c, 0x1099003b,
 	0x1091003b, 0x1089003a, 0x1081003a, 0x10790039,
@@ -624,31 +649,35 @@ u32 b43_httab_read(struct b43_wldev *dev, u32 offset)
 	offset &= ~B43_HTTAB_TYPEMASK;
 	B43_WARN_ON(offset > 0xFFFF);
 
-	switch (type) {
-	case B43_HTTAB_8BIT:
-		b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
-		value = b43_phy_read(dev, B43_PHY_HT_TABLE_DATALO) & 0xFF;
-		break;
-	case B43_HTTAB_16BIT:
-		b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
-		value = b43_phy_read(dev, B43_PHY_HT_TABLE_DATALO);
-		break;
-	case B43_HTTAB_32BIT:
-		b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
-		value = b43_phy_read(dev, B43_PHY_HT_TABLE_DATAHI);
-		value <<= 16;
-		value |= b43_phy_read(dev, B43_PHY_HT_TABLE_DATALO);
-		break;
-	default:
-		B43_WARN_ON(1);
-		value = 0;
+	switch (type)
+	{
+		case B43_HTTAB_8BIT:
+			b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
+			value = b43_phy_read(dev, B43_PHY_HT_TABLE_DATALO) & 0xFF;
+			break;
+
+		case B43_HTTAB_16BIT:
+			b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
+			value = b43_phy_read(dev, B43_PHY_HT_TABLE_DATALO);
+			break;
+
+		case B43_HTTAB_32BIT:
+			b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
+			value = b43_phy_read(dev, B43_PHY_HT_TABLE_DATAHI);
+			value <<= 16;
+			value |= b43_phy_read(dev, B43_PHY_HT_TABLE_DATALO);
+			break;
+
+		default:
+			B43_WARN_ON(1);
+			value = 0;
 	}
 
 	return value;
 }
 
 void b43_httab_read_bulk(struct b43_wldev *dev, u32 offset,
-			 unsigned int nr_elements, void *_data)
+						 unsigned int nr_elements, void *_data)
 {
 	u32 type;
 	u8 *data = _data;
@@ -660,24 +689,29 @@ void b43_httab_read_bulk(struct b43_wldev *dev, u32 offset,
 
 	b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
 
-	for (i = 0; i < nr_elements; i++) {
-		switch (type) {
-		case B43_HTTAB_8BIT:
-			*data = b43_phy_read(dev, B43_PHY_HT_TABLE_DATALO) & 0xFF;
-			data++;
-			break;
-		case B43_HTTAB_16BIT:
-			*((u16 *)data) = b43_phy_read(dev, B43_PHY_HT_TABLE_DATALO);
-			data += 2;
-			break;
-		case B43_HTTAB_32BIT:
-			*((u32 *)data) = b43_phy_read(dev, B43_PHY_HT_TABLE_DATAHI);
-			*((u32 *)data) <<= 16;
-			*((u32 *)data) |= b43_phy_read(dev, B43_PHY_HT_TABLE_DATALO);
-			data += 4;
-			break;
-		default:
-			B43_WARN_ON(1);
+	for (i = 0; i < nr_elements; i++)
+	{
+		switch (type)
+		{
+			case B43_HTTAB_8BIT:
+				*data = b43_phy_read(dev, B43_PHY_HT_TABLE_DATALO) & 0xFF;
+				data++;
+				break;
+
+			case B43_HTTAB_16BIT:
+				*((u16 *)data) = b43_phy_read(dev, B43_PHY_HT_TABLE_DATALO);
+				data += 2;
+				break;
+
+			case B43_HTTAB_32BIT:
+				*((u32 *)data) = b43_phy_read(dev, B43_PHY_HT_TABLE_DATAHI);
+				*((u32 *)data) <<= 16;
+				*((u32 *)data) |= b43_phy_read(dev, B43_PHY_HT_TABLE_DATALO);
+				data += 4;
+				break;
+
+			default:
+				B43_WARN_ON(1);
 		}
 	}
 }
@@ -689,24 +723,28 @@ void b43_httab_write(struct b43_wldev *dev, u32 offset, u32 value)
 	type = offset & B43_HTTAB_TYPEMASK;
 	offset &= 0xFFFF;
 
-	switch (type) {
-	case B43_HTTAB_8BIT:
-		B43_WARN_ON(value & ~0xFF);
-		b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
-		b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value);
-		break;
-	case B43_HTTAB_16BIT:
-		B43_WARN_ON(value & ~0xFFFF);
-		b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
-		b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value);
-		break;
-	case B43_HTTAB_32BIT:
-		b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
-		b43_phy_write(dev, B43_PHY_HT_TABLE_DATAHI, value >> 16);
-		b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value & 0xFFFF);
-		break;
-	default:
-		B43_WARN_ON(1);
+	switch (type)
+	{
+		case B43_HTTAB_8BIT:
+			B43_WARN_ON(value & ~0xFF);
+			b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
+			b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value);
+			break;
+
+		case B43_HTTAB_16BIT:
+			B43_WARN_ON(value & ~0xFFFF);
+			b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
+			b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value);
+			break;
+
+		case B43_HTTAB_32BIT:
+			b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
+			b43_phy_write(dev, B43_PHY_HT_TABLE_DATAHI, value >> 16);
+			b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value & 0xFFFF);
+			break;
+
+		default:
+			B43_WARN_ON(1);
 	}
 
 	return;
@@ -722,43 +760,58 @@ void b43_httab_write_few(struct b43_wldev *dev, u32 offset, size_t num, ...)
 	offset &= 0xFFFF;
 
 	va_start(args, num);
-	switch (type) {
-	case B43_HTTAB_8BIT:
-		b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
-		for (i = 0; i < num; i++) {
-			value = va_arg(args, int);
-			B43_WARN_ON(value & ~0xFF);
-			b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value);
-		}
-		break;
-	case B43_HTTAB_16BIT:
-		b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
-		for (i = 0; i < num; i++) {
-			value = va_arg(args, int);
-			B43_WARN_ON(value & ~0xFFFF);
-			b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value);
-		}
-		break;
-	case B43_HTTAB_32BIT:
-		b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
-		for (i = 0; i < num; i++) {
-			value = va_arg(args, int);
-			b43_phy_write(dev, B43_PHY_HT_TABLE_DATAHI,
-				      value >> 16);
-			b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO,
-				      value & 0xFFFF);
-		}
-		break;
-	default:
-		B43_WARN_ON(1);
+
+	switch (type)
+	{
+		case B43_HTTAB_8BIT:
+			b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
+
+			for (i = 0; i < num; i++)
+			{
+				value = va_arg(args, int);
+				B43_WARN_ON(value & ~0xFF);
+				b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value);
+			}
+
+			break;
+
+		case B43_HTTAB_16BIT:
+			b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
+
+			for (i = 0; i < num; i++)
+			{
+				value = va_arg(args, int);
+				B43_WARN_ON(value & ~0xFFFF);
+				b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value);
+			}
+
+			break;
+
+		case B43_HTTAB_32BIT:
+			b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
+
+			for (i = 0; i < num; i++)
+			{
+				value = va_arg(args, int);
+				b43_phy_write(dev, B43_PHY_HT_TABLE_DATAHI,
+							  value >> 16);
+				b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO,
+							  value & 0xFFFF);
+			}
+
+			break;
+
+		default:
+			B43_WARN_ON(1);
 	}
+
 	va_end(args);
 
 	return;
 }
 
 void b43_httab_write_bulk(struct b43_wldev *dev, u32 offset,
-			  unsigned int nr_elements, const void *_data)
+						  unsigned int nr_elements, const void *_data)
 {
 	u32 type, value;
 	const u8 *data = _data;
@@ -770,29 +823,34 @@ void b43_httab_write_bulk(struct b43_wldev *dev, u32 offset,
 
 	b43_phy_write(dev, B43_PHY_HT_TABLE_ADDR, offset);
 
-	for (i = 0; i < nr_elements; i++) {
-		switch (type) {
-		case B43_HTTAB_8BIT:
-			value = *data;
-			data++;
-			B43_WARN_ON(value & ~0xFF);
-			b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value);
-			break;
-		case B43_HTTAB_16BIT:
-			value = *((u16 *)data);
-			data += 2;
-			B43_WARN_ON(value & ~0xFFFF);
-			b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value);
-			break;
-		case B43_HTTAB_32BIT:
-			value = *((u32 *)data);
-			data += 4;
-			b43_phy_write(dev, B43_PHY_HT_TABLE_DATAHI, value >> 16);
-			b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO,
-					value & 0xFFFF);
-			break;
-		default:
-			B43_WARN_ON(1);
+	for (i = 0; i < nr_elements; i++)
+	{
+		switch (type)
+		{
+			case B43_HTTAB_8BIT:
+				value = *data;
+				data++;
+				B43_WARN_ON(value & ~0xFF);
+				b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value);
+				break;
+
+			case B43_HTTAB_16BIT:
+				value = *((u16 *)data);
+				data += 2;
+				B43_WARN_ON(value & ~0xFFFF);
+				b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO, value);
+				break;
+
+			case B43_HTTAB_32BIT:
+				value = *((u32 *)data);
+				data += 4;
+				b43_phy_write(dev, B43_PHY_HT_TABLE_DATAHI, value >> 16);
+				b43_phy_write(dev, B43_PHY_HT_TABLE_DATALO,
+							  value & 0xFFFF);
+				break;
+
+			default:
+				B43_WARN_ON(1);
 		}
 	}
 }
@@ -807,7 +865,7 @@ void b43_httab_write_bulk(struct b43_wldev *dev, u32 offset,
 void b43_phy_ht_tables_init(struct b43_wldev *dev)
 {
 	BUILD_BUG_ON(ARRAY_SIZE(b43_httab_0x1a_0xc0_late) !=
-			B43_HTTAB_1A_C0_LATE_SIZE);
+				 B43_HTTAB_1A_C0_LATE_SIZE);
 
 	httab_upload(dev, B43_HTTAB16(0x12, 0), b43_httab_0x12);
 	httab_upload(dev, B43_HTTAB16(0x27, 0), b43_httab_0x27);

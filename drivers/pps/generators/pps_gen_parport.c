@@ -45,20 +45,22 @@
 
 static unsigned int send_delay = 30000;
 MODULE_PARM_DESC(delay,
-	"Delay between setting and dropping the signal (ns)");
+				 "Delay between setting and dropping the signal (ns)");
 module_param_named(delay, send_delay, uint, 0);
 
 
 #define SAFETY_INTERVAL	3000	/* set the hrtimer earlier for safety (ns) */
 
 /* internal per port structure */
-struct pps_generator_pp {
+struct pps_generator_pp
+{
 	struct pardevice *pardev;	/* parport device */
 	struct hrtimer timer;
 	long port_write_time;		/* calibrated port write time (ns) */
 };
 
-static struct pps_generator_pp device = {
+static struct pps_generator_pp device =
+{
 	.pardev = NULL,
 };
 
@@ -94,17 +96,20 @@ static enum hrtimer_restart hrtimer_event(struct hrtimer *timer)
 	lim = NSEC_PER_SEC - send_delay - dev->port_write_time;
 
 	/* check if we are late */
-	if (expire_time.tv_sec != ts1.tv_sec || ts1.tv_nsec > lim) {
+	if (expire_time.tv_sec != ts1.tv_sec || ts1.tv_nsec > lim)
+	{
 		local_irq_restore(flags);
 		pr_err("we are late this time %ld.%09ld\n",
-				ts1.tv_sec, ts1.tv_nsec);
+			   ts1.tv_sec, ts1.tv_nsec);
 		goto done;
 	}
 
 	/* busy loop until the time is right for an assert edge */
-	do {
+	do
+	{
 		getnstimeofday(&ts2);
-	} while (expire_time.tv_sec == ts2.tv_sec && ts2.tv_nsec < lim);
+	}
+	while (expire_time.tv_sec == ts2.tv_sec && ts2.tv_nsec < lim);
 
 	/* set the signal */
 	port = dev->pardev->port;
@@ -112,9 +117,12 @@ static enum hrtimer_restart hrtimer_event(struct hrtimer *timer)
 
 	/* busy loop until the time is right for a clear edge */
 	lim = NSEC_PER_SEC - dev->port_write_time;
-	do {
+
+	do
+	{
 		getnstimeofday(&ts2);
-	} while (expire_time.tv_sec == ts2.tv_sec && ts2.tv_nsec < lim);
+	}
+	while (expire_time.tv_sec == ts2.tv_sec && ts2.tv_nsec < lim);
 
 	/* unset the signal */
 	port->ops->write_control(port, NO_SIGNAL);
@@ -132,22 +140,27 @@ done:
 	/* update calibrated hrtimer error */
 	dts = timespec_sub(ts1, expire_time);
 	delta = timespec_to_ns(&dts);
+
 	/* If the new error value is bigger then the old, use the new
 	 * value, if not then slowly move towards the new value. This
 	 * way it should be safe in bad conditions and efficient in
 	 * good conditions.
 	 */
 	if (delta >= hrtimer_error)
+	{
 		hrtimer_error = delta;
+	}
 	else
+	{
 		hrtimer_error = (3 * hrtimer_error + delta) >> 2;
+	}
 
 	/* update the hrtimer expire time */
 	hrtimer_set_expires(timer,
-			ktime_set(expire_time.tv_sec + 1,
-				NSEC_PER_SEC - (send_delay +
-				dev->port_write_time + SAFETY_INTERVAL +
-				2 * hrtimer_error)));
+						ktime_set(expire_time.tv_sec + 1,
+								  NSEC_PER_SEC - (send_delay +
+										  dev->port_write_time + SAFETY_INTERVAL +
+										  2 * hrtimer_error)));
 
 	return HRTIMER_RESTART;
 }
@@ -160,7 +173,8 @@ static void calibrate_port(struct pps_generator_pp *dev)
 	int i;
 	long acc = 0;
 
-	for (i = 0; i < (1 << PORT_NTESTS_SHIFT); i++) {
+	for (i = 0; i < (1 << PORT_NTESTS_SHIFT); i++)
+	{
 		struct timespec a, b;
 		unsigned long irq_flags;
 
@@ -185,26 +199,30 @@ static inline ktime_t next_intr_time(struct pps_generator_pp *dev)
 	getnstimeofday(&ts);
 
 	return ktime_set(ts.tv_sec +
-			((ts.tv_nsec > 990 * NSEC_PER_MSEC) ? 1 : 0),
-			NSEC_PER_SEC - (send_delay +
-			dev->port_write_time + 3 * SAFETY_INTERVAL));
+					 ((ts.tv_nsec > 990 * NSEC_PER_MSEC) ? 1 : 0),
+					 NSEC_PER_SEC - (send_delay +
+									 dev->port_write_time + 3 * SAFETY_INTERVAL));
 }
 
 static void parport_attach(struct parport *port)
 {
-	if (attached) {
+	if (attached)
+	{
 		/* we already have a port */
 		return;
 	}
 
 	device.pardev = parport_register_device(port, KBUILD_MODNAME,
-			NULL, NULL, NULL, PARPORT_FLAG_EXCL, &device);
-	if (!device.pardev) {
+											NULL, NULL, NULL, PARPORT_FLAG_EXCL, &device);
+
+	if (!device.pardev)
+	{
 		pr_err("couldn't register with %s\n", port->name);
 		return;
 	}
 
-	if (parport_claim_or_block(device.pardev) < 0) {
+	if (parport_claim_or_block(device.pardev) < 0)
+	{
 		pr_err("couldn't claim %s\n", port->name);
 		goto err_unregister_dev;
 	}
@@ -227,14 +245,17 @@ err_unregister_dev:
 static void parport_detach(struct parport *port)
 {
 	if (port->cad != device.pardev)
-		return;	/* not our port */
+	{
+		return;    /* not our port */
+	}
 
 	hrtimer_cancel(&device.timer);
 	parport_release(device.pardev);
 	parport_unregister_device(device.pardev);
 }
 
-static struct parport_driver pps_gen_parport_driver = {
+static struct parport_driver pps_gen_parport_driver =
+{
 	.name = KBUILD_MODNAME,
 	.attach = parport_attach,
 	.detach = parport_detach,
@@ -248,14 +269,17 @@ static int __init pps_gen_parport_init(void)
 
 	pr_info(DRVDESC "\n");
 
-	if (send_delay > SEND_DELAY_MAX) {
+	if (send_delay > SEND_DELAY_MAX)
+	{
 		pr_err("delay value should be not greater"
-				" then %d\n", SEND_DELAY_MAX);
+			   " then %d\n", SEND_DELAY_MAX);
 		return -EINVAL;
 	}
 
 	ret = parport_register_driver(&pps_gen_parport_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("unable to register with parport\n");
 		return ret;
 	}

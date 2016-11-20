@@ -26,7 +26,8 @@
 
 #include <linux/types.h>
 
-struct intel_renderstate_rodata {
+struct intel_renderstate_rodata
+{
 	const u32 *reloc;
 	const u32 *batch;
 	const u32 batch_items;
@@ -35,8 +36,8 @@ struct intel_renderstate_rodata {
 #define RO_RENDERSTATE(_g)						\
 	const struct intel_renderstate_rodata gen ## _g ## _null_state = { \
 		.reloc = gen ## _g ## _null_state_relocs,		\
-		.batch = gen ## _g ## _null_state_batch,		\
-		.batch_items = sizeof(gen ## _g ## _null_state_batch)/4, \
+				 .batch = gen ## _g ## _null_state_batch,		\
+						  .batch_items = sizeof(gen ## _g ## _null_state_batch)/4, \
 	}
 
 extern const struct intel_renderstate_rodata gen6_null_state;

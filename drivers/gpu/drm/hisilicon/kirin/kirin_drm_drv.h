@@ -14,12 +14,14 @@
 #define MAX_CRTC	2
 
 /* display controller init/cleanup ops */
-struct kirin_dc_ops {
+struct kirin_dc_ops
+{
 	int (*init)(struct drm_device *dev);
 	void (*cleanup)(struct drm_device *dev);
 };
 
-struct kirin_drm_private {
+struct kirin_drm_private
+{
 	struct drm_crtc *crtc[MAX_CRTC];
 #ifdef CONFIG_DRM_FBDEV_EMULATION
 	struct drm_fbdev_cma *fbdev;

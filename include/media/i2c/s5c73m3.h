@@ -25,7 +25,8 @@
  * @gpio:  GPIO number
  * @level: indicates active state of the @gpio
  */
-struct s5c73m3_gpio {
+struct s5c73m3_gpio
+{
 	int gpio;
 	int level;
 };
@@ -40,7 +41,8 @@ struct s5c73m3_gpio {
  * @vert_flip:   default vertical image flip value, non zero to enable
  */
 
-struct s5c73m3_platform_data {
+struct s5c73m3_platform_data
+{
 	unsigned long mclk_frequency;
 
 	struct s5c73m3_gpio gpio_reset;

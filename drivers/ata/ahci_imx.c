@@ -30,7 +30,8 @@
 
 #define DRV_NAME "ahci-imx"
 
-enum {
+enum
+{
 	/* Timer 1-ms Register */
 	IMX_TIMER1MS				= 0x00e0,
 	/* Port0 PHY Control Register */
@@ -52,12 +53,14 @@ enum {
 	IMX_CLOCK_RESET_RESET			= 1 << 0,
 };
 
-enum ahci_imx_type {
+enum ahci_imx_type
+{
 	AHCI_IMX53,
 	AHCI_IMX6Q,
 };
 
-struct imx_ahci_priv {
+struct imx_ahci_priv
+{
 	struct platform_device *ahci_pdev;
 	enum ahci_imx_type type;
 	struct clk *sata_clk;
@@ -83,19 +86,31 @@ static int imx_phy_crbit_assert(void __iomem *mmio, u32 bit, bool assert)
 
 	/* Assert or deassert the bit */
 	crval = readl(mmio + IMX_P0PHYCR);
+
 	if (assert)
+	{
 		crval |= bit;
+	}
 	else
+	{
 		crval &= ~bit;
+	}
+
 	writel(crval, mmio + IMX_P0PHYCR);
 
 	/* Wait for the cr_ack signal */
-	do {
+	do
+	{
 		srval = readl(mmio + IMX_P0PHYSR);
+
 		if ((assert ? srval : ~srval) & IMX_P0PHYSR_CR_ACK)
+		{
 			break;
+		}
+
 		usleep_range(100, 200);
-	} while (--timeout);
+	}
+	while (--timeout);
 
 	return timeout ? 0 : -ETIMEDOUT;
 }
@@ -110,13 +125,19 @@ static int imx_phy_reg_addressing(u16 addr, void __iomem *mmio)
 
 	/* Assert the cr_cap_addr signal */
 	ret = imx_phy_crbit_assert(mmio, IMX_P0PHYCR_CR_CAP_ADDR, true);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Deassert cr_cap_addr */
 	ret = imx_phy_crbit_assert(mmio, IMX_P0PHYCR_CR_CAP_ADDR, false);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -131,15 +152,22 @@ static int imx_phy_reg_write(u16 val, void __iomem *mmio)
 
 	/* Assert the cr_cap_data signal */
 	ret = imx_phy_crbit_assert(mmio, IMX_P0PHYCR_CR_CAP_DATA, true);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Deassert cr_cap_data */
 	ret = imx_phy_crbit_assert(mmio, IMX_P0PHYCR_CR_CAP_DATA, false);
-	if (ret)
-		return ret;
 
-	if (val & IMX_CLOCK_RESET_RESET) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (val & IMX_CLOCK_RESET_RESET)
+	{
 		/*
 		 * In case we're resetting the phy, it's unable to acknowledge,
 		 * so we return immediately here.
@@ -151,13 +179,19 @@ static int imx_phy_reg_write(u16 val, void __iomem *mmio)
 
 	/* Assert the cr_write signal */
 	ret = imx_phy_crbit_assert(mmio, IMX_P0PHYCR_CR_WRITE, true);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Deassert cr_write */
 	ret = imx_phy_crbit_assert(mmio, IMX_P0PHYCR_CR_WRITE, false);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 out:
 	return 0;
@@ -169,16 +203,22 @@ static int imx_phy_reg_read(u16 *val, void __iomem *mmio)
 
 	/* Assert the cr_read signal */
 	ret = imx_phy_crbit_assert(mmio, IMX_P0PHYCR_CR_READ, true);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Capture the data from cr_data_out[] */
 	*val = readl(mmio + IMX_P0PHYSR) & IMX_P0PHYSR_CR_DATA_OUT;
 
 	/* Deassert cr_read */
 	ret = imx_phy_crbit_assert(mmio, IMX_P0PHYCR_CR_READ, false);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -192,24 +232,43 @@ static int imx_sata_phy_reset(struct ahci_host_priv *hpriv)
 
 	/* Reset SATA PHY by setting RESET bit of PHY register CLOCK_RESET */
 	ret = imx_phy_reg_addressing(IMX_CLOCK_RESET, mmio);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = imx_phy_reg_write(IMX_CLOCK_RESET_RESET, mmio);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Wait for PHY RX_PLL to be stable */
-	do {
+	do
+	{
 		usleep_range(100, 200);
 		ret = imx_phy_reg_addressing(IMX_LANE0_OUT_STAT, mmio);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = imx_phy_reg_read(&val, mmio);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		if (val & IMX_LANE0_OUT_STAT_RX_PLL_STATE)
+		{
 			break;
-	} while (--timeout);
+		}
+	}
+	while (--timeout);
 
 	return timeout ? 0 : -ETIMEDOUT;
 }
@@ -221,17 +280,26 @@ static int imx_sata_enable(struct ahci_host_priv *hpriv)
 	int ret;
 
 	if (imxpriv->no_device)
+	{
 		return 0;
+	}
 
 	ret = ahci_platform_enable_regulators(hpriv);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = clk_prepare_enable(imxpriv->sata_ref_clk);
-	if (ret < 0)
-		goto disable_regulator;
 
-	if (imxpriv->type == AHCI_IMX6Q) {
+	if (ret < 0)
+	{
+		goto disable_regulator;
+	}
+
+	if (imxpriv->type == AHCI_IMX6Q)
+	{
 		/*
 		 * set PHY Paremeters, two steps to configure the GPR13,
 		 * one write for rest of parameters, mask of first write
@@ -239,25 +307,27 @@ static int imx_sata_enable(struct ahci_host_priv *hpriv)
 		 * the mpll_clk_en.
 		 */
 		regmap_update_bits(imxpriv->gpr, IOMUXC_GPR13,
-				   IMX6Q_GPR13_SATA_RX_EQ_VAL_MASK |
-				   IMX6Q_GPR13_SATA_RX_LOS_LVL_MASK |
-				   IMX6Q_GPR13_SATA_RX_DPLL_MODE_MASK |
-				   IMX6Q_GPR13_SATA_SPD_MODE_MASK |
-				   IMX6Q_GPR13_SATA_MPLL_SS_EN |
-				   IMX6Q_GPR13_SATA_TX_ATTEN_MASK |
-				   IMX6Q_GPR13_SATA_TX_BOOST_MASK |
-				   IMX6Q_GPR13_SATA_TX_LVL_MASK |
-				   IMX6Q_GPR13_SATA_MPLL_CLK_EN |
-				   IMX6Q_GPR13_SATA_TX_EDGE_RATE,
-				   imxpriv->phy_params);
+						   IMX6Q_GPR13_SATA_RX_EQ_VAL_MASK |
+						   IMX6Q_GPR13_SATA_RX_LOS_LVL_MASK |
+						   IMX6Q_GPR13_SATA_RX_DPLL_MODE_MASK |
+						   IMX6Q_GPR13_SATA_SPD_MODE_MASK |
+						   IMX6Q_GPR13_SATA_MPLL_SS_EN |
+						   IMX6Q_GPR13_SATA_TX_ATTEN_MASK |
+						   IMX6Q_GPR13_SATA_TX_BOOST_MASK |
+						   IMX6Q_GPR13_SATA_TX_LVL_MASK |
+						   IMX6Q_GPR13_SATA_MPLL_CLK_EN |
+						   IMX6Q_GPR13_SATA_TX_EDGE_RATE,
+						   imxpriv->phy_params);
 		regmap_update_bits(imxpriv->gpr, IOMUXC_GPR13,
-				   IMX6Q_GPR13_SATA_MPLL_CLK_EN,
-				   IMX6Q_GPR13_SATA_MPLL_CLK_EN);
+						   IMX6Q_GPR13_SATA_MPLL_CLK_EN,
+						   IMX6Q_GPR13_SATA_MPLL_CLK_EN);
 
 		usleep_range(100, 200);
 
 		ret = imx_sata_phy_reset(hpriv);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "failed to reset phy: %d\n", ret);
 			goto disable_clk;
 		}
@@ -280,12 +350,15 @@ static void imx_sata_disable(struct ahci_host_priv *hpriv)
 	struct imx_ahci_priv *imxpriv = hpriv->plat_data;
 
 	if (imxpriv->no_device)
+	{
 		return;
+	}
 
-	if (imxpriv->type == AHCI_IMX6Q) {
+	if (imxpriv->type == AHCI_IMX6Q)
+	{
 		regmap_update_bits(imxpriv->gpr, IOMUXC_GPR13,
-				   IMX6Q_GPR13_SATA_MPLL_CLK_EN,
-				   !IMX6Q_GPR13_SATA_MPLL_CLK_EN);
+						   IMX6Q_GPR13_SATA_MPLL_CLK_EN,
+						   !IMX6Q_GPR13_SATA_MPLL_CLK_EN);
 	}
 
 	clk_disable_unprepare(imxpriv->sata_ref_clk);
@@ -305,12 +378,14 @@ static void ahci_imx_error_handler(struct ata_port *ap)
 	ahci_error_handler(ap);
 
 	if (!(imxpriv->first_time) || ahci_imx_hotplug)
+	{
 		return;
+	}
 
 	imxpriv->first_time = false;
 
 	ata_for_each_dev(dev, &ap->link, ENABLED)
-		return;
+	return;
 	/*
 	 * Disable link to save power.  An imx ahci port can't be recovered
 	 * without full reset once the pddq mode is enabled making it
@@ -326,7 +401,7 @@ static void ahci_imx_error_handler(struct ata_port *ap)
 }
 
 static int ahci_imx_softreset(struct ata_link *link, unsigned int *class,
-		       unsigned long deadline)
+							  unsigned long deadline)
 {
 	struct ata_port *ap = link->ap;
 	struct ata_host *host = dev_get_drvdata(ap->dev);
@@ -335,40 +410,49 @@ static int ahci_imx_softreset(struct ata_link *link, unsigned int *class,
 	int ret = -EIO;
 
 	if (imxpriv->type == AHCI_IMX53)
+	{
 		ret = ahci_pmp_retry_srst_ops.softreset(link, class, deadline);
+	}
 	else if (imxpriv->type == AHCI_IMX6Q)
+	{
 		ret = ahci_ops.softreset(link, class, deadline);
+	}
 
 	return ret;
 }
 
-static struct ata_port_operations ahci_imx_ops = {
+static struct ata_port_operations ahci_imx_ops =
+{
 	.inherits	= &ahci_ops,
 	.host_stop	= ahci_imx_host_stop,
 	.error_handler	= ahci_imx_error_handler,
 	.softreset	= ahci_imx_softreset,
 };
 
-static const struct ata_port_info ahci_imx_port_info = {
+static const struct ata_port_info ahci_imx_port_info =
+{
 	.flags		= AHCI_FLAG_COMMON,
 	.pio_mask	= ATA_PIO4,
 	.udma_mask	= ATA_UDMA6,
 	.port_ops	= &ahci_imx_ops,
 };
 
-static const struct of_device_id imx_ahci_of_match[] = {
+static const struct of_device_id imx_ahci_of_match[] =
+{
 	{ .compatible = "fsl,imx53-ahci", .data = (void *)AHCI_IMX53 },
 	{ .compatible = "fsl,imx6q-ahci", .data = (void *)AHCI_IMX6Q },
 	{},
 };
 MODULE_DEVICE_TABLE(of, imx_ahci_of_match);
 
-struct reg_value {
+struct reg_value
+{
 	u32 of_value;
 	u32 reg_value;
 };
 
-struct reg_property {
+struct reg_property
+{
 	const char *name;
 	const struct reg_value *values;
 	size_t num_values;
@@ -376,7 +460,8 @@ struct reg_property {
 	u32 set_value;
 };
 
-static const struct reg_value gpr13_tx_level[] = {
+static const struct reg_value gpr13_tx_level[] =
+{
 	{  937, IMX6Q_GPR13_SATA_TX_LVL_0_937_V },
 	{  947, IMX6Q_GPR13_SATA_TX_LVL_0_947_V },
 	{  957, IMX6Q_GPR13_SATA_TX_LVL_0_957_V },
@@ -411,7 +496,8 @@ static const struct reg_value gpr13_tx_level[] = {
 	{ 1240, IMX6Q_GPR13_SATA_TX_LVL_1_240_V }
 };
 
-static const struct reg_value gpr13_tx_boost[] = {
+static const struct reg_value gpr13_tx_boost[] =
+{
 	{    0, IMX6Q_GPR13_SATA_TX_BOOST_0_00_DB },
 	{  370, IMX6Q_GPR13_SATA_TX_BOOST_0_37_DB },
 	{  740, IMX6Q_GPR13_SATA_TX_BOOST_0_74_DB },
@@ -430,7 +516,8 @@ static const struct reg_value gpr13_tx_boost[] = {
 	{ 5750, IMX6Q_GPR13_SATA_TX_BOOST_5_75_DB }
 };
 
-static const struct reg_value gpr13_tx_atten[] = {
+static const struct reg_value gpr13_tx_atten[] =
+{
 	{  8, IMX6Q_GPR13_SATA_TX_ATTEN_8_16 },
 	{  9, IMX6Q_GPR13_SATA_TX_ATTEN_9_16 },
 	{ 10, IMX6Q_GPR13_SATA_TX_ATTEN_10_16 },
@@ -439,7 +526,8 @@ static const struct reg_value gpr13_tx_atten[] = {
 	{ 16, IMX6Q_GPR13_SATA_TX_ATTEN_16_16 },
 };
 
-static const struct reg_value gpr13_rx_eq[] = {
+static const struct reg_value gpr13_rx_eq[] =
+{
 	{  500, IMX6Q_GPR13_SATA_RX_EQ_VAL_0_5_DB },
 	{ 1000, IMX6Q_GPR13_SATA_RX_EQ_VAL_1_0_DB },
 	{ 1500, IMX6Q_GPR13_SATA_RX_EQ_VAL_1_5_DB },
@@ -450,7 +538,8 @@ static const struct reg_value gpr13_rx_eq[] = {
 	{ 4000, IMX6Q_GPR13_SATA_RX_EQ_VAL_4_0_DB },
 };
 
-static const struct reg_property gpr13_props[] = {
+static const struct reg_property gpr13_props[] =
+{
 	{
 		.name = "fsl,transmit-level-mV",
 		.values = gpr13_tx_level,
@@ -479,42 +568,53 @@ static const struct reg_property gpr13_props[] = {
 };
 
 static u32 imx_ahci_parse_props(struct device *dev,
-				const struct reg_property *prop, size_t num)
+								const struct reg_property *prop, size_t num)
 {
 	struct device_node *np = dev->of_node;
 	u32 reg_value = 0;
 	int i, j;
 
-	for (i = 0; i < num; i++, prop++) {
+	for (i = 0; i < num; i++, prop++)
+	{
 		u32 of_val;
 
-		if (prop->num_values == 0) {
+		if (prop->num_values == 0)
+		{
 			if (of_property_read_bool(np, prop->name))
+			{
 				reg_value |= prop->set_value;
+			}
 			else
+			{
 				reg_value |= prop->def_value;
+			}
+
 			continue;
 		}
 
-		if (of_property_read_u32(np, prop->name, &of_val)) {
+		if (of_property_read_u32(np, prop->name, &of_val))
+		{
 			dev_info(dev, "%s not specified, using %08x\n",
-				prop->name, prop->def_value);
+					 prop->name, prop->def_value);
 			reg_value |= prop->def_value;
 			continue;
 		}
 
-		for (j = 0; j < prop->num_values; j++) {
-			if (prop->values[j].of_value == of_val) {
+		for (j = 0; j < prop->num_values; j++)
+		{
+			if (prop->values[j].of_value == of_val)
+			{
 				dev_info(dev, "%s value %u, using %08x\n",
-					prop->name, of_val, prop->values[j].reg_value);
+						 prop->name, of_val, prop->values[j].reg_value);
 				reg_value |= prop->values[j].reg_value;
 				break;
 			}
 		}
 
-		if (j == prop->num_values) {
+		if (j == prop->num_values)
+		{
 			dev_err(dev, "DT property %s is not a valid value\n",
-				prop->name);
+					prop->name);
 			reg_value |= prop->def_value;
 		}
 	}
@@ -522,7 +622,8 @@ static u32 imx_ahci_parse_props(struct device *dev,
 	return reg_value;
 }
 
-static struct scsi_host_template ahci_platform_sht = {
+static struct scsi_host_template ahci_platform_sht =
+{
 	AHCI_SHT(DRV_NAME),
 };
 
@@ -536,12 +637,18 @@ static int imx_ahci_probe(struct platform_device *pdev)
 	int ret;
 
 	of_id = of_match_device(imx_ahci_of_match, dev);
+
 	if (!of_id)
+	{
 		return -EINVAL;
+	}
 
 	imxpriv = devm_kzalloc(dev, sizeof(*imxpriv), GFP_KERNEL);
+
 	if (!imxpriv)
+	{
 		return -ENOMEM;
+	}
 
 	imxpriv->ahci_pdev = pdev;
 	imxpriv->no_device = false;
@@ -549,57 +656,75 @@ static int imx_ahci_probe(struct platform_device *pdev)
 	imxpriv->type = (enum ahci_imx_type)of_id->data;
 
 	imxpriv->sata_clk = devm_clk_get(dev, "sata");
-	if (IS_ERR(imxpriv->sata_clk)) {
+
+	if (IS_ERR(imxpriv->sata_clk))
+	{
 		dev_err(dev, "can't get sata clock.\n");
 		return PTR_ERR(imxpriv->sata_clk);
 	}
 
 	imxpriv->sata_ref_clk = devm_clk_get(dev, "sata_ref");
-	if (IS_ERR(imxpriv->sata_ref_clk)) {
+
+	if (IS_ERR(imxpriv->sata_ref_clk))
+	{
 		dev_err(dev, "can't get sata_ref clock.\n");
 		return PTR_ERR(imxpriv->sata_ref_clk);
 	}
 
 	imxpriv->ahb_clk = devm_clk_get(dev, "ahb");
-	if (IS_ERR(imxpriv->ahb_clk)) {
+
+	if (IS_ERR(imxpriv->ahb_clk))
+	{
 		dev_err(dev, "can't get ahb clock.\n");
 		return PTR_ERR(imxpriv->ahb_clk);
 	}
 
-	if (imxpriv->type == AHCI_IMX6Q) {
+	if (imxpriv->type == AHCI_IMX6Q)
+	{
 		u32 reg_value;
 
 		imxpriv->gpr = syscon_regmap_lookup_by_compatible(
-							"fsl,imx6q-iomuxc-gpr");
-		if (IS_ERR(imxpriv->gpr)) {
+						   "fsl,imx6q-iomuxc-gpr");
+
+		if (IS_ERR(imxpriv->gpr))
+		{
 			dev_err(dev,
-				"failed to find fsl,imx6q-iomux-gpr regmap\n");
+					"failed to find fsl,imx6q-iomux-gpr regmap\n");
 			return PTR_ERR(imxpriv->gpr);
 		}
 
 		reg_value = imx_ahci_parse_props(dev, gpr13_props,
-						 ARRAY_SIZE(gpr13_props));
+										 ARRAY_SIZE(gpr13_props));
 
 		imxpriv->phy_params =
-				   IMX6Q_GPR13_SATA_RX_LOS_LVL_SATA2M |
-				   IMX6Q_GPR13_SATA_RX_DPLL_MODE_2P_4F |
-				   IMX6Q_GPR13_SATA_SPD_MODE_3P0G |
-				   reg_value;
+			IMX6Q_GPR13_SATA_RX_LOS_LVL_SATA2M |
+			IMX6Q_GPR13_SATA_RX_DPLL_MODE_2P_4F |
+			IMX6Q_GPR13_SATA_SPD_MODE_3P0G |
+			reg_value;
 	}
 
 	hpriv = ahci_platform_get_resources(pdev);
+
 	if (IS_ERR(hpriv))
+	{
 		return PTR_ERR(hpriv);
+	}
 
 	hpriv->plat_data = imxpriv;
 
 	ret = clk_prepare_enable(imxpriv->sata_clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = imx_sata_enable(hpriv);
+
 	if (ret)
+	{
 		goto disable_clk;
+	}
 
 	/*
 	 * Configure the HWINIT bits of the HOST_CAP and HOST_PORTS_IMPL,
@@ -609,12 +734,17 @@ static int imx_ahci_probe(struct platform_device *pdev)
 	 * Get the ahb clock rate, and configure the TIMER1MS register.
 	 */
 	reg_val = readl(hpriv->mmio + HOST_CAP);
-	if (!(reg_val & HOST_CAP_SSS)) {
+
+	if (!(reg_val & HOST_CAP_SSS))
+	{
 		reg_val |= HOST_CAP_SSS;
 		writel(reg_val, hpriv->mmio + HOST_CAP);
 	}
+
 	reg_val = readl(hpriv->mmio + HOST_PORTS_IMPL);
-	if (!(reg_val & 0x1)) {
+
+	if (!(reg_val & 0x1))
+	{
 		reg_val |= 0x1;
 		writel(reg_val, hpriv->mmio + HOST_PORTS_IMPL);
 	}
@@ -623,9 +753,12 @@ static int imx_ahci_probe(struct platform_device *pdev)
 	writel(reg_val, hpriv->mmio + IMX_TIMER1MS);
 
 	ret = ahci_platform_init_host(pdev, hpriv, &ahci_imx_port_info,
-				      &ahci_platform_sht);
+								  &ahci_platform_sht);
+
 	if (ret)
+	{
 		goto disable_sata;
+	}
 
 	return 0;
 
@@ -653,8 +786,11 @@ static int imx_ahci_suspend(struct device *dev)
 	int ret;
 
 	ret = ahci_platform_suspend_host(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	imx_sata_disable(hpriv);
 
@@ -668,8 +804,11 @@ static int imx_ahci_resume(struct device *dev)
 	int ret;
 
 	ret = imx_sata_enable(hpriv);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return ahci_platform_resume_host(dev);
 }
@@ -677,7 +816,8 @@ static int imx_ahci_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(ahci_imx_pm_ops, imx_ahci_suspend, imx_ahci_resume);
 
-static struct platform_driver imx_ahci_driver = {
+static struct platform_driver imx_ahci_driver =
+{
 	.probe = imx_ahci_probe,
 	.remove = ata_platform_remove_one,
 	.driver = {

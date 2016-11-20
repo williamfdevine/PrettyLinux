@@ -24,7 +24,8 @@
 
 #define SCIF_EPLOCK_HELD true
 
-enum scif_epd_state {
+enum scif_epd_state
+{
 	SCIFEP_UNBOUND,
 	SCIFEP_BOUND,
 	SCIFEP_LISTENING,
@@ -43,7 +44,8 @@ enum scif_epd_state {
  * @msg: connection request message received
  * @list: link to list of connection requests
  */
-struct scif_conreq {
+struct scif_conreq
+{
 	struct scifmsg msg;
 	struct list_head list;
 };
@@ -59,7 +61,8 @@ struct scif_conreq {
  * @gnt_pld - Payload in a SCIF_CNCT_GNT message containing the
  * physical address of the remote_qp.
  */
-struct scif_endpt_qp_info {
+struct scif_endpt_qp_info
+{
 	struct scif_qp *qp;
 	dma_addr_t qp_offset;
 	dma_addr_t gnt_pld;
@@ -102,7 +105,8 @@ struct scif_endpt_qp_info {
  * @mmu_list: link to list of MMU notifier cleanup work
  * @anon: anonymous file for use in kernel mode scif poll
  */
-struct scif_endpt {
+struct scif_endpt
+{
 	enum scif_epd_state state;
 	spinlock_t lock;
 	struct scif_port_id port;
@@ -151,13 +155,19 @@ static inline int scifdev_alive(struct scif_endpt *ep)
 static inline int scif_verify_epd(struct scif_endpt *ep)
 {
 	if (ep->state == SCIFEP_DISCONNECTED)
+	{
 		return -ECONNRESET;
+	}
 
 	if (ep->state != SCIFEP_CONNECTED)
+	{
 		return -ENOTCONN;
+	}
 
 	if (!scifdev_alive(ep))
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -165,14 +175,19 @@ static inline int scif_verify_epd(struct scif_endpt *ep)
 static inline int scif_anon_inode_getfile(scif_epd_t epd)
 {
 	epd->anon = anon_inode_getfile("scif", &scif_anon_fops, NULL, 0);
+
 	if (IS_ERR(epd->anon))
+	{
 		return PTR_ERR(epd->anon);
+	}
+
 	return 0;
 }
 
 static inline void scif_anon_inode_fput(scif_epd_t epd)
 {
-	if (epd->anon) {
+	if (epd->anon)
+	{
 		fput(epd->anon);
 		epd->anon = NULL;
 	}
@@ -204,7 +219,7 @@ int __scif_connect(scif_epd_t epd, struct scif_port_id *dst, bool non_block);
 int __scif_flush(scif_epd_t epd);
 int scif_mmap(struct vm_area_struct *vma, scif_epd_t epd);
 unsigned int __scif_pollfd(struct file *f, poll_table *wait,
-			   struct scif_endpt *ep);
+						   struct scif_endpt *ep);
 int __scif_pin_pages(void *addr, size_t len, int *out_prot,
-		     int map_flags, scif_pinned_pages_t *pages);
+					 int map_flags, scif_pinned_pages_t *pages);
 #endif /* SCIF_EPD_H */

@@ -22,8 +22,8 @@
 #include "malidp_hw.h"
 
 static bool malidp_crtc_mode_fixup(struct drm_crtc *crtc,
-				   const struct drm_display_mode *mode,
-				   struct drm_display_mode *adjusted_mode)
+								   const struct drm_display_mode *mode,
+								   struct drm_display_mode *adjusted_mode)
 {
 	struct malidp_drm *malidp = crtc_to_malidp_device(crtc);
 	struct malidp_hw_device *hwdev = malidp->dev;
@@ -34,18 +34,23 @@ static bool malidp_crtc_mode_fixup(struct drm_crtc *crtc,
 	 */
 	long rate, req_rate = mode->crtc_clock * 1000;
 
-	if (req_rate) {
+	if (req_rate)
+	{
 		rate = clk_round_rate(hwdev->mclk, req_rate);
-		if (rate < req_rate) {
+
+		if (rate < req_rate)
+		{
 			DRM_DEBUG_DRIVER("mclk clock unable to reach %d kHz\n",
-					 mode->crtc_clock);
+							 mode->crtc_clock);
 			return false;
 		}
 
 		rate = clk_round_rate(hwdev->pxlclk, req_rate);
-		if (rate != req_rate) {
+
+		if (rate != req_rate)
+		{
 			DRM_DEBUG_DRIVER("pxlclk doesn't support %ld Hz\n",
-					 req_rate);
+							 req_rate);
 			return false;
 		}
 	}
@@ -83,7 +88,7 @@ static void malidp_crtc_disable(struct drm_crtc *crtc)
 }
 
 static int malidp_crtc_atomic_check(struct drm_crtc *crtc,
-				    struct drm_crtc_state *state)
+									struct drm_crtc_state *state)
 {
 	struct malidp_drm *malidp = crtc_to_malidp_device(crtc);
 	struct malidp_hw_device *hwdev = malidp->dev;
@@ -117,57 +122,76 @@ static int malidp_crtc_atomic_check(struct drm_crtc *crtc,
 	 */
 
 	/* first count the number of rotated planes */
-	drm_atomic_crtc_state_for_each_plane_state(plane, pstate, state) {
+	drm_atomic_crtc_state_for_each_plane_state(plane, pstate, state)
+	{
 		if (pstate->rotation & MALIDP_ROTATED_MASK)
+		{
 			rotated_planes++;
+		}
 	}
 
 	rot_mem_free = hwdev->rotation_memory[0];
+
 	/*
 	 * if we have more than 1 plane using rotation memory, use the second
 	 * block of rotation memory as well
 	 */
 	if (rotated_planes > 1)
+	{
 		rot_mem_free += hwdev->rotation_memory[1];
+	}
 
 	/* now validate the rotation memory requirements */
-	drm_atomic_crtc_state_for_each_plane_state(plane, pstate, state) {
+	drm_atomic_crtc_state_for_each_plane_state(plane, pstate, state)
+	{
 		struct malidp_plane *mp = to_malidp_plane(plane);
 		struct malidp_plane_state *ms = to_malidp_plane_state(pstate);
 
-		if (pstate->rotation & MALIDP_ROTATED_MASK) {
+		if (pstate->rotation & MALIDP_ROTATED_MASK)
+		{
 			/* process current plane */
 			rotated_planes--;
 
-			if (!rotated_planes) {
+			if (!rotated_planes)
+			{
 				/* no more rotated planes, we can use what's left */
 				rot_mem_usable = rot_mem_free;
-			} else {
+			}
+			else
+			{
 				if ((mp->layer->id != DE_VIDEO1) ||
-				    (hwdev->rotation_memory[1] == 0))
+					(hwdev->rotation_memory[1] == 0))
+				{
 					rot_mem_usable = rot_mem_free / 2;
+				}
 				else
+				{
 					rot_mem_usable = hwdev->rotation_memory[0];
+				}
 			}
 
 			rot_mem_free -= rot_mem_usable;
 
 			if (ms->rotmem_size > rot_mem_usable)
+			{
 				return -EINVAL;
+			}
 		}
 	}
 
 	return 0;
 }
 
-static const struct drm_crtc_helper_funcs malidp_crtc_helper_funcs = {
+static const struct drm_crtc_helper_funcs malidp_crtc_helper_funcs =
+{
 	.mode_fixup = malidp_crtc_mode_fixup,
 	.enable = malidp_crtc_enable,
 	.disable = malidp_crtc_disable,
 	.atomic_check = malidp_crtc_atomic_check,
 };
 
-static const struct drm_crtc_funcs malidp_crtc_funcs = {
+static const struct drm_crtc_funcs malidp_crtc_funcs =
+{
 	.destroy = drm_crtc_cleanup,
 	.set_config = drm_atomic_helper_set_config,
 	.page_flip = drm_atomic_helper_page_flip,
@@ -183,28 +207,34 @@ int malidp_crtc_init(struct drm_device *drm)
 	int ret;
 
 	ret = malidp_de_planes_init(drm);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		DRM_ERROR("Failed to initialise planes\n");
 		return ret;
 	}
 
-	drm_for_each_plane(plane, drm) {
-		if (plane->type == DRM_PLANE_TYPE_PRIMARY) {
+	drm_for_each_plane(plane, drm)
+	{
+		if (plane->type == DRM_PLANE_TYPE_PRIMARY)
+		{
 			primary = plane;
 			break;
 		}
 	}
 
-	if (!primary) {
+	if (!primary)
+	{
 		DRM_ERROR("no primary plane found\n");
 		ret = -EINVAL;
 		goto crtc_cleanup_planes;
 	}
 
 	ret = drm_crtc_init_with_planes(drm, &malidp->crtc, primary, NULL,
-					&malidp_crtc_funcs, NULL);
+									&malidp_crtc_funcs, NULL);
 
-	if (!ret) {
+	if (!ret)
+	{
 		drm_crtc_helper_add(&malidp->crtc, &malidp_crtc_helper_funcs);
 		return 0;
 	}

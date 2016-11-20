@@ -23,13 +23,15 @@
 /*** Stereo mode. Used for APB data accesses as 16 bits accesses (mono),
  *   32 bits accesses (stereo).
  ***/
-enum msp_stereo_mode {
+enum msp_stereo_mode
+{
 	MSP_MONO,
 	MSP_STEREO
 };
 
 /* Direction (Transmit/Receive mode) */
-enum msp_direction {
+enum msp_direction
+{
 	MSP_TX = 1,
 	MSP_RX = 2
 };
@@ -195,7 +197,7 @@ enum msp_direction {
 #define MSP_FSYNC_POL(n)		((n << TFSPOL_SHIFT) & TFSPOL_MASK)
 #define MSP_DATA_WORD_SWAP(n)		((n << TBSWAP_SHIFT) & TBSWAP_MASK)
 #define MSP_SET_COMPANDING_MODE(n)	((n << DTYP_SHIFT) & \
-						COMPANDING_MODE_MASK)
+									 COMPANDING_MODE_MASK)
 #define MSP_SET_FSYNC_IGNORE(n)		((n << FSYNC_SHIFT) & FSYNC_MASK)
 
 /* Flag register */
@@ -258,13 +260,15 @@ enum msp_direction {
 #define TNCSF_BIT   6
 
 /* Single or dual phase mode */
-enum msp_phase_mode {
+enum msp_phase_mode
+{
 	MSP_SINGLE_PHASE,
 	MSP_DUAL_PHASE
 };
 
 /* Frame length */
-enum msp_frame_length {
+enum msp_frame_length
+{
 	MSP_FRAME_LEN_1 = 0,
 	MSP_FRAME_LEN_2 = 1,
 	MSP_FRAME_LEN_4 = 3,
@@ -278,7 +282,8 @@ enum msp_frame_length {
 };
 
 /* Element length */
-enum msp_elem_length {
+enum msp_elem_length
+{
 	MSP_ELEM_LEN_8 = 0,
 	MSP_ELEM_LEN_10 = 1,
 	MSP_ELEM_LEN_12 = 2,
@@ -289,34 +294,40 @@ enum msp_elem_length {
 	MSP_ELEM_LEN_32 = 7
 };
 
-enum msp_data_xfer_width {
+enum msp_data_xfer_width
+{
 	MSP_DATA_TRANSFER_WIDTH_BYTE,
 	MSP_DATA_TRANSFER_WIDTH_HALFWORD,
 	MSP_DATA_TRANSFER_WIDTH_WORD
 };
 
-enum msp_frame_sync {
+enum msp_frame_sync
+{
 	MSP_FSYNC_UNIGNORE = 0,
 	MSP_FSYNC_IGNORE = 1,
 };
 
-enum msp_phase2_start_mode {
+enum msp_phase2_start_mode
+{
 	MSP_PHASE2_START_MODE_IMEDIATE,
 	MSP_PHASE2_START_MODE_FSYNC
 };
 
-enum msp_btf {
+enum msp_btf
+{
 	MSP_BTF_MS_BIT_FIRST = 0,
 	MSP_BTF_LS_BIT_FIRST = 1
 };
 
-enum msp_fsync_pol {
+enum msp_fsync_pol
+{
 	MSP_FSYNC_POL_ACT_HI = 0,
 	MSP_FSYNC_POL_ACT_LO = 1
 };
 
 /* Data delay (in bit clock cycles) */
-enum msp_delay {
+enum msp_delay
+{
 	MSP_DELAY_0 = 0,
 	MSP_DELAY_1 = 1,
 	MSP_DELAY_2 = 2,
@@ -324,25 +335,29 @@ enum msp_delay {
 };
 
 /* Configurations of clocks (transmit, receive or sample rate generator) */
-enum msp_edge {
+enum msp_edge
+{
 	MSP_FALLING_EDGE = 0,
 	MSP_RISING_EDGE = 1,
 };
 
-enum msp_hws {
+enum msp_hws
+{
 	MSP_SWAP_NONE = 0,
 	MSP_SWAP_BYTE_PER_WORD = 1,
 	MSP_SWAP_BYTE_PER_HALF_WORD = 2,
 	MSP_SWAP_HALF_WORD_PER_WORD = 3
 };
 
-enum msp_compress_mode {
+enum msp_compress_mode
+{
 	MSP_COMPRESS_MODE_LINEAR = 0,
 	MSP_COMPRESS_MODE_MU_LAW = 2,
 	MSP_COMPRESS_MODE_A_LAW = 3
 };
 
-enum msp_expand_mode {
+enum msp_expand_mode
+{
 	MSP_EXPAND_MODE_LINEAR = 0,
 	MSP_EXPAND_MODE_LINEAR_SIGNED = 1,
 	MSP_EXPAND_MODE_MU_LAW = 2,
@@ -353,7 +368,8 @@ enum msp_expand_mode {
 #define MSP_FRAME_PERIOD_IN_STEREO_MODE 32
 #define MSP_FRAME_WIDTH_IN_STEREO_MODE 16
 
-enum msp_protocol {
+enum msp_protocol
+{
 	MSP_I2S_PROTOCOL,
 	MSP_PCM_PROTOCOL,
 	MSP_PCM_COMPAND_PROTOCOL,
@@ -366,12 +382,14 @@ enum msp_protocol {
  */
 #define MAX_MSP_BACKUP_REGS 36
 
-enum i2s_direction_t {
+enum i2s_direction_t
+{
 	MSP_DIR_TX = 0x01,
 	MSP_DIR_RX = 0x02,
 };
 
-enum msp_data_size {
+enum msp_data_size
+{
 	MSP_DATA_BITS_DEFAULT = -1,
 	MSP_DATA_BITS_8 = 0x00,
 	MSP_DATA_BITS_10,
@@ -383,19 +401,22 @@ enum msp_data_size {
 	MSP_DATA_BITS_32,
 };
 
-enum msp_state {
+enum msp_state
+{
 	MSP_STATE_IDLE = 0,
 	MSP_STATE_CONFIGURED = 1,
 	MSP_STATE_RUNNING = 2,
 };
 
-enum msp_rx_comparison_enable_mode {
+enum msp_rx_comparison_enable_mode
+{
 	MSP_COMPARISON_DISABLED = 0,
 	MSP_COMPARISON_NONEQUAL_ENABLED = 2,
 	MSP_COMPARISON_EQUAL_ENABLED = 3
 };
 
-struct msp_multichannel_config {
+struct msp_multichannel_config
+{
 	bool rx_multichannel_enable;
 	bool tx_multichannel_enable;
 	enum msp_rx_comparison_enable_mode rx_comparison_enable_mode;
@@ -412,7 +433,8 @@ struct msp_multichannel_config {
 	u32 tx_channel_3_enable;
 };
 
-struct msp_protdesc {
+struct msp_protdesc
+{
 	u32 rx_phase_mode;
 	u32 tx_phase_mode;
 	u32 rx_phase2_start_mode;
@@ -443,7 +465,8 @@ struct msp_protdesc {
 	u32 clocks_per_frame;
 };
 
-struct ux500_msp_config {
+struct ux500_msp_config
+{
 	unsigned int f_inputclk;
 	unsigned int rx_clk_sel;
 	unsigned int tx_clk_sel;
@@ -468,13 +491,15 @@ struct ux500_msp_config {
 	unsigned int iodelay;
 };
 
-struct ux500_msp_dma_params {
+struct ux500_msp_dma_params
+{
 	unsigned int data_size;
 	dma_addr_t tx_rx_addr;
 	struct stedma40_chan_cfg *dma_cfg;
 };
 
-struct ux500_msp {
+struct ux500_msp
+{
 	int id;
 	void __iomem *registers;
 	struct device *dev;
@@ -489,14 +514,14 @@ struct ux500_msp {
 
 struct msp_i2s_platform_data;
 int ux500_msp_i2s_init_msp(struct platform_device *pdev,
-			struct ux500_msp **msp_p,
-			struct msp_i2s_platform_data *platform_data);
+						   struct ux500_msp **msp_p,
+						   struct msp_i2s_platform_data *platform_data);
 void ux500_msp_i2s_cleanup_msp(struct platform_device *pdev,
-			struct ux500_msp *msp);
+							   struct ux500_msp *msp);
 int ux500_msp_i2s_open(struct ux500_msp *msp, struct ux500_msp_config *config);
 int ux500_msp_i2s_close(struct ux500_msp *msp,
-			unsigned int dir);
+						unsigned int dir);
 int ux500_msp_i2s_trigger(struct ux500_msp *msp, int cmd,
-			int direction);
+						  int direction);
 
 #endif

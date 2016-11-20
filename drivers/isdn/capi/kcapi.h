@@ -23,7 +23,8 @@
 #define DBG(format, arg...) /* */
 #endif
 
-enum {
+enum
+{
 	CAPI_CTR_DETACHED = 0,
 	CAPI_CTR_DETECTED = 1,
 	CAPI_CTR_LOADING  = 2,

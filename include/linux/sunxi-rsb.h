@@ -25,7 +25,8 @@ struct sunxi_rsb;
  * @rtaddr:	This device's runtime address
  * @hwaddr:	This device's hardware address
  */
-struct sunxi_rsb_device {
+struct sunxi_rsb_device
+{
 	struct device		dev;
 	struct sunxi_rsb	*rsb;
 	int			irq;
@@ -44,7 +45,7 @@ static inline void *sunxi_rsb_device_get_drvdata(const struct sunxi_rsb_device *
 }
 
 static inline void sunxi_rsb_device_set_drvdata(struct sunxi_rsb_device *rdev,
-						void *data)
+		void *data)
 {
 	dev_set_drvdata(&rdev->dev, data);
 }
@@ -56,7 +57,8 @@ static inline void sunxi_rsb_device_set_drvdata(struct sunxi_rsb_device *rdev,
  * @probe:	binds this driver to a RSB device.
  * @remove:	unbinds this driver from the RSB device.
  */
-struct sunxi_rsb_driver {
+struct sunxi_rsb_driver
+{
 	struct device_driver driver;
 	int (*probe)(struct sunxi_rsb_device *rdev);
 	int (*remove)(struct sunxi_rsb_device *rdev);
@@ -76,17 +78,19 @@ int sunxi_rsb_driver_register(struct sunxi_rsb_driver *rdrv);
 static inline void sunxi_rsb_driver_unregister(struct sunxi_rsb_driver *rdrv)
 {
 	if (rdrv)
+	{
 		driver_unregister(&rdrv->driver);
+	}
 }
 
 #define module_sunxi_rsb_driver(__sunxi_rsb_driver) \
 	module_driver(__sunxi_rsb_driver, sunxi_rsb_driver_register, \
-			sunxi_rsb_driver_unregister)
+				  sunxi_rsb_driver_unregister)
 
 struct regmap *__devm_regmap_init_sunxi_rsb(struct sunxi_rsb_device *rdev,
-					    const struct regmap_config *config,
-					    struct lock_class_key *lock_key,
-					    const char *lock_name);
+		const struct regmap_config *config,
+		struct lock_class_key *lock_key,
+		const char *lock_name);
 
 /**
  * devm_regmap_init_sunxi_rsb(): Initialise managed register map
@@ -100,6 +104,6 @@ struct regmap *__devm_regmap_init_sunxi_rsb(struct sunxi_rsb_device *rdev,
  */
 #define devm_regmap_init_sunxi_rsb(rdev, config)			\
 	__regmap_lockdep_wrapper(__devm_regmap_init_sunxi_rsb, #config,	\
-				 rdev, config)
+							 rdev, config)
 
 #endif /* _SUNXI_RSB_H */

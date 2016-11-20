@@ -103,10 +103,12 @@ static irqreturn_t logibm_interrupt(int irq, void *dev_id)
 
 static int logibm_open(struct input_dev *dev)
 {
-	if (request_irq(logibm_irq, logibm_interrupt, 0, "logibm", NULL)) {
+	if (request_irq(logibm_irq, logibm_interrupt, 0, "logibm", NULL))
+	{
 		printk(KERN_ERR "logibm.c: Can't allocate irq %d\n", logibm_irq);
 		return -EBUSY;
 	}
+
 	outb(LOGIBM_ENABLE_IRQ, LOGIBM_CONTROL_PORT);
 	return 0;
 }
@@ -121,7 +123,8 @@ static int __init logibm_init(void)
 {
 	int err;
 
-	if (!request_region(LOGIBM_BASE, LOGIBM_EXTENT, "logibm")) {
+	if (!request_region(LOGIBM_BASE, LOGIBM_EXTENT, "logibm"))
+	{
 		printk(KERN_ERR "logibm.c: Can't allocate ports at %#x\n", LOGIBM_BASE);
 		return -EBUSY;
 	}
@@ -130,7 +133,8 @@ static int __init logibm_init(void)
 	outb(LOGIBM_SIGNATURE_BYTE, LOGIBM_SIGNATURE_PORT);
 	udelay(100);
 
-	if (inb(LOGIBM_SIGNATURE_PORT) != LOGIBM_SIGNATURE_BYTE) {
+	if (inb(LOGIBM_SIGNATURE_PORT) != LOGIBM_SIGNATURE_BYTE)
+	{
 		printk(KERN_INFO "logibm.c: Didn't find Logitech busmouse at %#x\n", LOGIBM_BASE);
 		err = -ENODEV;
 		goto err_release_region;
@@ -140,7 +144,9 @@ static int __init logibm_init(void)
 	outb(LOGIBM_DISABLE_IRQ, LOGIBM_CONTROL_PORT);
 
 	logibm_dev = input_allocate_device();
-	if (!logibm_dev) {
+
+	if (!logibm_dev)
+	{
 		printk(KERN_ERR "logibm.c: Not enough memory for input device\n");
 		err = -ENOMEM;
 		goto err_release_region;
@@ -155,21 +161,24 @@ static int __init logibm_init(void)
 
 	logibm_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
 	logibm_dev->keybit[BIT_WORD(BTN_LEFT)] = BIT_MASK(BTN_LEFT) |
-		BIT_MASK(BTN_MIDDLE) | BIT_MASK(BTN_RIGHT);
+			BIT_MASK(BTN_MIDDLE) | BIT_MASK(BTN_RIGHT);
 	logibm_dev->relbit[0] = BIT_MASK(REL_X) | BIT_MASK(REL_Y);
 
 	logibm_dev->open  = logibm_open;
 	logibm_dev->close = logibm_close;
 
 	err = input_register_device(logibm_dev);
+
 	if (err)
+	{
 		goto err_free_dev;
+	}
 
 	return 0;
 
- err_free_dev:
+err_free_dev:
 	input_free_device(logibm_dev);
- err_release_region:
+err_release_region:
 	release_region(LOGIBM_BASE, LOGIBM_EXTENT);
 
 	return err;

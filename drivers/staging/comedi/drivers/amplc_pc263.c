@@ -40,22 +40,25 @@
 #define PC263_DO_0_7_REG	0x00
 #define PC263_DO_8_15_REG	0x01
 
-struct pc263_board {
+struct pc263_board
+{
 	const char *name;
 };
 
-static const struct pc263_board pc263_boards[] = {
+static const struct pc263_board pc263_boards[] =
+{
 	{
 		.name = "pc263",
 	},
 };
 
 static int pc263_do_insn_bits(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn,
-			      unsigned int *data)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn,
+							  unsigned int *data)
 {
-	if (comedi_dio_update_state(s, data)) {
+	if (comedi_dio_update_state(s, data))
+	{
 		outb(s->state & 0xff, dev->iobase + PC263_DO_0_7_REG);
 		outb((s->state >> 8) & 0xff, dev->iobase + PC263_DO_8_15_REG);
 	}
@@ -71,12 +74,18 @@ static int pc263_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	int ret;
 
 	ret = comedi_request_region(dev, it->options[0], 0x2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = comedi_alloc_subdevices(dev, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Digital Output subdevice */
 	s = &dev->subdevices[0];
@@ -89,12 +98,13 @@ static int pc263_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 
 	/* read initial relay state */
 	s->state = inb(dev->iobase + PC263_DO_0_7_REG) |
-		   (inb(dev->iobase + PC263_DO_8_15_REG) << 8);
+			   (inb(dev->iobase + PC263_DO_8_15_REG) << 8);
 
 	return 0;
 }
 
-static struct comedi_driver amplc_pc263_driver = {
+static struct comedi_driver amplc_pc263_driver =
+{
 	.driver_name	= "amplc_pc263",
 	.module		= THIS_MODULE,
 	.attach		= pc263_attach,

@@ -14,7 +14,8 @@
 #include <linux/ioctl.h>
 
 
-struct cxl_ioctl_start_work {
+struct cxl_ioctl_start_work
+{
 	__u64 flags;
 	__u64 work_element_descriptor;
 	__u64 amr;
@@ -31,8 +32,8 @@ struct cxl_ioctl_start_work {
 #define CXL_START_WORK_NUM_IRQS		0x0000000000000002ULL
 #define CXL_START_WORK_ERR_FF		0x0000000000000004ULL
 #define CXL_START_WORK_ALL		(CXL_START_WORK_AMR |\
-					 CXL_START_WORK_NUM_IRQS |\
-					 CXL_START_WORK_ERR_FF)
+								 CXL_START_WORK_NUM_IRQS |\
+								 CXL_START_WORK_ERR_FF)
 
 
 /* Possible modes that an afu can be in */
@@ -42,7 +43,8 @@ struct cxl_ioctl_start_work {
 /* possible flags for the cxl_afu_id flags field */
 #define CXL_AFUID_FLAG_SLAVE    0x1  /* In directed-mode afu is in slave mode */
 
-struct cxl_afu_id {
+struct cxl_afu_id
+{
 	__u64 flags;     /* One of CXL_AFUID_FLAG_X */
 	__u32 card_id;
 	__u32 afu_offset;
@@ -64,7 +66,8 @@ struct cxl_afu_id {
 #define CXL_AI_MAX_ENTRIES 256
 #define CXL_AI_MAX_CHUNK_SIZE (CXL_AI_BUFFER_SIZE * CXL_AI_MAX_ENTRIES)
 
-struct cxl_adapter_image {
+struct cxl_adapter_image
+{
 	__u64 flags;
 	__u64 data;
 	__u64 len_data;
@@ -88,7 +91,8 @@ struct cxl_adapter_image {
 #define CXL_READ_MIN_SIZE 0x1000 /* 4K */
 
 /* Events from read() */
-enum cxl_event_type {
+enum cxl_event_type
+{
 	CXL_EVENT_RESERVED      = 0,
 	CXL_EVENT_AFU_INTERRUPT = 1,
 	CXL_EVENT_DATA_STORAGE  = 2,
@@ -96,20 +100,23 @@ enum cxl_event_type {
 	CXL_EVENT_AFU_DRIVER    = 4,
 };
 
-struct cxl_event_header {
+struct cxl_event_header
+{
 	__u16 type;
 	__u16 size;
 	__u16 process_element;
 	__u16 reserved1;
 };
 
-struct cxl_event_afu_interrupt {
+struct cxl_event_afu_interrupt
+{
 	__u16 flags;
 	__u16 irq; /* Raised AFU interrupt number */
 	__u32 reserved1;
 };
 
-struct cxl_event_data_storage {
+struct cxl_event_data_storage
+{
 	__u16 flags;
 	__u16 reserved1;
 	__u32 reserved2;
@@ -118,14 +125,16 @@ struct cxl_event_data_storage {
 	__u64 reserved3;
 };
 
-struct cxl_event_afu_error {
+struct cxl_event_afu_error
+{
 	__u16 flags;
 	__u16 reserved1;
 	__u32 reserved2;
 	__u64 error;
 };
 
-struct cxl_event_afu_driver_reserved {
+struct cxl_event_afu_driver_reserved
+{
 	/*
 	 * Defines the buffer passed to the cxl driver by the AFU driver.
 	 *
@@ -140,9 +149,11 @@ struct cxl_event_afu_driver_reserved {
 	__u8 data[];
 };
 
-struct cxl_event {
+struct cxl_event
+{
 	struct cxl_event_header header;
-	union {
+	union
+	{
 		struct cxl_event_afu_interrupt irq;
 		struct cxl_event_data_storage fault;
 		struct cxl_event_afu_error afu_error;

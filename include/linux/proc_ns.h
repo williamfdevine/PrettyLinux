@@ -12,7 +12,8 @@ struct path;
 struct task_struct;
 struct inode;
 
-struct proc_ns_operations {
+struct proc_ns_operations
+{
 	const char *name;
 	int type;
 	struct ns_common *(*get)(struct task_struct *task);
@@ -33,7 +34,8 @@ extern const struct proc_ns_operations cgroupns_operations;
 /*
  * We always define these enumerators
  */
-enum {
+enum
+{
 	PROC_ROOT_INO		= 1,
 	PROC_IPC_INIT_INO	= 0xEFFFFFFFU,
 	PROC_UTS_INIT_INO	= 0xEFFFFFFEU,
@@ -74,10 +76,10 @@ static inline int ns_alloc_inum(struct ns_common *ns)
 extern struct file *proc_ns_fget(int fd);
 #define get_proc_ns(inode) ((struct ns_common *)(inode)->i_private)
 extern void *ns_get_path(struct path *path, struct task_struct *task,
-			const struct proc_ns_operations *ns_ops);
+						 const struct proc_ns_operations *ns_ops);
 
 extern int ns_get_name(char *buf, size_t size, struct task_struct *task,
-			const struct proc_ns_operations *ns_ops);
+					   const struct proc_ns_operations *ns_ops);
 extern void nsfs_init(void);
 
 #endif /* _LINUX_PROC_NS_H */

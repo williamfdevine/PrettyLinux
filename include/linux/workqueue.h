@@ -25,7 +25,8 @@ void delayed_work_timer_fn(unsigned long __data);
  */
 #define work_data_bits(work) ((unsigned long *)(&(work)->data))
 
-enum {
+enum
+{
 	WORK_STRUCT_PENDING_BIT	= 0,	/* work item is pending execution */
 	WORK_STRUCT_DELAYED_BIT	= 1,	/* work item is delayed */
 	WORK_STRUCT_PWQ_BIT	= 2,	/* data points to pwq */
@@ -65,7 +66,7 @@ enum {
 	 * flush colors.
 	 */
 	WORK_STRUCT_FLAG_BITS	= WORK_STRUCT_COLOR_SHIFT +
-				  WORK_STRUCT_COLOR_BITS,
+							  WORK_STRUCT_COLOR_BITS,
 
 	/* data contains off-queue information when !WORK_STRUCT_PWQ */
 	WORK_OFFQ_FLAG_BASE	= WORK_STRUCT_COLOR_SHIFT,
@@ -97,7 +98,8 @@ enum {
 	WORKER_DESC_LEN		= 24,
 };
 
-struct work_struct {
+struct work_struct
+{
 	atomic_long_t data;
 	struct list_head entry;
 	work_func_t func;
@@ -110,7 +112,8 @@ struct work_struct {
 #define WORK_DATA_STATIC_INIT()	\
 	ATOMIC_LONG_INIT(WORK_STRUCT_NO_POOL | WORK_STRUCT_STATIC)
 
-struct delayed_work {
+struct delayed_work
+{
 	struct work_struct work;
 	struct timer_list timer;
 
@@ -127,7 +130,8 @@ struct delayed_work {
  * only modifies how apply_workqueue_attrs() select pools and thus doesn't
  * participate in pool hash calculations or equality comparisons.
  */
-struct workqueue_attrs {
+struct workqueue_attrs
+{
 	int			nice;		/* nice level */
 	cpumask_var_t		cpumask;	/* allowed CPUs */
 	bool			no_numa;	/* disable NUMA affinity */
@@ -138,7 +142,8 @@ static inline struct delayed_work *to_delayed_work(struct work_struct *work)
 	return container_of(work, struct delayed_work, work);
 }
 
-struct execute_work {
+struct execute_work
+{
 	struct work_struct work;
 };
 
@@ -155,17 +160,17 @@ struct execute_work {
 #endif
 
 #define __WORK_INITIALIZER(n, f) {					\
-	.data = WORK_DATA_STATIC_INIT(),				\
-	.entry	= { &(n).entry, &(n).entry },				\
-	.func = (f),							\
-	__WORK_INIT_LOCKDEP_MAP(#n, &(n))				\
+		.data = WORK_DATA_STATIC_INIT(),				\
+				.entry	= { &(n).entry, &(n).entry },				\
+						  .func = (f),							\
+								  __WORK_INIT_LOCKDEP_MAP(#n, &(n))				\
 	}
 
 #define __DELAYED_WORK_INITIALIZER(n, f, tflags) {			\
-	.work = __WORK_INITIALIZER((n).work, (f)),			\
-	.timer = __TIMER_INITIALIZER(delayed_work_timer_fn,		\
-				     0, (unsigned long)&(n),		\
-				     (tflags) | TIMER_IRQSAFE),		\
+		.work = __WORK_INITIALIZER((n).work, (f)),			\
+				.timer = __TIMER_INITIALIZER(delayed_work_timer_fn,		\
+											 0, (unsigned long)&(n),		\
+											 (tflags) | TIMER_IRQSAFE),		\
 	}
 
 #define DECLARE_WORK(n, f)						\
@@ -203,7 +208,7 @@ static inline unsigned int work_static(struct work_struct *work) { return 0; }
 #define __INIT_WORK(_work, _func, _onstack)				\
 	do {								\
 		static struct lock_class_key __key;			\
-									\
+		\
 		__init_work((_work), _onstack);				\
 		(_work)->data = (atomic_long_t) WORK_DATA_INIT();	\
 		lockdep_init_map(&(_work)->lockdep_map, #_work, &__key, 0); \
@@ -230,17 +235,17 @@ static inline unsigned int work_static(struct work_struct *work) { return 0; }
 	do {								\
 		INIT_WORK(&(_work)->work, (_func));			\
 		__setup_timer(&(_work)->timer, delayed_work_timer_fn,	\
-			      (unsigned long)(_work),			\
-			      (_tflags) | TIMER_IRQSAFE);		\
+					  (unsigned long)(_work),			\
+					  (_tflags) | TIMER_IRQSAFE);		\
 	} while (0)
 
 #define __INIT_DELAYED_WORK_ONSTACK(_work, _func, _tflags)		\
 	do {								\
 		INIT_WORK_ONSTACK(&(_work)->work, (_func));		\
 		__setup_timer_on_stack(&(_work)->timer,			\
-				       delayed_work_timer_fn,		\
-				       (unsigned long)(_work),		\
-				       (_tflags) | TIMER_IRQSAFE);	\
+							   delayed_work_timer_fn,		\
+							   (unsigned long)(_work),		\
+							   (_tflags) | TIMER_IRQSAFE);	\
 	} while (0)
 
 #define INIT_DELAYED_WORK(_work, _func)					\
@@ -274,7 +279,8 @@ static inline unsigned int work_static(struct work_struct *work) { return 0; }
  * Workqueue flags and constants.  For details, please refer to
  * Documentation/workqueue.txt.
  */
-enum {
+enum
+{
 	WQ_UNBOUND		= 1 << 1, /* not bound to any cpu */
 	WQ_FREEZABLE		= 1 << 2, /* freeze during suspend */
 	WQ_MEM_RECLAIM		= 1 << 3, /* may be used for memory reclaim */
@@ -360,7 +366,7 @@ extern struct workqueue_struct *system_freezable_power_efficient_wq;
 
 extern struct workqueue_struct *
 __alloc_workqueue_key(const char *fmt, unsigned int flags, int max_active,
-	struct lock_class_key *key, const char *lock_name, ...) __printf(1, 6);
+					  struct lock_class_key *key, const char *lock_name, ...) __printf(1, 6);
 
 /**
  * alloc_workqueue - allocate a workqueue
@@ -380,19 +386,19 @@ __alloc_workqueue_key(const char *fmt, unsigned int flags, int max_active,
  */
 #ifdef CONFIG_LOCKDEP
 #define alloc_workqueue(fmt, flags, max_active, args...)		\
-({									\
-	static struct lock_class_key __key;				\
-	const char *__lock_name;					\
-									\
-	__lock_name = #fmt#args;					\
-									\
-	__alloc_workqueue_key((fmt), (flags), (max_active),		\
-			      &__key, __lock_name, ##args);		\
-})
+	({									\
+		static struct lock_class_key __key;				\
+		const char *__lock_name;					\
+		\
+		__lock_name = #fmt#args;					\
+		\
+		__alloc_workqueue_key((fmt), (flags), (max_active),		\
+							  &__key, __lock_name, ##args);		\
+	})
 #else
 #define alloc_workqueue(fmt, flags, max_active, args...)		\
 	__alloc_workqueue_key((fmt), (flags), (max_active),		\
-			      NULL, NULL, ##args)
+						  NULL, NULL, ##args)
 #endif
 
 /**
@@ -415,7 +421,7 @@ __alloc_workqueue_key(const char *fmt, unsigned int flags, int max_active,
 	alloc_workqueue("%s", __WQ_LEGACY | WQ_MEM_RECLAIM, 1, (name))
 #define create_freezable_workqueue(name)				\
 	alloc_workqueue("%s", __WQ_LEGACY | WQ_FREEZABLE | WQ_UNBOUND |	\
-			WQ_MEM_RECLAIM, 1, (name))
+					WQ_MEM_RECLAIM, 1, (name))
 #define create_singlethread_workqueue(name)				\
 	alloc_ordered_workqueue("%s", __WQ_LEGACY | WQ_MEM_RECLAIM, name)
 
@@ -424,15 +430,15 @@ extern void destroy_workqueue(struct workqueue_struct *wq);
 struct workqueue_attrs *alloc_workqueue_attrs(gfp_t gfp_mask);
 void free_workqueue_attrs(struct workqueue_attrs *attrs);
 int apply_workqueue_attrs(struct workqueue_struct *wq,
-			  const struct workqueue_attrs *attrs);
+						  const struct workqueue_attrs *attrs);
 int workqueue_set_unbound_cpumask(cpumask_var_t cpumask);
 
 extern bool queue_work_on(int cpu, struct workqueue_struct *wq,
-			struct work_struct *work);
+						  struct work_struct *work);
 extern bool queue_delayed_work_on(int cpu, struct workqueue_struct *wq,
-			struct delayed_work *work, unsigned long delay);
+								  struct delayed_work *work, unsigned long delay);
 extern bool mod_delayed_work_on(int cpu, struct workqueue_struct *wq,
-			struct delayed_work *dwork, unsigned long delay);
+								struct delayed_work *dwork, unsigned long delay);
 
 extern void flush_workqueue(struct workqueue_struct *wq);
 extern void drain_workqueue(struct workqueue_struct *wq);
@@ -450,7 +456,7 @@ extern bool cancel_delayed_work(struct delayed_work *dwork);
 extern bool cancel_delayed_work_sync(struct delayed_work *dwork);
 
 extern void workqueue_set_max_active(struct workqueue_struct *wq,
-				     int max_active);
+									 int max_active);
 extern bool current_is_workqueue_rescuer(void);
 extern bool workqueue_congested(int cpu, struct workqueue_struct *wq);
 extern unsigned int work_busy(struct work_struct *work);
@@ -469,7 +475,7 @@ extern void show_workqueue_state(void);
  * it can be processed by another CPU.
  */
 static inline bool queue_work(struct workqueue_struct *wq,
-			      struct work_struct *work)
+							  struct work_struct *work)
 {
 	return queue_work_on(WORK_CPU_UNBOUND, wq, work);
 }
@@ -483,8 +489,8 @@ static inline bool queue_work(struct workqueue_struct *wq,
  * Equivalent to queue_delayed_work_on() but tries to use the local CPU.
  */
 static inline bool queue_delayed_work(struct workqueue_struct *wq,
-				      struct delayed_work *dwork,
-				      unsigned long delay)
+									  struct delayed_work *dwork,
+									  unsigned long delay)
 {
 	return queue_delayed_work_on(WORK_CPU_UNBOUND, wq, dwork, delay);
 }
@@ -498,8 +504,8 @@ static inline bool queue_delayed_work(struct workqueue_struct *wq,
  * mod_delayed_work_on() on local CPU.
  */
 static inline bool mod_delayed_work(struct workqueue_struct *wq,
-				    struct delayed_work *dwork,
-				    unsigned long delay)
+									struct delayed_work *dwork,
+									unsigned long delay)
 {
 	return mod_delayed_work_on(WORK_CPU_UNBOUND, wq, dwork, delay);
 }
@@ -571,7 +577,7 @@ static inline void flush_scheduled_work(void)
  * workqueue on the specified CPU.
  */
 static inline bool schedule_delayed_work_on(int cpu, struct delayed_work *dwork,
-					    unsigned long delay)
+		unsigned long delay)
 {
 	return queue_delayed_work_on(cpu, system_wq, dwork, delay);
 }
@@ -585,7 +591,7 @@ static inline bool schedule_delayed_work_on(int cpu, struct delayed_work *dwork,
  * workqueue.
  */
 static inline bool schedule_delayed_work(struct delayed_work *dwork,
-					 unsigned long delay)
+		unsigned long delay)
 {
 	return queue_delayed_work(system_wq, dwork, delay);
 }
@@ -608,9 +614,9 @@ long work_on_cpu(int cpu, long (*fn)(void *), void *arg);
 #endif /* CONFIG_SMP */
 
 #ifdef CONFIG_FREEZER
-extern void freeze_workqueues_begin(void);
-extern bool freeze_workqueues_busy(void);
-extern void thaw_workqueues(void);
+	extern void freeze_workqueues_begin(void);
+	extern bool freeze_workqueues_busy(void);
+	extern void thaw_workqueues(void);
 #endif /* CONFIG_FREEZER */
 
 #ifdef CONFIG_SYSFS
@@ -627,9 +633,9 @@ static inline void wq_watchdog_touch(int cpu) { }
 #endif	/* CONFIG_WQ_WATCHDOG */
 
 #ifdef CONFIG_SMP
-int workqueue_prepare_cpu(unsigned int cpu);
-int workqueue_online_cpu(unsigned int cpu);
-int workqueue_offline_cpu(unsigned int cpu);
+	int workqueue_prepare_cpu(unsigned int cpu);
+	int workqueue_online_cpu(unsigned int cpu);
+	int workqueue_offline_cpu(unsigned int cpu);
 #endif
 
 #endif

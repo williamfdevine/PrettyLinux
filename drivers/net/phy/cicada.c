@@ -70,13 +70,15 @@ static int cis820x_config_init(struct phy_device *phydev)
 	int err;
 
 	err = phy_write(phydev, MII_CIS8201_AUX_CONSTAT,
-			MII_CIS8201_AUXCONSTAT_INIT);
+					MII_CIS8201_AUXCONSTAT_INIT);
 
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = phy_write(phydev, MII_CIS8201_EXT_CON1,
-			MII_CIS8201_EXTCON1_INIT);
+					MII_CIS8201_EXTCON1_INIT);
 
 	return err;
 }
@@ -94,42 +96,47 @@ static int cis820x_config_intr(struct phy_device *phydev)
 
 	if (phydev->interrupts == PHY_INTERRUPT_ENABLED)
 		err = phy_write(phydev, MII_CIS8201_IMASK,
-				MII_CIS8201_IMASK_MASK);
+						MII_CIS8201_IMASK_MASK);
 	else
+	{
 		err = phy_write(phydev, MII_CIS8201_IMASK, 0);
+	}
 
 	return err;
 }
 
 /* Cicada 8201, a.k.a Vitesse VSC8201 */
-static struct phy_driver cis820x_driver[] = {
+static struct phy_driver cis820x_driver[] =
 {
-	.phy_id		= 0x000fc410,
-	.name		= "Cicada Cis8201",
-	.phy_id_mask	= 0x000ffff0,
-	.features	= PHY_GBIT_FEATURES,
-	.flags		= PHY_HAS_INTERRUPT,
-	.config_init	= &cis820x_config_init,
-	.config_aneg	= &genphy_config_aneg,
-	.read_status	= &genphy_read_status,
-	.ack_interrupt	= &cis820x_ack_interrupt,
-	.config_intr	= &cis820x_config_intr,
-}, {
-	.phy_id		= 0x000fc440,
-	.name		= "Cicada Cis8204",
-	.phy_id_mask	= 0x000fffc0,
-	.features	= PHY_GBIT_FEATURES,
-	.flags		= PHY_HAS_INTERRUPT,
-	.config_init	= &cis820x_config_init,
-	.config_aneg	= &genphy_config_aneg,
-	.read_status	= &genphy_read_status,
-	.ack_interrupt	= &cis820x_ack_interrupt,
-	.config_intr	= &cis820x_config_intr,
-} };
+	{
+		.phy_id		= 0x000fc410,
+		.name		= "Cicada Cis8201",
+		.phy_id_mask	= 0x000ffff0,
+		.features	= PHY_GBIT_FEATURES,
+		.flags		= PHY_HAS_INTERRUPT,
+		.config_init	= &cis820x_config_init,
+		.config_aneg	= &genphy_config_aneg,
+		.read_status	= &genphy_read_status,
+		.ack_interrupt	= &cis820x_ack_interrupt,
+		.config_intr	= &cis820x_config_intr,
+	}, {
+		.phy_id		= 0x000fc440,
+		.name		= "Cicada Cis8204",
+		.phy_id_mask	= 0x000fffc0,
+		.features	= PHY_GBIT_FEATURES,
+		.flags		= PHY_HAS_INTERRUPT,
+		.config_init	= &cis820x_config_init,
+		.config_aneg	= &genphy_config_aneg,
+		.read_status	= &genphy_read_status,
+		.ack_interrupt	= &cis820x_ack_interrupt,
+		.config_intr	= &cis820x_config_intr,
+	}
+};
 
 module_phy_driver(cis820x_driver);
 
-static struct mdio_device_id __maybe_unused cicada_tbl[] = {
+static struct mdio_device_id __maybe_unused cicada_tbl[] =
+{
 	{ 0x000fc410, 0x000ffff0 },
 	{ 0x000fc440, 0x000fffc0 },
 	{ }

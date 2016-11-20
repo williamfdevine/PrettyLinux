@@ -26,24 +26,28 @@ static int usb_port_block_power_off;
 static const struct attribute_group *port_dev_group[];
 
 static ssize_t connect_type_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	struct usb_port *port_dev = to_usb_port(dev);
 	char *result;
 
-	switch (port_dev->connect_type) {
-	case USB_PORT_CONNECT_TYPE_HOT_PLUG:
-		result = "hotplug";
-		break;
-	case USB_PORT_CONNECT_TYPE_HARD_WIRED:
-		result = "hardwired";
-		break;
-	case USB_PORT_NOT_USED:
-		result = "not used";
-		break;
-	default:
-		result = "unknown";
-		break;
+	switch (port_dev->connect_type)
+	{
+		case USB_PORT_CONNECT_TYPE_HOT_PLUG:
+			result = "hotplug";
+			break;
+
+		case USB_PORT_CONNECT_TYPE_HARD_WIRED:
+			result = "hardwired";
+			break;
+
+		case USB_PORT_NOT_USED:
+			result = "not used";
+			break;
+
+		default:
+			result = "unknown";
+			break;
 	}
 
 	return sprintf(buf, "%s\n", result);
@@ -51,63 +55,93 @@ static ssize_t connect_type_show(struct device *dev,
 static DEVICE_ATTR_RO(connect_type);
 
 static ssize_t usb3_lpm_permit_show(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	struct usb_port *port_dev = to_usb_port(dev);
 	const char *p;
 
-	if (port_dev->usb3_lpm_u1_permit) {
+	if (port_dev->usb3_lpm_u1_permit)
+	{
 		if (port_dev->usb3_lpm_u2_permit)
+		{
 			p = "u1_u2";
+		}
 		else
+		{
 			p = "u1";
-	} else {
+		}
+	}
+	else
+	{
 		if (port_dev->usb3_lpm_u2_permit)
+		{
 			p = "u2";
+		}
 		else
+		{
 			p = "0";
+		}
 	}
 
 	return sprintf(buf, "%s\n", p);
 }
 
 static ssize_t usb3_lpm_permit_store(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf, size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, size_t count)
 {
 	struct usb_port *port_dev = to_usb_port(dev);
 	struct usb_device *udev = port_dev->child;
 	struct usb_hcd *hcd;
 
-	if (!strncmp(buf, "u1_u2", 5)) {
+	if (!strncmp(buf, "u1_u2", 5))
+	{
 		port_dev->usb3_lpm_u1_permit = 1;
 		port_dev->usb3_lpm_u2_permit = 1;
 
-	} else if (!strncmp(buf, "u1", 2)) {
+	}
+	else if (!strncmp(buf, "u1", 2))
+	{
 		port_dev->usb3_lpm_u1_permit = 1;
 		port_dev->usb3_lpm_u2_permit = 0;
 
-	} else if (!strncmp(buf, "u2", 2)) {
+	}
+	else if (!strncmp(buf, "u2", 2))
+	{
 		port_dev->usb3_lpm_u1_permit = 0;
 		port_dev->usb3_lpm_u2_permit = 1;
 
-	} else if (!strncmp(buf, "0", 1)) {
+	}
+	else if (!strncmp(buf, "0", 1))
+	{
 		port_dev->usb3_lpm_u1_permit = 0;
 		port_dev->usb3_lpm_u2_permit = 0;
-	} else
+	}
+	else
+	{
 		return -EINVAL;
+	}
 
 	/* If device is connected to the port, disable or enable lpm
 	 * to make new u1 u2 setting take effect immediately.
 	 */
-	if (udev) {
+	if (udev)
+	{
 		hcd = bus_to_hcd(udev->bus);
+
 		if (!hcd)
+		{
 			return -EINVAL;
+		}
+
 		usb_lock_device(udev);
 		mutex_lock(hcd->bandwidth_mutex);
+
 		if (!usb_disable_lpm(udev))
+		{
 			usb_enable_lpm(udev);
+		}
+
 		mutex_unlock(hcd->bandwidth_mutex);
 		usb_unlock_device(udev);
 	}
@@ -116,30 +150,36 @@ static ssize_t usb3_lpm_permit_store(struct device *dev,
 }
 static DEVICE_ATTR_RW(usb3_lpm_permit);
 
-static struct attribute *port_dev_attrs[] = {
+static struct attribute *port_dev_attrs[] =
+{
 	&dev_attr_connect_type.attr,
 	NULL,
 };
 
-static struct attribute_group port_dev_attr_grp = {
+static struct attribute_group port_dev_attr_grp =
+{
 	.attrs = port_dev_attrs,
 };
 
-static const struct attribute_group *port_dev_group[] = {
+static const struct attribute_group *port_dev_group[] =
+{
 	&port_dev_attr_grp,
 	NULL,
 };
 
-static struct attribute *port_dev_usb3_attrs[] = {
+static struct attribute *port_dev_usb3_attrs[] =
+{
 	&dev_attr_usb3_lpm_permit.attr,
 	NULL,
 };
 
-static struct attribute_group port_dev_usb3_attr_grp = {
+static struct attribute_group port_dev_usb3_attr_grp =
+{
 	.attrs = port_dev_usb3_attrs,
 };
 
-static const struct attribute_group *port_dev_usb3_group[] = {
+static const struct attribute_group *port_dev_usb3_group[] =
+{
 	&port_dev_attr_grp,
 	&port_dev_usb3_attr_grp,
 	NULL,
@@ -166,8 +206,12 @@ static int usb_port_runtime_resume(struct device *dev)
 	int retval;
 
 	if (!hub)
+	{
 		return -EINVAL;
-	if (hub->in_reset) {
+	}
+
+	if (hub->in_reset)
+	{
 		set_bit(port1, hub->power_bits);
 		return 0;
 	}
@@ -177,12 +221,16 @@ static int usb_port_runtime_resume(struct device *dev)
 	 * device from degrading to its usb2 connection
 	 */
 	if (!port_dev->is_superspeed && peer)
+	{
 		pm_runtime_get_sync(&peer->dev);
+	}
 
 	usb_autopm_get_interface(intf);
 	retval = usb_hub_set_port_power(hdev, hub, port1, true);
 	msleep(hub_power_on_good_delay(hub));
-	if (udev && !retval) {
+
+	if (udev && !retval)
+	{
 		/*
 		 * Our preference is to simply wait for the port to reconnect,
 		 * as that is the lowest latency method to restart the port.
@@ -192,14 +240,19 @@ static int usb_port_runtime_resume(struct device *dev)
 		 * needing warm reset recovery (to be performed later by
 		 * usb_port_resume() as requested via usb_wakeup_notification())
 		 */
-		if (hub_port_debounce_be_connected(hub, port1) < 0) {
+		if (hub_port_debounce_be_connected(hub, port1) < 0)
+		{
 			dev_dbg(&port_dev->dev, "reconnect timeout\n");
+
 			if (hub_is_superspeed(hdev))
+			{
 				set_bit(port1, hub->warm_reset_bits);
+			}
 		}
 
 		/* Force the child awake to revalidate after the power loss. */
-		if (!test_and_set_bit(port1, hub->child_usage_bits)) {
+		if (!test_and_set_bit(port1, hub->child_usage_bits))
+		{
 			pm_runtime_get_noresume(&port_dev->dev);
 			pm_request_resume(&udev->dev);
 		}
@@ -221,22 +274,35 @@ static int usb_port_runtime_suspend(struct device *dev)
 	int retval;
 
 	if (!hub)
+	{
 		return -EINVAL;
+	}
+
 	if (hub->in_reset)
+	{
 		return -EBUSY;
+	}
 
 	if (dev_pm_qos_flags(&port_dev->dev, PM_QOS_FLAG_NO_POWER_OFF)
-			== PM_QOS_FLAGS_ALL)
+		== PM_QOS_FLAGS_ALL)
+	{
 		return -EAGAIN;
+	}
 
 	if (usb_port_block_power_off)
+	{
 		return -EBUSY;
+	}
 
 	usb_autopm_get_interface(intf);
 	retval = usb_hub_set_port_power(hdev, hub, port1, false);
 	usb_clear_port_feature(hdev, port1, USB_PORT_FEAT_C_CONNECTION);
+
 	if (!port_dev->is_superspeed)
+	{
 		usb_clear_port_feature(hdev, port1, USB_PORT_FEAT_C_ENABLE);
+	}
+
 	usb_autopm_put_interface(intf);
 
 	/*
@@ -245,26 +311,31 @@ static int usb_port_runtime_suspend(struct device *dev)
 	 * usb2 port is now off.
 	 */
 	if (!port_dev->is_superspeed && peer)
+	{
 		pm_runtime_put(&peer->dev);
+	}
 
 	return retval;
 }
 #endif
 
-static const struct dev_pm_ops usb_port_pm_ops = {
+static const struct dev_pm_ops usb_port_pm_ops =
+{
 #ifdef CONFIG_PM
 	.runtime_suspend =	usb_port_runtime_suspend,
 	.runtime_resume =	usb_port_runtime_resume,
 #endif
 };
 
-struct device_type usb_port_device_type = {
+struct device_type usb_port_device_type =
+{
 	.name =		"usb_port",
 	.release =	usb_port_device_release,
 	.pm =		&usb_port_pm_ops,
 };
 
-static struct device_driver usb_port_driver = {
+static struct device_driver usb_port_driver =
+{
 	.name = "usb",
 	.owner = THIS_MODULE,
 };
@@ -275,32 +346,45 @@ static int link_peers(struct usb_port *left, struct usb_port *right)
 	int rc;
 
 	if (left->peer == right && right->peer == left)
+	{
 		return 0;
+	}
 
-	if (left->peer || right->peer) {
+	if (left->peer || right->peer)
+	{
 		struct usb_port *lpeer = left->peer;
 		struct usb_port *rpeer = right->peer;
 		char *method;
 
 		if (left->location && left->location == right->location)
+		{
 			method = "location";
+		}
 		else
+		{
 			method = "default";
+		}
 
 		pr_debug("usb: failed to peer %s and %s by %s (%s:%s) (%s:%s)\n",
-			dev_name(&left->dev), dev_name(&right->dev), method,
-			dev_name(&left->dev),
-			lpeer ? dev_name(&lpeer->dev) : "none",
-			dev_name(&right->dev),
-			rpeer ? dev_name(&rpeer->dev) : "none");
+				 dev_name(&left->dev), dev_name(&right->dev), method,
+				 dev_name(&left->dev),
+				 lpeer ? dev_name(&lpeer->dev) : "none",
+				 dev_name(&right->dev),
+				 rpeer ? dev_name(&rpeer->dev) : "none");
 		return -EBUSY;
 	}
 
 	rc = sysfs_create_link(&left->dev.kobj, &right->dev.kobj, "peer");
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	rc = sysfs_create_link(&right->dev.kobj, &left->dev.kobj, "peer");
-	if (rc) {
+
+	if (rc)
+	{
 		sysfs_remove_link(&left->dev.kobj, "peer");
 		return rc;
 	}
@@ -310,15 +394,19 @@ static int link_peers(struct usb_port *left, struct usb_port *right)
 	 * setting ->peer with usb_port_runtime_suspend().  Otherwise we
 	 * may miss a suspend event for the SuperSpeed port.
 	 */
-	if (left->is_superspeed) {
+	if (left->is_superspeed)
+	{
 		ss_port = left;
 		WARN_ON(right->is_superspeed);
 		hs_port = right;
-	} else {
+	}
+	else
+	{
 		ss_port = right;
 		WARN_ON(!right->is_superspeed);
 		hs_port = left;
 	}
+
 	pm_runtime_get_sync(&hs_port->dev);
 
 	left->peer = right;
@@ -343,9 +431,13 @@ static void link_peers_report(struct usb_port *left, struct usb_port *right)
 	int rc;
 
 	rc = link_peers(left, right);
-	if (rc == 0) {
+
+	if (rc == 0)
+	{
 		dev_dbg(&left->dev, "peered to %s\n", dev_name(&right->dev));
-	} else {
+	}
+	else
+	{
 		dev_dbg(&left->dev, "failed to peer to %s (%d)\n",
 				dev_name(&right->dev), rc);
 		pr_warn_once("usb: port power management may be unreliable\n");
@@ -358,18 +450,21 @@ static void unlink_peers(struct usb_port *left, struct usb_port *right)
 	struct usb_port *ss_port, *hs_port;
 
 	WARN(right->peer != left || left->peer != right,
-			"%s and %s are not peers?\n",
-			dev_name(&left->dev), dev_name(&right->dev));
+		 "%s and %s are not peers?\n",
+		 dev_name(&left->dev), dev_name(&right->dev));
 
 	/*
 	 * We wake the HiSpeed port to make sure we don't race its
 	 * usb_port_runtime_resume() event which takes a SuperSpeed ref
 	 * when ->peer is !NULL.
 	 */
-	if (left->is_superspeed) {
+	if (left->is_superspeed)
+	{
 		ss_port = left;
 		hs_port = right;
-	} else {
+	}
+	else
+	{
 		ss_port = right;
 		hs_port = left;
 	}
@@ -402,17 +497,25 @@ static int match_location(struct usb_device *peer_hdev, void *p)
 	struct usb_device *hdev = to_usb_device(port_dev->dev.parent->parent);
 
 	if (!peer_hub)
+	{
 		return 0;
+	}
 
 	hcd = bus_to_hcd(hdev->bus);
 	peer_hcd = bus_to_hcd(peer_hdev->bus);
+
 	/* peer_hcd is provisional until we verify it against the known peer */
 	if (peer_hcd != hcd->shared_hcd)
+	{
 		return 0;
+	}
 
-	for (port1 = 1; port1 <= peer_hdev->maxchild; port1++) {
+	for (port1 = 1; port1 <= peer_hdev->maxchild; port1++)
+	{
 		peer = peer_hub->ports[port1 - 1];
-		if (peer && peer->location == port_dev->location) {
+
+		if (peer && peer->location == port_dev->location)
+		{
 			link_peers_report(port_dev, peer);
 			return 1; /* done */
 		}
@@ -439,44 +542,62 @@ static void find_and_link_peer(struct usb_hub *hub, int port1)
 	 * situation where we need to go back and undo a default peering
 	 * when the port is later peered by location data)
 	 */
-	if (port_dev->location) {
+	if (port_dev->location)
+	{
 		/* we link the peer in match_location() if found */
 		usb_for_each_dev(port_dev, match_location);
 		return;
-	} else if (!hdev->parent) {
+	}
+	else if (!hdev->parent)
+	{
 		struct usb_hcd *hcd = bus_to_hcd(hdev->bus);
 		struct usb_hcd *peer_hcd = hcd->shared_hcd;
 
 		if (!peer_hcd)
+		{
 			return;
+		}
 
 		peer_hdev = peer_hcd->self.root_hub;
-	} else {
+	}
+	else
+	{
 		struct usb_port *upstream;
 		struct usb_device *parent = hdev->parent;
 		struct usb_hub *parent_hub = usb_hub_to_struct_hub(parent);
 
 		if (!parent_hub)
+		{
 			return;
+		}
 
 		upstream = parent_hub->ports[hdev->portnum - 1];
+
 		if (!upstream || !upstream->peer)
+		{
 			return;
+		}
 
 		peer_hdev = upstream->peer->child;
 	}
 
 	peer_hub = usb_hub_to_struct_hub(peer_hdev);
+
 	if (!peer_hub || port1 > peer_hdev->maxchild)
+	{
 		return;
+	}
 
 	/*
 	 * we found a valid default peer, last check is to make sure it
 	 * does not have location data
 	 */
 	peer = peer_hub->ports[port1 - 1];
+
 	if (peer && peer->location == 0)
+	{
 		link_peers_report(port_dev, peer);
+	}
 }
 
 int usb_hub_create_port_device(struct usb_hub *hub, int port1)
@@ -486,11 +607,16 @@ int usb_hub_create_port_device(struct usb_hub *hub, int port1)
 	int retval;
 
 	port_dev = kzalloc(sizeof(*port_dev), GFP_KERNEL);
+
 	if (!port_dev)
+	{
 		return -ENOMEM;
+	}
 
 	port_dev->req = kzalloc(sizeof(*(port_dev->req)), GFP_KERNEL);
-	if (!port_dev->req) {
+
+	if (!port_dev->req)
+	{
 		kfree(port_dev);
 		return -ENOMEM;
 	}
@@ -499,29 +625,43 @@ int usb_hub_create_port_device(struct usb_hub *hub, int port1)
 	port_dev->portnum = port1;
 	set_bit(port1, hub->power_bits);
 	port_dev->dev.parent = hub->intfdev;
-	if (hub_is_superspeed(hdev)) {
+
+	if (hub_is_superspeed(hdev))
+	{
 		port_dev->usb3_lpm_u1_permit = 1;
 		port_dev->usb3_lpm_u2_permit = 1;
 		port_dev->dev.groups = port_dev_usb3_group;
-	} else
+	}
+	else
+	{
 		port_dev->dev.groups = port_dev_group;
+	}
+
 	port_dev->dev.type = &usb_port_device_type;
 	port_dev->dev.driver = &usb_port_driver;
+
 	if (hub_is_superspeed(hub->hdev))
+	{
 		port_dev->is_superspeed = 1;
+	}
+
 	dev_set_name(&port_dev->dev, "%s-port%d", dev_name(&hub->hdev->dev),
-			port1);
+				 port1);
 	mutex_init(&port_dev->status_lock);
 	retval = device_register(&port_dev->dev);
-	if (retval) {
+
+	if (retval)
+	{
 		put_device(&port_dev->dev);
 		return retval;
 	}
 
 	/* Set default policy of port-poweroff disabled. */
 	retval = dev_pm_qos_add_request(&port_dev->dev, port_dev->req,
-			DEV_PM_QOS_FLAGS, PM_QOS_FLAG_NO_POWER_OFF);
-	if (retval < 0) {
+									DEV_PM_QOS_FLAGS, PM_QOS_FLAG_NO_POWER_OFF);
+
+	if (retval < 0)
+	{
 		device_unregister(&port_dev->dev);
 		return retval;
 	}
@@ -543,22 +683,29 @@ int usb_hub_create_port_device(struct usb_hub *hub, int port1)
 	 * does not support power switching.
 	 */
 	if (!hub_is_port_power_switchable(hub))
+	{
 		return 0;
+	}
 
 	/* Attempt to let userspace take over the policy. */
 	retval = dev_pm_qos_expose_flags(&port_dev->dev,
-			PM_QOS_FLAG_NO_POWER_OFF);
-	if (retval < 0) {
+									 PM_QOS_FLAG_NO_POWER_OFF);
+
+	if (retval < 0)
+	{
 		dev_warn(&port_dev->dev, "failed to expose pm_qos_no_poweroff\n");
 		return 0;
 	}
 
 	/* Userspace owns the policy, drop the kernel 'no_poweroff' request. */
 	retval = dev_pm_qos_remove_request(port_dev->req);
-	if (retval >= 0) {
+
+	if (retval >= 0)
+	{
 		kfree(port_dev->req);
 		port_dev->req = NULL;
 	}
+
 	return 0;
 }
 
@@ -568,7 +715,11 @@ void usb_hub_remove_port_device(struct usb_hub *hub, int port1)
 	struct usb_port *peer;
 
 	peer = port_dev->peer;
+
 	if (peer)
+	{
 		unlink_peers(port_dev, peer);
+	}
+
 	device_unregister(&port_dev->dev);
 }

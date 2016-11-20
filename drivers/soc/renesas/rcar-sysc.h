@@ -31,7 +31,8 @@
  * Description of a Power Area
  */
 
-struct rcar_sysc_area {
+struct rcar_sysc_area
+{
 	const char *name;
 	u16 chan_offs;		/* Offset of PWRSR register for this area */
 	u8 chan_bit;		/* Bit in PWR* (except for PWRUP in PWRSR) */
@@ -45,7 +46,8 @@ struct rcar_sysc_area {
  * SoC-specific Power Area Description
  */
 
-struct rcar_sysc_info {
+struct rcar_sysc_info
+{
 	const struct rcar_sysc_area *areas;
 	unsigned int num_areas;
 };

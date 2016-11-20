@@ -38,25 +38,40 @@ static int bochs_load(struct drm_device *dev, unsigned long flags)
 	int ret;
 
 	bochs = kzalloc(sizeof(*bochs), GFP_KERNEL);
+
 	if (bochs == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	dev->dev_private = bochs;
 	bochs->dev = dev;
 
 	ret = bochs_hw_init(dev, flags);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = bochs_mm_init(bochs);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = bochs_kms_init(bochs);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	if (enable_fbdev)
+	{
 		bochs_fbdev_init(bochs);
+	}
 
 	return 0;
 
@@ -65,7 +80,8 @@ err:
 	return ret;
 }
 
-static const struct file_operations bochs_fops = {
+static const struct file_operations bochs_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= drm_open,
 	.release	= drm_release,
@@ -79,7 +95,8 @@ static const struct file_operations bochs_fops = {
 	.mmap           = bochs_mmap,
 };
 
-static struct drm_driver bochs_driver = {
+static struct drm_driver bochs_driver =
+{
 	.driver_features	= DRIVER_GEM | DRIVER_MODESET,
 	.load			= bochs_load,
 	.unload			= bochs_unload,
@@ -108,7 +125,8 @@ static int bochs_pm_suspend(struct device *dev)
 
 	drm_kms_helper_poll_disable(drm_dev);
 
-	if (bochs->fb.initialized) {
+	if (bochs->fb.initialized)
+	{
 		console_lock();
 		drm_fb_helper_set_suspend(&bochs->fb.helper, 1);
 		console_unlock();
@@ -125,7 +143,8 @@ static int bochs_pm_resume(struct device *dev)
 
 	drm_helper_resume_force_mode(drm_dev);
 
-	if (bochs->fb.initialized) {
+	if (bochs->fb.initialized)
+	{
 		console_lock();
 		drm_fb_helper_set_suspend(&bochs->fb.helper, 0);
 		console_unlock();
@@ -136,9 +155,10 @@ static int bochs_pm_resume(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops bochs_pm_ops = {
+static const struct dev_pm_ops bochs_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(bochs_pm_suspend,
-				bochs_pm_resume)
+	bochs_pm_resume)
 };
 
 /* ---------------------------------------------------------------------- */
@@ -149,8 +169,11 @@ static int bochs_kick_out_firmware_fb(struct pci_dev *pdev)
 	struct apertures_struct *ap;
 
 	ap = alloc_apertures(1);
+
 	if (!ap)
+	{
 		return -ENOMEM;
+	}
 
 	ap->ranges[0].base = pci_resource_start(pdev, 0);
 	ap->ranges[0].size = pci_resource_len(pdev, 0);
@@ -161,20 +184,25 @@ static int bochs_kick_out_firmware_fb(struct pci_dev *pdev)
 }
 
 static int bochs_pci_probe(struct pci_dev *pdev,
-			   const struct pci_device_id *ent)
+						   const struct pci_device_id *ent)
 {
 	unsigned long fbsize;
 	int ret;
 
 	fbsize = pci_resource_len(pdev, 0);
-	if (fbsize < 4 * 1024 * 1024) {
+
+	if (fbsize < 4 * 1024 * 1024)
+	{
 		DRM_ERROR("less than 4 MB video memory, ignoring device\n");
 		return -ENOMEM;
 	}
 
 	ret = bochs_kick_out_firmware_fb(pdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return drm_get_pci_dev(pdev, ent, &bochs_driver);
 }
@@ -186,7 +214,8 @@ static void bochs_pci_remove(struct pci_dev *pdev)
 	drm_put_dev(dev);
 }
 
-static const struct pci_device_id bochs_pci_tbl[] = {
+static const struct pci_device_id bochs_pci_tbl[] =
+{
 	{
 		.vendor      = 0x1234,
 		.device      = 0x1111,
@@ -204,7 +233,8 @@ static const struct pci_device_id bochs_pci_tbl[] = {
 	{ /* end of list */ }
 };
 
-static struct pci_driver bochs_pci_driver = {
+static struct pci_driver bochs_pci_driver =
+{
 	.name =		"bochs-drm",
 	.id_table =	bochs_pci_tbl,
 	.probe =	bochs_pci_probe,

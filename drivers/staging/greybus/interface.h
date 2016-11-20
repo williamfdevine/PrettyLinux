@@ -10,7 +10,8 @@
 #ifndef __INTERFACE_H
 #define __INTERFACE_H
 
-enum gb_interface_type {
+enum gb_interface_type
+{
 	GB_INTERFACE_TYPE_INVALID = 0,
 	GB_INTERFACE_TYPE_UNKNOWN,
 	GB_INTERFACE_TYPE_DUMMY,
@@ -26,7 +27,8 @@ enum gb_interface_type {
 #define GB_INTERFACE_QUIRK_NO_BUNDLE_ACTIVATE		BIT(5)
 #define GB_INTERFACE_QUIRK_NO_PM			BIT(6)
 
-struct gb_interface {
+struct gb_interface
+{
 	struct device dev;
 	struct gb_control *control;
 
@@ -67,15 +69,15 @@ struct gb_interface {
 #define to_gb_interface(d) container_of(d, struct gb_interface, dev)
 
 struct gb_interface *gb_interface_create(struct gb_module *module,
-					 u8 interface_id);
+		u8 interface_id);
 int gb_interface_activate(struct gb_interface *intf);
 void gb_interface_deactivate(struct gb_interface *intf);
 int gb_interface_enable(struct gb_interface *intf);
 void gb_interface_disable(struct gb_interface *intf);
 int gb_interface_timesync_enable(struct gb_interface *intf, u8 count,
-				 u64 frame_time, u32 strobe_delay, u32 refclk);
+								 u64 frame_time, u32 strobe_delay, u32 refclk);
 int gb_interface_timesync_authoritative(struct gb_interface *intf,
-					u64 *frame_time);
+										u64 *frame_time);
 int gb_interface_timesync_disable(struct gb_interface *intf);
 int gb_interface_add(struct gb_interface *intf);
 void gb_interface_del(struct gb_interface *intf);

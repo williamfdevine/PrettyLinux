@@ -26,16 +26,16 @@
 #ifndef _CARDTYPE_H_
 #define _CARDTYPE_H_
 #ifndef CARDTYPE_H_WANT_DATA
-#define CARDTYPE_H_WANT_DATA   0
+	#define CARDTYPE_H_WANT_DATA   0
 #endif
 #ifndef CARDTYPE_H_WANT_IDI_DATA
-#define CARDTYPE_H_WANT_IDI_DATA  0
+	#define CARDTYPE_H_WANT_IDI_DATA  0
 #endif
 #ifndef CARDTYPE_H_WANT_RESOURCE_DATA
-#define CARDTYPE_H_WANT_RESOURCE_DATA 1
+	#define CARDTYPE_H_WANT_RESOURCE_DATA 1
 #endif
 #ifndef CARDTYPE_H_WANT_FILE_DATA
-#define CARDTYPE_H_WANT_FILE_DATA  1
+	#define CARDTYPE_H_WANT_FILE_DATA  1
 #endif
 /*
  * D-channel protocol identifiers
@@ -245,7 +245,8 @@
  * The structures where the card properties are aggregated by id
  */
 typedef struct CARD_PROPERTIES
-{   char     *Name;  /* official marketing name     */
+{
+	char     *Name;  /* official marketing name     */
 	unsigned short PnPId;  /* plug and play ID (for non PCMIA cards) */
 	unsigned short Version; /* major and minor version no of the card */
 	unsigned char DescType; /* card type to set in the IDI descriptor */
@@ -262,7 +263,8 @@ typedef struct CARD_PROPERTIES
 	unsigned short SizeMem; /* size of memory window per adapter  */
 } CARD_PROPERTIES;
 typedef struct CARD_RESOURCE
-{ unsigned char Int[10];
+{
+	unsigned char Int[10];
 	unsigned short IoFirst;
 	unsigned short IoStep;
 	unsigned short IoCnt;
@@ -273,59 +275,59 @@ typedef struct CARD_RESOURCE
 /* test if the card of type 't' is a plug & play card */
 #define IS_PNP(t)						\
 	(							\
-		(						\
-			CardProperties[t].Bus != BUS_ISA	\
-			&&					\
-			CardProperties[t].Bus != BUS_MCA	\
-			)					\
-		||						\
-		(						\
-			CardProperties[t].Family != FAMILY_S	\
-			&&					\
-			CardProperties[t].Card != CARD_DIVA	\
-			)					\
-		)
+								(						\
+										CardProperties[t].Bus != BUS_ISA	\
+										&&					\
+										CardProperties[t].Bus != BUS_MCA	\
+								)					\
+								||						\
+								(						\
+										CardProperties[t].Family != FAMILY_S	\
+										&&					\
+										CardProperties[t].Card != CARD_DIVA	\
+								)					\
+	)
 /* extract IDI Descriptor info for card type 't' (p == DescType/Features) */
 #define IDI_PROP(t, p) (CardProperties[t].p)
 #if CARDTYPE_H_WANT_DATA
 #if CARDTYPE_H_WANT_IDI_DATA
-/* include "di_defs.h" for IDI adapter type and feature flag definitions */
-#include "di_defs.h"
+	/* include "di_defs.h" for IDI adapter type and feature flag definitions */
+	#include "di_defs.h"
 #else /*!CARDTYPE_H_WANT_IDI_DATA*/
-/* define IDI adapter types and feature flags here to prevent inclusion  */
-#ifndef IDI_ADAPTER_S
-#define IDI_ADAPTER_S           1
-#define IDI_ADAPTER_PR          2
-#define IDI_ADAPTER_DIVA        3
-#define IDI_ADAPTER_MAESTRA     4
-#endif
-#ifndef DI_VOICE
-#define DI_VOICE          0x0 /* obsolete define */
-#define DI_FAX3           0x1
-#define DI_MODEM          0x2
-#define DI_POST           0x4
-#define DI_V110           0x8
-#define DI_V120           0x10
-#define DI_POTS           0x20
-#define DI_CODEC          0x40
-#define DI_MANAGE         0x80
-#define DI_V_42           0x0100
-#define DI_EXTD_FAX       0x0200 /* Extended FAX (ECM, 2D, T.6, Polling) */
-#define DI_AT_PARSER      0x0400 /* Build-in AT Parser in the L2 */
-#define DI_VOICE_OVER_IP  0x0800 /* Voice over IP support */
-#endif
+	/* define IDI adapter types and feature flags here to prevent inclusion  */
+	#ifndef IDI_ADAPTER_S
+		#define IDI_ADAPTER_S           1
+		#define IDI_ADAPTER_PR          2
+		#define IDI_ADAPTER_DIVA        3
+		#define IDI_ADAPTER_MAESTRA     4
+	#endif
+	#ifndef DI_VOICE
+		#define DI_VOICE          0x0 /* obsolete define */
+		#define DI_FAX3           0x1
+		#define DI_MODEM          0x2
+		#define DI_POST           0x4
+		#define DI_V110           0x8
+		#define DI_V120           0x10
+		#define DI_POTS           0x20
+		#define DI_CODEC          0x40
+		#define DI_MANAGE         0x80
+		#define DI_V_42           0x0100
+		#define DI_EXTD_FAX       0x0200 /* Extended FAX (ECM, 2D, T.6, Polling) */
+		#define DI_AT_PARSER      0x0400 /* Build-in AT Parser in the L2 */
+		#define DI_VOICE_OVER_IP  0x0800 /* Voice over IP support */
+	#endif
 #endif /*CARDTYPE_H_WANT_IDI_DATA*/
 #define DI_V1x0         (DI_V110 | DI_V120)
 #define DI_NULL         0x0000
 #if defined(SOFT_DSP_SUPPORT)
-#define SOFT_DSP_ADD_FEATURES  (DI_MODEM | DI_FAX3 | DI_AT_PARSER)
+	#define SOFT_DSP_ADD_FEATURES  (DI_MODEM | DI_FAX3 | DI_AT_PARSER)
 #else
-#define SOFT_DSP_ADD_FEATURES  0
+	#define SOFT_DSP_ADD_FEATURES  0
 #endif
 #if defined(SOFT_V110_SUPPORT)
-#define DI_SOFT_V110  DI_V110
+	#define DI_SOFT_V110  DI_V110
 #else
-#define DI_SOFT_V110  0
+	#define DI_SOFT_V110  0
 #endif
 /*--- CardProperties [Index=CARDTYPE_....] ---------------------------------*/
 CARD_PROPERTIES CardProperties[] =
@@ -748,77 +750,78 @@ CARD_PROPERTIES CardProperties[] =
 };
 #if CARDTYPE_H_WANT_RESOURCE_DATA
 /*--- CardResource [Index=CARDTYPE_....]   ---------------------------(GEI)-*/
-CARD_RESOURCE CardResource[] = {
-/*   Interrupts     IO-Address   Mem-Address */
-	/* 0*/ {  3,4,9,0,0,0,0,0,0,0,   0x200,0x20,16,   0x0,0x0,0   }, // DIVA MCA
-	/* 1*/ {  3,4,9,10,11,12,0,0,0,0,  0x200,0x20,16,   0x0,0x0,0   }, // DIVA ISA
-	/* 2*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA PCMCIA
-	/* 3*/ {  3,5,7,9,10,11,12,14,15,0, 0x200,0x20,16,   0x0,0x0,0   }, // DIVA PRO ISA
-	/* 4*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA PRO PCMCIA
-	/* 5*/ {  3,5,7,9,10,11,12,14,15,0, 0x200,0x20,16,  0x0,0x0,0   }, // DIVA PICCOLA ISA
-	/* 6*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA PICCOLA PCMCIA
-	/* 7*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA PRO 2.0 PCI
-	/* 8*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA 2.0 PCI
-	/* 9*/ {  3,4,5,7,9,10,11,12,0,0,  0x0,0x0,0,   0x80000,0x2000,64 }, // QUADRO ISA
-	/*10*/ {  3,4,9,10,11,12,0,0,0,0,  0x0,0x0,0,   0xc0000,0x2000,16 }, // S ISA
-	/*11*/ {  3,4,9,0,0,0,0,0,0,0,  0xc00,0x10,16,  0xc0000,0x2000,16 }, // S MCA
-	/*12*/ {  3,4,9,10,11,12,0,0,0,0,  0x0,0x0,0,   0xc0000,0x2000,16 }, // SX ISA
-	/*13*/ {  3,4,9,0,0,0,0,0,0,0,  0xc00,0x10,16,  0xc0000,0x2000,16 }, // SX MCA
-	/*14*/ {  3,4,5,7,9,10,11,12,0,0,  0x0,0x0,0,   0x80000,0x0800,256 }, // SXN ISA
-	/*15*/ {  3,4,9,0,0,0,0,0,0,0,  0xc00,0x10,16,  0xc0000,0x2000,16 }, // SXN MCA
-	/*16*/ {  3,4,5,7,9,10,11,12,0,0,  0x0,0x0,0,   0x80000,0x0800,256 }, // SCOM ISA
-	/*17*/ {  3,4,9,0,0,0,0,0,0,0,  0xc00,0x10,16,  0xc0000,0x2000,16 }, // SCOM MCA
-	/*18*/ {  3,4,5,7,9,10,11,12,0,0,  0x0,0x0,0,   0xc0000,0x4000,16 }, // S2M ISA
-	/*19*/ {  3,4,9,0,0,0,0,0,0,0,  0xc00,0x10,16,  0xc0000,0x4000,16 }, // S2M MCA
-	/*20*/ {  3,5,7,9,10,11,12,14,15,0, 0x200,0x20,16,  0x0,0x0,0   }, // MAESTRA ISA
-	/*21*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // MAESTRA PCI
-	/*22*/ {  3,5,7,9,10,11,12,14,15,0, 0x200,0x20,16,  0x0,0x0,0   }, // MAESTRA QUADRO ISA
-	/*23*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x20,2048,  0x0,0x0,0   }, // MAESTRA QUADRO PCI
-	/*24*/ {  3,5,7,9,10,11,12,14,15,0, 0x200,0x20,16,  0x0,0x0,0   }, // MAESTRA PRIMARY ISA
-	/*25*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // MAESTRA PRIMARY PCI
-	/*26*/ {  3,5,7,9,10,11,12,14,15,0, 0x200,0x20,16,  0x0,0x0,0   }, // DIVA 2.0 ISA
-	/*27*/ {  3,5,7,9,10,11,12,14,15,0, 0x200,0x20,16,  0x0,0x0,0   }, // DIVA 2.0 /U ISA
-	/*28*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA 2.0 /U PCI
-	/*29*/ {  3,5,7,9,10,11,12,14,15,0, 0x200,0x20,16,   0x0,0x0,0   }, // DIVA PRO 2.0 ISA
-	/*30*/ {  3,5,7,9,10,11,12,14,15,0, 0x200,0x20,16,   0x0,0x0,0   }, // DIVA PRO 2.0 /U ISA
-	/*31*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA PRO 2.0 /U PCI
-	/*32*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA MOBILE
-	/*33*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // TDK DFI3600 (same as DIVA MOBILE [32])
-	/*34*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // New Media ISDN (same as DIVA PRO PCMCIA [4])
-	/*35*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // BT ExLane PCI (same as DIVA PRO 2.0 PCI [7])
-	/*36*/ {  3,5,7,9,10,11,12,14,15,0, 0x200,0x20,16,   0x0,0x0,0   }, // BT ExLane ISA (same as DIVA PRO 2.0 ISA [29])
-	/*37*/ {  3,5,7,9,10,11,12,14,15,0, 0x200,0x20,16,  0x0,0x0,0   }, // DIVA 2.01 S/T ISA
-	/*38*/ {  3,5,7,9,10,11,12,14,15,0, 0x200,0x20,16,  0x0,0x0,0   }, // DIVA 2.01 U ISA
-	/*39*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA 2.01 S/T PCI
-	/*40*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA 2.01 U PCI
-	/*41*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA MOBILE V.90
-	/*42*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // TDK DFI3600 V.90 (same as DIVA MOBILE V.90 [39])
-	/*43*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x20,2048,  0x0,0x0,0   }, // DIVA Server PRI-23M PCI
-	/*44*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA 2.01 S/T USB
-	/*45*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA CT S/T PCI
-	/*46*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA CT U PCI
-	/*47*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA CT Lite S/T PCI
-	/*48*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA CT Lite U PCI
-	/*49*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA ISDN+V.90 PC Card
-	/*50*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA ISDN+V.90 PCI
-	/*51*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA TA
-	/*52*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x20,2048,  0x0,0x0,0   }, // MAESTRA VOICE QUADRO PCI
-	/*53*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x20,2048,  0x0,0x0,0   }, // MAESTRA VOICE QUADRO PCI
-	/*54*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // MAESTRA VOICE PRIMARY PCI
-	/*55*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x20,2048,  0x0,0x0,0   }, // MAESTRA VOICE QUADRO PCI
-	/*56*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // MAESTRA VOICE PRIMARY PCI
-	/*57*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA LAN
-	/*58*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA 2.02 S/T PCI
-	/*59*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA 2.02 U PCI
-	/*60*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // Diva Server BRI-2M 2.0 PCI
-	/*61*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // Diva Server BRI-2F PCI
-	/*62*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA 2.01 S/T USB
-	/*63*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // Diva Server Voice BRI-2M 2.0 PCI
-	/*64*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA 3.0 PCI
-	/*65*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA CT S/T PCI V2.0
-	/*66*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA Mobile V.90 PC Card
-	/*67*/ {  0,0,0,0,0,0,0,0,0,0,  0x0,0x0,0,   0x0,0x0,0   }, // DIVA ISDN PC Card
-	/*68*/ {  3,4,5,7,9,10,11,12,14,15, 0x0,0x8,8192,  0x0,0x0,0   }, // DIVA ISDN PC Card
+CARD_RESOURCE CardResource[] =
+{
+	/*   Interrupts     IO-Address   Mem-Address */
+	/* 0*/ {  3, 4, 9, 0, 0, 0, 0, 0, 0, 0,   0x200, 0x20, 16,   0x0, 0x0, 0   }, // DIVA MCA
+	/* 1*/ {  3, 4, 9, 10, 11, 12, 0, 0, 0, 0,  0x200, 0x20, 16,   0x0, 0x0, 0   }, // DIVA ISA
+	/* 2*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA PCMCIA
+	/* 3*/ {  3, 5, 7, 9, 10, 11, 12, 14, 15, 0, 0x200, 0x20, 16,   0x0, 0x0, 0   }, // DIVA PRO ISA
+	/* 4*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA PRO PCMCIA
+	/* 5*/ {  3, 5, 7, 9, 10, 11, 12, 14, 15, 0, 0x200, 0x20, 16,  0x0, 0x0, 0   }, // DIVA PICCOLA ISA
+	/* 6*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA PICCOLA PCMCIA
+	/* 7*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA PRO 2.0 PCI
+	/* 8*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA 2.0 PCI
+	/* 9*/ {  3, 4, 5, 7, 9, 10, 11, 12, 0, 0,  0x0, 0x0, 0,   0x80000, 0x2000, 64 }, // QUADRO ISA
+	/*10*/ {  3, 4, 9, 10, 11, 12, 0, 0, 0, 0,  0x0, 0x0, 0,   0xc0000, 0x2000, 16 }, // S ISA
+	/*11*/ {  3, 4, 9, 0, 0, 0, 0, 0, 0, 0,  0xc00, 0x10, 16,  0xc0000, 0x2000, 16 }, // S MCA
+	/*12*/ {  3, 4, 9, 10, 11, 12, 0, 0, 0, 0,  0x0, 0x0, 0,   0xc0000, 0x2000, 16 }, // SX ISA
+	/*13*/ {  3, 4, 9, 0, 0, 0, 0, 0, 0, 0,  0xc00, 0x10, 16,  0xc0000, 0x2000, 16 }, // SX MCA
+	/*14*/ {  3, 4, 5, 7, 9, 10, 11, 12, 0, 0,  0x0, 0x0, 0,   0x80000, 0x0800, 256 }, // SXN ISA
+	/*15*/ {  3, 4, 9, 0, 0, 0, 0, 0, 0, 0,  0xc00, 0x10, 16,  0xc0000, 0x2000, 16 }, // SXN MCA
+	/*16*/ {  3, 4, 5, 7, 9, 10, 11, 12, 0, 0,  0x0, 0x0, 0,   0x80000, 0x0800, 256 }, // SCOM ISA
+	/*17*/ {  3, 4, 9, 0, 0, 0, 0, 0, 0, 0,  0xc00, 0x10, 16,  0xc0000, 0x2000, 16 }, // SCOM MCA
+	/*18*/ {  3, 4, 5, 7, 9, 10, 11, 12, 0, 0,  0x0, 0x0, 0,   0xc0000, 0x4000, 16 }, // S2M ISA
+	/*19*/ {  3, 4, 9, 0, 0, 0, 0, 0, 0, 0,  0xc00, 0x10, 16,  0xc0000, 0x4000, 16 }, // S2M MCA
+	/*20*/ {  3, 5, 7, 9, 10, 11, 12, 14, 15, 0, 0x200, 0x20, 16,  0x0, 0x0, 0   }, // MAESTRA ISA
+	/*21*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // MAESTRA PCI
+	/*22*/ {  3, 5, 7, 9, 10, 11, 12, 14, 15, 0, 0x200, 0x20, 16,  0x0, 0x0, 0   }, // MAESTRA QUADRO ISA
+	/*23*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x20, 2048,  0x0, 0x0, 0   }, // MAESTRA QUADRO PCI
+	/*24*/ {  3, 5, 7, 9, 10, 11, 12, 14, 15, 0, 0x200, 0x20, 16,  0x0, 0x0, 0   }, // MAESTRA PRIMARY ISA
+	/*25*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // MAESTRA PRIMARY PCI
+	/*26*/ {  3, 5, 7, 9, 10, 11, 12, 14, 15, 0, 0x200, 0x20, 16,  0x0, 0x0, 0   }, // DIVA 2.0 ISA
+	/*27*/ {  3, 5, 7, 9, 10, 11, 12, 14, 15, 0, 0x200, 0x20, 16,  0x0, 0x0, 0   }, // DIVA 2.0 /U ISA
+	/*28*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA 2.0 /U PCI
+	/*29*/ {  3, 5, 7, 9, 10, 11, 12, 14, 15, 0, 0x200, 0x20, 16,   0x0, 0x0, 0   }, // DIVA PRO 2.0 ISA
+	/*30*/ {  3, 5, 7, 9, 10, 11, 12, 14, 15, 0, 0x200, 0x20, 16,   0x0, 0x0, 0   }, // DIVA PRO 2.0 /U ISA
+	/*31*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA PRO 2.0 /U PCI
+	/*32*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA MOBILE
+	/*33*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // TDK DFI3600 (same as DIVA MOBILE [32])
+	/*34*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // New Media ISDN (same as DIVA PRO PCMCIA [4])
+	/*35*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // BT ExLane PCI (same as DIVA PRO 2.0 PCI [7])
+	/*36*/ {  3, 5, 7, 9, 10, 11, 12, 14, 15, 0, 0x200, 0x20, 16,   0x0, 0x0, 0   }, // BT ExLane ISA (same as DIVA PRO 2.0 ISA [29])
+	/*37*/ {  3, 5, 7, 9, 10, 11, 12, 14, 15, 0, 0x200, 0x20, 16,  0x0, 0x0, 0   }, // DIVA 2.01 S/T ISA
+	/*38*/ {  3, 5, 7, 9, 10, 11, 12, 14, 15, 0, 0x200, 0x20, 16,  0x0, 0x0, 0   }, // DIVA 2.01 U ISA
+	/*39*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA 2.01 S/T PCI
+	/*40*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA 2.01 U PCI
+	/*41*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA MOBILE V.90
+	/*42*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // TDK DFI3600 V.90 (same as DIVA MOBILE V.90 [39])
+	/*43*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x20, 2048,  0x0, 0x0, 0   }, // DIVA Server PRI-23M PCI
+	/*44*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA 2.01 S/T USB
+	/*45*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA CT S/T PCI
+	/*46*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA CT U PCI
+	/*47*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA CT Lite S/T PCI
+	/*48*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA CT Lite U PCI
+	/*49*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA ISDN+V.90 PC Card
+	/*50*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA ISDN+V.90 PCI
+	/*51*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA TA
+	/*52*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x20, 2048,  0x0, 0x0, 0   }, // MAESTRA VOICE QUADRO PCI
+	/*53*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x20, 2048,  0x0, 0x0, 0   }, // MAESTRA VOICE QUADRO PCI
+	/*54*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // MAESTRA VOICE PRIMARY PCI
+	/*55*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x20, 2048,  0x0, 0x0, 0   }, // MAESTRA VOICE QUADRO PCI
+	/*56*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // MAESTRA VOICE PRIMARY PCI
+	/*57*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA LAN
+	/*58*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA 2.02 S/T PCI
+	/*59*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA 2.02 U PCI
+	/*60*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // Diva Server BRI-2M 2.0 PCI
+	/*61*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // Diva Server BRI-2F PCI
+	/*62*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA 2.01 S/T USB
+	/*63*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // Diva Server Voice BRI-2M 2.0 PCI
+	/*64*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA 3.0 PCI
+	/*65*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA CT S/T PCI V2.0
+	/*66*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA Mobile V.90 PC Card
+	/*67*/ {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0x0, 0x0, 0,   0x0, 0x0, 0   }, // DIVA ISDN PC Card
+	/*68*/ {  3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 0x0, 0x8, 8192,  0x0, 0x0, 0   }, // DIVA ISDN PC Card
 };
 #endif /*CARDTYPE_H_WANT_RESOURCE_DATA*/
 #else /*!CARDTYPE_H_WANT_DATA*/
@@ -905,7 +908,7 @@ typedef struct CARD_FILES_DATA
 	char *Name;
 	unsigned char  Type;
 }
-	CARD_FILES_DATA;
+CARD_FILES_DATA;
 typedef struct CARD_FILES
 {
 	unsigned char  Boot;
@@ -913,11 +916,12 @@ typedef struct CARD_FILES
 	unsigned char  DspTelindus;
 	unsigned char  Prot[CARD_PROT_CNT];
 }
-	CARD_FILES;
+CARD_FILES;
 #if CARDTYPE_H_WANT_DATA
 #if CARDTYPE_H_WANT_FILE_DATA
-CARD_FILES_DATA CardFData[] = {
-// Filename   Filetype
+CARD_FILES_DATA CardFData[] =
+{
+	// Filename   Filetype
 	0,     CARD_FT_UNKNOWN,
 	"didnload.bin",  CARD_FT_B,
 	"diprload.bin",  CARD_FT_B,

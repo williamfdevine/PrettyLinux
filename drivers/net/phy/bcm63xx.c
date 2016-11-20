@@ -26,53 +26,62 @@ static int bcm63xx_config_init(struct phy_device *phydev)
 	int reg, err;
 
 	reg = phy_read(phydev, MII_BCM63XX_IR);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
 
 	/* Mask interrupts globally.  */
 	reg |= MII_BCM63XX_IR_GMASK;
 	err = phy_write(phydev, MII_BCM63XX_IR, reg);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* Unmask events we are interested in  */
 	reg = ~(MII_BCM63XX_IR_DUPLEX |
-		MII_BCM63XX_IR_SPEED |
-		MII_BCM63XX_IR_LINK) |
-		MII_BCM63XX_IR_EN;
+			MII_BCM63XX_IR_SPEED |
+			MII_BCM63XX_IR_LINK) |
+		  MII_BCM63XX_IR_EN;
 	return phy_write(phydev, MII_BCM63XX_IR, reg);
 }
 
-static struct phy_driver bcm63xx_driver[] = {
+static struct phy_driver bcm63xx_driver[] =
 {
-	.phy_id		= 0x00406000,
-	.phy_id_mask	= 0xfffffc00,
-	.name		= "Broadcom BCM63XX (1)",
-	/* ASYM_PAUSE bit is marked RO in datasheet, so don't cheat */
-	.features	= (PHY_BASIC_FEATURES | SUPPORTED_Pause),
-	.flags		= PHY_HAS_INTERRUPT | PHY_IS_INTERNAL,
-	.config_init	= bcm63xx_config_init,
-	.config_aneg	= genphy_config_aneg,
-	.read_status	= genphy_read_status,
-	.ack_interrupt	= bcm_phy_ack_intr,
-	.config_intr	= bcm_phy_config_intr,
-}, {
-	/* same phy as above, with just a different OUI */
-	.phy_id		= 0x002bdc00,
-	.phy_id_mask	= 0xfffffc00,
-	.name		= "Broadcom BCM63XX (2)",
-	.features	= (PHY_BASIC_FEATURES | SUPPORTED_Pause),
-	.flags		= PHY_HAS_INTERRUPT | PHY_IS_INTERNAL,
-	.config_init	= bcm63xx_config_init,
-	.config_aneg	= genphy_config_aneg,
-	.read_status	= genphy_read_status,
-	.ack_interrupt	= bcm_phy_ack_intr,
-	.config_intr	= bcm_phy_config_intr,
-} };
+	{
+		.phy_id		= 0x00406000,
+		.phy_id_mask	= 0xfffffc00,
+		.name		= "Broadcom BCM63XX (1)",
+		/* ASYM_PAUSE bit is marked RO in datasheet, so don't cheat */
+		.features	= (PHY_BASIC_FEATURES | SUPPORTED_Pause),
+		.flags		= PHY_HAS_INTERRUPT | PHY_IS_INTERNAL,
+		.config_init	= bcm63xx_config_init,
+		.config_aneg	= genphy_config_aneg,
+		.read_status	= genphy_read_status,
+		.ack_interrupt	= bcm_phy_ack_intr,
+		.config_intr	= bcm_phy_config_intr,
+	}, {
+		/* same phy as above, with just a different OUI */
+		.phy_id		= 0x002bdc00,
+		.phy_id_mask	= 0xfffffc00,
+		.name		= "Broadcom BCM63XX (2)",
+		.features	= (PHY_BASIC_FEATURES | SUPPORTED_Pause),
+		.flags		= PHY_HAS_INTERRUPT | PHY_IS_INTERNAL,
+		.config_init	= bcm63xx_config_init,
+		.config_aneg	= genphy_config_aneg,
+		.read_status	= genphy_read_status,
+		.ack_interrupt	= bcm_phy_ack_intr,
+		.config_intr	= bcm_phy_config_intr,
+	}
+};
 
 module_phy_driver(bcm63xx_driver);
 
-static struct mdio_device_id __maybe_unused bcm63xx_tbl[] = {
+static struct mdio_device_id __maybe_unused bcm63xx_tbl[] =
+{
 	{ 0x00406000, 0xfffffc00 },
 	{ 0x002bdc00, 0xfffffc00 },
 	{ }

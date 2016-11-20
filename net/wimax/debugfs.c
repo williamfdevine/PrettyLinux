@@ -29,11 +29,11 @@
 
 
 #define __debugfs_register(prefix, name, parent)			\
-do {									\
-	result = d_level_register_debugfs(prefix, name, parent);	\
-	if (result < 0)							\
-		goto error;						\
-} while (0)
+	do {									\
+		result = d_level_register_debugfs(prefix, name, parent);	\
+		if (result < 0)							\
+			goto error;						\
+	} while (0)
 
 
 int wimax_debugfs_add(struct wimax_dev *wimax_dev)
@@ -47,14 +47,20 @@ int wimax_debugfs_add(struct wimax_dev *wimax_dev)
 	snprintf(buf, sizeof(buf), "wimax:%s", net_dev->name);
 	dentry = debugfs_create_dir(buf, NULL);
 	result = PTR_ERR(dentry);
-	if (IS_ERR(dentry)) {
+
+	if (IS_ERR(dentry))
+	{
 		if (result == -ENODEV)
-			result = 0;	/* No debugfs support */
+		{
+			result = 0;    /* No debugfs support */
+		}
 		else
 			dev_err(dev, "Can't create debugfs dentry: %d\n",
-				result);
+					result);
+
 		goto out;
 	}
+
 	wimax_dev->debugfs_dentry = dentry;
 	__debugfs_register("wimax_dl_", debugfs, dentry);
 	__debugfs_register("wimax_dl_", id_table, dentry);

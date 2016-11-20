@@ -21,7 +21,7 @@
 #include "sxgbe_reg.h"
 
 static void sxgbe_mtl_init(void __iomem *ioaddr, unsigned int etsalg,
-			   unsigned int raa)
+						   unsigned int raa)
 {
 	u32 reg_val;
 
@@ -29,27 +29,34 @@ static void sxgbe_mtl_init(void __iomem *ioaddr, unsigned int etsalg,
 	reg_val &= ETS_RST;
 
 	/* ETS Algorith */
-	switch (etsalg & SXGBE_MTL_OPMODE_ESTMASK) {
-	case ETS_WRR:
-		reg_val &= ETS_WRR;
-		break;
-	case ETS_WFQ:
-		reg_val |= ETS_WFQ;
-		break;
-	case ETS_DWRR:
-		reg_val |= ETS_DWRR;
-		break;
+	switch (etsalg & SXGBE_MTL_OPMODE_ESTMASK)
+	{
+		case ETS_WRR:
+			reg_val &= ETS_WRR;
+			break;
+
+		case ETS_WFQ:
+			reg_val |= ETS_WFQ;
+			break;
+
+		case ETS_DWRR:
+			reg_val |= ETS_DWRR;
+			break;
 	}
+
 	writel(reg_val, ioaddr + SXGBE_MTL_OP_MODE_REG);
 
-	switch (raa & SXGBE_MTL_OPMODE_RAAMASK) {
-	case RAA_SP:
-		reg_val &= RAA_SP;
-		break;
-	case RAA_WSP:
-		reg_val |= RAA_WSP;
-		break;
+	switch (raa & SXGBE_MTL_OPMODE_RAAMASK)
+	{
+		case RAA_SP:
+			reg_val &= RAA_SP;
+			break;
+
+		case RAA_WSP:
+			reg_val |= RAA_WSP;
+			break;
 	}
+
 	writel(reg_val, ioaddr + SXGBE_MTL_OP_MODE_REG);
 }
 
@@ -62,7 +69,7 @@ static void sxgbe_mtl_dma_dm_rxqueue(void __iomem *ioaddr)
 }
 
 static void sxgbe_mtl_set_txfifosize(void __iomem *ioaddr, int queue_num,
-				     int queue_fifo)
+									 int queue_fifo)
 {
 	u32 fifo_bits, reg_val;
 
@@ -74,12 +81,12 @@ static void sxgbe_mtl_set_txfifosize(void __iomem *ioaddr, int queue_num,
 }
 
 static void sxgbe_mtl_set_rxfifosize(void __iomem *ioaddr, int queue_num,
-				     int queue_fifo)
+									 int queue_fifo)
 {
 	u32 fifo_bits, reg_val;
 
 	/* 0 means 256 bytes */
-	fifo_bits = (queue_fifo / SXGBE_MTL_RX_FIFO_DIV)-1;
+	fifo_bits = (queue_fifo / SXGBE_MTL_RX_FIFO_DIV) - 1;
 	reg_val = readl(ioaddr + SXGBE_MTL_RXQ_OPMODE_REG(queue_num));
 	reg_val |= (fifo_bits << SXGBE_MTL_FIFO_LSHIFT);
 	writel(reg_val, ioaddr + SXGBE_MTL_RXQ_OPMODE_REG(queue_num));
@@ -104,7 +111,7 @@ static void sxgbe_mtl_disable_txqueue(void __iomem *ioaddr, int queue_num)
 }
 
 static void sxgbe_mtl_fc_active(void __iomem *ioaddr, int queue_num,
-				int threshold)
+								int threshold)
 {
 	u32 reg_val;
 
@@ -125,7 +132,7 @@ static void sxgbe_mtl_fc_enable(void __iomem *ioaddr, int queue_num)
 }
 
 static void sxgbe_mtl_fc_deactive(void __iomem *ioaddr, int queue_num,
-				  int threshold)
+								  int threshold)
 {
 	u32 reg_val;
 
@@ -178,30 +185,48 @@ static void sxgbe_mtl_fup_disable(void __iomem *ioaddr, int queue_num)
 
 
 static void sxgbe_set_tx_mtl_mode(void __iomem *ioaddr, int queue_num,
-				  int tx_mode)
+								  int tx_mode)
 {
 	u32 reg_val;
 
 	reg_val = readl(ioaddr + SXGBE_MTL_TXQ_OPMODE_REG(queue_num));
+
 	/* TX specific MTL mode settings */
-	if (tx_mode == SXGBE_MTL_SFMODE) {
+	if (tx_mode == SXGBE_MTL_SFMODE)
+	{
 		reg_val |= SXGBE_MTL_SFMODE;
-	} else {
+	}
+	else
+	{
 		/* set the TTC values */
 		if (tx_mode <= 64)
+		{
 			reg_val |= MTL_CONTROL_TTC_64;
+		}
 		else if (tx_mode <= 96)
+		{
 			reg_val |= MTL_CONTROL_TTC_96;
+		}
 		else if (tx_mode <= 128)
+		{
 			reg_val |= MTL_CONTROL_TTC_128;
+		}
 		else if (tx_mode <= 192)
+		{
 			reg_val |= MTL_CONTROL_TTC_192;
+		}
 		else if (tx_mode <= 256)
+		{
 			reg_val |= MTL_CONTROL_TTC_256;
+		}
 		else if (tx_mode <= 384)
+		{
 			reg_val |= MTL_CONTROL_TTC_384;
+		}
 		else
+		{
 			reg_val |= MTL_CONTROL_TTC_512;
+		}
 	}
 
 	/* write into TXQ operation register */
@@ -209,28 +234,39 @@ static void sxgbe_set_tx_mtl_mode(void __iomem *ioaddr, int queue_num,
 }
 
 static void sxgbe_set_rx_mtl_mode(void __iomem *ioaddr, int queue_num,
-				  int rx_mode)
+								  int rx_mode)
 {
 	u32 reg_val;
 
 	reg_val = readl(ioaddr + SXGBE_MTL_RXQ_OPMODE_REG(queue_num));
+
 	/* RX specific MTL mode settings */
-	if (rx_mode == SXGBE_RX_MTL_SFMODE) {
+	if (rx_mode == SXGBE_RX_MTL_SFMODE)
+	{
 		reg_val |= SXGBE_RX_MTL_SFMODE;
-	} else {
+	}
+	else
+	{
 		if (rx_mode <= 64)
+		{
 			reg_val |= MTL_CONTROL_RTC_64;
+		}
 		else if (rx_mode <= 96)
+		{
 			reg_val |= MTL_CONTROL_RTC_96;
+		}
 		else if (rx_mode <= 128)
+		{
 			reg_val |= MTL_CONTROL_RTC_128;
+		}
 	}
 
 	/* write into RXQ operation register */
 	writel(reg_val, ioaddr + SXGBE_MTL_RXQ_OPMODE_REG(queue_num));
 }
 
-static const struct sxgbe_mtl_ops mtl_ops = {
+static const struct sxgbe_mtl_ops mtl_ops =
+{
 	.mtl_set_txfifosize		= sxgbe_mtl_set_txfifosize,
 	.mtl_set_rxfifosize		= sxgbe_mtl_set_rxfifosize,
 	.mtl_enable_txqueue		= sxgbe_mtl_enable_txqueue,

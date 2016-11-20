@@ -122,10 +122,10 @@ static inline void kmap_atomic_idx_pop(void)
  * kunmap_atomic() should get the return value of kmap_atomic, not the page.
  */
 #define kunmap_atomic(addr)                                     \
-do {                                                            \
-	BUILD_BUG_ON(__same_type((addr), struct page *));       \
-	__kunmap_atomic(addr);                                  \
-} while (0)
+	do {                                                            \
+		BUILD_BUG_ON(__same_type((addr), struct page *));       \
+		__kunmap_atomic(addr);                                  \
+	} while (0)
 
 
 /* when CONFIG_HIGHMEM is not set these will be plain clear/copy_page */
@@ -155,14 +155,16 @@ static inline void clear_user_highpage(struct page *page, unsigned long vaddr)
  */
 static inline struct page *
 __alloc_zeroed_user_highpage(gfp_t movableflags,
-			struct vm_area_struct *vma,
-			unsigned long vaddr)
+							 struct vm_area_struct *vma,
+							 unsigned long vaddr)
 {
 	struct page *page = alloc_page_vma(GFP_HIGHUSER | movableflags,
-			vma, vaddr);
+									   vma, vaddr);
 
 	if (page)
+	{
 		clear_user_highpage(page, vaddr);
+	}
 
 	return page;
 }
@@ -178,7 +180,7 @@ __alloc_zeroed_user_highpage(gfp_t movableflags,
  */
 static inline struct page *
 alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
-					unsigned long vaddr)
+								   unsigned long vaddr)
 {
 	return __alloc_zeroed_user_highpage(__GFP_MOVABLE, vma, vaddr);
 }
@@ -191,31 +193,35 @@ static inline void clear_highpage(struct page *page)
 }
 
 static inline void zero_user_segments(struct page *page,
-	unsigned start1, unsigned end1,
-	unsigned start2, unsigned end2)
+									  unsigned start1, unsigned end1,
+									  unsigned start2, unsigned end2)
 {
 	void *kaddr = kmap_atomic(page);
 
 	BUG_ON(end1 > PAGE_SIZE || end2 > PAGE_SIZE);
 
 	if (end1 > start1)
+	{
 		memset(kaddr + start1, 0, end1 - start1);
+	}
 
 	if (end2 > start2)
+	{
 		memset(kaddr + start2, 0, end2 - start2);
+	}
 
 	kunmap_atomic(kaddr);
 	flush_dcache_page(page);
 }
 
 static inline void zero_user_segment(struct page *page,
-	unsigned start, unsigned end)
+									 unsigned start, unsigned end)
 {
 	zero_user_segments(page, start, end, 0, 0);
 }
 
 static inline void zero_user(struct page *page,
-	unsigned start, unsigned size)
+							 unsigned start, unsigned size)
 {
 	zero_user_segments(page, start, start + size, 0, 0);
 }
@@ -223,7 +229,7 @@ static inline void zero_user(struct page *page,
 #ifndef __HAVE_ARCH_COPY_USER_HIGHPAGE
 
 static inline void copy_user_highpage(struct page *to, struct page *from,
-	unsigned long vaddr, struct vm_area_struct *vma)
+									  unsigned long vaddr, struct vm_area_struct *vma)
 {
 	char *vfrom, *vto;
 

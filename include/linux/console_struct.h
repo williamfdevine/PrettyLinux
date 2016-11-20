@@ -53,7 +53,8 @@ struct uni_pagedir;
  * attribute in the buffer right after the character. This is not depicted
  * in the figure.
  */
-struct vc_data {
+struct vc_data
+{
 	struct tty_port port;			/* Upper level data */
 
 	unsigned short	vc_num;			/* Console number */
@@ -84,13 +85,13 @@ struct vc_data {
 	unsigned int	vc_x, vc_y;		/* Cursor position */
 	unsigned int	vc_saved_x, vc_saved_y;
 	unsigned long	vc_pos;			/* Cursor address */
-	/* fonts */	
+	/* fonts */
 	unsigned short	vc_hi_font_mask;	/* [#] Attribute set for upper 256 chars of font or 0 if not supported */
 	struct console_font vc_font;		/* Current VC font set */
 	unsigned short	vc_video_erase_char;	/* Background erase character */
 	/* VT terminal data */
 	unsigned int	vc_state;		/* Escape sequence parser state */
-	unsigned int	vc_npar,vc_par[NPAR];	/* Parameters of current escape sequence */
+	unsigned int	vc_npar, vc_par[NPAR];	/* Parameters of current escape sequence */
 	/* data for manual vt switching */
 	struct vt_mode	vt_mode;
 	struct pid 	*vt_pid;
@@ -108,12 +109,12 @@ struct vc_data {
 	unsigned int	vc_decim	: 1;	/* Insert Mode */
 	/* attribute flags */
 	unsigned int	vc_intensity	: 2;	/* 0=half-bright, 1=normal, 2=bold */
-	unsigned int    vc_italic:1;
+	unsigned int    vc_italic: 1;
 	unsigned int	vc_underline	: 1;
 	unsigned int	vc_blink	: 1;
 	unsigned int	vc_reverse	: 1;
 	unsigned int	vc_s_intensity	: 2;	/* saved rendition */
-	unsigned int    vc_s_italic:1;
+	unsigned int    vc_s_italic: 1;
 	unsigned int	vc_s_underline	: 1;
 	unsigned int	vc_s_blink	: 1;
 	unsigned int	vc_s_reverse	: 1;
@@ -124,10 +125,10 @@ struct vc_data {
 	unsigned int	vc_report_mouse : 2;
 	unsigned char	vc_utf		: 1;	/* Unicode UTF-8 encoding */
 	unsigned char	vc_utf_count;
-		 int	vc_utf_char;
+	int	vc_utf_char;
 	unsigned int	vc_tab_stop[8];		/* Tab stops. 256 columns. */
-	unsigned char   vc_palette[16*3];       /* Colour palette for VGA+ */
-	unsigned short * vc_translate;
+	unsigned char   vc_palette[16 * 3];     /* Colour palette for VGA+ */
+	unsigned short *vc_translate;
 	unsigned char 	vc_G0_charset;
 	unsigned char 	vc_G1_charset;
 	unsigned char 	vc_saved_G0;
@@ -143,7 +144,8 @@ struct vc_data {
 	/* additional information is in vt_kern.h */
 };
 
-struct vc {
+struct vc
+{
 	struct vc_data *d;
 	struct work_struct SAK_work;
 

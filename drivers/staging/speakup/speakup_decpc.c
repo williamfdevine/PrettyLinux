@@ -145,7 +145,8 @@ static int synth_portlist[] = { 0x340, 0x350, 0x240, 0x250, 0 };
 static int in_escape, is_flushing;
 static int dt_stat, dma_state;
 
-static struct var_t vars[] = {
+static struct var_t vars[] =
+{
 	{ CAPS_START, .u.s = {"[:dv ap 200]" } },
 	{ CAPS_STOP, .u.s = {"[:dv ap 100]" } },
 	{ RATE, .u.n = {"[:ra %d]", 9, 0, 18, 150, 25, NULL } },
@@ -161,36 +162,37 @@ static struct var_t vars[] = {
  * These attributes will appear in /sys/accessibility/speakup/decpc.
  */
 static struct kobj_attribute caps_start_attribute =
-	__ATTR(caps_start, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(caps_start, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute caps_stop_attribute =
-	__ATTR(caps_stop, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(caps_stop, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute pitch_attribute =
-	__ATTR(pitch, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(pitch, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute punct_attribute =
-	__ATTR(punct, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(punct, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute rate_attribute =
-	__ATTR(rate, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(rate, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute voice_attribute =
-	__ATTR(voice, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(voice, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute vol_attribute =
-	__ATTR(vol, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(vol, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 
 static struct kobj_attribute delay_time_attribute =
-	__ATTR(delay_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(delay_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute direct_attribute =
-	__ATTR(direct, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(direct, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute full_time_attribute =
-	__ATTR(full_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(full_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute jiffy_delta_attribute =
-	__ATTR(jiffy_delta, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(jiffy_delta, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute trigger_time_attribute =
-	__ATTR(trigger_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(trigger_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 
 /*
  * Create a group of attributes so that we can create and destroy them all
  * at once.
  */
-static struct attribute *synth_attrs[] = {
+static struct attribute *synth_attrs[] =
+{
 	&caps_start_attribute.attr,
 	&caps_stop_attribute.attr,
 	&pitch_attribute.attr,
@@ -206,7 +208,8 @@ static struct attribute *synth_attrs[] = {
 	NULL,	/* need to NULL terminate the list of attributes */
 };
 
-static struct spk_synth synth_dec_pc = {
+static struct spk_synth synth_dec_pc =
+{
 	.name = "decpc",
 	.version = DRV_VERSION,
 	.long_name = "Dectalk PC",
@@ -244,25 +247,30 @@ static struct spk_synth synth_dec_pc = {
 static int dt_getstatus(void)
 {
 	dt_stat = inb_p(speakup_info.port_tts) |
-		 (inb_p(speakup_info.port_tts + 1) << 8);
+			  (inb_p(speakup_info.port_tts + 1) << 8);
 	return dt_stat;
 }
 
 static void dt_sendcmd(u_int cmd)
 {
 	outb_p(cmd & 0xFF, speakup_info.port_tts);
-	outb_p((cmd >> 8) & 0xFF, speakup_info.port_tts+1);
+	outb_p((cmd >> 8) & 0xFF, speakup_info.port_tts + 1);
 }
 
 static int dt_waitbit(int bit)
 {
 	int timeout = 100;
 
-	while (--timeout > 0) {
+	while (--timeout > 0)
+	{
 		if ((dt_getstatus() & bit) == bit)
+		{
 			return 1;
+		}
+
 		udelay(50);
 	}
+
 	return 0;
 }
 
@@ -271,12 +279,20 @@ static int dt_wait_dma(void)
 	int timeout = 100, state = dma_state;
 
 	if (!dt_waitbit(STAT_dma_ready))
+	{
 		return 0;
-	while (--timeout > 0) {
+	}
+
+	while (--timeout > 0)
+	{
 		if ((dt_getstatus()&STAT_dma_state) == state)
+		{
 			return 1;
+		}
+
 		udelay(50);
 	}
+
 	dma_state = dt_getstatus() & STAT_dma_state;
 	return 1;
 }
@@ -286,17 +302,26 @@ static int dt_ctrl(u_int cmd)
 	int timeout = 10;
 
 	if (!dt_waitbit(STAT_cmd_ready))
+	{
 		return -1;
-	outb_p(0, speakup_info.port_tts+2);
-	outb_p(0, speakup_info.port_tts+3);
-	dt_getstatus();
-	dt_sendcmd(CMD_control|cmd);
-	outb_p(0, speakup_info.port_tts+6);
-	while (dt_getstatus() & STAT_cmd_ready) {
-		udelay(20);
-		if (--timeout == 0)
-			break;
 	}
+
+	outb_p(0, speakup_info.port_tts + 2);
+	outb_p(0, speakup_info.port_tts + 3);
+	dt_getstatus();
+	dt_sendcmd(CMD_control | cmd);
+	outb_p(0, speakup_info.port_tts + 6);
+
+	while (dt_getstatus() & STAT_cmd_ready)
+	{
+		udelay(20);
+
+		if (--timeout == 0)
+		{
+			break;
+		}
+	}
+
 	dt_sendcmd(CMD_null);
 	return 0;
 }
@@ -306,27 +331,47 @@ static void synth_flush(struct spk_synth *synth)
 	int timeout = 10;
 
 	if (is_flushing)
+	{
 		return;
+	}
+
 	is_flushing = 4;
 	in_escape = 0;
-	while (dt_ctrl(CTRL_flush)) {
+
+	while (dt_ctrl(CTRL_flush))
+	{
 		if (--timeout == 0)
+		{
 			break;
-udelay(50);
+		}
+
+		udelay(50);
 	}
-	for (timeout = 0; timeout < 10; timeout++) {
+
+	for (timeout = 0; timeout < 10; timeout++)
+	{
 		if (dt_waitbit(STAT_dma_ready))
+		{
 			break;
-udelay(50);
+		}
+
+		udelay(50);
 	}
-	outb_p(DMA_sync, speakup_info.port_tts+4);
-	outb_p(0, speakup_info.port_tts+4);
+
+	outb_p(DMA_sync, speakup_info.port_tts + 4);
+	outb_p(0, speakup_info.port_tts + 4);
 	udelay(100);
-	for (timeout = 0; timeout < 10; timeout++) {
+
+	for (timeout = 0; timeout < 10; timeout++)
+	{
 		if (!(dt_getstatus() & STAT_flushing))
+		{
 			break;
-udelay(50);
+		}
+
+		udelay(50);
 	}
+
 	dma_state = dt_getstatus() & STAT_dma_state;
 	dma_state ^= STAT_dma_state;
 	is_flushing = 0;
@@ -335,11 +380,17 @@ udelay(50);
 static int dt_sendchar(char ch)
 {
 	if (!dt_wait_dma())
+	{
 		return -1;
+	}
+
 	if (!(dt_stat & STAT_rr_char))
+	{
 		return -2;
-	outb_p(DMA_single_in, speakup_info.port_tts+4);
-	outb_p(ch, speakup_info.port_tts+4);
+	}
+
+	outb_p(DMA_single_in, speakup_info.port_tts + 4);
+	outb_p(ch, speakup_info.port_tts + 4);
 	dma_state ^= STAT_dma_state;
 	return 0;
 }
@@ -348,18 +399,26 @@ static int testkernel(void)
 {
 	int status = 0;
 
-	if (dt_getstatus() == 0xffff) {
+	if (dt_getstatus() == 0xffff)
+	{
 		status = -1;
 		goto oops;
 	}
+
 	dt_sendcmd(CMD_sync);
+
 	if (!dt_waitbit(STAT_cmd_ready))
+	{
 		status = -2;
-	else if (dt_stat&0x8000)
+	}
+	else if (dt_stat & 0x8000)
+	{
 		return 0;
+	}
 	else if (dt_stat == 0x0dec)
 		pr_warn("dec_pc at 0x%x, software not loaded\n",
 				speakup_info.port_tts);
+
 	status = -3;
 oops:	synth_release_region(speakup_info.port_tts, SYNTH_IO_EXTENT);
 	speakup_info.port_tts = 0;
@@ -384,71 +443,108 @@ static void do_catch_up(struct spk_synth *synth)
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 	jiff_max = jiffies + jiffy_delta_val;
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		spin_lock_irqsave(&speakup_info.spinlock, flags);
-		if (speakup_info.flushing) {
+
+		if (speakup_info.flushing)
+		{
 			speakup_info.flushing = 0;
 			spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 			synth->flush(synth);
 			continue;
 		}
-		if (synth_buffer_empty()) {
+
+		if (synth_buffer_empty())
+		{
 			spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 			break;
 		}
+
 		ch = synth_buffer_peek();
 		set_current_state(TASK_INTERRUPTIBLE);
 		delay_time_val = delay_time->u.n.value;
 		spin_unlock_irqrestore(&speakup_info.spinlock, flags);
+
 		if (ch == '\n')
+		{
 			ch = 0x0D;
-		if (dt_sendchar(ch)) {
+		}
+
+		if (dt_sendchar(ch))
+		{
 			schedule_timeout(msecs_to_jiffies(delay_time_val));
 			continue;
 		}
+
 		set_current_state(TASK_RUNNING);
 		spin_lock_irqsave(&speakup_info.spinlock, flags);
 		synth_buffer_getc();
 		spin_unlock_irqrestore(&speakup_info.spinlock, flags);
+
 		if (ch == '[')
+		{
 			in_escape = 1;
+		}
 		else if (ch == ']')
+		{
 			in_escape = 0;
-		else if (ch <= SPACE) {
+		}
+		else if (ch <= SPACE)
+		{
 			if (!in_escape && strchr(",.!?;:", last))
+			{
 				dt_sendchar(PROCSPEECH);
-			if (time_after_eq(jiffies, jiff_max)) {
+			}
+
+			if (time_after_eq(jiffies, jiff_max))
+			{
 				if (!in_escape)
+				{
 					dt_sendchar(PROCSPEECH);
+				}
+
 				spin_lock_irqsave(&speakup_info.spinlock,
-							flags);
+								  flags);
 				jiffy_delta_val = jiffy_delta->u.n.value;
 				delay_time_val = delay_time->u.n.value;
 				spin_unlock_irqrestore(&speakup_info.spinlock,
-							flags);
+									   flags);
 				schedule_timeout(msecs_to_jiffies
-						 (delay_time_val));
+								 (delay_time_val));
 				jiff_max = jiffies + jiffy_delta_val;
 			}
 		}
+
 		last = ch;
 		ch = 0;
 	}
+
 	if (!in_escape)
+	{
 		dt_sendchar(PROCSPEECH);
+	}
 }
 
 static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 {
 	u_char ch;
 
-	while ((ch = *buf)) {
+	while ((ch = *buf))
+	{
 		if (ch == '\n')
+		{
 			ch = PROCSPEECH;
+		}
+
 		if (dt_sendchar(ch))
+		{
 			return buf;
+		}
+
 		buf++;
 	}
+
 	return NULL;
 }
 
@@ -457,24 +553,34 @@ static int synth_probe(struct spk_synth *synth)
 	int i = 0, failed = 0;
 
 	pr_info("Probing for %s.\n", synth->long_name);
-	for (i = 0; synth_portlist[i]; i++) {
-		if (synth_request_region(synth_portlist[i], SYNTH_IO_EXTENT)) {
+
+	for (i = 0; synth_portlist[i]; i++)
+	{
+		if (synth_request_region(synth_portlist[i], SYNTH_IO_EXTENT))
+		{
 			pr_warn("request_region: failed with 0x%x, %d\n",
-				synth_portlist[i], SYNTH_IO_EXTENT);
+					synth_portlist[i], SYNTH_IO_EXTENT);
 			continue;
 		}
+
 		speakup_info.port_tts = synth_portlist[i];
 		failed = testkernel();
+
 		if (failed == 0)
+		{
 			break;
+		}
 	}
-	if (failed) {
+
+	if (failed)
+	{
 		pr_info("%s: not found\n", synth->long_name);
 		return -ENODEV;
 	}
+
 	pr_info("%s: %03x-%03x, Driver Version %s,\n", synth->long_name,
-		speakup_info.port_tts, speakup_info.port_tts + 7,
-		synth->version);
+			speakup_info.port_tts, speakup_info.port_tts + 7,
+			synth->version);
 	synth->alive = 1;
 	return 0;
 }
@@ -482,7 +588,10 @@ static int synth_probe(struct spk_synth *synth)
 static void dtpc_release(void)
 {
 	if (speakup_info.port_tts)
+	{
 		synth_release_region(speakup_info.port_tts, SYNTH_IO_EXTENT);
+	}
+
 	speakup_info.port_tts = 0;
 }
 

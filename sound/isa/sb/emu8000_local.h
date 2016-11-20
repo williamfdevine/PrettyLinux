@@ -30,10 +30,10 @@
 
 /* emu8000_patch.c */
 int snd_emu8000_sample_new(struct snd_emux *rec, struct snd_sf_sample *sp,
-			   struct snd_util_memhdr *hdr,
-			   const void __user *data, long count);
+						   struct snd_util_memhdr *hdr,
+						   const void __user *data, long count);
 int snd_emu8000_sample_free(struct snd_emux *rec, struct snd_sf_sample *sp,
-			    struct snd_util_memhdr *hdr);
+							struct snd_util_memhdr *hdr);
 void snd_emu8000_sample_reset(struct snd_emux *rec);
 
 /* emu8000_callback.c */

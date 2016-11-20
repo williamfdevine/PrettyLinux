@@ -26,7 +26,7 @@
 #define SCU_RESULT_UNKCMD -1
 
 #ifndef DRXK_OFDM_TR_SHUTDOWN_TIMEOUT
-#define DRXK_OFDM_TR_SHUTDOWN_TIMEOUT (200)
+	#define DRXK_OFDM_TR_SHUTDOWN_TIMEOUT (200)
 #endif
 
 #define DRXK_8VSB_MPEG_BIT_RATE     19392658UL  /*bps*/
@@ -46,7 +46,8 @@
 #define     IQM_RC_ADJ_SEL_B_QAM                                            0x1
 #define     IQM_RC_ADJ_SEL_B_VSB                                            0x2
 
-enum operation_mode {
+enum operation_mode
+{
 	OM_NONE,
 	OM_QAM_ITU_A,
 	OM_QAM_ITU_B,
@@ -54,7 +55,8 @@ enum operation_mode {
 	OM_DVBT
 };
 
-enum drx_power_mode {
+enum drx_power_mode
+{
 	DRX_POWER_UP = 0,
 	DRX_POWER_MODE_1,
 	DRX_POWER_MODE_2,
@@ -79,27 +81,29 @@ enum drx_power_mode {
 
 /* Intermediate power mode for DRXK, power down OFDM clock domain */
 #ifndef DRXK_POWER_DOWN_OFDM
-#define DRXK_POWER_DOWN_OFDM        DRX_POWER_MODE_1
+	#define DRXK_POWER_DOWN_OFDM        DRX_POWER_MODE_1
 #endif
 
 /* Intermediate power mode for DRXK, power down core (sysclk) */
 #ifndef DRXK_POWER_DOWN_CORE
-#define DRXK_POWER_DOWN_CORE        DRX_POWER_MODE_9
+	#define DRXK_POWER_DOWN_CORE        DRX_POWER_MODE_9
 #endif
 
 /* Intermediate power mode for DRXK, power down pll (only osc runs) */
 #ifndef DRXK_POWER_DOWN_PLL
-#define DRXK_POWER_DOWN_PLL         DRX_POWER_MODE_10
+	#define DRXK_POWER_DOWN_PLL         DRX_POWER_MODE_10
 #endif
 
 
-enum agc_ctrl_mode {
+enum agc_ctrl_mode
+{
 	DRXK_AGC_CTRL_AUTO = 0,
 	DRXK_AGC_CTRL_USER,
 	DRXK_AGC_CTRL_OFF
 };
 
-enum e_drxk_state {
+enum e_drxk_state
+{
 	DRXK_UNINITIALIZED = 0,
 	DRXK_STOPPED,
 	DRXK_DTV_STARTED,
@@ -108,7 +112,8 @@ enum e_drxk_state {
 	DRXK_NO_DEV			/* If drxk init failed */
 };
 
-enum e_drxk_coef_array_index {
+enum e_drxk_coef_array_index
+{
 	DRXK_COEF_IDX_MN = 0,
 	DRXK_COEF_IDX_FM    ,
 	DRXK_COEF_IDX_L     ,
@@ -118,13 +123,15 @@ enum e_drxk_coef_array_index {
 	DRXK_COEF_IDX_I     ,
 	DRXK_COEF_IDX_MAX
 };
-enum e_drxk_sif_attenuation {
+enum e_drxk_sif_attenuation
+{
 	DRXK_SIF_ATTENUATION_0DB,
 	DRXK_SIF_ATTENUATION_3DB,
 	DRXK_SIF_ATTENUATION_6DB,
 	DRXK_SIF_ATTENUATION_9DB
 };
-enum e_drxk_constellation {
+enum e_drxk_constellation
+{
 	DRX_CONSTELLATION_BPSK = 0,
 	DRX_CONSTELLATION_QPSK,
 	DRX_CONSTELLATION_PSK8,
@@ -138,25 +145,29 @@ enum e_drxk_constellation {
 	DRX_CONSTELLATION_UNKNOWN = DRX_UNKNOWN,
 	DRX_CONSTELLATION_AUTO    = DRX_AUTO
 };
-enum e_drxk_interleave_mode {
+enum e_drxk_interleave_mode
+{
 	DRXK_QAM_I12_J17    = 16,
 	DRXK_QAM_I_UNKNOWN  = DRX_UNKNOWN
 };
-enum {
+enum
+{
 	DRXK_SPIN_A1 = 0,
 	DRXK_SPIN_A2,
 	DRXK_SPIN_A3,
 	DRXK_SPIN_UNKNOWN
 };
 
-enum drxk_cfg_dvbt_sqi_speed {
+enum drxk_cfg_dvbt_sqi_speed
+{
 	DRXK_DVBT_SQI_SPEED_FAST = 0,
 	DRXK_DVBT_SQI_SPEED_MEDIUM,
 	DRXK_DVBT_SQI_SPEED_SLOW,
 	DRXK_DVBT_SQI_SPEED_UNKNOWN = DRX_UNKNOWN
 } ;
 
-enum drx_fftmode_t {
+enum drx_fftmode_t
+{
 	DRX_FFTMODE_2K = 0,
 	DRX_FFTMODE_4K,
 	DRX_FFTMODE_8K,
@@ -164,22 +175,26 @@ enum drx_fftmode_t {
 	DRX_FFTMODE_AUTO    = DRX_AUTO
 };
 
-enum drxmpeg_str_width_t {
+enum drxmpeg_str_width_t
+{
 	DRX_MPEG_STR_WIDTH_1,
 	DRX_MPEG_STR_WIDTH_8
 };
 
-enum drx_qam_lock_range_t {
+enum drx_qam_lock_range_t
+{
 	DRX_QAM_LOCKRANGE_NORMAL,
 	DRX_QAM_LOCKRANGE_EXTENDED
 };
 
-struct drxk_cfg_dvbt_echo_thres_t {
+struct drxk_cfg_dvbt_echo_thres_t
+{
 	u16             threshold;
 	enum drx_fftmode_t      fft_mode;
 } ;
 
-struct s_cfg_agc {
+struct s_cfg_agc
+{
 	enum agc_ctrl_mode     ctrl_mode;        /* off, user, auto */
 	u16            output_level;     /* range dependent on AGC */
 	u16            min_output_level;  /* range dependent on AGC */
@@ -192,12 +207,14 @@ struct s_cfg_agc {
 	u16            fast_clip_ctrl_delay;
 };
 
-struct s_cfg_pre_saw {
+struct s_cfg_pre_saw
+{
 	u16        reference; /* pre SAW reference value, range 0 .. 31 */
 	bool          use_pre_saw; /* TRUE algorithms must use pre SAW sense */
 };
 
-struct drxk_ofdm_sc_cmd_t {
+struct drxk_ofdm_sc_cmd_t
+{
 	u16 cmd;        /* Command number */
 	u16 subcmd;     /* Sub-command parameter*/
 	u16 param0;     /* General purpous param */
@@ -207,7 +224,8 @@ struct drxk_ofdm_sc_cmd_t {
 	u16 param4;     /* General purpous param */
 };
 
-struct drxk_state {
+struct drxk_state
+{
 	struct dvb_frontend frontend;
 	struct dtv_frontend_properties props;
 	struct device *dev;

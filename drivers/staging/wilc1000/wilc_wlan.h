@@ -18,10 +18,10 @@
 #define WORD_ALIGNMENT_PAD		0
 
 #define ETH_ETHERNET_HDR_OFFSET		(MAX_MAC_HDR_LEN + \
-					 SUB_MSDU_HEADER_LENGTH + \
-					 SNAP_HDR_LEN - \
-					 ETHERNET_HDR_LEN + \
-					 WORD_ALIGNMENT_PAD)
+									 SUB_MSDU_HEADER_LENGTH + \
+									 SNAP_HDR_LEN - \
+									 ETHERNET_HDR_LEN + \
+									 WORD_ALIGNMENT_PAD)
 
 #define HOST_HDR_OFFSET			4
 #define ETHERNET_HDR_LEN		14
@@ -33,7 +33,7 @@
 #define ETH_CONFIG_PKT_HDR_LEN		UDP_DATA_OFFSET
 
 #define ETH_CONFIG_PKT_HDR_OFFSET	(ETH_ETHERNET_HDR_OFFSET + \
-					 ETH_CONFIG_PKT_HDR_LEN)
+									 ETH_CONFIG_PKT_HDR_LEN)
 
 /********************************************
  *
@@ -87,7 +87,7 @@
 #define WILC_SPI_INTR_CTL		(WILC_SPI_REG_BASE + 0x2c)
 
 #define WILC_SPI_PROTOCOL_OFFSET	(WILC_SPI_PROTOCOL_CONFIG - \
-					 WILC_SPI_REG_BASE)
+									 WILC_SPI_REG_BASE)
 
 #define WILC_AHB_DATA_MEM_BASE		0x30000
 #define WILC_AHB_SHARE_MEM_BASE		0xd0000
@@ -207,7 +207,8 @@ typedef void (*wilc_debug_func)(u32, char *, ...);
  *
  ********************************************/
 
-struct txq_entry_t {
+struct txq_entry_t
+{
 	struct txq_entry_t *next;
 	struct txq_entry_t *prev;
 	int type;
@@ -219,7 +220,8 @@ struct txq_entry_t {
 	void (*tx_complete_func)(void *, int);
 };
 
-struct rxq_entry_t {
+struct rxq_entry_t
+{
 	struct rxq_entry_t *next;
 	u8 *buffer;
 	int buffer_size;
@@ -231,7 +233,8 @@ struct rxq_entry_t {
  *
  ********************************************/
 struct wilc;
-struct wilc_hif_func {
+struct wilc_hif_func
+{
 	int (*hif_init)(struct wilc *, bool resume);
 	int (*hif_deinit)(struct wilc *);
 	int (*hif_read_reg)(struct wilc *, u32, u32 *);
@@ -259,7 +262,8 @@ extern const struct wilc_hif_func wilc_hif_sdio;
 
 #define MAX_CFG_FRAME_SIZE	1468
 
-struct wilc_cfg_frame {
+struct wilc_cfg_frame
+{
 	u8 ether_header[14];
 	u8 ip_header[20];
 	u8 udp_header[8];
@@ -267,7 +271,8 @@ struct wilc_cfg_frame {
 	u8 frame[MAX_CFG_FRAME_SIZE];
 };
 
-struct wilc_cfg_rsp {
+struct wilc_cfg_rsp
+{
 	int type;
 	u32 seq_no;
 };
@@ -276,21 +281,21 @@ struct wilc;
 struct wilc_vif;
 
 int wilc_wlan_firmware_download(struct wilc *wilc, const u8 *buffer,
-				u32 buffer_size);
+								u32 buffer_size);
 int wilc_wlan_start(struct wilc *);
 int wilc_wlan_stop(struct wilc *);
 int wilc_wlan_txq_add_net_pkt(struct net_device *dev, void *priv, u8 *buffer,
-			      u32 buffer_size, wilc_tx_complete_func_t func);
+							  u32 buffer_size, wilc_tx_complete_func_t func);
 int wilc_wlan_handle_txq(struct net_device *dev, u32 *txq_count);
 void wilc_handle_isr(struct wilc *wilc);
 void wilc_wlan_cleanup(struct net_device *dev);
 int wilc_wlan_cfg_set(struct wilc_vif *vif, int start, u16 wid, u8 *buffer,
-		      u32 buffer_size, int commit, u32 drv_handler);
+					  u32 buffer_size, int commit, u32 drv_handler);
 int wilc_wlan_cfg_get(struct wilc_vif *vif, int start, u16 wid, int commit,
-		      u32 drv_handler);
+					  u32 drv_handler);
 int wilc_wlan_cfg_get_val(u16 wid, u8 *buffer, u32 buffer_size);
 int wilc_wlan_txq_add_mgmt_pkt(struct net_device *dev, void *priv, u8 *buffer,
-			       u32 buffer_size, wilc_tx_complete_func_t func);
+							   u32 buffer_size, wilc_tx_complete_func_t func);
 void wilc_chip_sleep_manually(struct wilc *wilc);
 
 void wilc_enable_tcp_ack_filter(bool value);
@@ -307,5 +312,5 @@ extern bool wilc_enable_ps;
 void chip_allow_sleep(struct wilc *wilc);
 void chip_wakeup(struct wilc *wilc);
 int wilc_send_config_pkt(struct wilc_vif *vif, u8 mode, struct wid *wids,
-			 u32 count, u32 drv);
+						 u32 count, u32 drv);
 #endif

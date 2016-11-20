@@ -48,14 +48,15 @@
 #define NGENE_PID       0x0720
 
 #ifndef VIDEO_CAP_VC1
-#define VIDEO_CAP_AVC   128
-#define VIDEO_CAP_H264  128
-#define VIDEO_CAP_VC1   256
-#define VIDEO_CAP_WMV9  256
-#define VIDEO_CAP_MPEG4 512
+	#define VIDEO_CAP_AVC   128
+	#define VIDEO_CAP_H264  128
+	#define VIDEO_CAP_VC1   256
+	#define VIDEO_CAP_WMV9  256
+	#define VIDEO_CAP_MPEG4 512
 #endif
 
-enum STREAM {
+enum STREAM
+{
 	STREAM_VIDEOIN1 = 0,        /* ITU656 or TS Input */
 	STREAM_VIDEOIN2,
 	STREAM_AUDIOIN1,            /* I2S or SPI Input */
@@ -64,7 +65,8 @@ enum STREAM {
 	MAX_STREAM
 };
 
-enum SMODE_BITS {
+enum SMODE_BITS
+{
 	SMODE_AUDIO_SPDIF = 0x20,
 	SMODE_AVSYNC = 0x10,
 	SMODE_TRANSPORT_STREAM = 0x08,
@@ -73,7 +75,8 @@ enum SMODE_BITS {
 	SMODE_VIDEO_CAPTURE = 0x01
 };
 
-enum STREAM_FLAG_BITS {
+enum STREAM_FLAG_BITS
+{
 	SFLAG_CHROMA_FORMAT_2COMP  = 0x01, /* Chroma Format : 2's complement */
 	SFLAG_CHROMA_FORMAT_OFFSET = 0x00, /* Chroma Format : Binary offset */
 	SFLAG_ORDER_LUMA_CHROMA    = 0x02, /* Byte order: Y,Cb,Y,Cr */
@@ -133,7 +136,8 @@ enum STREAM_FLAG_BITS {
 
 #define FW_DEBUG_DEFAULT (PROGRAM_SRAM+0x00FF)
 
-struct SG_ADDR {
+struct SG_ADDR
+{
 	u64 start;
 	u64 curr;
 	u16 curr_ptr;
@@ -141,7 +145,8 @@ struct SG_ADDR {
 	u32 pad[3];
 } __attribute__ ((__packed__));
 
-struct SHARED_MEMORY {
+struct SHARED_MEMORY
+{
 	/* C000 */
 	u32 HostToNgene[64];
 
@@ -165,7 +170,8 @@ struct SHARED_MEMORY {
 
 } __attribute__ ((__packed__));
 
-struct BUFFER_STREAM_RESULTS {
+struct BUFFER_STREAM_RESULTS
+{
 	u32 Clock;           /* Stream time in 100ns units */
 	u16 RemainingLines;  /* Remaining lines in this field.
 				0 for complete field */
@@ -177,13 +183,15 @@ struct BUFFER_STREAM_RESULTS {
 	u32 DTOUpdate;
 } __attribute__ ((__packed__));
 
-struct HW_SCATTER_GATHER_ELEMENT {
+struct HW_SCATTER_GATHER_ELEMENT
+{
 	u64 Address;
 	u32 Length;
 	u32 Reserved;
 } __attribute__ ((__packed__));
 
-struct BUFFER_HEADER {
+struct BUFFER_HEADER
+{
 	u64    Next;
 	struct BUFFER_STREAM_RESULTS SR;
 
@@ -196,7 +204,8 @@ struct BUFFER_HEADER {
 	u64    Address_of_first_entry_2;
 } __attribute__ ((__packed__));
 
-struct EVENT_BUFFER {
+struct EVENT_BUFFER
+{
 	u32    TimeStamp;
 	u8     GPIOStatus;
 	u8     UARTStatus;
@@ -207,7 +216,8 @@ struct EVENT_BUFFER {
 
 /* Firmware commands. */
 
-enum OPCODES {
+enum OPCODES
+{
 	CMD_NOP = 0,
 	CMD_FWLOAD_PREPARE  = 0x01,
 	CMD_FWLOAD_FINISH   = 0x02,
@@ -240,50 +250,59 @@ enum OPCODES {
 	MAX_CMD
 };
 
-enum RESPONSES {
+enum RESPONSES
+{
 	OK = 0,
 	ERROR = 1
 };
 
-struct FW_HEADER {
+struct FW_HEADER
+{
 	u8 Opcode;
 	u8 Length;
 } __attribute__ ((__packed__));
 
-struct FW_I2C_WRITE {
+struct FW_I2C_WRITE
+{
 	struct FW_HEADER hdr;
 	u8 Device;
 	u8 Data[250];
 } __attribute__ ((__packed__));
 
-struct FW_I2C_CONTINUE_WRITE {
+struct FW_I2C_CONTINUE_WRITE
+{
 	struct FW_HEADER hdr;
 	u8 Data[250];
 } __attribute__ ((__packed__));
 
-struct FW_I2C_READ {
+struct FW_I2C_READ
+{
 	struct FW_HEADER hdr;
 	u8 Device;
 	u8 Data[252];    /* followed by two bytes of read data count */
 } __attribute__ ((__packed__));
 
-struct FW_SPI_WRITE {
+struct FW_SPI_WRITE
+{
 	struct FW_HEADER hdr;
 	u8 ModeSelect;
 	u8 Data[250];
 } __attribute__ ((__packed__));
 
-struct FW_SPI_READ {
+struct FW_SPI_READ
+{
 	struct FW_HEADER hdr;
 	u8 ModeSelect;
 	u8 Data[252];    /* followed by two bytes of read data count */
 } __attribute__ ((__packed__));
 
-struct FW_FWLOAD_PREPARE {
+struct FW_FWLOAD_PREPARE
+{
 	struct FW_HEADER hdr;
 } __attribute__ ((__packed__));
 
-struct FW_FWLOAD_FINISH {
+struct FW_FWLOAD_FINISH
+{
 	struct FW_HEADER hdr;
 	u16 Address;     /* address of final block */
 	u16 Length;
@@ -311,7 +330,8 @@ struct FW_FWLOAD_FINISH {
  *  Bit 0: resets buffer pointers
 */
 
-enum FSC_MODE_BITS {
+enum FSC_MODE_BITS
+{
 	SMODE_LOOPBACK          = 0x80,
 	SMODE_AVLOOP            = 0x40,
 	_SMODE_AUDIO_SPDIF      = 0x20,
@@ -329,7 +349,8 @@ enum FSC_MODE_BITS {
  * Bits 1-0: stream select, UVI1, UVI2, TVOUT
  */
 
-struct FW_STREAM_CONTROL {
+struct FW_STREAM_CONTROL
+{
 	struct FW_HEADER hdr;
 	u8     Stream;             /* Stream number (UVI1, UVI2, TVOUT) */
 	u8     Control;            /* Value written to UVI1_CTL */
@@ -353,49 +374,58 @@ struct FW_STREAM_CONTROL {
 #define AUDIO_BLOCK_SIZE    256
 #define TS_BLOCK_SIZE       256
 
-struct FW_MEM_READ {
+struct FW_MEM_READ
+{
 	struct FW_HEADER hdr;
 	u16   address;
 } __attribute__ ((__packed__));
 
-struct FW_MEM_WRITE {
+struct FW_MEM_WRITE
+{
 	struct FW_HEADER hdr;
 	u16   address;
 	u8    data;
 } __attribute__ ((__packed__));
 
-struct FW_SFR_IRAM_READ {
+struct FW_SFR_IRAM_READ
+{
 	struct FW_HEADER hdr;
 	u8    address;
 } __attribute__ ((__packed__));
 
-struct FW_SFR_IRAM_WRITE {
+struct FW_SFR_IRAM_WRITE
+{
 	struct FW_HEADER hdr;
 	u8    address;
 	u8    data;
 } __attribute__ ((__packed__));
 
-struct FW_SET_GPIO_PIN {
+struct FW_SET_GPIO_PIN
+{
 	struct FW_HEADER hdr;
 	u8    select;
 } __attribute__ ((__packed__));
 
-struct FW_SET_GPIO_INT {
+struct FW_SET_GPIO_INT
+{
 	struct FW_HEADER hdr;
 	u8    select;
 } __attribute__ ((__packed__));
 
-struct FW_SET_DEBUGMODE {
+struct FW_SET_DEBUGMODE
+{
 	struct FW_HEADER hdr;
 	u8   debug_flags;
 } __attribute__ ((__packed__));
 
-struct FW_CONFIGURE_BUFFERS {
+struct FW_CONFIGURE_BUFFERS
+{
 	struct FW_HEADER hdr;
 	u8   config;
 } __attribute__ ((__packed__));
 
-enum _BUFFER_CONFIGS {
+enum _BUFFER_CONFIGS
+{
 	/* 4k UVI1, 4k UVI2, 2k AUD1, 2k AUD2  (standard usage) */
 	BUFFER_CONFIG_4422 = 0,
 	/* 3k UVI1, 3k UVI2, 3k AUD1, 3k AUD2  (4x TS input usage) */
@@ -405,7 +435,8 @@ enum _BUFFER_CONFIGS {
 	BUFFER_CONFIG_FW17 = 255, /* Use new FW 17 command */
 };
 
-struct FW_CONFIGURE_FREE_BUFFERS {
+struct FW_CONFIGURE_FREE_BUFFERS
+{
 	struct FW_HEADER hdr;
 	u8   UVI1_BufferLength;
 	u8   UVI2_BufferLength;
@@ -415,12 +446,14 @@ struct FW_CONFIGURE_FREE_BUFFERS {
 	u8   TVA_BufferLength;
 } __attribute__ ((__packed__));
 
-struct FW_CONFIGURE_UART {
+struct FW_CONFIGURE_UART
+{
 	struct FW_HEADER hdr;
 	u8 UartControl;
 } __attribute__ ((__packed__));
 
-enum _UART_CONFIG {
+enum _UART_CONFIG
+{
 	_UART_BAUDRATE_19200 = 0,
 	_UART_BAUDRATE_9600  = 1,
 	_UART_BAUDRATE_4800  = 2,
@@ -429,16 +462,19 @@ enum _UART_CONFIG {
 	_UART_TX_ENABLE      = 0x80,
 };
 
-struct FW_WRITE_UART {
+struct FW_WRITE_UART
+{
 	struct FW_HEADER hdr;
 	u8 Data[252];
 } __attribute__ ((__packed__));
 
 
-struct ngene_command {
+struct ngene_command
+{
 	u32 in_len;
 	u32 out_len;
-	union {
+	union
+	{
 		u32                              raw[64];
 		u8                               raw8[256];
 		struct FW_HEADER                 hdr;
@@ -481,19 +517,20 @@ struct ngene_command {
 #define NUM_SCATTER_GATHER_ENTRIES  8
 
 #define MAX_DMA_LENGTH (((MAX_VIDEO_BUFFER_SIZE + MAX_VBI_BUFFER_SIZE) * \
-			RING_SIZE_VIDEO * 2) + \
-			(MAX_AUDIO_BUFFER_SIZE * RING_SIZE_AUDIO * 2) + \
-			(MAX_TS_BUFFER_SIZE * RING_SIZE_TS * 4) + \
-			(RING_SIZE_VIDEO * PAGE_SIZE * 2) + \
-			(RING_SIZE_AUDIO * PAGE_SIZE * 2) + \
-			(RING_SIZE_TS    * PAGE_SIZE * 4) + \
-			 8 * PAGE_SIZE + OVERFLOW_BUFFER_SIZE + PAGE_SIZE)
+						 RING_SIZE_VIDEO * 2) + \
+						(MAX_AUDIO_BUFFER_SIZE * RING_SIZE_AUDIO * 2) + \
+						(MAX_TS_BUFFER_SIZE * RING_SIZE_TS * 4) + \
+						(RING_SIZE_VIDEO * PAGE_SIZE * 2) + \
+						(RING_SIZE_AUDIO * PAGE_SIZE * 2) + \
+						(RING_SIZE_TS    * PAGE_SIZE * 4) + \
+						8 * PAGE_SIZE + OVERFLOW_BUFFER_SIZE + PAGE_SIZE)
 
 #define EVENT_QUEUE_SIZE    16
 
 /* Gathers the current state of a single channel. */
 
-struct SBufferHeader {
+struct SBufferHeader
+{
 	struct BUFFER_HEADER   ngeneBuffer; /* Physical descriptor */
 	struct SBufferHeader  *Next;
 	void                  *Buffer1;
@@ -505,21 +542,24 @@ struct SBufferHeader {
 /* Sizeof SBufferHeader aligned to next 64 Bit boundary (hw restriction) */
 #define SIZEOF_SBufferHeader ((sizeof(struct SBufferHeader) + 63) & ~63)
 
-enum HWSTATE {
+enum HWSTATE
+{
 	HWSTATE_STOP,
 	HWSTATE_STARTUP,
 	HWSTATE_RUN,
 	HWSTATE_PAUSE,
 };
 
-enum KSSTATE {
+enum KSSTATE
+{
 	KSSTATE_STOP,
 	KSSTATE_ACQUIRE,
 	KSSTATE_PAUSE,
 	KSSTATE_RUN,
 };
 
-struct SRingBufferDescriptor {
+struct SRingBufferDescriptor
+{
 	struct SBufferHeader *Head; /* Points to first buffer in ring buffer
 				       structure*/
 	u64   PAHead;         /* Physical address of first buffer */
@@ -534,7 +574,8 @@ struct SRingBufferDescriptor {
 	u32   SCListMemSize;  /* Size of this memory */
 };
 
-enum STREAMMODEFLAGS {
+enum STREAMMODEFLAGS
+{
 	StreamMode_NONE   = 0, /* Stream not used */
 	StreamMode_ANALOG = 1, /* Analog: Stream 0,1 = Video, 2,3 = Audio */
 	StreamMode_TSIN   = 2, /* Transport stream input (all) */
@@ -544,7 +585,8 @@ enum STREAMMODEFLAGS {
 };
 
 
-enum BufferExchangeFlags {
+enum BufferExchangeFlags
+{
 	BEF_EVEN_FIELD   = 0x00000001,
 	BEF_CONTINUATION = 0x00000002,
 	BEF_MORE_DATA    = 0x00000004,
@@ -554,7 +596,8 @@ enum BufferExchangeFlags {
 
 typedef void *(IBufferExchange)(void *, void *, u32, u32, u32);
 
-struct MICI_STREAMINFO {
+struct MICI_STREAMINFO
+{
 	IBufferExchange    *pExchange;
 	IBufferExchange    *pExchangeVBI;     /* Secondary (VBI, ancillary) */
 	u8  Stream;
@@ -580,7 +623,8 @@ struct ngene_channel;
 
 /*struct sound chip*/
 
-struct mychip {
+struct mychip
+{
 	struct ngene_channel *chan;
 	struct snd_card *card;
 	struct pci_dev *pci;
@@ -595,7 +639,8 @@ struct mychip {
 };
 
 #ifdef NGENE_V4L
-struct ngene_overlay {
+struct ngene_overlay
+{
 	int                    tvnorm;
 	struct v4l2_rect       w;
 	enum v4l2_field        field;
@@ -604,7 +649,8 @@ struct ngene_overlay {
 	int                    setup_ok;
 };
 
-struct ngene_tvnorm {
+struct ngene_tvnorm
+{
 	int   v4l2_id;
 	char  *name;
 	u16   swidth, sheight; /* scaled standard width, height */
@@ -612,7 +658,8 @@ struct ngene_tvnorm {
 	int   soundstd;
 };
 
-struct ngene_vopen {
+struct ngene_vopen
+{
 	struct ngene_channel      *ch;
 	enum v4l2_priority         prio;
 	int                        width;
@@ -631,7 +678,8 @@ struct ngene_vopen {
 };
 #endif
 
-struct ngene_channel {
+struct ngene_channel
+{
 	struct device         device;
 	struct i2c_adapter    i2c_adapter;
 
@@ -721,7 +769,8 @@ struct ngene_channel {
 };
 
 
-struct ngene_ci {
+struct ngene_ci
+{
 	struct device         device;
 	struct i2c_adapter    i2c_adapter;
 
@@ -734,7 +783,8 @@ struct ngene;
 typedef void (rx_cb_t)(struct ngene *, u32, u8);
 typedef void (tx_cb_t)(struct ngene *, u32);
 
-struct ngene {
+struct ngene
+{
 	int                   nr;
 	struct pci_dev       *pci_dev;
 	unsigned char __iomem *iomem;
@@ -814,7 +864,8 @@ struct ngene {
 	struct ngene_ci       ci;
 };
 
-struct ngene_info {
+struct ngene_info
+{
 	int   type;
 #define NGENE_APP        0
 #define NGENE_TERRATEC   1
@@ -857,7 +908,8 @@ struct ngene_info {
 };
 
 #ifdef NGENE_V4L
-struct ngene_format {
+struct ngene_format
+{
 	char *name;
 	int   fourcc;          /* video4linux 2      */
 	int   btformat;        /* BT848_COLOR_FMT_*  */
@@ -873,7 +925,8 @@ struct ngene_format {
 #define RESOURCE_VIDEO         2
 #define RESOURCE_VBI           4
 
-struct ngene_buffer {
+struct ngene_buffer
+{
 	/* common v4l buffer stuff -- must be first */
 	struct videobuf_buffer     vb;
 
@@ -905,14 +958,14 @@ void *tsin_exchange(void *priv, void *buf, u32 len, u32 clock, u32 flags);
 int ngene_start_feed(struct dvb_demux_feed *dvbdmxfeed);
 int ngene_stop_feed(struct dvb_demux_feed *dvbdmxfeed);
 int my_dvb_dmx_ts_card_init(struct dvb_demux *dvbdemux, char *id,
-			    int (*start_feed)(struct dvb_demux_feed *),
-			    int (*stop_feed)(struct dvb_demux_feed *),
-			    void *priv);
+							int (*start_feed)(struct dvb_demux_feed *),
+							int (*stop_feed)(struct dvb_demux_feed *),
+							void *priv);
 int my_dvb_dmxdev_ts_card_init(struct dmxdev *dmxdev,
-			       struct dvb_demux *dvbdemux,
-			       struct dmx_frontend *hw_frontend,
-			       struct dmx_frontend *mem_frontend,
-			       struct dvb_adapter *dvb_adapter);
+							   struct dvb_demux *dvbdemux,
+							   struct dmx_frontend *hw_frontend,
+							   struct dmx_frontend *mem_frontend,
+							   struct dvb_adapter *dvb_adapter);
 
 #endif
 

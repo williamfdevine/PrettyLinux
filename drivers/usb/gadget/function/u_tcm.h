@@ -28,7 +28,8 @@
  * @has_dep: true if there is a dependent module
  *
  */
-struct f_tcm_opts {
+struct f_tcm_opts
+{
 	struct usb_function_instance	func_inst;
 	struct module			*dependent;
 	struct mutex			dep_lock;

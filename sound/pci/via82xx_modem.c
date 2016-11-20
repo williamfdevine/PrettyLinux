@@ -46,7 +46,7 @@
 #include <sound/initval.h>
 
 #if 0
-#define POINTER_DEBUG
+	#define POINTER_DEBUG
 #endif
 
 MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
@@ -90,7 +90,7 @@ module_param(enable, bool, 0444);
 #define   VIA_REG_CTRL_TERMINATE	0x40	/* WO */
 #define   VIA_REG_CTRL_AUTOSTART	0x20
 #define   VIA_REG_CTRL_PAUSE		0x08	/* RW */
-#define   VIA_REG_CTRL_INT_STOP		0x04		
+#define   VIA_REG_CTRL_INT_STOP		0x04
 #define   VIA_REG_CTRL_INT_EOL		0x02
 #define   VIA_REG_CTRL_INT_FLAG		0x01
 #define   VIA_REG_CTRL_RESET		0x01	/* RW - probably reset? undocumented */
@@ -112,15 +112,15 @@ module_param(enable, bool, 0444);
 #define VIA_REG_OFFSET_CURR_INDEX	0x0f	/* byte - channel current index (for via8233 only) */
 
 #define DEFINE_VIA_REGSET(name,val) \
-enum {\
-	VIA_REG_##name##_STATUS		= (val),\
-	VIA_REG_##name##_CONTROL	= (val) + 0x01,\
-	VIA_REG_##name##_TYPE		= (val) + 0x02,\
-	VIA_REG_##name##_TABLE_PTR	= (val) + 0x04,\
-	VIA_REG_##name##_CURR_PTR	= (val) + 0x04,\
-	VIA_REG_##name##_STOP_IDX	= (val) + 0x08,\
-	VIA_REG_##name##_CURR_COUNT	= (val) + 0x0c,\
-}
+	enum {\
+		VIA_REG_##name##_STATUS		= (val),\
+									  VIA_REG_##name##_CONTROL	= (val) + 0x01,\
+											  VIA_REG_##name##_TYPE		= (val) + 0x02,\
+													  VIA_REG_##name##_TABLE_PTR	= (val) + 0x04,\
+															  VIA_REG_##name##_CURR_PTR	= (val) + 0x04,\
+																	  VIA_REG_##name##_STOP_IDX	= (val) + 0x08,\
+																			  VIA_REG_##name##_CURR_COUNT	= (val) + 0x0c,\
+	}
 
 /* modem block */
 DEFINE_VIA_REGSET(MO, 0x40);
@@ -186,8 +186,8 @@ DEFINE_VIA_REGSET(MI, 0x50);
 #define  VIA_ACLINK_CTRL_FM	0x02 /* via686 only */
 #define  VIA_ACLINK_CTRL_SB	0x01 /* via686 only */
 #define  VIA_ACLINK_CTRL_INIT	(VIA_ACLINK_CTRL_ENABLE|\
-				 VIA_ACLINK_CTRL_RESET|\
-				 VIA_ACLINK_CTRL_PCM)
+								 VIA_ACLINK_CTRL_RESET|\
+								 VIA_ACLINK_CTRL_PCM)
 #define VIA_FUNC_ENABLE		0x42
 #define  VIA_FUNC_MIDI_PNP	0x80 /* FIXME: it's 0x40 in the datasheet! */
 #define  VIA_FUNC_MIDI_IRQMASK	0x40 /* FIXME: not documented! */
@@ -202,25 +202,27 @@ DEFINE_VIA_REGSET(MI, 0x50);
 #define  VIA_MC97_CTRL_ENABLE   0x80
 #define  VIA_MC97_CTRL_SECONDARY 0x40
 #define  VIA_MC97_CTRL_INIT     (VIA_MC97_CTRL_ENABLE|\
-                                 VIA_MC97_CTRL_SECONDARY)
+								 VIA_MC97_CTRL_SECONDARY)
 
 
 /*
  * pcm stream
  */
 
-struct snd_via_sg_table {
+struct snd_via_sg_table
+{
 	unsigned int offset;
 	unsigned int size;
 } ;
 
 #define VIA_TABLE_SIZE	255
 
-struct viadev {
+struct viadev
+{
 	unsigned int reg_offset;
 	unsigned long port;
 	int direction;	/* playback = 0, capture = 1 */
-        struct snd_pcm_substream *substream;
+	struct snd_pcm_substream *substream;
 	int running;
 	unsigned int tbl_entries; /* # descriptors */
 	struct snd_dma_buffer table;
@@ -235,7 +237,8 @@ enum { TYPE_CARD_VIA82XX_MODEM = 1 };
 
 #define VIA_MAX_MODEM_DEVS	2
 
-struct via82xx_modem {
+struct via82xx_modem
+{
 	int irq;
 
 	unsigned long port;
@@ -260,7 +263,8 @@ struct via82xx_modem {
 	struct snd_info_entry *proc_entry;
 };
 
-static const struct pci_device_id snd_via82xx_modem_ids[] = {
+static const struct pci_device_id snd_via82xx_modem_ids[] =
+{
 	{ PCI_VDEVICE(VIA, 0x3068), TYPE_CARD_VIA82XX_MODEM, },
 	{ 0, }
 };
@@ -276,70 +280,100 @@ MODULE_DEVICE_TABLE(pci, snd_via82xx_modem_ids);
  * fragsize = period size in bytes
  */
 static int build_via_table(struct viadev *dev, struct snd_pcm_substream *substream,
-			   struct pci_dev *pci,
-			   unsigned int periods, unsigned int fragsize)
+						   struct pci_dev *pci,
+						   unsigned int periods, unsigned int fragsize)
 {
 	unsigned int i, idx, ofs, rest;
 	struct via82xx_modem *chip = snd_pcm_substream_chip(substream);
 
-	if (dev->table.area == NULL) {
+	if (dev->table.area == NULL)
+	{
 		/* the start of each lists must be aligned to 8 bytes,
 		 * but the kernel pages are much bigger, so we don't care
 		 */
 		if (snd_dma_alloc_pages(SNDRV_DMA_TYPE_DEV, snd_dma_pci_data(chip->pci),
-					PAGE_ALIGN(VIA_TABLE_SIZE * 2 * 8),
-					&dev->table) < 0)
+								PAGE_ALIGN(VIA_TABLE_SIZE * 2 * 8),
+								&dev->table) < 0)
+		{
 			return -ENOMEM;
+		}
 	}
-	if (! dev->idx_table) {
+
+	if (! dev->idx_table)
+	{
 		dev->idx_table = kmalloc(sizeof(*dev->idx_table) * VIA_TABLE_SIZE, GFP_KERNEL);
+
 		if (! dev->idx_table)
+		{
 			return -ENOMEM;
+		}
 	}
 
 	/* fill the entries */
 	idx = 0;
 	ofs = 0;
-	for (i = 0; i < periods; i++) {
+
+	for (i = 0; i < periods; i++)
+	{
 		rest = fragsize;
+
 		/* fill descriptors for a period.
 		 * a period can be split to several descriptors if it's
 		 * over page boundary.
 		 */
-		do {
+		do
+		{
 			unsigned int r;
 			unsigned int flag;
 			unsigned int addr;
 
-			if (idx >= VIA_TABLE_SIZE) {
+			if (idx >= VIA_TABLE_SIZE)
+			{
 				dev_err(&pci->dev, "too much table size!\n");
 				return -EINVAL;
 			}
+
 			addr = snd_pcm_sgbuf_get_addr(substream, ofs);
 			((u32 *)dev->table.area)[idx << 1] = cpu_to_le32(addr);
 			r = PAGE_SIZE - (ofs % PAGE_SIZE);
+
 			if (rest < r)
+			{
 				r = rest;
+			}
+
 			rest -= r;
-			if (! rest) {
+
+			if (! rest)
+			{
 				if (i == periods - 1)
-					flag = VIA_TBL_BIT_EOL; /* buffer boundary */
+				{
+					flag = VIA_TBL_BIT_EOL;    /* buffer boundary */
+				}
 				else
-					flag = VIA_TBL_BIT_FLAG; /* period boundary */
-			} else
-				flag = 0; /* period continues to the next */
+				{
+					flag = VIA_TBL_BIT_FLAG;    /* period boundary */
+				}
+			}
+			else
+			{
+				flag = 0;    /* period continues to the next */
+			}
+
 			/*
 			dev_dbg(&pci->dev,
 				"tbl %d: at %d  size %d (rest %d)\n",
 				idx, ofs, r, rest);
 			*/
-			((u32 *)dev->table.area)[(idx<<1) + 1] = cpu_to_le32(r | flag);
+			((u32 *)dev->table.area)[(idx << 1) + 1] = cpu_to_le32(r | flag);
 			dev->idx_table[idx].offset = ofs;
 			dev->idx_table[idx].size = r;
 			ofs += r;
 			idx++;
-		} while (rest > 0);
+		}
+		while (rest > 0);
 	}
+
 	dev->tbl_entries = idx;
 	dev->bufsize = periods * fragsize;
 	dev->bufsize2 = dev->bufsize / 2;
@@ -348,12 +382,14 @@ static int build_via_table(struct viadev *dev, struct snd_pcm_substream *substre
 
 
 static int clean_via_table(struct viadev *dev, struct snd_pcm_substream *substream,
-			   struct pci_dev *pci)
+						   struct pci_dev *pci)
 {
-	if (dev->table.area) {
+	if (dev->table.area)
+	{
 		snd_dma_free_pages(&dev->table);
 		dev->table.area = NULL;
 	}
+
 	kfree(dev->idx_table);
 	dev->idx_table = NULL;
 	return 0;
@@ -367,44 +403,55 @@ static inline unsigned int snd_via82xx_codec_xread(struct via82xx_modem *chip)
 {
 	return inl(VIAREG(chip, AC97));
 }
- 
+
 static inline void snd_via82xx_codec_xwrite(struct via82xx_modem *chip, unsigned int val)
 {
 	outl(val, VIAREG(chip, AC97));
 }
- 
+
 static int snd_via82xx_codec_ready(struct via82xx_modem *chip, int secondary)
 {
 	unsigned int timeout = 1000;	/* 1ms */
 	unsigned int val;
-	
-	while (timeout-- > 0) {
+
+	while (timeout-- > 0)
+	{
 		udelay(1);
+
 		if (!((val = snd_via82xx_codec_xread(chip)) & VIA_REG_AC97_BUSY))
+		{
 			return val & 0xffff;
+		}
 	}
+
 	dev_err(chip->card->dev, "codec_ready: codec %i is not ready [0x%x]\n",
-		   secondary, snd_via82xx_codec_xread(chip));
+			secondary, snd_via82xx_codec_xread(chip));
 	return -EIO;
 }
- 
+
 static int snd_via82xx_codec_valid(struct via82xx_modem *chip, int secondary)
 {
 	unsigned int timeout = 1000;	/* 1ms */
 	unsigned int val, val1;
 	unsigned int stat = !secondary ? VIA_REG_AC97_PRIMARY_VALID :
-					 VIA_REG_AC97_SECONDARY_VALID;
-	
-	while (timeout-- > 0) {
+						VIA_REG_AC97_SECONDARY_VALID;
+
+	while (timeout-- > 0)
+	{
 		val = snd_via82xx_codec_xread(chip);
 		val1 = val & (VIA_REG_AC97_BUSY | stat);
+
 		if (val1 == stat)
+		{
 			return val & 0xffff;
+		}
+
 		udelay(1);
 	}
+
 	return -EIO;
 }
- 
+
 static void snd_via82xx_codec_wait(struct snd_ac97 *ac97)
 {
 	struct via82xx_modem *chip = ac97->private_data;
@@ -415,15 +462,18 @@ static void snd_via82xx_codec_wait(struct snd_ac97 *ac97)
 }
 
 static void snd_via82xx_codec_write(struct snd_ac97 *ac97,
-				    unsigned short reg,
-				    unsigned short val)
+									unsigned short reg,
+									unsigned short val)
 {
 	struct via82xx_modem *chip = ac97->private_data;
 	unsigned int xval;
-	if(reg == AC97_GPIO_STATUS) {
+
+	if (reg == AC97_GPIO_STATUS)
+	{
 		outl(val, VIAREG(chip, GPI_STATUS));
 		return;
-	}	
+	}
+
 	xval = !ac97->num ? VIA_REG_AC97_CODEC_ID_PRIMARY : VIA_REG_AC97_CODEC_ID_SECONDARY;
 	xval <<= VIA_REG_AC97_CODEC_ID_SHIFT;
 	xval |= reg << VIA_REG_AC97_CMD_SHIFT;
@@ -442,28 +492,35 @@ static unsigned short snd_via82xx_codec_read(struct snd_ac97 *ac97, unsigned sho
 	xval |= ac97->num ? VIA_REG_AC97_SECONDARY_VALID : VIA_REG_AC97_PRIMARY_VALID;
 	xval |= VIA_REG_AC97_READ;
 	xval |= (reg & 0x7f) << VIA_REG_AC97_CMD_SHIFT;
-      	while (1) {
-      		if (again++ > 3) {
+
+	while (1)
+	{
+		if (again++ > 3)
+		{
 			dev_err(chip->card->dev,
-				"codec_read: codec %i is not valid [0x%x]\n",
-				   ac97->num, snd_via82xx_codec_xread(chip));
-		      	return 0xffff;
+					"codec_read: codec %i is not valid [0x%x]\n",
+					ac97->num, snd_via82xx_codec_xread(chip));
+			return 0xffff;
 		}
+
 		snd_via82xx_codec_xwrite(chip, xval);
 		udelay (20);
-		if (snd_via82xx_codec_valid(chip, ac97->num) >= 0) {
+
+		if (snd_via82xx_codec_valid(chip, ac97->num) >= 0)
+		{
 			udelay(25);
 			val = snd_via82xx_codec_xread(chip);
 			break;
 		}
 	}
+
 	return val & 0xffff;
 }
 
 static void snd_via82xx_channel_reset(struct via82xx_modem *chip, struct viadev *viadev)
 {
 	outb(VIA_REG_CTRL_PAUSE | VIA_REG_CTRL_TERMINATE | VIA_REG_CTRL_RESET,
-	     VIADEV_REG(viadev, OFFSET_CONTROL));
+		 VIADEV_REG(viadev, OFFSET_CONTROL));
 	inb(VIADEV_REG(viadev, OFFSET_CONTROL));
 	udelay(50);
 	/* disable interrupts */
@@ -487,26 +544,38 @@ static irqreturn_t snd_via82xx_interrupt(int irq, void *dev_id)
 	unsigned int i;
 
 	status = inl(VIAREG(chip, SGD_SHADOW));
-	if (! (status & chip->intr_mask)) {
+
+	if (! (status & chip->intr_mask))
+	{
 		return IRQ_NONE;
 	}
-// _skip_sgd:
+
+	// _skip_sgd:
 
 	/* check status for each stream */
 	spin_lock(&chip->reg_lock);
-	for (i = 0; i < chip->num_devs; i++) {
+
+	for (i = 0; i < chip->num_devs; i++)
+	{
 		struct viadev *viadev = &chip->devs[i];
 		unsigned char c_status = inb(VIADEV_REG(viadev, OFFSET_STATUS));
-		c_status &= (VIA_REG_STAT_EOL|VIA_REG_STAT_FLAG|VIA_REG_STAT_STOPPED);
+		c_status &= (VIA_REG_STAT_EOL | VIA_REG_STAT_FLAG | VIA_REG_STAT_STOPPED);
+
 		if (! c_status)
+		{
 			continue;
-		if (viadev->substream && viadev->running) {
+		}
+
+		if (viadev->substream && viadev->running)
+		{
 			spin_unlock(&chip->reg_lock);
 			snd_pcm_period_elapsed(viadev->substream);
 			spin_lock(&chip->reg_lock);
 		}
+
 		outb(c_status, VIADEV_REG(viadev, OFFSET_STATUS)); /* ack */
 	}
+
 	spin_unlock(&chip->reg_lock);
 	return IRQ_HANDLED;
 }
@@ -524,29 +593,39 @@ static int snd_via82xx_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 	struct viadev *viadev = substream->runtime->private_data;
 	unsigned char val = 0;
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-	case SNDRV_PCM_TRIGGER_SUSPEND:
-		val |= VIA_REG_CTRL_START;
-		viadev->running = 1;
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-		val = VIA_REG_CTRL_TERMINATE;
-		viadev->running = 0;
-		break;
-	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-		val |= VIA_REG_CTRL_PAUSE;
-		viadev->running = 0;
-		break;
-	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-		viadev->running = 1;
-		break;
-	default:
-		return -EINVAL;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+		case SNDRV_PCM_TRIGGER_SUSPEND:
+			val |= VIA_REG_CTRL_START;
+			viadev->running = 1;
+			break;
+
+		case SNDRV_PCM_TRIGGER_STOP:
+			val = VIA_REG_CTRL_TERMINATE;
+			viadev->running = 0;
+			break;
+
+		case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+			val |= VIA_REG_CTRL_PAUSE;
+			viadev->running = 0;
+			break;
+
+		case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+			viadev->running = 1;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	outb(val, VIADEV_REG(viadev, OFFSET_CONTROL));
+
 	if (cmd == SNDRV_PCM_TRIGGER_STOP)
+	{
 		snd_via82xx_channel_reset(chip, viadev);
+	}
+
 	return 0;
 }
 
@@ -560,12 +639,12 @@ static int snd_via82xx_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 
 #define check_invalid_pos(viadev,pos) \
 	((pos) < viadev->lastpos && ((pos) >= viadev->bufsize2 ||\
-				     viadev->lastpos < viadev->bufsize2))
+								 viadev->lastpos < viadev->bufsize2))
 
 static inline unsigned int calc_linear_pos(struct via82xx_modem *chip,
-					   struct viadev *viadev,
-					   unsigned int idx,
-					   unsigned int count)
+		struct viadev *viadev,
+		unsigned int idx,
+		unsigned int count)
 {
 	unsigned int size, res;
 
@@ -573,42 +652,60 @@ static inline unsigned int calc_linear_pos(struct via82xx_modem *chip,
 	res = viadev->idx_table[idx].offset + size - count;
 
 	/* check the validity of the calculated position */
-	if (size < count) {
+	if (size < count)
+	{
 		dev_err(chip->card->dev,
-			"invalid via82xx_cur_ptr (size = %d, count = %d)\n",
-			   (int)size, (int)count);
+				"invalid via82xx_cur_ptr (size = %d, count = %d)\n",
+				(int)size, (int)count);
 		res = viadev->lastpos;
-	} else if (check_invalid_pos(viadev, res)) {
+	}
+	else if (check_invalid_pos(viadev, res))
+	{
 #ifdef POINTER_DEBUG
 		dev_dbg(chip->card->dev,
-			"fail: idx = %i/%i, lastpos = 0x%x, bufsize2 = 0x%x, offsize = 0x%x, size = 0x%x, count = 0x%x\n",
-			idx, viadev->tbl_entries, viadev->lastpos,
-		       viadev->bufsize2, viadev->idx_table[idx].offset,
-		       viadev->idx_table[idx].size, count);
+				"fail: idx = %i/%i, lastpos = 0x%x, bufsize2 = 0x%x, offsize = 0x%x, size = 0x%x, count = 0x%x\n",
+				idx, viadev->tbl_entries, viadev->lastpos,
+				viadev->bufsize2, viadev->idx_table[idx].offset,
+				viadev->idx_table[idx].size, count);
 #endif
-		if (count && size < count) {
+
+		if (count && size < count)
+		{
 			dev_dbg(chip->card->dev,
-				"invalid via82xx_cur_ptr, using last valid pointer\n");
+					"invalid via82xx_cur_ptr, using last valid pointer\n");
 			res = viadev->lastpos;
-		} else {
+		}
+		else
+		{
 			if (! count)
 				/* bogus count 0 on the DMA boundary? */
+			{
 				res = viadev->idx_table[idx].offset;
+			}
 			else
 				/* count register returns full size
 				 * when end of buffer is reached
 				 */
+			{
 				res = viadev->idx_table[idx].offset + size;
-			if (check_invalid_pos(viadev, res)) {
+			}
+
+			if (check_invalid_pos(viadev, res))
+			{
 				dev_dbg(chip->card->dev,
-					"invalid via82xx_cur_ptr (2), using last valid pointer\n");
+						"invalid via82xx_cur_ptr (2), using last valid pointer\n");
 				res = viadev->lastpos;
 			}
 		}
 	}
+
 	viadev->lastpos = res; /* remember the last position */
+
 	if (res >= viadev->bufsize)
+	{
 		res -= viadev->bufsize;
+	}
+
 	return res;
 }
 
@@ -622,9 +719,14 @@ static snd_pcm_uframes_t snd_via686_pcm_pointer(struct snd_pcm_substream *substr
 	unsigned int idx, ptr, count, res;
 
 	if (snd_BUG_ON(!viadev->tbl_entries))
+	{
 		return 0;
+	}
+
 	if (!(inb(VIADEV_REG(viadev, OFFSET_STATUS)) & VIA_REG_STAT_ACTIVE))
+	{
 		return 0;
+	}
 
 	spin_lock(&chip->reg_lock);
 	count = inl(VIADEV_REG(viadev, OFFSET_CURR_COUNT)) & 0xffffff;
@@ -632,11 +734,15 @@ static snd_pcm_uframes_t snd_via686_pcm_pointer(struct snd_pcm_substream *substr
 	 * so we need to calculate the index from CURR_PTR.
 	 */
 	ptr = inl(VIADEV_REG(viadev, OFFSET_CURR_PTR));
+
 	if (ptr <= (unsigned int)viadev->table.addr)
+	{
 		idx = 0;
+	}
 	else /* CURR_PTR holds the address + 8 */
 		idx = ((ptr - (unsigned int)viadev->table.addr) / 8 - 1) %
-			viadev->tbl_entries;
+			  viadev->tbl_entries;
+
 	res = calc_linear_pos(chip, viadev, idx, count);
 	spin_unlock(&chip->reg_lock);
 
@@ -648,20 +754,27 @@ static snd_pcm_uframes_t snd_via686_pcm_pointer(struct snd_pcm_substream *substr
  * allocate the buffer and build up the buffer description table
  */
 static int snd_via82xx_hw_params(struct snd_pcm_substream *substream,
-				 struct snd_pcm_hw_params *hw_params)
+								 struct snd_pcm_hw_params *hw_params)
 {
 	struct via82xx_modem *chip = snd_pcm_substream_chip(substream);
 	struct viadev *viadev = substream->runtime->private_data;
 	int err;
 
 	err = snd_pcm_lib_malloc_pages(substream, params_buffer_bytes(hw_params));
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err = build_via_table(viadev, substream, chip->pci,
-			      params_periods(hw_params),
-			      params_period_bytes(hw_params));
+						  params_periods(hw_params),
+						  params_period_bytes(hw_params));
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	snd_ac97_write(chip->ac97, AC97_LINE1_RATE, params_rate(hw_params));
 	snd_ac97_write(chip->ac97, AC97_LINE1_LEVEL, 0);
@@ -706,8 +819,8 @@ static int snd_via82xx_pcm_prepare(struct snd_pcm_substream *substream)
 	snd_via82xx_channel_reset(chip, viadev);
 	/* this must be set after channel_reset */
 	snd_via82xx_set_table_ptr(chip, viadev);
-	outb(VIA_REG_TYPE_AUTOSTART|VIA_REG_TYPE_INT_EOL|VIA_REG_TYPE_INT_FLAG,
-	     VIADEV_REG(viadev, OFFSET_TYPE));
+	outb(VIA_REG_TYPE_AUTOSTART | VIA_REG_TYPE_INT_EOL | VIA_REG_TYPE_INT_FLAG,
+		 VIADEV_REG(viadev, OFFSET_TYPE));
 	return 0;
 }
 
@@ -717,10 +830,10 @@ static int snd_via82xx_pcm_prepare(struct snd_pcm_substream *substream)
 static struct snd_pcm_hardware snd_via82xx_hw =
 {
 	.info =			(SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_INTERLEAVED |
-				 SNDRV_PCM_INFO_BLOCK_TRANSFER |
-				 SNDRV_PCM_INFO_MMAP_VALID |
-				 /* SNDRV_PCM_INFO_RESUME | */
-				 SNDRV_PCM_INFO_PAUSE),
+	SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_MMAP_VALID |
+	/* SNDRV_PCM_INFO_RESUME | */
+	SNDRV_PCM_INFO_PAUSE),
 	.formats =		SNDRV_PCM_FMTBIT_U8 | SNDRV_PCM_FMTBIT_S16_LE,
 	.rates =		SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000 | SNDRV_PCM_RATE_KNOT,
 	.rate_min =		8000,
@@ -740,27 +853,32 @@ static struct snd_pcm_hardware snd_via82xx_hw =
  * open callback skeleton
  */
 static int snd_via82xx_modem_pcm_open(struct via82xx_modem *chip, struct viadev *viadev,
-				      struct snd_pcm_substream *substream)
+									  struct snd_pcm_substream *substream)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	int err;
-        static unsigned int rates[] = { 8000,  9600, 12000, 16000 };
-        static struct snd_pcm_hw_constraint_list hw_constraints_rates = {
-                .count = ARRAY_SIZE(rates),
-                .list = rates,
-                .mask = 0,
-        };
+	static unsigned int rates[] = { 8000,  9600, 12000, 16000 };
+	static struct snd_pcm_hw_constraint_list hw_constraints_rates =
+	{
+		.count = ARRAY_SIZE(rates),
+		.list = rates,
+		.mask = 0,
+	};
 
 	runtime->hw = snd_via82xx_hw;
-	
-        if ((err = snd_pcm_hw_constraint_list(runtime, 0, SNDRV_PCM_HW_PARAM_RATE,
-					      &hw_constraints_rates)) < 0)
-                return err;
+
+	if ((err = snd_pcm_hw_constraint_list(runtime, 0, SNDRV_PCM_HW_PARAM_RATE,
+										  &hw_constraints_rates)) < 0)
+	{
+		return err;
+	}
 
 	/* we may remove following constaint when we modify table entries
 	   in interrupt */
 	if ((err = snd_pcm_hw_constraint_integer(runtime, SNDRV_PCM_HW_PARAM_PERIODS)) < 0)
+	{
 		return err;
+	}
 
 	runtime->private_data = viadev;
 	viadev->substream = substream;
@@ -804,7 +922,8 @@ static int snd_via82xx_pcm_close(struct snd_pcm_substream *substream)
 
 
 /* via686 playback callbacks */
-static const struct snd_pcm_ops snd_via686_playback_ops = {
+static const struct snd_pcm_ops snd_via686_playback_ops =
+{
 	.open =		snd_via82xx_playback_open,
 	.close =	snd_via82xx_pcm_close,
 	.ioctl =	snd_pcm_lib_ioctl,
@@ -817,7 +936,8 @@ static const struct snd_pcm_ops snd_via686_playback_ops = {
 };
 
 /* via686 capture callbacks */
-static const struct snd_pcm_ops snd_via686_capture_ops = {
+static const struct snd_pcm_ops snd_via686_capture_ops =
+{
 	.open =		snd_via82xx_capture_open,
 	.close =	snd_via82xx_pcm_close,
 	.ioctl =	snd_pcm_lib_ioctl,
@@ -831,7 +951,7 @@ static const struct snd_pcm_ops snd_via686_capture_ops = {
 
 
 static void init_viadev(struct via82xx_modem *chip, int idx, unsigned int reg_offset,
-			int direction)
+						int direction)
 {
 	chip->devs[idx].reg_offset = reg_offset;
 	chip->devs[idx].direction = direction;
@@ -852,8 +972,12 @@ static int snd_via686_pcm_new(struct via82xx_modem *chip)
 	chip->intr_mask = 0x330000; /* FLAGS | EOL for MR, MW */
 
 	err = snd_pcm_new(chip->card, chip->card->shortname, 0, 1, 1, &pcm);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_via686_playback_ops);
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &snd_via686_capture_ops);
 	pcm->dev_class = SNDRV_PCM_CLASS_MODEM;
@@ -864,9 +988,11 @@ static int snd_via686_pcm_new(struct via82xx_modem *chip)
 	init_viadev(chip, 1, VIA_REG_MI_STATUS, 1);
 
 	if ((err = snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV_SG,
-							 snd_dma_pci_data(chip->pci),
-							 64*1024, 128*1024)) < 0)
+			   snd_dma_pci_data(chip->pci),
+			   64 * 1024, 128 * 1024)) < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -894,14 +1020,18 @@ static int snd_via82xx_mixer_new(struct via82xx_modem *chip)
 {
 	struct snd_ac97_template ac97;
 	int err;
-	static struct snd_ac97_bus_ops ops = {
+	static struct snd_ac97_bus_ops ops =
+	{
 		.write = snd_via82xx_codec_write,
 		.read = snd_via82xx_codec_read,
 		.wait = snd_via82xx_codec_wait,
 	};
 
 	if ((err = snd_ac97_bus(chip->card, 0, &ops, chip, &chip->ac97_bus)) < 0)
+	{
 		return err;
+	}
+
 	chip->ac97_bus->private_free = snd_via82xx_mixer_free_ac97_bus;
 	chip->ac97_bus->clock = chip->ac97_clock;
 
@@ -913,7 +1043,9 @@ static int snd_via82xx_mixer_new(struct via82xx_modem *chip)
 	ac97.num = chip->ac97_secondary;
 
 	if ((err = snd_ac97_mixer(chip->ac97_bus, &ac97, &chip->ac97)) < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -926,9 +1058,11 @@ static void snd_via82xx_proc_read(struct snd_info_entry *entry, struct snd_info_
 {
 	struct via82xx_modem *chip = entry->private_data;
 	int i;
-	
+
 	snd_iprintf(buffer, "%s\n\n", chip->card->longname);
-	for (i = 0; i < 0xa0; i += 4) {
+
+	for (i = 0; i < 0xa0; i += 4)
+	{
 		snd_iprintf(buffer, "%02x: %08x\n", i, inl(chip->port + i));
 	}
 }
@@ -938,7 +1072,9 @@ static void snd_via82xx_proc_init(struct via82xx_modem *chip)
 	struct snd_info_entry *entry;
 
 	if (! snd_card_proc_new(chip->card, "via82xx", &entry))
+	{
 		snd_info_set_text_ops(entry, chip, snd_via82xx_proc_read);
+	}
 }
 
 /*
@@ -952,18 +1088,22 @@ static int snd_via82xx_chip_init(struct via82xx_modem *chip)
 	unsigned char pval;
 
 	pci_read_config_byte(chip->pci, VIA_MC97_CTRL, &pval);
-	if((pval & VIA_MC97_CTRL_INIT) != VIA_MC97_CTRL_INIT) {
-		pci_write_config_byte(chip->pci, 0x44, pval|VIA_MC97_CTRL_INIT);
+
+	if ((pval & VIA_MC97_CTRL_INIT) != VIA_MC97_CTRL_INIT)
+	{
+		pci_write_config_byte(chip->pci, 0x44, pval | VIA_MC97_CTRL_INIT);
 		udelay(100);
 	}
 
 	pci_read_config_byte(chip->pci, VIA_ACLINK_STAT, &pval);
-	if (! (pval & VIA_ACLINK_C00_READY)) { /* codec not ready? */
+
+	if (! (pval & VIA_ACLINK_C00_READY))   /* codec not ready? */
+	{
 		/* deassert ACLink reset, force SYNC */
 		pci_write_config_byte(chip->pci, VIA_ACLINK_CTRL,
-				      VIA_ACLINK_CTRL_ENABLE |
-				      VIA_ACLINK_CTRL_RESET |
-				      VIA_ACLINK_CTRL_SYNC);
+							  VIA_ACLINK_CTRL_ENABLE |
+							  VIA_ACLINK_CTRL_RESET |
+							  VIA_ACLINK_CTRL_SYNC);
 		udelay(100);
 #if 1 /* FIXME: should we do full reset here for all chip models? */
 		pci_write_config_byte(chip->pci, VIA_ACLINK_CTRL, 0x00);
@@ -971,16 +1111,18 @@ static int snd_via82xx_chip_init(struct via82xx_modem *chip)
 #else
 		/* deassert ACLink reset, force SYNC (warm AC'97 reset) */
 		pci_write_config_byte(chip->pci, VIA_ACLINK_CTRL,
-				      VIA_ACLINK_CTRL_RESET|VIA_ACLINK_CTRL_SYNC);
+							  VIA_ACLINK_CTRL_RESET | VIA_ACLINK_CTRL_SYNC);
 		udelay(2);
 #endif
 		/* ACLink on, deassert ACLink reset, VSR, SGD data out */
 		pci_write_config_byte(chip->pci, VIA_ACLINK_CTRL, VIA_ACLINK_CTRL_INIT);
 		udelay(100);
 	}
-	
+
 	pci_read_config_byte(chip->pci, VIA_ACLINK_CTRL, &pval);
-	if ((pval & VIA_ACLINK_CTRL_INIT) != VIA_ACLINK_CTRL_INIT) {
+
+	if ((pval & VIA_ACLINK_CTRL_INIT) != VIA_ACLINK_CTRL_INIT)
+	{
 		/* ACLink on, deassert ACLink reset, VSR, SGD data out */
 		pci_write_config_byte(chip->pci, VIA_ACLINK_CTRL, VIA_ACLINK_CTRL_INIT);
 		udelay(100);
@@ -988,34 +1130,47 @@ static int snd_via82xx_chip_init(struct via82xx_modem *chip)
 
 	/* wait until codec ready */
 	end_time = jiffies + msecs_to_jiffies(750);
-	do {
+
+	do
+	{
 		pci_read_config_byte(chip->pci, VIA_ACLINK_STAT, &pval);
+
 		if (pval & VIA_ACLINK_C00_READY) /* primary codec ready */
+		{
 			break;
+		}
+
 		schedule_timeout_uninterruptible(1);
-	} while (time_before(jiffies, end_time));
+	}
+	while (time_before(jiffies, end_time));
 
 	if ((val = snd_via82xx_codec_xread(chip)) & VIA_REG_AC97_BUSY)
 		dev_err(chip->card->dev,
-			"AC'97 codec is not ready [0x%x]\n", val);
+				"AC'97 codec is not ready [0x%x]\n", val);
 
 	snd_via82xx_codec_xwrite(chip, VIA_REG_AC97_READ |
-				 VIA_REG_AC97_SECONDARY_VALID |
-				 (VIA_REG_AC97_CODEC_ID_SECONDARY << VIA_REG_AC97_CODEC_ID_SHIFT));
+							 VIA_REG_AC97_SECONDARY_VALID |
+							 (VIA_REG_AC97_CODEC_ID_SECONDARY << VIA_REG_AC97_CODEC_ID_SHIFT));
 	end_time = jiffies + msecs_to_jiffies(750);
 	snd_via82xx_codec_xwrite(chip, VIA_REG_AC97_READ |
-				 VIA_REG_AC97_SECONDARY_VALID |
-				 (VIA_REG_AC97_CODEC_ID_SECONDARY << VIA_REG_AC97_CODEC_ID_SHIFT));
-	do {
-		if ((val = snd_via82xx_codec_xread(chip)) & VIA_REG_AC97_SECONDARY_VALID) {
+							 VIA_REG_AC97_SECONDARY_VALID |
+							 (VIA_REG_AC97_CODEC_ID_SECONDARY << VIA_REG_AC97_CODEC_ID_SHIFT));
+
+	do
+	{
+		if ((val = snd_via82xx_codec_xread(chip)) & VIA_REG_AC97_SECONDARY_VALID)
+		{
 			chip->ac97_secondary = 1;
 			goto __ac97_ok2;
 		}
+
 		schedule_timeout_uninterruptible(1);
-	} while (time_before(jiffies, end_time));
+	}
+	while (time_before(jiffies, end_time));
+
 	/* This is ok, the most of motherboards have only one codec */
 
-      __ac97_ok2:
+__ac97_ok2:
 
 	/* route FM trap to IRQ, disable FM trap */
 	// pci_write_config_byte(chip->pci, VIA_FM_NMI_CTRL, 0);
@@ -1036,10 +1191,17 @@ static int snd_via82xx_suspend(struct device *dev)
 	int i;
 
 	snd_power_change_state(card, SNDRV_CTL_POWER_D3hot);
+
 	for (i = 0; i < 2; i++)
+	{
 		snd_pcm_suspend_all(chip->pcms[i]);
+	}
+
 	for (i = 0; i < chip->num_devs; i++)
+	{
 		snd_via82xx_channel_reset(chip, &chip->devs[i]);
+	}
+
 	synchronize_irq(chip->irq);
 	snd_ac97_suspend(chip->ac97);
 	return 0;
@@ -1056,7 +1218,9 @@ static int snd_via82xx_resume(struct device *dev)
 	snd_ac97_resume(chip->ac97);
 
 	for (i = 0; i < chip->num_devs; i++)
+	{
 		snd_via82xx_channel_reset(chip, &chip->devs[i]);
+	}
 
 	snd_power_change_state(card, SNDRV_CTL_POWER_D0);
 	return 0;
@@ -1073,14 +1237,23 @@ static int snd_via82xx_free(struct via82xx_modem *chip)
 	unsigned int i;
 
 	if (chip->irq < 0)
+	{
 		goto __end_hw;
+	}
+
 	/* disable interrupts */
 	for (i = 0; i < chip->num_devs; i++)
+	{
 		snd_via82xx_channel_reset(chip, &chip->devs[i]);
+	}
 
-      __end_hw:
+__end_hw:
+
 	if (chip->irq >= 0)
+	{
 		free_irq(chip->irq, chip);
+	}
+
 	pci_release_regions(chip->pci);
 	pci_disable_device(chip->pci);
 	kfree(chip);
@@ -1094,22 +1267,26 @@ static int snd_via82xx_dev_free(struct snd_device *device)
 }
 
 static int snd_via82xx_create(struct snd_card *card,
-			      struct pci_dev *pci,
-			      int chip_type,
-			      int revision,
-			      unsigned int ac97_clock,
-			      struct via82xx_modem **r_via)
+							  struct pci_dev *pci,
+							  int chip_type,
+							  int revision,
+							  unsigned int ac97_clock,
+							  struct via82xx_modem **r_via)
 {
 	struct via82xx_modem *chip;
 	int err;
-        static struct snd_device_ops ops = {
+	static struct snd_device_ops ops =
+	{
 		.dev_free =	snd_via82xx_dev_free,
-        };
+	};
 
 	if ((err = pci_enable_device(pci)) < 0)
+	{
 		return err;
+	}
 
-	if ((chip = kzalloc(sizeof(*chip), GFP_KERNEL)) == NULL) {
+	if ((chip = kzalloc(sizeof(*chip), GFP_KERNEL)) == NULL)
+	{
 		pci_disable_device(pci);
 		return -ENOMEM;
 	}
@@ -1119,29 +1296,40 @@ static int snd_via82xx_create(struct snd_card *card,
 	chip->pci = pci;
 	chip->irq = -1;
 
-	if ((err = pci_request_regions(pci, card->driver)) < 0) {
+	if ((err = pci_request_regions(pci, card->driver)) < 0)
+	{
 		kfree(chip);
 		pci_disable_device(pci);
 		return err;
 	}
+
 	chip->port = pci_resource_start(pci, 0);
+
 	if (request_irq(pci->irq, snd_via82xx_interrupt, IRQF_SHARED,
-			KBUILD_MODNAME, chip)) {
+					KBUILD_MODNAME, chip))
+	{
 		dev_err(card->dev, "unable to grab IRQ %d\n", pci->irq);
 		snd_via82xx_free(chip);
 		return -EBUSY;
 	}
+
 	chip->irq = pci->irq;
+
 	if (ac97_clock >= 8000 && ac97_clock <= 48000)
+	{
 		chip->ac97_clock = ac97_clock;
+	}
+
 	synchronize_irq(chip->irq);
 
-	if ((err = snd_via82xx_chip_init(chip)) < 0) {
+	if ((err = snd_via82xx_chip_init(chip)) < 0)
+	{
 		snd_via82xx_free(chip);
 		return err;
 	}
 
-	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0)
+	{
 		snd_via82xx_free(chip);
 		return err;
 	}
@@ -1157,7 +1345,7 @@ static int snd_via82xx_create(struct snd_card *card,
 
 
 static int snd_via82xx_probe(struct pci_dev *pci,
-			     const struct pci_device_id *pci_id)
+							 const struct pci_device_id *pci_id)
 {
 	struct snd_card *card;
 	struct via82xx_modem *chip;
@@ -1166,48 +1354,66 @@ static int snd_via82xx_probe(struct pci_dev *pci,
 	int err;
 
 	err = snd_card_new(&pci->dev, index, id, THIS_MODULE, 0, &card);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	card_type = pci_id->driver_data;
-	switch (card_type) {
-	case TYPE_CARD_VIA82XX_MODEM:
-		strcpy(card->driver, "VIA82XX-MODEM");
-		sprintf(card->shortname, "VIA 82XX modem");
-		break;
-	default:
-		dev_err(card->dev, "invalid card type %d\n", card_type);
-		err = -EINVAL;
+
+	switch (card_type)
+	{
+		case TYPE_CARD_VIA82XX_MODEM:
+			strcpy(card->driver, "VIA82XX-MODEM");
+			sprintf(card->shortname, "VIA 82XX modem");
+			break;
+
+		default:
+			dev_err(card->dev, "invalid card type %d\n", card_type);
+			err = -EINVAL;
+			goto __error;
+	}
+
+	if ((err = snd_via82xx_create(card, pci, chip_type, pci->revision,
+								  ac97_clock, &chip)) < 0)
+	{
 		goto __error;
 	}
-		
-	if ((err = snd_via82xx_create(card, pci, chip_type, pci->revision,
-				      ac97_clock, &chip)) < 0)
-		goto __error;
+
 	card->private_data = chip;
+
 	if ((err = snd_via82xx_mixer_new(chip)) < 0)
+	{
 		goto __error;
+	}
 
 	if ((err = snd_via686_pcm_new(chip)) < 0 )
+	{
 		goto __error;
+	}
 
 	/* disable interrupts */
 	for (i = 0; i < chip->num_devs; i++)
+	{
 		snd_via82xx_channel_reset(chip, &chip->devs[i]);
+	}
 
 	sprintf(card->longname, "%s at 0x%lx, irq %d",
-		card->shortname, chip->port, chip->irq);
+			card->shortname, chip->port, chip->irq);
 
 	snd_via82xx_proc_init(chip);
 
-	if ((err = snd_card_register(card)) < 0) {
+	if ((err = snd_card_register(card)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 	pci_set_drvdata(pci, card);
 	return 0;
 
- __error:
+__error:
 	snd_card_free(card);
 	return err;
 }
@@ -1217,7 +1423,8 @@ static void snd_via82xx_remove(struct pci_dev *pci)
 	snd_card_free(pci_get_drvdata(pci));
 }
 
-static struct pci_driver via82xx_modem_driver = {
+static struct pci_driver via82xx_modem_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = snd_via82xx_modem_ids,
 	.probe = snd_via82xx_probe,

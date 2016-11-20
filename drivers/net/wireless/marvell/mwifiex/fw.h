@@ -25,7 +25,8 @@
 
 #define INTF_HEADER_LEN     4
 
-struct rfc_1042_hdr {
+struct rfc_1042_hdr
+{
 	u8 llc_dsap;
 	u8 llc_ssap;
 	u8 llc_ctrl;
@@ -33,12 +34,14 @@ struct rfc_1042_hdr {
 	__be16 snap_type;
 };
 
-struct rx_packet_hdr {
+struct rx_packet_hdr
+{
 	struct ethhdr eth803_hdr;
 	struct rfc_1042_hdr rfc1042_hdr;
 };
 
-struct tx_packet_hdr {
+struct tx_packet_hdr
+{
 	struct ethhdr eth803_hdr;
 	struct rfc_1042_hdr rfc1042_hdr;
 };
@@ -50,10 +53,10 @@ struct tx_packet_hdr {
 #define HOSTCMD_SUPPORTED_RATES         14
 #define N_SUPPORTED_RATES               3
 #define ALL_802_11_BANDS           (BAND_A | BAND_B | BAND_G | BAND_GN | \
-				    BAND_AN | BAND_AAC)
+									BAND_AN | BAND_AAC)
 
 #define FW_MULTI_BANDS_SUPPORT  (BIT(8) | BIT(9) | BIT(10) | BIT(11) | \
-				 BIT(13))
+								 BIT(13))
 #define IS_SUPPORT_MULTI_BANDS(adapter)        \
 	(adapter->fw_cap_info & FW_MULTI_BANDS_SUPPORT)
 
@@ -66,13 +69,14 @@ struct tx_packet_hdr {
  * Map these bits to band capability by right shifting 8 bits.
  */
 #define GET_FW_DEFAULT_BANDS(adapter)  \
-	    (((adapter->fw_cap_info & 0x2f00) >> 8) & \
-	     ALL_802_11_BANDS)
+	(((adapter->fw_cap_info & 0x2f00) >> 8) & \
+	 ALL_802_11_BANDS)
 
 #define HostCmd_WEP_KEY_INDEX_MASK              0x3fff
 
 #define KEY_INFO_ENABLED        0x01
-enum KEY_TYPE_ID {
+enum KEY_TYPE_ID
+{
 	KEY_TYPE_ID_WEP = 0,
 	KEY_TYPE_ID_TKIP,
 	KEY_TYPE_ID_AES,
@@ -105,13 +109,15 @@ enum KEY_TYPE_ID {
 #define MWIFIEX_COEX_MODE_TIMESHARE			0x01
 #define MWIFIEX_COEX_MODE_SPATIAL			0x82
 
-enum mwifiex_usb_ep {
+enum mwifiex_usb_ep
+{
 	MWIFIEX_USB_EP_CMD_EVENT = 1,
 	MWIFIEX_USB_EP_DATA = 2,
 	MWIFIEX_USB_EP_DATA_CH2 = 3,
 };
 
-enum MWIFIEX_802_11_PRIVACY_FILTER {
+enum MWIFIEX_802_11_PRIVACY_FILTER
+{
 	MWIFIEX_802_11_PRIV_FILTER_ACCEPT_ALL,
 	MWIFIEX_802_11_PRIV_FILTER_8021X_WEP
 };
@@ -205,10 +211,10 @@ enum MWIFIEX_802_11_PRIVACY_FILTER {
 #define BA_STREAM_NOT_ALLOWED   0xff
 
 #define IS_11N_ENABLED(priv) ((priv->adapter->config_bands & BAND_GN || \
-			priv->adapter->config_bands & BAND_AN) && \
-			priv->curr_bss_params.bss_descriptor.bcn_ht_cap)
+							   priv->adapter->config_bands & BAND_AN) && \
+							  priv->curr_bss_params.bss_descriptor.bcn_ht_cap)
 #define INITIATOR_BIT(DelBAParamSet) (((DelBAParamSet) &\
-			BIT(DELBA_INITIATOR_POS)) >> DELBA_INITIATOR_POS)
+									   BIT(DELBA_INITIATOR_POS)) >> DELBA_INITIATOR_POS)
 
 #define MWIFIEX_TX_DATA_BUF_SIZE_4K        4096
 #define MWIFIEX_TX_DATA_BUF_SIZE_8K        8192
@@ -220,8 +226,8 @@ enum MWIFIEX_802_11_PRIVACY_FILTER {
 #define ISSUPP_SDIO_SPA_ENABLED(FwCapInfo) (FwCapInfo & BIT(16))
 
 #define MWIFIEX_DEF_HT_CAP	(IEEE80211_HT_CAP_DSSSCCK40 | \
-				 (1 << IEEE80211_HT_CAP_RX_STBC_SHIFT) | \
-				 IEEE80211_HT_CAP_SM_PS)
+							 (1 << IEEE80211_HT_CAP_RX_STBC_SHIFT) | \
+							 IEEE80211_HT_CAP_SM_PS)
 
 #define MWIFIEX_DEF_11N_TX_BF_CAP	0x09E1E008
 
@@ -296,7 +302,7 @@ enum MWIFIEX_802_11_PRIVACY_FILTER {
 #define GET_VHTCAP_CHWDSET(vht_cap_info)    ((vht_cap_info >> 2) & 0x3)
 #define GET_VHTNSSMCS(mcs_mapset, nss) ((mcs_mapset >> (2 * (nss - 1))) & 0x3)
 #define SET_VHTNSSMCS(mcs_mapset, nss, value) (mcs_mapset |= (value & 0x3) << \
-					      (2 * (nss - 1)))
+		(2 * (nss - 1)))
 #define GET_DEVTXMCSMAP(dev_mcs_map)      (dev_mcs_map >> 16)
 #define GET_DEVRXMCSMAP(dev_mcs_map)      (dev_mcs_map & 0xFFFF)
 
@@ -304,10 +310,10 @@ enum MWIFIEX_802_11_PRIVACY_FILTER {
  * sounding dimensions bits
  */
 #define MWIFIEX_DEF_11AC_CAP_BF_RESET_MASK \
-			(IEEE80211_VHT_CAP_SU_BEAMFORMER_CAPABLE | \
-			 IEEE80211_VHT_CAP_MU_BEAMFORMER_CAPABLE | \
-			 IEEE80211_VHT_CAP_MU_BEAMFORMEE_CAPABLE | \
-			 IEEE80211_VHT_CAP_SOUNDING_DIMENSIONS_MASK)
+	(IEEE80211_VHT_CAP_SU_BEAMFORMER_CAPABLE | \
+	 IEEE80211_VHT_CAP_MU_BEAMFORMER_CAPABLE | \
+	 IEEE80211_VHT_CAP_MU_BEAMFORMEE_CAPABLE | \
+	 IEEE80211_VHT_CAP_SOUNDING_DIMENSIONS_MASK)
 
 #define MOD_CLASS_HR_DSSS       0x03
 #define MOD_CLASS_OFDM          0x07
@@ -399,7 +405,8 @@ enum MWIFIEX_802_11_PRIVACY_FILTER {
 #define CIPHER_AES_CCMP             0x08
 #define VALID_CIPHER_BITMAP         0x0c
 
-enum ENH_PS_MODES {
+enum ENH_PS_MODES
+{
 	EN_PS = 1,
 	DIS_PS = 2,
 	EN_AUTO_DS = 3,
@@ -410,14 +417,16 @@ enum ENH_PS_MODES {
 	DIS_AUTO_PS = 0xfe,
 };
 
-enum P2P_MODES {
+enum P2P_MODES
+{
 	P2P_MODE_DISABLE = 0,
 	P2P_MODE_DEVICE = 1,
 	P2P_MODE_GO = 2,
 	P2P_MODE_CLIENT = 3,
 };
 
-enum mwifiex_channel_flags {
+enum mwifiex_channel_flags
+{
 	MWIFIEX_CHANNEL_PASSIVE = BIT(0),
 	MWIFIEX_CHANNEL_DFS = BIT(1),
 	MWIFIEX_CHANNEL_NOHT40 = BIT(2),
@@ -483,9 +492,9 @@ enum mwifiex_channel_flags {
 #define RF_ANTENNA_AUTO                 0xFFFF
 
 #define HostCmd_SET_SEQ_NO_BSS_INFO(seq, num, type) {   \
-	(((seq) & 0x00ff) |                             \
-	 (((num) & 0x000f) << 8)) |                     \
-	(((type) & 0x000f) << 12);                  }
+		(((seq) & 0x00ff) |                             \
+		 (((num) & 0x000f) << 8)) |                     \
+		(((type) & 0x000f) << 12);                  }
 
 #define HostCmd_GET_SEQ_NO(seq)       \
 	((seq) & HostCmd_SEQ_NUM_MASK)
@@ -613,12 +622,14 @@ enum mwifiex_channel_flags {
 
 #define MWIFIEX_MASTER_RADAR_DET_MASK BIT(1)
 
-struct mwifiex_ie_types_header {
+struct mwifiex_ie_types_header
+{
 	__le16 type;
 	__le16 len;
 } __packed;
 
-struct mwifiex_ie_types_data {
+struct mwifiex_ie_types_data
+{
 	struct mwifiex_ie_types_header header;
 	u8 data[1];
 } __packed;
@@ -629,7 +640,8 @@ struct mwifiex_ie_types_data {
 #define MWIFIEX_RXPD_FLAGS_TDLS_PACKET      0x01
 #define MWIFIEX_TXPD_FLAGS_REQ_TX_STATUS    0x20
 
-enum HS_WAKEUP_REASON {
+enum HS_WAKEUP_REASON
+{
 	NO_HSWAKEUP_REASON = 0,
 	BCAST_DATA_MATCHED,
 	MCAST_DATA_MATCHED,
@@ -644,7 +656,8 @@ enum HS_WAKEUP_REASON {
 	RESERVED
 };
 
-struct txpd {
+struct txpd
+{
 	u8 bss_type;
 	u8 bss_num;
 	__le16 tx_pkt_length;
@@ -659,7 +672,8 @@ struct txpd {
 	u8 reserved[2];
 } __packed;
 
-struct rxpd {
+struct rxpd
+{
 	u8 bss_type;
 	u8 bss_num;
 	__le16 rx_pkt_length;
@@ -691,7 +705,8 @@ struct rxpd {
 	u8 flags;
 } __packed;
 
-struct uap_txpd {
+struct uap_txpd
+{
 	u8 bss_type;
 	u8 bss_num;
 	__le16 tx_pkt_length;
@@ -706,7 +721,8 @@ struct uap_txpd {
 	u8 reserved[2];
 };
 
-struct uap_rxpd {
+struct uap_rxpd
+{
 	u8 bss_type;
 	u8 bss_num;
 	__le16 rx_pkt_length;
@@ -722,7 +738,8 @@ struct uap_rxpd {
 	u8 flags;
 };
 
-struct mwifiex_fw_chan_stats {
+struct mwifiex_fw_chan_stats
+{
 	u8 chan_num;
 	u8 bandcfg;
 	u8 flags;
@@ -732,13 +749,15 @@ struct mwifiex_fw_chan_stats {
 	__le16 cca_busy_dur;
 } __packed;
 
-enum mwifiex_chan_scan_mode_bitmasks {
+enum mwifiex_chan_scan_mode_bitmasks
+{
 	MWIFIEX_PASSIVE_SCAN = BIT(0),
 	MWIFIEX_DISABLE_CHAN_FILT = BIT(1),
 	MWIFIEX_HIDDEN_SSID_REPORT = BIT(4),
 };
 
-struct mwifiex_chan_scan_param_set {
+struct mwifiex_chan_scan_param_set
+{
 	u8 radio_type;
 	u8 chan_number;
 	u8 chan_scan_mode_bitmap;
@@ -746,12 +765,14 @@ struct mwifiex_chan_scan_param_set {
 	__le16 max_scan_time;
 } __packed;
 
-struct mwifiex_ie_types_chan_list_param_set {
+struct mwifiex_ie_types_chan_list_param_set
+{
 	struct mwifiex_ie_types_header header;
 	struct mwifiex_chan_scan_param_set chan_scan_param[1];
 } __packed;
 
-struct mwifiex_ie_types_rxba_sync {
+struct mwifiex_ie_types_rxba_sync
+{
 	struct mwifiex_ie_types_header header;
 	u8 mac[ETH_ALEN];
 	u8 tid;
@@ -761,137 +782,163 @@ struct mwifiex_ie_types_rxba_sync {
 	u8 bitmap[1];
 } __packed;
 
-struct chan_band_param_set {
+struct chan_band_param_set
+{
 	u8 radio_type;
 	u8 chan_number;
 };
 
-struct mwifiex_ie_types_chan_band_list_param_set {
+struct mwifiex_ie_types_chan_band_list_param_set
+{
 	struct mwifiex_ie_types_header header;
 	struct chan_band_param_set chan_band_param[1];
 } __packed;
 
-struct mwifiex_ie_types_rates_param_set {
+struct mwifiex_ie_types_rates_param_set
+{
 	struct mwifiex_ie_types_header header;
 	u8 rates[1];
 } __packed;
 
-struct mwifiex_ie_types_ssid_param_set {
+struct mwifiex_ie_types_ssid_param_set
+{
 	struct mwifiex_ie_types_header header;
 	u8 ssid[1];
 } __packed;
 
-struct mwifiex_ie_types_num_probes {
+struct mwifiex_ie_types_num_probes
+{
 	struct mwifiex_ie_types_header header;
 	__le16 num_probes;
 } __packed;
 
-struct mwifiex_ie_types_repeat_count {
+struct mwifiex_ie_types_repeat_count
+{
 	struct mwifiex_ie_types_header header;
 	__le16 repeat_count;
 } __packed;
 
-struct mwifiex_ie_types_min_rssi_threshold {
+struct mwifiex_ie_types_min_rssi_threshold
+{
 	struct mwifiex_ie_types_header header;
 	__le16 rssi_threshold;
 } __packed;
 
-struct mwifiex_ie_types_bgscan_start_later {
+struct mwifiex_ie_types_bgscan_start_later
+{
 	struct mwifiex_ie_types_header header;
 	__le16 start_later;
 } __packed;
 
-struct mwifiex_ie_types_scan_chan_gap {
+struct mwifiex_ie_types_scan_chan_gap
+{
 	struct mwifiex_ie_types_header header;
 	/* time gap in TUs to be used between two consecutive channels scan */
 	__le16 chan_gap;
 } __packed;
 
-struct mwifiex_ie_types_random_mac {
+struct mwifiex_ie_types_random_mac
+{
 	struct mwifiex_ie_types_header header;
 	u8 mac[ETH_ALEN];
 } __packed;
 
-struct mwifiex_ietypes_chanstats {
+struct mwifiex_ietypes_chanstats
+{
 	struct mwifiex_ie_types_header header;
 	struct mwifiex_fw_chan_stats chanstats[0];
 } __packed;
 
-struct mwifiex_ie_types_wildcard_ssid_params {
+struct mwifiex_ie_types_wildcard_ssid_params
+{
 	struct mwifiex_ie_types_header header;
 	u8 max_ssid_length;
 	u8 ssid[1];
 } __packed;
 
 #define TSF_DATA_SIZE            8
-struct mwifiex_ie_types_tsf_timestamp {
+struct mwifiex_ie_types_tsf_timestamp
+{
 	struct mwifiex_ie_types_header header;
 	u8 tsf_data[1];
 } __packed;
 
-struct mwifiex_cf_param_set {
+struct mwifiex_cf_param_set
+{
 	u8 cfp_cnt;
 	u8 cfp_period;
 	__le16 cfp_max_duration;
 	__le16 cfp_duration_remaining;
 } __packed;
 
-struct mwifiex_ibss_param_set {
+struct mwifiex_ibss_param_set
+{
 	__le16 atim_window;
 } __packed;
 
-struct mwifiex_ie_types_ss_param_set {
+struct mwifiex_ie_types_ss_param_set
+{
 	struct mwifiex_ie_types_header header;
-	union {
+	union
+	{
 		struct mwifiex_cf_param_set cf_param_set[1];
 		struct mwifiex_ibss_param_set ibss_param_set[1];
 	} cf_ibss;
 } __packed;
 
-struct mwifiex_fh_param_set {
+struct mwifiex_fh_param_set
+{
 	__le16 dwell_time;
 	u8 hop_set;
 	u8 hop_pattern;
 	u8 hop_index;
 } __packed;
 
-struct mwifiex_ds_param_set {
+struct mwifiex_ds_param_set
+{
 	u8 current_chan;
 } __packed;
 
-struct mwifiex_ie_types_phy_param_set {
+struct mwifiex_ie_types_phy_param_set
+{
 	struct mwifiex_ie_types_header header;
-	union {
+	union
+	{
 		struct mwifiex_fh_param_set fh_param_set[1];
 		struct mwifiex_ds_param_set ds_param_set[1];
 	} fh_ds;
 } __packed;
 
-struct mwifiex_ie_types_auth_type {
+struct mwifiex_ie_types_auth_type
+{
 	struct mwifiex_ie_types_header header;
 	__le16 auth_type;
 } __packed;
 
-struct mwifiex_ie_types_vendor_param_set {
+struct mwifiex_ie_types_vendor_param_set
+{
 	struct mwifiex_ie_types_header header;
 	u8 ie[MWIFIEX_MAX_VSIE_LEN];
 };
 
 #define MWIFIEX_TDLS_IDLE_TIMEOUT_IN_SEC	60
 
-struct mwifiex_ie_types_tdls_idle_timeout {
+struct mwifiex_ie_types_tdls_idle_timeout
+{
 	struct mwifiex_ie_types_header header;
 	__le16 value;
 } __packed;
 
-struct mwifiex_ie_types_rsn_param_set {
+struct mwifiex_ie_types_rsn_param_set
+{
 	struct mwifiex_ie_types_header header;
 	u8 rsn_ie[1];
 } __packed;
 
 #define KEYPARAMSET_FIXED_LEN 6
 
-struct mwifiex_ie_type_key_param_set {
+struct mwifiex_ie_type_key_param_set
+{
 	__le16 type;
 	__le16 length;
 	__le16 key_type_id;
@@ -902,48 +949,56 @@ struct mwifiex_ie_type_key_param_set {
 
 #define IGTK_PN_LEN		8
 
-struct mwifiex_cmac_param {
+struct mwifiex_cmac_param
+{
 	u8 ipn[IGTK_PN_LEN];
 	u8 key[WLAN_KEY_LEN_AES_CMAC];
 } __packed;
 
-struct mwifiex_wep_param {
+struct mwifiex_wep_param
+{
 	__le16 key_len;
 	u8 key[WLAN_KEY_LEN_WEP104];
 } __packed;
 
-struct mwifiex_tkip_param {
+struct mwifiex_tkip_param
+{
 	u8 pn[WPA_PN_SIZE];
 	__le16 key_len;
 	u8 key[WLAN_KEY_LEN_TKIP];
 } __packed;
 
-struct mwifiex_aes_param {
+struct mwifiex_aes_param
+{
 	u8 pn[WPA_PN_SIZE];
 	__le16 key_len;
 	u8 key[WLAN_KEY_LEN_CCMP];
 } __packed;
 
-struct mwifiex_wapi_param {
+struct mwifiex_wapi_param
+{
 	u8 pn[PN_LEN];
 	__le16 key_len;
 	u8 key[WLAN_KEY_LEN_SMS4];
 } __packed;
 
-struct mwifiex_cmac_aes_param {
+struct mwifiex_cmac_aes_param
+{
 	u8 ipn[IGTK_PN_LEN];
 	__le16 key_len;
 	u8 key[WLAN_KEY_LEN_AES_CMAC];
 } __packed;
 
-struct mwifiex_ie_type_key_param_set_v2 {
+struct mwifiex_ie_type_key_param_set_v2
+{
 	__le16 type;
 	__le16 len;
 	u8 mac_addr[ETH_ALEN];
 	u8 key_idx;
 	u8 key_type;
 	__le16 key_info;
-	union {
+	union
+	{
 		struct mwifiex_wep_param wep;
 		struct mwifiex_tkip_param tkip;
 		struct mwifiex_aes_param aes;
@@ -952,17 +1007,20 @@ struct mwifiex_ie_type_key_param_set_v2 {
 	} key_params;
 } __packed;
 
-struct host_cmd_ds_802_11_key_material_v2 {
+struct host_cmd_ds_802_11_key_material_v2
+{
 	__le16 action;
 	struct mwifiex_ie_type_key_param_set_v2 key_param_set;
 } __packed;
 
-struct host_cmd_ds_802_11_key_material {
+struct host_cmd_ds_802_11_key_material
+{
 	__le16 action;
 	struct mwifiex_ie_type_key_param_set key_param_set;
 } __packed;
 
-struct host_cmd_ds_gen {
+struct host_cmd_ds_gen
+{
 	__le16 command;
 	__le16 size;
 	__le16 seq_num;
@@ -971,12 +1029,14 @@ struct host_cmd_ds_gen {
 
 #define S_DS_GEN        sizeof(struct host_cmd_ds_gen)
 
-enum sleep_resp_ctrl {
+enum sleep_resp_ctrl
+{
 	RESP_NOT_NEEDED = 0,
 	RESP_NEEDED,
 };
 
-struct mwifiex_ps_param {
+struct mwifiex_ps_param
+{
 	__le16 null_pkt_interval;
 	__le16 multiple_dtims;
 	__le16 bcn_miss_timeout;
@@ -989,38 +1049,45 @@ struct mwifiex_ps_param {
 #define BITMAP_AUTO_DS         0x01
 #define BITMAP_STA_PS          0x10
 
-struct mwifiex_ie_types_auto_ds_param {
+struct mwifiex_ie_types_auto_ds_param
+{
 	struct mwifiex_ie_types_header header;
 	__le16 deep_sleep_timeout;
 } __packed;
 
-struct mwifiex_ie_types_ps_param {
+struct mwifiex_ie_types_ps_param
+{
 	struct mwifiex_ie_types_header header;
 	struct mwifiex_ps_param param;
 } __packed;
 
-struct host_cmd_ds_802_11_ps_mode_enh {
+struct host_cmd_ds_802_11_ps_mode_enh
+{
 	__le16 action;
 
-	union {
+	union
+	{
 		struct mwifiex_ps_param opt_ps;
 		__le16 ps_bitmap;
 	} params;
 } __packed;
 
-enum API_VER_ID {
+enum API_VER_ID
+{
 	KEY_API_VER_ID = 1,
 	FW_API_VER_ID = 2,
 };
 
-struct hw_spec_api_rev {
+struct hw_spec_api_rev
+{
 	struct mwifiex_ie_types_header header;
 	__le16 api_id;
 	u8 major_ver;
 	u8 minor_ver;
 } __packed;
 
-struct host_cmd_ds_get_hw_spec {
+struct host_cmd_ds_get_hw_spec
+{
 	__le16 hw_if_version;
 	__le16 version;
 	__le16 reserved;
@@ -1044,7 +1111,8 @@ struct host_cmd_ds_get_hw_spec {
 	u8 tlvs[0];
 } __packed;
 
-struct host_cmd_ds_802_11_rssi_info {
+struct host_cmd_ds_802_11_rssi_info
+{
 	__le16 action;
 	__le16 ndata;
 	__le16 nbcn;
@@ -1052,7 +1120,8 @@ struct host_cmd_ds_802_11_rssi_info {
 	long long reserved_1;
 };
 
-struct host_cmd_ds_802_11_rssi_info_rsp {
+struct host_cmd_ds_802_11_rssi_info_rsp
+{
 	__le16 action;
 	__le16 ndata;
 	__le16 nbcn;
@@ -1067,28 +1136,33 @@ struct host_cmd_ds_802_11_rssi_info_rsp {
 	long long tsf_bcn;
 };
 
-struct host_cmd_ds_802_11_mac_address {
+struct host_cmd_ds_802_11_mac_address
+{
 	__le16 action;
 	u8 mac_addr[ETH_ALEN];
 };
 
-struct host_cmd_ds_mac_control {
+struct host_cmd_ds_mac_control
+{
 	__le16 action;
 	__le16 reserved;
 };
 
-struct host_cmd_ds_mac_multicast_adr {
+struct host_cmd_ds_mac_multicast_adr
+{
 	__le16 action;
 	__le16 num_of_adrs;
 	u8 mac_list[MWIFIEX_MAX_MULTICAST_LIST_SIZE][ETH_ALEN];
 } __packed;
 
-struct host_cmd_ds_802_11_deauthenticate {
+struct host_cmd_ds_802_11_deauthenticate
+{
 	u8 mac_addr[ETH_ALEN];
 	__le16 reason_code;
 } __packed;
 
-struct host_cmd_ds_802_11_associate {
+struct host_cmd_ds_802_11_associate
+{
 	u8 peer_sta_addr[ETH_ALEN];
 	__le16 cap_info_bitmap;
 	__le16 listen_interval;
@@ -1096,18 +1170,21 @@ struct host_cmd_ds_802_11_associate {
 	u8 dtim_period;
 } __packed;
 
-struct ieee_types_assoc_rsp {
+struct ieee_types_assoc_rsp
+{
 	__le16 cap_info_bitmap;
 	__le16 status_code;
 	__le16 a_id;
 	u8 ie_buffer[0];
 } __packed;
 
-struct host_cmd_ds_802_11_associate_rsp {
+struct host_cmd_ds_802_11_associate_rsp
+{
 	struct ieee_types_assoc_rsp assoc_rsp;
 } __packed;
 
-struct ieee_types_cf_param_set {
+struct ieee_types_cf_param_set
+{
 	u8 element_id;
 	u8 len;
 	u8 cfp_cnt;
@@ -1116,18 +1193,21 @@ struct ieee_types_cf_param_set {
 	__le16 cfp_duration_remaining;
 } __packed;
 
-struct ieee_types_ibss_param_set {
+struct ieee_types_ibss_param_set
+{
 	u8 element_id;
 	u8 len;
 	__le16 atim_window;
 } __packed;
 
-union ieee_types_ss_param_set {
+union ieee_types_ss_param_set
+{
 	struct ieee_types_cf_param_set cf_param_set;
 	struct ieee_types_ibss_param_set ibss_param_set;
 } __packed;
 
-struct ieee_types_fh_param_set {
+struct ieee_types_fh_param_set
+{
 	u8 element_id;
 	u8 len;
 	__le16 dwell_time;
@@ -1136,24 +1216,28 @@ struct ieee_types_fh_param_set {
 	u8 hop_index;
 } __packed;
 
-struct ieee_types_ds_param_set {
+struct ieee_types_ds_param_set
+{
 	u8 element_id;
 	u8 len;
 	u8 current_chan;
 } __packed;
 
-union ieee_types_phy_param_set {
+union ieee_types_phy_param_set
+{
 	struct ieee_types_fh_param_set fh_param_set;
 	struct ieee_types_ds_param_set ds_param_set;
 } __packed;
 
-struct ieee_types_oper_mode_ntf {
+struct ieee_types_oper_mode_ntf
+{
 	u8 element_id;
 	u8 len;
 	u8 oper_mode;
 } __packed;
 
-struct host_cmd_ds_802_11_ad_hoc_start {
+struct host_cmd_ds_802_11_ad_hoc_start
+{
 	u8 ssid[IEEE80211_MAX_SSID_LEN];
 	u8 bss_mode;
 	__le16 beacon_period;
@@ -1165,18 +1249,21 @@ struct host_cmd_ds_802_11_ad_hoc_start {
 	u8 data_rate[HOSTCMD_SUPPORTED_RATES];
 } __packed;
 
-struct host_cmd_ds_802_11_ad_hoc_start_result {
+struct host_cmd_ds_802_11_ad_hoc_start_result
+{
 	u8 pad[3];
 	u8 bssid[ETH_ALEN];
 	u8 pad2[2];
 	u8 result;
 } __packed;
 
-struct host_cmd_ds_802_11_ad_hoc_join_result {
+struct host_cmd_ds_802_11_ad_hoc_join_result
+{
 	u8 result;
 } __packed;
 
-struct adhoc_bss_desc {
+struct adhoc_bss_desc
+{
 	u8 bssid[ETH_ALEN];
 	u8 ssid[IEEE80211_MAX_SSID_LEN];
 	u8 bss_mode;
@@ -1196,13 +1283,15 @@ struct adhoc_bss_desc {
 	 */
 } __packed;
 
-struct host_cmd_ds_802_11_ad_hoc_join {
+struct host_cmd_ds_802_11_ad_hoc_join
+{
 	struct adhoc_bss_desc bss_descriptor;
 	u16 reserved1;
 	u16 reserved2;
 } __packed;
 
-struct host_cmd_ds_802_11_get_log {
+struct host_cmd_ds_802_11_get_log
+{
 	__le32 mcast_tx_frame;
 	__le32 failed;
 	__le32 retry;
@@ -1222,14 +1311,16 @@ struct host_cmd_ds_802_11_get_log {
 };
 
 /* Enumeration for rate format */
-enum _mwifiex_rate_format {
+enum _mwifiex_rate_format
+{
 	MWIFIEX_RATE_FORMAT_LG = 0,
 	MWIFIEX_RATE_FORMAT_HT,
 	MWIFIEX_RATE_FORMAT_VHT,
 	MWIFIEX_RATE_FORMAT_AUTO = 0xFF,
 };
 
-struct host_cmd_ds_tx_rate_query {
+struct host_cmd_ds_tx_rate_query
+{
 	u8 tx_rate;
 	/* Tx Rate Info: For 802.11 AC cards
 	 *
@@ -1245,38 +1336,45 @@ struct host_cmd_ds_tx_rate_query {
 	u8 ht_info;
 } __packed;
 
-struct mwifiex_tx_pause_tlv {
+struct mwifiex_tx_pause_tlv
+{
 	struct mwifiex_ie_types_header header;
 	u8 peermac[ETH_ALEN];
 	u8 tx_pause;
 	u8 pkt_cnt;
 } __packed;
 
-enum Host_Sleep_Action {
+enum Host_Sleep_Action
+{
 	HS_CONFIGURE = 0x0001,
 	HS_ACTIVATE  = 0x0002,
 };
 
-struct mwifiex_hs_config_param {
+struct mwifiex_hs_config_param
+{
 	__le32 conditions;
 	u8 gpio;
 	u8 gap;
 } __packed;
 
-struct hs_activate_param {
+struct hs_activate_param
+{
 	__le16 resp_ctrl;
 } __packed;
 
-struct host_cmd_ds_802_11_hs_cfg_enh {
+struct host_cmd_ds_802_11_hs_cfg_enh
+{
 	__le16 action;
 
-	union {
+	union
+	{
 		struct mwifiex_hs_config_param hs_config;
 		struct hs_activate_param hs_activate;
 	} params;
 } __packed;
 
-enum SNMP_MIB_INDEX {
+enum SNMP_MIB_INDEX
+{
 	OP_RATE_SET_I = 1,
 	DTIM_PERIOD_I = 3,
 	RTS_THRESH_I = 5,
@@ -1287,7 +1385,8 @@ enum SNMP_MIB_INDEX {
 	DOT11H_I = 10,
 };
 
-enum mwifiex_assocmd_failurepoint {
+enum mwifiex_assocmd_failurepoint
+{
 	MWIFIEX_ASSOC_CMD_SUCCESS = 0,
 	MWIFIEX_ASSOC_CMD_FAILURE_ASSOC,
 	MWIFIEX_ASSOC_CMD_FAILURE_AUTH,
@@ -1296,14 +1395,16 @@ enum mwifiex_assocmd_failurepoint {
 
 #define MAX_SNMP_BUF_SIZE   128
 
-struct host_cmd_ds_802_11_snmp_mib {
+struct host_cmd_ds_802_11_snmp_mib
+{
 	__le16 query_type;
 	__le16 oid;
 	__le16 buf_size;
 	u8 value[1];
 } __packed;
 
-struct mwifiex_rate_scope {
+struct mwifiex_rate_scope
+{
 	__le16 type;
 	__le16 length;
 	__le16 hr_dsss_rate_bitmap;
@@ -1312,18 +1413,21 @@ struct mwifiex_rate_scope {
 	__le16 vht_mcs_rate_bitmap[8];
 } __packed;
 
-struct mwifiex_rate_drop_pattern {
+struct mwifiex_rate_drop_pattern
+{
 	__le16 type;
 	__le16 length;
 	__le32 rate_drop_mode;
 } __packed;
 
-struct host_cmd_ds_tx_rate_cfg {
+struct host_cmd_ds_tx_rate_cfg
+{
 	__le16 action;
 	__le16 cfg_index;
 } __packed;
 
-struct mwifiex_power_group {
+struct mwifiex_power_group
+{
 	u8 modulation_class;
 	u8 first_rate_code;
 	u8 last_rate_code;
@@ -1334,53 +1438,62 @@ struct mwifiex_power_group {
 	u8 reserved;
 } __packed;
 
-struct mwifiex_types_power_group {
+struct mwifiex_types_power_group
+{
 	__le16 type;
 	__le16 length;
 } __packed;
 
-struct host_cmd_ds_txpwr_cfg {
+struct host_cmd_ds_txpwr_cfg
+{
 	__le16 action;
 	__le16 cfg_index;
 	__le32 mode;
 } __packed;
 
-struct host_cmd_ds_rf_tx_pwr {
+struct host_cmd_ds_rf_tx_pwr
+{
 	__le16 action;
 	__le16 cur_level;
 	u8 max_power;
 	u8 min_power;
 } __packed;
 
-struct host_cmd_ds_rf_ant_mimo {
+struct host_cmd_ds_rf_ant_mimo
+{
 	__le16 action_tx;
 	__le16 tx_ant_mode;
 	__le16 action_rx;
 	__le16 rx_ant_mode;
 };
 
-struct host_cmd_ds_rf_ant_siso {
+struct host_cmd_ds_rf_ant_siso
+{
 	__le16 action;
 	__le16 ant_mode;
 };
 
-struct host_cmd_ds_tdls_oper {
+struct host_cmd_ds_tdls_oper
+{
 	__le16 tdls_action;
 	__le16 reason;
 	u8 peer_mac[ETH_ALEN];
 } __packed;
 
-struct mwifiex_tdls_config {
+struct mwifiex_tdls_config
+{
 	__le16 enable;
 };
 
-struct mwifiex_tdls_config_cs_params {
+struct mwifiex_tdls_config_cs_params
+{
 	u8 unit_time;
 	u8 thr_otherlink;
 	u8 thr_directlink;
 };
 
-struct mwifiex_tdls_init_cs_params {
+struct mwifiex_tdls_init_cs_params
+{
 	u8 peer_mac[ETH_ALEN];
 	u8 primary_chan;
 	u8 second_chan_offset;
@@ -1391,46 +1504,54 @@ struct mwifiex_tdls_init_cs_params {
 	u8 periodicity;
 } __packed;
 
-struct mwifiex_tdls_stop_cs_params {
+struct mwifiex_tdls_stop_cs_params
+{
 	u8 peer_mac[ETH_ALEN];
 };
 
-struct host_cmd_ds_tdls_config {
+struct host_cmd_ds_tdls_config
+{
 	__le16 tdls_action;
 	u8 tdls_data[1];
 } __packed;
 
-struct mwifiex_chan_desc {
+struct mwifiex_chan_desc
+{
 	__le16 start_freq;
 	u8 chan_width;
 	u8 chan_num;
 } __packed;
 
-struct host_cmd_ds_chan_rpt_req {
+struct host_cmd_ds_chan_rpt_req
+{
 	struct mwifiex_chan_desc chan_desc;
 	__le32 msec_dwell_time;
 } __packed;
 
-struct host_cmd_ds_chan_rpt_event {
+struct host_cmd_ds_chan_rpt_event
+{
 	__le32 result;
 	__le64 start_tsf;
 	__le32 duration;
 	u8 tlvbuf[0];
 } __packed;
 
-struct host_cmd_sdio_sp_rx_aggr_cfg {
+struct host_cmd_sdio_sp_rx_aggr_cfg
+{
 	u8 action;
 	u8 enable;
 	__le16 block_size;
 } __packed;
 
-struct mwifiex_fixed_bcn_param {
+struct mwifiex_fixed_bcn_param
+{
 	__le64 timestamp;
 	__le16 beacon_period;
 	__le16 cap_info_bitmap;
 } __packed;
 
-struct mwifiex_event_scan_result {
+struct mwifiex_event_scan_result
+{
 	__le16 event_id;
 	u8 bss_index;
 	u8 bss_type;
@@ -1440,7 +1561,8 @@ struct mwifiex_event_scan_result {
 	u8 num_of_set;
 } __packed;
 
-struct tx_status_event {
+struct tx_status_event
+{
 	u8 packet_type;
 	u8 tx_token_id;
 	u8 status;
@@ -1450,7 +1572,8 @@ struct tx_status_event {
 
 #define MWIFIEX_MAX_SSID_LIST_LENGTH         10
 
-struct mwifiex_scan_cmd_config {
+struct mwifiex_scan_cmd_config
+{
 	/*
 	 *  BSS mode to be sent in the firmware command
 	 */
@@ -1472,7 +1595,8 @@ struct mwifiex_scan_cmd_config {
 				   here */
 } __packed;
 
-struct mwifiex_user_scan_chan {
+struct mwifiex_user_scan_chan
+{
 	u8 chan_number;
 	u8 radio_type;
 	u8 scan_type;
@@ -1480,7 +1604,8 @@ struct mwifiex_user_scan_chan {
 	u32 scan_time;
 } __packed;
 
-struct mwifiex_user_scan_cfg {
+struct mwifiex_user_scan_cfg
+{
 	/*
 	 *  BSS mode to be sent in the firmware command
 	 */
@@ -1511,7 +1636,8 @@ struct mwifiex_user_scan_cfg {
 /**wait for all channel scan to complete to report scan result*/
 #define MWIFIEX_BGSCAN_WAIT_ALL_CHAN_DONE  0x80000000
 
-struct mwifiex_bg_scan_cfg {
+struct mwifiex_bg_scan_cfg
+{
 	u16 action;
 	u8 enable;
 	u8 bss_type;
@@ -1529,41 +1655,48 @@ struct mwifiex_bg_scan_cfg {
 	u16 scan_chan_gap;
 } __packed;
 
-struct ie_body {
+struct ie_body
+{
 	u8 grp_key_oui[4];
 	u8 ptk_cnt[2];
 	u8 ptk_body[4];
 } __packed;
 
-struct host_cmd_ds_802_11_scan {
+struct host_cmd_ds_802_11_scan
+{
 	u8 bss_mode;
 	u8 bssid[ETH_ALEN];
 	u8 tlv_buffer[1];
 } __packed;
 
-struct host_cmd_ds_802_11_scan_rsp {
+struct host_cmd_ds_802_11_scan_rsp
+{
 	__le16 bss_descript_size;
 	u8 number_of_sets;
 	u8 bss_desc_and_tlv_buffer[1];
 } __packed;
 
-struct host_cmd_ds_802_11_scan_ext {
+struct host_cmd_ds_802_11_scan_ext
+{
 	u32   reserved;
 	u8    tlv_buffer[1];
 } __packed;
 
-struct mwifiex_ie_types_bss_mode {
+struct mwifiex_ie_types_bss_mode
+{
 	struct mwifiex_ie_types_header  header;
 	u8 bss_mode;
 } __packed;
 
-struct mwifiex_ie_types_bss_scan_rsp {
+struct mwifiex_ie_types_bss_scan_rsp
+{
 	struct mwifiex_ie_types_header header;
 	u8 bssid[ETH_ALEN];
 	u8 frame_body[1];
 } __packed;
 
-struct mwifiex_ie_types_bss_scan_info {
+struct mwifiex_ie_types_bss_scan_info
+{
 	struct mwifiex_ie_types_header header;
 	__le16 rssi;
 	__le16 anpi;
@@ -1574,7 +1707,8 @@ struct mwifiex_ie_types_bss_scan_info {
 	__le64 tsf;
 } __packed;
 
-struct host_cmd_ds_802_11_bg_scan_config {
+struct host_cmd_ds_802_11_bg_scan_config
+{
 	__le16 action;
 	u8 enable;
 	u8 bss_type;
@@ -1588,32 +1722,38 @@ struct host_cmd_ds_802_11_bg_scan_config {
 	u8 tlv[0];
 } __packed;
 
-struct host_cmd_ds_802_11_bg_scan_query {
+struct host_cmd_ds_802_11_bg_scan_query
+{
 	u8 flush;
 } __packed;
 
-struct host_cmd_ds_802_11_bg_scan_query_rsp {
+struct host_cmd_ds_802_11_bg_scan_query_rsp
+{
 	__le32 report_condition;
 	struct host_cmd_ds_802_11_scan_rsp scan_resp;
 } __packed;
 
-struct mwifiex_ietypes_domain_param_set {
+struct mwifiex_ietypes_domain_param_set
+{
 	struct mwifiex_ie_types_header header;
 	u8 country_code[IEEE80211_COUNTRY_STRING_LEN];
 	struct ieee80211_country_ie_triplet triplet[1];
 } __packed;
 
-struct host_cmd_ds_802_11d_domain_info {
+struct host_cmd_ds_802_11d_domain_info
+{
 	__le16 action;
 	struct mwifiex_ietypes_domain_param_set domain;
 } __packed;
 
-struct host_cmd_ds_802_11d_domain_info_rsp {
+struct host_cmd_ds_802_11d_domain_info_rsp
+{
 	__le16 action;
 	struct mwifiex_ietypes_domain_param_set domain;
 } __packed;
 
-struct host_cmd_ds_11n_addba_req {
+struct host_cmd_ds_11n_addba_req
+{
 	u8 add_req_result;
 	u8 peer_mac_addr[ETH_ALEN];
 	u8 dialog_token;
@@ -1622,7 +1762,8 @@ struct host_cmd_ds_11n_addba_req {
 	__le16 ssn;
 } __packed;
 
-struct host_cmd_ds_11n_addba_rsp {
+struct host_cmd_ds_11n_addba_rsp
+{
 	u8 add_rsp_result;
 	u8 peer_mac_addr[ETH_ALEN];
 	u8 dialog_token;
@@ -1632,7 +1773,8 @@ struct host_cmd_ds_11n_addba_rsp {
 	__le16 ssn;
 } __packed;
 
-struct host_cmd_ds_11n_delba {
+struct host_cmd_ds_11n_delba
+{
 	u8 del_result;
 	u8 peer_mac_addr[ETH_ALEN];
 	__le16 del_ba_param_set;
@@ -1640,73 +1782,85 @@ struct host_cmd_ds_11n_delba {
 	u8 reserved;
 } __packed;
 
-struct host_cmd_ds_11n_batimeout {
+struct host_cmd_ds_11n_batimeout
+{
 	u8 tid;
 	u8 peer_mac_addr[ETH_ALEN];
 	u8 origninator;
 } __packed;
 
-struct host_cmd_ds_11n_cfg {
+struct host_cmd_ds_11n_cfg
+{
 	__le16 action;
 	__le16 ht_tx_cap;
 	__le16 ht_tx_info;
 	__le16 misc_config;	/* Needed for 802.11AC cards only */
 } __packed;
 
-struct host_cmd_ds_txbuf_cfg {
+struct host_cmd_ds_txbuf_cfg
+{
 	__le16 action;
 	__le16 buff_size;
 	__le16 mp_end_port;	/* SDIO only, reserved for other interfacces */
 	__le16 reserved3;
 } __packed;
 
-struct host_cmd_ds_amsdu_aggr_ctrl {
+struct host_cmd_ds_amsdu_aggr_ctrl
+{
 	__le16 action;
 	__le16 enable;
 	__le16 curr_buf_size;
 } __packed;
 
-struct host_cmd_ds_sta_deauth {
+struct host_cmd_ds_sta_deauth
+{
 	u8 mac[ETH_ALEN];
 	__le16 reason;
 } __packed;
 
-struct mwifiex_ie_types_sta_info {
+struct mwifiex_ie_types_sta_info
+{
 	struct mwifiex_ie_types_header header;
 	u8 mac[ETH_ALEN];
 	u8 power_mfg_status;
 	s8 rssi;
 };
 
-struct host_cmd_ds_sta_list {
+struct host_cmd_ds_sta_list
+{
 	__le16 sta_count;
 	u8 tlv[0];
 } __packed;
 
-struct mwifiex_ie_types_pwr_capability {
+struct mwifiex_ie_types_pwr_capability
+{
 	struct mwifiex_ie_types_header header;
 	s8 min_pwr;
 	s8 max_pwr;
 };
 
-struct mwifiex_ie_types_local_pwr_constraint {
+struct mwifiex_ie_types_local_pwr_constraint
+{
 	struct mwifiex_ie_types_header header;
 	u8 chan;
 	u8 constraint;
 };
 
-struct mwifiex_ie_types_wmm_param_set {
+struct mwifiex_ie_types_wmm_param_set
+{
 	struct mwifiex_ie_types_header header;
 	u8 wmm_ie[1];
 };
 
-struct mwifiex_ie_types_mgmt_frame {
+struct mwifiex_ie_types_mgmt_frame
+{
 	struct mwifiex_ie_types_header header;
 	__le16 frame_control;
 	u8 frame_contents[0];
 };
 
-struct mwifiex_ie_types_wmm_queue_status {
+struct mwifiex_ie_types_wmm_queue_status
+{
 	struct mwifiex_ie_types_header header;
 	u8 queue_index;
 	u8 disabled;
@@ -1716,7 +1870,8 @@ struct mwifiex_ie_types_wmm_queue_status {
 	u32 reserved;
 };
 
-struct ieee_types_vendor_header {
+struct ieee_types_vendor_header
+{
 	u8 element_id;
 	u8 len;
 	u8 oui[4];	/* 0~2: oui, 3: oui_type */
@@ -1724,7 +1879,8 @@ struct ieee_types_vendor_header {
 	u8 version;
 } __packed;
 
-struct ieee_types_wmm_parameter {
+struct ieee_types_wmm_parameter
+{
 	/*
 	 * WMM Parameter IE - Vendor Specific Header:
 	 *   element_id  [221/0xdd]
@@ -1740,7 +1896,8 @@ struct ieee_types_wmm_parameter {
 	struct ieee_types_wmm_ac_parameters ac_params[IEEE80211_NUM_ACS];
 } __packed;
 
-struct ieee_types_wmm_info {
+struct ieee_types_wmm_info
+{
 
 	/*
 	 * WMM Info IE - Vendor Specific Header:
@@ -1756,40 +1913,47 @@ struct ieee_types_wmm_info {
 	u8 qos_info_bitmap;
 } __packed;
 
-struct host_cmd_ds_wmm_get_status {
+struct host_cmd_ds_wmm_get_status
+{
 	u8 queue_status_tlv[sizeof(struct mwifiex_ie_types_wmm_queue_status) *
-			      IEEE80211_NUM_ACS];
+						IEEE80211_NUM_ACS];
 	u8 wmm_param_tlv[sizeof(struct ieee_types_wmm_parameter) + 2];
 } __packed;
 
-struct mwifiex_wmm_ac_status {
+struct mwifiex_wmm_ac_status
+{
 	u8 disabled;
 	u8 flow_required;
 	u8 flow_created;
 };
 
-struct mwifiex_ie_types_htcap {
+struct mwifiex_ie_types_htcap
+{
 	struct mwifiex_ie_types_header header;
 	struct ieee80211_ht_cap ht_cap;
 } __packed;
 
-struct mwifiex_ie_types_vhtcap {
+struct mwifiex_ie_types_vhtcap
+{
 	struct mwifiex_ie_types_header header;
 	struct ieee80211_vht_cap vht_cap;
 } __packed;
 
-struct mwifiex_ie_types_aid {
+struct mwifiex_ie_types_aid
+{
 	struct mwifiex_ie_types_header header;
 	__le16 aid;
 } __packed;
 
-struct mwifiex_ie_types_oper_mode_ntf {
+struct mwifiex_ie_types_oper_mode_ntf
+{
 	struct mwifiex_ie_types_header header;
 	u8 oper_mode;
 } __packed;
 
 /* VHT Operations IE */
-struct mwifiex_ie_types_vht_oper {
+struct mwifiex_ie_types_vht_oper
+{
 	struct mwifiex_ie_types_header header;
 	u8 chan_width;
 	u8 chan_center_freq_1;
@@ -1798,66 +1962,77 @@ struct mwifiex_ie_types_vht_oper {
 	__le16 basic_mcs_map;
 } __packed;
 
-struct mwifiex_ie_types_wmmcap {
+struct mwifiex_ie_types_wmmcap
+{
 	struct mwifiex_ie_types_header header;
 	struct mwifiex_types_wmm_info wmm_info;
 } __packed;
 
-struct mwifiex_ie_types_htinfo {
+struct mwifiex_ie_types_htinfo
+{
 	struct mwifiex_ie_types_header header;
 	struct ieee80211_ht_operation ht_oper;
 } __packed;
 
-struct mwifiex_ie_types_2040bssco {
+struct mwifiex_ie_types_2040bssco
+{
 	struct mwifiex_ie_types_header header;
 	u8 bss_co_2040;
 } __packed;
 
-struct mwifiex_ie_types_extcap {
+struct mwifiex_ie_types_extcap
+{
 	struct mwifiex_ie_types_header header;
 	u8 ext_capab[0];
 } __packed;
 
-struct host_cmd_ds_mem_access {
+struct host_cmd_ds_mem_access
+{
 	__le16 action;
 	__le16 reserved;
 	__le32 addr;
 	__le32 value;
 };
 
-struct mwifiex_ie_types_qos_info {
+struct mwifiex_ie_types_qos_info
+{
 	struct mwifiex_ie_types_header header;
 	u8 qos_info;
 } __packed;
 
-struct host_cmd_ds_mac_reg_access {
+struct host_cmd_ds_mac_reg_access
+{
 	__le16 action;
 	__le16 offset;
 	__le32 value;
 } __packed;
 
-struct host_cmd_ds_bbp_reg_access {
+struct host_cmd_ds_bbp_reg_access
+{
 	__le16 action;
 	__le16 offset;
 	u8 value;
 	u8 reserved[3];
 } __packed;
 
-struct host_cmd_ds_rf_reg_access {
+struct host_cmd_ds_rf_reg_access
+{
 	__le16 action;
 	__le16 offset;
 	u8 value;
 	u8 reserved[3];
 } __packed;
 
-struct host_cmd_ds_pmic_reg_access {
+struct host_cmd_ds_pmic_reg_access
+{
 	__le16 action;
 	__le16 offset;
 	u8 value;
 	u8 reserved[3];
 } __packed;
 
-struct host_cmd_ds_802_11_eeprom_access {
+struct host_cmd_ds_802_11_eeprom_access
+{
 	__le16 action;
 
 	__le16 offset;
@@ -1865,7 +2040,8 @@ struct host_cmd_ds_802_11_eeprom_access {
 	u8 value;
 } __packed;
 
-struct mwifiex_assoc_event {
+struct mwifiex_assoc_event
+{
 	u8 sta_addr[ETH_ALEN];
 	__le16 type;
 	__le16 len;
@@ -1875,12 +2051,14 @@ struct mwifiex_assoc_event {
 	u8 data[0];
 } __packed;
 
-struct host_cmd_ds_sys_config {
+struct host_cmd_ds_sys_config
+{
 	__le16 action;
 	u8 tlv[0];
 };
 
-struct host_cmd_11ac_vht_cfg {
+struct host_cmd_11ac_vht_cfg
+{
 	__le16 action;
 	u8 band_config;
 	u8 misc_config;
@@ -1889,114 +2067,135 @@ struct host_cmd_11ac_vht_cfg {
 	__le32 mcs_rx_set;
 } __packed;
 
-struct host_cmd_tlv_akmp {
+struct host_cmd_tlv_akmp
+{
 	struct mwifiex_ie_types_header header;
 	__le16 key_mgmt;
 	__le16 key_mgmt_operation;
 } __packed;
 
-struct host_cmd_tlv_pwk_cipher {
+struct host_cmd_tlv_pwk_cipher
+{
 	struct mwifiex_ie_types_header header;
 	__le16 proto;
 	u8 cipher;
 	u8 reserved;
 } __packed;
 
-struct host_cmd_tlv_gwk_cipher {
+struct host_cmd_tlv_gwk_cipher
+{
 	struct mwifiex_ie_types_header header;
 	u8 cipher;
 	u8 reserved;
 } __packed;
 
-struct host_cmd_tlv_passphrase {
+struct host_cmd_tlv_passphrase
+{
 	struct mwifiex_ie_types_header header;
 	u8 passphrase[0];
 } __packed;
 
-struct host_cmd_tlv_wep_key {
+struct host_cmd_tlv_wep_key
+{
 	struct mwifiex_ie_types_header header;
 	u8 key_index;
 	u8 is_default;
 	u8 key[1];
 };
 
-struct host_cmd_tlv_auth_type {
+struct host_cmd_tlv_auth_type
+{
 	struct mwifiex_ie_types_header header;
 	u8 auth_type;
 } __packed;
 
-struct host_cmd_tlv_encrypt_protocol {
+struct host_cmd_tlv_encrypt_protocol
+{
 	struct mwifiex_ie_types_header header;
 	__le16 proto;
 } __packed;
 
-struct host_cmd_tlv_ssid {
+struct host_cmd_tlv_ssid
+{
 	struct mwifiex_ie_types_header header;
 	u8 ssid[0];
 } __packed;
 
-struct host_cmd_tlv_rates {
+struct host_cmd_tlv_rates
+{
 	struct mwifiex_ie_types_header header;
 	u8 rates[0];
 } __packed;
 
-struct mwifiex_ie_types_bssid_list {
+struct mwifiex_ie_types_bssid_list
+{
 	struct mwifiex_ie_types_header header;
 	u8 bssid[ETH_ALEN];
 } __packed;
 
-struct host_cmd_tlv_bcast_ssid {
+struct host_cmd_tlv_bcast_ssid
+{
 	struct mwifiex_ie_types_header header;
 	u8 bcast_ctl;
 } __packed;
 
-struct host_cmd_tlv_beacon_period {
+struct host_cmd_tlv_beacon_period
+{
 	struct mwifiex_ie_types_header header;
 	__le16 period;
 } __packed;
 
-struct host_cmd_tlv_dtim_period {
+struct host_cmd_tlv_dtim_period
+{
 	struct mwifiex_ie_types_header header;
 	u8 period;
 } __packed;
 
-struct host_cmd_tlv_frag_threshold {
+struct host_cmd_tlv_frag_threshold
+{
 	struct mwifiex_ie_types_header header;
 	__le16 frag_thr;
 } __packed;
 
-struct host_cmd_tlv_rts_threshold {
+struct host_cmd_tlv_rts_threshold
+{
 	struct mwifiex_ie_types_header header;
 	__le16 rts_thr;
 } __packed;
 
-struct host_cmd_tlv_retry_limit {
+struct host_cmd_tlv_retry_limit
+{
 	struct mwifiex_ie_types_header header;
 	u8 limit;
 } __packed;
 
-struct host_cmd_tlv_mac_addr {
+struct host_cmd_tlv_mac_addr
+{
 	struct mwifiex_ie_types_header header;
 	u8 mac_addr[ETH_ALEN];
 } __packed;
 
-struct host_cmd_tlv_channel_band {
+struct host_cmd_tlv_channel_band
+{
 	struct mwifiex_ie_types_header header;
 	u8 band_config;
 	u8 channel;
 } __packed;
 
-struct host_cmd_tlv_ageout_timer {
+struct host_cmd_tlv_ageout_timer
+{
 	struct mwifiex_ie_types_header header;
 	__le32 sta_ao_timer;
 } __packed;
 
-struct host_cmd_tlv_power_constraint {
+struct host_cmd_tlv_power_constraint
+{
 	struct mwifiex_ie_types_header header;
 	u8 constraint;
 } __packed;
 
-struct mwifiex_ie_types_btcoex_scan_time {
+struct mwifiex_ie_types_btcoex_scan_time
+{
 	struct mwifiex_ie_types_header header;
 	u8 coex_scan;
 	u8 reserved;
@@ -2004,7 +2203,8 @@ struct mwifiex_ie_types_btcoex_scan_time {
 	__le16 max_scan_time;
 } __packed;
 
-struct mwifiex_ie_types_btcoex_aggr_win_size {
+struct mwifiex_ie_types_btcoex_aggr_win_size
+{
 	struct mwifiex_ie_types_header header;
 	u8 coex_win_size;
 	u8 tx_win_size;
@@ -2012,27 +2212,32 @@ struct mwifiex_ie_types_btcoex_aggr_win_size {
 	u8 reserved;
 } __packed;
 
-struct mwifiex_ie_types_robust_coex {
+struct mwifiex_ie_types_robust_coex
+{
 	struct mwifiex_ie_types_header header;
 	__le32 mode;
 } __packed;
 
-struct host_cmd_ds_version_ext {
+struct host_cmd_ds_version_ext
+{
 	u8 version_str_sel;
 	char version_str[128];
 } __packed;
 
-struct host_cmd_ds_mgmt_frame_reg {
+struct host_cmd_ds_mgmt_frame_reg
+{
 	__le16 action;
 	__le32 mask;
 } __packed;
 
-struct host_cmd_ds_p2p_mode_cfg {
+struct host_cmd_ds_p2p_mode_cfg
+{
 	__le16 action;
 	__le16 mode;
 } __packed;
 
-struct host_cmd_ds_remain_on_chan {
+struct host_cmd_ds_remain_on_chan
+{
 	__le16 action;
 	u8 status;
 	u8 reserved;
@@ -2041,7 +2246,8 @@ struct host_cmd_ds_remain_on_chan {
 	__le32 duration;
 } __packed;
 
-struct host_cmd_ds_802_11_ibss_status {
+struct host_cmd_ds_802_11_ibss_status
+{
 	__le16 action;
 	__le16 enable;
 	u8 bssid[ETH_ALEN];
@@ -2050,14 +2256,16 @@ struct host_cmd_ds_802_11_ibss_status {
 	__le16 use_g_rate_protect;
 } __packed;
 
-struct mwifiex_fw_mef_entry {
+struct mwifiex_fw_mef_entry
+{
 	u8 mode;
 	u8 action;
 	__le16 exprsize;
 	u8 expr[0];
 } __packed;
 
-struct host_cmd_ds_mef_cfg {
+struct host_cmd_ds_mef_cfg
+{
 	__le32 criteria;
 	__le16 num_entries;
 	struct mwifiex_fw_mef_entry mef_entry[0];
@@ -2067,11 +2275,13 @@ struct host_cmd_ds_mef_cfg {
 #define CONNECTION_TYPE_ADHOC   1
 #define CONNECTION_TYPE_AP      2
 
-struct host_cmd_ds_set_bss_mode {
+struct host_cmd_ds_set_bss_mode
+{
 	u8 con_type;
 } __packed;
 
-struct host_cmd_ds_pcie_details {
+struct host_cmd_ds_pcie_details
+{
 	/* TX buffer descriptor ring address */
 	__le32 txbd_addr_lo;
 	__le32 txbd_addr_hi;
@@ -2095,7 +2305,8 @@ struct host_cmd_ds_pcie_details {
 	__le32 sleep_cookie_addr_hi;
 } __packed;
 
-struct mwifiex_ie_types_rssi_threshold {
+struct mwifiex_ie_types_rssi_threshold
+{
 	struct mwifiex_ie_types_header header;
 	u8 abs_value;
 	u8 evt_freq;
@@ -2105,7 +2316,8 @@ struct mwifiex_ie_types_rssi_threshold {
 #define MWIFIEX_DFS_REC_HDR_NUM		10
 #define MWIFIEX_BIN_COUNTER_LEN		7
 
-struct mwifiex_radar_det_event {
+struct mwifiex_radar_det_event
+{
 	__le32 detect_count;
 	u8 reg_domain;  /*1=fcc, 2=etsi, 3=mic*/
 	u8 det_type;  /*0=none, 1=pw(chirp), 2=pri(radar)*/
@@ -2120,13 +2332,15 @@ struct mwifiex_radar_det_event {
 	__le32 passed;
 } __packed;
 
-struct mwifiex_ie_types_multi_chan_info {
+struct mwifiex_ie_types_multi_chan_info
+{
 	struct mwifiex_ie_types_header header;
 	__le16 status;
 	u8 tlv_buffer[0];
 } __packed;
 
-struct mwifiex_ie_types_mc_group_info {
+struct mwifiex_ie_types_mc_group_info
+{
 	struct mwifiex_ie_types_header header;
 	u8 chan_group_id;
 	u8 chan_buf_weight;
@@ -2134,7 +2348,8 @@ struct mwifiex_ie_types_mc_group_info {
 	u8 chan_num;
 	__le32 chan_time;
 	__le32 reserved;
-	union {
+	union
+	{
 		u8 sdio_func_num;
 		u8 usb_ep_num;
 	} hid_num;
@@ -2142,35 +2357,41 @@ struct mwifiex_ie_types_mc_group_info {
 	u8 bss_type_numlist[0];
 } __packed;
 
-struct meas_rpt_map {
-	u8 rssi:3;
-	u8 unmeasured:1;
-	u8 radar:1;
-	u8 unidentified_sig:1;
-	u8 ofdm_preamble:1;
-	u8 bss:1;
+struct meas_rpt_map
+{
+	u8 rssi: 3;
+	u8 unmeasured: 1;
+	u8 radar: 1;
+	u8 unidentified_sig: 1;
+	u8 ofdm_preamble: 1;
+	u8 bss: 1;
 } __packed;
 
-struct mwifiex_ie_types_chan_rpt_data {
+struct mwifiex_ie_types_chan_rpt_data
+{
 	struct mwifiex_ie_types_header header;
 	struct meas_rpt_map map;
 } __packed;
 
-struct host_cmd_ds_802_11_subsc_evt {
+struct host_cmd_ds_802_11_subsc_evt
+{
 	__le16 action;
 	__le16 events;
 } __packed;
 
-struct chan_switch_result {
+struct chan_switch_result
+{
 	u8 cur_chan;
 	u8 status;
 	u8 reason;
 } __packed;
 
-struct mwifiex_tdls_generic_event {
+struct mwifiex_tdls_generic_event
+{
 	__le16 type;
 	u8 peer_mac[ETH_ALEN];
-	union {
+	union
+	{
 		struct chan_switch_result switch_result;
 		u8 cs_stop_reason;
 		__le16 reason_code;
@@ -2178,7 +2399,8 @@ struct mwifiex_tdls_generic_event {
 	} u;
 } __packed;
 
-struct mwifiex_ie {
+struct mwifiex_ie
+{
 	__le16 ie_index;
 	__le16 mgmt_subtype_mask;
 	__le16 ie_length;
@@ -2186,20 +2408,23 @@ struct mwifiex_ie {
 } __packed;
 
 #define MAX_MGMT_IE_INDEX	16
-struct mwifiex_ie_list {
+struct mwifiex_ie_list
+{
 	__le16 type;
 	__le16 len;
 	struct mwifiex_ie ie_list[MAX_MGMT_IE_INDEX];
 } __packed;
 
-struct coalesce_filt_field_param {
+struct coalesce_filt_field_param
+{
 	u8 operation;
 	u8 operand_len;
 	__le16 offset;
 	u8 operand_byte_stream[4];
 };
 
-struct coalesce_receive_filt_rule {
+struct coalesce_receive_filt_rule
+{
 	struct mwifiex_ie_types_header header;
 	u8 num_of_fields;
 	u8 pkt_type;
@@ -2207,27 +2432,32 @@ struct coalesce_receive_filt_rule {
 	struct coalesce_filt_field_param params[0];
 } __packed;
 
-struct host_cmd_ds_coalesce_cfg {
+struct host_cmd_ds_coalesce_cfg
+{
 	__le16 action;
 	__le16 num_of_rules;
 	struct coalesce_receive_filt_rule rule[0];
 } __packed;
 
-struct host_cmd_ds_multi_chan_policy {
+struct host_cmd_ds_multi_chan_policy
+{
 	__le16 action;
 	__le16 policy;
 } __packed;
 
-struct host_cmd_ds_robust_coex {
+struct host_cmd_ds_robust_coex
+{
 	__le16 action;
 	__le16 reserved;
 } __packed;
 
-struct host_cmd_ds_wakeup_reason {
+struct host_cmd_ds_wakeup_reason
+{
 	__le16  wakeup_reason;
 } __packed;
 
-struct host_cmd_ds_gtk_rekey_params {
+struct host_cmd_ds_gtk_rekey_params
+{
 	__le16 action;
 	u8 kck[NL80211_KCK_LEN];
 	u8 kek[NL80211_KEK_LEN];
@@ -2235,16 +2465,19 @@ struct host_cmd_ds_gtk_rekey_params {
 	__le32 replay_ctr_high;
 } __packed;
 
-struct host_cmd_ds_chan_region_cfg {
+struct host_cmd_ds_chan_region_cfg
+{
 	__le16 action;
 } __packed;
 
-struct host_cmd_ds_command {
+struct host_cmd_ds_command
+{
 	__le16 command;
 	__le16 size;
 	__le16 seq_num;
 	__le16 result;
-	union {
+	union
+	{
 		struct host_cmd_ds_get_hw_spec hw_spec;
 		struct host_cmd_ds_mac_control mac_ctrl;
 		struct host_cmd_ds_802_11_mac_address mac_addr;
@@ -2317,7 +2550,8 @@ struct host_cmd_ds_command {
 	} params;
 } __packed;
 
-struct mwifiex_opt_sleep_confirm {
+struct mwifiex_opt_sleep_confirm
+{
 	__le16 command;
 	__le16 size;
 	__le16 seq_num;

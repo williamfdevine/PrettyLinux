@@ -40,7 +40,8 @@
 #include <net/sctp/structs.h>
 
 
-typedef enum {
+typedef enum
+{
 	SCTP_CMD_NOP = 0,	/* Do nothing. */
 	SCTP_CMD_NEW_ASOC,	/* Register a new association.  */
 	SCTP_CMD_DELETE_TCB,	/* Delete the current association. */
@@ -117,7 +118,8 @@ typedef enum {
  */
 #define SCTP_MAX_NUM_COMMANDS 20
 
-typedef union {
+typedef union
+{
 	void *zero_all;	/* Set to NULL to clear the entire union */
 	__s32 i32;
 	__u32 u32;
@@ -152,13 +154,13 @@ typedef union {
  */
 
 #define SCTP_ARG_CONSTRUCTOR(name, type, elt) \
-static inline sctp_arg_t	\
-SCTP_## name (type arg)		\
-{ sctp_arg_t retval;\
-  retval.zero_all = NULL;\
-  retval.elt = arg;\
-  return retval;\
-}
+	static inline sctp_arg_t	\
+	SCTP_## name (type arg)		\
+	{ sctp_arg_t retval;\
+		retval.zero_all = NULL;\
+		retval.elt = arg;\
+		return retval;\
+	}
 
 SCTP_ARG_CONSTRUCTOR(I32,	__s32, i32)
 SCTP_ARG_CONSTRUCTOR(U32,	__u32, u32)
@@ -196,12 +198,14 @@ static inline sctp_arg_t SCTP_NULL(void)
 	return retval;
 }
 
-typedef struct {
+typedef struct
+{
 	sctp_arg_t obj;
 	sctp_verb_t verb;
 } sctp_cmd_t;
 
-typedef struct {
+typedef struct
+{
 	sctp_cmd_t cmds[SCTP_MAX_NUM_COMMANDS];
 	sctp_cmd_t *last_used_slot;
 	sctp_cmd_t *next_cmd;
@@ -226,7 +230,7 @@ static inline int sctp_init_cmd_seq(sctp_cmd_seq_t *seq)
  * to wrap data which goes in the obj argument.
  */
 static inline void sctp_add_cmd_sf(sctp_cmd_seq_t *seq, sctp_verb_t verb,
-				   sctp_arg_t obj)
+								   sctp_arg_t obj)
 {
 	sctp_cmd_t *cmd = seq->last_used_slot - 1;
 
@@ -243,7 +247,9 @@ static inline void sctp_add_cmd_sf(sctp_cmd_seq_t *seq, sctp_verb_t verb,
 static inline sctp_cmd_t *sctp_next_cmd(sctp_cmd_seq_t *seq)
 {
 	if (seq->next_cmd <= seq->last_used_slot)
+	{
 		return NULL;
+	}
 
 	return --seq->next_cmd;
 }

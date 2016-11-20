@@ -54,7 +54,8 @@
  */
 #define VXFS_NEFREE		32
 
-enum vxfs_byte_order {
+enum vxfs_byte_order
+{
 	VXFS_BO_LE,
 	VXFS_BO_BE,
 };
@@ -66,7 +67,8 @@ typedef __u64 __bitwise __fs64;
 /*
  * VxFS superblock (disk).
  */
-struct vxfs_sb {
+struct vxfs_sb
+{
 	/*
 	 * Readonly fields for the version 1 superblock.
 	 *
@@ -121,7 +123,7 @@ struct vxfs_sb {
 	__fs32		vs_boffmask;		/* bsize - 1 */
 	__fs32		vs_old_inomask;		/* old_inopilb - 1 */
 	__fs32		vs_checksum;		/* checksum of V1 data */
-	
+
 	/*
 	 * Version 1, writable
 	 */
@@ -139,7 +141,7 @@ struct vxfs_sb {
 	__u8		vs_fpack[6];		/* FS pack name */
 	__fs32		vs_logversion;		/* log format version */
 	__u32		__unused5;		/* unused */
-	
+
 	/*
 	 * Version 2, Read-only
 	 */
@@ -160,7 +162,8 @@ struct vxfs_sb {
 /*
  * In core superblock filesystem private data for VxFS.
  */
-struct vxfs_sb_info {
+struct vxfs_sb_info
+{
 	struct vxfs_sb		*vsi_raw;	/* raw (on disk) superblock */
 	struct buffer_head	*vsi_bp;	/* buffer for raw superblock*/
 	struct inode		*vsi_fship;	/* fileset header inode */
@@ -176,25 +179,37 @@ struct vxfs_sb_info {
 static inline u16 fs16_to_cpu(struct vxfs_sb_info *sbi, __fs16 a)
 {
 	if (sbi->byte_order == VXFS_BO_BE)
+	{
 		return be16_to_cpu((__force __be16)a);
+	}
 	else
+	{
 		return le16_to_cpu((__force __le16)a);
+	}
 }
 
 static inline u32 fs32_to_cpu(struct vxfs_sb_info *sbi, __fs32 a)
 {
 	if (sbi->byte_order == VXFS_BO_BE)
+	{
 		return be32_to_cpu((__force __be32)a);
+	}
 	else
+	{
 		return le32_to_cpu((__force __le32)a);
+	}
 }
 
 static inline u64 fs64_to_cpu(struct vxfs_sb_info *sbi, __fs64 a)
 {
 	if (sbi->byte_order == VXFS_BO_BE)
+	{
 		return be64_to_cpu((__force __be64)a);
+	}
 	else
+	{
 		return le64_to_cpu((__force __le64)a);
+	}
 }
 
 /*
@@ -202,7 +217,8 @@ static inline u64 fs64_to_cpu(struct vxfs_sb_info *sbi, __fs64 a)
  * not be passed back to higher levels of the system.  vxfs file types must
  * never have one of the regular file type bits set.
  */
-enum vxfs_mode {
+enum vxfs_mode
+{
 	VXFS_ISUID = 0x00000800,	/* setuid */
 	VXFS_ISGID = 0x00000400,	/* setgid */
 	VXFS_ISVTX = 0x00000200,	/* sticky bit */
@@ -260,7 +276,8 @@ enum vxfs_mode {
 /*
  * Inmode organisation types.
  */
-enum {
+enum
+{
 	VXFS_ORG_NONE	= 0,	/* Inode has *no* format ?!? */
 	VXFS_ORG_EXT4	= 1,	/* Ext4 */
 	VXFS_ORG_IMMED	= 2,	/* All data stored in inode */

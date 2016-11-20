@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct ip6t_ah {
+struct ip6t_ah
+{
 	__u32 spis[2];			/* Security Parameter Index */
 	__u32 hdrlen;			/* Header Length */
 	__u8  hdrres;			/* Test of the Reserved Filed */

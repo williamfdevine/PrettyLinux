@@ -22,14 +22,16 @@ struct cb710_slot;
 typedef int (*cb710_irq_handler_t)(struct cb710_slot *);
 
 /* per-virtual-slot structure */
-struct cb710_slot {
+struct cb710_slot
+{
 	struct platform_device	pdev;
 	void __iomem		*iobase;
 	cb710_irq_handler_t	irq_handler;
 };
 
 /* per-device structure */
-struct cb710_chip {
+struct cb710_chip
+{
 	struct pci_dev		*pdev;
 	void __iomem		*iobase;
 	unsigned		platform_id;
@@ -52,34 +54,34 @@ struct cb710_chip {
 
 /* slot port accessors - so the logic is more clear in the code */
 #define CB710_PORT_ACCESSORS(t) \
-static inline void cb710_write_port_##t(struct cb710_slot *slot,	\
-	unsigned port, u##t value)					\
-{									\
-	iowrite##t(value, slot->iobase + port);				\
-}									\
-									\
-static inline u##t cb710_read_port_##t(struct cb710_slot *slot,		\
-	unsigned port)							\
-{									\
-	return ioread##t(slot->iobase + port);				\
-}									\
-									\
-static inline void cb710_modify_port_##t(struct cb710_slot *slot,	\
-	unsigned port, u##t set, u##t clear)				\
-{									\
-	iowrite##t(							\
-		(ioread##t(slot->iobase + port) & ~clear)|set,		\
-		slot->iobase + port);					\
-}
+	static inline void cb710_write_port_##t(struct cb710_slot *slot,	\
+											unsigned port, u##t value)					\
+	{									\
+		iowrite##t(value, slot->iobase + port);				\
+	}									\
+	\
+	static inline u##t cb710_read_port_##t(struct cb710_slot *slot,		\
+										   unsigned port)							\
+	{									\
+		return ioread##t(slot->iobase + port);				\
+	}									\
+	\
+	static inline void cb710_modify_port_##t(struct cb710_slot *slot,	\
+			unsigned port, u##t set, u##t clear)				\
+	{									\
+		iowrite##t(							\
+											(ioread##t(slot->iobase + port) & ~clear)|set,		\
+											slot->iobase + port);					\
+	}
 
 CB710_PORT_ACCESSORS(8)
 CB710_PORT_ACCESSORS(16)
 CB710_PORT_ACCESSORS(32)
 
 void cb710_pci_update_config_reg(struct pci_dev *pdev,
-	int reg, uint32_t and, uint32_t xor);
+								 int reg, uint32_t and , uint32_t xor);
 void cb710_set_irq_handler(struct cb710_slot *slot,
-	cb710_irq_handler_t handler);
+						   cb710_irq_handler_t handler);
 
 /* some device struct walking */
 
@@ -107,9 +109,9 @@ static inline struct device *cb710_chip_dev(struct cb710_chip *chip)
 /* debugging aids */
 
 #ifdef CONFIG_CB710_DEBUG
-void cb710_dump_regs(struct cb710_chip *chip, unsigned dump);
+	void cb710_dump_regs(struct cb710_chip *chip, unsigned dump);
 #else
-#define cb710_dump_regs(c, d) do {} while (0)
+	#define cb710_dump_regs(c, d) do {} while (0)
 #endif
 
 #define CB710_DUMP_REGS_MMC	0x0F
@@ -177,10 +179,12 @@ void cb710_sg_dwiter_write_next_block(struct sg_mapping_iter *miter, uint32_t da
  *   IRQ disabled if the SG_MITER_ATOMIC is set.  Don't care otherwise.
  */
 static inline void cb710_sg_dwiter_write_from_io(struct sg_mapping_iter *miter,
-	void __iomem *port, size_t count)
+		void __iomem *port, size_t count)
 {
 	while (count-- > 0)
+	{
 		cb710_sg_dwiter_write_next_block(miter, ioread32(port));
+	}
 }
 
 /**
@@ -199,10 +203,12 @@ static inline void cb710_sg_dwiter_write_from_io(struct sg_mapping_iter *miter,
  *   IRQ disabled if the SG_MITER_ATOMIC is set.  Don't care otherwise.
  */
 static inline void cb710_sg_dwiter_read_to_io(struct sg_mapping_iter *miter,
-	void __iomem *port, size_t count)
+		void __iomem *port, size_t count)
 {
 	while (count-- > 0)
+	{
 		iowrite32(cb710_sg_dwiter_read_next_block(miter), port);
+	}
 }
 
 #endif /* LINUX_CB710_SG_H */

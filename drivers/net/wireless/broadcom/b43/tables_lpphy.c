@@ -30,7 +30,8 @@
 
 
 /* Entry of the 2062/2063 radio init table */
-struct b206x_init_tab_entry {
+struct b206x_init_tab_entry
+{
 	u16 offset;
 	u16 value_a;
 	u16 value_g;
@@ -39,7 +40,8 @@ struct b206x_init_tab_entry {
 #define B206X_FLAG_A	0x01 /* Flag: Init in A mode */
 #define B206X_FLAG_G	0x02 /* Flag: Init in G mode */
 
-static const struct b206x_init_tab_entry b2062_init_tab[] = {
+static const struct b206x_init_tab_entry b2062_init_tab[] =
+{
 	/* { .offset = B2062_N_COMM1, .value_a = 0x0000, .value_g = 0x0000, .flags = 0, }, */
 	/* { .offset = 0x0001, .value_a = 0x0000, .value_g = 0x0000, .flags = 0, }, */
 	/* { .offset = B2062_N_COMM2, .value_a = 0x0000, .value_g = 0x0000, .flags = 0, }, */
@@ -254,7 +256,8 @@ static const struct b206x_init_tab_entry b2062_init_tab[] = {
 	/* { .offset = B2062_S_RXG_CNT17, .value_a = 0x0055, .value_g = 0x0055, .flags = 0, }, */
 };
 
-static const struct b206x_init_tab_entry b2063_init_tab[] = {
+static const struct b206x_init_tab_entry b2063_init_tab[] =
+{
 	{ .offset = B2063_COMM1, .value_a = 0x0000, .value_g = 0x0000, .flags = B206X_FLAG_G, },
 	/* { .offset = B2063_COMM2, .value_a = 0x0000, .value_g = 0x0000, .flags = 0, }, */
 	/* { .offset = B2063_COMM3, .value_a = 0x0000, .value_g = 0x0000, .flags = 0, }, */
@@ -558,15 +561,26 @@ void b2062_upload_init_table(struct b43_wldev *dev)
 	const struct b206x_init_tab_entry *e;
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(b2062_init_tab); i++) {
+	for (i = 0; i < ARRAY_SIZE(b2062_init_tab); i++)
+	{
 		e = &b2062_init_tab[i];
-		if (b43_current_band(dev->wl) == NL80211_BAND_2GHZ) {
+
+		if (b43_current_band(dev->wl) == NL80211_BAND_2GHZ)
+		{
 			if (!(e->flags & B206X_FLAG_G))
+			{
 				continue;
+			}
+
 			b43_radio_write(dev, e->offset, e->value_g);
-		} else {
+		}
+		else
+		{
 			if (!(e->flags & B206X_FLAG_A))
+			{
 				continue;
+			}
+
 			b43_radio_write(dev, e->offset, e->value_a);
 		}
 	}
@@ -577,15 +591,26 @@ void b2063_upload_init_table(struct b43_wldev *dev)
 	const struct b206x_init_tab_entry *e;
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(b2063_init_tab); i++) {
+	for (i = 0; i < ARRAY_SIZE(b2063_init_tab); i++)
+	{
 		e = &b2063_init_tab[i];
-		if (b43_current_band(dev->wl) == NL80211_BAND_2GHZ) {
+
+		if (b43_current_band(dev->wl) == NL80211_BAND_2GHZ)
+		{
 			if (!(e->flags & B206X_FLAG_G))
+			{
 				continue;
+			}
+
 			b43_radio_write(dev, e->offset, e->value_g);
-		} else {
+		}
+		else
+		{
 			if (!(e->flags & B206X_FLAG_A))
+			{
 				continue;
+			}
+
 			b43_radio_write(dev, e->offset, e->value_a);
 		}
 	}
@@ -599,31 +624,35 @@ u32 b43_lptab_read(struct b43_wldev *dev, u32 offset)
 	offset &= ~B43_LPTAB_TYPEMASK;
 	B43_WARN_ON(offset > 0xFFFF);
 
-	switch (type) {
-	case B43_LPTAB_8BIT:
-		b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
-		value = b43_phy_read(dev, B43_LPPHY_TABLEDATALO) & 0xFF;
-		break;
-	case B43_LPTAB_16BIT:
-		b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
-		value = b43_phy_read(dev, B43_LPPHY_TABLEDATALO);
-		break;
-	case B43_LPTAB_32BIT:
-		b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
-		value = b43_phy_read(dev, B43_LPPHY_TABLEDATAHI);
-		value <<= 16;
-		value |= b43_phy_read(dev, B43_LPPHY_TABLEDATALO);
-		break;
-	default:
-		B43_WARN_ON(1);
-		value = 0;
+	switch (type)
+	{
+		case B43_LPTAB_8BIT:
+			b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
+			value = b43_phy_read(dev, B43_LPPHY_TABLEDATALO) & 0xFF;
+			break;
+
+		case B43_LPTAB_16BIT:
+			b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
+			value = b43_phy_read(dev, B43_LPPHY_TABLEDATALO);
+			break;
+
+		case B43_LPTAB_32BIT:
+			b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
+			value = b43_phy_read(dev, B43_LPPHY_TABLEDATAHI);
+			value <<= 16;
+			value |= b43_phy_read(dev, B43_LPPHY_TABLEDATALO);
+			break;
+
+		default:
+			B43_WARN_ON(1);
+			value = 0;
 	}
 
 	return value;
 }
 
 void b43_lptab_read_bulk(struct b43_wldev *dev, u32 offset,
-			 unsigned int nr_elements, void *_data)
+						 unsigned int nr_elements, void *_data)
 {
 	u32 type;
 	u8 *data = _data;
@@ -635,24 +664,29 @@ void b43_lptab_read_bulk(struct b43_wldev *dev, u32 offset,
 
 	b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
 
-	for (i = 0; i < nr_elements; i++) {
-		switch (type) {
-		case B43_LPTAB_8BIT:
-			*data = b43_phy_read(dev, B43_LPPHY_TABLEDATALO) & 0xFF;
-			data++;
-			break;
-		case B43_LPTAB_16BIT:
-			*((u16 *)data) = b43_phy_read(dev, B43_LPPHY_TABLEDATALO);
-			data += 2;
-			break;
-		case B43_LPTAB_32BIT:
-			*((u32 *)data) = b43_phy_read(dev, B43_LPPHY_TABLEDATAHI);
-			*((u32 *)data) <<= 16;
-			*((u32 *)data) |= b43_phy_read(dev, B43_LPPHY_TABLEDATALO);
-			data += 4;
-			break;
-		default:
-			B43_WARN_ON(1);
+	for (i = 0; i < nr_elements; i++)
+	{
+		switch (type)
+		{
+			case B43_LPTAB_8BIT:
+				*data = b43_phy_read(dev, B43_LPPHY_TABLEDATALO) & 0xFF;
+				data++;
+				break;
+
+			case B43_LPTAB_16BIT:
+				*((u16 *)data) = b43_phy_read(dev, B43_LPPHY_TABLEDATALO);
+				data += 2;
+				break;
+
+			case B43_LPTAB_32BIT:
+				*((u32 *)data) = b43_phy_read(dev, B43_LPPHY_TABLEDATAHI);
+				*((u32 *)data) <<= 16;
+				*((u32 *)data) |= b43_phy_read(dev, B43_LPPHY_TABLEDATALO);
+				data += 4;
+				break;
+
+			default:
+				B43_WARN_ON(1);
 		}
 	}
 }
@@ -665,29 +699,33 @@ void b43_lptab_write(struct b43_wldev *dev, u32 offset, u32 value)
 	offset &= ~B43_LPTAB_TYPEMASK;
 	B43_WARN_ON(offset > 0xFFFF);
 
-	switch (type) {
-	case B43_LPTAB_8BIT:
-		B43_WARN_ON(value & ~0xFF);
-		b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
-		b43_phy_write(dev, B43_LPPHY_TABLEDATALO, value);
-		break;
-	case B43_LPTAB_16BIT:
-		B43_WARN_ON(value & ~0xFFFF);
-		b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
-		b43_phy_write(dev, B43_LPPHY_TABLEDATALO, value);
-		break;
-	case B43_LPTAB_32BIT:
-		b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
-		b43_phy_write(dev, B43_LPPHY_TABLEDATAHI, value >> 16);
-		b43_phy_write(dev, B43_LPPHY_TABLEDATALO, value);
-		break;
-	default:
-		B43_WARN_ON(1);
+	switch (type)
+	{
+		case B43_LPTAB_8BIT:
+			B43_WARN_ON(value & ~0xFF);
+			b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
+			b43_phy_write(dev, B43_LPPHY_TABLEDATALO, value);
+			break;
+
+		case B43_LPTAB_16BIT:
+			B43_WARN_ON(value & ~0xFFFF);
+			b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
+			b43_phy_write(dev, B43_LPPHY_TABLEDATALO, value);
+			break;
+
+		case B43_LPTAB_32BIT:
+			b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
+			b43_phy_write(dev, B43_LPPHY_TABLEDATAHI, value >> 16);
+			b43_phy_write(dev, B43_LPPHY_TABLEDATALO, value);
+			break;
+
+		default:
+			B43_WARN_ON(1);
 	}
 }
 
 void b43_lptab_write_bulk(struct b43_wldev *dev, u32 offset,
-			  unsigned int nr_elements, const void *_data)
+						  unsigned int nr_elements, const void *_data)
 {
 	u32 type, value;
 	const u8 *data = _data;
@@ -699,33 +737,39 @@ void b43_lptab_write_bulk(struct b43_wldev *dev, u32 offset,
 
 	b43_phy_write(dev, B43_LPPHY_TABLE_ADDR, offset);
 
-	for (i = 0; i < nr_elements; i++) {
-		switch (type) {
-		case B43_LPTAB_8BIT:
-			value = *data;
-			data++;
-			B43_WARN_ON(value & ~0xFF);
-			b43_phy_write(dev, B43_LPPHY_TABLEDATALO, value);
-			break;
-		case B43_LPTAB_16BIT:
-			value = *((u16 *)data);
-			data += 2;
-			B43_WARN_ON(value & ~0xFFFF);
-			b43_phy_write(dev, B43_LPPHY_TABLEDATALO, value);
-			break;
-		case B43_LPTAB_32BIT:
-			value = *((u32 *)data);
-			data += 4;
-			b43_phy_write(dev, B43_LPPHY_TABLEDATAHI, value >> 16);
-			b43_phy_write(dev, B43_LPPHY_TABLEDATALO, value);
-			break;
-		default:
-			B43_WARN_ON(1);
+	for (i = 0; i < nr_elements; i++)
+	{
+		switch (type)
+		{
+			case B43_LPTAB_8BIT:
+				value = *data;
+				data++;
+				B43_WARN_ON(value & ~0xFF);
+				b43_phy_write(dev, B43_LPPHY_TABLEDATALO, value);
+				break;
+
+			case B43_LPTAB_16BIT:
+				value = *((u16 *)data);
+				data += 2;
+				B43_WARN_ON(value & ~0xFFFF);
+				b43_phy_write(dev, B43_LPPHY_TABLEDATALO, value);
+				break;
+
+			case B43_LPTAB_32BIT:
+				value = *((u32 *)data);
+				data += 4;
+				b43_phy_write(dev, B43_LPPHY_TABLEDATAHI, value >> 16);
+				b43_phy_write(dev, B43_LPPHY_TABLEDATALO, value);
+				break;
+
+			default:
+				B43_WARN_ON(1);
 		}
 	}
 }
 
-static const u8 lpphy_min_sig_sq_table[] = {
+static const u8 lpphy_min_sig_sq_table[] =
+{
 	0xde, 0xdc, 0xda, 0xd8, 0xd6, 0xd4, 0xd2, 0xcf, 0xcd,
 	0xca, 0xc7, 0xc4, 0xc1, 0xbe, 0xbe, 0xbe, 0xbe, 0xbe,
 	0xbe, 0xbe, 0xbe, 0xbe, 0xbe, 0xbe, 0xbe, 0xbe, 0x00,
@@ -734,7 +778,8 @@ static const u8 lpphy_min_sig_sq_table[] = {
 	0xcf, 0xd2, 0xd4, 0xd6, 0xd8, 0xda, 0xdc, 0xde,
 };
 
-static const u16 lpphy_rev01_noise_scale_table[] = {
+static const u16 lpphy_rev01_noise_scale_table[] =
+{
 	0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4,
 	0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa400, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4,
 	0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0x00a4,
@@ -742,7 +787,8 @@ static const u16 lpphy_rev01_noise_scale_table[] = {
 	0x0000, 0x0000, 0x4c00, 0x2d36,
 };
 
-static const u16 lpphy_rev2plus_noise_scale_table[] = {
+static const u16 lpphy_rev2plus_noise_scale_table[] =
+{
 	0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4,
 	0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4,
 	0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x00a4, 0x0000,
@@ -752,24 +798,28 @@ static const u16 lpphy_rev2plus_noise_scale_table[] = {
 	0x00a4,
 };
 
-static const u16 lpphy_crs_gain_nft_table[] = {
+static const u16 lpphy_crs_gain_nft_table[] =
+{
 	0x0366, 0x036a, 0x036f, 0x0364, 0x0367, 0x036d, 0x0374, 0x037f, 0x036f,
 	0x037b, 0x038a, 0x0378, 0x0367, 0x036d, 0x0375, 0x0381, 0x0374, 0x0381,
 	0x0392, 0x03a9, 0x03c4, 0x03e1, 0x0001, 0x001f, 0x0040, 0x005e, 0x007f,
 	0x009e, 0x00bd, 0x00dd, 0x00fd, 0x011d, 0x013d,
 };
 
-static const u16 lpphy_rev01_filter_control_table[] = {
+static const u16 lpphy_rev01_filter_control_table[] =
+{
 	0xa0fc, 0x10fc, 0x10db, 0x20b7, 0xff93, 0x10bf, 0x109b, 0x2077, 0xff53,
 	0x0127,
 };
 
-static const u32 lpphy_rev2plus_filter_control_table[] = {
+static const u32 lpphy_rev2plus_filter_control_table[] =
+{
 	0x000141fc, 0x000021fc, 0x000021b7, 0x0000416f, 0x0001ff27, 0x0000217f,
 	0x00002137, 0x000040ef, 0x0001fea7, 0x0000024f,
 };
 
-static const u32 lpphy_rev01_ps_control_table[] = {
+static const u32 lpphy_rev01_ps_control_table[] =
+{
 	0x00010000, 0x000000a0, 0x00040000, 0x00000048, 0x08080101, 0x00000080,
 	0x08080101, 0x00000040, 0x08080101, 0x000000c0, 0x08a81501, 0x000000c0,
 	0x0fe8fd01, 0x000000c0, 0x08300105, 0x000000c0, 0x08080201, 0x000000c0,
@@ -779,19 +829,22 @@ static const u32 lpphy_rev01_ps_control_table[] = {
 	0xe80801fd, 0x000000c7, 0xa8080115, 0x000000c0,
 };
 
-static const u32 lpphy_rev2plus_ps_control_table[] = {
+static const u32 lpphy_rev2plus_ps_control_table[] =
+{
 	0x00e38e08, 0x00e08e38, 0x00000000, 0x00000000, 0x00000000, 0x00002080,
 	0x00006180, 0x00003002, 0x00000040, 0x00002042, 0x00180047, 0x00080043,
 	0x00000041, 0x000020c1, 0x00046006, 0x00042002, 0x00040000, 0x00002003,
 	0x00180006, 0x00080002,
 };
 
-static const u8 lpphy_pll_fraction_table[] = {
+static const u8 lpphy_pll_fraction_table[] =
+{
 	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x80,
 	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
 };
 
-static const u16 lpphy_iqlo_cal_table[] = {
+static const u16 lpphy_iqlo_cal_table[] =
+{
 	0x0200, 0x0300, 0x0400, 0x0600, 0x0800, 0x0b00, 0x1000, 0x1001, 0x1002,
 	0x1003, 0x1004, 0x1005, 0x1006, 0x1007, 0x1707, 0x2007, 0x2d07, 0x4007,
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -806,25 +859,29 @@ static const u16 lpphy_iqlo_cal_table[] = {
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 };
 
-static const u16 lpphy_rev0_ofdm_cck_gain_table[] = {
+static const u16 lpphy_rev0_ofdm_cck_gain_table[] =
+{
 	0x0001, 0x0001, 0x0001, 0x0001, 0x1001, 0x2001, 0x3001, 0x4001, 0x5001,
 	0x6001, 0x7001, 0x7011, 0x7021, 0x2035, 0x2045, 0x2055, 0x2065, 0x2075,
 	0x006d, 0x007d, 0x014d, 0x015d, 0x115d, 0x035d, 0x135d, 0x055d, 0x155d,
 	0x0d5d, 0x1d5d, 0x2d5d, 0x555d, 0x655d, 0x755d,
 };
 
-static const u16 lpphy_rev1_ofdm_cck_gain_table[] = {
+static const u16 lpphy_rev1_ofdm_cck_gain_table[] =
+{
 	0x5000, 0x6000, 0x7000, 0x0001, 0x1001, 0x2001, 0x3001, 0x4001, 0x5001,
 	0x6001, 0x7001, 0x7011, 0x7021, 0x2035, 0x2045, 0x2055, 0x2065, 0x2075,
 	0x006d, 0x007d, 0x014d, 0x015d, 0x115d, 0x035d, 0x135d, 0x055d, 0x155d,
 	0x0d5d, 0x1d5d, 0x2d5d, 0x555d, 0x655d, 0x755d,
 };
 
-static const u16 lpphy_gain_delta_table[] = {
+static const u16 lpphy_gain_delta_table[] =
+{
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 };
 
-static const u32 lpphy_tx_power_control_table[] = {
+static const u32 lpphy_tx_power_control_table[] =
+{
 	0x00000050, 0x0000004f, 0x0000004e, 0x0000004d, 0x0000004c, 0x0000004b,
 	0x0000004a, 0x00000049, 0x00000048, 0x00000047, 0x00000046, 0x00000045,
 	0x00000044, 0x00000043, 0x00000042, 0x00000041, 0x00000040, 0x0000003f,
@@ -923,7 +980,8 @@ static const u32 lpphy_tx_power_control_table[] = {
 	0x0000fbf9, 0x0000fd07, 0x000008fb, 0x0000fe02, 0x000006fb, 0x00000702,
 };
 
-static const u32 lpphy_gain_idx_table[] = {
+static const u32 lpphy_gain_idx_table[] =
+{
 	0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
@@ -951,13 +1009,15 @@ static const u32 lpphy_gain_idx_table[] = {
 	0x54aa152c, 0x0000001a, 0x64ca55ad, 0x0000001a,
 };
 
-static const u16 lpphy_aux_gain_idx_table[] = {
+static const u16 lpphy_aux_gain_idx_table[] =
+{
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0001, 0x0002, 0x0004, 0x0016, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x0002, 0x0004, 0x0016,
 };
 
-static const u32 lpphy_gain_value_table[] = {
+static const u32 lpphy_gain_value_table[] =
+{
 	0x00000008, 0x0000000e, 0x00000014, 0x0000001a, 0x000000fb, 0x00000004,
 	0x00000008, 0x0000000d, 0x00000001, 0x00000004, 0x00000007, 0x0000000a,
 	0x0000000d, 0x00000010, 0x00000012, 0x00000015, 0x00000000, 0x00000006,
@@ -972,7 +1032,8 @@ static const u32 lpphy_gain_value_table[] = {
 	0x00000000, 0x00000000,
 };
 
-static const u16 lpphy_gain_table[] = {
+static const u16 lpphy_gain_table[] =
+{
 	0x0000, 0x0400, 0x0800, 0x0802, 0x0804, 0x0806, 0x0807, 0x0808, 0x080a,
 	0x080b, 0x080c, 0x080e, 0x080f, 0x0810, 0x0812, 0x0813, 0x0814, 0x0816,
 	0x0817, 0x081a, 0x081b, 0x081f, 0x0820, 0x0824, 0x0830, 0x0834, 0x0837,
@@ -986,7 +1047,8 @@ static const u16 lpphy_gain_table[] = {
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 };
 
-static const u32 lpphy_a0_gain_idx_table[] = {
+static const u32 lpphy_a0_gain_idx_table[] =
+{
 	0x001111e0, 0x00652051, 0x00606055, 0x005b005a, 0x00555060, 0x00511065,
 	0x004c806b, 0x0047d072, 0x00444078, 0x00400080, 0x003ca087, 0x0039408f,
 	0x0035e098, 0x0032e0a1, 0x003030aa, 0x002d80b4, 0x002ae0bf, 0x002880ca,
@@ -1000,13 +1062,15 @@ static const u32 lpphy_a0_gain_idx_table[] = {
 	0x00036963, 0x000339f2, 0x00030a89, 0x0002db28,
 };
 
-static const u16 lpphy_a0_aux_gain_idx_table[] = {
+static const u16 lpphy_a0_aux_gain_idx_table[] =
+{
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0000, 0x0000, 0x0002, 0x0014, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0002, 0x0014,
 };
 
-static const u32 lpphy_a0_gain_value_table[] = {
+static const u32 lpphy_a0_gain_value_table[] =
+{
 	0x00000008, 0x0000000e, 0x00000014, 0x0000001a, 0x000000fb, 0x00000004,
 	0x00000008, 0x0000000d, 0x00000001, 0x00000004, 0x00000007, 0x0000000a,
 	0x0000000d, 0x00000010, 0x00000012, 0x00000015, 0x00000000, 0x00000006,
@@ -1021,7 +1085,8 @@ static const u32 lpphy_a0_gain_value_table[] = {
 	0x00000000, 0x00000000,
 };
 
-static const u16 lpphy_a0_gain_table[] = {
+static const u16 lpphy_a0_gain_table[] =
+{
 	0x0000, 0x0002, 0x0004, 0x0006, 0x0007, 0x0008, 0x000a, 0x000b, 0x000c,
 	0x000e, 0x000f, 0x0010, 0x0012, 0x0013, 0x0014, 0x0016, 0x0017, 0x001a,
 	0x001b, 0x001f, 0x0020, 0x0024, 0x0030, 0x0034, 0x0037, 0x003b, 0x003f,
@@ -1035,7 +1100,8 @@ static const u16 lpphy_a0_gain_table[] = {
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 };
 
-static const u16 lpphy_sw_control_table[] = {
+static const u16 lpphy_sw_control_table[] =
+{
 	0x0128, 0x0128, 0x0009, 0x0009, 0x0028, 0x0028, 0x0028, 0x0028, 0x0128,
 	0x0128, 0x0009, 0x0009, 0x0028, 0x0028, 0x0028, 0x0028, 0x0009, 0x0009,
 	0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0018, 0x0018, 0x0018,
@@ -1046,12 +1112,14 @@ static const u16 lpphy_sw_control_table[] = {
 	0x0018,
 };
 
-static const u8 lpphy_hf_table[] = {
+static const u8 lpphy_hf_table[] =
+{
 	0x4b, 0x36, 0x24, 0x18, 0x49, 0x34, 0x23, 0x17, 0x48,
 	0x33, 0x23, 0x17, 0x48, 0x33, 0x23, 0x17,
 };
 
-static const u32 lpphy_papd_eps_table[] = {
+static const u32 lpphy_papd_eps_table[] =
+{
 	0x00000000, 0x00013ffc, 0x0001dff3, 0x0001bff0, 0x00023fe9, 0x00021fdf,
 	0x00028fdf, 0x00033fd2, 0x00039fcb, 0x00043fc7, 0x0004efc2, 0x00055fb5,
 	0x0005cfb0, 0x00063fa8, 0x00068fa3, 0x00071f98, 0x0007ef92, 0x00084f8b,
@@ -1065,7 +1133,8 @@ static const u32 lpphy_papd_eps_table[] = {
 	0x007ff36e, 0x007ff39c, 0x007ff441, 0x007ff506,
 };
 
-static const u32 lpphy_papd_mult_table[] = {
+static const u32 lpphy_papd_mult_table[] =
+{
 	0x001111e0, 0x00652051, 0x00606055, 0x005b005a, 0x00555060, 0x00511065,
 	0x004c806b, 0x0047d072, 0x00444078, 0x00400080, 0x003ca087, 0x0039408f,
 	0x0035e098, 0x0032e0a1, 0x003030aa, 0x002d80b4, 0x002ae0bf, 0x002880ca,
@@ -1079,7 +1148,8 @@ static const u32 lpphy_papd_mult_table[] = {
 	0x00036963, 0x000339f2, 0x00030a89, 0x0002db28,
 };
 
-static struct lpphy_tx_gain_table_entry lpphy_rev0_nopa_tx_gain_table[] = {
+static struct lpphy_tx_gain_table_entry lpphy_rev0_nopa_tx_gain_table[] =
+{
 	{ .gm = 7, .pga = 15, .pad = 14, .dac = 0, .bb_mult = 152, },
 	{ .gm = 7, .pga = 15, .pad = 14, .dac = 0, .bb_mult = 147, },
 	{ .gm = 7, .pga = 15, .pad = 14, .dac = 0, .bb_mult = 143, },
@@ -1210,7 +1280,8 @@ static struct lpphy_tx_gain_table_entry lpphy_rev0_nopa_tx_gain_table[] = {
 	{ .gm = 7, .pga = 11, .pad = 6, .dac = 0, .bb_mult = 71, },
 };
 
-static struct lpphy_tx_gain_table_entry lpphy_rev0_2ghz_tx_gain_table[] = {
+static struct lpphy_tx_gain_table_entry lpphy_rev0_2ghz_tx_gain_table[] =
+{
 	{ .gm = 4, .pga = 15, .pad = 9, .dac = 0, .bb_mult = 64, },
 	{ .gm = 4, .pga = 15, .pad = 9, .dac = 0, .bb_mult = 62, },
 	{ .gm = 4, .pga = 15, .pad = 9, .dac = 0, .bb_mult = 60, },
@@ -1341,7 +1412,8 @@ static struct lpphy_tx_gain_table_entry lpphy_rev0_2ghz_tx_gain_table[] = {
 	{ .gm = 4, .pga = 4, .pad = 2, .dac = 0, .bb_mult = 72, },
 };
 
-static struct lpphy_tx_gain_table_entry lpphy_rev0_5ghz_tx_gain_table[] = {
+static struct lpphy_tx_gain_table_entry lpphy_rev0_5ghz_tx_gain_table[] =
+{
 	{ .gm = 7, .pga = 15, .pad = 15, .dac = 0, .bb_mult = 99, },
 	{ .gm = 7, .pga = 15, .pad = 15, .dac = 0, .bb_mult = 96, },
 	{ .gm = 7, .pga = 15, .pad = 15, .dac = 0, .bb_mult = 93, },
@@ -1472,7 +1544,8 @@ static struct lpphy_tx_gain_table_entry lpphy_rev0_5ghz_tx_gain_table[] = {
 	{ .gm = 7, .pga = 11, .pad = 6, .dac = 0, .bb_mult = 60, },
 };
 
-static struct lpphy_tx_gain_table_entry lpphy_rev1_nopa_tx_gain_table[] = {
+static struct lpphy_tx_gain_table_entry lpphy_rev1_nopa_tx_gain_table[] =
+{
 	{ .gm = 7, .pga = 15, .pad = 14, .dac = 0, .bb_mult = 152, },
 	{ .gm = 7, .pga = 15, .pad = 14, .dac = 0, .bb_mult = 147, },
 	{ .gm = 7, .pga = 15, .pad = 14, .dac = 0, .bb_mult = 143, },
@@ -1612,7 +1685,8 @@ static struct lpphy_tx_gain_table_entry lpphy_rev1_nopa_tx_gain_table[] = {
 	{ .gm = 7, .pga = 11, .pad = 6, .dac = 0, .bb_mult = 71, },
 };
 
-static struct lpphy_tx_gain_table_entry lpphy_rev1_2ghz_tx_gain_table[] = {
+static struct lpphy_tx_gain_table_entry lpphy_rev1_2ghz_tx_gain_table[] =
+{
 	{ .gm = 4, .pga = 15, .pad = 15, .dac = 0, .bb_mult = 90, },
 	{ .gm = 4, .pga = 15, .pad = 15, .dac = 0, .bb_mult = 88, },
 	{ .gm = 4, .pga = 15, .pad = 15, .dac = 0, .bb_mult = 85, },
@@ -1743,7 +1817,8 @@ static struct lpphy_tx_gain_table_entry lpphy_rev1_2ghz_tx_gain_table[] = {
 	{ .gm = 4, .pga = 10, .pad = 6, .dac = 0, .bb_mult = 60, },
 };
 
-static struct lpphy_tx_gain_table_entry lpphy_rev1_5ghz_tx_gain_table[] = {
+static struct lpphy_tx_gain_table_entry lpphy_rev1_5ghz_tx_gain_table[] =
+{
 	{ .gm = 7, .pga = 15, .pad = 15, .dac = 0, .bb_mult = 99, },
 	{ .gm = 7, .pga = 15, .pad = 15, .dac = 0, .bb_mult = 96, },
 	{ .gm = 7, .pga = 15, .pad = 15, .dac = 0, .bb_mult = 93, },
@@ -1874,7 +1949,8 @@ static struct lpphy_tx_gain_table_entry lpphy_rev1_5ghz_tx_gain_table[] = {
 	{ .gm = 7, .pga = 11, .pad = 6, .dac = 0, .bb_mult = 60, },
 };
 
-static struct lpphy_tx_gain_table_entry lpphy_rev2_nopa_tx_gain_table[] = {
+static struct lpphy_tx_gain_table_entry lpphy_rev2_nopa_tx_gain_table[] =
+{
 	{ .gm = 255, .pga = 255, .pad = 203, .dac = 0, .bb_mult = 152, },
 	{ .gm = 255, .pga = 255, .pad = 203, .dac = 0, .bb_mult = 147, },
 	{ .gm = 255, .pga = 255, .pad = 203, .dac = 0, .bb_mult = 143, },
@@ -2005,7 +2081,8 @@ static struct lpphy_tx_gain_table_entry lpphy_rev2_nopa_tx_gain_table[] = {
 	{ .gm = 255, .pga = 111, .pad = 29, .dac = 0, .bb_mult = 64, },
 };
 
-static struct lpphy_tx_gain_table_entry lpphy_rev2_2ghz_tx_gain_table[] = {
+static struct lpphy_tx_gain_table_entry lpphy_rev2_2ghz_tx_gain_table[] =
+{
 	{ .gm = 7, .pga = 99, .pad = 255, .dac = 0, .bb_mult = 64, },
 	{ .gm = 7, .pga = 96, .pad = 255, .dac = 0, .bb_mult = 64, },
 	{ .gm = 7, .pga = 93, .pad = 255, .dac = 0, .bb_mult = 64, },
@@ -2136,7 +2213,8 @@ static struct lpphy_tx_gain_table_entry lpphy_rev2_2ghz_tx_gain_table[] = {
 	{ .gm = 7, .pga = 13, .pad = 52, .dac = 0, .bb_mult = 64, },
 };
 
-static struct lpphy_tx_gain_table_entry lpphy_rev2_5ghz_tx_gain_table[] = {
+static struct lpphy_tx_gain_table_entry lpphy_rev2_5ghz_tx_gain_table[] =
+{
 	{ .gm = 255, .pga = 255, .pad = 255, .dac = 0, .bb_mult = 152, },
 	{ .gm = 255, .pga = 255, .pad = 255, .dac = 0, .bb_mult = 147, },
 	{ .gm = 255, .pga = 255, .pad = 255, .dac = 0, .bb_mult = 143, },
@@ -2272,34 +2350,39 @@ void lpphy_rev0_1_table_init(struct b43_wldev *dev)
 	B43_WARN_ON(dev->phy.rev >= 2);
 
 	b43_lptab_write_bulk(dev, B43_LPTAB8(2, 0),
-		ARRAY_SIZE(lpphy_min_sig_sq_table), lpphy_min_sig_sq_table);
+						 ARRAY_SIZE(lpphy_min_sig_sq_table), lpphy_min_sig_sq_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB16(1, 0),
-		ARRAY_SIZE(lpphy_rev01_noise_scale_table), lpphy_rev01_noise_scale_table);
+						 ARRAY_SIZE(lpphy_rev01_noise_scale_table), lpphy_rev01_noise_scale_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB16(14, 0),
-		ARRAY_SIZE(lpphy_crs_gain_nft_table), lpphy_crs_gain_nft_table);
+						 ARRAY_SIZE(lpphy_crs_gain_nft_table), lpphy_crs_gain_nft_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB16(8, 0),
-		ARRAY_SIZE(lpphy_rev01_filter_control_table), lpphy_rev01_filter_control_table);
+						 ARRAY_SIZE(lpphy_rev01_filter_control_table), lpphy_rev01_filter_control_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB32(9, 0),
-		ARRAY_SIZE(lpphy_rev01_ps_control_table), lpphy_rev01_ps_control_table);
+						 ARRAY_SIZE(lpphy_rev01_ps_control_table), lpphy_rev01_ps_control_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB8(6, 0),
-		ARRAY_SIZE(lpphy_pll_fraction_table), lpphy_pll_fraction_table);
+						 ARRAY_SIZE(lpphy_pll_fraction_table), lpphy_pll_fraction_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB16(0, 0),
-		ARRAY_SIZE(lpphy_iqlo_cal_table), lpphy_iqlo_cal_table);
-	if (dev->phy.rev == 0) {
+						 ARRAY_SIZE(lpphy_iqlo_cal_table), lpphy_iqlo_cal_table);
+
+	if (dev->phy.rev == 0)
+	{
 		b43_lptab_write_bulk(dev, B43_LPTAB16(13, 0),
-			ARRAY_SIZE(lpphy_rev0_ofdm_cck_gain_table), lpphy_rev0_ofdm_cck_gain_table);
+							 ARRAY_SIZE(lpphy_rev0_ofdm_cck_gain_table), lpphy_rev0_ofdm_cck_gain_table);
 		b43_lptab_write_bulk(dev, B43_LPTAB16(12, 0),
-			ARRAY_SIZE(lpphy_rev0_ofdm_cck_gain_table), lpphy_rev0_ofdm_cck_gain_table);
-	} else {
+							 ARRAY_SIZE(lpphy_rev0_ofdm_cck_gain_table), lpphy_rev0_ofdm_cck_gain_table);
+	}
+	else
+	{
 		b43_lptab_write_bulk(dev, B43_LPTAB16(13, 0),
-			ARRAY_SIZE(lpphy_rev1_ofdm_cck_gain_table), lpphy_rev1_ofdm_cck_gain_table);
+							 ARRAY_SIZE(lpphy_rev1_ofdm_cck_gain_table), lpphy_rev1_ofdm_cck_gain_table);
 		b43_lptab_write_bulk(dev, B43_LPTAB16(12, 0),
-			ARRAY_SIZE(lpphy_rev1_ofdm_cck_gain_table), lpphy_rev1_ofdm_cck_gain_table);
-}
+							 ARRAY_SIZE(lpphy_rev1_ofdm_cck_gain_table), lpphy_rev1_ofdm_cck_gain_table);
+	}
+
 	b43_lptab_write_bulk(dev, B43_LPTAB16(15, 0),
-		ARRAY_SIZE(lpphy_gain_delta_table), lpphy_gain_delta_table);
+						 ARRAY_SIZE(lpphy_gain_delta_table), lpphy_gain_delta_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB32(10, 0),
-		ARRAY_SIZE(lpphy_tx_power_control_table), lpphy_tx_power_control_table);
+						 ARRAY_SIZE(lpphy_tx_power_control_table), lpphy_tx_power_control_table);
 }
 
 void lpphy_rev2plus_table_init(struct b43_wldev *dev)
@@ -2309,51 +2392,54 @@ void lpphy_rev2plus_table_init(struct b43_wldev *dev)
 	B43_WARN_ON(dev->phy.rev < 2);
 
 	for (i = 0; i < 704; i++)
+	{
 		b43_lptab_write(dev, B43_LPTAB32(7, i), 0);
+	}
 
 	b43_lptab_write_bulk(dev, B43_LPTAB8(2, 0),
-		ARRAY_SIZE(lpphy_min_sig_sq_table), lpphy_min_sig_sq_table);
+						 ARRAY_SIZE(lpphy_min_sig_sq_table), lpphy_min_sig_sq_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB16(1, 0),
-		ARRAY_SIZE(lpphy_rev2plus_noise_scale_table), lpphy_rev2plus_noise_scale_table);
+						 ARRAY_SIZE(lpphy_rev2plus_noise_scale_table), lpphy_rev2plus_noise_scale_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB32(11, 0),
-		ARRAY_SIZE(lpphy_rev2plus_filter_control_table), lpphy_rev2plus_filter_control_table);
+						 ARRAY_SIZE(lpphy_rev2plus_filter_control_table), lpphy_rev2plus_filter_control_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB32(12, 0),
-		ARRAY_SIZE(lpphy_rev2plus_ps_control_table), lpphy_rev2plus_ps_control_table);
+						 ARRAY_SIZE(lpphy_rev2plus_ps_control_table), lpphy_rev2plus_ps_control_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB32(13, 0),
-		ARRAY_SIZE(lpphy_gain_idx_table), lpphy_gain_idx_table);
+						 ARRAY_SIZE(lpphy_gain_idx_table), lpphy_gain_idx_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB16(14, 0),
-		ARRAY_SIZE(lpphy_aux_gain_idx_table), lpphy_aux_gain_idx_table);
+						 ARRAY_SIZE(lpphy_aux_gain_idx_table), lpphy_aux_gain_idx_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB16(15, 0),
-		ARRAY_SIZE(lpphy_sw_control_table), lpphy_sw_control_table);
+						 ARRAY_SIZE(lpphy_sw_control_table), lpphy_sw_control_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB8(16, 0),
-		ARRAY_SIZE(lpphy_hf_table), lpphy_hf_table);
+						 ARRAY_SIZE(lpphy_hf_table), lpphy_hf_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB32(17, 0),
-		ARRAY_SIZE(lpphy_gain_value_table), lpphy_gain_value_table);
+						 ARRAY_SIZE(lpphy_gain_value_table), lpphy_gain_value_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB16(18, 0),
-		ARRAY_SIZE(lpphy_gain_table), lpphy_gain_table);
+						 ARRAY_SIZE(lpphy_gain_table), lpphy_gain_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB8(6, 0),
-		ARRAY_SIZE(lpphy_pll_fraction_table), lpphy_pll_fraction_table);
+						 ARRAY_SIZE(lpphy_pll_fraction_table), lpphy_pll_fraction_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB16(0, 0),
-		ARRAY_SIZE(lpphy_iqlo_cal_table), lpphy_iqlo_cal_table);
+						 ARRAY_SIZE(lpphy_iqlo_cal_table), lpphy_iqlo_cal_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB32(9, 0),
-		ARRAY_SIZE(lpphy_papd_eps_table), lpphy_papd_eps_table);
+						 ARRAY_SIZE(lpphy_papd_eps_table), lpphy_papd_eps_table);
 	b43_lptab_write_bulk(dev, B43_LPTAB32(10, 0),
-		ARRAY_SIZE(lpphy_papd_mult_table), lpphy_papd_mult_table);
+						 ARRAY_SIZE(lpphy_papd_mult_table), lpphy_papd_mult_table);
 
-	if ((dev->dev->chip_id == 0x4325) && (dev->dev->chip_rev == 0)) {
+	if ((dev->dev->chip_id == 0x4325) && (dev->dev->chip_rev == 0))
+	{
 		b43_lptab_write_bulk(dev, B43_LPTAB32(13, 0),
-			ARRAY_SIZE(lpphy_a0_gain_idx_table), lpphy_a0_gain_idx_table);
+							 ARRAY_SIZE(lpphy_a0_gain_idx_table), lpphy_a0_gain_idx_table);
 		b43_lptab_write_bulk(dev, B43_LPTAB16(14, 0),
-			ARRAY_SIZE(lpphy_a0_aux_gain_idx_table), lpphy_a0_aux_gain_idx_table);
+							 ARRAY_SIZE(lpphy_a0_aux_gain_idx_table), lpphy_a0_aux_gain_idx_table);
 		b43_lptab_write_bulk(dev, B43_LPTAB32(17, 0),
-			ARRAY_SIZE(lpphy_a0_gain_value_table), lpphy_a0_gain_value_table);
+							 ARRAY_SIZE(lpphy_a0_gain_value_table), lpphy_a0_gain_value_table);
 		b43_lptab_write_bulk(dev, B43_LPTAB16(18, 0),
-			ARRAY_SIZE(lpphy_a0_gain_table), lpphy_a0_gain_table);
+							 ARRAY_SIZE(lpphy_a0_gain_table), lpphy_a0_gain_table);
 	}
 }
 
 static void lpphy_rev0_1_write_gain_table(struct b43_wldev *dev, int offset,
-				struct lpphy_tx_gain_table_entry data)
+		struct lpphy_tx_gain_table_entry data)
 {
 	u32 tmp;
 
@@ -2369,7 +2455,7 @@ static void lpphy_rev0_1_write_gain_table(struct b43_wldev *dev, int offset,
 }
 
 static void lpphy_rev2plus_write_gain_table(struct b43_wldev *dev, int offset,
-				struct lpphy_tx_gain_table_entry data)
+		struct lpphy_tx_gain_table_entry data)
 {
 	u32 tmp;
 
@@ -2378,17 +2464,30 @@ static void lpphy_rev2plus_write_gain_table(struct b43_wldev *dev, int offset,
 	tmp  = data.pad << 16;
 	tmp |= data.pga << 8;
 	tmp |= data.gm;
-	if (dev->phy.rev >= 3) {
+
+	if (dev->phy.rev >= 3)
+	{
 		if (b43_current_band(dev->wl) == NL80211_BAND_5GHZ)
+		{
 			tmp |= 0x10 << 24;
+		}
 		else
+		{
 			tmp |= 0x70 << 24;
-	} else {
-		if (b43_current_band(dev->wl) == NL80211_BAND_5GHZ)
-			tmp |= 0x14 << 24;
-		else
-			tmp |= 0x7F << 24;
+		}
 	}
+	else
+	{
+		if (b43_current_band(dev->wl) == NL80211_BAND_5GHZ)
+		{
+			tmp |= 0x14 << 24;
+		}
+		else
+		{
+			tmp |= 0x7F << 24;
+		}
+	}
+
 	b43_lptab_write(dev, B43_LPTAB32(7, 0xC0 + offset), tmp);
 	tmp  = data.bb_mult << 20;
 	tmp |= data.dac << 28;
@@ -2396,61 +2495,72 @@ static void lpphy_rev2plus_write_gain_table(struct b43_wldev *dev, int offset,
 }
 
 void lpphy_write_gain_table(struct b43_wldev *dev, int offset,
-			    struct lpphy_tx_gain_table_entry data)
+							struct lpphy_tx_gain_table_entry data)
 {
 	if (dev->phy.rev >= 2)
+	{
 		lpphy_rev2plus_write_gain_table(dev, offset, data);
+	}
 	else
+	{
 		lpphy_rev0_1_write_gain_table(dev, offset, data);
+	}
 }
 
 void lpphy_write_gain_table_bulk(struct b43_wldev *dev, int offset, int count,
-				 struct lpphy_tx_gain_table_entry *table)
+								 struct lpphy_tx_gain_table_entry *table)
 {
 	int i;
 
 	for (i = offset; i < count; i++)
+	{
 		lpphy_write_gain_table(dev, i, table[i]);
+	}
 }
 
 void lpphy_init_tx_gain_table(struct b43_wldev *dev)
 {
 	struct ssb_sprom *sprom = dev->dev->bus_sprom;
 
-	switch (dev->phy.rev) {
-	case 0:
-		if ((sprom->boardflags_hi & B43_BFH_NOPA) ||
-		    (sprom->boardflags_lo & B43_BFL_HGPA))
-			lpphy_write_gain_table_bulk(dev, 0, 128,
-					lpphy_rev0_nopa_tx_gain_table);
-		else if (b43_current_band(dev->wl) == NL80211_BAND_2GHZ)
-			lpphy_write_gain_table_bulk(dev, 0, 128,
-					lpphy_rev0_2ghz_tx_gain_table);
-		else
-			lpphy_write_gain_table_bulk(dev, 0, 128,
-					lpphy_rev0_5ghz_tx_gain_table);
-		break;
-	case 1:
-		if ((sprom->boardflags_hi & B43_BFH_NOPA) ||
-		    (sprom->boardflags_lo & B43_BFL_HGPA))
-			lpphy_write_gain_table_bulk(dev, 0, 128,
-					lpphy_rev1_nopa_tx_gain_table);
-		else if (b43_current_band(dev->wl) == NL80211_BAND_2GHZ)
-			lpphy_write_gain_table_bulk(dev, 0, 128,
-					lpphy_rev1_2ghz_tx_gain_table);
-		else
-			lpphy_write_gain_table_bulk(dev, 0, 128,
-					lpphy_rev1_5ghz_tx_gain_table);
-		break;
-	default:
-		if (sprom->boardflags_hi & B43_BFH_NOPA)
-			lpphy_write_gain_table_bulk(dev, 0, 128,
-					lpphy_rev2_nopa_tx_gain_table);
-		else if (b43_current_band(dev->wl) == NL80211_BAND_2GHZ)
-			lpphy_write_gain_table_bulk(dev, 0, 128,
-					lpphy_rev2_2ghz_tx_gain_table);
-		else
-			lpphy_write_gain_table_bulk(dev, 0, 128,
-					lpphy_rev2_5ghz_tx_gain_table);
+	switch (dev->phy.rev)
+	{
+		case 0:
+			if ((sprom->boardflags_hi & B43_BFH_NOPA) ||
+				(sprom->boardflags_lo & B43_BFL_HGPA))
+				lpphy_write_gain_table_bulk(dev, 0, 128,
+											lpphy_rev0_nopa_tx_gain_table);
+			else if (b43_current_band(dev->wl) == NL80211_BAND_2GHZ)
+				lpphy_write_gain_table_bulk(dev, 0, 128,
+											lpphy_rev0_2ghz_tx_gain_table);
+			else
+				lpphy_write_gain_table_bulk(dev, 0, 128,
+											lpphy_rev0_5ghz_tx_gain_table);
+
+			break;
+
+		case 1:
+			if ((sprom->boardflags_hi & B43_BFH_NOPA) ||
+				(sprom->boardflags_lo & B43_BFL_HGPA))
+				lpphy_write_gain_table_bulk(dev, 0, 128,
+											lpphy_rev1_nopa_tx_gain_table);
+			else if (b43_current_band(dev->wl) == NL80211_BAND_2GHZ)
+				lpphy_write_gain_table_bulk(dev, 0, 128,
+											lpphy_rev1_2ghz_tx_gain_table);
+			else
+				lpphy_write_gain_table_bulk(dev, 0, 128,
+											lpphy_rev1_5ghz_tx_gain_table);
+
+			break;
+
+		default:
+			if (sprom->boardflags_hi & B43_BFH_NOPA)
+				lpphy_write_gain_table_bulk(dev, 0, 128,
+											lpphy_rev2_nopa_tx_gain_table);
+			else if (b43_current_band(dev->wl) == NL80211_BAND_2GHZ)
+				lpphy_write_gain_table_bulk(dev, 0, 128,
+											lpphy_rev2_2ghz_tx_gain_table);
+			else
+				lpphy_write_gain_table_bulk(dev, 0, 128,
+											lpphy_rev2_5ghz_tx_gain_table);
 	}
 }

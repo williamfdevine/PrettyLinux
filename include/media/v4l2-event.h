@@ -74,7 +74,8 @@ struct video_device;
  * @sev:	Pointer to parent v4l2_subscribed_event.
  * @event:	The event itself.
  */
-struct v4l2_kevent {
+struct v4l2_kevent
+{
 	struct list_head	list;
 	struct v4l2_subscribed_event *sev;
 	struct v4l2_event	event;
@@ -88,7 +89,8 @@ struct v4l2_kevent {
  * @replace:	Optional callback that can replace event 'old' with event 'new'.
  * @merge:	Optional callback that can merge event 'old' into event 'new'.
  */
-struct v4l2_subscribed_event_ops {
+struct v4l2_subscribed_event_ops
+{
 	int  (*add)(struct v4l2_subscribed_event *sev, unsigned int elems);
 	void (*del)(struct v4l2_subscribed_event *sev);
 	void (*replace)(struct v4l2_event *old, const struct v4l2_event *new);
@@ -112,7 +114,8 @@ struct v4l2_subscribed_event_ops {
  * @in_use:	The number of queued events.
  * @events:	An array of @elems events.
  */
-struct v4l2_subscribed_event {
+struct v4l2_subscribed_event
+{
 	struct list_head	list;
 	u32			type;
 	u32			id;
@@ -134,7 +137,7 @@ struct v4l2_subscribed_event {
  * @nonblocking: if not zero, waits for an event to arrive
  */
 int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
-		       int nonblocking);
+					   int nonblocking);
 
 /**
  * v4l2_event_queue - Queue events to video device.
@@ -188,9 +191,9 @@ int v4l2_event_pending(struct v4l2_fh *fh);
  *    with is currently 1 element.
  */
 int v4l2_event_subscribe(struct v4l2_fh *fh,
-			 const struct v4l2_event_subscription *sub,
-			 unsigned int elems,
-			 const struct v4l2_subscribed_event_ops *ops);
+						 const struct v4l2_event_subscription *sub,
+						 unsigned int elems,
+						 const struct v4l2_subscribed_event_ops *ops);
 /**
  * v4l2_event_unsubscribe - Unsubscribes to an event
  *
@@ -198,7 +201,7 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
  * @sub: pointer to &struct v4l2_event_subscription
  */
 int v4l2_event_unsubscribe(struct v4l2_fh *fh,
-			   const struct v4l2_event_subscription *sub);
+						   const struct v4l2_event_subscription *sub);
 /**
  * v4l2_event_unsubscribe_all - Unsubscribes to all events
  *
@@ -219,8 +222,8 @@ void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
  *	%unsubscribe_event field.
  */
 int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd,
-				  struct v4l2_fh *fh,
-				  struct v4l2_event_subscription *sub);
+								  struct v4l2_fh *fh,
+								  struct v4l2_event_subscription *sub);
 /**
  * v4l2_src_change_event_subscribe - helper function that calls
  * 	v4l2_event_subscribe() if the event is %V4L2_EVENT_SOURCE_CHANGE.
@@ -229,7 +232,7 @@ int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd,
  * @sub: pointer to &struct v4l2_event_subscription
  */
 int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
-				    const struct v4l2_event_subscription *sub);
+									const struct v4l2_event_subscription *sub);
 /**
  * v4l2_src_change_event_subdev_subscribe - Variant of v4l2_event_subscribe(),
  *	meant to subscribe only events of the type %V4L2_EVENT_SOURCE_CHANGE.
@@ -239,6 +242,6 @@ int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
  * @sub: pointer to &struct v4l2_event_subscription
  */
 int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
-					   struct v4l2_fh *fh,
-					   struct v4l2_event_subscription *sub);
+		struct v4l2_fh *fh,
+		struct v4l2_event_subscription *sub);
 #endif /* V4L2_EVENT_H */

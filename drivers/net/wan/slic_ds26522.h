@@ -117,17 +117,20 @@
 
 #define DS26522_LMCR_TE	0x01
 
-enum line_rate {
+enum line_rate
+{
 	LINE_RATE_T1,	/* T1 line rate (1.544 Mbps)      */
 	LINE_RATE_E1	/* E1 line rate (2.048 Mbps)     */
 };
 
-enum tdm_trans_mode {
+enum tdm_trans_mode
+{
 	NORMAL = 0,
 	FRAMER_LB
 };
 
-enum card_support_type {
+enum card_support_type
+{
 	LM_CARD = 0,
 	DS26522_CARD,
 	NO_CARD

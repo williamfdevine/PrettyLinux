@@ -4,7 +4,7 @@
 #include <core/device.h>
 
 int nvkm_firmware_get(struct nvkm_device *device, const char *fwname,
-		      const struct firmware **fw);
+					  const struct firmware **fw);
 
 void nvkm_firmware_put(const struct firmware *fw);
 

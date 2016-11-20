@@ -34,14 +34,15 @@
 #define VIRTIO_SCSI_SENSE_DEFAULT_SIZE 96
 
 #ifndef VIRTIO_SCSI_CDB_SIZE
-#define VIRTIO_SCSI_CDB_SIZE VIRTIO_SCSI_CDB_DEFAULT_SIZE
+	#define VIRTIO_SCSI_CDB_SIZE VIRTIO_SCSI_CDB_DEFAULT_SIZE
 #endif
 #ifndef VIRTIO_SCSI_SENSE_SIZE
-#define VIRTIO_SCSI_SENSE_SIZE VIRTIO_SCSI_SENSE_DEFAULT_SIZE
+	#define VIRTIO_SCSI_SENSE_SIZE VIRTIO_SCSI_SENSE_DEFAULT_SIZE
 #endif
 
 /* SCSI command request, followed by data-out */
-struct virtio_scsi_cmd_req {
+struct virtio_scsi_cmd_req
+{
 	__u8 lun[8];		/* Logical Unit Number */
 	__virtio64 tag;		/* Command identifier */
 	__u8 task_attr;		/* Task attribute */
@@ -51,7 +52,8 @@ struct virtio_scsi_cmd_req {
 } __attribute__((packed));
 
 /* SCSI command request, followed by protection information */
-struct virtio_scsi_cmd_req_pi {
+struct virtio_scsi_cmd_req_pi
+{
 	__u8 lun[8];		/* Logical Unit Number */
 	__virtio64 tag;		/* Command identifier */
 	__u8 task_attr;		/* Task attribute */
@@ -63,7 +65,8 @@ struct virtio_scsi_cmd_req_pi {
 } __attribute__((packed));
 
 /* Response, followed by sense data and data-in */
-struct virtio_scsi_cmd_resp {
+struct virtio_scsi_cmd_resp
+{
 	__virtio32 sense_len;		/* Sense data length */
 	__virtio32 resid;		/* Residual bytes in data buffer */
 	__virtio16 status_qualifier;	/* Status qualifier */
@@ -73,36 +76,42 @@ struct virtio_scsi_cmd_resp {
 } __attribute__((packed));
 
 /* Task Management Request */
-struct virtio_scsi_ctrl_tmf_req {
+struct virtio_scsi_ctrl_tmf_req
+{
 	__virtio32 type;
 	__virtio32 subtype;
 	__u8 lun[8];
 	__virtio64 tag;
 } __attribute__((packed));
 
-struct virtio_scsi_ctrl_tmf_resp {
+struct virtio_scsi_ctrl_tmf_resp
+{
 	__u8 response;
 } __attribute__((packed));
 
 /* Asynchronous notification query/subscription */
-struct virtio_scsi_ctrl_an_req {
+struct virtio_scsi_ctrl_an_req
+{
 	__virtio32 type;
 	__u8 lun[8];
 	__virtio32 event_requested;
 } __attribute__((packed));
 
-struct virtio_scsi_ctrl_an_resp {
+struct virtio_scsi_ctrl_an_resp
+{
 	__virtio32 event_actual;
 	__u8 response;
 } __attribute__((packed));
 
-struct virtio_scsi_event {
+struct virtio_scsi_event
+{
 	__virtio32 event;
 	__u8 lun[8];
 	__virtio32 reason;
 } __attribute__((packed));
 
-struct virtio_scsi_config {
+struct virtio_scsi_config
+{
 	__u32 num_queues;
 	__u32 seg_max;
 	__u32 max_sectors;

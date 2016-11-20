@@ -15,7 +15,7 @@ extern int debug_ordered_events;
 extern int debug_data_convert;
 
 #ifndef pr_fmt
-#define pr_fmt(fmt) fmt
+	#define pr_fmt(fmt) fmt
 #endif
 
 #define pr_err(fmt, ...) \

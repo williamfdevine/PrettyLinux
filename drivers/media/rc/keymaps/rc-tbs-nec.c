@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table tbs_nec[] = {
+static struct rc_map_table tbs_nec[] =
+{
 	{ 0x84, KEY_POWER2},		/* power */
 	{ 0x94, KEY_MUTE},		/* mute */
 	{ 0x87, KEY_1},
@@ -50,7 +51,8 @@ static struct rc_map_table tbs_nec[] = {
 	{ 0x9b, KEY_MODE},
 };
 
-static struct rc_map_list tbs_nec_map = {
+static struct rc_map_list tbs_nec_map =
+{
 	.map = {
 		.scan    = tbs_nec,
 		.size    = ARRAY_SIZE(tbs_nec),

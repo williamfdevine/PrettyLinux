@@ -83,13 +83,15 @@ static int vsc824x_add_skew(struct phy_device *phydev)
 	extcon = phy_read(phydev, MII_VSC8244_EXT_CON1);
 
 	if (extcon < 0)
+	{
 		return extcon;
+	}
 
 	extcon &= ~(MII_VSC8244_EXTCON1_TX_SKEW_MASK |
-			MII_VSC8244_EXTCON1_RX_SKEW_MASK);
+				MII_VSC8244_EXTCON1_RX_SKEW_MASK);
 
 	extcon |= (MII_VSC8244_EXTCON1_TX_SKEW |
-			MII_VSC8244_EXTCON1_RX_SKEW);
+			   MII_VSC8244_EXTCON1_RX_SKEW);
 
 	err = phy_write(phydev, MII_VSC8244_EXT_CON1, extcon);
 
@@ -101,12 +103,17 @@ static int vsc824x_config_init(struct phy_device *phydev)
 	int err;
 
 	err = phy_write(phydev, MII_VSC8244_AUX_CONSTAT,
-			MII_VSC8244_AUXCONSTAT_INIT);
+					MII_VSC8244_AUXCONSTAT_INIT);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (phydev->interface == PHY_INTERFACE_MODE_RGMII_ID)
+	{
 		err = vsc824x_add_skew(phydev);
+	}
 
 	return err;
 }
@@ -120,7 +127,9 @@ static int vsc824x_ack_interrupt(struct phy_device *phydev)
 	 * if they are disabled.
 	 */
 	if (phydev->interrupts == PHY_INTERRUPT_ENABLED)
+	{
 		err = phy_read(phydev, MII_VSC8244_ISTAT);
+	}
 
 	return (err < 0) ? err : 0;
 }
@@ -131,21 +140,24 @@ static int vsc82xx_config_intr(struct phy_device *phydev)
 
 	if (phydev->interrupts == PHY_INTERRUPT_ENABLED)
 		err = phy_write(phydev, MII_VSC8244_IMASK,
-			(phydev->drv->phy_id == PHY_ID_VSC8234 ||
-			 phydev->drv->phy_id == PHY_ID_VSC8244 ||
-			 phydev->drv->phy_id == PHY_ID_VSC8514 ||
-			 phydev->drv->phy_id == PHY_ID_VSC8574 ||
-			 phydev->drv->phy_id == PHY_ID_VSC8601) ?
-				MII_VSC8244_IMASK_MASK :
-				MII_VSC8221_IMASK_MASK);
-	else {
+						(phydev->drv->phy_id == PHY_ID_VSC8234 ||
+						 phydev->drv->phy_id == PHY_ID_VSC8244 ||
+						 phydev->drv->phy_id == PHY_ID_VSC8514 ||
+						 phydev->drv->phy_id == PHY_ID_VSC8574 ||
+						 phydev->drv->phy_id == PHY_ID_VSC8601) ?
+						MII_VSC8244_IMASK_MASK :
+						MII_VSC8221_IMASK_MASK);
+	else
+	{
 		/* The Vitesse PHY cannot clear the interrupt
 		 * once it has disabled them, so we clear them first
 		 */
 		err = phy_read(phydev, MII_VSC8244_ISTAT);
 
 		if (err < 0)
+		{
 			return err;
+		}
 
 		err = phy_write(phydev, MII_VSC8244_IMASK, 0);
 	}
@@ -158,7 +170,7 @@ static int vsc8221_config_init(struct phy_device *phydev)
 	int err;
 
 	err = phy_write(phydev, MII_VSC8244_AUX_CONSTAT,
-			MII_VSC8221_AUXCONSTAT_INIT);
+					MII_VSC8221_AUXCONSTAT_INIT);
 	return err;
 
 	/* Perhaps we should set EXT_CON1 based on the interface?
@@ -177,21 +189,37 @@ static int vsc82x4_config_autocross_enable(struct phy_device *phydev)
 	int ret;
 
 	if (phydev->autoneg == AUTONEG_ENABLE || phydev->speed > SPEED_100)
+	{
 		return 0;
+	}
 
 	/* map extended registers set 0x10 - 0x1e */
 	ret = phy_write(phydev, MII_VSC82X4_EXT_PAGE_ACCESS, 0x52b5);
+
 	if (ret >= 0)
+	{
 		ret = phy_write(phydev, MII_VSC82X4_EXT_PAGE_18E, 0x0012);
+	}
+
 	if (ret >= 0)
+	{
 		ret = phy_write(phydev, MII_VSC82X4_EXT_PAGE_17E, 0x2803);
+	}
+
 	if (ret >= 0)
+	{
 		ret = phy_write(phydev, MII_VSC82X4_EXT_PAGE_16E, 0x87fa);
+	}
+
 	/* map standard registers set 0x10 - 0x1e */
 	if (ret >= 0)
+	{
 		ret = phy_write(phydev, MII_VSC82X4_EXT_PAGE_ACCESS, 0x0000);
+	}
 	else
+	{
 		phy_write(phydev, MII_VSC82X4_EXT_PAGE_ACCESS, 0x0000);
+	}
 
 	return ret;
 }
@@ -211,11 +239,14 @@ static int vsc82x4_config_aneg(struct phy_device *phydev)
 	/* Enable auto MDI/MDI-X when in 10/100 forced link speeds by
 	 * writing special values in the VSC8234 extended reserved registers
 	 */
-	if (phydev->autoneg != AUTONEG_ENABLE && phydev->speed <= SPEED_100) {
+	if (phydev->autoneg != AUTONEG_ENABLE && phydev->speed <= SPEED_100)
+	{
 		ret = genphy_setup_forced(phydev);
 
 		if (ret < 0) /* error */
+		{
 			return ret;
+		}
 
 		return vsc82x4_config_autocross_enable(phydev);
 	}
@@ -224,102 +255,105 @@ static int vsc82x4_config_aneg(struct phy_device *phydev)
 }
 
 /* Vitesse 82xx */
-static struct phy_driver vsc82xx_driver[] = {
+static struct phy_driver vsc82xx_driver[] =
 {
-	.phy_id         = PHY_ID_VSC8234,
-	.name           = "Vitesse VSC8234",
-	.phy_id_mask    = 0x000ffff0,
-	.features       = PHY_GBIT_FEATURES,
-	.flags          = PHY_HAS_INTERRUPT,
-	.config_init    = &vsc824x_config_init,
-	.config_aneg    = &vsc82x4_config_aneg,
-	.read_status    = &genphy_read_status,
-	.ack_interrupt  = &vsc824x_ack_interrupt,
-	.config_intr    = &vsc82xx_config_intr,
-}, {
-	.phy_id		= PHY_ID_VSC8244,
-	.name		= "Vitesse VSC8244",
-	.phy_id_mask	= 0x000fffc0,
-	.features	= PHY_GBIT_FEATURES,
-	.flags		= PHY_HAS_INTERRUPT,
-	.config_init	= &vsc824x_config_init,
-	.config_aneg	= &vsc82x4_config_aneg,
-	.read_status	= &genphy_read_status,
-	.ack_interrupt	= &vsc824x_ack_interrupt,
-	.config_intr	= &vsc82xx_config_intr,
-}, {
-	.phy_id		= PHY_ID_VSC8514,
-	.name		= "Vitesse VSC8514",
-	.phy_id_mask	= 0x000ffff0,
-	.features	= PHY_GBIT_FEATURES,
-	.flags		= PHY_HAS_INTERRUPT,
-	.config_init	= &vsc824x_config_init,
-	.config_aneg	= &vsc82x4_config_aneg,
-	.read_status	= &genphy_read_status,
-	.ack_interrupt	= &vsc824x_ack_interrupt,
-	.config_intr	= &vsc82xx_config_intr,
-}, {
-	.phy_id         = PHY_ID_VSC8574,
-	.name           = "Vitesse VSC8574",
-	.phy_id_mask    = 0x000ffff0,
-	.features       = PHY_GBIT_FEATURES,
-	.flags          = PHY_HAS_INTERRUPT,
-	.config_init    = &vsc824x_config_init,
-	.config_aneg    = &vsc82x4_config_aneg,
-	.read_status    = &genphy_read_status,
-	.ack_interrupt  = &vsc824x_ack_interrupt,
-	.config_intr    = &vsc82xx_config_intr,
-}, {
-	.phy_id         = PHY_ID_VSC8601,
-	.name           = "Vitesse VSC8601",
-	.phy_id_mask    = 0x000ffff0,
-	.features       = PHY_GBIT_FEATURES,
-	.flags          = PHY_HAS_INTERRUPT,
-	.config_init    = &genphy_config_init,
-	.config_aneg    = &genphy_config_aneg,
-	.read_status    = &genphy_read_status,
-	.ack_interrupt  = &vsc824x_ack_interrupt,
-	.config_intr    = &vsc82xx_config_intr,
-}, {
-	.phy_id         = PHY_ID_VSC8662,
-	.name           = "Vitesse VSC8662",
-	.phy_id_mask    = 0x000ffff0,
-	.features       = PHY_GBIT_FEATURES,
-	.flags          = PHY_HAS_INTERRUPT,
-	.config_init    = &vsc824x_config_init,
-	.config_aneg    = &vsc82x4_config_aneg,
-	.read_status    = &genphy_read_status,
-	.ack_interrupt  = &vsc824x_ack_interrupt,
-	.config_intr    = &vsc82xx_config_intr,
-}, {
-	/* Vitesse 8221 */
-	.phy_id		= PHY_ID_VSC8221,
-	.phy_id_mask	= 0x000ffff0,
-	.name		= "Vitesse VSC8221",
-	.features	= PHY_GBIT_FEATURES,
-	.flags		= PHY_HAS_INTERRUPT,
-	.config_init	= &vsc8221_config_init,
-	.config_aneg	= &genphy_config_aneg,
-	.read_status	= &genphy_read_status,
-	.ack_interrupt	= &vsc824x_ack_interrupt,
-	.config_intr	= &vsc82xx_config_intr,
-}, {
-	/* Vitesse 8211 */
-	.phy_id		= PHY_ID_VSC8211,
-	.phy_id_mask	= 0x000ffff0,
-	.name		= "Vitesse VSC8211",
-	.features	= PHY_GBIT_FEATURES,
-	.flags		= PHY_HAS_INTERRUPT,
-	.config_init	= &vsc8221_config_init,
-	.config_aneg	= &genphy_config_aneg,
-	.read_status	= &genphy_read_status,
-	.ack_interrupt	= &vsc824x_ack_interrupt,
-	.config_intr	= &vsc82xx_config_intr,
-} };
+	{
+		.phy_id         = PHY_ID_VSC8234,
+		.name           = "Vitesse VSC8234",
+		.phy_id_mask    = 0x000ffff0,
+		.features       = PHY_GBIT_FEATURES,
+		.flags          = PHY_HAS_INTERRUPT,
+		.config_init    = &vsc824x_config_init,
+		.config_aneg    = &vsc82x4_config_aneg,
+		.read_status    = &genphy_read_status,
+		.ack_interrupt  = &vsc824x_ack_interrupt,
+		.config_intr    = &vsc82xx_config_intr,
+	}, {
+		.phy_id		= PHY_ID_VSC8244,
+		.name		= "Vitesse VSC8244",
+		.phy_id_mask	= 0x000fffc0,
+		.features	= PHY_GBIT_FEATURES,
+		.flags		= PHY_HAS_INTERRUPT,
+		.config_init	= &vsc824x_config_init,
+		.config_aneg	= &vsc82x4_config_aneg,
+		.read_status	= &genphy_read_status,
+		.ack_interrupt	= &vsc824x_ack_interrupt,
+		.config_intr	= &vsc82xx_config_intr,
+	}, {
+		.phy_id		= PHY_ID_VSC8514,
+		.name		= "Vitesse VSC8514",
+		.phy_id_mask	= 0x000ffff0,
+		.features	= PHY_GBIT_FEATURES,
+		.flags		= PHY_HAS_INTERRUPT,
+		.config_init	= &vsc824x_config_init,
+		.config_aneg	= &vsc82x4_config_aneg,
+		.read_status	= &genphy_read_status,
+		.ack_interrupt	= &vsc824x_ack_interrupt,
+		.config_intr	= &vsc82xx_config_intr,
+	}, {
+		.phy_id         = PHY_ID_VSC8574,
+		.name           = "Vitesse VSC8574",
+		.phy_id_mask    = 0x000ffff0,
+		.features       = PHY_GBIT_FEATURES,
+		.flags          = PHY_HAS_INTERRUPT,
+		.config_init    = &vsc824x_config_init,
+		.config_aneg    = &vsc82x4_config_aneg,
+		.read_status    = &genphy_read_status,
+		.ack_interrupt  = &vsc824x_ack_interrupt,
+		.config_intr    = &vsc82xx_config_intr,
+	}, {
+		.phy_id         = PHY_ID_VSC8601,
+		.name           = "Vitesse VSC8601",
+		.phy_id_mask    = 0x000ffff0,
+		.features       = PHY_GBIT_FEATURES,
+		.flags          = PHY_HAS_INTERRUPT,
+		.config_init    = &genphy_config_init,
+		.config_aneg    = &genphy_config_aneg,
+		.read_status    = &genphy_read_status,
+		.ack_interrupt  = &vsc824x_ack_interrupt,
+		.config_intr    = &vsc82xx_config_intr,
+	}, {
+		.phy_id         = PHY_ID_VSC8662,
+		.name           = "Vitesse VSC8662",
+		.phy_id_mask    = 0x000ffff0,
+		.features       = PHY_GBIT_FEATURES,
+		.flags          = PHY_HAS_INTERRUPT,
+		.config_init    = &vsc824x_config_init,
+		.config_aneg    = &vsc82x4_config_aneg,
+		.read_status    = &genphy_read_status,
+		.ack_interrupt  = &vsc824x_ack_interrupt,
+		.config_intr    = &vsc82xx_config_intr,
+	}, {
+		/* Vitesse 8221 */
+		.phy_id		= PHY_ID_VSC8221,
+		.phy_id_mask	= 0x000ffff0,
+		.name		= "Vitesse VSC8221",
+		.features	= PHY_GBIT_FEATURES,
+		.flags		= PHY_HAS_INTERRUPT,
+		.config_init	= &vsc8221_config_init,
+		.config_aneg	= &genphy_config_aneg,
+		.read_status	= &genphy_read_status,
+		.ack_interrupt	= &vsc824x_ack_interrupt,
+		.config_intr	= &vsc82xx_config_intr,
+	}, {
+		/* Vitesse 8211 */
+		.phy_id		= PHY_ID_VSC8211,
+		.phy_id_mask	= 0x000ffff0,
+		.name		= "Vitesse VSC8211",
+		.features	= PHY_GBIT_FEATURES,
+		.flags		= PHY_HAS_INTERRUPT,
+		.config_init	= &vsc8221_config_init,
+		.config_aneg	= &genphy_config_aneg,
+		.read_status	= &genphy_read_status,
+		.ack_interrupt	= &vsc824x_ack_interrupt,
+		.config_intr	= &vsc82xx_config_intr,
+	}
+};
 
 module_phy_driver(vsc82xx_driver);
 
-static struct mdio_device_id __maybe_unused vitesse_tbl[] = {
+static struct mdio_device_id __maybe_unused vitesse_tbl[] =
+{
 	{ PHY_ID_VSC8234, 0x000ffff0 },
 	{ PHY_ID_VSC8244, 0x000fffc0 },
 	{ PHY_ID_VSC8514, 0x000ffff0 },

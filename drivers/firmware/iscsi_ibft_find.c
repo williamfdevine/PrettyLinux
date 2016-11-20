@@ -42,9 +42,11 @@
 struct acpi_table_ibft *ibft_addr;
 EXPORT_SYMBOL_GPL(ibft_addr);
 
-static const struct {
+static const struct
+{
 	char *sign;
-} ibft_signs[] = {
+} ibft_signs[] =
+{
 	{ "iBFT" },
 	{ "BIFT" },	/* Broadcom iSCSI Offload */
 };
@@ -62,22 +64,30 @@ static int __init find_ibft_in_mem(void)
 	void *virt;
 	int i;
 
-	for (pos = IBFT_START; pos < IBFT_END; pos += 16) {
+	for (pos = IBFT_START; pos < IBFT_END; pos += 16)
+	{
 		/* The table can't be inside the VGA BIOS reserved space,
 		 * so skip that area */
 		if (pos == VGA_MEM)
+		{
 			pos += VGA_SIZE;
+		}
+
 		virt = isa_bus_to_virt(pos);
 
-		for (i = 0; i < ARRAY_SIZE(ibft_signs); i++) {
+		for (i = 0; i < ARRAY_SIZE(ibft_signs); i++)
+		{
 			if (memcmp(virt, ibft_signs[i].sign, IBFT_SIGN_LEN) ==
-			    0) {
+				0)
+			{
 				unsigned long *addr =
-				    (unsigned long *)isa_bus_to_virt(pos + 4);
+					(unsigned long *)isa_bus_to_virt(pos + 4);
 				len = *addr;
+
 				/* if the length of the table extends past 1M,
 				 * the table cannot be valid. */
-				if (pos + len <= (IBFT_END-1)) {
+				if (pos + len <= (IBFT_END - 1))
+				{
 					ibft_addr = (struct acpi_table_ibft *)virt;
 					pr_info("iBFT found at 0x%lx.\n", pos);
 					goto done;
@@ -85,6 +95,7 @@ static int __init find_ibft_in_mem(void)
 			}
 		}
 	}
+
 done:
 	return len;
 }
@@ -100,9 +111,12 @@ unsigned long __init find_ibft_region(unsigned long *sizep)
 	 * only use ACPI for this */
 
 	if (!efi_enabled(EFI_BOOT))
+	{
 		find_ibft_in_mem();
+	}
 
-	if (ibft_addr) {
+	if (ibft_addr)
+	{
 		*sizep = PAGE_ALIGN(ibft_addr->header.length);
 		return (u64)isa_virt_to_bus(ibft_addr);
 	}

@@ -23,26 +23,32 @@
 
 #include <linux/mfd/tps65912.h>
 
-static const struct of_device_id tps65912_i2c_of_match_table[] = {
+static const struct of_device_id tps65912_i2c_of_match_table[] =
+{
 	{ .compatible = "ti,tps65912", },
 	{ /* sentinel */ }
 };
 
 static int tps65912_i2c_probe(struct i2c_client *client,
-			      const struct i2c_device_id *ids)
+							  const struct i2c_device_id *ids)
 {
 	struct tps65912 *tps;
 
 	tps = devm_kzalloc(&client->dev, sizeof(*tps), GFP_KERNEL);
+
 	if (!tps)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, tps);
 	tps->dev = &client->dev;
 	tps->irq = client->irq;
 
 	tps->regmap = devm_regmap_init_i2c(client, &tps65912_regmap_config);
-	if (IS_ERR(tps->regmap)) {
+
+	if (IS_ERR(tps->regmap))
+	{
 		dev_err(tps->dev, "Failed to initialize register map\n");
 		return PTR_ERR(tps->regmap);
 	}
@@ -57,13 +63,15 @@ static int tps65912_i2c_remove(struct i2c_client *client)
 	return tps65912_device_exit(tps);
 }
 
-static const struct i2c_device_id tps65912_i2c_id_table[] = {
+static const struct i2c_device_id tps65912_i2c_id_table[] =
+{
 	{ "tps65912", 0 },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(i2c, tps65912_i2c_id_table);
 
-static struct i2c_driver tps65912_i2c_driver = {
+static struct i2c_driver tps65912_i2c_driver =
+{
 	.driver		= {
 		.name	= "tps65912",
 		.of_match_table = tps65912_i2c_of_match_table,

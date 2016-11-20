@@ -27,7 +27,8 @@
 #include <linux/regmap.h>
 #include <linux/sunxi-rsb.h>
 
-static const struct regmap_range ac100_writeable_ranges[] = {
+static const struct regmap_range ac100_writeable_ranges[] =
+{
 	regmap_reg_range(AC100_CHIP_AUDIO_RST, AC100_I2S_SR_CTRL),
 	regmap_reg_range(AC100_I2S1_CLK_CTRL, AC100_I2S1_MXR_GAIN),
 	regmap_reg_range(AC100_I2S2_CLK_CTRL, AC100_I2S2_MXR_GAIN),
@@ -47,7 +48,8 @@ static const struct regmap_range ac100_writeable_ranges[] = {
 	regmap_reg_range(AC100_ALM_SEC, AC100_RTC_GP(15)),
 };
 
-static const struct regmap_range ac100_volatile_ranges[] = {
+static const struct regmap_range ac100_volatile_ranges[] =
+{
 	regmap_reg_range(AC100_CHIP_AUDIO_RST, AC100_PLL_CTRL2),
 	regmap_reg_range(AC100_HMIC_STATUS, AC100_HMIC_STATUS),
 	regmap_reg_range(AC100_ADC_DAP_L_STA, AC100_ADC_DAP_L_STA),
@@ -59,17 +61,20 @@ static const struct regmap_range ac100_volatile_ranges[] = {
 	regmap_reg_range(AC100_ALM_SEC, AC100_ALM_UPD),
 };
 
-static const struct regmap_access_table ac100_writeable_table = {
+static const struct regmap_access_table ac100_writeable_table =
+{
 	.yes_ranges	= ac100_writeable_ranges,
 	.n_yes_ranges	= ARRAY_SIZE(ac100_writeable_ranges),
 };
 
-static const struct regmap_access_table ac100_volatile_table = {
+static const struct regmap_access_table ac100_volatile_table =
+{
 	.yes_ranges	= ac100_volatile_ranges,
 	.n_yes_ranges	= ARRAY_SIZE(ac100_volatile_ranges),
 };
 
-static const struct regmap_config ac100_regmap_config = {
+static const struct regmap_config ac100_regmap_config =
+{
 	.reg_bits	= 8,
 	.val_bits	= 16,
 	.wr_table	= &ac100_writeable_table,
@@ -78,7 +83,8 @@ static const struct regmap_config ac100_regmap_config = {
 	.cache_type	= REGCACHE_RBTREE,
 };
 
-static struct mfd_cell ac100_cells[] = {
+static struct mfd_cell ac100_cells[] =
+{
 	{
 		.name		= "ac100-codec",
 		.of_compatible	= "x-powers,ac100-codec",
@@ -94,22 +100,29 @@ static int ac100_rsb_probe(struct sunxi_rsb_device *rdev)
 	int ret;
 
 	ac100 = devm_kzalloc(&rdev->dev, sizeof(*ac100), GFP_KERNEL);
+
 	if (!ac100)
+	{
 		return -ENOMEM;
+	}
 
 	ac100->dev = &rdev->dev;
 	sunxi_rsb_device_set_drvdata(rdev, ac100);
 
 	ac100->regmap = devm_regmap_init_sunxi_rsb(rdev, &ac100_regmap_config);
-	if (IS_ERR(ac100->regmap)) {
+
+	if (IS_ERR(ac100->regmap))
+	{
 		ret = PTR_ERR(ac100->regmap);
 		dev_err(ac100->dev, "regmap init failed: %d\n", ret);
 		return ret;
 	}
 
 	ret = devm_mfd_add_devices(ac100->dev, PLATFORM_DEVID_NONE, ac100_cells,
-				   ARRAY_SIZE(ac100_cells), NULL, 0, NULL);
-	if (ret) {
+							   ARRAY_SIZE(ac100_cells), NULL, 0, NULL);
+
+	if (ret)
+	{
 		dev_err(ac100->dev, "failed to add MFD devices: %d\n", ret);
 		return ret;
 	}
@@ -117,13 +130,15 @@ static int ac100_rsb_probe(struct sunxi_rsb_device *rdev)
 	return 0;
 }
 
-static const struct of_device_id ac100_of_match[] = {
+static const struct of_device_id ac100_of_match[] =
+{
 	{ .compatible = "x-powers,ac100" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, ac100_of_match);
 
-static struct sunxi_rsb_driver ac100_rsb_driver = {
+static struct sunxi_rsb_driver ac100_rsb_driver =
+{
 	.driver = {
 		.name	= "ac100",
 		.of_match_table	= of_match_ptr(ac100_of_match),

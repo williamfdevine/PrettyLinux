@@ -1,21 +1,21 @@
- /***************************************************************************
- *
- * Copyright (C) 2007-2008 SMSC
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see <http://www.gnu.org/licenses/>.
- *
- *****************************************************************************/
+/***************************************************************************
+*
+* Copyright (C) 2007-2008 SMSC
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, see <http://www.gnu.org/licenses/>.
+*
+*****************************************************************************/
 
 #ifndef _SMSC95XX_H
 #define _SMSC95XX_H
@@ -247,8 +247,8 @@
 #define PHY_EDPD_CONFIG_RX_NLP_1000_	((u16)0x0C00)
 #define PHY_EDPD_CONFIG_EXT_CROSSOVER_	((u16)0x0001)
 #define PHY_EDPD_CONFIG_DEFAULT		(PHY_EDPD_CONFIG_TX_NLP_EN_ | \
-					 PHY_EDPD_CONFIG_TX_NLP_768_ | \
-					 PHY_EDPD_CONFIG_RX_1_NLP_)
+									 PHY_EDPD_CONFIG_TX_NLP_768_ | \
+									 PHY_EDPD_CONFIG_RX_1_NLP_)
 
 /* Mode Control/Status Register */
 #define PHY_MODE_CTRL_STS		(17)
@@ -272,7 +272,7 @@
 #define PHY_INT_MASK_REMOTE_FAULT_	((u16)0x0020)
 #define PHY_INT_MASK_LINK_DOWN_		((u16)0x0010)
 #define PHY_INT_MASK_DEFAULT_		(PHY_INT_MASK_ANEG_COMP_ | \
-					 PHY_INT_MASK_LINK_DOWN_)
+									 PHY_INT_MASK_LINK_DOWN_)
 
 #define PHY_SPECIAL			(31)
 #define PHY_SPECIAL_SPD_		((u16)0x001C)

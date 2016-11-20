@@ -27,7 +27,7 @@
 #define MSR_IA32_PERF_STATUS	0x198
 
 static int rdmsr(unsigned int cpu, unsigned int msr,
-		 unsigned int *lo, unsigned int *hi)
+				 unsigned int *lo, unsigned int *hi)
 {
 	int fd;
 	char file[20];
@@ -37,22 +37,30 @@ static int rdmsr(unsigned int cpu, unsigned int msr,
 	*lo = *hi = 0;
 
 	if (cpu > MCPU)
+	{
 		goto err1;
+	}
 
 	sprintf(file, "/dev/cpu/%d/msr", cpu);
 	fd = open(file, O_RDONLY);
 
 	if (fd < 0)
+	{
 		goto err1;
+	}
 
 	if (lseek(fd, msr, SEEK_CUR) == -1)
+	{
 		goto err2;
+	}
 
 	if (read(fd, &val, 8) != 8)
+	{
 		goto err2;
+	}
 
 	*lo = (uint32_t )(val & 0xffffffffull);
-	*hi = (uint32_t )(val>>32 & 0xffffffffull);
+	*hi = (uint32_t )(val >> 32 & 0xffffffffull);
 
 	retval = 0;
 err2:
@@ -80,7 +88,8 @@ static int decode_live(unsigned int cpu)
 
 	err = rdmsr(cpu, MSR_IA32_PERF_STATUS, &lo, &hi);
 
-	if (err) {
+	if (err)
+	{
 		printf("can't get MSR_IA32_PERF_STATUS for cpu %d\n", cpu);
 		printf("Possible trouble: you don't run an Enhanced SpeedStep capable cpu\n");
 		printf("or you are not root, or the msr driver is not present\n");
@@ -97,17 +106,27 @@ int main (int argc, char **argv)
 	unsigned int cpu, mode = 0;
 
 	if (argc < 2)
+	{
 		cpu = 0;
-	else {
+	}
+	else
+	{
 		cpu = strtoul(argv[1], NULL, 0);
+
 		if (cpu >= MCPU)
+		{
 			mode = 1;
+		}
 	}
 
 	if (mode)
+	{
 		decode(cpu);
+	}
 	else
+	{
 		decode_live(cpu);
+	}
 
 	return 0;
 }

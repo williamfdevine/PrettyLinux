@@ -14,7 +14,7 @@
 #include <linux/export.h>
 
 void __raw_spin_lock_init(raw_spinlock_t *lock, const char *name,
-			  struct lock_class_key *key)
+						  struct lock_class_key *key)
 {
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 	/*
@@ -32,7 +32,7 @@ void __raw_spin_lock_init(raw_spinlock_t *lock, const char *name,
 EXPORT_SYMBOL(__raw_spin_lock_init);
 
 void __rwlock_init(rwlock_t *lock, const char *name,
-		   struct lock_class_key *key)
+				   struct lock_class_key *key)
 {
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 	/*
@@ -54,23 +54,28 @@ static void spin_dump(raw_spinlock_t *lock, const char *msg)
 	struct task_struct *owner = NULL;
 
 	if (lock->owner && lock->owner != SPINLOCK_OWNER_INIT)
+	{
 		owner = lock->owner;
+	}
+
 	printk(KERN_EMERG "BUG: spinlock %s on CPU#%d, %s/%d\n",
-		msg, raw_smp_processor_id(),
-		current->comm, task_pid_nr(current));
+		   msg, raw_smp_processor_id(),
+		   current->comm, task_pid_nr(current));
 	printk(KERN_EMERG " lock: %pS, .magic: %08x, .owner: %s/%d, "
-			".owner_cpu: %d\n",
-		lock, lock->magic,
-		owner ? owner->comm : "<none>",
-		owner ? task_pid_nr(owner) : -1,
-		lock->owner_cpu);
+		   ".owner_cpu: %d\n",
+		   lock, lock->magic,
+		   owner ? owner->comm : "<none>",
+		   owner ? task_pid_nr(owner) : -1,
+		   lock->owner_cpu);
 	dump_stack();
 }
 
 static void spin_bug(raw_spinlock_t *lock, const char *msg)
 {
 	if (!debug_locks_off())
+	{
 		return;
+	}
 
 	spin_dump(lock, msg);
 }
@@ -83,7 +88,7 @@ debug_spin_lock_before(raw_spinlock_t *lock)
 	SPIN_BUG_ON(lock->magic != SPINLOCK_MAGIC, lock, "bad magic");
 	SPIN_BUG_ON(lock->owner == current, lock, "recursion");
 	SPIN_BUG_ON(lock->owner_cpu == raw_smp_processor_id(),
-							lock, "cpu recursion");
+				lock, "cpu recursion");
 }
 
 static inline void debug_spin_lock_after(raw_spinlock_t *lock)
@@ -98,7 +103,7 @@ static inline void debug_spin_unlock(raw_spinlock_t *lock)
 	SPIN_BUG_ON(!raw_spin_is_locked(lock), lock, "already unlocked");
 	SPIN_BUG_ON(lock->owner != current, lock, "wrong owner");
 	SPIN_BUG_ON(lock->owner_cpu != raw_smp_processor_id(),
-							lock, "wrong CPU");
+				lock, "wrong CPU");
 	lock->owner = SPINLOCK_OWNER_INIT;
 	lock->owner_cpu = -1;
 }
@@ -108,11 +113,16 @@ static void __spin_lock_debug(raw_spinlock_t *lock)
 	u64 i;
 	u64 loops = loops_per_jiffy * HZ;
 
-	for (i = 0; i < loops; i++) {
+	for (i = 0; i < loops; i++)
+	{
 		if (arch_spin_trylock(&lock->raw_lock))
+		{
 			return;
+		}
+
 		__delay(1);
 	}
+
 	/* lockup suspected: */
 	spin_dump(lock, "lockup suspected");
 #ifdef CONFIG_SMP
@@ -133,8 +143,12 @@ static void __spin_lock_debug(raw_spinlock_t *lock)
 void do_raw_spin_lock(raw_spinlock_t *lock)
 {
 	debug_spin_lock_before(lock);
+
 	if (unlikely(!arch_spin_trylock(&lock->raw_lock)))
+	{
 		__spin_lock_debug(lock);
+	}
+
 	debug_spin_lock_after(lock);
 }
 
@@ -143,7 +157,10 @@ int do_raw_spin_trylock(raw_spinlock_t *lock)
 	int ret = arch_spin_trylock(&lock->raw_lock);
 
 	if (ret)
+	{
 		debug_spin_lock_after(lock);
+	}
+
 #ifndef CONFIG_SMP
 	/*
 	 * Must not happen on UP:
@@ -162,11 +179,13 @@ void do_raw_spin_unlock(raw_spinlock_t *lock)
 static void rwlock_bug(rwlock_t *lock, const char *msg)
 {
 	if (!debug_locks_off())
+	{
 		return;
+	}
 
 	printk(KERN_EMERG "BUG: rwlock %s on CPU#%d, %s/%d, %p\n",
-		msg, raw_smp_processor_id(), current->comm,
-		task_pid_nr(current), lock);
+		   msg, raw_smp_processor_id(), current->comm,
+		   task_pid_nr(current), lock);
 	dump_stack();
 }
 
@@ -179,19 +198,26 @@ static void __read_lock_debug(rwlock_t *lock)
 	u64 loops = loops_per_jiffy * HZ;
 	int print_once = 1;
 
-	for (;;) {
-		for (i = 0; i < loops; i++) {
+	for (;;)
+	{
+		for (i = 0; i < loops; i++)
+		{
 			if (arch_read_trylock(&lock->raw_lock))
+			{
 				return;
+			}
+
 			__delay(1);
 		}
+
 		/* lockup suspected: */
-		if (print_once) {
+		if (print_once)
+		{
 			print_once = 0;
 			printk(KERN_EMERG "BUG: read-lock lockup on CPU#%d, "
-					"%s/%d, %p\n",
-				raw_smp_processor_id(), current->comm,
-				current->pid, lock);
+				   "%s/%d, %p\n",
+				   raw_smp_processor_id(), current->comm,
+				   current->pid, lock);
 			dump_stack();
 		}
 	}
@@ -228,7 +254,7 @@ static inline void debug_write_lock_before(rwlock_t *lock)
 	RWLOCK_BUG_ON(lock->magic != RWLOCK_MAGIC, lock, "bad magic");
 	RWLOCK_BUG_ON(lock->owner == current, lock, "recursion");
 	RWLOCK_BUG_ON(lock->owner_cpu == raw_smp_processor_id(),
-							lock, "cpu recursion");
+				  lock, "cpu recursion");
 }
 
 static inline void debug_write_lock_after(rwlock_t *lock)
@@ -242,7 +268,7 @@ static inline void debug_write_unlock(rwlock_t *lock)
 	RWLOCK_BUG_ON(lock->magic != RWLOCK_MAGIC, lock, "bad magic");
 	RWLOCK_BUG_ON(lock->owner != current, lock, "wrong owner");
 	RWLOCK_BUG_ON(lock->owner_cpu != raw_smp_processor_id(),
-							lock, "wrong CPU");
+				  lock, "wrong CPU");
 	lock->owner = SPINLOCK_OWNER_INIT;
 	lock->owner_cpu = -1;
 }
@@ -254,19 +280,26 @@ static void __write_lock_debug(rwlock_t *lock)
 	u64 loops = loops_per_jiffy * HZ;
 	int print_once = 1;
 
-	for (;;) {
-		for (i = 0; i < loops; i++) {
+	for (;;)
+	{
+		for (i = 0; i < loops; i++)
+		{
 			if (arch_write_trylock(&lock->raw_lock))
+			{
 				return;
+			}
+
 			__delay(1);
 		}
+
 		/* lockup suspected: */
-		if (print_once) {
+		if (print_once)
+		{
 			print_once = 0;
 			printk(KERN_EMERG "BUG: write-lock lockup on CPU#%d, "
-					"%s/%d, %p\n",
-				raw_smp_processor_id(), current->comm,
-				current->pid, lock);
+				   "%s/%d, %p\n",
+				   raw_smp_processor_id(), current->comm,
+				   current->pid, lock);
 			dump_stack();
 		}
 	}
@@ -285,7 +318,10 @@ int do_raw_write_trylock(rwlock_t *lock)
 	int ret = arch_write_trylock(&lock->raw_lock);
 
 	if (ret)
+	{
 		debug_write_lock_after(lock);
+	}
+
 #ifndef CONFIG_SMP
 	/*
 	 * Must not happen on UP:

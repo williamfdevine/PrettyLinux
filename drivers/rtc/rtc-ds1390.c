@@ -48,13 +48,14 @@
 #define DS1390_TRICKLE_CHARGER_NO_DIODE	0x04
 #define DS1390_TRICKLE_CHARGER_DIODE	0x08
 
-struct ds1390 {
+struct ds1390
+{
 	struct rtc_device *rtc;
 	u8 txrx_buf[9];	/* cmd + 8 registers */
 };
 
 static void ds1390_set_reg(struct device *dev, unsigned char address,
-			   unsigned char data)
+						   unsigned char data)
 {
 	struct spi_device *spi = to_spi_device(dev);
 	unsigned char buf[2];
@@ -67,21 +68,26 @@ static void ds1390_set_reg(struct device *dev, unsigned char address,
 }
 
 static int ds1390_get_reg(struct device *dev, unsigned char address,
-				unsigned char *data)
+						  unsigned char *data)
 {
 	struct spi_device *spi = to_spi_device(dev);
 	struct ds1390 *chip = dev_get_drvdata(dev);
 	int status;
 
 	if (!data)
+	{
 		return -EINVAL;
+	}
 
 	/* Clear MSB to indicate read */
 	chip->txrx_buf[0] = address & 0x7f;
 	/* do the i/o */
 	status = spi_write_then_read(spi, chip->txrx_buf, 1, chip->txrx_buf, 1);
+
 	if (status != 0)
+	{
 		return status;
+	}
 
 	*data = chip->txrx_buf[0];
 
@@ -94,31 +100,42 @@ static void ds1390_trickle_of_init(struct spi_device *spi)
 	u8 value;
 
 	if (of_property_read_u32(spi->dev.of_node, "trickle-resistor-ohms",
-				 &ohms))
+							 &ohms))
+	{
 		goto out;
+	}
 
 	/* Enable charger */
 	value = DS1390_TRICKLE_CHARGER_ENABLE;
+
 	if (of_property_read_bool(spi->dev.of_node, "trickle-diode-disable"))
+	{
 		value |= DS1390_TRICKLE_CHARGER_NO_DIODE;
+	}
 	else
+	{
 		value |= DS1390_TRICKLE_CHARGER_DIODE;
+	}
 
 	/* Resistor select */
-	switch (ohms) {
-	case 250:
-		value |= DS1390_TRICKLE_CHARGER_250_OHM;
-		break;
-	case 2000:
-		value |= DS1390_TRICKLE_CHARGER_2K_OHM;
-		break;
-	case 4000:
-		value |= DS1390_TRICKLE_CHARGER_4K_OHM;
-		break;
-	default:
-		dev_warn(&spi->dev,
-			 "Unsupported ohm value %02ux in dt\n", ohms);
-		return;
+	switch (ohms)
+	{
+		case 250:
+			value |= DS1390_TRICKLE_CHARGER_250_OHM;
+			break;
+
+		case 2000:
+			value |= DS1390_TRICKLE_CHARGER_2K_OHM;
+			break;
+
+		case 4000:
+			value |= DS1390_TRICKLE_CHARGER_4K_OHM;
+			break;
+
+		default:
+			dev_warn(&spi->dev,
+					 "Unsupported ohm value %02ux in dt\n", ohms);
+			return;
 	}
 
 	ds1390_set_reg(&spi->dev, DS1390_REG_TRICKLE, value);
@@ -138,8 +155,11 @@ static int ds1390_read_time(struct device *dev, struct rtc_time *dt)
 
 	/* do the i/o */
 	status = spi_write_then_read(spi, chip->txrx_buf, 1, chip->txrx_buf, 8);
+
 	if (status != 0)
+	{
 		return status;
+	}
 
 	/* The chip sends data in this order:
 	 * Seconds, Minutes, Hours, Day, Date, Month / Century, Year */
@@ -169,14 +189,15 @@ static int ds1390_set_time(struct device *dev, struct rtc_time *dt)
 	chip->txrx_buf[4] = bin2bcd(dt->tm_wday);
 	chip->txrx_buf[5] = bin2bcd(dt->tm_mday);
 	chip->txrx_buf[6] = bin2bcd(dt->tm_mon + 1) |
-				((dt->tm_year > 99) ? 0x80 : 0x00);
+						((dt->tm_year > 99) ? 0x80 : 0x00);
 	chip->txrx_buf[7] = bin2bcd(dt->tm_year % 100);
 
 	/* do the i/o */
 	return spi_write_then_read(spi, chip->txrx_buf, 8, NULL, 0);
 }
 
-static const struct rtc_class_ops ds1390_rtc_ops = {
+static const struct rtc_class_ops ds1390_rtc_ops =
+{
 	.read_time	= ds1390_read_time,
 	.set_time	= ds1390_set_time,
 };
@@ -192,23 +213,32 @@ static int ds1390_probe(struct spi_device *spi)
 	spi_setup(spi);
 
 	chip = devm_kzalloc(&spi->dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	spi_set_drvdata(spi, chip);
 
 	res = ds1390_get_reg(&spi->dev, DS1390_REG_SECONDS, &tmp);
-	if (res != 0) {
+
+	if (res != 0)
+	{
 		dev_err(&spi->dev, "unable to read device\n");
 		return res;
 	}
 
 	if (spi->dev.of_node)
+	{
 		ds1390_trickle_of_init(spi);
+	}
 
 	chip->rtc = devm_rtc_device_register(&spi->dev, "ds1390",
-					&ds1390_rtc_ops, THIS_MODULE);
-	if (IS_ERR(chip->rtc)) {
+										 &ds1390_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(chip->rtc))
+	{
 		dev_err(&spi->dev, "unable to register device\n");
 		res = PTR_ERR(chip->rtc);
 	}
@@ -216,7 +246,8 @@ static int ds1390_probe(struct spi_device *spi)
 	return res;
 }
 
-static struct spi_driver ds1390_driver = {
+static struct spi_driver ds1390_driver =
+{
 	.driver = {
 		.name	= "rtc-ds1390",
 	},

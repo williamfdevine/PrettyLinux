@@ -46,7 +46,8 @@ struct pcxhr_mgr;
 struct pcxhr_stream;
 struct pcxhr_pipe;
 
-enum pcxhr_clock_type {
+enum pcxhr_clock_type
+{
 	PCXHR_CLOCK_TYPE_INTERNAL = 0,
 	PCXHR_CLOCK_TYPE_WORD_CLOCK,
 	PCXHR_CLOCK_TYPE_AES_SYNC,
@@ -61,7 +62,8 @@ enum pcxhr_clock_type {
 	HR22_CLOCK_TYPE_MAX = HR22_CLOCK_TYPE_AES_1,
 };
 
-struct pcxhr_mgr {
+struct pcxhr_mgr
+{
 	unsigned int num_cards;
 	struct snd_pcxhr *chip[PCXHR_MAX_CARDS];
 
@@ -93,13 +95,13 @@ struct pcxhr_mgr {
 	int capture_chips;
 	int fw_file_set;
 	int firmware_num;
-	unsigned int is_hr_stereo:1;
-	unsigned int board_has_aes1:1;	/* if 1 board has AES1 plug and SRC */
-	unsigned int board_has_analog:1; /* if 0 the board is digital only */
-	unsigned int board_has_mic:1; /* if 1 the board has microphone input */
-	unsigned int board_aes_in_192k:1;/* if 1 the aes input plugs do support 192kHz */
-	unsigned int mono_capture:1; /* if 1 the board does mono capture */
-	unsigned int capture_ltc:1; /* if 1 the board captures LTC input */
+	unsigned int is_hr_stereo: 1;
+	unsigned int board_has_aes1: 1;	/* if 1 board has AES1 plug and SRC */
+	unsigned int board_has_analog: 1; /* if 0 the board is digital only */
+	unsigned int board_has_mic: 1; /* if 1 the board has microphone input */
+	unsigned int board_aes_in_192k: 1; /* if 1 the aes input plugs do support 192kHz */
+	unsigned int mono_capture: 1; /* if 1 the board does mono capture */
+	unsigned int capture_ltc: 1; /* if 1 the board captures LTC input */
 
 	struct snd_dma_buffer hostport;
 
@@ -125,7 +127,8 @@ struct pcxhr_mgr {
 };
 
 
-enum pcxhr_stream_status {
+enum pcxhr_stream_status
+{
 	PCXHR_STREAM_STATUS_FREE,
 	PCXHR_STREAM_STATUS_OPEN,
 	PCXHR_STREAM_STATUS_SCHEDULE_RUN,
@@ -136,7 +139,8 @@ enum pcxhr_stream_status {
 	PCXHR_STREAM_STATUS_PAUSED
 };
 
-struct pcxhr_stream {
+struct pcxhr_stream
+{
 	struct snd_pcm_substream *substream;
 	snd_pcm_format_t format;
 	struct pcxhr_pipe *pipe;
@@ -152,19 +156,22 @@ struct pcxhr_stream {
 };
 
 
-enum pcxhr_pipe_status {
+enum pcxhr_pipe_status
+{
 	PCXHR_PIPE_UNDEFINED,
 	PCXHR_PIPE_DEFINED
 };
 
-struct pcxhr_pipe {
+struct pcxhr_pipe
+{
 	enum pcxhr_pipe_status status;
 	int is_capture;		/* this is a capture pipe */
 	int first_audio;	/* first audio num */
 };
 
 
-struct snd_pcxhr {
+struct snd_pcxhr
+{
 	struct snd_card *card;
 	struct pcxhr_mgr *mgr;
 	int chip_idx;		/* zero based */
@@ -207,7 +214,7 @@ struct pcxhr_hostport
 int pcxhr_create_pcm(struct snd_pcxhr *chip);
 int pcxhr_set_clock(struct pcxhr_mgr *mgr, unsigned int rate);
 int pcxhr_get_external_clock(struct pcxhr_mgr *mgr,
-			     enum pcxhr_clock_type clock_type,
-			     int *sample_rate);
+							 enum pcxhr_clock_type clock_type,
+							 int *sample_rate);
 
 #endif /* __SOUND_PCXHR_H */

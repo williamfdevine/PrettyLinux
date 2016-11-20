@@ -23,7 +23,8 @@ static unsigned char *fb_do_probe_ddc_edid(struct i2c_adapter *adapter)
 {
 	unsigned char start = 0x0;
 	unsigned char *buf = kmalloc(EDID_LENGTH, GFP_KERNEL);
-	struct i2c_msg msgs[] = {
+	struct i2c_msg msgs[] =
+	{
 		{
 			.addr	= DDC_ADDR,
 			.flags	= 0,
@@ -37,14 +38,17 @@ static unsigned char *fb_do_probe_ddc_edid(struct i2c_adapter *adapter)
 		}
 	};
 
-	if (!buf) {
+	if (!buf)
+	{
 		dev_warn(&adapter->dev, "unable to allocate memory for EDID "
-			 "block.\n");
+				 "block.\n");
 		return NULL;
 	}
 
 	if (i2c_transfer(adapter, msgs, 2) == 2)
+	{
 		return buf;
+	}
 
 	dev_warn(&adapter->dev, "unable to read EDID block.\n");
 	kfree(buf);
@@ -59,7 +63,8 @@ unsigned char *fb_ddc_read(struct i2c_adapter *adapter)
 
 	algo_data->setscl(algo_data->data, 1);
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		/* For some old monitors we need the
 		 * following process to initialize/stop DDC
 		 */
@@ -67,15 +72,26 @@ unsigned char *fb_ddc_read(struct i2c_adapter *adapter)
 		msleep(13);
 
 		algo_data->setscl(algo_data->data, 1);
-		if (algo_data->getscl) {
-			for (j = 0; j < 5; j++) {
+
+		if (algo_data->getscl)
+		{
+			for (j = 0; j < 5; j++)
+			{
 				msleep(10);
+
 				if (algo_data->getscl(algo_data->data))
+				{
 					break;
+				}
 			}
+
 			if (j == 5)
+			{
 				continue;
-		} else {
+			}
+		}
+		else
+		{
 			udelay(algo_data->udelay);
 		}
 
@@ -93,13 +109,21 @@ unsigned char *fb_ddc_read(struct i2c_adapter *adapter)
 		msleep(15);
 
 		algo_data->setscl(algo_data->data, 1);
-		if (algo_data->getscl) {
-			for (j = 0; j < 10; j++) {
+
+		if (algo_data->getscl)
+		{
+			for (j = 0; j < 10; j++)
+			{
 				msleep(10);
+
 				if (algo_data->getscl(algo_data->data))
+				{
 					break;
+				}
 			}
-		} else {
+		}
+		else
+		{
 			udelay(algo_data->udelay);
 		}
 
@@ -107,9 +131,13 @@ unsigned char *fb_ddc_read(struct i2c_adapter *adapter)
 		msleep(15);
 		algo_data->setscl(algo_data->data, 0);
 		algo_data->setsda(algo_data->data, 0);
+
 		if (edid)
+		{
 			break;
+		}
 	}
+
 	/* Release the DDC lines when done or the Apple Cinema HD display
 	 * will switch off
 	 */

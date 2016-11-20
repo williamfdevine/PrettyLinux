@@ -69,7 +69,7 @@ static uint32_t radeon_invalid_rreg(struct radeon_device *rdev, uint32_t reg)
 static void radeon_invalid_wreg(struct radeon_device *rdev, uint32_t reg, uint32_t v)
 {
 	DRM_ERROR("Invalid callback to write register 0x%04X with 0x%08X\n",
-		  reg, v);
+			  reg, v);
 	BUG_ON(1);
 }
 
@@ -91,52 +91,72 @@ static void radeon_register_accessor_init(struct radeon_device *rdev)
 	rdev->pciep_wreg = &radeon_invalid_wreg;
 
 	/* Don't change order as we are overridding accessor. */
-	if (rdev->family < CHIP_RV515) {
+	if (rdev->family < CHIP_RV515)
+	{
 		rdev->pcie_reg_mask = 0xff;
-	} else {
+	}
+	else
+	{
 		rdev->pcie_reg_mask = 0x7ff;
 	}
+
 	/* FIXME: not sure here */
-	if (rdev->family <= CHIP_R580) {
+	if (rdev->family <= CHIP_R580)
+	{
 		rdev->pll_rreg = &r100_pll_rreg;
 		rdev->pll_wreg = &r100_pll_wreg;
 	}
-	if (rdev->family >= CHIP_R420) {
+
+	if (rdev->family >= CHIP_R420)
+	{
 		rdev->mc_rreg = &r420_mc_rreg;
 		rdev->mc_wreg = &r420_mc_wreg;
 	}
-	if (rdev->family >= CHIP_RV515) {
+
+	if (rdev->family >= CHIP_RV515)
+	{
 		rdev->mc_rreg = &rv515_mc_rreg;
 		rdev->mc_wreg = &rv515_mc_wreg;
 	}
-	if (rdev->family == CHIP_RS400 || rdev->family == CHIP_RS480) {
+
+	if (rdev->family == CHIP_RS400 || rdev->family == CHIP_RS480)
+	{
 		rdev->mc_rreg = &rs400_mc_rreg;
 		rdev->mc_wreg = &rs400_mc_wreg;
 	}
-	if (rdev->family == CHIP_RS690 || rdev->family == CHIP_RS740) {
+
+	if (rdev->family == CHIP_RS690 || rdev->family == CHIP_RS740)
+	{
 		rdev->mc_rreg = &rs690_mc_rreg;
 		rdev->mc_wreg = &rs690_mc_wreg;
 	}
-	if (rdev->family == CHIP_RS600) {
+
+	if (rdev->family == CHIP_RS600)
+	{
 		rdev->mc_rreg = &rs600_mc_rreg;
 		rdev->mc_wreg = &rs600_mc_wreg;
 	}
-	if (rdev->family == CHIP_RS780 || rdev->family == CHIP_RS880) {
+
+	if (rdev->family == CHIP_RS780 || rdev->family == CHIP_RS880)
+	{
 		rdev->mc_rreg = &rs780_mc_rreg;
 		rdev->mc_wreg = &rs780_mc_wreg;
 	}
 
-	if (rdev->family >= CHIP_BONAIRE) {
+	if (rdev->family >= CHIP_BONAIRE)
+	{
 		rdev->pciep_rreg = &cik_pciep_rreg;
 		rdev->pciep_wreg = &cik_pciep_wreg;
-	} else if (rdev->family >= CHIP_R600) {
+	}
+	else if (rdev->family >= CHIP_R600)
+	{
 		rdev->pciep_rreg = &r600_pciep_rreg;
 		rdev->pciep_wreg = &r600_pciep_wreg;
 	}
 }
 
 static int radeon_invalid_get_allowed_info_register(struct radeon_device *rdev,
-						    u32 reg, u32 *val)
+		u32 reg, u32 *val)
 {
 	return -EINVAL;
 }
@@ -153,25 +173,32 @@ static int radeon_invalid_get_allowed_info_register(struct radeon_device *rdev,
 void radeon_agp_disable(struct radeon_device *rdev)
 {
 	rdev->flags &= ~RADEON_IS_AGP;
-	if (rdev->family >= CHIP_R600) {
+
+	if (rdev->family >= CHIP_R600)
+	{
 		DRM_INFO("Forcing AGP to PCIE mode\n");
 		rdev->flags |= RADEON_IS_PCIE;
-	} else if (rdev->family >= CHIP_RV515 ||
-			rdev->family == CHIP_RV380 ||
-			rdev->family == CHIP_RV410 ||
-			rdev->family == CHIP_R423) {
+	}
+	else if (rdev->family >= CHIP_RV515 ||
+			 rdev->family == CHIP_RV380 ||
+			 rdev->family == CHIP_RV410 ||
+			 rdev->family == CHIP_R423)
+	{
 		DRM_INFO("Forcing AGP to PCIE mode\n");
 		rdev->flags |= RADEON_IS_PCIE;
 		rdev->asic->gart.tlb_flush = &rv370_pcie_gart_tlb_flush;
 		rdev->asic->gart.get_page_entry = &rv370_pcie_gart_get_page_entry;
 		rdev->asic->gart.set_page = &rv370_pcie_gart_set_page;
-	} else {
+	}
+	else
+	{
 		DRM_INFO("Forcing AGP to PCI mode\n");
 		rdev->flags |= RADEON_IS_PCI;
 		rdev->asic->gart.tlb_flush = &r100_pci_gart_tlb_flush;
 		rdev->asic->gart.get_page_entry = &r100_pci_gart_get_page_entry;
 		rdev->asic->gart.set_page = &r100_pci_gart_set_page;
 	}
+
 	rdev->mc.gtt_size = radeon_gart_size * 1024 * 1024;
 }
 
@@ -179,7 +206,8 @@ void radeon_agp_disable(struct radeon_device *rdev)
  * ASIC
  */
 
-static const struct radeon_asic_ring r100_gfx_ring = {
+static const struct radeon_asic_ring r100_gfx_ring =
+{
 	.ib_execute = &r100_ring_ib_execute,
 	.emit_fence = &r100_fence_ring_emit,
 	.emit_semaphore = &r100_semaphore_ring_emit,
@@ -193,7 +221,8 @@ static const struct radeon_asic_ring r100_gfx_ring = {
 	.set_wptr = &r100_gfx_set_wptr,
 };
 
-static struct radeon_asic r100_asic = {
+static struct radeon_asic r100_asic =
+{
 	.init = &r100_init,
 	.fini = &r100_fini,
 	.suspend = &r100_suspend,
@@ -261,7 +290,8 @@ static struct radeon_asic r100_asic = {
 	},
 };
 
-static struct radeon_asic r200_asic = {
+static struct radeon_asic r200_asic =
+{
 	.init = &r100_init,
 	.fini = &r100_fini,
 	.suspend = &r100_suspend,
@@ -329,7 +359,8 @@ static struct radeon_asic r200_asic = {
 	},
 };
 
-static const struct radeon_asic_ring r300_gfx_ring = {
+static const struct radeon_asic_ring r300_gfx_ring =
+{
 	.ib_execute = &r100_ring_ib_execute,
 	.emit_fence = &r300_fence_ring_emit,
 	.emit_semaphore = &r100_semaphore_ring_emit,
@@ -343,7 +374,8 @@ static const struct radeon_asic_ring r300_gfx_ring = {
 	.set_wptr = &r100_gfx_set_wptr,
 };
 
-static const struct radeon_asic_ring rv515_gfx_ring = {
+static const struct radeon_asic_ring rv515_gfx_ring =
+{
 	.ib_execute = &r100_ring_ib_execute,
 	.emit_fence = &r300_fence_ring_emit,
 	.emit_semaphore = &r100_semaphore_ring_emit,
@@ -357,7 +389,8 @@ static const struct radeon_asic_ring rv515_gfx_ring = {
 	.set_wptr = &r100_gfx_set_wptr,
 };
 
-static struct radeon_asic r300_asic = {
+static struct radeon_asic r300_asic =
+{
 	.init = &r300_init,
 	.fini = &r300_fini,
 	.suspend = &r300_suspend,
@@ -425,7 +458,8 @@ static struct radeon_asic r300_asic = {
 	},
 };
 
-static struct radeon_asic r300_asic_pcie = {
+static struct radeon_asic r300_asic_pcie =
+{
 	.init = &r300_init,
 	.fini = &r300_fini,
 	.suspend = &r300_suspend,
@@ -493,7 +527,8 @@ static struct radeon_asic r300_asic_pcie = {
 	},
 };
 
-static struct radeon_asic r420_asic = {
+static struct radeon_asic r420_asic =
+{
 	.init = &r420_init,
 	.fini = &r420_fini,
 	.suspend = &r420_suspend,
@@ -561,7 +596,8 @@ static struct radeon_asic r420_asic = {
 	},
 };
 
-static struct radeon_asic rs400_asic = {
+static struct radeon_asic rs400_asic =
+{
 	.init = &rs400_init,
 	.fini = &rs400_fini,
 	.suspend = &rs400_suspend,
@@ -629,7 +665,8 @@ static struct radeon_asic rs400_asic = {
 	},
 };
 
-static struct radeon_asic rs600_asic = {
+static struct radeon_asic rs600_asic =
+{
 	.init = &rs600_init,
 	.fini = &rs600_fini,
 	.suspend = &rs600_suspend,
@@ -697,7 +734,8 @@ static struct radeon_asic rs600_asic = {
 	},
 };
 
-static struct radeon_asic rs690_asic = {
+static struct radeon_asic rs690_asic =
+{
 	.init = &rs690_init,
 	.fini = &rs690_fini,
 	.suspend = &rs690_suspend,
@@ -765,7 +803,8 @@ static struct radeon_asic rs690_asic = {
 	},
 };
 
-static struct radeon_asic rv515_asic = {
+static struct radeon_asic rv515_asic =
+{
 	.init = &rv515_init,
 	.fini = &rv515_fini,
 	.suspend = &rv515_suspend,
@@ -833,7 +872,8 @@ static struct radeon_asic rv515_asic = {
 	},
 };
 
-static struct radeon_asic r520_asic = {
+static struct radeon_asic r520_asic =
+{
 	.init = &r520_init,
 	.fini = &rv515_fini,
 	.suspend = &rv515_suspend,
@@ -901,7 +941,8 @@ static struct radeon_asic r520_asic = {
 	},
 };
 
-static const struct radeon_asic_ring r600_gfx_ring = {
+static const struct radeon_asic_ring r600_gfx_ring =
+{
 	.ib_execute = &r600_ring_ib_execute,
 	.emit_fence = &r600_fence_ring_emit,
 	.emit_semaphore = &r600_semaphore_ring_emit,
@@ -914,7 +955,8 @@ static const struct radeon_asic_ring r600_gfx_ring = {
 	.set_wptr = &r600_gfx_set_wptr,
 };
 
-static const struct radeon_asic_ring r600_dma_ring = {
+static const struct radeon_asic_ring r600_dma_ring =
+{
 	.ib_execute = &r600_dma_ring_ib_execute,
 	.emit_fence = &r600_dma_fence_ring_emit,
 	.emit_semaphore = &r600_dma_semaphore_ring_emit,
@@ -927,7 +969,8 @@ static const struct radeon_asic_ring r600_dma_ring = {
 	.set_wptr = &r600_dma_set_wptr,
 };
 
-static struct radeon_asic r600_asic = {
+static struct radeon_asic r600_asic =
+{
 	.init = &r600_init,
 	.fini = &r600_fini,
 	.suspend = &r600_suspend,
@@ -999,7 +1042,8 @@ static struct radeon_asic r600_asic = {
 	},
 };
 
-static const struct radeon_asic_ring rv6xx_uvd_ring = {
+static const struct radeon_asic_ring rv6xx_uvd_ring =
+{
 	.ib_execute = &uvd_v1_0_ib_execute,
 	.emit_fence = &uvd_v1_0_fence_emit,
 	.emit_semaphore = &uvd_v1_0_semaphore_emit,
@@ -1012,7 +1056,8 @@ static const struct radeon_asic_ring rv6xx_uvd_ring = {
 	.set_wptr = &uvd_v1_0_set_wptr,
 };
 
-static struct radeon_asic rv6xx_asic = {
+static struct radeon_asic rv6xx_asic =
+{
 	.init = &r600_init,
 	.fini = &r600_fini,
 	.suspend = &r600_suspend,
@@ -1105,7 +1150,8 @@ static struct radeon_asic rv6xx_asic = {
 	},
 };
 
-static struct radeon_asic rs780_asic = {
+static struct radeon_asic rs780_asic =
+{
 	.init = &r600_init,
 	.fini = &r600_fini,
 	.suspend = &r600_suspend,
@@ -1198,7 +1244,8 @@ static struct radeon_asic rs780_asic = {
 	},
 };
 
-static const struct radeon_asic_ring rv770_uvd_ring = {
+static const struct radeon_asic_ring rv770_uvd_ring =
+{
 	.ib_execute = &uvd_v1_0_ib_execute,
 	.emit_fence = &uvd_v2_2_fence_emit,
 	.emit_semaphore = &uvd_v2_2_semaphore_emit,
@@ -1211,7 +1258,8 @@ static const struct radeon_asic_ring rv770_uvd_ring = {
 	.set_wptr = &uvd_v1_0_set_wptr,
 };
 
-static struct radeon_asic rv770_asic = {
+static struct radeon_asic rv770_asic =
+{
 	.init = &rv770_init,
 	.fini = &rv770_fini,
 	.suspend = &rv770_suspend,
@@ -1305,7 +1353,8 @@ static struct radeon_asic rv770_asic = {
 	},
 };
 
-static const struct radeon_asic_ring evergreen_gfx_ring = {
+static const struct radeon_asic_ring evergreen_gfx_ring =
+{
 	.ib_execute = &evergreen_ring_ib_execute,
 	.emit_fence = &r600_fence_ring_emit,
 	.emit_semaphore = &r600_semaphore_ring_emit,
@@ -1318,7 +1367,8 @@ static const struct radeon_asic_ring evergreen_gfx_ring = {
 	.set_wptr = &r600_gfx_set_wptr,
 };
 
-static const struct radeon_asic_ring evergreen_dma_ring = {
+static const struct radeon_asic_ring evergreen_dma_ring =
+{
 	.ib_execute = &evergreen_dma_ring_ib_execute,
 	.emit_fence = &evergreen_dma_fence_ring_emit,
 	.emit_semaphore = &r600_dma_semaphore_ring_emit,
@@ -1331,7 +1381,8 @@ static const struct radeon_asic_ring evergreen_dma_ring = {
 	.set_wptr = &r600_dma_set_wptr,
 };
 
-static struct radeon_asic evergreen_asic = {
+static struct radeon_asic evergreen_asic =
+{
 	.init = &evergreen_init,
 	.fini = &evergreen_fini,
 	.suspend = &evergreen_suspend,
@@ -1425,7 +1476,8 @@ static struct radeon_asic evergreen_asic = {
 	},
 };
 
-static struct radeon_asic sumo_asic = {
+static struct radeon_asic sumo_asic =
+{
 	.init = &evergreen_init,
 	.fini = &evergreen_fini,
 	.suspend = &evergreen_suspend,
@@ -1518,7 +1570,8 @@ static struct radeon_asic sumo_asic = {
 	},
 };
 
-static struct radeon_asic btc_asic = {
+static struct radeon_asic btc_asic =
+{
 	.init = &evergreen_init,
 	.fini = &evergreen_fini,
 	.suspend = &evergreen_suspend,
@@ -1612,7 +1665,8 @@ static struct radeon_asic btc_asic = {
 	},
 };
 
-static const struct radeon_asic_ring cayman_gfx_ring = {
+static const struct radeon_asic_ring cayman_gfx_ring =
+{
 	.ib_execute = &cayman_ring_ib_execute,
 	.ib_parse = &evergreen_ib_parse,
 	.emit_fence = &cayman_fence_ring_emit,
@@ -1627,7 +1681,8 @@ static const struct radeon_asic_ring cayman_gfx_ring = {
 	.set_wptr = &cayman_gfx_set_wptr,
 };
 
-static const struct radeon_asic_ring cayman_dma_ring = {
+static const struct radeon_asic_ring cayman_dma_ring =
+{
 	.ib_execute = &cayman_dma_ring_ib_execute,
 	.ib_parse = &evergreen_dma_ib_parse,
 	.emit_fence = &evergreen_dma_fence_ring_emit,
@@ -1642,7 +1697,8 @@ static const struct radeon_asic_ring cayman_dma_ring = {
 	.set_wptr = &cayman_dma_set_wptr
 };
 
-static const struct radeon_asic_ring cayman_uvd_ring = {
+static const struct radeon_asic_ring cayman_uvd_ring =
+{
 	.ib_execute = &uvd_v1_0_ib_execute,
 	.emit_fence = &uvd_v2_2_fence_emit,
 	.emit_semaphore = &uvd_v3_1_semaphore_emit,
@@ -1655,7 +1711,8 @@ static const struct radeon_asic_ring cayman_uvd_ring = {
 	.set_wptr = &uvd_v1_0_set_wptr,
 };
 
-static struct radeon_asic cayman_asic = {
+static struct radeon_asic cayman_asic =
+{
 	.init = &cayman_init,
 	.fini = &cayman_fini,
 	.suspend = &cayman_suspend,
@@ -1760,7 +1817,8 @@ static struct radeon_asic cayman_asic = {
 	},
 };
 
-static const struct radeon_asic_ring trinity_vce_ring = {
+static const struct radeon_asic_ring trinity_vce_ring =
+{
 	.ib_execute = &radeon_vce_ib_execute,
 	.emit_fence = &radeon_vce_fence_emit,
 	.emit_semaphore = &radeon_vce_semaphore_emit,
@@ -1773,7 +1831,8 @@ static const struct radeon_asic_ring trinity_vce_ring = {
 	.set_wptr = &vce_v1_0_set_wptr,
 };
 
-static struct radeon_asic trinity_asic = {
+static struct radeon_asic trinity_asic =
+{
 	.init = &cayman_init,
 	.fini = &cayman_fini,
 	.suspend = &cayman_suspend,
@@ -1881,7 +1940,8 @@ static struct radeon_asic trinity_asic = {
 	},
 };
 
-static const struct radeon_asic_ring si_gfx_ring = {
+static const struct radeon_asic_ring si_gfx_ring =
+{
 	.ib_execute = &si_ring_ib_execute,
 	.ib_parse = &si_ib_parse,
 	.emit_fence = &si_fence_ring_emit,
@@ -1896,7 +1956,8 @@ static const struct radeon_asic_ring si_gfx_ring = {
 	.set_wptr = &cayman_gfx_set_wptr,
 };
 
-static const struct radeon_asic_ring si_dma_ring = {
+static const struct radeon_asic_ring si_dma_ring =
+{
 	.ib_execute = &cayman_dma_ring_ib_execute,
 	.ib_parse = &evergreen_dma_ib_parse,
 	.emit_fence = &evergreen_dma_fence_ring_emit,
@@ -1911,7 +1972,8 @@ static const struct radeon_asic_ring si_dma_ring = {
 	.set_wptr = &cayman_dma_set_wptr,
 };
 
-static struct radeon_asic si_asic = {
+static struct radeon_asic si_asic =
+{
 	.init = &si_init,
 	.fini = &si_fini,
 	.suspend = &si_suspend,
@@ -2023,7 +2085,8 @@ static struct radeon_asic si_asic = {
 	},
 };
 
-static const struct radeon_asic_ring ci_gfx_ring = {
+static const struct radeon_asic_ring ci_gfx_ring =
+{
 	.ib_execute = &cik_ring_ib_execute,
 	.ib_parse = &cik_ib_parse,
 	.emit_fence = &cik_fence_gfx_ring_emit,
@@ -2038,7 +2101,8 @@ static const struct radeon_asic_ring ci_gfx_ring = {
 	.set_wptr = &cik_gfx_set_wptr,
 };
 
-static const struct radeon_asic_ring ci_cp_ring = {
+static const struct radeon_asic_ring ci_cp_ring =
+{
 	.ib_execute = &cik_ring_ib_execute,
 	.ib_parse = &cik_ib_parse,
 	.emit_fence = &cik_fence_compute_ring_emit,
@@ -2053,7 +2117,8 @@ static const struct radeon_asic_ring ci_cp_ring = {
 	.set_wptr = &cik_compute_set_wptr,
 };
 
-static const struct radeon_asic_ring ci_dma_ring = {
+static const struct radeon_asic_ring ci_dma_ring =
+{
 	.ib_execute = &cik_sdma_ring_ib_execute,
 	.ib_parse = &cik_ib_parse,
 	.emit_fence = &cik_sdma_fence_ring_emit,
@@ -2068,7 +2133,8 @@ static const struct radeon_asic_ring ci_dma_ring = {
 	.set_wptr = &cik_sdma_set_wptr,
 };
 
-static const struct radeon_asic_ring ci_vce_ring = {
+static const struct radeon_asic_ring ci_vce_ring =
+{
 	.ib_execute = &radeon_vce_ib_execute,
 	.emit_fence = &radeon_vce_fence_emit,
 	.emit_semaphore = &radeon_vce_semaphore_emit,
@@ -2081,7 +2147,8 @@ static const struct radeon_asic_ring ci_vce_ring = {
 	.set_wptr = &vce_v1_0_set_wptr,
 };
 
-static struct radeon_asic ci_asic = {
+static struct radeon_asic ci_asic =
+{
 	.init = &cik_init,
 	.fini = &cik_fini,
 	.suspend = &cik_suspend,
@@ -2194,7 +2261,8 @@ static struct radeon_asic ci_asic = {
 	},
 };
 
-static struct radeon_asic kv_asic = {
+static struct radeon_asic kv_asic =
+{
 	.init = &cik_init,
 	.fini = &cik_fini,
 	.suspend = &cik_suspend,
@@ -2319,333 +2387,410 @@ int radeon_asic_init(struct radeon_device *rdev)
 
 	/* set the number of crtcs */
 	if (rdev->flags & RADEON_SINGLE_CRTC)
+	{
 		rdev->num_crtc = 1;
+	}
 	else
+	{
 		rdev->num_crtc = 2;
+	}
 
 	rdev->has_uvd = false;
 	rdev->has_vce = false;
 
-	switch (rdev->family) {
-	case CHIP_R100:
-	case CHIP_RV100:
-	case CHIP_RS100:
-	case CHIP_RV200:
-	case CHIP_RS200:
-		rdev->asic = &r100_asic;
-		break;
-	case CHIP_R200:
-	case CHIP_RV250:
-	case CHIP_RS300:
-	case CHIP_RV280:
-		rdev->asic = &r200_asic;
-		break;
-	case CHIP_R300:
-	case CHIP_R350:
-	case CHIP_RV350:
-	case CHIP_RV380:
-		if (rdev->flags & RADEON_IS_PCIE)
-			rdev->asic = &r300_asic_pcie;
-		else
-			rdev->asic = &r300_asic;
-		break;
-	case CHIP_R420:
-	case CHIP_R423:
-	case CHIP_RV410:
-		rdev->asic = &r420_asic;
-		/* handle macs */
-		if (rdev->bios == NULL) {
-			rdev->asic->pm.get_engine_clock = &radeon_legacy_get_engine_clock;
-			rdev->asic->pm.set_engine_clock = &radeon_legacy_set_engine_clock;
-			rdev->asic->pm.get_memory_clock = &radeon_legacy_get_memory_clock;
-			rdev->asic->pm.set_memory_clock = NULL;
-			rdev->asic->display.set_backlight_level = &radeon_legacy_set_backlight_level;
-		}
-		break;
-	case CHIP_RS400:
-	case CHIP_RS480:
-		rdev->asic = &rs400_asic;
-		break;
-	case CHIP_RS600:
-		rdev->asic = &rs600_asic;
-		break;
-	case CHIP_RS690:
-	case CHIP_RS740:
-		rdev->asic = &rs690_asic;
-		break;
-	case CHIP_RV515:
-		rdev->asic = &rv515_asic;
-		break;
-	case CHIP_R520:
-	case CHIP_RV530:
-	case CHIP_RV560:
-	case CHIP_RV570:
-	case CHIP_R580:
-		rdev->asic = &r520_asic;
-		break;
-	case CHIP_R600:
-		rdev->asic = &r600_asic;
-		break;
-	case CHIP_RV610:
-	case CHIP_RV630:
-	case CHIP_RV620:
-	case CHIP_RV635:
-	case CHIP_RV670:
-		rdev->asic = &rv6xx_asic;
-		rdev->has_uvd = true;
-		break;
-	case CHIP_RS780:
-	case CHIP_RS880:
-		rdev->asic = &rs780_asic;
-		/* 760G/780V/880V don't have UVD */
-		if ((rdev->pdev->device == 0x9616)||
-		    (rdev->pdev->device == 0x9611)||
-		    (rdev->pdev->device == 0x9613)||
-		    (rdev->pdev->device == 0x9711)||
-		    (rdev->pdev->device == 0x9713))
-			rdev->has_uvd = false;
-		else
+	switch (rdev->family)
+	{
+		case CHIP_R100:
+		case CHIP_RV100:
+		case CHIP_RS100:
+		case CHIP_RV200:
+		case CHIP_RS200:
+			rdev->asic = &r100_asic;
+			break;
+
+		case CHIP_R200:
+		case CHIP_RV250:
+		case CHIP_RS300:
+		case CHIP_RV280:
+			rdev->asic = &r200_asic;
+			break;
+
+		case CHIP_R300:
+		case CHIP_R350:
+		case CHIP_RV350:
+		case CHIP_RV380:
+			if (rdev->flags & RADEON_IS_PCIE)
+			{
+				rdev->asic = &r300_asic_pcie;
+			}
+			else
+			{
+				rdev->asic = &r300_asic;
+			}
+
+			break;
+
+		case CHIP_R420:
+		case CHIP_R423:
+		case CHIP_RV410:
+			rdev->asic = &r420_asic;
+
+			/* handle macs */
+			if (rdev->bios == NULL)
+			{
+				rdev->asic->pm.get_engine_clock = &radeon_legacy_get_engine_clock;
+				rdev->asic->pm.set_engine_clock = &radeon_legacy_set_engine_clock;
+				rdev->asic->pm.get_memory_clock = &radeon_legacy_get_memory_clock;
+				rdev->asic->pm.set_memory_clock = NULL;
+				rdev->asic->display.set_backlight_level = &radeon_legacy_set_backlight_level;
+			}
+
+			break;
+
+		case CHIP_RS400:
+		case CHIP_RS480:
+			rdev->asic = &rs400_asic;
+			break;
+
+		case CHIP_RS600:
+			rdev->asic = &rs600_asic;
+			break;
+
+		case CHIP_RS690:
+		case CHIP_RS740:
+			rdev->asic = &rs690_asic;
+			break;
+
+		case CHIP_RV515:
+			rdev->asic = &rv515_asic;
+			break;
+
+		case CHIP_R520:
+		case CHIP_RV530:
+		case CHIP_RV560:
+		case CHIP_RV570:
+		case CHIP_R580:
+			rdev->asic = &r520_asic;
+			break;
+
+		case CHIP_R600:
+			rdev->asic = &r600_asic;
+			break;
+
+		case CHIP_RV610:
+		case CHIP_RV630:
+		case CHIP_RV620:
+		case CHIP_RV635:
+		case CHIP_RV670:
+			rdev->asic = &rv6xx_asic;
 			rdev->has_uvd = true;
-		break;
-	case CHIP_RV770:
-	case CHIP_RV730:
-	case CHIP_RV710:
-	case CHIP_RV740:
-		rdev->asic = &rv770_asic;
-		rdev->has_uvd = true;
-		break;
-	case CHIP_CEDAR:
-	case CHIP_REDWOOD:
-	case CHIP_JUNIPER:
-	case CHIP_CYPRESS:
-	case CHIP_HEMLOCK:
-		/* set num crtcs */
-		if (rdev->family == CHIP_CEDAR)
+			break;
+
+		case CHIP_RS780:
+		case CHIP_RS880:
+			rdev->asic = &rs780_asic;
+
+			/* 760G/780V/880V don't have UVD */
+			if ((rdev->pdev->device == 0x9616) ||
+				(rdev->pdev->device == 0x9611) ||
+				(rdev->pdev->device == 0x9613) ||
+				(rdev->pdev->device == 0x9711) ||
+				(rdev->pdev->device == 0x9713))
+			{
+				rdev->has_uvd = false;
+			}
+			else
+			{
+				rdev->has_uvd = true;
+			}
+
+			break;
+
+		case CHIP_RV770:
+		case CHIP_RV730:
+		case CHIP_RV710:
+		case CHIP_RV740:
+			rdev->asic = &rv770_asic;
+			rdev->has_uvd = true;
+			break;
+
+		case CHIP_CEDAR:
+		case CHIP_REDWOOD:
+		case CHIP_JUNIPER:
+		case CHIP_CYPRESS:
+		case CHIP_HEMLOCK:
+
+			/* set num crtcs */
+			if (rdev->family == CHIP_CEDAR)
+			{
+				rdev->num_crtc = 4;
+			}
+			else
+			{
+				rdev->num_crtc = 6;
+			}
+
+			rdev->asic = &evergreen_asic;
+			rdev->has_uvd = true;
+			break;
+
+		case CHIP_PALM:
+		case CHIP_SUMO:
+		case CHIP_SUMO2:
+			rdev->asic = &sumo_asic;
+			rdev->has_uvd = true;
+			break;
+
+		case CHIP_BARTS:
+		case CHIP_TURKS:
+		case CHIP_CAICOS:
+
+			/* set num crtcs */
+			if (rdev->family == CHIP_CAICOS)
+			{
+				rdev->num_crtc = 4;
+			}
+			else
+			{
+				rdev->num_crtc = 6;
+			}
+
+			rdev->asic = &btc_asic;
+			rdev->has_uvd = true;
+			break;
+
+		case CHIP_CAYMAN:
+			rdev->asic = &cayman_asic;
+			/* set num crtcs */
+			rdev->num_crtc = 6;
+			rdev->has_uvd = true;
+			break;
+
+		case CHIP_ARUBA:
+			rdev->asic = &trinity_asic;
+			/* set num crtcs */
 			rdev->num_crtc = 4;
-		else
-			rdev->num_crtc = 6;
-		rdev->asic = &evergreen_asic;
-		rdev->has_uvd = true;
-		break;
-	case CHIP_PALM:
-	case CHIP_SUMO:
-	case CHIP_SUMO2:
-		rdev->asic = &sumo_asic;
-		rdev->has_uvd = true;
-		break;
-	case CHIP_BARTS:
-	case CHIP_TURKS:
-	case CHIP_CAICOS:
-		/* set num crtcs */
-		if (rdev->family == CHIP_CAICOS)
-			rdev->num_crtc = 4;
-		else
-			rdev->num_crtc = 6;
-		rdev->asic = &btc_asic;
-		rdev->has_uvd = true;
-		break;
-	case CHIP_CAYMAN:
-		rdev->asic = &cayman_asic;
-		/* set num crtcs */
-		rdev->num_crtc = 6;
-		rdev->has_uvd = true;
-		break;
-	case CHIP_ARUBA:
-		rdev->asic = &trinity_asic;
-		/* set num crtcs */
-		rdev->num_crtc = 4;
-		rdev->has_uvd = true;
-		rdev->has_vce = true;
-		rdev->cg_flags =
-			RADEON_CG_SUPPORT_VCE_MGCG;
-		break;
-	case CHIP_TAHITI:
-	case CHIP_PITCAIRN:
-	case CHIP_VERDE:
-	case CHIP_OLAND:
-	case CHIP_HAINAN:
-		rdev->asic = &si_asic;
-		/* set num crtcs */
-		if (rdev->family == CHIP_HAINAN)
-			rdev->num_crtc = 0;
-		else if (rdev->family == CHIP_OLAND)
-			rdev->num_crtc = 2;
-		else
-			rdev->num_crtc = 6;
-		if (rdev->family == CHIP_HAINAN) {
-			rdev->has_uvd = false;
-			rdev->has_vce = false;
-		} else {
 			rdev->has_uvd = true;
 			rdev->has_vce = true;
-		}
-		switch (rdev->family) {
+			rdev->cg_flags =
+				RADEON_CG_SUPPORT_VCE_MGCG;
+			break;
+
 		case CHIP_TAHITI:
-			rdev->cg_flags =
-				RADEON_CG_SUPPORT_GFX_MGCG |
-				RADEON_CG_SUPPORT_GFX_MGLS |
-				/*RADEON_CG_SUPPORT_GFX_CGCG |*/
-				RADEON_CG_SUPPORT_GFX_CGLS |
-				RADEON_CG_SUPPORT_GFX_CGTS |
-				RADEON_CG_SUPPORT_GFX_CP_LS |
-				RADEON_CG_SUPPORT_MC_MGCG |
-				RADEON_CG_SUPPORT_SDMA_MGCG |
-				RADEON_CG_SUPPORT_BIF_LS |
-				RADEON_CG_SUPPORT_VCE_MGCG |
-				RADEON_CG_SUPPORT_UVD_MGCG |
-				RADEON_CG_SUPPORT_HDP_LS |
-				RADEON_CG_SUPPORT_HDP_MGCG;
-			rdev->pg_flags = 0;
-			break;
 		case CHIP_PITCAIRN:
-			rdev->cg_flags =
-				RADEON_CG_SUPPORT_GFX_MGCG |
-				RADEON_CG_SUPPORT_GFX_MGLS |
-				/*RADEON_CG_SUPPORT_GFX_CGCG |*/
-				RADEON_CG_SUPPORT_GFX_CGLS |
-				RADEON_CG_SUPPORT_GFX_CGTS |
-				RADEON_CG_SUPPORT_GFX_CP_LS |
-				RADEON_CG_SUPPORT_GFX_RLC_LS |
-				RADEON_CG_SUPPORT_MC_LS |
-				RADEON_CG_SUPPORT_MC_MGCG |
-				RADEON_CG_SUPPORT_SDMA_MGCG |
-				RADEON_CG_SUPPORT_BIF_LS |
-				RADEON_CG_SUPPORT_VCE_MGCG |
-				RADEON_CG_SUPPORT_UVD_MGCG |
-				RADEON_CG_SUPPORT_HDP_LS |
-				RADEON_CG_SUPPORT_HDP_MGCG;
-			rdev->pg_flags = 0;
-			break;
 		case CHIP_VERDE:
-			rdev->cg_flags =
-				RADEON_CG_SUPPORT_GFX_MGCG |
-				RADEON_CG_SUPPORT_GFX_MGLS |
-				/*RADEON_CG_SUPPORT_GFX_CGCG |*/
-				RADEON_CG_SUPPORT_GFX_CGLS |
-				RADEON_CG_SUPPORT_GFX_CGTS |
-				RADEON_CG_SUPPORT_GFX_CP_LS |
-				RADEON_CG_SUPPORT_GFX_RLC_LS |
-				RADEON_CG_SUPPORT_MC_LS |
-				RADEON_CG_SUPPORT_MC_MGCG |
-				RADEON_CG_SUPPORT_SDMA_MGCG |
-				RADEON_CG_SUPPORT_BIF_LS |
-				RADEON_CG_SUPPORT_VCE_MGCG |
-				RADEON_CG_SUPPORT_UVD_MGCG |
-				RADEON_CG_SUPPORT_HDP_LS |
-				RADEON_CG_SUPPORT_HDP_MGCG;
-			rdev->pg_flags = 0 |
-				/*RADEON_PG_SUPPORT_GFX_PG | */
-				RADEON_PG_SUPPORT_SDMA;
-			break;
 		case CHIP_OLAND:
-			rdev->cg_flags =
-				RADEON_CG_SUPPORT_GFX_MGCG |
-				RADEON_CG_SUPPORT_GFX_MGLS |
-				/*RADEON_CG_SUPPORT_GFX_CGCG |*/
-				RADEON_CG_SUPPORT_GFX_CGLS |
-				RADEON_CG_SUPPORT_GFX_CGTS |
-				RADEON_CG_SUPPORT_GFX_CP_LS |
-				RADEON_CG_SUPPORT_GFX_RLC_LS |
-				RADEON_CG_SUPPORT_MC_LS |
-				RADEON_CG_SUPPORT_MC_MGCG |
-				RADEON_CG_SUPPORT_SDMA_MGCG |
-				RADEON_CG_SUPPORT_BIF_LS |
-				RADEON_CG_SUPPORT_UVD_MGCG |
-				RADEON_CG_SUPPORT_HDP_LS |
-				RADEON_CG_SUPPORT_HDP_MGCG;
-			rdev->pg_flags = 0;
-			break;
 		case CHIP_HAINAN:
-			rdev->cg_flags =
-				RADEON_CG_SUPPORT_GFX_MGCG |
-				RADEON_CG_SUPPORT_GFX_MGLS |
-				/*RADEON_CG_SUPPORT_GFX_CGCG |*/
-				RADEON_CG_SUPPORT_GFX_CGLS |
-				RADEON_CG_SUPPORT_GFX_CGTS |
-				RADEON_CG_SUPPORT_GFX_CP_LS |
-				RADEON_CG_SUPPORT_GFX_RLC_LS |
-				RADEON_CG_SUPPORT_MC_LS |
-				RADEON_CG_SUPPORT_MC_MGCG |
-				RADEON_CG_SUPPORT_SDMA_MGCG |
-				RADEON_CG_SUPPORT_BIF_LS |
-				RADEON_CG_SUPPORT_HDP_LS |
-				RADEON_CG_SUPPORT_HDP_MGCG;
-			rdev->pg_flags = 0;
+			rdev->asic = &si_asic;
+
+			/* set num crtcs */
+			if (rdev->family == CHIP_HAINAN)
+			{
+				rdev->num_crtc = 0;
+			}
+			else if (rdev->family == CHIP_OLAND)
+			{
+				rdev->num_crtc = 2;
+			}
+			else
+			{
+				rdev->num_crtc = 6;
+			}
+
+			if (rdev->family == CHIP_HAINAN)
+			{
+				rdev->has_uvd = false;
+				rdev->has_vce = false;
+			}
+			else
+			{
+				rdev->has_uvd = true;
+				rdev->has_vce = true;
+			}
+
+			switch (rdev->family)
+			{
+				case CHIP_TAHITI:
+					rdev->cg_flags =
+						RADEON_CG_SUPPORT_GFX_MGCG |
+						RADEON_CG_SUPPORT_GFX_MGLS |
+						/*RADEON_CG_SUPPORT_GFX_CGCG |*/
+						RADEON_CG_SUPPORT_GFX_CGLS |
+						RADEON_CG_SUPPORT_GFX_CGTS |
+						RADEON_CG_SUPPORT_GFX_CP_LS |
+						RADEON_CG_SUPPORT_MC_MGCG |
+						RADEON_CG_SUPPORT_SDMA_MGCG |
+						RADEON_CG_SUPPORT_BIF_LS |
+						RADEON_CG_SUPPORT_VCE_MGCG |
+						RADEON_CG_SUPPORT_UVD_MGCG |
+						RADEON_CG_SUPPORT_HDP_LS |
+						RADEON_CG_SUPPORT_HDP_MGCG;
+					rdev->pg_flags = 0;
+					break;
+
+				case CHIP_PITCAIRN:
+					rdev->cg_flags =
+						RADEON_CG_SUPPORT_GFX_MGCG |
+						RADEON_CG_SUPPORT_GFX_MGLS |
+						/*RADEON_CG_SUPPORT_GFX_CGCG |*/
+						RADEON_CG_SUPPORT_GFX_CGLS |
+						RADEON_CG_SUPPORT_GFX_CGTS |
+						RADEON_CG_SUPPORT_GFX_CP_LS |
+						RADEON_CG_SUPPORT_GFX_RLC_LS |
+						RADEON_CG_SUPPORT_MC_LS |
+						RADEON_CG_SUPPORT_MC_MGCG |
+						RADEON_CG_SUPPORT_SDMA_MGCG |
+						RADEON_CG_SUPPORT_BIF_LS |
+						RADEON_CG_SUPPORT_VCE_MGCG |
+						RADEON_CG_SUPPORT_UVD_MGCG |
+						RADEON_CG_SUPPORT_HDP_LS |
+						RADEON_CG_SUPPORT_HDP_MGCG;
+					rdev->pg_flags = 0;
+					break;
+
+				case CHIP_VERDE:
+					rdev->cg_flags =
+						RADEON_CG_SUPPORT_GFX_MGCG |
+						RADEON_CG_SUPPORT_GFX_MGLS |
+						/*RADEON_CG_SUPPORT_GFX_CGCG |*/
+						RADEON_CG_SUPPORT_GFX_CGLS |
+						RADEON_CG_SUPPORT_GFX_CGTS |
+						RADEON_CG_SUPPORT_GFX_CP_LS |
+						RADEON_CG_SUPPORT_GFX_RLC_LS |
+						RADEON_CG_SUPPORT_MC_LS |
+						RADEON_CG_SUPPORT_MC_MGCG |
+						RADEON_CG_SUPPORT_SDMA_MGCG |
+						RADEON_CG_SUPPORT_BIF_LS |
+						RADEON_CG_SUPPORT_VCE_MGCG |
+						RADEON_CG_SUPPORT_UVD_MGCG |
+						RADEON_CG_SUPPORT_HDP_LS |
+						RADEON_CG_SUPPORT_HDP_MGCG;
+					rdev->pg_flags = 0 |
+									 /*RADEON_PG_SUPPORT_GFX_PG | */
+									 RADEON_PG_SUPPORT_SDMA;
+					break;
+
+				case CHIP_OLAND:
+					rdev->cg_flags =
+						RADEON_CG_SUPPORT_GFX_MGCG |
+						RADEON_CG_SUPPORT_GFX_MGLS |
+						/*RADEON_CG_SUPPORT_GFX_CGCG |*/
+						RADEON_CG_SUPPORT_GFX_CGLS |
+						RADEON_CG_SUPPORT_GFX_CGTS |
+						RADEON_CG_SUPPORT_GFX_CP_LS |
+						RADEON_CG_SUPPORT_GFX_RLC_LS |
+						RADEON_CG_SUPPORT_MC_LS |
+						RADEON_CG_SUPPORT_MC_MGCG |
+						RADEON_CG_SUPPORT_SDMA_MGCG |
+						RADEON_CG_SUPPORT_BIF_LS |
+						RADEON_CG_SUPPORT_UVD_MGCG |
+						RADEON_CG_SUPPORT_HDP_LS |
+						RADEON_CG_SUPPORT_HDP_MGCG;
+					rdev->pg_flags = 0;
+					break;
+
+				case CHIP_HAINAN:
+					rdev->cg_flags =
+						RADEON_CG_SUPPORT_GFX_MGCG |
+						RADEON_CG_SUPPORT_GFX_MGLS |
+						/*RADEON_CG_SUPPORT_GFX_CGCG |*/
+						RADEON_CG_SUPPORT_GFX_CGLS |
+						RADEON_CG_SUPPORT_GFX_CGTS |
+						RADEON_CG_SUPPORT_GFX_CP_LS |
+						RADEON_CG_SUPPORT_GFX_RLC_LS |
+						RADEON_CG_SUPPORT_MC_LS |
+						RADEON_CG_SUPPORT_MC_MGCG |
+						RADEON_CG_SUPPORT_SDMA_MGCG |
+						RADEON_CG_SUPPORT_BIF_LS |
+						RADEON_CG_SUPPORT_HDP_LS |
+						RADEON_CG_SUPPORT_HDP_MGCG;
+					rdev->pg_flags = 0;
+					break;
+
+				default:
+					rdev->cg_flags = 0;
+					rdev->pg_flags = 0;
+					break;
+			}
+
 			break;
-		default:
-			rdev->cg_flags = 0;
-			rdev->pg_flags = 0;
+
+		case CHIP_BONAIRE:
+		case CHIP_HAWAII:
+			rdev->asic = &ci_asic;
+			rdev->num_crtc = 6;
+			rdev->has_uvd = true;
+			rdev->has_vce = true;
+
+			if (rdev->family == CHIP_BONAIRE)
+			{
+				rdev->cg_flags =
+					RADEON_CG_SUPPORT_GFX_MGCG |
+					RADEON_CG_SUPPORT_GFX_MGLS |
+					/*RADEON_CG_SUPPORT_GFX_CGCG |*/
+					RADEON_CG_SUPPORT_GFX_CGLS |
+					RADEON_CG_SUPPORT_GFX_CGTS |
+					RADEON_CG_SUPPORT_GFX_CGTS_LS |
+					RADEON_CG_SUPPORT_GFX_CP_LS |
+					RADEON_CG_SUPPORT_MC_LS |
+					RADEON_CG_SUPPORT_MC_MGCG |
+					RADEON_CG_SUPPORT_SDMA_MGCG |
+					RADEON_CG_SUPPORT_SDMA_LS |
+					RADEON_CG_SUPPORT_BIF_LS |
+					RADEON_CG_SUPPORT_VCE_MGCG |
+					RADEON_CG_SUPPORT_UVD_MGCG |
+					RADEON_CG_SUPPORT_HDP_LS |
+					RADEON_CG_SUPPORT_HDP_MGCG;
+				rdev->pg_flags = 0;
+			}
+			else
+			{
+				rdev->cg_flags =
+					RADEON_CG_SUPPORT_GFX_MGCG |
+					RADEON_CG_SUPPORT_GFX_MGLS |
+					/*RADEON_CG_SUPPORT_GFX_CGCG |*/
+					RADEON_CG_SUPPORT_GFX_CGLS |
+					RADEON_CG_SUPPORT_GFX_CGTS |
+					RADEON_CG_SUPPORT_GFX_CP_LS |
+					RADEON_CG_SUPPORT_MC_LS |
+					RADEON_CG_SUPPORT_MC_MGCG |
+					RADEON_CG_SUPPORT_SDMA_MGCG |
+					RADEON_CG_SUPPORT_SDMA_LS |
+					RADEON_CG_SUPPORT_BIF_LS |
+					RADEON_CG_SUPPORT_VCE_MGCG |
+					RADEON_CG_SUPPORT_UVD_MGCG |
+					RADEON_CG_SUPPORT_HDP_LS |
+					RADEON_CG_SUPPORT_HDP_MGCG;
+				rdev->pg_flags = 0;
+			}
+
 			break;
-		}
-		break;
-	case CHIP_BONAIRE:
-	case CHIP_HAWAII:
-		rdev->asic = &ci_asic;
-		rdev->num_crtc = 6;
-		rdev->has_uvd = true;
-		rdev->has_vce = true;
-		if (rdev->family == CHIP_BONAIRE) {
-			rdev->cg_flags =
-				RADEON_CG_SUPPORT_GFX_MGCG |
-				RADEON_CG_SUPPORT_GFX_MGLS |
-				/*RADEON_CG_SUPPORT_GFX_CGCG |*/
-				RADEON_CG_SUPPORT_GFX_CGLS |
-				RADEON_CG_SUPPORT_GFX_CGTS |
-				RADEON_CG_SUPPORT_GFX_CGTS_LS |
-				RADEON_CG_SUPPORT_GFX_CP_LS |
-				RADEON_CG_SUPPORT_MC_LS |
-				RADEON_CG_SUPPORT_MC_MGCG |
-				RADEON_CG_SUPPORT_SDMA_MGCG |
-				RADEON_CG_SUPPORT_SDMA_LS |
-				RADEON_CG_SUPPORT_BIF_LS |
-				RADEON_CG_SUPPORT_VCE_MGCG |
-				RADEON_CG_SUPPORT_UVD_MGCG |
-				RADEON_CG_SUPPORT_HDP_LS |
-				RADEON_CG_SUPPORT_HDP_MGCG;
-			rdev->pg_flags = 0;
-		} else {
-			rdev->cg_flags =
-				RADEON_CG_SUPPORT_GFX_MGCG |
-				RADEON_CG_SUPPORT_GFX_MGLS |
-				/*RADEON_CG_SUPPORT_GFX_CGCG |*/
-				RADEON_CG_SUPPORT_GFX_CGLS |
-				RADEON_CG_SUPPORT_GFX_CGTS |
-				RADEON_CG_SUPPORT_GFX_CP_LS |
-				RADEON_CG_SUPPORT_MC_LS |
-				RADEON_CG_SUPPORT_MC_MGCG |
-				RADEON_CG_SUPPORT_SDMA_MGCG |
-				RADEON_CG_SUPPORT_SDMA_LS |
-				RADEON_CG_SUPPORT_BIF_LS |
-				RADEON_CG_SUPPORT_VCE_MGCG |
-				RADEON_CG_SUPPORT_UVD_MGCG |
-				RADEON_CG_SUPPORT_HDP_LS |
-				RADEON_CG_SUPPORT_HDP_MGCG;
-			rdev->pg_flags = 0;
-		}
-		break;
-	case CHIP_KAVERI:
-	case CHIP_KABINI:
-	case CHIP_MULLINS:
-		rdev->asic = &kv_asic;
-		/* set num crtcs */
-		if (rdev->family == CHIP_KAVERI) {
-			rdev->num_crtc = 4;
-			rdev->cg_flags =
-				RADEON_CG_SUPPORT_GFX_MGCG |
-				RADEON_CG_SUPPORT_GFX_MGLS |
-				/*RADEON_CG_SUPPORT_GFX_CGCG |*/
-				RADEON_CG_SUPPORT_GFX_CGLS |
-				RADEON_CG_SUPPORT_GFX_CGTS |
-				RADEON_CG_SUPPORT_GFX_CGTS_LS |
-				RADEON_CG_SUPPORT_GFX_CP_LS |
-				RADEON_CG_SUPPORT_SDMA_MGCG |
-				RADEON_CG_SUPPORT_SDMA_LS |
-				RADEON_CG_SUPPORT_BIF_LS |
-				RADEON_CG_SUPPORT_VCE_MGCG |
-				RADEON_CG_SUPPORT_UVD_MGCG |
-				RADEON_CG_SUPPORT_HDP_LS |
-				RADEON_CG_SUPPORT_HDP_MGCG;
-			rdev->pg_flags = 0;
+
+		case CHIP_KAVERI:
+		case CHIP_KABINI:
+		case CHIP_MULLINS:
+			rdev->asic = &kv_asic;
+
+			/* set num crtcs */
+			if (rdev->family == CHIP_KAVERI)
+			{
+				rdev->num_crtc = 4;
+				rdev->cg_flags =
+					RADEON_CG_SUPPORT_GFX_MGCG |
+					RADEON_CG_SUPPORT_GFX_MGLS |
+					/*RADEON_CG_SUPPORT_GFX_CGCG |*/
+					RADEON_CG_SUPPORT_GFX_CGLS |
+					RADEON_CG_SUPPORT_GFX_CGTS |
+					RADEON_CG_SUPPORT_GFX_CGTS_LS |
+					RADEON_CG_SUPPORT_GFX_CP_LS |
+					RADEON_CG_SUPPORT_SDMA_MGCG |
+					RADEON_CG_SUPPORT_SDMA_LS |
+					RADEON_CG_SUPPORT_BIF_LS |
+					RADEON_CG_SUPPORT_VCE_MGCG |
+					RADEON_CG_SUPPORT_UVD_MGCG |
+					RADEON_CG_SUPPORT_HDP_LS |
+					RADEON_CG_SUPPORT_HDP_MGCG;
+				rdev->pg_flags = 0;
 				/*RADEON_PG_SUPPORT_GFX_PG |
 				RADEON_PG_SUPPORT_GFX_SMG |
 				RADEON_PG_SUPPORT_GFX_DMG |
@@ -2656,24 +2801,26 @@ int radeon_asic_init(struct radeon_device *rdev)
 				RADEON_PG_SUPPORT_RLC_SMU_HS |
 				RADEON_PG_SUPPORT_ACP |
 				RADEON_PG_SUPPORT_SAMU;*/
-		} else {
-			rdev->num_crtc = 2;
-			rdev->cg_flags =
-				RADEON_CG_SUPPORT_GFX_MGCG |
-				RADEON_CG_SUPPORT_GFX_MGLS |
-				/*RADEON_CG_SUPPORT_GFX_CGCG |*/
-				RADEON_CG_SUPPORT_GFX_CGLS |
-				RADEON_CG_SUPPORT_GFX_CGTS |
-				RADEON_CG_SUPPORT_GFX_CGTS_LS |
-				RADEON_CG_SUPPORT_GFX_CP_LS |
-				RADEON_CG_SUPPORT_SDMA_MGCG |
-				RADEON_CG_SUPPORT_SDMA_LS |
-				RADEON_CG_SUPPORT_BIF_LS |
-				RADEON_CG_SUPPORT_VCE_MGCG |
-				RADEON_CG_SUPPORT_UVD_MGCG |
-				RADEON_CG_SUPPORT_HDP_LS |
-				RADEON_CG_SUPPORT_HDP_MGCG;
-			rdev->pg_flags = 0;
+			}
+			else
+			{
+				rdev->num_crtc = 2;
+				rdev->cg_flags =
+					RADEON_CG_SUPPORT_GFX_MGCG |
+					RADEON_CG_SUPPORT_GFX_MGLS |
+					/*RADEON_CG_SUPPORT_GFX_CGCG |*/
+					RADEON_CG_SUPPORT_GFX_CGLS |
+					RADEON_CG_SUPPORT_GFX_CGTS |
+					RADEON_CG_SUPPORT_GFX_CGTS_LS |
+					RADEON_CG_SUPPORT_GFX_CP_LS |
+					RADEON_CG_SUPPORT_SDMA_MGCG |
+					RADEON_CG_SUPPORT_SDMA_LS |
+					RADEON_CG_SUPPORT_BIF_LS |
+					RADEON_CG_SUPPORT_VCE_MGCG |
+					RADEON_CG_SUPPORT_UVD_MGCG |
+					RADEON_CG_SUPPORT_HDP_LS |
+					RADEON_CG_SUPPORT_HDP_MGCG;
+				rdev->pg_flags = 0;
 				/*RADEON_PG_SUPPORT_GFX_PG |
 				RADEON_PG_SUPPORT_GFX_SMG |
 				RADEON_PG_SUPPORT_UVD |
@@ -2682,24 +2829,32 @@ int radeon_asic_init(struct radeon_device *rdev)
 				RADEON_PG_SUPPORT_GDS |
 				RADEON_PG_SUPPORT_RLC_SMU_HS |
 				RADEON_PG_SUPPORT_SAMU;*/
-		}
-		rdev->has_uvd = true;
-		rdev->has_vce = true;
-		break;
-	default:
-		/* FIXME: not supported yet */
-		return -EINVAL;
+			}
+
+			rdev->has_uvd = true;
+			rdev->has_vce = true;
+			break;
+
+		default:
+			/* FIXME: not supported yet */
+			return -EINVAL;
 	}
 
-	if (rdev->flags & RADEON_IS_IGP) {
+	if (rdev->flags & RADEON_IS_IGP)
+	{
 		rdev->asic->pm.get_memory_clock = NULL;
 		rdev->asic->pm.set_memory_clock = NULL;
 	}
 
 	if (!radeon_uvd)
+	{
 		rdev->has_uvd = false;
+	}
+
 	if (!radeon_vce)
+	{
 		rdev->has_vce = false;
+	}
 
 	return 0;
 }

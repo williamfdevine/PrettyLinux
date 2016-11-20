@@ -20,7 +20,7 @@
 static inline int is_kernel_rodata(unsigned long addr)
 {
 	return addr >= (unsigned long)__start_rodata &&
-		addr < (unsigned long)__end_rodata;
+		   addr < (unsigned long)__end_rodata;
 }
 
 /**
@@ -32,7 +32,9 @@ static inline int is_kernel_rodata(unsigned long addr)
 void kfree_const(const void *x)
 {
 	if (!is_kernel_rodata((unsigned long)x))
+	{
 		kfree(x);
+	}
 }
 EXPORT_SYMBOL(kfree_const);
 
@@ -47,12 +49,18 @@ char *kstrdup(const char *s, gfp_t gfp)
 	char *buf;
 
 	if (!s)
+	{
 		return NULL;
+	}
 
 	len = strlen(s) + 1;
 	buf = kmalloc_track_caller(len, gfp);
+
 	if (buf)
+	{
 		memcpy(buf, s, len);
+	}
+
 	return buf;
 }
 EXPORT_SYMBOL(kstrdup);
@@ -69,7 +77,9 @@ EXPORT_SYMBOL(kstrdup);
 const char *kstrdup_const(const char *s, gfp_t gfp)
 {
 	if (is_kernel_rodata((unsigned long)s))
+	{
 		return s;
+	}
 
 	return kstrdup(s, gfp);
 }
@@ -87,14 +97,19 @@ char *kstrndup(const char *s, size_t max, gfp_t gfp)
 	char *buf;
 
 	if (!s)
+	{
 		return NULL;
+	}
 
 	len = strnlen(s, max);
-	buf = kmalloc_track_caller(len+1, gfp);
-	if (buf) {
+	buf = kmalloc_track_caller(len + 1, gfp);
+
+	if (buf)
+	{
 		memcpy(buf, s, len);
 		buf[len] = '\0';
 	}
+
 	return buf;
 }
 EXPORT_SYMBOL(kstrndup);
@@ -111,8 +126,12 @@ void *kmemdup(const void *src, size_t len, gfp_t gfp)
 	void *p;
 
 	p = kmalloc_track_caller(len, gfp);
+
 	if (p)
+	{
 		memcpy(p, src, len);
+	}
+
 	return p;
 }
 EXPORT_SYMBOL(kmemdup);
@@ -135,10 +154,14 @@ void *memdup_user(const void __user *src, size_t len)
 	 * or GFP_ATOMIC.
 	 */
 	p = kmalloc_track_caller(len, GFP_KERNEL);
-	if (!p)
-		return ERR_PTR(-ENOMEM);
 
-	if (copy_from_user(p, src, len)) {
+	if (!p)
+	{
+		return ERR_PTR(-ENOMEM);
+	}
+
+	if (copy_from_user(p, src, len))
+	{
 		kfree(p);
 		return ERR_PTR(-EFAULT);
 	}
@@ -160,15 +183,21 @@ char *strndup_user(const char __user *s, long n)
 	length = strnlen_user(s, n);
 
 	if (!length)
+	{
 		return ERR_PTR(-EFAULT);
+	}
 
 	if (length > n)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	p = memdup_user(s, length);
 
 	if (IS_ERR(p))
+	{
 		return p;
+	}
 
 	p[length - 1] = '\0';
 
@@ -194,13 +223,18 @@ void *memdup_user_nul(const void __user *src, size_t len)
 	 * or GFP_ATOMIC.
 	 */
 	p = kmalloc_track_caller(len + 1, GFP_KERNEL);
-	if (!p)
-		return ERR_PTR(-ENOMEM);
 
-	if (copy_from_user(p, src, len)) {
+	if (!p)
+	{
+		return ERR_PTR(-ENOMEM);
+	}
+
+	if (copy_from_user(p, src, len))
+	{
 		kfree(p);
 		return ERR_PTR(-EFAULT);
 	}
+
 	p[len] = '\0';
 
 	return p;
@@ -208,31 +242,42 @@ void *memdup_user_nul(const void __user *src, size_t len)
 EXPORT_SYMBOL(memdup_user_nul);
 
 void __vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
-		struct vm_area_struct *prev, struct rb_node *rb_parent)
+					 struct vm_area_struct *prev, struct rb_node *rb_parent)
 {
 	struct vm_area_struct *next;
 
 	vma->vm_prev = prev;
-	if (prev) {
+
+	if (prev)
+	{
 		next = prev->vm_next;
 		prev->vm_next = vma;
-	} else {
+	}
+	else
+	{
 		mm->mmap = vma;
+
 		if (rb_parent)
 			next = rb_entry(rb_parent,
-					struct vm_area_struct, vm_rb);
+							struct vm_area_struct, vm_rb);
 		else
+		{
 			next = NULL;
+		}
 	}
+
 	vma->vm_next = next;
+
 	if (next)
+	{
 		next->vm_prev = vma;
+	}
 }
 
 /* Check if the vma is being used as a stack by this task */
 int vma_is_stack_for_current(struct vm_area_struct *vma)
 {
-	struct task_struct * __maybe_unused t = current;
+	struct task_struct *__maybe_unused t = current;
 
 	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
 }
@@ -252,7 +297,7 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
  * page pinned
  */
 int __weak __get_user_pages_fast(unsigned long start,
-				 int nr_pages, int write, struct page **pages)
+								 int nr_pages, int write, struct page **pages)
 {
 	return 0;
 }
@@ -283,42 +328,56 @@ EXPORT_SYMBOL_GPL(__get_user_pages_fast);
  * get_user_pages_fast simply falls back to get_user_pages.
  */
 int __weak get_user_pages_fast(unsigned long start,
-				int nr_pages, int write, struct page **pages)
+							   int nr_pages, int write, struct page **pages)
 {
 	return get_user_pages_unlocked(start, nr_pages, pages,
-				       write ? FOLL_WRITE : 0);
+								   write ? FOLL_WRITE : 0);
 }
 EXPORT_SYMBOL_GPL(get_user_pages_fast);
 
 unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
-	unsigned long len, unsigned long prot,
-	unsigned long flag, unsigned long pgoff)
+							unsigned long len, unsigned long prot,
+							unsigned long flag, unsigned long pgoff)
 {
 	unsigned long ret;
 	struct mm_struct *mm = current->mm;
 	unsigned long populate;
 
 	ret = security_mmap_file(file, prot, flag);
-	if (!ret) {
+
+	if (!ret)
+	{
 		if (down_write_killable(&mm->mmap_sem))
+		{
 			return -EINTR;
+		}
+
 		ret = do_mmap_pgoff(file, addr, len, prot, flag, pgoff,
-				    &populate);
+							&populate);
 		up_write(&mm->mmap_sem);
+
 		if (populate)
+		{
 			mm_populate(ret, populate);
+		}
 	}
+
 	return ret;
 }
 
 unsigned long vm_mmap(struct file *file, unsigned long addr,
-	unsigned long len, unsigned long prot,
-	unsigned long flag, unsigned long offset)
+					  unsigned long len, unsigned long prot,
+					  unsigned long flag, unsigned long offset)
 {
 	if (unlikely(offset + PAGE_ALIGN(len) < offset))
+	{
 		return -EINVAL;
+	}
+
 	if (unlikely(offset_in_page(offset)))
+	{
 		return -EINVAL;
+	}
 
 	return vm_mmap_pgoff(file, addr, len, prot, flag, offset >> PAGE_SHIFT);
 }
@@ -327,9 +386,13 @@ EXPORT_SYMBOL(vm_mmap);
 void kvfree(const void *addr)
 {
 	if (is_vmalloc_addr(addr))
+	{
 		vfree(addr);
+	}
 	else
+	{
 		kfree(addr);
+	}
 }
 EXPORT_SYMBOL(kvfree);
 
@@ -359,16 +422,30 @@ bool page_mapped(struct page *page)
 	int i;
 
 	if (likely(!PageCompound(page)))
+	{
 		return atomic_read(&page->_mapcount) >= 0;
-	page = compound_head(page);
-	if (atomic_read(compound_mapcount_ptr(page)) >= 0)
-		return true;
-	if (PageHuge(page))
-		return false;
-	for (i = 0; i < hpage_nr_pages(page); i++) {
-		if (atomic_read(&page[i]._mapcount) >= 0)
-			return true;
 	}
+
+	page = compound_head(page);
+
+	if (atomic_read(compound_mapcount_ptr(page)) >= 0)
+	{
+		return true;
+	}
+
+	if (PageHuge(page))
+	{
+		return false;
+	}
+
+	for (i = 0; i < hpage_nr_pages(page); i++)
+	{
+		if (atomic_read(&page[i]._mapcount) >= 0)
+		{
+			return true;
+		}
+	}
+
 	return false;
 }
 EXPORT_SYMBOL(page_mapped);
@@ -379,8 +456,12 @@ struct anon_vma *page_anon_vma(struct page *page)
 
 	page = compound_head(page);
 	mapping = (unsigned long)page->mapping;
+
 	if ((mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
+	{
 		return NULL;
+	}
+
 	return __page_rmapping(page);
 }
 
@@ -392,9 +473,12 @@ struct address_space *page_mapping(struct page *page)
 
 	/* This happens if someone calls flush_dcache_page on slab page */
 	if (unlikely(PageSlab(page)))
+	{
 		return NULL;
+	}
 
-	if (unlikely(PageSwapCache(page))) {
+	if (unlikely(PageSwapCache(page)))
+	{
 		swp_entry_t entry;
 
 		entry.val = page_private(page);
@@ -402,8 +486,11 @@ struct address_space *page_mapping(struct page *page)
 	}
 
 	mapping = page->mapping;
+
 	if ((unsigned long)mapping & PAGE_MAPPING_ANON)
+	{
 		return NULL;
+	}
 
 	return (void *)((unsigned long)mapping & ~PAGE_MAPPING_FLAGS);
 }
@@ -415,16 +502,24 @@ int __page_mapcount(struct page *page)
 	int ret;
 
 	ret = atomic_read(&page->_mapcount) + 1;
+
 	/*
 	 * For file THP page->_mapcount contains total number of mapping
 	 * of the page: no need to look into compound_mapcount.
 	 */
 	if (!PageAnon(page) && !PageHuge(page))
+	{
 		return ret;
+	}
+
 	page = compound_head(page);
 	ret += atomic_read(compound_mapcount_ptr(page)) + 1;
+
 	if (PageDoubleMap(page))
+	{
 		ret--;
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(__page_mapcount);
@@ -437,26 +532,34 @@ unsigned long sysctl_user_reserve_kbytes __read_mostly = 1UL << 17; /* 128MB */
 unsigned long sysctl_admin_reserve_kbytes __read_mostly = 1UL << 13; /* 8MB */
 
 int overcommit_ratio_handler(struct ctl_table *table, int write,
-			     void __user *buffer, size_t *lenp,
-			     loff_t *ppos)
+							 void __user *buffer, size_t *lenp,
+							 loff_t *ppos)
 {
 	int ret;
 
 	ret = proc_dointvec(table, write, buffer, lenp, ppos);
+
 	if (ret == 0 && write)
+	{
 		sysctl_overcommit_kbytes = 0;
+	}
+
 	return ret;
 }
 
 int overcommit_kbytes_handler(struct ctl_table *table, int write,
-			     void __user *buffer, size_t *lenp,
-			     loff_t *ppos)
+							  void __user *buffer, size_t *lenp,
+							  loff_t *ppos)
 {
 	int ret;
 
 	ret = proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
+
 	if (ret == 0 && write)
+	{
 		sysctl_overcommit_ratio = 0;
+	}
+
 	return ret;
 }
 
@@ -468,10 +571,13 @@ unsigned long vm_commit_limit(void)
 	unsigned long allowed;
 
 	if (sysctl_overcommit_kbytes)
+	{
 		allowed = sysctl_overcommit_kbytes >> (PAGE_SHIFT - 10);
+	}
 	else
 		allowed = ((totalram_pages - hugetlb_total_pages())
-			   * sysctl_overcommit_ratio / 100);
+				   * sysctl_overcommit_ratio / 100);
+
 	allowed += total_swap_pages;
 
 	return allowed;
@@ -518,8 +624,8 @@ int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
 	long free, allowed, reserve;
 
 	VM_WARN_ONCE(percpu_counter_read(&vm_committed_as) <
-			-(s64)vm_committed_as_batch * num_online_cpus(),
-			"memory commitment underflow");
+				 -(s64)vm_committed_as_batch * num_online_cpus(),
+				 "memory commitment underflow");
 
 	vm_acct_memory(pages);
 
@@ -527,9 +633,12 @@ int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
 	 * Sometimes we want to use more memory than we have
 	 */
 	if (sysctl_overcommit_memory == OVERCOMMIT_ALWAYS)
+	{
 		return 0;
+	}
 
-	if (sysctl_overcommit_memory == OVERCOMMIT_GUESS) {
+	if (sysctl_overcommit_memory == OVERCOMMIT_GUESS)
+	{
 		free = global_page_state(NR_FREE_PAGES);
 		free += global_node_page_state(NR_FILE_PAGES);
 
@@ -555,39 +664,54 @@ int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
 		 * Leave reserved pages. The pages are not for anonymous pages.
 		 */
 		if (free <= totalreserve_pages)
+		{
 			goto error;
+		}
 		else
+		{
 			free -= totalreserve_pages;
+		}
 
 		/*
 		 * Reserve some for root
 		 */
 		if (!cap_sys_admin)
+		{
 			free -= sysctl_admin_reserve_kbytes >> (PAGE_SHIFT - 10);
+		}
 
 		if (free > pages)
+		{
 			return 0;
+		}
 
 		goto error;
 	}
 
 	allowed = vm_commit_limit();
+
 	/*
 	 * Reserve some for root
 	 */
 	if (!cap_sys_admin)
+	{
 		allowed -= sysctl_admin_reserve_kbytes >> (PAGE_SHIFT - 10);
+	}
 
 	/*
 	 * Don't let a single process grow so big a user can't recover
 	 */
-	if (mm) {
+	if (mm)
+	{
 		reserve = sysctl_user_reserve_kbytes >> (PAGE_SHIFT - 10);
 		allowed -= min_t(long, mm->total_vm / 32, reserve);
 	}
 
 	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
+	{
 		return 0;
+	}
+
 error:
 	vm_unacct_memory(pages);
 
@@ -609,10 +733,16 @@ int get_cmdline(struct task_struct *task, char *buffer, int buflen)
 	unsigned int len;
 	struct mm_struct *mm = get_task_mm(task);
 	unsigned long arg_start, arg_end, env_start, env_end;
+
 	if (!mm)
+	{
 		goto out;
+	}
+
 	if (!mm->arg_end)
-		goto out_mm;	/* Shh! No looking before we're done */
+	{
+		goto out_mm;    /* Shh! No looking before we're done */
+	}
 
 	down_read(&mm->mmap_sem);
 	arg_start = mm->arg_start;
@@ -624,7 +754,9 @@ int get_cmdline(struct task_struct *task, char *buffer, int buflen)
 	len = arg_end - arg_start;
 
 	if (len > buflen)
+	{
 		len = buflen;
+	}
 
 	res = access_process_vm(task, arg_start, buffer, len, FOLL_FORCE);
 
@@ -632,20 +764,30 @@ int get_cmdline(struct task_struct *task, char *buffer, int buflen)
 	 * If the nul at the end of args has been overwritten, then
 	 * assume application is using setproctitle(3).
 	 */
-	if (res > 0 && buffer[res-1] != '\0' && len < buflen) {
+	if (res > 0 && buffer[res - 1] != '\0' && len < buflen)
+	{
 		len = strnlen(buffer, res);
-		if (len < res) {
+
+		if (len < res)
+		{
 			res = len;
-		} else {
+		}
+		else
+		{
 			len = env_end - env_start;
+
 			if (len > buflen - res)
+			{
 				len = buflen - res;
+			}
+
 			res += access_process_vm(task, env_start,
-						 buffer+res, len,
-						 FOLL_FORCE);
+									 buffer + res, len,
+									 FOLL_FORCE);
 			res = strnlen(buffer, res);
 		}
 	}
+
 out_mm:
 	mmput(mm);
 out:

@@ -24,7 +24,8 @@
 /* EHCI register interface, corresponds to EHCI Revision 0.95 specification */
 
 /* Section 2.2 Host Controller Capability Registers */
-struct ehci_caps {
+struct ehci_caps
+{
 	/* these fields are specified as 8 and 16 bit registers,
 	 * but some hosts can't perform 8 or 16 bit PCI accesses.
 	 * some hosts treat caplength and hciversion as parts of a 32-bit
@@ -33,9 +34,9 @@ struct ehci_caps {
 	 */
 	u32		hc_capbase;
 #define HC_LENGTH(ehci, p)	(0x00ff&((p) >> /* bits 7:0 / offset 00h */ \
-				(ehci_big_endian_capbase(ehci) ? 24 : 0)))
+									 (ehci_big_endian_capbase(ehci) ? 24 : 0)))
 #define HC_VERSION(ehci, p)	(0xffff&((p) >> /* bits 31:16 / offset 02h */ \
-				(ehci_big_endian_capbase(ehci) ? 0 : 16)))
+									 (ehci_big_endian_capbase(ehci) ? 0 : 16)))
 	u32		hcs_params;     /* HCSPARAMS - offset 0x4 */
 #define HCS_DEBUG_PORT(p)	(((p)>>20)&0xf)	/* bits 23:20, debug port? */
 #define HCS_INDICATOR(p)	((p)&(1 << 16))	/* true: has port indicators */
@@ -46,7 +47,7 @@ struct ehci_caps {
 #define HCS_N_PORTS(p)		(((p)>>0)&0xf)	/* bits 3:0, ports on HC */
 
 	u32		hcc_params;      /* HCCPARAMS - offset 0x8 */
-/* EHCI 1.1 addendum */
+	/* EHCI 1.1 addendum */
 #define HCC_32FRAME_PERIODIC_LIST(p)	((p)&(1 << 19))
 #define HCC_PER_PORT_CHANGE_EVENT(p)	((p)&(1 << 18))
 #define HCC_LPM(p)			((p)&(1 << 17))
@@ -63,25 +64,26 @@ struct ehci_caps {
 
 
 /* Section 2.3 Host Controller Operational Registers */
-struct ehci_regs {
+struct ehci_regs
+{
 
 	/* USBCMD: offset 0x00 */
 	u32		command;
 
-/* EHCI 1.1 addendum */
+	/* EHCI 1.1 addendum */
 #define CMD_HIRD	(0xf<<24)	/* host initiated resume duration */
 #define CMD_PPCEE	(1<<15)		/* per port change event enable */
 #define CMD_FSP		(1<<14)		/* fully synchronized prefetch */
 #define CMD_ASPE	(1<<13)		/* async schedule prefetch enable */
 #define CMD_PSPE	(1<<12)		/* periodic schedule prefetch enable */
-/* 23:16 is r/w intr rate, in microframes; default "8" == 1/msec */
+	/* 23:16 is r/w intr rate, in microframes; default "8" == 1/msec */
 #define CMD_PARK	(1<<11)		/* enable "park" on async qh */
 #define CMD_PARK_CNT(c)	(((c)>>8)&3)	/* how many transfers to park for */
 #define CMD_LRESET	(1<<7)		/* partial reset (no ports, etc) */
 #define CMD_IAAD	(1<<6)		/* "doorbell" interrupt async advance */
 #define CMD_ASE		(1<<5)		/* async schedule enable */
 #define CMD_PSE		(1<<4)		/* periodic schedule enable */
-/* 3:2 is periodic frame list size */
+	/* 3:2 is periodic frame list size */
 #define CMD_RESET	(1<<1)		/* reset HC not bus */
 #define CMD_RUN		(1<<0)		/* start/stop HC */
 
@@ -92,7 +94,7 @@ struct ehci_regs {
 #define STS_PSS		(1<<14)		/* Periodic Schedule Status */
 #define STS_RECL	(1<<13)		/* Reclamation */
 #define STS_HALT	(1<<12)		/* Not running (any reason) */
-/* some bits reserved */
+	/* some bits reserved */
 	/* these STS_* flags are also intr_enable bits (USBINTR) */
 #define STS_IAA		(1<<5)		/* Interrupted on async advance */
 #define STS_FATAL	(1<<4)		/* such as some PCI access errors */
@@ -127,7 +129,7 @@ struct ehci_regs {
 
 	/* PORTSC: offset 0x44 */
 	u32		port_status[0];	/* up to N_PORTS */
-/* EHCI 1.1 addendum */
+	/* EHCI 1.1 addendum */
 #define PORTSC_SUSPEND_STS_ACK 0
 #define PORTSC_SUSPEND_STS_NYET 1
 #define PORTSC_SUSPEND_STS_STALL 2
@@ -135,11 +137,11 @@ struct ehci_regs {
 
 #define PORT_DEV_ADDR	(0x7f<<25)		/* device address */
 #define PORT_SSTS	(0x3<<23)		/* suspend status */
-/* 31:23 reserved */
+	/* 31:23 reserved */
 #define PORT_WKOC_E	(1<<22)		/* wake on overcurrent (enable) */
 #define PORT_WKDISC_E	(1<<21)		/* wake on disconnect (enable) */
 #define PORT_WKCONN_E	(1<<20)		/* wake on connect (enable) */
-/* 19:16 for port testing */
+	/* 19:16 for port testing */
 #define PORT_TEST(x)	(((x)&0xf)<<16)	/* Port Test Control */
 #define PORT_TEST_PKT	PORT_TEST(0x4)	/* Port Test Control - packet test */
 #define PORT_TEST_FORCE	PORT_TEST(0x5)	/* Port Test Control - force enable */
@@ -150,8 +152,8 @@ struct ehci_regs {
 #define PORT_OWNER	(1<<13)		/* true: companion hc owns this port */
 #define PORT_POWER	(1<<12)		/* true: has power (see PPC) */
 #define PORT_USB11(x) (((x)&(3<<10)) == (1<<10))	/* USB 1.1 device */
-/* 11:10 for detecting lowspeed devices (reset vs release ownership) */
-/* 9 reserved */
+	/* 11:10 for detecting lowspeed devices (reset vs release ownership) */
+	/* 9 reserved */
 #define PORT_LPM	(1<<9)		/* LPM transaction */
 #define PORT_RESET	(1<<8)		/* reset port */
 #define PORT_SUSPEND	(1<<7)		/* suspend port */
@@ -175,10 +177,10 @@ struct ehci_regs {
 
 	u32		reserved4[6];
 
-/* Moorestown has some non-standard registers, partially due to the fact that
- * its EHCI controller has both TT and LPM support. HOSTPCx are extensions to
- * PORTSCx
- */
+	/* Moorestown has some non-standard registers, partially due to the fact that
+	 * its EHCI controller has both TT and LPM support. HOSTPCx are extensions to
+	 * PORTSCx
+	 */
 	/* HOSTPC: offset 0x84 */
 	u32		hostpc[0];	/* HOSTPC extension */
 #define HOSTPC_PHCD	(1<<22)		/* Phy clock disable */

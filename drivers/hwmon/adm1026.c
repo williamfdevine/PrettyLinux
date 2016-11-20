@@ -38,25 +38,29 @@
 static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
 
 static int gpio_input[17] = { -1, -1, -1, -1, -1, -1, -1, -1, -1,
-				-1, -1, -1, -1, -1, -1, -1, -1 };
+							  -1, -1, -1, -1, -1, -1, -1, -1
+							};
 static int gpio_output[17] = { -1, -1, -1, -1, -1, -1, -1, -1, -1,
-				-1, -1, -1, -1, -1, -1, -1, -1 };
+							   -1, -1, -1, -1, -1, -1, -1, -1
+							 };
 static int gpio_inverted[17] = { -1, -1, -1, -1, -1, -1, -1, -1, -1,
-				-1, -1, -1, -1, -1, -1, -1, -1 };
+								 -1, -1, -1, -1, -1, -1, -1, -1
+							   };
 static int gpio_normal[17] = { -1, -1, -1, -1, -1, -1, -1, -1, -1,
-				-1, -1, -1, -1, -1, -1, -1, -1 };
+							   -1, -1, -1, -1, -1, -1, -1, -1
+							 };
 static int gpio_fan[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
 module_param_array(gpio_input, int, NULL, 0);
 MODULE_PARM_DESC(gpio_input, "List of GPIO pins (0-16) to program as inputs");
 module_param_array(gpio_output, int, NULL, 0);
 MODULE_PARM_DESC(gpio_output,
-		 "List of GPIO pins (0-16) to program as outputs");
+				 "List of GPIO pins (0-16) to program as outputs");
 module_param_array(gpio_inverted, int, NULL, 0);
 MODULE_PARM_DESC(gpio_inverted,
-		 "List of GPIO pins (0-16) to program as inverted");
+				 "List of GPIO pins (0-16) to program as inverted");
 module_param_array(gpio_normal, int, NULL, 0);
 MODULE_PARM_DESC(gpio_normal,
-		 "List of GPIO pins (0-16) to program as normal/non-inverted");
+				 "List of GPIO pins (0-16) to program as normal/non-inverted");
 module_param_array(gpio_fan, int, NULL, 0);
 MODULE_PARM_DESC(gpio_fan, "List of GPIO pins (0-7) to program as fan tachs");
 
@@ -102,21 +106,24 @@ MODULE_PARM_DESC(gpio_fan, "List of GPIO pins (0-7) to program as fan tachs");
  *       15  =  +12V
  *       16  =  -12V
  */
-static u16 ADM1026_REG_IN[] = {
-		0x30, 0x31, 0x32, 0x33, 0x34, 0x35,
-		0x36, 0x37, 0x27, 0x29, 0x26, 0x2a,
-		0x2b, 0x2c, 0x2d, 0x2e, 0x2f
-	};
-static u16 ADM1026_REG_IN_MIN[] = {
-		0x58, 0x59, 0x5a, 0x5b, 0x5c, 0x5d,
-		0x5e, 0x5f, 0x6d, 0x49, 0x6b, 0x4a,
-		0x4b, 0x4c, 0x4d, 0x4e, 0x4f
-	};
-static u16 ADM1026_REG_IN_MAX[] = {
-		0x50, 0x51, 0x52, 0x53, 0x54, 0x55,
-		0x56, 0x57, 0x6c, 0x41, 0x6a, 0x42,
-		0x43, 0x44, 0x45, 0x46, 0x47
-	};
+static u16 ADM1026_REG_IN[] =
+{
+	0x30, 0x31, 0x32, 0x33, 0x34, 0x35,
+	0x36, 0x37, 0x27, 0x29, 0x26, 0x2a,
+	0x2b, 0x2c, 0x2d, 0x2e, 0x2f
+};
+static u16 ADM1026_REG_IN_MIN[] =
+{
+	0x58, 0x59, 0x5a, 0x5b, 0x5c, 0x5d,
+	0x5e, 0x5f, 0x6d, 0x49, 0x6b, 0x4a,
+	0x4b, 0x4c, 0x4d, 0x4e, 0x4f
+};
+static u16 ADM1026_REG_IN_MAX[] =
+{
+	0x50, 0x51, 0x52, 0x53, 0x54, 0x55,
+	0x56, 0x57, 0x6c, 0x41, 0x6a, 0x42,
+	0x43, 0x44, 0x45, 0x46, 0x47
+};
 
 /*
  * Temperatures are:
@@ -190,15 +197,16 @@ static u16 ADM1026_REG_TEMP_OFFSET[] = { 0x1e, 0x6e, 0x6f };
  * The values in this table are based on Table II, page 15 of the
  *    datasheet.
  */
-static int adm1026_scaling[] = { /* .001 Volts */
-		2250, 2250, 2250, 2250, 2250, 2250,
-		1875, 1875, 1875, 1875, 3000, 3330,
-		3330, 4995, 2250, 12000, 13875
-	};
+static int adm1026_scaling[] =   /* .001 Volts */
+{
+	2250, 2250, 2250, 2250, 2250, 2250,
+	1875, 1875, 1875, 1875, 3000, 3330,
+	3330, 4995, 2250, 12000, 13875
+};
 #define NEG12_OFFSET  16000
 #define SCALE(val, from, to) (((val)*(to) + ((from)/2))/(from))
 #define INS_TO_REG(n, val)  (clamp_val(SCALE(val, adm1026_scaling[n], 192),\
-	0, 255))
+									   0, 255))
 #define INS_FROM_REG(n, val) (SCALE(val, 192, adm1026_scaling[n]))
 
 /*
@@ -207,19 +215,19 @@ static int adm1026_scaling[] = { /* .001 Volts */
  *      22500 kHz * 60 (sec/min) * 2 (pulse) / 2 (pulse/rev) == 1350000
  */
 #define FAN_TO_REG(val, div)  ((val) <= 0 ? 0xff : \
-				clamp_val(1350000 / ((val) * (div)), \
-					      1, 254))
+							   clamp_val(1350000 / ((val) * (div)), \
+									   1, 254))
 #define FAN_FROM_REG(val, div) ((val) == 0 ? -1 : (val) == 0xff ? 0 : \
-				1350000 / ((val) * (div)))
+								1350000 / ((val) * (div)))
 #define DIV_FROM_REG(val) (1 << (val))
 #define DIV_TO_REG(val) ((val) >= 8 ? 3 : (val) >= 4 ? 2 : (val) >= 2 ? 1 : 0)
 
 /* Temperature is reported in 1 degC increments */
 #define TEMP_TO_REG(val) (clamp_val(((val) + ((val) < 0 ? -500 : 500)) \
-					/ 1000, -127, 127))
+									/ 1000, -127, 127))
 #define TEMP_FROM_REG(val) ((val) * 1000)
 #define OFFSET_TO_REG(val) (clamp_val(((val) + ((val) < 0 ? -500 : 500)) \
-					  / 1000, -127, 127))
+									  / 1000, -127, 127))
 #define OFFSET_FROM_REG(val) ((val) * 1000)
 
 #define PWM_TO_REG(val) (clamp_val(val, 0, 255))
@@ -259,13 +267,15 @@ static int adm1026_scaling[] = { /* .001 Volts */
  * allocated, when a new client structure is allocated.
  */
 
-struct pwm_data {
+struct pwm_data
+{
 	u8 pwm;
 	u8 enable;
 	u8 auto_pwm_min;
 };
 
-struct adm1026_data {
+struct adm1026_data
+{
 	struct i2c_client *client;
 	const struct attribute_group *groups[3];
 
@@ -303,13 +313,17 @@ static int adm1026_read_value(struct i2c_client *client, u8 reg)
 {
 	int res;
 
-	if (reg < 0x80) {
+	if (reg < 0x80)
+	{
 		/* "RAM" locations */
 		res = i2c_smbus_read_byte_data(client, reg) & 0xff;
-	} else {
+	}
+	else
+	{
 		/* EEPROM, do nothing */
 		res = 0;
 	}
+
 	return res;
 }
 
@@ -317,13 +331,17 @@ static int adm1026_write_value(struct i2c_client *client, u8 reg, int value)
 {
 	int res;
 
-	if (reg < 0x80) {
+	if (reg < 0x80)
+	{
 		/* "RAM" locations */
 		res = i2c_smbus_write_byte_data(client, reg, value);
-	} else {
+	}
+	else
+	{
 		/* EEPROM, do nothing */
 		res = 0;
 	}
+
 	return res;
 }
 
@@ -335,34 +353,40 @@ static struct adm1026_data *adm1026_update_device(struct device *dev)
 	long value, alarms, gpio;
 
 	mutex_lock(&data->update_lock);
+
 	if (!data->valid
-	    || time_after(jiffies,
-			  data->last_reading + ADM1026_DATA_INTERVAL)) {
+		|| time_after(jiffies,
+					  data->last_reading + ADM1026_DATA_INTERVAL))
+	{
 		/* Things that change quickly */
 		dev_dbg(&client->dev, "Reading sensor values\n");
-		for (i = 0; i <= 16; ++i) {
+
+		for (i = 0; i <= 16; ++i)
+		{
 			data->in[i] =
-			    adm1026_read_value(client, ADM1026_REG_IN[i]);
+				adm1026_read_value(client, ADM1026_REG_IN[i]);
 		}
 
-		for (i = 0; i <= 7; ++i) {
+		for (i = 0; i <= 7; ++i)
+		{
 			data->fan[i] =
-			    adm1026_read_value(client, ADM1026_REG_FAN(i));
+				adm1026_read_value(client, ADM1026_REG_FAN(i));
 		}
 
-		for (i = 0; i <= 2; ++i) {
+		for (i = 0; i <= 2; ++i)
+		{
 			/*
 			 * NOTE: temp[] is s8 and we assume 2's complement
 			 *   "conversion" in the assignment
 			 */
 			data->temp[i] =
-			    adm1026_read_value(client, ADM1026_REG_TEMP[i]);
+				adm1026_read_value(client, ADM1026_REG_TEMP[i]);
 		}
 
 		data->pwm1.pwm = adm1026_read_value(client,
-			ADM1026_REG_PWM);
+											ADM1026_REG_PWM);
 		data->analog_out = adm1026_read_value(client,
-			ADM1026_REG_DAC);
+											  ADM1026_REG_DAC);
 		/* GPIO16 is MSbit of alarms, move it to gpio */
 		alarms = adm1026_read_value(client, ADM1026_REG_STATUS4);
 		gpio = alarms & 0x80 ? 0x0100 : 0; /* GPIO16 */
@@ -377,51 +401,57 @@ static struct adm1026_data *adm1026_update_device(struct device *dev)
 
 		/* Read the GPIO values */
 		gpio |= adm1026_read_value(client,
-			ADM1026_REG_GPIO_STATUS_8_15);
+								   ADM1026_REG_GPIO_STATUS_8_15);
 		gpio <<= 8;
 		gpio |= adm1026_read_value(client,
-			ADM1026_REG_GPIO_STATUS_0_7);
+								   ADM1026_REG_GPIO_STATUS_0_7);
 		data->gpio = gpio;
 
 		data->last_reading = jiffies;
 	}	/* last_reading */
 
 	if (!data->valid ||
-	    time_after(jiffies, data->last_config + ADM1026_CONFIG_INTERVAL)) {
+		time_after(jiffies, data->last_config + ADM1026_CONFIG_INTERVAL))
+	{
 		/* Things that don't change often */
 		dev_dbg(&client->dev, "Reading config values\n");
-		for (i = 0; i <= 16; ++i) {
+
+		for (i = 0; i <= 16; ++i)
+		{
 			data->in_min[i] = adm1026_read_value(client,
-				ADM1026_REG_IN_MIN[i]);
+												 ADM1026_REG_IN_MIN[i]);
 			data->in_max[i] = adm1026_read_value(client,
-				ADM1026_REG_IN_MAX[i]);
+												 ADM1026_REG_IN_MAX[i]);
 		}
 
 		value = adm1026_read_value(client, ADM1026_REG_FAN_DIV_0_3)
-			| (adm1026_read_value(client, ADM1026_REG_FAN_DIV_4_7)
-			<< 8);
-		for (i = 0; i <= 7; ++i) {
+				| (adm1026_read_value(client, ADM1026_REG_FAN_DIV_4_7)
+				   << 8);
+
+		for (i = 0; i <= 7; ++i)
+		{
 			data->fan_min[i] = adm1026_read_value(client,
-				ADM1026_REG_FAN_MIN(i));
+												  ADM1026_REG_FAN_MIN(i));
 			data->fan_div[i] = DIV_FROM_REG(value & 0x03);
 			value >>= 2;
 		}
 
-		for (i = 0; i <= 2; ++i) {
+		for (i = 0; i <= 2; ++i)
+		{
 			/*
 			 * NOTE: temp_xxx[] are s8 and we assume 2's
 			 *    complement "conversion" in the assignment
 			 */
 			data->temp_min[i] = adm1026_read_value(client,
-				ADM1026_REG_TEMP_MIN[i]);
+												   ADM1026_REG_TEMP_MIN[i]);
 			data->temp_max[i] = adm1026_read_value(client,
-				ADM1026_REG_TEMP_MAX[i]);
+												   ADM1026_REG_TEMP_MAX[i]);
 			data->temp_tmin[i] = adm1026_read_value(client,
-				ADM1026_REG_TEMP_TMIN[i]);
+													ADM1026_REG_TEMP_TMIN[i]);
 			data->temp_crit[i] = adm1026_read_value(client,
-				ADM1026_REG_TEMP_THERM[i]);
+													ADM1026_REG_TEMP_THERM[i]);
 			data->temp_offset[i] = adm1026_read_value(client,
-				ADM1026_REG_TEMP_OFFSET[i]);
+								   ADM1026_REG_TEMP_OFFSET[i]);
 		}
 
 		/* Read the STATUS/alarm masks */
@@ -437,32 +467,39 @@ static struct adm1026_data *adm1026_update_device(struct device *dev)
 
 		/* Read the GPIO values */
 		gpio |= adm1026_read_value(client,
-			ADM1026_REG_GPIO_MASK_8_15);
+								   ADM1026_REG_GPIO_MASK_8_15);
 		gpio <<= 8;
 		gpio |= adm1026_read_value(client, ADM1026_REG_GPIO_MASK_0_7);
 		data->gpio_mask = gpio;
 
 		/* Read various values from CONFIG1 */
 		data->config1 = adm1026_read_value(client,
-			ADM1026_REG_CONFIG1);
-		if (data->config1 & CFG1_PWM_AFC) {
+										   ADM1026_REG_CONFIG1);
+
+		if (data->config1 & CFG1_PWM_AFC)
+		{
 			data->pwm1.enable = 2;
 			data->pwm1.auto_pwm_min =
 				PWM_MIN_FROM_REG(data->pwm1.pwm);
 		}
+
 		/* Read the GPIO config */
 		data->config2 = adm1026_read_value(client,
-			ADM1026_REG_CONFIG2);
+										   ADM1026_REG_CONFIG2);
 		data->config3 = adm1026_read_value(client,
-			ADM1026_REG_CONFIG3);
+										   ADM1026_REG_CONFIG3);
 		data->gpio_config[16] = (data->config3 >> 6) & 0x03;
 
 		value = 0;
-		for (i = 0; i <= 15; ++i) {
-			if ((i & 0x03) == 0) {
+
+		for (i = 0; i <= 15; ++i)
+		{
+			if ((i & 0x03) == 0)
+			{
 				value = adm1026_read_value(client,
-					    ADM1026_REG_GPIO_CFG_0_3 + i/4);
+										   ADM1026_REG_GPIO_CFG_0_3 + i / 4);
 			}
+
 			data->gpio_config[i] = value & 0x03;
 			value >>= 2;
 		}
@@ -476,7 +513,7 @@ static struct adm1026_data *adm1026_update_device(struct device *dev)
 }
 
 static ssize_t show_in(struct device *dev, struct device_attribute *attr,
-		char *buf)
+					   char *buf)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -484,7 +521,7 @@ static ssize_t show_in(struct device *dev, struct device_attribute *attr,
 	return sprintf(buf, "%d\n", INS_FROM_REG(nr, data->in[nr]));
 }
 static ssize_t show_in_min(struct device *dev, struct device_attribute *attr,
-		char *buf)
+						   char *buf)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -492,7 +529,7 @@ static ssize_t show_in_min(struct device *dev, struct device_attribute *attr,
 	return sprintf(buf, "%d\n", INS_FROM_REG(nr, data->in_min[nr]));
 }
 static ssize_t set_in_min(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+						  const char *buf, size_t count)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -502,8 +539,11 @@ static ssize_t set_in_min(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->in_min[nr] = INS_TO_REG(nr, val);
@@ -512,7 +552,7 @@ static ssize_t set_in_min(struct device *dev, struct device_attribute *attr,
 	return count;
 }
 static ssize_t show_in_max(struct device *dev, struct device_attribute *attr,
-		char *buf)
+						   char *buf)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -520,7 +560,7 @@ static ssize_t show_in_max(struct device *dev, struct device_attribute *attr,
 	return sprintf(buf, "%d\n", INS_FROM_REG(nr, data->in_max[nr]));
 }
 static ssize_t set_in_max(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+						  const char *buf, size_t count)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -530,8 +570,11 @@ static ssize_t set_in_max(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->in_max[nr] = INS_TO_REG(nr, val);
@@ -541,12 +584,12 @@ static ssize_t set_in_max(struct device *dev, struct device_attribute *attr,
 }
 
 #define in_reg(offset)						\
-static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO, show_in,	\
-		NULL, offset);					\
-static SENSOR_DEVICE_ATTR(in##offset##_min, S_IRUGO | S_IWUSR,	\
-		show_in_min, set_in_min, offset);		\
-static SENSOR_DEVICE_ATTR(in##offset##_max, S_IRUGO | S_IWUSR,	\
-		show_in_max, set_in_max, offset);
+	static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO, show_in,	\
+							  NULL, offset);					\
+	static SENSOR_DEVICE_ATTR(in##offset##_min, S_IRUGO | S_IWUSR,	\
+							  show_in_min, set_in_min, offset);		\
+	static SENSOR_DEVICE_ATTR(in##offset##_max, S_IRUGO | S_IWUSR,	\
+							  show_in_max, set_in_max, offset);
 
 
 in_reg(0);
@@ -567,21 +610,21 @@ in_reg(14);
 in_reg(15);
 
 static ssize_t show_in16(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%d\n", INS_FROM_REG(16, data->in[16]) -
-		NEG12_OFFSET);
+				   NEG12_OFFSET);
 }
 static ssize_t show_in16_min(struct device *dev, struct device_attribute *attr,
-			     char *buf)
+							 char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%d\n", INS_FROM_REG(16, data->in_min[16])
-		- NEG12_OFFSET);
+				   - NEG12_OFFSET);
 }
 static ssize_t set_in16_min(struct device *dev, struct device_attribute *attr,
-			    const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	struct adm1026_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -589,8 +632,11 @@ static ssize_t set_in16_min(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->in_min[16] = INS_TO_REG(16, val + NEG12_OFFSET);
@@ -599,14 +645,14 @@ static ssize_t set_in16_min(struct device *dev, struct device_attribute *attr,
 	return count;
 }
 static ssize_t show_in16_max(struct device *dev, struct device_attribute *attr,
-			     char *buf)
+							 char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%d\n", INS_FROM_REG(16, data->in_max[16])
-			- NEG12_OFFSET);
+				   - NEG12_OFFSET);
 }
 static ssize_t set_in16_max(struct device *dev, struct device_attribute *attr,
-			    const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	struct adm1026_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -614,11 +660,14 @@ static ssize_t set_in16_max(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
-	data->in_max[16] = INS_TO_REG(16, val+NEG12_OFFSET);
+	data->in_max[16] = INS_TO_REG(16, val + NEG12_OFFSET);
 	adm1026_write_value(client, ADM1026_REG_IN_MAX[16], data->in_max[16]);
 	mutex_unlock(&data->update_lock);
 	return count;
@@ -626,33 +675,33 @@ static ssize_t set_in16_max(struct device *dev, struct device_attribute *attr,
 
 static SENSOR_DEVICE_ATTR(in16_input, S_IRUGO, show_in16, NULL, 16);
 static SENSOR_DEVICE_ATTR(in16_min, S_IRUGO | S_IWUSR, show_in16_min,
-			  set_in16_min, 16);
+						  set_in16_min, 16);
 static SENSOR_DEVICE_ATTR(in16_max, S_IRUGO | S_IWUSR, show_in16_max,
-			  set_in16_max, 16);
+						  set_in16_max, 16);
 
 
 /* Now add fan read/write functions */
 
 static ssize_t show_fan(struct device *dev, struct device_attribute *attr,
-		char *buf)
+						char *buf)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[nr],
-		data->fan_div[nr]));
+				   data->fan_div[nr]));
 }
 static ssize_t show_fan_min(struct device *dev, struct device_attribute *attr,
-		char *buf)
+							char *buf)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[nr],
-		data->fan_div[nr]));
+				   data->fan_div[nr]));
 }
 static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+						   const char *buf, size_t count)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -662,22 +711,25 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->fan_min[nr] = FAN_TO_REG(val, data->fan_div[nr]);
 	adm1026_write_value(client, ADM1026_REG_FAN_MIN(nr),
-		data->fan_min[nr]);
+						data->fan_min[nr]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 #define fan_offset(offset)						\
-static SENSOR_DEVICE_ATTR(fan##offset##_input, S_IRUGO, show_fan, NULL,	\
-		offset - 1);						\
-static SENSOR_DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR,		\
-		show_fan_min, set_fan_min, offset - 1);
+	static SENSOR_DEVICE_ATTR(fan##offset##_input, S_IRUGO, show_fan, NULL,	\
+							  offset - 1);						\
+	static SENSOR_DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR,		\
+							  show_fan_min, set_fan_min, offset - 1);
 
 fan_offset(1);
 fan_offset(2);
@@ -698,7 +750,9 @@ static void fixup_fan_min(struct device *dev, int fan, int old_div)
 
 	/* 0 and 0xff are special.  Don't adjust them */
 	if (data->fan_min[fan] == 0 || data->fan_min[fan] == 0xff)
+	{
 		return;
+	}
 
 	new_min = data->fan_min[fan] * old_div / new_div;
 	new_min = clamp_val(new_min, 1, 254);
@@ -708,7 +762,7 @@ static void fixup_fan_min(struct device *dev, int fan, int old_div)
 
 /* Now add fan_div read/write functions */
 static ssize_t show_fan_div(struct device *dev, struct device_attribute *attr,
-		char *buf)
+							char *buf)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -716,7 +770,7 @@ static ssize_t show_fan_div(struct device *dev, struct device_attribute *attr,
 	return sprintf(buf, "%d\n", data->fan_div[nr]);
 }
 static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+						   const char *buf, size_t count)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -727,8 +781,11 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	new_div = DIV_TO_REG(val);
 
@@ -736,30 +793,35 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
 	orig_div = data->fan_div[nr];
 	data->fan_div[nr] = DIV_FROM_REG(new_div);
 
-	if (nr < 4) { /* 0 <= nr < 4 */
+	if (nr < 4)   /* 0 <= nr < 4 */
+	{
 		adm1026_write_value(client, ADM1026_REG_FAN_DIV_0_3,
-				    (DIV_TO_REG(data->fan_div[0]) << 0) |
-				    (DIV_TO_REG(data->fan_div[1]) << 2) |
-				    (DIV_TO_REG(data->fan_div[2]) << 4) |
-				    (DIV_TO_REG(data->fan_div[3]) << 6));
-	} else { /* 3 < nr < 8 */
+							(DIV_TO_REG(data->fan_div[0]) << 0) |
+							(DIV_TO_REG(data->fan_div[1]) << 2) |
+							(DIV_TO_REG(data->fan_div[2]) << 4) |
+							(DIV_TO_REG(data->fan_div[3]) << 6));
+	}
+	else     /* 3 < nr < 8 */
+	{
 		adm1026_write_value(client, ADM1026_REG_FAN_DIV_4_7,
-				    (DIV_TO_REG(data->fan_div[4]) << 0) |
-				    (DIV_TO_REG(data->fan_div[5]) << 2) |
-				    (DIV_TO_REG(data->fan_div[6]) << 4) |
-				    (DIV_TO_REG(data->fan_div[7]) << 6));
+							(DIV_TO_REG(data->fan_div[4]) << 0) |
+							(DIV_TO_REG(data->fan_div[5]) << 2) |
+							(DIV_TO_REG(data->fan_div[6]) << 4) |
+							(DIV_TO_REG(data->fan_div[7]) << 6));
 	}
 
 	if (data->fan_div[nr] != orig_div)
+	{
 		fixup_fan_min(dev, nr, orig_div);
+	}
 
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 #define fan_offset_div(offset)						\
-static SENSOR_DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR,		\
-		show_fan_div, set_fan_div, offset - 1);
+	static SENSOR_DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR,		\
+							  show_fan_div, set_fan_div, offset - 1);
 
 fan_offset_div(1);
 fan_offset_div(2);
@@ -772,7 +834,7 @@ fan_offset_div(8);
 
 /* Temps */
 static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
-		char *buf)
+						 char *buf)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -780,7 +842,7 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
 	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr]));
 }
 static ssize_t show_temp_min(struct device *dev, struct device_attribute *attr,
-		char *buf)
+							 char *buf)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -788,7 +850,7 @@ static ssize_t show_temp_min(struct device *dev, struct device_attribute *attr,
 	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_min[nr]));
 }
 static ssize_t set_temp_min(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -798,18 +860,21 @@ static ssize_t set_temp_min(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_min[nr] = TEMP_TO_REG(val);
 	adm1026_write_value(client, ADM1026_REG_TEMP_MIN[nr],
-		data->temp_min[nr]);
+						data->temp_min[nr]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 static ssize_t show_temp_max(struct device *dev, struct device_attribute *attr,
-		char *buf)
+							 char *buf)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -817,7 +882,7 @@ static ssize_t show_temp_max(struct device *dev, struct device_attribute *attr,
 	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_max[nr]));
 }
 static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -827,24 +892,27 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_max[nr] = TEMP_TO_REG(val);
 	adm1026_write_value(client, ADM1026_REG_TEMP_MAX[nr],
-		data->temp_max[nr]);
+						data->temp_max[nr]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 #define temp_reg(offset)						\
-static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO, show_temp,	\
-		NULL, offset - 1);					\
-static SENSOR_DEVICE_ATTR(temp##offset##_min, S_IRUGO | S_IWUSR,	\
-		show_temp_min, set_temp_min, offset - 1);		\
-static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IRUGO | S_IWUSR,	\
-		show_temp_max, set_temp_max, offset - 1);
+	static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO, show_temp,	\
+							  NULL, offset - 1);					\
+	static SENSOR_DEVICE_ATTR(temp##offset##_min, S_IRUGO | S_IWUSR,	\
+							  show_temp_min, set_temp_min, offset - 1);		\
+	static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IRUGO | S_IWUSR,	\
+							  show_temp_max, set_temp_max, offset - 1);
 
 
 temp_reg(1);
@@ -852,7 +920,7 @@ temp_reg(2);
 temp_reg(3);
 
 static ssize_t show_temp_offset(struct device *dev,
-		struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -860,8 +928,8 @@ static ssize_t show_temp_offset(struct device *dev,
 	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_offset[nr]));
 }
 static ssize_t set_temp_offset(struct device *dev,
-		struct device_attribute *attr, const char *buf,
-		size_t count)
+							   struct device_attribute *attr, const char *buf,
+							   size_t count)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -871,20 +939,23 @@ static ssize_t set_temp_offset(struct device *dev,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_offset[nr] = TEMP_TO_REG(val);
 	adm1026_write_value(client, ADM1026_REG_TEMP_OFFSET[nr],
-		data->temp_offset[nr]);
+						data->temp_offset[nr]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 #define temp_offset_reg(offset)						\
-static SENSOR_DEVICE_ATTR(temp##offset##_offset, S_IRUGO | S_IWUSR,	\
-		show_temp_offset, set_temp_offset, offset - 1);
+	static SENSOR_DEVICE_ATTR(temp##offset##_offset, S_IRUGO | S_IWUSR,	\
+							  show_temp_offset, set_temp_offset, offset - 1);
 
 temp_offset_reg(1);
 temp_offset_reg(2);
@@ -897,7 +968,7 @@ static ssize_t show_temp_auto_point1_temp_hyst(struct device *dev,
 	int nr = sensor_attr->index;
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%d\n", TEMP_FROM_REG(
-		ADM1026_FAN_ACTIVATION_TEMP_HYST + data->temp_tmin[nr]));
+					   ADM1026_FAN_ACTIVATION_TEMP_HYST + data->temp_tmin[nr]));
 }
 static ssize_t show_temp_auto_point2_temp(struct device *dev,
 		struct device_attribute *attr, char *buf)
@@ -906,7 +977,7 @@ static ssize_t show_temp_auto_point2_temp(struct device *dev,
 	int nr = sensor_attr->index;
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_tmin[nr] +
-		ADM1026_FAN_CONTROL_TEMP_RANGE));
+				   ADM1026_FAN_CONTROL_TEMP_RANGE));
 }
 static ssize_t show_temp_auto_point1_temp(struct device *dev,
 		struct device_attribute *attr, char *buf)
@@ -927,38 +998,41 @@ static ssize_t set_temp_auto_point1_temp(struct device *dev,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_tmin[nr] = TEMP_TO_REG(val);
 	adm1026_write_value(client, ADM1026_REG_TEMP_TMIN[nr],
-		data->temp_tmin[nr]);
+						data->temp_tmin[nr]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 #define temp_auto_point(offset)						\
-static SENSOR_DEVICE_ATTR(temp##offset##_auto_point1_temp,		\
-		S_IRUGO | S_IWUSR, show_temp_auto_point1_temp,		\
-		set_temp_auto_point1_temp, offset - 1);			\
-static SENSOR_DEVICE_ATTR(temp##offset##_auto_point1_temp_hyst, S_IRUGO,\
-		show_temp_auto_point1_temp_hyst, NULL, offset - 1);	\
-static SENSOR_DEVICE_ATTR(temp##offset##_auto_point2_temp, S_IRUGO,	\
-		show_temp_auto_point2_temp, NULL, offset - 1);
+	static SENSOR_DEVICE_ATTR(temp##offset##_auto_point1_temp,		\
+							  S_IRUGO | S_IWUSR, show_temp_auto_point1_temp,		\
+							  set_temp_auto_point1_temp, offset - 1);			\
+	static SENSOR_DEVICE_ATTR(temp##offset##_auto_point1_temp_hyst, S_IRUGO,\
+							  show_temp_auto_point1_temp_hyst, NULL, offset - 1);	\
+	static SENSOR_DEVICE_ATTR(temp##offset##_auto_point2_temp, S_IRUGO,	\
+							  show_temp_auto_point2_temp, NULL, offset - 1);
 
 temp_auto_point(1);
 temp_auto_point(2);
 temp_auto_point(3);
 
 static ssize_t show_temp_crit_enable(struct device *dev,
-		struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%d\n", (data->config1 & CFG1_THERM_HOT) >> 4);
 }
 static ssize_t set_temp_crit_enable(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+									struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct adm1026_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -966,11 +1040,16 @@ static ssize_t set_temp_crit_enable(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (val > 1)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->config1 = (data->config1 & ~CFG1_THERM_HOT) | (val << 4);
@@ -981,15 +1060,15 @@ static ssize_t set_temp_crit_enable(struct device *dev,
 }
 
 #define temp_crit_enable(offset)				\
-static DEVICE_ATTR(temp##offset##_crit_enable, S_IRUGO | S_IWUSR, \
-	show_temp_crit_enable, set_temp_crit_enable);
+	static DEVICE_ATTR(temp##offset##_crit_enable, S_IRUGO | S_IWUSR, \
+					   show_temp_crit_enable, set_temp_crit_enable);
 
 temp_crit_enable(1);
 temp_crit_enable(2);
 temp_crit_enable(3);
 
 static ssize_t show_temp_crit(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -997,7 +1076,7 @@ static ssize_t show_temp_crit(struct device *dev,
 	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_crit[nr]));
 }
 static ssize_t set_temp_crit(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t count)
+							 const char *buf, size_t count)
 {
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
@@ -1007,34 +1086,37 @@ static ssize_t set_temp_crit(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_crit[nr] = TEMP_TO_REG(val);
 	adm1026_write_value(client, ADM1026_REG_TEMP_THERM[nr],
-		data->temp_crit[nr]);
+						data->temp_crit[nr]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 #define temp_crit_reg(offset)						\
-static SENSOR_DEVICE_ATTR(temp##offset##_crit, S_IRUGO | S_IWUSR,	\
-		show_temp_crit, set_temp_crit, offset - 1);
+	static SENSOR_DEVICE_ATTR(temp##offset##_crit, S_IRUGO | S_IWUSR,	\
+							  show_temp_crit, set_temp_crit, offset - 1);
 
 temp_crit_reg(1);
 temp_crit_reg(2);
 temp_crit_reg(3);
 
 static ssize_t show_analog_out_reg(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%d\n", DAC_FROM_REG(data->analog_out));
 }
 static ssize_t set_analog_out_reg(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t count)
+								  struct device_attribute *attr,
+								  const char *buf, size_t count)
 {
 	struct adm1026_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -1042,8 +1124,11 @@ static ssize_t set_analog_out_reg(struct device *dev,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->analog_out = DAC_TO_REG(val);
@@ -1053,10 +1138,10 @@ static ssize_t set_analog_out_reg(struct device *dev,
 }
 
 static DEVICE_ATTR(analog_out, S_IRUGO | S_IWUSR, show_analog_out_reg,
-	set_analog_out_reg);
+				   set_analog_out_reg);
 
 static ssize_t show_vid_reg(struct device *dev, struct device_attribute *attr,
-			    char *buf)
+							char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	int vid = (data->gpio >> 11) & 0x1f;
@@ -1068,25 +1153,30 @@ static ssize_t show_vid_reg(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
 
 static ssize_t show_vrm_reg(struct device *dev, struct device_attribute *attr,
-			    char *buf)
+							char *buf)
 {
 	struct adm1026_data *data = dev_get_drvdata(dev);
 	return sprintf(buf, "%d\n", data->vrm);
 }
 
 static ssize_t store_vrm_reg(struct device *dev, struct device_attribute *attr,
-			     const char *buf, size_t count)
+							 const char *buf, size_t count)
 {
 	struct adm1026_data *data = dev_get_drvdata(dev);
 	unsigned long val;
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (val > 255)
+	{
 		return -EINVAL;
+	}
 
 	data->vrm = val;
 	return count;
@@ -1095,7 +1185,7 @@ static ssize_t store_vrm_reg(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm_reg, store_vrm_reg);
 
 static ssize_t show_alarms_reg(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%ld\n", data->alarms);
@@ -1104,7 +1194,7 @@ static ssize_t show_alarms_reg(struct device *dev,
 static DEVICE_ATTR(alarms, S_IRUGO, show_alarms_reg, NULL);
 
 static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+						  char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	int bitnr = to_sensor_dev_attr(attr)->index;
@@ -1141,13 +1231,13 @@ static SENSOR_DEVICE_ATTR(in10_alarm, S_IRUGO, show_alarm, NULL, 25);
 static SENSOR_DEVICE_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 26);
 
 static ssize_t show_alarm_mask(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%ld\n", data->alarm_mask);
 }
 static ssize_t set_alarm_mask(struct device *dev, struct device_attribute *attr,
-			      const char *buf, size_t count)
+							  const char *buf, size_t count)
 {
 	struct adm1026_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -1156,40 +1246,43 @@ static ssize_t set_alarm_mask(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->alarm_mask = val & 0x7fffffff;
 	mask = data->alarm_mask
-		| (data->gpio_mask & 0x10000 ? 0x80000000 : 0);
+		   | (data->gpio_mask & 0x10000 ? 0x80000000 : 0);
 	adm1026_write_value(client, ADM1026_REG_MASK1,
-		mask & 0xff);
+						mask & 0xff);
 	mask >>= 8;
 	adm1026_write_value(client, ADM1026_REG_MASK2,
-		mask & 0xff);
+						mask & 0xff);
 	mask >>= 8;
 	adm1026_write_value(client, ADM1026_REG_MASK3,
-		mask & 0xff);
+						mask & 0xff);
 	mask >>= 8;
 	adm1026_write_value(client, ADM1026_REG_MASK4,
-		mask & 0xff);
+						mask & 0xff);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static DEVICE_ATTR(alarm_mask, S_IRUGO | S_IWUSR, show_alarm_mask,
-	set_alarm_mask);
+				   set_alarm_mask);
 
 
 static ssize_t show_gpio(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%ld\n", data->gpio);
 }
 static ssize_t set_gpio(struct device *dev, struct device_attribute *attr,
-			const char *buf, size_t count)
+						const char *buf, size_t count)
 {
 	struct adm1026_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -1198,8 +1291,11 @@ static ssize_t set_gpio(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->gpio = val & 0x1ffff;
@@ -1216,13 +1312,13 @@ static ssize_t set_gpio(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR(gpio, S_IRUGO | S_IWUSR, show_gpio, set_gpio);
 
 static ssize_t show_gpio_mask(struct device *dev, struct device_attribute *attr,
-			      char *buf)
+							  char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%ld\n", data->gpio_mask);
 }
 static ssize_t set_gpio_mask(struct device *dev, struct device_attribute *attr,
-			     const char *buf, size_t count)
+							 const char *buf, size_t count)
 {
 	struct adm1026_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -1231,8 +1327,11 @@ static ssize_t set_gpio_mask(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->gpio_mask = val & 0x1ffff;
@@ -1249,44 +1348,49 @@ static ssize_t set_gpio_mask(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR(gpio_mask, S_IRUGO | S_IWUSR, show_gpio_mask, set_gpio_mask);
 
 static ssize_t show_pwm_reg(struct device *dev, struct device_attribute *attr,
-			    char *buf)
+							char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%d\n", PWM_FROM_REG(data->pwm1.pwm));
 }
 
 static ssize_t set_pwm_reg(struct device *dev, struct device_attribute *attr,
-			   const char *buf, size_t count)
+						   const char *buf, size_t count)
 {
 	struct adm1026_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
 
-	if (data->pwm1.enable == 1) {
+	if (data->pwm1.enable == 1)
+	{
 		long val;
 		int err;
 
 		err = kstrtol(buf, 10, &val);
+
 		if (err)
+		{
 			return err;
+		}
 
 		mutex_lock(&data->update_lock);
 		data->pwm1.pwm = PWM_TO_REG(val);
 		adm1026_write_value(client, ADM1026_REG_PWM, data->pwm1.pwm);
 		mutex_unlock(&data->update_lock);
 	}
+
 	return count;
 }
 
 static ssize_t show_auto_pwm_min(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%d\n", data->pwm1.auto_pwm_min);
 }
 
 static ssize_t set_auto_pwm_min(struct device *dev,
-				struct device_attribute *attr, const char *buf,
-				size_t count)
+								struct device_attribute *attr, const char *buf,
+								size_t count)
 {
 	struct adm1026_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -1294,35 +1398,41 @@ static ssize_t set_auto_pwm_min(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->pwm1.auto_pwm_min = clamp_val(val, 0, 255);
-	if (data->pwm1.enable == 2) { /* apply immediately */
+
+	if (data->pwm1.enable == 2)   /* apply immediately */
+	{
 		data->pwm1.pwm = PWM_TO_REG((data->pwm1.pwm & 0x0f) |
-			PWM_MIN_TO_REG(data->pwm1.auto_pwm_min));
+									PWM_MIN_TO_REG(data->pwm1.auto_pwm_min));
 		adm1026_write_value(client, ADM1026_REG_PWM, data->pwm1.pwm);
 	}
+
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static ssize_t show_auto_pwm_max(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%d\n", ADM1026_PWM_MAX);
 }
 
 static ssize_t show_pwm_enable(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct adm1026_data *data = adm1026_update_device(dev);
 	return sprintf(buf, "%d\n", data->pwm1.enable);
 }
 
 static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
-			      const char *buf, size_t count)
+							  const char *buf, size_t count)
 {
 	struct adm1026_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -1331,27 +1441,37 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (val >= 3)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->update_lock);
 	old_enable = data->pwm1.enable;
 	data->pwm1.enable = val;
 	data->config1 = (data->config1 & ~CFG1_PWM_AFC)
-			| ((val == 2) ? CFG1_PWM_AFC : 0);
+					| ((val == 2) ? CFG1_PWM_AFC : 0);
 	adm1026_write_value(client, ADM1026_REG_CONFIG1, data->config1);
-	if (val == 2) { /* apply pwm1_auto_pwm_min to pwm1 */
+
+	if (val == 2)   /* apply pwm1_auto_pwm_min to pwm1 */
+	{
 		data->pwm1.pwm = PWM_TO_REG((data->pwm1.pwm & 0x0f) |
-			PWM_MIN_TO_REG(data->pwm1.auto_pwm_min));
+									PWM_MIN_TO_REG(data->pwm1.auto_pwm_min));
 		adm1026_write_value(client, ADM1026_REG_PWM, data->pwm1.pwm);
-	} else if (!((old_enable == 1) && (val == 1))) {
+	}
+	else if (!((old_enable == 1) && (val == 1)))
+	{
 		/* set pwm to safe value */
 		data->pwm1.pwm = 255;
 		adm1026_write_value(client, ADM1026_REG_PWM, data->pwm1.pwm);
 	}
+
 	mutex_unlock(&data->update_lock);
 
 	return count;
@@ -1362,23 +1482,24 @@ static DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, show_pwm_reg, set_pwm_reg);
 static DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR, show_pwm_reg, set_pwm_reg);
 static DEVICE_ATTR(pwm3, S_IRUGO | S_IWUSR, show_pwm_reg, set_pwm_reg);
 static DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR, show_pwm_enable,
-	set_pwm_enable);
+				   set_pwm_enable);
 static DEVICE_ATTR(pwm2_enable, S_IRUGO | S_IWUSR, show_pwm_enable,
-	set_pwm_enable);
+				   set_pwm_enable);
 static DEVICE_ATTR(pwm3_enable, S_IRUGO | S_IWUSR, show_pwm_enable,
-	set_pwm_enable);
+				   set_pwm_enable);
 static DEVICE_ATTR(temp1_auto_point1_pwm, S_IRUGO | S_IWUSR,
-	show_auto_pwm_min, set_auto_pwm_min);
+				   show_auto_pwm_min, set_auto_pwm_min);
 static DEVICE_ATTR(temp2_auto_point1_pwm, S_IRUGO | S_IWUSR,
-	show_auto_pwm_min, set_auto_pwm_min);
+				   show_auto_pwm_min, set_auto_pwm_min);
 static DEVICE_ATTR(temp3_auto_point1_pwm, S_IRUGO | S_IWUSR,
-	show_auto_pwm_min, set_auto_pwm_min);
+				   show_auto_pwm_min, set_auto_pwm_min);
 
 static DEVICE_ATTR(temp1_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
 static DEVICE_ATTR(temp2_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
 static DEVICE_ATTR(temp3_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
 
-static struct attribute *adm1026_attributes[] = {
+static struct attribute *adm1026_attributes[] =
+{
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_in0_max.dev_attr.attr,
 	&sensor_dev_attr_in0_min.dev_attr.attr,
@@ -1511,11 +1632,13 @@ static struct attribute *adm1026_attributes[] = {
 	NULL
 };
 
-static const struct attribute_group adm1026_group = {
+static const struct attribute_group adm1026_group =
+{
 	.attrs = adm1026_attributes,
 };
 
-static struct attribute *adm1026_attributes_temp3[] = {
+static struct attribute *adm1026_attributes_temp3[] =
+{
 	&sensor_dev_attr_temp3_input.dev_attr.attr,
 	&sensor_dev_attr_temp3_max.dev_attr.attr,
 	&sensor_dev_attr_temp3_min.dev_attr.attr,
@@ -1531,11 +1654,13 @@ static struct attribute *adm1026_attributes_temp3[] = {
 	NULL
 };
 
-static const struct attribute_group adm1026_group_temp3 = {
+static const struct attribute_group adm1026_group_temp3 =
+{
 	.attrs = adm1026_attributes_temp3,
 };
 
-static struct attribute *adm1026_attributes_in8_9[] = {
+static struct attribute *adm1026_attributes_in8_9[] =
+{
 	&sensor_dev_attr_in8_input.dev_attr.attr,
 	&sensor_dev_attr_in8_max.dev_attr.attr,
 	&sensor_dev_attr_in8_min.dev_attr.attr,
@@ -1547,19 +1672,21 @@ static struct attribute *adm1026_attributes_in8_9[] = {
 	NULL
 };
 
-static const struct attribute_group adm1026_group_in8_9 = {
+static const struct attribute_group adm1026_group_in8_9 =
+{
 	.attrs = adm1026_attributes_in8_9,
 };
 
 /* Return 0 if detection is successful, -ENODEV otherwise */
 static int adm1026_detect(struct i2c_client *client,
-			  struct i2c_board_info *info)
+						  struct i2c_board_info *info)
 {
 	struct i2c_adapter *adapter = client->adapter;
 	int address = client->addr;
 	int company, verstep;
 
-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		/* We need to be able to do byte I/O */
 		return -ENODEV;
 	}
@@ -1570,26 +1697,34 @@ static int adm1026_detect(struct i2c_client *client,
 	verstep = adm1026_read_value(client, ADM1026_REG_VERSTEP);
 
 	dev_dbg(&adapter->dev,
-		"Detecting device at %d,0x%02x with COMPANY: 0x%02x and VERSTEP: 0x%02x\n",
-		i2c_adapter_id(client->adapter), client->addr,
-		company, verstep);
+			"Detecting device at %d,0x%02x with COMPANY: 0x%02x and VERSTEP: 0x%02x\n",
+			i2c_adapter_id(client->adapter), client->addr,
+			company, verstep);
 
 	/* Determine the chip type. */
 	dev_dbg(&adapter->dev, "Autodetecting device at %d,0x%02x...\n",
-		i2c_adapter_id(adapter), address);
+			i2c_adapter_id(adapter), address);
+
 	if (company == ADM1026_COMPANY_ANALOG_DEV
-	    && verstep == ADM1026_VERSTEP_ADM1026) {
+		&& verstep == ADM1026_VERSTEP_ADM1026)
+	{
 		/* Analog Devices ADM1026 */
-	} else if (company == ADM1026_COMPANY_ANALOG_DEV
-		&& (verstep & 0xf0) == ADM1026_VERSTEP_GENERIC) {
+	}
+	else if (company == ADM1026_COMPANY_ANALOG_DEV
+			 && (verstep & 0xf0) == ADM1026_VERSTEP_GENERIC)
+	{
 		dev_err(&adapter->dev,
-			"Unrecognized stepping 0x%02x. Defaulting to ADM1026.\n",
-			verstep);
-	} else if ((verstep & 0xf0) == ADM1026_VERSTEP_GENERIC) {
+				"Unrecognized stepping 0x%02x. Defaulting to ADM1026.\n",
+				verstep);
+	}
+	else if ((verstep & 0xf0) == ADM1026_VERSTEP_GENERIC)
+	{
 		dev_err(&adapter->dev,
-			"Found version/stepping 0x%02x. Assuming generic ADM1026.\n",
-			verstep);
-	} else {
+				"Found version/stepping 0x%02x. Assuming generic ADM1026.\n",
+				verstep);
+	}
+	else
+	{
 		dev_dbg(&adapter->dev, "Autodetection failed\n");
 		/* Not an ADM1026... */
 		return -ENODEV;
@@ -1606,27 +1741,38 @@ static void adm1026_print_gpio(struct i2c_client *client)
 	int i;
 
 	dev_dbg(&client->dev, "GPIO config is:\n");
-	for (i = 0; i <= 7; ++i) {
-		if (data->config2 & (1 << i)) {
+
+	for (i = 0; i <= 7; ++i)
+	{
+		if (data->config2 & (1 << i))
+		{
 			dev_dbg(&client->dev, "\t%sGP%s%d\n",
-				data->gpio_config[i] & 0x02 ? "" : "!",
-				data->gpio_config[i] & 0x01 ? "OUT" : "IN",
-				i);
-		} else {
+					data->gpio_config[i] & 0x02 ? "" : "!",
+					data->gpio_config[i] & 0x01 ? "OUT" : "IN",
+					i);
+		}
+		else
+		{
 			dev_dbg(&client->dev, "\tFAN%d\n", i);
 		}
 	}
-	for (i = 8; i <= 15; ++i) {
+
+	for (i = 8; i <= 15; ++i)
+	{
 		dev_dbg(&client->dev, "\t%sGP%s%d\n",
-			data->gpio_config[i] & 0x02 ? "" : "!",
-			data->gpio_config[i] & 0x01 ? "OUT" : "IN",
-			i);
+				data->gpio_config[i] & 0x02 ? "" : "!",
+				data->gpio_config[i] & 0x01 ? "OUT" : "IN",
+				i);
 	}
-	if (data->config3 & CFG3_GPIO16_ENABLE) {
+
+	if (data->config3 & CFG3_GPIO16_ENABLE)
+	{
 		dev_dbg(&client->dev, "\t%sGP%s16\n",
-			data->gpio_config[16] & 0x02 ? "" : "!",
-			data->gpio_config[16] & 0x01 ? "OUT" : "IN");
-	} else {
+				data->gpio_config[16] & 0x02 ? "" : "!",
+				data->gpio_config[16] & 0x01 ? "OUT" : "IN");
+	}
+	else
+	{
 		/* GPIO16 is THERM */
 		dev_dbg(&client->dev, "\tTHERM\n");
 	}
@@ -1646,53 +1792,78 @@ static void adm1026_fixup_gpio(struct i2c_client *client)
 	 */
 
 	/* Make outputs */
-	for (i = 0; i <= 16; ++i) {
+	for (i = 0; i <= 16; ++i)
+	{
 		if (gpio_output[i] >= 0 && gpio_output[i] <= 16)
+		{
 			data->gpio_config[gpio_output[i]] |= 0x01;
+		}
+
 		/* if GPIO0-7 is output, it isn't a FAN tach */
 		if (gpio_output[i] >= 0 && gpio_output[i] <= 7)
+		{
 			data->config2 |= 1 << gpio_output[i];
+		}
 	}
 
 	/* Input overrides output */
-	for (i = 0; i <= 16; ++i) {
+	for (i = 0; i <= 16; ++i)
+	{
 		if (gpio_input[i] >= 0 && gpio_input[i] <= 16)
+		{
 			data->gpio_config[gpio_input[i]] &= ~0x01;
+		}
+
 		/* if GPIO0-7 is input, it isn't a FAN tach */
 		if (gpio_input[i] >= 0 && gpio_input[i] <= 7)
+		{
 			data->config2 |= 1 << gpio_input[i];
+		}
 	}
 
 	/* Inverted */
-	for (i = 0; i <= 16; ++i) {
+	for (i = 0; i <= 16; ++i)
+	{
 		if (gpio_inverted[i] >= 0 && gpio_inverted[i] <= 16)
+		{
 			data->gpio_config[gpio_inverted[i]] &= ~0x02;
+		}
 	}
 
 	/* Normal overrides inverted */
-	for (i = 0; i <= 16; ++i) {
+	for (i = 0; i <= 16; ++i)
+	{
 		if (gpio_normal[i] >= 0 && gpio_normal[i] <= 16)
+		{
 			data->gpio_config[gpio_normal[i]] |= 0x02;
+		}
 	}
 
 	/* Fan overrides input and output */
-	for (i = 0; i <= 7; ++i) {
+	for (i = 0; i <= 7; ++i)
+	{
 		if (gpio_fan[i] >= 0 && gpio_fan[i] <= 7)
+		{
 			data->config2 &= ~(1 << gpio_fan[i]);
+		}
 	}
 
 	/* Write new configs to registers */
 	adm1026_write_value(client, ADM1026_REG_CONFIG2, data->config2);
 	data->config3 = (data->config3 & 0x3f)
-			| ((data->gpio_config[16] & 0x03) << 6);
+					| ((data->gpio_config[16] & 0x03) << 6);
 	adm1026_write_value(client, ADM1026_REG_CONFIG3, data->config3);
-	for (i = 15, value = 0; i >= 0; --i) {
+
+	for (i = 15, value = 0; i >= 0; --i)
+	{
 		value <<= 2;
 		value |= data->gpio_config[i] & 0x03;
-		if ((i & 0x03) == 0) {
+
+		if ((i & 0x03) == 0)
+		{
 			adm1026_write_value(client,
-					ADM1026_REG_GPIO_CFG_0_3 + i/4,
-					value);
+								ADM1026_REG_GPIO_CFG_0_3 + i / 4,
+								value);
 			value = 0;
 		}
 	}
@@ -1714,48 +1885,72 @@ static void adm1026_init_client(struct i2c_client *client)
 
 	/* Inform user of chip config */
 	dev_dbg(&client->dev, "ADM1026_REG_CONFIG1 is: 0x%02x\n",
-		data->config1);
-	if ((data->config1 & CFG1_MONITOR) == 0) {
+			data->config1);
+
+	if ((data->config1 & CFG1_MONITOR) == 0)
+	{
 		dev_dbg(&client->dev,
-			"Monitoring not currently enabled.\n");
-	}
-	if (data->config1 & CFG1_INT_ENABLE) {
-		dev_dbg(&client->dev,
-			"SMBALERT interrupts are enabled.\n");
-	}
-	if (data->config1 & CFG1_AIN8_9) {
-		dev_dbg(&client->dev,
-			"in8 and in9 enabled. temp3 disabled.\n");
-	} else {
-		dev_dbg(&client->dev,
-			"temp3 enabled.  in8 and in9 disabled.\n");
-	}
-	if (data->config1 & CFG1_THERM_HOT) {
-		dev_dbg(&client->dev,
-			"Automatic THERM, PWM, and temp limits enabled.\n");
+				"Monitoring not currently enabled.\n");
 	}
 
-	if (data->config3 & CFG3_GPIO16_ENABLE) {
+	if (data->config1 & CFG1_INT_ENABLE)
+	{
 		dev_dbg(&client->dev,
-			"GPIO16 enabled.  THERM pin disabled.\n");
-	} else {
-		dev_dbg(&client->dev,
-			"THERM pin enabled.  GPIO16 disabled.\n");
+				"SMBALERT interrupts are enabled.\n");
 	}
-	if (data->config3 & CFG3_VREF_250)
-		dev_dbg(&client->dev, "Vref is 2.50 Volts.\n");
+
+	if (data->config1 & CFG1_AIN8_9)
+	{
+		dev_dbg(&client->dev,
+				"in8 and in9 enabled. temp3 disabled.\n");
+	}
 	else
+	{
+		dev_dbg(&client->dev,
+				"temp3 enabled.  in8 and in9 disabled.\n");
+	}
+
+	if (data->config1 & CFG1_THERM_HOT)
+	{
+		dev_dbg(&client->dev,
+				"Automatic THERM, PWM, and temp limits enabled.\n");
+	}
+
+	if (data->config3 & CFG3_GPIO16_ENABLE)
+	{
+		dev_dbg(&client->dev,
+				"GPIO16 enabled.  THERM pin disabled.\n");
+	}
+	else
+	{
+		dev_dbg(&client->dev,
+				"THERM pin enabled.  GPIO16 disabled.\n");
+	}
+
+	if (data->config3 & CFG3_VREF_250)
+	{
+		dev_dbg(&client->dev, "Vref is 2.50 Volts.\n");
+	}
+	else
+	{
 		dev_dbg(&client->dev, "Vref is 1.82 Volts.\n");
+	}
+
 	/* Read and pick apart the existing GPIO configuration */
 	value = 0;
-	for (i = 0; i <= 15; ++i) {
-		if ((i & 0x03) == 0) {
+
+	for (i = 0; i <= 15; ++i)
+	{
+		if ((i & 0x03) == 0)
+		{
 			value = adm1026_read_value(client,
-					ADM1026_REG_GPIO_CFG_0_3 + i / 4);
+									   ADM1026_REG_GPIO_CFG_0_3 + i / 4);
 		}
+
 		data->gpio_config[i] = value & 0x03;
 		value >>= 2;
 	}
+
 	data->gpio_config[16] = (data->config3 >> 6) & 0x03;
 
 	/* ... and then print it */
@@ -1767,7 +1962,8 @@ static void adm1026_init_client(struct i2c_client *client)
 	 */
 	if (gpio_input[0] != -1 || gpio_output[0] != -1
 		|| gpio_inverted[0] != -1 || gpio_normal[0] != -1
-		|| gpio_fan[0] != -1) {
+		|| gpio_fan[0] != -1)
+	{
 		adm1026_fixup_gpio(client);
 	}
 
@@ -1794,23 +1990,28 @@ static void adm1026_init_client(struct i2c_client *client)
 
 	/* initialize fan_div[] to hardware defaults */
 	value = adm1026_read_value(client, ADM1026_REG_FAN_DIV_0_3) |
-		(adm1026_read_value(client, ADM1026_REG_FAN_DIV_4_7) << 8);
-	for (i = 0; i <= 7; ++i) {
+			(adm1026_read_value(client, ADM1026_REG_FAN_DIV_4_7) << 8);
+
+	for (i = 0; i <= 7; ++i)
+	{
 		data->fan_div[i] = DIV_FROM_REG(value & 0x03);
 		value >>= 2;
 	}
 }
 
 static int adm1026_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct device *hwmon_dev;
 	struct adm1026_data *data;
 
 	data = devm_kzalloc(dev, sizeof(struct adm1026_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, data);
 	data->client = client;
@@ -1824,23 +2025,30 @@ static int adm1026_probe(struct i2c_client *client,
 
 	/* sysfs hooks */
 	data->groups[0] = &adm1026_group;
+
 	if (data->config1 & CFG1_AIN8_9)
+	{
 		data->groups[1] = &adm1026_group_in8_9;
+	}
 	else
+	{
 		data->groups[1] = &adm1026_group_temp3;
+	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   data, data->groups);
+				data, data->groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct i2c_device_id adm1026_id[] = {
+static const struct i2c_device_id adm1026_id[] =
+{
 	{ "adm1026", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, adm1026_id);
 
-static struct i2c_driver adm1026_driver = {
+static struct i2c_driver adm1026_driver =
+{
 	.class		= I2C_CLASS_HWMON,
 	.driver = {
 		.name	= "adm1026",
@@ -1855,5 +2063,5 @@ module_i2c_driver(adm1026_driver);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Philip Pokorny <ppokorny@penguincomputing.com>, "
-	      "Justin Thiessen <jthiessen@penguincomputing.com>");
+			  "Justin Thiessen <jthiessen@penguincomputing.com>");
 MODULE_DESCRIPTION("ADM1026 driver");

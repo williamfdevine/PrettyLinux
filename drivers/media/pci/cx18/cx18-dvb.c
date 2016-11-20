@@ -51,7 +51,8 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
  * CX18_CARD_HVR_1600_SAMSUNG
  */
 
-static struct mxl5005s_config hauppauge_hvr1600_tuner = {
+static struct mxl5005s_config hauppauge_hvr1600_tuner =
+{
 	.i2c_address     = 0xC6 >> 1,
 	.if_freq         = IF_FREQ_5380000HZ,
 	.xtal_freq       = CRYSTAL_FREQ_16000000HZ,
@@ -69,7 +70,8 @@ static struct mxl5005s_config hauppauge_hvr1600_tuner = {
 	.AgcMasterByte   = 0x00,
 };
 
-static struct s5h1409_config hauppauge_hvr1600_config = {
+static struct s5h1409_config hauppauge_hvr1600_config =
+{
 	.demod_address = 0x32 >> 1,
 	.output_mode   = S5H1409_SERIAL_OUTPUT,
 	.gpio          = S5H1409_GPIO_ON,
@@ -83,7 +85,8 @@ static struct s5h1409_config hauppauge_hvr1600_config = {
 /*
  * CX18_CARD_HVR_1600_S5H1411
  */
-static struct s5h1411_config hcw_s5h1411_config = {
+static struct s5h1411_config hcw_s5h1411_config =
+{
 	.output_mode   = S5H1411_SERIAL_OUTPUT,
 	.gpio          = S5H1411_GPIO_OFF,
 	.vsb_if        = S5H1411_IF_44000,
@@ -93,14 +96,20 @@ static struct s5h1411_config hcw_s5h1411_config = {
 	.mpeg_timing   = S5H1411_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK,
 };
 
-static struct tda18271_std_map hauppauge_tda18271_std_map = {
-	.atsc_6   = { .if_freq = 5380, .agc_mode = 3, .std = 3,
-		      .if_lvl = 6, .rfagc_top = 0x37 },
-	.qam_6    = { .if_freq = 4000, .agc_mode = 3, .std = 0,
-		      .if_lvl = 6, .rfagc_top = 0x37 },
+static struct tda18271_std_map hauppauge_tda18271_std_map =
+{
+	.atsc_6   = {
+		.if_freq = 5380, .agc_mode = 3, .std = 3,
+		.if_lvl = 6, .rfagc_top = 0x37
+	},
+	.qam_6    = {
+		.if_freq = 4000, .agc_mode = 3, .std = 0,
+		.if_lvl = 6, .rfagc_top = 0x37
+	},
 };
 
-static struct tda18271_config hauppauge_tda18271_config = {
+static struct tda18271_config hauppauge_tda18271_config =
+{
 	.std_map = &hauppauge_tda18271_std_map,
 	.gate    = TDA18271_GATE_DIGITAL,
 	.output_opt = TDA18271_OUTPUT_LT_OFF,
@@ -110,7 +119,8 @@ static struct tda18271_config hauppauge_tda18271_config = {
  * CX18_CARD_LEADTEK_DVR3100H
  */
 /* Information/confirmation of proper config values provided by Terry Wu */
-static struct zl10353_config leadtek_dvr3100h_demod = {
+static struct zl10353_config leadtek_dvr3100h_demod =
+{
 	.demod_address         = 0x1e >> 1, /* Datasheet suggested straps */
 	.if2                   = 45600,     /* 4.560 MHz IF from the XC3028 */
 	.parallel_ts           = 1,         /* Not a serial TS */
@@ -134,39 +144,47 @@ static struct zl10353_config leadtek_dvr3100h_demod = {
  * with chip programming details, then I can remove this annoyance.
  */
 static int yuan_mpc718_mt352_reqfw(struct cx18_stream *stream,
-				   const struct firmware **fw)
+								   const struct firmware **fw)
 {
 	struct cx18 *cx = stream->cx;
 	const char *fn = FWFILE;
 	int ret;
 
 	ret = request_firmware(fw, fn, &cx->pci_dev->dev);
+
 	if (ret)
+	{
 		CX18_ERR("Unable to open firmware file %s\n", fn);
-	else {
+	}
+	else
+	{
 		size_t sz = (*fw)->size;
-		if (sz < 2 || sz > 64 || (sz % 2) != 0) {
+
+		if (sz < 2 || sz > 64 || (sz % 2) != 0)
+		{
 			CX18_ERR("Firmware %s has a bad size: %lu bytes\n",
-				 fn, (unsigned long) sz);
+					 fn, (unsigned long) sz);
 			ret = -EILSEQ;
 			release_firmware(*fw);
 			*fw = NULL;
 		}
 	}
 
-	if (ret) {
+	if (ret)
+	{
 		CX18_ERR("The MPC718 board variant with the MT352 DVB-T"
-			  "demodualtor will not work without it\n");
+				 "demodualtor will not work without it\n");
 		CX18_ERR("Run 'linux/Documentation/dvb/get_dvb_firmware "
-			  "mpc718' if you need the firmware\n");
+				 "mpc718' if you need the firmware\n");
 	}
+
 	return ret;
 }
 
 static int yuan_mpc718_mt352_init(struct dvb_frontend *fe)
 {
 	struct cx18_dvb *dvb = container_of(fe->dvb,
-					    struct cx18_dvb, dvb_adapter);
+										struct cx18_dvb, dvb_adapter);
 	struct cx18_stream *stream = dvb->stream;
 	const struct firmware *fw = NULL;
 	int ret;
@@ -174,39 +192,49 @@ static int yuan_mpc718_mt352_init(struct dvb_frontend *fe)
 	u8 buf[3];
 
 	ret = yuan_mpc718_mt352_reqfw(stream, &fw);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Loop through all the register-value pairs in the firmware file */
-	for (i = 0; i < fw->size; i += 2) {
+	for (i = 0; i < fw->size; i += 2)
+	{
 		buf[0] = fw->data[i];
+
 		/* Intercept a few registers we want to set ourselves */
-		switch (buf[0]) {
-		case TRL_NOMINAL_RATE_0:
-			/* Set our custom OFDM bandwidth in the case below */
-			break;
-		case TRL_NOMINAL_RATE_1:
-			/* 6 MHz: 64/7 * 6/8 / 20.48 * 2^16 = 0x55b6.db6 */
-			/* 7 MHz: 64/7 * 7/8 / 20.48 * 2^16 = 0x6400 */
-			/* 8 MHz: 64/7 * 8/8 / 20.48 * 2^16 = 0x7249.249 */
-			buf[1] = 0x72;
-			buf[2] = 0x49;
-			mt352_write(fe, buf, 3);
-			break;
-		case INPUT_FREQ_0:
-			/* Set our custom IF in the case below */
-			break;
-		case INPUT_FREQ_1:
-			/* 4.56 MHz IF: (20.48 - 4.56)/20.48 * 2^14 = 0x31c0 */
-			buf[1] = 0x31;
-			buf[2] = 0xc0;
-			mt352_write(fe, buf, 3);
-			break;
-		default:
-			/* Pass through the register-value pair from the fw */
-			buf[1] = fw->data[i+1];
-			mt352_write(fe, buf, 2);
-			break;
+		switch (buf[0])
+		{
+			case TRL_NOMINAL_RATE_0:
+				/* Set our custom OFDM bandwidth in the case below */
+				break;
+
+			case TRL_NOMINAL_RATE_1:
+				/* 6 MHz: 64/7 * 6/8 / 20.48 * 2^16 = 0x55b6.db6 */
+				/* 7 MHz: 64/7 * 7/8 / 20.48 * 2^16 = 0x6400 */
+				/* 8 MHz: 64/7 * 8/8 / 20.48 * 2^16 = 0x7249.249 */
+				buf[1] = 0x72;
+				buf[2] = 0x49;
+				mt352_write(fe, buf, 3);
+				break;
+
+			case INPUT_FREQ_0:
+				/* Set our custom IF in the case below */
+				break;
+
+			case INPUT_FREQ_1:
+				/* 4.56 MHz IF: (20.48 - 4.56)/20.48 * 2^14 = 0x31c0 */
+				buf[1] = 0x31;
+				buf[2] = 0xc0;
+				mt352_write(fe, buf, 3);
+				break;
+
+			default:
+				/* Pass through the register-value pair from the fw */
+				buf[1] = fw->data[i + 1];
+				mt352_write(fe, buf, 2);
+				break;
 		}
 	}
 
@@ -217,7 +245,8 @@ static int yuan_mpc718_mt352_init(struct dvb_frontend *fe)
 	return 0;
 }
 
-static struct mt352_config yuan_mpc718_mt352_demod = {
+static struct mt352_config yuan_mpc718_mt352_demod =
+{
 	.demod_address = 0x1e >> 1,
 	.adc_clock     = 20480,     /* 20.480 MHz */
 	.if2           =  4560,     /*  4.560 MHz */
@@ -225,7 +254,8 @@ static struct mt352_config yuan_mpc718_mt352_demod = {
 	.demod_init    = yuan_mpc718_mt352_init,
 };
 
-static struct zl10353_config yuan_mpc718_zl10353_demod = {
+static struct zl10353_config yuan_mpc718_zl10353_demod =
+{
 	.demod_address         = 0x1e >> 1, /* Datasheet suggested straps */
 	.if2                   = 45600,     /* 4.560 MHz IF from the XC3028 */
 	.parallel_ts           = 1,         /* Not a serial TS */
@@ -233,7 +263,8 @@ static struct zl10353_config yuan_mpc718_zl10353_demod = {
 	.disable_i2c_gate_ctrl = 1,         /* Disable the I2C gate */
 };
 
-static struct zl10353_config gotview_dvd3_zl10353_demod = {
+static struct zl10353_config gotview_dvd3_zl10353_demod =
+{
 	.demod_address         = 0x1e >> 1, /* Datasheet suggested straps */
 	.if2                   = 45600,     /* 4.560 MHz IF from the XC3028 */
 	.parallel_ts           = 1,         /* Not a serial TS */
@@ -256,62 +287,82 @@ static int cx18_dvb_start_feed(struct dvb_demux_feed *feed)
 	u32 v;
 
 	if (!stream)
+	{
 		return -EINVAL;
+	}
 
 	cx = stream->cx;
 	CX18_DEBUG_INFO("Start feed: pid = 0x%x index = %d\n",
-			feed->pid, feed->index);
+					feed->pid, feed->index);
 
 	mutex_lock(&cx->serialize_lock);
 	ret = cx18_init_on_first_open(cx);
 	mutex_unlock(&cx->serialize_lock);
-	if (ret) {
+
+	if (ret)
+	{
 		CX18_ERR("Failed to initialize firmware starting DVB feed\n");
 		return ret;
 	}
+
 	ret = -EINVAL;
 
-	switch (cx->card->type) {
-	case CX18_CARD_HVR_1600_ESMT:
-	case CX18_CARD_HVR_1600_SAMSUNG:
-	case CX18_CARD_HVR_1600_S5H1411:
-		v = cx18_read_reg(cx, CX18_REG_DMUX_NUM_PORT_0_CONTROL);
-		v |= 0x00400000; /* Serial Mode */
-		v |= 0x00002000; /* Data Length - Byte */
-		v |= 0x00010000; /* Error - Polarity */
-		v |= 0x00020000; /* Error - Passthru */
-		v |= 0x000c0000; /* Error - Ignore */
-		cx18_write_reg(cx, v, CX18_REG_DMUX_NUM_PORT_0_CONTROL);
-		break;
+	switch (cx->card->type)
+	{
+		case CX18_CARD_HVR_1600_ESMT:
+		case CX18_CARD_HVR_1600_SAMSUNG:
+		case CX18_CARD_HVR_1600_S5H1411:
+			v = cx18_read_reg(cx, CX18_REG_DMUX_NUM_PORT_0_CONTROL);
+			v |= 0x00400000; /* Serial Mode */
+			v |= 0x00002000; /* Data Length - Byte */
+			v |= 0x00010000; /* Error - Polarity */
+			v |= 0x00020000; /* Error - Passthru */
+			v |= 0x000c0000; /* Error - Ignore */
+			cx18_write_reg(cx, v, CX18_REG_DMUX_NUM_PORT_0_CONTROL);
+			break;
 
-	case CX18_CARD_LEADTEK_DVR3100H:
-	case CX18_CARD_YUAN_MPC718:
-	case CX18_CARD_GOTVIEW_PCI_DVD3:
-	default:
-		/* Assumption - Parallel transport - Signalling
-		 * undefined or default.
-		 */
-		break;
+		case CX18_CARD_LEADTEK_DVR3100H:
+		case CX18_CARD_YUAN_MPC718:
+		case CX18_CARD_GOTVIEW_PCI_DVD3:
+		default:
+			/* Assumption - Parallel transport - Signalling
+			 * undefined or default.
+			 */
+			break;
 	}
 
 	if (!demux->dmx.frontend)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&stream->dvb->feedlock);
-	if (stream->dvb->feeding++ == 0) {
+
+	if (stream->dvb->feeding++ == 0)
+	{
 		CX18_DEBUG_INFO("Starting Transport DMA\n");
 		mutex_lock(&cx->serialize_lock);
 		set_bit(CX18_F_S_STREAMING, &stream->s_flags);
 		ret = cx18_start_v4l2_encode_stream(stream);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			CX18_DEBUG_INFO("Failed to start Transport DMA\n");
 			stream->dvb->feeding--;
+
 			if (stream->dvb->feeding == 0)
+			{
 				clear_bit(CX18_F_S_STREAMING, &stream->s_flags);
+			}
 		}
+
 		mutex_unlock(&cx->serialize_lock);
-	} else
+	}
+	else
+	{
 		ret = 0;
+	}
+
 	mutex_unlock(&stream->dvb->feedlock);
 
 	return ret;
@@ -325,19 +376,26 @@ static int cx18_dvb_stop_feed(struct dvb_demux_feed *feed)
 	struct cx18 *cx;
 	int ret = -EINVAL;
 
-	if (stream) {
+	if (stream)
+	{
 		cx = stream->cx;
 		CX18_DEBUG_INFO("Stop feed: pid = 0x%x index = %d\n",
-				feed->pid, feed->index);
+						feed->pid, feed->index);
 
 		mutex_lock(&stream->dvb->feedlock);
-		if (--stream->dvb->feeding == 0) {
+
+		if (--stream->dvb->feeding == 0)
+		{
 			CX18_DEBUG_INFO("Stopping Transport DMA\n");
 			mutex_lock(&cx->serialize_lock);
 			ret = cx18_stop_v4l2_encode_stream(stream, 0);
 			mutex_unlock(&cx->serialize_lock);
-		} else
+		}
+		else
+		{
 			ret = 0;
+		}
+
 		mutex_unlock(&stream->dvb->feedlock);
 	}
 
@@ -354,16 +412,21 @@ int cx18_dvb_register(struct cx18_stream *stream)
 	int ret;
 
 	if (!dvb)
+	{
 		return -EINVAL;
+	}
 
 	dvb->enabled = 0;
 	dvb->stream = stream;
 
 	ret = dvb_register_adapter(&dvb->dvb_adapter,
-			CX18_DRIVER_NAME,
-			THIS_MODULE, &cx->pci_dev->dev, adapter_nr);
+							   CX18_DRIVER_NAME,
+							   THIS_MODULE, &cx->pci_dev->dev, adapter_nr);
+
 	if (ret < 0)
+	{
 		goto err_out;
+	}
 
 	dvb_adapter = &dvb->dvb_adapter;
 
@@ -376,10 +439,13 @@ int cx18_dvb_register(struct cx18_stream *stream)
 	dvbdemux->start_feed = cx18_dvb_start_feed;
 	dvbdemux->stop_feed = cx18_dvb_stop_feed;
 	dvbdemux->dmx.capabilities = (DMX_TS_FILTERING |
-		DMX_SECTION_FILTERING | DMX_MEMORY_BASED_FILTERING);
+								  DMX_SECTION_FILTERING | DMX_MEMORY_BASED_FILTERING);
 	ret = dvb_dmx_init(dvbdemux);
+
 	if (ret < 0)
+	{
 		goto err_dvb_unregister_adapter;
+	}
 
 	dmx = &dvbdemux->dmx;
 
@@ -389,32 +455,47 @@ int cx18_dvb_register(struct cx18_stream *stream)
 	dvb->dmxdev.demux = dmx;
 
 	ret = dvb_dmxdev_init(&dvb->dmxdev, dvb_adapter);
+
 	if (ret < 0)
+	{
 		goto err_dvb_dmx_release;
+	}
 
 	ret = dmx->add_frontend(dmx, &dvb->hw_frontend);
+
 	if (ret < 0)
+	{
 		goto err_dvb_dmxdev_release;
+	}
 
 	ret = dmx->add_frontend(dmx, &dvb->mem_frontend);
+
 	if (ret < 0)
+	{
 		goto err_remove_hw_frontend;
+	}
 
 	ret = dmx->connect_frontend(dmx, &dvb->hw_frontend);
+
 	if (ret < 0)
+	{
 		goto err_remove_mem_frontend;
+	}
 
 	ret = dvb_register(stream);
+
 	if (ret < 0)
+	{
 		goto err_disconnect_frontend;
+	}
 
 	dvb_net_init(dvb_adapter, &dvb->dvbnet, dmx);
 
 	CX18_INFO("DVB Frontend registered\n");
 	CX18_INFO("Registered DVB adapter%d for %s (%d x %d.%02d kB)\n",
-		  stream->dvb->dvb_adapter.num, stream->name,
-		  stream->buffers, stream->buf_size/1024,
-		  (stream->buf_size * 100 / 1024) % 100);
+			  stream->dvb->dvb_adapter.num, stream->name,
+			  stream->buffers, stream->buf_size / 1024,
+			  (stream->buf_size * 100 / 1024) % 100);
 
 	mutex_init(&dvb->feedlock);
 	dvb->enabled = 1;
@@ -447,7 +528,9 @@ void cx18_dvb_unregister(struct cx18_stream *stream)
 	CX18_INFO("unregister DVB\n");
 
 	if (dvb == NULL || !dvb->enabled)
+	{
 		return;
+	}
 
 	dvb_adapter = &dvb->dvb_adapter;
 	dvbdemux = &dvb->demux;
@@ -473,112 +556,149 @@ static int dvb_register(struct cx18_stream *stream)
 	struct cx18 *cx = stream->cx;
 	int ret = 0;
 
-	switch (cx->card->type) {
-	case CX18_CARD_HVR_1600_ESMT:
-	case CX18_CARD_HVR_1600_SAMSUNG:
-		dvb->fe = dvb_attach(s5h1409_attach,
-			&hauppauge_hvr1600_config,
-			&cx->i2c_adap[0]);
-		if (dvb->fe != NULL) {
-			dvb_attach(mxl5005s_attach, dvb->fe,
-				&cx->i2c_adap[0],
-				&hauppauge_hvr1600_tuner);
-			ret = 0;
-		}
-		break;
-	case CX18_CARD_HVR_1600_S5H1411:
-		dvb->fe = dvb_attach(s5h1411_attach,
-				     &hcw_s5h1411_config,
-				     &cx->i2c_adap[0]);
-		if (dvb->fe != NULL)
-			dvb_attach(tda18271_attach, dvb->fe,
-				   0x60, &cx->i2c_adap[0],
-				   &hauppauge_tda18271_config);
-		break;
-	case CX18_CARD_LEADTEK_DVR3100H:
-		dvb->fe = dvb_attach(zl10353_attach,
-				     &leadtek_dvr3100h_demod,
-				     &cx->i2c_adap[1]);
-		if (dvb->fe != NULL) {
-			struct dvb_frontend *fe;
-			struct xc2028_config cfg = {
-				.i2c_adap = &cx->i2c_adap[1],
-				.i2c_addr = 0xc2 >> 1,
-				.ctrl = NULL,
-			};
-			static struct xc2028_ctrl ctrl = {
-				.fname   = XC2028_DEFAULT_FIRMWARE,
-				.max_len = 64,
-				.demod   = XC3028_FE_ZARLINK456,
-				.type    = XC2028_AUTO,
-			};
+	switch (cx->card->type)
+	{
+		case CX18_CARD_HVR_1600_ESMT:
+		case CX18_CARD_HVR_1600_SAMSUNG:
+			dvb->fe = dvb_attach(s5h1409_attach,
+								 &hauppauge_hvr1600_config,
+								 &cx->i2c_adap[0]);
 
-			fe = dvb_attach(xc2028_attach, dvb->fe, &cfg);
-			if (fe != NULL && fe->ops.tuner_ops.set_config != NULL)
-				fe->ops.tuner_ops.set_config(fe, &ctrl);
-		}
-		break;
-	case CX18_CARD_YUAN_MPC718:
-		/*
-		 * TODO
-		 * Apparently, these cards also could instead have a
-		 * DiBcom demod supported by one of the db7000 drivers
-		 */
-		dvb->fe = dvb_attach(mt352_attach,
-				     &yuan_mpc718_mt352_demod,
-				     &cx->i2c_adap[1]);
-		if (dvb->fe == NULL)
+			if (dvb->fe != NULL)
+			{
+				dvb_attach(mxl5005s_attach, dvb->fe,
+						   &cx->i2c_adap[0],
+						   &hauppauge_hvr1600_tuner);
+				ret = 0;
+			}
+
+			break;
+
+		case CX18_CARD_HVR_1600_S5H1411:
+			dvb->fe = dvb_attach(s5h1411_attach,
+								 &hcw_s5h1411_config,
+								 &cx->i2c_adap[0]);
+
+			if (dvb->fe != NULL)
+				dvb_attach(tda18271_attach, dvb->fe,
+						   0x60, &cx->i2c_adap[0],
+						   &hauppauge_tda18271_config);
+
+			break;
+
+		case CX18_CARD_LEADTEK_DVR3100H:
 			dvb->fe = dvb_attach(zl10353_attach,
-					     &yuan_mpc718_zl10353_demod,
-					     &cx->i2c_adap[1]);
-		if (dvb->fe != NULL) {
-			struct dvb_frontend *fe;
-			struct xc2028_config cfg = {
-				.i2c_adap = &cx->i2c_adap[1],
-				.i2c_addr = 0xc2 >> 1,
-				.ctrl = NULL,
-			};
-			static struct xc2028_ctrl ctrl = {
-				.fname   = XC2028_DEFAULT_FIRMWARE,
-				.max_len = 64,
-				.demod   = XC3028_FE_ZARLINK456,
-				.type    = XC2028_AUTO,
-			};
+								 &leadtek_dvr3100h_demod,
+								 &cx->i2c_adap[1]);
 
-			fe = dvb_attach(xc2028_attach, dvb->fe, &cfg);
-			if (fe != NULL && fe->ops.tuner_ops.set_config != NULL)
-				fe->ops.tuner_ops.set_config(fe, &ctrl);
-		}
-		break;
-	case CX18_CARD_GOTVIEW_PCI_DVD3:
+			if (dvb->fe != NULL)
+			{
+				struct dvb_frontend *fe;
+				struct xc2028_config cfg =
+				{
+					.i2c_adap = &cx->i2c_adap[1],
+					.i2c_addr = 0xc2 >> 1,
+					.ctrl = NULL,
+				};
+				static struct xc2028_ctrl ctrl =
+				{
+					.fname   = XC2028_DEFAULT_FIRMWARE,
+					.max_len = 64,
+					.demod   = XC3028_FE_ZARLINK456,
+					.type    = XC2028_AUTO,
+				};
+
+				fe = dvb_attach(xc2028_attach, dvb->fe, &cfg);
+
+				if (fe != NULL && fe->ops.tuner_ops.set_config != NULL)
+				{
+					fe->ops.tuner_ops.set_config(fe, &ctrl);
+				}
+			}
+
+			break;
+
+		case CX18_CARD_YUAN_MPC718:
+			/*
+			 * TODO
+			 * Apparently, these cards also could instead have a
+			 * DiBcom demod supported by one of the db7000 drivers
+			 */
+			dvb->fe = dvb_attach(mt352_attach,
+								 &yuan_mpc718_mt352_demod,
+								 &cx->i2c_adap[1]);
+
+			if (dvb->fe == NULL)
+				dvb->fe = dvb_attach(zl10353_attach,
+									 &yuan_mpc718_zl10353_demod,
+									 &cx->i2c_adap[1]);
+
+			if (dvb->fe != NULL)
+			{
+				struct dvb_frontend *fe;
+				struct xc2028_config cfg =
+				{
+					.i2c_adap = &cx->i2c_adap[1],
+					.i2c_addr = 0xc2 >> 1,
+					.ctrl = NULL,
+				};
+				static struct xc2028_ctrl ctrl =
+				{
+					.fname   = XC2028_DEFAULT_FIRMWARE,
+					.max_len = 64,
+					.demod   = XC3028_FE_ZARLINK456,
+					.type    = XC2028_AUTO,
+				};
+
+				fe = dvb_attach(xc2028_attach, dvb->fe, &cfg);
+
+				if (fe != NULL && fe->ops.tuner_ops.set_config != NULL)
+				{
+					fe->ops.tuner_ops.set_config(fe, &ctrl);
+				}
+			}
+
+			break;
+
+		case CX18_CARD_GOTVIEW_PCI_DVD3:
 			dvb->fe = dvb_attach(zl10353_attach,
-					     &gotview_dvd3_zl10353_demod,
-					     &cx->i2c_adap[1]);
-		if (dvb->fe != NULL) {
-			struct dvb_frontend *fe;
-			struct xc2028_config cfg = {
-				.i2c_adap = &cx->i2c_adap[1],
-				.i2c_addr = 0xc2 >> 1,
-				.ctrl = NULL,
-			};
-			static struct xc2028_ctrl ctrl = {
-				.fname   = XC2028_DEFAULT_FIRMWARE,
-				.max_len = 64,
-				.demod   = XC3028_FE_ZARLINK456,
-				.type    = XC2028_AUTO,
-			};
+								 &gotview_dvd3_zl10353_demod,
+								 &cx->i2c_adap[1]);
 
-			fe = dvb_attach(xc2028_attach, dvb->fe, &cfg);
-			if (fe != NULL && fe->ops.tuner_ops.set_config != NULL)
-				fe->ops.tuner_ops.set_config(fe, &ctrl);
-		}
-		break;
-	default:
-		/* No Digital Tv Support */
-		break;
+			if (dvb->fe != NULL)
+			{
+				struct dvb_frontend *fe;
+				struct xc2028_config cfg =
+				{
+					.i2c_adap = &cx->i2c_adap[1],
+					.i2c_addr = 0xc2 >> 1,
+					.ctrl = NULL,
+				};
+				static struct xc2028_ctrl ctrl =
+				{
+					.fname   = XC2028_DEFAULT_FIRMWARE,
+					.max_len = 64,
+					.demod   = XC3028_FE_ZARLINK456,
+					.type    = XC2028_AUTO,
+				};
+
+				fe = dvb_attach(xc2028_attach, dvb->fe, &cfg);
+
+				if (fe != NULL && fe->ops.tuner_ops.set_config != NULL)
+				{
+					fe->ops.tuner_ops.set_config(fe, &ctrl);
+				}
+			}
+
+			break;
+
+		default:
+			/* No Digital Tv Support */
+			break;
 	}
 
-	if (dvb->fe == NULL) {
+	if (dvb->fe == NULL)
+	{
 		CX18_ERR("frontend initialization failed\n");
 		return -1;
 	}
@@ -586,9 +706,14 @@ static int dvb_register(struct cx18_stream *stream)
 	dvb->fe->callback = cx18_reset_tuner_gpio;
 
 	ret = dvb_register_frontend(&dvb->dvb_adapter, dvb->fe);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		if (dvb->fe->ops.release)
+		{
 			dvb->fe->ops.release(dvb->fe);
+		}
+
 		return ret;
 	}
 
@@ -598,10 +723,10 @@ static int dvb_register(struct cx18_stream *stream)
 	 * might use it, let's just turn it on ourselves here.
 	 */
 	cx18_write_reg_expect(cx,
-			      (CX18_DMUX_CLK_MASK << 16) | CX18_DMUX_CLK_MASK,
-			      CX18_CLOCK_ENABLE2,
-			      CX18_DMUX_CLK_MASK,
-			      (CX18_DMUX_CLK_MASK << 16) | CX18_DMUX_CLK_MASK);
+						  (CX18_DMUX_CLK_MASK << 16) | CX18_DMUX_CLK_MASK,
+						  CX18_CLOCK_ENABLE2,
+						  CX18_DMUX_CLK_MASK,
+						  (CX18_DMUX_CLK_MASK << 16) | CX18_DMUX_CLK_MASK);
 
 	return ret;
 }

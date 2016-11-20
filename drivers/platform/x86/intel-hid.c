@@ -28,13 +28,15 @@
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Alex Hung");
 
-static const struct acpi_device_id intel_hid_ids[] = {
+static const struct acpi_device_id intel_hid_ids[] =
+{
 	{"INT33D5", 0},
 	{"", 0},
 };
 
 /* In theory, these are HID usages. */
-static const struct key_entry intel_hid_keymap[] = {
+static const struct key_entry intel_hid_keymap[] =
+{
 	/* 1: LSuper (Page 0x07, usage 0xE3) -- unclear what to do */
 	/* 2: Toggle SW_ROTATE_LOCK -- easy to implement if seen in wild */
 	{ KE_KEY, 3, { KEY_NUMLOCK } },
@@ -57,7 +59,8 @@ static const struct key_entry intel_hid_keymap[] = {
 	{ KE_END },
 };
 
-struct intel_hid_priv {
+struct intel_hid_priv
+{
 	struct input_dev *input_dev;
 };
 
@@ -69,9 +72,11 @@ static int intel_hid_set_enable(struct device *device, int enable)
 
 	arg0.integer.value = enable;
 	status = acpi_evaluate_object(ACPI_HANDLE(device), "HDSM", &args, NULL);
-	if (!ACPI_SUCCESS(status)) {
+
+	if (!ACPI_SUCCESS(status))
+	{
 		dev_warn(device, "failed to %sable hotkeys\n",
-			 enable ? "en" : "dis");
+				 enable ? "en" : "dis");
 		return -EIO;
 	}
 
@@ -90,7 +95,8 @@ static int intel_hid_pl_resume_handler(struct device *device)
 	return 0;
 }
 
-static const struct dev_pm_ops intel_hid_pl_pm_ops = {
+static const struct dev_pm_ops intel_hid_pl_pm_ops =
+{
 	.freeze  = intel_hid_pl_suspend_handler,
 	.restore  = intel_hid_pl_resume_handler,
 	.suspend  = intel_hid_pl_suspend_handler,
@@ -103,12 +109,18 @@ static int intel_hid_input_setup(struct platform_device *device)
 	int ret;
 
 	priv->input_dev = input_allocate_device();
+
 	if (!priv->input_dev)
+	{
 		return -ENOMEM;
+	}
 
 	ret = sparse_keymap_setup(priv->input_dev, intel_hid_keymap, NULL);
+
 	if (ret)
+	{
 		goto err_free_device;
+	}
 
 	priv->input_dev->dev.parent = &device->dev;
 	priv->input_dev->name = "Intel HID events";
@@ -116,8 +128,11 @@ static int intel_hid_input_setup(struct platform_device *device)
 	set_bit(KEY_RFKILL, priv->input_dev->keybit);
 
 	ret = input_register_device(priv->input_dev);
+
 	if (ret)
+	{
 		goto err_free_device;
+	}
 
 	return 0;
 
@@ -141,21 +156,24 @@ static void notify_handler(acpi_handle handle, u32 event, void *context)
 	acpi_status status;
 
 	/* The platform spec only defines one event code: 0xC0. */
-	if (event != 0xc0) {
+	if (event != 0xc0)
+	{
 		dev_warn(&device->dev, "received unknown event (0x%x)\n",
-			 event);
+				 event);
 		return;
 	}
 
 	status = acpi_evaluate_integer(handle, "HDEM", NULL, &ev_index);
-	if (!ACPI_SUCCESS(status)) {
+
+	if (!ACPI_SUCCESS(status))
+	{
 		dev_warn(&device->dev, "failed to get event index\n");
 		return;
 	}
 
 	if (!sparse_keymap_report_event(priv->input_dev, ev_index, 1, true))
 		dev_info(&device->dev, "unknown event index 0x%llx\n",
-			 ev_index);
+				 ev_index);
 }
 
 static int intel_hid_probe(struct platform_device *device)
@@ -167,12 +185,15 @@ static int intel_hid_probe(struct platform_device *device)
 	int err;
 
 	status = acpi_evaluate_integer(handle, "HDMM", NULL, &mode);
-	if (!ACPI_SUCCESS(status)) {
+
+	if (!ACPI_SUCCESS(status))
+	{
 		dev_warn(&device->dev, "failed to read mode\n");
 		return -ENODEV;
 	}
 
-	if (mode != 0) {
+	if (mode != 0)
+	{
 		/*
 		 * This driver only implements "simple" mode.  There appear
 		 * to be no other modes, but we should be paranoid and check
@@ -183,28 +204,39 @@ static int intel_hid_probe(struct platform_device *device)
 	}
 
 	priv = devm_kzalloc(&device->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
+
 	dev_set_drvdata(&device->dev, priv);
 
 	err = intel_hid_input_setup(device);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to setup Intel HID hotkeys\n");
 		return err;
 	}
 
 	status = acpi_install_notify_handler(handle,
-					     ACPI_DEVICE_NOTIFY,
-					     notify_handler,
-					     device);
-	if (ACPI_FAILURE(status)) {
+										 ACPI_DEVICE_NOTIFY,
+										 notify_handler,
+										 device);
+
+	if (ACPI_FAILURE(status))
+	{
 		err = -EBUSY;
 		goto err_remove_input;
 	}
 
 	err = intel_hid_set_enable(&device->dev, 1);
+
 	if (err)
+	{
 		goto err_remove_notify;
+	}
 
 	return 0;
 
@@ -232,7 +264,8 @@ static int intel_hid_remove(struct platform_device *device)
 	return 0;
 }
 
-static struct platform_driver intel_hid_pl_driver = {
+static struct platform_driver intel_hid_pl_driver =
+{
 	.driver = {
 		.name = "intel-hid",
 		.acpi_match_table = intel_hid_ids,
@@ -261,12 +294,14 @@ check_acpi_dev(acpi_handle handle, u32 lvl, void *context, void **rv)
 	struct acpi_device *dev;
 
 	if (acpi_bus_get_device(handle, &dev) != 0)
+	{
 		return AE_OK;
+	}
 
 	if (acpi_match_device_ids(dev, ids) == 0)
 		if (acpi_create_platform_device(dev, NULL))
 			dev_info(&dev->dev,
-				 "intel-hid: created platform device\n");
+					 "intel-hid: created platform device\n");
 
 	return AE_OK;
 }
@@ -274,8 +309,8 @@ check_acpi_dev(acpi_handle handle, u32 lvl, void *context, void **rv)
 static int __init intel_hid_init(void)
 {
 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-			    ACPI_UINT32_MAX, check_acpi_dev, NULL,
-			    (void *)intel_hid_ids, NULL);
+						ACPI_UINT32_MAX, check_acpi_dev, NULL,
+						(void *)intel_hid_ids, NULL);
 
 	return platform_driver_register(&intel_hid_pl_driver);
 }

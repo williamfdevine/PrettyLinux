@@ -30,12 +30,14 @@
 #define KHAZAD_BLOCK_SIZE	8
 #define KHAZAD_ROUNDS		8
 
-struct khazad_ctx {
+struct khazad_ctx
+{
 	u64 E[KHAZAD_ROUNDS + 1];
 	u64 D[KHAZAD_ROUNDS + 1];
 };
 
-static const u64 T0[256] = {
+static const u64 T0[256] =
+{
 	0xbad3d268bbb96a01ULL, 0x54fc4d19e59a66b1ULL, 0x2f71bc93e26514cdULL,
 	0x749ccdb925871b51ULL, 0x53f55102f7a257a4ULL, 0xd3686bb8d0d6be03ULL,
 	0xd26b6fbdd6deb504ULL, 0x4dd72964b35285feULL, 0x50f05d0dfdba4aadULL,
@@ -124,7 +126,8 @@ static const u64 T0[256] = {
 	0x42c61557912aecd3ULL
 };
 
-static const u64 T1[256] = {
+static const u64 T1[256] =
+{
 	0xd3ba68d2b9bb016aULL, 0xfc54194d9ae5b166ULL, 0x712f93bc65e2cd14ULL,
 	0x9c74b9cd8725511bULL, 0xf5530251a2f7a457ULL, 0x68d3b86bd6d003beULL,
 	0x6bd2bd6fded604b5ULL, 0xd74d642952b3fe85ULL, 0xf0500d5dbafdad4aULL,
@@ -213,7 +216,8 @@ static const u64 T1[256] = {
 	0xc64257152a91d3ecULL
 };
 
-static const u64 T2[256] = {
+static const u64 T2[256] =
+{
 	0xd268bad36a01bbb9ULL, 0x4d1954fc66b1e59aULL, 0xbc932f7114cde265ULL,
 	0xcdb9749c1b512587ULL, 0x510253f557a4f7a2ULL, 0x6bb8d368be03d0d6ULL,
 	0x6fbdd26bb504d6deULL, 0x29644dd785feb352ULL, 0x5d0d50f04aadfdbaULL,
@@ -302,7 +306,8 @@ static const u64 T2[256] = {
 	0x155742c6ecd3912aULL
 };
 
-static const u64 T3[256] = {
+static const u64 T3[256] =
+{
 	0x68d2d3ba016ab9bbULL, 0x194dfc54b1669ae5ULL, 0x93bc712fcd1465e2ULL,
 	0xb9cd9c74511b8725ULL, 0x0251f553a457a2f7ULL, 0xb86b68d303bed6d0ULL,
 	0xbd6f6bd204b5ded6ULL, 0x6429d74dfe8552b3ULL, 0x0d5df050ad4abafdULL,
@@ -391,7 +396,8 @@ static const u64 T3[256] = {
 	0x5715c642d3ec2a91ULL
 };
 
-static const u64 T4[256] = {
+static const u64 T4[256] =
+{
 	0xbbb96a01bad3d268ULL, 0xe59a66b154fc4d19ULL, 0xe26514cd2f71bc93ULL,
 	0x25871b51749ccdb9ULL, 0xf7a257a453f55102ULL, 0xd0d6be03d3686bb8ULL,
 	0xd6deb504d26b6fbdULL, 0xb35285fe4dd72964ULL, 0xfdba4aad50f05d0dULL,
@@ -480,7 +486,8 @@ static const u64 T4[256] = {
 	0x912aecd342c61557ULL
 };
 
-static const u64 T5[256] = {
+static const u64 T5[256] =
+{
 	0xb9bb016ad3ba68d2ULL, 0x9ae5b166fc54194dULL, 0x65e2cd14712f93bcULL,
 	0x8725511b9c74b9cdULL, 0xa2f7a457f5530251ULL, 0xd6d003be68d3b86bULL,
 	0xded604b56bd2bd6fULL, 0x52b3fe85d74d6429ULL, 0xbafdad4af0500d5dULL,
@@ -569,7 +576,8 @@ static const u64 T5[256] = {
 	0x2a91d3ecc6425715ULL
 };
 
-static const u64 T6[256] = {
+static const u64 T6[256] =
+{
 	0x6a01bbb9d268bad3ULL, 0x66b1e59a4d1954fcULL, 0x14cde265bc932f71ULL,
 	0x1b512587cdb9749cULL, 0x57a4f7a2510253f5ULL, 0xbe03d0d66bb8d368ULL,
 	0xb504d6de6fbdd26bULL, 0x85feb35229644dd7ULL, 0x4aadfdba5d0d50f0ULL,
@@ -658,7 +666,8 @@ static const u64 T6[256] = {
 	0xecd3912a155742c6ULL
 };
 
-static const u64 T7[256] = {
+static const u64 T7[256] =
+{
 	0x016ab9bb68d2d3baULL, 0xb1669ae5194dfc54ULL, 0xcd1465e293bc712fULL,
 	0x511b8725b9cd9c74ULL, 0xa457a2f70251f553ULL, 0x03bed6d0b86b68d3ULL,
 	0x04b5ded6bd6f6bd2ULL, 0xfe8552b36429d74dULL, 0xad4abafd0d5df050ULL,
@@ -747,14 +756,15 @@ static const u64 T7[256] = {
 	0xd3ec2a915715c642ULL
 };
 
-static const u64 c[KHAZAD_ROUNDS + 1] = {
+static const u64 c[KHAZAD_ROUNDS + 1] =
+{
 	0xba542f7453d3d24dULL, 0x50ac8dbf70529a4cULL, 0xead597d133515ba6ULL,
 	0xde48a899db32b7fcULL, 0xe39e919be2bb416eULL, 0xa5cb6b95a1f3b102ULL,
 	0xccc41d14c363da5dULL, 0x5fdc7dcd7f5a6c5cULL, 0xf726ffede89d6f8eULL
 };
 
 static int khazad_setkey(struct crypto_tfm *tfm, const u8 *in_key,
-			 unsigned int key_len)
+						 unsigned int key_len)
 {
 	struct khazad_ctx *ctx = crypto_tfm_ctx(tfm);
 	const __be32 *key = (const __be32 *)in_key;
@@ -767,32 +777,37 @@ static int khazad_setkey(struct crypto_tfm *tfm, const u8 *in_key,
 	K1 = ((u64)be32_to_cpu(key[2]) << 32) | be32_to_cpu(key[3]);
 
 	/* setup the encrypt key */
-	for (r = 0; r <= KHAZAD_ROUNDS; r++) {
+	for (r = 0; r <= KHAZAD_ROUNDS; r++)
+	{
 		ctx->E[r] = T0[(int)(K1 >> 56)       ] ^
-			    T1[(int)(K1 >> 48) & 0xff] ^
-			    T2[(int)(K1 >> 40) & 0xff] ^
-			    T3[(int)(K1 >> 32) & 0xff] ^
-			    T4[(int)(K1 >> 24) & 0xff] ^
-			    T5[(int)(K1 >> 16) & 0xff] ^
-			    T6[(int)(K1 >>  8) & 0xff] ^
-			    T7[(int)(K1      ) & 0xff] ^
-			    c[r] ^ K2;
-		K2 = K1; 
+					T1[(int)(K1 >> 48) & 0xff] ^
+					T2[(int)(K1 >> 40) & 0xff] ^
+					T3[(int)(K1 >> 32) & 0xff] ^
+					T4[(int)(K1 >> 24) & 0xff] ^
+					T5[(int)(K1 >> 16) & 0xff] ^
+					T6[(int)(K1 >>  8) & 0xff] ^
+					T7[(int)(K1      ) & 0xff] ^
+					c[r] ^ K2;
+		K2 = K1;
 		K1 = ctx->E[r];
 	}
+
 	/* Setup the decrypt key */
 	ctx->D[0] = ctx->E[KHAZAD_ROUNDS];
-	for (r = 1; r < KHAZAD_ROUNDS; r++) {
+
+	for (r = 1; r < KHAZAD_ROUNDS; r++)
+	{
 		K1 = ctx->E[KHAZAD_ROUNDS - r];
 		ctx->D[r] = T0[(int)S[(int)(K1 >> 56)       ] & 0xff] ^
-			    T1[(int)S[(int)(K1 >> 48) & 0xff] & 0xff] ^
-			    T2[(int)S[(int)(K1 >> 40) & 0xff] & 0xff] ^
-			    T3[(int)S[(int)(K1 >> 32) & 0xff] & 0xff] ^
-			    T4[(int)S[(int)(K1 >> 24) & 0xff] & 0xff] ^
-			    T5[(int)S[(int)(K1 >> 16) & 0xff] & 0xff] ^
-			    T6[(int)S[(int)(K1 >>  8) & 0xff] & 0xff] ^
-			    T7[(int)S[(int)(K1      ) & 0xff] & 0xff];
+					T1[(int)S[(int)(K1 >> 48) & 0xff] & 0xff] ^
+					T2[(int)S[(int)(K1 >> 40) & 0xff] & 0xff] ^
+					T3[(int)S[(int)(K1 >> 32) & 0xff] & 0xff] ^
+					T4[(int)S[(int)(K1 >> 24) & 0xff] & 0xff] ^
+					T5[(int)S[(int)(K1 >> 16) & 0xff] & 0xff] ^
+					T6[(int)S[(int)(K1 >>  8) & 0xff] & 0xff] ^
+					T7[(int)S[(int)(K1      ) & 0xff] & 0xff];
 	}
+
 	ctx->D[KHAZAD_ROUNDS] = ctx->E[0];
 
 	return 0;
@@ -800,7 +815,7 @@ static int khazad_setkey(struct crypto_tfm *tfm, const u8 *in_key,
 }
 
 static void khazad_crypt(const u64 roundKey[KHAZAD_ROUNDS + 1],
-		u8 *ciphertext, const u8 *plaintext)
+						 u8 *ciphertext, const u8 *plaintext)
 {
 	const __be64 *src = (const __be64 *)plaintext;
 	__be64 *dst = (__be64 *)ciphertext;
@@ -809,27 +824,28 @@ static void khazad_crypt(const u64 roundKey[KHAZAD_ROUNDS + 1],
 
 	state = be64_to_cpu(*src) ^ roundKey[0];
 
-	for (r = 1; r < KHAZAD_ROUNDS; r++) {
+	for (r = 1; r < KHAZAD_ROUNDS; r++)
+	{
 		state = T0[(int)(state >> 56)       ] ^
-			T1[(int)(state >> 48) & 0xff] ^
-			T2[(int)(state >> 40) & 0xff] ^
-			T3[(int)(state >> 32) & 0xff] ^
-			T4[(int)(state >> 24) & 0xff] ^
-			T5[(int)(state >> 16) & 0xff] ^
-			T6[(int)(state >>  8) & 0xff] ^
-			T7[(int)(state      ) & 0xff] ^
-			roundKey[r];
-    	}
+				T1[(int)(state >> 48) & 0xff] ^
+				T2[(int)(state >> 40) & 0xff] ^
+				T3[(int)(state >> 32) & 0xff] ^
+				T4[(int)(state >> 24) & 0xff] ^
+				T5[(int)(state >> 16) & 0xff] ^
+				T6[(int)(state >>  8) & 0xff] ^
+				T7[(int)(state      ) & 0xff] ^
+				roundKey[r];
+	}
 
 	state = (T0[(int)(state >> 56)       ] & 0xff00000000000000ULL) ^
-		(T1[(int)(state >> 48) & 0xff] & 0x00ff000000000000ULL) ^
-		(T2[(int)(state >> 40) & 0xff] & 0x0000ff0000000000ULL) ^
-		(T3[(int)(state >> 32) & 0xff] & 0x000000ff00000000ULL) ^
-		(T4[(int)(state >> 24) & 0xff] & 0x00000000ff000000ULL) ^
-		(T5[(int)(state >> 16) & 0xff] & 0x0000000000ff0000ULL) ^
-		(T6[(int)(state >>  8) & 0xff] & 0x000000000000ff00ULL) ^
-		(T7[(int)(state      ) & 0xff] & 0x00000000000000ffULL) ^
-		roundKey[KHAZAD_ROUNDS];
+			(T1[(int)(state >> 48) & 0xff] & 0x00ff000000000000ULL) ^
+			(T2[(int)(state >> 40) & 0xff] & 0x0000ff0000000000ULL) ^
+			(T3[(int)(state >> 32) & 0xff] & 0x000000ff00000000ULL) ^
+			(T4[(int)(state >> 24) & 0xff] & 0x00000000ff000000ULL) ^
+			(T5[(int)(state >> 16) & 0xff] & 0x0000000000ff0000ULL) ^
+			(T6[(int)(state >>  8) & 0xff] & 0x000000000000ff00ULL) ^
+			(T7[(int)(state      ) & 0xff] & 0x00000000000000ffULL) ^
+			roundKey[KHAZAD_ROUNDS];
 
 	*dst = cpu_to_be64(state);
 }
@@ -846,25 +862,29 @@ static void khazad_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 	khazad_crypt(ctx->D, dst, src);
 }
 
-static struct crypto_alg khazad_alg = {
+static struct crypto_alg khazad_alg =
+{
 	.cra_name		=	"khazad",
 	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
 	.cra_blocksize		=	KHAZAD_BLOCK_SIZE,
 	.cra_ctxsize		=	sizeof (struct khazad_ctx),
 	.cra_alignmask		=	7,
 	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	KHAZAD_KEY_SIZE,
-	.cia_max_keysize	=	KHAZAD_KEY_SIZE,
-	.cia_setkey		= 	khazad_setkey,
-	.cia_encrypt		=	khazad_encrypt,
-	.cia_decrypt		=	khazad_decrypt } }
+	.cra_u			=	{
+		.cipher = {
+			.cia_min_keysize	=	KHAZAD_KEY_SIZE,
+			.cia_max_keysize	=	KHAZAD_KEY_SIZE,
+			.cia_setkey		= 	khazad_setkey,
+			.cia_encrypt		=	khazad_encrypt,
+			.cia_decrypt		=	khazad_decrypt
+		}
+	}
 };
 
 static int __init khazad_mod_init(void)
 {
 	int ret = 0;
-	
+
 	ret = crypto_register_alg(&khazad_alg);
 	return ret;
 }

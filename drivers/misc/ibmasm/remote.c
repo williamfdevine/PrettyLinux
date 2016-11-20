@@ -31,7 +31,8 @@
 #define MOUSE_X_MAX	1600
 #define MOUSE_Y_MAX	1200
 
-static const unsigned short xlate_high[XLATE_SIZE] = {
+static const unsigned short xlate_high[XLATE_SIZE] =
+{
 	[KEY_SYM_ENTER & 0xff] = KEY_ENTER,
 	[KEY_SYM_KPSLASH & 0xff] = KEY_KPSLASH,
 	[KEY_SYM_KPSTAR & 0xff] = KEY_KPASTERISK,
@@ -60,10 +61,10 @@ static const unsigned short xlate_high[XLATE_SIZE] = {
 	[KEY_SYM_LARROW & 0xff] = KEY_LEFT,
 	[KEY_SYM_RARROW & 0xff] = KEY_RIGHT,
 	[KEY_SYM_ESCAPE & 0xff] = KEY_ESC,
-        [KEY_SYM_PAGEUP & 0xff] = KEY_PAGEUP,
-        [KEY_SYM_PAGEDOWN & 0xff] = KEY_PAGEDOWN,
-        [KEY_SYM_HOME & 0xff] = KEY_HOME,
-        [KEY_SYM_END & 0xff] = KEY_END,
+	[KEY_SYM_PAGEUP & 0xff] = KEY_PAGEUP,
+	[KEY_SYM_PAGEDOWN & 0xff] = KEY_PAGEDOWN,
+	[KEY_SYM_HOME & 0xff] = KEY_HOME,
+	[KEY_SYM_END & 0xff] = KEY_END,
 	[KEY_SYM_F1 & 0xff] = KEY_F1,
 	[KEY_SYM_F2 & 0xff] = KEY_F2,
 	[KEY_SYM_F3 & 0xff] = KEY_F3,
@@ -81,7 +82,8 @@ static const unsigned short xlate_high[XLATE_SIZE] = {
 	[KEY_SYM_SCR_LOCK & 0xff] = KEY_SCROLLLOCK,
 };
 
-static const unsigned short xlate[XLATE_SIZE] = {
+static const unsigned short xlate[XLATE_SIZE] =
+{
 	[NO_KEYCODE] = KEY_RESERVED,
 	[KEY_SYM_SPACE] = KEY_SPACE,
 	[KEY_SYM_TILDE] = KEY_GRAVE,        [KEY_SYM_BKTIC] = KEY_GRAVE,
@@ -135,7 +137,8 @@ static const unsigned short xlate[XLATE_SIZE] = {
 
 static void print_input(struct remote_input *input)
 {
-	if (input->type == INPUT_TYPE_MOUSE) {
+	if (input->type == INPUT_TYPE_MOUSE)
+	{
 		unsigned char buttons = input->mouse_buttons;
 		dbg("remote mouse movement: (x,y)=(%d,%d)%s%s%s%s\n",
 			input->data.mouse.x, input->data.mouse.y,
@@ -143,15 +146,17 @@ static void print_input(struct remote_input *input)
 			(buttons & REMOTE_BUTTON_LEFT) ? "left " : "",
 			(buttons & REMOTE_BUTTON_MIDDLE) ? "middle " : "",
 			(buttons & REMOTE_BUTTON_RIGHT) ? "right" : ""
-		      );
-	} else {
+		   );
+	}
+	else
+	{
 		dbg("remote keypress (code, flag, down):"
-			   "%d (0x%x) [0x%x] [0x%x]\n",
-				input->data.keyboard.key_code,
-				input->data.keyboard.key_code,
-				input->data.keyboard.key_flag,
-				input->data.keyboard.key_down
-		      );
+			"%d (0x%x) [0x%x] [0x%x]\n",
+			input->data.keyboard.key_code,
+			input->data.keyboard.key_code,
+			input->data.keyboard.key_flag,
+			input->data.keyboard.key_down
+		   );
 	}
 }
 
@@ -168,15 +173,20 @@ static void send_mouse_event(struct input_dev *dev, struct remote_input *input)
 }
 
 static void send_keyboard_event(struct input_dev *dev,
-		struct remote_input *input)
+								struct remote_input *input)
 {
 	unsigned int key;
 	unsigned short code = input->data.keyboard.key_code;
 
 	if (code & 0xff00)
+	{
 		key = xlate_high[code & 0xff];
+	}
 	else
+	{
 		key = xlate[code];
+	}
+
 	input_report_key(dev, key, input->data.keyboard.key_down);
 	input_sync(dev);
 }
@@ -190,17 +200,25 @@ void ibmasm_handle_mouse_interrupt(struct service_processor *sp)
 	reader = get_queue_reader(sp);
 	writer = get_queue_writer(sp);
 
-	while (reader != writer) {
+	while (reader != writer)
+	{
 		memcpy_fromio(&input, get_queue_entry(sp, reader),
-				sizeof(struct remote_input));
+					  sizeof(struct remote_input));
 
 		print_input(&input);
-		if (input.type == INPUT_TYPE_MOUSE) {
+
+		if (input.type == INPUT_TYPE_MOUSE)
+		{
 			send_mouse_event(sp->remote.mouse_dev, &input);
-		} else if (input.type == INPUT_TYPE_KEYBOARD) {
+		}
+		else if (input.type == INPUT_TYPE_KEYBOARD)
+		{
 			send_keyboard_event(sp->remote.keybd_dev, &input);
-		} else
+		}
+		else
+		{
 			break;
+		}
 
 		reader = advance_queue_reader(sp, reader);
 		writer = get_queue_writer(sp);
@@ -219,7 +237,9 @@ int ibmasm_init_remote_input_dev(struct service_processor *sp)
 	sp->remote.keybd_dev = keybd_dev = input_allocate_device();
 
 	if (!mouse_dev || !keybd_dev)
+	{
 		goto err_free_devices;
+	}
 
 	mouse_dev->id.bustype = BUS_PCI;
 	mouse_dev->id.vendor = pdev->vendor;
@@ -228,7 +248,7 @@ int ibmasm_init_remote_input_dev(struct service_processor *sp)
 	mouse_dev->dev.parent = sp->dev;
 	mouse_dev->evbit[0]  = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
 	mouse_dev->keybit[BIT_WORD(BTN_MOUSE)] = BIT_MASK(BTN_LEFT) |
-		BIT_MASK(BTN_RIGHT) | BIT_MASK(BTN_MIDDLE);
+			BIT_MASK(BTN_RIGHT) | BIT_MASK(BTN_MIDDLE);
 	set_bit(BTN_TOUCH, mouse_dev->keybit);
 	mouse_dev->name = "ibmasm RSA I remote mouse";
 	input_set_abs_params(mouse_dev, ABS_X, 0, MOUSE_X_MAX, 0, 0);
@@ -242,20 +262,32 @@ int ibmasm_init_remote_input_dev(struct service_processor *sp)
 	keybd_dev->evbit[0]  = BIT_MASK(EV_KEY);
 	keybd_dev->name = "ibmasm RSA I remote keyboard";
 
-	for (i = 0; i < XLATE_SIZE; i++) {
+	for (i = 0; i < XLATE_SIZE; i++)
+	{
 		if (xlate_high[i])
+		{
 			set_bit(xlate_high[i], keybd_dev->keybit);
+		}
+
 		if (xlate[i])
+		{
 			set_bit(xlate[i], keybd_dev->keybit);
+		}
 	}
 
 	error = input_register_device(mouse_dev);
+
 	if (error)
+	{
 		goto err_free_devices;
+	}
 
 	error = input_register_device(keybd_dev);
+
 	if (error)
+	{
 		goto err_unregister_mouse_dev;
+	}
 
 	enable_mouse_interrupts(sp);
 
@@ -263,10 +295,10 @@ int ibmasm_init_remote_input_dev(struct service_processor *sp)
 
 	return 0;
 
- err_unregister_mouse_dev:
+err_unregister_mouse_dev:
 	input_unregister_device(mouse_dev);
 	mouse_dev = NULL; /* so we don't try to free it again below */
- err_free_devices:
+err_free_devices:
 	input_free_device(mouse_dev);
 	input_free_device(keybd_dev);
 

@@ -29,42 +29,62 @@ MODULE_ALIAS("ip6t_multiport");
 /* Returns 1 if the port is matched by the test, 0 otherwise. */
 static inline bool
 ports_match_v1(const struct xt_multiport_v1 *minfo,
-	       u_int16_t src, u_int16_t dst)
+			   u_int16_t src, u_int16_t dst)
 {
 	unsigned int i;
 	u_int16_t s, e;
 
-	for (i = 0; i < minfo->count; i++) {
+	for (i = 0; i < minfo->count; i++)
+	{
 		s = minfo->ports[i];
 
-		if (minfo->pflags[i]) {
+		if (minfo->pflags[i])
+		{
 			/* range port matching */
 			e = minfo->ports[++i];
 			pr_debug("src or dst matches with %d-%d?\n", s, e);
 
 			if (minfo->flags == XT_MULTIPORT_SOURCE
-			    && src >= s && src <= e)
+				&& src >= s && src <= e)
+			{
 				return true ^ minfo->invert;
+			}
+
 			if (minfo->flags == XT_MULTIPORT_DESTINATION
-			    && dst >= s && dst <= e)
+				&& dst >= s && dst <= e)
+			{
 				return true ^ minfo->invert;
+			}
+
 			if (minfo->flags == XT_MULTIPORT_EITHER
-			    && ((dst >= s && dst <= e)
-				|| (src >= s && src <= e)))
+				&& ((dst >= s && dst <= e)
+					|| (src >= s && src <= e)))
+			{
 				return true ^ minfo->invert;
-		} else {
+			}
+		}
+		else
+		{
 			/* exact port matching */
 			pr_debug("src or dst matches with %d?\n", s);
 
 			if (minfo->flags == XT_MULTIPORT_SOURCE
-			    && src == s)
+				&& src == s)
+			{
 				return true ^ minfo->invert;
+			}
+
 			if (minfo->flags == XT_MULTIPORT_DESTINATION
-			    && dst == s)
+				&& dst == s)
+			{
 				return true ^ minfo->invert;
+			}
+
 			if (minfo->flags == XT_MULTIPORT_EITHER
-			    && (src == s || dst == s))
+				&& (src == s || dst == s))
+			{
 				return true ^ minfo->invert;
+			}
 		}
 	}
 
@@ -79,10 +99,14 @@ multiport_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
 
 	if (par->fragoff != 0)
+	{
 		return false;
+	}
 
 	pptr = skb_header_pointer(skb, par->thoff, sizeof(_ports), _ports);
-	if (pptr == NULL) {
+
+	if (pptr == NULL)
+	{
 		/* We've been asked to examine this packet, and we
 		 * can't.  Hence, no choice but to drop.
 		 */
@@ -96,19 +120,19 @@ multiport_mt(const struct sk_buff *skb, struct xt_action_param *par)
 
 static inline bool
 check(u_int16_t proto,
-      u_int8_t ip_invflags,
-      u_int8_t match_flags,
-      u_int8_t count)
+	  u_int8_t ip_invflags,
+	  u_int8_t match_flags,
+	  u_int8_t count)
 {
 	/* Must specify supported protocol, no unknown flags or bad count */
 	return (proto == IPPROTO_TCP || proto == IPPROTO_UDP
-		|| proto == IPPROTO_UDPLITE
-		|| proto == IPPROTO_SCTP || proto == IPPROTO_DCCP)
-		&& !(ip_invflags & XT_INV_PROTO)
-		&& (match_flags == XT_MULTIPORT_SOURCE
-		    || match_flags == XT_MULTIPORT_DESTINATION
-		    || match_flags == XT_MULTIPORT_EITHER)
-		&& count <= XT_MULTI_PORTS;
+			|| proto == IPPROTO_UDPLITE
+			|| proto == IPPROTO_SCTP || proto == IPPROTO_DCCP)
+		   && !(ip_invflags & XT_INV_PROTO)
+		   && (match_flags == XT_MULTIPORT_SOURCE
+			   || match_flags == XT_MULTIPORT_DESTINATION
+			   || match_flags == XT_MULTIPORT_EITHER)
+		   && count <= XT_MULTI_PORTS;
 }
 
 static int multiport_mt_check(const struct xt_mtchk_param *par)
@@ -117,7 +141,7 @@ static int multiport_mt_check(const struct xt_mtchk_param *par)
 	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
 
 	return check(ip->proto, ip->invflags, multiinfo->flags,
-		     multiinfo->count) ? 0 : -EINVAL;
+				 multiinfo->count) ? 0 : -EINVAL;
 }
 
 static int multiport_mt6_check(const struct xt_mtchk_param *par)
@@ -126,10 +150,11 @@ static int multiport_mt6_check(const struct xt_mtchk_param *par)
 	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
 
 	return check(ip->proto, ip->invflags, multiinfo->flags,
-		     multiinfo->count) ? 0 : -EINVAL;
+				 multiinfo->count) ? 0 : -EINVAL;
 }
 
-static struct xt_match multiport_mt_reg[] __read_mostly = {
+static struct xt_match multiport_mt_reg[] __read_mostly =
+{
 	{
 		.name		= "multiport",
 		.family		= NFPROTO_IPV4,
@@ -153,7 +178,7 @@ static struct xt_match multiport_mt_reg[] __read_mostly = {
 static int __init multiport_mt_init(void)
 {
 	return xt_register_matches(multiport_mt_reg,
-	       ARRAY_SIZE(multiport_mt_reg));
+							   ARRAY_SIZE(multiport_mt_reg));
 }
 
 static void __exit multiport_mt_exit(void)

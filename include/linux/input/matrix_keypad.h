@@ -9,8 +9,8 @@
 #define MATRIX_MAX_COLS		32
 
 #define KEY(row, col, val)	((((row) & (MATRIX_MAX_ROWS - 1)) << 24) |\
-				 (((col) & (MATRIX_MAX_COLS - 1)) << 16) |\
-				 ((val) & 0xffff))
+							 (((col) & (MATRIX_MAX_COLS - 1)) << 16) |\
+							 ((val) & 0xffff))
 
 #define KEY_ROW(k)		(((k) >> 24) & 0xff)
 #define KEY_COL(k)		(((k) >> 16) & 0xff)
@@ -27,7 +27,8 @@
  * This structure is supposed to be used by platform code to supply
  * keymaps to drivers that implement matrix-like keypads/keyboards.
  */
-struct matrix_keymap_data {
+struct matrix_keymap_data
+{
 	const uint32_t *keymap;
 	unsigned int	keymap_size;
 };
@@ -53,7 +54,8 @@ struct matrix_keymap_data {
  * This structure represents platform-specific data that use used by
  * matrix_keypad driver to perform proper initialization.
  */
-struct matrix_keypad_platform_data {
+struct matrix_keypad_platform_data
+{
 	const struct matrix_keymap_data *keymap_data;
 
 	const unsigned int *row_gpios;
@@ -76,10 +78,10 @@ struct matrix_keypad_platform_data {
 };
 
 int matrix_keypad_build_keymap(const struct matrix_keymap_data *keymap_data,
-			       const char *keymap_name,
-			       unsigned int rows, unsigned int cols,
-			       unsigned short *keymap,
-			       struct input_dev *input_dev);
+							   const char *keymap_name,
+							   unsigned int rows, unsigned int cols,
+							   unsigned short *keymap,
+							   struct input_dev *input_dev);
 
 #ifdef CONFIG_OF
 /**
@@ -91,10 +93,10 @@ int matrix_keypad_build_keymap(const struct matrix_keymap_data *keymap_data,
  * @return 0 if OK, <0 on error
  */
 int matrix_keypad_parse_of_params(struct device *dev,
-				  unsigned int *rows, unsigned int *cols);
+								  unsigned int *rows, unsigned int *cols);
 #else
 static inline int matrix_keypad_parse_of_params(struct device *dev,
-				  unsigned int *rows, unsigned int *cols)
+		unsigned int *rows, unsigned int *cols)
 {
 	return -ENOSYS;
 }

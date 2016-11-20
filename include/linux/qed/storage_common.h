@@ -18,30 +18,35 @@
 
 #define BDQ_MAX_EXTERNAL_RING_SIZE (1 << 15)
 
-struct scsi_bd {
+struct scsi_bd
+{
 	struct regpair address;
 	struct regpair opaque;
 };
 
-struct scsi_bdq_ram_drv_data {
+struct scsi_bdq_ram_drv_data
+{
 	__le16 external_producer;
 	__le16 reserved0[3];
 };
 
-struct scsi_drv_cmdq {
+struct scsi_drv_cmdq
+{
 	__le16 cmdq_cons;
 	__le16 reserved0;
 	__le32 reserved1;
 };
 
-struct scsi_init_func_params {
+struct scsi_init_func_params
+{
 	__le16 num_tasks;
 	u8 log_page_size;
 	u8 debug_mode;
 	u8 reserved2[12];
 };
 
-struct scsi_init_func_queues {
+struct scsi_init_func_queues
+{
 	struct regpair glbl_q_params_addr;
 	__le16 rq_buffer_size;
 	__le16 cq_num_entries;
@@ -71,18 +76,21 @@ struct scsi_init_func_queues {
 	__le32 reserved1;
 };
 
-struct scsi_ram_per_bdq_resource_drv_data {
+struct scsi_ram_per_bdq_resource_drv_data
+{
 	struct scsi_bdq_ram_drv_data drv_data_per_bdq_id[BDQ_NUM_IDS];
 };
 
-struct scsi_sge {
+struct scsi_sge
+{
 	struct regpair sge_addr;
 	__le16 sge_len;
 	__le16 reserved0;
 	__le32 reserved1;
 };
 
-struct scsi_terminate_extra_params {
+struct scsi_terminate_extra_params
+{
 	__le16 unsolicited_cq_count;
 	__le16 cmdq_count;
 	u8 reserved[4];

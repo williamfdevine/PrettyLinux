@@ -44,23 +44,27 @@
 #define USB_CTL_WAIT	500 /* ms */
 
 int vnt_control_out(struct vnt_private *priv, u8 request, u16 value,
-		u16 index, u16 length, u8 *buffer)
+					u16 index, u16 length, u8 *buffer)
 {
 	int status = 0;
 
 	if (test_bit(DEVICE_FLAGS_DISCONNECTED, &priv->flags))
+	{
 		return STATUS_FAILURE;
+	}
 
 	mutex_lock(&priv->usb_lock);
 
 	status = usb_control_msg(priv->usb,
-		usb_sndctrlpipe(priv->usb, 0), request, 0x40, value,
-			index, buffer, length, USB_CTL_WAIT);
+							 usb_sndctrlpipe(priv->usb, 0), request, 0x40, value,
+							 index, buffer, length, USB_CTL_WAIT);
 
 	mutex_unlock(&priv->usb_lock);
 
 	if (status < (int)length)
+	{
 		return STATUS_FAILURE;
+	}
 
 	return STATUS_SUCCESS;
 }
@@ -72,23 +76,27 @@ void vnt_control_out_u8(struct vnt_private *priv, u8 reg, u8 reg_off, u8 data)
 }
 
 int vnt_control_in(struct vnt_private *priv, u8 request, u16 value,
-		u16 index, u16 length, u8 *buffer)
+				   u16 index, u16 length, u8 *buffer)
 {
 	int status;
 
 	if (test_bit(DEVICE_FLAGS_DISCONNECTED, &priv->flags))
+	{
 		return STATUS_FAILURE;
+	}
 
 	mutex_lock(&priv->usb_lock);
 
 	status = usb_control_msg(priv->usb,
-		usb_rcvctrlpipe(priv->usb, 0), request, 0xc0, value,
-			index, buffer, length, USB_CTL_WAIT);
+							 usb_rcvctrlpipe(priv->usb, 0), request, 0xc0, value,
+							 index, buffer, length, USB_CTL_WAIT);
 
 	mutex_unlock(&priv->usb_lock);
 
 	if (status < (int)length)
+	{
 		return STATUS_FAILURE;
+	}
 
 	return STATUS_SUCCESS;
 }
@@ -96,7 +104,7 @@ int vnt_control_in(struct vnt_private *priv, u8 request, u16 value,
 void vnt_control_in_u8(struct vnt_private *priv, u8 reg, u8 reg_off, u8 *data)
 {
 	vnt_control_in(priv, MESSAGE_TYPE_READ,
-			reg_off, reg, sizeof(u8), data);
+				   reg_off, reg, sizeof(u8), data);
 }
 
 static void vnt_start_interrupt_urb_complete(struct urb *urb)
@@ -104,32 +112,43 @@ static void vnt_start_interrupt_urb_complete(struct urb *urb)
 	struct vnt_private *priv = urb->context;
 	int status = urb->status;
 
-	switch (status) {
-	case 0:
-	case -ETIMEDOUT:
-		break;
-	case -ECONNRESET:
-	case -ENOENT:
-	case -ESHUTDOWN:
-		priv->int_buf.in_use = false;
-		return;
-	default:
-		break;
+	switch (status)
+	{
+		case 0:
+		case -ETIMEDOUT:
+			break;
+
+		case -ECONNRESET:
+		case -ENOENT:
+		case -ESHUTDOWN:
+			priv->int_buf.in_use = false;
+			return;
+
+		default:
+			break;
 	}
 
-	if (status) {
+	if (status)
+	{
 		priv->int_buf.in_use = false;
 
 		dev_dbg(&priv->usb->dev, "%s status = %d\n", __func__, status);
-	} else {
+	}
+	else
+	{
 		vnt_int_process_data(priv);
 	}
 
 	status = usb_submit_urb(priv->interrupt_urb, GFP_ATOMIC);
+
 	if (status)
+	{
 		dev_dbg(&priv->usb->dev, "Submit int URB failed %d\n", status);
+	}
 	else
+	{
 		priv->int_buf.in_use = true;
+	}
 }
 
 int vnt_start_interrupt_urb(struct vnt_private *priv)
@@ -137,21 +156,25 @@ int vnt_start_interrupt_urb(struct vnt_private *priv)
 	int status = STATUS_FAILURE;
 
 	if (priv->int_buf.in_use)
+	{
 		return STATUS_FAILURE;
+	}
 
 	priv->int_buf.in_use = true;
 
 	usb_fill_int_urb(priv->interrupt_urb,
-			 priv->usb,
-			 usb_rcvintpipe(priv->usb, 1),
-			 priv->int_buf.data_buf,
-			 MAX_INTERRUPT_SIZE,
-			 vnt_start_interrupt_urb_complete,
-			 priv,
-			 priv->int_interval);
+					 priv->usb,
+					 usb_rcvintpipe(priv->usb, 1),
+					 priv->int_buf.data_buf,
+					 MAX_INTERRUPT_SIZE,
+					 vnt_start_interrupt_urb_complete,
+					 priv,
+					 priv->int_interval);
 
 	status = usb_submit_urb(priv->interrupt_urb, GFP_ATOMIC);
-	if (status) {
+
+	if (status)
+	{
 		dev_dbg(&priv->usb->dev, "Submit int URB failed %d\n", status);
 		priv->int_buf.in_use = false;
 	}
@@ -164,39 +187,49 @@ static void vnt_submit_rx_urb_complete(struct urb *urb)
 	struct vnt_rcb *rcb = urb->context;
 	struct vnt_private *priv = rcb->priv;
 
-	switch (urb->status) {
-	case 0:
-		break;
-	case -ECONNRESET:
-	case -ENOENT:
-	case -ESHUTDOWN:
-		return;
-	case -ETIMEDOUT:
-	default:
-		dev_dbg(&priv->usb->dev, "BULK In failed %d\n", urb->status);
-		break;
+	switch (urb->status)
+	{
+		case 0:
+			break;
+
+		case -ECONNRESET:
+		case -ENOENT:
+		case -ESHUTDOWN:
+			return;
+
+		case -ETIMEDOUT:
+		default:
+			dev_dbg(&priv->usb->dev, "BULK In failed %d\n", urb->status);
+			break;
 	}
 
-	if (urb->actual_length) {
-		if (vnt_rx_data(priv, rcb, urb->actual_length)) {
+	if (urb->actual_length)
+	{
+		if (vnt_rx_data(priv, rcb, urb->actual_length))
+		{
 			rcb->skb = dev_alloc_skb(priv->rx_buf_sz);
-			if (!rcb->skb) {
+
+			if (!rcb->skb)
+			{
 				dev_dbg(&priv->usb->dev,
-					"Failed to re-alloc rx skb\n");
+						"Failed to re-alloc rx skb\n");
 
 				rcb->in_use = false;
 				return;
 			}
-		} else {
+		}
+		else
+		{
 			skb_push(rcb->skb, skb_headroom(rcb->skb));
 			skb_trim(rcb->skb, 0);
 		}
 
 		urb->transfer_buffer = skb_put(rcb->skb,
-						skb_tailroom(rcb->skb));
+									   skb_tailroom(rcb->skb));
 	}
 
-	if (usb_submit_urb(urb, GFP_ATOMIC)) {
+	if (usb_submit_urb(urb, GFP_ATOMIC))
+	{
 		dev_dbg(&priv->usb->dev, "Failed to re submit rx skb\n");
 
 		rcb->in_use = false;
@@ -208,21 +241,24 @@ int vnt_submit_rx_urb(struct vnt_private *priv, struct vnt_rcb *rcb)
 	int status = 0;
 	struct urb *urb = rcb->urb;
 
-	if (!rcb->skb) {
+	if (!rcb->skb)
+	{
 		dev_dbg(&priv->usb->dev, "rcb->skb is null\n");
 		return status;
 	}
 
 	usb_fill_bulk_urb(urb,
-			  priv->usb,
-			  usb_rcvbulkpipe(priv->usb, 2),
-			  skb_put(rcb->skb, skb_tailroom(rcb->skb)),
-			  MAX_TOTAL_SIZE_WITH_ALL_HEADERS,
-			  vnt_submit_rx_urb_complete,
-			  rcb);
+					  priv->usb,
+					  usb_rcvbulkpipe(priv->usb, 2),
+					  skb_put(rcb->skb, skb_tailroom(rcb->skb)),
+					  MAX_TOTAL_SIZE_WITH_ALL_HEADERS,
+					  vnt_submit_rx_urb_complete,
+					  rcb);
 
 	status = usb_submit_urb(urb, GFP_ATOMIC);
-	if (status) {
+
+	if (status)
+	{
 		dev_dbg(&priv->usb->dev, "Submit Rx URB failed %d\n", status);
 		return STATUS_FAILURE;
 	}
@@ -237,53 +273,64 @@ static void vnt_tx_context_complete(struct urb *urb)
 	struct vnt_usb_send_context *context = urb->context;
 	struct vnt_private *priv = context->priv;
 
-	switch (urb->status) {
-	case 0:
-		dev_dbg(&priv->usb->dev, "Write %d bytes\n", context->buf_len);
-		break;
-	case -ECONNRESET:
-	case -ENOENT:
-	case -ESHUTDOWN:
-		context->in_use = false;
-		return;
-	case -ETIMEDOUT:
-	default:
-		dev_dbg(&priv->usb->dev, "BULK Out failed %d\n", urb->status);
-		break;
+	switch (urb->status)
+	{
+		case 0:
+			dev_dbg(&priv->usb->dev, "Write %d bytes\n", context->buf_len);
+			break;
+
+		case -ECONNRESET:
+		case -ENOENT:
+		case -ESHUTDOWN:
+			context->in_use = false;
+			return;
+
+		case -ETIMEDOUT:
+		default:
+			dev_dbg(&priv->usb->dev, "BULK Out failed %d\n", urb->status);
+			break;
 	}
 
 	if (context->type == CONTEXT_DATA_PACKET)
+	{
 		ieee80211_wake_queues(priv->hw);
+	}
 
-	if (urb->status || context->type == CONTEXT_BEACON_PACKET) {
+	if (urb->status || context->type == CONTEXT_BEACON_PACKET)
+	{
 		if (context->skb)
+		{
 			ieee80211_free_txskb(priv->hw, context->skb);
+		}
 
 		context->in_use = false;
 	}
 }
 
 int vnt_tx_context(struct vnt_private *priv,
-		   struct vnt_usb_send_context *context)
+				   struct vnt_usb_send_context *context)
 {
 	int status;
 	struct urb *urb = context->urb;
 
-	if (test_bit(DEVICE_FLAGS_DISCONNECTED, &priv->flags)) {
+	if (test_bit(DEVICE_FLAGS_DISCONNECTED, &priv->flags))
+	{
 		context->in_use = false;
 		return STATUS_RESOURCES;
 	}
 
 	usb_fill_bulk_urb(urb,
-			  priv->usb,
-			  usb_sndbulkpipe(priv->usb, 3),
-			  context->data,
-			  context->buf_len,
-			  vnt_tx_context_complete,
-			  context);
+					  priv->usb,
+					  usb_sndbulkpipe(priv->usb, 3),
+					  context->data,
+					  context->buf_len,
+					  vnt_tx_context_complete,
+					  context);
 
 	status = usb_submit_urb(urb, GFP_ATOMIC);
-	if (status) {
+
+	if (status)
+	{
 		dev_dbg(&priv->usb->dev, "Submit Tx URB failed %d\n", status);
 
 		context->in_use = false;

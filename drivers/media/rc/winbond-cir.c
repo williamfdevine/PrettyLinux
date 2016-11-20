@@ -79,7 +79,7 @@
 
 /* SP3 Banked Registers, relative to data->sbase                        */
 #define WBCIR_REG_SP3_BSR	0x03 /* Bank Select, all banks		*/
-				      /* Bank 0				*/
+/* Bank 0				*/
 #define WBCIR_REG_SP3_RXDATA	0x00 /* FIFO RX data (r)		*/
 #define WBCIR_REG_SP3_TXDATA	0x00 /* FIFO TX data (w)		*/
 #define WBCIR_REG_SP3_IER	0x01 /* Interrupt Enable		*/
@@ -89,25 +89,25 @@
 #define WBCIR_REG_SP3_LSR	0x05 /* Link Status			*/
 #define WBCIR_REG_SP3_MSR	0x06 /* Modem Status			*/
 #define WBCIR_REG_SP3_ASCR	0x07 /* Aux Status and Control		*/
-				      /* Bank 2				*/
+/* Bank 2				*/
 #define WBCIR_REG_SP3_BGDL	0x00 /* Baud Divisor LSB		*/
 #define WBCIR_REG_SP3_BGDH	0x01 /* Baud Divisor MSB		*/
 #define WBCIR_REG_SP3_EXCR1	0x02 /* Extended Control 1		*/
 #define WBCIR_REG_SP3_EXCR2	0x04 /* Extended Control 2		*/
 #define WBCIR_REG_SP3_TXFLV	0x06 /* TX FIFO Level			*/
 #define WBCIR_REG_SP3_RXFLV	0x07 /* RX FIFO Level			*/
-				      /* Bank 3				*/
+/* Bank 3				*/
 #define WBCIR_REG_SP3_MRID	0x00 /* Module Identification		*/
 #define WBCIR_REG_SP3_SH_LCR	0x01 /* LCR Shadow			*/
 #define WBCIR_REG_SP3_SH_FCR	0x02 /* FCR Shadow			*/
-				      /* Bank 4				*/
+/* Bank 4				*/
 #define WBCIR_REG_SP3_IRCR1	0x02 /* Infrared Control 1		*/
-				      /* Bank 5				*/
+/* Bank 5				*/
 #define WBCIR_REG_SP3_IRCR2	0x04 /* Infrared Control 2		*/
-				      /* Bank 6				*/
+/* Bank 6				*/
 #define WBCIR_REG_SP3_IRCR3	0x00 /* Infrared Control 3		*/
 #define WBCIR_REG_SP3_SIR_PW	0x02 /* SIR Pulse Width			*/
-				      /* Bank 7				*/
+/* Bank 7				*/
 #define WBCIR_REG_SP3_IRRXDC	0x00 /* IR RX Demod Control		*/
 #define WBCIR_REG_SP3_IRTXMC	0x01 /* IR TX Mod Control		*/
 #define WBCIR_REG_SP3_RCCFG	0x02 /* CEIR Config			*/
@@ -158,7 +158,8 @@
 #define WBCIR_RX_T_OV		0x40
 
 /* Valid banks for the SP3 UART */
-enum wbcir_bank {
+enum wbcir_bank
+{
 	WBCIR_BANK_0          = 0x00,
 	WBCIR_BANK_1          = 0x80,
 	WBCIR_BANK_2          = 0xE0,
@@ -170,21 +171,24 @@ enum wbcir_bank {
 };
 
 /* Supported power-on IR Protocols */
-enum wbcir_protocol {
+enum wbcir_protocol
+{
 	IR_PROTOCOL_RC5          = 0x0,
 	IR_PROTOCOL_NEC          = 0x1,
 	IR_PROTOCOL_RC6          = 0x2,
 };
 
 /* Possible states for IR reception */
-enum wbcir_rxstate {
+enum wbcir_rxstate
+{
 	WBCIR_RXSTATE_INACTIVE = 0,
 	WBCIR_RXSTATE_ACTIVE,
 	WBCIR_RXSTATE_ERROR
 };
 
 /* Possible states for IR transmission */
-enum wbcir_txstate {
+enum wbcir_txstate
+{
 	WBCIR_TXSTATE_INACTIVE = 0,
 	WBCIR_TXSTATE_ACTIVE,
 	WBCIR_TXSTATE_ERROR
@@ -200,7 +204,8 @@ enum wbcir_txstate {
 #define SP_IOMEM_LEN             0x08 /* Serial Port 3 (IR) Reg Len	*/
 
 /* Per-device data */
-struct wbcir_data {
+struct wbcir_data
+{
 	spinlock_t spinlock;
 	struct rc_dev *dev;
 	struct led_classdev led;
@@ -228,7 +233,7 @@ struct wbcir_data {
 static enum wbcir_protocol protocol = IR_PROTOCOL_RC6;
 module_param(protocol, uint, 0444);
 MODULE_PARM_DESC(protocol, "IR protocol to use for the power-on command "
-		 "(0 = RC5, 1 = NEC, 2 = RC6A, default)");
+				 "(0 = RC5, 1 = NEC, 2 = RC6A, default)");
 
 static bool invert; /* default = 0 */
 module_param(invert, bool, 0444);
@@ -245,7 +250,7 @@ MODULE_PARM_DESC(wake_sc, "Scancode of the power-on IR command");
 static unsigned int wake_rc6mode = 6;
 module_param(wake_rc6mode, uint, 0644);
 MODULE_PARM_DESC(wake_rc6mode, "RC6 mode for the power-on command "
-		 "(0 = 0, 6 = 6A, default)");
+				 "(0 = 0, 6 = 6A, default)");
 
 
 
@@ -277,7 +282,9 @@ static inline void
 wbcir_set_irqmask(struct wbcir_data *data, u8 irqmask)
 {
 	if (data->irqmask == irqmask)
+	{
 		return;
+	}
 
 	wbcir_select_bank(data, WBCIR_BANK_0);
 	outb(irqmask, data->sbase + WBCIR_REG_SP3_IER);
@@ -288,26 +295,28 @@ static enum led_brightness
 wbcir_led_brightness_get(struct led_classdev *led_cdev)
 {
 	struct wbcir_data *data = container_of(led_cdev,
-					       struct wbcir_data,
-					       led);
+										   struct wbcir_data,
+										   led);
 
 	if (inb(data->ebase + WBCIR_REG_ECEIR_CTS) & WBCIR_LED_ENABLE)
+	{
 		return LED_FULL;
+	}
 	else
-		return LED_OFF;
+	{ return LED_OFF; }
 }
 
 static void
 wbcir_led_brightness_set(struct led_classdev *led_cdev,
-			 enum led_brightness brightness)
+						 enum led_brightness brightness)
 {
 	struct wbcir_data *data = container_of(led_cdev,
-					       struct wbcir_data,
-					       led);
+										   struct wbcir_data,
+										   led);
 
 	wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CTS,
-		       brightness == LED_OFF ? 0x00 : WBCIR_LED_ENABLE,
-		       WBCIR_LED_ENABLE);
+				   brightness == LED_OFF ? 0x00 : WBCIR_LED_ENABLE,
+				   WBCIR_LED_ENABLE);
 }
 
 /* Manchester encodes bits to RC6 message cells (see wbcir_shutdown) */
@@ -318,11 +327,18 @@ wbcir_to_rc6cells(u8 val)
 	int i;
 
 	val &= 0x0F;
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		if (val & 0x01)
+		{
 			coded |= 0x02 << (i * 2);
+		}
 		else
+		{
 			coded |= 0x01 << (i * 2);
+		}
+
 		val >>= 1;
 	}
 
@@ -339,14 +355,15 @@ static void
 wbcir_carrier_report(struct wbcir_data *data)
 {
 	unsigned counter = inb(data->ebase + WBCIR_REG_ECEIR_CNT_LO) |
-			inb(data->ebase + WBCIR_REG_ECEIR_CNT_HI) << 8;
+					   inb(data->ebase + WBCIR_REG_ECEIR_CNT_HI) << 8;
 
-	if (counter > 0 && counter < 0xffff) {
+	if (counter > 0 && counter < 0xffff)
+	{
 		DEFINE_IR_RAW_EVENT(ev);
 
 		ev.carrier_report = 1;
 		ev.carrier = DIV_ROUND_CLOSEST(counter * 1000000u,
-						data->pulse_duration);
+									   data->pulse_duration);
 
 		ir_raw_event_store(data->dev, &ev);
 	}
@@ -354,9 +371,9 @@ wbcir_carrier_report(struct wbcir_data *data)
 	/* reset and restart the counter */
 	data->pulse_duration = 0;
 	wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CCTL, WBCIR_CNTR_R,
-						WBCIR_CNTR_EN | WBCIR_CNTR_R);
+				   WBCIR_CNTR_EN | WBCIR_CNTR_R);
 	wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CCTL, WBCIR_CNTR_EN,
-						WBCIR_CNTR_EN | WBCIR_CNTR_R);
+				   WBCIR_CNTR_EN | WBCIR_CNTR_R);
 }
 
 static void
@@ -365,13 +382,18 @@ wbcir_idle_rx(struct rc_dev *dev, bool idle)
 	struct wbcir_data *data = dev->priv;
 
 	if (!idle && data->rxstate == WBCIR_RXSTATE_INACTIVE)
+	{
 		data->rxstate = WBCIR_RXSTATE_ACTIVE;
+	}
 
-	if (idle && data->rxstate != WBCIR_RXSTATE_INACTIVE) {
+	if (idle && data->rxstate != WBCIR_RXSTATE_INACTIVE)
+	{
 		data->rxstate = WBCIR_RXSTATE_INACTIVE;
 
 		if (data->carrier_report_enabled)
+		{
 			wbcir_carrier_report(data);
+		}
 
 		/* Tell hardware to go idle by setting RXINACTIVE */
 		outb(WBCIR_RX_DISABLE, data->sbase + WBCIR_REG_SP3_ASCR);
@@ -386,18 +408,24 @@ wbcir_irq_rx(struct wbcir_data *data, struct pnp_dev *device)
 	unsigned duration;
 
 	/* Since RXHDLEV is set, at least 8 bytes are in the FIFO */
-	while (inb(data->sbase + WBCIR_REG_SP3_LSR) & WBCIR_RX_AVAIL) {
+	while (inb(data->sbase + WBCIR_REG_SP3_LSR) & WBCIR_RX_AVAIL)
+	{
 		irdata = inb(data->sbase + WBCIR_REG_SP3_RXDATA);
+
 		if (data->rxstate == WBCIR_RXSTATE_ERROR)
+		{
 			continue;
+		}
 
 		duration = ((irdata & 0x7F) + 1) *
-			(data->carrier_report_enabled ? 2 : 10);
+				   (data->carrier_report_enabled ? 2 : 10);
 		rawir.pulse = irdata & 0x80 ? false : true;
 		rawir.duration = US_TO_NS(duration);
 
 		if (rawir.pulse)
+		{
 			data->pulse_duration += duration;
+		}
 
 		ir_raw_event_store_with_filter(data->dev, &rawir);
 	}
@@ -414,22 +442,28 @@ wbcir_irq_tx(struct wbcir_data *data)
 	u8 byte;
 
 	if (!data->txbuf)
+	{
 		return;
+	}
 
-	switch (data->txstate) {
-	case WBCIR_TXSTATE_INACTIVE:
-		/* TX FIFO empty */
-		space = 16;
-		break;
-	case WBCIR_TXSTATE_ACTIVE:
-		/* TX FIFO low (3 bytes or less) */
-		space = 13;
-		break;
-	case WBCIR_TXSTATE_ERROR:
-		space = 0;
-		break;
-	default:
-		return;
+	switch (data->txstate)
+	{
+		case WBCIR_TXSTATE_INACTIVE:
+			/* TX FIFO empty */
+			space = 16;
+			break;
+
+		case WBCIR_TXSTATE_ACTIVE:
+			/* TX FIFO low (3 bytes or less) */
+			space = 13;
+			break;
+
+		case WBCIR_TXSTATE_ERROR:
+			space = 0;
+			break;
+
+		default:
+			return;
 	}
 
 	/*
@@ -437,11 +471,14 @@ wbcir_irq_tx(struct wbcir_data *data)
 	 * Y = space (1) or pulse (0)
 	 * X = duration, encoded as (X + 1) * 10us (i.e 10 to 1280 us)
 	 */
-	for (used = 0; used < space && data->txoff != data->txlen; used++) {
-		if (data->txbuf[data->txoff] == 0) {
+	for (used = 0; used < space && data->txoff != data->txlen; used++)
+	{
+		if (data->txbuf[data->txoff] == 0)
+		{
 			data->txoff++;
 			continue;
 		}
+
 		byte = min((u32)0x80, data->txbuf[data->txoff]);
 		data->txbuf[data->txoff] -= byte;
 		byte--;
@@ -450,30 +487,42 @@ wbcir_irq_tx(struct wbcir_data *data)
 	}
 
 	while (data->txbuf[data->txoff] == 0 && data->txoff != data->txlen)
+	{
 		data->txoff++;
+	}
 
-	if (used == 0) {
+	if (used == 0)
+	{
 		/* Finished */
 		if (data->txstate == WBCIR_TXSTATE_ERROR)
 			/* Clear TX underrun bit */
+		{
 			outb(WBCIR_TX_UNDERRUN, data->sbase + WBCIR_REG_SP3_ASCR);
+		}
+
 		wbcir_set_irqmask(data, WBCIR_IRQ_RX | WBCIR_IRQ_ERR);
 		kfree(data->txbuf);
 		data->txbuf = NULL;
 		data->txstate = WBCIR_TXSTATE_INACTIVE;
-	} else if (data->txoff == data->txlen) {
+	}
+	else if (data->txoff == data->txlen)
+	{
 		/* At the end of transmission, tell the hw before last byte */
 		outsb(data->sbase + WBCIR_REG_SP3_TXDATA, bytes, used - 1);
 		outb(WBCIR_TX_EOT, data->sbase + WBCIR_REG_SP3_ASCR);
 		outb(bytes[used - 1], data->sbase + WBCIR_REG_SP3_TXDATA);
 		wbcir_set_irqmask(data, WBCIR_IRQ_RX | WBCIR_IRQ_ERR |
-				  WBCIR_IRQ_TX_EMPTY);
-	} else {
+						  WBCIR_IRQ_TX_EMPTY);
+	}
+	else
+	{
 		/* More data to follow... */
 		outsb(data->sbase + WBCIR_REG_SP3_RXDATA, bytes, used);
-		if (data->txstate == WBCIR_TXSTATE_INACTIVE) {
+
+		if (data->txstate == WBCIR_TXSTATE_INACTIVE)
+		{
 			wbcir_set_irqmask(data, WBCIR_IRQ_RX | WBCIR_IRQ_ERR |
-					  WBCIR_IRQ_TX_LOW);
+							  WBCIR_IRQ_TX_LOW);
 			data->txstate = WBCIR_TXSTATE_ACTIVE;
 		}
 	}
@@ -492,28 +541,37 @@ wbcir_irq_handler(int irqno, void *cookie)
 	status = inb(data->sbase + WBCIR_REG_SP3_EIR);
 	status &= data->irqmask;
 
-	if (!status) {
+	if (!status)
+	{
 		spin_unlock_irqrestore(&data->spinlock, flags);
 		return IRQ_NONE;
 	}
 
-	if (status & WBCIR_IRQ_ERR) {
+	if (status & WBCIR_IRQ_ERR)
+	{
 		/* RX overflow? (read clears bit) */
-		if (inb(data->sbase + WBCIR_REG_SP3_LSR) & WBCIR_RX_OVERRUN) {
+		if (inb(data->sbase + WBCIR_REG_SP3_LSR) & WBCIR_RX_OVERRUN)
+		{
 			data->rxstate = WBCIR_RXSTATE_ERROR;
 			ir_raw_event_reset(data->dev);
 		}
 
 		/* TX underflow? */
 		if (inb(data->sbase + WBCIR_REG_SP3_ASCR) & WBCIR_TX_UNDERRUN)
+		{
 			data->txstate = WBCIR_TXSTATE_ERROR;
+		}
 	}
 
 	if (status & WBCIR_IRQ_RX)
+	{
 		wbcir_irq_rx(data, device);
+	}
 
 	if (status & (WBCIR_IRQ_TX_LOW | WBCIR_IRQ_TX_EMPTY))
+	{
 		wbcir_irq_tx(data);
+	}
 
 	spin_unlock_irqrestore(&data->spinlock, flags);
 	return IRQ_HANDLED;
@@ -533,18 +591,19 @@ wbcir_set_carrier_report(struct rc_dev *dev, int enable)
 
 	spin_lock_irqsave(&data->spinlock, flags);
 
-	if (data->carrier_report_enabled == enable) {
+	if (data->carrier_report_enabled == enable)
+	{
 		spin_unlock_irqrestore(&data->spinlock, flags);
 		return 0;
 	}
 
 	data->pulse_duration = 0;
 	wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CCTL, WBCIR_CNTR_R,
-						WBCIR_CNTR_EN | WBCIR_CNTR_R);
+				   WBCIR_CNTR_EN | WBCIR_CNTR_R);
 
 	if (enable && data->dev->idle)
 		wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CCTL,
-				WBCIR_CNTR_EN, WBCIR_CNTR_EN | WBCIR_CNTR_R);
+					   WBCIR_CNTR_EN, WBCIR_CNTR_EN | WBCIR_CNTR_R);
 
 	/* Set a higher sampling resolution if carrier reports are enabled */
 	wbcir_select_bank(data, WBCIR_BANK_2);
@@ -555,7 +614,7 @@ wbcir_set_carrier_report(struct rc_dev *dev, int enable)
 	/* Enable oversampling if carrier reports are enabled */
 	wbcir_select_bank(data, WBCIR_BANK_7);
 	wbcir_set_bits(data->sbase + WBCIR_REG_SP3_RCCFG,
-				enable ? WBCIR_RX_T_OV : 0, WBCIR_RX_T_OV);
+				   enable ? WBCIR_RX_T_OV : 0, WBCIR_RX_T_OV);
 
 	data->carrier_report_enabled = enable;
 	spin_unlock_irqrestore(&data->spinlock, flags);
@@ -572,33 +631,42 @@ wbcir_txcarrier(struct rc_dev *dev, u32 carrier)
 	u32 freq;
 
 	freq = DIV_ROUND_CLOSEST(carrier, 1000);
-	if (freq < 30 || freq > 60)
-		return -EINVAL;
 
-	switch (freq) {
-	case 58:
-	case 59:
-	case 60:
-		val = freq - 58;
-		freq *= 1000;
-		break;
-	case 57:
-		val = freq - 27;
-		freq = 56900;
-		break;
-	default:
-		val = freq - 27;
-		freq *= 1000;
-		break;
+	if (freq < 30 || freq > 60)
+	{
+		return -EINVAL;
+	}
+
+	switch (freq)
+	{
+		case 58:
+		case 59:
+		case 60:
+			val = freq - 58;
+			freq *= 1000;
+			break;
+
+		case 57:
+			val = freq - 27;
+			freq = 56900;
+			break;
+
+		default:
+			val = freq - 27;
+			freq *= 1000;
+			break;
 	}
 
 	spin_lock_irqsave(&data->spinlock, flags);
-	if (data->txstate != WBCIR_TXSTATE_INACTIVE) {
+
+	if (data->txstate != WBCIR_TXSTATE_INACTIVE)
+	{
 		spin_unlock_irqrestore(&data->spinlock, flags);
 		return -EBUSY;
 	}
 
-	if (data->txcarrier != freq) {
+	if (data->txcarrier != freq)
+	{
 		wbcir_select_bank(data, WBCIR_BANK_7);
 		wbcir_set_bits(data->sbase + WBCIR_REG_SP3_IRTXMC, val, 0x1F);
 		data->txcarrier = freq;
@@ -617,33 +685,43 @@ wbcir_txmask(struct rc_dev *dev, u32 mask)
 
 	/* return the number of transmitters */
 	if (mask > 15)
+	{
 		return 4;
+	}
 
 	/* Four outputs, only one output can be enabled at a time */
-	switch (mask) {
-	case 0x1:
-		val = 0x0;
-		break;
-	case 0x2:
-		val = 0x1;
-		break;
-	case 0x4:
-		val = 0x2;
-		break;
-	case 0x8:
-		val = 0x3;
-		break;
-	default:
-		return -EINVAL;
+	switch (mask)
+	{
+		case 0x1:
+			val = 0x0;
+			break;
+
+		case 0x2:
+			val = 0x1;
+			break;
+
+		case 0x4:
+			val = 0x2;
+			break;
+
+		case 0x8:
+			val = 0x3;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	spin_lock_irqsave(&data->spinlock, flags);
-	if (data->txstate != WBCIR_TXSTATE_INACTIVE) {
+
+	if (data->txstate != WBCIR_TXSTATE_INACTIVE)
+	{
 		spin_unlock_irqrestore(&data->spinlock, flags);
 		return -EBUSY;
 	}
 
-	if (data->txmask != mask) {
+	if (data->txmask != mask)
+	{
 		wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CTS, val, 0x0c);
 		data->txmask = mask;
 	}
@@ -661,16 +739,23 @@ wbcir_tx(struct rc_dev *dev, unsigned *b, unsigned count)
 	unsigned long flags;
 
 	buf = kmalloc(count * sizeof(*b), GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	/* Convert values to multiples of 10us */
 	for (i = 0; i < count; i++)
+	{
 		buf[i] = DIV_ROUND_CLOSEST(b[i], 10);
+	}
 
 	/* Not sure if this is possible, but better safe than sorry */
 	spin_lock_irqsave(&data->spinlock, flags);
-	if (data->txstate != WBCIR_TXSTATE_INACTIVE) {
+
+	if (data->txstate != WBCIR_TXSTATE_INACTIVE)
+	{
 		spin_unlock_irqrestore(&data->spinlock, flags);
 		kfree(buf);
 		return -EBUSY;
@@ -707,144 +792,169 @@ wbcir_shutdown(struct pnp_dev *device)
 	memset(match, 0, sizeof(match));
 	memset(mask, 0, sizeof(mask));
 
-	if (wake_sc == INVALID_SCANCODE || !device_may_wakeup(dev)) {
+	if (wake_sc == INVALID_SCANCODE || !device_may_wakeup(dev))
+	{
 		do_wake = false;
 		goto finish;
 	}
 
-	switch (protocol) {
-	case IR_PROTOCOL_RC5:
-		if (wake_sc > 0xFFF) {
-			do_wake = false;
-			dev_err(dev, "RC5 - Invalid wake scancode\n");
-			break;
-		}
-
-		/* Mask = 13 bits, ex toggle */
-		mask[0] = 0xFF;
-		mask[1] = 0x17;
-
-		match[0]  = (wake_sc & 0x003F);      /* 6 command bits */
-		match[0] |= (wake_sc & 0x0180) >> 1; /* 2 address bits */
-		match[1]  = (wake_sc & 0x0E00) >> 9; /* 3 address bits */
-		if (!(wake_sc & 0x0040))             /* 2nd start bit  */
-			match[1] |= 0x10;
-
-		break;
-
-	case IR_PROTOCOL_NEC:
-		if (wake_sc > 0xFFFFFF) {
-			do_wake = false;
-			dev_err(dev, "NEC - Invalid wake scancode\n");
-			break;
-		}
-
-		mask[0] = mask[1] = mask[2] = mask[3] = 0xFF;
-
-		match[1] = bitrev8((wake_sc & 0xFF));
-		match[0] = ~match[1];
-
-		match[3] = bitrev8((wake_sc & 0xFF00) >> 8);
-		if (wake_sc > 0xFFFF)
-			match[2] = bitrev8((wake_sc & 0xFF0000) >> 16);
-		else
-			match[2] = ~match[3];
-
-		break;
-
-	case IR_PROTOCOL_RC6:
-
-		if (wake_rc6mode == 0) {
-			if (wake_sc > 0xFFFF) {
+	switch (protocol)
+	{
+		case IR_PROTOCOL_RC5:
+			if (wake_sc > 0xFFF)
+			{
 				do_wake = false;
-				dev_err(dev, "RC6 - Invalid wake scancode\n");
+				dev_err(dev, "RC5 - Invalid wake scancode\n");
 				break;
 			}
 
-			/* Command */
-			match[0] = wbcir_to_rc6cells(wake_sc >>  0);
-			mask[0]  = 0xFF;
-			match[1] = wbcir_to_rc6cells(wake_sc >>  4);
-			mask[1]  = 0xFF;
+			/* Mask = 13 bits, ex toggle */
+			mask[0] = 0xFF;
+			mask[1] = 0x17;
 
-			/* Address */
-			match[2] = wbcir_to_rc6cells(wake_sc >>  8);
-			mask[2]  = 0xFF;
-			match[3] = wbcir_to_rc6cells(wake_sc >> 12);
-			mask[3]  = 0xFF;
+			match[0]  = (wake_sc & 0x003F);      /* 6 command bits */
+			match[0] |= (wake_sc & 0x0180) >> 1; /* 2 address bits */
+			match[1]  = (wake_sc & 0x0E00) >> 9; /* 3 address bits */
 
-			/* Header */
-			match[4] = 0x50; /* mode1 = mode0 = 0, ignore toggle */
-			mask[4]  = 0xF0;
-			match[5] = 0x09; /* start bit = 1, mode2 = 0 */
-			mask[5]  = 0x0F;
+			if (!(wake_sc & 0x0040))             /* 2nd start bit  */
+			{
+				match[1] |= 0x10;
+			}
 
-			rc6_csl = 44;
+			break;
 
-		} else if (wake_rc6mode == 6) {
-			i = 0;
-
-			/* Command */
-			match[i]  = wbcir_to_rc6cells(wake_sc >>  0);
-			mask[i++] = 0xFF;
-			match[i]  = wbcir_to_rc6cells(wake_sc >>  4);
-			mask[i++] = 0xFF;
-
-			/* Address + Toggle */
-			match[i]  = wbcir_to_rc6cells(wake_sc >>  8);
-			mask[i++] = 0xFF;
-			match[i]  = wbcir_to_rc6cells(wake_sc >> 12);
-			mask[i++] = 0x3F;
-
-			/* Customer bits 7 - 0 */
-			match[i]  = wbcir_to_rc6cells(wake_sc >> 16);
-			mask[i++] = 0xFF;
-			match[i]  = wbcir_to_rc6cells(wake_sc >> 20);
-			mask[i++] = 0xFF;
-
-			if (wake_sc & 0x80000000) {
-				/* Customer range bit and bits 15 - 8 */
-				match[i]  = wbcir_to_rc6cells(wake_sc >> 24);
-				mask[i++] = 0xFF;
-				match[i]  = wbcir_to_rc6cells(wake_sc >> 28);
-				mask[i++] = 0xFF;
-				rc6_csl = 76;
-			} else if (wake_sc <= 0x007FFFFF) {
-				rc6_csl = 60;
-			} else {
+		case IR_PROTOCOL_NEC:
+			if (wake_sc > 0xFFFFFF)
+			{
 				do_wake = false;
-				dev_err(dev, "RC6 - Invalid wake scancode\n");
+				dev_err(dev, "NEC - Invalid wake scancode\n");
 				break;
 			}
 
-			/* Header */
-			match[i]  = 0x93; /* mode1 = mode0 = 1, submode = 0 */
-			mask[i++] = 0xFF;
-			match[i]  = 0x0A; /* start bit = 1, mode2 = 1 */
-			mask[i++] = 0x0F;
+			mask[0] = mask[1] = mask[2] = mask[3] = 0xFF;
 
-		} else {
+			match[1] = bitrev8((wake_sc & 0xFF));
+			match[0] = ~match[1];
+
+			match[3] = bitrev8((wake_sc & 0xFF00) >> 8);
+
+			if (wake_sc > 0xFFFF)
+			{
+				match[2] = bitrev8((wake_sc & 0xFF0000) >> 16);
+			}
+			else
+			{
+				match[2] = ~match[3];
+			}
+
+			break;
+
+		case IR_PROTOCOL_RC6:
+
+			if (wake_rc6mode == 0)
+			{
+				if (wake_sc > 0xFFFF)
+				{
+					do_wake = false;
+					dev_err(dev, "RC6 - Invalid wake scancode\n");
+					break;
+				}
+
+				/* Command */
+				match[0] = wbcir_to_rc6cells(wake_sc >>  0);
+				mask[0]  = 0xFF;
+				match[1] = wbcir_to_rc6cells(wake_sc >>  4);
+				mask[1]  = 0xFF;
+
+				/* Address */
+				match[2] = wbcir_to_rc6cells(wake_sc >>  8);
+				mask[2]  = 0xFF;
+				match[3] = wbcir_to_rc6cells(wake_sc >> 12);
+				mask[3]  = 0xFF;
+
+				/* Header */
+				match[4] = 0x50; /* mode1 = mode0 = 0, ignore toggle */
+				mask[4]  = 0xF0;
+				match[5] = 0x09; /* start bit = 1, mode2 = 0 */
+				mask[5]  = 0x0F;
+
+				rc6_csl = 44;
+
+			}
+			else if (wake_rc6mode == 6)
+			{
+				i = 0;
+
+				/* Command */
+				match[i]  = wbcir_to_rc6cells(wake_sc >>  0);
+				mask[i++] = 0xFF;
+				match[i]  = wbcir_to_rc6cells(wake_sc >>  4);
+				mask[i++] = 0xFF;
+
+				/* Address + Toggle */
+				match[i]  = wbcir_to_rc6cells(wake_sc >>  8);
+				mask[i++] = 0xFF;
+				match[i]  = wbcir_to_rc6cells(wake_sc >> 12);
+				mask[i++] = 0x3F;
+
+				/* Customer bits 7 - 0 */
+				match[i]  = wbcir_to_rc6cells(wake_sc >> 16);
+				mask[i++] = 0xFF;
+				match[i]  = wbcir_to_rc6cells(wake_sc >> 20);
+				mask[i++] = 0xFF;
+
+				if (wake_sc & 0x80000000)
+				{
+					/* Customer range bit and bits 15 - 8 */
+					match[i]  = wbcir_to_rc6cells(wake_sc >> 24);
+					mask[i++] = 0xFF;
+					match[i]  = wbcir_to_rc6cells(wake_sc >> 28);
+					mask[i++] = 0xFF;
+					rc6_csl = 76;
+				}
+				else if (wake_sc <= 0x007FFFFF)
+				{
+					rc6_csl = 60;
+				}
+				else
+				{
+					do_wake = false;
+					dev_err(dev, "RC6 - Invalid wake scancode\n");
+					break;
+				}
+
+				/* Header */
+				match[i]  = 0x93; /* mode1 = mode0 = 1, submode = 0 */
+				mask[i++] = 0xFF;
+				match[i]  = 0x0A; /* start bit = 1, mode2 = 1 */
+				mask[i++] = 0x0F;
+
+			}
+			else
+			{
+				do_wake = false;
+				dev_err(dev, "RC6 - Invalid wake mode\n");
+			}
+
+			break;
+
+		default:
 			do_wake = false;
-			dev_err(dev, "RC6 - Invalid wake mode\n");
-		}
-
-		break;
-
-	default:
-		do_wake = false;
-		break;
+			break;
 	}
 
 finish:
-	if (do_wake) {
+
+	if (do_wake)
+	{
 		/* Set compare and compare mask */
 		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_INDEX,
-			       WBCIR_REGSEL_COMPARE | WBCIR_REG_ADDR0,
-			       0x3F);
+					   WBCIR_REGSEL_COMPARE | WBCIR_REG_ADDR0,
+					   0x3F);
 		outsb(data->wbase + WBCIR_REG_WCEIR_DATA, match, 11);
 		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_INDEX,
-			       WBCIR_REGSEL_MASK | WBCIR_REG_ADDR0,
-			       0x3F);
+					   WBCIR_REGSEL_MASK | WBCIR_REG_ADDR0,
+					   0x3F);
 		outsb(data->wbase + WBCIR_REG_WCEIR_DATA, mask, 11);
 
 		/* RC6 Compare String Len */
@@ -859,7 +969,9 @@ finish:
 		/* Set CEIR_EN */
 		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x01, 0x01);
 
-	} else {
+	}
+	else
+	{
 		/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
 		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
 
@@ -896,8 +1008,12 @@ wbcir_init_hw(struct wbcir_data *data)
 
 	/* Set PROT_SEL, RX_INV, Clear CEIR_EN (needed for the led) */
 	tmp = protocol << 4;
+
 	if (invert)
+	{
 		tmp |= 0x08;
+	}
+
 	outb(tmp, data->wbase + WBCIR_REG_WCEIR_CTL);
 
 	/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
@@ -911,9 +1027,13 @@ wbcir_init_hw(struct wbcir_data *data)
 
 	/* Set IRTX_INV */
 	if (invert)
+	{
 		outb(WBCIR_IRTX_INV, data->ebase + WBCIR_REG_ECEIR_CCTL);
+	}
 	else
+	{
 		outb(0x00, data->ebase + WBCIR_REG_ECEIR_CCTL);
+	}
 
 	/*
 	 * Clear IR LED, set SP3 clock to 24Mhz, set TX mask to IRTX1,
@@ -976,9 +1096,13 @@ wbcir_init_hw(struct wbcir_data *data)
 
 	/* Set invert and pin direction */
 	if (invert)
+	{
 		outb(0x10, data->sbase + WBCIR_REG_SP3_IRCFG4);
+	}
 	else
+	{
 		outb(0x00, data->sbase + WBCIR_REG_SP3_IRCFG4);
+	}
 
 	/* Set FIFO thresholds (RX = 8, TX = 3), reset RX/TX */
 	wbcir_select_bank(data, WBCIR_BANK_0);
@@ -993,7 +1117,8 @@ wbcir_init_hw(struct wbcir_data *data)
 	ir_raw_event_set_idle(data->dev, true);
 
 	/* Clear TX state */
-	if (data->txstate == WBCIR_TXSTATE_ACTIVE) {
+	if (data->txstate == WBCIR_TXSTATE_ACTIVE)
+	{
 		kfree(data->txbuf);
 		data->txbuf = NULL;
 		data->txstate = WBCIR_TXSTATE_INACTIVE;
@@ -1023,14 +1148,17 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
 	int err;
 
 	if (!(pnp_port_len(device, 0) == EHFUNC_IOMEM_LEN &&
-	      pnp_port_len(device, 1) == WAKEUP_IOMEM_LEN &&
-	      pnp_port_len(device, 2) == SP_IOMEM_LEN)) {
+		  pnp_port_len(device, 1) == WAKEUP_IOMEM_LEN &&
+		  pnp_port_len(device, 2) == SP_IOMEM_LEN))
+	{
 		dev_err(dev, "Invalid resources\n");
 		return -ENODEV;
 	}
 
 	data = kzalloc(sizeof(*data), GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		err = -ENOMEM;
 		goto exit;
 	}
@@ -1044,26 +1172,32 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
 	data->irq = pnp_irq(device, 0);
 
 	if (data->wbase == 0 || data->ebase == 0 ||
-	    data->sbase == 0 || data->irq == 0) {
+		data->sbase == 0 || data->irq == 0)
+	{
 		err = -ENODEV;
 		dev_err(dev, "Invalid resources\n");
 		goto exit_free_data;
 	}
 
 	dev_dbg(&device->dev, "Found device "
-		"(w: 0x%lX, e: 0x%lX, s: 0x%lX, i: %u)\n",
-		data->wbase, data->ebase, data->sbase, data->irq);
+			"(w: 0x%lX, e: 0x%lX, s: 0x%lX, i: %u)\n",
+			data->wbase, data->ebase, data->sbase, data->irq);
 
 	data->led.name = "cir::activity";
 	data->led.default_trigger = "rc-feedback";
 	data->led.brightness_set = wbcir_led_brightness_set;
 	data->led.brightness_get = wbcir_led_brightness_get;
 	err = led_classdev_register(&device->dev, &data->led);
+
 	if (err)
+	{
 		goto exit_free_data;
+	}
 
 	data->dev = rc_allocate_device();
-	if (!data->dev) {
+
+	if (!data->dev)
+	{
 		err = -ENOMEM;
 		goto exit_unregister_led;
 	}
@@ -1089,33 +1223,41 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
 	data->dev->allowed_protocols = RC_BIT_ALL;
 
 	err = rc_register_device(data->dev);
-	if (err)
-		goto exit_free_rc;
 
-	if (!request_region(data->wbase, WAKEUP_IOMEM_LEN, DRVNAME)) {
+	if (err)
+	{
+		goto exit_free_rc;
+	}
+
+	if (!request_region(data->wbase, WAKEUP_IOMEM_LEN, DRVNAME))
+	{
 		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-			data->wbase, data->wbase + WAKEUP_IOMEM_LEN - 1);
+				data->wbase, data->wbase + WAKEUP_IOMEM_LEN - 1);
 		err = -EBUSY;
 		goto exit_unregister_device;
 	}
 
-	if (!request_region(data->ebase, EHFUNC_IOMEM_LEN, DRVNAME)) {
+	if (!request_region(data->ebase, EHFUNC_IOMEM_LEN, DRVNAME))
+	{
 		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-			data->ebase, data->ebase + EHFUNC_IOMEM_LEN - 1);
+				data->ebase, data->ebase + EHFUNC_IOMEM_LEN - 1);
 		err = -EBUSY;
 		goto exit_release_wbase;
 	}
 
-	if (!request_region(data->sbase, SP_IOMEM_LEN, DRVNAME)) {
+	if (!request_region(data->sbase, SP_IOMEM_LEN, DRVNAME))
+	{
 		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-			data->sbase, data->sbase + SP_IOMEM_LEN - 1);
+				data->sbase, data->sbase + SP_IOMEM_LEN - 1);
 		err = -EBUSY;
 		goto exit_release_ebase;
 	}
 
 	err = request_irq(data->irq, wbcir_irq_handler,
-			  0, DRVNAME, device);
-	if (err) {
+					  0, DRVNAME, device);
+
+	if (err)
+	{
 		dev_err(dev, "Failed to claim IRQ %u\n", data->irq);
 		err = -EBUSY;
 		goto exit_release_sbase;
@@ -1181,13 +1323,15 @@ wbcir_remove(struct pnp_dev *device)
 	pnp_set_drvdata(device, NULL);
 }
 
-static const struct pnp_device_id wbcir_ids[] = {
+static const struct pnp_device_id wbcir_ids[] =
+{
 	{ "WEC1022", 0 },
 	{ "", 0 }
 };
 MODULE_DEVICE_TABLE(pnp, wbcir_ids);
 
-static struct pnp_driver wbcir_driver = {
+static struct pnp_driver wbcir_driver =
+{
 	.name     = WBCIR_NAME,
 	.id_table = wbcir_ids,
 	.probe    = wbcir_probe,
@@ -1202,18 +1346,23 @@ wbcir_init(void)
 {
 	int ret;
 
-	switch (protocol) {
-	case IR_PROTOCOL_RC5:
-	case IR_PROTOCOL_NEC:
-	case IR_PROTOCOL_RC6:
-		break;
-	default:
-		pr_err("Invalid power-on protocol\n");
+	switch (protocol)
+	{
+		case IR_PROTOCOL_RC5:
+		case IR_PROTOCOL_NEC:
+		case IR_PROTOCOL_RC6:
+			break;
+
+		default:
+			pr_err("Invalid power-on protocol\n");
 	}
 
 	ret = pnp_register_driver(&wbcir_driver);
+
 	if (ret)
+	{
 		pr_err("Unable to register driver\n");
+	}
 
 	return ret;
 }

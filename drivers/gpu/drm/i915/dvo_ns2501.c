@@ -184,15 +184,17 @@
 #define NS2501_F9_DITHER_MASK (0x7f<<1) /* dither masking */
 #define NS2501_F9_DITHER_SHIFT 1	/* upshift of the dither mask */
 
-enum {
+enum
+{
 	MODE_640x480,
 	MODE_800x600,
 	MODE_1024x768,
 };
 
-struct ns2501_reg {
-	 uint8_t offset;
-	 uint8_t value;
+struct ns2501_reg
+{
+	uint8_t offset;
+	uint8_t value;
 };
 
 /*
@@ -201,7 +203,8 @@ struct ns2501_reg {
  * This is pretty much guess-work from reverse-engineering, so
  * read all this with a grain of salt.
  */
-struct ns2501_configuration {
+struct ns2501_configuration
+{
 	uint8_t sync;		/* configuration of the C0 register */
 	uint8_t conf;		/* configuration register 8 */
 	uint8_t syncb;		/* configuration register 41 */
@@ -227,7 +230,8 @@ struct ns2501_configuration {
  * partially found by manual tweaking. These configurations assume
  * a 1024x768 panel.
  */
-static const struct ns2501_configuration ns2501_modes[] = {
+static const struct ns2501_configuration ns2501_modes[] =
+{
 	[MODE_640x480] = {
 		.sync	= NS2501_C0_ENABLE | NS2501_C0_VSYNC,
 		.conf	= NS2501_8_VEN | NS2501_8_HEN | NS2501_8_PD,
@@ -249,7 +253,7 @@ static const struct ns2501_configuration ns2501_modes[] = {
 	},
 	[MODE_800x600] = {
 		.sync	= NS2501_C0_ENABLE |
-			  NS2501_C0_HSYNC | NS2501_C0_VSYNC,
+		NS2501_C0_HSYNC | NS2501_C0_VSYNC,
 		.conf   = NS2501_8_VEN | NS2501_8_HEN | NS2501_8_PD,
 		.syncb	= 0x00,
 		.dither	= 0x0f,
@@ -295,7 +299,8 @@ static const struct ns2501_configuration ns2501_modes[] = {
  * is unknown.
  */
 
-static const struct ns2501_reg mode_agnostic_values[] = {
+static const struct ns2501_reg mode_agnostic_values[] =
+{
 	/* 08 is mode specific */
 	[0] = { .offset = 0x0a, .value = 0x81, },
 	/* 10,11 are part of the mode specific configuration */
@@ -370,13 +375,15 @@ static const struct ns2501_reg mode_agnostic_values[] = {
 	[60] = { .offset = 0xf9, .value = 0x00, }
 };
 
-static const struct ns2501_reg regs_init[] = {
+static const struct ns2501_reg regs_init[] =
+{
 	[0] = { .offset = 0x35, .value = 0xff, },
 	[1] = { .offset = 0x34, .value = 0x00, },
 	[2] = { .offset = 0x08, .value = 0x30, },
 };
 
-struct ns2501_priv {
+struct ns2501_priv
+{
 	bool quiet;
 	const struct ns2501_configuration *conf;
 };
@@ -389,40 +396,43 @@ struct ns2501_priv {
 ** If it returns false, it might be wise to enable the
 ** DVO with the above function.
 */
-static bool ns2501_readb(struct intel_dvo_device *dvo, int addr, uint8_t * ch)
+static bool ns2501_readb(struct intel_dvo_device *dvo, int addr, uint8_t *ch)
 {
 	struct ns2501_priv *ns = dvo->dev_priv;
 	struct i2c_adapter *adapter = dvo->i2c_bus;
 	u8 out_buf[2];
 	u8 in_buf[2];
 
-	struct i2c_msg msgs[] = {
+	struct i2c_msg msgs[] =
+	{
 		{
-		 .addr = dvo->slave_addr,
-		 .flags = 0,
-		 .len = 1,
-		 .buf = out_buf,
-		 },
+			.addr = dvo->slave_addr,
+			.flags = 0,
+			.len = 1,
+			.buf = out_buf,
+		},
 		{
-		 .addr = dvo->slave_addr,
-		 .flags = I2C_M_RD,
-		 .len = 1,
-		 .buf = in_buf,
-		 }
+			.addr = dvo->slave_addr,
+			.flags = I2C_M_RD,
+			.len = 1,
+			.buf = in_buf,
+		}
 	};
 
 	out_buf[0] = addr;
 	out_buf[1] = 0;
 
-	if (i2c_transfer(adapter, msgs, 2) == 2) {
+	if (i2c_transfer(adapter, msgs, 2) == 2)
+	{
 		*ch = in_buf[0];
 		return true;
 	}
 
-	if (!ns->quiet) {
+	if (!ns->quiet)
+	{
 		DRM_DEBUG_KMS
-		    ("Unable to read register 0x%02x from %s:0x%02x.\n", addr,
-		     adapter->name, dvo->slave_addr);
+		("Unable to read register 0x%02x from %s:0x%02x.\n", addr,
+		 adapter->name, dvo->slave_addr);
 	}
 
 	return false;
@@ -440,7 +450,8 @@ static bool ns2501_writeb(struct intel_dvo_device *dvo, int addr, uint8_t ch)
 	struct i2c_adapter *adapter = dvo->i2c_bus;
 	uint8_t out_buf[2];
 
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = dvo->slave_addr,
 		.flags = 0,
 		.len = 2,
@@ -450,13 +461,15 @@ static bool ns2501_writeb(struct intel_dvo_device *dvo, int addr, uint8_t ch)
 	out_buf[0] = addr;
 	out_buf[1] = ch;
 
-	if (i2c_transfer(adapter, &msg, 1) == 1) {
+	if (i2c_transfer(adapter, &msg, 1) == 1)
+	{
 		return true;
 	}
 
-	if (!ns->quiet) {
+	if (!ns->quiet)
+	{
 		DRM_DEBUG_KMS("Unable to write register 0x%02x to %s:%d\n",
-			      addr, adapter->name, dvo->slave_addr);
+					  addr, adapter->name, dvo->slave_addr);
 	}
 
 	return false;
@@ -469,37 +482,47 @@ static bool ns2501_writeb(struct intel_dvo_device *dvo, int addr, uint8_t ch)
  * Bummer!
  */
 static bool ns2501_init(struct intel_dvo_device *dvo,
-			struct i2c_adapter *adapter)
+						struct i2c_adapter *adapter)
 {
 	/* this will detect the NS2501 chip on the specified i2c bus */
 	struct ns2501_priv *ns;
 	unsigned char ch;
 
 	ns = kzalloc(sizeof(struct ns2501_priv), GFP_KERNEL);
+
 	if (ns == NULL)
+	{
 		return false;
+	}
 
 	dvo->i2c_bus = adapter;
 	dvo->dev_priv = ns;
 	ns->quiet = true;
 
 	if (!ns2501_readb(dvo, NS2501_VID_LO, &ch))
+	{
 		goto out;
+	}
 
-	if (ch != (NS2501_VID & 0xff)) {
+	if (ch != (NS2501_VID & 0xff))
+	{
 		DRM_DEBUG_KMS("ns2501 not detected got %d: from %s Slave %d.\n",
-			      ch, adapter->name, dvo->slave_addr);
+					  ch, adapter->name, dvo->slave_addr);
 		goto out;
 	}
 
 	if (!ns2501_readb(dvo, NS2501_DID_LO, &ch))
-		goto out;
-
-	if (ch != (NS2501_DID & 0xff)) {
-		DRM_DEBUG_KMS("ns2501 not detected got %d: from %s Slave %d.\n",
-			      ch, adapter->name, dvo->slave_addr);
+	{
 		goto out;
 	}
+
+	if (ch != (NS2501_DID & 0xff))
+	{
+		DRM_DEBUG_KMS("ns2501 not detected got %d: from %s Slave %d.\n",
+					  ch, adapter->name, dvo->slave_addr);
+		goto out;
+	}
+
 	ns->quiet = false;
 
 	DRM_DEBUG_KMS("init ns2501 dvo controller successfully!\n");
@@ -524,11 +547,11 @@ static enum drm_connector_status ns2501_detect(struct intel_dvo_device *dvo)
 }
 
 static enum drm_mode_status ns2501_mode_valid(struct intel_dvo_device *dvo,
-					      struct drm_display_mode *mode)
+		struct drm_display_mode *mode)
 {
 	DRM_DEBUG_KMS
-	    ("is mode valid (hdisplay=%d,htotal=%d,vdisplay=%d,vtotal=%d)\n",
-	     mode->hdisplay, mode->htotal, mode->vdisplay, mode->vtotal);
+	("is mode valid (hdisplay=%d,htotal=%d,vdisplay=%d,vtotal=%d)\n",
+	 mode->hdisplay, mode->htotal, mode->vdisplay, mode->vtotal);
 
 	/*
 	 * Currently, these are all the modes I have data from.
@@ -537,73 +560,86 @@ static enum drm_mode_status ns2501_mode_valid(struct intel_dvo_device *dvo,
 	 * by disabling the scaler.
 	 */
 	if ((mode->hdisplay == 640 && mode->vdisplay == 480 && mode->clock == 25175) ||
-	    (mode->hdisplay == 800 && mode->vdisplay == 600 && mode->clock == 40000) ||
-	    (mode->hdisplay == 1024 && mode->vdisplay == 768 && mode->clock == 65000)) {
+		(mode->hdisplay == 800 && mode->vdisplay == 600 && mode->clock == 40000) ||
+		(mode->hdisplay == 1024 && mode->vdisplay == 768 && mode->clock == 65000))
+	{
 		return MODE_OK;
-	} else {
+	}
+	else
+	{
 		return MODE_ONE_SIZE;	/* Is this a reasonable error? */
 	}
 }
 
 static void ns2501_mode_set(struct intel_dvo_device *dvo,
-			    const struct drm_display_mode *mode,
-			    const struct drm_display_mode *adjusted_mode)
+							const struct drm_display_mode *mode,
+							const struct drm_display_mode *adjusted_mode)
 {
 	const struct ns2501_configuration *conf;
 	struct ns2501_priv *ns = (struct ns2501_priv *)(dvo->dev_priv);
 	int mode_idx, i;
 
 	DRM_DEBUG_KMS
-	    ("set mode (hdisplay=%d,htotal=%d,vdisplay=%d,vtotal=%d).\n",
-	     mode->hdisplay, mode->htotal, mode->vdisplay, mode->vtotal);
+	("set mode (hdisplay=%d,htotal=%d,vdisplay=%d,vtotal=%d).\n",
+	 mode->hdisplay, mode->htotal, mode->vdisplay, mode->vtotal);
 
 	DRM_DEBUG_KMS("Detailed requested mode settings are:\n"
-			"clock		: %d kHz\n"
-			"hdisplay	: %d\n"
-			"hblank start	: %d\n"
-			"hblank end	: %d\n"
-			"hsync start	: %d\n"
-			"hsync end	: %d\n"
-			"htotal		: %d\n"
-			"hskew		: %d\n"
-			"vdisplay	: %d\n"
-			"vblank start	: %d\n"
-			"hblank end	: %d\n"
-			"vsync start	: %d\n"
-			"vsync end	: %d\n"
-			"vtotal		: %d\n",
-			adjusted_mode->crtc_clock,
-			adjusted_mode->crtc_hdisplay,
-			adjusted_mode->crtc_hblank_start,
-			adjusted_mode->crtc_hblank_end,
-			adjusted_mode->crtc_hsync_start,
-			adjusted_mode->crtc_hsync_end,
-			adjusted_mode->crtc_htotal,
-			adjusted_mode->crtc_hskew,
-			adjusted_mode->crtc_vdisplay,
-			adjusted_mode->crtc_vblank_start,
-			adjusted_mode->crtc_vblank_end,
-			adjusted_mode->crtc_vsync_start,
-			adjusted_mode->crtc_vsync_end,
-			adjusted_mode->crtc_vtotal);
+				  "clock		: %d kHz\n"
+				  "hdisplay	: %d\n"
+				  "hblank start	: %d\n"
+				  "hblank end	: %d\n"
+				  "hsync start	: %d\n"
+				  "hsync end	: %d\n"
+				  "htotal		: %d\n"
+				  "hskew		: %d\n"
+				  "vdisplay	: %d\n"
+				  "vblank start	: %d\n"
+				  "hblank end	: %d\n"
+				  "vsync start	: %d\n"
+				  "vsync end	: %d\n"
+				  "vtotal		: %d\n",
+				  adjusted_mode->crtc_clock,
+				  adjusted_mode->crtc_hdisplay,
+				  adjusted_mode->crtc_hblank_start,
+				  adjusted_mode->crtc_hblank_end,
+				  adjusted_mode->crtc_hsync_start,
+				  adjusted_mode->crtc_hsync_end,
+				  adjusted_mode->crtc_htotal,
+				  adjusted_mode->crtc_hskew,
+				  adjusted_mode->crtc_vdisplay,
+				  adjusted_mode->crtc_vblank_start,
+				  adjusted_mode->crtc_vblank_end,
+				  adjusted_mode->crtc_vsync_start,
+				  adjusted_mode->crtc_vsync_end,
+				  adjusted_mode->crtc_vtotal);
 
 	if (mode->hdisplay == 640 && mode->vdisplay == 480)
+	{
 		mode_idx = MODE_640x480;
+	}
 	else if (mode->hdisplay == 800 && mode->vdisplay == 600)
+	{
 		mode_idx = MODE_800x600;
+	}
 	else if (mode->hdisplay == 1024 && mode->vdisplay == 768)
+	{
 		mode_idx = MODE_1024x768;
+	}
 	else
+	{
 		return;
+	}
 
 	/* Hopefully doing it every time won't hurt... */
 	for (i = 0; i < ARRAY_SIZE(regs_init); i++)
+	{
 		ns2501_writeb(dvo, regs_init[i].offset, regs_init[i].value);
+	}
 
 	/* Write the mode-agnostic values */
 	for (i = 0; i < ARRAY_SIZE(mode_agnostic_values); i++)
 		ns2501_writeb(dvo, mode_agnostic_values[i].offset,
-				mode_agnostic_values[i].value);
+					  mode_agnostic_values[i].value);
 
 	/* Write now the mode-specific configuration */
 	conf = ns2501_modes + mode_idx;
@@ -646,7 +682,9 @@ static bool ns2501_get_hw_state(struct intel_dvo_device *dvo)
 	unsigned char ch;
 
 	if (!ns2501_readb(dvo, NS2501_REG8, &ch))
+	{
 		return false;
+	}
 
 	return ch & NS2501_8_PD;
 }
@@ -658,7 +696,8 @@ static void ns2501_dpms(struct intel_dvo_device *dvo, bool enable)
 
 	DRM_DEBUG_KMS("Trying set the dpms of the DVO to %i\n", enable);
 
-	if (enable) {
+	if (enable)
+	{
 		ns2501_writeb(dvo, NS2501_REGC0, ns->conf->sync | 0x08);
 
 		ns2501_writeb(dvo, NS2501_REG41, ns->conf->syncb);
@@ -667,21 +706,27 @@ static void ns2501_dpms(struct intel_dvo_device *dvo, bool enable)
 		msleep(15);
 
 		ns2501_writeb(dvo, NS2501_REG8,
-				ns->conf->conf | NS2501_8_BPAS);
+					  ns->conf->conf | NS2501_8_BPAS);
+
 		if (!(ns->conf->conf & NS2501_8_BPAS))
+		{
 			ns2501_writeb(dvo, NS2501_REG8, ns->conf->conf);
+		}
+
 		msleep(200);
 
 		ns2501_writeb(dvo, NS2501_REG34,
-			NS2501_34_ENABLE_OUTPUT | NS2501_34_ENABLE_BACKLIGHT);
+					  NS2501_34_ENABLE_OUTPUT | NS2501_34_ENABLE_BACKLIGHT);
 
 		ns2501_writeb(dvo, NS2501_REGC0, ns->conf->sync);
-	} else {
+	}
+	else
+	{
 		ns2501_writeb(dvo, NS2501_REG34, NS2501_34_ENABLE_OUTPUT);
 		msleep(200);
 
 		ns2501_writeb(dvo, NS2501_REG8, NS2501_8_VEN | NS2501_8_HEN |
-				NS2501_8_BPAS);
+					  NS2501_8_BPAS);
 		msleep(15);
 
 		ns2501_writeb(dvo, NS2501_REG34, 0x00);
@@ -692,13 +737,15 @@ static void ns2501_destroy(struct intel_dvo_device *dvo)
 {
 	struct ns2501_priv *ns = dvo->dev_priv;
 
-	if (ns) {
+	if (ns)
+	{
 		kfree(ns);
 		dvo->dev_priv = NULL;
 	}
 }
 
-const struct intel_dvo_dev_ops ns2501_ops = {
+const struct intel_dvo_dev_ops ns2501_ops =
+{
 	.init = ns2501_init,
 	.detect = ns2501_detect,
 	.mode_valid = ns2501_mode_valid,

@@ -23,7 +23,8 @@
 
 #include <sound/vx_core.h>
 
-struct snd_vx222 {
+struct snd_vx222
+{
 
 	struct vx_core core;
 

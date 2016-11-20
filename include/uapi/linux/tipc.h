@@ -44,17 +44,20 @@
  * TIPC addressing primitives
  */
 
-struct tipc_portid {
+struct tipc_portid
+{
 	__u32 ref;
 	__u32 node;
 };
 
-struct tipc_name {
+struct tipc_name
+{
 	__u32 type;
 	__u32 instance;
 };
 
-struct tipc_name_seq {
+struct tipc_name_seq
+{
 	__u32 type;
 	__u32 lower;
 	__u32 upper;
@@ -81,12 +84,12 @@ struct tipc_name_seq {
 #define TIPC_ZONE_CLUSTER_MASK (TIPC_ZONE_MASK | TIPC_CLUSTER_MASK)
 
 static inline __u32 tipc_addr(unsigned int zone,
-			      unsigned int cluster,
-			      unsigned int node)
+							  unsigned int cluster,
+							  unsigned int node)
 {
 	return (zone << TIPC_ZONE_OFFSET) |
-		(cluster << TIPC_CLUSTER_OFFSET) |
-		node;
+		   (cluster << TIPC_CLUSTER_OFFSET) |
+		   node;
 }
 
 static inline unsigned int tipc_zone(__u32 addr)
@@ -157,7 +160,8 @@ static inline unsigned int tipc_node(__u32 addr)
 
 #define TIPC_WAIT_FOREVER	(~0)	/* timeout for permanent subscription */
 
-struct tipc_subscr {
+struct tipc_subscr
+{
 	struct tipc_name_seq seq;	/* name sequence of interest */
 	__u32 timeout;			/* subscription duration (in ms) */
 	__u32 filter;			/* bitmask of filter options */
@@ -168,7 +172,8 @@ struct tipc_subscr {
 #define TIPC_WITHDRAWN		2	/* withdraw event */
 #define TIPC_SUBSCR_TIMEOUT	3	/* subscription timeout event */
 
-struct tipc_event {
+struct tipc_event
+{
 	__u32 event;			/* event type */
 	__u32 found_lower;		/* matching name seq instances */
 	__u32 found_upper;		/*    "      "    "     "      */
@@ -181,15 +186,15 @@ struct tipc_event {
  */
 
 #ifndef AF_TIPC
-#define AF_TIPC		30
+	#define AF_TIPC		30
 #endif
 
 #ifndef PF_TIPC
-#define PF_TIPC		AF_TIPC
+	#define PF_TIPC		AF_TIPC
 #endif
 
 #ifndef SOL_TIPC
-#define SOL_TIPC	271
+	#define SOL_TIPC	271
 #endif
 
 #define TIPC_ADDR_NAMESEQ	1
@@ -197,14 +202,17 @@ struct tipc_event {
 #define TIPC_ADDR_NAME		2
 #define TIPC_ADDR_ID		3
 
-struct sockaddr_tipc {
+struct sockaddr_tipc
+{
 	unsigned short family;
 	unsigned char  addrtype;
 	signed   char  scope;
-	union {
+	union
+	{
 		struct tipc_portid id;
 		struct tipc_name_seq nameseq;
-		struct {
+		struct
+		{
 			struct tipc_name name;
 			__u32 domain;
 		} name;
@@ -246,7 +254,8 @@ struct sockaddr_tipc {
 
 #define SIOCGETLINKNAME		SIOCPROTOPRIVATE
 
-struct tipc_sioc_ln_req {
+struct tipc_sioc_ln_req
+{
 	__u32 peer;
 	__u32 bearer_id;
 	char linkname[TIPC_MAX_LINK_NAME];

@@ -35,7 +35,8 @@
 #include <linux/major.h>
 
 
-struct mtdblk_dev {
+struct mtdblk_dev
+{
 	struct mtd_blktrans_dev mbd;
 	int count;
 	struct mutex cache_mutex;
@@ -62,7 +63,7 @@ static void erase_callback(struct erase_info *done)
 }
 
 static int erase_write (struct mtd_info *mtd, unsigned long pos,
-			int len, const char *buf)
+						int len, const char *buf)
 {
 	struct erase_info erase;
 	DECLARE_WAITQUEUE(wait, current);
@@ -85,12 +86,14 @@ static int erase_write (struct mtd_info *mtd, unsigned long pos,
 	add_wait_queue(&wait_q, &wait);
 
 	ret = mtd_erase(mtd, &erase);
-	if (ret) {
+
+	if (ret)
+	{
 		set_current_state(TASK_RUNNING);
 		remove_wait_queue(&wait_q, &wait);
 		printk (KERN_WARNING "mtdblock: erase of region [0x%lx, 0x%x] "
-				     "on \"%s\" failed\n",
-			pos, len, mtd->name);
+				"on \"%s\" failed\n",
+				pos, len, mtd->name);
 		return ret;
 	}
 
@@ -102,10 +105,17 @@ static int erase_write (struct mtd_info *mtd, unsigned long pos,
 	 */
 
 	ret = mtd_write(mtd, pos, len, &retlen, buf);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	if (retlen != len)
+	{
 		return -EIO;
+	}
+
 	return 0;
 }
 
@@ -116,16 +126,21 @@ static int write_cached_data (struct mtdblk_dev *mtdblk)
 	int ret;
 
 	if (mtdblk->cache_state != STATE_DIRTY)
+	{
 		return 0;
+	}
 
 	pr_debug("mtdblock: writing cached data for \"%s\" "
-			"at 0x%lx, size 0x%x\n", mtd->name,
-			mtdblk->cache_offset, mtdblk->cache_size);
+			 "at 0x%lx, size 0x%x\n", mtd->name,
+			 mtdblk->cache_offset, mtdblk->cache_size);
 
 	ret = erase_write (mtd, mtdblk->cache_offset,
-			   mtdblk->cache_size, mtdblk->cache_data);
+					   mtdblk->cache_size, mtdblk->cache_data);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * Here we could arguably set the cache state to STATE_CLEAN.
@@ -140,7 +155,7 @@ static int write_cached_data (struct mtdblk_dev *mtdblk)
 
 
 static int do_cached_write (struct mtdblk_dev *mtdblk, unsigned long pos,
-			    int len, const char *buf)
+							int len, const char *buf)
 {
 	struct mtd_info *mtd = mtdblk->mbd.mtd;
 	unsigned int sect_size = mtdblk->cache_size;
@@ -148,47 +163,70 @@ static int do_cached_write (struct mtdblk_dev *mtdblk, unsigned long pos,
 	int ret;
 
 	pr_debug("mtdblock: write on \"%s\" at 0x%lx, size 0x%x\n",
-		mtd->name, pos, len);
+			 mtd->name, pos, len);
 
 	if (!sect_size)
+	{
 		return mtd_write(mtd, pos, len, &retlen, buf);
+	}
 
-	while (len > 0) {
-		unsigned long sect_start = (pos/sect_size)*sect_size;
+	while (len > 0)
+	{
+		unsigned long sect_start = (pos / sect_size) * sect_size;
 		unsigned int offset = pos - sect_start;
 		unsigned int size = sect_size - offset;
-		if( size > len )
-			size = len;
 
-		if (size == sect_size) {
+		if ( size > len )
+		{
+			size = len;
+		}
+
+		if (size == sect_size)
+		{
 			/*
 			 * We are covering a whole sector.  Thus there is no
 			 * need to bother with the cache while it may still be
 			 * useful for other partial writes.
 			 */
 			ret = erase_write (mtd, pos, size, buf);
+
 			if (ret)
+			{
 				return ret;
-		} else {
+			}
+		}
+		else
+		{
 			/* Partial sector: need to use the cache */
 
 			if (mtdblk->cache_state == STATE_DIRTY &&
-			    mtdblk->cache_offset != sect_start) {
+				mtdblk->cache_offset != sect_start)
+			{
 				ret = write_cached_data(mtdblk);
+
 				if (ret)
+				{
 					return ret;
+				}
 			}
 
 			if (mtdblk->cache_state == STATE_EMPTY ||
-			    mtdblk->cache_offset != sect_start) {
+				mtdblk->cache_offset != sect_start)
+			{
 				/* fill the cache with the current sector */
 				mtdblk->cache_state = STATE_EMPTY;
 				ret = mtd_read(mtd, sect_start, sect_size,
-					       &retlen, mtdblk->cache_data);
+							   &retlen, mtdblk->cache_data);
+
 				if (ret)
+				{
 					return ret;
+				}
+
 				if (retlen != sect_size)
+				{
 					return -EIO;
+				}
 
 				mtdblk->cache_offset = sect_start;
 				mtdblk->cache_size = sect_size;
@@ -210,7 +248,7 @@ static int do_cached_write (struct mtdblk_dev *mtdblk, unsigned long pos,
 
 
 static int do_cached_read (struct mtdblk_dev *mtdblk, unsigned long pos,
-			   int len, char *buf)
+						   int len, char *buf)
 {
 	struct mtd_info *mtd = mtdblk->mbd.mtd;
 	unsigned int sect_size = mtdblk->cache_size;
@@ -218,17 +256,23 @@ static int do_cached_read (struct mtdblk_dev *mtdblk, unsigned long pos,
 	int ret;
 
 	pr_debug("mtdblock: read on \"%s\" at 0x%lx, size 0x%x\n",
-			mtd->name, pos, len);
+			 mtd->name, pos, len);
 
 	if (!sect_size)
+	{
 		return mtd_read(mtd, pos, len, &retlen, buf);
+	}
 
-	while (len > 0) {
-		unsigned long sect_start = (pos/sect_size)*sect_size;
+	while (len > 0)
+	{
+		unsigned long sect_start = (pos / sect_size) * sect_size;
 		unsigned int offset = pos - sect_start;
 		unsigned int size = sect_size - offset;
+
 		if (size > len)
+		{
 			size = len;
+		}
 
 		/*
 		 * Check if the requested data is already cached
@@ -237,14 +281,23 @@ static int do_cached_read (struct mtdblk_dev *mtdblk, unsigned long pos,
 		 * from flash.
 		 */
 		if (mtdblk->cache_state != STATE_EMPTY &&
-		    mtdblk->cache_offset == sect_start) {
+			mtdblk->cache_offset == sect_start)
+		{
 			memcpy (buf, mtdblk->cache_data + offset, size);
-		} else {
+		}
+		else
+		{
 			ret = mtd_read(mtd, pos, size, &retlen, buf);
+
 			if (ret)
+			{
 				return ret;
+			}
+
 			if (retlen != size)
+			{
 				return -EIO;
+			}
 		}
 
 		buf += size;
@@ -256,26 +309,33 @@ static int do_cached_read (struct mtdblk_dev *mtdblk, unsigned long pos,
 }
 
 static int mtdblock_readsect(struct mtd_blktrans_dev *dev,
-			      unsigned long block, char *buf)
+							 unsigned long block, char *buf)
 {
 	struct mtdblk_dev *mtdblk = container_of(dev, struct mtdblk_dev, mbd);
-	return do_cached_read(mtdblk, block<<9, 512, buf);
+	return do_cached_read(mtdblk, block << 9, 512, buf);
 }
 
 static int mtdblock_writesect(struct mtd_blktrans_dev *dev,
-			      unsigned long block, char *buf)
+							  unsigned long block, char *buf)
 {
 	struct mtdblk_dev *mtdblk = container_of(dev, struct mtdblk_dev, mbd);
-	if (unlikely(!mtdblk->cache_data && mtdblk->cache_size)) {
+
+	if (unlikely(!mtdblk->cache_data && mtdblk->cache_size))
+	{
 		mtdblk->cache_data = vmalloc(mtdblk->mbd.mtd->erasesize);
+
 		if (!mtdblk->cache_data)
+		{
 			return -EINTR;
+		}
+
 		/* -EINTR is not really correct, but it is the best match
 		 * documented in man 2 write for all cases.  We could also
 		 * return -EAGAIN sometimes, but why bother?
 		 */
 	}
-	return do_cached_write(mtdblk, block<<9, 512, buf);
+
+	return do_cached_write(mtdblk, block << 9, 512, buf);
 }
 
 static int mtdblock_open(struct mtd_blktrans_dev *mbd)
@@ -284,7 +344,8 @@ static int mtdblock_open(struct mtd_blktrans_dev *mbd)
 
 	pr_debug("mtdblock_open\n");
 
-	if (mtdblk->count) {
+	if (mtdblk->count)
+	{
 		mtdblk->count++;
 		return 0;
 	}
@@ -293,7 +354,9 @@ static int mtdblock_open(struct mtd_blktrans_dev *mbd)
 	mtdblk->count = 1;
 	mutex_init(&mtdblk->cache_mutex);
 	mtdblk->cache_state = STATE_EMPTY;
-	if (!(mbd->mtd->flags & MTD_NO_ERASE) && mbd->mtd->erasesize) {
+
+	if (!(mbd->mtd->flags & MTD_NO_ERASE) && mbd->mtd->erasesize)
+	{
 		mtdblk->cache_size = mbd->mtd->erasesize;
 		mtdblk->cache_data = NULL;
 	}
@@ -313,13 +376,17 @@ static void mtdblock_release(struct mtd_blktrans_dev *mbd)
 	write_cached_data(mtdblk);
 	mutex_unlock(&mtdblk->cache_mutex);
 
-	if (!--mtdblk->count) {
+	if (!--mtdblk->count)
+	{
 		/*
 		 * It was the last usage. Free the cache, but only sync if
 		 * opened for writing.
 		 */
 		if (mbd->file_mode & FMODE_WRITE)
+		{
 			mtd_sync(mbd->mtd);
+		}
+
 		vfree(mtdblk->cache_data);
 	}
 
@@ -342,7 +409,9 @@ static void mtdblock_add_mtd(struct mtd_blktrans_ops *tr, struct mtd_info *mtd)
 	struct mtdblk_dev *dev = kzalloc(sizeof(*dev), GFP_KERNEL);
 
 	if (!dev)
+	{
 		return;
+	}
 
 	dev->mbd.mtd = mtd;
 	dev->mbd.devnum = mtd->index;
@@ -351,10 +420,14 @@ static void mtdblock_add_mtd(struct mtd_blktrans_ops *tr, struct mtd_info *mtd)
 	dev->mbd.tr = tr;
 
 	if (!(mtd->flags & MTD_WRITEABLE))
+	{
 		dev->mbd.readonly = 1;
+	}
 
 	if (add_mtd_blktrans_dev(&dev->mbd))
+	{
 		kfree(dev);
+	}
 }
 
 static void mtdblock_remove_dev(struct mtd_blktrans_dev *dev)
@@ -362,7 +435,8 @@ static void mtdblock_remove_dev(struct mtd_blktrans_dev *dev)
 	del_mtd_blktrans_dev(dev);
 }
 
-static struct mtd_blktrans_ops mtdblock_tr = {
+static struct mtd_blktrans_ops mtdblock_tr =
+{
 	.name		= "mtdblock",
 	.major		= MTD_BLOCK_MAJOR,
 	.part_bits	= 0,

@@ -8,7 +8,8 @@
 struct b43_wldev;
 
 /* Local Oscillator control value-pair. */
-struct b43_loctl {
+struct b43_loctl
+{
 	/* Control values. */
 	s8 i;
 	s8 q;
@@ -18,7 +19,8 @@ struct b43_loctl {
 
 /* This struct holds calibrated LO settings for a set of
  * Baseband and RF attenuation settings. */
-struct b43_lo_calib {
+struct b43_lo_calib
+{
 	/* The set of attenuation values this set of LO
 	 * control values is calibrated for. */
 	struct b43_bbatt bbatt;
@@ -35,7 +37,8 @@ struct b43_lo_calib {
 #define B43_DC_LT_SIZE		32
 
 /* Local Oscillator calibration information */
-struct b43_txpower_lo_control {
+struct b43_txpower_lo_control
+{
 	/* Lists of RF and BB attenuation values for this device.
 	 * Used for building hardware power control tables. */
 	struct b43_rfatt_list rfatt_list;
@@ -76,7 +79,7 @@ struct b43_txpower_lo_control {
 void b43_lo_g_adjust(struct b43_wldev *dev);
 /* Adjust to specific values. */
 void b43_lo_g_adjust_to(struct b43_wldev *dev,
-			u16 rfatt, u16 bbatt, u16 tx_control);
+						u16 rfatt, u16 bbatt, u16 tx_control);
 
 void b43_gphy_dc_lt_init(struct b43_wldev *dev, bool update_all);
 

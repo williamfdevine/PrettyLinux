@@ -54,10 +54,10 @@ struct scb_platform_data;
 
 /****************************** Useful Macros *********************************/
 #ifndef TRUE
-#define TRUE 1
+	#define TRUE 1
 #endif
 #ifndef FALSE
-#define FALSE 0
+	#define FALSE 0
 #endif
 
 #define ALL_CHANNELS '\0'
@@ -89,7 +89,7 @@ struct scb_platform_data;
 #ifdef AHD_DEBUG
 #define SCB_IS_SILENT(scb)					\
 	((ahd_debug & AHD_SHOW_MASKED_ERRORS) == 0		\
-      && (((scb)->flags & SCB_SILENT) != 0))
+	 && (((scb)->flags & SCB_SILENT) != 0))
 #else
 #define SCB_IS_SILENT(scb)					\
 	(((scb)->flags & SCB_SILENT) != 0)
@@ -110,8 +110,8 @@ struct scb_platform_data;
 	ahd_le16toh(scb->hscb->tag)
 
 #ifndef	AHD_TARGET_MODE
-#undef	AHD_TMODE_ENABLE
-#define	AHD_TMODE_ENABLE 0
+	#undef	AHD_TMODE_ENABLE
+	#define	AHD_TMODE_ENABLE 0
 #endif
 
 #define AHD_BUILD_COL_IDX(target, lun)				\
@@ -121,16 +121,16 @@ struct scb_platform_data;
 	((SCB_GET_LUN(scb) << 4) | SCB_GET_TARGET(ahd, scb))
 
 #define AHD_SET_SCB_COL_IDX(scb, col_idx)				\
-do {									\
-	(scb)->hscb->scsiid = ((col_idx) << TID_SHIFT) & TID;		\
-	(scb)->hscb->lun = ((col_idx) >> 4) & (AHD_NUM_LUNS_NONPKT-1);	\
-} while (0)
+	do {									\
+		(scb)->hscb->scsiid = ((col_idx) << TID_SHIFT) & TID;		\
+		(scb)->hscb->lun = ((col_idx) >> 4) & (AHD_NUM_LUNS_NONPKT-1);	\
+	} while (0)
 
 #define AHD_COPY_SCB_COL_IDX(dst, src)				\
-do {								\
-	dst->hscb->scsiid = src->hscb->scsiid;			\
-	dst->hscb->lun = src->hscb->lun;			\
-} while (0)
+	do {								\
+		dst->hscb->scsiid = src->hscb->scsiid;			\
+		dst->hscb->lun = src->hscb->lun;			\
+	} while (0)
 
 #define	AHD_NEVER_COL_IDX 0xFFFF
 
@@ -195,7 +195,8 @@ do {								\
  * Chip Type
  * The chip order is from least sophisticated to most sophisticated.
  */
-typedef enum {
+typedef enum
+{
 	AHD_NONE	= 0x0000,
 	AHD_CHIPID_MASK	= 0x00FF,
 	AHD_AIC7901	= 0x0001,
@@ -209,7 +210,8 @@ typedef enum {
 /*
  * Features available in each chip type.
  */
-typedef enum {
+typedef enum
+{
 	AHD_FENONE		= 0x00000,
 	AHD_WIDE  		= 0x00001,/* Wide Channel */
 	AHD_AIC79XXB_SLOWCRC    = 0x00002,/* SLOWCRC bit should be set */
@@ -229,7 +231,8 @@ typedef enum {
 /*
  * Bugs in the silicon that we work around in software.
  */
-typedef enum {
+typedef enum
+{
 	AHD_BUGNONE		= 0x0000,
 	/*
 	 * Rev A hardware fails to update LAST/CURR/NEXTSCB
@@ -254,8 +257,8 @@ typedef enum {
 	AHD_PCIX_SCBRAM_RD_BUG  = 0x0100,
 	/* Bug workarounds that can be disabled on non-PCIX busses. */
 	AHD_PCIX_BUG_MASK	= AHD_PCIX_CHIPRST_BUG
-				| AHD_PCIX_MMAPIO_BUG
-				| AHD_PCIX_SCBRAM_RD_BUG,
+						  | AHD_PCIX_MMAPIO_BUG
+						  | AHD_PCIX_SCBRAM_RD_BUG,
 	/*
 	 * LQOSTOP0 status set even for forced selections with ATN
 	 * to perform non-packetized message delivery.
@@ -326,7 +329,8 @@ typedef enum {
  * The driver determines these settings by probing the
  * chip/controller's configuration.
  */
-typedef enum {
+typedef enum
+{
 	AHD_FNONE	      = 0x00000,
 	AHD_BOOT_CHANNEL      = 0x00001,/* We were set as the boot channel. */
 	AHD_USEDEFAULTS	      = 0x00004,/*
@@ -392,13 +396,15 @@ typedef enum {
  * driver will only read this data for transactions that
  * complete abnormally.
  */
-struct initiator_status {
+struct initiator_status
+{
 	uint32_t residual_datacnt;	/* Residual in the current S/G seg */
 	uint32_t residual_sgptr;	/* The next S/G for this transfer */
 	uint8_t	 scsi_status;		/* Standard SCSI status byte */
 };
 
-struct target_status {
+struct target_status
+{
 	uint32_t residual_datacnt;	/* Residual in the current S/G seg */
 	uint32_t residual_sgptr;	/* The next S/G for this transfer */
 	uint8_t  scsi_status;		/* SCSI status to give to initiator */
@@ -417,13 +423,16 @@ struct target_status {
 typedef uint32_t sense_addr_t;
 #define MAX_CDB_LEN 16
 #define MAX_CDB_LEN_WITH_SENSE_ADDR (MAX_CDB_LEN - sizeof(sense_addr_t))
-union initiator_data {
-	struct {
+union initiator_data
+{
+	struct
+	{
 		uint64_t cdbptr;
 		uint8_t  cdblen;
 	} cdb_from_host;
 	uint8_t	 cdb[MAX_CDB_LEN];
-	struct {
+	struct
+	{
 		uint8_t	 cdb[MAX_CDB_LEN_WITH_SENSE_ADDR];
 		sense_addr_t sense_addr;
 	} cdb_plus_saddr;
@@ -432,80 +441,83 @@ union initiator_data {
 /*
  * Target mode version of the shared data SCB segment.
  */
-struct target_data {
-	uint32_t spare[2];	
+struct target_data
+{
+	uint32_t spare[2];
 	uint8_t  scsi_status;		/* SCSI status to give to initiator */
 	uint8_t  target_phases;		/* Bitmap of phases to execute */
 	uint8_t  data_phase;		/* Data-In or Data-Out */
 	uint8_t  initiator_tag;		/* Initiator's transaction tag */
 };
 
-struct hardware_scb {
-/*0*/	union {
+struct hardware_scb
+{
+	/*0*/	union
+	{
 		union	initiator_data idata;
 		struct	target_data tdata;
 		struct	initiator_status istatus;
 		struct	target_status tstatus;
 	} shared_data;
-/*
- * A word about residuals.
- * The scb is presented to the sequencer with the dataptr and datacnt
- * fields initialized to the contents of the first S/G element to
- * transfer.  The sgptr field is initialized to the bus address for
- * the S/G element that follows the first in the in core S/G array
- * or'ed with the SG_FULL_RESID flag.  Sgptr may point to an invalid
- * S/G entry for this transfer (single S/G element transfer with the
- * first elements address and length preloaded in the dataptr/datacnt
- * fields).  If no transfer is to occur, sgptr is set to SG_LIST_NULL.
- * The SG_FULL_RESID flag ensures that the residual will be correctly
- * noted even if no data transfers occur.  Once the data phase is entered,
- * the residual sgptr and datacnt are loaded from the sgptr and the
- * datacnt fields.  After each S/G element's dataptr and length are
- * loaded into the hardware, the residual sgptr is advanced.  After
- * each S/G element is expired, its datacnt field is checked to see
- * if the LAST_SEG flag is set.  If so, SG_LIST_NULL is set in the
- * residual sg ptr and the transfer is considered complete.  If the
- * sequencer determines that there is a residual in the tranfer, or
- * there is non-zero status, it will set the SG_STATUS_VALID flag in
- * sgptr and dma the scb back into host memory.  To sumarize:
- *
- * Sequencer:
- *	o A residual has occurred if SG_FULL_RESID is set in sgptr,
- *	  or residual_sgptr does not have SG_LIST_NULL set.
- *
- *	o We are transferring the last segment if residual_datacnt has
- *	  the SG_LAST_SEG flag set.
- *
- * Host:
- *	o A residual can only have occurred if a completed scb has the
- *	  SG_STATUS_VALID flag set.  Inspection of the SCSI status field,
- *	  the residual_datacnt, and the residual_sgptr field will tell
- *	  for sure.
- *
- *	o residual_sgptr and sgptr refer to the "next" sg entry
- *	  and so may point beyond the last valid sg entry for the
- *	  transfer.
- */ 
+	/*
+	 * A word about residuals.
+	 * The scb is presented to the sequencer with the dataptr and datacnt
+	 * fields initialized to the contents of the first S/G element to
+	 * transfer.  The sgptr field is initialized to the bus address for
+	 * the S/G element that follows the first in the in core S/G array
+	 * or'ed with the SG_FULL_RESID flag.  Sgptr may point to an invalid
+	 * S/G entry for this transfer (single S/G element transfer with the
+	 * first elements address and length preloaded in the dataptr/datacnt
+	 * fields).  If no transfer is to occur, sgptr is set to SG_LIST_NULL.
+	 * The SG_FULL_RESID flag ensures that the residual will be correctly
+	 * noted even if no data transfers occur.  Once the data phase is entered,
+	 * the residual sgptr and datacnt are loaded from the sgptr and the
+	 * datacnt fields.  After each S/G element's dataptr and length are
+	 * loaded into the hardware, the residual sgptr is advanced.  After
+	 * each S/G element is expired, its datacnt field is checked to see
+	 * if the LAST_SEG flag is set.  If so, SG_LIST_NULL is set in the
+	 * residual sg ptr and the transfer is considered complete.  If the
+	 * sequencer determines that there is a residual in the tranfer, or
+	 * there is non-zero status, it will set the SG_STATUS_VALID flag in
+	 * sgptr and dma the scb back into host memory.  To sumarize:
+	 *
+	 * Sequencer:
+	 *	o A residual has occurred if SG_FULL_RESID is set in sgptr,
+	 *	  or residual_sgptr does not have SG_LIST_NULL set.
+	 *
+	 *	o We are transferring the last segment if residual_datacnt has
+	 *	  the SG_LAST_SEG flag set.
+	 *
+	 * Host:
+	 *	o A residual can only have occurred if a completed scb has the
+	 *	  SG_STATUS_VALID flag set.  Inspection of the SCSI status field,
+	 *	  the residual_datacnt, and the residual_sgptr field will tell
+	 *	  for sure.
+	 *
+	 *	o residual_sgptr and sgptr refer to the "next" sg entry
+	 *	  and so may point beyond the last valid sg entry for the
+	 *	  transfer.
+	 */
 #define SG_PTR_MASK	0xFFFFFFF8
-/*16*/	uint16_t tag;		/* Reused by Sequencer. */
-/*18*/	uint8_t  control;	/* See SCB_CONTROL in aic79xx.reg for details */
-/*19*/	uint8_t	 scsiid;	/*
-				 * Selection out Id
-				 * Our Id (bits 0-3) Their ID (bits 4-7)
-				 */
-/*20*/	uint8_t  lun;
-/*21*/	uint8_t  task_attribute;
-/*22*/	uint8_t  cdb_len;
-/*23*/	uint8_t  task_management;
-/*24*/	uint64_t dataptr;
-/*32*/	uint32_t datacnt;	/* Byte 3 is spare. */
-/*36*/	uint32_t sgptr;
-/*40*/	uint32_t hscb_busaddr;
-/*44*/	uint32_t next_hscb_busaddr;
-/********** Long lun field only downloaded for full 8 byte lun support ********/
-/*48*/  uint8_t	 pkt_long_lun[8];
-/******* Fields below are not Downloaded (Sequencer may use for scratch) ******/
-/*56*/  uint8_t	 spare[8];
+	/*16*/	uint16_t tag;		/* Reused by Sequencer. */
+	/*18*/	uint8_t  control;	/* See SCB_CONTROL in aic79xx.reg for details */
+	/*19*/	uint8_t	 scsiid;	/*
+					 * Selection out Id
+					 * Our Id (bits 0-3) Their ID (bits 4-7)
+					 */
+	/*20*/	uint8_t  lun;
+	/*21*/	uint8_t  task_attribute;
+	/*22*/	uint8_t  cdb_len;
+	/*23*/	uint8_t  task_management;
+	/*24*/	uint64_t dataptr;
+	/*32*/	uint32_t datacnt;	/* Byte 3 is spare. */
+	/*36*/	uint32_t sgptr;
+	/*40*/	uint32_t hscb_busaddr;
+	/*44*/	uint32_t next_hscb_busaddr;
+	/********** Long lun field only downloaded for full 8 byte lun support ********/
+	/*48*/  uint8_t	 pkt_long_lun[8];
+	/******* Fields below are not Downloaded (Sequencer may use for scratch) ******/
+	/*56*/  uint8_t	 spare[8];
 };
 
 /************************ Kernel SCB Definitions ******************************/
@@ -523,7 +535,8 @@ struct hardware_scb {
  * addressable range of 512GB on machines with 64bit PCI or with chips
  * that can support dual address cycles on 32bit PCI busses.
  */
-struct ahd_dma_seg {
+struct ahd_dma_seg
+{
 	uint32_t	addr;
 	uint32_t	len;
 #define	AHD_DMA_LAST_SEG	0x80000000
@@ -531,13 +544,15 @@ struct ahd_dma_seg {
 #define	AHD_SG_LEN_MASK		0x00FFFFFF
 };
 
-struct ahd_dma64_seg {
+struct ahd_dma64_seg
+{
 	uint64_t	addr;
 	uint32_t	len;
 	uint32_t	pad;
 };
 
-struct map_node {
+struct map_node
+{
 	bus_dmamap_t		 dmamap;
 	dma_addr_t		 physaddr;
 	uint8_t			*vaddr;
@@ -547,7 +562,8 @@ struct map_node {
 /*
  * The current state of this SCB.
  */
-typedef enum {
+typedef enum
+{
 	SCB_FLAG_NONE		= 0x00000,
 	SCB_TRANSMISSION_ERROR	= 0x00001,/*
 					   * We detected a parity or CRC
@@ -589,14 +605,17 @@ typedef enum {
 					   */
 } scb_flag;
 
-struct scb {
+struct scb
+{
 	struct	hardware_scb	 *hscb;
-	union {
+	union
+	{
 		SLIST_ENTRY(scb)  sle;
 		LIST_ENTRY(scb)	  le;
 		TAILQ_ENTRY(scb)  tqe;
 	} links;
-	union {
+	union
+	{
 		SLIST_ENTRY(scb)  sle;
 		LIST_ENTRY(scb)	  le;
 		TAILQ_ENTRY(scb)  tqe;
@@ -626,7 +645,8 @@ struct scb {
 TAILQ_HEAD(scb_tailq, scb);
 BSD_LIST_HEAD(scb_list, scb);
 
-struct scb_data {
+struct scb_data
+{
 	/*
 	 * TAILQ of lists of free SCBs grouped by device
 	 * collision domains.
@@ -674,10 +694,11 @@ struct scb_data {
 /*
  * Connection descriptor for select-in requests in target mode.
  */
-struct target_cmd {
+struct target_cmd
+{
 	uint8_t scsiid;		/* Our ID and the initiator's ID */
 	uint8_t identify;	/* Identify message */
-	uint8_t bytes[22];	/* 
+	uint8_t bytes[22];	/*
 				 * Bytes contains any additional message
 				 * bytes terminated by 0xFF.  The remainder
 				 * is the cdb to execute.
@@ -701,7 +722,8 @@ struct target_cmd {
  * of immediate notify ccbs.
  */
 #define AHD_TMODE_EVENT_BUFFER_SIZE 8
-struct ahd_tmode_event {
+struct ahd_tmode_event
+{
 	uint8_t initiator_id;
 	uint8_t event_type;	/* MSG type or EVENT_TYPE_BUS_RESET */
 #define	EVENT_TYPE_BUS_RESET 0xFF
@@ -715,8 +737,9 @@ struct ahd_tmode_event {
  * structure here so we can store arrays of them, etc. in OS neutral
  * data structures.
  */
-#ifdef AHD_TARGET_MODE 
-struct ahd_tmode_lstate {
+#ifdef AHD_TARGET_MODE
+struct ahd_tmode_lstate
+{
 	struct cam_path *path;
 	struct ccb_hdr_slist accept_tios;
 	struct ccb_hdr_slist immed_notifies;
@@ -743,7 +766,8 @@ struct ahd_tmode_lstate;
 /*
  * Transfer Negotiation Information.
  */
-struct ahd_transinfo {
+struct ahd_transinfo
+{
 	uint8_t protocol_version;	/* SCSI Revision level */
 	uint8_t transport_version;	/* SPI Revision level */
 	uint8_t width;			/* Bus width */
@@ -754,7 +778,8 @@ struct ahd_transinfo {
 
 /*
  * Per-initiator current, goal and user transfer negotiation information. */
-struct ahd_initiator_tinfo {
+struct ahd_initiator_tinfo
+{
 	struct ahd_transinfo curr;
 	struct ahd_transinfo goal;
 	struct ahd_transinfo user;
@@ -767,8 +792,9 @@ struct ahd_initiator_tinfo {
  * that we are the target and the targets are the initiators since the
  * negotiation is the same regardless of role.
  */
-struct ahd_tmode_tstate {
-	struct ahd_tmode_lstate*	enabled_luns[AHD_NUM_LUNS];
+struct ahd_tmode_tstate
+{
+	struct ahd_tmode_lstate	*enabled_luns[AHD_NUM_LUNS];
 	struct ahd_initiator_tinfo	transinfo[AHD_NUM_TARGETS];
 
 	/*
@@ -810,20 +836,22 @@ struct ahd_tmode_tstate {
 /***************************** Lookup Tables **********************************/
 /*
  * Phase -> name and message out response
- * to parity errors in each phase table. 
+ * to parity errors in each phase table.
  */
-struct ahd_phase_table_entry {
-        uint8_t phase;
-        uint8_t mesg_out; /* Message response to parity errors */
+struct ahd_phase_table_entry
+{
+	uint8_t phase;
+	uint8_t mesg_out; /* Message response to parity errors */
 	const char *phasemsg;
 };
 
 /************************** Serial EEPROM Format ******************************/
 
-struct seeprom_config {
-/*
- * Per SCSI ID Configuration Flags
- */
+struct seeprom_config
+{
+	/*
+	 * Per SCSI ID Configuration Flags
+	 */
 	uint16_t device_flags[16];	/* words 0-15 */
 #define		CFXFER		0x003F	/* synchronous transfer rate */
 #define			CFXFER_ASYNC	0x3F
@@ -836,9 +864,9 @@ struct seeprom_config {
 #define		CFWIDEB		0x1000	/* wide bus device */
 #define		CFHOSTMANAGED	0x8000	/* Managed by a RAID controller */
 
-/*
- * BIOS Control Bits
- */
+	/*
+	 * BIOS Control Bits
+	 */
 	uint16_t bios_control;		/* word 16 */
 #define		CFSUPREM	0x0001	/* support all removeable drives */
 #define		CFSUPREMB	0x0002	/* support removeable boot drives */
@@ -847,7 +875,7 @@ struct seeprom_config {
 #define		    CFBS_ENABLED	0x04
 #define		    CFBS_DISABLED_SCAN	0x08
 #define		CFENABLEDV	0x0010	/* Perform Domain Validation */
-#define		CFCTRL_A	0x0020	/* BIOS displays Ctrl-A message */	
+#define		CFCTRL_A	0x0020	/* BIOS displays Ctrl-A message */
 #define		CFSPARITY	0x0040	/* SCSI parity */
 #define		CFEXTEND	0x0080	/* extended translation enabled */
 #define		CFBOOTCD	0x0100  /* Support Bootable CD-ROM */
@@ -856,12 +884,12 @@ struct seeprom_config {
 #define			CFMSG_SILENT	0x0200
 #define			CFMSG_DIAG	0x0400
 #define		CFRESETB	0x0800	/* reset SCSI bus at boot */
-/*		UNUSED		0xf000	*/
+	/*		UNUSED		0xf000	*/
 
-/*
- * Host Adapter Control Bits
- */
-	uint16_t adapter_control;	/* word 17 */	
+	/*
+	 * Host Adapter Control Bits
+	 */
+	uint16_t adapter_control;	/* word 17 */
 #define		CFAUTOTERM	0x0001	/* Perform Auto termination */
 #define		CFSTERM		0x0002	/* SCSI low byte termination */
 #define		CFWSTERM	0x0004	/* SCSI high byte termination */
@@ -870,21 +898,21 @@ struct seeprom_config {
 #define		CFSEHIGHTERM	0x0020	/* Ultra2 secondary high term */
 #define		CFSTPWLEVEL	0x0040	/* Termination level control */
 #define		CFBIOSAUTOTERM	0x0080	/* Perform Auto termination */
-#define		CFTERM_MENU	0x0100	/* BIOS displays termination menu */	
+#define		CFTERM_MENU	0x0100	/* BIOS displays termination menu */
 #define		CFCLUSTERENB	0x8000	/* Cluster Enable */
 
-/*
- * Bus Release Time, Host Adapter ID
- */
+	/*
+	 * Bus Release Time, Host Adapter ID
+	 */
 	uint16_t brtime_id;		/* word 18 */
 #define		CFSCSIID	0x000f	/* host adapter SCSI ID */
-/*		UNUSED		0x00f0	*/
+	/*		UNUSED		0x00f0	*/
 #define		CFBRTIME	0xff00	/* bus release time/PCI Latency Time */
 
-/*
- * Maximum targets
- */
-	uint16_t max_targets;		/* word 19 */	
+	/*
+	 * Maximum targets
+	 */
+	uint16_t max_targets;		/* word 19 */
 #define		CFMAXTARG	0x00ff	/* maximum targets */
 #define		CFBOOTLUN	0x0f00	/* Lun to boot from */
 #define		CFBOOTID	0xf000	/* Target to boot from */
@@ -897,7 +925,8 @@ struct seeprom_config {
 /*
  * Vital Product Data used during POST and by the BIOS.
  */
-struct vpd_config {
+struct vpd_config
+{
 	uint8_t  bios_flags;
 #define		VPDMASTERBIOS	0x0001
 #define		VPDBOOTHOST	0x0002
@@ -960,16 +989,17 @@ struct vpd_config {
 #define		FLX_CSTAT_INVALID	0x3
 
 int		ahd_read_seeprom(struct ahd_softc *ahd, uint16_t *buf,
-				 u_int start_addr, u_int count, int bstream);
+						 u_int start_addr, u_int count, int bstream);
 
 int		ahd_write_seeprom(struct ahd_softc *ahd, uint16_t *buf,
-				  u_int start_addr, u_int count);
+						  u_int start_addr, u_int count);
 int		ahd_verify_cksum(struct seeprom_config *sc);
 int		ahd_acquire_seeprom(struct ahd_softc *ahd);
 void		ahd_release_seeprom(struct ahd_softc *ahd);
 
 /****************************  Message Buffer *********************************/
-typedef enum {
+typedef enum
+{
 	MSG_FLAG_NONE			= 0x00,
 	MSG_FLAG_EXPECT_PPR_BUSFREE	= 0x01,
 	MSG_FLAG_IU_REQ_CHANGED		= 0x02,
@@ -978,7 +1008,8 @@ typedef enum {
 	MSG_FLAG_PACKETIZED		= 0x10
 } ahd_msg_flags;
 
-typedef enum {
+typedef enum
+{
 	MSG_TYPE_NONE			= 0x00,
 	MSG_TYPE_INITIATOR_MSGOUT	= 0x01,
 	MSG_TYPE_INITIATOR_MSGIN	= 0x02,
@@ -986,14 +1017,16 @@ typedef enum {
 	MSG_TYPE_TARGET_MSGIN		= 0x04
 } ahd_msg_type;
 
-typedef enum {
+typedef enum
+{
 	MSGLOOP_IN_PROG,
 	MSGLOOP_MSGCOMPLETE,
 	MSGLOOP_TERMINATED
 } msg_loop_stat;
 
 /*********************** Software Configuration Structure *********************/
-struct ahd_suspend_channel_state {
+struct ahd_suspend_channel_state
+{
 	uint8_t	scsiseq;
 	uint8_t	sxfrctl0;
 	uint8_t	sxfrctl1;
@@ -1003,13 +1036,15 @@ struct ahd_suspend_channel_state {
 	uint8_t	seqctl;
 };
 
-struct ahd_suspend_pci_state {
+struct ahd_suspend_pci_state
+{
 	uint32_t  devconfig;
 	uint8_t   command;
 	uint8_t   csize_lattime;
 };
 
-struct ahd_suspend_state {
+struct ahd_suspend_state
+{
 	struct	ahd_suspend_channel_state channel[2];
 	struct  ahd_suspend_pci_state pci_state;
 	uint8_t	optionmode;
@@ -1026,7 +1061,8 @@ struct ahd_suspend_state {
 
 typedef void (*ahd_bus_intr_t)(struct ahd_softc *);
 
-typedef enum {
+typedef enum
+{
 	AHD_MODE_DFF0,
 	AHD_MODE_DFF1,
 	AHD_MODE_CCHAN,
@@ -1055,7 +1091,8 @@ struct ahd_completion
 	uint8_t		valid_tag;
 };
 
-struct ahd_softc {
+struct ahd_softc
+{
 	bus_space_tag_t           tags[2];
 	bus_space_handle_t        bshs[2];
 #ifndef __linux__
@@ -1258,40 +1295,42 @@ struct ahd_softc {
 
 /*************************** IO Cell Configuration ****************************/
 #define	AHD_PRECOMP_SLEW_INDEX						\
-    (AHD_ANNEXCOL_PRECOMP_SLEW - AHD_ANNEXCOL_PER_DEV0)
+	(AHD_ANNEXCOL_PRECOMP_SLEW - AHD_ANNEXCOL_PER_DEV0)
 
 #define	AHD_AMPLITUDE_INDEX						\
-    (AHD_ANNEXCOL_AMPLITUDE - AHD_ANNEXCOL_PER_DEV0)
+	(AHD_ANNEXCOL_AMPLITUDE - AHD_ANNEXCOL_PER_DEV0)
 
 #define AHD_SET_SLEWRATE(ahd, new_slew)					\
-do {									\
-    (ahd)->iocell_opts[AHD_PRECOMP_SLEW_INDEX] &= ~AHD_SLEWRATE_MASK;	\
-    (ahd)->iocell_opts[AHD_PRECOMP_SLEW_INDEX] |=			\
-	(((new_slew) << AHD_SLEWRATE_SHIFT) & AHD_SLEWRATE_MASK);	\
-} while (0)
+	do {									\
+		(ahd)->iocell_opts[AHD_PRECOMP_SLEW_INDEX] &= ~AHD_SLEWRATE_MASK;	\
+		(ahd)->iocell_opts[AHD_PRECOMP_SLEW_INDEX] |=			\
+				(((new_slew) << AHD_SLEWRATE_SHIFT) & AHD_SLEWRATE_MASK);	\
+	} while (0)
 
 #define AHD_SET_PRECOMP(ahd, new_pcomp)					\
-do {									\
-    (ahd)->iocell_opts[AHD_PRECOMP_SLEW_INDEX] &= ~AHD_PRECOMP_MASK;	\
-    (ahd)->iocell_opts[AHD_PRECOMP_SLEW_INDEX] |=			\
-	(((new_pcomp) << AHD_PRECOMP_SHIFT) & AHD_PRECOMP_MASK);	\
-} while (0)
+	do {									\
+		(ahd)->iocell_opts[AHD_PRECOMP_SLEW_INDEX] &= ~AHD_PRECOMP_MASK;	\
+		(ahd)->iocell_opts[AHD_PRECOMP_SLEW_INDEX] |=			\
+				(((new_pcomp) << AHD_PRECOMP_SHIFT) & AHD_PRECOMP_MASK);	\
+	} while (0)
 
 #define AHD_SET_AMPLITUDE(ahd, new_amp)					\
-do {									\
-    (ahd)->iocell_opts[AHD_AMPLITUDE_INDEX] &= ~AHD_AMPLITUDE_MASK;	\
-    (ahd)->iocell_opts[AHD_AMPLITUDE_INDEX] |=				\
-	(((new_amp) << AHD_AMPLITUDE_SHIFT) & AHD_AMPLITUDE_MASK);	\
-} while (0)
+	do {									\
+		(ahd)->iocell_opts[AHD_AMPLITUDE_INDEX] &= ~AHD_AMPLITUDE_MASK;	\
+		(ahd)->iocell_opts[AHD_AMPLITUDE_INDEX] |=				\
+				(((new_amp) << AHD_AMPLITUDE_SHIFT) & AHD_AMPLITUDE_MASK);	\
+	} while (0)
 
 /************************ Active Device Information ***************************/
-typedef enum {
+typedef enum
+{
 	ROLE_UNKNOWN,
 	ROLE_INITIATOR,
 	ROLE_TARGET
 } role_t;
 
-struct ahd_devinfo {
+struct ahd_devinfo
+{
 	int	 our_scsiid;
 	int	 target_offset;
 	uint16_t target_mask;
@@ -1311,7 +1350,8 @@ struct ahd_devinfo {
 
 typedef int (ahd_device_setup_t)(struct ahd_softc *);
 
-struct ahd_pci_identity {
+struct ahd_pci_identity
+{
 	uint64_t		 full_id;
 	uint64_t		 id_mask;
 	const char		*name;
@@ -1319,7 +1359,8 @@ struct ahd_pci_identity {
 };
 
 /***************************** VL/EISA Declarations ***************************/
-struct aic7770_identity {
+struct aic7770_identity
+{
 	uint32_t		 full_id;
 	uint32_t		 id_mask;
 	const char		*name;
@@ -1337,16 +1378,16 @@ extern const int ahd_num_aic7770_devs;
 /***************************** PCI Front End *********************************/
 const struct	ahd_pci_identity *ahd_find_pci_device(ahd_dev_softc_t);
 int			  ahd_pci_config(struct ahd_softc *,
-					 const struct ahd_pci_identity *);
+							 const struct ahd_pci_identity *);
 int	ahd_pci_test_register_access(struct ahd_softc *);
 #ifdef CONFIG_PM
-void	ahd_pci_suspend(struct ahd_softc *);
-void	ahd_pci_resume(struct ahd_softc *);
+	void	ahd_pci_suspend(struct ahd_softc *);
+	void	ahd_pci_resume(struct ahd_softc *);
 #endif
 
 /************************** SCB and SCB queue management **********************/
 void		ahd_qinfifo_requeue_tail(struct ahd_softc *ahd,
-					 struct scb *scb);
+									 struct scb *scb);
 
 /****************************** Initialization ********************************/
 struct ahd_softc	*ahd_alloc(void *platform_arg, char *name);
@@ -1354,14 +1395,14 @@ int			 ahd_softc_init(struct ahd_softc *);
 void			 ahd_controller_info(struct ahd_softc *ahd, char *buf);
 int			 ahd_init(struct ahd_softc *ahd);
 #ifdef CONFIG_PM
-int			 ahd_suspend(struct ahd_softc *ahd);
-void			 ahd_resume(struct ahd_softc *ahd);
+	int			 ahd_suspend(struct ahd_softc *ahd);
+	void			 ahd_resume(struct ahd_softc *ahd);
 #endif
 int			 ahd_default_config(struct ahd_softc *ahd);
 int			 ahd_parse_vpddata(struct ahd_softc *ahd,
-					   struct vpd_config *vpd);
+							   struct vpd_config *vpd);
 int			 ahd_parse_cfgdata(struct ahd_softc *ahd,
-					   struct seeprom_config *sc);
+							   struct seeprom_config *sc);
 void			 ahd_intr_enable(struct ahd_softc *ahd, int enable);
 void			 ahd_pause_and_flushwork(struct ahd_softc *ahd);
 void			 ahd_set_unit(struct ahd_softc *, int);
@@ -1371,58 +1412,61 @@ void			 ahd_free_scb(struct ahd_softc *ahd, struct scb *scb);
 void			 ahd_free(struct ahd_softc *ahd);
 int			 ahd_reset(struct ahd_softc *ahd, int reinit);
 int			 ahd_write_flexport(struct ahd_softc *ahd,
-					    u_int addr, u_int value);
+								u_int addr, u_int value);
 int			 ahd_read_flexport(struct ahd_softc *ahd, u_int addr,
-					   uint8_t *value);
+							   uint8_t *value);
 
 /***************************** Error Recovery *********************************/
-typedef enum {
+typedef enum
+{
 	SEARCH_COMPLETE,
 	SEARCH_COUNT,
 	SEARCH_REMOVE,
 	SEARCH_PRINT
 } ahd_search_action;
 int			ahd_search_qinfifo(struct ahd_softc *ahd, int target,
-					   char channel, int lun, u_int tag,
-					   role_t role, uint32_t status,
-					   ahd_search_action action);
+							   char channel, int lun, u_int tag,
+							   role_t role, uint32_t status,
+							   ahd_search_action action);
 int			ahd_search_disc_list(struct ahd_softc *ahd, int target,
-					     char channel, int lun, u_int tag,
-					     int stop_on_first, int remove,
-					     int save_state);
+								 char channel, int lun, u_int tag,
+								 int stop_on_first, int remove,
+								 int save_state);
 int			ahd_reset_channel(struct ahd_softc *ahd, char channel,
-					  int initiate_reset);
+							  int initiate_reset);
 /*************************** Utility Functions ********************************/
 void			ahd_compile_devinfo(struct ahd_devinfo *devinfo,
-					    u_int our_id, u_int target,
-					    u_int lun, char channel,
-					    role_t role);
+									u_int our_id, u_int target,
+									u_int lun, char channel,
+									role_t role);
 /************************** Transfer Negotiation ******************************/
 void			ahd_find_syncrate(struct ahd_softc *ahd, u_int *period,
-					  u_int *ppr_options, u_int maxsync);
+								  u_int *ppr_options, u_int maxsync);
 /*
  * Negotiation types.  These are used to qualify if we should renegotiate
  * even if our goal and current transport parameters are identical.
  */
-typedef enum {
+typedef enum
+{
 	AHD_NEG_TO_GOAL,	/* Renegotiate only if goal and curr differ. */
 	AHD_NEG_IF_NON_ASYNC,	/* Renegotiate so long as goal is non-async. */
 	AHD_NEG_ALWAYS		/* Renegotiat even if goal is async. */
 } ahd_neg_type;
-int			ahd_update_neg_request(struct ahd_softc*,
-					       struct ahd_devinfo*,
-					       struct ahd_tmode_tstate*,
-					       struct ahd_initiator_tinfo*,
-					       ahd_neg_type);
+int			ahd_update_neg_request(struct ahd_softc *,
+								   struct ahd_devinfo *,
+								   struct ahd_tmode_tstate *,
+								   struct ahd_initiator_tinfo *,
+								   ahd_neg_type);
 void			ahd_set_width(struct ahd_softc *ahd,
-				      struct ahd_devinfo *devinfo,
-				      u_int width, u_int type, int paused);
+							  struct ahd_devinfo *devinfo,
+							  u_int width, u_int type, int paused);
 void			ahd_set_syncrate(struct ahd_softc *ahd,
-					 struct ahd_devinfo *devinfo,
-					 u_int period, u_int offset,
-					 u_int ppr_options,
-					 u_int type, int paused);
-typedef enum {
+								 struct ahd_devinfo *devinfo,
+								 u_int period, u_int offset,
+								 u_int ppr_options,
+								 u_int type, int paused);
+typedef enum
+{
 	AHD_QUEUE_NONE,
 	AHD_QUEUE_BASIC,
 	AHD_QUEUE_TAGGED
@@ -1431,48 +1475,48 @@ typedef enum {
 /**************************** Target Mode *************************************/
 #ifdef AHD_TARGET_MODE
 void		ahd_send_lstate_events(struct ahd_softc *,
-				       struct ahd_tmode_lstate *);
+								   struct ahd_tmode_lstate *);
 void		ahd_handle_en_lun(struct ahd_softc *ahd,
-				  struct cam_sim *sim, union ccb *ccb);
+							  struct cam_sim *sim, union ccb *ccb);
 cam_status	ahd_find_tmode_devs(struct ahd_softc *ahd,
-				    struct cam_sim *sim, union ccb *ccb,
-				    struct ahd_tmode_tstate **tstate,
-				    struct ahd_tmode_lstate **lstate,
-				    int notfound_failure);
+								struct cam_sim *sim, union ccb *ccb,
+								struct ahd_tmode_tstate **tstate,
+								struct ahd_tmode_lstate **lstate,
+								int notfound_failure);
 #ifndef AHD_TMODE_ENABLE
-#define AHD_TMODE_ENABLE 0
+	#define AHD_TMODE_ENABLE 0
 #endif
 #endif
 /******************************* Debug ***************************************/
 #ifdef AHD_DEBUG
-extern uint32_t ahd_debug;
-#define AHD_SHOW_MISC		0x00001
-#define AHD_SHOW_SENSE		0x00002
-#define AHD_SHOW_RECOVERY	0x00004
-#define AHD_DUMP_SEEPROM	0x00008
-#define AHD_SHOW_TERMCTL	0x00010
-#define AHD_SHOW_MEMORY		0x00020
-#define AHD_SHOW_MESSAGES	0x00040
-#define AHD_SHOW_MODEPTR	0x00080
-#define AHD_SHOW_SELTO		0x00100
-#define AHD_SHOW_FIFOS		0x00200
-#define AHD_SHOW_QFULL		0x00400
-#define	AHD_SHOW_DV		0x00800
-#define AHD_SHOW_MASKED_ERRORS	0x01000
-#define AHD_SHOW_QUEUE		0x02000
-#define AHD_SHOW_TQIN		0x04000
-#define AHD_SHOW_SG		0x08000
-#define AHD_SHOW_INT_COALESCING	0x10000
-#define AHD_DEBUG_SEQUENCER	0x20000
+	extern uint32_t ahd_debug;
+	#define AHD_SHOW_MISC		0x00001
+	#define AHD_SHOW_SENSE		0x00002
+	#define AHD_SHOW_RECOVERY	0x00004
+	#define AHD_DUMP_SEEPROM	0x00008
+	#define AHD_SHOW_TERMCTL	0x00010
+	#define AHD_SHOW_MEMORY		0x00020
+	#define AHD_SHOW_MESSAGES	0x00040
+	#define AHD_SHOW_MODEPTR	0x00080
+	#define AHD_SHOW_SELTO		0x00100
+	#define AHD_SHOW_FIFOS		0x00200
+	#define AHD_SHOW_QFULL		0x00400
+	#define	AHD_SHOW_DV		0x00800
+	#define AHD_SHOW_MASKED_ERRORS	0x01000
+	#define AHD_SHOW_QUEUE		0x02000
+	#define AHD_SHOW_TQIN		0x04000
+	#define AHD_SHOW_SG		0x08000
+	#define AHD_SHOW_INT_COALESCING	0x10000
+	#define AHD_DEBUG_SEQUENCER	0x20000
 #endif
 void			ahd_print_devinfo(struct ahd_softc *ahd,
-					  struct ahd_devinfo *devinfo);
+								  struct ahd_devinfo *devinfo);
 void			ahd_dump_card_state(struct ahd_softc *ahd);
 int			ahd_print_register(const ahd_reg_parse_entry_t *table,
-					   u_int num_entries,
-					   const char *name,
-					   u_int address,
-					   u_int value,
-					   u_int *cur_column,
-					   u_int wrap_point);
+							   u_int num_entries,
+							   const char *name,
+							   u_int address,
+							   u_int value,
+							   u_int *cur_column,
+							   u_int wrap_point);
 #endif /* _AIC79XX_H_ */

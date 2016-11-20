@@ -15,7 +15,8 @@
 #include "libbpf.h"
 #include "bpf_load.h"
 
-struct pair {
+struct pair
+{
 	long long val;
 	__u64 ip;
 };
@@ -37,14 +38,20 @@ static void print_old_objects(int fd)
 	key = write(1, "\e[1;1H\e[2J", 12); /* clear screen */
 
 	key = -1;
-	while (bpf_get_next_key(map_fd[0], &key, &next_key) == 0) {
+
+	while (bpf_get_next_key(map_fd[0], &key, &next_key) == 0)
+	{
 		bpf_lookup_elem(map_fd[0], &next_key, &v);
 		key = next_key;
+
 		if (val - v.val < 1000000000ll)
 			/* object was allocated more then 1 sec ago */
+		{
 			continue;
+		}
+
 		printf("obj 0x%llx is %2lldsec old was allocated at ip %llx\n",
-		       next_key, (val - v.val) / 1000000000ll, v.ip);
+			   next_key, (val - v.val) / 1000000000ll, v.ip);
 	}
 }
 
@@ -55,12 +62,14 @@ int main(int ac, char **argv)
 
 	snprintf(filename, sizeof(filename), "%s_kern.o", argv[0]);
 
-	if (load_bpf_file(filename)) {
+	if (load_bpf_file(filename))
+	{
 		printf("%s", bpf_log_buf);
 		return 1;
 	}
 
-	for (i = 0; ; i++) {
+	for (i = 0; ; i++)
+	{
 		print_old_objects(map_fd[1]);
 		sleep(1);
 	}

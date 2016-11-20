@@ -28,7 +28,8 @@
 struct sccb;
 typedef void (*CALL_BK_FN) (struct sccb *);
 
-struct sccb_mgr_info {
+struct sccb_mgr_info
+{
 	u32 si_baseaddr;
 	unsigned char si_present;
 	unsigned char si_intvect;
@@ -66,12 +67,13 @@ struct sccb_mgr_info {
 
 #define HARPOON_FAMILY        0x02
 
-/* SCCB struct used for both SCCB and UCB manager compiles! 
- * The UCB Manager treats the SCCB as it's 'native hardware structure' 
+/* SCCB struct used for both SCCB and UCB manager compiles!
+ * The UCB Manager treats the SCCB as it's 'native hardware structure'
  */
 
 /*#pragma pack(1)*/
-struct sccb {
+struct sccb
+{
 	unsigned char OperationCode;
 	unsigned char ControlByte;
 	unsigned char CdbLength;
@@ -207,7 +209,8 @@ struct sccb {
 
 #define  EE_WIDE_SCSI      BIT(7)
 
-struct sccb_mgr_tar_info {
+struct sccb_mgr_tar_info
+{
 
 	struct sccb *TarSelQ_Head;
 	struct sccb *TarSelQ_Tail;
@@ -222,7 +225,8 @@ struct sccb_mgr_tar_info {
 	unsigned char TarLUNBusy[MAX_LUN];
 };
 
-struct nvram_info {
+struct nvram_info
+{
 	unsigned char niModel;		/* Model No. of card */
 	unsigned char niCardNo;		/* Card no. */
 	u32 niBaseAddr;			/* Port Address of card */
@@ -245,7 +249,8 @@ struct nvram_info {
 #define	MODEL_LW		3
 #define	MODEL_DW		4
 
-struct sccb_card {
+struct sccb_card
+{
 	struct sccb *currentSCCB;
 	struct sccb_mgr_info *cardInfo;
 
@@ -292,12 +297,13 @@ struct sccb_card {
 #define  LEVEL2_TAR  0x02
 
 enum scam_id_st { ID0, ID1, ID2, ID3, ID4, ID5, ID6, ID7, ID8, ID9, ID10, ID11,
-	    ID12,
-	ID13, ID14, ID15, ID_UNUSED, ID_UNASSIGNED, ID_ASSIGNED, LEGACY,
-	CLR_PRIORITY, NO_ID_AVAIL
-};
+				  ID12,
+				  ID13, ID14, ID15, ID_UNUSED, ID_UNASSIGNED, ID_ASSIGNED, LEGACY,
+				  CLR_PRIORITY, NO_ID_AVAIL
+				};
 
-typedef struct SCCBscam_info {
+typedef struct SCCBscam_info
+{
 
 	unsigned char id_string[ID_STRING_LENGTH];
 	enum scam_id_st state;
@@ -401,8 +407,8 @@ typedef struct SCCBscam_info {
 #define  hp_device_id_1       0x03	/* MSB */
 #define  ORION_DEV_1    0x81
 
-	/* Sub Vendor ID and Sub Device ID only available in
-	   Harpoon Version 2 and higher */
+/* Sub Vendor ID and Sub Device ID only available in
+   Harpoon Version 2 and higher */
 
 #define  hp_sub_device_id_0   0x06	/* LSB */
 
@@ -502,7 +508,7 @@ typedef struct SCCBscam_info {
 #define  PIO_OVERRUN       BIT(6)	/*Slave data overrun */
 #define  BM_CMD_BUSY       BIT(7)	/*Bus master transfer command busy */
 #define  BAD_EXT_STATUS    (BM_FORCE_OFF | PCI_DEV_TMOUT | CMD_ABORTED | \
-                                  BM_PARITY_ERR | PIO_OVERRUN)
+							BM_PARITY_ERR | PIO_OVERRUN)
 
 #define  hp_int_status        0x37
 
@@ -758,58 +764,58 @@ typedef struct SCCBscam_info {
                                  xfercnt |= RDW_HARPOON((unsigned short)(port+hp_xfercnt_0)))
  */
 #define HP_SETUP_ADDR_CNT(port,addr,count) (WRW_HARPOON((port+hp_host_addr_lo), (unsigned short)(addr & 0x0000FFFFL)),\
-         addr >>= 16,\
-         WRW_HARPOON((port+hp_host_addr_hmi), (unsigned short)(addr & 0x0000FFFFL)),\
-         WR_HARP32(port,hp_xfercnt_0,count),\
-         WRW_HARPOON((port+hp_xfer_cnt_lo), (unsigned short)(count & 0x0000FFFFL)),\
-         count >>= 16,\
-         WR_HARPOON(port+hp_xfer_cnt_hi, (count & 0xFF)))
+		addr >>= 16,\
+		WRW_HARPOON((port+hp_host_addr_hmi), (unsigned short)(addr & 0x0000FFFFL)),\
+		WR_HARP32(port,hp_xfercnt_0,count),\
+		WRW_HARPOON((port+hp_xfer_cnt_lo), (unsigned short)(count & 0x0000FFFFL)),\
+		count >>= 16,\
+		WR_HARPOON(port+hp_xfer_cnt_hi, (count & 0xFF)))
 
 #define ACCEPT_MSG(port) {while(RD_HARPOON(port+hp_scsisig) & SCSI_REQ){}\
-                          WR_HARPOON(port+hp_scsisig, S_ILL_PH);}
+		WR_HARPOON(port+hp_scsisig, S_ILL_PH);}
 
 #define ACCEPT_MSG_ATN(port) {while(RD_HARPOON(port+hp_scsisig) & SCSI_REQ){}\
-                          WR_HARPOON(port+hp_scsisig, (S_ILL_PH|SCSI_ATN));}
+		WR_HARPOON(port+hp_scsisig, (S_ILL_PH|SCSI_ATN));}
 
 #define DISABLE_AUTO(port) (WR_HARPOON(port+hp_scsireset, PROG_RESET),\
-                        WR_HARPOON(port+hp_scsireset, 0x00))
+							WR_HARPOON(port+hp_scsireset, 0x00))
 
 #define ARAM_ACCESS(p_port) (WR_HARPOON(p_port+hp_page_ctrl, \
-                             (RD_HARPOON(p_port+hp_page_ctrl) | SGRAM_ARAM)))
+										(RD_HARPOON(p_port+hp_page_ctrl) | SGRAM_ARAM)))
 
 #define SGRAM_ACCESS(p_port) (WR_HARPOON(p_port+hp_page_ctrl, \
-                             (RD_HARPOON(p_port+hp_page_ctrl) & ~SGRAM_ARAM)))
+							  (RD_HARPOON(p_port+hp_page_ctrl) & ~SGRAM_ARAM)))
 
 #define MDISABLE_INT(p_port) (WR_HARPOON(p_port+hp_page_ctrl, \
-                             (RD_HARPOON(p_port+hp_page_ctrl) | G_INT_DISABLE)))
+							  (RD_HARPOON(p_port+hp_page_ctrl) | G_INT_DISABLE)))
 
 #define MENABLE_INT(p_port) (WR_HARPOON(p_port+hp_page_ctrl, \
-                             (RD_HARPOON(p_port+hp_page_ctrl) & ~G_INT_DISABLE)))
+										(RD_HARPOON(p_port+hp_page_ctrl) & ~G_INT_DISABLE)))
 
 static unsigned char FPT_sisyncn(u32 port, unsigned char p_card,
-				 unsigned char syncFlag);
+								 unsigned char syncFlag);
 static void FPT_ssel(u32 port, unsigned char p_card);
 static void FPT_sres(u32 port, unsigned char p_card,
-		     struct sccb_card *pCurrCard);
+					 struct sccb_card *pCurrCard);
 static void FPT_shandem(u32 port, unsigned char p_card,
-			struct sccb *pCurrSCCB);
+						struct sccb *pCurrSCCB);
 static void FPT_stsyncn(u32 port, unsigned char p_card);
 static void FPT_sisyncr(u32 port, unsigned char sync_pulse,
-			unsigned char offset);
+						unsigned char offset);
 static void FPT_sssyncv(u32 p_port, unsigned char p_id,
-			unsigned char p_sync_value,
-			struct sccb_mgr_tar_info *currTar_Info);
+						unsigned char p_sync_value,
+						struct sccb_mgr_tar_info *currTar_Info);
 static void FPT_sresb(u32 port, unsigned char p_card);
 static void FPT_sxfrp(u32 p_port, unsigned char p_card);
 static void FPT_schkdd(u32 port, unsigned char p_card);
 static unsigned char FPT_RdStack(u32 port, unsigned char index);
 static void FPT_WrStack(u32 portBase, unsigned char index,
-			unsigned char data);
+						unsigned char data);
 static unsigned char FPT_ChkIfChipInitialized(u32 ioPort);
 
 static void FPT_SendMsg(u32 port, unsigned char message);
 static void FPT_queueFlushTargSccb(unsigned char p_card, unsigned char thisTarg,
-				   unsigned char error_code);
+								   unsigned char error_code);
 
 static void FPT_sinits(struct sccb *p_sccb, unsigned char p_card);
 static void FPT_RNVRamData(struct nvram_info *pNvRamInfo);
@@ -819,16 +825,16 @@ static void FPT_stwidn(u32 port, unsigned char p_card);
 static void FPT_siwidr(u32 port, unsigned char width);
 
 static void FPT_queueSelectFail(struct sccb_card *pCurrCard,
-				unsigned char p_card);
+								unsigned char p_card);
 static void FPT_queueDisconnect(struct sccb *p_SCCB, unsigned char p_card);
 static void FPT_queueCmdComplete(struct sccb_card *pCurrCard,
-				 struct sccb *p_SCCB, unsigned char p_card);
+								 struct sccb *p_SCCB, unsigned char p_card);
 static void FPT_queueSearchSelect(struct sccb_card *pCurrCard,
-				  unsigned char p_card);
+								  unsigned char p_card);
 static void FPT_queueFlushSccb(unsigned char p_card, unsigned char error_code);
 static void FPT_queueAddSccb(struct sccb *p_SCCB, unsigned char card);
 static unsigned char FPT_queueFindSccb(struct sccb *p_SCCB,
-				       unsigned char p_card);
+									   unsigned char p_card);
 static void FPT_utilUpdateResidual(struct sccb *p_SCCB);
 static unsigned short FPT_CalcCrc16(unsigned char buffer[]);
 static unsigned char FPT_CalcLrc(unsigned char buffer[]);
@@ -837,13 +843,13 @@ static void FPT_Wait1Second(u32 p_port);
 static void FPT_Wait(u32 p_port, unsigned char p_delay);
 static void FPT_utilEEWriteOnOff(u32 p_port, unsigned char p_mode);
 static void FPT_utilEEWrite(u32 p_port, unsigned short ee_data,
-			    unsigned short ee_addr);
+							unsigned short ee_addr);
 static unsigned short FPT_utilEERead(u32 p_port,
-				     unsigned short ee_addr);
+									 unsigned short ee_addr);
 static unsigned short FPT_utilEEReadOrg(u32 p_port,
-					unsigned short ee_addr);
+										unsigned short ee_addr);
 static void FPT_utilEESendCmdAddr(u32 p_port, unsigned char ee_cmd,
-				  unsigned short ee_addr);
+								  unsigned short ee_addr);
 
 static void FPT_phaseDataOut(u32 port, unsigned char p_card);
 static void FPT_phaseDataIn(u32 port, unsigned char p_card);
@@ -862,28 +868,28 @@ static void FPT_BusMasterInit(u32 p_port);
 static void FPT_DiagEEPROM(u32 p_port);
 
 static void FPT_dataXferProcessor(u32 port,
-				  struct sccb_card *pCurrCard);
+								  struct sccb_card *pCurrCard);
 static void FPT_busMstrSGDataXferStart(u32 port,
-				       struct sccb *pCurrSCCB);
+									   struct sccb *pCurrSCCB);
 static void FPT_busMstrDataXferStart(u32 port,
-				     struct sccb *pCurrSCCB);
+									 struct sccb *pCurrSCCB);
 static void FPT_hostDataXferAbort(u32 port, unsigned char p_card,
-				  struct sccb *pCurrSCCB);
+								  struct sccb *pCurrSCCB);
 static void FPT_hostDataXferRestart(struct sccb *currSCCB);
 
 static unsigned char FPT_SccbMgr_bad_isr(u32 p_port,
-					 unsigned char p_card,
-					 struct sccb_card *pCurrCard,
-					 unsigned short p_int);
+		unsigned char p_card,
+		struct sccb_card *pCurrCard,
+		unsigned short p_int);
 
 static void FPT_SccbMgrTableInitAll(void);
 static void FPT_SccbMgrTableInitCard(struct sccb_card *pCurrCard,
-				     unsigned char p_card);
+									 unsigned char p_card);
 static void FPT_SccbMgrTableInitTarget(unsigned char p_card,
-				       unsigned char target);
+									   unsigned char target);
 
 static void FPT_scini(unsigned char p_card, unsigned char p_our_id,
-		      unsigned char p_power_up);
+					  unsigned char p_power_up);
 
 static int FPT_scarb(u32 p_port, unsigned char p_sel_type);
 static void FPT_scbusf(u32 p_port);
@@ -891,32 +897,33 @@ static void FPT_scsel(u32 p_port);
 static void FPT_scasid(unsigned char p_card, u32 p_port);
 static unsigned char FPT_scxferc(u32 p_port, unsigned char p_data);
 static unsigned char FPT_scsendi(u32 p_port,
-				 unsigned char p_id_string[]);
+								 unsigned char p_id_string[]);
 static unsigned char FPT_sciso(u32 p_port,
-			       unsigned char p_id_string[]);
+							   unsigned char p_id_string[]);
 static void FPT_scwirod(u32 p_port, unsigned char p_data_bit);
 static void FPT_scwiros(u32 p_port, unsigned char p_data_bit);
 static unsigned char FPT_scvalq(unsigned char p_quintet);
 static unsigned char FPT_scsell(u32 p_port, unsigned char targ_id);
 static void FPT_scwtsel(u32 p_port);
 static void FPT_inisci(unsigned char p_card, u32 p_port,
-		       unsigned char p_our_id);
+					   unsigned char p_our_id);
 static void FPT_scsavdi(unsigned char p_card, u32 p_port);
 static unsigned char FPT_scmachid(unsigned char p_card,
-				  unsigned char p_id_string[]);
+								  unsigned char p_id_string[]);
 
 static void FPT_autoCmdCmplt(u32 p_port, unsigned char p_card);
 static void FPT_autoLoadDefaultMap(u32 p_port);
 
 static struct sccb_mgr_tar_info FPT_sccbMgrTbl[MAX_CARDS][MAX_SCSI_TAR] =
-    { {{0}} };
+{ {{0}} };
 static struct sccb_card FPT_BL_Card[MAX_CARDS] = { {0} };
 static SCCBSCAM_INFO FPT_scamInfo[MAX_SCSI_TAR] = { {{0}} };
 static struct nvram_info FPT_nvRamInfo[MAX_MB_CARDS] = { {0} };
 
 static unsigned char FPT_mbCards = 0;
 static unsigned char FPT_scamHAString[] =
-    { 0x63, 0x07, 'B', 'U', 'S', 'L', 'O', 'G', 'I', 'C',
+{
+	0x63, 0x07, 'B', 'U', 'S', 'L', 'O', 'G', 'I', 'C',
 	' ', 'B', 'T', '-', '9', '3', '0',
 	0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
 	0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -924,8 +931,10 @@ static unsigned char FPT_scamHAString[] =
 
 static unsigned short FPT_default_intena = 0;
 
-static void (*FPT_s_PhaseTbl[8]) (u32, unsigned char) = {
-0};
+static void (*FPT_s_PhaseTbl[8]) (u32, unsigned char) =
+{
+	0
+};
 
 /*---------------------------------------------------------------------
  *
@@ -947,63 +956,88 @@ static int FlashPoint_ProbeHostAdapter(struct sccb_mgr_info *pCardInfo)
 	ioport = pCardInfo->si_baseaddr;
 
 	if (RD_HARPOON(ioport + hp_vendor_id_0) != ORION_VEND_0)
+	{
 		return (int)FAILURE;
-
-	if ((RD_HARPOON(ioport + hp_vendor_id_1) != ORION_VEND_1))
-		return (int)FAILURE;
-
-	if ((RD_HARPOON(ioport + hp_device_id_0) != ORION_DEV_0))
-		return (int)FAILURE;
-
-	if ((RD_HARPOON(ioport + hp_device_id_1) != ORION_DEV_1))
-		return (int)FAILURE;
-
-	if (RD_HARPOON(ioport + hp_rev_num) != 0x0f) {
-
-/* For new Harpoon then check for sub_device ID LSB
-   the bits(0-3) must be all ZERO for compatible with
-   current version of SCCBMgr, else skip this Harpoon
-	device. */
-
-		if (RD_HARPOON(ioport + hp_sub_device_id_0) & 0x0f)
-			return (int)FAILURE;
 	}
 
-	if (first_time) {
+	if ((RD_HARPOON(ioport + hp_vendor_id_1) != ORION_VEND_1))
+	{
+		return (int)FAILURE;
+	}
+
+	if ((RD_HARPOON(ioport + hp_device_id_0) != ORION_DEV_0))
+	{
+		return (int)FAILURE;
+	}
+
+	if ((RD_HARPOON(ioport + hp_device_id_1) != ORION_DEV_1))
+	{
+		return (int)FAILURE;
+	}
+
+	if (RD_HARPOON(ioport + hp_rev_num) != 0x0f)
+	{
+
+		/* For new Harpoon then check for sub_device ID LSB
+		   the bits(0-3) must be all ZERO for compatible with
+		   current version of SCCBMgr, else skip this Harpoon
+			device. */
+
+		if (RD_HARPOON(ioport + hp_sub_device_id_0) & 0x0f)
+		{
+			return (int)FAILURE;
+		}
+	}
+
+	if (first_time)
+	{
 		FPT_SccbMgrTableInitAll();
 		first_time = 0;
 		FPT_mbCards = 0;
 	}
 
-	if (FPT_RdStack(ioport, 0) != 0x00) {
-		if (FPT_ChkIfChipInitialized(ioport) == 0) {
+	if (FPT_RdStack(ioport, 0) != 0x00)
+	{
+		if (FPT_ChkIfChipInitialized(ioport) == 0)
+		{
 			pCurrNvRam = NULL;
 			WR_HARPOON(ioport + hp_semaphore, 0x00);
 			FPT_XbowInit(ioport, 0);	/*Must Init the SCSI before attempting */
 			FPT_DiagEEPROM(ioport);
-		} else {
-			if (FPT_mbCards < MAX_MB_CARDS) {
+		}
+		else
+		{
+			if (FPT_mbCards < MAX_MB_CARDS)
+			{
 				pCurrNvRam = &FPT_nvRamInfo[FPT_mbCards];
 				FPT_mbCards++;
 				pCurrNvRam->niBaseAddr = ioport;
 				FPT_RNVRamData(pCurrNvRam);
-			} else
+			}
+			else
+			{
 				return (int)FAILURE;
+			}
 		}
-	} else
+	}
+	else
+	{
 		pCurrNvRam = NULL;
+	}
 
 	WR_HARPOON(ioport + hp_clkctrl_0, CLKCTRL_DEFAULT);
 	WR_HARPOON(ioport + hp_sys_ctrl, 0x00);
 
 	if (pCurrNvRam)
+	{
 		pCardInfo->si_id = pCurrNvRam->niAdapId;
+	}
 	else
 		pCardInfo->si_id =
-		    (unsigned
-		     char)(FPT_utilEERead(ioport,
-					  (ADAPTER_SCSI_ID /
-					   2)) & (unsigned char)0x0FF);
+			(unsigned
+			 char)(FPT_utilEERead(ioport,
+								  (ADAPTER_SCSI_ID /
+								   2)) & (unsigned char)0x0FF);
 
 	pCardInfo->si_lun = 0x00;
 	pCardInfo->si_fw_revision = ORION_FW_REV;
@@ -1013,41 +1047,54 @@ static int FlashPoint_ProbeHostAdapter(struct sccb_mgr_info *pCardInfo)
 	temp5 = 0x0000;
 	temp6 = 0x0000;
 
-	for (id = 0; id < (16 / 2); id++) {
+	for (id = 0; id < (16 / 2); id++)
+	{
 
-		if (pCurrNvRam) {
+		if (pCurrNvRam)
+		{
 			temp = (unsigned short)pCurrNvRam->niSyncTbl[id];
 			temp = ((temp & 0x03) + ((temp << 4) & 0xc0)) +
-			    (((temp << 4) & 0x0300) + ((temp << 8) & 0xc000));
-		} else
+				   (((temp << 4) & 0x0300) + ((temp << 8) & 0xc000));
+		}
+		else
 			temp =
-			    FPT_utilEERead(ioport,
-					   (unsigned short)((SYNC_RATE_TBL / 2)
-							    + id));
+				FPT_utilEERead(ioport,
+							   (unsigned short)((SYNC_RATE_TBL / 2)
+												+ id));
 
-		for (i = 0; i < 2; temp >>= 8, i++) {
+		for (i = 0; i < 2; temp >>= 8, i++)
+		{
 
 			temp2 >>= 1;
 			temp3 >>= 1;
 			temp4 >>= 1;
 			temp5 >>= 1;
 			temp6 >>= 1;
-			switch (temp & 0x3) {
-			case AUTO_RATE_20:	/* Synchronous, 20 mega-transfers/second */
-				temp6 |= 0x8000;	/* Fall through */
-			case AUTO_RATE_10:	/* Synchronous, 10 mega-transfers/second */
-				temp5 |= 0x8000;	/* Fall through */
-			case AUTO_RATE_05:	/* Synchronous, 5 mega-transfers/second */
-				temp2 |= 0x8000;	/* Fall through */
-			case AUTO_RATE_00:	/* Asynchronous */
-				break;
+
+			switch (temp & 0x3)
+			{
+				case AUTO_RATE_20:	/* Synchronous, 20 mega-transfers/second */
+					temp6 |= 0x8000;	/* Fall through */
+
+				case AUTO_RATE_10:	/* Synchronous, 10 mega-transfers/second */
+					temp5 |= 0x8000;	/* Fall through */
+
+				case AUTO_RATE_05:	/* Synchronous, 5 mega-transfers/second */
+					temp2 |= 0x8000;	/* Fall through */
+
+				case AUTO_RATE_00:	/* Asynchronous */
+					break;
 			}
 
 			if (temp & DISC_ENABLE_BIT)
+			{
 				temp3 |= 0x8000;
+			}
 
 			if (temp & WIDE_NEGO_BIT)
+			{
 				temp4 |= 0x8000;
+			}
 
 		}
 	}
@@ -1059,74 +1106,104 @@ static int FlashPoint_ProbeHostAdapter(struct sccb_mgr_info *pCardInfo)
 	pCardInfo->si_per_targ_ultra_nego = temp6;
 
 	if (pCurrNvRam)
+	{
 		i = pCurrNvRam->niSysConf;
+	}
 	else
 		i = (unsigned
-		     char)(FPT_utilEERead(ioport, (SYSTEM_CONFIG / 2)));
+			 char)(FPT_utilEERead(ioport, (SYSTEM_CONFIG / 2)));
 
 	if (pCurrNvRam)
+	{
 		ScamFlg = pCurrNvRam->niScamConf;
+	}
 	else
 		ScamFlg =
-		    (unsigned char)FPT_utilEERead(ioport, SCAM_CONFIG / 2);
+			(unsigned char)FPT_utilEERead(ioport, SCAM_CONFIG / 2);
 
 	pCardInfo->si_flags = 0x0000;
 
 	if (i & 0x01)
+	{
 		pCardInfo->si_flags |= SCSI_PARITY_ENA;
+	}
 
 	if (!(i & 0x02))
+	{
 		pCardInfo->si_flags |= SOFT_RESET;
+	}
 
 	if (i & 0x10)
+	{
 		pCardInfo->si_flags |= EXTENDED_TRANSLATION;
+	}
 
 	if (ScamFlg & SCAM_ENABLED)
+	{
 		pCardInfo->si_flags |= FLAG_SCAM_ENABLED;
+	}
 
 	if (ScamFlg & SCAM_LEVEL2)
+	{
 		pCardInfo->si_flags |= FLAG_SCAM_LEVEL2;
+	}
 
 	j = (RD_HARPOON(ioport + hp_bm_ctrl) & ~SCSI_TERM_ENA_L);
-	if (i & 0x04) {
+
+	if (i & 0x04)
+	{
 		j |= SCSI_TERM_ENA_L;
 	}
+
 	WR_HARPOON(ioport + hp_bm_ctrl, j);
 
 	j = (RD_HARPOON(ioport + hp_ee_ctrl) & ~SCSI_TERM_ENA_H);
-	if (i & 0x08) {
+
+	if (i & 0x08)
+	{
 		j |= SCSI_TERM_ENA_H;
 	}
+
 	WR_HARPOON(ioport + hp_ee_ctrl, j);
 
 	if (!(RD_HARPOON(ioport + hp_page_ctrl) & NARROW_SCSI_CARD))
 
+	{
 		pCardInfo->si_flags |= SUPPORT_16TAR_32LUN;
+	}
 
 	pCardInfo->si_card_family = HARPOON_FAMILY;
 	pCardInfo->si_bustype = BUSTYPE_PCI;
 
-	if (pCurrNvRam) {
+	if (pCurrNvRam)
+	{
 		pCardInfo->si_card_model[0] = '9';
-		switch (pCurrNvRam->niModel & 0x0f) {
-		case MODEL_LT:
-			pCardInfo->si_card_model[1] = '3';
-			pCardInfo->si_card_model[2] = '0';
-			break;
-		case MODEL_LW:
-			pCardInfo->si_card_model[1] = '5';
-			pCardInfo->si_card_model[2] = '0';
-			break;
-		case MODEL_DL:
-			pCardInfo->si_card_model[1] = '3';
-			pCardInfo->si_card_model[2] = '2';
-			break;
-		case MODEL_DW:
-			pCardInfo->si_card_model[1] = '5';
-			pCardInfo->si_card_model[2] = '2';
-			break;
+
+		switch (pCurrNvRam->niModel & 0x0f)
+		{
+			case MODEL_LT:
+				pCardInfo->si_card_model[1] = '3';
+				pCardInfo->si_card_model[2] = '0';
+				break;
+
+			case MODEL_LW:
+				pCardInfo->si_card_model[1] = '5';
+				pCardInfo->si_card_model[2] = '0';
+				break;
+
+			case MODEL_DL:
+				pCardInfo->si_card_model[1] = '3';
+				pCardInfo->si_card_model[2] = '2';
+				break;
+
+			case MODEL_DW:
+				pCardInfo->si_card_model[1] = '5';
+				pCardInfo->si_card_model[2] = '2';
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		temp = FPT_utilEERead(ioport, (MODEL_NUMB_0 / 2));
 		pCardInfo->si_card_model[0] = (unsigned char)(temp >> 8);
 		temp = FPT_utilEERead(ioport, (MODEL_NUMB_2 / 2));
@@ -1135,53 +1212,82 @@ static int FlashPoint_ProbeHostAdapter(struct sccb_mgr_info *pCardInfo)
 		pCardInfo->si_card_model[2] = (unsigned char)(temp >> 8);
 	}
 
-	if (pCardInfo->si_card_model[1] == '3') {
+	if (pCardInfo->si_card_model[1] == '3')
+	{
 		if (RD_HARPOON(ioport + hp_ee_ctrl) & BIT(7))
+		{
 			pCardInfo->si_flags |= LOW_BYTE_TERM;
-	} else if (pCardInfo->si_card_model[2] == '0') {
+		}
+	}
+	else if (pCardInfo->si_card_model[2] == '0')
+	{
 		temp = RD_HARPOON(ioport + hp_xfer_pad);
 		WR_HARPOON(ioport + hp_xfer_pad, (temp & ~BIT(4)));
+
 		if (RD_HARPOON(ioport + hp_ee_ctrl) & BIT(7))
+		{
 			pCardInfo->si_flags |= LOW_BYTE_TERM;
+		}
+
 		WR_HARPOON(ioport + hp_xfer_pad, (temp | BIT(4)));
+
 		if (RD_HARPOON(ioport + hp_ee_ctrl) & BIT(7))
+		{
 			pCardInfo->si_flags |= HIGH_BYTE_TERM;
+		}
+
 		WR_HARPOON(ioport + hp_xfer_pad, temp);
-	} else {
+	}
+	else
+	{
 		temp = RD_HARPOON(ioport + hp_ee_ctrl);
 		temp2 = RD_HARPOON(ioport + hp_xfer_pad);
 		WR_HARPOON(ioport + hp_ee_ctrl, (temp | SEE_CS));
 		WR_HARPOON(ioport + hp_xfer_pad, (temp2 | BIT(4)));
 		temp3 = 0;
-		for (i = 0; i < 8; i++) {
+
+		for (i = 0; i < 8; i++)
+		{
 			temp3 <<= 1;
+
 			if (!(RD_HARPOON(ioport + hp_ee_ctrl) & BIT(7)))
+			{
 				temp3 |= 1;
+			}
+
 			WR_HARPOON(ioport + hp_xfer_pad, (temp2 & ~BIT(4)));
 			WR_HARPOON(ioport + hp_xfer_pad, (temp2 | BIT(4)));
 		}
+
 		WR_HARPOON(ioport + hp_ee_ctrl, temp);
 		WR_HARPOON(ioport + hp_xfer_pad, temp2);
+
 		if (!(temp3 & BIT(7)))
+		{
 			pCardInfo->si_flags |= LOW_BYTE_TERM;
+		}
+
 		if (!(temp3 & BIT(6)))
+		{
 			pCardInfo->si_flags |= HIGH_BYTE_TERM;
+		}
 	}
 
 	ARAM_ACCESS(ioport);
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 
 		pCardInfo->si_XlatInfo[i] =
-		    RD_HARPOON(ioport + hp_aramBase + BIOS_DATA_OFFSET + i);
+			RD_HARPOON(ioport + hp_aramBase + BIOS_DATA_OFFSET + i);
 	}
 
 	/* return with -1 if no sort, else return with
 	   logical card number sorted by BIOS (zero-based) */
 
 	pCardInfo->si_relative_cardnum =
-	    (unsigned
-	     char)(RD_HARPOON(ioport + hp_aramBase + BIOS_RELATIVE_CARD) - 1);
+		(unsigned
+		 char)(RD_HARPOON(ioport + hp_aramBase + BIOS_RELATIVE_CARD) - 1);
 
 	SGRAM_ACCESS(ioport);
 
@@ -1208,7 +1314,7 @@ static int FlashPoint_ProbeHostAdapter(struct sccb_mgr_info *pCardInfo)
  *---------------------------------------------------------------------*/
 
 static void *FlashPoint_HardwareResetHostAdapter(struct sccb_mgr_info
-							 *pCardInfo)
+		*pCardInfo)
 {
 	struct sccb_card *CurrCard = NULL;
 	struct nvram_info *pCurrNvRam;
@@ -1218,30 +1324,37 @@ static void *FlashPoint_HardwareResetHostAdapter(struct sccb_mgr_info
 
 	ioport = pCardInfo->si_baseaddr;
 
-	for (thisCard = 0; thisCard <= MAX_CARDS; thisCard++) {
+	for (thisCard = 0; thisCard <= MAX_CARDS; thisCard++)
+	{
 
 		if (thisCard == MAX_CARDS)
+		{
 			return (void *)FAILURE;
+		}
 
-		if (FPT_BL_Card[thisCard].ioPort == ioport) {
+		if (FPT_BL_Card[thisCard].ioPort == ioport)
+		{
 
 			CurrCard = &FPT_BL_Card[thisCard];
 			FPT_SccbMgrTableInitCard(CurrCard, thisCard);
 			break;
 		}
 
-		else if (FPT_BL_Card[thisCard].ioPort == 0x00) {
+		else if (FPT_BL_Card[thisCard].ioPort == 0x00)
+		{
 
 			FPT_BL_Card[thisCard].ioPort = ioport;
 			CurrCard = &FPT_BL_Card[thisCard];
 
 			if (FPT_mbCards)
-				for (i = 0; i < FPT_mbCards; i++) {
+				for (i = 0; i < FPT_mbCards; i++)
+				{
 					if (CurrCard->ioPort ==
-					    FPT_nvRamInfo[i].niBaseAddr)
+						FPT_nvRamInfo[i].niBaseAddr)
 						CurrCard->pNvRamInfo =
-						    &FPT_nvRamInfo[i];
+							&FPT_nvRamInfo[i];
 				}
+
 			FPT_SccbMgrTableInitCard(CurrCard, thisCard);
 			CurrCard->cardIndex = thisCard;
 			CurrCard->cardInfo = pCardInfo;
@@ -1252,11 +1365,14 @@ static void *FlashPoint_HardwareResetHostAdapter(struct sccb_mgr_info
 
 	pCurrNvRam = CurrCard->pNvRamInfo;
 
-	if (pCurrNvRam) {
+	if (pCurrNvRam)
+	{
 		ScamFlg = pCurrNvRam->niScamConf;
-	} else {
+	}
+	else
+	{
 		ScamFlg =
-		    (unsigned char)FPT_utilEERead(ioport, SCAM_CONFIG / 2);
+			(unsigned char)FPT_utilEERead(ioport, SCAM_CONFIG / 2);
 	}
 
 	FPT_BusMasterInit(ioport);
@@ -1264,7 +1380,8 @@ static void *FlashPoint_HardwareResetHostAdapter(struct sccb_mgr_info
 
 	FPT_autoLoadDefaultMap(ioport);
 
-	for (i = 0, id = 0x01; i != pCardInfo->si_id; i++, id <<= 1) {
+	for (i = 0, id = 0x01; i != pCardInfo->si_id; i++, id <<= 1)
+	{
 	}
 
 	WR_HARPOON(ioport + hp_selfid_0, id);
@@ -1273,20 +1390,32 @@ static void *FlashPoint_HardwareResetHostAdapter(struct sccb_mgr_info
 	CurrCard->ourId = pCardInfo->si_id;
 
 	i = (unsigned char)pCardInfo->si_flags;
+
 	if (i & SCSI_PARITY_ENA)
+	{
 		WR_HARPOON(ioport + hp_portctrl_1, (HOST_MODE8 | CHK_SCSI_P));
+	}
 
 	j = (RD_HARPOON(ioport + hp_bm_ctrl) & ~SCSI_TERM_ENA_L);
+
 	if (i & LOW_BYTE_TERM)
+	{
 		j |= SCSI_TERM_ENA_L;
+	}
+
 	WR_HARPOON(ioport + hp_bm_ctrl, j);
 
 	j = (RD_HARPOON(ioport + hp_ee_ctrl) & ~SCSI_TERM_ENA_H);
+
 	if (i & HIGH_BYTE_TERM)
+	{
 		j |= SCSI_TERM_ENA_H;
+	}
+
 	WR_HARPOON(ioport + hp_ee_ctrl, j);
 
-	if (!(pCardInfo->si_flags & SOFT_RESET)) {
+	if (!(pCardInfo->si_flags & SOFT_RESET))
+	{
 
 		FPT_sresb(ioport, thisCard);
 
@@ -1294,89 +1423,123 @@ static void *FlashPoint_HardwareResetHostAdapter(struct sccb_mgr_info
 	}
 
 	if (pCardInfo->si_flags & POST_ALL_UNDERRRUNS)
+	{
 		CurrCard->globalFlags |= F_NO_FILTER;
+	}
 
-	if (pCurrNvRam) {
+	if (pCurrNvRam)
+	{
 		if (pCurrNvRam->niSysConf & 0x10)
+		{
 			CurrCard->globalFlags |= F_GREEN_PC;
-	} else {
+		}
+	}
+	else
+	{
 		if (FPT_utilEERead(ioport, (SYSTEM_CONFIG / 2)) & GREEN_PC_ENA)
+		{
 			CurrCard->globalFlags |= F_GREEN_PC;
+		}
 	}
 
 	/* Set global flag to indicate Re-Negotiation to be done on all
 	   ckeck condition */
-	if (pCurrNvRam) {
+	if (pCurrNvRam)
+	{
 		if (pCurrNvRam->niScsiConf & 0x04)
+		{
 			CurrCard->globalFlags |= F_DO_RENEGO;
-	} else {
+		}
+	}
+	else
+	{
 		if (FPT_utilEERead(ioport, (SCSI_CONFIG / 2)) & RENEGO_ENA)
+		{
 			CurrCard->globalFlags |= F_DO_RENEGO;
+		}
 	}
 
-	if (pCurrNvRam) {
+	if (pCurrNvRam)
+	{
 		if (pCurrNvRam->niScsiConf & 0x08)
+		{
 			CurrCard->globalFlags |= F_CONLUN_IO;
-	} else {
+		}
+	}
+	else
+	{
 		if (FPT_utilEERead(ioport, (SCSI_CONFIG / 2)) & CONNIO_ENA)
+		{
 			CurrCard->globalFlags |= F_CONLUN_IO;
+		}
 	}
 
 	temp = pCardInfo->si_per_targ_no_disc;
 
-	for (i = 0, id = 1; i < MAX_SCSI_TAR; i++, id <<= 1) {
+	for (i = 0, id = 1; i < MAX_SCSI_TAR; i++, id <<= 1)
+	{
 
 		if (temp & id)
+		{
 			FPT_sccbMgrTbl[thisCard][i].TarStatus |= TAR_ALLOW_DISC;
+		}
 	}
 
 	sync_bit_map = 0x0001;
 
-	for (id = 0; id < (MAX_SCSI_TAR / 2); id++) {
+	for (id = 0; id < (MAX_SCSI_TAR / 2); id++)
+	{
 
-		if (pCurrNvRam) {
+		if (pCurrNvRam)
+		{
 			temp = (unsigned short)pCurrNvRam->niSyncTbl[id];
 			temp = ((temp & 0x03) + ((temp << 4) & 0xc0)) +
-			    (((temp << 4) & 0x0300) + ((temp << 8) & 0xc000));
-		} else
+				   (((temp << 4) & 0x0300) + ((temp << 8) & 0xc000));
+		}
+		else
 			temp =
-			    FPT_utilEERead(ioport,
-					   (unsigned short)((SYNC_RATE_TBL / 2)
-							    + id));
+				FPT_utilEERead(ioport,
+							   (unsigned short)((SYNC_RATE_TBL / 2)
+												+ id));
 
-		for (i = 0; i < 2; temp >>= 8, i++) {
+		for (i = 0; i < 2; temp >>= 8, i++)
+		{
 
-			if (pCardInfo->si_per_targ_init_sync & sync_bit_map) {
+			if (pCardInfo->si_per_targ_init_sync & sync_bit_map)
+			{
 
 				FPT_sccbMgrTbl[thisCard][id * 2 +
-							 i].TarEEValue =
-				    (unsigned char)temp;
+										 i].TarEEValue =
+											 (unsigned char)temp;
 			}
 
-			else {
+			else
+			{
 				FPT_sccbMgrTbl[thisCard][id * 2 +
-							 i].TarStatus |=
-				    SYNC_SUPPORTED;
+										 i].TarStatus |=
+											 SYNC_SUPPORTED;
 				FPT_sccbMgrTbl[thisCard][id * 2 +
-							 i].TarEEValue =
-				    (unsigned char)(temp & ~EE_SYNC_MASK);
+										 i].TarEEValue =
+											 (unsigned char)(temp & ~EE_SYNC_MASK);
 			}
 
-/*         if ((pCardInfo->si_per_targ_wide_nego & sync_bit_map) ||
-            (id*2+i >= 8)){
-*/
-			if (pCardInfo->si_per_targ_wide_nego & sync_bit_map) {
+			/*         if ((pCardInfo->si_per_targ_wide_nego & sync_bit_map) ||
+			            (id*2+i >= 8)){
+			*/
+			if (pCardInfo->si_per_targ_wide_nego & sync_bit_map)
+			{
 
 				FPT_sccbMgrTbl[thisCard][id * 2 +
-							 i].TarEEValue |=
-				    EE_WIDE_SCSI;
+										 i].TarEEValue |=
+											 EE_WIDE_SCSI;
 
 			}
 
-			else {	/* NARROW SCSI */
+			else  	/* NARROW SCSI */
+			{
 				FPT_sccbMgrTbl[thisCard][id * 2 +
-							 i].TarStatus |=
-				    WIDE_NEGOCIATED;
+										 i].TarStatus |=
+											 WIDE_NEGOCIATED;
 			}
 
 			sync_bit_map <<= 1;
@@ -1385,8 +1548,8 @@ static void *FlashPoint_HardwareResetHostAdapter(struct sccb_mgr_info
 	}
 
 	WR_HARPOON((ioport + hp_semaphore),
-		   (unsigned char)(RD_HARPOON((ioport + hp_semaphore)) |
-				   SCCB_MGR_PRESENT));
+			   (unsigned char)(RD_HARPOON((ioport + hp_semaphore)) |
+							   SCCB_MGR_PRESENT));
 
 	return (void *)CurrCard;
 }
@@ -1402,7 +1565,8 @@ static void FlashPoint_ReleaseHostAdapter(void *pCurrCard)
 
 	pCurrNvRam = ((struct sccb_card *)pCurrCard)->pNvRamInfo;
 
-	if (pCurrNvRam) {
+	if (pCurrNvRam)
+	{
 		FPT_WrStack(pCurrNvRam->niBaseAddr, 0, pCurrNvRam->niModel);
 		FPT_WrStack(pCurrNvRam->niBaseAddr, 1, pCurrNvRam->niSysConf);
 		FPT_WrStack(pCurrNvRam->niBaseAddr, 2, pCurrNvRam->niScsiConf);
@@ -1411,19 +1575,22 @@ static void FlashPoint_ReleaseHostAdapter(void *pCurrCard)
 
 		for (i = 0; i < MAX_SCSI_TAR / 2; i++)
 			FPT_WrStack(pCurrNvRam->niBaseAddr,
-				    (unsigned char)(i + 5),
-				    pCurrNvRam->niSyncTbl[i]);
+						(unsigned char)(i + 5),
+						pCurrNvRam->niSyncTbl[i]);
 
 		portBase = pCurrNvRam->niBaseAddr;
 
-		for (i = 0; i < MAX_SCSI_TAR; i++) {
+		for (i = 0; i < MAX_SCSI_TAR; i++)
+		{
 			regOffset = hp_aramBase + 64 + i * 4;
 			pScamTbl = (u32 *)&pCurrNvRam->niScamTbl[i];
 			scamData = *pScamTbl;
 			WR_HARP32(portBase, regOffset, scamData);
 		}
 
-	} else {
+	}
+	else
+	{
 		FPT_WrStack(((struct sccb_card *)pCurrCard)->ioPort, 0, 0);
 	}
 }
@@ -1444,11 +1611,12 @@ static void FPT_RNVRamData(struct nvram_info *pNvRamInfo)
 
 	for (i = 0; i < MAX_SCSI_TAR / 2; i++)
 		pNvRamInfo->niSyncTbl[i] =
-		    FPT_RdStack(pNvRamInfo->niBaseAddr, (unsigned char)(i + 5));
+			FPT_RdStack(pNvRamInfo->niBaseAddr, (unsigned char)(i + 5));
 
 	portBase = pNvRamInfo->niBaseAddr;
 
-	for (i = 0; i < MAX_SCSI_TAR; i++) {
+	for (i = 0; i < MAX_SCSI_TAR; i++)
+	{
 		regOffset = hp_aramBase + 64 + i * 4;
 		RD_HARP32(portBase, regOffset, scamData);
 		pScamTbl = (u32 *)&pNvRamInfo->niScamTbl[i];
@@ -1472,13 +1640,22 @@ static void FPT_WrStack(u32 portBase, unsigned char index, unsigned char data)
 static unsigned char FPT_ChkIfChipInitialized(u32 ioPort)
 {
 	if ((RD_HARPOON(ioPort + hp_arb_id) & 0x0f) != FPT_RdStack(ioPort, 4))
+	{
 		return 0;
+	}
+
 	if ((RD_HARPOON(ioPort + hp_clkctrl_0) & CLKCTRL_DEFAULT)
-	    != CLKCTRL_DEFAULT)
+		!= CLKCTRL_DEFAULT)
+	{
 		return 0;
+	}
+
 	if ((RD_HARPOON(ioPort + hp_seltimeout) == TO_250ms) ||
-	    (RD_HARPOON(ioPort + hp_seltimeout) == TO_290ms))
+		(RD_HARPOON(ioPort + hp_seltimeout) == TO_290ms))
+	{
 		return 1;
+	}
+
 	return 0;
 
 }
@@ -1503,25 +1680,31 @@ static void FlashPoint_StartCCB(void *curr_card, struct sccb *p_Sccb)
 	thisCard = pCurrCard->cardIndex;
 	ioport = pCurrCard->ioPort;
 
-	if ((p_Sccb->TargID >= MAX_SCSI_TAR) || (p_Sccb->Lun >= MAX_LUN)) {
+	if ((p_Sccb->TargID >= MAX_SCSI_TAR) || (p_Sccb->Lun >= MAX_LUN))
+	{
 
 		p_Sccb->HostStatus = SCCB_COMPLETE;
 		p_Sccb->SccbStatus = SCCB_ERROR;
 		callback = (CALL_BK_FN) p_Sccb->SccbCallback;
+
 		if (callback)
+		{
 			callback(p_Sccb);
+		}
 
 		return;
 	}
 
 	FPT_sinits(p_Sccb, thisCard);
 
-	if (!pCurrCard->cmdCounter) {
+	if (!pCurrCard->cmdCounter)
+	{
 		WR_HARPOON(ioport + hp_semaphore,
-			   (RD_HARPOON(ioport + hp_semaphore)
-			    | SCCB_MGR_ACTIVE));
+				   (RD_HARPOON(ioport + hp_semaphore)
+					| SCCB_MGR_ACTIVE));
 
-		if (pCurrCard->globalFlags & F_GREEN_PC) {
+		if (pCurrCard->globalFlags & F_GREEN_PC)
+		{
 			WR_HARPOON(ioport + hp_clkctrl_0, CLKCTRL_DEFAULT);
 			WR_HARPOON(ioport + hp_sys_ctrl, 0x00);
 		}
@@ -1529,65 +1712,85 @@ static void FlashPoint_StartCCB(void *curr_card, struct sccb *p_Sccb)
 
 	pCurrCard->cmdCounter++;
 
-	if (RD_HARPOON(ioport + hp_semaphore) & BIOS_IN_USE) {
+	if (RD_HARPOON(ioport + hp_semaphore) & BIOS_IN_USE)
+	{
 
 		WR_HARPOON(ioport + hp_semaphore,
-			   (RD_HARPOON(ioport + hp_semaphore)
-			    | TICKLE_ME));
-		if (p_Sccb->OperationCode == RESET_COMMAND) {
+				   (RD_HARPOON(ioport + hp_semaphore)
+					| TICKLE_ME));
+
+		if (p_Sccb->OperationCode == RESET_COMMAND)
+		{
 			pSaveSccb =
-			    pCurrCard->currentSCCB;
+				pCurrCard->currentSCCB;
 			pCurrCard->currentSCCB = p_Sccb;
 			FPT_queueSelectFail(&FPT_BL_Card[thisCard], thisCard);
 			pCurrCard->currentSCCB =
-			    pSaveSccb;
-		} else {
+				pSaveSccb;
+		}
+		else
+		{
 			FPT_queueAddSccb(p_Sccb, thisCard);
 		}
 	}
 
-	else if ((RD_HARPOON(ioport + hp_page_ctrl) & G_INT_DISABLE)) {
+	else if ((RD_HARPOON(ioport + hp_page_ctrl) & G_INT_DISABLE))
+	{
 
-		if (p_Sccb->OperationCode == RESET_COMMAND) {
+		if (p_Sccb->OperationCode == RESET_COMMAND)
+		{
 			pSaveSccb =
-			    pCurrCard->currentSCCB;
+				pCurrCard->currentSCCB;
 			pCurrCard->currentSCCB = p_Sccb;
 			FPT_queueSelectFail(&FPT_BL_Card[thisCard], thisCard);
 			pCurrCard->currentSCCB =
-			    pSaveSccb;
-		} else {
+				pSaveSccb;
+		}
+		else
+		{
 			FPT_queueAddSccb(p_Sccb, thisCard);
 		}
 	}
 
-	else {
+	else
+	{
 
 		MDISABLE_INT(ioport);
 
 		if ((pCurrCard->globalFlags & F_CONLUN_IO) &&
-		    ((FPT_sccbMgrTbl[thisCard][p_Sccb->TargID].
-		      TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))
+			((FPT_sccbMgrTbl[thisCard][p_Sccb->TargID].
+			  TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))
+		{
 			lun = p_Sccb->Lun;
+		}
 		else
+		{
 			lun = 0;
+		}
+
 		if ((pCurrCard->currentSCCB == NULL) &&
-		    (FPT_sccbMgrTbl[thisCard][p_Sccb->TargID].TarSelQ_Cnt == 0)
-		    && (FPT_sccbMgrTbl[thisCard][p_Sccb->TargID].TarLUNBusy[lun]
-			== 0)) {
+			(FPT_sccbMgrTbl[thisCard][p_Sccb->TargID].TarSelQ_Cnt == 0)
+			&& (FPT_sccbMgrTbl[thisCard][p_Sccb->TargID].TarLUNBusy[lun]
+				== 0))
+		{
 
 			pCurrCard->currentSCCB = p_Sccb;
 			FPT_ssel(p_Sccb->SccbIOPort, thisCard);
 		}
 
-		else {
+		else
+		{
 
-			if (p_Sccb->OperationCode == RESET_COMMAND) {
+			if (p_Sccb->OperationCode == RESET_COMMAND)
+			{
 				pSaveSccb = pCurrCard->currentSCCB;
 				pCurrCard->currentSCCB = p_Sccb;
 				FPT_queueSelectFail(&FPT_BL_Card[thisCard],
-						    thisCard);
+									thisCard);
 				pCurrCard->currentSCCB = pSaveSccb;
-			} else {
+			}
+			else
+			{
 				FPT_queueAddSccb(p_Sccb, thisCard);
 			}
 		}
@@ -1620,18 +1823,20 @@ static int FlashPoint_AbortCCB(void *pCurrCard, struct sccb *p_Sccb)
 
 	thisCard = ((struct sccb_card *)pCurrCard)->cardIndex;
 
-	if (!(RD_HARPOON(ioport + hp_page_ctrl) & G_INT_DISABLE)) {
+	if (!(RD_HARPOON(ioport + hp_page_ctrl) & G_INT_DISABLE))
+	{
 
-		if (FPT_queueFindSccb(p_Sccb, thisCard)) {
+		if (FPT_queueFindSccb(p_Sccb, thisCard))
+		{
 
 			((struct sccb_card *)pCurrCard)->cmdCounter--;
 
 			if (!((struct sccb_card *)pCurrCard)->cmdCounter)
 				WR_HARPOON(ioport + hp_semaphore,
-					   (RD_HARPOON(ioport + hp_semaphore)
-					    & (unsigned
-					       char)(~(SCCB_MGR_ACTIVE |
-						       TICKLE_ME))));
+						   (RD_HARPOON(ioport + hp_semaphore)
+							& (unsigned
+							   char)(~(SCCB_MGR_ACTIVE |
+									   TICKLE_ME))));
 
 			p_Sccb->SccbStatus = SCCB_ABORT;
 			callback = p_Sccb->SccbCallback;
@@ -1640,62 +1845,75 @@ static int FlashPoint_AbortCCB(void *pCurrCard, struct sccb *p_Sccb)
 			return 0;
 		}
 
-		else {
+		else
+		{
 			if (((struct sccb_card *)pCurrCard)->currentSCCB ==
-			    p_Sccb) {
+				p_Sccb)
+			{
 				p_Sccb->SccbStatus = SCCB_ABORT;
 				return 0;
 
 			}
 
-			else {
+			else
+			{
 
 				TID = p_Sccb->TargID;
 
-				if (p_Sccb->Sccb_tag) {
+				if (p_Sccb->Sccb_tag)
+				{
 					MDISABLE_INT(ioport);
+
 					if (((struct sccb_card *)pCurrCard)->
-					    discQ_Tbl[p_Sccb->Sccb_tag] ==
-					    p_Sccb) {
+						discQ_Tbl[p_Sccb->Sccb_tag] ==
+						p_Sccb)
+					{
 						p_Sccb->SccbStatus = SCCB_ABORT;
 						p_Sccb->Sccb_scsistat =
-						    ABORT_ST;
+							ABORT_ST;
 						p_Sccb->Sccb_scsimsg =
-						    SMABORT_TAG;
+							SMABORT_TAG;
 
 						if (((struct sccb_card *)
-						     pCurrCard)->currentSCCB ==
-						    NULL) {
+							 pCurrCard)->currentSCCB ==
+							NULL)
+						{
 							((struct sccb_card *)
 							 pCurrCard)->
-					currentSCCB = p_Sccb;
+							currentSCCB = p_Sccb;
 							FPT_ssel(ioport,
-								 thisCard);
-						} else {
+									 thisCard);
+						}
+						else
+						{
 							pSaveSCCB =
-							    ((struct sccb_card
-							      *)pCurrCard)->
-							    currentSCCB;
+								((struct sccb_card
+								  *)pCurrCard)->
+								currentSCCB;
 							((struct sccb_card *)
 							 pCurrCard)->
-					currentSCCB = p_Sccb;
+							currentSCCB = p_Sccb;
 							FPT_queueSelectFail((struct sccb_card *)pCurrCard, thisCard);
 							((struct sccb_card *)
 							 pCurrCard)->
-					currentSCCB = pSaveSCCB;
+							currentSCCB = pSaveSCCB;
 						}
 					}
+
 					MENABLE_INT(ioport);
 					return 0;
-				} else {
+				}
+				else
+				{
 					currTar_Info =
-					    &FPT_sccbMgrTbl[thisCard][p_Sccb->
-								      TargID];
+						&FPT_sccbMgrTbl[thisCard][p_Sccb->
+												  TargID];
 
 					if (FPT_BL_Card[thisCard].
-					    discQ_Tbl[currTar_Info->
-						      LunDiscQ_Idx[p_Sccb->Lun]]
-					    == p_Sccb) {
+						discQ_Tbl[currTar_Info->
+								  LunDiscQ_Idx[p_Sccb->Lun]]
+						== p_Sccb)
+					{
 						p_Sccb->SccbStatus = SCCB_ABORT;
 						return 0;
 					}
@@ -1703,6 +1921,7 @@ static int FlashPoint_AbortCCB(void *pCurrCard, struct sccb *p_Sccb)
 			}
 		}
 	}
+
 	return -1;
 }
 
@@ -1720,13 +1939,16 @@ static unsigned char FlashPoint_InterruptPending(void *pCurrCard)
 
 	ioport = ((struct sccb_card *)pCurrCard)->ioPort;
 
-	if (RD_HARPOON(ioport + hp_int_status) & INT_ASSERTED) {
+	if (RD_HARPOON(ioport + hp_int_status) & INT_ASSERTED)
+	{
 		return 1;
 	}
 
 	else
 
+	{
 		return 0;
+	}
 }
 
 /*---------------------------------------------------------------------
@@ -1756,50 +1978,59 @@ static int FlashPoint_HandleInterrupt(void *pcard)
 		bm_status = RD_HARPOON(ioport + hp_ext_status) &
 					(unsigned char)BAD_EXT_STATUS;
 	else
+	{
 		bm_status = 0;
+	}
 
 	WR_HARPOON(ioport + hp_int_mask, (INT_CMD_COMPL | SCSI_INTERRUPT));
 
 	while ((hp_int = RDW_HARPOON((ioport + hp_intstat)) &
-				FPT_default_intena) | bm_status) {
+					 FPT_default_intena) | bm_status)
+	{
 
 		currSCCB = pCurrCard->currentSCCB;
 
-		if (hp_int & (FIFO | TIMEOUT | RESET | SCAM_SEL) || bm_status) {
+		if (hp_int & (FIFO | TIMEOUT | RESET | SCAM_SEL) || bm_status)
+		{
 			result =
-			    FPT_SccbMgr_bad_isr(ioport, thisCard, pCurrCard,
-						hp_int);
+				FPT_SccbMgr_bad_isr(ioport, thisCard, pCurrCard,
+									hp_int);
 			WRW_HARPOON((ioport + hp_intstat),
-				    (FIFO | TIMEOUT | RESET | SCAM_SEL));
+						(FIFO | TIMEOUT | RESET | SCAM_SEL));
 			bm_status = 0;
 
-			if (result) {
+			if (result)
+			{
 
 				MENABLE_INT(ioport);
 				return result;
 			}
 		}
 
-		else if (hp_int & ICMD_COMP) {
+		else if (hp_int & ICMD_COMP)
+		{
 
-			if (!(hp_int & BUS_FREE)) {
+			if (!(hp_int & BUS_FREE))
+			{
 				/* Wait for the BusFree before starting a new command.  We
 				   must also check for being reselected since the BusFree
 				   may not show up if another device reselects us in 1.5us or
 				   less.  SRR Wednesday, 3/8/1995.
 				 */
 				while (!
-				       (RDW_HARPOON((ioport + hp_intstat)) &
-					(BUS_FREE | RSEL))) ;
+					   (RDW_HARPOON((ioport + hp_intstat)) &
+						(BUS_FREE | RSEL))) ;
 			}
 
 			if (pCurrCard->globalFlags & F_HOST_XFER_ACT)
 
+			{
 				FPT_phaseChkFifo(ioport, thisCard);
+			}
 
-/*         WRW_HARPOON((ioport+hp_intstat),
-            (BUS_FREE | ICMD_COMP | ITAR_DISC | XFER_CNT_0));
-         */
+			/*         WRW_HARPOON((ioport+hp_intstat),
+			            (BUS_FREE | ICMD_COMP | ITAR_DISC | XFER_CNT_0));
+			         */
 
 			WRW_HARPOON((ioport + hp_intstat), CLR_ALL_INT_1);
 
@@ -1807,13 +2038,17 @@ static int FlashPoint_HandleInterrupt(void *pcard)
 
 		}
 
-		else if (hp_int & ITAR_DISC) {
+		else if (hp_int & ITAR_DISC)
+		{
 
 			if (pCurrCard->globalFlags & F_HOST_XFER_ACT)
+			{
 				FPT_phaseChkFifo(ioport, thisCard);
+			}
 
 			if (RD_HARPOON(ioport + hp_gp_reg_1) ==
-					SMSAVE_DATA_PTR) {
+				SMSAVE_DATA_PTR)
+			{
 
 				WR_HARPOON(ioport + hp_gp_reg_1, 0x00);
 				currSCCB->Sccb_XferState |= F_NO_DATA_YET;
@@ -1830,12 +2065,12 @@ static int FlashPoint_HandleInterrupt(void *pcard)
 			   less.  SRR Wednesday, 3/8/1995.
 			 */
 			while (!
-			       (RDW_HARPOON((ioport + hp_intstat)) &
-				(BUS_FREE | RSEL))
-			       && !((RDW_HARPOON((ioport + hp_intstat)) & PHASE)
-				    && RD_HARPOON((ioport + hp_scsisig)) ==
-				    (SCSI_BSY | SCSI_REQ | SCSI_CD | SCSI_MSG |
-				     SCSI_IOBIT))) ;
+				   (RDW_HARPOON((ioport + hp_intstat)) &
+					(BUS_FREE | RSEL))
+				   && !((RDW_HARPOON((ioport + hp_intstat)) & PHASE)
+						&& RD_HARPOON((ioport + hp_scsisig)) ==
+						(SCSI_BSY | SCSI_REQ | SCSI_CD | SCSI_MSG |
+						 SCSI_IOBIT))) ;
 
 			/*
 			   The additional loop exit condition above detects a timing problem
@@ -1843,39 +2078,45 @@ static int FlashPoint_HandleInterrupt(void *pcard)
 			   host adapter to recover when 0xFE is returned.
 			 */
 			if (!
-			    (RDW_HARPOON((ioport + hp_intstat)) &
-			     (BUS_FREE | RSEL))) {
+				(RDW_HARPOON((ioport + hp_intstat)) &
+				 (BUS_FREE | RSEL)))
+			{
 				MENABLE_INT(ioport);
 				return 0xFE;
 			}
 
 			WRW_HARPOON((ioport + hp_intstat),
-				    (BUS_FREE | ITAR_DISC));
+						(BUS_FREE | ITAR_DISC));
 
 			pCurrCard->globalFlags |= F_NEW_SCCB_CMD;
 
 		}
 
-		else if (hp_int & RSEL) {
+		else if (hp_int & RSEL)
+		{
 
 			WRW_HARPOON((ioport + hp_intstat),
-				    (PROG_HLT | RSEL | PHASE | BUS_FREE));
+						(PROG_HLT | RSEL | PHASE | BUS_FREE));
 
-			if (RDW_HARPOON((ioport + hp_intstat)) & ITAR_DISC) {
+			if (RDW_HARPOON((ioport + hp_intstat)) & ITAR_DISC)
+			{
 				if (pCurrCard->globalFlags & F_HOST_XFER_ACT)
+				{
 					FPT_phaseChkFifo(ioport, thisCard);
+				}
 
 				if (RD_HARPOON(ioport + hp_gp_reg_1) ==
-				    SMSAVE_DATA_PTR) {
+					SMSAVE_DATA_PTR)
+				{
 					WR_HARPOON(ioport + hp_gp_reg_1, 0x00);
 					currSCCB->Sccb_XferState |=
-					    F_NO_DATA_YET;
+						F_NO_DATA_YET;
 					currSCCB->Sccb_savedATC =
-					    currSCCB->Sccb_ATC;
+						currSCCB->Sccb_ATC;
 				}
 
 				WRW_HARPOON((ioport + hp_intstat),
-					    (BUS_FREE | ITAR_DISC));
+							(BUS_FREE | ITAR_DISC));
 				currSCCB->Sccb_scsistat = DISCONNECT_ST;
 				FPT_queueDisconnect(currSCCB, thisCard);
 			}
@@ -1885,21 +2126,27 @@ static int FlashPoint_HandleInterrupt(void *pcard)
 
 		}
 
-		else if ((hp_int & IDO_STRT) && (!(hp_int & BUS_FREE))) {
+		else if ((hp_int & IDO_STRT) && (!(hp_int & BUS_FREE)))
+		{
 
 			WRW_HARPOON((ioport + hp_intstat),
-				    (IDO_STRT | XFER_CNT_0));
+						(IDO_STRT | XFER_CNT_0));
 			FPT_phaseDecode(ioport, thisCard);
 
 		}
 
-		else if ((hp_int & IUNKWN) || (hp_int & PROG_HLT)) {
+		else if ((hp_int & IUNKWN) || (hp_int & PROG_HLT))
+		{
 			WRW_HARPOON((ioport + hp_intstat),
-				    (PHASE | IUNKWN | PROG_HLT));
+						(PHASE | IUNKWN | PROG_HLT));
+
 			if ((RD_HARPOON(ioport + hp_prgmcnt_0) & (unsigned char)
-			     0x3f) < (unsigned char)SELCHK) {
+				 0x3f) < (unsigned char)SELCHK)
+			{
 				FPT_phaseDecode(ioport, thisCard);
-			} else {
+			}
+			else
+			{
 				/* Harpoon problem some SCSI target device respond to selection
 				   with short BUSY pulse (<400ns) this will make the Harpoon is not able
 				   to latch the correct Target ID into reg. x53.
@@ -1908,24 +2155,25 @@ static int FlashPoint_HandleInterrupt(void *pcard)
 				   need to read this reg first then restore it later. After update to 0x53 */
 
 				i = (unsigned
-				     char)(RD_HARPOON(ioport + hp_fifowrite));
+					 char)(RD_HARPOON(ioport + hp_fifowrite));
 				target =
-				    (unsigned
-				     char)(RD_HARPOON(ioport + hp_gp_reg_3));
+					(unsigned
+					 char)(RD_HARPOON(ioport + hp_gp_reg_3));
 				WR_HARPOON(ioport + hp_xfer_pad,
-					   (unsigned char)ID_UNLOCK);
+						   (unsigned char)ID_UNLOCK);
 				WR_HARPOON(ioport + hp_select_id,
-					   (unsigned char)(target | target <<
-							   4));
+						   (unsigned char)(target | target <<
+										   4));
 				WR_HARPOON(ioport + hp_xfer_pad,
-					   (unsigned char)0x00);
+						   (unsigned char)0x00);
 				WR_HARPOON(ioport + hp_fifowrite, i);
 				WR_HARPOON(ioport + hp_autostart_3,
-					   (AUTO_IMMED + TAG_STRT));
+						   (AUTO_IMMED + TAG_STRT));
 			}
 		}
 
-		else if (hp_int & XFER_CNT_0) {
+		else if (hp_int & XFER_CNT_0)
+		{
 
 			WRW_HARPOON((ioport + hp_intstat), XFER_CNT_0);
 
@@ -1933,34 +2181,41 @@ static int FlashPoint_HandleInterrupt(void *pcard)
 
 		}
 
-		else if (hp_int & BUS_FREE) {
+		else if (hp_int & BUS_FREE)
+		{
 
 			WRW_HARPOON((ioport + hp_intstat), BUS_FREE);
 
-			if (pCurrCard->globalFlags & F_HOST_XFER_ACT) {
+			if (pCurrCard->globalFlags & F_HOST_XFER_ACT)
+			{
 
 				FPT_hostDataXferAbort(ioport, thisCard,
-						      currSCCB);
+									  currSCCB);
 			}
 
 			FPT_phaseBusFree(ioport, thisCard);
 		}
 
-		else if (hp_int & ITICKLE) {
+		else if (hp_int & ITICKLE)
+		{
 
 			WRW_HARPOON((ioport + hp_intstat), ITICKLE);
 			pCurrCard->globalFlags |= F_NEW_SCCB_CMD;
 		}
 
 		if (((struct sccb_card *)pCurrCard)->
-		    globalFlags & F_NEW_SCCB_CMD) {
+			globalFlags & F_NEW_SCCB_CMD)
+		{
 
 			pCurrCard->globalFlags &= ~F_NEW_SCCB_CMD;
 
 			if (pCurrCard->currentSCCB == NULL)
+			{
 				FPT_queueSearchSelect(pCurrCard, thisCard);
+			}
 
-			if (pCurrCard->currentSCCB != NULL) {
+			if (pCurrCard->currentSCCB != NULL)
+			{
 				pCurrCard->globalFlags &= ~F_NEW_SCCB_CMD;
 				FPT_ssel(ioport, thisCard);
 			}
@@ -1987,80 +2242,92 @@ static int FlashPoint_HandleInterrupt(void *pcard)
  *
  *---------------------------------------------------------------------*/
 static unsigned char FPT_SccbMgr_bad_isr(u32 p_port, unsigned char p_card,
-					 struct sccb_card *pCurrCard,
-					 unsigned short p_int)
+		struct sccb_card *pCurrCard,
+		unsigned short p_int)
 {
 	unsigned char temp, ScamFlg;
 	struct sccb_mgr_tar_info *currTar_Info;
 	struct nvram_info *pCurrNvRam;
 
 	if (RD_HARPOON(p_port + hp_ext_status) &
-	    (BM_FORCE_OFF | PCI_DEV_TMOUT | BM_PARITY_ERR | PIO_OVERRUN)) {
+		(BM_FORCE_OFF | PCI_DEV_TMOUT | BM_PARITY_ERR | PIO_OVERRUN))
+	{
 
-		if (pCurrCard->globalFlags & F_HOST_XFER_ACT) {
+		if (pCurrCard->globalFlags & F_HOST_XFER_ACT)
+		{
 
 			FPT_hostDataXferAbort(p_port, p_card,
-					      pCurrCard->currentSCCB);
+								  pCurrCard->currentSCCB);
 		}
 
 		if (RD_HARPOON(p_port + hp_pci_stat_cfg) & REC_MASTER_ABORT)
 		{
 			WR_HARPOON(p_port + hp_pci_stat_cfg,
-				   (RD_HARPOON(p_port + hp_pci_stat_cfg) &
-				    ~REC_MASTER_ABORT));
+					   (RD_HARPOON(p_port + hp_pci_stat_cfg) &
+						~REC_MASTER_ABORT));
 
 			WR_HARPOON(p_port + hp_host_blk_cnt, 0x00);
 
 		}
 
-		if (pCurrCard->currentSCCB != NULL) {
+		if (pCurrCard->currentSCCB != NULL)
+		{
 
 			if (!pCurrCard->currentSCCB->HostStatus)
 				pCurrCard->currentSCCB->HostStatus =
-				    SCCB_BM_ERR;
+					SCCB_BM_ERR;
 
 			FPT_sxfrp(p_port, p_card);
 
 			temp = (unsigned char)(RD_HARPOON(p_port + hp_ee_ctrl) &
-					       (EXT_ARB_ACK | SCSI_TERM_ENA_H));
+								   (EXT_ARB_ACK | SCSI_TERM_ENA_H));
 			WR_HARPOON(p_port + hp_ee_ctrl,
-				   ((unsigned char)temp | SEE_MS | SEE_CS));
+					   ((unsigned char)temp | SEE_MS | SEE_CS));
 			WR_HARPOON(p_port + hp_ee_ctrl, temp);
 
 			if (!
-			    (RDW_HARPOON((p_port + hp_intstat)) &
-			     (BUS_FREE | RESET))) {
+				(RDW_HARPOON((p_port + hp_intstat)) &
+				 (BUS_FREE | RESET)))
+			{
 				FPT_phaseDecode(p_port, p_card);
 			}
 		}
 	}
 
-	else if (p_int & RESET) {
+	else if (p_int & RESET)
+	{
 
 		WR_HARPOON(p_port + hp_clkctrl_0, CLKCTRL_DEFAULT);
 		WR_HARPOON(p_port + hp_sys_ctrl, 0x00);
-		if (pCurrCard->currentSCCB != NULL) {
+
+		if (pCurrCard->currentSCCB != NULL)
+		{
 
 			if (pCurrCard->globalFlags & F_HOST_XFER_ACT)
 
 				FPT_hostDataXferAbort(p_port, p_card,
-						      pCurrCard->currentSCCB);
+									  pCurrCard->currentSCCB);
 		}
 
 		DISABLE_AUTO(p_port);
 
 		FPT_sresb(p_port, p_card);
 
-		while (RD_HARPOON(p_port + hp_scsictrl_0) & SCSI_RST) {
+		while (RD_HARPOON(p_port + hp_scsictrl_0) & SCSI_RST)
+		{
 		}
 
 		pCurrNvRam = pCurrCard->pNvRamInfo;
-		if (pCurrNvRam) {
+
+		if (pCurrNvRam)
+		{
 			ScamFlg = pCurrNvRam->niScamConf;
-		} else {
+		}
+		else
+		{
 			ScamFlg =
-			    (unsigned char)FPT_utilEERead(p_port,
-							  SCAM_CONFIG / 2);
+				(unsigned char)FPT_utilEERead(p_port,
+											  SCAM_CONFIG / 2);
 		}
 
 		FPT_XbowInit(p_port, ScamFlg);
@@ -2070,51 +2337,61 @@ static unsigned char FPT_SccbMgr_bad_isr(u32 p_port, unsigned char p_card,
 		return 0xFF;
 	}
 
-	else if (p_int & FIFO) {
+	else if (p_int & FIFO)
+	{
 
 		WRW_HARPOON((p_port + hp_intstat), FIFO);
 
 		if (pCurrCard->currentSCCB != NULL)
+		{
 			FPT_sxfrp(p_port, p_card);
+		}
 	}
 
-	else if (p_int & TIMEOUT) {
+	else if (p_int & TIMEOUT)
+	{
 
 		DISABLE_AUTO(p_port);
 
 		WRW_HARPOON((p_port + hp_intstat),
-			    (PROG_HLT | TIMEOUT | SEL | BUS_FREE | PHASE |
-			     IUNKWN));
+					(PROG_HLT | TIMEOUT | SEL | BUS_FREE | PHASE |
+					 IUNKWN));
 
 		pCurrCard->currentSCCB->HostStatus = SCCB_SELECTION_TIMEOUT;
 
 		currTar_Info =
-		    &FPT_sccbMgrTbl[p_card][pCurrCard->currentSCCB->TargID];
-		if ((pCurrCard->globalFlags & F_CONLUN_IO)
-		    && ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) !=
-			TAG_Q_TRYING))
-			currTar_Info->TarLUNBusy[pCurrCard->currentSCCB->Lun] =
-			    0;
-		else
-			currTar_Info->TarLUNBusy[0] = 0;
+			&FPT_sccbMgrTbl[p_card][pCurrCard->currentSCCB->TargID];
 
-		if (currTar_Info->TarEEValue & EE_SYNC_MASK) {
+		if ((pCurrCard->globalFlags & F_CONLUN_IO)
+			&& ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) !=
+				TAG_Q_TRYING))
+			currTar_Info->TarLUNBusy[pCurrCard->currentSCCB->Lun] =
+				0;
+		else
+		{
+			currTar_Info->TarLUNBusy[0] = 0;
+		}
+
+		if (currTar_Info->TarEEValue & EE_SYNC_MASK)
+		{
 			currTar_Info->TarSyncCtrl = 0;
 			currTar_Info->TarStatus &= ~TAR_SYNC_MASK;
 		}
 
-		if (currTar_Info->TarEEValue & EE_WIDE_SCSI) {
+		if (currTar_Info->TarEEValue & EE_WIDE_SCSI)
+		{
 			currTar_Info->TarStatus &= ~TAR_WIDE_MASK;
 		}
 
 		FPT_sssyncv(p_port, pCurrCard->currentSCCB->TargID, NARROW_SCSI,
-			    currTar_Info);
+					currTar_Info);
 
 		FPT_queueCmdComplete(pCurrCard, pCurrCard->currentSCCB, p_card);
 
 	}
 
-	else if (p_int & SCAM_SEL) {
+	else if (p_int & SCAM_SEL)
+	{
 
 		FPT_scarb(p_port, LEVEL2_TAR);
 		FPT_scsel(p_port);
@@ -2140,7 +2417,8 @@ static void FPT_SccbMgrTableInitAll(void)
 {
 	unsigned char thisCard;
 
-	for (thisCard = 0; thisCard < MAX_CARDS; thisCard++) {
+	for (thisCard = 0; thisCard < MAX_CARDS; thisCard++)
+	{
 		FPT_SccbMgrTableInitCard(&FPT_BL_Card[thisCard], thisCard);
 
 		FPT_BL_Card[thisCard].ioPort = 0x00;
@@ -2160,15 +2438,17 @@ static void FPT_SccbMgrTableInitAll(void)
  *---------------------------------------------------------------------*/
 
 static void FPT_SccbMgrTableInitCard(struct sccb_card *pCurrCard,
-				     unsigned char p_card)
+									 unsigned char p_card)
 {
 	unsigned char scsiID, qtag;
 
-	for (qtag = 0; qtag < QUEUE_DEPTH; qtag++) {
+	for (qtag = 0; qtag < QUEUE_DEPTH; qtag++)
+	{
 		FPT_BL_Card[p_card].discQ_Tbl[qtag] = NULL;
 	}
 
-	for (scsiID = 0; scsiID < MAX_SCSI_TAR; scsiID++) {
+	for (scsiID = 0; scsiID < MAX_SCSI_TAR; scsiID++)
+	{
 		FPT_sccbMgrTbl[p_card][scsiID].TarStatus = 0;
 		FPT_sccbMgrTbl[p_card][scsiID].TarEEValue = 0;
 		FPT_SccbMgrTableInitTarget(p_card, scsiID);
@@ -2192,7 +2472,7 @@ static void FPT_SccbMgrTableInitCard(struct sccb_card *pCurrCard,
  *---------------------------------------------------------------------*/
 
 static void FPT_SccbMgrTableInitTarget(unsigned char p_card,
-				       unsigned char target)
+									   unsigned char target)
 {
 
 	unsigned char lun, qtag;
@@ -2208,15 +2488,19 @@ static void FPT_SccbMgrTableInitTarget(unsigned char p_card,
 	currTar_Info->TarTagQ_Cnt = 0;
 	currTar_Info->TarLUN_CA = 0;
 
-	for (lun = 0; lun < MAX_LUN; lun++) {
+	for (lun = 0; lun < MAX_LUN; lun++)
+	{
 		currTar_Info->TarLUNBusy[lun] = 0;
 		currTar_Info->LunDiscQ_Idx[lun] = 0;
 	}
 
-	for (qtag = 0; qtag < QUEUE_DEPTH; qtag++) {
-		if (FPT_BL_Card[p_card].discQ_Tbl[qtag] != NULL) {
+	for (qtag = 0; qtag < QUEUE_DEPTH; qtag++)
+	{
+		if (FPT_BL_Card[p_card].discQ_Tbl[qtag] != NULL)
+		{
 			if (FPT_BL_Card[p_card].discQ_Tbl[qtag]->TargID ==
-			    target) {
+				target)
+			{
 				FPT_BL_Card[p_card].discQ_Tbl[qtag] = NULL;
 				FPT_BL_Card[p_card].discQCount--;
 			}
@@ -2239,8 +2523,10 @@ static unsigned char FPT_sfm(u32 port, struct sccb *pCurrSCCB)
 	unsigned short TimeOutLoop;
 
 	TimeOutLoop = 0;
+
 	while ((!(RD_HARPOON(port + hp_scsisig) & SCSI_REQ)) &&
-	       (TimeOutLoop++ < 20000)) {
+		   (TimeOutLoop++ < 20000))
+	{
 	}
 
 	WR_HARPOON(port + hp_portctrl_0, SCSI_PORT);
@@ -2250,42 +2536,59 @@ static unsigned char FPT_sfm(u32 port, struct sccb *pCurrSCCB)
 	WR_HARPOON(port + hp_scsisig, SCSI_ACK + S_MSGI_PH);
 
 	if (TimeOutLoop > 20000)
-		message = 0x00;	/* force message byte = 0 if Time Out on Req */
+	{
+		message = 0x00;    /* force message byte = 0 if Time Out on Req */
+	}
 
 	if ((RDW_HARPOON((port + hp_intstat)) & PARITY) &&
-	    (RD_HARPOON(port + hp_addstat) & SCSI_PAR_ERR)) {
+		(RD_HARPOON(port + hp_addstat) & SCSI_PAR_ERR))
+	{
 		WR_HARPOON(port + hp_scsisig, (SCSI_ACK + S_ILL_PH));
 		WR_HARPOON(port + hp_xferstat, 0);
 		WR_HARPOON(port + hp_fiforead, 0);
 		WR_HARPOON(port + hp_fifowrite, 0);
-		if (pCurrSCCB != NULL) {
+
+		if (pCurrSCCB != NULL)
+		{
 			pCurrSCCB->Sccb_scsimsg = SMPARITY;
 		}
+
 		message = 0x00;
-		do {
+
+		do
+		{
 			ACCEPT_MSG_ATN(port);
 			TimeOutLoop = 0;
+
 			while ((!(RD_HARPOON(port + hp_scsisig) & SCSI_REQ)) &&
-			       (TimeOutLoop++ < 20000)) {
+				   (TimeOutLoop++ < 20000))
+			{
 			}
-			if (TimeOutLoop > 20000) {
+
+			if (TimeOutLoop > 20000)
+			{
 				WRW_HARPOON((port + hp_intstat), PARITY);
 				return message;
 			}
+
 			if ((RD_HARPOON(port + hp_scsisig) & S_SCSI_PHZ) !=
-			    S_MSGI_PH) {
+				S_MSGI_PH)
+			{
 				WRW_HARPOON((port + hp_intstat), PARITY);
 				return message;
 			}
+
 			WR_HARPOON(port + hp_portctrl_0, SCSI_PORT);
 
 			RD_HARPOON(port + hp_scsidata_0);
 
 			WR_HARPOON(port + hp_scsisig, (SCSI_ACK + S_ILL_PH));
 
-		} while (1);
+		}
+		while (1);
 
 	}
+
 	WR_HARPOON(port + hp_scsisig, (SCSI_ACK + S_ILL_PH));
 	WR_HARPOON(port + hp_xferstat, 0);
 	WR_HARPOON(port + hp_fiforead, 0);
@@ -2321,42 +2624,56 @@ static void FPT_ssel(u32 port, unsigned char p_card)
 	ARAM_ACCESS(port);
 
 	if ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) == TAG_Q_REJECT)
+	{
 		currSCCB->ControlByte &= ~F_USE_CMD_Q;
+	}
 
 	if (((CurrCard->globalFlags & F_CONLUN_IO) &&
-	     ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING)))
+		 ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING)))
 
+	{
 		lun = currSCCB->Lun;
+	}
 	else
+	{
 		lun = 0;
+	}
 
-	if (CurrCard->globalFlags & F_TAG_STARTED) {
-		if (!(currSCCB->ControlByte & F_USE_CMD_Q)) {
+	if (CurrCard->globalFlags & F_TAG_STARTED)
+	{
+		if (!(currSCCB->ControlByte & F_USE_CMD_Q))
+		{
 			if ((currTar_Info->TarLUN_CA == 0)
-			    && ((currTar_Info->TarStatus & TAR_TAG_Q_MASK)
-				== TAG_Q_TRYING)) {
+				&& ((currTar_Info->TarStatus & TAR_TAG_Q_MASK)
+					== TAG_Q_TRYING))
+			{
 
-				if (currTar_Info->TarTagQ_Cnt != 0) {
+				if (currTar_Info->TarTagQ_Cnt != 0)
+				{
 					currTar_Info->TarLUNBusy[lun] = 1;
 					FPT_queueSelectFail(CurrCard, p_card);
 					SGRAM_ACCESS(port);
 					return;
 				}
 
-				else {
+				else
+				{
 					currTar_Info->TarLUNBusy[lun] = 1;
 				}
 
 			}
 			/*End non-tagged */
-			else {
+			else
+			{
 				currTar_Info->TarLUNBusy[lun] = 1;
 			}
 
 		}
 		/*!Use cmd Q Tagged */
-		else {
-			if (currTar_Info->TarLUN_CA == 1) {
+		else
+		{
+			if (currTar_Info->TarLUN_CA == 1)
+			{
 				FPT_queueSelectFail(CurrCard, p_card);
 				SGRAM_ACCESS(port);
 				return;
@@ -2368,23 +2685,32 @@ static void FPT_ssel(u32 port, unsigned char p_card)
 
 	}
 	/*if glob tagged started */
-	else {
+	else
+	{
 		currTar_Info->TarLUNBusy[lun] = 1;
 	}
 
 	if ((((CurrCard->globalFlags & F_CONLUN_IO) &&
-	      ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))
-	     || (!(currSCCB->ControlByte & F_USE_CMD_Q)))) {
-		if (CurrCard->discQCount >= QUEUE_DEPTH) {
+		  ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))
+		 || (!(currSCCB->ControlByte & F_USE_CMD_Q))))
+	{
+		if (CurrCard->discQCount >= QUEUE_DEPTH)
+		{
 			currTar_Info->TarLUNBusy[lun] = 1;
 			FPT_queueSelectFail(CurrCard, p_card);
 			SGRAM_ACCESS(port);
 			return;
 		}
-		for (i = 1; i < QUEUE_DEPTH; i++) {
+
+		for (i = 1; i < QUEUE_DEPTH; i++)
+		{
 			if (++lastTag >= QUEUE_DEPTH)
+			{
 				lastTag = 1;
-			if (CurrCard->discQ_Tbl[lastTag] == NULL) {
+			}
+
+			if (CurrCard->discQ_Tbl[lastTag] == NULL)
+			{
 				CurrCard->tagQ_Lst = lastTag;
 				currTar_Info->LunDiscQ_Idx[lun] = lastTag;
 				CurrCard->discQ_Tbl[lastTag] = currSCCB;
@@ -2392,7 +2718,9 @@ static void FPT_ssel(u32 port, unsigned char p_card)
 				break;
 			}
 		}
-		if (i == QUEUE_DEPTH) {
+
+		if (i == QUEUE_DEPTH)
+		{
 			currTar_Info->TarLUNBusy[lun] = 1;
 			FPT_queueSelectFail(CurrCard, p_card);
 			SGRAM_ACCESS(port);
@@ -2405,10 +2733,11 @@ static void FPT_ssel(u32 port, unsigned char p_card)
 	WR_HARPOON(port + hp_select_id, target);
 	WR_HARPOON(port + hp_gp_reg_3, target);	/* Use by new automation logic */
 
-	if (currSCCB->OperationCode == RESET_COMMAND) {
+	if (currSCCB->OperationCode == RESET_COMMAND)
+	{
 		WRW_HARPOON((port + ID_MSG_STRT), (MPM_OP + AMSG_OUT +
-						   (currSCCB->
-						    Sccb_idmsg & ~DISC_PRIV)));
+										   (currSCCB->
+											Sccb_idmsg & ~DISC_PRIV)));
 
 		WRW_HARPOON((port + ID_MSG_STRT + 2), BRH_OP + ALWAYS + NP);
 
@@ -2418,12 +2747,14 @@ static void FPT_ssel(u32 port, unsigned char p_card)
 		auto_loaded = 1;
 		currSCCB->Sccb_scsistat = SELECT_BDR_ST;
 
-		if (currTar_Info->TarEEValue & EE_SYNC_MASK) {
+		if (currTar_Info->TarEEValue & EE_SYNC_MASK)
+		{
 			currTar_Info->TarSyncCtrl = 0;
 			currTar_Info->TarStatus &= ~TAR_SYNC_MASK;
 		}
 
-		if (currTar_Info->TarEEValue & EE_WIDE_SCSI) {
+		if (currTar_Info->TarEEValue & EE_WIDE_SCSI)
+		{
 			currTar_Info->TarStatus &= ~TAR_WIDE_MASK;
 		}
 
@@ -2432,22 +2763,23 @@ static void FPT_ssel(u32 port, unsigned char p_card)
 
 	}
 
-	else if (currSCCB->Sccb_scsistat == ABORT_ST) {
+	else if (currSCCB->Sccb_scsistat == ABORT_ST)
+	{
 		WRW_HARPOON((port + ID_MSG_STRT), (MPM_OP + AMSG_OUT +
-						   (currSCCB->
-						    Sccb_idmsg & ~DISC_PRIV)));
+										   (currSCCB->
+											Sccb_idmsg & ~DISC_PRIV)));
 
 		WRW_HARPOON((port + ID_MSG_STRT + 2), BRH_OP + ALWAYS + CMDPZ);
 
 		WRW_HARPOON((port + SYNC_MSGS + 0), (MPM_OP + AMSG_OUT +
-						     (((unsigned
-							char)(currSCCB->
-							      ControlByte &
-							      TAG_TYPE_MASK)
-						       >> 6) | (unsigned char)
-						      0x20)));
+											 (((unsigned
+												char)(currSCCB->
+														ControlByte &
+														TAG_TYPE_MASK)
+											   >> 6) | (unsigned char)
+											  0x20)));
 		WRW_HARPOON((port + SYNC_MSGS + 2),
-			    (MPM_OP + AMSG_OUT + currSCCB->Sccb_tag));
+					(MPM_OP + AMSG_OUT + currSCCB->Sccb_tag));
 		WRW_HARPOON((port + SYNC_MSGS + 4), (BRH_OP + ALWAYS + NP));
 
 		WR_HARPOON(port + hp_autostart_3, (SELECT + SELCHK_STRT));
@@ -2455,38 +2787,43 @@ static void FPT_ssel(u32 port, unsigned char p_card)
 
 	}
 
-	else if (!(currTar_Info->TarStatus & WIDE_NEGOCIATED)) {
+	else if (!(currTar_Info->TarStatus & WIDE_NEGOCIATED))
+	{
 		auto_loaded = FPT_siwidn(port, p_card);
 		currSCCB->Sccb_scsistat = SELECT_WN_ST;
 	}
 
 	else if (!((currTar_Info->TarStatus & TAR_SYNC_MASK)
-		   == SYNC_SUPPORTED)) {
+			   == SYNC_SUPPORTED))
+	{
 		auto_loaded = FPT_sisyncn(port, p_card, 0);
 		currSCCB->Sccb_scsistat = SELECT_SN_ST;
 	}
 
-	if (!auto_loaded) {
+	if (!auto_loaded)
+	{
 
-		if (currSCCB->ControlByte & F_USE_CMD_Q) {
+		if (currSCCB->ControlByte & F_USE_CMD_Q)
+		{
 
 			CurrCard->globalFlags |= F_TAG_STARTED;
 
 			if ((currTar_Info->TarStatus & TAR_TAG_Q_MASK)
-			    == TAG_Q_REJECT) {
+				== TAG_Q_REJECT)
+			{
 				currSCCB->ControlByte &= ~F_USE_CMD_Q;
 
 				/* Fix up the start instruction with a jump to
 				   Non-Tag-CMD handling */
 				WRW_HARPOON((port + ID_MSG_STRT),
-					    BRH_OP + ALWAYS + NTCMD);
+							BRH_OP + ALWAYS + NTCMD);
 
 				WRW_HARPOON((port + NON_TAG_ID_MSG),
-					    (MPM_OP + AMSG_OUT +
-					     currSCCB->Sccb_idmsg));
+							(MPM_OP + AMSG_OUT +
+							 currSCCB->Sccb_idmsg));
 
 				WR_HARPOON(port + hp_autostart_3,
-					   (SELECT + SELCHK_STRT));
+						   (SELECT + SELCHK_STRT));
 
 				/* Setup our STATE so we know what happened when
 				   the wheels fall off. */
@@ -2495,37 +2832,44 @@ static void FPT_ssel(u32 port, unsigned char p_card)
 				currTar_Info->TarLUNBusy[lun] = 1;
 			}
 
-			else {
+			else
+			{
 				WRW_HARPOON((port + ID_MSG_STRT),
-					    (MPM_OP + AMSG_OUT +
-					     currSCCB->Sccb_idmsg));
+							(MPM_OP + AMSG_OUT +
+							 currSCCB->Sccb_idmsg));
 
 				WRW_HARPOON((port + ID_MSG_STRT + 2),
-					    (MPM_OP + AMSG_OUT +
-					     (((unsigned char)(currSCCB->
-							       ControlByte &
-							       TAG_TYPE_MASK)
-					       >> 6) | (unsigned char)0x20)));
+							(MPM_OP + AMSG_OUT +
+							 (((unsigned char)(currSCCB->
+											   ControlByte &
+											   TAG_TYPE_MASK)
+							   >> 6) | (unsigned char)0x20)));
 
-				for (i = 1; i < QUEUE_DEPTH; i++) {
+				for (i = 1; i < QUEUE_DEPTH; i++)
+				{
 					if (++lastTag >= QUEUE_DEPTH)
+					{
 						lastTag = 1;
+					}
+
 					if (CurrCard->discQ_Tbl[lastTag] ==
-					    NULL) {
+						NULL)
+					{
 						WRW_HARPOON((port +
-							     ID_MSG_STRT + 6),
-							    (MPM_OP + AMSG_OUT +
-							     lastTag));
+									 ID_MSG_STRT + 6),
+									(MPM_OP + AMSG_OUT +
+									 lastTag));
 						CurrCard->tagQ_Lst = lastTag;
 						currSCCB->Sccb_tag = lastTag;
 						CurrCard->discQ_Tbl[lastTag] =
-						    currSCCB;
+							currSCCB;
 						CurrCard->discQCount++;
 						break;
 					}
 				}
 
-				if (i == QUEUE_DEPTH) {
+				if (i == QUEUE_DEPTH)
+				{
 					currTar_Info->TarLUNBusy[lun] = 1;
 					FPT_queueSelectFail(CurrCard, p_card);
 					SGRAM_ACCESS(port);
@@ -2535,38 +2879,43 @@ static void FPT_ssel(u32 port, unsigned char p_card)
 				currSCCB->Sccb_scsistat = SELECT_Q_ST;
 
 				WR_HARPOON(port + hp_autostart_3,
-					   (SELECT + SELCHK_STRT));
+						   (SELECT + SELCHK_STRT));
 			}
 		}
 
-		else {
+		else
+		{
 
 			WRW_HARPOON((port + ID_MSG_STRT),
-				    BRH_OP + ALWAYS + NTCMD);
+						BRH_OP + ALWAYS + NTCMD);
 
 			WRW_HARPOON((port + NON_TAG_ID_MSG),
-				    (MPM_OP + AMSG_OUT + currSCCB->Sccb_idmsg));
+						(MPM_OP + AMSG_OUT + currSCCB->Sccb_idmsg));
 
 			currSCCB->Sccb_scsistat = SELECT_ST;
 
 			WR_HARPOON(port + hp_autostart_3,
-				   (SELECT + SELCHK_STRT));
+					   (SELECT + SELCHK_STRT));
 		}
 
 		theCCB = (unsigned char *)&currSCCB->Cdb[0];
 
 		cdb_reg = port + CMD_STRT;
 
-		for (i = 0; i < currSCCB->CdbLength; i++) {
+		for (i = 0; i < currSCCB->CdbLength; i++)
+		{
 			WRW_HARPOON(cdb_reg, (MPM_OP + ACOMMAND + *theCCB));
 			cdb_reg += 2;
 			theCCB++;
 		}
 
 		if (currSCCB->CdbLength != TWELVE_BYTE_CMD)
+		{
 			WRW_HARPOON(cdb_reg, (BRH_OP + ALWAYS + NP));
+		}
 
 	}
+
 	/* auto_loaded */
 	WRW_HARPOON((port + hp_fiforead), (unsigned short)0x00);
 	WR_HARPOON(port + hp_xferstat, 0x00);
@@ -2575,13 +2924,16 @@ static void FPT_ssel(u32 port, unsigned char p_card)
 
 	WR_HARPOON(port + hp_portctrl_0, (SCSI_PORT));
 
-	if (!(currSCCB->Sccb_MGRFlags & F_DEV_SELECTED)) {
+	if (!(currSCCB->Sccb_MGRFlags & F_DEV_SELECTED))
+	{
 		WR_HARPOON(port + hp_scsictrl_0,
-			   (SEL_TAR | ENA_ATN | ENA_RESEL | ENA_SCAM_SEL));
-	} else {
+				   (SEL_TAR | ENA_ATN | ENA_RESEL | ENA_SCAM_SEL));
+	}
+	else
+	{
 
-/*      auto_loaded =  (RD_HARPOON(port+hp_autostart_3) & (unsigned char)0x1F);
-      auto_loaded |= AUTO_IMMED; */
+		/*      auto_loaded =  (RD_HARPOON(port+hp_autostart_3) & (unsigned char)0x1F);
+		      auto_loaded |= AUTO_IMMED; */
 		auto_loaded = AUTO_IMMED;
 
 		DISABLE_AUTO(port);
@@ -2601,7 +2953,7 @@ static void FPT_ssel(u32 port, unsigned char p_card)
  *---------------------------------------------------------------------*/
 
 static void FPT_sres(u32 port, unsigned char p_card,
-		     struct sccb_card *pCurrCard)
+					 struct sccb_card *pCurrCard)
 {
 
 	unsigned char our_target, message, lun = 0, tag, msgRetryCount;
@@ -2609,47 +2961,64 @@ static void FPT_sres(u32 port, unsigned char p_card,
 	struct sccb_mgr_tar_info *currTar_Info;
 	struct sccb *currSCCB;
 
-	if (pCurrCard->currentSCCB != NULL) {
+	if (pCurrCard->currentSCCB != NULL)
+	{
 		currTar_Info =
-		    &FPT_sccbMgrTbl[p_card][pCurrCard->currentSCCB->TargID];
+			&FPT_sccbMgrTbl[p_card][pCurrCard->currentSCCB->TargID];
 		DISABLE_AUTO(port);
 
 		WR_HARPOON((port + hp_scsictrl_0), (ENA_RESEL | ENA_SCAM_SEL));
 
 		currSCCB = pCurrCard->currentSCCB;
-		if (currSCCB->Sccb_scsistat == SELECT_WN_ST) {
+
+		if (currSCCB->Sccb_scsistat == SELECT_WN_ST)
+		{
 			currTar_Info->TarStatus &= ~TAR_WIDE_MASK;
 			currSCCB->Sccb_scsistat = BUS_FREE_ST;
 		}
-		if (currSCCB->Sccb_scsistat == SELECT_SN_ST) {
+
+		if (currSCCB->Sccb_scsistat == SELECT_SN_ST)
+		{
 			currTar_Info->TarStatus &= ~TAR_SYNC_MASK;
 			currSCCB->Sccb_scsistat = BUS_FREE_ST;
 		}
+
 		if (((pCurrCard->globalFlags & F_CONLUN_IO) &&
-		     ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) !=
-		      TAG_Q_TRYING))) {
+			 ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) !=
+			  TAG_Q_TRYING)))
+		{
 			currTar_Info->TarLUNBusy[currSCCB->Lun] = 0;
-			if (currSCCB->Sccb_scsistat != ABORT_ST) {
+
+			if (currSCCB->Sccb_scsistat != ABORT_ST)
+			{
 				pCurrCard->discQCount--;
 				pCurrCard->discQ_Tbl[currTar_Info->
-						     LunDiscQ_Idx[currSCCB->
-								  Lun]]
-				    = NULL;
+									 LunDiscQ_Idx[currSCCB->
+												  Lun]]
+					= NULL;
 			}
-		} else {
+		}
+		else
+		{
 			currTar_Info->TarLUNBusy[0] = 0;
-			if (currSCCB->Sccb_tag) {
-				if (currSCCB->Sccb_scsistat != ABORT_ST) {
+
+			if (currSCCB->Sccb_tag)
+			{
+				if (currSCCB->Sccb_scsistat != ABORT_ST)
+				{
 					pCurrCard->discQCount--;
 					pCurrCard->discQ_Tbl[currSCCB->
-							     Sccb_tag] = NULL;
+										 Sccb_tag] = NULL;
 				}
-			} else {
-				if (currSCCB->Sccb_scsistat != ABORT_ST) {
+			}
+			else
+			{
+				if (currSCCB->Sccb_scsistat != ABORT_ST)
+				{
 					pCurrCard->discQCount--;
 					pCurrCard->discQ_Tbl[currTar_Info->
-							     LunDiscQ_Idx[0]] =
-					    NULL;
+										 LunDiscQ_Idx[0]] =
+											 NULL;
 				}
 			}
 		}
@@ -2663,13 +3032,17 @@ static void FPT_sres(u32 port, unsigned char p_card,
 	currTar_Info = &FPT_sccbMgrTbl[p_card][our_target];
 
 	msgRetryCount = 0;
-	do {
+
+	do
+	{
 
 		currTar_Info = &FPT_sccbMgrTbl[p_card][our_target];
 		tag = 0;
 
-		while (!(RD_HARPOON(port + hp_scsisig) & SCSI_REQ)) {
-			if (!(RD_HARPOON(port + hp_scsisig) & SCSI_BSY)) {
+		while (!(RD_HARPOON(port + hp_scsisig) & SCSI_REQ))
+		{
+			if (!(RD_HARPOON(port + hp_scsisig) & SCSI_BSY))
+			{
 
 				WRW_HARPOON((port + hp_intstat), PHASE);
 				return;
@@ -2677,153 +3050,198 @@ static void FPT_sres(u32 port, unsigned char p_card,
 		}
 
 		WRW_HARPOON((port + hp_intstat), PHASE);
-		if ((RD_HARPOON(port + hp_scsisig) & S_SCSI_PHZ) == S_MSGI_PH) {
+
+		if ((RD_HARPOON(port + hp_scsisig) & S_SCSI_PHZ) == S_MSGI_PH)
+		{
 
 			message = FPT_sfm(port, pCurrCard->currentSCCB);
-			if (message) {
 
-				if (message <= (0x80 | LUN_MASK)) {
+			if (message)
+			{
+
+				if (message <= (0x80 | LUN_MASK))
+				{
 					lun = message & (unsigned char)LUN_MASK;
 
 					if ((currTar_Info->
-					     TarStatus & TAR_TAG_Q_MASK) ==
-					    TAG_Q_TRYING) {
+						 TarStatus & TAR_TAG_Q_MASK) ==
+						TAG_Q_TRYING)
+					{
 						if (currTar_Info->TarTagQ_Cnt !=
-						    0) {
+							0)
+						{
 
 							if (!
-							    (currTar_Info->
-							     TarLUN_CA)) {
+								(currTar_Info->
+								 TarLUN_CA))
+							{
 								ACCEPT_MSG(port);	/*Release the ACK for ID msg. */
 
 								message =
-								    FPT_sfm
-								    (port,
-								     pCurrCard->
-								     currentSCCB);
-								if (message) {
+									FPT_sfm
+									(port,
+									 pCurrCard->
+									 currentSCCB);
+
+								if (message)
+								{
 									ACCEPT_MSG
-									    (port);
+									(port);
 								}
 
 								else
 									message
-									    = 0;
+										= 0;
 
 								if (message !=
-								    0) {
+									0)
+								{
 									tag =
-									    FPT_sfm
-									    (port,
-									     pCurrCard->
-									     currentSCCB);
+										FPT_sfm
+										(port,
+										 pCurrCard->
+										 currentSCCB);
 
 									if (!
-									    (tag))
+										(tag))
 										message
-										    =
-										    0;
+											=
+												0;
 								}
 
 							}
+
 							/*C.A. exists! */
 						}
+
 						/*End Q cnt != 0 */
 					}
+
 					/*End Tag cmds supported! */
 				}
 				/*End valid ID message.  */
-				else {
+				else
+				{
 
 					ACCEPT_MSG_ATN(port);
 				}
 
 			}
 			/* End good id message. */
-			else {
+			else
+			{
 
 				message = 0;
 			}
-		} else {
+		}
+		else
+		{
 			ACCEPT_MSG_ATN(port);
 
 			while (!
-			       (RDW_HARPOON((port + hp_intstat)) &
-				(PHASE | RESET))
-			       && !(RD_HARPOON(port + hp_scsisig) & SCSI_REQ)
-			       && (RD_HARPOON(port + hp_scsisig) & SCSI_BSY)) ;
+				   (RDW_HARPOON((port + hp_intstat)) &
+					(PHASE | RESET))
+				   && !(RD_HARPOON(port + hp_scsisig) & SCSI_REQ)
+				   && (RD_HARPOON(port + hp_scsisig) & SCSI_BSY)) ;
 
 			return;
 		}
 
-		if (message == 0) {
+		if (message == 0)
+		{
 			msgRetryCount++;
-			if (msgRetryCount == 1) {
+
+			if (msgRetryCount == 1)
+			{
 				FPT_SendMsg(port, SMPARITY);
-			} else {
+			}
+			else
+			{
 				FPT_SendMsg(port, SMDEV_RESET);
 
 				FPT_sssyncv(port, our_target, NARROW_SCSI,
-					    currTar_Info);
+							currTar_Info);
 
 				if (FPT_sccbMgrTbl[p_card][our_target].
-				    TarEEValue & EE_SYNC_MASK) {
+					TarEEValue & EE_SYNC_MASK)
+				{
 
 					FPT_sccbMgrTbl[p_card][our_target].
-					    TarStatus &= ~TAR_SYNC_MASK;
+					TarStatus &= ~TAR_SYNC_MASK;
 
 				}
 
 				if (FPT_sccbMgrTbl[p_card][our_target].
-				    TarEEValue & EE_WIDE_SCSI) {
+					TarEEValue & EE_WIDE_SCSI)
+				{
 
 					FPT_sccbMgrTbl[p_card][our_target].
-					    TarStatus &= ~TAR_WIDE_MASK;
+					TarStatus &= ~TAR_WIDE_MASK;
 				}
 
 				FPT_queueFlushTargSccb(p_card, our_target,
-						       SCCB_COMPLETE);
+									   SCCB_COMPLETE);
 				FPT_SccbMgrTableInitTarget(p_card, our_target);
 				return;
 			}
 		}
-	} while (message == 0);
+	}
+	while (message == 0);
 
 	if (((pCurrCard->globalFlags & F_CONLUN_IO) &&
-	     ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))) {
+		 ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING)))
+	{
 		currTar_Info->TarLUNBusy[lun] = 1;
 		pCurrCard->currentSCCB =
-		    pCurrCard->discQ_Tbl[currTar_Info->LunDiscQ_Idx[lun]];
-		if (pCurrCard->currentSCCB != NULL) {
+			pCurrCard->discQ_Tbl[currTar_Info->LunDiscQ_Idx[lun]];
+
+		if (pCurrCard->currentSCCB != NULL)
+		{
 			ACCEPT_MSG(port);
-		} else {
+		}
+		else
+		{
 			ACCEPT_MSG_ATN(port);
 		}
-	} else {
+	}
+	else
+	{
 		currTar_Info->TarLUNBusy[0] = 1;
 
-		if (tag) {
-			if (pCurrCard->discQ_Tbl[tag] != NULL) {
+		if (tag)
+		{
+			if (pCurrCard->discQ_Tbl[tag] != NULL)
+			{
 				pCurrCard->currentSCCB =
-				    pCurrCard->discQ_Tbl[tag];
+					pCurrCard->discQ_Tbl[tag];
 				currTar_Info->TarTagQ_Cnt--;
 				ACCEPT_MSG(port);
-			} else {
+			}
+			else
+			{
 				ACCEPT_MSG_ATN(port);
 			}
-		} else {
+		}
+		else
+		{
 			pCurrCard->currentSCCB =
-			    pCurrCard->discQ_Tbl[currTar_Info->LunDiscQ_Idx[0]];
-			if (pCurrCard->currentSCCB != NULL) {
+				pCurrCard->discQ_Tbl[currTar_Info->LunDiscQ_Idx[0]];
+
+			if (pCurrCard->currentSCCB != NULL)
+			{
 				ACCEPT_MSG(port);
-			} else {
+			}
+			else
+			{
 				ACCEPT_MSG_ATN(port);
 			}
 		}
 	}
 
-	if (pCurrCard->currentSCCB != NULL) {
-		if (pCurrCard->currentSCCB->Sccb_scsistat == ABORT_ST) {
+	if (pCurrCard->currentSCCB != NULL)
+	{
+		if (pCurrCard->currentSCCB->Sccb_scsistat == ABORT_ST)
+		{
 			/* During Abort Tag command, the target could have got re-selected
 			   and completed the command. Check the select Q and remove the CCB
 			   if it is in the Select Q */
@@ -2832,14 +3250,16 @@ static void FPT_sres(u32 port, unsigned char p_card,
 	}
 
 	while (!(RDW_HARPOON((port + hp_intstat)) & (PHASE | RESET)) &&
-	       !(RD_HARPOON(port + hp_scsisig) & SCSI_REQ) &&
-	       (RD_HARPOON(port + hp_scsisig) & SCSI_BSY)) ;
+		   !(RD_HARPOON(port + hp_scsisig) & SCSI_REQ) &&
+		   (RD_HARPOON(port + hp_scsisig) & SCSI_BSY)) ;
 }
 
 static void FPT_SendMsg(u32 port, unsigned char message)
 {
-	while (!(RD_HARPOON(port + hp_scsisig) & SCSI_REQ)) {
-		if (!(RD_HARPOON(port + hp_scsisig) & SCSI_BSY)) {
+	while (!(RD_HARPOON(port + hp_scsisig) & SCSI_REQ))
+	{
+		if (!(RD_HARPOON(port + hp_scsisig) & SCSI_BSY))
+		{
 
 			WRW_HARPOON((port + hp_intstat), PHASE);
 			return;
@@ -2847,9 +3267,11 @@ static void FPT_SendMsg(u32 port, unsigned char message)
 	}
 
 	WRW_HARPOON((port + hp_intstat), PHASE);
-	if ((RD_HARPOON(port + hp_scsisig) & S_SCSI_PHZ) == S_MSGO_PH) {
+
+	if ((RD_HARPOON(port + hp_scsisig) & S_SCSI_PHZ) == S_MSGO_PH)
+	{
 		WRW_HARPOON((port + hp_intstat),
-			    (BUS_FREE | PHASE | XFER_CNT_0));
+					(BUS_FREE | PHASE | XFER_CNT_0));
 
 		WR_HARPOON(port + hp_portctrl_0, SCSI_BUS_EN);
 
@@ -2862,13 +3284,16 @@ static void FPT_SendMsg(u32 port, unsigned char message)
 		WR_HARPOON(port + hp_portctrl_0, 0x00);
 
 		if ((message == SMABORT) || (message == SMDEV_RESET) ||
-		    (message == SMABORT_TAG)) {
+			(message == SMABORT_TAG))
+		{
 			while (!
-			       (RDW_HARPOON((port + hp_intstat)) &
-				(BUS_FREE | PHASE))) {
+				   (RDW_HARPOON((port + hp_intstat)) &
+					(BUS_FREE | PHASE)))
+			{
 			}
 
-			if (RDW_HARPOON((port + hp_intstat)) & BUS_FREE) {
+			if (RDW_HARPOON((port + hp_intstat)) & BUS_FREE)
+			{
 				WRW_HARPOON((port + hp_intstat), BUS_FREE);
 			}
 		}
@@ -2894,8 +3319,10 @@ static void FPT_sdecm(unsigned char message, u32 port, unsigned char p_card)
 
 	currTar_Info = &FPT_sccbMgrTbl[p_card][currSCCB->TargID];
 
-	if (message == SMREST_DATA_PTR) {
-		if (!(currSCCB->Sccb_XferState & F_NO_DATA_YET)) {
+	if (message == SMREST_DATA_PTR)
+	{
+		if (!(currSCCB->Sccb_XferState & F_NO_DATA_YET))
+		{
 			currSCCB->Sccb_ATC = currSCCB->Sccb_savedATC;
 
 			FPT_hostDataXferRestart(currSCCB);
@@ -2903,14 +3330,16 @@ static void FPT_sdecm(unsigned char message, u32 port, unsigned char p_card)
 
 		ACCEPT_MSG(port);
 		WR_HARPOON(port + hp_autostart_1,
-			   (AUTO_IMMED + DISCONNECT_START));
+				   (AUTO_IMMED + DISCONNECT_START));
 	}
 
-	else if (message == SMCMD_COMP) {
+	else if (message == SMCMD_COMP)
+	{
 
-		if (currSCCB->Sccb_scsistat == SELECT_Q_ST) {
+		if (currSCCB->Sccb_scsistat == SELECT_Q_ST)
+		{
 			currTar_Info->TarStatus &=
-			    ~(unsigned char)TAR_TAG_Q_MASK;
+				~(unsigned char)TAR_TAG_Q_MASK;
 			currTar_Info->TarStatus |= (unsigned char)TAG_Q_REJECT;
 		}
 
@@ -2919,140 +3348,159 @@ static void FPT_sdecm(unsigned char message, u32 port, unsigned char p_card)
 	}
 
 	else if ((message == SMNO_OP) || (message >= SMIDENT)
-		 || (message == SMINIT_RECOVERY) || (message == SMREL_RECOVERY)) {
+			 || (message == SMINIT_RECOVERY) || (message == SMREL_RECOVERY))
+	{
 
 		ACCEPT_MSG(port);
 		WR_HARPOON(port + hp_autostart_1,
-			   (AUTO_IMMED + DISCONNECT_START));
+				   (AUTO_IMMED + DISCONNECT_START));
 	}
 
-	else if (message == SMREJECT) {
+	else if (message == SMREJECT)
+	{
 
 		if ((currSCCB->Sccb_scsistat == SELECT_SN_ST) ||
-		    (currSCCB->Sccb_scsistat == SELECT_WN_ST) ||
-		    ((currTar_Info->TarStatus & TAR_SYNC_MASK) == SYNC_TRYING)
-		    || ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) ==
-			TAG_Q_TRYING))
+			(currSCCB->Sccb_scsistat == SELECT_WN_ST) ||
+			((currTar_Info->TarStatus & TAR_SYNC_MASK) == SYNC_TRYING)
+			|| ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) ==
+				TAG_Q_TRYING))
 		{
 			WRW_HARPOON((port + hp_intstat), BUS_FREE);
 
 			ACCEPT_MSG(port);
 
 			while ((!(RD_HARPOON(port + hp_scsisig) & SCSI_REQ)) &&
-			       (!(RDW_HARPOON((port + hp_intstat)) & BUS_FREE)))
+				   (!(RDW_HARPOON((port + hp_intstat)) & BUS_FREE)))
 			{
 			}
 
-			if (currSCCB->Lun == 0x00) {
-				if ((currSCCB->Sccb_scsistat == SELECT_SN_ST)) {
+			if (currSCCB->Lun == 0x00)
+			{
+				if ((currSCCB->Sccb_scsistat == SELECT_SN_ST))
+				{
 
 					currTar_Info->TarStatus |=
-					    (unsigned char)SYNC_SUPPORTED;
+						(unsigned char)SYNC_SUPPORTED;
 
 					currTar_Info->TarEEValue &=
-					    ~EE_SYNC_MASK;
+						~EE_SYNC_MASK;
 				}
 
 				else if ((currSCCB->Sccb_scsistat ==
-					  SELECT_WN_ST)) {
+						  SELECT_WN_ST))
+				{
 
 					currTar_Info->TarStatus =
-					    (currTar_Info->
-					     TarStatus & ~WIDE_ENABLED) |
-					    WIDE_NEGOCIATED;
+						(currTar_Info->
+						 TarStatus & ~WIDE_ENABLED) |
+						WIDE_NEGOCIATED;
 
 					currTar_Info->TarEEValue &=
-					    ~EE_WIDE_SCSI;
+						~EE_WIDE_SCSI;
 
 				}
 
 				else if ((currTar_Info->
-					  TarStatus & TAR_TAG_Q_MASK) ==
-					 TAG_Q_TRYING) {
+						  TarStatus & TAR_TAG_Q_MASK) ==
+						 TAG_Q_TRYING)
+				{
 					currTar_Info->TarStatus =
-					    (currTar_Info->
-					     TarStatus & ~(unsigned char)
-					     TAR_TAG_Q_MASK) | TAG_Q_REJECT;
+						(currTar_Info->
+						 TarStatus & ~(unsigned char)
+						 TAR_TAG_Q_MASK) | TAG_Q_REJECT;
 
 					currSCCB->ControlByte &= ~F_USE_CMD_Q;
 					CurrCard->discQCount--;
 					CurrCard->discQ_Tbl[currSCCB->
-							    Sccb_tag] = NULL;
+										Sccb_tag] = NULL;
 					currSCCB->Sccb_tag = 0x00;
 
 				}
 			}
 
-			if (RDW_HARPOON((port + hp_intstat)) & BUS_FREE) {
+			if (RDW_HARPOON((port + hp_intstat)) & BUS_FREE)
+			{
 
-				if (currSCCB->Lun == 0x00) {
+				if (currSCCB->Lun == 0x00)
+				{
 					WRW_HARPOON((port + hp_intstat),
-						    BUS_FREE);
+								BUS_FREE);
 					CurrCard->globalFlags |= F_NEW_SCCB_CMD;
 				}
 			}
 
-			else {
+			else
+			{
 
 				if ((CurrCard->globalFlags & F_CONLUN_IO) &&
-				    ((currTar_Info->
-				      TarStatus & TAR_TAG_Q_MASK) !=
-				     TAG_Q_TRYING))
+					((currTar_Info->
+					  TarStatus & TAR_TAG_Q_MASK) !=
+					 TAG_Q_TRYING))
 					currTar_Info->TarLUNBusy[currSCCB->
-								 Lun] = 1;
+											 Lun] = 1;
 				else
+				{
 					currTar_Info->TarLUNBusy[0] = 1;
+				}
 
 				currSCCB->ControlByte &=
-				    ~(unsigned char)F_USE_CMD_Q;
+					~(unsigned char)F_USE_CMD_Q;
 
 				WR_HARPOON(port + hp_autostart_1,
-					   (AUTO_IMMED + DISCONNECT_START));
+						   (AUTO_IMMED + DISCONNECT_START));
 
 			}
 		}
 
-		else {
+		else
+		{
 			ACCEPT_MSG(port);
 
 			while ((!(RD_HARPOON(port + hp_scsisig) & SCSI_REQ)) &&
-			       (!(RDW_HARPOON((port + hp_intstat)) & BUS_FREE)))
+				   (!(RDW_HARPOON((port + hp_intstat)) & BUS_FREE)))
 			{
 			}
 
-			if (!(RDW_HARPOON((port + hp_intstat)) & BUS_FREE)) {
+			if (!(RDW_HARPOON((port + hp_intstat)) & BUS_FREE))
+			{
 				WR_HARPOON(port + hp_autostart_1,
-					   (AUTO_IMMED + DISCONNECT_START));
+						   (AUTO_IMMED + DISCONNECT_START));
 			}
 		}
 	}
 
-	else if (message == SMEXT) {
+	else if (message == SMEXT)
+	{
 
 		ACCEPT_MSG(port);
 		FPT_shandem(port, p_card, currSCCB);
 	}
 
-	else if (message == SMIGNORWR) {
+	else if (message == SMIGNORWR)
+	{
 
 		ACCEPT_MSG(port);	/* ACK the RESIDUE MSG */
 
 		message = FPT_sfm(port, currSCCB);
 
 		if (currSCCB->Sccb_scsimsg != SMPARITY)
+		{
 			ACCEPT_MSG(port);
+		}
+
 		WR_HARPOON(port + hp_autostart_1,
-			   (AUTO_IMMED + DISCONNECT_START));
+				   (AUTO_IMMED + DISCONNECT_START));
 	}
 
-	else {
+	else
+	{
 
 		currSCCB->HostStatus = SCCB_PHASE_SEQUENCE_FAIL;
 		currSCCB->Sccb_scsimsg = SMREJECT;
 
 		ACCEPT_MSG_ATN(port);
 		WR_HARPOON(port + hp_autostart_1,
-			   (AUTO_IMMED + DISCONNECT_START));
+				   (AUTO_IMMED + DISCONNECT_START));
 	}
 }
 
@@ -3068,56 +3516,78 @@ static void FPT_shandem(u32 port, unsigned char p_card, struct sccb *pCurrSCCB)
 	unsigned char length, message;
 
 	length = FPT_sfm(port, pCurrSCCB);
-	if (length) {
+
+	if (length)
+	{
 
 		ACCEPT_MSG(port);
 		message = FPT_sfm(port, pCurrSCCB);
-		if (message) {
 
-			if (message == SMSYNC) {
+		if (message)
+		{
 
-				if (length == 0x03) {
+			if (message == SMSYNC)
+			{
+
+				if (length == 0x03)
+				{
 
 					ACCEPT_MSG(port);
 					FPT_stsyncn(port, p_card);
-				} else {
+				}
+				else
+				{
 
 					pCurrSCCB->Sccb_scsimsg = SMREJECT;
 					ACCEPT_MSG_ATN(port);
 				}
-			} else if (message == SMWDTR) {
+			}
+			else if (message == SMWDTR)
+			{
 
-				if (length == 0x02) {
+				if (length == 0x02)
+				{
 
 					ACCEPT_MSG(port);
 					FPT_stwidn(port, p_card);
-				} else {
+				}
+				else
+				{
 
 					pCurrSCCB->Sccb_scsimsg = SMREJECT;
 					ACCEPT_MSG_ATN(port);
 
 					WR_HARPOON(port + hp_autostart_1,
-						   (AUTO_IMMED +
-						    DISCONNECT_START));
+							   (AUTO_IMMED +
+								DISCONNECT_START));
 				}
-			} else {
+			}
+			else
+			{
 
 				pCurrSCCB->Sccb_scsimsg = SMREJECT;
 				ACCEPT_MSG_ATN(port);
 
 				WR_HARPOON(port + hp_autostart_1,
-					   (AUTO_IMMED + DISCONNECT_START));
+						   (AUTO_IMMED + DISCONNECT_START));
 			}
-		} else {
-			if (pCurrSCCB->Sccb_scsimsg != SMPARITY)
-				ACCEPT_MSG(port);
-			WR_HARPOON(port + hp_autostart_1,
-				   (AUTO_IMMED + DISCONNECT_START));
 		}
-	} else {
+		else
+		{
+			if (pCurrSCCB->Sccb_scsimsg != SMPARITY)
+			{
+				ACCEPT_MSG(port);
+			}
+
+			WR_HARPOON(port + hp_autostart_1,
+					   (AUTO_IMMED + DISCONNECT_START));
+		}
+	}
+	else
+	{
 		if (pCurrSCCB->Sccb_scsimsg == SMPARITY)
 			WR_HARPOON(port + hp_autostart_1,
-				   (AUTO_IMMED + DISCONNECT_START));
+					   (AUTO_IMMED + DISCONNECT_START));
 	}
 }
 
@@ -3131,7 +3601,7 @@ static void FPT_shandem(u32 port, unsigned char p_card, struct sccb *pCurrSCCB)
  *---------------------------------------------------------------------*/
 
 static unsigned char FPT_sisyncn(u32 port, unsigned char p_card,
-				 unsigned char syncFlag)
+								 unsigned char syncFlag)
 {
 	struct sccb *currSCCB;
 	struct sccb_mgr_tar_info *currTar_Info;
@@ -3139,63 +3609,68 @@ static unsigned char FPT_sisyncn(u32 port, unsigned char p_card,
 	currSCCB = FPT_BL_Card[p_card].currentSCCB;
 	currTar_Info = &FPT_sccbMgrTbl[p_card][currSCCB->TargID];
 
-	if (!((currTar_Info->TarStatus & TAR_SYNC_MASK) == SYNC_TRYING)) {
+	if (!((currTar_Info->TarStatus & TAR_SYNC_MASK) == SYNC_TRYING))
+	{
 
 		WRW_HARPOON((port + ID_MSG_STRT),
-			    (MPM_OP + AMSG_OUT +
-			     (currSCCB->
-			      Sccb_idmsg & ~(unsigned char)DISC_PRIV)));
+					(MPM_OP + AMSG_OUT +
+					 (currSCCB->
+					  Sccb_idmsg & ~(unsigned char)DISC_PRIV)));
 
 		WRW_HARPOON((port + ID_MSG_STRT + 2), BRH_OP + ALWAYS + CMDPZ);
 
 		WRW_HARPOON((port + SYNC_MSGS + 0),
-			    (MPM_OP + AMSG_OUT + SMEXT));
+					(MPM_OP + AMSG_OUT + SMEXT));
 		WRW_HARPOON((port + SYNC_MSGS + 2), (MPM_OP + AMSG_OUT + 0x03));
 		WRW_HARPOON((port + SYNC_MSGS + 4),
-			    (MPM_OP + AMSG_OUT + SMSYNC));
+					(MPM_OP + AMSG_OUT + SMSYNC));
 
 		if ((currTar_Info->TarEEValue & EE_SYNC_MASK) == EE_SYNC_20MB)
 
 			WRW_HARPOON((port + SYNC_MSGS + 6),
-				    (MPM_OP + AMSG_OUT + 12));
+						(MPM_OP + AMSG_OUT + 12));
 
 		else if ((currTar_Info->TarEEValue & EE_SYNC_MASK) ==
-			 EE_SYNC_10MB)
+				 EE_SYNC_10MB)
 
 			WRW_HARPOON((port + SYNC_MSGS + 6),
-				    (MPM_OP + AMSG_OUT + 25));
+						(MPM_OP + AMSG_OUT + 25));
 
 		else if ((currTar_Info->TarEEValue & EE_SYNC_MASK) ==
-			 EE_SYNC_5MB)
+				 EE_SYNC_5MB)
 
 			WRW_HARPOON((port + SYNC_MSGS + 6),
-				    (MPM_OP + AMSG_OUT + 50));
+						(MPM_OP + AMSG_OUT + 50));
 
 		else
 			WRW_HARPOON((port + SYNC_MSGS + 6),
-				    (MPM_OP + AMSG_OUT + 00));
+						(MPM_OP + AMSG_OUT + 00));
 
 		WRW_HARPOON((port + SYNC_MSGS + 8), (RAT_OP));
 		WRW_HARPOON((port + SYNC_MSGS + 10),
-			    (MPM_OP + AMSG_OUT + DEFAULT_OFFSET));
+					(MPM_OP + AMSG_OUT + DEFAULT_OFFSET));
 		WRW_HARPOON((port + SYNC_MSGS + 12), (BRH_OP + ALWAYS + NP));
 
-		if (syncFlag == 0) {
+		if (syncFlag == 0)
+		{
 			WR_HARPOON(port + hp_autostart_3,
-				   (SELECT + SELCHK_STRT));
+					   (SELECT + SELCHK_STRT));
 			currTar_Info->TarStatus =
-			    ((currTar_Info->
-			      TarStatus & ~(unsigned char)TAR_SYNC_MASK) |
-			     (unsigned char)SYNC_TRYING);
-		} else {
+				((currTar_Info->
+				  TarStatus & ~(unsigned char)TAR_SYNC_MASK) |
+				 (unsigned char)SYNC_TRYING);
+		}
+		else
+		{
 			WR_HARPOON(port + hp_autostart_3,
-				   (AUTO_IMMED + CMD_ONLY_STRT));
+					   (AUTO_IMMED + CMD_ONLY_STRT));
 		}
 
 		return 1;
 	}
 
-	else {
+	else
+	{
 
 		currTar_Info->TarStatus |= (unsigned char)SYNC_SUPPORTED;
 		currTar_Info->TarEEValue &= ~EE_SYNC_MASK;
@@ -3222,9 +3697,10 @@ static void FPT_stsyncn(u32 port, unsigned char p_card)
 
 	sync_msg = FPT_sfm(port, currSCCB);
 
-	if ((sync_msg == 0x00) && (currSCCB->Sccb_scsimsg == SMPARITY)) {
+	if ((sync_msg == 0x00) && (currSCCB->Sccb_scsimsg == SMPARITY))
+	{
 		WR_HARPOON(port + hp_autostart_1,
-			   (AUTO_IMMED + DISCONNECT_START));
+				   (AUTO_IMMED + DISCONNECT_START));
 		return;
 	}
 
@@ -3232,68 +3708,97 @@ static void FPT_stsyncn(u32 port, unsigned char p_card)
 
 	offset = FPT_sfm(port, currSCCB);
 
-	if ((offset == 0x00) && (currSCCB->Sccb_scsimsg == SMPARITY)) {
+	if ((offset == 0x00) && (currSCCB->Sccb_scsimsg == SMPARITY))
+	{
 		WR_HARPOON(port + hp_autostart_1,
-			   (AUTO_IMMED + DISCONNECT_START));
+				   (AUTO_IMMED + DISCONNECT_START));
 		return;
 	}
 
 	if ((currTar_Info->TarEEValue & EE_SYNC_MASK) == EE_SYNC_20MB)
 
-		our_sync_msg = 12;	/* Setup our Message to 20mb/s */
+	{
+		our_sync_msg = 12;    /* Setup our Message to 20mb/s */
+	}
 
 	else if ((currTar_Info->TarEEValue & EE_SYNC_MASK) == EE_SYNC_10MB)
 
-		our_sync_msg = 25;	/* Setup our Message to 10mb/s */
+	{
+		our_sync_msg = 25;    /* Setup our Message to 10mb/s */
+	}
 
 	else if ((currTar_Info->TarEEValue & EE_SYNC_MASK) == EE_SYNC_5MB)
 
-		our_sync_msg = 50;	/* Setup our Message to 5mb/s */
+	{
+		our_sync_msg = 50;    /* Setup our Message to 5mb/s */
+	}
 	else
 
-		our_sync_msg = 0;	/* Message = Async */
+	{
+		our_sync_msg = 0;    /* Message = Async */
+	}
 
-	if (sync_msg < our_sync_msg) {
+	if (sync_msg < our_sync_msg)
+	{
 		sync_msg = our_sync_msg;	/*if faster, then set to max. */
 	}
 
 	if (offset == ASYNC)
+	{
 		sync_msg = ASYNC;
+	}
 
 	if (offset > MAX_OFFSET)
+	{
 		offset = MAX_OFFSET;
+	}
 
 	sync_reg = 0x00;
 
 	if (sync_msg > 12)
 
-		sync_reg = 0x20;	/* Use 10MB/s */
+	{
+		sync_reg = 0x20;    /* Use 10MB/s */
+	}
 
 	if (sync_msg > 25)
 
-		sync_reg = 0x40;	/* Use 6.6MB/s */
+	{
+		sync_reg = 0x40;    /* Use 6.6MB/s */
+	}
 
 	if (sync_msg > 38)
 
-		sync_reg = 0x60;	/* Use 5MB/s */
+	{
+		sync_reg = 0x60;    /* Use 5MB/s */
+	}
 
 	if (sync_msg > 50)
 
-		sync_reg = 0x80;	/* Use 4MB/s */
+	{
+		sync_reg = 0x80;    /* Use 4MB/s */
+	}
 
 	if (sync_msg > 62)
 
-		sync_reg = 0xA0;	/* Use 3.33MB/s */
+	{
+		sync_reg = 0xA0;    /* Use 3.33MB/s */
+	}
 
 	if (sync_msg > 75)
 
-		sync_reg = 0xC0;	/* Use 2.85MB/s */
+	{
+		sync_reg = 0xC0;    /* Use 2.85MB/s */
+	}
 
 	if (sync_msg > 87)
 
-		sync_reg = 0xE0;	/* Use 2.5MB/s */
+	{
+		sync_reg = 0xE0;    /* Use 2.5MB/s */
+	}
 
-	if (sync_msg > 100) {
+	if (sync_msg > 100)
+	{
 
 		sync_reg = 0x00;	/* Use ASYNC */
 		offset = 0x00;
@@ -3301,35 +3806,41 @@ static void FPT_stsyncn(u32 port, unsigned char p_card)
 
 	if (currTar_Info->TarStatus & WIDE_ENABLED)
 
+	{
 		sync_reg |= offset;
+	}
 
 	else
 
+	{
 		sync_reg |= (offset | NARROW_SCSI);
+	}
 
 	FPT_sssyncv(port, currSCCB->TargID, sync_reg, currTar_Info);
 
-	if (currSCCB->Sccb_scsistat == SELECT_SN_ST) {
+	if (currSCCB->Sccb_scsistat == SELECT_SN_ST)
+	{
 
 		ACCEPT_MSG(port);
 
 		currTar_Info->TarStatus = ((currTar_Info->TarStatus &
-					    ~(unsigned char)TAR_SYNC_MASK) |
-					   (unsigned char)SYNC_SUPPORTED);
+									~(unsigned char)TAR_SYNC_MASK) |
+								   (unsigned char)SYNC_SUPPORTED);
 
 		WR_HARPOON(port + hp_autostart_1,
-			   (AUTO_IMMED + DISCONNECT_START));
+				   (AUTO_IMMED + DISCONNECT_START));
 	}
 
-	else {
+	else
+	{
 
 		ACCEPT_MSG_ATN(port);
 
 		FPT_sisyncr(port, sync_msg, offset);
 
 		currTar_Info->TarStatus = ((currTar_Info->TarStatus &
-					    ~(unsigned char)TAR_SYNC_MASK) |
-					   (unsigned char)SYNC_SUPPORTED);
+									~(unsigned char)TAR_SYNC_MASK) |
+								   (unsigned char)SYNC_SUPPORTED);
 	}
 }
 
@@ -3341,7 +3852,7 @@ static void FPT_stsyncn(u32 port, unsigned char p_card)
  *
  *---------------------------------------------------------------------*/
 static void FPT_sisyncr(u32 port, unsigned char sync_pulse,
-			unsigned char offset)
+						unsigned char offset)
 {
 	ARAM_ACCESS(port);
 	WRW_HARPOON((port + SYNC_MSGS + 0), (MPM_OP + AMSG_OUT + SMEXT));
@@ -3358,7 +3869,8 @@ static void FPT_sisyncr(u32 port, unsigned char sync_pulse,
 
 	WR_HARPOON(port + hp_autostart_3, (AUTO_IMMED + CMD_ONLY_STRT));
 
-	while (!(RDW_HARPOON((port + hp_intstat)) & (BUS_FREE | AUTO_INT))) {
+	while (!(RDW_HARPOON((port + hp_intstat)) & (BUS_FREE | AUTO_INT)))
+	{
 	}
 }
 
@@ -3379,39 +3891,41 @@ static unsigned char FPT_siwidn(u32 port, unsigned char p_card)
 	currSCCB = FPT_BL_Card[p_card].currentSCCB;
 	currTar_Info = &FPT_sccbMgrTbl[p_card][currSCCB->TargID];
 
-	if (!((currTar_Info->TarStatus & TAR_WIDE_MASK) == WIDE_NEGOCIATED)) {
+	if (!((currTar_Info->TarStatus & TAR_WIDE_MASK) == WIDE_NEGOCIATED))
+	{
 
 		WRW_HARPOON((port + ID_MSG_STRT),
-			    (MPM_OP + AMSG_OUT +
-			     (currSCCB->
-			      Sccb_idmsg & ~(unsigned char)DISC_PRIV)));
+					(MPM_OP + AMSG_OUT +
+					 (currSCCB->
+					  Sccb_idmsg & ~(unsigned char)DISC_PRIV)));
 
 		WRW_HARPOON((port + ID_MSG_STRT + 2), BRH_OP + ALWAYS + CMDPZ);
 
 		WRW_HARPOON((port + SYNC_MSGS + 0),
-			    (MPM_OP + AMSG_OUT + SMEXT));
+					(MPM_OP + AMSG_OUT + SMEXT));
 		WRW_HARPOON((port + SYNC_MSGS + 2), (MPM_OP + AMSG_OUT + 0x02));
 		WRW_HARPOON((port + SYNC_MSGS + 4),
-			    (MPM_OP + AMSG_OUT + SMWDTR));
+					(MPM_OP + AMSG_OUT + SMWDTR));
 		WRW_HARPOON((port + SYNC_MSGS + 6), (RAT_OP));
 		WRW_HARPOON((port + SYNC_MSGS + 8),
-			    (MPM_OP + AMSG_OUT + SM16BIT));
+					(MPM_OP + AMSG_OUT + SM16BIT));
 		WRW_HARPOON((port + SYNC_MSGS + 10), (BRH_OP + ALWAYS + NP));
 
 		WR_HARPOON(port + hp_autostart_3, (SELECT + SELCHK_STRT));
 
 		currTar_Info->TarStatus = ((currTar_Info->TarStatus &
-					    ~(unsigned char)TAR_WIDE_MASK) |
-					   (unsigned char)WIDE_ENABLED);
+									~(unsigned char)TAR_WIDE_MASK) |
+								   (unsigned char)WIDE_ENABLED);
 
 		return 1;
 	}
 
-	else {
+	else
+	{
 
 		currTar_Info->TarStatus = ((currTar_Info->TarStatus &
-					    ~(unsigned char)TAR_WIDE_MASK) |
-					   WIDE_NEGOCIATED);
+									~(unsigned char)TAR_WIDE_MASK) |
+								   WIDE_NEGOCIATED);
 
 		currTar_Info->TarEEValue &= ~EE_WIDE_SCSI;
 		return 0;
@@ -3437,52 +3951,67 @@ static void FPT_stwidn(u32 port, unsigned char p_card)
 
 	width = FPT_sfm(port, currSCCB);
 
-	if ((width == 0x00) && (currSCCB->Sccb_scsimsg == SMPARITY)) {
+	if ((width == 0x00) && (currSCCB->Sccb_scsimsg == SMPARITY))
+	{
 		WR_HARPOON(port + hp_autostart_1,
-			   (AUTO_IMMED + DISCONNECT_START));
+				   (AUTO_IMMED + DISCONNECT_START));
 		return;
 	}
 
 	if (!(currTar_Info->TarEEValue & EE_WIDE_SCSI))
+	{
 		width = 0;
+	}
 
-	if (width) {
+	if (width)
+	{
 		currTar_Info->TarStatus |= WIDE_ENABLED;
 		width = 0;
-	} else {
+	}
+	else
+	{
 		width = NARROW_SCSI;
 		currTar_Info->TarStatus &= ~WIDE_ENABLED;
 	}
 
 	FPT_sssyncv(port, currSCCB->TargID, width, currTar_Info);
 
-	if (currSCCB->Sccb_scsistat == SELECT_WN_ST) {
+	if (currSCCB->Sccb_scsistat == SELECT_WN_ST)
+	{
 
 		currTar_Info->TarStatus |= WIDE_NEGOCIATED;
 
 		if (!
-		    ((currTar_Info->TarStatus & TAR_SYNC_MASK) ==
-		     SYNC_SUPPORTED)) {
+			((currTar_Info->TarStatus & TAR_SYNC_MASK) ==
+			 SYNC_SUPPORTED))
+		{
 			ACCEPT_MSG_ATN(port);
 			ARAM_ACCESS(port);
 			FPT_sisyncn(port, p_card, 1);
 			currSCCB->Sccb_scsistat = SELECT_SN_ST;
 			SGRAM_ACCESS(port);
-		} else {
+		}
+		else
+		{
 			ACCEPT_MSG(port);
 			WR_HARPOON(port + hp_autostart_1,
-				   (AUTO_IMMED + DISCONNECT_START));
+					   (AUTO_IMMED + DISCONNECT_START));
 		}
 	}
 
-	else {
+	else
+	{
 
 		ACCEPT_MSG_ATN(port);
 
 		if (currTar_Info->TarEEValue & EE_WIDE_SCSI)
+		{
 			width = SM16BIT;
+		}
 		else
+		{
 			width = SM8BIT;
+		}
 
 		FPT_siwidr(port, width);
 
@@ -3513,7 +4042,8 @@ static void FPT_siwidr(u32 port, unsigned char width)
 
 	WR_HARPOON(port + hp_autostart_3, (AUTO_IMMED + CMD_ONLY_STRT));
 
-	while (!(RDW_HARPOON((port + hp_intstat)) & (BUS_FREE | AUTO_INT))) {
+	while (!(RDW_HARPOON((port + hp_intstat)) & (BUS_FREE | AUTO_INT)))
+	{
 	}
 }
 
@@ -3526,62 +4056,78 @@ static void FPT_siwidr(u32 port, unsigned char width)
  *
  *---------------------------------------------------------------------*/
 static void FPT_sssyncv(u32 p_port, unsigned char p_id,
-			unsigned char p_sync_value,
-			struct sccb_mgr_tar_info *currTar_Info)
+						unsigned char p_sync_value,
+						struct sccb_mgr_tar_info *currTar_Info)
 {
 	unsigned char index;
 
 	index = p_id;
 
-	switch (index) {
+	switch (index)
+	{
 
-	case 0:
-		index = 12;	/* hp_synctarg_0 */
-		break;
-	case 1:
-		index = 13;	/* hp_synctarg_1 */
-		break;
-	case 2:
-		index = 14;	/* hp_synctarg_2 */
-		break;
-	case 3:
-		index = 15;	/* hp_synctarg_3 */
-		break;
-	case 4:
-		index = 8;	/* hp_synctarg_4 */
-		break;
-	case 5:
-		index = 9;	/* hp_synctarg_5 */
-		break;
-	case 6:
-		index = 10;	/* hp_synctarg_6 */
-		break;
-	case 7:
-		index = 11;	/* hp_synctarg_7 */
-		break;
-	case 8:
-		index = 4;	/* hp_synctarg_8 */
-		break;
-	case 9:
-		index = 5;	/* hp_synctarg_9 */
-		break;
-	case 10:
-		index = 6;	/* hp_synctarg_10 */
-		break;
-	case 11:
-		index = 7;	/* hp_synctarg_11 */
-		break;
-	case 12:
-		index = 0;	/* hp_synctarg_12 */
-		break;
-	case 13:
-		index = 1;	/* hp_synctarg_13 */
-		break;
-	case 14:
-		index = 2;	/* hp_synctarg_14 */
-		break;
-	case 15:
-		index = 3;	/* hp_synctarg_15 */
+		case 0:
+			index = 12;	/* hp_synctarg_0 */
+			break;
+
+		case 1:
+			index = 13;	/* hp_synctarg_1 */
+			break;
+
+		case 2:
+			index = 14;	/* hp_synctarg_2 */
+			break;
+
+		case 3:
+			index = 15;	/* hp_synctarg_3 */
+			break;
+
+		case 4:
+			index = 8;	/* hp_synctarg_4 */
+			break;
+
+		case 5:
+			index = 9;	/* hp_synctarg_5 */
+			break;
+
+		case 6:
+			index = 10;	/* hp_synctarg_6 */
+			break;
+
+		case 7:
+			index = 11;	/* hp_synctarg_7 */
+			break;
+
+		case 8:
+			index = 4;	/* hp_synctarg_8 */
+			break;
+
+		case 9:
+			index = 5;	/* hp_synctarg_9 */
+			break;
+
+		case 10:
+			index = 6;	/* hp_synctarg_10 */
+			break;
+
+		case 11:
+			index = 7;	/* hp_synctarg_11 */
+			break;
+
+		case 12:
+			index = 0;	/* hp_synctarg_12 */
+			break;
+
+		case 13:
+			index = 1;	/* hp_synctarg_13 */
+			break;
+
+		case 14:
+			index = 2;	/* hp_synctarg_14 */
+			break;
+
+		case 15:
+			index = 3;	/* hp_synctarg_15 */
 
 	}
 
@@ -3604,7 +4150,7 @@ static void FPT_sresb(u32 port, unsigned char p_card)
 	struct sccb_mgr_tar_info *currTar_Info;
 
 	WR_HARPOON(port + hp_page_ctrl,
-		   (RD_HARPOON(port + hp_page_ctrl) | G_INT_DISABLE));
+			   (RD_HARPOON(port + hp_page_ctrl) | G_INT_DISABLE));
 	WRW_HARPOON((port + hp_intstat), CLR_ALL_INT);
 
 	WR_HARPOON(port + hp_scsictrl_0, SCSI_RST);
@@ -3615,7 +4161,8 @@ static void FPT_sresb(u32 port, unsigned char p_card)
 
 	WR_HARPOON(port + hp_portctrl_0, (SCSI_PORT | START_TO));
 
-	while (!(RDW_HARPOON((port + hp_intstat)) & TIMEOUT)) {
+	while (!(RDW_HARPOON((port + hp_intstat)) & TIMEOUT))
+	{
 	}
 
 	WR_HARPOON(port + hp_seltimeout, scsiID);
@@ -3628,15 +4175,18 @@ static void FPT_sresb(u32 port, unsigned char p_card)
 
 	WR_HARPOON(port + hp_int_mask, (RD_HARPOON(port + hp_int_mask) | 0x00));
 
-	for (scsiID = 0; scsiID < MAX_SCSI_TAR; scsiID++) {
+	for (scsiID = 0; scsiID < MAX_SCSI_TAR; scsiID++)
+	{
 		currTar_Info = &FPT_sccbMgrTbl[p_card][scsiID];
 
-		if (currTar_Info->TarEEValue & EE_SYNC_MASK) {
+		if (currTar_Info->TarEEValue & EE_SYNC_MASK)
+		{
 			currTar_Info->TarSyncCtrl = 0;
 			currTar_Info->TarStatus &= ~TAR_SYNC_MASK;
 		}
 
-		if (currTar_Info->TarEEValue & EE_WIDE_SCSI) {
+		if (currTar_Info->TarEEValue & EE_WIDE_SCSI)
+		{
 			currTar_Info->TarStatus &= ~TAR_WIDE_MASK;
 		}
 
@@ -3648,16 +4198,18 @@ static void FPT_sresb(u32 port, unsigned char p_card)
 	FPT_BL_Card[p_card].scanIndex = 0x00;
 	FPT_BL_Card[p_card].currentSCCB = NULL;
 	FPT_BL_Card[p_card].globalFlags &= ~(F_TAG_STARTED | F_HOST_XFER_ACT
-					     | F_NEW_SCCB_CMD);
+										 | F_NEW_SCCB_CMD);
 	FPT_BL_Card[p_card].cmdCounter = 0x00;
 	FPT_BL_Card[p_card].discQCount = 0x00;
 	FPT_BL_Card[p_card].tagQ_Lst = 0x01;
 
 	for (i = 0; i < QUEUE_DEPTH; i++)
+	{
 		FPT_BL_Card[p_card].discQ_Tbl[i] = NULL;
+	}
 
 	WR_HARPOON(port + hp_page_ctrl,
-		   (RD_HARPOON(port + hp_page_ctrl) & ~G_INT_DISABLE));
+			   (RD_HARPOON(port + hp_page_ctrl) & ~G_INT_DISABLE));
 
 }
 
@@ -3677,7 +4229,8 @@ static void FPT_ssenss(struct sccb_card *pCurrCard)
 
 	currSCCB->Save_CdbLen = currSCCB->CdbLength;
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 
 		currSCCB->Save_Cdb[i] = currSCCB->Cdb[i];
 	}
@@ -3720,10 +4273,11 @@ static void FPT_sxfrp(u32 p_port, unsigned char p_card)
 
 	DISABLE_AUTO(p_port);
 
-	if (FPT_BL_Card[p_card].globalFlags & F_HOST_XFER_ACT) {
+	if (FPT_BL_Card[p_card].globalFlags & F_HOST_XFER_ACT)
+	{
 
 		FPT_hostDataXferAbort(p_port, p_card,
-				      FPT_BL_Card[p_card].currentSCCB);
+							  FPT_BL_Card[p_card].currentSCCB);
 
 	}
 
@@ -3731,8 +4285,10 @@ static void FPT_sxfrp(u32 p_port, unsigned char p_card)
 	   match the phase or we will get out of sync with the ISR.       */
 
 	if (RDW_HARPOON((p_port + hp_intstat)) &
-	    (BUS_FREE | XFER_CNT_0 | AUTO_INT))
+		(BUS_FREE | XFER_CNT_0 | AUTO_INT))
+	{
 		return;
+	}
 
 	WR_HARPOON(p_port + hp_xfercnt_0, 0x00);
 
@@ -3743,47 +4299,61 @@ static void FPT_sxfrp(u32 p_port, unsigned char p_card)
 	WR_HARPOON(p_port + hp_scsisig, curr_phz);
 
 	while (!(RDW_HARPOON((p_port + hp_intstat)) & (BUS_FREE | RESET)) &&
-	       (curr_phz ==
-		(RD_HARPOON(p_port + hp_scsisig) & (unsigned char)S_SCSI_PHZ)))
+		   (curr_phz ==
+			(RD_HARPOON(p_port + hp_scsisig) & (unsigned char)S_SCSI_PHZ)))
 	{
-		if (curr_phz & (unsigned char)SCSI_IOBIT) {
+		if (curr_phz & (unsigned char)SCSI_IOBIT)
+		{
 			WR_HARPOON(p_port + hp_portctrl_0,
-				   (SCSI_PORT | HOST_PORT | SCSI_INBIT));
+					   (SCSI_PORT | HOST_PORT | SCSI_INBIT));
 
-			if (!(RD_HARPOON(p_port + hp_xferstat) & FIFO_EMPTY)) {
+			if (!(RD_HARPOON(p_port + hp_xferstat) & FIFO_EMPTY))
+			{
 				RD_HARPOON(p_port + hp_fifodata_0);
 			}
-		} else {
+		}
+		else
+		{
 			WR_HARPOON(p_port + hp_portctrl_0,
-				   (SCSI_PORT | HOST_PORT | HOST_WRT));
-			if (RD_HARPOON(p_port + hp_xferstat) & FIFO_EMPTY) {
+					   (SCSI_PORT | HOST_PORT | HOST_WRT));
+
+			if (RD_HARPOON(p_port + hp_xferstat) & FIFO_EMPTY)
+			{
 				WR_HARPOON(p_port + hp_fifodata_0, 0xFA);
 			}
 		}
 	}			/* End of While loop for padding data I/O phase */
 
-	while (!(RDW_HARPOON((p_port + hp_intstat)) & (BUS_FREE | RESET))) {
+	while (!(RDW_HARPOON((p_port + hp_intstat)) & (BUS_FREE | RESET)))
+	{
 		if (RD_HARPOON(p_port + hp_scsisig) & SCSI_REQ)
+		{
 			break;
+		}
 	}
 
 	WR_HARPOON(p_port + hp_portctrl_0,
-		   (SCSI_PORT | HOST_PORT | SCSI_INBIT));
-	while (!(RD_HARPOON(p_port + hp_xferstat) & FIFO_EMPTY)) {
+			   (SCSI_PORT | HOST_PORT | SCSI_INBIT));
+
+	while (!(RD_HARPOON(p_port + hp_xferstat) & FIFO_EMPTY))
+	{
 		RD_HARPOON(p_port + hp_fifodata_0);
 	}
 
-	if (!(RDW_HARPOON((p_port + hp_intstat)) & (BUS_FREE | RESET))) {
+	if (!(RDW_HARPOON((p_port + hp_intstat)) & (BUS_FREE | RESET)))
+	{
 		WR_HARPOON(p_port + hp_autostart_0,
-			   (AUTO_IMMED + DISCONNECT_START));
-		while (!(RDW_HARPOON((p_port + hp_intstat)) & AUTO_INT)) {
+				   (AUTO_IMMED + DISCONNECT_START));
+
+		while (!(RDW_HARPOON((p_port + hp_intstat)) & AUTO_INT))
+		{
 		}
 
 		if (RDW_HARPOON((p_port + hp_intstat)) &
-		    (ICMD_COMP | ITAR_DISC))
+			(ICMD_COMP | ITAR_DISC))
 			while (!
-			       (RDW_HARPOON((p_port + hp_intstat)) &
-				(BUS_FREE | RSEL))) ;
+				   (RDW_HARPOON((p_port + hp_intstat)) &
+					(BUS_FREE | RSEL))) ;
 	}
 }
 
@@ -3806,11 +4376,13 @@ static void FPT_schkdd(u32 port, unsigned char p_card)
 	currSCCB = FPT_BL_Card[p_card].currentSCCB;
 
 	if ((currSCCB->Sccb_scsistat != DATA_OUT_ST) &&
-	    (currSCCB->Sccb_scsistat != DATA_IN_ST)) {
+		(currSCCB->Sccb_scsistat != DATA_IN_ST))
+	{
 		return;
 	}
 
-	if (currSCCB->Sccb_XferState & F_ODD_BALL_CNT) {
+	if (currSCCB->Sccb_XferState & F_ODD_BALL_CNT)
+	{
 
 		currSCCB->Sccb_ATC += (currSCCB->Sccb_XferCnt - 1);
 
@@ -3821,7 +4393,8 @@ static void FPT_schkdd(u32 port, unsigned char p_card)
 		WR_HARPOON(port + hp_xferstat, 0x00);
 	}
 
-	else {
+	else
+	{
 
 		currSCCB->Sccb_ATC += currSCCB->Sccb_XferCnt;
 
@@ -3829,7 +4402,8 @@ static void FPT_schkdd(u32 port, unsigned char p_card)
 	}
 
 	if ((RDW_HARPOON((port + hp_intstat)) & PARITY) &&
-	    (currSCCB->HostStatus == SCCB_COMPLETE)) {
+		(currSCCB->HostStatus == SCCB_COMPLETE))
+	{
 
 		currSCCB->HostStatus = SCCB_PARITY_ERR;
 		WRW_HARPOON((port + hp_intstat), PARITY);
@@ -3837,46 +4411,65 @@ static void FPT_schkdd(u32 port, unsigned char p_card)
 
 	FPT_hostDataXferAbort(port, p_card, currSCCB);
 
-	while (RD_HARPOON(port + hp_scsisig) & SCSI_ACK) {
+	while (RD_HARPOON(port + hp_scsisig) & SCSI_ACK)
+	{
 	}
 
 	TimeOutLoop = 0;
 
-	while (RD_HARPOON(port + hp_xferstat) & FIFO_EMPTY) {
-		if (RDW_HARPOON((port + hp_intstat)) & BUS_FREE) {
+	while (RD_HARPOON(port + hp_xferstat) & FIFO_EMPTY)
+	{
+		if (RDW_HARPOON((port + hp_intstat)) & BUS_FREE)
+		{
 			return;
 		}
-		if (RD_HARPOON(port + hp_offsetctr) & (unsigned char)0x1F) {
+
+		if (RD_HARPOON(port + hp_offsetctr) & (unsigned char)0x1F)
+		{
 			break;
 		}
-		if (RDW_HARPOON((port + hp_intstat)) & RESET) {
+
+		if (RDW_HARPOON((port + hp_intstat)) & RESET)
+		{
 			return;
 		}
+
 		if ((RD_HARPOON(port + hp_scsisig) & SCSI_REQ)
-		    || (TimeOutLoop++ > 0x3000))
+			|| (TimeOutLoop++ > 0x3000))
+		{
 			break;
+		}
 	}
 
 	sPhase = RD_HARPOON(port + hp_scsisig) & (SCSI_BSY | S_SCSI_PHZ);
+
 	if ((!(RD_HARPOON(port + hp_xferstat) & FIFO_EMPTY)) ||
-	    (RD_HARPOON(port + hp_offsetctr) & (unsigned char)0x1F) ||
-	    (sPhase == (SCSI_BSY | S_DATAO_PH)) ||
-	    (sPhase == (SCSI_BSY | S_DATAI_PH))) {
+		(RD_HARPOON(port + hp_offsetctr) & (unsigned char)0x1F) ||
+		(sPhase == (SCSI_BSY | S_DATAO_PH)) ||
+		(sPhase == (SCSI_BSY | S_DATAI_PH)))
+	{
 
 		WR_HARPOON(port + hp_portctrl_0, SCSI_PORT);
 
-		if (!(currSCCB->Sccb_XferState & F_ALL_XFERRED)) {
-			if (currSCCB->Sccb_XferState & F_HOST_XFER_DIR) {
+		if (!(currSCCB->Sccb_XferState & F_ALL_XFERRED))
+		{
+			if (currSCCB->Sccb_XferState & F_HOST_XFER_DIR)
+			{
 				FPT_phaseDataIn(port, p_card);
 			}
 
-			else {
+			else
+			{
 				FPT_phaseDataOut(port, p_card);
 			}
-		} else {
+		}
+		else
+		{
 			FPT_sxfrp(port, p_card);
+
 			if (!(RDW_HARPOON((port + hp_intstat)) &
-			      (BUS_FREE | ICMD_COMP | ITAR_DISC | RESET))) {
+				  (BUS_FREE | ICMD_COMP | ITAR_DISC | RESET)))
+			{
 				WRW_HARPOON((port + hp_intstat), AUTO_INT);
 				FPT_phaseDecode(port, p_card);
 			}
@@ -3884,7 +4477,8 @@ static void FPT_schkdd(u32 port, unsigned char p_card)
 
 	}
 
-	else {
+	else
+	{
 		WR_HARPOON(port + hp_portctrl_0, 0x00);
 	}
 }
@@ -3901,16 +4495,19 @@ static void FPT_sinits(struct sccb *p_sccb, unsigned char p_card)
 {
 	struct sccb_mgr_tar_info *currTar_Info;
 
-	if ((p_sccb->TargID >= MAX_SCSI_TAR) || (p_sccb->Lun >= MAX_LUN)) {
+	if ((p_sccb->TargID >= MAX_SCSI_TAR) || (p_sccb->Lun >= MAX_LUN))
+	{
 		return;
 	}
+
 	currTar_Info = &FPT_sccbMgrTbl[p_card][p_sccb->TargID];
 
 	p_sccb->Sccb_XferState = 0x00;
 	p_sccb->Sccb_XferCnt = p_sccb->DataLength;
 
 	if ((p_sccb->OperationCode == SCATTER_GATHER_COMMAND) ||
-	    (p_sccb->OperationCode == RESIDUAL_SG_COMMAND)) {
+		(p_sccb->OperationCode == RESIDUAL_SG_COMMAND))
+	{
 
 		p_sccb->Sccb_SGoffset = 0;
 		p_sccb->Sccb_XferState = F_SG_XFER;
@@ -3919,32 +4516,41 @@ static void FPT_sinits(struct sccb *p_sccb, unsigned char p_card)
 
 	if (p_sccb->DataLength == 0x00)
 
+	{
 		p_sccb->Sccb_XferState |= F_ALL_XFERRED;
+	}
 
-	if (p_sccb->ControlByte & F_USE_CMD_Q) {
+	if (p_sccb->ControlByte & F_USE_CMD_Q)
+	{
 		if ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) == TAG_Q_REJECT)
+		{
 			p_sccb->ControlByte &= ~F_USE_CMD_Q;
+		}
 
 		else
+		{
 			currTar_Info->TarStatus |= TAG_Q_TRYING;
+		}
 	}
 
-/*      For !single SCSI device in system  & device allow Disconnect
-	or command is tag_q type then send Cmd with Disconnect Enable
-	else send Cmd with Disconnect Disable */
+	/*      For !single SCSI device in system  & device allow Disconnect
+		or command is tag_q type then send Cmd with Disconnect Enable
+		else send Cmd with Disconnect Disable */
 
-/*
-   if (((!(FPT_BL_Card[p_card].globalFlags & F_SINGLE_DEVICE)) &&
-      (currTar_Info->TarStatus & TAR_ALLOW_DISC)) ||
-      (currTar_Info->TarStatus & TAG_Q_TRYING)) {
-*/
+	/*
+	   if (((!(FPT_BL_Card[p_card].globalFlags & F_SINGLE_DEVICE)) &&
+	      (currTar_Info->TarStatus & TAR_ALLOW_DISC)) ||
+	      (currTar_Info->TarStatus & TAG_Q_TRYING)) {
+	*/
 	if ((currTar_Info->TarStatus & TAR_ALLOW_DISC) ||
-	    (currTar_Info->TarStatus & TAG_Q_TRYING)) {
+		(currTar_Info->TarStatus & TAG_Q_TRYING))
+	{
 		p_sccb->Sccb_idmsg =
-		    (unsigned char)(SMIDENT | DISC_PRIV) | p_sccb->Lun;
+			(unsigned char)(SMIDENT | DISC_PRIV) | p_sccb->Lun;
 	}
 
-	else {
+	else
+	{
 
 		p_sccb->Sccb_idmsg = (unsigned char)SMIDENT | p_sccb->Lun;
 	}
@@ -3956,11 +4562,11 @@ static void FPT_sinits(struct sccb *p_sccb, unsigned char p_card)
 	p_sccb->Sccb_sgseg = 0x00;
 	p_sccb->Sccb_ATC = 0x00;
 	p_sccb->Sccb_savedATC = 0x00;
-/*
-   p_sccb->SccbVirtDataPtr    = 0x00;
-   p_sccb->Sccb_forwardlink   = NULL;
-   p_sccb->Sccb_backlink      = NULL;
- */
+	/*
+	   p_sccb->SccbVirtDataPtr    = 0x00;
+	   p_sccb->Sccb_forwardlink   = NULL;
+	   p_sccb->Sccb_backlink      = NULL;
+	 */
 	p_sccb->Sccb_scsistat = BUS_FREE_ST;
 	p_sccb->SccbStatus = SCCB_IN_PROCESS;
 	p_sccb->Sccb_scsimsg = SMNO_OP;
@@ -3983,7 +4589,7 @@ static void FPT_phaseDecode(u32 p_port, unsigned char p_card)
 	DISABLE_AUTO(p_port);
 
 	phase_ref =
-	    (unsigned char)(RD_HARPOON(p_port + hp_scsisig) & S_SCSI_PHZ);
+		(unsigned char)(RD_HARPOON(p_port + hp_scsisig) & S_SCSI_PHZ);
 
 	phase = FPT_s_PhaseTbl[phase_ref];
 
@@ -4004,7 +4610,9 @@ static void FPT_phaseDataOut(u32 port, unsigned char p_card)
 	struct sccb *currSCCB;
 
 	currSCCB = FPT_BL_Card[p_card].currentSCCB;
-	if (currSCCB == NULL) {
+
+	if (currSCCB == NULL)
+	{
 		return;		/* Exit if No SCCB record */
 	}
 
@@ -4019,15 +4627,21 @@ static void FPT_phaseDataOut(u32 port, unsigned char p_card)
 
 	FPT_dataXferProcessor(port, &FPT_BL_Card[p_card]);
 
-	if (currSCCB->Sccb_XferCnt == 0) {
+	if (currSCCB->Sccb_XferCnt == 0)
+	{
 
 		if ((currSCCB->ControlByte & SCCB_DATA_XFER_OUT) &&
-		    (currSCCB->HostStatus == SCCB_COMPLETE))
+			(currSCCB->HostStatus == SCCB_COMPLETE))
+		{
 			currSCCB->HostStatus = SCCB_DATA_OVER_RUN;
+		}
 
 		FPT_sxfrp(port, p_card);
+
 		if (!(RDW_HARPOON((port + hp_intstat)) & (BUS_FREE | RESET)))
+		{
 			FPT_phaseDecode(port, p_card);
+		}
 	}
 }
 
@@ -4046,7 +4660,8 @@ static void FPT_phaseDataIn(u32 port, unsigned char p_card)
 
 	currSCCB = FPT_BL_Card[p_card].currentSCCB;
 
-	if (currSCCB == NULL) {
+	if (currSCCB == NULL)
+	{
 		return;		/* Exit if No SCCB record */
 	}
 
@@ -4062,15 +4677,21 @@ static void FPT_phaseDataIn(u32 port, unsigned char p_card)
 
 	FPT_dataXferProcessor(port, &FPT_BL_Card[p_card]);
 
-	if (currSCCB->Sccb_XferCnt == 0) {
+	if (currSCCB->Sccb_XferCnt == 0)
+	{
 
 		if ((currSCCB->ControlByte & SCCB_DATA_XFER_IN) &&
-		    (currSCCB->HostStatus == SCCB_COMPLETE))
+			(currSCCB->HostStatus == SCCB_COMPLETE))
+		{
 			currSCCB->HostStatus = SCCB_DATA_OVER_RUN;
+		}
 
 		FPT_sxfrp(port, p_card);
+
 		if (!(RDW_HARPOON((port + hp_intstat)) & (BUS_FREE | RESET)))
+		{
 			FPT_phaseDecode(port, p_card);
+		}
 
 	}
 }
@@ -4091,7 +4712,8 @@ static void FPT_phaseCommand(u32 p_port, unsigned char p_card)
 
 	currSCCB = FPT_BL_Card[p_card].currentSCCB;
 
-	if (currSCCB->OperationCode == RESET_COMMAND) {
+	if (currSCCB->OperationCode == RESET_COMMAND)
+	{
 
 		currSCCB->HostStatus = SCCB_PHASE_SEQUENCE_FAIL;
 		currSCCB->CdbLength = SIX_BYTE_CMD;
@@ -4103,20 +4725,26 @@ static void FPT_phaseCommand(u32 p_port, unsigned char p_card)
 
 	cdb_reg = p_port + CMD_STRT;
 
-	for (i = 0; i < currSCCB->CdbLength; i++) {
+	for (i = 0; i < currSCCB->CdbLength; i++)
+	{
 
 		if (currSCCB->OperationCode == RESET_COMMAND)
 
+		{
 			WRW_HARPOON(cdb_reg, (MPM_OP + ACOMMAND + 0x00));
+		}
 
 		else
 			WRW_HARPOON(cdb_reg,
-				    (MPM_OP + ACOMMAND + currSCCB->Cdb[i]));
+						(MPM_OP + ACOMMAND + currSCCB->Cdb[i]));
+
 		cdb_reg += 2;
 	}
 
 	if (currSCCB->CdbLength != TWELVE_BYTE_CMD)
+	{
 		WRW_HARPOON(cdb_reg, (BRH_OP + ALWAYS + NP));
+	}
 
 	WR_HARPOON(p_port + hp_portctrl_0, (SCSI_PORT));
 
@@ -4163,61 +4791,77 @@ static void FPT_phaseMsgOut(u32 port, unsigned char p_card)
 
 	currSCCB = FPT_BL_Card[p_card].currentSCCB;
 
-	if (currSCCB != NULL) {
+	if (currSCCB != NULL)
+	{
 
 		message = currSCCB->Sccb_scsimsg;
 		scsiID = currSCCB->TargID;
 
-		if (message == SMDEV_RESET) {
+		if (message == SMDEV_RESET)
+		{
 
 			currTar_Info = &FPT_sccbMgrTbl[p_card][scsiID];
 			currTar_Info->TarSyncCtrl = 0;
 			FPT_sssyncv(port, scsiID, NARROW_SCSI, currTar_Info);
 
 			if (FPT_sccbMgrTbl[p_card][scsiID].
-			    TarEEValue & EE_SYNC_MASK) {
+				TarEEValue & EE_SYNC_MASK)
+			{
 
 				FPT_sccbMgrTbl[p_card][scsiID].TarStatus &=
-				    ~TAR_SYNC_MASK;
+					~TAR_SYNC_MASK;
 
 			}
 
 			if (FPT_sccbMgrTbl[p_card][scsiID].
-			    TarEEValue & EE_WIDE_SCSI) {
+				TarEEValue & EE_WIDE_SCSI)
+			{
 
 				FPT_sccbMgrTbl[p_card][scsiID].TarStatus &=
-				    ~TAR_WIDE_MASK;
+					~TAR_WIDE_MASK;
 			}
 
 			FPT_queueFlushSccb(p_card, SCCB_COMPLETE);
 			FPT_SccbMgrTableInitTarget(p_card, scsiID);
-		} else if (currSCCB->Sccb_scsistat == ABORT_ST) {
+		}
+		else if (currSCCB->Sccb_scsistat == ABORT_ST)
+		{
 			currSCCB->HostStatus = SCCB_COMPLETE;
+
 			if (FPT_BL_Card[p_card].discQ_Tbl[currSCCB->Sccb_tag] !=
-			    NULL) {
+				NULL)
+			{
 				FPT_BL_Card[p_card].discQ_Tbl[currSCCB->
-							      Sccb_tag] = NULL;
+											  Sccb_tag] = NULL;
 				FPT_sccbMgrTbl[p_card][scsiID].TarTagQ_Cnt--;
 			}
 
 		}
 
-		else if (currSCCB->Sccb_scsistat < COMMAND_ST) {
+		else if (currSCCB->Sccb_scsistat < COMMAND_ST)
+		{
 
-			if (message == SMNO_OP) {
+			if (message == SMNO_OP)
+			{
 				currSCCB->Sccb_MGRFlags |= F_DEV_SELECTED;
 
 				FPT_ssel(port, p_card);
 				return;
 			}
-		} else {
+		}
+		else
+		{
 
 			if (message == SMABORT)
 
+			{
 				FPT_queueFlushSccb(p_card, SCCB_COMPLETE);
+			}
 		}
 
-	} else {
+	}
+	else
+	{
 		message = SMABORT;
 	}
 
@@ -4234,53 +4878,63 @@ static void FPT_phaseMsgOut(u32 port, unsigned char p_card)
 	WR_HARPOON(port + hp_portctrl_0, 0x00);
 
 	if ((message == SMABORT) || (message == SMDEV_RESET) ||
-	    (message == SMABORT_TAG)) {
+		(message == SMABORT_TAG))
+	{
 
-		while (!(RDW_HARPOON((port + hp_intstat)) & (BUS_FREE | PHASE))) {
+		while (!(RDW_HARPOON((port + hp_intstat)) & (BUS_FREE | PHASE)))
+		{
 		}
 
-		if (RDW_HARPOON((port + hp_intstat)) & BUS_FREE) {
+		if (RDW_HARPOON((port + hp_intstat)) & BUS_FREE)
+		{
 			WRW_HARPOON((port + hp_intstat), BUS_FREE);
 
-			if (currSCCB != NULL) {
+			if (currSCCB != NULL)
+			{
 
 				if ((FPT_BL_Card[p_card].
-				     globalFlags & F_CONLUN_IO)
-				    &&
-				    ((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				      TarStatus & TAR_TAG_Q_MASK) !=
-				     TAG_Q_TRYING))
+					 globalFlags & F_CONLUN_IO)
+					&&
+					((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
+					  TarStatus & TAR_TAG_Q_MASK) !=
+					 TAG_Q_TRYING))
 					FPT_sccbMgrTbl[p_card][currSCCB->
-							       TargID].
-					    TarLUNBusy[currSCCB->Lun] = 0;
+										   TargID].
+					TarLUNBusy[currSCCB->Lun] = 0;
 				else
 					FPT_sccbMgrTbl[p_card][currSCCB->
-							       TargID].
-					    TarLUNBusy[0] = 0;
+										   TargID].
+					TarLUNBusy[0] = 0;
 
 				FPT_queueCmdComplete(&FPT_BL_Card[p_card],
-						     currSCCB, p_card);
+									 currSCCB, p_card);
 			}
 
-			else {
+			else
+			{
 				FPT_BL_Card[p_card].globalFlags |=
-				    F_NEW_SCCB_CMD;
+					F_NEW_SCCB_CMD;
 			}
 		}
 
-		else {
+		else
+		{
 
 			FPT_sxfrp(port, p_card);
 		}
 	}
 
-	else {
+	else
+	{
 
-		if (message == SMPARITY) {
+		if (message == SMPARITY)
+		{
 			currSCCB->Sccb_scsimsg = SMNO_OP;
 			WR_HARPOON(port + hp_autostart_1,
-				   (AUTO_IMMED + DISCONNECT_START));
-		} else {
+					   (AUTO_IMMED + DISCONNECT_START));
+		}
+		else
+		{
 			FPT_sxfrp(port, p_card);
 		}
 	}
@@ -4301,31 +4955,42 @@ static void FPT_phaseMsgIn(u32 port, unsigned char p_card)
 
 	currSCCB = FPT_BL_Card[p_card].currentSCCB;
 
-	if (FPT_BL_Card[p_card].globalFlags & F_HOST_XFER_ACT) {
+	if (FPT_BL_Card[p_card].globalFlags & F_HOST_XFER_ACT)
+	{
 
 		FPT_phaseChkFifo(port, p_card);
 	}
 
 	message = RD_HARPOON(port + hp_scsidata_0);
-	if ((message == SMDISC) || (message == SMSAVE_DATA_PTR)) {
+
+	if ((message == SMDISC) || (message == SMSAVE_DATA_PTR))
+	{
 
 		WR_HARPOON(port + hp_autostart_1,
-			   (AUTO_IMMED + END_DATA_START));
+				   (AUTO_IMMED + END_DATA_START));
 
 	}
 
-	else {
+	else
+	{
 
 		message = FPT_sfm(port, currSCCB);
-		if (message) {
+
+		if (message)
+		{
 
 			FPT_sdecm(message, port, p_card);
 
-		} else {
+		}
+		else
+		{
 			if (currSCCB->Sccb_scsimsg != SMPARITY)
+			{
 				ACCEPT_MSG(port);
+			}
+
 			WR_HARPOON(port + hp_autostart_1,
-				   (AUTO_IMMED + DISCONNECT_START));
+					   (AUTO_IMMED + DISCONNECT_START));
 		}
 	}
 
@@ -4348,7 +5013,9 @@ static void FPT_phaseIllegal(u32 port, unsigned char p_card)
 	currSCCB = FPT_BL_Card[p_card].currentSCCB;
 
 	WR_HARPOON(port + hp_scsisig, RD_HARPOON(port + hp_scsisig));
-	if (currSCCB != NULL) {
+
+	if (currSCCB != NULL)
+	{
 
 		currSCCB->HostStatus = SCCB_PHASE_SEQUENCE_FAIL;
 		currSCCB->Sccb_scsistat = ABORT_ST;
@@ -4374,19 +5041,23 @@ static void FPT_phaseChkFifo(u32 port, unsigned char p_card)
 
 	currSCCB = FPT_BL_Card[p_card].currentSCCB;
 
-	if (currSCCB->Sccb_scsistat == DATA_IN_ST) {
+	if (currSCCB->Sccb_scsistat == DATA_IN_ST)
+	{
 
 		while ((!(RD_HARPOON(port + hp_xferstat) & FIFO_EMPTY)) &&
-		       (RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY)) {
+			   (RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY))
+		{
 		}
 
-		if (!(RD_HARPOON(port + hp_xferstat) & FIFO_EMPTY)) {
+		if (!(RD_HARPOON(port + hp_xferstat) & FIFO_EMPTY))
+		{
 			currSCCB->Sccb_ATC += currSCCB->Sccb_XferCnt;
 
 			currSCCB->Sccb_XferCnt = 0;
 
 			if ((RDW_HARPOON((port + hp_intstat)) & PARITY) &&
-			    (currSCCB->HostStatus == SCCB_COMPLETE)) {
+				(currSCCB->HostStatus == SCCB_COMPLETE))
+			{
 				currSCCB->HostStatus = SCCB_PARITY_ERR;
 				WRW_HARPOON((port + hp_intstat), PARITY);
 			}
@@ -4396,8 +5067,9 @@ static void FPT_phaseChkFifo(u32 port, unsigned char p_card)
 			FPT_dataXferProcessor(port, &FPT_BL_Card[p_card]);
 
 			while ((!(RD_HARPOON(port + hp_xferstat) & FIFO_EMPTY))
-			       && (RD_HARPOON(port + hp_ext_status) &
-				   BM_CMD_BUSY)) {
+				   && (RD_HARPOON(port + hp_ext_status) &
+					   BM_CMD_BUSY))
+			{
 			}
 
 		}
@@ -4415,7 +5087,8 @@ static void FPT_phaseChkFifo(u32 port, unsigned char p_card)
 	currSCCB->Sccb_XferCnt = xfercnt;
 
 	if ((RDW_HARPOON((port + hp_intstat)) & PARITY) &&
-	    (currSCCB->HostStatus == SCCB_COMPLETE)) {
+		(currSCCB->HostStatus == SCCB_COMPLETE))
+	{
 
 		currSCCB->HostStatus = SCCB_PARITY_ERR;
 		WRW_HARPOON((port + hp_intstat), PARITY);
@@ -4444,81 +5117,90 @@ static void FPT_phaseBusFree(u32 port, unsigned char p_card)
 
 	currSCCB = FPT_BL_Card[p_card].currentSCCB;
 
-	if (currSCCB != NULL) {
+	if (currSCCB != NULL)
+	{
 
 		DISABLE_AUTO(port);
 
-		if (currSCCB->OperationCode == RESET_COMMAND) {
+		if (currSCCB->OperationCode == RESET_COMMAND)
+		{
 
 			if ((FPT_BL_Card[p_card].globalFlags & F_CONLUN_IO) &&
-			    ((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-			      TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))
+				((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
+				  TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarLUNBusy[currSCCB->Lun] = 0;
+				TarLUNBusy[currSCCB->Lun] = 0;
 			else
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarLUNBusy[0] = 0;
+				TarLUNBusy[0] = 0;
 
 			FPT_queueCmdComplete(&FPT_BL_Card[p_card], currSCCB,
-					     p_card);
+								 p_card);
 
 			FPT_queueSearchSelect(&FPT_BL_Card[p_card], p_card);
 
 		}
 
-		else if (currSCCB->Sccb_scsistat == SELECT_SN_ST) {
+		else if (currSCCB->Sccb_scsistat == SELECT_SN_ST)
+		{
 			FPT_sccbMgrTbl[p_card][currSCCB->TargID].TarStatus |=
-			    (unsigned char)SYNC_SUPPORTED;
+				(unsigned char)SYNC_SUPPORTED;
 			FPT_sccbMgrTbl[p_card][currSCCB->TargID].TarEEValue &=
-			    ~EE_SYNC_MASK;
+				~EE_SYNC_MASK;
 		}
 
-		else if (currSCCB->Sccb_scsistat == SELECT_WN_ST) {
+		else if (currSCCB->Sccb_scsistat == SELECT_WN_ST)
+		{
 			FPT_sccbMgrTbl[p_card][currSCCB->TargID].TarStatus =
-			    (FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-			     TarStatus & ~WIDE_ENABLED) | WIDE_NEGOCIATED;
+				(FPT_sccbMgrTbl[p_card][currSCCB->TargID].
+				 TarStatus & ~WIDE_ENABLED) | WIDE_NEGOCIATED;
 
 			FPT_sccbMgrTbl[p_card][currSCCB->TargID].TarEEValue &=
-			    ~EE_WIDE_SCSI;
+				~EE_WIDE_SCSI;
 		}
 
-		else if (currSCCB->Sccb_scsistat == SELECT_Q_ST) {
+		else if (currSCCB->Sccb_scsistat == SELECT_Q_ST)
+		{
 			/* Make sure this is not a phony BUS_FREE.  If we were
 			   reselected or if BUSY is NOT on then this is a
 			   valid BUS FREE.  SRR Wednesday, 5/10/1995.     */
 
 			if ((!(RD_HARPOON(port + hp_scsisig) & SCSI_BSY)) ||
-			    (RDW_HARPOON((port + hp_intstat)) & RSEL)) {
+				(RDW_HARPOON((port + hp_intstat)) & RSEL))
+			{
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarStatus &= ~TAR_TAG_Q_MASK;
+				TarStatus &= ~TAR_TAG_Q_MASK;
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarStatus |= TAG_Q_REJECT;
+				TarStatus |= TAG_Q_REJECT;
 			}
 
-			else {
+			else
+			{
 				return;
 			}
 		}
 
-		else {
+		else
+		{
 
 			currSCCB->Sccb_scsistat = BUS_FREE_ST;
 
-			if (!currSCCB->HostStatus) {
+			if (!currSCCB->HostStatus)
+			{
 				currSCCB->HostStatus = SCCB_PHASE_SEQUENCE_FAIL;
 			}
 
 			if ((FPT_BL_Card[p_card].globalFlags & F_CONLUN_IO) &&
-			    ((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-			      TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))
+				((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
+				  TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarLUNBusy[currSCCB->Lun] = 0;
+				TarLUNBusy[currSCCB->Lun] = 0;
 			else
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarLUNBusy[0] = 0;
+				TarLUNBusy[0] = 0;
 
 			FPT_queueCmdComplete(&FPT_BL_Card[p_card], currSCCB,
-					     p_card);
+								 p_card);
 			return;
 		}
 
@@ -4651,40 +5333,55 @@ static void FPT_autoCmdCmplt(u32 p_port, unsigned char p_card)
 
 	FPT_sccbMgrTbl[p_card][currSCCB->TargID].TarLUN_CA = 0;
 
-	if (status_byte != SSGOOD) {
+	if (status_byte != SSGOOD)
+	{
 
-		if (status_byte == SSQ_FULL) {
+		if (status_byte == SSQ_FULL)
+		{
 
 			if (((FPT_BL_Card[p_card].globalFlags & F_CONLUN_IO) &&
-			     ((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-			       TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))) {
+				 ((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
+				   TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING)))
+			{
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarLUNBusy[currSCCB->Lun] = 1;
+				TarLUNBusy[currSCCB->Lun] = 1;
+
 				if (FPT_BL_Card[p_card].discQCount != 0)
+				{
 					FPT_BL_Card[p_card].discQCount--;
+				}
+
 				FPT_BL_Card[p_card].
-				    discQ_Tbl[FPT_sccbMgrTbl[p_card]
-					      [currSCCB->TargID].
-					      LunDiscQ_Idx[currSCCB->Lun]] =
-				    NULL;
-			} else {
+				discQ_Tbl[FPT_sccbMgrTbl[p_card]
+						  [currSCCB->TargID].
+						  LunDiscQ_Idx[currSCCB->Lun]] =
+							  NULL;
+			}
+			else
+			{
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarLUNBusy[0] = 1;
-				if (currSCCB->Sccb_tag) {
+				TarLUNBusy[0] = 1;
+
+				if (currSCCB->Sccb_tag)
+				{
 					if (FPT_BL_Card[p_card].discQCount != 0)
 						FPT_BL_Card[p_card].
-						    discQCount--;
+						discQCount--;
+
 					FPT_BL_Card[p_card].discQ_Tbl[currSCCB->
-								      Sccb_tag]
-					    = NULL;
-				} else {
+												  Sccb_tag]
+						= NULL;
+				}
+				else
+				{
 					if (FPT_BL_Card[p_card].discQCount != 0)
 						FPT_BL_Card[p_card].
-						    discQCount--;
+						discQCount--;
+
 					FPT_BL_Card[p_card].
-					    discQ_Tbl[FPT_sccbMgrTbl[p_card]
-						      [currSCCB->TargID].
-						      LunDiscQ_Idx[0]] = NULL;
+					discQ_Tbl[FPT_sccbMgrTbl[p_card]
+							  [currSCCB->TargID].
+							  LunDiscQ_Idx[0]] = NULL;
 				}
 			}
 
@@ -4695,186 +5392,236 @@ static void FPT_autoCmdCmplt(u32 p_port, unsigned char p_card)
 			return;
 		}
 
-		if (currSCCB->Sccb_scsistat == SELECT_SN_ST) {
+		if (currSCCB->Sccb_scsistat == SELECT_SN_ST)
+		{
 			FPT_sccbMgrTbl[p_card][currSCCB->TargID].TarStatus |=
-			    (unsigned char)SYNC_SUPPORTED;
+				(unsigned char)SYNC_SUPPORTED;
 
 			FPT_sccbMgrTbl[p_card][currSCCB->TargID].TarEEValue &=
-			    ~EE_SYNC_MASK;
+				~EE_SYNC_MASK;
 			FPT_BL_Card[p_card].globalFlags |= F_NEW_SCCB_CMD;
 
 			if (((FPT_BL_Card[p_card].globalFlags & F_CONLUN_IO) &&
-			     ((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-			       TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))) {
+				 ((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
+				   TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING)))
+			{
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarLUNBusy[currSCCB->Lun] = 1;
+				TarLUNBusy[currSCCB->Lun] = 1;
+
 				if (FPT_BL_Card[p_card].discQCount != 0)
+				{
 					FPT_BL_Card[p_card].discQCount--;
+				}
+
 				FPT_BL_Card[p_card].
-				    discQ_Tbl[FPT_sccbMgrTbl[p_card]
-					      [currSCCB->TargID].
-					      LunDiscQ_Idx[currSCCB->Lun]] =
-				    NULL;
-			} else {
+				discQ_Tbl[FPT_sccbMgrTbl[p_card]
+						  [currSCCB->TargID].
+						  LunDiscQ_Idx[currSCCB->Lun]] =
+							  NULL;
+			}
+			else
+			{
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarLUNBusy[0] = 1;
-				if (currSCCB->Sccb_tag) {
+				TarLUNBusy[0] = 1;
+
+				if (currSCCB->Sccb_tag)
+				{
 					if (FPT_BL_Card[p_card].discQCount != 0)
 						FPT_BL_Card[p_card].
-						    discQCount--;
+						discQCount--;
+
 					FPT_BL_Card[p_card].discQ_Tbl[currSCCB->
-								      Sccb_tag]
-					    = NULL;
-				} else {
+												  Sccb_tag]
+						= NULL;
+				}
+				else
+				{
 					if (FPT_BL_Card[p_card].discQCount != 0)
 						FPT_BL_Card[p_card].
-						    discQCount--;
+						discQCount--;
+
 					FPT_BL_Card[p_card].
-					    discQ_Tbl[FPT_sccbMgrTbl[p_card]
-						      [currSCCB->TargID].
-						      LunDiscQ_Idx[0]] = NULL;
+					discQ_Tbl[FPT_sccbMgrTbl[p_card]
+							  [currSCCB->TargID].
+							  LunDiscQ_Idx[0]] = NULL;
 				}
 			}
+
 			return;
 
 		}
 
-		if (currSCCB->Sccb_scsistat == SELECT_WN_ST) {
+		if (currSCCB->Sccb_scsistat == SELECT_WN_ST)
+		{
 
 			FPT_sccbMgrTbl[p_card][currSCCB->TargID].TarStatus =
-			    (FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-			     TarStatus & ~WIDE_ENABLED) | WIDE_NEGOCIATED;
+				(FPT_sccbMgrTbl[p_card][currSCCB->TargID].
+				 TarStatus & ~WIDE_ENABLED) | WIDE_NEGOCIATED;
 
 			FPT_sccbMgrTbl[p_card][currSCCB->TargID].TarEEValue &=
-			    ~EE_WIDE_SCSI;
+				~EE_WIDE_SCSI;
 			FPT_BL_Card[p_card].globalFlags |= F_NEW_SCCB_CMD;
 
 			if (((FPT_BL_Card[p_card].globalFlags & F_CONLUN_IO) &&
-			     ((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-			       TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))) {
+				 ((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
+				   TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING)))
+			{
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarLUNBusy[currSCCB->Lun] = 1;
+				TarLUNBusy[currSCCB->Lun] = 1;
+
 				if (FPT_BL_Card[p_card].discQCount != 0)
+				{
 					FPT_BL_Card[p_card].discQCount--;
+				}
+
 				FPT_BL_Card[p_card].
-				    discQ_Tbl[FPT_sccbMgrTbl[p_card]
-					      [currSCCB->TargID].
-					      LunDiscQ_Idx[currSCCB->Lun]] =
-				    NULL;
-			} else {
+				discQ_Tbl[FPT_sccbMgrTbl[p_card]
+						  [currSCCB->TargID].
+						  LunDiscQ_Idx[currSCCB->Lun]] =
+							  NULL;
+			}
+			else
+			{
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarLUNBusy[0] = 1;
-				if (currSCCB->Sccb_tag) {
+				TarLUNBusy[0] = 1;
+
+				if (currSCCB->Sccb_tag)
+				{
 					if (FPT_BL_Card[p_card].discQCount != 0)
 						FPT_BL_Card[p_card].
-						    discQCount--;
+						discQCount--;
+
 					FPT_BL_Card[p_card].discQ_Tbl[currSCCB->
-								      Sccb_tag]
-					    = NULL;
-				} else {
+												  Sccb_tag]
+						= NULL;
+				}
+				else
+				{
 					if (FPT_BL_Card[p_card].discQCount != 0)
 						FPT_BL_Card[p_card].
-						    discQCount--;
+						discQCount--;
+
 					FPT_BL_Card[p_card].
-					    discQ_Tbl[FPT_sccbMgrTbl[p_card]
-						      [currSCCB->TargID].
-						      LunDiscQ_Idx[0]] = NULL;
+					discQ_Tbl[FPT_sccbMgrTbl[p_card]
+							  [currSCCB->TargID].
+							  LunDiscQ_Idx[0]] = NULL;
 				}
 			}
+
 			return;
 
 		}
 
-		if (status_byte == SSCHECK) {
-			if (FPT_BL_Card[p_card].globalFlags & F_DO_RENEGO) {
+		if (status_byte == SSCHECK)
+		{
+			if (FPT_BL_Card[p_card].globalFlags & F_DO_RENEGO)
+			{
 				if (FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarEEValue & EE_SYNC_MASK) {
+					TarEEValue & EE_SYNC_MASK)
+				{
 					FPT_sccbMgrTbl[p_card][currSCCB->
-							       TargID].
-					    TarStatus &= ~TAR_SYNC_MASK;
+										   TargID].
+					TarStatus &= ~TAR_SYNC_MASK;
 				}
+
 				if (FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarEEValue & EE_WIDE_SCSI) {
+					TarEEValue & EE_WIDE_SCSI)
+				{
 					FPT_sccbMgrTbl[p_card][currSCCB->
-							       TargID].
-					    TarStatus &= ~TAR_WIDE_MASK;
+										   TargID].
+					TarStatus &= ~TAR_WIDE_MASK;
 				}
 			}
 		}
 
-		if (!(currSCCB->Sccb_XferState & F_AUTO_SENSE)) {
+		if (!(currSCCB->Sccb_XferState & F_AUTO_SENSE))
+		{
 
 			currSCCB->SccbStatus = SCCB_ERROR;
 			currSCCB->TargetStatus = status_byte;
 
-			if (status_byte == SSCHECK) {
+			if (status_byte == SSCHECK)
+			{
 
 				FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-				    TarLUN_CA = 1;
+				TarLUN_CA = 1;
 
 				if (currSCCB->RequestSenseLength !=
-				    NO_AUTO_REQUEST_SENSE) {
+					NO_AUTO_REQUEST_SENSE)
+				{
 
 					if (currSCCB->RequestSenseLength == 0)
 						currSCCB->RequestSenseLength =
-						    14;
+							14;
 
 					FPT_ssenss(&FPT_BL_Card[p_card]);
 					FPT_BL_Card[p_card].globalFlags |=
-					    F_NEW_SCCB_CMD;
+						F_NEW_SCCB_CMD;
 
 					if (((FPT_BL_Card[p_card].
-					      globalFlags & F_CONLUN_IO)
-					     &&
-					     ((FPT_sccbMgrTbl[p_card]
-					       [currSCCB->TargID].
-					       TarStatus & TAR_TAG_Q_MASK) !=
-					      TAG_Q_TRYING))) {
+						  globalFlags & F_CONLUN_IO)
+						 &&
+						 ((FPT_sccbMgrTbl[p_card]
+						   [currSCCB->TargID].
+						   TarStatus & TAR_TAG_Q_MASK) !=
+						  TAG_Q_TRYING)))
+					{
 						FPT_sccbMgrTbl[p_card]
-						    [currSCCB->TargID].
-						    TarLUNBusy[currSCCB->Lun] =
-						    1;
+						[currSCCB->TargID].
+						TarLUNBusy[currSCCB->Lun] =
+							1;
+
 						if (FPT_BL_Card[p_card].
-						    discQCount != 0)
+							discQCount != 0)
 							FPT_BL_Card[p_card].
-							    discQCount--;
+							discQCount--;
+
 						FPT_BL_Card[p_card].
-						    discQ_Tbl[FPT_sccbMgrTbl
-							      [p_card]
-							      [currSCCB->
-							       TargID].
-							      LunDiscQ_Idx
-							      [currSCCB->Lun]] =
-						    NULL;
-					} else {
+						discQ_Tbl[FPT_sccbMgrTbl
+								  [p_card]
+								  [currSCCB->
+								   TargID].
+								  LunDiscQ_Idx
+								  [currSCCB->Lun]] =
+									  NULL;
+					}
+					else
+					{
 						FPT_sccbMgrTbl[p_card]
-						    [currSCCB->TargID].
-						    TarLUNBusy[0] = 1;
-						if (currSCCB->Sccb_tag) {
+						[currSCCB->TargID].
+						TarLUNBusy[0] = 1;
+
+						if (currSCCB->Sccb_tag)
+						{
 							if (FPT_BL_Card[p_card].
-							    discQCount != 0)
+								discQCount != 0)
 								FPT_BL_Card
-								    [p_card].
-								    discQCount--;
+								[p_card].
+								discQCount--;
+
 							FPT_BL_Card[p_card].
-							    discQ_Tbl[currSCCB->
-								      Sccb_tag]
-							    = NULL;
-						} else {
+							discQ_Tbl[currSCCB->
+									  Sccb_tag]
+								= NULL;
+						}
+						else
+						{
 							if (FPT_BL_Card[p_card].
-							    discQCount != 0)
+								discQCount != 0)
 								FPT_BL_Card
-								    [p_card].
-								    discQCount--;
+								[p_card].
+								discQCount--;
+
 							FPT_BL_Card[p_card].
-							    discQ_Tbl
-							    [FPT_sccbMgrTbl
-							     [p_card][currSCCB->
-								      TargID].
-							     LunDiscQ_Idx[0]] =
-							    NULL;
+							discQ_Tbl
+							[FPT_sccbMgrTbl
+							 [p_card][currSCCB->
+									  TargID].
+							 LunDiscQ_Idx[0]] =
+								 NULL;
 						}
 					}
+
 					return;
 				}
 			}
@@ -4882,12 +5629,14 @@ static void FPT_autoCmdCmplt(u32 p_port, unsigned char p_card)
 	}
 
 	if ((FPT_BL_Card[p_card].globalFlags & F_CONLUN_IO) &&
-	    ((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
-	      TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))
+		((FPT_sccbMgrTbl[p_card][currSCCB->TargID].
+		  TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))
 		FPT_sccbMgrTbl[p_card][currSCCB->TargID].TarLUNBusy[currSCCB->
-								    Lun] = 0;
+				Lun] = 0;
 	else
+	{
 		FPT_sccbMgrTbl[p_card][currSCCB->TargID].TarLUNBusy[0] = 0;
+	}
 
 	FPT_queueCmdComplete(&FPT_BL_Card[p_card], currSCCB, p_card);
 }
@@ -4910,7 +5659,7 @@ static void FPT_autoCmdCmplt(u32 p_port, unsigned char p_card)
  *              bit to keep chaining SC transfer command.  Similarly,
  *              in Scatter/Gather mode, it checks Sccb_MGRFlag
  *              (F_HOST_XFER_ACT bit) for data transfer done.
- *              
+ *
  *---------------------------------------------------------------------*/
 
 static void FPT_dataXferProcessor(u32 port, struct sccb_card *pCurrCard)
@@ -4919,19 +5668,23 @@ static void FPT_dataXferProcessor(u32 port, struct sccb_card *pCurrCard)
 
 	currSCCB = pCurrCard->currentSCCB;
 
-	if (currSCCB->Sccb_XferState & F_SG_XFER) {
+	if (currSCCB->Sccb_XferState & F_SG_XFER)
+	{
 		if (pCurrCard->globalFlags & F_HOST_XFER_ACT)
 		{
 			currSCCB->Sccb_sgseg += (unsigned char)SG_BUF_CNT;
 			currSCCB->Sccb_SGoffset = 0x00;
 		}
+
 		pCurrCard->globalFlags |= F_HOST_XFER_ACT;
 
 		FPT_busMstrSGDataXferStart(port, currSCCB);
 	}
 
-	else {
-		if (!(pCurrCard->globalFlags & F_HOST_XFER_ACT)) {
+	else
+	{
+		if (!(pCurrCard->globalFlags & F_HOST_XFER_ACT))
+		{
 			pCurrCard->globalFlags |= F_HOST_XFER_ACT;
 
 			FPT_busMstrDataXferStart(port, currSCCB);
@@ -4955,9 +5708,13 @@ static void FPT_busMstrSGDataXferStart(u32 p_port, struct sccb *pcurrSCCB)
 	struct blogic_sg_seg *segp;
 
 	if (pcurrSCCB->Sccb_XferState & F_HOST_XFER_DIR)
+	{
 		count = ((u32)HOST_RD_CMD) << 24;
+	}
 	else
+	{
 		count = ((u32)HOST_WRT_CMD) << 24;
+	}
 
 	sg_count = 0;
 	tmpSGCnt = 0;
@@ -4965,25 +5722,27 @@ static void FPT_busMstrSGDataXferStart(u32 p_port, struct sccb *pcurrSCCB)
 	reg_offset = hp_aramBase;
 
 	i = (unsigned char)(RD_HARPOON(p_port + hp_page_ctrl) &
-			    ~(SGRAM_ARAM | SCATTER_EN));
+						~(SGRAM_ARAM | SCATTER_EN));
 
 	WR_HARPOON(p_port + hp_page_ctrl, i);
 
 	while ((sg_count < (unsigned char)SG_BUF_CNT) &&
-			((sg_index * (unsigned int)SG_ELEMENT_SIZE) <
-			pcurrSCCB->DataLength)) {
+		   ((sg_index * (unsigned int)SG_ELEMENT_SIZE) <
+			pcurrSCCB->DataLength))
+	{
 
 		segp = (struct blogic_sg_seg *)(pcurrSCCB->DataPointer) +
-				sg_index;
+			   sg_index;
 		tmpSGCnt += segp->segbytes;
 		count |= segp->segbytes;
 		addr = segp->segdata;
 
-		if ((!sg_count) && (pcurrSCCB->Sccb_SGoffset)) {
+		if ((!sg_count) && (pcurrSCCB->Sccb_SGoffset))
+		{
 			addr +=
-			    ((count & 0x00FFFFFFL) - pcurrSCCB->Sccb_SGoffset);
+				((count & 0x00FFFFFFL) - pcurrSCCB->Sccb_SGoffset);
 			count =
-			    (count & 0xFF000000L) | pcurrSCCB->Sccb_SGoffset;
+				(count & 0xFF000000L) | pcurrSCCB->Sccb_SGoffset;
 			tmpSGCnt = count & 0x00FFFFFFL;
 		}
 
@@ -5003,19 +5762,22 @@ static void FPT_busMstrSGDataXferStart(u32 p_port, struct sccb *pcurrSCCB)
 
 	WR_HARPOON(p_port + hp_sg_addr, (sg_count << 4));
 
-	if (pcurrSCCB->Sccb_XferState & F_HOST_XFER_DIR) {
+	if (pcurrSCCB->Sccb_XferState & F_HOST_XFER_DIR)
+	{
 
 		WR_HARP32(p_port, hp_xfercnt_0, tmpSGCnt);
 
 		WR_HARPOON(p_port + hp_portctrl_0,
-			   (DMA_PORT | SCSI_PORT | SCSI_INBIT));
+				   (DMA_PORT | SCSI_PORT | SCSI_INBIT));
 		WR_HARPOON(p_port + hp_scsisig, S_DATAI_PH);
 	}
 
-	else {
+	else
+	{
 
 		if ((!(RD_HARPOON(p_port + hp_synctarg_0) & NARROW_SCSI)) &&
-		    (tmpSGCnt & 0x000000001)) {
+			(tmpSGCnt & 0x000000001))
+		{
 
 			pcurrSCCB->Sccb_XferState |= F_ODD_BALL_CNT;
 			tmpSGCnt--;
@@ -5024,7 +5786,7 @@ static void FPT_busMstrSGDataXferStart(u32 p_port, struct sccb *pcurrSCCB)
 		WR_HARP32(p_port, hp_xfercnt_0, tmpSGCnt);
 
 		WR_HARPOON(p_port + hp_portctrl_0,
-			   (SCSI_PORT | DMA_PORT | DMA_RD));
+				   (SCSI_PORT | DMA_PORT | DMA_RD));
 		WR_HARPOON(p_port + hp_scsisig, S_DATAO_PH);
 	}
 
@@ -5036,21 +5798,23 @@ static void FPT_busMstrSGDataXferStart(u32 p_port, struct sccb *pcurrSCCB)
  *
  * Function: BusMaster Data Transfer Start
  *
- * Description: 
+ * Description:
  *
  *---------------------------------------------------------------------*/
 static void FPT_busMstrDataXferStart(u32 p_port, struct sccb *pcurrSCCB)
 {
 	u32 addr, count;
 
-	if (!(pcurrSCCB->Sccb_XferState & F_AUTO_SENSE)) {
+	if (!(pcurrSCCB->Sccb_XferState & F_AUTO_SENSE))
+	{
 
 		count = pcurrSCCB->Sccb_XferCnt;
 
 		addr = (u32)(unsigned long)pcurrSCCB->DataPointer + pcurrSCCB->Sccb_ATC;
 	}
 
-	else {
+	else
+	{
 		addr = pcurrSCCB->SensePointer;
 		count = pcurrSCCB->RequestSenseLength;
 
@@ -5058,24 +5822,26 @@ static void FPT_busMstrDataXferStart(u32 p_port, struct sccb *pcurrSCCB)
 
 	HP_SETUP_ADDR_CNT(p_port, addr, count);
 
-	if (pcurrSCCB->Sccb_XferState & F_HOST_XFER_DIR) {
+	if (pcurrSCCB->Sccb_XferState & F_HOST_XFER_DIR)
+	{
 
 		WR_HARPOON(p_port + hp_portctrl_0,
-			   (DMA_PORT | SCSI_PORT | SCSI_INBIT));
+				   (DMA_PORT | SCSI_PORT | SCSI_INBIT));
 		WR_HARPOON(p_port + hp_scsisig, S_DATAI_PH);
 
 		WR_HARPOON(p_port + hp_xfer_cmd,
-			   (XFER_DMA_HOST | XFER_HOST_AUTO | XFER_DMA_8BIT));
+				   (XFER_DMA_HOST | XFER_HOST_AUTO | XFER_DMA_8BIT));
 	}
 
-	else {
+	else
+	{
 
 		WR_HARPOON(p_port + hp_portctrl_0,
-			   (SCSI_PORT | DMA_PORT | DMA_RD));
+				   (SCSI_PORT | DMA_PORT | DMA_RD));
 		WR_HARPOON(p_port + hp_scsisig, S_DATAO_PH);
 
 		WR_HARPOON(p_port + hp_xfer_cmd,
-			   (XFER_HOST_DMA | XFER_HOST_AUTO | XFER_DMA_8BIT));
+				   (XFER_HOST_DMA | XFER_HOST_AUTO | XFER_DMA_8BIT));
 
 	}
 }
@@ -5101,25 +5867,31 @@ static unsigned char FPT_busMstrTimeOut(u32 p_port)
 	WR_HARPOON(p_port + hp_sys_ctrl, HALT_MACH);
 
 	while ((!(RD_HARPOON(p_port + hp_ext_status) & CMD_ABORTED))
-	       && timeout--) {
+		   && timeout--)
+	{
 	}
 
-	if (RD_HARPOON(p_port + hp_ext_status) & BM_CMD_BUSY) {
+	if (RD_HARPOON(p_port + hp_ext_status) & BM_CMD_BUSY)
+	{
 		WR_HARPOON(p_port + hp_sys_ctrl, HARD_ABORT);
 
 		timeout = LONG_WAIT;
+
 		while ((RD_HARPOON(p_port + hp_ext_status) & BM_CMD_BUSY)
-		       && timeout--) {
+			   && timeout--)
+		{
 		}
 	}
 
 	RD_HARPOON(p_port + hp_int_status);	/*Clear command complete */
 
-	if (RD_HARPOON(p_port + hp_ext_status) & BM_CMD_BUSY) {
+	if (RD_HARPOON(p_port + hp_ext_status) & BM_CMD_BUSY)
+	{
 		return 1;
 	}
 
-	else {
+	else
+	{
 		return 0;
 	}
 }
@@ -5132,7 +5904,7 @@ static unsigned char FPT_busMstrTimeOut(u32 p_port)
  *
  *---------------------------------------------------------------------*/
 static void FPT_hostDataXferAbort(u32 port, unsigned char p_card,
-				  struct sccb *pCurrSCCB)
+								  struct sccb *pCurrSCCB)
 {
 
 	unsigned long timeout;
@@ -5142,127 +5914,148 @@ static void FPT_hostDataXferAbort(u32 port, unsigned char p_card,
 
 	FPT_BL_Card[p_card].globalFlags &= ~F_HOST_XFER_ACT;
 
-	if (pCurrSCCB->Sccb_XferState & F_AUTO_SENSE) {
+	if (pCurrSCCB->Sccb_XferState & F_AUTO_SENSE)
+	{
 
-		if (!(RD_HARPOON(port + hp_int_status) & INT_CMD_COMPL)) {
+		if (!(RD_HARPOON(port + hp_int_status) & INT_CMD_COMPL))
+		{
 
 			WR_HARPOON(port + hp_bm_ctrl,
-				   (RD_HARPOON(port + hp_bm_ctrl) |
-				    FLUSH_XFER_CNTR));
+					   (RD_HARPOON(port + hp_bm_ctrl) |
+						FLUSH_XFER_CNTR));
 			timeout = LONG_WAIT;
 
 			while ((RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY)
-			       && timeout--) {
+				   && timeout--)
+			{
 			}
 
 			WR_HARPOON(port + hp_bm_ctrl,
-				   (RD_HARPOON(port + hp_bm_ctrl) &
-				    ~FLUSH_XFER_CNTR));
+					   (RD_HARPOON(port + hp_bm_ctrl) &
+						~FLUSH_XFER_CNTR));
 
-			if (RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY) {
+			if (RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY)
+			{
 
-				if (FPT_busMstrTimeOut(port)) {
+				if (FPT_busMstrTimeOut(port))
+				{
 
 					if (pCurrSCCB->HostStatus == 0x00)
 
 						pCurrSCCB->HostStatus =
-						    SCCB_BM_ERR;
+							SCCB_BM_ERR;
 
 				}
 
 				if (RD_HARPOON(port + hp_int_status) &
-				    INT_EXT_STATUS)
+					INT_EXT_STATUS)
 
 					if (RD_HARPOON(port + hp_ext_status) &
-					    BAD_EXT_STATUS)
+						BAD_EXT_STATUS)
 
 						if (pCurrSCCB->HostStatus ==
-						    0x00)
+							0x00)
 						{
 							pCurrSCCB->HostStatus =
-							    SCCB_BM_ERR;
+								SCCB_BM_ERR;
 						}
 			}
 		}
 	}
 
-	else if (pCurrSCCB->Sccb_XferCnt) {
+	else if (pCurrSCCB->Sccb_XferCnt)
+	{
 
-		if (pCurrSCCB->Sccb_XferState & F_SG_XFER) {
+		if (pCurrSCCB->Sccb_XferState & F_SG_XFER)
+		{
 
 			WR_HARPOON(port + hp_page_ctrl,
-				   (RD_HARPOON(port + hp_page_ctrl) &
-				    ~SCATTER_EN));
+					   (RD_HARPOON(port + hp_page_ctrl) &
+						~SCATTER_EN));
 
 			WR_HARPOON(port + hp_sg_addr, 0x00);
 
 			sg_ptr = pCurrSCCB->Sccb_sgseg + SG_BUF_CNT;
 
 			if (sg_ptr >
-			    (unsigned int)(pCurrSCCB->DataLength /
-					   SG_ELEMENT_SIZE)) {
+				(unsigned int)(pCurrSCCB->DataLength /
+							   SG_ELEMENT_SIZE))
+			{
 
 				sg_ptr = (u32)(pCurrSCCB->DataLength /
-							SG_ELEMENT_SIZE);
+							   SG_ELEMENT_SIZE);
 			}
 
 			remain_cnt = pCurrSCCB->Sccb_XferCnt;
 
-			while (remain_cnt < 0x01000000L) {
+			while (remain_cnt < 0x01000000L)
+			{
 
 				sg_ptr--;
 				segp = (struct blogic_sg_seg *)(pCurrSCCB->
-						DataPointer) + (sg_ptr * 2);
+												DataPointer) + (sg_ptr * 2);
+
 				if (remain_cnt > (unsigned long)segp->segbytes)
 					remain_cnt -=
 						(unsigned long)segp->segbytes;
 				else
+				{
 					break;
+				}
 			}
 
-			if (remain_cnt < 0x01000000L) {
+			if (remain_cnt < 0x01000000L)
+			{
 
 				pCurrSCCB->Sccb_SGoffset = remain_cnt;
 
 				pCurrSCCB->Sccb_sgseg = (unsigned short)sg_ptr;
 
 				if ((unsigned long)(sg_ptr * SG_ELEMENT_SIZE) ==
-				    pCurrSCCB->DataLength && (remain_cnt == 0))
+					pCurrSCCB->DataLength && (remain_cnt == 0))
 
 					pCurrSCCB->Sccb_XferState |=
-					    F_ALL_XFERRED;
+						F_ALL_XFERRED;
 			}
 
-			else {
+			else
+			{
 
-				if (pCurrSCCB->HostStatus == 0x00) {
+				if (pCurrSCCB->HostStatus == 0x00)
+				{
 
 					pCurrSCCB->HostStatus =
-					    SCCB_GROSS_FW_ERR;
+						SCCB_GROSS_FW_ERR;
 				}
 			}
 		}
 
-		if (!(pCurrSCCB->Sccb_XferState & F_HOST_XFER_DIR)) {
+		if (!(pCurrSCCB->Sccb_XferState & F_HOST_XFER_DIR))
+		{
 
-			if (RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY) {
+			if (RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY)
+			{
 
 				FPT_busMstrTimeOut(port);
 			}
 
-			else {
+			else
+			{
 
 				if (RD_HARPOON(port + hp_int_status) &
-				    INT_EXT_STATUS) {
+					INT_EXT_STATUS)
+				{
 
 					if (RD_HARPOON(port + hp_ext_status) &
-					    BAD_EXT_STATUS) {
+						BAD_EXT_STATUS)
+					{
 
 						if (pCurrSCCB->HostStatus ==
-						    0x00) {
+							0x00)
+						{
 
 							pCurrSCCB->HostStatus =
-							    SCCB_BM_ERR;
+								SCCB_BM_ERR;
 						}
 					}
 				}
@@ -5270,57 +6063,67 @@ static void FPT_hostDataXferAbort(u32 port, unsigned char p_card,
 			}
 		}
 
-		else {
+		else
+		{
 
-			if ((RD_HARPOON(port + hp_fifo_cnt)) >= BM_THRESHOLD) {
+			if ((RD_HARPOON(port + hp_fifo_cnt)) >= BM_THRESHOLD)
+			{
 
 				timeout = SHORT_WAIT;
 
 				while ((RD_HARPOON(port + hp_ext_status) &
-					BM_CMD_BUSY)
-				       && ((RD_HARPOON(port + hp_fifo_cnt)) >=
-					   BM_THRESHOLD) && timeout--) {
+						BM_CMD_BUSY)
+					   && ((RD_HARPOON(port + hp_fifo_cnt)) >=
+						   BM_THRESHOLD) && timeout--)
+				{
 				}
 			}
 
-			if (RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY) {
+			if (RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY)
+			{
 
 				WR_HARPOON(port + hp_bm_ctrl,
-					   (RD_HARPOON(port + hp_bm_ctrl) |
-					    FLUSH_XFER_CNTR));
+						   (RD_HARPOON(port + hp_bm_ctrl) |
+							FLUSH_XFER_CNTR));
 
 				timeout = LONG_WAIT;
 
 				while ((RD_HARPOON(port + hp_ext_status) &
-					BM_CMD_BUSY) && timeout--) {
+						BM_CMD_BUSY) && timeout--)
+				{
 				}
 
 				WR_HARPOON(port + hp_bm_ctrl,
-					   (RD_HARPOON(port + hp_bm_ctrl) &
-					    ~FLUSH_XFER_CNTR));
+						   (RD_HARPOON(port + hp_bm_ctrl) &
+							~FLUSH_XFER_CNTR));
 
 				if (RD_HARPOON(port + hp_ext_status) &
-				    BM_CMD_BUSY) {
+					BM_CMD_BUSY)
+				{
 
-					if (pCurrSCCB->HostStatus == 0x00) {
+					if (pCurrSCCB->HostStatus == 0x00)
+					{
 
 						pCurrSCCB->HostStatus =
-						    SCCB_BM_ERR;
+							SCCB_BM_ERR;
 					}
 
 					FPT_busMstrTimeOut(port);
 				}
 			}
 
-			if (RD_HARPOON(port + hp_int_status) & INT_EXT_STATUS) {
+			if (RD_HARPOON(port + hp_int_status) & INT_EXT_STATUS)
+			{
 
 				if (RD_HARPOON(port + hp_ext_status) &
-				    BAD_EXT_STATUS) {
+					BAD_EXT_STATUS)
+				{
 
-					if (pCurrSCCB->HostStatus == 0x00) {
+					if (pCurrSCCB->HostStatus == 0x00)
+					{
 
 						pCurrSCCB->HostStatus =
-						    SCCB_BM_ERR;
+							SCCB_BM_ERR;
 					}
 				}
 			}
@@ -5328,19 +6131,24 @@ static void FPT_hostDataXferAbort(u32 port, unsigned char p_card,
 
 	}
 
-	else {
+	else
+	{
 
-		if (RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY) {
+		if (RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY)
+		{
 
 			timeout = LONG_WAIT;
 
 			while ((RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY)
-			       && timeout--) {
+				   && timeout--)
+			{
 			}
 
-			if (RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY) {
+			if (RD_HARPOON(port + hp_ext_status) & BM_CMD_BUSY)
+			{
 
-				if (pCurrSCCB->HostStatus == 0x00) {
+				if (pCurrSCCB->HostStatus == 0x00)
+				{
 
 					pCurrSCCB->HostStatus = SCCB_BM_ERR;
 				}
@@ -5349,11 +6157,14 @@ static void FPT_hostDataXferAbort(u32 port, unsigned char p_card,
 			}
 		}
 
-		if (RD_HARPOON(port + hp_int_status) & INT_EXT_STATUS) {
+		if (RD_HARPOON(port + hp_int_status) & INT_EXT_STATUS)
+		{
 
-			if (RD_HARPOON(port + hp_ext_status) & BAD_EXT_STATUS) {
+			if (RD_HARPOON(port + hp_ext_status) & BAD_EXT_STATUS)
+			{
 
-				if (pCurrSCCB->HostStatus == 0x00) {
+				if (pCurrSCCB->HostStatus == 0x00)
+				{
 
 					pCurrSCCB->HostStatus = SCCB_BM_ERR;
 				}
@@ -5361,11 +6172,12 @@ static void FPT_hostDataXferAbort(u32 port, unsigned char p_card,
 
 		}
 
-		if (pCurrSCCB->Sccb_XferState & F_SG_XFER) {
+		if (pCurrSCCB->Sccb_XferState & F_SG_XFER)
+		{
 
 			WR_HARPOON(port + hp_page_ctrl,
-				   (RD_HARPOON(port + hp_page_ctrl) &
-				    ~SCATTER_EN));
+					   (RD_HARPOON(port + hp_page_ctrl) &
+						~SCATTER_EN));
 
 			WR_HARPOON(port + hp_sg_addr, 0x00);
 
@@ -5374,18 +6186,22 @@ static void FPT_hostDataXferAbort(u32 port, unsigned char p_card,
 			pCurrSCCB->Sccb_SGoffset = 0x00;
 
 			if ((u32)(pCurrSCCB->Sccb_sgseg * SG_ELEMENT_SIZE) >=
-					pCurrSCCB->DataLength) {
+				pCurrSCCB->DataLength)
+			{
 
 				pCurrSCCB->Sccb_XferState |= F_ALL_XFERRED;
 				pCurrSCCB->Sccb_sgseg =
-				    (unsigned short)(pCurrSCCB->DataLength /
-						     SG_ELEMENT_SIZE);
+					(unsigned short)(pCurrSCCB->DataLength /
+									 SG_ELEMENT_SIZE);
 			}
 		}
 
-		else {
+		else
+		{
 			if (!(pCurrSCCB->Sccb_XferState & F_AUTO_SENSE))
+			{
 				pCurrSCCB->Sccb_XferState |= F_ALL_XFERRED;
+			}
 		}
 	}
 
@@ -5406,7 +6222,8 @@ static void FPT_hostDataXferRestart(struct sccb *currSCCB)
 	unsigned int sg_index;
 	struct blogic_sg_seg *segp;
 
-	if (currSCCB->Sccb_XferState & F_SG_XFER) {
+	if (currSCCB->Sccb_XferState & F_SG_XFER)
+	{
 
 		currSCCB->Sccb_XferCnt = 0;
 
@@ -5414,31 +6231,35 @@ static void FPT_hostDataXferRestart(struct sccb *currSCCB)
 		data_count = 0;		/*Running count of SG xfer counts. */
 
 
-		while (data_count < currSCCB->Sccb_ATC) {
+		while (data_count < currSCCB->Sccb_ATC)
+		{
 
 			sg_index++;
 			segp = (struct blogic_sg_seg *)(currSCCB->DataPointer) +
-						(sg_index * 2);
+				   (sg_index * 2);
 			data_count += segp->segbytes;
 		}
 
-		if (data_count == currSCCB->Sccb_ATC) {
+		if (data_count == currSCCB->Sccb_ATC)
+		{
 
 			currSCCB->Sccb_SGoffset = 0;
 			sg_index++;
 		}
 
-		else {
+		else
+		{
 			currSCCB->Sccb_SGoffset =
-			    data_count - currSCCB->Sccb_ATC;
+				data_count - currSCCB->Sccb_ATC;
 		}
 
 		currSCCB->Sccb_sgseg = (unsigned short)sg_index;
 	}
 
-	else {
+	else
+	{
 		currSCCB->Sccb_XferCnt =
-		    currSCCB->DataLength - currSCCB->Sccb_ATC;
+			currSCCB->DataLength - currSCCB->Sccb_ATC;
 	}
 }
 
@@ -5451,7 +6272,7 @@ static void FPT_hostDataXferRestart(struct sccb *currSCCB)
  *---------------------------------------------------------------------*/
 
 static void FPT_scini(unsigned char p_card, unsigned char p_our_id,
-		      unsigned char p_power_up)
+					  unsigned char p_power_up)
 {
 
 	unsigned char loser, assigned_id;
@@ -5465,17 +6286,23 @@ static void FPT_scini(unsigned char p_card, unsigned char p_our_id,
 	p_port = currCard->ioPort;
 	pCurrNvRam = currCard->pNvRamInfo;
 
-	if (pCurrNvRam) {
+	if (pCurrNvRam)
+	{
 		ScamFlg = pCurrNvRam->niScamConf;
 		i = pCurrNvRam->niSysConf;
-	} else {
-		ScamFlg =
-		    (unsigned char)FPT_utilEERead(p_port, SCAM_CONFIG / 2);
-		i = (unsigned
-		     char)(FPT_utilEERead(p_port, (SYSTEM_CONFIG / 2)));
 	}
+	else
+	{
+		ScamFlg =
+			(unsigned char)FPT_utilEERead(p_port, SCAM_CONFIG / 2);
+		i = (unsigned
+			 char)(FPT_utilEERead(p_port, (SYSTEM_CONFIG / 2)));
+	}
+
 	if (!(i & 0x02))	/* check if reset bus in AutoSCSI parameter set */
+	{
 		return;
+	}
 
 	FPT_inisci(p_card, p_port, p_our_id);
 
@@ -5489,73 +6316,90 @@ static void FPT_scini(unsigned char p_card, unsigned char p_our_id,
 
 	FPT_Wait1Second(p_port);
 
-	if ((ScamFlg & SCAM_ENABLED) && (ScamFlg & SCAM_LEVEL2)) {
-		while (!(FPT_scarb(p_port, INIT_SELTD))) {
+	if ((ScamFlg & SCAM_ENABLED) && (ScamFlg & SCAM_LEVEL2))
+	{
+		while (!(FPT_scarb(p_port, INIT_SELTD)))
+		{
 		}
 
 		FPT_scsel(p_port);
 
-		do {
+		do
+		{
 			FPT_scxferc(p_port, SYNC_PTRN);
 			FPT_scxferc(p_port, DOM_MSTR);
 			loser =
-			    FPT_scsendi(p_port,
-					&FPT_scamInfo[p_our_id].id_string[0]);
-		} while (loser == 0xFF);
+				FPT_scsendi(p_port,
+							&FPT_scamInfo[p_our_id].id_string[0]);
+		}
+		while (loser == 0xFF);
 
 		FPT_scbusf(p_port);
 
-		if ((p_power_up) && (!loser)) {
+		if ((p_power_up) && (!loser))
+		{
 			FPT_sresb(p_port, p_card);
 			FPT_Wait(p_port, TO_250ms);
 
-			while (!(FPT_scarb(p_port, INIT_SELTD))) {
+			while (!(FPT_scarb(p_port, INIT_SELTD)))
+			{
 			}
 
 			FPT_scsel(p_port);
 
-			do {
+			do
+			{
 				FPT_scxferc(p_port, SYNC_PTRN);
 				FPT_scxferc(p_port, DOM_MSTR);
 				loser =
-				    FPT_scsendi(p_port,
-						&FPT_scamInfo[p_our_id].
-						id_string[0]);
-			} while (loser == 0xFF);
+					FPT_scsendi(p_port,
+								&FPT_scamInfo[p_our_id].
+								id_string[0]);
+			}
+			while (loser == 0xFF);
 
 			FPT_scbusf(p_port);
 		}
 	}
 
-	else {
+	else
+	{
 		loser = 0;
 	}
 
-	if (!loser) {
+	if (!loser)
+	{
 
 		FPT_scamInfo[p_our_id].state = ID_ASSIGNED;
 
-		if (ScamFlg & SCAM_ENABLED) {
+		if (ScamFlg & SCAM_ENABLED)
+		{
 
-			for (i = 0; i < MAX_SCSI_TAR; i++) {
+			for (i = 0; i < MAX_SCSI_TAR; i++)
+			{
 				if ((FPT_scamInfo[i].state == ID_UNASSIGNED) ||
-				    (FPT_scamInfo[i].state == ID_UNUSED)) {
-					if (FPT_scsell(p_port, i)) {
+					(FPT_scamInfo[i].state == ID_UNUSED))
+				{
+					if (FPT_scsell(p_port, i))
+					{
 						FPT_scamInfo[i].state = LEGACY;
+
 						if ((FPT_scamInfo[i].
-						     id_string[0] != 0xFF)
-						    || (FPT_scamInfo[i].
-							id_string[1] != 0xFA)) {
+							 id_string[0] != 0xFF)
+							|| (FPT_scamInfo[i].
+								id_string[1] != 0xFA))
+						{
 
 							FPT_scamInfo[i].
-							    id_string[0] = 0xFF;
+							id_string[0] = 0xFF;
 							FPT_scamInfo[i].
-							    id_string[1] = 0xFA;
+							id_string[1] = 0xFA;
+
 							if (pCurrNvRam == NULL)
 								currCard->
-								    globalFlags
-								    |=
-								    F_UPDATE_EEPROM;
+								globalFlags
+								|=
+									F_UPDATE_EEPROM;
 						}
 					}
 				}
@@ -5563,93 +6407,111 @@ static void FPT_scini(unsigned char p_card, unsigned char p_our_id,
 
 			FPT_sresb(p_port, p_card);
 			FPT_Wait1Second(p_port);
-			while (!(FPT_scarb(p_port, INIT_SELTD))) {
+
+			while (!(FPT_scarb(p_port, INIT_SELTD)))
+			{
 			}
+
 			FPT_scsel(p_port);
 			FPT_scasid(p_card, p_port);
 		}
 
 	}
 
-	else if ((loser) && (ScamFlg & SCAM_ENABLED)) {
+	else if ((loser) && (ScamFlg & SCAM_ENABLED))
+	{
 		FPT_scamInfo[p_our_id].id_string[0] = SLV_TYPE_CODE0;
 		assigned_id = 0;
 		FPT_scwtsel(p_port);
 
-		do {
-			while (FPT_scxferc(p_port, 0x00) != SYNC_PTRN) {
+		do
+		{
+			while (FPT_scxferc(p_port, 0x00) != SYNC_PTRN)
+			{
 			}
 
 			i = FPT_scxferc(p_port, 0x00);
-			if (i == ASSIGN_ID) {
+
+			if (i == ASSIGN_ID)
+			{
 				if (!
-				    (FPT_scsendi
-				     (p_port,
-				      &FPT_scamInfo[p_our_id].id_string[0]))) {
+					(FPT_scsendi
+					 (p_port,
+					  &FPT_scamInfo[p_our_id].id_string[0])))
+				{
 					i = FPT_scxferc(p_port, 0x00);
-					if (FPT_scvalq(i)) {
+
+					if (FPT_scvalq(i))
+					{
 						k = FPT_scxferc(p_port, 0x00);
 
-						if (FPT_scvalq(k)) {
+						if (FPT_scvalq(k))
+						{
 							currCard->ourId =
-							    ((unsigned char)(i
-									     <<
-									     3)
-							     +
-							     (k &
-							      (unsigned char)7))
-							    & (unsigned char)
-							    0x3F;
+								((unsigned char)(i
+												 <<
+												 3)
+								 +
+								 (k &
+								  (unsigned char)7))
+								& (unsigned char)
+								0x3F;
 							FPT_inisci(p_card,
-								   p_port,
-								   p_our_id);
+									   p_port,
+									   p_our_id);
 							FPT_scamInfo[currCard->
-								     ourId].
-							    state = ID_ASSIGNED;
+										 ourId].
+							state = ID_ASSIGNED;
 							FPT_scamInfo[currCard->
-								     ourId].
-							    id_string[0]
-							    = SLV_TYPE_CODE0;
+										 ourId].
+							id_string[0]
+								= SLV_TYPE_CODE0;
 							assigned_id = 1;
 						}
 					}
 				}
 			}
 
-			else if (i == SET_P_FLAG) {
+			else if (i == SET_P_FLAG)
+			{
 				if (!(FPT_scsendi(p_port,
-						  &FPT_scamInfo[p_our_id].
-						  id_string[0])))
+								  &FPT_scamInfo[p_our_id].
+								  id_string[0])))
 					FPT_scamInfo[p_our_id].id_string[0] |=
-					    0x80;
+						0x80;
 			}
-		} while (!assigned_id);
+		}
+		while (!assigned_id);
 
-		while (FPT_scxferc(p_port, 0x00) != CFG_CMPLT) {
+		while (FPT_scxferc(p_port, 0x00) != CFG_CMPLT)
+		{
 		}
 	}
 
-	if (ScamFlg & SCAM_ENABLED) {
+	if (ScamFlg & SCAM_ENABLED)
+	{
 		FPT_scbusf(p_port);
-		if (currCard->globalFlags & F_UPDATE_EEPROM) {
+
+		if (currCard->globalFlags & F_UPDATE_EEPROM)
+		{
 			FPT_scsavdi(p_card, p_port);
 			currCard->globalFlags &= ~F_UPDATE_EEPROM;
 		}
 	}
 
-/*
-   for (i=0,k=0; i < MAX_SCSI_TAR; i++)
-      {
-      if ((FPT_scamInfo[i].state == ID_ASSIGNED) ||
-         (FPT_scamInfo[i].state == LEGACY))
-         k++;
-      }
+	/*
+	   for (i=0,k=0; i < MAX_SCSI_TAR; i++)
+	      {
+	      if ((FPT_scamInfo[i].state == ID_ASSIGNED) ||
+	         (FPT_scamInfo[i].state == LEGACY))
+	         k++;
+	      }
 
-   if (k==2)
-      currCard->globalFlags |= F_SINGLE_DEVICE;
-   else
-      currCard->globalFlags &= ~F_SINGLE_DEVICE;
-*/
+	   if (k==2)
+	      currCard->globalFlags |= F_SINGLE_DEVICE;
+	   else
+	      currCard->globalFlags &= ~F_SINGLE_DEVICE;
+	*/
 }
 
 /*---------------------------------------------------------------------
@@ -5662,52 +6524,60 @@ static void FPT_scini(unsigned char p_card, unsigned char p_our_id,
 
 static int FPT_scarb(u32 p_port, unsigned char p_sel_type)
 {
-	if (p_sel_type == INIT_SELTD) {
+	if (p_sel_type == INIT_SELTD)
+	{
 
-		while (RD_HARPOON(p_port + hp_scsisig) & (SCSI_SEL | SCSI_BSY)) {
+		while (RD_HARPOON(p_port + hp_scsisig) & (SCSI_SEL | SCSI_BSY))
+		{
 		}
 
 		if (RD_HARPOON(p_port + hp_scsisig) & SCSI_SEL)
+		{
 			return 0;
+		}
 
 		if (RD_HARPOON(p_port + hp_scsidata_0) != 00)
-			return 0;
-
-		WR_HARPOON(p_port + hp_scsisig,
-			   (RD_HARPOON(p_port + hp_scsisig) | SCSI_BSY));
-
-		if (RD_HARPOON(p_port + hp_scsisig) & SCSI_SEL) {
-
-			WR_HARPOON(p_port + hp_scsisig,
-				   (RD_HARPOON(p_port + hp_scsisig) &
-				    ~SCSI_BSY));
+		{
 			return 0;
 		}
 
 		WR_HARPOON(p_port + hp_scsisig,
-			   (RD_HARPOON(p_port + hp_scsisig) | SCSI_SEL));
+				   (RD_HARPOON(p_port + hp_scsisig) | SCSI_BSY));
 
-		if (RD_HARPOON(p_port + hp_scsidata_0) != 00) {
+		if (RD_HARPOON(p_port + hp_scsisig) & SCSI_SEL)
+		{
 
 			WR_HARPOON(p_port + hp_scsisig,
-				   (RD_HARPOON(p_port + hp_scsisig) &
-				    ~(SCSI_BSY | SCSI_SEL)));
+					   (RD_HARPOON(p_port + hp_scsisig) &
+						~SCSI_BSY));
+			return 0;
+		}
+
+		WR_HARPOON(p_port + hp_scsisig,
+				   (RD_HARPOON(p_port + hp_scsisig) | SCSI_SEL));
+
+		if (RD_HARPOON(p_port + hp_scsidata_0) != 00)
+		{
+
+			WR_HARPOON(p_port + hp_scsisig,
+					   (RD_HARPOON(p_port + hp_scsisig) &
+						~(SCSI_BSY | SCSI_SEL)));
 			return 0;
 		}
 	}
 
 	WR_HARPOON(p_port + hp_clkctrl_0, (RD_HARPOON(p_port + hp_clkctrl_0)
-					   & ~ACTdeassert));
+									   & ~ACTdeassert));
 	WR_HARPOON(p_port + hp_scsireset, SCAM_EN);
 	WR_HARPOON(p_port + hp_scsidata_0, 0x00);
 	WR_HARPOON(p_port + hp_scsidata_1, 0x00);
 	WR_HARPOON(p_port + hp_portctrl_0, SCSI_BUS_EN);
 
 	WR_HARPOON(p_port + hp_scsisig,
-		   (RD_HARPOON(p_port + hp_scsisig) | SCSI_MSG));
+			   (RD_HARPOON(p_port + hp_scsisig) | SCSI_MSG));
 
 	WR_HARPOON(p_port + hp_scsisig, (RD_HARPOON(p_port + hp_scsisig)
-					 & ~SCSI_BSY));
+									 & ~SCSI_BSY));
 
 	FPT_Wait(p_port, TO_250ms);
 
@@ -5725,25 +6595,25 @@ static int FPT_scarb(u32 p_port, unsigned char p_sel_type)
 static void FPT_scbusf(u32 p_port)
 {
 	WR_HARPOON(p_port + hp_page_ctrl,
-		   (RD_HARPOON(p_port + hp_page_ctrl) | G_INT_DISABLE));
+			   (RD_HARPOON(p_port + hp_page_ctrl) | G_INT_DISABLE));
 
 	WR_HARPOON(p_port + hp_scsidata_0, 0x00);
 
 	WR_HARPOON(p_port + hp_portctrl_0, (RD_HARPOON(p_port + hp_portctrl_0)
-					    & ~SCSI_BUS_EN));
+										& ~SCSI_BUS_EN));
 
 	WR_HARPOON(p_port + hp_scsisig, 0x00);
 
 	WR_HARPOON(p_port + hp_scsireset, (RD_HARPOON(p_port + hp_scsireset)
-					   & ~SCAM_EN));
+									   & ~SCAM_EN));
 
 	WR_HARPOON(p_port + hp_clkctrl_0, (RD_HARPOON(p_port + hp_clkctrl_0)
-					   | ACTdeassert));
+									   | ACTdeassert));
 
 	WRW_HARPOON((p_port + hp_intstat), (BUS_FREE | AUTO_INT | SCAM_SEL));
 
 	WR_HARPOON(p_port + hp_page_ctrl,
-		   (RD_HARPOON(p_port + hp_page_ctrl) & ~G_INT_DISABLE));
+			   (RD_HARPOON(p_port + hp_page_ctrl) & ~G_INT_DISABLE));
 }
 
 /*---------------------------------------------------------------------
@@ -5767,45 +6637,61 @@ static void FPT_scasid(unsigned char p_card, u32 p_port)
 
 	i = 0;
 
-	while (!i) {
+	while (!i)
+	{
 
-		for (k = 0; k < ID_STRING_LENGTH; k++) {
+		for (k = 0; k < ID_STRING_LENGTH; k++)
+		{
 			temp_id_string[k] = (unsigned char)0x00;
 		}
 
 		FPT_scxferc(p_port, SYNC_PTRN);
 		FPT_scxferc(p_port, ASSIGN_ID);
 
-		if (!(FPT_sciso(p_port, &temp_id_string[0]))) {
-			if (pCurrNvRam) {
+		if (!(FPT_sciso(p_port, &temp_id_string[0])))
+		{
+			if (pCurrNvRam)
+			{
 				pCrcBytes = (unsigned short *)&crcBytes[0];
 				*pCrcBytes = FPT_CalcCrc16(&temp_id_string[0]);
 				crcBytes[2] = FPT_CalcLrc(&temp_id_string[0]);
 				temp_id_string[1] = crcBytes[2];
 				temp_id_string[2] = crcBytes[0];
 				temp_id_string[3] = crcBytes[1];
+
 				for (k = 4; k < ID_STRING_LENGTH; k++)
+				{
 					temp_id_string[k] = (unsigned char)0x00;
+				}
 			}
+
 			i = FPT_scmachid(p_card, temp_id_string);
 
-			if (i == CLR_PRIORITY) {
+			if (i == CLR_PRIORITY)
+			{
 				FPT_scxferc(p_port, MISC_CODE);
 				FPT_scxferc(p_port, CLR_P_FLAG);
 				i = 0;	/*Not the last ID yet. */
 			}
 
-			else if (i != NO_ID_AVAIL) {
+			else if (i != NO_ID_AVAIL)
+			{
 				if (i < 8)
+				{
 					FPT_scxferc(p_port, ID_0_7);
+				}
 				else
+				{
 					FPT_scxferc(p_port, ID_8_F);
+				}
 
 				scam_id = (i & (unsigned char)0x07);
 
 				for (k = 1; k < 0x08; k <<= 1)
 					if (!(k & i))
-						scam_id += 0x08;	/*Count number of zeros in DB0-3. */
+					{
+						scam_id += 0x08;    /*Count number of zeros in DB0-3. */
+					}
 
 				FPT_scxferc(p_port, scam_id);
 
@@ -5813,7 +6699,8 @@ static void FPT_scasid(unsigned char p_card, u32 p_port)
 			}
 		}
 
-		else {
+		else
+		{
 			i = 1;
 		}
 
@@ -5840,21 +6727,21 @@ static void FPT_scsel(u32 p_port)
 	WR_HARPOON(p_port + hp_scsisig, (SCSI_SEL | SCSI_BSY));
 
 	WR_HARPOON(p_port + hp_scsisig,
-		   (SCSI_SEL | SCSI_BSY | SCSI_IOBIT | SCSI_CD));
+			   (SCSI_SEL | SCSI_BSY | SCSI_IOBIT | SCSI_CD));
 	WR_HARPOON(p_port + hp_scsidata_0,
-		   (unsigned char)(RD_HARPOON(p_port + hp_scsidata_0) |
-				   (unsigned char)(BIT(7) + BIT(6))));
+			   (unsigned char)(RD_HARPOON(p_port + hp_scsidata_0) |
+							   (unsigned char)(BIT(7) + BIT(6))));
 
 	WR_HARPOON(p_port + hp_scsisig, (SCSI_BSY | SCSI_IOBIT | SCSI_CD));
 	FPT_scwiros(p_port, SCSI_SEL);
 
 	WR_HARPOON(p_port + hp_scsidata_0,
-		   (unsigned char)(RD_HARPOON(p_port + hp_scsidata_0) &
-				   ~(unsigned char)BIT(6)));
+			   (unsigned char)(RD_HARPOON(p_port + hp_scsidata_0) &
+							   ~(unsigned char)BIT(6)));
 	FPT_scwirod(p_port, BIT(6));
 
 	WR_HARPOON(p_port + hp_scsisig,
-		   (SCSI_SEL | SCSI_BSY | SCSI_IOBIT | SCSI_CD));
+			   (SCSI_SEL | SCSI_BSY | SCSI_IOBIT | SCSI_CD));
 }
 
 /*---------------------------------------------------------------------
@@ -5878,6 +6765,7 @@ static unsigned char FPT_scxferc(u32 p_port, unsigned char p_data)
 	WR_HARPOON(p_port + hp_scsidata_0, curr_data);
 
 	FPT_scwirod(p_port, BIT(7));	/*Wait for DB7 to be released. */
+
 	while (!(RD_HARPOON(p_port + hp_scsidata_0) & BIT(5))) ;
 
 	ret_data = (RD_HARPOON(p_port + hp_scsidata_0) & (unsigned char)0x1F);
@@ -5921,41 +6809,61 @@ static unsigned char FPT_scsendi(u32 p_port, unsigned char p_id_string[])
 
 	defer = 0;
 
-	for (byte_cnt = 0; byte_cnt < ID_STRING_LENGTH; byte_cnt++) {
+	for (byte_cnt = 0; byte_cnt < ID_STRING_LENGTH; byte_cnt++)
+	{
 
-		for (bit_cnt = 0x80; bit_cnt != 0; bit_cnt >>= 1) {
+		for (bit_cnt = 0x80; bit_cnt != 0; bit_cnt >>= 1)
+		{
 
 			if (defer)
+			{
 				ret_data = FPT_scxferc(p_port, 00);
+			}
 
 			else if (p_id_string[byte_cnt] & bit_cnt)
 
+			{
 				ret_data = FPT_scxferc(p_port, 02);
+			}
 
-			else {
+			else
+			{
 
 				ret_data = FPT_scxferc(p_port, 01);
+
 				if (ret_data & 02)
+				{
 					defer = 1;
+				}
 			}
 
 			if ((ret_data & 0x1C) == 0x10)
-				return 0x00;	/*End of isolation stage, we won! */
+			{
+				return 0x00;    /*End of isolation stage, we won! */
+			}
 
 			if (ret_data & 0x1C)
+			{
 				return 0xFF;
+			}
 
 			if ((defer) && (!(ret_data & 0x1F)))
-				return 0x01;	/*End of isolation stage, we lost. */
+			{
+				return 0x01;    /*End of isolation stage, we lost. */
+			}
 
 		}		/*bit loop */
 
 	}			/*byte loop */
 
 	if (defer)
-		return 0x01;	/*We lost */
+	{
+		return 0x01;    /*We lost */
+	}
 	else
-		return 0;	/*We WON! Yeeessss! */
+	{
+		return 0;    /*We WON! Yeeessss! */
+	}
 }
 
 /*---------------------------------------------------------------------
@@ -5972,38 +6880,50 @@ static unsigned char FPT_sciso(u32 p_port, unsigned char p_id_string[])
 
 	the_data = 0;
 
-	for (byte_cnt = 0; byte_cnt < ID_STRING_LENGTH; byte_cnt++) {
+	for (byte_cnt = 0; byte_cnt < ID_STRING_LENGTH; byte_cnt++)
+	{
 
-		for (bit_cnt = 0; bit_cnt < 8; bit_cnt++) {
+		for (bit_cnt = 0; bit_cnt < 8; bit_cnt++)
+		{
 
 			ret_data = FPT_scxferc(p_port, 0);
 
 			if (ret_data & 0xFC)
+			{
 				return 0xFF;
+			}
 
-			else {
+			else
+			{
 
 				the_data <<= 1;
-				if (ret_data & BIT(1)) {
+
+				if (ret_data & BIT(1))
+				{
 					the_data |= 1;
 				}
 			}
 
-			if ((ret_data & 0x1F) == 0) {
-/*
-				if(bit_cnt != 0 || bit_cnt != 8)
-				{
-					byte_cnt = 0;
-					bit_cnt = 0;
-					FPT_scxferc(p_port, SYNC_PTRN);
-					FPT_scxferc(p_port, ASSIGN_ID);
-					continue;
-				}
-*/
+			if ((ret_data & 0x1F) == 0)
+			{
+				/*
+								if(bit_cnt != 0 || bit_cnt != 8)
+								{
+									byte_cnt = 0;
+									bit_cnt = 0;
+									FPT_scxferc(p_port, SYNC_PTRN);
+									FPT_scxferc(p_port, ASSIGN_ID);
+									continue;
+								}
+				*/
 				if (byte_cnt)
+				{
 					return 0x00;
+				}
 				else
+				{
 					return 0xFF;
+				}
 			}
 
 		}		/*bit loop */
@@ -6029,15 +6949,21 @@ static void FPT_scwirod(u32 p_port, unsigned char p_data_bit)
 	unsigned char i;
 
 	i = 0;
-	while (i < MAX_SCSI_TAR) {
+
+	while (i < MAX_SCSI_TAR)
+	{
 
 		if (RD_HARPOON(p_port + hp_scsidata_0) & p_data_bit)
 
+		{
 			i = 0;
+		}
 
 		else
 
+		{
 			i++;
+		}
 
 	}
 }
@@ -6056,15 +6982,21 @@ static void FPT_scwiros(u32 p_port, unsigned char p_data_bit)
 	unsigned char i;
 
 	i = 0;
-	while (i < MAX_SCSI_TAR) {
+
+	while (i < MAX_SCSI_TAR)
+	{
 
 		if (RD_HARPOON(p_port + hp_scsisig) & p_data_bit)
 
+		{
 			i = 0;
+		}
 
 		else
 
+		{
 			i++;
+		}
 
 	}
 }
@@ -6081,16 +7013,23 @@ static unsigned char FPT_scvalq(unsigned char p_quintet)
 {
 	unsigned char count;
 
-	for (count = 1; count < 0x08; count <<= 1) {
+	for (count = 1; count < 0x08; count <<= 1)
+	{
 		if (!(p_quintet & count))
+		{
 			p_quintet -= 0x80;
+		}
 	}
 
 	if (p_quintet & 0x18)
+	{
 		return 0;
+	}
 
 	else
+	{
 		return 1;
+	}
 }
 
 /*---------------------------------------------------------------------
@@ -6108,21 +7047,23 @@ static unsigned char FPT_scsell(u32 p_port, unsigned char targ_id)
 	unsigned long i;
 
 	WR_HARPOON(p_port + hp_page_ctrl,
-		   (RD_HARPOON(p_port + hp_page_ctrl) | G_INT_DISABLE));
+			   (RD_HARPOON(p_port + hp_page_ctrl) | G_INT_DISABLE));
 
 	ARAM_ACCESS(p_port);
 
 	WR_HARPOON(p_port + hp_addstat,
-		   (RD_HARPOON(p_port + hp_addstat) | SCAM_TIMER));
+			   (RD_HARPOON(p_port + hp_addstat) | SCAM_TIMER));
 	WR_HARPOON(p_port + hp_seltimeout, TO_4ms);
 
-	for (i = p_port + CMD_STRT; i < p_port + CMD_STRT + 12; i += 2) {
+	for (i = p_port + CMD_STRT; i < p_port + CMD_STRT + 12; i += 2)
+	{
 		WRW_HARPOON(i, (MPM_OP + ACOMMAND));
 	}
+
 	WRW_HARPOON(i, (BRH_OP + ALWAYS + NP));
 
 	WRW_HARPOON((p_port + hp_intstat),
-		    (RESET | TIMEOUT | SEL | BUS_FREE | AUTO_INT));
+				(RESET | TIMEOUT | SEL | BUS_FREE | AUTO_INT));
 
 	WR_HARPOON(p_port + hp_select_id, targ_id);
 
@@ -6131,38 +7072,45 @@ static unsigned char FPT_scsell(u32 p_port, unsigned char targ_id)
 	WR_HARPOON(p_port + hp_scsictrl_0, (SEL_TAR | ENA_RESEL));
 
 	while (!(RDW_HARPOON((p_port + hp_intstat)) &
-		 (RESET | PROG_HLT | TIMEOUT | AUTO_INT))) {
+			 (RESET | PROG_HLT | TIMEOUT | AUTO_INT)))
+	{
 	}
 
 	if (RDW_HARPOON((p_port + hp_intstat)) & RESET)
+	{
 		FPT_Wait(p_port, TO_250ms);
+	}
 
 	DISABLE_AUTO(p_port);
 
 	WR_HARPOON(p_port + hp_addstat,
-		   (RD_HARPOON(p_port + hp_addstat) & ~SCAM_TIMER));
+			   (RD_HARPOON(p_port + hp_addstat) & ~SCAM_TIMER));
 	WR_HARPOON(p_port + hp_seltimeout, TO_290ms);
 
 	SGRAM_ACCESS(p_port);
 
-	if (RDW_HARPOON((p_port + hp_intstat)) & (RESET | TIMEOUT)) {
+	if (RDW_HARPOON((p_port + hp_intstat)) & (RESET | TIMEOUT))
+	{
 
 		WRW_HARPOON((p_port + hp_intstat),
-			    (RESET | TIMEOUT | SEL | BUS_FREE | PHASE));
+					(RESET | TIMEOUT | SEL | BUS_FREE | PHASE));
 
 		WR_HARPOON(p_port + hp_page_ctrl,
-			   (RD_HARPOON(p_port + hp_page_ctrl) &
-			    ~G_INT_DISABLE));
+				   (RD_HARPOON(p_port + hp_page_ctrl) &
+					~G_INT_DISABLE));
 
 		return 0;	/*No legacy device */
 	}
 
-	else {
+	else
+	{
 
-		while (!(RDW_HARPOON((p_port + hp_intstat)) & BUS_FREE)) {
-			if (RD_HARPOON(p_port + hp_scsisig) & SCSI_REQ) {
+		while (!(RDW_HARPOON((p_port + hp_intstat)) & BUS_FREE))
+		{
+			if (RD_HARPOON(p_port + hp_scsisig) & SCSI_REQ)
+			{
 				WR_HARPOON(p_port + hp_scsisig,
-					   (SCSI_ACK + S_ILL_PH));
+						   (SCSI_ACK + S_ILL_PH));
 				ACCEPT_MSG(p_port);
 			}
 		}
@@ -6170,8 +7118,8 @@ static unsigned char FPT_scsell(u32 p_port, unsigned char targ_id)
 		WRW_HARPOON((p_port + hp_intstat), CLR_ALL_INT_1);
 
 		WR_HARPOON(p_port + hp_page_ctrl,
-			   (RD_HARPOON(p_port + hp_page_ctrl) &
-			    ~G_INT_DISABLE));
+				   (RD_HARPOON(p_port + hp_page_ctrl) &
+					~G_INT_DISABLE));
 
 		return 1;	/*Found one of them oldies! */
 	}
@@ -6187,7 +7135,8 @@ static unsigned char FPT_scsell(u32 p_port, unsigned char targ_id)
 
 static void FPT_scwtsel(u32 p_port)
 {
-	while (!(RDW_HARPOON((p_port + hp_intstat)) & SCAM_SEL)) {
+	while (!(RDW_HARPOON((p_port + hp_intstat)) & SCAM_SEL))
+	{
 	}
 }
 
@@ -6208,55 +7157,77 @@ static void FPT_inisci(unsigned char p_card, u32 p_port, unsigned char p_our_id)
 	pCurrNvRam = FPT_BL_Card[p_card].pNvRamInfo;
 
 	if (RD_HARPOON(p_port + hp_page_ctrl) & NARROW_SCSI_CARD)
+	{
 		max_id = 0x08;
+	}
 
 	else
+	{
 		max_id = 0x10;
+	}
 
-	if (pCurrNvRam) {
-		for (i = 0; i < max_id; i++) {
+	if (pCurrNvRam)
+	{
+		for (i = 0; i < max_id; i++)
+		{
 
 			for (k = 0; k < 4; k++)
 				FPT_scamInfo[i].id_string[k] =
-				    pCurrNvRam->niScamTbl[i][k];
+					pCurrNvRam->niScamTbl[i][k];
+
 			for (k = 4; k < ID_STRING_LENGTH; k++)
 				FPT_scamInfo[i].id_string[k] =
-				    (unsigned char)0x00;
+					(unsigned char)0x00;
 
 			if (FPT_scamInfo[i].id_string[0] == 0x00)
-				FPT_scamInfo[i].state = ID_UNUSED;	/*Default to unused ID. */
-			else
-				FPT_scamInfo[i].state = ID_UNASSIGNED;	/*Default to unassigned ID. */
-
-		}
-	} else {
-		for (i = 0; i < max_id; i++) {
-			for (k = 0; k < ID_STRING_LENGTH; k += 2) {
-				ee_data =
-				    FPT_utilEERead(p_port,
-						   (unsigned
-						    short)((EE_SCAMBASE / 2) +
-							   (unsigned short)(i *
-									    ((unsigned short)ID_STRING_LENGTH / 2)) + (unsigned short)(k / 2)));
-				FPT_scamInfo[i].id_string[k] =
-				    (unsigned char)ee_data;
-				ee_data >>= 8;
-				FPT_scamInfo[i].id_string[k + 1] =
-				    (unsigned char)ee_data;
+			{
+				FPT_scamInfo[i].state = ID_UNUSED;    /*Default to unused ID. */
 			}
-
-			if ((FPT_scamInfo[i].id_string[0] == 0x00) ||
-			    (FPT_scamInfo[i].id_string[0] == 0xFF))
-
-				FPT_scamInfo[i].state = ID_UNUSED;	/*Default to unused ID. */
-
 			else
-				FPT_scamInfo[i].state = ID_UNASSIGNED;	/*Default to unassigned ID. */
+			{
+				FPT_scamInfo[i].state = ID_UNASSIGNED;    /*Default to unassigned ID. */
+			}
 
 		}
 	}
+	else
+	{
+		for (i = 0; i < max_id; i++)
+		{
+			for (k = 0; k < ID_STRING_LENGTH; k += 2)
+			{
+				ee_data =
+					FPT_utilEERead(p_port,
+								   (unsigned
+									short)((EE_SCAMBASE / 2) +
+										   (unsigned short)(i *
+												   ((unsigned short)ID_STRING_LENGTH / 2)) + (unsigned short)(k / 2)));
+				FPT_scamInfo[i].id_string[k] =
+					(unsigned char)ee_data;
+				ee_data >>= 8;
+				FPT_scamInfo[i].id_string[k + 1] =
+					(unsigned char)ee_data;
+			}
+
+			if ((FPT_scamInfo[i].id_string[0] == 0x00) ||
+				(FPT_scamInfo[i].id_string[0] == 0xFF))
+
+			{
+				FPT_scamInfo[i].state = ID_UNUSED;    /*Default to unused ID. */
+			}
+
+			else
+			{
+				FPT_scamInfo[i].state = ID_UNASSIGNED;    /*Default to unassigned ID. */
+			}
+
+		}
+	}
+
 	for (k = 0; k < ID_STRING_LENGTH; k++)
+	{
 		FPT_scamInfo[p_our_id].id_string[k] = FPT_scamHAString[k];
+	}
 
 }
 
@@ -6270,21 +7241,26 @@ static void FPT_inisci(unsigned char p_card, u32 p_port, unsigned char p_our_id)
  *---------------------------------------------------------------------*/
 
 static unsigned char FPT_scmachid(unsigned char p_card,
-				  unsigned char p_id_string[])
+								  unsigned char p_id_string[])
 {
 
 	unsigned char i, k, match;
 
-	for (i = 0; i < MAX_SCSI_TAR; i++) {
+	for (i = 0; i < MAX_SCSI_TAR; i++)
+	{
 
 		match = 1;
 
-		for (k = 0; k < ID_STRING_LENGTH; k++) {
+		for (k = 0; k < ID_STRING_LENGTH; k++)
+		{
 			if (p_id_string[k] != FPT_scamInfo[i].id_string[k])
+			{
 				match = 0;
+			}
 		}
 
-		if (match) {
+		if (match)
+		{
 			FPT_scamInfo[i].state = ID_ASSIGNED;
 			return i;
 		}
@@ -6292,85 +7268,121 @@ static unsigned char FPT_scmachid(unsigned char p_card,
 	}
 
 	if (p_id_string[0] & BIT(5))
+	{
 		i = 8;
+	}
 	else
+	{
 		i = MAX_SCSI_TAR;
+	}
 
 	if (((p_id_string[0] & 0x06) == 0x02)
-	    || ((p_id_string[0] & 0x06) == 0x04))
+		|| ((p_id_string[0] & 0x06) == 0x04))
+	{
 		match = p_id_string[1] & (unsigned char)0x1F;
+	}
 	else
+	{
 		match = 7;
+	}
 
-	while (i > 0) {
+	while (i > 0)
+	{
 		i--;
 
-		if (FPT_scamInfo[match].state == ID_UNUSED) {
-			for (k = 0; k < ID_STRING_LENGTH; k++) {
+		if (FPT_scamInfo[match].state == ID_UNUSED)
+		{
+			for (k = 0; k < ID_STRING_LENGTH; k++)
+			{
 				FPT_scamInfo[match].id_string[k] =
-				    p_id_string[k];
+					p_id_string[k];
 			}
 
 			FPT_scamInfo[match].state = ID_ASSIGNED;
 
 			if (FPT_BL_Card[p_card].pNvRamInfo == NULL)
 				FPT_BL_Card[p_card].globalFlags |=
-				    F_UPDATE_EEPROM;
+					F_UPDATE_EEPROM;
+
 			return match;
 
 		}
 
 		match--;
 
-		if (match == 0xFF) {
+		if (match == 0xFF)
+		{
 			if (p_id_string[0] & BIT(5))
+			{
 				match = 7;
+			}
 			else
+			{
 				match = MAX_SCSI_TAR - 1;
+			}
 		}
 	}
 
-	if (p_id_string[0] & BIT(7)) {
+	if (p_id_string[0] & BIT(7))
+	{
 		return CLR_PRIORITY;
 	}
 
 	if (p_id_string[0] & BIT(5))
+	{
 		i = 8;
+	}
 	else
+	{
 		i = MAX_SCSI_TAR;
+	}
 
 	if (((p_id_string[0] & 0x06) == 0x02)
-	    || ((p_id_string[0] & 0x06) == 0x04))
+		|| ((p_id_string[0] & 0x06) == 0x04))
+	{
 		match = p_id_string[1] & (unsigned char)0x1F;
+	}
 	else
+	{
 		match = 7;
+	}
 
-	while (i > 0) {
+	while (i > 0)
+	{
 
 		i--;
 
-		if (FPT_scamInfo[match].state == ID_UNASSIGNED) {
-			for (k = 0; k < ID_STRING_LENGTH; k++) {
+		if (FPT_scamInfo[match].state == ID_UNASSIGNED)
+		{
+			for (k = 0; k < ID_STRING_LENGTH; k++)
+			{
 				FPT_scamInfo[match].id_string[k] =
-				    p_id_string[k];
+					p_id_string[k];
 			}
 
 			FPT_scamInfo[match].id_string[0] |= BIT(7);
 			FPT_scamInfo[match].state = ID_ASSIGNED;
+
 			if (FPT_BL_Card[p_card].pNvRamInfo == NULL)
 				FPT_BL_Card[p_card].globalFlags |=
-				    F_UPDATE_EEPROM;
+					F_UPDATE_EEPROM;
+
 			return match;
 
 		}
 
 		match--;
 
-		if (match == 0xFF) {
+		if (match == 0xFF)
+		{
 			if (p_id_string[0] & BIT(5))
+			{
 				match = 7;
+			}
 			else
+			{
 				match = MAX_SCSI_TAR - 1;
+			}
 		}
 	}
 
@@ -6392,29 +7404,36 @@ static void FPT_scsavdi(unsigned char p_card, u32 p_port)
 
 	sum_data = 0x0000;
 
-	for (i = 1; i < EE_SCAMBASE / 2; i++) {
+	for (i = 1; i < EE_SCAMBASE / 2; i++)
+	{
 		sum_data += FPT_utilEERead(p_port, i);
 	}
 
 	FPT_utilEEWriteOnOff(p_port, 1);	/* Enable write access to the EEPROM */
 
 	if (RD_HARPOON(p_port + hp_page_ctrl) & NARROW_SCSI_CARD)
+	{
 		max_id = 0x08;
+	}
 
 	else
+	{
 		max_id = 0x10;
+	}
 
-	for (i = 0; i < max_id; i++) {
+	for (i = 0; i < max_id; i++)
+	{
 
-		for (k = 0; k < ID_STRING_LENGTH; k += 2) {
+		for (k = 0; k < ID_STRING_LENGTH; k += 2)
+		{
 			ee_data = FPT_scamInfo[i].id_string[k + 1];
 			ee_data <<= 8;
 			ee_data |= FPT_scamInfo[i].id_string[k];
 			sum_data += ee_data;
 			FPT_utilEEWrite(p_port, ee_data,
-					(unsigned short)((EE_SCAMBASE / 2) +
-							 (unsigned short)(i *
-									  ((unsigned short)ID_STRING_LENGTH / 2)) + (unsigned short)(k / 2)));
+							(unsigned short)((EE_SCAMBASE / 2) +
+											 (unsigned short)(i *
+													 ((unsigned short)ID_STRING_LENGTH / 2)) + (unsigned short)(k / 2)));
 		}
 	}
 
@@ -6441,7 +7460,7 @@ static void FPT_XbowInit(u32 port, unsigned char ScamFlg)
 	WR_HARPOON(port + hp_portctrl_1, HOST_MODE8);
 
 	WR_HARPOON(port + hp_scsireset, (DMA_RESET | HPSCSI_RESET | PROG_RESET |
-					 FIFO_CLR));
+									 FIFO_CLR));
 
 	WR_HARPOON(port + hp_scsireset, SCSI_INI);
 
@@ -6453,10 +7472,12 @@ static void FPT_XbowInit(u32 port, unsigned char ScamFlg)
 	WRW_HARPOON((port + hp_intstat), CLR_ALL_INT);
 
 	FPT_default_intena = RESET | RSEL | PROG_HLT | TIMEOUT |
-	    BUS_FREE | XFER_CNT_0 | AUTO_INT;
+						 BUS_FREE | XFER_CNT_0 | AUTO_INT;
 
 	if ((ScamFlg & SCAM_ENABLED) && (ScamFlg & SCAM_LEVEL2))
+	{
 		FPT_default_intena |= SCAM_SEL;
+	}
 
 	WRW_HARPOON((port + hp_intena), FPT_default_intena);
 
@@ -6465,7 +7486,9 @@ static void FPT_XbowInit(u32 port, unsigned char ScamFlg)
 	/* Turn on SCSI_MODE8 for narrow cards to fix the
 	   strapping issue with the DUAL CHANNEL card */
 	if (RD_HARPOON(port + hp_page_ctrl) & NARROW_SCSI_CARD)
+	{
 		WR_HARPOON(port + hp_addstat, SCSI_MODE8);
+	}
 
 	WR_HARPOON(port + hp_page_ctrl, i);
 
@@ -6494,7 +7517,7 @@ static void FPT_BusMasterInit(u32 p_port)
 	RD_HARPOON(p_port + hp_int_status);	/*Clear interrupts. */
 	WR_HARPOON(p_port + hp_int_mask, (INT_CMD_COMPL | SCSI_INTERRUPT));
 	WR_HARPOON(p_port + hp_page_ctrl, (RD_HARPOON(p_port + hp_page_ctrl) &
-					   ~SCATTER_EN));
+									   ~SCATTER_EN));
 }
 
 /*---------------------------------------------------------------------
@@ -6511,21 +7534,28 @@ static void FPT_DiagEEPROM(u32 p_port)
 	unsigned short index, temp, max_wd_cnt;
 
 	if (RD_HARPOON(p_port + hp_page_ctrl) & NARROW_SCSI_CARD)
+	{
 		max_wd_cnt = EEPROM_WD_CNT;
+	}
 	else
+	{
 		max_wd_cnt = EEPROM_WD_CNT * 2;
+	}
 
 	temp = FPT_utilEERead(p_port, FW_SIGNATURE / 2);
 
-	if (temp == 0x4641) {
+	if (temp == 0x4641)
+	{
 
-		for (index = 2; index < max_wd_cnt; index++) {
+		for (index = 2; index < max_wd_cnt; index++)
+		{
 
 			temp += FPT_utilEERead(p_port, index);
 
 		}
 
-		if (temp == FPT_utilEERead(p_port, EEPROM_CHECK_SUM / 2)) {
+		if (temp == FPT_utilEERead(p_port, EEPROM_CHECK_SUM / 2))
+		{
 
 			return;	/*EEPROM is Okay so return now! */
 		}
@@ -6533,7 +7563,8 @@ static void FPT_DiagEEPROM(u32 p_port)
 
 	FPT_utilEEWriteOnOff(p_port, (unsigned char)1);
 
-	for (index = 0; index < max_wd_cnt; index++) {
+	for (index = 0; index < max_wd_cnt; index++)
+	{
 
 		FPT_utilEEWrite(p_port, 0x0000, index);
 	}
@@ -6662,131 +7693,165 @@ static void FPT_DiagEEPROM(u32 p_port)
  *---------------------------------------------------------------------*/
 
 static void FPT_queueSearchSelect(struct sccb_card *pCurrCard,
-				  unsigned char p_card)
+								  unsigned char p_card)
 {
 	unsigned char scan_ptr, lun;
 	struct sccb_mgr_tar_info *currTar_Info;
 	struct sccb *pOldSccb;
 
 	scan_ptr = pCurrCard->scanIndex;
-	do {
+
+	do
+	{
 		currTar_Info = &FPT_sccbMgrTbl[p_card][scan_ptr];
+
 		if ((pCurrCard->globalFlags & F_CONLUN_IO) &&
-		    ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) !=
-		     TAG_Q_TRYING)) {
-			if (currTar_Info->TarSelQ_Cnt != 0) {
+			((currTar_Info->TarStatus & TAR_TAG_Q_MASK) !=
+			 TAG_Q_TRYING))
+		{
+			if (currTar_Info->TarSelQ_Cnt != 0)
+			{
 
 				scan_ptr++;
-				if (scan_ptr == MAX_SCSI_TAR)
-					scan_ptr = 0;
 
-				for (lun = 0; lun < MAX_LUN; lun++) {
-					if (currTar_Info->TarLUNBusy[lun] == 0) {
+				if (scan_ptr == MAX_SCSI_TAR)
+				{
+					scan_ptr = 0;
+				}
+
+				for (lun = 0; lun < MAX_LUN; lun++)
+				{
+					if (currTar_Info->TarLUNBusy[lun] == 0)
+					{
 
 						pCurrCard->currentSCCB =
-						    currTar_Info->TarSelQ_Head;
+							currTar_Info->TarSelQ_Head;
 						pOldSccb = NULL;
 
 						while ((pCurrCard->
-							currentSCCB != NULL)
-						       && (lun !=
-							   pCurrCard->
-							   currentSCCB->Lun)) {
+								currentSCCB != NULL)
+							   && (lun !=
+								   pCurrCard->
+								   currentSCCB->Lun))
+						{
 							pOldSccb =
-							    pCurrCard->
-							    currentSCCB;
+								pCurrCard->
+								currentSCCB;
 							pCurrCard->currentSCCB =
-							    (struct sccb
-							     *)(pCurrCard->
-								currentSCCB)->
-							    Sccb_forwardlink;
+								(struct sccb
+								 *)(pCurrCard->
+									currentSCCB)->
+								Sccb_forwardlink;
 						}
+
 						if (pCurrCard->currentSCCB ==
-						    NULL)
+							NULL)
+						{
 							continue;
-						if (pOldSccb != NULL) {
+						}
+
+						if (pOldSccb != NULL)
+						{
 							pOldSccb->
-							    Sccb_forwardlink =
-							    (struct sccb
-							     *)(pCurrCard->
-								currentSCCB)->
-							    Sccb_forwardlink;
+							Sccb_forwardlink =
+								(struct sccb
+								 *)(pCurrCard->
+									currentSCCB)->
+								Sccb_forwardlink;
 							pOldSccb->
-							    Sccb_backlink =
-							    (struct sccb
-							     *)(pCurrCard->
-								currentSCCB)->
-							    Sccb_backlink;
+							Sccb_backlink =
+								(struct sccb
+								 *)(pCurrCard->
+									currentSCCB)->
+								Sccb_backlink;
 							currTar_Info->
-							    TarSelQ_Cnt--;
-						} else {
+							TarSelQ_Cnt--;
+						}
+						else
+						{
 							currTar_Info->
-							    TarSelQ_Head =
-							    (struct sccb
-							     *)(pCurrCard->
-								currentSCCB)->
-							    Sccb_forwardlink;
+							TarSelQ_Head =
+								(struct sccb
+								 *)(pCurrCard->
+									currentSCCB)->
+								Sccb_forwardlink;
 
 							if (currTar_Info->
-							    TarSelQ_Head ==
-							    NULL) {
+								TarSelQ_Head ==
+								NULL)
+							{
 								currTar_Info->
-								    TarSelQ_Tail
-								    = NULL;
+								TarSelQ_Tail
+									= NULL;
 								currTar_Info->
-								    TarSelQ_Cnt
-								    = 0;
-							} else {
+								TarSelQ_Cnt
+									= 0;
+							}
+							else
+							{
 								currTar_Info->
-								    TarSelQ_Cnt--;
+								TarSelQ_Cnt--;
 								currTar_Info->
-								    TarSelQ_Head->
-								    Sccb_backlink
-								    =
-								    (struct sccb
-								     *)NULL;
+								TarSelQ_Head->
+								Sccb_backlink
+									=
+										(struct sccb
+										 *)NULL;
 							}
 						}
+
 						pCurrCard->scanIndex = scan_ptr;
 
 						pCurrCard->globalFlags |=
-						    F_NEW_SCCB_CMD;
+							F_NEW_SCCB_CMD;
 
 						break;
 					}
 				}
 			}
 
-			else {
+			else
+			{
 				scan_ptr++;
-				if (scan_ptr == MAX_SCSI_TAR) {
+
+				if (scan_ptr == MAX_SCSI_TAR)
+				{
 					scan_ptr = 0;
 				}
 			}
 
-		} else {
+		}
+		else
+		{
 			if ((currTar_Info->TarSelQ_Cnt != 0) &&
-			    (currTar_Info->TarLUNBusy[0] == 0)) {
+				(currTar_Info->TarLUNBusy[0] == 0))
+			{
 
 				pCurrCard->currentSCCB =
-				    currTar_Info->TarSelQ_Head;
+					currTar_Info->TarSelQ_Head;
 
 				currTar_Info->TarSelQ_Head =
-				    (struct sccb *)(pCurrCard->currentSCCB)->
-				    Sccb_forwardlink;
+					(struct sccb *)(pCurrCard->currentSCCB)->
+					Sccb_forwardlink;
 
-				if (currTar_Info->TarSelQ_Head == NULL) {
+				if (currTar_Info->TarSelQ_Head == NULL)
+				{
 					currTar_Info->TarSelQ_Tail = NULL;
 					currTar_Info->TarSelQ_Cnt = 0;
-				} else {
+				}
+				else
+				{
 					currTar_Info->TarSelQ_Cnt--;
 					currTar_Info->TarSelQ_Head->
-					    Sccb_backlink = (struct sccb *)NULL;
+					Sccb_backlink = (struct sccb *)NULL;
 				}
 
 				scan_ptr++;
+
 				if (scan_ptr == MAX_SCSI_TAR)
+				{
 					scan_ptr = 0;
+				}
 
 				pCurrCard->scanIndex = scan_ptr;
 
@@ -6795,14 +7860,18 @@ static void FPT_queueSearchSelect(struct sccb_card *pCurrCard,
 				break;
 			}
 
-			else {
+			else
+			{
 				scan_ptr++;
-				if (scan_ptr == MAX_SCSI_TAR) {
+
+				if (scan_ptr == MAX_SCSI_TAR)
+				{
 					scan_ptr = 0;
 				}
 			}
 		}
-	} while (scan_ptr != pCurrCard->scanIndex);
+	}
+	while (scan_ptr != pCurrCard->scanIndex);
 }
 
 /*---------------------------------------------------------------------
@@ -6814,29 +7883,32 @@ static void FPT_queueSearchSelect(struct sccb_card *pCurrCard,
  *---------------------------------------------------------------------*/
 
 static void FPT_queueSelectFail(struct sccb_card *pCurrCard,
-				unsigned char p_card)
+								unsigned char p_card)
 {
 	unsigned char thisTarg;
 	struct sccb_mgr_tar_info *currTar_Info;
 
-	if (pCurrCard->currentSCCB != NULL) {
+	if (pCurrCard->currentSCCB != NULL)
+	{
 		thisTarg =
-		    (unsigned char)(((struct sccb *)(pCurrCard->currentSCCB))->
-				    TargID);
+			(unsigned char)(((struct sccb *)(pCurrCard->currentSCCB))->
+							TargID);
 		currTar_Info = &FPT_sccbMgrTbl[p_card][thisTarg];
 
 		pCurrCard->currentSCCB->Sccb_backlink = (struct sccb *)NULL;
 
 		pCurrCard->currentSCCB->Sccb_forwardlink =
-		    currTar_Info->TarSelQ_Head;
+			currTar_Info->TarSelQ_Head;
 
-		if (currTar_Info->TarSelQ_Cnt == 0) {
+		if (currTar_Info->TarSelQ_Cnt == 0)
+		{
 			currTar_Info->TarSelQ_Tail = pCurrCard->currentSCCB;
 		}
 
-		else {
+		else
+		{
 			currTar_Info->TarSelQ_Head->Sccb_backlink =
-			    pCurrCard->currentSCCB;
+				pCurrCard->currentSCCB;
 		}
 
 		currTar_Info->TarSelQ_Head = pCurrCard->currentSCCB;
@@ -6855,7 +7927,7 @@ static void FPT_queueSelectFail(struct sccb_card *pCurrCard,
  *---------------------------------------------------------------------*/
 
 static void FPT_queueCmdComplete(struct sccb_card *pCurrCard,
-				 struct sccb *p_sccb, unsigned char p_card)
+								 struct sccb *p_sccb, unsigned char p_card)
 {
 
 	unsigned char i, SCSIcmd;
@@ -6864,76 +7936,99 @@ static void FPT_queueCmdComplete(struct sccb_card *pCurrCard,
 
 	SCSIcmd = p_sccb->Cdb[0];
 
-	if (!(p_sccb->Sccb_XferState & F_ALL_XFERRED)) {
+	if (!(p_sccb->Sccb_XferState & F_ALL_XFERRED))
+	{
 
 		if ((p_sccb->
-		     ControlByte & (SCCB_DATA_XFER_OUT | SCCB_DATA_XFER_IN))
-		    && (p_sccb->HostStatus == SCCB_COMPLETE)
-		    && (p_sccb->TargetStatus != SSCHECK))
+			 ControlByte & (SCCB_DATA_XFER_OUT | SCCB_DATA_XFER_IN))
+			&& (p_sccb->HostStatus == SCCB_COMPLETE)
+			&& (p_sccb->TargetStatus != SSCHECK))
 
 			if ((SCSIcmd == SCSI_READ) ||
-			    (SCSIcmd == SCSI_WRITE) ||
-			    (SCSIcmd == SCSI_READ_EXTENDED) ||
-			    (SCSIcmd == SCSI_WRITE_EXTENDED) ||
-			    (SCSIcmd == SCSI_WRITE_AND_VERIFY) ||
-			    (SCSIcmd == SCSI_START_STOP_UNIT) ||
-			    (pCurrCard->globalFlags & F_NO_FILTER)
-			    )
+				(SCSIcmd == SCSI_WRITE) ||
+				(SCSIcmd == SCSI_READ_EXTENDED) ||
+				(SCSIcmd == SCSI_WRITE_EXTENDED) ||
+				(SCSIcmd == SCSI_WRITE_AND_VERIFY) ||
+				(SCSIcmd == SCSI_START_STOP_UNIT) ||
+				(pCurrCard->globalFlags & F_NO_FILTER)
+			   )
+			{
 				p_sccb->HostStatus = SCCB_DATA_UNDER_RUN;
+			}
 	}
 
-	if (p_sccb->SccbStatus == SCCB_IN_PROCESS) {
+	if (p_sccb->SccbStatus == SCCB_IN_PROCESS)
+	{
 		if (p_sccb->HostStatus || p_sccb->TargetStatus)
+		{
 			p_sccb->SccbStatus = SCCB_ERROR;
+		}
 		else
+		{
 			p_sccb->SccbStatus = SCCB_SUCCESS;
+		}
 	}
 
-	if (p_sccb->Sccb_XferState & F_AUTO_SENSE) {
+	if (p_sccb->Sccb_XferState & F_AUTO_SENSE)
+	{
 
 		p_sccb->CdbLength = p_sccb->Save_CdbLen;
-		for (i = 0; i < 6; i++) {
+
+		for (i = 0; i < 6; i++)
+		{
 			p_sccb->Cdb[i] = p_sccb->Save_Cdb[i];
 		}
 	}
 
 	if ((p_sccb->OperationCode == RESIDUAL_SG_COMMAND) ||
-	    (p_sccb->OperationCode == RESIDUAL_COMMAND)) {
+		(p_sccb->OperationCode == RESIDUAL_COMMAND))
+	{
 
 		FPT_utilUpdateResidual(p_sccb);
 	}
 
 	pCurrCard->cmdCounter--;
-	if (!pCurrCard->cmdCounter) {
 
-		if (pCurrCard->globalFlags & F_GREEN_PC) {
+	if (!pCurrCard->cmdCounter)
+	{
+
+		if (pCurrCard->globalFlags & F_GREEN_PC)
+		{
 			WR_HARPOON(pCurrCard->ioPort + hp_clkctrl_0,
-				   (PWR_DWN | CLKCTRL_DEFAULT));
+					   (PWR_DWN | CLKCTRL_DEFAULT));
 			WR_HARPOON(pCurrCard->ioPort + hp_sys_ctrl, STOP_CLK);
 		}
 
 		WR_HARPOON(pCurrCard->ioPort + hp_semaphore,
-			   (RD_HARPOON(pCurrCard->ioPort + hp_semaphore) &
-			    ~SCCB_MGR_ACTIVE));
+				   (RD_HARPOON(pCurrCard->ioPort + hp_semaphore) &
+					~SCCB_MGR_ACTIVE));
 
 	}
 
-	if (pCurrCard->discQCount != 0) {
+	if (pCurrCard->discQCount != 0)
+	{
 		currTar_Info = &FPT_sccbMgrTbl[p_card][p_sccb->TargID];
+
 		if (((pCurrCard->globalFlags & F_CONLUN_IO) &&
-		     ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) !=
-		      TAG_Q_TRYING))) {
+			 ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) !=
+			  TAG_Q_TRYING)))
+		{
 			pCurrCard->discQCount--;
 			pCurrCard->discQ_Tbl[currTar_Info->
-					     LunDiscQ_Idx[p_sccb->Lun]] = NULL;
-		} else {
-			if (p_sccb->Sccb_tag) {
+								 LunDiscQ_Idx[p_sccb->Lun]] = NULL;
+		}
+		else
+		{
+			if (p_sccb->Sccb_tag)
+			{
 				pCurrCard->discQCount--;
 				pCurrCard->discQ_Tbl[p_sccb->Sccb_tag] = NULL;
-			} else {
+			}
+			else
+			{
 				pCurrCard->discQCount--;
 				pCurrCard->discQ_Tbl[currTar_Info->
-						     LunDiscQ_Idx[0]] = NULL;
+									 LunDiscQ_Idx[0]] = NULL;
 			}
 		}
 
@@ -6959,22 +8054,29 @@ static void FPT_queueDisconnect(struct sccb *p_sccb, unsigned char p_card)
 	currTar_Info = &FPT_sccbMgrTbl[p_card][p_sccb->TargID];
 
 	if (((FPT_BL_Card[p_card].globalFlags & F_CONLUN_IO) &&
-	     ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING))) {
+		 ((currTar_Info->TarStatus & TAR_TAG_Q_MASK) != TAG_Q_TRYING)))
+	{
 		FPT_BL_Card[p_card].discQ_Tbl[currTar_Info->
-					      LunDiscQ_Idx[p_sccb->Lun]] =
-		    p_sccb;
-	} else {
-		if (p_sccb->Sccb_tag) {
+									  LunDiscQ_Idx[p_sccb->Lun]] =
+										  p_sccb;
+	}
+	else
+	{
+		if (p_sccb->Sccb_tag)
+		{
 			FPT_BL_Card[p_card].discQ_Tbl[p_sccb->Sccb_tag] =
-			    p_sccb;
+				p_sccb;
 			FPT_sccbMgrTbl[p_card][p_sccb->TargID].TarLUNBusy[0] =
-			    0;
+				0;
 			FPT_sccbMgrTbl[p_card][p_sccb->TargID].TarTagQ_Cnt++;
-		} else {
+		}
+		else
+		{
 			FPT_BL_Card[p_card].discQ_Tbl[currTar_Info->
-						      LunDiscQ_Idx[0]] = p_sccb;
+										  LunDiscQ_Idx[0]] = p_sccb;
 		}
 	}
+
 	FPT_BL_Card[p_card].currentSCCB = NULL;
 }
 
@@ -6993,22 +8095,26 @@ static void FPT_queueFlushSccb(unsigned char p_card, unsigned char error_code)
 	struct sccb_mgr_tar_info *currTar_Info;
 
 	currSCCB = FPT_BL_Card[p_card].currentSCCB;
-	if (currSCCB != NULL) {
+
+	if (currSCCB != NULL)
+	{
 		thisTarg = (unsigned char)currSCCB->TargID;
 		currTar_Info = &FPT_sccbMgrTbl[p_card][thisTarg];
 
-		for (qtag = 0; qtag < QUEUE_DEPTH; qtag++) {
+		for (qtag = 0; qtag < QUEUE_DEPTH; qtag++)
+		{
 
 			if (FPT_BL_Card[p_card].discQ_Tbl[qtag] &&
-			    (FPT_BL_Card[p_card].discQ_Tbl[qtag]->TargID ==
-			     thisTarg)) {
+				(FPT_BL_Card[p_card].discQ_Tbl[qtag]->TargID ==
+				 thisTarg))
+			{
 
 				FPT_BL_Card[p_card].discQ_Tbl[qtag]->
-				    HostStatus = (unsigned char)error_code;
+				HostStatus = (unsigned char)error_code;
 
 				FPT_queueCmdComplete(&FPT_BL_Card[p_card],
-						     FPT_BL_Card[p_card].
-						     discQ_Tbl[qtag], p_card);
+									 FPT_BL_Card[p_card].
+									 discQ_Tbl[qtag], p_card);
 
 				FPT_BL_Card[p_card].discQ_Tbl[qtag] = NULL;
 				currTar_Info->TarTagQ_Cnt--;
@@ -7028,24 +8134,26 @@ static void FPT_queueFlushSccb(unsigned char p_card, unsigned char error_code)
  *---------------------------------------------------------------------*/
 
 static void FPT_queueFlushTargSccb(unsigned char p_card, unsigned char thisTarg,
-				   unsigned char error_code)
+								   unsigned char error_code)
 {
 	unsigned char qtag;
 	struct sccb_mgr_tar_info *currTar_Info;
 
 	currTar_Info = &FPT_sccbMgrTbl[p_card][thisTarg];
 
-	for (qtag = 0; qtag < QUEUE_DEPTH; qtag++) {
+	for (qtag = 0; qtag < QUEUE_DEPTH; qtag++)
+	{
 
 		if (FPT_BL_Card[p_card].discQ_Tbl[qtag] &&
-		    (FPT_BL_Card[p_card].discQ_Tbl[qtag]->TargID == thisTarg)) {
+			(FPT_BL_Card[p_card].discQ_Tbl[qtag]->TargID == thisTarg))
+		{
 
 			FPT_BL_Card[p_card].discQ_Tbl[qtag]->HostStatus =
-			    (unsigned char)error_code;
+				(unsigned char)error_code;
 
 			FPT_queueCmdComplete(&FPT_BL_Card[p_card],
-					     FPT_BL_Card[p_card].
-					     discQ_Tbl[qtag], p_card);
+								 FPT_BL_Card[p_card].
+								 discQ_Tbl[qtag], p_card);
 
 			FPT_BL_Card[p_card].discQ_Tbl[qtag] = NULL;
 			currTar_Info->TarTagQ_Cnt--;
@@ -7064,12 +8172,14 @@ static void FPT_queueAddSccb(struct sccb *p_SCCB, unsigned char p_card)
 
 	p_SCCB->Sccb_backlink = currTar_Info->TarSelQ_Tail;
 
-	if (currTar_Info->TarSelQ_Cnt == 0) {
+	if (currTar_Info->TarSelQ_Cnt == 0)
+	{
 
 		currTar_Info->TarSelQ_Head = p_SCCB;
 	}
 
-	else {
+	else
+	{
 
 		currTar_Info->TarSelQ_Tail->Sccb_forwardlink = p_SCCB;
 	}
@@ -7088,7 +8198,7 @@ static void FPT_queueAddSccb(struct sccb *p_SCCB, unsigned char p_card)
  *---------------------------------------------------------------------*/
 
 static unsigned char FPT_queueFindSccb(struct sccb *p_SCCB,
-				       unsigned char p_card)
+									   unsigned char p_card)
 {
 	struct sccb *q_ptr;
 	struct sccb_mgr_tar_info *currTar_Info;
@@ -7097,30 +8207,36 @@ static unsigned char FPT_queueFindSccb(struct sccb *p_SCCB,
 
 	q_ptr = currTar_Info->TarSelQ_Head;
 
-	while (q_ptr != NULL) {
+	while (q_ptr != NULL)
+	{
 
-		if (q_ptr == p_SCCB) {
+		if (q_ptr == p_SCCB)
+		{
 
-			if (currTar_Info->TarSelQ_Head == q_ptr) {
+			if (currTar_Info->TarSelQ_Head == q_ptr)
+			{
 
 				currTar_Info->TarSelQ_Head =
-				    q_ptr->Sccb_forwardlink;
+					q_ptr->Sccb_forwardlink;
 			}
 
-			if (currTar_Info->TarSelQ_Tail == q_ptr) {
+			if (currTar_Info->TarSelQ_Tail == q_ptr)
+			{
 
 				currTar_Info->TarSelQ_Tail =
-				    q_ptr->Sccb_backlink;
+					q_ptr->Sccb_backlink;
 			}
 
-			if (q_ptr->Sccb_forwardlink != NULL) {
+			if (q_ptr->Sccb_forwardlink != NULL)
+			{
 				q_ptr->Sccb_forwardlink->Sccb_backlink =
-				    q_ptr->Sccb_backlink;
+					q_ptr->Sccb_backlink;
 			}
 
-			if (q_ptr->Sccb_backlink != NULL) {
+			if (q_ptr->Sccb_backlink != NULL)
+			{
 				q_ptr->Sccb_backlink->Sccb_forwardlink =
-				    q_ptr->Sccb_forwardlink;
+					q_ptr->Sccb_forwardlink;
 			}
 
 			currTar_Info->TarSelQ_Cnt--;
@@ -7128,7 +8244,8 @@ static unsigned char FPT_queueFindSccb(struct sccb *p_SCCB,
 			return 1;
 		}
 
-		else {
+		else
+		{
 			q_ptr = q_ptr->Sccb_forwardlink;
 		}
 	}
@@ -7156,28 +8273,32 @@ static void FPT_utilUpdateResidual(struct sccb *p_SCCB)
 	unsigned int sg_index;
 	struct blogic_sg_seg *segp;
 
-	if (p_SCCB->Sccb_XferState & F_ALL_XFERRED) {
+	if (p_SCCB->Sccb_XferState & F_ALL_XFERRED)
+	{
 
 		p_SCCB->DataLength = 0x0000;
 	}
 
-	else if (p_SCCB->Sccb_XferState & F_SG_XFER) {
+	else if (p_SCCB->Sccb_XferState & F_SG_XFER)
+	{
 
 		partial_cnt = 0x0000;
 
 		sg_index = p_SCCB->Sccb_sgseg;
 
 
-		if (p_SCCB->Sccb_SGoffset) {
+		if (p_SCCB->Sccb_SGoffset)
+		{
 
 			partial_cnt = p_SCCB->Sccb_SGoffset;
 			sg_index++;
 		}
 
 		while (((unsigned long)sg_index *
-			(unsigned long)SG_ELEMENT_SIZE) < p_SCCB->DataLength) {
+				(unsigned long)SG_ELEMENT_SIZE) < p_SCCB->DataLength)
+		{
 			segp = (struct blogic_sg_seg *)(p_SCCB->DataPointer) +
-					(sg_index * 2);
+				   (sg_index * 2);
 			partial_cnt += segp->segbytes;
 			sg_index++;
 		}
@@ -7185,7 +8306,8 @@ static void FPT_utilUpdateResidual(struct sccb *p_SCCB)
 		p_SCCB->DataLength = partial_cnt;
 	}
 
-	else {
+	else
+	{
 
 		p_SCCB->DataLength -= p_SCCB->Sccb_ATC;
 	}
@@ -7203,15 +8325,20 @@ static void FPT_Wait1Second(u32 p_port)
 {
 	unsigned char i;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 
 		FPT_Wait(p_port, TO_250ms);
 
 		if ((RD_HARPOON(p_port + hp_scsictrl_0) & SCSI_RST))
+		{
 			break;
+		}
 
 		if ((RDW_HARPOON((p_port + hp_intstat)) & SCAM_SEL))
+		{
 			break;
+		}
 	}
 }
 
@@ -7238,19 +8365,24 @@ static void FPT_Wait(u32 p_port, unsigned char p_delay)
 	WRW_HARPOON((p_port + hp_intena), (FPT_default_intena & ~TIMEOUT));
 
 	WR_HARPOON(p_port + hp_portctrl_0,
-		   (RD_HARPOON(p_port + hp_portctrl_0) | START_TO));
+			   (RD_HARPOON(p_port + hp_portctrl_0) | START_TO));
 
-	while (!(RDW_HARPOON((p_port + hp_intstat)) & TIMEOUT)) {
+	while (!(RDW_HARPOON((p_port + hp_intstat)) & TIMEOUT))
+	{
 
 		if ((RD_HARPOON(p_port + hp_scsictrl_0) & SCSI_RST))
+		{
 			break;
+		}
 
 		if ((RDW_HARPOON((p_port + hp_intstat)) & SCAM_SEL))
+		{
 			break;
+		}
 	}
 
 	WR_HARPOON(p_port + hp_portctrl_0,
-		   (RD_HARPOON(p_port + hp_portctrl_0) & ~START_TO));
+			   (RD_HARPOON(p_port + hp_portctrl_0) & ~START_TO));
 
 	WRW_HARPOON((p_port + hp_intstat), TIMEOUT);
 	WRW_HARPOON((p_port + hp_intena), FPT_default_intena);
@@ -7274,16 +8406,20 @@ static void FPT_utilEEWriteOnOff(u32 p_port, unsigned char p_mode)
 	unsigned char ee_value;
 
 	ee_value =
-	    (unsigned char)(RD_HARPOON(p_port + hp_ee_ctrl) &
-			    (EXT_ARB_ACK | SCSI_TERM_ENA_H));
+		(unsigned char)(RD_HARPOON(p_port + hp_ee_ctrl) &
+						(EXT_ARB_ACK | SCSI_TERM_ENA_H));
 
 	if (p_mode)
 
+	{
 		FPT_utilEESendCmdAddr(p_port, EWEN, EWEN_ADDR);
+	}
 
 	else
 
+	{
 		FPT_utilEESendCmdAddr(p_port, EWDS, EWDS_ADDR);
+	}
 
 	WR_HARPOON(p_port + hp_ee_ctrl, (ee_value | SEE_MS));	/*Turn off CS */
 	WR_HARPOON(p_port + hp_ee_ctrl, ee_value);	/*Turn off Master Select */
@@ -7299,27 +8435,32 @@ static void FPT_utilEEWriteOnOff(u32 p_port, unsigned char p_mode)
  *---------------------------------------------------------------------*/
 
 static void FPT_utilEEWrite(u32 p_port, unsigned short ee_data,
-			    unsigned short ee_addr)
+							unsigned short ee_addr)
 {
 
 	unsigned char ee_value;
 	unsigned short i;
 
 	ee_value =
-	    (unsigned
-	     char)((RD_HARPOON(p_port + hp_ee_ctrl) &
-		    (EXT_ARB_ACK | SCSI_TERM_ENA_H)) | (SEE_MS | SEE_CS));
+		(unsigned
+		 char)((RD_HARPOON(p_port + hp_ee_ctrl) &
+				(EXT_ARB_ACK | SCSI_TERM_ENA_H)) | (SEE_MS | SEE_CS));
 
 	FPT_utilEESendCmdAddr(p_port, EE_WRITE, ee_addr);
 
 	ee_value |= (SEE_MS + SEE_CS);
 
-	for (i = 0x8000; i != 0; i >>= 1) {
+	for (i = 0x8000; i != 0; i >>= 1)
+	{
 
 		if (i & ee_data)
+		{
 			ee_value |= SEE_DO;
+		}
 		else
+		{
 			ee_value &= ~SEE_DO;
+		}
 
 		WR_HARPOON(p_port + hp_ee_ctrl, ee_value);
 		WR_HARPOON(p_port + hp_ee_ctrl, ee_value);
@@ -7330,6 +8471,7 @@ static void FPT_utilEEWrite(u32 p_port, unsigned short ee_data,
 		WR_HARPOON(p_port + hp_ee_ctrl, ee_value);
 		WR_HARPOON(p_port + hp_ee_ctrl, ee_value);
 	}
+
 	ee_value &= (EXT_ARB_ACK | SCSI_TERM_ENA_H);
 	WR_HARPOON(p_port + hp_ee_ctrl, (ee_value | SEE_MS));
 
@@ -7350,29 +8492,34 @@ static void FPT_utilEEWrite(u32 p_port, unsigned short ee_data,
  *---------------------------------------------------------------------*/
 
 static unsigned short FPT_utilEERead(u32 p_port,
-				     unsigned short ee_addr)
+									 unsigned short ee_addr)
 {
 	unsigned short i, ee_data1, ee_data2;
 
 	i = 0;
 	ee_data1 = FPT_utilEEReadOrg(p_port, ee_addr);
-	do {
+
+	do
+	{
 		ee_data2 = FPT_utilEEReadOrg(p_port, ee_addr);
 
 		if (ee_data1 == ee_data2)
+		{
 			return ee_data1;
+		}
 
 		ee_data1 = ee_data2;
 		i++;
 
-	} while (i < 4);
+	}
+	while (i < 4);
 
 	return ee_data1;
 }
 
 /*---------------------------------------------------------------------
  *
- * Function: Read EEPROM Original 
+ * Function: Read EEPROM Original
  *
  * Description: Read a word from the EEPROM at the desired
  *              address.
@@ -7386,16 +8533,17 @@ static unsigned short FPT_utilEEReadOrg(u32 p_port, unsigned short ee_addr)
 	unsigned short i, ee_data;
 
 	ee_value =
-	    (unsigned
-	     char)((RD_HARPOON(p_port + hp_ee_ctrl) &
-		    (EXT_ARB_ACK | SCSI_TERM_ENA_H)) | (SEE_MS | SEE_CS));
+		(unsigned
+		 char)((RD_HARPOON(p_port + hp_ee_ctrl) &
+				(EXT_ARB_ACK | SCSI_TERM_ENA_H)) | (SEE_MS | SEE_CS));
 
 	FPT_utilEESendCmdAddr(p_port, EE_READ, ee_addr);
 
 	ee_value |= (SEE_MS + SEE_CS);
 	ee_data = 0;
 
-	for (i = 1; i <= 16; i++) {
+	for (i = 1; i <= 16; i++)
+	{
 
 		ee_value |= SEE_CLK;	/* Clock  data! */
 		WR_HARPOON(p_port + hp_ee_ctrl, ee_value);
@@ -7407,7 +8555,9 @@ static unsigned short FPT_utilEEReadOrg(u32 p_port, unsigned short ee_addr)
 		ee_data <<= 1;
 
 		if (RD_HARPOON(p_port + hp_ee_ctrl) & SEE_DI)
+		{
 			ee_data |= 1;
+		}
 	}
 
 	ee_value &= ~(SEE_MS + SEE_CS);
@@ -7427,7 +8577,7 @@ static unsigned short FPT_utilEEReadOrg(u32 p_port, unsigned short ee_addr)
  *---------------------------------------------------------------------*/
 
 static void FPT_utilEESendCmdAddr(u32 p_port, unsigned char ee_cmd,
-				  unsigned short ee_addr)
+								  unsigned short ee_addr)
 {
 	unsigned char ee_value;
 	unsigned char narrow_flg;
@@ -7435,8 +8585,8 @@ static void FPT_utilEESendCmdAddr(u32 p_port, unsigned char ee_cmd,
 	unsigned short i;
 
 	narrow_flg =
-	    (unsigned char)(RD_HARPOON(p_port + hp_page_ctrl) &
-			    NARROW_SCSI_CARD);
+		(unsigned char)(RD_HARPOON(p_port + hp_page_ctrl) &
+						NARROW_SCSI_CARD);
 
 	ee_value = SEE_MS;
 	WR_HARPOON(p_port + hp_ee_ctrl, ee_value);
@@ -7444,12 +8594,17 @@ static void FPT_utilEESendCmdAddr(u32 p_port, unsigned char ee_cmd,
 	ee_value |= SEE_CS;	/* Set CS to EEPROM */
 	WR_HARPOON(p_port + hp_ee_ctrl, ee_value);
 
-	for (i = 0x04; i != 0; i >>= 1) {
+	for (i = 0x04; i != 0; i >>= 1)
+	{
 
 		if (i & ee_cmd)
+		{
 			ee_value |= SEE_DO;
+		}
 		else
+		{
 			ee_value &= ~SEE_DO;
+		}
 
 		WR_HARPOON(p_port + hp_ee_ctrl, ee_value);
 		WR_HARPOON(p_port + hp_ee_ctrl, ee_value);
@@ -7462,17 +8617,26 @@ static void FPT_utilEESendCmdAddr(u32 p_port, unsigned char ee_cmd,
 	}
 
 	if (narrow_flg)
+	{
 		i = 0x0080;
+	}
 
 	else
+	{
 		i = 0x0200;
+	}
 
-	while (i != 0) {
+	while (i != 0)
+	{
 
 		if (i & ee_addr)
+		{
 			ee_value |= SEE_DO;
+		}
 		else
+		{
 			ee_value &= ~SEE_DO;
+		}
 
 		WR_HARPOON(p_port + hp_ee_ctrl, ee_value);
 		WR_HARPOON(p_port + hp_ee_ctrl, ee_value);
@@ -7492,16 +8656,26 @@ static unsigned short FPT_CalcCrc16(unsigned char buffer[])
 	unsigned short crc = 0;
 	int i, j;
 	unsigned short ch;
-	for (i = 0; i < ID_STRING_LENGTH; i++) {
+
+	for (i = 0; i < ID_STRING_LENGTH; i++)
+	{
 		ch = (unsigned short)buffer[i];
-		for (j = 0; j < 8; j++) {
+
+		for (j = 0; j < 8; j++)
+		{
 			if ((crc ^ ch) & 1)
+			{
 				crc = (crc >> 1) ^ CRCMASK;
+			}
 			else
+			{
 				crc >>= 1;
+			}
+
 			ch >>= 1;
 		}
 	}
+
 	return crc;
 }
 
@@ -7510,8 +8684,12 @@ static unsigned char FPT_CalcLrc(unsigned char buffer[])
 	int i;
 	unsigned char lrc;
 	lrc = 0;
+
 	for (i = 0; i < ID_STRING_LENGTH; i++)
+	{
 		lrc ^= buffer[i];
+	}
+
 	return lrc;
 }
 
@@ -7523,14 +8701,14 @@ static inline unsigned char
 FlashPoint__ProbeHostAdapter(struct fpoint_info *FlashPointInfo)
 {
 	return FlashPoint_ProbeHostAdapter((struct sccb_mgr_info *)
-					   FlashPointInfo);
+									   FlashPointInfo);
 }
 
 static inline void *
 FlashPoint__HardwareResetHostAdapter(struct fpoint_info *FlashPointInfo)
 {
 	return FlashPoint_HardwareResetHostAdapter((struct sccb_mgr_info *)
-						   FlashPointInfo);
+			FlashPointInfo);
 }
 
 static inline void

@@ -35,7 +35,8 @@
  * function. Note that this is only needed for slave/cyclic channels.  For
  * memcpy channels %NULL data should be passed.
  */
-struct ep93xx_dma_data {
+struct ep93xx_dma_data
+{
 	int				port;
 	enum dma_transfer_direction	direction;
 	const char			*name;
@@ -47,7 +48,8 @@ struct ep93xx_dma_data {
  * @base: mapped registers
  * @irq: interrupt number used by this channel
  */
-struct ep93xx_dma_chan_data {
+struct ep93xx_dma_chan_data
+{
 	const char			*name;
 	void __iomem			*base;
 	int				irq;
@@ -62,7 +64,8 @@ struct ep93xx_dma_chan_data {
  * M2P channels, contract is that even channels are for TX and odd for RX.
  * There is no requirement for the M2M channels.
  */
-struct ep93xx_dma_platform_data {
+struct ep93xx_dma_platform_data
+{
 	struct ep93xx_dma_chan_data	*channels;
 	size_t				num_channels;
 };
@@ -84,7 +87,9 @@ static inline enum dma_transfer_direction
 ep93xx_dma_chan_direction(struct dma_chan *chan)
 {
 	if (!ep93xx_dma_chan_is_m2p(chan))
+	{
 		return DMA_NONE;
+	}
 
 	/* even channels are for TX, odd for RX */
 	return (chan->chan_id % 2 == 0) ? DMA_MEM_TO_DEV : DMA_DEV_TO_MEM;

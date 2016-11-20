@@ -28,7 +28,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #ifdef __GNU_LIBRARY__
-#include <getopt.h>
+	#include <getopt.h>
 #endif				/* __GNU_LIBRARY__ */
 
 #include "genksyms.h"
@@ -53,10 +53,12 @@ static int nsyms;
 static struct symbol *expansion_trail;
 static struct symbol *visited_symbols;
 
-static const struct {
+static const struct
+{
 	int n;
 	const char *name;
-} symbol_types[] = {
+} symbol_types[] =
+{
 	[SYM_NORMAL]     = { 0, NULL},
 	[SYM_TYPEDEF]    = {'t', "typedef"},
 	[SYM_ENUM]       = {'e', "enum"},
@@ -66,7 +68,7 @@ static const struct {
 };
 
 static int equal_list(struct string_list *a, struct string_list *b);
-static void print_list(FILE * f, struct string_list *list);
+static void print_list(FILE *f, struct string_list *list);
 static struct string_list *concat_list(struct string_list *start, ...);
 static struct string_list *mk_node(const char *string);
 static void print_location(void);
@@ -74,7 +76,8 @@ static void print_type_name(enum symbol_type type, const char *name);
 
 /*----------------------------------------------------------------------*/
 
-static const unsigned int crctab32[] = {
+static const unsigned int crctab32[] =
+{
 	0x00000000U, 0x77073096U, 0xee0e612cU, 0x990951baU, 0x076dc419U,
 	0x706af48fU, 0xe963a535U, 0x9e6495a3U, 0x0edb8832U, 0x79dcb8a4U,
 	0xe0d5e91eU, 0x97d2d988U, 0x09b64c2bU, 0x7eb17cbdU, 0xe7b82d07U,
@@ -137,7 +140,10 @@ static unsigned long partial_crc32_one(unsigned char c, unsigned long crc)
 static unsigned long partial_crc32(const char *s, unsigned long crc)
 {
 	while (*s)
+	{
 		crc = partial_crc32_one(*s++, crc);
+	}
+
 	return crc;
 }
 
@@ -150,32 +156,40 @@ static unsigned long crc32(const char *s)
 
 static enum symbol_type map_to_ns(enum symbol_type t)
 {
-	switch (t) {
-	case SYM_ENUM_CONST:
-	case SYM_NORMAL:
-	case SYM_TYPEDEF:
-		return SYM_NORMAL;
-	case SYM_ENUM:
-	case SYM_STRUCT:
-	case SYM_UNION:
-		return SYM_STRUCT;
-	}
-	return t;
-}
+	switch (t)
+	{
+		case SYM_ENUM_CONST:
+				case SYM_NORMAL:
+					case SYM_TYPEDEF:
+							return SYM_NORMAL;
 
-struct symbol *find_symbol(const char *name, enum symbol_type ns, int exact)
+			case SYM_ENUM:
+			case SYM_STRUCT:
+			case SYM_UNION:
+				return SYM_STRUCT;
+		}
+
+		return t;
+	}
+
+	struct symbol *find_symbol(const char *name, enum symbol_type ns, int exact)
 {
 	unsigned long h = crc32(name) % HASH_BUCKETS;
 	struct symbol *sym;
 
 	for (sym = symtab[h]; sym; sym = sym->hash_next)
 		if (map_to_ns(sym->type) == map_to_ns(ns) &&
-		    strcmp(name, sym->name) == 0 &&
-		    sym->is_declared)
+			strcmp(name, sym->name) == 0 &&
+			sym->is_declared)
+		{
 			break;
+		}
 
 	if (exact && sym && sym->type != ns)
+	{
 		return NULL;
+	}
+
 	return sym;
 }
 
@@ -184,19 +198,19 @@ static int is_unknown_symbol(struct symbol *sym)
 	struct string_list *defn;
 
 	return ((sym->type == SYM_STRUCT ||
-		 sym->type == SYM_UNION ||
-		 sym->type == SYM_ENUM) &&
-		(defn = sym->defn)  && defn->tag == SYM_NORMAL &&
+			 sym->type == SYM_UNION ||
+			 sym->type == SYM_ENUM) &&
+			(defn = sym->defn)  && defn->tag == SYM_NORMAL &&
 			strcmp(defn->string, "}") == 0 &&
-		(defn = defn->next) && defn->tag == SYM_NORMAL &&
+			(defn = defn->next) && defn->tag == SYM_NORMAL &&
 			strcmp(defn->string, "UNKNOWN") == 0 &&
-		(defn = defn->next) && defn->tag == SYM_NORMAL &&
+			(defn = defn->next) && defn->tag == SYM_NORMAL &&
 			strcmp(defn->string, "{") == 0);
 }
 
 static struct symbol *__add_symbol(const char *name, enum symbol_type type,
-			    struct string_list *defn, int is_extern,
-			    int is_reference)
+								   struct string_list *defn, int is_extern,
+								   int is_reference)
 {
 	unsigned long h;
 	struct symbol *sym;
@@ -208,81 +222,112 @@ static struct symbol *__add_symbol(const char *name, enum symbol_type type,
 	static int enum_counter;
 	static struct string_list *last_enum_expr;
 
-	if (type == SYM_ENUM_CONST) {
-		if (defn) {
+	if (type == SYM_ENUM_CONST)
+	{
+		if (defn)
+		{
 			free_list(last_enum_expr, NULL);
 			last_enum_expr = copy_list_range(defn, NULL);
 			enum_counter = 1;
-		} else {
+		}
+		else
+		{
 			struct string_list *expr;
 			char buf[20];
 
 			snprintf(buf, sizeof(buf), "%d", enum_counter++);
-			if (last_enum_expr) {
+
+			if (last_enum_expr)
+			{
 				expr = copy_list_range(last_enum_expr, NULL);
 				defn = concat_list(mk_node("("),
-						   expr,
-						   mk_node(")"),
-						   mk_node("+"),
-						   mk_node(buf), NULL);
-			} else {
+								   expr,
+								   mk_node(")"),
+								   mk_node("+"),
+								   mk_node(buf), NULL);
+			}
+			else
+			{
 				defn = mk_node(buf);
 			}
 		}
-	} else if (type == SYM_ENUM) {
+	}
+	else if (type == SYM_ENUM)
+	{
 		free_list(last_enum_expr, NULL);
 		last_enum_expr = NULL;
 		enum_counter = 0;
+
 		if (!name)
 			/* Anonymous enum definition, nothing more to do */
+		{
 			return NULL;
+		}
 	}
 
 	h = crc32(name) % HASH_BUCKETS;
-	for (sym = symtab[h]; sym; sym = sym->hash_next) {
+
+	for (sym = symtab[h]; sym; sym = sym->hash_next)
+	{
 		if (map_to_ns(sym->type) == map_to_ns(type) &&
-		    strcmp(name, sym->name) == 0) {
+			strcmp(name, sym->name) == 0)
+		{
 			if (is_reference)
 				/* fall through */ ;
 			else if (sym->type == type &&
-				 equal_list(sym->defn, defn)) {
-				if (!sym->is_declared && sym->is_override) {
+					 equal_list(sym->defn, defn))
+			{
+				if (!sym->is_declared && sym->is_override)
+				{
 					print_location();
 					print_type_name(type, name);
 					fprintf(stderr, " modversion is "
-						"unchanged\n");
+							"unchanged\n");
 				}
+
 				sym->is_declared = 1;
 				return sym;
-			} else if (!sym->is_declared) {
-				if (sym->is_override && flag_preserve) {
+			}
+			else if (!sym->is_declared)
+			{
+				if (sym->is_override && flag_preserve)
+				{
 					print_location();
 					fprintf(stderr, "ignoring ");
 					print_type_name(type, name);
 					fprintf(stderr, " modversion change\n");
 					sym->is_declared = 1;
 					return sym;
-				} else {
-					status = is_unknown_symbol(sym) ?
-						STATUS_DEFINED : STATUS_MODIFIED;
 				}
-			} else {
+				else
+				{
+					status = is_unknown_symbol(sym) ?
+							 STATUS_DEFINED : STATUS_MODIFIED;
+				}
+			}
+			else
+			{
 				error_with_pos("redefinition of %s", name);
 				return sym;
 			}
+
 			break;
 		}
 	}
 
-	if (sym) {
+	if (sym)
+	{
 		struct symbol **psym;
 
-		for (psym = &symtab[h]; *psym; psym = &(*psym)->hash_next) {
-			if (*psym == sym) {
+		for (psym = &symtab[h]; *psym; psym = &(*psym)->hash_next)
+		{
+			if (*psym == sym)
+			{
 				*psym = sym->hash_next;
 				break;
 			}
 		}
+
 		--nsyms;
 	}
 
@@ -301,15 +346,20 @@ static struct symbol *__add_symbol(const char *name, enum symbol_type type,
 	sym->status = status;
 	sym->is_override = 0;
 
-	if (flag_debug) {
+	if (flag_debug)
+	{
 		if (symbol_types[type].name)
 			fprintf(debugfile, "Defn for %s %s == <",
-				symbol_types[type].name, name);
+					symbol_types[type].name, name);
 		else
 			fprintf(debugfile, "Defn for type%d %s == <",
-				type, name);
+					type, name);
+
 		if (is_extern)
+		{
 			fputs("extern ", debugfile);
+		}
+
 		print_list(debugfile, defn);
 		fputs(">\n", debugfile);
 	}
@@ -319,13 +369,13 @@ static struct symbol *__add_symbol(const char *name, enum symbol_type type,
 }
 
 struct symbol *add_symbol(const char *name, enum symbol_type type,
-			  struct string_list *defn, int is_extern)
+						  struct string_list *defn, int is_extern)
 {
 	return __add_symbol(name, type, defn, is_extern, 0);
 }
 
 static struct symbol *add_reference_symbol(const char *name, enum symbol_type type,
-				    struct string_list *defn, int is_extern)
+		struct string_list *defn, int is_extern)
 {
 	return __add_symbol(name, type, defn, is_extern, 1);
 }
@@ -340,7 +390,8 @@ void free_node(struct string_list *node)
 
 void free_list(struct string_list *s, struct string_list *e)
 {
-	while (s != e) {
+	while (s != e)
+	{
 		struct string_list *next = s->next;
 		free_node(s);
 		s = next;
@@ -365,13 +416,19 @@ static struct string_list *concat_list(struct string_list *start, ...)
 	struct string_list *n, *n2;
 
 	if (!start)
+	{
 		return NULL;
-	for (va_start(ap, start); (n = va_arg(ap, struct string_list *));) {
+	}
+
+	for (va_start(ap, start); (n = va_arg(ap, struct string_list *));)
+	{
 		for (n2 = n; n2->next; n2 = n2->next)
 			;
+
 		n2->next = start;
 		start = n;
 	}
+
 	va_end(ap);
 	return start;
 }
@@ -388,26 +445,36 @@ struct string_list *copy_node(struct string_list *node)
 }
 
 struct string_list *copy_list_range(struct string_list *start,
-				    struct string_list *end)
+									struct string_list *end)
 {
 	struct string_list *res, *n;
 
 	if (start == end)
+	{
 		return NULL;
+	}
+
 	n = res = copy_node(start);
-	for (start = start->next; start != end; start = start->next) {
+
+	for (start = start->next; start != end; start = start->next)
+	{
 		n->next = copy_node(start);
 		n = n->next;
 	}
+
 	n->next = NULL;
 	return res;
 }
 
 static int equal_list(struct string_list *a, struct string_list *b)
 {
-	while (a && b) {
+	while (a && b)
+	{
 		if (a->tag != b->tag || strcmp(a->string, b->string))
+		{
 			return 0;
+		}
+
 		a = a->next;
 		b = b->next;
 	}
@@ -420,120 +487,168 @@ static int equal_list(struct string_list *a, struct string_list *b)
 static struct string_list *read_node(FILE *f)
 {
 	char buffer[256];
-	struct string_list node = {
+	struct string_list node =
+	{
 		.string = buffer,
-		.tag = SYM_NORMAL };
+		.tag = SYM_NORMAL
+	};
 	int c, in_string = 0;
 
-	while ((c = fgetc(f)) != EOF) {
-		if (!in_string && c == ' ') {
+	while ((c = fgetc(f)) != EOF)
+	{
+		if (!in_string && c == ' ')
+		{
 			if (node.string == buffer)
+			{
 				continue;
+			}
+
 			break;
-		} else if (c == '"') {
+		}
+		else if (c == '"')
+		{
 			in_string = !in_string;
-		} else if (c == '\n') {
+		}
+		else if (c == '\n')
+		{
 			if (node.string == buffer)
+			{
 				return NULL;
+			}
+
 			ungetc(c, f);
 			break;
 		}
-		if (node.string >= buffer + sizeof(buffer) - 1) {
+
+		if (node.string >= buffer + sizeof(buffer) - 1)
+		{
 			fprintf(stderr, "Token too long\n");
 			exit(1);
 		}
+
 		*node.string++ = c;
 	}
+
 	if (node.string == buffer)
+	{
 		return NULL;
+	}
+
 	*node.string = 0;
 	node.string = buffer;
 
-	if (node.string[1] == '#') {
+	if (node.string[1] == '#')
+	{
 		size_t n;
 
-		for (n = 0; n < ARRAY_SIZE(symbol_types); n++) {
-			if (node.string[0] == symbol_types[n].n) {
+		for (n = 0; n < ARRAY_SIZE(symbol_types); n++)
+		{
+			if (node.string[0] == symbol_types[n].n)
+			{
 				node.tag = n;
 				node.string += 2;
 				return copy_node(&node);
 			}
 		}
+
 		fprintf(stderr, "Unknown type %c\n", node.string[0]);
 		exit(1);
 	}
+
 	return copy_node(&node);
 }
 
 static void read_reference(FILE *f)
 {
-	while (!feof(f)) {
+	while (!feof(f))
+	{
 		struct string_list *defn = NULL;
 		struct string_list *sym, *def;
 		int is_extern = 0, is_override = 0;
 		struct symbol *subsym;
 
 		sym = read_node(f);
+
 		if (sym && sym->tag == SYM_NORMAL &&
-		    !strcmp(sym->string, "override")) {
+			!strcmp(sym->string, "override"))
+		{
 			is_override = 1;
 			free_node(sym);
 			sym = read_node(f);
 		}
+
 		if (!sym)
+		{
 			continue;
+		}
+
 		def = read_node(f);
+
 		if (def && def->tag == SYM_NORMAL &&
-		    !strcmp(def->string, "extern")) {
+			!strcmp(def->string, "extern"))
+		{
 			is_extern = 1;
 			free_node(def);
 			def = read_node(f);
 		}
-		while (def) {
+
+		while (def)
+		{
 			def->next = defn;
 			defn = def;
 			def = read_node(f);
 		}
+
 		subsym = add_reference_symbol(xstrdup(sym->string), sym->tag,
-					      defn, is_extern);
+									  defn, is_extern);
 		subsym->is_override = is_override;
 		free_node(sym);
 	}
 }
 
-static void print_node(FILE * f, struct string_list *list)
+static void print_node(FILE *f, struct string_list *list)
 {
-	if (symbol_types[list->tag].n) {
+	if (symbol_types[list->tag].n)
+	{
 		putc(symbol_types[list->tag].n, f);
 		putc('#', f);
 	}
+
 	fputs(list->string, f);
 }
 
-static void print_list(FILE * f, struct string_list *list)
+static void print_list(FILE *f, struct string_list *list)
 {
 	struct string_list **e, **b;
 	struct string_list *tmp, **tmp2;
 	int elem = 1;
 
-	if (list == NULL) {
+	if (list == NULL)
+	{
 		fputs("(nil)", f);
 		return;
 	}
 
 	tmp = list;
+
 	while ((tmp = tmp->next) != NULL)
+	{
 		elem++;
+	}
 
 	b = alloca(elem * sizeof(*e));
 	e = b + elem;
 	tmp2 = e - 1;
 
 	(*tmp2--) = list;
-	while ((list = list->next) != NULL)
-		*(tmp2--) = list;
 
-	while (b != e) {
+	while ((list = list->next) != NULL)
+	{
+		*(tmp2--) = list;
+	}
+
+	while (b != e)
+	{
 		print_node(f, *b++);
 		putc(' ', f);
 	}
@@ -547,96 +662,127 @@ static unsigned long expand_and_crc_sym(struct symbol *sym, unsigned long crc)
 	int elem = 1;
 
 	if (!list)
+	{
 		return crc;
+	}
 
 	tmp = list;
+
 	while ((tmp = tmp->next) != NULL)
+	{
 		elem++;
+	}
 
 	b = alloca(elem * sizeof(*e));
 	e = b + elem;
 	tmp2 = e - 1;
 
 	*(tmp2--) = list;
-	while ((list = list->next) != NULL)
-		*(tmp2--) = list;
 
-	while (b != e) {
+	while ((list = list->next) != NULL)
+	{
+		*(tmp2--) = list;
+	}
+
+	while (b != e)
+	{
 		struct string_list *cur;
 		struct symbol *subsym;
 
 		cur = *(b++);
-		switch (cur->tag) {
-		case SYM_NORMAL:
-			if (flag_dump_defs)
-				fprintf(debugfile, "%s ", cur->string);
-			crc = partial_crc32(cur->string, crc);
-			crc = partial_crc32_one(' ', crc);
-			break;
 
-		case SYM_ENUM_CONST:
-		case SYM_TYPEDEF:
-			subsym = find_symbol(cur->string, cur->tag, 0);
-			/* FIXME: Bad reference files can segfault here. */
-			if (subsym->expansion_trail) {
+		switch (cur->tag)
+		{
+			case SYM_NORMAL:
 				if (flag_dump_defs)
+				{
 					fprintf(debugfile, "%s ", cur->string);
-				crc = partial_crc32(cur->string, crc);
-				crc = partial_crc32_one(' ', crc);
-			} else {
-				subsym->expansion_trail = expansion_trail;
-				expansion_trail = subsym;
-				crc = expand_and_crc_sym(subsym, crc);
-			}
-			break;
-
-		case SYM_STRUCT:
-		case SYM_UNION:
-		case SYM_ENUM:
-			subsym = find_symbol(cur->string, cur->tag, 0);
-			if (!subsym) {
-				struct string_list *n;
-
-				error_with_pos("expand undefined %s %s",
-					       symbol_types[cur->tag].name,
-					       cur->string);
-				n = concat_list(mk_node
-						(symbol_types[cur->tag].name),
-						mk_node(cur->string),
-						mk_node("{"),
-						mk_node("UNKNOWN"),
-						mk_node("}"), NULL);
-				subsym =
-				    add_symbol(cur->string, cur->tag, n, 0);
-			}
-			if (subsym->expansion_trail) {
-				if (flag_dump_defs) {
-					fprintf(debugfile, "%s %s ",
-						symbol_types[cur->tag].name,
-						cur->string);
 				}
 
-				crc = partial_crc32(symbol_types[cur->tag].name,
-						    crc);
-				crc = partial_crc32_one(' ', crc);
 				crc = partial_crc32(cur->string, crc);
 				crc = partial_crc32_one(' ', crc);
-			} else {
-				subsym->expansion_trail = expansion_trail;
-				expansion_trail = subsym;
-				crc = expand_and_crc_sym(subsym, crc);
-			}
-			break;
+				break;
+
+			case SYM_ENUM_CONST:
+			case SYM_TYPEDEF:
+				subsym = find_symbol(cur->string, cur->tag, 0);
+
+				/* FIXME: Bad reference files can segfault here. */
+				if (subsym->expansion_trail)
+				{
+					if (flag_dump_defs)
+					{
+						fprintf(debugfile, "%s ", cur->string);
+					}
+
+					crc = partial_crc32(cur->string, crc);
+					crc = partial_crc32_one(' ', crc);
+				}
+				else
+				{
+					subsym->expansion_trail = expansion_trail;
+					expansion_trail = subsym;
+					crc = expand_and_crc_sym(subsym, crc);
+				}
+
+				break;
+
+			case SYM_STRUCT:
+			case SYM_UNION:
+			case SYM_ENUM:
+				subsym = find_symbol(cur->string, cur->tag, 0);
+
+				if (!subsym)
+				{
+					struct string_list *n;
+
+					error_with_pos("expand undefined %s %s",
+								   symbol_types[cur->tag].name,
+								   cur->string);
+					n = concat_list(mk_node
+									(symbol_types[cur->tag].name),
+									mk_node(cur->string),
+									mk_node("{"),
+									mk_node("UNKNOWN"),
+									mk_node("}"), NULL);
+					subsym =
+						add_symbol(cur->string, cur->tag, n, 0);
+				}
+
+				if (subsym->expansion_trail)
+				{
+					if (flag_dump_defs)
+					{
+						fprintf(debugfile, "%s %s ",
+								symbol_types[cur->tag].name,
+								cur->string);
+					}
+
+					crc = partial_crc32(symbol_types[cur->tag].name,
+										crc);
+					crc = partial_crc32_one(' ', crc);
+					crc = partial_crc32(cur->string, crc);
+					crc = partial_crc32_one(' ', crc);
+				}
+				else
+				{
+					subsym->expansion_trail = expansion_trail;
+					expansion_trail = subsym;
+					crc = expand_and_crc_sym(subsym, crc);
+				}
+
+				break;
 		}
 	}
 
 	{
 		static struct symbol **end = &visited_symbols;
 
-		if (!sym->visited) {
+		if (!sym->visited)
+		{
 			*end = sym;
 			end = &sym->visited;
-			sym->visited = (struct symbol *)-1L;
+			sym->visited = (struct symbol *) - 1L;
 		}
 	}
 
@@ -648,49 +794,76 @@ void export_symbol(const char *name)
 	struct symbol *sym;
 
 	sym = find_symbol(name, SYM_NORMAL, 0);
+
 	if (!sym)
+	{
 		error_with_pos("export undefined symbol %s", name);
-	else {
+	}
+	else
+	{
 		unsigned long crc;
 		int has_changed = 0;
 
 		if (flag_dump_defs)
+		{
 			fprintf(debugfile, "Export %s == <", name);
+		}
 
-		expansion_trail = (struct symbol *)-1L;
+		expansion_trail = (struct symbol *) - 1L;
 
 		sym->expansion_trail = expansion_trail;
 		expansion_trail = sym;
 		crc = expand_and_crc_sym(sym, 0xffffffff) ^ 0xffffffff;
 
 		sym = expansion_trail;
-		while (sym != (struct symbol *)-1L) {
+
+		while (sym != (struct symbol *) - 1L)
+		{
 			struct symbol *n = sym->expansion_trail;
 
-			if (sym->status != STATUS_UNCHANGED) {
-				if (!has_changed) {
+			if (sym->status != STATUS_UNCHANGED)
+			{
+				if (!has_changed)
+				{
 					print_location();
 					fprintf(stderr, "%s: %s: modversion "
-						"changed because of changes "
-						"in ", flag_preserve ? "error" :
-						       "warning", name);
-				} else
+							"changed because of changes "
+							"in ", flag_preserve ? "error" :
+							"warning", name);
+				}
+				else
+				{
 					fprintf(stderr, ", ");
+				}
+
 				print_type_name(sym->type, sym->name);
+
 				if (sym->status == STATUS_DEFINED)
+				{
 					fprintf(stderr, " (became defined)");
+				}
+
 				has_changed = 1;
+
 				if (flag_preserve)
+				{
 					errors++;
+				}
 			}
+
 			sym->expansion_trail = 0;
 			sym = n;
 		}
+
 		if (has_changed)
+		{
 			fprintf(stderr, "\n");
+		}
 
 		if (flag_dump_defs)
+		{
 			fputs(">\n", debugfile);
+		}
 
 		/* Used as a linker script. */
 		printf("%s__crc_%s = 0x%08lx ;\n", mod_prefix, name, crc);
@@ -707,16 +880,21 @@ static void print_location(void)
 static void print_type_name(enum symbol_type type, const char *name)
 {
 	if (symbol_types[type].name)
+	{
 		fprintf(stderr, "%s %s", symbol_types[type].name, name);
+	}
 	else
+	{
 		fprintf(stderr, "%s", name);
+	}
 }
 
 void error_with_pos(const char *fmt, ...)
 {
 	va_list args;
 
-	if (flag_warnings) {
+	if (flag_warnings)
+	{
 		print_location();
 
 		va_start(args, fmt);
@@ -732,29 +910,29 @@ static void genksyms_usage(void)
 {
 	fputs("Usage:\n" "genksyms [-adDTwqhV] > /path/to/.tmp_obj.ver\n" "\n"
 #ifdef __GNU_LIBRARY__
-	      "  -s, --symbol-prefix   Select symbol prefix\n"
-	      "  -d, --debug           Increment the debug level (repeatable)\n"
-	      "  -D, --dump            Dump expanded symbol defs (for debugging only)\n"
-	      "  -r, --reference file  Read reference symbols from a file\n"
-	      "  -T, --dump-types file Dump expanded types into file\n"
-	      "  -p, --preserve        Preserve reference modversions or fail\n"
-	      "  -w, --warnings        Enable warnings\n"
-	      "  -q, --quiet           Disable warnings (default)\n"
-	      "  -h, --help            Print this message\n"
-	      "  -V, --version         Print the release version\n"
+		  "  -s, --symbol-prefix   Select symbol prefix\n"
+		  "  -d, --debug           Increment the debug level (repeatable)\n"
+		  "  -D, --dump            Dump expanded symbol defs (for debugging only)\n"
+		  "  -r, --reference file  Read reference symbols from a file\n"
+		  "  -T, --dump-types file Dump expanded types into file\n"
+		  "  -p, --preserve        Preserve reference modversions or fail\n"
+		  "  -w, --warnings        Enable warnings\n"
+		  "  -q, --quiet           Disable warnings (default)\n"
+		  "  -h, --help            Print this message\n"
+		  "  -V, --version         Print the release version\n"
 #else				/* __GNU_LIBRARY__ */
-	      "  -s                    Select symbol prefix\n"
-	      "  -d                    Increment the debug level (repeatable)\n"
-	      "  -D                    Dump expanded symbol defs (for debugging only)\n"
-	      "  -r file               Read reference symbols from a file\n"
-	      "  -T file               Dump expanded types into file\n"
-	      "  -p                    Preserve reference modversions or fail\n"
-	      "  -w                    Enable warnings\n"
-	      "  -q                    Disable warnings (default)\n"
-	      "  -h                    Print this message\n"
-	      "  -V                    Print the release version\n"
+		  "  -s                    Select symbol prefix\n"
+		  "  -d                    Increment the debug level (repeatable)\n"
+		  "  -D                    Dump expanded symbol defs (for debugging only)\n"
+		  "  -r file               Read reference symbols from a file\n"
+		  "  -T file               Dump expanded types into file\n"
+		  "  -p                    Preserve reference modversions or fail\n"
+		  "  -w                    Enable warnings\n"
+		  "  -q                    Disable warnings (default)\n"
+		  "  -h                    Print this message\n"
+		  "  -V                    Print the release version\n"
 #endif				/* __GNU_LIBRARY__ */
-	      , stderr);
+		  , stderr);
 }
 
 int main(int argc, char **argv)
@@ -763,7 +941,8 @@ int main(int argc, char **argv)
 	int o;
 
 #ifdef __GNU_LIBRARY__
-	struct option long_opts[] = {
+	struct option long_opts[] =
+	{
 		{"symbol-prefix", 1, 0, 's'},
 		{"debug", 0, 0, 'd'},
 		{"warnings", 0, 0, 'w'},
@@ -778,55 +957,73 @@ int main(int argc, char **argv)
 	};
 
 	while ((o = getopt_long(argc, argv, "s:dwqVDr:T:ph",
-				&long_opts[0], NULL)) != EOF)
+							&long_opts[0], NULL)) != EOF)
 #else				/* __GNU_LIBRARY__ */
 	while ((o = getopt(argc, argv, "s:dwqVDr:T:ph")) != EOF)
 #endif				/* __GNU_LIBRARY__ */
-		switch (o) {
-		case 's':
-			mod_prefix = optarg;
-			break;
-		case 'd':
-			flag_debug++;
-			break;
-		case 'w':
-			flag_warnings = 1;
-			break;
-		case 'q':
-			flag_warnings = 0;
-			break;
-		case 'V':
-			fputs("genksyms version 2.5.60\n", stderr);
-			break;
-		case 'D':
-			flag_dump_defs = 1;
-			break;
-		case 'r':
-			flag_reference = 1;
-			ref_file = fopen(optarg, "r");
-			if (!ref_file) {
-				perror(optarg);
+		switch (o)
+		{
+			case 's':
+				mod_prefix = optarg;
+				break;
+
+			case 'd':
+				flag_debug++;
+				break;
+
+			case 'w':
+				flag_warnings = 1;
+				break;
+
+			case 'q':
+				flag_warnings = 0;
+				break;
+
+			case 'V':
+				fputs("genksyms version 2.5.60\n", stderr);
+				break;
+
+			case 'D':
+				flag_dump_defs = 1;
+				break;
+
+			case 'r':
+				flag_reference = 1;
+				ref_file = fopen(optarg, "r");
+
+				if (!ref_file)
+				{
+					perror(optarg);
+					return 1;
+				}
+
+				break;
+
+			case 'T':
+				flag_dump_types = 1;
+				dumpfile = fopen(optarg, "w");
+
+				if (!dumpfile)
+				{
+					perror(optarg);
+					return 1;
+				}
+
+				break;
+
+			case 'p':
+				flag_preserve = 1;
+				break;
+
+			case 'h':
+				genksyms_usage();
+				return 0;
+
+			default:
+				genksyms_usage();
 				return 1;
-			}
-			break;
-		case 'T':
-			flag_dump_types = 1;
-			dumpfile = fopen(optarg, "w");
-			if (!dumpfile) {
-				perror(optarg);
-				return 1;
-			}
-			break;
-		case 'p':
-			flag_preserve = 1;
-			break;
-		case 'h':
-			genksyms_usage();
-			return 0;
-		default:
-			genksyms_usage();
-			return 1;
 		}
+
 	{
 		extern int yydebug;
 		extern int yy_flex_debug;
@@ -838,27 +1035,39 @@ int main(int argc, char **argv)
 		/* setlinebuf(debugfile); */
 	}
 
-	if (flag_reference) {
+	if (flag_reference)
+	{
 		read_reference(ref_file);
 		fclose(ref_file);
 	}
 
 	yyparse();
 
-	if (flag_dump_types && visited_symbols) {
-		while (visited_symbols != (struct symbol *)-1L) {
+	if (flag_dump_types && visited_symbols)
+	{
+		while (visited_symbols != (struct symbol *) - 1L)
+		{
 			struct symbol *sym = visited_symbols;
 
 			if (sym->is_override)
+			{
 				fputs("override ", dumpfile);
-			if (symbol_types[sym->type].n) {
+			}
+
+			if (symbol_types[sym->type].n)
+			{
 				putc(symbol_types[sym->type].n, dumpfile);
 				putc('#', dumpfile);
 			}
+
 			fputs(sym->name, dumpfile);
 			putc(' ', dumpfile);
+
 			if (sym->is_extern)
+			{
 				fputs("extern ", dumpfile);
+			}
+
 			print_list(dumpfile, sym->defn);
 			putc('\n', dumpfile);
 
@@ -867,14 +1076,17 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (flag_debug) {
+	if (flag_debug)
+	{
 		fprintf(debugfile, "Hash table occupancy %d/%d = %g\n",
-			nsyms, HASH_BUCKETS,
-			(double)nsyms / (double)HASH_BUCKETS);
+				nsyms, HASH_BUCKETS,
+				(double)nsyms / (double)HASH_BUCKETS);
 	}
 
 	if (dumpfile)
+	{
 		fclose(dumpfile);
+	}
 
 	return errors != 0;
 }

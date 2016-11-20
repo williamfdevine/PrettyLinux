@@ -24,20 +24,33 @@ static void print_data(const char *data, int len)
 
 	/* no data, don't print */
 	if (len == 0)
+	{
 		return;
+	}
 
-	if (util_is_printable_string(data, len)) {
+	if (util_is_printable_string(data, len))
+	{
 		printf(" = \"%s\"", (const char *)data);
-	} else if ((len % 4) == 0) {
+	}
+	else if ((len % 4) == 0)
+	{
 		printf(" = <");
+
 		for (i = 0; i < len; i += 4)
 			printf("0x%08x%s", fdt32_to_cpu(GET_CELL(p)),
-			       i < (len - 4) ? " " : "");
+				   i < (len - 4) ? " " : "");
+
 		printf(">");
-	} else {
+	}
+	else
+	{
 		printf(" = [");
+
 		for (i = 0; i < len; i++)
+		{
 			printf("%02x%s", *p++, i < len - 1 ? " " : "");
+		}
+
 		printf("]");
 	}
 }
@@ -71,40 +84,52 @@ static void dump_blob(void *blob)
 	printf("// off_mem_rsvmap:\t0x%x\n", off_mem_rsvmap);
 	printf("// version:\t\t%d\n", version);
 	printf("// last_comp_version:\t%d\n",
-	       fdt32_to_cpu(bph->last_comp_version));
+		   fdt32_to_cpu(bph->last_comp_version));
+
 	if (version >= 2)
 		printf("// boot_cpuid_phys:\t0x%x\n",
-		       fdt32_to_cpu(bph->boot_cpuid_phys));
+			   fdt32_to_cpu(bph->boot_cpuid_phys));
 
 	if (version >= 3)
 		printf("// size_dt_strings:\t0x%x\n",
-		       fdt32_to_cpu(bph->size_dt_strings));
+			   fdt32_to_cpu(bph->size_dt_strings));
+
 	if (version >= 17)
 		printf("// size_dt_struct:\t0x%x\n",
-		       fdt32_to_cpu(bph->size_dt_struct));
+			   fdt32_to_cpu(bph->size_dt_struct));
+
 	printf("\n");
 
-	for (i = 0; ; i++) {
+	for (i = 0; ; i++)
+	{
 		addr = fdt64_to_cpu(p_rsvmap[i].address);
 		size = fdt64_to_cpu(p_rsvmap[i].size);
+
 		if (addr == 0 && size == 0)
+		{
 			break;
+		}
 
 		printf("/memreserve/ %llx %llx;\n",
-		       (unsigned long long)addr, (unsigned long long)size);
+			   (unsigned long long)addr, (unsigned long long)size);
 	}
 
 	p = p_struct;
-	while ((tag = fdt32_to_cpu(GET_CELL(p))) != FDT_END) {
+
+	while ((tag = fdt32_to_cpu(GET_CELL(p))) != FDT_END)
+	{
 
 		/* printf("tag: 0x%08x (%d)\n", tag, p - p_struct); */
 
-		if (tag == FDT_BEGIN_NODE) {
+		if (tag == FDT_BEGIN_NODE)
+		{
 			s = p;
 			p = PALIGN(p + strlen(s) + 1, 4);
 
 			if (*s == '\0')
+			{
 				s = "/";
+			}
 
 			printf("%*s%s {\n", depth * shift, "", s);
 
@@ -112,26 +137,34 @@ static void dump_blob(void *blob)
 			continue;
 		}
 
-		if (tag == FDT_END_NODE) {
+		if (tag == FDT_END_NODE)
+		{
 			depth--;
 
 			printf("%*s};\n", depth * shift, "");
 			continue;
 		}
 
-		if (tag == FDT_NOP) {
+		if (tag == FDT_NOP)
+		{
 			printf("%*s// [NOP]\n", depth * shift, "");
 			continue;
 		}
 
-		if (tag != FDT_PROP) {
+		if (tag != FDT_PROP)
+		{
 			fprintf(stderr, "%*s ** Unknown tag 0x%08x\n", depth * shift, "", tag);
 			break;
 		}
+
 		sz = fdt32_to_cpu(GET_CELL(p));
 		s = p_strings + fdt32_to_cpu(GET_CELL(p));
+
 		if (version < 16 && sz >= 8)
+		{
 			p = PALIGN(p, 8);
+		}
+
 		t = p;
 
 		p = PALIGN(p + sz, 4);
@@ -147,16 +180,22 @@ int main(int argc, char *argv[])
 {
 	char *buf;
 
-	if (argc < 2) {
+	if (argc < 2)
+	{
 		fprintf(stderr, "supply input filename\n");
 		return 5;
 	}
 
 	buf = utilfdt_read(argv[1]);
+
 	if (buf)
+	{
 		dump_blob(buf);
+	}
 	else
+	{
 		return 10;
+	}
 
 	return 0;
 }

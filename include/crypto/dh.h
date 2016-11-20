@@ -13,7 +13,8 @@
 #ifndef _CRYPTO_DH_
 #define _CRYPTO_DH_
 
-struct dh {
+struct dh
+{
 	void *key;
 	void *p;
 	void *g;

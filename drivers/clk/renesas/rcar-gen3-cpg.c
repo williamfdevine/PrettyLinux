@@ -39,20 +39,22 @@
 #define CPG_SD_FC_MASK		(0x7 << 2 | 0x3 << 0)
 
 #define CPG_SD_DIV_TABLE_DATA(stp_hck, stp_ck, sd_srcfc, sd_fc, sd_div) \
-{ \
-	.val = ((stp_hck) ? CPG_SD_STP_HCK : 0) | \
-	       ((stp_ck) ? CPG_SD_STP_CK : 0) | \
-	       ((sd_srcfc) << 2) | \
-	       ((sd_fc) << 0), \
-	.div = (sd_div), \
-}
+	{ \
+		.val = ((stp_hck) ? CPG_SD_STP_HCK : 0) | \
+			   ((stp_ck) ? CPG_SD_STP_CK : 0) | \
+			   ((sd_srcfc) << 2) | \
+			   ((sd_fc) << 0), \
+			   .div = (sd_div), \
+	}
 
-struct sd_div_table {
+struct sd_div_table
+{
 	u32 val;
 	unsigned int div;
 };
 
-struct sd_clock {
+struct sd_clock
+{
 	struct clk_hw hw;
 	void __iomem *reg;
 	const struct sd_div_table *div_table;
@@ -76,8 +78,9 @@ struct sd_clock {
  *  1         0         3 (8)      0 (2)     16
  *  1         0         4 (16)     0 (2)     32
  */
-static const struct sd_div_table cpg_sd_div_table[] = {
-/*	CPG_SD_DIV_TABLE_DATA(stp_hck,  stp_ck,   sd_srcfc,   sd_fc,  sd_div) */
+static const struct sd_div_table cpg_sd_div_table[] =
+{
+	/*	CPG_SD_DIV_TABLE_DATA(stp_hck,  stp_ck,   sd_srcfc,   sd_fc,  sd_div) */
 	CPG_SD_DIV_TABLE_DATA(0,        0,        0,          1,        4),
 	CPG_SD_DIV_TABLE_DATA(0,        0,        1,          1,        8),
 	CPG_SD_DIV_TABLE_DATA(1,        0,        2,          1,       16),
@@ -101,12 +104,17 @@ static int cpg_sd_clock_enable(struct clk_hw *hw)
 	val = clk_readl(clock->reg);
 
 	sd_fc = val & CPG_SD_FC_MASK;
+
 	for (i = 0; i < clock->div_num; i++)
 		if (sd_fc == (clock->div_table[i].val & CPG_SD_FC_MASK))
+		{
 			break;
+		}
 
 	if (i >= clock->div_num)
+	{
 		return -EINVAL;
+	}
 
 	val &= ~(CPG_SD_STP_MASK);
 	val |= clock->div_table[i].val & CPG_SD_STP_MASK;
@@ -131,7 +139,7 @@ static int cpg_sd_clock_is_enabled(struct clk_hw *hw)
 }
 
 static unsigned long cpg_sd_clock_recalc_rate(struct clk_hw *hw,
-						unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct sd_clock *clock = to_sd_clock(hw);
 	unsigned long rate = parent_rate;
@@ -141,24 +149,31 @@ static unsigned long cpg_sd_clock_recalc_rate(struct clk_hw *hw,
 	val = clk_readl(clock->reg);
 
 	sd_fc = val & CPG_SD_FC_MASK;
+
 	for (i = 0; i < clock->div_num; i++)
 		if (sd_fc == (clock->div_table[i].val & CPG_SD_FC_MASK))
+		{
 			break;
+		}
 
 	if (i >= clock->div_num)
+	{
 		return -EINVAL;
+	}
 
 	return DIV_ROUND_CLOSEST(rate, clock->div_table[i].div);
 }
 
 static unsigned int cpg_sd_clock_calc_div(struct sd_clock *clock,
-					  unsigned long rate,
-					  unsigned long parent_rate)
+		unsigned long rate,
+		unsigned long parent_rate)
 {
 	unsigned int div;
 
 	if (!rate)
+	{
 		rate = 1;
+	}
 
 	div = DIV_ROUND_CLOSEST(parent_rate, rate);
 
@@ -166,7 +181,7 @@ static unsigned int cpg_sd_clock_calc_div(struct sd_clock *clock,
 }
 
 static long cpg_sd_clock_round_rate(struct clk_hw *hw, unsigned long rate,
-				      unsigned long *parent_rate)
+									unsigned long *parent_rate)
 {
 	struct sd_clock *clock = to_sd_clock(hw);
 	unsigned int div = cpg_sd_clock_calc_div(clock, rate, *parent_rate);
@@ -175,7 +190,7 @@ static long cpg_sd_clock_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int cpg_sd_clock_set_rate(struct clk_hw *hw, unsigned long rate,
-				   unsigned long parent_rate)
+								 unsigned long parent_rate)
 {
 	struct sd_clock *clock = to_sd_clock(hw);
 	unsigned int div = cpg_sd_clock_calc_div(clock, rate, parent_rate);
@@ -184,10 +199,14 @@ static int cpg_sd_clock_set_rate(struct clk_hw *hw, unsigned long rate,
 
 	for (i = 0; i < clock->div_num; i++)
 		if (div == clock->div_table[i].div)
+		{
 			break;
+		}
 
 	if (i >= clock->div_num)
+	{
 		return -EINVAL;
+	}
 
 	val = clk_readl(clock->reg);
 	val &= ~(CPG_SD_STP_MASK | CPG_SD_FC_MASK);
@@ -197,7 +216,8 @@ static int cpg_sd_clock_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-static const struct clk_ops cpg_sd_clock_ops = {
+static const struct clk_ops cpg_sd_clock_ops =
+{
 	.enable = cpg_sd_clock_enable,
 	.disable = cpg_sd_clock_disable,
 	.is_enabled = cpg_sd_clock_is_enabled,
@@ -206,9 +226,9 @@ static const struct clk_ops cpg_sd_clock_ops = {
 	.set_rate = cpg_sd_clock_set_rate,
 };
 
-static struct clk * __init cpg_sd_clk_register(const struct cpg_core_clk *core,
-					       void __iomem *base,
-					       const char *parent_name)
+static struct clk *__init cpg_sd_clk_register(const struct cpg_core_clk *core,
+		void __iomem *base,
+		const char *parent_name)
 {
 	struct clk_init_data init;
 	struct sd_clock *clock;
@@ -216,8 +236,11 @@ static struct clk * __init cpg_sd_clk_register(const struct cpg_core_clk *core,
 	unsigned int i;
 
 	clock = kzalloc(sizeof(*clock), GFP_KERNEL);
+
 	if (!clock)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = core->name;
 	init.ops = &cpg_sd_clock_ops;
@@ -232,14 +255,19 @@ static struct clk * __init cpg_sd_clk_register(const struct cpg_core_clk *core,
 
 	clock->div_max = clock->div_table[0].div;
 	clock->div_min = clock->div_max;
-	for (i = 1; i < clock->div_num; i++) {
+
+	for (i = 1; i < clock->div_num; i++)
+	{
 		clock->div_max = max(clock->div_max, clock->div_table[i].div);
 		clock->div_min = min(clock->div_min, clock->div_table[i].div);
 	}
 
 	clk = clk_register(NULL, &clock->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(clock);
+	}
 
 	return clk;
 }
@@ -248,9 +276,9 @@ static struct clk * __init cpg_sd_clk_register(const struct cpg_core_clk *core,
 static const struct rcar_gen3_cpg_pll_config *cpg_pll_config __initdata;
 static unsigned int cpg_clk_extalr __initdata;
 
-struct clk * __init rcar_gen3_cpg_clk_register(struct device *dev,
-	const struct cpg_core_clk *core, const struct cpg_mssr_info *info,
-	struct clk **clks, void __iomem *base)
+struct clk *__init rcar_gen3_cpg_clk_register(struct device *dev,
+		const struct cpg_core_clk *core, const struct cpg_mssr_info *info,
+		struct clk **clks, void __iomem *base)
 {
 	const struct clk *parent;
 	unsigned int mult = 1;
@@ -258,79 +286,84 @@ struct clk * __init rcar_gen3_cpg_clk_register(struct device *dev,
 	u32 value;
 
 	parent = clks[core->parent];
+
 	if (IS_ERR(parent))
+	{
 		return ERR_CAST(parent);
+	}
 
-	switch (core->type) {
-	case CLK_TYPE_GEN3_MAIN:
-		div = cpg_pll_config->extal_div;
-		break;
+	switch (core->type)
+	{
+		case CLK_TYPE_GEN3_MAIN:
+			div = cpg_pll_config->extal_div;
+			break;
 
-	case CLK_TYPE_GEN3_PLL0:
-		/*
-		 * PLL0 is a configurable multiplier clock. Register it as a
-		 * fixed factor clock for now as there's no generic multiplier
-		 * clock implementation and we currently have no need to change
-		 * the multiplier value.
-		 */
-		value = readl(base + CPG_PLL0CR);
-		mult = (((value >> 24) & 0x7f) + 1) * 2;
-		break;
+		case CLK_TYPE_GEN3_PLL0:
+			/*
+			 * PLL0 is a configurable multiplier clock. Register it as a
+			 * fixed factor clock for now as there's no generic multiplier
+			 * clock implementation and we currently have no need to change
+			 * the multiplier value.
+			 */
+			value = readl(base + CPG_PLL0CR);
+			mult = (((value >> 24) & 0x7f) + 1) * 2;
+			break;
 
-	case CLK_TYPE_GEN3_PLL1:
-		mult = cpg_pll_config->pll1_mult;
-		break;
+		case CLK_TYPE_GEN3_PLL1:
+			mult = cpg_pll_config->pll1_mult;
+			break;
 
-	case CLK_TYPE_GEN3_PLL2:
-		/*
-		 * PLL2 is a configurable multiplier clock. Register it as a
-		 * fixed factor clock for now as there's no generic multiplier
-		 * clock implementation and we currently have no need to change
-		 * the multiplier value.
-		 */
-		value = readl(base + CPG_PLL2CR);
-		mult = (((value >> 24) & 0x7f) + 1) * 2;
-		break;
+		case CLK_TYPE_GEN3_PLL2:
+			/*
+			 * PLL2 is a configurable multiplier clock. Register it as a
+			 * fixed factor clock for now as there's no generic multiplier
+			 * clock implementation and we currently have no need to change
+			 * the multiplier value.
+			 */
+			value = readl(base + CPG_PLL2CR);
+			mult = (((value >> 24) & 0x7f) + 1) * 2;
+			break;
 
-	case CLK_TYPE_GEN3_PLL3:
-		mult = cpg_pll_config->pll3_mult;
-		break;
+		case CLK_TYPE_GEN3_PLL3:
+			mult = cpg_pll_config->pll3_mult;
+			break;
 
-	case CLK_TYPE_GEN3_PLL4:
-		/*
-		 * PLL4 is a configurable multiplier clock. Register it as a
-		 * fixed factor clock for now as there's no generic multiplier
-		 * clock implementation and we currently have no need to change
-		 * the multiplier value.
-		 */
-		value = readl(base + CPG_PLL4CR);
-		mult = (((value >> 24) & 0x7f) + 1) * 2;
-		break;
+		case CLK_TYPE_GEN3_PLL4:
+			/*
+			 * PLL4 is a configurable multiplier clock. Register it as a
+			 * fixed factor clock for now as there's no generic multiplier
+			 * clock implementation and we currently have no need to change
+			 * the multiplier value.
+			 */
+			value = readl(base + CPG_PLL4CR);
+			mult = (((value >> 24) & 0x7f) + 1) * 2;
+			break;
 
-	case CLK_TYPE_GEN3_SD:
-		return cpg_sd_clk_register(core, base, __clk_get_name(parent));
+		case CLK_TYPE_GEN3_SD:
+			return cpg_sd_clk_register(core, base, __clk_get_name(parent));
 
-	case CLK_TYPE_GEN3_R:
-		/*
-		 * RINT is default.
-		 * Only if EXTALR is populated, we switch to it.
-		 */
-		value = readl(base + CPG_RCKCR) & 0x3f;
+		case CLK_TYPE_GEN3_R:
+			/*
+			 * RINT is default.
+			 * Only if EXTALR is populated, we switch to it.
+			 */
+			value = readl(base + CPG_RCKCR) & 0x3f;
 
-		if (clk_get_rate(clks[cpg_clk_extalr])) {
-			parent = clks[cpg_clk_extalr];
-			value |= BIT(15);
-		}
+			if (clk_get_rate(clks[cpg_clk_extalr]))
+			{
+				parent = clks[cpg_clk_extalr];
+				value |= BIT(15);
+			}
 
-		writel(value, base + CPG_RCKCR);
-		break;
+			writel(value, base + CPG_RCKCR);
+			break;
 
-	default:
-		return ERR_PTR(-EINVAL);
+		default:
+			return ERR_PTR(-EINVAL);
 	}
 
 	return clk_register_fixed_factor(NULL, core->name,
-					 __clk_get_name(parent), 0, mult, div);
+									 __clk_get_name(parent), 0, mult, div);
 }
 
 /*
@@ -351,7 +384,7 @@ u32 __init rcar_gen3_read_mode_pins(void)
 }
 
 int __init rcar_gen3_cpg_init(const struct rcar_gen3_cpg_pll_config *config,
-			      unsigned int clk_extalr)
+							  unsigned int clk_extalr)
 {
 	cpg_pll_config = config;
 	cpg_clk_extalr = clk_extalr;

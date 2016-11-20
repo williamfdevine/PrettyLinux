@@ -43,7 +43,8 @@
  * @asce: region or segment table designation
  * @fident: file name (ASCII, zero-terminated)
  */
-struct sclp_diag_ftp {
+struct sclp_diag_ftp
+{
 	u8 pcx;
 	u8 ldflg;
 	u8 cmd;
@@ -66,11 +67,13 @@ struct sclp_diag_ftp {
  * @route: diagnostic route
  * @mdd: model-dependent data (@route dependent)
  */
-struct sclp_diag_evbuf {
+struct sclp_diag_evbuf
+{
 	struct evbuf_header hdr;
 	u16 route;
 
-	union {
+	union
+	{
 		struct sclp_diag_ftp ftp;
 	} mdd;
 } __packed;
@@ -80,7 +83,8 @@ struct sclp_diag_evbuf {
  * @hdr: SCCB header
  * @evbuf: event buffer
  */
-struct sclp_diag_sccb {
+struct sclp_diag_sccb
+{
 
 	struct sccb_header hdr;
 	struct sclp_diag_evbuf evbuf;

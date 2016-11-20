@@ -15,7 +15,8 @@
 
 extern const u8 md5_zero_message_hash[MD5_DIGEST_SIZE];
 
-struct md5_state {
+struct md5_state
+{
 	u32 hash[MD5_HASH_WORDS];
 	u32 block[MD5_BLOCK_WORDS];
 	u64 byte_count;

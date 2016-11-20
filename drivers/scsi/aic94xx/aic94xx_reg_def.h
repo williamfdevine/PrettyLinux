@@ -88,8 +88,8 @@
 #define		OVLYDMADONE		0x00000001
 
 #define		COMSTAT_MASK		(REQMBXREAD | RSPMBXAVAIL | \
-					 CSBUFPERR | OVLYERR | CSERR |\
-					 OVLYDMADONE)
+								 CSBUFPERR | OVLYERR | CSERR |\
+								 OVLYDMADONE)
 
 #define COMSTATEN	(REG_BASE_ADDR + 0x08)
 
@@ -125,7 +125,7 @@
 #define		DLAVAIL			0x00000001
 
 #define		CHIMINT_MASK		(HOSTERR | INITERR | DEVINT | COMINT |\
-					 DEVTIMER2 | DEVTIMER1 | DLAVAIL)
+								 DEVTIMER2 | DEVTIMER1 | DLAVAIL)
 
 #define 	DEVEXCEPT_MASK		(HOSTERR | INITERR | DEVINT | COMINT)
 
@@ -151,13 +151,13 @@
 #define		SET_EN_DLAVAIL		0x00000001
 
 #define		RST_CHIMINTEN		(RST_EN_HOSTERR | RST_EN_INITERR | \
-					 RST_EN_DEVINT | RST_EN_COMINT | \
-					 RST_EN_DEVTIMER2 | RST_EN_DEVTIMER1 |\
-					 RST_EN_DLAVAIL)
+								 RST_EN_DEVINT | RST_EN_COMINT | \
+								 RST_EN_DEVTIMER2 | RST_EN_DEVTIMER1 |\
+								 RST_EN_DLAVAIL)
 
 #define		SET_CHIMINTEN		(SET_EN_HOSTERR | SET_EN_INITERR |\
-					 SET_EN_DEVINT | SET_EN_COMINT |\
-					 SET_EN_DLAVAIL)
+								 SET_EN_DEVINT | SET_EN_COMINT |\
+								 SET_EN_DLAVAIL)
 
 #define OVLYDMACTL	(REG_BASE_ADDR + 0x20)
 
@@ -271,8 +271,8 @@
 #define		LSEQ0INT		0x00000001	/* ro */
 
 #define		LSEQINT_MASK		(LSEQ7INT | LSEQ6INT | LSEQ5INT |\
-					 LSEQ4INT | LSEQ3INT | LSEQ2INT	|\
-					 LSEQ1INT | LSEQ0INT)
+								 LSEQ4INT | LSEQ3INT | LSEQ2INT	|\
+								 LSEQ1INT | LSEQ0INT)
 
 #define DCHDFIFDEBUG	(REG_BASE_ADDR + 0x820)
 #define		ENFAIRMST		0x00FF0000
@@ -518,8 +518,8 @@
 #define CSEQ_CIO_REG_BASE_ADR		REG_BASE_ADDR_CSEQCIO
 
 #define CSEQm_CIO_REG(Mode, Reg) \
-		(CSEQ_CIO_REG_BASE_ADR  + \
-		((u32) (Mode) * CSEQ_MODE_PAGE_SIZE) + (u32) (Reg))
+	(CSEQ_CIO_REG_BASE_ADR  + \
+	 ((u32) (Mode) * CSEQ_MODE_PAGE_SIZE) + (u32) (Reg))
 
 #define CMODEPTR	(CSEQ_CIO_REG_BASE_ADR + MODEPTR)
 
@@ -717,36 +717,36 @@
 #define LSEQ7_HOST_REG_BASE_ADR		0xB803C000
 
 #define LmARP2CTL(LinkNum)		(LSEQ0_HOST_REG_BASE_ADR +	  \
-					((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
-					ARP2CTL)
+								 ((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
+								 ARP2CTL)
 
 #define LmARP2INT(LinkNum)		(LSEQ0_HOST_REG_BASE_ADR +	  \
-					((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
-					ARP2INT)
+								 ((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
+								 ARP2INT)
 
 #define LmARP2INTEN(LinkNum)		(LSEQ0_HOST_REG_BASE_ADR +	  \
-					((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
-					ARP2INTEN)
+									 ((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
+									 ARP2INTEN)
 
 #define LmDBGMODE(LinkNum)		(LSEQ0_HOST_REG_BASE_ADR +	  \
-					((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
-					DBGMODE)
+								 ((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
+								 DBGMODE)
 
 #define LmCONTROL(LinkNum)		(LSEQ0_HOST_REG_BASE_ADR +	  \
-					((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
-					CONTROL)
+								 ((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
+								 CONTROL)
 
 #define LmARP2BREAKADR01(LinkNum)	(LSEQ0_HOST_REG_BASE_ADR +	  \
-					((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
-					ARP2BREAKADR01)
+									 ((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
+									 ARP2BREAKADR01)
 
 #define LmARP2BREAKADR23(LinkNum)	(LSEQ0_HOST_REG_BASE_ADR +	  \
-					((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
-					ARP2BREAKADR23)
+									 ((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
+									 ARP2BREAKADR23)
 
 #define LmMODECTL(LinkNum)		(LSEQ0_HOST_REG_BASE_ADR +	  \
-					((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
-					MODECTL)
+								 ((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
+								 MODECTL)
 
 #define		LmAUTODISCI		0x08000000
 #define		LmDSBLBITLT		0x04000000
@@ -762,8 +762,8 @@
 #define		LmRCVMODE_HPC		0x00000004
 
 #define LmDBGMODE(LinkNum)		(LSEQ0_HOST_REG_BASE_ADR +	  \
-					((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
-					DBGMODE)
+								 ((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
+								 DBGMODE)
 
 #define		LmFRCPERR		0x80000000
 #define		LmMEMSEL_MASK		0x30000000
@@ -794,15 +794,15 @@
 #define		LmSSRCVFRM		0x00000001
 
 #define LmCONTROL(LinkNum)		(LSEQ0_HOST_REG_BASE_ADR +	  \
-					((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
-					CONTROL)
+								 ((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
+								 CONTROL)
 
 #define		LmSTEPXMTFRM		0x00000002
 #define		LmSTEPRCVFRM		0x00000001
 
 #define LmBISTCTL0(LinkNum)		(LSEQ0_HOST_REG_BASE_ADR +	  \
-					((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
-					BISTCTL0)
+								 ((LinkNum)*LmSEQ_HOST_REG_SIZE) + \
+								 BISTCTL0)
 
 #define		ARBBISTEN		0x40000000
 #define		ARBBISTDN		0x20000000	/* ro */
@@ -818,8 +818,8 @@
 #define		SGBISTFAIL		0x00000001	/* ro */
 
 #define LmBISTCTL1(LinkNum)		(LSEQ0_HOST_REG_BASE_ADR +	 \
-					((LinkNum)*LmSEQ_HOST_REG_SIZE) +\
-					BISTCTL1)
+								 ((LinkNum)*LmSEQ_HOST_REG_SIZE) +\
+								 BISTCTL1)
 
 #define		LmRAMPAGE1		0x00000200
 #define		LmRAMPAGE0		0x00000100
@@ -833,12 +833,12 @@
 #define		LmRAMPAGE_LSHIFT	0x8
 
 #define LmSCRATCH(LinkNum)		(LSEQ0_HOST_REG_BASE_ADR +	   \
-					((LinkNum) * LmSEQ_HOST_REG_SIZE) +\
-					MAPPEDSCR)
+								 ((LinkNum) * LmSEQ_HOST_REG_SIZE) +\
+								 MAPPEDSCR)
 
 #define LmSEQRAM(LinkNum)		(LSEQ0_HOST_REG_BASE_ADR +	   \
-					((LinkNum) * LmSEQ_HOST_REG_SIZE) +\
-					LSEQRAM)
+								 ((LinkNum) * LmSEQ_HOST_REG_SIZE) +\
+								 LSEQRAM)
 
 /*
  * LmSEQ CIO Bus Register, Address Range : (0x0000-0xFFC)
@@ -848,13 +848,13 @@
 #define LmSEQ_CIOBUS_REG_BASE		0x2000
 
 #define  LmSEQ_PHY_BASE(Mode, LinkNum) \
-		(LSEQ0_HOST_REG_BASE_ADR + \
-		(LmSEQ_HOST_REG_SIZE * (u32) (LinkNum)) + \
-		LmSEQ_CIOBUS_REG_BASE + \
-		((u32) (Mode) * LmSEQ_MODE_PAGE_SIZE))
+	(LSEQ0_HOST_REG_BASE_ADR + \
+	 (LmSEQ_HOST_REG_SIZE * (u32) (LinkNum)) + \
+	 LmSEQ_CIOBUS_REG_BASE + \
+	 ((u32) (Mode) * LmSEQ_MODE_PAGE_SIZE))
 
 #define  LmSEQ_PHY_REG(Mode, LinkNum, Reg) \
-                 (LmSEQ_PHY_BASE(Mode, LinkNum) + (u32) (Reg))
+	(LmSEQ_PHY_BASE(Mode, LinkNum) + (u32) (Reg))
 
 #define LmMODEPTR(LinkNum)		LmSEQ_PHY_REG(0, LinkNum, MODEPTR)
 
@@ -903,7 +903,7 @@
 #define LmSCRATCHPAGE(LinkNum)		LmSEQ_PHY_REG(0, LinkNum, SCRATCHPAGE)
 
 #define LmMnSCRATCHPAGE(LinkNum, Mode)	LmSEQ_PHY_REG(Mode, LinkNum, 	\
-						      MnSCRATCHPAGE)
+		MnSCRATCHPAGE)
 
 #define LmTIMERCALC(LinkNum)		LmSEQ_PHY_REG(0, LinkNum, 0x28)
 
@@ -971,29 +971,29 @@
 #define		EN_LmMnCFGHDR		0x00000001
 
 #define		LmM0INTEN_MASK		(EN_LmMnCFGCMPLT | EN_LmMnCFGRBUF | \
-					 EN_LmMnSAVETTR | EN_LmMnCFGRDAT | \
-					 EN_LmMnCFGHDR | EN_LmRCVERR | \
-					 EN_LmADDRRCV | EN_LmMnHDRMISS | \
-					 EN_LmMnRLSSCB | EN_LmMnSAVECTX | \
-					 EN_LmMnFETCHSG | EN_LmMnLOADCTX | \
-					 EN_LmHWTINT | EN_LmMnCTXDONE | \
-					 EN_LmRCVPRIM | EN_LmMnCFGSATA | \
-					 EN_LmMnCFGEXPSATA | EN_LmMnDMAERR)
+								 EN_LmMnSAVETTR | EN_LmMnCFGRDAT | \
+								 EN_LmMnCFGHDR | EN_LmRCVERR | \
+								 EN_LmADDRRCV | EN_LmMnHDRMISS | \
+								 EN_LmMnRLSSCB | EN_LmMnSAVECTX | \
+								 EN_LmMnFETCHSG | EN_LmMnLOADCTX | \
+								 EN_LmHWTINT | EN_LmMnCTXDONE | \
+								 EN_LmRCVPRIM | EN_LmMnCFGSATA | \
+								 EN_LmMnCFGEXPSATA | EN_LmMnDMAERR)
 
 #define		LmM1INTEN_MASK		(EN_LmMnCFGCMPLT | EN_LmADDRRCV | \
-					 EN_LmMnRLSSCB | EN_LmMnSAVECTX | \
-					 EN_LmMnFETCHSG | EN_LmMnLOADCTX | \
-					 EN_LmMnXMTERR | EN_LmHWTINT | \
-					 EN_LmMnCTXDONE | EN_LmRCVPRIM | \
-					 EN_LmRCVERR | EN_LmMnDMAERR)
+								 EN_LmMnRLSSCB | EN_LmMnSAVECTX | \
+								 EN_LmMnFETCHSG | EN_LmMnLOADCTX | \
+								 EN_LmMnXMTERR | EN_LmHWTINT | \
+								 EN_LmMnCTXDONE | EN_LmRCVPRIM | \
+								 EN_LmRCVERR | EN_LmMnDMAERR)
 
 #define		LmM2INTEN_MASK		(EN_LmADDRRCV | EN_LmHWTINT | \
-					 EN_LmM2REQMBXF | EN_LmRCVPRIM | \
-					 EN_LmRCVERR)
+								 EN_LmM2REQMBXF | EN_LmRCVPRIM | \
+								 EN_LmRCVERR)
 
 #define		LmM5INTEN_MASK		(EN_LmADDRRCV | EN_LmM5OOBSVC | \
-					 EN_LmHWTINT | EN_LmRCVPRIM | \
-					 EN_LmRCVERR)
+								 EN_LmHWTINT | EN_LmRCVPRIM | \
+								 EN_LmRCVERR)
 
 #define LmXMTPRIMD(LinkNum)		LmSEQ_PHY_REG(0, LinkNum, 0x40)
 
@@ -1048,7 +1048,7 @@
 #define		LmMnXFRLVL_1536		0x01
 #define		LmMnXFRLVL_2048		0x00
 
- /* mode 0-1 */
+/* mode 0-1 */
 #define LmMnSGDMACTL(LinkNum, Mode)	LmSEQ_PHY_REG(Mode, LinkNum, 0x5A)
 
 #define 	LmMnRESETSG		0x04
@@ -1174,7 +1174,7 @@
 #define		LmAIPNRML		0x00000001
 
 #define		LmBROADCAST_MASK	(LmBROADCH | LmBROADRVCH0 | \
-					 LmBROADRVCH1)
+								 LmBROADRVCH1)
 
 #define LmPRMSTAT1(LinkNum)		LmSEQ_PHY_REG(0, LinkNum, 0x84)
 #define LmPRMSTAT1BYTE0			0x84
@@ -1241,10 +1241,10 @@
 #define 	EN_LmMISSEOF		0x00000001
 
 #define 	LmFRMERREN_MASK  	(EN_LmSATAINTLK | EN_LmMnCRCERR | \
-					 EN_LmRRDYOVRN | EN_LmMISSSOF | \
-					 EN_LmMISSEOAF | EN_LmMISSEOF | \
-					 EN_LmACRCERR | LmPHYOVRN | \
-					 EN_LmOBOVRN | EN_LmMnZERODATA)
+								 EN_LmRRDYOVRN | EN_LmMISSSOF | \
+								 EN_LmMISSEOAF | EN_LmMISSEOF | \
+								 EN_LmACRCERR | LmPHYOVRN | \
+								 EN_LmOBOVRN | EN_LmMnZERODATA)
 
 #define LmHWTSTATEN(LinkNum)		LmSEQ_PHY_REG(0, LinkNum, 0xC5)
 
@@ -1257,9 +1257,9 @@
 #define		EN_LmBITLTTO		0x01
 
 #define		LmHWTSTATEN_MASK	(EN_LmINVDISP | EN_LmINVDW | \
-					 EN_LmDWSEVENT | EN_LmCRTTTO | \
-					 EN_LmANTTTO | EN_LmDONETO | \
-					 EN_LmBITLTTO)
+								 EN_LmDWSEVENT | EN_LmCRTTTO | \
+								 EN_LmANTTTO | EN_LmDONETO | \
+								 EN_LmBITLTTO)
 
 #define LmHWTSTAT(LinkNum) 		LmSEQ_PHY_REG(0, LinkNum, 0xC7)
 
@@ -1310,18 +1310,18 @@
 #define 	EN_LmAIPNRML		0x00000001
 
 #define		LmPRIMSTAT0EN_MASK	(EN_LmBREAK | \
-					 EN_LmDONE | EN_LmOPENACPT | \
-					 EN_LmOPENRJCT | EN_LmOPENRTRY | \
-					 EN_LmCLOSERV1 | EN_LmCLOSERV0 | \
-					 EN_LmCLOSENORM | EN_LmCLOSECLAF | \
-					 EN_LmBROADRV4 | EN_LmBROADRV3 | \
-					 EN_LmBROADRV2 | EN_LmBROADRV1 | \
-					 EN_LmBROADRV0 | EN_LmBROADRVCH1 | \
-					 EN_LmBROADRVCH0 | EN_LmBROADCH | \
-					 EN_LmAIPRVWP | EN_LmAIPWP | \
-					 EN_LmAIPWD | EN_LmAIPWC | \
-					 EN_LmAIPRV2 | EN_LmAIPRV1 | \
-					 EN_LmAIPRV0 | EN_LmAIPNRML)
+								 EN_LmDONE | EN_LmOPENACPT | \
+								 EN_LmOPENRJCT | EN_LmOPENRTRY | \
+								 EN_LmCLOSERV1 | EN_LmCLOSERV0 | \
+								 EN_LmCLOSENORM | EN_LmCLOSECLAF | \
+								 EN_LmBROADRV4 | EN_LmBROADRV3 | \
+								 EN_LmBROADRV2 | EN_LmBROADRV1 | \
+								 EN_LmBROADRV0 | EN_LmBROADRVCH1 | \
+								 EN_LmBROADRVCH0 | EN_LmBROADCH | \
+								 EN_LmAIPRVWP | EN_LmAIPWP | \
+								 EN_LmAIPWD | EN_LmAIPWC | \
+								 EN_LmAIPRV2 | EN_LmAIPRV1 | \
+								 EN_LmAIPRV0 | EN_LmAIPNRML)
 
 #define LmPRIMSTAT1EN(LinkNum)		LmSEQ_PHY_REG(0, LinkNum, 0xE4)
 
@@ -1346,9 +1346,9 @@
 #define 	EN_LmDMAT		0x00000001
 
 #define LmPRIMSTAT1EN_MASK		(EN_LmHARDRST | \
-					 EN_LmSYNCSRST | \
-					 EN_LmPMREQP | EN_LmPMREQS | \
-					 EN_LmPMACK | EN_LmPMNAK)
+								 EN_LmSYNCSRST | \
+								 EN_LmPMREQP | EN_LmPMREQS | \
+								 EN_LmPMACK | EN_LmPMNAK)
 
 #define LmSMSTATE(LinkNum) 		LmSEQ_PHY_REG(0, LinkNum, 0xE8)
 
@@ -1492,32 +1492,32 @@
 #define		CURRENT_OOB_ERROR	0x01
 
 #define 	CURRENT_OOB1_ERROR	(CURRENT_HOT_PLUG_CNCT | \
-					 CURRENT_GTO_TIMEOUT)
+								 CURRENT_GTO_TIMEOUT)
 
 #define 	CURRENT_OOB2_ERROR	(CURRENT_HOT_PLUG_CNCT | \
-					 CURRENT_OOB_ERROR)
+								 CURRENT_OOB_ERROR)
 
 #define		DEVICE_ADDED_W_CNT	(CURRENT_OOB_DONE | \
-					 CURRENT_HOT_PLUG_CNCT | \
-					 CURRENT_DEVICE_PRESENT)
+								 CURRENT_HOT_PLUG_CNCT | \
+								 CURRENT_DEVICE_PRESENT)
 
 #define		DEVICE_ADDED_WO_CNT	(CURRENT_OOB_DONE | \
-					 CURRENT_DEVICE_PRESENT)
+								 CURRENT_DEVICE_PRESENT)
 
 #define 	DEVICE_REMOVED		CURRENT_LOSS_OF_SIGNAL
 
 #define		CURRENT_PHY_MASK	(CURRENT_OOB_DONE | \
-					 CURRENT_LOSS_OF_SIGNAL | \
-					 CURRENT_SPINUP_HOLD | \
-					 CURRENT_HOT_PLUG_CNCT | \
-					 CURRENT_GTO_TIMEOUT | \
-					 CURRENT_DEVICE_PRESENT | \
-					 CURRENT_OOB_ERROR )
+								 CURRENT_LOSS_OF_SIGNAL | \
+								 CURRENT_SPINUP_HOLD | \
+								 CURRENT_HOT_PLUG_CNCT | \
+								 CURRENT_GTO_TIMEOUT | \
+								 CURRENT_DEVICE_PRESENT | \
+								 CURRENT_OOB_ERROR )
 
 #define		CURRENT_ERR_MASK	(CURRENT_LOSS_OF_SIGNAL | \
-					 CURRENT_GTO_TIMEOUT | \
-					 CURRENT_OOB_TIMEOUT | \
-					 CURRENT_OOB_ERROR )
+								 CURRENT_GTO_TIMEOUT | \
+								 CURRENT_OOB_TIMEOUT | \
+								 CURRENT_OOB_ERROR )
 
 #define SPEED_MASK	0x145
 
@@ -1550,7 +1550,7 @@
 #define		OOB_ERROR		0x01		/* ro */
 
 #define		OOB_STATUS_ERROR_MASK	(LOSS_OF_SIGNAL | GTO_TIMEOUT | \
-					 OOB_TIMEOUT | OOB_ERROR)
+									 OOB_TIMEOUT | OOB_ERROR)
 
 #define OOB_STATUS_CLEAR	0x14F
 
@@ -1793,7 +1793,7 @@
 #define		PCIC_MBAR0_SIZE_MASK 	0x1FFFE000
 #define		PCIC_MBAR0_SIZE_SHIFT 	13
 #define		PCIC_MBAR0_SIZE(val)	\
-		    (((val) & PCIC_MBAR0_SIZE_MASK) >> PCIC_MBAR0_SIZE_SHIFT)
+	(((val) & PCIC_MBAR0_SIZE_MASK) >> PCIC_MBAR0_SIZE_SHIFT)
 
 #define PCIC_FLASH_MBAR	0xB8
 
@@ -2276,7 +2276,7 @@
 #define LmSEQ_BREAK_TIMER_TERM_TS(LinkNum)	(LmSCRATCH(LinkNum) + 0x0148)
 #define LmSEQ_DWS_RESET_TIMER_TERM_TS(LinkNum)	(LmSCRATCH(LinkNum) + 0x014C)
 #define LmSEQ_SATA_INTERLOCK_TIMER_TERM_TS(LinkNum) \
-						(LmSCRATCH(LinkNum) + 0x0150)
+	(LmSCRATCH(LinkNum) + 0x0150)
 #define LmSEQ_MCTL_TIMER_TERM_TS(LinkNum)	(LmSCRATCH(LinkNum) + 0x0154)
 
 /* Mode dependent scratch page 2 macros for mode 5 */
@@ -2339,14 +2339,14 @@
 #define		SAS_DEVICE_SENT_REG_FIS_CS	0x40
 #define		SAS_DEVICE_SENT_HARD_RESET_CS	0x80
 #define  	SAS_PHY_IS_DOWN_FLAGS	(SAS_PHY_LOSS_OF_SIGNAL_CS|\
-					 SAS_DWS_TIMER_EXPIRED_CS |\
-					 SAS_LINK_RESET_NOT_COMPLETE_CS|\
-					 SAS_PHY_DISABLED_CS)
+									 SAS_DWS_TIMER_EXPIRED_CS |\
+									 SAS_LINK_RESET_NOT_COMPLETE_CS|\
+									 SAS_PHY_DISABLED_CS)
 
 #define		SAS_LINK_CTL_PHY_EVENT_FLAGS   (SAS_LINK_CTL_TASK_ACTIVE_CS |\
-						SAS_PHY_EVENT_TASK_ACTIVE_CS |\
-						SAS_DEVICE_SENT_ID_FRAME_CS  |\
-						SAS_DEVICE_SENT_HARD_RESET_CS)
+		SAS_PHY_EVENT_TASK_ACTIVE_CS |\
+		SAS_DEVICE_SENT_ID_FRAME_CS  |\
+		SAS_DEVICE_SENT_HARD_RESET_CS)
 
 #define LmSEQ_CONCTL(LinkNum)		(LmSCRATCH(LinkNum) + 0x018C)
 #define LmSEQ_CONSTAT(LinkNum)		(LmSCRATCH(LinkNum) + 0x018E)

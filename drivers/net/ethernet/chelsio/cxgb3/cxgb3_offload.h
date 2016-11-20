@@ -67,9 +67,10 @@ void cxgb3_remove_clients(struct t3cdev *tdev);
 void cxgb3_event_notify(struct t3cdev *tdev, u32 event, u32 port);
 
 typedef int (*cxgb3_cpl_handler_func)(struct t3cdev *dev,
-				      struct sk_buff *skb, void *ctx);
+									  struct sk_buff *skb, void *ctx);
 
-enum {
+enum
+{
 	OFFLOAD_STATUS_UP,
 	OFFLOAD_STATUS_DOWN,
 	OFFLOAD_PORT_DOWN,
@@ -79,13 +80,14 @@ enum {
 	OFFLOAD_DB_DROP
 };
 
-struct cxgb3_client {
+struct cxgb3_client
+{
 	char *name;
 	void (*add) (struct t3cdev *);
 	void (*remove) (struct t3cdev *);
 	cxgb3_cpl_handler_func *handlers;
 	int (*redirect)(void *ctx, struct dst_entry *old,
-			struct dst_entry *new, struct l2t_entry *l2t);
+					struct dst_entry *new, struct l2t_entry *l2t);
 	struct list_head client_list;
 	void (*event_handler)(struct t3cdev *tdev, u32 event, u32 port);
 };
@@ -94,23 +96,25 @@ struct cxgb3_client {
  * TID allocation services.
  */
 int cxgb3_alloc_atid(struct t3cdev *dev, struct cxgb3_client *client,
-		     void *ctx);
+					 void *ctx);
 int cxgb3_alloc_stid(struct t3cdev *dev, struct cxgb3_client *client,
-		     void *ctx);
+					 void *ctx);
 void *cxgb3_free_atid(struct t3cdev *dev, int atid);
 void cxgb3_free_stid(struct t3cdev *dev, int stid);
 void cxgb3_insert_tid(struct t3cdev *dev, struct cxgb3_client *client,
-		      void *ctx, unsigned int tid);
+					  void *ctx, unsigned int tid);
 void cxgb3_queue_tid_release(struct t3cdev *dev, unsigned int tid);
 void cxgb3_remove_tid(struct t3cdev *dev, void *ctx, unsigned int tid);
 
-struct t3c_tid_entry {
+struct t3c_tid_entry
+{
 	struct cxgb3_client *client;
 	void *ctx;
 };
 
 /* CPL message priority levels */
-enum {
+enum
+{
 	CPL_PRIORITY_DATA = 0,	/* data messages */
 	CPL_PRIORITY_SETUP = 1,	/* connection setup messages */
 	CPL_PRIORITY_TEARDOWN = 0,	/* connection teardown messages */
@@ -120,7 +124,8 @@ enum {
 };
 
 /* Flags for return value of CPL message handlers */
-enum {
+enum
+{
 	CPL_RET_BUF_DONE = 1, /* buffer processing done, buffer may be freed */
 	CPL_RET_BAD_MSG = 2,  /* bad CPL message (e.g., unknown opcode) */
 	CPL_RET_UNKNOWN_TID = 4	/* unexpected unknown TID */
@@ -139,12 +144,14 @@ static inline void *cplhdr(struct sk_buff *skb)
 
 void t3_register_cpl_handler(unsigned int opcode, cpl_handler_func h);
 
-union listen_entry {
+union listen_entry
+{
 	struct t3c_tid_entry t3c_tid;
 	union listen_entry *next;
 };
 
-union active_open_entry {
+union active_open_entry
+{
 	struct t3c_tid_entry t3c_tid;
 	union active_open_entry *next;
 };
@@ -154,7 +161,8 @@ union active_open_entry {
  * and active-open TID tables for a offload device.
  * The tables themselves are allocated dynamically.
  */
-struct tid_info {
+struct tid_info
+{
 	struct t3c_tid_entry *tid_tab;
 	unsigned int ntids;
 	atomic_t tids_in_use;
@@ -184,7 +192,8 @@ struct tid_info {
 	unsigned int stids_in_use;
 };
 
-struct t3c_data {
+struct t3c_data
+{
 	struct list_head list_node;
 	struct t3cdev *dev;
 	unsigned int tx_max_chunk;	/* max payload for TX_DATA */

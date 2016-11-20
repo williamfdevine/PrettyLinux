@@ -5,12 +5,14 @@
 #include <stdio.h>
 #include <linux/atomic.h>
 
-struct thread_map_data {
+struct thread_map_data
+{
 	pid_t    pid;
 	char	*comm;
 };
 
-struct thread_map {
+struct thread_map
+{
 	atomic_t refcnt;
 	int nr;
 	struct thread_map_data map[];
@@ -29,7 +31,7 @@ struct thread_map *thread_map__get(struct thread_map *map);
 void thread_map__put(struct thread_map *map);
 
 struct thread_map *thread_map__new_str(const char *pid,
-		const char *tid, uid_t uid);
+									   const char *tid, uid_t uid);
 
 struct thread_map *thread_map__new_by_tid_str(const char *tid_str);
 

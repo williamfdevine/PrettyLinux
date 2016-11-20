@@ -15,7 +15,8 @@
 #define SERIAL8250_FOURPORT(_base, _irq) \
 	SERIAL8250_PORT_FLAGS(_base, _irq, UPF_FOURPORT)
 
-static struct plat_serial8250_port fourport_data[] = {
+static struct plat_serial8250_port fourport_data[] =
+{
 	SERIAL8250_FOURPORT(0x1a0, 9),
 	SERIAL8250_FOURPORT(0x1a8, 9),
 	SERIAL8250_FOURPORT(0x1b0, 9),
@@ -27,7 +28,8 @@ static struct plat_serial8250_port fourport_data[] = {
 	{ },
 };
 
-static struct platform_device fourport_device = {
+static struct platform_device fourport_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_FOURPORT,
 	.dev			= {

@@ -55,8 +55,12 @@ static void spc_fill_alua_data(struct se_lun *lun, unsigned char *buf)
 	 */
 	spin_lock(&lun->lun_tg_pt_gp_lock);
 	tg_pt_gp = lun->lun_tg_pt_gp;
+
 	if (tg_pt_gp)
+	{
 		buf[5] |= tg_pt_gp->tg_pt_gp_alua_access_type;
+	}
+
 	spin_unlock(&lun->lun_tg_pt_gp_lock);
 }
 
@@ -69,7 +73,9 @@ spc_emulate_inquiry_std(struct se_cmd *cmd, unsigned char *buf)
 
 	/* Set RMB (removable media) for tape devices */
 	if (dev->transport->get_device_type(dev) == TYPE_TAPE)
+	{
 		buf[1] = 0x80;
+	}
 
 	buf[2] = 0x05; /* SPC-3 */
 
@@ -94,16 +100,22 @@ spc_emulate_inquiry_std(struct se_cmd *cmd, unsigned char *buf)
 	 * Set Third-Party Copy (3PC) bit to indicate support for EXTENDED_COPY
 	 */
 	if (dev->dev_attrib.emulate_3pc)
+	{
 		buf[5] |= 0x8;
+	}
+
 	/*
 	 * Set Protection (PROTECT) bit when DIF has been enabled on the
 	 * device, and the fabric supports VERIFY + PASS.  Also report
 	 * PROTECT=1 if sess_prot_type has been configured to allow T10-PI
 	 * to unprotected devices.
 	 */
-	if (sess->sup_prot_ops & (TARGET_PROT_DIN_PASS | TARGET_PROT_DOUT_PASS)) {
+	if (sess->sup_prot_ops & (TARGET_PROT_DIN_PASS | TARGET_PROT_DOUT_PASS))
+	{
 		if (dev->dev_attrib.pi_prot_type || cmd->se_sess->sess_prot_type)
+		{
 			buf[5] |= 0x1;
+		}
 	}
 
 	buf[7] = 0x2; /* CmdQue=1 */
@@ -111,9 +123,9 @@ spc_emulate_inquiry_std(struct se_cmd *cmd, unsigned char *buf)
 	memcpy(&buf[8], "LIO-ORG ", 8);
 	memset(&buf[16], 0x20, 16);
 	memcpy(&buf[16], dev->t10_wwn.model,
-	       min_t(size_t, strlen(dev->t10_wwn.model), 16));
+		   min_t(size_t, strlen(dev->t10_wwn.model), 16));
 	memcpy(&buf[32], dev->t10_wwn.revision,
-	       min_t(size_t, strlen(dev->t10_wwn.revision), 4));
+		   min_t(size_t, strlen(dev->t10_wwn.revision), 4));
 	buf[4] = 31; /* Set additional length to 31 */
 
 	return 0;
@@ -127,16 +139,18 @@ spc_emulate_evpd_80(struct se_cmd *cmd, unsigned char *buf)
 	struct se_device *dev = cmd->se_dev;
 	u16 len;
 
-	if (dev->dev_flags & DF_EMULATED_VPD_UNIT_SERIAL) {
+	if (dev->dev_flags & DF_EMULATED_VPD_UNIT_SERIAL)
+	{
 		len = sprintf(&buf[4], "%s", dev->t10_wwn.unit_serial);
 		len++; /* Extra Byte for NULL Terminator */
 		buf[3] = len;
 	}
+
 	return 0;
 }
 
 void spc_parse_naa_6h_vendor_specific(struct se_device *dev,
-				      unsigned char *buf)
+									  unsigned char *buf)
 {
 	unsigned char *p = &dev->t10_wwn.unit_serial[0];
 	int cnt;
@@ -150,16 +164,22 @@ void spc_parse_naa_6h_vendor_specific(struct se_device *dev,
 	 * NUMBER set via vpd_unit_serial in target_core_configfs.c to ensure
 	 * per device uniqeness.
 	 */
-	for (cnt = 0; *p && cnt < 13; p++) {
+	for (cnt = 0; *p && cnt < 13; p++)
+	{
 		int val = hex_to_bin(*p);
 
 		if (val < 0)
+		{
 			continue;
+		}
 
-		if (next) {
+		if (next)
+		{
 			next = false;
 			buf[cnt++] |= val;
-		} else {
+		}
+		else
+		{
 			next = true;
 			buf[cnt] = val << 4;
 		}
@@ -194,7 +214,9 @@ spc_emulate_evpd_83(struct se_cmd *cmd, unsigned char *buf)
 	 * value in order to return the NAA id.
 	 */
 	if (!(dev->dev_flags & DF_EMULATED_VPD_UNIT_SERIAL))
+	{
 		goto check_t10_vend_desc;
+	}
 
 	/* CODE SET == Binary */
 	buf[off++] = 0x1;
@@ -241,26 +263,29 @@ check_t10_vend_desc:
 	prod_len += strlen(prod);
 	prod_len++; /* For : */
 
-	if (dev->dev_flags & DF_EMULATED_VPD_UNIT_SERIAL) {
+	if (dev->dev_flags & DF_EMULATED_VPD_UNIT_SERIAL)
+	{
 		unit_serial_len = strlen(&dev->t10_wwn.unit_serial[0]);
 		unit_serial_len++; /* For NULL Terminator */
 
-		id_len += sprintf(&buf[off+12], "%s:%s", prod,
-				&dev->t10_wwn.unit_serial[0]);
+		id_len += sprintf(&buf[off + 12], "%s:%s", prod,
+						  &dev->t10_wwn.unit_serial[0]);
 	}
+
 	buf[off] = 0x2; /* ASCII */
-	buf[off+1] = 0x1; /* T10 Vendor ID */
-	buf[off+2] = 0x0;
-	memcpy(&buf[off+4], "LIO-ORG", 8);
+	buf[off + 1] = 0x1; /* T10 Vendor ID */
+	buf[off + 2] = 0x0;
+	memcpy(&buf[off + 4], "LIO-ORG", 8);
 	/* Extra Byte for NULL Terminator */
 	id_len++;
 	/* Identifier Length */
-	buf[off+3] = id_len;
+	buf[off + 3] = id_len;
 	/* Header size for Designation descriptor */
 	len += (id_len + 4);
 	off += (id_len + 4);
 
-	if (1) {
+	if (1)
+	{
 		struct t10_alua_lu_gp *lu_gp;
 		u32 padding, scsi_name_len, scsi_target_len;
 		u16 lu_gp_id = 0;
@@ -299,10 +324,13 @@ check_t10_vend_desc:
 		 */
 		spin_lock(&lun->lun_tg_pt_gp_lock);
 		tg_pt_gp = lun->lun_tg_pt_gp;
-		if (!tg_pt_gp) {
+
+		if (!tg_pt_gp)
+		{
 			spin_unlock(&lun->lun_tg_pt_gp_lock);
 			goto check_lu_gp;
 		}
+
 		tg_pt_gp_id = tg_pt_gp->tg_pt_gp_id;
 		spin_unlock(&lun->lun_tg_pt_gp_lock);
 
@@ -325,15 +353,21 @@ check_t10_vend_desc:
 		 */
 check_lu_gp:
 		lu_gp_mem = dev->dev_alua_lu_gp_mem;
+
 		if (!lu_gp_mem)
+		{
 			goto check_scsi_name;
+		}
 
 		spin_lock(&lu_gp_mem->lu_gp_mem_lock);
 		lu_gp = lu_gp_mem->lu_gp;
-		if (!lu_gp) {
+
+		if (!lu_gp)
+		{
 			spin_unlock(&lu_gp_mem->lu_gp_mem_lock);
 			goto check_scsi_name;
 		}
+
 		lu_gp_id = lu_gp->lu_gp_id;
 		spin_unlock(&lu_gp_mem->lu_gp_mem_lock);
 
@@ -370,7 +404,7 @@ check_scsi_name:
 		 */
 		tpgt = tpg->se_tpg_tfo->tpg_get_tag(tpg);
 		scsi_name_len = sprintf(&buf[off], "%s,t,0x%04x",
-					tpg->se_tpg_tfo->tpg_get_wwn(tpg), tpgt);
+								tpg->se_tpg_tfo->tpg_get_wwn(tpg), tpgt);
 		scsi_name_len += 1 /* Include  NULL terminator */;
 		/*
 		 * The null-terminated, null-padded (see 4.4.2) SCSI
@@ -381,12 +415,18 @@ check_scsi_name:
 		 * of four.
 		 */
 		padding = ((-scsi_name_len) & 3);
-		if (padding)
-			scsi_name_len += padding;
-		if (scsi_name_len > 256)
-			scsi_name_len = 256;
 
-		buf[off-1] = scsi_name_len;
+		if (padding)
+		{
+			scsi_name_len += padding;
+		}
+
+		if (scsi_name_len > 256)
+		{
+			scsi_name_len = 256;
+		}
+
+		buf[off - 1] = scsi_name_len;
 		off += scsi_name_len;
 		/* Header size + Designation descriptor */
 		len += (scsi_name_len + 4);
@@ -409,7 +449,7 @@ check_scsi_name:
 		 * UTF-8 encoding.
 		 */
 		scsi_target_len = sprintf(&buf[off], "%s",
-					  tpg->se_tpg_tfo->tpg_get_wwn(tpg));
+								  tpg->se_tpg_tfo->tpg_get_wwn(tpg));
 		scsi_target_len += 1 /* Include  NULL terminator */;
 		/*
 		 * The null-terminated, null-padded (see 4.4.2) SCSI
@@ -420,17 +460,24 @@ check_scsi_name:
 		 * of four.
 		 */
 		padding = ((-scsi_target_len) & 3);
-		if (padding)
-			scsi_target_len += padding;
-		if (scsi_target_len > 256)
-			scsi_target_len = 256;
 
-		buf[off-1] = scsi_target_len;
+		if (padding)
+		{
+			scsi_target_len += padding;
+		}
+
+		if (scsi_target_len > 256)
+		{
+			scsi_target_len = 256;
+		}
+
+		buf[off - 1] = scsi_target_len;
 		off += scsi_target_len;
 
 		/* Header size + Designation descriptor */
 		len += (scsi_target_len + 4);
 	}
+
 	buf[2] = ((len >> 8) & 0xff);
 	buf[3] = (len & 0xff); /* Page Length for VPD 0x83 */
 	return 0;
@@ -445,23 +492,30 @@ spc_emulate_evpd_86(struct se_cmd *cmd, unsigned char *buf)
 	struct se_session *sess = cmd->se_sess;
 
 	buf[3] = 0x3c;
+
 	/*
 	 * Set GRD_CHK + REF_CHK for TYPE1 protection, or GRD_CHK
 	 * only for TYPE3 protection.
 	 */
-	if (sess->sup_prot_ops & (TARGET_PROT_DIN_PASS | TARGET_PROT_DOUT_PASS)) {
+	if (sess->sup_prot_ops & (TARGET_PROT_DIN_PASS | TARGET_PROT_DOUT_PASS))
+	{
 		if (dev->dev_attrib.pi_prot_type == TARGET_DIF_TYPE1_PROT ||
-		    cmd->se_sess->sess_prot_type == TARGET_DIF_TYPE1_PROT)
+			cmd->se_sess->sess_prot_type == TARGET_DIF_TYPE1_PROT)
+		{
 			buf[4] = 0x5;
+		}
 		else if (dev->dev_attrib.pi_prot_type == TARGET_DIF_TYPE3_PROT ||
-			 cmd->se_sess->sess_prot_type == TARGET_DIF_TYPE3_PROT)
+				 cmd->se_sess->sess_prot_type == TARGET_DIF_TYPE3_PROT)
+		{
 			buf[4] = 0x4;
+		}
 	}
 
 	/* logical unit supports type 1 and type 3 protection */
 	if ((dev->transport->get_device_type(dev) == TYPE_DISK) &&
-	    (sess->sup_prot_ops & (TARGET_PROT_DIN_PASS | TARGET_PROT_DOUT_PASS)) &&
-	    (dev->dev_attrib.pi_prot_type || cmd->se_sess->sess_prot_type)) {
+		(sess->sup_prot_ops & (TARGET_PROT_DIN_PASS | TARGET_PROT_DOUT_PASS)) &&
+		(dev->dev_attrib.pi_prot_type || cmd->se_sess->sess_prot_type))
+	{
 		buf[4] |= (0x3 << 3);
 	}
 
@@ -470,11 +524,18 @@ spc_emulate_evpd_86(struct se_cmd *cmd, unsigned char *buf)
 
 	/* If WriteCache emulation is enabled, set V_SUP */
 	if (target_check_wce(dev))
+	{
 		buf[6] = 0x01;
+	}
+
 	/* If an LBA map is present set R_SUP */
 	spin_lock(&cmd->se_dev->t10_alua.lba_map_lock);
+
 	if (!list_empty(&dev->t10_alua.lba_map_list))
+	{
 		buf[8] = 0x10;
+	}
+
 	spin_unlock(&cmd->se_dev->t10_alua.lba_map_lock);
 	return 0;
 }
@@ -493,26 +554,35 @@ spc_emulate_evpd_b0(struct se_cmd *cmd, unsigned char *buf)
 	 * different page length for Thin Provisioning.
 	 */
 	if (dev->dev_attrib.emulate_tpu || dev->dev_attrib.emulate_tpws)
+	{
 		have_tp = 1;
+	}
 
 	buf[0] = dev->transport->get_device_type(dev);
 	buf[3] = have_tp ? 0x3c : 0x10;
 
 	/* Set WSNZ to 1 */
 	buf[4] = 0x01;
+
 	/*
 	 * Set MAXIMUM COMPARE AND WRITE LENGTH
 	 */
 	if (dev->dev_attrib.emulate_caw)
+	{
 		buf[5] = 0x01;
+	}
 
 	/*
 	 * Set OPTIMAL TRANSFER LENGTH GRANULARITY
 	 */
 	if (dev->transport->get_io_min && (min = dev->transport->get_io_min(dev)))
+	{
 		put_unaligned_be16(min / dev->dev_attrib.block_size, &buf[6]);
+	}
 	else
+	{
 		put_unaligned_be16(1, &buf[6]);
+	}
 
 	/*
 	 * Set MAXIMUM TRANSFER LENGTH
@@ -520,25 +590,33 @@ spc_emulate_evpd_b0(struct se_cmd *cmd, unsigned char *buf)
 	 * XXX: Currently assumes single PAGE_SIZE per scatterlist for fabrics
 	 * enforcing maximum HW scatter-gather-list entry limit
 	 */
-	if (cmd->se_tfo->max_data_sg_nents) {
+	if (cmd->se_tfo->max_data_sg_nents)
+	{
 		mtl = (cmd->se_tfo->max_data_sg_nents * PAGE_SIZE) /
-		       dev->dev_attrib.block_size;
+			  dev->dev_attrib.block_size;
 	}
+
 	put_unaligned_be32(min_not_zero(mtl, dev->dev_attrib.hw_max_sectors), &buf[8]);
 
 	/*
 	 * Set OPTIMAL TRANSFER LENGTH
 	 */
 	if (dev->transport->get_io_opt && (opt = dev->transport->get_io_opt(dev)))
+	{
 		put_unaligned_be32(opt / dev->dev_attrib.block_size, &buf[12]);
+	}
 	else
+	{
 		put_unaligned_be32(dev->dev_attrib.optimal_sectors, &buf[12]);
+	}
 
 	/*
 	 * Exit now if we don't support TP.
 	 */
 	if (!have_tp)
+	{
 		goto max_write_same;
+	}
 
 	/*
 	 * Set MAXIMUM UNMAP LBA COUNT
@@ -549,7 +627,7 @@ spc_emulate_evpd_b0(struct se_cmd *cmd, unsigned char *buf)
 	 * Set MAXIMUM UNMAP BLOCK DESCRIPTOR COUNT
 	 */
 	put_unaligned_be32(dev->dev_attrib.max_unmap_block_desc_count,
-			   &buf[24]);
+					   &buf[24]);
 
 	/*
 	 * Set OPTIMAL UNMAP GRANULARITY
@@ -560,9 +638,12 @@ spc_emulate_evpd_b0(struct se_cmd *cmd, unsigned char *buf)
 	 * UNMAP GRANULARITY ALIGNMENT
 	 */
 	put_unaligned_be32(dev->dev_attrib.unmap_granularity_alignment,
-			   &buf[32]);
+					   &buf[32]);
+
 	if (dev->dev_attrib.unmap_granularity_alignment != 0)
-		buf[32] |= 0x80; /* Set the UGAVALID bit */
+	{
+		buf[32] |= 0x80;    /* Set the UGAVALID bit */
+	}
 
 	/*
 	 * MAXIMUM WRITE SAME LENGTH
@@ -624,7 +705,9 @@ spc_emulate_evpd_b2(struct se_cmd *cmd, unsigned char *buf)
 	 * that the device server does not support the UNMAP command.
 	 */
 	if (dev->dev_attrib.emulate_tpu != 0)
+	{
 		buf[5] = 0x80;
+	}
 
 	/*
 	 * A TPWS bit set to one indicates that the device server supports
@@ -633,7 +716,9 @@ spc_emulate_evpd_b2(struct se_cmd *cmd, unsigned char *buf)
 	 * support the use of the WRITE SAME (16) command to unmap LBAs.
 	 */
 	if (dev->dev_attrib.emulate_tpws != 0)
+	{
 		buf[5] |= 0x40 | 0x20;
+	}
 
 	/*
 	 * The unmap_zeroes_data set means that the underlying device supports
@@ -643,9 +728,11 @@ spc_emulate_evpd_b2(struct se_cmd *cmd, unsigned char *buf)
 	 * See sbc4r36 6.6.4.
 	 */
 	if (((dev->dev_attrib.emulate_tpu != 0) ||
-	     (dev->dev_attrib.emulate_tpws != 0)) &&
-	     (dev->dev_attrib.unmap_zeroes_data != 0))
+		 (dev->dev_attrib.emulate_tpws != 0)) &&
+		(dev->dev_attrib.unmap_zeroes_data != 0))
+	{
 		buf[5] |= 0x04;
+	}
 
 	return 0;
 }
@@ -667,10 +754,12 @@ spc_emulate_evpd_b3(struct se_cmd *cmd, unsigned char *buf)
 static sense_reason_t
 spc_emulate_evpd_00(struct se_cmd *cmd, unsigned char *buf);
 
-static struct {
+static struct
+{
 	uint8_t		page;
 	sense_reason_t	(*emulate)(struct se_cmd *, unsigned char *);
-} evpd_handlers[] = {
+} evpd_handlers[] =
+{
 	{ .page = 0x00, .emulate = spc_emulate_evpd_00 },
 	{ .page = 0x80, .emulate = spc_emulate_evpd_80 },
 	{ .page = 0x83, .emulate = spc_emulate_evpd_83 },
@@ -692,10 +781,14 @@ spc_emulate_evpd_00(struct se_cmd *cmd, unsigned char *buf)
 	 * Registered Extended LUN WWN has been set via ConfigFS
 	 * during device creation/restart.
 	 */
-	if (cmd->se_dev->dev_flags & DF_EMULATED_VPD_UNIT_SERIAL) {
+	if (cmd->se_dev->dev_flags & DF_EMULATED_VPD_UNIT_SERIAL)
+	{
 		buf[3] = ARRAY_SIZE(evpd_handlers);
+
 		for (p = 0; p < ARRAY_SIZE(evpd_handlers); ++p)
+		{
 			buf[p + 4] = evpd_handlers[p].page;
+		}
 	}
 
 	return 0;
@@ -714,20 +807,28 @@ spc_emulate_inquiry(struct se_cmd *cmd)
 	int len = 0;
 
 	buf = kzalloc(SE_INQUIRY_BUF, GFP_KERNEL);
-	if (!buf) {
+
+	if (!buf)
+	{
 		pr_err("Unable to allocate response buffer for INQUIRY\n");
 		return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
 	}
 
 	if (dev == rcu_access_pointer(tpg->tpg_virt_lun0->lun_se_dev))
-		buf[0] = 0x3f; /* Not connected */
+	{
+		buf[0] = 0x3f;    /* Not connected */
+	}
 	else
+	{
 		buf[0] = dev->transport->get_device_type(dev);
+	}
 
-	if (!(cdb[1] & 0x1)) {
-		if (cdb[2]) {
+	if (!(cdb[1] & 0x1))
+	{
+		if (cdb[2])
+		{
 			pr_err("INQUIRY with EVPD==0 but PAGE CODE=%02x\n",
-			       cdb[2]);
+				   cdb[2]);
 			ret = TCM_INVALID_CDB_FIELD;
 			goto out;
 		}
@@ -737,8 +838,10 @@ spc_emulate_inquiry(struct se_cmd *cmd)
 		goto out;
 	}
 
-	for (p = 0; p < ARRAY_SIZE(evpd_handlers); ++p) {
-		if (cdb[2] == evpd_handlers[p].page) {
+	for (p = 0; p < ARRAY_SIZE(evpd_handlers); ++p)
+	{
+		if (cdb[2] == evpd_handlers[p].page)
+		{
 			buf[1] = cdb[2];
 			ret = evpd_handlers[p].emulate(cmd, buf);
 			len = get_unaligned_be16(&buf[2]) + 4;
@@ -751,14 +854,20 @@ spc_emulate_inquiry(struct se_cmd *cmd)
 
 out:
 	rbuf = transport_kmap_data_sg(cmd);
-	if (rbuf) {
+
+	if (rbuf)
+	{
 		memcpy(rbuf, buf, min_t(u32, SE_INQUIRY_BUF, cmd->data_length));
 		transport_kunmap_data_sg(cmd);
 	}
+
 	kfree(buf);
 
 	if (!ret)
+	{
 		target_complete_cmd_with_length(cmd, GOOD, len);
+	}
+
 	return ret;
 }
 
@@ -769,7 +878,9 @@ static int spc_modesense_rwrecovery(struct se_cmd *cmd, u8 pc, u8 *p)
 
 	/* No changeable values for now */
 	if (pc == 1)
+	{
 		goto out;
+	}
 
 out:
 	return 12;
@@ -785,13 +896,18 @@ static int spc_modesense_control(struct se_cmd *cmd, u8 pc, u8 *p)
 
 	/* No changeable values for now */
 	if (pc == 1)
+	{
 		goto out;
+	}
 
 	/* GLTSD: No implicit save of log parameters */
 	p[2] = (1 << 1);
+
 	if (target_sense_desc_format(dev))
 		/* D_SENSE: Descriptor format sense data for 64bit sectors */
+	{
 		p[2] |= (1 << 2);
+	}
 
 	/*
 	 * From spc4r23, 7.4.7 Control mode page
@@ -852,7 +968,7 @@ static int spc_modesense_control(struct se_cmd *cmd, u8 pc, u8 *p)
 	 * to the number of commands completed with one of those status codes.
 	 */
 	p[4] = (dev->dev_attrib.emulate_ua_intlck_ctrl == 2) ? 0x30 :
-	       (dev->dev_attrib.emulate_ua_intlck_ctrl == 1) ? 0x20 : 0x00;
+		   (dev->dev_attrib.emulate_ua_intlck_ctrl == 1) ? 0x20 : 0x00;
 	/*
 	 * From spc4r17, section 7.4.6 Control mode Page
 	 *
@@ -866,6 +982,7 @@ static int spc_modesense_control(struct se_cmd *cmd, u8 pc, u8 *p)
 	 * status (see SAM-4).
 	 */
 	p[5] = (dev->dev_attrib.emulate_tas) ? 0x40 : 0x00;
+
 	/*
 	 * From spc4r30, section 7.5.7 Control mode page
 	 *
@@ -876,9 +993,12 @@ static int spc_modesense_control(struct se_cmd *cmd, u8 pc, u8 *p)
 	 * type, shall not modify the contents of the LOGICAL BLOCK REFERENCE
 	 * TAG field.
 	 */
-	if (sess->sup_prot_ops & (TARGET_PROT_DIN_PASS | TARGET_PROT_DOUT_PASS)) {
+	if (sess->sup_prot_ops & (TARGET_PROT_DIN_PASS | TARGET_PROT_DOUT_PASS))
+	{
 		if (dev->dev_attrib.pi_prot_type || sess->sess_prot_type)
+		{
 			p[5] |= 0x80;
+		}
 	}
 
 	p[8] = 0xff;
@@ -898,10 +1018,15 @@ static int spc_modesense_caching(struct se_cmd *cmd, u8 pc, u8 *p)
 
 	/* No changeable values for now */
 	if (pc == 1)
+	{
 		goto out;
+	}
 
 	if (target_check_wce(dev))
-		p[2] = 0x04; /* Write Cache Enable */
+	{
+		p[2] = 0x04;    /* Write Cache Enable */
+	}
+
 	p[12] = 0x20; /* Disabled Read Ahead */
 
 out:
@@ -915,17 +1040,21 @@ static int spc_modesense_informational_exceptions(struct se_cmd *cmd, u8 pc, uns
 
 	/* No changeable values for now */
 	if (pc == 1)
+	{
 		goto out;
+	}
 
 out:
 	return 12;
 }
 
-static struct {
+static struct
+{
 	uint8_t		page;
 	uint8_t		subpage;
 	int		(*emulate)(struct se_cmd *, u8, unsigned char *);
-} modesense_handlers[] = {
+} modesense_handlers[] =
+{
 	{ .page = 0x01, .subpage = 0x00, .emulate = spc_modesense_rwrecovery },
 	{ .page = 0x08, .subpage = 0x00, .emulate = spc_modesense_caching },
 	{ .page = 0x0a, .subpage = 0x00, .emulate = spc_modesense_control },
@@ -938,23 +1067,26 @@ static void spc_modesense_write_protect(unsigned char *buf, int type)
 	 * I believe that the WP bit (bit 7) in the mode header is the same for
 	 * all device types..
 	 */
-	switch (type) {
-	case TYPE_DISK:
-	case TYPE_TAPE:
-	default:
-		buf[0] |= 0x80; /* WP bit */
-		break;
+	switch (type)
+	{
+		case TYPE_DISK:
+		case TYPE_TAPE:
+		default:
+			buf[0] |= 0x80; /* WP bit */
+			break;
 	}
 }
 
 static void spc_modesense_dpofua(unsigned char *buf, int type)
 {
-	switch (type) {
-	case TYPE_DISK:
-		buf[0] |= 0x10; /* DPOFUA bit */
-		break;
-	default:
-		break;
+	switch (type)
+	{
+		case TYPE_DISK:
+			buf[0] |= 0x10; /* DPOFUA bit */
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -970,7 +1102,9 @@ static int spc_modesense_blockdesc(unsigned char *buf, u64 blocks, u32 block_siz
 static int spc_modesense_long_blockdesc(unsigned char *buf, u64 blocks, u32 block_size)
 {
 	if (blocks <= 0xffffffff)
+	{
 		return spc_modesense_blockdesc(buf + 3, blocks, block_size) + 3;
+	}
 
 	*buf++ = 1;		/* LONGLBA */
 	buf += 2;
@@ -1008,7 +1142,9 @@ static sense_reason_t spc_emulate_modesense(struct se_cmd *cmd)
 
 	/* DEVICE-SPECIFIC PARAMETER */
 	if (cmd->se_lun->lun_access_ro || target_lun_is_rdonly(cmd))
+	{
 		spc_modesense_write_protect(&buf[length], type);
+	}
 
 	/*
 	 * SBC only allows us to enable FUA and DPO together.  Fortunately
@@ -1016,7 +1152,9 @@ static sense_reason_t spc_emulate_modesense(struct se_cmd *cmd)
 	 * valid implementation.
 	 */
 	if (target_check_fua(dev))
+	{
 		spc_modesense_dpofua(&buf[length], type);
+	}
 
 	++length;
 
@@ -1026,47 +1164,68 @@ static sense_reason_t spc_emulate_modesense(struct se_cmd *cmd)
 	 * For now we only include a block descriptor for disk (SBC)
 	 * devices; other command sets use a slightly different format.
 	 */
-	if (!dbd && type == TYPE_DISK) {
+	if (!dbd && type == TYPE_DISK)
+	{
 		u64 blocks = dev->transport->get_blocks(dev);
 		u32 block_size = dev->dev_attrib.block_size;
 
-		if (ten) {
-			if (llba) {
+		if (ten)
+		{
+			if (llba)
+			{
 				length += spc_modesense_long_blockdesc(&buf[length],
-								       blocks, block_size);
-			} else {
+													   blocks, block_size);
+			}
+			else
+			{
 				length += 3;
 				length += spc_modesense_blockdesc(&buf[length],
-								  blocks, block_size);
+												  blocks, block_size);
 			}
-		} else {
-			length += spc_modesense_blockdesc(&buf[length], blocks,
-							  block_size);
 		}
-	} else {
-		if (ten)
-			length += 4;
 		else
+		{
+			length += spc_modesense_blockdesc(&buf[length], blocks,
+											  block_size);
+		}
+	}
+	else
+	{
+		if (ten)
+		{
+			length += 4;
+		}
+		else
+		{
 			length += 1;
+		}
 	}
 
-	if (page == 0x3f) {
-		if (subpage != 0x00 && subpage != 0xff) {
+	if (page == 0x3f)
+	{
+		if (subpage != 0x00 && subpage != 0xff)
+		{
 			pr_warn("MODE_SENSE: Invalid subpage code: 0x%02x\n", subpage);
 			return TCM_INVALID_CDB_FIELD;
 		}
 
-		for (i = 0; i < ARRAY_SIZE(modesense_handlers); ++i) {
+		for (i = 0; i < ARRAY_SIZE(modesense_handlers); ++i)
+		{
 			/*
 			 * Tricky way to say all subpage 00h for
 			 * subpage==0, all subpages for subpage==0xff
 			 * (and we just checked above that those are
 			 * the only two possibilities).
 			 */
-			if ((modesense_handlers[i].subpage & ~subpage) == 0) {
+			if ((modesense_handlers[i].subpage & ~subpage) == 0)
+			{
 				ret = modesense_handlers[i].emulate(cmd, pc, &buf[length]);
+
 				if (!ten && length + ret >= 255)
+				{
 					break;
+				}
+
 				length += ret;
 			}
 		}
@@ -1076,7 +1235,8 @@ static sense_reason_t spc_emulate_modesense(struct se_cmd *cmd)
 
 	for (i = 0; i < ARRAY_SIZE(modesense_handlers); ++i)
 		if (modesense_handlers[i].page == page &&
-		    modesense_handlers[i].subpage == subpage) {
+			modesense_handlers[i].subpage == subpage)
+		{
 			length += modesense_handlers[i].emulate(cmd, pc, &buf[length]);
 			goto set_length;
 		}
@@ -1087,18 +1247,25 @@ static sense_reason_t spc_emulate_modesense(struct se_cmd *cmd)
 	 */
 	if (page != 0x03)
 		pr_err("MODE SENSE: unimplemented page/subpage: 0x%02x/0x%02x\n",
-		       page, subpage);
+			   page, subpage);
 
 	return TCM_UNKNOWN_MODE_PAGE;
 
 set_length:
+
 	if (ten)
+	{
 		put_unaligned_be16(length - 2, buf);
+	}
 	else
+	{
 		buf[0] = length - 1;
+	}
 
 	rbuf = transport_kmap_data_sg(cmd);
-	if (rbuf) {
+
+	if (rbuf)
+	{
 		memcpy(rbuf, buf, min_t(u32, SE_MODE_PAGE_BUF, cmd->data_length));
 		transport_kunmap_data_sg(cmd);
 	}
@@ -1120,19 +1287,26 @@ static sense_reason_t spc_emulate_modeselect(struct se_cmd *cmd)
 	sense_reason_t ret = 0;
 	int i;
 
-	if (!cmd->data_length) {
+	if (!cmd->data_length)
+	{
 		target_complete_cmd(cmd, GOOD);
 		return 0;
 	}
 
 	if (cmd->data_length < off + 2)
+	{
 		return TCM_PARAMETER_LIST_LENGTH_ERROR;
+	}
 
 	buf = transport_kmap_data_sg(cmd);
-	if (!buf)
-		return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
 
-	if (!pf) {
+	if (!buf)
+	{
+		return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+	}
+
+	if (!pf)
+	{
 		ret = TCM_INVALID_CDB_FIELD;
 		goto out;
 	}
@@ -1142,7 +1316,8 @@ static sense_reason_t spc_emulate_modeselect(struct se_cmd *cmd)
 
 	for (i = 0; i < ARRAY_SIZE(modesense_handlers); ++i)
 		if (modesense_handlers[i].page == page &&
-		    modesense_handlers[i].subpage == subpage) {
+			modesense_handlers[i].subpage == subpage)
+		{
 			memset(tbuf, 0, SE_MODE_PAGE_BUF);
 			length = modesense_handlers[i].emulate(cmd, 0, tbuf);
 			goto check_contents;
@@ -1152,19 +1327,26 @@ static sense_reason_t spc_emulate_modeselect(struct se_cmd *cmd)
 	goto out;
 
 check_contents:
-	if (cmd->data_length < off + length) {
+
+	if (cmd->data_length < off + length)
+	{
 		ret = TCM_PARAMETER_LIST_LENGTH_ERROR;
 		goto out;
 	}
 
 	if (memcmp(buf + off, tbuf, length))
+	{
 		ret = TCM_INVALID_PARAMETER_LIST;
+	}
 
 out:
 	transport_kunmap_data_sg(cmd);
 
 	if (!ret)
+	{
 		target_complete_cmd(cmd, GOOD);
+	}
+
 	return ret;
 }
 
@@ -1178,21 +1360,27 @@ static sense_reason_t spc_emulate_request_sense(struct se_cmd *cmd)
 
 	memset(buf, 0, SE_SENSE_BUF);
 
-	if (cdb[1] & 0x01) {
+	if (cdb[1] & 0x01)
+	{
 		pr_err("REQUEST_SENSE description emulation not"
-			" supported\n");
+			   " supported\n");
 		return TCM_INVALID_CDB_FIELD;
 	}
 
 	rbuf = transport_kmap_data_sg(cmd);
+
 	if (!rbuf)
+	{
 		return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+	}
 
 	if (!core_scsi3_ua_clear_for_request_sense(cmd, &ua_asc, &ua_ascq))
 		scsi_build_sense_buffer(desc_format, buf, UNIT_ATTENTION,
-					ua_asc, ua_ascq);
+								ua_asc, ua_ascq);
 	else
+	{
 		scsi_build_sense_buffer(desc_format, buf, NO_SENSE, 0x0, 0x0);
+	}
 
 	memcpy(rbuf, buf, min_t(u32, sizeof(buf), cmd->data_length));
 	transport_kunmap_data_sg(cmd);
@@ -1212,8 +1400,11 @@ sense_reason_t spc_emulate_report_luns(struct se_cmd *cmd)
 	__be32 len;
 
 	buf = transport_kmap_data_sg(cmd);
+
 	if (cmd->data_length && !buf)
+	{
 		return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+	}
 
 	/*
 	 * If no struct se_session pointer is present, this struct se_cmd is
@@ -1221,24 +1412,30 @@ sense_reason_t spc_emulate_report_luns(struct se_cmd *cmd)
 	 * a $FABRIC_MOD.  In that case, report LUN=0 only.
 	 */
 	if (!sess)
+	{
 		goto done;
+	}
 
 	nacl = sess->se_node_acl;
 
 	rcu_read_lock();
-	hlist_for_each_entry_rcu(deve, &nacl->lun_entry_hlist, link) {
+	hlist_for_each_entry_rcu(deve, &nacl->lun_entry_hlist, link)
+	{
 		/*
 		 * We determine the correct LUN LIST LENGTH even once we
 		 * have reached the initial allocation length.
 		 * See SPC2-R20 7.19.
 		 */
 		lun_count++;
+
 		if (offset >= cmd->data_length)
+		{
 			continue;
+		}
 
 		int_to_scsilun(deve->mapped_lun, &slun);
 		memcpy(buf + offset, &slun,
-		       min(8u, cmd->data_length - offset));
+			   min(8u, cmd->data_length - offset));
 		offset += 8;
 	}
 	rcu_read_unlock();
@@ -1247,18 +1444,23 @@ sense_reason_t spc_emulate_report_luns(struct se_cmd *cmd)
 	 * See SPC3 r07, page 159.
 	 */
 done:
+
 	/*
 	 * If no LUNs are accessible, report virtual LUN 0.
 	 */
-	if (lun_count == 0) {
+	if (lun_count == 0)
+	{
 		int_to_scsilun(0, &slun);
+
 		if (cmd->data_length > 8)
 			memcpy(buf + offset, &slun,
-			       min(8u, cmd->data_length - offset));
+				   min(8u, cmd->data_length - offset));
+
 		lun_count = 1;
 	}
 
-	if (buf) {
+	if (buf)
+	{
 		len = cpu_to_be32(lun_count * 8);
 		memcpy(buf, &len, min_t(int, sizeof len, cmd->data_length));
 		transport_kunmap_data_sg(cmd);
@@ -1282,146 +1484,189 @@ spc_parse_cdb(struct se_cmd *cmd, unsigned int *size)
 	struct se_device *dev = cmd->se_dev;
 	unsigned char *cdb = cmd->t_task_cdb;
 
-	switch (cdb[0]) {
-	case MODE_SELECT:
-		*size = cdb[4];
-		cmd->execute_cmd = spc_emulate_modeselect;
-		break;
-	case MODE_SELECT_10:
-		*size = (cdb[7] << 8) + cdb[8];
-		cmd->execute_cmd = spc_emulate_modeselect;
-		break;
-	case MODE_SENSE:
-		*size = cdb[4];
-		cmd->execute_cmd = spc_emulate_modesense;
-		break;
-	case MODE_SENSE_10:
-		*size = (cdb[7] << 8) + cdb[8];
-		cmd->execute_cmd = spc_emulate_modesense;
-		break;
-	case LOG_SELECT:
-	case LOG_SENSE:
-		*size = (cdb[7] << 8) + cdb[8];
-		break;
-	case PERSISTENT_RESERVE_IN:
-		*size = (cdb[7] << 8) + cdb[8];
-		cmd->execute_cmd = target_scsi3_emulate_pr_in;
-		break;
-	case PERSISTENT_RESERVE_OUT:
-		*size = (cdb[7] << 8) + cdb[8];
-		cmd->execute_cmd = target_scsi3_emulate_pr_out;
-		break;
-	case RELEASE:
-	case RELEASE_10:
-		if (cdb[0] == RELEASE_10)
-			*size = (cdb[7] << 8) | cdb[8];
-		else
-			*size = cmd->data_length;
+	switch (cdb[0])
+	{
+		case MODE_SELECT:
+			*size = cdb[4];
+			cmd->execute_cmd = spc_emulate_modeselect;
+			break;
 
-		cmd->execute_cmd = target_scsi2_reservation_release;
-		break;
-	case RESERVE:
-	case RESERVE_10:
-		/*
-		 * The SPC-2 RESERVE does not contain a size in the SCSI CDB.
-		 * Assume the passthrough or $FABRIC_MOD will tell us about it.
-		 */
-		if (cdb[0] == RESERVE_10)
-			*size = (cdb[7] << 8) | cdb[8];
-		else
-			*size = cmd->data_length;
+		case MODE_SELECT_10:
+			*size = (cdb[7] << 8) + cdb[8];
+			cmd->execute_cmd = spc_emulate_modeselect;
+			break;
 
-		cmd->execute_cmd = target_scsi2_reservation_reserve;
-		break;
-	case REQUEST_SENSE:
-		*size = cdb[4];
-		cmd->execute_cmd = spc_emulate_request_sense;
-		break;
-	case INQUIRY:
-		*size = (cdb[3] << 8) + cdb[4];
+		case MODE_SENSE:
+			*size = cdb[4];
+			cmd->execute_cmd = spc_emulate_modesense;
+			break;
 
-		/*
-		 * Do implicit HEAD_OF_QUEUE processing for INQUIRY.
-		 * See spc4r17 section 5.3
-		 */
-		cmd->sam_task_attr = TCM_HEAD_TAG;
-		cmd->execute_cmd = spc_emulate_inquiry;
-		break;
-	case SECURITY_PROTOCOL_IN:
-	case SECURITY_PROTOCOL_OUT:
-		*size = (cdb[6] << 24) | (cdb[7] << 16) | (cdb[8] << 8) | cdb[9];
-		break;
-	case EXTENDED_COPY:
-		*size = get_unaligned_be32(&cdb[10]);
-		cmd->execute_cmd = target_do_xcopy;
-		break;
-	case RECEIVE_COPY_RESULTS:
-		*size = get_unaligned_be32(&cdb[10]);
-		cmd->execute_cmd = target_do_receive_copy_results;
-		break;
-	case READ_ATTRIBUTE:
-	case WRITE_ATTRIBUTE:
-		*size = (cdb[10] << 24) | (cdb[11] << 16) |
-		       (cdb[12] << 8) | cdb[13];
-		break;
-	case RECEIVE_DIAGNOSTIC:
-	case SEND_DIAGNOSTIC:
-		*size = (cdb[3] << 8) | cdb[4];
-		break;
-	case WRITE_BUFFER:
-		*size = (cdb[6] << 16) + (cdb[7] << 8) + cdb[8];
-		break;
-	case REPORT_LUNS:
-		cmd->execute_cmd = spc_emulate_report_luns;
-		*size = (cdb[6] << 24) | (cdb[7] << 16) | (cdb[8] << 8) | cdb[9];
-		/*
-		 * Do implicit HEAD_OF_QUEUE processing for REPORT_LUNS
-		 * See spc4r17 section 5.3
-		 */
-		cmd->sam_task_attr = TCM_HEAD_TAG;
-		break;
-	case TEST_UNIT_READY:
-		cmd->execute_cmd = spc_emulate_testunitready;
-		*size = 0;
-		break;
-	case MAINTENANCE_IN:
-		if (dev->transport->get_device_type(dev) != TYPE_ROM) {
-			/*
-			 * MAINTENANCE_IN from SCC-2
-			 * Check for emulated MI_REPORT_TARGET_PGS
-			 */
-			if ((cdb[1] & 0x1f) == MI_REPORT_TARGET_PGS) {
-				cmd->execute_cmd =
-					target_emulate_report_target_port_groups;
+		case MODE_SENSE_10:
+			*size = (cdb[7] << 8) + cdb[8];
+			cmd->execute_cmd = spc_emulate_modesense;
+			break;
+
+		case LOG_SELECT:
+		case LOG_SENSE:
+			*size = (cdb[7] << 8) + cdb[8];
+			break;
+
+		case PERSISTENT_RESERVE_IN:
+			*size = (cdb[7] << 8) + cdb[8];
+			cmd->execute_cmd = target_scsi3_emulate_pr_in;
+			break;
+
+		case PERSISTENT_RESERVE_OUT:
+			*size = (cdb[7] << 8) + cdb[8];
+			cmd->execute_cmd = target_scsi3_emulate_pr_out;
+			break;
+
+		case RELEASE:
+		case RELEASE_10:
+			if (cdb[0] == RELEASE_10)
+			{
+				*size = (cdb[7] << 8) | cdb[8];
 			}
-			*size = get_unaligned_be32(&cdb[6]);
-		} else {
-			/*
-			 * GPCMD_SEND_KEY from multi media commands
-			 */
-			*size = get_unaligned_be16(&cdb[8]);
-		}
-		break;
-	case MAINTENANCE_OUT:
-		if (dev->transport->get_device_type(dev) != TYPE_ROM) {
-			/*
-			 * MAINTENANCE_OUT from SCC-2
-			 * Check for emulated MO_SET_TARGET_PGS.
-			 */
-			if (cdb[1] == MO_SET_TARGET_PGS) {
-				cmd->execute_cmd =
-					target_emulate_set_target_port_groups;
+			else
+			{
+				*size = cmd->data_length;
 			}
-			*size = get_unaligned_be32(&cdb[6]);
-		} else {
+
+			cmd->execute_cmd = target_scsi2_reservation_release;
+			break;
+
+		case RESERVE:
+		case RESERVE_10:
+
 			/*
-			 * GPCMD_SEND_KEY from multi media commands
+			 * The SPC-2 RESERVE does not contain a size in the SCSI CDB.
+			 * Assume the passthrough or $FABRIC_MOD will tell us about it.
 			 */
-			*size = get_unaligned_be16(&cdb[8]);
-		}
-		break;
-	default:
-		return TCM_UNSUPPORTED_SCSI_OPCODE;
+			if (cdb[0] == RESERVE_10)
+			{
+				*size = (cdb[7] << 8) | cdb[8];
+			}
+			else
+			{
+				*size = cmd->data_length;
+			}
+
+			cmd->execute_cmd = target_scsi2_reservation_reserve;
+			break;
+
+		case REQUEST_SENSE:
+			*size = cdb[4];
+			cmd->execute_cmd = spc_emulate_request_sense;
+			break;
+
+		case INQUIRY:
+			*size = (cdb[3] << 8) + cdb[4];
+
+			/*
+			 * Do implicit HEAD_OF_QUEUE processing for INQUIRY.
+			 * See spc4r17 section 5.3
+			 */
+			cmd->sam_task_attr = TCM_HEAD_TAG;
+			cmd->execute_cmd = spc_emulate_inquiry;
+			break;
+
+		case SECURITY_PROTOCOL_IN:
+		case SECURITY_PROTOCOL_OUT:
+			*size = (cdb[6] << 24) | (cdb[7] << 16) | (cdb[8] << 8) | cdb[9];
+			break;
+
+		case EXTENDED_COPY:
+			*size = get_unaligned_be32(&cdb[10]);
+			cmd->execute_cmd = target_do_xcopy;
+			break;
+
+		case RECEIVE_COPY_RESULTS:
+			*size = get_unaligned_be32(&cdb[10]);
+			cmd->execute_cmd = target_do_receive_copy_results;
+			break;
+
+		case READ_ATTRIBUTE:
+		case WRITE_ATTRIBUTE:
+			*size = (cdb[10] << 24) | (cdb[11] << 16) |
+					(cdb[12] << 8) | cdb[13];
+			break;
+
+		case RECEIVE_DIAGNOSTIC:
+		case SEND_DIAGNOSTIC:
+			*size = (cdb[3] << 8) | cdb[4];
+			break;
+
+		case WRITE_BUFFER:
+			*size = (cdb[6] << 16) + (cdb[7] << 8) + cdb[8];
+			break;
+
+		case REPORT_LUNS:
+			cmd->execute_cmd = spc_emulate_report_luns;
+			*size = (cdb[6] << 24) | (cdb[7] << 16) | (cdb[8] << 8) | cdb[9];
+			/*
+			 * Do implicit HEAD_OF_QUEUE processing for REPORT_LUNS
+			 * See spc4r17 section 5.3
+			 */
+			cmd->sam_task_attr = TCM_HEAD_TAG;
+			break;
+
+		case TEST_UNIT_READY:
+			cmd->execute_cmd = spc_emulate_testunitready;
+			*size = 0;
+			break;
+
+		case MAINTENANCE_IN:
+			if (dev->transport->get_device_type(dev) != TYPE_ROM)
+			{
+				/*
+				 * MAINTENANCE_IN from SCC-2
+				 * Check for emulated MI_REPORT_TARGET_PGS
+				 */
+				if ((cdb[1] & 0x1f) == MI_REPORT_TARGET_PGS)
+				{
+					cmd->execute_cmd =
+						target_emulate_report_target_port_groups;
+				}
+
+				*size = get_unaligned_be32(&cdb[6]);
+			}
+			else
+			{
+				/*
+				 * GPCMD_SEND_KEY from multi media commands
+				 */
+				*size = get_unaligned_be16(&cdb[8]);
+			}
+
+			break;
+
+		case MAINTENANCE_OUT:
+			if (dev->transport->get_device_type(dev) != TYPE_ROM)
+			{
+				/*
+				 * MAINTENANCE_OUT from SCC-2
+				 * Check for emulated MO_SET_TARGET_PGS.
+				 */
+				if (cdb[1] == MO_SET_TARGET_PGS)
+				{
+					cmd->execute_cmd =
+						target_emulate_set_target_port_groups;
+				}
+
+				*size = get_unaligned_be32(&cdb[6]);
+			}
+			else
+			{
+				/*
+				 * GPCMD_SEND_KEY from multi media commands
+				 */
+				*size = get_unaligned_be16(&cdb[8]);
+			}
+
+			break;
+
+		default:
+			return TCM_UNSUPPORTED_SCSI_OPCODE;
 	}
 
 	return 0;

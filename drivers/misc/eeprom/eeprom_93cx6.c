@@ -91,7 +91,7 @@ static void eeprom_93cx6_cleanup(struct eeprom_93cx6 *eeprom)
 }
 
 static void eeprom_93cx6_write_bits(struct eeprom_93cx6 *eeprom,
-	const u16 data, const u16 count)
+									const u16 data, const u16 count)
 {
 	unsigned int i;
 
@@ -107,7 +107,8 @@ static void eeprom_93cx6_write_bits(struct eeprom_93cx6 *eeprom,
 	/*
 	 * Start writing all bits.
 	 */
-	for (i = count; i > 0; i--) {
+	for (i = count; i > 0; i--)
+	{
 		/*
 		 * Check if this bit needs to be set.
 		 */
@@ -130,7 +131,7 @@ static void eeprom_93cx6_write_bits(struct eeprom_93cx6 *eeprom,
 }
 
 static void eeprom_93cx6_read_bits(struct eeprom_93cx6 *eeprom,
-	u16 *data, const u16 count)
+								   u16 *data, const u16 count)
 {
 	unsigned int i;
 	u16 buf = 0;
@@ -147,7 +148,8 @@ static void eeprom_93cx6_read_bits(struct eeprom_93cx6 *eeprom,
 	/*
 	 * Start reading all bits.
 	 */
-	for (i = count; i > 0; i--) {
+	for (i = count; i > 0; i--)
+	{
 		eeprom_93cx6_pulse_high(eeprom);
 
 		eeprom->register_read(eeprom);
@@ -161,7 +163,9 @@ static void eeprom_93cx6_read_bits(struct eeprom_93cx6 *eeprom,
 		 * Read if the bit has been set.
 		 */
 		if (eeprom->reg_data_out)
+		{
 			buf |= (1 << (i - 1));
+		}
 
 		eeprom_93cx6_pulse_low(eeprom);
 	}
@@ -179,7 +183,7 @@ static void eeprom_93cx6_read_bits(struct eeprom_93cx6 *eeprom,
  * into the given data pointer.
  */
 void eeprom_93cx6_read(struct eeprom_93cx6 *eeprom, const u8 word,
-	u16 *data)
+					   u16 *data)
 {
 	u16 command;
 
@@ -193,7 +197,7 @@ void eeprom_93cx6_read(struct eeprom_93cx6 *eeprom, const u8 word,
 	 */
 	command = (PCI_EEPROM_READ_OPCODE << eeprom->width) | word;
 	eeprom_93cx6_write_bits(eeprom, command,
-		PCI_EEPROM_WIDTH_OPCODE + eeprom->width);
+							PCI_EEPROM_WIDTH_OPCODE + eeprom->width);
 
 	/*
 	 * Read the requested 16 bits.
@@ -221,12 +225,13 @@ EXPORT_SYMBOL_GPL(eeprom_93cx6_read);
  * endian words.
  */
 void eeprom_93cx6_multiread(struct eeprom_93cx6 *eeprom, const u8 word,
-	__le16 *data, const u16 words)
+							__le16 *data, const u16 words)
 {
 	unsigned int i;
 	u16 tmp;
 
-	for (i = 0; i < words; i++) {
+	for (i = 0; i < words; i++)
+	{
 		tmp = 0;
 		eeprom_93cx6_read(eeprom, word + i, &tmp);
 		data[i] = cpu_to_le16(tmp);
@@ -244,7 +249,7 @@ EXPORT_SYMBOL_GPL(eeprom_93cx6_multiread);
  * into the given data pointer.
  */
 void eeprom_93cx6_readb(struct eeprom_93cx6 *eeprom, const u8 byte,
-	u8 *data)
+						u8 *data)
 {
 	u16 command;
 	u16 tmp;
@@ -259,7 +264,7 @@ void eeprom_93cx6_readb(struct eeprom_93cx6 *eeprom, const u8 byte,
 	 */
 	command = (PCI_EEPROM_READ_OPCODE << (eeprom->width + 1)) | byte;
 	eeprom_93cx6_write_bits(eeprom, command,
-		PCI_EEPROM_WIDTH_OPCODE + eeprom->width + 1);
+							PCI_EEPROM_WIDTH_OPCODE + eeprom->width + 1);
 
 	/*
 	 * Read the requested 8 bits.
@@ -285,12 +290,14 @@ EXPORT_SYMBOL_GPL(eeprom_93cx6_readb);
  * this is done by calling eeprom_93cx6_readb() multiple times.
  */
 void eeprom_93cx6_multireadb(struct eeprom_93cx6 *eeprom, const u8 byte,
-	u8 *data, const u16 bytes)
+							 u8 *data, const u16 bytes)
 {
 	unsigned int i;
 
 	for (i = 0; i < bytes; i++)
+	{
 		eeprom_93cx6_readb(eeprom, byte + i, &data[i]);
+	}
 }
 EXPORT_SYMBOL_GPL(eeprom_93cx6_multireadb);
 
@@ -315,7 +322,7 @@ void eeprom_93cx6_wren(struct eeprom_93cx6 *eeprom, bool enable)
 	command <<= (eeprom->width - 2);
 
 	eeprom_93cx6_write_bits(eeprom, command,
-				PCI_EEPROM_WIDTH_OPCODE + eeprom->width);
+							PCI_EEPROM_WIDTH_OPCODE + eeprom->width);
 
 	eeprom_93cx6_cleanup(eeprom);
 }
@@ -347,7 +354,7 @@ void eeprom_93cx6_write(struct eeprom_93cx6 *eeprom, u8 addr, u16 data)
 
 	/* send write command */
 	eeprom_93cx6_write_bits(eeprom, command,
-				PCI_EEPROM_WIDTH_OPCODE + eeprom->width);
+							PCI_EEPROM_WIDTH_OPCODE + eeprom->width);
 
 	/* send data */
 	eeprom_93cx6_write_bits(eeprom, data, 16);
@@ -362,15 +369,19 @@ void eeprom_93cx6_write(struct eeprom_93cx6 *eeprom, u8 addr, u16 data)
 
 	/* wait for DO to go high to signify finish */
 
-	while (true) {
+	while (true)
+	{
 		eeprom->register_read(eeprom);
 
 		if (eeprom->reg_data_out)
+		{
 			break;
+		}
 
 		usleep_range(1000, 2000);
 
-		if (--timeout <= 0) {
+		if (--timeout <= 0)
+		{
 			printk(KERN_ERR "%s: timeout\n", __func__);
 			break;
 		}

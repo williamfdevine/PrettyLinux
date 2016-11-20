@@ -33,7 +33,8 @@
  * REVISIT some RNDIS implementations seem to have curious issues still
  * to be resolved.
  */
-struct rndis_msg_hdr {
+struct rndis_msg_hdr
+{
 	__le32	msg_type;			/* RNDIS_MSG_* */
 	__le32	msg_len;
 	/* followed by data that varies between messages */
@@ -51,7 +52,8 @@ struct rndis_msg_hdr {
  */
 #define	RNDIS_CONTROL_TIMEOUT_MS	(5 * 1000)
 
-struct rndis_data_hdr {
+struct rndis_data_hdr
+{
 	__le32	msg_type;		/* RNDIS_MSG_PACKET */
 	__le32	msg_len;		/* rndis_data_hdr + data_len + pad */
 	__le32	data_offset;		/* 36 -- right after header */
@@ -67,7 +69,8 @@ struct rndis_data_hdr {
 	__le32	reserved;		/* zero */
 } __attribute__ ((packed));
 
-struct rndis_init {		/* OUT */
+struct rndis_init  		/* OUT */
+{
 	/* header and: */
 	__le32	msg_type;			/* RNDIS_MSG_INIT */
 	__le32	msg_len;			/* 24 */
@@ -77,7 +80,8 @@ struct rndis_init {		/* OUT */
 	__le32	max_transfer_size;
 } __attribute__ ((packed));
 
-struct rndis_init_c {		/* IN */
+struct rndis_init_c  		/* IN */
+{
 	/* header and: */
 	__le32	msg_type;			/* RNDIS_MSG_INIT_C */
 	__le32	msg_len;
@@ -94,14 +98,16 @@ struct rndis_init_c {		/* IN */
 	__le32	af_list_size;			/* zero */
 } __attribute__ ((packed));
 
-struct rndis_halt {		/* OUT (no reply) */
+struct rndis_halt  		/* OUT (no reply) */
+{
 	/* header and: */
 	__le32	msg_type;			/* RNDIS_MSG_HALT */
 	__le32	msg_len;
 	__le32	request_id;
 } __attribute__ ((packed));
 
-struct rndis_query {		/* OUT */
+struct rndis_query  		/* OUT */
+{
 	/* header and: */
 	__le32	msg_type;			/* RNDIS_MSG_QUERY */
 	__le32	msg_len;
@@ -109,10 +115,11 @@ struct rndis_query {		/* OUT */
 	__le32	oid;
 	__le32	len;
 	__le32	offset;
-/*?*/	__le32	handle;				/* zero */
+	/*?*/	__le32	handle;				/* zero */
 } __attribute__ ((packed));
 
-struct rndis_query_c {		/* IN */
+struct rndis_query_c  		/* IN */
+{
 	/* header and: */
 	__le32	msg_type;			/* RNDIS_MSG_QUERY_C */
 	__le32	msg_len;
@@ -122,7 +129,8 @@ struct rndis_query_c {		/* IN */
 	__le32	offset;
 } __attribute__ ((packed));
 
-struct rndis_set {		/* OUT */
+struct rndis_set  		/* OUT */
+{
 	/* header and: */
 	__le32	msg_type;			/* RNDIS_MSG_SET */
 	__le32	msg_len;
@@ -130,10 +138,11 @@ struct rndis_set {		/* OUT */
 	__le32	oid;
 	__le32	len;
 	__le32	offset;
-/*?*/	__le32	handle;				/* zero */
+	/*?*/	__le32	handle;				/* zero */
 } __attribute__ ((packed));
 
-struct rndis_set_c {		/* IN */
+struct rndis_set_c  		/* IN */
+{
 	/* header and: */
 	__le32	msg_type;			/* RNDIS_MSG_SET_C */
 	__le32	msg_len;
@@ -141,14 +150,16 @@ struct rndis_set_c {		/* IN */
 	__le32	status;
 } __attribute__ ((packed));
 
-struct rndis_reset {		/* IN */
+struct rndis_reset  		/* IN */
+{
 	/* header and: */
 	__le32	msg_type;			/* RNDIS_MSG_RESET */
 	__le32	msg_len;
 	__le32	reserved;
 } __attribute__ ((packed));
 
-struct rndis_reset_c {		/* OUT */
+struct rndis_reset_c  		/* OUT */
+{
 	/* header and: */
 	__le32	msg_type;			/* RNDIS_MSG_RESET_C */
 	__le32	msg_len;
@@ -156,26 +167,29 @@ struct rndis_reset_c {		/* OUT */
 	__le32	addressing_lost;
 } __attribute__ ((packed));
 
-struct rndis_indicate {		/* IN (unrequested) */
+struct rndis_indicate  		/* IN (unrequested) */
+{
 	/* header and: */
 	__le32	msg_type;			/* RNDIS_MSG_INDICATE */
 	__le32	msg_len;
 	__le32	status;
 	__le32	length;
 	__le32	offset;
-/**/	__le32	diag_status;
+	/**/	__le32	diag_status;
 	__le32	error_offset;
-/**/	__le32	message;
+	/**/	__le32	message;
 } __attribute__ ((packed));
 
-struct rndis_keepalive {	/* OUT (optionally IN) */
+struct rndis_keepalive  	/* OUT (optionally IN) */
+{
 	/* header and: */
 	__le32	msg_type;			/* RNDIS_MSG_KEEPALIVE */
 	__le32	msg_len;
 	__le32	request_id;
 } __attribute__ ((packed));
 
-struct rndis_keepalive_c {	/* IN (optionally OUT) */
+struct rndis_keepalive_c  	/* IN (optionally OUT) */
+{
 	/* header and: */
 	__le32	msg_type;			/* RNDIS_MSG_KEEPALIVE_C */
 	__le32	msg_len;
@@ -185,10 +199,10 @@ struct rndis_keepalive_c {	/* IN (optionally OUT) */
 
 /* default filter used with RNDIS devices */
 #define RNDIS_DEFAULT_FILTER ( \
-	RNDIS_PACKET_TYPE_DIRECTED | \
-	RNDIS_PACKET_TYPE_BROADCAST | \
-	RNDIS_PACKET_TYPE_ALL_MULTICAST | \
-	RNDIS_PACKET_TYPE_PROMISCUOUS)
+							   RNDIS_PACKET_TYPE_DIRECTED | \
+							   RNDIS_PACKET_TYPE_BROADCAST | \
+							   RNDIS_PACKET_TYPE_ALL_MULTICAST | \
+							   RNDIS_PACKET_TYPE_PROMISCUOUS)
 
 /* Flags to require specific physical medium type for generic_rndis_bind() */
 #define FLAG_RNDIS_PHYM_NOT_WIRELESS	0x0001

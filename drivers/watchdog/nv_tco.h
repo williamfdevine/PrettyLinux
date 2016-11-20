@@ -48,7 +48,7 @@
 #  define TCO_STS_TCO_INT_STS	(1 << 1)
 #  define TCO_STS_TCO2TO_STS	(1 << 10)
 #  define TCO_STS_RESET		(TCO_STS_BOOT_STS | TCO_STS_TCO2TO_STS | \
-				 TCO_STS_TCO_INT_STS)
+							 TCO_STS_TCO_INT_STS)
 
 #define TCO_CNT(base)	((base) + 0x08)	/* TCO Control Register	*/
 #  define TCO_CNT_TCOHALT	(1 << 12)

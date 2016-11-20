@@ -17,7 +17,8 @@
 #include <linux/clk-provider.h>
 #include "clk-regmap.h"
 
-struct pll_vco {
+struct pll_vco
+{
 	unsigned long min_freq;
 	unsigned long max_freq;
 	u32 val;
@@ -29,7 +30,8 @@ struct pll_vco {
  * @vco_table: array of VCO settings
  * @clkr: regmap clock handle
  */
-struct clk_alpha_pll {
+struct clk_alpha_pll
+{
 	u32 offset;
 
 	const struct pll_vco *vco_table;
@@ -44,7 +46,8 @@ struct clk_alpha_pll {
  * @width: width of post-divider
  * @clkr: regmap clock handle
  */
-struct clk_alpha_pll_postdiv {
+struct clk_alpha_pll_postdiv
+{
 	u32 offset;
 	u8 width;
 

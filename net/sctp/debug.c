@@ -41,7 +41,8 @@
 #include <net/sctp/sctp.h>
 
 /* These are printable forms of Chunk ID's from section 3.1.  */
-static const char *const sctp_cid_tbl[SCTP_NUM_BASE_CHUNK_TYPES] = {
+static const char *const sctp_cid_tbl[SCTP_NUM_BASE_CHUNK_TYPES] =
+{
 	"DATA",
 	"INIT",
 	"INIT_ACK",
@@ -63,30 +64,34 @@ static const char *const sctp_cid_tbl[SCTP_NUM_BASE_CHUNK_TYPES] = {
 const char *sctp_cname(const sctp_subtype_t cid)
 {
 	if (cid.chunk <= SCTP_CID_BASE_MAX)
+	{
 		return sctp_cid_tbl[cid.chunk];
+	}
 
-	switch (cid.chunk) {
-	case SCTP_CID_ASCONF:
-		return "ASCONF";
+	switch (cid.chunk)
+	{
+		case SCTP_CID_ASCONF:
+			return "ASCONF";
 
-	case SCTP_CID_ASCONF_ACK:
-		return "ASCONF_ACK";
+		case SCTP_CID_ASCONF_ACK:
+			return "ASCONF_ACK";
 
-	case SCTP_CID_FWD_TSN:
-		return "FWD_TSN";
+		case SCTP_CID_FWD_TSN:
+			return "FWD_TSN";
 
-	case SCTP_CID_AUTH:
-		return "AUTH";
+		case SCTP_CID_AUTH:
+			return "AUTH";
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	return "unknown chunk";
 }
 
 /* These are printable forms of the states.  */
-const char *const sctp_state_tbl[SCTP_STATE_NUM_STATES] = {
+const char *const sctp_state_tbl[SCTP_STATE_NUM_STATES] =
+{
 	"STATE_CLOSED",
 	"STATE_COOKIE_WAIT",
 	"STATE_COOKIE_ECHOED",
@@ -98,7 +103,8 @@ const char *const sctp_state_tbl[SCTP_STATE_NUM_STATES] = {
 };
 
 /* Events that could change the state of an association.  */
-const char *const sctp_evttype_tbl[] = {
+const char *const sctp_evttype_tbl[] =
+{
 	"EVENT_T_unknown",
 	"EVENT_T_CHUNK",
 	"EVENT_T_TIMEOUT",
@@ -107,7 +113,8 @@ const char *const sctp_evttype_tbl[] = {
 };
 
 /* Return value of a state function */
-const char *const sctp_status_tbl[] = {
+const char *const sctp_status_tbl[] =
+{
 	"DISPOSITION_DISCARD",
 	"DISPOSITION_CONSUME",
 	"DISPOSITION_NOMEM",
@@ -120,7 +127,8 @@ const char *const sctp_status_tbl[] = {
 };
 
 /* Printable forms of primitives */
-static const char *const sctp_primitive_tbl[SCTP_NUM_PRIMITIVE_TYPES] = {
+static const char *const sctp_primitive_tbl[SCTP_NUM_PRIMITIVE_TYPES] =
+{
 	"PRIMITIVE_ASSOCIATE",
 	"PRIMITIVE_SHUTDOWN",
 	"PRIMITIVE_ABORT",
@@ -133,11 +141,15 @@ static const char *const sctp_primitive_tbl[SCTP_NUM_PRIMITIVE_TYPES] = {
 const char *sctp_pname(const sctp_subtype_t id)
 {
 	if (id.primitive <= SCTP_EVENT_PRIMITIVE_MAX)
+	{
 		return sctp_primitive_tbl[id.primitive];
+	}
+
 	return "unknown_primitive";
 }
 
-static const char *const sctp_other_tbl[] = {
+static const char *const sctp_other_tbl[] =
+{
 	"NO_PENDING_TSN",
 	"ICMP_PROTO_UNREACH",
 };
@@ -146,11 +158,15 @@ static const char *const sctp_other_tbl[] = {
 const char *sctp_oname(const sctp_subtype_t id)
 {
 	if (id.other <= SCTP_EVENT_OTHER_MAX)
+	{
 		return sctp_other_tbl[id.other];
+	}
+
 	return "unknown 'other' event";
 }
 
-static const char *const sctp_timer_tbl[] = {
+static const char *const sctp_timer_tbl[] =
+{
 	"TIMEOUT_NONE",
 	"TIMEOUT_T1_COOKIE",
 	"TIMEOUT_T1_INIT",
@@ -167,6 +183,9 @@ static const char *const sctp_timer_tbl[] = {
 const char *sctp_tname(const sctp_subtype_t id)
 {
 	if (id.timeout <= SCTP_EVENT_TIMEOUT_MAX)
+	{
 		return sctp_timer_tbl[id.timeout];
+	}
+
 	return "unknown_timer";
 }

@@ -19,8 +19,8 @@
 #include "clk-uniphier.h"
 
 struct clk_hw *uniphier_clk_register_fixed_rate(struct device *dev,
-						const char *name,
-				const struct uniphier_clk_fixed_rate_data *data)
+		const char *name,
+		const struct uniphier_clk_fixed_rate_data *data)
 {
 	struct clk_fixed_rate *fixed;
 	struct clk_init_data init;
@@ -28,8 +28,11 @@ struct clk_hw *uniphier_clk_register_fixed_rate(struct device *dev,
 
 	/* allocate fixed-rate clock */
 	fixed = devm_kzalloc(dev, sizeof(*fixed), GFP_KERNEL);
+
 	if (!fixed)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &clk_fixed_rate_ops;
@@ -40,8 +43,11 @@ struct clk_hw *uniphier_clk_register_fixed_rate(struct device *dev,
 	fixed->hw.init = &init;
 
 	ret = devm_clk_hw_register(dev, &fixed->hw);
+
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
 
 	return &fixed->hw;
 }

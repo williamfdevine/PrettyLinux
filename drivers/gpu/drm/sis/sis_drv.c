@@ -33,7 +33,8 @@
 
 #include <drm/drm_pciids.h>
 
-static struct pci_device_id pciidlist[] = {
+static struct pci_device_id pciidlist[] =
+{
 	sisdrv_PCI_IDS
 };
 
@@ -44,8 +45,11 @@ static int sis_driver_load(struct drm_device *dev, unsigned long chipset)
 	pci_set_master(dev->pdev);
 
 	dev_priv = kzalloc(sizeof(drm_sis_private_t), GFP_KERNEL);
+
 	if (dev_priv == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	idr_init(&dev_priv->object_idr);
 	dev->dev_private = (void *)dev_priv;
@@ -65,7 +69,8 @@ static int sis_driver_unload(struct drm_device *dev)
 	return 0;
 }
 
-static const struct file_operations sis_driver_fops = {
+static const struct file_operations sis_driver_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -84,8 +89,11 @@ static int sis_driver_open(struct drm_device *dev, struct drm_file *file)
 
 	DRM_DEBUG_DRIVER("\n");
 	file_priv = kmalloc(sizeof(*file_priv), GFP_KERNEL);
+
 	if (!file_priv)
+	{
 		return -ENOMEM;
+	}
 
 	file->driver_priv = file_priv;
 
@@ -101,7 +109,8 @@ static void sis_driver_postclose(struct drm_device *dev, struct drm_file *file)
 	kfree(file_priv);
 }
 
-static struct drm_driver driver = {
+static struct drm_driver driver =
+{
 	.driver_features = DRIVER_USE_AGP | DRIVER_LEGACY,
 	.load = sis_driver_load,
 	.unload = sis_driver_unload,
@@ -121,7 +130,8 @@ static struct drm_driver driver = {
 	.patchlevel = DRIVER_PATCHLEVEL,
 };
 
-static struct pci_driver sis_pci_driver = {
+static struct pci_driver sis_pci_driver =
+{
 	.name = DRIVER_NAME,
 	.id_table = pciidlist,
 };

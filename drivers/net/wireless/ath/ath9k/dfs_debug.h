@@ -37,7 +37,8 @@ struct ath_softc;
  * @pulses_processed: pulses forwarded to detector
  * @radar_detected:   radars detected
  */
-struct ath_dfs_stats {
+struct ath_dfs_stats
+{
 	/* pulse stats */
 	u32 pulses_total;
 	u32 pulses_no_dfs;

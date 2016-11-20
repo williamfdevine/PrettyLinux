@@ -90,24 +90,38 @@ static int do_pd_setup(struct fs_enet_private *fep)
 	int ret = -EINVAL;
 
 	fep->interrupt = irq_of_parse_and_map(ofdev->dev.of_node, 0);
+
 	if (!fep->interrupt)
+	{
 		goto out;
+	}
 
 	fep->fcc.fccp = of_iomap(ofdev->dev.of_node, 0);
+
 	if (!fep->fcc.fccp)
+	{
 		goto out;
+	}
 
 	fep->fcc.ep = of_iomap(ofdev->dev.of_node, 1);
+
 	if (!fep->fcc.ep)
+	{
 		goto out_fccp;
+	}
 
 	fep->fcc.fcccp = of_iomap(ofdev->dev.of_node, 2);
+
 	if (!fep->fcc.fcccp)
+	{
 		goto out_ep;
+	}
 
 	fep->fcc.mem = (void __iomem *)cpm2_immr;
 	fpi->dpram_offset = cpm_dpalloc(128, 32);
-	if (IS_ERR_VALUE(fpi->dpram_offset)) {
+
+	if (IS_ERR_VALUE(fpi->dpram_offset))
+	{
 		ret = fpi->dpram_offset;
 		goto out_fcccp;
 	}
@@ -133,7 +147,9 @@ static int setup_data(struct net_device *dev)
 	struct fs_enet_private *fep = netdev_priv(dev);
 
 	if (do_pd_setup(fep) != 0)
+	{
 		return -EINVAL;
+	}
 
 	fep->ev_napi = FCC_NAPI_EVENT_MSK;
 	fep->ev = FCC_EVENT;
@@ -148,11 +164,14 @@ static int allocate_bd(struct net_device *dev)
 	const struct fs_platform_info *fpi = fep->fpi;
 
 	fep->ring_base = (void __iomem __force *)dma_alloc_coherent(fep->dev,
-					    (fpi->tx_ring + fpi->rx_ring) *
-					    sizeof(cbd_t), &fep->ring_mem_addr,
-					    GFP_KERNEL);
+					 (fpi->tx_ring + fpi->rx_ring) *
+					 sizeof(cbd_t), &fep->ring_mem_addr,
+					 GFP_KERNEL);
+
 	if (fep->ring_base == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -164,8 +183,8 @@ static void free_bd(struct net_device *dev)
 
 	if (fep->ring_base)
 		dma_free_coherent(fep->dev,
-			(fpi->tx_ring + fpi->rx_ring) * sizeof(cbd_t),
-			(void __force *)fep->ring_base, fep->ring_mem_addr);
+						  (fpi->tx_ring + fpi->rx_ring) * sizeof(cbd_t),
+						  (void __force *)fep->ring_base, fep->ring_mem_addr);
 }
 
 static void cleanup_data(struct net_device *dev)
@@ -217,7 +236,8 @@ static void set_multicast_finish(struct net_device *dev)
 
 	/* if all multi or too many multicasts; just enable all */
 	if ((dev->flags & IFF_ALLMULTI) != 0 ||
-	    netdev_mc_count(dev) > FCC_MAX_MULTICAST_ADDRS) {
+		netdev_mc_count(dev) > FCC_MAX_MULTICAST_ADDRS)
+	{
 
 		W32(ep, fen_gaddrh, 0xffffffff);
 		W32(ep, fen_gaddrl, 0xffffffff);
@@ -232,13 +252,17 @@ static void set_multicast_list(struct net_device *dev)
 {
 	struct netdev_hw_addr *ha;
 
-	if ((dev->flags & IFF_PROMISC) == 0) {
+	if ((dev->flags & IFF_PROMISC) == 0)
+	{
 		set_multicast_start(dev);
 		netdev_for_each_mc_addr(ha, dev)
-			set_multicast_one(dev, ha->addr);
+		set_multicast_one(dev, ha->addr);
 		set_multicast_finish(dev);
-	} else
+	}
+	else
+	{
 		set_promiscuous_mode(dev);
+	}
 }
 
 static void restart(struct net_device *dev)
@@ -257,7 +281,9 @@ static void restart(struct net_device *dev)
 
 	/* clear everything (slow & steady does it) */
 	for (i = 0; i < sizeof(*ep); i++)
+	{
 		out_8((u8 __iomem *)ep + i, 0);
+	}
 
 	/* get physical address */
 	rx_bd_base_phys = fep->ring_mem_addr;
@@ -365,11 +391,16 @@ static void restart(struct net_device *dev)
 	fs_init_bds(dev);
 
 	/* adjust to speed (for RMII mode) */
-	if (fpi->use_rmii) {
+	if (fpi->use_rmii)
+	{
 		if (dev->phydev->speed == 100)
+		{
 			C8(fcccp, fcc_gfemr, 0x20);
+		}
 		else
+		{
 			S8(fcccp, fcc_gfemr, 0x20);
+		}
 	}
 
 	fcc_cr_cmd(fep, CPM_CR_INIT_TRX);
@@ -389,13 +420,19 @@ static void restart(struct net_device *dev)
 	W32(fccp, fcc_fpsmr, FCC_PSMR_ENCRC);
 
 	if (fpi->use_rmii)
+	{
 		S32(fccp, fcc_fpsmr, FCC_PSMR_RMII);
+	}
 
 	/* adjust to duplex mode */
 	if (dev->phydev->duplex)
+	{
 		S32(fccp, fcc_fpsmr, FCC_PSMR_FDE | FCC_PSMR_LPB);
+	}
 	else
+	{
 		C32(fccp, fcc_fpsmr, FCC_PSMR_FDE | FCC_PSMR_LPB);
+	}
 
 	/* Restore multicast and promiscuous settings */
 	set_multicast_list(dev);
@@ -485,7 +522,9 @@ static int get_regs(struct net_device *dev, void *p, int *sizep)
 	struct fs_enet_private *fep = netdev_priv(dev);
 
 	if (*sizep < sizeof(fcc_t) + sizeof(fcc_enet_t) + 1)
+	{
 		return -EINVAL;
+	}
 
 	memcpy_fromio(p, fep->fcc.fccp, sizeof(fcc_t));
 	p = (char *)p + sizeof(fcc_t);
@@ -528,14 +567,15 @@ static void tx_restart(struct net_device *dev)
 
 	/* get the current bd held in TBPTR  and scan back from this point */
 	recheck_bd = curr_tbptr = (cbd_t __iomem *)
-		((R32(ep, fen_genfcc.fcc_tbptr) - fep->ring_mem_addr) +
-		fep->ring_base);
+							  ((R32(ep, fen_genfcc.fcc_tbptr) - fep->ring_mem_addr) +
+							   fep->ring_base);
 
 	prev_bd = (recheck_bd == fep->tx_bd_base) ? last_tx_bd : recheck_bd - 1;
 
 	/* Move through the bds in reverse, look for the earliest buffer
 	 * that is not ready.  Adjust TBPTR to the following buffer */
-	while ((CBDR_SC(prev_bd) & BD_ENET_TX_READY) != 0) {
+	while ((CBDR_SC(prev_bd) & BD_ENET_TX_READY) != 0)
+	{
 		/* Go back one buffer */
 		recheck_bd = prev_bd;
 
@@ -544,12 +584,15 @@ static void tx_restart(struct net_device *dev)
 
 		/* We should never see all bds marked as ready, check anyway */
 		if (recheck_bd == curr_tbptr)
+		{
 			break;
+		}
 	}
+
 	/* Now update the TBPTR and dirty flag to the current buffer */
 	W32(ep, fen_genfcc.fcc_tbptr,
 		(uint) (((void *)recheck_bd - fep->ring_base) +
-		fep->ring_mem_addr));
+				fep->ring_mem_addr));
 	fep->dirty_tx = recheck_bd;
 
 	C32(fccp, fcc_gfmr, FCC_GFMR_ENT);
@@ -561,7 +604,8 @@ static void tx_restart(struct net_device *dev)
 
 /*************************************************************************/
 
-const struct fs_ops fs_fcc_ops = {
+const struct fs_ops fs_fcc_ops =
+{
 	.setup_data		= setup_data,
 	.cleanup_data		= cleanup_data,
 	.set_multicast_list	= set_multicast_list,

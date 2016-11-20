@@ -29,7 +29,8 @@
 #define   UNIPHIER_UART_LCR_SHIFT	8
 #define UNIPHIER_UART_DLR	9	/* Divisor Latch Register */
 
-struct uniphier8250_priv {
+struct uniphier8250_priv
+{
 	int line;
 	struct clk *clk;
 	spinlock_t atomic_write_lock;
@@ -37,10 +38,12 @@ struct uniphier8250_priv {
 
 #ifdef CONFIG_SERIAL_8250_CONSOLE
 static int __init uniphier_early_console_setup(struct earlycon_device *device,
-					       const char *options)
+		const char *options)
 {
 	if (!device->port.membase)
+	{
 		return -ENODEV;
+	}
 
 	/* This hardware always expects MMIO32 register interface. */
 	device->port.iotype = UPIO_MEM32;
@@ -55,7 +58,7 @@ static int __init uniphier_early_console_setup(struct earlycon_device *device,
 	return early_serial8250_setup(device, options);
 }
 OF_EARLYCON_DECLARE(uniphier, "socionext,uniphier-uart",
-		    uniphier_early_console_setup);
+					uniphier_early_console_setup);
 #endif
 
 /*
@@ -66,15 +69,18 @@ static unsigned int uniphier_serial_in(struct uart_port *p, int offset)
 {
 	unsigned int valshift = 0;
 
-	switch (offset) {
-	case UART_LCR:
-		valshift = UNIPHIER_UART_LCR_SHIFT;
+	switch (offset)
+	{
+		case UART_LCR:
+			valshift = UNIPHIER_UART_LCR_SHIFT;
+
 		/* fall through */
-	case UART_MCR:
-		offset = UNIPHIER_UART_LCR_MCR;
-		break;
-	default:
-		break;
+		case UART_MCR:
+			offset = UNIPHIER_UART_LCR_MCR;
+			break;
+
+		default:
+			break;
 	}
 
 	offset <<= p->regshift;
@@ -92,28 +98,35 @@ static void uniphier_serial_out(struct uart_port *p, int offset, int value)
 	unsigned int valshift = 0;
 	bool normal = false;
 
-	switch (offset) {
-	case UART_FCR:
-		offset = UNIPHIER_UART_CHAR_FCR;
-		break;
-	case UART_LCR:
-		valshift = UNIPHIER_UART_LCR_SHIFT;
-		/* Divisor latch access bit does not exist. */
-		value &= ~UART_LCR_DLAB;
+	switch (offset)
+	{
+		case UART_FCR:
+			offset = UNIPHIER_UART_CHAR_FCR;
+			break;
+
+		case UART_LCR:
+			valshift = UNIPHIER_UART_LCR_SHIFT;
+			/* Divisor latch access bit does not exist. */
+			value &= ~UART_LCR_DLAB;
+
 		/* fall through */
-	case UART_MCR:
-		offset = UNIPHIER_UART_LCR_MCR;
-		break;
-	default:
-		normal = true;
-		break;
+		case UART_MCR:
+			offset = UNIPHIER_UART_LCR_MCR;
+			break;
+
+		default:
+			normal = true;
+			break;
 	}
 
 	offset <<= p->regshift;
 
-	if (normal) {
+	if (normal)
+	{
 		writel(value, p->membase + offset);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Special case: two registers share the same address that
 		 * must be 32-bit accessed.  As this is not longer atomic safe,
@@ -152,37 +165,49 @@ static void uniphier_serial_dl_write(struct uart_8250_port *up, int value)
 }
 
 static int uniphier_of_serial_setup(struct device *dev, struct uart_port *port,
-				    struct uniphier8250_priv *priv)
+									struct uniphier8250_priv *priv)
 {
 	int ret;
 	u32 prop;
 	struct device_node *np = dev->of_node;
 
 	ret = of_alias_get_id(np, "serial");
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to get alias id\n");
 		return ret;
 	}
+
 	port->line = priv->line = ret;
 
 	/* Get clk rate through clk driver */
 	priv->clk = devm_clk_get(dev, NULL);
-	if (IS_ERR(priv->clk)) {
+
+	if (IS_ERR(priv->clk))
+	{
 		dev_err(dev, "failed to get clock\n");
 		return PTR_ERR(priv->clk);
 	}
 
 	ret = clk_prepare_enable(priv->clk);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	port->uartclk = clk_get_rate(priv->clk);
 
 	/* Check for fifo size */
 	if (of_property_read_u32(np, "fifo-size", &prop) == 0)
+	{
 		port->fifosize = prop;
+	}
 	else
+	{
 		port->fifosize = UNIPHIER_UART_DEFAULT_FIFO_SIZE;
+	}
 
 	return 0;
 }
@@ -198,30 +223,43 @@ static int uniphier_uart_probe(struct platform_device *pdev)
 	int ret;
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!regs) {
+
+	if (!regs)
+	{
 		dev_err(dev, "failed to get memory resource\n");
 		return -EINVAL;
 	}
 
 	membase = devm_ioremap(dev, regs->start, resource_size(regs));
+
 	if (!membase)
+	{
 		return -ENOMEM;
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(dev, "failed to get IRQ number\n");
 		return irq;
 	}
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	memset(&up, 0, sizeof(up));
 
 	ret = uniphier_of_serial_setup(dev, &up.port, priv);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	spin_lock_init(&priv->atomic_write_lock);
 
@@ -244,7 +282,9 @@ static int uniphier_uart_probe(struct platform_device *pdev)
 	up.dl_write = uniphier_serial_dl_write;
 
 	ret = serial8250_register_8250_port(&up);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to register 8250 port\n");
 		clk_disable_unprepare(priv->clk);
 		return ret;
@@ -265,13 +305,15 @@ static int uniphier_uart_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id uniphier_uart_match[] = {
+static const struct of_device_id uniphier_uart_match[] =
+{
 	{ .compatible = "socionext,uniphier-uart" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, uniphier_uart_match);
 
-static struct platform_driver uniphier_uart_platform_driver = {
+static struct platform_driver uniphier_uart_platform_driver =
+{
 	.probe		= uniphier_uart_probe,
 	.remove		= uniphier_uart_remove,
 	.driver = {

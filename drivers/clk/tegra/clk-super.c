@@ -30,8 +30,8 @@
 
 #define SUPER_STATE_SHIFT 28
 #define SUPER_STATE_MASK ((BIT(SUPER_STATE_IDLE) | BIT(SUPER_STATE_RUN) | \
-			   BIT(SUPER_STATE_IRQ) | BIT(SUPER_STATE_FIQ))	\
-			  << SUPER_STATE_SHIFT)
+						   BIT(SUPER_STATE_IRQ) | BIT(SUPER_STATE_FIQ))	\
+						  << SUPER_STATE_SHIFT)
 
 #define SUPER_LP_DIV2_BYPASS (1 << 16)
 
@@ -50,10 +50,10 @@ static u8 clk_super_get_parent(struct clk_hw *hw)
 	state = val & SUPER_STATE_MASK;
 
 	BUG_ON((state != super_state(SUPER_STATE_RUN)) &&
-	       (state != super_state(SUPER_STATE_IDLE)));
+		   (state != super_state(SUPER_STATE_IDLE)));
 	shift = (state == super_state(SUPER_STATE_IDLE)) ?
-		super_state_to_src_shift(mux, SUPER_STATE_IDLE) :
-		super_state_to_src_shift(mux, SUPER_STATE_RUN);
+			super_state_to_src_shift(mux, SUPER_STATE_IDLE) :
+			super_state_to_src_shift(mux, SUPER_STATE_RUN);
 
 	source = (val >> shift) & super_state_to_src_mask(mux);
 
@@ -62,8 +62,10 @@ static u8 clk_super_get_parent(struct clk_hw *hw)
 	 * PLLX/2 is the input source to CCLKLP.
 	 */
 	if ((mux->flags & TEGRA_DIVIDER_2) && !(val & SUPER_LP_DIV2_BYPASS) &&
-	    (source == mux->pllx_index))
+		(source == mux->pllx_index))
+	{
 		source = mux->div2_index;
+	}
 
 	return source;
 }
@@ -77,15 +79,17 @@ static int clk_super_set_parent(struct clk_hw *hw, u8 index)
 	unsigned long flags = 0;
 
 	if (mux->lock)
+	{
 		spin_lock_irqsave(mux->lock, flags);
+	}
 
 	val = readl_relaxed(mux->reg);
 	state = val & SUPER_STATE_MASK;
 	BUG_ON((state != super_state(SUPER_STATE_RUN)) &&
-	       (state != super_state(SUPER_STATE_IDLE)));
+		   (state != super_state(SUPER_STATE_IDLE)));
 	shift = (state == super_state(SUPER_STATE_IDLE)) ?
-		super_state_to_src_shift(mux, SUPER_STATE_IDLE) :
-		super_state_to_src_shift(mux, SUPER_STATE_RUN);
+			super_state_to_src_shift(mux, SUPER_STATE_IDLE) :
+			super_state_to_src_shift(mux, SUPER_STATE_RUN);
 
 	/*
 	 * For LP mode super-clock switch between PLLX direct
@@ -93,10 +97,13 @@ static int clk_super_set_parent(struct clk_hw *hw, u8 index)
 	 * than PLLX clock source is current parent.
 	 */
 	if ((mux->flags & TEGRA_DIVIDER_2) && ((index == mux->div2_index) ||
-					       (index == mux->pllx_index))) {
+										   (index == mux->pllx_index)))
+	{
 		parent_index = clk_super_get_parent(hw);
+
 		if ((parent_index == mux->div2_index) ||
-		    (parent_index == mux->pllx_index)) {
+			(parent_index == mux->pllx_index))
+		{
 			err = -EINVAL;
 			goto out;
 		}
@@ -106,8 +113,11 @@ static int clk_super_set_parent(struct clk_hw *hw, u8 index)
 		udelay(2);
 
 		if (index == mux->div2_index)
+		{
 			index = mux->pllx_index;
+		}
 	}
+
 	val &= ~((super_state_to_src_mask(mux)) << shift);
 	val |= (index & (super_state_to_src_mask(mux))) << shift;
 
@@ -115,13 +125,17 @@ static int clk_super_set_parent(struct clk_hw *hw, u8 index)
 	udelay(2);
 
 out:
+
 	if (mux->lock)
+	{
 		spin_unlock_irqrestore(mux->lock, flags);
+	}
 
 	return err;
 }
 
-const struct clk_ops tegra_clk_super_ops = {
+const struct clk_ops tegra_clk_super_ops =
+{
 	.get_parent = clk_super_get_parent,
 	.set_parent = clk_super_set_parent,
 };
@@ -136,7 +150,9 @@ struct clk *tegra_clk_register_super_mux(const char *name,
 	struct clk_init_data init;
 
 	super = kzalloc(sizeof(*super), GFP_KERNEL);
-	if (!super) {
+
+	if (!super)
+	{
 		pr_err("%s: could not allocate super clk\n", __func__);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -158,8 +174,11 @@ struct clk *tegra_clk_register_super_mux(const char *name,
 	super->hw.init = &init;
 
 	clk = clk_register(NULL, &super->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(super);
+	}
 
 	return clk;
 }

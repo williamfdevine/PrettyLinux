@@ -32,7 +32,8 @@
  * x^16 + x^15 + x^11 + x^9 + x^8 + x^7 + x^5 + x^4 + x^2 + x + 1
  * gt: 0x8bb7
  */
-static const __u16 t10_dif_crc_table[256] = {
+static const __u16 t10_dif_crc_table[256] =
+{
 	0x0000, 0x8BB7, 0x9CD9, 0x176E, 0xB205, 0x39B2, 0x2EDC, 0xA56B,
 	0xEFBD, 0x640A, 0x7364, 0xF8D3, 0x5DB8, 0xD60F, 0xC161, 0x4AD6,
 	0x54CD, 0xDF7A, 0xC814, 0x43A3, 0xE6C8, 0x6D7F, 0x7A11, 0xF1A6,
@@ -72,7 +73,9 @@ __u16 crc_t10dif_generic(__u16 crc, const unsigned char *buffer, size_t len)
 	unsigned int i;
 
 	for (i = 0 ; i < len ; i++)
+	{
 		crc = (crc << 8) ^ t10_dif_crc_table[((crc >> 8) ^ buffer[i]) & 0xff];
+	}
 
 	return crc;
 }

@@ -28,7 +28,7 @@
  */
 
 static int tcx_setcolreg(unsigned, unsigned, unsigned, unsigned,
-			 unsigned, struct fb_info *);
+						 unsigned, struct fb_info *);
 static int tcx_blank(int, struct fb_info *);
 
 static int tcx_mmap(struct fb_info *, struct vm_area_struct *);
@@ -39,7 +39,8 @@ static int tcx_pan_display(struct fb_var_screeninfo *, struct fb_info *);
  *  Frame buffer operations
  */
 
-static struct fb_ops tcx_ops = {
+static struct fb_ops tcx_ops =
+{
 	.owner			= THIS_MODULE,
 	.fb_setcolreg		= tcx_setcolreg,
 	.fb_blank		= tcx_blank,
@@ -74,13 +75,15 @@ static struct fb_ops tcx_ops = {
 #define TCX_THC_REV_MINREV_MASK      15
 
 /* The contents are unknown */
-struct tcx_tec {
+struct tcx_tec
+{
 	u32 tec_matrix;
 	u32 tec_clip;
 	u32 tec_vdc;
 };
 
-struct tcx_thc {
+struct tcx_thc
+{
 	u32 thc_rev;
 	u32 thc_pad0[511];
 	u32 thc_hs;		/* hsync timing */
@@ -96,7 +99,8 @@ struct tcx_thc {
 	u32 thc_cursbits[32];	/* what to show where mask enabled */
 };
 
-struct bt_regs {
+struct bt_regs
+{
 	u32 addr;
 	u32 color_map;
 	u32 control;
@@ -105,7 +109,8 @@ struct bt_regs {
 
 #define TCX_MMAP_ENTRIES 14
 
-struct tcx_par {
+struct tcx_par
+{
 	spinlock_t		lock;
 	struct bt_regs		__iomem *bt;
 	struct tcx_thc		__iomem *thc;
@@ -128,12 +133,19 @@ static void __tcx_set_control_plane(struct fb_info *info)
 	u32 __iomem *p, *pend;
 
 	if (par->lowdepth)
+	{
 		return;
+	}
 
 	p = par->cplane;
+
 	if (p == NULL)
+	{
 		return;
-	for (pend = p + info->fix.smem_len; p < pend; p++) {
+	}
+
+	for (pend = p + info->fix.smem_len; p < pend; p++)
+	{
 		u32 tmp = sbus_readl(p);
 
 		tmp &= 0xffffff;
@@ -167,15 +179,17 @@ static int tcx_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
  *      @info: frame buffer info structure
  */
 static int tcx_setcolreg(unsigned regno,
-			 unsigned red, unsigned green, unsigned blue,
-			 unsigned transp, struct fb_info *info)
+						 unsigned red, unsigned green, unsigned blue,
+						 unsigned transp, struct fb_info *info)
 {
 	struct tcx_par *par = (struct tcx_par *) info->par;
 	struct bt_regs __iomem *bt = par->bt;
 	unsigned long flags;
 
 	if (regno >= 256)
+	{
 		return 1;
+	}
 
 	red >>= 8;
 	green >>= 8;
@@ -210,28 +224,30 @@ tcx_blank(int blank, struct fb_info *info)
 
 	val = sbus_readl(&thc->thc_misc);
 
-	switch (blank) {
-	case FB_BLANK_UNBLANK: /* Unblanking */
-		val &= ~(TCX_THC_MISC_VSYNC_DIS |
-			 TCX_THC_MISC_HSYNC_DIS);
-		val |= TCX_THC_MISC_VIDEO;
-		par->flags &= ~TCX_FLAG_BLANKED;
-		break;
+	switch (blank)
+	{
+		case FB_BLANK_UNBLANK: /* Unblanking */
+			val &= ~(TCX_THC_MISC_VSYNC_DIS |
+					 TCX_THC_MISC_HSYNC_DIS);
+			val |= TCX_THC_MISC_VIDEO;
+			par->flags &= ~TCX_FLAG_BLANKED;
+			break;
 
-	case FB_BLANK_NORMAL: /* Normal blanking */
-		val &= ~TCX_THC_MISC_VIDEO;
-		par->flags |= TCX_FLAG_BLANKED;
-		break;
+		case FB_BLANK_NORMAL: /* Normal blanking */
+			val &= ~TCX_THC_MISC_VIDEO;
+			par->flags |= TCX_FLAG_BLANKED;
+			break;
 
-	case FB_BLANK_VSYNC_SUSPEND: /* VESA blank (vsync off) */
-		val |= TCX_THC_MISC_VSYNC_DIS;
-		break;
-	case FB_BLANK_HSYNC_SUSPEND: /* VESA blank (hsync off) */
-		val |= TCX_THC_MISC_HSYNC_DIS;
-		break;
+		case FB_BLANK_VSYNC_SUSPEND: /* VESA blank (vsync off) */
+			val |= TCX_THC_MISC_VSYNC_DIS;
+			break;
 
-	case FB_BLANK_POWERDOWN: /* Poweroff */
-		break;
+		case FB_BLANK_HSYNC_SUSPEND: /* VESA blank (hsync off) */
+			val |= TCX_THC_MISC_HSYNC_DIS;
+			break;
+
+		case FB_BLANK_POWERDOWN: /* Poweroff */
+			break;
 	}
 
 	sbus_writel(val, &thc->thc_misc);
@@ -241,7 +257,8 @@ tcx_blank(int blank, struct fb_info *info)
 	return 0;
 }
 
-static struct sbus_mmap_map __tcx_mmap_map[TCX_MMAP_ENTRIES] = {
+static struct sbus_mmap_map __tcx_mmap_map[TCX_MMAP_ENTRIES] =
+{
 	{
 		.voff	= TCX_RAM8BIT,
 		.size	= SBUS_MMAP_FBSIZE(1)
@@ -302,19 +319,19 @@ static int tcx_mmap(struct fb_info *info, struct vm_area_struct *vma)
 	struct tcx_par *par = (struct tcx_par *)info->par;
 
 	return sbusfb_mmap_helper(par->mmap_map,
-				  info->fix.smem_start, info->fix.smem_len,
-				  par->which_io, vma);
+							  info->fix.smem_start, info->fix.smem_len,
+							  par->which_io, vma);
 }
 
 static int tcx_ioctl(struct fb_info *info, unsigned int cmd,
-		     unsigned long arg)
+					 unsigned long arg)
 {
 	struct tcx_par *par = (struct tcx_par *) info->par;
 
 	return sbusfb_ioctl_helper(cmd, arg, info,
-				   FBTYPE_TCXCOLOR,
-				   (par->lowdepth ? 8 : 24),
-				   info->fix.smem_len);
+							   FBTYPE_TCXCOLOR,
+							   (par->lowdepth ? 8 : 24),
+							   info->fix.smem_len);
 }
 
 /*
@@ -328,9 +345,13 @@ tcx_init_fix(struct fb_info *info, int linebytes)
 	const char *tcx_name;
 
 	if (par->lowdepth)
+	{
 		tcx_name = "TCX8";
+	}
 	else
+	{
 		tcx_name = "TCX24";
+	}
 
 	strlcpy(info->fix.id, tcx_name, sizeof(info->fix.id));
 
@@ -343,23 +364,27 @@ tcx_init_fix(struct fb_info *info, int linebytes)
 }
 
 static void tcx_unmap_regs(struct platform_device *op, struct fb_info *info,
-			   struct tcx_par *par)
+						   struct tcx_par *par)
 {
 	if (par->tec)
 		of_iounmap(&op->resource[7],
-			   par->tec, sizeof(struct tcx_tec));
+				   par->tec, sizeof(struct tcx_tec));
+
 	if (par->thc)
 		of_iounmap(&op->resource[9],
-			   par->thc, sizeof(struct tcx_thc));
+				   par->thc, sizeof(struct tcx_thc));
+
 	if (par->bt)
 		of_iounmap(&op->resource[8],
-			   par->bt, sizeof(struct bt_regs));
+				   par->bt, sizeof(struct bt_regs));
+
 	if (par->cplane)
 		of_iounmap(&op->resource[4],
-			   par->cplane, info->fix.smem_len * sizeof(u32));
+				   par->cplane, info->fix.smem_len * sizeof(u32));
+
 	if (info->screen_base)
 		of_iounmap(&op->resource[0],
-			   info->screen_base, info->fix.smem_len);
+				   info->screen_base, info->fix.smem_len);
 }
 
 static int tcx_probe(struct platform_device *op)
@@ -372,8 +397,12 @@ static int tcx_probe(struct platform_device *op)
 	info = framebuffer_alloc(sizeof(struct tcx_par), &op->dev);
 
 	err = -ENOMEM;
+
 	if (!info)
+	{
 		goto out_err;
+	}
+
 	par = info->par;
 
 	spin_lock_init(&par->lock);
@@ -387,29 +416,39 @@ static int tcx_probe(struct platform_device *op)
 	info->var.blue.length = 8;
 
 	linebytes = of_getintprop_default(dp, "linebytes",
-					  info->var.xres);
+									  info->var.xres);
 	info->fix.smem_len = PAGE_ALIGN(linebytes * info->var.yres);
 
 	par->tec = of_ioremap(&op->resource[7], 0,
-				  sizeof(struct tcx_tec), "tcx tec");
+						  sizeof(struct tcx_tec), "tcx tec");
 	par->thc = of_ioremap(&op->resource[9], 0,
-				  sizeof(struct tcx_thc), "tcx thc");
+						  sizeof(struct tcx_thc), "tcx thc");
 	par->bt = of_ioremap(&op->resource[8], 0,
-				 sizeof(struct bt_regs), "tcx dac");
+						 sizeof(struct bt_regs), "tcx dac");
 	info->screen_base = of_ioremap(&op->resource[0], 0,
-					   info->fix.smem_len, "tcx ram");
+								   info->fix.smem_len, "tcx ram");
+
 	if (!par->tec || !par->thc ||
-	    !par->bt || !info->screen_base)
+		!par->bt || !info->screen_base)
+	{
 		goto out_unmap_regs;
+	}
 
 	memcpy(&par->mmap_map, &__tcx_mmap_map, sizeof(par->mmap_map));
-	if (!par->lowdepth) {
+
+	if (!par->lowdepth)
+	{
 		par->cplane = of_ioremap(&op->resource[4], 0,
-					     info->fix.smem_len * sizeof(u32),
-					     "tcx cplane");
+								 info->fix.smem_len * sizeof(u32),
+								 "tcx cplane");
+
 		if (!par->cplane)
+		{
 			goto out_unmap_regs;
-	} else {
+		}
+	}
+	else
+	{
 		par->mmap_map[1].size = SBUS_MMAP_EMPTY;
 		par->mmap_map[4].size = SBUS_MMAP_EMPTY;
 		par->mmap_map[5].size = SBUS_MMAP_EMPTY;
@@ -419,22 +458,25 @@ static int tcx_probe(struct platform_device *op)
 	info->fix.smem_start = op->resource[0].start;
 	par->which_io = op->resource[0].flags & IORESOURCE_BITS;
 
-	for (i = 0; i < TCX_MMAP_ENTRIES; i++) {
+	for (i = 0; i < TCX_MMAP_ENTRIES; i++)
+	{
 		int j;
 
-		switch (i) {
-		case 10:
-			j = 12;
-			break;
+		switch (i)
+		{
+			case 10:
+				j = 12;
+				break;
 
-		case 11: case 12:
-			j = i - 1;
-			break;
+			case 11: case 12:
+				j = i - 1;
+				break;
 
-		default:
-			j = i;
-			break;
+			default:
+				j = i;
+				break;
 		}
+
 		par->mmap_map[i].poff = op->resource[j].start;
 	}
 
@@ -456,22 +498,27 @@ static int tcx_probe(struct platform_device *op)
 	tcx_blank(FB_BLANK_UNBLANK, info);
 
 	if (fb_alloc_cmap(&info->cmap, 256, 0))
+	{
 		goto out_unmap_regs;
+	}
 
 	fb_set_cmap(&info->cmap, info);
 	tcx_init_fix(info, linebytes);
 
 	err = register_framebuffer(info);
+
 	if (err < 0)
+	{
 		goto out_dealloc_cmap;
+	}
 
 	dev_set_drvdata(&op->dev, info);
 
 	printk(KERN_INFO "%s: TCX at %lx:%lx, %s\n",
-	       dp->full_name,
-	       par->which_io,
-	       info->fix.smem_start,
-	       par->lowdepth ? "8-bit only" : "24-bit depth");
+		   dp->full_name,
+		   par->which_io,
+		   info->fix.smem_start,
+		   par->lowdepth ? "8-bit only" : "24-bit depth");
 
 	return 0;
 
@@ -501,7 +548,8 @@ static int tcx_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id tcx_match[] = {
+static const struct of_device_id tcx_match[] =
+{
 	{
 		.name = "SUNW,tcx",
 	},
@@ -509,7 +557,8 @@ static const struct of_device_id tcx_match[] = {
 };
 MODULE_DEVICE_TABLE(of, tcx_match);
 
-static struct platform_driver tcx_driver = {
+static struct platform_driver tcx_driver =
+{
 	.driver = {
 		.name = "tcx",
 		.of_match_table = tcx_match,
@@ -521,7 +570,9 @@ static struct platform_driver tcx_driver = {
 static int __init tcx_init(void)
 {
 	if (fb_get_options("tcxfb", NULL))
+	{
 		return -ENODEV;
+	}
 
 	return platform_driver_register(&tcx_driver);
 }

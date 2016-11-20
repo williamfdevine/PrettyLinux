@@ -49,7 +49,8 @@
  * @priv_data: the engine private data
  * @cur_req: the current request which is on processing
  */
-struct crypto_engine {
+struct crypto_engine
+{
 	char			name[ENGINE_NAME_LEN];
 	bool			idling;
 	bool			busy;
@@ -66,17 +67,17 @@ struct crypto_engine {
 	int (*unprepare_crypt_hardware)(struct crypto_engine *engine);
 
 	int (*prepare_cipher_request)(struct crypto_engine *engine,
-				      struct ablkcipher_request *req);
+								  struct ablkcipher_request *req);
 	int (*unprepare_cipher_request)(struct crypto_engine *engine,
-					struct ablkcipher_request *req);
+									struct ablkcipher_request *req);
 	int (*prepare_hash_request)(struct crypto_engine *engine,
-				    struct ahash_request *req);
+								struct ahash_request *req);
 	int (*unprepare_hash_request)(struct crypto_engine *engine,
-				      struct ahash_request *req);
+								  struct ahash_request *req);
 	int (*cipher_one_request)(struct crypto_engine *engine,
-				  struct ablkcipher_request *req);
+							  struct ablkcipher_request *req);
 	int (*hash_one_request)(struct crypto_engine *engine,
-				struct ahash_request *req);
+							struct ahash_request *req);
 
 	struct kthread_worker           kworker;
 	struct task_struct              *kworker_task;
@@ -87,18 +88,18 @@ struct crypto_engine {
 };
 
 int crypto_transfer_cipher_request(struct crypto_engine *engine,
-				   struct ablkcipher_request *req,
-				   bool need_pump);
+								   struct ablkcipher_request *req,
+								   bool need_pump);
 int crypto_transfer_cipher_request_to_engine(struct crypto_engine *engine,
-					     struct ablkcipher_request *req);
+		struct ablkcipher_request *req);
 int crypto_transfer_hash_request(struct crypto_engine *engine,
-				 struct ahash_request *req, bool need_pump);
+								 struct ahash_request *req, bool need_pump);
 int crypto_transfer_hash_request_to_engine(struct crypto_engine *engine,
-					   struct ahash_request *req);
+		struct ahash_request *req);
 void crypto_finalize_cipher_request(struct crypto_engine *engine,
-				    struct ablkcipher_request *req, int err);
+									struct ablkcipher_request *req, int err);
 void crypto_finalize_hash_request(struct crypto_engine *engine,
-				  struct ahash_request *req, int err);
+								  struct ahash_request *req, int err);
 int crypto_engine_start(struct crypto_engine *engine);
 int crypto_engine_stop(struct crypto_engine *engine);
 struct crypto_engine *crypto_engine_alloc_init(struct device *dev, bool rt);

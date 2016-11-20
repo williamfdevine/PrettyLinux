@@ -4,11 +4,12 @@
 #include <linux/interrupt.h>
 
 #if ((BITS_PER_LONG != 32) && (BITS_PER_LONG != 64))
-#error "BITS_PER_LONG not defined or not valid"
+	#error "BITS_PER_LONG not defined or not valid"
 #endif
 
 
-struct rr_regs {
+struct rr_regs
+{
 
 	u32	pad0[16];
 
@@ -17,7 +18,7 @@ struct rr_regs {
 	u32	Pc;
 	u32	BrkPt;
 
-/* Timer increments every 0.97 micro-seconds (unsigned int) */
+	/* Timer increments every 0.97 micro-seconds (unsigned int) */
 	u32	Timer_Hi;
 	u32	Timer;
 	u32	TimerRef;
@@ -114,11 +115,11 @@ struct rr_regs {
 
 	u32	CmdRing[16];
 
-/* The ULA is in two registers the high order two bytes of the first
- * word contain the RunCode features.
- * ula0		res	res	byte0	byte1
- * ula1		byte2	byte3	byte4	byte5
- */
+	/* The ULA is in two registers the high order two bytes of the first
+	 * word contain the RunCode features.
+	 * ula0		res	res	byte0	byte1
+	 * ula1		byte2	byte3	byte4	byte5
+	 */
 	u32	Ula0;
 	u32	Ula1;
 
@@ -353,7 +354,8 @@ struct rr_regs {
 #define EVT_RING_ENTRIES	64
 #define EVT_RING_SIZE		(EVT_RING_ENTRIES * sizeof(struct event))
 
-struct event {
+struct event
+{
 #ifdef __LITTLE_ENDIAN
 	u16     index;
 	u8      ring;
@@ -454,7 +456,8 @@ struct event {
 
 #define CMD_RING_ENTRIES	16
 
-struct cmd {
+struct cmd
+{
 #ifdef __LITTLE_ENDIAN
 	u16     index;
 	u8      ring;
@@ -486,7 +489,8 @@ struct cmd {
 #define  SAME_IFIELD		0x80
 
 
-typedef struct {
+typedef struct
+{
 #if (BITS_PER_LONG == 64)
 	u64 addrlo;
 #else
@@ -502,7 +506,7 @@ static inline void set_rraddr(rraddr *ra, dma_addr_t addr)
 #if (BITS_PER_LONG == 64)
 	ra->addrlo = baddr;
 #else
-    /* Don't bother setting zero every time */
+	/* Don't bother setting zero every time */
 	ra->addrlo = baddr;
 #endif
 	mb();
@@ -548,13 +552,14 @@ static inline void set_infoaddr(struct rr_regs __iomem *regs, volatile dma_addr_
  */
 
 #ifdef CONFIG_ROADRUNNER_LARGE_RINGS
-#define TX_RING_ENTRIES	32
+	#define TX_RING_ENTRIES	32
 #else
-#define TX_RING_ENTRIES	16
+	#define TX_RING_ENTRIES	16
 #endif
 #define TX_TOTAL_SIZE	(TX_RING_ENTRIES * sizeof(struct tx_desc))
 
-struct tx_desc{
+struct tx_desc
+{
 	rraddr	addr;
 	u32	res;
 #ifdef __LITTLE_ENDIAN
@@ -570,13 +575,14 @@ struct tx_desc{
 
 
 #ifdef CONFIG_ROADRUNNER_LARGE_RINGS
-#define RX_RING_ENTRIES	32
+	#define RX_RING_ENTRIES	32
 #else
-#define RX_RING_ENTRIES 16
+	#define RX_RING_ENTRIES 16
 #endif
 #define RX_TOTAL_SIZE	(RX_RING_ENTRIES * sizeof(struct rx_desc))
 
-struct rx_desc{
+struct rx_desc
+{
 	rraddr	addr;
 	u32	res;
 #ifdef __LITTLE_ENDIAN
@@ -600,7 +606,8 @@ struct rx_desc{
 #define SIOCRRID	SIOCDEVPRIVATE+2	/* identify */
 
 
-struct seg_hdr {
+struct seg_hdr
+{
 	u32	seg_start;
 	u32	seg_len;
 	u32	seg_eestart;
@@ -611,7 +618,8 @@ struct seg_hdr {
 #define EEPROM_WORDS 8192
 #define EEPROM_BYTES (EEPROM_WORDS * sizeof(u32))
 
-struct eeprom_boot {
+struct eeprom_boot
+{
 	u32	key1;
 	u32	key2;
 	u32	sram_size;
@@ -620,7 +628,8 @@ struct eeprom_boot {
 	u32	reserved1;
 };
 
-struct eeprom_manf {
+struct eeprom_manf
+{
 	u32	HeaderFmt;
 	u32	Firmware;
 	u32	BoardRevision;
@@ -649,7 +658,8 @@ struct eeprom_manf {
 };
 
 
-struct eeprom_phase_info {
+struct eeprom_phase_info
+{
 	char	phase1File[12];
 	u32	phase1Rev;
 	char	phase1Date[8];
@@ -659,7 +669,8 @@ struct eeprom_phase_info {
 	u32	reserved7[4];
 };
 
-struct eeprom_rncd_info {
+struct eeprom_rncd_info
+{
 	u32	FwStart;
 	u32	FwRev;
 	char	FwDate[8];
@@ -670,13 +681,15 @@ struct eeprom_rncd_info {
 
 
 /* Phase 1 region (starts are word offset 0x80) */
-struct phase1_hdr{
+struct phase1_hdr
+{
 	u32	jump;
 	u32	noop;
 	struct seg_hdr phase2Seg;
 };
 
-struct eeprom {
+struct eeprom
+{
 	struct eeprom_boot	boot;
 	u32			pad1[8];
 	struct eeprom_manf	manf;
@@ -688,7 +701,8 @@ struct eeprom {
 };
 
 
-struct rr_stats {
+struct rr_stats
+{
 	u32	NicTimeStamp;
 	u32	RngCreated;
 	u32	RngDeleted;
@@ -760,7 +774,8 @@ struct rr_stats {
 /*
  * This struct is shared with the NIC firmware.
  */
-struct ring_ctrl {
+struct ring_ctrl
+{
 	rraddr	rngptr;
 #ifdef __LITTLE_ENDIAN
 	u16	entries;
@@ -777,8 +792,10 @@ struct ring_ctrl {
 #endif
 };
 
-struct rr_info {
-	union {
+struct rr_info
+{
+	union
+	{
 		struct rr_stats stats;
 		u32 stati[128];
 	} s;
@@ -832,13 +849,13 @@ static irqreturn_t rr_interrupt(int irq, void *dev_id);
 
 static int rr_open(struct net_device *dev);
 static netdev_tx_t rr_start_xmit(struct sk_buff *skb,
-				 struct net_device *dev);
+								 struct net_device *dev);
 static int rr_close(struct net_device *dev);
 static int rr_ioctl(struct net_device *dev, struct ifreq *rq, int cmd);
 static unsigned int rr_read_eeprom(struct rr_private *rrpriv,
-				   unsigned long offset,
-				   unsigned char *buf,
-				   unsigned long length);
+								   unsigned long offset,
+								   unsigned char *buf,
+								   unsigned long length);
 static u32 rr_read_eeprom_word(struct rr_private *rrpriv, size_t offset);
 static int rr_load_firmware(struct net_device *dev);
 static inline void rr_raz_tx(struct rr_private *, struct net_device *);

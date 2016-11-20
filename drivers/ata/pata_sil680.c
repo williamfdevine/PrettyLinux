@@ -87,10 +87,15 @@ static int sil680_cable_detect(struct ata_port *ap)
 	unsigned long addr = sil680_selreg(ap, 0);
 	u8 ata66;
 	pci_read_config_byte(pdev, addr, &ata66);
+
 	if (ata66 & 1)
+	{
 		return ATA_CBL_PATA80;
+	}
 	else
+	{
 		return ATA_CBL_PATA40;
+	}
 }
 
 /**
@@ -105,10 +110,12 @@ static int sil680_cable_detect(struct ata_port *ap)
 
 static void sil680_set_piomode(struct ata_port *ap, struct ata_device *adev)
 {
-	static const u16 speed_p[5] = {
+	static const u16 speed_p[5] =
+	{
 		0x328A, 0x2283, 0x1104, 0x10C3, 0x10C1
 	};
-	static const u16 speed_t[5] = {
+	static const u16 speed_t[5] =
+	{
 		0x328A, 0x2283, 0x1281, 0x10C3, 0x10C1
 	};
 
@@ -125,22 +132,26 @@ static void sil680_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	struct ata_device *pair = ata_dev_pair(adev);
 
 	if (pair != NULL && adev->pio_mode > pair->pio_mode)
+	{
 		lowest_pio = pair->pio_mode - XFER_PIO_0;
+	}
 
 	pci_write_config_word(pdev, addr, speed_p[pio]);
 	pci_write_config_word(pdev, tfaddr, speed_t[lowest_pio]);
 
-	pci_read_config_word(pdev, tfaddr-2, &reg);
+	pci_read_config_word(pdev, tfaddr - 2, &reg);
 	pci_read_config_byte(pdev, addr_mask, &mode);
 
 	reg &= ~0x0200;			/* Clear IORDY */
 	mode &= ~(3 << port_shift);	/* Clear IORDY and DMA bits */
 
-	if (ata_pio_need_iordy(adev)) {
+	if (ata_pio_need_iordy(adev))
+	{
 		reg |= 0x0200;		/* Enable IORDY */
 		mode |= 1 << port_shift;
 	}
-	pci_write_config_word(pdev, tfaddr-2, reg);
+
+	pci_write_config_word(pdev, tfaddr - 2, reg);
 	pci_write_config_byte(pdev, addr_mask, mode);
 }
 
@@ -157,7 +168,8 @@ static void sil680_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 static void sil680_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 {
-	static const u8 ultra_table[2][7] = {
+	static const u8 ultra_table[2][7] =
+	{
 		{ 0x0C, 0x07, 0x05, 0x04, 0x02, 0x01, 0xFF },	/* 100MHz */
 		{ 0x0F, 0x0B, 0x07, 0x05, 0x03, 0x02, 0x01 },	/* 133Mhz */
 	};
@@ -183,14 +195,18 @@ static void sil680_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 	/* Extract scsc */
 	scsc = (scsc & 0x30) ? 1 : 0;
 
-	if (adev->dma_mode >= XFER_UDMA_0) {
+	if (adev->dma_mode >= XFER_UDMA_0)
+	{
 		multi = 0x10C1;
 		ultra |= ultra_table[scsc][adev->dma_mode - XFER_UDMA_0];
 		mode |= (0x03 << port_shift);
-	} else {
+	}
+	else
+	{
 		multi = dma_table[adev->dma_mode - XFER_MW_DMA_0];
 		mode |= (0x02 << port_shift);
 	}
+
 	pci_write_config_byte(pdev, addr_mask, mode);
 	pci_write_config_word(pdev, ma, multi);
 	pci_write_config_word(pdev, ua, ultra);
@@ -209,7 +225,7 @@ static void sil680_set_dmamode(struct ata_port *ap, struct ata_device *adev)
  *	spin_lock_irqsave(host lock)
  */
 static void sil680_sff_exec_command(struct ata_port *ap,
-				    const struct ata_taskfile *tf)
+									const struct ata_taskfile *tf)
 {
 	DPRINTK("ata%u: cmd 0x%X\n", ap->print_id, tf->command);
 	iowrite8(tf->command, ap->ioaddr.command_addr);
@@ -227,12 +243,14 @@ static bool sil680_sff_irq_check(struct ata_port *ap)
 	return val & 0x08;
 }
 
-static struct scsi_host_template sil680_sht = {
+static struct scsi_host_template sil680_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
 
-static struct ata_port_operations sil680_port_ops = {
+static struct ata_port_operations sil680_port_ops =
+{
 	.inherits		= &ata_bmdma32_port_ops,
 	.sff_exec_command	= sil680_sff_exec_command,
 	.sff_irq_check		= sil680_sff_irq_check,
@@ -256,7 +274,7 @@ static u8 sil680_init_chip(struct pci_dev *pdev, int *try_mmio)
 
 	/* FIXME: double check */
 	pci_write_config_byte(pdev, PCI_CACHE_LINE_SIZE,
-			      pdev->revision ? 1 : 255);
+						  pdev->revision ? 1 : 255);
 
 	pci_write_config_byte(pdev, 0x80, 0x00);
 	pci_write_config_byte(pdev, 0x84, 0x00);
@@ -264,35 +282,43 @@ static u8 sil680_init_chip(struct pci_dev *pdev, int *try_mmio)
 	pci_read_config_byte(pdev, 0x8A, &tmpbyte);
 
 	dev_dbg(&pdev->dev, "sil680: BA5_EN = %d clock = %02X\n",
-		tmpbyte & 1, tmpbyte & 0x30);
+			tmpbyte & 1, tmpbyte & 0x30);
 
 	*try_mmio = 0;
 #ifdef CONFIG_PPC
+
 	if (machine_is(cell))
+	{
 		*try_mmio = (tmpbyte & 1) || pci_resource_start(pdev, 5);
+	}
+
 #endif
 
-	switch (tmpbyte & 0x30) {
-	case 0x00:
-		/* 133 clock attempt to force it on */
-		pci_write_config_byte(pdev, 0x8A, tmpbyte|0x10);
-		break;
-	case 0x30:
-		/* if clocking is disabled */
-		/* 133 clock attempt to force it on */
-		pci_write_config_byte(pdev, 0x8A, tmpbyte & ~0x20);
-		break;
-	case 0x10:
-		/* 133 already */
-		break;
-	case 0x20:
-		/* BIOS set PCI x2 clocking */
-		break;
+	switch (tmpbyte & 0x30)
+	{
+		case 0x00:
+			/* 133 clock attempt to force it on */
+			pci_write_config_byte(pdev, 0x8A, tmpbyte | 0x10);
+			break;
+
+		case 0x30:
+			/* if clocking is disabled */
+			/* 133 clock attempt to force it on */
+			pci_write_config_byte(pdev, 0x8A, tmpbyte & ~0x20);
+			break;
+
+		case 0x10:
+			/* 133 already */
+			break;
+
+		case 0x20:
+			/* BIOS set PCI x2 clocking */
+			break;
 	}
 
 	pci_read_config_byte(pdev,   0x8A, &tmpbyte);
 	dev_dbg(&pdev->dev, "sil680: BA5_EN = %d clock = %02X\n",
-		tmpbyte & 1, tmpbyte & 0x30);
+			tmpbyte & 1, tmpbyte & 0x30);
 
 	pci_write_config_byte(pdev,  0xA1, 0x72);
 	pci_write_config_word(pdev,  0xA2, 0x328A);
@@ -305,33 +331,40 @@ static u8 sil680_init_chip(struct pci_dev *pdev, int *try_mmio)
 	pci_write_config_dword(pdev, 0xB8, 0x43924392);
 	pci_write_config_dword(pdev, 0xBC, 0x40094009);
 
-	switch (tmpbyte & 0x30) {
-	case 0x00:
-		printk(KERN_INFO "sil680: 100MHz clock.\n");
-		break;
-	case 0x10:
-		printk(KERN_INFO "sil680: 133MHz clock.\n");
-		break;
-	case 0x20:
-		printk(KERN_INFO "sil680: Using PCI clock.\n");
-		break;
-	/* This last case is _NOT_ ok */
-	case 0x30:
-		printk(KERN_ERR "sil680: Clock disabled ?\n");
+	switch (tmpbyte & 0x30)
+	{
+		case 0x00:
+			printk(KERN_INFO "sil680: 100MHz clock.\n");
+			break;
+
+		case 0x10:
+			printk(KERN_INFO "sil680: 133MHz clock.\n");
+			break;
+
+		case 0x20:
+			printk(KERN_INFO "sil680: Using PCI clock.\n");
+			break;
+
+		/* This last case is _NOT_ ok */
+		case 0x30:
+			printk(KERN_ERR "sil680: Clock disabled ?\n");
 	}
+
 	return tmpbyte & 0x30;
 }
 
 static int sil680_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags = ATA_FLAG_SLAVE_POSS,
 		.pio_mask = ATA_PIO4,
 		.mwdma_mask = ATA_MWDMA2,
 		.udma_mask = ATA_UDMA6,
 		.port_ops = &sil680_port_ops
 	};
-	static const struct ata_port_info info_slow = {
+	static const struct ata_port_info info_slow =
+	{
 		.flags = ATA_FLAG_SLAVE_POSS,
 		.pio_mask = ATA_PIO4,
 		.mwdma_mask = ATA_MWDMA2,
@@ -346,40 +379,62 @@ static int sil680_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	ata_print_version_once(&pdev->dev, DRV_VERSION);
 
 	rc = pcim_enable_device(pdev);
-	if (rc)
-		return rc;
 
-	switch (sil680_init_chip(pdev, &try_mmio)) {
+	if (rc)
+	{
+		return rc;
+	}
+
+	switch (sil680_init_chip(pdev, &try_mmio))
+	{
 		case 0:
 			ppi[0] = &info_slow;
 			break;
+
 		case 0x30:
 			return -ENODEV;
 	}
 
 	if (!try_mmio)
+	{
 		goto use_ioports;
+	}
 
 	/* Try to acquire MMIO resources and fallback to PIO if
 	 * that fails
 	 */
 	rc = pcim_iomap_regions(pdev, 1 << SIL680_MMIO_BAR, DRV_NAME);
+
 	if (rc)
+	{
 		goto use_ioports;
+	}
 
 	/* Allocate host and set it up */
 	host = ata_host_alloc_pinfo(&pdev->dev, ppi, 2);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
+
 	host->iomap = pcim_iomap_table(pdev);
 
 	/* Setup DMA masks */
 	rc = dma_set_mask(&pdev->dev, ATA_DMA_MASK);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	rc = dma_set_coherent_mask(&pdev->dev, ATA_DMA_MASK);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	pci_set_master(pdev);
 
 	/* Get MMIO base and initialize port addresses */
@@ -397,7 +452,7 @@ static int sil680_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	/* Register & activate */
 	return ata_host_activate(host, pdev->irq, ata_bmdma_interrupt,
-				 IRQF_SHARED, &sil680_sht);
+							 IRQF_SHARED, &sil680_sht);
 
 use_ioports:
 	return ata_pci_bmdma_init_one(pdev, ppi, &sil680_sht, NULL, 0);
@@ -410,21 +465,27 @@ static int sil680_reinit_one(struct pci_dev *pdev)
 	int try_mmio, rc;
 
 	rc = ata_pci_device_do_resume(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	sil680_init_chip(pdev, &try_mmio);
 	ata_host_resume(host);
 	return 0;
 }
 #endif
 
-static const struct pci_device_id sil680[] = {
+static const struct pci_device_id sil680[] =
+{
 	{ PCI_VDEVICE(CMD, PCI_DEVICE_ID_SII_680), },
 
 	{ },
 };
 
-static struct pci_driver sil680_pci_driver = {
+static struct pci_driver sil680_pci_driver =
+{
 	.name 		= DRV_NAME,
 	.id_table	= sil680,
 	.probe 		= sil680_init_one,

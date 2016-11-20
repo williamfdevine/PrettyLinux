@@ -56,7 +56,7 @@
 #define VID_MIN_HD_HEIGHT       720
 
 #define DBGFS_DUMP(reg) seq_printf(s, "\n  %-25s 0x%08X", #reg, \
-				   readl(vid->regs + reg))
+								   readl(vid->regs + reg))
 
 static void vid_dbg_ctl(struct seq_file *s, int val)
 {
@@ -64,11 +64,17 @@ static void vid_dbg_ctl(struct seq_file *s, int val)
 	seq_puts(s, "\t");
 
 	if (!(val & 1))
+	{
 		seq_puts(s, "NOT ");
+	}
+
 	seq_puts(s, "ignored on main mixer - ");
 
 	if (!(val & 2))
+	{
 		seq_puts(s, "NOT ");
+	}
+
 	seq_puts(s, "ignored on aux mixer");
 }
 
@@ -85,7 +91,9 @@ static void vid_dbg_vps(struct seq_file *s, int val)
 static void vid_dbg_mst(struct seq_file *s, int val)
 {
 	if (val & 1)
+	{
 		seq_puts(s, "\tBUFFER UNDERFLOW!");
+	}
 }
 
 static int vid_dbg_show(struct seq_file *s, void *arg)
@@ -119,7 +127,8 @@ static int vid_dbg_show(struct seq_file *s, void *arg)
 	return 0;
 }
 
-static struct drm_info_list vid_debugfs_files[] = {
+static struct drm_info_list vid_debugfs_files[] =
+{
 	{ "vid", vid_dbg_show, 0, NULL },
 };
 
@@ -128,15 +137,17 @@ int vid_debugfs_init(struct sti_vid *vid, struct drm_minor *minor)
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(vid_debugfs_files); i++)
+	{
 		vid_debugfs_files[i].data = vid;
+	}
 
 	return drm_debugfs_create_files(vid_debugfs_files,
-					ARRAY_SIZE(vid_debugfs_files),
-					minor->debugfs_root, minor);
+									ARRAY_SIZE(vid_debugfs_files),
+									minor->debugfs_root, minor);
 }
 
 void sti_vid_commit(struct sti_vid *vid,
-		    struct drm_plane_state *state)
+					struct drm_plane_state *state)
 {
 	struct drm_crtc *crtc = state->crtc;
 	struct drm_display_mode *mode = &crtc->mode;
@@ -166,12 +177,15 @@ void sti_vid_commit(struct sti_vid *vid,
 	writel((yds << 16) | xds, vid->regs + VID_VPS);
 
 	/* Color conversion parameters */
-	if (src_h >= VID_MIN_HD_HEIGHT) {
+	if (src_h >= VID_MIN_HD_HEIGHT)
+	{
 		writel(VID_MPR0_BT709, vid->regs + VID_MPR0);
 		writel(VID_MPR1_BT709, vid->regs + VID_MPR1);
 		writel(VID_MPR2_BT709, vid->regs + VID_MPR2);
 		writel(VID_MPR3_BT709, vid->regs + VID_MPR3);
-	} else {
+	}
+	else
+	{
 		writel(VID_MPR0_BT601, vid->regs + VID_MPR0);
 		writel(VID_MPR1_BT601, vid->regs + VID_MPR1);
 		writel(VID_MPR2_BT601, vid->regs + VID_MPR2);
@@ -204,12 +218,14 @@ static void sti_vid_init(struct sti_vid *vid)
 }
 
 struct sti_vid *sti_vid_create(struct device *dev, struct drm_device *drm_dev,
-			       int id, void __iomem *baseaddr)
+							   int id, void __iomem *baseaddr)
 {
 	struct sti_vid *vid;
 
 	vid = devm_kzalloc(dev, sizeof(*vid), GFP_KERNEL);
-	if (!vid) {
+
+	if (!vid)
+	{
 		DRM_ERROR("Failed to allocate memory for VID\n");
 		return NULL;
 	}

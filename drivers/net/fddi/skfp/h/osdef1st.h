@@ -12,7 +12,7 @@
  *
  ******************************************************************************/
 
-/* 
+/*
  * Operating system-dependent definitions that have to be defined
  * before any other header files are included.
  */
@@ -23,9 +23,9 @@
 #include <asm/byteorder.h>
 
 #ifdef __LITTLE_ENDIAN
-#define LITTLE_ENDIAN
+	#define LITTLE_ENDIAN
 #else
-#define BIG_ENDIAN
+	#define BIG_ENDIAN
 #endif
 
 // this is set in the makefile
@@ -40,12 +40,12 @@
 // -----------------------
 
 
-// SMT Definitions 
+// SMT Definitions
 // -----------------------
 #define SYNC	       		/* allow synchronous frames */
 
 // #define SBA			/* Synchronous Bandwidth Allocator support */
-				/* not available as free source */
+/* not available as free source */
 
 #define ESS			/* SBA End Station Support */
 
@@ -53,7 +53,7 @@
 
 
 #ifdef DEBUG
-#define printf(s,args...) printk(KERN_INFO s, ## args)
+	#define printf(s,args...) printk(KERN_INFO s, ## args)
 #endif
 
 // #define HW_PTR	u_long
@@ -83,9 +83,9 @@
 // Number of RXDs for receive queue #1.
 // Note: Workaround for ASIC Errata #7: One extra RXD is required.
 #if (NUM_RECEIVE_BUFFERS > 100)
-#define SMT_R1_RXD_COUNT	(1 + 100)
+	#define SMT_R1_RXD_COUNT	(1 + 100)
 #else
-#define SMT_R1_RXD_COUNT	(1 + NUM_RECEIVE_BUFFERS)
+	#define SMT_R1_RXD_COUNT	(1 + NUM_RECEIVE_BUFFERS)
 #endif
 
 // Number of RXDs for receive queue #2.
@@ -105,12 +105,14 @@
  * DMA address of the packet data, for later pci_unmap_single. -DaveM
  */
 
-struct s_txd_os {	// os-specific part of transmit descriptor
+struct s_txd_os  	// os-specific part of transmit descriptor
+{
 	struct sk_buff *skb;
 	dma_addr_t dma_addr;
 } ;
 
-struct s_rxd_os {	// os-specific part of receive descriptor
+struct s_rxd_os  	// os-specific part of receive descriptor
+{
 	struct sk_buff *skb;
 	dma_addr_t dma_addr;
 } ;

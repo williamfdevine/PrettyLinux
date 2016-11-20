@@ -16,14 +16,16 @@
 
 #include <linux/reset-controller.h>
 
-struct qcom_reset_map {
+struct qcom_reset_map
+{
 	unsigned int reg;
 	u8 bit;
 };
 
 struct regmap;
 
-struct qcom_reset_controller {
+struct qcom_reset_controller
+{
 	const struct qcom_reset_map *reset_map;
 	struct regmap *regmap;
 	struct reset_controller_dev rcdev;

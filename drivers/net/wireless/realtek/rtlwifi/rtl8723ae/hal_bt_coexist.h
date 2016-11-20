@@ -140,18 +140,18 @@ void rtl8723e_dm_bt_sw_coex_all_off(struct ieee80211_hw *hw);
 void rtl8723e_dm_bt_hw_coex_all_off(struct ieee80211_hw *hw);
 long rtl8723e_dm_bt_get_rx_ss(struct ieee80211_hw *hw);
 void rtl8723e_dm_bt_balance(struct ieee80211_hw *hw,
-			    bool balance_on, u8 ms0, u8 ms1);
+							bool balance_on, u8 ms0, u8 ms1);
 void rtl8723e_dm_bt_agc_table(struct ieee80211_hw *hw, u8 tyep);
 void rtl8723e_dm_bt_bb_back_off_level(struct ieee80211_hw *hw, u8 type);
 u8 rtl8723e_dm_bt_check_coex_rssi_state(struct ieee80211_hw *hw,
-					u8 level_num, u8 rssi_thresh,
-					u8 rssi_thresh1);
+										u8 level_num, u8 rssi_thresh,
+										u8 rssi_thresh1);
 u8 rtl8723e_dm_bt_check_coex_rssi_state1(struct ieee80211_hw *hw,
-					 u8 level_num, u8 rssi_thresh,
-					 u8 rssi_thresh1);
+		u8 level_num, u8 rssi_thresh,
+		u8 rssi_thresh1);
 void _rtl8723_dm_bt_check_wifi_state(struct ieee80211_hw *hw);
 void rtl8723e_dm_bt_reject_ap_aggregated_packet(struct ieee80211_hw *hw,
-						bool b_reject);
+		bool b_reject);
 bool rtl8723e_dm_bt_is_coexist_state_changed(struct ieee80211_hw *hw);
 bool rtl8723e_dm_bt_is_wifi_up_link(struct ieee80211_hw *hw);
 

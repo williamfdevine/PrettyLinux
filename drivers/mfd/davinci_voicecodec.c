@@ -33,7 +33,8 @@
 
 #include <linux/mfd/davinci_voicecodec.h>
 
-static const struct regmap_config davinci_vc_regmap = {
+static const struct regmap_config davinci_vc_regmap =
+{
 	.reg_bits = 32,
 	.val_bits = 32,
 };
@@ -46,36 +47,48 @@ static int __init davinci_vc_probe(struct platform_device *pdev)
 	int ret;
 
 	davinci_vc = devm_kzalloc(&pdev->dev,
-				  sizeof(struct davinci_vc), GFP_KERNEL);
+							  sizeof(struct davinci_vc), GFP_KERNEL);
+
 	if (!davinci_vc)
+	{
 		return -ENOMEM;
+	}
 
 	davinci_vc->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(davinci_vc->clk)) {
+
+	if (IS_ERR(davinci_vc->clk))
+	{
 		dev_dbg(&pdev->dev,
-			    "could not get the clock for voice codec\n");
+				"could not get the clock for voice codec\n");
 		return -ENODEV;
 	}
+
 	clk_enable(davinci_vc->clk);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	davinci_vc->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(davinci_vc->base)) {
+
+	if (IS_ERR(davinci_vc->base))
+	{
 		ret = PTR_ERR(davinci_vc->base);
 		goto fail;
 	}
 
 	davinci_vc->regmap = devm_regmap_init_mmio(&pdev->dev,
-						   davinci_vc->base,
-						   &davinci_vc_regmap);
-	if (IS_ERR(davinci_vc->regmap)) {
+						 davinci_vc->base,
+						 &davinci_vc_regmap);
+
+	if (IS_ERR(davinci_vc->regmap))
+	{
 		ret = PTR_ERR(davinci_vc->regmap);
 		goto fail;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "no DMA resource\n");
 		ret = -ENXIO;
 		goto fail;
@@ -86,7 +99,9 @@ static int __init davinci_vc_probe(struct platform_device *pdev)
 		(dma_addr_t)(io_v2p(davinci_vc->base) + DAVINCI_VC_WFIFO);
 
 	res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "no DMA resource\n");
 		ret = -ENXIO;
 		goto fail;
@@ -112,8 +127,10 @@ static int __init davinci_vc_probe(struct platform_device *pdev)
 	cell->pdata_size = sizeof(*davinci_vc);
 
 	ret = mfd_add_devices(&pdev->dev, pdev->id, davinci_vc->cells,
-			      DAVINCI_VC_CELLS, NULL, 0, NULL);
-	if (ret != 0) {
+						  DAVINCI_VC_CELLS, NULL, 0, NULL);
+
+	if (ret != 0)
+	{
 		dev_err(&pdev->dev, "fail to register client devices\n");
 		goto fail;
 	}
@@ -137,7 +154,8 @@ static int davinci_vc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver davinci_vc_driver = {
+static struct platform_driver davinci_vc_driver =
+{
 	.driver	= {
 		.name = "davinci_voicecodec",
 	},

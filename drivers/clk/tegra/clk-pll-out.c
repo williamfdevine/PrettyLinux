@@ -33,8 +33,12 @@ static int clk_pll_out_is_enabled(struct clk_hw *hw)
 	int state;
 
 	state = (val & pll_out_enb(pll_out)) ? 1 : 0;
+
 	if (!(val & (pll_out_rst(pll_out))))
+	{
 		state = 0;
+	}
+
 	return state;
 }
 
@@ -45,7 +49,9 @@ static int clk_pll_out_enable(struct clk_hw *hw)
 	u32 val;
 
 	if (pll_out->lock)
+	{
 		spin_lock_irqsave(pll_out->lock, flags);
+	}
 
 	val = readl_relaxed(pll_out->reg);
 
@@ -55,7 +61,9 @@ static int clk_pll_out_enable(struct clk_hw *hw)
 	udelay(2);
 
 	if (pll_out->lock)
+	{
 		spin_unlock_irqrestore(pll_out->lock, flags);
+	}
 
 	return 0;
 }
@@ -67,7 +75,9 @@ static void clk_pll_out_disable(struct clk_hw *hw)
 	u32 val;
 
 	if (pll_out->lock)
+	{
 		spin_lock_irqsave(pll_out->lock, flags);
+	}
 
 	val = readl_relaxed(pll_out->reg);
 
@@ -77,27 +87,33 @@ static void clk_pll_out_disable(struct clk_hw *hw)
 	udelay(2);
 
 	if (pll_out->lock)
+	{
 		spin_unlock_irqrestore(pll_out->lock, flags);
+	}
 }
 
-const struct clk_ops tegra_clk_pll_out_ops = {
+const struct clk_ops tegra_clk_pll_out_ops =
+{
 	.is_enabled = clk_pll_out_is_enabled,
 	.enable = clk_pll_out_enable,
 	.disable = clk_pll_out_disable,
 };
 
 struct clk *tegra_clk_register_pll_out(const char *name,
-		const char *parent_name, void __iomem *reg, u8 enb_bit_idx,
-		u8 rst_bit_idx, unsigned long flags, u8 pll_out_flags,
-		spinlock_t *lock)
+									   const char *parent_name, void __iomem *reg, u8 enb_bit_idx,
+									   u8 rst_bit_idx, unsigned long flags, u8 pll_out_flags,
+									   spinlock_t *lock)
 {
 	struct tegra_clk_pll_out *pll_out;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	pll_out = kzalloc(sizeof(*pll_out), GFP_KERNEL);
+
 	if (!pll_out)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &tegra_clk_pll_out_ops;
@@ -115,8 +131,11 @@ struct clk *tegra_clk_register_pll_out(const char *name,
 	pll_out->hw.init = &init;
 
 	clk = clk_register(NULL, &pll_out->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(pll_out);
+	}
 
 	return clk;
 }

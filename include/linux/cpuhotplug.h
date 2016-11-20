@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-enum cpuhp_state {
+enum cpuhp_state
+{
 	CPUHP_OFFLINE,
 	CPUHP_CREATE_THREADS,
 	CPUHP_PERF_PREPARE,
@@ -130,8 +131,8 @@ enum cpuhp_state {
 };
 
 int __cpuhp_setup_state(enum cpuhp_state state,	const char *name, bool invoke,
-			int (*startup)(unsigned int cpu),
-			int (*teardown)(unsigned int cpu), bool multi_instance);
+						int (*startup)(unsigned int cpu),
+						int (*teardown)(unsigned int cpu), bool multi_instance);
 
 /**
  * cpuhp_setup_state - Setup hotplug state callbacks with calling the callbacks
@@ -144,9 +145,9 @@ int __cpuhp_setup_state(enum cpuhp_state state,	const char *name, bool invoke,
  * the present cpus which have already reached the @state.
  */
 static inline int cpuhp_setup_state(enum cpuhp_state state,
-				    const char *name,
-				    int (*startup)(unsigned int cpu),
-				    int (*teardown)(unsigned int cpu))
+									const char *name,
+									int (*startup)(unsigned int cpu),
+									int (*teardown)(unsigned int cpu))
 {
 	return __cpuhp_setup_state(state, name, true, startup, teardown, false);
 }
@@ -163,12 +164,12 @@ static inline int cpuhp_setup_state(enum cpuhp_state state,
  * during installation of this callback. NOP if SMP=n or HOTPLUG_CPU=n.
  */
 static inline int cpuhp_setup_state_nocalls(enum cpuhp_state state,
-					    const char *name,
-					    int (*startup)(unsigned int cpu),
-					    int (*teardown)(unsigned int cpu))
+		const char *name,
+		int (*startup)(unsigned int cpu),
+		int (*teardown)(unsigned int cpu))
 {
 	return __cpuhp_setup_state(state, name, false, startup, teardown,
-				   false);
+							   false);
 }
 
 /**
@@ -184,19 +185,19 @@ static inline int cpuhp_setup_state_nocalls(enum cpuhp_state state,
  * @cpuhp_state_add_instance or @cpuhp_state_add_instance_nocalls.
  */
 static inline int cpuhp_setup_state_multi(enum cpuhp_state state,
-					  const char *name,
-					  int (*startup)(unsigned int cpu,
-							 struct hlist_node *node),
-					  int (*teardown)(unsigned int cpu,
-							  struct hlist_node *node))
+		const char *name,
+		int (*startup)(unsigned int cpu,
+					   struct hlist_node *node),
+		int (*teardown)(unsigned int cpu,
+						struct hlist_node *node))
 {
 	return __cpuhp_setup_state(state, name, false,
-				   (void *) startup,
-				   (void *) teardown, true);
+							   (void *) startup,
+							   (void *) teardown, true);
 }
 
 int __cpuhp_state_add_instance(enum cpuhp_state state, struct hlist_node *node,
-			       bool invoke);
+							   bool invoke);
 
 /**
  * cpuhp_state_add_instance - Add an instance for a state and invoke startup
@@ -209,7 +210,7 @@ int __cpuhp_state_add_instance(enum cpuhp_state state, struct hlist_node *node,
  * been earlier marked as multi-instance by @cpuhp_setup_state_multi.
  */
 static inline int cpuhp_state_add_instance(enum cpuhp_state state,
-					   struct hlist_node *node)
+		struct hlist_node *node)
 {
 	return __cpuhp_state_add_instance(state, node, true);
 }
@@ -224,7 +225,7 @@ static inline int cpuhp_state_add_instance(enum cpuhp_state state,
  * marked as multi-instance by @cpuhp_setup_state_multi.
  */
 static inline int cpuhp_state_add_instance_nocalls(enum cpuhp_state state,
-						   struct hlist_node *node)
+		struct hlist_node *node)
 {
 	return __cpuhp_state_add_instance(state, node, false);
 }
@@ -267,7 +268,7 @@ static inline void cpuhp_remove_multi_state(enum cpuhp_state state)
 }
 
 int __cpuhp_state_remove_instance(enum cpuhp_state state,
-				  struct hlist_node *node, bool invoke);
+								  struct hlist_node *node, bool invoke);
 
 /**
  * cpuhp_state_remove_instance - Remove hotplug instance from state and invoke
@@ -279,7 +280,7 @@ int __cpuhp_state_remove_instance(enum cpuhp_state state,
  * which have already reached the @state.
  */
 static inline int cpuhp_state_remove_instance(enum cpuhp_state state,
-					      struct hlist_node *node)
+		struct hlist_node *node)
 {
 	return __cpuhp_state_remove_instance(state, node, true);
 }
@@ -293,7 +294,7 @@ static inline int cpuhp_state_remove_instance(enum cpuhp_state state,
  * Removes the instance without invoking the teardown callback.
  */
 static inline int cpuhp_state_remove_instance_nocalls(enum cpuhp_state state,
-						      struct hlist_node *node)
+		struct hlist_node *node)
 {
 	return __cpuhp_state_remove_instance(state, node, false);
 }

@@ -26,7 +26,8 @@
 #define RIO_DIR_OUT               	        0x0
 #define RIO_DIR_IN				0x1
 
-struct RioCommand {
+struct RioCommand
+{
 	short length;
 	int request;
 	int requesttype;

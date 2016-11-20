@@ -34,7 +34,8 @@ static DEFINE_RWLOCK(protocol_list_lock);
 static HLIST_HEAD(ax25_linkfail_list);
 static DEFINE_SPINLOCK(linkfail_lock);
 
-static struct listen_struct {
+static struct listen_struct
+{
 	struct listen_struct *next;
 	ax25_address  callsign;
 	struct net_device *dev;
@@ -61,22 +62,29 @@ void ax25_protocol_release(unsigned int pid)
 
 	write_lock_bh(&protocol_list_lock);
 	protocol = protocol_list;
-	if (protocol == NULL)
-		goto out;
 
-	if (protocol->pid == pid) {
+	if (protocol == NULL)
+	{
+		goto out;
+	}
+
+	if (protocol->pid == pid)
+	{
 		protocol_list = protocol->next;
 		goto out;
 	}
 
-	while (protocol != NULL && protocol->next != NULL) {
-		if (protocol->next->pid == pid) {
+	while (protocol != NULL && protocol->next != NULL)
+	{
+		if (protocol->next->pid == pid)
+		{
 			protocol->next = protocol->next->next;
 			goto out;
 		}
 
 		protocol = protocol->next;
 	}
+
 out:
 	write_unlock_bh(&protocol_list_lock);
 }
@@ -106,10 +114,14 @@ int ax25_listen_register(ax25_address *callsign, struct net_device *dev)
 	struct listen_struct *listen;
 
 	if (ax25_listen_mine(callsign, dev))
+	{
 		return 0;
+	}
 
 	if ((listen = kmalloc(sizeof(*listen), GFP_ATOMIC)) == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	listen->callsign = *callsign;
 	listen->dev      = dev;
@@ -130,20 +142,25 @@ void ax25_listen_release(ax25_address *callsign, struct net_device *dev)
 
 	spin_lock_bh(&listen_lock);
 	listen = listen_list;
-	if (listen == NULL) {
+
+	if (listen == NULL)
+	{
 		spin_unlock_bh(&listen_lock);
 		return;
 	}
 
-	if (ax25cmp(&listen->callsign, callsign) == 0 && listen->dev == dev) {
+	if (ax25cmp(&listen->callsign, callsign) == 0 && listen->dev == dev)
+	{
 		listen_list = listen->next;
 		spin_unlock_bh(&listen_lock);
 		kfree(listen);
 		return;
 	}
 
-	while (listen != NULL && listen->next != NULL) {
-		if (ax25cmp(&listen->next->callsign, callsign) == 0 && listen->next->dev == dev) {
+	while (listen != NULL && listen->next != NULL)
+	{
+		if (ax25cmp(&listen->next->callsign, callsign) == 0 && listen->next->dev == dev)
+		{
 			s = listen->next;
 			listen->next = listen->next->next;
 			spin_unlock_bh(&listen_lock);
@@ -153,6 +170,7 @@ void ax25_listen_release(ax25_address *callsign, struct net_device *dev)
 
 		listen = listen->next;
 	}
+
 	spin_unlock_bh(&listen_lock);
 }
 
@@ -164,11 +182,14 @@ int (*ax25_protocol_function(unsigned int pid))(struct sk_buff *, ax25_cb *)
 	struct ax25_protocol *protocol;
 
 	read_lock(&protocol_list_lock);
+
 	for (protocol = protocol_list; protocol != NULL; protocol = protocol->next)
-		if (protocol->pid == pid) {
+		if (protocol->pid == pid)
+		{
 			res = protocol->func;
 			break;
 		}
+
 	read_unlock(&protocol_list_lock);
 
 	return res;
@@ -179,12 +200,15 @@ int ax25_listen_mine(ax25_address *callsign, struct net_device *dev)
 	struct listen_struct *listen;
 
 	spin_lock_bh(&listen_lock);
+
 	for (listen = listen_list; listen != NULL; listen = listen->next)
 		if (ax25cmp(&listen->callsign, callsign) == 0 &&
-		    (listen->dev == dev || listen->dev == NULL)) {
+			(listen->dev == dev || listen->dev == NULL))
+		{
 			spin_unlock_bh(&listen_lock);
 			return 1;
-	}
+		}
+
 	spin_unlock_bh(&listen_lock);
 
 	return 0;
@@ -196,7 +220,7 @@ void ax25_link_failed(ax25_cb *ax25, int reason)
 
 	spin_lock_bh(&linkfail_lock);
 	hlist_for_each_entry(lf, &ax25_linkfail_list, lf_node)
-		lf->func(ax25, reason);
+	lf->func(ax25, reason);
 	spin_unlock_bh(&linkfail_lock);
 }
 
@@ -206,11 +230,14 @@ int ax25_protocol_is_registered(unsigned int pid)
 	int res = 0;
 
 	read_lock_bh(&protocol_list_lock);
+
 	for (protocol = protocol_list; protocol != NULL; protocol = protocol->next)
-		if (protocol->pid == pid) {
+		if (protocol->pid == pid)
+		{
 			res = 1;
 			break;
 		}
+
 	read_unlock_bh(&protocol_list_lock);
 
 	return res;

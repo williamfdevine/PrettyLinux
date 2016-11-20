@@ -30,21 +30,22 @@
  *
  */
 
-struct snd_usb_audio {
+struct snd_usb_audio
+{
 	int index;
 	struct usb_device *dev;
 	struct snd_card *card;
 	struct usb_interface *pm_intf;
 	u32 usb_id;
 	struct mutex mutex;
-	unsigned int autosuspended:1;	
+	unsigned int autosuspended: 1;
 	atomic_t active;
 	atomic_t shutdown;
 	atomic_t usage_count;
 	wait_queue_head_t shutdown_wait;
-	unsigned int txfr_quirk:1; /* Subframe boundaries on transfers */
-	unsigned int tx_length_quirk:1; /* Put length specifier in transfers */
-	
+	unsigned int txfr_quirk: 1; /* Subframe boundaries on transfers */
+	unsigned int tx_length_quirk: 1; /* Put length specifier in transfers */
+
 	int num_interfaces;
 	int num_suspended_intf;
 	int sample_rate_read_error;
@@ -80,7 +81,8 @@ struct snd_usb_audio {
 #define QUIRK_NO_INTERFACE		-2
 #define QUIRK_ANY_INTERFACE		-1
 
-enum quirk_type {
+enum quirk_type
+{
 	QUIRK_IGNORE_INTERFACE,
 	QUIRK_COMPOSITE,
 	QUIRK_AUTODETECT,
@@ -106,7 +108,8 @@ enum quirk_type {
 	QUIRK_TYPE_COUNT
 };
 
-struct snd_usb_audio_quirk {
+struct snd_usb_audio_quirk
+{
 	const char *vendor_name;
 	const char *product_name;
 	int16_t ifnum;

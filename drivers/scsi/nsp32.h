@@ -37,7 +37,8 @@
 /*
  * MODEL
  */
-enum {
+enum
+{
 	MODEL_IODATA        = 0,
 	MODEL_KME           = 1,
 	MODEL_WORKBIT       = 2,
@@ -47,7 +48,8 @@ enum {
 	MODEL_PCI_MELCO     = 6,
 };
 
-static char * nsp32_model[] = {
+static char *nsp32_model[] =
+{
 	"I-O DATA CBSC-II CardBus card",
 	"KME SCSI CardBus card",
 	"Workbit duo SCSI CardBus card",
@@ -71,10 +73,10 @@ typedef u16 u16_le;
  * BASIC Definitions
  */
 #ifndef TRUE
-# define TRUE  1
+	#define TRUE  1
 #endif
 #ifndef FALSE
-# define FALSE 0
+	#define FALSE 0
 #endif
 #define ASSERT 1
 #define NEGATE 0
@@ -106,17 +108,17 @@ typedef u16 u16_le;
 # define FIFO_IRQ_MASK              BIT(14)
 # define SCSI_IRQ_MASK              BIT(15)
 # define IRQ_CONTROL_ALL_IRQ_MASK   (PCI_IRQ_MASK   | \
-                                     TIMER_IRQ_MASK | \
-                                     FIFO_IRQ_MASK  | \
-                                     SCSI_IRQ_MASK  )
+									 TIMER_IRQ_MASK | \
+									 FIFO_IRQ_MASK  | \
+									 SCSI_IRQ_MASK  )
 # define IRQSTATUS_ANY_IRQ          (IRQSTATUS_RESELECT_OCCUER	| \
-				     IRQSTATUS_PHASE_CHANGE_IRQ	| \
-				     IRQSTATUS_SCSIRESET_IRQ	| \
-				     IRQSTATUS_TIMER_IRQ	| \
-				     IRQSTATUS_FIFO_SHLD_IRQ	| \
-				     IRQSTATUS_PCI_IRQ		| \
-				     IRQSTATUS_BMCNTERR_IRQ	| \
-				     IRQSTATUS_AUTOSCSI_IRQ	)
+									 IRQSTATUS_PHASE_CHANGE_IRQ	| \
+									 IRQSTATUS_SCSIRESET_IRQ	| \
+									 IRQSTATUS_TIMER_IRQ	| \
+									 IRQSTATUS_FIFO_SHLD_IRQ	| \
+									 IRQSTATUS_PCI_IRQ		| \
+									 IRQSTATUS_BMCNTERR_IRQ	| \
+									 IRQSTATUS_AUTOSCSI_IRQ	)
 
 #define TRANSFER_CONTROL	0x02	/* BASE+02, W, W */
 #define TRANSFER_STATUS		0x02	/* BASE+02, W, R */
@@ -176,11 +178,11 @@ typedef u16 u16_le;
 # define BM_COUNTER_CLR        BIT(4)
 # define SAVED_ACK_CLR         BIT(5)
 # define CLRCOUNTER_ALLMASK    (ACK_COUNTER_CLR       | \
-                                SREQ_COUNTER_CLR      | \
-                                FIFO_HOST_POINTER_CLR | \
-                                FIFO_REST_COUNT_CLR   | \
-                                BM_COUNTER_CLR        | \
-                                SAVED_ACK_CLR         )
+								SREQ_COUNTER_CLR      | \
+								FIFO_HOST_POINTER_CLR | \
+								FIFO_REST_COUNT_CLR   | \
+								BM_COUNTER_CLR        | \
+								SAVED_ACK_CLR         )
 
 #define SCSI_BUS_MONITOR	0x12	/* BASE+12, B, R */
 # define BUSMON_MSG BIT(0)
@@ -445,20 +447,23 @@ typedef u16 u16_le;
  */
 #define NSP32_SG_SIZE		SG_ALL
 
-typedef struct _nsp32_sgtable {
+typedef struct _nsp32_sgtable
+{
 	/* values must be little endian */
 	u32_le addr; /* transfer address */
 	u32_le len;  /* transfer length. BIT(31) is for SGT_END mark */
 } __attribute__ ((packed)) nsp32_sgtable;
 
-typedef struct _nsp32_sglun {
-	nsp32_sgtable sgt[NSP32_SG_SIZE+1];	/* SG table */
+typedef struct _nsp32_sglun
+{
+	nsp32_sgtable sgt[NSP32_SG_SIZE + 1];	/* SG table */
 } __attribute__ ((packed)) nsp32_sglun;
 #define NSP32_SG_TABLE_SIZE (sizeof(nsp32_sgtable) * NSP32_SG_SIZE * MAX_TARGET * MAX_LUN)
 
 /* Auto parameter mode memory map.   */
 /* All values must be little endian. */
-typedef struct _nsp32_autoparam {
+typedef struct _nsp32_autoparam
+{
 	u8     cdb[4 * 0x10];    /* SCSI Command                      */
 	u32_le msgout;           /* outgoing messages                 */
 	u8     syncreg;          /* sync register value               */
@@ -493,7 +498,8 @@ typedef struct _nsp32_autoparam {
 #define DISCPRIV_OK		BIT(0)		/* DISCPRIV Enable mode */
 #define MSGIN03			BIT(1)		/* Auto Msg In 03 Flag  */
 
-typedef struct _nsp32_lunt {
+typedef struct _nsp32_lunt
+{
 	struct scsi_cmnd	*SCpnt;	    /* Current Handling struct scsi_cmnd */
 	unsigned long	 save_datp;  /* Save Data Pointer - saved position from initial address */
 	int		 msgin03;	/* auto msg in 03 flag     */
@@ -512,7 +518,8 @@ typedef struct _nsp32_lunt {
 #define MAX_LUN		     8	/* XXX: In SPI3, max number of LUN is 64. */
 
 
-typedef struct _nsp32_sync_table {
+typedef struct _nsp32_sync_table
+{
 	unsigned char	period_num;	/* period number                  */
 	unsigned char	ackwidth;	/* ack width designated by period */
 	unsigned char	start_period;	/* search range - start period    */
@@ -543,7 +550,8 @@ typedef struct _nsp32_sync_table {
       ---PERIOD-- ---OFFSET--   */
 #define TO_SYNCREG(period, offset) (((period) & 0x0f) << 4 | ((offset) & 0x0f))
 
-typedef struct _nsp32_target {
+typedef struct _nsp32_target
+{
 	unsigned char	syncreg;	/* value for SYNCREG   */
 	unsigned char	ackwidth;	/* value for ACKWIDTH  */
 	unsigned char   period;         /* sync period (0-255) */
@@ -554,7 +562,8 @@ typedef struct _nsp32_target {
 	unsigned char   sample_reg;     /* SREQ hazard killer register */
 } nsp32_target;
 
-typedef struct _nsp32_hw_data {
+typedef struct _nsp32_hw_data
+{
 	int           IrqNumber;
 	int           BaseAddress;
 	int           NumAddress;

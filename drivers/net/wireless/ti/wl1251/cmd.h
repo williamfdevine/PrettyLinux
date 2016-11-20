@@ -34,25 +34,26 @@ int wl1251_cmd_test(struct wl1251 *wl, void *buf, size_t buf_len, u8 answer);
 int wl1251_cmd_interrogate(struct wl1251 *wl, u16 id, void *buf, size_t len);
 int wl1251_cmd_configure(struct wl1251 *wl, u16 id, void *buf, size_t len);
 int wl1251_cmd_vbm(struct wl1251 *wl, u8 identity,
-		   void *bitmap, u16 bitmap_len, u8 bitmap_control);
+				   void *bitmap, u16 bitmap_len, u8 bitmap_control);
 int wl1251_cmd_data_path_rx(struct wl1251 *wl, u8 channel, bool enable);
 int wl1251_cmd_data_path_tx(struct wl1251 *wl, u8 channel, bool enable);
 int wl1251_cmd_join(struct wl1251 *wl, u8 bss_type, u8 channel,
-		    u16 beacon_interval, u8 dtim_interval);
+					u16 beacon_interval, u8 dtim_interval);
 int wl1251_cmd_ps_mode(struct wl1251 *wl, u8 ps_mode);
 int wl1251_cmd_read_memory(struct wl1251 *wl, u32 addr, void *answer,
-			   size_t len);
+						   size_t len);
 int wl1251_cmd_template_set(struct wl1251 *wl, u16 cmd_id,
-			    void *buf, size_t buf_len);
+							void *buf, size_t buf_len);
 int wl1251_cmd_scan(struct wl1251 *wl, u8 *ssid, size_t ssid_len,
-		    struct ieee80211_channel *channels[],
-		    unsigned int n_channels, unsigned int n_probes);
+					struct ieee80211_channel *channels[],
+					unsigned int n_channels, unsigned int n_probes);
 int wl1251_cmd_trigger_scan_to(struct wl1251 *wl, u32 timeout);
 
 /* unit ms */
 #define WL1251_COMMAND_TIMEOUT 2000
 
-enum wl1251_commands {
+enum wl1251_commands
+{
 	CMD_RESET           = 0,
 	CMD_INTERROGATE     = 1,    /*use this to read information elements*/
 	CMD_CONFIGURE       = 2,    /*use this to write information elements*/
@@ -100,19 +101,22 @@ enum wl1251_commands {
 
 #define MAX_CMD_PARAMS 572
 
-struct wl1251_cmd_header {
+struct wl1251_cmd_header
+{
 	u16 id;
 	u16 status;
 	/* payload */
 	u8 data[0];
 } __packed;
 
-struct  wl1251_command {
+struct  wl1251_command
+{
 	struct wl1251_cmd_header header;
 	u8  parameters[MAX_CMD_PARAMS];
 } __packed;
 
-enum {
+enum
+{
 	CMD_MAILBOX_IDLE              		=  0,
 	CMD_STATUS_SUCCESS            		=  1,
 	CMD_STATUS_UNKNOWN_CMD        		=  2,
@@ -149,7 +153,8 @@ enum {
  */
 #define MAX_READ_SIZE 256
 
-struct cmd_read_write_memory {
+struct cmd_read_write_memory
+{
 	struct wl1251_cmd_header header;
 
 	/* The address of the memory to read from or write to.*/
@@ -178,7 +183,8 @@ struct cmd_read_write_memory {
 
 #define WL1251_SCAN_NUM_PROBES 3
 
-struct wl1251_scan_parameters {
+struct wl1251_scan_parameters
+{
 	__le32 rx_config_options;
 	__le32 rx_filter_options;
 
@@ -207,7 +213,8 @@ struct wl1251_scan_parameters {
 
 } __packed;
 
-struct wl1251_scan_ch_parameters {
+struct wl1251_scan_ch_parameters
+{
 	__le32 min_duration; /* in TU */
 	__le32 max_duration; /* in TU */
 	u32 bssid_lsb;
@@ -227,14 +234,16 @@ struct wl1251_scan_ch_parameters {
 /* SCAN parameters */
 #define SCAN_MAX_NUM_OF_CHANNELS 16
 
-struct wl1251_cmd_scan {
+struct wl1251_cmd_scan
+{
 	struct wl1251_cmd_header header;
 
 	struct wl1251_scan_parameters params;
 	struct wl1251_scan_ch_parameters channels[SCAN_MAX_NUM_OF_CHANNELS];
 } __packed;
 
-enum {
+enum
+{
 	BSS_TYPE_IBSS = 0,
 	BSS_TYPE_STA_BSS = 2,
 	BSS_TYPE_AP_BSS = 3,
@@ -245,7 +254,8 @@ enum {
 #define JOIN_CMD_CTRL_EARLY_WAKEUP_ENABLE  0x01 /* Early wakeup time */
 
 
-struct cmd_join {
+struct cmd_join
+{
 	struct wl1251_cmd_header header;
 
 	u32 bssid_lsb;
@@ -282,7 +292,8 @@ struct cmd_join {
 	u8 reserved;
 } __packed;
 
-struct cmd_enabledisable_path {
+struct cmd_enabledisable_path
+{
 	struct wl1251_cmd_header header;
 
 	u8 channel;
@@ -291,7 +302,8 @@ struct cmd_enabledisable_path {
 
 #define WL1251_MAX_TEMPLATE_SIZE 300
 
-struct wl1251_cmd_packet_template {
+struct wl1251_cmd_packet_template
+{
 	struct wl1251_cmd_header header;
 
 	__le16 size;
@@ -301,7 +313,8 @@ struct wl1251_cmd_packet_template {
 #define TIM_ELE_ID    5
 #define PARTIAL_VBM_MAX    251
 
-struct wl1251_tim {
+struct wl1251_tim
+{
 	u8 identity;
 	u8 length;
 	u8 dtim_count;
@@ -311,35 +324,39 @@ struct wl1251_tim {
 } __packed;
 
 /* Virtual Bit Map update */
-struct wl1251_cmd_vbm_update {
+struct wl1251_cmd_vbm_update
+{
 	struct wl1251_cmd_header header;
 	__le16 len;
 	u8  padding[2];
 	struct wl1251_tim tim;
 } __packed;
 
-enum wl1251_cmd_ps_mode {
+enum wl1251_cmd_ps_mode
+{
 	CHIP_ACTIVE_MODE,
 	CHIP_POWER_SAVE_MODE
 };
 
-struct wl1251_cmd_ps_params {
+struct wl1251_cmd_ps_params
+{
 	struct wl1251_cmd_header header;
 
 	u8 ps_mode; /* STATION_* */
 	u8 send_null_data; /* Do we have to send NULL data packet ? */
 	u8 retries; /* Number of retires for the initial NULL data packet */
 
-	 /*
-	  * TUs during which the target stays awake after switching
-	  * to power save mode.
-	  */
+	/*
+	 * TUs during which the target stays awake after switching
+	 * to power save mode.
+	 */
 	u8 hang_over_period;
 	u16 null_data_rate;
 	u8 pad[2];
 } __packed;
 
-struct wl1251_cmd_trigger_scan_to {
+struct wl1251_cmd_trigger_scan_to
+{
 	struct wl1251_cmd_header header;
 
 	u32 timeout;
@@ -354,14 +371,16 @@ struct wl1251_cmd_trigger_scan_to {
 /* When set, disable HW decryption */
 #define DF_SNIFF_MODE_ENABLE       0x80
 
-enum wl1251_cmd_key_action {
+enum wl1251_cmd_key_action
+{
 	KEY_ADD_OR_REPLACE = 1,
 	KEY_REMOVE         = 2,
 	KEY_SET_ID         = 3,
 	MAX_KEY_ACTION     = 0xffff,
 };
 
-enum wl1251_cmd_key_type {
+enum wl1251_cmd_key_type
+{
 	KEY_WEP_DEFAULT       = 0,
 	KEY_WEP_ADDR          = 1,
 	KEY_AES_GROUP         = 4,
@@ -388,7 +407,8 @@ enum wl1251_cmd_key_type {
  *
  */
 
-struct wl1251_cmd_set_keys {
+struct wl1251_cmd_set_keys
+{
 	struct wl1251_cmd_header header;
 
 	/* Ignored for default WEP key */

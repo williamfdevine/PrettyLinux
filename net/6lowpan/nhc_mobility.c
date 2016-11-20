@@ -20,7 +20,7 @@ static void mobility_nhid_setup(struct lowpan_nhc *nhc)
 }
 
 LOWPAN_NHC(nhc_mobility, "RFC6282 Mobility", NEXTHDR_MOBILITY, 0,
-	   mobility_nhid_setup, LOWPAN_NHC_MOBILITY_IDLEN, NULL, NULL);
+		   mobility_nhid_setup, LOWPAN_NHC_MOBILITY_IDLEN, NULL, NULL);
 
 module_lowpan_nhc(nhc_mobility);
 MODULE_DESCRIPTION("6LoWPAN next header RFC6282 Mobility compression");

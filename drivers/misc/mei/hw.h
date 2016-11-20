@@ -122,7 +122,8 @@
  * MEI Stop Reason
  * used by hbm_host_stop_request.reason
  */
-enum mei_stop_reason_types {
+enum mei_stop_reason_types
+{
 	DRIVER_STOP_REQUEST = 0x00,
 	DEVICE_D1_ENTRY = 0x01,
 	DEVICE_D2_ENTRY = 0x02,
@@ -149,7 +150,8 @@ enum mei_stop_reason_types {
  *
  * @MEI_HBMS_MAX               : sentinel
  */
-enum mei_hbm_status {
+enum mei_hbm_status
+{
 	MEI_HBMS_SUCCESS           = 0,
 	MEI_HBMS_CLIENT_NOT_FOUND  = 1,
 	MEI_HBMS_ALREADY_EXISTS    = 2,
@@ -167,7 +169,8 @@ enum mei_hbm_status {
  * Client Connect Status
  * used by hbm_client_connect_response.status
  */
-enum mei_cl_connect_status {
+enum mei_cl_connect_status
+{
 	MEI_CL_CONN_SUCCESS          = MEI_HBMS_SUCCESS,
 	MEI_CL_CONN_NOT_FOUND        = MEI_HBMS_CLIENT_NOT_FOUND,
 	MEI_CL_CONN_ALREADY_STARTED  = MEI_HBMS_ALREADY_EXISTS,
@@ -179,24 +182,27 @@ enum mei_cl_connect_status {
 /*
  * Client Disconnect Status
  */
-enum  mei_cl_disconnect_status {
+enum  mei_cl_disconnect_status
+{
 	MEI_CL_DISCONN_SUCCESS = MEI_HBMS_SUCCESS
 };
 
 /*
  *  MEI BUS Interface Section
  */
-struct mei_msg_hdr {
-	u32 me_addr:8;
-	u32 host_addr:8;
-	u32 length:9;
-	u32 reserved:5;
-	u32 internal:1;
-	u32 msg_complete:1;
+struct mei_msg_hdr
+{
+	u32 me_addr: 8;
+	u32 host_addr: 8;
+	u32 length: 9;
+	u32 reserved: 5;
+	u32 internal: 1;
+	u32 msg_complete: 1;
 } __packed;
 
 
-struct mei_bus_message {
+struct mei_bus_message
+{
 	u8 hbm_cmd;
 	u8 data[0];
 } __packed;
@@ -210,42 +216,49 @@ struct mei_bus_message {
  * @host_addr: address of the client in the driver
  * @data: generic data
  */
-struct mei_hbm_cl_cmd {
+struct mei_hbm_cl_cmd
+{
 	u8 hbm_cmd;
 	u8 me_addr;
 	u8 host_addr;
 	u8 data;
 };
 
-struct hbm_version {
+struct hbm_version
+{
 	u8 minor_version;
 	u8 major_version;
 } __packed;
 
-struct hbm_host_version_request {
+struct hbm_host_version_request
+{
 	u8 hbm_cmd;
 	u8 reserved;
 	struct hbm_version host_version;
 } __packed;
 
-struct hbm_host_version_response {
+struct hbm_host_version_response
+{
 	u8 hbm_cmd;
 	u8 host_version_supported;
 	struct hbm_version me_max_version;
 } __packed;
 
-struct hbm_host_stop_request {
+struct hbm_host_stop_request
+{
 	u8 hbm_cmd;
 	u8 reason;
 	u8 reserved[2];
 } __packed;
 
-struct hbm_host_stop_response {
+struct hbm_host_stop_response
+{
 	u8 hbm_cmd;
 	u8 reserved[3];
 } __packed;
 
-struct hbm_me_stop_request {
+struct hbm_me_stop_request
+{
 	u8 hbm_cmd;
 	u8 reason;
 	u8 reserved[2];
@@ -257,7 +270,8 @@ struct hbm_me_stop_request {
  * @MEI_HBM_ENUM_F_ALLOW_ADD: allow dynamic clients add
  * @MEI_HBM_ENUM_F_IMMEDIATE_ENUM: allow FW to send answer immediately
  */
-enum hbm_host_enum_flags {
+enum hbm_host_enum_flags
+{
 	MEI_HBM_ENUM_F_ALLOW_ADD = BIT(0),
 	MEI_HBM_ENUM_F_IMMEDIATE_ENUM = BIT(1),
 };
@@ -269,19 +283,22 @@ enum hbm_host_enum_flags {
  * @flags   : request flags
  * @reserved: reserved
  */
-struct hbm_host_enum_request {
+struct hbm_host_enum_request
+{
 	u8 hbm_cmd;
 	u8 flags;
 	u8 reserved[2];
 } __packed;
 
-struct hbm_host_enum_response {
+struct hbm_host_enum_response
+{
 	u8 hbm_cmd;
 	u8 reserved[3];
 	u8 valid_addresses[32];
 } __packed;
 
-struct mei_client_properties {
+struct mei_client_properties
+{
 	uuid_le protocol_name;
 	u8 protocol_version;
 	u8 max_number_of_connections;
@@ -290,13 +307,15 @@ struct mei_client_properties {
 	u32 max_msg_length;
 } __packed;
 
-struct hbm_props_request {
+struct hbm_props_request
+{
 	u8 hbm_cmd;
 	u8 me_addr;
 	u8 reserved[2];
 } __packed;
 
-struct hbm_props_response {
+struct hbm_props_response
+{
 	u8 hbm_cmd;
 	u8 me_addr;
 	u8 status;
@@ -313,7 +332,8 @@ struct hbm_props_response {
  * @reserved: reserved
  * @client_properties: client properties
  */
-struct hbm_add_client_request {
+struct hbm_add_client_request
+{
 	u8 hbm_cmd;
 	u8 me_addr;
 	u8 reserved[2];
@@ -329,7 +349,8 @@ struct hbm_add_client_request {
  * @status: if HBMS_SUCCESS then the client can now accept connections.
  * @reserved: reserved
  */
-struct hbm_add_client_response {
+struct hbm_add_client_response
+{
 	u8 hbm_cmd;
 	u8 me_addr;
 	u8 status;
@@ -342,7 +363,8 @@ struct hbm_add_client_response {
  * @hbm_cmd: bus message command header
  * @reserved: reserved
  */
-struct hbm_power_gate {
+struct hbm_power_gate
+{
 	u8 hbm_cmd;
 	u8 reserved[3];
 } __packed;
@@ -355,7 +377,8 @@ struct hbm_power_gate {
  * @host_addr: address of the client in the driver
  * @reserved: reserved
  */
-struct hbm_client_connect_request {
+struct hbm_client_connect_request
+{
 	u8 hbm_cmd;
 	u8 me_addr;
 	u8 host_addr;
@@ -370,7 +393,8 @@ struct hbm_client_connect_request {
  * @host_addr: address of the client in the driver
  * @status: status of the request
  */
-struct hbm_client_connect_response {
+struct hbm_client_connect_response
+{
 	u8 hbm_cmd;
 	u8 me_addr;
 	u8 host_addr;
@@ -380,7 +404,8 @@ struct hbm_client_connect_response {
 
 #define MEI_FC_MESSAGE_RESERVED_LENGTH           5
 
-struct hbm_flow_control {
+struct hbm_flow_control
+{
 	u8 hbm_cmd;
 	u8 me_addr;
 	u8 host_addr;
@@ -397,7 +422,8 @@ struct hbm_flow_control {
  * @host_addr: address of the client in the driver
  * @start:  start = 1 or stop = 0 asynchronous notifications
  */
-struct hbm_notification_request {
+struct hbm_notification_request
+{
 	u8 hbm_cmd;
 	u8 me_addr;
 	u8 host_addr;
@@ -421,7 +447,8 @@ struct hbm_notification_request {
  * @start:  start = 1 or stop = 0 asynchronous notifications
  * @reserved: reserved
  */
-struct hbm_notification_response {
+struct hbm_notification_response
+{
 	u8 hbm_cmd;
 	u8 me_addr;
 	u8 host_addr;
@@ -438,7 +465,8 @@ struct hbm_notification_response {
  * @host_addr:  address of the client in the driver
  * @reserved: reserved for alignment
  */
-struct hbm_notification {
+struct hbm_notification
+{
 	u8 hbm_cmd;
 	u8 me_addr;
 	u8 host_addr;

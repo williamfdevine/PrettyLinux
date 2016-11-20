@@ -54,16 +54,16 @@ int ptlrpcd_start(struct ptlrpcd_ctl *pc);
 
 /* client.c */
 void ptlrpc_at_adj_net_latency(struct ptlrpc_request *req,
-			       unsigned int service_time);
+							   unsigned int service_time);
 struct ptlrpc_bulk_desc *ptlrpc_new_bulk(unsigned npages, unsigned max_brw,
-					 unsigned type, unsigned portal);
+		unsigned type, unsigned portal);
 int ptlrpc_request_cache_init(void);
 void ptlrpc_request_cache_fini(void);
 struct ptlrpc_request *ptlrpc_request_cache_alloc(gfp_t flags);
 void ptlrpc_request_cache_free(struct ptlrpc_request *req);
 void ptlrpc_init_xid(void);
 void ptlrpc_set_add_new_req(struct ptlrpcd_ctl *pc,
-			    struct ptlrpc_request *req);
+							struct ptlrpc_request *req);
 int ptlrpc_expired_set(void *data);
 int ptlrpc_set_next_timeout(struct ptlrpc_request_set *);
 void ptlrpc_resend_req(struct ptlrpc_request *request);
@@ -83,11 +83,11 @@ int lustre_unpack_req_ptlrpc_body(struct ptlrpc_request *req, int offset);
 int lustre_unpack_rep_ptlrpc_body(struct ptlrpc_request *req, int offset);
 
 int ptlrpc_sysfs_register_service(struct kset *parent,
-				  struct ptlrpc_service *svc);
+								  struct ptlrpc_service *svc);
 void ptlrpc_sysfs_unregister_service(struct ptlrpc_service *svc);
 
 void ptlrpc_ldebugfs_register_service(struct dentry *debugfs_entry,
-				      struct ptlrpc_service *svc);
+									  struct ptlrpc_service *svc);
 void ptlrpc_lprocfs_unregister_service(struct ptlrpc_service *svc);
 void ptlrpc_lprocfs_rpc_sent(struct ptlrpc_request *req, long amount);
 
@@ -98,7 +98,8 @@ void ptlrpc_lprocfs_rpc_sent(struct ptlrpc_request *req, long amount);
  *
  * Holds NRS core fields.
  */
-struct nrs_core {
+struct nrs_core
+{
 	/**
 	 * Protects nrs_core::nrs_policies, serializes external policy
 	 * registration/unregistration, and NRS core lprocfs operations.
@@ -118,19 +119,19 @@ int ptlrpc_service_nrs_setup(struct ptlrpc_service *svc);
 void ptlrpc_service_nrs_cleanup(struct ptlrpc_service *svc);
 
 void ptlrpc_nrs_req_initialize(struct ptlrpc_service_part *svcpt,
-			       struct ptlrpc_request *req, bool hp);
+							   struct ptlrpc_request *req, bool hp);
 void ptlrpc_nrs_req_finalize(struct ptlrpc_request *req);
 void ptlrpc_nrs_req_stop_nolock(struct ptlrpc_request *req);
 void ptlrpc_nrs_req_add(struct ptlrpc_service_part *svcpt,
-			struct ptlrpc_request *req, bool hp);
+						struct ptlrpc_request *req, bool hp);
 
 struct ptlrpc_request *
 ptlrpc_nrs_req_get_nolock0(struct ptlrpc_service_part *svcpt, bool hp,
-			   bool peek, bool force);
+						   bool peek, bool force);
 
 static inline struct ptlrpc_request *
 ptlrpc_nrs_req_get_nolock(struct ptlrpc_service_part *svcpt, bool hp,
-			  bool force)
+						  bool force)
 {
 	return ptlrpc_nrs_req_get_nolock0(svcpt, hp, false, force);
 }
@@ -138,8 +139,8 @@ ptlrpc_nrs_req_get_nolock(struct ptlrpc_service_part *svcpt, bool hp,
 bool ptlrpc_nrs_req_pending_nolock(struct ptlrpc_service_part *svcpt, bool hp);
 
 int ptlrpc_nrs_policy_control(const struct ptlrpc_service *svc,
-			      enum ptlrpc_nrs_queue_type queue, char *name,
-			      enum ptlrpc_nrs_ctl opc, bool single, void *arg);
+							  enum ptlrpc_nrs_queue_type queue, char *name,
+							  enum ptlrpc_nrs_ctl opc, bool single, void *arg);
 
 int ptlrpc_nrs_init(void);
 void ptlrpc_nrs_fini(void);
@@ -216,8 +217,8 @@ struct ptlrpc_nrs_policy *nrs_request_policy(struct ptlrpc_nrs_request *nrq)
  * a separating space character.
  */
 #define LPROCFS_NRS_WR_QUANTUM_MAX_CMD					       \
- sizeof(NRS_LPROCFS_QUANTUM_NAME_REG __stringify(LPROCFS_NRS_QUANTUM_MAX) " "  \
-	NRS_LPROCFS_QUANTUM_NAME_HP __stringify(LPROCFS_NRS_QUANTUM_MAX))
+	sizeof(NRS_LPROCFS_QUANTUM_NAME_REG __stringify(LPROCFS_NRS_QUANTUM_MAX) " "  \
+		   NRS_LPROCFS_QUANTUM_NAME_HP __stringify(LPROCFS_NRS_QUANTUM_MAX))
 
 /* recovd_thread.c */
 
@@ -225,9 +226,9 @@ int ptlrpc_expire_one_request(struct ptlrpc_request *req, int async_unlink);
 
 /* pers.c */
 void ptlrpc_fill_bulk_md(lnet_md_t *md, struct ptlrpc_bulk_desc *desc,
-			 int mdcnt);
+						 int mdcnt);
 void ptlrpc_add_bulk_page(struct ptlrpc_bulk_desc *desc, struct page *page,
-			  int pageoffset, int len);
+						  int pageoffset, int len);
 
 /* pack_generic.c */
 struct ptlrpc_reply_state *
@@ -264,10 +265,10 @@ void sptlrpc_gc_fini(void);
 
 /* sec_config.c */
 void sptlrpc_conf_choose_flavor(enum lustre_sec_part from,
-				enum lustre_sec_part to,
-				struct obd_uuid *target,
-				lnet_nid_t nid,
-				struct sptlrpc_flavor *sf);
+								enum lustre_sec_part to,
+								struct obd_uuid *target,
+								lnet_nid_t nid,
+								struct sptlrpc_flavor *sf);
 int  sptlrpc_conf_init(void);
 void sptlrpc_conf_fini(void);
 
@@ -293,7 +294,9 @@ static inline void tgt_mod_exit(void)
 static inline void ptlrpc_reqset_put(struct ptlrpc_request_set *set)
 {
 	if (atomic_dec_and_test(&set->set_refcount))
+	{
 		kfree(set);
+	}
 }
 
 /** initialise ptlrpc common fields */

@@ -23,7 +23,8 @@
 #define NCP_MOUNT_SYMLINKS	0x0040	/* enable symlinks */
 #define NCP_MOUNT_NFS_EXTRAS	0x0080	/* Enable use of NFS NS meta-info */
 
-struct ncp_mount_data {
+struct ncp_mount_data
+{
 	int version;
 	unsigned int ncp_fd;	/* The socket to the ncp port */
 	__kernel_uid_t mounted_uid;	/* Who may umount() this filesystem? */
@@ -43,7 +44,8 @@ struct ncp_mount_data {
 
 #define NCP_MOUNT_VERSION_V4	(4)	/* Binary or text */
 
-struct ncp_mount_data_v4 {
+struct ncp_mount_data_v4
+{
 	int version;
 	unsigned long flags;	/* NCP_MOUNT_* flags */
 	/* MIPS uses long __kernel_uid_t, but... */

@@ -34,14 +34,16 @@
 
 #define SSP_UNIMPLEMENTED -1
 
-struct ssp_msg_header {
+struct ssp_msg_header
+{
 	u8 cmd;
 	__le16 length;
 	__le16 options;
 	__le32 data;
 } __attribute__((__packed__));
 
-struct ssp_msg {
+struct ssp_msg
+{
 	u16 length;
 	u16 options;
 	struct list_head list;
@@ -50,11 +52,12 @@ struct ssp_msg {
 	char *buffer;
 };
 
-static const int ssp_offset_map[SSP_SENSOR_MAX] = {
+static const int ssp_offset_map[SSP_SENSOR_MAX] =
+{
 	[SSP_ACCELEROMETER_SENSOR] =		SSP_ACCELEROMETER_SIZE +
-						SSP_TIME_SIZE,
+	SSP_TIME_SIZE,
 	[SSP_GYROSCOPE_SENSOR] =		SSP_GYROSCOPE_SIZE +
-						SSP_TIME_SIZE,
+	SSP_TIME_SIZE,
 	[SSP_GEOMAGNETIC_UNCALIB_SENSOR] =	SSP_UNIMPLEMENTED,
 	[SSP_GEOMAGNETIC_RAW] =			SSP_UNIMPLEMENTED,
 	[SSP_GEOMAGNETIC_SENSOR] =		SSP_UNIMPLEMENTED,
@@ -72,11 +75,11 @@ static const int ssp_offset_map[SSP_SENSOR_MAX] = {
 	[SSP_ROTATION_VECTOR] =			SSP_UNIMPLEMENTED,
 	[SSP_STEP_COUNTER] =			SSP_UNIMPLEMENTED,
 	[SSP_BIO_HRM_RAW] =			SSP_BIO_HRM_RAW_SIZE +
-						SSP_TIME_SIZE,
+	SSP_TIME_SIZE,
 	[SSP_BIO_HRM_RAW_FAC] =			SSP_BIO_HRM_RAW_FAC_SIZE +
-						SSP_TIME_SIZE,
+	SSP_TIME_SIZE,
 	[SSP_BIO_HRM_LIB] =			SSP_BIO_HRM_LIB_SIZE +
-						SSP_TIME_SIZE,
+	SSP_TIME_SIZE,
 };
 
 #define SSP_HEADER_SIZE		(sizeof(struct ssp_msg_header))
@@ -88,8 +91,11 @@ static struct ssp_msg *ssp_create_msg(u8 cmd, u16 len, u16 opt, u32 data)
 	struct ssp_msg *msg;
 
 	msg = kzalloc(sizeof(*msg), GFP_KERNEL);
+
 	if (!msg)
+	{
 		return NULL;
+	}
 
 	h.cmd = cmd;
 	h.length = cpu_to_le16(len);
@@ -97,8 +103,10 @@ static struct ssp_msg *ssp_create_msg(u8 cmd, u16 len, u16 opt, u32 data)
 	h.data = cpu_to_le32(data);
 
 	msg->buffer = kzalloc(SSP_HEADER_SIZE_ALIGNED + len,
-			      GFP_KERNEL | GFP_DMA);
-	if (!msg->buffer) {
+						  GFP_KERNEL | GFP_DMA);
+
+	if (!msg->buffer)
+	{
 		kfree(msg);
 		return NULL;
 	}
@@ -117,13 +125,13 @@ static struct ssp_msg *ssp_create_msg(u8 cmd, u16 len, u16 opt, u32 data)
  * chunks are small so memcpy should be optimalized.
  */
 static inline void ssp_fill_buffer(struct ssp_msg *m, unsigned int offset,
-				   const void *src, unsigned int len)
+								   const void *src, unsigned int len)
 {
 	memcpy(&m->buffer[SSP_HEADER_SIZE_ALIGNED + offset], src, len);
 }
 
 static inline void ssp_get_buffer(struct ssp_msg *m, unsigned int offset,
-				  void *dest, unsigned int len)
+								  void *dest, unsigned int len)
 {
 	memcpy(dest, &m->buffer[SSP_HEADER_SIZE_ALIGNED + offset],  len);
 }
@@ -140,13 +148,14 @@ static void ssp_clean_msg(struct ssp_msg *m)
 }
 
 static int ssp_print_mcu_debug(char *data_frame, int *data_index,
-			       int received_len)
+							   int received_len)
 {
 	int length = data_frame[(*data_index)++];
 
-	if (length > received_len - *data_index || length <= 0) {
+	if (length > received_len - *data_index || length <= 0)
+	{
 		ssp_dbg("[SSP]: MSG From MCU-invalid debug length(%d/%d)\n",
-			length, received_len);
+				length, received_len);
 		return length ? length : -EPROTO;
 	}
 
@@ -167,15 +176,19 @@ static int ssp_check_lines(struct ssp_data *data, bool state)
 
 	gpio_set_value_cansleep(data->ap_mcu_gpio, state);
 
-	while (gpio_get_value_cansleep(data->mcu_ap_gpio) != state) {
+	while (gpio_get_value_cansleep(data->mcu_ap_gpio) != state)
+	{
 		usleep_range(3000, 3500);
 
-		if (data->shut_down || delay_cnt++ > 500) {
+		if (data->shut_down || delay_cnt++ > 500)
+		{
 			dev_err(SSP_DEV, "%s:timeout, hw ack wait fail %d\n",
-				__func__, state);
+					__func__, state);
 
 			if (!state)
+			{
 				gpio_set_value_cansleep(data->ap_mcu_gpio, 1);
+			}
 
 			return -ETIMEDOUT;
 		}
@@ -185,7 +198,7 @@ static int ssp_check_lines(struct ssp_data *data, bool state)
 }
 
 static int ssp_do_transfer(struct ssp_data *data, struct ssp_msg *msg,
-			   struct completion *done, int timeout)
+						   struct completion *done, int timeout)
 {
 	int status;
 	/*
@@ -195,36 +208,48 @@ static int ssp_do_transfer(struct ssp_data *data, struct ssp_msg *msg,
 	const bool use_no_irq = msg->length == 0;
 
 	if (data->shut_down)
+	{
 		return -EPERM;
+	}
 
 	msg->done = done;
 
 	mutex_lock(&data->comm_lock);
 
 	status = ssp_check_lines(data, false);
+
 	if (status < 0)
+	{
 		goto _error_locked;
+	}
 
 	status = spi_write(data->spi, msg->buffer, SSP_HEADER_SIZE);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		gpio_set_value_cansleep(data->ap_mcu_gpio, 1);
 		dev_err(SSP_DEV, "%s spi_write fail\n", __func__);
 		goto _error_locked;
 	}
 
-	if (!use_no_irq) {
+	if (!use_no_irq)
+	{
 		mutex_lock(&data->pending_lock);
 		list_add_tail(&msg->list, &data->pending_list);
 		mutex_unlock(&data->pending_lock);
 	}
 
 	status = ssp_check_lines(data, true);
-	if (status < 0) {
-		if (!use_no_irq) {
+
+	if (status < 0)
+	{
+		if (!use_no_irq)
+		{
 			mutex_lock(&data->pending_lock);
 			list_del(&msg->list);
 			mutex_unlock(&data->pending_lock);
 		}
+
 		goto _error_locked;
 	}
 
@@ -232,8 +257,9 @@ static int ssp_do_transfer(struct ssp_data *data, struct ssp_msg *msg,
 
 	if (!use_no_irq && done)
 		if (wait_for_completion_timeout(done,
-						msecs_to_jiffies(timeout)) ==
-		    0) {
+										msecs_to_jiffies(timeout)) ==
+			0)
+		{
 			mutex_lock(&data->pending_lock);
 			list_del(&msg->list);
 			mutex_unlock(&data->pending_lock);
@@ -251,18 +277,20 @@ _error_locked:
 }
 
 static inline int ssp_spi_sync_command(struct ssp_data *data,
-				       struct ssp_msg *msg)
+									   struct ssp_msg *msg)
 {
 	return ssp_do_transfer(data, msg, NULL, 0);
 }
 
 static int ssp_spi_sync(struct ssp_data *data, struct ssp_msg *msg,
-			int timeout)
+						int timeout)
 {
 	DECLARE_COMPLETION_ONSTACK(done);
 
 	if (WARN_ON(!msg->length))
+	{
 		return -EPERM;
+	}
 
 	return ssp_do_transfer(data, msg, &done, timeout);
 }
@@ -283,53 +311,71 @@ static int ssp_parse_dataframe(struct ssp_data *data, char *dataframe, int len)
 
 	getnstimeofday(&ts);
 
-	for (idx = 0; idx < len;) {
-		switch (dataframe[idx++]) {
-		case SSP_MSG2AP_INST_BYPASS_DATA:
-			sd = dataframe[idx++];
-			if (sd < 0 || sd >= SSP_SENSOR_MAX) {
-				dev_err(SSP_DEV,
-					"Mcu data frame1 error %d\n", sd);
-				return -EPROTO;
-			}
+	for (idx = 0; idx < len;)
+	{
+		switch (dataframe[idx++])
+		{
+			case SSP_MSG2AP_INST_BYPASS_DATA:
+				sd = dataframe[idx++];
 
-			if (indio_devs[sd]) {
-				spd = iio_priv(indio_devs[sd]);
-				if (spd->process_data)
-					spd->process_data(indio_devs[sd],
-							  &dataframe[idx],
-							  data->timestamp);
-			} else {
-				dev_err(SSP_DEV, "no client for frame\n");
-			}
+				if (sd < 0 || sd >= SSP_SENSOR_MAX)
+				{
+					dev_err(SSP_DEV,
+							"Mcu data frame1 error %d\n", sd);
+					return -EPROTO;
+				}
 
-			idx += ssp_offset_map[sd];
-			break;
-		case SSP_MSG2AP_INST_DEBUG_DATA:
-			sd = ssp_print_mcu_debug(dataframe, &idx, len);
-			if (sd) {
-				dev_err(SSP_DEV,
-					"Mcu data frame3 error %d\n", sd);
-				return sd;
-			}
-			break;
-		case SSP_MSG2AP_INST_LIBRARY_DATA:
-			idx += len;
-			break;
-		case SSP_MSG2AP_INST_BIG_DATA:
-			ssp_handle_big_data(data, dataframe, &idx);
-			break;
-		case SSP_MSG2AP_INST_TIME_SYNC:
-			data->time_syncing = true;
-			break;
-		case SSP_MSG2AP_INST_RESET:
-			ssp_queue_ssp_refresh_task(data, 0);
-			break;
+				if (indio_devs[sd])
+				{
+					spd = iio_priv(indio_devs[sd]);
+
+					if (spd->process_data)
+						spd->process_data(indio_devs[sd],
+										  &dataframe[idx],
+										  data->timestamp);
+				}
+				else
+				{
+					dev_err(SSP_DEV, "no client for frame\n");
+				}
+
+				idx += ssp_offset_map[sd];
+				break;
+
+			case SSP_MSG2AP_INST_DEBUG_DATA:
+				sd = ssp_print_mcu_debug(dataframe, &idx, len);
+
+				if (sd)
+				{
+					dev_err(SSP_DEV,
+							"Mcu data frame3 error %d\n", sd);
+					return sd;
+				}
+
+				break;
+
+			case SSP_MSG2AP_INST_LIBRARY_DATA:
+				idx += len;
+				break;
+
+			case SSP_MSG2AP_INST_BIG_DATA:
+				ssp_handle_big_data(data, dataframe, &idx);
+				break;
+
+			case SSP_MSG2AP_INST_TIME_SYNC:
+				data->time_syncing = true;
+				break;
+
+			case SSP_MSG2AP_INST_RESET:
+				ssp_queue_ssp_refresh_task(data, 0);
+				break;
 		}
 	}
 
 	if (data->time_syncing)
+	{
 		data->timestamp = ts.tv_sec * 1000000000ULL + ts.tv_nsec;
+	}
 
 	return 0;
 }
@@ -345,7 +391,9 @@ int ssp_irq_msg(struct ssp_data *data)
 	struct ssp_msg *msg, *n;
 
 	ret = spi_read(data->spi, data->header_buffer, SSP_HEADER_BUFFER_SIZE);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(SSP_DEV, "header read fail\n");
 		return ret;
 	}
@@ -353,99 +401,121 @@ int ssp_irq_msg(struct ssp_data *data)
 	length = le16_to_cpu(data->header_buffer[1]);
 	msg_options = le16_to_cpu(data->header_buffer[0]);
 
-	if (length == 0) {
+	if (length == 0)
+	{
 		dev_err(SSP_DEV, "length received from mcu is 0\n");
 		return -EINVAL;
 	}
 
 	msg_type = SSP_GET_MESSAGE_TYPE(msg_options);
 
-	switch (msg_type) {
-	case SSP_AP2HUB_READ:
-	case SSP_AP2HUB_WRITE:
-		/*
-		 * this is a small list, a few elements - the packets can be
-		 * received with no order
-		 */
-		mutex_lock(&data->pending_lock);
-		list_for_each_entry_safe(msg, n, &data->pending_list, list) {
-			if (msg->options == msg_options) {
-				list_del(&msg->list);
-				found = true;
+	switch (msg_type)
+	{
+		case SSP_AP2HUB_READ:
+		case SSP_AP2HUB_WRITE:
+			/*
+			 * this is a small list, a few elements - the packets can be
+			 * received with no order
+			 */
+			mutex_lock(&data->pending_lock);
+			list_for_each_entry_safe(msg, n, &data->pending_list, list)
+			{
+				if (msg->options == msg_options)
+				{
+					list_del(&msg->list);
+					found = true;
+					break;
+				}
+			}
+
+			if (!found)
+			{
+				/*
+				 * here can be implemented dead messages handling
+				 * but the slave should not send such ones - it is to
+				 * check but let's handle this
+				 */
+				buffer = kmalloc(length, GFP_KERNEL | GFP_DMA);
+
+				if (!buffer)
+				{
+					ret = -ENOMEM;
+					goto _unlock;
+				}
+
+				/* got dead packet so it is always an error */
+				ret = spi_read(data->spi, buffer, length);
+
+				if (ret >= 0)
+				{
+					ret = -EPROTO;
+				}
+
+				kfree(buffer);
+
+				dev_err(SSP_DEV, "No match error %x\n",
+						msg_options);
+
+				goto _unlock;
+			}
+
+			if (msg_type == SSP_AP2HUB_READ)
+				ret = spi_read(data->spi,
+							   &msg->buffer[SSP_HEADER_SIZE_ALIGNED],
+							   msg->length);
+
+			if (msg_type == SSP_AP2HUB_WRITE)
+			{
+				ret = spi_write(data->spi,
+								&msg->buffer[SSP_HEADER_SIZE_ALIGNED],
+								msg->length);
+
+				if (msg_options & SSP_AP2HUB_RETURN)
+				{
+					msg->options =
+						SSP_AP2HUB_READ | SSP_AP2HUB_RETURN;
+					msg->length = 1;
+
+					list_add_tail(&msg->list, &data->pending_list);
+					goto _unlock;
+				}
+			}
+
+			if (msg->done)
+				if (!completion_done(msg->done))
+				{
+					complete(msg->done);
+				}
+
+_unlock:
+			mutex_unlock(&data->pending_lock);
+			break;
+
+		case SSP_HUB2AP_WRITE:
+			buffer = kzalloc(length, GFP_KERNEL | GFP_DMA);
+
+			if (!buffer)
+			{
+				return -ENOMEM;
+			}
+
+			ret = spi_read(data->spi, buffer, length);
+
+			if (ret < 0)
+			{
+				dev_err(SSP_DEV, "spi read fail\n");
+				kfree(buffer);
 				break;
 			}
-		}
 
-		if (!found) {
-			/*
-			 * here can be implemented dead messages handling
-			 * but the slave should not send such ones - it is to
-			 * check but let's handle this
-			 */
-			buffer = kmalloc(length, GFP_KERNEL | GFP_DMA);
-			if (!buffer) {
-				ret = -ENOMEM;
-				goto _unlock;
-			}
+			ret = ssp_parse_dataframe(data, buffer, length);
 
-			/* got dead packet so it is always an error */
-			ret = spi_read(data->spi, buffer, length);
-			if (ret >= 0)
-				ret = -EPROTO;
-
-			kfree(buffer);
-
-			dev_err(SSP_DEV, "No match error %x\n",
-				msg_options);
-
-			goto _unlock;
-		}
-
-		if (msg_type == SSP_AP2HUB_READ)
-			ret = spi_read(data->spi,
-				       &msg->buffer[SSP_HEADER_SIZE_ALIGNED],
-				       msg->length);
-
-		if (msg_type == SSP_AP2HUB_WRITE) {
-			ret = spi_write(data->spi,
-					&msg->buffer[SSP_HEADER_SIZE_ALIGNED],
-					msg->length);
-			if (msg_options & SSP_AP2HUB_RETURN) {
-				msg->options =
-					SSP_AP2HUB_READ | SSP_AP2HUB_RETURN;
-				msg->length = 1;
-
-				list_add_tail(&msg->list, &data->pending_list);
-				goto _unlock;
-			}
-		}
-
-		if (msg->done)
-			if (!completion_done(msg->done))
-				complete(msg->done);
-_unlock:
-		mutex_unlock(&data->pending_lock);
-		break;
-	case SSP_HUB2AP_WRITE:
-		buffer = kzalloc(length, GFP_KERNEL | GFP_DMA);
-		if (!buffer)
-			return -ENOMEM;
-
-		ret = spi_read(data->spi, buffer, length);
-		if (ret < 0) {
-			dev_err(SSP_DEV, "spi read fail\n");
 			kfree(buffer);
 			break;
-		}
 
-		ret = ssp_parse_dataframe(data, buffer, length);
-
-		kfree(buffer);
-		break;
-
-	default:
-		dev_err(SSP_DEV, "unknown msg type\n");
-		return -EPROTO;
+		default:
+			dev_err(SSP_DEV, "unknown msg type\n");
+			return -EPROTO;
 	}
 
 	return ret;
@@ -456,12 +526,15 @@ void ssp_clean_pending_list(struct ssp_data *data)
 	struct ssp_msg *msg, *n;
 
 	mutex_lock(&data->pending_lock);
-	list_for_each_entry_safe(msg, n, &data->pending_list, list) {
+	list_for_each_entry_safe(msg, n, &data->pending_list, list)
+	{
 		list_del(&msg->list);
 
 		if (msg->done)
 			if (!completion_done(msg->done))
+			{
 				complete(msg->done);
+			}
 	}
 	mutex_unlock(&data->pending_lock);
 }
@@ -472,8 +545,11 @@ int ssp_command(struct ssp_data *data, char command, int arg)
 	struct ssp_msg *msg;
 
 	msg = ssp_create_msg(command, 0, SSP_AP2HUB_WRITE, arg);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
 
 	ssp_dbg("%s - command 0x%x %d\n", __func__, command, arg);
 
@@ -484,31 +560,37 @@ int ssp_command(struct ssp_data *data, char command, int arg)
 }
 
 int ssp_send_instruction(struct ssp_data *data, u8 inst, u8 sensor_type,
-			 u8 *send_buf, u8 length)
+						 u8 *send_buf, u8 length)
 {
 	int ret;
 	struct ssp_msg *msg;
 
-	if (data->fw_dl_state == SSP_FW_DL_STATE_DOWNLOADING) {
+	if (data->fw_dl_state == SSP_FW_DL_STATE_DOWNLOADING)
+	{
 		dev_err(SSP_DEV, "%s - Skip Inst! DL state = %d\n",
-			__func__, data->fw_dl_state);
+				__func__, data->fw_dl_state);
 		return -EBUSY;
-	} else if (!(data->available_sensors & BIT(sensor_type)) &&
-		   (inst <= SSP_MSG2SSP_INST_CHANGE_DELAY)) {
+	}
+	else if (!(data->available_sensors & BIT(sensor_type)) &&
+			 (inst <= SSP_MSG2SSP_INST_CHANGE_DELAY))
+	{
 		dev_err(SSP_DEV, "%s - Bypass Inst Skip! - %u\n",
-			__func__, sensor_type);
+				__func__, sensor_type);
 		return -EIO; /* just fail */
 	}
 
 	msg = ssp_create_msg(inst, length + 2, SSP_AP2HUB_WRITE, 0);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
 
 	ssp_fill_buffer(msg, 0, &sensor_type, 1);
 	ssp_fill_buffer(msg, 1, send_buf, length);
 
 	ssp_dbg("%s - Inst = 0x%x, Sensor Type = 0x%x, data = %u\n",
-		__func__, inst, sensor_type, send_buf[1]);
+			__func__, inst, sensor_type, send_buf[1]);
 
 	ret = ssp_spi_sync(data, msg, 1000);
 	ssp_clean_msg(msg);
@@ -523,8 +605,11 @@ int ssp_get_chipid(struct ssp_data *data)
 	struct ssp_msg *msg;
 
 	msg = ssp_create_msg(SSP_MSG2SSP_AP_WHOAMI, 1, SSP_AP2HUB_READ, 0);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
 
 	ret = ssp_spi_sync(data, msg, 1000);
 
@@ -541,13 +626,16 @@ int ssp_set_magnetic_matrix(struct ssp_data *data)
 	struct ssp_msg *msg;
 
 	msg = ssp_create_msg(SSP_MSG2SSP_AP_SET_MAGNETIC_STATIC_MATRIX,
-			     data->sensorhub_info->mag_length, SSP_AP2HUB_WRITE,
-			     0);
+						 data->sensorhub_info->mag_length, SSP_AP2HUB_WRITE,
+						 0);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
 
 	ssp_fill_buffer(msg, 0, data->sensorhub_info->mag_table,
-			data->sensorhub_info->mag_length);
+					data->sensorhub_info->mag_length);
 
 	ret = ssp_spi_sync(data, msg, 1000);
 	ssp_clean_msg(msg);
@@ -562,12 +650,17 @@ unsigned int ssp_get_sensor_scanning_info(struct ssp_data *data)
 	u32 cpu_result = 0;
 
 	struct ssp_msg *msg = ssp_create_msg(SSP_MSG2SSP_AP_SENSOR_SCANNING, 4,
-					     SSP_AP2HUB_READ, 0);
+										 SSP_AP2HUB_READ, 0);
+
 	if (!msg)
+	{
 		return 0;
+	}
 
 	ret = ssp_spi_sync(data, msg, 1000);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(SSP_DEV, "%s - spi read fail %d\n", __func__, ret);
 		goto _exit;
 	}
@@ -588,12 +681,17 @@ unsigned int ssp_get_firmware_rev(struct ssp_data *data)
 	__le32 result;
 
 	struct ssp_msg *msg = ssp_create_msg(SSP_MSG2SSP_AP_FIRMWARE_REV, 4,
-					     SSP_AP2HUB_READ, 0);
+										 SSP_AP2HUB_READ, 0);
+
 	if (!msg)
+	{
 		return SSP_INVALID_REVISION;
+	}
 
 	ret = ssp_spi_sync(data, msg, 1000);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(SSP_DEV, "%s - transfer fail %d\n", __func__, ret);
 		ret = SSP_INVALID_REVISION;
 		goto _exit;

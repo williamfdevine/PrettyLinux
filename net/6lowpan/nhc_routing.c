@@ -20,7 +20,7 @@ static void routing_nhid_setup(struct lowpan_nhc *nhc)
 }
 
 LOWPAN_NHC(nhc_routing, "RFC6282 Routing", NEXTHDR_ROUTING, 0,
-	   routing_nhid_setup, LOWPAN_NHC_ROUTING_IDLEN, NULL, NULL);
+		   routing_nhid_setup, LOWPAN_NHC_ROUTING_IDLEN, NULL, NULL);
 
 module_lowpan_nhc(nhc_routing);
 MODULE_DESCRIPTION("6LoWPAN next header RFC6282 Routing compression");

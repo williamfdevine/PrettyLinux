@@ -68,29 +68,33 @@
  *           receipt of a d2h fis this will be the status field of that fis.
  * @sgl - track pio transfer progress as we iterate through the sgl
  */
-struct isci_stp_request {
+struct isci_stp_request
+{
 	u32 pio_len;
 	u8 status;
 
-	struct isci_stp_pio_sgl {
+	struct isci_stp_pio_sgl
+	{
 		int index;
 		u8 set;
 		u32 offset;
 	} sgl;
 };
 
-struct isci_request {
-	#define IREQ_COMPLETE_IN_TARGET 0
-	#define IREQ_TERMINATED 1
-	#define IREQ_TMF 2
-	#define IREQ_ACTIVE 3
-	#define IREQ_PENDING_ABORT 4 /* Set == device was not suspended yet */
-	#define IREQ_TC_ABORT_POSTED 5
-	#define IREQ_ABORT_PATH_ACTIVE 6
-	#define IREQ_NO_AUTO_FREE_TAG 7 /* Set when being explicitly managed */
+struct isci_request
+{
+#define IREQ_COMPLETE_IN_TARGET 0
+#define IREQ_TERMINATED 1
+#define IREQ_TMF 2
+#define IREQ_ACTIVE 3
+#define IREQ_PENDING_ABORT 4 /* Set == device was not suspended yet */
+#define IREQ_TC_ABORT_POSTED 5
+#define IREQ_ABORT_PATH_ACTIVE 6
+#define IREQ_NO_AUTO_FREE_TAG 7 /* Set when being explicitly managed */
 	unsigned long flags;
 	/* XXX kill ttype and ttype_ptr, allocate full sas_task */
-	union ttype_ptr_union {
+	union ttype_ptr_union
+	{
 		struct sas_task *io_task_ptr;   /* When ttype==io_task  */
 		struct isci_tmf *tmf_task_ptr;  /* When ttype==tmf_task */
 	} ttype_ptr;
@@ -120,7 +124,7 @@ struct isci_request {
 	u32 post_context;
 	struct scu_task_context *tc;
 	/* could be larger with sg chaining */
-	#define SCU_SGL_SIZE ((SCI_MAX_SCATTER_GATHER_ELEMENTS + 1) / 2)
+#define SCU_SGL_SIZE ((SCI_MAX_SCATTER_GATHER_ELEMENTS + 1) / 2)
 	struct scu_sgl_element_pair sg_table[SCU_SGL_SIZE] __attribute__ ((aligned(32)));
 	/* This field is a pointer to the stored rx frame data.  It is used in
 	 * STP internal requests and SMP response frames.  If this field is
@@ -128,18 +132,23 @@ struct isci_request {
 	 */
 	u32 saved_rx_frame_index;
 
-	union {
-		struct {
-			union {
+	union
+	{
+		struct
+		{
+			union
+			{
 				struct ssp_cmd_iu cmd;
 				struct ssp_task_iu tmf;
 			};
-			union {
+			union
+			{
 				struct ssp_response_iu rsp;
 				u8 rsp_buf[SSP_RESP_IU_MAX_SIZE];
 			};
 		} ssp;
-		struct {
+		struct
+		{
 			struct isci_stp_request req;
 			struct host_to_dev_fis cmd;
 			struct dev_to_host_fis rsp;
@@ -225,28 +234,28 @@ static inline struct isci_request *to_ireq(struct isci_stp_request *stp_req)
  * @SCI_REQ_FINAL: Simply the final state for the base request state machine.
  */
 #define REQUEST_STATES {\
-	C(REQ_INIT),\
-	C(REQ_CONSTRUCTED),\
-	C(REQ_STARTED),\
-	C(REQ_STP_UDMA_WAIT_TC_COMP),\
-	C(REQ_STP_UDMA_WAIT_D2H),\
-	C(REQ_STP_NON_DATA_WAIT_H2D),\
-	C(REQ_STP_NON_DATA_WAIT_D2H),\
-	C(REQ_STP_PIO_WAIT_H2D),\
-	C(REQ_STP_PIO_WAIT_FRAME),\
-	C(REQ_STP_PIO_DATA_IN),\
-	C(REQ_STP_PIO_DATA_OUT),\
-	C(REQ_ATAPI_WAIT_H2D),\
-	C(REQ_ATAPI_WAIT_PIO_SETUP),\
-	C(REQ_ATAPI_WAIT_D2H),\
-	C(REQ_ATAPI_WAIT_TC_COMP),\
-	C(REQ_TASK_WAIT_TC_COMP),\
-	C(REQ_TASK_WAIT_TC_RESP),\
-	C(REQ_SMP_WAIT_RESP),\
-	C(REQ_SMP_WAIT_TC_COMP),\
-	C(REQ_COMPLETED),\
-	C(REQ_ABORTING),\
-	C(REQ_FINAL),\
+		C(REQ_INIT),\
+		C(REQ_CONSTRUCTED),\
+		C(REQ_STARTED),\
+		C(REQ_STP_UDMA_WAIT_TC_COMP),\
+		C(REQ_STP_UDMA_WAIT_D2H),\
+		C(REQ_STP_NON_DATA_WAIT_H2D),\
+		C(REQ_STP_NON_DATA_WAIT_D2H),\
+		C(REQ_STP_PIO_WAIT_H2D),\
+		C(REQ_STP_PIO_WAIT_FRAME),\
+		C(REQ_STP_PIO_DATA_IN),\
+		C(REQ_STP_PIO_DATA_OUT),\
+		C(REQ_ATAPI_WAIT_H2D),\
+		C(REQ_ATAPI_WAIT_PIO_SETUP),\
+		C(REQ_ATAPI_WAIT_D2H),\
+		C(REQ_ATAPI_WAIT_TC_COMP),\
+		C(REQ_TASK_WAIT_TC_COMP),\
+		C(REQ_TASK_WAIT_TC_RESP),\
+		C(REQ_SMP_WAIT_RESP),\
+		C(REQ_SMP_WAIT_TC_COMP),\
+		C(REQ_COMPLETED),\
+		C(REQ_ABORTING),\
+		C(REQ_FINAL),\
 	}
 #undef C
 #define C(a) SCI_##a
@@ -258,10 +267,10 @@ enum sci_status sci_request_start(struct isci_request *ireq);
 enum sci_status sci_io_request_terminate(struct isci_request *ireq);
 enum sci_status
 sci_io_request_event_handler(struct isci_request *ireq,
-				  u32 event_code);
+							 u32 event_code);
 enum sci_status
 sci_io_request_frame_handler(struct isci_request *ireq,
-				  u32 frame_index);
+							 u32 frame_index);
 enum sci_status
 sci_task_request_terminate(struct isci_request *ireq);
 extern enum sci_status
@@ -288,23 +297,23 @@ sci_io_request_get_dma_addr(struct isci_request *ireq, void *virt_addr)
 #define isci_request_access_tmf(req) ((req)->ttype_ptr.tmf_task_ptr)
 
 struct isci_request *isci_tmf_request_from_tag(struct isci_host *ihost,
-					       struct isci_tmf *isci_tmf,
-					       u16 tag);
+		struct isci_tmf *isci_tmf,
+		u16 tag);
 int isci_request_execute(struct isci_host *ihost, struct isci_remote_device *idev,
-			 struct sas_task *task, u16 tag);
+						 struct sas_task *task, u16 tag);
 enum sci_status
 sci_task_request_construct(struct isci_host *ihost,
-			    struct isci_remote_device *idev,
-			    u16 io_tag,
-			    struct isci_request *ireq);
+						   struct isci_remote_device *idev,
+						   u16 io_tag,
+						   struct isci_request *ireq);
 enum sci_status sci_task_request_construct_ssp(struct isci_request *ireq);
 void sci_smp_request_copy_response(struct isci_request *ireq);
 
 static inline int isci_task_is_ncq_recovery(struct sas_task *task)
 {
 	return (sas_protocol_ata(task->task_proto) &&
-		task->ata_task.fis.command == ATA_CMD_READ_LOG_EXT &&
-		task->ata_task.fis.lbal == ATA_LOG_SATA_NCQ);
+			task->ata_task.fis.command == ATA_CMD_READ_LOG_EXT &&
+			task->ata_task.fis.lbal == ATA_LOG_SATA_NCQ);
 
 }
 #endif /* !defined(_ISCI_REQUEST_H_) */

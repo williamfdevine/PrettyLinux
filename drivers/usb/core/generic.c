@@ -29,15 +29,15 @@ static inline const char *plural(int n)
 static int is_rndis(struct usb_interface_descriptor *desc)
 {
 	return desc->bInterfaceClass == USB_CLASS_COMM
-		&& desc->bInterfaceSubClass == 2
-		&& desc->bInterfaceProtocol == 0xff;
+		   && desc->bInterfaceSubClass == 2
+		   && desc->bInterfaceProtocol == 0xff;
 }
 
 static int is_activesync(struct usb_interface_descriptor *desc)
 {
 	return desc->bInterfaceClass == USB_CLASS_MISC
-		&& desc->bInterfaceSubClass == 1
-		&& desc->bInterfaceProtocol == 1;
+		   && desc->bInterfaceSubClass == 1
+		   && desc->bInterfaceProtocol == 1;
 }
 
 int usb_choose_configuration(struct usb_device *udev)
@@ -48,17 +48,23 @@ int usb_choose_configuration(struct usb_device *udev)
 	struct usb_host_config *c, *best;
 
 	if (usb_device_is_owned(udev))
+	{
 		return 0;
+	}
 
 	best = NULL;
 	c = udev->config;
 	num_configs = udev->descriptor.bNumConfigurations;
-	for (i = 0; i < num_configs; (i++, c++)) {
+
+	for (i = 0; i < num_configs; (i++, c++))
+	{
 		struct usb_interface_descriptor	*desc = NULL;
 
 		/* It's possible that a config has no interfaces! */
 		if (c->desc.bNumInterfaces > 0)
+		{
 			desc = &c->intf_cache[0]->altsetting->desc;
+		}
 
 		/*
 		 * HP's USB bus-powered keyboard has only one configuration
@@ -81,10 +87,14 @@ int usb_choose_configuration(struct usb_device *udev)
 		 * Don't hold your breath.
 		 */
 #if 0
+
 		/* Rule out self-powered configs for a bus-powered device */
 		if (bus_powered && (c->desc.bmAttributes &
-					USB_CONFIG_ATT_SELFPOWER))
+							USB_CONFIG_ATT_SELFPOWER))
+		{
 			continue;
+		}
+
 #endif
 
 		/*
@@ -100,7 +110,8 @@ int usb_choose_configuration(struct usb_device *udev)
 		 */
 
 		/* Rule out configs that draw too much bus current */
-		if (usb_get_max_power(udev, c) > udev->bus_mA) {
+		if (usb_get_max_power(udev, c) > udev->bus_mA)
+		{
 			insufficient_power++;
 			continue;
 		}
@@ -111,7 +122,8 @@ int usb_choose_configuration(struct usb_device *udev)
 		 * But: Don't ignore it if it's the only config.
 		 */
 		if (i == 0 && num_configs > 1 && desc &&
-				(is_rndis(desc) || is_activesync(desc))) {
+			(is_rndis(desc) || is_activesync(desc)))
+		{
 #if !defined(CONFIG_USB_NET_RNDIS_HOST) && !defined(CONFIG_USB_NET_RNDIS_HOST_MODULE)
 			continue;
 #else
@@ -124,9 +136,10 @@ int usb_choose_configuration(struct usb_device *udev)
 		 * Reason: Linux is more likely to have a class driver
 		 * than a vendor-specific driver. */
 		else if (udev->descriptor.bDeviceClass !=
-						USB_CLASS_VENDOR_SPEC &&
-				(desc && desc->bInterfaceClass !=
-						USB_CLASS_VENDOR_SPEC)) {
+				 USB_CLASS_VENDOR_SPEC &&
+				 (desc && desc->bInterfaceClass !=
+				  USB_CLASS_VENDOR_SPEC))
+		{
 			best = c;
 			break;
 		}
@@ -134,25 +147,31 @@ int usb_choose_configuration(struct usb_device *udev)
 		/* If all the remaining configs are vendor-specific,
 		 * choose the first one. */
 		else if (!best)
+		{
 			best = c;
+		}
 	}
 
 	if (insufficient_power > 0)
 		dev_info(&udev->dev, "rejected %d configuration%s "
-			"due to insufficient available bus power\n",
-			insufficient_power, plural(insufficient_power));
+				 "due to insufficient available bus power\n",
+				 insufficient_power, plural(insufficient_power));
 
-	if (best) {
+	if (best)
+	{
 		i = best->desc.bConfigurationValue;
 		dev_dbg(&udev->dev,
-			"configuration #%d chosen from %d choice%s\n",
-			i, num_configs, plural(num_configs));
-	} else {
+				"configuration #%d chosen from %d choice%s\n",
+				i, num_configs, plural(num_configs));
+	}
+	else
+	{
 		i = -1;
 		dev_warn(&udev->dev,
-			"no configuration chosen from %d choice%s\n",
-			num_configs, plural(num_configs));
+				 "no configuration chosen from %d choice%s\n",
+				 num_configs, plural(num_configs));
 	}
+
 	return i;
 }
 EXPORT_SYMBOL_GPL(usb_choose_configuration);
@@ -165,19 +184,27 @@ static int generic_probe(struct usb_device *udev)
 	 * with the driver core and lets interface drivers bind to them.
 	 */
 	if (udev->authorized == 0)
+	{
 		dev_err(&udev->dev, "Device is not authorized for usage\n");
-	else {
+	}
+	else
+	{
 		c = usb_choose_configuration(udev);
-		if (c >= 0) {
+
+		if (c >= 0)
+		{
 			err = usb_set_configuration(udev, c);
-			if (err && err != -ENODEV) {
+
+			if (err && err != -ENODEV)
+			{
 				dev_err(&udev->dev, "can't set config #%d, error %d\n",
-					c, err);
+						c, err);
 				/* This need not be fatal.  The user can try to
 				 * set other configurations. */
 			}
 		}
 	}
+
 	/* USB device state == configured ... usable */
 	usb_notify_add_device(udev);
 
@@ -191,7 +218,9 @@ static void generic_disconnect(struct usb_device *udev)
 	/* if this is only an unbind, not a physical disconnect, then
 	 * unconfigure the device */
 	if (udev->actconfig)
+	{
 		usb_set_configuration(udev, -1);
+	}
 }
 
 #ifdef	CONFIG_PM
@@ -206,13 +235,19 @@ static int generic_suspend(struct usb_device *udev, pm_message_t msg)
 	 * interfaces manually by doing a bus (or "global") suspend.
 	 */
 	if (!udev->parent)
+	{
 		rc = hcd_bus_suspend(udev, msg);
+	}
 
 	/* Non-root devices don't need to do anything for FREEZE or PRETHAW */
 	else if (msg.event == PM_EVENT_FREEZE || msg.event == PM_EVENT_PRETHAW)
+	{
 		rc = 0;
+	}
 	else
+	{
 		rc = usb_port_suspend(udev, msg);
+	}
 
 	return rc;
 }
@@ -227,15 +262,21 @@ static int generic_resume(struct usb_device *udev, pm_message_t msg)
 	 * interfaces manually by doing a bus (or "global") resume.
 	 */
 	if (!udev->parent)
+	{
 		rc = hcd_bus_resume(udev, msg);
+	}
 	else
+	{
 		rc = usb_port_resume(udev, msg);
+	}
+
 	return rc;
 }
 
 #endif	/* CONFIG_PM */
 
-struct usb_device_driver usb_generic_driver = {
+struct usb_device_driver usb_generic_driver =
+{
 	.name =	"usb",
 	.probe = generic_probe,
 	.disconnect = generic_disconnect,

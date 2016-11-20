@@ -47,7 +47,8 @@
 #define REQTYPE_SOFT_COMMAND         5
 #define REQTYPE_LAST                 5
 
-struct octeon_request_list {
+struct octeon_request_list
+{
 	u32 reqtype;
 	void *buf;
 };
@@ -55,7 +56,8 @@ struct octeon_request_list {
 /* \endcond */
 
 /** Input Queue statistics. Each input queue has four stats fields. */
-struct oct_iq_stats {
+struct oct_iq_stats
+{
 	u64 instr_posted; /**< Instructions posted to this queue. */
 	u64 instr_processed; /**< Instructions processed in this queue. */
 	u64 instr_dropped; /**< Instructions that could not be processed */
@@ -79,7 +81,8 @@ struct oct_iq_stats {
  *  data to Octeon device from the host. Each input queue (upto 4) for
  *  a Octeon device has one such structure to represent it.
 */
-struct octeon_instr_queue {
+struct octeon_instr_queue
+{
 	struct octeon_device *oct_dev;
 
 	/** A spinlock to protect access to the input ring.  */
@@ -94,17 +97,17 @@ struct octeon_instr_queue {
 	spinlock_t iq_flush_running_lock;
 
 	/** Flag that indicates if the queue uses 64 byte commands. */
-	u32 iqcmd_64B:1;
+	u32 iqcmd_64B: 1;
 
 	/** Queue info. */
 	union oct_txpciq txpciq;
 
-	u32 rsvd:17;
+	u32 rsvd: 17;
 
 	/* Controls whether extra flushing of IQ is done on Tx */
-	u32 do_auto_flush:1;
+	u32 do_auto_flush: 1;
 
-	u32 status:8;
+	u32 status: 8;
 
 	/** Maximum no. of instructions in this queue. */
 	u32 max_count;
@@ -176,7 +179,8 @@ struct octeon_instr_queue {
 /** 32-byte instruction format.
  *  Format of instruction for a 32-byte mode input queue.
  */
-struct octeon_instr_32B {
+struct octeon_instr_32B
+{
 	/** Pointer where the input data is available. */
 	u64 dptr;
 
@@ -198,7 +202,8 @@ struct octeon_instr_32B {
 /** 64-byte instruction format.
  *  Format of instruction for a 64-byte mode input queue.
  */
-struct octeon_instr2_64B {
+struct octeon_instr2_64B
+{
 	/** Pointer where the input data is available. */
 	u64 dptr;
 
@@ -222,7 +227,8 @@ struct octeon_instr2_64B {
 	u64 reserved;
 };
 
-struct octeon_instr3_64B {
+struct octeon_instr3_64B
+{
 	/** Pointer where the input data is available. */
 	u64 dptr;
 
@@ -248,7 +254,8 @@ struct octeon_instr3_64B {
 
 };
 
-union octeon_instr_64B {
+union octeon_instr_64B
+{
 	struct octeon_instr2_64B cmd2;
 	struct octeon_instr3_64B cmd3;
 };
@@ -259,7 +266,8 @@ union octeon_instr_64B {
  */
 #define  SOFT_COMMAND_BUFFER_SIZE	1536
 
-struct octeon_soft_command {
+struct octeon_soft_command
+{
 	/** Soft command buffer info. */
 	struct list_head node;
 	u64 dma_addr;
@@ -299,7 +307,8 @@ struct octeon_soft_command {
 
 /** Head of a soft command buffer pool.
  */
-struct octeon_sc_buffer_pool {
+struct octeon_sc_buffer_pool
+{
 	/** List structure to add delete pending entries to */
 	struct list_head head;
 
@@ -312,11 +321,11 @@ struct octeon_sc_buffer_pool {
 int octeon_setup_sc_buffer_pool(struct octeon_device *oct);
 int octeon_free_sc_buffer_pool(struct octeon_device *oct);
 struct octeon_soft_command *
-	octeon_alloc_soft_command(struct octeon_device *oct,
-				  u32 datasize, u32 rdatasize,
-				  u32 ctxsize);
+octeon_alloc_soft_command(struct octeon_device *oct,
+						  u32 datasize, u32 rdatasize,
+						  u32 ctxsize);
 void octeon_free_soft_command(struct octeon_device *oct,
-			      struct octeon_soft_command *sc);
+							  struct octeon_soft_command *sc);
 
 /**
  *  octeon_init_instr_queue()
@@ -329,8 +338,8 @@ void octeon_free_soft_command(struct octeon_device *oct,
  *  @return  Success: 0   Failure: 1
  */
 int octeon_init_instr_queue(struct octeon_device *octeon_dev,
-			    union oct_txpciq txpciq,
-			    u32 num_descs);
+							union oct_txpciq txpciq,
+							u32 num_descs);
 
 /**
  *  octeon_delete_instr_queue()
@@ -348,29 +357,29 @@ int lio_wait_for_instr_fetch(struct octeon_device *oct);
 
 int
 octeon_register_reqtype_free_fn(struct octeon_device *oct, int reqtype,
-				void (*fn)(void *));
+								void (*fn)(void *));
 
 int
 lio_process_iq_request_list(struct octeon_device *oct,
-			    struct octeon_instr_queue *iq, u32 napi_budget);
+							struct octeon_instr_queue *iq, u32 napi_budget);
 
 int octeon_send_command(struct octeon_device *oct, u32 iq_no,
-			u32 force_db, void *cmd, void *buf,
-			u32 datasize, u32 reqtype);
+						u32 force_db, void *cmd, void *buf,
+						u32 datasize, u32 reqtype);
 
 void octeon_prepare_soft_command(struct octeon_device *oct,
-				 struct octeon_soft_command *sc,
-				 u8 opcode, u8 subcode,
-				 u32 irh_ossp, u64 ossp0,
-				 u64 ossp1);
+								 struct octeon_soft_command *sc,
+								 u8 opcode, u8 subcode,
+								 u32 irh_ossp, u64 ossp0,
+								 u64 ossp1);
 
 int octeon_send_soft_command(struct octeon_device *oct,
-			     struct octeon_soft_command *sc);
+							 struct octeon_soft_command *sc);
 
 int octeon_setup_iq(struct octeon_device *oct, int ifidx,
-		    int q_index, union oct_txpciq iq_no, u32 num_descs,
-		    void *app_ctx);
+					int q_index, union oct_txpciq iq_no, u32 num_descs,
+					void *app_ctx);
 int
 octeon_flush_iq(struct octeon_device *oct, struct octeon_instr_queue *iq,
-		u32 pending_thresh, u32 napi_budget);
+				u32 pending_thresh, u32 napi_budget);
 #endif				/* __OCTEON_IQ_H__ */

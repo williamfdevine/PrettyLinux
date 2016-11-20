@@ -24,7 +24,8 @@
 #define GPIO_NUM_PER_GROUP 8
 #define GPIO_NUM (GPIO_GROUP_NUM*GPIO_NUM_PER_GROUP)
 
-struct mc9s08dz60 {
+struct mc9s08dz60
+{
 	struct i2c_client *client;
 	struct gpio_chip chip;
 };
@@ -54,15 +55,24 @@ static int mc9s08dz60_set(struct mc9s08dz60 *mc9s, unsigned offset, int val)
 
 	mc9s_gpio_to_reg_and_bit(offset, &reg, &bit);
 	value = i2c_smbus_read_byte_data(mc9s->client, reg);
-	if (value >= 0) {
+
+	if (value >= 0)
+	{
 		if (val)
+		{
 			value |= 1 << bit;
+		}
 		else
+		{
 			value &= ~(1 << bit);
+		}
 
 		return i2c_smbus_write_byte_data(mc9s->client, reg, value);
-	} else
+	}
+	else
+	{
 		return value;
+	}
 
 }
 
@@ -75,7 +85,7 @@ static void mc9s08dz60_set_value(struct gpio_chip *gc, unsigned offset, int val)
 }
 
 static int mc9s08dz60_direction_output(struct gpio_chip *gc,
-				       unsigned offset, int val)
+									   unsigned offset, int val)
 {
 	struct mc9s08dz60 *mc9s = gpiochip_get_data(gc);
 
@@ -83,13 +93,16 @@ static int mc9s08dz60_direction_output(struct gpio_chip *gc,
 }
 
 static int mc9s08dz60_probe(struct i2c_client *client,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct mc9s08dz60 *mc9s;
 
 	mc9s = devm_kzalloc(&client->dev, sizeof(*mc9s), GFP_KERNEL);
+
 	if (!mc9s)
+	{
 		return -ENOMEM;
+	}
 
 	mc9s->chip.label = client->name;
 	mc9s->chip.base = -1;
@@ -106,12 +119,14 @@ static int mc9s08dz60_probe(struct i2c_client *client,
 	return devm_gpiochip_add_data(&client->dev, &mc9s->chip, mc9s);
 }
 
-static const struct i2c_device_id mc9s08dz60_id[] = {
+static const struct i2c_device_id mc9s08dz60_id[] =
+{
 	{"mc9s08dz60", 0},
 	{},
 };
 
-static struct i2c_driver mc9s08dz60_i2c_driver = {
+static struct i2c_driver mc9s08dz60_i2c_driver =
+{
 	.driver = {
 		.name = "mc9s08dz60",
 	},

@@ -31,7 +31,8 @@
 
 #define DRV_NAME "omap-hdmi-audio"
 
-struct hdmi_audio_data {
+struct hdmi_audio_data
+{
 	struct snd_soc_card *card;
 
 	const struct omap_hdmi_audio_ops *ops;
@@ -58,18 +59,21 @@ static void hdmi_dai_abort(struct device *dev)
 	struct hdmi_audio_data *ad = dev_get_drvdata(dev);
 
 	mutex_lock(&ad->current_stream_lock);
+
 	if (ad->current_stream && ad->current_stream->runtime &&
-	    snd_pcm_running(ad->current_stream)) {
+		snd_pcm_running(ad->current_stream))
+	{
 		dev_err(dev, "HDMI display disabled, aborting playback\n");
 		snd_pcm_stream_lock_irq(ad->current_stream);
 		snd_pcm_stop(ad->current_stream, SNDRV_PCM_STATE_DISCONNECTED);
 		snd_pcm_stream_unlock_irq(ad->current_stream);
 	}
+
 	mutex_unlock(&ad->current_stream_lock);
 }
 
 static int hdmi_dai_startup(struct snd_pcm_substream *substream,
-			    struct snd_soc_dai *dai)
+							struct snd_soc_dai *dai)
 {
 	struct hdmi_audio_data *ad = card_drvdata_substream(substream);
 	int ret;
@@ -78,17 +82,22 @@ static int hdmi_dai_startup(struct snd_pcm_substream *substream,
 	 * Largest packet size we use is 32 32-bit words = 128 bytes
 	 */
 	ret = snd_pcm_hw_constraint_step(substream->runtime, 0,
-					 SNDRV_PCM_HW_PARAM_PERIOD_BYTES, 128);
-	if (ret < 0) {
+									 SNDRV_PCM_HW_PARAM_PERIOD_BYTES, 128);
+
+	if (ret < 0)
+	{
 		dev_err(dai->dev, "Could not apply period constraint: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
+
 	ret = snd_pcm_hw_constraint_step(substream->runtime, 0,
-					 SNDRV_PCM_HW_PARAM_BUFFER_BYTES, 128);
-	if (ret < 0) {
+									 SNDRV_PCM_HW_PARAM_BUFFER_BYTES, 128);
+
+	if (ret < 0)
+	{
 		dev_err(dai->dev, "Could not apply buffer constraint: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -100,7 +109,8 @@ static int hdmi_dai_startup(struct snd_pcm_substream *substream,
 
 	ret = ad->ops->audio_startup(ad->dssdev, hdmi_dai_abort);
 
-	if (ret) {
+	if (ret)
+	{
 		mutex_lock(&ad->current_stream_lock);
 		ad->current_stream = NULL;
 		mutex_unlock(&ad->current_stream_lock);
@@ -110,8 +120,8 @@ static int hdmi_dai_startup(struct snd_pcm_substream *substream,
 }
 
 static int hdmi_dai_hw_params(struct snd_pcm_substream *substream,
-			      struct snd_pcm_hw_params *params,
-			      struct snd_soc_dai *dai)
+							  struct snd_pcm_hw_params *params,
+							  struct snd_soc_dai *dai)
 {
 	struct hdmi_audio_data *ad = card_drvdata_substream(substream);
 	struct snd_aes_iec958 *iec = &ad->iec;
@@ -119,16 +129,19 @@ static int hdmi_dai_hw_params(struct snd_pcm_substream *substream,
 
 	WARN_ON(ad->current_stream != substream);
 
-	switch (params_format(params)) {
-	case SNDRV_PCM_FORMAT_S16_LE:
-		ad->dma_data.maxburst = 16;
-		break;
-	case SNDRV_PCM_FORMAT_S24_LE:
-		ad->dma_data.maxburst = 32;
-		break;
-	default:
-		dev_err(dai->dev, "format not supported!\n");
-		return -EINVAL;
+	switch (params_format(params))
+	{
+		case SNDRV_PCM_FORMAT_S16_LE:
+			ad->dma_data.maxburst = 16;
+			break;
+
+		case SNDRV_PCM_FORMAT_S24_LE:
+			ad->dma_data.maxburst = 32;
+			break;
+
+		default:
+			dev_err(dai->dev, "format not supported!\n");
+			return -EINVAL;
 	}
 
 	ad->dss_audio.iec = iec;
@@ -155,31 +168,39 @@ static int hdmi_dai_hw_params(struct snd_pcm_substream *substream,
 
 	iec->status[2] |= IEC958_AES2_CON_CHANNEL_UNSPEC;
 
-	switch (params_rate(params)) {
-	case 32000:
-		iec->status[3] |= IEC958_AES3_CON_FS_32000;
-		break;
-	case 44100:
-		iec->status[3] |= IEC958_AES3_CON_FS_44100;
-		break;
-	case 48000:
-		iec->status[3] |= IEC958_AES3_CON_FS_48000;
-		break;
-	case 88200:
-		iec->status[3] |= IEC958_AES3_CON_FS_88200;
-		break;
-	case 96000:
-		iec->status[3] |= IEC958_AES3_CON_FS_96000;
-		break;
-	case 176400:
-		iec->status[3] |= IEC958_AES3_CON_FS_176400;
-		break;
-	case 192000:
-		iec->status[3] |= IEC958_AES3_CON_FS_192000;
-		break;
-	default:
-		dev_err(dai->dev, "rate not supported!\n");
-		return -EINVAL;
+	switch (params_rate(params))
+	{
+		case 32000:
+			iec->status[3] |= IEC958_AES3_CON_FS_32000;
+			break;
+
+		case 44100:
+			iec->status[3] |= IEC958_AES3_CON_FS_44100;
+			break;
+
+		case 48000:
+			iec->status[3] |= IEC958_AES3_CON_FS_48000;
+			break;
+
+		case 88200:
+			iec->status[3] |= IEC958_AES3_CON_FS_88200;
+			break;
+
+		case 96000:
+			iec->status[3] |= IEC958_AES3_CON_FS_96000;
+			break;
+
+		case 176400:
+			iec->status[3] |= IEC958_AES3_CON_FS_176400;
+			break;
+
+		case 192000:
+			iec->status[3] |= IEC958_AES3_CON_FS_192000;
+			break;
+
+		default:
+			dev_err(dai->dev, "rate not supported!\n");
+			return -EINVAL;
 	}
 
 	/* specify the clock accuracy */
@@ -190,18 +211,21 @@ static int hdmi_dai_hw_params(struct snd_pcm_substream *substream,
 	 * two different lengths. Hence, we need to specify the maximum
 	 * word length as well.
 	 */
-	switch (params_format(params)) {
-	case SNDRV_PCM_FORMAT_S16_LE:
-		iec->status[4] |= IEC958_AES4_CON_WORDLEN_20_16;
-		iec->status[4] &= ~IEC958_AES4_CON_MAX_WORDLEN_24;
-		break;
-	case SNDRV_PCM_FORMAT_S24_LE:
-		iec->status[4] |= IEC958_AES4_CON_WORDLEN_24_20;
-		iec->status[4] |= IEC958_AES4_CON_MAX_WORDLEN_24;
-		break;
-	default:
-		dev_err(dai->dev, "format not supported!\n");
-		return -EINVAL;
+	switch (params_format(params))
+	{
+		case SNDRV_PCM_FORMAT_S16_LE:
+			iec->status[4] |= IEC958_AES4_CON_WORDLEN_20_16;
+			iec->status[4] &= ~IEC958_AES4_CON_MAX_WORDLEN_24;
+			break;
+
+		case SNDRV_PCM_FORMAT_S24_LE:
+			iec->status[4] |= IEC958_AES4_CON_WORDLEN_24_20;
+			iec->status[4] |= IEC958_AES4_CON_MAX_WORDLEN_24;
+			break;
+
+		default:
+			dev_err(dai->dev, "format not supported!\n");
+			return -EINVAL;
 	}
 
 	/*
@@ -209,7 +233,7 @@ static int hdmi_dai_hw_params(struct snd_pcm_substream *substream,
 	 */
 
 	cea->db1_ct_cc = (params_channels(params) - 1)
-		& CEA861_AUDIO_INFOFRAME_DB1CC;
+					 & CEA861_AUDIO_INFOFRAME_DB1CC;
 	cea->db1_ct_cc |= CEA861_AUDIO_INFOFRAME_DB1CT_FROM_STREAM;
 
 	cea->db2_sf_ss = CEA861_AUDIO_INFOFRAME_DB2SF_FROM_STREAM;
@@ -218,16 +242,26 @@ static int hdmi_dai_hw_params(struct snd_pcm_substream *substream,
 	cea->db3 = 0; /* not used, all zeros */
 
 	if (params_channels(params) == 2)
+	{
 		cea->db4_ca = 0x0;
+	}
 	else if (params_channels(params) == 6)
+	{
 		cea->db4_ca = 0xb;
+	}
 	else
+	{
 		cea->db4_ca = 0x13;
+	}
 
 	if (cea->db4_ca == 0x00)
+	{
 		cea->db5_dminh_lsv = CEA861_AUDIO_INFOFRAME_DB5_DM_INH_PERMITTED;
+	}
 	else
+	{
 		cea->db5_dminh_lsv = CEA861_AUDIO_INFOFRAME_DB5_DM_INH_PROHIBITED;
+	}
 
 	/* the expression is trivial but makes clear what we are doing */
 	cea->db5_dminh_lsv |= (0 & CEA861_AUDIO_INFOFRAME_DB5_LSV);
@@ -236,32 +270,36 @@ static int hdmi_dai_hw_params(struct snd_pcm_substream *substream,
 }
 
 static int hdmi_dai_trigger(struct snd_pcm_substream *substream, int cmd,
-			    struct snd_soc_dai *dai)
+							struct snd_soc_dai *dai)
 {
 	struct hdmi_audio_data *ad = card_drvdata_substream(substream);
 	int err = 0;
 
 	WARN_ON(ad->current_stream != substream);
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-	case SNDRV_PCM_TRIGGER_RESUME:
-	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-		err = ad->ops->audio_start(ad->dssdev);
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-	case SNDRV_PCM_TRIGGER_SUSPEND:
-	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-		ad->ops->audio_stop(ad->dssdev);
-		break;
-	default:
-		err = -EINVAL;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+		case SNDRV_PCM_TRIGGER_RESUME:
+		case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+			err = ad->ops->audio_start(ad->dssdev);
+			break;
+
+		case SNDRV_PCM_TRIGGER_STOP:
+		case SNDRV_PCM_TRIGGER_SUSPEND:
+		case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+			ad->ops->audio_stop(ad->dssdev);
+			break;
+
+		default:
+			err = -EINVAL;
 	}
+
 	return err;
 }
 
 static void hdmi_dai_shutdown(struct snd_pcm_substream *substream,
-			      struct snd_soc_dai *dai)
+							  struct snd_soc_dai *dai)
 {
 	struct hdmi_audio_data *ad = card_drvdata_substream(substream);
 
@@ -274,40 +312,44 @@ static void hdmi_dai_shutdown(struct snd_pcm_substream *substream,
 	mutex_unlock(&ad->current_stream_lock);
 }
 
-static const struct snd_soc_dai_ops hdmi_dai_ops = {
+static const struct snd_soc_dai_ops hdmi_dai_ops =
+{
 	.startup	= hdmi_dai_startup,
 	.hw_params	= hdmi_dai_hw_params,
 	.trigger	= hdmi_dai_trigger,
 	.shutdown	= hdmi_dai_shutdown,
 };
 
-static const struct snd_soc_component_driver omap_hdmi_component = {
+static const struct snd_soc_component_driver omap_hdmi_component =
+{
 	.name = "omapdss_hdmi",
 };
 
-static struct snd_soc_dai_driver omap5_hdmi_dai = {
+static struct snd_soc_dai_driver omap5_hdmi_dai =
+{
 	.name = "omap5-hdmi-dai",
 	.playback = {
 		.channels_min = 2,
 		.channels_max = 8,
 		.rates = (SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 |
-			  SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 |
-			  SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_176400 |
-			  SNDRV_PCM_RATE_192000),
+		SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 |
+		SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_176400 |
+		SNDRV_PCM_RATE_192000),
 		.formats = SNDRV_PCM_FMTBIT_S16_LE,
 	},
 	.ops = &hdmi_dai_ops,
 };
 
-static struct snd_soc_dai_driver omap4_hdmi_dai = {
+static struct snd_soc_dai_driver omap4_hdmi_dai =
+{
 	.name = "omap4-hdmi-dai",
 	.playback = {
 		.channels_min = 2,
 		.channels_max = 8,
 		.rates = (SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 |
-			  SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 |
-			  SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_176400 |
-			  SNDRV_PCM_RATE_192000),
+		SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 |
+		SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_176400 |
+		SNDRV_PCM_RATE_192000),
 		.formats = SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE,
 	},
 	.ops = &hdmi_dai_ops,
@@ -322,14 +364,19 @@ static int omap_hdmi_audio_probe(struct platform_device *pdev)
 	struct snd_soc_card *card;
 	int ret;
 
-	if (!ha) {
+	if (!ha)
+	{
 		dev_err(dev, "No platform data\n");
 		return -EINVAL;
 	}
 
 	ad = devm_kzalloc(dev, sizeof(*ad), GFP_KERNEL);
+
 	if (!ad)
+	{
 		return -ENOMEM;
+	}
+
 	ad->dssdev = ha->dev;
 	ad->ops = ha->ops;
 	ad->dma_data.addr = ha->audio_dma_addr;
@@ -337,39 +384,56 @@ static int omap_hdmi_audio_probe(struct platform_device *pdev)
 	ad->dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
 	mutex_init(&ad->current_stream_lock);
 
-	switch (ha->dss_version) {
-	case OMAPDSS_VER_OMAP4430_ES1:
-	case OMAPDSS_VER_OMAP4430_ES2:
-	case OMAPDSS_VER_OMAP4:
-		dai_drv = &omap4_hdmi_dai;
-		break;
-	case OMAPDSS_VER_OMAP5:
-	case OMAPDSS_VER_DRA7xx:
-		dai_drv = &omap5_hdmi_dai;
-		break;
-	default:
-		return -EINVAL;
+	switch (ha->dss_version)
+	{
+		case OMAPDSS_VER_OMAP4430_ES1:
+		case OMAPDSS_VER_OMAP4430_ES2:
+		case OMAPDSS_VER_OMAP4:
+			dai_drv = &omap4_hdmi_dai;
+			break;
+
+		case OMAPDSS_VER_OMAP5:
+		case OMAPDSS_VER_DRA7xx:
+			dai_drv = &omap5_hdmi_dai;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	ret = snd_soc_register_component(ad->dssdev, &omap_hdmi_component,
-					 dai_drv, 1);
+									 dai_drv, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = omap_pcm_platform_register(ad->dssdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	card = devm_kzalloc(dev, sizeof(*card), GFP_KERNEL);
+
 	if (!card)
+	{
 		return -ENOMEM;
+	}
 
 	card->name = devm_kasprintf(dev, GFP_KERNEL,
-				    "HDMI %s", dev_name(ad->dssdev));
+								"HDMI %s", dev_name(ad->dssdev));
 	card->owner = THIS_MODULE;
 	card->dai_link =
 		devm_kzalloc(dev, sizeof(*(card->dai_link)), GFP_KERNEL);
+
 	if (!card->dai_link)
+	{
 		return -ENOMEM;
+	}
+
 	card->dai_link->name = card->name;
 	card->dai_link->stream_name = card->name;
 	card->dai_link->cpu_dai_name = dev_name(ad->dssdev);
@@ -380,7 +444,9 @@ static int omap_hdmi_audio_probe(struct platform_device *pdev)
 	card->dev = dev;
 
 	ret = snd_soc_register_card(card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "snd_soc_register_card failed (%d)\n", ret);
 		snd_soc_unregister_component(ad->dssdev);
 		return ret;
@@ -403,7 +469,8 @@ static int omap_hdmi_audio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver hdmi_audio_driver = {
+static struct platform_driver hdmi_audio_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 	},

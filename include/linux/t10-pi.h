@@ -17,7 +17,8 @@
  *
  * Type 3 defines the contents of the guard tag only
  */
-enum t10_dif_type {
+enum t10_dif_type
+{
 	T10_PI_TYPE0_PROTECTION = 0x0,
 	T10_PI_TYPE1_PROTECTION = 0x1,
 	T10_PI_TYPE2_PROTECTION = 0x2,
@@ -27,7 +28,8 @@ enum t10_dif_type {
 /*
  * T10 Protection Information tuple.
  */
-struct t10_pi_tuple {
+struct t10_pi_tuple
+{
 	__be16 guard_tag;	/* Checksum */
 	__be16 app_tag;		/* Opaque storage */
 	__be32 ref_tag;		/* Target LBA or indirect LBA */

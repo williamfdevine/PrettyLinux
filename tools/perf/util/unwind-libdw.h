@@ -8,7 +8,8 @@
 
 bool libdw__arch_set_initial_registers(Dwfl_Thread *thread, void *arg);
 
-struct unwind_info {
+struct unwind_info
+{
 	Dwfl			*dwfl;
 	struct perf_sample      *sample;
 	struct machine          *machine;

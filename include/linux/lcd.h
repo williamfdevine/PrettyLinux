@@ -31,12 +31,14 @@
 struct lcd_device;
 struct fb_info;
 
-struct lcd_properties {
+struct lcd_properties
+{
 	/* The maximum value for contrast (read-only) */
 	int max_contrast;
 };
 
-struct lcd_ops {
+struct lcd_ops
+{
 	/* Get the LCD panel power status (0: full on, 1..3: controller
 	   power on, flat panel power off, 4: full off), see FB_BLANK_XXX */
 	int (*get_power)(struct lcd_device *);
@@ -55,7 +57,7 @@ struct lcd_ops {
 	/* Get the current contrast setting (0-max_contrast) */
 	int (*get_contrast)(struct lcd_device *);
 	/* Set LCD panel contrast */
-        int (*set_contrast)(struct lcd_device *, int contrast);
+	int (*set_contrast)(struct lcd_device *, int contrast);
 	/* Set LCD panel mode (resolutions ...) */
 	int (*set_mode)(struct lcd_device *, struct fb_videomode *);
 	/* Check if given framebuffer device is the one LCD is bound to;
@@ -63,7 +65,8 @@ struct lcd_ops {
 	int (*check_fb)(struct lcd_device *, struct fb_info *);
 };
 
-struct lcd_device {
+struct lcd_device
+{
 	struct lcd_properties props;
 	/* This protects the 'ops' field. If 'ops' is NULL, the driver that
 	   registered this device has been unloaded, and if class_get_devdata()
@@ -79,7 +82,8 @@ struct lcd_device {
 	struct device dev;
 };
 
-struct lcd_platform_data {
+struct lcd_platform_data
+{
 	/* reset lcd panel device. */
 	int (*reset)(struct lcd_device *ld);
 	/* on or off to lcd panel. if 'enable' is 0 then
@@ -105,23 +109,27 @@ struct lcd_platform_data {
 static inline void lcd_set_power(struct lcd_device *ld, int power)
 {
 	mutex_lock(&ld->update_lock);
+
 	if (ld->ops && ld->ops->set_power)
+	{
 		ld->ops->set_power(ld, power);
+	}
+
 	mutex_unlock(&ld->update_lock);
 }
 
 extern struct lcd_device *lcd_device_register(const char *name,
-	struct device *parent, void *devdata, struct lcd_ops *ops);
+		struct device *parent, void *devdata, struct lcd_ops *ops);
 extern struct lcd_device *devm_lcd_device_register(struct device *dev,
-	const char *name, struct device *parent,
-	void *devdata, struct lcd_ops *ops);
+		const char *name, struct device *parent,
+		void *devdata, struct lcd_ops *ops);
 extern void lcd_device_unregister(struct lcd_device *ld);
 extern void devm_lcd_device_unregister(struct device *dev,
-	struct lcd_device *ld);
+									   struct lcd_device *ld);
 
 #define to_lcd_device(obj) container_of(obj, struct lcd_device, dev)
 
-static inline void * lcd_get_data(struct lcd_device *ld_dev)
+static inline void *lcd_get_data(struct lcd_device *ld_dev)
 {
 	return dev_get_drvdata(&ld_dev->dev);
 }

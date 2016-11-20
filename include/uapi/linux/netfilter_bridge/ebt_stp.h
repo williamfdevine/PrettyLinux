@@ -22,7 +22,8 @@
 
 #define EBT_STP_MATCH "stp"
 
-struct ebt_stp_config_info {
+struct ebt_stp_config_info
+{
 	__u8 flags;
 	__u16 root_priol, root_priou;
 	char root_addr[6], root_addrmsk[6];
@@ -36,7 +37,8 @@ struct ebt_stp_config_info {
 	__u16 forward_delayl, forward_delayu;
 };
 
-struct ebt_stp_info {
+struct ebt_stp_info
+{
 	__u8 type;
 	struct ebt_stp_config_info config;
 	__u16 bitmask;

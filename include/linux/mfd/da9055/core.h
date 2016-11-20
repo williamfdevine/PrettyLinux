@@ -38,7 +38,8 @@
 
 struct da9055_pdata;
 
-struct da9055 {
+struct da9055
+{
 	struct regmap *regmap;
 	struct regmap_irq_chip_data *irq_data;
 	struct device *dev;
@@ -54,33 +55,36 @@ static inline int da9055_reg_read(struct da9055 *da9055, unsigned char reg)
 	int val, ret;
 
 	ret = regmap_read(da9055->regmap, reg, &val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return val;
 }
 
 static inline int da9055_reg_write(struct da9055 *da9055, unsigned char reg,
-				    unsigned char val)
+								   unsigned char val)
 {
 	return regmap_write(da9055->regmap, reg, val);
 }
 
 static inline int da9055_group_read(struct da9055 *da9055, unsigned char reg,
-				     unsigned reg_cnt, unsigned char *val)
+									unsigned reg_cnt, unsigned char *val)
 {
 	return regmap_bulk_read(da9055->regmap, reg, val, reg_cnt);
 }
 
 static inline int da9055_group_write(struct da9055 *da9055, unsigned char reg,
-				      unsigned reg_cnt, unsigned char *val)
+									 unsigned reg_cnt, unsigned char *val)
 {
 	return regmap_raw_write(da9055->regmap, reg, val, reg_cnt);
 }
 
 static inline int da9055_reg_update(struct da9055 *da9055, unsigned char reg,
-				     unsigned char bit_mask,
-				     unsigned char reg_val)
+									unsigned char bit_mask,
+									unsigned char reg_val)
 {
 	return regmap_update_bits(da9055->regmap, reg, bit_mask, reg_val);
 }

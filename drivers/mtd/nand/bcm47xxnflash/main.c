@@ -31,21 +31,29 @@ static int bcm47xxnflash_probe(struct platform_device *pdev)
 	int err = 0;
 
 	b47n = devm_kzalloc(&pdev->dev, sizeof(*b47n), GFP_KERNEL);
+
 	if (!b47n)
+	{
 		return -ENOMEM;
+	}
 
 	nand_set_controller_data(&b47n->nand_chip, b47n);
 	mtd = nand_to_mtd(&b47n->nand_chip);
 	mtd->dev.parent = &pdev->dev;
 	b47n->cc = container_of(nflash, struct bcma_drv_cc, nflash);
 
-	if (b47n->cc->core->bus->chipinfo.id == BCMA_CHIP_ID_BCM4706) {
+	if (b47n->cc->core->bus->chipinfo.id == BCMA_CHIP_ID_BCM4706)
+	{
 		err = bcm47xxnflash_ops_bcm4706_init(b47n);
-	} else {
+	}
+	else
+	{
 		pr_err("Device not supported\n");
 		err = -ENOTSUPP;
 	}
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Initialization failed: %d\n", err);
 		return err;
 	}
@@ -53,7 +61,9 @@ static int bcm47xxnflash_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, b47n);
 
 	err = mtd_device_parse_register(mtd, probes, NULL, NULL, 0);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to register MTD device: %d\n", err);
 		return err;
 	}
@@ -70,7 +80,8 @@ static int bcm47xxnflash_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver bcm47xxnflash_driver = {
+static struct platform_driver bcm47xxnflash_driver =
+{
 	.probe	= bcm47xxnflash_probe,
 	.remove = bcm47xxnflash_remove,
 	.driver = {

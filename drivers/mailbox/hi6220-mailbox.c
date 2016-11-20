@@ -58,7 +58,8 @@
 #define DST_INT_RAW_REG(i)		((i) + 0x420)
 
 
-struct hi6220_mbox_chan {
+struct hi6220_mbox_chan
+{
 
 	/*
 	 * Description for channel's hardware info:
@@ -73,7 +74,8 @@ struct hi6220_mbox_chan {
 	struct hi6220_mbox *parent;
 };
 
-struct hi6220_mbox {
+struct hi6220_mbox
+{
 	struct device *dev;
 
 	int irq;
@@ -96,7 +98,7 @@ struct hi6220_mbox {
 };
 
 static void mbox_set_state(struct hi6220_mbox *mbox,
-			   unsigned int slot, u32 val)
+						   unsigned int slot, u32 val)
 {
 	u32 status;
 
@@ -106,7 +108,7 @@ static void mbox_set_state(struct hi6220_mbox *mbox,
 }
 
 static void mbox_set_mode(struct hi6220_mbox *mbox,
-			  unsigned int slot, u32 val)
+						  unsigned int slot, u32 val)
 {
 	u32 mode;
 
@@ -142,12 +144,18 @@ static int hi6220_mbox_send_data(struct mbox_chan *chan, void *msg)
 	mbox_set_state(mbox, slot, MBOX_STATE_TX);
 
 	if (mbox->tx_irq_mode)
+	{
 		mbox_set_mode(mbox, slot, MBOX_ACK_IRQ);
+	}
 	else
+	{
 		mbox_set_mode(mbox, slot, MBOX_ACK_AUTOMATIC);
+	}
 
 	for (i = 0; i < MBOX_MSG_LEN; i++)
+	{
 		writel(buf[i], mbox->base + MBOX_DATA_REG(slot) + i * 4);
+	}
 
 	/* trigger remote request */
 	writel(BIT(mchan->dst_irq), DST_INT_RAW_REG(mbox->ipc));
@@ -163,30 +171,39 @@ static irqreturn_t hi6220_mbox_interrupt(int irq, void *p)
 	u32 msg[MBOX_MSG_LEN];
 
 	state = readl(ACK_INT_STAT_REG(mbox->ipc));
-	if (!state) {
+
+	if (!state)
+	{
 		dev_warn(mbox->dev, "%s: spurious interrupt\n",
-			 __func__);
+				 __func__);
 		return IRQ_HANDLED;
 	}
 
-	while (state) {
+	while (state)
+	{
 		intr_bit = __ffs(state);
 		state &= (state - 1);
 
 		chan = mbox->irq_map_chan[intr_bit];
-		if (!chan) {
+
+		if (!chan)
+		{
 			dev_warn(mbox->dev, "%s: unexpected irq vector %d\n",
-				 __func__, intr_bit);
+					 __func__, intr_bit);
 			continue;
 		}
 
 		mchan = chan->con_priv;
+
 		if (mchan->dir == MBOX_TX)
+		{
 			mbox_chan_txdone(chan, 0);
-		else {
+		}
+		else
+		{
 			for (i = 0; i < MBOX_MSG_LEN; i++)
 				msg[i] = readl(mbox->base +
-					MBOX_DATA_REG(mchan->slot) + i * 4);
+							   MBOX_DATA_REG(mchan->slot) + i * 4);
 
 			mbox_chan_received_data(chan, (void *)msg);
 		}
@@ -221,7 +238,8 @@ static void hi6220_mbox_shutdown(struct mbox_chan *chan)
 	mbox->irq_map_chan[mchan->ack_irq] = NULL;
 }
 
-static struct mbox_chan_ops hi6220_mbox_ops = {
+static struct mbox_chan_ops hi6220_mbox_ops =
+{
 	.send_data    = hi6220_mbox_send_data,
 	.startup      = hi6220_mbox_startup,
 	.shutdown     = hi6220_mbox_shutdown,
@@ -229,7 +247,7 @@ static struct mbox_chan_ops hi6220_mbox_ops = {
 };
 
 static struct mbox_chan *hi6220_mbox_xlate(struct mbox_controller *controller,
-					   const struct of_phandle_args *spec)
+		const struct of_phandle_args *spec)
 {
 	struct hi6220_mbox *mbox = dev_get_drvdata(controller->dev);
 	struct hi6220_mbox_chan *mchan;
@@ -240,16 +258,19 @@ static struct mbox_chan *hi6220_mbox_xlate(struct mbox_controller *controller,
 
 	/* Bounds checking */
 	if (i >= mbox->chan_num || dst_irq >= mbox->chan_num ||
-	    ack_irq >= mbox->chan_num) {
+		ack_irq >= mbox->chan_num)
+	{
 		dev_err(mbox->dev,
-			"Invalid channel idx %d dst_irq %d ack_irq %d\n",
-			i, dst_irq, ack_irq);
+				"Invalid channel idx %d dst_irq %d ack_irq %d\n",
+				i, dst_irq, ack_irq);
 		return ERR_PTR(-EINVAL);
 	}
 
 	/* Is requested channel free? */
 	chan = &mbox->chan[i];
-	if (mbox->irq_map_chan[ack_irq] == (void *)chan) {
+
+	if (mbox->irq_map_chan[ack_irq] == (void *)chan)
+	{
 		dev_err(mbox->dev, "Channel in use\n");
 		return ERR_PTR(-EBUSY);
 	}
@@ -262,7 +283,8 @@ static struct mbox_chan *hi6220_mbox_xlate(struct mbox_controller *controller,
 	return chan;
 }
 
-static const struct of_device_id hi6220_mbox_of_match[] = {
+static const struct of_device_id hi6220_mbox_of_match[] =
+{
 	{ .compatible = "hisilicon,hi6220-mbox", },
 	{},
 };
@@ -277,44 +299,62 @@ static int hi6220_mbox_probe(struct platform_device *pdev)
 	int i, err;
 
 	mbox = devm_kzalloc(dev, sizeof(*mbox), GFP_KERNEL);
+
 	if (!mbox)
+	{
 		return -ENOMEM;
+	}
 
 	mbox->dev = dev;
 	mbox->chan_num = MBOX_CHAN_MAX;
 	mbox->mchan = devm_kzalloc(dev,
-		mbox->chan_num * sizeof(*mbox->mchan), GFP_KERNEL);
+							   mbox->chan_num * sizeof(*mbox->mchan), GFP_KERNEL);
+
 	if (!mbox->mchan)
+	{
 		return -ENOMEM;
+	}
 
 	mbox->chan = devm_kzalloc(dev,
-		mbox->chan_num * sizeof(*mbox->chan), GFP_KERNEL);
+							  mbox->chan_num * sizeof(*mbox->chan), GFP_KERNEL);
+
 	if (!mbox->chan)
+	{
 		return -ENOMEM;
+	}
 
 	mbox->irq = platform_get_irq(pdev, 0);
+
 	if (mbox->irq < 0)
+	{
 		return mbox->irq;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mbox->ipc = devm_ioremap_resource(dev, res);
-	if (IS_ERR(mbox->ipc)) {
+
+	if (IS_ERR(mbox->ipc))
+	{
 		dev_err(dev, "ioremap ipc failed\n");
 		return PTR_ERR(mbox->ipc);
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	mbox->base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(mbox->base)) {
+
+	if (IS_ERR(mbox->base))
+	{
 		dev_err(dev, "ioremap buffer failed\n");
 		return PTR_ERR(mbox->base);
 	}
 
 	err = devm_request_irq(dev, mbox->irq, hi6220_mbox_interrupt, 0,
-			dev_name(dev), mbox);
-	if (err) {
+						   dev_name(dev), mbox);
+
+	if (err)
+	{
 		dev_err(dev, "Failed to register a mailbox IRQ handler: %d\n",
-			err);
+				err);
 		return -ENODEV;
 	}
 
@@ -324,7 +364,8 @@ static int hi6220_mbox_probe(struct platform_device *pdev)
 	mbox->controller.ops = &hi6220_mbox_ops;
 	mbox->controller.of_xlate = hi6220_mbox_xlate;
 
-	for (i = 0; i < mbox->chan_num; i++) {
+	for (i = 0; i < mbox->chan_num; i++)
+	{
 		mbox->chan[i].con_priv = &mbox->mchan[i];
 		mbox->irq_map_chan[i] = NULL;
 
@@ -338,19 +379,28 @@ static int hi6220_mbox_probe(struct platform_device *pdev)
 
 	/* use interrupt for tx's ack */
 	if (of_find_property(node, "hi6220,mbox-tx-noirq", NULL))
+	{
 		mbox->tx_irq_mode = false;
+	}
 	else
+	{
 		mbox->tx_irq_mode = true;
+	}
 
 	if (mbox->tx_irq_mode)
+	{
 		mbox->controller.txdone_irq = true;
-	else {
+	}
+	else
+	{
 		mbox->controller.txdone_poll = true;
 		mbox->controller.txpoll_period = 5;
 	}
 
 	err = mbox_controller_register(&mbox->controller);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "Failed to register mailbox %d\n", err);
 		return err;
 	}
@@ -368,7 +418,8 @@ static int hi6220_mbox_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver hi6220_mbox_driver = {
+static struct platform_driver hi6220_mbox_driver =
+{
 	.driver = {
 		.name = "hi6220-mbox",
 		.owner = THIS_MODULE,

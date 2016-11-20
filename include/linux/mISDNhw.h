@@ -80,11 +80,12 @@
 #define	FLG_PHCHANGE		31
 
 #define schedule_event(s, ev)	do { \
-					test_and_set_bit(ev, &((s)->Flags)); \
-					schedule_work(&((s)->workq)); \
-				} while (0)
+		test_and_set_bit(ev, &((s)->Flags)); \
+		schedule_work(&((s)->workq)); \
+	} while (0)
 
-struct dchannel {
+struct dchannel
+{
 	struct mISDNdevice	dev;
 	u_long			Flags;
 	struct work_struct	workq;
@@ -146,7 +147,8 @@ extern int	l1_event(struct layer1 *, u_int);
 
 #define MISDN_BCH_FILL_SIZE	4
 
-struct bchannel {
+struct bchannel
+{
 	struct mISDNchannel	ch;
 	int			nr;
 	u_long			Flags;
@@ -180,13 +182,13 @@ struct bchannel {
 
 extern int	mISDN_initdchannel(struct dchannel *, int, void *);
 extern int	mISDN_initbchannel(struct bchannel *, unsigned short,
-				   unsigned short);
+							   unsigned short);
 extern int	mISDN_freedchannel(struct dchannel *);
 extern void	mISDN_clear_bchannel(struct bchannel *);
 extern void	mISDN_freebchannel(struct bchannel *);
 extern int	mISDN_ctrl_bchannel(struct bchannel *, struct mISDN_ctrl_req *);
 extern void	queue_ch_frame(struct mISDNchannel *, u_int,
-			int, struct sk_buff *);
+						   int, struct sk_buff *);
 extern int	dchannel_senddata(struct dchannel *, struct sk_buff *);
 extern int	bchannel_senddata(struct bchannel *, struct sk_buff *);
 extern int      bchannel_get_rxbuf(struct bchannel *, int);

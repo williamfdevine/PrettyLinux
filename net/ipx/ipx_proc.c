@@ -34,9 +34,10 @@ static int ipx_seq_interface_show(struct seq_file *seq, void *v)
 {
 	struct ipx_interface *i;
 
-	if (v == &ipx_interfaces) {
+	if (v == &ipx_interfaces)
+	{
 		seq_puts(seq, "Network    Node_Address   Primary  Device     "
-			      "Frame_Type");
+				 "Frame_Type");
 #ifdef IPX_REFCNT_DEBUG
 		seq_puts(seq, "  refcnt");
 #endif
@@ -47,8 +48,8 @@ static int ipx_seq_interface_show(struct seq_file *seq, void *v)
 	i = list_entry(v, struct ipx_interface, node);
 	seq_printf(seq, "%08X   ", ntohl(i->if_netnum));
 	seq_printf(seq, "%02X%02X%02X%02X%02X%02X   ",
-			i->if_node[0], i->if_node[1], i->if_node[2],
-			i->if_node[3], i->if_node[4], i->if_node[5]);
+			   i->if_node[0], i->if_node[1], i->if_node[2],
+			   i->if_node[3], i->if_node[4], i->if_node[5]);
 	seq_printf(seq, "%-9s", i == ipx_primary_net ? "Yes" : "No");
 	seq_printf(seq, "%-11s", ipx_device_name(i));
 	seq_printf(seq, "%-9s", ipx_frame_name(i->if_dlink_type));
@@ -80,7 +81,8 @@ static int ipx_seq_route_show(struct seq_file *seq, void *v)
 {
 	struct ipx_route *rt;
 
-	if (v == &ipx_routes) {
+	if (v == &ipx_routes)
+	{
 		seq_puts(seq, "Network    Router_Net   Router_Node\n");
 		goto out;
 	}
@@ -88,14 +90,18 @@ static int ipx_seq_route_show(struct seq_file *seq, void *v)
 	rt = list_entry(v, struct ipx_route, node);
 
 	seq_printf(seq, "%08X   ", ntohl(rt->ir_net));
+
 	if (rt->ir_routed)
 		seq_printf(seq, "%08X     %02X%02X%02X%02X%02X%02X\n",
-			   ntohl(rt->ir_intrfc->if_netnum),
-			   rt->ir_router_node[0], rt->ir_router_node[1],
-			   rt->ir_router_node[2], rt->ir_router_node[3],
-			   rt->ir_router_node[4], rt->ir_router_node[5]);
+				   ntohl(rt->ir_intrfc->if_netnum),
+				   rt->ir_router_node[0], rt->ir_router_node[1],
+				   rt->ir_router_node[2], rt->ir_router_node[3],
+				   rt->ir_router_node[4], rt->ir_router_node[5]);
 	else
+	{
 		seq_puts(seq, "Directly     Connected\n");
+	}
+
 out:
 	return 0;
 }
@@ -105,17 +111,27 @@ static __inline__ struct sock *ipx_get_socket_idx(loff_t pos)
 	struct sock *s = NULL;
 	struct ipx_interface *i;
 
-	list_for_each_entry(i, &ipx_interfaces, node) {
+	list_for_each_entry(i, &ipx_interfaces, node)
+	{
 		spin_lock_bh(&i->if_sklist_lock);
-		sk_for_each(s, &i->if_sklist) {
+		sk_for_each(s, &i->if_sklist)
+		{
 			if (!pos)
+			{
 				break;
+			}
+
 			--pos;
 		}
 		spin_unlock_bh(&i->if_sklist_lock);
-		if (!pos) {
+
+		if (!pos)
+		{
 			if (s)
+			{
 				goto found;
+			}
+
 			break;
 		}
 	}
@@ -134,42 +150,65 @@ static void *ipx_seq_socket_start(struct seq_file *seq, loff_t *pos)
 
 static void *ipx_seq_socket_next(struct seq_file *seq, void *v, loff_t *pos)
 {
-	struct sock* sk, *next;
+	struct sock *sk, *next;
 	struct ipx_interface *i;
 	struct ipx_sock *ipxs;
 
 	++*pos;
-	if (v == SEQ_START_TOKEN) {
+
+	if (v == SEQ_START_TOKEN)
+	{
 		sk = NULL;
 		i = ipx_interfaces_head();
+
 		if (!i)
+		{
 			goto out;
+		}
+
 		sk = sk_head(&i->if_sklist);
+
 		if (sk)
+		{
 			spin_lock_bh(&i->if_sklist_lock);
+		}
+
 		goto out;
 	}
+
 	sk = v;
 	next = sk_next(sk);
-	if (next) {
+
+	if (next)
+	{
 		sk = next;
 		goto out;
 	}
+
 	ipxs = ipx_sk(sk);
 	i = ipxs->intrfc;
 	spin_unlock_bh(&i->if_sklist_lock);
 	sk = NULL;
-	for (;;) {
+
+	for (;;)
+	{
 		if (i->node.next == &ipx_interfaces)
+		{
 			break;
+		}
+
 		i = list_entry(i->node.next, struct ipx_interface, node);
 		spin_lock_bh(&i->if_sklist_lock);
-		if (!hlist_empty(&i->if_sklist)) {
+
+		if (!hlist_empty(&i->if_sklist))
+		{
 			sk = sk_head(&i->if_sklist);
 			break;
 		}
+
 		spin_unlock_bh(&i->if_sklist_lock);
 	}
+
 out:
 	return sk;
 }
@@ -179,14 +218,15 @@ static int ipx_seq_socket_show(struct seq_file *seq, void *v)
 	struct sock *s;
 	struct ipx_sock *ipxs;
 
-	if (v == SEQ_START_TOKEN) {
+	if (v == SEQ_START_TOKEN)
+	{
 #ifdef CONFIG_IPX_INTERN
 		seq_puts(seq, "Local_Address               "
-			      "Remote_Address              Tx_Queue  "
-			      "Rx_Queue  State  Uid\n");
+				 "Remote_Address              Tx_Queue  "
+				 "Rx_Queue  State  Uid\n");
 #else
 		seq_puts(seq, "Local_Address  Remote_Address              "
-			      "Tx_Queue  Rx_Queue  State  Uid\n");
+				 "Tx_Queue  Rx_Queue  State  Uid\n");
 #endif
 		goto out;
 	}
@@ -195,48 +235,55 @@ static int ipx_seq_socket_show(struct seq_file *seq, void *v)
 	ipxs = ipx_sk(s);
 #ifdef CONFIG_IPX_INTERN
 	seq_printf(seq, "%08X:%02X%02X%02X%02X%02X%02X:%04X  ",
-		   ntohl(ipxs->intrfc->if_netnum),
-		   ipxs->node[0], ipxs->node[1], ipxs->node[2], ipxs->node[3],
-		   ipxs->node[4], ipxs->node[5], ntohs(ipxs->port));
+			   ntohl(ipxs->intrfc->if_netnum),
+			   ipxs->node[0], ipxs->node[1], ipxs->node[2], ipxs->node[3],
+			   ipxs->node[4], ipxs->node[5], ntohs(ipxs->port));
 #else
 	seq_printf(seq, "%08X:%04X  ", ntohl(ipxs->intrfc->if_netnum),
-		   ntohs(ipxs->port));
+			   ntohs(ipxs->port));
 #endif	/* CONFIG_IPX_INTERN */
+
 	if (s->sk_state != TCP_ESTABLISHED)
+	{
 		seq_printf(seq, "%-28s", "Not_Connected");
-	else {
+	}
+	else
+	{
 		seq_printf(seq, "%08X:%02X%02X%02X%02X%02X%02X:%04X  ",
-			   ntohl(ipxs->dest_addr.net),
-			   ipxs->dest_addr.node[0], ipxs->dest_addr.node[1],
-			   ipxs->dest_addr.node[2], ipxs->dest_addr.node[3],
-			   ipxs->dest_addr.node[4], ipxs->dest_addr.node[5],
-			   ntohs(ipxs->dest_addr.sock));
+				   ntohl(ipxs->dest_addr.net),
+				   ipxs->dest_addr.node[0], ipxs->dest_addr.node[1],
+				   ipxs->dest_addr.node[2], ipxs->dest_addr.node[3],
+				   ipxs->dest_addr.node[4], ipxs->dest_addr.node[5],
+				   ntohs(ipxs->dest_addr.sock));
 	}
 
 	seq_printf(seq, "%08X  %08X  %02X     %03u\n",
-		   sk_wmem_alloc_get(s),
-		   sk_rmem_alloc_get(s),
-		   s->sk_state,
-		   from_kuid_munged(seq_user_ns(seq), sock_i_uid(s)));
+			   sk_wmem_alloc_get(s),
+			   sk_rmem_alloc_get(s),
+			   s->sk_state,
+			   from_kuid_munged(seq_user_ns(seq), sock_i_uid(s)));
 out:
 	return 0;
 }
 
-static const struct seq_operations ipx_seq_interface_ops = {
+static const struct seq_operations ipx_seq_interface_ops =
+{
 	.start  = ipx_seq_interface_start,
 	.next   = ipx_seq_interface_next,
 	.stop   = ipx_seq_interface_stop,
 	.show   = ipx_seq_interface_show,
 };
 
-static const struct seq_operations ipx_seq_route_ops = {
+static const struct seq_operations ipx_seq_route_ops =
+{
 	.start  = ipx_seq_route_start,
 	.next   = ipx_seq_route_next,
 	.stop   = ipx_seq_route_stop,
 	.show   = ipx_seq_route_show,
 };
 
-static const struct seq_operations ipx_seq_socket_ops = {
+static const struct seq_operations ipx_seq_socket_ops =
+{
 	.start  = ipx_seq_socket_start,
 	.next   = ipx_seq_socket_next,
 	.stop   = ipx_seq_interface_stop,
@@ -258,7 +305,8 @@ static int ipx_seq_socket_open(struct inode *inode, struct file *file)
 	return seq_open(file, &ipx_seq_socket_ops);
 }
 
-static const struct file_operations ipx_seq_interface_fops = {
+static const struct file_operations ipx_seq_interface_fops =
+{
 	.owner		= THIS_MODULE,
 	.open           = ipx_seq_interface_open,
 	.read           = seq_read,
@@ -266,7 +314,8 @@ static const struct file_operations ipx_seq_interface_fops = {
 	.release        = seq_release,
 };
 
-static const struct file_operations ipx_seq_route_fops = {
+static const struct file_operations ipx_seq_route_fops =
+{
 	.owner		= THIS_MODULE,
 	.open           = ipx_seq_route_open,
 	.read           = seq_read,
@@ -274,7 +323,8 @@ static const struct file_operations ipx_seq_route_fops = {
 	.release        = seq_release,
 };
 
-static const struct file_operations ipx_seq_socket_fops = {
+static const struct file_operations ipx_seq_socket_fops =
+{
 	.owner		= THIS_MODULE,
 	.open           = ipx_seq_socket_open,
 	.read           = seq_read,
@@ -292,19 +342,31 @@ int __init ipx_proc_init(void)
 	ipx_proc_dir = proc_mkdir("ipx", init_net.proc_net);
 
 	if (!ipx_proc_dir)
+	{
 		goto out;
+	}
+
 	p = proc_create("interface", S_IRUGO,
-			ipx_proc_dir, &ipx_seq_interface_fops);
+					ipx_proc_dir, &ipx_seq_interface_fops);
+
 	if (!p)
+	{
 		goto out_interface;
+	}
 
 	p = proc_create("route", S_IRUGO, ipx_proc_dir, &ipx_seq_route_fops);
+
 	if (!p)
+	{
 		goto out_route;
+	}
 
 	p = proc_create("socket", S_IRUGO, ipx_proc_dir, &ipx_seq_socket_fops);
+
 	if (!p)
+	{
 		goto out_socket;
+	}
 
 	rc = 0;
 out:

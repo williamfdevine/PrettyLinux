@@ -30,7 +30,8 @@ extern "C" {
  * @handle: returned a handle to created gem object.
  *	- this handle will be set by gem module of kernel side.
  */
-struct drm_exynos_gem_create {
+struct drm_exynos_gem_create
+{
 	__u64 size;
 	__u32 flags;
 	__u32 handle;
@@ -43,7 +44,8 @@ struct drm_exynos_gem_create {
  * @reserved: just padding to be 64-bit aligned.
  * @offset: a fake-offset of gem object.
  */
-struct drm_exynos_gem_map {
+struct drm_exynos_gem_map
+{
 	__u32 handle;
 	__u32 reserved;
 	__u64 offset;
@@ -58,7 +60,8 @@ struct drm_exynos_gem_map {
  * @size: size to memory region allocated by gem and this size would
  *	be set by driver.
  */
-struct drm_exynos_gem_info {
+struct drm_exynos_gem_info
+{
 	__u32 handle;
 	__u32 flags;
 	__u64 size;
@@ -72,14 +75,16 @@ struct drm_exynos_gem_info {
  *	128bytes edid data.
  * @edid: the edid data pointer from user side.
  */
-struct drm_exynos_vidi_connection {
+struct drm_exynos_vidi_connection
+{
 	__u32 connection;
 	__u32 extensions;
 	__u64 edid;
 };
 
 /* memory type definitions. */
-enum e_drm_exynos_gem_mem_type {
+enum e_drm_exynos_gem_mem_type
+{
 	/* Physically Continuous memory and used as default. */
 	EXYNOS_BO_CONTIG	= 0 << 0,
 	/* Physically Non-Continuous memory. */
@@ -91,35 +96,41 @@ enum e_drm_exynos_gem_mem_type {
 	/* write-combine mapping. */
 	EXYNOS_BO_WC		= 1 << 2,
 	EXYNOS_BO_MASK		= EXYNOS_BO_NONCONTIG | EXYNOS_BO_CACHABLE |
-					EXYNOS_BO_WC
+						  EXYNOS_BO_WC
 };
 
-struct drm_exynos_g2d_get_ver {
+struct drm_exynos_g2d_get_ver
+{
 	__u32	major;
 	__u32	minor;
 };
 
-struct drm_exynos_g2d_cmd {
+struct drm_exynos_g2d_cmd
+{
 	__u32	offset;
 	__u32	data;
 };
 
-enum drm_exynos_g2d_buf_type {
+enum drm_exynos_g2d_buf_type
+{
 	G2D_BUF_USERPTR = 1 << 31,
 };
 
-enum drm_exynos_g2d_event_type {
+enum drm_exynos_g2d_event_type
+{
 	G2D_EVENT_NOT,
 	G2D_EVENT_NONSTOP,
 	G2D_EVENT_STOP,		/* not yet */
 };
 
-struct drm_exynos_g2d_userptr {
+struct drm_exynos_g2d_userptr
+{
 	unsigned long userptr;
 	unsigned long size;
 };
 
-struct drm_exynos_g2d_set_cmdlist {
+struct drm_exynos_g2d_set_cmdlist
+{
 	__u64					cmd;
 	__u64					cmd_buf;
 	__u32					cmd_nr;
@@ -130,44 +141,51 @@ struct drm_exynos_g2d_set_cmdlist {
 	__u64					user_data;
 };
 
-struct drm_exynos_g2d_exec {
+struct drm_exynos_g2d_exec
+{
 	__u64					async;
 };
 
-enum drm_exynos_ops_id {
+enum drm_exynos_ops_id
+{
 	EXYNOS_DRM_OPS_SRC,
 	EXYNOS_DRM_OPS_DST,
 	EXYNOS_DRM_OPS_MAX,
 };
 
-struct drm_exynos_sz {
+struct drm_exynos_sz
+{
 	__u32	hsize;
 	__u32	vsize;
 };
 
-struct drm_exynos_pos {
+struct drm_exynos_pos
+{
 	__u32	x;
 	__u32	y;
 	__u32	w;
 	__u32	h;
 };
 
-enum drm_exynos_flip {
+enum drm_exynos_flip
+{
 	EXYNOS_DRM_FLIP_NONE = (0 << 0),
 	EXYNOS_DRM_FLIP_VERTICAL = (1 << 0),
 	EXYNOS_DRM_FLIP_HORIZONTAL = (1 << 1),
 	EXYNOS_DRM_FLIP_BOTH = EXYNOS_DRM_FLIP_VERTICAL |
-			EXYNOS_DRM_FLIP_HORIZONTAL,
+						   EXYNOS_DRM_FLIP_HORIZONTAL,
 };
 
-enum drm_exynos_degree {
+enum drm_exynos_degree
+{
 	EXYNOS_DRM_DEGREE_0,
 	EXYNOS_DRM_DEGREE_90,
 	EXYNOS_DRM_DEGREE_180,
 	EXYNOS_DRM_DEGREE_270,
 };
 
-enum drm_exynos_planer {
+enum drm_exynos_planer
+{
 	EXYNOS_DRM_PLANAR_Y,
 	EXYNOS_DRM_PLANAR_CB,
 	EXYNOS_DRM_PLANAR_CR,
@@ -193,7 +211,8 @@ enum drm_exynos_planer {
  * @scale_min: scale min resolution.
  * @scale_max: scale max resolution.
  */
-struct drm_exynos_ipp_prop_list {
+struct drm_exynos_ipp_prop_list
+{
 	__u32	version;
 	__u32	ipp_id;
 	__u32	count;
@@ -222,7 +241,8 @@ struct drm_exynos_ipp_prop_list {
  * @sz: property of image size.
  * @pos: property of image position(src-cropped,dst-scaler).
  */
-struct drm_exynos_ipp_config {
+struct drm_exynos_ipp_config
+{
 	__u32 ops_id;
 	__u32 flip;
 	__u32 degree;
@@ -231,7 +251,8 @@ struct drm_exynos_ipp_config {
 	struct drm_exynos_pos	pos;
 };
 
-enum drm_exynos_ipp_cmd {
+enum drm_exynos_ipp_cmd
+{
 	IPP_CMD_NONE,
 	IPP_CMD_M2M,
 	IPP_CMD_WB,
@@ -248,7 +269,8 @@ enum drm_exynos_ipp_cmd {
  * @prop_id: id of property.
  * @refresh_rate: refresh rate.
  */
-struct drm_exynos_ipp_property {
+struct drm_exynos_ipp_property
+{
 	struct drm_exynos_ipp_config config[EXYNOS_DRM_OPS_MAX];
 	__u32	cmd;
 	__u32	ipp_id;
@@ -256,7 +278,8 @@ struct drm_exynos_ipp_property {
 	__u32	refresh_rate;
 };
 
-enum drm_exynos_ipp_buf_type {
+enum drm_exynos_ipp_buf_type
+{
 	IPP_BUF_ENQUEUE,
 	IPP_BUF_DEQUEUE,
 };
@@ -271,7 +294,8 @@ enum drm_exynos_ipp_buf_type {
  * @handle: Y, Cb, Cr each planar handle.
  * @user_data: user data.
  */
-struct drm_exynos_ipp_queue_buf {
+struct drm_exynos_ipp_queue_buf
+{
 	__u32	ops_id;
 	__u32	buf_type;
 	__u32	prop_id;
@@ -281,7 +305,8 @@ struct drm_exynos_ipp_queue_buf {
 	__u64	user_data;
 };
 
-enum drm_exynos_ipp_ctrl {
+enum drm_exynos_ipp_ctrl
+{
 	IPP_CTRL_PLAY,
 	IPP_CTRL_STOP,
 	IPP_CTRL_PAUSE,
@@ -295,7 +320,8 @@ enum drm_exynos_ipp_ctrl {
  * @prop_id: id of property.
  * @ctrl: definition of control.
  */
-struct drm_exynos_ipp_cmd_ctrl {
+struct drm_exynos_ipp_cmd_ctrl
+{
 	__u32	prop_id;
 	__u32	ctrl;
 };
@@ -347,7 +373,8 @@ struct drm_exynos_ipp_cmd_ctrl {
 #define DRM_EXYNOS_G2D_EVENT		0x80000000
 #define DRM_EXYNOS_IPP_EVENT		0x80000001
 
-struct drm_exynos_g2d_event {
+struct drm_exynos_g2d_event
+{
 	struct drm_event	base;
 	__u64			user_data;
 	__u32			tv_sec;
@@ -356,7 +383,8 @@ struct drm_exynos_g2d_event {
 	__u32			reserved;
 };
 
-struct drm_exynos_ipp_event {
+struct drm_exynos_ipp_event
+{
 	struct drm_event	base;
 	__u64			user_data;
 	__u32			tv_sec;

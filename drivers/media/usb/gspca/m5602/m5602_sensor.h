@@ -25,7 +25,8 @@
 #define M5602_V4L2_CID_NOISE_SUPPRESION	(V4L2_CID_PRIVATE_BASE + 1)
 
 /* Enumerates all supported sensors */
-enum sensors {
+enum sensors
+{
 	OV9650_SENSOR	= 1,
 	S5K83A_SENSOR	= 2,
 	S5K4AA_SENSOR	= 3,
@@ -35,13 +36,15 @@ enum sensors {
 };
 
 /* Enumerates all possible instruction types */
-enum instruction {
+enum instruction
+{
 	BRIDGE,
 	SENSOR,
 	SENSOR_LONG
 };
 
-struct m5602_sensor {
+struct m5602_sensor
+{
 	/* Defines the name of a sensor */
 	char name[32];
 

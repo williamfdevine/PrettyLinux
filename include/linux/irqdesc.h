@@ -48,7 +48,8 @@ struct pt_regs;
  * @dir:		/proc/irq/ procfs entry
  * @name:		flow handler name for /proc/interrupts output
  */
-struct irq_desc {
+struct irq_desc
+{
 	struct irq_common_data	irq_common_data;
 	struct irq_data		irq_data;
 	unsigned int __percpu	*kstat_irqs;
@@ -160,10 +161,10 @@ int generic_handle_irq(unsigned int irq);
  * conversion has already been done.
  */
 int __handle_domain_irq(struct irq_domain *domain, unsigned int hwirq,
-			bool lookup, struct pt_regs *regs);
+						bool lookup, struct pt_regs *regs);
 
 static inline int handle_domain_irq(struct irq_domain *domain,
-				    unsigned int hwirq, struct pt_regs *regs)
+									unsigned int hwirq, struct pt_regs *regs)
 {
 	return __handle_domain_irq(domain, hwirq, true, regs);
 }
@@ -191,7 +192,7 @@ static inline int irq_has_action(unsigned int irq)
  * call site is the irq_set_type() callback.
  */
 static inline void irq_set_handler_locked(struct irq_data *data,
-					  irq_flow_handler_t handler)
+		irq_flow_handler_t handler)
 {
 	struct irq_desc *desc = irq_data_to_desc(data);
 
@@ -212,7 +213,7 @@ static inline void irq_set_handler_locked(struct irq_data *data,
  */
 static inline void
 irq_set_chip_handler_name_locked(struct irq_data *data, struct irq_chip *chip,
-				 irq_flow_handler_t handler, const char *name)
+								 irq_flow_handler_t handler, const char *name)
 {
 	struct irq_desc *desc = irq_data_to_desc(data);
 
@@ -243,7 +244,9 @@ irq_set_lockdep_class(unsigned int irq, struct lock_class_key *class)
 	struct irq_desc *desc = irq_to_desc(irq);
 
 	if (desc)
+	{
 		lockdep_set_class(&desc->lock, class);
+	}
 }
 
 #ifdef CONFIG_IRQ_PREFLOW_FASTEOI

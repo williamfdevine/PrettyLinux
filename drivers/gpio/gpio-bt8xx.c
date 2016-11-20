@@ -56,7 +56,8 @@
 #define BT8XXGPIO_NR_GPIOS		24 /* We have 24 GPIO pins */
 
 
-struct bt8xxgpio {
+struct bt8xxgpio
+{
 	spinlock_t lock;
 
 	void __iomem *mmio;
@@ -113,7 +114,7 @@ static int bt8xxgpio_gpio_get(struct gpio_chip *gpio, unsigned nr)
 }
 
 static int bt8xxgpio_gpio_direction_output(struct gpio_chip *gpio,
-					unsigned nr, int val)
+		unsigned nr, int val)
 {
 	struct bt8xxgpio *bg = gpiochip_get_data(gpio);
 	unsigned long flags;
@@ -126,10 +127,16 @@ static int bt8xxgpio_gpio_direction_output(struct gpio_chip *gpio,
 	bgwrite(outen, BT848_GPIO_OUT_EN);
 
 	data = bgread(BT848_GPIO_DATA);
+
 	if (val)
+	{
 		data |= (1 << nr);
+	}
 	else
+	{
 		data &= ~(1 << nr);
+	}
+
 	bgwrite(data, BT848_GPIO_DATA);
 
 	spin_unlock_irqrestore(&bg->lock, flags);
@@ -138,7 +145,7 @@ static int bt8xxgpio_gpio_direction_output(struct gpio_chip *gpio,
 }
 
 static void bt8xxgpio_gpio_set(struct gpio_chip *gpio,
-			    unsigned nr, int val)
+							   unsigned nr, int val)
 {
 	struct bt8xxgpio *bg = gpiochip_get_data(gpio);
 	unsigned long flags;
@@ -147,10 +154,16 @@ static void bt8xxgpio_gpio_set(struct gpio_chip *gpio,
 	spin_lock_irqsave(&bg->lock, flags);
 
 	data = bgread(BT848_GPIO_DATA);
+
 	if (val)
+	{
 		data |= (1 << nr);
+	}
 	else
+	{
 		data &= ~(1 << nr);
+	}
+
 	bgwrite(data, BT848_GPIO_DATA);
 
 	spin_unlock_irqrestore(&bg->lock, flags);
@@ -173,36 +186,46 @@ static void bt8xxgpio_gpio_setup(struct bt8xxgpio *bg)
 }
 
 static int bt8xxgpio_probe(struct pci_dev *dev,
-			const struct pci_device_id *pci_id)
+						   const struct pci_device_id *pci_id)
 {
 	struct bt8xxgpio *bg;
 	int err;
 
 	bg = devm_kzalloc(&dev->dev, sizeof(struct bt8xxgpio), GFP_KERNEL);
+
 	if (!bg)
+	{
 		return -ENOMEM;
+	}
 
 	bg->pdev = dev;
 	spin_lock_init(&bg->lock);
 
 	err = pci_enable_device(dev);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "bt8xxgpio: Can't enable device.\n");
 		return err;
 	}
+
 	if (!devm_request_mem_region(&dev->dev, pci_resource_start(dev, 0),
-				pci_resource_len(dev, 0),
-				"bt8xxgpio")) {
+								 pci_resource_len(dev, 0),
+								 "bt8xxgpio"))
+	{
 		printk(KERN_WARNING "bt8xxgpio: Can't request iomem (0x%llx).\n",
-		       (unsigned long long)pci_resource_start(dev, 0));
+			   (unsigned long long)pci_resource_start(dev, 0));
 		err = -EBUSY;
 		goto err_disable;
 	}
+
 	pci_set_master(dev);
 	pci_set_drvdata(dev, bg);
 
 	bg->mmio = devm_ioremap(&dev->dev, pci_resource_start(dev, 0), 0x1000);
-	if (!bg->mmio) {
+
+	if (!bg->mmio)
+	{
 		printk(KERN_ERR "bt8xxgpio: ioremap() failed\n");
 		err = -EIO;
 		goto err_disable;
@@ -218,7 +241,9 @@ static int bt8xxgpio_probe(struct pci_dev *dev,
 
 	bt8xxgpio_gpio_setup(bg);
 	err = gpiochip_add_data(&bg->gpio, bg);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "bt8xxgpio: Failed to register GPIOs\n");
 		goto err_disable;
 	}
@@ -276,8 +301,12 @@ static int bt8xxgpio_resume(struct pci_dev *pdev)
 
 	pci_set_power_state(pdev, PCI_D0);
 	err = pci_enable_device(pdev);
+
 	if (err)
+	{
 		return err;
+	}
+
 	pci_restore_state(pdev);
 
 	spin_lock_irqsave(&bg->lock, flags);
@@ -287,7 +316,7 @@ static int bt8xxgpio_resume(struct pci_dev *pdev)
 	bgwrite(0, BT848_GPIO_REG_INP);
 	bgwrite(bg->saved_outen, BT848_GPIO_OUT_EN);
 	bgwrite(bg->saved_data & bg->saved_outen,
-		BT848_GPIO_DATA);
+			BT848_GPIO_DATA);
 
 	spin_unlock_irqrestore(&bg->lock, flags);
 
@@ -298,7 +327,8 @@ static int bt8xxgpio_resume(struct pci_dev *pdev)
 #define bt8xxgpio_resume NULL
 #endif /* CONFIG_PM */
 
-static const struct pci_device_id bt8xxgpio_pci_tbl[] = {
+static const struct pci_device_id bt8xxgpio_pci_tbl[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_BROOKTREE, PCI_DEVICE_ID_BT848) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_BROOKTREE, PCI_DEVICE_ID_BT849) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_BROOKTREE, PCI_DEVICE_ID_BT878) },
@@ -307,7 +337,8 @@ static const struct pci_device_id bt8xxgpio_pci_tbl[] = {
 };
 MODULE_DEVICE_TABLE(pci, bt8xxgpio_pci_tbl);
 
-static struct pci_driver bt8xxgpio_pci_driver = {
+static struct pci_driver bt8xxgpio_pci_driver =
+{
 	.name		= "bt8xxgpio",
 	.id_table	= bt8xxgpio_pci_tbl,
 	.probe		= bt8xxgpio_probe,

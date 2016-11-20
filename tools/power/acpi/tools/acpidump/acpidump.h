@@ -45,11 +45,11 @@
  * Global variables. Defined in main.c only, externed in all other files
  */
 #ifdef _DECLARE_GLOBALS
-#define EXTERN
-#define INIT_GLOBAL(a,b)        a=b
+	#define EXTERN
+	#define INIT_GLOBAL(a,b)        a=b
 #else
-#define EXTERN                  extern
-#define INIT_GLOBAL(a,b)        a
+	#define EXTERN                  extern
+	#define INIT_GLOBAL(a,b)        a
 #endif
 
 #include <acpi/acpi.h>
@@ -70,7 +70,8 @@ EXTERN u64 INIT_GLOBAL(gbl_rsdp_base, 0);
 
 /* Action table used to defer requested options */
 
-struct ap_dump_action {
+struct ap_dump_action
+{
 	char *argument;
 	u32 to_be_done;
 };
@@ -116,4 +117,4 @@ int ap_open_output_file(char *pathname);
 int ap_write_to_binary_file(struct acpi_table_header *table, u32 instance);
 
 struct acpi_table_header *ap_get_table_from_file(char *pathname,
-						 u32 *file_size);
+		u32 *file_size);

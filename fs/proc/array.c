@@ -113,7 +113,8 @@ static inline void task_name(struct seq_file *m, struct task_struct *p)
  * you can test for combinations of others with
  * simple bit tests.
  */
-static const char * const task_state_array[] = {
+static const char *const task_state_array[] =
+{
 	"R (running)",		/*   0 */
 	"S (sleeping)",		/*   1 */
 	"D (disk sleep)",	/*   2 */
@@ -133,9 +134,11 @@ static inline const char *get_task_state(struct task_struct *tsk)
 	 * clearly wrong, so we report them as sleeping instead.
 	 */
 	if (tsk->state == TASK_PARKED)
+	{
 		state = TASK_INTERRUPTIBLE;
+	}
 
-	BUILD_BUG_ON(1 + ilog2(TASK_REPORT) != ARRAY_SIZE(task_state_array)-1);
+	BUILD_BUG_ON(1 + ilog2(TASK_REPORT) != ARRAY_SIZE(task_state_array) - 1);
 
 	return task_state_array[fls(state)];
 }
@@ -147,14 +150,18 @@ static inline int get_task_umask(struct task_struct *tsk)
 
 	task_lock(tsk);
 	fs = tsk->fs;
+
 	if (fs)
+	{
 		umask = fs->umask;
+	}
+
 	task_unlock(tsk);
 	return umask;
 }
 
 static inline void task_state(struct seq_file *m, struct pid_namespace *ns,
-				struct pid *pid, struct task_struct *p)
+							  struct pid *pid, struct task_struct *p)
 {
 	struct user_namespace *user_ns = seq_user_ns(m);
 	struct group_info *group_info;
@@ -166,23 +173,33 @@ static inline void task_state(struct seq_file *m, struct pid_namespace *ns,
 
 	rcu_read_lock();
 	ppid = pid_alive(p) ?
-		task_tgid_nr_ns(rcu_dereference(p->real_parent), ns) : 0;
+		   task_tgid_nr_ns(rcu_dereference(p->real_parent), ns) : 0;
 
 	tracer = ptrace_parent(p);
+
 	if (tracer)
+	{
 		tpid = task_pid_nr_ns(tracer, ns);
+	}
 
 	tgid = task_tgid_nr_ns(p, ns);
 	ngid = task_numa_group_id(p);
 	cred = get_task_cred(p);
 
 	umask = get_task_umask(p);
+
 	if (umask >= 0)
+	{
 		seq_printf(m, "Umask:\t%#04o\n", umask);
+	}
 
 	task_lock(p);
+
 	if (p->files)
+	{
 		max_fds = files_fdtable(p->files)->max_fds;
+	}
+
 	task_unlock(p);
 	rcu_read_unlock();
 
@@ -205,64 +222,96 @@ static inline void task_state(struct seq_file *m, struct pid_namespace *ns,
 
 	seq_puts(m, "\nGroups:\t");
 	group_info = cred->group_info;
+
 	for (g = 0; g < group_info->ngroups; g++)
 		seq_put_decimal_ull(m, g ? " " : "",
-				from_kgid_munged(user_ns, group_info->gid[g]));
+							from_kgid_munged(user_ns, group_info->gid[g]));
+
 	put_cred(cred);
 	/* Trailing space shouldn't have been added in the first place. */
 	seq_putc(m, ' ');
 
 #ifdef CONFIG_PID_NS
 	seq_puts(m, "\nNStgid:");
+
 	for (g = ns->level; g <= pid->level; g++)
+	{
 		seq_put_decimal_ull(m, "\t", task_tgid_nr_ns(p, pid->numbers[g].ns));
+	}
+
 	seq_puts(m, "\nNSpid:");
+
 	for (g = ns->level; g <= pid->level; g++)
+	{
 		seq_put_decimal_ull(m, "\t", task_pid_nr_ns(p, pid->numbers[g].ns));
+	}
+
 	seq_puts(m, "\nNSpgid:");
+
 	for (g = ns->level; g <= pid->level; g++)
+	{
 		seq_put_decimal_ull(m, "\t", task_pgrp_nr_ns(p, pid->numbers[g].ns));
+	}
+
 	seq_puts(m, "\nNSsid:");
+
 	for (g = ns->level; g <= pid->level; g++)
+	{
 		seq_put_decimal_ull(m, "\t", task_session_nr_ns(p, pid->numbers[g].ns));
+	}
+
 #endif
 	seq_putc(m, '\n');
 }
 
 void render_sigset_t(struct seq_file *m, const char *header,
-				sigset_t *set)
+					 sigset_t *set)
 {
 	int i;
 
 	seq_puts(m, header);
 
 	i = _NSIG;
-	do {
+
+	do
+	{
 		int x = 0;
 
 		i -= 4;
-		if (sigismember(set, i+1)) x |= 1;
-		if (sigismember(set, i+2)) x |= 2;
-		if (sigismember(set, i+3)) x |= 4;
-		if (sigismember(set, i+4)) x |= 8;
+
+		if (sigismember(set, i + 1)) { x |= 1; }
+
+		if (sigismember(set, i + 2)) { x |= 2; }
+
+		if (sigismember(set, i + 3)) { x |= 4; }
+
+		if (sigismember(set, i + 4)) { x |= 8; }
+
 		seq_printf(m, "%x", x);
-	} while (i >= 4);
+	}
+	while (i >= 4);
 
 	seq_putc(m, '\n');
 }
 
 static void collect_sigign_sigcatch(struct task_struct *p, sigset_t *ign,
-				    sigset_t *catch)
+									sigset_t *catch)
 {
 	struct k_sigaction *k;
 	int i;
 
 	k = p->sighand->action;
-	for (i = 1; i <= _NSIG; ++i, ++k) {
+
+	for (i = 1; i <= _NSIG; ++i, ++k)
+	{
 		if (k->sa.sa_handler == SIG_IGN)
+		{
 			sigaddset(ign, i);
+		}
 		else if (k->sa.sa_handler != SIG_DFL)
+		{
 			sigaddset(catch, i);
+		}
 	}
 }
 
@@ -280,7 +329,8 @@ static inline void task_sig(struct seq_file *m, struct task_struct *p)
 	sigemptyset(&ignored);
 	sigemptyset(&caught);
 
-	if (lock_task_sighand(p, &flags)) {
+	if (lock_task_sighand(p, &flags))
+	{
 		pending = p->pending.signal;
 		shpending = p->signal->shared_pending.signal;
 		blocked = p->blocked;
@@ -306,14 +356,15 @@ static inline void task_sig(struct seq_file *m, struct task_struct *p)
 }
 
 static void render_cap_t(struct seq_file *m, const char *header,
-			kernel_cap_t *a)
+						 kernel_cap_t *a)
 {
 	unsigned __capi;
 
 	seq_puts(m, header);
-	CAP_FOR_EACH_U32(__capi) {
+	CAP_FOR_EACH_U32(__capi)
+	{
 		seq_printf(m, "%08x",
-			   a->cap[CAP_LAST_U32 - __capi]);
+				   a->cap[CAP_LAST_U32 - __capi]);
 	}
 	seq_putc(m, '\n');
 }
@@ -322,7 +373,7 @@ static inline void task_cap(struct seq_file *m, struct task_struct *p)
 {
 	const struct cred *cred;
 	kernel_cap_t cap_inheritable, cap_permitted, cap_effective,
-			cap_bset, cap_ambient;
+				 cap_bset, cap_ambient;
 
 	rcu_read_lock();
 	cred = __task_cred(p);
@@ -349,7 +400,7 @@ static inline void task_seccomp(struct seq_file *m, struct task_struct *p)
 }
 
 static inline void task_context_switch_counts(struct seq_file *m,
-						struct task_struct *p)
+		struct task_struct *p)
 {
 	seq_put_decimal_ull(m, "voluntary_ctxt_switches:\t", p->nvcsw);
 	seq_put_decimal_ull(m, "\nnonvoluntary_ctxt_switches:\t", p->nivcsw);
@@ -359,23 +410,25 @@ static inline void task_context_switch_counts(struct seq_file *m,
 static void task_cpus_allowed(struct seq_file *m, struct task_struct *task)
 {
 	seq_printf(m, "Cpus_allowed:\t%*pb\n",
-		   cpumask_pr_args(&task->cpus_allowed));
+			   cpumask_pr_args(&task->cpus_allowed));
 	seq_printf(m, "Cpus_allowed_list:\t%*pbl\n",
-		   cpumask_pr_args(&task->cpus_allowed));
+			   cpumask_pr_args(&task->cpus_allowed));
 }
 
 int proc_pid_status(struct seq_file *m, struct pid_namespace *ns,
-			struct pid *pid, struct task_struct *task)
+					struct pid *pid, struct task_struct *task)
 {
 	struct mm_struct *mm = get_task_mm(task);
 
 	task_name(m, task);
 	task_state(m, ns, pid, task);
 
-	if (mm) {
+	if (mm)
+	{
 		task_mem(m, mm);
 		mmput(mm);
 	}
+
 	task_sig(m, task);
 	task_cap(m, task);
 	task_seccomp(m, task);
@@ -386,7 +439,7 @@ int proc_pid_status(struct seq_file *m, struct pid_namespace *ns,
 }
 
 static int do_task_stat(struct seq_file *m, struct pid_namespace *ns,
-			struct pid *pid, struct task_struct *task, int whole)
+						struct pid *pid, struct task_struct *task, int whole)
 {
 	unsigned long vsize, eip, esp, wchan = 0;
 	int priority, nice;
@@ -410,7 +463,9 @@ static int do_task_stat(struct seq_file *m, struct pid_namespace *ns,
 	vsize = eip = esp = 0;
 	permitted = ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS | PTRACE_MODE_NOAUDIT);
 	mm = get_task_mm(task);
-	if (mm) {
+
+	if (mm)
+	{
 		vsize = task_vsize(mm);
 		/*
 		 * esp and eip are intentionally zeroed out.  There is no
@@ -426,10 +481,12 @@ static int do_task_stat(struct seq_file *m, struct pid_namespace *ns,
 	cutime = cstime = utime = stime = 0;
 	cgtime = gtime = 0;
 
-	if (lock_task_sighand(task, &flags)) {
+	if (lock_task_sighand(task, &flags))
+	{
 		struct signal_struct *sig = task->signal;
 
-		if (sig->tty) {
+		if (sig->tty)
+		{
 			struct pid *pgrp = tty_get_pgrp(sig->tty);
 			tty_pgrp = pid_nr_ns(pgrp, ns);
 			put_pid(pgrp);
@@ -447,9 +504,12 @@ static int do_task_stat(struct seq_file *m, struct pid_namespace *ns,
 		rsslim = ACCESS_ONCE(sig->rlim[RLIMIT_RSS].rlim_cur);
 
 		/* add up live thread stats at the group level */
-		if (whole) {
+		if (whole)
+		{
 			struct task_struct *t = task;
-			do {
+
+			do
+			{
 				min_flt += t->min_flt;
 				maj_flt += t->maj_flt;
 				gtime += task_gtime(t);
@@ -469,8 +529,12 @@ static int do_task_stat(struct seq_file *m, struct pid_namespace *ns,
 	}
 
 	if (permitted && (!whole || num_threads < 2))
+	{
 		wchan = get_wchan(task);
-	if (!whole) {
+	}
+
+	if (!whole)
+	{
 		min_flt = task->min_flt;
 		maj_flt = task->maj_flt;
 		task_cputime_adjusted(task, &utime, &stime);
@@ -530,9 +594,13 @@ static int do_task_stat(struct seq_file *m, struct pid_namespace *ns,
 	 * This works with older implementations of procps as well.
 	 */
 	if (wchan)
+	{
 		seq_puts(m, " 1");
+	}
 	else
+	{
 		seq_puts(m, " 0");
+	}
 
 	seq_put_decimal_ull(m, " ", 0);
 	seq_put_decimal_ull(m, " ", 0);
@@ -544,7 +612,8 @@ static int do_task_stat(struct seq_file *m, struct pid_namespace *ns,
 	seq_put_decimal_ull(m, " ", cputime_to_clock_t(gtime));
 	seq_put_decimal_ll(m, " ", cputime_to_clock_t(cgtime));
 
-	if (mm && permitted) {
+	if (mm && permitted)
+	{
 		seq_put_decimal_ull(m, " ", mm->start_data);
 		seq_put_decimal_ull(m, " ", mm->end_data);
 		seq_put_decimal_ull(m, " ", mm->start_brk);
@@ -552,42 +621,55 @@ static int do_task_stat(struct seq_file *m, struct pid_namespace *ns,
 		seq_put_decimal_ull(m, " ", mm->arg_end);
 		seq_put_decimal_ull(m, " ", mm->env_start);
 		seq_put_decimal_ull(m, " ", mm->env_end);
-	} else
+	}
+	else
+	{
 		seq_puts(m, " 0 0 0 0 0 0 0");
+	}
 
 	if (permitted)
+	{
 		seq_put_decimal_ll(m, " ", task->exit_code);
+	}
 	else
+	{
 		seq_puts(m, " 0");
+	}
 
 	seq_putc(m, '\n');
+
 	if (mm)
+	{
 		mmput(mm);
+	}
+
 	return 0;
 }
 
 int proc_tid_stat(struct seq_file *m, struct pid_namespace *ns,
-			struct pid *pid, struct task_struct *task)
+				  struct pid *pid, struct task_struct *task)
 {
 	return do_task_stat(m, ns, pid, task, 0);
 }
 
 int proc_tgid_stat(struct seq_file *m, struct pid_namespace *ns,
-			struct pid *pid, struct task_struct *task)
+				   struct pid *pid, struct task_struct *task)
 {
 	return do_task_stat(m, ns, pid, task, 1);
 }
 
 int proc_pid_statm(struct seq_file *m, struct pid_namespace *ns,
-			struct pid *pid, struct task_struct *task)
+				   struct pid *pid, struct task_struct *task)
 {
 	unsigned long size = 0, resident = 0, shared = 0, text = 0, data = 0;
 	struct mm_struct *mm = get_task_mm(task);
 
-	if (mm) {
+	if (mm)
+	{
 		size = task_statm(mm, &shared, &text, &data, &resident);
 		mmput(mm);
 	}
+
 	/*
 	 * For quick read, open code by putting numbers directly
 	 * expected format is
@@ -616,21 +698,30 @@ get_children_pid(struct inode *inode, struct pid *pid_prev, loff_t pos)
 	read_lock(&tasklist_lock);
 
 	start = pid_task(proc_pid(inode), PIDTYPE_PID);
+
 	if (!start)
+	{
 		goto out;
+	}
 
 	/*
 	 * Lets try to continue searching first, this gives
 	 * us significant speedup on children-rich processes.
 	 */
-	if (pid_prev) {
+	if (pid_prev)
+	{
 		task = pid_task(pid_prev, PIDTYPE_PID);
+
 		if (task && task->real_parent == start &&
-		    !(list_empty(&task->sibling))) {
+			!(list_empty(&task->sibling)))
+		{
 			if (list_is_last(&task->sibling, &start->children))
+			{
 				goto out;
+			}
+
 			task = list_first_entry(&task->sibling,
-						struct task_struct, sibling);
+									struct task_struct, sibling);
 			pid = get_pid(task_pid(task));
 			goto out;
 		}
@@ -651,8 +742,10 @@ get_children_pid(struct inode *inode, struct pid *pid_prev, loff_t pos)
 	 * So one need to stop or freeze the leader and all
 	 * its children to get a precise result.
 	 */
-	list_for_each_entry(task, &start->children, sibling) {
-		if (pos-- == 0) {
+	list_for_each_entry(task, &start->children, sibling)
+	{
+		if (pos-- == 0)
+		{
 			pid = get_pid(task_pid(task));
 			break;
 		}
@@ -695,7 +788,8 @@ static void children_seq_stop(struct seq_file *seq, void *v)
 	put_pid(v);
 }
 
-static const struct seq_operations children_seq_ops = {
+static const struct seq_operations children_seq_ops =
+{
 	.start	= children_seq_start,
 	.next	= children_seq_next,
 	.stop	= children_seq_stop,
@@ -708,8 +802,11 @@ static int children_seq_open(struct inode *inode, struct file *file)
 	int ret;
 
 	ret = seq_open(file, &children_seq_ops);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	m = file->private_data;
 	m->private = inode;
@@ -723,7 +820,8 @@ int children_seq_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-const struct file_operations proc_tid_children_operations = {
+const struct file_operations proc_tid_children_operations =
+{
 	.open    = children_seq_open,
 	.read    = seq_read,
 	.llseek  = seq_lseek,

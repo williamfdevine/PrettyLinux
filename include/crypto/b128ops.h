@@ -49,15 +49,18 @@
 
 #include <linux/types.h>
 
-typedef struct {
+typedef struct
+{
 	u64 a, b;
 } u128;
 
-typedef struct {
+typedef struct
+{
 	__be64 a, b;
 } be128;
 
-typedef struct {
+typedef struct
+{
 	__le64 b, a;
 } le128;
 

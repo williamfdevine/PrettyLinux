@@ -27,7 +27,8 @@
 #include "mop500_ab8500.h"
 
 /* Define the whole MOP500 soundcard, linking platform to the codec-drivers  */
-static struct snd_soc_dai_link mop500_dai_links[] = {
+static struct snd_soc_dai_link mop500_dai_links[] =
+{
 	{
 		.name = "ab8500_0",
 		.stream_name = "ab8500_0",
@@ -50,7 +51,8 @@ static struct snd_soc_dai_link mop500_dai_links[] = {
 	},
 };
 
-static struct snd_soc_card mop500_card = {
+static struct snd_soc_card mop500_card =
+{
 	.name = "MOP500-card",
 	.owner = THIS_MODULE,
 	.probe = NULL,
@@ -62,14 +64,15 @@ static void mop500_of_node_put(void)
 {
 	int i;
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		of_node_put(mop500_dai_links[i].cpu_of_node);
 		of_node_put(mop500_dai_links[i].codec_of_node);
 	}
 }
 
 static int mop500_of_probe(struct platform_device *pdev,
-			   struct device_node *np)
+						   struct device_node *np)
 {
 	struct device_node *codec_np, *msp_np[2];
 	int i;
@@ -78,13 +81,15 @@ static int mop500_of_probe(struct platform_device *pdev,
 	msp_np[1] = of_parse_phandle(np, "stericsson,cpu-dai", 1);
 	codec_np  = of_parse_phandle(np, "stericsson,audio-codec", 0);
 
-	if (!(msp_np[0] && msp_np[1] && codec_np)) {
+	if (!(msp_np[0] && msp_np[1] && codec_np))
+	{
 		dev_err(&pdev->dev, "Phandle missing or invalid\n");
 		mop500_of_node_put();
 		return -EINVAL;
 	}
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		mop500_dai_links[i].cpu_of_node = msp_np[i];
 		mop500_dai_links[i].cpu_dai_name = NULL;
 		mop500_dai_links[i].platform_of_node = msp_np[i];
@@ -107,30 +112,35 @@ static int mop500_probe(struct platform_device *pdev)
 
 	mop500_card.dev = &pdev->dev;
 
-	if (np) {
+	if (np)
+	{
 		ret = mop500_of_probe(pdev, np);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	dev_dbg(&pdev->dev, "%s: Card %s: Set platform drvdata.\n",
-		__func__, mop500_card.name);
+			__func__, mop500_card.name);
 	platform_set_drvdata(pdev, &mop500_card);
 
 	snd_soc_card_set_drvdata(&mop500_card, NULL);
 
 	dev_dbg(&pdev->dev, "%s: Card %s: num_links = %d\n",
-		__func__, mop500_card.name, mop500_card.num_links);
+			__func__, mop500_card.name, mop500_card.num_links);
 	dev_dbg(&pdev->dev, "%s: Card %s: DAI-link 0: name = %s\n",
-		__func__, mop500_card.name, mop500_card.dai_link[0].name);
+			__func__, mop500_card.name, mop500_card.dai_link[0].name);
 	dev_dbg(&pdev->dev, "%s: Card %s: DAI-link 0: stream_name = %s\n",
-		__func__, mop500_card.name,
-		mop500_card.dai_link[0].stream_name);
+			__func__, mop500_card.name,
+			mop500_card.dai_link[0].stream_name);
 
 	ret = snd_soc_register_card(&mop500_card);
+
 	if (ret)
 		dev_err(&pdev->dev,
-			"Error: snd_soc_register_card failed (%d)!\n", ret);
+				"Error: snd_soc_register_card failed (%d)!\n", ret);
 
 	return ret;
 }
@@ -148,13 +158,15 @@ static int mop500_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id snd_soc_mop500_match[] = {
+static const struct of_device_id snd_soc_mop500_match[] =
+{
 	{ .compatible = "stericsson,snd-soc-mop500", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, snd_soc_mop500_match);
 
-static struct platform_driver snd_soc_mop500_driver = {
+static struct platform_driver snd_soc_mop500_driver =
+{
 	.driver = {
 		.name = "snd-soc-mop500",
 		.of_match_table = snd_soc_mop500_match,

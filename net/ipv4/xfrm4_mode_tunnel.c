@@ -20,7 +20,9 @@ static inline void ipip_ecn_decapsulate(struct sk_buff *skb)
 	struct iphdr *inner_iph = ipip_hdr(skb);
 
 	if (INET_ECN_is_ce(XFRM_MODE_SKB_CB(skb)->tos))
+	{
 		IP_ECN_set_ce(inner_iph);
+	}
 }
 
 /* Add encapsulation header.
@@ -35,7 +37,7 @@ static int xfrm4_mode_tunnel_output(struct xfrm_state *x, struct sk_buff *skb)
 
 	skb_set_network_header(skb, -x->props.header_len);
 	skb->mac_header = skb->network_header +
-			  offsetof(struct iphdr, protocol);
+					  offsetof(struct iphdr, protocol);
 	skb->transport_header = skb->network_header + sizeof(*top_iph);
 	top_iph = ip_hdr(skb);
 
@@ -46,18 +48,26 @@ static int xfrm4_mode_tunnel_output(struct xfrm_state *x, struct sk_buff *skb)
 
 	/* DS disclosing depends on XFRM_SA_XFLAG_DONT_ENCAP_DSCP */
 	if (x->props.extra_flags & XFRM_SA_XFLAG_DONT_ENCAP_DSCP)
+	{
 		top_iph->tos = 0;
+	}
 	else
+	{
 		top_iph->tos = XFRM_MODE_SKB_CB(skb)->tos;
+	}
+
 	top_iph->tos = INET_ECN_encapsulate(top_iph->tos,
-					    XFRM_MODE_SKB_CB(skb)->tos);
+										XFRM_MODE_SKB_CB(skb)->tos);
 
 	flags = x->props.flags;
+
 	if (flags & XFRM_STATE_NOECN)
+	{
 		IP_ECN_clear(top_iph);
+	}
 
 	top_iph->frag_off = (flags & XFRM_STATE_NOPMTUDISC) ?
-		0 : (XFRM_MODE_SKB_CB(skb)->frag_off & htons(IP_DF));
+						0 : (XFRM_MODE_SKB_CB(skb)->frag_off & htons(IP_DF));
 
 	top_iph->ttl = ip4_dst_hoplimit(dst->child);
 
@@ -73,19 +83,31 @@ static int xfrm4_mode_tunnel_input(struct xfrm_state *x, struct sk_buff *skb)
 	int err = -EINVAL;
 
 	if (XFRM_MODE_SKB_CB(skb)->protocol != IPPROTO_IPIP)
+	{
 		goto out;
+	}
 
 	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
+	{
 		goto out;
+	}
 
 	err = skb_unclone(skb, GFP_ATOMIC);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	if (x->props.flags & XFRM_STATE_DECAP_DSCP)
+	{
 		ipv4_copy_dscp(XFRM_MODE_SKB_CB(skb)->tos, ipip_hdr(skb));
+	}
+
 	if (!(x->props.flags & XFRM_STATE_NOECN))
+	{
 		ipip_ecn_decapsulate(skb);
+	}
 
 	skb_reset_network_header(skb);
 	skb_mac_header_rebuild(skb);
@@ -96,7 +118,8 @@ out:
 	return err;
 }
 
-static struct xfrm_mode xfrm4_tunnel_mode = {
+static struct xfrm_mode xfrm4_tunnel_mode =
+{
 	.input2 = xfrm4_mode_tunnel_input,
 	.input = xfrm_prepare_input,
 	.output2 = xfrm4_mode_tunnel_output,

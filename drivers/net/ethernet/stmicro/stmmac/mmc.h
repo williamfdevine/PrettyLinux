@@ -39,7 +39,8 @@
 #define MMC_GMAC4_OFFSET		0x700
 #define MMC_GMAC3_X_OFFSET		0x100
 
-struct stmmac_counters {
+struct stmmac_counters
+{
 	unsigned int mmc_tx_octetcount_gb;
 	unsigned int mmc_tx_framecount_gb;
 	unsigned int mmc_tx_broadcastframe_g;

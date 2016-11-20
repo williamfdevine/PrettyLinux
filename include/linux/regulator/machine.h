@@ -43,7 +43,8 @@ struct regulator;
 #define REGULATOR_CHANGE_BYPASS		0x20
 
 /* Regulator active discharge flags */
-enum regulator_active_discharge {
+enum regulator_active_discharge
+{
 	REGULATOR_ACTIVE_DISCHARGE_DEFAULT,
 	REGULATOR_ACTIVE_DISCHARGE_DISABLE,
 	REGULATOR_ACTIVE_DISCHARGE_ENABLE,
@@ -61,7 +62,8 @@ enum regulator_active_discharge {
  * @enabled: Enabled during suspend.
  * @disabled: Disabled during suspend.
  */
-struct regulator_state {
+struct regulator_state
+{
 	int uV;	/* suspend voltage */
 	unsigned int mode; /* suspend regulator operating mode */
 	int enabled; /* is regulator enabled in this suspend state */
@@ -113,7 +115,8 @@ struct regulator_state {
  *		      initialisation.
  * @enable_time: Turn-on time of the rails (unit: microseconds)
  */
-struct regulation_constraints {
+struct regulation_constraints
+{
 
 	const char *name;
 
@@ -154,13 +157,13 @@ struct regulation_constraints {
 	unsigned int active_discharge;
 
 	/* constraint flags */
-	unsigned always_on:1;	/* regulator never off when system is on */
-	unsigned boot_on:1;	/* bootloader/firmware enabled regulator */
-	unsigned apply_uV:1;	/* apply uV constraint if min == max */
-	unsigned ramp_disable:1; /* disable ramp delay */
-	unsigned soft_start:1;	/* ramp voltage slowly */
-	unsigned pull_down:1;	/* pull down resistor when regulator off */
-	unsigned over_current_protection:1; /* auto disable on over current */
+	unsigned always_on: 1;	/* regulator never off when system is on */
+	unsigned boot_on: 1;	/* bootloader/firmware enabled regulator */
+	unsigned apply_uV: 1;	/* apply uV constraint if min == max */
+	unsigned ramp_disable: 1; /* disable ramp delay */
+	unsigned soft_start: 1;	/* ramp voltage slowly */
+	unsigned pull_down: 1;	/* pull down resistor when regulator off */
+	unsigned over_current_protection: 1; /* auto disable on over current */
 };
 
 /**
@@ -172,17 +175,18 @@ struct regulation_constraints {
  * @dev_name: Result of dev_name() for the consumer.
  * @supply: Name for the supply.
  */
-struct regulator_consumer_supply {
+struct regulator_consumer_supply
+{
 	const char *dev_name;   /* dev_name() for consumer */
 	const char *supply;	/* consumer supply - e.g. "vcc" */
 };
 
 /* Initialize struct regulator_consumer_supply */
 #define REGULATOR_SUPPLY(_name, _dev_name)			\
-{								\
-	.supply		= _name,				\
-	.dev_name	= _dev_name,				\
-}
+	{								\
+		.supply		= _name,				\
+					  .dev_name	= _dev_name,				\
+	}
 
 /**
  * struct regulator_init_data - regulator platform initialisation data.
@@ -201,7 +205,8 @@ struct regulator_consumer_supply {
  * @regulator_init: Callback invoked when the regulator has been registered.
  * @driver_data: Data passed to regulator_init.
  */
-struct regulator_init_data {
+struct regulator_init_data
+{
 	const char *supply_regulator;        /* or NULL for system supply */
 
 	struct regulation_constraints constraints;

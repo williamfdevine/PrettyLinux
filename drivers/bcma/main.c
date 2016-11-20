@@ -58,7 +58,8 @@ static ssize_t class_show(struct device *dev, struct device_attribute *attr, cha
 }
 static DEVICE_ATTR_RO(class);
 
-static struct attribute *bcma_device_attrs[] = {
+static struct attribute *bcma_device_attrs[] =
+{
 	&dev_attr_manuf.attr,
 	&dev_attr_id.attr,
 	&dev_attr_rev.attr,
@@ -67,7 +68,8 @@ static struct attribute *bcma_device_attrs[] = {
 };
 ATTRIBUTE_GROUPS(bcma_device);
 
-static struct bus_type bcma_bus_type = {
+static struct bus_type bcma_bus_type =
+{
 	.name		= "bcma",
 	.match		= bcma_bus_match,
 	.probe		= bcma_device_probe,
@@ -79,36 +81,48 @@ static struct bus_type bcma_bus_type = {
 static u16 bcma_cc_core_id(struct bcma_bus *bus)
 {
 	if (bus->chipinfo.id == BCMA_CHIP_ID_BCM4706)
+	{
 		return BCMA_CORE_4706_CHIPCOMMON;
+	}
+
 	return BCMA_CORE_CHIPCOMMON;
 }
 
 struct bcma_device *bcma_find_core_unit(struct bcma_bus *bus, u16 coreid,
-					u8 unit)
+										u8 unit)
 {
 	struct bcma_device *core;
 
-	list_for_each_entry(core, &bus->cores, list) {
+	list_for_each_entry(core, &bus->cores, list)
+	{
 		if (core->id.id == coreid && core->core_unit == unit)
+		{
 			return core;
+		}
 	}
 	return NULL;
 }
 EXPORT_SYMBOL_GPL(bcma_find_core_unit);
 
 bool bcma_wait_value(struct bcma_device *core, u16 reg, u32 mask, u32 value,
-		     int timeout)
+					 int timeout)
 {
 	unsigned long deadline = jiffies + timeout;
 	u32 val;
 
-	do {
+	do
+	{
 		val = bcma_read32(core, reg);
+
 		if ((val & mask) == value)
+		{
 			return true;
+		}
+
 		cpu_relax();
 		udelay(10);
-	} while (!time_after_eq(jiffies, deadline));
+	}
+	while (!time_after_eq(jiffies, deadline));
 
 	bcma_warn(core->bus, "Timeout waiting for register 0x%04X!\n", reg);
 
@@ -118,55 +132,76 @@ bool bcma_wait_value(struct bcma_device *core, u16 reg, u32 mask, u32 value,
 static void bcma_release_core_dev(struct device *dev)
 {
 	struct bcma_device *core = container_of(dev, struct bcma_device, dev);
+
 	if (core->io_addr)
+	{
 		iounmap(core->io_addr);
+	}
+
 	if (core->io_wrap)
+	{
 		iounmap(core->io_wrap);
+	}
+
 	kfree(core);
 }
 
 static bool bcma_is_core_needed_early(u16 core_id)
 {
-	switch (core_id) {
-	case BCMA_CORE_NS_NAND:
-	case BCMA_CORE_NS_QSPI:
-		return true;
+	switch (core_id)
+	{
+		case BCMA_CORE_NS_NAND:
+		case BCMA_CORE_NS_QSPI:
+			return true;
 	}
 
 	return false;
 }
 
 static struct device_node *bcma_of_find_child_device(struct platform_device *parent,
-						     struct bcma_device *core)
+		struct bcma_device *core)
 {
 	struct device_node *node;
 	u64 size;
 	const __be32 *reg;
 
 	if (!parent || !parent->dev.of_node)
+	{
 		return NULL;
+	}
 
-	for_each_child_of_node(parent->dev.of_node, node) {
+	for_each_child_of_node(parent->dev.of_node, node)
+	{
 		reg = of_get_address(node, 0, &size, NULL);
+
 		if (!reg)
+		{
 			continue;
+		}
+
 		if (of_translate_address(node, reg) == core->addr)
+		{
 			return node;
+		}
 	}
 	return NULL;
 }
 
 static int bcma_of_irq_parse(struct platform_device *parent,
-			     struct bcma_device *core,
-			     struct of_phandle_args *out_irq, int num)
+							 struct bcma_device *core,
+							 struct of_phandle_args *out_irq, int num)
 {
 	__be32 laddr[1];
 	int rc;
 
-	if (core->dev.of_node) {
+	if (core->dev.of_node)
+	{
 		rc = of_irq_parse_one(core->dev.of_node, num, out_irq);
+
 		if (!rc)
+		{
 			return rc;
+		}
 	}
 
 	out_irq->np = parent->dev.of_node;
@@ -178,18 +213,22 @@ static int bcma_of_irq_parse(struct platform_device *parent,
 }
 
 static unsigned int bcma_of_get_irq(struct platform_device *parent,
-				    struct bcma_device *core, int num)
+									struct bcma_device *core, int num)
 {
 	struct of_phandle_args out_irq;
 	int ret;
 
 	if (!IS_ENABLED(CONFIG_OF_IRQ) || !parent || !parent->dev.of_node)
+	{
 		return 0;
+	}
 
 	ret = bcma_of_irq_parse(parent, core, &out_irq, num);
-	if (ret) {
+
+	if (ret)
+	{
 		bcma_debug(core->bus, "bcma_of_get_irq() failed with rc=%d\n",
-			   ret);
+				   ret);
 		return 0;
 	}
 
@@ -197,16 +236,21 @@ static unsigned int bcma_of_get_irq(struct platform_device *parent,
 }
 
 static void bcma_of_fill_device(struct platform_device *parent,
-				struct bcma_device *core)
+								struct bcma_device *core)
 {
 	struct device_node *node;
 
 	if (!IS_ENABLED(CONFIG_OF_IRQ))
+	{
 		return;
+	}
 
 	node = bcma_of_find_child_device(parent, core);
+
 	if (node)
+	{
 		core->dev.of_node = node;
+	}
 
 	core->irq = bcma_of_get_irq(parent, core, 0);
 
@@ -218,19 +262,27 @@ unsigned int bcma_core_irq(struct bcma_device *core, int num)
 	struct bcma_bus *bus = core->bus;
 	unsigned int mips_irq;
 
-	switch (bus->hosttype) {
-	case BCMA_HOSTTYPE_PCI:
-		return bus->host_pci->irq;
-	case BCMA_HOSTTYPE_SOC:
-		if (bus->drv_mips.core && num == 0) {
-			mips_irq = bcma_core_mips_irq(core);
-			return mips_irq <= 4 ? mips_irq + 2 : 0;
-		}
-		if (bus->host_pdev)
-			return bcma_of_get_irq(bus->host_pdev, core, num);
-		return 0;
-	case BCMA_HOSTTYPE_SDIO:
-		return 0;
+	switch (bus->hosttype)
+	{
+		case BCMA_HOSTTYPE_PCI:
+			return bus->host_pci->irq;
+
+		case BCMA_HOSTTYPE_SOC:
+			if (bus->drv_mips.core && num == 0)
+			{
+				mips_irq = bcma_core_mips_irq(core);
+				return mips_irq <= 4 ? mips_irq + 2 : 0;
+			}
+
+			if (bus->host_pdev)
+			{
+				return bcma_of_get_irq(bus->host_pdev, core, num);
+			}
+
+			return 0;
+
+		case BCMA_HOSTTYPE_SDIO:
+			return 0;
 	}
 
 	return 0;
@@ -243,46 +295,69 @@ void bcma_prepare_core(struct bcma_bus *bus, struct bcma_device *core)
 	core->dev.bus = &bcma_bus_type;
 	dev_set_name(&core->dev, "bcma%d:%d", bus->num, core->core_index);
 
-	switch (bus->hosttype) {
-	case BCMA_HOSTTYPE_PCI:
-		core->dev.parent = &bus->host_pci->dev;
-		core->dma_dev = &bus->host_pci->dev;
-		core->irq = bus->host_pci->irq;
-		break;
-	case BCMA_HOSTTYPE_SOC:
-		if (IS_ENABLED(CONFIG_OF) && bus->host_pdev) {
-			core->dma_dev = &bus->host_pdev->dev;
-			core->dev.parent = &bus->host_pdev->dev;
-			bcma_of_fill_device(bus->host_pdev, core);
-		} else {
-			core->dev.dma_mask = &core->dev.coherent_dma_mask;
-			core->dma_dev = &core->dev;
-		}
-		break;
-	case BCMA_HOSTTYPE_SDIO:
-		break;
+	switch (bus->hosttype)
+	{
+		case BCMA_HOSTTYPE_PCI:
+			core->dev.parent = &bus->host_pci->dev;
+			core->dma_dev = &bus->host_pci->dev;
+			core->irq = bus->host_pci->irq;
+			break;
+
+		case BCMA_HOSTTYPE_SOC:
+			if (IS_ENABLED(CONFIG_OF) && bus->host_pdev)
+			{
+				core->dma_dev = &bus->host_pdev->dev;
+				core->dev.parent = &bus->host_pdev->dev;
+				bcma_of_fill_device(bus->host_pdev, core);
+			}
+			else
+			{
+				core->dev.dma_mask = &core->dev.coherent_dma_mask;
+				core->dma_dev = &core->dev;
+			}
+
+			break;
+
+		case BCMA_HOSTTYPE_SDIO:
+			break;
 	}
 }
 
 struct device *bcma_bus_get_host_dev(struct bcma_bus *bus)
 {
-	switch (bus->hosttype) {
-	case BCMA_HOSTTYPE_PCI:
-		if (bus->host_pci)
-			return &bus->host_pci->dev;
-		else
-			return NULL;
-	case BCMA_HOSTTYPE_SOC:
-		if (bus->host_pdev)
-			return &bus->host_pdev->dev;
-		else
-			return NULL;
-	case BCMA_HOSTTYPE_SDIO:
-		if (bus->host_sdio)
-			return &bus->host_sdio->dev;
-		else
-			return NULL;
+	switch (bus->hosttype)
+	{
+		case BCMA_HOSTTYPE_PCI:
+			if (bus->host_pci)
+			{
+				return &bus->host_pci->dev;
+			}
+			else
+			{
+				return NULL;
+			}
+
+		case BCMA_HOSTTYPE_SOC:
+			if (bus->host_pdev)
+			{
+				return &bus->host_pdev->dev;
+			}
+			else
+			{
+				return NULL;
+			}
+
+		case BCMA_HOSTTYPE_SDIO:
+			if (bus->host_sdio)
+			{
+				return &bus->host_sdio->dev;
+			}
+			else
+			{
+				return NULL;
+			}
 	}
+
 	return NULL;
 }
 
@@ -303,12 +378,15 @@ static void bcma_register_core(struct bcma_bus *bus, struct bcma_device *core)
 	int err;
 
 	err = device_register(&core->dev);
-	if (err) {
+
+	if (err)
+	{
 		bcma_err(bus, "Could not register dev for core 0x%03X\n",
-			 core->id.id);
+				 core->id.id);
 		put_device(&core->dev);
 		return;
 	}
+
 	core->dev_registered = true;
 }
 
@@ -317,65 +395,98 @@ static int bcma_register_devices(struct bcma_bus *bus)
 	struct bcma_device *core;
 	int err;
 
-	list_for_each_entry(core, &bus->cores, list) {
+	list_for_each_entry(core, &bus->cores, list)
+	{
 		/* We support that cores ourself */
-		switch (core->id.id) {
-		case BCMA_CORE_4706_CHIPCOMMON:
-		case BCMA_CORE_CHIPCOMMON:
-		case BCMA_CORE_NS_CHIPCOMMON_B:
-		case BCMA_CORE_PCI:
-		case BCMA_CORE_PCIE:
-		case BCMA_CORE_PCIE2:
-		case BCMA_CORE_MIPS_74K:
-		case BCMA_CORE_4706_MAC_GBIT_COMMON:
-			continue;
+		switch (core->id.id)
+		{
+			case BCMA_CORE_4706_CHIPCOMMON:
+			case BCMA_CORE_CHIPCOMMON:
+			case BCMA_CORE_NS_CHIPCOMMON_B:
+			case BCMA_CORE_PCI:
+			case BCMA_CORE_PCIE:
+			case BCMA_CORE_PCIE2:
+			case BCMA_CORE_MIPS_74K:
+			case BCMA_CORE_4706_MAC_GBIT_COMMON:
+				continue;
 		}
 
 		/* Early cores were already registered */
 		if (bcma_is_core_needed_early(core->id.id))
+		{
 			continue;
+		}
 
 		/* Only first GMAC core on BCM4706 is connected and working */
 		if (core->id.id == BCMA_CORE_4706_MAC_GBIT &&
-		    core->core_unit > 0)
+			core->core_unit > 0)
+		{
 			continue;
+		}
 
 		bcma_register_core(bus, core);
 	}
 
 #ifdef CONFIG_BCMA_PFLASH
-	if (bus->drv_cc.pflash.present) {
+
+	if (bus->drv_cc.pflash.present)
+	{
 		err = platform_device_register(&bcma_pflash_dev);
+
 		if (err)
+		{
 			bcma_err(bus, "Error registering parallel flash\n");
+		}
 	}
+
 #endif
 
 #ifdef CONFIG_BCMA_SFLASH
-	if (bus->drv_cc.sflash.present) {
+
+	if (bus->drv_cc.sflash.present)
+	{
 		err = platform_device_register(&bcma_sflash_dev);
+
 		if (err)
+		{
 			bcma_err(bus, "Error registering serial flash\n");
+		}
 	}
+
 #endif
 
 #ifdef CONFIG_BCMA_NFLASH
-	if (bus->drv_cc.nflash.present) {
+
+	if (bus->drv_cc.nflash.present)
+	{
 		err = platform_device_register(&bcma_nflash_dev);
+
 		if (err)
+		{
 			bcma_err(bus, "Error registering NAND flash\n");
+		}
 	}
+
 #endif
 	err = bcma_gpio_init(&bus->drv_cc);
-	if (err == -ENOTSUPP)
-		bcma_debug(bus, "GPIO driver not activated\n");
-	else if (err)
-		bcma_err(bus, "Error registering GPIO driver: %i\n", err);
 
-	if (bus->hosttype == BCMA_HOSTTYPE_SOC) {
+	if (err == -ENOTSUPP)
+	{
+		bcma_debug(bus, "GPIO driver not activated\n");
+	}
+	else if (err)
+	{
+		bcma_err(bus, "Error registering GPIO driver: %i\n", err);
+	}
+
+	if (bus->hosttype == BCMA_HOSTTYPE_SOC)
+	{
 		err = bcma_chipco_watchdog_register(&bus->drv_cc);
+
 		if (err)
+		{
 			bcma_err(bus, "Error registering watchdog driver\n");
+		}
 	}
 
 	return 0;
@@ -385,17 +496,25 @@ void bcma_unregister_cores(struct bcma_bus *bus)
 {
 	struct bcma_device *core, *tmp;
 
-	list_for_each_entry_safe(core, tmp, &bus->cores, list) {
+	list_for_each_entry_safe(core, tmp, &bus->cores, list)
+	{
 		if (!core->dev_registered)
+		{
 			continue;
+		}
+
 		list_del(&core->list);
 		device_unregister(&core->dev);
 	}
+
 	if (bus->hosttype == BCMA_HOSTTYPE_SOC)
+	{
 		platform_device_unregister(bus->drv_cc.watchdog);
+	}
 
 	/* Now noone uses internally-handled cores, we can free them */
-	list_for_each_entry_safe(core, tmp, &bus->cores, list) {
+	list_for_each_entry_safe(core, tmp, &bus->cores, list)
+	{
 		list_del(&core->list);
 		kfree(core);
 	}
@@ -409,88 +528,118 @@ int bcma_bus_register(struct bcma_bus *bus)
 
 	/* Scan for devices (cores) */
 	err = bcma_bus_scan(bus);
-	if (err) {
+
+	if (err)
+	{
 		bcma_err(bus, "Failed to scan: %d\n", err);
 		return err;
 	}
 
 	/* Early init CC core */
 	core = bcma_find_core(bus, bcma_cc_core_id(bus));
-	if (core) {
+
+	if (core)
+	{
 		bus->drv_cc.core = core;
 		bcma_core_chipcommon_early_init(&bus->drv_cc);
 	}
 
 	/* Early init PCIE core */
 	core = bcma_find_core(bus, BCMA_CORE_PCIE);
-	if (core) {
+
+	if (core)
+	{
 		bus->drv_pci[0].core = core;
 		bcma_core_pci_early_init(&bus->drv_pci[0]);
 	}
 
 	dev = bcma_bus_get_host_dev(bus);
-	if (dev) {
+
+	if (dev)
+	{
 		of_platform_default_populate(dev->of_node, NULL, dev);
 	}
 
 	/* Cores providing flash access go before SPROM init */
-	list_for_each_entry(core, &bus->cores, list) {
+	list_for_each_entry(core, &bus->cores, list)
+	{
 		if (bcma_is_core_needed_early(core->id.id))
+		{
 			bcma_register_core(bus, core);
+		}
 	}
 
 	/* Try to get SPROM */
 	err = bcma_sprom_get(bus);
-	if (err == -ENOENT) {
+
+	if (err == -ENOENT)
+	{
 		bcma_err(bus, "No SPROM available\n");
-	} else if (err)
+	}
+	else if (err)
+	{
 		bcma_err(bus, "Failed to get SPROM: %d\n", err);
+	}
 
 	/* Init CC core */
 	core = bcma_find_core(bus, bcma_cc_core_id(bus));
-	if (core) {
+
+	if (core)
+	{
 		bus->drv_cc.core = core;
 		bcma_core_chipcommon_init(&bus->drv_cc);
 	}
 
 	/* Init CC core */
 	core = bcma_find_core(bus, BCMA_CORE_NS_CHIPCOMMON_B);
-	if (core) {
+
+	if (core)
+	{
 		bus->drv_cc_b.core = core;
 		bcma_core_chipcommon_b_init(&bus->drv_cc_b);
 	}
 
 	/* Init MIPS core */
 	core = bcma_find_core(bus, BCMA_CORE_MIPS_74K);
-	if (core) {
+
+	if (core)
+	{
 		bus->drv_mips.core = core;
 		bcma_core_mips_init(&bus->drv_mips);
 	}
 
 	/* Init PCIE core */
 	core = bcma_find_core_unit(bus, BCMA_CORE_PCIE, 0);
-	if (core) {
+
+	if (core)
+	{
 		bus->drv_pci[0].core = core;
 		bcma_core_pci_init(&bus->drv_pci[0]);
 	}
 
 	/* Init PCIE core */
 	core = bcma_find_core_unit(bus, BCMA_CORE_PCIE, 1);
-	if (core) {
+
+	if (core)
+	{
 		bus->drv_pci[1].core = core;
 		bcma_core_pci_init(&bus->drv_pci[1]);
 	}
 
 	/* Init PCIe Gen 2 core */
 	core = bcma_find_core_unit(bus, BCMA_CORE_PCIE2, 0);
-	if (core) {
+
+	if (core)
+	{
 		bus->drv_pcie2.core = core;
 		bcma_core_pcie2_init(&bus->drv_pcie2);
 	}
 
 	/* Init GBIT MAC COMMON core */
 	core = bcma_find_core(bus, BCMA_CORE_4706_MAC_GBIT_COMMON);
-	if (core) {
+
+	if (core)
+	{
 		bus->drv_gmac_cmn.core = core;
 		bcma_core_gmac_cmn_init(&bus->drv_gmac_cmn);
 	}
@@ -508,10 +657,15 @@ void bcma_bus_unregister(struct bcma_bus *bus)
 	int err;
 
 	err = bcma_gpio_unregister(&bus->drv_cc);
+
 	if (err == -EBUSY)
+	{
 		bcma_err(bus, "Some GPIOs are still in use.\n");
+	}
 	else if (err)
+	{
 		bcma_err(bus, "Can not unregister GPIO driver: %i\n", err);
+	}
 
 	bcma_core_chipcommon_b_free(&bus->drv_cc_b);
 
@@ -530,21 +684,27 @@ int __init bcma_bus_early_register(struct bcma_bus *bus)
 
 	/* Scan for devices (cores) */
 	err = bcma_bus_scan(bus);
-	if (err) {
+
+	if (err)
+	{
 		bcma_err(bus, "Failed to scan bus: %d\n", err);
 		return -1;
 	}
 
 	/* Early init CC core */
 	core = bcma_find_core(bus, bcma_cc_core_id(bus));
-	if (core) {
+
+	if (core)
+	{
 		bus->drv_cc.core = core;
 		bcma_core_chipcommon_early_init(&bus->drv_cc);
 	}
 
 	/* Early init MIPS core */
 	core = bcma_find_core(bus, BCMA_CORE_MIPS_74K);
-	if (core) {
+
+	if (core)
+	{
 		bus->drv_mips.core = core;
 		bcma_core_mips_early_init(&bus->drv_mips);
 	}
@@ -559,12 +719,18 @@ int bcma_bus_suspend(struct bcma_bus *bus)
 {
 	struct bcma_device *core;
 
-	list_for_each_entry(core, &bus->cores, list) {
+	list_for_each_entry(core, &bus->cores, list)
+	{
 		struct device_driver *drv = core->dev.driver;
-		if (drv) {
+
+		if (drv)
+		{
 			struct bcma_driver *adrv = container_of(drv, struct bcma_driver, drv);
+
 			if (adrv->suspend)
+			{
 				adrv->suspend(core);
+			}
 		}
 	}
 	return 0;
@@ -575,17 +741,24 @@ int bcma_bus_resume(struct bcma_bus *bus)
 	struct bcma_device *core;
 
 	/* Init CC core */
-	if (bus->drv_cc.core) {
+	if (bus->drv_cc.core)
+	{
 		bus->drv_cc.setup_done = false;
 		bcma_core_chipcommon_init(&bus->drv_cc);
 	}
 
-	list_for_each_entry(core, &bus->cores, list) {
+	list_for_each_entry(core, &bus->cores, list)
+	{
 		struct device_driver *drv = core->dev.driver;
-		if (drv) {
+
+		if (drv)
+		{
 			struct bcma_driver *adrv = container_of(drv, struct bcma_driver, drv);
+
 			if (adrv->resume)
+			{
 				adrv->resume(core);
+			}
 		}
 	}
 
@@ -616,13 +789,17 @@ static int bcma_bus_match(struct device *dev, struct device_driver *drv)
 	const struct bcma_device_id *cid = &core->id;
 	const struct bcma_device_id *did;
 
-	for (did = adrv->id_table; did->manuf || did->id || did->rev; did++) {
-	    if ((did->manuf == cid->manuf || did->manuf == BCMA_ANY_MANUF) &&
-		(did->id == cid->id || did->id == BCMA_ANY_ID) &&
-		(did->rev == cid->rev || did->rev == BCMA_ANY_REV) &&
-		(did->class == cid->class || did->class == BCMA_ANY_CLASS))
+	for (did = adrv->id_table; did->manuf || did->id || did->rev; did++)
+	{
+		if ((did->manuf == cid->manuf || did->manuf == BCMA_ANY_MANUF) &&
+			(did->id == cid->id || did->id == BCMA_ANY_ID) &&
+			(did->rev == cid->rev || did->rev == BCMA_ANY_REV) &&
+			(did->class == cid->class || did->class == BCMA_ANY_CLASS))
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -630,11 +807,13 @@ static int bcma_device_probe(struct device *dev)
 {
 	struct bcma_device *core = container_of(dev, struct bcma_device, dev);
 	struct bcma_driver *adrv = container_of(dev->driver, struct bcma_driver,
-					       drv);
+											drv);
 	int err = 0;
 
 	if (adrv->probe)
+	{
 		err = adrv->probe(core);
+	}
 
 	return err;
 }
@@ -643,10 +822,12 @@ static int bcma_device_remove(struct device *dev)
 {
 	struct bcma_device *core = container_of(dev, struct bcma_device, dev);
 	struct bcma_driver *adrv = container_of(dev->driver, struct bcma_driver,
-					       drv);
+											drv);
 
 	if (adrv->remove)
+	{
 		adrv->remove(core);
+	}
 
 	return 0;
 }
@@ -656,9 +837,9 @@ static int bcma_device_uevent(struct device *dev, struct kobj_uevent_env *env)
 	struct bcma_device *core = container_of(dev, struct bcma_device, dev);
 
 	return add_uevent_var(env,
-			      "MODALIAS=bcma:m%04Xid%04Xrev%02Xcl%02X",
-			      core->id.manuf, core->id.id,
-			      core->id.rev, core->id.class);
+						  "MODALIAS=bcma:m%04Xid%04Xrev%02Xcl%02X",
+						  core->id.manuf, core->id.id,
+						  core->id.rev, core->id.class);
 }
 
 static unsigned int bcma_bus_registered;
@@ -673,16 +854,21 @@ static int __init bcma_init_bus_register(void)
 	int err;
 
 	if (bcma_bus_registered)
+	{
 		return 0;
+	}
 
 	err = bus_register(&bcma_bus_type);
+
 	if (!err)
+	{
 		bcma_bus_registered = 1;
+	}
 
 	return err;
 }
 #ifndef MODULE
-fs_initcall(bcma_init_bus_register);
+	fs_initcall(bcma_init_bus_register);
 #endif
 
 /* Main initialization has to be done with SPI/mtd/NAND/SPROM available */
@@ -691,20 +877,29 @@ static int __init bcma_modinit(void)
 	int err;
 
 	err = bcma_init_bus_register();
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = bcma_host_soc_register_driver();
-	if (err) {
+
+	if (err)
+	{
 		pr_err("SoC host initialization failed\n");
 		err = 0;
 	}
+
 #ifdef CONFIG_BCMA_HOST_PCI
 	err = bcma_host_pci_init();
-	if (err) {
+
+	if (err)
+	{
 		pr_err("PCI host initialization failed\n");
 		err = 0;
 	}
+
 #endif
 
 	return err;

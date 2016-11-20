@@ -22,18 +22,18 @@ struct mtk_base_afe;
 struct mtk_base_afe_memif;
 
 int mtk_afe_fe_startup(struct snd_pcm_substream *substream,
-		       struct snd_soc_dai *dai);
+					   struct snd_soc_dai *dai);
 void mtk_afe_fe_shutdown(struct snd_pcm_substream *substream,
-			 struct snd_soc_dai *dai);
+						 struct snd_soc_dai *dai);
 int mtk_afe_fe_hw_params(struct snd_pcm_substream *substream,
-			 struct snd_pcm_hw_params *params,
-			 struct snd_soc_dai *dai);
+						 struct snd_pcm_hw_params *params,
+						 struct snd_soc_dai *dai);
 int mtk_afe_fe_hw_free(struct snd_pcm_substream *substream,
-		       struct snd_soc_dai *dai);
+					   struct snd_soc_dai *dai);
 int mtk_afe_fe_prepare(struct snd_pcm_substream *substream,
-		       struct snd_soc_dai *dai);
+					   struct snd_soc_dai *dai);
 int mtk_afe_fe_trigger(struct snd_pcm_substream *substream, int cmd,
-		       struct snd_soc_dai *dai);
+					   struct snd_soc_dai *dai);
 
 extern const struct snd_soc_dai_ops mtk_afe_fe_ops;
 

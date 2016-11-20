@@ -36,7 +36,7 @@
 
 #define v4l_client_printk(level, client, fmt, arg...)			    \
 	v4l_printk(level, (client)->dev.driver->name, (client)->adapter, \
-		   (client)->addr, fmt , ## arg)
+			   (client)->addr, fmt , ## arg)
 
 #define v4l_err(client, fmt, arg...) \
 	v4l_client_printk(KERN_ERR, client, fmt , ## arg)
@@ -97,7 +97,7 @@
  */
 
 int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl,
-			 s32 min, s32 max, s32 step, s32 def);
+						 s32 min, s32 max, s32 step, s32 def);
 
 /* ------------------------------------------------------------------------- */
 
@@ -125,8 +125,8 @@ struct v4l2_subdev_ops;
  * returns a &struct v4l2_subdev pointer.
  */
 struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
-		struct i2c_adapter *adapter, const char *client_type,
-		u8 addr, const unsigned short *probe_addrs);
+										struct i2c_adapter *adapter, const char *client_type,
+										u8 addr, const unsigned short *probe_addrs);
 
 struct i2c_board_info;
 
@@ -156,7 +156,7 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
  * @ops: pointer to &struct v4l2_subdev_ops
  */
 void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-		const struct v4l2_subdev_ops *ops);
+						  const struct v4l2_subdev_ops *ops);
 
 /**
  * v4l2_i2c_subdev_addr - returns i2c client address of &struct v4l2_subdev.
@@ -167,7 +167,8 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
  */
 unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd);
 
-enum v4l2_i2c_tuner_type {
+enum v4l2_i2c_tuner_type
+{
 	ADDRS_RADIO,	/* Radio tuner addresses */
 	ADDRS_DEMOD,	/* Demod tuner addresses */
 	ADDRS_TV,	/* TV tuner addresses */
@@ -201,7 +202,7 @@ struct spi_device;
  * returns a &struct v4l2_subdev pointer.
  */
 struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
-		struct spi_master *master, struct spi_board_info *info);
+										struct spi_master *master, struct spi_board_info *info);
 
 /**
  * v4l2_spi_subdev_init - Initialize a v4l2_subdev with data from an
@@ -212,7 +213,7 @@ struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
  * @ops: pointer to &struct v4l2_subdev_ops
  */
 void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
-		const struct v4l2_subdev_ops *ops);
+						  const struct v4l2_subdev_ops *ops);
 #endif
 
 /* ------------------------------------------------------------------------- */
@@ -223,7 +224,8 @@ void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
    is needed in those modules. */
 
 /* s_config */
-struct v4l2_priv_tun_config {
+struct v4l2_priv_tun_config
+{
 	int tuner;
 	void *priv;
 };
@@ -231,7 +233,8 @@ struct v4l2_priv_tun_config {
 
 #define VIDIOC_INT_RESET            	_IOW ('d', 102, u32)
 
-struct v4l2_routing {
+struct v4l2_routing
+{
 	u32 input;
 	u32 output;
 };
@@ -241,19 +244,20 @@ struct v4l2_routing {
 /* Miscellaneous helper functions */
 
 void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
-			   unsigned int wmax, unsigned int walign,
-			   unsigned int *h, unsigned int hmin,
-			   unsigned int hmax, unsigned int halign,
-			   unsigned int salign);
+						   unsigned int wmax, unsigned int walign,
+						   unsigned int *h, unsigned int hmin,
+						   unsigned int hmax, unsigned int halign,
+						   unsigned int salign);
 
-struct v4l2_discrete_probe {
+struct v4l2_discrete_probe
+{
 	const struct v4l2_frmsize_discrete	*sizes;
 	int					num_sizes;
 };
 
 const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
-		const struct v4l2_discrete_probe *probe,
-		s32 width, s32 height);
+	const struct v4l2_discrete_probe *probe,
+	s32 width, s32 height);
 
 void v4l2_get_timestamp(struct timeval *tv);
 

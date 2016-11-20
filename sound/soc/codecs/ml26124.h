@@ -172,11 +172,13 @@
 
 #define ML26124_MICBEN_ON	BIT(2)
 
-enum ml26124_regs {
+enum ml26124_regs
+{
 	ML26124_MCLK = 0,
 };
 
-enum ml26124_clk_in {
+enum ml26124_clk_in
+{
 	ML26124_USE_PLLOUT = 0,
 	ML26124_USE_MCLKI,
 };

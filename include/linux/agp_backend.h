@@ -20,9 +20,9 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * JEFF HARTMANN, OR ANY OTHER CONTRIBUTORS BE LIABLE FOR ANY CLAIM, 
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+ * JEFF HARTMANN, OR ANY OTHER CONTRIBUTORS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
@@ -32,17 +32,20 @@
 
 #include <linux/list.h>
 
-enum chipset_type {
+enum chipset_type
+{
 	NOT_SUPPORTED,
 	SUPPORTED,
 };
 
-struct agp_version {
+struct agp_version
+{
 	u16 major;
 	u16 minor;
 };
 
-struct agp_kern_info {
+struct agp_kern_info
+{
 	struct agp_version version;
 	struct pci_dev *device;
 	enum chipset_type chipset;
@@ -66,7 +69,8 @@ struct agp_kern_info {
 
 struct agp_bridge_data;
 
-struct agp_memory {
+struct agp_memory
+{
 	struct agp_memory *next;
 	struct agp_memory *prev;
 	struct agp_bridge_data *bridge;

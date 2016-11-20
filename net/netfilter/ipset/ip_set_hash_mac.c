@@ -31,9 +31,11 @@ MODULE_ALIAS("ip_set_hash:mac");
 #define HTYPE		hash_mac
 
 /* Member elements */
-struct hash_mac4_elem {
+struct hash_mac4_elem
+{
 	/* Zero valued IP addresses cannot be stored */
-	union {
+	union
+	{
 		unsigned char ether[ETH_ALEN];
 		__be32 foo[2];
 	};
@@ -43,8 +45,8 @@ struct hash_mac4_elem {
 
 static inline bool
 hash_mac4_data_equal(const struct hash_mac4_elem *e1,
-		     const struct hash_mac4_elem *e2,
-		     u32 *multi)
+					 const struct hash_mac4_elem *e2,
+					 u32 *multi)
 {
 	return ether_addr_equal(e1->ether, e2->ether);
 }
@@ -53,7 +55,10 @@ static inline bool
 hash_mac4_data_list(struct sk_buff *skb, const struct hash_mac4_elem *e)
 {
 	if (nla_put(skb, IPSET_ATTR_ETHER, ETH_ALEN, e->ether))
+	{
 		goto nla_put_failure;
+	}
+
 	return false;
 
 nla_put_failure:
@@ -62,7 +67,7 @@ nla_put_failure:
 
 static inline void
 hash_mac4_data_next(struct hash_mac4_elem *next,
-		    const struct hash_mac4_elem *e)
+					const struct hash_mac4_elem *e)
 {
 }
 
@@ -77,30 +82,38 @@ static const unsigned char invalid_ether[ETH_ALEN] = { 0 };
 
 static int
 hash_mac4_kadt(struct ip_set *set, const struct sk_buff *skb,
-	       const struct xt_action_param *par,
-	       enum ipset_adt adt, struct ip_set_adt_opt *opt)
+			   const struct xt_action_param *par,
+			   enum ipset_adt adt, struct ip_set_adt_opt *opt)
 {
 	ipset_adtfn adtfn = set->variant->adt[adt];
 	struct hash_mac4_elem e = { { .foo[0] = 0, .foo[1] = 0 } };
 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
 
-	 /* MAC can be src only */
+	/* MAC can be src only */
 	if (!(opt->flags & IPSET_DIM_ONE_SRC))
+	{
 		return 0;
+	}
 
 	if (skb_mac_header(skb) < skb->head ||
-	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
+		(skb_mac_header(skb) + ETH_HLEN) > skb->data)
+	{
 		return -EINVAL;
+	}
 
 	ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
+
 	if (memcmp(e.ether, invalid_ether, ETH_ALEN) == 0)
+	{
 		return -EINVAL;
+	}
+
 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
 }
 
 static int
 hash_mac4_uadt(struct ip_set *set, struct nlattr *tb[],
-	       enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
+			   enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
 {
 	ipset_adtfn adtfn = set->variant->adt[adt];
 	struct hash_mac4_elem e = { { .foo[0] = 0, .foo[1] = 0 } };
@@ -108,23 +121,35 @@ hash_mac4_uadt(struct ip_set *set, struct nlattr *tb[],
 	int ret;
 
 	if (tb[IPSET_ATTR_LINENO])
+	{
 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
+	}
 
 	if (unlikely(!tb[IPSET_ATTR_ETHER] ||
-		     nla_len(tb[IPSET_ATTR_ETHER]) != ETH_ALEN))
+				 nla_len(tb[IPSET_ATTR_ETHER]) != ETH_ALEN))
+	{
 		return -IPSET_ERR_PROTOCOL;
+	}
 
 	ret = ip_set_get_extensions(set, tb, &ext);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ether_addr_copy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]));
+
 	if (memcmp(e.ether, invalid_ether, ETH_ALEN) == 0)
+	{
 		return -IPSET_ERR_HASH_ELEM;
+	}
 
 	return adtfn(set, &e, &ext, &ext, flags);
 }
 
-static struct ip_set_type hash_mac_type __read_mostly = {
+static struct ip_set_type hash_mac_type __read_mostly =
+{
 	.name		= "hash:mac",
 	.protocol	= IPSET_PROTOCOL,
 	.features	= IPSET_TYPE_MAC,
@@ -142,14 +167,18 @@ static struct ip_set_type hash_mac_type __read_mostly = {
 		[IPSET_ATTR_CADT_FLAGS]	= { .type = NLA_U32 },
 	},
 	.adt_policy	= {
-		[IPSET_ATTR_ETHER]	= { .type = NLA_BINARY,
-					    .len  = ETH_ALEN },
+		[IPSET_ATTR_ETHER]	= {
+			.type = NLA_BINARY,
+			.len  = ETH_ALEN
+		},
 		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
 		[IPSET_ATTR_LINENO]	= { .type = NLA_U32 },
 		[IPSET_ATTR_BYTES]	= { .type = NLA_U64 },
 		[IPSET_ATTR_PACKETS]	= { .type = NLA_U64 },
-		[IPSET_ATTR_COMMENT]	= { .type = NLA_NUL_STRING,
-					    .len  = IPSET_MAX_COMMENT_SIZE },
+		[IPSET_ATTR_COMMENT]	= {
+			.type = NLA_NUL_STRING,
+			.len  = IPSET_MAX_COMMENT_SIZE
+		},
 		[IPSET_ATTR_SKBMARK]	= { .type = NLA_U64 },
 		[IPSET_ATTR_SKBPRIO]	= { .type = NLA_U32 },
 		[IPSET_ATTR_SKBQUEUE]	= { .type = NLA_U16 },

@@ -29,7 +29,8 @@
 #define LPC18XX_UART_RS485DLY		(0x054 / sizeof(u32))
 #define LPC18XX_UART_RS485DLY_MAX	255
 
-struct lpc18xx_uart_data {
+struct lpc18xx_uart_data
+{
 	struct uart_8250_dma dma;
 	struct clk *clk_uart;
 	struct clk *clk_reg;
@@ -37,7 +38,7 @@ struct lpc18xx_uart_data {
 };
 
 static int lpc18xx_rs485_config(struct uart_port *port,
-				struct serial_rs485 *rs485)
+								struct serial_rs485 *rs485)
 {
 	struct uart_8250_port *up = up_to_u8250p(port);
 	u32 rs485_ctrl_reg = 0;
@@ -45,36 +46,47 @@ static int lpc18xx_rs485_config(struct uart_port *port,
 	unsigned baud_clk;
 
 	if (rs485->flags & SER_RS485_ENABLED)
+	{
 		memset(rs485->padding, 0, sizeof(rs485->padding));
+	}
 	else
+	{
 		memset(rs485, 0, sizeof(*rs485));
+	}
 
 	rs485->flags &= SER_RS485_ENABLED | SER_RS485_RTS_ON_SEND |
-			SER_RS485_RTS_AFTER_SEND;
+					SER_RS485_RTS_AFTER_SEND;
 
-	if (rs485->flags & SER_RS485_ENABLED) {
+	if (rs485->flags & SER_RS485_ENABLED)
+	{
 		rs485_ctrl_reg |= LPC18XX_UART_RS485CTRL_NMMEN |
-				  LPC18XX_UART_RS485CTRL_DCTRL;
+						  LPC18XX_UART_RS485CTRL_DCTRL;
 
-		if (rs485->flags & SER_RS485_RTS_ON_SEND) {
+		if (rs485->flags & SER_RS485_RTS_ON_SEND)
+		{
 			rs485_ctrl_reg |= LPC18XX_UART_RS485CTRL_OINV;
 			rs485->flags &= ~SER_RS485_RTS_AFTER_SEND;
-		} else {
+		}
+		else
+		{
 			rs485->flags |= SER_RS485_RTS_AFTER_SEND;
 		}
 	}
 
-	if (rs485->delay_rts_after_send) {
+	if (rs485->delay_rts_after_send)
+	{
 		baud_clk = port->uartclk / up->dl_read(up);
 		rs485_dly_reg = DIV_ROUND_UP(rs485->delay_rts_after_send
-						* baud_clk, MSEC_PER_SEC);
+									 * baud_clk, MSEC_PER_SEC);
 
 		if (rs485_dly_reg > LPC18XX_UART_RS485DLY_MAX)
+		{
 			rs485_dly_reg = LPC18XX_UART_RS485DLY_MAX;
+		}
 
 		/* Calculate the resulting delay in ms */
 		rs485->delay_rts_after_send = (rs485_dly_reg * MSEC_PER_SEC)
-						/ baud_clk;
+									  / baud_clk;
 	}
 
 	/* Delay RTS before send not supported */
@@ -96,7 +108,9 @@ static void lpc18xx_uart_serial_out(struct uart_port *p, int offset, int value)
 	 * setting this bit doesn't seem to affect anything.
 	 */
 	if (offset == UART_FCR && (value & UART_FCR_ENABLE_FIFO))
+	{
 		value |= UART_FCR_DMA_SELECT;
+	}
 
 	offset = offset << p->regshift;
 	writel(value, p->membase + offset);
@@ -110,13 +124,17 @@ static int lpc18xx_serial_probe(struct platform_device *pdev)
 	int irq, ret;
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "irq not found");
 		return irq;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "memory resource not found");
 		return -EINVAL;
 	}
@@ -124,41 +142,58 @@ static int lpc18xx_serial_probe(struct platform_device *pdev)
 	memset(&uart, 0, sizeof(uart));
 
 	uart.port.membase = devm_ioremap(&pdev->dev, res->start,
-					 resource_size(res));
+									 resource_size(res));
+
 	if (!uart.port.membase)
+	{
 		return -ENOMEM;
+	}
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->clk_uart = devm_clk_get(&pdev->dev, "uartclk");
-	if (IS_ERR(data->clk_uart)) {
+
+	if (IS_ERR(data->clk_uart))
+	{
 		dev_err(&pdev->dev, "uart clock not found\n");
 		return PTR_ERR(data->clk_uart);
 	}
 
 	data->clk_reg = devm_clk_get(&pdev->dev, "reg");
-	if (IS_ERR(data->clk_reg)) {
+
+	if (IS_ERR(data->clk_reg))
+	{
 		dev_err(&pdev->dev, "reg clock not found\n");
 		return PTR_ERR(data->clk_reg);
 	}
 
 	ret = clk_prepare_enable(data->clk_reg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable reg clock\n");
 		return ret;
 	}
 
 	ret = clk_prepare_enable(data->clk_uart);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable uart clock\n");
 		goto dis_clk_reg;
 	}
 
 	ret = of_alias_get_id(pdev->dev.of_node, "serial");
+
 	if (ret >= 0)
+	{
 		uart.port.line = ret;
+	}
 
 	data->dma.rx_param = data;
 	data->dma.tx_param = data;
@@ -181,7 +216,9 @@ static int lpc18xx_serial_probe(struct platform_device *pdev)
 	uart.dma->txconf.dst_maxburst = 1;
 
 	ret = serial8250_register_8250_port(&uart);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "unable to register 8250 port\n");
 		goto dis_uart_clk;
 	}
@@ -209,13 +246,15 @@ static int lpc18xx_serial_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id lpc18xx_serial_match[] = {
+static const struct of_device_id lpc18xx_serial_match[] =
+{
 	{ .compatible = "nxp,lpc1850-uart" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, lpc18xx_serial_match);
 
-static struct platform_driver lpc18xx_serial_driver = {
+static struct platform_driver lpc18xx_serial_driver =
+{
 	.probe  = lpc18xx_serial_probe,
 	.remove = lpc18xx_serial_remove,
 	.driver = {

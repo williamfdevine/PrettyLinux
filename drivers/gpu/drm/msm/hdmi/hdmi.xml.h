@@ -46,7 +46,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-enum hdmi_hdcp_key_state {
+enum hdmi_hdcp_key_state
+{
 	HDCP_KEYS_STATE_NO_KEYS = 0,
 	HDCP_KEYS_STATE_NOT_CHECKED = 1,
 	HDCP_KEYS_STATE_CHECKING = 2,
@@ -57,12 +58,14 @@ enum hdmi_hdcp_key_state {
 	HDCP_KEYS_STATE_RESERVED = 7,
 };
 
-enum hdmi_ddc_read_write {
+enum hdmi_ddc_read_write
+{
 	DDC_WRITE = 0,
 	DDC_READ = 1,
 };
 
-enum hdmi_acr_cts {
+enum hdmi_acr_cts
+{
 	ACR_NONE = 0,
 	ACR_32 = 1,
 	ACR_44 = 2,
@@ -142,19 +145,19 @@ static inline uint32_t HDMI_GEN_PKT_CTRL_GENERIC1_LINE(uint32_t val)
 #define HDMI_AUDIO_PKT_CTRL2_OVERRIDE				0x00000001
 #define HDMI_AUDIO_PKT_CTRL2_LAYOUT				0x00000002
 
-static inline uint32_t REG_HDMI_AVI_INFO(uint32_t i0) { return 0x0000006c + 0x4*i0; }
+static inline uint32_t REG_HDMI_AVI_INFO(uint32_t i0) { return 0x0000006c + 0x4 * i0; }
 
 #define REG_HDMI_GENERIC0_HDR					0x00000084
 
-static inline uint32_t REG_HDMI_GENERIC0(uint32_t i0) { return 0x00000088 + 0x4*i0; }
+static inline uint32_t REG_HDMI_GENERIC0(uint32_t i0) { return 0x00000088 + 0x4 * i0; }
 
 #define REG_HDMI_GENERIC1_HDR					0x000000a4
 
-static inline uint32_t REG_HDMI_GENERIC1(uint32_t i0) { return 0x000000a8 + 0x4*i0; }
+static inline uint32_t REG_HDMI_GENERIC1(uint32_t i0) { return 0x000000a8 + 0x4 * i0; }
 
-static inline uint32_t REG_HDMI_ACR(enum hdmi_acr_cts i0) { return 0x000000c4 + 0x8*i0; }
+static inline uint32_t REG_HDMI_ACR(enum hdmi_acr_cts i0) { return 0x000000c4 + 0x8 * i0; }
 
-static inline uint32_t REG_HDMI_ACR_0(enum hdmi_acr_cts i0) { return 0x000000c4 + 0x8*i0; }
+static inline uint32_t REG_HDMI_ACR_0(enum hdmi_acr_cts i0) { return 0x000000c4 + 0x8 * i0; }
 #define HDMI_ACR_0_CTS__MASK					0xfffff000
 #define HDMI_ACR_0_CTS__SHIFT					12
 static inline uint32_t HDMI_ACR_0_CTS(uint32_t val)
@@ -162,7 +165,7 @@ static inline uint32_t HDMI_ACR_0_CTS(uint32_t val)
 	return ((val) << HDMI_ACR_0_CTS__SHIFT) & HDMI_ACR_0_CTS__MASK;
 }
 
-static inline uint32_t REG_HDMI_ACR_1(enum hdmi_acr_cts i0) { return 0x000000c8 + 0x8*i0; }
+static inline uint32_t REG_HDMI_ACR_1(enum hdmi_acr_cts i0) { return 0x000000c8 + 0x8 * i0; }
 #define HDMI_ACR_1_N__MASK					0xffffffff
 #define HDMI_ACR_1_N__SHIFT					0
 static inline uint32_t HDMI_ACR_1_N(uint32_t val)
@@ -359,9 +362,9 @@ static inline uint32_t HDMI_DDC_SETUP_TIMEOUT(uint32_t val)
 	return ((val) << HDMI_DDC_SETUP_TIMEOUT__SHIFT) & HDMI_DDC_SETUP_TIMEOUT__MASK;
 }
 
-static inline uint32_t REG_HDMI_I2C_TRANSACTION(uint32_t i0) { return 0x00000228 + 0x4*i0; }
+static inline uint32_t REG_HDMI_I2C_TRANSACTION(uint32_t i0) { return 0x00000228 + 0x4 * i0; }
 
-static inline uint32_t REG_HDMI_I2C_TRANSACTION_REG(uint32_t i0) { return 0x00000228 + 0x4*i0; }
+static inline uint32_t REG_HDMI_I2C_TRANSACTION_REG(uint32_t i0) { return 0x00000228 + 0x4 * i0; }
 #define HDMI_I2C_TRANSACTION_REG_RW__MASK			0x00000001
 #define HDMI_I2C_TRANSACTION_REG_RW__SHIFT			0
 static inline uint32_t HDMI_I2C_TRANSACTION_REG_RW(enum hdmi_ddc_read_write val)

@@ -31,7 +31,8 @@
  * See Documentation/io-mapping.txt
  */
 
-struct io_mapping {
+struct io_mapping
+{
 	resource_size_t base;
 	unsigned long size;
 	pgprot_t prot;
@@ -50,13 +51,15 @@ struct io_mapping {
 
 static inline struct io_mapping *
 io_mapping_init_wc(struct io_mapping *iomap,
-		   resource_size_t base,
-		   unsigned long size)
+				   resource_size_t base,
+				   unsigned long size)
 {
 	pgprot_t prot;
 
 	if (iomap_create_wc(base, size, &prot))
+	{
 		return NULL;
+	}
 
 	iomap->base = base;
 	iomap->size = size;
@@ -73,7 +76,7 @@ io_mapping_fini(struct io_mapping *mapping)
 /* Atomic map/unmap */
 static inline void __iomem *
 io_mapping_map_atomic_wc(struct io_mapping *mapping,
-			 unsigned long offset)
+						 unsigned long offset)
 {
 	resource_size_t phys_addr;
 	unsigned long pfn;
@@ -92,8 +95,8 @@ io_mapping_unmap_atomic(void __iomem *vaddr)
 
 static inline void __iomem *
 io_mapping_map_wc(struct io_mapping *mapping,
-		  unsigned long offset,
-		  unsigned long size)
+				  unsigned long offset,
+				  unsigned long size)
 {
 	resource_size_t phys_addr;
 
@@ -117,8 +120,8 @@ io_mapping_unmap(void __iomem *vaddr)
 /* Create the io_mapping object*/
 static inline struct io_mapping *
 io_mapping_init_wc(struct io_mapping *iomap,
-		   resource_size_t base,
-		   unsigned long size)
+				   resource_size_t base,
+				   unsigned long size)
 {
 	iomap->base = base;
 	iomap->size = size;
@@ -143,8 +146,8 @@ io_mapping_fini(struct io_mapping *mapping)
 /* Non-atomic map/unmap */
 static inline void __iomem *
 io_mapping_map_wc(struct io_mapping *mapping,
-		  unsigned long offset,
-		  unsigned long size)
+				  unsigned long offset,
+				  unsigned long size)
 {
 	return mapping->iomem + offset;
 }
@@ -157,7 +160,7 @@ io_mapping_unmap(void __iomem *vaddr)
 /* Atomic map/unmap */
 static inline void __iomem *
 io_mapping_map_atomic_wc(struct io_mapping *mapping,
-			 unsigned long offset)
+						 unsigned long offset)
 {
 	preempt_disable();
 	pagefault_disable();
@@ -176,15 +179,19 @@ io_mapping_unmap_atomic(void __iomem *vaddr)
 
 static inline struct io_mapping *
 io_mapping_create_wc(resource_size_t base,
-		     unsigned long size)
+					 unsigned long size)
 {
 	struct io_mapping *iomap;
 
 	iomap = kmalloc(sizeof(*iomap), GFP_KERNEL);
-	if (!iomap)
-		return NULL;
 
-	if (!io_mapping_init_wc(iomap, base, size)) {
+	if (!iomap)
+	{
+		return NULL;
+	}
+
+	if (!io_mapping_init_wc(iomap, base, size))
+	{
 		kfree(iomap);
 		return NULL;
 	}

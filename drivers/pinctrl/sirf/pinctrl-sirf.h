@@ -39,7 +39,8 @@
  * @dev: a pointer back to containing device
  * @virtbase: the offset to the controller in virtual memory
  */
-struct sirfsoc_pmx {
+struct sirfsoc_pmx
+{
 	struct device *dev;
 	struct pinctrl_dev *pmx;
 	void __iomem *gpio_virtbase;
@@ -52,12 +53,14 @@ struct sirfsoc_pmx {
 };
 
 /* SIRFSOC_GPIO_PAD_EN set */
-struct sirfsoc_muxmask {
+struct sirfsoc_muxmask
+{
 	unsigned long group;
 	unsigned long mask;
 };
 
-struct sirfsoc_padmux {
+struct sirfsoc_padmux
+{
 	unsigned long muxmask_counts;
 	const struct sirfsoc_muxmask *muxmask;
 	/* RSC_PIN_MUX set */
@@ -66,15 +69,16 @@ struct sirfsoc_padmux {
 	unsigned long funcval;
 };
 
- /**
- * struct sirfsoc_pin_group - describes a SiRFprimaII pin group
- * @name: the name of this specific pin group
- * @pins: an array of discrete physical pins used in this group, taken
- *	from the driver-local pin enumeration space
- * @num_pins: the number of pins in this group array, i.e. the number of
- *	elements in .pins so we can iterate over that array
- */
-struct sirfsoc_pin_group {
+/**
+* struct sirfsoc_pin_group - describes a SiRFprimaII pin group
+* @name: the name of this specific pin group
+* @pins: an array of discrete physical pins used in this group, taken
+*	from the driver-local pin enumeration space
+* @num_pins: the number of pins in this group array, i.e. the number of
+*	elements in .pins so we can iterate over that array
+*/
+struct sirfsoc_pin_group
+{
 	const char *name;
 	const unsigned int *pins;
 	const unsigned num_pins;
@@ -83,13 +87,14 @@ struct sirfsoc_pin_group {
 #define SIRFSOC_PIN_GROUP(n, p)  \
 	{			\
 		.name = n,	\
-		.pins = p,	\
-		.num_pins = ARRAY_SIZE(p),	\
+				.pins = p,	\
+						.num_pins = ARRAY_SIZE(p),	\
 	}
 
-struct sirfsoc_pmx_func {
+struct sirfsoc_pmx_func
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	const unsigned num_groups;
 	const struct sirfsoc_padmux *padmux;
 };
@@ -97,12 +102,13 @@ struct sirfsoc_pmx_func {
 #define SIRFSOC_PMX_FUNCTION(n, g, m)		\
 	{					\
 		.name = n,			\
-		.groups = g,			\
-		.num_groups = ARRAY_SIZE(g),	\
-		.padmux = &m,			\
+				.groups = g,			\
+						  .num_groups = ARRAY_SIZE(g),	\
+										.padmux = &m,			\
 	}
 
-struct sirfsoc_pinctrl_data {
+struct sirfsoc_pinctrl_data
+{
 	struct pinctrl_pin_desc *pads;
 	int pads_cnt;
 	struct sirfsoc_pin_group *grps;

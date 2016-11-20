@@ -81,35 +81,35 @@
 
 /* These macros reverse the bytes during the move, converting little-endian to big endian */
 
-	 /* Big Endian      <==        Little Endian */
-	 /*  Hi...Lo                     Lo...Hi     */
+/* Big Endian      <==        Little Endian */
+/*  Hi...Lo                     Lo...Hi     */
 /* 16-bit source, 16/32/64 destination */
 
 #define ACPI_MOVE_16_TO_16(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[1];\
-			  ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[0];}
+		((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[0];}
 
 #define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d))=0;\
-					  ((u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[1];\
-					  ((u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0];}
+		((u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[1];\
+		((u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0];}
 
 #define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d))=0;\
-							   ((u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
-							   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
+		((u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
+		((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
 
 /* 32-bit source, 16/32/64 destination */
 
 #define ACPI_MOVE_32_TO_16(d, s)        ACPI_MOVE_16_TO_16(d, s)	/* Truncate to 16 */
 
 #define ACPI_MOVE_32_TO_32(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[3];\
-									  ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[2];\
-									  ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[1];\
-									  ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0];}
+		((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[2];\
+		((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[1];\
+		((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0];}
 
 #define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d))=0;\
-										   ((u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[3];\
-										   ((u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[2];\
-										   ((u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
-										   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
+		((u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[3];\
+		((u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[2];\
+		((u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
+		((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
 
 /* 64-bit source, 16/32/64 destination */
 
@@ -118,13 +118,13 @@
 #define ACPI_MOVE_64_TO_32(d, s)        ACPI_MOVE_32_TO_32(d, s)	/* Truncate to 32 */
 
 #define ACPI_MOVE_64_TO_64(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[7];\
-										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[6];\
-										 ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[5];\
-										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[4];\
-										 ((  u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[3];\
-										 ((  u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[2];\
-										 ((  u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
-										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
+		((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[6];\
+		((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[5];\
+		((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[4];\
+		((  u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[3];\
+		((  u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[2];\
+		((  u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
+		((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
 #else
 /*
  * Macros for little-endian machines
@@ -162,7 +162,7 @@
 /* 16-bit source, 16/32/64 destination */
 
 #define ACPI_MOVE_16_TO_16(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
-										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];}
+		((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];}
 
 #define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s);}
 #define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s);}
@@ -172,9 +172,9 @@
 #define ACPI_MOVE_32_TO_16(d, s)        ACPI_MOVE_16_TO_16(d, s)	/* Truncate to 16 */
 
 #define ACPI_MOVE_32_TO_32(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
-										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];\
-										 ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[2];\
-										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[3];}
+		((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];\
+		((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[2];\
+		((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[3];}
 
 #define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_32_TO_32(d, s);}
 
@@ -183,13 +183,13 @@
 #define ACPI_MOVE_64_TO_16(d, s)        ACPI_MOVE_16_TO_16(d, s)	/* Truncate to 16 */
 #define ACPI_MOVE_64_TO_32(d, s)        ACPI_MOVE_32_TO_32(d, s)	/* Truncate to 32 */
 #define ACPI_MOVE_64_TO_64(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
-										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];\
-										 ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[2];\
-										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[3];\
-										 ((  u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[4];\
-										 ((  u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[5];\
-										 ((  u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[6];\
-										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[7];}
+		((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];\
+		((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[2];\
+		((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[3];\
+		((  u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[4];\
+		((  u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[5];\
+		((  u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[6];\
+		((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[7];}
 #endif
 #endif
 
@@ -233,11 +233,11 @@
  * Rounding macros (Power of two boundaries only)
  */
 #define ACPI_ROUND_DOWN(value, boundary)    (((acpi_size)(value)) & \
-												(~(((acpi_size) boundary)-1)))
+		(~(((acpi_size) boundary)-1)))
 
 #define ACPI_ROUND_UP(value, boundary)      ((((acpi_size)(value)) + \
-												(((acpi_size) boundary)-1)) & \
-												(~(((acpi_size) boundary)-1)))
+		(((acpi_size) boundary)-1)) & \
+		(~(((acpi_size) boundary)-1)))
 
 /* Note: sizeof(acpi_size) evaluates to either 4 or 8 (32- vs 64-bit mode) */
 
@@ -280,11 +280,11 @@
 #define ACPI_MASK_BITS_ABOVE_32(width)      ((u32) ACPI_MASK_BITS_ABOVE(width))
 #define ACPI_MASK_BITS_BELOW_32(width)      ((u32) ACPI_MASK_BITS_BELOW(width))
 #define ACPI_MASK_BITS_ABOVE_64(width)      ((width) == ACPI_INTEGER_BIT_SIZE ? \
-												ACPI_UINT64_MAX : \
-												ACPI_MASK_BITS_ABOVE(width))
+		ACPI_UINT64_MAX : \
+		ACPI_MASK_BITS_ABOVE(width))
 #define ACPI_MASK_BITS_BELOW_64(width)      ((width) == ACPI_INTEGER_BIT_SIZE ? \
-												(u64) 0 : \
-												ACPI_MASK_BITS_BELOW(width))
+		(u64) 0 : \
+		ACPI_MASK_BITS_BELOW(width))
 
 /* Bitfields within ACPI registers */
 
@@ -388,33 +388,33 @@
  * Ascii error messages can be configured out
  */
 #ifndef ACPI_NO_ERROR_MESSAGES
-/*
- * Error reporting. Callers module and line number are inserted by AE_INFO,
- * the plist contains a set of parens to allow variable-length lists.
- * These macros are used for both the debug and non-debug versions of the code.
- */
-#define ACPI_ERROR_NAMESPACE(s, e)          acpi_ut_namespace_error (AE_INFO, s, e);
-#define ACPI_ERROR_METHOD(s, n, p, e)       acpi_ut_method_error (AE_INFO, s, n, p, e);
-#define ACPI_WARN_PREDEFINED(plist)         acpi_ut_predefined_warning plist
-#define ACPI_INFO_PREDEFINED(plist)         acpi_ut_predefined_info plist
-#define ACPI_BIOS_ERROR_PREDEFINED(plist)   acpi_ut_predefined_bios_error plist
+	/*
+	* Error reporting. Callers module and line number are inserted by AE_INFO,
+	* the plist contains a set of parens to allow variable-length lists.
+	* These macros are used for both the debug and non-debug versions of the code.
+	*/
+	#define ACPI_ERROR_NAMESPACE(s, e)          acpi_ut_namespace_error (AE_INFO, s, e);
+	#define ACPI_ERROR_METHOD(s, n, p, e)       acpi_ut_method_error (AE_INFO, s, n, p, e);
+	#define ACPI_WARN_PREDEFINED(plist)         acpi_ut_predefined_warning plist
+	#define ACPI_INFO_PREDEFINED(plist)         acpi_ut_predefined_info plist
+	#define ACPI_BIOS_ERROR_PREDEFINED(plist)   acpi_ut_predefined_bios_error plist
 
 #else
 
-/* No error messages */
+	/* No error messages */
 
-#define ACPI_ERROR_NAMESPACE(s, e)
-#define ACPI_ERROR_METHOD(s, n, p, e)
-#define ACPI_WARN_PREDEFINED(plist)
-#define ACPI_INFO_PREDEFINED(plist)
-#define ACPI_BIOS_ERROR_PREDEFINED(plist)
+	#define ACPI_ERROR_NAMESPACE(s, e)
+	#define ACPI_ERROR_METHOD(s, n, p, e)
+	#define ACPI_WARN_PREDEFINED(plist)
+	#define ACPI_INFO_PREDEFINED(plist)
+	#define ACPI_BIOS_ERROR_PREDEFINED(plist)
 
 #endif				/* ACPI_NO_ERROR_MESSAGES */
 
 #if (!ACPI_REDUCED_HARDWARE)
-#define ACPI_HW_OPTIONAL_FUNCTION(addr)     addr
+	#define ACPI_HW_OPTIONAL_FUNCTION(addr)     addr
 #else
-#define ACPI_HW_OPTIONAL_FUNCTION(addr)     NULL
+	#define ACPI_HW_OPTIONAL_FUNCTION(addr)     NULL
 #endif
 
 /*

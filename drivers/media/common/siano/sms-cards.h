@@ -48,7 +48,8 @@
 #define SMS1XXX_BOARD_SIANO_DENVER_2160 20
 #define SMS1XXX_BOARD_PCTV_77E		21
 
-struct sms_board_gpio_cfg {
+struct sms_board_gpio_cfg
+{
 	int lna_vhf_exist;
 	int lna_vhf_ctrl;
 	int lna_uhf_exist;
@@ -81,7 +82,8 @@ struct sms_board_gpio_cfg {
 	int host_spi_gsp_ts_int;
 };
 
-struct sms_board {
+struct sms_board
+{
 	enum sms_device_type_st type;
 	char *name, *fw[DEVICE_MODE_MAX];
 	struct sms_board_gpio_cfg board_cfg;
@@ -101,7 +103,8 @@ struct sms_board *sms_get_board(unsigned id);
 
 extern struct smscore_device_t *coredev;
 
-enum SMS_BOARD_EVENTS {
+enum SMS_BOARD_EVENTS
+{
 	BOARD_EVENT_POWER_INIT,
 	BOARD_EVENT_POWER_SUSPEND,
 	BOARD_EVENT_POWER_RESUME,
@@ -123,7 +126,7 @@ enum SMS_BOARD_EVENTS {
 };
 
 int sms_board_event(struct smscore_device_t *coredev,
-		enum SMS_BOARD_EVENTS gevent);
+					enum SMS_BOARD_EVENTS gevent);
 
 int sms_board_setup(struct smscore_device_t *coredev);
 

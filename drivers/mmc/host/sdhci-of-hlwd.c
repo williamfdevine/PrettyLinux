@@ -51,7 +51,8 @@ static void sdhci_hlwd_writeb(struct sdhci_host *host, u8 val, int reg)
 	udelay(SDHCI_HLWD_WRITE_DELAY);
 }
 
-static const struct sdhci_ops sdhci_hlwd_ops = {
+static const struct sdhci_ops sdhci_hlwd_ops =
+{
 	.read_l = sdhci_be32bs_readl,
 	.read_w = sdhci_be32bs_readw,
 	.read_b = sdhci_be32bs_readb,
@@ -64,9 +65,10 @@ static const struct sdhci_ops sdhci_hlwd_ops = {
 	.set_uhs_signaling = sdhci_set_uhs_signaling,
 };
 
-static const struct sdhci_pltfm_data sdhci_hlwd_pdata = {
+static const struct sdhci_pltfm_data sdhci_hlwd_pdata =
+{
 	.quirks = SDHCI_QUIRK_32BIT_DMA_ADDR |
-		  SDHCI_QUIRK_32BIT_DMA_SIZE,
+	SDHCI_QUIRK_32BIT_DMA_SIZE,
 	.ops = &sdhci_hlwd_ops,
 };
 
@@ -75,13 +77,15 @@ static int sdhci_hlwd_probe(struct platform_device *pdev)
 	return sdhci_pltfm_register(pdev, &sdhci_hlwd_pdata, 0);
 }
 
-static const struct of_device_id sdhci_hlwd_of_match[] = {
+static const struct of_device_id sdhci_hlwd_of_match[] =
+{
 	{ .compatible = "nintendo,hollywood-sdhci" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, sdhci_hlwd_of_match);
 
-static struct platform_driver sdhci_hlwd_driver = {
+static struct platform_driver sdhci_hlwd_driver =
+{
 	.driver = {
 		.name = "sdhci-hlwd",
 		.of_match_table = sdhci_hlwd_of_match,

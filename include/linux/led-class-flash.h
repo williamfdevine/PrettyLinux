@@ -34,13 +34,14 @@ struct led_classdev_flash;
 
 #define LED_FLASH_SYSFS_GROUPS_SIZE	5
 
-struct led_flash_ops {
+struct led_flash_ops
+{
 	/* set flash brightness */
 	int (*flash_brightness_set)(struct led_classdev_flash *fled_cdev,
-					u32 brightness);
+								u32 brightness);
 	/* get flash brightness */
 	int (*flash_brightness_get)(struct led_classdev_flash *fled_cdev,
-					u32 *brightness);
+								u32 *brightness);
 	/* set flash strobe state */
 	int (*strobe_set)(struct led_classdev_flash *fled_cdev, bool state);
 	/* get flash strobe state */
@@ -55,7 +56,8 @@ struct led_flash_ops {
  * Current value of a flash setting along
  * with its constraints.
  */
-struct led_flash_setting {
+struct led_flash_setting
+{
 	/* maximum allowed value */
 	u32 min;
 	/* maximum allowed value */
@@ -66,7 +68,8 @@ struct led_flash_setting {
 	u32 val;
 };
 
-struct led_classdev_flash {
+struct led_classdev_flash
+{
 	/* led class device */
 	struct led_classdev led_cdev;
 
@@ -84,7 +87,7 @@ struct led_classdev_flash {
 };
 
 static inline struct led_classdev_flash *lcdev_to_flcdev(
-						struct led_classdev *lcdev)
+	struct led_classdev *lcdev)
 {
 	return container_of(lcdev, struct led_classdev_flash, led_cdev);
 }
@@ -98,7 +101,7 @@ static inline struct led_classdev_flash *lcdev_to_flcdev(
  * Returns: 0 on success or negative error value on failure
  */
 extern int led_classdev_flash_register(struct device *parent,
-				struct led_classdev_flash *fled_cdev);
+									   struct led_classdev_flash *fled_cdev);
 
 /**
  * led_classdev_flash_unregister - unregisters an object of led_classdev class
@@ -119,7 +122,7 @@ extern void led_classdev_flash_unregister(struct led_classdev_flash *fled_cdev);
  * Returns: 0 on success or negative error value on failure
  */
 static inline int led_set_flash_strobe(struct led_classdev_flash *fled_cdev,
-					bool state)
+									   bool state)
 {
 	return fled_cdev->ops->strobe_set(fled_cdev, state);
 }
@@ -134,10 +137,12 @@ static inline int led_set_flash_strobe(struct led_classdev_flash *fled_cdev,
  * Returns: 0 on success or negative error value on failure
  */
 static inline int led_get_flash_strobe(struct led_classdev_flash *fled_cdev,
-					bool *state)
+									   bool *state)
 {
 	if (fled_cdev->ops->strobe_get)
+	{
 		return fled_cdev->ops->strobe_get(fled_cdev, state);
+	}
 
 	return -EINVAL;
 }
@@ -152,7 +157,7 @@ static inline int led_get_flash_strobe(struct led_classdev_flash *fled_cdev,
  * Returns: 0 on success or negative error value on failure
  */
 extern int led_set_flash_brightness(struct led_classdev_flash *fled_cdev,
-					u32 brightness);
+									u32 brightness);
 
 /**
  * led_update_flash_brightness - update flash LED brightness
@@ -175,7 +180,7 @@ extern int led_update_flash_brightness(struct led_classdev_flash *fled_cdev);
  * Returns: 0 on success or negative error value on failure
  */
 extern int led_set_flash_timeout(struct led_classdev_flash *fled_cdev,
-					u32 timeout);
+								 u32 timeout);
 
 /**
  * led_get_flash_fault - get the flash LED fault
@@ -187,6 +192,6 @@ extern int led_set_flash_timeout(struct led_classdev_flash *fled_cdev,
  * Returns: 0 on success or negative error value on failure
  */
 extern int led_get_flash_fault(struct led_classdev_flash *fled_cdev,
-					u32 *fault);
+							   u32 *fault);
 
 #endif	/* __LINUX_FLASH_LEDS_H_INCLUDED */

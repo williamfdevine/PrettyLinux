@@ -30,11 +30,12 @@
 /* Represents a single SCLK step. */
 struct rv6xx_sclk_stepping
 {
-    u32 vco_frequency;
-    u32 post_divider;
+	u32 vco_frequency;
+	u32 post_divider;
 };
 
-struct rv6xx_pm_hw_state {
+struct rv6xx_pm_hw_state
+{
 	u32 sclks[R600_PM_NUMBER_OF_ACTIVITY_LEVELS];
 	u32 mclks[R600_PM_NUMBER_OF_MCLKS];
 	u16 vddc[R600_PM_NUMBER_OF_VOLTAGE_LEVELS];
@@ -53,7 +54,8 @@ struct rv6xx_pm_hw_state {
 	u8 lp[R600_PM_NUMBER_OF_ACTIVITY_LEVELS];
 };
 
-struct rv6xx_power_info {
+struct rv6xx_power_info
+{
 	/* flags */
 	bool voltage_control;
 	bool sclk_ss;
@@ -76,14 +78,16 @@ struct rv6xx_power_info {
 	struct rv6xx_pm_hw_state hw;
 };
 
-struct rv6xx_pl {
+struct rv6xx_pl
+{
 	u32 sclk;
 	u32 mclk;
 	u16 vddc;
 	u32 flags;
 };
 
-struct rv6xx_ps {
+struct rv6xx_ps
+{
 	struct rv6xx_pl high;
 	struct rv6xx_pl medium;
 	struct rv6xx_pl low;

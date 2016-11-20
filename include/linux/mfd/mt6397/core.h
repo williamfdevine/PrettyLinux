@@ -15,7 +15,8 @@
 #ifndef __MFD_MT6397_CORE_H__
 #define __MFD_MT6397_CORE_H__
 
-enum mt6397_irq_numbers {
+enum mt6397_irq_numbers
+{
 	MT6397_IRQ_SPKL_AB = 0,
 	MT6397_IRQ_SPKR_AB,
 	MT6397_IRQ_SPKL,
@@ -51,7 +52,8 @@ enum mt6397_irq_numbers {
 	MT6397_IRQ_NR,
 };
 
-struct mt6397_chip {
+struct mt6397_chip
+{
 	struct device *dev;
 	struct regmap *regmap;
 	int irq;

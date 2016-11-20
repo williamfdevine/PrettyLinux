@@ -143,17 +143,20 @@
 
 struct mtk_thermal;
 
-struct thermal_bank_cfg {
+struct thermal_bank_cfg
+{
 	unsigned int num_sensors;
 	const int *sensors;
 };
 
-struct mtk_thermal_bank {
+struct mtk_thermal_bank
+{
 	struct mtk_thermal *mt;
 	int id;
 };
 
-struct mtk_thermal_data {
+struct mtk_thermal_data
+{
 	s32 num_banks;
 	s32 num_sensors;
 	s32 auxadc_channel;
@@ -163,7 +166,8 @@ struct mtk_thermal_data {
 	struct thermal_bank_cfg bank_data[];
 };
 
-struct mtk_thermal {
+struct mtk_thermal
+{
 	struct device *dev;
 	void __iomem *thermal_base;
 
@@ -183,33 +187,39 @@ struct mtk_thermal {
 };
 
 /* MT8173 thermal sensor data */
-const int mt8173_bank_data[MT8173_NUM_ZONES][3] = {
+const int mt8173_bank_data[MT8173_NUM_ZONES][3] =
+{
 	{ MT8173_TS2, MT8173_TS3 },
 	{ MT8173_TS2, MT8173_TS4 },
 	{ MT8173_TS1, MT8173_TS2, MT8173_TSABB },
 	{ MT8173_TS2 },
 };
 
-const int mt8173_msr[MT8173_NUM_SENSORS_PER_ZONE] = {
+const int mt8173_msr[MT8173_NUM_SENSORS_PER_ZONE] =
+{
 	TEMP_MSR0, TEMP_MSR1, TEMP_MSR2, TEMP_MSR2
 };
 
-const int mt8173_adcpnp[MT8173_NUM_SENSORS_PER_ZONE] = {
+const int mt8173_adcpnp[MT8173_NUM_SENSORS_PER_ZONE] =
+{
 	TEMP_ADCPNP0, TEMP_ADCPNP1, TEMP_ADCPNP2, TEMP_ADCPNP3
 };
 
 const int mt8173_mux_values[MT8173_NUM_SENSORS] = { 0, 1, 2, 3, 16 };
 
 /* MT2701 thermal sensor data */
-const int mt2701_bank_data[MT2701_NUM_SENSORS] = {
+const int mt2701_bank_data[MT2701_NUM_SENSORS] =
+{
 	MT2701_TS1, MT2701_TS2, MT2701_TSABB
 };
 
-const int mt2701_msr[MT2701_NUM_SENSORS_PER_ZONE] = {
+const int mt2701_msr[MT2701_NUM_SENSORS_PER_ZONE] =
+{
 	TEMP_MSR0, TEMP_MSR1, TEMP_MSR2
 };
 
-const int mt2701_adcpnp[MT2701_NUM_SENSORS_PER_ZONE] = {
+const int mt2701_adcpnp[MT2701_NUM_SENSORS_PER_ZONE] =
+{
 	TEMP_ADCPNP0, TEMP_ADCPNP1, TEMP_ADCPNP2
 };
 
@@ -228,7 +238,8 @@ const int mt2701_mux_values[MT2701_NUM_SENSORS] = { 0, 1, 16 };
  * data, and this indeed needs the temperatures of the individual banks
  * for making better decisions.
  */
-static const struct mtk_thermal_data mt8173_thermal_data = {
+static const struct mtk_thermal_data mt8173_thermal_data =
+{
 	.auxadc_channel = MT8173_TEMP_AUXADC_CHANNEL,
 	.num_banks = MT8173_NUM_ZONES,
 	.num_sensors = MT8173_NUM_SENSORS,
@@ -262,7 +273,8 @@ static const struct mtk_thermal_data mt8173_thermal_data = {
  * Voltage Scaling) unit makes its decisions based on the same bank
  * data.
  */
-static const struct mtk_thermal_data mt2701_thermal_data = {
+static const struct mtk_thermal_data mt2701_thermal_data =
+{
 	.auxadc_channel = MT2701_TEMP_AUXADC_CHANNEL,
 	.num_banks = 1,
 	.num_sensors = MT2701_NUM_SENSORS,
@@ -347,12 +359,13 @@ static int mtk_thermal_bank_temperature(struct mtk_thermal_bank *bank)
 	int i, temp = INT_MIN, max = INT_MIN;
 	u32 raw;
 
-	for (i = 0; i < conf->bank_data[bank->id].num_sensors; i++) {
+	for (i = 0; i < conf->bank_data[bank->id].num_sensors; i++)
+	{
 		raw = readl(mt->thermal_base + conf->msr[i]);
 
 		temp = raw_to_mcelsius(mt,
-				       conf->bank_data[bank->id].sensors[i],
-				       raw);
+							   conf->bank_data[bank->id].sensors[i],
+							   raw);
 
 		/*
 		 * The first read of a sensor often contains very high bogus
@@ -360,10 +373,14 @@ static int mtk_thermal_bank_temperature(struct mtk_thermal_bank *bank)
 		 * not immediately shut down.
 		 */
 		if (temp > 200000)
+		{
 			temp = 0;
+		}
 
 		if (temp > max)
+		{
 			max = temp;
+		}
 	}
 
 	return max;
@@ -375,7 +392,8 @@ static int mtk_read_temp(void *data, int *temperature)
 	int i;
 	int tempmax = INT_MIN;
 
-	for (i = 0; i < mt->conf->num_banks; i++) {
+	for (i = 0; i < mt->conf->num_banks; i++)
+	{
 		struct mtk_thermal_bank *bank = &mt->banks[i];
 
 		mtk_thermal_get_bank(bank);
@@ -390,12 +408,13 @@ static int mtk_read_temp(void *data, int *temperature)
 	return 0;
 }
 
-static const struct thermal_zone_of_device_ops mtk_thermal_ops = {
+static const struct thermal_zone_of_device_ops mtk_thermal_ops =
+{
 	.get_temp = mtk_read_temp,
 };
 
 static void mtk_thermal_init_bank(struct mtk_thermal *mt, int num,
-				  u32 apmixed_phys_base, u32 auxadc_phys_base)
+								  u32 apmixed_phys_base, u32 auxadc_phys_base)
 {
 	struct mtk_thermal_bank *bank = &mt->banks[num];
 	const struct mtk_thermal_data *conf = mt->conf;
@@ -414,12 +433,12 @@ static void mtk_thermal_init_bank(struct mtk_thermal *mt, int num,
 	 * sen interval is 429 * 46.540us = 19.96ms
 	 */
 	writel(TEMP_MONCTL2_FILTER_INTERVAL(1) |
-			TEMP_MONCTL2_SENSOR_INTERVAL(429),
-			mt->thermal_base + TEMP_MONCTL2);
+		   TEMP_MONCTL2_SENSOR_INTERVAL(429),
+		   mt->thermal_base + TEMP_MONCTL2);
 
 	/* poll is set to 10u */
 	writel(TEMP_AHBPOLL_ADC_POLL_INTERVAL(768),
-	       mt->thermal_base + TEMP_AHBPOLL);
+		   mt->thermal_base + TEMP_AHBPOLL);
 
 	/* temperature sampling control, 1 sample */
 	writel(0x0, mt->thermal_base + TEMP_MSRCTL0);
@@ -448,51 +467,51 @@ static void mtk_thermal_init_bank(struct mtk_thermal *mt, int num,
 
 	/* AHB address for auxadc mux selection */
 	writel(auxadc_phys_base + AUXADC_CON1_CLR_V,
-	       mt->thermal_base + TEMP_ADCMUXADDR);
+		   mt->thermal_base + TEMP_ADCMUXADDR);
 
 	/* AHB address for pnp sensor mux selection */
 	writel(apmixed_phys_base + APMIXED_SYS_TS_CON1,
-	       mt->thermal_base + TEMP_PNPMUXADDR);
+		   mt->thermal_base + TEMP_PNPMUXADDR);
 
 	/* AHB value for auxadc enable */
 	writel(BIT(conf->auxadc_channel), mt->thermal_base + TEMP_ADCEN);
 
 	/* AHB address for auxadc enable (channel 0 immediate mode selected) */
 	writel(auxadc_phys_base + AUXADC_CON1_SET_V,
-	       mt->thermal_base + TEMP_ADCENADDR);
+		   mt->thermal_base + TEMP_ADCENADDR);
 
 	/* AHB address for auxadc valid bit */
 	writel(auxadc_phys_base + AUXADC_DATA(conf->auxadc_channel),
-	       mt->thermal_base + TEMP_ADCVALIDADDR);
+		   mt->thermal_base + TEMP_ADCVALIDADDR);
 
 	/* AHB address for auxadc voltage output */
 	writel(auxadc_phys_base + AUXADC_DATA(conf->auxadc_channel),
-	       mt->thermal_base + TEMP_ADCVOLTADDR);
+		   mt->thermal_base + TEMP_ADCVOLTADDR);
 
 	/* read valid & voltage are at the same register */
 	writel(0x0, mt->thermal_base + TEMP_RDCTRL);
 
 	/* indicate where the valid bit is */
 	writel(TEMP_ADCVALIDMASK_VALID_HIGH | TEMP_ADCVALIDMASK_VALID_POS(12),
-	       mt->thermal_base + TEMP_ADCVALIDMASK);
+		   mt->thermal_base + TEMP_ADCVALIDMASK);
 
 	/* no shift */
 	writel(0x0, mt->thermal_base + TEMP_ADCVOLTAGESHIFT);
 
 	/* enable auxadc mux write transaction */
 	writel(TEMP_ADCWRITECTRL_ADC_MUX_WRITE,
-	       mt->thermal_base + TEMP_ADCWRITECTRL);
+		   mt->thermal_base + TEMP_ADCWRITECTRL);
 
 	for (i = 0; i < conf->bank_data[num].num_sensors; i++)
 		writel(conf->sensor_mux_values[conf->bank_data[num].sensors[i]],
-		       mt->thermal_base + conf->adcpnp[i]);
+			   mt->thermal_base + conf->adcpnp[i]);
 
 	writel((1 << conf->bank_data[num].num_sensors) - 1,
-	       mt->thermal_base + TEMP_MONCTL0);
+		   mt->thermal_base + TEMP_MONCTL0);
 
 	writel(TEMP_ADCWRITECTRL_ADC_PNP_WRITE |
-	       TEMP_ADCWRITECTRL_ADC_MUX_WRITE,
-	       mt->thermal_base + TEMP_ADCWRITECTRL);
+		   TEMP_ADCWRITECTRL_ADC_MUX_WRITE,
+		   mt->thermal_base + TEMP_ADCWRITECTRL);
 
 	mtk_thermal_put_bank(bank);
 }
@@ -503,14 +522,17 @@ static u64 of_get_phys_base(struct device_node *np)
 	const __be32 *regaddr_p;
 
 	regaddr_p = of_get_address(np, 0, &size64, NULL);
+
 	if (!regaddr_p)
+	{
 		return OF_BAD_ADDR;
+	}
 
 	return of_translate_address(np, regaddr_p);
 }
 
 static int mtk_thermal_get_calibration_data(struct device *dev,
-					    struct mtk_thermal *mt)
+		struct mtk_thermal *mt)
 {
 	struct nvmem_cell *cell;
 	u32 *buf;
@@ -519,15 +541,24 @@ static int mtk_thermal_get_calibration_data(struct device *dev,
 
 	/* Start with default values */
 	mt->adc_ge = 512;
+
 	for (i = 0; i < mt->conf->num_sensors; i++)
+	{
 		mt->vts[i] = 260;
+	}
+
 	mt->degc_cali = 40;
 	mt->o_slope = 0;
 
 	cell = nvmem_cell_get(dev, "calibration-data");
-	if (IS_ERR(cell)) {
+
+	if (IS_ERR(cell))
+	{
 		if (PTR_ERR(cell) == -EPROBE_DEFER)
+		{
 			return PTR_ERR(cell);
+		}
+
 		return 0;
 	}
 
@@ -536,15 +567,19 @@ static int mtk_thermal_get_calibration_data(struct device *dev,
 	nvmem_cell_put(cell);
 
 	if (IS_ERR(buf))
+	{
 		return PTR_ERR(buf);
+	}
 
-	if (len < 3 * sizeof(u32)) {
+	if (len < 3 * sizeof(u32))
+	{
 		dev_warn(dev, "invalid calibration data\n");
 		ret = -EINVAL;
 		goto out;
 	}
 
-	if (buf[0] & MT8173_CALIB_BUF0_VALID) {
+	if (buf[0] & MT8173_CALIB_BUF0_VALID)
+	{
 		mt->adc_ge = MT8173_CALIB_BUF1_ADC_GE(buf[1]);
 		mt->vts[MT8173_TS1] = MT8173_CALIB_BUF0_VTS_TS1(buf[0]);
 		mt->vts[MT8173_TS2] = MT8173_CALIB_BUF0_VTS_TS2(buf[0]);
@@ -553,7 +588,9 @@ static int mtk_thermal_get_calibration_data(struct device *dev,
 		mt->vts[MT8173_TSABB] = MT8173_CALIB_BUF2_VTS_TSABB(buf[2]);
 		mt->degc_cali = MT8173_CALIB_BUF0_DEGC_CALI(buf[0]);
 		mt->o_slope = MT8173_CALIB_BUF0_O_SLOPE(buf[0]);
-	} else {
+	}
+	else
+	{
 		dev_info(dev, "Device not calibrated, using default calibration values\n");
 	}
 
@@ -563,14 +600,15 @@ out:
 	return ret;
 }
 
-static const struct of_device_id mtk_thermal_of_match[] = {
+static const struct of_device_id mtk_thermal_of_match[] =
+{
 	{
 		.compatible = "mediatek,mt8173-thermal",
-		.data = (void *)&mt8173_thermal_data,
+		.data = (void *) &mt8173_thermal_data,
 	},
 	{
 		.compatible = "mediatek,mt2701-thermal",
-		.data = (void *)&mt2701_thermal_data,
+		.data = (void *) &mt2701_thermal_data,
 	}, {
 	},
 };
@@ -587,36 +625,56 @@ static int mtk_thermal_probe(struct platform_device *pdev)
 	struct thermal_zone_device *tzdev;
 
 	mt = devm_kzalloc(&pdev->dev, sizeof(*mt), GFP_KERNEL);
+
 	if (!mt)
+	{
 		return -ENOMEM;
+	}
 
 	of_id = of_match_device(mtk_thermal_of_match, &pdev->dev);
+
 	if (of_id)
+	{
 		mt->conf = (const struct mtk_thermal_data *)of_id->data;
+	}
 
 	mt->clk_peri_therm = devm_clk_get(&pdev->dev, "therm");
+
 	if (IS_ERR(mt->clk_peri_therm))
+	{
 		return PTR_ERR(mt->clk_peri_therm);
+	}
 
 	mt->clk_auxadc = devm_clk_get(&pdev->dev, "auxadc");
+
 	if (IS_ERR(mt->clk_auxadc))
+	{
 		return PTR_ERR(mt->clk_auxadc);
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mt->thermal_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(mt->thermal_base))
+	{
 		return PTR_ERR(mt->thermal_base);
+	}
 
 	ret = mtk_thermal_get_calibration_data(&pdev->dev, mt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_init(&mt->lock);
 
 	mt->dev = &pdev->dev;
 
 	auxadc = of_parse_phandle(np, "mediatek,auxadc", 0);
-	if (!auxadc) {
+
+	if (!auxadc)
+	{
 		dev_err(&pdev->dev, "missing auxadc node\n");
 		return -ENODEV;
 	}
@@ -625,13 +683,16 @@ static int mtk_thermal_probe(struct platform_device *pdev)
 
 	of_node_put(auxadc);
 
-	if (auxadc_phys_base == OF_BAD_ADDR) {
+	if (auxadc_phys_base == OF_BAD_ADDR)
+	{
 		dev_err(&pdev->dev, "Can't get auxadc phys address\n");
 		return -EINVAL;
 	}
 
 	apmixedsys = of_parse_phandle(np, "mediatek,apmixedsys", 0);
-	if (!apmixedsys) {
+
+	if (!apmixedsys)
+	{
 		dev_err(&pdev->dev, "missing apmixedsys node\n");
 		return -ENODEV;
 	}
@@ -640,36 +701,46 @@ static int mtk_thermal_probe(struct platform_device *pdev)
 
 	of_node_put(apmixedsys);
 
-	if (apmixed_phys_base == OF_BAD_ADDR) {
+	if (apmixed_phys_base == OF_BAD_ADDR)
+	{
 		dev_err(&pdev->dev, "Can't get auxadc phys address\n");
 		return -EINVAL;
 	}
 
 	ret = clk_prepare_enable(mt->clk_auxadc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Can't enable auxadc clk: %d\n", ret);
 		return ret;
 	}
 
 	ret = device_reset(&pdev->dev);
+
 	if (ret)
+	{
 		goto err_disable_clk_auxadc;
+	}
 
 	ret = clk_prepare_enable(mt->clk_peri_therm);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Can't enable peri clk: %d\n", ret);
 		goto err_disable_clk_auxadc;
 	}
 
 	for (i = 0; i < mt->conf->num_banks; i++)
 		mtk_thermal_init_bank(mt, i, apmixed_phys_base,
-				      auxadc_phys_base);
+							  auxadc_phys_base);
 
 	platform_set_drvdata(pdev, mt);
 
 	tzdev = devm_thermal_zone_of_sensor_register(&pdev->dev, 0, mt,
-						     &mtk_thermal_ops);
-	if (IS_ERR(tzdev)) {
+			&mtk_thermal_ops);
+
+	if (IS_ERR(tzdev))
+	{
 		ret = PTR_ERR(tzdev);
 		goto err_disable_clk_peri_therm;
 	}
@@ -694,7 +765,8 @@ static int mtk_thermal_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver mtk_thermal_driver = {
+static struct platform_driver mtk_thermal_driver =
+{
 	.probe = mtk_thermal_probe,
 	.remove = mtk_thermal_remove,
 	.driver = {

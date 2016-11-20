@@ -46,7 +46,8 @@
 /* Warning: This sits inside an skb.cb[] area.  Be very careful of
  * growing this structure as it is at the maximum limit now.
  */
-struct sctp_ulpevent {
+struct sctp_ulpevent
+{
 	struct sctp_association *asoc;
 	struct sctp_chunk *chunk;
 	unsigned int rmem_len;
@@ -118,8 +119,8 @@ struct sctp_ulpevent *sctp_ulpevent_make_adaptation_indication(
 	const struct sctp_association *asoc, gfp_t gfp);
 
 struct sctp_ulpevent *sctp_ulpevent_make_rcvmsg(struct sctp_association *asoc,
-	struct sctp_chunk *chunk,
-	gfp_t gfp);
+		struct sctp_chunk *chunk,
+		gfp_t gfp);
 
 struct sctp_ulpevent *sctp_ulpevent_make_authkey(
 	const struct sctp_association *asoc, __u16 key_id,
@@ -129,17 +130,17 @@ struct sctp_ulpevent *sctp_ulpevent_make_sender_dry_event(
 	const struct sctp_association *asoc, gfp_t gfp);
 
 void sctp_ulpevent_read_sndrcvinfo(const struct sctp_ulpevent *event,
-				   struct msghdr *);
+								   struct msghdr *);
 void sctp_ulpevent_read_rcvinfo(const struct sctp_ulpevent *event,
-				struct msghdr *);
+								struct msghdr *);
 void sctp_ulpevent_read_nxtinfo(const struct sctp_ulpevent *event,
-				struct msghdr *, struct sock *sk);
+								struct msghdr *, struct sock *sk);
 
 __u16 sctp_ulpevent_get_notification_type(const struct sctp_ulpevent *event);
 
 /* Is this event type enabled? */
 static inline int sctp_ulpevent_type_enabled(__u16 sn_type,
-					     struct sctp_event_subscribe *mask)
+		struct sctp_event_subscribe *mask)
 {
 	char *amask = (char *) mask;
 	return amask[sn_type - SCTP_SN_TYPE_BASE];
@@ -147,15 +148,17 @@ static inline int sctp_ulpevent_type_enabled(__u16 sn_type,
 
 /* Given an event subscription, is this event enabled? */
 static inline int sctp_ulpevent_is_enabled(const struct sctp_ulpevent *event,
-					   struct sctp_event_subscribe *mask)
+		struct sctp_event_subscribe *mask)
 {
 	__u16 sn_type;
 	int enabled = 1;
 
-	if (sctp_ulpevent_is_notification(event)) {
+	if (sctp_ulpevent_is_notification(event))
+	{
 		sn_type = sctp_ulpevent_get_notification_type(event);
 		enabled = sctp_ulpevent_type_enabled(sn_type, mask);
 	}
+
 	return enabled;
 }
 

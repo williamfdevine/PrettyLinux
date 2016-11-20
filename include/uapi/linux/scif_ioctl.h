@@ -65,7 +65,8 @@
  * @node:	node on which port resides
  * @port:	local port number
  */
-struct scif_port_id {
+struct scif_port_id
+{
 	__u16 node;
 	__u16 port;
 };
@@ -75,7 +76,8 @@ struct scif_port_id {
  * @self:	used to read back the assigned port_id
  * @peer:	destination node and port to connect to
  */
-struct scifioctl_connect {
+struct scifioctl_connect
+{
 	struct scif_port_id	self;
 	struct scif_port_id	peer;
 };
@@ -86,7 +88,8 @@ struct scifioctl_connect {
  * @peer:	global id of peer endpoint
  * @endpt:	new connected endpoint descriptor
  */
-struct scifioctl_accept {
+struct scifioctl_accept
+{
 	__s32			flags;
 	struct scif_port_id	peer;
 	__u64			endpt;
@@ -99,7 +102,8 @@ struct scifioctl_accept {
  * @flags:	flags
  * @out_len:	number of bytes sent/received
  */
-struct scifioctl_msg {
+struct scifioctl_msg
+{
 	__u64	msg;
 	__s32	len;
 	__s32	flags;
@@ -115,7 +119,8 @@ struct scifioctl_msg {
  * @flags:	flags
  * @out_offset:	offset returned
  */
-struct scifioctl_reg {
+struct scifioctl_reg
+{
 	__u64		addr;
 	__u64		len;
 	__s64		offset;
@@ -129,7 +134,8 @@ struct scifioctl_reg {
  * @offset:	start of range to unregister
  * @len:	length of range to unregister
  */
-struct scifioctl_unreg {
+struct scifioctl_unreg
+{
 	__s64		offset;
 	__u64		len;
 };
@@ -148,7 +154,8 @@ struct scifioctl_unreg {
  * This structure is used for SCIF_READFROM, SCIF_WRITETO, SCIF_VREADFROM
  * and SCIF_VREADFROM IOCTL's.
  */
-struct scifioctl_copy {
+struct scifioctl_copy
+{
 	__s64		loffset;
 	__u64		len;
 	__s64		roffset;
@@ -161,7 +168,8 @@ struct scifioctl_copy {
  * @flags:	flags
  * @mark:	fence handle which is a pointer to a __s32
  */
-struct scifioctl_fence_mark {
+struct scifioctl_fence_mark
+{
 	__s32	flags;
 	__u64	mark;
 };
@@ -174,7 +182,8 @@ struct scifioctl_fence_mark {
  * @rval:	value to write to roffset
  * @flags:	flags
  */
-struct scifioctl_fence_signal {
+struct scifioctl_fence_signal
+{
 	__s64		loff;
 	__u64		lval;
 	__s64		roff;
@@ -188,7 +197,8 @@ struct scifioctl_fence_signal {
  * @self:	ID of the current node
  * @len:	length of array
  */
-struct scifioctl_node_ids {
+struct scifioctl_node_ids
+{
 	__u64	nodes;
 	__u64	self;
 	__s32	len;

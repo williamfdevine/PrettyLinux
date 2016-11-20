@@ -225,13 +225,15 @@
 #define TEGRA30_I2S_LCOEF_COEF_MASK_US			0xffff
 #define TEGRA30_I2S_LCOEF_COEF_MASK			(TEGRA30_I2S_LCOEF_COEF_MASK_US << TEGRA30_I2S_LCOEF_COEF_SHIFT)
 
-struct tegra30_i2s_soc_data {
+struct tegra30_i2s_soc_data
+{
 	void (*set_audio_cif)(struct regmap *regmap,
-			      unsigned int reg,
-			      struct tegra30_ahub_cif_conf *conf);
+						  unsigned int reg,
+						  struct tegra30_ahub_cif_conf *conf);
 };
 
-struct tegra30_i2s {
+struct tegra30_i2s
+{
 	const struct tegra30_i2s_soc_data *soc_data;
 	struct snd_soc_dai_driver dai;
 	int cif_id;

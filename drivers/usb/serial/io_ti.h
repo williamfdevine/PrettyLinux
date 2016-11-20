@@ -137,7 +137,8 @@
 #define UMPD_OEDB1_ADDRESS		0xFF08
 #define UMPD_OEDB2_ADDRESS		0xFF10
 
-struct out_endpoint_desc_block {
+struct out_endpoint_desc_block
+{
 	__u8 Configuration;
 	__u8 XBufAddr;
 	__u8 XByteCount;
@@ -154,7 +155,8 @@ struct out_endpoint_desc_block {
  * Structures for Firmware commands
  */
 /* UART settings */
-struct ump_uart_config {
+struct ump_uart_config
+{
 	__u16 wBaudRate;	/* Baud rate                        */
 	__u16 wFlags;		/* Bitmap mask of flags             */
 	__u8 bDataBits;		/* 5..8 - data bits per character   */
@@ -163,7 +165,7 @@ struct ump_uart_config {
 	char cXon;		/* XON character                    */
 	char cXoff;		/* XOFF character                   */
 	__u8 bUartMode;		/* Will be updated when a user      */
-				/* interface is defined             */
+	/* interface is defined             */
 } __attribute__((packed));
 
 
@@ -172,7 +174,8 @@ struct ump_uart_config {
  * Structures for USB interrupts
  */
 /* Interrupt packet structure */
-struct ump_interrupt {
+struct ump_interrupt
+{
 	__u8 bICode;			/* Interrupt code (interrupt num)   */
 	__u8 bIInfo;			/* Interrupt information            */
 }  __attribute__((packed));

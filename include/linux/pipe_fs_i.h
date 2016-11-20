@@ -17,12 +17,13 @@
  *	@flags: pipe buffer flags. See above.
  *	@private: private data owned by the ops.
  **/
-struct pipe_buffer {
-	struct page *page;
-	unsigned int offset, len;
-	const struct pipe_buf_operations *ops;
-	unsigned int flags;
-	unsigned long private;
+struct pipe_buffer
+{
+		struct page *page;
+		unsigned int offset, len;
+		const struct pipe_buf_operations *ops;
+		unsigned int flags;
+		unsigned long private;
 };
 
 /**
@@ -44,7 +45,8 @@ struct pipe_buffer {
  *	@bufs: the circular array of pipe buffers
  *	@user: the user who created this pipe
  **/
-struct pipe_inode_info {
+struct pipe_inode_info
+{
 	struct mutex mutex;
 	wait_queue_head_t wait;
 	unsigned int nrbufs, curbuf, buffers;
@@ -71,7 +73,8 @@ struct pipe_inode_info {
  * See below for the meaning of each operation. Also see kerneldoc
  * in fs/pipe.c for the pipe and generic variants of these hooks.
  */
-struct pipe_buf_operations {
+struct pipe_buf_operations
+{
 	/*
 	 * This is set to 1, if the generic pipe read/write may coalesce
 	 * data into an existing buffer. If this is set to 0, a new pipe
@@ -116,7 +119,7 @@ struct pipe_buf_operations {
  * @buf:	the buffer to get a reference to
  */
 static inline void pipe_buf_get(struct pipe_inode_info *pipe,
-				struct pipe_buffer *buf)
+								struct pipe_buffer *buf)
 {
 	buf->ops->get(pipe, buf);
 }
@@ -127,7 +130,7 @@ static inline void pipe_buf_get(struct pipe_inode_info *pipe,
  * @buf:	the buffer to put a reference to
  */
 static inline void pipe_buf_release(struct pipe_inode_info *pipe,
-				    struct pipe_buffer *buf)
+									struct pipe_buffer *buf)
 {
 	const struct pipe_buf_operations *ops = buf->ops;
 
@@ -141,7 +144,7 @@ static inline void pipe_buf_release(struct pipe_inode_info *pipe,
  * @buf:	the buffer to confirm
  */
 static inline int pipe_buf_confirm(struct pipe_inode_info *pipe,
-				   struct pipe_buffer *buf)
+								   struct pipe_buffer *buf)
 {
 	return buf->ops->confirm(pipe, buf);
 }
@@ -152,7 +155,7 @@ static inline int pipe_buf_confirm(struct pipe_inode_info *pipe,
  * @buf:	the buffer to attempt to steal
  */
 static inline int pipe_buf_steal(struct pipe_inode_info *pipe,
-				 struct pipe_buffer *buf)
+								 struct pipe_buffer *buf)
 {
 	return buf->ops->steal(pipe, buf);
 }

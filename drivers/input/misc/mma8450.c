@@ -53,7 +53,8 @@
 #define MMA8450_CTRL_REG2	0x39
 
 /* mma8450 status */
-struct mma8450 {
+struct mma8450
+{
 	struct i2c_client	*client;
 	struct input_polled_dev	*idev;
 };
@@ -64,10 +65,11 @@ static int mma8450_read(struct mma8450 *m, unsigned off)
 	int ret;
 
 	ret = i2c_smbus_read_byte_data(c, off);
+
 	if (ret < 0)
 		dev_err(&c->dev,
-			"failed to read register 0x%02x, error %d\n",
-			off, ret);
+				"failed to read register 0x%02x, error %d\n",
+				off, ret);
 
 	return ret;
 }
@@ -78,10 +80,12 @@ static int mma8450_write(struct mma8450 *m, unsigned off, u8 v)
 	int error;
 
 	error = i2c_smbus_write_byte_data(c, off, v);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(&c->dev,
-			"failed to write to register 0x%02x, error %d\n",
-			off, error);
+				"failed to write to register 0x%02x, error %d\n",
+				off, error);
 		return error;
 	}
 
@@ -89,16 +93,18 @@ static int mma8450_write(struct mma8450 *m, unsigned off, u8 v)
 }
 
 static int mma8450_read_block(struct mma8450 *m, unsigned off,
-			      u8 *buf, size_t size)
+							  u8 *buf, size_t size)
 {
 	struct i2c_client *c = m->client;
 	int err;
 
 	err = i2c_smbus_read_i2c_block_data(c, off, size, buf);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&c->dev,
-			"failed to read block data at 0x%02x, error %d\n",
-			MMA8450_OUT_X_LSB, err);
+				"failed to read block data at 0x%02x, error %d\n",
+				MMA8450_OUT_X_LSB, err);
 		return err;
 	}
 
@@ -113,15 +119,23 @@ static void mma8450_poll(struct input_polled_dev *dev)
 	u8 buf[6];
 
 	ret = mma8450_read(m, MMA8450_STATUS);
+
 	if (ret < 0)
+	{
 		return;
+	}
 
 	if (!(ret & MMA8450_STATUS_ZXYDR))
+	{
 		return;
+	}
 
 	ret = mma8450_read_block(m, MMA8450_OUT_X_LSB, buf, sizeof(buf));
+
 	if (ret < 0)
+	{
 		return;
+	}
 
 	x = ((int)(s8)buf[1] << 4) | (buf[0] & 0xf);
 	y = ((int)(s8)buf[3] << 4) | (buf[2] & 0xf);
@@ -141,8 +155,11 @@ static void mma8450_open(struct input_polled_dev *dev)
 
 	/* enable all events from X/Y/Z, no FIFO */
 	err = mma8450_write(m, MMA8450_XYZ_DATA_CFG, 0x07);
+
 	if (err)
+	{
 		return;
+	}
 
 	/*
 	 * Sleep mode poll rate - 50Hz
@@ -150,8 +167,11 @@ static void mma8450_open(struct input_polled_dev *dev)
 	 * Full scale selection - Active, +/- 2G
 	 */
 	err = mma8450_write(m, MMA8450_CTRL_REG1, 0x01);
+
 	if (err < 0)
+	{
 		return;
+	}
 
 	msleep(MODE_CHANGE_DELAY_MS);
 }
@@ -168,19 +188,25 @@ static void mma8450_close(struct input_polled_dev *dev)
  * I2C init/probing/exit functions
  */
 static int mma8450_probe(struct i2c_client *c,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct input_polled_dev *idev;
 	struct mma8450 *m;
 	int err;
 
 	m = devm_kzalloc(&c->dev, sizeof(*m), GFP_KERNEL);
+
 	if (!m)
+	{
 		return -ENOMEM;
+	}
 
 	idev = devm_input_allocate_polled_device(&c->dev);
+
 	if (!idev)
+	{
 		return -ENOMEM;
+	}
 
 	m->client = c;
 	m->idev = idev;
@@ -200,7 +226,9 @@ static int mma8450_probe(struct i2c_client *c,
 	input_set_abs_params(idev->input, ABS_Z, -2048, 2047, 32, 32);
 
 	err = input_register_polled_device(idev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&c->dev, "failed to register polled input device\n");
 		return err;
 	}
@@ -210,19 +238,22 @@ static int mma8450_probe(struct i2c_client *c,
 	return 0;
 }
 
-static const struct i2c_device_id mma8450_id[] = {
+static const struct i2c_device_id mma8450_id[] =
+{
 	{ MMA8450_DRV_NAME, 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, mma8450_id);
 
-static const struct of_device_id mma8450_dt_ids[] = {
+static const struct of_device_id mma8450_dt_ids[] =
+{
 	{ .compatible = "fsl,mma8450", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, mma8450_dt_ids);
 
-static struct i2c_driver mma8450_driver = {
+static struct i2c_driver mma8450_driver =
+{
 	.driver = {
 		.name	= MMA8450_DRV_NAME,
 		.of_match_table = mma8450_dt_ids,

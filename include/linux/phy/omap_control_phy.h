@@ -19,7 +19,8 @@
 #ifndef __OMAP_CONTROL_PHY_H__
 #define __OMAP_CONTROL_PHY_H__
 
-enum omap_control_phy_type {
+enum omap_control_phy_type
+{
 	OMAP_CTRL_TYPE_OTGHS = 1,	/* Mailbox OTGHS_CONTROL */
 	OMAP_CTRL_TYPE_USB2,	/* USB2_PHY, power down in CONTROL_DEV_CONF */
 	OMAP_CTRL_TYPE_PIPE3,	/* PIPE3 PHY, DPLL & seperate Rx/Tx power */
@@ -28,7 +29,8 @@ enum omap_control_phy_type {
 	OMAP_CTRL_TYPE_AM437USB2, /* USB2 PHY, power e.g. AM437x */
 };
 
-struct omap_control_phy {
+struct omap_control_phy
+{
 	struct device *dev;
 
 	u32 __iomem *otghs_control;
@@ -41,7 +43,8 @@ struct omap_control_phy {
 	enum omap_control_phy_type type;
 };
 
-enum omap_control_usb_mode {
+enum omap_control_usb_mode
+{
 	USB_MODE_UNDEFINED = 0,
 	USB_MODE_HOST,
 	USB_MODE_DEVICE,
@@ -78,7 +81,7 @@ enum omap_control_usb_mode {
 #if IS_ENABLED(CONFIG_OMAP_CONTROL_PHY)
 void omap_control_phy_power(struct device *dev, int on);
 void omap_control_usb_set_mode(struct device *dev,
-			       enum omap_control_usb_mode mode);
+							   enum omap_control_usb_mode mode);
 void omap_control_pcie_pcs(struct device *dev, u8 delay);
 #else
 
@@ -87,7 +90,7 @@ static inline void omap_control_phy_power(struct device *dev, int on)
 }
 
 static inline void omap_control_usb_set_mode(struct device *dev,
-	enum omap_control_usb_mode mode)
+		enum omap_control_usb_mode mode)
 {
 }
 

@@ -24,7 +24,8 @@
 #define PCIE_PORT_SERVICE_DPC_SHIFT	4	/* Downstream Port Containment */
 #define PCIE_PORT_SERVICE_DPC		(1 << PCIE_PORT_SERVICE_DPC_SHIFT)
 
-struct pcie_device {
+struct pcie_device
+{
 	int		irq;	    /* Service IRQ/MSI/MSI-X Vector */
 	struct pci_dev *port;	    /* Root/Upstream/Downstream Port */
 	u32		service;    /* Port service this device represents */
@@ -38,12 +39,13 @@ static inline void set_service_data(struct pcie_device *dev, void *data)
 	dev->priv_data = data;
 }
 
-static inline void* get_service_data(struct pcie_device *dev)
+static inline void *get_service_data(struct pcie_device *dev)
 {
 	return dev->priv_data;
 }
 
-struct pcie_port_service_driver {
+struct pcie_port_service_driver
+{
 	const char *name;
 	int (*probe) (struct pcie_device *dev);
 	void (*remove) (struct pcie_device *dev);

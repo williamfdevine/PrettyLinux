@@ -28,11 +28,13 @@
 #include "../core.h"
 #include "../pinconf.h"
 
-struct sh_pfc_pin_config {
+struct sh_pfc_pin_config
+{
 	u32 type;
 };
 
-struct sh_pfc_pinctrl {
+struct sh_pfc_pinctrl
+{
 	struct pinctrl_dev *pctl;
 	struct pinctrl_desc pctl_desc;
 
@@ -54,7 +56,7 @@ static int sh_pfc_get_groups_count(struct pinctrl_dev *pctldev)
 }
 
 static const char *sh_pfc_get_group_name(struct pinctrl_dev *pctldev,
-					 unsigned selector)
+		unsigned selector)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 
@@ -62,7 +64,7 @@ static const char *sh_pfc_get_group_name(struct pinctrl_dev *pctldev,
 }
 
 static int sh_pfc_get_group_pins(struct pinctrl_dev *pctldev, unsigned selector,
-				 const unsigned **pins, unsigned *num_pins)
+								 const unsigned **pins, unsigned *num_pins)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 
@@ -73,24 +75,27 @@ static int sh_pfc_get_group_pins(struct pinctrl_dev *pctldev, unsigned selector,
 }
 
 static void sh_pfc_pin_dbg_show(struct pinctrl_dev *pctldev, struct seq_file *s,
-				unsigned offset)
+								unsigned offset)
 {
 	seq_printf(s, "%s", DRV_NAME);
 }
 
 #ifdef CONFIG_OF
 static int sh_pfc_map_add_config(struct pinctrl_map *map,
-				 const char *group_or_pin,
-				 enum pinctrl_map_type type,
-				 unsigned long *configs,
-				 unsigned int num_configs)
+								 const char *group_or_pin,
+								 enum pinctrl_map_type type,
+								 unsigned long *configs,
+								 unsigned int num_configs)
 {
 	unsigned long *cfgs;
 
 	cfgs = kmemdup(configs, num_configs * sizeof(*cfgs),
-		       GFP_KERNEL);
+				   GFP_KERNEL);
+
 	if (cfgs == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	map->type = type;
 	map->data.configs.group_or_pin = group_or_pin;
@@ -101,9 +106,9 @@ static int sh_pfc_map_add_config(struct pinctrl_map *map,
 }
 
 static int sh_pfc_dt_subnode_to_map(struct pinctrl_dev *pctldev,
-				    struct device_node *np,
-				    struct pinctrl_map **map,
-				    unsigned int *num_maps, unsigned int *index)
+									struct device_node *np,
+									struct pinctrl_map **map,
+									unsigned int *num_maps, unsigned int *index)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 	struct device *dev = pmx->pfc->dev;
@@ -124,13 +129,17 @@ static int sh_pfc_dt_subnode_to_map(struct pinctrl_dev *pctldev,
 	 * properties. Mixing old and new properties isn't allowed, neither
 	 * inside a subnode nor across subnodes.
 	 */
-	if (!pmx->func_prop_name) {
+	if (!pmx->func_prop_name)
+	{
 		if (of_find_property(np, "groups", NULL) ||
-		    of_find_property(np, "pins", NULL)) {
+			of_find_property(np, "pins", NULL))
+		{
 			pmx->func_prop_name = "function";
 			pmx->groups_prop_name = "groups";
 			pmx->pins_prop_name = "pins";
-		} else {
+		}
+		else
+		{
 			pmx->func_prop_name = "renesas,function";
 			pmx->groups_prop_name = "renesas,groups";
 			pmx->pins_prop_name = "renesas,pins";
@@ -141,56 +150,82 @@ static int sh_pfc_dt_subnode_to_map(struct pinctrl_dev *pctldev,
 	 * or one configuration must be specified.
 	 */
 	ret = of_property_read_string(np, pmx->func_prop_name, &function);
-	if (ret < 0 && ret != -EINVAL) {
+
+	if (ret < 0 && ret != -EINVAL)
+	{
 		dev_err(dev, "Invalid function in DT\n");
 		return ret;
 	}
 
 	ret = pinconf_generic_parse_dt_config(np, NULL, &configs, &num_configs);
-	if (ret < 0)
-		return ret;
 
-	if (!function && num_configs == 0) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (!function && num_configs == 0)
+	{
 		dev_err(dev,
-			"DT node must contain at least a function or config\n");
+				"DT node must contain at least a function or config\n");
 		ret = -ENODEV;
 		goto done;
 	}
 
 	/* Count the number of pins and groups and reallocate mappings. */
 	ret = of_property_count_strings(np, pmx->pins_prop_name);
-	if (ret == -EINVAL) {
+
+	if (ret == -EINVAL)
+	{
 		num_pins = 0;
-	} else if (ret < 0) {
+	}
+	else if (ret < 0)
+	{
 		dev_err(dev, "Invalid pins list in DT\n");
 		goto done;
-	} else {
+	}
+	else
+	{
 		num_pins = ret;
 	}
 
 	ret = of_property_count_strings(np, pmx->groups_prop_name);
-	if (ret == -EINVAL) {
+
+	if (ret == -EINVAL)
+	{
 		num_groups = 0;
-	} else if (ret < 0) {
+	}
+	else if (ret < 0)
+	{
 		dev_err(dev, "Invalid pin groups list in DT\n");
 		goto done;
-	} else {
+	}
+	else
+	{
 		num_groups = ret;
 	}
 
-	if (!num_pins && !num_groups) {
+	if (!num_pins && !num_groups)
+	{
 		dev_err(dev, "No pin or group provided in DT node\n");
 		ret = -ENODEV;
 		goto done;
 	}
 
 	if (function)
+	{
 		nmaps += num_groups;
+	}
+
 	if (configs)
+	{
 		nmaps += num_pins + num_groups;
+	}
 
 	maps = krealloc(maps, sizeof(*maps) * nmaps, GFP_KERNEL);
-	if (maps == NULL) {
+
+	if (maps == NULL)
+	{
 		ret = -ENOMEM;
 		goto done;
 	}
@@ -199,36 +234,47 @@ static int sh_pfc_dt_subnode_to_map(struct pinctrl_dev *pctldev,
 	*num_maps = nmaps;
 
 	/* Iterate over pins and groups and create the mappings. */
-	of_property_for_each_string(np, pmx->groups_prop_name, prop, group) {
-		if (function) {
+	of_property_for_each_string(np, pmx->groups_prop_name, prop, group)
+	{
+		if (function)
+		{
 			maps[idx].type = PIN_MAP_TYPE_MUX_GROUP;
 			maps[idx].data.mux.group = group;
 			maps[idx].data.mux.function = function;
 			idx++;
 		}
 
-		if (configs) {
+		if (configs)
+		{
 			ret = sh_pfc_map_add_config(&maps[idx], group,
-						    PIN_MAP_TYPE_CONFIGS_GROUP,
-						    configs, num_configs);
+										PIN_MAP_TYPE_CONFIGS_GROUP,
+										configs, num_configs);
+
 			if (ret < 0)
+			{
 				goto done;
+			}
 
 			idx++;
 		}
 	}
 
-	if (!configs) {
+	if (!configs)
+	{
 		ret = 0;
 		goto done;
 	}
 
-	of_property_for_each_string(np, pmx->pins_prop_name, prop, pin) {
+	of_property_for_each_string(np, pmx->pins_prop_name, prop, pin)
+	{
 		ret = sh_pfc_map_add_config(&maps[idx], pin,
-					    PIN_MAP_TYPE_CONFIGS_PIN,
-					    configs, num_configs);
+									PIN_MAP_TYPE_CONFIGS_PIN,
+									configs, num_configs);
+
 		if (ret < 0)
+		{
 			goto done;
+		}
 
 		idx++;
 	}
@@ -240,25 +286,30 @@ done:
 }
 
 static void sh_pfc_dt_free_map(struct pinctrl_dev *pctldev,
-			       struct pinctrl_map *map, unsigned num_maps)
+							   struct pinctrl_map *map, unsigned num_maps)
 {
 	unsigned int i;
 
 	if (map == NULL)
+	{
 		return;
+	}
 
-	for (i = 0; i < num_maps; ++i) {
+	for (i = 0; i < num_maps; ++i)
+	{
 		if (map[i].type == PIN_MAP_TYPE_CONFIGS_GROUP ||
-		    map[i].type == PIN_MAP_TYPE_CONFIGS_PIN)
+			map[i].type == PIN_MAP_TYPE_CONFIGS_PIN)
+		{
 			kfree(map[i].data.configs.configs);
+		}
 	}
 
 	kfree(map);
 }
 
 static int sh_pfc_dt_node_to_map(struct pinctrl_dev *pctldev,
-				 struct device_node *np,
-				 struct pinctrl_map **map, unsigned *num_maps)
+								 struct device_node *np,
+								 struct pinctrl_map **map, unsigned *num_maps)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 	struct device *dev = pmx->pfc->dev;
@@ -270,38 +321,51 @@ static int sh_pfc_dt_node_to_map(struct pinctrl_dev *pctldev,
 	*num_maps = 0;
 	index = 0;
 
-	for_each_child_of_node(np, child) {
+	for_each_child_of_node(np, child)
+	{
 		ret = sh_pfc_dt_subnode_to_map(pctldev, child, map, num_maps,
-					       &index);
-		if (ret < 0) {
+									   &index);
+
+		if (ret < 0)
+		{
 			of_node_put(child);
 			goto done;
 		}
 	}
 
 	/* If no mapping has been found in child nodes try the config node. */
-	if (*num_maps == 0) {
+	if (*num_maps == 0)
+	{
 		ret = sh_pfc_dt_subnode_to_map(pctldev, np, map, num_maps,
-					       &index);
+									   &index);
+
 		if (ret < 0)
+		{
 			goto done;
+		}
 	}
 
 	if (*num_maps)
+	{
 		return 0;
+	}
 
 	dev_err(dev, "no mapping found in node %s\n", np->full_name);
 	ret = -EINVAL;
 
 done:
+
 	if (ret < 0)
+	{
 		sh_pfc_dt_free_map(pctldev, *map, *num_maps);
+	}
 
 	return ret;
 }
 #endif /* CONFIG_OF */
 
-static const struct pinctrl_ops sh_pfc_pinctrl_ops = {
+static const struct pinctrl_ops sh_pfc_pinctrl_ops =
+{
 	.get_groups_count	= sh_pfc_get_groups_count,
 	.get_group_name		= sh_pfc_get_group_name,
 	.get_group_pins		= sh_pfc_get_group_pins,
@@ -320,7 +384,7 @@ static int sh_pfc_get_functions_count(struct pinctrl_dev *pctldev)
 }
 
 static const char *sh_pfc_get_function_name(struct pinctrl_dev *pctldev,
-					    unsigned selector)
+		unsigned selector)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 
@@ -328,9 +392,9 @@ static const char *sh_pfc_get_function_name(struct pinctrl_dev *pctldev,
 }
 
 static int sh_pfc_get_function_groups(struct pinctrl_dev *pctldev,
-				      unsigned selector,
-				      const char * const **groups,
-				      unsigned * const num_groups)
+									  unsigned selector,
+									  const char *const **groups,
+									  unsigned *const num_groups)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 
@@ -341,7 +405,7 @@ static int sh_pfc_get_function_groups(struct pinctrl_dev *pctldev,
 }
 
 static int sh_pfc_func_set_mux(struct pinctrl_dev *pctldev, unsigned selector,
-			       unsigned group)
+							   unsigned group)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 	struct sh_pfc *pfc = pmx->pfc;
@@ -352,20 +416,26 @@ static int sh_pfc_func_set_mux(struct pinctrl_dev *pctldev, unsigned selector,
 
 	spin_lock_irqsave(&pfc->lock, flags);
 
-	for (i = 0; i < grp->nr_pins; ++i) {
+	for (i = 0; i < grp->nr_pins; ++i)
+	{
 		int idx = sh_pfc_get_pin_index(pfc, grp->pins[i]);
 		struct sh_pfc_pin_config *cfg = &pmx->configs[idx];
 
-		if (cfg->type != PINMUX_TYPE_NONE) {
+		if (cfg->type != PINMUX_TYPE_NONE)
+		{
 			ret = -EBUSY;
 			goto done;
 		}
 	}
 
-	for (i = 0; i < grp->nr_pins; ++i) {
+	for (i = 0; i < grp->nr_pins; ++i)
+	{
 		ret = sh_pfc_config_mux(pfc, grp->mux[i], PINMUX_TYPE_FUNCTION);
+
 		if (ret < 0)
+		{
 			break;
+		}
 	}
 
 done:
@@ -374,8 +444,8 @@ done:
 }
 
 static int sh_pfc_gpio_request_enable(struct pinctrl_dev *pctldev,
-				      struct pinctrl_gpio_range *range,
-				      unsigned offset)
+									  struct pinctrl_gpio_range *range,
+									  unsigned offset)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 	struct sh_pfc *pfc = pmx->pfc;
@@ -386,23 +456,28 @@ static int sh_pfc_gpio_request_enable(struct pinctrl_dev *pctldev,
 
 	spin_lock_irqsave(&pfc->lock, flags);
 
-	if (cfg->type != PINMUX_TYPE_NONE) {
+	if (cfg->type != PINMUX_TYPE_NONE)
+	{
 		dev_err(pfc->dev,
-			"Pin %u is busy, can't configure it as GPIO.\n",
-			offset);
+				"Pin %u is busy, can't configure it as GPIO.\n",
+				offset);
 		ret = -EBUSY;
 		goto done;
 	}
 
-	if (!pfc->gpio) {
+	if (!pfc->gpio)
+	{
 		/* If GPIOs are handled externally the pin mux type need to be
 		 * set to GPIO here.
 		 */
 		const struct sh_pfc_pin *pin = &pfc->info->pins[idx];
 
 		ret = sh_pfc_config_mux(pfc, pin->enum_id, PINMUX_TYPE_GPIO);
+
 		if (ret < 0)
+		{
 			goto done;
+		}
 	}
 
 	cfg->type = PINMUX_TYPE_GPIO;
@@ -416,8 +491,8 @@ done:
 }
 
 static void sh_pfc_gpio_disable_free(struct pinctrl_dev *pctldev,
-				     struct pinctrl_gpio_range *range,
-				     unsigned offset)
+									 struct pinctrl_gpio_range *range,
+									 unsigned offset)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 	struct sh_pfc *pfc = pmx->pfc;
@@ -431,8 +506,8 @@ static void sh_pfc_gpio_disable_free(struct pinctrl_dev *pctldev,
 }
 
 static int sh_pfc_gpio_set_direction(struct pinctrl_dev *pctldev,
-				     struct pinctrl_gpio_range *range,
-				     unsigned offset, bool input)
+									 struct pinctrl_gpio_range *range,
+									 unsigned offset, bool input)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 	struct sh_pfc *pfc = pmx->pfc;
@@ -447,17 +522,24 @@ static int sh_pfc_gpio_set_direction(struct pinctrl_dev *pctldev,
 	/* Check if the requested direction is supported by the pin. Not all SoC
 	 * provide pin config data, so perform the check conditionally.
 	 */
-	if (pin->configs) {
+	if (pin->configs)
+	{
 		dir = input ? SH_PFC_PIN_CFG_INPUT : SH_PFC_PIN_CFG_OUTPUT;
+
 		if (!(pin->configs & dir))
+		{
 			return -EINVAL;
+		}
 	}
 
 	spin_lock_irqsave(&pfc->lock, flags);
 
 	ret = sh_pfc_config_mux(pfc, pin->enum_id, new_type);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	cfg->type = new_type;
 
@@ -466,7 +548,8 @@ done:
 	return ret;
 }
 
-static const struct pinmux_ops sh_pfc_pinmux_ops = {
+static const struct pinmux_ops sh_pfc_pinmux_ops =
+{
 	.get_functions_count	= sh_pfc_get_functions_count,
 	.get_function_name	= sh_pfc_get_function_name,
 	.get_function_groups	= sh_pfc_get_function_groups,
@@ -483,11 +566,14 @@ static u32 sh_pfc_pinconf_find_drive_strength_reg(struct sh_pfc *pfc,
 	const struct pinmux_drive_reg *reg;
 	unsigned int i;
 
-	for (reg = pfc->info->drive_regs; reg->reg; ++reg) {
-		for (i = 0; i < ARRAY_SIZE(reg->fields); ++i) {
+	for (reg = pfc->info->drive_regs; reg->reg; ++reg)
+	{
+		for (i = 0; i < ARRAY_SIZE(reg->fields); ++i)
+		{
 			field = &reg->fields[i];
 
-			if (field->size && field->pin == pin) {
+			if (field->size && field->pin == pin)
+			{
 				*offset = field->offset;
 				*size = field->size;
 
@@ -500,7 +586,7 @@ static u32 sh_pfc_pinconf_find_drive_strength_reg(struct sh_pfc *pfc,
 }
 
 static int sh_pfc_pinconf_get_drive_strength(struct sh_pfc *pfc,
-					     unsigned int pin)
+		unsigned int pin)
 {
 	unsigned long flags;
 	unsigned int offset;
@@ -509,8 +595,11 @@ static int sh_pfc_pinconf_get_drive_strength(struct sh_pfc *pfc,
 	u32 val;
 
 	reg = sh_pfc_pinconf_find_drive_strength_reg(pfc, pin, &offset, &size);
+
 	if (!reg)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&pfc->lock, flags);
 	val = sh_pfc_read_reg(pfc, reg, 32);
@@ -525,7 +614,7 @@ static int sh_pfc_pinconf_get_drive_strength(struct sh_pfc *pfc,
 }
 
 static int sh_pfc_pinconf_set_drive_strength(struct sh_pfc *pfc,
-					     unsigned int pin, u16 strength)
+		unsigned int pin, u16 strength)
 {
 	unsigned long flags;
 	unsigned int offset;
@@ -535,13 +624,18 @@ static int sh_pfc_pinconf_set_drive_strength(struct sh_pfc *pfc,
 	u32 val;
 
 	reg = sh_pfc_pinconf_find_drive_strength_reg(pfc, pin, &offset, &size);
+
 	if (!reg)
+	{
 		return -EINVAL;
+	}
 
 	step = size == 2 ? 6 : 3;
 
 	if (strength < step || strength > 24)
+	{
 		return -EINVAL;
+	}
 
 	/* Convert the value from mA based on a full drive strength value of
 	 * 24mA. We can make the full value configurable later if needed.
@@ -563,34 +657,35 @@ static int sh_pfc_pinconf_set_drive_strength(struct sh_pfc *pfc,
 
 /* Check whether the requested parameter is supported for a pin. */
 static bool sh_pfc_pinconf_validate(struct sh_pfc *pfc, unsigned int _pin,
-				    enum pin_config_param param)
+									enum pin_config_param param)
 {
 	int idx = sh_pfc_get_pin_index(pfc, _pin);
 	const struct sh_pfc_pin *pin = &pfc->info->pins[idx];
 
-	switch (param) {
-	case PIN_CONFIG_BIAS_DISABLE:
-		return true;
+	switch (param)
+	{
+		case PIN_CONFIG_BIAS_DISABLE:
+			return true;
 
-	case PIN_CONFIG_BIAS_PULL_UP:
-		return pin->configs & SH_PFC_PIN_CFG_PULL_UP;
+		case PIN_CONFIG_BIAS_PULL_UP:
+			return pin->configs & SH_PFC_PIN_CFG_PULL_UP;
 
-	case PIN_CONFIG_BIAS_PULL_DOWN:
-		return pin->configs & SH_PFC_PIN_CFG_PULL_DOWN;
+		case PIN_CONFIG_BIAS_PULL_DOWN:
+			return pin->configs & SH_PFC_PIN_CFG_PULL_DOWN;
 
-	case PIN_CONFIG_DRIVE_STRENGTH:
-		return pin->configs & SH_PFC_PIN_CFG_DRIVE_STRENGTH;
+		case PIN_CONFIG_DRIVE_STRENGTH:
+			return pin->configs & SH_PFC_PIN_CFG_DRIVE_STRENGTH;
 
-	case PIN_CONFIG_POWER_SOURCE:
-		return pin->configs & SH_PFC_PIN_CFG_IO_VOLTAGE;
+		case PIN_CONFIG_POWER_SOURCE:
+			return pin->configs & SH_PFC_PIN_CFG_IO_VOLTAGE;
 
-	default:
-		return false;
+		default:
+			return false;
 	}
 }
 
 static int sh_pfc_pinconf_get(struct pinctrl_dev *pctldev, unsigned _pin,
-			      unsigned long *config)
+							  unsigned long *config)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 	struct sh_pfc *pfc = pmx->pfc;
@@ -599,60 +694,78 @@ static int sh_pfc_pinconf_get(struct pinctrl_dev *pctldev, unsigned _pin,
 	unsigned int arg;
 
 	if (!sh_pfc_pinconf_validate(pfc, _pin, param))
+	{
 		return -ENOTSUPP;
+	}
 
-	switch (param) {
-	case PIN_CONFIG_BIAS_DISABLE:
-	case PIN_CONFIG_BIAS_PULL_UP:
-	case PIN_CONFIG_BIAS_PULL_DOWN: {
-		unsigned int bias;
+	switch (param)
+	{
+		case PIN_CONFIG_BIAS_DISABLE:
+		case PIN_CONFIG_BIAS_PULL_UP:
+		case PIN_CONFIG_BIAS_PULL_DOWN:
+			{
+				unsigned int bias;
 
-		if (!pfc->info->ops || !pfc->info->ops->get_bias)
+				if (!pfc->info->ops || !pfc->info->ops->get_bias)
+				{
+					return -ENOTSUPP;
+				}
+
+				spin_lock_irqsave(&pfc->lock, flags);
+				bias = pfc->info->ops->get_bias(pfc, _pin);
+				spin_unlock_irqrestore(&pfc->lock, flags);
+
+				if (bias != param)
+				{
+					return -EINVAL;
+				}
+
+				arg = 0;
+				break;
+			}
+
+		case PIN_CONFIG_DRIVE_STRENGTH:
+			{
+				int ret;
+
+				ret = sh_pfc_pinconf_get_drive_strength(pfc, _pin);
+
+				if (ret < 0)
+				{
+					return ret;
+				}
+
+				arg = ret;
+				break;
+			}
+
+		case PIN_CONFIG_POWER_SOURCE:
+			{
+				u32 pocctrl, val;
+				int bit;
+
+				if (!pfc->info->ops || !pfc->info->ops->pin_to_pocctrl)
+				{
+					return -ENOTSUPP;
+				}
+
+				bit = pfc->info->ops->pin_to_pocctrl(pfc, _pin, &pocctrl);
+
+				if (WARN(bit < 0, "invalid pin %#x", _pin))
+				{
+					return bit;
+				}
+
+				spin_lock_irqsave(&pfc->lock, flags);
+				val = sh_pfc_read_reg(pfc, pocctrl, 32);
+				spin_unlock_irqrestore(&pfc->lock, flags);
+
+				arg = (val & BIT(bit)) ? 3300 : 1800;
+				break;
+			}
+
+		default:
 			return -ENOTSUPP;
-
-		spin_lock_irqsave(&pfc->lock, flags);
-		bias = pfc->info->ops->get_bias(pfc, _pin);
-		spin_unlock_irqrestore(&pfc->lock, flags);
-
-		if (bias != param)
-			return -EINVAL;
-
-		arg = 0;
-		break;
-	}
-
-	case PIN_CONFIG_DRIVE_STRENGTH: {
-		int ret;
-
-		ret = sh_pfc_pinconf_get_drive_strength(pfc, _pin);
-		if (ret < 0)
-			return ret;
-
-		arg = ret;
-		break;
-	}
-
-	case PIN_CONFIG_POWER_SOURCE: {
-		u32 pocctrl, val;
-		int bit;
-
-		if (!pfc->info->ops || !pfc->info->ops->pin_to_pocctrl)
-			return -ENOTSUPP;
-
-		bit = pfc->info->ops->pin_to_pocctrl(pfc, _pin, &pocctrl);
-		if (WARN(bit < 0, "invalid pin %#x", _pin))
-			return bit;
-
-		spin_lock_irqsave(&pfc->lock, flags);
-		val = sh_pfc_read_reg(pfc, pocctrl, 32);
-		spin_unlock_irqrestore(&pfc->lock, flags);
-
-		arg = (val & BIT(bit)) ? 3300 : 1800;
-		break;
-	}
-
-	default:
-		return -ENOTSUPP;
 	}
 
 	*config = pinconf_to_config_packed(param, arg);
@@ -660,7 +773,7 @@ static int sh_pfc_pinconf_get(struct pinctrl_dev *pctldev, unsigned _pin,
 }
 
 static int sh_pfc_pinconf_set(struct pinctrl_dev *pctldev, unsigned _pin,
-			      unsigned long *configs, unsigned num_configs)
+							  unsigned long *configs, unsigned num_configs)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 	struct sh_pfc *pfc = pmx->pfc;
@@ -668,66 +781,90 @@ static int sh_pfc_pinconf_set(struct pinctrl_dev *pctldev, unsigned _pin,
 	unsigned long flags;
 	unsigned int i;
 
-	for (i = 0; i < num_configs; i++) {
+	for (i = 0; i < num_configs; i++)
+	{
 		param = pinconf_to_config_param(configs[i]);
 
 		if (!sh_pfc_pinconf_validate(pfc, _pin, param))
+		{
 			return -ENOTSUPP;
-
-		switch (param) {
-		case PIN_CONFIG_BIAS_PULL_UP:
-		case PIN_CONFIG_BIAS_PULL_DOWN:
-		case PIN_CONFIG_BIAS_DISABLE:
-			if (!pfc->info->ops || !pfc->info->ops->set_bias)
-				return -ENOTSUPP;
-
-			spin_lock_irqsave(&pfc->lock, flags);
-			pfc->info->ops->set_bias(pfc, _pin, param);
-			spin_unlock_irqrestore(&pfc->lock, flags);
-
-			break;
-
-		case PIN_CONFIG_DRIVE_STRENGTH: {
-			unsigned int arg =
-				pinconf_to_config_argument(configs[i]);
-			int ret;
-
-			ret = sh_pfc_pinconf_set_drive_strength(pfc, _pin, arg);
-			if (ret < 0)
-				return ret;
-
-			break;
 		}
 
-		case PIN_CONFIG_POWER_SOURCE: {
-			unsigned int mV = pinconf_to_config_argument(configs[i]);
-			u32 pocctrl, val;
-			int bit;
+		switch (param)
+		{
+			case PIN_CONFIG_BIAS_PULL_UP:
+			case PIN_CONFIG_BIAS_PULL_DOWN:
+			case PIN_CONFIG_BIAS_DISABLE:
+				if (!pfc->info->ops || !pfc->info->ops->set_bias)
+				{
+					return -ENOTSUPP;
+				}
 
-			if (!pfc->info->ops || !pfc->info->ops->pin_to_pocctrl)
+				spin_lock_irqsave(&pfc->lock, flags);
+				pfc->info->ops->set_bias(pfc, _pin, param);
+				spin_unlock_irqrestore(&pfc->lock, flags);
+
+				break;
+
+			case PIN_CONFIG_DRIVE_STRENGTH:
+				{
+					unsigned int arg =
+						pinconf_to_config_argument(configs[i]);
+					int ret;
+
+					ret = sh_pfc_pinconf_set_drive_strength(pfc, _pin, arg);
+
+					if (ret < 0)
+					{
+						return ret;
+					}
+
+					break;
+				}
+
+			case PIN_CONFIG_POWER_SOURCE:
+				{
+					unsigned int mV = pinconf_to_config_argument(configs[i]);
+					u32 pocctrl, val;
+					int bit;
+
+					if (!pfc->info->ops || !pfc->info->ops->pin_to_pocctrl)
+					{
+						return -ENOTSUPP;
+					}
+
+					bit = pfc->info->ops->pin_to_pocctrl(pfc, _pin, &pocctrl);
+
+					if (WARN(bit < 0, "invalid pin %#x", _pin))
+					{
+						return bit;
+					}
+
+					if (mV != 1800 && mV != 3300)
+					{
+						return -EINVAL;
+					}
+
+					spin_lock_irqsave(&pfc->lock, flags);
+					val = sh_pfc_read_reg(pfc, pocctrl, 32);
+
+					if (mV == 3300)
+					{
+						val |= BIT(bit);
+					}
+					else
+					{
+						val &= ~BIT(bit);
+					}
+
+					sh_pfc_write_reg(pfc, pocctrl, 32, val);
+					spin_unlock_irqrestore(&pfc->lock, flags);
+
+					break;
+				}
+
+			default:
 				return -ENOTSUPP;
-
-			bit = pfc->info->ops->pin_to_pocctrl(pfc, _pin, &pocctrl);
-			if (WARN(bit < 0, "invalid pin %#x", _pin))
-				return bit;
-
-			if (mV != 1800 && mV != 3300)
-				return -EINVAL;
-
-			spin_lock_irqsave(&pfc->lock, flags);
-			val = sh_pfc_read_reg(pfc, pocctrl, 32);
-			if (mV == 3300)
-				val |= BIT(bit);
-			else
-				val &= ~BIT(bit);
-			sh_pfc_write_reg(pfc, pocctrl, 32, val);
-			spin_unlock_irqrestore(&pfc->lock, flags);
-
-			break;
-		}
-
-		default:
-			return -ENOTSUPP;
 		}
 	} /* for each config */
 
@@ -735,8 +872,8 @@ static int sh_pfc_pinconf_set(struct pinctrl_dev *pctldev, unsigned _pin,
 }
 
 static int sh_pfc_pinconf_group_set(struct pinctrl_dev *pctldev, unsigned group,
-				    unsigned long *configs,
-				    unsigned num_configs)
+									unsigned long *configs,
+									unsigned num_configs)
 {
 	struct sh_pfc_pinctrl *pmx = pinctrl_dev_get_drvdata(pctldev);
 	const unsigned int *pins;
@@ -747,12 +884,15 @@ static int sh_pfc_pinconf_group_set(struct pinctrl_dev *pctldev, unsigned group,
 	num_pins = pmx->pfc->info->groups[group].nr_pins;
 
 	for (i = 0; i < num_pins; ++i)
+	{
 		sh_pfc_pinconf_set(pctldev, pins[i], configs, num_configs);
+	}
 
 	return 0;
 }
 
-static const struct pinconf_ops sh_pfc_pinconf_ops = {
+static const struct pinconf_ops sh_pfc_pinconf_ops =
+{
 	.is_generic			= true,
 	.pin_config_get			= sh_pfc_pinconf_get,
 	.pin_config_set			= sh_pfc_pinconf_set,
@@ -767,24 +907,31 @@ static int sh_pfc_map_pins(struct sh_pfc *pfc, struct sh_pfc_pinctrl *pmx)
 
 	/* Allocate and initialize the pins and configs arrays. */
 	pmx->pins = devm_kzalloc(pfc->dev,
-				 sizeof(*pmx->pins) * pfc->info->nr_pins,
-				 GFP_KERNEL);
+							 sizeof(*pmx->pins) * pfc->info->nr_pins,
+							 GFP_KERNEL);
+
 	if (unlikely(!pmx->pins))
+	{
 		return -ENOMEM;
+	}
 
 	pmx->configs = devm_kzalloc(pfc->dev,
-				    sizeof(*pmx->configs) * pfc->info->nr_pins,
-				    GFP_KERNEL);
-	if (unlikely(!pmx->configs))
-		return -ENOMEM;
+								sizeof(*pmx->configs) * pfc->info->nr_pins,
+								GFP_KERNEL);
 
-	for (i = 0; i < pfc->info->nr_pins; ++i) {
+	if (unlikely(!pmx->configs))
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < pfc->info->nr_pins; ++i)
+	{
 		const struct sh_pfc_pin *info = &pfc->info->pins[i];
 		struct sh_pfc_pin_config *cfg = &pmx->configs[i];
 		struct pinctrl_pin_desc *pin = &pmx->pins[i];
 
 		/* If the pin number is equal to -1 all pins are considered */
-		pin->number = info->pin != (u16)-1 ? info->pin : i;
+		pin->number = info->pin != (u16) - 1 ? info->pin : i;
 		pin->name = info->name;
 		cfg->type = PINMUX_TYPE_NONE;
 	}
@@ -798,14 +945,20 @@ int sh_pfc_register_pinctrl(struct sh_pfc *pfc)
 	int ret;
 
 	pmx = devm_kzalloc(pfc->dev, sizeof(*pmx), GFP_KERNEL);
+
 	if (unlikely(!pmx))
+	{
 		return -ENOMEM;
+	}
 
 	pmx->pfc = pfc;
 
 	ret = sh_pfc_map_pins(pfc, pmx);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	pmx->pctl_desc.name = DRV_NAME;
 	pmx->pctl_desc.owner = THIS_MODULE;

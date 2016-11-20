@@ -159,28 +159,28 @@
 
 /* SDLA adapter port constants */
 #define SDLA_IO_EXTENTS			0x04
-	
+
 #define SDLA_REG_CONTROL		0x00
 #define SDLA_REG_PC_WINDOW		0x01	/* offset for PC window select latch */
 #define SDLA_REG_Z80_WINDOW 		0x02	/* offset for Z80 window select latch */
 #define SDLA_REG_Z80_CONTROL		0x03	/* offset for Z80 control latch */
-	
+
 #define SDLA_S502_STS			0x00	/* status reg for 502, 502E, 507 */
 #define SDLA_S508_GNRL			0x00	/* general purp. reg for 508 */
 #define SDLA_S508_STS			0x01	/* status reg for 508 */
 #define SDLA_S508_IDR			0x02	/* ID reg for 508 */
-	
+
 /* control register flags */
 #define SDLA_S502A_START		0x00	/* start the CPU */
 #define SDLA_S502A_INTREQ		0x02
 #define SDLA_S502A_INTEN		0x04
-#define SDLA_S502A_HALT			0x08	/* halt the CPU */	
+#define SDLA_S502A_HALT			0x08	/* halt the CPU */
 #define SDLA_S502A_NMI			0x10	/* issue an NMI to the CPU */
 
 #define SDLA_S502E_CPUEN		0x01
 #define SDLA_S502E_ENABLE		0x02
 #define SDLA_S502E_INTACK		0x04
-	
+
 #define SDLA_S507_ENABLE		0x01
 #define SDLA_S507_IRQ3			0x00
 #define SDLA_S507_IRQ4			0x20
@@ -190,7 +190,7 @@
 #define SDLA_S507_IRQ11			0xA0
 #define SDLA_S507_IRQ12			0xC0
 #define SDLA_S507_IRQ15			0xE0
-	
+
 #define SDLA_HALT			0x00
 #define SDLA_CPUEN			0x02
 #define SDLA_MEMEN			0x04
@@ -199,46 +199,50 @@
 #define SDLA_S508_INTRQ			0x08
 #define SDLA_S508_INTEN			0x10
 
-struct sdla_cmd {
-   char  opp_flag;
-   char  cmd;
-   short length;
-   char  retval;
-   short dlci;
-   char  flags;
-   short rxlost_int;
-   long  rxlost_app;
-   char  reserve[2];
-   char  data[SDLA_MAX_DATA];	/* transfer data buffer */
+struct sdla_cmd
+{
+	char  opp_flag;
+	char  cmd;
+	short length;
+	char  retval;
+	short dlci;
+	char  flags;
+	short rxlost_int;
+	long  rxlost_app;
+	char  reserve[2];
+	char  data[SDLA_MAX_DATA];	/* transfer data buffer */
 } __attribute__((packed));
 
-struct intr_info {
-   char  flags;
-   short txlen;
-   char  irq;
-   char  flags2;
-   short timeout;
+struct intr_info
+{
+	char  flags;
+	short txlen;
+	char  irq;
+	char  flags2;
+	short timeout;
 } __attribute__((packed));
 
 /* found in the 508's control window at RXBUF_INFO */
-struct buf_info {
-   unsigned short rse_num;
-   unsigned long  rse_base;
-   unsigned long  rse_next;
-   unsigned long  buf_base;
-   unsigned short reserved;
-   unsigned long  buf_top;
+struct buf_info
+{
+	unsigned short rse_num;
+	unsigned long  rse_base;
+	unsigned long  rse_next;
+	unsigned long  buf_base;
+	unsigned short reserved;
+	unsigned long  buf_top;
 } __attribute__((packed));
 
 /* structure pointed to by rse_base in RXBUF_INFO struct */
-struct buf_entry {
-   char  opp_flag;
-   short length;
-   short dlci;
-   char  flags;
-   short timestamp;
-   short reserved[2];
-   long  buf_addr;
+struct buf_entry
+{
+	char  opp_flag;
+	short length;
+	short dlci;
+	char  flags;
+	short timestamp;
+	short reserved[2];
+	long  buf_addr;
 } __attribute__((packed));
 
 #endif

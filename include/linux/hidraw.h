@@ -16,7 +16,8 @@
 #include <uapi/linux/hidraw.h>
 
 
-struct hidraw {
+struct hidraw
+{
 	unsigned int minor;
 	int exist;
 	int open;
@@ -27,12 +28,14 @@ struct hidraw {
 	struct list_head list;
 };
 
-struct hidraw_report {
+struct hidraw_report
+{
 	__u8 *value;
 	int len;
 };
 
-struct hidraw_list {
+struct hidraw_list
+{
 	struct hidraw_report buffer[HIDRAW_BUFFER_SIZE];
 	int head;
 	int tail;

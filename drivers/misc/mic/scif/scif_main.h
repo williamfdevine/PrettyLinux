@@ -39,7 +39,8 @@
  * Generic state used for certain node QP message exchanges
  * like Unregister, Alloc etc.
  */
-enum scif_msg_state {
+enum scif_msg_state
+{
 	OP_IDLE = 1,
 	OP_IN_PROGRESS,
 	OP_COMPLETED,
@@ -85,7 +86,8 @@ enum scif_msg_state {
  * @mmu_notif_cleanup: List of temporary cached windows for reg cache
  * @rma_tc_limit: RMA temporary cache limit
  */
-struct scif_info {
+struct scif_info
+{
 	u8 nodeid;
 	u8 maxid;
 	u8 total;
@@ -133,7 +135,8 @@ struct scif_info {
  * @ppi_len: Length of MMIO and APER bars
  * @ppi_list: Link in list of mapping information
  */
-struct scif_p2p_info {
+struct scif_p2p_info
+{
 	u8 ppi_peer_id;
 	struct scatterlist *ppi_sg[2];
 	u64 sg_nentries[2];
@@ -174,7 +177,8 @@ struct scif_p2p_info {
  * @dma_ch_idx: Round robin index for DMA channels
  * @signal_pool: DMA pool used for scheduling scif_fence_signal DMA's
 */
-struct scif_dev {
+struct scif_dev
+{
 	u8 node;
 	struct list_head p2p;
 	struct scif_qp *qpairs;
@@ -244,10 +248,12 @@ static inline bool scif_is_mgmt_node(void)
 static inline bool scifdev_is_p2p(struct scif_dev *dev)
 {
 	if (scif_is_mgmt_node())
+	{
 		return false;
+	}
 	else
 		return dev != &scif_dev[SCIF_MGMT_NODE] &&
-			!scifdev_self(dev);
+			   !scifdev_self(dev);
 }
 
 /*

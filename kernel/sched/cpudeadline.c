@@ -39,10 +39,13 @@ static void cpudl_heapify_down(struct cpudl *cp, int idx)
 	u64 orig_dl = cp->elements[idx].dl;
 
 	if (left_child(idx) >= cp->size)
+	{
 		return;
+	}
 
 	/* adapted from lib/prio_heap.c */
-	while(1) {
+	while (1)
+	{
 		u64 largest_dl;
 		l = left_child(idx);
 		r = right_child(idx);
@@ -50,16 +53,22 @@ static void cpudl_heapify_down(struct cpudl *cp, int idx)
 		largest_dl = orig_dl;
 
 		if ((l < cp->size) && dl_time_before(orig_dl,
-						cp->elements[l].dl)) {
+											 cp->elements[l].dl))
+		{
 			largest = l;
 			largest_dl = cp->elements[l].dl;
 		}
+
 		if ((r < cp->size) && dl_time_before(largest_dl,
-						cp->elements[r].dl))
+											 cp->elements[r].dl))
+		{
 			largest = r;
+		}
 
 		if (largest == idx)
+		{
 			break;
+		}
 
 		/* pull largest child onto idx */
 		cp->elements[idx].cpu = cp->elements[largest].cpu;
@@ -67,6 +76,7 @@ static void cpudl_heapify_down(struct cpudl *cp, int idx)
 		cp->elements[cp->elements[idx].cpu].idx = idx;
 		idx = largest;
 	}
+
 	/* actual push down of saved original values orig_* */
 	cp->elements[idx].cpu = orig_cpu;
 	cp->elements[idx].dl = orig_dl;
@@ -81,18 +91,27 @@ static void cpudl_heapify_up(struct cpudl *cp, int idx)
 	u64 orig_dl = cp->elements[idx].dl;
 
 	if (idx == 0)
+	{
 		return;
+	}
 
-	do {
+	do
+	{
 		p = parent(idx);
+
 		if (dl_time_before(orig_dl, cp->elements[p].dl))
+		{
 			break;
+		}
+
 		/* pull parent onto idx */
 		cp->elements[idx].cpu = cp->elements[p].cpu;
 		cp->elements[idx].dl = cp->elements[p].dl;
 		cp->elements[cp->elements[idx].cpu].idx = idx;
 		idx = p;
-	} while (idx != 0);
+	}
+	while (idx != 0);
+
 	/* actual push up of saved original values orig_* */
 	cp->elements[idx].cpu = orig_cpu;
 	cp->elements[idx].dl = orig_dl;
@@ -102,10 +121,14 @@ static void cpudl_heapify_up(struct cpudl *cp, int idx)
 static void cpudl_heapify(struct cpudl *cp, int idx)
 {
 	if (idx > 0 && dl_time_before(cp->elements[parent(idx)].dl,
-				cp->elements[idx].dl))
+								  cp->elements[idx].dl))
+	{
 		cpudl_heapify_up(cp, idx);
+	}
 	else
+	{
 		cpudl_heapify_down(cp, idx);
+	}
 }
 
 static inline int cpudl_maximum(struct cpudl *cp)
@@ -122,20 +145,26 @@ static inline int cpudl_maximum(struct cpudl *cp)
  * Returns: int - best CPU (heap maximum if suitable)
  */
 int cpudl_find(struct cpudl *cp, struct task_struct *p,
-	       struct cpumask *later_mask)
+			   struct cpumask *later_mask)
 {
 	int best_cpu = -1;
 	const struct sched_dl_entity *dl_se = &p->dl;
 
 	if (later_mask &&
-	    cpumask_and(later_mask, cp->free_cpus, tsk_cpus_allowed(p))) {
+		cpumask_and(later_mask, cp->free_cpus, tsk_cpus_allowed(p)))
+	{
 		best_cpu = cpumask_any(later_mask);
 		goto out;
-	} else if (cpumask_test_cpu(cpudl_maximum(cp), tsk_cpus_allowed(p)) &&
-			dl_time_before(dl_se->deadline, cp->elements[0].dl)) {
+	}
+	else if (cpumask_test_cpu(cpudl_maximum(cp), tsk_cpus_allowed(p)) &&
+			 dl_time_before(dl_se->deadline, cp->elements[0].dl))
+	{
 		best_cpu = cpudl_maximum(cp);
+
 		if (later_mask)
+		{
 			cpumask_set_cpu(best_cpu, later_mask);
+		}
 	}
 
 out:
@@ -163,13 +192,17 @@ void cpudl_clear(struct cpudl *cp, int cpu)
 	raw_spin_lock_irqsave(&cp->lock, flags);
 
 	old_idx = cp->elements[cpu].idx;
-	if (old_idx == IDX_INVALID) {
+
+	if (old_idx == IDX_INVALID)
+	{
 		/*
 		 * Nothing to remove if old_idx was invalid.
 		 * This could happen if a rq_offline_dl is
 		 * called for a CPU without -dl tasks running.
 		 */
-	} else {
+	}
+	else
+	{
 		new_cpu = cp->elements[cp->size - 1].cpu;
 		cp->elements[old_idx].dl = cp->elements[cp->size - 1].dl;
 		cp->elements[old_idx].cpu = new_cpu;
@@ -180,6 +213,7 @@ void cpudl_clear(struct cpudl *cp, int cpu)
 
 		cpumask_set_cpu(cpu, cp->free_cpus);
 	}
+
 	raw_spin_unlock_irqrestore(&cp->lock, flags);
 }
 
@@ -203,14 +237,18 @@ void cpudl_set(struct cpudl *cp, int cpu, u64 dl)
 	raw_spin_lock_irqsave(&cp->lock, flags);
 
 	old_idx = cp->elements[cpu].idx;
-	if (old_idx == IDX_INVALID) {
+
+	if (old_idx == IDX_INVALID)
+	{
 		int new_idx = cp->size++;
 		cp->elements[new_idx].dl = dl;
 		cp->elements[new_idx].cpu = cpu;
 		cp->elements[cpu].idx = new_idx;
 		cpudl_heapify_up(cp, new_idx);
 		cpumask_clear_cpu(cpu, cp->free_cpus);
-	} else {
+	}
+	else
+	{
 		cp->elements[old_idx].dl = dl;
 		cpudl_heapify(cp, old_idx);
 	}
@@ -251,18 +289,22 @@ int cpudl_init(struct cpudl *cp)
 	cp->size = 0;
 
 	cp->elements = kcalloc(nr_cpu_ids,
-			       sizeof(struct cpudl_item),
-			       GFP_KERNEL);
-	if (!cp->elements)
-		return -ENOMEM;
+						   sizeof(struct cpudl_item),
+						   GFP_KERNEL);
 
-	if (!zalloc_cpumask_var(&cp->free_cpus, GFP_KERNEL)) {
+	if (!cp->elements)
+	{
+		return -ENOMEM;
+	}
+
+	if (!zalloc_cpumask_var(&cp->free_cpus, GFP_KERNEL))
+	{
 		kfree(cp->elements);
 		return -ENOMEM;
 	}
 
 	for_each_possible_cpu(i)
-		cp->elements[i].idx = IDX_INVALID;
+	cp->elements[i].idx = IDX_INVALID;
 
 	return 0;
 }

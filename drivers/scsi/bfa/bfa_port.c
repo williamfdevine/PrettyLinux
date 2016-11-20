@@ -32,8 +32,9 @@ bfa_port_stats_swap(struct bfa_port_s *port, union bfa_port_stats_u *stats)
 	__be32    t0, t1;
 	int	    i;
 
-	for (i = 0; i < sizeof(union bfa_port_stats_u)/sizeof(u32);
-		i += 2) {
+	for (i = 0; i < sizeof(union bfa_port_stats_u) / sizeof(u32);
+		 i += 2)
+	{
 		t0 = dip[i];
 		t1 = dip[i + 1];
 #ifdef __BIG_ENDIAN
@@ -95,18 +96,20 @@ bfa_port_get_stats_isr(struct bfa_port_s *port, bfa_status_t status)
 	port->stats_status = status;
 	port->stats_busy = BFA_FALSE;
 
-	if (status == BFA_STATUS_OK) {
+	if (status == BFA_STATUS_OK)
+	{
 		struct timeval tv;
 
 		memcpy(port->stats, port->stats_dma.kva,
-		       sizeof(union bfa_port_stats_u));
+			   sizeof(union bfa_port_stats_u));
 		bfa_port_stats_swap(port, port->stats);
 
 		do_gettimeofday(&tv);
 		port->stats->fc.secs_reset = tv.tv_sec - port->stats_reset_time;
 	}
 
-	if (port->stats_cbfn) {
+	if (port->stats_cbfn)
+	{
 		port->stats_cbfn(port->stats_cbarg, status);
 		port->stats_cbfn = NULL;
 	}
@@ -135,7 +138,8 @@ bfa_port_clear_stats_isr(struct bfa_port_s *port, bfa_status_t status)
 	do_gettimeofday(&tv);
 	port->stats_reset_time = tv.tv_sec;
 
-	if (port->stats_cbfn) {
+	if (port->stats_cbfn)
+	{
 		port->stats_cbfn(port->stats_cbarg, status);
 		port->stats_cbfn = NULL;
 	}
@@ -158,34 +162,48 @@ bfa_port_isr(void *cbarg, struct bfi_mbmsg_s *m)
 	i2hmsg = (union bfi_port_i2h_msg_u *) m;
 	bfa_trc(port, m->mh.msg_id);
 
-	switch (m->mh.msg_id) {
-	case BFI_PORT_I2H_ENABLE_RSP:
-		if (port->endis_pending == BFA_FALSE)
-			break;
-		bfa_port_enable_isr(port, i2hmsg->enable_rsp.status);
-		break;
+	switch (m->mh.msg_id)
+	{
+		case BFI_PORT_I2H_ENABLE_RSP:
+			if (port->endis_pending == BFA_FALSE)
+			{
+				break;
+			}
 
-	case BFI_PORT_I2H_DISABLE_RSP:
-		if (port->endis_pending == BFA_FALSE)
+			bfa_port_enable_isr(port, i2hmsg->enable_rsp.status);
 			break;
-		bfa_port_disable_isr(port, i2hmsg->disable_rsp.status);
-		break;
 
-	case BFI_PORT_I2H_GET_STATS_RSP:
-		/* Stats busy flag is still set? (may be cmd timed out) */
-		if (port->stats_busy == BFA_FALSE)
+		case BFI_PORT_I2H_DISABLE_RSP:
+			if (port->endis_pending == BFA_FALSE)
+			{
+				break;
+			}
+
+			bfa_port_disable_isr(port, i2hmsg->disable_rsp.status);
 			break;
-		bfa_port_get_stats_isr(port, i2hmsg->getstats_rsp.status);
-		break;
 
-	case BFI_PORT_I2H_CLEAR_STATS_RSP:
-		if (port->stats_busy == BFA_FALSE)
+		case BFI_PORT_I2H_GET_STATS_RSP:
+
+			/* Stats busy flag is still set? (may be cmd timed out) */
+			if (port->stats_busy == BFA_FALSE)
+			{
+				break;
+			}
+
+			bfa_port_get_stats_isr(port, i2hmsg->getstats_rsp.status);
 			break;
-		bfa_port_clear_stats_isr(port, i2hmsg->clearstats_rsp.status);
-		break;
 
-	default:
-		WARN_ON(1);
+		case BFI_PORT_I2H_CLEAR_STATS_RSP:
+			if (port->stats_busy == BFA_FALSE)
+			{
+				break;
+			}
+
+			bfa_port_clear_stats_isr(port, i2hmsg->clearstats_rsp.status);
+			break;
+
+		default:
+			WARN_ON(1);
 	}
 }
 
@@ -231,33 +249,38 @@ bfa_port_mem_claim(struct bfa_port_s *port, u8 *dma_kva, u64 dma_pa)
  */
 bfa_status_t
 bfa_port_enable(struct bfa_port_s *port, bfa_port_endis_cbfn_t cbfn,
-		 void *cbarg)
+				void *cbarg)
 {
 	struct bfi_port_generic_req_s *m;
 
 	/* If port is PBC disabled, return error */
-	if (port->pbc_disabled) {
+	if (port->pbc_disabled)
+	{
 		bfa_trc(port, BFA_STATUS_PBC);
 		return BFA_STATUS_PBC;
 	}
 
-	if (bfa_ioc_is_disabled(port->ioc)) {
+	if (bfa_ioc_is_disabled(port->ioc))
+	{
 		bfa_trc(port, BFA_STATUS_IOC_DISABLED);
 		return BFA_STATUS_IOC_DISABLED;
 	}
 
-	if (!bfa_ioc_is_operational(port->ioc)) {
+	if (!bfa_ioc_is_operational(port->ioc))
+	{
 		bfa_trc(port, BFA_STATUS_IOC_FAILURE);
 		return BFA_STATUS_IOC_FAILURE;
 	}
 
 	/* if port is d-port enabled, return error */
-	if (port->dport_enabled) {
+	if (port->dport_enabled)
+	{
 		bfa_trc(port, BFA_STATUS_DPORT_ERR);
 		return BFA_STATUS_DPORT_ERR;
 	}
 
-	if (port->endis_pending) {
+	if (port->endis_pending)
+	{
 		bfa_trc(port, BFA_STATUS_DEVBUSY);
 		return BFA_STATUS_DEVBUSY;
 	}
@@ -270,7 +293,7 @@ bfa_port_enable(struct bfa_port_s *port, bfa_port_endis_cbfn_t cbfn,
 	port->endis_pending = BFA_TRUE;
 
 	bfi_h2i_set(m->mh, BFI_MC_PORT, BFI_PORT_H2I_ENABLE_REQ,
-		    bfa_ioc_portid(port->ioc));
+				bfa_ioc_portid(port->ioc));
 	bfa_ioc_mbox_queue(port->ioc, &port->endis_mb);
 
 	return BFA_STATUS_OK;
@@ -287,33 +310,38 @@ bfa_port_enable(struct bfa_port_s *port, bfa_port_endis_cbfn_t cbfn,
  */
 bfa_status_t
 bfa_port_disable(struct bfa_port_s *port, bfa_port_endis_cbfn_t cbfn,
-		  void *cbarg)
+				 void *cbarg)
 {
 	struct bfi_port_generic_req_s *m;
 
 	/* If port is PBC disabled, return error */
-	if (port->pbc_disabled) {
+	if (port->pbc_disabled)
+	{
 		bfa_trc(port, BFA_STATUS_PBC);
 		return BFA_STATUS_PBC;
 	}
 
-	if (bfa_ioc_is_disabled(port->ioc)) {
+	if (bfa_ioc_is_disabled(port->ioc))
+	{
 		bfa_trc(port, BFA_STATUS_IOC_DISABLED);
 		return BFA_STATUS_IOC_DISABLED;
 	}
 
-	if (!bfa_ioc_is_operational(port->ioc)) {
+	if (!bfa_ioc_is_operational(port->ioc))
+	{
 		bfa_trc(port, BFA_STATUS_IOC_FAILURE);
 		return BFA_STATUS_IOC_FAILURE;
 	}
 
 	/* if port is d-port enabled, return error */
-	if (port->dport_enabled) {
+	if (port->dport_enabled)
+	{
 		bfa_trc(port, BFA_STATUS_DPORT_ERR);
 		return BFA_STATUS_DPORT_ERR;
 	}
 
-	if (port->endis_pending) {
+	if (port->endis_pending)
+	{
 		bfa_trc(port, BFA_STATUS_DEVBUSY);
 		return BFA_STATUS_DEVBUSY;
 	}
@@ -326,7 +354,7 @@ bfa_port_disable(struct bfa_port_s *port, bfa_port_endis_cbfn_t cbfn,
 	port->endis_pending = BFA_TRUE;
 
 	bfi_h2i_set(m->mh, BFI_MC_PORT, BFI_PORT_H2I_DISABLE_REQ,
-		    bfa_ioc_portid(port->ioc));
+				bfa_ioc_portid(port->ioc));
 	bfa_ioc_mbox_queue(port->ioc, &port->endis_mb);
 
 	return BFA_STATUS_OK;
@@ -343,16 +371,18 @@ bfa_port_disable(struct bfa_port_s *port, bfa_port_endis_cbfn_t cbfn,
  */
 bfa_status_t
 bfa_port_get_stats(struct bfa_port_s *port, union bfa_port_stats_u *stats,
-		    bfa_port_stats_cbfn_t cbfn, void *cbarg)
+				   bfa_port_stats_cbfn_t cbfn, void *cbarg)
 {
 	struct bfi_port_get_stats_req_s *m;
 
-	if (!bfa_ioc_is_operational(port->ioc)) {
+	if (!bfa_ioc_is_operational(port->ioc))
+	{
 		bfa_trc(port, BFA_STATUS_IOC_FAILURE);
 		return BFA_STATUS_IOC_FAILURE;
 	}
 
-	if (port->stats_busy) {
+	if (port->stats_busy)
+	{
 		bfa_trc(port, BFA_STATUS_DEVBUSY);
 		return BFA_STATUS_DEVBUSY;
 	}
@@ -366,7 +396,7 @@ bfa_port_get_stats(struct bfa_port_s *port, union bfa_port_stats_u *stats,
 	bfa_dma_be_addr_set(m->dma_addr, port->stats_dma.pa);
 
 	bfi_h2i_set(m->mh, BFI_MC_PORT, BFI_PORT_H2I_GET_STATS_REQ,
-		    bfa_ioc_portid(port->ioc));
+				bfa_ioc_portid(port->ioc));
 	bfa_ioc_mbox_queue(port->ioc, &port->stats_mb);
 
 	return BFA_STATUS_OK;
@@ -382,16 +412,18 @@ bfa_port_get_stats(struct bfa_port_s *port, union bfa_port_stats_u *stats,
  */
 bfa_status_t
 bfa_port_clear_stats(struct bfa_port_s *port, bfa_port_stats_cbfn_t cbfn,
-		      void *cbarg)
+					 void *cbarg)
 {
 	struct bfi_port_generic_req_s *m;
 
-	if (!bfa_ioc_is_operational(port->ioc)) {
+	if (!bfa_ioc_is_operational(port->ioc))
+	{
 		bfa_trc(port, BFA_STATUS_IOC_FAILURE);
 		return BFA_STATUS_IOC_FAILURE;
 	}
 
-	if (port->stats_busy) {
+	if (port->stats_busy)
+	{
 		bfa_trc(port, BFA_STATUS_DEVBUSY);
 		return BFA_STATUS_DEVBUSY;
 	}
@@ -403,7 +435,7 @@ bfa_port_clear_stats(struct bfa_port_s *port, bfa_port_stats_cbfn_t cbfn,
 	port->stats_busy  = BFA_TRUE;
 
 	bfi_h2i_set(m->mh, BFI_MC_PORT, BFI_PORT_H2I_CLEAR_STATS_REQ,
-		    bfa_ioc_portid(port->ioc));
+				bfa_ioc_portid(port->ioc));
 	bfa_ioc_mbox_queue(port->ioc, &port->stats_mb);
 
 	return BFA_STATUS_OK;
@@ -424,33 +456,43 @@ bfa_port_notify(void *arg, enum bfa_ioc_event_e event)
 {
 	struct bfa_port_s *port = (struct bfa_port_s *) arg;
 
-	switch (event) {
-	case BFA_IOC_E_DISABLED:
-	case BFA_IOC_E_FAILED:
-		/* Fail any pending get_stats/clear_stats requests */
-		if (port->stats_busy) {
-			if (port->stats_cbfn)
-				port->stats_cbfn(port->stats_cbarg,
-						BFA_STATUS_FAILED);
-			port->stats_cbfn = NULL;
-			port->stats_busy = BFA_FALSE;
-		}
+	switch (event)
+	{
+		case BFA_IOC_E_DISABLED:
+		case BFA_IOC_E_FAILED:
 
-		/* Clear any enable/disable is pending */
-		if (port->endis_pending) {
-			if (port->endis_cbfn)
-				port->endis_cbfn(port->endis_cbarg,
-						BFA_STATUS_FAILED);
-			port->endis_cbfn = NULL;
-			port->endis_pending = BFA_FALSE;
-		}
+			/* Fail any pending get_stats/clear_stats requests */
+			if (port->stats_busy)
+			{
+				if (port->stats_cbfn)
+					port->stats_cbfn(port->stats_cbarg,
+									 BFA_STATUS_FAILED);
 
-		/* clear D-port mode */
-		if (port->dport_enabled)
-			bfa_port_set_dportenabled(port, BFA_FALSE);
-		break;
-	default:
-		break;
+				port->stats_cbfn = NULL;
+				port->stats_busy = BFA_FALSE;
+			}
+
+			/* Clear any enable/disable is pending */
+			if (port->endis_pending)
+			{
+				if (port->endis_cbfn)
+					port->endis_cbfn(port->endis_cbarg,
+									 BFA_STATUS_FAILED);
+
+				port->endis_cbfn = NULL;
+				port->endis_pending = BFA_FALSE;
+			}
+
+			/* clear D-port mode */
+			if (port->dport_enabled)
+			{
+				bfa_port_set_dportenabled(port, BFA_FALSE);
+			}
+
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -469,7 +511,7 @@ bfa_port_notify(void *arg, enum bfa_ioc_event_e event)
  */
 void
 bfa_port_attach(struct bfa_port_s *port, struct bfa_ioc_s *ioc,
-		 void *dev, struct bfa_trc_mod_s *trcmod)
+				void *dev, struct bfa_trc_mod_s *trcmod)
 {
 	struct timeval tv;
 
@@ -536,16 +578,21 @@ bfa_cee_get_attr_isr(struct bfa_cee_s *cee, bfa_status_t status)
 
 	cee->get_attr_status = status;
 	bfa_trc(cee, 0);
-	if (status == BFA_STATUS_OK) {
+
+	if (status == BFA_STATUS_OK)
+	{
 		bfa_trc(cee, 0);
 		memcpy(cee->attr, cee->attr_dma.kva,
-			sizeof(struct bfa_cee_attr_s));
+			   sizeof(struct bfa_cee_attr_s));
 		lldp_cfg->time_to_live = be16_to_cpu(lldp_cfg->time_to_live);
 		lldp_cfg->enabled_system_cap =
-				be16_to_cpu(lldp_cfg->enabled_system_cap);
+			be16_to_cpu(lldp_cfg->enabled_system_cap);
 	}
+
 	cee->get_attr_pending = BFA_FALSE;
-	if (cee->cbfn.get_attr_cbfn) {
+
+	if (cee->cbfn.get_attr_cbfn)
+	{
 		bfa_trc(cee, 0);
 		cee->cbfn.get_attr_cbfn(cee->cbfn.get_attr_cbarg, status);
 	}
@@ -569,19 +616,27 @@ bfa_cee_get_stats_isr(struct bfa_cee_s *cee, bfa_status_t status)
 
 	cee->get_stats_status = status;
 	bfa_trc(cee, 0);
-	if (status == BFA_STATUS_OK) {
+
+	if (status == BFA_STATUS_OK)
+	{
 		bfa_trc(cee, 0);
 		memcpy(cee->stats, cee->stats_dma.kva,
-			sizeof(struct bfa_cee_stats_s));
+			   sizeof(struct bfa_cee_stats_s));
 		/* swap the cee stats */
 		buffer = (u32 *)cee->stats;
+
 		for (i = 0; i < (sizeof(struct bfa_cee_stats_s) /
-				 sizeof(u32)); i++)
+						 sizeof(u32)); i++)
+		{
 			buffer[i] = cpu_to_be32(buffer[i]);
+		}
 	}
+
 	cee->get_stats_pending = BFA_FALSE;
 	bfa_trc(cee, 0);
-	if (cee->cbfn.get_stats_cbfn) {
+
+	if (cee->cbfn.get_stats_cbfn)
+	{
 		bfa_trc(cee, 0);
 		cee->cbfn.get_stats_cbfn(cee->cbfn.get_stats_cbarg, status);
 	}
@@ -602,8 +657,11 @@ bfa_cee_reset_stats_isr(struct bfa_cee_s *cee, bfa_status_t status)
 {
 	cee->reset_stats_status = status;
 	cee->reset_stats_pending = BFA_FALSE;
+
 	if (cee->cbfn.reset_stats_cbfn)
+	{
 		cee->cbfn.reset_stats_cbfn(cee->cbfn.reset_stats_cbarg, status);
+	}
 }
 
 /*
@@ -619,7 +677,7 @@ u32
 bfa_cee_meminfo(void)
 {
 	return BFA_ROUNDUP(sizeof(struct bfa_cee_attr_s), BFA_DMA_ALIGN_SZ) +
-		BFA_ROUNDUP(sizeof(struct bfa_cee_stats_s), BFA_DMA_ALIGN_SZ);
+		   BFA_ROUNDUP(sizeof(struct bfa_cee_stats_s), BFA_DMA_ALIGN_SZ);
 }
 
 /*
@@ -639,12 +697,12 @@ bfa_cee_mem_claim(struct bfa_cee_s *cee, u8 *dma_kva, u64 dma_pa)
 	cee->attr_dma.kva = dma_kva;
 	cee->attr_dma.pa = dma_pa;
 	cee->stats_dma.kva = dma_kva + BFA_ROUNDUP(
-			     sizeof(struct bfa_cee_attr_s), BFA_DMA_ALIGN_SZ);
+							 sizeof(struct bfa_cee_attr_s), BFA_DMA_ALIGN_SZ);
 	cee->stats_dma.pa = dma_pa + BFA_ROUNDUP(
-			     sizeof(struct bfa_cee_attr_s), BFA_DMA_ALIGN_SZ);
+							sizeof(struct bfa_cee_attr_s), BFA_DMA_ALIGN_SZ);
 	cee->attr = (struct bfa_cee_attr_s *) dma_kva;
 	cee->stats = (struct bfa_cee_stats_s *) (dma_kva + BFA_ROUNDUP(
-			sizeof(struct bfa_cee_attr_s), BFA_DMA_ALIGN_SZ));
+					 sizeof(struct bfa_cee_attr_s), BFA_DMA_ALIGN_SZ));
 }
 
 /*
@@ -660,27 +718,32 @@ bfa_cee_mem_claim(struct bfa_cee_s *cee, u8 *dma_kva, u64 dma_pa)
 
 bfa_status_t
 bfa_cee_get_attr(struct bfa_cee_s *cee, struct bfa_cee_attr_s *attr,
-		 bfa_cee_get_attr_cbfn_t cbfn, void *cbarg)
+				 bfa_cee_get_attr_cbfn_t cbfn, void *cbarg)
 {
 	struct bfi_cee_get_req_s *cmd;
 
 	WARN_ON((cee == NULL) || (cee->ioc == NULL));
 	bfa_trc(cee, 0);
-	if (!bfa_ioc_is_operational(cee->ioc)) {
+
+	if (!bfa_ioc_is_operational(cee->ioc))
+	{
 		bfa_trc(cee, 0);
 		return BFA_STATUS_IOC_FAILURE;
 	}
-	if (cee->get_attr_pending == BFA_TRUE) {
+
+	if (cee->get_attr_pending == BFA_TRUE)
+	{
 		bfa_trc(cee, 0);
 		return  BFA_STATUS_DEVBUSY;
 	}
+
 	cee->get_attr_pending = BFA_TRUE;
 	cmd = (struct bfi_cee_get_req_s *) cee->get_cfg_mb.msg;
 	cee->attr = attr;
 	cee->cbfn.get_attr_cbfn = cbfn;
 	cee->cbfn.get_attr_cbarg = cbarg;
 	bfi_h2i_set(cmd->mh, BFI_MC_CEE, BFI_CEE_H2I_GET_CFG_REQ,
-		bfa_ioc_portid(cee->ioc));
+				bfa_ioc_portid(cee->ioc));
 	bfa_dma_be_addr_set(cmd->dma_addr, cee->attr_dma.pa);
 	bfa_ioc_mbox_queue(cee->ioc, &cee->get_cfg_mb);
 
@@ -700,27 +763,31 @@ bfa_cee_get_attr(struct bfa_cee_s *cee, struct bfa_cee_attr_s *attr,
 
 bfa_status_t
 bfa_cee_get_stats(struct bfa_cee_s *cee, struct bfa_cee_stats_s *stats,
-		  bfa_cee_get_stats_cbfn_t cbfn, void *cbarg)
+				  bfa_cee_get_stats_cbfn_t cbfn, void *cbarg)
 {
 	struct bfi_cee_get_req_s *cmd;
 
 	WARN_ON((cee == NULL) || (cee->ioc == NULL));
 
-	if (!bfa_ioc_is_operational(cee->ioc)) {
+	if (!bfa_ioc_is_operational(cee->ioc))
+	{
 		bfa_trc(cee, 0);
 		return BFA_STATUS_IOC_FAILURE;
 	}
-	if (cee->get_stats_pending == BFA_TRUE) {
+
+	if (cee->get_stats_pending == BFA_TRUE)
+	{
 		bfa_trc(cee, 0);
 		return  BFA_STATUS_DEVBUSY;
 	}
+
 	cee->get_stats_pending = BFA_TRUE;
 	cmd = (struct bfi_cee_get_req_s *) cee->get_stats_mb.msg;
 	cee->stats = stats;
 	cee->cbfn.get_stats_cbfn = cbfn;
 	cee->cbfn.get_stats_cbarg = cbarg;
 	bfi_h2i_set(cmd->mh, BFI_MC_CEE, BFI_CEE_H2I_GET_STATS_REQ,
-		bfa_ioc_portid(cee->ioc));
+				bfa_ioc_portid(cee->ioc));
 	bfa_dma_be_addr_set(cmd->dma_addr, cee->stats_dma.pa);
 	bfa_ioc_mbox_queue(cee->ioc, &cee->get_stats_mb);
 
@@ -739,25 +806,30 @@ bfa_cee_get_stats(struct bfa_cee_s *cee, struct bfa_cee_stats_s *stats,
 
 bfa_status_t
 bfa_cee_reset_stats(struct bfa_cee_s *cee,
-		    bfa_cee_reset_stats_cbfn_t cbfn, void *cbarg)
+					bfa_cee_reset_stats_cbfn_t cbfn, void *cbarg)
 {
 	struct bfi_cee_reset_stats_s *cmd;
 
 	WARN_ON((cee == NULL) || (cee->ioc == NULL));
-	if (!bfa_ioc_is_operational(cee->ioc)) {
+
+	if (!bfa_ioc_is_operational(cee->ioc))
+	{
 		bfa_trc(cee, 0);
 		return BFA_STATUS_IOC_FAILURE;
 	}
-	if (cee->reset_stats_pending == BFA_TRUE) {
+
+	if (cee->reset_stats_pending == BFA_TRUE)
+	{
 		bfa_trc(cee, 0);
 		return  BFA_STATUS_DEVBUSY;
 	}
+
 	cee->reset_stats_pending = BFA_TRUE;
 	cmd = (struct bfi_cee_reset_stats_s *) cee->reset_stats_mb.msg;
 	cee->cbfn.reset_stats_cbfn = cbfn;
 	cee->cbfn.reset_stats_cbarg = cbarg;
 	bfi_h2i_set(cmd->mh, BFI_MC_CEE, BFI_CEE_H2I_RESET_STATS,
-		bfa_ioc_portid(cee->ioc));
+				bfa_ioc_portid(cee->ioc));
 	bfa_ioc_mbox_queue(cee->ioc, &cee->reset_stats_mb);
 
 	return BFA_STATUS_OK;
@@ -782,19 +854,24 @@ bfa_cee_isr(void *cbarg, struct bfi_mbmsg_s *m)
 	msg = (union bfi_cee_i2h_msg_u *) m;
 	get_rsp = (struct bfi_cee_get_rsp_s *) m;
 	bfa_trc(cee, msg->mh.msg_id);
-	switch (msg->mh.msg_id) {
-	case BFI_CEE_I2H_GET_CFG_RSP:
-		bfa_trc(cee, get_rsp->cmd_status);
-		bfa_cee_get_attr_isr(cee, get_rsp->cmd_status);
-		break;
-	case BFI_CEE_I2H_GET_STATS_RSP:
-		bfa_cee_get_stats_isr(cee, get_rsp->cmd_status);
-		break;
-	case BFI_CEE_I2H_RESET_STATS_RSP:
-		bfa_cee_reset_stats_isr(cee, get_rsp->cmd_status);
-		break;
-	default:
-		WARN_ON(1);
+
+	switch (msg->mh.msg_id)
+	{
+		case BFI_CEE_I2H_GET_CFG_RSP:
+			bfa_trc(cee, get_rsp->cmd_status);
+			bfa_cee_get_attr_isr(cee, get_rsp->cmd_status);
+			break;
+
+		case BFI_CEE_I2H_GET_STATS_RSP:
+			bfa_cee_get_stats_isr(cee, get_rsp->cmd_status);
+			break;
+
+		case BFI_CEE_I2H_RESET_STATS_RSP:
+			bfa_cee_reset_stats_isr(cee, get_rsp->cmd_status);
+			break;
+
+		default:
+			WARN_ON(1);
 	}
 }
 
@@ -816,40 +893,53 @@ bfa_cee_notify(void *arg, enum bfa_ioc_event_e event)
 
 	bfa_trc(cee, event);
 
-	switch (event) {
-	case BFA_IOC_E_DISABLED:
-	case BFA_IOC_E_FAILED:
-		if (cee->get_attr_pending == BFA_TRUE) {
-			cee->get_attr_status = BFA_STATUS_FAILED;
-			cee->get_attr_pending  = BFA_FALSE;
-			if (cee->cbfn.get_attr_cbfn) {
-				cee->cbfn.get_attr_cbfn(
-					cee->cbfn.get_attr_cbarg,
-					BFA_STATUS_FAILED);
-			}
-		}
-		if (cee->get_stats_pending == BFA_TRUE) {
-			cee->get_stats_status = BFA_STATUS_FAILED;
-			cee->get_stats_pending  = BFA_FALSE;
-			if (cee->cbfn.get_stats_cbfn) {
-				cee->cbfn.get_stats_cbfn(
-				cee->cbfn.get_stats_cbarg,
-				BFA_STATUS_FAILED);
-			}
-		}
-		if (cee->reset_stats_pending == BFA_TRUE) {
-			cee->reset_stats_status = BFA_STATUS_FAILED;
-			cee->reset_stats_pending  = BFA_FALSE;
-			if (cee->cbfn.reset_stats_cbfn) {
-				cee->cbfn.reset_stats_cbfn(
-				cee->cbfn.reset_stats_cbarg,
-				BFA_STATUS_FAILED);
-			}
-		}
-		break;
+	switch (event)
+	{
+		case BFA_IOC_E_DISABLED:
+		case BFA_IOC_E_FAILED:
+			if (cee->get_attr_pending == BFA_TRUE)
+			{
+				cee->get_attr_status = BFA_STATUS_FAILED;
+				cee->get_attr_pending  = BFA_FALSE;
 
-	default:
-		break;
+				if (cee->cbfn.get_attr_cbfn)
+				{
+					cee->cbfn.get_attr_cbfn(
+						cee->cbfn.get_attr_cbarg,
+						BFA_STATUS_FAILED);
+				}
+			}
+
+			if (cee->get_stats_pending == BFA_TRUE)
+			{
+				cee->get_stats_status = BFA_STATUS_FAILED;
+				cee->get_stats_pending  = BFA_FALSE;
+
+				if (cee->cbfn.get_stats_cbfn)
+				{
+					cee->cbfn.get_stats_cbfn(
+						cee->cbfn.get_stats_cbarg,
+						BFA_STATUS_FAILED);
+				}
+			}
+
+			if (cee->reset_stats_pending == BFA_TRUE)
+			{
+				cee->reset_stats_status = BFA_STATUS_FAILED;
+				cee->reset_stats_pending  = BFA_FALSE;
+
+				if (cee->cbfn.reset_stats_cbfn)
+				{
+					cee->cbfn.reset_stats_cbfn(
+						cee->cbfn.reset_stats_cbarg,
+						BFA_STATUS_FAILED);
+				}
+			}
+
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -868,7 +958,7 @@ bfa_cee_notify(void *arg, enum bfa_ioc_event_e event)
  */
 void
 bfa_cee_attach(struct bfa_cee_s *cee, struct bfa_ioc_s *ioc,
-		void *dev)
+			   void *dev)
 {
 	WARN_ON(cee == NULL);
 	cee->dev = dev;

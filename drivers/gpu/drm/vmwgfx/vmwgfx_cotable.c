@@ -46,7 +46,8 @@
  * @scrubbed: Whether the cotable has been scrubbed.
  * @resource_list: List of resources in the cotable.
  */
-struct vmw_cotable {
+struct vmw_cotable
+{
 	struct vmw_resource res;
 	struct vmw_resource *ctx;
 	size_t size_read_back;
@@ -63,14 +64,16 @@ struct vmw_cotable {
  * for this cotable type.
  * @size: Size of each entry.
  */
-struct vmw_cotable_info {
+struct vmw_cotable_info
+{
 	u32 min_initial_entries;
 	u32 size;
 	void (*unbind_func)(struct vmw_private *, struct list_head *,
-			    bool);
+						bool);
 };
 
-static const struct vmw_cotable_info co_info[] = {
+static const struct vmw_cotable_info co_info[] =
+{
 	{1, sizeof(SVGACOTableDXRTViewEntry), &vmw_view_cotable_list_destroy},
 	{1, sizeof(SVGACOTableDXDSViewEntry), &vmw_view_cotable_list_destroy},
 	{1, sizeof(SVGACOTableDXSRViewEntry), &vmw_view_cotable_list_destroy},
@@ -89,7 +92,8 @@ static const struct vmw_cotable_info co_info[] = {
  * otherwise, the device will swap in an invalid context when we remove
  * bindings before scrubbing a cotable...
  */
-const SVGACOTableType vmw_cotable_scrub_order[] = {
+const SVGACOTableType vmw_cotable_scrub_order[] =
+{
 	SVGA_COTABLE_RTVIEW,
 	SVGA_COTABLE_DSVIEW,
 	SVGA_COTABLE_SRVIEW,
@@ -104,14 +108,15 @@ const SVGACOTableType vmw_cotable_scrub_order[] = {
 };
 
 static int vmw_cotable_bind(struct vmw_resource *res,
-			    struct ttm_validate_buffer *val_buf);
+							struct ttm_validate_buffer *val_buf);
 static int vmw_cotable_unbind(struct vmw_resource *res,
-			      bool readback,
-			      struct ttm_validate_buffer *val_buf);
+							  bool readback,
+							  struct ttm_validate_buffer *val_buf);
 static int vmw_cotable_create(struct vmw_resource *res);
 static int vmw_cotable_destroy(struct vmw_resource *res);
 
-static const struct vmw_res_func vmw_cotable_func = {
+static const struct vmw_res_func vmw_cotable_func =
+{
 	.res_type = vmw_res_cotable,
 	.needs_backup = true,
 	.may_evict = true,
@@ -162,7 +167,8 @@ static int vmw_cotable_unscrub(struct vmw_resource *res)
 	struct vmw_cotable *vcotbl = vmw_cotable(res);
 	struct vmw_private *dev_priv = res->dev_priv;
 	struct ttm_buffer_object *bo = &res->backup->base;
-	struct {
+	struct
+	{
 		SVGA3dCmdHeader header;
 		SVGA3dCmdDXSetCOTable body;
 	} *cmd;
@@ -171,9 +177,11 @@ static int vmw_cotable_unscrub(struct vmw_resource *res)
 	lockdep_assert_held(&bo->resv->lock.base);
 
 	cmd = vmw_fifo_reserve_dx(dev_priv, sizeof(*cmd), SVGA3D_INVALID_ID);
-	if (!cmd) {
+
+	if (!cmd)
+	{
 		DRM_ERROR("Failed reserving FIFO space for cotable "
-			  "binding.\n");
+				  "binding.\n");
 		return -ENOMEM;
 	}
 
@@ -203,7 +211,7 @@ static int vmw_cotable_unscrub(struct vmw_resource *res)
  * its backing mob, which needs to be validated and reserved at this point.
  */
 static int vmw_cotable_bind(struct vmw_resource *res,
-			    struct ttm_validate_buffer *val_buf)
+							struct ttm_validate_buffer *val_buf)
 {
 	/*
 	 * The create() callback may have changed @res->backup without
@@ -241,35 +249,47 @@ int vmw_cotable_scrub(struct vmw_resource *res, bool readback)
 	struct vmw_private *dev_priv = res->dev_priv;
 	size_t submit_size;
 
-	struct {
+	struct
+	{
 		SVGA3dCmdHeader header;
 		SVGA3dCmdDXReadbackCOTable body;
 	} *cmd0;
-	struct {
+	struct
+	{
 		SVGA3dCmdHeader header;
 		SVGA3dCmdDXSetCOTable body;
 	} *cmd1;
 
 	if (vcotbl->scrubbed)
+	{
 		return 0;
+	}
 
 	if (co_info[vcotbl->type].unbind_func)
 		co_info[vcotbl->type].unbind_func(dev_priv,
-						  &vcotbl->resource_list,
-						  readback);
+										  &vcotbl->resource_list,
+										  readback);
+
 	submit_size = sizeof(*cmd1);
+
 	if (readback)
+	{
 		submit_size += sizeof(*cmd0);
+	}
 
 	cmd1 = vmw_fifo_reserve_dx(dev_priv, submit_size, SVGA3D_INVALID_ID);
-	if (!cmd1) {
+
+	if (!cmd1)
+	{
 		DRM_ERROR("Failed reserving FIFO space for cotable "
-			  "unbinding.\n");
+				  "unbinding.\n");
 		return -ENOMEM;
 	}
 
 	vcotbl->size_read_back = 0;
-	if (readback) {
+
+	if (readback)
+	{
 		cmd0 = (void *) cmd1;
 		cmd0->header.id = SVGA_3D_CMD_DX_READBACK_COTABLE;
 		cmd0->header.size = sizeof(cmd0->body);
@@ -278,6 +298,7 @@ int vmw_cotable_scrub(struct vmw_resource *res, bool readback)
 		cmd1 = (void *) &cmd0[1];
 		vcotbl->size_read_back = res->backup_size;
 	}
+
 	cmd1->header.id = SVGA_3D_CMD_DX_SET_COTABLE;
 	cmd1->header.size = sizeof(cmd1->body);
 	cmd1->body.cid = vcotbl->ctx->id;
@@ -304,8 +325,8 @@ int vmw_cotable_scrub(struct vmw_resource *res, bool readback)
  * Unbinds the cotable from the device and fences the backup buffer.
  */
 static int vmw_cotable_unbind(struct vmw_resource *res,
-			      bool readback,
-			      struct ttm_validate_buffer *val_buf)
+							  bool readback,
+							  struct ttm_validate_buffer *val_buf)
 {
 	struct vmw_cotable *vcotbl = vmw_cotable(res);
 	struct vmw_private *dev_priv = res->dev_priv;
@@ -313,19 +334,28 @@ static int vmw_cotable_unbind(struct vmw_resource *res,
 	struct vmw_fence_obj *fence;
 
 	if (list_empty(&res->mob_head))
+	{
 		return 0;
+	}
 
 	WARN_ON_ONCE(bo->mem.mem_type != VMW_PL_MOB);
 	lockdep_assert_held(&bo->resv->lock.base);
 
 	mutex_lock(&dev_priv->binding_mutex);
+
 	if (!vcotbl->scrubbed)
+	{
 		vmw_dx_context_scrub_cotables(vcotbl->ctx, readback);
+	}
+
 	mutex_unlock(&dev_priv->binding_mutex);
 	(void) vmw_execbuf_fence_commands(NULL, dev_priv, &fence, NULL);
 	vmw_fence_single_bo(bo, fence);
+
 	if (likely(fence != NULL))
+	{
 		vmw_fence_obj_unreference(&fence);
+	}
 
 	return 0;
 }
@@ -343,20 +373,25 @@ static int vmw_cotable_readback(struct vmw_resource *res)
 	struct vmw_cotable *vcotbl = vmw_cotable(res);
 	struct vmw_private *dev_priv = res->dev_priv;
 
-	struct {
+	struct
+	{
 		SVGA3dCmdHeader header;
 		SVGA3dCmdDXReadbackCOTable body;
 	} *cmd;
 	struct vmw_fence_obj *fence;
 
-	if (!vcotbl->scrubbed) {
+	if (!vcotbl->scrubbed)
+	{
 		cmd = vmw_fifo_reserve_dx(dev_priv, sizeof(*cmd),
-					  SVGA3D_INVALID_ID);
-		if (!cmd) {
+								  SVGA3D_INVALID_ID);
+
+		if (!cmd)
+		{
 			DRM_ERROR("Failed reserving FIFO space for cotable "
-				  "readback.\n");
+					  "readback.\n");
 			return -ENOMEM;
 		}
+
 		cmd->header.id = SVGA_3D_CMD_DX_READBACK_COTABLE;
 		cmd->header.size = sizeof(cmd->body);
 		cmd->body.cid = vcotbl->ctx->id;
@@ -398,8 +433,11 @@ static int vmw_cotable_resize(struct vmw_resource *res, size_t new_size)
 	size_t i;
 
 	ret = vmw_cotable_readback(res);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	cur_size_read_back = vcotbl->size_read_back;
 	vcotbl->size_read_back = old_size_read_back;
@@ -410,12 +448,17 @@ static int vmw_cotable_resize(struct vmw_resource *res, size_t new_size)
 	 * we can use tryreserve without failure.
 	 */
 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	ret = vmw_dmabuf_init(dev_priv, buf, new_size, &vmw_mob_ne_placement,
-			      true, vmw_dmabuf_bo_free);
-	if (ret) {
+						  true, vmw_dmabuf_bo_free);
+
+	if (ret)
+	{
 		DRM_ERROR("Failed initializing new cotable MOB.\n");
 		return ret;
 	}
@@ -424,7 +467,9 @@ static int vmw_cotable_resize(struct vmw_resource *res, size_t new_size)
 	WARN_ON_ONCE(ttm_bo_reserve(bo, false, true, NULL));
 
 	ret = ttm_bo_wait(old_bo, false, false);
-	if (unlikely(ret != 0)) {
+
+	if (unlikely(ret != 0))
+	{
 		DRM_ERROR("Failed waiting for cotable unbind.\n");
 		goto out_wait;
 	}
@@ -433,29 +478,38 @@ static int vmw_cotable_resize(struct vmw_resource *res, size_t new_size)
 	 * Do a page by page copy of COTables. This eliminates slow vmap()s.
 	 * This should really be a TTM utility.
 	 */
-	for (i = 0; i < old_bo->num_pages; ++i) {
+	for (i = 0; i < old_bo->num_pages; ++i)
+	{
 		bool dummy;
 
 		ret = ttm_bo_kmap(old_bo, i, 1, &old_map);
-		if (unlikely(ret != 0)) {
+
+		if (unlikely(ret != 0))
+		{
 			DRM_ERROR("Failed mapping old COTable on resize.\n");
 			goto out_wait;
 		}
+
 		ret = ttm_bo_kmap(bo, i, 1, &new_map);
-		if (unlikely(ret != 0)) {
+
+		if (unlikely(ret != 0))
+		{
 			DRM_ERROR("Failed mapping new COTable on resize.\n");
 			goto out_map_new;
 		}
+
 		memcpy(ttm_kmap_obj_virtual(&new_map, &dummy),
-		       ttm_kmap_obj_virtual(&old_map, &dummy),
-		       PAGE_SIZE);
+			   ttm_kmap_obj_virtual(&old_map, &dummy),
+			   PAGE_SIZE);
 		ttm_bo_kunmap(&new_map);
 		ttm_bo_kunmap(&old_map);
 	}
 
 	/* Unpin new buffer, and switch backup buffers. */
 	ret = ttm_bo_validate(bo, &vmw_mob_placement, false, false);
-	if (unlikely(ret != 0)) {
+
+	if (unlikely(ret != 0))
+	{
 		DRM_ERROR("Failed validating new COTable backup buffer.\n");
 		goto out_wait;
 	}
@@ -469,7 +523,9 @@ static int vmw_cotable_resize(struct vmw_resource *res, size_t new_size)
 	 * revert the full resize.
 	 */
 	ret = vmw_cotable_unscrub(res);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("Failed switching COTable backup buffer.\n");
 		res->backup = old_buf;
 		res->backup_size = old_size;
@@ -515,15 +571,24 @@ static int vmw_cotable_create(struct vmw_resource *res)
 
 	/* Check whether we need to resize the cotable */
 	needed_size = (vcotbl->seen_entries + 1) * co_info[vcotbl->type].size;
-	while (needed_size > new_size)
-		new_size *= 2;
 
-	if (likely(new_size <= res->backup_size)) {
-		if (vcotbl->scrubbed && !list_empty(&res->mob_head)) {
+	while (needed_size > new_size)
+	{
+		new_size *= 2;
+	}
+
+	if (likely(new_size <= res->backup_size))
+	{
+		if (vcotbl->scrubbed && !list_empty(&res->mob_head))
+		{
 			ret = vmw_cotable_unscrub(res);
+
 			if (ret)
+			{
 				return ret;
+			}
 		}
+
 		res->id = vcotbl->type;
 		return 0;
 	}
@@ -567,39 +632,51 @@ static void vmw_cotable_free(struct vmw_resource *res)
  * @type: The cotable type.
  */
 struct vmw_resource *vmw_cotable_alloc(struct vmw_private *dev_priv,
-				       struct vmw_resource *ctx,
-				       u32 type)
+									   struct vmw_resource *ctx,
+									   u32 type)
 {
 	struct vmw_cotable *vcotbl;
 	int ret;
 	u32 num_entries;
 
 	if (unlikely(cotable_acc_size == 0))
+	{
 		cotable_acc_size = ttm_round_pot(sizeof(struct vmw_cotable));
+	}
 
 	ret = ttm_mem_global_alloc(vmw_mem_glob(dev_priv),
-				   cotable_acc_size, false, true);
+							   cotable_acc_size, false, true);
+
 	if (unlikely(ret))
+	{
 		return ERR_PTR(ret);
+	}
 
 	vcotbl = kzalloc(sizeof(*vcotbl), GFP_KERNEL);
-	if (unlikely(vcotbl == NULL)) {
+
+	if (unlikely(vcotbl == NULL))
+	{
 		ret = -ENOMEM;
 		goto out_no_alloc;
 	}
 
 	ret = vmw_resource_init(dev_priv, &vcotbl->res, true,
-				vmw_cotable_free, &vmw_cotable_func);
+							vmw_cotable_free, &vmw_cotable_func);
+
 	if (unlikely(ret != 0))
+	{
 		goto out_no_init;
+	}
 
 	INIT_LIST_HEAD(&vcotbl->resource_list);
 	vcotbl->res.id = type;
 	vcotbl->res.backup_size = PAGE_SIZE;
 	num_entries = PAGE_SIZE / co_info[type].size;
-	if (num_entries < co_info[type].min_initial_entries) {
+
+	if (num_entries < co_info[type].min_initial_entries)
+	{
 		vcotbl->res.backup_size = co_info[type].min_initial_entries *
-			co_info[type].size;
+								  co_info[type].size;
 		vcotbl->res.backup_size =
 			(vcotbl->res.backup_size + PAGE_SIZE - 1) & PAGE_MASK;
 	}
@@ -630,13 +707,15 @@ int vmw_cotable_notify(struct vmw_resource *res, int id)
 {
 	struct vmw_cotable *vcotbl = vmw_cotable(res);
 
-	if (id < 0 || id >= SVGA_COTABLE_MAX_IDS) {
+	if (id < 0 || id >= SVGA_COTABLE_MAX_IDS)
+	{
 		DRM_ERROR("Illegal COTable id. Type is %u. Id is %d\n",
-			  (unsigned) vcotbl->type, id);
+				  (unsigned) vcotbl->type, id);
 		return -EINVAL;
 	}
 
-	if (vcotbl->seen_entries < id) {
+	if (vcotbl->seen_entries < id)
+	{
 		/* Trigger a call to create() on next validate */
 		res->id = -1;
 		vcotbl->seen_entries = id;

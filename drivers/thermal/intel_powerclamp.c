@@ -87,7 +87,7 @@ static unsigned int control_cpu; /* The cpu assigned to collect stat and update
 static bool clamping;
 
 
-static struct task_struct * __percpu *powerclamp_thread;
+static struct task_struct *__percpu *powerclamp_thread;
 static struct thermal_cooling_device *cooling_dev;
 static unsigned long *cpu_clamping_mask;  /* bit map for tracking per cpu
 					   * clamping thread
@@ -103,11 +103,16 @@ static int duration_set(const char *arg, const struct kernel_param *kp)
 	unsigned long new_duration;
 
 	ret = kstrtoul(arg, 10, &new_duration);
+
 	if (ret)
+	{
 		goto exit;
-	if (new_duration > 25 || new_duration < 6) {
+	}
+
+	if (new_duration > 25 || new_duration < 6)
+	{
 		pr_err("Out of recommended range %lu, between 6-25ms\n",
-			new_duration);
+			   new_duration);
 		ret = -EINVAL;
 	}
 
@@ -119,7 +124,8 @@ exit:
 	return ret;
 }
 
-static const struct kernel_param_ops duration_ops = {
+static const struct kernel_param_ops duration_ops =
+{
 	.set = duration_set,
 	.get = param_get_int,
 };
@@ -128,7 +134,8 @@ static const struct kernel_param_ops duration_ops = {
 module_param_cb(duration, &duration_ops, &duration, 0644);
 MODULE_PARM_DESC(duration, "forced idle time for each attempt in msec.");
 
-struct powerclamp_calibration_data {
+struct powerclamp_calibration_data
+{
 	unsigned long confidence;  /* used for calibration, basically a counter
 				    * gets incremented each time a clamping
 				    * period is completed without extra wakeups
@@ -151,11 +158,16 @@ static int window_size_set(const char *arg, const struct kernel_param *kp)
 	unsigned long new_window_size;
 
 	ret = kstrtoul(arg, 10, &new_window_size);
+
 	if (ret)
+	{
 		goto exit_win;
-	if (new_window_size > 10 || new_window_size < 2) {
+	}
+
+	if (new_window_size > 10 || new_window_size < 2)
+	{
 		pr_err("Out of recommended window size %lu, between 2-10\n",
-			new_window_size);
+			   new_window_size);
 		ret = -EINVAL;
 	}
 
@@ -167,16 +179,17 @@ exit_win:
 	return ret;
 }
 
-static const struct kernel_param_ops window_size_ops = {
+static const struct kernel_param_ops window_size_ops =
+{
 	.set = window_size_set,
 	.get = param_get_int,
 };
 
 module_param_cb(window_size, &window_size_ops, &window_size, 0644);
 MODULE_PARM_DESC(window_size, "sliding window in number of clamping cycles\n"
-	"\tpowerclamp controls idle ratio within this window. larger\n"
-	"\twindow size results in slower response time but more smooth\n"
-	"\tclamping results. default to 2.");
+				 "\tpowerclamp controls idle ratio within this window. larger\n"
+				 "\twindow size results in slower response time but more smooth\n"
+				 "\tclamping results. default to 2.");
 
 static void find_target_mwait(void)
 {
@@ -186,27 +199,36 @@ static void find_target_mwait(void)
 	int i;
 
 	if (boot_cpu_data.cpuid_level < CPUID_MWAIT_LEAF)
+	{
 		return;
+	}
 
 	cpuid(CPUID_MWAIT_LEAF, &eax, &ebx, &ecx, &edx);
 
 	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED) ||
-	    !(ecx & CPUID5_ECX_INTERRUPT_BREAK))
+		!(ecx & CPUID5_ECX_INTERRUPT_BREAK))
+	{
 		return;
+	}
 
 	edx >>= MWAIT_SUBSTATE_SIZE;
-	for (i = 0; i < 7 && edx; i++, edx >>= MWAIT_SUBSTATE_SIZE) {
-		if (edx & MWAIT_SUBSTATE_MASK) {
+
+	for (i = 0; i < 7 && edx; i++, edx >>= MWAIT_SUBSTATE_SIZE)
+	{
+		if (edx & MWAIT_SUBSTATE_MASK)
+		{
 			highest_cstate = i;
 			highest_subcstate = edx & MWAIT_SUBSTATE_MASK;
 		}
 	}
+
 	target_mwait = (highest_cstate << MWAIT_SUBSTATE_SIZE) |
-		(highest_subcstate - 1);
+				   (highest_subcstate - 1);
 
 }
 
-struct pkg_cstate_info {
+struct pkg_cstate_info
+{
 	bool skip;
 	int msr_index;
 	int cstate_id;
@@ -214,10 +236,11 @@ struct pkg_cstate_info {
 
 #define PKG_CSTATE_INIT(id) {				\
 		.msr_index = MSR_PKG_C##id##_RESIDENCY, \
-		.cstate_id = id				\
-			}
+					 .cstate_id = id				\
+	}
 
-static struct pkg_cstate_info pkg_cstates[] = {
+static struct pkg_cstate_info pkg_cstates[] =
+{
 	PKG_CSTATE_INIT(2),
 	PKG_CSTATE_INIT(3),
 	PKG_CSTATE_INIT(6),
@@ -234,9 +257,13 @@ static bool has_pkg_state_counter(void)
 	struct pkg_cstate_info *info = pkg_cstates;
 
 	/* check if any one of the counter msrs exists */
-	while (info->msr_index) {
+	while (info->msr_index)
+	{
 		if (!rdmsrl_safe(info->msr_index, &val))
+		{
 			return true;
+		}
+
 		info++;
 	}
 
@@ -249,13 +276,20 @@ static u64 pkg_state_counter(void)
 	u64 count = 0;
 	struct pkg_cstate_info *info = pkg_cstates;
 
-	while (info->msr_index) {
-		if (!info->skip) {
+	while (info->msr_index)
+	{
+		if (!info->skip)
+		{
 			if (!rdmsrl_safe(info->msr_index, &val))
+			{
 				count += val;
+			}
 			else
+			{
 				info->skip = true;
+			}
 		}
+
 		info++;
 	}
 
@@ -275,31 +309,41 @@ static unsigned int get_compensation(int ratio)
 	if (ratio == 1 &&
 		cal_data[ratio].confidence >= CONFIDENCE_OK &&
 		cal_data[ratio + 1].confidence >= CONFIDENCE_OK &&
-		cal_data[ratio + 2].confidence >= CONFIDENCE_OK) {
+		cal_data[ratio + 2].confidence >= CONFIDENCE_OK)
+	{
 		comp = (cal_data[ratio].steady_comp +
-			cal_data[ratio + 1].steady_comp +
-			cal_data[ratio + 2].steady_comp) / 3;
-	} else if (ratio == MAX_TARGET_RATIO - 1 &&
-		cal_data[ratio].confidence >= CONFIDENCE_OK &&
-		cal_data[ratio - 1].confidence >= CONFIDENCE_OK &&
-		cal_data[ratio - 2].confidence >= CONFIDENCE_OK) {
+				cal_data[ratio + 1].steady_comp +
+				cal_data[ratio + 2].steady_comp) / 3;
+	}
+	else if (ratio == MAX_TARGET_RATIO - 1 &&
+			 cal_data[ratio].confidence >= CONFIDENCE_OK &&
+			 cal_data[ratio - 1].confidence >= CONFIDENCE_OK &&
+			 cal_data[ratio - 2].confidence >= CONFIDENCE_OK)
+	{
 		comp = (cal_data[ratio].steady_comp +
-			cal_data[ratio - 1].steady_comp +
-			cal_data[ratio - 2].steady_comp) / 3;
-	} else if (cal_data[ratio].confidence >= CONFIDENCE_OK &&
-		cal_data[ratio - 1].confidence >= CONFIDENCE_OK &&
-		cal_data[ratio + 1].confidence >= CONFIDENCE_OK) {
+				cal_data[ratio - 1].steady_comp +
+				cal_data[ratio - 2].steady_comp) / 3;
+	}
+	else if (cal_data[ratio].confidence >= CONFIDENCE_OK &&
+			 cal_data[ratio - 1].confidence >= CONFIDENCE_OK &&
+			 cal_data[ratio + 1].confidence >= CONFIDENCE_OK)
+	{
 		comp = (cal_data[ratio].steady_comp +
-			cal_data[ratio - 1].steady_comp +
-			cal_data[ratio + 1].steady_comp) / 3;
+				cal_data[ratio - 1].steady_comp +
+				cal_data[ratio + 1].steady_comp) / 3;
 	}
 
 	/* REVISIT: simple penalty of double idle injection */
 	if (reduce_irq)
+	{
 		comp = ratio;
+	}
+
 	/* do not exceed limit */
 	if (comp + ratio >= MAX_TARGET_RATIO)
+	{
 		comp = MAX_TARGET_RATIO - ratio - 1;
+	}
 
 	return comp;
 }
@@ -317,22 +361,29 @@ static void adjust_compensation(int target_ratio, unsigned int win)
 	if (d->confidence >= CONFIDENCE_OK ||
 		atomic_read(&idle_wakeup_counter) >
 		win * num_online_cpus())
+	{
 		return;
+	}
 
 	delta = set_target_ratio - current_ratio;
+
 	/* filter out bad data */
-	if (delta >= 0 && delta <= (1+target_ratio/10)) {
+	if (delta >= 0 && delta <= (1 + target_ratio / 10))
+	{
 		if (d->steady_comp)
 			d->steady_comp =
-				roundup(delta+d->steady_comp, 2)/2;
+				roundup(delta + d->steady_comp, 2) / 2;
 		else
+		{
 			d->steady_comp = delta;
+		}
+
 		d->confidence++;
 	}
 }
 
 static bool powerclamp_adjust_controls(unsigned int target_ratio,
-				unsigned int guard, unsigned int win)
+									   unsigned int guard, unsigned int win)
 {
 	static u64 msr_last, tsc_last;
 	u64 msr_now, tsc_now;
@@ -344,10 +395,13 @@ static bool powerclamp_adjust_controls(unsigned int target_ratio,
 
 	/* calculate pkg cstate vs tsc ratio */
 	if (!msr_last || !tsc_last)
+	{
 		current_ratio = 1;
-	else if (tsc_now-tsc_last) {
-		val64 = 100*(msr_now-msr_last);
-		do_div(val64, (tsc_now-tsc_last));
+	}
+	else if (tsc_now - tsc_last)
+	{
+		val64 = 100 * (msr_now - msr_last);
+		do_div(val64, (tsc_now - tsc_last));
 		current_ratio = val64;
 	}
 
@@ -361,7 +415,7 @@ static bool powerclamp_adjust_controls(unsigned int target_ratio,
 	 * that we can take measure later.
 	 */
 	reduce_irq = atomic_read(&idle_wakeup_counter) >=
-		2 * win * num_online_cpus();
+				 2 * win * num_online_cpus();
 
 	atomic_set(&idle_wakeup_counter, 0);
 	/* if we are above target+guard, skip */
@@ -372,8 +426,9 @@ static int clamp_thread(void *arg)
 {
 	int cpunr = (unsigned long)arg;
 	DEFINE_TIMER(wakeup_timer, noop_timer, 0, 0);
-	static const struct sched_param param = {
-		.sched_priority = MAX_USER_RT_PRIO/2,
+	static const struct sched_param param =
+	{
+		.sched_priority = MAX_USER_RT_PRIO / 2,
 	};
 	unsigned int count = 0;
 	unsigned int target_ratio;
@@ -384,7 +439,8 @@ static int clamp_thread(void *arg)
 	sched_setscheduler(current, SCHED_FIFO, &param);
 
 	while (true == clamping && !kthread_should_stop() &&
-		cpu_online(cpunr)) {
+		   cpu_online(cpunr))
+	{
 		int sleeptime;
 		unsigned long target_jiffies;
 		unsigned int guard;
@@ -400,7 +456,7 @@ static int clamp_thread(void *arg)
 		 * target such that we can converge quickly.
 		 */
 		target_ratio = set_target_ratio;
-		guard = 1 + target_ratio/20;
+		guard = 1 + target_ratio / 20;
 		window_size_now = window_size;
 		count++;
 
@@ -410,42 +466,60 @@ static int clamp_thread(void *arg)
 		 * to achieve the actual target reported by the HW.
 		 */
 		compensated_ratio = target_ratio +
-			get_compensation(target_ratio);
+							get_compensation(target_ratio);
+
 		if (compensated_ratio <= 0)
+		{
 			compensated_ratio = 1;
+		}
+
 		interval = duration_jiffies * 100 / compensated_ratio;
 
 		/* align idle time */
 		target_jiffies = roundup(jiffies, interval);
 		sleeptime = target_jiffies - jiffies;
+
 		if (sleeptime <= 0)
+		{
 			sleeptime = 1;
+		}
+
 		schedule_timeout_interruptible(sleeptime);
+
 		/*
 		 * only elected controlling cpu can collect stats and update
 		 * control parameters.
 		 */
-		if (cpunr == control_cpu && !(count%window_size_now)) {
+		if (cpunr == control_cpu && !(count % window_size_now))
+		{
 			should_skip =
 				powerclamp_adjust_controls(target_ratio,
-							guard, window_size_now);
+										   guard, window_size_now);
 			smp_mb();
 		}
 
 		if (should_skip)
+		{
 			continue;
+		}
 
 		target_jiffies = jiffies + duration_jiffies;
 		mod_timer(&wakeup_timer, target_jiffies);
+
 		if (unlikely(local_softirq_pending()))
+		{
 			continue;
+		}
+
 		/*
 		 * stop tick sched during idle time, interrupts are still
 		 * allowed. thus jiffies are updated properly.
 		 */
 		preempt_disable();
+
 		/* mwait until target jiffies is reached */
-		while (time_before(jiffies, target_jiffies)) {
+		while (time_before(jiffies, target_jiffies))
+		{
 			unsigned long ecx = 1;
 			unsigned long eax = target_mwait;
 
@@ -459,8 +533,10 @@ static int clamp_thread(void *arg)
 			start_critical_timings();
 			atomic_inc(&idle_wakeup_counter);
 		}
+
 		preempt_enable();
 	}
+
 	del_timer_sync(&wakeup_timer);
 	clear_bit(cpunr, cpu_clamping_mask);
 
@@ -490,9 +566,13 @@ static void poll_pkg_cstate(struct work_struct *dummy)
 
 	/* calculate pkg cstate vs tsc ratio */
 	if (!msr_last || !tsc_last)
+	{
 		pkg_cstate_ratio_cur = 1;
-	else {
-		if (tsc_now - tsc_last) {
+	}
+	else
+	{
+		if (tsc_now - tsc_last)
+		{
 			val64 = 100 * (msr_now - msr_last);
 			do_div(val64, (tsc_now - tsc_last));
 			pkg_cstate_ratio_cur = val64;
@@ -505,7 +585,9 @@ static void poll_pkg_cstate(struct work_struct *dummy)
 	tsc_last = tsc_now;
 
 	if (true == clamping)
+	{
 		schedule_delayed_work(&poll_pkg_cstate_work, HZ);
+	}
 }
 
 static int start_power_clamp(void)
@@ -519,23 +601,29 @@ static int start_power_clamp(void)
 
 	/* prefer BSP */
 	control_cpu = 0;
+
 	if (!cpu_online(control_cpu))
+	{
 		control_cpu = smp_processor_id();
+	}
 
 	clamping = true;
 	schedule_delayed_work(&poll_pkg_cstate_work, 0);
 
 	/* start one thread per online cpu */
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		struct task_struct **p =
 			per_cpu_ptr(powerclamp_thread, cpu);
 
 		thread = kthread_create_on_node(clamp_thread,
-						(void *) cpu,
-						cpu_to_node(cpu),
-						"kidle_inject/%ld", cpu);
+										(void *) cpu,
+										cpu_to_node(cpu),
+										"kidle_inject/%ld", cpu);
+
 		/* bind to cpu here */
-		if (likely(!IS_ERR(thread))) {
+		if (likely(!IS_ERR(thread)))
+		{
 			kthread_bind(thread, cpu);
 			wake_up_process(thread);
 			*p = thread;
@@ -559,8 +647,11 @@ static void end_power_clamp(void)
 	 */
 	smp_mb();
 	msleep(20);
-	if (bitmap_weight(cpu_clamping_mask, num_possible_cpus())) {
-		for_each_set_bit(i, cpu_clamping_mask, num_possible_cpus()) {
+
+	if (bitmap_weight(cpu_clamping_mask, num_possible_cpus()))
+	{
+		for_each_set_bit(i, cpu_clamping_mask, num_possible_cpus())
+		{
 			pr_debug("clamping thread for cpu %d alive, kill\n", i);
 			thread = *per_cpu_ptr(powerclamp_thread, i);
 			kthread_stop(thread);
@@ -569,7 +660,7 @@ static void end_power_clamp(void)
 }
 
 static int powerclamp_cpu_callback(struct notifier_block *nfb,
-				unsigned long action, void *hcpu)
+								   unsigned long action, void *hcpu)
 {
 	unsigned long cpu = (unsigned long)hcpu;
 	struct task_struct *thread;
@@ -577,47 +668,60 @@ static int powerclamp_cpu_callback(struct notifier_block *nfb,
 		per_cpu_ptr(powerclamp_thread, cpu);
 
 	if (false == clamping)
+	{
 		goto exit_ok;
+	}
 
-	switch (action) {
-	case CPU_ONLINE:
-		thread = kthread_create_on_node(clamp_thread,
-						(void *) cpu,
-						cpu_to_node(cpu),
-						"kidle_inject/%lu", cpu);
-		if (likely(!IS_ERR(thread))) {
-			kthread_bind(thread, cpu);
-			wake_up_process(thread);
-			*percpu_thread = thread;
-		}
-		/* prefer BSP as controlling CPU */
-		if (cpu == 0) {
-			control_cpu = 0;
-			smp_mb();
-		}
-		break;
-	case CPU_DEAD:
-		if (test_bit(cpu, cpu_clamping_mask)) {
-			pr_err("cpu %lu dead but powerclamping thread is not\n",
-				cpu);
-			kthread_stop(*percpu_thread);
-		}
-		if (cpu == control_cpu) {
-			control_cpu = smp_processor_id();
-			smp_mb();
-		}
+	switch (action)
+	{
+		case CPU_ONLINE:
+			thread = kthread_create_on_node(clamp_thread,
+											(void *) cpu,
+											cpu_to_node(cpu),
+											"kidle_inject/%lu", cpu);
+
+			if (likely(!IS_ERR(thread)))
+			{
+				kthread_bind(thread, cpu);
+				wake_up_process(thread);
+				*percpu_thread = thread;
+			}
+
+			/* prefer BSP as controlling CPU */
+			if (cpu == 0)
+			{
+				control_cpu = 0;
+				smp_mb();
+			}
+
+			break;
+
+		case CPU_DEAD:
+			if (test_bit(cpu, cpu_clamping_mask))
+			{
+				pr_err("cpu %lu dead but powerclamping thread is not\n",
+					   cpu);
+				kthread_stop(*percpu_thread);
+			}
+
+			if (cpu == control_cpu)
+			{
+				control_cpu = smp_processor_id();
+				smp_mb();
+			}
 	}
 
 exit_ok:
 	return NOTIFY_OK;
 }
 
-static struct notifier_block powerclamp_cpu_notifier = {
+static struct notifier_block powerclamp_cpu_notifier =
+{
 	.notifier_call = powerclamp_cpu_callback,
 };
 
 static int powerclamp_get_max_state(struct thermal_cooling_device *cdev,
-				 unsigned long *state)
+									unsigned long *state)
 {
 	*state = MAX_TARGET_RATIO;
 
@@ -625,34 +729,44 @@ static int powerclamp_get_max_state(struct thermal_cooling_device *cdev,
 }
 
 static int powerclamp_get_cur_state(struct thermal_cooling_device *cdev,
-				 unsigned long *state)
+									unsigned long *state)
 {
 	if (true == clamping)
+	{
 		*state = pkg_cstate_ratio_cur;
+	}
 	else
 		/* to save power, do not poll idle ratio while not clamping */
-		*state = -1; /* indicates invalid state */
+	{
+		*state = -1;    /* indicates invalid state */
+	}
 
 	return 0;
 }
 
 static int powerclamp_set_cur_state(struct thermal_cooling_device *cdev,
-				 unsigned long new_target_ratio)
+									unsigned long new_target_ratio)
 {
 	int ret = 0;
 
 	new_target_ratio = clamp(new_target_ratio, 0UL,
-				(unsigned long) (MAX_TARGET_RATIO-1));
-	if (set_target_ratio == 0 && new_target_ratio > 0) {
+							 (unsigned long) (MAX_TARGET_RATIO - 1));
+
+	if (set_target_ratio == 0 && new_target_ratio > 0)
+	{
 		pr_info("Start idle injection to reduce power\n");
 		set_target_ratio = new_target_ratio;
 		ret = start_power_clamp();
 		goto exit_set;
-	} else	if (set_target_ratio > 0 && new_target_ratio == 0) {
+	}
+	else	if (set_target_ratio > 0 && new_target_ratio == 0)
+	{
 		pr_info("Stop forced idle injection\n");
 		end_power_clamp();
 		set_target_ratio = 0;
-	} else	/* adjust currently running */ {
+	}
+	else	/* adjust currently running */
+	{
 		set_target_ratio = new_target_ratio;
 		/* make new set_target_ratio visible to other cpus */
 		smp_mb();
@@ -663,7 +777,8 @@ exit_set:
 }
 
 /* bind to generic thermal layer as cooling device*/
-static struct thermal_cooling_device_ops powerclamp_cooling_ops = {
+static struct thermal_cooling_device_ops powerclamp_cooling_ops =
+{
 	.get_max_state = powerclamp_get_max_state,
 	.get_cur_state = powerclamp_get_cur_state,
 	.set_cur_state = powerclamp_set_cur_state,
@@ -671,13 +786,15 @@ static struct thermal_cooling_device_ops powerclamp_cooling_ops = {
 
 static int __init powerclamp_probe(void)
 {
-	if (!boot_cpu_has(X86_FEATURE_MWAIT)) {
+	if (!boot_cpu_has(X86_FEATURE_MWAIT))
+	{
 		pr_err("CPU does not support MWAIT");
 		return -ENODEV;
 	}
 
 	/* The goal for idle time alignment is to achieve package cstate. */
-	if (!has_pkg_state_counter()) {
+	if (!has_pkg_state_counter())
+	{
 		pr_info("No package C-state available");
 		return -ENODEV;
 	}
@@ -694,24 +811,27 @@ static int powerclamp_debug_show(struct seq_file *m, void *unused)
 
 	seq_printf(m, "controlling cpu: %d\n", control_cpu);
 	seq_printf(m, "pct confidence steady dynamic (compensation)\n");
-	for (i = 0; i < MAX_TARGET_RATIO; i++) {
+
+	for (i = 0; i < MAX_TARGET_RATIO; i++)
+	{
 		seq_printf(m, "%d\t%lu\t%lu\t%lu\n",
-			i,
-			cal_data[i].confidence,
-			cal_data[i].steady_comp,
-			cal_data[i].dynamic_comp);
+				   i,
+				   cal_data[i].confidence,
+				   cal_data[i].steady_comp,
+				   cal_data[i].dynamic_comp);
 	}
 
 	return 0;
 }
 
 static int powerclamp_debug_open(struct inode *inode,
-			struct file *file)
+								 struct file *file)
 {
 	return single_open(file, powerclamp_debug_show, inode->i_private);
 }
 
-static const struct file_operations powerclamp_debug_fops = {
+static const struct file_operations powerclamp_debug_fops =
+{
 	.open		= powerclamp_debug_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -722,12 +842,17 @@ static const struct file_operations powerclamp_debug_fops = {
 static inline void powerclamp_create_debug_files(void)
 {
 	debug_dir = debugfs_create_dir("intel_powerclamp", NULL);
+
 	if (!debug_dir)
+	{
 		return;
+	}
 
 	if (!debugfs_create_file("powerclamp_calib", S_IRUGO, debug_dir,
-					cal_data, &powerclamp_debug_fops))
+							 cal_data, &powerclamp_debug_fops))
+	{
 		goto file_error;
+	}
 
 	return;
 
@@ -742,33 +867,45 @@ static int __init powerclamp_init(void)
 
 	bitmap_size = BITS_TO_LONGS(num_possible_cpus()) * sizeof(long);
 	cpu_clamping_mask = kzalloc(bitmap_size, GFP_KERNEL);
+
 	if (!cpu_clamping_mask)
+	{
 		return -ENOMEM;
+	}
 
 	/* probe cpu features and ids here */
 	retval = powerclamp_probe();
+
 	if (retval)
+	{
 		goto exit_free;
+	}
 
 	/* set default limit, maybe adjusted during runtime based on feedback */
 	window_size = 2;
 	register_hotcpu_notifier(&powerclamp_cpu_notifier);
 
 	powerclamp_thread = alloc_percpu(struct task_struct *);
-	if (!powerclamp_thread) {
+
+	if (!powerclamp_thread)
+	{
 		retval = -ENOMEM;
 		goto exit_unregister;
 	}
 
 	cooling_dev = thermal_cooling_device_register("intel_powerclamp", NULL,
-						&powerclamp_cooling_ops);
-	if (IS_ERR(cooling_dev)) {
+				  &powerclamp_cooling_ops);
+
+	if (IS_ERR(cooling_dev))
+	{
 		retval = -ENODEV;
 		goto exit_free_thread;
 	}
 
 	if (!duration)
+	{
 		duration = jiffies_to_msecs(DEFAULT_DURATION_JIFFIES);
+	}
 
 	powerclamp_create_debug_files();
 

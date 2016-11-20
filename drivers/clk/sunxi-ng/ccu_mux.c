@@ -16,20 +16,24 @@
 #include "ccu_mux.h"
 
 void ccu_mux_helper_adjust_parent_for_prediv(struct ccu_common *common,
-					     struct ccu_mux_internal *cm,
-					     int parent_index,
-					     unsigned long *parent_rate)
+		struct ccu_mux_internal *cm,
+		int parent_index,
+		unsigned long *parent_rate)
 {
 	u16 prediv = 1;
 	u32 reg;
 	int i;
 
 	if (!((common->features & CCU_FEATURE_FIXED_PREDIV) ||
-	      (common->features & CCU_FEATURE_VARIABLE_PREDIV)))
+		  (common->features & CCU_FEATURE_VARIABLE_PREDIV)))
+	{
 		return;
+	}
 
 	reg = readl(common->base + common->reg);
-	if (parent_index < 0) {
+
+	if (parent_index < 0)
+	{
 		parent_index = reg >> cm->shift;
 		parent_index &= (1 << cm->width) - 1;
 	}
@@ -37,10 +41,13 @@ void ccu_mux_helper_adjust_parent_for_prediv(struct ccu_common *common,
 	if (common->features & CCU_FEATURE_FIXED_PREDIV)
 		for (i = 0; i < cm->n_predivs; i++)
 			if (parent_index == cm->fixed_predivs[i].index)
+			{
 				prediv = cm->fixed_predivs[i].div;
+			}
 
 	if (common->features & CCU_FEATURE_VARIABLE_PREDIV)
-		if (parent_index == cm->variable_prediv.index) {
+		if (parent_index == cm->variable_prediv.index)
+		{
 			u8 div;
 
 			div = reg >> cm->variable_prediv.shift;
@@ -52,39 +59,46 @@ void ccu_mux_helper_adjust_parent_for_prediv(struct ccu_common *common,
 }
 
 int ccu_mux_helper_determine_rate(struct ccu_common *common,
-				  struct ccu_mux_internal *cm,
-				  struct clk_rate_request *req,
-				  unsigned long (*round)(struct ccu_mux_internal *,
-							 unsigned long,
-							 unsigned long,
-							 void *),
-				  void *data)
+								  struct ccu_mux_internal *cm,
+								  struct clk_rate_request *req,
+								  unsigned long (*round)(struct ccu_mux_internal *,
+										  unsigned long,
+										  unsigned long,
+										  void *),
+								  void *data)
 {
 	unsigned long best_parent_rate = 0, best_rate = 0;
 	struct clk_hw *best_parent, *hw = &common->hw;
 	unsigned int i;
 
-	for (i = 0; i < clk_hw_get_num_parents(hw); i++) {
+	for (i = 0; i < clk_hw_get_num_parents(hw); i++)
+	{
 		unsigned long tmp_rate, parent_rate;
 		struct clk_hw *parent;
 
 		parent = clk_hw_get_parent_by_index(hw, i);
+
 		if (!parent)
+		{
 			continue;
+		}
 
 		parent_rate = clk_hw_get_rate(parent);
 		ccu_mux_helper_adjust_parent_for_prediv(common, cm, i,
-							&parent_rate);
+												&parent_rate);
 
 		tmp_rate = round(cm, clk_hw_get_rate(parent), req->rate, data);
-		if (tmp_rate == req->rate) {
+
+		if (tmp_rate == req->rate)
+		{
 			best_parent = parent;
 			best_parent_rate = parent_rate;
 			best_rate = tmp_rate;
 			goto out;
 		}
 
-		if ((req->rate - tmp_rate) < (req->rate - best_rate)) {
+		if ((req->rate - tmp_rate) < (req->rate - best_rate))
+		{
 			best_rate = tmp_rate;
 			best_parent_rate = parent_rate;
 			best_parent = parent;
@@ -92,7 +106,9 @@ int ccu_mux_helper_determine_rate(struct ccu_common *common,
 	}
 
 	if (best_rate == 0)
+	{
 		return -EINVAL;
+	}
 
 out:
 	req->best_parent_hw = best_parent;
@@ -102,7 +118,7 @@ out:
 }
 
 u8 ccu_mux_helper_get_parent(struct ccu_common *common,
-			     struct ccu_mux_internal *cm)
+							 struct ccu_mux_internal *cm)
 {
 	u32 reg;
 	u8 parent;
@@ -111,27 +127,32 @@ u8 ccu_mux_helper_get_parent(struct ccu_common *common,
 	parent = reg >> cm->shift;
 	parent &= (1 << cm->width) - 1;
 
-	if (cm->table) {
+	if (cm->table)
+	{
 		int num_parents = clk_hw_get_num_parents(&common->hw);
 		int i;
 
 		for (i = 0; i < num_parents; i++)
 			if (cm->table[i] == parent)
+			{
 				return i;
+			}
 	}
 
 	return parent;
 }
 
 int ccu_mux_helper_set_parent(struct ccu_common *common,
-			      struct ccu_mux_internal *cm,
-			      u8 index)
+							  struct ccu_mux_internal *cm,
+							  u8 index)
 {
 	unsigned long flags;
 	u32 reg;
 
 	if (cm->table)
+	{
 		index = cm->table[index];
+	}
 
 	spin_lock_irqsave(common->lock, flags);
 
@@ -180,17 +201,18 @@ static int ccu_mux_set_parent(struct clk_hw *hw, u8 index)
 }
 
 static unsigned long ccu_mux_recalc_rate(struct clk_hw *hw,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct ccu_mux *cm = hw_to_ccu_mux(hw);
 
 	ccu_mux_helper_adjust_parent_for_prediv(&cm->common, &cm->mux, -1,
-						&parent_rate);
+											&parent_rate);
 
 	return parent_rate;
 }
 
-const struct clk_ops ccu_mux_ops = {
+const struct clk_ops ccu_mux_ops =
+{
 	.disable	= ccu_mux_disable,
 	.enable		= ccu_mux_enable,
 	.is_enabled	= ccu_mux_is_enabled,
@@ -209,19 +231,22 @@ const struct clk_ops ccu_mux_ops = {
  * stabilizes.
  */
 static int ccu_mux_notifier_cb(struct notifier_block *nb,
-			       unsigned long event, void *data)
+							   unsigned long event, void *data)
 {
 	struct ccu_mux_nb *mux = to_ccu_mux_nb(nb);
 	int ret = 0;
 
-	if (event == PRE_RATE_CHANGE) {
+	if (event == PRE_RATE_CHANGE)
+	{
 		mux->original_index = ccu_mux_helper_get_parent(mux->common,
-								mux->cm);
+							  mux->cm);
 		ret = ccu_mux_helper_set_parent(mux->common, mux->cm,
-						mux->bypass_index);
-	} else if (event == POST_RATE_CHANGE) {
+										mux->bypass_index);
+	}
+	else if (event == POST_RATE_CHANGE)
+	{
 		ret = ccu_mux_helper_set_parent(mux->common, mux->cm,
-						mux->original_index);
+										mux->original_index);
 	}
 
 	udelay(mux->delay_us);

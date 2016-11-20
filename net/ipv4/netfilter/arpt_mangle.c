@@ -17,40 +17,66 @@ target(struct sk_buff *skb, const struct xt_action_param *par)
 	int pln, hln;
 
 	if (!skb_make_writable(skb, skb->len))
+	{
 		return NF_DROP;
+	}
 
 	arp = arp_hdr(skb);
 	arpptr = skb_network_header(skb) + sizeof(*arp);
 	pln = arp->ar_pln;
 	hln = arp->ar_hln;
+
 	/* We assume that pln and hln were checked in the match */
-	if (mangle->flags & ARPT_MANGLE_SDEV) {
+	if (mangle->flags & ARPT_MANGLE_SDEV)
+	{
 		if (ARPT_DEV_ADDR_LEN_MAX < hln ||
-		   (arpptr + hln > skb_tail_pointer(skb)))
+			(arpptr + hln > skb_tail_pointer(skb)))
+		{
 			return NF_DROP;
+		}
+
 		memcpy(arpptr, mangle->src_devaddr, hln);
 	}
+
 	arpptr += hln;
-	if (mangle->flags & ARPT_MANGLE_SIP) {
+
+	if (mangle->flags & ARPT_MANGLE_SIP)
+	{
 		if (ARPT_MANGLE_ADDR_LEN_MAX < pln ||
-		   (arpptr + pln > skb_tail_pointer(skb)))
+			(arpptr + pln > skb_tail_pointer(skb)))
+		{
 			return NF_DROP;
+		}
+
 		memcpy(arpptr, &mangle->u_s.src_ip, pln);
 	}
+
 	arpptr += pln;
-	if (mangle->flags & ARPT_MANGLE_TDEV) {
+
+	if (mangle->flags & ARPT_MANGLE_TDEV)
+	{
 		if (ARPT_DEV_ADDR_LEN_MAX < hln ||
-		   (arpptr + hln > skb_tail_pointer(skb)))
+			(arpptr + hln > skb_tail_pointer(skb)))
+		{
 			return NF_DROP;
+		}
+
 		memcpy(arpptr, mangle->tgt_devaddr, hln);
 	}
+
 	arpptr += hln;
-	if (mangle->flags & ARPT_MANGLE_TIP) {
+
+	if (mangle->flags & ARPT_MANGLE_TIP)
+	{
 		if (ARPT_MANGLE_ADDR_LEN_MAX < pln ||
-		   (arpptr + pln > skb_tail_pointer(skb)))
+			(arpptr + pln > skb_tail_pointer(skb)))
+		{
 			return NF_DROP;
+		}
+
 		memcpy(arpptr, &mangle->u_t.tgt_ip, pln);
 	}
+
 	return mangle->target;
 }
 
@@ -59,16 +85,22 @@ static int checkentry(const struct xt_tgchk_param *par)
 	const struct arpt_mangle *mangle = par->targinfo;
 
 	if (mangle->flags & ~ARPT_MANGLE_MASK ||
-	    !(mangle->flags & ARPT_MANGLE_MASK))
+		!(mangle->flags & ARPT_MANGLE_MASK))
+	{
 		return -EINVAL;
+	}
 
 	if (mangle->target != NF_DROP && mangle->target != NF_ACCEPT &&
-	   mangle->target != XT_CONTINUE)
+		mangle->target != XT_CONTINUE)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
-static struct xt_target arpt_mangle_reg __read_mostly = {
+static struct xt_target arpt_mangle_reg __read_mostly =
+{
 	.name		= "mangle",
 	.family		= NFPROTO_ARP,
 	.target		= target,

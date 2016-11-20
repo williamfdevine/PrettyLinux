@@ -32,9 +32,12 @@ static int __read_mostly cpu_idle_force_poll;
 
 void cpu_idle_poll_ctrl(bool enable)
 {
-	if (enable) {
+	if (enable)
+	{
 		cpu_idle_force_poll++;
-	} else {
+	}
+	else
+	{
 		cpu_idle_force_poll--;
 		WARN_ON_ONCE(cpu_idle_force_poll < 0);
 	}
@@ -62,9 +65,13 @@ static noinline int __cpuidle cpu_idle_poll(void)
 	trace_cpu_idle_rcuidle(0, smp_processor_id());
 	local_irq_enable();
 	stop_critical_timings();
+
 	while (!tif_need_resched() &&
-		(cpu_idle_force_poll || tick_check_broadcast_expired()))
+		   (cpu_idle_force_poll || tick_check_broadcast_expired()))
+	{
 		cpu_relax();
+	}
+
 	start_critical_timings();
 	trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, smp_processor_id());
 	rcu_idle_exit();
@@ -89,9 +96,12 @@ void __weak arch_cpu_idle(void)
  */
 void __cpuidle default_idle_call(void)
 {
-	if (current_clr_polling_and_test()) {
+	if (current_clr_polling_and_test())
+	{
 		local_irq_enable();
-	} else {
+	}
+	else
+	{
 		stop_critical_timings();
 		arch_cpu_idle();
 		start_critical_timings();
@@ -99,13 +109,14 @@ void __cpuidle default_idle_call(void)
 }
 
 static int call_cpuidle(struct cpuidle_driver *drv, struct cpuidle_device *dev,
-		      int next_state)
+						int next_state)
 {
 	/*
 	 * The idle task must be scheduled, it is pointless to go to idle, just
 	 * update no idle residency and return.
 	 */
-	if (current_clr_polling_and_test()) {
+	if (current_clr_polling_and_test())
+	{
 		dev->last_residency = 0;
 		local_irq_enable();
 		return -EBUSY;
@@ -138,7 +149,8 @@ static void cpuidle_idle_call(void)
 	 * Check if the idle task must be rescheduled. If it is the
 	 * case, exit the function after re-enabling the local irq.
 	 */
-	if (need_resched()) {
+	if (need_resched())
+	{
 		local_irq_enable();
 		return;
 	}
@@ -150,7 +162,8 @@ static void cpuidle_idle_call(void)
 	 */
 	rcu_idle_enter();
 
-	if (cpuidle_not_available(drv, dev)) {
+	if (cpuidle_not_available(drv, dev))
+	{
 		default_idle_call();
 		goto exit_idle;
 	}
@@ -164,16 +177,21 @@ static void cpuidle_idle_call(void)
 	 * timekeeping to prevent timer interrupts from kicking us out of idle
 	 * until a proper wakeup interrupt happens.
 	 */
-	if (idle_should_freeze()) {
+	if (idle_should_freeze())
+	{
 		entered_state = cpuidle_enter_freeze(drv, dev);
-		if (entered_state > 0) {
+
+		if (entered_state > 0)
+		{
 			local_irq_enable();
 			goto exit_idle;
 		}
 
 		next_state = cpuidle_find_deepest_state(drv, dev);
 		call_cpuidle(drv, dev, next_state);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Ask the cpuidle framework to choose a convenient idle state.
 		 */
@@ -192,7 +210,9 @@ exit_idle:
 	 * It is up to the idle functions to reenable local interrupts
 	 */
 	if (WARN_ON_ONCE(irqs_disabled()))
+	{
 		local_irq_enable();
+	}
 
 	rcu_idle_exit();
 }
@@ -206,7 +226,8 @@ static void cpu_idle_loop(void)
 {
 	int cpu = smp_processor_id();
 
-	while (1) {
+	while (1)
+	{
 		/*
 		 * If the arch has a polling bit, we maintain an invariant:
 		 *
@@ -220,11 +241,13 @@ static void cpu_idle_loop(void)
 		quiet_vmstat();
 		tick_nohz_idle_enter();
 
-		while (!need_resched()) {
+		while (!need_resched())
+		{
 			check_pgt_cache();
 			rmb();
 
-			if (cpu_is_offline(cpu)) {
+			if (cpu_is_offline(cpu))
+			{
 				cpuhp_report_idle_dead();
 				arch_cpu_idle_dead();
 			}
@@ -242,9 +265,13 @@ static void cpu_idle_loop(void)
 			 * away
 			 */
 			if (cpu_idle_force_poll || tick_check_broadcast_expired())
+			{
 				cpu_idle_poll();
+			}
 			else
+			{
 				cpuidle_idle_call();
+			}
 
 			arch_cpu_idle_exit();
 		}
@@ -277,7 +304,7 @@ static void cpu_idle_loop(void)
 bool cpu_in_idle(unsigned long pc)
 {
 	return pc >= (unsigned long)__cpuidle_text_start &&
-		pc < (unsigned long)__cpuidle_text_end;
+		   pc < (unsigned long)__cpuidle_text_end;
 }
 
 void cpu_startup_entry(enum cpuhp_state state)

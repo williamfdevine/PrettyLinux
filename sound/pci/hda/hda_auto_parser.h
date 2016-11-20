@@ -16,7 +16,8 @@
  * Helper for automatic pin configuration
  */
 
-enum {
+enum
+{
 	AUTO_PIN_MIC,
 	AUTO_PIN_LINE_IN,
 	AUTO_PIN_CD,
@@ -24,7 +25,8 @@ enum {
 	AUTO_PIN_LAST
 };
 
-enum {
+enum
+{
 	AUTO_PIN_LINE_OUT,
 	AUTO_PIN_SPEAKER_OUT,
 	AUTO_PIN_HP_OUT
@@ -33,23 +35,25 @@ enum {
 #define AUTO_CFG_MAX_OUTS	HDA_MAX_OUTS
 #define AUTO_CFG_MAX_INS	8
 
-struct auto_pin_cfg_item {
+struct auto_pin_cfg_item
+{
 	hda_nid_t pin;
 	int type;
-	unsigned int is_headset_mic:1;
-	unsigned int is_headphone_mic:1; /* Mic-only in headphone jack */
-	unsigned int has_boost_on_pin:1;
+	unsigned int is_headset_mic: 1;
+	unsigned int is_headphone_mic: 1; /* Mic-only in headphone jack */
+	unsigned int has_boost_on_pin: 1;
 };
 
 struct auto_pin_cfg;
 const char *hda_get_autocfg_input_label(struct hda_codec *codec,
-					const struct auto_pin_cfg *cfg,
-					int input);
+										const struct auto_pin_cfg *cfg,
+										int input);
 int snd_hda_get_pin_label(struct hda_codec *codec, hda_nid_t nid,
-			  const struct auto_pin_cfg *cfg,
-			  char *label, int maxlen, int *indexp);
+						  const struct auto_pin_cfg *cfg,
+						  char *label, int maxlen, int *indexp);
 
-enum {
+enum
+{
 	INPUT_PIN_ATTR_UNUSED,	/* pin not connected */
 	INPUT_PIN_ATTR_INT,	/* internal mic/line-in */
 	INPUT_PIN_ATTR_DOCK,	/* docking mic/line-in */
@@ -61,7 +65,8 @@ enum {
 
 int snd_hda_get_input_pin_attr(unsigned int def_conf);
 
-struct auto_pin_cfg {
+struct auto_pin_cfg
+{
 	int line_outs;
 	/* sorted in the order of Front/Surr/CLFE/Side */
 	hda_nid_t line_out_pins[AUTO_CFG_MAX_OUTS];
@@ -87,9 +92,9 @@ struct auto_pin_cfg {
 #define HDA_PINCFG_HEADPHONE_MIC (1 << 3) /* Try to find headphone mic; mark seq number as 0xd to trigger */
 
 int snd_hda_parse_pin_defcfg(struct hda_codec *codec,
-			     struct auto_pin_cfg *cfg,
-			     const hda_nid_t *ignore_nids,
-			     unsigned int cond_flags);
+							 struct auto_pin_cfg *cfg,
+							 const hda_nid_t *ignore_nids,
+							 unsigned int cond_flags);
 
 /* older function */
 #define snd_hda_parse_pin_def_config(codec, cfg, ignore) \
@@ -98,22 +103,22 @@ int snd_hda_parse_pin_defcfg(struct hda_codec *codec,
 static inline int auto_cfg_hp_outs(const struct auto_pin_cfg *cfg)
 {
 	return (cfg->line_out_type == AUTO_PIN_HP_OUT) ?
-	       cfg->line_outs : cfg->hp_outs;
+		   cfg->line_outs : cfg->hp_outs;
 }
 static inline const hda_nid_t *auto_cfg_hp_pins(const struct auto_pin_cfg *cfg)
 {
 	return (cfg->line_out_type == AUTO_PIN_HP_OUT) ?
-	       cfg->line_out_pins : cfg->hp_pins;
+		   cfg->line_out_pins : cfg->hp_pins;
 }
 static inline int auto_cfg_speaker_outs(const struct auto_pin_cfg *cfg)
 {
 	return (cfg->line_out_type == AUTO_PIN_SPEAKER_OUT) ?
-	       cfg->line_outs : cfg->speaker_outs;
+		   cfg->line_outs : cfg->speaker_outs;
 }
 static inline const hda_nid_t *auto_cfg_speaker_pins(const struct auto_pin_cfg *cfg)
 {
 	return (cfg->line_out_type == AUTO_PIN_SPEAKER_OUT) ?
-	       cfg->line_out_pins : cfg->speaker_pins;
+		   cfg->line_out_pins : cfg->speaker_pins;
 }
 
 #endif /* __SOUND_HDA_AUTO_PARSER_H */

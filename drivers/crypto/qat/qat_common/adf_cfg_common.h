@@ -62,13 +62,15 @@
 #define MAX_DEVICE_NAME_SIZE 32
 #define ADF_MAX_DEVICES (32 * 32)
 
-enum adf_cfg_val_type {
+enum adf_cfg_val_type
+{
 	ADF_DEC,
 	ADF_HEX,
 	ADF_STR
 };
 
-enum adf_device_type {
+enum adf_device_type
+{
 	DEV_UNKNOWN = 0,
 	DEV_DH895XCC,
 	DEV_DH895XCCVF,
@@ -78,7 +80,8 @@ enum adf_device_type {
 	DEV_C3XXXVF
 };
 
-struct adf_dev_status_info {
+struct adf_dev_status_info
+{
 	enum adf_device_type type;
 	u32 accel_id;
 	u32 instance_id;
@@ -97,9 +100,9 @@ struct adf_dev_status_info {
 #define IOCTL_CONFIG_SYS_RESOURCE_PARAMETERS _IOW(ADF_CTL_IOC_MAGIC, 0, \
 		struct adf_user_cfg_ctl_data)
 #define IOCTL_STOP_ACCEL_DEV _IOW(ADF_CTL_IOC_MAGIC, 1, \
-		struct adf_user_cfg_ctl_data)
+								  struct adf_user_cfg_ctl_data)
 #define IOCTL_START_ACCEL_DEV _IOW(ADF_CTL_IOC_MAGIC, 2, \
-		struct adf_user_cfg_ctl_data)
+								   struct adf_user_cfg_ctl_data)
 #define IOCTL_STATUS_ACCEL_DEV _IOW(ADF_CTL_IOC_MAGIC, 3, uint32_t)
 #define IOCTL_GET_NUM_DEVICES _IOW(ADF_CTL_IOC_MAGIC, 4, int32_t)
 #endif

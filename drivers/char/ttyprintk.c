@@ -19,7 +19,8 @@
 #include <linux/tty.h>
 #include <linux/module.h>
 
-struct ttyprintk_port {
+struct ttyprintk_port
+{
 	struct tty_port port;
 	struct mutex port_write_mutex;
 };
@@ -43,7 +44,8 @@ static char tpk_buffer[TPK_STR_SIZE + 4];
 
 static void tpk_flush(void)
 {
-	if (tpk_curr > 0) {
+	if (tpk_curr > 0)
+	{
 		tpk_buffer[tpk_curr] = '\0';
 		pr_info("[U] %s\n", tpk_buffer);
 		tpk_curr = 0;
@@ -54,30 +56,40 @@ static int tpk_printk(const unsigned char *buf, int count)
 {
 	int i = tpk_curr;
 
-	if (buf == NULL) {
+	if (buf == NULL)
+	{
 		tpk_flush();
 		return i;
 	}
 
-	for (i = 0; i < count; i++) {
-		if (tpk_curr >= TPK_STR_SIZE) {
+	for (i = 0; i < count; i++)
+	{
+		if (tpk_curr >= TPK_STR_SIZE)
+		{
 			/* end of tmp buffer reached: cut the message in two */
 			tpk_buffer[tpk_curr++] = '\\';
 			tpk_flush();
 		}
 
-		switch (buf[i]) {
-		case '\r':
-			tpk_flush();
-			if ((i + 1) < count && buf[i + 1] == '\n')
-				i++;
-			break;
-		case '\n':
-			tpk_flush();
-			break;
-		default:
-			tpk_buffer[tpk_curr++] = buf[i];
-			break;
+		switch (buf[i])
+		{
+			case '\r':
+				tpk_flush();
+
+				if ((i + 1) < count && buf[i + 1] == '\n')
+				{
+					i++;
+				}
+
+				break;
+
+			case '\n':
+				tpk_flush();
+				break;
+
+			default:
+				tpk_buffer[tpk_curr++] = buf[i];
+				break;
 		}
 	}
 
@@ -113,7 +125,7 @@ static void tpk_close(struct tty_struct *tty, struct file *filp)
  * TTY operations write function.
  */
 static int tpk_write(struct tty_struct *tty,
-		const unsigned char *buf, int count)
+					 const unsigned char *buf, int count)
 {
 	struct ttyprintk_port *tpkp = tty->driver_data;
 	int ret;
@@ -139,24 +151,30 @@ static int tpk_write_room(struct tty_struct *tty)
  * TTY operations ioctl function.
  */
 static int tpk_ioctl(struct tty_struct *tty,
-			unsigned int cmd, unsigned long arg)
+					 unsigned int cmd, unsigned long arg)
 {
 	struct ttyprintk_port *tpkp = tty->driver_data;
 
 	if (!tpkp)
+	{
 		return -EINVAL;
-
-	switch (cmd) {
-	/* Stop TIOCCONS */
-	case TIOCCONS:
-		return -EOPNOTSUPP;
-	default:
-		return -ENOIOCTLCMD;
 	}
+
+	switch (cmd)
+	{
+		/* Stop TIOCCONS */
+		case TIOCCONS:
+			return -EOPNOTSUPP;
+
+		default:
+			return -ENOIOCTLCMD;
+	}
+
 	return 0;
 }
 
-static const struct tty_operations ttyprintk_ops = {
+static const struct tty_operations ttyprintk_ops =
+{
 	.open = tpk_open,
 	.close = tpk_close,
 	.write = tpk_write,
@@ -175,11 +193,14 @@ static int __init ttyprintk_init(void)
 	mutex_init(&tpk_port.port_write_mutex);
 
 	ttyprintk_driver = tty_alloc_driver(1,
-			TTY_DRIVER_RESET_TERMIOS |
-			TTY_DRIVER_REAL_RAW |
-			TTY_DRIVER_UNNUMBERED_NODE);
+										TTY_DRIVER_RESET_TERMIOS |
+										TTY_DRIVER_REAL_RAW |
+										TTY_DRIVER_UNNUMBERED_NODE);
+
 	if (IS_ERR(ttyprintk_driver))
+	{
 		return PTR_ERR(ttyprintk_driver);
+	}
 
 	tty_port_init(&tpk_port.port);
 	tpk_port.port.ops = &null_ops;
@@ -195,7 +216,9 @@ static int __init ttyprintk_init(void)
 	tty_port_link_device(&tpk_port.port, ttyprintk_driver, 0);
 
 	ret = tty_register_driver(ttyprintk_driver);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_ERR "Couldn't register ttyprintk driver\n");
 		goto error;
 	}

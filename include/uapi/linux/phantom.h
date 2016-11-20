@@ -13,13 +13,15 @@
 #include <linux/types.h>
 
 /* PHN_(G/S)ET_REG param */
-struct phm_reg {
+struct phm_reg
+{
 	__u32 reg;
 	__u32 value;
 };
 
 /* PHN_(G/S)ET_REGS param */
-struct phm_regs {
+struct phm_regs
+{
 	__u32 count;
 	__u32 mask;
 	__u32 values[8];

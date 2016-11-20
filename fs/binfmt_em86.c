@@ -26,7 +26,7 @@ static int load_em86(struct linux_binprm *bprm)
 {
 	const char *i_name, *i_arg;
 	char *interp;
-	struct file * file;
+	struct file *file;
 	int retval;
 	struct elfhdr	elf_ex;
 
@@ -34,18 +34,23 @@ static int load_em86(struct linux_binprm *bprm)
 	elf_ex = *((struct elfhdr *)bprm->buf);
 
 	if (memcmp(elf_ex.e_ident, ELFMAG, SELFMAG) != 0)
+	{
 		return  -ENOEXEC;
+	}
 
 	/* First of all, some simple consistency checks */
 	if ((elf_ex.e_type != ET_EXEC && elf_ex.e_type != ET_DYN) ||
 		(!((elf_ex.e_machine == EM_386) || (elf_ex.e_machine == EM_486))) ||
-		!bprm->file->f_op->mmap) {
-			return -ENOEXEC;
+		!bprm->file->f_op->mmap)
+	{
+		return -ENOEXEC;
 	}
 
 	/* Need to be able to load the file after exec */
 	if (bprm->interp_flags & BINPRM_FLAGS_PATH_INACCESSIBLE)
+	{
 		return -ENOENT;
+	}
 
 	allow_write_access(bprm->file);
 	fput(bprm->file);
@@ -68,15 +73,24 @@ static int load_em86(struct linux_binprm *bprm)
 	 */
 	remove_arg_zero(bprm);
 	retval = copy_strings_kernel(1, &bprm->filename, bprm);
-	if (retval < 0) return retval; 
+
+	if (retval < 0) { return retval; }
+
 	bprm->argc++;
-	if (i_arg) {
+
+	if (i_arg)
+	{
 		retval = copy_strings_kernel(1, &i_arg, bprm);
-		if (retval < 0) return retval; 
+
+		if (retval < 0) { return retval; }
+
 		bprm->argc++;
 	}
+
 	retval = copy_strings_kernel(1, &i_name, bprm);
-	if (retval < 0)	return retval;
+
+	if (retval < 0)	{ return retval; }
+
 	bprm->argc++;
 
 	/*
@@ -85,19 +99,26 @@ static int load_em86(struct linux_binprm *bprm)
 	 * space, and we don't need to copy it.
 	 */
 	file = open_exec(interp);
+
 	if (IS_ERR(file))
+	{
 		return PTR_ERR(file);
+	}
 
 	bprm->file = file;
 
 	retval = prepare_binprm(bprm);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	return search_binary_handler(bprm);
 }
 
-static struct linux_binfmt em86_format = {
+static struct linux_binfmt em86_format =
+{
 	.module		= THIS_MODULE,
 	.load_binary	= load_em86,
 };

@@ -115,7 +115,8 @@
 #define NUM_DDR_TIMING_TABLE_ENTRIES			4
 
 /* Structure for DDR addressing info from the JEDEC spec */
-struct lpddr2_addressing {
+struct lpddr2_addressing
+{
 	u32 num_banks;
 	u32 tREFI_ns;
 	u32 tRFCab_ps;
@@ -126,7 +127,8 @@ struct lpddr2_addressing {
  * All parameters are in pico seconds(ps) unless explicitly indicated
  * with a suffix like tRAS_max_ns below
  */
-struct lpddr2_timings {
+struct lpddr2_timings
+{
 	u32 max_freq;
 	u32 min_freq;
 	u32 tRPab;
@@ -152,7 +154,8 @@ struct lpddr2_timings {
  * Please set to zero parameters that are not valid for a given memory
  * type
  */
-struct lpddr2_min_tck {
+struct lpddr2_min_tck
+{
 	u32 tRPab;
 	u32 tRCD;
 	u32 tWR;

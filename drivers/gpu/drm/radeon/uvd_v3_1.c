@@ -38,9 +38,9 @@
  * Emit a semaphore command (either wait or signal) to the UVD ring.
  */
 bool uvd_v3_1_semaphore_emit(struct radeon_device *rdev,
-			     struct radeon_ring *ring,
-			     struct radeon_semaphore *semaphore,
-			     bool emit_wait)
+							 struct radeon_ring *ring,
+							 struct radeon_semaphore *semaphore,
+							 bool emit_wait)
 {
 	uint64_t addr = semaphore->gpu_addr;
 

@@ -47,7 +47,8 @@
 #define RAVB_RXTSTAMP_TYPE_ALL	0x00000006
 #define RAVB_RXTSTAMP_ENABLED	0x00000010	/* Enable RX timestamping */
 
-enum ravb_reg {
+enum ravb_reg
+{
 	/* AVB-DMAC registers */
 	CCC	= 0x0000,
 	DBAT	= 0x0004,
@@ -211,7 +212,8 @@ enum ravb_reg {
 
 /* Register bits of the Ethernet AVB */
 /* CCC */
-enum CCC_BIT {
+enum CCC_BIT
+{
 	CCC_OPC		= 0x00000003,
 	CCC_OPC_RESET	= 0x00000000,
 	CCC_OPC_CONFIG	= 0x00000001,
@@ -227,7 +229,8 @@ enum CCC_BIT {
 };
 
 /* CSR */
-enum CSR_BIT {
+enum CSR_BIT
+{
 	CSR_OPS		= 0x0000000F,
 	CSR_OPS_RESET	= 0x00000001,
 	CSR_OPS_CONFIG	= 0x00000002,
@@ -242,14 +245,16 @@ enum CSR_BIT {
 };
 
 /* ESR */
-enum ESR_BIT {
+enum ESR_BIT
+{
 	ESR_EQN		= 0x0000001F,
 	ESR_ET		= 0x00000F00,
 	ESR_EIL		= 0x00001000,
 };
 
 /* RCR */
-enum RCR_BIT {
+enum RCR_BIT
+{
 	RCR_EFFS	= 0x00000001,
 	RCR_ENCF	= 0x00000002,
 	RCR_ESF		= 0x0000000C,
@@ -259,7 +264,8 @@ enum RCR_BIT {
 };
 
 /* RQC0/1/2/3/4 */
-enum RQC_BIT {
+enum RQC_BIT
+{
 	RQC_RSM0	= 0x00000003,
 	RQC_UFCC0	= 0x00000030,
 	RQC_RSM1	= 0x00000300,
@@ -271,13 +277,15 @@ enum RQC_BIT {
 };
 
 /* RPC */
-enum RPC_BIT {
+enum RPC_BIT
+{
 	RPC_PCNT	= 0x00000700,
 	RPC_DCNT	= 0x00FF0000,
 };
 
 /* UFCW */
-enum UFCW_BIT {
+enum UFCW_BIT
+{
 	UFCW_WL0	= 0x0000003F,
 	UFCW_WL1	= 0x00003F00,
 	UFCW_WL2	= 0x003F0000,
@@ -285,7 +293,8 @@ enum UFCW_BIT {
 };
 
 /* UFCS */
-enum UFCS_BIT {
+enum UFCS_BIT
+{
 	UFCS_SL0	= 0x0000003F,
 	UFCS_SL1	= 0x00003F00,
 	UFCS_SL2	= 0x003F0000,
@@ -293,7 +302,8 @@ enum UFCS_BIT {
 };
 
 /* UFCV0/1/2/3/4 */
-enum UFCV_BIT {
+enum UFCV_BIT
+{
 	UFCV_CV0	= 0x0000003F,
 	UFCV_CV1	= 0x00003F00,
 	UFCV_CV2	= 0x003F0000,
@@ -301,7 +311,8 @@ enum UFCV_BIT {
 };
 
 /* UFCD0/1/2/3/4 */
-enum UFCD_BIT {
+enum UFCD_BIT
+{
 	UFCD_DV0	= 0x0000003F,
 	UFCD_DV1	= 0x00003F00,
 	UFCD_DV2	= 0x003F0000,
@@ -309,18 +320,21 @@ enum UFCD_BIT {
 };
 
 /* SFO */
-enum SFO_BIT {
+enum SFO_BIT
+{
 	SFO_FPB		= 0x0000003F,
 };
 
 /* RTC */
-enum RTC_BIT {
+enum RTC_BIT
+{
 	RTC_MFL0	= 0x00000FFF,
 	RTC_MFL1	= 0x0FFF0000,
 };
 
 /* TGC */
-enum TGC_BIT {
+enum TGC_BIT
+{
 	TGC_TSM0	= 0x00000001,
 	TGC_TSM1	= 0x00000002,
 	TGC_TSM2	= 0x00000004,
@@ -336,7 +350,8 @@ enum TGC_BIT {
 };
 
 /* TCCR */
-enum TCCR_BIT {
+enum TCCR_BIT
+{
 	TCCR_TSRQ0	= 0x00000001,
 	TCCR_TSRQ1	= 0x00000002,
 	TCCR_TSRQ2	= 0x00000004,
@@ -346,20 +361,23 @@ enum TCCR_BIT {
 };
 
 /* TSR */
-enum TSR_BIT {
+enum TSR_BIT
+{
 	TSR_CCS0	= 0x00000003,
 	TSR_CCS1	= 0x0000000C,
 	TSR_TFFL	= 0x00000700,
 };
 
 /* TFA2 */
-enum TFA2_BIT {
+enum TFA2_BIT
+{
 	TFA2_TSV	= 0x0000FFFF,
 	TFA2_TST	= 0x03FF0000,
 };
 
 /* DIC */
-enum DIC_BIT {
+enum DIC_BIT
+{
 	DIC_DPE1	= 0x00000002,
 	DIC_DPE2	= 0x00000004,
 	DIC_DPE3	= 0x00000008,
@@ -378,7 +396,8 @@ enum DIC_BIT {
 };
 
 /* DIS */
-enum DIS_BIT {
+enum DIS_BIT
+{
 	DIS_DPF1	= 0x00000002,
 	DIS_DPF2	= 0x00000004,
 	DIS_DPF3	= 0x00000008,
@@ -397,7 +416,8 @@ enum DIS_BIT {
 };
 
 /* EIC */
-enum EIC_BIT {
+enum EIC_BIT
+{
 	EIC_MREE	= 0x00000001,
 	EIC_MTEE	= 0x00000002,
 	EIC_QEE		= 0x00000004,
@@ -410,7 +430,8 @@ enum EIC_BIT {
 };
 
 /* EIS */
-enum EIS_BIT {
+enum EIS_BIT
+{
 	EIS_MREF	= 0x00000001,
 	EIS_MTEF	= 0x00000002,
 	EIS_QEF		= 0x00000004,
@@ -424,7 +445,8 @@ enum EIS_BIT {
 };
 
 /* RIC0 */
-enum RIC0_BIT {
+enum RIC0_BIT
+{
 	RIC0_FRE0	= 0x00000001,
 	RIC0_FRE1	= 0x00000002,
 	RIC0_FRE2	= 0x00000004,
@@ -446,7 +468,8 @@ enum RIC0_BIT {
 };
 
 /* RIC0 */
-enum RIS0_BIT {
+enum RIS0_BIT
+{
 	RIS0_FRF0	= 0x00000001,
 	RIS0_FRF1	= 0x00000002,
 	RIS0_FRF2	= 0x00000004,
@@ -468,17 +491,20 @@ enum RIS0_BIT {
 };
 
 /* RIC1 */
-enum RIC1_BIT {
+enum RIC1_BIT
+{
 	RIC1_RFWE	= 0x80000000,
 };
 
 /* RIS1 */
-enum RIS1_BIT {
+enum RIS1_BIT
+{
 	RIS1_RFWF	= 0x80000000,
 };
 
 /* RIC2 */
-enum RIC2_BIT {
+enum RIC2_BIT
+{
 	RIC2_QFE0	= 0x00000001,
 	RIC2_QFE1	= 0x00000002,
 	RIC2_QFE2	= 0x00000004,
@@ -501,7 +527,8 @@ enum RIC2_BIT {
 };
 
 /* RIS2 */
-enum RIS2_BIT {
+enum RIS2_BIT
+{
 	RIS2_QFF0	= 0x00000001,
 	RIS2_QFF1	= 0x00000002,
 	RIS2_QFF2	= 0x00000004,
@@ -524,7 +551,8 @@ enum RIS2_BIT {
 };
 
 /* TIC */
-enum TIC_BIT {
+enum TIC_BIT
+{
 	TIC_FTE0	= 0x00000001,	/* Undocumented? */
 	TIC_FTE1	= 0x00000002,	/* Undocumented? */
 	TIC_TFUE	= 0x00000100,
@@ -532,7 +560,8 @@ enum TIC_BIT {
 };
 
 /* TIS */
-enum TIS_BIT {
+enum TIS_BIT
+{
 	TIS_FTF0	= 0x00000001,	/* Undocumented? */
 	TIS_FTF1	= 0x00000002,	/* Undocumented? */
 	TIS_TFUF	= 0x00000100,
@@ -540,7 +569,8 @@ enum TIS_BIT {
 };
 
 /* ISS */
-enum ISS_BIT {
+enum ISS_BIT
+{
 	ISS_FRS		= 0x00000001,	/* Undocumented? */
 	ISS_FTS		= 0x00000004,	/* Undocumented? */
 	ISS_ES		= 0x00000040,
@@ -567,7 +597,8 @@ enum ISS_BIT {
 };
 
 /* CIE (R-Car Gen3 only) */
-enum CIE_BIT {
+enum CIE_BIT
+{
 	CIE_CRIE	= 0x00000001,
 	CIE_CTIE	= 0x00000100,
 	CIE_RQFM	= 0x00010000,
@@ -577,7 +608,8 @@ enum CIE_BIT {
 };
 
 /* GCCR */
-enum GCCR_BIT {
+enum GCCR_BIT
+{
 	GCCR_TCR	= 0x00000003,
 	GCCR_TCR_NOREQ	= 0x00000000, /* No request */
 	GCCR_TCR_RESET	= 0x00000001, /* gPTP/AVTP presentation timer reset */
@@ -593,7 +625,8 @@ enum GCCR_BIT {
 };
 
 /* GTI */
-enum GTI_BIT {
+enum GTI_BIT
+{
 	GTI_TIV		= 0x0FFFFFFF,
 };
 
@@ -601,19 +634,22 @@ enum GTI_BIT {
 #define GTI_TIV_MIN	0x20
 
 /* GIC */
-enum GIC_BIT {
+enum GIC_BIT
+{
 	GIC_PTCE	= 0x00000001,	/* Undocumented? */
 	GIC_PTME	= 0x00000004,
 };
 
 /* GIS */
-enum GIS_BIT {
+enum GIS_BIT
+{
 	GIS_PTCF	= 0x00000001,	/* Undocumented? */
 	GIS_PTMF	= 0x00000004,
 };
 
 /* GIE (R-Car Gen3 only) */
-enum GIE_BIT {
+enum GIE_BIT
+{
 	GIE_PTCS	= 0x00000001,
 	GIE_PTOS	= 0x00000002,
 	GIE_PTMS0	= 0x00000004,
@@ -643,7 +679,8 @@ enum GIE_BIT {
 };
 
 /* GID (R-Car Gen3 only) */
-enum GID_BIT {
+enum GID_BIT
+{
 	GID_PTCD	= 0x00000001,
 	GID_PTOD	= 0x00000002,
 	GID_PTMD0	= 0x00000004,
@@ -673,7 +710,8 @@ enum GID_BIT {
 };
 
 /* RIE0 (R-Car Gen3 only) */
-enum RIE0_BIT {
+enum RIE0_BIT
+{
 	RIE0_FRS0	= 0x00000001,
 	RIE0_FRS1	= 0x00000002,
 	RIE0_FRS2	= 0x00000004,
@@ -695,7 +733,8 @@ enum RIE0_BIT {
 };
 
 /* RID0 (R-Car Gen3 only) */
-enum RID0_BIT {
+enum RID0_BIT
+{
 	RID0_FRD0	= 0x00000001,
 	RID0_FRD1	= 0x00000002,
 	RID0_FRD2	= 0x00000004,
@@ -717,7 +756,8 @@ enum RID0_BIT {
 };
 
 /* RIE2 (R-Car Gen3 only) */
-enum RIE2_BIT {
+enum RIE2_BIT
+{
 	RIE2_QFS0	= 0x00000001,
 	RIE2_QFS1	= 0x00000002,
 	RIE2_QFS2	= 0x00000004,
@@ -740,7 +780,8 @@ enum RIE2_BIT {
 };
 
 /* RID2 (R-Car Gen3 only) */
-enum RID2_BIT {
+enum RID2_BIT
+{
 	RID2_QFD0	= 0x00000001,
 	RID2_QFD1	= 0x00000002,
 	RID2_QFD2	= 0x00000004,
@@ -763,7 +804,8 @@ enum RID2_BIT {
 };
 
 /* TIE (R-Car Gen3 only) */
-enum TIE_BIT {
+enum TIE_BIT
+{
 	TIE_FTS0	= 0x00000001,
 	TIE_FTS1	= 0x00000002,
 	TIE_FTS2	= 0x00000004,
@@ -779,7 +821,8 @@ enum TIE_BIT {
 };
 
 /* TID (R-Car Gen3 only) */
-enum TID_BIT {
+enum TID_BIT
+{
 	TID_FTD0	= 0x00000001,
 	TID_FTD1	= 0x00000002,
 	TID_FTD2	= 0x00000004,
@@ -795,7 +838,8 @@ enum TID_BIT {
 };
 
 /* ECMR */
-enum ECMR_BIT {
+enum ECMR_BIT
+{
 	ECMR_PRM	= 0x00000001,
 	ECMR_DM		= 0x00000002,
 	ECMR_TE		= 0x00000020,
@@ -812,7 +856,8 @@ enum ECMR_BIT {
 };
 
 /* ECSR */
-enum ECSR_BIT {
+enum ECSR_BIT
+{
 	ECSR_ICD	= 0x00000001,
 	ECSR_MPD	= 0x00000002,
 	ECSR_LCHNG	= 0x00000004,
@@ -820,14 +865,16 @@ enum ECSR_BIT {
 };
 
 /* ECSIPR */
-enum ECSIPR_BIT {
+enum ECSIPR_BIT
+{
 	ECSIPR_ICDIP	= 0x00000001,
 	ECSIPR_MPDIP	= 0x00000002,
 	ECSIPR_LCHNGIP	= 0x00000004,	/* Undocumented? */
 };
 
 /* PIR */
-enum PIR_BIT {
+enum PIR_BIT
+{
 	PIR_MDC		= 0x00000001,
 	PIR_MMD		= 0x00000002,
 	PIR_MDO		= 0x00000004,
@@ -835,29 +882,34 @@ enum PIR_BIT {
 };
 
 /* PSR */
-enum PSR_BIT {
+enum PSR_BIT
+{
 	PSR_LMON	= 0x00000001,
 };
 
 /* PIPR */
-enum PIPR_BIT {
+enum PIPR_BIT
+{
 	PIPR_PHYIP	= 0x00000001,
 };
 
 /* MPR */
-enum MPR_BIT {
+enum MPR_BIT
+{
 	MPR_MP		= 0x0000ffff,
 };
 
 /* GECMR */
-enum GECMR_BIT {
+enum GECMR_BIT
+{
 	GECMR_SPEED	= 0x00000001,
 	GECMR_SPEED_100	= 0x00000000,
 	GECMR_SPEED_1000 = 0x00000001,
 };
 
 /* The Ethernet AVB descriptor definitions. */
-struct ravb_desc {
+struct ravb_desc
+{
 	__le16 ds;		/* Descriptor size */
 	u8 cc;		/* Content control MSBs (reserved) */
 	u8 die_dt;	/* Descriptor interrupt enable and type */
@@ -866,7 +918,8 @@ struct ravb_desc {
 
 #define DPTR_ALIGN	4	/* Required descriptor pointer alignment */
 
-enum DIE_DT {
+enum DIE_DT
+{
 	/* Frame data */
 	DT_FMID		= 0x40,
 	DT_FSTART	= 0x50,
@@ -885,14 +938,16 @@ enum DIE_DT {
 	DT_EEMPTY	= 0x30,
 };
 
-struct ravb_rx_desc {
+struct ravb_rx_desc
+{
 	__le16 ds_cc;	/* Descriptor size and content control LSBs */
 	u8 msc;		/* MAC status code */
 	u8 die_dt;	/* Descriptor interrupt enable and type */
 	__le32 dptr;	/* Descpriptor pointer */
 };
 
-struct ravb_ex_rx_desc {
+struct ravb_ex_rx_desc
+{
 	__le16 ds_cc;	/* Descriptor size and content control lower bits */
 	u8 msc;		/* MAC status code */
 	u8 die_dt;	/* Descriptor interrupt enable and type */
@@ -903,7 +958,8 @@ struct ravb_ex_rx_desc {
 	__le16 res;	/* Reserved bits */
 };
 
-enum RX_DS_CC_BIT {
+enum RX_DS_CC_BIT
+{
 	RX_DS		= 0x0fff, /* Data size */
 	RX_TR		= 0x1000, /* Truncation indication */
 	RX_EI		= 0x2000, /* Error indication */
@@ -911,7 +967,8 @@ enum RX_DS_CC_BIT {
 };
 
 /* E-MAC status code */
-enum MSC_BIT {
+enum MSC_BIT
+{
 	MSC_CRC		= 0x01, /* Frame CRC error */
 	MSC_RFE		= 0x02, /* Frame reception error (flagged by PHY) */
 	MSC_RTSF	= 0x04, /* Frame length error (frame too short) */
@@ -922,23 +979,27 @@ enum MSC_BIT {
 	MSC_MC		= 0x80, /* Multicast frame reception */
 };
 
-struct ravb_tx_desc {
+struct ravb_tx_desc
+{
 	__le16 ds_tagl;	/* Descriptor size and frame tag LSBs */
 	u8 tagh_tsr;	/* Frame tag MSBs and timestamp storage request bit */
 	u8 die_dt;	/* Descriptor interrupt enable and type */
 	__le32 dptr;	/* Descpriptor pointer */
 };
 
-enum TX_DS_TAGL_BIT {
+enum TX_DS_TAGL_BIT
+{
 	TX_DS		= 0x0fff, /* Data size */
 	TX_TAGL		= 0xf000, /* Frame tag LSBs */
 };
 
-enum TX_TAGH_TSR_BIT {
+enum TX_TAGH_TSR_BIT
+{
 	TX_TAGH		= 0x3f, /* Frame tag MSBs */
 	TX_TSR		= 0x40, /* Timestamp storage request */
 };
-enum RAVB_QUEUE {
+enum RAVB_QUEUE
+{
 	RAVB_BE = 0,	/* Best Effort Queue */
 	RAVB_NC,	/* Network Control Queue */
 };
@@ -949,13 +1010,15 @@ enum RAVB_QUEUE {
 #define NUM_TX_QUEUE	2
 #define NUM_TX_DESC	2	/* TX descriptors per packet */
 
-struct ravb_tstamp_skb {
+struct ravb_tstamp_skb
+{
 	struct list_head list;
 	struct sk_buff *skb;
 	u16 tag;
 };
 
-struct ravb_ptp_perout {
+struct ravb_ptp_perout
+{
 	u32 target;
 	u32 period;
 };
@@ -963,7 +1026,8 @@ struct ravb_ptp_perout {
 #define N_EXT_TS	1
 #define N_PER_OUT	1
 
-struct ravb_ptp {
+struct ravb_ptp
+{
 	struct ptp_clock *clock;
 	struct ptp_clock_info info;
 	u32 default_addend;
@@ -972,12 +1036,14 @@ struct ravb_ptp {
 	struct ravb_ptp_perout perout[N_PER_OUT];
 };
 
-enum ravb_chip_id {
+enum ravb_chip_id
+{
 	RCAR_GEN2,
 	RCAR_GEN3,
 };
 
-struct ravb_private {
+struct ravb_private
+{
 	struct net_device *ndev;
 	struct platform_device *pdev;
 	void __iomem *addr;
@@ -1021,8 +1087,8 @@ struct ravb_private {
 	int rx_irqs[NUM_RX_QUEUE];
 	int tx_irqs[NUM_TX_QUEUE];
 
-	unsigned no_avb_link:1;
-	unsigned avb_link_active_low:1;
+	unsigned no_avb_link: 1;
+	unsigned avb_link_active_low: 1;
 };
 
 static inline u32 ravb_read(struct net_device *ndev, enum ravb_reg reg)
@@ -1033,7 +1099,7 @@ static inline u32 ravb_read(struct net_device *ndev, enum ravb_reg reg)
 }
 
 static inline void ravb_write(struct net_device *ndev, u32 data,
-			      enum ravb_reg reg)
+							  enum ravb_reg reg)
 {
 	struct ravb_private *priv = netdev_priv(ndev);
 
@@ -1041,7 +1107,7 @@ static inline void ravb_write(struct net_device *ndev, u32 data,
 }
 
 void ravb_modify(struct net_device *ndev, enum ravb_reg reg, u32 clear,
-		 u32 set);
+				 u32 set);
 int ravb_wait(struct net_device *ndev, enum ravb_reg reg, u32 mask, u32 value);
 
 void ravb_ptp_interrupt(struct net_device *ndev);

@@ -20,15 +20,18 @@
 #ifndef _V4L2_TPG_COLORS_H_
 #define _V4L2_TPG_COLORS_H_
 
-struct color {
+struct color
+{
 	unsigned char r, g, b;
 };
 
-struct color16 {
+struct color16
+{
 	int r, g, b;
 };
 
-enum tpg_color {
+enum tpg_color
+{
 	TPG_COLOR_CSC_WHITE,
 	TPG_COLOR_CSC_YELLOW,
 	TPG_COLOR_CSC_CYAN,
@@ -62,7 +65,7 @@ extern const struct color tpg_colors[TPG_COLOR_MAX];
 extern const unsigned short tpg_rec709_to_linear[255 * 16 + 1];
 extern const unsigned short tpg_linear_to_rec709[255 * 16 + 1];
 extern const struct color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1]
-					  [V4L2_XFER_FUNC_SMPTE2084 + 1]
-					  [TPG_COLOR_CSC_BLACK + 1];
+	[V4L2_XFER_FUNC_SMPTE2084 + 1]
+	[TPG_COLOR_CSC_BLACK + 1];
 
 #endif

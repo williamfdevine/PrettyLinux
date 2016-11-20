@@ -13,7 +13,8 @@
 #define __PAD(m,n) u8 __pad##m[n]
 #define _PAD(line, n) __PAD(line, n)
 #define PAD(n) _PAD(__LINE__, (n))
-struct i2s_interface_regs {
+struct i2s_interface_regs
+{
 	__le32 intr_ctl;	/* 0x00 */
 	PAD(12);
 	__le32 serial_format;	/* 0x10 */
@@ -92,18 +93,28 @@ static inline int i2s_sf_mclkdiv(int div, int *out)
 {
 	int d;
 
-	switch(div) {
-	case 1: *out |= I2S_SF_MCLKDIV_1; return 0;
-	case 3: *out |= I2S_SF_MCLKDIV_3; return 0;
-	case 5: *out |= I2S_SF_MCLKDIV_5; return 0;
-	case 14: *out |= I2S_SF_MCLKDIV_14; return 0;
-	default:
-		if (div%2) return -1;
-		d = div/2-1;
-		if (d == 0x14 || d == 0x13 || d == 0x12 || d == 0x0E)
-			return -1;
-		*out |= I2S_SF_MCLKDIV_OTHER(div);
-		return 0;
+	switch (div)
+	{
+		case 1: *out |= I2S_SF_MCLKDIV_1; return 0;
+
+		case 3: *out |= I2S_SF_MCLKDIV_3; return 0;
+
+		case 5: *out |= I2S_SF_MCLKDIV_5; return 0;
+
+		case 14: *out |= I2S_SF_MCLKDIV_14; return 0;
+
+		default:
+			if (div % 2) { return -1; }
+
+			d = div / 2 - 1;
+
+			if (d == 0x14 || d == 0x13 || d == 0x12 || d == 0x0E)
+			{
+				return -1;
+			}
+
+			*out |= I2S_SF_MCLKDIV_OTHER(div);
+			return 0;
 	}
 }
 /* SClk is the clock that drives the i2s wire bus. Note that it is
@@ -119,15 +130,21 @@ static inline int i2s_sf_sclkdiv(int div, int *out)
 {
 	int d;
 
-	switch(div) {
-	case 1: *out |= I2S_SF_SCLKDIV_1; return 0;
-	case 3: *out |= I2S_SF_SCLKDIV_3; return 0;
-	default:
-		if (div%2) return -1;
-		d = div/2-1;
-		if (d == 8 || d == 9) return -1;
-		*out |= I2S_SF_SCLKDIV_OTHER(div);
-		return 0;
+	switch (div)
+	{
+		case 1: *out |= I2S_SF_SCLKDIV_1; return 0;
+
+		case 3: *out |= I2S_SF_SCLKDIV_3; return 0;
+
+		default:
+			if (div % 2) { return -1; }
+
+			d = div / 2 - 1;
+
+			if (d == 8 || d == 9) { return -1; }
+
+			*out |= I2S_SF_SCLKDIV_OTHER(div);
+			return 0;
 	}
 }
 #	define I2S_SF_SCLK_MASTER		(1<<19)

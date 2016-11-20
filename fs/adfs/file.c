@@ -17,11 +17,12 @@
  *
  *  Copyright (C) 1991, 1992  Linus Torvalds
  *
- *  adfs regular file handling primitives           
+ *  adfs regular file handling primitives
  */
 #include "adfs.h"
 
-const struct file_operations adfs_file_operations = {
+const struct file_operations adfs_file_operations =
+{
 	.llseek		= generic_file_llseek,
 	.read_iter	= generic_file_read_iter,
 	.mmap		= generic_file_mmap,
@@ -30,6 +31,7 @@ const struct file_operations adfs_file_operations = {
 	.splice_read	= generic_file_splice_read,
 };
 
-const struct inode_operations adfs_file_inode_operations = {
+const struct inode_operations adfs_file_inode_operations =
+{
 	.setattr	= adfs_notify_change,
 };

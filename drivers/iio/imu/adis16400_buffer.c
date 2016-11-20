@@ -14,7 +14,7 @@
 #include "adis16400.h"
 
 int adis16400_update_scan_mode(struct iio_dev *indio_dev,
-	const unsigned long *scan_mask)
+							   const unsigned long *scan_mask)
 {
 	struct adis16400_state *st = iio_priv(indio_dev);
 	struct adis *adis = &st->adis;
@@ -22,23 +22,34 @@ int adis16400_update_scan_mode(struct iio_dev *indio_dev,
 	u8 *tx;
 
 	if (st->variant->flags & ADIS16400_NO_BURST)
+	{
 		return adis_update_scan_mode(indio_dev, scan_mask);
+	}
 
 	kfree(adis->xfer);
 	kfree(adis->buffer);
 
 	/* All but the timestamp channel */
 	burst_length = (indio_dev->num_channels - 1) * sizeof(u16);
+
 	if (st->variant->flags & ADIS16400_BURST_DIAG_STAT)
+	{
 		burst_length += sizeof(u16);
+	}
 
 	adis->xfer = kcalloc(2, sizeof(*adis->xfer), GFP_KERNEL);
+
 	if (!adis->xfer)
+	{
 		return -ENOMEM;
+	}
 
 	adis->buffer = kzalloc(burst_length + sizeof(u16), GFP_KERNEL);
+
 	if (!adis->buffer)
+	{
 		return -ENOMEM;
+	}
 
 	tx = adis->buffer + burst_length;
 	tx[0] = ADIS_READ_REG(ADIS16400_GLOB_CMD);
@@ -69,30 +80,41 @@ irqreturn_t adis16400_trigger_handler(int irq, void *p)
 	int ret;
 
 	if (!adis->buffer)
+	{
 		return -ENOMEM;
+	}
 
 	if (!(st->variant->flags & ADIS16400_NO_BURST) &&
-		st->adis.spi->max_speed_hz > ADIS16400_SPI_BURST) {
+		st->adis.spi->max_speed_hz > ADIS16400_SPI_BURST)
+	{
 		st->adis.spi->max_speed_hz = ADIS16400_SPI_BURST;
 		spi_setup(st->adis.spi);
 	}
 
 	ret = spi_sync(adis->spi, &adis->msg);
-	if (ret)
-		dev_err(&adis->spi->dev, "Failed to read data: %d\n", ret);
 
-	if (!(st->variant->flags & ADIS16400_NO_BURST)) {
+	if (ret)
+	{
+		dev_err(&adis->spi->dev, "Failed to read data: %d\n", ret);
+	}
+
+	if (!(st->variant->flags & ADIS16400_NO_BURST))
+	{
 		st->adis.spi->max_speed_hz = old_speed_hz;
 		spi_setup(st->adis.spi);
 	}
 
 	if (st->variant->flags & ADIS16400_BURST_DIAG_STAT)
+	{
 		buffer = adis->buffer + sizeof(u16);
+	}
 	else
+	{
 		buffer = adis->buffer;
+	}
 
 	iio_push_to_buffers_with_timestamp(indio_dev, buffer,
-		pf->timestamp);
+									   pf->timestamp);
 
 	iio_trigger_notify_done(indio_dev->trig);
 

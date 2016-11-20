@@ -81,7 +81,8 @@
 #define CSIO_MAX_MSIX_VECS	(CSIO_MAX_SCSI_QSETS + CSIO_EXTRA_VECS)
 
 /* Queues */
-enum {
+enum
+{
 	CSIO_INTR_WRSIZE = 128,
 	CSIO_INTR_IQSIZE = ((CSIO_MAX_MSIX_VECS + 1) * CSIO_INTR_WRSIZE),
 	CSIO_FWEVT_WRSIZE = 128,
@@ -94,19 +95,22 @@ enum {
 	CSIO_HW_NINTXQ = 1,
 };
 
-struct csio_msix_entries {
+struct csio_msix_entries
+{
 	unsigned short	vector;		/* Assigned MSI-X vector */
 	void		*dev_id;	/* Priv object associated w/ this msix*/
 	char		desc[24];	/* Description of this vector */
 };
 
-struct csio_scsi_qset {
+struct csio_scsi_qset
+{
 	int		iq_idx;		/* Ingress index */
 	int		eq_idx;		/* Egress index */
 	uint32_t	intr_idx;	/* MSIX Vector index */
 };
 
-struct csio_scsi_cpu_info {
+struct csio_scsi_cpu_info
+{
 	int16_t	max_cpus;
 };
 
@@ -119,15 +123,16 @@ extern int csio_msi;
 #define CSIO_ASIC_DEVID_TYPE_MASK		0x00FF
 
 #define CSIO_GLBL_INTR_MASK	(CIM_F | MPS_F | PL_F | PCIE_F | MC_F | \
-				 EDC0_F | EDC1_F | LE_F | TP_F | MA_F | \
-				 PM_TX_F | PM_RX_F | ULP_RX_F | \
-				 CPL_SWITCH_F | SGE_F | ULP_TX_F | SF_F)
+							 EDC0_F | EDC1_F | LE_F | TP_F | MA_F | \
+							 PM_TX_F | PM_RX_F | ULP_RX_F | \
+							 CPL_SWITCH_F | SGE_F | ULP_TX_F | SF_F)
 
 /*
  * Hard parameters used to initialize the card in the absence of a
  * configuration file.
  */
-enum {
+enum
+{
 	/* General */
 	CSIO_SGE_DBFIFO_INT_THRESH	= 10,
 
@@ -156,7 +161,8 @@ enum {
 };
 
 /* Slowpath events */
-enum csio_evt {
+enum csio_evt
+{
 	CSIO_EVT_FW  = 0,	/* FW event */
 	CSIO_EVT_MBX,		/* MBX event */
 	CSIO_EVT_SCN,		/* State change notification */
@@ -168,24 +174,28 @@ enum csio_evt {
 #define CSIO_EVTQ_SIZE		512
 
 /* Event msg  */
-struct csio_evt_msg {
+struct csio_evt_msg
+{
 	struct list_head	list;	/* evt queue*/
 	enum csio_evt		type;
 	uint8_t			data[CSIO_EVT_MSG_SIZE];
 };
 
-enum {
+enum
+{
 	SERNUM_LEN     = 16,    /* Serial # length */
 	EC_LEN         = 16,    /* E/C length */
 	ID_LEN         = 16,    /* ID length */
 };
 
-enum {
+enum
+{
 	SF_SIZE = SF_SEC_SIZE * 16,   /* serial flash size */
 };
 
 /* serial flash and firmware constants */
-enum {
+enum
+{
 	SF_ATTEMPTS = 10,             /* max retries for SF operations */
 
 	/* flash command opcodes */
@@ -199,7 +209,8 @@ enum {
 };
 
 /* Management module */
-enum {
+enum
+{
 	CSIO_MGMT_EQ_WRSIZE = 512,
 	CSIO_MGMT_IQ_WRSIZE = 128,
 	CSIO_MGMT_EQLEN = 64,
@@ -210,7 +221,8 @@ enum {
 #define CSIO_MGMT_IQSIZE	(CSIO_MGMT_IQLEN * CSIO_MGMT_IQ_WRSIZE)
 
 /* mgmt module stats */
-struct csio_mgmtm_stats {
+struct csio_mgmtm_stats
+{
 	uint32_t	n_abort_req;		/* Total abort request */
 	uint32_t	n_abort_rsp;		/* Total abort response */
 	uint32_t	n_close_req;		/* Total close request */
@@ -222,7 +234,8 @@ struct csio_mgmtm_stats {
 };
 
 /* MGMT module */
-struct csio_mgmtm {
+struct csio_mgmtm
+{
 	struct	csio_hw		*hw;		/* Pointer to HW moduel */
 	int			eq_idx;		/* Egress queue index */
 	int			iq_idx;		/* Ingress queue index */
@@ -231,17 +244,19 @@ struct csio_mgmtm {
 	struct list_head	abort_q;	/* Outstanding abort req */
 	struct list_head	cbfn_q;		/* Completion queue */
 	struct list_head	mgmt_req_freelist; /* Free poll of reqs */
-						/* ELSCT request freelist*/
+	/* ELSCT request freelist*/
 	struct timer_list	mgmt_timer;	/* MGMT timer */
 	struct csio_mgmtm_stats stats;		/* ELS/CT stats */
 };
 
-struct csio_adap_desc {
+struct csio_adap_desc
+{
 	char model_no[16];
 	char description[32];
 };
 
-struct pci_params {
+struct pci_params
+{
 	uint16_t   vendor_id;
 	uint16_t   device_id;
 	int        vpd_cap_addr;
@@ -250,7 +265,8 @@ struct pci_params {
 };
 
 /* User configurable hw parameters */
-struct csio_hw_params {
+struct csio_hw_params
+{
 	uint32_t		sf_size;		/* serial flash
 							 * size in bytes
 							 */
@@ -261,14 +277,16 @@ struct csio_hw_params {
 							 */
 };
 
-struct csio_vpd {
+struct csio_vpd
+{
 	uint32_t cclk;
 	uint8_t ec[EC_LEN + 1];
 	uint8_t sn[SERNUM_LEN + 1];
 	uint8_t id[ID_LEN + 1];
 };
 
-struct csio_pport {
+struct csio_pport
+{
 	uint16_t	pcap;
 	uint8_t		portid;
 	uint8_t		link_status;
@@ -281,7 +299,8 @@ struct csio_pport {
 };
 
 /* fcoe resource information */
-struct csio_fcoe_res_info {
+struct csio_fcoe_res_info
+{
 	uint16_t	e_d_tov;
 	uint16_t	r_a_tov_seq;
 	uint16_t	r_a_tov_els;
@@ -297,7 +316,8 @@ struct csio_fcoe_res_info {
 };
 
 /* HW State machine Events */
-enum csio_hw_ev {
+enum csio_hw_ev
+{
 	CSIO_HWE_CFG = (uint32_t)1, /* Starts off the State machine */
 	CSIO_HWE_INIT,	         /* Config done, start Init      */
 	CSIO_HWE_INIT_DONE,      /* Init Mailboxes sent, HW ready */
@@ -316,7 +336,8 @@ enum csio_hw_ev {
 };
 
 /* hw stats */
-struct csio_hw_stats {
+struct csio_hw_stats
+{
 	uint32_t	n_evt_activeq;	/* Number of event in active Q */
 	uint32_t	n_evt_freeq;	/* Number of event in free Q */
 	uint32_t	n_evt_drop;	/* Number of event droped */
@@ -327,9 +348,9 @@ struct csio_hw_stats {
 	uint32_t	n_cpl_fw6_pld;	/* Number of cpl fw6 payload*/
 	uint32_t	n_cpl_unexp;	/* Number of unexpected cpl */
 	uint32_t	n_mbint_unexp;	/* Number of unexpected mbox */
-					/* interrupt */
+	/* interrupt */
 	uint32_t	n_plint_unexp;	/* Number of unexpected PL */
-					/* interrupt */
+	/* interrupt */
 	uint32_t	n_plint_cnt;	/* Number of PL interrupt */
 	uint32_t	n_int_stray;	/* Number of stray interrupt */
 	uint32_t	n_err;		/* Number of hw errors */
@@ -370,9 +391,9 @@ struct csio_hw_stats {
 							 */
 
 #define csio_is_hw_intr_enabled(__hw)	\
-				((__hw)->flags & CSIO_HWF_HW_INTR_ENABLED)
+	((__hw)->flags & CSIO_HWF_HW_INTR_ENABLED)
 #define csio_is_host_intr_enabled(__hw)	\
-				((__hw)->flags & CSIO_HWF_HOST_INTR_ENABLED)
+	((__hw)->flags & CSIO_HWF_HOST_INTR_ENABLED)
 #define csio_is_hw_master(__hw)		((__hw)->flags & CSIO_HWF_MASTER)
 #define csio_is_valid_vpd(__hw)		((__hw)->flags & CSIO_HWF_VPD_VALID)
 #define csio_is_dev_id_cached(__hw)	((__hw)->flags & CSIO_HWF_DEVID_CACHED)
@@ -380,7 +401,8 @@ struct csio_hw_stats {
 #define csio_dev_id_cached(__hw)	((__hw)->flags |= CSIO_HWF_DEVID_CACHED)
 
 /* Defines for intr_mode */
-enum csio_intr_mode {
+enum csio_intr_mode
+{
 	CSIO_IM_NONE = 0,
 	CSIO_IM_INTX = 1,
 	CSIO_IM_MSI  = 2,
@@ -388,7 +410,8 @@ enum csio_intr_mode {
 };
 
 /* Master HW structure: One per function */
-struct csio_hw {
+struct csio_hw
+{
 	struct csio_sm		sm;			/* State machine: should
 							 * be the 1st member.
 							 */
@@ -506,13 +529,13 @@ struct csio_hw {
 #define	csio_rd_reg64(_h, _r)		readq(csio_reg((_h)->regstart, (_r)))
 
 #define	csio_wr_reg8(_h, _v, _r)	writeb((_v), \
-						csio_reg((_h)->regstart, (_r)))
+		csio_reg((_h)->regstart, (_r)))
 #define	csio_wr_reg16(_h, _v, _r)	writew((_v), \
-						csio_reg((_h)->regstart, (_r)))
+		csio_reg((_h)->regstart, (_r)))
 #define	csio_wr_reg32(_h, _v, _r)	writel((_v), \
-						csio_reg((_h)->regstart, (_r)))
+		csio_reg((_h)->regstart, (_r)))
 #define	csio_wr_reg64(_h, _v, _r)	writeq((_v), \
-						csio_reg((_h)->regstart, (_r)))
+		csio_reg((_h)->regstart, (_r)))
 
 void csio_set_reg_field(struct csio_hw *, uint32_t, uint32_t, uint32_t);
 
@@ -521,7 +544,7 @@ static inline uint32_t
 csio_core_ticks_to_us(struct csio_hw *hw, uint32_t ticks)
 {
 	/* add Core Clock / 2 to round ticks to nearest uS */
-	return (ticks * 1000 + hw->vpd.cclk/2) / hw->vpd.cclk;
+	return (ticks * 1000 + hw->vpd.cclk / 2) / hw->vpd.cclk;
 }
 
 static inline uint32_t
@@ -551,33 +574,33 @@ csio_us_to_core_ticks(struct csio_hw *hw, uint32_t us)
 #define CSIO_DEVID_HI(__dev)		((CSIO_DEVID((__dev)) >> 16) & 0xFFFF)
 
 #define csio_info(__hw, __fmt, ...)					\
-			dev_info(&(__hw)->pdev->dev, __fmt, ##__VA_ARGS__)
+	dev_info(&(__hw)->pdev->dev, __fmt, ##__VA_ARGS__)
 
 #define csio_fatal(__hw, __fmt, ...)					\
-			dev_crit(&(__hw)->pdev->dev, __fmt, ##__VA_ARGS__)
+	dev_crit(&(__hw)->pdev->dev, __fmt, ##__VA_ARGS__)
 
 #define csio_err(__hw, __fmt, ...)					\
-			dev_err(&(__hw)->pdev->dev, __fmt, ##__VA_ARGS__)
+	dev_err(&(__hw)->pdev->dev, __fmt, ##__VA_ARGS__)
 
 #define csio_warn(__hw, __fmt, ...)					\
-			dev_warn(&(__hw)->pdev->dev, __fmt, ##__VA_ARGS__)
+	dev_warn(&(__hw)->pdev->dev, __fmt, ##__VA_ARGS__)
 
 #ifdef __CSIO_DEBUG__
 #define csio_dbg(__hw, __fmt, ...)					\
-			csio_info((__hw), __fmt, ##__VA_ARGS__);
+	csio_info((__hw), __fmt, ##__VA_ARGS__);
 #else
 #define csio_dbg(__hw, __fmt, ...)
 #endif
 
 int csio_hw_wait_op_done_val(struct csio_hw *, int, uint32_t, int,
-			     int, int, uint32_t *);
+							 int, int, uint32_t *);
 void csio_hw_tp_wr_bits_indirect(struct csio_hw *, unsigned int,
-				 unsigned int, unsigned int);
+								 unsigned int, unsigned int);
 int csio_mgmt_req_lookup(struct csio_mgmtm *, struct csio_ioreq *);
 void csio_hw_intr_disable(struct csio_hw *);
 int csio_hw_slow_intr_handler(struct csio_hw *);
 int csio_handle_intr_status(struct csio_hw *, unsigned int,
-			    const struct intr_info *);
+							const struct intr_info *);
 
 int csio_hw_start(struct csio_hw *);
 int csio_hw_stop(struct csio_hw *);

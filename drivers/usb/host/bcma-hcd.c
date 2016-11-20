@@ -38,7 +38,8 @@ MODULE_LICENSE("GPL");
 /* See BCMA_CLKCTLST_EXTRESREQ and BCMA_CLKCTLST_EXTRESST */
 #define USB_BCMA_CLKCTLST_USB_CLK_REQ			0x00000100
 
-struct bcma_hcd_device {
+struct bcma_hcd_device
+{
 	struct bcma_device *core;
 	struct platform_device *ehci_dev;
 	struct platform_device *ohci_dev;
@@ -49,15 +50,20 @@ struct bcma_hcd_device {
  * timeout is in units of ten-microseconds.
  */
 static int bcma_wait_bits(struct bcma_device *dev, u16 reg, u32 bitmask,
-			  int timeout)
+						  int timeout)
 {
 	int i;
 	u32 val;
 
-	for (i = 0; i < timeout; i++) {
+	for (i = 0; i < timeout; i++)
+	{
 		val = bcma_read32(dev, reg);
+
 		if ((val & bitmask) == bitmask)
+		{
 			return 0;
+		}
+
 		udelay(10);
 	}
 
@@ -67,22 +73,32 @@ static int bcma_wait_bits(struct bcma_device *dev, u16 reg, u32 bitmask,
 static void bcma_hcd_4716wa(struct bcma_device *dev)
 {
 #ifdef CONFIG_BCMA_DRIVER_MIPS
+
 	/* Work around for 4716 failures. */
-	if (dev->bus->chipinfo.id == 0x4716) {
+	if (dev->bus->chipinfo.id == 0x4716)
+	{
 		u32 tmp;
 
 		tmp = bcma_cpu_clock(&dev->bus->drv_mips);
+
 		if (tmp >= 480000000)
-			tmp = 0x1846b; /* set CDR to 0x11(fast) */
+		{
+			tmp = 0x1846b;    /* set CDR to 0x11(fast) */
+		}
 		else if (tmp == 453000000)
-			tmp = 0x1046b; /* set CDR to 0x10(slow) */
+		{
+			tmp = 0x1046b;    /* set CDR to 0x10(slow) */
+		}
 		else
+		{
 			tmp = 0;
+		}
 
 		/* Change Shim mdio control reg to fix host not acking at
 		 * high frequencies
 		 */
-		if (tmp) {
+		if (tmp)
+		{
 			bcma_write32(dev, 0x524, 0x1); /* write sel to enable */
 			udelay(500);
 
@@ -94,6 +110,7 @@ static void bcma_hcd_4716wa(struct bcma_device *dev)
 			bcma_write32(dev, 0x528, 0x80000000);
 		}
 	}
+
 #endif /* CONFIG_BCMA_DRIVER_MIPS */
 }
 
@@ -112,16 +129,22 @@ static void bcma_hcd_init_chip_mips(struct bcma_device *dev)
 	 *    Register must be programmed to bring the USB core and various
 	 *    phy components out of reset.
 	 */
-	if (!bcma_core_is_enabled(dev)) {
+	if (!bcma_core_is_enabled(dev))
+	{
 		bcma_core_enable(dev, 0);
 		mdelay(10);
-		if (dev->id.rev >= 5) {
+
+		if (dev->id.rev >= 5)
+		{
 			/* Enable Misc PLL */
 			tmp = bcma_read32(dev, 0x1e0);
 			tmp |= 0x100;
 			bcma_write32(dev, 0x1e0, tmp);
+
 			if (bcma_wait_bits(dev, 0x1e0, 1 << 24, 100))
+			{
 				printk(KERN_EMERG "Failed to enable misc PPL!\n");
+			}
 
 			/* Take out of resets */
 			bcma_write32(dev, 0x200, 0x4ff);
@@ -146,11 +169,13 @@ static void bcma_hcd_init_chip_mips(struct bcma_device *dev)
 			udelay(50);
 			tmp = bcma_read32(dev, 0x524);
 
-			if (bcma_wait_bits(dev, 0x528, 0xc000, 10000)) {
+			if (bcma_wait_bits(dev, 0x528, 0xc000, 10000))
+			{
 				tmp = bcma_read32(dev, 0x528);
 				printk(KERN_EMERG
-				       "USB20H mdio_rddata 0x%08x\n", tmp);
+					   "USB20H mdio_rddata 0x%08x\n", tmp);
 			}
+
 			bcma_write32(dev, 0x528, 0x80000000);
 			tmp = bcma_read32(dev, 0x314);
 			udelay(265);
@@ -159,7 +184,9 @@ static void bcma_hcd_init_chip_mips(struct bcma_device *dev)
 
 			/* Take USB and HSIC out of non-driving modes */
 			bcma_write32(dev, 0x510, 0);
-		} else {
+		}
+		else
+		{
 			bcma_write32(dev, 0x200, 0x7ff);
 
 			udelay(1);
@@ -184,11 +211,16 @@ static int bcma_hcd_usb20_old_arm_init(struct bcma_hcd_device *usb_dev)
 	struct bcma_device *pmu_core;
 
 	usleep_range(10000, 20000);
+
 	if (core->id.rev < 5)
+	{
 		return 0;
+	}
 
 	pmu_core = bcma_find_core(core->bus, BCMA_CORE_PMU);
-	if (!pmu_core) {
+
+	if (!pmu_core)
+	{
 		dev_err(dev, "Could not find PMU core\n");
 		return -ENOENT;
 	}
@@ -205,8 +237,8 @@ static int bcma_hcd_usb20_old_arm_init(struct bcma_hcd_device *usb_dev)
 
 	/* Enable Misc PLL */
 	bcma_write32(core, BCMA_CLKCTLST, BCMA_CLKCTLST_FORCEHT |
-					  BCMA_CLKCTLST_HQCLKREQ |
-					  USB_BCMA_CLKCTLST_USB_CLK_REQ);
+				 BCMA_CLKCTLST_HQCLKREQ |
+				 USB_BCMA_CLKCTLST_USB_CLK_REQ);
 	usleep_range(100, 200);
 
 	bcma_write32(core, 0x510, 0xc7f85000);
@@ -274,8 +306,10 @@ static int bcma_hcd_usb20_ns_init(struct bcma_hcd_device *bcma_hcd)
 	bcma_core_enable(core, 0);
 
 	if (ci->id == BCMA_CHIP_ID_BCM4707 ||
-	    ci->id == BCMA_CHIP_ID_BCM53018)
+		ci->id == BCMA_CHIP_ID_BCM53018)
+	{
 		bcma_hcd_usb20_ns_init_hc(core);
+	}
 
 	of_platform_default_populate(dev->of_node, NULL, dev);
 
@@ -287,21 +321,25 @@ static void bcma_hci_platform_power_gpio(struct bcma_device *dev, bool val)
 	struct bcma_hcd_device *usb_dev = bcma_get_drvdata(dev);
 
 	if (IS_ERR_OR_NULL(usb_dev->gpio_desc))
+	{
 		return;
+	}
 
 	gpiod_set_value(usb_dev->gpio_desc, val);
 }
 
-static const struct usb_ehci_pdata ehci_pdata = {
+static const struct usb_ehci_pdata ehci_pdata =
+{
 };
 
-static const struct usb_ohci_pdata ohci_pdata = {
+static const struct usb_ohci_pdata ohci_pdata =
+{
 };
 
 static struct platform_device *bcma_hcd_create_pdev(struct bcma_device *dev,
-						    const char *name, u32 addr,
-						    const void *data,
-						    size_t size)
+		const char *name, u32 addr,
+		const void *data,
+		size_t size)
 {
 	struct platform_device *hci_dev;
 	struct resource hci_res[2];
@@ -317,23 +355,39 @@ static struct platform_device *bcma_hcd_create_pdev(struct bcma_device *dev,
 	hci_res[1].flags = IORESOURCE_IRQ;
 
 	hci_dev = platform_device_alloc(name, 0);
+
 	if (!hci_dev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	hci_dev->dev.parent = &dev->dev;
 	hci_dev->dev.dma_mask = &hci_dev->dev.coherent_dma_mask;
 
 	ret = platform_device_add_resources(hci_dev, hci_res,
-					    ARRAY_SIZE(hci_res));
+										ARRAY_SIZE(hci_res));
+
 	if (ret)
+	{
 		goto err_alloc;
+	}
+
 	if (data)
+	{
 		ret = platform_device_add_data(hci_dev, data, size);
+	}
+
 	if (ret)
+	{
 		goto err_alloc;
+	}
+
 	ret = platform_device_add(hci_dev);
+
 	if (ret)
+	{
 		goto err_alloc;
+	}
 
 	return hci_dev;
 
@@ -350,27 +404,37 @@ static int bcma_hcd_usb20_init(struct bcma_hcd_device *usb_dev)
 	int err;
 
 	if (dma_set_mask_and_coherent(dev->dma_dev, DMA_BIT_MASK(32)))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	bcma_hcd_init_chip_mips(dev);
 
 	/* In AI chips EHCI is addrspace 0, OHCI is 1 */
 	ohci_addr = dev->addr_s[0];
+
 	if ((chipinfo->id == BCMA_CHIP_ID_BCM5357 ||
-	     chipinfo->id == BCMA_CHIP_ID_BCM4749)
-	    && chipinfo->rev == 0)
+		 chipinfo->id == BCMA_CHIP_ID_BCM4749)
+		&& chipinfo->rev == 0)
+	{
 		ohci_addr = 0x18009000;
+	}
 
 	usb_dev->ohci_dev = bcma_hcd_create_pdev(dev, "ohci-platform",
-						 ohci_addr, &ohci_pdata,
-						 sizeof(ohci_pdata));
+						ohci_addr, &ohci_pdata,
+						sizeof(ohci_pdata));
+
 	if (IS_ERR(usb_dev->ohci_dev))
+	{
 		return PTR_ERR(usb_dev->ohci_dev);
+	}
 
 	usb_dev->ehci_dev = bcma_hcd_create_pdev(dev, "ehci-platform",
-						 dev->addr, &ehci_pdata,
-						 sizeof(ehci_pdata));
-	if (IS_ERR(usb_dev->ehci_dev)) {
+						dev->addr, &ehci_pdata,
+						sizeof(ehci_pdata));
+
+	if (IS_ERR(usb_dev->ehci_dev))
+	{
 		err = PTR_ERR(usb_dev->ehci_dev);
 		goto err_unregister_ohci_dev;
 	}
@@ -402,35 +466,53 @@ static int bcma_hcd_probe(struct bcma_device *core)
 	/* TODO: Probably need checks here; is the core connected? */
 
 	usb_dev = devm_kzalloc(&core->dev, sizeof(struct bcma_hcd_device),
-			       GFP_KERNEL);
+						   GFP_KERNEL);
+
 	if (!usb_dev)
+	{
 		return -ENOMEM;
+	}
+
 	usb_dev->core = core;
 
 	if (core->dev.of_node)
 		usb_dev->gpio_desc = devm_gpiod_get(&core->dev, "vcc",
-						    GPIOD_OUT_HIGH);
+											GPIOD_OUT_HIGH);
 
-	switch (core->id.id) {
-	case BCMA_CORE_USB20_HOST:
-		if (IS_ENABLED(CONFIG_ARM))
-			err = bcma_hcd_usb20_old_arm_init(usb_dev);
-		else if (IS_ENABLED(CONFIG_MIPS))
-			err = bcma_hcd_usb20_init(usb_dev);
-		else
-			err = -ENOTSUPP;
-		break;
-	case BCMA_CORE_NS_USB20:
-		err = bcma_hcd_usb20_ns_init(usb_dev);
-		break;
-	case BCMA_CORE_NS_USB30:
-		err = bcma_hcd_usb30_init(usb_dev);
-		break;
-	default:
-		return -ENODEV;
+	switch (core->id.id)
+	{
+		case BCMA_CORE_USB20_HOST:
+			if (IS_ENABLED(CONFIG_ARM))
+			{
+				err = bcma_hcd_usb20_old_arm_init(usb_dev);
+			}
+			else if (IS_ENABLED(CONFIG_MIPS))
+			{
+				err = bcma_hcd_usb20_init(usb_dev);
+			}
+			else
+			{
+				err = -ENOTSUPP;
+			}
+
+			break;
+
+		case BCMA_CORE_NS_USB20:
+			err = bcma_hcd_usb20_ns_init(usb_dev);
+			break;
+
+		case BCMA_CORE_NS_USB30:
+			err = bcma_hcd_usb30_init(usb_dev);
+			break;
+
+		default:
+			return -ENODEV;
 	}
+
 	if (err)
+	{
 		return err;
+	}
 
 	bcma_set_drvdata(core, usb_dev);
 	return 0;
@@ -443,9 +525,14 @@ static void bcma_hcd_remove(struct bcma_device *dev)
 	struct platform_device *ehci_dev = usb_dev->ehci_dev;
 
 	if (ohci_dev)
+	{
 		platform_device_unregister(ohci_dev);
+	}
+
 	if (ehci_dev)
+	{
 		platform_device_unregister(ehci_dev);
+	}
 
 	bcma_core_disable(dev, 0);
 }
@@ -479,7 +566,8 @@ static int bcma_hcd_resume(struct bcma_device *dev)
 #define bcma_hcd_resume	NULL
 #endif /* CONFIG_PM */
 
-static const struct bcma_device_id bcma_hcd_table[] = {
+static const struct bcma_device_id bcma_hcd_table[] =
+{
 	BCMA_CORE(BCMA_MANUF_BCM, BCMA_CORE_USB20_HOST, BCMA_ANY_REV, BCMA_ANY_CLASS),
 	BCMA_CORE(BCMA_MANUF_BCM, BCMA_CORE_NS_USB20, BCMA_ANY_REV, BCMA_ANY_CLASS),
 	BCMA_CORE(BCMA_MANUF_BCM, BCMA_CORE_NS_USB30, BCMA_ANY_REV, BCMA_ANY_CLASS),
@@ -487,7 +575,8 @@ static const struct bcma_device_id bcma_hcd_table[] = {
 };
 MODULE_DEVICE_TABLE(bcma, bcma_hcd_table);
 
-static struct bcma_driver bcma_hcd_driver = {
+static struct bcma_driver bcma_hcd_driver =
+{
 	.name		= KBUILD_MODNAME,
 	.id_table	= bcma_hcd_table,
 	.probe		= bcma_hcd_probe,

@@ -18,7 +18,8 @@
 #ifndef __SNIC_STATS_H
 #define __SNIC_STATS_H
 
-struct snic_io_stats {
+struct snic_io_stats
+{
 	atomic64_t active;		/* Active IOs */
 	atomic64_t max_active;		/* Max # active IOs */
 	atomic64_t max_sgl;		/* Max # SGLs for any IO */
@@ -36,7 +37,8 @@ struct snic_io_stats {
 	atomic64_t num_ios;		/* Number of IOs */
 };
 
-struct snic_abort_stats {
+struct snic_abort_stats
+{
 	atomic64_t num;		/* Abort counter */
 	atomic64_t fail;	/* Abort Failure Counter */
 	atomic64_t drv_tmo;	/* Abort Driver Timeouts */
@@ -45,7 +47,8 @@ struct snic_abort_stats {
 	atomic64_t q_fail;	/* Abort Queuing Failed */
 };
 
-struct snic_reset_stats {
+struct snic_reset_stats
+{
 	atomic64_t dev_resets;		/* Device Reset Counter */
 	atomic64_t dev_reset_fail;	/* Device Reset Failures */
 	atomic64_t dev_reset_aborts;	/* Device Reset Aborts */
@@ -59,7 +62,8 @@ struct snic_reset_stats {
 	atomic64_t snic_reset_fail;	/* snic reset failures */
 };
 
-struct snic_fw_stats {
+struct snic_fw_stats
+{
 	atomic64_t actv_reqs;		/* Active Requests */
 	atomic64_t max_actv_reqs;	/* Max Active Requests */
 	atomic64_t out_of_res;		/* Firmware Out Of Resources */
@@ -67,7 +71,8 @@ struct snic_fw_stats {
 	atomic64_t scsi_errs;		/* Target hits check condition */
 };
 
-struct snic_misc_stats {
+struct snic_misc_stats
+{
 	u64	last_isr_time;
 	u64	last_ack_time;
 	atomic64_t ack_isr_cnt;
@@ -90,7 +95,8 @@ struct snic_misc_stats {
 	atomic64_t tgt_not_rdy;
 };
 
-struct snic_stats {
+struct snic_stats
+{
 	struct snic_io_stats io;
 	struct snic_abort_stats abts;
 	struct snic_reset_stats reset;
@@ -110,8 +116,11 @@ snic_stats_update_active_ios(struct snic_stats *s_stats)
 	int nr_active_ios;
 
 	nr_active_ios = atomic64_read(&io->active);
+
 	if (atomic64_read(&io->max_active) < nr_active_ios)
+	{
 		atomic64_set(&io->max_active, nr_active_ios);
+	}
 
 	atomic64_inc(&io->num_ios);
 }
@@ -121,9 +130,14 @@ static inline void
 snic_stats_update_io_cmpl(struct snic_stats *s_stats)
 {
 	atomic64_dec(&s_stats->io.active);
+
 	if (unlikely(atomic64_read(&s_stats->io_cmpl_skip)))
+	{
 		atomic64_dec(&s_stats->io_cmpl_skip);
+	}
 	else
+	{
 		atomic64_inc(&s_stats->io.compl);
+	}
 }
 #endif /* __SNIC_STATS_H */

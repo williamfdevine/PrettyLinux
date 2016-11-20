@@ -27,7 +27,8 @@
 #include <nvif/class.h>
 
 const struct nv50_disp_dmac_oclass
-gt215_disp_ovly_oclass = {
+	gt215_disp_ovly_oclass =
+{
 	.base.oclass = GT214_DISP_OVERLAY_CHANNEL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

@@ -1,6 +1,7 @@
 #ifndef __NVBIOS_DCB_H__
 #define __NVBIOS_DCB_H__
-enum dcb_output_type {
+enum dcb_output_type
+{
 	DCB_OUTPUT_ANALOG	= 0x0,
 	DCB_OUTPUT_TV		= 0x1,
 	DCB_OUTPUT_TMDS		= 0x2,
@@ -11,7 +12,8 @@ enum dcb_output_type {
 	DCB_OUTPUT_ANY = -1,
 };
 
-struct dcb_output {
+struct dcb_output
+{
 	int index;	/* may not be raw dcb index if merging has happened */
 	u16 hasht;
 	u16 hashm;
@@ -25,28 +27,35 @@ struct dcb_output {
 	uint8_t link;
 	bool duallink_possible;
 	uint8_t extdev;
-	union {
-		struct sor_conf {
+	union
+	{
+		struct sor_conf
+		{
 			int link;
 		} sorconf;
-		struct {
+		struct
+		{
 			int maxfreq;
 		} crtconf;
-		struct {
+		struct
+		{
 			struct sor_conf sor;
 			bool use_straps_for_mode;
 			bool use_acpi_for_edid;
 			bool use_power_scripts;
 		} lvdsconf;
-		struct {
+		struct
+		{
 			bool has_component_output;
 		} tvconf;
-		struct {
+		struct
+		{
 			struct sor_conf sor;
 			int link_nr;
 			int link_bw;
 		} dpconf;
-		struct {
+		struct
+		{
 			struct sor_conf sor;
 			int slave_addr;
 		} tmdsconf;
@@ -57,9 +66,9 @@ struct dcb_output {
 u16 dcb_table(struct nvkm_bios *, u8 *ver, u8 *hdr, u8 *ent, u8 *len);
 u16 dcb_outp(struct nvkm_bios *, u8 idx, u8 *ver, u8 *len);
 u16 dcb_outp_parse(struct nvkm_bios *, u8 idx, u8 *, u8 *,
-		   struct dcb_output *);
+				   struct dcb_output *);
 u16 dcb_outp_match(struct nvkm_bios *, u16 type, u16 mask, u8 *, u8 *,
-		   struct dcb_output *);
+				   struct dcb_output *);
 int dcb_outp_foreach(struct nvkm_bios *, void *data, int (*exec)
-		     (struct nvkm_bios *, void *, int index, u16 entry));
+					 (struct nvkm_bios *, void *, int index, u16 entry));
 #endif

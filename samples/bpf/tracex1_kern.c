@@ -35,7 +35,8 @@ int bpf_prog1(struct pt_regs *ctx)
 
 	bpf_probe_read(devname, sizeof(devname), dev->name);
 
-	if (devname[0] == 'l' && devname[1] == 'o') {
+	if (devname[0] == 'l' && devname[1] == 'o')
+	{
 		char fmt[] = "skb %p len %d\n";
 		/* using bpf_trace_printk() for DEBUG ONLY */
 		bpf_trace_printk(fmt, sizeof(fmt), skb, len);

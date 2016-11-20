@@ -29,12 +29,17 @@ static unsigned int bit_cfg_reg(unsigned int offset)
 	 * first 16.
 	 */
 	if (offset < 16)
+	{
 		return 8 * offset;
+	}
 	else
+	{
 		return 8 * (offset - 16) + 0x100;
+	}
 }
 
-struct octeon_gpio {
+struct octeon_gpio
+{
 	struct gpio_chip chip;
 	u64 register_base;
 };
@@ -56,7 +61,7 @@ static void octeon_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 }
 
 static int octeon_gpio_dir_out(struct gpio_chip *chip, unsigned offset,
-			       int value)
+							   int value)
 {
 	struct octeon_gpio *gpio = gpiochip_get_data(chip);
 	union cvmx_gpio_bit_cfgx cfgx;
@@ -87,14 +92,21 @@ static int octeon_gpio_probe(struct platform_device *pdev)
 	int err = 0;
 
 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
+
 	if (!gpio)
+	{
 		return -ENOMEM;
+	}
+
 	chip = &gpio->chip;
 
 	res_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	reg_base = devm_ioremap_resource(&pdev->dev, res_mem);
+
 	if (IS_ERR(reg_base))
+	{
 		return PTR_ERR(reg_base);
+	}
 
 	gpio->register_base = (u64)reg_base;
 	pdev->dev.platform_data = chip;
@@ -109,14 +121,18 @@ static int octeon_gpio_probe(struct platform_device *pdev)
 	chip->direction_output = octeon_gpio_dir_out;
 	chip->set = octeon_gpio_set;
 	err = devm_gpiochip_add_data(&pdev->dev, chip, gpio);
+
 	if (err)
+	{
 		return err;
+	}
 
 	dev_info(&pdev->dev, "OCTEON GPIO driver probed.\n");
 	return 0;
 }
 
-static const struct of_device_id octeon_gpio_match[] = {
+static const struct of_device_id octeon_gpio_match[] =
+{
 	{
 		.compatible = "cavium,octeon-3860-gpio",
 	},
@@ -124,7 +140,8 @@ static const struct of_device_id octeon_gpio_match[] = {
 };
 MODULE_DEVICE_TABLE(of, octeon_gpio_match);
 
-static struct platform_driver octeon_gpio_driver = {
+static struct platform_driver octeon_gpio_driver =
+{
 	.driver = {
 		.name		= "octeon_gpio",
 		.of_match_table = octeon_gpio_match,

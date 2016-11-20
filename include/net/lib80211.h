@@ -34,13 +34,15 @@
 
 #define NUM_WEP_KEYS	4
 
-enum {
+enum
+{
 	IEEE80211_CRYPTO_TKIP_COUNTERMEASURES = (1 << 0),
 };
 
 struct module;
 
-struct lib80211_crypto_ops {
+struct lib80211_crypto_ops
+{
 	const char *name;
 	struct list_head list;
 
@@ -58,17 +60,17 @@ struct lib80211_crypto_ops {
 	 * encryption; if not, error will be returned; these functions are
 	 * called for all MPDUs (i.e., fragments).
 	 */
-	int (*encrypt_mpdu) (struct sk_buff * skb, int hdr_len, void *priv);
-	int (*decrypt_mpdu) (struct sk_buff * skb, int hdr_len, void *priv);
+	int (*encrypt_mpdu) (struct sk_buff *skb, int hdr_len, void *priv);
+	int (*decrypt_mpdu) (struct sk_buff *skb, int hdr_len, void *priv);
 
 	/* These functions are called for full MSDUs, i.e. full frames.
 	 * These can be NULL if full MSDU operations are not needed. */
-	int (*encrypt_msdu) (struct sk_buff * skb, int hdr_len, void *priv);
-	int (*decrypt_msdu) (struct sk_buff * skb, int keyidx, int hdr_len,
-			     void *priv);
+	int (*encrypt_msdu) (struct sk_buff *skb, int hdr_len, void *priv);
+	int (*decrypt_msdu) (struct sk_buff *skb, int keyidx, int hdr_len,
+						 void *priv);
 
-	int (*set_key) (void *key, int len, u8 * seq, void *priv);
-	int (*get_key) (void *key, int len, u8 * seq, void *priv);
+	int (*set_key) (void *key, int len, u8 *seq, void *priv);
+	int (*get_key) (void *key, int len, u8 *seq, void *priv);
 
 	/* procfs handler for printing out key information and possible
 	 * statistics */
@@ -89,14 +91,16 @@ struct lib80211_crypto_ops {
 	struct module *owner;
 };
 
-struct lib80211_crypt_data {
+struct lib80211_crypt_data
+{
 	struct list_head list;	/* delayed deletion list */
 	struct lib80211_crypto_ops *ops;
 	void *priv;
 	atomic_t refcnt;
 };
 
-struct lib80211_crypt_info {
+struct lib80211_crypt_info
+{
 	char *name;
 	/* Most clients will already have a lock,
 	   so just point to that. */
@@ -110,12 +114,12 @@ struct lib80211_crypt_info {
 };
 
 int lib80211_crypt_info_init(struct lib80211_crypt_info *info, char *name,
-                                spinlock_t *lock);
+							 spinlock_t *lock);
 void lib80211_crypt_info_free(struct lib80211_crypt_info *info);
 int lib80211_register_crypto_ops(struct lib80211_crypto_ops *ops);
 int lib80211_unregister_crypto_ops(struct lib80211_crypto_ops *ops);
 struct lib80211_crypto_ops *lib80211_get_crypto_ops(const char *name);
 void lib80211_crypt_delayed_deinit(struct lib80211_crypt_info *info,
-				    struct lib80211_crypt_data **crypt);
+								   struct lib80211_crypt_data **crypt);
 
 #endif /* LIB80211_H */

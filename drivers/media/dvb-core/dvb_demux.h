@@ -46,7 +46,8 @@
 
 #define SPEED_PKTS_INTERVAL 50000
 
-struct dvb_demux_filter {
+struct dvb_demux_filter
+{
 	struct dmx_section_filter filter;
 	u8 maskandmode[DMX_MAX_FILTER_SIZE];
 	u8 maskandnotmode[DMX_MAX_FILTER_SIZE];
@@ -64,13 +65,16 @@ struct dvb_demux_filter {
 
 #define DMX_FEED_ENTRY(pos) list_entry(pos, struct dvb_demux_feed, list_head)
 
-struct dvb_demux_feed {
-	union {
+struct dvb_demux_feed
+{
+	union
+	{
 		struct dmx_ts_feed ts;
 		struct dmx_section_feed sec;
 	} feed;
 
-	union {
+	union
+	{
 		dmx_ts_cb ts;
 		dmx_section_cb sec;
 	} cb;
@@ -98,7 +102,8 @@ struct dvb_demux_feed {
 	unsigned int index;	/* a unique index for each feed (can be used as hardware pid filter index) */
 };
 
-struct dvb_demux {
+struct dvb_demux
+{
 	struct dmx_demux dmx;
 	void *priv;
 	int filternum;
@@ -106,11 +111,11 @@ struct dvb_demux {
 	int (*start_feed)(struct dvb_demux_feed *feed);
 	int (*stop_feed)(struct dvb_demux_feed *feed);
 	int (*write_to_decoder)(struct dvb_demux_feed *feed,
-				 const u8 *buf, size_t len);
+							const u8 *buf, size_t len);
 	u32 (*check_crc32)(struct dvb_demux_feed *feed,
-			    const u8 *buf, size_t len);
+					   const u8 *buf, size_t len);
 	void (*memcopy)(struct dvb_demux_feed *feed, u8 *dst,
-			 const u8 *src, size_t len);
+					const u8 *src, size_t len);
 
 	int users;
 #define MAX_DVB_DEMUX_USERS 10
@@ -141,11 +146,11 @@ struct dvb_demux {
 int dvb_dmx_init(struct dvb_demux *dvbdemux);
 void dvb_dmx_release(struct dvb_demux *dvbdemux);
 void dvb_dmx_swfilter_packets(struct dvb_demux *dvbdmx, const u8 *buf,
-			      size_t count);
+							  size_t count);
 void dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf, size_t count);
 void dvb_dmx_swfilter_204(struct dvb_demux *demux, const u8 *buf,
-			  size_t count);
+						  size_t count);
 void dvb_dmx_swfilter_raw(struct dvb_demux *demux, const u8 *buf,
-			  size_t count);
+						  size_t count);
 
 #endif /* _DVB_DEMUX_H_ */

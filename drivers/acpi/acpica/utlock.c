@@ -65,7 +65,9 @@ acpi_status acpi_ut_create_rw_lock(struct acpi_rw_lock *lock)
 
 	lock->num_readers = 0;
 	status = acpi_os_create_mutex(&lock->reader_mutex);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
@@ -107,17 +109,21 @@ acpi_status acpi_ut_acquire_read_lock(struct acpi_rw_lock *lock)
 	acpi_status status;
 
 	status = acpi_os_acquire_mutex(lock->reader_mutex, ACPI_WAIT_FOREVER);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	/* Acquire the write lock only for the first reader */
 
 	lock->num_readers++;
-	if (lock->num_readers == 1) {
+
+	if (lock->num_readers == 1)
+	{
 		status =
-		    acpi_os_acquire_mutex(lock->writer_mutex,
-					  ACPI_WAIT_FOREVER);
+			acpi_os_acquire_mutex(lock->writer_mutex,
+								  ACPI_WAIT_FOREVER);
 	}
 
 	acpi_os_release_mutex(lock->reader_mutex);
@@ -129,14 +135,18 @@ acpi_status acpi_ut_release_read_lock(struct acpi_rw_lock *lock)
 	acpi_status status;
 
 	status = acpi_os_acquire_mutex(lock->reader_mutex, ACPI_WAIT_FOREVER);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	/* Release the write lock only for the very last reader */
 
 	lock->num_readers--;
-	if (lock->num_readers == 0) {
+
+	if (lock->num_readers == 0)
+	{
 		acpi_os_release_mutex(lock->writer_mutex);
 	}
 

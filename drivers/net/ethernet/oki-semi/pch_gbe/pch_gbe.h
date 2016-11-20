@@ -38,14 +38,16 @@
  * @high	Denotes the 1st to 4th byte from the initial of MAC address
  * @low		Denotes the 5th to 6th byte from the initial of MAC address
  */
-struct pch_gbe_regs_mac_adr {
+struct pch_gbe_regs_mac_adr
+{
 	u32 high;
 	u32 low;
 };
 /**
  * pch_udc_regs - Structure holding values of MAC registers
  */
-struct pch_gbe_regs {
+struct pch_gbe_regs
+{
 	u32 INT_ST;
 	u32 INT_EN;
 	u32 MODE;
@@ -340,7 +342,8 @@ struct pch_gbe_hw;
  * @power_down_phy:	for pch_gbe_hal_power_down_phy
  * @read_mac_addr:	for pch_gbe_hal_read_mac_addr
  */
-struct pch_gbe_functions {
+struct pch_gbe_functions
+{
 	void (*get_bus_info) (struct pch_gbe_hw *);
 	s32 (*init_hw) (struct pch_gbe_hw *);
 	s32 (*read_phy_reg) (struct pch_gbe_hw *, u32, u16 *);
@@ -364,7 +367,8 @@ struct pch_gbe_functions {
  * @link_speed:		Link speed
  * @link_duplex:	Link duplex
  */
-struct pch_gbe_mac_info {
+struct pch_gbe_mac_info
+{
 	u8 addr[6];
 	u8 fc;
 	u8 fc_autoneg;
@@ -384,7 +388,8 @@ struct pch_gbe_mac_info {
  * @reset_delay_us:	HW reset delay time[us]
  * @autoneg_advertised:	Autoneg advertised
  */
-struct pch_gbe_phy_info {
+struct pch_gbe_phy_info
+{
 	u32 addr;
 	u32 id;
 	u32 revision;
@@ -397,7 +402,8 @@ struct pch_gbe_phy_info {
  * @struct  pch_gbe_bus_info
  * @brief   Bus information
  */
-struct pch_gbe_bus_info {
+struct pch_gbe_bus_info
+{
 	u8 type;
 	u8 speed;
 	u8 width;
@@ -408,7 +414,8 @@ struct pch_gbe_bus_info {
  * @struct  pch_gbe_hw
  * @brief   Hardware information
  */
-struct pch_gbe_hw {
+struct pch_gbe_hw
+{
 	void *back;
 
 	struct pch_gbe_regs  __iomem *reg;
@@ -430,7 +437,8 @@ struct pch_gbe_hw {
  * @reserved1:		Reserved
  * @reserved2:		Reserved
  */
-struct pch_gbe_rx_desc {
+struct pch_gbe_rx_desc
+{
 	u32 buffer_addr;
 	u32 tcp_ip_status;
 	u16 rx_words_eob;
@@ -451,7 +459,8 @@ struct pch_gbe_rx_desc {
  * @reserved2:		Reserved
  * @gbec_status:	GMAC Status
  */
-struct pch_gbe_tx_desc {
+struct pch_gbe_tx_desc
+{
 	u32 buffer_addr;
 	u16 length;
 	u16 reserved1;
@@ -470,7 +479,8 @@ struct pch_gbe_tx_desc {
  * @time_stamp:	time stamp
  * @length:	data size
  */
-struct pch_gbe_buffer {
+struct pch_gbe_buffer
+{
 	struct sk_buff *skb;
 	dma_addr_t dma;
 	unsigned char *rx_buffer;
@@ -489,7 +499,8 @@ struct pch_gbe_buffer {
  * @next_to_clean:	next descriptor to check for DD status bit
  * @buffer_info:	array of buffer information structs
  */
-struct pch_gbe_tx_ring {
+struct pch_gbe_tx_ring
+{
 	struct pch_gbe_tx_desc *desc;
 	dma_addr_t dma;
 	unsigned int size;
@@ -509,7 +520,8 @@ struct pch_gbe_tx_ring {
  * @next_to_clean:	next descriptor to check for DD status bit
  * @buffer_info:	array of buffer information structs
  */
-struct pch_gbe_rx_ring {
+struct pch_gbe_rx_ring
+{
 	struct pch_gbe_rx_desc *desc;
 	dma_addr_t dma;
 	unsigned char *rx_buff_pool;
@@ -550,7 +562,8 @@ struct pch_gbe_rx_ring {
  * @intr_tx_dma_err_count:	Interrupt count of transmit DMA error
  * @intr_tcpip_err_count:	Interrupt count of TCP/IP Accelerator
  */
-struct pch_gbe_hw_stats {
+struct pch_gbe_hw_stats
+{
 	u32 rx_packets;
 	u32 tx_packets;
 	u32 rx_bytes;
@@ -585,7 +598,8 @@ struct pch_gbe_hw_stats {
  * @platform_init:		Platform initialization callback, called from
  *				probe, prior to PHY initialization.
  */
-struct pch_gbe_privdata {
+struct pch_gbe_privdata
+{
 	bool phy_tx_clk_delay;
 	bool phy_disable_hibernate;
 	int (*platform_init)(struct pci_dev *pdev);
@@ -617,7 +631,8 @@ struct pch_gbe_privdata {
  * @pch_gbe_privdata:	PCI Device ID driver_data
  */
 
-struct pch_gbe_adapter {
+struct pch_gbe_adapter
+{
 	spinlock_t stats_lock;
 	spinlock_t ethtool_lock;
 	atomic_t irq_sem;
@@ -655,13 +670,13 @@ void pch_gbe_down(struct pch_gbe_adapter *adapter);
 void pch_gbe_reinit_locked(struct pch_gbe_adapter *adapter);
 void pch_gbe_reset(struct pch_gbe_adapter *adapter);
 int pch_gbe_setup_tx_resources(struct pch_gbe_adapter *adapter,
-			       struct pch_gbe_tx_ring *txdr);
+							   struct pch_gbe_tx_ring *txdr);
 int pch_gbe_setup_rx_resources(struct pch_gbe_adapter *adapter,
-			       struct pch_gbe_rx_ring *rxdr);
+							   struct pch_gbe_rx_ring *rxdr);
 void pch_gbe_free_tx_resources(struct pch_gbe_adapter *adapter,
-			       struct pch_gbe_tx_ring *tx_ring);
+							   struct pch_gbe_tx_ring *tx_ring);
 void pch_gbe_free_rx_resources(struct pch_gbe_adapter *adapter,
-			       struct pch_gbe_rx_ring *rx_ring);
+							   struct pch_gbe_rx_ring *rx_ring);
 void pch_gbe_update_stats(struct pch_gbe_adapter *adapter);
 u32 pch_ch_control_read(struct pci_dev *pdev);
 void pch_ch_control_write(struct pci_dev *pdev, u32 val);
@@ -683,5 +698,5 @@ void pch_gbe_set_ethtool_ops(struct net_device *netdev);
 s32 pch_gbe_mac_force_mac_fc(struct pch_gbe_hw *hw);
 s32 pch_gbe_mac_read_mac_addr(struct pch_gbe_hw *hw);
 u16 pch_gbe_mac_ctrl_miim(struct pch_gbe_hw *hw, u32 addr, u32 dir, u32 reg,
-			  u16 data);
+						  u16 data);
 #endif /* _PCH_GBE_H_ */

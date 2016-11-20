@@ -32,7 +32,8 @@
 #define SKL_UUID_STR_SZ 40
 /* Event types goes here */
 /* Reserve event type 0 for no event handlers */
-enum skl_event_types {
+enum skl_event_types
+{
 	SKL_EVENT_NONE = 0,
 	SKL_MIXER_EVENT,
 	SKL_MUX_EVENT,
@@ -57,7 +58,8 @@ enum skl_event_types {
  * @SKL_CH_CFG_I2S_DUAL_STEREO_1: Stereo(L,R) in 4 slots, 2nd stream:[ -, -, L, R ]
  * @SKL_CH_CFG_INVALID:	Invalid
  */
-enum skl_ch_cfg {
+enum skl_ch_cfg
+{
 	SKL_CH_CFG_MONO = 0,
 	SKL_CH_CFG_STEREO = 1,
 	SKL_CH_CFG_2_1 = 2,
@@ -74,7 +76,8 @@ enum skl_ch_cfg {
 	SKL_CH_CFG_INVALID
 };
 
-enum skl_module_type {
+enum skl_module_type
+{
 	SKL_MODULE_TYPE_MIXER = 0,
 	SKL_MODULE_TYPE_COPIER,
 	SKL_MODULE_TYPE_UPDWMIX,
@@ -84,25 +87,29 @@ enum skl_module_type {
 	SKL_MODULE_TYPE_KPB,
 };
 
-enum skl_core_affinity {
+enum skl_core_affinity
+{
 	SKL_AFFINITY_CORE_0 = 0,
 	SKL_AFFINITY_CORE_1,
 	SKL_AFFINITY_CORE_MAX
 };
 
-enum skl_pipe_conn_type {
+enum skl_pipe_conn_type
+{
 	SKL_PIPE_CONN_TYPE_NONE = 0,
 	SKL_PIPE_CONN_TYPE_FE,
 	SKL_PIPE_CONN_TYPE_BE
 };
 
-enum skl_hw_conn_type {
+enum skl_hw_conn_type
+{
 	SKL_CONN_NONE = 0,
 	SKL_CONN_SOURCE = 1,
 	SKL_CONN_SINK = 2
 };
 
-enum skl_dev_type {
+enum skl_dev_type
+{
 	SKL_DEVICE_BT = 0x0,
 	SKL_DEVICE_DMIC = 0x1,
 	SKL_DEVICE_I2S = 0x2,
@@ -118,12 +125,14 @@ enum skl_dev_type {
  * @SKL_INTERLEAVING_PER_CHANNEL: [s1_ch1...s1_chN,...,sM_ch1...sM_chN]
  * @SKL_INTERLEAVING_PER_SAMPLE: [s1_ch1...sM_ch1,...,s1_chN...sM_chN]
  */
-enum skl_interleaving {
+enum skl_interleaving
+{
 	SKL_INTERLEAVING_PER_CHANNEL = 0,
 	SKL_INTERLEAVING_PER_SAMPLE = 1,
 };
 
-enum skl_sample_type {
+enum skl_sample_type
+{
 	SKL_SAMPLE_TYPE_INT_MSB = 0,
 	SKL_SAMPLE_TYPE_INT_LSB = 1,
 	SKL_SAMPLE_TYPE_INT_SIGNED = 2,
@@ -131,7 +140,8 @@ enum skl_sample_type {
 	SKL_SAMPLE_TYPE_FLOAT = 4
 };
 
-enum module_pin_type {
+enum module_pin_type
+{
 	/* All pins of the module takes same PCM inputs or outputs
 	* e.g. mixout
 	*/
@@ -142,16 +152,18 @@ enum module_pin_type {
 	SKL_PIN_TYPE_HETEROGENEOUS,
 };
 
-enum skl_module_param_type {
+enum skl_module_param_type
+{
 	SKL_PARAM_DEFAULT = 0,
 	SKL_PARAM_INIT,
 	SKL_PARAM_SET,
 	SKL_PARAM_BIND
 };
 
-struct skl_dfw_algo_data {
-	u32 set_params:2;
-	u32 rsvd:30;
+struct skl_dfw_algo_data
+{
+	u32 set_params: 2;
+	u32 rsvd: 30;
 	u32 param_id;
 	u32 max;
 	char params[0];
@@ -160,21 +172,25 @@ struct skl_dfw_algo_data {
 #define LIB_NAME_LENGTH	128
 #define HDA_MAX_LIB	16
 
-struct lib_info {
+struct lib_info
+{
 	char name[LIB_NAME_LENGTH];
 } __packed;
 
-struct skl_dfw_manifest {
+struct skl_dfw_manifest
+{
 	u32 lib_count;
 	struct lib_info lib[HDA_MAX_LIB];
 } __packed;
 
-enum skl_tkn_dir {
+enum skl_tkn_dir
+{
 	SKL_DIR_IN,
 	SKL_DIR_OUT
 };
 
-enum skl_tuple_type {
+enum skl_tuple_type
+{
 	SKL_TYPE_TUPLE,
 	SKL_TYPE_DATA
 };

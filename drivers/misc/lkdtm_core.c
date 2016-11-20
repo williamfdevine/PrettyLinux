@@ -44,22 +44,22 @@
 #include <linux/debugfs.h>
 
 #ifdef CONFIG_IDE
-#include <linux/ide.h>
+	#include <linux/ide.h>
 #endif
 
 #define DEFAULT_COUNT 10
 
 static int lkdtm_debugfs_open(struct inode *inode, struct file *file);
 static ssize_t lkdtm_debugfs_read(struct file *f, char __user *user_buf,
-		size_t count, loff_t *off);
+								  size_t count, loff_t *off);
 static ssize_t direct_entry(struct file *f, const char __user *user_buf,
-			    size_t count, loff_t *off);
+							size_t count, loff_t *off);
 
 #ifdef CONFIG_KPROBES
 static void lkdtm_handler(void);
 static ssize_t lkdtm_debugfs_entry(struct file *f,
-				   const char __user *user_buf,
-				   size_t count, loff_t *off);
+								   const char __user *user_buf,
+								   size_t count, loff_t *off);
 
 
 /* jprobe entry point handlers. */
@@ -71,7 +71,7 @@ static unsigned int jp_do_irq(unsigned int irq)
 }
 
 static irqreturn_t jp_handle_irq_event(unsigned int irq,
-				       struct irqaction *action)
+									   struct irqaction *action)
 {
 	lkdtm_handler();
 	jprobe_return();
@@ -93,8 +93,8 @@ static void jp_ll_rw_block(int rw, int nr, struct buffer_head *bhs[])
 struct scan_control;
 
 static unsigned long jp_shrink_inactive_list(unsigned long max_scan,
-					     struct zone *zone,
-					     struct scan_control *sc)
+		struct zone *zone,
+		struct scan_control *sc)
 {
 	lkdtm_handler();
 	jprobe_return();
@@ -102,7 +102,7 @@ static unsigned long jp_shrink_inactive_list(unsigned long max_scan,
 }
 
 static int jp_hrtimer_start(struct hrtimer *timer, ktime_t tim,
-			    const enum hrtimer_mode mode)
+							const enum hrtimer_mode mode)
 {
 	lkdtm_handler();
 	jprobe_return();
@@ -118,8 +118,8 @@ static int jp_scsi_dispatch_cmd(struct scsi_cmnd *cmd)
 
 # ifdef CONFIG_IDE
 static int jp_generic_ide_ioctl(ide_drive_t *drive, struct file *file,
-			struct block_device *bdev, unsigned int cmd,
-			unsigned long arg)
+								struct block_device *bdev, unsigned int cmd,
+								unsigned long arg)
 {
 	lkdtm_handler();
 	jprobe_return();
@@ -129,7 +129,8 @@ static int jp_generic_ide_ioctl(ide_drive_t *drive, struct file *file,
 #endif
 
 /* Crash points */
-struct crashpoint {
+struct crashpoint
+{
 	const char *name;
 	const struct file_operations fops;
 	struct jprobe jprobe;
@@ -138,47 +139,49 @@ struct crashpoint {
 #define CRASHPOINT(_name, _write, _symbol, _entry)		\
 	{							\
 		.name = _name,					\
-		.fops = {					\
-			.read	= lkdtm_debugfs_read,		\
-			.llseek	= generic_file_llseek,		\
-			.open	= lkdtm_debugfs_open,		\
-			.write	= _write,			\
-		},						\
-		.jprobe = {					\
-			.kp.symbol_name = _symbol,		\
-			.entry = (kprobe_opcode_t *)_entry,	\
-		},						\
+				.fops = {					\
+											.read	= lkdtm_debugfs_read,		\
+											.llseek	= generic_file_llseek,		\
+											.open	= lkdtm_debugfs_open,		\
+											.write	= _write,			\
+						},						\
+						.jprobe = {					\
+													.kp.symbol_name = _symbol,		\
+													.entry = (kprobe_opcode_t *)_entry,	\
+								  },						\
 	}
 
 /* Define the possible places where we can trigger a crash point. */
-struct crashpoint crashpoints[] = {
+struct crashpoint crashpoints[] =
+{
 	CRASHPOINT("DIRECT",			direct_entry,
-		   NULL,			NULL),
+	NULL,			NULL),
 #ifdef CONFIG_KPROBES
 	CRASHPOINT("INT_HARDWARE_ENTRY",	lkdtm_debugfs_entry,
-		   "do_IRQ",			jp_do_irq),
+	"do_IRQ",			jp_do_irq),
 	CRASHPOINT("INT_HW_IRQ_EN",		lkdtm_debugfs_entry,
-		   "handle_IRQ_event",		jp_handle_irq_event),
+	"handle_IRQ_event",		jp_handle_irq_event),
 	CRASHPOINT("INT_TASKLET_ENTRY",		lkdtm_debugfs_entry,
-		   "tasklet_action",		jp_tasklet_action),
+	"tasklet_action",		jp_tasklet_action),
 	CRASHPOINT("FS_DEVRW",			lkdtm_debugfs_entry,
-		   "ll_rw_block",		jp_ll_rw_block),
+	"ll_rw_block",		jp_ll_rw_block),
 	CRASHPOINT("MEM_SWAPOUT",		lkdtm_debugfs_entry,
-		   "shrink_inactive_list",	jp_shrink_inactive_list),
+	"shrink_inactive_list",	jp_shrink_inactive_list),
 	CRASHPOINT("TIMERADD",			lkdtm_debugfs_entry,
-		   "hrtimer_start",		jp_hrtimer_start),
+	"hrtimer_start",		jp_hrtimer_start),
 	CRASHPOINT("SCSI_DISPATCH_CMD",		lkdtm_debugfs_entry,
-		   "scsi_dispatch_cmd",		jp_scsi_dispatch_cmd),
+	"scsi_dispatch_cmd",		jp_scsi_dispatch_cmd),
 # ifdef CONFIG_IDE
 	CRASHPOINT("IDE_CORE_CP",		lkdtm_debugfs_entry,
-		   "generic_ide_ioctl",		jp_generic_ide_ioctl),
+	"generic_ide_ioctl",		jp_generic_ide_ioctl),
 # endif
 #endif
 };
 
 
 /* Crash types. */
-struct crashtype {
+struct crashtype
+{
 	const char *name;
 	void (*func)(void);
 };
@@ -186,11 +189,12 @@ struct crashtype {
 #define CRASHTYPE(_name)			\
 	{					\
 		.name = __stringify(_name),	\
-		.func = lkdtm_ ## _name,	\
+				.func = lkdtm_ ## _name,	\
 	}
 
 /* Define the possible types of crashes that can be triggered. */
-struct crashtype crashtypes[] = {
+struct crashtype crashtypes[] =
+{
 	CRASHTYPE(PANIC),
 	CRASHTYPE(BUG),
 	CRASHTYPE(WARNING),
@@ -241,19 +245,19 @@ static int recur_count = -1;
 module_param(recur_count, int, 0644);
 MODULE_PARM_DESC(recur_count, " Recursion level for the stack overflow test");
 
-static char* cpoint_name;
+static char *cpoint_name;
 module_param(cpoint_name, charp, 0444);
 MODULE_PARM_DESC(cpoint_name, " Crash Point, where kernel is to be crashed");
 
-static char* cpoint_type;
+static char *cpoint_type;
 module_param(cpoint_type, charp, 0444);
 MODULE_PARM_DESC(cpoint_type, " Crash Point Type, action to be taken on "\
-				"hitting the crash point");
+				 "hitting the crash point");
 
 static int cpoint_count = DEFAULT_COUNT;
 module_param(cpoint_count, int, 0644);
 MODULE_PARM_DESC(cpoint_count, " Crash Point Count, number of times the "\
-				"crash point is to be hit to trigger action");
+				 "crash point is to be hit to trigger action");
 
 
 /* Return the crashtype number or NULL if the name is invalid */
@@ -261,9 +265,12 @@ static struct crashtype *find_crashtype(const char *name)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(crashtypes); i++) {
+	for (i = 0; i < ARRAY_SIZE(crashtypes); i++)
+	{
 		if (!strcmp(name, crashtypes[i].name))
+		{
 			return &crashtypes[i];
+		}
 	}
 
 	return NULL;
@@ -280,26 +287,31 @@ static noinline void lkdtm_do_action(struct crashtype *crashtype)
 }
 
 static int lkdtm_register_cpoint(struct crashpoint *crashpoint,
-				 struct crashtype *crashtype)
+								 struct crashtype *crashtype)
 {
 	int ret;
 
 	/* If this doesn't have a symbol, just call immediately. */
-	if (!crashpoint->jprobe.kp.symbol_name) {
+	if (!crashpoint->jprobe.kp.symbol_name)
+	{
 		lkdtm_do_action(crashtype);
 		return 0;
 	}
 
 	if (lkdtm_jprobe != NULL)
+	{
 		unregister_jprobe(lkdtm_jprobe);
+	}
 
 	lkdtm_crashpoint = crashpoint;
 	lkdtm_crashtype = crashtype;
 	lkdtm_jprobe = &crashpoint->jprobe;
 	ret = register_jprobe(lkdtm_jprobe);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_info("Couldn't register jprobe %s\n",
-			crashpoint->jprobe.kp.symbol_name);
+				crashpoint->jprobe.kp.symbol_name);
 		lkdtm_jprobe = NULL;
 		lkdtm_crashpoint = NULL;
 		lkdtm_crashtype = NULL;
@@ -324,21 +336,25 @@ static void lkdtm_handler(void)
 	spin_lock_irqsave(&crash_count_lock, flags);
 	crash_count--;
 	pr_info("Crash point %s of type %s hit, trigger in %d rounds\n",
-		lkdtm_crashpoint->name, lkdtm_crashtype->name, crash_count);
+			lkdtm_crashpoint->name, lkdtm_crashtype->name, crash_count);
 
-	if (crash_count == 0) {
+	if (crash_count == 0)
+	{
 		do_it = true;
 		crash_count = cpoint_count;
 	}
+
 	spin_unlock_irqrestore(&crash_count_lock, flags);
 
 	if (do_it)
+	{
 		lkdtm_do_action(lkdtm_crashtype);
+	}
 }
 
 static ssize_t lkdtm_debugfs_entry(struct file *f,
-				   const char __user *user_buf,
-				   size_t count, loff_t *off)
+								   const char __user *user_buf,
+								   size_t count, loff_t *off)
 {
 	struct crashpoint *crashpoint = file_inode(f)->i_private;
 	struct crashtype *crashtype = NULL;
@@ -346,15 +362,23 @@ static ssize_t lkdtm_debugfs_entry(struct file *f,
 	int err;
 
 	if (count >= PAGE_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	buf = (char *)__get_free_page(GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
-	if (copy_from_user(buf, user_buf, count)) {
+	}
+
+	if (copy_from_user(buf, user_buf, count))
+	{
 		free_page((unsigned long) buf);
 		return -EFAULT;
 	}
+
 	/* NULL-terminate and remove enter */
 	buf[count] = '\0';
 	strim(buf);
@@ -363,11 +387,16 @@ static ssize_t lkdtm_debugfs_entry(struct file *f,
 	free_page((unsigned long)buf);
 
 	if (!crashtype)
+	{
 		return -EINVAL;
+	}
 
 	err = lkdtm_register_cpoint(crashpoint, crashtype);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	*off += count;
 
@@ -377,24 +406,30 @@ static ssize_t lkdtm_debugfs_entry(struct file *f,
 
 /* Generic read callback that just prints out the available crash types */
 static ssize_t lkdtm_debugfs_read(struct file *f, char __user *user_buf,
-		size_t count, loff_t *off)
+								  size_t count, loff_t *off)
 {
 	char *buf;
 	int i, n, out;
 
 	buf = (char *)__get_free_page(GFP_KERNEL);
+
 	if (buf == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	n = snprintf(buf, PAGE_SIZE, "Available crash types:\n");
-	for (i = 0; i < ARRAY_SIZE(crashtypes); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(crashtypes); i++)
+	{
 		n += snprintf(buf + n, PAGE_SIZE - n, "%s\n",
-			      crashtypes[i].name);
+					  crashtypes[i].name);
 	}
+
 	buf[n] = '\0';
 
 	out = simple_read_from_buffer(user_buf, count, off,
-				      buf, n);
+								  buf, n);
 	free_page((unsigned long) buf);
 
 	return out;
@@ -407,31 +442,45 @@ static int lkdtm_debugfs_open(struct inode *inode, struct file *file)
 
 /* Special entry to just crash directly. Available without KPROBEs */
 static ssize_t direct_entry(struct file *f, const char __user *user_buf,
-		size_t count, loff_t *off)
+							size_t count, loff_t *off)
 {
 	struct crashtype *crashtype;
 	char *buf;
 
 	if (count >= PAGE_SIZE)
+	{
 		return -EINVAL;
+	}
+
 	if (count < 1)
+	{
 		return -EINVAL;
+	}
 
 	buf = (char *)__get_free_page(GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
-	if (copy_from_user(buf, user_buf, count)) {
+	}
+
+	if (copy_from_user(buf, user_buf, count))
+	{
 		free_page((unsigned long) buf);
 		return -EFAULT;
 	}
+
 	/* NULL-terminate and remove enter */
 	buf[count] = '\0';
 	strim(buf);
 
 	crashtype = find_crashtype(buf);
 	free_page((unsigned long) buf);
+
 	if (!crashtype)
+	{
 		return -EINVAL;
+	}
 
 	pr_info("Performing direct entry %s\n", crashtype->name);
 	lkdtm_do_action(crashtype);
@@ -450,27 +499,36 @@ static int __init lkdtm_module_init(void)
 	int i;
 
 	/* Neither or both of these need to be set */
-	if ((cpoint_type || cpoint_name) && !(cpoint_type && cpoint_name)) {
+	if ((cpoint_type || cpoint_name) && !(cpoint_type && cpoint_name))
+	{
 		pr_err("Need both cpoint_type and cpoint_name or neither\n");
 		return -EINVAL;
 	}
 
-	if (cpoint_type) {
+	if (cpoint_type)
+	{
 		crashtype = find_crashtype(cpoint_type);
-		if (!crashtype) {
+
+		if (!crashtype)
+		{
 			pr_err("Unknown crashtype '%s'\n", cpoint_type);
 			return -EINVAL;
 		}
 	}
 
-	if (cpoint_name) {
-		for (i = 0; i < ARRAY_SIZE(crashpoints); i++) {
+	if (cpoint_name)
+	{
+		for (i = 0; i < ARRAY_SIZE(crashpoints); i++)
+		{
 			if (!strcmp(cpoint_name, crashpoints[i].name))
+			{
 				crashpoint = &crashpoints[i];
+			}
 		}
 
 		/* Refuse unknown crashpoints. */
-		if (!crashpoint) {
+		if (!crashpoint)
+		{
 			pr_err("Invalid crashpoint %s\n", cpoint_name);
 			return -EINVAL;
 		}
@@ -488,34 +546,45 @@ static int __init lkdtm_module_init(void)
 
 	/* Register debugfs interface */
 	lkdtm_debugfs_root = debugfs_create_dir("provoke-crash", NULL);
-	if (!lkdtm_debugfs_root) {
+
+	if (!lkdtm_debugfs_root)
+	{
 		pr_err("creating root dir failed\n");
 		return -ENODEV;
 	}
 
 	/* Install debugfs trigger files. */
-	for (i = 0; i < ARRAY_SIZE(crashpoints); i++) {
+	for (i = 0; i < ARRAY_SIZE(crashpoints); i++)
+	{
 		struct crashpoint *cur = &crashpoints[i];
 		struct dentry *de;
 
 		de = debugfs_create_file(cur->name, 0644, lkdtm_debugfs_root,
-					 cur, &cur->fops);
-		if (de == NULL) {
+								 cur, &cur->fops);
+
+		if (de == NULL)
+		{
 			pr_err("could not create crashpoint %s\n", cur->name);
 			goto out_err;
 		}
 	}
 
 	/* Install crashpoint if one was selected. */
-	if (crashpoint) {
+	if (crashpoint)
+	{
 		ret = lkdtm_register_cpoint(crashpoint, crashtype);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pr_info("Invalid crashpoint %s\n", crashpoint->name);
 			goto out_err;
 		}
+
 		pr_info("Crash point %s of type %s registered\n",
-			crashpoint->name, cpoint_type);
-	} else {
+				crashpoint->name, cpoint_type);
+	}
+	else
+	{
 		pr_info("No crash points registered, enable through debugfs\n");
 	}
 

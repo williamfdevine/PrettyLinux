@@ -38,7 +38,8 @@
 /*
 	Stages of POD startup procedure
 */
-enum {
+enum
+{
 	POD_STARTUP_INIT = 1,
 	POD_STARTUP_VERSIONREQ,
 	POD_STARTUP_WORKQUEUE,
@@ -46,7 +47,8 @@ enum {
 	POD_STARTUP_LAST = POD_STARTUP_SETUP - 1
 };
 
-enum {
+enum
+{
 	LINE6_BASSPODXT,
 	LINE6_BASSPODXTLIVE,
 	LINE6_BASSPODXTPRO,
@@ -56,7 +58,8 @@ enum {
 	LINE6_PODXTPRO,
 };
 
-struct usb_line6_pod {
+struct usb_line6_pod
+{
 	/* Generic Line 6 USB data */
 	struct usb_line6 line6;
 
@@ -108,11 +111,13 @@ enum {
 
 /* *INDENT-ON* */
 
-enum {
+enum
+{
 	POD_DUMP_MEMORY = 2
 };
 
-enum {
+enum
+{
 	POD_BUSY_READ,
 	POD_BUSY_WRITE,
 	POD_CHANNEL_DIRTY,
@@ -120,56 +125,62 @@ enum {
 	POD_BUSY_MIDISEND
 };
 
-static struct snd_ratden pod_ratden = {
+static struct snd_ratden pod_ratden =
+{
 	.num_min = 78125,
 	.num_max = 78125,
 	.num_step = 1,
 	.den = 2
 };
 
-static struct line6_pcm_properties pod_pcm_properties = {
+static struct line6_pcm_properties pod_pcm_properties =
+{
 	.playback_hw = {
-				  .info = (SNDRV_PCM_INFO_MMAP |
-					   SNDRV_PCM_INFO_INTERLEAVED |
-					   SNDRV_PCM_INFO_BLOCK_TRANSFER |
-					   SNDRV_PCM_INFO_MMAP_VALID |
-					   SNDRV_PCM_INFO_PAUSE |
-					   SNDRV_PCM_INFO_SYNC_START),
-				  .formats = SNDRV_PCM_FMTBIT_S24_3LE,
-				  .rates = SNDRV_PCM_RATE_KNOT,
-				  .rate_min = 39062,
-				  .rate_max = 39063,
-				  .channels_min = 2,
-				  .channels_max = 2,
-				  .buffer_bytes_max = 60000,
-				  .period_bytes_min = 64,
-				  .period_bytes_max = 8192,
-				  .periods_min = 1,
-				  .periods_max = 1024},
+		.info = (SNDRV_PCM_INFO_MMAP |
+		SNDRV_PCM_INFO_INTERLEAVED |
+		SNDRV_PCM_INFO_BLOCK_TRANSFER |
+		SNDRV_PCM_INFO_MMAP_VALID |
+		SNDRV_PCM_INFO_PAUSE |
+		SNDRV_PCM_INFO_SYNC_START),
+		.formats = SNDRV_PCM_FMTBIT_S24_3LE,
+		.rates = SNDRV_PCM_RATE_KNOT,
+		.rate_min = 39062,
+		.rate_max = 39063,
+		.channels_min = 2,
+		.channels_max = 2,
+		.buffer_bytes_max = 60000,
+		.period_bytes_min = 64,
+		.period_bytes_max = 8192,
+		.periods_min = 1,
+		.periods_max = 1024
+	},
 	.capture_hw = {
-				 .info = (SNDRV_PCM_INFO_MMAP |
-					  SNDRV_PCM_INFO_INTERLEAVED |
-					  SNDRV_PCM_INFO_BLOCK_TRANSFER |
-					  SNDRV_PCM_INFO_MMAP_VALID |
-					  SNDRV_PCM_INFO_SYNC_START),
-				 .formats = SNDRV_PCM_FMTBIT_S24_3LE,
-				 .rates = SNDRV_PCM_RATE_KNOT,
-				 .rate_min = 39062,
-				 .rate_max = 39063,
-				 .channels_min = 2,
-				 .channels_max = 2,
-				 .buffer_bytes_max = 60000,
-				 .period_bytes_min = 64,
-				 .period_bytes_max = 8192,
-				 .periods_min = 1,
-				 .periods_max = 1024},
+		.info = (SNDRV_PCM_INFO_MMAP |
+		SNDRV_PCM_INFO_INTERLEAVED |
+		SNDRV_PCM_INFO_BLOCK_TRANSFER |
+		SNDRV_PCM_INFO_MMAP_VALID |
+		SNDRV_PCM_INFO_SYNC_START),
+		.formats = SNDRV_PCM_FMTBIT_S24_3LE,
+		.rates = SNDRV_PCM_RATE_KNOT,
+		.rate_min = 39062,
+		.rate_max = 39063,
+		.channels_min = 2,
+		.channels_max = 2,
+		.buffer_bytes_max = 60000,
+		.period_bytes_min = 64,
+		.period_bytes_max = 8192,
+		.periods_min = 1,
+		.periods_max = 1024
+	},
 	.rates = {
-			    .nrats = 1,
-			    .rats = &pod_ratden},
+		.nrats = 1,
+		.rats = &pod_ratden
+	},
 	.bytes_per_channel = 3 /* SNDRV_PCM_FMTBIT_S24_3LE */
 };
 
-static const char pod_version_header[] = {
+static const char pod_version_header[] =
+{
 	0xf2, 0x7e, 0x7f, 0x06, 0x02
 };
 
@@ -178,10 +189,10 @@ static void pod_startup2(unsigned long data);
 static void pod_startup3(struct usb_line6_pod *pod);
 
 static char *pod_alloc_sysex_buffer(struct usb_line6_pod *pod, int code,
-				    int size)
+									int size)
 {
 	return line6_alloc_sysex_buffer(&pod->line6, POD_SYSEX_CODE, code,
-					size);
+									size);
 }
 
 /*
@@ -192,25 +203,31 @@ static void line6_pod_process_message(struct usb_line6 *line6)
 	struct usb_line6_pod *pod = (struct usb_line6_pod *) line6;
 	const unsigned char *buf = pod->line6.buffer_message;
 
-	if (memcmp(buf, pod_version_header, sizeof(pod_version_header)) == 0) {
+	if (memcmp(buf, pod_version_header, sizeof(pod_version_header)) == 0)
+	{
 		pod->firmware_version = buf[13] * 100 + buf[14] * 10 + buf[15];
 		pod->device_id = ((int)buf[8] << 16) | ((int)buf[9] << 8) |
-				 (int) buf[10];
+						 (int) buf[10];
 		pod_startup3(pod);
 		return;
 	}
 
 	/* Only look for sysex messages from this device */
 	if (buf[0] != (LINE6_SYSEX_BEGIN | LINE6_CHANNEL_DEVICE) &&
-	    buf[0] != (LINE6_SYSEX_BEGIN | LINE6_CHANNEL_UNKNOWN)) {
+		buf[0] != (LINE6_SYSEX_BEGIN | LINE6_CHANNEL_UNKNOWN))
+	{
 		return;
 	}
-	if (memcmp(buf + 1, line6_midi_id, sizeof(line6_midi_id)) != 0)
-		return;
 
-	if (buf[5] == POD_SYSEX_SYSTEM && buf[6] == POD_MONITOR_LEVEL) {
+	if (memcmp(buf + 1, line6_midi_id, sizeof(line6_midi_id)) != 0)
+	{
+		return;
+	}
+
+	if (buf[5] == POD_SYSEX_SYSTEM && buf[6] == POD_MONITOR_LEVEL)
+	{
 		short value = ((int)buf[7] << 12) | ((int)buf[8] << 8) |
-			      ((int)buf[9] << 4) | (int)buf[10];
+					  ((int)buf[9] << 4) | (int)buf[10];
 		pod->monitor_level = value;
 	}
 }
@@ -219,14 +236,18 @@ static void line6_pod_process_message(struct usb_line6 *line6)
 	Send system parameter (from integer).
 */
 static int pod_set_system_param_int(struct usb_line6_pod *pod, int value,
-				    int code)
+									int code)
 {
 	char *sysex;
 	static const int size = 5;
 
 	sysex = pod_alloc_sysex_buffer(pod, POD_SYSEX_SYSTEM, size);
+
 	if (!sysex)
+	{
 		return -ENOMEM;
+	}
+
 	sysex[SYSEX_DATA_OFS] = code;
 	sysex[SYSEX_DATA_OFS + 1] = (value >> 12) & 0x0f;
 	sysex[SYSEX_DATA_OFS + 2] = (value >> 8) & 0x0f;
@@ -241,7 +262,7 @@ static int pod_set_system_param_int(struct usb_line6_pod *pod, int value,
 	"read" request on "serial_number" special file.
 */
 static ssize_t serial_number_show(struct device *dev,
-				  struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	struct snd_card *card = dev_to_snd_card(dev);
 	struct usb_line6_pod *pod = card->private_data;
@@ -253,20 +274,20 @@ static ssize_t serial_number_show(struct device *dev,
 	"read" request on "firmware_version" special file.
 */
 static ssize_t firmware_version_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct snd_card *card = dev_to_snd_card(dev);
 	struct usb_line6_pod *pod = card->private_data;
 
 	return sprintf(buf, "%d.%02d\n", pod->firmware_version / 100,
-		       pod->firmware_version % 100);
+				   pod->firmware_version % 100);
 }
 
 /*
 	"read" request on "device_id" special file.
 */
 static ssize_t device_id_show(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct snd_card *card = dev_to_snd_card(dev);
 	struct usb_line6_pod *pod = card->private_data;
@@ -287,7 +308,7 @@ static void pod_startup1(struct usb_line6_pod *pod)
 
 	/* delay startup procedure: */
 	line6_start_timer(&pod->startup_timer, POD_STARTUP_DELAY, pod_startup2,
-			  (unsigned long)pod);
+					  (unsigned long)pod);
 }
 
 static void pod_startup2(unsigned long data)
@@ -312,7 +333,7 @@ static void pod_startup3(struct usb_line6_pod *pod)
 static void pod_startup4(struct work_struct *work)
 {
 	struct usb_line6_pod *pod =
-	    container_of(work, struct usb_line6_pod, startup_work);
+		container_of(work, struct usb_line6_pod, startup_work);
 	struct usb_line6 *line6 = &pod->line6;
 
 	CHECK_STARTUP_PROGRESS(pod->startup_progress, POD_STARTUP_SETUP);
@@ -329,21 +350,23 @@ static DEVICE_ATTR_RO(device_id);
 static DEVICE_ATTR_RO(firmware_version);
 static DEVICE_ATTR_RO(serial_number);
 
-static struct attribute *pod_dev_attrs[] = {
+static struct attribute *pod_dev_attrs[] =
+{
 	&dev_attr_device_id.attr,
 	&dev_attr_firmware_version.attr,
 	&dev_attr_serial_number.attr,
 	NULL
 };
 
-static const struct attribute_group pod_dev_attr_group = {
+static const struct attribute_group pod_dev_attr_group =
+{
 	.name = "pod",
 	.attrs = pod_dev_attrs,
 };
 
 /* control info callback */
 static int snd_pod_control_monitor_info(struct snd_kcontrol *kcontrol,
-					struct snd_ctl_elem_info *uinfo)
+										struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
@@ -354,7 +377,7 @@ static int snd_pod_control_monitor_info(struct snd_kcontrol *kcontrol,
 
 /* control get callback */
 static int snd_pod_control_monitor_get(struct snd_kcontrol *kcontrol,
-				       struct snd_ctl_elem_value *ucontrol)
+									   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_line6_pcm *line6pcm = snd_kcontrol_chip(kcontrol);
 	struct usb_line6_pod *pod = (struct usb_line6_pod *)line6pcm->line6;
@@ -365,22 +388,25 @@ static int snd_pod_control_monitor_get(struct snd_kcontrol *kcontrol,
 
 /* control put callback */
 static int snd_pod_control_monitor_put(struct snd_kcontrol *kcontrol,
-				       struct snd_ctl_elem_value *ucontrol)
+									   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_line6_pcm *line6pcm = snd_kcontrol_chip(kcontrol);
 	struct usb_line6_pod *pod = (struct usb_line6_pod *)line6pcm->line6;
 
 	if (ucontrol->value.integer.value[0] == pod->monitor_level)
+	{
 		return 0;
+	}
 
 	pod->monitor_level = ucontrol->value.integer.value[0];
 	pod_set_system_param_int(pod, ucontrol->value.integer.value[0],
-				 POD_MONITOR_LEVEL);
+							 POD_MONITOR_LEVEL);
 	return 1;
 }
 
 /* control definition */
-static struct snd_kcontrol_new pod_control_monitor = {
+static struct snd_kcontrol_new pod_control_monitor =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "Monitor Playback Volume",
 	.index = 0,
@@ -405,7 +431,7 @@ static void line6_pod_disconnect(struct usb_line6 *line6)
 	 Try to init POD device.
 */
 static int pod_init(struct usb_line6 *line6,
-		    const struct usb_device_id *id)
+					const struct usb_device_id *id)
 {
 	int err;
 	struct usb_line6_pod *pod = (struct usb_line6_pod *) line6;
@@ -418,24 +444,36 @@ static int pod_init(struct usb_line6 *line6,
 
 	/* create sysfs entries: */
 	err = snd_card_add_dev_attr(line6->card, &pod_dev_attr_group);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* initialize MIDI subsystem: */
 	err = line6_init_midi(line6);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* initialize PCM subsystem: */
 	err = line6_init_pcm(line6, &pod_pcm_properties);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* register monitor control: */
 	err = snd_ctl_add(line6->card,
-			  snd_ctl_new1(&pod_control_monitor, line6->line6pcm));
+					  snd_ctl_new1(&pod_control_monitor, line6->line6pcm));
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/*
 	   When the sound card is registered at this point, the PODxt Live
@@ -443,7 +481,8 @@ static int pod_init(struct usb_line6 *line6,
 	   handler.
 	 */
 
-	if (pod->line6.properties->capabilities & LINE6_CAP_CONTROL) {
+	if (pod->line6.properties->capabilities & LINE6_CAP_CONTROL)
+	{
 		pod->monitor_level = POD_SYSTEM_INVALID;
 
 		/* initiate startup procedure: */
@@ -457,7 +496,8 @@ static int pod_init(struct usb_line6 *line6,
 #define LINE6_IF_NUM(prod, n) USB_DEVICE_INTERFACE_NUMBER(0x0e41, prod, n)
 
 /* table of devices that work with this driver */
-static const struct usb_device_id pod_id_table[] = {
+static const struct usb_device_id pod_id_table[] =
+{
 	{ LINE6_DEVICE(0x4250),    .driver_info = LINE6_BASSPODXT },
 	{ LINE6_DEVICE(0x4642),    .driver_info = LINE6_BASSPODXTLIVE },
 	{ LINE6_DEVICE(0x4252),    .driver_info = LINE6_BASSPODXTPRO },
@@ -470,14 +510,15 @@ static const struct usb_device_id pod_id_table[] = {
 
 MODULE_DEVICE_TABLE(usb, pod_id_table);
 
-static const struct line6_properties pod_properties_table[] = {
+static const struct line6_properties pod_properties_table[] =
+{
 	[LINE6_BASSPODXT] = {
 		.id = "BassPODxt",
 		.name = "BassPODxt",
 		.capabilities	= LINE6_CAP_CONTROL
-				| LINE6_CAP_CONTROL_MIDI
-				| LINE6_CAP_PCM
-				| LINE6_CAP_HWMON,
+		| LINE6_CAP_CONTROL_MIDI
+		| LINE6_CAP_PCM
+		| LINE6_CAP_HWMON,
 		.altsetting = 5,
 		.ep_ctrl_r = 0x84,
 		.ep_ctrl_w = 0x03,
@@ -488,9 +529,9 @@ static const struct line6_properties pod_properties_table[] = {
 		.id = "BassPODxtLive",
 		.name = "BassPODxt Live",
 		.capabilities	= LINE6_CAP_CONTROL
-				| LINE6_CAP_CONTROL_MIDI
-				| LINE6_CAP_PCM
-				| LINE6_CAP_HWMON,
+		| LINE6_CAP_CONTROL_MIDI
+		| LINE6_CAP_PCM
+		| LINE6_CAP_HWMON,
 		.altsetting = 1,
 		.ep_ctrl_r = 0x84,
 		.ep_ctrl_w = 0x03,
@@ -501,9 +542,9 @@ static const struct line6_properties pod_properties_table[] = {
 		.id = "BassPODxtPro",
 		.name = "BassPODxt Pro",
 		.capabilities	= LINE6_CAP_CONTROL
-				| LINE6_CAP_CONTROL_MIDI
-				| LINE6_CAP_PCM
-				| LINE6_CAP_HWMON,
+		| LINE6_CAP_CONTROL_MIDI
+		| LINE6_CAP_PCM
+		| LINE6_CAP_HWMON,
 		.altsetting = 5,
 		.ep_ctrl_r = 0x84,
 		.ep_ctrl_w = 0x03,
@@ -514,7 +555,7 @@ static const struct line6_properties pod_properties_table[] = {
 		.id = "PocketPOD",
 		.name = "Pocket POD",
 		.capabilities	= LINE6_CAP_CONTROL
-				| LINE6_CAP_CONTROL_MIDI,
+		| LINE6_CAP_CONTROL_MIDI,
 		.altsetting = 0,
 		.ep_ctrl_r = 0x82,
 		.ep_ctrl_w = 0x02,
@@ -524,9 +565,9 @@ static const struct line6_properties pod_properties_table[] = {
 		.id = "PODxt",
 		.name = "PODxt",
 		.capabilities	= LINE6_CAP_CONTROL
-				| LINE6_CAP_CONTROL_MIDI
-				| LINE6_CAP_PCM
-				| LINE6_CAP_HWMON,
+		| LINE6_CAP_CONTROL_MIDI
+		| LINE6_CAP_PCM
+		| LINE6_CAP_HWMON,
 		.altsetting = 5,
 		.ep_ctrl_r = 0x84,
 		.ep_ctrl_w = 0x03,
@@ -537,9 +578,9 @@ static const struct line6_properties pod_properties_table[] = {
 		.id = "PODxtLive",
 		.name = "PODxt Live",
 		.capabilities	= LINE6_CAP_CONTROL
-				| LINE6_CAP_CONTROL_MIDI
-				| LINE6_CAP_PCM
-				| LINE6_CAP_HWMON,
+		| LINE6_CAP_CONTROL_MIDI
+		| LINE6_CAP_PCM
+		| LINE6_CAP_HWMON,
 		.altsetting = 1,
 		.ep_ctrl_r = 0x84,
 		.ep_ctrl_w = 0x03,
@@ -550,9 +591,9 @@ static const struct line6_properties pod_properties_table[] = {
 		.id = "PODxtPro",
 		.name = "PODxt Pro",
 		.capabilities	= LINE6_CAP_CONTROL
-				| LINE6_CAP_CONTROL_MIDI
-				| LINE6_CAP_PCM
-				| LINE6_CAP_HWMON,
+		| LINE6_CAP_CONTROL_MIDI
+		| LINE6_CAP_PCM
+		| LINE6_CAP_HWMON,
 		.altsetting = 5,
 		.ep_ctrl_r = 0x84,
 		.ep_ctrl_w = 0x03,
@@ -565,14 +606,15 @@ static const struct line6_properties pod_properties_table[] = {
 	Probe USB device.
 */
 static int pod_probe(struct usb_interface *interface,
-		     const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	return line6_probe(interface, id, "Line6-POD",
-			   &pod_properties_table[id->driver_info],
-			   pod_init, sizeof(struct usb_line6_pod));
+					   &pod_properties_table[id->driver_info],
+					   pod_init, sizeof(struct usb_line6_pod));
 }
 
-static struct usb_driver pod_driver = {
+static struct usb_driver pod_driver =
+{
 	.name = KBUILD_MODNAME,
 	.probe = pod_probe,
 	.disconnect = line6_disconnect,

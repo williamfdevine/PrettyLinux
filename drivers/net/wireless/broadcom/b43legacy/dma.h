@@ -12,7 +12,7 @@
 
 /* DMA-Interrupt reasons. */
 #define B43legacy_DMAIRQ_FATALMASK	((1 << 10) | (1 << 11) | (1 << 12) \
-					 | (1 << 14) | (1 << 15))
+									 | (1 << 14) | (1 << 15))
 #define B43legacy_DMAIRQ_NONFATALMASK	(1 << 13)
 #define B43legacy_DMAIRQ_RX_DONE		(1 << 16)
 
@@ -69,7 +69,8 @@
 #define		B43legacy_DMA32_RXACTIVE		0xFFF00000
 
 /* 32-bit DMA descriptor. */
-struct b43legacy_dmadesc32 {
+struct b43legacy_dmadesc32
+{
 	__le32 control;
 	__le32 address;
 } __packed;
@@ -104,7 +105,8 @@ struct b43legacy_private;
 struct b43legacy_txstatus;
 
 
-struct b43legacy_dmadesc_meta {
+struct b43legacy_dmadesc_meta
+{
 	/* The kernel DMA-able buffer. */
 	struct sk_buff *skb;
 	/* DMA base bus-address of the descriptor buffer. */
@@ -113,12 +115,14 @@ struct b43legacy_dmadesc_meta {
 	bool is_last_fragment;
 };
 
-enum b43legacy_dmatype {
+enum b43legacy_dmatype
+{
 	B43legacy_DMA_30BIT = 30,
 	B43legacy_DMA_32BIT = 32,
 };
 
-struct b43legacy_dmaring {
+struct b43legacy_dmaring
+{
 	/* Kernel virtual base address of the ring memory. */
 	void *descbase;
 	/* Meta data about all descriptors. */
@@ -165,14 +169,14 @@ struct b43legacy_dmaring {
 
 static inline
 u32 b43legacy_dma_read(struct b43legacy_dmaring *ring,
-		       u16 offset)
+					   u16 offset)
 {
 	return b43legacy_read32(ring->dev, ring->mmio_base + offset);
 }
 
 static inline
 void b43legacy_dma_write(struct b43legacy_dmaring *ring,
-			 u16 offset, u32 value)
+						 u16 offset, u32 value)
 {
 	b43legacy_write32(ring->dev, ring->mmio_base + offset, value);
 }
@@ -185,9 +189,9 @@ void b43legacy_dma_tx_suspend(struct b43legacy_wldev *dev);
 void b43legacy_dma_tx_resume(struct b43legacy_wldev *dev);
 
 int b43legacy_dma_tx(struct b43legacy_wldev *dev,
-		     struct sk_buff *skb);
+					 struct sk_buff *skb);
 void b43legacy_dma_handle_txstatus(struct b43legacy_wldev *dev,
-				   const struct b43legacy_txstatus *status);
+								   const struct b43legacy_txstatus *status);
 
 void b43legacy_dma_rx(struct b43legacy_dmaring *ring);
 
@@ -205,13 +209,13 @@ void b43legacy_dma_free(struct b43legacy_wldev *dev)
 }
 static inline
 int b43legacy_dma_tx(struct b43legacy_wldev *dev,
-		     struct sk_buff *skb)
+					 struct sk_buff *skb)
 {
 	return 0;
 }
 static inline
 void b43legacy_dma_handle_txstatus(struct b43legacy_wldev *dev,
-				   const struct b43legacy_txstatus *status)
+								   const struct b43legacy_txstatus *status)
 {
 }
 static inline

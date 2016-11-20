@@ -125,65 +125,74 @@
 	((IS_81XXC(version) && IS_2T2R(version)) ? true : false)
 #define IS_81xxC_VENDOR_UMC_A_CUT(version)				\
 	(IS_81XXC(version) ? ((IS_CHIP_VENDOR_UMC(version)) ?		\
-	 ((GET_CVID_CUT_VERSION(version)) ? false : true) : false) : false)
+						  ((GET_CVID_CUT_VERSION(version)) ? false : true) : false) : false)
 #define IS_81XXC_VENDOR_UMC_B_CUT(version)				\
 	(IS_81XXC(version) ? (IS_CHIP_VENDOR_UMC(version) ?		\
-	((GET_CVID_CUT_VERSION(version) == B_CUT_VERSION) ? true	\
-	: false) : false) : false)
+						  ((GET_CVID_CUT_VERSION(version) == B_CUT_VERSION) ? true	\
+						   : false) : false) : false)
 
-enum version_8188e {
+enum version_8188e
+{
 	VERSION_TEST_CHIP_88E = 0x00,
 	VERSION_NORMAL_CHIP_88E = 0x01,
 	VERSION_UNKNOWN = 0xFF,
 };
 
-enum rx_packet_type {
+enum rx_packet_type
+{
 	NORMAL_RX,
 	TX_REPORT1,
 	TX_REPORT2,
 	HIS_REPORT,
 };
 
-enum rtl819x_loopback_e {
+enum rtl819x_loopback_e
+{
 	RTL819X_NO_LOOPBACK = 0,
 	RTL819X_MAC_LOOPBACK = 1,
 	RTL819X_DMA_LOOPBACK = 2,
 	RTL819X_CCK_LOOPBACK = 3,
 };
 
-enum rf_optype {
+enum rf_optype
+{
 	RF_OP_BY_SW_3WIRE = 0,
 	RF_OP_BY_FW,
 	RF_OP_MAX
 };
 
-enum rf_power_state {
+enum rf_power_state
+{
 	RF_ON,
 	RF_OFF,
 	RF_SLEEP,
 	RF_SHUT_DOWN,
 };
 
-enum power_save_mode {
+enum power_save_mode
+{
 	POWER_SAVE_MODE_ACTIVE,
 	POWER_SAVE_MODE_SAVE,
 };
 
-enum power_polocy_config {
+enum power_polocy_config
+{
 	POWERCFG_MAX_POWER_SAVINGS,
 	POWERCFG_GLOBAL_POWER_SAVINGS,
 	POWERCFG_LOCAL_POWER_SAVINGS,
 	POWERCFG_LENOVO,
 };
 
-enum interface_select_pci {
+enum interface_select_pci
+{
 	INTF_SEL1_MINICARD = 0,
 	INTF_SEL0_PCIE = 1,
 	INTF_SEL2_RSV = 2,
 	INTF_SEL3_RSV = 3,
 };
 
-enum hal_fw_c2h_cmd_id {
+enum hal_fw_c2h_cmd_id
+{
 	HAL_FW_C2H_CMD_READ_MACREG = 0,
 	HAL_FW_C2H_CMD_READ_BBREG = 1,
 	HAL_FW_C2H_CMD_READ_RFREG = 2,
@@ -208,7 +217,8 @@ enum hal_fw_c2h_cmd_id {
 	HAL_FW_C2H_CMD_MAX
 };
 
-enum rtl_desc_qsel {
+enum rtl_desc_qsel
+{
 	QSLT_BK = 0x2,
 	QSLT_BE = 0x0,
 	QSLT_VI = 0x5,
@@ -219,7 +229,8 @@ enum rtl_desc_qsel {
 	QSLT_CMD = 0x13,
 };
 
-enum rtl_desc92c_rate {
+enum rtl_desc92c_rate
+{
 	DESC92C_RATE1M = 0x00,
 	DESC92C_RATE2M = 0x01,
 	DESC92C_RATE5_5M = 0x02,
@@ -254,13 +265,15 @@ enum rtl_desc92c_rate {
 	DESC92C_RATEMCS32 = 0x20,
 };
 
-struct phy_sts_cck_8192s_t {
+struct phy_sts_cck_8192s_t
+{
 	u8 adc_pwdb_X[4];
 	u8 sq_rpt;
 	u8 cck_agc_rpt;
 };
 
-struct h2c_cmd_8192c {
+struct h2c_cmd_8192c
+{
 	u8 element_id;
 	u32 cmd_len;
 	u8 *p_cmdbuffer;

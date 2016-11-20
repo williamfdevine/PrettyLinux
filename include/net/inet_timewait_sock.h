@@ -31,7 +31,8 @@
 
 struct inet_hashinfo;
 
-struct inet_timewait_death_row {
+struct inet_timewait_death_row
+{
 	atomic_t		tw_count;
 
 	struct inet_hashinfo 	*hashinfo ____cacheline_aligned_in_smp;
@@ -46,7 +47,8 @@ struct inet_bind_bucket;
  * problems of sockets in such a state on heavily loaded servers, but
  * without violating the protocol specification.
  */
-struct inet_timewait_sock {
+struct inet_timewait_sock
+{
 	/*
 	 * Now struct sock also uses sock_common, so please just
 	 * don't add nothing before this first member (__tw_common) --acme
@@ -82,10 +84,10 @@ struct inet_timewait_sock {
 	kmemcheck_bitfield_begin(flags);
 	/* And these are ours. */
 	unsigned int		tw_kill		: 1,
-				tw_transparent  : 1,
-				tw_flowlabel	: 20,
-				tw_pad		: 2,	/* 2 bits hole */
-				tw_tos		: 8;
+					  tw_transparent  : 1,
+					  tw_flowlabel	: 20,
+					  tw_pad		: 2,	/* 2 bits hole */
+					  tw_tos		: 8;
 	kmemcheck_bitfield_end(flags);
 	struct timer_list	tw_timer;
 	struct inet_bind_bucket	*tw_tb;
@@ -101,17 +103,17 @@ void inet_twsk_free(struct inet_timewait_sock *tw);
 void inet_twsk_put(struct inet_timewait_sock *tw);
 
 void inet_twsk_bind_unhash(struct inet_timewait_sock *tw,
-			   struct inet_hashinfo *hashinfo);
+						   struct inet_hashinfo *hashinfo);
 
 struct inet_timewait_sock *inet_twsk_alloc(const struct sock *sk,
-					   struct inet_timewait_death_row *dr,
-					   const int state);
+		struct inet_timewait_death_row *dr,
+		const int state);
 
 void __inet_twsk_hashdance(struct inet_timewait_sock *tw, struct sock *sk,
-			   struct inet_hashinfo *hashinfo);
+						   struct inet_hashinfo *hashinfo);
 
 void __inet_twsk_schedule(struct inet_timewait_sock *tw, int timeo,
-			  bool rearm);
+						  bool rearm);
 
 static inline void inet_twsk_schedule(struct inet_timewait_sock *tw, int timeo)
 {
@@ -126,7 +128,7 @@ static inline void inet_twsk_reschedule(struct inet_timewait_sock *tw, int timeo
 void inet_twsk_deschedule_put(struct inet_timewait_sock *tw);
 
 void inet_twsk_purge(struct inet_hashinfo *hashinfo,
-		     struct inet_timewait_death_row *twdr, int family);
+					 struct inet_timewait_death_row *twdr, int family);
 
 static inline
 struct net *twsk_net(const struct inet_timewait_sock *twsk)

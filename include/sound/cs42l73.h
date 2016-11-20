@@ -11,7 +11,8 @@
 #ifndef __CS42L73_H
 #define __CS42L73_H
 
-struct cs42l73_platform_data {
+struct cs42l73_platform_data
+{
 	/* RST GPIO */
 	unsigned int reset_gpio;
 	unsigned int chgfreq;

@@ -50,7 +50,8 @@
 #define MMS114_TYPE_TOUCHSCREEN		1
 #define MMS114_TYPE_TOUCHKEY		2
 
-struct mms114_data {
+struct mms114_data
+{
 	struct i2c_client	*client;
 	struct input_dev	*input_dev;
 	struct regulator	*core_reg;
@@ -61,9 +62,10 @@ struct mms114_data {
 	u8			cache_mode_control;
 };
 
-struct mms114_touch {
-	u8 id:4, reserved_bit4:1, type:2, pressed:1;
-	u8 x_hi:4, y_hi:4;
+struct mms114_touch
+{
+	u8 id: 4, reserved_bit4: 1, type: 2, pressed: 1;
+	u8 x_hi: 4, y_hi: 4;
 	u8 x_lo;
 	u8 y_lo;
 	u8 width;
@@ -72,7 +74,7 @@ struct mms114_touch {
 } __packed;
 
 static int __mms114_read_reg(struct mms114_data *data, unsigned int reg,
-			     unsigned int len, u8 *val)
+							 unsigned int len, u8 *val)
 {
 	struct i2c_client *client = data->client;
 	struct i2c_msg xfer[2];
@@ -80,7 +82,9 @@ static int __mms114_read_reg(struct mms114_data *data, unsigned int reg,
 	int error;
 
 	if (reg <= MMS114_MODE_CONTROL && reg + len > MMS114_MODE_CONTROL)
+	{
 		BUG();
+	}
 
 	/* Write register: use repeated start */
 	xfer[0].addr = client->addr;
@@ -95,11 +99,14 @@ static int __mms114_read_reg(struct mms114_data *data, unsigned int reg,
 	xfer[1].buf = val;
 
 	error = i2c_transfer(client->adapter, xfer, 2);
-	if (error != 2) {
+
+	if (error != 2)
+	{
 		dev_err(&client->dev,
-			"%s: i2c transfer failed (%d)\n", __func__, error);
+				"%s: i2c transfer failed (%d)\n", __func__, error);
 		return error < 0 ? error : -EIO;
 	}
+
 	udelay(MMS114_I2C_DELAY);
 
 	return 0;
@@ -111,14 +118,16 @@ static int mms114_read_reg(struct mms114_data *data, unsigned int reg)
 	int error;
 
 	if (reg == MMS114_MODE_CONTROL)
+	{
 		return data->cache_mode_control;
+	}
 
 	error = __mms114_read_reg(data, reg, 1, &val);
 	return error < 0 ? error : val;
 }
 
 static int mms114_write_reg(struct mms114_data *data, unsigned int reg,
-			    unsigned int val)
+							unsigned int val)
 {
 	struct i2c_client *client = data->client;
 	u8 buf[2];
@@ -128,15 +137,20 @@ static int mms114_write_reg(struct mms114_data *data, unsigned int reg,
 	buf[1] = val & 0xff;
 
 	error = i2c_master_send(client, buf, 2);
-	if (error != 2) {
+
+	if (error != 2)
+	{
 		dev_err(&client->dev,
-			"%s: i2c send failed (%d)\n", __func__, error);
+				"%s: i2c send failed (%d)\n", __func__, error);
 		return error < 0 ? error : -EIO;
 	}
+
 	udelay(MMS114_I2C_DELAY);
 
 	if (reg == MMS114_MODE_CONTROL)
+	{
 		data->cache_mode_control = val;
+	}
 
 	return 0;
 }
@@ -150,12 +164,14 @@ static void mms114_process_mt(struct mms114_data *data, struct mms114_touch *tou
 	unsigned int x;
 	unsigned int y;
 
-	if (touch->id > MMS114_MAX_TOUCH) {
+	if (touch->id > MMS114_MAX_TOUCH)
+	{
 		dev_err(&client->dev, "Wrong touch id (%d)\n", touch->id);
 		return;
 	}
 
-	if (touch->type != MMS114_TYPE_TOUCHSCREEN) {
+	if (touch->type != MMS114_TYPE_TOUCHSCREEN)
+	{
 		dev_err(&client->dev, "Wrong touch type (%d)\n", touch->type);
 		return;
 	}
@@ -163,26 +179,34 @@ static void mms114_process_mt(struct mms114_data *data, struct mms114_touch *tou
 	id = touch->id - 1;
 	x = touch->x_lo | touch->x_hi << 8;
 	y = touch->y_lo | touch->y_hi << 8;
-	if (x > pdata->x_size || y > pdata->y_size) {
+
+	if (x > pdata->x_size || y > pdata->y_size)
+	{
 		dev_dbg(&client->dev,
-			"Wrong touch coordinates (%d, %d)\n", x, y);
+				"Wrong touch coordinates (%d, %d)\n", x, y);
 		return;
 	}
 
 	if (pdata->x_invert)
+	{
 		x = pdata->x_size - x;
+	}
+
 	if (pdata->y_invert)
+	{
 		y = pdata->y_size - y;
+	}
 
 	dev_dbg(&client->dev,
-		"id: %d, type: %d, pressed: %d, x: %d, y: %d, width: %d, strength: %d\n",
-		id, touch->type, touch->pressed,
-		x, y, touch->width, touch->strength);
+			"id: %d, type: %d, pressed: %d, x: %d, y: %d, width: %d, strength: %d\n",
+			id, touch->type, touch->pressed,
+			x, y, touch->width, touch->strength);
 
 	input_mt_slot(input_dev, id);
 	input_mt_report_slot_state(input_dev, MT_TOOL_FINGER, touch->pressed);
 
-	if (touch->pressed) {
+	if (touch->pressed)
+	{
 		input_report_abs(input_dev, ABS_MT_TOUCH_MAJOR, touch->width);
 		input_report_abs(input_dev, ABS_MT_POSITION_X, x);
 		input_report_abs(input_dev, ABS_MT_POSITION_Y, y);
@@ -201,25 +225,36 @@ static irqreturn_t mms114_interrupt(int irq, void *dev_id)
 	int error;
 
 	mutex_lock(&input_dev->mutex);
-	if (!input_dev->users) {
+
+	if (!input_dev->users)
+	{
 		mutex_unlock(&input_dev->mutex);
 		goto out;
 	}
+
 	mutex_unlock(&input_dev->mutex);
 
 	packet_size = mms114_read_reg(data, MMS114_PACKET_SIZE);
+
 	if (packet_size <= 0)
+	{
 		goto out;
+	}
 
 	touch_size = packet_size / MMS114_PACKET_NUM;
 
 	error = __mms114_read_reg(data, MMS114_INFOMATION, packet_size,
-			(u8 *)touch);
+							  (u8 *)touch);
+
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	for (index = 0; index < touch_size; index++)
+	{
 		mms114_process_mt(data, touch + index);
+	}
 
 	input_mt_report_pointer_emulation(data->input_dev, true);
 	input_sync(data->input_dev);
@@ -233,14 +268,19 @@ static int mms114_set_active(struct mms114_data *data, bool active)
 	int val;
 
 	val = mms114_read_reg(data, MMS114_MODE_CONTROL);
+
 	if (val < 0)
+	{
 		return val;
+	}
 
 	val &= ~MMS114_OPERATION_MODE_MASK;
 
 	/* If active is false, sleep mode */
 	if (active)
+	{
 		val |= MMS114_ACTIVE;
+	}
 
 	return mms114_write_reg(data, MMS114_MODE_CONTROL, val);
 }
@@ -252,11 +292,14 @@ static int mms114_get_version(struct mms114_data *data)
 	int error;
 
 	error = __mms114_read_reg(data, MMS114_TSP_REV, 6, buf);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	dev_info(dev, "TSP Rev: 0x%x, HW Rev: 0x%x, Firmware Ver: 0x%x\n",
-		 buf[0], buf[1], buf[3]);
+			 buf[0], buf[1], buf[3]);
 
 	return 0;
 }
@@ -268,41 +311,64 @@ static int mms114_setup_regs(struct mms114_data *data)
 	int error;
 
 	error = mms114_get_version(data);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	error = mms114_set_active(data, true);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	val = (pdata->x_size >> 8) & 0xf;
 	val |= ((pdata->y_size >> 8) & 0xf) << 4;
 	error = mms114_write_reg(data, MMS114_XY_RESOLUTION_H, val);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	val = pdata->x_size & 0xff;
 	error = mms114_write_reg(data, MMS114_X_RESOLUTION, val);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	val = pdata->y_size & 0xff;
 	error = mms114_write_reg(data, MMS114_Y_RESOLUTION, val);
-	if (error < 0)
-		return error;
 
-	if (pdata->contact_threshold) {
-		error = mms114_write_reg(data, MMS114_CONTACT_THRESHOLD,
-				pdata->contact_threshold);
-		if (error < 0)
-			return error;
+	if (error < 0)
+	{
+		return error;
 	}
 
-	if (pdata->moving_threshold) {
-		error = mms114_write_reg(data, MMS114_MOVING_THRESHOLD,
-				pdata->moving_threshold);
+	if (pdata->contact_threshold)
+	{
+		error = mms114_write_reg(data, MMS114_CONTACT_THRESHOLD,
+								 pdata->contact_threshold);
+
 		if (error < 0)
+		{
 			return error;
+		}
+	}
+
+	if (pdata->moving_threshold)
+	{
+		error = mms114_write_reg(data, MMS114_MOVING_THRESHOLD,
+								 pdata->moving_threshold);
+
+		if (error < 0)
+		{
+			return error;
+		}
 	}
 
 	return 0;
@@ -314,13 +380,17 @@ static int mms114_start(struct mms114_data *data)
 	int error;
 
 	error = regulator_enable(data->core_reg);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "Failed to enable avdd: %d\n", error);
 		return error;
 	}
 
 	error = regulator_enable(data->io_reg);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "Failed to enable vdd: %d\n", error);
 		regulator_disable(data->core_reg);
 		return error;
@@ -329,14 +399,18 @@ static int mms114_start(struct mms114_data *data)
 	mdelay(MMS114_POWERON_DELAY);
 
 	error = mms114_setup_regs(data);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		regulator_disable(data->io_reg);
 		regulator_disable(data->core_reg);
 		return error;
 	}
 
 	if (data->pdata->cfg_pin)
+	{
 		data->pdata->cfg_pin(true);
+	}
 
 	enable_irq(client->irq);
 
@@ -351,15 +425,23 @@ static void mms114_stop(struct mms114_data *data)
 	disable_irq(client->irq);
 
 	if (data->pdata->cfg_pin)
+	{
 		data->pdata->cfg_pin(false);
+	}
 
 	error = regulator_disable(data->io_reg);
+
 	if (error)
+	{
 		dev_warn(&client->dev, "Failed to disable vdd: %d\n", error);
+	}
 
 	error = regulator_disable(data->core_reg);
+
 	if (error)
+	{
 		dev_warn(&client->dev, "Failed to disable avdd: %d\n", error);
+	}
 }
 
 static int mms114_input_open(struct input_dev *dev)
@@ -383,33 +465,44 @@ static struct mms114_platform_data *mms114_parse_dt(struct device *dev)
 	struct device_node *np = dev->of_node;
 
 	if (!np)
+	{
 		return NULL;
+	}
 
 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_err(dev, "failed to allocate platform data\n");
 		return NULL;
 	}
 
-	if (of_property_read_u32(np, "x-size", &pdata->x_size)) {
+	if (of_property_read_u32(np, "x-size", &pdata->x_size))
+	{
 		dev_err(dev, "failed to get x-size property\n");
 		return NULL;
 	}
 
-	if (of_property_read_u32(np, "y-size", &pdata->y_size)) {
+	if (of_property_read_u32(np, "y-size", &pdata->y_size))
+	{
 		dev_err(dev, "failed to get y-size property\n");
 		return NULL;
 	}
 
 	of_property_read_u32(np, "contact-threshold",
-				&pdata->contact_threshold);
+						 &pdata->contact_threshold);
 	of_property_read_u32(np, "moving-threshold",
-				&pdata->moving_threshold);
+						 &pdata->moving_threshold);
 
 	if (of_find_property(np, "x-invert", NULL))
+	{
 		pdata->x_invert = true;
+	}
+
 	if (of_find_property(np, "y-invert", NULL))
+	{
 		pdata->y_invert = true;
+	}
 
 	return pdata;
 }
@@ -421,7 +514,7 @@ static inline struct mms114_platform_data *mms114_parse_dt(struct device *dev)
 #endif
 
 static int mms114_probe(struct i2c_client *client,
-				  const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	const struct mms114_platform_data *pdata;
 	struct mms114_data *data;
@@ -429,25 +522,32 @@ static int mms114_probe(struct i2c_client *client,
 	int error;
 
 	pdata = dev_get_platdata(&client->dev);
-	if (!pdata)
-		pdata = mms114_parse_dt(&client->dev);
 
-	if (!pdata) {
+	if (!pdata)
+	{
+		pdata = mms114_parse_dt(&client->dev);
+	}
+
+	if (!pdata)
+	{
 		dev_err(&client->dev, "Need platform data\n");
 		return -EINVAL;
 	}
 
 	if (!i2c_check_functionality(client->adapter,
-				I2C_FUNC_PROTOCOL_MANGLING)) {
+								 I2C_FUNC_PROTOCOL_MANGLING))
+	{
 		dev_err(&client->dev,
-			"Need i2c bus that supports protocol mangling\n");
+				"Need i2c bus that supports protocol mangling\n");
 		return -ENODEV;
 	}
 
 	data = devm_kzalloc(&client->dev, sizeof(struct mms114_data),
-			    GFP_KERNEL);
+						GFP_KERNEL);
 	input_dev = devm_input_allocate_device(&client->dev);
-	if (!data || !input_dev) {
+
+	if (!data || !input_dev)
+	{
 		dev_err(&client->dev, "Failed to allocate memory\n");
 		return -ENOMEM;
 	}
@@ -471,43 +571,52 @@ static int mms114_probe(struct i2c_client *client,
 	/* For multi touch */
 	input_mt_init_slots(input_dev, MMS114_MAX_TOUCH, 0);
 	input_set_abs_params(input_dev, ABS_MT_TOUCH_MAJOR,
-			     0, MMS114_MAX_AREA, 0, 0);
+						 0, MMS114_MAX_AREA, 0, 0);
 	input_set_abs_params(input_dev, ABS_MT_POSITION_X,
-			     0, data->pdata->x_size, 0, 0);
+						 0, data->pdata->x_size, 0, 0);
 	input_set_abs_params(input_dev, ABS_MT_POSITION_Y,
-			     0, data->pdata->y_size, 0, 0);
+						 0, data->pdata->y_size, 0, 0);
 	input_set_abs_params(input_dev, ABS_MT_PRESSURE, 0, 255, 0, 0);
 
 	input_set_drvdata(input_dev, data);
 	i2c_set_clientdata(client, data);
 
 	data->core_reg = devm_regulator_get(&client->dev, "avdd");
-	if (IS_ERR(data->core_reg)) {
+
+	if (IS_ERR(data->core_reg))
+	{
 		error = PTR_ERR(data->core_reg);
 		dev_err(&client->dev,
-			"Unable to get the Core regulator (%d)\n", error);
+				"Unable to get the Core regulator (%d)\n", error);
 		return error;
 	}
 
 	data->io_reg = devm_regulator_get(&client->dev, "vdd");
-	if (IS_ERR(data->io_reg)) {
+
+	if (IS_ERR(data->io_reg))
+	{
 		error = PTR_ERR(data->io_reg);
 		dev_err(&client->dev,
-			"Unable to get the IO regulator (%d)\n", error);
+				"Unable to get the IO regulator (%d)\n", error);
 		return error;
 	}
 
 	error = devm_request_threaded_irq(&client->dev, client->irq, NULL,
-			mms114_interrupt, IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-			dev_name(&client->dev), data);
-	if (error) {
+									  mms114_interrupt, IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+									  dev_name(&client->dev), data);
+
+	if (error)
+	{
 		dev_err(&client->dev, "Failed to register interrupt\n");
 		return error;
 	}
+
 	disable_irq(client->irq);
 
 	error = input_register_device(data->input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "Failed to register input device\n");
 		return error;
 	}
@@ -523,7 +632,8 @@ static int __maybe_unused mms114_suspend(struct device *dev)
 	int id;
 
 	/* Release all touch */
-	for (id = 0; id < MMS114_MAX_TOUCH; id++) {
+	for (id = 0; id < MMS114_MAX_TOUCH; id++)
+	{
 		input_mt_slot(input_dev, id);
 		input_mt_report_slot_state(input_dev, MT_TOOL_FINGER, false);
 	}
@@ -532,8 +642,12 @@ static int __maybe_unused mms114_suspend(struct device *dev)
 	input_sync(input_dev);
 
 	mutex_lock(&input_dev->mutex);
+
 	if (input_dev->users)
+	{
 		mms114_stop(data);
+	}
+
 	mutex_unlock(&input_dev->mutex);
 
 	return 0;
@@ -547,13 +661,18 @@ static int __maybe_unused mms114_resume(struct device *dev)
 	int error;
 
 	mutex_lock(&input_dev->mutex);
-	if (input_dev->users) {
+
+	if (input_dev->users)
+	{
 		error = mms114_start(data);
-		if (error < 0) {
+
+		if (error < 0)
+		{
 			mutex_unlock(&input_dev->mutex);
 			return error;
 		}
 	}
+
 	mutex_unlock(&input_dev->mutex);
 
 	return 0;
@@ -561,21 +680,24 @@ static int __maybe_unused mms114_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(mms114_pm_ops, mms114_suspend, mms114_resume);
 
-static const struct i2c_device_id mms114_id[] = {
+static const struct i2c_device_id mms114_id[] =
+{
 	{ "mms114", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, mms114_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id mms114_dt_match[] = {
+static const struct of_device_id mms114_dt_match[] =
+{
 	{ .compatible = "melfas,mms114" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, mms114_dt_match);
 #endif
 
-static struct i2c_driver mms114_driver = {
+static struct i2c_driver mms114_driver =
+{
 	.driver = {
 		.name	= "mms114",
 		.pm	= &mms114_pm_ops,

@@ -37,12 +37,14 @@
 #define CLPS711X_INTSR3	(0x2240)
 #define CLPS711X_INTMR3	(0x2280)
 
-static const struct {
+static const struct
+{
 #define CLPS711X_FLAG_EN	(1 << 0)
 #define CLPS711X_FLAG_FIQ	(1 << 1)
 	unsigned int	flags;
 	phys_addr_t	eoi;
-} clps711x_irqs[] = {
+} clps711x_irqs[] =
+{
 	[1]	= { CLPS711X_FLAG_FIQ, CLPS711X_BLEOI, },
 	[3]	= { CLPS711X_FLAG_FIQ, CLPS711X_MCEOI, },
 	[4]	= { CLPS711X_FLAG_EN, CLPS711X_COEOI, },
@@ -65,7 +67,8 @@ static const struct {
 	[32]	= { CLPS711X_FLAG_FIQ, },
 };
 
-static struct {
+static struct
+{
 	void __iomem		*base;
 	void __iomem		*intmr[3];
 	void __iomem		*intsr[3];
@@ -77,19 +80,23 @@ static asmlinkage void __exception_irq_entry clps711x_irqh(struct pt_regs *regs)
 {
 	u32 irqstat;
 
-	do {
+	do
+	{
 		irqstat = readw_relaxed(clps711x_intc->intmr[0]) &
-			  readw_relaxed(clps711x_intc->intsr[0]);
+				  readw_relaxed(clps711x_intc->intsr[0]);
+
 		if (irqstat)
 			handle_domain_irq(clps711x_intc->domain,
-					  fls(irqstat) - 1, regs);
+							  fls(irqstat) - 1, regs);
 
 		irqstat = readw_relaxed(clps711x_intc->intmr[1]) &
-			  readw_relaxed(clps711x_intc->intsr[1]);
+				  readw_relaxed(clps711x_intc->intsr[1]);
+
 		if (irqstat)
 			handle_domain_irq(clps711x_intc->domain,
-					  fls(irqstat) - 1 + 16, regs);
-	} while (irqstat);
+							  fls(irqstat) - 1 + 16, regs);
+	}
+	while (irqstat);
 }
 
 static void clps711x_intc_eoi(struct irq_data *d)
@@ -121,7 +128,8 @@ static void clps711x_intc_unmask(struct irq_data *d)
 	writel_relaxed(tmp, intmr);
 }
 
-static struct irq_chip clps711x_intc_chip = {
+static struct irq_chip clps711x_intc_chip =
+{
 	.name		= "clps711x-intc",
 	.irq_eoi	= clps711x_intc_eoi,
 	.irq_mask	= clps711x_intc_mask,
@@ -129,24 +137,31 @@ static struct irq_chip clps711x_intc_chip = {
 };
 
 static int __init clps711x_intc_irq_map(struct irq_domain *h, unsigned int virq,
-					irq_hw_number_t hw)
+										irq_hw_number_t hw)
 {
 	irq_flow_handler_t handler = handle_level_irq;
 	unsigned int flags = 0;
 
 	if (!clps711x_irqs[hw].flags)
+	{
 		return 0;
+	}
 
-	if (clps711x_irqs[hw].flags & CLPS711X_FLAG_FIQ) {
+	if (clps711x_irqs[hw].flags & CLPS711X_FLAG_FIQ)
+	{
 		handler = handle_bad_irq;
 		flags |= IRQ_NOAUTOEN;
-	} else if (clps711x_irqs[hw].eoi) {
+	}
+	else if (clps711x_irqs[hw].eoi)
+	{
 		handler = handle_fasteoi_irq;
 	}
 
 	/* Clear down pending interrupt */
 	if (clps711x_irqs[hw].eoi)
+	{
 		writel_relaxed(0, clps711x_intc->base + clps711x_irqs[hw].eoi);
+	}
 
 	irq_set_chip_and_handler(virq, &clps711x_intc_chip, handler);
 	irq_modify_status(virq, IRQ_NOPROBE, flags);
@@ -155,16 +170,21 @@ static int __init clps711x_intc_irq_map(struct irq_domain *h, unsigned int virq,
 }
 
 static int __init _clps711x_intc_init(struct device_node *np,
-				      phys_addr_t base, resource_size_t size)
+									  phys_addr_t base, resource_size_t size)
 {
 	int err;
 
 	clps711x_intc = kzalloc(sizeof(*clps711x_intc), GFP_KERNEL);
+
 	if (!clps711x_intc)
+	{
 		return -ENOMEM;
+	}
 
 	clps711x_intc->base = ioremap(base, size);
-	if (!clps711x_intc->base) {
+
+	if (!clps711x_intc->base)
+	{
 		err = -ENOMEM;
 		goto out_kfree;
 	}
@@ -182,15 +202,20 @@ static int __init _clps711x_intc_init(struct device_node *np,
 	writel_relaxed(0, clps711x_intc->intmr[2]);
 
 	err = irq_alloc_descs(-1, 0, ARRAY_SIZE(clps711x_irqs), numa_node_id());
+
 	if (err < 0)
+	{
 		goto out_iounmap;
+	}
 
 	clps711x_intc->ops.map = clps711x_intc_irq_map;
 	clps711x_intc->ops.xlate = irq_domain_xlate_onecell;
 	clps711x_intc->domain =
 		irq_domain_add_legacy(np, ARRAY_SIZE(clps711x_irqs),
-				      0, 0, &clps711x_intc->ops, NULL);
-	if (!clps711x_intc->domain) {
+							  0, 0, &clps711x_intc->ops, NULL);
+
+	if (!clps711x_intc->domain)
+	{
 		err = -ENOMEM;
 		goto out_irqfree;
 	}
@@ -223,14 +248,17 @@ void __init clps711x_intc_init(phys_addr_t base, resource_size_t size)
 
 #ifdef CONFIG_IRQCHIP
 static int __init clps711x_intc_init_dt(struct device_node *np,
-					struct device_node *parent)
+										struct device_node *parent)
 {
 	struct resource res;
 	int err;
 
 	err = of_address_to_resource(np, 0, &res);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return _clps711x_intc_init(np, res.start, resource_size(&res));
 }

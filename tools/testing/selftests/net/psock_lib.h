@@ -35,12 +35,13 @@
 #define PORT_BASE			8000
 
 #ifndef __maybe_unused
-# define __maybe_unused		__attribute__ ((__unused__))
+	#define __maybe_unused		__attribute__ ((__unused__))
 #endif
 
 static __maybe_unused void sock_setfilter(int fd, int lvl, int optnum)
 {
-	struct sock_filter bpf_filter[] = {
+	struct sock_filter bpf_filter[] =
+	{
 		{ 0x80, 0, 0, 0x00000000 },  /* LD  pktlen		      */
 		{ 0x35, 0, 4, DATA_LEN   },  /* JGE DATA_LEN  [f goto nomatch]*/
 		{ 0x30, 0, 0, 0x00000050 },  /* LD  ip[80]		      */
@@ -52,12 +53,16 @@ static __maybe_unused void sock_setfilter(int fd, int lvl, int optnum)
 	struct sock_fprog bpf_prog;
 
 	if (lvl == SOL_PACKET && optnum == PACKET_FANOUT_DATA)
-		bpf_filter[5].code = 0x16;   /* RET A			      */
+	{
+		bpf_filter[5].code = 0x16;    /* RET A			      */
+	}
 
 	bpf_prog.filter = bpf_filter;
 	bpf_prog.len = sizeof(bpf_filter) / sizeof(struct sock_filter);
+
 	if (setsockopt(fd, lvl, optnum, &bpf_prog,
-		       sizeof(bpf_prog))) {
+				   sizeof(bpf_prog)))
+	{
 		perror("setsockopt SO_ATTACH_FILTER");
 		exit(1);
 	}
@@ -74,7 +79,9 @@ static __maybe_unused void pair_udp_open(int fds[], uint16_t port)
 
 	fds[0] = socket(PF_INET, SOCK_DGRAM, 0);
 	fds[1] = socket(PF_INET, SOCK_DGRAM, 0);
-	if (fds[0] == -1 || fds[1] == -1) {
+
+	if (fds[0] == -1 || fds[1] == -1)
+	{
 		fprintf(stderr, "ERROR: socket dgram\n");
 		exit(1);
 	}
@@ -90,15 +97,20 @@ static __maybe_unused void pair_udp_open(int fds[], uint16_t port)
 	daddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
 	/* must bind both to get consistent hash result */
-	if (bind(fds[1], (void *) &daddr, sizeof(daddr))) {
+	if (bind(fds[1], (void *) &daddr, sizeof(daddr)))
+	{
 		perror("bind");
 		exit(1);
 	}
-	if (bind(fds[0], (void *) &saddr, sizeof(saddr))) {
+
+	if (bind(fds[0], (void *) &saddr, sizeof(saddr)))
+	{
 		perror("bind");
 		exit(1);
 	}
-	if (connect(fds[0], (void *) &daddr, sizeof(daddr))) {
+
+	if (connect(fds[0], (void *) &daddr, sizeof(daddr)))
+	{
 		perror("connect");
 		exit(1);
 	}
@@ -109,17 +121,24 @@ static __maybe_unused void pair_udp_send_char(int fds[], int num, char payload)
 	char buf[DATA_LEN], rbuf[DATA_LEN];
 
 	memset(buf, payload, sizeof(buf));
-	while (num--) {
+
+	while (num--)
+	{
 		/* Should really handle EINTR and EAGAIN */
-		if (write(fds[0], buf, sizeof(buf)) != sizeof(buf)) {
+		if (write(fds[0], buf, sizeof(buf)) != sizeof(buf))
+		{
 			fprintf(stderr, "ERROR: send failed left=%d\n", num);
 			exit(1);
 		}
-		if (read(fds[1], rbuf, sizeof(rbuf)) != sizeof(rbuf)) {
+
+		if (read(fds[1], rbuf, sizeof(rbuf)) != sizeof(rbuf))
+		{
 			fprintf(stderr, "ERROR: recv failed left=%d\n", num);
 			exit(1);
 		}
-		if (memcmp(buf, rbuf, sizeof(buf))) {
+
+		if (memcmp(buf, rbuf, sizeof(buf)))
+		{
 			fprintf(stderr, "ERROR: data failed left=%d\n", num);
 			exit(1);
 		}

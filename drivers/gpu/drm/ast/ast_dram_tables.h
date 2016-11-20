@@ -2,12 +2,14 @@
 #define AST_DRAM_TABLES_H
 
 /* DRAM timing tables */
-struct ast_dramstruct {
+struct ast_dramstruct
+{
 	u16 index;
 	u32 data;
 };
 
-static const struct ast_dramstruct ast2000_dram_table_data[] = {
+static const struct ast_dramstruct ast2000_dram_table_data[] =
+{
 	{ 0x0108, 0x00000000 },
 	{ 0x0120, 0x00004a21 },
 	{ 0xFF00, 0x00000043 },
@@ -35,7 +37,8 @@ static const struct ast_dramstruct ast2000_dram_table_data[] = {
 	{ 0xFFFF, 0xFFFFFFFF }
 };
 
-static const struct ast_dramstruct ast1100_dram_table_data[] = {
+static const struct ast_dramstruct ast1100_dram_table_data[] =
+{
 	{ 0x2000, 0x1688a8a8 },
 	{ 0x2020, 0x000041f0 },
 	{ 0xFF00, 0x00000043 },
@@ -88,7 +91,8 @@ static const struct ast_dramstruct ast1100_dram_table_data[] = {
 	{ 0xffff, 0xffffffff },
 };
 
-static const struct ast_dramstruct ast2100_dram_table_data[] = {
+static const struct ast_dramstruct ast2100_dram_table_data[] =
+{
 	{ 0x2000, 0x1688a8a8 },
 	{ 0x2020, 0x00004120 },
 	{ 0xFF00, 0x00000043 },

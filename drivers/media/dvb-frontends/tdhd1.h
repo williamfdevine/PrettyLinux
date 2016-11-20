@@ -30,7 +30,8 @@
 
 static int alps_tdhd1_204_request_firmware(struct dvb_frontend *fe, const struct firmware **fw, char *name);
 
-static struct tda1004x_config alps_tdhd1_204a_config = {
+static struct tda1004x_config alps_tdhd1_204a_config =
+{
 	.demod_address = 0x8,
 	.invert = 1,
 	.invert_oclk = 0,
@@ -55,18 +56,31 @@ static int alps_tdhd1_204a_tuner_set_params(struct dvb_frontend *fe)
 	data[2] = 0x85;
 
 	if (p->frequency >= 174000000 && p->frequency <= 230000000)
+	{
 		data[3] = 0x02;
+	}
 	else if (p->frequency >= 470000000 && p->frequency <= 823000000)
+	{
 		data[3] = 0x0C;
+	}
 	else if (p->frequency > 823000000 && p->frequency <= 862000000)
+	{
 		data[3] = 0x8C;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	if (i2c_transfer(i2c, &msg, 1) != 1)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }

@@ -33,12 +33,16 @@ MODULE_PARM_DESC(port, "Port # for " CRD_NAME " driver.");
 static int snd_adlib_match(struct device *dev, unsigned int n)
 {
 	if (!enable[n])
+	{
 		return 0;
+	}
 
-	if (port[n] == SNDRV_AUTO_PORT) {
+	if (port[n] == SNDRV_AUTO_PORT)
+	{
 		dev_err(dev, "please specify port\n");
 		return 0;
 	}
+
 	return 1;
 }
 
@@ -54,17 +58,22 @@ static int snd_adlib_probe(struct device *dev, unsigned int n)
 	int error;
 
 	error = snd_card_new(dev, index[n], id[n], THIS_MODULE, 0, &card);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(dev, "could not create card\n");
 		return error;
 	}
 
 	card->private_data = request_region(port[n], 4, CRD_NAME);
-	if (!card->private_data) {
+
+	if (!card->private_data)
+	{
 		dev_err(dev, "could not grab ports\n");
 		error = -EBUSY;
 		goto out;
 	}
+
 	card->private_free = snd_adlib_free;
 
 	strcpy(card->driver, DEV_NAME);
@@ -72,19 +81,25 @@ static int snd_adlib_probe(struct device *dev, unsigned int n)
 	sprintf(card->longname, CRD_NAME " at %#lx", port[n]);
 
 	error = snd_opl3_create(card, port[n], port[n] + 2, OPL3_HW_AUTO, 1, &opl3);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(dev, "could not create OPL\n");
 		goto out;
 	}
 
 	error = snd_opl3_hwdep_new(opl3, 0, 0, NULL);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(dev, "could not create FM\n");
 		goto out;
 	}
 
 	error = snd_card_register(card);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(dev, "could not register card\n");
 		goto out;
 	}
@@ -102,7 +117,8 @@ static int snd_adlib_remove(struct device *dev, unsigned int n)
 	return 0;
 }
 
-static struct isa_driver snd_adlib_driver = {
+static struct isa_driver snd_adlib_driver =
+{
 	.match		= snd_adlib_match,
 	.probe		= snd_adlib_probe,
 	.remove		= snd_adlib_remove,

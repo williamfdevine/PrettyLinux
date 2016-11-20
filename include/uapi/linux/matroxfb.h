@@ -6,7 +6,8 @@
 #include <linux/videodev2.h>
 #include <linux/fb.h>
 
-struct matroxioc_output_mode {
+struct matroxioc_output_mode
+{
 	__u32	output;		/* which output */
 #define MATROXFB_OUTPUT_PRIMARY		0x0000
 #define MATROXFB_OUTPUT_SECONDARY	0x0001
@@ -32,10 +33,11 @@ struct matroxioc_output_mode {
 /* which outputs exist on this framebuffer */
 #define MATROXFB_GET_ALL_OUTPUTS	_IOR('n',0xFB,size_t)
 
-enum matroxfb_ctrl_id {
-  MATROXFB_CID_TESTOUT	 = V4L2_CID_PRIVATE_BASE,
-  MATROXFB_CID_DEFLICKER,
-  MATROXFB_CID_LAST
+enum matroxfb_ctrl_id
+{
+	MATROXFB_CID_TESTOUT	 = V4L2_CID_PRIVATE_BASE,
+	MATROXFB_CID_DEFLICKER,
+	MATROXFB_CID_LAST
 };
 
 #endif

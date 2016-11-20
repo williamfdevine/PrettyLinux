@@ -40,32 +40,40 @@
 /* --------------------------------------------------------------------------
    Investigate card state, recovery trace buffer
    -------------------------------------------------------------------------- */
-static void bri_cpu_trapped(PISDN_ADAPTER IoAdapter) {
+static void bri_cpu_trapped(PISDN_ADAPTER IoAdapter)
+{
 	byte  __iomem *addrHi, *addrLo, *ioaddr;
 	word *Xlog;
 	dword   regs[4], i, size;
 	Xdesc   xlogDesc;
 	byte __iomem *Port;
-/*
- * first read pointers and trap frame
- */
+
+	/*
+	 * first read pointers and trap frame
+	 */
 	if (!(Xlog = (word *)diva_os_malloc(0, MAX_XLOG_SIZE)))
+	{
 		return;
+	}
+
 	Port = DIVA_OS_MEM_ATTACH_PORT(IoAdapter);
 	addrHi = Port + ((IoAdapter->Properties.Bus == BUS_PCI) ? M_PCI_ADDRH : ADDRH);
 	addrLo = Port + ADDR;
 	ioaddr = Port + DATA;
 	outpp(addrHi,  0);
 	outppw(addrLo, 0);
+
 	for (i = 0; i < 0x100; Xlog[i++] = inppw(ioaddr));
-/*
- * check for trapped MIPS 3xxx CPU, dump only exception frame
- */
+
+	/*
+	 * check for trapped MIPS 3xxx CPU, dump only exception frame
+	 */
 	if (GET_DWORD(&Xlog[0x80 / sizeof(Xlog[0])]) == 0x99999999)
 	{
 		dump_trap_frame(IoAdapter, &((byte *)Xlog)[0x90]);
 		IoAdapter->trapped = 1;
 	}
+
 	regs[0] = GET_DWORD(&((byte *)Xlog)[0x70]);
 	regs[1] = GET_DWORD(&((byte *)Xlog)[0x74]);
 	regs[2] = GET_DWORD(&((byte *)Xlog)[0x78]);
@@ -78,30 +86,38 @@ static void bri_cpu_trapped(PISDN_ADAPTER IoAdapter) {
 	xlogDesc.out = inppw(ioaddr);
 	xlogDesc.buf = Xlog;
 	regs[0] &= IoAdapter->MemorySize - 1;
+
 	if ((regs[0] < IoAdapter->MemorySize - 1))
 	{
 		size = IoAdapter->MemorySize - regs[0];
+
 		if (size > MAX_XLOG_SIZE)
+		{
 			size = MAX_XLOG_SIZE;
+		}
+
 		for (i = 0; i < (size / sizeof(*Xlog)); regs[0] += 2)
 		{
 			outpp(addrHi, (regs[0] >> 16) & 0x7F);
 			outppw(addrLo, regs[0] & 0xFFFF);
 			Xlog[i++] = inppw(ioaddr);
 		}
+
 		dump_xlog_buffer(IoAdapter, &xlogDesc);
 		diva_os_free(0, Xlog);
 		IoAdapter->trapped = 2;
 	}
+
 	outpp(addrHi, (byte)((BRI_UNCACHED_ADDR(IoAdapter->MemoryBase + IoAdapter->MemorySize -
-						BRI_SHARED_RAM_SIZE)) >> 16));
+											BRI_SHARED_RAM_SIZE)) >> 16));
 	outppw(addrLo, 0x00);
 	DIVA_OS_MEM_DETACH_PORT(IoAdapter, Port);
 }
 /* ---------------------------------------------------------------------
    Reset hardware
    --------------------------------------------------------------------- */
-static void reset_bri_hardware(PISDN_ADAPTER IoAdapter) {
+static void reset_bri_hardware(PISDN_ADAPTER IoAdapter)
+{
 	byte __iomem *p = DIVA_OS_MEM_ATTACH_CTLREG(IoAdapter);
 	outpp(p, 0x00);
 	DIVA_OS_MEM_DETACH_CTLREG(IoAdapter, p);
@@ -109,49 +125,64 @@ static void reset_bri_hardware(PISDN_ADAPTER IoAdapter) {
 /* ---------------------------------------------------------------------
    Halt system
    --------------------------------------------------------------------- */
-static void stop_bri_hardware(PISDN_ADAPTER IoAdapter) {
+static void stop_bri_hardware(PISDN_ADAPTER IoAdapter)
+{
 	byte __iomem *p = DIVA_OS_MEM_ATTACH_RESET(IoAdapter);
-	if (p) {
+
+	if (p)
+	{
 		outpp(p, 0x00); /* disable interrupts ! */
 	}
+
 	DIVA_OS_MEM_DETACH_RESET(IoAdapter, p);
 	p = DIVA_OS_MEM_ATTACH_CTLREG(IoAdapter);
 	outpp(p, 0x00);    /* clear int, halt cpu */
 	DIVA_OS_MEM_DETACH_CTLREG(IoAdapter, p);
 }
-static int load_bri_hardware(PISDN_ADAPTER IoAdapter) {
+static int load_bri_hardware(PISDN_ADAPTER IoAdapter)
+{
 	return (0);
 }
 /******************************************************************************/
-static int bri_ISR(struct _ISDN_ADAPTER *IoAdapter) {
+static int bri_ISR(struct _ISDN_ADAPTER *IoAdapter)
+{
 	byte __iomem *p;
 
 	p = DIVA_OS_MEM_ATTACH_CTLREG(IoAdapter);
-	if (!(inpp(p) & 0x01)) {
+
+	if (!(inpp(p) & 0x01))
+	{
 		DIVA_OS_MEM_DETACH_CTLREG(IoAdapter, p);
 		return (0);
 	}
+
 	/*
 	  clear interrupt line
 	*/
 	outpp(p, 0x08);
 	DIVA_OS_MEM_DETACH_CTLREG(IoAdapter, p);
 	IoAdapter->IrqCount++;
-	if (IoAdapter->Initialized) {
+
+	if (IoAdapter->Initialized)
+	{
 		diva_os_schedule_soft_isr(&IoAdapter->isr_soft_isr);
 	}
+
 	return (1);
 }
 /* --------------------------------------------------------------------------
    Disable IRQ in the card hardware
    -------------------------------------------------------------------------- */
-static void disable_bri_interrupt(PISDN_ADAPTER IoAdapter) {
+static void disable_bri_interrupt(PISDN_ADAPTER IoAdapter)
+{
 	byte __iomem *p;
 	p = DIVA_OS_MEM_ATTACH_RESET(IoAdapter);
+
 	if (p)
 	{
 		outpp(p, 0x00); /* disable interrupts ! */
 	}
+
 	DIVA_OS_MEM_DETACH_RESET(IoAdapter, p);
 	p = DIVA_OS_MEM_ATTACH_CTLREG(IoAdapter);
 	outpp(p, 0x00); /* clear int, halt cpu */
@@ -160,7 +191,8 @@ static void disable_bri_interrupt(PISDN_ADAPTER IoAdapter) {
 /* -------------------------------------------------------------------------
    Fill card entry points
    ------------------------------------------------------------------------- */
-void prepare_maestra_functions(PISDN_ADAPTER IoAdapter) {
+void prepare_maestra_functions(PISDN_ADAPTER IoAdapter)
+{
 	ADAPTER *a = &IoAdapter->a;
 	a->ram_in             = io_in;
 	a->ram_inw            = io_inw;

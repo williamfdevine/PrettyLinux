@@ -27,12 +27,16 @@ int
 g94_pcie_version_supported(struct nvkm_pci *pci)
 {
 	if ((nvkm_pci_rd32(pci, 0x460) & 0x200) == 0x200)
+	{
 		return 2;
+	}
+
 	return 1;
 }
 
 static const struct nvkm_pci_func
-g94_pci_func = {
+	g94_pci_func =
+{
 	.init = g84_pci_init,
 	.rd32 = nv40_pci_rd32,
 	.wr08 = nv40_pci_wr08,

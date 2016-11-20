@@ -18,15 +18,16 @@
 #define AIC31XX_RATES	SNDRV_PCM_RATE_8000_192000
 
 #define AIC31XX_FORMATS	(SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE \
-			 | SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S24_LE \
-			 | SNDRV_PCM_FMTBIT_S32_LE)
+						 | SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S24_LE \
+						 | SNDRV_PCM_FMTBIT_S32_LE)
 
 
 #define AIC31XX_STEREO_CLASS_D_BIT	0x1
 #define AIC31XX_MINIDSP_BIT		0x2
 #define DAC31XX_BIT			0x4
 
-enum aic31xx_type {
+enum aic31xx_type
+{
 	AIC3100	= 0,
 	AIC3110 = AIC31XX_STEREO_CLASS_D_BIT,
 	AIC3120 = AIC31XX_MINIDSP_BIT,
@@ -34,7 +35,8 @@ enum aic31xx_type {
 	DAC3100 = DAC31XX_BIT,
 };
 
-struct aic31xx_pdata {
+struct aic31xx_pdata
+{
 	enum aic31xx_type codec_type;
 	unsigned int gpio_reset;
 	int micbias_vg;

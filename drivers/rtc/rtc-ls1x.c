@@ -21,7 +21,7 @@
 
 #define LS1X_RTC_REG_OFFSET	(LS1X_RTC_BASE + 0x20)
 #define LS1X_RTC_REGS(x) \
-		((void __iomem *)KSEG1ADDR(LS1X_RTC_REG_OFFSET + (x)))
+	((void __iomem *)KSEG1ADDR(LS1X_RTC_REG_OFFSET + (x)))
 
 /*RTC programmable counters 0 and 1*/
 #define SYS_COUNTER_CNTRL		(LS1X_RTC_REGS(0x20))
@@ -94,8 +94,8 @@ static int ls1x_rtc_read_time(struct device *dev, struct rtc_time *rtm)
 
 	memset(rtm, 0, sizeof(struct rtc_time));
 	t  = mktime((t & LS1X_YEAR_MASK), ls1x_get_month(v),
-			ls1x_get_day(v), ls1x_get_hour(v),
-			ls1x_get_min(v), ls1x_get_sec(v));
+				ls1x_get_day(v), ls1x_get_hour(v),
+				ls1x_get_min(v), ls1x_get_sec(v));
 	rtc_time_to_tm(t, rtm);
 
 	return rtc_valid_tm(rtm);
@@ -114,11 +114,15 @@ static int ls1x_rtc_set_time(struct device *dev, struct  rtc_time *rtm)
 
 	writel(v, SYS_TOYWRITE0);
 	c = 0x10000;
+
 	/* add timeout check counter, for more safe */
 	while ((readl(SYS_COUNTER_CNTRL) & SYS_CNTRL_TS) && --c)
+	{
 		usleep_range(1000, 3000);
+	}
 
-	if (!c) {
+	if (!c)
+	{
 		dev_err(dev, "set time timeout!\n");
 		goto err;
 	}
@@ -126,19 +130,25 @@ static int ls1x_rtc_set_time(struct device *dev, struct  rtc_time *rtm)
 	t = rtm->tm_year + 1900;
 	writel(t, SYS_TOYWRITE1);
 	c = 0x10000;
-	while ((readl(SYS_COUNTER_CNTRL) & SYS_CNTRL_TS) && --c)
-		usleep_range(1000, 3000);
 
-	if (!c) {
+	while ((readl(SYS_COUNTER_CNTRL) & SYS_CNTRL_TS) && --c)
+	{
+		usleep_range(1000, 3000);
+	}
+
+	if (!c)
+	{
 		dev_err(dev, "set time timeout!\n");
 		goto err;
 	}
+
 	return 0;
 err:
 	return ret;
 }
 
-static struct rtc_class_ops  ls1x_rtc_ops = {
+static struct rtc_class_ops  ls1x_rtc_ops =
+{
 	.read_time	= ls1x_rtc_read_time,
 	.set_time	= ls1x_rtc_set_time,
 };
@@ -150,31 +160,46 @@ static int ls1x_rtc_probe(struct platform_device *pdev)
 	int ret;
 
 	v = readl(SYS_COUNTER_CNTRL);
-	if (!(v & RTC_CNTR_OK)) {
+
+	if (!(v & RTC_CNTR_OK))
+	{
 		dev_err(&pdev->dev, "rtc counters not working\n");
 		ret = -ENODEV;
 		goto err;
 	}
-	ret = -ETIMEDOUT;
-	/* set to 1 HZ if needed */
-	if (readl(SYS_TOYTRIM) != 32767) {
-		v = 0x100000;
-		while ((readl(SYS_COUNTER_CNTRL) & SYS_CNTRL_TTS) && --v)
-			usleep_range(1000, 3000);
 
-		if (!v) {
+	ret = -ETIMEDOUT;
+
+	/* set to 1 HZ if needed */
+	if (readl(SYS_TOYTRIM) != 32767)
+	{
+		v = 0x100000;
+
+		while ((readl(SYS_COUNTER_CNTRL) & SYS_CNTRL_TTS) && --v)
+		{
+			usleep_range(1000, 3000);
+		}
+
+		if (!v)
+		{
 			dev_err(&pdev->dev, "time out\n");
 			goto err;
 		}
+
 		writel(32767, SYS_TOYTRIM);
 	}
+
 	/* this loop coundn't be endless */
 	while (readl(SYS_COUNTER_CNTRL) & SYS_CNTRL_TTS)
+	{
 		usleep_range(1000, 3000);
+	}
 
 	rtcdev = devm_rtc_device_register(&pdev->dev, "ls1x-rtc",
-					&ls1x_rtc_ops , THIS_MODULE);
-	if (IS_ERR(rtcdev)) {
+									  &ls1x_rtc_ops , THIS_MODULE);
+
+	if (IS_ERR(rtcdev))
+	{
 		ret = PTR_ERR(rtcdev);
 		goto err;
 	}
@@ -185,7 +210,8 @@ err:
 	return ret;
 }
 
-static struct platform_driver  ls1x_rtc_driver = {
+static struct platform_driver  ls1x_rtc_driver =
+{
 	.driver		= {
 		.name	= "ls1x-rtc",
 	},

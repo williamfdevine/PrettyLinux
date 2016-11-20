@@ -39,12 +39,13 @@
 
 #define DRV_NAME "tegra-snd-sgtl5000"
 
-struct tegra_sgtl5000 {
+struct tegra_sgtl5000
+{
 	struct tegra_asoc_utils_data util_data;
 };
 
 static int tegra_sgtl5000_hw_params(struct snd_pcm_substream *substream,
-					struct snd_pcm_hw_params *params)
+									struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
@@ -54,27 +55,34 @@ static int tegra_sgtl5000_hw_params(struct snd_pcm_substream *substream,
 	int err;
 
 	srate = params_rate(params);
-	switch (srate) {
-	case 11025:
-	case 22050:
-	case 44100:
-	case 88200:
-		mclk = 11289600;
-		break;
-	default:
-		mclk = 12288000;
-		break;
+
+	switch (srate)
+	{
+		case 11025:
+		case 22050:
+		case 44100:
+		case 88200:
+			mclk = 11289600;
+			break;
+
+		default:
+			mclk = 12288000;
+			break;
 	}
 
 	err = tegra_asoc_utils_set_rate(&machine->util_data, srate, mclk);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(card->dev, "Can't configure clocks\n");
 		return err;
 	}
 
 	err = snd_soc_dai_set_sysclk(codec_dai, SGTL5000_SYSCLK, mclk,
-				     SND_SOC_CLOCK_IN);
-	if (err < 0) {
+								 SND_SOC_CLOCK_IN);
+
+	if (err < 0)
+	{
 		dev_err(card->dev, "codec_dai clock not set\n");
 		return err;
 	}
@@ -82,26 +90,30 @@ static int tegra_sgtl5000_hw_params(struct snd_pcm_substream *substream,
 	return 0;
 }
 
-static struct snd_soc_ops tegra_sgtl5000_ops = {
+static struct snd_soc_ops tegra_sgtl5000_ops =
+{
 	.hw_params = tegra_sgtl5000_hw_params,
 };
 
-static const struct snd_soc_dapm_widget tegra_sgtl5000_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget tegra_sgtl5000_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
 	SND_SOC_DAPM_LINE("Line In Jack", NULL),
 	SND_SOC_DAPM_MIC("Mic Jack", NULL),
 };
 
-static struct snd_soc_dai_link tegra_sgtl5000_dai = {
+static struct snd_soc_dai_link tegra_sgtl5000_dai =
+{
 	.name = "sgtl5000",
 	.stream_name = "HiFi",
 	.codec_dai_name = "sgtl5000",
 	.ops = &tegra_sgtl5000_ops,
 	.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_CBS_CFS,
+	SND_SOC_DAIFMT_CBS_CFS,
 };
 
-static struct snd_soc_card snd_soc_tegra_sgtl5000 = {
+static struct snd_soc_card snd_soc_tegra_sgtl5000 =
+{
 	.name = "tegra-sgtl5000",
 	.owner = THIS_MODULE,
 	.dai_link = &tegra_sgtl5000_dai,
@@ -119,8 +131,10 @@ static int tegra_sgtl5000_driver_probe(struct platform_device *pdev)
 	int ret;
 
 	machine = devm_kzalloc(&pdev->dev, sizeof(struct tegra_sgtl5000),
-			       GFP_KERNEL);
-	if (!machine) {
+						   GFP_KERNEL);
+
+	if (!machine)
+	{
 		dev_err(&pdev->dev, "Can't allocate tegra_sgtl5000 struct\n");
 		return -ENOMEM;
 	}
@@ -130,27 +144,37 @@ static int tegra_sgtl5000_driver_probe(struct platform_device *pdev)
 	snd_soc_card_set_drvdata(card, machine);
 
 	ret = snd_soc_of_parse_card_name(card, "nvidia,model");
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = snd_soc_of_parse_audio_routing(card, "nvidia,audio-routing");
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	tegra_sgtl5000_dai.codec_of_node = of_parse_phandle(np,
-			"nvidia,audio-codec", 0);
-	if (!tegra_sgtl5000_dai.codec_of_node) {
+									   "nvidia,audio-codec", 0);
+
+	if (!tegra_sgtl5000_dai.codec_of_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'nvidia,audio-codec' missing or invalid\n");
+				"Property 'nvidia,audio-codec' missing or invalid\n");
 		ret = -EINVAL;
 		goto err;
 	}
 
 	tegra_sgtl5000_dai.cpu_of_node = of_parse_phandle(np,
-			"nvidia,i2s-controller", 0);
-	if (!tegra_sgtl5000_dai.cpu_of_node) {
+									 "nvidia,i2s-controller", 0);
+
+	if (!tegra_sgtl5000_dai.cpu_of_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'nvidia,i2s-controller' missing/invalid\n");
+				"Property 'nvidia,i2s-controller' missing/invalid\n");
 		ret = -EINVAL;
 		goto err;
 	}
@@ -158,13 +182,18 @@ static int tegra_sgtl5000_driver_probe(struct platform_device *pdev)
 	tegra_sgtl5000_dai.platform_of_node = tegra_sgtl5000_dai.cpu_of_node;
 
 	ret = tegra_asoc_utils_init(&machine->util_data, &pdev->dev);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = snd_soc_register_card(card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n",
-			ret);
+				ret);
 		goto err_fini_utils;
 	}
 
@@ -189,12 +218,14 @@ static int tegra_sgtl5000_driver_remove(struct platform_device *pdev)
 	return ret;
 }
 
-static const struct of_device_id tegra_sgtl5000_of_match[] = {
+static const struct of_device_id tegra_sgtl5000_of_match[] =
+{
 	{ .compatible = "nvidia,tegra-audio-sgtl5000", },
 	{ /* sentinel */ },
 };
 
-static struct platform_driver tegra_sgtl5000_driver = {
+static struct platform_driver tegra_sgtl5000_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 		.pm = &snd_soc_pm_ops,

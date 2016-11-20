@@ -281,17 +281,20 @@
 /* Hardware and software Data structures */
 
 /* Endpoint bd: buffer descriptor */
-struct bdc_bd {
+struct bdc_bd
+{
 	__le32 offset[4];
 };
 
 /* Status report in Status report ring(srr) */
-struct bdc_sr {
+struct bdc_sr
+{
 	__le32 offset[4];
 };
 
 /* bd_table: contiguous bd's in a table */
-struct bd_table {
+struct bd_table
+{
 	struct bdc_bd *start_bd;
 	/* dma address of start bd of table*/
 	dma_addr_t dma;
@@ -303,7 +306,8 @@ struct bd_table {
  * number of bds. the software uses bdi(bd index) to refer to particular bd in
  * the list.
  */
-struct bd_list {
+struct bd_list
+{
 	/* Array of bd table pointers*/
 	struct bd_table **bd_table_array;
 	/* How many tables chained to each other */
@@ -321,7 +325,8 @@ struct bd_list {
 struct bdc_req;
 
 /* Representation of a transfer, one transfer can have multiple bd's */
-struct bd_transfer {
+struct bd_transfer
+{
 	struct bdc_req *req;
 	/* start bd index */
 	int start_bdi;
@@ -335,7 +340,8 @@ struct bd_transfer {
  * Representation of a gadget request, every gadget request is contained
  * by 1 bd_transfer.
  */
-struct bdc_req {
+struct bdc_req
+{
 	struct usb_request	usb_req;
 	struct list_head	queue;
 	struct bdc_ep		*ep;
@@ -345,14 +351,16 @@ struct bdc_req {
 };
 
 /* scratchpad buffer needed by bdc hardware */
-struct bdc_scratchpad {
+struct bdc_scratchpad
+{
 	dma_addr_t sp_dma;
 	void *buff;
 	u32 size;
 };
 
 /* endpoint representation */
-struct bdc_ep {
+struct bdc_ep
+{
 	struct usb_ep	usb_ep;
 	struct list_head queue;
 	struct bdc *bdc;
@@ -373,14 +381,16 @@ struct bdc_ep {
 };
 
 /* bdc cmmand parameter structure */
-struct bdc_cmd_params {
+struct bdc_cmd_params
+{
 	u32	param2;
 	u32	param1;
 	u32	param0;
 };
 
 /* status report ring(srr), currently one srr is supported for entire system */
-struct srr {
+struct srr
+{
 	struct bdc_sr *sr_bds;
 	u16	eqp_index;
 	u16	dqp_index;
@@ -388,7 +398,8 @@ struct srr {
 };
 
 /* EP0 states */
-enum bdc_ep0_state {
+enum bdc_ep0_state
+{
 	WAIT_FOR_SETUP = 0,
 	WAIT_FOR_DATA_START,
 	WAIT_FOR_DATA_XMIT,
@@ -398,7 +409,8 @@ enum bdc_ep0_state {
 };
 
 /* Link states */
-enum bdc_link_state {
+enum bdc_link_state
+{
 	BDC_LINK_STATE_U0	= 0x00,
 	BDC_LINK_STATE_U3	= 0x03,
 	BDC_LINK_STATE_RX_DET	= 0x05,
@@ -406,7 +418,8 @@ enum bdc_link_state {
 };
 
 /* representation of bdc */
-struct bdc {
+struct bdc
+{
 	struct usb_gadget	gadget;
 	struct usb_gadget_driver	*gadget_driver;
 	struct device	*dev;

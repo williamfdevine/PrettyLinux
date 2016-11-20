@@ -47,32 +47,34 @@
 #define AZX_DCAPS_COUNT_LPIB_DELAY  (1 << 25)	/* Take LPIB as delay */
 #define AZX_DCAPS_PM_RUNTIME	(1 << 26)	/* runtime PM support */
 #ifdef CONFIG_SND_HDA_I915
-#define AZX_DCAPS_I915_POWERWELL (1 << 27)	/* HSW i915 powerwell support */
+	#define AZX_DCAPS_I915_POWERWELL (1 << 27)	/* HSW i915 powerwell support */
 #else
-#define AZX_DCAPS_I915_POWERWELL 0		/* NOP */
+	#define AZX_DCAPS_I915_POWERWELL 0		/* NOP */
 #endif
 #define AZX_DCAPS_CORBRP_SELF_CLEAR (1 << 28)	/* CORBRP clears itself after reset */
 #define AZX_DCAPS_NO_MSI64      (1 << 29)	/* Stick to 32-bit MSIs */
 #define AZX_DCAPS_SEPARATE_STREAM_TAG	(1 << 30) /* capture and playback use separate stream tag */
 
-enum {
+enum
+{
 	AZX_SNOOP_TYPE_NONE,
 	AZX_SNOOP_TYPE_SCH,
 	AZX_SNOOP_TYPE_ATI,
 	AZX_SNOOP_TYPE_NVIDIA,
 };
 
-struct azx_dev {
+struct azx_dev
+{
 	struct hdac_stream core;
 
-	unsigned int irq_pending:1;
+	unsigned int irq_pending: 1;
 	/*
 	 * For VIA:
 	 *  A flag to ensure DMA position is 0
 	 *  when link position is not greater than FIFO size
 	 */
-	unsigned int insufficient:1;
-	unsigned int wc_marked:1;
+	unsigned int insufficient: 1;
+	unsigned int wc_marked: 1;
 };
 
 #define azx_stream(dev)		(&(dev)->core)
@@ -81,23 +83,25 @@ struct azx_dev {
 struct azx;
 
 /* Functions to read/write to hda registers. */
-struct hda_controller_ops {
+struct hda_controller_ops
+{
 	/* Disable msi if supported, PCI only */
 	int (*disable_msi_reset_irq)(struct azx *);
 	int (*substream_alloc_pages)(struct azx *chip,
-				     struct snd_pcm_substream *substream,
-				     size_t size);
+								 struct snd_pcm_substream *substream,
+								 size_t size);
 	int (*substream_free_pages)(struct azx *chip,
-				    struct snd_pcm_substream *substream);
+								struct snd_pcm_substream *substream);
 	void (*pcm_mmap_prepare)(struct snd_pcm_substream *substream,
-				 struct vm_area_struct *area);
+							 struct vm_area_struct *area);
 	/* Check if current position is acceptable */
 	int (*position_check)(struct azx *chip, struct azx_dev *azx_dev);
 	/* enable/disable the link power */
 	int (*link_power)(struct azx *chip, bool enable);
 };
 
-struct azx_pcm {
+struct azx_pcm
+{
 	struct azx *chip;
 	struct snd_pcm *pcm;
 	struct hda_codec *codec;
@@ -108,7 +112,8 @@ struct azx_pcm {
 typedef unsigned int (*azx_get_pos_callback_t)(struct azx *, struct azx_dev *);
 typedef int (*azx_get_delay_callback_t)(struct azx *, struct azx_dev *, unsigned int pos);
 
-struct azx {
+struct azx
+{
 	struct hda_bus bus;
 
 	struct snd_card *card;
@@ -149,18 +154,18 @@ struct azx {
 	/* flags */
 	int bdl_pos_adj;
 	int poll_count;
-	unsigned int running:1;
-	unsigned int single_cmd:1;
-	unsigned int polling_mode:1;
-	unsigned int msi:1;
-	unsigned int probing:1; /* codec probing phase */
-	unsigned int snoop:1;
-	unsigned int align_buffer_size:1;
-	unsigned int region_requested:1;
-	unsigned int disabled:1; /* disabled by vga_switcheroo */
+	unsigned int running: 1;
+	unsigned int single_cmd: 1;
+	unsigned int polling_mode: 1;
+	unsigned int msi: 1;
+	unsigned int probing: 1; /* codec probing phase */
+	unsigned int snoop: 1;
+	unsigned int align_buffer_size: 1;
+	unsigned int region_requested: 1;
+	unsigned int disabled: 1; /* disabled by vga_switcheroo */
 
 	/* GTS present */
-	unsigned int gts_present:1;
+	unsigned int gts_present: 1;
 
 #ifdef CONFIG_SND_HDA_DSP_LOADER
 	struct azx_dev saved_azx_dev;
@@ -171,9 +176,9 @@ struct azx {
 #define bus_to_azx(_bus)	container_of(_bus, struct azx, bus.core)
 
 #ifdef CONFIG_X86
-#define azx_snoop(chip)		((chip)->snoop)
+	#define azx_snoop(chip)		((chip)->snoop)
 #else
-#define azx_snoop(chip)		true
+	#define azx_snoop(chip)		true
 #endif
 
 /*
@@ -223,7 +228,7 @@ irqreturn_t azx_interrupt(int irq, void *dev_id);
 
 /* Codec interface */
 int azx_bus_init(struct azx *chip, const char *model,
-		 const struct hdac_io_ops *io_ops);
+				 const struct hdac_io_ops *io_ops);
 int azx_probe_codecs(struct azx *chip, unsigned int max_slots);
 int azx_codec_configure(struct azx *chip);
 int azx_init_streams(struct azx *chip);

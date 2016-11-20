@@ -22,26 +22,26 @@
 #include "debug.h"
 
 static inline int hif_read_write_sync(struct ath6kl *ar, u32 addr, u8 *buf,
-				      u32 len, u32 request)
+									  u32 len, u32 request)
 {
 	ath6kl_dbg(ATH6KL_DBG_HIF,
-		   "hif %s sync addr 0x%x buf 0x%p len %d request 0x%x\n",
-		   (request & HIF_WRITE) ? "write" : "read",
-		   addr, buf, len, request);
+			   "hif %s sync addr 0x%x buf 0x%p len %d request 0x%x\n",
+			   (request & HIF_WRITE) ? "write" : "read",
+			   addr, buf, len, request);
 
 	return ar->hif_ops->read_write_sync(ar, addr, buf, len, request);
 }
 
 static inline int hif_write_async(struct ath6kl *ar, u32 address, u8 *buffer,
-				  u32 length, u32 request,
-				  struct htc_packet *packet)
+								  u32 length, u32 request,
+								  struct htc_packet *packet)
 {
 	ath6kl_dbg(ATH6KL_DBG_HIF,
-		   "hif write async addr 0x%x buf 0x%p len %d request 0x%x\n",
-		   address, buffer, length, request);
+			   "hif write async addr 0x%x buf 0x%p len %d request 0x%x\n",
+			   address, buffer, length, request);
 
 	return ar->hif_ops->write_async(ar, address, buffer, length,
-					request, packet);
+									request, packet);
 }
 static inline void ath6kl_hif_irq_enable(struct ath6kl *ar)
 {
@@ -63,7 +63,7 @@ static inline struct hif_scatter_req *hif_scatter_req_get(struct ath6kl *ar)
 }
 
 static inline void hif_scatter_req_add(struct ath6kl *ar,
-				       struct hif_scatter_req *s_req)
+									   struct hif_scatter_req *s_req)
 {
 	return ar->hif_ops->scatter_req_add(ar, s_req);
 }
@@ -74,7 +74,7 @@ static inline int ath6kl_hif_enable_scatter(struct ath6kl *ar)
 }
 
 static inline int ath6kl_hif_scat_req_rw(struct ath6kl *ar,
-					 struct hif_scatter_req *scat_req)
+		struct hif_scatter_req *scat_req)
 {
 	return ar->hif_ops->scat_req_rw(ar, scat_req);
 }
@@ -85,7 +85,7 @@ static inline void ath6kl_hif_cleanup_scatter(struct ath6kl *ar)
 }
 
 static inline int ath6kl_hif_suspend(struct ath6kl *ar,
-				     struct cfg80211_wowlan *wow)
+									 struct cfg80211_wowlan *wow)
 {
 	ath6kl_dbg(ATH6KL_DBG_HIF, "hif suspend\n");
 
@@ -97,7 +97,7 @@ static inline int ath6kl_hif_suspend(struct ath6kl *ar,
  * the Target is required for this.
  */
 static inline int ath6kl_hif_diag_read32(struct ath6kl *ar, u32 address,
-					 u32 *value)
+		u32 *value)
 {
 	return ar->hif_ops->diag_read32(ar, address, value);
 }
@@ -107,7 +107,7 @@ static inline int ath6kl_hif_diag_read32(struct ath6kl *ar, u32 address,
  * the Target is required for this.
  */
 static inline int ath6kl_hif_diag_write32(struct ath6kl *ar, u32 address,
-					  __le32 value)
+		__le32 value)
 {
 	return ar->hif_ops->diag_write32(ar, address, value);
 }
@@ -151,8 +151,8 @@ static inline void ath6kl_hif_stop(struct ath6kl *ar)
 }
 
 static inline int ath6kl_hif_pipe_send(struct ath6kl *ar,
-				       u8 pipe, struct sk_buff *hdr_buf,
-				       struct sk_buff *buf)
+									   u8 pipe, struct sk_buff *hdr_buf,
+									   struct sk_buff *buf)
 {
 	ath6kl_dbg(ATH6KL_DBG_HIF, "hif pipe send\n");
 
@@ -160,7 +160,7 @@ static inline int ath6kl_hif_pipe_send(struct ath6kl *ar,
 }
 
 static inline void ath6kl_hif_pipe_get_default(struct ath6kl *ar,
-					       u8 *ul_pipe, u8 *dl_pipe)
+		u8 *ul_pipe, u8 *dl_pipe)
 {
 	ath6kl_dbg(ATH6KL_DBG_HIF, "hif pipe get default\n");
 
@@ -168,8 +168,8 @@ static inline void ath6kl_hif_pipe_get_default(struct ath6kl *ar,
 }
 
 static inline int ath6kl_hif_pipe_map_service(struct ath6kl *ar,
-					      u16 service_id, u8 *ul_pipe,
-					      u8 *dl_pipe)
+		u16 service_id, u8 *ul_pipe,
+		u8 *dl_pipe)
 {
 	ath6kl_dbg(ATH6KL_DBG_HIF, "hif pipe get default\n");
 
@@ -177,7 +177,7 @@ static inline int ath6kl_hif_pipe_map_service(struct ath6kl *ar,
 }
 
 static inline u16 ath6kl_hif_pipe_get_free_queue_number(struct ath6kl *ar,
-							u8 pipe)
+		u8 pipe)
 {
 	ath6kl_dbg(ATH6KL_DBG_HIF, "hif pipe get free queue number\n");
 

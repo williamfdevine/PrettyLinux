@@ -27,7 +27,7 @@ static inline void elf_core_copy_kernel_regs(elf_gregset_t *elfregs, struct pt_r
 #endif
 }
 
-static inline int elf_core_copy_task_regs(struct task_struct *t, elf_gregset_t* elfregs)
+static inline int elf_core_copy_task_regs(struct task_struct *t, elf_gregset_t *elfregs)
 {
 #if defined (ELF_CORE_COPY_TASK_REGS)
 	return ELF_CORE_COPY_TASK_REGS(t, elfregs);

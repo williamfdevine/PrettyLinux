@@ -38,7 +38,8 @@
 #define RSTV6110_STAT2		6
 #define RSTV6110_STAT3		7
 
-struct stv6110_config {
+struct stv6110_config
+{
 	u8 i2c_address;
 	u32 mclk;
 	u8 gain;
@@ -47,12 +48,12 @@ struct stv6110_config {
 
 #if IS_REACHABLE(CONFIG_DVB_STV6110)
 extern struct dvb_frontend *stv6110_attach(struct dvb_frontend *fe,
-					const struct stv6110_config *config,
-					struct i2c_adapter *i2c);
+		const struct stv6110_config *config,
+		struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *stv6110_attach(struct dvb_frontend *fe,
-					const struct stv6110_config *config,
-					struct i2c_adapter *i2c)
+		const struct stv6110_config *config,
+		struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

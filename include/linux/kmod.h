@@ -53,7 +53,8 @@ struct file;
 #define UMH_WAIT_PROC	2	/* wait for the process to complete */
 #define UMH_KILLABLE	4	/* wait for EXEC/PROC killable */
 
-struct subprocess_info {
+struct subprocess_info
+{
 	struct work_struct work;
 	struct completion *complete;
 	char *path;
@@ -71,15 +72,16 @@ call_usermodehelper(char *path, char **argv, char **envp, int wait);
 
 extern struct subprocess_info *
 call_usermodehelper_setup(char *path, char **argv, char **envp, gfp_t gfp_mask,
-			  int (*init)(struct subprocess_info *info, struct cred *new),
-			  void (*cleanup)(struct subprocess_info *), void *data);
+						  int (*init)(struct subprocess_info *info, struct cred *new),
+						  void (*cleanup)(struct subprocess_info *), void *data);
 
 extern int
 call_usermodehelper_exec(struct subprocess_info *info, int wait);
 
 extern struct ctl_table usermodehelper_table[];
 
-enum umh_disable_depth {
+enum umh_disable_depth
+{
 	UMH_ENABLED = 0,
 	UMH_FREEZING,
 	UMH_DISABLED,

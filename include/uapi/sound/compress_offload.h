@@ -36,7 +36,8 @@
  * @fragment_size: size of buffer fragment in bytes
  * @fragments: number of such fragments
  */
-struct snd_compressed_buffer {
+struct snd_compressed_buffer
+{
 	__u32 fragment_size;
 	__u32 fragments;
 } __attribute__((packed, aligned(4)));
@@ -47,7 +48,8 @@ struct snd_compressed_buffer {
  * @codec: codec parameters
  * @no_wake_mode: dont wake on fragment elapsed
  */
-struct snd_compr_params {
+struct snd_compr_params
+{
 	struct snd_compressed_buffer buffer;
 	struct snd_codec codec;
 	__u8 no_wake_mode;
@@ -64,7 +66,8 @@ struct snd_compr_params {
  * output/input. This field should be used for A/V sync or time estimates.
  * @sampling_rate: sampling rate of audio
  */
-struct snd_compr_tstamp {
+struct snd_compr_tstamp
+{
 	__u32 byte_offset;
 	__u32 copied_total;
 	__u32 pcm_frames;
@@ -77,12 +80,14 @@ struct snd_compr_tstamp {
  * @avail: Number of bytes available in ring buffer for writing/reading
  * @tstamp: timestamp information
  */
-struct snd_compr_avail {
+struct snd_compr_avail
+{
 	__u64 avail;
 	struct snd_compr_tstamp tstamp;
 } __attribute__((packed, aligned(4)));
 
-enum snd_compr_direction {
+enum snd_compr_direction
+{
 	SND_COMPRESS_PLAYBACK = 0,
 	SND_COMPRESS_CAPTURE
 };
@@ -98,7 +103,8 @@ enum snd_compr_direction {
  * @num_codecs: number of codecs supported
  * @reserved: reserved field
  */
-struct snd_compr_caps {
+struct snd_compr_caps
+{
 	__u32 num_codecs;
 	__u32 direction;
 	__u32 min_fragment_size;
@@ -115,7 +121,8 @@ struct snd_compr_caps {
  * @num_descriptors: number of codec descriptors
  * @descriptor: array of codec capability descriptor
  */
-struct snd_compr_codec_caps {
+struct snd_compr_codec_caps
+{
 	__u32 codec;
 	__u32 num_descriptors;
 	struct snd_codec_desc descriptor[MAX_NUM_CODEC_DESCRIPTORS];
@@ -128,7 +135,8 @@ struct snd_compr_codec_caps {
  * @SNDRV_COMPRESS_ENCODER_DELAY: no of samples inserted by the encoder at the
  * beginning of the track
  */
-enum sndrv_compress_encoder {
+enum sndrv_compress_encoder
+{
 	SNDRV_COMPRESS_ENCODER_PADDING = 1,
 	SNDRV_COMPRESS_ENCODER_DELAY = 2,
 };
@@ -138,9 +146,10 @@ enum sndrv_compress_encoder {
  * @key: key id
  * @value: key value
  */
-struct snd_compr_metadata {
-	 __u32 key;
-	 __u32 value[8];
+struct snd_compr_metadata
+{
+	__u32 key;
+	__u32 value[8];
 } __attribute__((packed, aligned(4)));
 
 /**
@@ -164,13 +173,13 @@ struct snd_compr_metadata {
 #define SNDRV_COMPRESS_IOCTL_VERSION	_IOR('C', 0x00, int)
 #define SNDRV_COMPRESS_GET_CAPS		_IOWR('C', 0x10, struct snd_compr_caps)
 #define SNDRV_COMPRESS_GET_CODEC_CAPS	_IOWR('C', 0x11,\
-						struct snd_compr_codec_caps)
+		struct snd_compr_codec_caps)
 #define SNDRV_COMPRESS_SET_PARAMS	_IOW('C', 0x12, struct snd_compr_params)
 #define SNDRV_COMPRESS_GET_PARAMS	_IOR('C', 0x13, struct snd_codec)
 #define SNDRV_COMPRESS_SET_METADATA	_IOW('C', 0x14,\
-						 struct snd_compr_metadata)
+		struct snd_compr_metadata)
 #define SNDRV_COMPRESS_GET_METADATA	_IOWR('C', 0x15,\
-						 struct snd_compr_metadata)
+		struct snd_compr_metadata)
 #define SNDRV_COMPRESS_TSTAMP		_IOR('C', 0x20, struct snd_compr_tstamp)
 #define SNDRV_COMPRESS_AVAIL		_IOR('C', 0x21, struct snd_compr_avail)
 #define SNDRV_COMPRESS_PAUSE		_IO('C', 0x30)

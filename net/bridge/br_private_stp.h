@@ -29,9 +29,10 @@
 #define BR_MIN_PATH_COST	1
 #define BR_MAX_PATH_COST	65535
 
-struct br_config_bpdu {
-	unsigned int	topology_change:1;
-	unsigned int	topology_change_ack:1;
+struct br_config_bpdu
+{
+	unsigned int	topology_change: 1;
+	unsigned int	topology_change_ack: 1;
 	bridge_id	root;
 	int		root_path_cost;
 	bridge_id	bridge_id;
@@ -46,7 +47,7 @@ struct br_config_bpdu {
 static inline int br_is_designated_port(const struct net_bridge_port *p)
 {
 	return !memcmp(&p->designated_bridge, &p->br->bridge_id, 8) &&
-		(p->designated_port == p->port_id);
+		   (p->designated_port == p->port_id);
 }
 
 
@@ -56,7 +57,7 @@ void br_config_bpdu_generation(struct net_bridge *);
 void br_configuration_update(struct net_bridge *);
 void br_port_state_selection(struct net_bridge *);
 void br_received_config_bpdu(struct net_bridge_port *p,
-			     const struct br_config_bpdu *bpdu);
+							 const struct br_config_bpdu *bpdu);
 void br_received_tcn_bpdu(struct net_bridge_port *p);
 void br_transmit_config(struct net_bridge_port *p);
 void br_transmit_tcn(struct net_bridge *br);

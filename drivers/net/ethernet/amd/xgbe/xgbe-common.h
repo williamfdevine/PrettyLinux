@@ -1020,35 +1020,35 @@
 
 /* MDIO undefined or vendor specific registers */
 #ifndef MDIO_PMA_10GBR_PMD_CTRL
-#define MDIO_PMA_10GBR_PMD_CTRL		0x0096
+	#define MDIO_PMA_10GBR_PMD_CTRL		0x0096
 #endif
 
 #ifndef MDIO_PMA_10GBR_FECCTRL
-#define MDIO_PMA_10GBR_FECCTRL		0x00ab
+	#define MDIO_PMA_10GBR_FECCTRL		0x00ab
 #endif
 
 #ifndef MDIO_AN_XNP
-#define MDIO_AN_XNP			0x0016
+	#define MDIO_AN_XNP			0x0016
 #endif
 
 #ifndef MDIO_AN_LPX
-#define MDIO_AN_LPX			0x0019
+	#define MDIO_AN_LPX			0x0019
 #endif
 
 #ifndef MDIO_AN_COMP_STAT
-#define MDIO_AN_COMP_STAT		0x0030
+	#define MDIO_AN_COMP_STAT		0x0030
 #endif
 
 #ifndef MDIO_AN_INTMASK
-#define MDIO_AN_INTMASK			0x8001
+	#define MDIO_AN_INTMASK			0x8001
 #endif
 
 #ifndef MDIO_AN_INT
-#define MDIO_AN_INT			0x8002
+	#define MDIO_AN_INT			0x8002
 #endif
 
 #ifndef MDIO_CTRL1_SPEED1G
-#define MDIO_CTRL1_SPEED1G		(MDIO_CTRL1_SPEED10G & ~BMCR_SPEED100)
+	#define MDIO_CTRL1_SPEED1G		(MDIO_CTRL1_SPEED10G & ~BMCR_SPEED100)
 #endif
 
 /* MDIO mask values */
@@ -1072,20 +1072,20 @@
 	(((_var) >> (_index)) & ((0x1 << (_width)) - 1))
 
 #define SET_BITS(_var, _index, _width, _val)				\
-do {									\
-	(_var) &= ~(((0x1 << (_width)) - 1) << (_index));		\
-	(_var) |= (((_val) & ((0x1 << (_width)) - 1)) << (_index));	\
-} while (0)
+	do {									\
+		(_var) &= ~(((0x1 << (_width)) - 1) << (_index));		\
+		(_var) |= (((_val) & ((0x1 << (_width)) - 1)) << (_index));	\
+	} while (0)
 
 #define GET_BITS_LE(_var, _index, _width)				\
 	((le32_to_cpu((_var)) >> (_index)) & ((0x1 << (_width)) - 1))
 
 #define SET_BITS_LE(_var, _index, _width, _val)				\
-do {									\
-	(_var) &= cpu_to_le32(~(((0x1 << (_width)) - 1) << (_index)));	\
-	(_var) |= cpu_to_le32((((_val) &				\
-			      ((0x1 << (_width)) - 1)) << (_index)));	\
-} while (0)
+	do {									\
+		(_var) &= cpu_to_le32(~(((0x1 << (_width)) - 1) << (_index)));	\
+		(_var) |= cpu_to_le32((((_val) &				\
+								((0x1 << (_width)) - 1)) << (_index)));	\
+	} while (0)
 
 /* Bit setting and getting macros based on register fields
  *  The get macro uses the bit field definitions formed using the input
@@ -1097,23 +1097,23 @@ do {									\
  */
 #define XGMAC_GET_BITS(_var, _prefix, _field)				\
 	GET_BITS((_var),						\
-		 _prefix##_##_field##_INDEX,				\
-		 _prefix##_##_field##_WIDTH)
+			 _prefix##_##_field##_INDEX,				\
+			 _prefix##_##_field##_WIDTH)
 
 #define XGMAC_SET_BITS(_var, _prefix, _field, _val)			\
 	SET_BITS((_var),						\
-		 _prefix##_##_field##_INDEX,				\
-		 _prefix##_##_field##_WIDTH, (_val))
+			 _prefix##_##_field##_INDEX,				\
+			 _prefix##_##_field##_WIDTH, (_val))
 
 #define XGMAC_GET_BITS_LE(_var, _prefix, _field)			\
 	GET_BITS_LE((_var),						\
-		 _prefix##_##_field##_INDEX,				\
-		 _prefix##_##_field##_WIDTH)
+				_prefix##_##_field##_INDEX,				\
+				_prefix##_##_field##_WIDTH)
 
 #define XGMAC_SET_BITS_LE(_var, _prefix, _field, _val)			\
 	SET_BITS_LE((_var),						\
-		 _prefix##_##_field##_INDEX,				\
-		 _prefix##_##_field##_WIDTH, (_val))
+				_prefix##_##_field##_INDEX,				\
+				_prefix##_##_field##_WIDTH, (_val))
 
 /* Macros for reading or writing registers
  *  The ioread macros will get bit fields or full values using the
@@ -1127,20 +1127,20 @@ do {									\
 
 #define XGMAC_IOREAD_BITS(_pdata, _reg, _field)				\
 	GET_BITS(XGMAC_IOREAD((_pdata), _reg),				\
-		 _reg##_##_field##_INDEX,				\
-		 _reg##_##_field##_WIDTH)
+			 _reg##_##_field##_INDEX,				\
+			 _reg##_##_field##_WIDTH)
 
 #define XGMAC_IOWRITE(_pdata, _reg, _val)				\
 	iowrite32((_val), (_pdata)->xgmac_regs + _reg)
 
 #define XGMAC_IOWRITE_BITS(_pdata, _reg, _field, _val)			\
-do {									\
-	u32 reg_val = XGMAC_IOREAD((_pdata), _reg);			\
-	SET_BITS(reg_val,						\
-		 _reg##_##_field##_INDEX,				\
-		 _reg##_##_field##_WIDTH, (_val));			\
-	XGMAC_IOWRITE((_pdata), _reg, reg_val);				\
-} while (0)
+	do {									\
+		u32 reg_val = XGMAC_IOREAD((_pdata), _reg);			\
+		SET_BITS(reg_val,						\
+				 _reg##_##_field##_INDEX,				\
+				 _reg##_##_field##_WIDTH, (_val));			\
+		XGMAC_IOWRITE((_pdata), _reg, reg_val);				\
+	} while (0)
 
 /* Macros for reading or writing MTL queue or traffic class registers
  *  Similar to the standard read and write macros except that the
@@ -1148,25 +1148,25 @@ do {									\
  */
 #define XGMAC_MTL_IOREAD(_pdata, _n, _reg)				\
 	ioread32((_pdata)->xgmac_regs +					\
-		 MTL_Q_BASE + ((_n) * MTL_Q_INC) + _reg)
+			 MTL_Q_BASE + ((_n) * MTL_Q_INC) + _reg)
 
 #define XGMAC_MTL_IOREAD_BITS(_pdata, _n, _reg, _field)			\
 	GET_BITS(XGMAC_MTL_IOREAD((_pdata), (_n), _reg),		\
-		 _reg##_##_field##_INDEX,				\
-		 _reg##_##_field##_WIDTH)
+			 _reg##_##_field##_INDEX,				\
+			 _reg##_##_field##_WIDTH)
 
 #define XGMAC_MTL_IOWRITE(_pdata, _n, _reg, _val)			\
 	iowrite32((_val), (_pdata)->xgmac_regs +			\
-		  MTL_Q_BASE + ((_n) * MTL_Q_INC) + _reg)
+			  MTL_Q_BASE + ((_n) * MTL_Q_INC) + _reg)
 
 #define XGMAC_MTL_IOWRITE_BITS(_pdata, _n, _reg, _field, _val)		\
-do {									\
-	u32 reg_val = XGMAC_MTL_IOREAD((_pdata), (_n), _reg);		\
-	SET_BITS(reg_val,						\
-		 _reg##_##_field##_INDEX,				\
-		 _reg##_##_field##_WIDTH, (_val));			\
-	XGMAC_MTL_IOWRITE((_pdata), (_n), _reg, reg_val);		\
-} while (0)
+	do {									\
+		u32 reg_val = XGMAC_MTL_IOREAD((_pdata), (_n), _reg);		\
+		SET_BITS(reg_val,						\
+				 _reg##_##_field##_INDEX,				\
+				 _reg##_##_field##_WIDTH, (_val));			\
+		XGMAC_MTL_IOWRITE((_pdata), (_n), _reg, reg_val);		\
+	} while (0)
 
 /* Macros for reading or writing DMA channel registers
  *  Similar to the standard read and write macros except that the
@@ -1177,20 +1177,20 @@ do {									\
 
 #define XGMAC_DMA_IOREAD_BITS(_channel, _reg, _field)			\
 	GET_BITS(XGMAC_DMA_IOREAD((_channel), _reg),			\
-		 _reg##_##_field##_INDEX,				\
-		 _reg##_##_field##_WIDTH)
+			 _reg##_##_field##_INDEX,				\
+			 _reg##_##_field##_WIDTH)
 
 #define XGMAC_DMA_IOWRITE(_channel, _reg, _val)				\
 	iowrite32((_val), (_channel)->dma_regs + _reg)
 
 #define XGMAC_DMA_IOWRITE_BITS(_channel, _reg, _field, _val)		\
-do {									\
-	u32 reg_val = XGMAC_DMA_IOREAD((_channel), _reg);		\
-	SET_BITS(reg_val,						\
-		 _reg##_##_field##_INDEX,				\
-		 _reg##_##_field##_WIDTH, (_val));			\
-	XGMAC_DMA_IOWRITE((_channel), _reg, reg_val);			\
-} while (0)
+	do {									\
+		u32 reg_val = XGMAC_DMA_IOREAD((_channel), _reg);		\
+		SET_BITS(reg_val,						\
+				 _reg##_##_field##_INDEX,				\
+				 _reg##_##_field##_WIDTH, (_val));			\
+		XGMAC_DMA_IOWRITE((_channel), _reg, reg_val);			\
+	} while (0)
 
 /* Macros for building, reading or writing register values or bits
  * within the register values of XPCS registers.
@@ -1206,53 +1206,53 @@ do {									\
  */
 #define XSIR_GET_BITS(_var, _prefix, _field)                            \
 	GET_BITS((_var),                                                \
-		 _prefix##_##_field##_INDEX,                            \
-		 _prefix##_##_field##_WIDTH)
+			 _prefix##_##_field##_INDEX,                            \
+			 _prefix##_##_field##_WIDTH)
 
 #define XSIR_SET_BITS(_var, _prefix, _field, _val)                      \
 	SET_BITS((_var),                                                \
-		 _prefix##_##_field##_INDEX,                            \
-		 _prefix##_##_field##_WIDTH, (_val))
+			 _prefix##_##_field##_INDEX,                            \
+			 _prefix##_##_field##_WIDTH, (_val))
 
 #define XSIR0_IOREAD(_pdata, _reg)					\
 	ioread16((_pdata)->sir0_regs + _reg)
 
 #define XSIR0_IOREAD_BITS(_pdata, _reg, _field)				\
 	GET_BITS(XSIR0_IOREAD((_pdata), _reg),				\
-		 _reg##_##_field##_INDEX,				\
-		 _reg##_##_field##_WIDTH)
+			 _reg##_##_field##_INDEX,				\
+			 _reg##_##_field##_WIDTH)
 
 #define XSIR0_IOWRITE(_pdata, _reg, _val)				\
 	iowrite16((_val), (_pdata)->sir0_regs + _reg)
 
 #define XSIR0_IOWRITE_BITS(_pdata, _reg, _field, _val)			\
-do {									\
-	u16 reg_val = XSIR0_IOREAD((_pdata), _reg);			\
-	SET_BITS(reg_val,						\
-		 _reg##_##_field##_INDEX,				\
-		 _reg##_##_field##_WIDTH, (_val));			\
-	XSIR0_IOWRITE((_pdata), _reg, reg_val);				\
-} while (0)
+	do {									\
+		u16 reg_val = XSIR0_IOREAD((_pdata), _reg);			\
+		SET_BITS(reg_val,						\
+				 _reg##_##_field##_INDEX,				\
+				 _reg##_##_field##_WIDTH, (_val));			\
+		XSIR0_IOWRITE((_pdata), _reg, reg_val);				\
+	} while (0)
 
 #define XSIR1_IOREAD(_pdata, _reg)					\
 	ioread16((_pdata)->sir1_regs + _reg)
 
 #define XSIR1_IOREAD_BITS(_pdata, _reg, _field)				\
 	GET_BITS(XSIR1_IOREAD((_pdata), _reg),				\
-		 _reg##_##_field##_INDEX,				\
-		 _reg##_##_field##_WIDTH)
+			 _reg##_##_field##_INDEX,				\
+			 _reg##_##_field##_WIDTH)
 
 #define XSIR1_IOWRITE(_pdata, _reg, _val)				\
 	iowrite16((_val), (_pdata)->sir1_regs + _reg)
 
 #define XSIR1_IOWRITE_BITS(_pdata, _reg, _field, _val)			\
-do {									\
-	u16 reg_val = XSIR1_IOREAD((_pdata), _reg);			\
-	SET_BITS(reg_val,						\
-		 _reg##_##_field##_INDEX,				\
-		 _reg##_##_field##_WIDTH, (_val));			\
-	XSIR1_IOWRITE((_pdata), _reg, reg_val);				\
-} while (0)
+	do {									\
+		u16 reg_val = XSIR1_IOREAD((_pdata), _reg);			\
+		SET_BITS(reg_val,						\
+				 _reg##_##_field##_INDEX,				\
+				 _reg##_##_field##_WIDTH, (_val));			\
+		XSIR1_IOWRITE((_pdata), _reg, reg_val);				\
+	} while (0)
 
 /* Macros for building, reading or writing register values or bits
  * within the register values of SerDes RxTx registers.
@@ -1262,20 +1262,20 @@ do {									\
 
 #define XRXTX_IOREAD_BITS(_pdata, _reg, _field)				\
 	GET_BITS(XRXTX_IOREAD((_pdata), _reg),				\
-		 _reg##_##_field##_INDEX,				\
-		 _reg##_##_field##_WIDTH)
+			 _reg##_##_field##_INDEX,				\
+			 _reg##_##_field##_WIDTH)
 
 #define XRXTX_IOWRITE(_pdata, _reg, _val)				\
 	iowrite16((_val), (_pdata)->rxtx_regs + _reg)
 
 #define XRXTX_IOWRITE_BITS(_pdata, _reg, _field, _val)			\
-do {									\
-	u16 reg_val = XRXTX_IOREAD((_pdata), _reg);			\
-	SET_BITS(reg_val,						\
-		 _reg##_##_field##_INDEX,				\
-		 _reg##_##_field##_WIDTH, (_val));			\
-	XRXTX_IOWRITE((_pdata), _reg, reg_val);				\
-} while (0)
+	do {									\
+		u16 reg_val = XRXTX_IOREAD((_pdata), _reg);			\
+		SET_BITS(reg_val,						\
+				 _reg##_##_field##_INDEX,				\
+				 _reg##_##_field##_WIDTH, (_val));			\
+		XRXTX_IOWRITE((_pdata), _reg, reg_val);				\
+	} while (0)
 
 /* Macros for building, reading or writing register values or bits
  * using MDIO.  Different from above because of the use of standardized
@@ -1284,21 +1284,21 @@ do {									\
  */
 #define XMDIO_READ(_pdata, _mmd, _reg)					\
 	((_pdata)->hw_if.read_mmd_regs((_pdata), 0,			\
-		MII_ADDR_C45 | (_mmd << 16) | ((_reg) & 0xffff)))
+								   MII_ADDR_C45 | (_mmd << 16) | ((_reg) & 0xffff)))
 
 #define XMDIO_READ_BITS(_pdata, _mmd, _reg, _mask)			\
 	(XMDIO_READ((_pdata), _mmd, _reg) & _mask)
 
 #define XMDIO_WRITE(_pdata, _mmd, _reg, _val)				\
 	((_pdata)->hw_if.write_mmd_regs((_pdata), 0,			\
-		MII_ADDR_C45 | (_mmd << 16) | ((_reg) & 0xffff), (_val)))
+									MII_ADDR_C45 | (_mmd << 16) | ((_reg) & 0xffff), (_val)))
 
 #define XMDIO_WRITE_BITS(_pdata, _mmd, _reg, _mask, _val)		\
-do {									\
-	u32 mmd_val = XMDIO_READ((_pdata), _mmd, _reg);			\
-	mmd_val &= ~_mask;						\
-	mmd_val |= (_val);						\
-	XMDIO_WRITE((_pdata), _mmd, _reg, mmd_val);			\
-} while (0)
+	do {									\
+		u32 mmd_val = XMDIO_READ((_pdata), _mmd, _reg);			\
+		mmd_val &= ~_mask;						\
+		mmd_val |= (_val);						\
+		XMDIO_WRITE((_pdata), _mmd, _reg, mmd_val);			\
+	} while (0)
 
 #endif

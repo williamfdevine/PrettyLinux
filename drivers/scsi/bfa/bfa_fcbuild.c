@@ -26,9 +26,9 @@
  * static build functions
  */
 static void     fc_els_rsp_build(struct fchs_s *fchs, u32 d_id, u32 s_id,
-				 __be16 ox_id);
+								 __be16 ox_id);
 static void     fc_bls_rsp_build(struct fchs_s *fchs, u32 d_id, u32 s_id,
-				 __be16 ox_id);
+								 __be16 ox_id);
 static struct fchs_s fc_els_req_tmpl;
 static struct fchs_s fc_els_rsp_tmpl;
 static struct fchs_s fc_bls_req_tmpl;
@@ -50,7 +50,7 @@ fcbuild_init(void)
 	fc_els_req_tmpl.type = FC_TYPE_ELS;
 	fc_els_req_tmpl.f_ctl =
 		bfa_hton3b(FCTL_SEQ_INI | FCTL_FS_EXCH | FCTL_END_SEQ |
-			      FCTL_SI_XFER);
+				   FCTL_SI_XFER);
 	fc_els_req_tmpl.rx_id = FC_RXID_ANY;
 
 	/*
@@ -61,7 +61,7 @@ fcbuild_init(void)
 	fc_els_rsp_tmpl.type = FC_TYPE_ELS;
 	fc_els_rsp_tmpl.f_ctl =
 		bfa_hton3b(FCTL_EC_RESP | FCTL_SEQ_INI | FCTL_LS_EXCH |
-			      FCTL_END_SEQ | FCTL_SI_XFER);
+				   FCTL_END_SEQ | FCTL_SI_XFER);
 	fc_els_rsp_tmpl.rx_id = FC_RXID_ANY;
 
 	/*
@@ -80,7 +80,7 @@ fcbuild_init(void)
 	fc_bls_rsp_tmpl.type = FC_TYPE_BLS;
 	fc_bls_rsp_tmpl.f_ctl =
 		bfa_hton3b(FCTL_EC_RESP | FCTL_SEQ_INI | FCTL_LS_EXCH |
-			      FCTL_END_SEQ | FCTL_SI_XFER);
+				   FCTL_END_SEQ | FCTL_SI_XFER);
 	fc_bls_rsp_tmpl.rx_id = FC_RXID_ANY;
 
 	/*
@@ -144,7 +144,7 @@ fc_gs_fchdr_build(struct fchs_s *fchs, u32 d_id, u32 s_id, u32 ox_id)
 	fchs->type = FC_TYPE_SERVICES;
 	fchs->f_ctl =
 		bfa_hton3b(FCTL_SEQ_INI | FCTL_FS_EXCH | FCTL_END_SEQ |
-			      FCTL_SI_XFER);
+				   FCTL_SI_XFER);
 	fchs->rx_id = FC_RXID_ANY;
 	fchs->d_id = (d_id);
 	fchs->s_id = (s_id);
@@ -166,7 +166,7 @@ fc_gsresp_fchdr_build(struct fchs_s *fchs, u32 d_id, u32 s_id, u16 ox_id)
 	fchs->type = FC_TYPE_SERVICES;
 	fchs->f_ctl =
 		bfa_hton3b(FCTL_EC_RESP | FCTL_SEQ_INI | FCTL_LS_EXCH |
-			   FCTL_END_SEQ | FCTL_SI_XFER);
+				   FCTL_END_SEQ | FCTL_SI_XFER);
 	fchs->d_id = d_id;
 	fchs->s_id = s_id;
 	fchs->ox_id = ox_id;
@@ -198,16 +198,22 @@ fc_els_rsp_parse(struct fchs_s *fchs, int len)
 
 	len = len;
 
-	switch (els_cmd->els_code) {
-	case FC_ELS_LS_RJT:
-		if (ls_rjt->reason_code == FC_LS_RJT_RSN_LOGICAL_BUSY)
-			return FC_PARSE_BUSY;
-		else
-			return FC_PARSE_FAILURE;
+	switch (els_cmd->els_code)
+	{
+		case FC_ELS_LS_RJT:
+			if (ls_rjt->reason_code == FC_LS_RJT_RSN_LOGICAL_BUSY)
+			{
+				return FC_PARSE_BUSY;
+			}
+			else
+			{
+				return FC_PARSE_FAILURE;
+			}
 
-	case FC_ELS_ACC:
-		return FC_PARSE_OK;
+		case FC_ELS_ACC:
+			return FC_PARSE_OK;
 	}
+
 	return FC_PARSE_OK;
 }
 
@@ -222,8 +228,8 @@ fc_bls_rsp_build(struct fchs_s *fchs, u32 d_id, u32 s_id, __be16 ox_id)
 
 static          u16
 fc_plogi_x_build(struct fchs_s *fchs, void *pld, u32 d_id, u32 s_id,
-		 __be16 ox_id, wwn_t port_name, wwn_t node_name,
-		 u16 pdu_size, u16 bb_cr, u8 els_code)
+				 __be16 ox_id, wwn_t port_name, wwn_t node_name,
+				 u16 pdu_size, u16 bb_cr, u8 els_code)
 {
 	struct fc_logi_s *plogi = (struct fc_logi_s *) (pld);
 
@@ -231,13 +237,20 @@ fc_plogi_x_build(struct fchs_s *fchs, void *pld, u32 d_id, u32 s_id,
 
 	/* For FC AL bb_cr is 0 and altbbcred is 1 */
 	if (!bb_cr)
+	{
 		plogi->csp.altbbcred = 1;
+	}
 
 	plogi->els_cmd.els_code = els_code;
+
 	if (els_code == FC_ELS_PLOGI)
+	{
 		fc_els_req_build(fchs, d_id, s_id, ox_id);
+	}
 	else
+	{
 		fc_els_rsp_build(fchs, d_id, s_id, ox_id);
+	}
 
 	plogi->csp.rxsz = plogi->class3.rxsz = cpu_to_be16(pdu_size);
 	plogi->csp.bbcred  = cpu_to_be16(bb_cr);
@@ -250,8 +263,8 @@ fc_plogi_x_build(struct fchs_s *fchs, void *pld, u32 d_id, u32 s_id,
 
 u16
 fc_flogi_build(struct fchs_s *fchs, struct fc_logi_s *flogi, u32 s_id,
-		u16 ox_id, wwn_t port_name, wwn_t node_name, u16 pdu_size,
-	       u8 set_npiv, u8 set_auth, u16 local_bb_credits)
+			   u16 ox_id, wwn_t port_name, wwn_t node_name, u16 pdu_size,
+			   u8 set_npiv, u8 set_auth, u16 local_bb_credits)
 {
 	u32        d_id = bfa_hton3b(FC_FABRIC_PORT);
 	__be32	*vvl_info;
@@ -288,8 +301,8 @@ fc_flogi_build(struct fchs_s *fchs, struct fc_logi_s *flogi, u32 s_id,
 
 u16
 fc_flogi_acc_build(struct fchs_s *fchs, struct fc_logi_s *flogi, u32 s_id,
-		   __be16 ox_id, wwn_t port_name, wwn_t node_name,
-		   u16 pdu_size, u16 local_bb_credits, u8 bb_scn)
+				   __be16 ox_id, wwn_t port_name, wwn_t node_name,
+				   u16 pdu_size, u16 local_bb_credits, u8 bb_scn)
 {
 	u32        d_id = 0;
 	u16	   bbscn_rxsz = (bb_scn << 12) | pdu_size;
@@ -310,7 +323,7 @@ fc_flogi_acc_build(struct fchs_s *fchs, struct fc_logi_s *flogi, u32 s_id,
 
 u16
 fc_fdisc_build(struct fchs_s *fchs, struct fc_logi_s *flogi, u32 s_id,
-		u16 ox_id, wwn_t port_name, wwn_t node_name, u16 pdu_size)
+			   u16 ox_id, wwn_t port_name, wwn_t node_name, u16 pdu_size)
 {
 	u32        d_id = bfa_hton3b(FC_FABRIC_PORT);
 
@@ -328,20 +341,20 @@ fc_fdisc_build(struct fchs_s *fchs, struct fc_logi_s *flogi, u32 s_id,
 
 u16
 fc_plogi_build(struct fchs_s *fchs, void *pld, u32 d_id, u32 s_id,
-	       u16 ox_id, wwn_t port_name, wwn_t node_name,
-	       u16 pdu_size, u16 bb_cr)
+			   u16 ox_id, wwn_t port_name, wwn_t node_name,
+			   u16 pdu_size, u16 bb_cr)
 {
 	return fc_plogi_x_build(fchs, pld, d_id, s_id, ox_id, port_name,
-				node_name, pdu_size, bb_cr, FC_ELS_PLOGI);
+							node_name, pdu_size, bb_cr, FC_ELS_PLOGI);
 }
 
 u16
 fc_plogi_acc_build(struct fchs_s *fchs, void *pld, u32 d_id, u32 s_id,
-		   u16 ox_id, wwn_t port_name, wwn_t node_name,
-		   u16 pdu_size, u16 bb_cr)
+				   u16 ox_id, wwn_t port_name, wwn_t node_name,
+				   u16 pdu_size, u16 bb_cr)
 {
 	return fc_plogi_x_build(fchs, pld, d_id, s_id, ox_id, port_name,
-				node_name, pdu_size, bb_cr, FC_ELS_ACC);
+							node_name, pdu_size, bb_cr, FC_ELS_ACC);
 }
 
 enum fc_parse_status
@@ -351,30 +364,47 @@ fc_plogi_rsp_parse(struct fchs_s *fchs, int len, wwn_t port_name)
 	struct fc_logi_s *plogi;
 	struct fc_ls_rjt_s *ls_rjt;
 
-	switch (els_cmd->els_code) {
-	case FC_ELS_LS_RJT:
-		ls_rjt = (struct fc_ls_rjt_s *) (fchs + 1);
-		if (ls_rjt->reason_code == FC_LS_RJT_RSN_LOGICAL_BUSY)
-			return FC_PARSE_BUSY;
-		else
-			return FC_PARSE_FAILURE;
-	case FC_ELS_ACC:
-		plogi = (struct fc_logi_s *) (fchs + 1);
-		if (len < sizeof(struct fc_logi_s))
-			return FC_PARSE_FAILURE;
+	switch (els_cmd->els_code)
+	{
+		case FC_ELS_LS_RJT:
+			ls_rjt = (struct fc_ls_rjt_s *) (fchs + 1);
 
-		if (!wwn_is_equal(plogi->port_name, port_name))
-			return FC_PARSE_FAILURE;
+			if (ls_rjt->reason_code == FC_LS_RJT_RSN_LOGICAL_BUSY)
+			{
+				return FC_PARSE_BUSY;
+			}
+			else
+			{
+				return FC_PARSE_FAILURE;
+			}
 
-		if (!plogi->class3.class_valid)
-			return FC_PARSE_FAILURE;
+		case FC_ELS_ACC:
+			plogi = (struct fc_logi_s *) (fchs + 1);
 
-		if (be16_to_cpu(plogi->class3.rxsz) < (FC_MIN_PDUSZ))
-			return FC_PARSE_FAILURE;
+			if (len < sizeof(struct fc_logi_s))
+			{
+				return FC_PARSE_FAILURE;
+			}
 
-		return FC_PARSE_OK;
-	default:
-		return FC_PARSE_FAILURE;
+			if (!wwn_is_equal(plogi->port_name, port_name))
+			{
+				return FC_PARSE_FAILURE;
+			}
+
+			if (!plogi->class3.class_valid)
+			{
+				return FC_PARSE_FAILURE;
+			}
+
+			if (be16_to_cpu(plogi->class3.rxsz) < (FC_MIN_PDUSZ))
+			{
+				return FC_PARSE_FAILURE;
+			}
+
+			return FC_PARSE_OK;
+
+		default:
+			return FC_PARSE_FAILURE;
 	}
 }
 
@@ -384,19 +414,23 @@ fc_plogi_parse(struct fchs_s *fchs)
 	struct fc_logi_s *plogi = (struct fc_logi_s *) (fchs + 1);
 
 	if (plogi->class3.class_valid != 1)
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	if ((be16_to_cpu(plogi->class3.rxsz) < FC_MIN_PDUSZ)
-	    || (be16_to_cpu(plogi->class3.rxsz) > FC_MAX_PDUSZ)
-	    || (plogi->class3.rxsz == 0))
+	|| (be16_to_cpu(plogi->class3.rxsz) > FC_MAX_PDUSZ)
+	|| (plogi->class3.rxsz == 0))
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	return FC_PARSE_OK;
 }
 
 u16
 fc_prli_build(struct fchs_s *fchs, void *pld, u32 d_id, u32 s_id,
-	      u16 ox_id)
+			  u16 ox_id)
 {
 	struct fc_prli_s *prli = (struct fc_prli_s *) (pld);
 
@@ -415,7 +449,7 @@ fc_prli_build(struct fchs_s *fchs, void *pld, u32 d_id, u32 s_id,
 
 u16
 fc_prli_acc_build(struct fchs_s *fchs, void *pld, u32 d_id, u32 s_id,
-		  __be16 ox_id, enum bfa_lport_role role)
+				  __be16 ox_id, enum bfa_lport_role role)
 {
 	struct fc_prli_s *prli = (struct fc_prli_s *) (pld);
 
@@ -435,17 +469,25 @@ enum fc_parse_status
 fc_prli_rsp_parse(struct fc_prli_s *prli, int len)
 {
 	if (len < sizeof(struct fc_prli_s))
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	if (prli->command != FC_ELS_ACC)
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	if ((prli->parampage.rspcode != FC_PRLI_ACC_XQTD)
-	    && (prli->parampage.rspcode != FC_PRLI_ACC_PREDEF_IMG))
+	&& (prli->parampage.rspcode != FC_PRLI_ACC_PREDEF_IMG))
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	if (prli->parampage.servparams.target != 1)
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	return FC_PARSE_OK;
 }
@@ -454,20 +496,26 @@ enum fc_parse_status
 fc_prli_parse(struct fc_prli_s *prli)
 {
 	if (prli->parampage.type != FC_TYPE_FCP)
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	if (!prli->parampage.imagepair)
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	if (!prli->parampage.servparams.initiator)
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	return FC_PARSE_OK;
 }
 
 u16
 fc_logo_build(struct fchs_s *fchs, struct fc_logo_s *logo, u32 d_id, u32 s_id,
-	      u16 ox_id, wwn_t port_name)
+			  u16 ox_id, wwn_t port_name)
 {
 	fc_els_req_build(fchs, d_id, s_id, ox_id);
 
@@ -481,17 +529,21 @@ fc_logo_build(struct fchs_s *fchs, struct fc_logo_s *logo, u32 d_id, u32 s_id,
 
 static u16
 fc_adisc_x_build(struct fchs_s *fchs, struct fc_adisc_s *adisc, u32 d_id,
-		 u32 s_id, __be16 ox_id, wwn_t port_name,
-		 wwn_t node_name, u8 els_code)
+				 u32 s_id, __be16 ox_id, wwn_t port_name,
+				 wwn_t node_name, u8 els_code)
 {
 	memset(adisc, '\0', sizeof(struct fc_adisc_s));
 
 	adisc->els_cmd.els_code = els_code;
 
 	if (els_code == FC_ELS_ADISC)
+	{
 		fc_els_req_build(fchs, d_id, s_id, ox_id);
+	}
 	else
+	{
 		fc_els_rsp_build(fchs, d_id, s_id, ox_id);
+	}
 
 	adisc->orig_HA = 0;
 	adisc->orig_port_name = port_name;
@@ -503,51 +555,61 @@ fc_adisc_x_build(struct fchs_s *fchs, struct fc_adisc_s *adisc, u32 d_id,
 
 u16
 fc_adisc_build(struct fchs_s *fchs, struct fc_adisc_s *adisc, u32 d_id,
-		u32 s_id, __be16 ox_id, wwn_t port_name, wwn_t node_name)
+			   u32 s_id, __be16 ox_id, wwn_t port_name, wwn_t node_name)
 {
 	return fc_adisc_x_build(fchs, adisc, d_id, s_id, ox_id, port_name,
-				node_name, FC_ELS_ADISC);
+							node_name, FC_ELS_ADISC);
 }
 
 u16
 fc_adisc_acc_build(struct fchs_s *fchs, struct fc_adisc_s *adisc, u32 d_id,
-		   u32 s_id, __be16 ox_id, wwn_t port_name,
-		   wwn_t node_name)
+				   u32 s_id, __be16 ox_id, wwn_t port_name,
+				   wwn_t node_name)
 {
 	return fc_adisc_x_build(fchs, adisc, d_id, s_id, ox_id, port_name,
-				node_name, FC_ELS_ACC);
+							node_name, FC_ELS_ACC);
 }
 
 enum fc_parse_status
 fc_adisc_rsp_parse(struct fc_adisc_s *adisc, int len, wwn_t port_name,
-				 wwn_t node_name)
+				   wwn_t node_name)
 {
 
 	if (len < sizeof(struct fc_adisc_s))
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	if (adisc->els_cmd.els_code != FC_ELS_ACC)
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	if (!wwn_is_equal(adisc->orig_port_name, port_name))
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	return FC_PARSE_OK;
 }
 
 enum fc_parse_status
 fc_adisc_parse(struct fchs_s *fchs, void *pld, u32 host_dap, wwn_t node_name,
-	       wwn_t port_name)
+			   wwn_t port_name)
 {
 	struct fc_adisc_s *adisc = (struct fc_adisc_s *) pld;
 
 	if (adisc->els_cmd.els_code != FC_ELS_ACC)
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	if ((adisc->nport_id == (host_dap))
-	    && wwn_is_equal(adisc->orig_port_name, port_name)
-	    && wwn_is_equal(adisc->orig_node_name, node_name))
+	&& wwn_is_equal(adisc->orig_port_name, port_name)
+	&& wwn_is_equal(adisc->orig_node_name, node_name))
+	{
 		return FC_PARSE_OK;
+	}
 
 	return FC_PARSE_FAILURE;
 }
@@ -558,18 +620,26 @@ fc_pdisc_parse(struct fchs_s *fchs, wwn_t node_name, wwn_t port_name)
 	struct fc_logi_s *pdisc = (struct fc_logi_s *) (fchs + 1);
 
 	if (pdisc->class3.class_valid != 1)
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	if ((be16_to_cpu(pdisc->class3.rxsz) <
-		(FC_MIN_PDUSZ - sizeof(struct fchs_s)))
-	    || (pdisc->class3.rxsz == 0))
+	(FC_MIN_PDUSZ - sizeof(struct fchs_s)))
+	|| (pdisc->class3.rxsz == 0))
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	if (!wwn_is_equal(pdisc->port_name, port_name))
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	if (!wwn_is_equal(pdisc->node_name, node_name))
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	return FC_PARSE_OK;
 }
@@ -590,15 +660,17 @@ enum fc_parse_status
 fc_abts_rsp_parse(struct fchs_s *fchs, int len)
 {
 	if ((fchs->cat_info == FC_CAT_BA_ACC)
-	    || (fchs->cat_info == FC_CAT_BA_RJT))
+		|| (fchs->cat_info == FC_CAT_BA_RJT))
+	{
 		return FC_PARSE_OK;
+	}
 
 	return FC_PARSE_FAILURE;
 }
 
 u16
 fc_rrq_build(struct fchs_s *fchs, struct fc_rrq_s *rrq, u32 d_id, u32 s_id,
-	     u16 ox_id, u16 rrq_oxid)
+			 u16 ox_id, u16 rrq_oxid)
 {
 	fc_els_req_build(fchs, d_id, s_id, ox_id);
 
@@ -615,7 +687,7 @@ fc_rrq_build(struct fchs_s *fchs, struct fc_rrq_s *rrq, u32 d_id, u32 s_id,
 
 u16
 fc_logo_acc_build(struct fchs_s *fchs, void *pld, u32 d_id, u32 s_id,
-		  __be16 ox_id)
+				  __be16 ox_id)
 {
 	struct fc_els_cmd_s *acc = pld;
 
@@ -629,8 +701,8 @@ fc_logo_acc_build(struct fchs_s *fchs, void *pld, u32 d_id, u32 s_id,
 
 u16
 fc_ls_rjt_build(struct fchs_s *fchs, struct fc_ls_rjt_s *ls_rjt, u32 d_id,
-		u32 s_id, __be16 ox_id, u8 reason_code,
-		u8 reason_code_expl)
+				u32 s_id, __be16 ox_id, u8 reason_code,
+				u8 reason_code_expl)
 {
 	fc_els_rsp_build(fchs, d_id, s_id, ox_id);
 	memset(ls_rjt, 0, sizeof(struct fc_ls_rjt_s));
@@ -645,7 +717,7 @@ fc_ls_rjt_build(struct fchs_s *fchs, struct fc_ls_rjt_s *ls_rjt, u32 d_id,
 
 u16
 fc_ba_acc_build(struct fchs_s *fchs, struct fc_ba_acc_s *ba_acc, u32 d_id,
-		u32 s_id, __be16 ox_id, u16 rx_id)
+				u32 s_id, __be16 ox_id, u16 rx_id)
 {
 	fc_bls_rsp_build(fchs, d_id, s_id, ox_id);
 
@@ -661,7 +733,7 @@ fc_ba_acc_build(struct fchs_s *fchs, struct fc_ba_acc_s *ba_acc, u32 d_id,
 
 u16
 fc_ls_acc_build(struct fchs_s *fchs, struct fc_els_cmd_s *els_cmd, u32 d_id,
-		u32 s_id, __be16 ox_id)
+				u32 s_id, __be16 ox_id)
 {
 	fc_els_rsp_build(fchs, d_id, s_id, ox_id);
 	memset(els_cmd, 0, sizeof(struct fc_els_cmd_s));
@@ -677,19 +749,23 @@ fc_logout_params_pages(struct fchs_s *fc_frame, u8 els_code)
 	struct fc_prlo_s *prlo;
 	struct fc_tprlo_s *tprlo;
 
-	if (els_code == FC_ELS_PRLO) {
+	if (els_code == FC_ELS_PRLO)
+	{
 		prlo = (struct fc_prlo_s *) (fc_frame + 1);
 		num_pages = (be16_to_cpu(prlo->payload_len) - 4) / 16;
-	} else {
+	}
+	else
+	{
 		tprlo = (struct fc_tprlo_s *) (fc_frame + 1);
 		num_pages = (be16_to_cpu(tprlo->payload_len) - 4) / 16;
 	}
+
 	return num_pages;
 }
 
 u16
 fc_tprlo_acc_build(struct fchs_s *fchs, struct fc_tprlo_acc_s *tprlo_acc,
-		u32 d_id, u32 s_id, __be16 ox_id, int num_pages)
+				   u32 d_id, u32 s_id, __be16 ox_id, int num_pages)
 {
 	int             page;
 
@@ -701,19 +777,21 @@ fc_tprlo_acc_build(struct fchs_s *fchs, struct fc_tprlo_acc_s *tprlo_acc,
 	tprlo_acc->page_len = 0x10;
 	tprlo_acc->payload_len = cpu_to_be16((num_pages * 16) + 4);
 
-	for (page = 0; page < num_pages; page++) {
+	for (page = 0; page < num_pages; page++)
+	{
 		tprlo_acc->tprlo_acc_params[page].opa_valid = 0;
 		tprlo_acc->tprlo_acc_params[page].rpa_valid = 0;
 		tprlo_acc->tprlo_acc_params[page].fc4type_csp = FC_TYPE_FCP;
 		tprlo_acc->tprlo_acc_params[page].orig_process_assc = 0;
 		tprlo_acc->tprlo_acc_params[page].resp_process_assc = 0;
 	}
+
 	return be16_to_cpu(tprlo_acc->payload_len);
 }
 
 u16
 fc_prlo_acc_build(struct fchs_s *fchs, struct fc_prlo_acc_s *prlo_acc, u32 d_id,
-		  u32 s_id, __be16 ox_id, int num_pages)
+				  u32 s_id, __be16 ox_id, int num_pages)
 {
 	int             page;
 
@@ -724,7 +802,8 @@ fc_prlo_acc_build(struct fchs_s *fchs, struct fc_prlo_acc_s *prlo_acc, u32 d_id,
 	prlo_acc->page_len = 0x10;
 	prlo_acc->payload_len = cpu_to_be16((num_pages * 16) + 4);
 
-	for (page = 0; page < num_pages; page++) {
+	for (page = 0; page < num_pages; page++)
+	{
 		prlo_acc->prlo_acc_params[page].opa_valid = 0;
 		prlo_acc->prlo_acc_params[page].rpa_valid = 0;
 		prlo_acc->prlo_acc_params[page].fc4type_csp = FC_TYPE_FCP;
@@ -737,7 +816,7 @@ fc_prlo_acc_build(struct fchs_s *fchs, struct fc_prlo_acc_s *prlo_acc, u32 d_id,
 
 u16
 fc_rnid_build(struct fchs_s *fchs, struct fc_rnid_cmd_s *rnid, u32 d_id,
-		u32 s_id, u16 ox_id, u32 data_format)
+			  u32 s_id, u16 ox_id, u32 data_format)
 {
 	fc_els_req_build(fchs, d_id, s_id, ox_id);
 
@@ -751,9 +830,9 @@ fc_rnid_build(struct fchs_s *fchs, struct fc_rnid_cmd_s *rnid, u32 d_id,
 
 u16
 fc_rnid_acc_build(struct fchs_s *fchs, struct fc_rnid_acc_s *rnid_acc, u32 d_id,
-		  u32 s_id, __be16 ox_id, u32 data_format,
-		  struct fc_rnid_common_id_data_s *common_id_data,
-		  struct fc_rnid_general_topology_data_s *gen_topo_data)
+				  u32 s_id, __be16 ox_id, u32 data_format,
+				  struct fc_rnid_common_id_data_s *common_id_data,
+				  struct fc_rnid_general_topology_data_s *gen_topo_data)
 {
 	memset(rnid_acc, 0, sizeof(struct fc_rnid_acc_s));
 
@@ -762,24 +841,27 @@ fc_rnid_acc_build(struct fchs_s *fchs, struct fc_rnid_acc_s *rnid_acc, u32 d_id,
 	rnid_acc->els_cmd.els_code = FC_ELS_ACC;
 	rnid_acc->node_id_data_format = data_format;
 	rnid_acc->common_id_data_length =
-			sizeof(struct fc_rnid_common_id_data_s);
+		sizeof(struct fc_rnid_common_id_data_s);
 	rnid_acc->common_id_data = *common_id_data;
 
-	if (data_format == RNID_NODEID_DATA_FORMAT_DISCOVERY) {
+	if (data_format == RNID_NODEID_DATA_FORMAT_DISCOVERY)
+	{
 		rnid_acc->specific_id_data_length =
 			sizeof(struct fc_rnid_general_topology_data_s);
 		rnid_acc->gen_topology_data = *gen_topo_data;
 		return sizeof(struct fc_rnid_acc_s);
-	} else {
+	}
+	else
+	{
 		return sizeof(struct fc_rnid_acc_s) -
-			sizeof(struct fc_rnid_general_topology_data_s);
+			   sizeof(struct fc_rnid_general_topology_data_s);
 	}
 
 }
 
 u16
 fc_rpsc_build(struct fchs_s *fchs, struct fc_rpsc_cmd_s *rpsc, u32 d_id,
-		u32 s_id, u16 ox_id)
+			  u32 s_id, u16 ox_id)
 {
 	fc_els_req_build(fchs, d_id, s_id, ox_id);
 
@@ -791,7 +873,7 @@ fc_rpsc_build(struct fchs_s *fchs, struct fc_rpsc_cmd_s *rpsc, u32 d_id,
 
 u16
 fc_rpsc2_build(struct fchs_s *fchs, struct fc_rpsc2_cmd_s *rpsc2, u32 d_id,
-		u32 s_id, u32 *pid_list, u16 npids)
+			   u32 s_id, u32 *pid_list, u16 npids)
 {
 	u32 dctlr_id = FC_DOMAIN_CTRLR(bfa_hton3b(d_id));
 	int i = 0;
@@ -803,16 +885,19 @@ fc_rpsc2_build(struct fchs_s *fchs, struct fc_rpsc2_cmd_s *rpsc2, u32 d_id,
 	rpsc2->els_cmd.els_code = FC_ELS_RPSC;
 	rpsc2->token = cpu_to_be32(FC_BRCD_TOKEN);
 	rpsc2->num_pids  = cpu_to_be16(npids);
+
 	for (i = 0; i < npids; i++)
+	{
 		rpsc2->pid_list[i].pid = pid_list[i];
+	}
 
 	return sizeof(struct fc_rpsc2_cmd_s) + ((npids - 1) * (sizeof(u32)));
 }
 
 u16
 fc_rpsc_acc_build(struct fchs_s *fchs, struct fc_rpsc_acc_s *rpsc_acc,
-		u32 d_id, u32 s_id, __be16 ox_id,
-		  struct fc_rpsc_speed_info_s *oper_speed)
+				  u32 d_id, u32 s_id, __be16 ox_id,
+				  struct fc_rpsc_speed_info_s *oper_speed)
 {
 	memset(rpsc_acc, 0, sizeof(struct fc_rpsc_acc_s));
 
@@ -836,15 +921,18 @@ fc_logo_rsp_parse(struct fchs_s *fchs, int len)
 	struct fc_els_cmd_s *els_cmd = (struct fc_els_cmd_s *) (fchs + 1);
 
 	len = len;
+
 	if (els_cmd->els_code != FC_ELS_ACC)
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	return FC_PARSE_OK;
 }
 
 u16
 fc_pdisc_build(struct fchs_s *fchs, u32 d_id, u32 s_id, u16 ox_id,
-	       wwn_t port_name, wwn_t node_name, u16 pdu_size)
+			   wwn_t port_name, wwn_t node_name, u16 pdu_size)
 {
 	struct fc_logi_s *pdisc = (struct fc_logi_s *) (fchs + 1);
 
@@ -866,26 +954,36 @@ fc_pdisc_rsp_parse(struct fchs_s *fchs, int len, wwn_t port_name)
 	struct fc_logi_s *pdisc = (struct fc_logi_s *) (fchs + 1);
 
 	if (len < sizeof(struct fc_logi_s))
+	{
 		return FC_PARSE_LEN_INVAL;
+	}
 
 	if (pdisc->els_cmd.els_code != FC_ELS_ACC)
+	{
 		return FC_PARSE_ACC_INVAL;
+	}
 
 	if (!wwn_is_equal(pdisc->port_name, port_name))
+	{
 		return FC_PARSE_PWWN_NOT_EQUAL;
+	}
 
 	if (!pdisc->class3.class_valid)
+	{
 		return FC_PARSE_NWWN_NOT_EQUAL;
+	}
 
 	if (be16_to_cpu(pdisc->class3.rxsz) < (FC_MIN_PDUSZ))
+	{
 		return FC_PARSE_RXSZ_INVAL;
+	}
 
 	return FC_PARSE_OK;
 }
 
 u16
 fc_prlo_build(struct fchs_s *fchs, u32 d_id, u32 s_id, u16 ox_id,
-	      int num_pages)
+			  int num_pages)
 {
 	struct fc_prlo_s *prlo = (struct fc_prlo_s *) (fchs + 1);
 	int             page;
@@ -896,7 +994,8 @@ fc_prlo_build(struct fchs_s *fchs, u32 d_id, u32 s_id, u16 ox_id,
 	prlo->page_len = 0x10;
 	prlo->payload_len = cpu_to_be16((num_pages * 16) + 4);
 
-	for (page = 0; page < num_pages; page++) {
+	for (page = 0; page < num_pages; page++)
+	{
 		prlo->prlo_params[page].type = FC_TYPE_FCP;
 		prlo->prlo_params[page].opa_valid = 0;
 		prlo->prlo_params[page].rpa_valid = 0;
@@ -917,33 +1016,47 @@ fc_prlo_rsp_parse(struct fchs_s *fchs, int len)
 	len = len;
 
 	if (prlo->command != FC_ELS_ACC)
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	num_pages = ((be16_to_cpu(prlo->payload_len)) - 4) / 16;
 
-	for (page = 0; page < num_pages; page++) {
+	for (page = 0; page < num_pages; page++)
+	{
 		if (prlo->prlo_acc_params[page].type != FC_TYPE_FCP)
+		{
 			return FC_PARSE_FAILURE;
+		}
 
 		if (prlo->prlo_acc_params[page].opa_valid != 0)
+		{
 			return FC_PARSE_FAILURE;
+		}
 
 		if (prlo->prlo_acc_params[page].rpa_valid != 0)
+		{
 			return FC_PARSE_FAILURE;
+		}
 
 		if (prlo->prlo_acc_params[page].orig_process_assc != 0)
+		{
 			return FC_PARSE_FAILURE;
+		}
 
 		if (prlo->prlo_acc_params[page].resp_process_assc != 0)
+		{
 			return FC_PARSE_FAILURE;
+		}
 	}
+
 	return FC_PARSE_OK;
 
 }
 
 u16
 fc_tprlo_build(struct fchs_s *fchs, u32 d_id, u32 s_id, u16 ox_id,
-	       int num_pages, enum fc_tprlo_type tprlo_type, u32 tpr_id)
+			   int num_pages, enum fc_tprlo_type tprlo_type, u32 tpr_id)
 {
 	struct fc_tprlo_s *tprlo = (struct fc_tprlo_s *) (fchs + 1);
 	int             page;
@@ -954,15 +1067,20 @@ fc_tprlo_build(struct fchs_s *fchs, u32 d_id, u32 s_id, u16 ox_id,
 	tprlo->page_len = 0x10;
 	tprlo->payload_len = cpu_to_be16((num_pages * 16) + 4);
 
-	for (page = 0; page < num_pages; page++) {
+	for (page = 0; page < num_pages; page++)
+	{
 		tprlo->tprlo_params[page].type = FC_TYPE_FCP;
 		tprlo->tprlo_params[page].opa_valid = 0;
 		tprlo->tprlo_params[page].rpa_valid = 0;
 		tprlo->tprlo_params[page].orig_process_assc = 0;
 		tprlo->tprlo_params[page].resp_process_assc = 0;
-		if (tprlo_type == FC_GLOBAL_LOGO) {
+
+		if (tprlo_type == FC_GLOBAL_LOGO)
+		{
 			tprlo->tprlo_params[page].global_process_logout = 1;
-		} else if (tprlo_type == FC_TPR_LOGO) {
+		}
+		else if (tprlo_type == FC_TPR_LOGO)
+		{
 			tprlo->tprlo_params[page].tpo_nport_valid = 1;
 			tprlo->tprlo_params[page].tpo_nport_id = (tpr_id);
 		}
@@ -981,22 +1099,40 @@ fc_tprlo_rsp_parse(struct fchs_s *fchs, int len)
 	len = len;
 
 	if (tprlo->command != FC_ELS_ACC)
+	{
 		return FC_PARSE_ACC_INVAL;
+	}
 
 	num_pages = (be16_to_cpu(tprlo->payload_len) - 4) / 16;
 
-	for (page = 0; page < num_pages; page++) {
+	for (page = 0; page < num_pages; page++)
+	{
 		if (tprlo->tprlo_acc_params[page].type != FC_TYPE_FCP)
+		{
 			return FC_PARSE_NOT_FCP;
+		}
+
 		if (tprlo->tprlo_acc_params[page].opa_valid != 0)
+		{
 			return FC_PARSE_OPAFLAG_INVAL;
+		}
+
 		if (tprlo->tprlo_acc_params[page].rpa_valid != 0)
+		{
 			return FC_PARSE_RPAFLAG_INVAL;
+		}
+
 		if (tprlo->tprlo_acc_params[page].orig_process_assc != 0)
+		{
 			return FC_PARSE_OPA_INVAL;
+		}
+
 		if (tprlo->tprlo_acc_params[page].resp_process_assc != 0)
+		{
 			return FC_PARSE_RPA_INVAL;
+		}
 	}
+
 	return FC_PARSE_OK;
 }
 
@@ -1006,15 +1142,18 @@ fc_rrq_rsp_parse(struct fchs_s *fchs, int len)
 	struct fc_els_cmd_s *els_cmd = (struct fc_els_cmd_s *) (fchs + 1);
 
 	len = len;
+
 	if (els_cmd->els_code != FC_ELS_ACC)
+	{
 		return FC_PARSE_FAILURE;
+	}
 
 	return FC_PARSE_OK;
 }
 
 u16
 fc_ba_rjt_build(struct fchs_s *fchs, u32 d_id, u32 s_id, __be16 ox_id,
-		u32 reason_code, u32 reason_expl)
+				u32 reason_code, u32 reason_expl)
 {
 	struct fc_ba_rjt_s *ba_rjt = (struct fc_ba_rjt_s *) (fchs + 1);
 
@@ -1059,7 +1198,7 @@ fc_gs_ms_cthdr_build(struct ct_hdr_s *cthdr, u32 s_id, u16 cmd_code,
 
 u16
 fc_gidpn_build(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
-	       wwn_t port_name)
+			   wwn_t port_name)
 {
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
 	struct fcgs_gidpn_req_s *gidpn = (struct fcgs_gidpn_req_s *)(cthdr + 1);
@@ -1075,7 +1214,7 @@ fc_gidpn_build(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
 
 u16
 fc_gpnid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
-	       u32 port_id)
+			   u32 port_id)
 {
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
 	fcgs_gpnid_req_t *gpnid = (fcgs_gpnid_req_t *) (cthdr + 1);
@@ -1091,7 +1230,7 @@ fc_gpnid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
 
 u16
 fc_gnnid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
-	       u32 port_id)
+			   u32 port_id)
 {
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
 	fcgs_gnnid_req_t *gnnid = (fcgs_gnnid_req_t *) (cthdr + 1);
@@ -1108,11 +1247,16 @@ fc_gnnid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
 u16
 fc_ct_rsp_parse(struct ct_hdr_s *cthdr)
 {
-	if (be16_to_cpu(cthdr->cmd_rsp_code) != CT_RSP_ACCEPT) {
+	if (be16_to_cpu(cthdr->cmd_rsp_code) != CT_RSP_ACCEPT)
+	{
 		if (cthdr->reason_code == CT_RSN_LOGICAL_BUSY)
+		{
 			return FC_PARSE_BUSY;
+		}
 		else
+		{
 			return FC_PARSE_FAILURE;
+		}
 	}
 
 	return FC_PARSE_OK;
@@ -1120,8 +1264,8 @@ fc_ct_rsp_parse(struct ct_hdr_s *cthdr)
 
 u16
 fc_gs_rjt_build(struct fchs_s *fchs,  struct ct_hdr_s *cthdr,
-		u32 d_id, u32 s_id, u16 ox_id, u8 reason_code,
-		u8 reason_code_expl)
+				u32 d_id, u32 s_id, u16 ox_id, u8 reason_code,
+				u8 reason_code_expl)
 {
 	fc_gsresp_fchdr_build(fchs, d_id, s_id, ox_id);
 
@@ -1135,7 +1279,7 @@ fc_gs_rjt_build(struct fchs_s *fchs,  struct ct_hdr_s *cthdr,
 
 u16
 fc_scr_build(struct fchs_s *fchs, struct fc_scr_s *scr,
-		u8 set_br_reg, u32 s_id, u16 ox_id)
+			 u8 set_br_reg, u32 s_id, u16 ox_id)
 {
 	u32        d_id = bfa_hton3b(FC_FABRIC_CONTROLLER);
 
@@ -1144,15 +1288,18 @@ fc_scr_build(struct fchs_s *fchs, struct fc_scr_s *scr,
 	memset(scr, 0, sizeof(struct fc_scr_s));
 	scr->command = FC_ELS_SCR;
 	scr->reg_func = FC_SCR_REG_FUNC_FULL;
+
 	if (set_br_reg)
+	{
 		scr->vu_reg_func = FC_VU_SCR_REG_FUNC_FABRIC_NAME_CHANGE;
+	}
 
 	return sizeof(struct fc_scr_s);
 }
 
 u16
 fc_rscn_build(struct fchs_s *fchs, struct fc_rscn_pl_s *rscn,
-		u32 s_id, u16 ox_id)
+			  u32 s_id, u16 ox_id)
 {
 	u32        d_id = bfa_hton3b(FC_FABRIC_CONTROLLER);
 	u16        payldlen;
@@ -1172,7 +1319,7 @@ fc_rscn_build(struct fchs_s *fchs, struct fc_rscn_pl_s *rscn,
 
 u16
 fc_rftid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
-	       enum bfa_lport_role roles)
+			   enum bfa_lport_role roles)
 {
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
 	struct fcgs_rftid_req_s *rftid = (struct fcgs_rftid_req_s *)(cthdr + 1);
@@ -1196,7 +1343,7 @@ fc_rftid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
 
 u16
 fc_rftid_build_sol(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
-		   u8 *fc4_bitmap, u32 bitmap_size)
+				   u8 *fc4_bitmap, u32 bitmap_size)
 {
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
 	struct fcgs_rftid_req_s *rftid = (struct fcgs_rftid_req_s *)(cthdr + 1);
@@ -1209,14 +1356,14 @@ fc_rftid_build_sol(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
 
 	rftid->dap = s_id;
 	memcpy((void *)rftid->fc4_type, (void *)fc4_bitmap,
-		(bitmap_size < 32 ? bitmap_size : 32));
+		   (bitmap_size < 32 ? bitmap_size : 32));
 
 	return sizeof(struct fcgs_rftid_req_s) + sizeof(struct ct_hdr_s);
 }
 
 u16
 fc_rffid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
-	       u8 fc4_type, u8 fc4_ftrs)
+			   u8 fc4_type, u8 fc4_ftrs)
 {
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
 	struct fcgs_rffid_req_s *rffid = (struct fcgs_rffid_req_s *)(cthdr + 1);
@@ -1236,12 +1383,12 @@ fc_rffid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
 
 u16
 fc_rspnid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
-		u8 *name)
+				u8 *name)
 {
 
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
 	struct fcgs_rspnid_req_s *rspnid =
-			(struct fcgs_rspnid_req_s *)(cthdr + 1);
+		(struct fcgs_rspnid_req_s *)(cthdr + 1);
 	u32        d_id = bfa_hton3b(FC_NAME_SERVER);
 
 	fc_gs_fchdr_build(fchs, d_id, s_id, ox_id);
@@ -1258,7 +1405,7 @@ fc_rspnid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u16 ox_id,
 
 u16
 fc_rsnn_nn_build(struct fchs_s *fchs, void *pyld, u32 s_id,
-			wwn_t node_name, u8 *name)
+				 wwn_t node_name, u8 *name)
 {
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
 	struct fcgs_rsnn_nn_req_s *rsnn_nn =
@@ -1299,7 +1446,7 @@ fc_gid_ft_build(struct fchs_s *fchs, void *pyld, u32 s_id, u8 fc4_type)
 
 u16
 fc_rpnid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u32 port_id,
-	       wwn_t port_name)
+			   wwn_t port_name)
 {
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
 	struct fcgs_rpnid_req_s *rpnid = (struct fcgs_rpnid_req_s *)(cthdr + 1);
@@ -1317,7 +1464,7 @@ fc_rpnid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u32 port_id,
 
 u16
 fc_rnnid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u32 port_id,
-	       wwn_t node_name)
+			   wwn_t node_name)
 {
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
 	struct fcgs_rnnid_req_s *rnnid = (struct fcgs_rnnid_req_s *)(cthdr + 1);
@@ -1335,11 +1482,11 @@ fc_rnnid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u32 port_id,
 
 u16
 fc_rcsid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u32 port_id,
-	       u32 cos)
+			   u32 cos)
 {
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
 	struct fcgs_rcsid_req_s *rcsid =
-			(struct fcgs_rcsid_req_s *) (cthdr + 1);
+		(struct fcgs_rcsid_req_s *) (cthdr + 1);
 	u32        d_id = bfa_hton3b(FC_NAME_SERVER);
 
 	fc_gs_fchdr_build(fchs, d_id, s_id, 0);
@@ -1354,7 +1501,7 @@ fc_rcsid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u32 port_id,
 
 u16
 fc_rptid_build(struct fchs_s *fchs, void *pyld, u32 s_id, u32 port_id,
-	       u8 port_type)
+			   u8 port_type)
 {
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
 	struct fcgs_rptid_req_s *rptid = (struct fcgs_rptid_req_s *)(cthdr + 1);
@@ -1391,7 +1538,7 @@ fc_ganxt_build(struct fchs_s *fchs, void *pyld, u32 s_id, u32 port_id)
  */
 u16
 fc_fdmi_reqhdr_build(struct fchs_s *fchs, void *pyld, u32 s_id,
-		     u16 cmd_code)
+					 u16 cmd_code)
 {
 
 	struct ct_hdr_s *cthdr = (struct ct_hdr_s *) pyld;
@@ -1435,7 +1582,7 @@ fc_gmal_req_build(struct fchs_s *fchs, void *pyld, u32 s_id, wwn_t wwn)
 
 	fc_gs_fchdr_build(fchs, d_id, s_id, 0);
 	fc_gs_ms_cthdr_build(cthdr, s_id, GS_FC_GMAL_CMD,
-			CT_GSSUBTYPE_CFGSERVER);
+						 CT_GSSUBTYPE_CFGSERVER);
 
 	memset(gmal, 0, sizeof(fcgs_gmal_req_t));
 	gmal->wwn = wwn;
@@ -1455,7 +1602,7 @@ fc_gfn_req_build(struct fchs_s *fchs, void *pyld, u32 s_id, wwn_t wwn)
 
 	fc_gs_fchdr_build(fchs, d_id, s_id, 0);
 	fc_gs_ms_cthdr_build(cthdr, s_id, GS_FC_GFN_CMD,
-			CT_GSSUBTYPE_CFGSERVER);
+						 CT_GSSUBTYPE_CFGSERVER);
 
 	memset(gfn, 0, sizeof(fcgs_gfn_req_t));
 	gfn->wwn = wwn;

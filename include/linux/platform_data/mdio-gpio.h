@@ -13,7 +13,8 @@
 
 #include <linux/mdio-bitbang.h>
 
-struct mdio_gpio_platform_data {
+struct mdio_gpio_platform_data
+{
 	/* GPIO numbers for bus pins */
 	unsigned int mdc;
 	unsigned int mdio;

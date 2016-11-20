@@ -33,11 +33,12 @@
 #include <linux/timer.h>
 #include <linux/completion.h>
 
-struct timeriomem_rng_private_data {
+struct timeriomem_rng_private_data
+{
 	void __iomem		*io_base;
 	unsigned int		expires;
 	unsigned int		period;
-	unsigned int		present:1;
+	unsigned int		present: 1;
 
 	struct timer_list	timer;
 	struct completion	completion;
@@ -46,7 +47,7 @@ struct timeriomem_rng_private_data {
 };
 
 #define to_rng_priv(rng) \
-		((struct timeriomem_rng_private_data *)rng->priv)
+	((struct timeriomem_rng_private_data *)rng->priv)
 
 /*
  * have data return 1, however return 0 if we have nothing
@@ -56,7 +57,9 @@ static int timeriomem_rng_data_present(struct hwrng *rng, int wait)
 	struct timeriomem_rng_private_data *priv = to_rng_priv(rng);
 
 	if (!wait || priv->present)
+	{
 		return priv->present;
+	}
 
 	wait_for_completion(&priv->completion);
 
@@ -88,7 +91,7 @@ static int timeriomem_rng_data_read(struct hwrng *rng, u32 *data)
 static void timeriomem_rng_trigger(unsigned long data)
 {
 	struct timeriomem_rng_private_data *priv
-			= (struct timeriomem_rng_private_data *)data;
+		= (struct timeriomem_rng_private_data *)data;
 
 	priv->present = 1;
 	complete(&priv->completion);
@@ -102,45 +105,61 @@ static int timeriomem_rng_probe(struct platform_device *pdev)
 	int err = 0;
 	int period;
 
-	if (!pdev->dev.of_node && !pdata) {
+	if (!pdev->dev.of_node && !pdata)
+	{
 		dev_err(&pdev->dev, "timeriomem_rng_data is missing\n");
 		return -EINVAL;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res)
-		return -ENXIO;
 
-	if (res->start % 4 != 0 || resource_size(res) != 4) {
+	if (!res)
+	{
+		return -ENXIO;
+	}
+
+	if (res->start % 4 != 0 || resource_size(res) != 4)
+	{
 		dev_err(&pdev->dev,
-			"address must be four bytes wide and aligned\n");
+				"address must be four bytes wide and aligned\n");
 		return -EINVAL;
 	}
 
 	/* Allocate memory for the device structure (and zero it) */
 	priv = devm_kzalloc(&pdev->dev,
-			sizeof(struct timeriomem_rng_private_data), GFP_KERNEL);
+						sizeof(struct timeriomem_rng_private_data), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, priv);
 
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		int i;
 
 		if (!of_property_read_u32(pdev->dev.of_node,
-						"period", &i))
+								  "period", &i))
+		{
 			period = i;
-		else {
+		}
+		else
+		{
 			dev_err(&pdev->dev, "missing period\n");
 			return -EINVAL;
 		}
-	} else {
+	}
+	else
+	{
 		period = pdata->period;
 	}
 
 	priv->period = usecs_to_jiffies(period);
-	if (priv->period < 1) {
+
+	if (priv->period < 1)
+	{
 		dev_err(&pdev->dev, "period is less than one jiffy\n");
 		return -EINVAL;
 	}
@@ -159,19 +178,23 @@ static int timeriomem_rng_probe(struct platform_device *pdev)
 	priv->timeriomem_rng_ops.priv		= (unsigned long)priv;
 
 	priv->io_base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(priv->io_base)) {
+
+	if (IS_ERR(priv->io_base))
+	{
 		err = PTR_ERR(priv->io_base);
 		goto out_timer;
 	}
 
 	err = hwrng_register(&priv->timeriomem_rng_ops);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "problem registering\n");
 		goto out_timer;
 	}
 
 	dev_info(&pdev->dev, "32bits from 0x%p @ %dus\n",
-			priv->io_base, period);
+			 priv->io_base, period);
 
 	return 0;
 
@@ -191,13 +214,15 @@ static int timeriomem_rng_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id timeriomem_rng_match[] = {
+static const struct of_device_id timeriomem_rng_match[] =
+{
 	{ .compatible = "timeriomem_rng" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, timeriomem_rng_match);
 
-static struct platform_driver timeriomem_rng_driver = {
+static struct platform_driver timeriomem_rng_driver =
+{
 	.driver = {
 		.name		= "timeriomem_rng",
 		.of_match_table	= timeriomem_rng_match,

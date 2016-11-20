@@ -42,7 +42,8 @@
 
 #define MAX_NUM_SDU_BUF	64
 
-struct usb_tx {
+struct usb_tx
+{
 	struct list_head list;
 	struct urb *urb;
 	u8 *buf;
@@ -53,7 +54,8 @@ struct usb_tx {
 	u8 is_sdu;
 };
 
-struct usb_tx_sdu {
+struct usb_tx_sdu
+{
 	struct list_head list;
 	u8 *buf;
 	u32 len;
@@ -61,7 +63,8 @@ struct usb_tx_sdu {
 	void *cb_data;
 };
 
-struct usb_rx {
+struct usb_rx
+{
 	struct list_head to_host_list;
 	struct list_head free_list;
 	struct list_head rx_submit_list;
@@ -73,7 +76,8 @@ struct usb_rx {
 	void *index;
 };
 
-struct tx_cxt {
+struct tx_cxt
+{
 	struct list_head sdu_list;
 	struct list_head hci_list;
 	struct list_head free_list;
@@ -81,7 +85,8 @@ struct tx_cxt {
 	spinlock_t lock;
 };
 
-struct rx_cxt {
+struct rx_cxt
+{
 	struct list_head to_host_list;
 	struct list_head rx_submit_list;
 	struct list_head free_list;
@@ -91,7 +96,8 @@ struct rx_cxt {
 	spinlock_t submit_lock;
 };
 
-struct lte_udev {
+struct lte_udev
+{
 	struct usb_device *usbdev;
 	struct gdm_endian gdm_ed;
 	struct tx_cxt tx;

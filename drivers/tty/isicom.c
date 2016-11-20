@@ -142,15 +142,16 @@
 #define ClearInterrupt(base) inw((base) + 0x0a)
 
 #ifdef DEBUG
-#define isicom_paranoia_check(a, b, c) __isicom_paranoia_check((a), (b), (c))
+	#define isicom_paranoia_check(a, b, c) __isicom_paranoia_check((a), (b), (c))
 #else
-#define isicom_paranoia_check(a, b, c) 0
+	#define isicom_paranoia_check(a, b, c) 0
 #endif
 
 static int isicom_probe(struct pci_dev *, const struct pci_device_id *);
 static void isicom_remove(struct pci_dev *);
 
-static struct pci_device_id isicom_pci_tbl[] = {
+static struct pci_device_id isicom_pci_tbl[] =
+{
 	{ PCI_DEVICE(VENDOR_ID, 0x2028) },
 	{ PCI_DEVICE(VENDOR_ID, 0x2051) },
 	{ PCI_DEVICE(VENDOR_ID, 0x2052) },
@@ -164,7 +165,8 @@ static struct pci_device_id isicom_pci_tbl[] = {
 };
 MODULE_DEVICE_TABLE(pci, isicom_pci_tbl);
 
-static struct pci_driver isicom_driver = {
+static struct pci_driver isicom_driver =
+{
 	.name		= "isicom",
 	.id_table	= isicom_pci_tbl,
 	.probe		= isicom_probe,
@@ -181,11 +183,13 @@ static DEFINE_TIMER(tx, isicom_tx, 0, 0);
 
 /*   baud index mappings from linux defns to isi */
 
-static signed char linuxb_to_isib[] = {
+static signed char linuxb_to_isib[] =
+{
 	-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 13, 15, 16, 17, 18, 19, 20, 21
 };
 
-struct	isi_board {
+struct	isi_board
+{
 	unsigned long		base;
 	int			irq;
 	unsigned char		port_count;
@@ -199,7 +203,8 @@ struct	isi_board {
 	unsigned int		index;
 };
 
-struct	isi_port {
+struct	isi_port
+{
 	unsigned short		magic;
 	struct tty_port		port;
 	u16			channel;
@@ -227,9 +232,13 @@ static int WaitTillCardIsFree(unsigned long base)
 
 	while (!(inw(base + 0xe) & 0x1) && count++ < 100)
 		if (a)
+		{
 			mdelay(1);
+		}
 		else
+		{
 			msleep(1);
+		}
 
 	return !(inw(base + 0xe) & 0x1);
 }
@@ -239,16 +248,24 @@ static int lock_card(struct isi_board *card)
 	unsigned long base = card->base;
 	unsigned int retries, a;
 
-	for (retries = 0; retries < 10; retries++) {
+	for (retries = 0; retries < 10; retries++)
+	{
 		spin_lock_irqsave(&card->card_lock, card->flags);
-		for (a = 0; a < 10; a++) {
+
+		for (a = 0; a < 10; a++)
+		{
 			if (inw(base + 0xe) & 0x1)
+			{
 				return 1;
+			}
+
 			udelay(10);
 		}
+
 		spin_unlock_irqrestore(&card->card_lock, card->flags);
 		msleep(10);
 	}
+
 	pr_warn("Failed to lock Card (0x%lx)\n", card->base);
 
 	return 0;	/* Failed to acquire the card! */
@@ -271,7 +288,9 @@ static void raise_dtr(struct isi_port *port)
 	u16 channel = port->channel;
 
 	if (WaitTillCardIsFree(base))
+	{
 		return;
+	}
 
 	outw(0x8000 | (channel << card->shift_count) | 0x02, base);
 	outw(0x0504, base);
@@ -287,7 +306,9 @@ static void drop_dtr(struct isi_port *port)
 	u16 channel = port->channel;
 
 	if (WaitTillCardIsFree(base))
+	{
 		return;
+	}
 
 	outw(0x8000 | (channel << card->shift_count) | 0x02, base);
 	outw(0x0404, base);
@@ -303,7 +324,9 @@ static inline void raise_rts(struct isi_port *port)
 	u16 channel = port->channel;
 
 	if (WaitTillCardIsFree(base))
+	{
 		return;
+	}
 
 	outw(0x8000 | (channel << card->shift_count) | 0x02, base);
 	outw(0x0a04, base);
@@ -319,7 +342,9 @@ static inline void drop_rts(struct isi_port *port)
 	u16 channel = port->channel;
 
 	if (WaitTillCardIsFree(base))
+	{
 		return;
+	}
 
 	outw(0x8000 | (channel << card->shift_count) | 0x02, base);
 	outw(0x0804, base);
@@ -337,19 +362,25 @@ static void isicom_dtr_rts(struct tty_port *port, int on)
 	u16 channel = ip->channel;
 
 	if (!lock_card(card))
+	{
 		return;
+	}
 
-	if (on) {
+	if (on)
+	{
 		outw(0x8000 | (channel << card->shift_count) | 0x02, base);
 		outw(0x0f04, base);
 		InterruptTheCard(base);
 		ip->status |= (ISI_DTR | ISI_RTS);
-	} else {
+	}
+	else
+	{
 		outw(0x8000 | (channel << card->shift_count) | 0x02, base);
 		outw(0x0C04, base);
 		InterruptTheCard(base);
 		ip->status &= ~(ISI_DTR | ISI_RTS);
 	}
+
 	unlock_card(card);
 }
 
@@ -361,7 +392,9 @@ static void drop_dtr_rts(struct isi_port *port)
 	u16 channel = port->channel;
 
 	if (WaitTillCardIsFree(base))
+	{
 		return;
+	}
 
 	outw(0x8000 | (channel << card->shift_count) | 0x02, base);
 	outw(0x0c04, base);
@@ -375,16 +408,19 @@ static void drop_dtr_rts(struct isi_port *port)
  */
 
 static inline int __isicom_paranoia_check(struct isi_port const *port,
-	char *name, const char *routine)
+		char *name, const char *routine)
 {
-	if (!port) {
+	if (!port)
+	{
 		pr_warn("Warning: bad isicom magic for dev %s in %s\n",
-			name, routine);
+				name, routine);
 		return 1;
 	}
-	if (port->magic != ISICOM_MAGIC) {
+
+	if (port->magic != ISICOM_MAGIC)
+	{
 		pr_warn("Warning: NULL isicom port for dev %s in %s\n",
-			name, routine);
+				name, routine);
 		return 1;
 	}
 
@@ -402,20 +438,28 @@ static void isicom_tx(unsigned long _data)
 {
 	unsigned long flags, base;
 	unsigned int retries;
-	short count = (BOARD_COUNT-1), card;
+	short count = (BOARD_COUNT - 1), card;
 	short txcount, wrd, residue, word_count, cnt;
 	struct isi_port *port;
 	struct tty_struct *tty;
 
 	/*	find next active board	*/
 	card = (prev_card + 1) & 0x0003;
-	while (count-- > 0) {
+
+	while (count-- > 0)
+	{
 		if (isi_card[card].status & BOARD_ACTIVE)
+		{
 			break;
+		}
+
 		card = (card + 1) & 0x0003;
 	}
+
 	if (!(isi_card[card].status & BOARD_ACTIVE))
+	{
 		goto sched_again;
+	}
 
 	prev_card = card;
 
@@ -424,79 +468,118 @@ static void isicom_tx(unsigned long _data)
 	base = isi_card[card].base;
 
 	spin_lock_irqsave(&isi_card[card].card_lock, flags);
-	for (retries = 0; retries < 100; retries++) {
+
+	for (retries = 0; retries < 100; retries++)
+	{
 		if (inw(base + 0xe) & 0x1)
+		{
 			break;
+		}
+
 		udelay(2);
 	}
+
 	if (retries >= 100)
+	{
 		goto unlock;
+	}
 
 	tty = tty_port_tty_get(&port->port);
-	if (tty == NULL)
-		goto put_unlock;
 
-	for (; count > 0; count--, port++) {
+	if (tty == NULL)
+	{
+		goto put_unlock;
+	}
+
+	for (; count > 0; count--, port++)
+	{
 		/* port not active or tx disabled to force flow control */
 		if (!tty_port_initialized(&port->port) ||
 			!(port->status & ISI_TXOK))
+		{
 			continue;
+		}
 
 		txcount = min_t(short, TX_SIZE, port->xmit_cnt);
+
 		if (txcount <= 0 || tty->stopped || tty->hw_stopped)
+		{
 			continue;
+		}
 
 		if (!(inw(base + 0x02) & (1 << port->channel)))
+		{
 			continue;
+		}
 
 		pr_debug("txing %d bytes, port%d.\n",
-			 txcount, port->channel + 1);
+				 txcount, port->channel + 1);
 		outw((port->channel << isi_card[card].shift_count) | txcount,
-			base);
+			 base);
 		residue = NO;
 		wrd = 0;
-		while (1) {
+
+		while (1)
+		{
 			cnt = min_t(int, txcount, (SERIAL_XMIT_SIZE
-					- port->xmit_tail));
-			if (residue == YES) {
+									   - port->xmit_tail));
+
+			if (residue == YES)
+			{
 				residue = NO;
-				if (cnt > 0) {
+
+				if (cnt > 0)
+				{
 					wrd |= (port->port.xmit_buf[port->xmit_tail]
-									<< 8);
+							<< 8);
 					port->xmit_tail = (port->xmit_tail + 1)
-						& (SERIAL_XMIT_SIZE - 1);
+									  & (SERIAL_XMIT_SIZE - 1);
 					port->xmit_cnt--;
 					txcount--;
 					cnt--;
 					outw(wrd, base);
-				} else {
+				}
+				else
+				{
 					outw(wrd, base);
 					break;
 				}
 			}
+
 			if (cnt <= 0)
+			{
 				break;
+			}
+
 			word_count = cnt >> 1;
-			outsw(base, port->port.xmit_buf+port->xmit_tail, word_count);
+			outsw(base, port->port.xmit_buf + port->xmit_tail, word_count);
 			port->xmit_tail = (port->xmit_tail
-				+ (word_count << 1)) & (SERIAL_XMIT_SIZE - 1);
+							   + (word_count << 1)) & (SERIAL_XMIT_SIZE - 1);
 			txcount -= (word_count << 1);
 			port->xmit_cnt -= (word_count << 1);
-			if (cnt & 0x0001) {
+
+			if (cnt & 0x0001)
+			{
 				residue = YES;
 				wrd = port->port.xmit_buf[port->xmit_tail];
 				port->xmit_tail = (port->xmit_tail + 1)
-					& (SERIAL_XMIT_SIZE - 1);
+								  & (SERIAL_XMIT_SIZE - 1);
 				port->xmit_cnt--;
 				txcount--;
 			}
 		}
 
 		InterruptTheCard(base);
+
 		if (port->xmit_cnt <= 0)
+		{
 			port->status &= ~ISI_TXOK;
+		}
+
 		if (port->xmit_cnt <= WAKEUP_CHARS)
+		{
 			tty_wakeup(tty);
+		}
 	}
 
 put_unlock:
@@ -523,13 +606,17 @@ static irqreturn_t isicom_interrupt(int irq, void *dev_id)
 	unsigned char *rp;
 
 	if (!card || !(card->status & FIRMWARE_LOADED))
+	{
 		return IRQ_NONE;
+	}
 
 	base = card->base;
 
 	/* did the card interrupt us? */
 	if (!(inw(base + 0x0e) & 0x02))
+	{
 		return IRQ_NONE;
+	}
 
 	spin_lock(&card->card_lock);
 
@@ -537,7 +624,7 @@ static irqreturn_t isicom_interrupt(int irq, void *dev_id)
 	 * disable any interrupts from the PCI card and lower the
 	 * interrupt line
 	 */
-	outw(0x8000, base+0x04);
+	outw(0x8000, base + 0x04);
 	ClearInterrupt(base);
 
 	inw(base);		/* get the dummy word out */
@@ -545,135 +632,194 @@ static irqreturn_t isicom_interrupt(int irq, void *dev_id)
 	channel = (header & 0x7800) >> card->shift_count;
 	byte_count = header & 0xff;
 
-	if (channel + 1 > card->port_count) {
+	if (channel + 1 > card->port_count)
+	{
 		pr_warn("%s(0x%lx): %d(channel) > port_count\n",
-			__func__, base, channel + 1);
-		outw(0x0000, base+0x04); /* enable interrupts */
+				__func__, base, channel + 1);
+		outw(0x0000, base + 0x04); /* enable interrupts */
 		spin_unlock(&card->card_lock);
 		return IRQ_HANDLED;
 	}
+
 	port = card->ports + channel;
-	if (!tty_port_initialized(&port->port)) {
-		outw(0x0000, base+0x04); /* enable interrupts */
+
+	if (!tty_port_initialized(&port->port))
+	{
+		outw(0x0000, base + 0x04); /* enable interrupts */
 		spin_unlock(&card->card_lock);
 		return IRQ_HANDLED;
 	}
 
 	tty = tty_port_tty_get(&port->port);
-	if (tty == NULL) {
+
+	if (tty == NULL)
+	{
 		word_count = byte_count >> 1;
-		while (byte_count > 1) {
+
+		while (byte_count > 1)
+		{
 			inw(base);
 			byte_count -= 2;
 		}
+
 		if (byte_count & 0x01)
+		{
 			inw(base);
-		outw(0x0000, base+0x04); /* enable interrupts */
+		}
+
+		outw(0x0000, base + 0x04); /* enable interrupts */
 		spin_unlock(&card->card_lock);
 		return IRQ_HANDLED;
 	}
 
-	if (header & 0x8000) {		/* Status Packet */
+	if (header & 0x8000)  		/* Status Packet */
+	{
 		header = inw(base);
-		switch (header & 0xff) {
-		case 0:	/* Change in EIA signals */
-			if (tty_port_check_carrier(&port->port)) {
-				if (port->status & ISI_DCD) {
-					if (!(header & ISI_DCD)) {
-					/* Carrier has been lost  */
-						pr_debug("%s: DCD->low.\n",
-							 __func__);
+
+		switch (header & 0xff)
+		{
+			case 0:	/* Change in EIA signals */
+				if (tty_port_check_carrier(&port->port))
+				{
+					if (port->status & ISI_DCD)
+					{
+						if (!(header & ISI_DCD))
+						{
+							/* Carrier has been lost  */
+							pr_debug("%s: DCD->low.\n",
+									 __func__);
+							port->status &= ~ISI_DCD;
+							tty_hangup(tty);
+						}
+					}
+					else if (header & ISI_DCD)
+					{
+						/* Carrier has been detected */
+						pr_debug("%s: DCD->high.\n",
+								 __func__);
+						port->status |= ISI_DCD;
+						wake_up_interruptible(&port->port.open_wait);
+					}
+				}
+				else
+				{
+					if (header & ISI_DCD)
+					{
+						port->status |= ISI_DCD;
+					}
+					else
+					{
 						port->status &= ~ISI_DCD;
-						tty_hangup(tty);
 					}
-				} else if (header & ISI_DCD) {
-				/* Carrier has been detected */
-					pr_debug("%s: DCD->high.\n",
-						__func__);
-					port->status |= ISI_DCD;
-					wake_up_interruptible(&port->port.open_wait);
 				}
-			} else {
-				if (header & ISI_DCD)
-					port->status |= ISI_DCD;
-				else
-					port->status &= ~ISI_DCD;
-			}
 
-			if (tty_port_cts_enabled(&port->port)) {
-				if (tty->hw_stopped) {
-					if (header & ISI_CTS) {
-						tty->hw_stopped = 0;
-						/* start tx ing */
-						port->status |= (ISI_TXOK
-							| ISI_CTS);
-						tty_wakeup(tty);
+				if (tty_port_cts_enabled(&port->port))
+				{
+					if (tty->hw_stopped)
+					{
+						if (header & ISI_CTS)
+						{
+							tty->hw_stopped = 0;
+							/* start tx ing */
+							port->status |= (ISI_TXOK
+											 | ISI_CTS);
+							tty_wakeup(tty);
+						}
 					}
-				} else if (!(header & ISI_CTS)) {
-					tty->hw_stopped = 1;
-					/* stop tx ing */
-					port->status &= ~(ISI_TXOK | ISI_CTS);
+					else if (!(header & ISI_CTS))
+					{
+						tty->hw_stopped = 1;
+						/* stop tx ing */
+						port->status &= ~(ISI_TXOK | ISI_CTS);
+					}
 				}
-			} else {
-				if (header & ISI_CTS)
-					port->status |= ISI_CTS;
 				else
-					port->status &= ~ISI_CTS;
-			}
+				{
+					if (header & ISI_CTS)
+					{
+						port->status |= ISI_CTS;
+					}
+					else
+					{
+						port->status &= ~ISI_CTS;
+					}
+				}
 
-			if (header & ISI_DSR)
-				port->status |= ISI_DSR;
-			else
-				port->status &= ~ISI_DSR;
+				if (header & ISI_DSR)
+				{
+					port->status |= ISI_DSR;
+				}
+				else
+				{
+					port->status &= ~ISI_DSR;
+				}
 
-			if (header & ISI_RI)
-				port->status |= ISI_RI;
-			else
-				port->status &= ~ISI_RI;
+				if (header & ISI_RI)
+				{
+					port->status |= ISI_RI;
+				}
+				else
+				{
+					port->status &= ~ISI_RI;
+				}
 
-			break;
+				break;
 
-		case 1:	/* Received Break !!! */
-			tty_insert_flip_char(&port->port, 0, TTY_BREAK);
-			if (port->port.flags & ASYNC_SAK)
-				do_SAK(tty);
-			tty_flip_buffer_push(&port->port);
-			break;
+			case 1:	/* Received Break !!! */
+				tty_insert_flip_char(&port->port, 0, TTY_BREAK);
 
-		case 2:	/* Statistics		 */
-			pr_debug("%s: stats!!!\n", __func__);
-			break;
+				if (port->port.flags & ASYNC_SAK)
+				{
+					do_SAK(tty);
+				}
 
-		default:
-			pr_debug("%s: Unknown code in status packet.\n",
-				 __func__);
-			break;
+				tty_flip_buffer_push(&port->port);
+				break;
+
+			case 2:	/* Statistics		 */
+				pr_debug("%s: stats!!!\n", __func__);
+				break;
+
+			default:
+				pr_debug("%s: Unknown code in status packet.\n",
+						 __func__);
+				break;
 		}
-	} else {				/* Data   Packet */
+	}
+	else  				/* Data   Packet */
+	{
 		count = tty_prepare_flip_string(&port->port, &rp,
-				byte_count & ~1);
+										byte_count & ~1);
 		pr_debug("%s: Can rx %d of %d bytes.\n",
-			 __func__, count, byte_count);
+				 __func__, count, byte_count);
 		word_count = count >> 1;
 		insw(base, rp, word_count);
 		byte_count -= (word_count << 1);
-		if (count & 0x0001) {
+
+		if (count & 0x0001)
+		{
 			tty_insert_flip_char(&port->port, inw(base) & 0xff,
-				TTY_NORMAL);
+								 TTY_NORMAL);
 			byte_count -= 2;
 		}
-		if (byte_count > 0) {
+
+		if (byte_count > 0)
+		{
 			pr_debug("%s(0x%lx:%d): Flip buffer overflow! dropping bytes...\n",
-				 __func__, base, channel + 1);
-		/* drain out unread xtra data */
-		while (byte_count > 0) {
+					 __func__, base, channel + 1);
+
+			/* drain out unread xtra data */
+			while (byte_count > 0)
+			{
 				inw(base);
 				byte_count -= 2;
 			}
 		}
+
 		tty_flip_buffer_push(&port->port);
 	}
-	outw(0x0000, base+0x04); /* enable interrupts */
+
+	outw(0x0000, base + 0x04); /* enable interrupts */
 	spin_unlock(&card->card_lock);
 	tty_kref_put(tty);
 
@@ -687,12 +833,14 @@ static void isicom_config_port(struct tty_struct *tty)
 	unsigned long baud;
 	unsigned long base = card->base;
 	u16 channel_setup, channel = port->channel,
-		shift_count = card->shift_count;
+					   shift_count = card->shift_count;
 	unsigned char flow_ctrl;
 
 	/* FIXME: Switch to new tty baud API */
 	baud = C_BAUD(tty);
-	if (baud & CBAUDEX) {
+
+	if (baud & CBAUDEX)
+	{
 		baud &= ~CBAUDEX;
 
 		/*  if CBAUDEX bit is on and the baud is set to either 50 or 75
@@ -702,11 +850,17 @@ static void isicom_config_port(struct tty_struct *tty)
 
 		/* 1,2,3,4 => 57.6, 115.2, 230, 460 kbps resp. */
 		if (baud < 1 || baud > 4)
+		{
 			tty->termios.c_cflag &= ~CBAUDEX;
+		}
 		else
+		{
 			baud += 15;
+		}
 	}
-	if (baud == 15) {
+
+	if (baud == 15)
+	{
 
 		/*  the ASYNC_SPD_HI and ASYNC_SPD_VHI options are set
 		 *  by the set_serial_info ioctl ... this is done by
@@ -714,63 +868,104 @@ static void isicom_config_port(struct tty_struct *tty)
 		 */
 
 		if ((port->port.flags & ASYNC_SPD_MASK) == ASYNC_SPD_HI)
-			baud++; /*  57.6 Kbps */
+		{
+			baud++;    /*  57.6 Kbps */
+		}
+
 		if ((port->port.flags & ASYNC_SPD_MASK) == ASYNC_SPD_VHI)
-			baud += 2; /*  115  Kbps */
+		{
+			baud += 2;    /*  115  Kbps */
+		}
+
 		if ((port->port.flags & ASYNC_SPD_MASK) == ASYNC_SPD_SHI)
-			baud += 3; /* 230 kbps*/
+		{
+			baud += 3;    /* 230 kbps*/
+		}
+
 		if ((port->port.flags & ASYNC_SPD_MASK) == ASYNC_SPD_WARP)
-			baud += 4; /* 460 kbps*/
+		{
+			baud += 4;    /* 460 kbps*/
+		}
 	}
-	if (linuxb_to_isib[baud] == -1) {
+
+	if (linuxb_to_isib[baud] == -1)
+	{
 		/* hang up */
 		drop_dtr(port);
 		return;
-	} else
+	}
+	else
+	{
 		raise_dtr(port);
+	}
 
-	if (WaitTillCardIsFree(base) == 0) {
+	if (WaitTillCardIsFree(base) == 0)
+	{
 		outw(0x8000 | (channel << shift_count) | 0x03, base);
 		outw(linuxb_to_isib[baud] << 8 | 0x03, base);
 		channel_setup = 0;
-		switch (C_CSIZE(tty)) {
-		case CS5:
-			channel_setup |= ISICOM_CS5;
-			break;
-		case CS6:
-			channel_setup |= ISICOM_CS6;
-			break;
-		case CS7:
-			channel_setup |= ISICOM_CS7;
-			break;
-		case CS8:
-			channel_setup |= ISICOM_CS8;
-			break;
+
+		switch (C_CSIZE(tty))
+		{
+			case CS5:
+				channel_setup |= ISICOM_CS5;
+				break;
+
+			case CS6:
+				channel_setup |= ISICOM_CS6;
+				break;
+
+			case CS7:
+				channel_setup |= ISICOM_CS7;
+				break;
+
+			case CS8:
+				channel_setup |= ISICOM_CS8;
+				break;
 		}
 
 		if (C_CSTOPB(tty))
+		{
 			channel_setup |= ISICOM_2SB;
-		if (C_PARENB(tty)) {
-			channel_setup |= ISICOM_EVPAR;
-			if (C_PARODD(tty))
-				channel_setup |= ISICOM_ODPAR;
 		}
+
+		if (C_PARENB(tty))
+		{
+			channel_setup |= ISICOM_EVPAR;
+
+			if (C_PARODD(tty))
+			{
+				channel_setup |= ISICOM_ODPAR;
+			}
+		}
+
 		outw(channel_setup, base);
 		InterruptTheCard(base);
 	}
+
 	tty_port_set_check_carrier(&port->port, !C_CLOCAL(tty));
 
 	/* flow control settings ...*/
 	flow_ctrl = 0;
 	tty_port_set_cts_flow(&port->port, C_CRTSCTS(tty));
-	if (C_CRTSCTS(tty))
-		flow_ctrl |= ISICOM_CTSRTS;
-	if (I_IXON(tty))
-		flow_ctrl |= ISICOM_RESPOND_XONXOFF;
-	if (I_IXOFF(tty))
-		flow_ctrl |= ISICOM_INITIATE_XONXOFF;
 
-	if (WaitTillCardIsFree(base) == 0) {
+	if (C_CRTSCTS(tty))
+	{
+		flow_ctrl |= ISICOM_CTSRTS;
+	}
+
+	if (I_IXON(tty))
+	{
+		flow_ctrl |= ISICOM_RESPOND_XONXOFF;
+	}
+
+	if (I_IXOFF(tty))
+	{
+		flow_ctrl |= ISICOM_INITIATE_XONXOFF;
+	}
+
+	if (WaitTillCardIsFree(base) == 0)
+	{
 		outw(0x8000 | (channel << shift_count) | 0x04, base);
 		outw(flow_ctrl << 8 | 0x05, base);
 		outw((STOP_CHAR(tty)) << 8 | (START_CHAR(tty)), base);
@@ -778,7 +973,8 @@ static void isicom_config_port(struct tty_struct *tty)
 	}
 
 	/*	rx enabled -> enable port for rx on the card	*/
-	if (C_CREAD(tty)) {
+	if (C_CREAD(tty))
+	{
 		card->port_status |= (1 << channel);
 		outw(card->port_status, base + 0x02);
 	}
@@ -792,11 +988,17 @@ static inline void isicom_setup_board(struct isi_board *bp)
 	struct isi_port *port;
 
 	bp->count++;
-	if (!(bp->status & BOARD_INIT)) {
+
+	if (!(bp->status & BOARD_INIT))
+	{
 		port = bp->ports;
+
 		for (channel = 0; channel < bp->port_count; channel++, port++)
+		{
 			drop_dtr_rts(port);
+		}
 	}
+
 	bp->status |= BOARD_ACTIVE | BOARD_INIT;
 }
 
@@ -810,7 +1012,9 @@ static int isicom_activate(struct tty_port *tport, struct tty_struct *tty)
 	unsigned long flags;
 
 	if (tty_port_alloc_xmit_buf(tport) < 0)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_irqsave(&card->card_lock, flags);
 	isicom_setup_board(card);
@@ -818,12 +1022,14 @@ static int isicom_activate(struct tty_port *tport, struct tty_struct *tty)
 	port->xmit_cnt = port->xmit_head = port->xmit_tail = 0;
 
 	/*	discard any residual data	*/
-	if (WaitTillCardIsFree(card->base) == 0) {
+	if (WaitTillCardIsFree(card->base) == 0)
+	{
 		outw(0x8000 | (port->channel << card->shift_count) | 0x02,
-				card->base);
+			 card->base);
 		outw(((ISICOM_KILLTX | ISICOM_KILLRX) << 8) | 0x06, card->base);
 		InterruptTheCard(card->base);
 	}
+
 	isicom_config_port(tty);
 	spin_unlock_irqrestore(&card->card_lock, flags);
 
@@ -833,7 +1039,7 @@ static int isicom_activate(struct tty_port *tport, struct tty_struct *tty)
 static int isicom_carrier_raised(struct tty_port *port)
 {
 	struct isi_port *ip = container_of(port, struct isi_port, port);
-	return (ip->status & ISI_DCD)?1 : 0;
+	return (ip->status & ISI_DCD) ? 1 : 0;
 }
 
 static struct tty_port *isicom_find_port(struct tty_struct *tty)
@@ -847,15 +1053,22 @@ static struct tty_port *isicom_find_port(struct tty_struct *tty)
 	card = &isi_card[board];
 
 	if (!(card->status & FIRMWARE_LOADED))
+	{
 		return NULL;
+	}
 
 	/*  open on a port greater than the port count for the card !!! */
 	if (line > ((board * 16) + card->port_count - 1))
+	{
 		return NULL;
+	}
 
 	port = &isi_ports[line];
+
 	if (isicom_paranoia_check(port, tty->name, "isicom_open"))
+	{
 		return NULL;
+	}
 
 	return &port->port;
 }
@@ -866,8 +1079,12 @@ static int isicom_open(struct tty_struct *tty, struct file *filp)
 	struct tty_port *tport;
 
 	tport = isicom_find_port(tty);
+
 	if (tport == NULL)
+	{
 		return -ENODEV;
+	}
+
 	port = container_of(tport, struct isi_port, port);
 
 	tty->driver_data = port;
@@ -881,14 +1098,18 @@ static void isicom_shutdown_port(struct isi_port *port)
 {
 	struct isi_board *card = port->card;
 
-	if (--card->count < 0) {
+	if (--card->count < 0)
+	{
 		pr_debug("%s: bad board(0x%lx) count %d.\n",
-			 __func__, card->base, card->count);
+				 __func__, card->base, card->count);
 		card->count = 0;
 	}
+
 	/* last port was closed, shutdown that board too */
 	if (!card->count)
+	{
 		card->status &= BOARD_ACTIVE;
+	}
 }
 
 static void isicom_flush_buffer(struct tty_struct *tty)
@@ -898,7 +1119,9 @@ static void isicom_flush_buffer(struct tty_struct *tty)
 	unsigned long flags;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_flush_buffer"))
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&card->card_lock, flags);
 	port->xmit_cnt = port->xmit_head = port->xmit_tail = 0;
@@ -929,17 +1152,23 @@ static void isicom_close(struct tty_struct *tty, struct file *filp)
 	struct tty_port *port;
 
 	if (ip == NULL)
+	{
 		return;
+	}
 
 	port = &ip->port;
+
 	if (isicom_paranoia_check(ip, tty->name, "isicom_close"))
+	{
 		return;
+	}
+
 	tty_port_close(port, tty, filp);
 }
 
 /* write et all */
 static int isicom_write(struct tty_struct *tty,	const unsigned char *buf,
-	int count)
+						int count)
 {
 	struct isi_port *port = tty->driver_data;
 	struct isi_board *card = port->card;
@@ -947,26 +1176,36 @@ static int isicom_write(struct tty_struct *tty,	const unsigned char *buf,
 	int cnt, total = 0;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_write"))
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&card->card_lock, flags);
 
-	while (1) {
+	while (1)
+	{
 		cnt = min_t(int, count, min(SERIAL_XMIT_SIZE - port->xmit_cnt
-				- 1, SERIAL_XMIT_SIZE - port->xmit_head));
+									- 1, SERIAL_XMIT_SIZE - port->xmit_head));
+
 		if (cnt <= 0)
+		{
 			break;
+		}
 
 		memcpy(port->port.xmit_buf + port->xmit_head, buf, cnt);
 		port->xmit_head = (port->xmit_head + cnt) & (SERIAL_XMIT_SIZE
-			- 1);
+						  - 1);
 		port->xmit_cnt += cnt;
 		buf += cnt;
 		count -= cnt;
 		total += cnt;
 	}
+
 	if (port->xmit_cnt && !tty->stopped && !tty->hw_stopped)
+	{
 		port->status |= ISI_TXOK;
+	}
+
 	spin_unlock_irqrestore(&card->card_lock, flags);
 	return total;
 }
@@ -979,10 +1218,14 @@ static int isicom_put_char(struct tty_struct *tty, unsigned char ch)
 	unsigned long flags;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_put_char"))
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&card->card_lock, flags);
-	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1) {
+
+	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1)
+	{
 		spin_unlock_irqrestore(&card->card_lock, flags);
 		return 0;
 	}
@@ -1000,11 +1243,15 @@ static void isicom_flush_chars(struct tty_struct *tty)
 	struct isi_port *port = tty->driver_data;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_flush_chars"))
+	{
 		return;
+	}
 
 	if (port->xmit_cnt <= 0 || tty->stopped || tty->hw_stopped ||
-			!port->port.xmit_buf)
+		!port->port.xmit_buf)
+	{
 		return;
+	}
 
 	/* this tells the transmitter to consider this port for
 	   data output to the card ... that's the best we can do. */
@@ -1018,11 +1265,17 @@ static int isicom_write_room(struct tty_struct *tty)
 	int free;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_write_room"))
+	{
 		return 0;
+	}
 
 	free = SERIAL_XMIT_SIZE - port->xmit_cnt - 1;
+
 	if (free < 0)
+	{
 		free = 0;
+	}
+
 	return free;
 }
 
@@ -1030,8 +1283,12 @@ static int isicom_write_room(struct tty_struct *tty)
 static int isicom_chars_in_buffer(struct tty_struct *tty)
 {
 	struct isi_port *port = tty->driver_data;
+
 	if (isicom_paranoia_check(port, tty->name, "isicom_chars_in_buffer"))
+	{
 		return 0;
+	}
+
 	return port->xmit_cnt;
 }
 
@@ -1043,10 +1300,14 @@ static int isicom_send_break(struct tty_struct *tty, int length)
 	unsigned long base = card->base;
 
 	if (length == -1)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (!lock_card(card))
+	{
 		return -EINVAL;
+	}
 
 	outw(0x8000 | ((port->channel) << (card->shift_count)) | 0x3, base);
 	outw((length & 0xff) << 8 | 0x00, base);
@@ -1064,142 +1325,181 @@ static int isicom_tiocmget(struct tty_struct *tty)
 	u16 status = port->status;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_ioctl"))
+	{
 		return -ENODEV;
+	}
 
 	return  ((status & ISI_RTS) ? TIOCM_RTS : 0) |
-		((status & ISI_DTR) ? TIOCM_DTR : 0) |
-		((status & ISI_DCD) ? TIOCM_CAR : 0) |
-		((status & ISI_DSR) ? TIOCM_DSR : 0) |
-		((status & ISI_CTS) ? TIOCM_CTS : 0) |
-		((status & ISI_RI ) ? TIOCM_RI  : 0);
+			((status & ISI_DTR) ? TIOCM_DTR : 0) |
+			((status & ISI_DCD) ? TIOCM_CAR : 0) |
+			((status & ISI_DSR) ? TIOCM_DSR : 0) |
+			((status & ISI_CTS) ? TIOCM_CTS : 0) |
+			((status & ISI_RI ) ? TIOCM_RI  : 0);
 }
 
 static int isicom_tiocmset(struct tty_struct *tty,
-					unsigned int set, unsigned int clear)
+						   unsigned int set, unsigned int clear)
 {
 	struct isi_port *port = tty->driver_data;
 	unsigned long flags;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_ioctl"))
+	{
 		return -ENODEV;
+	}
 
 	spin_lock_irqsave(&port->card->card_lock, flags);
+
 	if (set & TIOCM_RTS)
+	{
 		raise_rts(port);
+	}
+
 	if (set & TIOCM_DTR)
+	{
 		raise_dtr(port);
+	}
 
 	if (clear & TIOCM_RTS)
+	{
 		drop_rts(port);
+	}
+
 	if (clear & TIOCM_DTR)
+	{
 		drop_dtr(port);
+	}
+
 	spin_unlock_irqrestore(&port->card->card_lock, flags);
 
 	return 0;
 }
 
 static int isicom_set_serial_info(struct tty_struct *tty,
-					struct serial_struct __user *info)
+								  struct serial_struct __user *info)
 {
 	struct isi_port *port = tty->driver_data;
 	struct serial_struct newinfo;
 	int reconfig_port;
 
 	if (copy_from_user(&newinfo, info, sizeof(newinfo)))
+	{
 		return -EFAULT;
+	}
 
 	mutex_lock(&port->port.mutex);
 	reconfig_port = ((port->port.flags & ASYNC_SPD_MASK) !=
-		(newinfo.flags & ASYNC_SPD_MASK));
+					 (newinfo.flags & ASYNC_SPD_MASK));
 
-	if (!capable(CAP_SYS_ADMIN)) {
+	if (!capable(CAP_SYS_ADMIN))
+	{
 		if ((newinfo.close_delay != port->port.close_delay) ||
-				(newinfo.closing_wait != port->port.closing_wait) ||
-				((newinfo.flags & ~ASYNC_USR_MASK) !=
-				(port->port.flags & ~ASYNC_USR_MASK))) {
+			(newinfo.closing_wait != port->port.closing_wait) ||
+			((newinfo.flags & ~ASYNC_USR_MASK) !=
+			 (port->port.flags & ~ASYNC_USR_MASK)))
+		{
 			mutex_unlock(&port->port.mutex);
 			return -EPERM;
 		}
+
 		port->port.flags = ((port->port.flags & ~ASYNC_USR_MASK) |
-				(newinfo.flags & ASYNC_USR_MASK));
-	} else {
+							(newinfo.flags & ASYNC_USR_MASK));
+	}
+	else
+	{
 		port->port.close_delay = newinfo.close_delay;
 		port->port.closing_wait = newinfo.closing_wait;
 		port->port.flags = ((port->port.flags & ~ASYNC_FLAGS) |
-				(newinfo.flags & ASYNC_FLAGS));
+							(newinfo.flags & ASYNC_FLAGS));
 	}
-	if (reconfig_port) {
+
+	if (reconfig_port)
+	{
 		unsigned long flags;
 		spin_lock_irqsave(&port->card->card_lock, flags);
 		isicom_config_port(tty);
 		spin_unlock_irqrestore(&port->card->card_lock, flags);
 	}
+
 	mutex_unlock(&port->port.mutex);
 	return 0;
 }
 
 static int isicom_get_serial_info(struct isi_port *port,
-	struct serial_struct __user *info)
+								  struct serial_struct __user *info)
 {
 	struct serial_struct out_info;
 
 	mutex_lock(&port->port.mutex);
 	memset(&out_info, 0, sizeof(out_info));
-/*	out_info.type = ? */
+	/*	out_info.type = ? */
 	out_info.line = port - isi_ports;
 	out_info.port = port->card->base;
 	out_info.irq = port->card->irq;
 	out_info.flags = port->port.flags;
-/*	out_info.baud_base = ? */
+	/*	out_info.baud_base = ? */
 	out_info.close_delay = port->port.close_delay;
 	out_info.closing_wait = port->port.closing_wait;
 	mutex_unlock(&port->port.mutex);
+
 	if (copy_to_user(info, &out_info, sizeof(out_info)))
+	{
 		return -EFAULT;
+	}
+
 	return 0;
 }
 
 static int isicom_ioctl(struct tty_struct *tty,
-	unsigned int cmd, unsigned long arg)
+						unsigned int cmd, unsigned long arg)
 {
 	struct isi_port *port = tty->driver_data;
 	void __user *argp = (void __user *)arg;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_ioctl"))
+	{
 		return -ENODEV;
-
-	switch (cmd) {
-	case TIOCGSERIAL:
-		return isicom_get_serial_info(port, argp);
-
-	case TIOCSSERIAL:
-		return isicom_set_serial_info(tty, argp);
-
-	default:
-		return -ENOIOCTLCMD;
 	}
+
+	switch (cmd)
+	{
+		case TIOCGSERIAL:
+			return isicom_get_serial_info(port, argp);
+
+		case TIOCSSERIAL:
+			return isicom_set_serial_info(tty, argp);
+
+		default:
+			return -ENOIOCTLCMD;
+	}
+
 	return 0;
 }
 
 /* set_termios et all */
 static void isicom_set_termios(struct tty_struct *tty,
-	struct ktermios *old_termios)
+							   struct ktermios *old_termios)
 {
 	struct isi_port *port = tty->driver_data;
 	unsigned long flags;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_set_termios"))
+	{
 		return;
+	}
 
 	if (tty->termios.c_cflag == old_termios->c_cflag &&
-			tty->termios.c_iflag == old_termios->c_iflag)
+		tty->termios.c_iflag == old_termios->c_iflag)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&port->card->card_lock, flags);
 	isicom_config_port(tty);
 	spin_unlock_irqrestore(&port->card->card_lock, flags);
 
-	if ((old_termios->c_cflag & CRTSCTS) && !C_CRTSCTS(tty)) {
+	if ((old_termios->c_cflag & CRTSCTS) && !C_CRTSCTS(tty))
+	{
 		tty->hw_stopped = 0;
 		isicom_start(tty);
 	}
@@ -1212,7 +1512,9 @@ static void isicom_throttle(struct tty_struct *tty)
 	struct isi_board *card = port->card;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_throttle"))
+	{
 		return;
+	}
 
 	/* tell the card that this port cannot handle any more data for now */
 	card->port_status &= ~(1 << port->channel);
@@ -1226,7 +1528,9 @@ static void isicom_unthrottle(struct tty_struct *tty)
 	struct isi_board *card = port->card;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_unthrottle"))
+	{
 		return;
+	}
 
 	/* tell the card that this port is ready to accept more data */
 	card->port_status |= (1 << port->channel);
@@ -1239,7 +1543,9 @@ static void isicom_stop(struct tty_struct *tty)
 	struct isi_port *port = tty->driver_data;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_stop"))
+	{
 		return;
+	}
 
 	/* this tells the transmitter not to consider this port for
 	   data output to the card. */
@@ -1252,7 +1558,9 @@ static void isicom_start(struct tty_struct *tty)
 	struct isi_port *port = tty->driver_data;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_start"))
+	{
 		return;
+	}
 
 	/* this tells the transmitter to consider this port for
 	   data output to the card. */
@@ -1264,7 +1572,10 @@ static void isicom_hangup(struct tty_struct *tty)
 	struct isi_port *port = tty->driver_data;
 
 	if (isicom_paranoia_check(port, tty->name, "isicom_hangup"))
+	{
 		return;
+	}
+
 	tty_port_hangup(&port->port);
 }
 
@@ -1273,7 +1584,8 @@ static void isicom_hangup(struct tty_struct *tty)
  * Driver init and deinit functions
  */
 
-static const struct tty_operations isicom_ops = {
+static const struct tty_operations isicom_ops =
+{
 	.open			= isicom_open,
 	.close			= isicom_close,
 	.write			= isicom_write,
@@ -1294,7 +1606,8 @@ static const struct tty_operations isicom_ops = {
 	.break_ctl		= isicom_send_break,
 };
 
-static const struct tty_port_operations isicom_port_ops = {
+static const struct tty_port_operations isicom_port_ops =
+{
 	.carrier_raised		= isicom_carrier_raised,
 	.dtr_rts		= isicom_dtr_rts,
 	.activate		= isicom_activate,
@@ -1302,7 +1615,7 @@ static const struct tty_port_operations isicom_port_ops = {
 };
 
 static int reset_card(struct pci_dev *pdev,
-	const unsigned int card, unsigned int *signature)
+					  const unsigned int card, unsigned int *signature)
 {
 	struct isi_board *board = pci_get_drvdata(pdev);
 	unsigned long base = board->base;
@@ -1310,7 +1623,7 @@ static int reset_card(struct pci_dev *pdev,
 	int retval = 0;
 
 	dev_dbg(&pdev->dev, "ISILoad:Resetting Card%d at 0x%lx\n", card + 1,
-		base);
+			base);
 
 	inw(base + 0x8);
 
@@ -1323,9 +1636,10 @@ static int reset_card(struct pci_dev *pdev,
 	sig = inw(base + 0x4) & 0xff;
 
 	if (sig != 0xa5 && sig != 0xbb && sig != 0xcc && sig != 0xdd &&
-			sig != 0xee) {
+		sig != 0xee)
+	{
 		dev_warn(&pdev->dev, "ISILoad:Card%u reset failure (Possible "
-			"bad I/O Port Address 0x%lx).\n", card + 1, base);
+				 "bad I/O Port Address 0x%lx).\n", card + 1, base);
 		dev_dbg(&pdev->dev, "Sig=0x%x\n", sig);
 		retval = -EIO;
 		goto end;
@@ -1334,27 +1648,32 @@ static int reset_card(struct pci_dev *pdev,
 	msleep(10);
 
 	portcount = inw(base + 0x2);
+
 	if (!(inw(base + 0xe) & 0x1) || (portcount != 0 && portcount != 4 &&
-				portcount != 8 && portcount != 16)) {
+									 portcount != 8 && portcount != 16))
+	{
 		dev_err(&pdev->dev, "ISILoad:PCI Card%d reset failure.\n",
-			card + 1);
+				card + 1);
 		retval = -EIO;
 		goto end;
 	}
 
-	switch (sig) {
-	case 0xa5:
-	case 0xbb:
-	case 0xdd:
-		board->port_count = (portcount == 4) ? 4 : 8;
-		board->shift_count = 12;
-		break;
-	case 0xcc:
-	case 0xee:
-		board->port_count = 16;
-		board->shift_count = 11;
-		break;
+	switch (sig)
+	{
+		case 0xa5:
+		case 0xbb:
+		case 0xdd:
+			board->port_count = (portcount == 4) ? 4 : 8;
+			board->shift_count = 12;
+			break;
+
+		case 0xcc:
+		case 0xee:
+			board->port_count = 16;
+			board->shift_count = 11;
+			break;
 	}
+
 	dev_info(&pdev->dev, "-Done\n");
 	*signature = sig;
 
@@ -1363,7 +1682,7 @@ end:
 }
 
 static int load_firmware(struct pci_dev *pdev,
-	const unsigned int index, const unsigned int signature)
+						 const unsigned int index, const unsigned int signature)
 {
 	struct isi_board *board = pci_get_drvdata(pdev);
 	const struct firmware *fw;
@@ -1374,45 +1693,58 @@ static int load_firmware(struct pci_dev *pdev,
 	char *name;
 	u8 *data;
 
-	struct stframe {
+	struct stframe
+	{
 		u16	addr;
 		u16	count;
 		u8	data[0];
 	} *frame;
 
-	switch (signature) {
-	case 0xa5:
-		name = "isi608.bin";
-		break;
-	case 0xbb:
-		name = "isi608em.bin";
-		break;
-	case 0xcc:
-		name = "isi616em.bin";
-		break;
-	case 0xdd:
-		name = "isi4608.bin";
-		break;
-	case 0xee:
-		name = "isi4616.bin";
-		break;
-	default:
-		dev_err(&pdev->dev, "Unknown signature.\n");
-		goto end;
+	switch (signature)
+	{
+		case 0xa5:
+			name = "isi608.bin";
+			break;
+
+		case 0xbb:
+			name = "isi608em.bin";
+			break;
+
+		case 0xcc:
+			name = "isi616em.bin";
+			break;
+
+		case 0xdd:
+			name = "isi4608.bin";
+			break;
+
+		case 0xee:
+			name = "isi4616.bin";
+			break;
+
+		default:
+			dev_err(&pdev->dev, "Unknown signature.\n");
+			goto end;
 	}
 
 	retval = request_firmware(&fw, name, &pdev->dev);
+
 	if (retval)
+	{
 		goto end;
+	}
 
 	retval = -EIO;
 
 	for (frame = (struct stframe *)fw->data;
-			frame < (struct stframe *)(fw->data + fw->size);
-			frame = (struct stframe *)((u8 *)(frame + 1) +
-				frame->count)) {
+		 frame < (struct stframe *)(fw->data + fw->size);
+		 frame = (struct stframe *)((u8 *)(frame + 1) +
+									frame->count))
+	{
 		if (WaitTillCardIsFree(base))
+		{
 			goto errrelfw;
+		}
 
 		outw(0xf0, base);	/* start upload sequence */
 		outw(0x00, base);
@@ -1425,17 +1757,22 @@ static int load_firmware(struct pci_dev *pdev,
 		udelay(100); /* 0x2f */
 
 		if (WaitTillCardIsFree(base))
-			goto errrelfw;
-
-		status = inw(base + 0x4);
-		if (status != 0) {
-			dev_warn(&pdev->dev, "Card%d rejected load header:\n"
-				 "Address:0x%x\n"
-				 "Count:0x%x\n"
-				 "Status:0x%x\n",
-				 index + 1, frame->addr, frame->count, status);
+		{
 			goto errrelfw;
 		}
+
+		status = inw(base + 0x4);
+
+		if (status != 0)
+		{
+			dev_warn(&pdev->dev, "Card%d rejected load header:\n"
+					 "Address:0x%x\n"
+					 "Count:0x%x\n"
+					 "Status:0x%x\n",
+					 index + 1, frame->addr, frame->count, status);
+			goto errrelfw;
+		}
+
 		outsw(base, frame->data, word_count);
 
 		InterruptTheCard(base);
@@ -1443,24 +1780,31 @@ static int load_firmware(struct pci_dev *pdev,
 		udelay(50); /* 0x0f */
 
 		if (WaitTillCardIsFree(base))
+		{
 			goto errrelfw;
+		}
 
 		status = inw(base + 0x4);
-		if (status != 0) {
+
+		if (status != 0)
+		{
 			dev_err(&pdev->dev, "Card%d got out of sync.Card "
-				"Status:0x%x\n", index + 1, status);
+					"Status:0x%x\n", index + 1, status);
 			goto errrelfw;
 		}
 	}
 
-/* XXX: should we test it by reading it back and comparing with original like
- * in load firmware package? */
+	/* XXX: should we test it by reading it back and comparing with original like
+	 * in load firmware package? */
 	for (frame = (struct stframe *)fw->data;
-			frame < (struct stframe *)(fw->data + fw->size);
-			frame = (struct stframe *)((u8 *)(frame + 1) +
-				frame->count)) {
+		 frame < (struct stframe *)(fw->data + fw->size);
+		 frame = (struct stframe *)((u8 *)(frame + 1) +
+									frame->count))
+	{
 		if (WaitTillCardIsFree(base))
+		{
 			goto errrelfw;
+		}
 
 		outw(0xf1, base); /* start download sequence */
 		outw(0x00, base);
@@ -1473,53 +1817,68 @@ static int load_firmware(struct pci_dev *pdev,
 		udelay(50); /* 0xf */
 
 		if (WaitTillCardIsFree(base))
+		{
 			goto errrelfw;
+		}
 
 		status = inw(base + 0x4);
-		if (status != 0) {
+
+		if (status != 0)
+		{
 			dev_warn(&pdev->dev, "Card%d rejected verify header:\n"
-				 "Address:0x%x\n"
-				 "Count:0x%x\n"
-				 "Status: 0x%x\n",
-				 index + 1, frame->addr, frame->count, status);
+					 "Address:0x%x\n"
+					 "Count:0x%x\n"
+					 "Status: 0x%x\n",
+					 index + 1, frame->addr, frame->count, status);
 			goto errrelfw;
 		}
 
 		data = kmalloc(word_count * 2, GFP_KERNEL);
-		if (data == NULL) {
+
+		if (data == NULL)
+		{
 			dev_err(&pdev->dev, "Card%d, firmware upload "
-				"failed, not enough memory\n", index + 1);
+					"failed, not enough memory\n", index + 1);
 			goto errrelfw;
 		}
+
 		inw(base);
 		insw(base, data, word_count);
 		InterruptTheCard(base);
 
 		for (a = 0; a < frame->count; a++)
-			if (data[a] != frame->data[a]) {
+			if (data[a] != frame->data[a])
+			{
 				kfree(data);
 				dev_err(&pdev->dev, "Card%d, firmware upload "
-					"failed\n", index + 1);
+						"failed\n", index + 1);
 				goto errrelfw;
 			}
+
 		kfree(data);
 
 		udelay(50); /* 0xf */
 
 		if (WaitTillCardIsFree(base))
+		{
 			goto errrelfw;
+		}
 
 		status = inw(base + 0x4);
-		if (status != 0) {
+
+		if (status != 0)
+		{
 			dev_err(&pdev->dev, "Card%d verify got out of sync. "
-				"Card Status:0x%x\n", index + 1, status);
+					"Card Status:0x%x\n", index + 1, status);
 			goto errrelfw;
 		}
 	}
 
 	/* xfer ctrl */
 	if (WaitTillCardIsFree(base))
+	{
 		goto errrelfw;
+	}
 
 	outw(0xf2, base);
 	outw(0x800, base);
@@ -1543,17 +1902,21 @@ end:
 static unsigned int card_count;
 
 static int isicom_probe(struct pci_dev *pdev,
-	const struct pci_device_id *ent)
+						const struct pci_device_id *ent)
 {
 	unsigned int uninitialized_var(signature), index;
 	int retval = -EPERM;
 	struct isi_board *board = NULL;
 
 	if (card_count >= BOARD_COUNT)
+	{
 		goto err;
+	}
 
 	retval = pci_enable_device(pdev);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "failed to enable\n");
 		goto err;
 	}
@@ -1561,13 +1924,17 @@ static int isicom_probe(struct pci_dev *pdev,
 	dev_info(&pdev->dev, "ISI PCI Card(Device ID 0x%x)\n", ent->device);
 
 	/* allot the first empty slot in the array */
-	for (index = 0; index < BOARD_COUNT; index++) {
-		if (isi_card[index].base == 0) {
+	for (index = 0; index < BOARD_COUNT; index++)
+	{
+		if (isi_card[index].base == 0)
+		{
 			board = &isi_card[index];
 			break;
 		}
 	}
-	if (index == BOARD_COUNT) {
+
+	if (index == BOARD_COUNT)
+	{
 		retval = -ENODEV;
 		goto err_disable;
 	}
@@ -1580,38 +1947,49 @@ static int isicom_probe(struct pci_dev *pdev,
 	pci_set_drvdata(pdev, board);
 
 	retval = pci_request_region(pdev, 3, ISICOM_NAME);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "I/O Region 0x%lx-0x%lx is busy. Card%d "
-			"will be disabled.\n", board->base, board->base + 15,
-			index + 1);
+				"will be disabled.\n", board->base, board->base + 15,
+				index + 1);
 		retval = -EBUSY;
 		goto errdec;
 	}
 
 	retval = request_irq(board->irq, isicom_interrupt,
-			IRQF_SHARED, ISICOM_NAME, board);
-	if (retval < 0) {
+						 IRQF_SHARED, ISICOM_NAME, board);
+
+	if (retval < 0)
+	{
 		dev_err(&pdev->dev, "Could not install handler at Irq %d. "
-			"Card%d will be disabled.\n", board->irq, index + 1);
+				"Card%d will be disabled.\n", board->irq, index + 1);
 		goto errunrr;
 	}
 
 	retval = reset_card(pdev, index, &signature);
+
 	if (retval < 0)
+	{
 		goto errunri;
+	}
 
 	retval = load_firmware(pdev, index, signature);
-	if (retval < 0)
-		goto errunri;
 
-	for (index = 0; index < board->port_count; index++) {
+	if (retval < 0)
+	{
+		goto errunri;
+	}
+
+	for (index = 0; index < board->port_count; index++)
+	{
 		struct tty_port *tport = &board->ports[index].port;
 		tty_port_init(tport);
 		tport->ops = &isicom_port_ops;
-		tport->close_delay = 50 * HZ/100;
-		tport->closing_wait = 3000 * HZ/100;
+		tport->close_delay = 50 * HZ / 100;
+		tport->closing_wait = 3000 * HZ / 100;
 		tty_port_register_device(tport, isicom_normal,
-				board->index * 16 + index, &pdev->dev);
+								 board->index * 16 + index, &pdev->dev);
 	}
 
 	return 0;
@@ -1634,7 +2012,8 @@ static void isicom_remove(struct pci_dev *pdev)
 	struct isi_board *board = pci_get_drvdata(pdev);
 	unsigned int i;
 
-	for (i = 0; i < board->port_count; i++) {
+	for (i = 0; i < board->port_count; i++)
+	{
 		tty_unregister_device(isicom_normal, board->index * 16 + i);
 		tty_port_destroy(&board->ports[i].port);
 	}
@@ -1651,24 +2030,30 @@ static int __init isicom_init(void)
 	int retval, idx, channel;
 	struct isi_port *port;
 
-	for (idx = 0; idx < BOARD_COUNT; idx++) {
+	for (idx = 0; idx < BOARD_COUNT; idx++)
+	{
 		port = &isi_ports[idx * 16];
 		isi_card[idx].ports = port;
 		spin_lock_init(&isi_card[idx].card_lock);
-		for (channel = 0; channel < 16; channel++, port++) {
+
+		for (channel = 0; channel < 16; channel++, port++)
+		{
 			port->magic = ISICOM_MAGIC;
 			port->card = &isi_card[idx];
 			port->channel = channel;
 			port->status = 0;
 			/*  . . .  */
 		}
+
 		isi_card[idx].base = 0;
 		isi_card[idx].irq = 0;
 	}
 
 	/* tty driver structure initialization */
 	isicom_normal = alloc_tty_driver(PORT_COUNT);
-	if (!isicom_normal) {
+
+	if (!isicom_normal)
+	{
 		retval = -ENOMEM;
 		goto error;
 	}
@@ -1680,19 +2065,23 @@ static int __init isicom_init(void)
 	isicom_normal->subtype			= SERIAL_TYPE_NORMAL;
 	isicom_normal->init_termios		= tty_std_termios;
 	isicom_normal->init_termios.c_cflag	= B9600 | CS8 | CREAD | HUPCL |
-		CLOCAL;
+										  CLOCAL;
 	isicom_normal->flags			= TTY_DRIVER_REAL_RAW |
-		TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_HARDWARE_BREAK;
+									  TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_HARDWARE_BREAK;
 	tty_set_operations(isicom_normal, &isicom_ops);
 
 	retval = tty_register_driver(isicom_normal);
-	if (retval) {
+
+	if (retval)
+	{
 		pr_debug("Couldn't register the dialin driver\n");
 		goto err_puttty;
 	}
 
 	retval = pci_register_driver(&isicom_driver);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		pr_err("Unable to register pci driver.\n");
 		goto err_unrtty;
 	}

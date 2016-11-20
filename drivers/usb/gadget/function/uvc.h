@@ -34,7 +34,8 @@ struct uvc_request_data
 
 struct uvc_event
 {
-	union {
+	union
+	{
 		enum usb_device_speed speed;
 		struct usb_ctrlrequest req;
 		struct uvc_request_data data;
@@ -124,7 +125,7 @@ struct uvc_video
 	spinlock_t req_lock;
 
 	void (*encode) (struct usb_request *req, struct uvc_video *video,
-			struct uvc_buffer *buf);
+					struct uvc_buffer *buf);
 
 	/* Context data used by the completion handler */
 	__u32 payload_size;
@@ -150,12 +151,13 @@ struct uvc_device
 	struct uvc_video video;
 
 	/* Descriptors */
-	struct {
-		const struct uvc_descriptor_header * const *fs_control;
-		const struct uvc_descriptor_header * const *ss_control;
-		const struct uvc_descriptor_header * const *fs_streaming;
-		const struct uvc_descriptor_header * const *hs_streaming;
-		const struct uvc_descriptor_header * const *ss_streaming;
+	struct
+	{
+		const struct uvc_descriptor_header *const *fs_control;
+		const struct uvc_descriptor_header *const *ss_control;
+		const struct uvc_descriptor_header *const *fs_streaming;
+		const struct uvc_descriptor_header *const *hs_streaming;
+		const struct uvc_descriptor_header *const *ss_streaming;
 	} desc;
 
 	unsigned int control_intf;

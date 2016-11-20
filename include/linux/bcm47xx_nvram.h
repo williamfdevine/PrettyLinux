@@ -27,7 +27,7 @@ static inline int bcm47xx_nvram_init_from_mem(u32 base, u32 lim)
 	return -ENOTSUPP;
 };
 static inline int bcm47xx_nvram_getenv(const char *name, char *val,
-				       size_t val_len)
+									   size_t val_len)
 {
 	return -ENOTSUPP;
 };

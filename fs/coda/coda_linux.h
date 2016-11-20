@@ -1,6 +1,6 @@
-/* 
+/*
  * Coda File System, Linux Kernel module
- * 
+ *
  * Original version, adapted from cfs_mach.c, (C) Carnegie Mellon University
  * Linux modifications (C) 1996, Peter J. Braam
  * Rewritten for Linux 2.1 (C) 1997 Carnegie Mellon University
@@ -13,7 +13,7 @@
 #define _LINUX_CODA_FS
 
 #ifdef pr_fmt
-#undef pr_fmt
+	#undef pr_fmt
 #endif
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -23,7 +23,7 @@
 #include <linux/mm.h>
 #include <linux/vmalloc.h>
 #include <linux/slab.h>
-#include <linux/wait.h>		
+#include <linux/wait.h>
 #include <linux/types.h>
 #include <linux/fs.h>
 #include "coda_fs_i.h"
@@ -63,13 +63,13 @@ void coda_sysctl_init(void);
 void coda_sysctl_clean(void);
 
 #define CODA_ALLOC(ptr, cast, size) do { \
-    if (size < PAGE_SIZE) \
-        ptr = kzalloc((unsigned long) size, GFP_KERNEL); \
-    else \
-        ptr = (cast)vzalloc((unsigned long) size); \
-    if (!ptr) \
-	pr_warn("kernel malloc returns 0 at %s:%d\n", __FILE__, __LINE__); \
-} while (0)
+		if (size < PAGE_SIZE) \
+			ptr = kzalloc((unsigned long) size, GFP_KERNEL); \
+		else \
+			ptr = (cast)vzalloc((unsigned long) size); \
+		if (!ptr) \
+			pr_warn("kernel malloc returns 0 at %s:%d\n", __FILE__, __LINE__); \
+	} while (0)
 
 
 #define CODA_FREE(ptr, size) kvfree((ptr))
@@ -99,6 +99,6 @@ static __inline__ void coda_flag_inode(struct inode *inode, int flag)
 	spin_lock(&cii->c_lock);
 	cii->c_flags |= flag;
 	spin_unlock(&cii->c_lock);
-}		
+}
 
 #endif

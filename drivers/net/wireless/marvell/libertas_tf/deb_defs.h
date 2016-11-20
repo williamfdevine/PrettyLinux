@@ -6,14 +6,14 @@
 #define _LBS_DEB_DEFS_H_
 
 #ifndef DRV_NAME
-#define DRV_NAME "libertas_tf"
+	#define DRV_NAME "libertas_tf"
 #endif
 
 #include <linux/spinlock.h>
 
 #ifdef CONFIG_LIBERTAS_THINFIRM_DEBUG
-#define DEBUG
-#define PROC_DEBUG
+	#define DEBUG
+	#define PROC_DEBUG
 #endif
 
 #define LBTF_DEB_ENTER	0x00000001
@@ -46,22 +46,22 @@ extern unsigned int lbtf_debug;
 
 #ifdef DEBUG
 #define LBTF_DEB_LL(grp, grpnam, fmt, args...) \
-do { if ((lbtf_debug & (grp)) == (grp)) \
-  printk(KERN_DEBUG DRV_NAME grpnam "%s: " fmt, \
-         in_interrupt() ? " (INT)" : "", ## args); } while (0)
+	do { if ((lbtf_debug & (grp)) == (grp)) \
+			printk(KERN_DEBUG DRV_NAME grpnam "%s: " fmt, \
+				   in_interrupt() ? " (INT)" : "", ## args); } while (0)
 #else
 #define LBTF_DEB_LL(grp, grpnam, fmt, args...) do {} while (0)
 #endif
 
 #define lbtf_deb_enter(grp) \
-  LBTF_DEB_LL(grp | LBTF_DEB_ENTER, " enter", "%s()\n", __func__);
+	LBTF_DEB_LL(grp | LBTF_DEB_ENTER, " enter", "%s()\n", __func__);
 #define lbtf_deb_enter_args(grp, fmt, args...) \
-  LBTF_DEB_LL(grp | LBTF_DEB_ENTER, " enter", "%s(" fmt ")\n", __func__, ## args);
+	LBTF_DEB_LL(grp | LBTF_DEB_ENTER, " enter", "%s(" fmt ")\n", __func__, ## args);
 #define lbtf_deb_leave(grp) \
-  LBTF_DEB_LL(grp | LBTF_DEB_LEAVE, " leave", "%s()\n", __func__);
+	LBTF_DEB_LL(grp | LBTF_DEB_LEAVE, " leave", "%s()\n", __func__);
 #define lbtf_deb_leave_args(grp, fmt, args...) \
-  LBTF_DEB_LL(grp | LBTF_DEB_LEAVE, " leave", "%s(), " fmt "\n", \
-  __func__, ##args);
+	LBTF_DEB_LL(grp | LBTF_DEB_LEAVE, " leave", "%s(), " fmt "\n", \
+				__func__, ##args);
 #define lbtf_deb_main(fmt, args...)      LBTF_DEB_LL(LBTF_DEB_MAIN, " main", fmt, ##args)
 #define lbtf_deb_net(fmt, args...)       LBTF_DEB_LL(LBTF_DEB_NET, " net", fmt, ##args)
 #define lbtf_deb_mesh(fmt, args...)      LBTF_DEB_LL(LBTF_DEB_MESH, " mesh", fmt, ##args)
@@ -91,8 +91,9 @@ static inline void lbtf_deb_hex(unsigned int grp, const char *prompt, u8 *buf, i
 	char newprompt[32];
 
 	if (len &&
-	    (lbtf_debug & LBTF_DEB_HEX) &&
-	    (lbtf_debug & grp))	{
+		(lbtf_debug & LBTF_DEB_HEX) &&
+		(lbtf_debug & grp))
+	{
 		snprintf(newprompt, sizeof(newprompt), DRV_NAME " %s: ", prompt);
 		print_hex_dump_bytes(prompt, DUMP_PREFIX_NONE, buf, len);
 	}

@@ -58,7 +58,8 @@
  *  between them. */
 /*  Besides, CustomerID of registry has precedence of that of EEPROM. */
 /*  defined below. 060703, by rcnjko. */
-enum RT_CUSTOMER_ID {
+enum RT_CUSTOMER_ID
+{
 	RT_CID_DEFAULT = 0,
 	RT_CID_8187_ALPHA0 = 1,
 	RT_CID_8187_SERCOMM_PS = 2,
@@ -106,7 +107,8 @@ enum RT_CUSTOMER_ID {
 	RT_CID_819x_ALPHA_WD = 41,
 };
 
-struct eeprom_priv {
+struct eeprom_priv
+{
 	u8		bautoload_fail_flag;
 	u8		bloadfile_fail_flag;
 	u8		bloadmac_fail_flag;

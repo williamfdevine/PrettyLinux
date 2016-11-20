@@ -23,7 +23,8 @@
 static int ov7660_s_ctrl(struct v4l2_ctrl *ctrl);
 static void ov7660_dump_registers(struct sd *sd);
 
-static const unsigned char preinit_ov7660[][4] = {
+static const unsigned char preinit_ov7660[][4] =
+{
 	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02},
 	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0},
 	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
@@ -57,7 +58,8 @@ static const unsigned char preinit_ov7660[][4] = {
 	{BRIDGE, M5602_XB_GPIO_EN_L, 0x00}
 };
 
-static const unsigned char init_ov7660[][4] = {
+static const unsigned char init_ov7660[][4] =
+{
 	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02},
 	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0},
 	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00},
@@ -176,21 +178,23 @@ static const unsigned char init_ov7660[][4] = {
 	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0},
 };
 
-static struct v4l2_pix_format ov7660_modes[] = {
+static struct v4l2_pix_format ov7660_modes[] =
+{
 	{
 		640,
 		480,
 		V4L2_PIX_FMT_SBGGR8,
 		V4L2_FIELD_NONE,
 		.sizeimage =
-			640 * 480,
+		640 * 480,
 		.bytesperline = 640,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.priv = 0
 	}
 };
 
-static const struct v4l2_ctrl_ops ov7660_ctrl_ops = {
+static const struct v4l2_ctrl_ops ov7660_ctrl_ops =
+{
 	.s_ctrl = ov7660_s_ctrl,
 };
 
@@ -199,45 +203,61 @@ int ov7660_probe(struct sd *sd)
 	int err = 0, i;
 	u8 prod_id = 0, ver_id = 0;
 
-	if (force_sensor) {
-		if (force_sensor == OV7660_SENSOR) {
+	if (force_sensor)
+	{
+		if (force_sensor == OV7660_SENSOR)
+		{
 			pr_info("Forcing an %s sensor\n", ov7660.name);
 			goto sensor_found;
 		}
+
 		/* If we want to force another sensor,
 		don't try to probe this one */
 		return -ENODEV;
 	}
 
 	/* Do the preinit */
-	for (i = 0; i < ARRAY_SIZE(preinit_ov7660) && !err; i++) {
+	for (i = 0; i < ARRAY_SIZE(preinit_ov7660) && !err; i++)
+	{
 		u8 data[2];
 
-		if (preinit_ov7660[i][0] == BRIDGE) {
+		if (preinit_ov7660[i][0] == BRIDGE)
+		{
 			err = m5602_write_bridge(sd,
-				preinit_ov7660[i][1],
-				preinit_ov7660[i][2]);
-		} else {
+									 preinit_ov7660[i][1],
+									 preinit_ov7660[i][2]);
+		}
+		else
+		{
 			data[0] = preinit_ov7660[i][2];
 			err = m5602_write_sensor(sd,
-				preinit_ov7660[i][1], data, 1);
+									 preinit_ov7660[i][1], data, 1);
 		}
 	}
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (m5602_read_sensor(sd, OV7660_PID, &prod_id, 1))
+	{
 		return -ENODEV;
+	}
 
 	if (m5602_read_sensor(sd, OV7660_VER, &ver_id, 1))
+	{
 		return -ENODEV;
+	}
 
 	pr_info("Sensor reported 0x%x%x\n", prod_id, ver_id);
 
-	if ((prod_id == 0x76) && (ver_id == 0x60)) {
+	if ((prod_id == 0x76) && (ver_id == 0x60))
+	{
 		pr_info("Detected a ov7660 sensor\n");
 		goto sensor_found;
 	}
+
 	return -ENODEV;
 
 sensor_found:
@@ -252,24 +272,33 @@ int ov7660_init(struct sd *sd)
 	int i, err;
 
 	/* Init the sensor */
-	for (i = 0; i < ARRAY_SIZE(init_ov7660); i++) {
+	for (i = 0; i < ARRAY_SIZE(init_ov7660); i++)
+	{
 		u8 data[2];
 
-		if (init_ov7660[i][0] == BRIDGE) {
+		if (init_ov7660[i][0] == BRIDGE)
+		{
 			err = m5602_write_bridge(sd,
-				init_ov7660[i][1],
-				init_ov7660[i][2]);
-		} else {
+									 init_ov7660[i][1],
+									 init_ov7660[i][2]);
+		}
+		else
+		{
 			data[0] = init_ov7660[i][2];
 			err = m5602_write_sensor(sd,
-				init_ov7660[i][1], data, 1);
+									 init_ov7660[i][1], data, 1);
 		}
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
 
 	if (dump_sensor)
+	{
 		ov7660_dump_registers(sd);
+	}
 
 	return 0;
 }
@@ -282,21 +311,22 @@ int ov7660_init_controls(struct sd *sd)
 	v4l2_ctrl_handler_init(hdl, 6);
 
 	v4l2_ctrl_new_std(hdl, &ov7660_ctrl_ops, V4L2_CID_AUTO_WHITE_BALANCE,
-			  0, 1, 1, 1);
+					  0, 1, 1, 1);
 	v4l2_ctrl_new_std_menu(hdl, &ov7660_ctrl_ops,
-			  V4L2_CID_EXPOSURE_AUTO, 1, 0, V4L2_EXPOSURE_AUTO);
+						   V4L2_CID_EXPOSURE_AUTO, 1, 0, V4L2_EXPOSURE_AUTO);
 
 	sd->autogain = v4l2_ctrl_new_std(hdl, &ov7660_ctrl_ops,
-					 V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
+									 V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
 	sd->gain = v4l2_ctrl_new_std(hdl, &ov7660_ctrl_ops, V4L2_CID_GAIN, 0,
-				     255, 1, OV7660_DEFAULT_GAIN);
+								 255, 1, OV7660_DEFAULT_GAIN);
 
 	sd->hflip = v4l2_ctrl_new_std(hdl, &ov7660_ctrl_ops, V4L2_CID_HFLIP,
-				      0, 1, 1, 0);
+								  0, 1, 1, 0);
 	sd->vflip = v4l2_ctrl_new_std(hdl, &ov7660_ctrl_ops, V4L2_CID_VFLIP,
-				      0, 1, 1, 0);
+								  0, 1, 1, 0);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		pr_err("Could not initialize controls\n");
 		return hdl->error;
 	}
@@ -337,7 +367,7 @@ static int ov7660_set_gain(struct gspca_dev *gspca_dev, __s32 val)
 }
 
 static int ov7660_set_auto_white_balance(struct gspca_dev *gspca_dev,
-					 __s32 val)
+		__s32 val)
 {
 	int err;
 	u8 i2c_data;
@@ -346,8 +376,11 @@ static int ov7660_set_auto_white_balance(struct gspca_dev *gspca_dev,
 	PDEBUG(D_CONF, "Set auto white balance to %d", val);
 
 	err = m5602_read_sensor(sd, OV7660_COM8, &i2c_data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	i2c_data = ((i2c_data & 0xfd) | ((val & 0x01) << 1));
 	err = m5602_write_sensor(sd, OV7660_COM8, &i2c_data, 1);
@@ -364,8 +397,11 @@ static int ov7660_set_auto_gain(struct gspca_dev *gspca_dev, __s32 val)
 	PDEBUG(D_CONF, "Set auto gain control to %d", val);
 
 	err = m5602_read_sensor(sd, OV7660_COM8, &i2c_data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	i2c_data = ((i2c_data & 0xfb) | ((val & 0x01) << 2));
 
@@ -373,7 +409,7 @@ static int ov7660_set_auto_gain(struct gspca_dev *gspca_dev, __s32 val)
 }
 
 static int ov7660_set_auto_exposure(struct gspca_dev *gspca_dev,
-				    __s32 val)
+									__s32 val)
 {
 	int err;
 	u8 i2c_data;
@@ -382,8 +418,11 @@ static int ov7660_set_auto_exposure(struct gspca_dev *gspca_dev,
 	PDEBUG(D_CONF, "Set auto exposure control to %d", val);
 
 	err = m5602_read_sensor(sd, OV7660_COM8, &i2c_data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	val = (val == V4L2_EXPOSURE_AUTO);
 	i2c_data = ((i2c_data & 0xfe) | ((val & 0x01) << 0));
@@ -414,26 +453,37 @@ static int ov7660_s_ctrl(struct v4l2_ctrl *ctrl)
 	int err;
 
 	if (!gspca_dev->streaming)
+	{
 		return 0;
+	}
 
-	switch (ctrl->id) {
-	case V4L2_CID_AUTO_WHITE_BALANCE:
-		err = ov7660_set_auto_white_balance(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_EXPOSURE_AUTO:
-		err = ov7660_set_auto_exposure(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_AUTOGAIN:
-		err = ov7660_set_auto_gain(gspca_dev, ctrl->val);
-		if (err || ctrl->val)
-			return err;
-		err = ov7660_set_gain(gspca_dev, sd->gain->val);
-		break;
-	case V4L2_CID_HFLIP:
-		err = ov7660_set_hvflip(gspca_dev);
-		break;
-	default:
-		return -EINVAL;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUTO_WHITE_BALANCE:
+			err = ov7660_set_auto_white_balance(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_EXPOSURE_AUTO:
+			err = ov7660_set_auto_exposure(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_AUTOGAIN:
+			err = ov7660_set_auto_gain(gspca_dev, ctrl->val);
+
+			if (err || ctrl->val)
+			{
+				return err;
+			}
+
+			err = ov7660_set_gain(gspca_dev, sd->gain->val);
+			break;
+
+		case V4L2_CID_HFLIP:
+			err = ov7660_set_hvflip(gspca_dev);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return err;
@@ -443,7 +493,9 @@ static void ov7660_dump_registers(struct sd *sd)
 {
 	int address;
 	pr_info("Dumping the ov7660 register state\n");
-	for (address = 0; address < 0xa9; address++) {
+
+	for (address = 0; address < 0xa9; address++)
+	{
 		u8 value;
 		m5602_read_sensor(sd, address, &value, 1);
 		pr_info("register 0x%x contains 0x%x\n", address, value);
@@ -452,7 +504,9 @@ static void ov7660_dump_registers(struct sd *sd)
 	pr_info("ov7660 register state dump complete\n");
 
 	pr_info("Probing for which registers that are read/write\n");
-	for (address = 0; address < 0xff; address++) {
+
+	for (address = 0; address < 0xff; address++)
+	{
 		u8 old_value, ctrl_value;
 		u8 test_value[2] = {0xff, 0xff};
 
@@ -461,9 +515,13 @@ static void ov7660_dump_registers(struct sd *sd)
 		m5602_read_sensor(sd, address, &ctrl_value, 1);
 
 		if (ctrl_value == test_value[0])
+		{
 			pr_info("register 0x%x is writeable\n", address);
+		}
 		else
+		{
 			pr_info("register 0x%x is read only\n", address);
+		}
 
 		/* Restore original value */
 		m5602_write_sensor(sd, address, &old_value, 1);

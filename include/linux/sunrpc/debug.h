@@ -14,10 +14,10 @@
  * Debugging macros etc
  */
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-extern unsigned int		rpc_debug;
-extern unsigned int		nfs_debug;
-extern unsigned int		nfsd_debug;
-extern unsigned int		nlm_debug;
+	extern unsigned int		rpc_debug;
+	extern unsigned int		nfs_debug;
+	extern unsigned int		nfsd_debug;
+	extern unsigned int		nlm_debug;
 #endif
 
 #define dprintk(args...)	dfprintk(FACILITY, ## args)
@@ -30,7 +30,7 @@ extern unsigned int		nlm_debug;
 # define dfprintk(fac, args...)	\
 	do { \
 		ifdebug(fac) \
-			printk(KERN_DEFAULT args); \
+		printk(KERN_DEFAULT args); \
 	} while (0)
 
 # define dfprintk_rcu(fac, args...)	\

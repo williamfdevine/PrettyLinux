@@ -17,7 +17,8 @@
  * When you are watching a directory, you will receive the filename for events
  * such as IN_CREATE, IN_DELETE, IN_OPEN, IN_CLOSE, ..., relative to the wd.
  */
-struct inotify_event {
+struct inotify_event
+{
 	__s32		wd;		/* watch descriptor */
 	__u32		mask;		/* watch mask */
 	__u32		cookie;		/* cookie to synchronize two events */
@@ -62,9 +63,9 @@ struct inotify_event {
  * events that they originally wanted.  Be sure to add new events here!
  */
 #define IN_ALL_EVENTS	(IN_ACCESS | IN_MODIFY | IN_ATTRIB | IN_CLOSE_WRITE | \
-			 IN_CLOSE_NOWRITE | IN_OPEN | IN_MOVED_FROM | \
-			 IN_MOVED_TO | IN_DELETE | IN_CREATE | IN_DELETE_SELF | \
-			 IN_MOVE_SELF)
+						 IN_CLOSE_NOWRITE | IN_OPEN | IN_MOVED_FROM | \
+						 IN_MOVED_TO | IN_DELETE | IN_CREATE | IN_DELETE_SELF | \
+						 IN_MOVE_SELF)
 
 /* Flags for sys_inotify_init1.  */
 #define IN_CLOEXEC O_CLOEXEC

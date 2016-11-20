@@ -62,25 +62,36 @@ int get_clocksources(char list[][30])
 	close(fd);
 
 	for (i = 0; i < 30; i++)
+	{
 		list[i][0] = '\0';
+	}
 
 	head = buf;
 	i = 0;
-	while (head - buf < size) {
+
+	while (head - buf < size)
+	{
 		/* Find the next space */
-		for (tmp = head; *tmp != ' '; tmp++) {
+		for (tmp = head; *tmp != ' '; tmp++)
+		{
 			if (*tmp == '\n')
+			{
 				break;
+			}
+
 			if (*tmp == '\0')
+			{
 				break;
+			}
 		}
+
 		*tmp = '\0';
 		strcpy(list[i], head);
 		head = tmp + 1;
 		i++;
 	}
 
-	return i-1;
+	return i - 1;
 }
 
 int get_cur_clocksource(char *buf, size_t size)
@@ -102,12 +113,16 @@ int change_clocksource(char *clocksource)
 	fd = open("/sys/devices/system/clocksource/clocksource0/current_clocksource", O_WRONLY);
 
 	if (fd < 0)
+	{
 		return -1;
+	}
 
 	size = write(fd, clocksource, strlen(clocksource));
 
 	if (size < 0)
+	{
 		return -1;
+	}
 
 	close(fd);
 	return 0;
@@ -121,8 +136,12 @@ int run_tests(int secs)
 
 	sprintf(buf, "./inconsistency-check -t %i", secs);
 	ret = system(buf);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = system("./nanosleep");
 	return ret;
 }
@@ -140,19 +159,25 @@ int main(int argv, char **argc)
 
 	count = get_clocksources(clocksource_list);
 
-	if (change_clocksource(clocksource_list[0])) {
+	if (change_clocksource(clocksource_list[0]))
+	{
 		printf("Error: You probably need to run this as root\n");
 		return -1;
 	}
 
 	/* Check everything is sane before we start switching asyncrhonously */
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		printf("Validating clocksource %s\n", clocksource_list[i]);
-		if (change_clocksource(clocksource_list[i])) {
+
+		if (change_clocksource(clocksource_list[i]))
+		{
 			status = -1;
 			goto out;
 		}
-		if (run_tests(5)) {
+
+		if (run_tests(5))
+		{
 			status = -1;
 			goto out;
 		}
@@ -161,19 +186,27 @@ int main(int argv, char **argc)
 
 	printf("Running Asyncrhonous Switching Tests...\n");
 	pid = fork();
+
 	if (!pid)
+	{
 		return run_tests(60);
+	}
 
 	while (pid != waitpid(pid, &status, WNOHANG))
 		for (i = 0; i < count; i++)
-			if (change_clocksource(clocksource_list[i])) {
+			if (change_clocksource(clocksource_list[i]))
+			{
 				status = -1;
 				goto out;
 			}
+
 out:
 	change_clocksource(orig_clk);
 
 	if (status)
+	{
 		return ksft_exit_fail();
+	}
+
 	return ksft_exit_pass();
 }

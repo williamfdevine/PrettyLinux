@@ -23,14 +23,19 @@ static int tda8261_get_frequency(struct dvb_frontend *fe, u32 *frequency)
 	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
 	int err = 0;
 
-	if (tuner_ops->get_frequency) {
+	if (tuner_ops->get_frequency)
+	{
 		err = tuner_ops->get_frequency(fe, frequency);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			pr_err("%s: Invalid parameter\n", __func__);
 			return err;
 		}
+
 		pr_debug("%s: Frequency=%d\n", __func__, *frequency);
 	}
+
 	return 0;
 }
 
@@ -41,13 +46,17 @@ static int tda8261_set_frequency(struct dvb_frontend *fe, u32 frequency)
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
 	int err = 0;
 
-	if (tuner_ops->set_params) {
+	if (tuner_ops->set_params)
+	{
 		err = tuner_ops->set_params(fe);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			pr_err("%s: Invalid parameter\n", __func__);
 			return err;
 		}
 	}
+
 	pr_debug("%s: Frequency=%d\n", __func__, c->frequency);
 	return 0;
 }

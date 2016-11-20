@@ -25,52 +25,57 @@
 #include <linux/delay.h>
 
 #define readl_poll_timeout(addr, val, cond, sleep_us, timeout_us) \
-({ \
-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
-	might_sleep_if(timeout_us); \
-	for (;;) { \
-		(val) = readl(addr); \
-		if (cond) \
-			break; \
-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
+	({ \
+		ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
+		might_sleep_if(timeout_us); \
+		for (;;) { \
 			(val) = readl(addr); \
-			break; \
+			if (cond) \
+				break; \
+			if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
+				(val) = readl(addr); \
+				break; \
+			} \
+			if (sleep_us) \
+				usleep_range(DIV_ROUND_UP(sleep_us, 4), sleep_us); \
 		} \
-		if (sleep_us) \
-			usleep_range(DIV_ROUND_UP(sleep_us, 4), sleep_us); \
-	} \
-	(cond) ? 0 : -ETIMEDOUT; \
-})
+		(cond) ? 0 : -ETIMEDOUT; \
+	})
 
 #define UFS_QCOM_PHY_CAL_ENTRY(reg, val)	\
 	{				\
 		.reg_offset = reg,	\
-		.cfg_value = val,	\
+					  .cfg_value = val,	\
 	}
 
 #define UFS_QCOM_PHY_NAME_LEN	30
 
-enum {
+enum
+{
 	MASK_SERDES_START       = 0x1,
 	MASK_PCS_READY          = 0x1,
 };
 
-enum {
+enum
+{
 	OFFSET_SERDES_START     = 0x0,
 };
 
-struct ufs_qcom_phy_stored_attributes {
+struct ufs_qcom_phy_stored_attributes
+{
 	u32 att;
 	u32 value;
 };
 
 
-struct ufs_qcom_phy_calibration {
+struct ufs_qcom_phy_calibration
+{
 	u32 reg_offset;
 	u32 cfg_value;
 };
 
-struct ufs_qcom_phy_vreg {
+struct ufs_qcom_phy_vreg
+{
 	const char *name;
 	struct regulator *reg;
 	int max_uA;
@@ -80,7 +85,8 @@ struct ufs_qcom_phy_vreg {
 	bool is_always_on;
 };
 
-struct ufs_qcom_phy {
+struct ufs_qcom_phy
+{
 	struct list_head list;
 	struct device *dev;
 	void __iomem *mmio;
@@ -105,7 +111,7 @@ struct ufs_qcom_phy {
 	* Enabling this quirk will help to solve above issue by doing
 	* custom PHY settings just before PHY analog power collapse.
 	*/
-	#define UFS_QCOM_PHY_QUIRK_HIBERN8_EXIT_AFTER_PHY_PWR_COLLAPSE	BIT(0)
+#define UFS_QCOM_PHY_QUIRK_HIBERN8_EXIT_AFTER_PHY_PWR_COLLAPSE	BIT(0)
 
 	u8 host_ctrl_rev_major;
 	u16 host_ctrl_rev_minor;
@@ -130,7 +136,8 @@ struct ufs_qcom_phy {
  * @power_control: pointer to a function that controls analog rail of phy
  * and writes to QSERDES_RX_SIGDET_CNTRL attribute
  */
-struct ufs_qcom_phy_specific_ops {
+struct ufs_qcom_phy_specific_ops
+{
 	int (*calibrate_phy)(struct ufs_qcom_phy *phy, bool is_rate_B);
 	void (*start_serdes)(struct ufs_qcom_phy *phy);
 	int (*is_physical_coding_sublayer_ready)(struct ufs_qcom_phy *phy);
@@ -143,17 +150,17 @@ int ufs_qcom_phy_power_on(struct phy *generic_phy);
 int ufs_qcom_phy_power_off(struct phy *generic_phy);
 int ufs_qcom_phy_exit(struct phy *generic_phy);
 int ufs_qcom_phy_init_clks(struct phy *generic_phy,
-			struct ufs_qcom_phy *phy_common);
+						   struct ufs_qcom_phy *phy_common);
 int ufs_qcom_phy_init_vregulators(struct phy *generic_phy,
-			struct ufs_qcom_phy *phy_common);
+								  struct ufs_qcom_phy *phy_common);
 int ufs_qcom_phy_remove(struct phy *generic_phy,
-		       struct ufs_qcom_phy *ufs_qcom_phy);
+						struct ufs_qcom_phy *ufs_qcom_phy);
 struct phy *ufs_qcom_phy_generic_probe(struct platform_device *pdev,
-			struct ufs_qcom_phy *common_cfg,
-			const struct phy_ops *ufs_qcom_phy_gen_ops,
-			struct ufs_qcom_phy_specific_ops *phy_spec_ops);
+									   struct ufs_qcom_phy *common_cfg,
+									   const struct phy_ops *ufs_qcom_phy_gen_ops,
+									   struct ufs_qcom_phy_specific_ops *phy_spec_ops);
 int ufs_qcom_phy_calibrate(struct ufs_qcom_phy *ufs_qcom_phy,
-			struct ufs_qcom_phy_calibration *tbl_A, int tbl_size_A,
-			struct ufs_qcom_phy_calibration *tbl_B, int tbl_size_B,
-			bool is_rate_B);
+						   struct ufs_qcom_phy_calibration *tbl_A, int tbl_size_A,
+						   struct ufs_qcom_phy_calibration *tbl_B, int tbl_size_B,
+						   bool is_rate_B);
 #endif

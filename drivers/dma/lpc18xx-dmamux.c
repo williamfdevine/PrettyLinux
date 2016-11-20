@@ -27,12 +27,14 @@
 #define LPC18XX_DMAMUX_MASK(n)		(0x3 << (n * 2))
 #define LPC18XX_DMAMUX_MAX_VAL		0x3
 
-struct lpc18xx_dmamux {
+struct lpc18xx_dmamux
+{
 	u32 value;
 	bool busy;
 };
 
-struct lpc18xx_dmamux_data {
+struct lpc18xx_dmamux_data
+{
 	struct dma_router dmarouter;
 	struct lpc18xx_dmamux *muxes;
 	u32 dma_master_requests;
@@ -53,43 +55,51 @@ static void lpc18xx_dmamux_free(struct device *dev, void *route_data)
 }
 
 static void *lpc18xx_dmamux_reserve(struct of_phandle_args *dma_spec,
-				    struct of_dma *ofdma)
+									struct of_dma *ofdma)
 {
 	struct platform_device *pdev = of_find_device_by_node(ofdma->of_node);
 	struct lpc18xx_dmamux_data *dmamux = platform_get_drvdata(pdev);
 	unsigned long flags;
 	unsigned mux;
 
-	if (dma_spec->args_count != 3) {
+	if (dma_spec->args_count != 3)
+	{
 		dev_err(&pdev->dev, "invalid number of dma mux args\n");
 		return ERR_PTR(-EINVAL);
 	}
 
 	mux = dma_spec->args[0];
-	if (mux >= dmamux->dma_master_requests) {
+
+	if (mux >= dmamux->dma_master_requests)
+	{
 		dev_err(&pdev->dev, "invalid mux number: %d\n",
-			dma_spec->args[0]);
+				dma_spec->args[0]);
 		return ERR_PTR(-EINVAL);
 	}
 
-	if (dma_spec->args[1] > LPC18XX_DMAMUX_MAX_VAL) {
+	if (dma_spec->args[1] > LPC18XX_DMAMUX_MAX_VAL)
+	{
 		dev_err(&pdev->dev, "invalid dma mux value: %d\n",
-			dma_spec->args[1]);
+				dma_spec->args[1]);
 		return ERR_PTR(-EINVAL);
 	}
 
 	/* The of_node_put() will be done in the core for the node */
 	dma_spec->np = of_parse_phandle(ofdma->of_node, "dma-masters", 0);
-	if (!dma_spec->np) {
+
+	if (!dma_spec->np)
+	{
 		dev_err(&pdev->dev, "can't get dma master\n");
 		return ERR_PTR(-EINVAL);
 	}
 
 	spin_lock_irqsave(&dmamux->lock, flags);
-	if (dmamux->muxes[mux].busy) {
+
+	if (dmamux->muxes[mux].busy)
+	{
 		spin_unlock_irqrestore(&dmamux->lock, flags);
 		dev_err(&pdev->dev, "dma request %u busy with %u.%u\n",
-			mux, mux, dmamux->muxes[mux].value);
+				mux, mux, dmamux->muxes[mux].value);
 		of_node_put(dma_spec->np);
 		return ERR_PTR(-EBUSY);
 	}
@@ -98,15 +108,15 @@ static void *lpc18xx_dmamux_reserve(struct of_phandle_args *dma_spec,
 	dmamux->muxes[mux].value = dma_spec->args[1];
 
 	regmap_update_bits(dmamux->reg, LPC18XX_CREG_DMAMUX,
-			   LPC18XX_DMAMUX_MASK(mux),
-			   LPC18XX_DMAMUX_VAL(dmamux->muxes[mux].value, mux));
+					   LPC18XX_DMAMUX_MASK(mux),
+					   LPC18XX_DMAMUX_VAL(dmamux->muxes[mux].value, mux));
 	spin_unlock_irqrestore(&dmamux->lock, flags);
 
 	dma_spec->args[1] = dma_spec->args[2];
 	dma_spec->args_count = 2;
 
 	dev_dbg(&pdev->dev, "mapping dmamux %u.%u to dma request %u\n", mux,
-		dmamux->muxes[mux].value, mux);
+			dmamux->muxes[mux].value, mux);
 
 	return &dmamux->muxes[mux];
 }
@@ -118,41 +128,55 @@ static int lpc18xx_dmamux_probe(struct platform_device *pdev)
 	int ret;
 
 	dmamux = devm_kzalloc(&pdev->dev, sizeof(*dmamux), GFP_KERNEL);
+
 	if (!dmamux)
+	{
 		return -ENOMEM;
+	}
 
 	dmamux->reg = syscon_regmap_lookup_by_compatible("nxp,lpc1850-creg");
-	if (IS_ERR(dmamux->reg)) {
+
+	if (IS_ERR(dmamux->reg))
+	{
 		dev_err(&pdev->dev, "syscon lookup failed\n");
 		return PTR_ERR(dmamux->reg);
 	}
 
 	ret = of_property_read_u32(np, "dma-requests",
-				   &dmamux->dma_mux_requests);
-	if (ret) {
+							   &dmamux->dma_mux_requests);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "missing dma-requests property\n");
 		return ret;
 	}
 
 	dma_np = of_parse_phandle(np, "dma-masters", 0);
-	if (!dma_np) {
+
+	if (!dma_np)
+	{
 		dev_err(&pdev->dev, "can't get dma master\n");
 		return -ENODEV;
 	}
 
 	ret = of_property_read_u32(dma_np, "dma-requests",
-				   &dmamux->dma_master_requests);
+							   &dmamux->dma_master_requests);
 	of_node_put(dma_np);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "missing master dma-requests property\n");
 		return ret;
 	}
 
 	dmamux->muxes = devm_kcalloc(&pdev->dev, dmamux->dma_master_requests,
-				     sizeof(struct lpc18xx_dmamux),
-				     GFP_KERNEL);
+								 sizeof(struct lpc18xx_dmamux),
+								 GFP_KERNEL);
+
 	if (!dmamux->muxes)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&dmamux->lock);
 	platform_set_drvdata(pdev, dmamux);
@@ -160,15 +184,17 @@ static int lpc18xx_dmamux_probe(struct platform_device *pdev)
 	dmamux->dmarouter.route_free = lpc18xx_dmamux_free;
 
 	return of_dma_router_register(np, lpc18xx_dmamux_reserve,
-				      &dmamux->dmarouter);
+								  &dmamux->dmarouter);
 }
 
-static const struct of_device_id lpc18xx_dmamux_match[] = {
+static const struct of_device_id lpc18xx_dmamux_match[] =
+{
 	{ .compatible = "nxp,lpc1850-dmamux" },
 	{},
 };
 
-static struct platform_driver lpc18xx_dmamux_driver = {
+static struct platform_driver lpc18xx_dmamux_driver =
+{
 	.probe	= lpc18xx_dmamux_probe,
 	.driver = {
 		.name = "lpc18xx-dmamux",

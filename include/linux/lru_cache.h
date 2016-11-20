@@ -156,7 +156,8 @@ write intent log information, three of which are mentioned here.
  * from wastes some resources.
  * But it avoids high order page allocations in kmalloc.
  */
-struct lc_element {
+struct lc_element
+{
 	struct hlist_node colision;
 	struct list_head list;		 /* LRU list or free list */
 	unsigned refcnt;
@@ -173,7 +174,8 @@ struct lc_element {
 	unsigned lc_new_number;
 };
 
-struct lru_cache {
+struct lru_cache
+{
 	/* the least recently used item is kept at lru->prev */
 	struct list_head lru;
 	struct list_head free;
@@ -221,7 +223,8 @@ struct lru_cache {
 
 
 /* flag-bits for lru_cache */
-enum {
+enum
+{
 	/* debugging aid, to catch concurrent access early.
 	 * user needs to guarantee exclusive access by proper locking! */
 	__LC_PARANOIA,
@@ -249,8 +252,8 @@ enum {
 #define LC_STARVING (1<<__LC_STARVING)
 
 extern struct lru_cache *lc_create(const char *name, struct kmem_cache *cache,
-		unsigned max_pending_changes,
-		unsigned e_count, size_t e_size, size_t e_off);
+								   unsigned max_pending_changes,
+								   unsigned e_count, size_t e_size, size_t e_off);
 extern void lc_reset(struct lru_cache *lc);
 extern void lc_destroy(struct lru_cache *lc);
 extern void lc_set(struct lru_cache *lc, unsigned int enr, int index);
@@ -267,7 +270,7 @@ struct seq_file;
 extern void lc_seq_printf_stats(struct seq_file *seq, struct lru_cache *lc);
 
 extern void lc_seq_dump_details(struct seq_file *seq, struct lru_cache *lc, char *utext,
-				void (*detail) (struct seq_file *, struct lc_element *));
+								void (*detail) (struct seq_file *, struct lc_element *));
 
 /**
  * lc_try_lock_for_transaction - can be used to stop lc_get() from changing the tracked set

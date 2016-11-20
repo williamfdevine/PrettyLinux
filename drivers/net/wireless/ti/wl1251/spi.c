@@ -61,7 +61,9 @@ static void wl1251_spi_reset(struct wl1251 *wl)
 	struct spi_message m;
 
 	cmd = kzalloc(WSPI_INIT_CMD_LEN, GFP_KERNEL);
-	if (!cmd) {
+
+	if (!cmd)
+	{
 		wl1251_error("could not allocate cmd for spi reset");
 		return;
 	}
@@ -88,7 +90,8 @@ static void wl1251_spi_wake(struct wl1251 *wl)
 	struct spi_message m;
 	u8 *cmd = kzalloc(WSPI_INIT_CMD_LEN, GFP_KERNEL);
 
-	if (!cmd) {
+	if (!cmd)
+	{
 		wl1251_error("could not allocate cmd for spi init");
 		return;
 	}
@@ -108,20 +111,24 @@ static void wl1251_spi_wake(struct wl1251 *wl)
 	cmd[5] |= HW_ACCESS_WSPI_FIXED_BUSY_LEN & WSPI_INIT_CMD_FIXEDBUSY_LEN;
 
 	cmd[6] = WSPI_INIT_CMD_IOD | WSPI_INIT_CMD_IP | WSPI_INIT_CMD_CS
-		| WSPI_INIT_CMD_WSPI | WSPI_INIT_CMD_WS;
+			 | WSPI_INIT_CMD_WSPI | WSPI_INIT_CMD_WS;
 
 	if (HW_ACCESS_WSPI_FIXED_BUSY_LEN == 0)
+	{
 		cmd[6] |= WSPI_INIT_CMD_DIS_FIXEDBUSY;
+	}
 	else
+	{
 		cmd[6] |= WSPI_INIT_CMD_EN_FIXEDBUSY;
+	}
 
-	cmd[7] = crc7_be(0, cmd+2, WSPI_INIT_CMD_CRC_LEN) | WSPI_INIT_CMD_END;
+	cmd[7] = crc7_be(0, cmd + 2, WSPI_INIT_CMD_CRC_LEN) | WSPI_INIT_CMD_END;
 	/*
 	 * The above is the logical order; it must actually be stored
 	 * in the buffer byte-swapped.
 	 */
 	__swab32s((u32 *)cmd);
-	__swab32s((u32 *)cmd+1);
+	__swab32s((u32 *)cmd + 1);
 
 	t.tx_buf = cmd;
 	t.len = WSPI_INIT_CMD_LEN;
@@ -141,7 +148,7 @@ static void wl1251_spi_reset_wake(struct wl1251 *wl)
 }
 
 static void wl1251_spi_read(struct wl1251 *wl, int addr, void *buf,
-			    size_t len)
+							size_t len)
 {
 	struct spi_transfer t[3];
 	struct spi_message m;
@@ -181,7 +188,7 @@ static void wl1251_spi_read(struct wl1251 *wl, int addr, void *buf,
 }
 
 static void wl1251_spi_write(struct wl1251 *wl, int addr, void *buf,
-			     size_t len)
+							 size_t len)
 {
 	struct spi_transfer t[2];
 	struct spi_message m;
@@ -224,12 +231,15 @@ static void wl1251_spi_disable_irq(struct wl1251 *wl)
 static int wl1251_spi_set_power(struct wl1251 *wl, bool enable)
 {
 	if (gpio_is_valid(wl->power_gpio))
+	{
 		gpio_set_value(wl->power_gpio, enable);
+	}
 
 	return 0;
 }
 
-static const struct wl1251_if_operations wl1251_spi_ops = {
+static const struct wl1251_if_operations wl1251_spi_ops =
+{
 	.read = wl1251_spi_read,
 	.write = wl1251_spi_write,
 	.reset = wl1251_spi_reset_wake,
@@ -246,14 +256,18 @@ static int wl1251_spi_probe(struct spi_device *spi)
 	struct wl1251 *wl;
 	int ret;
 
-	if (!np && !pdata) {
+	if (!np && !pdata)
+	{
 		wl1251_error("no platform data");
 		return -ENODEV;
 	}
 
 	hw = wl1251_alloc_hw();
+
 	if (IS_ERR(hw))
+	{
 		return PTR_ERR(hw);
+	}
 
 	wl = hw->priv;
 
@@ -268,39 +282,52 @@ static int wl1251_spi_probe(struct spi_device *spi)
 	spi->bits_per_word = 32;
 
 	ret = spi_setup(spi);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		wl1251_error("spi_setup failed");
 		goto out_free;
 	}
 
-	if (np) {
+	if (np)
+	{
 		wl->use_eeprom = of_property_read_bool(np, "ti,wl1251-has-eeprom");
 		wl->power_gpio = of_get_named_gpio(np, "ti,power-gpio", 0);
-	} else if (pdata) {
+	}
+	else if (pdata)
+	{
 		wl->power_gpio = pdata->power_gpio;
 		wl->use_eeprom = pdata->use_eeprom;
 	}
 
-	if (wl->power_gpio == -EPROBE_DEFER) {
+	if (wl->power_gpio == -EPROBE_DEFER)
+	{
 		ret = -EPROBE_DEFER;
 		goto out_free;
 	}
 
-	if (gpio_is_valid(wl->power_gpio)) {
+	if (gpio_is_valid(wl->power_gpio))
+	{
 		ret = devm_gpio_request_one(&spi->dev, wl->power_gpio,
-					GPIOF_OUT_INIT_LOW, "wl1251 power");
-		if (ret) {
+									GPIOF_OUT_INIT_LOW, "wl1251 power");
+
+		if (ret)
+		{
 			wl1251_error("Failed to request gpio: %d\n", ret);
 			goto out_free;
 		}
-	} else {
+	}
+	else
+	{
 		wl1251_error("set power gpio missing in platform data");
 		ret = -ENODEV;
 		goto out_free;
 	}
 
 	wl->irq = spi->irq;
-	if (wl->irq < 0) {
+
+	if (wl->irq < 0)
+	{
 		wl1251_error("irq missing in platform data");
 		ret = -ENODEV;
 		goto out_free;
@@ -308,8 +335,10 @@ static int wl1251_spi_probe(struct spi_device *spi)
 
 	irq_set_status_flags(wl->irq, IRQ_NOAUTOEN);
 	ret = devm_request_irq(&spi->dev, wl->irq, wl1251_irq, 0,
-							DRIVER_NAME, wl);
-	if (ret < 0) {
+						   DRIVER_NAME, wl);
+
+	if (ret < 0)
+	{
 		wl1251_error("request_irq() failed: %d", ret);
 		goto out_free;
 	}
@@ -317,19 +346,27 @@ static int wl1251_spi_probe(struct spi_device *spi)
 	irq_set_irq_type(wl->irq, IRQ_TYPE_EDGE_RISING);
 
 	wl->vio = devm_regulator_get(&spi->dev, "vio");
-	if (IS_ERR(wl->vio)) {
+
+	if (IS_ERR(wl->vio))
+	{
 		ret = PTR_ERR(wl->vio);
 		wl1251_error("vio regulator missing: %d", ret);
 		goto out_free;
 	}
 
 	ret = regulator_enable(wl->vio);
+
 	if (ret)
+	{
 		goto out_free;
+	}
 
 	ret = wl1251_init_ieee80211(wl);
+
 	if (ret)
+	{
 		goto disable_regulator;
+	}
 
 	return 0;
 
@@ -351,7 +388,8 @@ static int wl1251_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver wl1251_spi_driver = {
+static struct spi_driver wl1251_spi_driver =
+{
 	.driver = {
 		.name		= DRIVER_NAME,
 	},

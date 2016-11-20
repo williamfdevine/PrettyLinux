@@ -4,7 +4,7 @@
   Originally written by Alan Cox.
 
   Hacked to death by C. Scott Ananian and David Huggins-Daines.
-  
+
   Some of the constants in here are from the corresponding
   NetBSD/OpenBSD header file, by Allen Briggs.  We figured out the
   rest of them on our own. */
@@ -14,7 +14,8 @@
 
 #include <linux/types.h>
 
-enum nubus_category {
+enum nubus_category
+{
 	NUBUS_CAT_BOARD          = 0x0001,
 	NUBUS_CAT_DISPLAY        = 0x0003,
 	NUBUS_CAT_NETWORK        = 0x0004,
@@ -25,16 +26,19 @@ enum nubus_category {
 	NUBUS_CAT_DUODOCK        = 0x0020
 };
 
-enum nubus_type_network {
+enum nubus_type_network
+{
 	NUBUS_TYPE_ETHERNET      = 0x0001,
 	NUBUS_TYPE_RS232         = 0x0002
 };
 
-enum nubus_type_display {
+enum nubus_type_display
+{
 	NUBUS_TYPE_VIDEO         = 0x0001
 };
 
-enum nubus_type_cpu {
+enum nubus_type_cpu
+{
 	NUBUS_TYPE_68020         = 0x0003,
 	NUBUS_TYPE_68030         = 0x0004,
 	NUBUS_TYPE_68040         = 0x0005
@@ -67,7 +71,7 @@ enum nubus_type_cpu {
  *  from Apple's FTP site at:
  *  ftp://dev.apple.com/devworld/Tool_Chest/Devices_-_Hardware/NuBus_Slot_Manager/
  *
- *  Alternately, TattleTech can be found at any Info-Mac mirror site.  
+ *  Alternately, TattleTech can be found at any Info-Mac mirror site.
  *  or from its distribution site: ftp://ftp.decismkr.com/dms
  */
 
@@ -77,11 +81,12 @@ enum nubus_type_cpu {
    now (duh), "Apple Compatible" can mean a lot of things... */
 
 /* Add known DrSW values here */
-enum nubus_drsw {
+enum nubus_drsw
+{
 	/* NUBUS_CAT_DISPLAY */
 	NUBUS_DRSW_APPLE        = 0x0001,
 	NUBUS_DRSW_APPLE_HIRES  = 0x0013, /* MacII HiRes card driver */
-	
+
 	/* NUBUS_CAT_NETWORK */
 	NUBUS_DRSW_3COM         = 0x0000,
 	NUBUS_DRSW_CABLETRON    = 0x0001,
@@ -106,7 +111,8 @@ enum nubus_drsw {
    identify themselves as Toby cards) */
 
 /* Add known DrHW values here */
-enum nubus_drhw {
+enum nubus_drhw
+{
 	/* NUBUS_CAT_DISPLAY */
 	NUBUS_DRHW_APPLE_TFB      = 0x0001, /* Toby frame buffer card */
 	NUBUS_DRHW_APPLE_WVC      = 0x0006, /* Apple Workstation Video Card */
@@ -139,7 +145,7 @@ enum nubus_drhw {
 	NUBUS_DRHW_RDIUS_PC24XP   = 0x0406, /* Radius PrecisionColor 24Xp */
 	NUBUS_DRHW_RDIUS_PC24X    = 0x040A, /* Radius PrecisionColor 24X */
 	NUBUS_DRHW_RDIUS_PC8XJ    = 0x040B, /* Radius PrecisionColor 8XJ */
-	
+
 	/* NUBUS_CAT_NETWORK */
 	NUBUS_DRHW_INTERLAN       = 0x0100,
 	NUBUS_DRHW_SMC9194        = 0x0101,
@@ -157,7 +163,8 @@ enum nubus_drhw {
 /* Resource IDs: These are the identifiers for the various weird and
    wonderful tidbits of information that may or may not reside in the
    NuBus ROM directory. */
-enum nubus_res_id {
+enum nubus_res_id
+{
 	NUBUS_RESID_TYPE         = 0x0001,
 	NUBUS_RESID_NAME         = 0x0002,
 	NUBUS_RESID_ICON         = 0x0003,
@@ -176,7 +183,8 @@ enum nubus_res_id {
 };
 
 /* Category-specific resources. */
-enum nubus_board_res_id {
+enum nubus_board_res_id
+{
 	NUBUS_RESID_BOARDID      = 0x0020,
 	NUBUS_RESID_PRAMINITDATA = 0x0021,
 	NUBUS_RESID_PRIMARYINIT  = 0x0022,
@@ -191,7 +199,8 @@ enum nubus_board_res_id {
 };
 
 /* Fields within the vendor info directory */
-enum nubus_vendor_res_id {
+enum nubus_vendor_res_id
+{
 	NUBUS_RESID_VEND_ID     = 0x0001,
 	NUBUS_RESID_VEND_SERIAL = 0x0002,
 	NUBUS_RESID_VEND_REV    = 0x0003,
@@ -199,16 +208,19 @@ enum nubus_vendor_res_id {
 	NUBUS_RESID_VEND_DATE   = 0x0005
 };
 
-enum nubus_net_res_id {
+enum nubus_net_res_id
+{
 	NUBUS_RESID_MAC_ADDRESS  = 0x0080
 };
 
-enum nubus_cpu_res_id {
+enum nubus_cpu_res_id
+{
 	NUBUS_RESID_MEMINFO      = 0x0081,
 	NUBUS_RESID_ROMINFO      = 0x0082
 };
 
-enum nubus_display_res_id {
+enum nubus_display_res_id
+{
 	NUBUS_RESID_GAMMADIR    = 0x0040,
 	NUBUS_RESID_FIRSTMODE   = 0x0080,
 	NUBUS_RESID_SECONDMODE  = 0x0081,
@@ -238,7 +250,7 @@ struct nubus_dirent
 /* We'd like to get rid of this eventually.  Only daynaport.c uses it now. */
 static inline void *nubus_slot_addr(int slot)
 {
-	return (void *)(0xF0000000|(slot<<24));
+	return (void *)(0xF0000000 | (slot << 24));
 }
 
 #endif /* _UAPILINUX_NUBUS_H */

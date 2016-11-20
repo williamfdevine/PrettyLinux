@@ -40,8 +40,8 @@
 	(((SKB)->transport_header - (SKB)->mac_header) + tcp_hdrlen(SKB))
 
 static void fill_v2_desc(struct hnae_ring *ring, void *priv,
-			 int size, dma_addr_t dma, int frag_end,
-			 int buf_num, enum hns_desc_type type, int mtu)
+						 int size, dma_addr_t dma, int frag_end,
+						 int buf_num, enum hns_desc_type type, int mtu)
 {
 	struct hnae_desc *desc = &ring->desc[ring->next_to_use];
 	struct hnae_desc_cb *desc_cb = &ring->desc_cb[ring->next_to_use];
@@ -71,51 +71,60 @@ static void fill_v2_desc(struct hnae_ring *ring, void *priv,
 
 	/* fill port_id in the tx bd for sending management pkts */
 	hnae_set_field(bn_pid, HNSV2_TXD_PORTID_M,
-		       HNSV2_TXD_PORTID_S, ring->q->handle->dport_id);
+				   HNSV2_TXD_PORTID_S, ring->q->handle->dport_id);
 
-	if (type == DESC_TYPE_SKB) {
+	if (type == DESC_TYPE_SKB)
+	{
 		skb = (struct sk_buff *)priv;
 
-		if (skb->ip_summed == CHECKSUM_PARTIAL) {
+		if (skb->ip_summed == CHECKSUM_PARTIAL)
+		{
 			skb_reset_mac_len(skb);
 			protocol = skb->protocol;
 			ip_offset = ETH_HLEN;
 
-			if (protocol == htons(ETH_P_8021Q)) {
+			if (protocol == htons(ETH_P_8021Q))
+			{
 				ip_offset += VLAN_HLEN;
 				protocol = vlan_get_protocol(skb);
 				skb->protocol = protocol;
 			}
 
-			if (skb->protocol == htons(ETH_P_IP)) {
+			if (skb->protocol == htons(ETH_P_IP))
+			{
 				iphdr = ip_hdr(skb);
 				hnae_set_bit(rrcfv, HNSV2_TXD_L3CS_B, 1);
 				hnae_set_bit(rrcfv, HNSV2_TXD_L4CS_B, 1);
 
 				/* check for tcp/udp header */
 				if (iphdr->protocol == IPPROTO_TCP &&
-				    skb_is_gso(skb)) {
+					skb_is_gso(skb))
+				{
 					hnae_set_bit(tvsvsn,
-						     HNSV2_TXD_TSE_B, 1);
+								 HNSV2_TXD_TSE_B, 1);
 					l4_len = tcp_hdrlen(skb);
 					mss = skb_shinfo(skb)->gso_size;
 					paylen = skb->len - SKB_TMP_LEN(skb);
 				}
-			} else if (skb->protocol == htons(ETH_P_IPV6)) {
+			}
+			else if (skb->protocol == htons(ETH_P_IPV6))
+			{
 				hnae_set_bit(tvsvsn, HNSV2_TXD_IPV6_B, 1);
 				ipv6hdr = ipv6_hdr(skb);
 				hnae_set_bit(rrcfv, HNSV2_TXD_L4CS_B, 1);
 
 				/* check for tcp/udp header */
 				if (ipv6hdr->nexthdr == IPPROTO_TCP &&
-				    skb_is_gso(skb) && skb_is_gso_v6(skb)) {
+					skb_is_gso(skb) && skb_is_gso_v6(skb))
+				{
 					hnae_set_bit(tvsvsn,
-						     HNSV2_TXD_TSE_B, 1);
+								 HNSV2_TXD_TSE_B, 1);
 					l4_len = tcp_hdrlen(skb);
 					mss = skb_shinfo(skb)->gso_size;
 					paylen = skb->len - SKB_TMP_LEN(skb);
 				}
 			}
+
 			desc->tx.ip_offset = ip_offset;
 			desc->tx.tse_vlan_snap_v6_sctp_nth = tvsvsn;
 			desc->tx.mss = cpu_to_le16(mss);
@@ -132,7 +141,8 @@ static void fill_v2_desc(struct hnae_ring *ring, void *priv,
 	ring_ptr_move_fw(ring, next_to_use);
 }
 
-static const struct acpi_device_id hns_enet_acpi_match[] = {
+static const struct acpi_device_id hns_enet_acpi_match[] =
+{
 	{ "HISI00C1", 0 },
 	{ "HISI00C2", 0 },
 	{ },
@@ -140,8 +150,8 @@ static const struct acpi_device_id hns_enet_acpi_match[] = {
 MODULE_DEVICE_TABLE(acpi, hns_enet_acpi_match);
 
 static void fill_desc(struct hnae_ring *ring, void *priv,
-		      int size, dma_addr_t dma, int frag_end,
-		      int buf_num, enum hns_desc_type type, int mtu)
+					  int size, dma_addr_t dma, int frag_end,
+					  int buf_num, enum hns_desc_type type, int mtu)
 {
 	struct hnae_desc *desc = &ring->desc[ring->next_to_use];
 	struct hnae_desc_cb *desc_cb = &ring->desc_cb[ring->next_to_use];
@@ -164,26 +174,32 @@ static void fill_desc(struct hnae_ring *ring, void *priv,
 
 	asid_bufnum_pid |= buf_num << HNS_TXD_BUFNUM_S;
 
-	if (type == DESC_TYPE_SKB) {
+	if (type == DESC_TYPE_SKB)
+	{
 		skb = (struct sk_buff *)priv;
 
-		if (skb->ip_summed == CHECKSUM_PARTIAL) {
+		if (skb->ip_summed == CHECKSUM_PARTIAL)
+		{
 			protocol = skb->protocol;
 			ip_offset = ETH_HLEN;
 
 			/*if it is a SW VLAN check the next protocol*/
-			if (protocol == htons(ETH_P_8021Q)) {
+			if (protocol == htons(ETH_P_8021Q))
+			{
 				ip_offset += VLAN_HLEN;
 				protocol = vlan_get_protocol(skb);
 				skb->protocol = protocol;
 			}
 
-			if (skb->protocol == htons(ETH_P_IP)) {
+			if (skb->protocol == htons(ETH_P_IP))
+			{
 				flag_ipoffset |= 1 << HNS_TXD_L3CS_B;
 				/* check for tcp/udp header */
 				flag_ipoffset |= 1 << HNS_TXD_L4CS_B;
 
-			} else if (skb->protocol == htons(ETH_P_IPV6)) {
+			}
+			else if (skb->protocol == htons(ETH_P_IPV6))
+			{
 				/* ipv6 has not l3 cs, check for L4 header */
 				flag_ipoffset |= 1 << HNS_TXD_L4CS_B;
 			}
@@ -215,18 +231,26 @@ static int hns_nic_maybe_stop_tx(
 	/* no. of segments (plus a header) */
 	buf_num = skb_shinfo(skb)->nr_frags + 1;
 
-	if (unlikely(buf_num > ring->max_desc_num_per_pkt)) {
+	if (unlikely(buf_num > ring->max_desc_num_per_pkt))
+	{
 		if (ring_space(ring) < 1)
+		{
 			return -EBUSY;
+		}
 
 		new_skb = skb_copy(skb, GFP_ATOMIC);
+
 		if (!new_skb)
+		{
 			return -ENOMEM;
+		}
 
 		dev_kfree_skb_any(skb);
 		*out_skb = new_skb;
 		buf_num = 1;
-	} else if (buf_num > ring_space(ring)) {
+	}
+	else if (buf_num > ring_space(ring))
+	{
 		return -EBUSY;
 	}
 
@@ -249,24 +273,37 @@ static int hns_nic_maybe_stop_tso(
 	buf_num = (size + BD_MAX_SEND_SIZE - 1) / BD_MAX_SEND_SIZE;
 
 	frag_num = skb_shinfo(skb)->nr_frags;
-	for (i = 0; i < frag_num; i++) {
+
+	for (i = 0; i < frag_num; i++)
+	{
 		frag = &skb_shinfo(skb)->frags[i];
 		size = skb_frag_size(frag);
 		buf_num += (size + BD_MAX_SEND_SIZE - 1) / BD_MAX_SEND_SIZE;
 	}
 
-	if (unlikely(buf_num > ring->max_desc_num_per_pkt)) {
+	if (unlikely(buf_num > ring->max_desc_num_per_pkt))
+	{
 		buf_num = (skb->len + BD_MAX_SEND_SIZE - 1) / BD_MAX_SEND_SIZE;
+
 		if (ring_space(ring) < buf_num)
+		{
 			return -EBUSY;
+		}
+
 		/* manual split the send packet */
 		new_skb = skb_copy(skb, GFP_ATOMIC);
+
 		if (!new_skb)
+		{
 			return -ENOMEM;
+		}
+
 		dev_kfree_skb_any(skb);
 		*out_skb = new_skb;
 
-	} else if (ring_space(ring) < buf_num) {
+	}
+	else if (ring_space(ring) < buf_num)
+	{
 		return -EBUSY;
 	}
 
@@ -275,8 +312,8 @@ static int hns_nic_maybe_stop_tso(
 }
 
 static void fill_tso_desc(struct hnae_ring *ring, void *priv,
-			  int size, dma_addr_t dma, int frag_end,
-			  int buf_num, enum hns_desc_type type, int mtu)
+						  int size, dma_addr_t dma, int frag_end,
+						  int buf_num, enum hns_desc_type type, int mtu)
 {
 	int frag_buf_num;
 	int sizeoflast;
@@ -289,19 +326,19 @@ static void fill_tso_desc(struct hnae_ring *ring, void *priv,
 	/* when the frag size is bigger than hardware, split this frag */
 	for (k = 0; k < frag_buf_num; k++)
 		fill_v2_desc(ring, priv,
-			     (k == frag_buf_num - 1) ?
-					sizeoflast : BD_MAX_SEND_SIZE,
-			     dma + BD_MAX_SEND_SIZE * k,
-			     frag_end && (k == frag_buf_num - 1) ? 1 : 0,
-			     buf_num,
-			     (type == DESC_TYPE_SKB && !k) ?
-					DESC_TYPE_SKB : DESC_TYPE_PAGE,
-			     mtu);
+					 (k == frag_buf_num - 1) ?
+					 sizeoflast : BD_MAX_SEND_SIZE,
+					 dma + BD_MAX_SEND_SIZE * k,
+					 frag_end && (k == frag_buf_num - 1) ? 1 : 0,
+					 buf_num,
+					 (type == DESC_TYPE_SKB && !k) ?
+					 DESC_TYPE_SKB : DESC_TYPE_PAGE,
+					 mtu);
 }
 
 int hns_nic_net_xmit_hw(struct net_device *ndev,
-			struct sk_buff *skb,
-			struct hns_nic_ring_data *ring_data)
+						struct sk_buff *skb,
+						struct hns_nic_ring_data *ring_data)
 {
 	struct hns_nic_priv *priv = netdev_priv(ndev);
 	struct device *dev = priv->dev;
@@ -314,16 +351,19 @@ int hns_nic_net_xmit_hw(struct net_device *ndev,
 	int size, next_to_use;
 	int i;
 
-	switch (priv->ops.maybe_stop_tx(&skb, &buf_num, ring)) {
-	case -EBUSY:
-		ring->stats.tx_busy++;
-		goto out_net_tx_busy;
-	case -ENOMEM:
-		ring->stats.sw_err_cnt++;
-		netdev_err(ndev, "no memory to xmit!\n");
-		goto out_err_tx_ok;
-	default:
-		break;
+	switch (priv->ops.maybe_stop_tx(&skb, &buf_num, ring))
+	{
+		case -EBUSY:
+			ring->stats.tx_busy++;
+			goto out_net_tx_busy;
+
+		case -ENOMEM:
+			ring->stats.sw_err_cnt++;
+			netdev_err(ndev, "no memory to xmit!\n");
+			goto out_err_tx_ok;
+
+		default:
+			break;
 	}
 
 	/* no. of segments (plus a header) */
@@ -333,27 +373,34 @@ int hns_nic_net_xmit_hw(struct net_device *ndev,
 	/* fill the first part */
 	size = skb_headlen(skb);
 	dma = dma_map_single(dev, skb->data, size, DMA_TO_DEVICE);
-	if (dma_mapping_error(dev, dma)) {
+
+	if (dma_mapping_error(dev, dma))
+	{
 		netdev_err(ndev, "TX head DMA map failed\n");
 		ring->stats.sw_err_cnt++;
 		goto out_err_tx_ok;
 	}
+
 	priv->ops.fill_desc(ring, skb, size, dma, seg_num == 1 ? 1 : 0,
-			    buf_num, DESC_TYPE_SKB, ndev->mtu);
+						buf_num, DESC_TYPE_SKB, ndev->mtu);
 
 	/* fill the fragments */
-	for (i = 1; i < seg_num; i++) {
+	for (i = 1; i < seg_num; i++)
+	{
 		frag = &skb_shinfo(skb)->frags[i - 1];
 		size = skb_frag_size(frag);
 		dma = skb_frag_dma_map(dev, frag, 0, size, DMA_TO_DEVICE);
-		if (dma_mapping_error(dev, dma)) {
+
+		if (dma_mapping_error(dev, dma))
+		{
 			netdev_err(ndev, "TX frag(%d) DMA map failed\n", i);
 			ring->stats.sw_err_cnt++;
 			goto out_map_frag_fail;
 		}
+
 		priv->ops.fill_desc(ring, skb_frag_page(frag), size, dma,
-				    seg_num - 1 == i ? 1 : 0, buf_num,
-				    DESC_TYPE_PAGE, ndev->mtu);
+							seg_num - 1 == i ? 1 : 0, buf_num,
+							DESC_TYPE_PAGE, ndev->mtu);
 	}
 
 	/*complete translate all packets*/
@@ -370,18 +417,20 @@ int hns_nic_net_xmit_hw(struct net_device *ndev,
 
 out_map_frag_fail:
 
-	while (ring->next_to_use != next_to_use) {
+	while (ring->next_to_use != next_to_use)
+	{
 		unfill_desc(ring);
+
 		if (ring->next_to_use != next_to_use)
 			dma_unmap_page(dev,
-				       ring->desc_cb[ring->next_to_use].dma,
-				       ring->desc_cb[ring->next_to_use].length,
-				       DMA_TO_DEVICE);
+						   ring->desc_cb[ring->next_to_use].dma,
+						   ring->desc_cb[ring->next_to_use].length,
+						   DMA_TO_DEVICE);
 		else
 			dma_unmap_single(dev,
-					 ring->desc_cb[next_to_use].dma,
-					 ring->desc_cb[next_to_use].length,
-					 DMA_TO_DEVICE);
+							 ring->desc_cb[next_to_use].dma,
+							 ring->desc_cb[next_to_use].length,
+							 DMA_TO_DEVICE);
 	}
 
 out_err_tx_ok:
@@ -413,14 +462,16 @@ out_net_tx_busy:
  * based on the average data per packet.
  **/
 static unsigned int hns_nic_get_headlen(unsigned char *data, u32 flag,
-					unsigned int max_size)
+										unsigned int max_size)
 {
 	unsigned char *network;
 	u8 hlen;
 
 	/* this should never happen, but better safe than sorry */
 	if (max_size < ETH_HLEN)
+	{
 		return max_size;
+	}
 
 	/* initialize network frame pointer */
 	network = data;
@@ -430,37 +481,51 @@ static unsigned int hns_nic_get_headlen(unsigned char *data, u32 flag,
 
 	/* handle any vlan tag if present */
 	if (hnae_get_field(flag, HNS_RXD_VLAN_M, HNS_RXD_VLAN_S)
-		== HNS_RX_FLAG_VLAN_PRESENT) {
+		== HNS_RX_FLAG_VLAN_PRESENT)
+	{
 		if ((typeof(max_size))(network - data) > (max_size - VLAN_HLEN))
+		{
 			return max_size;
+		}
 
 		network += VLAN_HLEN;
 	}
 
 	/* handle L3 protocols */
 	if (hnae_get_field(flag, HNS_RXD_L3ID_M, HNS_RXD_L3ID_S)
-		== HNS_RX_FLAG_L3ID_IPV4) {
+		== HNS_RX_FLAG_L3ID_IPV4)
+	{
 		if ((typeof(max_size))(network - data) >
-		    (max_size - sizeof(struct iphdr)))
+			(max_size - sizeof(struct iphdr)))
+		{
 			return max_size;
+		}
 
 		/* access ihl as a u8 to avoid unaligned access on ia64 */
 		hlen = (network[0] & 0x0F) << 2;
 
 		/* verify hlen meets minimum size requirements */
 		if (hlen < sizeof(struct iphdr))
+		{
 			return network - data;
+		}
 
 		/* record next protocol if header is present */
-	} else if (hnae_get_field(flag, HNS_RXD_L3ID_M, HNS_RXD_L3ID_S)
-		== HNS_RX_FLAG_L3ID_IPV6) {
+	}
+	else if (hnae_get_field(flag, HNS_RXD_L3ID_M, HNS_RXD_L3ID_S)
+			 == HNS_RX_FLAG_L3ID_IPV6)
+	{
 		if ((typeof(max_size))(network - data) >
-		    (max_size - sizeof(struct ipv6hdr)))
+			(max_size - sizeof(struct ipv6hdr)))
+		{
 			return max_size;
+		}
 
 		/* record next protocol */
 		hlen = sizeof(struct ipv6hdr);
-	} else {
+	}
+	else
+	{
 		return network - data;
 	}
 
@@ -469,24 +534,33 @@ static unsigned int hns_nic_get_headlen(unsigned char *data, u32 flag,
 
 	/* finally sort out TCP/UDP */
 	if (hnae_get_field(flag, HNS_RXD_L4ID_M, HNS_RXD_L4ID_S)
-		== HNS_RX_FLAG_L4ID_TCP) {
+		== HNS_RX_FLAG_L4ID_TCP)
+	{
 		if ((typeof(max_size))(network - data) >
-		    (max_size - sizeof(struct tcphdr)))
+			(max_size - sizeof(struct tcphdr)))
+		{
 			return max_size;
+		}
 
 		/* access doff as a u8 to avoid unaligned access on ia64 */
 		hlen = (network[12] & 0xF0) >> 2;
 
 		/* verify hlen meets minimum size requirements */
 		if (hlen < sizeof(struct tcphdr))
+		{
 			return network - data;
+		}
 
 		network += hlen;
-	} else if (hnae_get_field(flag, HNS_RXD_L4ID_M, HNS_RXD_L4ID_S)
-		== HNS_RX_FLAG_L4ID_UDP) {
+	}
+	else if (hnae_get_field(flag, HNS_RXD_L4ID_M, HNS_RXD_L4ID_S)
+			 == HNS_RX_FLAG_L4ID_UDP)
+	{
 		if ((typeof(max_size))(network - data) >
-		    (max_size - sizeof(struct udphdr)))
+			(max_size - sizeof(struct udphdr)))
+		{
 			return max_size;
+		}
 
 		network += sizeof(struct udphdr);
 	}
@@ -497,14 +571,18 @@ static unsigned int hns_nic_get_headlen(unsigned char *data, u32 flag,
 	 * header.
 	 */
 	if ((typeof(max_size))(network - data) < max_size)
+	{
 		return network - data;
+	}
 	else
+	{
 		return max_size;
+	}
 }
 
 static void hns_nic_reuse_page(struct sk_buff *skb, int i,
-			       struct hnae_ring *ring, int pull_len,
-			       struct hnae_desc_cb *desc_cb)
+							   struct hnae_ring *ring, int pull_len,
+							   struct hnae_desc_cb *desc_cb)
 {
 	struct hnae_desc *desc;
 	int truesize, size;
@@ -516,23 +594,30 @@ static void hns_nic_reuse_page(struct sk_buff *skb, int i,
 	desc = &ring->desc[ring->next_to_clean];
 	size = le16_to_cpu(desc->rx.size);
 
-	if (twobufs) {
+	if (twobufs)
+	{
 		truesize = hnae_buf_size(ring);
-	} else {
+	}
+	else
+	{
 		truesize = ALIGN(size, L1_CACHE_BYTES);
 		last_offset = hnae_page_size(ring) - hnae_buf_size(ring);
 	}
 
 	skb_add_rx_frag(skb, i, desc_cb->priv, desc_cb->page_offset + pull_len,
-			size - pull_len, truesize - pull_len);
+					size - pull_len, truesize - pull_len);
 
-	 /* avoid re-using remote pages,flag default unreuse */
+	/* avoid re-using remote pages,flag default unreuse */
 	if (unlikely(page_to_nid(desc_cb->priv) != numa_node_id()))
+	{
 		return;
+	}
 
-	if (twobufs) {
+	if (twobufs)
+	{
 		/* if we are only owner of page we can reuse it */
-		if (likely(page_count(desc_cb->priv) == 1)) {
+		if (likely(page_count(desc_cb->priv) == 1))
+		{
 			/* flip page offset to other buffer */
 			desc_cb->page_offset ^= truesize;
 
@@ -540,13 +625,15 @@ static void hns_nic_reuse_page(struct sk_buff *skb, int i,
 			/* bump ref count on page before it is given*/
 			get_page(desc_cb->priv);
 		}
+
 		return;
 	}
 
 	/* move offset up to the next cache line */
 	desc_cb->page_offset += truesize;
 
-	if (desc_cb->page_offset <= last_offset) {
+	if (desc_cb->page_offset <= last_offset)
+	{
 		desc_cb->reuse_flag = 1;
 		/* bump ref count on page before it is given*/
 		get_page(desc_cb->priv);
@@ -556,17 +643,17 @@ static void hns_nic_reuse_page(struct sk_buff *skb, int i,
 static void get_v2rx_desc_bnum(u32 bnum_flag, int *out_bnum)
 {
 	*out_bnum = hnae_get_field(bnum_flag,
-				   HNS_RXD_BUFNUM_M, HNS_RXD_BUFNUM_S) + 1;
+							   HNS_RXD_BUFNUM_M, HNS_RXD_BUFNUM_S) + 1;
 }
 
 static void get_rx_desc_bnum(u32 bnum_flag, int *out_bnum)
 {
 	*out_bnum = hnae_get_field(bnum_flag,
-				   HNS_RXD_BUFNUM_M, HNS_RXD_BUFNUM_S);
+							   HNS_RXD_BUFNUM_M, HNS_RXD_BUFNUM_S);
 }
 
 static int hns_nic_poll_rx_skb(struct hns_nic_ring_data *ring_data,
-			       struct sk_buff **out_skb, int *out_bnum)
+							   struct sk_buff **out_skb, int *out_bnum)
 {
 	struct hnae_ring *ring = ring_data->ring;
 	struct net_device *ndev = ring_data->napi.dev;
@@ -593,8 +680,10 @@ static int hns_nic_poll_rx_skb(struct hns_nic_ring_data *ring_data,
 #endif
 
 	skb = *out_skb = napi_alloc_skb(&ring_data->napi,
-					HNS_RX_HEAD_SIZE);
-	if (unlikely(!skb)) {
+									HNS_RX_HEAD_SIZE);
+
+	if (unlikely(!skb))
+	{
 		netdev_err(ndev, "alloc rx skb fail\n");
 		ring->stats.sw_err_cnt++;
 		return -ENOMEM;
@@ -606,36 +695,47 @@ static int hns_nic_poll_rx_skb(struct hns_nic_ring_data *ring_data,
 	priv->ops.get_rxd_bnum(bnum_flag, &bnum);
 	*out_bnum = bnum;
 
-	if (length <= HNS_RX_HEAD_SIZE) {
+	if (length <= HNS_RX_HEAD_SIZE)
+	{
 		memcpy(__skb_put(skb, length), va, ALIGN(length, sizeof(long)));
 
 		/* we can reuse buffer as-is, just make sure it is local */
 		if (likely(page_to_nid(desc_cb->priv) == numa_node_id()))
+		{
 			desc_cb->reuse_flag = 1;
+		}
 		else /* this page cannot be reused so discard it */
+		{
 			put_page(desc_cb->priv);
+		}
 
 		ring_ptr_move_fw(ring, next_to_clean);
 
-		if (unlikely(bnum != 1)) { /* check err*/
+		if (unlikely(bnum != 1))   /* check err*/
+		{
 			*out_bnum = 1;
 			goto out_bnum_err;
 		}
-	} else {
+	}
+	else
+	{
 		ring->stats.seg_pkt_cnt++;
 
 		pull_len = hns_nic_get_headlen(va, bnum_flag, HNS_RX_HEAD_SIZE);
 		memcpy(__skb_put(skb, pull_len), va,
-		       ALIGN(pull_len, sizeof(long)));
+			   ALIGN(pull_len, sizeof(long)));
 
 		hns_nic_reuse_page(skb, 0, ring, pull_len, desc_cb);
 		ring_ptr_move_fw(ring, next_to_clean);
 
-		if (unlikely(bnum >= (int)MAX_SKB_FRAGS)) { /* check err*/
+		if (unlikely(bnum >= (int)MAX_SKB_FRAGS))   /* check err*/
+		{
 			*out_bnum = 1;
 			goto out_bnum_err;
 		}
-		for (i = 1; i < bnum; i++) {
+
+		for (i = 1; i < bnum; i++)
+		{
 			desc = &ring->desc[ring->next_to_clean];
 			desc_cb = &ring->desc_cb[ring->next_to_clean];
 
@@ -645,13 +745,14 @@ static int hns_nic_poll_rx_skb(struct hns_nic_ring_data *ring_data,
 	}
 
 	/* check except process, free skb and jump the desc */
-	if (unlikely((!bnum) || (bnum > ring->max_desc_num_per_pkt))) {
+	if (unlikely((!bnum) || (bnum > ring->max_desc_num_per_pkt)))
+	{
 out_bnum_err:
 		*out_bnum = *out_bnum ? *out_bnum : 1; /* ntc moved,cannot 0*/
 		netdev_err(ndev, "invalid bnum(%d,%d,%d,%d),%016llx,%016llx\n",
-			   bnum, ring->max_desc_num_per_pkt,
-			   length, (int)MAX_SKB_FRAGS,
-			   ((u64 *)desc)[0], ((u64 *)desc)[1]);
+				   bnum, ring->max_desc_num_per_pkt,
+				   length, (int)MAX_SKB_FRAGS,
+				   ((u64 *)desc)[0], ((u64 *)desc)[1]);
 		ring->stats.err_bd_num++;
 		dev_kfree_skb_any(skb);
 		return -EDOM;
@@ -659,22 +760,25 @@ out_bnum_err:
 
 	bnum_flag = le32_to_cpu(desc->rx.ipoff_bnum_pid_flag);
 
-	if (unlikely(!hnae_get_bit(bnum_flag, HNS_RXD_VLD_B))) {
+	if (unlikely(!hnae_get_bit(bnum_flag, HNS_RXD_VLD_B)))
+	{
 		netdev_err(ndev, "no valid bd,%016llx,%016llx\n",
-			   ((u64 *)desc)[0], ((u64 *)desc)[1]);
+				   ((u64 *)desc)[0], ((u64 *)desc)[1]);
 		ring->stats.non_vld_descs++;
 		dev_kfree_skb_any(skb);
 		return -EINVAL;
 	}
 
 	if (unlikely((!desc->rx.pkt_len) ||
-		     hnae_get_bit(bnum_flag, HNS_RXD_DROP_B))) {
+				 hnae_get_bit(bnum_flag, HNS_RXD_DROP_B)))
+	{
 		ring->stats.err_pkt_len++;
 		dev_kfree_skb_any(skb);
 		return -EFAULT;
 	}
 
-	if (unlikely(hnae_get_bit(bnum_flag, HNS_RXD_L2E_B))) {
+	if (unlikely(hnae_get_bit(bnum_flag, HNS_RXD_L2E_B)))
+	{
 		ring->stats.l2_err++;
 		dev_kfree_skb_any(skb);
 		return -EFAULT;
@@ -684,7 +788,8 @@ out_bnum_err:
 	ring->stats.rx_bytes += skb->len;
 
 	if (unlikely(hnae_get_bit(bnum_flag, HNS_RXD_L3E_B) ||
-		     hnae_get_bit(bnum_flag, HNS_RXD_L4E_B))) {
+				 hnae_get_bit(bnum_flag, HNS_RXD_L4E_B)))
+	{
 		ring->stats.l3l4_csum_err++;
 		return 0;
 	}
@@ -703,18 +808,26 @@ hns_nic_alloc_rx_buffers(struct hns_nic_ring_data *ring_data, int cleand_count)
 	struct hnae_ring *ring = ring_data->ring;
 	struct net_device *ndev = ring_data->napi.dev;
 
-	for (i = 0; i < cleand_count; i++) {
+	for (i = 0; i < cleand_count; i++)
+	{
 		desc_cb = &ring->desc_cb[ring->next_to_use];
-		if (desc_cb->reuse_flag) {
+
+		if (desc_cb->reuse_flag)
+		{
 			ring->stats.reuse_pg_cnt++;
 			hnae_reuse_buffer(ring, ring->next_to_use);
-		} else {
+		}
+		else
+		{
 			ret = hnae_reserve_buffer_map(ring, &res_cbs);
-			if (ret) {
+
+			if (ret)
+			{
 				ring->stats.sw_err_cnt++;
 				netdev_err(ndev, "hnae reserve buffer map failed.\n");
 				break;
 			}
+
 			hnae_replace_buffer(ring, ring->next_to_use, &res_cbs);
 		}
 
@@ -728,7 +841,7 @@ hns_nic_alloc_rx_buffers(struct hns_nic_ring_data *ring_data, int cleand_count)
 /* return error number for error or number of desc left to take
  */
 static void hns_nic_rx_up_pro(struct hns_nic_ring_data *ring_data,
-			      struct sk_buff *skb)
+							  struct sk_buff *skb)
 {
 	struct net_device *ndev = ring_data->napi.dev;
 
@@ -746,7 +859,7 @@ static int hns_desc_unused(struct hnae_ring *ring)
 }
 
 static int hns_nic_rx_poll_one(struct hns_nic_ring_data *ring_data,
-			       int budget, void *v)
+							   int budget, void *v)
 {
 	struct hnae_ring *ring = ring_data->ring;
 	struct sk_buff *skb;
@@ -761,38 +874,46 @@ static int hns_nic_rx_poll_one(struct hns_nic_ring_data *ring_data,
 	recv_pkts = 0, recv_bds = 0, clean_count = 0;
 	num -= unused_count;
 
-	while (recv_pkts < budget && recv_bds < num) {
+	while (recv_pkts < budget && recv_bds < num)
+	{
 		/* reuse or realloc buffers */
-		if (clean_count + unused_count >= RCB_NOF_ALLOC_RX_BUFF_ONCE) {
+		if (clean_count + unused_count >= RCB_NOF_ALLOC_RX_BUFF_ONCE)
+		{
 			hns_nic_alloc_rx_buffers(ring_data,
-						 clean_count + unused_count);
+									 clean_count + unused_count);
 			clean_count = 0;
 			unused_count = hns_desc_unused(ring);
 		}
 
 		/* poll one pkt */
 		err = hns_nic_poll_rx_skb(ring_data, &skb, &bnum);
+
 		if (unlikely(!skb)) /* this fault cannot be repaired */
+		{
 			goto out;
+		}
 
 		recv_bds += bnum;
 		clean_count += bnum;
-		if (unlikely(err)) {  /* do jump the err */
+
+		if (unlikely(err))    /* do jump the err */
+		{
 			recv_pkts++;
 			continue;
 		}
 
 		/* do update ip stack process*/
 		((void (*)(struct hns_nic_ring_data *, struct sk_buff *))v)(
-							ring_data, skb);
+			ring_data, skb);
 		recv_pkts++;
 	}
 
 out:
+
 	/* make all data has been write before submit */
 	if (clean_count + unused_count > 0)
 		hns_nic_alloc_rx_buffers(ring_data,
-					 clean_count + unused_count);
+								 clean_count + unused_count);
 
 	return recv_pkts;
 }
@@ -807,7 +928,8 @@ static void hns_nic_rx_fini_pro(struct hns_nic_ring_data *ring_data)
 	/* for hardware bug fixed */
 	num = readl_relaxed(ring->io_base + RCB_REG_FBDNUM);
 
-	if (num > 0) {
+	if (num > 0)
+	{
 		ring_data->ring->q->handle->dev->ops->toggle_ring_irq(
 			ring_data->ring, 1);
 
@@ -826,11 +948,13 @@ static void hns_nic_rx_fini_pro_v2(struct hns_nic_ring_data *ring_data)
 		ring_data->ring->q->handle->dev->ops->toggle_ring_irq(
 			ring, 0);
 	else
+	{
 		napi_schedule(&ring_data->napi);
+	}
 }
 
 static inline void hns_nic_reclaim_one_desc(struct hnae_ring *ring,
-					    int *bytes, int *pkts)
+		int *bytes, int *pkts)
 {
 	struct hnae_desc_cb *desc_cb = &ring->desc_cb[ring->next_to_clean];
 
@@ -848,7 +972,9 @@ static int is_valid_clean_head(struct hnae_ring *ring, int h)
 	int c = ring->next_to_clean;
 
 	if (unlikely(h > ring->desc_num))
+	{
 		return 0;
+	}
 
 	assert(u > 0 && u < ring->desc_num);
 	assert(c > 0 && c < ring->desc_num);
@@ -859,17 +985,17 @@ static int is_valid_clean_head(struct hnae_ring *ring, int h)
 
 /* netif_tx_lock will turn down the performance, set only when necessary */
 #ifdef CONFIG_NET_POLL_CONTROLLER
-#define NETIF_TX_LOCK(ndev) netif_tx_lock(ndev)
-#define NETIF_TX_UNLOCK(ndev) netif_tx_unlock(ndev)
+	#define NETIF_TX_LOCK(ndev) netif_tx_lock(ndev)
+	#define NETIF_TX_UNLOCK(ndev) netif_tx_unlock(ndev)
 #else
-#define NETIF_TX_LOCK(ndev)
-#define NETIF_TX_UNLOCK(ndev)
+	#define NETIF_TX_LOCK(ndev)
+	#define NETIF_TX_UNLOCK(ndev)
 #endif
 /* reclaim all desc in one budget
  * return error or number of desc left
  */
 static int hns_nic_tx_poll_one(struct hns_nic_ring_data *ring_data,
-			       int budget, void *v)
+							   int budget, void *v)
 {
 	struct hnae_ring *ring = ring_data->ring;
 	struct net_device *ndev = ring_data->napi.dev;
@@ -883,14 +1009,16 @@ static int hns_nic_tx_poll_one(struct hns_nic_ring_data *ring_data,
 	head = readl_relaxed(ring->io_base + RCB_REG_HEAD);
 	rmb(); /* make sure head is ready before touch any data */
 
-	if (is_ring_empty(ring) || head == ring->next_to_clean) {
+	if (is_ring_empty(ring) || head == ring->next_to_clean)
+	{
 		NETIF_TX_UNLOCK(ndev);
 		return 0; /* no data to poll */
 	}
 
-	if (!is_valid_clean_head(ring, head)) {
+	if (!is_valid_clean_head(ring, head))
+	{
 		netdev_err(ndev, "wrong head (%d, %d-%d)\n", head,
-			   ring->next_to_use, ring->next_to_clean);
+				   ring->next_to_use, ring->next_to_clean);
 		ring->stats.io_err_cnt++;
 		NETIF_TX_UNLOCK(ndev);
 		return -EIO;
@@ -898,7 +1026,9 @@ static int hns_nic_tx_poll_one(struct hns_nic_ring_data *ring_data,
 
 	bytes = 0;
 	pkts = 0;
-	while (head != ring->next_to_clean) {
+
+	while (head != ring->next_to_clean)
+	{
 		hns_nic_reclaim_one_desc(ring, &bytes, &pkts);
 		/* issue prefetch for next Tx descriptor */
 		prefetch(&ring->desc_cb[ring->next_to_clean]);
@@ -910,20 +1040,26 @@ static int hns_nic_tx_poll_one(struct hns_nic_ring_data *ring_data,
 	netdev_tx_completed_queue(dev_queue, pkts, bytes);
 
 	if (unlikely(priv->link && !netif_carrier_ok(ndev)))
+	{
 		netif_carrier_on(ndev);
+	}
 
 	if (unlikely(pkts && netif_carrier_ok(ndev) &&
-		     (ring_space(ring) >= ring->max_desc_num_per_pkt * 2))) {
+				 (ring_space(ring) >= ring->max_desc_num_per_pkt * 2)))
+	{
 		/* Make sure that anybody stopping the queue after this
 		 * sees the new next_to_clean.
 		 */
 		smp_mb();
+
 		if (netif_tx_queue_stopped(dev_queue) &&
-		    !test_bit(NIC_STATE_DOWN, &priv->state)) {
+			!test_bit(NIC_STATE_DOWN, &priv->state))
+		{
 			netif_tx_wake_queue(dev_queue);
 			ring->stats.restart_queue++;
 		}
 	}
+
 	return 0;
 }
 
@@ -936,7 +1072,8 @@ static void hns_nic_tx_fini_pro(struct hns_nic_ring_data *ring_data)
 
 	head = readl_relaxed(ring->io_base + RCB_REG_HEAD);
 
-	if (head != ring->next_to_clean) {
+	if (head != ring->next_to_clean)
+	{
 		ring_data->ring->q->handle->dev->ops->toggle_ring_irq(
 			ring_data->ring, 1);
 
@@ -953,7 +1090,9 @@ static void hns_nic_tx_fini_pro_v2(struct hns_nic_ring_data *ring_data)
 		ring_data->ring->q->handle->dev->ops->toggle_ring_irq(
 			ring, 0);
 	else
+	{
 		napi_schedule(&ring_data->napi);
+	}
 }
 
 static void hns_nic_tx_clr_all_bufs(struct hns_nic_ring_data *ring_data)
@@ -969,8 +1108,11 @@ static void hns_nic_tx_clr_all_bufs(struct hns_nic_ring_data *ring_data)
 	head = ring->next_to_use; /* ntu :soft setted ring position*/
 	bytes = 0;
 	pkts = 0;
+
 	while (head != ring->next_to_clean)
+	{
 		hns_nic_reclaim_one_desc(ring, &bytes, &pkts);
+	}
 
 	NETIF_TX_UNLOCK(ndev);
 
@@ -983,9 +1125,10 @@ static int hns_nic_common_poll(struct napi_struct *napi, int budget)
 	struct hns_nic_ring_data *ring_data =
 		container_of(napi, struct hns_nic_ring_data, napi);
 	int clean_complete = ring_data->poll_one(
-				ring_data, budget, ring_data->ex_process);
+							 ring_data, budget, ring_data->ex_process);
 
-	if (clean_complete >= 0 && clean_complete < budget) {
+	if (clean_complete >= 0 && clean_complete < budget)
+	{
 		napi_complete(napi);
 		ring_data->fini_process(ring_data);
 		return 0;
@@ -1015,22 +1158,29 @@ static void hns_nic_adjust_link(struct net_device *ndev)
 	struct hnae_handle *h = priv->ae_handle;
 	int state = 1;
 
-	if (ndev->phydev) {
+	if (ndev->phydev)
+	{
 		h->dev->ops->adjust_link(h, ndev->phydev->speed,
-					 ndev->phydev->duplex);
+								 ndev->phydev->duplex);
 		state = ndev->phydev->link;
 	}
+
 	state = state && h->dev->ops->get_status(h);
 
-	if (state != priv->link) {
-		if (state) {
+	if (state != priv->link)
+	{
+		if (state)
+		{
 			netif_carrier_on(ndev);
 			netif_tx_wake_all_queues(ndev);
 			netdev_info(ndev, "link up\n");
-		} else {
+		}
+		else
+		{
 			netif_carrier_off(ndev);
 			netdev_info(ndev, "link down\n");
 		}
+
 		priv->link = state;
 	}
 }
@@ -1047,24 +1197,34 @@ int hns_nic_init_phy(struct net_device *ndev, struct hnae_handle *h)
 	int ret;
 
 	if (!h->phy_dev)
+	{
 		return 0;
+	}
 
-	if (h->phy_if != PHY_INTERFACE_MODE_XGMII) {
+	if (h->phy_if != PHY_INTERFACE_MODE_XGMII)
+	{
 		phy_dev->dev_flags = 0;
 
 		ret = phy_connect_direct(ndev, phy_dev, hns_nic_adjust_link,
-					 h->phy_if);
-	} else {
+								 h->phy_if);
+	}
+	else
+	{
 		ret = phy_attach_direct(ndev, phy_dev, 0, h->phy_if);
 	}
+
 	if (unlikely(ret))
+	{
 		return -ENODEV;
+	}
 
 	phy_dev->supported &= h->if_support;
 	phy_dev->advertising = phy_dev->supported;
 
 	if (h->phy_if == PHY_INTERFACE_MODE_XGMII)
+	{
 		phy_dev->autoneg = false;
+	}
 
 	return 0;
 }
@@ -1090,10 +1250,14 @@ static int hns_nic_net_set_mac_address(struct net_device *ndev, void *p)
 	int ret;
 
 	if (!mac_addr || !is_valid_ether_addr((const u8 *)mac_addr->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	ret = h->dev->ops->set_mac_addr(h, mac_addr->sa_data);
-	if (ret) {
+
+	if (ret)
+	{
 		netdev_err(ndev, "set_mac_address fail, ret=%d!\n", ret);
 		return ret;
 	}
@@ -1116,10 +1280,11 @@ static void hns_init_mac_addr(struct net_device *ndev)
 {
 	struct hns_nic_priv *priv = netdev_priv(ndev);
 
-	if (!device_get_mac_address(priv->dev, ndev->dev_addr, ETH_ALEN)) {
+	if (!device_get_mac_address(priv->dev, ndev->dev_addr, ETH_ALEN))
+	{
 		eth_hw_addr_random(ndev);
 		dev_warn(priv->dev, "No valid mac, use random mac %pM",
-			 ndev->dev_addr);
+				 ndev->dev_addr);
 	}
 }
 
@@ -1143,37 +1308,49 @@ static void hns_set_irq_affinity(struct hns_nic_priv *priv)
 	cpumask_t mask;
 
 	/*diffrent irq banlance for 16core and 32core*/
-	if (h->q_num == num_possible_cpus()) {
-		for (i = 0; i < h->q_num * 2; i++) {
+	if (h->q_num == num_possible_cpus())
+	{
+		for (i = 0; i < h->q_num * 2; i++)
+		{
 			rd = &priv->ring_data[i];
-			if (cpu_online(rd->queue_index)) {
+
+			if (cpu_online(rd->queue_index))
+			{
 				cpumask_clear(&mask);
 				cpu = rd->queue_index;
 				cpumask_set_cpu(cpu, &mask);
 				(void)irq_set_affinity_hint(rd->ring->irq,
-							    &mask);
+											&mask);
 			}
 		}
-	} else {
-		for (i = 0; i < h->q_num; i++) {
+	}
+	else
+	{
+		for (i = 0; i < h->q_num; i++)
+		{
 			rd = &priv->ring_data[i];
-			if (cpu_online(rd->queue_index * 2)) {
+
+			if (cpu_online(rd->queue_index * 2))
+			{
 				cpumask_clear(&mask);
 				cpu = rd->queue_index * 2;
 				cpumask_set_cpu(cpu, &mask);
 				(void)irq_set_affinity_hint(rd->ring->irq,
-							    &mask);
+											&mask);
 			}
 		}
 
-		for (i = h->q_num; i < h->q_num * 2; i++) {
+		for (i = h->q_num; i < h->q_num * 2; i++)
+		{
 			rd = &priv->ring_data[i];
-			if (cpu_online(rd->queue_index * 2 + 1)) {
+
+			if (cpu_online(rd->queue_index * 2 + 1))
+			{
 				cpumask_clear(&mask);
 				cpu = rd->queue_index * 2 + 1;
 				cpumask_set_cpu(cpu, &mask);
 				(void)irq_set_affinity_hint(rd->ring->irq,
-							    &mask);
+											&mask);
 			}
 		}
 	}
@@ -1186,25 +1363,31 @@ static int hns_nic_init_irq(struct hns_nic_priv *priv)
 	int i;
 	int ret;
 
-	for (i = 0; i < h->q_num * 2; i++) {
+	for (i = 0; i < h->q_num * 2; i++)
+	{
 		rd = &priv->ring_data[i];
 
 		if (rd->ring->irq_init_flag == RCB_IRQ_INITED)
+		{
 			break;
+		}
 
 		snprintf(rd->ring->ring_name, RCB_RING_NAME_LEN,
-			 "%s-%s%d", priv->netdev->name,
-			 (i < h->q_num ? "tx" : "rx"), rd->queue_index);
+				 "%s-%s%d", priv->netdev->name,
+				 (i < h->q_num ? "tx" : "rx"), rd->queue_index);
 
 		rd->ring->ring_name[RCB_RING_NAME_LEN - 1] = '\0';
 
 		ret = request_irq(rd->ring->irq,
-				  hns_irq_handle, 0, rd->ring->ring_name, rd);
-		if (ret) {
+						  hns_irq_handle, 0, rd->ring->ring_name, rd);
+
+		if (ret)
+		{
 			netdev_err(priv->netdev, "request irq(%d) fail\n",
-				   rd->ring->irq);
+					   rd->ring->irq);
 			return ret;
 		}
+
 		disable_irq(rd->ring->irq);
 		rd->ring->irq_init_flag = RCB_IRQ_INITED;
 	}
@@ -1223,27 +1406,41 @@ static int hns_nic_net_up(struct net_device *ndev)
 	int ret;
 
 	ret = hns_nic_init_irq(priv);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		netdev_err(ndev, "hns init irq failed! ret=%d\n", ret);
 		return ret;
 	}
 
-	for (i = 0; i < h->q_num * 2; i++) {
+	for (i = 0; i < h->q_num * 2; i++)
+	{
 		ret = hns_nic_ring_open(ndev, i);
+
 		if (ret)
+		{
 			goto out_has_some_queues;
+		}
 	}
 
 	ret = h->dev->ops->set_mac_addr(h, ndev->dev_addr);
+
 	if (ret)
+	{
 		goto out_set_mac_addr_err;
+	}
 
 	ret = h->dev->ops->start ? h->dev->ops->start(h) : 0;
+
 	if (ret)
+	{
 		goto out_start_err;
+	}
 
 	if (ndev->phydev)
+	{
 		phy_start(ndev->phydev);
+	}
 
 	clear_bit(NIC_STATE_DOWN, &priv->state);
 	(void)mod_timer(&priv->service_timer, jiffies + SERVICE_TIMER_HZ);
@@ -1254,8 +1451,11 @@ out_start_err:
 	netif_stop_queue(ndev);
 out_set_mac_addr_err:
 out_has_some_queues:
+
 	for (j = i - 1; j >= 0; j--)
+	{
 		hns_nic_ring_close(ndev, j);
+	}
 
 	set_bit(NIC_STATE_DOWN, &priv->state);
 
@@ -1269,7 +1469,9 @@ static void hns_nic_net_down(struct net_device *ndev)
 	struct hns_nic_priv *priv = netdev_priv(ndev);
 
 	if (test_and_set_bit(NIC_STATE_DOWN, &priv->state))
+	{
 		return;
+	}
 
 	(void)del_timer_sync(&priv->service_timer);
 	netif_tx_stop_all_queues(ndev);
@@ -1278,16 +1480,21 @@ static void hns_nic_net_down(struct net_device *ndev)
 	priv->link = 0;
 
 	if (ndev->phydev)
+	{
 		phy_stop(ndev->phydev);
+	}
 
 	ops = priv->ae_handle->dev->ops;
 
 	if (ops->stop)
+	{
 		ops->stop(priv->ae_handle);
+	}
 
 	netif_tx_stop_all_queues(ndev);
 
-	for (i = priv->ae_handle->q_num - 1; i >= 0; i--) {
+	for (i = priv->ae_handle->q_num - 1; i >= 0; i--)
+	{
 		hns_nic_ring_close(ndev, i);
 		hns_nic_ring_close(ndev, i + priv->ae_handle->q_num);
 
@@ -1302,7 +1509,9 @@ void hns_nic_net_reset(struct net_device *ndev)
 	struct hnae_handle *handle = priv->ae_handle;
 
 	while (test_and_set_bit(NIC_STATE_RESETTING, &priv->state))
+	{
 		usleep_range(1000, 2000);
+	}
 
 	(void)hnae_reinit_handle(handle);
 
@@ -1314,8 +1523,11 @@ void hns_nic_net_reinit(struct net_device *netdev)
 	struct hns_nic_priv *priv = netdev_priv(netdev);
 
 	netif_trans_update(priv->netdev);
+
 	while (test_and_set_bit(NIC_STATE_REINITING, &priv->state))
+	{
 		usleep_range(1000, 2000);
+	}
 
 	hns_nic_net_down(netdev);
 	hns_nic_net_reset(netdev);
@@ -1330,29 +1542,37 @@ static int hns_nic_net_open(struct net_device *ndev)
 	int ret;
 
 	if (test_bit(NIC_STATE_TESTING, &priv->state))
+	{
 		return -EBUSY;
+	}
 
 	priv->link = 0;
 	netif_carrier_off(ndev);
 
 	ret = netif_set_real_num_tx_queues(ndev, h->q_num);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		netdev_err(ndev, "netif_set_real_num_tx_queues fail, ret=%d!\n",
-			   ret);
+				   ret);
 		return ret;
 	}
 
 	ret = netif_set_real_num_rx_queues(ndev, h->q_num);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		netdev_err(ndev,
-			   "netif_set_real_num_rx_queues fail, ret=%d!\n", ret);
+				   "netif_set_real_num_rx_queues fail, ret=%d!\n", ret);
 		return ret;
 	}
 
 	ret = hns_nic_net_up(ndev);
-	if (ret) {
+
+	if (ret)
+	{
 		netdev_err(ndev,
-			   "hns net up fail, ret=%d!\n", ret);
+				   "hns net up fail, ret=%d!\n", ret);
 		return ret;
 	}
 
@@ -1375,15 +1595,19 @@ static void hns_nic_net_timeout(struct net_device *ndev)
 }
 
 static int hns_nic_do_ioctl(struct net_device *netdev, struct ifreq *ifr,
-			    int cmd)
+							int cmd)
 {
 	struct phy_device *phy_dev = netdev->phydev;
 
 	if (!netif_running(netdev))
+	{
 		return -EINVAL;
+	}
 
 	if (!phy_dev)
+	{
 		return -ENOTSUPP;
+	}
 
 	return phy_mii_ioctl(phy_dev, ifr, cmd);
 }
@@ -1397,26 +1621,33 @@ void hns_nic_poll_controller(struct net_device *ndev)
 	int i;
 
 	local_irq_save(flags);
+
 	for (i = 0; i < priv->ae_handle->q_num * 2; i++)
+	{
 		napi_schedule(&priv->ring_data[i].napi);
+	}
+
 	local_irq_restore(flags);
 }
 #endif
 
 static netdev_tx_t hns_nic_net_xmit(struct sk_buff *skb,
-				    struct net_device *ndev)
+									struct net_device *ndev)
 {
 	struct hns_nic_priv *priv = netdev_priv(ndev);
 	int ret;
 
 	assert(skb->queue_mapping < ndev->ae_handle->q_num);
 	ret = hns_nic_net_xmit_hw(ndev, skb,
-				  &tx_ring_data(priv, skb->queue_mapping));
-	if (ret == NETDEV_TX_OK) {
+							  &tx_ring_data(priv, skb->queue_mapping));
+
+	if (ret == NETDEV_TX_OK)
+	{
 		netif_trans_update(ndev);
 		ndev->stats.tx_bytes += skb->len;
 		ndev->stats.tx_packets++;
 	}
+
 	return (netdev_tx_t)ret;
 }
 
@@ -1428,71 +1659,96 @@ static int hns_nic_change_mtu(struct net_device *ndev, int new_mtu)
 
 	/* MTU < 68 is an error and causes problems on some kernels */
 	if (new_mtu < 68)
+	{
 		return -EINVAL;
+	}
 
 	if (!h->dev->ops->set_mtu)
+	{
 		return -ENOTSUPP;
+	}
 
-	if (netif_running(ndev)) {
+	if (netif_running(ndev))
+	{
 		(void)hns_nic_net_stop(ndev);
 		msleep(100);
 
 		ret = h->dev->ops->set_mtu(h, new_mtu);
+
 		if (ret)
 			netdev_err(ndev, "set mtu fail, return value %d\n",
-				   ret);
+					   ret);
 
 		if (hns_nic_net_open(ndev))
+		{
 			netdev_err(ndev, "hns net open fail\n");
-	} else {
+		}
+	}
+	else
+	{
 		ret = h->dev->ops->set_mtu(h, new_mtu);
 	}
 
 	if (!ret)
+	{
 		ndev->mtu = new_mtu;
+	}
 
 	return ret;
 }
 
 static int hns_nic_set_features(struct net_device *netdev,
-				netdev_features_t features)
+								netdev_features_t features)
 {
 	struct hns_nic_priv *priv = netdev_priv(netdev);
 
-	switch (priv->enet_ver) {
-	case AE_VERSION_1:
-		if (features & (NETIF_F_TSO | NETIF_F_TSO6))
-			netdev_info(netdev, "enet v1 do not support tso!\n");
-		break;
-	default:
-		if (features & (NETIF_F_TSO | NETIF_F_TSO6)) {
-			priv->ops.fill_desc = fill_tso_desc;
-			priv->ops.maybe_stop_tx = hns_nic_maybe_stop_tso;
-			/* The chip only support 7*4096 */
-			netif_set_gso_max_size(netdev, 7 * 4096);
-		} else {
-			priv->ops.fill_desc = fill_v2_desc;
-			priv->ops.maybe_stop_tx = hns_nic_maybe_stop_tx;
-		}
-		break;
+	switch (priv->enet_ver)
+	{
+		case AE_VERSION_1:
+			if (features & (NETIF_F_TSO | NETIF_F_TSO6))
+			{
+				netdev_info(netdev, "enet v1 do not support tso!\n");
+			}
+
+			break;
+
+		default:
+			if (features & (NETIF_F_TSO | NETIF_F_TSO6))
+			{
+				priv->ops.fill_desc = fill_tso_desc;
+				priv->ops.maybe_stop_tx = hns_nic_maybe_stop_tso;
+				/* The chip only support 7*4096 */
+				netif_set_gso_max_size(netdev, 7 * 4096);
+			}
+			else
+			{
+				priv->ops.fill_desc = fill_v2_desc;
+				priv->ops.maybe_stop_tx = hns_nic_maybe_stop_tx;
+			}
+
+			break;
 	}
+
 	netdev->features = features;
 	return 0;
 }
 
 static netdev_features_t hns_nic_fix_features(
-		struct net_device *netdev, netdev_features_t features)
+	struct net_device *netdev, netdev_features_t features)
 {
 	struct hns_nic_priv *priv = netdev_priv(netdev);
 
-	switch (priv->enet_ver) {
-	case AE_VERSION_1:
-		features &= ~(NETIF_F_TSO | NETIF_F_TSO6 |
-				NETIF_F_HW_VLAN_CTAG_FILTER);
-		break;
-	default:
-		break;
+	switch (priv->enet_ver)
+	{
+		case AE_VERSION_1:
+			features &= ~(NETIF_F_TSO | NETIF_F_TSO6 |
+						  NETIF_F_HW_VLAN_CTAG_FILTER);
+			break;
+
+		default:
+			break;
 	}
+
 	return features;
 }
 
@@ -1509,15 +1765,20 @@ void hns_set_multicast_list(struct net_device *ndev)
 	struct hnae_handle *h = priv->ae_handle;
 	struct netdev_hw_addr *ha = NULL;
 
-	if (!h)	{
+	if (!h)
+	{
 		netdev_err(ndev, "hnae handle is null\n");
 		return;
 	}
 
-	if (h->dev->ops->set_mc_addr) {
+	if (h->dev->ops->set_mc_addr)
+	{
 		netdev_for_each_mc_addr(ha, ndev)
-			if (h->dev->ops->set_mc_addr(h, ha->addr))
-				netdev_err(ndev, "set multicast fail\n");
+
+		if (h->dev->ops->set_mc_addr(h, ha->addr))
+		{
+			netdev_err(ndev, "set multicast fail\n");
+		}
 	}
 }
 
@@ -1526,18 +1787,23 @@ void hns_nic_set_rx_mode(struct net_device *ndev)
 	struct hns_nic_priv *priv = netdev_priv(ndev);
 	struct hnae_handle *h = priv->ae_handle;
 
-	if (h->dev->ops->set_promisc_mode) {
+	if (h->dev->ops->set_promisc_mode)
+	{
 		if (ndev->flags & IFF_PROMISC)
+		{
 			h->dev->ops->set_promisc_mode(h, 1);
+		}
 		else
+		{
 			h->dev->ops->set_promisc_mode(h, 0);
+		}
 	}
 
 	hns_set_multicast_list(ndev);
 }
 
 struct rtnl_link_stats64 *hns_nic_get_stats64(struct net_device *ndev,
-					      struct rtnl_link_stats64 *stats)
+		struct rtnl_link_stats64 *stats)
 {
 	int idx = 0;
 	u64 tx_bytes = 0;
@@ -1547,7 +1813,8 @@ struct rtnl_link_stats64 *hns_nic_get_stats64(struct net_device *ndev,
 	struct hns_nic_priv *priv = netdev_priv(ndev);
 	struct hnae_handle *h = priv->ae_handle;
 
-	for (idx = 0; idx < h->q_num; idx++) {
+	for (idx = 0; idx < h->q_num; idx++)
+	{
 		tx_bytes += h->qs[idx]->tx_ring.stats.tx_bytes;
 		tx_pkts += h->qs[idx]->tx_ring.stats.tx_pkts;
 		rx_bytes += h->qs[idx]->rx_ring.stats.rx_bytes;
@@ -1585,20 +1852,25 @@ struct rtnl_link_stats64 *hns_nic_get_stats64(struct net_device *ndev,
 
 static u16
 hns_nic_select_queue(struct net_device *ndev, struct sk_buff *skb,
-		     void *accel_priv, select_queue_fallback_t fallback)
+					 void *accel_priv, select_queue_fallback_t fallback)
 {
 	struct ethhdr *eth_hdr = (struct ethhdr *)skb->data;
 	struct hns_nic_priv *priv = netdev_priv(ndev);
 
 	/* fix hardware broadcast/multicast packets queue loopback */
 	if (!AE_IS_VER1(priv->enet_ver) &&
-	    is_multicast_ether_addr(eth_hdr->h_dest))
+		is_multicast_ether_addr(eth_hdr->h_dest))
+	{
 		return 0;
+	}
 	else
+	{
 		return fallback(ndev, skb);
+	}
 }
 
-static const struct net_device_ops hns_nic_netdev_ops = {
+static const struct net_device_ops hns_nic_netdev_ops =
+{
 	.ndo_open = hns_nic_net_open,
 	.ndo_stop = hns_nic_net_stop,
 	.ndo_start_xmit = hns_nic_net_xmit,
@@ -1622,12 +1894,16 @@ static void hns_nic_update_link_status(struct net_device *netdev)
 
 	struct hnae_handle *h = priv->ae_handle;
 
-	if (h->phy_dev) {
+	if (h->phy_dev)
+	{
 		if (h->phy_if != PHY_INTERFACE_MODE_XGMII)
+		{
 			return;
+		}
 
 		(void)genphy_read_status(h->phy_dev);
 	}
+
 	hns_nic_adjust_link(netdev);
 }
 
@@ -1638,29 +1914,35 @@ static void hns_nic_dump(struct hns_nic_priv *priv)
 	struct hnae_ae_ops *ops = h->dev->ops;
 	u32 *data, reg_num, i;
 
-	if (ops->get_regs_len && ops->get_regs) {
+	if (ops->get_regs_len && ops->get_regs)
+	{
 		reg_num = ops->get_regs_len(priv->ae_handle);
 		reg_num = (reg_num + 3ul) & ~3ul;
 		data = kcalloc(reg_num, sizeof(u32), GFP_KERNEL);
-		if (data) {
+
+		if (data)
+		{
 			ops->get_regs(priv->ae_handle, data);
+
 			for (i = 0; i < reg_num; i += 4)
 				pr_info("0x%08x: 0x%08x 0x%08x 0x%08x 0x%08x\n",
-					i, data[i], data[i + 1],
-					data[i + 2], data[i + 3]);
+						i, data[i], data[i + 1],
+						data[i + 2], data[i + 3]);
+
 			kfree(data);
 		}
 	}
 
-	for (i = 0; i < h->q_num; i++) {
+	for (i = 0; i < h->q_num; i++)
+	{
 		pr_info("tx_queue%d_next_to_clean:%d\n",
-			i, h->qs[i]->tx_ring.next_to_clean);
+				i, h->qs[i]->tx_ring.next_to_clean);
 		pr_info("tx_queue%d_next_to_use:%d\n",
-			i, h->qs[i]->tx_ring.next_to_use);
+				i, h->qs[i]->tx_ring.next_to_use);
 		pr_info("rx_queue%d_next_to_clean:%d\n",
-			i, h->qs[i]->rx_ring.next_to_clean);
+				i, h->qs[i]->rx_ring.next_to_clean);
 		pr_info("rx_queue%d_next_to_use:%d\n",
-			i, h->qs[i]->rx_ring.next_to_use);
+				i, h->qs[i]->rx_ring.next_to_use);
 	}
 }
 
@@ -1670,29 +1952,38 @@ static void hns_nic_reset_subtask(struct hns_nic_priv *priv)
 	enum hnae_port_type type = priv->ae_handle->port_type;
 
 	if (!test_bit(NIC_STATE2_RESET_REQUESTED, &priv->state))
+	{
 		return;
+	}
+
 	clear_bit(NIC_STATE2_RESET_REQUESTED, &priv->state);
 
 	/* If we're already down, removing or resetting, just bail */
 	if (test_bit(NIC_STATE_DOWN, &priv->state) ||
-	    test_bit(NIC_STATE_REMOVING, &priv->state) ||
-	    test_bit(NIC_STATE_RESETTING, &priv->state))
+		test_bit(NIC_STATE_REMOVING, &priv->state) ||
+		test_bit(NIC_STATE_RESETTING, &priv->state))
+	{
 		return;
+	}
 
 	hns_nic_dump(priv);
 	netdev_info(priv->netdev, "try to reset %s port!\n",
-		    (type == HNAE_PORT_DEBUG ? "debug" : "service"));
+				(type == HNAE_PORT_DEBUG ? "debug" : "service"));
 
 	rtnl_lock();
 	/* put off any impending NetWatchDogTimeout */
 	netif_trans_update(priv->netdev);
 
-	if (type == HNAE_PORT_DEBUG) {
+	if (type == HNAE_PORT_DEBUG)
+	{
 		hns_nic_net_reinit(priv->netdev);
-	} else {
+	}
+	else
+	{
 		netif_carrier_off(priv->netdev);
 		netif_tx_disable(priv->netdev);
 	}
+
 	rtnl_unlock();
 }
 
@@ -1722,9 +2013,11 @@ static void hns_nic_service_task(struct work_struct *work)
 static void hns_nic_task_schedule(struct hns_nic_priv *priv)
 {
 	if (!test_bit(NIC_STATE_DOWN, &priv->state) &&
-	    !test_bit(NIC_STATE_REMOVING, &priv->state) &&
-	    !test_and_set_bit(NIC_STATE_SERVICE_SCHED, &priv->state))
+		!test_bit(NIC_STATE_REMOVING, &priv->state) &&
+		!test_and_set_bit(NIC_STATE_SERVICE_SCHED, &priv->state))
+	{
 		(void)schedule_work(&priv->service_task);
+	}
 }
 
 static void hns_nic_service_timer(unsigned long data)
@@ -1743,11 +2036,12 @@ static void hns_nic_service_timer(unsigned long data)
 static void hns_tx_timeout_reset(struct hns_nic_priv *priv)
 {
 	/* Do the reset outside of interrupt context */
-	if (!test_bit(NIC_STATE_DOWN, &priv->state)) {
+	if (!test_bit(NIC_STATE_DOWN, &priv->state))
+	{
 		set_bit(NIC_STATE2_RESET_REQUESTED, &priv->state);
 		netdev_warn(priv->netdev,
-			    "initiating reset due to tx timeout(%llu,0x%lx)\n",
-			    priv->tx_timeout_count, priv->state);
+					"initiating reset due to tx timeout(%llu,0x%lx)\n",
+					priv->tx_timeout_count, priv->state);
 		priv->tx_timeout_count++;
 		hns_nic_task_schedule(priv);
 	}
@@ -1760,39 +2054,46 @@ static int hns_nic_init_ring_data(struct hns_nic_priv *priv)
 	bool is_ver1 = AE_IS_VER1(priv->enet_ver);
 	int i;
 
-	if (h->q_num > NIC_MAX_Q_PER_VF) {
+	if (h->q_num > NIC_MAX_Q_PER_VF)
+	{
 		netdev_err(priv->netdev, "too much queue (%d)\n", h->q_num);
 		return -EINVAL;
 	}
 
 	priv->ring_data = kzalloc(h->q_num * sizeof(*priv->ring_data) * 2,
-				  GFP_KERNEL);
-	if (!priv->ring_data)
-		return -ENOMEM;
+							  GFP_KERNEL);
 
-	for (i = 0; i < h->q_num; i++) {
+	if (!priv->ring_data)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < h->q_num; i++)
+	{
 		rd = &priv->ring_data[i];
 		rd->queue_index = i;
 		rd->ring = &h->qs[i]->tx_ring;
 		rd->poll_one = hns_nic_tx_poll_one;
 		rd->fini_process = is_ver1 ? hns_nic_tx_fini_pro :
-			hns_nic_tx_fini_pro_v2;
+						   hns_nic_tx_fini_pro_v2;
 
 		netif_napi_add(priv->netdev, &rd->napi,
-			       hns_nic_common_poll, NIC_TX_CLEAN_MAX_NUM);
+					   hns_nic_common_poll, NIC_TX_CLEAN_MAX_NUM);
 		rd->ring->irq_init_flag = RCB_IRQ_NOT_INITED;
 	}
-	for (i = h->q_num; i < h->q_num * 2; i++) {
+
+	for (i = h->q_num; i < h->q_num * 2; i++)
+	{
 		rd = &priv->ring_data[i];
 		rd->queue_index = i - h->q_num;
 		rd->ring = &h->qs[i - h->q_num]->rx_ring;
 		rd->poll_one = hns_nic_rx_poll_one;
 		rd->ex_process = hns_nic_rx_up_pro;
 		rd->fini_process = is_ver1 ? hns_nic_rx_fini_pro :
-			hns_nic_rx_fini_pro_v2;
+						   hns_nic_rx_fini_pro_v2;
 
 		netif_napi_add(priv->netdev, &rd->napi,
-			       hns_nic_common_poll, NIC_RX_CLEAN_MAX_NUM);
+					   hns_nic_common_poll, NIC_RX_CLEAN_MAX_NUM);
 		rd->ring->irq_init_flag = RCB_IRQ_NOT_INITED;
 	}
 
@@ -1804,18 +2105,22 @@ static void hns_nic_uninit_ring_data(struct hns_nic_priv *priv)
 	struct hnae_handle *h = priv->ae_handle;
 	int i;
 
-	for (i = 0; i < h->q_num * 2; i++) {
+	for (i = 0; i < h->q_num * 2; i++)
+	{
 		netif_napi_del(&priv->ring_data[i].napi);
-		if (priv->ring_data[i].ring->irq_init_flag == RCB_IRQ_INITED) {
+
+		if (priv->ring_data[i].ring->irq_init_flag == RCB_IRQ_INITED)
+		{
 			(void)irq_set_affinity_hint(
 				priv->ring_data[i].ring->irq,
 				NULL);
 			free_irq(priv->ring_data[i].ring->irq,
-				 &priv->ring_data[i]);
+					 &priv->ring_data[i]);
 		}
 
 		priv->ring_data[i].ring->irq_init_flag = RCB_IRQ_NOT_INITED;
 	}
+
 	kfree(priv->ring_data);
 }
 
@@ -1824,22 +2129,30 @@ static void hns_nic_set_priv_ops(struct net_device *netdev)
 	struct hns_nic_priv *priv = netdev_priv(netdev);
 	struct hnae_handle *h = priv->ae_handle;
 
-	if (AE_IS_VER1(priv->enet_ver)) {
+	if (AE_IS_VER1(priv->enet_ver))
+	{
 		priv->ops.fill_desc = fill_desc;
 		priv->ops.get_rxd_bnum = get_rx_desc_bnum;
 		priv->ops.maybe_stop_tx = hns_nic_maybe_stop_tx;
-	} else {
+	}
+	else
+	{
 		priv->ops.get_rxd_bnum = get_v2rx_desc_bnum;
+
 		if ((netdev->features & NETIF_F_TSO) ||
-		    (netdev->features & NETIF_F_TSO6)) {
+			(netdev->features & NETIF_F_TSO6))
+		{
 			priv->ops.fill_desc = fill_tso_desc;
 			priv->ops.maybe_stop_tx = hns_nic_maybe_stop_tso;
 			/* This chip only support 7*4096 */
 			netif_set_gso_max_size(netdev, 7 * 4096);
-		} else {
+		}
+		else
+		{
 			priv->ops.fill_desc = fill_v2_desc;
 			priv->ops.maybe_stop_tx = hns_nic_maybe_stop_tx;
 		}
+
 		/* enable tso when init
 		 * control tso on/off through TSE bit in bd
 		 */
@@ -1854,22 +2167,29 @@ static int hns_nic_try_get_ae(struct net_device *ndev)
 	int ret;
 
 	h = hnae_get_handle(&priv->netdev->dev,
-			    priv->fwnode, priv->port_id, NULL);
-	if (IS_ERR_OR_NULL(h)) {
+						priv->fwnode, priv->port_id, NULL);
+
+	if (IS_ERR_OR_NULL(h))
+	{
 		ret = -ENODEV;
 		dev_dbg(priv->dev, "has not handle, register notifier!\n");
 		goto out;
 	}
+
 	priv->ae_handle = h;
 
 	ret = hns_nic_init_phy(ndev, h);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(priv->dev, "probe phy device fail!\n");
 		goto out_init_phy;
 	}
 
 	ret = hns_nic_init_ring_data(priv);
-	if (ret) {
+
+	if (ret)
+	{
 		ret = -ENOMEM;
 		goto out_init_ring_data;
 	}
@@ -1877,10 +2197,13 @@ static int hns_nic_try_get_ae(struct net_device *ndev)
 	hns_nic_set_priv_ops(ndev);
 
 	ret = register_netdev(ndev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(priv->dev, "probe register netdev fail!\n");
 		goto out_reg_ndev_fail;
 	}
+
 	return 0;
 
 out_reg_ndev_fail:
@@ -1895,17 +2218,19 @@ out:
 }
 
 static int hns_nic_notifier_action(struct notifier_block *nb,
-				   unsigned long action, void *data)
+								   unsigned long action, void *data)
 {
 	struct hns_nic_priv *priv =
 		container_of(nb, struct hns_nic_priv, notifier_block);
 
 	assert(action == HNAE_AE_REGISTER);
 
-	if (!hns_nic_try_get_ae(priv->netdev)) {
+	if (!hns_nic_try_get_ae(priv->netdev))
+	{
 		hnae_unregister_notifier(&priv->notifier_block);
 		priv->notifier_block.notifier_call = NULL;
 	}
+
 	return 0;
 }
 
@@ -1918,8 +2243,11 @@ static int hns_nic_dev_probe(struct platform_device *pdev)
 	int ret;
 
 	ndev = alloc_etherdev_mq(sizeof(struct hns_nic_priv), NIC_MAX_Q_PER_VF);
+
 	if (!ndev)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, ndev);
 
@@ -1927,55 +2255,83 @@ static int hns_nic_dev_probe(struct platform_device *pdev)
 	priv->dev = dev;
 	priv->netdev = ndev;
 
-	if (dev_of_node(dev)) {
+	if (dev_of_node(dev))
+	{
 		struct device_node *ae_node;
 
 		if (of_device_is_compatible(dev->of_node,
-					    "hisilicon,hns-nic-v1"))
+									"hisilicon,hns-nic-v1"))
+		{
 			priv->enet_ver = AE_VERSION_1;
+		}
 		else
+		{
 			priv->enet_ver = AE_VERSION_2;
+		}
 
 		ae_node = of_parse_phandle(dev->of_node, "ae-handle", 0);
-		if (IS_ERR_OR_NULL(ae_node)) {
+
+		if (IS_ERR_OR_NULL(ae_node))
+		{
 			ret = PTR_ERR(ae_node);
 			dev_err(dev, "not find ae-handle\n");
 			goto out_read_prop_fail;
 		}
+
 		priv->fwnode = &ae_node->fwnode;
-	} else if (is_acpi_node(dev->fwnode)) {
+	}
+	else if (is_acpi_node(dev->fwnode))
+	{
 		struct acpi_reference_args args;
 
 		if (acpi_dev_found(hns_enet_acpi_match[0].id))
+		{
 			priv->enet_ver = AE_VERSION_1;
+		}
 		else if (acpi_dev_found(hns_enet_acpi_match[1].id))
+		{
 			priv->enet_ver = AE_VERSION_2;
+		}
 		else
+		{
 			return -ENXIO;
+		}
 
 		/* try to find port-idx-in-ae first */
 		ret = acpi_node_get_property_reference(dev->fwnode,
-						       "ae-handle", 0, &args);
-		if (ret) {
+											   "ae-handle", 0, &args);
+
+		if (ret)
+		{
 			dev_err(dev, "not find ae-handle\n");
 			goto out_read_prop_fail;
 		}
+
 		priv->fwnode = acpi_fwnode_handle(args.adev);
-	} else {
+	}
+	else
+	{
 		dev_err(dev, "cannot read cfg data from OF or acpi\n");
 		return -ENXIO;
 	}
 
 	ret = device_property_read_u32(dev, "port-idx-in-ae", &port_id);
-	if (ret) {
+
+	if (ret)
+	{
 		/* only for old code compatible */
 		ret = device_property_read_u32(dev, "port-id", &port_id);
+
 		if (ret)
+		{
 			goto out_read_prop_fail;
+		}
+
 		/* for old dts, we need to caculate the port offset */
 		port_id = port_id < HNS_SRV_OFFSET ? port_id + HNS_DEBUG_OFFSET
-			: port_id - HNS_SRV_OFFSET;
+				  : port_id - HNS_SRV_OFFSET;
 	}
+
 	priv->port_id = port_id;
 
 	hns_init_mac_addr(ndev);
@@ -1986,48 +2342,58 @@ static int hns_nic_dev_probe(struct platform_device *pdev)
 	hns_ethtool_set_ops(ndev);
 
 	ndev->features |= NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM |
-		NETIF_F_RXCSUM | NETIF_F_SG | NETIF_F_GSO |
-		NETIF_F_GRO;
+					  NETIF_F_RXCSUM | NETIF_F_SG | NETIF_F_GSO |
+					  NETIF_F_GRO;
 	ndev->vlan_features |=
 		NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM | NETIF_F_RXCSUM;
 	ndev->vlan_features |= NETIF_F_SG | NETIF_F_GSO | NETIF_F_GRO;
 
-	switch (priv->enet_ver) {
-	case AE_VERSION_2:
-		ndev->features |= NETIF_F_TSO | NETIF_F_TSO6;
-		ndev->hw_features |= NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM |
-			NETIF_F_RXCSUM | NETIF_F_SG | NETIF_F_GSO |
-			NETIF_F_GRO | NETIF_F_TSO | NETIF_F_TSO6;
-		break;
-	default:
-		break;
+	switch (priv->enet_ver)
+	{
+		case AE_VERSION_2:
+			ndev->features |= NETIF_F_TSO | NETIF_F_TSO6;
+			ndev->hw_features |= NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM |
+								 NETIF_F_RXCSUM | NETIF_F_SG | NETIF_F_GSO |
+								 NETIF_F_GRO | NETIF_F_TSO | NETIF_F_TSO6;
+			break;
+
+		default:
+			break;
 	}
 
 	SET_NETDEV_DEV(ndev, dev);
 
 	if (!dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64)))
+	{
 		dev_dbg(dev, "set mask to 64bit\n");
+	}
 	else
+	{
 		dev_err(dev, "set mask to 64bit fail!\n");
+	}
 
 	/* carrier off reporting is important to ethtool even BEFORE open */
 	netif_carrier_off(ndev);
 
 	setup_timer(&priv->service_timer, hns_nic_service_timer,
-		    (unsigned long)priv);
+				(unsigned long)priv);
 	INIT_WORK(&priv->service_task, hns_nic_service_task);
 
 	set_bit(NIC_STATE_SERVICE_INITED, &priv->state);
 	clear_bit(NIC_STATE_SERVICE_SCHED, &priv->state);
 	set_bit(NIC_STATE_DOWN, &priv->state);
 
-	if (hns_nic_try_get_ae(priv->netdev)) {
+	if (hns_nic_try_get_ae(priv->netdev))
+	{
 		priv->notifier_block.notifier_call = hns_nic_notifier_action;
 		ret = hnae_register_notifier(&priv->notifier_block);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "register notifier fail!\n");
 			goto out_notify_fail;
 		}
+
 		dev_dbg(dev, "has not handle, register notifier!\n");
 	}
 
@@ -2046,20 +2412,34 @@ static int hns_nic_dev_remove(struct platform_device *pdev)
 	struct hns_nic_priv *priv = netdev_priv(ndev);
 
 	if (ndev->reg_state != NETREG_UNINITIALIZED)
+	{
 		unregister_netdev(ndev);
+	}
 
 	if (priv->ring_data)
+	{
 		hns_nic_uninit_ring_data(priv);
+	}
+
 	priv->ring_data = NULL;
 
 	if (ndev->phydev)
+	{
 		phy_disconnect(ndev->phydev);
+	}
 
 	if (!IS_ERR_OR_NULL(priv->ae_handle))
+	{
 		hnae_put_handle(priv->ae_handle);
+	}
+
 	priv->ae_handle = NULL;
+
 	if (priv->notifier_block.notifier_call)
+	{
 		hnae_unregister_notifier(&priv->notifier_block);
+	}
+
 	priv->notifier_block.notifier_call = NULL;
 
 	set_bit(NIC_STATE_REMOVING, &priv->state);
@@ -2069,7 +2449,8 @@ static int hns_nic_dev_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id hns_enet_of_match[] = {
+static const struct of_device_id hns_enet_of_match[] =
+{
 	{.compatible = "hisilicon,hns-nic-v1",},
 	{.compatible = "hisilicon,hns-nic-v2",},
 	{},
@@ -2077,7 +2458,8 @@ static const struct of_device_id hns_enet_of_match[] = {
 
 MODULE_DEVICE_TABLE(of, hns_enet_of_match);
 
-static struct platform_driver hns_nic_dev_driver = {
+static struct platform_driver hns_nic_dev_driver =
+{
 	.driver = {
 		.name = "hns-nic",
 		.of_match_table = hns_enet_of_match,

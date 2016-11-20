@@ -33,16 +33,23 @@ __efi_memmap_init(struct efi_memory_map_data *data, bool late)
 	phys_addr_t phys_map;
 
 	if (efi_enabled(EFI_PARAVIRT))
+	{
 		return 0;
+	}
 
 	phys_map = data->phys_map;
 
 	if (late)
+	{
 		map.map = memremap(phys_map, data->size, MEMREMAP_WB);
+	}
 	else
+	{
 		map.map = early_memremap(phys_map, data->size);
+	}
 
-	if (!map.map) {
+	if (!map.map)
+	{
 		pr_err("Could not map the memory map!\n");
 		return -ENOMEM;
 	}
@@ -79,12 +86,15 @@ int __init efi_memmap_init_early(struct efi_memory_map_data *data)
 
 void __init efi_memmap_unmap(void)
 {
-	if (!efi.memmap.late) {
+	if (!efi.memmap.late)
+	{
 		unsigned long size;
 
 		size = efi.memmap.desc_size * efi.memmap.nr_map;
 		early_memunmap(efi.memmap.map, size);
-	} else {
+	}
+	else
+	{
 		memunmap(efi.memmap.map);
 	}
 
@@ -117,7 +127,8 @@ void __init efi_memmap_unmap(void)
  */
 int __init efi_memmap_init_late(phys_addr_t addr, unsigned long size)
 {
-	struct efi_memory_map_data data = {
+	struct efi_memory_map_data data =
+	{
 		.phys_map = addr,
 		.size = size,
 	};
@@ -185,19 +196,28 @@ int __init efi_memmap_split_count(efi_memory_desc_t *md, struct range *range)
 	m_start = range->start;
 	m_end = range->end;
 
-	if (m_start <= start) {
+	if (m_start <= start)
+	{
 		/* split into 2 parts */
 		if (start < m_end && m_end < end)
+		{
 			count++;
+		}
 	}
 
-	if (start < m_start && m_start < end) {
+	if (start < m_start && m_start < end)
+	{
 		/* split into 3 parts */
 		if (m_end < end)
+		{
 			count += 2;
+		}
+
 		/* split into 2 parts */
 		if (end <= m_end)
+		{
 			count++;
+		}
 	}
 
 	return count;
@@ -213,7 +233,7 @@ int __init efi_memmap_split_count(efi_memory_desc_t *md, struct range *range)
  * to see how large @buf needs to be.
  */
 void __init efi_memmap_insert(struct efi_memory_map *old_memmap, void *buf,
-			      struct efi_mem_range *mem)
+							  struct efi_mem_range *mem)
 {
 	u64 m_start, m_end, m_attr;
 	efi_memory_desc_t *md;
@@ -231,14 +251,16 @@ void __init efi_memmap_insert(struct efi_memory_map *old_memmap, void *buf,
 	 * correctly.
 	 */
 	if (!IS_ALIGNED(m_start, EFI_PAGE_SIZE) ||
-	    !IS_ALIGNED(m_end + 1, EFI_PAGE_SIZE)) {
+		!IS_ALIGNED(m_end + 1, EFI_PAGE_SIZE))
+	{
 		WARN_ON(1);
 		return;
 	}
 
 	for (old = old_memmap->map, new = buf;
-	     old < old_memmap->map_end;
-	     old += old_memmap->desc_size, new += old_memmap->desc_size) {
+		 old < old_memmap->map_end;
+		 old += old_memmap->desc_size, new += old_memmap->desc_size)
+	{
 
 		/* copy original EFI memory descriptor */
 		memcpy(new, old, old_memmap->desc_size);
@@ -247,27 +269,31 @@ void __init efi_memmap_insert(struct efi_memory_map *old_memmap, void *buf,
 		end = md->phys_addr + (md->num_pages << EFI_PAGE_SHIFT) - 1;
 
 		if (m_start <= start && end <= m_end)
+		{
 			md->attribute |= m_attr;
+		}
 
 		if (m_start <= start &&
-		    (start < m_end && m_end < end)) {
+			(start < m_end && m_end < end))
+		{
 			/* first part */
 			md->attribute |= m_attr;
 			md->num_pages = (m_end - md->phys_addr + 1) >>
-				EFI_PAGE_SHIFT;
+							EFI_PAGE_SHIFT;
 			/* latter part */
 			new += old_memmap->desc_size;
 			memcpy(new, old, old_memmap->desc_size);
 			md = new;
 			md->phys_addr = m_end + 1;
 			md->num_pages = (end - md->phys_addr + 1) >>
-				EFI_PAGE_SHIFT;
+							EFI_PAGE_SHIFT;
 		}
 
-		if ((start < m_start && m_start < end) && m_end < end) {
+		if ((start < m_start && m_start < end) && m_end < end)
+		{
 			/* first part */
 			md->num_pages = (m_start - md->phys_addr) >>
-				EFI_PAGE_SHIFT;
+							EFI_PAGE_SHIFT;
 			/* middle part */
 			new += old_memmap->desc_size;
 			memcpy(new, old, old_memmap->desc_size);
@@ -275,28 +301,29 @@ void __init efi_memmap_insert(struct efi_memory_map *old_memmap, void *buf,
 			md->attribute |= m_attr;
 			md->phys_addr = m_start;
 			md->num_pages = (m_end - m_start + 1) >>
-				EFI_PAGE_SHIFT;
+							EFI_PAGE_SHIFT;
 			/* last part */
 			new += old_memmap->desc_size;
 			memcpy(new, old, old_memmap->desc_size);
 			md = new;
 			md->phys_addr = m_end + 1;
 			md->num_pages = (end - m_end) >>
-				EFI_PAGE_SHIFT;
+							EFI_PAGE_SHIFT;
 		}
 
 		if ((start < m_start && m_start < end) &&
-		    (end <= m_end)) {
+			(end <= m_end))
+		{
 			/* first part */
 			md->num_pages = (m_start - md->phys_addr) >>
-				EFI_PAGE_SHIFT;
+							EFI_PAGE_SHIFT;
 			/* latter part */
 			new += old_memmap->desc_size;
 			memcpy(new, old, old_memmap->desc_size);
 			md = new;
 			md->phys_addr = m_start;
 			md->num_pages = (end - md->phys_addr + 1) >>
-				EFI_PAGE_SHIFT;
+							EFI_PAGE_SHIFT;
 			md->attribute |= m_attr;
 		}
 	}

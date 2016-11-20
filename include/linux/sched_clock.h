@@ -12,12 +12,12 @@
 extern void sched_clock_postinit(void);
 
 extern void sched_clock_register(u64 (*read)(void), int bits,
-				 unsigned long rate);
+								 unsigned long rate);
 #else
 static inline void sched_clock_postinit(void) { }
 
 static inline void sched_clock_register(u64 (*read)(void), int bits,
-					unsigned long rate)
+										unsigned long rate)
 {
 	;
 }

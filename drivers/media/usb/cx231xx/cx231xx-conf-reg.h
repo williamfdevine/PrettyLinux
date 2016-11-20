@@ -60,7 +60,8 @@
 #define I2C_DEMOD_EN            0x01   /* bit0 */
 #define PWR_RESETOUT_EN         0x100  /* bit8 */
 
-enum AV_MODE{
+enum AV_MODE
+{
 	POLARIS_AVMODE_DEFAULT = 0,
 	POLARIS_AVMODE_DIGITAL = 0x10,
 	POLARIS_AVMODE_ANALOGT_TV = 0x20,

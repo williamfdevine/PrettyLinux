@@ -28,7 +28,8 @@
  ******************************************************************************/
 
 static const struct gf100_gr_init
-gk110b_grctx_init_sm_0[] = {
+	gk110b_grctx_init_sm_0[] =
+{
 	{ 0x419e04,   1, 0x04, 0x00000000 },
 	{ 0x419e08,   1, 0x04, 0x0000001d },
 	{ 0x419e0c,   1, 0x04, 0x00000000 },
@@ -56,7 +57,8 @@ gk110b_grctx_init_sm_0[] = {
 };
 
 static const struct gf100_gr_pack
-gk110b_grctx_pack_tpc[] = {
+	gk110b_grctx_pack_tpc[] =
+{
 	{ gf117_grctx_init_pe_0 },
 	{ gk110_grctx_init_tex_0 },
 	{ gk110_grctx_init_mpc_0 },
@@ -70,7 +72,8 @@ gk110b_grctx_pack_tpc[] = {
  ******************************************************************************/
 
 const struct gf100_grctx_func
-gk110b_grctx = {
+	gk110b_grctx =
+{
 	.main  = gk104_grctx_generate_main,
 	.unkn  = gk104_grctx_generate_unkn,
 	.hub   = gk110_grctx_pack_hub,

@@ -23,7 +23,8 @@
 #include <sound/soc.h>
 #include <sound/tlv.h>
 
-static const struct reg_default lm4857_default_regs[] = {
+static const struct reg_default lm4857_default_regs[] =
+{
 	{ 0x0, 0x00 },
 	{ 0x1, 0x00 },
 	{ 0x2, 0x00 },
@@ -41,7 +42,8 @@ static const struct reg_default lm4857_default_regs[] = {
 #define LM4857_WAKEUP 5
 #define LM4857_EPGAIN 4
 
-static const unsigned int lm4857_mode_values[] = {
+static const unsigned int lm4857_mode_values[] =
+{
 	0,
 	6,
 	7,
@@ -49,7 +51,8 @@ static const unsigned int lm4857_mode_values[] = {
 	9,
 };
 
-static const char * const lm4857_mode_texts[] = {
+static const char *const lm4857_mode_texts[] =
+{
 	"Off",
 	"Earpiece",
 	"Loudspeaker",
@@ -58,12 +61,13 @@ static const char * const lm4857_mode_texts[] = {
 };
 
 static SOC_VALUE_ENUM_SINGLE_AUTODISABLE_DECL(lm4857_mode_enum,
-	LM4857_CTRL, 0, 0xf, lm4857_mode_texts, lm4857_mode_values);
+		LM4857_CTRL, 0, 0xf, lm4857_mode_texts, lm4857_mode_values);
 
 static const struct snd_kcontrol_new lm4857_mode_ctrl =
 	SOC_DAPM_ENUM("Mode", lm4857_mode_enum);
 
-static const struct snd_soc_dapm_widget lm4857_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget lm4857_dapm_widgets[] =
+{
 	SND_SOC_DAPM_INPUT("IN"),
 
 	SND_SOC_DAPM_DEMUX("Mode", SND_SOC_NOPM, 0, 0, &lm4857_mode_ctrl),
@@ -76,22 +80,24 @@ static const struct snd_soc_dapm_widget lm4857_dapm_widgets[] = {
 static const DECLARE_TLV_DB_SCALE(stereo_tlv, -4050, 150, 0);
 static const DECLARE_TLV_DB_SCALE(mono_tlv, -3450, 150, 0);
 
-static const struct snd_kcontrol_new lm4857_controls[] = {
+static const struct snd_kcontrol_new lm4857_controls[] =
+{
 	SOC_SINGLE_TLV("Left Playback Volume", LM4857_LVOL, 0, 31, 0,
-		stereo_tlv),
+	stereo_tlv),
 	SOC_SINGLE_TLV("Right Playback Volume", LM4857_RVOL, 0, 31, 0,
-		stereo_tlv),
+	stereo_tlv),
 	SOC_SINGLE_TLV("Mono Playback Volume", LM4857_MVOL, 0, 31, 0,
-		mono_tlv),
+	mono_tlv),
 	SOC_SINGLE("Spk 3D Playback Switch", LM4857_LVOL, LM4857_3D, 1, 0),
 	SOC_SINGLE("HP 3D Playback Switch", LM4857_RVOL, LM4857_3D, 1, 0),
 	SOC_SINGLE("Fast Wakeup Playback Switch", LM4857_CTRL,
-		LM4857_WAKEUP, 1, 0),
+	LM4857_WAKEUP, 1, 0),
 	SOC_SINGLE("Earpiece 6dB Playback Switch", LM4857_CTRL,
-		LM4857_EPGAIN, 1, 0),
+	LM4857_EPGAIN, 1, 0),
 };
 
-static const struct snd_soc_dapm_route lm4857_routes[] = {
+static const struct snd_soc_dapm_route lm4857_routes[] =
+{
 	{ "Mode", NULL, "IN" },
 	{ "LS", "Loudspeaker", "Mode" },
 	{ "LS", "Loudspeaker + Headphone", "Mode" },
@@ -100,7 +106,8 @@ static const struct snd_soc_dapm_route lm4857_routes[] = {
 	{ "EP", "Earpiece", "Mode" },
 };
 
-static struct snd_soc_component_driver lm4857_component_driver = {
+static struct snd_soc_component_driver lm4857_component_driver =
+{
 	.controls = lm4857_controls,
 	.num_controls = ARRAY_SIZE(lm4857_controls),
 	.dapm_widgets = lm4857_dapm_widgets,
@@ -109,7 +116,8 @@ static struct snd_soc_component_driver lm4857_component_driver = {
 	.num_dapm_routes = ARRAY_SIZE(lm4857_routes),
 };
 
-static const struct regmap_config lm4857_regmap_config = {
+static const struct regmap_config lm4857_regmap_config =
+{
 	.val_bits = 6,
 	.reg_bits = 2,
 
@@ -121,25 +129,30 @@ static const struct regmap_config lm4857_regmap_config = {
 };
 
 static int lm4857_i2c_probe(struct i2c_client *i2c,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct regmap *regmap;
 
 	regmap = devm_regmap_init_i2c(i2c, &lm4857_regmap_config);
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
 
 	return devm_snd_soc_register_component(&i2c->dev,
-		&lm4857_component_driver, NULL, 0);
+										   &lm4857_component_driver, NULL, 0);
 }
 
-static const struct i2c_device_id lm4857_i2c_id[] = {
+static const struct i2c_device_id lm4857_i2c_id[] =
+{
 	{ "lm4857", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, lm4857_i2c_id);
 
-static struct i2c_driver lm4857_i2c_driver = {
+static struct i2c_driver lm4857_i2c_driver =
+{
 	.driver = {
 		.name = "lm4857",
 	},

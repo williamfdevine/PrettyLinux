@@ -19,7 +19,8 @@
 #include <net/pkt_sched.h>
 #include <net/sch_generic.h>
 
-struct mqprio_sched {
+struct mqprio_sched
+{
 	struct Qdisc		**qdiscs;
 	int hw_owned;
 };
@@ -31,18 +32,26 @@ static void mqprio_destroy(struct Qdisc *sch)
 	struct tc_to_netdev tc = {.type = TC_SETUP_MQPRIO};
 	unsigned int ntx;
 
-	if (priv->qdiscs) {
+	if (priv->qdiscs)
+	{
 		for (ntx = 0;
-		     ntx < dev->num_tx_queues && priv->qdiscs[ntx];
-		     ntx++)
+			 ntx < dev->num_tx_queues && priv->qdiscs[ntx];
+			 ntx++)
+		{
 			qdisc_destroy(priv->qdiscs[ntx]);
+		}
+
 		kfree(priv->qdiscs);
 	}
 
 	if (priv->hw_owned && dev->netdev_ops->ndo_setup_tc)
+	{
 		dev->netdev_ops->ndo_setup_tc(dev, sch->handle, 0, &tc);
+	}
 	else
+	{
 		netdev_set_num_tc(dev, 0);
+	}
 }
 
 static int mqprio_parse_opt(struct net_device *dev, struct tc_mqprio_qopt *qopt)
@@ -51,39 +60,54 @@ static int mqprio_parse_opt(struct net_device *dev, struct tc_mqprio_qopt *qopt)
 
 	/* Verify num_tc is not out of max range */
 	if (qopt->num_tc > TC_MAX_QUEUE)
+	{
 		return -EINVAL;
+	}
 
 	/* Verify priority mapping uses valid tcs */
-	for (i = 0; i < TC_BITMASK + 1; i++) {
+	for (i = 0; i < TC_BITMASK + 1; i++)
+	{
 		if (qopt->prio_tc_map[i] >= qopt->num_tc)
+		{
 			return -EINVAL;
+		}
 	}
 
 	/* net_device does not support requested operation */
 	if (qopt->hw && !dev->netdev_ops->ndo_setup_tc)
+	{
 		return -EINVAL;
+	}
 
 	/* if hw owned qcount and qoffset are taken from LLD so
 	 * no reason to verify them here
 	 */
 	if (qopt->hw)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < qopt->num_tc; i++) {
+	for (i = 0; i < qopt->num_tc; i++)
+	{
 		unsigned int last = qopt->offset[i] + qopt->count[i];
 
 		/* Verify the queue count is in tx range being equal to the
 		 * real_num_tx_queues indicates the last queue is in use.
 		 */
 		if (qopt->offset[i] >= dev->real_num_tx_queues ||
-		    !qopt->count[i] ||
-		    last > dev->real_num_tx_queues)
+			!qopt->count[i] ||
+			last > dev->real_num_tx_queues)
+		{
 			return -EINVAL;
+		}
 
 		/* Verify that the offset and counts do not overlap */
-		for (j = i + 1; j < qopt->num_tc; j++) {
+		for (j = i + 1; j < qopt->num_tc; j++)
+		{
 			if (last > qopt->offset[j])
+			{
 				return -EINVAL;
+			}
 		}
 	}
 
@@ -103,36 +127,51 @@ static int mqprio_init(struct Qdisc *sch, struct nlattr *opt)
 	BUILD_BUG_ON(TC_BITMASK != TC_QOPT_BITMASK);
 
 	if (sch->parent != TC_H_ROOT)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (!netif_is_multiqueue(dev))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (!opt || nla_len(opt) < sizeof(*qopt))
+	{
 		return -EINVAL;
+	}
 
 	qopt = nla_data(opt);
+
 	if (mqprio_parse_opt(dev, qopt))
+	{
 		return -EINVAL;
+	}
 
 	/* pre-allocate qdisc, attachment can't fail */
 	priv->qdiscs = kcalloc(dev->num_tx_queues, sizeof(priv->qdiscs[0]),
-			       GFP_KERNEL);
-	if (priv->qdiscs == NULL) {
+						   GFP_KERNEL);
+
+	if (priv->qdiscs == NULL)
+	{
 		err = -ENOMEM;
 		goto err;
 	}
 
-	for (i = 0; i < dev->num_tx_queues; i++) {
+	for (i = 0; i < dev->num_tx_queues; i++)
+	{
 		dev_queue = netdev_get_tx_queue(dev, i);
 		qdisc = qdisc_create_dflt(dev_queue,
-					  get_default_qdisc_ops(dev, i),
-					  TC_H_MAKE(TC_H_MAJ(sch->handle),
-						    TC_H_MIN(i + 1)));
-		if (qdisc == NULL) {
+								  get_default_qdisc_ops(dev, i),
+								  TC_H_MAKE(TC_H_MAJ(sch->handle),
+											TC_H_MIN(i + 1)));
+
+		if (qdisc == NULL)
+		{
 			err = -ENOMEM;
 			goto err;
 		}
+
 		priv->qdiscs[i] = qdisc;
 		qdisc->flags |= TCQ_F_ONETXQUEUE | TCQ_F_NOPARENT;
 	}
@@ -141,24 +180,34 @@ static int mqprio_init(struct Qdisc *sch, struct nlattr *opt)
 	 * the queue mapping then run ndo_setup_tc otherwise use the
 	 * supplied and verified mapping
 	 */
-	if (qopt->hw) {
+	if (qopt->hw)
+	{
 		struct tc_to_netdev tc = {.type = TC_SETUP_MQPRIO,
-					  { .tc = qopt->num_tc }};
+			{ .tc = qopt->num_tc }
+		};
 
 		priv->hw_owned = 1;
 		err = dev->netdev_ops->ndo_setup_tc(dev, sch->handle, 0, &tc);
+
 		if (err)
+		{
 			goto err;
-	} else {
+		}
+	}
+	else
+	{
 		netdev_set_num_tc(dev, qopt->num_tc);
+
 		for (i = 0; i < qopt->num_tc; i++)
 			netdev_set_tc_queue(dev, i,
-					    qopt->count[i], qopt->offset[i]);
+								qopt->count[i], qopt->offset[i]);
 	}
 
 	/* Always use supplied priority mappings */
 	for (i = 0; i < TC_BITMASK + 1; i++)
+	{
 		netdev_set_prio_tc_map(dev, i, qopt->prio_tc_map[i]);
+	}
 
 	sch->flags |= TCQ_F_MQROOT;
 	return 0;
@@ -176,48 +225,67 @@ static void mqprio_attach(struct Qdisc *sch)
 	unsigned int ntx;
 
 	/* Attach underlying qdisc */
-	for (ntx = 0; ntx < dev->num_tx_queues; ntx++) {
+	for (ntx = 0; ntx < dev->num_tx_queues; ntx++)
+	{
 		qdisc = priv->qdiscs[ntx];
 		old = dev_graft_qdisc(qdisc->dev_queue, qdisc);
+
 		if (old)
+		{
 			qdisc_destroy(old);
+		}
+
 		if (ntx < dev->real_num_tx_queues)
+		{
 			qdisc_hash_add(qdisc);
+		}
 	}
+
 	kfree(priv->qdiscs);
 	priv->qdiscs = NULL;
 }
 
 static struct netdev_queue *mqprio_queue_get(struct Qdisc *sch,
-					     unsigned long cl)
+		unsigned long cl)
 {
 	struct net_device *dev = qdisc_dev(sch);
 	unsigned long ntx = cl - 1 - netdev_get_num_tc(dev);
 
 	if (ntx >= dev->num_tx_queues)
+	{
 		return NULL;
+	}
+
 	return netdev_get_tx_queue(dev, ntx);
 }
 
 static int mqprio_graft(struct Qdisc *sch, unsigned long cl, struct Qdisc *new,
-		    struct Qdisc **old)
+						struct Qdisc **old)
 {
 	struct net_device *dev = qdisc_dev(sch);
 	struct netdev_queue *dev_queue = mqprio_queue_get(sch, cl);
 
 	if (!dev_queue)
+	{
 		return -EINVAL;
+	}
 
 	if (dev->flags & IFF_UP)
+	{
 		dev_deactivate(dev);
+	}
 
 	*old = dev_graft_qdisc(dev_queue, new);
 
 	if (new)
+	{
 		new->flags |= TCQ_F_ONETXQUEUE | TCQ_F_NOPARENT;
+	}
 
 	if (dev->flags & IFF_UP)
+	{
 		dev_activate(dev);
+	}
 
 	return 0;
 }
@@ -235,7 +303,8 @@ static int mqprio_dump(struct Qdisc *sch, struct sk_buff *skb)
 	memset(&sch->bstats, 0, sizeof(sch->bstats));
 	memset(&sch->qstats, 0, sizeof(sch->qstats));
 
-	for (i = 0; i < dev->num_tx_queues; i++) {
+	for (i = 0; i < dev->num_tx_queues; i++)
+	{
 		qdisc = rtnl_dereference(netdev_get_tx_queue(dev, i)->qdisc);
 		spin_lock_bh(qdisc_lock(qdisc));
 		sch->q.qlen		+= qdisc->q.qlen;
@@ -252,13 +321,16 @@ static int mqprio_dump(struct Qdisc *sch, struct sk_buff *skb)
 	memcpy(opt.prio_tc_map, dev->prio_tc_map, sizeof(opt.prio_tc_map));
 	opt.hw = priv->hw_owned;
 
-	for (i = 0; i < netdev_get_num_tc(dev); i++) {
+	for (i = 0; i < netdev_get_num_tc(dev); i++)
+	{
 		opt.count[i] = dev->tc_to_txq[i].count;
 		opt.offset[i] = dev->tc_to_txq[i].offset;
 	}
 
 	if (nla_put(skb, TCA_OPTIONS, sizeof(opt), &opt))
+	{
 		goto nla_put_failure;
+	}
 
 	return skb->len;
 nla_put_failure:
@@ -271,7 +343,9 @@ static struct Qdisc *mqprio_leaf(struct Qdisc *sch, unsigned long cl)
 	struct netdev_queue *dev_queue = mqprio_queue_get(sch, cl);
 
 	if (!dev_queue)
+	{
 		return NULL;
+	}
 
 	return dev_queue->qdisc_sleeping;
 }
@@ -282,7 +356,10 @@ static unsigned long mqprio_get(struct Qdisc *sch, u32 classid)
 	unsigned int ntx = TC_H_MIN(classid);
 
 	if (ntx > dev->num_tx_queues + netdev_get_num_tc(dev))
+	{
 		return 0;
+	}
+
 	return ntx;
 }
 
@@ -291,45 +368,54 @@ static void mqprio_put(struct Qdisc *sch, unsigned long cl)
 }
 
 static int mqprio_dump_class(struct Qdisc *sch, unsigned long cl,
-			 struct sk_buff *skb, struct tcmsg *tcm)
+							 struct sk_buff *skb, struct tcmsg *tcm)
 {
 	struct net_device *dev = qdisc_dev(sch);
 
-	if (cl <= netdev_get_num_tc(dev)) {
+	if (cl <= netdev_get_num_tc(dev))
+	{
 		tcm->tcm_parent = TC_H_ROOT;
 		tcm->tcm_info = 0;
-	} else {
+	}
+	else
+	{
 		int i;
 		struct netdev_queue *dev_queue;
 
 		dev_queue = mqprio_queue_get(sch, cl);
 		tcm->tcm_parent = 0;
-		for (i = 0; i < netdev_get_num_tc(dev); i++) {
+
+		for (i = 0; i < netdev_get_num_tc(dev); i++)
+		{
 			struct netdev_tc_txq tc = dev->tc_to_txq[i];
 			int q_idx = cl - netdev_get_num_tc(dev);
 
 			if (q_idx > tc.offset &&
-			    q_idx <= tc.offset + tc.count) {
+				q_idx <= tc.offset + tc.count)
+			{
 				tcm->tcm_parent =
 					TC_H_MAKE(TC_H_MAJ(sch->handle),
-						  TC_H_MIN(i + 1));
+							  TC_H_MIN(i + 1));
 				break;
 			}
 		}
+
 		tcm->tcm_info = dev_queue->qdisc_sleeping->handle;
 	}
+
 	tcm->tcm_handle |= TC_H_MIN(cl);
 	return 0;
 }
 
 static int mqprio_dump_class_stats(struct Qdisc *sch, unsigned long cl,
-				   struct gnet_dump *d)
-	__releases(d->lock)
-	__acquires(d->lock)
+								   struct gnet_dump *d)
+__releases(d->lock)
+__acquires(d->lock)
 {
 	struct net_device *dev = qdisc_dev(sch);
 
-	if (cl <= netdev_get_num_tc(dev)) {
+	if (cl <= netdev_get_num_tc(dev))
+	{
 		int i;
 		__u32 qlen = 0;
 		struct Qdisc *qdisc;
@@ -343,9 +429,12 @@ static int mqprio_dump_class_stats(struct Qdisc *sch, unsigned long cl,
 		 * also acquired below.
 		 */
 		if (d->lock)
+		{
 			spin_unlock_bh(d->lock);
+		}
 
-		for (i = tc.offset; i < tc.offset + tc.count; i++) {
+		for (i = tc.offset; i < tc.offset + tc.count; i++)
+		{
 			struct netdev_queue *q = netdev_get_tx_queue(dev, i);
 
 			qdisc = rtnl_dereference(q->qdisc);
@@ -359,22 +448,34 @@ static int mqprio_dump_class_stats(struct Qdisc *sch, unsigned long cl,
 			qstats.overlimits += qdisc->qstats.overlimits;
 			spin_unlock_bh(qdisc_lock(qdisc));
 		}
+
 		/* Reclaim root sleeping lock before completing stats */
 		if (d->lock)
+		{
 			spin_lock_bh(d->lock);
+		}
+
 		if (gnet_stats_copy_basic(NULL, d, NULL, &bstats) < 0 ||
-		    gnet_stats_copy_queue(d, NULL, &qstats, qlen) < 0)
+			gnet_stats_copy_queue(d, NULL, &qstats, qlen) < 0)
+		{
 			return -1;
-	} else {
+		}
+	}
+	else
+	{
 		struct netdev_queue *dev_queue = mqprio_queue_get(sch, cl);
 
 		sch = dev_queue->qdisc_sleeping;
+
 		if (gnet_stats_copy_basic(qdisc_root_sleeping_running(sch),
-					  d, NULL, &sch->bstats) < 0 ||
-		    gnet_stats_copy_queue(d, NULL,
-					  &sch->qstats, sch->q.qlen) < 0)
+								  d, NULL, &sch->bstats) < 0 ||
+			gnet_stats_copy_queue(d, NULL,
+								  &sch->qstats, sch->q.qlen) < 0)
+		{
 			return -1;
+		}
 	}
+
 	return 0;
 }
 
@@ -384,22 +485,29 @@ static void mqprio_walk(struct Qdisc *sch, struct qdisc_walker *arg)
 	unsigned long ntx;
 
 	if (arg->stop)
+	{
 		return;
+	}
 
 	/* Walk hierarchy with a virtual class per tc */
 	arg->count = arg->skip;
+
 	for (ntx = arg->skip;
-	     ntx < dev->num_tx_queues + netdev_get_num_tc(dev);
-	     ntx++) {
-		if (arg->fn(sch, ntx + 1, arg) < 0) {
+		 ntx < dev->num_tx_queues + netdev_get_num_tc(dev);
+		 ntx++)
+	{
+		if (arg->fn(sch, ntx + 1, arg) < 0)
+		{
 			arg->stop = 1;
 			break;
 		}
+
 		arg->count++;
 	}
 }
 
-static const struct Qdisc_class_ops mqprio_class_ops = {
+static const struct Qdisc_class_ops mqprio_class_ops =
+{
 	.graft		= mqprio_graft,
 	.leaf		= mqprio_leaf,
 	.get		= mqprio_get,
@@ -409,7 +517,8 @@ static const struct Qdisc_class_ops mqprio_class_ops = {
 	.dump_stats	= mqprio_dump_class_stats,
 };
 
-static struct Qdisc_ops mqprio_qdisc_ops __read_mostly = {
+static struct Qdisc_ops mqprio_qdisc_ops __read_mostly =
+{
 	.cl_ops		= &mqprio_class_ops,
 	.id		= "mqprio",
 	.priv_size	= sizeof(struct mqprio_sched),

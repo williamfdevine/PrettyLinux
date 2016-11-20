@@ -80,15 +80,17 @@ struct ishtp_cl;
 /*
  * ISHTP BUS Interface Section
  */
-struct ishtp_msg_hdr {
-	uint32_t fw_addr:8;
-	uint32_t host_addr:8;
-	uint32_t length:9;
-	uint32_t reserved:6;
-	uint32_t msg_complete:1;
+struct ishtp_msg_hdr
+{
+	uint32_t fw_addr: 8;
+	uint32_t host_addr: 8;
+	uint32_t length: 9;
+	uint32_t reserved: 6;
+	uint32_t msg_complete: 1;
 } __packed;
 
-struct ishtp_bus_message {
+struct ishtp_bus_message
+{
 	uint8_t hbm_cmd;
 	uint8_t data[0];
 } __packed;
@@ -102,53 +104,62 @@ struct ishtp_bus_message {
  * @host_addr - address of the client in the driver
  * @data
  */
-struct ishtp_hbm_cl_cmd {
+struct ishtp_hbm_cl_cmd
+{
 	uint8_t hbm_cmd;
 	uint8_t fw_addr;
 	uint8_t host_addr;
 	uint8_t data;
 };
 
-struct hbm_version {
+struct hbm_version
+{
 	uint8_t minor_version;
 	uint8_t major_version;
 } __packed;
 
-struct hbm_host_version_request {
+struct hbm_host_version_request
+{
 	uint8_t hbm_cmd;
 	uint8_t reserved;
 	struct hbm_version host_version;
 } __packed;
 
-struct hbm_host_version_response {
+struct hbm_host_version_response
+{
 	uint8_t hbm_cmd;
 	uint8_t host_version_supported;
 	struct hbm_version fw_max_version;
 } __packed;
 
-struct hbm_host_stop_request {
+struct hbm_host_stop_request
+{
 	uint8_t hbm_cmd;
 	uint8_t reason;
 	uint8_t reserved[2];
 } __packed;
 
-struct hbm_host_stop_response {
+struct hbm_host_stop_response
+{
 	uint8_t hbm_cmd;
 	uint8_t reserved[3];
 } __packed;
 
-struct hbm_host_enum_request {
+struct hbm_host_enum_request
+{
 	uint8_t hbm_cmd;
 	uint8_t reserved[3];
 } __packed;
 
-struct hbm_host_enum_response {
+struct hbm_host_enum_response
+{
 	uint8_t hbm_cmd;
 	uint8_t reserved[3];
 	uint8_t valid_addresses[32];
 } __packed;
 
-struct ishtp_client_properties {
+struct ishtp_client_properties
+{
 	uuid_le protocol_name;
 	uint8_t protocol_version;
 	uint8_t max_number_of_connections;
@@ -162,13 +173,15 @@ struct ishtp_client_properties {
 	uint8_t reserved6;
 } __packed;
 
-struct hbm_props_request {
+struct hbm_props_request
+{
 	uint8_t hbm_cmd;
 	uint8_t address;
 	uint8_t reserved[2];
 } __packed;
 
-struct hbm_props_response {
+struct hbm_props_response
+{
 	uint8_t hbm_cmd;
 	uint8_t address;
 	uint8_t status;
@@ -184,7 +197,8 @@ struct hbm_props_response {
  * @host_addr - address of the client in the driver
  * @reserved
  */
-struct hbm_client_connect_request {
+struct hbm_client_connect_request
+{
 	uint8_t hbm_cmd;
 	uint8_t fw_addr;
 	uint8_t host_addr;
@@ -199,7 +213,8 @@ struct hbm_client_connect_request {
  * @host_addr - address of the client in the driver
  * @status - status of the request
  */
-struct hbm_client_connect_response {
+struct hbm_client_connect_response
+{
 	uint8_t hbm_cmd;
 	uint8_t fw_addr;
 	uint8_t host_addr;
@@ -209,14 +224,16 @@ struct hbm_client_connect_response {
 
 #define ISHTP_FC_MESSAGE_RESERVED_LENGTH		5
 
-struct hbm_flow_control {
+struct hbm_flow_control
+{
 	uint8_t hbm_cmd;
 	uint8_t fw_addr;
 	uint8_t host_addr;
 	uint8_t reserved[ISHTP_FC_MESSAGE_RESERVED_LENGTH];
 } __packed;
 
-struct dma_alloc_notify {
+struct dma_alloc_notify
+{
 	uint8_t hbm;
 	uint8_t status;
 	uint8_t reserved[2];
@@ -225,7 +242,8 @@ struct dma_alloc_notify {
 	/* [...] May come more size/address pairs */
 } __packed;
 
-struct dma_xfer_hbm {
+struct dma_xfer_hbm
+{
 	uint8_t hbm;
 	uint8_t fw_client_id;
 	uint8_t host_client_id;
@@ -245,27 +263,32 @@ struct dma_xfer_hbm {
 /*indicates suspend and resume states*/
 #define SUSPEND_STATE_BIT			(1<<1)
 
-struct ish_system_states_header {
+struct ish_system_states_header
+{
 	uint32_t cmd;
 	uint32_t cmd_status;	/*responses will have this set*/
 } __packed;
 
-struct ish_system_states_subscribe {
+struct ish_system_states_subscribe
+{
 	struct ish_system_states_header hdr;
 	uint32_t states;
 } __packed;
 
-struct ish_system_states_status {
+struct ish_system_states_status
+{
 	struct ish_system_states_header hdr;
 	uint32_t supported_states;
 	uint32_t states_status;
 } __packed;
 
-struct ish_system_states_query_subscribers {
+struct ish_system_states_query_subscribers
+{
 	struct ish_system_states_header hdr;
 } __packed;
 
-struct ish_system_states_state_change_req {
+struct ish_system_states_state_change_req
+{
 	struct ish_system_states_header hdr;
 	uint32_t requested_states;
 	uint32_t states_status;
@@ -279,7 +302,8 @@ struct ish_system_states_state_change_req {
  * @ISHTP_HBM_ENUM_CLIENTS : enumeration request was sent
  * @ISHTP_HBM_CLIENT_PROPERTIES : acquiring clients properties
  */
-enum ishtp_hbm_state {
+enum ishtp_hbm_state
+{
 	ISHTP_HBM_IDLE = 0,
 	ISHTP_HBM_START,
 	ISHTP_HBM_STARTED,
@@ -301,16 +325,16 @@ static inline void ishtp_hbm_hdr(struct ishtp_msg_hdr *hdr, size_t length)
 int ishtp_hbm_start_req(struct ishtp_device *dev);
 int ishtp_hbm_start_wait(struct ishtp_device *dev);
 int ishtp_hbm_cl_flow_control_req(struct ishtp_device *dev,
-				  struct ishtp_cl *cl);
+								  struct ishtp_cl *cl);
 int ishtp_hbm_cl_disconnect_req(struct ishtp_device *dev, struct ishtp_cl *cl);
 int ishtp_hbm_cl_connect_req(struct ishtp_device *dev, struct ishtp_cl *cl);
 void ishtp_hbm_enum_clients_req(struct ishtp_device *dev);
 void bh_hbm_work_fn(struct work_struct *work);
 void recv_hbm(struct ishtp_device *dev, struct ishtp_msg_hdr *ishtp_hdr);
 void recv_fixed_cl_msg(struct ishtp_device *dev,
-	struct ishtp_msg_hdr *ishtp_hdr);
+					   struct ishtp_msg_hdr *ishtp_hdr);
 void ishtp_hbm_dispatch(struct ishtp_device *dev,
-	struct ishtp_bus_message *hdr);
+						struct ishtp_bus_message *hdr);
 
 void ishtp_query_subscribers(struct ishtp_device *dev);
 

@@ -129,11 +129,11 @@
 /* TX descriptor initialization */
 __le32 *rt2800mmio_get_txwi(struct queue_entry *entry);
 void rt2800mmio_write_tx_desc(struct queue_entry *entry,
-			      struct txentry_desc *txdesc);
+							  struct txentry_desc *txdesc);
 
 /* RX control handlers */
 void rt2800mmio_fill_rxdone(struct queue_entry *entry,
-			    struct rxdone_entry_desc *rxdesc);
+							struct rxdone_entry_desc *rxdesc);
 
 /* Interrupt functions */
 void rt2800mmio_txstatus_tasklet(unsigned long data);
@@ -143,7 +143,7 @@ void rt2800mmio_rxdone_tasklet(unsigned long data);
 void rt2800mmio_autowake_tasklet(unsigned long data);
 irqreturn_t rt2800mmio_interrupt(int irq, void *dev_instance);
 void rt2800mmio_toggle_irq(struct rt2x00_dev *rt2x00dev,
-			   enum dev_state state);
+						   enum dev_state state);
 
 /* Queue handlers */
 void rt2800mmio_start_queue(struct data_queue *queue);

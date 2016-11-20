@@ -69,7 +69,7 @@
 #define to_meson_clk_mpll(_hw) container_of(_hw, struct meson_clk_mpll, hw)
 
 static unsigned long mpll_recalc_rate(struct clk_hw *hw,
-		unsigned long parent_rate)
+									  unsigned long parent_rate)
 {
 	struct meson_clk_mpll *mpll = to_meson_clk_mpll(hw);
 	struct parm *p;
@@ -89,6 +89,7 @@ static unsigned long mpll_recalc_rate(struct clk_hw *hw,
 	return rate;
 }
 
-const struct clk_ops meson_clk_mpll_ro_ops = {
+const struct clk_ops meson_clk_mpll_ro_ops =
+{
 	.recalc_rate = mpll_recalc_rate,
 };

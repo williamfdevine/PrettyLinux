@@ -43,7 +43,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-enum vgt_event_type {
+enum vgt_event_type
+{
 	VS_DEALLOC = 0,
 	PS_DEALLOC = 1,
 	VS_DONE_TS = 2,
@@ -67,7 +68,8 @@ enum vgt_event_type {
 	FACENESS_FLUSH = 28,
 };
 
-enum pc_di_primtype {
+enum pc_di_primtype
+{
 	DI_PT_NONE = 0,
 	DI_PT_POINTLIST_PSIZE = 1,
 	DI_PT_LINELIST = 2,
@@ -85,14 +87,16 @@ enum pc_di_primtype {
 	DI_PT_PATCHES = 34,
 };
 
-enum pc_di_src_sel {
+enum pc_di_src_sel
+{
 	DI_SRC_SEL_DMA = 0,
 	DI_SRC_SEL_IMMEDIATE = 1,
 	DI_SRC_SEL_AUTO_INDEX = 2,
 	DI_SRC_SEL_RESERVED = 3,
 };
 
-enum pc_di_index_size {
+enum pc_di_index_size
+{
 	INDEX_SIZE_IGN = 0,
 	INDEX_SIZE_16_BIT = 0,
 	INDEX_SIZE_32_BIT = 1,
@@ -100,19 +104,22 @@ enum pc_di_index_size {
 	INDEX_SIZE_INVALID = 0,
 };
 
-enum pc_di_vis_cull_mode {
+enum pc_di_vis_cull_mode
+{
 	IGNORE_VISIBILITY = 0,
 	USE_VISIBILITY = 1,
 };
 
-enum adreno_pm4_packet_type {
+enum adreno_pm4_packet_type
+{
 	CP_TYPE0_PKT = 0,
 	CP_TYPE1_PKT = 0x40000000,
 	CP_TYPE2_PKT = 0x80000000,
 	CP_TYPE3_PKT = 0xc0000000,
 };
 
-enum adreno_pm4_type3_packets {
+enum adreno_pm4_type3_packets
+{
 	CP_ME_INIT = 72,
 	CP_NOP = 16,
 	CP_INDIRECT_BUFFER = 63,
@@ -188,7 +195,8 @@ enum adreno_pm4_type3_packets {
 	IN_INCR_UPDT_INSTR = 87,
 };
 
-enum adreno_state_block {
+enum adreno_state_block
+{
 	SB_VERT_TEX = 0,
 	SB_VERT_MIPADDR = 1,
 	SB_FRAG_TEX = 2,
@@ -198,12 +206,14 @@ enum adreno_state_block {
 	SB_FRAG_SHADER = 6,
 };
 
-enum adreno_state_type {
+enum adreno_state_type
+{
 	ST_SHADER = 0,
 	ST_CONSTANTS = 1,
 };
 
-enum adreno_state_src {
+enum adreno_state_src
+{
 	SS_DIRECT = 0,
 	SS_INVALID_ALL_IC = 2,
 	SS_INVALID_PART_IC = 3,
@@ -212,7 +222,8 @@ enum adreno_state_src {
 	SS_INDIRECT_STM = 6,
 };
 
-enum a4xx_index_size {
+enum a4xx_index_size
+{
 	INDEX4_SIZE_8_BIT = 0,
 	INDEX4_SIZE_16_BIT = 1,
 	INDEX4_SIZE_32_BIT = 2,

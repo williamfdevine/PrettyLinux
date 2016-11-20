@@ -43,11 +43,12 @@
 
 #define get_rot_context(dev)	platform_get_drvdata(to_platform_device(dev))
 #define get_ctx_from_ippdrv(ippdrv)	container_of(ippdrv,\
-					struct rot_context, ippdrv);
+		struct rot_context, ippdrv);
 #define rot_read(offset)		readl(rot->regs + (offset))
 #define rot_write(cfg, offset)	writel(cfg, rot->regs + (offset))
 
-enum rot_irq_status {
+enum rot_irq_status
+{
 	ROT_IRQ_STATUS_COMPLETE	= 8,
 	ROT_IRQ_STATUS_ILLEGAL	= 9,
 };
@@ -61,7 +62,8 @@ enum rot_irq_status {
  * @max_h: maximum height.
  * @align: align size.
  */
-struct rot_limit {
+struct rot_limit
+{
 	u32	min_w;
 	u32	min_h;
 	u32	max_w;
@@ -75,7 +77,8 @@ struct rot_limit {
  * @ycbcr420_2p: case of YUV.
  * @rgb888: case of RGB.
  */
-struct rot_limit_table {
+struct rot_limit_table
+{
 	struct rot_limit	ycbcr420_2p;
 	struct rot_limit	rgb888;
 };
@@ -91,7 +94,8 @@ struct rot_limit_table {
  * @cur_buf_id: current operation buffer id.
  * @suspended: suspended state.
  */
-struct rot_context {
+struct rot_context
+{
 	struct exynos_drm_ippdrv	ippdrv;
 	struct resource	*regs_res;
 	void __iomem	*regs;
@@ -107,9 +111,13 @@ static void rotator_reg_set_irq(struct rot_context *rot, bool enable)
 	u32 val = rot_read(ROT_CONFIG);
 
 	if (enable == true)
+	{
 		val |= ROT_CONFIG_IRQ;
+	}
 	else
+	{
 		val &= ~ROT_CONFIG_IRQ;
+	}
 
 	rot_write(val, ROT_CONFIG);
 }
@@ -130,7 +138,9 @@ static enum rot_irq_status rotator_reg_get_irq_status(struct rot_context *rot)
 	val = ROT_STATUS_IRQ(val);
 
 	if (val == ROT_STATUS_IRQ_VAL_COMPLETE)
+	{
 		return ROT_IRQ_STATUS_COMPLETE;
+	}
 
 	return ROT_IRQ_STATUS_ILLEGAL;
 }
@@ -152,12 +162,15 @@ static irqreturn_t rotator_irq_handler(int irq, void *arg)
 	val |= ROT_STATUS_IRQ_PENDING((u32)irq_status);
 	rot_write(val, ROT_STATUS);
 
-	if (irq_status == ROT_IRQ_STATUS_COMPLETE) {
+	if (irq_status == ROT_IRQ_STATUS_COMPLETE)
+	{
 		event_work->ippdrv = ippdrv;
 		event_work->buf_id[EXYNOS_DRM_OPS_DST] =
 			rot->cur_buf_id[EXYNOS_DRM_OPS_DST];
 		queue_work(ippdrv->event_workq, &event_work->work);
-	} else {
+	}
+	else
+	{
 		DRM_ERROR("the SFR is set illegally\n");
 	}
 
@@ -165,7 +178,7 @@ static irqreturn_t rotator_irq_handler(int irq, void *arg)
 }
 
 static void rotator_align_size(struct rot_context *rot, u32 fmt, u32 *hsize,
-		u32 *vsize)
+							   u32 *vsize)
 {
 	struct rot_limit_table *limit_tbl = rot->limit_tbl;
 	struct rot_limit *limit;
@@ -173,30 +186,48 @@ static void rotator_align_size(struct rot_context *rot, u32 fmt, u32 *hsize,
 
 	/* Get size limit */
 	if (fmt == ROT_CONTROL_FMT_RGB888)
+	{
 		limit = &limit_tbl->rgb888;
+	}
 	else
+	{
 		limit = &limit_tbl->ycbcr420_2p;
+	}
 
 	/* Get mask for rounding to nearest aligned val */
 	mask = ~((1 << limit->align) - 1);
 
 	/* Set aligned width */
 	val = ROT_ALIGN(*hsize, limit->align, mask);
+
 	if (val < limit->min_w)
+	{
 		*hsize = ROT_MIN(limit->min_w, mask);
+	}
 	else if (val > limit->max_w)
+	{
 		*hsize = ROT_MAX(limit->max_w, mask);
+	}
 	else
+	{
 		*hsize = val;
+	}
 
 	/* Set aligned height */
 	val = ROT_ALIGN(*vsize, limit->align, mask);
+
 	if (val < limit->min_h)
+	{
 		*vsize = ROT_MIN(limit->min_h, mask);
+	}
 	else if (val > limit->max_h)
+	{
 		*vsize = ROT_MAX(limit->max_h, mask);
+	}
 	else
+	{
 		*vsize = val;
+	}
 }
 
 static int rotator_src_set_fmt(struct device *dev, u32 fmt)
@@ -207,16 +238,19 @@ static int rotator_src_set_fmt(struct device *dev, u32 fmt)
 	val = rot_read(ROT_CONTROL);
 	val &= ~ROT_CONTROL_FMT_MASK;
 
-	switch (fmt) {
-	case DRM_FORMAT_NV12:
-		val |= ROT_CONTROL_FMT_YCBCR420_2P;
-		break;
-	case DRM_FORMAT_XRGB8888:
-		val |= ROT_CONTROL_FMT_RGB888;
-		break;
-	default:
-		DRM_ERROR("invalid image format\n");
-		return -EINVAL;
+	switch (fmt)
+	{
+		case DRM_FORMAT_NV12:
+			val |= ROT_CONTROL_FMT_YCBCR420_2P;
+			break;
+
+		case DRM_FORMAT_XRGB8888:
+			val |= ROT_CONTROL_FMT_RGB888;
+			break;
+
+		default:
+			DRM_ERROR("invalid image format\n");
+			return -EINVAL;
 	}
 
 	rot_write(val, ROT_CONTROL);
@@ -227,15 +261,17 @@ static int rotator_src_set_fmt(struct device *dev, u32 fmt)
 static inline bool rotator_check_reg_fmt(u32 fmt)
 {
 	if ((fmt == ROT_CONTROL_FMT_YCBCR420_2P) ||
-	    (fmt == ROT_CONTROL_FMT_RGB888))
+		(fmt == ROT_CONTROL_FMT_RGB888))
+	{
 		return true;
+	}
 
 	return false;
 }
 
 static int rotator_src_set_size(struct device *dev, int swap,
-		struct drm_exynos_pos *pos,
-		struct drm_exynos_sz *sz)
+								struct drm_exynos_pos *pos,
+								struct drm_exynos_sz *sz)
 {
 	struct rot_context *rot = dev_get_drvdata(dev);
 	u32 fmt, hsize, vsize;
@@ -243,7 +279,9 @@ static int rotator_src_set_size(struct device *dev, int swap,
 
 	/* Get format */
 	fmt = rotator_reg_get_fmt(rot);
-	if (!rotator_check_reg_fmt(fmt)) {
+
+	if (!rotator_check_reg_fmt(fmt))
+	{
 		DRM_ERROR("invalid format.\n");
 		return -EINVAL;
 	}
@@ -267,8 +305,8 @@ static int rotator_src_set_size(struct device *dev, int swap,
 }
 
 static int rotator_src_set_addr(struct device *dev,
-		struct drm_exynos_ipp_buf_info *buf_info,
-		u32 buf_id, enum drm_exynos_ipp_buf_type buf_type)
+								struct drm_exynos_ipp_buf_info *buf_info,
+								u32 buf_id, enum drm_exynos_ipp_buf_type buf_type)
 {
 	struct rot_context *rot = dev_get_drvdata(dev);
 	dma_addr_t addr[EXYNOS_DRM_PLANAR_MAX];
@@ -278,50 +316,56 @@ static int rotator_src_set_addr(struct device *dev,
 	/* Set current buf_id */
 	rot->cur_buf_id[EXYNOS_DRM_OPS_SRC] = buf_id;
 
-	switch (buf_type) {
-	case IPP_BUF_ENQUEUE:
-		/* Set address configuration */
-		for_each_ipp_planar(i)
+	switch (buf_type)
+	{
+		case IPP_BUF_ENQUEUE:
+			/* Set address configuration */
+			for_each_ipp_planar(i)
 			addr[i] = buf_info->base[i];
 
-		/* Get format */
-		fmt = rotator_reg_get_fmt(rot);
-		if (!rotator_check_reg_fmt(fmt)) {
-			DRM_ERROR("invalid format.\n");
-			return -EINVAL;
-		}
+			/* Get format */
+			fmt = rotator_reg_get_fmt(rot);
 
-		/* Re-set cb planar for NV12 format */
-		if ((fmt == ROT_CONTROL_FMT_YCBCR420_2P) &&
-		    !addr[EXYNOS_DRM_PLANAR_CB]) {
+			if (!rotator_check_reg_fmt(fmt))
+			{
+				DRM_ERROR("invalid format.\n");
+				return -EINVAL;
+			}
 
-			val = rot_read(ROT_SRC_BUF_SIZE);
-			hsize = ROT_GET_BUF_SIZE_W(val);
-			vsize = ROT_GET_BUF_SIZE_H(val);
+			/* Re-set cb planar for NV12 format */
+			if ((fmt == ROT_CONTROL_FMT_YCBCR420_2P) &&
+				!addr[EXYNOS_DRM_PLANAR_CB])
+			{
 
-			/* Set cb planar */
-			addr[EXYNOS_DRM_PLANAR_CB] =
-				addr[EXYNOS_DRM_PLANAR_Y] + hsize * vsize;
-		}
+				val = rot_read(ROT_SRC_BUF_SIZE);
+				hsize = ROT_GET_BUF_SIZE_W(val);
+				vsize = ROT_GET_BUF_SIZE_H(val);
 
-		for_each_ipp_planar(i)
+				/* Set cb planar */
+				addr[EXYNOS_DRM_PLANAR_CB] =
+					addr[EXYNOS_DRM_PLANAR_Y] + hsize * vsize;
+			}
+
+			for_each_ipp_planar(i)
 			rot_write(addr[i], ROT_SRC_BUF_ADDR(i));
-		break;
-	case IPP_BUF_DEQUEUE:
-		for_each_ipp_planar(i)
+			break;
+
+		case IPP_BUF_DEQUEUE:
+			for_each_ipp_planar(i)
 			rot_write(0x0, ROT_SRC_BUF_ADDR(i));
-		break;
-	default:
-		/* Nothing to do */
-		break;
+			break;
+
+		default:
+			/* Nothing to do */
+			break;
 	}
 
 	return 0;
 }
 
 static int rotator_dst_set_transf(struct device *dev,
-		enum drm_exynos_degree degree,
-		enum drm_exynos_flip flip, bool *swap)
+								  enum drm_exynos_degree degree,
+								  enum drm_exynos_flip flip, bool *swap)
 {
 	struct rot_context *rot = dev_get_drvdata(dev);
 	u32 val;
@@ -330,57 +374,70 @@ static int rotator_dst_set_transf(struct device *dev,
 	val = rot_read(ROT_CONTROL);
 	val &= ~ROT_CONTROL_FLIP_MASK;
 
-	switch (flip) {
-	case EXYNOS_DRM_FLIP_VERTICAL:
-		val |= ROT_CONTROL_FLIP_VERTICAL;
-		break;
-	case EXYNOS_DRM_FLIP_HORIZONTAL:
-		val |= ROT_CONTROL_FLIP_HORIZONTAL;
-		break;
-	default:
-		/* Flip None */
-		break;
+	switch (flip)
+	{
+		case EXYNOS_DRM_FLIP_VERTICAL:
+			val |= ROT_CONTROL_FLIP_VERTICAL;
+			break;
+
+		case EXYNOS_DRM_FLIP_HORIZONTAL:
+			val |= ROT_CONTROL_FLIP_HORIZONTAL;
+			break;
+
+		default:
+			/* Flip None */
+			break;
 	}
 
 	val &= ~ROT_CONTROL_ROT_MASK;
 
-	switch (degree) {
-	case EXYNOS_DRM_DEGREE_90:
-		val |= ROT_CONTROL_ROT_90;
-		break;
-	case EXYNOS_DRM_DEGREE_180:
-		val |= ROT_CONTROL_ROT_180;
-		break;
-	case EXYNOS_DRM_DEGREE_270:
-		val |= ROT_CONTROL_ROT_270;
-		break;
-	default:
-		/* Rotation 0 Degree */
-		break;
+	switch (degree)
+	{
+		case EXYNOS_DRM_DEGREE_90:
+			val |= ROT_CONTROL_ROT_90;
+			break;
+
+		case EXYNOS_DRM_DEGREE_180:
+			val |= ROT_CONTROL_ROT_180;
+			break;
+
+		case EXYNOS_DRM_DEGREE_270:
+			val |= ROT_CONTROL_ROT_270;
+			break;
+
+		default:
+			/* Rotation 0 Degree */
+			break;
 	}
 
 	rot_write(val, ROT_CONTROL);
 
 	/* Check degree for setting buffer size swap */
 	if ((degree == EXYNOS_DRM_DEGREE_90) ||
-	    (degree == EXYNOS_DRM_DEGREE_270))
+		(degree == EXYNOS_DRM_DEGREE_270))
+	{
 		*swap = true;
+	}
 	else
+	{
 		*swap = false;
+	}
 
 	return 0;
 }
 
 static int rotator_dst_set_size(struct device *dev, int swap,
-		struct drm_exynos_pos *pos,
-		struct drm_exynos_sz *sz)
+								struct drm_exynos_pos *pos,
+								struct drm_exynos_sz *sz)
 {
 	struct rot_context *rot = dev_get_drvdata(dev);
 	u32 val, fmt, hsize, vsize;
 
 	/* Get format */
 	fmt = rotator_reg_get_fmt(rot);
-	if (!rotator_check_reg_fmt(fmt)) {
+
+	if (!rotator_check_reg_fmt(fmt))
+	{
 		DRM_ERROR("invalid format.\n");
 		return -EINVAL;
 	}
@@ -402,8 +459,8 @@ static int rotator_dst_set_size(struct device *dev, int swap,
 }
 
 static int rotator_dst_set_addr(struct device *dev,
-		struct drm_exynos_ipp_buf_info *buf_info,
-		u32 buf_id, enum drm_exynos_ipp_buf_type buf_type)
+								struct drm_exynos_ipp_buf_info *buf_info,
+								u32 buf_id, enum drm_exynos_ipp_buf_type buf_type)
 {
 	struct rot_context *rot = dev_get_drvdata(dev);
 	dma_addr_t addr[EXYNOS_DRM_PLANAR_MAX];
@@ -413,55 +470,63 @@ static int rotator_dst_set_addr(struct device *dev,
 	/* Set current buf_id */
 	rot->cur_buf_id[EXYNOS_DRM_OPS_DST] = buf_id;
 
-	switch (buf_type) {
-	case IPP_BUF_ENQUEUE:
-		/* Set address configuration */
-		for_each_ipp_planar(i)
+	switch (buf_type)
+	{
+		case IPP_BUF_ENQUEUE:
+			/* Set address configuration */
+			for_each_ipp_planar(i)
 			addr[i] = buf_info->base[i];
 
-		/* Get format */
-		fmt = rotator_reg_get_fmt(rot);
-		if (!rotator_check_reg_fmt(fmt)) {
-			DRM_ERROR("invalid format.\n");
-			return -EINVAL;
-		}
+			/* Get format */
+			fmt = rotator_reg_get_fmt(rot);
 
-		/* Re-set cb planar for NV12 format */
-		if ((fmt == ROT_CONTROL_FMT_YCBCR420_2P) &&
-		    !addr[EXYNOS_DRM_PLANAR_CB]) {
-			/* Get buf size */
-			val = rot_read(ROT_DST_BUF_SIZE);
+			if (!rotator_check_reg_fmt(fmt))
+			{
+				DRM_ERROR("invalid format.\n");
+				return -EINVAL;
+			}
 
-			hsize = ROT_GET_BUF_SIZE_W(val);
-			vsize = ROT_GET_BUF_SIZE_H(val);
+			/* Re-set cb planar for NV12 format */
+			if ((fmt == ROT_CONTROL_FMT_YCBCR420_2P) &&
+				!addr[EXYNOS_DRM_PLANAR_CB])
+			{
+				/* Get buf size */
+				val = rot_read(ROT_DST_BUF_SIZE);
 
-			/* Set cb planar */
-			addr[EXYNOS_DRM_PLANAR_CB] =
-				addr[EXYNOS_DRM_PLANAR_Y] + hsize * vsize;
-		}
+				hsize = ROT_GET_BUF_SIZE_W(val);
+				vsize = ROT_GET_BUF_SIZE_H(val);
 
-		for_each_ipp_planar(i)
+				/* Set cb planar */
+				addr[EXYNOS_DRM_PLANAR_CB] =
+					addr[EXYNOS_DRM_PLANAR_Y] + hsize * vsize;
+			}
+
+			for_each_ipp_planar(i)
 			rot_write(addr[i], ROT_DST_BUF_ADDR(i));
-		break;
-	case IPP_BUF_DEQUEUE:
-		for_each_ipp_planar(i)
+			break;
+
+		case IPP_BUF_DEQUEUE:
+			for_each_ipp_planar(i)
 			rot_write(0x0, ROT_DST_BUF_ADDR(i));
-		break;
-	default:
-		/* Nothing to do */
-		break;
+			break;
+
+		default:
+			/* Nothing to do */
+			break;
 	}
 
 	return 0;
 }
 
-static struct exynos_drm_ipp_ops rot_src_ops = {
+static struct exynos_drm_ipp_ops rot_src_ops =
+{
 	.set_fmt	=	rotator_src_set_fmt,
 	.set_size	=	rotator_src_set_size,
 	.set_addr	=	rotator_src_set_addr,
 };
 
-static struct exynos_drm_ipp_ops rot_dst_ops = {
+static struct exynos_drm_ipp_ops rot_dst_ops =
+{
 	.set_transf	=	rotator_dst_set_transf,
 	.set_size	=	rotator_dst_set_size,
 	.set_addr	=	rotator_dst_set_addr,
@@ -473,11 +538,11 @@ static int rotator_init_prop_list(struct exynos_drm_ippdrv *ippdrv)
 
 	prop_list->version = 1;
 	prop_list->flip = (1 << EXYNOS_DRM_FLIP_VERTICAL) |
-				(1 << EXYNOS_DRM_FLIP_HORIZONTAL);
+					  (1 << EXYNOS_DRM_FLIP_HORIZONTAL);
 	prop_list->degree = (1 << EXYNOS_DRM_DEGREE_0) |
-				(1 << EXYNOS_DRM_DEGREE_90) |
-				(1 << EXYNOS_DRM_DEGREE_180) |
-				(1 << EXYNOS_DRM_DEGREE_270);
+						(1 << EXYNOS_DRM_DEGREE_90) |
+						(1 << EXYNOS_DRM_DEGREE_180) |
+						(1 << EXYNOS_DRM_DEGREE_270);
 	prop_list->csc = 0;
 	prop_list->crop = 0;
 	prop_list->scale = 0;
@@ -487,27 +552,31 @@ static int rotator_init_prop_list(struct exynos_drm_ippdrv *ippdrv)
 
 static inline bool rotator_check_drm_fmt(u32 fmt)
 {
-	switch (fmt) {
-	case DRM_FORMAT_XRGB8888:
-	case DRM_FORMAT_NV12:
-		return true;
-	default:
-		DRM_DEBUG_KMS("not support format\n");
-		return false;
+	switch (fmt)
+	{
+		case DRM_FORMAT_XRGB8888:
+		case DRM_FORMAT_NV12:
+			return true;
+
+		default:
+			DRM_DEBUG_KMS("not support format\n");
+			return false;
 	}
 }
 
 static inline bool rotator_check_drm_flip(enum drm_exynos_flip flip)
 {
-	switch (flip) {
-	case EXYNOS_DRM_FLIP_NONE:
-	case EXYNOS_DRM_FLIP_VERTICAL:
-	case EXYNOS_DRM_FLIP_HORIZONTAL:
-	case EXYNOS_DRM_FLIP_BOTH:
-		return true;
-	default:
-		DRM_DEBUG_KMS("invalid flip\n");
-		return false;
+	switch (flip)
+	{
+		case EXYNOS_DRM_FLIP_NONE:
+		case EXYNOS_DRM_FLIP_VERTICAL:
+		case EXYNOS_DRM_FLIP_HORIZONTAL:
+		case EXYNOS_DRM_FLIP_BOTH:
+			return true;
+
+		default:
+			DRM_DEBUG_KMS("invalid flip\n");
+			return false;
 	}
 }
 
@@ -515,9 +584,9 @@ static int rotator_ippdrv_check_property(struct device *dev,
 		struct drm_exynos_ipp_property *property)
 {
 	struct drm_exynos_ipp_config *src_config =
-					&property->config[EXYNOS_DRM_OPS_SRC];
+			&property->config[EXYNOS_DRM_OPS_SRC];
 	struct drm_exynos_ipp_config *dst_config =
-					&property->config[EXYNOS_DRM_OPS_DST];
+			&property->config[EXYNOS_DRM_OPS_DST];
 	struct drm_exynos_pos *src_pos = &src_config->pos;
 	struct drm_exynos_pos *dst_pos = &dst_config->pos;
 	struct drm_exynos_sz *src_sz = &src_config->sz;
@@ -525,71 +594,87 @@ static int rotator_ippdrv_check_property(struct device *dev,
 	bool swap = false;
 
 	/* Check format configuration */
-	if (src_config->fmt != dst_config->fmt) {
+	if (src_config->fmt != dst_config->fmt)
+	{
 		DRM_DEBUG_KMS("not support csc feature\n");
 		return -EINVAL;
 	}
 
-	if (!rotator_check_drm_fmt(dst_config->fmt)) {
+	if (!rotator_check_drm_fmt(dst_config->fmt))
+	{
 		DRM_DEBUG_KMS("invalid format\n");
 		return -EINVAL;
 	}
 
 	/* Check transform configuration */
-	if (src_config->degree != EXYNOS_DRM_DEGREE_0) {
+	if (src_config->degree != EXYNOS_DRM_DEGREE_0)
+	{
 		DRM_DEBUG_KMS("not support source-side rotation\n");
 		return -EINVAL;
 	}
 
-	switch (dst_config->degree) {
-	case EXYNOS_DRM_DEGREE_90:
-	case EXYNOS_DRM_DEGREE_270:
-		swap = true;
-	case EXYNOS_DRM_DEGREE_0:
-	case EXYNOS_DRM_DEGREE_180:
-		/* No problem */
-		break;
-	default:
-		DRM_DEBUG_KMS("invalid degree\n");
-		return -EINVAL;
+	switch (dst_config->degree)
+	{
+		case EXYNOS_DRM_DEGREE_90:
+		case EXYNOS_DRM_DEGREE_270:
+			swap = true;
+
+		case EXYNOS_DRM_DEGREE_0:
+		case EXYNOS_DRM_DEGREE_180:
+			/* No problem */
+			break;
+
+		default:
+			DRM_DEBUG_KMS("invalid degree\n");
+			return -EINVAL;
 	}
 
-	if (src_config->flip != EXYNOS_DRM_FLIP_NONE) {
+	if (src_config->flip != EXYNOS_DRM_FLIP_NONE)
+	{
 		DRM_DEBUG_KMS("not support source-side flip\n");
 		return -EINVAL;
 	}
 
-	if (!rotator_check_drm_flip(dst_config->flip)) {
+	if (!rotator_check_drm_flip(dst_config->flip))
+	{
 		DRM_DEBUG_KMS("invalid flip\n");
 		return -EINVAL;
 	}
 
 	/* Check size configuration */
 	if ((src_pos->x + src_pos->w > src_sz->hsize) ||
-		(src_pos->y + src_pos->h > src_sz->vsize)) {
+		(src_pos->y + src_pos->h > src_sz->vsize))
+	{
 		DRM_DEBUG_KMS("out of source buffer bound\n");
 		return -EINVAL;
 	}
 
-	if (swap) {
+	if (swap)
+	{
 		if ((dst_pos->x + dst_pos->h > dst_sz->vsize) ||
-			(dst_pos->y + dst_pos->w > dst_sz->hsize)) {
+			(dst_pos->y + dst_pos->w > dst_sz->hsize))
+		{
 			DRM_DEBUG_KMS("out of destination buffer bound\n");
 			return -EINVAL;
 		}
 
-		if ((src_pos->w != dst_pos->h) || (src_pos->h != dst_pos->w)) {
+		if ((src_pos->w != dst_pos->h) || (src_pos->h != dst_pos->w))
+		{
 			DRM_DEBUG_KMS("not support scale feature\n");
 			return -EINVAL;
 		}
-	} else {
+	}
+	else
+	{
 		if ((dst_pos->x + dst_pos->w > dst_sz->hsize) ||
-			(dst_pos->y + dst_pos->h > dst_sz->vsize)) {
+			(dst_pos->y + dst_pos->h > dst_sz->vsize))
+		{
 			DRM_DEBUG_KMS("out of destination buffer bound\n");
 			return -EINVAL;
 		}
 
-		if ((src_pos->w != dst_pos->w) || (src_pos->h != dst_pos->h)) {
+		if ((src_pos->w != dst_pos->w) || (src_pos->h != dst_pos->h))
+		{
 			DRM_DEBUG_KMS("not support scale feature\n");
 			return -EINVAL;
 		}
@@ -603,12 +688,14 @@ static int rotator_ippdrv_start(struct device *dev, enum drm_exynos_ipp_cmd cmd)
 	struct rot_context *rot = dev_get_drvdata(dev);
 	u32 val;
 
-	if (rot->suspended) {
+	if (rot->suspended)
+	{
 		DRM_ERROR("suspended state\n");
 		return -EPERM;
 	}
 
-	if (cmd != IPP_CMD_M2M) {
+	if (cmd != IPP_CMD_M2M)
+	{
 		DRM_ERROR("not support cmd: %d\n", cmd);
 		return -EINVAL;
 	}
@@ -624,7 +711,8 @@ static int rotator_ippdrv_start(struct device *dev, enum drm_exynos_ipp_cmd cmd)
 	return 0;
 }
 
-static struct rot_limit_table rot_limit_tbl_4210 = {
+static struct rot_limit_table rot_limit_tbl_4210 =
+{
 	.ycbcr420_2p = {
 		.min_w = 32,
 		.min_h = 32,
@@ -641,7 +729,8 @@ static struct rot_limit_table rot_limit_tbl_4210 = {
 	},
 };
 
-static struct rot_limit_table rot_limit_tbl_4x12 = {
+static struct rot_limit_table rot_limit_tbl_4x12 =
+{
 	.ycbcr420_2p = {
 		.min_w = 32,
 		.min_h = 32,
@@ -658,7 +747,8 @@ static struct rot_limit_table rot_limit_tbl_4x12 = {
 	},
 };
 
-static struct rot_limit_table rot_limit_tbl_5250 = {
+static struct rot_limit_table rot_limit_tbl_5250 =
+{
 	.ycbcr420_2p = {
 		.min_w = 32,
 		.min_h = 32,
@@ -675,7 +765,8 @@ static struct rot_limit_table rot_limit_tbl_5250 = {
 	},
 };
 
-static const struct of_device_id exynos_rotator_match[] = {
+static const struct of_device_id exynos_rotator_match[] =
+{
 	{
 		.compatible = "samsung,exynos4210-rotator",
 		.data = &rot_limit_tbl_4210,
@@ -699,37 +790,50 @@ static int rotator_probe(struct platform_device *pdev)
 	struct exynos_drm_ippdrv *ippdrv;
 	int ret;
 
-	if (!dev->of_node) {
+	if (!dev->of_node)
+	{
 		dev_err(dev, "cannot find of_node.\n");
 		return -ENODEV;
 	}
 
 	rot = devm_kzalloc(dev, sizeof(*rot), GFP_KERNEL);
+
 	if (!rot)
+	{
 		return -ENOMEM;
+	}
 
 	rot->limit_tbl = (struct rot_limit_table *)
-				of_device_get_match_data(dev);
+					 of_device_get_match_data(dev);
 	rot->regs_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rot->regs = devm_ioremap_resource(dev, rot->regs_res);
+
 	if (IS_ERR(rot->regs))
+	{
 		return PTR_ERR(rot->regs);
+	}
 
 	rot->irq = platform_get_irq(pdev, 0);
-	if (rot->irq < 0) {
+
+	if (rot->irq < 0)
+	{
 		dev_err(dev, "failed to get irq\n");
 		return rot->irq;
 	}
 
 	ret = devm_request_threaded_irq(dev, rot->irq, NULL,
-			rotator_irq_handler, IRQF_ONESHOT, "drm_rotator", rot);
-	if (ret < 0) {
+									rotator_irq_handler, IRQF_ONESHOT, "drm_rotator", rot);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to request irq\n");
 		return ret;
 	}
 
 	rot->clock = devm_clk_get(dev, "rotator");
-	if (IS_ERR(rot->clock)) {
+
+	if (IS_ERR(rot->clock))
+	{
 		dev_err(dev, "failed to get clock\n");
 		return PTR_ERR(rot->clock);
 	}
@@ -743,7 +847,9 @@ static int rotator_probe(struct platform_device *pdev)
 	ippdrv->check_property = rotator_ippdrv_check_property;
 	ippdrv->start = rotator_ippdrv_start;
 	ret = rotator_init_prop_list(ippdrv);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to init property list.\n");
 		goto err_ippdrv_register;
 	}
@@ -753,7 +859,9 @@ static int rotator_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, rot);
 
 	ret = exynos_drm_ippdrv_register(ippdrv);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to register drm rotator device\n");
 		goto err_ippdrv_register;
 	}
@@ -783,10 +891,13 @@ static int rotator_remove(struct platform_device *pdev)
 #ifdef CONFIG_PM
 static int rotator_clk_crtl(struct rot_context *rot, bool enable)
 {
-	if (enable) {
+	if (enable)
+	{
 		clk_prepare_enable(rot->clock);
 		rot->suspended = false;
-	} else {
+	}
+	else
+	{
 		clk_disable_unprepare(rot->clock);
 		rot->suspended = true;
 	}
@@ -809,14 +920,16 @@ static int rotator_runtime_resume(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops rotator_pm_ops = {
+static const struct dev_pm_ops rotator_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-				pm_runtime_force_resume)
+	pm_runtime_force_resume)
 	SET_RUNTIME_PM_OPS(rotator_runtime_suspend, rotator_runtime_resume,
-									NULL)
+	NULL)
 };
 
-struct platform_driver rotator_driver = {
+struct platform_driver rotator_driver =
+{
 	.probe		= rotator_probe,
 	.remove		= rotator_remove,
 	.driver		= {

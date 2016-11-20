@@ -25,7 +25,8 @@
 #define UAC2_DEF_CSRATE 64000
 #define UAC2_DEF_CSSIZE 2
 
-struct f_uac2_opts {
+struct f_uac2_opts
+{
 	struct usb_function_instance	func_inst;
 	int				p_chmask;
 	int				p_srate;

@@ -45,7 +45,8 @@
 
 #include <acpi/cppc_acpi.h>
 
-struct cppc_pcc_data {
+struct cppc_pcc_data
+{
 	struct mbox_chan *pcc_channel;
 	void __iomem *pcc_comm_addr;
 	int pcc_subspace_idx;
@@ -78,7 +79,8 @@ struct cppc_pcc_data {
 };
 
 /* Structure to represent the single PCC channel */
-static struct cppc_pcc_data pcc_data = {
+static struct cppc_pcc_data pcc_data =
+{
 	.pcc_subspace_idx = -1,
 	.platform_owns_pcc = true,
 };
@@ -97,20 +99,20 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
 
 /* Check if a CPC regsiter is in PCC */
 #define CPC_IN_PCC(cpc) ((cpc)->type == ACPI_TYPE_BUFFER &&		\
-				(cpc)->cpc_entry.reg.space_id ==	\
-				ACPI_ADR_SPACE_PLATFORM_COMM)
+						 (cpc)->cpc_entry.reg.space_id ==	\
+						 ACPI_ADR_SPACE_PLATFORM_COMM)
 
 /* Evalutes to True if reg is a NULL register descriptor */
 #define IS_NULL_REG(reg) ((reg)->space_id ==  ACPI_ADR_SPACE_SYSTEM_MEMORY && \
-				(reg)->address == 0 &&			\
-				(reg)->bit_width == 0 &&		\
-				(reg)->bit_offset == 0 &&		\
-				(reg)->access_width == 0)
+						  (reg)->address == 0 &&			\
+						  (reg)->bit_width == 0 &&		\
+						  (reg)->bit_offset == 0 &&		\
+						  (reg)->access_width == 0)
 
 /* Evalutes to True if an optional cpc field is supported */
 #define CPC_SUPPORTED(cpc) ((cpc)->type == ACPI_TYPE_INTEGER ?		\
-				!!(cpc)->cpc_entry.int_value :		\
-				!IS_NULL_REG(&(cpc)->cpc_entry.reg))
+							!!(cpc)->cpc_entry.int_value :		\
+							!IS_NULL_REG(&(cpc)->cpc_entry.reg))
 /*
  * Arbitrary Retries in case the remote processor is slow to respond
  * to PCC commands. Keeping it high enough to cover emulators where
@@ -118,22 +120,23 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
  */
 #define NUM_RETRIES 500
 
-struct cppc_attr {
+struct cppc_attr
+{
 	struct attribute attr;
 	ssize_t (*show)(struct kobject *kobj,
-			struct attribute *attr, char *buf);
+					struct attribute *attr, char *buf);
 	ssize_t (*store)(struct kobject *kobj,
-			struct attribute *attr, const char *c, ssize_t count);
+					 struct attribute *attr, const char *c, ssize_t count);
 };
 
 #define define_one_cppc_ro(_name)		\
-static struct cppc_attr _name =			\
-__ATTR(_name, 0444, show_##_name, NULL)
+	static struct cppc_attr _name =			\
+											__ATTR(_name, 0444, show_##_name, NULL)
 
 #define to_cpc_desc(a) container_of(a, struct cpc_desc, kobj)
 
 static ssize_t show_feedback_ctrs(struct kobject *kobj,
-		struct attribute *attr, char *buf)
+								  struct attribute *attr, char *buf)
 {
 	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
 	struct cppc_perf_fb_ctrs fb_ctrs = {0};
@@ -141,12 +144,12 @@ static ssize_t show_feedback_ctrs(struct kobject *kobj,
 	cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
 
 	return scnprintf(buf, PAGE_SIZE, "ref:%llu del:%llu\n",
-			fb_ctrs.reference, fb_ctrs.delivered);
+					 fb_ctrs.reference, fb_ctrs.delivered);
 }
 define_one_cppc_ro(feedback_ctrs);
 
 static ssize_t show_reference_perf(struct kobject *kobj,
-		struct attribute *attr, char *buf)
+								   struct attribute *attr, char *buf)
 {
 	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
 	struct cppc_perf_fb_ctrs fb_ctrs = {0};
@@ -154,12 +157,12 @@ static ssize_t show_reference_perf(struct kobject *kobj,
 	cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
 
 	return scnprintf(buf, PAGE_SIZE, "%llu\n",
-			fb_ctrs.reference_perf);
+					 fb_ctrs.reference_perf);
 }
 define_one_cppc_ro(reference_perf);
 
 static ssize_t show_wraparound_time(struct kobject *kobj,
-				struct attribute *attr, char *buf)
+									struct attribute *attr, char *buf)
 {
 	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
 	struct cppc_perf_fb_ctrs fb_ctrs = {0};
@@ -171,14 +174,16 @@ static ssize_t show_wraparound_time(struct kobject *kobj,
 }
 define_one_cppc_ro(wraparound_time);
 
-static struct attribute *cppc_attrs[] = {
+static struct attribute *cppc_attrs[] =
+{
 	&feedback_ctrs.attr,
 	&reference_perf.attr,
 	&wraparound_time.attr,
 	NULL
 };
 
-static struct kobj_type cppc_ktype = {
+static struct kobj_type cppc_ktype =
+{
 	.sysfs_ops = &kobj_sysfs_ops,
 	.default_attrs = cppc_attrs,
 };
@@ -190,22 +195,32 @@ static int check_pcc_chan(bool chk_err_bit)
 	ktime_t next_deadline = ktime_add(ktime_get(), pcc_data.deadline);
 
 	if (!pcc_data.platform_owns_pcc)
+	{
 		return 0;
+	}
 
 	/* Retry in case the remote processor was too slow to catch up. */
-	while (!ktime_after(ktime_get(), next_deadline)) {
+	while (!ktime_after(ktime_get(), next_deadline))
+	{
 		/*
 		 * Per spec, prior to boot the PCC space wil be initialized by
 		 * platform and should have set the command completion bit when
 		 * PCC can be used by OSPM
 		 */
 		status = readw_relaxed(&generic_comm_base->status);
-		if (status & PCC_CMD_COMPLETE_MASK) {
+
+		if (status & PCC_CMD_COMPLETE_MASK)
+		{
 			ret = 0;
+
 			if (chk_err_bit && (status & PCC_ERROR_MASK))
+			{
 				ret = -EIO;
+			}
+
 			break;
 		}
+
 		/*
 		 * Reducing the bus traffic in case this loop takes longer than
 		 * a few retries.
@@ -214,9 +229,13 @@ static int check_pcc_chan(bool chk_err_bit)
 	}
 
 	if (likely(!ret))
+	{
 		pcc_data.platform_owns_pcc = false;
+	}
 	else
+	{
 		pr_err("PCC check channel failed. Status=%x\n", status);
+	}
 
 	return ret;
 }
@@ -238,30 +257,43 @@ static int send_pcc_cmd(u16 cmd)
 	 * For CMD_WRITE we know for a fact the caller should have checked
 	 * the channel before writing to PCC space
 	 */
-	if (cmd == CMD_READ) {
+	if (cmd == CMD_READ)
+	{
 		/*
 		 * If there are pending cpc_writes, then we stole the channel
 		 * before write completion, so first send a WRITE command to
 		 * platform
 		 */
 		if (pcc_data.pending_pcc_write_cmd)
+		{
 			send_pcc_cmd(CMD_WRITE);
+		}
 
 		ret = check_pcc_chan(false);
+
 		if (ret)
+		{
 			goto end;
-	} else /* CMD_WRITE */
+		}
+	}
+	else   /* CMD_WRITE */
+	{
 		pcc_data.pending_pcc_write_cmd = FALSE;
+	}
 
 	/*
 	 * Handle the Minimum Request Turnaround Time(MRTT)
 	 * "The minimum amount of time that OSPM must wait after the completion
 	 * of a command before issuing the next command, in microseconds"
 	 */
-	if (pcc_data.pcc_mrtt) {
+	if (pcc_data.pcc_mrtt)
+	{
 		time_delta = ktime_us_delta(ktime_get(), last_cmd_cmpl_time);
+
 		if (pcc_data.pcc_mrtt > time_delta)
+		{
 			udelay(pcc_data.pcc_mrtt - time_delta);
+		}
 	}
 
 	/*
@@ -275,17 +307,23 @@ static int send_pcc_cmd(u16 cmd)
 	 * not send the request to the platform after hitting the MPAR limit in
 	 * any 60s window
 	 */
-	if (pcc_data.pcc_mpar) {
-		if (mpar_count == 0) {
+	if (pcc_data.pcc_mpar)
+	{
+		if (mpar_count == 0)
+		{
 			time_delta = ktime_ms_delta(ktime_get(), last_mpar_reset);
-			if (time_delta < 60 * MSEC_PER_SEC) {
+
+			if (time_delta < 60 * MSEC_PER_SEC)
+			{
 				pr_debug("PCC cmd not sent due to MPAR limit");
 				ret = -EIO;
 				goto end;
 			}
+
 			last_mpar_reset = ktime_get();
 			mpar_count = pcc_data.pcc_mpar;
 		}
+
 		mpar_count--;
 	}
 
@@ -299,9 +337,11 @@ static int send_pcc_cmd(u16 cmd)
 
 	/* Ring doorbell */
 	ret = mbox_send_message(pcc_data.pcc_channel, &cmd);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("Err sending PCC mbox message. cmd:%d, ret:%d\n",
-				cmd, ret);
+			   cmd, ret);
 		goto end;
 	}
 
@@ -309,25 +349,41 @@ static int send_pcc_cmd(u16 cmd)
 	ret = check_pcc_chan(true);
 
 	if (pcc_data.pcc_mrtt)
+	{
 		last_cmd_cmpl_time = ktime_get();
+	}
 
 	if (pcc_data.pcc_channel->mbox->txdone_irq)
+	{
 		mbox_chan_txdone(pcc_data.pcc_channel, ret);
+	}
 	else
+	{
 		mbox_client_txdone(pcc_data.pcc_channel, ret);
+	}
 
 end:
-	if (cmd == CMD_WRITE) {
-		if (unlikely(ret)) {
-			for_each_possible_cpu(i) {
+
+	if (cmd == CMD_WRITE)
+	{
+		if (unlikely(ret))
+		{
+			for_each_possible_cpu(i)
+			{
 				struct cpc_desc *desc = per_cpu(cpc_desc_ptr, i);
+
 				if (!desc)
+				{
 					continue;
+				}
 
 				if (desc->write_cmd_id == pcc_data.pcc_write_cnt)
+				{
 					desc->write_cmd_status = ret;
+				}
 			}
 		}
+
 		pcc_data.pcc_write_cnt++;
 		wake_up_all(&pcc_data.pcc_write_wait_q);
 	}
@@ -339,13 +395,14 @@ static void cppc_chan_tx_done(struct mbox_client *cl, void *msg, int ret)
 {
 	if (ret < 0)
 		pr_debug("TX did not complete: CMD sent:%x, ret:%d\n",
-				*(u16 *)msg, ret);
+				 *(u16 *)msg, ret);
 	else
 		pr_debug("TX completed. CMD sent:%x, ret:%d\n",
-				*(u16 *)msg, ret);
+				 *(u16 *)msg, ret);
 }
 
-struct mbox_client cppc_mbox_cl = {
+struct mbox_client cppc_mbox_cl =
+{
 	.tx_done = cppc_chan_tx_done,
 	.knows_txdone = true,
 };
@@ -361,12 +418,17 @@ static int acpi_get_psd(struct cpc_desc *cpc_ptr, acpi_handle handle)
 	struct acpi_psd_package *pdomain;
 
 	status = acpi_evaluate_object_typed(handle, "_PSD", NULL, &buffer,
-			ACPI_TYPE_PACKAGE);
+										ACPI_TYPE_PACKAGE);
+
 	if (ACPI_FAILURE(status))
+	{
 		return -ENODEV;
+	}
 
 	psd = buffer.pointer;
-	if (!psd || psd->package.count != 1) {
+
+	if (!psd || psd->package.count != 1)
+	{
 		pr_debug("Invalid _PSD data\n");
 		goto end;
 	}
@@ -377,25 +439,30 @@ static int acpi_get_psd(struct cpc_desc *cpc_ptr, acpi_handle handle)
 	state.pointer = pdomain;
 
 	status = acpi_extract_package(&(psd->package.elements[0]),
-		&format, &state);
-	if (ACPI_FAILURE(status)) {
+								  &format, &state);
+
+	if (ACPI_FAILURE(status))
+	{
 		pr_debug("Invalid _PSD data for CPU:%d\n", cpc_ptr->cpu_id);
 		goto end;
 	}
 
-	if (pdomain->num_entries != ACPI_PSD_REV0_ENTRIES) {
+	if (pdomain->num_entries != ACPI_PSD_REV0_ENTRIES)
+	{
 		pr_debug("Unknown _PSD:num_entries for CPU:%d\n", cpc_ptr->cpu_id);
 		goto end;
 	}
 
-	if (pdomain->revision != ACPI_PSD_REV0_REVISION) {
+	if (pdomain->revision != ACPI_PSD_REV0_REVISION)
+	{
 		pr_debug("Unknown _PSD:revision for CPU: %d\n", cpc_ptr->cpu_id);
 		goto end;
 	}
 
 	if (pdomain->coord_type != DOMAIN_COORD_TYPE_SW_ALL &&
-	    pdomain->coord_type != DOMAIN_COORD_TYPE_SW_ANY &&
-	    pdomain->coord_type != DOMAIN_COORD_TYPE_HW_ALL) {
+		pdomain->coord_type != DOMAIN_COORD_TYPE_SW_ANY &&
+		pdomain->coord_type != DOMAIN_COORD_TYPE_HW_ALL)
+	{
 		pr_debug("Invalid _PSD:coord_type for CPU:%d\n", cpc_ptr->cpu_id);
 		goto end;
 	}
@@ -424,22 +491,32 @@ int acpi_get_psd_map(struct cppc_cpudata **all_cpu_data)
 	struct cpc_desc *cpc_ptr, *match_cpc_ptr;
 
 	if (!zalloc_cpumask_var(&covered_cpus, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * Now that we have _PSD data from all CPUs, lets setup P-state
 	 * domain info.
 	 */
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		pr = all_cpu_data[i];
+
 		if (!pr)
+		{
 			continue;
+		}
 
 		if (cpumask_test_cpu(i, covered_cpus))
+		{
 			continue;
+		}
 
 		cpc_ptr = per_cpu(cpc_desc_ptr, i);
-		if (!cpc_ptr) {
+
+		if (!cpc_ptr)
+		{
 			retval = -EFAULT;
 			goto err_ret;
 		}
@@ -447,39 +524,59 @@ int acpi_get_psd_map(struct cppc_cpudata **all_cpu_data)
 		pdomain = &(cpc_ptr->domain_info);
 		cpumask_set_cpu(i, pr->shared_cpu_map);
 		cpumask_set_cpu(i, covered_cpus);
+
 		if (pdomain->num_processors <= 1)
+		{
 			continue;
+		}
 
 		/* Validate the Domain info */
 		count_target = pdomain->num_processors;
-		if (pdomain->coord_type == DOMAIN_COORD_TYPE_SW_ALL)
-			pr->shared_type = CPUFREQ_SHARED_TYPE_ALL;
-		else if (pdomain->coord_type == DOMAIN_COORD_TYPE_HW_ALL)
-			pr->shared_type = CPUFREQ_SHARED_TYPE_HW;
-		else if (pdomain->coord_type == DOMAIN_COORD_TYPE_SW_ANY)
-			pr->shared_type = CPUFREQ_SHARED_TYPE_ANY;
 
-		for_each_possible_cpu(j) {
+		if (pdomain->coord_type == DOMAIN_COORD_TYPE_SW_ALL)
+		{
+			pr->shared_type = CPUFREQ_SHARED_TYPE_ALL;
+		}
+		else if (pdomain->coord_type == DOMAIN_COORD_TYPE_HW_ALL)
+		{
+			pr->shared_type = CPUFREQ_SHARED_TYPE_HW;
+		}
+		else if (pdomain->coord_type == DOMAIN_COORD_TYPE_SW_ANY)
+		{
+			pr->shared_type = CPUFREQ_SHARED_TYPE_ANY;
+		}
+
+		for_each_possible_cpu(j)
+		{
 			if (i == j)
+			{
 				continue;
+			}
 
 			match_cpc_ptr = per_cpu(cpc_desc_ptr, j);
-			if (!match_cpc_ptr) {
+
+			if (!match_cpc_ptr)
+			{
 				retval = -EFAULT;
 				goto err_ret;
 			}
 
 			match_pdomain = &(match_cpc_ptr->domain_info);
+
 			if (match_pdomain->domain != pdomain->domain)
+			{
 				continue;
+			}
 
 			/* Here i and j are in the same domain */
-			if (match_pdomain->num_processors != count_target) {
+			if (match_pdomain->num_processors != count_target)
+			{
 				retval = -EFAULT;
 				goto err_ret;
 			}
 
-			if (pdomain->coord_type != match_pdomain->coord_type) {
+			if (pdomain->coord_type != match_pdomain->coord_type)
+			{
 				retval = -EFAULT;
 				goto err_ret;
 			}
@@ -488,38 +585,54 @@ int acpi_get_psd_map(struct cppc_cpudata **all_cpu_data)
 			cpumask_set_cpu(j, pr->shared_cpu_map);
 		}
 
-		for_each_possible_cpu(j) {
+		for_each_possible_cpu(j)
+		{
 			if (i == j)
+			{
 				continue;
+			}
 
 			match_pr = all_cpu_data[j];
+
 			if (!match_pr)
+			{
 				continue;
+			}
 
 			match_cpc_ptr = per_cpu(cpc_desc_ptr, j);
-			if (!match_cpc_ptr) {
+
+			if (!match_cpc_ptr)
+			{
 				retval = -EFAULT;
 				goto err_ret;
 			}
 
 			match_pdomain = &(match_cpc_ptr->domain_info);
+
 			if (match_pdomain->domain != pdomain->domain)
+			{
 				continue;
+			}
 
 			match_pr->shared_type = pr->shared_type;
 			cpumask_copy(match_pr->shared_cpu_map,
-				     pr->shared_cpu_map);
+						 pr->shared_cpu_map);
 		}
 	}
 
 err_ret:
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		pr = all_cpu_data[i];
+
 		if (!pr)
+		{
 			continue;
+		}
 
 		/* Assume no coordination on any error parsing domain info */
-		if (retval) {
+		if (retval)
+		{
 			cpumask_clear(pr->shared_cpu_map);
 			cpumask_set_cpu(i, pr->shared_cpu_map);
 			pr->shared_type = CPUFREQ_SHARED_TYPE_ALL;
@@ -536,11 +649,13 @@ static int register_pcc_channel(int pcc_subspace_idx)
 	struct acpi_pcct_hw_reduced *cppc_ss;
 	u64 usecs_lat;
 
-	if (pcc_subspace_idx >= 0) {
+	if (pcc_subspace_idx >= 0)
+	{
 		pcc_data.pcc_channel = pcc_mbox_request_channel(&cppc_mbox_cl,
-				pcc_subspace_idx);
+							   pcc_subspace_idx);
 
-		if (IS_ERR(pcc_data.pcc_channel)) {
+		if (IS_ERR(pcc_data.pcc_channel))
+		{
 			pr_err("Failed to find PCC communication channel\n");
 			return -ENODEV;
 		}
@@ -553,7 +668,8 @@ static int register_pcc_channel(int pcc_subspace_idx)
 		 */
 		cppc_ss = (pcc_data.pcc_channel)->con_priv;
 
-		if (!cppc_ss) {
+		if (!cppc_ss)
+		{
 			pr_err("No PCC subspace found for CPPC\n");
 			return -ENODEV;
 		}
@@ -570,7 +686,9 @@ static int register_pcc_channel(int pcc_subspace_idx)
 		pcc_data.pcc_nominal = cppc_ss->latency;
 
 		pcc_data.pcc_comm_addr = acpi_os_ioremap(cppc_ss->base_address, cppc_ss->length);
-		if (!pcc_data.pcc_comm_addr) {
+
+		if (!pcc_data.pcc_comm_addr)
+		{
 			pr_err("Failed to ioremap PCC comm region mem\n");
 			return -ENOMEM;
 		}
@@ -661,8 +779,10 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
 
 	/* Parse the ACPI _CPC table for this cpu. */
 	status = acpi_evaluate_object_typed(handle, "_CPC", NULL, &output,
-			ACPI_TYPE_PACKAGE);
-	if (ACPI_FAILURE(status)) {
+										ACPI_TYPE_PACKAGE);
+
+	if (ACPI_FAILURE(status))
+	{
 		ret = -ENODEV;
 		goto out_buf_free;
 	}
@@ -670,25 +790,32 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
 	out_obj = (union acpi_object *) output.pointer;
 
 	cpc_ptr = kzalloc(sizeof(struct cpc_desc), GFP_KERNEL);
-	if (!cpc_ptr) {
+
+	if (!cpc_ptr)
+	{
 		ret = -ENOMEM;
 		goto out_buf_free;
 	}
 
 	/* First entry is NumEntries. */
 	cpc_obj = &out_obj->package.elements[0];
-	if (cpc_obj->type == ACPI_TYPE_INTEGER)	{
+
+	if (cpc_obj->type == ACPI_TYPE_INTEGER)
+	{
 		num_ent = cpc_obj->integer.value;
-	} else {
+	}
+	else
+	{
 		pr_debug("Unexpected entry type(%d) for NumEntries\n",
-				cpc_obj->type);
+				 cpc_obj->type);
 		goto out_free;
 	}
 
 	/* Only support CPPCv2. Bail otherwise. */
-	if (num_ent != CPPC_NUM_ENT) {
+	if (num_ent != CPPC_NUM_ENT)
+	{
 		pr_debug("Firmware exports %d entries. Expected: %d\n",
-				num_ent, CPPC_NUM_ENT);
+				 num_ent, CPPC_NUM_ENT);
 		goto out_free;
 	}
 
@@ -696,30 +823,39 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
 
 	/* Second entry should be revision. */
 	cpc_obj = &out_obj->package.elements[1];
-	if (cpc_obj->type == ACPI_TYPE_INTEGER)	{
+
+	if (cpc_obj->type == ACPI_TYPE_INTEGER)
+	{
 		cpc_rev = cpc_obj->integer.value;
-	} else {
+	}
+	else
+	{
 		pr_debug("Unexpected entry type(%d) for Revision\n",
-				cpc_obj->type);
+				 cpc_obj->type);
 		goto out_free;
 	}
 
-	if (cpc_rev != CPPC_REV) {
+	if (cpc_rev != CPPC_REV)
+	{
 		pr_debug("Firmware exports revision:%d. Expected:%d\n",
-				cpc_rev, CPPC_REV);
+				 cpc_rev, CPPC_REV);
 		goto out_free;
 	}
 
 	/* Iterate through remaining entries in _CPC */
-	for (i = 2; i < num_ent; i++) {
+	for (i = 2; i < num_ent; i++)
+	{
 		cpc_obj = &out_obj->package.elements[i];
 
-		if (cpc_obj->type == ACPI_TYPE_INTEGER)	{
-			cpc_ptr->cpc_regs[i-2].type = ACPI_TYPE_INTEGER;
-			cpc_ptr->cpc_regs[i-2].cpc_entry.int_value = cpc_obj->integer.value;
-		} else if (cpc_obj->type == ACPI_TYPE_BUFFER) {
+		if (cpc_obj->type == ACPI_TYPE_INTEGER)
+		{
+			cpc_ptr->cpc_regs[i - 2].type = ACPI_TYPE_INTEGER;
+			cpc_ptr->cpc_regs[i - 2].cpc_entry.int_value = cpc_obj->integer.value;
+		}
+		else if (cpc_obj->type == ACPI_TYPE_BUFFER)
+		{
 			gas_t = (struct cpc_reg *)
-				cpc_obj->buffer.pointer;
+					cpc_obj->buffer.pointer;
 
 			/*
 			 * The PCC Subspace index is encoded inside
@@ -727,50 +863,74 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
 			 * will be used for all the PCC entries,
 			 * so extract it only once.
 			 */
-			if (gas_t->space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
+			if (gas_t->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
+			{
 				if (pcc_data.pcc_subspace_idx < 0)
+				{
 					pcc_data.pcc_subspace_idx = gas_t->access_width;
-				else if (pcc_data.pcc_subspace_idx != gas_t->access_width) {
+				}
+				else if (pcc_data.pcc_subspace_idx != gas_t->access_width)
+				{
 					pr_debug("Mismatched PCC ids.\n");
 					goto out_free;
 				}
-			} else if (gas_t->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
-				if (gas_t->address) {
+			}
+			else if (gas_t->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+			{
+				if (gas_t->address)
+				{
 					void __iomem *addr;
 
-					addr = ioremap(gas_t->address, gas_t->bit_width/8);
+					addr = ioremap(gas_t->address, gas_t->bit_width / 8);
+
 					if (!addr)
+					{
 						goto out_free;
-					cpc_ptr->cpc_regs[i-2].sys_mem_vaddr = addr;
+					}
+
+					cpc_ptr->cpc_regs[i - 2].sys_mem_vaddr = addr;
 				}
-			} else {
-				if (gas_t->space_id != ACPI_ADR_SPACE_FIXED_HARDWARE || !cpc_ffh_supported()) {
+			}
+			else
+			{
+				if (gas_t->space_id != ACPI_ADR_SPACE_FIXED_HARDWARE || !cpc_ffh_supported())
+				{
 					/* Support only PCC ,SYS MEM and FFH type regs */
 					pr_debug("Unsupported register type: %d\n", gas_t->space_id);
 					goto out_free;
 				}
 			}
 
-			cpc_ptr->cpc_regs[i-2].type = ACPI_TYPE_BUFFER;
-			memcpy(&cpc_ptr->cpc_regs[i-2].cpc_entry.reg, gas_t, sizeof(*gas_t));
-		} else {
+			cpc_ptr->cpc_regs[i - 2].type = ACPI_TYPE_BUFFER;
+			memcpy(&cpc_ptr->cpc_regs[i - 2].cpc_entry.reg, gas_t, sizeof(*gas_t));
+		}
+		else
+		{
 			pr_debug("Err in entry:%d in CPC table of CPU:%d \n", i, pr->id);
 			goto out_free;
 		}
 	}
+
 	/* Store CPU Logical ID */
 	cpc_ptr->cpu_id = pr->id;
 
 	/* Parse PSD data for this CPU */
 	ret = acpi_get_psd(cpc_ptr, handle);
+
 	if (ret)
+	{
 		goto out_free;
+	}
 
 	/* Register PCC channel once for all CPUs. */
-	if (!pcc_data.pcc_channel_acquired) {
+	if (!pcc_data.pcc_channel_acquired)
+	{
 		ret = register_pcc_channel(pcc_data.pcc_subspace_idx);
+
 		if (ret)
+		{
 			goto out_free;
+		}
 
 		init_rwsem(&pcc_data.pcc_lock);
 		init_waitqueue_head(&pcc_data.pcc_write_wait_q);
@@ -784,25 +944,36 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
 
 	/* Add per logical CPU nodes for reading its feedback counters. */
 	cpu_dev = get_cpu_device(pr->id);
+
 	if (!cpu_dev)
+	{
 		goto out_free;
+	}
 
 	ret = kobject_init_and_add(&cpc_ptr->kobj, &cppc_ktype, &cpu_dev->kobj,
-			"acpi_cppc");
+							   "acpi_cppc");
+
 	if (ret)
+	{
 		goto out_free;
+	}
 
 	kfree(output.pointer);
 	return 0;
 
 out_free:
+
 	/* Free all the mapped sys mem areas for this CPU */
-	for (i = 2; i < cpc_ptr->num_entries; i++) {
-		void __iomem *addr = cpc_ptr->cpc_regs[i-2].sys_mem_vaddr;
+	for (i = 2; i < cpc_ptr->num_entries; i++)
+	{
+		void __iomem *addr = cpc_ptr->cpc_regs[i - 2].sys_mem_vaddr;
 
 		if (addr)
+		{
 			iounmap(addr);
+		}
 	}
+
 	kfree(cpc_ptr);
 
 out_buf_free:
@@ -826,10 +997,14 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
 	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
 
 	/* Free all the mapped sys mem areas for this CPU */
-	for (i = 2; i < cpc_ptr->num_entries; i++) {
-		addr = cpc_ptr->cpc_regs[i-2].sys_mem_vaddr;
+	for (i = 2; i < cpc_ptr->num_entries; i++)
+	{
+		addr = cpc_ptr->cpc_regs[i - 2].sys_mem_vaddr;
+
 		if (addr)
+		{
 			iounmap(addr);
+		}
 	}
 
 	kobject_put(&cpc_ptr->kobj);
@@ -879,38 +1054,51 @@ static int cpc_read(int cpu, struct cpc_register_resource *reg_res, u64 *val)
 	void __iomem *vaddr = 0;
 	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
 
-	if (reg_res->type == ACPI_TYPE_INTEGER) {
+	if (reg_res->type == ACPI_TYPE_INTEGER)
+	{
 		*val = reg_res->cpc_entry.int_value;
 		return ret_val;
 	}
 
 	*val = 0;
+
 	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
+	{
 		vaddr = GET_PCC_VADDR(reg->address);
+	}
 	else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+	{
 		vaddr = reg_res->sys_mem_vaddr;
+	}
 	else if (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE)
+	{
 		return cpc_read_ffh(cpu, reg, val);
+	}
 	else
 		return acpi_os_read_memory((acpi_physical_address)reg->address,
-				val, reg->bit_width);
+								   val, reg->bit_width);
 
-	switch (reg->bit_width) {
+	switch (reg->bit_width)
+	{
 		case 8:
 			*val = readb_relaxed(vaddr);
 			break;
+
 		case 16:
 			*val = readw_relaxed(vaddr);
 			break;
+
 		case 32:
 			*val = readl_relaxed(vaddr);
 			break;
+
 		case 64:
 			*val = readq_relaxed(vaddr);
 			break;
+
 		default:
 			pr_debug("Error: Cannot read %u bit width from PCC\n",
-					reg->bit_width);
+					 reg->bit_width);
 			ret_val = -EFAULT;
 	}
 
@@ -924,31 +1112,42 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
 	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
 
 	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
+	{
 		vaddr = GET_PCC_VADDR(reg->address);
+	}
 	else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+	{
 		vaddr = reg_res->sys_mem_vaddr;
+	}
 	else if (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE)
+	{
 		return cpc_write_ffh(cpu, reg, val);
+	}
 	else
 		return acpi_os_write_memory((acpi_physical_address)reg->address,
-				val, reg->bit_width);
+									val, reg->bit_width);
 
-	switch (reg->bit_width) {
+	switch (reg->bit_width)
+	{
 		case 8:
 			writeb_relaxed(val, vaddr);
 			break;
+
 		case 16:
 			writew_relaxed(val, vaddr);
 			break;
+
 		case 32:
 			writel_relaxed(val, vaddr);
 			break;
+
 		case 64:
 			writeq_relaxed(val, vaddr);
 			break;
+
 		default:
 			pr_debug("Error: Cannot write %u bit width to PCC\n",
-					reg->bit_width);
+					 reg->bit_width);
 			ret_val = -EFAULT;
 			break;
 	}
@@ -967,11 +1166,12 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
 {
 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
 	struct cpc_register_resource *highest_reg, *lowest_reg, *ref_perf,
-								 *nom_perf;
+			   *nom_perf;
 	u64 high, low, nom;
 	int ret = 0, regs_in_pcc = 0;
 
-	if (!cpc_desc) {
+	if (!cpc_desc)
+	{
 		pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
 		return -ENODEV;
 	}
@@ -983,11 +1183,14 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
 
 	/* Are any of the regs PCC ?*/
 	if (CPC_IN_PCC(highest_reg) || CPC_IN_PCC(lowest_reg) ||
-		CPC_IN_PCC(ref_perf) || CPC_IN_PCC(nom_perf)) {
+		CPC_IN_PCC(ref_perf) || CPC_IN_PCC(nom_perf))
+	{
 		regs_in_pcc = 1;
 		down_write(&pcc_data.pcc_lock);
+
 		/* Ring doorbell once to update PCC subspace */
-		if (send_pcc_cmd(CMD_READ) < 0) {
+		if (send_pcc_cmd(CMD_READ) < 0)
+		{
 			ret = -EIO;
 			goto out_err;
 		}
@@ -1003,11 +1206,17 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
 	perf_caps->nominal_perf = nom;
 
 	if (!high || !low || !nom)
+	{
 		ret = -EFAULT;
+	}
 
 out_err:
+
 	if (regs_in_pcc)
+	{
 		up_write(&pcc_data.pcc_lock);
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(cppc_get_perf_caps);
@@ -1023,11 +1232,12 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
 {
 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
 	struct cpc_register_resource *delivered_reg, *reference_reg,
-		*ref_perf_reg, *ctr_wrap_reg;
+			   *ref_perf_reg, *ctr_wrap_reg;
 	u64 delivered, reference, ref_perf, ctr_wrap_time;
 	int ret = 0, regs_in_pcc = 0;
 
-	if (!cpc_desc) {
+	if (!cpc_desc)
+	{
 		pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
 		return -ENODEV;
 	}
@@ -1042,15 +1252,20 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
 	 * use the nominal perf value
 	 */
 	if (!CPC_SUPPORTED(ref_perf_reg))
+	{
 		ref_perf_reg = &cpc_desc->cpc_regs[NOMINAL_PERF];
+	}
 
 	/* Are any of the regs PCC ?*/
 	if (CPC_IN_PCC(delivered_reg) || CPC_IN_PCC(reference_reg) ||
-		CPC_IN_PCC(ctr_wrap_reg) || CPC_IN_PCC(ref_perf_reg)) {
+		CPC_IN_PCC(ctr_wrap_reg) || CPC_IN_PCC(ref_perf_reg))
+	{
 		down_write(&pcc_data.pcc_lock);
 		regs_in_pcc = 1;
+
 		/* Ring doorbell once to update PCC subspace */
-		if (send_pcc_cmd(CMD_READ) < 0) {
+		if (send_pcc_cmd(CMD_READ) < 0)
+		{
 			ret = -EIO;
 			goto out_err;
 		}
@@ -1066,10 +1281,14 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
 	 * platform
 	 */
 	ctr_wrap_time = (u64)(~((u64)0));
-	if (CPC_SUPPORTED(ctr_wrap_reg))
-		cpc_read(cpunum, ctr_wrap_reg, &ctr_wrap_time);
 
-	if (!delivered || !reference ||	!ref_perf) {
+	if (CPC_SUPPORTED(ctr_wrap_reg))
+	{
+		cpc_read(cpunum, ctr_wrap_reg, &ctr_wrap_time);
+	}
+
+	if (!delivered || !reference ||	!ref_perf)
+	{
 		ret = -EFAULT;
 		goto out_err;
 	}
@@ -1079,8 +1298,12 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
 	perf_fb_ctrs->reference_perf = ref_perf;
 	perf_fb_ctrs->ctr_wrap_time = ctr_wrap_time;
 out_err:
+
 	if (regs_in_pcc)
+	{
 		up_write(&pcc_data.pcc_lock);
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(cppc_get_perf_ctrs);
@@ -1098,7 +1321,8 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
 	struct cpc_register_resource *desired_reg;
 	int ret = 0;
 
-	if (!cpc_desc) {
+	if (!cpc_desc)
+	{
 		pr_debug("No CPC descriptor for CPU:%d\n", cpu);
 		return -ENODEV;
 	}
@@ -1112,15 +1336,21 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
 	 * Since read_lock can be acquired by multiple CPUs simultaneously we
 	 * achieve that goal here
 	 */
-	if (CPC_IN_PCC(desired_reg)) {
+	if (CPC_IN_PCC(desired_reg))
+	{
 		down_read(&pcc_data.pcc_lock);	/* BEGIN Phase-I */
-		if (pcc_data.platform_owns_pcc) {
+
+		if (pcc_data.platform_owns_pcc)
+		{
 			ret = check_pcc_chan(false);
-			if (ret) {
+
+			if (ret)
+			{
 				up_read(&pcc_data.pcc_lock);
 				return ret;
 			}
 		}
+
 		/*
 		 * Update the pending_write to make sure a PCC CMD_READ will not
 		 * arrive and steal the channel during the switch to write lock
@@ -1137,7 +1367,10 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
 	cpc_write(cpu, desired_reg, perf_ctrls->desired_perf);
 
 	if (CPC_IN_PCC(desired_reg))
-		up_read(&pcc_data.pcc_lock);	/* END Phase-I */
+	{
+		up_read(&pcc_data.pcc_lock);    /* END Phase-I */
+	}
+
 	/*
 	 * This is Phase-II where we transfer the ownership of PCC to Platform
 	 *
@@ -1184,20 +1417,27 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
 	 * case during a CMD_READ and if there are pending writes it delivers
 	 * the write command before servicing the read command
 	 */
-	if (CPC_IN_PCC(desired_reg)) {
-		if (down_write_trylock(&pcc_data.pcc_lock)) {	/* BEGIN Phase-II */
+	if (CPC_IN_PCC(desired_reg))
+	{
+		if (down_write_trylock(&pcc_data.pcc_lock))  	/* BEGIN Phase-II */
+		{
 			/* Update only if there are pending write commands */
 			if (pcc_data.pending_pcc_write_cmd)
+			{
 				send_pcc_cmd(CMD_WRITE);
+			}
+
 			up_write(&pcc_data.pcc_lock);		/* END Phase-II */
-		} else
+		}
+		else
 			/* Wait until pcc_write_cnt is updated by send_pcc_cmd */
 			wait_event(pcc_data.pcc_write_wait_q,
-				cpc_desc->write_cmd_id != pcc_data.pcc_write_cnt);
+					   cpc_desc->write_cmd_id != pcc_data.pcc_write_cnt);
 
 		/* send_pcc_cmd updates the status in case of failure */
 		ret = cpc_desc->write_cmd_status;
 	}
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(cppc_set_perf);
@@ -1228,15 +1468,23 @@ unsigned int cppc_get_transition_latency(int cpu_num)
 	struct cpc_register_resource *desired_reg;
 
 	cpc_desc = per_cpu(cpc_desc_ptr, cpu_num);
+
 	if (!cpc_desc)
+	{
 		return CPUFREQ_ETERNAL;
+	}
 
 	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
+
 	if (!CPC_IN_PCC(desired_reg))
+	{
 		return CPUFREQ_ETERNAL;
+	}
 
 	if (pcc_data.pcc_mpar)
+	{
 		latency_ns = 60 * (1000 * 1000 * 1000 / pcc_data.pcc_mpar);
+	}
 
 	latency_ns = max(latency_ns, pcc_data.pcc_nominal * 1000);
 	latency_ns = max(latency_ns, pcc_data.pcc_mrtt * 1000);

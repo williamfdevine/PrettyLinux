@@ -47,7 +47,8 @@
 #define	HDMIB_PIPE_B_SELECT		(1 << 30)
 
 
-struct mid_intel_hdmi_priv {
+struct mid_intel_hdmi_priv
+{
 	u32 hdmi_reg;
 	u32 save_HDMIB;
 	bool has_hdmi_sink;
@@ -60,8 +61,8 @@ struct mid_intel_hdmi_priv {
 };
 
 static void cdv_hdmi_mode_set(struct drm_encoder *encoder,
-			struct drm_display_mode *mode,
-			struct drm_display_mode *adjusted_mode)
+							  struct drm_display_mode *mode,
+							  struct drm_display_mode *adjusted_mode)
 {
 	struct drm_device *dev = encoder->dev;
 	struct gma_encoder *gma_encoder = to_gma_encoder(encoder);
@@ -73,14 +74,22 @@ static void cdv_hdmi_mode_set(struct drm_encoder *encoder,
 	hdmib = (2 << 10);
 
 	if (adjusted_mode->flags & DRM_MODE_FLAG_PVSYNC)
+	{
 		hdmib |= HDMI_VSYNC_ACTIVE_HIGH;
+	}
+
 	if (adjusted_mode->flags & DRM_MODE_FLAG_PHSYNC)
+	{
 		hdmib |= HDMI_HSYNC_ACTIVE_HIGH;
+	}
 
 	if (gma_crtc->pipe == 1)
+	{
 		hdmib |= HDMIB_PIPE_B_SELECT;
+	}
 
-	if (hdmi_priv->has_hdmi_audio) {
+	if (hdmi_priv->has_hdmi_audio)
+	{
 		hdmib |= HDMI_AUDIO_ENABLE;
 		hdmib |= HDMI_NULL_PACKETS_DURING_VSYNC;
 	}
@@ -99,9 +108,14 @@ static void cdv_hdmi_dpms(struct drm_encoder *encoder, int mode)
 	hdmib = REG_READ(hdmi_priv->hdmi_reg);
 
 	if (mode != DRM_MODE_DPMS_ON)
+	{
 		REG_WRITE(hdmi_priv->hdmi_reg, hdmib & ~HDMIB_PORT_EN);
+	}
 	else
+	{
 		REG_WRITE(hdmi_priv->hdmi_reg, hdmib | HDMIB_PORT_EN);
+	}
+
 	REG_READ(hdmi_priv->hdmi_reg);
 }
 
@@ -125,7 +139,7 @@ static void cdv_hdmi_restore(struct drm_connector *connector)
 }
 
 static enum drm_connector_status cdv_hdmi_detect(
-				struct drm_connector *connector, bool force)
+	struct drm_connector *connector, bool force)
 {
 	struct gma_encoder *gma_encoder = gma_attached_encoder(connector);
 	struct mid_intel_hdmi_priv *hdmi_priv = gma_encoder->dev_priv;
@@ -136,72 +150,97 @@ static enum drm_connector_status cdv_hdmi_detect(
 
 	hdmi_priv->has_hdmi_sink = false;
 	hdmi_priv->has_hdmi_audio = false;
-	if (edid) {
-		if (edid->input & DRM_EDID_INPUT_DIGITAL) {
+
+	if (edid)
+	{
+		if (edid->input & DRM_EDID_INPUT_DIGITAL)
+		{
 			status = connector_status_connected;
 			hdmi_priv->has_hdmi_sink =
-						drm_detect_hdmi_monitor(edid);
+				drm_detect_hdmi_monitor(edid);
 			hdmi_priv->has_hdmi_audio =
-						drm_detect_monitor_audio(edid);
+				drm_detect_monitor_audio(edid);
 		}
+
 		kfree(edid);
 	}
+
 	return status;
 }
 
 static int cdv_hdmi_set_property(struct drm_connector *connector,
-				       struct drm_property *property,
-				       uint64_t value)
+								 struct drm_property *property,
+								 uint64_t value)
 {
 	struct drm_encoder *encoder = connector->encoder;
 
-	if (!strcmp(property->name, "scaling mode") && encoder) {
+	if (!strcmp(property->name, "scaling mode") && encoder)
+	{
 		struct gma_crtc *crtc = to_gma_crtc(encoder->crtc);
 		bool centre;
 		uint64_t curValue;
 
 		if (!crtc)
+		{
 			return -1;
+		}
 
-		switch (value) {
-		case DRM_MODE_SCALE_FULLSCREEN:
-			break;
-		case DRM_MODE_SCALE_NO_SCALE:
-			break;
-		case DRM_MODE_SCALE_ASPECT:
-			break;
-		default:
-			return -1;
+		switch (value)
+		{
+			case DRM_MODE_SCALE_FULLSCREEN:
+				break;
+
+			case DRM_MODE_SCALE_NO_SCALE:
+				break;
+
+			case DRM_MODE_SCALE_ASPECT:
+				break;
+
+			default:
+				return -1;
 		}
 
 		if (drm_object_property_get_value(&connector->base,
-							property, &curValue))
+										  property, &curValue))
+		{
 			return -1;
+		}
 
 		if (curValue == value)
+		{
 			return 0;
+		}
 
 		if (drm_object_property_set_value(&connector->base,
-							property, value))
+										  property, value))
+		{
 			return -1;
+		}
 
 		centre = (curValue == DRM_MODE_SCALE_NO_SCALE) ||
-			(value == DRM_MODE_SCALE_NO_SCALE);
+				 (value == DRM_MODE_SCALE_NO_SCALE);
 
 		if (crtc->saved_mode.hdisplay != 0 &&
-		    crtc->saved_mode.vdisplay != 0) {
-			if (centre) {
+			crtc->saved_mode.vdisplay != 0)
+		{
+			if (centre)
+			{
 				if (!drm_crtc_helper_set_mode(encoder->crtc, &crtc->saved_mode,
-					    encoder->crtc->x, encoder->crtc->y, encoder->crtc->primary->fb))
+											  encoder->crtc->x, encoder->crtc->y, encoder->crtc->primary->fb))
+				{
 					return -1;
-			} else {
+				}
+			}
+			else
+			{
 				const struct drm_encoder_helper_funcs *helpers
-						    = encoder->helper_private;
+						= encoder->helper_private;
 				helpers->mode_set(encoder, &crtc->saved_mode,
-					     &crtc->saved_adjusted_mode);
+								  &crtc->saved_adjusted_mode);
 			}
 		}
 	}
+
 	return 0;
 }
 
@@ -215,29 +254,41 @@ static int cdv_hdmi_get_modes(struct drm_connector *connector)
 	int ret = 0;
 
 	edid = drm_get_edid(connector, &gma_encoder->i2c_bus->adapter);
-	if (edid) {
+
+	if (edid)
+	{
 		drm_mode_connector_update_edid_property(connector, edid);
 		ret = drm_add_edid_modes(connector, edid);
 		kfree(edid);
 	}
+
 	return ret;
 }
 
 static int cdv_hdmi_mode_valid(struct drm_connector *connector,
-				 struct drm_display_mode *mode)
+							   struct drm_display_mode *mode)
 {
 	if (mode->clock > 165000)
+	{
 		return MODE_CLOCK_HIGH;
+	}
+
 	if (mode->clock < 20000)
+	{
 		return MODE_CLOCK_HIGH;
+	}
 
 	/* just in case */
 	if (mode->flags & DRM_MODE_FLAG_DBLSCAN)
+	{
 		return MODE_NO_DBLESCAN;
+	}
 
 	/* just in case */
 	if (mode->flags & DRM_MODE_FLAG_INTERLACE)
+	{
 		return MODE_NO_INTERLACE;
+	}
 
 	return MODE_OK;
 }
@@ -252,7 +303,8 @@ static void cdv_hdmi_destroy(struct drm_connector *connector)
 	kfree(connector);
 }
 
-static const struct drm_encoder_helper_funcs cdv_hdmi_helper_funcs = {
+static const struct drm_encoder_helper_funcs cdv_hdmi_helper_funcs =
+{
 	.dpms = cdv_hdmi_dpms,
 	.prepare = gma_encoder_prepare,
 	.mode_set = cdv_hdmi_mode_set,
@@ -260,13 +312,15 @@ static const struct drm_encoder_helper_funcs cdv_hdmi_helper_funcs = {
 };
 
 static const struct drm_connector_helper_funcs
-					cdv_hdmi_connector_helper_funcs = {
+	cdv_hdmi_connector_helper_funcs =
+{
 	.get_modes = cdv_hdmi_get_modes,
 	.mode_valid = cdv_hdmi_mode_valid,
 	.best_encoder = gma_best_encoder,
 };
 
-static const struct drm_connector_funcs cdv_hdmi_connector_funcs = {
+static const struct drm_connector_funcs cdv_hdmi_connector_funcs =
+{
 	.dpms = drm_helper_connector_dpms,
 	.detect = cdv_hdmi_detect,
 	.fill_modes = drm_helper_probe_single_connector_modes,
@@ -275,7 +329,7 @@ static const struct drm_connector_funcs cdv_hdmi_connector_funcs = {
 };
 
 void cdv_hdmi_init(struct drm_device *dev,
-			struct psb_intel_mode_device *mode_dev, int reg)
+				   struct psb_intel_mode_device *mode_dev, int reg)
 {
 	struct gma_encoder *gma_encoder;
 	struct gma_connector *gma_connector;
@@ -287,18 +341,24 @@ void cdv_hdmi_init(struct drm_device *dev,
 	gma_encoder = kzalloc(sizeof(struct gma_encoder), GFP_KERNEL);
 
 	if (!gma_encoder)
+	{
 		return;
+	}
 
 	gma_connector = kzalloc(sizeof(struct gma_connector),
-				      GFP_KERNEL);
+							GFP_KERNEL);
 
 	if (!gma_connector)
+	{
 		goto err_connector;
+	}
 
 	hdmi_priv = kzalloc(sizeof(struct mid_intel_hdmi_priv), GFP_KERNEL);
 
 	if (!hdmi_priv)
+	{
 		goto err_priv;
+	}
 
 	connector = &gma_connector->base;
 	connector->polled = DRM_CONNECTOR_POLL_HPD;
@@ -307,11 +367,11 @@ void cdv_hdmi_init(struct drm_device *dev,
 
 	encoder = &gma_encoder->base;
 	drm_connector_init(dev, connector,
-			   &cdv_hdmi_connector_funcs,
-			   DRM_MODE_CONNECTOR_DVID);
+					   &cdv_hdmi_connector_funcs,
+					   DRM_MODE_CONNECTOR_DVID);
 
 	drm_encoder_init(dev, encoder, &psb_intel_lvds_enc_funcs,
-			 DRM_MODE_ENCODER_TMDS, NULL);
+					 DRM_MODE_ENCODER_TMDS, NULL);
 
 	gma_connector_attach_encoder(gma_connector, gma_encoder);
 	gma_encoder->type = INTEL_OUTPUT_HDMI;
@@ -321,34 +381,38 @@ void cdv_hdmi_init(struct drm_device *dev,
 
 	drm_encoder_helper_add(encoder, &cdv_hdmi_helper_funcs);
 	drm_connector_helper_add(connector,
-				 &cdv_hdmi_connector_helper_funcs);
+							 &cdv_hdmi_connector_helper_funcs);
 	connector->display_info.subpixel_order = SubPixelHorizontalRGB;
 	connector->interlace_allowed = false;
 	connector->doublescan_allowed = false;
 
 	drm_object_attach_property(&connector->base,
-				      dev->mode_config.scaling_mode_property,
-				      DRM_MODE_SCALE_FULLSCREEN);
+							   dev->mode_config.scaling_mode_property,
+							   DRM_MODE_SCALE_FULLSCREEN);
 
-	switch (reg) {
-	case SDVOB:
-		ddc_bus = GPIOE;
-		gma_encoder->ddi_select = DDI0_SELECT;
-		break;
-	case SDVOC:
-		ddc_bus = GPIOD;
-		gma_encoder->ddi_select = DDI1_SELECT;
-		break;
-	default:
-		DRM_ERROR("unknown reg 0x%x for HDMI\n", reg);
-		goto failed_ddc;
-		break;
+	switch (reg)
+	{
+		case SDVOB:
+			ddc_bus = GPIOE;
+			gma_encoder->ddi_select = DDI0_SELECT;
+			break;
+
+		case SDVOC:
+			ddc_bus = GPIOD;
+			gma_encoder->ddi_select = DDI1_SELECT;
+			break;
+
+		default:
+			DRM_ERROR("unknown reg 0x%x for HDMI\n", reg);
+			goto failed_ddc;
+			break;
 	}
 
 	gma_encoder->i2c_bus = psb_intel_i2c_create(dev,
-				ddc_bus, (reg == SDVOB) ? "HDMIB" : "HDMIC");
+						   ddc_bus, (reg == SDVOB) ? "HDMIB" : "HDMIC");
 
-	if (!gma_encoder->i2c_bus) {
+	if (!gma_encoder->i2c_bus)
+	{
 		dev_err(dev->dev, "No ddc adapter available!\n");
 		goto failed_ddc;
 	}

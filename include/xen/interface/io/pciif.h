@@ -62,11 +62,13 @@
  */
 #define SH_INFO_MAX_VEC			128
 
-struct xen_msix_entry {
+struct xen_msix_entry
+{
 	uint16_t vector;
 	uint16_t entry;
 };
-struct xen_pci_op {
+struct xen_pci_op
+{
 	/* IN: what action to perform: XEN_PCI_OP_* */
 	uint32_t cmd;
 
@@ -91,7 +93,8 @@ struct xen_pci_op {
 };
 
 /*used for pcie aer handling*/
-struct xen_pcie_aer_op {
+struct xen_pcie_aer_op
+{
 	/* IN: what action to perform: XEN_PCI_OP_* */
 	uint32_t cmd;
 	/*IN/OUT: return aer_op result or carry error_detected state as input*/
@@ -102,7 +105,8 @@ struct xen_pcie_aer_op {
 	uint32_t bus;
 	uint32_t devfn;
 };
-struct xen_pci_sharedinfo {
+struct xen_pci_sharedinfo
+{
 	/* flags - XEN_PCIF_* */
 	uint32_t flags;
 	struct xen_pci_op op;

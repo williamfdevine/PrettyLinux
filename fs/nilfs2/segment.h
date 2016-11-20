@@ -41,7 +41,8 @@ struct nilfs_root;
  * @ri_segnum: Segment number on the last partial segment
  * @ri_nextnum: Next segment number on the last partial segment
  */
-struct nilfs_recovery_info {
+struct nilfs_recovery_info
+{
 	int			ri_need_recovery;
 	sector_t		ri_super_root;
 	__u64			ri_cno;
@@ -68,7 +69,8 @@ struct nilfs_recovery_info {
  * @dirty_file_ptr: Pointer on dirty_files list, or inode of a target file
  * @gc_inode_ptr: Pointer on the list of gc-inodes
  */
-struct nilfs_cstage {
+struct nilfs_cstage
+{
 	int			scnt;
 	unsigned int		flags;
 	struct nilfs_inode_info *dirty_file_ptr;
@@ -77,7 +79,8 @@ struct nilfs_cstage {
 
 struct nilfs_segment_buffer;
 
-struct nilfs_segsum_pointer {
+struct nilfs_segsum_pointer
+{
 	struct buffer_head     *bh;
 	unsigned int		offset; /* offset in bytes */
 };
@@ -126,7 +129,8 @@ struct nilfs_segsum_pointer {
  * @sc_timer: Timer for segctord
  * @sc_task: current thread of segctord
  */
-struct nilfs_sc_info {
+struct nilfs_sc_info
+{
 	struct super_block     *sc_super;
 	struct nilfs_root      *sc_root;
 
@@ -184,7 +188,8 @@ struct nilfs_sc_info {
 };
 
 /* sc_flags */
-enum {
+enum
+{
 	NILFS_SC_DIRTY,		/* One or more dirty meta-data blocks exist */
 	NILFS_SC_UNCLOSED,	/* Logical segment is not closed */
 	NILFS_SC_SUPER_ROOT,	/* The latest segment has a super root */
@@ -237,21 +242,21 @@ extern void nilfs_relax_pressure_in_lock(struct super_block *);
 
 extern int nilfs_construct_segment(struct super_block *);
 extern int nilfs_construct_dsync_segment(struct super_block *, struct inode *,
-					 loff_t, loff_t);
+		loff_t, loff_t);
 extern void nilfs_flush_segment(struct super_block *, ino_t);
 extern int nilfs_clean_segments(struct super_block *, struct nilfs_argv *,
-				void **);
+								void **);
 
 int nilfs_attach_log_writer(struct super_block *sb, struct nilfs_root *root);
 void nilfs_detach_log_writer(struct super_block *sb);
 
 /* recovery.c */
 extern int nilfs_read_super_root_block(struct the_nilfs *, sector_t,
-				       struct buffer_head **, int);
+									   struct buffer_head **, int);
 extern int nilfs_search_super_root(struct the_nilfs *,
-				   struct nilfs_recovery_info *);
+								   struct nilfs_recovery_info *);
 int nilfs_salvage_orphan_logs(struct the_nilfs *nilfs, struct super_block *sb,
-			      struct nilfs_recovery_info *ri);
+							  struct nilfs_recovery_info *ri);
 extern void nilfs_dispose_segment_list(struct list_head *);
 
 #endif /* _NILFS_SEGMENT_H */

@@ -88,19 +88,25 @@ static inline struct page *ntfs_map_page(struct address_space *mapping,
 {
 	struct page *page = read_mapping_page(mapping, index, NULL);
 
-	if (!IS_ERR(page)) {
+	if (!IS_ERR(page))
+	{
 		kmap(page);
+
 		if (!PageError(page))
+		{
 			return page;
+		}
+
 		ntfs_unmap_page(page);
 		return ERR_PTR(-EIO);
 	}
+
 	return page;
 }
 
 #ifdef NTFS_RW
 
-extern void mark_ntfs_record_dirty(struct page *page, const unsigned int ofs);
+	extern void mark_ntfs_record_dirty(struct page *page, const unsigned int ofs);
 
 #endif /* NTFS_RW */
 

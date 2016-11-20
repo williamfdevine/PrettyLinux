@@ -14,7 +14,8 @@
 #include <linux/slab.h>
 #include <linux/device.h>
 
-struct adp5520_keys {
+struct adp5520_keys
+{
 	struct input_dev *input;
 	struct notifier_block notifier;
 	struct device *master;
@@ -22,19 +23,21 @@ struct adp5520_keys {
 };
 
 static void adp5520_keys_report_event(struct adp5520_keys *dev,
-					unsigned short keymask, int value)
+									  unsigned short keymask, int value)
 {
 	int i;
 
 	for (i = 0; i < ADP5520_MAXKEYS; i++)
 		if (keymask & (1 << i))
+		{
 			input_report_key(dev->input, dev->keycode[i], value);
+		}
 
 	input_sync(dev->input);
 }
 
 static int adp5520_keys_notifier(struct notifier_block *nb,
-				 unsigned long event, void *data)
+								 unsigned long event, void *data)
 {
 	struct adp5520_keys *dev;
 	uint8_t reg_val_lo, reg_val_hi;
@@ -42,7 +45,8 @@ static int adp5520_keys_notifier(struct notifier_block *nb,
 
 	dev = container_of(nb, struct adp5520_keys, notifier);
 
-	if (event & ADP5520_KP_INT) {
+	if (event & ADP5520_KP_INT)
+	{
 		adp5520_read(dev->master, ADP5520_KP_INT_STAT_1, &reg_val_lo);
 		adp5520_read(dev->master, ADP5520_KP_INT_STAT_2, &reg_val_hi);
 
@@ -54,7 +58,8 @@ static int adp5520_keys_notifier(struct notifier_block *nb,
 		adp5520_keys_report_event(dev, keymask, 1);
 	}
 
-	if (event & ADP5520_KR_INT) {
+	if (event & ADP5520_KR_INT)
+	{
 		adp5520_read(dev->master, ADP5520_KR_INT_STAT_1, &reg_val_lo);
 		adp5520_read(dev->master, ADP5520_KR_INT_STAT_2, &reg_val_hi);
 
@@ -77,28 +82,37 @@ static int adp5520_keys_probe(struct platform_device *pdev)
 	int ret, i;
 	unsigned char en_mask, ctl_mask = 0;
 
-	if (pdev->id != ID_ADP5520) {
+	if (pdev->id != ID_ADP5520)
+	{
 		dev_err(&pdev->dev, "only ADP5520 supports Keypad\n");
 		return -EINVAL;
 	}
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "missing platform data\n");
 		return -EINVAL;
 	}
 
 	if (!(pdata->rows_en_mask && pdata->cols_en_mask))
+	{
 		return -EINVAL;
+	}
 
 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
-	if (!dev) {
+
+	if (!dev)
+	{
 		dev_err(&pdev->dev, "failed to alloc memory\n");
 		return -ENOMEM;
 	}
 
 	input = devm_input_allocate_device(&pdev->dev);
+
 	if (!input)
+	{
 		return -ENOMEM;
+	}
 
 	dev->master = pdev->dev.parent;
 	dev->input = input;
@@ -119,20 +133,27 @@ static int adp5520_keys_probe(struct platform_device *pdev)
 	input->keycode = dev->keycode;
 
 	memcpy(dev->keycode, pdata->keymap,
-		pdata->keymapsize * input->keycodesize);
+		   pdata->keymapsize * input->keycodesize);
 
 	/* setup input device */
 	__set_bit(EV_KEY, input->evbit);
 
 	if (pdata->repeat)
+	{
 		__set_bit(EV_REP, input->evbit);
+	}
 
 	for (i = 0; i < input->keycodemax; i++)
+	{
 		__set_bit(dev->keycode[i], input->keybit);
+	}
+
 	__clear_bit(KEY_RESERVED, input->keybit);
 
 	ret = input_register_device(input);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to register input device\n");
 		return ret;
 	}
@@ -142,27 +163,34 @@ static int adp5520_keys_probe(struct platform_device *pdev)
 	ret = adp5520_set_bits(dev->master, ADP5520_GPIO_CFG_1, en_mask);
 
 	if (en_mask & ADP5520_COL_C3)
+	{
 		ctl_mask |= ADP5520_C3_MODE;
+	}
 
 	if (en_mask & ADP5520_ROW_R3)
+	{
 		ctl_mask |= ADP5520_R3_MODE;
+	}
 
 	if (ctl_mask)
 		ret |= adp5520_set_bits(dev->master, ADP5520_LED_CONTROL,
-			ctl_mask);
+								ctl_mask);
 
 	ret |= adp5520_set_bits(dev->master, ADP5520_GPIO_PULLUP,
-		pdata->rows_en_mask);
+							pdata->rows_en_mask);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to write\n");
 		return -EIO;
 	}
 
 	dev->notifier.notifier_call = adp5520_keys_notifier;
 	ret = adp5520_register_notifier(dev->master, &dev->notifier,
-			ADP5520_KP_IEN | ADP5520_KR_IEN);
-	if (ret) {
+									ADP5520_KP_IEN | ADP5520_KR_IEN);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register notifier\n");
 		return ret;
 	}
@@ -176,12 +204,13 @@ static int adp5520_keys_remove(struct platform_device *pdev)
 	struct adp5520_keys *dev = platform_get_drvdata(pdev);
 
 	adp5520_unregister_notifier(dev->master, &dev->notifier,
-				ADP5520_KP_IEN | ADP5520_KR_IEN);
+								ADP5520_KP_IEN | ADP5520_KR_IEN);
 
 	return 0;
 }
 
-static struct platform_driver adp5520_keys_driver = {
+static struct platform_driver adp5520_keys_driver =
+{
 	.driver	= {
 		.name	= "adp5520-keys",
 	},

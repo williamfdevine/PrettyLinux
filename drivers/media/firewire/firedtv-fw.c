@@ -34,7 +34,7 @@ static inline struct fw_device *device_of(struct firedtv *fdtv)
 }
 
 static int node_req(struct firedtv *fdtv, u64 addr, void *data, size_t len,
-		    int tcode)
+					int tcode)
 {
 	struct fw_device *device = device_of(fdtv);
 	int rcode, generation = device->generation;
@@ -42,7 +42,7 @@ static int node_req(struct firedtv *fdtv, u64 addr, void *data, size_t len,
 	smp_rmb(); /* node_id vs. generation */
 
 	rcode = fw_run_transaction(device->card, tcode, device->node_id,
-			generation, device->max_speed, addr, data, len);
+							   generation, device->max_speed, addr, data, len);
 
 	return rcode != RCODE_COMPLETE ? -EIO : 0;
 }
@@ -73,7 +73,8 @@ int fdtv_write(struct firedtv *fdtv, u64 addr, void *data, size_t len)
 #define N_PAGES			DIV_ROUND_UP(N_PACKETS, PACKETS_PER_PAGE)
 #define IRQ_INTERVAL		16
 
-struct fdtv_ir_context {
+struct fdtv_ir_context
+{
 	struct fw_iso_context *context;
 	struct fw_iso_buffer buffer;
 	int interrupt_packet;
@@ -91,11 +92,11 @@ static int queue_iso(struct fdtv_ir_context *ctx, int index)
 	p.header_length = ISO_HEADER_SIZE;
 
 	return fw_iso_context_queue(ctx->context, &p, &ctx->buffer,
-				    index * MAX_PACKET_SIZE);
+								index * MAX_PACKET_SIZE);
 }
 
 static void handle_iso(struct fw_iso_context *context, u32 cycle,
-		       size_t header_length, void *header, void *data)
+					   size_t header_length, void *header, void *data)
 {
 	struct firedtv *fdtv = data;
 	struct fdtv_ir_context *ctx = fdtv->ir_context;
@@ -103,27 +104,36 @@ static void handle_iso(struct fw_iso_context *context, u32 cycle,
 	int length, err, i = ctx->current_packet;
 	char *p, *p_end;
 
-	for (h = header, h_end = h + header_length / 4; h < h_end; h++) {
+	for (h = header, h_end = h + header_length / 4; h < h_end; h++)
+	{
 		length = be32_to_cpup(h) >> 16;
-		if (unlikely(length > MAX_PACKET_SIZE)) {
+
+		if (unlikely(length > MAX_PACKET_SIZE))
+		{
 			dev_err(fdtv->device, "length = %d\n", length);
 			length = MAX_PACKET_SIZE;
 		}
 
 		p = ctx->pages[i / PACKETS_PER_PAGE]
-				+ (i % PACKETS_PER_PAGE) * MAX_PACKET_SIZE;
+			+ (i % PACKETS_PER_PAGE) * MAX_PACKET_SIZE;
 		p_end = p + length;
 
 		for (p += CIP_HEADER_SIZE + MPEG2_TS_HEADER_SIZE; p < p_end;
-		     p += MPEG2_TS_SOURCE_PACKET_SIZE)
+			 p += MPEG2_TS_SOURCE_PACKET_SIZE)
+		{
 			dvb_dmx_swfilter_packets(&fdtv->demux, p, 1);
+		}
 
 		err = queue_iso(ctx, i);
+
 		if (unlikely(err))
+		{
 			dev_err(fdtv->device, "requeue failed\n");
+		}
 
 		i = (i + 1) & (N_PACKETS - 1);
 	}
+
 	fw_iso_context_queue_flush(ctx->context);
 	ctx->current_packet = i;
 }
@@ -135,38 +145,55 @@ int fdtv_start_iso(struct firedtv *fdtv)
 	int i, err;
 
 	ctx = kmalloc(sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	ctx->context = fw_iso_context_create(device->card,
-			FW_ISO_CONTEXT_RECEIVE, fdtv->isochannel,
-			device->max_speed, ISO_HEADER_SIZE, handle_iso, fdtv);
-	if (IS_ERR(ctx->context)) {
+										 FW_ISO_CONTEXT_RECEIVE, fdtv->isochannel,
+										 device->max_speed, ISO_HEADER_SIZE, handle_iso, fdtv);
+
+	if (IS_ERR(ctx->context))
+	{
 		err = PTR_ERR(ctx->context);
 		goto fail_free;
 	}
 
 	err = fw_iso_buffer_init(&ctx->buffer, device->card,
-				 N_PAGES, DMA_FROM_DEVICE);
+							 N_PAGES, DMA_FROM_DEVICE);
+
 	if (err)
+	{
 		goto fail_context_destroy;
+	}
 
 	ctx->interrupt_packet = 0;
 	ctx->current_packet = 0;
 
 	for (i = 0; i < N_PAGES; i++)
+	{
 		ctx->pages[i] = page_address(ctx->buffer.pages[i]);
+	}
 
-	for (i = 0; i < N_PACKETS; i++) {
+	for (i = 0; i < N_PACKETS; i++)
+	{
 		err = queue_iso(ctx, i);
+
 		if (err)
+		{
 			goto fail;
+		}
 	}
 
 	err = fw_iso_context_start(ctx->context, -1, 0,
-				   FW_ISO_CONTEXT_MATCH_ALL_TAGS);
+							   FW_ISO_CONTEXT_MATCH_ALL_TAGS);
+
 	if (err)
+	{
 		goto fail;
+	}
 
 	fdtv->ir_context = ctx;
 
@@ -192,9 +219,9 @@ void fdtv_stop_iso(struct firedtv *fdtv)
 }
 
 static void handle_fcp(struct fw_card *card, struct fw_request *request,
-		       int tcode, int destination, int source, int generation,
-		       unsigned long long offset, void *payload, size_t length,
-		       void *callback_data)
+					   int tcode, int destination, int source, int generation,
+					   unsigned long long offset, void *payload, size_t length,
+					   void *callback_data)
 {
 	struct firedtv *f, *fdtv = NULL;
 	struct fw_device *device;
@@ -202,21 +229,28 @@ static void handle_fcp(struct fw_card *card, struct fw_request *request,
 	int su;
 
 	if (length < 2 || (((u8 *)payload)[0] & 0xf0) != 0)
+	{
 		return;
+	}
 
 	su = ((u8 *)payload)[1] & 0x7;
 
 	spin_lock_irqsave(&node_list_lock, flags);
-	list_for_each_entry(f, &node_list, list) {
+	list_for_each_entry(f, &node_list, list)
+	{
 		device = device_of(f);
+
 		if (device->generation != generation)
+		{
 			continue;
+		}
 
 		smp_rmb(); /* node_id vs. generation */
 
 		if (device->card == card &&
-		    device->node_id == source &&
-		    (f->subunit == su || (f->subunit == 0 && su == 0x7))) {
+			device->node_id == source &&
+			(f->subunit == su || (f->subunit == 0 && su == 0x7)))
+		{
 			fdtv = f;
 			break;
 		}
@@ -224,20 +258,25 @@ static void handle_fcp(struct fw_card *card, struct fw_request *request,
 	spin_unlock_irqrestore(&node_list_lock, flags);
 
 	if (fdtv)
+	{
 		avc_recv(fdtv, payload, length);
+	}
 }
 
-static struct fw_address_handler fcp_handler = {
+static struct fw_address_handler fcp_handler =
+{
 	.length           = CSR_FCP_END - CSR_FCP_RESPONSE,
 	.address_callback = handle_fcp,
 };
 
-static const struct fw_address_region fcp_region = {
+static const struct fw_address_region fcp_region =
+{
 	.start	= CSR_REGISTER_BASE + CSR_FCP_RESPONSE,
 	.end	= CSR_REGISTER_BASE + CSR_FCP_END,
 };
 
-static const char * const model_names[] = {
+static const char *const model_names[] =
+{
 	[FIREDTV_UNKNOWN] = "unknown type",
 	[FIREDTV_DVB_S]   = "FireDTV S/CI",
 	[FIREDTV_DVB_C]   = "FireDTV C/CI",
@@ -255,8 +294,11 @@ static int node_probe(struct fw_unit *unit, const struct ieee1394_device_id *id)
 	int name_len, i, err;
 
 	fdtv = kzalloc(sizeof(*fdtv), GFP_KERNEL);
+
 	if (!fdtv)
+	{
 		return -ENOMEM;
+	}
 
 	dev_set_drvdata(&unit->device, fdtv);
 	fdtv->device		= &unit->device;
@@ -270,28 +312,41 @@ static int node_probe(struct fw_unit *unit, const struct ieee1394_device_id *id)
 	INIT_WORK(&fdtv->remote_ctrl_work, avc_remote_ctrl_work);
 
 	name_len = fw_csr_string(unit->directory, CSR_MODEL,
-				 name, sizeof(name));
+							 name, sizeof(name));
+
 	for (i = ARRAY_SIZE(model_names); --i; )
 		if (strlen(model_names[i]) <= name_len &&
-		    strncmp(name, model_names[i], name_len) == 0)
+			strncmp(name, model_names[i], name_len) == 0)
+		{
 			break;
+		}
+
 	fdtv->type = i;
 
 	err = fdtv_register_rc(fdtv, &unit->device);
+
 	if (err)
+	{
 		goto fail_free;
+	}
 
 	spin_lock_irq(&node_list_lock);
 	list_add_tail(&fdtv->list, &node_list);
 	spin_unlock_irq(&node_list_lock);
 
 	err = avc_identify_subunit(fdtv);
+
 	if (err)
+	{
 		goto fail;
+	}
 
 	err = fdtv_dvb_register(fdtv, model_names[fdtv->type]);
+
 	if (err)
+	{
 		goto fail;
+	}
 
 	avc_register_remote_control(fdtv);
 
@@ -328,17 +383,18 @@ static void node_update(struct fw_unit *unit)
 
 	if (fdtv->isochannel >= 0)
 		cmp_establish_pp_connection(fdtv, fdtv->subunit,
-					    fdtv->isochannel);
+									fdtv->isochannel);
 }
 
 #define MATCH_FLAGS (IEEE1394_MATCH_VENDOR_ID | IEEE1394_MATCH_MODEL_ID | \
-		     IEEE1394_MATCH_SPECIFIER_ID | IEEE1394_MATCH_VERSION)
+					 IEEE1394_MATCH_SPECIFIER_ID | IEEE1394_MATCH_VERSION)
 
 #define DIGITAL_EVERYWHERE_OUI	0x001287
 #define AVC_UNIT_SPEC_ID_ENTRY	0x00a02d
 #define AVC_SW_VERSION_ENTRY	0x010001
 
-static const struct ieee1394_device_id fdtv_id_table[] = {
+static const struct ieee1394_device_id fdtv_id_table[] =
+{
 	{
 		/* FloppyDTV S/CI and FloppyDTV S2 */
 		.match_flags	= MATCH_FLAGS,
@@ -385,7 +441,8 @@ static const struct ieee1394_device_id fdtv_id_table[] = {
 };
 MODULE_DEVICE_TABLE(ieee1394, fdtv_id_table);
 
-static struct fw_driver fdtv_driver = {
+static struct fw_driver fdtv_driver =
+{
 	.driver   = {
 		.owner  = THIS_MODULE,
 		.name   = "firedtv",
@@ -402,12 +459,18 @@ static int __init fdtv_init(void)
 	int ret;
 
 	ret = fw_core_add_address_handler(&fcp_handler, &fcp_region);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = driver_register(&fdtv_driver.driver);
+
 	if (ret < 0)
+	{
 		fw_core_remove_address_handler(&fcp_handler);
+	}
 
 	return ret;
 }

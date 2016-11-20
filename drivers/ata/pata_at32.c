@@ -68,14 +68,16 @@
  *
  * Alter PIO_MASK below according to table to set maximal PIO mode.
  */
-enum {
-  PIO_MASK = ATA_PIO4,
+enum
+{
+	PIO_MASK = ATA_PIO4,
 };
 
 /*
  * Struct containing private information about device.
  */
-struct at32_ide_info {
+struct at32_ide_info
+{
 	unsigned int		irq;
 	struct resource		res_ide;
 	struct resource		res_alt;
@@ -89,8 +91,8 @@ struct at32_ide_info {
  * Setup SMC for the given ATA timing.
  */
 static int pata_at32_setup_timing(struct device *dev,
-				  struct at32_ide_info *info,
-				  const struct ata_timing *ata)
+								  struct at32_ide_info *info,
+								  const struct ata_timing *ata)
 {
 	struct smc_config *smc = &info->smc;
 	struct smc_timing timing;
@@ -119,7 +121,9 @@ static int pata_at32_setup_timing(struct device *dev,
 
 	/* Need at least two cycles recovery */
 	if (recover < 2)
-	  smc->read_cycle = active + 2;
+	{
+		smc->read_cycle = active + 2;
+	}
 
 	/* (CS0, CS1, DIR, OE) <= (CFCE1, CFCE2, CFRNW, NCSX) timings */
 	smc->ncs_read_setup = 1;
@@ -134,11 +138,11 @@ static int pata_at32_setup_timing(struct device *dev,
 
 	/* Do some debugging output of ATA and SMC timings */
 	dev_dbg(dev, "ATA: C=%d S=%d P=%d R=%d\n",
-		ata->cyc8b, ata->setup, ata->act8b, ata->rec8b);
+			ata->cyc8b, ata->setup, ata->act8b, ata->rec8b);
 
 	dev_dbg(dev, "SMC: C=%d S=%d P=%d NS=%d NP=%d\n",
-		smc->read_cycle, smc->nrd_setup, smc->nrd_pulse,
-		smc->ncs_read_setup, smc->ncs_read_pulse);
+			smc->read_cycle, smc->nrd_setup, smc->nrd_pulse,
+			smc->ncs_read_setup, smc->ncs_read_pulse);
 
 	/* Finally, configure the SMC */
 	return smc_set_configuration(info->cs, smc);
@@ -156,38 +160,47 @@ static void pata_at32_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 	/* Compute ATA timing */
 	ret = ata_timing_compute(adev, adev->pio_mode, &timing, 1000, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(ap->dev, "Failed to compute ATA timing %d\n", ret);
 		return;
 	}
 
 	/* Setup SMC to ATA timing */
 	ret = pata_at32_setup_timing(ap->dev, info, &timing);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(ap->dev, "Failed to setup ATA timing %d\n", ret);
 		return;
 	}
 }
 
-static struct scsi_host_template at32_sht = {
+static struct scsi_host_template at32_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations at32_port_ops = {
+static struct ata_port_operations at32_port_ops =
+{
 	.inherits		= &ata_sff_port_ops,
 	.cable_detect		= ata_cable_40wire,
 	.set_piomode		= pata_at32_set_piomode,
 };
 
 static int __init pata_at32_init_one(struct device *dev,
-				     struct at32_ide_info *info)
+									 struct at32_ide_info *info)
 {
 	struct ata_host *host;
 	struct ata_port *ap;
 
 	host = ata_host_alloc(dev, 1);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	ap = host->ports[0];
 
@@ -227,8 +240,8 @@ static int __init pata_at32_init_one(struct device *dev,
 
 	/* Register ATA device and return */
 	return ata_host_activate(host, info->irq, ata_sff_interrupt,
-				 IRQF_SHARED | IRQF_TRIGGER_RISING,
-				 &at32_sht);
+							 IRQF_SHARED | IRQF_TRIGGER_RISING,
+							 &at32_sht);
 }
 
 /*
@@ -238,7 +251,7 @@ static int __init pata_at32_init_one(struct device *dev,
 #ifdef DEBUG_BUS
 
 static void __init pata_at32_debug_bus(struct device *dev,
-				       struct at32_ide_info *info)
+									   struct at32_ide_info *info)
 {
 	const int d1 = 0xff;
 	const int d2 = 0x00;
@@ -249,7 +262,8 @@ static void __init pata_at32_debug_bus(struct device *dev,
 	iowrite8(d1, info->alt_addr + (0x06 << 1));
 	iowrite8(d2, info->alt_addr + (0x06 << 1));
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		iowrite8(d1, info->ide_addr + (i << 1));
 		iowrite8(d2, info->ide_addr + (i << 1));
 	}
@@ -267,7 +281,7 @@ static void __init pata_at32_debug_bus(struct device *dev,
 static int __init pata_at32_probe(struct platform_device *pdev)
 {
 	const struct ata_timing initial_timing =
-		{XFER_PIO_0, 70, 290, 240, 600, 165, 150, 600, 0};
+	{XFER_PIO_0, 70, 290, 240, 600, 165, 150, 600, 0};
 
 	struct device		 *dev = &pdev->dev;
 	struct at32_ide_info	 *info;
@@ -278,21 +292,32 @@ static int __init pata_at32_probe(struct platform_device *pdev)
 	int ret;
 
 	if (!board)
+	{
 		return -ENXIO;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENXIO;
+	}
 
 	/* Retrive IRQ */
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	/* Setup struct containing private information */
 	info = kzalloc(sizeof(struct at32_ide_info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	info->irq = irq;
 	info->cs  = board->cs;
@@ -304,8 +329,11 @@ static int __init pata_at32_probe(struct platform_device *pdev)
 	info->res_ide.flags = IORESOURCE_MEM;
 
 	ret = request_resource(res, &info->res_ide);
+
 	if (ret)
+	{
 		goto err_req_res_ide;
+	}
 
 	info->res_alt.start = res->start + CF_ALT_IDE_OFFSET;
 	info->res_alt.end   = info->res_alt.start + CF_RES_SIZE - 1;
@@ -313,8 +341,11 @@ static int __init pata_at32_probe(struct platform_device *pdev)
 	info->res_alt.flags = IORESOURCE_MEM;
 
 	ret = request_resource(res, &info->res_alt);
+
 	if (ret)
+	{
 		goto err_req_res_alt;
+	}
 
 	/* Setup non-timing elements of SMC */
 	info->smc.bus_width	 = 2; /* 16 bit data bus */
@@ -327,15 +358,21 @@ static int __init pata_at32_probe(struct platform_device *pdev)
 
 	/* Setup SMC to ATA timing */
 	ret = pata_at32_setup_timing(dev, info, &initial_timing);
+
 	if (ret)
+	{
 		goto err_setup_timing;
+	}
 
 	/* Map ATA address space */
 	ret = -ENOMEM;
 	info->ide_addr = devm_ioremap(dev, info->res_ide.start, 16);
 	info->alt_addr = devm_ioremap(dev, info->res_alt.start, 16);
+
 	if (!info->ide_addr || !info->alt_addr)
+	{
 		goto err_ioremap;
+	}
 
 #ifdef DEBUG_BUS
 	pata_at32_debug_bus(dev, info);
@@ -343,18 +380,21 @@ static int __init pata_at32_probe(struct platform_device *pdev)
 
 	/* Setup and register ATA device */
 	ret = pata_at32_init_one(dev, info);
+
 	if (ret)
+	{
 		goto err_ata_device;
+	}
 
 	return 0;
 
- err_ata_device:
- err_ioremap:
- err_setup_timing:
+err_ata_device:
+err_ioremap:
+err_setup_timing:
 	release_resource(&info->res_alt);
- err_req_res_alt:
+err_req_res_alt:
 	release_resource(&info->res_ide);
- err_req_res_ide:
+err_req_res_ide:
 	kfree(info);
 
 	return ret;
@@ -366,13 +406,17 @@ static int __exit pata_at32_remove(struct platform_device *pdev)
 	struct at32_ide_info *info;
 
 	if (!host)
+	{
 		return 0;
+	}
 
 	info = host->private_data;
 	ata_host_detach(host);
 
 	if (!info)
+	{
 		return 0;
+	}
 
 	release_resource(&info->res_ide);
 	release_resource(&info->res_alt);
@@ -385,7 +429,8 @@ static int __exit pata_at32_remove(struct platform_device *pdev)
 /* work with hotplug and coldplug */
 MODULE_ALIAS("platform:at32_ide");
 
-static struct platform_driver pata_at32_driver = {
+static struct platform_driver pata_at32_driver =
+{
 	.remove	       = __exit_p(pata_at32_remove),
 	.driver	       = {
 		.name  = "at32_ide",

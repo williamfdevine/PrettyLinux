@@ -30,26 +30,26 @@
 #include <linux/topology.h>
 
 #define define_id_show_func(name)				\
-static ssize_t name##_show(struct device *dev,			\
-		struct device_attribute *attr, char *buf)	\
-{								\
-	return sprintf(buf, "%d\n", topology_##name(dev->id));	\
-}
+	static ssize_t name##_show(struct device *dev,			\
+							   struct device_attribute *attr, char *buf)	\
+	{								\
+		return sprintf(buf, "%d\n", topology_##name(dev->id));	\
+	}
 
 #define define_siblings_show_map(name, mask)				\
-static ssize_t name##_show(struct device *dev,				\
-			   struct device_attribute *attr, char *buf)	\
-{									\
-	return cpumap_print_to_pagebuf(false, buf, topology_##mask(dev->id));\
-}
+	static ssize_t name##_show(struct device *dev,				\
+							   struct device_attribute *attr, char *buf)	\
+	{									\
+		return cpumap_print_to_pagebuf(false, buf, topology_##mask(dev->id));\
+	}
 
 #define define_siblings_show_list(name, mask)				\
-static ssize_t name##_list_show(struct device *dev,			\
-				struct device_attribute *attr,		\
-				char *buf)				\
-{									\
-	return cpumap_print_to_pagebuf(true, buf, topology_##mask(dev->id));\
-}
+	static ssize_t name##_list_show(struct device *dev,			\
+									struct device_attribute *attr,		\
+									char *buf)				\
+	{									\
+		return cpumap_print_to_pagebuf(true, buf, topology_##mask(dev->id));\
+	}
 
 #define define_siblings_show_func(name, mask)	\
 	define_siblings_show_map(name, mask);	\
@@ -70,22 +70,23 @@ static DEVICE_ATTR_RO(core_siblings);
 static DEVICE_ATTR_RO(core_siblings_list);
 
 #ifdef CONFIG_SCHED_BOOK
-define_id_show_func(book_id);
-static DEVICE_ATTR_RO(book_id);
-define_siblings_show_func(book_siblings, book_cpumask);
-static DEVICE_ATTR_RO(book_siblings);
-static DEVICE_ATTR_RO(book_siblings_list);
+	define_id_show_func(book_id);
+	static DEVICE_ATTR_RO(book_id);
+	define_siblings_show_func(book_siblings, book_cpumask);
+	static DEVICE_ATTR_RO(book_siblings);
+	static DEVICE_ATTR_RO(book_siblings_list);
 #endif
 
 #ifdef CONFIG_SCHED_DRAWER
-define_id_show_func(drawer_id);
-static DEVICE_ATTR_RO(drawer_id);
-define_siblings_show_func(drawer_siblings, drawer_cpumask);
-static DEVICE_ATTR_RO(drawer_siblings);
-static DEVICE_ATTR_RO(drawer_siblings_list);
+	define_id_show_func(drawer_id);
+	static DEVICE_ATTR_RO(drawer_id);
+	define_siblings_show_func(drawer_siblings, drawer_cpumask);
+	static DEVICE_ATTR_RO(drawer_siblings);
+	static DEVICE_ATTR_RO(drawer_siblings_list);
 #endif
 
-static struct attribute *default_attrs[] = {
+static struct attribute *default_attrs[] =
+{
 	&dev_attr_physical_package_id.attr,
 	&dev_attr_core_id.attr,
 	&dev_attr_thread_siblings.attr,
@@ -105,7 +106,8 @@ static struct attribute *default_attrs[] = {
 	NULL
 };
 
-static struct attribute_group topology_attr_group = {
+static struct attribute_group topology_attr_group =
+{
 	.attrs = default_attrs,
 	.name = "topology"
 };
@@ -126,23 +128,26 @@ static void topology_remove_dev(unsigned int cpu)
 }
 
 static int topology_cpu_callback(struct notifier_block *nfb,
-				 unsigned long action, void *hcpu)
+								 unsigned long action, void *hcpu)
 {
 	unsigned int cpu = (unsigned long)hcpu;
 	int rc = 0;
 
-	switch (action) {
-	case CPU_UP_PREPARE:
-	case CPU_UP_PREPARE_FROZEN:
-		rc = topology_add_dev(cpu);
-		break;
-	case CPU_UP_CANCELED:
-	case CPU_UP_CANCELED_FROZEN:
-	case CPU_DEAD:
-	case CPU_DEAD_FROZEN:
-		topology_remove_dev(cpu);
-		break;
+	switch (action)
+	{
+		case CPU_UP_PREPARE:
+		case CPU_UP_PREPARE_FROZEN:
+			rc = topology_add_dev(cpu);
+			break;
+
+		case CPU_UP_CANCELED:
+		case CPU_UP_CANCELED_FROZEN:
+		case CPU_DEAD:
+		case CPU_DEAD_FROZEN:
+			topology_remove_dev(cpu);
+			break;
 	}
+
 	return notifier_from_errno(rc);
 }
 
@@ -153,10 +158,14 @@ static int topology_sysfs_init(void)
 
 	cpu_notifier_register_begin();
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		rc = topology_add_dev(cpu);
+
 		if (rc)
+		{
 			goto out;
+		}
 	}
 	__hotcpu_notifier(topology_cpu_callback, 0);
 

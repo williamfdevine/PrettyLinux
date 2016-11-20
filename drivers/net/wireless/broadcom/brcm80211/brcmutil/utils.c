@@ -31,7 +31,9 @@ struct sk_buff *brcmu_pkt_buf_get_skb(uint len)
 	struct sk_buff *skb;
 
 	skb = dev_alloc_skb(len);
-	if (skb) {
+
+	if (skb)
+	{
 		skb_put(skb, len);
 		skb->priority = 0;
 	}
@@ -44,7 +46,9 @@ EXPORT_SYMBOL(brcmu_pkt_buf_get_skb);
 void brcmu_pkt_buf_free_skb(struct sk_buff *skb)
 {
 	if (!skb)
+	{
 		return;
+	}
 
 	WARN_ON(skb->next);
 	dev_kfree_skb_any(skb);
@@ -56,38 +60,46 @@ EXPORT_SYMBOL(brcmu_pkt_buf_free_skb);
  * hi_prec is always >= the number of the highest non-empty precedence
  */
 struct sk_buff *brcmu_pktq_penq(struct pktq *pq, int prec,
-				      struct sk_buff *p)
+								struct sk_buff *p)
 {
 	struct sk_buff_head *q;
 
 	if (pktq_full(pq) || pktq_pfull(pq, prec))
+	{
 		return NULL;
+	}
 
 	q = &pq->q[prec].skblist;
 	skb_queue_tail(q, p);
 	pq->len++;
 
 	if (pq->hi_prec < prec)
+	{
 		pq->hi_prec = (u8) prec;
+	}
 
 	return p;
 }
 EXPORT_SYMBOL(brcmu_pktq_penq);
 
 struct sk_buff *brcmu_pktq_penq_head(struct pktq *pq, int prec,
-					   struct sk_buff *p)
+									 struct sk_buff *p)
 {
 	struct sk_buff_head *q;
 
 	if (pktq_full(pq) || pktq_pfull(pq, prec))
+	{
 		return NULL;
+	}
 
 	q = &pq->q[prec].skblist;
 	skb_queue_head(q, p);
 	pq->len++;
 
 	if (pq->hi_prec < prec)
+	{
 		pq->hi_prec = (u8) prec;
+	}
 
 	return p;
 }
@@ -100,8 +112,11 @@ struct sk_buff *brcmu_pktq_pdeq(struct pktq *pq, int prec)
 
 	q = &pq->q[prec].skblist;
 	p = skb_dequeue(q);
+
 	if (p == NULL)
+	{
 		return NULL;
+	}
 
 	pq->len--;
 	return p;
@@ -115,15 +130,17 @@ EXPORT_SYMBOL(brcmu_pktq_pdeq);
  * from brcmu_pktq_pdeq() above.
  */
 struct sk_buff *brcmu_pktq_pdeq_match(struct pktq *pq, int prec,
-				      bool (*match_fn)(struct sk_buff *skb,
-						       void *arg), void *arg)
+									  bool (*match_fn)(struct sk_buff *skb,
+											  void *arg), void *arg)
 {
 	struct sk_buff_head *q;
 	struct sk_buff *p, *next;
 
 	q = &pq->q[prec].skblist;
-	skb_queue_walk_safe(q, p, next) {
-		if (match_fn == NULL || match_fn(p, arg)) {
+	skb_queue_walk_safe(q, p, next)
+	{
+		if (match_fn == NULL || match_fn(p, arg))
+		{
 			skb_unlink(p, q);
 			pq->len--;
 			return p;
@@ -140,8 +157,11 @@ struct sk_buff *brcmu_pktq_pdeq_tail(struct pktq *pq, int prec)
 
 	q = &pq->q[prec].skblist;
 	p = skb_dequeue_tail(q);
+
 	if (p == NULL)
+	{
 		return NULL;
+	}
 
 	pq->len--;
 	return p;
@@ -150,14 +170,16 @@ EXPORT_SYMBOL(brcmu_pktq_pdeq_tail);
 
 void
 brcmu_pktq_pflush(struct pktq *pq, int prec, bool dir,
-		  bool (*fn)(struct sk_buff *, void *), void *arg)
+				  bool (*fn)(struct sk_buff *, void *), void *arg)
 {
 	struct sk_buff_head *q;
 	struct sk_buff *p, *next;
 
 	q = &pq->q[prec].skblist;
-	skb_queue_walk_safe(q, p, next) {
-		if (fn == NULL || (*fn) (p, arg)) {
+	skb_queue_walk_safe(q, p, next)
+	{
+		if (fn == NULL || (*fn) (p, arg))
+		{
 			skb_unlink(p, q);
 			brcmu_pkt_buf_free_skb(p);
 			pq->len--;
@@ -167,11 +189,14 @@ brcmu_pktq_pflush(struct pktq *pq, int prec, bool dir,
 EXPORT_SYMBOL(brcmu_pktq_pflush);
 
 void brcmu_pktq_flush(struct pktq *pq, bool dir,
-		      bool (*fn)(struct sk_buff *, void *), void *arg)
+					  bool (*fn)(struct sk_buff *, void *), void *arg)
 {
 	int prec;
+
 	for (prec = 0; prec < pq->num_prec; prec++)
+	{
 		brcmu_pktq_pflush(pq, prec, dir, fn, arg);
+	}
 }
 EXPORT_SYMBOL(brcmu_pktq_flush);
 
@@ -181,13 +206,14 @@ void brcmu_pktq_init(struct pktq *pq, int num_prec, int max_len)
 
 	/* pq is variable size; only zero out what's requested */
 	memset(pq, 0,
-	      offsetof(struct pktq, q) + (sizeof(struct pktq_prec) * num_prec));
+		   offsetof(struct pktq, q) + (sizeof(struct pktq_prec) * num_prec));
 
 	pq->num_prec = (u16) num_prec;
 
 	pq->max = (u16) max_len;
 
-	for (prec = 0; prec < num_prec; prec++) {
+	for (prec = 0; prec < num_prec; prec++)
+	{
 		pq->q[prec].max = pq->max;
 		skb_queue_head_init(&pq->q[prec].skblist);
 	}
@@ -199,14 +225,20 @@ struct sk_buff *brcmu_pktq_peek_tail(struct pktq *pq, int *prec_out)
 	int prec;
 
 	if (pq->len == 0)
+	{
 		return NULL;
+	}
 
 	for (prec = 0; prec < pq->hi_prec; prec++)
 		if (!skb_queue_empty(&pq->q[prec].skblist))
+		{
 			break;
+		}
 
 	if (prec_out)
+	{
 		*prec_out = prec;
+	}
 
 	return skb_peek_tail(&pq->q[prec].skblist);
 }
@@ -221,7 +253,9 @@ int brcmu_pktq_mlen(struct pktq *pq, uint prec_bmp)
 
 	for (prec = 0; prec <= pq->hi_prec; prec++)
 		if (prec_bmp & (1 << prec))
+		{
 			len += pq->q[prec].skblist.qlen;
+		}
 
 	return len;
 }
@@ -229,33 +263,44 @@ EXPORT_SYMBOL(brcmu_pktq_mlen);
 
 /* Priority dequeue from a specific set of precedences */
 struct sk_buff *brcmu_pktq_mdeq(struct pktq *pq, uint prec_bmp,
-				      int *prec_out)
+								int *prec_out)
 {
 	struct sk_buff_head *q;
 	struct sk_buff *p;
 	int prec;
 
 	if (pq->len == 0)
+	{
 		return NULL;
+	}
 
 	while ((prec = pq->hi_prec) > 0 &&
-	       skb_queue_empty(&pq->q[prec].skblist))
+		   skb_queue_empty(&pq->q[prec].skblist))
+	{
 		pq->hi_prec--;
+	}
 
 	while ((prec_bmp & (1 << prec)) == 0 ||
-	       skb_queue_empty(&pq->q[prec].skblist))
+		   skb_queue_empty(&pq->q[prec].skblist))
 		if (prec-- == 0)
+		{
 			return NULL;
+		}
 
 	q = &pq->q[prec].skblist;
 	p = skb_dequeue(q);
+
 	if (p == NULL)
+	{
 		return NULL;
+	}
 
 	pq->len--;
 
 	if (prec_out)
+	{
 		*prec_out = prec;
+	}
 
 	return p;
 }
@@ -266,13 +311,17 @@ char *brcmu_boardrev_str(u32 brev, char *buf)
 {
 	char c;
 
-	if (brev < 0x100) {
+	if (brev < 0x100)
+	{
 		snprintf(buf, BRCMU_BOARDREV_LEN, "%d.%d",
-			 (brev & 0xf0) >> 4, brev & 0xf);
-	} else {
+				 (brev & 0xf0) >> 4, brev & 0xf);
+	}
+	else
+	{
 		c = (brev & 0xf000) == 0x1000 ? 'P' : 'A';
 		snprintf(buf, BRCMU_BOARDREV_LEN, "%c%03x", c, brev & 0xfff);
 	}
+
 	return buf;
 }
 EXPORT_SYMBOL(brcmu_boardrev_str);
@@ -281,10 +330,12 @@ char *brcmu_dotrev_str(u32 dotrev, char *buf)
 {
 	u8 dotval[4];
 
-	if (!dotrev) {
+	if (!dotrev)
+	{
 		snprintf(buf, BRCMU_DOTREV_LEN, "unknown");
 		return buf;
 	}
+
 	dotval[0] = (dotrev >> 24) & 0xFF;
 	dotval[1] = (dotrev >> 16) & 0xFF;
 	dotval[2] = (dotrev >> 8) & 0xFF;
@@ -292,13 +343,13 @@ char *brcmu_dotrev_str(u32 dotrev, char *buf)
 
 	if (dotval[3])
 		snprintf(buf, BRCMU_DOTREV_LEN, "%d.%d.%d.%d", dotval[0],
-			dotval[1], dotval[2], dotval[3]);
+				 dotval[1], dotval[2], dotval[3]);
 	else if (dotval[2])
 		snprintf(buf, BRCMU_DOTREV_LEN, "%d.%d.%d", dotval[0],
-			dotval[1], dotval[2]);
+				 dotval[1], dotval[2]);
 	else
 		snprintf(buf, BRCMU_DOTREV_LEN, "%d.%d", dotval[0],
-			dotval[1]);
+				 dotval[1]);
 
 	return buf;
 }
@@ -311,10 +362,14 @@ void brcmu_prpkt(const char *msg, struct sk_buff *p0)
 	struct sk_buff *p;
 
 	if (msg && (msg[0] != '\0'))
+	{
 		pr_debug("%s:\n", msg);
+	}
 
 	for (p = p0; p; p = p->next)
+	{
 		print_hex_dump_bytes("", DUMP_PREFIX_OFFSET, p->data, p->len);
+	}
 }
 EXPORT_SYMBOL(brcmu_prpkt);
 

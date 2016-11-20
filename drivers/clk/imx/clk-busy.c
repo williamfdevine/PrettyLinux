@@ -24,12 +24,15 @@ static int clk_busy_wait(void __iomem *reg, u8 shift)
 
 	while (readl_relaxed(reg) & (1 << shift))
 		if (time_after(jiffies, timeout))
+		{
 			return -ETIMEDOUT;
+		}
 
 	return 0;
 }
 
-struct clk_busy_divider {
+struct clk_busy_divider
+{
 	struct clk_divider div;
 	const struct clk_ops *div_ops;
 	void __iomem *reg;
@@ -44,7 +47,7 @@ static inline struct clk_busy_divider *to_clk_busy_divider(struct clk_hw *hw)
 }
 
 static unsigned long clk_busy_divider_recalc_rate(struct clk_hw *hw,
-						  unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_busy_divider *busy = to_clk_busy_divider(hw);
 
@@ -52,7 +55,7 @@ static unsigned long clk_busy_divider_recalc_rate(struct clk_hw *hw,
 }
 
 static long clk_busy_divider_round_rate(struct clk_hw *hw, unsigned long rate,
-					unsigned long *prate)
+										unsigned long *prate)
 {
 	struct clk_busy_divider *busy = to_clk_busy_divider(hw);
 
@@ -60,35 +63,42 @@ static long clk_busy_divider_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int clk_busy_divider_set_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long parent_rate)
+									 unsigned long parent_rate)
 {
 	struct clk_busy_divider *busy = to_clk_busy_divider(hw);
 	int ret;
 
 	ret = busy->div_ops->set_rate(&busy->div.hw, rate, parent_rate);
+
 	if (!ret)
+	{
 		ret = clk_busy_wait(busy->reg, busy->shift);
+	}
 
 	return ret;
 }
 
-static struct clk_ops clk_busy_divider_ops = {
+static struct clk_ops clk_busy_divider_ops =
+{
 	.recalc_rate = clk_busy_divider_recalc_rate,
 	.round_rate = clk_busy_divider_round_rate,
 	.set_rate = clk_busy_divider_set_rate,
 };
 
 struct clk *imx_clk_busy_divider(const char *name, const char *parent_name,
-				 void __iomem *reg, u8 shift, u8 width,
-				 void __iomem *busy_reg, u8 busy_shift)
+								 void __iomem *reg, u8 shift, u8 width,
+								 void __iomem *busy_reg, u8 busy_shift)
 {
 	struct clk_busy_divider *busy;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	busy = kzalloc(sizeof(*busy), GFP_KERNEL);
+
 	if (!busy)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	busy->reg = busy_reg;
 	busy->shift = busy_shift;
@@ -108,13 +118,17 @@ struct clk *imx_clk_busy_divider(const char *name, const char *parent_name,
 	busy->div.hw.init = &init;
 
 	clk = clk_register(NULL, &busy->div.hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(busy);
+	}
 
 	return clk;
 }
 
-struct clk_busy_mux {
+struct clk_busy_mux
+{
 	struct clk_mux mux;
 	const struct clk_ops *mux_ops;
 	void __iomem *reg;
@@ -141,28 +155,35 @@ static int clk_busy_mux_set_parent(struct clk_hw *hw, u8 index)
 	int ret;
 
 	ret = busy->mux_ops->set_parent(&busy->mux.hw, index);
+
 	if (!ret)
+	{
 		ret = clk_busy_wait(busy->reg, busy->shift);
+	}
 
 	return ret;
 }
 
-static struct clk_ops clk_busy_mux_ops = {
+static struct clk_ops clk_busy_mux_ops =
+{
 	.get_parent = clk_busy_mux_get_parent,
 	.set_parent = clk_busy_mux_set_parent,
 };
 
 struct clk *imx_clk_busy_mux(const char *name, void __iomem *reg, u8 shift,
-			     u8 width, void __iomem *busy_reg, u8 busy_shift,
-			     const char **parent_names, int num_parents)
+							 u8 width, void __iomem *busy_reg, u8 busy_shift,
+							 const char **parent_names, int num_parents)
 {
 	struct clk_busy_mux *busy;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	busy = kzalloc(sizeof(*busy), GFP_KERNEL);
+
 	if (!busy)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	busy->reg = busy_reg;
 	busy->shift = busy_shift;
@@ -182,8 +203,11 @@ struct clk *imx_clk_busy_mux(const char *name, void __iomem *reg, u8 shift,
 	busy->mux.hw.init = &init;
 
 	clk = clk_register(NULL, &busy->mux.hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(busy);
+	}
 
 	return clk;
 }

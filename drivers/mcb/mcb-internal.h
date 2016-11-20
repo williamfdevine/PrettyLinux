@@ -8,7 +8,8 @@
 #define CHAMELEONV2_MAGIC		0xabce
 #define CHAM_HEADER_SIZE		0x200
 
-enum chameleon_descriptor_type {
+enum chameleon_descriptor_type
+{
 	CHAMELEON_DTYPE_GENERAL = 0x0,
 	CHAMELEON_DTYPE_BRIDGE = 0x1,
 	CHAMELEON_DTYPE_CPU = 0x2,
@@ -16,7 +17,8 @@ enum chameleon_descriptor_type {
 	CHAMELEON_DTYPE_END = 0xf,
 };
 
-enum chameleon_bus_type {
+enum chameleon_bus_type
+{
 	CHAMELEON_BUS_WISHBONE,
 	CHAMELEON_BUS_AVALON,
 	CHAMELEON_BUS_LPC,
@@ -34,7 +36,8 @@ enum chameleon_bus_type {
  * @reserved:	Reserved
  * @filename:	Filename of FPGA bitstream
  */
-struct chameleon_fpga_header {
+struct chameleon_fpga_header
+{
 	u8 revision;
 	char model;
 	u8 minor;
@@ -61,7 +64,8 @@ struct chameleon_fpga_header {
  * @offset:	beginning of the address window of desired module
  * @size:	size of the module's address window
  */
-struct chameleon_gdd {
+struct chameleon_gdd
+{
 	__le32 reg1;
 	__le32 reg2;
 	__le32 offset;
@@ -96,23 +100,25 @@ struct chameleon_gdd {
  * @offset:
  * @size:
  */
-struct chameleon_bdd {
-	unsigned int irq:6;
-	unsigned int rev:6;
-	unsigned int var:6;
-	unsigned int dev:10;
-	unsigned int dtype:4;
-	unsigned int bar:3;
-	unsigned int inst:6;
-	unsigned int dbar:3;
-	unsigned int group:6;
-	unsigned int reserved:14;
+struct chameleon_bdd
+{
+	unsigned int irq: 6;
+	unsigned int rev: 6;
+	unsigned int var: 6;
+	unsigned int dev: 10;
+	unsigned int dtype: 4;
+	unsigned int bar: 3;
+	unsigned int inst: 6;
+	unsigned int dbar: 3;
+	unsigned int group: 6;
+	unsigned int reserved: 14;
 	u32 chamoff;
 	u32 offset;
 	u32 size;
 } __packed;
 
-struct chameleon_bar {
+struct chameleon_bar
+{
 	u32 addr;
 	u32 size;
 };
@@ -122,6 +128,6 @@ struct chameleon_bar {
 #define BAR_DESC_SIZE(x)	((x) * sizeof(struct chameleon_bar) + sizeof(__le32))
 
 int chameleon_parse_cells(struct mcb_bus *bus, phys_addr_t mapbase,
-			  void __iomem *base);
+						  void __iomem *base);
 
 #endif

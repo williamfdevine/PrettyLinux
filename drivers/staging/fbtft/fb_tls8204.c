@@ -53,12 +53,12 @@ static int init_display(struct fbtft_par *par)
 
 	/* H=1 Bias system */
 	write_reg(par, 0x10 | (bs & 0x7));
-				/* 4:1  1
-				 * 3:0  0
-				 * 2:x  BS2 - Bias System
-				 * 1:x  BS1
-				 * 0:x  BS0
-				 */
+	/* 4:1  1
+	 * 3:0  0
+	 * 2:x  BS2 - Bias System
+	 * 1:x  BS1
+	 * 0:x  BS0
+	 */
 
 	/* Set the address of the first display line. */
 	write_reg(par, 0x04 | (64 >> 6));
@@ -69,11 +69,11 @@ static int init_display(struct fbtft_par *par)
 
 	/* H=0 Display control */
 	write_reg(par, 0x08 | 4);
-				/* 3:1  1
-				 * 2:1  D - DE: 10=normal mode
-				 * 1:0  0
-				 * 0:0  E
-				 */
+	/* 3:1  1
+	 * 2:1  D - DE: 10=normal mode
+	 * 1:0  0
+	 * 0:0  E
+	 */
 
 	return 0;
 }
@@ -98,7 +98,8 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 	int x, y, i;
 	int ret = 0;
 
-	for (y = 0; y < HEIGHT / 8; y++) {
+	for (y = 0; y < HEIGHT / 8; y++)
+	{
 		u8 *buf = par->txbuf.buf;
 		/* The display is 102x68 but the LCD is 84x48.
 		 * Set the write pointer at the start of each row.
@@ -107,22 +108,31 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 		write_reg(par, 0x80 | 0);
 		write_reg(par, 0x40 | y);
 
-		for (x = 0; x < WIDTH; x++) {
+		for (x = 0; x < WIDTH; x++)
+		{
 			u8 ch = 0;
 
-			for (i = 0; i < 8 * WIDTH; i += WIDTH) {
+			for (i = 0; i < 8 * WIDTH; i += WIDTH)
+			{
 				ch >>= 1;
+
 				if (vmem16[(y * 8 * WIDTH) + i + x])
+				{
 					ch |= 0x80;
+				}
 			}
+
 			*buf++ = ch;
 		}
+
 		/* Write the row */
 		gpio_set_value(par->gpio.dc, 1);
 		ret = par->fbtftops.write(par, par->txbuf.buf, WIDTH);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(par->info->device,
-				"write failed and returned: %d\n", ret);
+					"write failed and returned: %d\n", ret);
 			break;
 		}
 	}
@@ -142,7 +152,8 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 	return 0;
 }
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = WIDTH,
 	.height = HEIGHT,

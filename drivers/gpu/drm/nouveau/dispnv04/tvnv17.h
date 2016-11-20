@@ -27,7 +27,8 @@
 #ifndef __NV17_TV_H__
 #define __NV17_TV_H__
 
-struct nv17_tv_state {
+struct nv17_tv_state
+{
 	uint8_t tv_enc[0x40];
 
 	uint32_t hfilter[4][7];
@@ -50,7 +51,8 @@ struct nv17_tv_state {
 	uint32_t ptv_614;
 };
 
-enum nv17_tv_norm{
+enum nv17_tv_norm
+{
 	TV_NORM_PAL,
 	TV_NORM_PAL_M,
 	TV_NORM_PAL_N,
@@ -67,7 +69,8 @@ enum nv17_tv_norm{
 	NUM_TV_NORMS
 };
 
-struct nv17_tv_encoder {
+struct nv17_tv_encoder
+{
 	struct nouveau_encoder base;
 
 	struct nv17_tv_state state;
@@ -83,18 +86,22 @@ struct nv17_tv_encoder {
 	uint32_t pin_mask;
 };
 #define to_tv_enc(x) container_of(nouveau_encoder(x),		\
-				  struct nv17_tv_encoder, base)
+								  struct nv17_tv_encoder, base)
 
-extern const char * const nv17_tv_norm_names[NUM_TV_NORMS];
+extern const char *const nv17_tv_norm_names[NUM_TV_NORMS];
 
-extern struct nv17_tv_norm_params {
-	enum {
+extern struct nv17_tv_norm_params
+{
+	enum
+	{
 		TV_ENC_MODE,
 		CTV_ENC_MODE,
 	} kind;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			int hdisplay;
 			int vdisplay;
 			int vrefresh; /* mHz */
@@ -102,7 +109,8 @@ extern struct nv17_tv_norm_params {
 			uint8_t tv_enc[0x40];
 		} tv_enc_mode;
 
-		struct {
+		struct
+		{
 			struct drm_display_mode mode;
 
 			uint32_t ctv_regs[38];
@@ -128,7 +136,7 @@ void nv17_ctv_update_rescaler(struct drm_encoder *encoder);
 /* TV hardware access functions */
 
 static inline void nv_write_ptv(struct drm_device *dev, uint32_t reg,
-				uint32_t val)
+								uint32_t val)
 {
 	struct nvif_device *device = &nouveau_drm(dev)->device;
 	nvif_wr32(&device->object, reg, val);
@@ -141,7 +149,7 @@ static inline uint32_t nv_read_ptv(struct drm_device *dev, uint32_t reg)
 }
 
 static inline void nv_write_tv_enc(struct drm_device *dev, uint8_t reg,
-				   uint8_t val)
+								   uint8_t val)
 {
 	nv_write_ptv(dev, NV_PTV_TV_INDEX, reg);
 	nv_write_ptv(dev, NV_PTV_TV_DATA, val);

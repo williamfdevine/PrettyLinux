@@ -21,40 +21,40 @@
 #include <linux/exportfs.h>
 
 #ifdef CONFIG_XFS_QUOTA
-extern int xfs_qm_init(void);
-extern void xfs_qm_exit(void);
+	extern int xfs_qm_init(void);
+	extern void xfs_qm_exit(void);
 #else
-# define xfs_qm_init()	(0)
-# define xfs_qm_exit()	do { } while (0)
+	#define xfs_qm_init()	(0)
+	#define xfs_qm_exit()	do { } while (0)
 #endif
 
 #ifdef CONFIG_XFS_POSIX_ACL
-# define XFS_ACL_STRING		"ACLs, "
-# define set_posix_acl_flag(sb)	((sb)->s_flags |= MS_POSIXACL)
+	#define XFS_ACL_STRING		"ACLs, "
+	#define set_posix_acl_flag(sb)	((sb)->s_flags |= MS_POSIXACL)
 #else
-# define XFS_ACL_STRING
-# define set_posix_acl_flag(sb)	do { } while (0)
+	#define XFS_ACL_STRING
+	#define set_posix_acl_flag(sb)	do { } while (0)
 #endif
 
 #define XFS_SECURITY_STRING	"security attributes, "
 
 #ifdef CONFIG_XFS_RT
-# define XFS_REALTIME_STRING	"realtime, "
+	#define XFS_REALTIME_STRING	"realtime, "
 #else
-# define XFS_REALTIME_STRING
+	#define XFS_REALTIME_STRING
 #endif
 
 #ifdef DEBUG
-# define XFS_DBG_STRING		"debug"
+	#define XFS_DBG_STRING		"debug"
 #else
-# define XFS_DBG_STRING		"no debug"
+	#define XFS_DBG_STRING		"no debug"
 #endif
 
 #define XFS_VERSION_STRING	"SGI XFS"
 #define XFS_BUILD_OPTIONS	XFS_ACL_STRING \
-				XFS_SECURITY_STRING \
-				XFS_REALTIME_STRING \
-				XFS_DBG_STRING /* DBG must be last */
+	XFS_SECURITY_STRING \
+	XFS_REALTIME_STRING \
+	XFS_DBG_STRING /* DBG must be last */
 
 struct xfs_inode;
 struct xfs_mount;
@@ -65,7 +65,7 @@ extern void xfs_quiesce_attr(struct xfs_mount *mp);
 extern void xfs_flush_inodes(struct xfs_mount *mp);
 extern void xfs_blkdev_issue_flush(struct xfs_buftarg *);
 extern xfs_agnumber_t xfs_set_inode_alloc(struct xfs_mount *,
-					   xfs_agnumber_t agcount);
+		xfs_agnumber_t agcount);
 
 extern const struct export_operations xfs_export_operations;
 extern const struct xattr_handler *xfs_xattr_handlers[];

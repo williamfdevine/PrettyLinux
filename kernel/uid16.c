@@ -54,7 +54,7 @@ SYSCALL_DEFINE1(setuid16, old_uid_t, uid)
 SYSCALL_DEFINE3(setresuid16, old_uid_t, ruid, old_uid_t, euid, old_uid_t, suid)
 {
 	return sys_setresuid(low2highuid(ruid), low2highuid(euid),
-				 low2highuid(suid));
+						 low2highuid(suid));
 }
 
 SYSCALL_DEFINE3(getresuid16, old_uid_t __user *, ruidp, old_uid_t __user *, euidp, old_uid_t __user *, suidp)
@@ -68,8 +68,10 @@ SYSCALL_DEFINE3(getresuid16, old_uid_t __user *, ruidp, old_uid_t __user *, euid
 	suid = high2lowuid(from_kuid_munged(cred->user_ns, cred->suid));
 
 	if (!(retval   = put_user(ruid, ruidp)) &&
-	    !(retval   = put_user(euid, euidp)))
+		!(retval   = put_user(euid, euidp)))
+	{
 		retval = put_user(suid, suidp);
+	}
 
 	return retval;
 }
@@ -77,7 +79,7 @@ SYSCALL_DEFINE3(getresuid16, old_uid_t __user *, ruidp, old_uid_t __user *, euid
 SYSCALL_DEFINE3(setresgid16, old_gid_t, rgid, old_gid_t, egid, old_gid_t, sgid)
 {
 	return sys_setresgid(low2highgid(rgid), low2highgid(egid),
-				 low2highgid(sgid));
+						 low2highgid(sgid));
 }
 
 
@@ -92,8 +94,10 @@ SYSCALL_DEFINE3(getresgid16, old_gid_t __user *, rgidp, old_gid_t __user *, egid
 	sgid = high2lowgid(from_kgid_munged(cred->user_ns, cred->sgid));
 
 	if (!(retval   = put_user(rgid, rgidp)) &&
-	    !(retval   = put_user(egid, egidp)))
+		!(retval   = put_user(egid, egidp)))
+	{
 		retval = put_user(sgid, sgidp);
+	}
 
 	return retval;
 }
@@ -109,38 +113,48 @@ SYSCALL_DEFINE1(setfsgid16, old_gid_t, gid)
 }
 
 static int groups16_to_user(old_gid_t __user *grouplist,
-    struct group_info *group_info)
+							struct group_info *group_info)
 {
 	struct user_namespace *user_ns = current_user_ns();
 	int i;
 	old_gid_t group;
 	kgid_t kgid;
 
-	for (i = 0; i < group_info->ngroups; i++) {
+	for (i = 0; i < group_info->ngroups; i++)
+	{
 		kgid = group_info->gid[i];
 		group = high2lowgid(from_kgid_munged(user_ns, kgid));
-		if (put_user(group, grouplist+i))
+
+		if (put_user(group, grouplist + i))
+		{
 			return -EFAULT;
+		}
 	}
 
 	return 0;
 }
 
 static int groups16_from_user(struct group_info *group_info,
-    old_gid_t __user *grouplist)
+							  old_gid_t __user *grouplist)
 {
 	struct user_namespace *user_ns = current_user_ns();
 	int i;
 	old_gid_t group;
 	kgid_t kgid;
 
-	for (i = 0; i < group_info->ngroups; i++) {
-		if (get_user(group, grouplist+i))
+	for (i = 0; i < group_info->ngroups; i++)
+	{
+		if (get_user(group, grouplist + i))
+		{
 			return  -EFAULT;
+		}
 
 		kgid = make_kgid(user_ns, low2highgid(group));
+
 		if (!gid_valid(kgid))
+		{
 			return -EINVAL;
+		}
 
 		group_info->gid[i] = kgid;
 	}
@@ -154,19 +168,27 @@ SYSCALL_DEFINE2(getgroups16, int, gidsetsize, old_gid_t __user *, grouplist)
 	int i;
 
 	if (gidsetsize < 0)
+	{
 		return -EINVAL;
+	}
 
 	i = cred->group_info->ngroups;
-	if (gidsetsize) {
-		if (i > gidsetsize) {
+
+	if (gidsetsize)
+	{
+		if (i > gidsetsize)
+		{
 			i = -EINVAL;
 			goto out;
 		}
-		if (groups16_to_user(grouplist, cred->group_info)) {
+
+		if (groups16_to_user(grouplist, cred->group_info))
+		{
 			i = -EFAULT;
 			goto out;
 		}
 	}
+
 out:
 	return i;
 }
@@ -177,15 +199,26 @@ SYSCALL_DEFINE2(setgroups16, int, gidsetsize, old_gid_t __user *, grouplist)
 	int retval;
 
 	if (!may_setgroups())
+	{
 		return -EPERM;
+	}
+
 	if ((unsigned)gidsetsize > NGROUPS_MAX)
+	{
 		return -EINVAL;
+	}
 
 	group_info = groups_alloc(gidsetsize);
+
 	if (!group_info)
+	{
 		return -ENOMEM;
+	}
+
 	retval = groups16_from_user(group_info, grouplist);
-	if (retval) {
+
+	if (retval)
+	{
 		put_group_info(group_info);
 		return retval;
 	}

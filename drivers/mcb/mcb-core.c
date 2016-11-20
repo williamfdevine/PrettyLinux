@@ -18,12 +18,17 @@
 static DEFINE_IDA(mcb_ida);
 
 static const struct mcb_device_id *mcb_match_id(const struct mcb_device_id *ids,
-						struct mcb_device *dev)
+		struct mcb_device *dev)
 {
-	if (ids) {
-		while (ids->device) {
+	if (ids)
+	{
+		while (ids->device)
+		{
 			if (ids->device == dev->id)
+			{
 				return ids;
+			}
+
 			ids++;
 		}
 	}
@@ -38,8 +43,11 @@ static int mcb_match(struct device *dev, struct device_driver *drv)
 	const struct mcb_device_id *found_id;
 
 	found_id = mcb_match_id(mdrv->id_table, mdev);
+
 	if (found_id)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -50,8 +58,11 @@ static int mcb_uevent(struct device *dev, struct kobj_uevent_env *env)
 	int ret;
 
 	ret = add_uevent_var(env, "MODALIAS=mcb:16z%03d", mdev->id);
+
 	if (ret)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -65,17 +76,26 @@ static int mcb_probe(struct device *dev)
 	int ret;
 
 	found_id = mcb_match_id(mdrv->id_table, mdev);
+
 	if (!found_id)
+	{
 		return -ENODEV;
+	}
 
 	carrier_mod = mdev->dev.parent->driver->owner;
+
 	if (!try_module_get(carrier_mod))
+	{
 		return -EINVAL;
+	}
 
 	get_device(dev);
 	ret = mdrv->probe(mdev, found_id);
+
 	if (ret)
+	{
 		module_put(carrier_mod);
+	}
 
 	return ret;
 }
@@ -102,11 +122,13 @@ static void mcb_shutdown(struct device *dev)
 	struct mcb_device *mdev = to_mcb_device(dev);
 
 	if (mdrv && mdrv->shutdown)
+	{
 		mdrv->shutdown(mdev);
+	}
 }
 
 static ssize_t revision_show(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+							 char *buf)
 {
 	struct mcb_bus *bus = to_mcb_bus(dev);
 
@@ -115,7 +137,7 @@ static ssize_t revision_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_RO(revision);
 
 static ssize_t model_show(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						  char *buf)
 {
 	struct mcb_bus *bus = to_mcb_bus(dev);
 
@@ -124,7 +146,7 @@ static ssize_t model_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_RO(model);
 
 static ssize_t minor_show(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						  char *buf)
 {
 	struct mcb_bus *bus = to_mcb_bus(dev);
 
@@ -133,7 +155,7 @@ static ssize_t minor_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_RO(minor);
 
 static ssize_t name_show(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	struct mcb_bus *bus = to_mcb_bus(dev);
 
@@ -141,7 +163,8 @@ static ssize_t name_show(struct device *dev, struct device_attribute *attr,
 }
 static DEVICE_ATTR_RO(name);
 
-static struct attribute *mcb_bus_attrs[] = {
+static struct attribute *mcb_bus_attrs[] =
+{
 	&dev_attr_revision.attr,
 	&dev_attr_model.attr,
 	&dev_attr_minor.attr,
@@ -149,17 +172,20 @@ static struct attribute *mcb_bus_attrs[] = {
 	NULL,
 };
 
-static const struct attribute_group mcb_carrier_group = {
+static const struct attribute_group mcb_carrier_group =
+{
 	.attrs = mcb_bus_attrs,
 };
 
-static const struct attribute_group *mcb_carrier_groups[] = {
+static const struct attribute_group *mcb_carrier_groups[] =
+{
 	&mcb_carrier_group,
 	NULL,
 };
 
 
-static struct bus_type mcb_bus_type = {
+static struct bus_type mcb_bus_type =
+{
 	.name = "mcb",
 	.match = mcb_match,
 	.uevent = mcb_uevent,
@@ -168,7 +194,8 @@ static struct bus_type mcb_bus_type = {
 	.shutdown = mcb_shutdown,
 };
 
-static struct device_type mcb_carrier_device_type = {
+static struct device_type mcb_carrier_device_type =
+{
 	.name = "mcb-carrier",
 	.groups = mcb_carrier_groups,
 };
@@ -183,10 +210,12 @@ static struct device_type mcb_carrier_device_type = {
  * the .probe and .remove methods are provided by the driver.
  */
 int __mcb_register_driver(struct mcb_driver *drv, struct module *owner,
-			const char *mod_name)
+						  const char *mod_name)
 {
 	if (!drv->probe || !drv->remove)
+	{
 		return -EINVAL;
+	}
 
 	drv->driver.owner = owner;
 	drv->driver.bus = &mcb_bus_type;
@@ -237,12 +266,14 @@ int mcb_device_register(struct mcb_bus *bus, struct mcb_device *dev)
 
 	device_id = dev->id;
 	dev_set_name(&dev->dev, "mcb%d-16z%03d-%d:%d:%d",
-		bus->bus_nr, device_id, dev->inst, dev->group, dev->var);
+				 bus->bus_nr, device_id, dev->inst, dev->group, dev->var);
 
 	ret = device_add(&dev->dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("Failed registering device 16z%03d on bus mcb%d (%d)\n",
-			device_id, bus->bus_nr, ret);
+			   device_id, bus->bus_nr, ret);
 		goto out;
 	}
 
@@ -275,11 +306,16 @@ struct mcb_bus *mcb_alloc_bus(struct device *carrier)
 	int rc;
 
 	bus = kzalloc(sizeof(struct mcb_bus), GFP_KERNEL);
+
 	if (!bus)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	bus_nr = ida_simple_get(&mcb_ida, 0, 0, GFP_KERNEL);
-	if (bus_nr < 0) {
+
+	if (bus_nr < 0)
+	{
 		rc = bus_nr;
 		goto err_free;
 	}
@@ -295,8 +331,11 @@ struct mcb_bus *mcb_alloc_bus(struct device *carrier)
 
 	dev_set_name(&bus->dev, "mcb:%d", bus_nr);
 	rc = device_add(&bus->dev);
+
 	if (rc)
+	{
 		goto err_free;
+	}
 
 	return bus;
 err_free:
@@ -337,7 +376,9 @@ EXPORT_SYMBOL_GPL(mcb_release_bus);
 struct mcb_bus *mcb_bus_get(struct mcb_bus *bus)
 {
 	if (bus)
+	{
 		get_device(&bus->dev);
+	}
 
 	return bus;
 }
@@ -352,7 +393,9 @@ EXPORT_SYMBOL_GPL(mcb_bus_get);
 void mcb_bus_put(struct mcb_bus *bus)
 {
 	if (bus)
+	{
 		put_device(&bus->dev);
+	}
 }
 EXPORT_SYMBOL_GPL(mcb_bus_put);
 
@@ -367,8 +410,11 @@ struct mcb_device *mcb_alloc_dev(struct mcb_bus *bus)
 	struct mcb_device *dev;
 
 	dev = kzalloc(sizeof(struct mcb_device), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	dev->bus = bus;
 
@@ -394,11 +440,16 @@ static int __mcb_bus_add_devices(struct device *dev, void *data)
 	int retval;
 
 	if (mdev->is_added)
+	{
 		return 0;
+	}
 
 	retval = device_attach(dev);
+
 	if (retval < 0)
+	{
 		dev_err(dev, "Error adding device (%d)\n", retval);
+	}
 
 	mdev->is_added = true;
 
@@ -431,13 +482,18 @@ struct resource *mcb_request_mem(struct mcb_device *dev, const char *name)
 	u32 size;
 
 	if (!name)
+	{
 		name = dev->dev.driver->name;
+	}
 
 	size = resource_size(&dev->mem);
 
 	mem = request_mem_region(dev->mem.start, size, name);
+
 	if (!mem)
+	{
 		return ERR_PTR(-EBUSY);
+	}
 
 	return mem;
 }
@@ -476,7 +532,9 @@ int mcb_get_irq(struct mcb_device *dev)
 	struct mcb_bus *bus = dev->bus;
 
 	if (bus->get_irq)
+	{
 		return bus->get_irq(dev);
+	}
 
 	return __mcb_get_irq(dev);
 }

@@ -66,79 +66,88 @@ void acpi_ut_print_string(char *string, u16 max_length)
 {
 	u32 i;
 
-	if (!string) {
+	if (!string)
+	{
 		acpi_os_printf("<\"NULL STRING PTR\">");
 		return;
 	}
 
 	acpi_os_printf("\"");
-	for (i = 0; (i < max_length) && string[i]; i++) {
+
+	for (i = 0; (i < max_length) && string[i]; i++)
+	{
 
 		/* Escape sequences */
 
-		switch (string[i]) {
-		case 0x07:
+		switch (string[i])
+		{
+			case 0x07:
 
-			acpi_os_printf("\\a");	/* BELL */
-			break;
+				acpi_os_printf("\\a");	/* BELL */
+				break;
 
-		case 0x08:
+			case 0x08:
 
-			acpi_os_printf("\\b");	/* BACKSPACE */
-			break;
+				acpi_os_printf("\\b");	/* BACKSPACE */
+				break;
 
-		case 0x0C:
+			case 0x0C:
 
-			acpi_os_printf("\\f");	/* FORMFEED */
-			break;
+				acpi_os_printf("\\f");	/* FORMFEED */
+				break;
 
-		case 0x0A:
+			case 0x0A:
 
-			acpi_os_printf("\\n");	/* LINEFEED */
-			break;
+				acpi_os_printf("\\n");	/* LINEFEED */
+				break;
 
-		case 0x0D:
+			case 0x0D:
 
-			acpi_os_printf("\\r");	/* CARRIAGE RETURN */
-			break;
+				acpi_os_printf("\\r");	/* CARRIAGE RETURN */
+				break;
 
-		case 0x09:
+			case 0x09:
 
-			acpi_os_printf("\\t");	/* HORIZONTAL TAB */
-			break;
+				acpi_os_printf("\\t");	/* HORIZONTAL TAB */
+				break;
 
-		case 0x0B:
+			case 0x0B:
 
-			acpi_os_printf("\\v");	/* VERTICAL TAB */
-			break;
+				acpi_os_printf("\\v");	/* VERTICAL TAB */
+				break;
 
-		case '\'':	/* Single Quote */
-		case '\"':	/* Double Quote */
-		case '\\':	/* Backslash */
+			case '\'':	/* Single Quote */
+			case '\"':	/* Double Quote */
+			case '\\':	/* Backslash */
 
-			acpi_os_printf("\\%c", (int)string[i]);
-			break;
+				acpi_os_printf("\\%c", (int)string[i]);
+				break;
 
-		default:
+			default:
 
-			/* Check for printable character or hex escape */
+				/* Check for printable character or hex escape */
 
-			if (isprint((int)string[i])) {
-				/* This is a normal character */
+				if (isprint((int)string[i]))
+				{
+					/* This is a normal character */
 
-				acpi_os_printf("%c", (int)string[i]);
-			} else {
-				/* All others will be Hex escapes */
+					acpi_os_printf("%c", (int)string[i]);
+				}
+				else
+				{
+					/* All others will be Hex escapes */
 
-				acpi_os_printf("\\x%2.2X", (s32)string[i]);
-			}
-			break;
+					acpi_os_printf("\\x%2.2X", (s32)string[i]);
+				}
+
+				break;
 		}
 	}
 
 	acpi_os_printf("\"");
 
-	if (i == max_length && string[i]) {
+	if (i == max_length && string[i])
+	{
 		acpi_os_printf("...");
 	}
 }
@@ -177,7 +186,8 @@ void acpi_ut_repair_name(char *name)
 	 * Special case for the root node. This can happen if we get an
 	 * error during the execution of module-level code.
 	 */
-	if (ACPI_COMPARE_NAME(name, "\\___")) {
+	if (ACPI_COMPARE_NAME(name, "\\___"))
+	{
 		return;
 	}
 
@@ -185,8 +195,10 @@ void acpi_ut_repair_name(char *name)
 
 	/* Check each character in the name */
 
-	for (i = 0; i < ACPI_NAME_SIZE; i++) {
-		if (acpi_ut_valid_name_char(name[i], i)) {
+	for (i = 0; i < ACPI_NAME_SIZE; i++)
+	{
+		if (acpi_ut_valid_name_char(name[i], i))
+		{
 			continue;
 		}
 
@@ -199,18 +211,22 @@ void acpi_ut_repair_name(char *name)
 		found_bad_char = TRUE;
 	}
 
-	if (found_bad_char) {
+	if (found_bad_char)
+	{
 
 		/* Report warning only if in strict mode or debug mode */
 
-		if (!acpi_gbl_enable_interpreter_slack) {
+		if (!acpi_gbl_enable_interpreter_slack)
+		{
 			ACPI_WARNING((AE_INFO,
-				      "Invalid character(s) in name (0x%.8X), repaired: [%4.4s]",
-				      original_name, name));
-		} else {
+						  "Invalid character(s) in name (0x%.8X), repaired: [%4.4s]",
+						  original_name, name));
+		}
+		else
+		{
 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-					  "Invalid character(s) in name (0x%.8X), repaired: [%4.4s]",
-					  original_name, name));
+							  "Invalid character(s) in name (0x%.8X), repaired: [%4.4s]",
+							  original_name, name));
 		}
 	}
 }
@@ -232,12 +248,15 @@ void acpi_ut_repair_name(char *name)
 void ut_convert_backslashes(char *pathname)
 {
 
-	if (!pathname) {
+	if (!pathname)
+	{
 		return;
 	}
 
-	while (*pathname) {
-		if (*pathname == '\\') {
+	while (*pathname)
+	{
+		if (*pathname == '\\')
+		{
 			*pathname = '/';
 		}
 

@@ -43,7 +43,8 @@
 #define ALIGN_SIZE 64 /* Should be enough for most CPUs */
 #define TCMU_MAILBOX_FLAG_CAP_OOOC (1 << 0) /* Out-of-order completions */
 
-struct tcmu_mailbox {
+struct tcmu_mailbox
+{
 	__u16 version;
 	__u16 flags;
 	__u32 cmdr_off;
@@ -56,7 +57,8 @@ struct tcmu_mailbox {
 
 } __packed;
 
-enum tcmu_opcode {
+enum tcmu_opcode
+{
 	TCMU_OP_PAD = 0,
 	TCMU_OP_CMD,
 };
@@ -64,7 +66,8 @@ enum tcmu_opcode {
 /*
  * Only a few opcodes, and length is 8-byte aligned, so use low bits for opcode.
  */
-struct tcmu_cmd_entry_hdr {
+struct tcmu_cmd_entry_hdr
+{
 	__u32 len_op;
 	__u16 cmd_id;
 	__u8 kflags;
@@ -100,11 +103,14 @@ static inline void tcmu_hdr_set_len(__u32 *len_op, __u32 len)
 /* Currently the same as SCSI_SENSE_BUFFERSIZE */
 #define TCMU_SENSE_BUFFERSIZE 96
 
-struct tcmu_cmd_entry {
+struct tcmu_cmd_entry
+{
 	struct tcmu_cmd_entry_hdr hdr;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint32_t iov_cnt;
 			uint32_t iov_bidi_cnt;
 			uint32_t iov_dif_cnt;
@@ -113,7 +119,8 @@ struct tcmu_cmd_entry {
 			uint64_t __pad2;
 			struct iovec iov[0];
 		} req;
-		struct {
+		struct
+		{
 			uint8_t scsi_status;
 			uint8_t __pad1;
 			uint16_t __pad2;
@@ -126,7 +133,8 @@ struct tcmu_cmd_entry {
 
 #define TCMU_OP_ALIGN_SIZE sizeof(uint64_t)
 
-enum tcmu_genl_cmd {
+enum tcmu_genl_cmd
+{
 	TCMU_CMD_UNSPEC,
 	TCMU_CMD_ADDED_DEVICE,
 	TCMU_CMD_REMOVED_DEVICE,
@@ -134,7 +142,8 @@ enum tcmu_genl_cmd {
 };
 #define TCMU_CMD_MAX (__TCMU_CMD_MAX - 1)
 
-enum tcmu_genl_attr {
+enum tcmu_genl_attr
+{
 	TCMU_ATTR_UNSPEC,
 	TCMU_ATTR_DEVICE,
 	TCMU_ATTR_MINOR,

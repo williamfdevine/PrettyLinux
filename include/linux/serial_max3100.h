@@ -42,7 +42,8 @@
  * };
  *
  **/
-struct plat_max3100 {
+struct plat_max3100
+{
 	int loopback;
 	int crystal;
 	void (*max3100_hw_suspend) (int suspend);

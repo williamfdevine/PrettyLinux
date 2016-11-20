@@ -62,7 +62,7 @@ MODULE_PARM_DESC(feature_disable, "Disable features");
 
 static char brcmf_firmware_path[BRCMF_FW_ALTPATH_LEN];
 module_param_string(alternative_fw_path, brcmf_firmware_path,
-		    BRCMF_FW_ALTPATH_LEN, S_IRUSR);
+					BRCMF_FW_ALTPATH_LEN, S_IRUSR);
 MODULE_PARM_DESC(alternative_fw_path, "Alternative firmware path");
 
 static int brcmf_fcmode;
@@ -74,10 +74,10 @@ module_param_named(roamoff, brcmf_roamoff, int, S_IRUSR);
 MODULE_PARM_DESC(roamoff, "Do not use internal roaming engine");
 
 #ifdef DEBUG
-/* always succeed brcmf_bus_start() */
-static int brcmf_ignore_probe_fail;
-module_param_named(ignore_probe_fail, brcmf_ignore_probe_fail, int, 0);
-MODULE_PARM_DESC(ignore_probe_fail, "always succeed probe for debugging");
+	/* always succeed brcmf_bus_start() */
+	static int brcmf_ignore_probe_fail;
+	module_param_named(ignore_probe_fail, brcmf_ignore_probe_fail, int, 0);
+	MODULE_PARM_DESC(ignore_probe_fail, "always succeed probe for debugging");
 #endif
 
 static struct brcmfmac_platform_data *brcmfmac_pdata;
@@ -99,9 +99,12 @@ void brcmf_c_set_joinpref_default(struct brcmf_if *ifp)
 	join_pref_params[1].rssi_gain = 0;
 	join_pref_params[1].band = 0;
 	err = brcmf_fil_iovar_data_set(ifp, "join_pref", join_pref_params,
-				       sizeof(join_pref_params));
+								   sizeof(join_pref_params));
+
 	if (err)
+	{
 		brcmf_err("Set join_pref error (%d)\n", err);
+	}
 }
 
 int brcmf_c_preinit_dcmds(struct brcmf_if *ifp)
@@ -115,19 +118,26 @@ int brcmf_c_preinit_dcmds(struct brcmf_if *ifp)
 
 	/* retreive mac address */
 	err = brcmf_fil_iovar_data_get(ifp, "cur_etheraddr", ifp->mac_addr,
-				       sizeof(ifp->mac_addr));
-	if (err < 0) {
+								   sizeof(ifp->mac_addr));
+
+	if (err < 0)
+	{
 		brcmf_err("Retreiving cur_etheraddr failed, %d\n", err);
 		goto done;
 	}
+
 	memcpy(ifp->drvr->mac, ifp->mac_addr, sizeof(ifp->drvr->mac));
 
 	err = brcmf_fil_cmd_data_get(ifp, BRCMF_C_GET_REVINFO,
-				     &revinfo, sizeof(revinfo));
+								 &revinfo, sizeof(revinfo));
 	ri = &ifp->drvr->revinfo;
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		brcmf_err("retrieving revision info failed, %d\n", err);
-	} else {
+	}
+	else
+	{
 		ri->vendorid = le32_to_cpu(revinfo.vendorid);
 		ri->deviceid = le32_to_cpu(revinfo.deviceid);
 		ri->radiorev = le32_to_cpu(revinfo.radiorev);
@@ -146,17 +156,21 @@ int brcmf_c_preinit_dcmds(struct brcmf_if *ifp)
 		ri->chippkg = le32_to_cpu(revinfo.chippkg);
 		ri->nvramrev = le32_to_cpu(revinfo.nvramrev);
 	}
+
 	ri->result = err;
 
 	/* query for 'ver' to get version info from firmware */
 	memset(buf, 0, sizeof(buf));
 	strcpy(buf, "ver");
 	err = brcmf_fil_iovar_data_get(ifp, "ver", buf, sizeof(buf));
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		brcmf_err("Retreiving version information failed, %d\n",
-			  err);
+				  err);
 		goto done;
 	}
+
 	ptr = (char *)buf;
 	strsep(&ptr, "\n");
 
@@ -169,7 +183,9 @@ int brcmf_c_preinit_dcmds(struct brcmf_if *ifp)
 
 	/* set mpc */
 	err = brcmf_fil_iovar_int_set(ifp, "mpc", 1);
-	if (err) {
+
+	if (err)
+	{
 		brcmf_err("failed setting mpc\n");
 		goto done;
 	}
@@ -178,34 +194,43 @@ int brcmf_c_preinit_dcmds(struct brcmf_if *ifp)
 
 	/* Setup event_msgs, enable E_IF */
 	err = brcmf_fil_iovar_data_get(ifp, "event_msgs", eventmask,
-				       BRCMF_EVENTING_MASK_LEN);
-	if (err) {
+								   BRCMF_EVENTING_MASK_LEN);
+
+	if (err)
+	{
 		brcmf_err("Get event_msgs error (%d)\n", err);
 		goto done;
 	}
+
 	setbit(eventmask, BRCMF_E_IF);
 	err = brcmf_fil_iovar_data_set(ifp, "event_msgs", eventmask,
-				       BRCMF_EVENTING_MASK_LEN);
-	if (err) {
+								   BRCMF_EVENTING_MASK_LEN);
+
+	if (err)
+	{
 		brcmf_err("Set event_msgs error (%d)\n", err);
 		goto done;
 	}
 
 	/* Setup default scan channel time */
 	err = brcmf_fil_cmd_int_set(ifp, BRCMF_C_SET_SCAN_CHANNEL_TIME,
-				    BRCMF_DEFAULT_SCAN_CHANNEL_TIME);
-	if (err) {
+								BRCMF_DEFAULT_SCAN_CHANNEL_TIME);
+
+	if (err)
+	{
 		brcmf_err("BRCMF_C_SET_SCAN_CHANNEL_TIME error (%d)\n",
-			  err);
+				  err);
 		goto done;
 	}
 
 	/* Setup default scan unassoc time */
 	err = brcmf_fil_cmd_int_set(ifp, BRCMF_C_SET_SCAN_UNASSOC_TIME,
-				    BRCMF_DEFAULT_SCAN_UNASSOC_TIME);
-	if (err) {
+								BRCMF_DEFAULT_SCAN_UNASSOC_TIME);
+
+	if (err)
+	{
 		brcmf_err("BRCMF_C_SET_SCAN_UNASSOC_TIME error (%d)\n",
-			  err);
+				  err);
 		goto done;
 	}
 
@@ -221,15 +246,20 @@ done:
 #if defined(CONFIG_BRCM_TRACING) || defined(CONFIG_BRCMDBG)
 void __brcmf_dbg(u32 level, const char *func, const char *fmt, ...)
 {
-	struct va_format vaf = {
+	struct va_format vaf =
+	{
 		.fmt = fmt,
 	};
 	va_list args;
 
 	va_start(args, fmt);
 	vaf.va = &args;
+
 	if (brcmf_msg_level & level)
+	{
 		pr_debug("%s %pV", func, &vaf);
+	}
+
 	trace_brcmf_dbg(level, func, &vaf);
 	va_end(args);
 }
@@ -242,18 +272,20 @@ static void brcmf_mp_attach(void)
 	 * sure it gets initialized at all, always copy the module param version
 	 */
 	strlcpy(brcmf_mp_global.firmware_path, brcmf_firmware_path,
-		BRCMF_FW_ALTPATH_LEN);
-	if ((brcmfmac_pdata) && (brcmfmac_pdata->fw_alternative_path) &&
-	    (brcmf_mp_global.firmware_path[0] == '\0')) {
-		strlcpy(brcmf_mp_global.firmware_path,
-			brcmfmac_pdata->fw_alternative_path,
 			BRCMF_FW_ALTPATH_LEN);
+
+	if ((brcmfmac_pdata) && (brcmfmac_pdata->fw_alternative_path) &&
+		(brcmf_mp_global.firmware_path[0] == '\0'))
+	{
+		strlcpy(brcmf_mp_global.firmware_path,
+				brcmfmac_pdata->fw_alternative_path,
+				BRCMF_FW_ALTPATH_LEN);
 	}
 }
 
 struct brcmf_mp_device *brcmf_get_module_param(struct device *dev,
-					       enum brcmf_bus_type bus_type,
-					       u32 chip, u32 chiprev)
+		enum brcmf_bus_type bus_type,
+		u32 chip, u32 chiprev)
 {
 	struct brcmf_mp_device *settings;
 	struct brcmfmac_pd_device *device_pd;
@@ -261,10 +293,13 @@ struct brcmf_mp_device *brcmf_get_module_param(struct device *dev,
 	int i;
 
 	brcmf_dbg(INFO, "Enter, bus=%d, chip=%d, rev=%d\n", bus_type, chip,
-		  chiprev);
+			  chiprev);
 	settings = kzalloc(sizeof(*settings), GFP_ATOMIC);
+
 	if (!settings)
+	{
 		return NULL;
+	}
 
 	/* start by using the module paramaters */
 	settings->p2p_enable = !!brcmf_p2p_enable;
@@ -276,35 +311,47 @@ struct brcmf_mp_device *brcmf_get_module_param(struct device *dev,
 #endif
 
 	if (bus_type == BRCMF_BUSTYPE_SDIO)
+	{
 		settings->bus.sdio.txglomsz = brcmf_sdiod_txglomsz;
+	}
 
 	/* See if there is any device specific platform data configured */
 	found = false;
-	if (brcmfmac_pdata) {
-		for (i = 0; i < brcmfmac_pdata->device_count; i++) {
+
+	if (brcmfmac_pdata)
+	{
+		for (i = 0; i < brcmfmac_pdata->device_count; i++)
+		{
 			device_pd = &brcmfmac_pdata->devices[i];
+
 			if ((device_pd->bus_type == bus_type) &&
-			    (device_pd->id == chip) &&
-			    ((device_pd->rev == chiprev) ||
-			     (device_pd->rev == -1))) {
+				(device_pd->id == chip) &&
+				((device_pd->rev == chiprev) ||
+				 (device_pd->rev == -1)))
+			{
 				brcmf_dbg(INFO, "Platform data for device found\n");
 				settings->country_codes =
-						device_pd->country_codes;
+					device_pd->country_codes;
+
 				if (device_pd->bus_type == BRCMF_BUSTYPE_SDIO)
 					memcpy(&settings->bus.sdio,
-					       &device_pd->bus.sdio,
-					       sizeof(settings->bus.sdio));
+						   &device_pd->bus.sdio,
+						   sizeof(settings->bus.sdio));
+
 				found = true;
 				break;
 			}
 		}
 	}
-	if ((bus_type == BRCMF_BUSTYPE_SDIO) && (!found)) {
+
+	if ((bus_type == BRCMF_BUSTYPE_SDIO) && (!found))
+	{
 		/* No platform data for this device. In case of SDIO try OF
 		 * (Open Firwmare) Device Tree.
 		 */
 		brcmf_of_probe(dev, &settings->bus.sdio);
 	}
+
 	return settings;
 }
 
@@ -320,7 +367,9 @@ static int __init brcmf_common_pd_probe(struct platform_device *pdev)
 	brcmfmac_pdata = dev_get_platdata(&pdev->dev);
 
 	if (brcmfmac_pdata->power_on)
+	{
 		brcmfmac_pdata->power_on();
+	}
 
 	return 0;
 }
@@ -330,12 +379,15 @@ static int brcmf_common_pd_remove(struct platform_device *pdev)
 	brcmf_dbg(INFO, "Enter\n");
 
 	if (brcmfmac_pdata->power_off)
+	{
 		brcmfmac_pdata->power_off();
+	}
 
 	return 0;
 }
 
-static struct platform_driver brcmf_pd = {
+static struct platform_driver brcmf_pd =
+{
 	.remove		= brcmf_common_pd_remove,
 	.driver		= {
 		.name	= BRCMFMAC_PDATA_NAME,
@@ -351,18 +403,26 @@ static int __init brcmfmac_module_init(void)
 
 	/* Get the platform data (if available) for our devices */
 	err = platform_driver_probe(&brcmf_pd, brcmf_common_pd_probe);
+
 	if (err == -ENODEV)
+	{
 		brcmf_dbg(INFO, "No platform data available.\n");
+	}
 
 	/* Initialize global module paramaters */
 	brcmf_mp_attach();
 
 	/* Continue the initialization by registering the different busses */
 	err = brcmf_core_init();
-	if (err) {
+
+	if (err)
+	{
 		brcmf_debugfs_exit();
+
 		if (brcmfmac_pdata)
+		{
 			platform_driver_unregister(&brcmf_pd);
+		}
 	}
 
 	return err;
@@ -371,8 +431,12 @@ static int __init brcmfmac_module_init(void)
 static void __exit brcmfmac_module_exit(void)
 {
 	brcmf_core_exit();
+
 	if (brcmfmac_pdata)
+	{
 		platform_driver_unregister(&brcmf_pd);
+	}
+
 	brcmf_debugfs_exit();
 }
 

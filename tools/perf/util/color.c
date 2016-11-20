@@ -11,35 +11,56 @@ int perf_use_color_default = -1;
 
 int perf_config_colorbool(const char *var, const char *value, int stdout_is_tty)
 {
-	if (value) {
+	if (value)
+	{
 		if (!strcasecmp(value, "never"))
+		{
 			return 0;
+		}
+
 		if (!strcasecmp(value, "always"))
+		{
 			return 1;
+		}
+
 		if (!strcasecmp(value, "auto"))
+		{
 			goto auto_color;
+		}
 	}
 
 	/* Missing or explicit false to turn off colorization */
 	if (!perf_config_bool(var, value))
+	{
 		return 0;
+	}
 
 	/* any normal truth value defaults to 'auto' */
- auto_color:
+auto_color:
+
 	if (stdout_is_tty < 0)
+	{
 		stdout_is_tty = isatty(1);
-	if (stdout_is_tty || pager_in_use()) {
-		char *term = getenv("TERM");
-		if (term && strcmp(term, "dumb"))
-			return 1;
 	}
+
+	if (stdout_is_tty || pager_in_use())
+	{
+		char *term = getenv("TERM");
+
+		if (term && strcmp(term, "dumb"))
+		{
+			return 1;
+		}
+	}
+
 	return 0;
 }
 
 int perf_color_default_config(const char *var, const char *value,
-			      void *cb __maybe_unused)
+							  void *cb __maybe_unused)
 {
-	if (!strcmp(var, "color.ui")) {
+	if (!strcmp(var, "color.ui"))
+	{
 		perf_use_color_default = perf_config_colorbool(var, value, -1);
 		return 0;
 	}
@@ -48,56 +69,83 @@ int perf_color_default_config(const char *var, const char *value,
 }
 
 static int __color_vsnprintf(char *bf, size_t size, const char *color,
-			     const char *fmt, va_list args, const char *trail)
+							 const char *fmt, va_list args, const char *trail)
 {
 	int r = 0;
 
 	/*
 	 * Auto-detect:
 	 */
-	if (perf_use_color_default < 0) {
+	if (perf_use_color_default < 0)
+	{
 		if (isatty(1) || pager_in_use())
+		{
 			perf_use_color_default = 1;
+		}
 		else
+		{
 			perf_use_color_default = 0;
+		}
 	}
 
 	if (perf_use_color_default && *color)
+	{
 		r += scnprintf(bf, size, "%s", color);
+	}
+
 	r += vscnprintf(bf + r, size - r, fmt, args);
+
 	if (perf_use_color_default && *color)
+	{
 		r += scnprintf(bf + r, size - r, "%s", PERF_COLOR_RESET);
+	}
+
 	if (trail)
+	{
 		r += scnprintf(bf + r, size - r, "%s", trail);
+	}
+
 	return r;
 }
 
 /* Colors are not included in return value */
 static int __color_vfprintf(FILE *fp, const char *color, const char *fmt,
-		va_list args)
+							va_list args)
 {
 	int r = 0;
 
 	/*
 	 * Auto-detect:
 	 */
-	if (perf_use_color_default < 0) {
+	if (perf_use_color_default < 0)
+	{
 		if (isatty(fileno(fp)) || pager_in_use())
+		{
 			perf_use_color_default = 1;
+		}
 		else
+		{
 			perf_use_color_default = 0;
+		}
 	}
 
 	if (perf_use_color_default && *color)
+	{
 		fprintf(fp, "%s", color);
+	}
+
 	r += vfprintf(fp, fmt, args);
+
 	if (perf_use_color_default && *color)
+	{
 		fprintf(fp, "%s", PERF_COLOR_RESET);
+	}
+
 	return r;
 }
 
 int color_vsnprintf(char *bf, size_t size, const char *color,
-		    const char *fmt, va_list args)
+					const char *fmt, va_list args)
 {
 	return __color_vsnprintf(bf, size, color, fmt, args, NULL);
 }
@@ -108,7 +156,7 @@ int color_vfprintf(FILE *fp, const char *color, const char *fmt, va_list args)
 }
 
 int color_snprintf(char *bf, size_t size, const char *color,
-		   const char *fmt, ...)
+				   const char *fmt, ...)
 {
 	va_list args;
 	int r;
@@ -136,25 +184,38 @@ int color_fprintf(FILE *fp, const char *color, const char *fmt, ...)
  * Returns 0 on success.
  */
 int color_fwrite_lines(FILE *fp, const char *color,
-		size_t count, const char *buf)
+					   size_t count, const char *buf)
 {
 	if (!*color)
+	{
 		return fwrite(buf, count, 1, fp) != 1;
+	}
 
-	while (count) {
+	while (count)
+	{
 		char *p = memchr(buf, '\n', count);
 
 		if (p != buf && (fputs(color, fp) < 0 ||
-				fwrite(buf, p ? (size_t)(p - buf) : count, 1, fp) != 1 ||
-				fputs(PERF_COLOR_RESET, fp) < 0))
+						 fwrite(buf, p ? (size_t)(p - buf) : count, 1, fp) != 1 ||
+						 fputs(PERF_COLOR_RESET, fp) < 0))
+		{
 			return -1;
+		}
+
 		if (!p)
+		{
 			return 0;
+		}
+
 		if (fputc('\n', fp) < 0)
+		{
 			return -1;
+		}
+
 		count -= p + 1 - buf;
 		buf = p + 1;
 	}
+
 	return 0;
 }
 
@@ -168,11 +229,17 @@ const char *get_percent_color(double percent)
 	 * normal:
 	 */
 	if (fabs(percent) >= MIN_RED)
+	{
 		color = PERF_COLOR_RED;
-	else {
-		if (fabs(percent) > MIN_GREEN)
-			color = PERF_COLOR_GREEN;
 	}
+	else
+	{
+		if (fabs(percent) > MIN_GREEN)
+		{
+			color = PERF_COLOR_GREEN;
+		}
+	}
+
 	return color;
 }
 

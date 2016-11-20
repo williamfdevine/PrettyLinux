@@ -40,21 +40,35 @@ char *aa_split_fqname(char *fqname, char **ns_name)
 	char *name = strim(fqname);
 
 	*ns_name = NULL;
-	if (name[0] == ':') {
+
+	if (name[0] == ':')
+	{
 		char *split = strchr(&name[1], ':');
 		*ns_name = skip_spaces(&name[1]);
-		if (split) {
+
+		if (split)
+		{
 			/* overwrite ':' with \0 */
 			*split++ = 0;
+
 			if (strncmp(split, "//", 2) == 0)
+			{
 				split += 2;
+			}
+
 			name = skip_spaces(split);
-		} else
+		}
+		else
 			/* a ns name without a following profile is allowed */
+		{
 			name = NULL;
+		}
 	}
+
 	if (name && *name == 0)
+	{
 		name = NULL;
+	}
 
 	return name;
 }
@@ -65,7 +79,8 @@ char *aa_split_fqname(char *fqname, char **ns_name)
  */
 void aa_info_message(const char *str)
 {
-	if (audit_enabled) {
+	if (audit_enabled)
+	{
 		struct common_audit_data sa;
 		struct apparmor_audit_data aad = {0,};
 		sa.type = LSM_AUDIT_DATA_NONE;
@@ -73,6 +88,7 @@ void aa_info_message(const char *str)
 		aad.info = str;
 		aa_audit_msg(AUDIT_APPARMOR_STATUS, &sa, NULL);
 	}
+
 	printk(KERN_INFO "AppArmor: %s\n", str);
 }
 
@@ -91,16 +107,27 @@ void *__aa_kvmalloc(size_t size, gfp_t flags)
 	void *buffer = NULL;
 
 	if (size == 0)
+	{
 		return NULL;
+	}
 
 	/* do not attempt kmalloc if we need more than 16 pages at once */
-	if (size <= (16*PAGE_SIZE))
+	if (size <= (16 * PAGE_SIZE))
+	{
 		buffer = kmalloc(size, flags | GFP_NOIO | __GFP_NOWARN);
-	if (!buffer) {
-		if (flags & __GFP_ZERO)
-			buffer = vzalloc(size);
-		else
-			buffer = vmalloc(size);
 	}
+
+	if (!buffer)
+	{
+		if (flags & __GFP_ZERO)
+		{
+			buffer = vzalloc(size);
+		}
+		else
+		{
+			buffer = vmalloc(size);
+		}
+	}
+
 	return buffer;
 }

@@ -17,26 +17,31 @@
 #ifndef WMI_H
 #define WMI_H
 
-struct wmi_event_txrate {
+struct wmi_event_txrate
+{
 	__be32 txrate;
-	struct {
+	struct
+	{
 		u8 rssi_thresh;
 		u8 per;
 	} rc_stats;
 } __packed;
 
-struct wmi_cmd_hdr {
+struct wmi_cmd_hdr
+{
 	__be16 command_id;
 	__be16 seq_no;
 } __packed;
 
-struct wmi_fw_version {
+struct wmi_fw_version
+{
 	__be16 major;
 	__be16 minor;
 
 } __packed;
 
-struct wmi_event_swba {
+struct wmi_event_swba
+{
 	__be64 tsf;
 	u8 beacon_pending;
 } __packed;
@@ -67,18 +72,21 @@ struct wmi_event_swba {
 #define ATH9K_HTC_TXSTAT_EPID       0xf0
 #define ATH9K_HTC_TXSTAT_EPID_S     4
 
-struct __wmi_event_txstatus {
+struct __wmi_event_txstatus
+{
 	u8 cookie;
 	u8 ts_rate; /* Also holds EP ID */
 	u8 ts_flags;
 };
 
-struct wmi_event_txstatus {
+struct wmi_event_txstatus
+{
 	u8 cnt;
 	struct __wmi_event_txstatus txstatus[HTC_MAX_TX_STATUS];
 } __packed;
 
-enum wmi_cmd_id {
+enum wmi_cmd_id
+{
 	WMI_ECHO_CMDID = 0x0001,
 	WMI_ACCESS_MEMORY_CMDID,
 
@@ -115,7 +123,8 @@ enum wmi_cmd_id {
 	WMI_REG_RMW_CMDID,
 };
 
-enum wmi_event_id {
+enum wmi_event_id
+{
 	WMI_TGT_RDY_EVENTID = 0x1001,
 	WMI_SWBA_EVENTID,
 	WMI_FATAL_EVENTID,
@@ -128,24 +137,28 @@ enum wmi_event_id {
 #define MAX_CMD_NUMBER 62
 #define MAX_RMW_CMD_NUMBER 15
 
-struct register_write {
+struct register_write
+{
 	__be32 reg;
 	__be32 val;
 };
 
-struct register_rmw {
+struct register_rmw
+{
 	__be32 reg;
 	__be32 set;
 	__be32 clr;
 } __packed;
 
-struct ath9k_htc_tx_event {
+struct ath9k_htc_tx_event
+{
 	int count;
 	struct __wmi_event_txstatus txs;
 	struct list_head list;
 };
 
-struct wmi {
+struct wmi
+{
 	struct ath9k_htc_priv *drv_priv;
 	struct htc_target *htc;
 	enum htc_endpoint_id ctrl_epid;
@@ -181,11 +194,11 @@ struct wmi {
 struct wmi *ath9k_init_wmi(struct ath9k_htc_priv *priv);
 void ath9k_deinit_wmi(struct ath9k_htc_priv *priv);
 int ath9k_wmi_connect(struct htc_target *htc, struct wmi *wmi,
-		      enum htc_endpoint_id *wmi_ctrl_epid);
+					  enum htc_endpoint_id *wmi_ctrl_epid);
 int ath9k_wmi_cmd(struct wmi *wmi, enum wmi_cmd_id cmd_id,
-		  u8 *cmd_buf, u32 cmd_len,
-		  u8 *rsp_buf, u32 rsp_len,
-		  u32 timeout);
+				  u8 *cmd_buf, u32 cmd_len,
+				  u8 *rsp_buf, u32 rsp_len,
+				  u32 timeout);
 void ath9k_wmi_event_tasklet(unsigned long data);
 void ath9k_fatal_work(struct work_struct *work);
 void ath9k_wmi_event_drain(struct ath9k_htc_priv *priv);
@@ -193,15 +206,15 @@ void ath9k_wmi_event_drain(struct ath9k_htc_priv *priv);
 #define WMI_CMD(_wmi_cmd)						\
 	do {								\
 		ret = ath9k_wmi_cmd(priv->wmi, _wmi_cmd, NULL, 0,	\
-				    (u8 *) &cmd_rsp,			\
-				    sizeof(cmd_rsp), HZ*2);		\
+							(u8 *) &cmd_rsp,			\
+							sizeof(cmd_rsp), HZ*2);		\
 	} while (0)
 
 #define WMI_CMD_BUF(_wmi_cmd, _buf)					\
 	do {								\
 		ret = ath9k_wmi_cmd(priv->wmi, _wmi_cmd,		\
-				    (u8 *) _buf, sizeof(*_buf),		\
-				    &cmd_rsp, sizeof(cmd_rsp), HZ*2);	\
+							(u8 *) _buf, sizeof(*_buf),		\
+							&cmd_rsp, sizeof(cmd_rsp), HZ*2);	\
 	} while (0)
 
 #endif /* WMI_H */

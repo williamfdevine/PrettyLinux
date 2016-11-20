@@ -48,7 +48,9 @@ static int __maybe_unused e3x0_button_suspend(struct device *dev)
 	struct platform_device *pdev = to_platform_device(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(platform_get_irq_byname(pdev, "press"));
+	}
 
 	return 0;
 }
@@ -58,13 +60,15 @@ static int __maybe_unused e3x0_button_resume(struct device *dev)
 	struct platform_device *pdev = to_platform_device(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(platform_get_irq_byname(pdev, "press"));
+	}
 
 	return 0;
 }
 
 static SIMPLE_DEV_PM_OPS(e3x0_button_pm_ops,
-			 e3x0_button_suspend, e3x0_button_resume);
+						 e3x0_button_suspend, e3x0_button_resume);
 
 static int e3x0_button_probe(struct platform_device *pdev)
 {
@@ -73,22 +77,29 @@ static int e3x0_button_probe(struct platform_device *pdev)
 	int error;
 
 	irq_press = platform_get_irq_byname(pdev, "press");
-	if (irq_press < 0) {
+
+	if (irq_press < 0)
+	{
 		dev_err(&pdev->dev, "No IRQ for 'press', error=%d\n",
-			irq_press);
+				irq_press);
 		return irq_press;
 	}
 
 	irq_release = platform_get_irq_byname(pdev, "release");
-	if (irq_release < 0) {
+
+	if (irq_release < 0)
+	{
 		dev_err(&pdev->dev, "No IRQ for 'release', error=%d\n",
-			irq_release);
+				irq_release);
 		return irq_release;
 	}
 
 	input = devm_input_allocate_device(&pdev->dev);
+
 	if (!input)
+	{
 		return -ENOMEM;
+	}
 
 	input->name = "NI Ettus Research USRP E3x0 Button Driver";
 	input->phys = "e3x0_button/input0";
@@ -97,25 +108,31 @@ static int e3x0_button_probe(struct platform_device *pdev)
 	input_set_capability(input, EV_KEY, KEY_POWER);
 
 	error = devm_request_irq(&pdev->dev, irq_press,
-				 e3x0_button_press_handler, 0,
-				 "e3x0-button", input);
-	if (error) {
+							 e3x0_button_press_handler, 0,
+							 "e3x0-button", input);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Failed to request 'press' IRQ#%d: %d\n",
-			irq_press, error);
+				irq_press, error);
 		return error;
 	}
 
 	error = devm_request_irq(&pdev->dev, irq_release,
-				 e3x0_button_release_handler, 0,
-				 "e3x0-button", input);
-	if (error) {
+							 e3x0_button_release_handler, 0,
+							 "e3x0-button", input);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Failed to request 'release' IRQ#%d: %d\n",
-			irq_release, error);
+				irq_release, error);
 		return error;
 	}
 
 	error = input_register_device(input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Can't register input device: %d\n", error);
 		return error;
 	}
@@ -132,14 +149,16 @@ static int e3x0_button_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id e3x0_button_match[] = {
+static const struct of_device_id e3x0_button_match[] =
+{
 	{ .compatible = "ettus,e3x0-button", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, e3x0_button_match);
 #endif
 
-static struct platform_driver e3x0_button_driver = {
+static struct platform_driver e3x0_button_driver =
+{
 	.driver		= {
 		.name	= "e3x0-button",
 		.of_match_table = of_match_ptr(e3x0_button_match),

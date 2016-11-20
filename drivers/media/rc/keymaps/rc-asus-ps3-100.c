@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table asus_ps3_100[] = {
+static struct rc_map_table asus_ps3_100[] =
+{
 	{ 0x081c, KEY_HOME },             /* home */
 	{ 0x081e, KEY_TV },               /* tv */
 	{ 0x0803, KEY_TEXT },             /* teletext */
@@ -65,23 +66,24 @@ static struct rc_map_table asus_ps3_100[] = {
 	{ 0x0819, KEY_NEXT },             /* forward */
 };
 
-static struct rc_map_list asus_ps3_100_map = {
-.map = {
-	.scan    = asus_ps3_100,
-	.size    = ARRAY_SIZE(asus_ps3_100),
-	.rc_type = RC_TYPE_RC5,
-	.name    = RC_MAP_ASUS_PS3_100,
-}
+static struct rc_map_list asus_ps3_100_map =
+{
+	.map = {
+		.scan    = asus_ps3_100,
+		.size    = ARRAY_SIZE(asus_ps3_100),
+		.rc_type = RC_TYPE_RC5,
+		.name    = RC_MAP_ASUS_PS3_100,
+	}
 };
 
 static int __init init_rc_map_asus_ps3_100(void)
 {
-return rc_map_register(&asus_ps3_100_map);
+	return rc_map_register(&asus_ps3_100_map);
 }
 
 static void __exit exit_rc_map_asus_ps3_100(void)
 {
-rc_map_unregister(&asus_ps3_100_map);
+	rc_map_unregister(&asus_ps3_100_map);
 }
 
 module_init(init_rc_map_asus_ps3_100)

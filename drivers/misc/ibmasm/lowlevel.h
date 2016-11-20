@@ -101,11 +101,16 @@ static inline u32 get_mfa_outbound(void __iomem *base_address)
 	int retry;
 	u32 mfa;
 
-	for (retry=0; retry<=10; retry++) {
+	for (retry = 0; retry <= 10; retry++)
+	{
 		mfa = readl(base_address + OUTBOUND_QUEUE_PORT);
+
 		if (valid_mfa(mfa))
+		{
 			break;
+		}
 	}
+
 	return mfa;
 }
 
@@ -119,7 +124,9 @@ static inline u32 get_mfa_inbound(void __iomem *base_address)
 	u32 mfa = readl(base_address + INBOUND_QUEUE_PORT);
 
 	if (MAILBOX_FULL(mfa))
+	{
 		return 0;
+	}
 
 	return mfa;
 }

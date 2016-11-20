@@ -32,9 +32,10 @@
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
-struct menf21bmc_wdt {
+struct menf21bmc_wdt
+{
 	struct watchdog_device wdt;
 	struct i2c_client *i2c_client;
 };
@@ -44,17 +45,28 @@ static int menf21bmc_wdt_set_bootstatus(struct menf21bmc_wdt *data)
 	int rst_rsn;
 
 	rst_rsn = i2c_smbus_read_byte_data(data->i2c_client, BMC_CMD_RST_RSN);
+
 	if (rst_rsn < 0)
+	{
 		return rst_rsn;
+	}
 
 	if (rst_rsn == 0x02)
+	{
 		data->wdt.bootstatus |= WDIOF_CARDRESET;
+	}
 	else if (rst_rsn == 0x05)
+	{
 		data->wdt.bootstatus |= WDIOF_EXTERN1;
+	}
 	else if (rst_rsn == 0x06)
+	{
 		data->wdt.bootstatus |= WDIOF_EXTERN2;
+	}
 	else if (rst_rsn == 0x0A)
+	{
 		data->wdt.bootstatus |= WDIOF_POWERUNDER;
+	}
 
 	return 0;
 }
@@ -71,7 +83,7 @@ static int menf21bmc_wdt_stop(struct watchdog_device *wdt)
 	struct menf21bmc_wdt *drv_data = watchdog_get_drvdata(wdt);
 
 	return i2c_smbus_write_byte_data(drv_data->i2c_client,
-					 BMC_CMD_WD_OFF, BMC_WD_OFF_VAL);
+									 BMC_CMD_WD_OFF, BMC_WD_OFF_VAL);
 }
 
 static int
@@ -86,9 +98,12 @@ menf21bmc_wdt_settimeout(struct watchdog_device *wdt, unsigned int timeout)
 	 *  multiply the value.
 	 */
 	ret = i2c_smbus_write_word_data(drv_data->i2c_client,
-					BMC_CMD_WD_TIME, timeout * 10);
+									BMC_CMD_WD_TIME, timeout * 10);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	wdt->timeout = timeout;
 
@@ -102,12 +117,14 @@ static int menf21bmc_wdt_ping(struct watchdog_device *wdt)
 	return i2c_smbus_write_byte(drv_data->i2c_client, BMC_CMD_WD_TRIG);
 }
 
-static const struct watchdog_info menf21bmc_wdt_info = {
+static const struct watchdog_info menf21bmc_wdt_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
 	.identity = DEVNAME,
 };
 
-static const struct watchdog_ops menf21bmc_wdt_ops = {
+static const struct watchdog_ops menf21bmc_wdt_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= menf21bmc_wdt_start,
 	.stop		= menf21bmc_wdt_stop,
@@ -122,9 +139,12 @@ static int menf21bmc_wdt_probe(struct platform_device *pdev)
 	struct i2c_client *i2c_client = to_i2c_client(pdev->dev.parent);
 
 	drv_data = devm_kzalloc(&pdev->dev,
-				sizeof(struct menf21bmc_wdt), GFP_KERNEL);
+							sizeof(struct menf21bmc_wdt), GFP_KERNEL);
+
 	if (!drv_data)
+	{
 		return -ENOMEM;
+	}
 
 	drv_data->wdt.ops = &menf21bmc_wdt_ops;
 	drv_data->wdt.info = &menf21bmc_wdt_info;
@@ -138,8 +158,10 @@ static int menf21bmc_wdt_probe(struct platform_device *pdev)
 	 * the BMC will save the value set before if the system restarts.
 	 */
 	bmc_timeout = i2c_smbus_read_word_data(drv_data->i2c_client,
-					       BMC_CMD_WD_TIME);
-	if (bmc_timeout < 0) {
+										   BMC_CMD_WD_TIME);
+
+	if (bmc_timeout < 0)
+	{
 		dev_err(&pdev->dev, "failed to get current WDT timeout\n");
 		return bmc_timeout;
 	}
@@ -150,13 +172,17 @@ static int menf21bmc_wdt_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, drv_data);
 
 	ret = menf21bmc_wdt_set_bootstatus(drv_data);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to set Watchdog bootstatus\n");
 		return ret;
 	}
 
 	ret = watchdog_register_device(&drv_data->wdt);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register Watchdog device\n");
 		return ret;
 	}
@@ -171,7 +197,7 @@ static int menf21bmc_wdt_remove(struct platform_device *pdev)
 	struct menf21bmc_wdt *drv_data = platform_get_drvdata(pdev);
 
 	dev_warn(&pdev->dev,
-		 "Unregister MEN 14F021P00 BMC Watchdog device, board may reset\n");
+			 "Unregister MEN 14F021P00 BMC Watchdog device, board may reset\n");
 
 	watchdog_unregister_device(&drv_data->wdt);
 
@@ -183,10 +209,11 @@ static void menf21bmc_wdt_shutdown(struct platform_device *pdev)
 	struct menf21bmc_wdt *drv_data = platform_get_drvdata(pdev);
 
 	i2c_smbus_write_word_data(drv_data->i2c_client,
-				  BMC_CMD_WD_OFF, BMC_WD_OFF_VAL);
+							  BMC_CMD_WD_OFF, BMC_WD_OFF_VAL);
 }
 
-static struct  platform_driver menf21bmc_wdt = {
+static struct  platform_driver menf21bmc_wdt =
+{
 	.driver		= {
 		.name	= DEVNAME,
 	},

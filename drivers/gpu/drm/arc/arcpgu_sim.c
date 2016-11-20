@@ -27,7 +27,8 @@
 #define YRES_MAX	8192
 
 
-struct arcpgu_drm_connector {
+struct arcpgu_drm_connector
+{
 	struct drm_connector connector;
 	struct drm_encoder_slave *encoder_slave;
 };
@@ -54,11 +55,13 @@ static void arcpgu_drm_connector_destroy(struct drm_connector *connector)
 }
 
 static const struct drm_connector_helper_funcs
-arcpgu_drm_connector_helper_funcs = {
+	arcpgu_drm_connector_helper_funcs =
+{
 	.get_modes = arcpgu_drm_connector_get_modes,
 };
 
-static const struct drm_connector_funcs arcpgu_drm_connector_funcs = {
+static const struct drm_connector_funcs arcpgu_drm_connector_funcs =
+{
 	.dpms = drm_helper_connector_dpms,
 	.reset = drm_atomic_helper_connector_reset,
 	.detect = arcpgu_drm_connector_detect,
@@ -68,7 +71,8 @@ static const struct drm_connector_funcs arcpgu_drm_connector_funcs = {
 	.atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
 };
 
-static struct drm_encoder_funcs arcpgu_drm_encoder_funcs = {
+static struct drm_encoder_funcs arcpgu_drm_encoder_funcs =
+{
 	.destroy = drm_encoder_cleanup,
 };
 
@@ -80,20 +84,28 @@ int arcpgu_drm_sim_init(struct drm_device *drm, struct device_node *np)
 	int ret;
 
 	encoder = devm_kzalloc(drm->dev, sizeof(*encoder), GFP_KERNEL);
+
 	if (encoder == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	encoder->base.possible_crtcs = 1;
 	encoder->base.possible_clones = 0;
 
 	ret = drm_encoder_init(drm, &encoder->base, &arcpgu_drm_encoder_funcs,
-			       DRM_MODE_ENCODER_VIRTUAL, NULL);
+						   DRM_MODE_ENCODER_VIRTUAL, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	arcpgu_connector = devm_kzalloc(drm->dev, sizeof(*arcpgu_connector),
-					GFP_KERNEL);
-	if (!arcpgu_connector) {
+									GFP_KERNEL);
+
+	if (!arcpgu_connector)
+	{
 		ret = -ENOMEM;
 		goto error_encoder_cleanup;
 	}
@@ -102,14 +114,18 @@ int arcpgu_drm_sim_init(struct drm_device *drm, struct device_node *np)
 	drm_connector_helper_add(connector, &arcpgu_drm_connector_helper_funcs);
 
 	ret = drm_connector_init(drm, connector, &arcpgu_drm_connector_funcs,
-			DRM_MODE_CONNECTOR_VIRTUAL);
-	if (ret < 0) {
+							 DRM_MODE_CONNECTOR_VIRTUAL);
+
+	if (ret < 0)
+	{
 		dev_err(drm->dev, "failed to initialize drm connector\n");
 		goto error_encoder_cleanup;
 	}
 
 	ret = drm_mode_connector_attach_encoder(connector, &encoder->base);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(drm->dev, "could not attach connector to encoder\n");
 		drm_connector_unregister(connector);
 		goto error_connector_cleanup;

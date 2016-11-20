@@ -13,7 +13,8 @@
 #ifndef _CS42XX8_H
 #define _CS42XX8_H
 
-struct cs42xx8_driver_data {
+struct cs42xx8_driver_data
+{
 	char name[32];
 	int num_adcs;
 };

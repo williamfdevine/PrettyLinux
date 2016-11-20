@@ -189,14 +189,16 @@
 #define TWL6040_GPO_MAX	3
 
 /* TODO: All platform data struct can be removed */
-struct twl6040_codec_data {
+struct twl6040_codec_data
+{
 	u16 hs_left_step;
 	u16 hs_right_step;
 	u16 hf_left_step;
 	u16 hf_right_step;
 };
 
-struct twl6040_vibra_data {
+struct twl6040_vibra_data
+{
 	unsigned int vibldrv_res;	/* left driver resistance */
 	unsigned int vibrdrv_res;	/* right driver resistance */
 	unsigned int viblmotor_res;	/* left motor resistance */
@@ -205,11 +207,13 @@ struct twl6040_vibra_data {
 	int vddvibr_uV;			/* VDDVIBR volt, set 0 for fixed reg */
 };
 
-struct twl6040_gpo_data {
+struct twl6040_gpo_data
+{
 	int gpio_base;
 };
 
-struct twl6040_platform_data {
+struct twl6040_platform_data
+{
 	int audpwron_gpio;	/* audio power-on gpio */
 
 	struct twl6040_codec_data *codec;
@@ -220,7 +224,8 @@ struct twl6040_platform_data {
 struct regmap;
 struct regmap_irq_chips_data;
 
-struct twl6040 {
+struct twl6040
+{
 	struct device *dev;
 	struct regmap *regmap;
 	struct regmap_irq_chip_data *irq_data;
@@ -248,14 +253,14 @@ struct twl6040 {
 
 int twl6040_reg_read(struct twl6040 *twl6040, unsigned int reg);
 int twl6040_reg_write(struct twl6040 *twl6040, unsigned int reg,
-		      u8 val);
+					  u8 val);
 int twl6040_set_bits(struct twl6040 *twl6040, unsigned int reg,
-		     u8 mask);
+					 u8 mask);
 int twl6040_clear_bits(struct twl6040 *twl6040, unsigned int reg,
-		       u8 mask);
+					   u8 mask);
 int twl6040_power(struct twl6040 *twl6040, int on);
 int twl6040_set_pll(struct twl6040 *twl6040, int pll_id,
-		    unsigned int freq_in, unsigned int freq_out);
+					unsigned int freq_in, unsigned int freq_out);
 int twl6040_get_pll(struct twl6040 *twl6040);
 unsigned int twl6040_get_sysclk(struct twl6040 *twl6040);
 

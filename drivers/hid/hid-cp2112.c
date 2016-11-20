@@ -32,7 +32,8 @@
 #include <linux/usb/ch9.h>
 #include "hid-ids.h"
 
-enum {
+enum
+{
 	CP2112_GPIO_CONFIG		= 0x02,
 	CP2112_GPIO_GET			= 0x03,
 	CP2112_GPIO_SET			= 0x04,
@@ -53,14 +54,16 @@ enum {
 	CP2112_SERIAL_STRING		= 0x24,
 };
 
-enum {
+enum
+{
 	STATUS0_IDLE		= 0x00,
 	STATUS0_BUSY		= 0x01,
 	STATUS0_COMPLETE	= 0x02,
 	STATUS0_ERROR		= 0x03,
 };
 
-enum {
+enum
+{
 	STATUS1_TIMEOUT_NACK		= 0x00,
 	STATUS1_TIMEOUT_BUS		= 0x01,
 	STATUS1_ARBITRATION_LOST	= 0x02,
@@ -69,7 +72,8 @@ enum {
 	STATUS1_SUCCESS			= 0x05,
 };
 
-struct cp2112_smbus_config_report {
+struct cp2112_smbus_config_report
+{
 	u8 report;		/* CP2112_SMBUS_CONFIG */
 	__be32 clock_speed;	/* Hz */
 	u8 device_address;	/* Stored in the upper 7 bits */
@@ -80,7 +84,8 @@ struct cp2112_smbus_config_report {
 	__be16 retry_time;	/* # of retries, 0 = no limit */
 } __packed;
 
-struct cp2112_usb_config_report {
+struct cp2112_usb_config_report
+{
 	u8 report;	/* CP2112_USB_CONFIG */
 	__le16 vid;	/* Vendor ID */
 	__le16 pid;	/* Product ID */
@@ -93,13 +98,15 @@ struct cp2112_usb_config_report {
 	u8 mask;	/* What fields to program */
 } __packed;
 
-struct cp2112_read_req_report {
+struct cp2112_read_req_report
+{
 	u8 report;	/* CP2112_DATA_READ_REQUEST */
 	u8 slave_address;
 	__be16 length;
 } __packed;
 
-struct cp2112_write_read_req_report {
+struct cp2112_write_read_req_report
+{
 	u8 report;	/* CP2112_DATA_WRITE_READ_REQUEST */
 	u8 slave_address;
 	__be16 length;
@@ -107,19 +114,22 @@ struct cp2112_write_read_req_report {
 	u8 target_address[16];
 } __packed;
 
-struct cp2112_write_req_report {
+struct cp2112_write_req_report
+{
 	u8 report;	/* CP2112_DATA_WRITE_REQUEST */
 	u8 slave_address;
 	u8 length;
 	u8 data[61];
 } __packed;
 
-struct cp2112_force_read_report {
+struct cp2112_force_read_report
+{
 	u8 report;	/* CP2112_DATA_READ_FORCE_SEND */
 	__be16 length;
 } __packed;
 
-struct cp2112_xfer_status_report {
+struct cp2112_xfer_status_report
+{
 	u8 report;	/* CP2112_TRANSFER_STATUS_RESPONSE */
 	u8 status0;	/* STATUS0_* */
 	u8 status1;	/* STATUS1_* */
@@ -127,7 +137,8 @@ struct cp2112_xfer_status_report {
 	__be16 length;
 } __packed;
 
-struct cp2112_string_report {
+struct cp2112_string_report
+{
 	u8 dummy;		/* force .string to be aligned */
 	u8 report;		/* CP2112_*_STRING */
 	u8 length;		/* length in bytes of everyting after .report */
@@ -144,13 +155,15 @@ static const int XFER_STATUS_RETRIES = 10;
    CP2112_TRANSFER_STATUS_RESPONSE. */
 static const int RESPONSE_TIMEOUT = 50;
 
-static const struct hid_device_id cp2112_devices[] = {
+static const struct hid_device_id cp2112_devices[] =
+{
 	{ HID_USB_DEVICE(USB_VENDOR_ID_CYGNAL, USB_DEVICE_ID_CYGNAL_CP2112) },
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, cp2112_devices);
 
-struct cp2112_device {
+struct cp2112_device
+{
 	struct i2c_adapter adap;
 	struct hid_device *hdev;
 	wait_queue_head_t wait;
@@ -175,9 +188,11 @@ static int cp2112_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 	int ret;
 
 	ret = hid_hw_raw_request(hdev, CP2112_GPIO_CONFIG, buf,
-				       sizeof(buf), HID_FEATURE_REPORT,
-				       HID_REQ_GET_REPORT);
-	if (ret != sizeof(buf)) {
+							 sizeof(buf), HID_FEATURE_REPORT,
+							 HID_REQ_GET_REPORT);
+
+	if (ret != sizeof(buf))
+	{
 		hid_err(hdev, "error requesting GPIO config: %d\n", ret);
 		return ret;
 	}
@@ -186,8 +201,10 @@ static int cp2112_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 	buf[2] = gpio_push_pull;
 
 	ret = hid_hw_raw_request(hdev, CP2112_GPIO_CONFIG, buf, sizeof(buf),
-				 HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
-	if (ret < 0) {
+							 HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
+
+	if (ret < 0)
+	{
 		hid_err(hdev, "error setting GPIO config: %d\n", ret);
 		return ret;
 	}
@@ -207,9 +224,12 @@ static void cp2112_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	buf[2] = 1 << offset;
 
 	ret = hid_hw_raw_request(hdev, CP2112_GPIO_SET, buf, sizeof(buf),
-				 HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
+							 HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
+
 	if (ret < 0)
+	{
 		hid_err(hdev, "error setting GPIO values: %d\n", ret);
+	}
 }
 
 static int cp2112_gpio_get(struct gpio_chip *chip, unsigned offset)
@@ -220,8 +240,10 @@ static int cp2112_gpio_get(struct gpio_chip *chip, unsigned offset)
 	int ret;
 
 	ret = hid_hw_raw_request(hdev, CP2112_GPIO_GET, buf, sizeof(buf),
-				       HID_FEATURE_REPORT, HID_REQ_GET_REPORT);
-	if (ret != sizeof(buf)) {
+							 HID_FEATURE_REPORT, HID_REQ_GET_REPORT);
+
+	if (ret != sizeof(buf))
+	{
 		hid_err(hdev, "error requesting GPIO values: %d\n", ret);
 		return ret;
 	}
@@ -230,7 +252,7 @@ static int cp2112_gpio_get(struct gpio_chip *chip, unsigned offset)
 }
 
 static int cp2112_gpio_direction_output(struct gpio_chip *chip,
-					unsigned offset, int value)
+										unsigned offset, int value)
 {
 	struct cp2112_device *dev = gpiochip_get_data(chip);
 	struct hid_device *hdev = dev->hdev;
@@ -238,9 +260,11 @@ static int cp2112_gpio_direction_output(struct gpio_chip *chip,
 	int ret;
 
 	ret = hid_hw_raw_request(hdev, CP2112_GPIO_CONFIG, buf,
-				       sizeof(buf), HID_FEATURE_REPORT,
-				       HID_REQ_GET_REPORT);
-	if (ret != sizeof(buf)) {
+							 sizeof(buf), HID_FEATURE_REPORT,
+							 HID_REQ_GET_REPORT);
+
+	if (ret != sizeof(buf))
+	{
 		hid_err(hdev, "error requesting GPIO config: %d\n", ret);
 		return ret;
 	}
@@ -249,8 +273,10 @@ static int cp2112_gpio_direction_output(struct gpio_chip *chip,
 	buf[2] = gpio_push_pull;
 
 	ret = hid_hw_raw_request(hdev, CP2112_GPIO_CONFIG, buf, sizeof(buf),
-				 HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
-	if (ret < 0) {
+							 HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
+
+	if (ret < 0)
+	{
 		hid_err(hdev, "error setting GPIO config: %d\n", ret);
 		return ret;
 	}
@@ -265,37 +291,45 @@ static int cp2112_gpio_direction_output(struct gpio_chip *chip,
 }
 
 static int cp2112_hid_get(struct hid_device *hdev, unsigned char report_number,
-			  u8 *data, size_t count, unsigned char report_type)
+						  u8 *data, size_t count, unsigned char report_type)
 {
 	u8 *buf;
 	int ret;
 
 	buf = kmalloc(count, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	ret = hid_hw_raw_request(hdev, report_number, buf, count,
-				       report_type, HID_REQ_GET_REPORT);
+							 report_type, HID_REQ_GET_REPORT);
 	memcpy(data, buf, count);
 	kfree(buf);
 	return ret;
 }
 
 static int cp2112_hid_output(struct hid_device *hdev, u8 *data, size_t count,
-			     unsigned char report_type)
+							 unsigned char report_type)
 {
 	u8 *buf;
 	int ret;
 
 	buf = kmemdup(data, count, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	if (report_type == HID_OUTPUT_REPORT)
+	{
 		ret = hid_hw_output_report(hdev, buf, count);
+	}
 	else
 		ret = hid_hw_raw_request(hdev, buf[0], buf, count, report_type,
-				HID_REQ_SET_REPORT);
+								 HID_REQ_SET_REPORT);
 
 	kfree(buf);
 	return ret;
@@ -314,11 +348,17 @@ static int cp2112_wait(struct cp2112_device *dev, atomic_t *avail)
 	 * we can do anything about it anyway.
 	 */
 	ret = wait_event_interruptible_timeout(dev->wait,
-		atomic_read(avail), msecs_to_jiffies(RESPONSE_TIMEOUT));
+										   atomic_read(avail), msecs_to_jiffies(RESPONSE_TIMEOUT));
+
 	if (-ERESTARTSYS == ret)
+	{
 		return ret;
+	}
+
 	if (!ret)
+	{
 		return -ETIMEDOUT;
+	}
 
 	atomic_set(avail, 0);
 	return 0;
@@ -335,14 +375,19 @@ static int cp2112_xfer_status(struct cp2112_device *dev)
 	atomic_set(&dev->xfer_avail, 0);
 
 	ret = cp2112_hid_output(hdev, buf, 2, HID_OUTPUT_REPORT);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		hid_warn(hdev, "Error requesting status: %d\n", ret);
 		return ret;
 	}
 
 	ret = cp2112_wait(dev, &dev->xfer_avail);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return dev->xfer_status;
 }
@@ -354,28 +399,38 @@ static int cp2112_read(struct cp2112_device *dev, u8 *data, size_t size)
 	int ret;
 
 	if (size > sizeof(dev->read_data))
+	{
 		size = sizeof(dev->read_data);
+	}
+
 	report.report = CP2112_DATA_READ_FORCE_SEND;
 	report.length = cpu_to_be16(size);
 
 	atomic_set(&dev->read_avail, 0);
 
 	ret = cp2112_hid_output(hdev, &report.report, sizeof(report),
-				HID_OUTPUT_REPORT);
-	if (ret < 0) {
+							HID_OUTPUT_REPORT);
+
+	if (ret < 0)
+	{
 		hid_warn(hdev, "Error requesting data: %d\n", ret);
 		return ret;
 	}
 
 	ret = cp2112_wait(dev, &dev->read_avail);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	hid_dbg(hdev, "read %d of %zd bytes requested\n",
-		dev->read_length, size);
+			dev->read_length, size);
 
 	if (size > dev->read_length)
+	{
 		size = dev->read_length;
+	}
 
 	memcpy(data, dev->read_data, size);
 	return dev->read_length;
@@ -386,7 +441,9 @@ static int cp2112_read_req(void *buf, u8 slave_address, u16 length)
 	struct cp2112_read_req_report *report = buf;
 
 	if (length < 1 || length > 512)
+	{
 		return -EINVAL;
+	}
 
 	report->report = CP2112_DATA_READ_REQUEST;
 	report->slave_address = slave_address << 1;
@@ -395,13 +452,15 @@ static int cp2112_read_req(void *buf, u8 slave_address, u16 length)
 }
 
 static int cp2112_write_read_req(void *buf, u8 slave_address, u16 length,
-				 u8 command, u8 *data, u8 data_length)
+								 u8 command, u8 *data, u8 data_length)
 {
 	struct cp2112_write_read_req_report *report = buf;
 
 	if (length < 1 || length > 512
-	    || data_length > sizeof(report->target_address) - 1)
+		|| data_length > sizeof(report->target_address) - 1)
+	{
 		return -EINVAL;
+	}
 
 	report->report = CP2112_DATA_WRITE_READ_REQUEST;
 	report->slave_address = slave_address << 1;
@@ -413,12 +472,14 @@ static int cp2112_write_read_req(void *buf, u8 slave_address, u16 length,
 }
 
 static int cp2112_write_req(void *buf, u8 slave_address, u8 command, u8 *data,
-			    u8 data_length)
+							u8 data_length)
 {
 	struct cp2112_write_req_report *report = buf;
 
 	if (data_length > sizeof(report->data) - 1)
+	{
 		return -EINVAL;
+	}
 
 	report->report = CP2112_DATA_WRITE_REQUEST;
 	report->slave_address = slave_address << 1;
@@ -429,12 +490,14 @@ static int cp2112_write_req(void *buf, u8 slave_address, u8 command, u8 *data,
 }
 
 static int cp2112_i2c_write_req(void *buf, u8 slave_address, u8 *data,
-				u8 data_length)
+								u8 data_length)
 {
 	struct cp2112_write_req_report *report = buf;
 
 	if (data_length > sizeof(report->data))
+	{
 		return -EINVAL;
+	}
 
 	report->report = CP2112_DATA_WRITE_REQUEST;
 	report->slave_address = slave_address << 1;
@@ -444,14 +507,16 @@ static int cp2112_i2c_write_req(void *buf, u8 slave_address, u8 *data,
 }
 
 static int cp2112_i2c_write_read_req(void *buf, u8 slave_address,
-				     u8 *addr, int addr_length,
-				     int read_length)
+									 u8 *addr, int addr_length,
+									 int read_length)
 {
 	struct cp2112_write_read_req_report *report = buf;
 
 	if (read_length < 1 || read_length > 512 ||
-	    addr_length > sizeof(report->target_address))
+		addr_length > sizeof(report->target_address))
+	{
 		return -EINVAL;
+	}
 
 	report->report = CP2112_DATA_WRITE_READ_REQUEST;
 	report->slave_address = slave_address << 1;
@@ -462,7 +527,7 @@ static int cp2112_i2c_write_read_req(void *buf, u8 slave_address,
 }
 
 static int cp2112_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
-			   int num)
+						   int num)
 {
 	struct cp2112_device *dev = (struct cp2112_device *)adap->algo_data;
 	struct hid_device *hdev = dev->hdev;
@@ -475,85 +540,122 @@ static int cp2112_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
 
 	hid_dbg(hdev, "I2C %d messages\n", num);
 
-	if (num == 1) {
-		if (msgs->flags & I2C_M_RD) {
+	if (num == 1)
+	{
+		if (msgs->flags & I2C_M_RD)
+		{
 			hid_dbg(hdev, "I2C read %#04x len %d\n",
-				msgs->addr, msgs->len);
+					msgs->addr, msgs->len);
 			read_length = msgs->len;
 			read_buf = msgs->buf;
 			count = cp2112_read_req(buf, msgs->addr, msgs->len);
-		} else {
-			hid_dbg(hdev, "I2C write %#04x len %d\n",
-				msgs->addr, msgs->len);
-			count = cp2112_i2c_write_req(buf, msgs->addr,
-						     msgs->buf, msgs->len);
 		}
+		else
+		{
+			hid_dbg(hdev, "I2C write %#04x len %d\n",
+					msgs->addr, msgs->len);
+			count = cp2112_i2c_write_req(buf, msgs->addr,
+										 msgs->buf, msgs->len);
+		}
+
 		if (count < 0)
+		{
 			return count;
-	} else if (dev->hwversion > 1 &&  /* no repeated start in rev 1 */
-		   num == 2 &&
-		   msgs[0].addr == msgs[1].addr &&
-		   !(msgs[0].flags & I2C_M_RD) && (msgs[1].flags & I2C_M_RD)) {
+		}
+	}
+	else if (dev->hwversion > 1 &&    /* no repeated start in rev 1 */
+			 num == 2 &&
+			 msgs[0].addr == msgs[1].addr &&
+			 !(msgs[0].flags & I2C_M_RD) && (msgs[1].flags & I2C_M_RD))
+	{
 		hid_dbg(hdev, "I2C write-read %#04x wlen %d rlen %d\n",
-			msgs[0].addr, msgs[0].len, msgs[1].len);
+				msgs[0].addr, msgs[0].len, msgs[1].len);
 		read_length = msgs[1].len;
 		read_buf = msgs[1].buf;
 		count = cp2112_i2c_write_read_req(buf, msgs[0].addr,
-				msgs[0].buf, msgs[0].len, msgs[1].len);
+										  msgs[0].buf, msgs[0].len, msgs[1].len);
+
 		if (count < 0)
+		{
 			return count;
-	} else {
+		}
+	}
+	else
+	{
 		hid_err(hdev,
-			"Multi-message I2C transactions not supported\n");
+				"Multi-message I2C transactions not supported\n");
 		return -EOPNOTSUPP;
 	}
 
 	ret = hid_hw_power(hdev, PM_HINT_FULLON);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		hid_err(hdev, "power management error: %d\n", ret);
 		return ret;
 	}
 
 	ret = cp2112_hid_output(hdev, buf, count, HID_OUTPUT_REPORT);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		hid_warn(hdev, "Error starting transaction: %d\n", ret);
 		goto power_normal;
 	}
 
-	for (retries = 0; retries < XFER_STATUS_RETRIES; ++retries) {
+	for (retries = 0; retries < XFER_STATUS_RETRIES; ++retries)
+	{
 		ret = cp2112_xfer_status(dev);
+
 		if (-EBUSY == ret)
+		{
 			continue;
+		}
+
 		if (ret < 0)
+		{
 			goto power_normal;
+		}
+
 		break;
 	}
 
-	if (XFER_STATUS_RETRIES <= retries) {
+	if (XFER_STATUS_RETRIES <= retries)
+	{
 		hid_warn(hdev, "Transfer timed out, cancelling.\n");
 		buf[0] = CP2112_CANCEL_TRANSFER;
 		buf[1] = 0x01;
 
 		ret = cp2112_hid_output(hdev, buf, 2, HID_OUTPUT_REPORT);
+
 		if (ret < 0)
 			hid_warn(hdev, "Error cancelling transaction: %d\n",
-				 ret);
+					 ret);
 
 		ret = -ETIMEDOUT;
 		goto power_normal;
 	}
 
-	for (count = 0; count < read_length;) {
+	for (count = 0; count < read_length;)
+	{
 		ret = cp2112_read(dev, read_buf + count, read_length - count);
+
 		if (ret < 0)
+		{
 			goto power_normal;
-		if (ret == 0) {
+		}
+
+		if (ret == 0)
+		{
 			hid_err(hdev, "read returned 0\n");
 			ret = -EIO;
 			goto power_normal;
 		}
+
 		count += ret;
-		if (count > read_length) {
+
+		if (count > read_length)
+		{
 			/*
 			 * The hardware returned too much data.
 			 * This is mostly harmless because cp2112_read()
@@ -563,7 +665,7 @@ static int cp2112_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
 			 * it shouldn't go unnoticed.
 			 */
 			hid_err(hdev, "long read: %d > %zd\n",
-				ret, read_length - count + ret);
+					ret, read_length - count + ret);
 			ret = -EIO;
 			goto power_normal;
 		}
@@ -579,8 +681,8 @@ power_normal:
 }
 
 static int cp2112_xfer(struct i2c_adapter *adap, u16 addr,
-		       unsigned short flags, char read_write, u8 command,
-		       int size, union i2c_smbus_data *data)
+					   unsigned short flags, char read_write, u8 command,
+					   int size, union i2c_smbus_data *data)
 {
 	struct cp2112_device *dev = (struct cp2112_device *)adap->algo_data;
 	struct hid_device *hdev = dev->hdev;
@@ -592,147 +694,192 @@ static int cp2112_xfer(struct i2c_adapter *adap, u16 addr,
 	int ret;
 
 	hid_dbg(hdev, "%s addr 0x%x flags 0x%x cmd 0x%x size %d\n",
-		read_write == I2C_SMBUS_WRITE ? "write" : "read",
-		addr, flags, command, size);
+			read_write == I2C_SMBUS_WRITE ? "write" : "read",
+			addr, flags, command, size);
 
-	switch (size) {
-	case I2C_SMBUS_BYTE:
-		read_length = 1;
+	switch (size)
+	{
+		case I2C_SMBUS_BYTE:
+			read_length = 1;
 
-		if (I2C_SMBUS_READ == read_write)
-			count = cp2112_read_req(buf, addr, read_length);
-		else
-			count = cp2112_write_req(buf, addr, command, NULL,
-						 0);
-		break;
-	case I2C_SMBUS_BYTE_DATA:
-		read_length = 1;
+			if (I2C_SMBUS_READ == read_write)
+			{
+				count = cp2112_read_req(buf, addr, read_length);
+			}
+			else
+				count = cp2112_write_req(buf, addr, command, NULL,
+										 0);
 
-		if (I2C_SMBUS_READ == read_write)
-			count = cp2112_write_read_req(buf, addr, read_length,
-						      command, NULL, 0);
-		else
-			count = cp2112_write_req(buf, addr, command,
-						 &data->byte, 1);
-		break;
-	case I2C_SMBUS_WORD_DATA:
-		read_length = 2;
-		word = cpu_to_le16(data->word);
+			break;
 
-		if (I2C_SMBUS_READ == read_write)
-			count = cp2112_write_read_req(buf, addr, read_length,
-						      command, NULL, 0);
-		else
-			count = cp2112_write_req(buf, addr, command,
-						 (u8 *)&word, 2);
-		break;
-	case I2C_SMBUS_PROC_CALL:
-		size = I2C_SMBUS_WORD_DATA;
-		read_write = I2C_SMBUS_READ;
-		read_length = 2;
-		word = cpu_to_le16(data->word);
+		case I2C_SMBUS_BYTE_DATA:
+			read_length = 1;
 
-		count = cp2112_write_read_req(buf, addr, read_length, command,
-					      (u8 *)&word, 2);
-		break;
-	case I2C_SMBUS_I2C_BLOCK_DATA:
-		size = I2C_SMBUS_BLOCK_DATA;
+			if (I2C_SMBUS_READ == read_write)
+				count = cp2112_write_read_req(buf, addr, read_length,
+											  command, NULL, 0);
+			else
+				count = cp2112_write_req(buf, addr, command,
+										 &data->byte, 1);
+
+			break;
+
+		case I2C_SMBUS_WORD_DATA:
+			read_length = 2;
+			word = cpu_to_le16(data->word);
+
+			if (I2C_SMBUS_READ == read_write)
+				count = cp2112_write_read_req(buf, addr, read_length,
+											  command, NULL, 0);
+			else
+				count = cp2112_write_req(buf, addr, command,
+										 (u8 *)&word, 2);
+
+			break;
+
+		case I2C_SMBUS_PROC_CALL:
+			size = I2C_SMBUS_WORD_DATA;
+			read_write = I2C_SMBUS_READ;
+			read_length = 2;
+			word = cpu_to_le16(data->word);
+
+			count = cp2112_write_read_req(buf, addr, read_length, command,
+										  (u8 *)&word, 2);
+			break;
+
+		case I2C_SMBUS_I2C_BLOCK_DATA:
+			size = I2C_SMBUS_BLOCK_DATA;
+
 		/* fallthrough */
-	case I2C_SMBUS_BLOCK_DATA:
-		if (I2C_SMBUS_READ == read_write) {
-			count = cp2112_write_read_req(buf, addr,
-						      I2C_SMBUS_BLOCK_MAX,
-						      command, NULL, 0);
-		} else {
-			count = cp2112_write_req(buf, addr, command,
-						 data->block,
-						 data->block[0] + 1);
-		}
-		break;
-	case I2C_SMBUS_BLOCK_PROC_CALL:
-		size = I2C_SMBUS_BLOCK_DATA;
-		read_write = I2C_SMBUS_READ;
+		case I2C_SMBUS_BLOCK_DATA:
+			if (I2C_SMBUS_READ == read_write)
+			{
+				count = cp2112_write_read_req(buf, addr,
+											  I2C_SMBUS_BLOCK_MAX,
+											  command, NULL, 0);
+			}
+			else
+			{
+				count = cp2112_write_req(buf, addr, command,
+										 data->block,
+										 data->block[0] + 1);
+			}
 
-		count = cp2112_write_read_req(buf, addr, I2C_SMBUS_BLOCK_MAX,
-					      command, data->block,
-					      data->block[0] + 1);
-		break;
-	default:
-		hid_warn(hdev, "Unsupported transaction %d\n", size);
-		return -EOPNOTSUPP;
+			break;
+
+		case I2C_SMBUS_BLOCK_PROC_CALL:
+			size = I2C_SMBUS_BLOCK_DATA;
+			read_write = I2C_SMBUS_READ;
+
+			count = cp2112_write_read_req(buf, addr, I2C_SMBUS_BLOCK_MAX,
+										  command, data->block,
+										  data->block[0] + 1);
+			break;
+
+		default:
+			hid_warn(hdev, "Unsupported transaction %d\n", size);
+			return -EOPNOTSUPP;
 	}
 
 	if (count < 0)
+	{
 		return count;
+	}
 
 	ret = hid_hw_power(hdev, PM_HINT_FULLON);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		hid_err(hdev, "power management error: %d\n", ret);
 		return ret;
 	}
 
 	ret = cp2112_hid_output(hdev, buf, count, HID_OUTPUT_REPORT);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		hid_warn(hdev, "Error starting transaction: %d\n", ret);
 		goto power_normal;
 	}
 
-	for (retries = 0; retries < XFER_STATUS_RETRIES; ++retries) {
+	for (retries = 0; retries < XFER_STATUS_RETRIES; ++retries)
+	{
 		ret = cp2112_xfer_status(dev);
+
 		if (-EBUSY == ret)
+		{
 			continue;
+		}
+
 		if (ret < 0)
+		{
 			goto power_normal;
+		}
+
 		break;
 	}
 
-	if (XFER_STATUS_RETRIES <= retries) {
+	if (XFER_STATUS_RETRIES <= retries)
+	{
 		hid_warn(hdev, "Transfer timed out, cancelling.\n");
 		buf[0] = CP2112_CANCEL_TRANSFER;
 		buf[1] = 0x01;
 
 		ret = cp2112_hid_output(hdev, buf, 2, HID_OUTPUT_REPORT);
+
 		if (ret < 0)
 			hid_warn(hdev, "Error cancelling transaction: %d\n",
-				 ret);
+					 ret);
 
 		ret = -ETIMEDOUT;
 		goto power_normal;
 	}
 
-	if (I2C_SMBUS_WRITE == read_write) {
+	if (I2C_SMBUS_WRITE == read_write)
+	{
 		ret = 0;
 		goto power_normal;
 	}
 
 	if (I2C_SMBUS_BLOCK_DATA == size)
+	{
 		read_length = ret;
+	}
 
 	ret = cp2112_read(dev, buf, read_length);
+
 	if (ret < 0)
+	{
 		goto power_normal;
-	if (ret != read_length) {
+	}
+
+	if (ret != read_length)
+	{
 		hid_warn(hdev, "short read: %d < %zd\n", ret, read_length);
 		ret = -EIO;
 		goto power_normal;
 	}
 
-	switch (size) {
-	case I2C_SMBUS_BYTE:
-	case I2C_SMBUS_BYTE_DATA:
-		data->byte = buf[0];
-		break;
-	case I2C_SMBUS_WORD_DATA:
-		data->word = le16_to_cpup((__le16 *)buf);
-		break;
-	case I2C_SMBUS_BLOCK_DATA:
-		if (read_length > I2C_SMBUS_BLOCK_MAX) {
-			ret = -EPROTO;
-			goto power_normal;
-		}
+	switch (size)
+	{
+		case I2C_SMBUS_BYTE:
+		case I2C_SMBUS_BYTE_DATA:
+			data->byte = buf[0];
+			break;
 
-		memcpy(data->block, buf, read_length);
-		break;
+		case I2C_SMBUS_WORD_DATA:
+			data->word = le16_to_cpup((__le16 *)buf);
+			break;
+
+		case I2C_SMBUS_BLOCK_DATA:
+			if (read_length > I2C_SMBUS_BLOCK_MAX)
+			{
+				ret = -EPROTO;
+				goto power_normal;
+			}
+
+			memcpy(data->block, buf, read_length);
+			break;
 	}
 
 	ret = 0;
@@ -745,32 +892,39 @@ power_normal:
 static u32 cp2112_functionality(struct i2c_adapter *adap)
 {
 	return I2C_FUNC_I2C |
-		I2C_FUNC_SMBUS_BYTE |
-		I2C_FUNC_SMBUS_BYTE_DATA |
-		I2C_FUNC_SMBUS_WORD_DATA |
-		I2C_FUNC_SMBUS_BLOCK_DATA |
-		I2C_FUNC_SMBUS_I2C_BLOCK |
-		I2C_FUNC_SMBUS_PROC_CALL |
-		I2C_FUNC_SMBUS_BLOCK_PROC_CALL;
+		   I2C_FUNC_SMBUS_BYTE |
+		   I2C_FUNC_SMBUS_BYTE_DATA |
+		   I2C_FUNC_SMBUS_WORD_DATA |
+		   I2C_FUNC_SMBUS_BLOCK_DATA |
+		   I2C_FUNC_SMBUS_I2C_BLOCK |
+		   I2C_FUNC_SMBUS_PROC_CALL |
+		   I2C_FUNC_SMBUS_BLOCK_PROC_CALL;
 }
 
-static const struct i2c_algorithm smbus_algorithm = {
+static const struct i2c_algorithm smbus_algorithm =
+{
 	.master_xfer	= cp2112_i2c_xfer,
 	.smbus_xfer	= cp2112_xfer,
 	.functionality	= cp2112_functionality,
 };
 
 static int cp2112_get_usb_config(struct hid_device *hdev,
-				 struct cp2112_usb_config_report *cfg)
+								 struct cp2112_usb_config_report *cfg)
 {
 	int ret;
 
 	ret = cp2112_hid_get(hdev, CP2112_USB_CONFIG, (u8 *)cfg, sizeof(*cfg),
-			     HID_FEATURE_REPORT);
-	if (ret != sizeof(*cfg)) {
+						 HID_FEATURE_REPORT);
+
+	if (ret != sizeof(*cfg))
+	{
 		hid_err(hdev, "error reading usb config: %d\n", ret);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		return -EIO;
 	}
 
@@ -778,18 +932,24 @@ static int cp2112_get_usb_config(struct hid_device *hdev,
 }
 
 static int cp2112_set_usb_config(struct hid_device *hdev,
-				 struct cp2112_usb_config_report *cfg)
+								 struct cp2112_usb_config_report *cfg)
 {
 	int ret;
 
 	BUG_ON(cfg->report != CP2112_USB_CONFIG);
 
 	ret = cp2112_hid_output(hdev, (u8 *)cfg, sizeof(*cfg),
-				HID_FEATURE_REPORT);
-	if (ret != sizeof(*cfg)) {
+							HID_FEATURE_REPORT);
+
+	if (ret != sizeof(*cfg))
+	{
 		hid_err(hdev, "error writing usb config: %d\n", ret);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		return -EIO;
 	}
 
@@ -799,35 +959,36 @@ static int cp2112_set_usb_config(struct hid_device *hdev,
 static void chmod_sysfs_attrs(struct hid_device *hdev);
 
 #define CP2112_CONFIG_ATTR(name, store, format, ...) \
-static ssize_t name##_store(struct device *kdev, \
-			    struct device_attribute *attr, const char *buf, \
-			    size_t count) \
-{ \
-	struct hid_device *hdev = to_hid_device(kdev); \
-	struct cp2112_usb_config_report cfg; \
-	int ret = cp2112_get_usb_config(hdev, &cfg); \
-	if (ret) \
-		return ret; \
-	store; \
-	ret = cp2112_set_usb_config(hdev, &cfg); \
-	if (ret) \
-		return ret; \
-	chmod_sysfs_attrs(hdev); \
-	return count; \
-} \
-static ssize_t name##_show(struct device *kdev, \
-			   struct device_attribute *attr, char *buf) \
-{ \
-	struct hid_device *hdev = to_hid_device(kdev); \
-	struct cp2112_usb_config_report cfg; \
-	int ret = cp2112_get_usb_config(hdev, &cfg); \
-	if (ret) \
-		return ret; \
-	return scnprintf(buf, PAGE_SIZE, format, ##__VA_ARGS__); \
-} \
-static DEVICE_ATTR_RW(name);
+	static ssize_t name##_store(struct device *kdev, \
+								struct device_attribute *attr, const char *buf, \
+								size_t count) \
+	{ \
+		struct hid_device *hdev = to_hid_device(kdev); \
+		struct cp2112_usb_config_report cfg; \
+		int ret = cp2112_get_usb_config(hdev, &cfg); \
+		if (ret) \
+			return ret; \
+		store; \
+		ret = cp2112_set_usb_config(hdev, &cfg); \
+		if (ret) \
+			return ret; \
+		chmod_sysfs_attrs(hdev); \
+		return count; \
+	} \
+	static ssize_t name##_show(struct device *kdev, \
+							   struct device_attribute *attr, char *buf) \
+	{ \
+		struct hid_device *hdev = to_hid_device(kdev); \
+		struct cp2112_usb_config_report cfg; \
+		int ret = cp2112_get_usb_config(hdev, &cfg); \
+		if (ret) \
+			return ret; \
+		return scnprintf(buf, PAGE_SIZE, format, ##__VA_ARGS__); \
+	} \
+	static DEVICE_ATTR_RW(name);
 
-CP2112_CONFIG_ATTR(vendor_id, ({
+CP2112_CONFIG_ATTR(vendor_id, (
+{
 	u16 vid;
 
 	if (sscanf(buf, "%hi", &vid) != 1)
@@ -837,7 +998,8 @@ CP2112_CONFIG_ATTR(vendor_id, ({
 	cfg.mask = 0x01;
 }), "0x%04x\n", le16_to_cpu(cfg.vid));
 
-CP2112_CONFIG_ATTR(product_id, ({
+CP2112_CONFIG_ATTR(product_id, (
+{
 	u16 pid;
 
 	if (sscanf(buf, "%hi", &pid) != 1)
@@ -847,7 +1009,8 @@ CP2112_CONFIG_ATTR(product_id, ({
 	cfg.mask = 0x02;
 }), "0x%04x\n", le16_to_cpu(cfg.pid));
 
-CP2112_CONFIG_ATTR(max_power, ({
+CP2112_CONFIG_ATTR(max_power, (
+{
 	int mA;
 
 	if (sscanf(buf, "%i", &mA) != 1)
@@ -857,16 +1020,18 @@ CP2112_CONFIG_ATTR(max_power, ({
 	cfg.mask = 0x04;
 }), "%u mA\n", cfg.max_power * 2);
 
-CP2112_CONFIG_ATTR(power_mode, ({
+CP2112_CONFIG_ATTR(power_mode, (
+{
 	if (sscanf(buf, "%hhi", &cfg.power_mode) != 1)
 		return -EINVAL;
 
 	cfg.mask = 0x08;
 }), "%u\n", cfg.power_mode);
 
-CP2112_CONFIG_ATTR(release_version, ({
+CP2112_CONFIG_ATTR(release_version, (
+{
 	if (sscanf(buf, "%hhi.%hhi", &cfg.release_major, &cfg.release_minor)
-	    != 2)
+	!= 2)
 		return -EINVAL;
 
 	cfg.mask = 0x10;
@@ -874,14 +1039,15 @@ CP2112_CONFIG_ATTR(release_version, ({
 
 #undef CP2112_CONFIG_ATTR
 
-struct cp2112_pstring_attribute {
+struct cp2112_pstring_attribute
+{
 	struct device_attribute attr;
 	unsigned char report;
 };
 
 static ssize_t pstr_store(struct device *kdev,
-			  struct device_attribute *kattr, const char *buf,
-			  size_t count)
+						  struct device_attribute *kattr, const char *buf,
+						  size_t count)
 {
 	struct hid_device *hdev = to_hid_device(kdev);
 	struct cp2112_pstring_attribute *attr =
@@ -892,18 +1058,24 @@ static ssize_t pstr_store(struct device *kdev,
 	memset(&report, 0, sizeof(report));
 
 	ret = utf8s_to_utf16s(buf, count, UTF16_LITTLE_ENDIAN,
-			      report.string, ARRAY_SIZE(report.string));
+						  report.string, ARRAY_SIZE(report.string));
 	report.report = attr->report;
 	report.length = ret * sizeof(report.string[0]) + 2;
 	report.type = USB_DT_STRING;
 
 	ret = cp2112_hid_output(hdev, &report.report, report.length + 1,
-				HID_FEATURE_REPORT);
-	if (ret != report.length + 1) {
+							HID_FEATURE_REPORT);
+
+	if (ret != report.length + 1)
+	{
 		hid_err(hdev, "error writing %s string: %d\n", kattr->attr.name,
-			ret);
+				ret);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		return -EIO;
 	}
 
@@ -912,7 +1084,7 @@ static ssize_t pstr_store(struct device *kdev,
 }
 
 static ssize_t pstr_show(struct device *kdev,
-			 struct device_attribute *kattr, char *buf)
+						 struct device_attribute *kattr, char *buf)
 {
 	struct hid_device *hdev = to_hid_device(kdev);
 	struct cp2112_pstring_attribute *attr =
@@ -922,34 +1094,41 @@ static ssize_t pstr_show(struct device *kdev,
 	int ret;
 
 	ret = cp2112_hid_get(hdev, attr->report, &report.report,
-			     sizeof(report) - 1, HID_FEATURE_REPORT);
-	if (ret < 3) {
+						 sizeof(report) - 1, HID_FEATURE_REPORT);
+
+	if (ret < 3)
+	{
 		hid_err(hdev, "error reading %s string: %d\n", kattr->attr.name,
-			ret);
+				ret);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		return -EIO;
 	}
 
-	if (report.length < 2) {
+	if (report.length < 2)
+	{
 		hid_err(hdev, "invalid %s string length: %d\n",
-			kattr->attr.name, report.length);
+				kattr->attr.name, report.length);
 		return -EIO;
 	}
 
 	length = report.length > ret - 1 ? ret - 1 : report.length;
 	length = (length - 2) / sizeof(report.string[0]);
 	ret = utf16s_to_utf8s(report.string, length, UTF16_LITTLE_ENDIAN, buf,
-			      PAGE_SIZE - 1);
+						  PAGE_SIZE - 1);
 	buf[ret++] = '\n';
 	return ret;
 }
 
 #define CP2112_PSTR_ATTR(name, _report) \
-static struct cp2112_pstring_attribute dev_attr_##name = { \
-	.attr = __ATTR(name, (S_IWUSR | S_IRUGO), pstr_show, pstr_store), \
-	.report = _report, \
-};
+	static struct cp2112_pstring_attribute dev_attr_##name = { \
+		.attr = __ATTR(name, (S_IWUSR | S_IRUGO), pstr_show, pstr_store), \
+				.report = _report, \
+	};
 
 CP2112_PSTR_ATTR(manufacturer,	CP2112_MANUFACTURER_STRING);
 CP2112_PSTR_ATTR(product,	CP2112_PRODUCT_STRING);
@@ -957,8 +1136,10 @@ CP2112_PSTR_ATTR(serial,	CP2112_SERIAL_STRING);
 
 #undef CP2112_PSTR_ATTR
 
-static const struct attribute_group cp2112_attr_group = {
-	.attrs = (struct attribute *[]){
+static const struct attribute_group cp2112_attr_group =
+{
+	.attrs = (struct attribute * [])
+	{
 		&dev_attr_vendor_id.attr,
 		&dev_attr_product_id.attr,
 		&dev_attr_max_power.attr,
@@ -984,18 +1165,23 @@ static void chmod_sysfs_attrs(struct hid_device *hdev)
 	int ret;
 
 	ret = cp2112_hid_get(hdev, CP2112_LOCK_BYTE, buf, sizeof(buf),
-			     HID_FEATURE_REPORT);
-	if (ret != sizeof(buf)) {
+						 HID_FEATURE_REPORT);
+
+	if (ret != sizeof(buf))
+	{
 		hid_err(hdev, "error reading lock byte: %d\n", ret);
 		return;
 	}
 
-	for (attr = cp2112_attr_group.attrs; *attr; ++attr) {
+	for (attr = cp2112_attr_group.attrs; *attr; ++attr)
+	{
 		umode_t mode = (buf[1] & 1) ? S_IWUSR | S_IRUGO : S_IRUGO;
 		ret = sysfs_chmod_file(&hdev->dev.kobj, *attr, mode);
+
 		if (ret < 0)
 			hid_err(hdev, "error chmoding sysfs file %s\n",
-				(*attr)->name);
+					(*attr)->name);
+
 		buf[1] >>= 1;
 	}
 }
@@ -1008,63 +1194,91 @@ static int cp2112_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	int ret;
 
 	ret = hid_parse(hdev);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hdev, "parse failed\n");
 		return ret;
 	}
 
 	ret = hid_hw_start(hdev, HID_CONNECT_HIDRAW);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hdev, "hw start failed\n");
 		return ret;
 	}
 
 	ret = hid_hw_open(hdev);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hdev, "hw open failed\n");
 		goto err_hid_stop;
 	}
 
 	ret = hid_hw_power(hdev, PM_HINT_FULLON);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		hid_err(hdev, "power management error: %d\n", ret);
 		goto err_hid_close;
 	}
 
 	ret = cp2112_hid_get(hdev, CP2112_GET_VERSION_INFO, buf, sizeof(buf),
-			     HID_FEATURE_REPORT);
-	if (ret != sizeof(buf)) {
+						 HID_FEATURE_REPORT);
+
+	if (ret != sizeof(buf))
+	{
 		hid_err(hdev, "error requesting version\n");
+
 		if (ret >= 0)
+		{
 			ret = -EIO;
+		}
+
 		goto err_power_normal;
 	}
 
 	hid_info(hdev, "Part Number: 0x%02X Device Version: 0x%02X\n",
-		 buf[1], buf[2]);
+			 buf[1], buf[2]);
 
 	ret = cp2112_hid_get(hdev, CP2112_SMBUS_CONFIG, (u8 *)&config,
-			     sizeof(config), HID_FEATURE_REPORT);
-	if (ret != sizeof(config)) {
+						 sizeof(config), HID_FEATURE_REPORT);
+
+	if (ret != sizeof(config))
+	{
 		hid_err(hdev, "error requesting SMBus config\n");
+
 		if (ret >= 0)
+		{
 			ret = -EIO;
+		}
+
 		goto err_power_normal;
 	}
 
 	config.retry_time = cpu_to_be16(1);
 
 	ret = cp2112_hid_output(hdev, (u8 *)&config, sizeof(config),
-				HID_FEATURE_REPORT);
-	if (ret != sizeof(config)) {
+							HID_FEATURE_REPORT);
+
+	if (ret != sizeof(config))
+	{
 		hid_err(hdev, "error setting SMBus config\n");
+
 		if (ret >= 0)
+		{
 			ret = -EIO;
+		}
+
 		goto err_power_normal;
 	}
 
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-	if (!dev) {
+
+	if (!dev)
+	{
 		ret = -ENOMEM;
 		goto err_power_normal;
 	}
@@ -1077,7 +1291,7 @@ static int cp2112_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	dev->adap.algo_data	= dev;
 	dev->adap.dev.parent	= &hdev->dev;
 	snprintf(dev->adap.name, sizeof(dev->adap.name),
-		 "CP2112 SMBus Bridge on hiddev%d", hdev->minor);
+			 "CP2112 SMBus Bridge on hiddev%d", hdev->minor);
 	dev->hwversion = buf[2];
 	init_waitqueue_head(&dev->wait);
 
@@ -1085,7 +1299,8 @@ static int cp2112_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	ret = i2c_add_adapter(&dev->adap);
 	hid_device_io_stop(hdev);
 
-	if (ret) {
+	if (ret)
+	{
 		hid_err(hdev, "error registering i2c adapter\n");
 		goto err_free_dev;
 	}
@@ -1103,13 +1318,17 @@ static int cp2112_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	dev->gc.parent			= &hdev->dev;
 
 	ret = gpiochip_add_data(&dev->gc, dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		hid_err(hdev, "error registering gpio chip\n");
 		goto err_free_i2c;
 	}
 
 	ret = sysfs_create_group(&hdev->dev.kobj, &cp2112_attr_group);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		hid_err(hdev, "error creating sysfs attrs\n");
 		goto err_gpiochip_remove;
 	}
@@ -1153,66 +1372,81 @@ static void cp2112_remove(struct hid_device *hdev)
 }
 
 static int cp2112_raw_event(struct hid_device *hdev, struct hid_report *report,
-			    u8 *data, int size)
+							u8 *data, int size)
 {
 	struct cp2112_device *dev = hid_get_drvdata(hdev);
 	struct cp2112_xfer_status_report *xfer = (void *)data;
 
-	switch (data[0]) {
-	case CP2112_TRANSFER_STATUS_RESPONSE:
-		hid_dbg(hdev, "xfer status: %02x %02x %04x %04x\n",
-			xfer->status0, xfer->status1,
-			be16_to_cpu(xfer->retries), be16_to_cpu(xfer->length));
+	switch (data[0])
+	{
+		case CP2112_TRANSFER_STATUS_RESPONSE:
+			hid_dbg(hdev, "xfer status: %02x %02x %04x %04x\n",
+					xfer->status0, xfer->status1,
+					be16_to_cpu(xfer->retries), be16_to_cpu(xfer->length));
 
-		switch (xfer->status0) {
-		case STATUS0_IDLE:
-			dev->xfer_status = -EAGAIN;
-			break;
-		case STATUS0_BUSY:
-			dev->xfer_status = -EBUSY;
-			break;
-		case STATUS0_COMPLETE:
-			dev->xfer_status = be16_to_cpu(xfer->length);
-			break;
-		case STATUS0_ERROR:
-			switch (xfer->status1) {
-			case STATUS1_TIMEOUT_NACK:
-			case STATUS1_TIMEOUT_BUS:
-				dev->xfer_status = -ETIMEDOUT;
-				break;
-			default:
-				dev->xfer_status = -EIO;
-				break;
+			switch (xfer->status0)
+			{
+				case STATUS0_IDLE:
+					dev->xfer_status = -EAGAIN;
+					break;
+
+				case STATUS0_BUSY:
+					dev->xfer_status = -EBUSY;
+					break;
+
+				case STATUS0_COMPLETE:
+					dev->xfer_status = be16_to_cpu(xfer->length);
+					break;
+
+				case STATUS0_ERROR:
+					switch (xfer->status1)
+					{
+						case STATUS1_TIMEOUT_NACK:
+						case STATUS1_TIMEOUT_BUS:
+							dev->xfer_status = -ETIMEDOUT;
+							break;
+
+						default:
+							dev->xfer_status = -EIO;
+							break;
+					}
+
+					break;
+
+				default:
+					dev->xfer_status = -EINVAL;
+					break;
 			}
+
+			atomic_set(&dev->xfer_avail, 1);
 			break;
+
+		case CP2112_DATA_READ_RESPONSE:
+			hid_dbg(hdev, "read response: %02x %02x\n", data[1], data[2]);
+
+			dev->read_length = data[2];
+
+			if (dev->read_length > sizeof(dev->read_data))
+			{
+				dev->read_length = sizeof(dev->read_data);
+			}
+
+			memcpy(dev->read_data, &data[3], dev->read_length);
+			atomic_set(&dev->read_avail, 1);
+			break;
+
 		default:
-			dev->xfer_status = -EINVAL;
-			break;
-		}
+			hid_err(hdev, "unknown report\n");
 
-		atomic_set(&dev->xfer_avail, 1);
-		break;
-	case CP2112_DATA_READ_RESPONSE:
-		hid_dbg(hdev, "read response: %02x %02x\n", data[1], data[2]);
-
-		dev->read_length = data[2];
-		if (dev->read_length > sizeof(dev->read_data))
-			dev->read_length = sizeof(dev->read_data);
-
-		memcpy(dev->read_data, &data[3], dev->read_length);
-		atomic_set(&dev->read_avail, 1);
-		break;
-	default:
-		hid_err(hdev, "unknown report\n");
-
-		return 0;
+			return 0;
 	}
 
 	wake_up_interruptible(&dev->wait);
 	return 1;
 }
 
-static struct hid_driver cp2112_driver = {
+static struct hid_driver cp2112_driver =
+{
 	.name		= "cp2112",
 	.id_table	= cp2112_devices,
 	.probe		= cp2112_probe,

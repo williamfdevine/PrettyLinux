@@ -25,7 +25,8 @@
 #include <linux/kernel.h>
 #include <linux/padata.h>
 
-struct pcrypt_request {
+struct pcrypt_request
+{
 	struct padata_priv	padata;
 	void			*data;
 	void			*__ctx[] CRYPTO_MINALIGN_ATTR;

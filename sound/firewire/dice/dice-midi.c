@@ -13,8 +13,11 @@ static int midi_open(struct snd_rawmidi_substream *substream)
 	int err;
 
 	err = snd_dice_stream_lock_try(dice);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	mutex_lock(&dice->mutex);
 
@@ -24,7 +27,9 @@ static int midi_open(struct snd_rawmidi_substream *substream)
 	mutex_unlock(&dice->mutex);
 
 	if (err < 0)
+	{
 		snd_dice_stream_lock_release(dice);
+	}
 
 	return err;
 }
@@ -53,10 +58,10 @@ static void midi_capture_trigger(struct snd_rawmidi_substream *substrm, int up)
 
 	if (up)
 		amdtp_am824_midi_trigger(&dice->tx_stream[0],
-					  substrm->number, substrm);
+								 substrm->number, substrm);
 	else
 		amdtp_am824_midi_trigger(&dice->tx_stream[0],
-					  substrm->number, NULL);
+								 substrm->number, NULL);
 
 	spin_unlock_irqrestore(&dice->lock, flags);
 }
@@ -70,34 +75,37 @@ static void midi_playback_trigger(struct snd_rawmidi_substream *substrm, int up)
 
 	if (up)
 		amdtp_am824_midi_trigger(&dice->rx_stream[0],
-					 substrm->number, substrm);
+								 substrm->number, substrm);
 	else
 		amdtp_am824_midi_trigger(&dice->rx_stream[0],
-					 substrm->number, NULL);
+								 substrm->number, NULL);
 
 	spin_unlock_irqrestore(&dice->lock, flags);
 }
 
-static struct snd_rawmidi_ops capture_ops = {
+static struct snd_rawmidi_ops capture_ops =
+{
 	.open		= midi_open,
 	.close		= midi_close,
 	.trigger	= midi_capture_trigger,
 };
 
-static struct snd_rawmidi_ops playback_ops = {
+static struct snd_rawmidi_ops playback_ops =
+{
 	.open		= midi_open,
 	.close		= midi_close,
 	.trigger	= midi_playback_trigger,
 };
 
 static void set_midi_substream_names(struct snd_dice *dice,
-				     struct snd_rawmidi_str *str)
+									 struct snd_rawmidi_str *str)
 {
 	struct snd_rawmidi_substream *subs;
 
-	list_for_each_entry(subs, &str->substreams, list) {
+	list_for_each_entry(subs, &str->substreams, list)
+	{
 		snprintf(subs->name, sizeof(subs->name),
-			 "%s MIDI %d", dice->card->shortname, subs->number + 1);
+				 "%s MIDI %d", dice->card->shortname, subs->number + 1);
 	}
 }
 
@@ -114,47 +122,62 @@ int snd_dice_create_midi(struct snd_dice *dice)
 	 * transfer frequency.
 	 */
 	err = snd_dice_transaction_read_tx(dice, TX_NUMBER_MIDI,
-					   &reg, sizeof(reg));
+									   &reg, sizeof(reg));
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	midi_in_ports = be32_to_cpu(reg);
 
 	err = snd_dice_transaction_read_rx(dice, RX_NUMBER_MIDI,
-					   &reg, sizeof(reg));
+									   &reg, sizeof(reg));
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	midi_out_ports = be32_to_cpu(reg);
 
 	if (midi_in_ports + midi_out_ports == 0)
+	{
 		return 0;
+	}
 
 	/* create midi ports */
 	err = snd_rawmidi_new(dice->card, dice->card->driver, 0,
-			      midi_out_ports, midi_in_ports,
-			      &rmidi);
+						  midi_out_ports, midi_in_ports,
+						  &rmidi);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	snprintf(rmidi->name, sizeof(rmidi->name),
-		 "%s MIDI", dice->card->shortname);
+			 "%s MIDI", dice->card->shortname);
 	rmidi->private_data = dice;
 
-	if (midi_in_ports > 0) {
+	if (midi_in_ports > 0)
+	{
 		rmidi->info_flags |= SNDRV_RAWMIDI_INFO_INPUT;
 
 		snd_rawmidi_set_ops(rmidi, SNDRV_RAWMIDI_STREAM_INPUT,
-				    &capture_ops);
+							&capture_ops);
 
 		str = &rmidi->streams[SNDRV_RAWMIDI_STREAM_INPUT];
 
 		set_midi_substream_names(dice, str);
 	}
 
-	if (midi_out_ports > 0) {
+	if (midi_out_ports > 0)
+	{
 		rmidi->info_flags |= SNDRV_RAWMIDI_INFO_OUTPUT;
 
 		snd_rawmidi_set_ops(rmidi, SNDRV_RAWMIDI_STREAM_OUTPUT,
-				    &playback_ops);
+							&playback_ops);
 
 		str = &rmidi->streams[SNDRV_RAWMIDI_STREAM_OUTPUT];
 
@@ -162,7 +185,9 @@ int snd_dice_create_midi(struct snd_dice *dice)
 	}
 
 	if ((midi_out_ports > 0) && (midi_in_ports > 0))
+	{
 		rmidi->info_flags |= SNDRV_RAWMIDI_INFO_DUPLEX;
+	}
 
 	return 0;
 }

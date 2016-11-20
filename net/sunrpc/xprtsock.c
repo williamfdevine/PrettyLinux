@@ -39,7 +39,7 @@
 #include <linux/sunrpc/xprtsock.h>
 #include <linux/file.h>
 #ifdef CONFIG_SUNRPC_BACKCHANNEL
-#include <linux/sunrpc/bc_xprt.h>
+	#include <linux/sunrpc/bc_xprt.h>
 #endif
 
 #include <net/sock.h>
@@ -89,7 +89,8 @@ static struct ctl_table_header *sunrpc_table_header;
  * FIXME: changing the UDP slot table size should also resize the UDP
  *        socket buffers for existing UDP transports
  */
-static struct ctl_table xs_tunables_table[] = {
+static struct ctl_table xs_tunables_table[] =
+{
 	{
 		.procname	= "udp_slot_table_entries",
 		.data		= &xprt_udp_slot_table_entries,
@@ -145,7 +146,8 @@ static struct ctl_table xs_tunables_table[] = {
 	{ },
 };
 
-static struct ctl_table sunrpc_table[] = {
+static struct ctl_table sunrpc_table[] =
+{
 	{
 		.procname	= "sunrpc",
 		.mode		= 0555,
@@ -186,8 +188,8 @@ static struct ctl_table sunrpc_table[] = {
 #define XS_IDLE_DISC_TO		(5U * 60 * HZ)
 
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-# undef  RPC_DEBUG_DATA
-# define RPCDBG_FACILITY	RPCDBG_TRANS
+	#undef  RPC_DEBUG_DATA
+	#define RPCDBG_FACILITY	RPCDBG_TRANS
 #endif
 
 #ifdef RPC_DEBUG_DATA
@@ -197,15 +199,23 @@ static void xs_pktdump(char *msg, u32 *packet, unsigned int count)
 	int j;
 
 	dprintk("RPC:       %s\n", msg);
-	for (j = 0; j < count && j < 128; j += 4) {
-		if (!(j & 31)) {
+
+	for (j = 0; j < count && j < 128; j += 4)
+	{
+		if (!(j & 31))
+		{
 			if (j)
+			{
 				dprintk("\n");
+			}
+
 			dprintk("0x%04x ", j);
 		}
+
 		dprintk("%02x%02x%02x%02x ",
-			buf[j], buf[j+1], buf[j+2], buf[j+3]);
+				buf[j], buf[j + 1], buf[j + 2], buf[j + 3]);
 	}
+
 	dprintk("\n");
 }
 #else
@@ -248,29 +258,33 @@ static void xs_format_common_peer_addresses(struct rpc_xprt *xprt)
 	struct sockaddr_un *sun;
 	char buf[128];
 
-	switch (sap->sa_family) {
-	case AF_LOCAL:
-		sun = xs_addr_un(xprt);
-		strlcpy(buf, sun->sun_path, sizeof(buf));
-		xprt->address_strings[RPC_DISPLAY_ADDR] =
-						kstrdup(buf, GFP_KERNEL);
-		break;
-	case AF_INET:
-		(void)rpc_ntop(sap, buf, sizeof(buf));
-		xprt->address_strings[RPC_DISPLAY_ADDR] =
-						kstrdup(buf, GFP_KERNEL);
-		sin = xs_addr_in(xprt);
-		snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
-		break;
-	case AF_INET6:
-		(void)rpc_ntop(sap, buf, sizeof(buf));
-		xprt->address_strings[RPC_DISPLAY_ADDR] =
-						kstrdup(buf, GFP_KERNEL);
-		sin6 = xs_addr_in6(xprt);
-		snprintf(buf, sizeof(buf), "%pi6", &sin6->sin6_addr);
-		break;
-	default:
-		BUG();
+	switch (sap->sa_family)
+	{
+		case AF_LOCAL:
+			sun = xs_addr_un(xprt);
+			strlcpy(buf, sun->sun_path, sizeof(buf));
+			xprt->address_strings[RPC_DISPLAY_ADDR] =
+				kstrdup(buf, GFP_KERNEL);
+			break;
+
+		case AF_INET:
+			(void)rpc_ntop(sap, buf, sizeof(buf));
+			xprt->address_strings[RPC_DISPLAY_ADDR] =
+				kstrdup(buf, GFP_KERNEL);
+			sin = xs_addr_in(xprt);
+			snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
+			break;
+
+		case AF_INET6:
+			(void)rpc_ntop(sap, buf, sizeof(buf));
+			xprt->address_strings[RPC_DISPLAY_ADDR] =
+				kstrdup(buf, GFP_KERNEL);
+			sin6 = xs_addr_in6(xprt);
+			snprintf(buf, sizeof(buf), "%pi6", &sin6->sin6_addr);
+			break;
+
+		default:
+			BUG();
 	}
 
 	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf, GFP_KERNEL);
@@ -289,8 +303,8 @@ static void xs_format_common_peer_ports(struct rpc_xprt *xprt)
 }
 
 static void xs_format_peer_addresses(struct rpc_xprt *xprt,
-				     const char *protocol,
-				     const char *netid)
+									 const char *protocol,
+									 const char *netid)
 {
 	xprt->address_strings[RPC_DISPLAY_PROTO] = protocol;
 	xprt->address_strings[RPC_DISPLAY_NETID] = netid;
@@ -311,38 +325,47 @@ static void xs_free_peer_addresses(struct rpc_xprt *xprt)
 	unsigned int i;
 
 	for (i = 0; i < RPC_DISPLAY_MAX; i++)
-		switch (i) {
-		case RPC_DISPLAY_PROTO:
-		case RPC_DISPLAY_NETID:
-			continue;
-		default:
-			kfree(xprt->address_strings[i]);
+		switch (i)
+		{
+			case RPC_DISPLAY_PROTO:
+			case RPC_DISPLAY_NETID:
+				continue;
+
+			default:
+				kfree(xprt->address_strings[i]);
 		}
 }
 
 #define XS_SENDMSG_FLAGS	(MSG_DONTWAIT | MSG_NOSIGNAL)
 
-static int xs_send_kvec(struct socket *sock, struct sockaddr *addr, int addrlen, struct kvec *vec, unsigned int base, int more)
+static int xs_send_kvec(struct socket *sock, struct sockaddr *addr, int addrlen, struct kvec *vec, unsigned int base,
+						int more)
 {
-	struct msghdr msg = {
+	struct msghdr msg =
+	{
 		.msg_name	= addr,
 		.msg_namelen	= addrlen,
 		.msg_flags	= XS_SENDMSG_FLAGS | (more ? MSG_MORE : 0),
 	};
-	struct kvec iov = {
+	struct kvec iov =
+	{
 		.iov_base	= vec->iov_base + base,
 		.iov_len	= vec->iov_len - base,
 	};
 
 	if (iov.iov_len != 0)
+	{
 		return kernel_sendmsg(sock, &msg, &iov, 1, iov.iov_len);
+	}
+
 	return kernel_sendmsg(sock, &msg, NULL, 0, 0);
 }
 
-static int xs_send_pagedata(struct socket *sock, struct xdr_buf *xdr, unsigned int base, int more, bool zerocopy, int *sent_p)
+static int xs_send_pagedata(struct socket *sock, struct xdr_buf *xdr, unsigned int base, int more, bool zerocopy,
+							int *sent_p)
 {
-	ssize_t (*do_sendpage)(struct socket *sock, struct page *page,
-			int offset, size_t size, int flags);
+	ssize_t (*do_sendpage)(struct socket * sock, struct page * page,
+						   int offset, size_t size, int flags);
 	struct page **ppage;
 	unsigned int remainder;
 	int err;
@@ -352,28 +375,47 @@ static int xs_send_pagedata(struct socket *sock, struct xdr_buf *xdr, unsigned i
 	ppage = xdr->pages + (base >> PAGE_SHIFT);
 	base &= ~PAGE_MASK;
 	do_sendpage = sock->ops->sendpage;
+
 	if (!zerocopy)
+	{
 		do_sendpage = sock_no_sendpage;
-	for(;;) {
+	}
+
+	for (;;)
+	{
 		unsigned int len = min_t(unsigned int, PAGE_SIZE - base, remainder);
 		int flags = XS_SENDMSG_FLAGS;
 
 		remainder -= len;
+
 		if (more)
+		{
 			flags |= MSG_MORE;
+		}
+
 		if (remainder != 0)
+		{
 			flags |= MSG_SENDPAGE_NOTLAST | MSG_MORE;
+		}
+
 		err = do_sendpage(sock, *ppage, base, len, flags);
+
 		if (remainder == 0 || err != len)
+		{
 			break;
+		}
+
 		*sent_p += err;
 		ppage++;
 		base = 0;
 	}
-	if (err > 0) {
+
+	if (err > 0)
+	{
 		*sent_p += err;
 		err = 0;
 	}
+
 	return err;
 }
 
@@ -388,50 +430,76 @@ static int xs_send_pagedata(struct socket *sock, struct xdr_buf *xdr, unsigned i
  * @sent_p: return the total number of bytes successfully queued for sending
  *
  */
-static int xs_sendpages(struct socket *sock, struct sockaddr *addr, int addrlen, struct xdr_buf *xdr, unsigned int base, bool zerocopy, int *sent_p)
+static int xs_sendpages(struct socket *sock, struct sockaddr *addr, int addrlen, struct xdr_buf *xdr, unsigned int base,
+						bool zerocopy, int *sent_p)
 {
 	unsigned int remainder = xdr->len - base;
 	int err = 0;
 	int sent = 0;
 
 	if (unlikely(!sock))
+	{
 		return -ENOTSOCK;
+	}
 
-	if (base != 0) {
+	if (base != 0)
+	{
 		addr = NULL;
 		addrlen = 0;
 	}
 
-	if (base < xdr->head[0].iov_len || addr != NULL) {
+	if (base < xdr->head[0].iov_len || addr != NULL)
+	{
 		unsigned int len = xdr->head[0].iov_len - base;
 		remainder -= len;
 		err = xs_send_kvec(sock, addr, addrlen, &xdr->head[0], base, remainder != 0);
+
 		if (remainder == 0 || err != len)
+		{
 			goto out;
+		}
+
 		*sent_p += err;
 		base = 0;
-	} else
+	}
+	else
+	{
 		base -= xdr->head[0].iov_len;
+	}
 
-	if (base < xdr->page_len) {
+	if (base < xdr->page_len)
+	{
 		unsigned int len = xdr->page_len - base;
 		remainder -= len;
 		err = xs_send_pagedata(sock, xdr, base, remainder != 0, zerocopy, &sent);
 		*sent_p += sent;
+
 		if (remainder == 0 || sent != len)
+		{
 			goto out;
+		}
+
 		base = 0;
-	} else
+	}
+	else
+	{
 		base -= xdr->page_len;
+	}
 
 	if (base >= xdr->tail[0].iov_len)
+	{
 		return 0;
+	}
+
 	err = xs_send_kvec(sock, NULL, 0, &xdr->tail[0], base, 0);
 out:
-	if (err > 0) {
+
+	if (err > 0)
+	{
 		*sent_p += err;
 		err = 0;
 	}
+
 	return err;
 }
 
@@ -463,17 +531,22 @@ static int xs_nospace(struct rpc_task *task)
 	spin_lock_bh(&xprt->transport_lock);
 
 	/* Don't race with disconnect */
-	if (xprt_connected(xprt)) {
+	if (xprt_connected(xprt))
+	{
 		/* wait for more buffer space */
 		sk->sk_write_pending++;
 		xprt_wait_for_buffer_space(task, xs_nospace_callback);
-	} else
+	}
+	else
+	{
 		ret = -ENOTCONN;
+	}
 
 	spin_unlock_bh(&xprt->transport_lock);
 
 	/* Race breaker in case memory is freed before above code is called */
-	if (ret == -EAGAIN) {
+	if (ret == -EAGAIN)
+	{
 		struct socket_wq *wq;
 
 		rcu_read_lock();
@@ -483,6 +556,7 @@ static int xs_nospace(struct rpc_task *task)
 
 		sk->sk_write_space(sk);
 	}
+
 	return ret;
 }
 
@@ -512,7 +586,7 @@ static int xs_local_send_request(struct rpc_task *task)
 	struct rpc_rqst *req = task->tk_rqstp;
 	struct rpc_xprt *xprt = req->rq_xprt;
 	struct sock_xprt *transport =
-				container_of(xprt, struct sock_xprt, xprt);
+		container_of(xprt, struct sock_xprt, xprt);
 	struct xdr_buf *xdr = &req->rq_snd_buf;
 	int status;
 	int sent = 0;
@@ -520,38 +594,48 @@ static int xs_local_send_request(struct rpc_task *task)
 	xs_encode_stream_record_marker(&req->rq_snd_buf);
 
 	xs_pktdump("packet data:",
-			req->rq_svec->iov_base, req->rq_svec->iov_len);
+			   req->rq_svec->iov_base, req->rq_svec->iov_len);
 
 	status = xs_sendpages(transport->sock, NULL, 0, xdr, req->rq_bytes_sent,
-			      true, &sent);
+						  true, &sent);
 	dprintk("RPC:       %s(%u) = %d\n",
 			__func__, xdr->len - req->rq_bytes_sent, status);
 
 	if (status == -EAGAIN && sock_writeable(transport->inet))
+	{
 		status = -ENOBUFS;
+	}
 
-	if (likely(sent > 0) || status == 0) {
+	if (likely(sent > 0) || status == 0)
+	{
 		req->rq_bytes_sent += sent;
 		req->rq_xmit_bytes_sent += sent;
-		if (likely(req->rq_bytes_sent >= req->rq_slen)) {
+
+		if (likely(req->rq_bytes_sent >= req->rq_slen))
+		{
 			req->rq_bytes_sent = 0;
 			return 0;
 		}
+
 		status = -EAGAIN;
 	}
 
-	switch (status) {
-	case -ENOBUFS:
-		break;
-	case -EAGAIN:
-		status = xs_nospace(task);
-		break;
-	default:
-		dprintk("RPC:       sendmsg returned unrecognized error %d\n",
-			-status);
-	case -EPIPE:
-		xs_close(xprt);
-		status = -ENOTCONN;
+	switch (status)
+	{
+		case -ENOBUFS:
+			break;
+
+		case -EAGAIN:
+			status = xs_nospace(task);
+			break;
+
+		default:
+			dprintk("RPC:       sendmsg returned unrecognized error %d\n",
+					-status);
+
+		case -EPIPE:
+			xs_close(xprt);
+			status = -ENOTCONN;
 	}
 
 	return status;
@@ -578,52 +662,69 @@ static int xs_udp_send_request(struct rpc_task *task)
 	int status;
 
 	xs_pktdump("packet data:",
-				req->rq_svec->iov_base,
-				req->rq_svec->iov_len);
+			   req->rq_svec->iov_base,
+			   req->rq_svec->iov_len);
 
 	if (!xprt_bound(xprt))
+	{
 		return -ENOTCONN;
+	}
+
 	status = xs_sendpages(transport->sock, xs_addr(xprt), xprt->addrlen,
-			      xdr, req->rq_bytes_sent, true, &sent);
+						  xdr, req->rq_bytes_sent, true, &sent);
 
 	dprintk("RPC:       xs_udp_send_request(%u) = %d\n",
 			xdr->len - req->rq_bytes_sent, status);
 
 	/* firewall is blocking us, don't return -EAGAIN or we end up looping */
 	if (status == -EPERM)
+	{
 		goto process_status;
+	}
 
 	if (status == -EAGAIN && sock_writeable(transport->inet))
+	{
 		status = -ENOBUFS;
+	}
 
-	if (sent > 0 || status == 0) {
+	if (sent > 0 || status == 0)
+	{
 		req->rq_xmit_bytes_sent += sent;
+
 		if (sent >= req->rq_slen)
+		{
 			return 0;
+		}
+
 		/* Still some bytes left; set up for a retry later. */
 		status = -EAGAIN;
 	}
 
 process_status:
-	switch (status) {
-	case -ENOTSOCK:
-		status = -ENOTCONN;
-		/* Should we call xs_close() here? */
-		break;
-	case -EAGAIN:
-		status = xs_nospace(task);
-		break;
-	case -ENETUNREACH:
-	case -ENOBUFS:
-	case -EPIPE:
-	case -ECONNREFUSED:
-	case -EPERM:
-		/* When the server has died, an ICMP port unreachable message
-		 * prompts ECONNREFUSED. */
-		break;
-	default:
-		dprintk("RPC:       sendmsg returned unrecognized error %d\n",
-			-status);
+
+	switch (status)
+	{
+		case -ENOTSOCK:
+			status = -ENOTCONN;
+			/* Should we call xs_close() here? */
+			break;
+
+		case -EAGAIN:
+			status = xs_nospace(task);
+			break;
+
+		case -ENETUNREACH:
+		case -ENOBUFS:
+		case -EPIPE:
+		case -ECONNREFUSED:
+		case -EPERM:
+			/* When the server has died, an ICMP port unreachable message
+			 * prompts ECONNREFUSED. */
+			break;
+
+		default:
+			dprintk("RPC:       sendmsg returned unrecognized error %d\n",
+					-status);
 	}
 
 	return status;
@@ -657,22 +758,26 @@ static int xs_tcp_send_request(struct rpc_task *task)
 	xs_encode_stream_record_marker(&req->rq_snd_buf);
 
 	xs_pktdump("packet data:",
-				req->rq_svec->iov_base,
-				req->rq_svec->iov_len);
+			   req->rq_svec->iov_base,
+			   req->rq_svec->iov_len);
+
 	/* Don't use zero copy if this is a resend. If the RPC call
 	 * completes while the socket holds a reference to the pages,
 	 * then we may end up resending corrupted data.
 	 */
 	if (task->tk_flags & RPC_TASK_SENT)
+	{
 		zerocopy = false;
+	}
 
 	/* Continue transmitting the packet/record. We must be careful
 	 * to cope with writespace callbacks arriving _after_ we have
 	 * called sendmsg(). */
-	while (1) {
+	while (1)
+	{
 		sent = 0;
 		status = xs_sendpages(transport->sock, NULL, 0, xdr,
-				      req->rq_bytes_sent, zerocopy, &sent);
+							  req->rq_bytes_sent, zerocopy, &sent);
 
 		dprintk("RPC:       xs_tcp_send_request(%u) = %d\n",
 				xdr->len - req->rq_bytes_sent, status);
@@ -681,57 +786,77 @@ static int xs_tcp_send_request(struct rpc_task *task)
 		 * reset the count of bytes sent. */
 		req->rq_bytes_sent += sent;
 		req->rq_xmit_bytes_sent += sent;
-		if (likely(req->rq_bytes_sent >= req->rq_slen)) {
+
+		if (likely(req->rq_bytes_sent >= req->rq_slen))
+		{
 			req->rq_bytes_sent = 0;
 			return 0;
 		}
 
 		WARN_ON_ONCE(sent == 0 && status == 0);
 
-		if (status == -EAGAIN ) {
+		if (status == -EAGAIN )
+		{
 			/*
 			 * Return EAGAIN if we're sure we're hitting the
 			 * socket send buffer limits.
 			 */
 			if (test_bit(SOCK_NOSPACE, &transport->sock->flags))
+			{
 				break;
+			}
+
 			/*
 			 * Did we hit a memory allocation failure?
 			 */
-			if (sent == 0) {
+			if (sent == 0)
+			{
 				status = -ENOBUFS;
+
 				if (vm_wait)
+				{
 					break;
+				}
+
 				/* Retry, knowing now that we're below the
 				 * socket send buffer limit
 				 */
 				vm_wait = true;
 			}
+
 			continue;
 		}
+
 		if (status < 0)
+		{
 			break;
+		}
+
 		vm_wait = false;
 	}
 
-	switch (status) {
-	case -ENOTSOCK:
-		status = -ENOTCONN;
-		/* Should we call xs_close() here? */
-		break;
-	case -EAGAIN:
-		status = xs_nospace(task);
-		break;
-	case -ECONNRESET:
-	case -ECONNREFUSED:
-	case -ENOTCONN:
-	case -EADDRINUSE:
-	case -ENOBUFS:
-	case -EPIPE:
-		break;
-	default:
-		dprintk("RPC:       sendmsg returned unrecognized error %d\n",
-			-status);
+	switch (status)
+	{
+		case -ENOTSOCK:
+			status = -ENOTCONN;
+			/* Should we call xs_close() here? */
+			break;
+
+		case -EAGAIN:
+			status = xs_nospace(task);
+			break;
+
+		case -ECONNRESET:
+		case -ECONNREFUSED:
+		case -ENOTCONN:
+		case -EADDRINUSE:
+		case -ENOBUFS:
+		case -EPIPE:
+			break;
+
+		default:
+			dprintk("RPC:       sendmsg returned unrecognized error %d\n",
+					-status);
 	}
 
 	return status;
@@ -751,16 +876,32 @@ static void xs_tcp_release_xprt(struct rpc_xprt *xprt, struct rpc_task *task)
 	struct rpc_rqst *req;
 
 	if (task != xprt->snd_task)
+	{
 		return;
+	}
+
 	if (task == NULL)
+	{
 		goto out_release;
+	}
+
 	req = task->tk_rqstp;
+
 	if (req == NULL)
+	{
 		goto out_release;
+	}
+
 	if (req->rq_bytes_sent == 0)
+	{
 		goto out_release;
+	}
+
 	if (req->rq_bytes_sent == req->rq_snd_buf.len)
+	{
 		goto out_release;
+	}
+
 	set_bit(XPRT_CLOSE_WAIT, &xprt->state);
 out_release:
 	xprt_release_xprt(xprt, task);
@@ -818,20 +959,30 @@ static void xs_error_report(struct sock *sk)
 	int err;
 
 	read_lock_bh(&sk->sk_callback_lock);
+
 	if (!(xprt = xprt_from_sock(sk)))
+	{
 		goto out;
+	}
 
 	err = -sk->sk_err;
+
 	if (err == 0)
+	{
 		goto out;
+	}
+
 	/* Is this a reset event? */
 	if (sk->sk_state == TCP_CLOSE)
+	{
 		xs_sock_mark_closed(xprt);
+	}
+
 	dprintk("RPC:       xs_error_report client %p, error=%d...\n",
 			xprt, -err);
 	trace_rpc_socket_error(xprt, sk->sk_socket, err);
 	xprt_wake_pending_tasks(xprt, err);
- out:
+out:
 	read_unlock_bh(&sk->sk_callback_lock);
 }
 
@@ -842,10 +993,14 @@ static void xs_reset_transport(struct sock_xprt *transport)
 	struct rpc_xprt *xprt = &transport->xprt;
 
 	if (sk == NULL)
+	{
 		return;
+	}
 
 	if (atomic_read(&transport->xprt.swapper))
+	{
 		sk_clear_memalloc(sk);
+	}
 
 	kernel_sock_shutdown(sock, SHUT_RDWR);
 
@@ -891,7 +1046,7 @@ static void xs_close(struct rpc_xprt *xprt)
 static void xs_inject_disconnect(struct rpc_xprt *xprt)
 {
 	dprintk("RPC:       injecting transport disconnect on xprt=%p\n",
-		xprt);
+			xprt);
 	xprt_disconnect_done(xprt);
 }
 
@@ -909,7 +1064,7 @@ static void xs_xprt_free(struct rpc_xprt *xprt)
 static void xs_destroy(struct rpc_xprt *xprt)
 {
 	struct sock_xprt *transport = container_of(xprt,
-			struct sock_xprt, xprt);
+								  struct sock_xprt, xprt);
 	dprintk("RPC:       xs_destroy xprt %p\n", xprt);
 
 	cancel_delayed_work_sync(&transport->connect_worker);
@@ -921,16 +1076,23 @@ static void xs_destroy(struct rpc_xprt *xprt)
 
 static int xs_local_copy_to_xdr(struct xdr_buf *xdr, struct sk_buff *skb)
 {
-	struct xdr_skb_reader desc = {
+	struct xdr_skb_reader desc =
+	{
 		.skb		= skb,
 		.offset		= sizeof(rpc_fraghdr),
 		.count		= skb->len - sizeof(rpc_fraghdr),
 	};
 
 	if (xdr_partial_copy_from_skb(xdr, 0, &desc, xdr_skb_read_bits) < 0)
+	{
 		return -1;
+	}
+
 	if (desc.count)
+	{
 		return -1;
+	}
+
 	return 0;
 }
 
@@ -943,8 +1105,8 @@ static int xs_local_copy_to_xdr(struct xdr_buf *xdr, struct sk_buff *skb)
  * Currently this assumes we can read the whole reply in a single gulp.
  */
 static void xs_local_data_read_skb(struct rpc_xprt *xprt,
-		struct sock *sk,
-		struct sk_buff *skb)
+								   struct sock *sk,
+								   struct sk_buff *skb)
 {
 	struct rpc_task *task;
 	struct rpc_rqst *rovr;
@@ -953,35 +1115,48 @@ static void xs_local_data_read_skb(struct rpc_xprt *xprt,
 	__be32 *xp;
 
 	repsize = skb->len - sizeof(rpc_fraghdr);
-	if (repsize < 4) {
+
+	if (repsize < 4)
+	{
 		dprintk("RPC:       impossible RPC reply size %d\n", repsize);
 		return;
 	}
 
 	/* Copy the XID from the skb... */
 	xp = skb_header_pointer(skb, sizeof(rpc_fraghdr), sizeof(_xid), &_xid);
+
 	if (xp == NULL)
+	{
 		return;
+	}
 
 	/* Look up and lock the request corresponding to the given XID */
 	spin_lock_bh(&xprt->transport_lock);
 	rovr = xprt_lookup_rqst(xprt, *xp);
+
 	if (!rovr)
+	{
 		goto out_unlock;
+	}
+
 	task = rovr->rq_task;
 
 	copied = rovr->rq_private_buf.buflen;
-	if (copied > repsize)
-		copied = repsize;
 
-	if (xs_local_copy_to_xdr(&rovr->rq_private_buf, skb)) {
+	if (copied > repsize)
+	{
+		copied = repsize;
+	}
+
+	if (xs_local_copy_to_xdr(&rovr->rq_private_buf, skb))
+	{
 		dprintk("RPC:       sk_buff copy failed\n");
 		goto out_unlock;
 	}
 
 	xprt_complete_rqst(task, copied);
 
- out_unlock:
+out_unlock:
 	spin_unlock_bh(&xprt->transport_lock);
 }
 
@@ -993,18 +1168,29 @@ static void xs_local_data_receive(struct sock_xprt *transport)
 
 	mutex_lock(&transport->recv_mutex);
 	sk = transport->inet;
+
 	if (sk == NULL)
+	{
 		goto out;
-	for (;;) {
+	}
+
+	for (;;)
+	{
 		skb = skb_recv_datagram(sk, 0, 1, &err);
-		if (skb != NULL) {
+
+		if (skb != NULL)
+		{
 			xs_local_data_read_skb(&transport->xprt, sk, skb);
 			skb_free_datagram(sk, skb);
 			continue;
 		}
+
 		if (!test_and_clear_bit(XPRT_SOCK_DATA_READY, &transport->sock_state))
+		{
 			break;
+		}
 	}
+
 out:
 	mutex_unlock(&transport->recv_mutex);
 }
@@ -1024,8 +1210,8 @@ static void xs_local_data_receive_workfn(struct work_struct *work)
  *
  */
 static void xs_udp_data_read_skb(struct rpc_xprt *xprt,
-		struct sock *sk,
-		struct sk_buff *skb)
+								 struct sock *sk,
+								 struct sk_buff *skb)
 {
 	struct rpc_task *task;
 	struct rpc_rqst *rovr;
@@ -1034,28 +1220,40 @@ static void xs_udp_data_read_skb(struct rpc_xprt *xprt,
 	__be32 *xp;
 
 	repsize = skb->len;
-	if (repsize < 4) {
+
+	if (repsize < 4)
+	{
 		dprintk("RPC:       impossible RPC reply size %d!\n", repsize);
 		return;
 	}
 
 	/* Copy the XID from the skb... */
 	xp = skb_header_pointer(skb, 0, sizeof(_xid), &_xid);
+
 	if (xp == NULL)
+	{
 		return;
+	}
 
 	/* Look up and lock the request corresponding to the given XID */
 	spin_lock_bh(&xprt->transport_lock);
 	rovr = xprt_lookup_rqst(xprt, *xp);
+
 	if (!rovr)
+	{
 		goto out_unlock;
+	}
+
 	task = rovr->rq_task;
 
 	if ((copied = rovr->rq_private_buf.buflen) > repsize)
+	{
 		copied = repsize;
+	}
 
 	/* Suck it into the iovec, verify checksum if not done by hw. */
-	if (csum_partial_copy_to_xdr(&rovr->rq_private_buf, skb)) {
+	if (csum_partial_copy_to_xdr(&rovr->rq_private_buf, skb))
+	{
 		__UDPX_INC_STATS(sk, UDP_MIB_INERRORS);
 		goto out_unlock;
 	}
@@ -1065,7 +1263,7 @@ static void xs_udp_data_read_skb(struct rpc_xprt *xprt,
 	xprt_adjust_cwnd(xprt, task, copied);
 	xprt_complete_rqst(task, copied);
 
- out_unlock:
+out_unlock:
 	spin_unlock_bh(&xprt->transport_lock);
 }
 
@@ -1077,18 +1275,29 @@ static void xs_udp_data_receive(struct sock_xprt *transport)
 
 	mutex_lock(&transport->recv_mutex);
 	sk = transport->inet;
+
 	if (sk == NULL)
+	{
 		goto out;
-	for (;;) {
+	}
+
+	for (;;)
+	{
 		skb = skb_recv_datagram(sk, 0, 1, &err);
-		if (skb != NULL) {
+
+		if (skb != NULL)
+		{
 			xs_udp_data_read_skb(&transport->xprt, sk, skb);
 			skb_free_datagram_locked(sk, skb);
 			continue;
 		}
+
 		if (!test_and_clear_bit(XPRT_SOCK_DATA_READY, &transport->sock_state))
+		{
 			break;
+		}
 	}
+
 out:
 	mutex_unlock(&transport->recv_mutex);
 }
@@ -1112,18 +1321,27 @@ static void xs_data_ready(struct sock *sk)
 	read_lock_bh(&sk->sk_callback_lock);
 	dprintk("RPC:       xs_data_ready...\n");
 	xprt = xprt_from_sock(sk);
-	if (xprt != NULL) {
+
+	if (xprt != NULL)
+	{
 		struct sock_xprt *transport = container_of(xprt,
-				struct sock_xprt, xprt);
+									  struct sock_xprt, xprt);
 		transport->old_data_ready(sk);
+
 		/* Any data means we had a useful conversation, so
 		 * then we don't need to delay the next reconnect
 		 */
 		if (xprt->reestablish_timeout)
+		{
 			xprt->reestablish_timeout = 0;
+		}
+
 		if (!test_and_set_bit(XPRT_SOCK_DATA_READY, &transport->sock_state))
+		{
 			queue_work(xprtiod_workqueue, &transport->recv_worker);
+		}
 	}
+
 	read_unlock_bh(&sk->sk_callback_lock);
 }
 
@@ -1146,35 +1364,49 @@ static inline void xs_tcp_read_fraghdr(struct rpc_xprt *xprt, struct xdr_skb_rea
 	len = sizeof(transport->tcp_fraghdr) - transport->tcp_offset;
 	used = xdr_skb_read_bits(desc, p, len);
 	transport->tcp_offset += used;
+
 	if (used != len)
+	{
 		return;
+	}
 
 	transport->tcp_reclen = ntohl(transport->tcp_fraghdr);
+
 	if (transport->tcp_reclen & RPC_LAST_STREAM_FRAGMENT)
+	{
 		transport->tcp_flags |= TCP_RCV_LAST_FRAG;
+	}
 	else
+	{
 		transport->tcp_flags &= ~TCP_RCV_LAST_FRAG;
+	}
+
 	transport->tcp_reclen &= RPC_FRAGMENT_SIZE_MASK;
 
 	transport->tcp_flags &= ~TCP_RCV_COPY_FRAGHDR;
 	transport->tcp_offset = 0;
 
 	/* Sanity check of the record length */
-	if (unlikely(transport->tcp_reclen < 8)) {
+	if (unlikely(transport->tcp_reclen < 8))
+	{
 		dprintk("RPC:       invalid TCP record fragment length\n");
 		xs_tcp_force_close(xprt);
 		return;
 	}
+
 	dprintk("RPC:       reading TCP record fragment of length %d\n",
 			transport->tcp_reclen);
 }
 
 static void xs_tcp_check_fraghdr(struct sock_xprt *transport)
 {
-	if (transport->tcp_offset == transport->tcp_reclen) {
+	if (transport->tcp_offset == transport->tcp_reclen)
+	{
 		transport->tcp_flags |= TCP_RCV_COPY_FRAGHDR;
 		transport->tcp_offset = 0;
-		if (transport->tcp_flags & TCP_RCV_LAST_FRAG) {
+
+		if (transport->tcp_flags & TCP_RCV_LAST_FRAG)
+		{
 			transport->tcp_flags &= ~TCP_RCV_COPY_DATA;
 			transport->tcp_flags |= TCP_RCV_COPY_XID;
 			transport->tcp_copied = 0;
@@ -1192,20 +1424,24 @@ static inline void xs_tcp_read_xid(struct sock_xprt *transport, struct xdr_skb_r
 	p = ((char *) &transport->tcp_xid) + transport->tcp_offset;
 	used = xdr_skb_read_bits(desc, p, len);
 	transport->tcp_offset += used;
+
 	if (used != len)
+	{
 		return;
+	}
+
 	transport->tcp_flags &= ~TCP_RCV_COPY_XID;
 	transport->tcp_flags |= TCP_RCV_READ_CALLDIR;
 	transport->tcp_copied = 4;
 	dprintk("RPC:       reading %s XID %08x\n",
 			(transport->tcp_flags & TCP_RPC_REPLY) ? "reply for"
-							      : "request with",
+			: "request with",
 			ntohl(transport->tcp_xid));
 	xs_tcp_check_fraghdr(transport);
 }
 
 static inline void xs_tcp_read_calldir(struct sock_xprt *transport,
-				       struct xdr_skb_reader *desc)
+									   struct xdr_skb_reader *desc)
 {
 	size_t len, used;
 	u32 offset;
@@ -1223,74 +1459,90 @@ static inline void xs_tcp_read_calldir(struct sock_xprt *transport,
 	p = ((char *) &transport->tcp_calldir) + offset;
 	used = xdr_skb_read_bits(desc, p, len);
 	transport->tcp_offset += used;
+
 	if (used != len)
+	{
 		return;
+	}
+
 	transport->tcp_flags &= ~TCP_RCV_READ_CALLDIR;
+
 	/*
 	 * We don't yet have the XDR buffer, so we will write the calldir
 	 * out after we get the buffer from the 'struct rpc_rqst'
 	 */
-	switch (ntohl(transport->tcp_calldir)) {
-	case RPC_REPLY:
-		transport->tcp_flags |= TCP_RCV_COPY_CALLDIR;
-		transport->tcp_flags |= TCP_RCV_COPY_DATA;
-		transport->tcp_flags |= TCP_RPC_REPLY;
-		break;
-	case RPC_CALL:
-		transport->tcp_flags |= TCP_RCV_COPY_CALLDIR;
-		transport->tcp_flags |= TCP_RCV_COPY_DATA;
-		transport->tcp_flags &= ~TCP_RPC_REPLY;
-		break;
-	default:
-		dprintk("RPC:       invalid request message type\n");
-		xs_tcp_force_close(&transport->xprt);
+	switch (ntohl(transport->tcp_calldir))
+	{
+		case RPC_REPLY:
+			transport->tcp_flags |= TCP_RCV_COPY_CALLDIR;
+			transport->tcp_flags |= TCP_RCV_COPY_DATA;
+			transport->tcp_flags |= TCP_RPC_REPLY;
+			break;
+
+		case RPC_CALL:
+			transport->tcp_flags |= TCP_RCV_COPY_CALLDIR;
+			transport->tcp_flags |= TCP_RCV_COPY_DATA;
+			transport->tcp_flags &= ~TCP_RPC_REPLY;
+			break;
+
+		default:
+			dprintk("RPC:       invalid request message type\n");
+			xs_tcp_force_close(&transport->xprt);
 	}
+
 	xs_tcp_check_fraghdr(transport);
 }
 
 static inline void xs_tcp_read_common(struct rpc_xprt *xprt,
-				     struct xdr_skb_reader *desc,
-				     struct rpc_rqst *req)
+									  struct xdr_skb_reader *desc,
+									  struct rpc_rqst *req)
 {
 	struct sock_xprt *transport =
-				container_of(xprt, struct sock_xprt, xprt);
+		container_of(xprt, struct sock_xprt, xprt);
 	struct xdr_buf *rcvbuf;
 	size_t len;
 	ssize_t r;
 
 	rcvbuf = &req->rq_private_buf;
 
-	if (transport->tcp_flags & TCP_RCV_COPY_CALLDIR) {
+	if (transport->tcp_flags & TCP_RCV_COPY_CALLDIR)
+	{
 		/*
 		 * Save the RPC direction in the XDR buffer
 		 */
 		memcpy(rcvbuf->head[0].iov_base + transport->tcp_copied,
-			&transport->tcp_calldir,
-			sizeof(transport->tcp_calldir));
+			   &transport->tcp_calldir,
+			   sizeof(transport->tcp_calldir));
 		transport->tcp_copied += sizeof(transport->tcp_calldir);
 		transport->tcp_flags &= ~TCP_RCV_COPY_CALLDIR;
 	}
 
 	len = desc->count;
-	if (len > transport->tcp_reclen - transport->tcp_offset) {
+
+	if (len > transport->tcp_reclen - transport->tcp_offset)
+	{
 		struct xdr_skb_reader my_desc;
 
 		len = transport->tcp_reclen - transport->tcp_offset;
 		memcpy(&my_desc, desc, sizeof(my_desc));
 		my_desc.count = len;
 		r = xdr_partial_copy_from_skb(rcvbuf, transport->tcp_copied,
-					  &my_desc, xdr_skb_read_bits);
+									  &my_desc, xdr_skb_read_bits);
 		desc->count -= r;
 		desc->offset += r;
-	} else
+	}
+	else
 		r = xdr_partial_copy_from_skb(rcvbuf, transport->tcp_copied,
-					  desc, xdr_skb_read_bits);
+									  desc, xdr_skb_read_bits);
 
-	if (r > 0) {
+	if (r > 0)
+	{
 		transport->tcp_copied += r;
 		transport->tcp_offset += r;
 	}
-	if (r != len) {
+
+	if (r != len)
+	{
 		/* Error when copying to the receive buffer,
 		 * usually because we weren't able to allocate
 		 * additional buffer pages. All we can do now
@@ -1317,10 +1569,15 @@ static inline void xs_tcp_read_common(struct rpc_xprt *xprt,
 			transport->tcp_offset, transport->tcp_reclen);
 
 	if (transport->tcp_copied == req->rq_private_buf.buflen)
+	{
 		transport->tcp_flags &= ~TCP_RCV_COPY_DATA;
-	else if (transport->tcp_offset == transport->tcp_reclen) {
+	}
+	else if (transport->tcp_offset == transport->tcp_reclen)
+	{
 		if (transport->tcp_flags & TCP_RCV_LAST_FRAG)
+		{
 			transport->tcp_flags &= ~TCP_RCV_COPY_DATA;
+		}
 	}
 }
 
@@ -1329,10 +1586,10 @@ static inline void xs_tcp_read_common(struct rpc_xprt *xprt,
  * tcp read code to read the data.
  */
 static inline int xs_tcp_read_reply(struct rpc_xprt *xprt,
-				    struct xdr_skb_reader *desc)
+									struct xdr_skb_reader *desc)
 {
 	struct sock_xprt *transport =
-				container_of(xprt, struct sock_xprt, xprt);
+		container_of(xprt, struct sock_xprt, xprt);
 	struct rpc_rqst *req;
 
 	dprintk("RPC:       read reply XID %08x\n", ntohl(transport->tcp_xid));
@@ -1340,7 +1597,9 @@ static inline int xs_tcp_read_reply(struct rpc_xprt *xprt,
 	/* Find and lock the request corresponding to this xid */
 	spin_lock_bh(&xprt->transport_lock);
 	req = xprt_lookup_rqst(xprt, transport->tcp_xid);
-	if (!req) {
+
+	if (!req)
+	{
 		dprintk("RPC:       XID %08x request not found!\n",
 				ntohl(transport->tcp_xid));
 		spin_unlock_bh(&xprt->transport_lock);
@@ -1350,7 +1609,9 @@ static inline int xs_tcp_read_reply(struct rpc_xprt *xprt,
 	xs_tcp_read_common(xprt, desc, req);
 
 	if (!(transport->tcp_flags & TCP_RCV_COPY_DATA))
+	{
 		xprt_complete_rqst(req->rq_task, transport->tcp_copied);
+	}
 
 	spin_unlock_bh(&xprt->transport_lock);
 	return 0;
@@ -1365,16 +1626,18 @@ static inline int xs_tcp_read_reply(struct rpc_xprt *xprt,
  * connection and return -1.
  */
 static int xs_tcp_read_callback(struct rpc_xprt *xprt,
-				       struct xdr_skb_reader *desc)
+								struct xdr_skb_reader *desc)
 {
 	struct sock_xprt *transport =
-				container_of(xprt, struct sock_xprt, xprt);
+		container_of(xprt, struct sock_xprt, xprt);
 	struct rpc_rqst *req;
 
 	/* Look up and lock the request corresponding to the given XID */
 	spin_lock_bh(&xprt->transport_lock);
 	req = xprt_lookup_bc_request(xprt, transport->tcp_xid);
-	if (req == NULL) {
+
+	if (req == NULL)
+	{
 		spin_unlock_bh(&xprt->transport_lock);
 		printk(KERN_WARNING "Callback slot table overflowed\n");
 		xprt_force_disconnect(xprt);
@@ -1385,21 +1648,24 @@ static int xs_tcp_read_callback(struct rpc_xprt *xprt,
 	xs_tcp_read_common(xprt, desc, req);
 
 	if (!(transport->tcp_flags & TCP_RCV_COPY_DATA))
+	{
 		xprt_complete_bc_request(req, transport->tcp_copied);
+	}
+
 	spin_unlock_bh(&xprt->transport_lock);
 
 	return 0;
 }
 
 static inline int _xs_tcp_read_data(struct rpc_xprt *xprt,
-					struct xdr_skb_reader *desc)
+									struct xdr_skb_reader *desc)
 {
 	struct sock_xprt *transport =
-				container_of(xprt, struct sock_xprt, xprt);
+		container_of(xprt, struct sock_xprt, xprt);
 
 	return (transport->tcp_flags & TCP_RPC_REPLY) ?
-		xs_tcp_read_reply(xprt, desc) :
-		xs_tcp_read_callback(xprt, desc);
+		   xs_tcp_read_reply(xprt, desc) :
+		   xs_tcp_read_callback(xprt, desc);
 }
 
 static int xs_tcp_bc_up(struct svc_serv *serv, struct net *net)
@@ -1407,9 +1673,13 @@ static int xs_tcp_bc_up(struct svc_serv *serv, struct net *net)
 	int ret;
 
 	ret = svc_create_xprt(serv, "tcp-bc", net, PF_INET, 0,
-			      SVC_SOCK_ANONYMOUS);
+						  SVC_SOCK_ANONYMOUS);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return 0;
 }
 
@@ -1419,7 +1689,7 @@ static size_t xs_tcp_bc_maxpayload(struct rpc_xprt *xprt)
 }
 #else
 static inline int _xs_tcp_read_data(struct rpc_xprt *xprt,
-					struct xdr_skb_reader *desc)
+									struct xdr_skb_reader *desc)
 {
 	return xs_tcp_read_reply(xprt, desc);
 }
@@ -1430,14 +1700,17 @@ static inline int _xs_tcp_read_data(struct rpc_xprt *xprt,
  * RPC_REPLY.  Relay the processing to helper functions.
  */
 static void xs_tcp_read_data(struct rpc_xprt *xprt,
-				    struct xdr_skb_reader *desc)
+							 struct xdr_skb_reader *desc)
 {
 	struct sock_xprt *transport =
-				container_of(xprt, struct sock_xprt, xprt);
+		container_of(xprt, struct sock_xprt, xprt);
 
 	if (_xs_tcp_read_data(xprt, desc) == 0)
+	{
 		xs_tcp_check_fraghdr(transport);
-	else {
+	}
+	else
+	{
 		/*
 		 * The transport_lock protects the request handling.
 		 * There's no need to hold it to update the tcp_flags.
@@ -1451,8 +1724,12 @@ static inline void xs_tcp_read_discard(struct sock_xprt *transport, struct xdr_s
 	size_t len;
 
 	len = transport->tcp_reclen - transport->tcp_offset;
+
 	if (len > desc->count)
+	{
 		len = desc->count;
+	}
+
 	desc->count -= len;
 	desc->offset += len;
 	transport->tcp_offset += len;
@@ -1464,39 +1741,53 @@ static int xs_tcp_data_recv(read_descriptor_t *rd_desc, struct sk_buff *skb, uns
 {
 	struct rpc_xprt *xprt = rd_desc->arg.data;
 	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
-	struct xdr_skb_reader desc = {
+	struct xdr_skb_reader desc =
+	{
 		.skb	= skb,
 		.offset	= offset,
 		.count	= len,
 	};
 
 	dprintk("RPC:       xs_tcp_data_recv started\n");
-	do {
+
+	do
+	{
 		trace_xs_tcp_data_recv(transport);
+
 		/* Read in a new fragment marker if necessary */
 		/* Can we ever really expect to get completely empty fragments? */
-		if (transport->tcp_flags & TCP_RCV_COPY_FRAGHDR) {
+		if (transport->tcp_flags & TCP_RCV_COPY_FRAGHDR)
+		{
 			xs_tcp_read_fraghdr(xprt, &desc);
 			continue;
 		}
+
 		/* Read in the xid if necessary */
-		if (transport->tcp_flags & TCP_RCV_COPY_XID) {
+		if (transport->tcp_flags & TCP_RCV_COPY_XID)
+		{
 			xs_tcp_read_xid(transport, &desc);
 			continue;
 		}
+
 		/* Read in the call/reply flag */
-		if (transport->tcp_flags & TCP_RCV_READ_CALLDIR) {
+		if (transport->tcp_flags & TCP_RCV_READ_CALLDIR)
+		{
 			xs_tcp_read_calldir(transport, &desc);
 			continue;
 		}
+
 		/* Read in the request data */
-		if (transport->tcp_flags & TCP_RCV_COPY_DATA) {
+		if (transport->tcp_flags & TCP_RCV_COPY_DATA)
+		{
 			xs_tcp_read_data(xprt, &desc);
 			continue;
 		}
+
 		/* Skip over any trailing bytes on short reads */
 		xs_tcp_read_discard(transport, &desc);
-	} while (desc.count);
+	}
+	while (desc.count);
+
 	trace_xs_tcp_data_recv(transport);
 	dprintk("RPC:       xs_tcp_data_recv done\n");
 	return len - desc.count;
@@ -1506,8 +1797,9 @@ static void xs_tcp_data_receive(struct sock_xprt *transport)
 {
 	struct rpc_xprt *xprt = &transport->xprt;
 	struct sock *sk;
-	read_descriptor_t rd_desc = {
-		.count = 2*1024*1024,
+	read_descriptor_t rd_desc =
+	{
+		.count = 2 * 1024 * 1024,
 		.arg.data = xprt,
 	};
 	unsigned long total = 0;
@@ -1515,24 +1807,37 @@ static void xs_tcp_data_receive(struct sock_xprt *transport)
 
 	mutex_lock(&transport->recv_mutex);
 	sk = transport->inet;
+
 	if (sk == NULL)
+	{
 		goto out;
+	}
 
 	/* We use rd_desc to pass struct xprt to xs_tcp_data_recv */
-	for (;;) {
+	for (;;)
+	{
 		lock_sock(sk);
 		read = tcp_read_sock(sk, &rd_desc, xs_tcp_data_recv);
-		if (read <= 0) {
+
+		if (read <= 0)
+		{
 			clear_bit(XPRT_SOCK_DATA_READY, &transport->sock_state);
 			release_sock(sk);
+
 			if (!test_bit(XPRT_SOCK_DATA_READY, &transport->sock_state))
+			{
 				break;
-		} else {
+			}
+		}
+		else
+		{
 			release_sock(sk);
 			total += read;
 		}
+
 		rd_desc.count = 65536;
 	}
+
 out:
 	mutex_unlock(&transport->recv_mutex);
 	trace_xs_tcp_data_ready(xprt, read, total);
@@ -1556,8 +1861,12 @@ static void xs_tcp_state_change(struct sock *sk)
 	struct sock_xprt *transport;
 
 	read_lock_bh(&sk->sk_callback_lock);
+
 	if (!(xprt = xprt_from_sock(sk)))
+	{
 		goto out;
+	}
+
 	dprintk("RPC:       xs_tcp_state_change client %p...\n", xprt);
 	dprintk("RPC:       state %x conn %d dead %d zapped %d sk_shutdown %d\n",
 			sk->sk_state, xprt_connected(xprt),
@@ -1567,61 +1876,79 @@ static void xs_tcp_state_change(struct sock *sk)
 
 	transport = container_of(xprt, struct sock_xprt, xprt);
 	trace_rpc_socket_state_change(xprt, sk->sk_socket);
-	switch (sk->sk_state) {
-	case TCP_ESTABLISHED:
-		spin_lock(&xprt->transport_lock);
-		if (!xprt_test_and_set_connected(xprt)) {
 
-			/* Reset TCP record info */
-			transport->tcp_offset = 0;
-			transport->tcp_reclen = 0;
-			transport->tcp_copied = 0;
-			transport->tcp_flags =
-				TCP_RCV_COPY_FRAGHDR | TCP_RCV_COPY_XID;
+	switch (sk->sk_state)
+	{
+		case TCP_ESTABLISHED:
+			spin_lock(&xprt->transport_lock);
+
+			if (!xprt_test_and_set_connected(xprt))
+			{
+
+				/* Reset TCP record info */
+				transport->tcp_offset = 0;
+				transport->tcp_reclen = 0;
+				transport->tcp_copied = 0;
+				transport->tcp_flags =
+					TCP_RCV_COPY_FRAGHDR | TCP_RCV_COPY_XID;
+				xprt->connect_cookie++;
+				clear_bit(XPRT_SOCK_CONNECTING, &transport->sock_state);
+				xprt_clear_connecting(xprt);
+
+				xprt_wake_pending_tasks(xprt, -EAGAIN);
+			}
+
+			spin_unlock(&xprt->transport_lock);
+			break;
+
+		case TCP_FIN_WAIT1:
+			/* The client initiated a shutdown of the socket */
 			xprt->connect_cookie++;
-			clear_bit(XPRT_SOCK_CONNECTING, &transport->sock_state);
-			xprt_clear_connecting(xprt);
+			xprt->reestablish_timeout = 0;
+			set_bit(XPRT_CLOSING, &xprt->state);
+			smp_mb__before_atomic();
+			clear_bit(XPRT_CONNECTED, &xprt->state);
+			clear_bit(XPRT_CLOSE_WAIT, &xprt->state);
+			smp_mb__after_atomic();
+			break;
 
-			xprt_wake_pending_tasks(xprt, -EAGAIN);
-		}
-		spin_unlock(&xprt->transport_lock);
-		break;
-	case TCP_FIN_WAIT1:
-		/* The client initiated a shutdown of the socket */
-		xprt->connect_cookie++;
-		xprt->reestablish_timeout = 0;
-		set_bit(XPRT_CLOSING, &xprt->state);
-		smp_mb__before_atomic();
-		clear_bit(XPRT_CONNECTED, &xprt->state);
-		clear_bit(XPRT_CLOSE_WAIT, &xprt->state);
-		smp_mb__after_atomic();
-		break;
-	case TCP_CLOSE_WAIT:
-		/* The server initiated a shutdown of the socket */
-		xprt->connect_cookie++;
-		clear_bit(XPRT_CONNECTED, &xprt->state);
-		xs_tcp_force_close(xprt);
-	case TCP_CLOSING:
-		/*
-		 * If the server closed down the connection, make sure that
-		 * we back off before reconnecting
-		 */
-		if (xprt->reestablish_timeout < XS_TCP_INIT_REEST_TO)
-			xprt->reestablish_timeout = XS_TCP_INIT_REEST_TO;
-		break;
-	case TCP_LAST_ACK:
-		set_bit(XPRT_CLOSING, &xprt->state);
-		smp_mb__before_atomic();
-		clear_bit(XPRT_CONNECTED, &xprt->state);
-		smp_mb__after_atomic();
-		break;
-	case TCP_CLOSE:
-		if (test_and_clear_bit(XPRT_SOCK_CONNECTING,
-					&transport->sock_state))
-			xprt_clear_connecting(xprt);
-		xs_sock_mark_closed(xprt);
+		case TCP_CLOSE_WAIT:
+			/* The server initiated a shutdown of the socket */
+			xprt->connect_cookie++;
+			clear_bit(XPRT_CONNECTED, &xprt->state);
+			xs_tcp_force_close(xprt);
+
+		case TCP_CLOSING:
+
+			/*
+			 * If the server closed down the connection, make sure that
+			 * we back off before reconnecting
+			 */
+			if (xprt->reestablish_timeout < XS_TCP_INIT_REEST_TO)
+			{
+				xprt->reestablish_timeout = XS_TCP_INIT_REEST_TO;
+			}
+
+			break;
+
+		case TCP_LAST_ACK:
+			set_bit(XPRT_CLOSING, &xprt->state);
+			smp_mb__before_atomic();
+			clear_bit(XPRT_CONNECTED, &xprt->state);
+			smp_mb__after_atomic();
+			break;
+
+		case TCP_CLOSE:
+			if (test_and_clear_bit(XPRT_SOCK_CONNECTING,
+								   &transport->sock_state))
+			{
+				xprt_clear_connecting(xprt);
+			}
+
+			xs_sock_mark_closed(xprt);
 	}
- out:
+
+out:
 	read_unlock_bh(&sk->sk_callback_lock);
 }
 
@@ -1631,15 +1958,24 @@ static void xs_write_space(struct sock *sk)
 	struct rpc_xprt *xprt;
 
 	if (!sk->sk_socket)
+	{
 		return;
+	}
+
 	clear_bit(SOCK_NOSPACE, &sk->sk_socket->flags);
 
 	if (unlikely(!(xprt = xprt_from_sock(sk))))
+	{
 		return;
+	}
+
 	rcu_read_lock();
 	wq = rcu_dereference(sk->sk_wq);
+
 	if (!wq || test_and_clear_bit(SOCKWQ_ASYNC_NOSPACE, &wq->flags) == 0)
+	{
 		goto out;
+	}
 
 	xprt_write_space(xprt);
 out:
@@ -1662,7 +1998,9 @@ static void xs_udp_write_space(struct sock *sk)
 
 	/* from net/core/sock.c:sock_def_write_space */
 	if (sock_writeable(sk))
+	{
 		xs_write_space(sk);
+	}
 
 	read_unlock_bh(&sk->sk_callback_lock);
 }
@@ -1683,7 +2021,9 @@ static void xs_tcp_write_space(struct sock *sk)
 
 	/* from net/core/stream.c:sk_stream_write_space */
 	if (sk_stream_is_writeable(sk))
+	{
 		xs_write_space(sk);
+	}
 
 	read_unlock_bh(&sk->sk_callback_lock);
 }
@@ -1693,11 +2033,14 @@ static void xs_udp_do_set_buffer_size(struct rpc_xprt *xprt)
 	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
 	struct sock *sk = transport->inet;
 
-	if (transport->rcvsize) {
+	if (transport->rcvsize)
+	{
 		sk->sk_userlocks |= SOCK_RCVBUF_LOCK;
 		sk->sk_rcvbuf = transport->rcvsize * xprt->max_reqs * 2;
 	}
-	if (transport->sndsize) {
+
+	if (transport->sndsize)
+	{
 		sk->sk_userlocks |= SOCK_SNDBUF_LOCK;
 		sk->sk_sndbuf = transport->sndsize * xprt->max_reqs * 2;
 		sk->sk_write_space(sk);
@@ -1717,11 +2060,18 @@ static void xs_udp_set_buffer_size(struct rpc_xprt *xprt, size_t sndsize, size_t
 	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
 
 	transport->sndsize = 0;
+
 	if (sndsize)
+	{
 		transport->sndsize = sndsize + 1024;
+	}
+
 	transport->rcvsize = 0;
+
 	if (rcvsize)
+	{
 		transport->rcvsize = rcvsize + 1024;
+	}
 
 	xs_udp_do_set_buffer_size(xprt);
 }
@@ -1756,7 +2106,7 @@ static void xs_sock_set_reuseport(struct socket *sock)
 	int opt = 1;
 
 	kernel_setsockopt(sock, SOL_SOCKET, SO_REUSEPORT,
-			(char *)&opt, sizeof(opt));
+					  (char *)&opt, sizeof(opt));
 }
 
 static unsigned short xs_sock_getport(struct socket *sock)
@@ -1766,14 +2116,20 @@ static unsigned short xs_sock_getport(struct socket *sock)
 	unsigned short port = 0;
 
 	if (kernel_getsockname(sock, (struct sockaddr *)&buf, &buflen) < 0)
+	{
 		goto out;
-	switch (buf.ss_family) {
-	case AF_INET6:
-		port = ntohs(((struct sockaddr_in6 *)&buf)->sin6_port);
-		break;
-	case AF_INET:
-		port = ntohs(((struct sockaddr_in *)&buf)->sin_port);
 	}
+
+	switch (buf.ss_family)
+	{
+		case AF_INET6:
+			port = ntohs(((struct sockaddr_in6 *)&buf)->sin6_port);
+			break;
+
+		case AF_INET:
+			port = ntohs(((struct sockaddr_in *)&buf)->sin_port);
+	}
+
 out:
 	return port;
 }
@@ -1795,7 +2151,9 @@ static void xs_set_port(struct rpc_xprt *xprt, unsigned short port)
 static void xs_set_srcport(struct sock_xprt *transport, struct socket *sock)
 {
 	if (transport->srcport == 0)
+	{
 		transport->srcport = xs_sock_getport(sock);
+	}
 }
 
 static unsigned short xs_get_srcport(struct sock_xprt *transport)
@@ -1803,18 +2161,30 @@ static unsigned short xs_get_srcport(struct sock_xprt *transport)
 	unsigned short port = transport->srcport;
 
 	if (port == 0 && transport->xprt.resvport)
+	{
 		port = xs_get_random_port();
+	}
+
 	return port;
 }
 
 static unsigned short xs_next_srcport(struct sock_xprt *transport, unsigned short port)
 {
 	if (transport->srcport != 0)
+	{
 		transport->srcport = 0;
+	}
+
 	if (!transport->xprt.resvport)
+	{
 		return 0;
+	}
+
 	if (port <= xprt_min_resvport || port > xprt_max_resvport)
+	{
 		return xprt_max_resvport;
+	}
+
 	return --port;
 }
 static int xs_bind(struct sock_xprt *transport, struct socket *sock)
@@ -1840,22 +2210,33 @@ static int xs_bind(struct sock_xprt *transport, struct socket *sock)
 	 * ensure that port is non-zero and we will bind as needed.
 	 */
 	if (port == 0)
+	{
 		return 0;
+	}
 
 	memcpy(&myaddr, &transport->srcaddr, transport->xprt.addrlen);
-	do {
+
+	do
+	{
 		rpc_set_port((struct sockaddr *)&myaddr, port);
 		err = kernel_bind(sock, (struct sockaddr *)&myaddr,
-				transport->xprt.addrlen);
-		if (err == 0) {
+						  transport->xprt.addrlen);
+
+		if (err == 0)
+		{
 			transport->srcport = port;
 			break;
 		}
+
 		last = port;
 		port = xs_next_srcport(transport, port);
+
 		if (port > last)
+		{
 			nloop++;
-	} while (err == -EADDRINUSE && nloop != 2);
+		}
+	}
+	while (err == -EADDRINUSE && nloop != 2);
 
 	if (myaddr.ss_family == AF_INET)
 		dprintk("RPC:       %s %pI4:%u: %s (%d)\n", __func__,
@@ -1865,6 +2246,7 @@ static int xs_bind(struct sock_xprt *transport, struct socket *sock)
 		dprintk("RPC:       %s %pI6:%u: %s (%d)\n", __func__,
 				&((struct sockaddr_in6 *)&myaddr)->sin6_addr,
 				port, err ? "failed" : "ok", err);
+
 	return err;
 }
 
@@ -1889,7 +2271,7 @@ static inline void xs_reclassify_socketu(struct socket *sock)
 	struct sock *sk = sock->sk;
 
 	sock_lock_init_class_and_name(sk, "slock-AF_LOCAL-RPC",
-		&xs_slock_key[1], "sk_lock-AF_LOCAL-RPC", &xs_key[1]);
+								  &xs_slock_key[1], "sk_lock-AF_LOCAL-RPC", &xs_key[1]);
 }
 
 static inline void xs_reclassify_socket4(struct socket *sock)
@@ -1897,7 +2279,7 @@ static inline void xs_reclassify_socket4(struct socket *sock)
 	struct sock *sk = sock->sk;
 
 	sock_lock_init_class_and_name(sk, "slock-AF_INET-RPC",
-		&xs_slock_key[0], "sk_lock-AF_INET-RPC", &xs_key[0]);
+								  &xs_slock_key[0], "sk_lock-AF_INET-RPC", &xs_key[0]);
 }
 
 static inline void xs_reclassify_socket6(struct socket *sock)
@@ -1905,24 +2287,29 @@ static inline void xs_reclassify_socket6(struct socket *sock)
 	struct sock *sk = sock->sk;
 
 	sock_lock_init_class_and_name(sk, "slock-AF_INET6-RPC",
-		&xs_slock_key[1], "sk_lock-AF_INET6-RPC", &xs_key[1]);
+								  &xs_slock_key[1], "sk_lock-AF_INET6-RPC", &xs_key[1]);
 }
 
 static inline void xs_reclassify_socket(int family, struct socket *sock)
 {
 	if (WARN_ON_ONCE(!sock_allow_reclassification(sock->sk)))
+	{
 		return;
+	}
 
-	switch (family) {
-	case AF_LOCAL:
-		xs_reclassify_socketu(sock);
-		break;
-	case AF_INET:
-		xs_reclassify_socket4(sock);
-		break;
-	case AF_INET6:
-		xs_reclassify_socket6(sock);
-		break;
+	switch (family)
+	{
+		case AF_LOCAL:
+			xs_reclassify_socketu(sock);
+			break;
+
+		case AF_INET:
+			xs_reclassify_socket4(sock);
+			break;
+
+		case AF_INET6:
+			xs_reclassify_socket6(sock);
+			break;
 	}
 }
 #else
@@ -1936,25 +2323,32 @@ static void xs_dummy_setup_socket(struct work_struct *work)
 }
 
 static struct socket *xs_create_sock(struct rpc_xprt *xprt,
-		struct sock_xprt *transport, int family, int type,
-		int protocol, bool reuseport)
+									 struct sock_xprt *transport, int family, int type,
+									 int protocol, bool reuseport)
 {
 	struct socket *sock;
 	int err;
 
 	err = __sock_create(xprt->xprt_net, family, type, protocol, &sock, 1);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dprintk("RPC:       can't create %d transport socket (%d).\n",
 				protocol, -err);
 		goto out;
 	}
+
 	xs_reclassify_socket(family, sock);
 
 	if (reuseport)
+	{
 		xs_sock_set_reuseport(sock);
+	}
 
 	err = xs_bind(transport, sock);
-	if (err) {
+
+	if (err)
+	{
 		sock_release(sock);
 		goto out;
 	}
@@ -1965,12 +2359,13 @@ out:
 }
 
 static int xs_local_finish_connecting(struct rpc_xprt *xprt,
-				      struct socket *sock)
+									  struct socket *sock)
 {
 	struct sock_xprt *transport = container_of(xprt, struct sock_xprt,
-									xprt);
+								  xprt);
 
-	if (!transport->inet) {
+	if (!transport->inet)
+	{
 		struct sock *sk = sock->sk;
 
 		write_lock_bh(&sk->sk_callback_lock);
@@ -2010,12 +2405,15 @@ static int xs_local_setup_socket(struct sock_xprt *transport)
 	int status = -EIO;
 
 	status = __sock_create(xprt->xprt_net, AF_LOCAL,
-					SOCK_STREAM, 0, &sock, 1);
-	if (status < 0) {
+						   SOCK_STREAM, 0, &sock, 1);
+
+	if (status < 0)
+	{
 		dprintk("RPC:       can't create AF_LOCAL "
-			"transport socket (%d).\n", -status);
+				"transport socket (%d).\n", -status);
 		goto out;
 	}
+
 	xs_reclassify_socket(AF_LOCAL, sock);
 
 	dprintk("RPC:       worker connecting xprt %p via AF_LOCAL to %s\n",
@@ -2023,25 +2421,31 @@ static int xs_local_setup_socket(struct sock_xprt *transport)
 
 	status = xs_local_finish_connecting(xprt, sock);
 	trace_rpc_socket_connect(xprt, sock, status);
-	switch (status) {
-	case 0:
-		dprintk("RPC:       xprt %p connected to %s\n",
-				xprt, xprt->address_strings[RPC_DISPLAY_ADDR]);
-		xprt_set_connected(xprt);
-	case -ENOBUFS:
-		break;
-	case -ENOENT:
-		dprintk("RPC:       xprt %p: socket %s does not exist\n",
-				xprt, xprt->address_strings[RPC_DISPLAY_ADDR]);
-		break;
-	case -ECONNREFUSED:
-		dprintk("RPC:       xprt %p: connection refused for %s\n",
-				xprt, xprt->address_strings[RPC_DISPLAY_ADDR]);
-		break;
-	default:
-		printk(KERN_ERR "%s: unhandled error (%d) connecting to %s\n",
-				__func__, -status,
-				xprt->address_strings[RPC_DISPLAY_ADDR]);
+
+	switch (status)
+	{
+		case 0:
+			dprintk("RPC:       xprt %p connected to %s\n",
+					xprt, xprt->address_strings[RPC_DISPLAY_ADDR]);
+			xprt_set_connected(xprt);
+
+		case -ENOBUFS:
+			break;
+
+		case -ENOENT:
+			dprintk("RPC:       xprt %p: socket %s does not exist\n",
+					xprt, xprt->address_strings[RPC_DISPLAY_ADDR]);
+			break;
+
+		case -ECONNREFUSED:
+			dprintk("RPC:       xprt %p: connection refused for %s\n",
+					xprt, xprt->address_strings[RPC_DISPLAY_ADDR]);
+			break;
+
+		default:
+			printk(KERN_ERR "%s: unhandled error (%d) connecting to %s\n",
+				   __func__, -status,
+				   xprt->address_strings[RPC_DISPLAY_ADDR]);
 	}
 
 out:
@@ -2055,7 +2459,8 @@ static void xs_local_connect(struct rpc_xprt *xprt, struct rpc_task *task)
 	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
 	int ret;
 
-	 if (RPC_IS_ASYNC(task)) {
+	if (RPC_IS_ASYNC(task))
+	{
 		/*
 		 * We want the AF_LOCAL connect to be resolved in the
 		 * filesystem namespace of the process making the rpc
@@ -2068,9 +2473,13 @@ static void xs_local_connect(struct rpc_xprt *xprt, struct rpc_task *task)
 		rpc_exit(task, -ENOTCONN);
 		return;
 	}
+
 	ret = xs_local_setup_socket(transport);
+
 	if (ret && !RPC_IS_SOFTCONN(task))
+	{
 		msleep_interruptible(15000);
+	}
 }
 
 #if IS_ENABLED(CONFIG_SUNRPC_SWAP)
@@ -2082,16 +2491,21 @@ static void xs_local_connect(struct rpc_xprt *xprt, struct rpc_task *task)
 static void xs_set_memalloc(struct rpc_xprt *xprt)
 {
 	struct sock_xprt *transport = container_of(xprt, struct sock_xprt,
-			xprt);
+								  xprt);
 
 	/*
 	 * If there's no sock, then we have nothing to set. The
 	 * reconnecting process will get it for us.
 	 */
 	if (!transport->inet)
+	{
 		return;
+	}
+
 	if (atomic_read(&xprt->swapper))
+	{
 		sk_set_memalloc(transport->inet);
+	}
 }
 
 /**
@@ -2107,11 +2521,20 @@ xs_enable_swap(struct rpc_xprt *xprt)
 	struct sock_xprt *xs = container_of(xprt, struct sock_xprt, xprt);
 
 	if (atomic_inc_return(&xprt->swapper) != 1)
+	{
 		return 0;
+	}
+
 	if (wait_on_bit_lock(&xprt->state, XPRT_LOCKED, TASK_KILLABLE))
+	{
 		return -ERESTARTSYS;
+	}
+
 	if (xs->inet)
+	{
 		sk_set_memalloc(xs->inet);
+	}
+
 	xprt_release_xprt(xprt, NULL);
 	return 0;
 }
@@ -2129,11 +2552,20 @@ xs_disable_swap(struct rpc_xprt *xprt)
 	struct sock_xprt *xs = container_of(xprt, struct sock_xprt, xprt);
 
 	if (!atomic_dec_and_test(&xprt->swapper))
+	{
 		return;
+	}
+
 	if (wait_on_bit_lock(&xprt->state, XPRT_LOCKED, TASK_KILLABLE))
+	{
 		return;
+	}
+
 	if (xs->inet)
+	{
 		sk_clear_memalloc(xs->inet);
+	}
+
 	xprt_release_xprt(xprt, NULL);
 }
 #else
@@ -2157,7 +2589,8 @@ static void xs_udp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
 {
 	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
 
-	if (!transport->inet) {
+	if (!transport->inet)
+	{
 		struct sock *sk = sock->sk;
 
 		write_lock_bh(&sk->sk_callback_lock);
@@ -2180,6 +2613,7 @@ static void xs_udp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
 
 		write_unlock_bh(&sk->sk_callback_lock);
 	}
+
 	xs_udp_do_set_buffer_size(xprt);
 
 	xprt->stat.connect_start = jiffies;
@@ -2194,13 +2628,16 @@ static void xs_udp_setup_socket(struct work_struct *work)
 	int status = -EIO;
 
 	sock = xs_create_sock(xprt, transport,
-			xs_addr(xprt)->sa_family, SOCK_DGRAM,
-			IPPROTO_UDP, false);
+						  xs_addr(xprt)->sa_family, SOCK_DGRAM,
+						  IPPROTO_UDP, false);
+
 	if (IS_ERR(sock))
+	{
 		goto out;
+	}
 
 	dprintk("RPC:       worker connecting xprt %p via %s to "
-				"%s (port %s)\n", xprt,
+			"%s (port %s)\n", xprt,
 			xprt->address_strings[RPC_DISPLAY_PROTO],
 			xprt->address_strings[RPC_DISPLAY_ADDR],
 			xprt->address_strings[RPC_DISPLAY_PORT]);
@@ -2227,12 +2664,19 @@ static void xs_tcp_shutdown(struct rpc_xprt *xprt)
 	struct socket *sock = transport->sock;
 
 	if (sock == NULL)
+	{
 		return;
-	if (xprt_connected(xprt)) {
+	}
+
+	if (xprt_connected(xprt))
+	{
 		kernel_sock_shutdown(sock, SHUT_RDWR);
 		trace_rpc_socket_shutdown(xprt, sock);
-	} else
+	}
+	else
+	{
 		xs_reset_transport(transport);
+	}
 }
 
 static int xs_tcp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
@@ -2240,7 +2684,8 @@ static int xs_tcp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
 	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
 	int ret = -ENOTCONN;
 
-	if (!transport->inet) {
+	if (!transport->inet)
+	{
 		struct sock *sk = sock->sk;
 		unsigned int keepidle = xprt->timeout->to_initval / HZ;
 		unsigned int keepcnt = xprt->timeout->to_retries + 1;
@@ -2250,13 +2695,13 @@ static int xs_tcp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
 
 		/* TCP Keepalive options */
 		kernel_setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE,
-				(char *)&opt_on, sizeof(opt_on));
+						  (char *)&opt_on, sizeof(opt_on));
 		kernel_setsockopt(sock, SOL_TCP, TCP_KEEPIDLE,
-				(char *)&keepidle, sizeof(keepidle));
+						  (char *)&keepidle, sizeof(keepidle));
 		kernel_setsockopt(sock, SOL_TCP, TCP_KEEPINTVL,
-				(char *)&keepidle, sizeof(keepidle));
+						  (char *)&keepidle, sizeof(keepidle));
 		kernel_setsockopt(sock, SOL_TCP, TCP_KEEPCNT,
-				(char *)&keepcnt, sizeof(keepcnt));
+						  (char *)&keepcnt, sizeof(keepcnt));
 
 		/* Avoid temporary address, they are bad for long-lived
 		 * connections such as NFS mounts.
@@ -2266,13 +2711,13 @@ static int xs_tcp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
 		 *    MAY override this as appropriate.
 		 */
 		kernel_setsockopt(sock, SOL_IPV6, IPV6_ADDR_PREFERENCES,
-				(char *)&addr_pref, sizeof(addr_pref));
+						  (char *)&addr_pref, sizeof(addr_pref));
 
 		/* TCP user timeout (see RFC5482) */
 		timeo = jiffies_to_msecs(xprt->timeout->to_initval) *
-			(xprt->timeout->to_retries + 1);
+				(xprt->timeout->to_retries + 1);
 		kernel_setsockopt(sock, SOL_TCP, TCP_USER_TIMEOUT,
-				(char *)&timeo, sizeof(timeo));
+						  (char *)&timeo, sizeof(timeo));
 
 		write_lock_bh(&sk->sk_callback_lock);
 
@@ -2300,7 +2745,9 @@ static int xs_tcp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
 	}
 
 	if (!xprt_bound(xprt))
+	{
 		goto out;
+	}
 
 	xs_set_memalloc(xprt);
 
@@ -2309,18 +2756,27 @@ static int xs_tcp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
 	xprt->stat.connect_start = jiffies;
 	set_bit(XPRT_SOCK_CONNECTING, &transport->sock_state);
 	ret = kernel_connect(sock, xs_addr(xprt), xprt->addrlen, O_NONBLOCK);
-	switch (ret) {
-	case 0:
-		xs_set_srcport(transport, sock);
-	case -EINPROGRESS:
-		/* SYN_SENT! */
-		if (xprt->reestablish_timeout < XS_TCP_INIT_REEST_TO)
-			xprt->reestablish_timeout = XS_TCP_INIT_REEST_TO;
-		break;
-	case -EADDRNOTAVAIL:
-		/* Source port number is unavailable. Try a new one! */
-		transport->srcport = 0;
+
+	switch (ret)
+	{
+		case 0:
+			xs_set_srcport(transport, sock);
+
+		case -EINPROGRESS:
+
+			/* SYN_SENT! */
+			if (xprt->reestablish_timeout < XS_TCP_INIT_REEST_TO)
+			{
+				xprt->reestablish_timeout = XS_TCP_INIT_REEST_TO;
+			}
+
+			break;
+
+		case -EADDRNOTAVAIL:
+			/* Source port number is unavailable. Try a new one! */
+			transport->srcport = 0;
 	}
+
 out:
 	return ret;
 }
@@ -2338,18 +2794,21 @@ static void xs_tcp_setup_socket(struct work_struct *work)
 	struct rpc_xprt *xprt = &transport->xprt;
 	int status = -EIO;
 
-	if (!sock) {
+	if (!sock)
+	{
 		sock = xs_create_sock(xprt, transport,
-				xs_addr(xprt)->sa_family, SOCK_STREAM,
-				IPPROTO_TCP, true);
-		if (IS_ERR(sock)) {
+							  xs_addr(xprt)->sa_family, SOCK_STREAM,
+							  IPPROTO_TCP, true);
+
+		if (IS_ERR(sock))
+		{
 			status = PTR_ERR(sock);
 			goto out;
 		}
 	}
 
 	dprintk("RPC:       worker connecting xprt %p via %s to "
-				"%s (port %s)\n", xprt,
+			"%s (port %s)\n", xprt,
 			xprt->address_strings[RPC_DISPLAY_PROTO],
 			xprt->address_strings[RPC_DISPLAY_ADDR],
 			xprt->address_strings[RPC_DISPLAY_PORT]);
@@ -2359,34 +2818,41 @@ static void xs_tcp_setup_socket(struct work_struct *work)
 	dprintk("RPC:       %p connect status %d connected %d sock state %d\n",
 			xprt, -status, xprt_connected(xprt),
 			sock->sk->sk_state);
-	switch (status) {
-	default:
-		printk("%s: connect returned unhandled error %d\n",
-			__func__, status);
-	case -EADDRNOTAVAIL:
-		/* We're probably in TIME_WAIT. Get rid of existing socket,
-		 * and retry
-		 */
-		xs_tcp_force_close(xprt);
-		break;
-	case 0:
-	case -EINPROGRESS:
-	case -EALREADY:
-		xprt_unlock_connect(xprt, transport);
-		return;
-	case -EINVAL:
+
+	switch (status)
+	{
+		default:
+			printk("%s: connect returned unhandled error %d\n",
+				   __func__, status);
+
+		case -EADDRNOTAVAIL:
+			/* We're probably in TIME_WAIT. Get rid of existing socket,
+			 * and retry
+			 */
+			xs_tcp_force_close(xprt);
+			break;
+
+		case 0:
+		case -EINPROGRESS:
+		case -EALREADY:
+			xprt_unlock_connect(xprt, transport);
+			return;
+
+		case -EINVAL:
+
 		/* Happens, for instance, if the user specified a link
 		 * local IPv6 address without a scope-id.
 		 */
-	case -ECONNREFUSED:
-	case -ECONNRESET:
-	case -ENETUNREACH:
-	case -EADDRINUSE:
-	case -ENOBUFS:
-		/* retry with existing socket, after a delay */
-		xs_tcp_force_close(xprt);
-		goto out;
+		case -ECONNREFUSED:
+		case -ECONNRESET:
+		case -ENETUNREACH:
+		case -EADDRINUSE:
+		case -ENOBUFS:
+			/* retry with existing socket, after a delay */
+			xs_tcp_force_close(xprt);
+			goto out;
 	}
+
 	status = -EAGAIN;
 out:
 	xprt_unlock_connect(xprt, transport);
@@ -2399,18 +2865,28 @@ static unsigned long xs_reconnect_delay(const struct rpc_xprt *xprt)
 	unsigned long start, now = jiffies;
 
 	start = xprt->stat.connect_start + xprt->reestablish_timeout;
+
 	if (time_after(start, now))
+	{
 		return start - now;
+	}
+
 	return 0;
 }
 
 static void xs_reconnect_backoff(struct rpc_xprt *xprt)
 {
 	xprt->reestablish_timeout <<= 1;
+
 	if (xprt->reestablish_timeout > xprt->max_reconnect_timeout)
+	{
 		xprt->reestablish_timeout = xprt->max_reconnect_timeout;
+	}
+
 	if (xprt->reestablish_timeout < XS_TCP_INIT_REEST_TO)
+	{
 		xprt->reestablish_timeout = XS_TCP_INIT_REEST_TO;
+	}
 }
 
 /**
@@ -2434,7 +2910,8 @@ static void xs_connect(struct rpc_xprt *xprt, struct rpc_task *task)
 
 	WARN_ON_ONCE(!xprt_lock_connect(xprt, task, transport));
 
-	if (transport->sock != NULL) {
+	if (transport->sock != NULL)
+	{
 		dprintk("RPC:       xs_connect delayed xprt %p for %lu "
 				"seconds\n",
 				xprt, xprt->reestablish_timeout / HZ);
@@ -2445,12 +2922,15 @@ static void xs_connect(struct rpc_xprt *xprt, struct rpc_task *task)
 		delay = xs_reconnect_delay(xprt);
 		xs_reconnect_backoff(xprt);
 
-	} else
+	}
+	else
+	{
 		dprintk("RPC:       xs_connect scheduled xprt %p\n", xprt);
+	}
 
 	queue_delayed_work(xprtiod_workqueue,
-			&transport->connect_worker,
-			delay);
+					   &transport->connect_worker,
+					   delay);
 }
 
 /**
@@ -2464,22 +2944,24 @@ static void xs_local_print_stats(struct rpc_xprt *xprt, struct seq_file *seq)
 	long idle_time = 0;
 
 	if (xprt_connected(xprt))
+	{
 		idle_time = (long)(jiffies - xprt->last_used) / HZ;
+	}
 
 	seq_printf(seq, "\txprt:\tlocal %lu %lu %lu %ld %lu %lu %lu "
-			"%llu %llu %lu %llu %llu\n",
-			xprt->stat.bind_count,
-			xprt->stat.connect_count,
-			xprt->stat.connect_time,
-			idle_time,
-			xprt->stat.sends,
-			xprt->stat.recvs,
-			xprt->stat.bad_xids,
-			xprt->stat.req_u,
-			xprt->stat.bklog_u,
-			xprt->stat.max_slots,
-			xprt->stat.sending_u,
-			xprt->stat.pending_u);
+			   "%llu %llu %lu %llu %llu\n",
+			   xprt->stat.bind_count,
+			   xprt->stat.connect_count,
+			   xprt->stat.connect_time,
+			   idle_time,
+			   xprt->stat.sends,
+			   xprt->stat.recvs,
+			   xprt->stat.bad_xids,
+			   xprt->stat.req_u,
+			   xprt->stat.bklog_u,
+			   xprt->stat.max_slots,
+			   xprt->stat.sending_u,
+			   xprt->stat.pending_u);
 }
 
 /**
@@ -2493,17 +2975,17 @@ static void xs_udp_print_stats(struct rpc_xprt *xprt, struct seq_file *seq)
 	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
 
 	seq_printf(seq, "\txprt:\tudp %u %lu %lu %lu %lu %llu %llu "
-			"%lu %llu %llu\n",
-			transport->srcport,
-			xprt->stat.bind_count,
-			xprt->stat.sends,
-			xprt->stat.recvs,
-			xprt->stat.bad_xids,
-			xprt->stat.req_u,
-			xprt->stat.bklog_u,
-			xprt->stat.max_slots,
-			xprt->stat.sending_u,
-			xprt->stat.pending_u);
+			   "%lu %llu %llu\n",
+			   transport->srcport,
+			   xprt->stat.bind_count,
+			   xprt->stat.sends,
+			   xprt->stat.recvs,
+			   xprt->stat.bad_xids,
+			   xprt->stat.req_u,
+			   xprt->stat.bklog_u,
+			   xprt->stat.max_slots,
+			   xprt->stat.sending_u,
+			   xprt->stat.pending_u);
 }
 
 /**
@@ -2518,23 +3000,25 @@ static void xs_tcp_print_stats(struct rpc_xprt *xprt, struct seq_file *seq)
 	long idle_time = 0;
 
 	if (xprt_connected(xprt))
+	{
 		idle_time = (long)(jiffies - xprt->last_used) / HZ;
+	}
 
 	seq_printf(seq, "\txprt:\ttcp %u %lu %lu %lu %ld %lu %lu %lu "
-			"%llu %llu %lu %llu %llu\n",
-			transport->srcport,
-			xprt->stat.bind_count,
-			xprt->stat.connect_count,
-			xprt->stat.connect_time,
-			idle_time,
-			xprt->stat.sends,
-			xprt->stat.recvs,
-			xprt->stat.bad_xids,
-			xprt->stat.req_u,
-			xprt->stat.bklog_u,
-			xprt->stat.max_slots,
-			xprt->stat.sending_u,
-			xprt->stat.pending_u);
+			   "%llu %llu %lu %llu %llu\n",
+			   transport->srcport,
+			   xprt->stat.bind_count,
+			   xprt->stat.connect_count,
+			   xprt->stat.connect_time,
+			   idle_time,
+			   xprt->stat.sends,
+			   xprt->stat.recvs,
+			   xprt->stat.bad_xids,
+			   xprt->stat.req_u,
+			   xprt->stat.bklog_u,
+			   xprt->stat.max_slots,
+			   xprt->stat.sending_u,
+			   xprt->stat.pending_u);
 }
 
 /*
@@ -2549,15 +3033,19 @@ static int bc_malloc(struct rpc_task *task)
 	struct page *page;
 	struct rpc_buffer *buf;
 
-	if (size > PAGE_SIZE - sizeof(struct rpc_buffer)) {
+	if (size > PAGE_SIZE - sizeof(struct rpc_buffer))
+	{
 		WARN_ONCE(1, "xprtsock: large bc buffer request (size %zu)\n",
-			  size);
+				  size);
 		return -EINVAL;
 	}
 
 	page = alloc_page(GFP_KERNEL);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	buf = page_address(page);
 	buf->len = PAGE_SIZE;
@@ -2589,7 +3077,7 @@ static int bc_sendto(struct rpc_rqst *req)
 	struct xdr_buf *xbufp = &req->rq_snd_buf;
 	struct rpc_xprt *xprt = req->rq_xprt;
 	struct sock_xprt *transport =
-				container_of(xprt, struct sock_xprt, xprt);
+		container_of(xprt, struct sock_xprt, xprt);
 	struct socket *sock = transport->sock;
 	unsigned long headoff;
 	unsigned long tailoff;
@@ -2599,10 +3087,11 @@ static int bc_sendto(struct rpc_rqst *req)
 	tailoff = (unsigned long)xbufp->tail[0].iov_base & ~PAGE_MASK;
 	headoff = (unsigned long)xbufp->head[0].iov_base & ~PAGE_MASK;
 	len = svc_send_common(sock, xbufp,
-			      virt_to_page(xbufp->head[0].iov_base), headoff,
-			      xbufp->tail[0].iov_base, tailoff);
+						  virt_to_page(xbufp->head[0].iov_base), headoff,
+						  xbufp->tail[0].iov_base, tailoff);
 
-	if (len != xbufp->len) {
+	if (len != xbufp->len)
+	{
 		printk(KERN_NOTICE "Error sending entire callback!\n");
 		len = -EAGAIN;
 	}
@@ -2629,20 +3118,33 @@ static int bc_send_request(struct rpc_task *task)
 	 * Grab the mutex to serialize data as the connection is shared
 	 * with the fore channel
 	 */
-	if (!mutex_trylock(&xprt->xpt_mutex)) {
+	if (!mutex_trylock(&xprt->xpt_mutex))
+	{
 		rpc_sleep_on(&xprt->xpt_bc_pending, task, NULL);
+
 		if (!mutex_trylock(&xprt->xpt_mutex))
+		{
 			return -EAGAIN;
+		}
+
 		rpc_wake_up_queued_task(&xprt->xpt_bc_pending, task);
 	}
+
 	if (test_bit(XPT_DEAD, &xprt->xpt_flags))
+	{
 		len = -ENOTCONN;
+	}
 	else
+	{
 		len = bc_sendto(req);
+	}
+
 	mutex_unlock(&xprt->xpt_mutex);
 
 	if (len > 0)
+	{
 		len = 0;
+	}
 
 	return len;
 }
@@ -2668,7 +3170,8 @@ static void bc_destroy(struct rpc_xprt *xprt)
 	module_put(THIS_MODULE);
 }
 
-static struct rpc_xprt_ops xs_local_ops = {
+static struct rpc_xprt_ops xs_local_ops =
+{
 	.reserve_xprt		= xprt_reserve_xprt,
 	.release_xprt		= xs_tcp_release_xprt,
 	.alloc_slot		= xprt_alloc_slot,
@@ -2686,7 +3189,8 @@ static struct rpc_xprt_ops xs_local_ops = {
 	.disable_swap		= xs_disable_swap,
 };
 
-static struct rpc_xprt_ops xs_udp_ops = {
+static struct rpc_xprt_ops xs_udp_ops =
+{
 	.set_buffer_size	= xs_udp_set_buffer_size,
 	.reserve_xprt		= xprt_reserve_xprt_cong,
 	.release_xprt		= xprt_release_xprt_cong,
@@ -2708,7 +3212,8 @@ static struct rpc_xprt_ops xs_udp_ops = {
 	.inject_disconnect	= xs_inject_disconnect,
 };
 
-static struct rpc_xprt_ops xs_tcp_ops = {
+static struct rpc_xprt_ops xs_tcp_ops =
+{
 	.reserve_xprt		= xprt_reserve_xprt,
 	.release_xprt		= xs_tcp_release_xprt,
 	.alloc_slot		= xprt_lock_and_alloc_slot,
@@ -2738,7 +3243,8 @@ static struct rpc_xprt_ops xs_tcp_ops = {
  * The rpc_xprt_ops for the server backchannel
  */
 
-static struct rpc_xprt_ops bc_tcp_ops = {
+static struct rpc_xprt_ops bc_tcp_ops =
+{
 	.reserve_xprt		= xprt_reserve_xprt,
 	.release_xprt		= xprt_release_xprt,
 	.alloc_slot		= xprt_alloc_slot,
@@ -2756,46 +3262,56 @@ static struct rpc_xprt_ops bc_tcp_ops = {
 
 static int xs_init_anyaddr(const int family, struct sockaddr *sap)
 {
-	static const struct sockaddr_in sin = {
+	static const struct sockaddr_in sin =
+	{
 		.sin_family		= AF_INET,
 		.sin_addr.s_addr	= htonl(INADDR_ANY),
 	};
-	static const struct sockaddr_in6 sin6 = {
+	static const struct sockaddr_in6 sin6 =
+	{
 		.sin6_family		= AF_INET6,
 		.sin6_addr		= IN6ADDR_ANY_INIT,
 	};
 
-	switch (family) {
-	case AF_LOCAL:
-		break;
-	case AF_INET:
-		memcpy(sap, &sin, sizeof(sin));
-		break;
-	case AF_INET6:
-		memcpy(sap, &sin6, sizeof(sin6));
-		break;
-	default:
-		dprintk("RPC:       %s: Bad address family\n", __func__);
-		return -EAFNOSUPPORT;
+	switch (family)
+	{
+		case AF_LOCAL:
+			break;
+
+		case AF_INET:
+			memcpy(sap, &sin, sizeof(sin));
+			break;
+
+		case AF_INET6:
+			memcpy(sap, &sin6, sizeof(sin6));
+			break;
+
+		default:
+			dprintk("RPC:       %s: Bad address family\n", __func__);
+			return -EAFNOSUPPORT;
 	}
+
 	return 0;
 }
 
 static struct rpc_xprt *xs_setup_xprt(struct xprt_create *args,
-				      unsigned int slot_table_size,
-				      unsigned int max_slot_table_size)
+									  unsigned int slot_table_size,
+									  unsigned int max_slot_table_size)
 {
 	struct rpc_xprt *xprt;
 	struct sock_xprt *new;
 
-	if (args->addrlen > sizeof(xprt->addr)) {
+	if (args->addrlen > sizeof(xprt->addr))
+	{
 		dprintk("RPC:       xs_setup_xprt: address too large\n");
 		return ERR_PTR(-EBADF);
 	}
 
 	xprt = xprt_alloc(args->net, sizeof(*new), slot_table_size,
-			max_slot_table_size);
-	if (xprt == NULL) {
+					  max_slot_table_size);
+
+	if (xprt == NULL)
+	{
 		dprintk("RPC:       xs_setup_xprt: couldn't allocate "
 				"rpc_xprt\n");
 		return ERR_PTR(-ENOMEM);
@@ -2805,13 +3321,19 @@ static struct rpc_xprt *xs_setup_xprt(struct xprt_create *args,
 	mutex_init(&new->recv_mutex);
 	memcpy(&xprt->addr, args->dstaddr, args->addrlen);
 	xprt->addrlen = args->addrlen;
+
 	if (args->srcaddr)
+	{
 		memcpy(&new->srcaddr, args->srcaddr, args->addrlen);
-	else {
+	}
+	else
+	{
 		int err;
 		err = xs_init_anyaddr(args->dstaddr->sa_family,
-					(struct sockaddr *)&new->srcaddr);
-		if (err != 0) {
+							  (struct sockaddr *)&new->srcaddr);
+
+		if (err != 0)
+		{
 			xprt_free(xprt);
 			return ERR_PTR(err);
 		}
@@ -2820,7 +3342,8 @@ static struct rpc_xprt *xs_setup_xprt(struct xprt_create *args,
 	return xprt;
 }
 
-static const struct rpc_timeout xs_local_default_timeout = {
+static const struct rpc_timeout xs_local_default_timeout =
+{
 	.to_initval = 10 * HZ,
 	.to_maxval = 10 * HZ,
 	.to_retries = 2,
@@ -2840,9 +3363,13 @@ static struct rpc_xprt *xs_setup_local(struct xprt_create *args)
 	struct rpc_xprt *ret;
 
 	xprt = xs_setup_xprt(args, xprt_tcp_slot_table_entries,
-			xprt_max_tcp_slot_table_entries);
+						 xprt_max_tcp_slot_table_entries);
+
 	if (IS_ERR(xprt))
+	{
 		return xprt;
+	}
+
 	transport = container_of(xprt, struct sock_xprt, xprt);
 
 	xprt->prot = 0;
@@ -2858,39 +3385,51 @@ static struct rpc_xprt *xs_setup_local(struct xprt_create *args)
 
 	INIT_WORK(&transport->recv_worker, xs_local_data_receive_workfn);
 	INIT_DELAYED_WORK(&transport->connect_worker,
-			xs_dummy_setup_socket);
+					  xs_dummy_setup_socket);
 
-	switch (sun->sun_family) {
-	case AF_LOCAL:
-		if (sun->sun_path[0] != '/') {
-			dprintk("RPC:       bad AF_LOCAL address: %s\n",
-					sun->sun_path);
-			ret = ERR_PTR(-EINVAL);
+	switch (sun->sun_family)
+	{
+		case AF_LOCAL:
+			if (sun->sun_path[0] != '/')
+			{
+				dprintk("RPC:       bad AF_LOCAL address: %s\n",
+						sun->sun_path);
+				ret = ERR_PTR(-EINVAL);
+				goto out_err;
+			}
+
+			xprt_set_bound(xprt);
+			xs_format_peer_addresses(xprt, "local", RPCBIND_NETID_LOCAL);
+			ret = ERR_PTR(xs_local_setup_socket(transport));
+
+			if (ret)
+			{
+				goto out_err;
+			}
+
+			break;
+
+		default:
+			ret = ERR_PTR(-EAFNOSUPPORT);
 			goto out_err;
-		}
-		xprt_set_bound(xprt);
-		xs_format_peer_addresses(xprt, "local", RPCBIND_NETID_LOCAL);
-		ret = ERR_PTR(xs_local_setup_socket(transport));
-		if (ret)
-			goto out_err;
-		break;
-	default:
-		ret = ERR_PTR(-EAFNOSUPPORT);
-		goto out_err;
 	}
 
 	dprintk("RPC:       set up xprt to %s via AF_LOCAL\n",
 			xprt->address_strings[RPC_DISPLAY_ADDR]);
 
 	if (try_module_get(THIS_MODULE))
+	{
 		return xprt;
+	}
+
 	ret = ERR_PTR(-EINVAL);
 out_err:
 	xs_xprt_free(xprt);
 	return ret;
 }
 
-static const struct rpc_timeout xs_udp_default_timeout = {
+static const struct rpc_timeout xs_udp_default_timeout =
+{
 	.to_initval = 5 * HZ,
 	.to_maxval = 30 * HZ,
 	.to_increment = 5 * HZ,
@@ -2910,9 +3449,13 @@ static struct rpc_xprt *xs_setup_udp(struct xprt_create *args)
 	struct rpc_xprt *ret;
 
 	xprt = xs_setup_xprt(args, xprt_udp_slot_table_entries,
-			xprt_udp_slot_table_entries);
+						 xprt_udp_slot_table_entries);
+
 	if (IS_ERR(xprt))
+	{
 		return xprt;
+	}
+
 	transport = container_of(xprt, struct sock_xprt, xprt);
 
 	xprt->prot = IPPROTO_UDP;
@@ -2931,22 +3474,29 @@ static struct rpc_xprt *xs_setup_udp(struct xprt_create *args)
 	INIT_WORK(&transport->recv_worker, xs_udp_data_receive_workfn);
 	INIT_DELAYED_WORK(&transport->connect_worker, xs_udp_setup_socket);
 
-	switch (addr->sa_family) {
-	case AF_INET:
-		if (((struct sockaddr_in *)addr)->sin_port != htons(0))
-			xprt_set_bound(xprt);
+	switch (addr->sa_family)
+	{
+		case AF_INET:
+			if (((struct sockaddr_in *)addr)->sin_port != htons(0))
+			{
+				xprt_set_bound(xprt);
+			}
 
-		xs_format_peer_addresses(xprt, "udp", RPCBIND_NETID_UDP);
-		break;
-	case AF_INET6:
-		if (((struct sockaddr_in6 *)addr)->sin6_port != htons(0))
-			xprt_set_bound(xprt);
+			xs_format_peer_addresses(xprt, "udp", RPCBIND_NETID_UDP);
+			break;
 
-		xs_format_peer_addresses(xprt, "udp", RPCBIND_NETID_UDP6);
-		break;
-	default:
-		ret = ERR_PTR(-EAFNOSUPPORT);
-		goto out_err;
+		case AF_INET6:
+			if (((struct sockaddr_in6 *)addr)->sin6_port != htons(0))
+			{
+				xprt_set_bound(xprt);
+			}
+
+			xs_format_peer_addresses(xprt, "udp", RPCBIND_NETID_UDP6);
+			break;
+
+		default:
+			ret = ERR_PTR(-EAFNOSUPPORT);
+			goto out_err;
 	}
 
 	if (xprt_bound(xprt))
@@ -2960,14 +3510,18 @@ static struct rpc_xprt *xs_setup_udp(struct xprt_create *args)
 				xprt->address_strings[RPC_DISPLAY_PROTO]);
 
 	if (try_module_get(THIS_MODULE))
+	{
 		return xprt;
+	}
+
 	ret = ERR_PTR(-EINVAL);
 out_err:
 	xs_xprt_free(xprt);
 	return ret;
 }
 
-static const struct rpc_timeout xs_tcp_default_timeout = {
+static const struct rpc_timeout xs_tcp_default_timeout =
+{
 	.to_initval = 60 * HZ,
 	.to_maxval = 60 * HZ,
 	.to_retries = 2,
@@ -2987,12 +3541,18 @@ static struct rpc_xprt *xs_setup_tcp(struct xprt_create *args)
 	unsigned int max_slot_table_size = xprt_max_tcp_slot_table_entries;
 
 	if (args->flags & XPRT_CREATE_INFINITE_SLOTS)
+	{
 		max_slot_table_size = RPC_MAX_SLOT_TABLE_LIMIT;
+	}
 
 	xprt = xs_setup_xprt(args, xprt_tcp_slot_table_entries,
-			max_slot_table_size);
+						 max_slot_table_size);
+
 	if (IS_ERR(xprt))
+	{
 		return xprt;
+	}
+
 	transport = container_of(xprt, struct sock_xprt, xprt);
 
 	xprt->prot = IPPROTO_TCP;
@@ -3011,22 +3571,29 @@ static struct rpc_xprt *xs_setup_tcp(struct xprt_create *args)
 	INIT_WORK(&transport->recv_worker, xs_tcp_data_receive_workfn);
 	INIT_DELAYED_WORK(&transport->connect_worker, xs_tcp_setup_socket);
 
-	switch (addr->sa_family) {
-	case AF_INET:
-		if (((struct sockaddr_in *)addr)->sin_port != htons(0))
-			xprt_set_bound(xprt);
+	switch (addr->sa_family)
+	{
+		case AF_INET:
+			if (((struct sockaddr_in *)addr)->sin_port != htons(0))
+			{
+				xprt_set_bound(xprt);
+			}
 
-		xs_format_peer_addresses(xprt, "tcp", RPCBIND_NETID_TCP);
-		break;
-	case AF_INET6:
-		if (((struct sockaddr_in6 *)addr)->sin6_port != htons(0))
-			xprt_set_bound(xprt);
+			xs_format_peer_addresses(xprt, "tcp", RPCBIND_NETID_TCP);
+			break;
 
-		xs_format_peer_addresses(xprt, "tcp", RPCBIND_NETID_TCP6);
-		break;
-	default:
-		ret = ERR_PTR(-EAFNOSUPPORT);
-		goto out_err;
+		case AF_INET6:
+			if (((struct sockaddr_in6 *)addr)->sin6_port != htons(0))
+			{
+				xprt_set_bound(xprt);
+			}
+
+			xs_format_peer_addresses(xprt, "tcp", RPCBIND_NETID_TCP6);
+			break;
+
+		default:
+			ret = ERR_PTR(-EAFNOSUPPORT);
+			goto out_err;
 	}
 
 	if (xprt_bound(xprt))
@@ -3040,7 +3607,10 @@ static struct rpc_xprt *xs_setup_tcp(struct xprt_create *args)
 				xprt->address_strings[RPC_DISPLAY_PROTO]);
 
 	if (try_module_get(THIS_MODULE))
+	{
 		return xprt;
+	}
+
 	ret = ERR_PTR(-EINVAL);
 out_err:
 	xs_xprt_free(xprt);
@@ -3061,9 +3631,13 @@ static struct rpc_xprt *xs_setup_bc_tcp(struct xprt_create *args)
 	struct rpc_xprt *ret;
 
 	xprt = xs_setup_xprt(args, xprt_tcp_slot_table_entries,
-			xprt_tcp_slot_table_entries);
+						 xprt_tcp_slot_table_entries);
+
 	if (IS_ERR(xprt))
+	{
 		return xprt;
+	}
+
 	transport = container_of(xprt, struct sock_xprt, xprt);
 
 	xprt->prot = IPPROTO_TCP;
@@ -3079,18 +3653,21 @@ static struct rpc_xprt *xs_setup_bc_tcp(struct xprt_create *args)
 
 	xprt->ops = &bc_tcp_ops;
 
-	switch (addr->sa_family) {
-	case AF_INET:
-		xs_format_peer_addresses(xprt, "tcp",
-					 RPCBIND_NETID_TCP);
-		break;
-	case AF_INET6:
-		xs_format_peer_addresses(xprt, "tcp",
-				   RPCBIND_NETID_TCP6);
-		break;
-	default:
-		ret = ERR_PTR(-EAFNOSUPPORT);
-		goto out_err;
+	switch (addr->sa_family)
+	{
+		case AF_INET:
+			xs_format_peer_addresses(xprt, "tcp",
+									 RPCBIND_NETID_TCP);
+			break;
+
+		case AF_INET6:
+			xs_format_peer_addresses(xprt, "tcp",
+									 RPCBIND_NETID_TCP6);
+			break;
+
+		default:
+			ret = ERR_PTR(-EAFNOSUPPORT);
+			goto out_err;
 	}
 
 	dprintk("RPC:       set up xprt to %s (port %s) via %s\n",
@@ -3118,7 +3695,9 @@ static struct rpc_xprt *xs_setup_bc_tcp(struct xprt_create *args)
 	xprt_set_connected(xprt);
 
 	if (try_module_get(THIS_MODULE))
+	{
 		return xprt;
+	}
 
 	args->bc_xprt->xpt_bc_xprt = NULL;
 	args->bc_xprt->xpt_bc_xps = NULL;
@@ -3129,7 +3708,8 @@ out_err:
 	return ret;
 }
 
-static struct xprt_class	xs_local_transport = {
+static struct xprt_class	xs_local_transport =
+{
 	.list		= LIST_HEAD_INIT(xs_local_transport.list),
 	.name		= "named UNIX socket",
 	.owner		= THIS_MODULE,
@@ -3137,7 +3717,8 @@ static struct xprt_class	xs_local_transport = {
 	.setup		= xs_setup_local,
 };
 
-static struct xprt_class	xs_udp_transport = {
+static struct xprt_class	xs_udp_transport =
+{
 	.list		= LIST_HEAD_INIT(xs_udp_transport.list),
 	.name		= "udp",
 	.owner		= THIS_MODULE,
@@ -3145,7 +3726,8 @@ static struct xprt_class	xs_udp_transport = {
 	.setup		= xs_setup_udp,
 };
 
-static struct xprt_class	xs_tcp_transport = {
+static struct xprt_class	xs_tcp_transport =
+{
 	.list		= LIST_HEAD_INIT(xs_tcp_transport.list),
 	.name		= "tcp",
 	.owner		= THIS_MODULE,
@@ -3153,7 +3735,8 @@ static struct xprt_class	xs_tcp_transport = {
 	.setup		= xs_setup_tcp,
 };
 
-static struct xprt_class	xs_bc_tcp_transport = {
+static struct xprt_class	xs_bc_tcp_transport =
+{
 	.list		= LIST_HEAD_INIT(xs_bc_tcp_transport.list),
 	.name		= "tcp NFSv4.1 backchannel",
 	.owner		= THIS_MODULE,
@@ -3168,8 +3751,12 @@ static struct xprt_class	xs_bc_tcp_transport = {
 int init_socket_xprt(void)
 {
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+
 	if (!sunrpc_table_header)
+	{
 		sunrpc_table_header = register_sysctl_table(sunrpc_table);
+	}
+
 #endif
 
 	xprt_register_transport(&xs_local_transport);
@@ -3187,10 +3774,13 @@ int init_socket_xprt(void)
 void cleanup_socket_xprt(void)
 {
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-	if (sunrpc_table_header) {
+
+	if (sunrpc_table_header)
+	{
 		unregister_sysctl_table(sunrpc_table_header);
 		sunrpc_table_header = NULL;
 	}
+
 #endif
 
 	xprt_unregister_transport(&xs_local_transport);
@@ -3200,17 +3790,24 @@ void cleanup_socket_xprt(void)
 }
 
 static int param_set_uint_minmax(const char *val,
-		const struct kernel_param *kp,
-		unsigned int min, unsigned int max)
+								 const struct kernel_param *kp,
+								 unsigned int min, unsigned int max)
 {
 	unsigned int num;
 	int ret;
 
 	if (!val)
+	{
 		return -EINVAL;
+	}
+
 	ret = kstrtouint(val, 0, &num);
+
 	if (ret == -EINVAL || num < min || num > max)
+	{
 		return -EINVAL;
+	}
+
 	*((unsigned int *)kp->arg) = num;
 	return 0;
 }
@@ -3219,14 +3816,16 @@ static int param_set_portnr(const char *val, const struct kernel_param *kp)
 {
 	if (kp->arg == &xprt_min_resvport)
 		return param_set_uint_minmax(val, kp,
-			RPC_MIN_RESVPORT,
-			xprt_max_resvport);
+									 RPC_MIN_RESVPORT,
+									 xprt_max_resvport);
+
 	return param_set_uint_minmax(val, kp,
-			xprt_min_resvport,
-			RPC_MAX_RESVPORT);
+								 xprt_min_resvport,
+								 RPC_MAX_RESVPORT);
 }
 
-static const struct kernel_param_ops param_ops_portnr = {
+static const struct kernel_param_ops param_ops_portnr =
+{
 	.set = param_set_portnr,
 	.get = param_get_uint,
 };
@@ -3238,14 +3837,15 @@ module_param_named(min_resvport, xprt_min_resvport, portnr, 0644);
 module_param_named(max_resvport, xprt_max_resvport, portnr, 0644);
 
 static int param_set_slot_table_size(const char *val,
-				     const struct kernel_param *kp)
+									 const struct kernel_param *kp)
 {
 	return param_set_uint_minmax(val, kp,
-			RPC_MIN_SLOT_TABLE,
-			RPC_MAX_SLOT_TABLE);
+								 RPC_MIN_SLOT_TABLE,
+								 RPC_MAX_SLOT_TABLE);
 }
 
-static const struct kernel_param_ops param_ops_slot_table_size = {
+static const struct kernel_param_ops param_ops_slot_table_size =
+{
 	.set = param_set_slot_table_size,
 	.get = param_get_uint,
 };
@@ -3254,14 +3854,15 @@ static const struct kernel_param_ops param_ops_slot_table_size = {
 	__param_check(name, p, unsigned int);
 
 static int param_set_max_slot_table_size(const char *val,
-				     const struct kernel_param *kp)
+		const struct kernel_param *kp)
 {
 	return param_set_uint_minmax(val, kp,
-			RPC_MIN_SLOT_TABLE,
-			RPC_MAX_SLOT_TABLE_LIMIT);
+								 RPC_MIN_SLOT_TABLE,
+								 RPC_MAX_SLOT_TABLE_LIMIT);
 }
 
-static const struct kernel_param_ops param_ops_max_slot_table_size = {
+static const struct kernel_param_ops param_ops_max_slot_table_size =
+{
 	.set = param_set_max_slot_table_size,
 	.get = param_get_uint,
 };
@@ -3270,9 +3871,9 @@ static const struct kernel_param_ops param_ops_max_slot_table_size = {
 	__param_check(name, p, unsigned int);
 
 module_param_named(tcp_slot_table_entries, xprt_tcp_slot_table_entries,
-		   slot_table_size, 0644);
+				   slot_table_size, 0644);
 module_param_named(tcp_max_slot_table_entries, xprt_max_tcp_slot_table_entries,
-		   max_slot_table_size, 0644);
+				   max_slot_table_size, 0644);
 module_param_named(udp_slot_table_entries, xprt_udp_slot_table_entries,
-		   slot_table_size, 0644);
+				   slot_table_size, 0644);
 

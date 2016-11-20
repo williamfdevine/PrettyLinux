@@ -15,7 +15,8 @@
  * @AD7793_CLK_SRC_EXT: Use external clock.
  * @AD7793_CLK_SRC_EXT_DIV2: Use external clock divided by 2.
  */
-enum ad7793_clock_source {
+enum ad7793_clock_source
+{
 	AD7793_CLK_SRC_INT,
 	AD7793_CLK_SRC_INT_CO,
 	AD7793_CLK_SRC_EXT,
@@ -30,7 +31,8 @@ enum ad7793_clock_source {
  * @AD7793_BIAS_VOLTAGE_AIN3: Bias voltage connected to AIN3(-).
  *	Only valid for AD7795/AD7796.
  */
-enum ad7793_bias_voltage {
+enum ad7793_bias_voltage
+{
 	AD7793_BIAS_VOLTAGE_DISABLED,
 	AD7793_BIAS_VOLTAGE_AIN1,
 	AD7793_BIAS_VOLTAGE_AIN2,
@@ -45,7 +47,8 @@ enum ad7793_bias_voltage {
  *	and REFIN1(-). Only valid for AD7795/AD7796.
  * @AD7793_REFSEL_INTERNAL: Internal 1.17 V reference.
  */
-enum ad7793_refsel {
+enum ad7793_refsel
+{
 	AD7793_REFSEL_REFIN1 = 0,
 	AD7793_REFSEL_REFIN2 = 1,
 	AD7793_REFSEL_INTERNAL = 2,
@@ -62,7 +65,8 @@ enum ad7793_refsel {
  * @AD7793_IEXEC1_IEXEC2_IOUT2: Both current sources connected to Pin IOUT2.
  *	Only valid when the current ources are set to 10 uA or 210 uA.
  */
-enum ad7793_current_source_direction {
+enum ad7793_current_source_direction
+{
 	AD7793_IEXEC1_IOUT1_IEXEC2_IOUT2 = 0,
 	AD7793_IEXEC1_IOUT2_IEXEC2_IOUT1 = 1,
 	AD7793_IEXEC1_IEXEC2_IOUT1 = 2,
@@ -76,7 +80,8 @@ enum ad7793_current_source_direction {
  * @AD7793_IX_210uA: Enable 210 micro-ampere excitation current.
  * @AD7793_IX_1mA: Enable 1 milli-Ampere excitation current.
  */
-enum ad7793_excitation_current {
+enum ad7793_excitation_current
+{
 	AD7793_IX_DISABLED = 0,
 	AD7793_IX_10uA = 1,
 	AD7793_IX_210uA = 2,
@@ -96,7 +101,8 @@ enum ad7793_excitation_current {
  * @exitation_current: Excitation current selection
  * @current_source_direction: Excitation current direction selection
  */
-struct ad7793_platform_data {
+struct ad7793_platform_data
+{
 	enum ad7793_clock_source clock_src;
 	bool burnout_current;
 	bool boost_enable;

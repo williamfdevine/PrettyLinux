@@ -48,7 +48,8 @@ void rtl8411b_init_params(struct rtsx_pcr *pcr);
 
 static inline u8 map_sd_drive(int idx)
 {
-	u8 sd_drive[4] = {
+	u8 sd_drive[4] =
+	{
 		0x01,	/* Type D */
 		0x02,	/* Type C */
 		0x05,	/* Type A */
@@ -76,12 +77,12 @@ static inline u8 map_sd_drive(int idx)
 #define rtl8411b_reg_to_sd30_drive_sel_3v3(reg)	((reg) & 0x03)
 
 #define set_pull_ctrl_tables(pcr, __device)				\
-do {									\
-	pcr->sd_pull_ctl_enable_tbl  = __device##_sd_pull_ctl_enable_tbl;  \
-	pcr->sd_pull_ctl_disable_tbl = __device##_sd_pull_ctl_disable_tbl; \
-	pcr->ms_pull_ctl_enable_tbl  = __device##_ms_pull_ctl_enable_tbl;  \
-	pcr->ms_pull_ctl_disable_tbl = __device##_ms_pull_ctl_disable_tbl; \
-} while (0)
+	do {									\
+		pcr->sd_pull_ctl_enable_tbl  = __device##_sd_pull_ctl_enable_tbl;  \
+		pcr->sd_pull_ctl_disable_tbl = __device##_sd_pull_ctl_disable_tbl; \
+		pcr->ms_pull_ctl_enable_tbl  = __device##_ms_pull_ctl_enable_tbl;  \
+		pcr->ms_pull_ctl_disable_tbl = __device##_ms_pull_ctl_disable_tbl; \
+	} while (0)
 
 /* generic operations */
 int rtsx_gops_pm_reset(struct rtsx_pcr *pcr);

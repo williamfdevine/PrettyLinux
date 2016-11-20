@@ -31,7 +31,8 @@
 #undef warn
 #define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
 
-struct fc0013_priv {
+struct fc0013_priv
+{
 	struct i2c_adapter *i2c;
 	u8 addr;
 	u8 dual_master;

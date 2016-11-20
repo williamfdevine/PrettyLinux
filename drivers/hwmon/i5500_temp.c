@@ -44,7 +44,7 @@
 
 /* Sensor resolution : 0.5 degree C */
 static ssize_t show_temp(struct device *dev,
-			 struct device_attribute *devattr, char *buf)
+						 struct device_attribute *devattr, char *buf)
 {
 	struct pci_dev *pdev = to_pci_dev(dev->parent);
 	long temp;
@@ -59,7 +59,7 @@ static ssize_t show_temp(struct device *dev,
 }
 
 static ssize_t show_thresh(struct device *dev,
-			   struct device_attribute *devattr, char *buf)
+						   struct device_attribute *devattr, char *buf)
 {
 	struct pci_dev *pdev = to_pci_dev(dev->parent);
 	int reg = to_sensor_dev_attr(devattr)->index;
@@ -73,7 +73,7 @@ static ssize_t show_thresh(struct device *dev,
 }
 
 static ssize_t show_alarm(struct device *dev,
-			  struct device_attribute *devattr, char *buf)
+						  struct device_attribute *devattr, char *buf)
 {
 	struct pci_dev *pdev = to_pci_dev(dev->parent);
 	int nr = to_sensor_dev_attr(devattr)->index;
@@ -90,7 +90,8 @@ static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, show_thresh, NULL, 0xEE);
 static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 1);
 
-static struct attribute *i5500_temp_attrs[] = {
+static struct attribute *i5500_temp_attrs[] =
+{
 	&dev_attr_temp1_input.attr,
 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
 	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
@@ -102,7 +103,8 @@ static struct attribute *i5500_temp_attrs[] = {
 
 ATTRIBUTE_GROUPS(i5500_temp);
 
-static const struct pci_device_id i5500_temp_ids[] = {
+static const struct pci_device_id i5500_temp_ids[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x3438) },
 	{ 0 },
 };
@@ -110,7 +112,7 @@ static const struct pci_device_id i5500_temp_ids[] = {
 MODULE_DEVICE_TABLE(pci, i5500_temp_ids);
 
 static int i5500_temp_probe(struct pci_dev *pdev,
-			    const struct pci_device_id *id)
+							const struct pci_device_id *id)
 {
 	int err;
 	struct device *hwmon_dev;
@@ -118,25 +120,30 @@ static int i5500_temp_probe(struct pci_dev *pdev,
 	s8 tsfsc;
 
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Failed to enable device\n");
 		return err;
 	}
 
 	pci_read_config_byte(pdev, REG_TSFSC, &tsfsc);
 	pci_read_config_dword(pdev, REG_TSTIMER, &tstimer);
-	if (tsfsc == 0x7F && tstimer == 0x07D30D40) {
+
+	if (tsfsc == 0x7F && tstimer == 0x07D30D40)
+	{
 		dev_notice(&pdev->dev, "Sensor seems to be disabled\n");
 		return -ENODEV;
 	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(&pdev->dev,
-							   "intel5500", NULL,
-							   i5500_temp_groups);
+				"intel5500", NULL,
+				i5500_temp_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static struct pci_driver i5500_temp_driver = {
+static struct pci_driver i5500_temp_driver =
+{
 	.name = "i5500_temp",
 	.id_table = i5500_temp_ids,
 	.probe = i5500_temp_probe,

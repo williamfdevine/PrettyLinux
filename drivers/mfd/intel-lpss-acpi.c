@@ -22,60 +22,69 @@
 
 #include "intel-lpss.h"
 
-static const struct intel_lpss_platform_info spt_info = {
+static const struct intel_lpss_platform_info spt_info =
+{
 	.clk_rate = 120000000,
 };
 
-static struct property_entry spt_i2c_properties[] = {
+static struct property_entry spt_i2c_properties[] =
+{
 	PROPERTY_ENTRY_U32("i2c-sda-hold-time-ns", 230),
 	{ },
 };
 
-static const struct intel_lpss_platform_info spt_i2c_info = {
+static const struct intel_lpss_platform_info spt_i2c_info =
+{
 	.clk_rate = 120000000,
 	.properties = spt_i2c_properties,
 };
 
-static const struct intel_lpss_platform_info bxt_info = {
+static const struct intel_lpss_platform_info bxt_info =
+{
 	.clk_rate = 100000000,
 };
 
-static struct property_entry bxt_i2c_properties[] = {
+static struct property_entry bxt_i2c_properties[] =
+{
 	PROPERTY_ENTRY_U32("i2c-sda-hold-time-ns", 42),
 	PROPERTY_ENTRY_U32("i2c-sda-falling-time-ns", 171),
 	PROPERTY_ENTRY_U32("i2c-scl-falling-time-ns", 208),
 	{ },
 };
 
-static const struct intel_lpss_platform_info bxt_i2c_info = {
+static const struct intel_lpss_platform_info bxt_i2c_info =
+{
 	.clk_rate = 133000000,
 	.properties = bxt_i2c_properties,
 };
 
-static struct property_entry apl_i2c_properties[] = {
+static struct property_entry apl_i2c_properties[] =
+{
 	PROPERTY_ENTRY_U32("i2c-sda-hold-time-ns", 207),
 	PROPERTY_ENTRY_U32("i2c-sda-falling-time-ns", 171),
 	PROPERTY_ENTRY_U32("i2c-scl-falling-time-ns", 208),
 	{ },
 };
 
-static const struct intel_lpss_platform_info apl_i2c_info = {
+static const struct intel_lpss_platform_info apl_i2c_info =
+{
 	.clk_rate = 133000000,
 	.properties = apl_i2c_properties,
 };
 
-static const struct acpi_device_id intel_lpss_acpi_ids[] = {
+static const struct acpi_device_id intel_lpss_acpi_ids[] =
+{
 	/* SPT */
-	{ "INT3446", (kernel_ulong_t)&spt_i2c_info },
-	{ "INT3447", (kernel_ulong_t)&spt_i2c_info },
+	{ "INT3446", (kernel_ulong_t) &spt_i2c_info },
+	{ "INT3447", (kernel_ulong_t) &spt_i2c_info },
 	/* BXT */
-	{ "80860AAC", (kernel_ulong_t)&bxt_i2c_info },
-	{ "80860ABC", (kernel_ulong_t)&bxt_info },
-	{ "80860AC2", (kernel_ulong_t)&bxt_info },
+	{ "80860AAC", (kernel_ulong_t) &bxt_i2c_info },
+	{ "80860ABC", (kernel_ulong_t) &bxt_info },
+	{ "80860AC2", (kernel_ulong_t) &bxt_info },
 	/* APL */
-	{ "80865AAC", (kernel_ulong_t)&apl_i2c_info },
-	{ "80865ABC", (kernel_ulong_t)&bxt_info },
-	{ "80865AC2", (kernel_ulong_t)&bxt_info },
+	{ "80865AAC", (kernel_ulong_t) &apl_i2c_info },
+	{ "80865ABC", (kernel_ulong_t) &bxt_info },
+	{ "80865AC2", (kernel_ulong_t) &bxt_info },
 	{ }
 };
 MODULE_DEVICE_TABLE(acpi, intel_lpss_acpi_ids);
@@ -86,13 +95,19 @@ static int intel_lpss_acpi_probe(struct platform_device *pdev)
 	const struct acpi_device_id *id;
 
 	id = acpi_match_device(intel_lpss_acpi_ids, &pdev->dev);
+
 	if (!id)
+	{
 		return -ENODEV;
+	}
 
 	info = devm_kmemdup(&pdev->dev, (void *)id->driver_data, sizeof(*info),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	info->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	info->irq = platform_get_irq(pdev, 0);
@@ -113,7 +128,8 @@ static int intel_lpss_acpi_remove(struct platform_device *pdev)
 
 static INTEL_LPSS_PM_OPS(intel_lpss_acpi_pm_ops);
 
-static struct platform_driver intel_lpss_acpi_driver = {
+static struct platform_driver intel_lpss_acpi_driver =
+{
 	.probe = intel_lpss_acpi_probe,
 	.remove = intel_lpss_acpi_remove,
 	.driver = {

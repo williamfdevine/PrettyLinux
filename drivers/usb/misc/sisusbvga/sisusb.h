@@ -38,7 +38,7 @@
 #define _SISUSB_H_
 
 #ifdef CONFIG_COMPAT
-#define SISUSB_NEW_CONFIG_COMPAT
+	#define SISUSB_NEW_CONFIG_COMPAT
 #endif
 
 #include <linux/mutex.h>
@@ -57,7 +57,7 @@
 /* Include console and mode switching code? */
 
 #ifdef CONFIG_USB_SISUSBVGA_CON
-#define INCL_SISUSB_CON		1
+	#define INCL_SISUSB_CON		1
 #endif
 
 #include <linux/console.h>
@@ -103,13 +103,15 @@
 
 struct sisusb_usb_data;
 
-struct sisusb_urb_context {	/* urb->context for outbound bulk URBs */
+struct sisusb_urb_context  	/* urb->context for outbound bulk URBs */
+{
 	struct sisusb_usb_data *sisusb;
 	int urbindex;
 	int *actual_length;
 };
 
-struct sisusb_usb_data {
+struct sisusb_usb_data
+{
 	struct usb_device *sisusb_dev;
 	struct usb_interface *interface;
 	struct kref kref;
@@ -186,7 +188,8 @@ struct sisusb_usb_data {
 #define SISUSB_TYPE_MEM		0
 #define SISUSB_TYPE_IO		1
 
-struct sisusb_packet {
+struct sisusb_packet
+{
 	unsigned short header;
 	u32 address;
 	u32 data;
@@ -257,7 +260,8 @@ struct sisusb_packet {
 /* ioctl related */
 
 /* Structure argument for SISUSB_GET_INFO ioctl  */
-struct sisusb_info {
+struct sisusb_info
+{
 	__u32 sisusb_id;	/* for identifying sisusb */
 #define SISUSB_ID  0x53495355	/* Identify myself with 'SISU' */
 	__u8 sisusb_version;
@@ -281,7 +285,8 @@ struct sisusb_info {
 	__u8 sisusb_reserved[28];	/* for future use */
 };
 
-struct sisusb_command {
+struct sisusb_command
+{
 	__u8 operation;		/* see below */
 	__u8 data0;		/* operation dependent */
 	__u8 data1;		/* operation dependent */

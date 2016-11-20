@@ -20,11 +20,12 @@
 static int ad5592r_spi_wnop_r16(struct ad5592r_state *st, u16 *buf)
 {
 	struct spi_device *spi = container_of(st->dev, struct spi_device, dev);
-	struct spi_transfer t = {
-			.tx_buf	= &st->spi_msg_nop,
-			.rx_buf	= buf,
-			.len = 2
-		};
+	struct spi_transfer t =
+	{
+		.tx_buf	= &st->spi_msg_nop,
+		.rx_buf	= buf,
+		.len = 2
+	};
 
 	st->spi_msg_nop = 0; /* NOP */
 
@@ -48,20 +49,29 @@ static int ad5592r_read_adc(struct ad5592r_state *st, unsigned chan, u16 *value)
 	st->spi_msg = cpu_to_be16((AD5592R_REG_ADC_SEQ << 11) | BIT(chan));
 
 	ret = spi_write(spi, &st->spi_msg, sizeof(st->spi_msg));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * Invalid data:
 	 * See Figure 40. Single-Channel ADC Conversion Sequence
 	 */
 	ret = ad5592r_spi_wnop_r16(st, &st->spi_msg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = ad5592r_spi_wnop_r16(st, &st->spi_msg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*value = be16_to_cpu(st->spi_msg);
 
@@ -83,15 +93,21 @@ static int ad5592r_reg_read(struct ad5592r_state *st, u8 reg, u16 *value)
 	int ret;
 
 	st->spi_msg = cpu_to_be16((AD5592R_REG_LDAC << 11) |
-				   AD5592R_LDAC_READBACK_EN | (reg << 2));
+							  AD5592R_LDAC_READBACK_EN | (reg << 2));
 
 	ret = spi_write(spi, &st->spi_msg, sizeof(st->spi_msg));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = ad5592r_spi_wnop_r16(st, &st->spi_msg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*value = be16_to_cpu(st->spi_msg);
 
@@ -103,20 +119,27 @@ static int ad5593r_gpio_read(struct ad5592r_state *st, u8 *value)
 	int ret;
 
 	ret = ad5592r_reg_write(st, AD5592R_REG_GPIO_IN_EN,
-				AD5592R_GPIO_READBACK_EN | st->gpio_in);
+							AD5592R_GPIO_READBACK_EN | st->gpio_in);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = ad5592r_spi_wnop_r16(st, &st->spi_msg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*value = (u8) be16_to_cpu(st->spi_msg);
 
 	return 0;
 }
 
-static const struct ad5592r_rw_ops ad5592r_rw_ops = {
+static const struct ad5592r_rw_ops ad5592r_rw_ops =
+{
 	.write_dac = ad5592r_write_dac,
 	.read_adc = ad5592r_read_adc,
 	.reg_write = ad5592r_reg_write,
@@ -136,19 +159,22 @@ static int ad5592r_spi_remove(struct spi_device *spi)
 	return ad5592r_remove(&spi->dev);
 }
 
-static const struct spi_device_id ad5592r_spi_ids[] = {
+static const struct spi_device_id ad5592r_spi_ids[] =
+{
 	{ .name = "ad5592r", },
 	{}
 };
 MODULE_DEVICE_TABLE(spi, ad5592r_spi_ids);
 
-static const struct of_device_id ad5592r_of_match[] = {
+static const struct of_device_id ad5592r_of_match[] =
+{
 	{ .compatible = "adi,ad5592r", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ad5592r_of_match);
 
-static struct spi_driver ad5592r_spi_driver = {
+static struct spi_driver ad5592r_spi_driver =
+{
 	.driver = {
 		.name = "ad5592r",
 		.of_match_table = of_match_ptr(ad5592r_of_match),

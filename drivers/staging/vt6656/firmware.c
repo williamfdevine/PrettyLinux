@@ -49,31 +49,39 @@ int vnt_download_firmware(struct vnt_private *priv)
 	dev_dbg(dev, "---->Download firmware\n");
 
 	rc = request_firmware(&fw, FIRMWARE_NAME, dev);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(dev, "firmware file %s request failed (%d)\n",
-			FIRMWARE_NAME, rc);
-			goto out;
+				FIRMWARE_NAME, rc);
+		goto out;
 	}
 
 	buffer = kmalloc(FIRMWARE_CHUNK_SIZE, GFP_KERNEL);
-	if (!buffer)
-		goto free_fw;
 
-	for (ii = 0; ii < fw->size; ii += FIRMWARE_CHUNK_SIZE) {
+	if (!buffer)
+	{
+		goto free_fw;
+	}
+
+	for (ii = 0; ii < fw->size; ii += FIRMWARE_CHUNK_SIZE)
+	{
 		length = min_t(int, fw->size - ii, FIRMWARE_CHUNK_SIZE);
 		memcpy(buffer, fw->data + ii, length);
 
 		status = vnt_control_out(priv,
-						0,
-						0x1200+ii,
-						0x0000,
-						length,
-						buffer);
+								 0,
+								 0x1200 + ii,
+								 0x0000,
+								 length,
+								 buffer);
 
 		dev_dbg(dev, "Download firmware...%d %zu\n", ii, fw->size);
 
 		if (status != STATUS_SUCCESS)
+		{
 			goto free_fw;
+		}
 	}
 
 	result = true;
@@ -94,11 +102,11 @@ int vnt_firmware_branch_to_sram(struct vnt_private *priv)
 	dev_dbg(&priv->usb->dev, "---->Branch to Sram\n");
 
 	status = vnt_control_out(priv,
-					1,
-					0x1200,
-					0x0000,
-					0,
-					NULL);
+							 1,
+							 0x1200,
+							 0x0000,
+							 0,
+							 NULL);
 	return status == STATUS_SUCCESS;
 }
 
@@ -107,31 +115,36 @@ int vnt_check_firmware_version(struct vnt_private *priv)
 	int status;
 
 	status = vnt_control_in(priv,
-					MESSAGE_TYPE_READ,
-					0,
-					MESSAGE_REQUEST_VERSION,
-					2,
-					(u8 *)&priv->firmware_version);
+							MESSAGE_TYPE_READ,
+							0,
+							MESSAGE_REQUEST_VERSION,
+							2,
+							(u8 *)&priv->firmware_version);
 
 	dev_dbg(&priv->usb->dev, "Firmware Version [%04x]\n",
-						priv->firmware_version);
+			priv->firmware_version);
 
-	if (status != STATUS_SUCCESS) {
+	if (status != STATUS_SUCCESS)
+	{
 		dev_dbg(&priv->usb->dev, "Firmware Invalid.\n");
 		return false;
 	}
-	if (priv->firmware_version == 0xFFFF) {
+
+	if (priv->firmware_version == 0xFFFF)
+	{
 		dev_dbg(&priv->usb->dev, "In Loader.\n");
 		return false;
 	}
 
 	dev_dbg(&priv->usb->dev, "Firmware Version [%04x]\n",
-						priv->firmware_version);
+			priv->firmware_version);
 
-	if (priv->firmware_version < FIRMWARE_VERSION) {
+	if (priv->firmware_version < FIRMWARE_VERSION)
+	{
 		/* branch to loader for download new firmware */
 		vnt_firmware_branch_to_sram(priv);
 		return false;
 	}
+
 	return true;
 }

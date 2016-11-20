@@ -42,7 +42,7 @@
 #define to_clk_frac(_hw) container_of(_hw, struct clk_frac, hw)
 
 static unsigned long frac_calc_rate(struct clk_hw *hw, unsigned long prate,
-		int index)
+									int index)
 {
 	struct clk_frac *frac = to_clk_frac(hw);
 	struct frac_rate_tbl *rtbl = frac->rtbl;
@@ -56,13 +56,13 @@ static unsigned long frac_calc_rate(struct clk_hw *hw, unsigned long prate,
 }
 
 static long clk_frac_round_rate(struct clk_hw *hw, unsigned long drate,
-		unsigned long *prate)
+								unsigned long *prate)
 {
 	struct clk_frac *frac = to_clk_frac(hw);
 	int unused;
 
 	return clk_round_rate_index(hw, drate, *prate, frac_calc_rate,
-			frac->rtbl_cnt, &unused);
+								frac->rtbl_cnt, &unused);
 }
 
 static unsigned long clk_frac_recalc_rate(struct clk_hw *hw,
@@ -73,17 +73,23 @@ static unsigned long clk_frac_recalc_rate(struct clk_hw *hw,
 	unsigned int div = 1, val;
 
 	if (frac->lock)
+	{
 		spin_lock_irqsave(frac->lock, flags);
+	}
 
 	val = readl_relaxed(frac->reg);
 
 	if (frac->lock)
+	{
 		spin_unlock_irqrestore(frac->lock, flags);
+	}
 
 	div = val & DIV_FACTOR_MASK;
 
 	if (!div)
+	{
 		return 0;
+	}
 
 	parent_rate = parent_rate / 10000;
 
@@ -93,7 +99,7 @@ static unsigned long clk_frac_recalc_rate(struct clk_hw *hw,
 
 /* Configures new clock rate of frac */
 static int clk_frac_set_rate(struct clk_hw *hw, unsigned long drate,
-				unsigned long prate)
+							 unsigned long prate)
 {
 	struct clk_frac *frac = to_clk_frac(hw);
 	struct frac_rate_tbl *rtbl = frac->rtbl;
@@ -101,42 +107,50 @@ static int clk_frac_set_rate(struct clk_hw *hw, unsigned long drate,
 	int i;
 
 	clk_round_rate_index(hw, drate, prate, frac_calc_rate, frac->rtbl_cnt,
-			&i);
+						 &i);
 
 	if (frac->lock)
+	{
 		spin_lock_irqsave(frac->lock, flags);
+	}
 
 	val = readl_relaxed(frac->reg) & ~DIV_FACTOR_MASK;
 	val |= rtbl[i].div & DIV_FACTOR_MASK;
 	writel_relaxed(val, frac->reg);
 
 	if (frac->lock)
+	{
 		spin_unlock_irqrestore(frac->lock, flags);
+	}
 
 	return 0;
 }
 
-static struct clk_ops clk_frac_ops = {
+static struct clk_ops clk_frac_ops =
+{
 	.recalc_rate = clk_frac_recalc_rate,
 	.round_rate = clk_frac_round_rate,
 	.set_rate = clk_frac_set_rate,
 };
 
 struct clk *clk_register_frac(const char *name, const char *parent_name,
-		unsigned long flags, void __iomem *reg,
-		struct frac_rate_tbl *rtbl, u8 rtbl_cnt, spinlock_t *lock)
+							  unsigned long flags, void __iomem *reg,
+							  struct frac_rate_tbl *rtbl, u8 rtbl_cnt, spinlock_t *lock)
 {
 	struct clk_init_data init;
 	struct clk_frac *frac;
 	struct clk *clk;
 
-	if (!name || !parent_name || !reg || !rtbl || !rtbl_cnt) {
+	if (!name || !parent_name || !reg || !rtbl || !rtbl_cnt)
+	{
 		pr_err("Invalid arguments passed");
 		return ERR_PTR(-EINVAL);
 	}
 
 	frac = kzalloc(sizeof(*frac), GFP_KERNEL);
-	if (!frac) {
+
+	if (!frac)
+	{
 		pr_err("could not allocate frac clk\n");
 		return ERR_PTR(-ENOMEM);
 	}
@@ -155,8 +169,11 @@ struct clk *clk_register_frac(const char *name, const char *parent_name,
 	init.num_parents = 1;
 
 	clk = clk_register(NULL, &frac->hw);
+
 	if (!IS_ERR_OR_NULL(clk))
+	{
 		return clk;
+	}
 
 	pr_err("clk register failed\n");
 	kfree(frac);

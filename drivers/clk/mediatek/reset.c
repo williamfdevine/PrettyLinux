@@ -21,65 +21,75 @@
 
 #include "clk-mtk.h"
 
-struct mtk_reset {
+struct mtk_reset
+{
 	struct regmap *regmap;
 	int regofs;
 	struct reset_controller_dev rcdev;
 };
 
 static int mtk_reset_assert(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+							unsigned long id)
 {
 	struct mtk_reset *data = container_of(rcdev, struct mtk_reset, rcdev);
 
 	return regmap_update_bits(data->regmap, data->regofs + ((id / 32) << 2),
-			BIT(id % 32), ~0);
+							  BIT(id % 32), ~0);
 }
 
 static int mtk_reset_deassert(struct reset_controller_dev *rcdev,
-				unsigned long id)
+							  unsigned long id)
 {
 	struct mtk_reset *data = container_of(rcdev, struct mtk_reset, rcdev);
 
 	return regmap_update_bits(data->regmap, data->regofs + ((id / 32) << 2),
-			BIT(id % 32), 0);
+							  BIT(id % 32), 0);
 }
 
 static int mtk_reset(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+					 unsigned long id)
 {
 	int ret;
 
 	ret = mtk_reset_assert(rcdev, id);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return mtk_reset_deassert(rcdev, id);
 }
 
-static const struct reset_control_ops mtk_reset_ops = {
+static const struct reset_control_ops mtk_reset_ops =
+{
 	.assert = mtk_reset_assert,
 	.deassert = mtk_reset_deassert,
 	.reset = mtk_reset,
 };
 
 void mtk_register_reset_controller(struct device_node *np,
-			unsigned int num_regs, int regofs)
+								   unsigned int num_regs, int regofs)
 {
 	struct mtk_reset *data;
 	int ret;
 	struct regmap *regmap;
 
 	regmap = syscon_node_to_regmap(np);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		pr_err("Cannot find regmap for %s: %ld\n", np->full_name,
-				PTR_ERR(regmap));
+			   PTR_ERR(regmap));
 		return;
 	}
 
 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return;
+	}
 
 	data->regmap = regmap;
 	data->regofs = regofs;
@@ -89,7 +99,9 @@ void mtk_register_reset_controller(struct device_node *np,
 	data->rcdev.of_node = np;
 
 	ret = reset_controller_register(&data->rcdev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("could not register reset controller: %d\n", ret);
 		kfree(data);
 		return;

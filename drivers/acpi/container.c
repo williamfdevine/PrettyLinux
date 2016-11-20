@@ -30,7 +30,8 @@
 #define _COMPONENT			ACPI_CONTAINER_COMPONENT
 ACPI_MODULE_NAME("container");
 
-static const struct acpi_device_id container_device_ids[] = {
+static const struct acpi_device_id container_device_ids[] =
+{
 	{"ACPI0004", 0},
 	{"PNP0A05", 0},
 	{"PNP0A06", 0},
@@ -46,8 +47,11 @@ static int acpi_container_offline(struct container_dev *cdev)
 
 	/* Check all of the dependent devices' physical companions. */
 	list_for_each_entry(child, &adev->children, node)
-		if (!acpi_scan_is_offline(child, false))
-			return -EBUSY;
+
+	if (!acpi_scan_is_offline(child, false))
+	{
+		return -EBUSY;
+	}
 
 	return 0;
 }
@@ -58,18 +62,23 @@ static void acpi_container_release(struct device *dev)
 }
 
 static int container_device_attach(struct acpi_device *adev,
-				   const struct acpi_device_id *not_used)
+								   const struct acpi_device_id *not_used)
 {
 	struct container_dev *cdev;
 	struct device *dev;
 	int ret;
 
 	if (adev->flags.is_dock_station)
+	{
 		return 0;
+	}
 
 	cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
+
 	if (!cdev)
+	{
 		return -ENOMEM;
+	}
 
 	cdev->offline = acpi_container_offline;
 	dev = &cdev->dev;
@@ -78,10 +87,13 @@ static int container_device_attach(struct acpi_device *adev,
 	ACPI_COMPANION_SET(dev, adev);
 	dev->release = acpi_container_release;
 	ret = device_register(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		put_device(dev);
 		return ret;
 	}
+
 	adev->driver_data = dev;
 	return 1;
 }
@@ -91,8 +103,11 @@ static void container_device_detach(struct acpi_device *adev)
 	struct device *dev = acpi_driver_data(adev);
 
 	adev->driver_data = NULL;
+
 	if (dev)
+	{
 		device_unregister(dev);
+	}
 }
 
 static void container_device_online(struct acpi_device *adev)
@@ -102,7 +117,8 @@ static void container_device_online(struct acpi_device *adev)
 	kobject_uevent(&dev->kobj, KOBJ_ONLINE);
 }
 
-static struct acpi_scan_handler container_handler = {
+static struct acpi_scan_handler container_handler =
+{
 	.ids = container_device_ids,
 	.attach = container_device_attach,
 	.detach = container_device_detach,
@@ -120,7 +136,8 @@ void __init acpi_container_init(void)
 
 #else
 
-static struct acpi_scan_handler container_handler = {
+static struct acpi_scan_handler container_handler =
+{
 	.ids = container_device_ids,
 };
 

@@ -311,10 +311,10 @@
 #define MAILBOX_RELOAD_STAT		0x00000260 /* 64-bit */
 #define MAILBOX_RCV_STD_PROD_IDX	0x00000268 /* 64-bit */
 #define TG3_RX_STD_PROD_IDX_REG		(MAILBOX_RCV_STD_PROD_IDX + \
-					 TG3_64BIT_REG_LOW)
+									 TG3_64BIT_REG_LOW)
 #define MAILBOX_RCV_JUMBO_PROD_IDX	0x00000270 /* 64-bit */
 #define TG3_RX_JMB_PROD_IDX_REG		(MAILBOX_RCV_JUMBO_PROD_IDX + \
-					 TG3_64BIT_REG_LOW)
+									 TG3_64BIT_REG_LOW)
 #define MAILBOX_RCV_MINI_PROD_IDX	0x00000278 /* 64-bit */
 #define MAILBOX_RCVRET_CON_IDX_0	0x00000280 /* 64-bit */
 #define MAILBOX_RCVRET_CON_IDX_1	0x00000288 /* 64-bit */
@@ -759,10 +759,10 @@
 #define  SG_DIG_REMOTE_LOOPBACK		 0x00000002
 #define  SG_DIG_LOOPBACK		 0x00000001
 #define  SG_DIG_COMMON_SETUP (SG_DIG_CRC16_CLEAR_N | \
-			      SG_DIG_LOCAL_DUPLEX_STATUS | \
-			      SG_DIG_LOCAL_LINK_STATUS | \
-			      (0x2 << SG_DIG_SPEED_STATUS_SHIFT) | \
-			      SG_DIG_FIBER_MODE | SG_DIG_GBIC_ENABLE)
+							  SG_DIG_LOCAL_DUPLEX_STATUS | \
+							  SG_DIG_LOCAL_LINK_STATUS | \
+							  (0x2 << SG_DIG_SPEED_STATUS_SHIFT) | \
+							  SG_DIG_FIBER_MODE | SG_DIG_GBIC_ENABLE)
 #define SG_DIG_STATUS			0x000005b4
 #define  SG_DIG_CRC16_BUS_MASK		 0xffff0000
 #define  SG_DIG_PARTNER_FAULT_MASK	 0x00600000 /* If !MRADV_CRC16_SELECT */
@@ -809,11 +809,11 @@
 #define TG3_RX_PTP_CTL_PDLAY_REQ	0x00000004
 #define TG3_RX_PTP_CTL_PDLAY_RES	0x00000008
 #define TG3_RX_PTP_CTL_ALL_V1_EVENTS	(TG3_RX_PTP_CTL_SYNC_EVNT | \
-					 TG3_RX_PTP_CTL_DELAY_REQ)
+		TG3_RX_PTP_CTL_DELAY_REQ)
 #define TG3_RX_PTP_CTL_ALL_V2_EVENTS	(TG3_RX_PTP_CTL_SYNC_EVNT | \
-					 TG3_RX_PTP_CTL_DELAY_REQ | \
-					 TG3_RX_PTP_CTL_PDLAY_REQ | \
-					 TG3_RX_PTP_CTL_PDLAY_RES)
+		TG3_RX_PTP_CTL_DELAY_REQ | \
+		TG3_RX_PTP_CTL_PDLAY_REQ | \
+		TG3_RX_PTP_CTL_PDLAY_RES)
 #define TG3_RX_PTP_CTL_FOLLOW_UP	0x00000100
 #define TG3_RX_PTP_CTL_DELAY_RES	0x00000200
 #define TG3_RX_PTP_CTL_PDRES_FLW_UP	0x00000400
@@ -823,7 +823,7 @@
 #define TG3_RX_PTP_CTL_RX_PTP_V2_L2_EN	0x00800000
 #define TG3_RX_PTP_CTL_RX_PTP_V2_L4_EN	0x01000000
 #define TG3_RX_PTP_CTL_RX_PTP_V2_EN	(TG3_RX_PTP_CTL_RX_PTP_V2_L2_EN | \
-					 TG3_RX_PTP_CTL_RX_PTP_V2_L4_EN)
+									 TG3_RX_PTP_CTL_RX_PTP_V2_L4_EN)
 #define TG3_RX_PTP_CTL_RX_PTP_V1_EN	0x02000000
 #define TG3_RX_PTP_CTL_HWTS_INTERLOCK	0x04000000
 /* 0x6cc --> 0x800 unused */
@@ -1734,9 +1734,9 @@
 #define  GRC_MODE_MCAST_FRM_ENABLE	0x40000000
 #define  GRC_MODE_PCIE_HI_1K_EN		0x80000000
 #define  GRC_MODE_PCIE_PORT_MASK	(GRC_MODE_PCIE_TL_SEL | \
-					 GRC_MODE_PCIE_PL_SEL | \
-					 GRC_MODE_PCIE_DL_SEL | \
-					 GRC_MODE_PCIE_HI_1K_EN)
+									 GRC_MODE_PCIE_PL_SEL | \
+									 GRC_MODE_PCIE_DL_SEL | \
+									 GRC_MODE_PCIE_HI_1K_EN)
 #define GRC_MISC_CFG			0x00006804
 #define  GRC_MISC_CFG_CORECLK_RESET	0x00000001
 #define  GRC_MISC_CFG_PRESCALAR_MASK	0x000000fe
@@ -2532,7 +2532,8 @@
  * Note that BDINFO_FLAGS_DISABLED should be set in the flags field of
  * TG3_BDINFO_MAXLEN_FLAGS of all unused SEND_RCB indices.
  */
-struct tg3_tx_buffer_desc {
+struct tg3_tx_buffer_desc
+{
 	u32				addr_hi;
 	u32				addr_lo;
 
@@ -2563,7 +2564,8 @@ struct tg3_tx_buffer_desc {
 #define TXD_VLAN_TAG			0x0cUL /* 32-bit (upper 16-bits are tag) */
 #define TXD_SIZE			0x10UL
 
-struct tg3_rx_buffer_desc {
+struct tg3_rx_buffer_desc
+{
 	u32				addr_hi;
 	u32				addr_lo;
 
@@ -2610,9 +2612,9 @@ struct tg3_rx_buffer_desc {
 #define RXD_ERR_HUGE_FRAME		0x01000000
 
 #define RXD_ERR_MASK	(RXD_ERR_BAD_CRC | RXD_ERR_COLLISION |		\
-			 RXD_ERR_LINK_LOST | RXD_ERR_PHY_DECODE |	\
-			 RXD_ERR_MAC_ABRT | RXD_ERR_TOO_SMALL |		\
-			 RXD_ERR_NO_RESOURCES | RXD_ERR_HUGE_FRAME)
+						 RXD_ERR_LINK_LOST | RXD_ERR_PHY_DECODE |	\
+						 RXD_ERR_MAC_ABRT | RXD_ERR_TOO_SMALL |		\
+						 RXD_ERR_NO_RESOURCES | RXD_ERR_HUGE_FRAME)
 
 	u32				reserved;
 	u32				opaque;
@@ -2624,8 +2626,10 @@ struct tg3_rx_buffer_desc {
 #define RXD_OPAQUE_RING_MASK		0x00070000
 };
 
-struct tg3_ext_rx_buffer_desc {
-	struct {
+struct tg3_ext_rx_buffer_desc
+{
+	struct
+	{
 		u32			addr_hi;
 		u32			addr_lo;
 	}				addrlist[3];
@@ -2638,7 +2642,8 @@ struct tg3_ext_rx_buffer_desc {
  * at probe time.  This is the internal format of buffer
  * descriptors used by the chip at NIC_SRAM_DMA_DESCS.
  */
-struct tg3_internal_buffer_desc {
+struct tg3_internal_buffer_desc
+{
 	u32				addr_hi;
 	u32				addr_lo;
 	u32				nic_mbuf;
@@ -2657,7 +2662,8 @@ struct tg3_internal_buffer_desc {
 };
 
 #define TG3_HW_STATUS_SIZE		0x50
-struct tg3_hw_status {
+struct tg3_hw_status
+{
 	u32				status;
 #define SD_STATUS_UPDATED		0x00000001
 #define SD_STATUS_LINK_CHG		0x00000002
@@ -2680,7 +2686,8 @@ struct tg3_hw_status {
 	u16				rx_mini_consumer;
 	u16				reserved;
 #endif
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN
 		u16			tx_consumer;
 		u16			rx_producer;
@@ -2691,12 +2698,14 @@ struct tg3_hw_status {
 	}				idx[16];
 };
 
-typedef struct {
+typedef struct
+{
 	u32 high, low;
 } tg3_stat64_t;
 
-struct tg3_hw_stats {
-	u8				__reserved0[0x400-0x300];
+struct tg3_hw_stats
+{
+	u8				__reserved0[0x400 - 0x300];
 
 	/* Statistics maintained by Receive MAC. */
 	tg3_stat64_t			rx_octets;
@@ -2796,7 +2805,7 @@ struct tg3_hw_stats {
 	 */
 	tg3_stat64_t			mbuf_lwm_thresh_hit;
 
-	u8				__reserved4[0xb00-0x9c8];
+	u8				__reserved4[0xb00 - 0x9c8];
 };
 
 #define TG3_SD_NUM_RECS			3
@@ -2809,7 +2818,8 @@ struct tg3_hw_stats {
 #define TG3_TEMP_SENSOR_OFFSET		0xd4
 
 
-struct tg3_ocir {
+struct tg3_ocir
+{
 	u32				signature;
 	u16				version_flags;
 	u16				refresh_int;
@@ -2841,18 +2851,21 @@ struct tg3_ocir {
  * RX ring buffer contains pointer to kmalloc() data only,
  * skb are built only after Hardware filled the frame.
  */
-struct ring_info {
+struct ring_info
+{
 	u8				*data;
 	DEFINE_DMA_UNMAP_ADDR(mapping);
 };
 
-struct tg3_tx_ring_info {
+struct tg3_tx_ring_info
+{
 	struct sk_buff			*skb;
 	DEFINE_DMA_UNMAP_ADDR(mapping);
 	bool				fragmented;
 };
 
-struct tg3_link_config {
+struct tg3_link_config
+{
 	/* Describes what we're trying to get. */
 	u32				advertising;
 	u16				speed;
@@ -2868,7 +2881,8 @@ struct tg3_link_config {
 	u32				rmt_adv;
 };
 
-struct tg3_bufmgr_config {
+struct tg3_bufmgr_config
+{
 	u32		mbuf_read_dma_low_water;
 	u32		mbuf_mac_rx_low_water;
 	u32		mbuf_high_water;
@@ -2881,7 +2895,8 @@ struct tg3_bufmgr_config {
 	u32		dma_high_water;
 };
 
-struct tg3_ethtool_stats {
+struct tg3_ethtool_stats
+{
 	/* Statistics maintained by Receive MAC. */
 	u64		rx_octets;
 	u64		rx_fragments;
@@ -2966,7 +2981,8 @@ struct tg3_ethtool_stats {
 	u64		mbuf_lwm_thresh_hit;
 };
 
-struct tg3_rx_prodring_set {
+struct tg3_rx_prodring_set
+{
 	u32				rx_std_prod_idx;
 	u32				rx_std_cons_idx;
 	u32				rx_jmb_prod_idx;
@@ -2983,7 +2999,8 @@ struct tg3_rx_prodring_set {
 #define TG3_IRQ_MAX_VECS_RSS		(TG3_RSS_MAX_NUM_QS + 1)
 #define TG3_IRQ_MAX_VECS		TG3_IRQ_MAX_VECS_RSS
 
-struct tg3_napi {
+struct tg3_napi
+{
 	struct napi_struct		napi	____cacheline_aligned;
 	struct tg3			*tp;
 	struct tg3_hw_status		*hw_status;
@@ -3017,7 +3034,8 @@ struct tg3_napi {
 	unsigned int			irq_vec;
 };
 
-enum TG3_FLAGS {
+enum TG3_FLAGS
+{
 	TG3_FLAG_TAGGED_STATUS = 0,
 	TG3_FLAG_TXD_MBOX_HWBUG,
 	TG3_FLAG_USE_LINKCHG_REG,
@@ -3107,14 +3125,16 @@ enum TG3_FLAGS {
 	TG3_FLAG_NUMBER_OF_FLAGS,	/* Last entry in enum TG3_FLAGS */
 };
 
-struct tg3_firmware_hdr {
+struct tg3_firmware_hdr
+{
 	__be32 version; /* unused for fragments */
 	__be32 base_addr;
 	__be32 len;
 };
 #define TG3_FW_HDR_LEN         (sizeof(struct tg3_firmware_hdr))
 
-struct tg3 {
+struct tg3
+{
 	/* begin "general, frequently-used members" cacheline section */
 
 	/* If the IRQ handler (which runs lockless) needs to be
@@ -3160,7 +3180,7 @@ struct tg3 {
 	void				(*write32) (struct tg3 *, u32, u32);
 	u32				(*read32_mbox) (struct tg3 *, u32);
 	void				(*write32_mbox) (struct tg3 *, u32,
-							 u32);
+										 u32);
 	void __iomem			*regs;
 	void __iomem			*aperegs;
 	struct net_device		*dev;
@@ -3175,7 +3195,7 @@ struct tg3 {
 
 	/* begin "tx thread" cacheline section */
 	void				(*write32_tx_mbox) (struct tg3 *, u32,
-							    u32);
+											u32);
 	u32				dma_limit;
 	u32				txq_req;
 	u32				txq_cnt;
@@ -3184,7 +3204,7 @@ struct tg3 {
 	/* begin "rx thread" cacheline section */
 	struct tg3_napi			napi[TG3_IRQ_MAX_VECS];
 	void				(*write32_rx_mbox) (struct tg3 *, u32,
-							    u32);
+											u32);
 	u32				rx_copy_thresh;
 	u32				rx_std_ring_mask;
 	u32				rx_jmb_ring_mask;
@@ -3208,9 +3228,10 @@ struct tg3 {
 
 	DECLARE_BITMAP(tg3_flags, TG3_FLAG_NUMBER_OF_FLAGS);
 
-	union {
-	unsigned long			phy_crc_errors;
-	unsigned long			last_event_jiffies;
+	union
+	{
+		unsigned long			phy_crc_errors;
+		unsigned long			last_event_jiffies;
 	};
 
 	struct timer_list		timer;
@@ -3319,7 +3340,7 @@ struct tg3 {
 #define TG3_PHYFLG_PHY_SERDES		0x00000010
 #define TG3_PHYFLG_MII_SERDES		0x00000020
 #define TG3_PHYFLG_ANY_SERDES		(TG3_PHYFLG_PHY_SERDES |	\
-					TG3_PHYFLG_MII_SERDES)
+									 TG3_PHYFLG_MII_SERDES)
 #define TG3_PHYFLG_IS_FET		0x00000040
 #define TG3_PHYFLG_10_100_ONLY		0x00000080
 #define TG3_PHYFLG_ENABLE_APD		0x00000100

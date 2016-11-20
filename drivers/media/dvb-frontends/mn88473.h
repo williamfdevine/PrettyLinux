@@ -19,7 +19,8 @@
 
 #include <linux/dvb/frontend.h>
 
-struct mn88473_config {
+struct mn88473_config
+{
 	/*
 	 * Max num of bytes given I2C adapter could write at once.
 	 * Default: unlimited

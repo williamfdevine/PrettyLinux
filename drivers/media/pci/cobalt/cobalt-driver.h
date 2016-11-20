@@ -176,18 +176,21 @@ struct cobalt;
 struct cobalt_i2c_regs;
 
 /* Per I2C bus private algo callback data */
-struct cobalt_i2c_data {
+struct cobalt_i2c_data
+{
 	struct cobalt *cobalt;
 	struct cobalt_i2c_regs __iomem *regs;
 };
 
-struct pci_consistent_buffer {
+struct pci_consistent_buffer
+{
 	void *virt;
 	dma_addr_t bus;
 	size_t bytes;
 };
 
-struct sg_dma_desc_info {
+struct sg_dma_desc_info
+{
 	void *virt;
 	dma_addr_t bus;
 	unsigned size;
@@ -206,7 +209,8 @@ struct sg_dma_desc_info {
 #define COBALT_STREAM_FL_DMA_IRQ		0
 #define COBALT_STREAM_FL_ADV_IRQ		1
 
-struct cobalt_buffer {
+struct cobalt_buffer
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 };
@@ -217,7 +221,8 @@ struct cobalt_buffer *to_cobalt_buffer(struct vb2_v4l2_buffer *vb2)
 	return container_of(vb2, struct cobalt_buffer, vb);
 }
 
-struct cobalt_stream {
+struct cobalt_stream
+{
 	struct video_device vdev;
 	struct vb2_queue q;
 	struct list_head bufs;
@@ -258,7 +263,8 @@ struct cobalt_stream {
 struct snd_cobalt_card;
 
 /* Struct to hold info about cobalt cards */
-struct cobalt {
+struct cobalt
+{
 	int instance;
 	struct pci_dev *pci_dev;
 	struct v4l2_device v4l2_dev;
@@ -331,12 +337,12 @@ static inline u32 cobalt_g_sysctrl(struct cobalt *cobalt)
 }
 
 static inline void cobalt_s_bit_sysctrl(struct cobalt *cobalt,
-					int bit, int val)
+										int bit, int val)
 {
 	u32 ctrl = cobalt_read_bar1(cobalt, COBALT_SYS_CTRL_BASE);
 
 	cobalt_write_bar1(cobalt, COBALT_SYS_CTRL_BASE,
-			(ctrl & ~(1UL << bit)) | (val << bit));
+					  (ctrl & ~(1UL << bit)) | (val << bit));
 }
 
 static inline u32 cobalt_g_sysstat(struct cobalt *cobalt)
@@ -355,23 +361,33 @@ static inline u32 cobalt_bus_read32(void __iomem *bar1, u32 bus_adrs)
 }
 
 static inline void cobalt_bus_write16(void __iomem *bar1,
-				      u32 bus_adrs, u16 data)
+									  u32 bus_adrs, u16 data)
 {
 	iowrite32(bus_adrs, ADRS_REG);
+
 	if (bus_adrs & 2)
+	{
 		iowrite16(data, UPPER_DATA);
+	}
 	else
+	{
 		iowrite16(data, LOWER_DATA);
+	}
 }
 
 static inline void cobalt_bus_write32(void __iomem *bar1,
-				      u32 bus_adrs, u16 data)
+									  u32 bus_adrs, u16 data)
 {
 	iowrite32(bus_adrs, ADRS_REG);
+
 	if (bus_adrs & 2)
+	{
 		iowrite32(data, UPPER_DATA);
+	}
 	else
+	{
 		iowrite32(data, LOWER_DATA);
+	}
 }
 
 /*==============Prototypes==================*/

@@ -62,10 +62,11 @@
 #define KEYCTL_DH_COMPUTE		23	/* Compute Diffie-Hellman values */
 
 /* keyctl structures */
-struct keyctl_dh_params {
-	__s32 private;
-	__s32 prime;
-	__s32 base;
+struct keyctl_dh_params
+{
+		__s32 private;
+		__s32 prime;
+		__s32 base;
 };
 
 #endif /*  _LINUX_KEYCTL_H */

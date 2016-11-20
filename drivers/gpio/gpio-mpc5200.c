@@ -30,7 +30,8 @@
 
 static DEFINE_SPINLOCK(gpio_lock);
 
-struct mpc52xx_gpiochip {
+struct mpc52xx_gpiochip
+{
 	struct of_mm_gpio_chip mmchip;
 	unsigned int shadow_dvo;
 	unsigned int shadow_gpioe;
@@ -74,9 +75,13 @@ __mpc52xx_wkup_gpio_set(struct gpio_chip *gc, unsigned int gpio, int val)
 	struct mpc52xx_gpio_wkup __iomem *regs = mm_gc->regs;
 
 	if (val)
+	{
 		chip->shadow_dvo |= 1 << (7 - gpio);
+	}
 	else
+	{
 		chip->shadow_dvo &= ~(1 << (7 - gpio));
+	}
 
 	out_8(&regs->wkup_dvo, chip->shadow_dvo);
 }
@@ -152,8 +157,11 @@ static int mpc52xx_wkup_gpiochip_probe(struct platform_device *ofdev)
 	int ret;
 
 	chip = devm_kzalloc(&ofdev->dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(ofdev, chip);
 
@@ -166,8 +174,11 @@ static int mpc52xx_wkup_gpiochip_probe(struct platform_device *ofdev)
 	gc->set              = mpc52xx_wkup_gpio_set;
 
 	ret = of_mm_gpiochip_add_data(ofdev->dev.of_node, &chip->mmchip, chip);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	regs = chip->mmchip.regs;
 	chip->shadow_gpioe = in_8(&regs->wkup_gpioe);
@@ -186,12 +197,14 @@ static int mpc52xx_gpiochip_remove(struct platform_device *ofdev)
 	return 0;
 }
 
-static const struct of_device_id mpc52xx_wkup_gpiochip_match[] = {
+static const struct of_device_id mpc52xx_wkup_gpiochip_match[] =
+{
 	{ .compatible = "fsl,mpc5200-gpio-wkup", },
 	{}
 };
 
-static struct platform_driver mpc52xx_wkup_gpiochip_driver = {
+static struct platform_driver mpc52xx_wkup_gpiochip_driver =
+{
 	.driver = {
 		.name = "mpc5200-gpio-wkup",
 		.of_match_table = mpc52xx_wkup_gpiochip_match,
@@ -236,9 +249,14 @@ __mpc52xx_simple_gpio_set(struct gpio_chip *gc, unsigned int gpio, int val)
 	struct mpc52xx_gpio __iomem *regs = mm_gc->regs;
 
 	if (val)
+	{
 		chip->shadow_dvo |= 1 << (31 - gpio);
+	}
 	else
+	{
 		chip->shadow_dvo &= ~(1 << (31 - gpio));
+	}
+
 	out_be32(&regs->simple_dvo, chip->shadow_dvo);
 }
 
@@ -314,8 +332,11 @@ static int mpc52xx_simple_gpiochip_probe(struct platform_device *ofdev)
 	int ret;
 
 	chip = devm_kzalloc(&ofdev->dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(ofdev, chip);
 
@@ -328,8 +349,11 @@ static int mpc52xx_simple_gpiochip_probe(struct platform_device *ofdev)
 	gc->set              = mpc52xx_simple_gpio_set;
 
 	ret = of_mm_gpiochip_add_data(ofdev->dev.of_node, &chip->mmchip, chip);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	regs = chip->mmchip.regs;
 	chip->shadow_gpioe = in_be32(&regs->simple_gpioe);
@@ -339,12 +363,14 @@ static int mpc52xx_simple_gpiochip_probe(struct platform_device *ofdev)
 	return 0;
 }
 
-static const struct of_device_id mpc52xx_simple_gpiochip_match[] = {
+static const struct of_device_id mpc52xx_simple_gpiochip_match[] =
+{
 	{ .compatible = "fsl,mpc5200-gpio", },
 	{}
 };
 
-static struct platform_driver mpc52xx_simple_gpiochip_driver = {
+static struct platform_driver mpc52xx_simple_gpiochip_driver =
+{
 	.driver = {
 		.name = "mpc5200-gpio",
 		.of_match_table = mpc52xx_simple_gpiochip_match,
@@ -353,7 +379,8 @@ static struct platform_driver mpc52xx_simple_gpiochip_driver = {
 	.remove = mpc52xx_gpiochip_remove,
 };
 
-static struct platform_driver * const drivers[] = {
+static struct platform_driver *const drivers[] =
+{
 	&mpc52xx_wkup_gpiochip_driver,
 	&mpc52xx_simple_gpiochip_driver,
 };

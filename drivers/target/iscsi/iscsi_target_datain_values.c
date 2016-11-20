@@ -30,11 +30,14 @@ struct iscsi_datain_req *iscsit_allocate_datain_req(void)
 	struct iscsi_datain_req *dr;
 
 	dr = kmem_cache_zalloc(lio_dr_cache, GFP_ATOMIC);
-	if (!dr) {
+
+	if (!dr)
+	{
 		pr_err("Unable to allocate memory for"
-				" struct iscsi_datain_req\n");
+			   " struct iscsi_datain_req\n");
 		return NULL;
 	}
+
 	INIT_LIST_HEAD(&dr->cmd_datain_node);
 
 	return dr;
@@ -61,7 +64,8 @@ void iscsit_free_all_datain_reqs(struct iscsi_cmd *cmd)
 	struct iscsi_datain_req *dr, *dr_tmp;
 
 	spin_lock(&cmd->datain_lock);
-	list_for_each_entry_safe(dr, dr_tmp, &cmd->datain_list, cmd_datain_node) {
+	list_for_each_entry_safe(dr, dr_tmp, &cmd->datain_list, cmd_datain_node)
+	{
 		list_del(&dr->cmd_datain_node);
 		kmem_cache_free(lio_dr_cache, dr);
 	}
@@ -70,14 +74,15 @@ void iscsit_free_all_datain_reqs(struct iscsi_cmd *cmd)
 
 struct iscsi_datain_req *iscsit_get_datain_req(struct iscsi_cmd *cmd)
 {
-	if (list_empty(&cmd->datain_list)) {
+	if (list_empty(&cmd->datain_list))
+	{
 		pr_err("cmd->datain_list is empty for ITT:"
-			" 0x%08x\n", cmd->init_task_tag);
+			   " 0x%08x\n", cmd->init_task_tag);
 		return NULL;
 	}
 
 	return list_first_entry(&cmd->datain_list, struct iscsi_datain_req,
-				cmd_datain_node);
+							cmd_datain_node);
 }
 
 /*
@@ -92,84 +97,115 @@ static struct iscsi_datain_req *iscsit_set_datain_values_yes_and_yes(
 	struct iscsi_datain_req *dr;
 
 	dr = iscsit_get_datain_req(cmd);
-	if (!dr)
-		return NULL;
 
-	if (dr->recovery && dr->generate_recovery_values) {
+	if (!dr)
+	{
+		return NULL;
+	}
+
+	if (dr->recovery && dr->generate_recovery_values)
+	{
 		if (iscsit_create_recovery_datain_values_datasequenceinorder_yes(
-					cmd, dr) < 0)
+				cmd, dr) < 0)
+		{
 			return NULL;
+		}
 
 		dr->generate_recovery_values = 0;
 	}
 
 	next_burst_len = (!dr->recovery) ?
-			cmd->next_burst_len : dr->next_burst_len;
+					 cmd->next_burst_len : dr->next_burst_len;
 	read_data_done = (!dr->recovery) ?
-			cmd->read_data_done : dr->read_data_done;
+					 cmd->read_data_done : dr->read_data_done;
 
 	read_data_left = (cmd->se_cmd.data_length - read_data_done);
-	if (!read_data_left) {
+
+	if (!read_data_left)
+	{
 		pr_err("ITT: 0x%08x read_data_left is zero!\n",
-				cmd->init_task_tag);
+			   cmd->init_task_tag);
 		return NULL;
 	}
 
 	if ((read_data_left <= conn->conn_ops->MaxRecvDataSegmentLength) &&
-	    (read_data_left <= (conn->sess->sess_ops->MaxBurstLength -
-	     next_burst_len))) {
+		(read_data_left <= (conn->sess->sess_ops->MaxBurstLength -
+							next_burst_len)))
+	{
 		datain->length = read_data_left;
 
 		datain->flags |= (ISCSI_FLAG_CMD_FINAL | ISCSI_FLAG_DATA_STATUS);
+
 		if (conn->sess->sess_ops->ErrorRecoveryLevel > 0)
+		{
 			datain->flags |= ISCSI_FLAG_DATA_ACK;
-	} else {
+		}
+	}
+	else
+	{
 		if ((next_burst_len +
-		     conn->conn_ops->MaxRecvDataSegmentLength) <
-		     conn->sess->sess_ops->MaxBurstLength) {
+			 conn->conn_ops->MaxRecvDataSegmentLength) <
+			conn->sess->sess_ops->MaxBurstLength)
+		{
 			datain->length =
 				conn->conn_ops->MaxRecvDataSegmentLength;
 			next_burst_len += datain->length;
-		} else {
+		}
+		else
+		{
 			datain->length = (conn->sess->sess_ops->MaxBurstLength -
-					  next_burst_len);
+							  next_burst_len);
 			next_burst_len = 0;
 
 			datain->flags |= ISCSI_FLAG_CMD_FINAL;
+
 			if (conn->sess->sess_ops->ErrorRecoveryLevel > 0)
+			{
 				datain->flags |= ISCSI_FLAG_DATA_ACK;
+			}
 		}
 	}
 
 	datain->data_sn = (!dr->recovery) ? cmd->data_sn++ : dr->data_sn++;
 	datain->offset = read_data_done;
 
-	if (!dr->recovery) {
+	if (!dr->recovery)
+	{
 		cmd->next_burst_len = next_burst_len;
 		cmd->read_data_done += datain->length;
-	} else {
+	}
+	else
+	{
 		dr->next_burst_len = next_burst_len;
 		dr->read_data_done += datain->length;
 	}
 
-	if (!dr->recovery) {
+	if (!dr->recovery)
+	{
 		if (datain->flags & ISCSI_FLAG_DATA_STATUS)
+		{
 			dr->dr_complete = DATAIN_COMPLETE_NORMAL;
+		}
 
 		return dr;
 	}
 
-	if (!dr->runlength) {
-		if (datain->flags & ISCSI_FLAG_DATA_STATUS) {
+	if (!dr->runlength)
+	{
+		if (datain->flags & ISCSI_FLAG_DATA_STATUS)
+		{
 			dr->dr_complete =
-			    (dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
+				(dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
 				DATAIN_COMPLETE_WITHIN_COMMAND_RECOVERY :
 				DATAIN_COMPLETE_CONNECTION_RECOVERY;
 		}
-	} else {
-		if ((dr->begrun + dr->runlength) == dr->data_sn) {
+	}
+	else
+	{
+		if ((dr->begrun + dr->runlength) == dr->data_sn)
+		{
 			dr->dr_complete =
-			    (dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
+				(dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
 				DATAIN_COMPLETE_WITHIN_COMMAND_RECOVERY :
 				DATAIN_COMPLETE_CONNECTION_RECOVERY;
 		}
@@ -191,68 +227,93 @@ static struct iscsi_datain_req *iscsit_set_datain_values_no_and_yes(
 	struct iscsi_seq *seq;
 
 	dr = iscsit_get_datain_req(cmd);
-	if (!dr)
-		return NULL;
 
-	if (dr->recovery && dr->generate_recovery_values) {
+	if (!dr)
+	{
+		return NULL;
+	}
+
+	if (dr->recovery && dr->generate_recovery_values)
+	{
 		if (iscsit_create_recovery_datain_values_datasequenceinorder_no(
-					cmd, dr) < 0)
+				cmd, dr) < 0)
+		{
 			return NULL;
+		}
 
 		dr->generate_recovery_values = 0;
 	}
 
 	read_data_done = (!dr->recovery) ?
-			cmd->read_data_done : dr->read_data_done;
+					 cmd->read_data_done : dr->read_data_done;
 	seq_send_order = (!dr->recovery) ?
-			cmd->seq_send_order : dr->seq_send_order;
+					 cmd->seq_send_order : dr->seq_send_order;
 
 	read_data_left = (cmd->se_cmd.data_length - read_data_done);
-	if (!read_data_left) {
+
+	if (!read_data_left)
+	{
 		pr_err("ITT: 0x%08x read_data_left is zero!\n",
-				cmd->init_task_tag);
+			   cmd->init_task_tag);
 		return NULL;
 	}
 
 	seq = iscsit_get_seq_holder_for_datain(cmd, seq_send_order);
+
 	if (!seq)
+	{
 		return NULL;
+	}
 
 	seq->sent = 1;
 
 	if (!dr->recovery && !seq->next_burst_len)
+	{
 		seq->first_datasn = cmd->data_sn;
+	}
 
 	offset = (seq->offset + seq->next_burst_len);
 
 	if ((offset + conn->conn_ops->MaxRecvDataSegmentLength) >=
-	     cmd->se_cmd.data_length) {
+		cmd->se_cmd.data_length)
+	{
 		datain->length = (cmd->se_cmd.data_length - offset);
 		datain->offset = offset;
 
 		datain->flags |= ISCSI_FLAG_CMD_FINAL;
+
 		if (conn->sess->sess_ops->ErrorRecoveryLevel > 0)
+		{
 			datain->flags |= ISCSI_FLAG_DATA_ACK;
+		}
 
 		seq->next_burst_len = 0;
 		seq_send_order++;
-	} else {
+	}
+	else
+	{
 		if ((seq->next_burst_len +
-		     conn->conn_ops->MaxRecvDataSegmentLength) <
-		     conn->sess->sess_ops->MaxBurstLength) {
+			 conn->conn_ops->MaxRecvDataSegmentLength) <
+			conn->sess->sess_ops->MaxBurstLength)
+		{
 			datain->length =
 				conn->conn_ops->MaxRecvDataSegmentLength;
 			datain->offset = (seq->offset + seq->next_burst_len);
 
 			seq->next_burst_len += datain->length;
-		} else {
+		}
+		else
+		{
 			datain->length = (conn->sess->sess_ops->MaxBurstLength -
-					  seq->next_burst_len);
+							  seq->next_burst_len);
 			datain->offset = (seq->offset + seq->next_burst_len);
 
 			datain->flags |= ISCSI_FLAG_CMD_FINAL;
+
 			if (conn->sess->sess_ops->ErrorRecoveryLevel > 0)
+			{
 				datain->flags |= ISCSI_FLAG_DATA_ACK;
+			}
 
 			seq->next_burst_len = 0;
 			seq_send_order++;
@@ -260,37 +321,54 @@ static struct iscsi_datain_req *iscsit_set_datain_values_no_and_yes(
 	}
 
 	if ((read_data_done + datain->length) == cmd->se_cmd.data_length)
+	{
 		datain->flags |= ISCSI_FLAG_DATA_STATUS;
+	}
 
 	datain->data_sn = (!dr->recovery) ? cmd->data_sn++ : dr->data_sn++;
-	if (!dr->recovery) {
+
+	if (!dr->recovery)
+	{
 		cmd->seq_send_order = seq_send_order;
 		cmd->read_data_done += datain->length;
-	} else {
+	}
+	else
+	{
 		dr->seq_send_order = seq_send_order;
 		dr->read_data_done += datain->length;
 	}
 
-	if (!dr->recovery) {
+	if (!dr->recovery)
+	{
 		if (datain->flags & ISCSI_FLAG_CMD_FINAL)
+		{
 			seq->last_datasn = datain->data_sn;
+		}
+
 		if (datain->flags & ISCSI_FLAG_DATA_STATUS)
+		{
 			dr->dr_complete = DATAIN_COMPLETE_NORMAL;
+		}
 
 		return dr;
 	}
 
-	if (!dr->runlength) {
-		if (datain->flags & ISCSI_FLAG_DATA_STATUS) {
+	if (!dr->runlength)
+	{
+		if (datain->flags & ISCSI_FLAG_DATA_STATUS)
+		{
 			dr->dr_complete =
-			    (dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
+				(dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
 				DATAIN_COMPLETE_WITHIN_COMMAND_RECOVERY :
 				DATAIN_COMPLETE_CONNECTION_RECOVERY;
 		}
-	} else {
-		if ((dr->begrun + dr->runlength) == dr->data_sn) {
+	}
+	else
+	{
+		if ((dr->begrun + dr->runlength) == dr->data_sn)
+		{
 			dr->dr_complete =
-			    (dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
+				(dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
 				DATAIN_COMPLETE_WITHIN_COMMAND_RECOVERY :
 				DATAIN_COMPLETE_CONNECTION_RECOVERY;
 		}
@@ -312,57 +390,84 @@ static struct iscsi_datain_req *iscsit_set_datain_values_yes_and_no(
 	struct iscsi_pdu *pdu;
 
 	dr = iscsit_get_datain_req(cmd);
-	if (!dr)
-		return NULL;
 
-	if (dr->recovery && dr->generate_recovery_values) {
+	if (!dr)
+	{
+		return NULL;
+	}
+
+	if (dr->recovery && dr->generate_recovery_values)
+	{
 		if (iscsit_create_recovery_datain_values_datasequenceinorder_yes(
-					cmd, dr) < 0)
+				cmd, dr) < 0)
+		{
 			return NULL;
+		}
 
 		dr->generate_recovery_values = 0;
 	}
 
 	next_burst_len = (!dr->recovery) ?
-			cmd->next_burst_len : dr->next_burst_len;
+					 cmd->next_burst_len : dr->next_burst_len;
 	read_data_done = (!dr->recovery) ?
-			cmd->read_data_done : dr->read_data_done;
+					 cmd->read_data_done : dr->read_data_done;
 
 	read_data_left = (cmd->se_cmd.data_length - read_data_done);
-	if (!read_data_left) {
+
+	if (!read_data_left)
+	{
 		pr_err("ITT: 0x%08x read_data_left is zero!\n",
-				cmd->init_task_tag);
+			   cmd->init_task_tag);
 		return dr;
 	}
 
 	pdu = iscsit_get_pdu_holder_for_seq(cmd, NULL);
-	if (!pdu)
-		return dr;
 
-	if ((read_data_done + pdu->length) == cmd->se_cmd.data_length) {
+	if (!pdu)
+	{
+		return dr;
+	}
+
+	if ((read_data_done + pdu->length) == cmd->se_cmd.data_length)
+	{
 		pdu->flags |= (ISCSI_FLAG_CMD_FINAL | ISCSI_FLAG_DATA_STATUS);
+
 		if (conn->sess->sess_ops->ErrorRecoveryLevel > 0)
+		{
 			pdu->flags |= ISCSI_FLAG_DATA_ACK;
+		}
 
 		next_burst_len = 0;
-	} else {
+	}
+	else
+	{
 		if ((next_burst_len + conn->conn_ops->MaxRecvDataSegmentLength) <
-		     conn->sess->sess_ops->MaxBurstLength)
+			conn->sess->sess_ops->MaxBurstLength)
+		{
 			next_burst_len += pdu->length;
-		else {
+		}
+		else
+		{
 			pdu->flags |= ISCSI_FLAG_CMD_FINAL;
+
 			if (conn->sess->sess_ops->ErrorRecoveryLevel > 0)
+			{
 				pdu->flags |= ISCSI_FLAG_DATA_ACK;
+			}
 
 			next_burst_len = 0;
 		}
 	}
 
 	pdu->data_sn = (!dr->recovery) ? cmd->data_sn++ : dr->data_sn++;
-	if (!dr->recovery) {
+
+	if (!dr->recovery)
+	{
 		cmd->next_burst_len = next_burst_len;
 		cmd->read_data_done += pdu->length;
-	} else {
+	}
+	else
+	{
 		dr->next_burst_len = next_burst_len;
 		dr->read_data_done += pdu->length;
 	}
@@ -372,24 +477,32 @@ static struct iscsi_datain_req *iscsit_set_datain_values_yes_and_no(
 	datain->offset = pdu->offset;
 	datain->data_sn = pdu->data_sn;
 
-	if (!dr->recovery) {
+	if (!dr->recovery)
+	{
 		if (datain->flags & ISCSI_FLAG_DATA_STATUS)
+		{
 			dr->dr_complete = DATAIN_COMPLETE_NORMAL;
+		}
 
 		return dr;
 	}
 
-	if (!dr->runlength) {
-		if (datain->flags & ISCSI_FLAG_DATA_STATUS) {
+	if (!dr->runlength)
+	{
+		if (datain->flags & ISCSI_FLAG_DATA_STATUS)
+		{
 			dr->dr_complete =
-			    (dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
+				(dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
 				DATAIN_COMPLETE_WITHIN_COMMAND_RECOVERY :
 				DATAIN_COMPLETE_CONNECTION_RECOVERY;
 		}
-	} else {
-		if ((dr->begrun + dr->runlength) == dr->data_sn) {
+	}
+	else
+	{
+		if ((dr->begrun + dr->runlength) == dr->data_sn)
+		{
 			dr->dr_complete =
-			    (dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
+				(dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
 				DATAIN_COMPLETE_WITHIN_COMMAND_RECOVERY :
 				DATAIN_COMPLETE_CONNECTION_RECOVERY;
 		}
@@ -412,60 +525,89 @@ static struct iscsi_datain_req *iscsit_set_datain_values_no_and_no(
 	struct iscsi_seq *seq = NULL;
 
 	dr = iscsit_get_datain_req(cmd);
-	if (!dr)
-		return NULL;
 
-	if (dr->recovery && dr->generate_recovery_values) {
+	if (!dr)
+	{
+		return NULL;
+	}
+
+	if (dr->recovery && dr->generate_recovery_values)
+	{
 		if (iscsit_create_recovery_datain_values_datasequenceinorder_no(
-					cmd, dr) < 0)
+				cmd, dr) < 0)
+		{
 			return NULL;
+		}
 
 		dr->generate_recovery_values = 0;
 	}
 
 	read_data_done = (!dr->recovery) ?
-			cmd->read_data_done : dr->read_data_done;
+					 cmd->read_data_done : dr->read_data_done;
 	seq_send_order = (!dr->recovery) ?
-			cmd->seq_send_order : dr->seq_send_order;
+					 cmd->seq_send_order : dr->seq_send_order;
 
 	read_data_left = (cmd->se_cmd.data_length - read_data_done);
-	if (!read_data_left) {
+
+	if (!read_data_left)
+	{
 		pr_err("ITT: 0x%08x read_data_left is zero!\n",
-				cmd->init_task_tag);
+			   cmd->init_task_tag);
 		return NULL;
 	}
 
 	seq = iscsit_get_seq_holder_for_datain(cmd, seq_send_order);
+
 	if (!seq)
+	{
 		return NULL;
+	}
 
 	seq->sent = 1;
 
 	if (!dr->recovery && !seq->next_burst_len)
+	{
 		seq->first_datasn = cmd->data_sn;
+	}
 
 	pdu = iscsit_get_pdu_holder_for_seq(cmd, seq);
-	if (!pdu)
-		return NULL;
 
-	if (seq->pdu_send_order == seq->pdu_count) {
+	if (!pdu)
+	{
+		return NULL;
+	}
+
+	if (seq->pdu_send_order == seq->pdu_count)
+	{
 		pdu->flags |= ISCSI_FLAG_CMD_FINAL;
+
 		if (conn->sess->sess_ops->ErrorRecoveryLevel > 0)
+		{
 			pdu->flags |= ISCSI_FLAG_DATA_ACK;
+		}
 
 		seq->next_burst_len = 0;
 		seq_send_order++;
-	} else
+	}
+	else
+	{
 		seq->next_burst_len += pdu->length;
+	}
 
 	if ((read_data_done + pdu->length) == cmd->se_cmd.data_length)
+	{
 		pdu->flags |= ISCSI_FLAG_DATA_STATUS;
+	}
 
 	pdu->data_sn = (!dr->recovery) ? cmd->data_sn++ : dr->data_sn++;
-	if (!dr->recovery) {
+
+	if (!dr->recovery)
+	{
 		cmd->seq_send_order = seq_send_order;
 		cmd->read_data_done += pdu->length;
-	} else {
+	}
+	else
+	{
 		dr->seq_send_order = seq_send_order;
 		dr->read_data_done += pdu->length;
 	}
@@ -475,26 +617,37 @@ static struct iscsi_datain_req *iscsit_set_datain_values_no_and_no(
 	datain->offset = pdu->offset;
 	datain->data_sn = pdu->data_sn;
 
-	if (!dr->recovery) {
+	if (!dr->recovery)
+	{
 		if (datain->flags & ISCSI_FLAG_CMD_FINAL)
+		{
 			seq->last_datasn = datain->data_sn;
+		}
+
 		if (datain->flags & ISCSI_FLAG_DATA_STATUS)
+		{
 			dr->dr_complete = DATAIN_COMPLETE_NORMAL;
+		}
 
 		return dr;
 	}
 
-	if (!dr->runlength) {
-		if (datain->flags & ISCSI_FLAG_DATA_STATUS) {
+	if (!dr->runlength)
+	{
+		if (datain->flags & ISCSI_FLAG_DATA_STATUS)
+		{
 			dr->dr_complete =
-			    (dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
+				(dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
 				DATAIN_COMPLETE_WITHIN_COMMAND_RECOVERY :
 				DATAIN_COMPLETE_CONNECTION_RECOVERY;
 		}
-	} else {
-		if ((dr->begrun + dr->runlength) == dr->data_sn) {
+	}
+	else
+	{
+		if ((dr->begrun + dr->runlength) == dr->data_sn)
+		{
 			dr->dr_complete =
-			    (dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
+				(dr->recovery == DATAIN_WITHIN_COMMAND_RECOVERY) ?
 				DATAIN_COMPLETE_WITHIN_COMMAND_RECOVERY :
 				DATAIN_COMPLETE_CONNECTION_RECOVERY;
 		}
@@ -510,17 +663,25 @@ struct iscsi_datain_req *iscsit_get_datain_values(
 	struct iscsi_conn *conn = cmd->conn;
 
 	if (conn->sess->sess_ops->DataSequenceInOrder &&
-	    conn->sess->sess_ops->DataPDUInOrder)
+		conn->sess->sess_ops->DataPDUInOrder)
+	{
 		return iscsit_set_datain_values_yes_and_yes(cmd, datain);
+	}
 	else if (!conn->sess->sess_ops->DataSequenceInOrder &&
-		  conn->sess->sess_ops->DataPDUInOrder)
+			 conn->sess->sess_ops->DataPDUInOrder)
+	{
 		return iscsit_set_datain_values_no_and_yes(cmd, datain);
+	}
 	else if (conn->sess->sess_ops->DataSequenceInOrder &&
-		 !conn->sess->sess_ops->DataPDUInOrder)
+			 !conn->sess->sess_ops->DataPDUInOrder)
+	{
 		return iscsit_set_datain_values_yes_and_no(cmd, datain);
+	}
 	else if (!conn->sess->sess_ops->DataSequenceInOrder &&
-		   !conn->sess->sess_ops->DataPDUInOrder)
+			 !conn->sess->sess_ops->DataPDUInOrder)
+	{
 		return iscsit_set_datain_values_no_and_no(cmd, datain);
+	}
 
 	return NULL;
 }

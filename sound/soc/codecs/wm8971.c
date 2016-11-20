@@ -32,7 +32,8 @@
 #define	WM8971_REG_COUNT		43
 
 /* codec private data */
-struct wm8971_priv {
+struct wm8971_priv
+{
 	unsigned int sysclk;
 	struct delayed_work charge_work;
 	struct regmap *regmap;
@@ -43,7 +44,8 @@ struct wm8971_priv {
  * We can't read the WM8971 register space when we
  * are using 2 wire for device control, so we cache them instead.
  */
-static const struct reg_default wm8971_reg_defaults[] = {
+static const struct reg_default wm8971_reg_defaults[] =
+{
 	{  0, 0x0097 },
 	{  1, 0x0097 },
 	{  2, 0x0079 },
@@ -94,25 +96,32 @@ static const struct reg_default wm8971_reg_defaults[] = {
 /* WM8971 Controls */
 static const char *wm8971_bass[] = { "Linear Control", "Adaptive Boost" };
 static const char *wm8971_bass_filter[] = { "130Hz @ 48kHz",
-	"200Hz @ 48kHz" };
+											"200Hz @ 48kHz"
+										  };
 static const char *wm8971_treble[] = { "8kHz", "4kHz" };
 static const char *wm8971_alc_func[] = { "Off", "Right", "Left", "Stereo" };
 static const char *wm8971_ng_type[] = { "Constant PGA Gain",
-	"Mute ADC Output" };
+										"Mute ADC Output"
+									  };
 static const char *wm8971_deemp[] = { "None", "32kHz", "44.1kHz", "48kHz" };
 static const char *wm8971_mono_mux[] = {"Stereo", "Mono (Left)",
-	"Mono (Right)", "Digital Mono"};
+										"Mono (Right)", "Digital Mono"
+									   };
 static const char *wm8971_dac_phase[] = { "Non Inverted", "Inverted" };
 static const char *wm8971_lline_mux[] = {"Line", "NC", "NC", "PGA",
-	"Differential"};
+										 "Differential"
+										};
 static const char *wm8971_rline_mux[] = {"Line", "Mic", "NC", "PGA",
-	"Differential"};
+										 "Differential"
+										};
 static const char *wm8971_lpga_sel[] = {"Line", "NC", "NC", "Differential"};
 static const char *wm8971_rpga_sel[] = {"Line", "Mic", "NC", "Differential"};
 static const char *wm8971_adcpol[] = {"Normal", "L Invert", "R Invert",
-	"L + R Invert"};
+									  "L + R Invert"
+									 };
 
-static const struct soc_enum wm8971_enum[] = {
+static const struct soc_enum wm8971_enum[] =
+{
 	SOC_ENUM_SINGLE(WM8971_BASS, 7, 2, wm8971_bass),	/* 0 */
 	SOC_ENUM_SINGLE(WM8971_BASS, 6, 2, wm8971_bass_filter),
 	SOC_ENUM_SINGLE(WM8971_TREBLE, 6, 2, wm8971_treble),
@@ -129,31 +138,32 @@ static const struct soc_enum wm8971_enum[] = {
 	SOC_ENUM_SINGLE(WM8971_ADCIN, 6, 4, wm8971_mono_mux),
 };
 
-static const struct snd_kcontrol_new wm8971_snd_controls[] = {
+static const struct snd_kcontrol_new wm8971_snd_controls[] =
+{
 	SOC_DOUBLE_R("Capture Volume", WM8971_LINVOL, WM8971_RINVOL, 0, 63, 0),
 	SOC_DOUBLE_R("Capture ZC Switch", WM8971_LINVOL, WM8971_RINVOL,
-		     6, 1, 0),
+	6, 1, 0),
 	SOC_DOUBLE_R("Capture Switch", WM8971_LINVOL, WM8971_RINVOL, 7, 1, 1),
 
 	SOC_DOUBLE_R("Headphone Playback ZC Switch", WM8971_LOUT1V,
-		WM8971_ROUT1V, 7, 1, 0),
+	WM8971_ROUT1V, 7, 1, 0),
 	SOC_DOUBLE_R("Speaker Playback ZC Switch", WM8971_LOUT2V,
-		WM8971_ROUT2V, 7, 1, 0),
+	WM8971_ROUT2V, 7, 1, 0),
 	SOC_SINGLE("Mono Playback ZC Switch", WM8971_MOUTV, 7, 1, 0),
 
 	SOC_DOUBLE_R("PCM Volume", WM8971_LDAC, WM8971_RDAC, 0, 255, 0),
 
 	SOC_DOUBLE_R("Bypass Left Playback Volume", WM8971_LOUTM1,
-		WM8971_LOUTM2, 4, 7, 1),
+	WM8971_LOUTM2, 4, 7, 1),
 	SOC_DOUBLE_R("Bypass Right Playback Volume", WM8971_ROUTM1,
-		WM8971_ROUTM2, 4, 7, 1),
+	WM8971_ROUTM2, 4, 7, 1),
 	SOC_DOUBLE_R("Bypass Mono Playback Volume", WM8971_MOUTM1,
-		WM8971_MOUTM2, 4, 7, 1),
+	WM8971_MOUTM2, 4, 7, 1),
 
 	SOC_DOUBLE_R("Headphone Playback Volume", WM8971_LOUT1V,
-		WM8971_ROUT1V, 0, 127, 0),
+	WM8971_ROUT1V, 0, 127, 0),
 	SOC_DOUBLE_R("Speaker Playback Volume", WM8971_LOUT2V,
-		WM8971_ROUT2V, 0, 127, 0),
+	WM8971_ROUT2V, 0, 127, 0),
 
 	SOC_ENUM("Bass Boost", wm8971_enum[0]),
 	SOC_ENUM("Bass Filter", wm8971_enum[1]),
@@ -193,59 +203,63 @@ static const struct snd_kcontrol_new wm8971_snd_controls[] = {
  */
 
 /* Left Mixer */
-static const struct snd_kcontrol_new wm8971_left_mixer_controls[] = {
-SOC_DAPM_SINGLE("Playback Switch", WM8971_LOUTM1, 8, 1, 0),
-SOC_DAPM_SINGLE("Left Bypass Switch", WM8971_LOUTM1, 7, 1, 0),
-SOC_DAPM_SINGLE("Right Playback Switch", WM8971_LOUTM2, 8, 1, 0),
-SOC_DAPM_SINGLE("Right Bypass Switch", WM8971_LOUTM2, 7, 1, 0),
+static const struct snd_kcontrol_new wm8971_left_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("Playback Switch", WM8971_LOUTM1, 8, 1, 0),
+	SOC_DAPM_SINGLE("Left Bypass Switch", WM8971_LOUTM1, 7, 1, 0),
+	SOC_DAPM_SINGLE("Right Playback Switch", WM8971_LOUTM2, 8, 1, 0),
+	SOC_DAPM_SINGLE("Right Bypass Switch", WM8971_LOUTM2, 7, 1, 0),
 };
 
 /* Right Mixer */
-static const struct snd_kcontrol_new wm8971_right_mixer_controls[] = {
-SOC_DAPM_SINGLE("Left Playback Switch", WM8971_ROUTM1, 8, 1, 0),
-SOC_DAPM_SINGLE("Left Bypass Switch", WM8971_ROUTM1, 7, 1, 0),
-SOC_DAPM_SINGLE("Playback Switch", WM8971_ROUTM2, 8, 1, 0),
-SOC_DAPM_SINGLE("Right Bypass Switch", WM8971_ROUTM2, 7, 1, 0),
+static const struct snd_kcontrol_new wm8971_right_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("Left Playback Switch", WM8971_ROUTM1, 8, 1, 0),
+	SOC_DAPM_SINGLE("Left Bypass Switch", WM8971_ROUTM1, 7, 1, 0),
+	SOC_DAPM_SINGLE("Playback Switch", WM8971_ROUTM2, 8, 1, 0),
+	SOC_DAPM_SINGLE("Right Bypass Switch", WM8971_ROUTM2, 7, 1, 0),
 };
 
 /* Mono Mixer */
-static const struct snd_kcontrol_new wm8971_mono_mixer_controls[] = {
-SOC_DAPM_SINGLE("Left Playback Switch", WM8971_MOUTM1, 8, 1, 0),
-SOC_DAPM_SINGLE("Left Bypass Switch", WM8971_MOUTM1, 7, 1, 0),
-SOC_DAPM_SINGLE("Right Playback Switch", WM8971_MOUTM2, 8, 1, 0),
-SOC_DAPM_SINGLE("Right Bypass Switch", WM8971_MOUTM2, 7, 1, 0),
+static const struct snd_kcontrol_new wm8971_mono_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("Left Playback Switch", WM8971_MOUTM1, 8, 1, 0),
+	SOC_DAPM_SINGLE("Left Bypass Switch", WM8971_MOUTM1, 7, 1, 0),
+	SOC_DAPM_SINGLE("Right Playback Switch", WM8971_MOUTM2, 8, 1, 0),
+	SOC_DAPM_SINGLE("Right Bypass Switch", WM8971_MOUTM2, 7, 1, 0),
 };
 
 /* Left Line Mux */
 static const struct snd_kcontrol_new wm8971_left_line_controls =
-SOC_DAPM_ENUM("Route", wm8971_enum[8]);
+	SOC_DAPM_ENUM("Route", wm8971_enum[8]);
 
 /* Right Line Mux */
 static const struct snd_kcontrol_new wm8971_right_line_controls =
-SOC_DAPM_ENUM("Route", wm8971_enum[9]);
+	SOC_DAPM_ENUM("Route", wm8971_enum[9]);
 
 /* Left PGA Mux */
 static const struct snd_kcontrol_new wm8971_left_pga_controls =
-SOC_DAPM_ENUM("Route", wm8971_enum[10]);
+	SOC_DAPM_ENUM("Route", wm8971_enum[10]);
 
 /* Right PGA Mux */
 static const struct snd_kcontrol_new wm8971_right_pga_controls =
-SOC_DAPM_ENUM("Route", wm8971_enum[11]);
+	SOC_DAPM_ENUM("Route", wm8971_enum[11]);
 
 /* Mono ADC Mux */
 static const struct snd_kcontrol_new wm8971_monomux_controls =
-SOC_DAPM_ENUM("Route", wm8971_enum[13]);
+	SOC_DAPM_ENUM("Route", wm8971_enum[13]);
 
-static const struct snd_soc_dapm_widget wm8971_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget wm8971_dapm_widgets[] =
+{
 	SND_SOC_DAPM_MIXER("Left Mixer", SND_SOC_NOPM, 0, 0,
-		&wm8971_left_mixer_controls[0],
-		ARRAY_SIZE(wm8971_left_mixer_controls)),
+	&wm8971_left_mixer_controls[0],
+	ARRAY_SIZE(wm8971_left_mixer_controls)),
 	SND_SOC_DAPM_MIXER("Right Mixer", SND_SOC_NOPM, 0, 0,
-		&wm8971_right_mixer_controls[0],
-		ARRAY_SIZE(wm8971_right_mixer_controls)),
+	&wm8971_right_mixer_controls[0],
+	ARRAY_SIZE(wm8971_right_mixer_controls)),
 	SND_SOC_DAPM_MIXER("Mono Mixer", WM8971_PWR2, 2, 0,
-		&wm8971_mono_mixer_controls[0],
-		ARRAY_SIZE(wm8971_mono_mixer_controls)),
+	&wm8971_mono_mixer_controls[0],
+	ARRAY_SIZE(wm8971_mono_mixer_controls)),
 
 	SND_SOC_DAPM_PGA("Right Out 2", WM8971_PWR2, 3, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("Left Out 2", WM8971_PWR2, 4, 0, NULL, 0),
@@ -260,18 +274,18 @@ static const struct snd_soc_dapm_widget wm8971_dapm_widgets[] = {
 	SND_SOC_DAPM_ADC("Left ADC", "Left Capture", WM8971_PWR1, 3, 0),
 
 	SND_SOC_DAPM_MUX("Left PGA Mux", WM8971_PWR1, 5, 0,
-		&wm8971_left_pga_controls),
+	&wm8971_left_pga_controls),
 	SND_SOC_DAPM_MUX("Right PGA Mux", WM8971_PWR1, 4, 0,
-		&wm8971_right_pga_controls),
+	&wm8971_right_pga_controls),
 	SND_SOC_DAPM_MUX("Left Line Mux", SND_SOC_NOPM, 0, 0,
-		&wm8971_left_line_controls),
+	&wm8971_left_line_controls),
 	SND_SOC_DAPM_MUX("Right Line Mux", SND_SOC_NOPM, 0, 0,
-		&wm8971_right_line_controls),
+	&wm8971_right_line_controls),
 
 	SND_SOC_DAPM_MUX("Left ADC Mux", SND_SOC_NOPM, 0, 0,
-		&wm8971_monomux_controls),
+	&wm8971_monomux_controls),
 	SND_SOC_DAPM_MUX("Right ADC Mux", SND_SOC_NOPM, 0, 0,
-		&wm8971_monomux_controls),
+	&wm8971_monomux_controls),
 
 	SND_SOC_DAPM_OUTPUT("LOUT1"),
 	SND_SOC_DAPM_OUTPUT("ROUT1"),
@@ -284,7 +298,8 @@ static const struct snd_soc_dapm_widget wm8971_dapm_widgets[] = {
 	SND_SOC_DAPM_INPUT("MIC"),
 };
 
-static const struct snd_soc_dapm_route wm8971_dapm_routes[] = {
+static const struct snd_soc_dapm_route wm8971_dapm_routes[] =
+{
 	/* left mixer */
 	{"Left Mixer", "Playback Switch", "Left DAC"},
 	{"Left Mixer", "Left Bypass Switch", "Left Line Mux"},
@@ -361,16 +376,18 @@ static const struct snd_soc_dapm_route wm8971_dapm_routes[] = {
 	{"Right ADC", NULL, "Right ADC Mux"},
 };
 
-struct _coeff_div {
+struct _coeff_div
+{
 	u32 mclk;
 	u32 rate;
 	u16 fs;
-	u8 sr:5;
-	u8 usb:1;
+	u8 sr: 5;
+	u8 usb: 1;
 };
 
 /* codec hifi mclk clock divider coefficients */
-static const struct _coeff_div coeff_div[] = {
+static const struct _coeff_div coeff_div[] =
+{
 	/* 8k */
 	{12288000, 8000, 1536, 0x6, 0x0},
 	{11289600, 8000, 1408, 0x16, 0x0},
@@ -423,83 +440,103 @@ static int get_coeff(int mclk, int rate)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(coeff_div); i++) {
+	for (i = 0; i < ARRAY_SIZE(coeff_div); i++)
+	{
 		if (coeff_div[i].rate == rate && coeff_div[i].mclk == mclk)
+		{
 			return i;
+		}
 	}
+
 	return -EINVAL;
 }
 
 static int wm8971_set_dai_sysclk(struct snd_soc_dai *codec_dai,
-		int clk_id, unsigned int freq, int dir)
+								 int clk_id, unsigned int freq, int dir)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct wm8971_priv *wm8971 = snd_soc_codec_get_drvdata(codec);
 
-	switch (freq) {
-	case 11289600:
-	case 12000000:
-	case 12288000:
-	case 16934400:
-	case 18432000:
-		wm8971->sysclk = freq;
-		return 0;
+	switch (freq)
+	{
+		case 11289600:
+		case 12000000:
+		case 12288000:
+		case 16934400:
+		case 18432000:
+			wm8971->sysclk = freq;
+			return 0;
 	}
+
 	return -EINVAL;
 }
 
 static int wm8971_set_dai_fmt(struct snd_soc_dai *codec_dai,
-		unsigned int fmt)
+							  unsigned int fmt)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	u16 iface = 0;
 
 	/* set master/slave audio interface */
-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBM_CFM:
-		iface = 0x0040;
-		break;
-	case SND_SOC_DAIFMT_CBS_CFS:
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBM_CFM:
+			iface = 0x0040;
+			break;
+
+		case SND_SOC_DAIFMT_CBS_CFS:
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* interface format */
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_I2S:
-		iface |= 0x0002;
-		break;
-	case SND_SOC_DAIFMT_RIGHT_J:
-		break;
-	case SND_SOC_DAIFMT_LEFT_J:
-		iface |= 0x0001;
-		break;
-	case SND_SOC_DAIFMT_DSP_A:
-		iface |= 0x0003;
-		break;
-	case SND_SOC_DAIFMT_DSP_B:
-		iface |= 0x0013;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_I2S:
+			iface |= 0x0002;
+			break;
+
+		case SND_SOC_DAIFMT_RIGHT_J:
+			break;
+
+		case SND_SOC_DAIFMT_LEFT_J:
+			iface |= 0x0001;
+			break;
+
+		case SND_SOC_DAIFMT_DSP_A:
+			iface |= 0x0003;
+			break;
+
+		case SND_SOC_DAIFMT_DSP_B:
+			iface |= 0x0013;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* clock inversion */
-	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-	case SND_SOC_DAIFMT_NB_NF:
-		break;
-	case SND_SOC_DAIFMT_IB_IF:
-		iface |= 0x0090;
-		break;
-	case SND_SOC_DAIFMT_IB_NF:
-		iface |= 0x0080;
-		break;
-	case SND_SOC_DAIFMT_NB_IF:
-		iface |= 0x0010;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_INV_MASK)
+	{
+		case SND_SOC_DAIFMT_NB_NF:
+			break;
+
+		case SND_SOC_DAIFMT_IB_IF:
+			iface |= 0x0090;
+			break;
+
+		case SND_SOC_DAIFMT_IB_NF:
+			iface |= 0x0080;
+			break;
+
+		case SND_SOC_DAIFMT_NB_IF:
+			iface |= 0x0010;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	snd_soc_write(codec, WM8971_IFACE, iface);
@@ -507,8 +544,8 @@ static int wm8971_set_dai_fmt(struct snd_soc_dai *codec_dai,
 }
 
 static int wm8971_pcm_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params,
-	struct snd_soc_dai *dai)
+								struct snd_pcm_hw_params *params,
+								struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct wm8971_priv *wm8971 = snd_soc_codec_get_drvdata(codec);
@@ -517,25 +554,30 @@ static int wm8971_pcm_hw_params(struct snd_pcm_substream *substream,
 	int coeff = get_coeff(wm8971->sysclk, params_rate(params));
 
 	/* bit size */
-	switch (params_width(params)) {
-	case 16:
-		break;
-	case 20:
-		iface |= 0x0004;
-		break;
-	case 24:
-		iface |= 0x0008;
-		break;
-	case 32:
-		iface |= 0x000c;
-		break;
+	switch (params_width(params))
+	{
+		case 16:
+			break;
+
+		case 20:
+			iface |= 0x0004;
+			break;
+
+		case 24:
+			iface |= 0x0008;
+			break;
+
+		case 32:
+			iface |= 0x000c;
+			break;
 	}
 
 	/* set iface & srate */
 	snd_soc_write(codec, WM8971_IFACE, iface);
+
 	if (coeff >= 0)
 		snd_soc_write(codec, WM8971_SRATE, srate |
-			(coeff_div[coeff].sr << 1) | coeff_div[coeff].usb);
+					  (coeff_div[coeff].sr << 1) | coeff_div[coeff].usb);
 
 	return 0;
 }
@@ -546,9 +588,14 @@ static int wm8971_mute(struct snd_soc_dai *dai, int mute)
 	u16 mute_reg = snd_soc_read(codec, WM8971_ADCDAC) & 0xfff7;
 
 	if (mute)
+	{
 		snd_soc_write(codec, WM8971_ADCDAC, mute_reg | 0x8);
+	}
 	else
+	{
 		snd_soc_write(codec, WM8971_ADCDAC, mute_reg);
+	}
+
 	return 0;
 }
 
@@ -562,69 +609,81 @@ static void wm8971_charge_work(struct work_struct *work)
 }
 
 static int wm8971_set_bias_level(struct snd_soc_codec *codec,
-	enum snd_soc_bias_level level)
+								 enum snd_soc_bias_level level)
 {
 	struct wm8971_priv *wm8971 = snd_soc_codec_get_drvdata(codec);
 	u16 pwr_reg = snd_soc_read(codec, WM8971_PWR1) & 0xfe3e;
 
-	switch (level) {
-	case SND_SOC_BIAS_ON:
-		/* set vmid to 50k and unmute dac */
-		snd_soc_write(codec, WM8971_PWR1, pwr_reg | 0x00c1);
-		break;
-	case SND_SOC_BIAS_PREPARE:
-		/* Wait until fully charged */
-		flush_delayed_work(&wm8971->charge_work);
-		break;
-	case SND_SOC_BIAS_STANDBY:
-		if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF) {
-			snd_soc_cache_sync(codec);
-			/* charge output caps - set vmid to 5k for quick power up */
-			snd_soc_write(codec, WM8971_PWR1, pwr_reg | 0x01c0);
-			queue_delayed_work(system_power_efficient_wq,
-				&wm8971->charge_work, msecs_to_jiffies(1000));
-		} else {
-			/* mute dac and set vmid to 500k, enable VREF */
-			snd_soc_write(codec, WM8971_PWR1, pwr_reg | 0x0140);
-		}
+	switch (level)
+	{
+		case SND_SOC_BIAS_ON:
+			/* set vmid to 50k and unmute dac */
+			snd_soc_write(codec, WM8971_PWR1, pwr_reg | 0x00c1);
+			break;
 
-		break;
-	case SND_SOC_BIAS_OFF:
-		cancel_delayed_work_sync(&wm8971->charge_work);
-		snd_soc_write(codec, WM8971_PWR1, 0x0001);
-		break;
+		case SND_SOC_BIAS_PREPARE:
+			/* Wait until fully charged */
+			flush_delayed_work(&wm8971->charge_work);
+			break;
+
+		case SND_SOC_BIAS_STANDBY:
+			if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
+			{
+				snd_soc_cache_sync(codec);
+				/* charge output caps - set vmid to 5k for quick power up */
+				snd_soc_write(codec, WM8971_PWR1, pwr_reg | 0x01c0);
+				queue_delayed_work(system_power_efficient_wq,
+								   &wm8971->charge_work, msecs_to_jiffies(1000));
+			}
+			else
+			{
+				/* mute dac and set vmid to 500k, enable VREF */
+				snd_soc_write(codec, WM8971_PWR1, pwr_reg | 0x0140);
+			}
+
+			break;
+
+		case SND_SOC_BIAS_OFF:
+			cancel_delayed_work_sync(&wm8971->charge_work);
+			snd_soc_write(codec, WM8971_PWR1, 0x0001);
+			break;
 	}
+
 	return 0;
 }
 
 #define WM8971_RATES (SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_11025 |\
-		SNDRV_PCM_RATE_16000 | SNDRV_PCM_RATE_22050 | SNDRV_PCM_RATE_44100 | \
-		SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000)
+					  SNDRV_PCM_RATE_16000 | SNDRV_PCM_RATE_22050 | SNDRV_PCM_RATE_44100 | \
+					  SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000)
 
 #define WM8971_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE |\
-	SNDRV_PCM_FMTBIT_S24_LE)
+						SNDRV_PCM_FMTBIT_S24_LE)
 
-static const struct snd_soc_dai_ops wm8971_dai_ops = {
+static const struct snd_soc_dai_ops wm8971_dai_ops =
+{
 	.hw_params	= wm8971_pcm_hw_params,
 	.digital_mute	= wm8971_mute,
 	.set_fmt	= wm8971_set_dai_fmt,
 	.set_sysclk	= wm8971_set_dai_sysclk,
 };
 
-static struct snd_soc_dai_driver wm8971_dai = {
+static struct snd_soc_dai_driver wm8971_dai =
+{
 	.name = "wm8971-hifi",
 	.playback = {
 		.stream_name = "Playback",
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = WM8971_RATES,
-		.formats = WM8971_FORMATS,},
+		.formats = WM8971_FORMATS,
+	},
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = WM8971_RATES,
-		.formats = WM8971_FORMATS,},
+		.formats = WM8971_FORMATS,
+	},
 	.ops = &wm8971_dai_ops,
 };
 
@@ -649,7 +708,8 @@ static int wm8971_probe(struct snd_soc_codec *codec)
 	return 0;
 }
 
-static const struct snd_soc_codec_driver soc_codec_dev_wm8971 = {
+static const struct snd_soc_codec_driver soc_codec_dev_wm8971 =
+{
 	.probe =	wm8971_probe,
 	.set_bias_level = wm8971_set_bias_level,
 	.suspend_bias_off = true,
@@ -664,7 +724,8 @@ static const struct snd_soc_codec_driver soc_codec_dev_wm8971 = {
 	},
 };
 
-static const struct regmap_config wm8971_regmap = {
+static const struct regmap_config wm8971_regmap =
+{
 	.reg_bits = 7,
 	.val_bits = 9,
 	.max_register = WM8971_MOUTV,
@@ -675,24 +736,30 @@ static const struct regmap_config wm8971_regmap = {
 };
 
 static int wm8971_i2c_probe(struct i2c_client *i2c,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct wm8971_priv *wm8971;
 	int ret;
 
 	wm8971 = devm_kzalloc(&i2c->dev, sizeof(struct wm8971_priv),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (wm8971 == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	wm8971->regmap = devm_regmap_init_i2c(i2c, &wm8971_regmap);
+
 	if (IS_ERR(wm8971->regmap))
+	{
 		return PTR_ERR(wm8971->regmap);
+	}
 
 	i2c_set_clientdata(i2c, wm8971);
 
 	ret = snd_soc_register_codec(&i2c->dev,
-			&soc_codec_dev_wm8971, &wm8971_dai, 1);
+								 &soc_codec_dev_wm8971, &wm8971_dai, 1);
 
 	return ret;
 }
@@ -703,13 +770,15 @@ static int wm8971_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id wm8971_i2c_id[] = {
+static const struct i2c_device_id wm8971_i2c_id[] =
+{
 	{ "wm8971", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, wm8971_i2c_id);
 
-static struct i2c_driver wm8971_i2c_driver = {
+static struct i2c_driver wm8971_i2c_driver =
+{
 	.driver = {
 		.name = "wm8971",
 	},

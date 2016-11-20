@@ -34,7 +34,8 @@
 #define LDO_I2C_EN_MASK		0x1		/* Enable mask by i2c */
 #define LDO_I2C_EN_SHIFT	0		/* Enable offset by i2c */
 
-struct max8925_regulator_info {
+struct max8925_regulator_info
+{
 	struct regulator_desc	desc;
 	struct i2c_client	*i2c;
 
@@ -43,7 +44,7 @@ struct max8925_regulator_info {
 };
 
 static int max8925_set_voltage_sel(struct regulator_dev *rdev,
-				   unsigned int selector)
+								   unsigned int selector)
 {
 	struct max8925_regulator_info *info = rdev_get_drvdata(rdev);
 	unsigned char mask = rdev->desc->n_voltages - 1;
@@ -58,8 +59,12 @@ static int max8925_get_voltage_sel(struct regulator_dev *rdev)
 	int ret;
 
 	ret = max8925_reg_read(info->i2c, info->vol_reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	mask = rdev->desc->n_voltages - 1;
 	data = ret & mask;
 
@@ -71,10 +76,10 @@ static int max8925_enable(struct regulator_dev *rdev)
 	struct max8925_regulator_info *info = rdev_get_drvdata(rdev);
 
 	return max8925_set_bits(info->i2c, info->enable_reg,
-				LDO_SEQ_MASK << LDO_SEQ_SHIFT |
-				LDO_I2C_EN_MASK << LDO_I2C_EN_SHIFT,
-				LDO_SEQ_I2C << LDO_SEQ_SHIFT |
-				LDO_I2C_EN << LDO_I2C_EN_SHIFT);
+							LDO_SEQ_MASK << LDO_SEQ_SHIFT |
+							LDO_I2C_EN_MASK << LDO_I2C_EN_SHIFT,
+							LDO_SEQ_I2C << LDO_SEQ_SHIFT |
+							LDO_I2C_EN << LDO_I2C_EN_SHIFT);
 }
 
 static int max8925_disable(struct regulator_dev *rdev)
@@ -82,9 +87,9 @@ static int max8925_disable(struct regulator_dev *rdev)
 	struct max8925_regulator_info *info = rdev_get_drvdata(rdev);
 
 	return max8925_set_bits(info->i2c, info->enable_reg,
-				LDO_SEQ_MASK << LDO_SEQ_SHIFT |
-				LDO_I2C_EN_MASK << LDO_I2C_EN_SHIFT,
-				LDO_SEQ_I2C << LDO_SEQ_SHIFT);
+							LDO_SEQ_MASK << LDO_SEQ_SHIFT |
+							LDO_I2C_EN_MASK << LDO_I2C_EN_SHIFT,
+							LDO_SEQ_I2C << LDO_SEQ_SHIFT);
 }
 
 static int max8925_is_enabled(struct regulator_dev *rdev)
@@ -93,13 +98,22 @@ static int max8925_is_enabled(struct regulator_dev *rdev)
 	int ldo_seq, ret;
 
 	ret = max8925_reg_read(info->i2c, info->enable_reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ldo_seq = (ret >> LDO_SEQ_SHIFT) & LDO_SEQ_MASK;
+
 	if (ldo_seq != LDO_SEQ_I2C)
+	{
 		return 1;
+	}
 	else
+	{
 		return ret & (LDO_I2C_EN_MASK << LDO_I2C_EN_SHIFT);
+	}
 }
 
 static int max8925_set_dvm_voltage(struct regulator_dev *rdev, int uV)
@@ -108,7 +122,9 @@ static int max8925_set_dvm_voltage(struct regulator_dev *rdev, int uV)
 	unsigned char data, mask;
 
 	if (uV < SD1_DVM_VMIN || uV > SD1_DVM_VMAX)
+	{
 		return -EINVAL;
+	}
 
 	data = DIV_ROUND_UP(uV - SD1_DVM_VMIN, SD1_DVM_STEP);
 	data <<= SD1_DVM_SHIFT;
@@ -122,7 +138,7 @@ static int max8925_set_dvm_enable(struct regulator_dev *rdev)
 	struct max8925_regulator_info *info = rdev_get_drvdata(rdev);
 
 	return max8925_set_bits(info->i2c, info->vol_reg, 1 << SD1_DVM_EN,
-				1 << SD1_DVM_EN);
+							1 << SD1_DVM_EN);
 }
 
 static int max8925_set_dvm_disable(struct regulator_dev *rdev)
@@ -132,7 +148,8 @@ static int max8925_set_dvm_disable(struct regulator_dev *rdev)
 	return max8925_set_bits(info->i2c, info->vol_reg, 1 << SD1_DVM_EN, 0);
 }
 
-static struct regulator_ops max8925_regulator_sdv_ops = {
+static struct regulator_ops max8925_regulator_sdv_ops =
+{
 	.map_voltage		= regulator_map_voltage_linear,
 	.list_voltage		= regulator_list_voltage_linear,
 	.set_voltage_sel	= max8925_set_voltage_sel,
@@ -145,7 +162,8 @@ static struct regulator_ops max8925_regulator_sdv_ops = {
 	.set_suspend_disable	= max8925_set_dvm_disable,
 };
 
-static struct regulator_ops max8925_regulator_ldo_ops = {
+static struct regulator_ops max8925_regulator_ldo_ops =
+{
 	.map_voltage		= regulator_map_voltage_linear,
 	.list_voltage		= regulator_list_voltage_linear,
 	.set_voltage_sel	= max8925_set_voltage_sel,
@@ -156,39 +174,40 @@ static struct regulator_ops max8925_regulator_ldo_ops = {
 };
 
 #define MAX8925_SDV(_id, min, max, step)			\
-{								\
-	.desc	= {						\
-		.name	= "SDV" #_id,				\
-		.ops	= &max8925_regulator_sdv_ops,		\
-		.type	= REGULATOR_VOLTAGE,			\
-		.id	= MAX8925_ID_SD##_id,			\
-		.owner	= THIS_MODULE,				\
-		.n_voltages = 64,				\
-		.min_uV = min * 1000,				\
-		.uV_step = step * 1000,				\
-	},							\
-	.vol_reg	= MAX8925_SDV##_id,			\
-	.enable_reg	= MAX8925_SDCTL##_id,			\
-}
+	{								\
+		.desc	= {						\
+										.name	= "SDV" #_id,				\
+										.ops	= &max8925_regulator_sdv_ops,		\
+										.type	= REGULATOR_VOLTAGE,			\
+										.id	= MAX8925_ID_SD##_id,			\
+										.owner	= THIS_MODULE,				\
+										.n_voltages = 64,				\
+										.min_uV = min * 1000,				\
+										.uV_step = step * 1000,				\
+				},							\
+				  .vol_reg	= MAX8925_SDV##_id,			\
+								.enable_reg	= MAX8925_SDCTL##_id,			\
+	}
 
 #define MAX8925_LDO(_id, min, max, step)			\
-{								\
-	.desc	= {						\
-		.name	= "LDO" #_id,				\
-		.ops	= &max8925_regulator_ldo_ops,		\
-		.type	= REGULATOR_VOLTAGE,			\
-		.id	= MAX8925_ID_LDO##_id,			\
-		.owner	= THIS_MODULE,				\
-		.n_voltages = 64,				\
-		.min_uV = min * 1000,				\
-		.uV_step = step * 1000,				\
-	},							\
-	.vol_reg	= MAX8925_LDOVOUT##_id,			\
-	.enable_reg	= MAX8925_LDOCTL##_id,			\
-}
+	{								\
+		.desc	= {						\
+										.name	= "LDO" #_id,				\
+										.ops	= &max8925_regulator_ldo_ops,		\
+										.type	= REGULATOR_VOLTAGE,			\
+										.id	= MAX8925_ID_LDO##_id,			\
+										.owner	= THIS_MODULE,				\
+										.n_voltages = 64,				\
+										.min_uV = min * 1000,				\
+										.uV_step = step * 1000,				\
+				},							\
+				  .vol_reg	= MAX8925_LDOVOUT##_id,			\
+								.enable_reg	= MAX8925_LDOCTL##_id,			\
+	}
 
 #ifdef CONFIG_OF
-static struct of_regulator_match max8925_regulator_matches[] = {
+static struct of_regulator_match max8925_regulator_matches[] =
+{
 	{ .name	= "SDV1",},
 	{ .name = "SDV2",},
 	{ .name = "SDV3",},
@@ -215,7 +234,8 @@ static struct of_regulator_match max8925_regulator_matches[] = {
 };
 #endif
 
-static struct max8925_regulator_info max8925_regulator_info[] = {
+static struct max8925_regulator_info max8925_regulator_info[] =
+{
 	MAX8925_SDV(1, 637.5, 1425, 12.5),
 	MAX8925_SDV(2,   650, 2225,   25),
 	MAX8925_SDV(3,   750, 3900,   50),
@@ -244,26 +264,36 @@ static struct max8925_regulator_info max8925_regulator_info[] = {
 
 #ifdef CONFIG_OF
 static int max8925_regulator_dt_init(struct platform_device *pdev,
-				    struct regulator_config *config,
-				    int ridx)
+									 struct regulator_config *config,
+									 int ridx)
 {
 	struct device_node *nproot, *np;
 	int rcount;
 
 	nproot = pdev->dev.parent->of_node;
+
 	if (!nproot)
+	{
 		return -ENODEV;
+	}
+
 	np = of_get_child_by_name(nproot, "regulators");
-	if (!np) {
+
+	if (!np)
+	{
 		dev_err(&pdev->dev, "failed to find regulators node\n");
 		return -ENODEV;
 	}
 
 	rcount = of_regulator_match(&pdev->dev, np,
-				&max8925_regulator_matches[ridx], 1);
+								&max8925_regulator_matches[ridx], 1);
 	of_node_put(np);
+
 	if (rcount < 0)
+	{
 		return rcount;
+	}
+
 	config->init_data =	max8925_regulator_matches[ridx].init_data;
 	config->of_node = max8925_regulator_matches[ridx].of_node;
 
@@ -284,23 +314,31 @@ static int max8925_regulator_probe(struct platform_device *pdev)
 	int i, regulator_idx;
 
 	res = platform_get_resource(pdev, IORESOURCE_REG, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "No REG resource!\n");
 		return -EINVAL;
 	}
-	for (i = 0; i < ARRAY_SIZE(max8925_regulator_info); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(max8925_regulator_info); i++)
+	{
 		ri = &max8925_regulator_info[i];
-		if (ri->vol_reg == res->start) {
+
+		if (ri->vol_reg == res->start)
+		{
 			regulator_idx = i;
 			break;
 		}
 	}
 
-	if (i == ARRAY_SIZE(max8925_regulator_info)) {
+	if (i == ARRAY_SIZE(max8925_regulator_info))
+	{
 		dev_err(&pdev->dev, "Failed to find regulator %llu\n",
-			(unsigned long long)res->start);
+				(unsigned long long)res->start);
 		return -EINVAL;
 	}
+
 	ri->i2c = chip->i2c;
 
 	config.dev = &pdev->dev;
@@ -308,10 +346,14 @@ static int max8925_regulator_probe(struct platform_device *pdev)
 
 	if (max8925_regulator_dt_init(pdev, &config, regulator_idx))
 		if (pdata)
+		{
 			config.init_data = pdata;
+		}
 
 	rdev = devm_regulator_register(&pdev->dev, &ri->desc, &config);
-	if (IS_ERR(rdev)) {
+
+	if (IS_ERR(rdev))
+	{
 		dev_err(&pdev->dev, "failed to register regulator %s\n",
 				ri->desc.name);
 		return PTR_ERR(rdev);
@@ -321,7 +363,8 @@ static int max8925_regulator_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver max8925_regulator_driver = {
+static struct platform_driver max8925_regulator_driver =
+{
 	.driver		= {
 		.name	= "max8925-regulator",
 	},

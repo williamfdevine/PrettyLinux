@@ -37,7 +37,8 @@
 #include "7990.h"                                 /* use generic LANCE code */
 
 /* Our private data structure */
-struct hplance_private {
+struct hplance_private
+{
 	struct lance_private lance;
 };
 
@@ -55,19 +56,22 @@ static unsigned short hplance_readrdp(void *priv);
 static int hplance_open(struct net_device *dev);
 static int hplance_close(struct net_device *dev);
 
-static struct dio_device_id hplance_dio_tbl[] = {
+static struct dio_device_id hplance_dio_tbl[] =
+{
 	{ DIO_ID_LAN },
 	{ 0 }
 };
 
-static struct dio_driver hplance_driver = {
+static struct dio_driver hplance_driver =
+{
 	.name      = "hplance",
 	.id_table  = hplance_dio_tbl,
 	.probe     = hplance_init_one,
 	.remove    = hplance_remove_one,
 };
 
-static const struct net_device_ops hplance_netdev_ops = {
+static const struct net_device_ops hplance_netdev_ops =
+{
 	.ndo_open		= hplance_open,
 	.ndo_stop		= hplance_close,
 	.ndo_start_xmit		= lance_start_xmit,
@@ -87,31 +91,40 @@ static int hplance_init_one(struct dio_dev *d, const struct dio_device_id *ent)
 	int err = -ENOMEM;
 
 	dev = alloc_etherdev(sizeof(struct hplance_private));
+
 	if (!dev)
+	{
 		goto out;
+	}
 
 	err = -EBUSY;
+
 	if (!request_mem_region(dio_resource_start(d),
-				dio_resource_len(d), d->name))
+							dio_resource_len(d), d->name))
+	{
 		goto out_free_netdev;
+	}
 
 	hplance_init(dev, d);
 	err = register_netdev(dev);
+
 	if (err)
+	{
 		goto out_release_mem_region;
+	}
 
 	dio_set_drvdata(d, dev);
 
 	printk(KERN_INFO "%s: %s; select code %d, addr %pM, irq %d\n",
-	       dev->name, d->name, d->scode, dev->dev_addr, d->ipl);
+		   dev->name, d->name, d->scode, dev->dev_addr, d->ipl);
 
 	return 0;
 
- out_release_mem_region:
+out_release_mem_region:
 	release_mem_region(dio_resource_start(d), dio_resource_len(d));
- out_free_netdev:
+out_free_netdev:
 	free_netdev(dev);
- out:
+out:
 	return err;
 }
 
@@ -140,12 +153,13 @@ static void hplance_init(struct net_device *dev, struct dio_dev *d)
 	dev->netdev_ops = &hplance_netdev_ops;
 	dev->dma = 0;
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		/* The NVRAM holds our ethernet address, one nibble per byte,
 		 * at bytes NVRAMOFF+1,3,5,7,9...
 		 */
-		dev->dev_addr[i] = ((in_8(va + HPLANCE_NVRAMOFF + i*4 + 1) & 0xF) << 4)
-			| (in_8(va + HPLANCE_NVRAMOFF + i*4 + 3) & 0xF);
+		dev->dev_addr[i] = ((in_8(va + HPLANCE_NVRAMOFF + i * 4 + 1) & 0xF) << 4)
+						   | (in_8(va + HPLANCE_NVRAMOFF + i * 4 + 3) & 0xF);
 	}
 
 	lp = netdev_priv(dev);
@@ -170,26 +184,36 @@ static void hplance_init(struct net_device *dev, struct dio_dev *d)
 static void hplance_writerap(void *priv, unsigned short value)
 {
 	struct lance_private *lp = (struct lance_private *)priv;
-	do {
+
+	do
+	{
 		out_be16(lp->base + HPLANCE_REGOFF + LANCE_RAP, value);
-	} while ((in_8(lp->base + HPLANCE_STATUS) & LE_ACK) == 0);
+	}
+	while ((in_8(lp->base + HPLANCE_STATUS) & LE_ACK) == 0);
 }
 
 static void hplance_writerdp(void *priv, unsigned short value)
 {
 	struct lance_private *lp = (struct lance_private *)priv;
-	do {
+
+	do
+	{
 		out_be16(lp->base + HPLANCE_REGOFF + LANCE_RDP, value);
-	} while ((in_8(lp->base + HPLANCE_STATUS) & LE_ACK) == 0);
+	}
+	while ((in_8(lp->base + HPLANCE_STATUS) & LE_ACK) == 0);
 }
 
 static unsigned short hplance_readrdp(void *priv)
 {
 	struct lance_private *lp = (struct lance_private *)priv;
 	__u16 value;
-	do {
+
+	do
+	{
 		value = in_be16(lp->base + HPLANCE_REGOFF + LANCE_RDP);
-	} while ((in_8(lp->base + HPLANCE_STATUS) & LE_ACK) == 0);
+	}
+	while ((in_8(lp->base + HPLANCE_STATUS) & LE_ACK) == 0);
+
 	return value;
 }
 
@@ -199,8 +223,12 @@ static int hplance_open(struct net_device *dev)
 	struct lance_private *lp = netdev_priv(dev);
 
 	status = lance_open(dev);                 /* call generic lance open code */
+
 	if (status)
+	{
 		return status;
+	}
+
 	/* enable interrupts at board level. */
 	out_8(lp->base + HPLANCE_STATUS, LE_IE);
 

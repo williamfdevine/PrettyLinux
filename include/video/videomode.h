@@ -16,7 +16,8 @@
  * Subsystem independent description of a videomode.
  * Can be generated from struct display_timing.
  */
-struct videomode {
+struct videomode
+{
 	unsigned long pixelclock;	/* pixelclock in Hz */
 
 	u32 hactive;
@@ -41,7 +42,7 @@ struct videomode {
  * This function converts a struct display_timing to a struct videomode.
  */
 void videomode_from_timing(const struct display_timing *dt,
-			  struct videomode *vm);
+						   struct videomode *vm);
 
 /**
  * videomode_from_timings - convert one display timings entry to videomode
@@ -53,6 +54,6 @@ void videomode_from_timing(const struct display_timing *dt,
  * This function converts one struct display_timing entry to a struct videomode.
  */
 int videomode_from_timings(const struct display_timings *disp,
-			  struct videomode *vm, unsigned int index);
+						   struct videomode *vm, unsigned int index);
 
 #endif

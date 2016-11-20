@@ -16,15 +16,17 @@
 #include <linux/input.h>
 
 #if IS_ENABLED(CONFIG_VT)
-#define VT_TRIGGER(_name)	.trigger = _name
+	#define VT_TRIGGER(_name)	.trigger = _name
 #else
-#define VT_TRIGGER(_name)	.trigger = NULL
+	#define VT_TRIGGER(_name)	.trigger = NULL
 #endif
 
-static const struct {
+static const struct
+{
 	const char *name;
 	const char *trigger;
-} input_led_info[LED_CNT] = {
+} input_led_info[LED_CNT] =
+{
 	[LED_NUML]	= { "numlock", VT_TRIGGER("kbd-numlock") },
 	[LED_CAPSL]	= { "capslock", VT_TRIGGER("kbd-capslock") },
 	[LED_SCROLLL]	= { "scrolllock", VT_TRIGGER("kbd-scrolllock") },
@@ -38,13 +40,15 @@ static const struct {
 	[LED_CHARGING]	= { "charging" },
 };
 
-struct input_led {
+struct input_led
+{
 	struct led_classdev cdev;
 	struct input_handle *handle;
 	unsigned int code; /* One of LED_* constants */
 };
 
-struct input_leds {
+struct input_leds
+{
 	struct input_handle handle;
 	unsigned int num_leds;
 	struct input_led leds[];
@@ -59,7 +63,7 @@ static enum led_brightness input_leds_brightness_get(struct led_classdev *cdev)
 }
 
 static void input_leds_brightness_set(struct led_classdev *cdev,
-				      enum led_brightness brightness)
+									  enum led_brightness brightness)
 {
 	struct input_led *led = container_of(cdev, struct input_led, cdev);
 
@@ -67,7 +71,7 @@ static void input_leds_brightness_set(struct led_classdev *cdev,
 }
 
 static void input_leds_event(struct input_handle *handle, unsigned int type,
-			     unsigned int code, int value)
+							 unsigned int code, int value)
 {
 }
 
@@ -77,15 +81,18 @@ static int input_leds_get_count(struct input_dev *dev)
 	int count = 0;
 
 	for_each_set_bit(led_code, dev->ledbit, LED_CNT)
-		if (input_led_info[led_code].name)
-			count++;
+
+	if (input_led_info[led_code].name)
+	{
+		count++;
+	}
 
 	return count;
 }
 
 static int input_leds_connect(struct input_handler *handler,
-			      struct input_dev *dev,
-			      const struct input_device_id *id)
+							  struct input_dev *dev,
+							  const struct input_device_id *id)
 {
 	struct input_leds *leds;
 	unsigned int num_leds;
@@ -94,13 +101,19 @@ static int input_leds_connect(struct input_handler *handler,
 	int error;
 
 	num_leds = input_leds_get_count(dev);
+
 	if (!num_leds)
+	{
 		return -ENXIO;
+	}
 
 	leds = kzalloc(sizeof(*leds) + num_leds * sizeof(*leds->leds),
-		       GFP_KERNEL);
+				   GFP_KERNEL);
+
 	if (!leds)
+	{
 		return -ENOMEM;
+	}
 
 	leds->num_leds = num_leds;
 
@@ -110,27 +123,38 @@ static int input_leds_connect(struct input_handler *handler,
 	leds->handle.private = leds;
 
 	error = input_register_handle(&leds->handle);
+
 	if (error)
+	{
 		goto err_free_mem;
+	}
 
 	error = input_open_device(&leds->handle);
+
 	if (error)
+	{
 		goto err_unregister_handle;
+	}
 
 	led_no = 0;
-	for_each_set_bit(led_code, dev->ledbit, LED_CNT) {
+	for_each_set_bit(led_code, dev->ledbit, LED_CNT)
+	{
 		struct input_led *led = &leds->leds[led_no];
 
 		led->handle = &leds->handle;
 		led->code = led_code;
 
 		if (!input_led_info[led_code].name)
+		{
 			continue;
+		}
 
 		led->cdev.name = kasprintf(GFP_KERNEL, "%s::%s",
-					   dev_name(&dev->dev),
-					   input_led_info[led_code].name);
-		if (!led->cdev.name) {
+								   dev_name(&dev->dev),
+								   input_led_info[led_code].name);
+
+		if (!led->cdev.name)
+		{
 			error = -ENOMEM;
 			goto err_unregister_leds;
 		}
@@ -141,9 +165,11 @@ static int input_leds_connect(struct input_handler *handler,
 		led->cdev.default_trigger = input_led_info[led_code].trigger;
 
 		error = led_classdev_register(&dev->dev, &led->cdev);
-		if (error) {
+
+		if (error)
+		{
 			dev_err(&dev->dev, "failed to register LED %s: %d\n",
-				led->cdev.name, error);
+					led->cdev.name, error);
 			kfree(led->cdev.name);
 			goto err_unregister_leds;
 		}
@@ -154,7 +180,9 @@ static int input_leds_connect(struct input_handler *handler,
 	return 0;
 
 err_unregister_leds:
-	while (--led_no >= 0) {
+
+	while (--led_no >= 0)
+	{
 		struct input_led *led = &leds->leds[led_no];
 
 		led_classdev_unregister(&led->cdev);
@@ -176,7 +204,8 @@ static void input_leds_disconnect(struct input_handle *handle)
 	struct input_leds *leds = handle->private;
 	int i;
 
-	for (i = 0; i < leds->num_leds; i++) {
+	for (i = 0; i < leds->num_leds; i++)
+	{
 		struct input_led *led = &leds->leds[i];
 
 		led_classdev_unregister(&led->cdev);
@@ -189,7 +218,8 @@ static void input_leds_disconnect(struct input_handle *handle)
 	kfree(leds);
 }
 
-static const struct input_device_id input_leds_ids[] = {
+static const struct input_device_id input_leds_ids[] =
+{
 	{
 		.flags = INPUT_DEVICE_ID_MATCH_EVBIT,
 		.evbit = { BIT_MASK(EV_LED) },
@@ -198,7 +228,8 @@ static const struct input_device_id input_leds_ids[] = {
 };
 MODULE_DEVICE_TABLE(input, input_leds_ids);
 
-static struct input_handler input_leds_handler = {
+static struct input_handler input_leds_handler =
+{
 	.event =	input_leds_event,
 	.connect =	input_leds_connect,
 	.disconnect =	input_leds_disconnect,

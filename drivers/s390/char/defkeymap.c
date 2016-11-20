@@ -8,7 +8,8 @@
 #include <linux/kbd_kern.h>
 #include <linux/kbd_diacr.h>
 
-u_short plain_map[NR_KEYS] = {
+u_short plain_map[NR_KEYS] =
+{
 	0xf000,	0xf000,	0xf000,	0xf000,	0xf000,	0xf000,	0xf000,	0xf000,
 	0xf000,	0xf000,	0xf000,	0xf000,	0xf000,	0xf000,	0xf000,	0xf000,
 	0xf000,	0xf000,	0xf000,	0xf000,	0xf000,	0xf000,	0xf000,	0xf000,
@@ -27,7 +28,8 @@ u_short plain_map[NR_KEYS] = {
 	0xf0cc,	0xf060,	0xf03a,	0xf023,	0xf040,	0xf027,	0xf03d,	0xf022,
 };
 
-static u_short shift_map[NR_KEYS] = {
+static u_short shift_map[NR_KEYS] =
+{
 	0xf0d8,	0xf061,	0xf062,	0xf063,	0xf064,	0xf065,	0xf066,	0xf067,
 	0xf068,	0xf069,	0xf0ab,	0xf0bb,	0xf0f0,	0xf0fd,	0xf0fe,	0xf0b1,
 	0xf0b0,	0xf06a,	0xf06b,	0xf06c,	0xf06d,	0xf06e,	0xf06f,	0xf070,
@@ -46,7 +48,8 @@ static u_short shift_map[NR_KEYS] = {
 	0xf038,	0xf039,	0xf0b3,	0xf0db,	0xf0dc,	0xf0d9,	0xf0da,	0xf000,
 };
 
-static u_short ctrl_map[NR_KEYS] = {
+static u_short ctrl_map[NR_KEYS] =
+{
 	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,
 	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,
 	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,
@@ -65,7 +68,8 @@ static u_short ctrl_map[NR_KEYS] = {
 	0xf200,	0xf200,	0xf109,	0xf10a,	0xf206,	0xf00a,	0xf200,	0xf200,
 };
 
-static u_short shift_ctrl_map[NR_KEYS] = {
+static u_short shift_ctrl_map[NR_KEYS] =
+{
 	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,
 	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,
 	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,
@@ -84,7 +88,8 @@ static u_short shift_ctrl_map[NR_KEYS] = {
 	0xf20a,	0xf108,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,	0xf200,
 };
 
-ushort *key_maps[MAX_NR_KEYMAPS] = {
+ushort *key_maps[MAX_NR_KEYMAPS] =
+{
 	plain_map, shift_map, NULL, NULL,
 	ctrl_map, shift_ctrl_map, NULL,
 };
@@ -98,27 +103,28 @@ unsigned int keymap_count = 4;
  * the default and allocate dynamically in chunks of 512 bytes.
  */
 
-char func_buf[] = {
-	'\033', '[', '[', 'A', 0, 
-	'\033', '[', '[', 'B', 0, 
-	'\033', '[', '[', 'C', 0, 
-	'\033', '[', '[', 'D', 0, 
-	'\033', '[', '[', 'E', 0, 
-	'\033', '[', '1', '7', '~', 0, 
-	'\033', '[', '1', '8', '~', 0, 
-	'\033', '[', '1', '9', '~', 0, 
-	'\033', '[', '2', '0', '~', 0, 
-	'\033', '[', '2', '1', '~', 0, 
-	'\033', '[', '2', '3', '~', 0, 
-	'\033', '[', '2', '4', '~', 0, 
-	'\033', '[', '2', '5', '~', 0, 
-	'\033', '[', '2', '6', '~', 0, 
-	'\033', '[', '2', '8', '~', 0, 
-	'\033', '[', '2', '9', '~', 0, 
-	'\033', '[', '3', '1', '~', 0, 
-	'\033', '[', '3', '2', '~', 0, 
-	'\033', '[', '3', '3', '~', 0, 
-	'\033', '[', '3', '4', '~', 0, 
+char func_buf[] =
+{
+	'\033', '[', '[', 'A', 0,
+	'\033', '[', '[', 'B', 0,
+	'\033', '[', '[', 'C', 0,
+	'\033', '[', '[', 'D', 0,
+	'\033', '[', '[', 'E', 0,
+	'\033', '[', '1', '7', '~', 0,
+	'\033', '[', '1', '8', '~', 0,
+	'\033', '[', '1', '9', '~', 0,
+	'\033', '[', '2', '0', '~', 0,
+	'\033', '[', '2', '1', '~', 0,
+	'\033', '[', '2', '3', '~', 0,
+	'\033', '[', '2', '4', '~', 0,
+	'\033', '[', '2', '5', '~', 0,
+	'\033', '[', '2', '6', '~', 0,
+	'\033', '[', '2', '8', '~', 0,
+	'\033', '[', '2', '9', '~', 0,
+	'\033', '[', '3', '1', '~', 0,
+	'\033', '[', '3', '2', '~', 0,
+	'\033', '[', '3', '3', '~', 0,
+	'\033', '[', '3', '4', '~', 0,
 };
 
 
@@ -126,7 +132,8 @@ char *funcbufptr = func_buf;
 int funcbufsize = sizeof(func_buf);
 int funcbufleft = 0;          /* space left */
 
-char *func_table[MAX_NR_FUNC] = {
+char *func_table[MAX_NR_FUNC] =
+{
 	func_buf + 0,
 	func_buf + 5,
 	func_buf + 10,
@@ -150,7 +157,8 @@ char *func_table[MAX_NR_FUNC] = {
 	NULL,
 };
 
-struct kbdiacruc accent_table[MAX_DIACR] = {
+struct kbdiacruc accent_table[MAX_DIACR] =
+{
 	{'^', 'c', 0003},	{'^', 'd', 0004},
 	{'^', 'z', 0032},	{'^', 0012, 0000},
 };

@@ -147,18 +147,19 @@ struct iwl_cfg;
  *	entrance is aborted (e.g. due to held reference). May sleep.
  * @exit_d0i3: configure the fw to exit d0i3. May sleep.
  */
-struct iwl_op_mode_ops {
+struct iwl_op_mode_ops
+{
 	struct iwl_op_mode *(*start)(struct iwl_trans *trans,
-				     const struct iwl_cfg *cfg,
-				     const struct iwl_fw *fw,
-				     struct dentry *dbgfs_dir);
+								 const struct iwl_cfg *cfg,
+								 const struct iwl_fw *fw,
+								 struct dentry *dbgfs_dir);
 	void (*stop)(struct iwl_op_mode *op_mode);
 	void (*rx)(struct iwl_op_mode *op_mode, struct napi_struct *napi,
-		   struct iwl_rx_cmd_buffer *rxb);
+			   struct iwl_rx_cmd_buffer *rxb);
 	void (*rx_rss)(struct iwl_op_mode *op_mode, struct napi_struct *napi,
-		       struct iwl_rx_cmd_buffer *rxb, unsigned int queue);
+				   struct iwl_rx_cmd_buffer *rxb, unsigned int queue);
 	void (*async_cb)(struct iwl_op_mode *op_mode,
-			 const struct iwl_device_cmd *cmd);
+					 const struct iwl_device_cmd *cmd);
 	void (*queue_full)(struct iwl_op_mode *op_mode, int queue);
 	void (*queue_not_full)(struct iwl_op_mode *op_mode, int queue);
 	bool (*hw_rf_kill)(struct iwl_op_mode *op_mode, bool state);
@@ -180,7 +181,8 @@ void iwl_opmode_deregister(const char *name);
  *
  * This holds an implementation of the mac80211 / fw API.
  */
-struct iwl_op_mode {
+struct iwl_op_mode
+{
 	const struct iwl_op_mode_ops *ops;
 
 	char op_mode_specific[0] __aligned(sizeof(void *));
@@ -193,35 +195,37 @@ static inline void iwl_op_mode_stop(struct iwl_op_mode *op_mode)
 }
 
 static inline void iwl_op_mode_rx(struct iwl_op_mode *op_mode,
-				  struct napi_struct *napi,
-				  struct iwl_rx_cmd_buffer *rxb)
+								  struct napi_struct *napi,
+								  struct iwl_rx_cmd_buffer *rxb)
 {
 	return op_mode->ops->rx(op_mode, napi, rxb);
 }
 
 static inline void iwl_op_mode_rx_rss(struct iwl_op_mode *op_mode,
-				      struct napi_struct *napi,
-				      struct iwl_rx_cmd_buffer *rxb,
-				      unsigned int queue)
+									  struct napi_struct *napi,
+									  struct iwl_rx_cmd_buffer *rxb,
+									  unsigned int queue)
 {
 	op_mode->ops->rx_rss(op_mode, napi, rxb, queue);
 }
 
 static inline void iwl_op_mode_async_cb(struct iwl_op_mode *op_mode,
-					const struct iwl_device_cmd *cmd)
+										const struct iwl_device_cmd *cmd)
 {
 	if (op_mode->ops->async_cb)
+	{
 		op_mode->ops->async_cb(op_mode, cmd);
+	}
 }
 
 static inline void iwl_op_mode_queue_full(struct iwl_op_mode *op_mode,
-					  int queue)
+		int queue)
 {
 	op_mode->ops->queue_full(op_mode, queue);
 }
 
 static inline void iwl_op_mode_queue_not_full(struct iwl_op_mode *op_mode,
-					      int queue)
+		int queue)
 {
 	op_mode->ops->queue_not_full(op_mode, queue);
 }
@@ -234,7 +238,7 @@ iwl_op_mode_hw_rf_kill(struct iwl_op_mode *op_mode, bool state)
 }
 
 static inline void iwl_op_mode_free_skb(struct iwl_op_mode *op_mode,
-					struct sk_buff *skb)
+										struct sk_buff *skb)
 {
 	op_mode->ops->free_skb(op_mode, skb);
 }
@@ -266,7 +270,10 @@ static inline int iwl_op_mode_enter_d0i3(struct iwl_op_mode *op_mode)
 	might_sleep();
 
 	if (!op_mode->ops->enter_d0i3)
+	{
 		return 0;
+	}
+
 	return op_mode->ops->enter_d0i3(op_mode);
 }
 
@@ -275,7 +282,10 @@ static inline int iwl_op_mode_exit_d0i3(struct iwl_op_mode *op_mode)
 	might_sleep();
 
 	if (!op_mode->ops->exit_d0i3)
+	{
 		return 0;
+	}
+
 	return op_mode->ops->exit_d0i3(op_mode);
 }
 

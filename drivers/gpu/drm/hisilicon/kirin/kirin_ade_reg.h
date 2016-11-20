@@ -109,7 +109,8 @@
 /*
  * ADE regs relevant enums
  */
-enum frame_end_start {
+enum frame_end_start
+{
 	/* regs take effect in every vsync */
 	REG_EFFECTIVE_IN_VSYNC = 0,
 	/* regs take effect in fist ade en and every frame end */
@@ -120,7 +121,8 @@ enum frame_end_start {
 	REG_EFFECTIVE_IN_VSYNC_FRMEND
 };
 
-enum ade_fb_format {
+enum ade_fb_format
+{
 	ADE_RGB_565 = 0,
 	ADE_BGR_565,
 	ADE_XRGB_8888,
@@ -134,19 +136,22 @@ enum ade_fb_format {
 	ADE_FORMAT_UNSUPPORT = 800
 };
 
-enum ade_channel {
+enum ade_channel
+{
 	ADE_CH1 = 0,	/* channel 1 for primary plane */
 	ADE_CH_NUM
 };
 
-enum ade_scale {
+enum ade_scale
+{
 	ADE_SCL1 = 0,
 	ADE_SCL2,
 	ADE_SCL3,
 	ADE_SCL_NUM
 };
 
-enum ade_ctran {
+enum ade_ctran
+{
 	ADE_CTRAN1 = 0,
 	ADE_CTRAN2,
 	ADE_CTRAN3,
@@ -156,20 +161,23 @@ enum ade_ctran {
 	ADE_CTRAN_NUM
 };
 
-enum ade_overlay {
+enum ade_overlay
+{
 	ADE_OVLY1 = 0,
 	ADE_OVLY2,
 	ADE_OVLY3,
 	ADE_OVLY_NUM
 };
 
-enum ade_alpha_mode {
+enum ade_alpha_mode
+{
 	ADE_ALP_GLOBAL = 0,
 	ADE_ALP_PIXEL,
 	ADE_ALP_PIXEL_AND_GLB
 };
 
-enum ade_alpha_blending_mode {
+enum ade_alpha_blending_mode
+{
 	ADE_ALP_MUL_COEFF_0 = 0,	/* alpha */
 	ADE_ALP_MUL_COEFF_1,		/* 1-alpha */
 	ADE_ALP_MUL_COEFF_2,		/* 0 */
@@ -179,23 +187,27 @@ enum ade_alpha_blending_mode {
 /*
  * LDI regs relevant enums
  */
-enum dsi_pclk_en {
+enum dsi_pclk_en
+{
 	DSI_PCLK_ON = 0,
 	DSI_PCLK_OFF
 };
 
-enum ldi_output_format {
+enum ldi_output_format
+{
 	LDI_OUT_RGB_565 = 0,
 	LDI_OUT_RGB_666,
 	LDI_OUT_RGB_888
 };
 
-enum ldi_work_mode {
+enum ldi_work_mode
+{
 	TEST_MODE = 0,
 	NORMAL_MODE
 };
 
-enum ldi_input_source {
+enum ldi_input_source
+{
 	DISP_SRC_NONE = 0,
 	DISP_SRC_OVLY2,
 	DISP_SRC_DISP,
@@ -206,7 +218,8 @@ enum ldi_input_source {
 /*
  * ADE media bus service relevant enums
  */
-enum qos_generator_mode {
+enum qos_generator_mode
+{
 	FIXED_MODE = 0,
 	LIMITER_MODE,
 	BYPASS_MODE,
@@ -217,7 +230,7 @@ enum qos_generator_mode {
  * Register Write/Read Helper functions
  */
 static inline void ade_update_bits(void __iomem *addr, u32 bit_start,
-				   u32 mask, u32 val)
+								   u32 mask, u32 val)
 {
 	u32 tmp, orig;
 

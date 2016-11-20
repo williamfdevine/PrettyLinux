@@ -23,7 +23,7 @@
 			char debug_buffer[ZCRYPT_DBF_LEN]; \
 			snprintf(debug_buffer, ZCRYPT_DBF_LEN, text); \
 			debug_text_event(zcrypt_dbf_common, level, \
-					 debug_buffer); \
+							 debug_buffer); \
 		} \
 	} while (0)
 
@@ -33,7 +33,7 @@
 			char debug_buffer[ZCRYPT_DBF_LEN]; \
 			snprintf(debug_buffer, ZCRYPT_DBF_LEN, text); \
 			debug_text_event(zcrypt_dbf_devices, level, \
-					 debug_buffer); \
+							 debug_buffer); \
 		} \
 	} while (0)
 
@@ -43,7 +43,7 @@
 			char debug_buffer[ZCRYPT_DBF_LEN]; \
 			snprintf(debug_buffer, ZCRYPT_DBF_LEN, text); \
 			debug_text_event(device->dbf_area, level, \
-					 debug_buffer); \
+							 debug_buffer); \
 		} \
 	} while (0)
 

@@ -60,14 +60,16 @@
 #define QCA9377_HW_1_0_DEV_VERSION	0x05020000
 #define QCA9377_HW_1_1_DEV_VERSION	0x05020001
 
-enum qca6174_pci_rev {
+enum qca6174_pci_rev
+{
 	QCA6174_PCI_REV_1_1 = 0x11,
 	QCA6174_PCI_REV_1_3 = 0x13,
 	QCA6174_PCI_REV_2_0 = 0x20,
 	QCA6174_PCI_REV_3_0 = 0x30,
 };
 
-enum qca6174_chip_id_rev {
+enum qca6174_chip_id_rev
+{
 	QCA6174_HW_1_0_CHIP_ID_REV = 0,
 	QCA6174_HW_1_1_CHIP_ID_REV = 1,
 	QCA6174_HW_1_3_CHIP_ID_REV = 2,
@@ -78,7 +80,8 @@ enum qca6174_chip_id_rev {
 	QCA6174_HW_3_2_CHIP_ID_REV = 10,
 };
 
-enum qca9377_chip_id_rev {
+enum qca9377_chip_id_rev
+{
 	QCA9377_HW_1_0_CHIP_ID_REV = 0x0,
 	QCA9377_HW_1_1_CHIP_ID_REV = 0x1,
 };
@@ -148,13 +151,15 @@ enum qca9377_chip_id_rev {
 
 #define REG_DUMP_COUNT_QCA988X 60
 
-struct ath10k_fw_ie {
+struct ath10k_fw_ie
+{
 	__le32 id;
 	__le32 len;
 	u8 data[0];
 };
 
-enum ath10k_fw_ie_type {
+enum ath10k_fw_ie_type
+{
 	ATH10K_FW_IE_FW_VERSION = 0,
 	ATH10K_FW_IE_TIMESTAMP = 1,
 	ATH10K_FW_IE_FEATURES = 2,
@@ -175,7 +180,8 @@ enum ath10k_fw_ie_type {
 	ATH10K_FW_IE_FW_CODE_SWAP_IMAGE = 7,
 };
 
-enum ath10k_fw_wmi_op_version {
+enum ath10k_fw_wmi_op_version
+{
 	ATH10K_FW_WMI_OP_VERSION_UNSET = 0,
 
 	ATH10K_FW_WMI_OP_VERSION_MAIN = 1,
@@ -189,7 +195,8 @@ enum ath10k_fw_wmi_op_version {
 	ATH10K_FW_WMI_OP_VERSION_MAX,
 };
 
-enum ath10k_fw_htt_op_version {
+enum ath10k_fw_htt_op_version
+{
 	ATH10K_FW_HTT_OP_VERSION_UNSET = 0,
 
 	ATH10K_FW_HTT_OP_VERSION_MAIN = 1,
@@ -205,17 +212,20 @@ enum ath10k_fw_htt_op_version {
 	ATH10K_FW_HTT_OP_VERSION_MAX,
 };
 
-enum ath10k_bd_ie_type {
+enum ath10k_bd_ie_type
+{
 	/* contains sub IEs of enum ath10k_bd_ie_board_type */
 	ATH10K_BD_IE_BOARD = 0,
 };
 
-enum ath10k_bd_ie_board_type {
+enum ath10k_bd_ie_board_type
+{
 	ATH10K_BD_IE_BOARD_NAME = 0,
 	ATH10K_BD_IE_BOARD_DATA = 1,
 };
 
-enum ath10k_hw_rev {
+enum ath10k_hw_rev
+{
 	ATH10K_HW_QCA988X,
 	ATH10K_HW_QCA6174,
 	ATH10K_HW_QCA99X0,
@@ -226,7 +236,8 @@ enum ath10k_hw_rev {
 	ATH10K_HW_QCA9887,
 };
 
-struct ath10k_hw_regs {
+struct ath10k_hw_regs
+{
 	u32 rtc_soc_base_address;
 	u32 rtc_wmac_base_address;
 	u32 soc_core_base_address;
@@ -257,7 +268,8 @@ extern const struct ath10k_hw_regs qca6174_regs;
 extern const struct ath10k_hw_regs qca99x0_regs;
 extern const struct ath10k_hw_regs qca4019_regs;
 
-struct ath10k_hw_values {
+struct ath10k_hw_values
+{
 	u32 rtc_state_val_on;
 	u8 ce_count;
 	u8 msi_assign_ce_max;
@@ -273,7 +285,7 @@ extern const struct ath10k_hw_values qca9888_values;
 extern const struct ath10k_hw_values qca4019_values;
 
 void ath10k_hw_fill_survey_time(struct ath10k *ar, struct survey_info *survey,
-				u32 cc, u32 rcc, u32 cc_prev, u32 rcc_prev);
+								u32 cc, u32 rcc, u32 cc_prev, u32 rcc_prev);
 
 #define QCA_REV_988X(ar) ((ar)->hw_rev == ATH10K_HW_QCA988X)
 #define QCA_REV_9887(ar) ((ar)->hw_rev == ATH10K_HW_QCA9887)
@@ -289,7 +301,8 @@ void ath10k_hw_fill_survey_time(struct ath10k *ar, struct survey_info *survey,
  *  - raw have FCS, nwifi doesn't
  *  - ethernet frames have 802.11 header decapped and parts (base hdr, cipher
  *    param, llc/snap) are aligned to 4byte boundaries each */
-enum ath10k_hw_txrx_mode {
+enum ath10k_hw_txrx_mode
+{
 	ATH10K_HW_TXRX_RAW = 0,
 
 	/* Native Wifi decap mode is used to align IP frames to 4-byte
@@ -302,12 +315,14 @@ enum ath10k_hw_txrx_mode {
 	ATH10K_HW_TXRX_MGMT = 3,
 };
 
-enum ath10k_mcast2ucast_mode {
+enum ath10k_mcast2ucast_mode
+{
 	ATH10K_MCAST2UCAST_DISABLED = 0,
 	ATH10K_MCAST2UCAST_ENABLED = 1,
 };
 
-enum ath10k_hw_rate_ofdm {
+enum ath10k_hw_rate_ofdm
+{
 	ATH10K_HW_RATE_OFDM_48M = 0,
 	ATH10K_HW_RATE_OFDM_24M,
 	ATH10K_HW_RATE_OFDM_12M,
@@ -318,7 +333,8 @@ enum ath10k_hw_rate_ofdm {
 	ATH10K_HW_RATE_OFDM_9M,
 };
 
-enum ath10k_hw_rate_cck {
+enum ath10k_hw_rate_cck
+{
 	ATH10K_HW_RATE_CCK_LP_11M = 0,
 	ATH10K_HW_RATE_CCK_LP_5_5M,
 	ATH10K_HW_RATE_CCK_LP_2M,
@@ -328,7 +344,8 @@ enum ath10k_hw_rate_cck {
 	ATH10K_HW_RATE_CCK_SP_2M,
 };
 
-enum ath10k_hw_rate_rev2_cck {
+enum ath10k_hw_rate_rev2_cck
+{
 	ATH10K_HW_RATE_REV2_CCK_LP_1M = 1,
 	ATH10K_HW_RATE_REV2_CCK_LP_2M,
 	ATH10K_HW_RATE_REV2_CCK_LP_5_5M,
@@ -338,7 +355,8 @@ enum ath10k_hw_rate_rev2_cck {
 	ATH10K_HW_RATE_REV2_CCK_SP_11M,
 };
 
-enum ath10k_hw_cc_wraparound_type {
+enum ath10k_hw_cc_wraparound_type
+{
 	ATH10K_HW_CC_WRAP_DISABLED = 0,
 
 	/* This type is when the HW chip has a quirky Cycle Counter
@@ -358,7 +376,8 @@ enum ath10k_hw_cc_wraparound_type {
 	ATH10K_HW_CC_WRAP_SHIFTED_EACH = 2,
 };
 
-struct ath10k_hw_params {
+struct ath10k_hw_params
+{
 	u32 id;
 	u16 dev_id;
 	const char *name;
@@ -395,7 +414,8 @@ struct ath10k_hw_params {
 	u32 max_spatial_stream;
 	u32 cal_data_len;
 
-	struct ath10k_hw_params_fw {
+	struct ath10k_hw_params_fw
+	{
 		const char *dir;
 		const char *board;
 		size_t board_size;
@@ -416,7 +436,8 @@ struct ath10k_hw_params {
 struct htt_rx_desc;
 
 /* Defines needed for Rx descriptor abstraction */
-struct ath10k_hw_ops {
+struct ath10k_hw_ops
+{
 	int (*rx_desc_get_l3_pad_bytes)(struct htt_rx_desc *rxd);
 };
 
@@ -425,10 +446,13 @@ extern const struct ath10k_hw_ops qca99x0_ops;
 
 static inline int
 ath10k_rx_desc_get_l3_pad_bytes(struct ath10k_hw_params *hw,
-				struct htt_rx_desc *rxd)
+								struct htt_rx_desc *rxd)
 {
 	if (hw->hw_ops->rx_desc_get_l3_pad_bytes)
+	{
 		return hw->hw_ops->rx_desc_get_l3_pad_bytes(rxd);
+	}
+
 	return 0;
 }
 
@@ -441,7 +465,7 @@ ath10k_rx_desc_get_l3_pad_bytes(struct ath10k_hw_params *hw,
 #define TARGET_AST_SKID_LIMIT			16
 #define TARGET_NUM_STATIONS			16
 #define TARGET_NUM_PEERS			((TARGET_NUM_STATIONS) + \
-						 (TARGET_NUM_VDEVS))
+									 (TARGET_NUM_VDEVS))
 #define TARGET_NUM_OFFLOAD_PEERS		0
 #define TARGET_NUM_OFFLOAD_REORDER_BUFS         0
 #define TARGET_NUM_PEER_KEYS			2
@@ -475,17 +499,17 @@ ath10k_rx_desc_get_l3_pad_bytes(struct ath10k_hw_params *hw,
 #define TARGET_10X_NUM_STATIONS			128
 #define TARGET_10X_TX_STATS_NUM_STATIONS	118
 #define TARGET_10X_NUM_PEERS			((TARGET_10X_NUM_STATIONS) + \
-						 (TARGET_10X_NUM_VDEVS))
+		(TARGET_10X_NUM_VDEVS))
 #define TARGET_10X_TX_STATS_NUM_PEERS		((TARGET_10X_TX_STATS_NUM_STATIONS) + \
-						 (TARGET_10X_NUM_VDEVS))
+		(TARGET_10X_NUM_VDEVS))
 #define TARGET_10X_NUM_OFFLOAD_PEERS		0
 #define TARGET_10X_NUM_OFFLOAD_REORDER_BUFS	0
 #define TARGET_10X_NUM_PEER_KEYS		2
 #define TARGET_10X_NUM_TIDS_MAX			256
 #define TARGET_10X_NUM_TIDS			min((TARGET_10X_NUM_TIDS_MAX), \
-						    (TARGET_10X_NUM_PEERS) * 2)
+										(TARGET_10X_NUM_PEERS) * 2)
 #define TARGET_10X_TX_STATS_NUM_TIDS		min((TARGET_10X_NUM_TIDS_MAX), \
-						    (TARGET_10X_TX_STATS_NUM_PEERS) * 2)
+		(TARGET_10X_TX_STATS_NUM_PEERS) * 2)
 #define TARGET_10X_TX_CHAIN_MASK		(BIT(0) | BIT(1) | BIT(2))
 #define TARGET_10X_RX_CHAIN_MASK		(BIT(0) | BIT(1) | BIT(2))
 #define TARGET_10X_RX_TIMEOUT_LO_PRI		100
@@ -525,7 +549,7 @@ ath10k_rx_desc_get_l3_pad_bytes(struct ath10k_hw_params *hw,
 #define TARGET_10_4_NUM_VDEVS			16
 #define TARGET_10_4_NUM_STATIONS		32
 #define TARGET_10_4_NUM_PEERS			((TARGET_10_4_NUM_STATIONS) + \
-						 (TARGET_10_4_NUM_VDEVS))
+		(TARGET_10_4_NUM_VDEVS))
 #define TARGET_10_4_ACTIVE_PEERS		0
 
 #define TARGET_10_4_NUM_QCACHE_PEERS_MAX	512

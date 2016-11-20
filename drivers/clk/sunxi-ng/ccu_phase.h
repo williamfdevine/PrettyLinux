@@ -18,7 +18,8 @@
 
 #include "ccu_common.h"
 
-struct ccu_phase {
+struct ccu_phase
+{
 	u8			shift;
 	u8			width;
 
@@ -28,14 +29,14 @@ struct ccu_phase {
 #define SUNXI_CCU_PHASE(_struct, _name, _parent, _reg, _shift, _width, _flags) \
 	struct ccu_phase _struct = {					\
 		.shift	= _shift,					\
-		.width	= _width,					\
-		.common	= {						\
-			.reg		= _reg,				\
-			.hw.init	= CLK_HW_INIT(_name,		\
-						      _parent,		\
-						      &ccu_phase_ops,	\
-						      _flags),		\
-		}							\
+				  .width	= _width,					\
+							.common	= {						\
+															.reg		= _reg,				\
+															.hw.init	= CLK_HW_INIT(_name,		\
+																	_parent,		\
+																	&ccu_phase_ops,	\
+																	_flags),		\
+									  }							\
 	}
 
 static inline struct ccu_phase *hw_to_ccu_phase(struct clk_hw *hw)

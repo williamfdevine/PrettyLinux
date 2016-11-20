@@ -38,52 +38,72 @@ static int stmmac_jumbo_frm(void *p, struct sk_buff *skb, int csum)
 	unsigned int i = 1, len;
 
 	if (priv->plat->enh_desc)
+	{
 		bmax = BUF_SIZE_8KiB;
+	}
 	else
+	{
 		bmax = BUF_SIZE_2KiB;
+	}
 
 	len = nopaged_len - bmax;
 
 	desc->des2 = dma_map_single(priv->device, skb->data,
-				    bmax, DMA_TO_DEVICE);
+								bmax, DMA_TO_DEVICE);
+
 	if (dma_mapping_error(priv->device, desc->des2))
+	{
 		return -1;
+	}
+
 	priv->tx_skbuff_dma[entry].buf = desc->des2;
 	priv->tx_skbuff_dma[entry].len = bmax;
 	/* do not close the descriptor and do not set own bit */
 	priv->hw->desc->prepare_tx_desc(desc, 1, bmax, csum, STMMAC_CHAIN_MODE,
-					0, false);
+									0, false);
 
-	while (len != 0) {
+	while (len != 0)
+	{
 		priv->tx_skbuff[entry] = NULL;
 		entry = STMMAC_GET_ENTRY(entry, DMA_TX_SIZE);
 		desc = priv->dma_tx + entry;
 
-		if (len > bmax) {
+		if (len > bmax)
+		{
 			desc->des2 = dma_map_single(priv->device,
-						    (skb->data + bmax * i),
-						    bmax, DMA_TO_DEVICE);
+										(skb->data + bmax * i),
+										bmax, DMA_TO_DEVICE);
+
 			if (dma_mapping_error(priv->device, desc->des2))
+			{
 				return -1;
+			}
+
 			priv->tx_skbuff_dma[entry].buf = desc->des2;
 			priv->tx_skbuff_dma[entry].len = bmax;
 			priv->hw->desc->prepare_tx_desc(desc, 0, bmax, csum,
-							STMMAC_CHAIN_MODE, 1,
-							false);
+											STMMAC_CHAIN_MODE, 1,
+											false);
 			len -= bmax;
 			i++;
-		} else {
+		}
+		else
+		{
 			desc->des2 = dma_map_single(priv->device,
-						    (skb->data + bmax * i), len,
-						    DMA_TO_DEVICE);
+										(skb->data + bmax * i), len,
+										DMA_TO_DEVICE);
+
 			if (dma_mapping_error(priv->device, desc->des2))
+			{
 				return -1;
+			}
+
 			priv->tx_skbuff_dma[entry].buf = desc->des2;
 			priv->tx_skbuff_dma[entry].len = len;
 			/* last descriptor can be set now */
 			priv->hw->desc->prepare_tx_desc(desc, 0, len, csum,
-							STMMAC_CHAIN_MODE, 1,
-							true);
+											STMMAC_CHAIN_MODE, 1,
+											true);
 			len = 0;
 		}
 	}
@@ -98,7 +118,8 @@ static unsigned int stmmac_is_jumbo_frm(int len, int enh_desc)
 	unsigned int ret = 0;
 
 	if ((enh_desc && (len > BUF_SIZE_8KiB)) ||
-	    (!enh_desc && (len > BUF_SIZE_2KiB))) {
+		(!enh_desc && (len > BUF_SIZE_2KiB)))
+	{
 		ret = 1;
 	}
 
@@ -106,7 +127,7 @@ static unsigned int stmmac_is_jumbo_frm(int len, int enh_desc)
 }
 
 static void stmmac_init_dma_chain(void *des, dma_addr_t phy_addr,
-				  unsigned int size, unsigned int extend_desc)
+								  unsigned int size, unsigned int extend_desc)
 {
 	/*
 	 * In chained mode the des3 points to the next element in the ring.
@@ -115,22 +136,31 @@ static void stmmac_init_dma_chain(void *des, dma_addr_t phy_addr,
 	int i;
 	dma_addr_t dma_phy = phy_addr;
 
-	if (extend_desc) {
+	if (extend_desc)
+	{
 		struct dma_extended_desc *p = (struct dma_extended_desc *)des;
-		for (i = 0; i < (size - 1); i++) {
+
+		for (i = 0; i < (size - 1); i++)
+		{
 			dma_phy += sizeof(struct dma_extended_desc);
 			p->basic.des3 = (unsigned int)dma_phy;
 			p++;
 		}
+
 		p->basic.des3 = (unsigned int)phy_addr;
 
-	} else {
+	}
+	else
+	{
 		struct dma_desc *p = (struct dma_desc *)des;
-		for (i = 0; i < (size - 1); i++) {
+
+		for (i = 0; i < (size - 1); i++)
+		{
 			dma_phy += sizeof(struct dma_desc);
 			p->des3 = (unsigned int)dma_phy;
 			p++;
 		}
+
 		p->des3 = (unsigned int)phy_addr;
 	}
 }
@@ -145,9 +175,9 @@ static void stmmac_refill_desc3(void *priv_ptr, struct dma_desc *p)
 		 * to keep explicit chaining in the descriptor.
 		 */
 		p->des3 = (unsigned int)(priv->dma_rx_phy +
-					 (((priv->dirty_rx) + 1) %
-					  DMA_RX_SIZE) *
-					 sizeof(struct dma_desc));
+								 (((priv->dirty_rx) + 1) %
+								  DMA_RX_SIZE) *
+								 sizeof(struct dma_desc));
 }
 
 static void stmmac_clean_desc3(void *priv_ptr, struct dma_desc *p)
@@ -156,17 +186,18 @@ static void stmmac_clean_desc3(void *priv_ptr, struct dma_desc *p)
 	unsigned int entry = priv->dirty_tx;
 
 	if (priv->tx_skbuff_dma[entry].last_segment && !priv->extend_desc &&
-	    priv->hwts_tx_en)
+		priv->hwts_tx_en)
 		/* NOTE: Device will overwrite des3 with timestamp value if
 		 * 1588-2002 time stamping is enabled, hence reinitialize it
 		 * to keep explicit chaining in the descriptor.
 		 */
 		p->des3 = (unsigned int)((priv->dma_tx_phy +
-					  ((priv->dirty_tx + 1) % DMA_TX_SIZE))
-					  * sizeof(struct dma_desc));
+								  ((priv->dirty_tx + 1) % DMA_TX_SIZE))
+								 * sizeof(struct dma_desc));
 }
 
-const struct stmmac_mode_ops chain_mode_ops = {
+const struct stmmac_mode_ops chain_mode_ops =
+{
 	.init = stmmac_init_dma_chain,
 	.is_jumbo_frm = stmmac_is_jumbo_frm,
 	.jumbo_frm = stmmac_jumbo_frm,

@@ -30,7 +30,8 @@ struct module;
 /**
  * Interface type
  */
-enum most_interface_type {
+enum most_interface_type
+{
 	ITYPE_LOOPBACK = 1,
 	ITYPE_I2C,
 	ITYPE_I2S,
@@ -45,7 +46,8 @@ enum most_interface_type {
 /**
  * Channel direction.
  */
-enum most_channel_direction {
+enum most_channel_direction
+{
 	MOST_CH_RX = 1 << 0,
 	MOST_CH_TX = 1 << 1,
 };
@@ -53,14 +55,16 @@ enum most_channel_direction {
 /**
  * Channel data type.
  */
-enum most_channel_data_type {
+enum most_channel_data_type
+{
 	MOST_CH_CONTROL = 1 << 0,
 	MOST_CH_ASYNC = 1 << 1,
 	MOST_CH_ISOC = 1 << 2,
 	MOST_CH_SYNC = 1 << 5,
 };
 
-enum mbo_status_flags {
+enum mbo_status_flags
+{
 	/* MBO was processed successfully (data was send or received )*/
 	MBO_SUCCESS = 0,
 	/* The MBO contains wrong or missing information.  */
@@ -105,7 +109,8 @@ enum mbo_status_flags {
  * where content of each file is a string with all supported properties of this
  * very channel attribute.
  */
-struct most_channel_capability {
+struct most_channel_capability
+{
 	u16 direction;
 	u16 data_type;
 	u16 num_buffers_packet;
@@ -133,7 +138,8 @@ struct most_channel_capability {
  * provided from the MostCore to a HDM (like the Medusa PCIe Interface) as a
  * parameter of the "configure" function call.
  */
-struct most_channel_config {
+struct most_channel_config
+{
 	enum most_channel_direction direction;
 	enum most_channel_data_type data_type;
 	u16 num_buffers;
@@ -184,7 +190,8 @@ struct most_channel_config {
  * MBOs it is currently not in control of.
  *
  */
-struct mbo {
+struct mbo
+{
 	void *context;
 	void *priv;
 	struct list_head list;
@@ -235,16 +242,17 @@ struct mbo {
  *   means of "Message exchange over MDP/MEP"
  * @priv Private field used by mostcore to store context information.
  */
-struct most_interface {
+struct most_interface
+{
 	struct module *mod;
 	enum most_interface_type interface;
 	const char *description;
 	int num_channels;
 	struct most_channel_capability *channel_vector;
 	int (*configure)(struct most_interface *iface, int channel_idx,
-			 struct most_channel_config *channel_config);
+					 struct most_channel_config *channel_config);
 	int (*enqueue)(struct most_interface *iface, int channel_idx,
-		       struct mbo *mbo);
+				   struct mbo *mbo);
 	int (*poison_channel)(struct most_interface *iface, int channel_idx);
 	void (*request_netinfo)(struct most_interface *iface, int channel_idx);
 	void *priv;
@@ -259,13 +267,14 @@ struct most_interface {
  * @tx_completion: completion handler for transmitted packets
  * @context: context pointer to be used by mostcore
  */
-struct most_aim {
+struct most_aim
+{
 	const char *name;
 	int (*probe_channel)(struct most_interface *iface, int channel_idx,
-			     struct most_channel_config *cfg,
-			     struct kobject *parent, char *name);
+						 struct most_channel_config *cfg,
+						 struct kobject *parent, char *name);
 	int (*disconnect_channel)(struct most_interface *iface,
-				  int channel_idx);
+							  int channel_idx);
 	int (*rx_completion)(struct mbo *mbo);
 	int (*tx_completion)(struct most_interface *iface, int channel_idx);
 	void *context;
@@ -308,13 +317,13 @@ void most_resume_enqueue(struct most_interface *iface, int channel_idx);
 int most_register_aim(struct most_aim *aim);
 int most_deregister_aim(struct most_aim *aim);
 struct mbo *most_get_mbo(struct most_interface *iface, int channel_idx,
-			 struct most_aim *);
+						 struct most_aim *);
 void most_put_mbo(struct mbo *mbo);
 int channel_has_mbo(struct most_interface *iface, int channel_idx,
-		    struct most_aim *aim);
+					struct most_aim *aim);
 int most_start_channel(struct most_interface *iface, int channel_idx,
-		       struct most_aim *);
+					   struct most_aim *);
 int most_stop_channel(struct most_interface *iface, int channel_idx,
-		      struct most_aim *);
+					  struct most_aim *);
 
 #endif /* MOST_CORE_H_ */

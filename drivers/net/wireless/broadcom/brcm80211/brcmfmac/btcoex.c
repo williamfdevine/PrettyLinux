@@ -54,7 +54,8 @@
 * @BRCMF_BT_DHCP_FLAG_FORCE_TIMEOUT: wifi priority boost end,
 *	restore defaults
 */
-enum brcmf_btcoex_state {
+enum brcmf_btcoex_state
+{
 	BRCMF_BT_DHCP_IDLE,
 	BRCMF_BT_DHCP_START,
 	BRCMF_BT_DHCP_OPPR_WIN,
@@ -83,7 +84,8 @@ enum brcmf_btcoex_state {
  * @saved_regs_part1: flag indicating regs 50,51,64,65,71
  *	have been saved
  */
-struct brcmf_btcoex_info {
+struct brcmf_btcoex_info
+{
 	struct brcmf_cfg80211_vif *vif;
 	struct timer_list timer;
 	u16 timeout;
@@ -112,7 +114,8 @@ struct brcmf_btcoex_info {
  */
 static s32 brcmf_btcoex_params_write(struct brcmf_if *ifp, u32 addr, u32 data)
 {
-	struct {
+	struct
+	{
 		__le32 addr;
 		__le32 data;
 	} reg_write;
@@ -120,7 +123,7 @@ static s32 brcmf_btcoex_params_write(struct brcmf_if *ifp, u32 addr, u32 data)
 	reg_write.addr = cpu_to_le32(addr);
 	reg_write.data = cpu_to_le32(data);
 	return brcmf_fil_iovar_data_set(ifp, "btc_params",
-					&reg_write, sizeof(reg_write));
+									&reg_write, sizeof(reg_write));
 }
 
 /**
@@ -147,11 +150,12 @@ static s32 brcmf_btcoex_params_read(struct brcmf_if *ifp, u32 addr, u32 *data)
  * Enhanced BT COEX settings for eSCO compatibility during DHCP window
  */
 static void brcmf_btcoex_boost_wifi(struct brcmf_btcoex_info *btci,
-				    bool trump_sco)
+									bool trump_sco)
 {
 	struct brcmf_if *ifp = brcmf_get_ifp(btci->cfg->pub, 0);
 
-	if (trump_sco && !btci->saved_regs_part2) {
+	if (trump_sco && !btci->saved_regs_part2)
+	{
 		/* this should reduce eSCO agressive
 		 * retransmit w/o breaking it
 		 */
@@ -166,9 +170,9 @@ static void brcmf_btcoex_boost_wifi(struct brcmf_btcoex_info *btci,
 
 		btci->saved_regs_part2 = true;
 		brcmf_dbg(INFO,
-			  "saved bt_params[50,51,64,65,71]: 0x%x 0x%x 0x%x 0x%x 0x%x\n",
-			  btci->reg50, btci->reg51, btci->reg64,
-			  btci->reg65, btci->reg71);
+				  "saved bt_params[50,51,64,65,71]: 0x%x 0x%x 0x%x 0x%x 0x%x\n",
+				  btci->reg50, btci->reg51, btci->reg64,
+				  btci->reg65, btci->reg71);
 
 		/* pacify the eSco   */
 		brcmf_btcoex_params_write(ifp, 50, BRCMF_BT_DHCP_REG50);
@@ -177,7 +181,9 @@ static void brcmf_btcoex_boost_wifi(struct brcmf_btcoex_info *btci,
 		brcmf_btcoex_params_write(ifp, 65, BRCMF_BT_DHCP_REG65);
 		brcmf_btcoex_params_write(ifp, 71, BRCMF_BT_DHCP_REG71);
 
-	} else if (btci->saved_regs_part2) {
+	}
+	else if (btci->saved_regs_part2)
+	{
 		/* restore previously saved bt params */
 		brcmf_dbg(INFO, "Do new SCO/eSCO coex algo {restore}\n");
 		brcmf_btcoex_params_write(ifp, 50, btci->reg50);
@@ -187,12 +193,14 @@ static void brcmf_btcoex_boost_wifi(struct brcmf_btcoex_info *btci,
 		brcmf_btcoex_params_write(ifp, 71, btci->reg71);
 
 		brcmf_dbg(INFO,
-			  "restored bt_params[50,51,64,65,71]: 0x%x 0x%x 0x%x 0x%x 0x%x\n",
-			  btci->reg50, btci->reg51, btci->reg64,
-			  btci->reg65, btci->reg71);
+				  "restored bt_params[50,51,64,65,71]: 0x%x 0x%x 0x%x 0x%x 0x%x\n",
+				  btci->reg50, btci->reg51, btci->reg64,
+				  btci->reg65, btci->reg71);
 
 		btci->saved_regs_part2 = false;
-	} else {
+	}
+	else
+	{
 		brcmf_dbg(INFO, "attempted to restore not saved BTCOEX params\n");
 	}
 }
@@ -211,28 +219,33 @@ static bool brcmf_btcoex_is_sco_active(struct brcmf_if *ifp)
 	u32 param27;
 	int i;
 
-	for (i = 0; i < BRCMF_BT_SCO_SAMPLES; i++) {
+	for (i = 0; i < BRCMF_BT_SCO_SAMPLES; i++)
+	{
 		ioc_res = brcmf_btcoex_params_read(ifp, 27, &param27);
 
-		if (ioc_res < 0) {
+		if (ioc_res < 0)
+		{
 			brcmf_err("ioc read btc params error\n");
 			break;
 		}
 
 		brcmf_dbg(INFO, "sample[%d], btc_params 27:%x\n", i, param27);
 
-		if ((param27 & 0x6) == 2) { /* count both sco & esco  */
+		if ((param27 & 0x6) == 2)   /* count both sco & esco  */
+		{
 			sco_id_cnt++;
 		}
 
-		if (sco_id_cnt > 2) {
+		if (sco_id_cnt > 2)
+		{
 			brcmf_dbg(INFO,
-				  "sco/esco detected, pkt id_cnt:%d samples:%d\n",
-				  sco_id_cnt, i);
+					  "sco/esco detected, pkt id_cnt:%d samples:%d\n",
+					  sco_id_cnt, i);
 			res = true;
 			break;
 		}
 	}
+
 	brcmf_dbg(TRACE, "exit: result=%d\n", res);
 	return res;
 }
@@ -244,16 +257,17 @@ static void btcmf_btcoex_save_part1(struct brcmf_btcoex_info *btci)
 {
 	struct brcmf_if *ifp = btci->vif->ifp;
 
-	if (!btci->saved_regs_part1) {
+	if (!btci->saved_regs_part1)
+	{
 		/* Retrieve and save original reg value */
 		brcmf_btcoex_params_read(ifp, 66, &btci->reg66);
 		brcmf_btcoex_params_read(ifp, 41, &btci->reg41);
 		brcmf_btcoex_params_read(ifp, 68, &btci->reg68);
 		btci->saved_regs_part1 = true;
 		brcmf_dbg(INFO,
-			  "saved btc_params regs (66,41,68) 0x%x 0x%x 0x%x\n",
-			  btci->reg66, btci->reg41,
-			  btci->reg68);
+				  "saved btc_params regs (66,41,68) 0x%x 0x%x 0x%x\n",
+				  btci->reg66, btci->reg41,
+				  btci->reg68);
 	}
 }
 
@@ -264,16 +278,17 @@ static void brcmf_btcoex_restore_part1(struct brcmf_btcoex_info *btci)
 {
 	struct brcmf_if *ifp;
 
-	if (btci->saved_regs_part1) {
+	if (btci->saved_regs_part1)
+	{
 		btci->saved_regs_part1 = false;
 		ifp = btci->vif->ifp;
 		brcmf_btcoex_params_write(ifp, 66, btci->reg66);
 		brcmf_btcoex_params_write(ifp, 41, btci->reg41);
 		brcmf_btcoex_params_write(ifp, 68, btci->reg68);
 		brcmf_dbg(INFO,
-			  "restored btc_params regs {66,41,68} 0x%x 0x%x 0x%x\n",
-			  btci->reg66, btci->reg41,
-			  btci->reg68);
+				  "restored btc_params regs {66,41,68} 0x%x 0x%x 0x%x\n",
+				  btci->reg66, btci->reg41,
+				  btci->reg68);
 	}
 }
 
@@ -297,56 +312,67 @@ static void brcmf_btcoex_handler(struct work_struct *work)
 {
 	struct brcmf_btcoex_info *btci;
 	btci = container_of(work, struct brcmf_btcoex_info, work);
-	if (btci->timer_on) {
+
+	if (btci->timer_on)
+	{
 		btci->timer_on = false;
 		del_timer_sync(&btci->timer);
 	}
 
-	switch (btci->bt_state) {
-	case BRCMF_BT_DHCP_START:
-		/* DHCP started provide OPPORTUNITY window
-		   to get DHCP address
-		*/
-		brcmf_dbg(INFO, "DHCP started\n");
-		btci->bt_state = BRCMF_BT_DHCP_OPPR_WIN;
-		if (btci->timeout < BRCMF_BTCOEX_OPPR_WIN_TIME) {
-			mod_timer(&btci->timer, btci->timer.expires);
-		} else {
-			btci->timeout -= BRCMF_BTCOEX_OPPR_WIN_TIME;
-			mod_timer(&btci->timer,
-				  jiffies + BRCMF_BTCOEX_OPPR_WIN_TIME);
-		}
-		btci->timer_on = true;
-		break;
+	switch (btci->bt_state)
+	{
+		case BRCMF_BT_DHCP_START:
+			/* DHCP started provide OPPORTUNITY window
+			   to get DHCP address
+			*/
+			brcmf_dbg(INFO, "DHCP started\n");
+			btci->bt_state = BRCMF_BT_DHCP_OPPR_WIN;
 
-	case BRCMF_BT_DHCP_OPPR_WIN:
-		if (btci->dhcp_done) {
-			brcmf_dbg(INFO, "DHCP done before T1 expiration\n");
+			if (btci->timeout < BRCMF_BTCOEX_OPPR_WIN_TIME)
+			{
+				mod_timer(&btci->timer, btci->timer.expires);
+			}
+			else
+			{
+				btci->timeout -= BRCMF_BTCOEX_OPPR_WIN_TIME;
+				mod_timer(&btci->timer,
+						  jiffies + BRCMF_BTCOEX_OPPR_WIN_TIME);
+			}
+
+			btci->timer_on = true;
+			break;
+
+		case BRCMF_BT_DHCP_OPPR_WIN:
+			if (btci->dhcp_done)
+			{
+				brcmf_dbg(INFO, "DHCP done before T1 expiration\n");
+				goto idle;
+			}
+
+			/* DHCP is not over yet, start lowering BT priority */
+			brcmf_dbg(INFO, "DHCP T1:%d expired\n",
+					  jiffies_to_msecs(BRCMF_BTCOEX_OPPR_WIN_TIME));
+			brcmf_btcoex_boost_wifi(btci, true);
+
+			btci->bt_state = BRCMF_BT_DHCP_FLAG_FORCE_TIMEOUT;
+			mod_timer(&btci->timer, jiffies + btci->timeout);
+			btci->timer_on = true;
+			break;
+
+		case BRCMF_BT_DHCP_FLAG_FORCE_TIMEOUT:
+			if (btci->dhcp_done)
+			{
+				brcmf_dbg(INFO, "DHCP done before T2 expiration\n");
+			}
+			else
+				brcmf_dbg(INFO, "DHCP T2:%d expired\n",
+						  BRCMF_BT_DHCP_FLAG_FORCE_TIMEOUT);
+
 			goto idle;
-		}
 
-		/* DHCP is not over yet, start lowering BT priority */
-		brcmf_dbg(INFO, "DHCP T1:%d expired\n",
-			  jiffies_to_msecs(BRCMF_BTCOEX_OPPR_WIN_TIME));
-		brcmf_btcoex_boost_wifi(btci, true);
-
-		btci->bt_state = BRCMF_BT_DHCP_FLAG_FORCE_TIMEOUT;
-		mod_timer(&btci->timer, jiffies + btci->timeout);
-		btci->timer_on = true;
-		break;
-
-	case BRCMF_BT_DHCP_FLAG_FORCE_TIMEOUT:
-		if (btci->dhcp_done)
-			brcmf_dbg(INFO, "DHCP done before T2 expiration\n");
-		else
-			brcmf_dbg(INFO, "DHCP T2:%d expired\n",
-				  BRCMF_BT_DHCP_FLAG_FORCE_TIMEOUT);
-
-		goto idle;
-
-	default:
-		brcmf_err("invalid state=%d !!!\n", btci->bt_state);
-		goto idle;
+		default:
+			brcmf_err("invalid state=%d !!!\n", btci->bt_state);
+			goto idle;
 	}
 
 	return;
@@ -372,8 +398,11 @@ int brcmf_btcoex_attach(struct brcmf_cfg80211_info *cfg)
 	brcmf_dbg(TRACE, "enter\n");
 
 	btci = kmalloc(sizeof(struct brcmf_btcoex_info), GFP_KERNEL);
+
 	if (!btci)
+	{
 		return -ENOMEM;
+	}
 
 	btci->bt_state = BRCMF_BT_DHCP_IDLE;
 
@@ -402,9 +431,12 @@ void brcmf_btcoex_detach(struct brcmf_cfg80211_info *cfg)
 	brcmf_dbg(TRACE, "enter\n");
 
 	if (!cfg->btcoex)
+	{
 		return;
+	}
 
-	if (cfg->btcoex->timer_on) {
+	if (cfg->btcoex->timer_on)
+	{
 		cfg->btcoex->timer_on = false;
 		del_timer_sync(&cfg->btcoex->timer);
 	}
@@ -437,18 +469,23 @@ static void brcmf_btcoex_dhcp_end(struct brcmf_btcoex_info *btci)
 {
 	/* Stop any bt timer because DHCP session is done */
 	btci->dhcp_done = true;
-	if (btci->timer_on) {
+
+	if (btci->timer_on)
+	{
 		brcmf_dbg(INFO, "disable BT DHCP Timer\n");
 		btci->timer_on = false;
 		del_timer_sync(&btci->timer);
 
 		/* schedule worker if transition to IDLE is needed */
-		if (btci->bt_state != BRCMF_BT_DHCP_IDLE) {
+		if (btci->bt_state != BRCMF_BT_DHCP_IDLE)
+		{
 			brcmf_dbg(INFO, "bt_state:%d\n",
-				  btci->bt_state);
+					  btci->bt_state);
 			schedule_work(&btci->work);
 		}
-	} else {
+	}
+	else
+	{
 		/* Restore original values */
 		brcmf_btcoex_restore_part1(btci);
 	}
@@ -462,34 +499,46 @@ static void brcmf_btcoex_dhcp_end(struct brcmf_btcoex_info *btci)
  * return: 0 on success
  */
 int brcmf_btcoex_set_mode(struct brcmf_cfg80211_vif *vif,
-			  enum brcmf_btcoex_mode mode, u16 duration)
+						  enum brcmf_btcoex_mode mode, u16 duration)
 {
 	struct brcmf_cfg80211_info *cfg = wiphy_priv(vif->wdev.wiphy);
 	struct brcmf_btcoex_info *btci = cfg->btcoex;
 	struct brcmf_if *ifp = brcmf_get_ifp(cfg->pub, 0);
 
-	switch (mode) {
-	case BRCMF_BTCOEX_DISABLED:
-		brcmf_dbg(INFO, "DHCP session starts\n");
-		if (btci->bt_state != BRCMF_BT_DHCP_IDLE)
-			return -EBUSY;
-		/* Start BT timer only for SCO connection */
-		if (brcmf_btcoex_is_sco_active(ifp)) {
-			btci->timeout = msecs_to_jiffies(duration);
-			btci->vif = vif;
-			brcmf_btcoex_dhcp_start(btci);
-		}
-		break;
+	switch (mode)
+	{
+		case BRCMF_BTCOEX_DISABLED:
+			brcmf_dbg(INFO, "DHCP session starts\n");
 
-	case BRCMF_BTCOEX_ENABLED:
-		brcmf_dbg(INFO, "DHCP session ends\n");
-		if (btci->bt_state != BRCMF_BT_DHCP_IDLE &&
-		    vif == btci->vif) {
-			brcmf_btcoex_dhcp_end(btci);
-		}
-		break;
-	default:
-		brcmf_dbg(INFO, "Unknown mode, ignored\n");
+			if (btci->bt_state != BRCMF_BT_DHCP_IDLE)
+			{
+				return -EBUSY;
+			}
+
+			/* Start BT timer only for SCO connection */
+			if (brcmf_btcoex_is_sco_active(ifp))
+			{
+				btci->timeout = msecs_to_jiffies(duration);
+				btci->vif = vif;
+				brcmf_btcoex_dhcp_start(btci);
+			}
+
+			break;
+
+		case BRCMF_BTCOEX_ENABLED:
+			brcmf_dbg(INFO, "DHCP session ends\n");
+
+			if (btci->bt_state != BRCMF_BT_DHCP_IDLE &&
+				vif == btci->vif)
+			{
+				brcmf_btcoex_dhcp_end(btci);
+			}
+
+			break;
+
+		default:
+			brcmf_dbg(INFO, "Unknown mode, ignored\n");
 	}
+
 	return 0;
 }

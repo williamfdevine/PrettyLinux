@@ -125,7 +125,8 @@
 #define SS_RXFIFO_EMP_INT_ENABLE	(1 << 2)
 #define SS_TXFIFO_AVA_INT_ENABLE	(1 << 0)
 
-struct sun4i_ss_ctx {
+struct sun4i_ss_ctx
+{
 	void __iomem *base;
 	int irq;
 	struct clk *busclk;
@@ -136,28 +137,33 @@ struct sun4i_ss_ctx {
 	spinlock_t slock; /* control the use of the device */
 };
 
-struct sun4i_ss_alg_template {
+struct sun4i_ss_alg_template
+{
 	u32 type;
 	u32 mode;
-	union {
+	union
+	{
 		struct crypto_alg crypto;
 		struct ahash_alg hash;
 	} alg;
 	struct sun4i_ss_ctx *ss;
 };
 
-struct sun4i_tfm_ctx {
+struct sun4i_tfm_ctx
+{
 	u32 key[AES_MAX_KEY_SIZE / 4];/* divided by sizeof(u32) */
 	u32 keylen;
 	u32 keymode;
 	struct sun4i_ss_ctx *ss;
 };
 
-struct sun4i_cipher_req_ctx {
+struct sun4i_cipher_req_ctx
+{
 	u32 mode;
 };
 
-struct sun4i_req_ctx {
+struct sun4i_req_ctx
+{
 	u32 mode;
 	u64 byte_count; /* number of bytes "uploaded" to the device */
 	u32 hash[5]; /* for storing SS_IVx register */
@@ -194,8 +200,8 @@ int sun4i_ss_ecb_des3_decrypt(struct ablkcipher_request *areq);
 
 int sun4i_ss_cipher_init(struct crypto_tfm *tfm);
 int sun4i_ss_aes_setkey(struct crypto_ablkcipher *tfm, const u8 *key,
-			unsigned int keylen);
+						unsigned int keylen);
 int sun4i_ss_des_setkey(struct crypto_ablkcipher *tfm, const u8 *key,
-			unsigned int keylen);
+						unsigned int keylen);
 int sun4i_ss_des3_setkey(struct crypto_ablkcipher *tfm, const u8 *key,
-			 unsigned int keylen);
+						 unsigned int keylen);

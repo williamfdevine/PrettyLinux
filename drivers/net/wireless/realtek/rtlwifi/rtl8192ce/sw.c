@@ -112,25 +112,25 @@ int rtl92c_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpriv->rtlhal.macphymode = SINGLEMAC_SINGLEPHY;
 
 	rtlpci->receive_config = (RCR_APPFCS |
-				  RCR_AMF |
-				  RCR_ADF |
-				  RCR_APP_MIC |
-				  RCR_APP_ICV |
-				  RCR_AICV |
-				  RCR_ACRC32 |
-				  RCR_AB |
-				  RCR_AM |
-				  RCR_APM |
-				  RCR_APP_PHYST_RXFF | RCR_HTC_LOC_CTRL | 0);
+							  RCR_AMF |
+							  RCR_ADF |
+							  RCR_APP_MIC |
+							  RCR_APP_ICV |
+							  RCR_AICV |
+							  RCR_ACRC32 |
+							  RCR_AB |
+							  RCR_AM |
+							  RCR_APM |
+							  RCR_APP_PHYST_RXFF | RCR_HTC_LOC_CTRL | 0);
 
 	rtlpci->irq_mask[0] =
-	    (u32) (IMR_ROK |
-		   IMR_VODOK |
-		   IMR_VIDOK |
-		   IMR_BEDOK |
-		   IMR_BKDOK |
-		   IMR_MGNTDOK |
-		   IMR_HIGHDOK | IMR_BDOK | IMR_RDU | IMR_RXFOVW | 0);
+		(u32) (IMR_ROK |
+			   IMR_VODOK |
+			   IMR_VIDOK |
+			   IMR_BEDOK |
+			   IMR_BKDOK |
+			   IMR_MGNTDOK |
+			   IMR_HIGHDOK | IMR_BDOK | IMR_RDU | IMR_RXFOVW | 0);
 
 	rtlpci->irq_mask[1] = (u32) (IMR_CPWM | IMR_C2HCMD | 0);
 
@@ -142,10 +142,17 @@ int rtl92c_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpriv->psc.fwctrl_lps = rtlpriv->cfg->mod_params->fwctrl_lps;
 	rtlpriv->cfg->mod_params->sw_crypto =
 		rtlpriv->cfg->mod_params->sw_crypto;
+
 	if (!rtlpriv->psc.inactiveps)
+	{
 		pr_info("rtl8192ce: Power Save off (module option)\n");
+	}
+
 	if (!rtlpriv->psc.fwctrl_lps)
+	{
 		pr_info("rtl8192ce: FW Power Save off (module option)\n");
+	}
+
 	rtlpriv->psc.reg_fwctrl_lps = 3;
 	rtlpriv->psc.reg_max_lps_awakeintvl = 5;
 	/* for ASPM, you can close aspm through
@@ -153,32 +160,44 @@ int rtl92c_init_sw_vars(struct ieee80211_hw *hw)
 	rtl92c_init_aspm_vars(hw);
 
 	if (rtlpriv->psc.reg_fwctrl_lps == 1)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MIN_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 2)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MAX_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 3)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_DTIM_MODE;
+	}
 
 	/* for firmware buf */
 	rtlpriv->rtlhal.pfirmware = vzalloc(0x4000);
-	if (!rtlpriv->rtlhal.pfirmware) {
+
+	if (!rtlpriv->rtlhal.pfirmware)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Can't alloc buffer for fw\n");
+				 "Can't alloc buffer for fw\n");
 		return 1;
 	}
 
 	/* request fw */
 	if (IS_81XXC_VENDOR_UMC_B_CUT(rtlhal->version))
+	{
 		fw_name = "rtlwifi/rtl8192cfwU_B.bin";
+	}
 
 	rtlpriv->max_fw_size = 0x4000;
 	pr_info("Using firmware %s\n", fw_name);
 	err = request_firmware_nowait(THIS_MODULE, 1, fw_name,
-				      rtlpriv->io.dev, GFP_KERNEL, hw,
-				      rtl_fw_cb);
-	if (err) {
+								  rtlpriv->io.dev, GFP_KERNEL, hw,
+								  rtl_fw_cb);
+
+	if (err)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Failed to request firmware!\n");
+				 "Failed to request firmware!\n");
 		return 1;
 	}
 
@@ -189,13 +208,15 @@ void rtl92c_deinit_sw_vars(struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 
-	if (rtlpriv->rtlhal.pfirmware) {
+	if (rtlpriv->rtlhal.pfirmware)
+	{
 		vfree(rtlpriv->rtlhal.pfirmware);
 		rtlpriv->rtlhal.pfirmware = NULL;
 	}
 }
 
-static struct rtl_hal_ops rtl8192ce_hal_ops = {
+static struct rtl_hal_ops rtl8192ce_hal_ops =
+{
 	.init_sw_vars = rtl92c_init_sw_vars,
 	.deinit_sw_vars = rtl92c_deinit_sw_vars,
 	.read_eeprom_info = rtl92ce_read_eeprom_info,
@@ -248,7 +269,8 @@ static struct rtl_hal_ops rtl8192ce_hal_ops = {
 	.get_btc_status = rtl_btc_status_false,
 };
 
-static struct rtl_mod_params rtl92ce_mod_params = {
+static struct rtl_mod_params rtl92ce_mod_params =
+{
 	.sw_crypto = false,
 	.inactiveps = true,
 	.swctrl_lps = false,
@@ -256,7 +278,8 @@ static struct rtl_mod_params rtl92ce_mod_params = {
 	.debug = DBG_EMERG,
 };
 
-static const struct rtl_hal_cfg rtl92ce_hal_cfg = {
+static const struct rtl_hal_cfg rtl92ce_hal_cfg =
+{
 	.bar_id = 2,
 	.write_readback = true,
 	.name = "rtl92c_pci",
@@ -350,7 +373,8 @@ static const struct rtl_hal_cfg rtl92ce_hal_cfg = {
 	.maps[RTL_RC_HT_RATEMCS15] = DESC_RATEMCS15,
 };
 
-static const struct pci_device_id rtl92ce_pci_ids[] = {
+static const struct pci_device_id rtl92ce_pci_ids[] =
+{
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8191, rtl92ce_hal_cfg)},
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8178, rtl92ce_hal_cfg)},
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8177, rtl92ce_hal_cfg)},
@@ -382,7 +406,8 @@ MODULE_PARM_DESC(debug, "Set debug level (0-5) (default 0)");
 
 static SIMPLE_DEV_PM_OPS(rtlwifi_pm_ops, rtl_pci_suspend, rtl_pci_resume);
 
-static struct pci_driver rtl92ce_driver = {
+static struct pci_driver rtl92ce_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = rtl92ce_pci_ids,
 	.probe = rtl_pci_probe,

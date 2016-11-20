@@ -86,7 +86,8 @@ MODULE_PARM_DESC(polarity, "Output's polarity: 0 = active high, 1 = active low")
 #define DS1621_REG_CONFIG_RESOL_SHIFT	2
 
 /* ds1721 conversion rates: {C/LSB, time(ms), resolution bit setting} */
-static const unsigned short ds1721_convrates[] = {
+static const unsigned short ds1721_convrates[] =
+{
 	94,	/*  9-bits (0.5,  93.75, RES[0..1] = 0 */
 	188,	/* 10-bits (0.25, 187.5, RES[0..1] = 1 */
 	375,	/* 11-bits (0.125,  375, RES[0..1] = 2 */
@@ -100,7 +101,8 @@ static const unsigned short ds1721_convrates[] = {
 #define DS1621_TEMP_MIN	(-55000)
 
 /* The DS1621 temperature registers */
-static const u8 DS1621_REG_TEMP[3] = {
+static const u8 DS1621_REG_TEMP[3] =
+{
 	0xAA,		/* input, word, RO */
 	0xA2,		/* min, word, RW */
 	0xA1,		/* max, word, RW */
@@ -116,10 +118,11 @@ static const u8 DS1621_REG_TEMP[3] = {
 
 /* Conversions */
 #define ALARMS_FROM_REG(val) ((val) & \
-			(DS1621_ALARM_TEMP_HIGH | DS1621_ALARM_TEMP_LOW))
+							  (DS1621_ALARM_TEMP_HIGH | DS1621_ALARM_TEMP_LOW))
 
 /* Each client has this additional data */
-struct ds1621_data {
+struct ds1621_data
+{
 	struct i2c_client *client;
 	struct mutex update_lock;
 	char valid;			/* !=0 if following fields are valid */
@@ -152,7 +155,7 @@ static inline u16 DS1621_TEMP_TO_REG(long temp, u8 zbits)
 }
 
 static void ds1621_init_client(struct ds1621_data *data,
-			       struct i2c_client *client)
+							   struct i2c_client *client)
 {
 	u8 conf, new_conf, sreg, resol;
 
@@ -162,33 +165,42 @@ static void ds1621_init_client(struct ds1621_data *data,
 
 	/* setup output polarity */
 	if (polarity == 0)
+	{
 		new_conf &= ~DS1621_REG_CONFIG_POLARITY;
+	}
 	else if (polarity == 1)
+	{
 		new_conf |= DS1621_REG_CONFIG_POLARITY;
+	}
 
 	if (conf != new_conf)
+	{
 		i2c_smbus_write_byte_data(client, DS1621_REG_CONF, new_conf);
+	}
 
-	switch (data->kind) {
-	case ds1625:
-		data->update_interval = DS1625_CONVERSION_MAX;
-		data->zbits = 7;
-		sreg = DS1621_COM_START;
-		break;
-	case ds1631:
-	case ds1721:
-	case ds1731:
-		resol = (new_conf & DS1621_REG_CONFIG_RESOL) >>
-			 DS1621_REG_CONFIG_RESOL_SHIFT;
-		data->update_interval = ds1721_convrates[resol];
-		data->zbits = 7 - resol;
-		sreg = DS1721_COM_START;
-		break;
-	default:
-		data->update_interval = DS1621_CONVERSION_MAX;
-		data->zbits = 7;
-		sreg = DS1621_COM_START;
-		break;
+	switch (data->kind)
+	{
+		case ds1625:
+			data->update_interval = DS1625_CONVERSION_MAX;
+			data->zbits = 7;
+			sreg = DS1621_COM_START;
+			break;
+
+		case ds1631:
+		case ds1721:
+		case ds1731:
+			resol = (new_conf & DS1621_REG_CONFIG_RESOL) >>
+					DS1621_REG_CONFIG_RESOL_SHIFT;
+			data->update_interval = ds1721_convrates[resol];
+			data->zbits = 7 - resol;
+			sreg = DS1721_COM_START;
+			break;
+
+		default:
+			data->update_interval = DS1621_CONVERSION_MAX;
+			data->zbits = 7;
+			sreg = DS1621_COM_START;
+			break;
 	}
 
 	/* start conversion */
@@ -204,7 +216,8 @@ static struct ds1621_data *ds1621_update_client(struct device *dev)
 	mutex_lock(&data->update_lock);
 
 	if (time_after(jiffies, data->last_updated + data->update_interval) ||
-	    !data->valid) {
+		!data->valid)
+	{
 		int i;
 
 		dev_dbg(&client->dev, "Starting ds1621 update\n");
@@ -213,17 +226,24 @@ static struct ds1621_data *ds1621_update_client(struct device *dev)
 
 		for (i = 0; i < ARRAY_SIZE(data->temp); i++)
 			data->temp[i] = i2c_smbus_read_word_swapped(client,
-							 DS1621_REG_TEMP[i]);
+							DS1621_REG_TEMP[i]);
 
 		/* reset alarms if necessary */
 		new_conf = data->conf;
+
 		if (data->temp[0] > data->temp[1])	/* input > min */
+		{
 			new_conf &= ~DS1621_ALARM_TEMP_LOW;
+		}
+
 		if (data->temp[0] < data->temp[2])	/* input < max */
+		{
 			new_conf &= ~DS1621_ALARM_TEMP_HIGH;
+		}
+
 		if (data->conf != new_conf)
 			i2c_smbus_write_byte_data(client, DS1621_REG_CONF,
-						  new_conf);
+									  new_conf);
 
 		data->last_updated = jiffies;
 		data->valid = 1;
@@ -235,16 +255,16 @@ static struct ds1621_data *ds1621_update_client(struct device *dev)
 }
 
 static ssize_t show_temp(struct device *dev, struct device_attribute *da,
-			 char *buf)
+						 char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct ds1621_data *data = ds1621_update_client(dev);
 	return sprintf(buf, "%d\n",
-		       DS1621_TEMP_FROM_REG(data->temp[attr->index]));
+				   DS1621_TEMP_FROM_REG(data->temp[attr->index]));
 }
 
 static ssize_t set_temp(struct device *dev, struct device_attribute *da,
-			const char *buf, size_t count)
+						const char *buf, size_t count)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct ds1621_data *data = dev_get_drvdata(dev);
@@ -252,26 +272,29 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp[attr->index] = DS1621_TEMP_TO_REG(val, data->zbits);
 	i2c_smbus_write_word_swapped(data->client, DS1621_REG_TEMP[attr->index],
-				     data->temp[attr->index]);
+								 data->temp[attr->index]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static ssize_t show_alarms(struct device *dev, struct device_attribute *da,
-			   char *buf)
+						   char *buf)
 {
 	struct ds1621_data *data = ds1621_update_client(dev);
 	return sprintf(buf, "%d\n", ALARMS_FROM_REG(data->conf));
 }
 
 static ssize_t show_alarm(struct device *dev, struct device_attribute *da,
-			  char *buf)
+						  char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct ds1621_data *data = ds1621_update_client(dev);
@@ -279,14 +302,14 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute *da,
 }
 
 static ssize_t show_convrate(struct device *dev, struct device_attribute *da,
-			  char *buf)
+							 char *buf)
 {
 	struct ds1621_data *data = dev_get_drvdata(dev);
 	return scnprintf(buf, PAGE_SIZE, "%hu\n", data->update_interval);
 }
 
 static ssize_t set_convrate(struct device *dev, struct device_attribute *da,
-			    const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	struct ds1621_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -295,13 +318,18 @@ static ssize_t set_convrate(struct device *dev, struct device_attribute *da,
 	int resol = 0;
 
 	err = kstrtoul(buf, 10, &convrate);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Convert rate into resolution bits */
 	while (resol < (ARRAY_SIZE(ds1721_convrates) - 1) &&
-	       convrate > ds1721_convrates[resol])
+		   convrate > ds1721_convrates[resol])
+	{
 		resol++;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->conf = i2c_smbus_read_byte_data(client, DS1621_REG_CONF);
@@ -317,17 +345,18 @@ static ssize_t set_convrate(struct device *dev, struct device_attribute *da,
 
 static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
 static DEVICE_ATTR(update_interval, S_IWUSR | S_IRUGO, show_convrate,
-		   set_convrate);
+				   set_convrate);
 
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp, set_temp, 1);
 static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp, set_temp, 2);
 static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL,
-		DS1621_ALARM_TEMP_LOW);
+						  DS1621_ALARM_TEMP_LOW);
 static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL,
-		DS1621_ALARM_TEMP_HIGH);
+						  DS1621_ALARM_TEMP_HIGH);
 
-static struct attribute *ds1621_attributes[] = {
+static struct attribute *ds1621_attributes[] =
+{
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	&sensor_dev_attr_temp1_min.dev_attr.attr,
 	&sensor_dev_attr_temp1_max.dev_attr.attr,
@@ -339,7 +368,7 @@ static struct attribute *ds1621_attributes[] = {
 };
 
 static umode_t ds1621_attribute_visible(struct kobject *kobj,
-					struct attribute *attr, int index)
+										struct attribute *attr, int index)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct ds1621_data *data = dev_get_drvdata(dev);
@@ -347,26 +376,33 @@ static umode_t ds1621_attribute_visible(struct kobject *kobj,
 	if (attr == &dev_attr_update_interval.attr)
 		if (data->kind == ds1621 || data->kind == ds1625)
 			/* shhh, we're hiding update_interval */
+		{
 			return 0;
+		}
+
 	return attr->mode;
 }
 
-static const struct attribute_group ds1621_group = {
+static const struct attribute_group ds1621_group =
+{
 	.attrs = ds1621_attributes,
 	.is_visible = ds1621_attribute_visible
 };
 __ATTRIBUTE_GROUPS(ds1621);
 
 static int ds1621_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct ds1621_data *data;
 	struct device *hwmon_dev;
 
 	data = devm_kzalloc(&client->dev, sizeof(struct ds1621_data),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&data->update_lock);
 
@@ -377,12 +413,13 @@ static int ds1621_probe(struct i2c_client *client,
 	ds1621_init_client(data, client);
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(&client->dev,
-							   client->name, data,
-							   ds1621_groups);
+				client->name, data,
+				ds1621_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct i2c_device_id ds1621_id[] = {
+static const struct i2c_device_id ds1621_id[] =
+{
 	{ "ds1621", ds1621 },
 	{ "ds1625", ds1625 },
 	{ "ds1631", ds1631 },
@@ -393,7 +430,8 @@ static const struct i2c_device_id ds1621_id[] = {
 MODULE_DEVICE_TABLE(i2c, ds1621_id);
 
 /* This is the driver that will be inserted */
-static struct i2c_driver ds1621_driver = {
+static struct i2c_driver ds1621_driver =
+{
 	.class		= I2C_CLASS_HWMON,
 	.driver = {
 		.name	= "ds1621",

@@ -29,17 +29,19 @@
 struct mii_phy;
 
 /* Operations supported by any kind of PHY */
-struct mii_phy_ops {
-	int (*init) (struct mii_phy * phy);
-	int (*suspend) (struct mii_phy * phy, int wol_options);
-	int (*setup_aneg) (struct mii_phy * phy, u32 advertise);
-	int (*setup_forced) (struct mii_phy * phy, int speed, int fd);
-	int (*poll_link) (struct mii_phy * phy);
-	int (*read_link) (struct mii_phy * phy);
+struct mii_phy_ops
+{
+	int (*init) (struct mii_phy *phy);
+	int (*suspend) (struct mii_phy *phy, int wol_options);
+	int (*setup_aneg) (struct mii_phy *phy, u32 advertise);
+	int (*setup_forced) (struct mii_phy *phy, int speed, int fd);
+	int (*poll_link) (struct mii_phy *phy);
+	int (*read_link) (struct mii_phy *phy);
 };
 
 /* Structure used to statically define an mii/gii based PHY */
-struct mii_phy_def {
+struct mii_phy_def
+{
 	u32 phy_id;		/* Concatenated ID1 << 16 | ID2 */
 	u32 phy_id_mask;	/* Significant bits */
 	u32 features;		/* Ethtool SUPPORTED_* defines or
@@ -50,7 +52,8 @@ struct mii_phy_def {
 };
 
 /* An instance of a PHY, partially borrowed from mii_if_info */
-struct mii_phy {
+struct mii_phy
+{
 	struct mii_phy_def *def;
 	u32 advertising;	/* Ethtool ADVERTISED_* defines */
 	u32 features;		/* Copied from mii_phy_def.features
@@ -72,9 +75,9 @@ struct mii_phy {
 
 	/* Provided by host chip */
 	struct net_device *dev;
-	int (*mdio_read) (struct net_device * dev, int addr, int reg);
-	void (*mdio_write) (struct net_device * dev, int addr, int reg,
-			    int val);
+	int (*mdio_read) (struct net_device *dev, int addr, int reg);
+	void (*mdio_write) (struct net_device *dev, int addr, int reg,
+						int val);
 };
 
 /* Pass in a struct mii_phy with dev, mdio_read and mdio_write

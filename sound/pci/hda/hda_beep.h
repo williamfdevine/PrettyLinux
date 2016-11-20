@@ -28,16 +28,17 @@
 #define HDA_BEEP_MODE_ON	1
 
 /* beep information */
-struct hda_beep {
+struct hda_beep
+{
 	struct input_dev *dev;
 	struct hda_codec *codec;
 	char phys[32];
 	int tone;
 	hda_nid_t nid;
-	unsigned int registered:1;
-	unsigned int enabled:1;
-	unsigned int linear_tone:1;	/* linear tone for IDT/STAC codec */
-	unsigned int playing:1;
+	unsigned int registered: 1;
+	unsigned int enabled: 1;
+	unsigned int linear_tone: 1;	/* linear tone for IDT/STAC codec */
+	unsigned int playing: 1;
 	struct work_struct beep_work; /* scheduled task for beep event */
 	struct mutex mutex;
 	void (*power_hook)(struct hda_beep *beep, bool on);

@@ -43,7 +43,9 @@ static inline void *xmalloc(size_t len)
 	void *new = malloc(len);
 
 	if (!new)
+	{
 		die("malloc() failed\n");
+	}
 
 	return new;
 }
@@ -53,7 +55,9 @@ static inline void *xrealloc(void *p, size_t len)
 	void *new = realloc(p, len);
 
 	if (!new)
+	{
 		die("realloc() failed (len=%d)\n", len);
+	}
 
 	return new;
 }
@@ -202,8 +206,8 @@ void util_version(void) __attribute__((noreturn));
  * @param opts_help	An array of help strings (should align with long_opts)
  */
 void util_usage(const char *errmsg, const char *synopsis,
-		const char *short_opts, struct option const long_opts[],
-		const char * const opts_help[]) __attribute__((noreturn));
+				const char *short_opts, struct option const long_opts[],
+				const char *const opts_help[]) __attribute__((noreturn));
 
 /**
  * Show usage and exit
@@ -215,7 +219,7 @@ void util_usage(const char *errmsg, const char *synopsis,
  */
 #define usage(errmsg) \
 	util_usage(errmsg, usage_synopsis, usage_short_opts, \
-		   usage_long_opts, usage_opts_help)
+			   usage_long_opts, usage_opts_help)
 
 /**
  * Call getopt_long() with standard options
@@ -223,7 +227,7 @@ void util_usage(const char *errmsg, const char *synopsis,
  * Since all util code runs getopt in the same way, provide a helper.
  */
 #define util_getopt_long() getopt_long(argc, argv, usage_short_opts, \
-				       usage_long_opts, NULL)
+									   usage_long_opts, NULL)
 
 /* Helper for aligning long_opts array */
 #define a_argument required_argument

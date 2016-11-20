@@ -41,13 +41,18 @@ static int bdev_readpage(void *_sb, struct page *page)
 	int err;
 
 	err = sync_request(page, bdev, READ);
-	if (err) {
+
+	if (err)
+	{
 		ClearPageUptodate(page);
 		SetPageError(page);
-	} else {
+	}
+	else
+	{
 		SetPageUptodate(page);
 		ClearPageError(page);
 	}
+
 	unlock_page(page);
 	return err;
 }
@@ -63,17 +68,21 @@ static void writeseg_end_io(struct bio *bio)
 
 	BUG_ON(bio->bi_error); /* FIXME: Retry io or write elsewhere */
 
-	bio_for_each_segment_all(bvec, bio, i) {
+	bio_for_each_segment_all(bvec, bio, i)
+	{
 		end_page_writeback(bvec->bv_page);
 		put_page(bvec->bv_page);
 	}
 	bio_put(bio);
+
 	if (atomic_dec_and_test(&super->s_pending_writes))
+	{
 		wake_up(&wq);
+	}
 }
 
 static int __bdev_writeseg(struct super_block *sb, u64 ofs, pgoff_t index,
-		size_t nr_pages)
+						   size_t nr_pages)
 {
 	struct logfs_super *super = logfs_super(sb);
 	struct address_space *mapping = super->s_mapping_inode->i_mapping;
@@ -87,8 +96,10 @@ static int __bdev_writeseg(struct super_block *sb, u64 ofs, pgoff_t index,
 	bio = bio_alloc(GFP_NOFS, max_pages);
 	BUG_ON(!bio);
 
-	for (i = 0; i < nr_pages; i++) {
-		if (i >= max_pages) {
+	for (i = 0; i < nr_pages; i++)
+	{
+		if (i >= max_pages)
+		{
 			/* Block layer cannot split bios :( */
 			bio->bi_vcnt = i;
 			bio->bi_iter.bi_size = i * PAGE_SIZE;
@@ -108,6 +119,7 @@ static int __bdev_writeseg(struct super_block *sb, u64 ofs, pgoff_t index,
 			bio = bio_alloc(GFP_NOFS, max_pages);
 			BUG_ON(!bio);
 		}
+
 		page = find_lock_page(mapping, index + i);
 		BUG_ON(!page);
 		bio->bi_io_vec[i].bv_page = page;
@@ -118,6 +130,7 @@ static int __bdev_writeseg(struct super_block *sb, u64 ofs, pgoff_t index,
 		set_page_writeback(page);
 		unlock_page(page);
 	}
+
 	bio->bi_vcnt = nr_pages;
 	bio->bi_iter.bi_size = nr_pages * PAGE_SIZE;
 	bio->bi_bdev = super->s_bdev;
@@ -137,37 +150,45 @@ static void bdev_writeseg(struct super_block *sb, u64 ofs, size_t len)
 
 	BUG_ON(super->s_flags & LOGFS_SB_FLAG_RO);
 
-	if (len == 0) {
+	if (len == 0)
+	{
 		/* This can happen when the object fit perfectly into a
 		 * segment, the segment gets written per sync and subsequently
 		 * closed.
 		 */
 		return;
 	}
+
 	head = ofs & (PAGE_SIZE - 1);
-	if (head) {
+
+	if (head)
+	{
 		ofs -= head;
 		len += head;
 	}
+
 	len = PAGE_ALIGN(len);
 	__bdev_writeseg(sb, ofs, ofs >> PAGE_SHIFT, len >> PAGE_SHIFT);
 }
 
 
 static void erase_end_io(struct bio *bio)
-{ 
-	struct super_block *sb = bio->bi_private; 
-	struct logfs_super *super = logfs_super(sb); 
+{
+	struct super_block *sb = bio->bi_private;
+	struct logfs_super *super = logfs_super(sb);
 
-	BUG_ON(bio->bi_error); /* FIXME: Retry io or write elsewhere */ 
-	BUG_ON(bio->bi_vcnt == 0); 
-	bio_put(bio); 
+	BUG_ON(bio->bi_error); /* FIXME: Retry io or write elsewhere */
+	BUG_ON(bio->bi_vcnt == 0);
+	bio_put(bio);
+
 	if (atomic_dec_and_test(&super->s_pending_writes))
-		wake_up(&wq); 
-} 
+	{
+		wake_up(&wq);
+	}
+}
 
 static int do_erase(struct super_block *sb, u64 ofs, pgoff_t index,
-		size_t nr_pages)
+					size_t nr_pages)
 {
 	struct logfs_super *super = logfs_super(sb);
 	struct bio *bio;
@@ -179,8 +200,10 @@ static int do_erase(struct super_block *sb, u64 ofs, pgoff_t index,
 	bio = bio_alloc(GFP_NOFS, max_pages);
 	BUG_ON(!bio);
 
-	for (i = 0; i < nr_pages; i++) {
-		if (i >= max_pages) {
+	for (i = 0; i < nr_pages; i++)
+	{
+		if (i >= max_pages)
+		{
 			/* Block layer cannot split bios :( */
 			bio->bi_vcnt = i;
 			bio->bi_iter.bi_size = i * PAGE_SIZE;
@@ -200,10 +223,12 @@ static int do_erase(struct super_block *sb, u64 ofs, pgoff_t index,
 			bio = bio_alloc(GFP_NOFS, max_pages);
 			BUG_ON(!bio);
 		}
+
 		bio->bi_io_vec[i].bv_page = super->s_erase_page;
 		bio->bi_io_vec[i].bv_len = PAGE_SIZE;
 		bio->bi_io_vec[i].bv_offset = 0;
 	}
+
 	bio->bi_vcnt = nr_pages;
 	bio->bi_iter.bi_size = nr_pages * PAGE_SIZE;
 	bio->bi_bdev = super->s_bdev;
@@ -217,7 +242,7 @@ static int do_erase(struct super_block *sb, u64 ofs, pgoff_t index,
 }
 
 static int bdev_erase(struct super_block *sb, loff_t to, size_t len,
-		int ensure_write)
+					  int ensure_write)
 {
 	struct logfs_super *super = logfs_super(sb);
 
@@ -225,9 +250,12 @@ static int bdev_erase(struct super_block *sb, loff_t to, size_t len,
 	BUG_ON(len & (PAGE_SIZE - 1));
 
 	if (super->s_flags & LOGFS_SB_FLAG_RO)
+	{
 		return -EROFS;
+	}
 
-	if (ensure_write) {
+	if (ensure_write)
+	{
 		/*
 		 * Object store doesn't care whether erases happen or not.
 		 * But for the journal they are required.  Otherwise a scan
@@ -279,7 +307,7 @@ static int bdev_write_sb(struct super_block *sb, struct page *page)
 
 static void bdev_put_device(struct logfs_super *s)
 {
-	blkdev_put(s->s_bdev, FMODE_READ|FMODE_WRITE|FMODE_EXCL);
+	blkdev_put(s->s_bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
 }
 
 static int bdev_can_write_buf(struct super_block *sb, u64 ofs)
@@ -287,7 +315,8 @@ static int bdev_can_write_buf(struct super_block *sb, u64 ofs)
 	return 0;
 }
 
-static const struct logfs_device_ops bd_devops = {
+static const struct logfs_device_ops bd_devops =
+{
 	.find_first_sb	= bdev_find_first_sb,
 	.find_last_sb	= bdev_find_last_sb,
 	.write_sb	= bdev_write_sb,
@@ -300,18 +329,22 @@ static const struct logfs_device_ops bd_devops = {
 };
 
 int logfs_get_sb_bdev(struct logfs_super *p, struct file_system_type *type,
-		const char *devname)
+					  const char *devname)
 {
 	struct block_device *bdev;
 
-	bdev = blkdev_get_by_path(devname, FMODE_READ|FMODE_WRITE|FMODE_EXCL,
-				  type);
-	if (IS_ERR(bdev))
-		return PTR_ERR(bdev);
+	bdev = blkdev_get_by_path(devname, FMODE_READ | FMODE_WRITE | FMODE_EXCL,
+							  type);
 
-	if (MAJOR(bdev->bd_dev) == MTD_BLOCK_MAJOR) {
+	if (IS_ERR(bdev))
+	{
+		return PTR_ERR(bdev);
+	}
+
+	if (MAJOR(bdev->bd_dev) == MTD_BLOCK_MAJOR)
+	{
 		int mtdnr = MINOR(bdev->bd_dev);
-		blkdev_put(bdev, FMODE_READ|FMODE_WRITE|FMODE_EXCL);
+		blkdev_put(bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
 		return logfs_get_sb_mtd(p, mtdnr);
 	}
 
